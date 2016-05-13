@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(knead CXX)
+project(omega_h CXX)
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 set(CMAKE_CXX_FLAGS "\
@@ -22,7 +22,8 @@ endif()
 #configure_file(to_config.hpp config.hpp)
 #include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-#add_library(knead knead.cpp)
+add_library(omega_h omega_h.cpp)
 add_executable(unit_tests unit_tests.cpp)
+target_link_libraries(unit_tests omega_h)
 # add_executable(perf_tests perf_tests.cpp)
-# target_link_libraries(perf_tests knead)
+# target_link_libraries(perf_tests omega_h)
