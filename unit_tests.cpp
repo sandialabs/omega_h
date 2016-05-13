@@ -6,6 +6,7 @@ static void test_qr_decomp(Matrix<m,n> a) {
   Matrix<n,n> r;
   decompose_qr_reduced(a, q, r);
   CHECK(are_close(a, q * r));
+  CHECK(are_close(transpose(q) * q, identity_matrix<m,n>()));
 }
 
 int main()

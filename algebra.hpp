@@ -91,6 +91,16 @@ INLINE Matrix<m,n> operator*(Matrix<m,p> a, Matrix<p,n> b)
 }
 
 template <UInt m, UInt n>
+INLINE Matrix<n,m> transpose(Matrix<m,n> a)
+{
+  Matrix<n,m> b;
+  for (UInt i = 0; i < m; ++i)
+  for (UInt j = 0; j < n; ++j)
+    b[i][j] = a[j][i];
+  return b;
+}
+
+template <UInt m, UInt n>
 INLINE bool are_close(Matrix<m,n> a, Matrix<m,n> b,
     Real tol = EPSILON, Real floor = EPSILON) {
   for (UInt j = 0; j < n; ++j)

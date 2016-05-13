@@ -5,7 +5,7 @@
    for k=1 to n
      x = A_{k:m,k}
      v_k = sign(x_1)\|x\|_2 e_1 + x
-     v_k = v_k / \|v_k\|_2
+     v_k = v_k / \|v_k\|_2          <- note this can divide by zero if x={0}
      A_{k:m,k:n} = A_{k:m,k:n} - 2 v_k (v_k^* A_{k:m,k:n}) */
 
 template <UInt m, UInt n>
@@ -15,6 +15,8 @@ INLINE Vector<m> householder_vector(Matrix<m,n> a, UInt k, UInt o) {
     norm_x += square(a[k][i]);
   norm_x = sqrt(norm_x);
   Vector<m> v_k;
+  //if the x vector is nearly zero, use the exact zero vector as the
+  //householder vector and avoid extra work and divide by zero below
   if (norm_x < EPSILON) {
     for (UInt i = k + o; i < m; ++i)
       v_k[i] = 0.0;
