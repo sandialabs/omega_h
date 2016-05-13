@@ -40,7 +40,17 @@ static void test_eigen_decomp() {
   CHECK(are_close(q2 * l2 * transpose(q2), a));
 }
 
+static void test_int128() {
+  Int128 a(INT64_MAX);
+  auto b = a + a;
+  b = b + b;
+  b = b + b;
+  b = b >> 3;
+  CHECK(b == a);
+}
+
 int main() {
   test_qr_decomps();
   test_eigen_decomp();
+  test_int128();
 }
