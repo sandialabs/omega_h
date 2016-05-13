@@ -2,3 +2,4 @@
 #include "control.cpp"
 #include "timer.cpp"
 #include "algebra.cpp"
+#include "array.cpp"
