@@ -9,7 +9,7 @@ static void test_qr_decomp(Matrix<m,n> a) {
   CHECK(are_close(transpose(q) * q, identity_matrix<m,n>()));
 }
 
-int main() {
+static void test_qr_decomps() {
   test_qr_decomp(Matrix<3,3>({
        0, 0, 0,
        0, 0, 0,
@@ -22,21 +22,25 @@ int main() {
       12, -51,  4,
        6, 167,-68,
       -4,  24,-41}));
+}
 
+static void test_eigen_decomp() {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
-  std::cout << "q\n" << q;
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
   auto l = matrix_3x3(
       1, 0, 0,
       0, 1, 0,
       0, 0, 1e-6);
-  std::cout << "l\n" << l;
   auto a = q * l * transpose(q);
-  std::cout << "a\n" << a;
   Matrix<3,3> q2;
   Matrix<3,3> l2;
   decompose_eigen_qr(a, q2, l2);
-  std::cout << "q2\n" << q2;
-  std::cout << "l2\n" << l2;
+  CHECK(are_close(transpose(q2) * q2, identity_matrix<3,3>()));
+  CHECK(are_close(q2 * l2 * transpose(q2), a));
+}
+
+int main() {
+  test_qr_decomps();
+  test_eigen_decomp();
 }
