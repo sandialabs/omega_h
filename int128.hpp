@@ -27,6 +27,9 @@ public:
     difference.high -= (difference.low > low);
     return difference;
   }
+  INLINE Int128 operator-() const {
+    return Int128(0) - *this;
+  }
   INLINE Int128 operator>>(int expo) const {
     Int128 shifted;
     shifted.low = (low >> expo) |
@@ -36,6 +39,37 @@ public:
   }
   INLINE bool operator==(Int128 const& rhs) {
     return high == rhs.high && low == rhs.low;
+  }
+  INLINE bool operator<(Int128 const& rhs) {
+    if (high != rhs.high)
+      return high < rhs.high;
+    return low < rhs.low;
+  }
+  INLINE double as_double(int expo) {
+    Int128 tmp = *this;
+    if (tmp < Int128(0))
+      tmp = -tmp;
+    while (tmp.high) {
+      tmp = tmp >> 1;
+      ++expo;
+    }
+    double x = tmp.low;
+    if (*this < Int128(0))
+      x = -x;
+    x *= exp2(double(expo));
+    return x;
+  }
+  static INLINE Int128 max() {
+    Int128 x;
+    x.high = INT64_MAX;
+    x.low = UINT64_MAX;
+    return x;
+  }
+  static INLINE Int128 min() {
+    Int128 x;
+    x.high = INT64_MIN;
+    x.low = 0;
+    return x;
   }
   void print(std::ostream& o);
 };

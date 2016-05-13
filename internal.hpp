@@ -1,4 +1,5 @@
 #include "config.hpp"
+
 #include <cstdint>
 #include <cmath>
 #include <cstdlib>
@@ -8,6 +9,7 @@
 #include <type_traits>
 #include <chrono>
 #include <memory>
+#include <limits>
 
 #ifdef USE_KOKKOS
 #ifdef __clang__
@@ -40,10 +42,13 @@ typedef double Real;
 #include "timer.hpp"
 #include "algorithm.hpp"
 #include "few.hpp"
+#include "int128.hpp"
+#include "traits.hpp"
 #include "algebra.hpp"
 #include "space.hpp"
 #include "qr.hpp"
 #include "loop.hpp"
+#include "functors.hpp"
 #include "array.hpp"
 #include "access.hpp"
-#include "int128.hpp"
+#include "repro.hpp"
