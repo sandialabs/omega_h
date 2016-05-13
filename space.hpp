@@ -47,3 +47,9 @@ INLINE Matrix<3,3> rotate(Real angle, Vector<3> axis) {
          sin(angle) * cross(axis) +
          (1 - cos(angle)) * tensor_product(axis, axis);
 }
+
+INLINE Matrix<2,2> rotate(Real angle) {
+  return matrix_2x2(
+      cos(angle), -sin(angle),
+      sin(angle),  cos(angle));
+}
