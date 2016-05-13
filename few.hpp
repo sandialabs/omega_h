@@ -1,6 +1,6 @@
-template <typename T, U8 n>
+template <typename T, UInt n>
 class Few {
   T array_[n];
   public:
-    INLINE T& operator[](U8 i) {return array_[i];}
+    INLINE T& operator[](UInt i) {return array_[i];}
 };

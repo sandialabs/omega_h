@@ -11,4 +11,5 @@ int main()
   decompose_qr_reduced(a, q, r);
   std::cout << q << '\n';
   std::cout << r << '\n';
+  std::cout << (q * r) << '\n';
 }
