@@ -42,9 +42,9 @@ Vector<n> operator+(Vector<n> a, Vector<n> b)
 }
 
 template <UInt n>
-INLINE bool are_close(Vector<n> a, Vector<n> b) {
+INLINE bool are_close(Vector<n> a, Vector<n> b, Real tol, Real floor) {
   for (UInt i = 0; i < n; ++i)
-    if (!are_close(a[i], b[i]))
+    if (!are_close(a[i], b[i], tol, floor))
       return false;
   return true;
 }
@@ -93,9 +93,9 @@ Matrix<m,n> operator*(Matrix<m,p> a, Matrix<p,n> b)
 }
 
 template <UInt m, UInt n>
-INLINE bool are_close(Matrix<m,n> a, Matrix<m,n> b) {
+INLINE bool are_close(Matrix<m,n> a, Matrix<m,n> b, Real tol, Real floor) {
   for (UInt j = 0; j < n; ++j)
-    if (!are_close(a[j], b[j]))
+    if (!are_close(a[j], b[j], tol, floor))
       return false;
   return true;
 }

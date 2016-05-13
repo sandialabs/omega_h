@@ -16,4 +16,5 @@ int main()
   std::cout << q << '\n';
   std::cout << r << '\n';
   std::cout << (q * r) << '\n';
+  CHECK(are_close(a, q * r, 1e-12, 1e-10));
 }

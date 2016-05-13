@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "\
 -O2 \
 -g \
 -fno-omit-frame-pointer \
+-ferror-limit=1 \
 -Werror \
 -Weverything \
 -Wno-c++98-compat \
