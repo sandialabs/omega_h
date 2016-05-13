@@ -39,7 +39,7 @@ INLINE Vector<m> householder_vector(Matrix<m,n> a, UInt k, UInt o) {
 
 template <UInt m, UInt n>
 INLINE void reflect_columns(Matrix<m,n>& a, Vector<m> v_k, UInt k, UInt o) {
-  for (UInt j = 0; j < n; ++j) {
+  for (UInt j = k; j < n; ++j) {
     Real dot = 0;
     for (UInt i = k + o; i < m; ++i)
       dot += a[j][i] * v_k[i];
@@ -106,10 +106,36 @@ INLINE void decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) 
     implicit_q_x(q[j], v);
 }
 
+/* A_{1:m,k+1:m} = A_{1:m,k+1:m} - 2(A_{1:m,k+1:m}v_k)v_k^* */
 template <UInt m>
-INLINE void householder_hessenberg(Matrix<m,m>& a) {
+INLINE void reflect_rows(Matrix<m,m>& a, Vector<m> v_k, UInt k) {
+  for (UInt i = 0; i < m; ++i) {
+    Real dot = 0;
+    for (UInt j = k + 1; j < m; ++j)
+      dot += a[j][i] * v_k[j];
+    for (UInt j = k + 1; j < m; ++j)
+      a[j][i] -= 2 * dot * v_k[j];
+  }
+}
+
+/* Trefethen, Lloyd N., and David Bau III.
+   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Algorithm 26.1. Householder Reduction to Hessenberg Form
+
+   (note the similarity to Algorithm 10.1, hence the code reuse)
+
+   for k=1 to m - 2
+     x = A_{k+1:m,k}
+     v_k = sign(x_1)\|x\|_2 e_1 + x
+     v_k = v_k / \|v_k\|_2
+     A_{k+1:m,k:m} = A_{k+1:m,k:m} - 2 v_k (v_k^* A_{k+1:m,k:m})
+     A_{1:m,k+1:m} = A_{1:m,k+1:m} - 2(A_{1:m,k+1:m}v_k)v_k^* */
+template <UInt m>
+INLINE void householder_hessenberg(Matrix<m,m>& a,
+    Few<Vector<m>, m - 2>& v) {
   for (UInt k = 0; k < m - 2; ++k) {
-    auto v_k = householder_vector(a, k, 1);
-    reflect_columns(a, v_k, k, 1);
+    v[k] = householder_vector(a, k, 1);
+    reflect_columns(a, v[k], k, 1);
+    reflect_rows(a, v[k], k);
   }
 }
