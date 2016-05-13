@@ -14,20 +14,16 @@ INLINE Vector<m> get_householder_vector(Matrix<m,n> a, UInt k, UInt o) {
   for (UInt i = k + o; i < m; ++i)
     norm_x += square(a[k][i]);
   norm_x = sqrt(norm_x);
-  std::cout << "norm_x " << norm_x << '\n';
   Vector<m> v_k;
   for (UInt i = k + o; i < m; ++i)
     v_k[i] = a[k][i];
-  std::cout << "v_k before correct " << v_k << '\n';
   v_k[k + o] += sign(a[k][k + o]) * norm_x;
-  std::cout << "v_k after correct " << v_k << '\n';
   Real norm_v_k = 0;
   for (UInt i = k + o; i < m; ++i)
     norm_v_k += square(v_k[i]);
   norm_v_k = sqrt(norm_v_k);
   for (UInt i = k + o; i < m; ++i)
     v_k[i] /= norm_v_k;
-  std::cout << "v_k normalized " << v_k << '\n';
   return v_k;
 }
 
@@ -47,7 +43,6 @@ INLINE void factorize_qr_householder(Matrix<m,n>& a,
     Few<Vector<m>, n>& v) {
   for (UInt k = 0; k < n; ++k) {
     v[k] = get_householder_vector(a, k, 0);
-    std::cout << v[k] << '\n';
     reflect_columns(a, v[k], k, 0);
   }
 }
