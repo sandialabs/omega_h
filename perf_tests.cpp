@@ -1,7 +1,7 @@
 #include <random>
 #include "internal.hpp"
 
-static UInt const nelems = 1;
+static UInt const nelems = 100 * 1000;
 
 static Reals random_reals(UInt n, Real from, Real to) {
   std::random_device rd;
@@ -37,15 +37,22 @@ static void test_metric_decom() {
   Reals metrics(write_metrics);
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
-  Write<Real> write_eigenv(nelems);
+  Write<Real> write_eigenvs(nelems);
   auto f1 = LAMBDA(UInt i) {
     auto m = get_symm<3>(metrics, i);
     Matrix<3,3> r;
     Matrix<3,3> l;
     decompose_eigen_qr(m, r, l);
-    write_eigenv[i] = max2(max2(l[0][0], l[1][1]), l[2][2]);
+    auto eigenv = max2(max2(l[0][0], l[1][1]), l[2][2]);
+    write_eigenvs[i] = eigenv;
   };
-  parallel_for(nelems, f1);
+  Now t0 = now();
+  UInt niters = 50;
+  for (UInt i = 0; i < niters; ++i)
+    parallel_for(nelems, f1);
+  Now t1 = now();
+  std::cout << "eigendecomposition of " << nelems << " metric tensors "
+    << niters << " times takes " << (t1 - t0) << " seconds\n";
 }
 
 int main() {
