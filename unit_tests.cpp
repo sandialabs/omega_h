@@ -9,4 +9,6 @@ int main()
   Matrix<3,3> q;
   Matrix<3,3> r;
   decompose_qr_reduced(a, q, r);
+  std::cout << q << '\n';
+  std::cout << r << '\n';
 }
