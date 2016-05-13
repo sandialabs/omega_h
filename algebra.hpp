@@ -101,6 +101,15 @@ INLINE Matrix<n,m> transpose(Matrix<m,n> a)
 }
 
 template <UInt m, UInt n>
+INLINE Real frobenius_norm(Matrix<m,n> a) {
+  Real x = 0.0;
+  for (UInt j = 0; j < n; ++j)
+  for (UInt i = 0; i < m; ++i)
+    x += square(a[j][i]);
+  return sqrt(x);
+}
+
+template <UInt m, UInt n>
 INLINE bool are_close(Matrix<m,n> a, Matrix<m,n> b,
     Real tol = EPSILON, Real floor = EPSILON) {
   for (UInt j = 0; j < n; ++j)

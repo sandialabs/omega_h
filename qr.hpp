@@ -12,7 +12,8 @@
    are there to support hessenberg reduction / tri-diagonalization */
 
 template <UInt m, UInt n>
-INLINE Vector<m> householder_vector(Matrix<m,n> a, UInt k, UInt o) {
+INLINE Vector<m> householder_vector(Matrix<m,n> a, Real anorm,
+    UInt k, UInt o) {
   Real norm_x = 0;
   for (UInt i = k + o; i < m; ++i)
     norm_x += square(a[k][i]);
@@ -20,7 +21,7 @@ INLINE Vector<m> householder_vector(Matrix<m,n> a, UInt k, UInt o) {
   Vector<m> v_k;
   //if the x vector is nearly zero, use the exact zero vector as the
   //householder vector and avoid extra work and divide by zero below
-  if (norm_x < EPSILON) {
+  if (norm_x <= EPSILON * anorm) {
     for (UInt i = k + o; i < m; ++i)
       v_k[i] = 0.0;
     return v_k;
@@ -51,8 +52,9 @@ INLINE void reflect_columns(Matrix<m,n>& a, Vector<m> v_k, UInt k, UInt o) {
 template <UInt m, UInt n>
 INLINE void factorize_qr_householder(Matrix<m,n>& a,
     Few<Vector<m>, n>& v) {
+  Real anorm = frobenius_norm(a);
   for (UInt k = 0; k < n; ++k) {
-    v[k] = householder_vector(a, k, 0);
+    v[k] = householder_vector(a, anorm, k, 0);
     reflect_columns(a, v[k], k, 0);
   }
 }
@@ -133,8 +135,9 @@ INLINE void reflect_rows(Matrix<m,m>& a, Vector<m> v_k, UInt k) {
 template <UInt m>
 INLINE void householder_hessenberg(Matrix<m,m>& a,
     Few<Vector<m>, m - 2>& v) {
+  Real anorm = frobenius_norm(a);
   for (UInt k = 0; k < m - 2; ++k) {
-    v[k] = householder_vector(a, k, 1);
+    v[k] = householder_vector(a, anorm, k, 1);
     reflect_columns(a, v[k], k, 1);
     reflect_rows(a, v[k], k);
   }
@@ -161,9 +164,9 @@ householder_hessenberg2(Matrix<m,m>&,
 }
 
 template <UInt m>
-INLINE bool reduce(Matrix<m,m> a, UInt& n) {
+INLINE bool reduce(Matrix<m,m> a, Real anorm, UInt& n) {
   for (; n >= 2; --n)
-    if (fabs(a[n - 2][n - 1]) > EPSILON)
+    if (fabs(a[n - 2][n - 1]) > EPSILON * anorm)
       return true;
   return false;
 }
@@ -222,10 +225,11 @@ INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
 template <UInt m>
 INLINE void qr_eigen(Matrix<m,m>& a, Matrix<m,m>& q,
     UInt max_iters = 100) {
+  Real anorm = frobenius_norm(a);
   householder_hessenberg2(a, q);
   UInt n = m;
   for (UInt i = 0; i < max_iters; ++i) {
-    if (!reduce(a, n))
+    if (!reduce(a, anorm, n))
       return;
     auto mu = wilkinson_shift(a, n);
     apply_shift(a, mu);
