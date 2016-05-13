@@ -139,3 +139,102 @@ INLINE void householder_hessenberg(Matrix<m,m>& a,
     reflect_rows(a, v[k], k);
   }
 }
+
+template <UInt m>
+INLINE
+typename std::enable_if<(m > 2)>::type
+householder_hessenberg2(Matrix<m,m>& a,
+    Matrix<m,m>& q) {
+  Few<Vector<m>, m - 2> v;
+  householder_hessenberg(a, v);
+  q = identity_matrix<m,m>();
+  for (UInt j = 0; j < m; ++j)
+    implicit_q_x(q[j], v);
+}
+
+template <UInt m>
+INLINE
+typename std::enable_if<!(m > 2)>::type
+householder_hessenberg2(Matrix<m,m>&,
+    Matrix<m,m>& q) {
+  q = identity_matrix<m,m>();
+}
+
+template <UInt m>
+INLINE bool reduce(Matrix<m,m> a, UInt& n) {
+  for (; n >= 2; --n)
+    if (fabs(a[n - 2][n - 1]) > EPSILON)
+      return true;
+  return false;
+}
+
+/* Trefethen, Lloyd N., and David Bau III.
+   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Equation 29.8. Wilkinson Shift
+
+   let B denote the lower-rightmost 2x2 submatrix of A^{(k)}
+
+   B = [ a_{m-1} b_{m-1} ]
+       [ b_{m-1} a_{m}   ]
+
+   \mu = (a_m - sign(\delta)b_{m-1}^2) /
+         (|\delta| + \sqrt{\delta^2 + b_{m-1}^2})
+
+   where \delta = (a_{m-1} - a_m) / 2    */
+template <UInt m>
+INLINE Real wilkinson_shift(Matrix<m,m> a, UInt n) {
+  auto anm1 = a[n - 2][n - 2];
+  auto an   = a[n - 1][n - 1];
+  auto bnm1 = a[n - 2][n - 1];
+  auto delta  = (anm1 - an) / 2;
+  auto denom = fabs(delta) + sqrt(square(delta) + square(bnm1));
+  return an - ((sign(delta) * square(bnm1)) / denom);
+}
+
+template <UInt m>
+INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
+  for (UInt i = 0; i < m; ++i)
+    a[i][i] -= mu;
+}
+
+
+/* Trefethen, Lloyd N., and David Bau III.
+   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Algorithm 28.2. "Practical" QR Algorithm
+
+   (Q^{(0)})^T A^{(0)} Q^{(0)}                A^{(0)} is a tridiagonalization of A
+   for k = 1,2,...
+     Pick a shift \mu^{(k)}                   e.g., Wilkinson shift
+     Q^{(k)}R^{(k)} = A^{(k-1)} - \mu^{(k)}I  QR factorization of A^{(k-1)} - \mu^{(k)}I
+     A^{(k)} = R^{(k)}Q^{(k)} + \mu^{(k)}I    Recombine factors in reverse order
+     If any off-diagonal element A^{(k)}_{j,j+1} is sufficiently close to zero,
+       set A_{j,j+1} = A_{j+1,j} = 0 to obtain
+       [ A_1   0 ]
+       [   0 A_2 ] = A^{(k)}
+       and now apply the QR algorithm to A_1 and A_2
+
+  we don't quite implement reduction fully.
+  what we do is to check the entry A_{m,m-1} for closeness
+  to zero, and in that case try to reduce (A_2 is a scalar).
+  even then, we continue to do QR decompositions
+  on the full matrix, only the shift computation is affected
+  by how far we've reduced */
+template <UInt m>
+INLINE void qr_eigen(Matrix<m,m>& a, Matrix<m,m>& q,
+    UInt max_iters = 100) {
+  householder_hessenberg(a, q);
+  UInt n;
+  for (UInt i = 0; i < max_iters; ++i) {
+    if (!reduce(a, n))
+      return;
+    auto mu = wilkinson_shift(a, n);
+    apply_shift(a, mu);
+    Matrix<m,m> q_k;
+    Matrix<m,m> r_k;
+    decompose_qr_reduced(a, q_k, r_k);
+    a = r_k * q_k;
+    apply_shift(a, -mu);
+    q = q * q_k;
+  }
+  NORETURN();
+}
