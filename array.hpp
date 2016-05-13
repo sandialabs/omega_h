@@ -7,6 +7,7 @@ class Write {
   UInt size_;
 #endif
 public:
+  Write();
   Write(UInt size);
   Write(UInt size, T value);
   UInt size() const;
@@ -38,6 +39,13 @@ public:
 #endif
 };
 
+class Reals : public Read<Real> {
+public:
+  Reals():Read<Real>() {}
+  Reals(Write<Real> write):Read<Real>(write) {}
+  Reals(std::initializer_list<Real> l):Read<Real>(l) {}
+};
+
 template <typename T>
 class HostWrite {
   Write<T> write_;
@@ -56,6 +64,12 @@ public:
     return write_[i];
 #endif
   }
+};
+
+class HostReals : public HostWrite<Real> {
+public:
+  HostReals(UInt size):HostWrite<Real>(size) {}
+  HostReals(std::initializer_list<Real> l):HostWrite<Real>(l) {}
 };
 
 template <typename T>

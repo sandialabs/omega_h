@@ -1,4 +1,11 @@
 template <typename T>
+Write<T>::Write():
+  ptr_(),
+  size_(0)
+{
+}
+
+template <typename T>
 Write<T>::Write(UInt size):
 #ifdef USE_KOKKOS
   view_("omega_h", size)
@@ -74,7 +81,7 @@ HostWrite<T>::HostWrite(UInt size):
 template <typename T>
 HostWrite<T>::HostWrite(std::initializer_list<T> l):
   HostWrite<T>(l.size()) {
-  UInt i;
+  UInt i = 0;
   for (auto v : l)
     operator[](i++) = v;
 }
@@ -108,3 +115,15 @@ template <typename T>
 UInt HostRead<T>::size() const {
   return read_.size();
 }
+
+#define INST_ARRAY_T(T) \
+template class Write<T>; \
+template class Read<T>; \
+template class HostWrite<T>; \
+template class HostRead<T>;
+
+INST_ARRAY_T(U8)
+INST_ARRAY_T(U16)
+INST_ARRAY_T(U32)
+INST_ARRAY_T(U64)
+INST_ARRAY_T(Real)
