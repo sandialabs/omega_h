@@ -18,4 +18,5 @@ typedef double Real;
 #include "algorithm.hpp"
 #include "few.hpp"
 #include "algebra.hpp"
+#include "space.hpp"
 #include "qr.hpp"
