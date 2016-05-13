@@ -8,6 +8,9 @@
      v_k = v_k / \|v_k\|_2          <- note this can divide by zero if x={0}
      A_{k:m,k:n} = A_{k:m,k:n} - 2 v_k (v_k^* A_{k:m,k:n}) */
 
+/* the "o" (offset) parameters to householder_vector and reflect_columns
+   are there to support hessenberg reduction / tri-diagonalization */
+
 template <UInt m, UInt n>
 INLINE Vector<m> householder_vector(Matrix<m,n> a, UInt k, UInt o) {
   Real norm_x = 0;
@@ -101,4 +104,12 @@ INLINE void decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) 
   q = identity_matrix<m,n>();
   for (UInt j = 0; j < n; ++j)
     implicit_q_x(q[j], v);
+}
+
+template <UInt m>
+INLINE void householder_hessenberg(Matrix<m,m>& a) {
+  for (UInt k = 0; k < m - 2; ++k) {
+    auto v_k = householder_vector(a, k, 1);
+    reflect_columns(a, v_k, k, 1);
+  }
 }

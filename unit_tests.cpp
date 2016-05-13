@@ -9,8 +9,7 @@ static void test_qr_decomp(Matrix<m,n> a) {
   CHECK(are_close(transpose(q) * q, identity_matrix<m,n>()));
 }
 
-int main()
-{
+int main() {
   test_qr_decomp(Matrix<3,3>({
        0, 0, 0,
        0, 0, 0,
