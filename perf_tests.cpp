@@ -23,7 +23,7 @@ static void test_metric_decom() {
   Reals alphas = random_reals(nelems, 0, PI / 2);
   Reals betas = random_reals(nelems, 0, PI / 2);
   Write<Real> write_metrics(nelems * 6);
-  auto f = LAMBDA(UInt i) {
+  auto f0 = LAMBDA(UInt i) {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
              rotate( betas[i], vector_3(0, 1, 0));
     auto l = matrix_3x3(
@@ -33,7 +33,19 @@ static void test_metric_decom() {
     auto m = r * l * transpose(r);
     set_symm(write_metrics, i, m);
   };
-  parallel_for(nelems, f);
+  parallel_for(nelems, f0);
+  Reals metrics(write_metrics);
+  /* now, decompose the metrics and get the largest
+     eigenvalue of each */
+  Write<Real> write_eigenv(nelems);
+  auto f1 = LAMBDA(UInt i) {
+    auto m = get_symm<3>(metrics, i);
+    Matrix<3,3> r;
+    Matrix<3,3> l;
+    decompose_eigen_qr(m, r, l);
+    write_eigenv[i] = max2(max2(l[0][0], l[1][1]), l[2][2]);
+  };
+  parallel_for(nelems, f1);
 }
 
 int main() {
