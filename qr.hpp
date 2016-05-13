@@ -222,8 +222,8 @@ INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
 template <UInt m>
 INLINE void qr_eigen(Matrix<m,m>& a, Matrix<m,m>& q,
     UInt max_iters = 100) {
-  householder_hessenberg(a, q);
-  UInt n;
+  householder_hessenberg2(a, q);
+  UInt n = m;
   for (UInt i = 0; i < max_iters; ++i) {
     if (!reduce(a, n))
       return;
@@ -237,4 +237,11 @@ INLINE void qr_eigen(Matrix<m,m>& a, Matrix<m,m>& q,
     q = q * q_k;
   }
   NORETURN();
+}
+
+template <UInt m>
+INLINE void decompose_eigen_qr(Matrix<m,m> a, Matrix<m,m>& q,
+    Matrix<m,m>& l, UInt max_iters = 100) {
+  l = a;
+  qr_eigen(l, q, max_iters);
 }
