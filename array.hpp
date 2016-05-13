@@ -66,12 +66,6 @@ public:
   }
 };
 
-class HostReals : public HostWrite<Real> {
-public:
-  HostReals(UInt size):HostWrite<Real>(size) {}
-  HostReals(std::initializer_list<Real> l):HostWrite<Real>(l) {}
-};
-
 template <typename T>
 class HostRead {
   Read<T> read_;
