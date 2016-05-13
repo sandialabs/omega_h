@@ -9,7 +9,7 @@
      A_{k:m,k:n} = A_{k:m,k:n} - 2 v_k (v_k^* A_{k:m,k:n}) */
 
 template <UInt m, UInt n>
-INLINE Vector<m> get_householder_vector(Matrix<m,n> a, UInt k, UInt o) {
+INLINE Vector<m> householder_vector(Matrix<m,n> a, UInt k, UInt o) {
   Real norm_x = 0;
   for (UInt i = k + o; i < m; ++i)
     norm_x += square(a[k][i]);
@@ -42,7 +42,7 @@ template <UInt m, UInt n>
 INLINE void factorize_qr_householder(Matrix<m,n>& a,
     Few<Vector<m>, n>& v) {
   for (UInt k = 0; k < n; ++k) {
-    v[k] = get_householder_vector(a, k, 0);
+    v[k] = householder_vector(a, k, 0);
     reflect_columns(a, v[k], k, 0);
   }
 }
@@ -91,9 +91,7 @@ INLINE void decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) 
   for (UInt j = 0; j < n; ++j)
     for (UInt i = 0; i < n; ++i)
       r[j][i] = a[j][i];
-  for (UInt j = 0; j < n; ++j) {
-    for (UInt i = 0; i < m; ++i)
-      q[j][i] = (i == j);
+  q = identity_matrix<m,n>();
+  for (UInt j = 0; j < n; ++j)
     implicit_q_x(q[j], v);
-  }
 }

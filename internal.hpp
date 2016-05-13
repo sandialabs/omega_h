@@ -10,6 +10,7 @@ typedef std::uint64_t U64;
 typedef std::uintptr_t UInt;
 typedef double Real;
 #define INLINE inline
+#define EPSILON 1e-10
 #include "control.hpp"
 #include "algorithm.hpp"
 #include "few.hpp"
