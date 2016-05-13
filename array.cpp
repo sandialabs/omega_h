@@ -1,7 +1,11 @@
 template <typename T>
 Write<T>::Write():
+#ifdef USE_KOKKOS
+  view_()
+#else
   ptr_(),
   size_(0)
+#endif
 {
 }
 
@@ -33,7 +37,11 @@ Write<T>::Write(UInt size, T value):
 
 template <typename T>
 UInt Write<T>::size() const {
+#ifdef USE_KOKKOS
+  return view_.size();
+#else
   return size_;
+#endif
 }
 
 #ifdef USE_KOKKOS

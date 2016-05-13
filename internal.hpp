@@ -1,3 +1,4 @@
+#include "config.hpp"
 #include <cstdint>
 #include <cmath>
 #include <cstdlib>
@@ -7,6 +8,14 @@
 #include <type_traits>
 #include <chrono>
 #include <memory>
+
+#ifdef USE_KOKKOS
+#ifdef __clang__
+#pragma clang system_header
+#endif
+#include <Kokkos_Core.hpp>
+#endif
+
 typedef std::uint8_t  U8;
 typedef std::uint16_t U16;
 typedef std::uint32_t U32;
