@@ -15,6 +15,11 @@ INLINE Vector<m> householder_vector(Matrix<m,n> a, UInt k, UInt o) {
     norm_x += square(a[k][i]);
   norm_x = sqrt(norm_x);
   Vector<m> v_k;
+  if (norm_x < EPSILON) {
+    for (UInt i = k + o; i < m; ++i)
+      v_k[i] = 0.0;
+    return v_k;
+  }
   for (UInt i = k + o; i < m; ++i)
     v_k[i] = a[k][i];
   v_k[k + o] += sign(a[k][k + o]) * norm_x;
