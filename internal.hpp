@@ -23,3 +23,4 @@ typedef double Real;
 #include "algebra.hpp"
 #include "space.hpp"
 #include "qr.hpp"
+#include "loop.hpp"
