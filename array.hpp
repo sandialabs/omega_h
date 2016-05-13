@@ -29,6 +29,7 @@ class Read {
 public:
   Read();
   Read(Write<T> write);
+  Read(UInt size, T value);
   Read(std::initializer_list<T> l);
   UInt size() const;
   INLINE T const& operator[](UInt i) const {
@@ -41,10 +42,13 @@ public:
 
 class Reals : public Read<Real> {
 public:
-  Reals():Read<Real>() {}
-  Reals(Write<Real> write):Read<Real>(write) {}
-  Reals(std::initializer_list<Real> l):Read<Real>(l) {}
+  Reals();
+  Reals(Write<Real> write);
+  Reals(UInt size, Real value);
+  Reals(std::initializer_list<Real> l);
 };
+
+bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
 
 template <typename T>
 class HostWrite {

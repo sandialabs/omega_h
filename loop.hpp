@@ -22,6 +22,19 @@ typename T::value_type parallel_reduce(UInt n, T f)
   return result;
 }
 
+struct AndFunctor {
+  typedef UInt value_type;
+  INLINE void init(value_type& update) const
+  {
+    update = 1;
+  }
+  INLINE void join(volatile value_type& update,
+      const volatile value_type& input) const
+  {
+    update = update && input;
+  }
+};
+
 template <typename T>
 void parallel_scan(UInt n, T f)
 {

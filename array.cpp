@@ -51,6 +51,42 @@ Kokkos::View<T*> Write<T>::view() const {
 }
 #endif
 
+Reals::Reals():
+  Read<Real>()
+{}
+
+Reals::Reals(Write<Real> write):
+  Read<Real>(write)
+{}
+
+Reals::Reals(UInt size, Real value):
+  Read<Real>(size, value)
+{}
+
+Reals::Reals(std::initializer_list<Real> l):
+  Read<Real>(l)
+{}
+
+struct AreClose : public AndFunctor {
+  Reals a_;
+  Reals b_;
+  Real tol_;
+  Real floor_;
+  AreClose(Reals a, Reals b, Real tol, Real floor):
+    a_(a),b_(b),tol_(tol),floor_(floor)
+  {}
+  INLINE void operator()(UInt i, value_type& update) const
+  {
+    update = update && are_close(a_[i], b_[i]);
+  }
+};
+
+bool are_close(Reals a, Reals b, Real tol, Real floor) {
+  CHECK(a.size() == b.size());
+  return static_cast<bool>(parallel_reduce(a.size(),
+        AreClose(a, b, tol, floor)));
+}
+
 template <typename T>
 Read<T>::Read() {
 }
@@ -58,6 +94,11 @@ Read<T>::Read() {
 template <typename T>
 Read<T>::Read(Write<T> write):
   write_(write) {
+}
+
+template <typename T>
+Read<T>::Read(UInt size, T value):
+  write_(size, value) {
 }
 
 template <typename T>

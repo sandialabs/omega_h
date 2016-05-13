@@ -53,6 +53,7 @@ static void test_metric_decom() {
   Now t1 = now();
   std::cout << "eigendecomposition of " << nelems << " metric tensors "
     << niters << " times takes " << (t1 - t0) << " seconds\n";
+  CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
 }
 
 int main() {
