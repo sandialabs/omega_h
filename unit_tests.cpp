@@ -77,11 +77,14 @@ static void test_repro_sum() {
 static void test_cubic(Real a, Real b, Real c,
     UInt nroots_wanted, Few<Real, 3> roots_wanted,
     Few<UInt, 3> mults_wanted) {
+  std::cerr << "test_cubic\n";
   Few<Real, 3> roots;
   Few<UInt, 3> mults;
   UInt nroots = solve_cubic(a, b, c, &roots[0], &mults[0]);
+  std::cerr << "nroots " << nroots << " wanted " << nroots_wanted << '\n';
   CHECK(nroots == nroots_wanted);
   for (UInt i = 0; i < nroots; ++i) {
+    std::cerr << "root " << roots[i] << " wanted " << roots_wanted[i] << '\n';
     CHECK(mults[i] == mults_wanted[i]);
     CHECK(are_close(roots[i], roots_wanted[i]));
   }
@@ -102,6 +105,12 @@ static void test_cubic() {
   mults[2] = 1;
   test_cubic(-3. / 2., -3. / 2., 1.,
       3, roots, mults);
+  roots[0] = -2;
+  roots[1] =  1;
+  mults[0] = 1;
+  mults[1] = 2;
+  test_cubic(0, -3., 2.,
+      2, roots, mults);
 }
 
 int main(int argc, char** argv) {
