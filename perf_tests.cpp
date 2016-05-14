@@ -1,4 +1,5 @@
 #include <random>
+#include <cstdio>
 #include "internal.hpp"
 
 static UInt const nelems = 100 * 1000;
@@ -58,12 +59,12 @@ static void test_metric_decom() {
 
 static void test_repro_sum() {
   Reals inputs = random_reals(nelems, 0, 1e6);
-  Real a, b;
+  Real a = 0, b = 0;
   UInt niters = 500;
   {
     Now t0 = now();
     for (UInt i = 0; i < niters; ++i)
-      b = repro_sum(inputs);
+      a = repro_sum(inputs);
     Now t1 = now();
     std::cout << "reproducibly adding " << nelems << " reals " << niters << " times "
       << "takes " << (t1 - t0) << " seconds\n";
@@ -71,11 +72,13 @@ static void test_repro_sum() {
   {
     Now t0 = now();
     for (UInt i = 0; i < niters; ++i)
-      a = sum(inputs);
+      b = sum(inputs);
     Now t1 = now();
     std::cout << "adding " << nelems << " reals " << niters << " times "
       << "takes " << (t1 - t0) << " seconds\n";
   }
+  printf("%.15e %.15e\n", a, b);
+  printf("%a %a\n", a, b);
 }
 
 int main() {
