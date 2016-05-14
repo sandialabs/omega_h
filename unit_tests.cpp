@@ -47,7 +47,8 @@ static void test_least_squares() {
       1, 3,
       1, 4});
   Vector<4> b({6, 5, 7, 10});
-  Vector<2> x = solve_least_squares_qr(m, b);
+  Vector<2> x;
+  CHECK(solve_least_squares_qr(m, b, x));
   CHECK(are_close(x, vector_2(3.5, 1.4)));
 }
 

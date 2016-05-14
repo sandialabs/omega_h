@@ -12,19 +12,19 @@
    are there to support hessenberg reduction / tri-diagonalization */
 
 template <UInt m, UInt n>
-INLINE Vector<m> householder_vector(Matrix<m,n> a, Real anorm,
-    UInt k, UInt o) {
+INLINE bool householder_vector(Matrix<m,n> a, Real anorm,
+    UInt k, UInt o,
+    Vector<m>& v_k) {
   Real norm_x = 0;
   for (UInt i = k + o; i < m; ++i)
     norm_x += square(a[k][i]);
   norm_x = sqrt(norm_x);
-  Vector<m> v_k;
   //if the x vector is nearly zero, use the exact zero vector as the
   //householder vector and avoid extra work and divide by zero below
   if (norm_x <= EPSILON * anorm) {
     for (UInt i = k + o; i < m; ++i)
       v_k[i] = 0.0;
-    return v_k;
+    return false;
   }
   for (UInt i = k + o; i < m; ++i)
     v_k[i] = a[k][i];
@@ -35,7 +35,7 @@ INLINE Vector<m> householder_vector(Matrix<m,n> a, Real anorm,
   norm_v_k = sqrt(norm_v_k);
   for (UInt i = k + o; i < m; ++i)
     v_k[i] /= norm_v_k;
-  return v_k;
+  return true;
 }
 
 template <UInt m, UInt n>
@@ -50,13 +50,15 @@ INLINE void reflect_columns(Matrix<m,n>& a, Vector<m> v_k, UInt k, UInt o) {
 }
 
 template <UInt m, UInt n>
-INLINE void factorize_qr_householder(Matrix<m,n>& a,
+INLINE UInt factorize_qr_householder(Matrix<m,n>& a,
     Few<Vector<m>, n>& v) {
   Real anorm = frobenius_norm(a);
+  UInt rank = 0;
   for (UInt k = 0; k < n; ++k) {
-    v[k] = householder_vector(a, anorm, k, 0);
+    rank += householder_vector(a, anorm, k, 0, v[k]);
     reflect_columns(a, v[k], k, 0);
   }
+  return rank;
 }
 
 /* Trefethen, Lloyd N., and David Bau III.
@@ -106,13 +108,14 @@ INLINE Matrix<n,n> reduced_r_from_full(Matrix<m,n> fr) {
 }
 
 template <UInt m, UInt n>
-INLINE void decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) {
+INLINE UInt decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) {
   Few<Vector<m>, n> v;
-  factorize_qr_householder(a, v);
+  UInt rank = factorize_qr_householder(a, v);
   r = reduced_r_from_full(a);
   q = identity_matrix<m,n>();
   for (UInt j = 0; j < n; ++j)
     implicit_q_x(q[j], v);
+  return rank;
 }
 
 /* A_{1:m,k+1:m} = A_{1:m,k+1:m} - 2(A_{1:m,k+1:m}v_k)v_k^* */
@@ -144,7 +147,7 @@ INLINE void householder_hessenberg(Matrix<m,m>& a,
     Few<Vector<m>, m - 2>& v) {
   Real anorm = frobenius_norm(a);
   for (UInt k = 0; k < m - 2; ++k) {
-    v[k] = householder_vector(a, anorm, k, 1);
+    householder_vector(a, anorm, k, 1, v[k]);
     reflect_columns(a, v[k], k, 1);
     reflect_rows(a, v[k], k);
   }
@@ -278,14 +281,18 @@ INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
    2. Compute the vector \hat{Q}^* b
    3. Solve the upper-triangular system \hat{R} x = \hat{Q}^* b for x  */
 template <UInt m, UInt n>
-INLINE Vector<n> solve_least_squares_qr(Matrix<m,n> a, Vector<m> b) {
+INLINE bool solve_least_squares_qr(Matrix<m,n> a, Vector<m> b,
+    Vector<n>& x) {
   Few<Vector<m>, n> v;
-  factorize_qr_householder(a, v);
+  UInt rank = factorize_qr_householder(a, v);
+  if (rank != n)
+    return false;
   Matrix<n,n> r = reduced_r_from_full(a);
   Vector<m> qtb_full = b;
   implicit_q_trans_b(qtb_full, v);
   Vector<n> qtb;
   for (UInt i = 0; i < n; ++i)
     qtb[i] = qtb_full[i];
-  return solve_upper_triangular(r, qtb);
+  x = solve_upper_triangular(r, qtb);
+  return true;
 }
