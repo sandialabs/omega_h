@@ -52,7 +52,7 @@ static void test_int128() {
 static void test_repro_sum() {
   Reals a({exp2(20),exp2(-20)});
   Real sum = repro_sum(a);
-  std::cout << sum << '\n';
+  CHECK(sum == exp2(20) + exp2(-20));
 }
 
 int main() {
