@@ -22,6 +22,7 @@
 #define INLINE KOKKOS_INLINE_FUNCTION
 #define LAMBDA KOKKOS_LAMBDA
 #else
+#error "not this"
 #define INLINE inline
 #define LAMBDA [=]
 #endif
