@@ -29,6 +29,7 @@
   WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 */
+
 #include <utility>
 #include <iterator>
 
@@ -100,8 +101,6 @@ class raw_buffer {
 public:
   //! Try to obtain buffer of given size.
   raw_buffer(size_t bytes) : ptr(operator new(bytes, std::nothrow)) {}
-  //! True if buffer was successfully obtained, zero otherwise.
-  operator bool() const {return ptr;}
   //! Return pointer to buffer, or  NULL if buffer could not be obtained.
   void* get() const {return ptr;}
   //! Destroy buffer
@@ -112,7 +111,7 @@ public:
 
 //! Wrapper for sorting with default comparator.
 template<class RandomAccessIterator>
-void parallel_stable_sort( RandomAccessIterator xs, RandomAccessIterator xe ) {
+void parallel_stable_sort(RandomAccessIterator xs, RandomAccessIterator xe) {
   typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
   parallel_stable_sort(xs, xe, std::less<T>());
 }
