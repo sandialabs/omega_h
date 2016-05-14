@@ -1,4 +1,4 @@
-double Int128::as_double(int expo) const {
+double Int128::to_double(int expo) const {
   Int128 tmp = *this;
   if (tmp < Int128(0))
     tmp = -tmp;

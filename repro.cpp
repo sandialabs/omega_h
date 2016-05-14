@@ -18,13 +18,13 @@ struct ReproSum : public SumFunctor<Int128> {
   int expo_;
   ReproSum(Reals a, int expo):a_(a),expo_(expo) {}
   INLINE void operator()(UInt i, value_type& update) const {
-    update = update + Int128(a_[i], expo_);
+    update = update + Int128::from_double(a_[i], expo_);
   }
 };
 
 Real repro_sum(Reals a, int expo) {
   expo -= MANTISSA_BITS;
-  return parallel_reduce(a.size(), ReproSum(a, expo)).as_double(expo);
+  return parallel_reduce(a.size(), ReproSum(a, expo)).to_double(expo);
 }
 
 Real repro_sum(Reals a) {
