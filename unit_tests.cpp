@@ -50,9 +50,9 @@ static void test_int128() {
 }
 
 static void test_repro_sum() {
-  Reals a({exp2(20),exp2(-20)});
+  Reals a({std::exp2(int(20)),std::exp2(int(-20))});
   Real sum = repro_sum(a);
-  CHECK(sum == exp2(20) + exp2(-20));
+  CHECK(sum == std::exp2(20) + std::exp2(int(-20)));
 }
 
 int main() {
