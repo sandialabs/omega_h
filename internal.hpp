@@ -37,6 +37,7 @@ typedef double Real;
 
 #define EPSILON 1e-10
 #define PI 3.141592653589793
+#define MANTISSA_BITS 52
 
 #include "control.hpp"
 #include "timer.hpp"

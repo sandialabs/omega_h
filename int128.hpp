@@ -1,3 +1,18 @@
+class Int128;
+
+std::ostream& operator<<(std::ostream& o, Int128 const& x);
+
+static INLINE std::int64_t get_mantissa(double value, int expo) {
+  std::cout << "get_mantissa value " << value << " expo " << expo << '\n';
+  double unit = exp2(double(expo));
+  std::cout << "unit " << unit << '\n';
+  double normalized = value / unit;
+  std::cout << "normalized value " << normalized << '\n';
+  double rounded = round(normalized);
+  std::cout << "rounded value " << rounded << '\n';
+  return std::int64_t(rounded);
+}
+
 class Int128
 {
   std::uint64_t low;
@@ -9,7 +24,8 @@ public:
     high(std::int64_t(-1) * (value < 0)) {
   }
   INLINE Int128(double value, int expo):
-    Int128(std::int64_t(round(value / exp2(double(expo))))) {
+    Int128(get_mantissa(value, expo)) {
+    std::cout << "int128 from double: " << *this << '\n';
   }
   INLINE Int128 operator+(Int128 const& rhs) const {
     Int128 sum;
@@ -46,17 +62,23 @@ public:
     return low < rhs.low;
   }
   INLINE double as_double(int expo) {
+    std::cout << "as_double expo is " << expo << '\n';
     Int128 tmp = *this;
     if (tmp < Int128(0))
       tmp = -tmp;
+    std::cout << "tmp abs " << tmp << '\n';
     while (tmp.high) {
       tmp = tmp >> 1;
       ++expo;
     }
+    std::cout << "tmp shifted " << tmp << ", new expo " << expo << '\n';
     double x = tmp.low;
     if (*this < Int128(0))
       x = -x;
-    x *= exp2(double(expo));
+    std::cout << "signed x " << x << '\n';
+    double unit = exp2(double(expo));
+    std::cout << "unit " << unit << '\n';
+    x *= unit;
     return x;
   }
   static INLINE Int128 max() {
@@ -71,7 +93,7 @@ public:
     x.low = 0;
     return x;
   }
-  void print(std::ostream& o);
+  void print(std::ostream& o) const;
 };
 
-std::ostream& operator<<(std::ostream& o, Int128 x);
+std::ostream& operator<<(std::ostream& o, Int128 const& x);

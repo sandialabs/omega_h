@@ -23,6 +23,6 @@ struct ReproSum : public SumFunctor<Int128> {
 };
 
 Real repro_sum(Reals a) {
-  int expo = max_exponent(a);
+  int expo = max_exponent(a) - MANTISSA_BITS;
   return parallel_reduce(a.size(), ReproSum(a, expo)).as_double(expo);
 }
