@@ -33,7 +33,6 @@ typedef double Real;
 #include "int128.hpp"
 #include "traits.hpp"
 #include "algebra.hpp"
-#include "complex.hpp"
 #include "cubic.hpp"
 #include "qr.hpp"
 #include "space.hpp"
