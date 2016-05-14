@@ -185,11 +185,12 @@ UInt HostRead<T>::size() const {
 template class Write<T>; \
 template class Read<T>; \
 template class HostWrite<T>; \
-template class HostRead<T>; \
-template T sum(Read<T> a);
+template class HostRead<T>;
 
 INST_ARRAY_T(U8)
 INST_ARRAY_T(U16)
 INST_ARRAY_T(U32)
 INST_ARRAY_T(U64)
 INST_ARRAY_T(Real)
+
+template Real sum(Read<Real> a);
