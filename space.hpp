@@ -104,3 +104,32 @@ INLINE Matrix<3,3> invert(Matrix<3,3> a) {
   b[2] = cross(a[0], a[1]);
   return transpose(b) / det(a);
 }
+
+INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
+{
+  Matrix<3,3> A;
+  A[0] = v;
+  /* tiny custom code to sort components by absolute value */
+  struct { UInt i, Real m } s[3] =
+  {{0,fabs(v[0])},{1,fabs(v[1])},{2,fabs(v[2])}};
+  if (s[2].m > s[1].m)
+    swap2(s[1],s[2]);
+  if (s[1].m > s[0].m)
+    swap2(s[0],s[1]);
+  if (s[2].m > s[1].m)
+    swap2(s[1],s[2]);
+  /* done, components sorted by increasing magnitude */
+  UInt lc = s[0].i;
+  UInt mc = s[1].i;
+  UInt sc = s[2].i;
+  /* use the 2D rotation on the largest components
+     (rotate v around the smallest axis) */
+  A[1][lc] = -v[mc];
+  A[1][mc] = v[lc];
+  /* and make the last component zero so that A[0] * A[1] == 0 */
+  A[1][sc] = 0;
+  /* now we have 2 orthogonal (though not unit) vectors, cross
+     product gives the third */
+  A[2] = cross(A[0],A[1]);
+  return A;
+}
