@@ -74,20 +74,34 @@ static void test_repro_sum() {
   CHECK(sum == std::exp2(20) + std::exp2(int(-20)));
 }
 
-static void test_cubic(Real a, Real b, Real c) {
-  std::cout << "x^3 + (" << a << ")x^2 + ("
-    << b << ")x + (" << c << ") = 0\n";
+static void test_cubic(Real a, Real b, Real c,
+    UInt nroots_wanted, Few<Real, 3> roots_wanted,
+    Few<UInt, 3> mults_wanted) {
   Few<Real, 3> roots;
-  UInt nroots = solve_cubic(a, b, c, &roots[0]);
-  std::cout << "nroots " << nroots << '\n';
-  for (UInt i = 0; i < nroots; ++i)
-    std::cout << "root " << roots[i] << '\n';
+  Few<UInt, 3> mults;
+  UInt nroots = solve_cubic(a, b, c, &roots[0], &mults[0]);
+  CHECK(nroots == nroots_wanted);
+  for (UInt i = 0; i < nroots; ++i) {
+    CHECK(mults[i] == mults_wanted[i]);
+    CHECK(are_close(roots[i], roots_wanted[i]));
+  }
 }
 
 static void test_cubic() {
-  test_cubic(0, 0, 0);
-  test_cubic(3*4, -6*4, -8*4);
-  test_cubic(-3. / 2., -3. / 2., 1.);
+  Few<Real, 3> roots;
+  Few<UInt, 3> mults;
+  roots[0] = 0;
+  mults[0] = 3;
+  test_cubic(0, 0, 0,
+      1, roots, mults);
+  roots[0] = -1;
+  roots[1] =  2;
+  roots[2] = 0.5;
+  mults[0] = 1;
+  mults[1] = 1;
+  mults[2] = 1;
+  test_cubic(-3. / 2., -3. / 2., 1.,
+      3, roots, mults);
 }
 
 int main(int argc, char** argv) {

@@ -24,8 +24,6 @@ void fini() {
 
 void fail(std::string const& why) {
   std::cerr << why;
-  int* p = 0x0;
-  std::cerr << *p;
   abort();
 }
 
