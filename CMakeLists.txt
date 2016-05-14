@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 project(omega_h CXX)
 
 option(USE_KOKKOS "Use Kokkos for on-node parallelism" OFF)
+option(USE_CUDA "Use Kokkos+CUDA for on-node parallelism" OFF)
+set(CUDA_ARCH "37" CACHE STRING "compute capability for NVCC -arch=sm_?")
 
 if(USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp)
@@ -10,30 +12,28 @@ if(USE_KOKKOS)
 endif()
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-set(CMAKE_CXX_FLAGS "\
---std=c++11 \
--O2 \
--g \
--fno-omit-frame-pointer \
--ferror-limit=1 \
--Werror \
--Weverything \
--Wno-c++98-compat \
--Wno-c++98-compat-pedantic \
--Wno-padded \
--Wno-float-equal \
-")
-else ()
+set(FLAGS "--std=c++11 -O2 -g -fno-omit-frame-pointer -ferror-limit=1")
+set(FLAGS "${FLAGS} -Werror -Weverything -Wno-c++98-compat")
+set(FLAGS "${FLAGS} -Wno-c++98-compat-pedantic -Wno-padded")
+set(FLAGS "${FLAGS} -Wno-float-equal")
+elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+if(USE_CUDA)
+set(FLAGS "--std=c++11 -O2 -g -Werror -Wall -Wextra")
+set(FLAGS "${FLAGS} -expt-extended-lambda -arch=sm_${CUDA_ARCH}")
+else()
+set(FLAGS "--std=c++11 -O2 -g -fno-omit-frame-pointer -ferror-limit=1")
+set(FLAGS "${FLAGS} -Werror -Wall -Wextra ")
+endif()
+else()
   message(FATAL_ERROR "Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
 endif()
+set(CMAKE_CXX_FLAGS "${FLAGS}")
 
 configure_file(config_in.hpp config.hpp)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(omega_h omega_h.cpp)
-if (USE_KOKKOS)
-  target_link_libraries(omega_h ${KOKKOS_LIB})
-endif()
+target_link_libraries(omega_h ${KOKKOS_LIB})
 
 add_executable(unit_tests unit_tests.cpp)
 target_link_libraries(unit_tests omega_h)

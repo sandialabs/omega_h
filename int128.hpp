@@ -21,7 +21,7 @@ public:
   INLINE Int128(double value, int expo):
     Int128(get_mantissa(value, expo)) {
   }
-  INLINE Int128 operator+(Int128 const& rhs) const {
+  INLINE Int128 add_to(Int128 const& rhs) const {
     Int128 sum;
     sum.high = high + rhs.high;
     sum.low = low + rhs.low;
@@ -58,5 +58,14 @@ public:
   double as_double(int expo) const;
   void print(std::ostream& o) const;
 };
+
+/* we moved the actual operator out here to take
+ * its arguments by value, the CUDA compiler
+ * wouldn't match it otherwise when adding
+ * two volatile Int128 variables.
+ */
+INLINE Int128 operator+(Int128 lhs, Int128 rhs) {
+  return lhs.add_to(rhs);
+}
 
 std::ostream& operator<<(std::ostream& o, Int128 const& x);
