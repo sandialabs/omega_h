@@ -46,6 +46,14 @@ INLINE Vector<n> operator*(Vector<n> a, Real b) {
 }
 
 template <UInt n>
+INLINE Vector<n> operator/(Vector<n> a, Real b) {
+  Vector<n> c;
+  for (UInt i = 0; i < n; ++i)
+    c[i] = a[i] / b;
+  return c;
+}
+
+template <UInt n>
 INLINE Real operator*(Vector<n> a, Vector<n> b) {
   Real c = a[0] * b[0];
   for (UInt i = 1; i < n; ++i)
@@ -152,6 +160,14 @@ INLINE Matrix<m,n> operator*(Matrix<m,n> a, Real b) {
 template <UInt m, UInt n>
 INLINE Matrix<m,n> operator*(Real a, Matrix<m,n> b) {
   return b * a;
+}
+
+template <UInt m, UInt n>
+INLINE Matrix<m,n> operator/(Matrix<m,n> a, Real b) {
+  Matrix<m,n> c;
+  for (UInt j = 0; j < n; ++j)
+    c[j] = a[j] / b;
+  return c;
 }
 
 template <UInt m, UInt n>

@@ -60,3 +60,47 @@ INLINE Matrix<2,2> rotate(Real angle) {
       cos(angle), -sin(angle),
       sin(angle),  cos(angle));
 }
+
+INLINE Real det(Matrix<2,2> m) {
+  Real a = m[0][0];
+  Real b = m[1][0];
+  Real c = m[0][1];
+  Real d = m[1][1];
+  return a * d - b * c;
+}
+
+INLINE Real det(Matrix<3,3> m) {
+  Real a = m[0][0];
+  Real b = m[1][0];
+  Real c = m[2][0];
+  Real d = m[0][1];
+  Real e = m[1][1];
+  Real f = m[2][1];
+  Real g = m[0][2];
+  Real h = m[1][2];
+  Real i = m[2][2];
+  return (a * e * i)
+       + (b * f * g)
+       + (c * d * h)
+       - (c * e * g)
+       - (b * d * i)
+       - (a * f * h);
+}
+
+INLINE Matrix<2,2> invert(Matrix<2,2> m) {
+  Real a = m[0][0];
+  Real b = m[1][0];
+  Real c = m[0][1];
+  Real d = m[1][1];
+  return matrix_2x2(
+      d, -b,
+     -c,  a) / det(m);
+}
+
+INLINE Matrix<3,3> invert(Matrix<3,3> a) {
+  Matrix<3,3> b;
+  b[0] = cross(a[1], a[2]);
+  b[1] = cross(a[2], a[0]);
+  b[2] = cross(a[0], a[1]);
+  return transpose(b) / det(a);
+}
