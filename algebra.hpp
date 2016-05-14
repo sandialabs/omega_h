@@ -44,10 +44,31 @@ INLINE Vector<n> operator*(Vector<n> a, Real b) {
 }
 
 template <UInt n>
+INLINE Real operator*(Vector<n> a, Vector<n> b) {
+  Real c = a[0] * b[0];
+  for (UInt i = 1; i < n; ++i)
+    c += a[i] * b[i];
+  return c;
+}
+
+template <UInt n>
+INLINE Real norm(Vector<n> v) {
+  return sqrt(v * v);
+}
+
+template <UInt n>
 INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
   Vector<n> c;
   for (UInt i = 0; i < n; ++i)
     c[i] = a[i] + b[i];
+  return c;
+}
+
+template <UInt n>
+INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
+  Vector<n> c;
+  for (UInt i = 0; i < n; ++i)
+    c[i] = a[i] - b[i];
   return c;
 }
 

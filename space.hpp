@@ -41,6 +41,10 @@ INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
   return cross(a) * b;
 }
 
+INLINE Real cross(Vector<2> a, Vector<2> b) {
+  return (a[0] * b[1] - a[1] * b[0]);
+}
+
 /* Rodrigues' Rotation Formula */
 INLINE Matrix<3,3> rotate(Real angle, Vector<3> axis) {
   return cos(angle) * identity_matrix<3,3>() +
