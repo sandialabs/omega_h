@@ -97,12 +97,19 @@ INLINE void implicit_q_x(Vector<m>& x,
 }
 
 template <UInt m, UInt n>
+INLINE Matrix<n,n> reduced_r_from_full(Matrix<m,n> fr) {
+  Matrix<n,n> rr;
+  for (UInt j = 0; j < n; ++j)
+    for (UInt i = 0; i < n; ++i)
+      rr[j][i] = fr[j][i];
+  return rr;
+}
+
+template <UInt m, UInt n>
 INLINE void decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) {
   Few<Vector<m>, n> v;
   factorize_qr_householder(a, v);
-  for (UInt j = 0; j < n; ++j)
-    for (UInt i = 0; i < n; ++i)
-      r[j][i] = a[j][i];
+  r = reduced_r_from_full(a);
   q = identity_matrix<m,n>();
   for (UInt j = 0; j < n; ++j)
     implicit_q_x(q[j], v);
@@ -248,4 +255,34 @@ INLINE void decompose_eigen_qr(Matrix<m,m> a, Matrix<m,m>& q,
     Matrix<m,m>& l, UInt max_iters = 100) {
   l = a;
   qr_eigen(l, q, max_iters);
+}
+
+template <UInt m>
+INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
+  Vector<m> x;
+  for (UInt ii = 0; ii < m; ++ii) {
+    UInt i = m - ii - 1;
+    x[i] = b[i];
+    for (UInt j = i + 1; j < m; ++j)
+      x[i] -= a[j][i] * x[j];
+    x[i] /= a[i][i];
+  }
+  return x;
+}
+
+/* Trefethen, Lloyd N., and David Bau III.
+   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Algorithm 11.2 Least Squares via QR factorization
+
+   1. Compute the reduced QR factorization A = \hat{Q}\hat{R}
+   2. Compute the vector \hat{Q}^* b
+   3. Solve the upper-triangular system \hat{R} x = \hat{Q}^* b for x  */
+template <UInt m, UInt n>
+INLINE Vector<n> solve_least_squares_qr(Matrix<m,n> a, Vector<m> b) {
+  Few<Vector<m>, n> v;
+  factorize_qr_householder(a, v);
+  Matrix<n,n> r = reduced_r_from_full(a);
+  Vector<m> qtb = b;
+  implicit_q_trans_b(qtb, v);
+  return solve_upper_triangular(r, qtb);
 }
