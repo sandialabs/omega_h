@@ -1,57 +1,46 @@
-INLINE Real cubic_discriminant(
-    Real a, Real b, Real c, Real d) {
-  return 18 * a * b * c * d
-       -  4 * b * b * b * d
-       +      b * b * c * c
-       -  4 * a * c * c * c
-       - 27 * a * a * d * d;
-}
+// poly.cpp : solution of cubic and quartic equation
+// (c) Khashin S.I. http://math.ivanovo.ac.ru/dalgebra/Khashin/index.html
+// khash2 (at) gmail.com
+//
 
+//---------------------------------------------------------------------------
+// x - array of size 3
+// In case 3 real roots: => x[0], x[1], x[2], return 3
+//         2 real roots: x[0], x[1],          return 2
+//         1 real root : x[0], x[1] ± i*x[2], return 1
+// solve cubic equation x^3 + a * x^2 + b * x + c = 0
 INLINE UInt solve_cubic(
-    Real a, Real b, Real c, Real d,
-    Few<Real, 3>& roots) {
-  Real disc = cubic_discriminant(a,b,c,d);
-  UInt nroots = (disc > 0.0) ? 3 : 1;
-  Complex u[3];
-  u[0] = 1.;
-  u[1] = Complex(-1.,  sqrt(3.)) / 2.;
-  u[2] = Complex(-1., -sqrt(3.)) / 2.;
-  Real d0 = b * b - 3 * a * c;
-  Real d1 = 2 * b * b * b
-         -  9 * a * b * c
-         + 27 * a * a * d;
-  bool have_d0 = (fabs(d0) > EPSILON);
-  Complex tmp = (have_d0) ? (sqrt(square(d1) - 4 * cube(d0))) : (d1);
-  Complex C = pow((d1 + tmp) / 2., 1. / 3.);
-  Complex x[3];
-  if (abs(C) > EPSILON) {
-    for (UInt k = 0; k < 3; ++k) {
-      x[k] = -(1. / (3. * a)) *
-        (b + u[k] * C + (d0 / (u[k] * C)));
-    }
+    Real a, Real b, Real c,
+    Real x[]) {
+  Real a2 = square(a);
+  Real q  = (a2 - 3 * b) / 9;
+  Real r  = (a * (2. * a2 - 9. * b) + 27. * c) / 54;
+  Real r2 = square(r);
+  Real q3 = cube(q);
+  Real A, B;
+  if(r2 < q3) {
+    Real t = r / sqrt(q3);
+    t = max2(-1., t);
+    t = min2( 1., t);
+    t = acos(t);
+    a /= 3.;
+    q = -2. * sqrt(q);
+    x[0] = q * cos(t / 3.) - a;
+    x[1] = q * cos((t + 2. * PI) / 3.) - a;
+    x[2] = q * cos((t - 2. * PI) / 3.) - a;
+    return 3;
   } else {
-    if (have_d0) {
-      x[0] = x[1] = (9. * a * d - b * c) / (2. * d0);
-      x[2] = (4. * a * b * c - 9. * a * a * d - b * b * b) / (a * d0);
-    } else {
-      for (UInt k = 0; k < 3; ++k) {
-        x[k] = -(b / (3. * a));
-      }
+    A = -pow(fabs(r) + sqrt(r2 - q3), 1. / 3.);
+    A = fabs(A);
+    B = (A == 0.) ? 0 : (q / A);
+    a /= 3.;
+    x[0] = (A + B) - a;
+    x[1] = -0.5 * (A + B) - a;
+    x[2] =  0.5 * sqrt(3.) * (A - B);
+    if(fabs(x[2]) < EPSILON) {
+      x[2] = x[1];
+      return 2;
     }
+    return 1;
   }
-  if (nroots == 3) {
-    for (UInt k = 0; k < 3; ++k) {
-      roots[k] = x[k].real();
-    }
-  } else {
-    UInt best = 0;
-    /* return the least imaginary root */
-    for (UInt k = 1; k < 3; ++k) {
-      if (fabs(x[k].imag()) < fabs(x[best].imag())) {
-        best = k;
-      }
-    }
-    roots[0] = x[best].real();
-  }
-  return nroots;
 }

@@ -74,6 +74,22 @@ static void test_repro_sum() {
   CHECK(sum == std::exp2(20) + std::exp2(int(-20)));
 }
 
+static void test_cubic(Real a, Real b, Real c) {
+  std::cout << "x^3 + (" << a << ")x^2 + ("
+    << b << ")x + (" << c << ") = 0\n";
+  Few<Real, 3> roots;
+  UInt nroots = solve_cubic(a, b, c, &roots[0]);
+  std::cout << "nroots " << nroots << '\n';
+  for (UInt i = 0; i < nroots; ++i)
+    std::cout << "root " << roots[i] << '\n';
+}
+
+static void test_cubic() {
+  test_cubic(0, 0, 0);
+  test_cubic(3*4, -6*4, -8*4);
+  test_cubic(-3. / 2., -3. / 2., 1.);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_form_ortho_basis();
@@ -82,5 +98,6 @@ int main(int argc, char** argv) {
   test_least_squares();
   test_int128();
   test_repro_sum();
+  test_cubic();
   fini();
 }
