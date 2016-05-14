@@ -40,6 +40,17 @@ static void test_eigen_decomp() {
   CHECK(are_close(q2 * l2 * transpose(q2), a));
 }
 
+static void test_least_squares() {
+  Matrix<4,2> m({
+      1, 1,
+      1, 2,
+      1, 3,
+      1, 4});
+  Vector<4> b({6, 5, 7, 10});
+  Vector<2> x = solve_least_squares_qr(m, b);
+  std::cout << x << '\n';
+}
+
 static void test_int128() {
   Int128 a(INT64_MAX);
   auto b = a + a;
@@ -59,6 +70,7 @@ int main(int argc, char** argv) {
   init(argc, argv);
   test_qr_decomps();
   test_eigen_decomp();
+  test_least_squares();
   test_int128();
   test_repro_sum();
   fini();

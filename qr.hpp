@@ -282,7 +282,10 @@ INLINE Vector<n> solve_least_squares_qr(Matrix<m,n> a, Vector<m> b) {
   Few<Vector<m>, n> v;
   factorize_qr_householder(a, v);
   Matrix<n,n> r = reduced_r_from_full(a);
-  Vector<m> qtb = b;
-  implicit_q_trans_b(qtb, v);
+  Vector<m> qtb_full = b;
+  implicit_q_trans_b(qtb_full, v);
+  Vector<n> qtb;
+  for (UInt i = 0; i < n; ++i)
+    qtb[i] = qtb_full[i];
   return solve_upper_triangular(r, qtb);
 }

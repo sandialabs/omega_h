@@ -15,7 +15,17 @@ INLINE bool are_close(Real a, Real b,
 
 template <UInt n>
 class Vector : public Few<Real, n> {
+  public:
+    INLINE Vector() {}
+    Vector(std::initializer_list<Real> l);
 };
+
+template <UInt n>
+Vector<n>::Vector(std::initializer_list<Real> l) {
+  UInt i = 0;
+  for (Real v : l)
+    (*this)[i++] = v;
+}
 
 template <UInt n>
 std::ostream& operator<<(std::ostream& o, Vector<n> v) {
@@ -59,7 +69,24 @@ class Matrix : public Few<Vector<m>, n> {
 };
 
 template <UInt m, UInt n>
-std::ostream& operator<<(std::ostream& o, Matrix<m,n> a);
+Matrix<m,n>::Matrix(std::initializer_list<Real> l) {
+  UInt k = 0;
+  for (Real v : l) {
+    (*this)[k % n][k / n] = v;
+    ++k;
+  }
+}
+
+template <UInt m, UInt n>
+std::ostream& operator<<(std::ostream& o, Matrix<m,n> a)
+{
+  for (UInt i = 0; i < m; ++i) {
+    for (UInt j = 0; j < n; ++j)
+      o << ' ' << a[j][i];
+    o << '\n';
+  }
+  return o;
+}
 
 template <UInt m, UInt n>
 INLINE Matrix<m,n> identity_matrix() {
