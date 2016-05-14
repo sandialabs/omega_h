@@ -11,20 +11,7 @@
 #include <memory>
 #include <limits>
 
-#ifdef USE_KOKKOS
-#ifdef __clang__
-#pragma clang system_header
-#endif
-#include <Kokkos_Core.hpp>
-#endif
-
-#ifdef USE_KOKKOS
-#define INLINE KOKKOS_INLINE_FUNCTION
-#define LAMBDA KOKKOS_LAMBDA
-#else
-#define INLINE inline
-#define LAMBDA [=]
-#endif
+#include "kokkos.hpp"
 
 #define NORETURN(x) do { assert(0); return x; } while(0)
 

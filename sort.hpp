@@ -1,6 +1,13 @@
 #if defined(USE_CUDA)
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 #elif defined(USE_OPENMP)
 #include "bundled/parallel_stable_sort.hpp"
 #else

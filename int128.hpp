@@ -15,6 +15,14 @@ struct Int128
       std::int64_t(-1) * (value < 0),
       std::uint64_t(value)) {
   }
+  /* volatile... why is this not done by default...
+   * returning void instead of reference to *this
+   * to silence GCC's warning that the reference
+   * is unused. */
+  INLINE void operator=(Int128 const& rhs) volatile {
+    high = rhs.high;
+    low = rhs.low;
+  }
   double to_double(int expo) const;
   void print(std::ostream& o) const;
   static INLINE Int128 from_double(double value, int expo) {
