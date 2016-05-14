@@ -57,14 +57,31 @@ static void test_metric_decom() {
   CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
 }
 
+unsigned uniform(unsigned m); /* Returns a random integer 0 <= uniform(m) <= m-1 */
+
+/* Fisher-Yates shuffle, a.k.a Knuth shuffle */
+static Read<UInt> random_perm(UInt n)
+{
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<UInt> dis;
+  /* start with identity permutation */
+  HostWrite<UInt> permutation(make_linear<UInt>(n, 0, 1));
+  for (UInt i = 0; i <= n-2; i++) {
+    UInt j = dis(gen) % (n - i); /* A random integer such that 0 ≤ j < n-i*/
+    std::swap(permutation[i], permutation[i + j]);
+  }
+  return Read<UInt>(permutation.write());
+}
+
 static void test_repro_sum() {
   Reals inputs = random_reals(nelems, 0, 1e6);
-  Real a = 0, b = 0;
+  Real rs = 0, s = 0;
   UInt niters = 50;
   {
     Now t0 = now();
     for (UInt i = 0; i < niters; ++i)
-      a = repro_sum(inputs);
+      rs = repro_sum(inputs);
     Now t1 = now();
     std::cout << "reproducibly adding " << nelems << " reals " << niters << " times "
       << "takes " << (t1 - t0) << " seconds\n";
@@ -72,13 +89,24 @@ static void test_repro_sum() {
   {
     Now t0 = now();
     for (UInt i = 0; i < niters; ++i)
-      b = sum(inputs);
+      s = sum(inputs);
     Now t1 = now();
     std::cout << "adding " << nelems << " reals " << niters << " times "
       << "takes " << (t1 - t0) << " seconds\n";
   }
-  printf("repro sum %.15e, sum %.15e\n", a, b);
-  printf("repro sum %a, sum %a\n", a, b);
+  CHECK(are_close(s, rs));
+  Read<UInt> p = random_perm(nelems);
+  Write<Real> write_shuffled(nelems);
+  auto f = LAMBDA(UInt i) {
+    write_shuffled[i] = inputs[p[i]];
+  };
+  parallel_for(nelems, f);
+  Reals shuffled(write_shuffled);
+  Real rs2 = repro_sum(shuffled);
+  Real s2 = sum(shuffled);
+  CHECK(are_close(s2, rs2));
+  CHECK(s != s2);
+  CHECK(rs == rs2); /* bitwise reproducibility ! */
 }
 
 int main(int argc, char** argv) {

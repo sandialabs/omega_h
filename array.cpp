@@ -136,7 +136,13 @@ Kokkos::View<const T*> Read<T>::view() const {
 
 template <typename T>
 HostWrite<T>::HostWrite(UInt size):
-  write_(size)
+  HostWrite<T>(Write<T>(size))
+{
+}
+
+template <typename T>
+HostWrite<T>::HostWrite(Write<T> write):
+  write_(write)
 #ifdef USE_KOKKOS
   ,mirror_(Kokkos::create_mirror_view(write_.view()))
 #endif
@@ -181,6 +187,16 @@ UInt HostRead<T>::size() const {
   return read_.size();
 }
 
+template <typename T>
+Write<T> make_linear(UInt n, T offset, T stride) {
+  Write<T> a(n);
+  auto f = LAMBDA(UInt i) {
+    a[i] = offset + (stride * i);
+  };
+  parallel_for(n, f);
+  return a;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
@@ -194,3 +210,4 @@ INST_ARRAY_T(U64)
 INST_ARRAY_T(Real)
 
 template Real sum(Read<Real> a);
+template Write<U64> make_linear(UInt n, U64 offset, U64 stride);

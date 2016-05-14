@@ -61,6 +61,7 @@ class HostWrite {
 #endif
 public:
   HostWrite(UInt size);
+  HostWrite(Write<T> write);
   HostWrite(std::initializer_list<T> l);
   Write<T> write() const;
   UInt size() const;
@@ -90,3 +91,6 @@ public:
 #endif
   }
 };
+
+template <typename T>
+Write<T> make_linear(UInt n, T offset, T stride);
