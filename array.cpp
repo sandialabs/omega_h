@@ -51,6 +51,22 @@ Kokkos::View<T*> Write<T>::view() const {
 }
 #endif
 
+template <typename T>
+struct Sum : public SumFunctor<T> {
+  typedef typename SumFunctor<T>::value_type value_type;
+  Read<T> a_;
+  Sum(Read<T> a):a_(a) {}
+  INLINE void operator()(UInt i, value_type& update) const
+  {
+    update = update + a_[i];
+  }
+};
+
+template <typename T>
+T sum(Read<T> a) {
+  return parallel_reduce(a.size(), Sum<T>(a));
+}
+
 Reals::Reals():
   Read<Real>()
 {}
@@ -169,7 +185,8 @@ UInt HostRead<T>::size() const {
 template class Write<T>; \
 template class Read<T>; \
 template class HostWrite<T>; \
-template class HostRead<T>;
+template class HostRead<T>; \
+template T sum(Read<T> a);
 
 INST_ARRAY_T(U8)
 INST_ARRAY_T(U16)

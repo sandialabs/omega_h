@@ -40,6 +40,9 @@ public:
 #endif
 };
 
+template <typename T>
+T sum(Read<T> a);
+
 class Reals : public Read<Real> {
 public:
   Reals();

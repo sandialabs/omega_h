@@ -56,6 +56,19 @@ static void test_metric_decom() {
   CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
 }
 
+static void test_repro_sum() {
+  Reals inputs = random_reals(nelems, 0, 1e6);
+  Real rsum;
+  UInt niters = 500;
+  Now t0 = now();
+  for (UInt i = 0; i < niters; ++i)
+    rsum = repro_sum(inputs);
+  Now t1 = now();
+  std::cout << "adding " << nelems << " reals " << niters << " times "
+    << "takes " << (t1 - t0) << " seconds\n";
+}
+
 int main() {
   test_metric_decom();
+  test_repro_sum();
 }
