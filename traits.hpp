@@ -30,9 +30,3 @@ struct ArithTraits<unsigned long long> {
   static INLINE unsigned long long max() { return ULLONG_MAX; }
   static INLINE unsigned long long min() { return 0; }
 };
-
-template <>
-struct ArithTraits<Int128> {
-  static INLINE Int128 max() { return Int128::max(); }
-  static INLINE Int128 min() { return Int128::min(); }
-};

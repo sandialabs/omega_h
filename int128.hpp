@@ -2,17 +2,16 @@ class Int128;
 
 std::ostream& operator<<(std::ostream& o, Int128 const& x);
 
-static INLINE std::int64_t get_mantissa(double value, int expo) {
-  double unit = exp2(double(expo));
-  double normalized = value / unit;
-  double rounded = round(normalized);
-  return std::int64_t(rounded);
-}
-
 class Int128
 {
   std::uint64_t low;
   std::int64_t high;
+  static INLINE std::int64_t get_mantissa(double value, int expo) {
+    double unit = exp2(double(expo));
+    double normalized = value / unit;
+    double rounded = round(normalized);
+    return std::int64_t(rounded);
+  }
 public:
   INLINE Int128() {}
   INLINE Int128(std::int64_t value):
@@ -48,41 +47,15 @@ public:
     shifted.high = high >> expo;
     return shifted;
   }
-  INLINE bool operator==(Int128 const& rhs) {
+  INLINE bool operator==(Int128 const& rhs) const {
     return high == rhs.high && low == rhs.low;
   }
-  INLINE bool operator<(Int128 const& rhs) {
+  INLINE bool operator<(Int128 const& rhs) const {
     if (high != rhs.high)
       return high < rhs.high;
     return low < rhs.low;
   }
-  INLINE double as_double(int expo) {
-    Int128 tmp = *this;
-    if (tmp < Int128(0))
-      tmp = -tmp;
-    while (tmp.high) {
-      tmp = tmp >> 1;
-      ++expo;
-    }
-    double x = tmp.low;
-    if (*this < Int128(0))
-      x = -x;
-    double unit = exp2(double(expo));
-    x *= unit;
-    return x;
-  }
-  static INLINE Int128 max() {
-    Int128 x;
-    x.high = INT64_MAX;
-    x.low = UINT64_MAX;
-    return x;
-  }
-  static INLINE Int128 min() {
-    Int128 x;
-    x.high = INT64_MIN;
-    x.low = 0;
-    return x;
-  }
+  double as_double(int expo) const;
   void print(std::ostream& o) const;
 };
 
