@@ -1,16 +1,19 @@
-// poly.cpp : solution of cubic and quartic equation
+// poly.cpp : solution of cubic equation
 // (c) Khashin S.I. http://math.ivanovo.ac.ru/dalgebra/Khashin/index.html
 // khash2 (at) gmail.com
 //
+// Dan Ibanez: took initial code, fixed the less-than-3-roots case,
+// added geometric multiplicities output, focus only on real roots
 
 // solve cubic equation roots^3 + a * roots^2 + b * roots + c = 0
 INLINE UInt solve_cubic(
     Real a, Real b, Real c,
     Real roots[], UInt mults[]) {
+// http://mathworld.wolfram.com/CubicFormula.html
 // https://en.wikipedia.org/wiki/Cubic_function#Reduction_to_a_depressed_cubic
   // this is b^2 from wikipedia
   Real a2 = square(a);
-  // this is (-p / 3) from wikipedia, Q from wolfram mathworld
+  // this is (-p/3) from wikipedia, Q from wolfram mathworld
   Real q  = (a2 - 3 * b) / 9;
   // this is (q/2) from wikipedia, -R from wolfram mathworld
   Real r  = (a * (2. * a2 - 9. * b) + 27. * c) / 54;
@@ -36,25 +39,22 @@ INLINE UInt solve_cubic(
     return 3;
   } else {
 // https://en.wikipedia.org/wiki/Cubic_function#Cardano.27s_method
-    std::cerr << "r2 - q3 " << (r2 - q3) << '\n';
-    std::cerr << "r " << r << '\n';
     Real u3 = -r - sqrt(r2 - q3);
-    std::cerr << "u3 " << u3 << '\n';
-    Real u = sign(u3)*pow(fabs(u3), 1./3.);
-    std::cerr << "u " << u << '\n';
+  //std::pow will not accept a negative base (it can't tell
+  //that (1./3.) is exactly the reciprocal of an odd number),
+  //so we could strip out the sign on input and put it back
+  //on output.
+  //even better, C++11 provides std::cbrt which solves this
+  //Real u = sign(u3)*pow(fabs(u3), 1./3.);
+    Real u = cbrt(u3);
     Real v = (u == 0.0) ? 0.0 : (q / u);
-    std::cerr << "v " << v << '\n';
     Real t1 = u + v;
-    std::cerr << "t1 " << t1 << '\n';
     // recall x = t - (b/(3a)), in our case x = t - (a/3)
     roots[0] = t1 - (a / 3.);
-    std::cerr << "roots[0] " << roots[0] << '\n';
     Real t_real = -0.5 * (u + v);
     Real t_imag = 0.5 * sqrt(3) * (u - v);
-    std::cerr << "t_imag " << t_imag << '\n';
     roots[1] = (t_real) - (a / 3.);
     if (fabs(t_imag) < EPSILON) {
-      std::cerr << "roots[1] " << roots[1] << '\n';
       if (are_close(roots[0], roots[1])) {
         mults[0] = 3;
         return 1;
