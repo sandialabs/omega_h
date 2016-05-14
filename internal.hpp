@@ -53,3 +53,4 @@ typedef double Real;
 #include "array.hpp"
 #include "access.hpp"
 #include "repro.hpp"
+#include "sort.hpp"

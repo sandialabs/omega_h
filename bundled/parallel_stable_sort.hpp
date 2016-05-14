@@ -33,7 +33,7 @@
 #include <algorithm>
 #include <omp.h>
 
-#include "pss_common.h"
+#include "pss_common.hpp"
 
 namespace pss {
 
