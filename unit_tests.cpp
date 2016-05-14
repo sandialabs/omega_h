@@ -25,6 +25,7 @@ static void test_qr_decomps() {
 }
 
 static void test_eigen_decomp() {
+  {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
@@ -38,6 +39,20 @@ static void test_eigen_decomp() {
   decompose_eigen_qr(a, q2, l2);
   CHECK(are_close(transpose(q2) * q2, identity_matrix<3,3>()));
   CHECK(are_close(q2 * l2 * transpose(q2), a));
+  }
+  {
+  auto a = matrix_3x3(
+      -1, 3, -1,
+      -3, 5, -1,
+      -3, 3,  1);
+  Matrix<3,3> q;
+  Matrix<3,3> l;
+  decompose_eigen_qr(a, q, l);
+  std::cout << "a\n" << a;
+  std::cout << "q\n" << q;
+  std::cout << "l\n" << l;
+  std::cout << "q^T q\n" << (transpose(q) * q);
+  }
 }
 
 static void test_least_squares() {
