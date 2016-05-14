@@ -110,7 +110,7 @@ INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
   Matrix<3,3> A;
   A[0] = v;
   /* tiny custom code to sort components by absolute value */
-  struct { UInt i, Real m } s[3] =
+  struct { UInt i; Real m; } s[3] =
   {{0,fabs(v[0])},{1,fabs(v[1])},{2,fabs(v[2])}};
   if (s[2].m > s[1].m)
     swap2(s[1],s[2]);
@@ -128,8 +128,8 @@ INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
   A[1][mc] = v[lc];
   /* and make the last component zero so that A[0] * A[1] == 0 */
   A[1][sc] = 0;
-  /* now we have 2 orthogonal (though not unit) vectors, cross
-     product gives the third */
+  A[1] = normalize(A[1]);
+  /* now we have 2 orthogonal unit vectors, cross product gives the third */
   A[2] = cross(A[0],A[1]);
   return A;
 }

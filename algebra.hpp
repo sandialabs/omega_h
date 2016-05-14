@@ -72,6 +72,11 @@ INLINE Real norm(Vector<n> v) {
 }
 
 template <UInt n>
+INLINE Vector<n> normalize(Vector<n> v) {
+  return v / norm(v);
+}
+
+template <UInt n>
 INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
   Vector<n> c;
   for (UInt i = 0; i < n; ++i)
