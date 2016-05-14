@@ -23,6 +23,11 @@ struct Int128
     high = rhs.high;
     low = rhs.low;
   }
+  /* which implies we have to declare a regular copy
+     constructor */
+  INLINE Int128(Int128 const& rhs):
+    high(rhs.high),low(rhs.low) {
+  }
   double to_double(int expo) const;
   void print(std::ostream& o) const;
   static INLINE Int128 from_double(double value, int expo) {

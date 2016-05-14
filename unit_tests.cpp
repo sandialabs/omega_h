@@ -55,9 +55,11 @@ static void test_repro_sum() {
   CHECK(sum == std::exp2(20) + std::exp2(int(-20)));
 }
 
-int main() {
+int main(int argc, char** argv) {
+  init(argc, argv);
   test_qr_decomps();
   test_eigen_decomp();
   test_int128();
   test_repro_sum();
+  fini();
 }
