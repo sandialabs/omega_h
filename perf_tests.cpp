@@ -58,14 +58,24 @@ static void test_metric_decom() {
 
 static void test_repro_sum() {
   Reals inputs = random_reals(nelems, 0, 1e6);
-  Real rsum;
+  Real a, b;
   UInt niters = 500;
-  Now t0 = now();
-  for (UInt i = 0; i < niters; ++i)
-    rsum = repro_sum(inputs);
-  Now t1 = now();
-  std::cout << "adding " << nelems << " reals " << niters << " times "
-    << "takes " << (t1 - t0) << " seconds\n";
+  {
+    Now t0 = now();
+    for (UInt i = 0; i < niters; ++i)
+      b = repro_sum(inputs);
+    Now t1 = now();
+    std::cout << "reproducibly adding " << nelems << " reals " << niters << " times "
+      << "takes " << (t1 - t0) << " seconds\n";
+  }
+  {
+    Now t0 = now();
+    for (UInt i = 0; i < niters; ++i)
+      a = sum(inputs);
+    Now t1 = now();
+    std::cout << "adding " << nelems << " reals " << niters << " times "
+      << "takes " << (t1 - t0) << " seconds\n";
+  }
 }
 
 int main() {
