@@ -10,15 +10,15 @@ INLINE UInt solve_cubic(
 // https://en.wikipedia.org/wiki/Cubic_function#Reduction_to_a_depressed_cubic
   // this is b^2 from wikipedia
   Real a2 = square(a);
-  // this is (-p / 3) from wikipedia
+  // this is (-p / 3) from wikipedia, Q from wolfram mathworld
   Real q  = (a2 - 3 * b) / 9;
-  // this is (q/2) from wikipedia
+  // this is (q/2) from wikipedia, -R from wolfram mathworld
   Real r  = (a * (2. * a2 - 9. * b) + 27. * c) / 54;
   // this is (q^2/4) from wikipedia
   Real r2 = square(r);
   // this is (-p^3/27) from wikipedia
   Real q3 = cube(q);
-  //this is the (opposite of the) Cardano assumption ((q^2/4) + (p^3/27)) > 0
+//this is the (opposite of the) Cardano assumption ((q^2/4) + (p^3/27)) > 0
   if(r2 < q3) {
 // https://en.wikipedia.org/wiki/Cubic_function#Three_real_roots
     Real t = r / sqrt(q3);
@@ -36,11 +36,16 @@ INLINE UInt solve_cubic(
     return 3;
   } else {
 // https://en.wikipedia.org/wiki/Cubic_function#Cardano.27s_method
+    std::cerr << "r2 - q3 " << (r2 - q3) << '\n';
+    std::cerr << "r " << r << '\n';
     Real u3 = -r - sqrt(r2 - q3);
     std::cerr << "u3 " << u3 << '\n';
-    Real u = pow(u3, 1./3.);
+    Real u = sign(u3)*pow(fabs(u3), 1./3.);
     std::cerr << "u " << u << '\n';
+    Real v = (u == 0.0) ? 0.0 : (q / u);
+    std::cerr << "v " << v << '\n';
     Real t1 = u + v;
+    std::cerr << "t1 " << t1 << '\n';
     // recall x = t - (b/(3a)), in our case x = t - (a/3)
     roots[0] = t1 - (a / 3.);
     std::cerr << "roots[0] " << roots[0] << '\n';
