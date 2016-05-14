@@ -1,5 +1,7 @@
 INLINE Real square(Real x) { return x * x; }
 
+INLINE Real cube(Real x) { return x * x * x; }
+
 INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
 INLINE bool are_close(Real a, Real b,
@@ -52,8 +54,13 @@ INLINE Real operator*(Vector<n> a, Vector<n> b) {
 }
 
 template <UInt n>
+INLINE Real norm_squared(Vector<n> v) {
+  return v * v;
+}
+
+template <UInt n>
 INLINE Real norm(Vector<n> v) {
-  return sqrt(v * v);
+  return sqrt(norm_squared(v));
 }
 
 template <UInt n>

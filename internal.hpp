@@ -36,6 +36,7 @@ typedef double Real;
 #include "qr.hpp"
 #include "space.hpp"
 #include "size.hpp"
+#include "quality.hpp"
 #include "loop.hpp"
 #include "functors.hpp"
 #include "array.hpp"

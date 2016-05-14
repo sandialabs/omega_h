@@ -38,7 +38,10 @@ INLINE Matrix<3,3> cross(Vector<3> a) {
 }
 
 INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
-  return cross(a) * b;
+  return vector_3(
+      a[1] * b[2] - a[2] * b[1],
+      a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]);
 }
 
 INLINE Real cross(Vector<2> a, Vector<2> b) {
