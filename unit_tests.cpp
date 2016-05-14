@@ -48,7 +48,7 @@ static void test_least_squares() {
       1, 4});
   Vector<4> b({6, 5, 7, 10});
   Vector<2> x = solve_least_squares_qr(m, b);
-  std::cout << x << '\n';
+  CHECK(are_close(x, vector_2(3.5, 1.4)));
 }
 
 static void test_int128() {
