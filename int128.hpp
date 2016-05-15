@@ -36,8 +36,7 @@ struct Int128
   void print(std::ostream& o) const;
   static INLINE Int128 from_double(double value, double unit) {
     double normalized = value / unit;
-    double rounded = round(normalized);
-    return Int128(std::int64_t(rounded));
+    return Int128(std::int64_t(normalized));
   }
 };
 
