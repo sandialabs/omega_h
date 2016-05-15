@@ -35,7 +35,7 @@ typedef double Real;
 #include "algebra.hpp"
 #include "qr.hpp"
 #include "space.hpp"
-#include "cubic.hpp"
+#include "polynomial.hpp"
 #include "size.hpp"
 #include "quality.hpp"
 #include "loop.hpp"
