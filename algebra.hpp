@@ -272,3 +272,9 @@ INLINE Vector<n> zero_vector() {
     v[i] = 0.0;
   return v;
 }
+
+template <UInt m>
+INLINE void subtract_from_diag(Matrix<m,m>& a, Real mu) {
+  for (UInt i = 0; i < m; ++i)
+    a[i][i] -= mu;
+}

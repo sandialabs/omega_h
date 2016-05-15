@@ -186,8 +186,8 @@ INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
    orthogonal to that */
 INLINE void double_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& u, Vector<3>& v) {
-  Matrix<3,3> s = (m - (l * identity_matrix<3,3>()));
-  Vector<3> n = get_1d_column_space(s);
+  subtract_from_diag(m, l);
+  Vector<3> n = get_1d_column_space(m);
   Matrix<3,3> b = form_ortho_basis(n);
   u = b[1]; v = b[2];
 }

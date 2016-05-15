@@ -206,8 +206,7 @@ INLINE Real wilkinson_shift(Matrix<m,m> a, UInt n) {
 
 template <UInt m>
 INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
-  for (UInt i = 0; i < m; ++i)
-    a[i][i] -= mu;
+  subtract_from_diag(a, mu);
 }
 
 template <UInt m>
