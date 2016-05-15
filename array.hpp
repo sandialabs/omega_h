@@ -18,6 +18,7 @@ public:
     return ptr_.get()[i];
 #endif
   }
+  T* data() const;
 #ifdef USE_KOKKOS
   Kokkos::View<T*> view() const;
 #endif
@@ -35,6 +36,7 @@ public:
   INLINE T const& operator[](UInt i) const {
     return write_[i];
   }
+  T const* data() const;
 #ifdef USE_KOKKOS
   Kokkos::View<const T*> view() const;
 #endif
