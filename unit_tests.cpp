@@ -79,7 +79,7 @@ static void test_cubic(Real a, Real b, Real c,
     Few<UInt, 3> mults_wanted) {
   Few<Real, 3> roots;
   Few<UInt, 3> mults;
-  UInt nroots = solve_cubic(a, b, c, &roots[0], &mults[0]);
+  UInt nroots = solve_cubic(a, b, c, roots, mults);
   CHECK(nroots == nroots_wanted);
   for (UInt i = 0; i < nroots; ++i) {
     CHECK(mults[i] == mults_wanted[i]);

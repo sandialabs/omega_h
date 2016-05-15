@@ -184,6 +184,14 @@ INLINE Matrix<m,n> operator+(Matrix<m,n> a, Matrix<m,n> b) {
 }
 
 template <UInt m, UInt n>
+INLINE Matrix<m,n> operator-(Matrix<m,n> a, Matrix<m,n> b) {
+  Matrix<m,n> c;
+  for (UInt j = 0; j < n; ++j)
+    c[j] = a[j] - b[j];
+  return c;
+}
+
+template <UInt m, UInt n>
 INLINE Matrix<n,m> transpose(Matrix<m,n> a) {
   Matrix<n,m> b;
   for (UInt i = 0; i < m; ++i)
@@ -217,4 +225,12 @@ INLINE Matrix<m,n> tensor_product(Vector<m> a, Vector<n> b) {
   for (UInt i = 0; i < m; ++i)
     c[j][i] = a[i] * b[j];
   return c;
+}
+
+template <UInt m>
+INLINE Real trace(Matrix<m,m> a) {
+  Real t = a[0][0];
+  for (UInt i = 1; i < m; ++i)
+    t += a[i][i];
+  return t;
 }
