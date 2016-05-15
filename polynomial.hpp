@@ -52,16 +52,16 @@ INLINE UInt solve_cubic(
     /* detect double root cases here: this is just rotation
        of an equilateral triangle to angle (t); there are cases when
        two vertices line up along x (edge is vertical) */
-    if (are_close(roots[0], roots[1], 1e-6)) {
+    if (are_close(roots[0], roots[1], 1e-7)) {
       roots[1] = roots[2];
       mults[0] = 2;
       return 2;
     }
-    if (are_close(roots[1], roots[2], 1e-6)) {
+    if (are_close(roots[1], roots[2], 1e-7)) {
       mults[1] = 2;
       return 2;
     }
-    if (are_close(roots[0], roots[2], 1e-6)) {
+    if (are_close(roots[0], roots[2], 1e-7)) {
       mults[0] = 2;
       return 2;
     }
@@ -284,7 +284,7 @@ INLINE bool decompose_eigen_polynomial(
   /* the cubic solver is especially sensitive to dynamic
      range. what we can do is to normalize the input matrix
      and then re-apply that norm to the resulting roots */
-  Real nm = frobenius_norm(m);
+  Real nm = max_norm(m);
   if (nm > EPSILON) {
     std::cerr << "original m\n" << m;
     std::cerr << "norm(m) " << nm << '\n';
