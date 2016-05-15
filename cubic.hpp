@@ -143,7 +143,7 @@ INLINE bool decompose_eigen_cubic(
 INLINE bool decompose_eigen_cubic(
     Matrix<3,3> m,
     Matrix<3,3>& q,
-    Few<Real, 3>& l) {
+    Vector<3>& l) {
   Real a,b,c;
   characteristic_cubic(m, a, b, c);
   Few<Real, 3> roots;

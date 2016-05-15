@@ -98,14 +98,31 @@ static void test_cubic() {
       3, Few<Real,3>({-4,2,-1}), Few<UInt,3>({1,1,1}));
 }
 
-static void test_eigen_cubic() {
+static void test_eigen_cubic(Matrix<3,3> m,
+    Matrix<3,3> q_expect, Vector<3> l_expect) {
   Matrix<3,3> q;
-  Few<Real, 3> l;
+  Vector<3> l;
+  bool ok = decompose_eigen_cubic(m, q, l);
+  CHECK(ok);
+  CHECK(are_close(q,q_expect));
+  CHECK(are_close(l,l_expect));
+}
+
+static void test_eigen_cubic() {
+  test_eigen_cubic(
+      identity_matrix<3,3>(),
+      identity_matrix<3,3>(),
+      vector_3(1,1,1));
+  test_eigen_cubic(
+      matrix_3x3(0,0,0,0,0,0,0,0,0),
+      identity_matrix<3,3>(),
+      vector_3(0,0,0));
+  Matrix<3,3> q;
+  Vector<3> l;
   bool ok = decompose_eigen_cubic(identity_matrix<3,3>(), q, l);
   std::cout << ok << '\n';
   std::cout << q << '\n';
-  for (UInt i = 0; i < 3; ++i)
-    std::cout << l[i] << '\n';
+  std::cout << l << '\n';
 }
 
 int main(int argc, char** argv) {
