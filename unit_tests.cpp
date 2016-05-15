@@ -109,6 +109,7 @@ static void test_eigen_cubic_ortho(Matrix<3,3> m,
   CHECK(ok);
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
   CHECK(are_close(l,l_expect));
+  CHECK(are_close(m, (q * diagonal(l) * transpose(q))));
 }
 
 static void test_eigen_cubic() {
