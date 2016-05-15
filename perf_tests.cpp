@@ -49,7 +49,7 @@ static void test_metric_decom() {
     write_eigenvs[i] = eigenv;
   };
   Now t0 = now();
-  UInt niters = 3;
+  UInt niters = 1;
   for (UInt i = 0; i < niters; ++i)
     parallel_for(nelems, f1);
   Now t1 = now();
