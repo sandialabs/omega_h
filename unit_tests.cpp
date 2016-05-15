@@ -35,10 +35,7 @@ static void test_eigen_qr() {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
-  auto l = matrix_3x3(
-      1, 0, 0,
-      0, 1, 0,
-      0, 0, 1e-6);
+  auto l = diagonal(vector_3(1, 1, 1e-6));
   auto a = q * l * transpose(q);
   Matrix<3,3> q2;
   Matrix<3,3> l2;
@@ -146,10 +143,7 @@ static void test_eigen_cubic() {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
-  auto l = matrix_3x3(
-      1, 0, 0,
-      0, 1, 0,
-      0, 0, 1e-6);
+  auto l = diagonal(vector_3(1, 1, 1e-6));
   auto a = q * l * transpose(q);
   test_eigen_cubic_ortho(a, vector_3(1e-6, 1, 1));
   }
