@@ -108,6 +108,14 @@ static void test_cubic() {
   mults[1] = 2;
   test_cubic(0, -3., 2.,
       2, roots, mults);
+  roots[0] = -4;
+  roots[1] =  2;
+  roots[2] = -1;
+  mults[0] = 1;
+  mults[1] = 1;
+  mults[2] = 1;
+  test_cubic(3, -6, -8,
+      3, roots, mults);
 }
 
 int main(int argc, char** argv) {
