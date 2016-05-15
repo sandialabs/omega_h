@@ -25,6 +25,11 @@ void fini() {
 #endif
 }
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
+
 void fail(char const* format, ...)
 {
   va_list ap;
@@ -33,3 +38,7 @@ void fail(char const* format, ...)
   va_end(ap);
   abort();
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
