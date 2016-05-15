@@ -166,6 +166,11 @@ static void test_sort() {
   LOs perm = sort_by_keys<LO,2>(a);
   CHECK(perm == LOs({0,1}));
   }
+  {
+  LOs a({1,2,3,1,2,2,3,0,0});
+  LOs perm = sort_by_keys<LO,3>(a);
+  CHECK(perm == LOs({1,0,2}));
+  }
 }
 
 int main(int argc, char** argv) {
