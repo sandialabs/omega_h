@@ -147,6 +147,14 @@ static void test_eigen_cubic() {
   auto a = q * l * transpose(q);
   test_eigen_cubic_ortho(a, vector_3(1e-6, 1, 1));
   }
+  {
+  auto q = rotate(PI / 4, vector_3(0,0,1)) *
+           rotate(PI / 4, vector_3(0,1,0));
+  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
+  auto l = diagonal(vector_3(1e-6, 1e-6, 1));
+  auto a = q * l * transpose(q);
+  test_eigen_cubic_ortho(a, vector_3(1, 1e-6, 1e-6));
+  }
 }
 
 int main(int argc, char** argv) {
