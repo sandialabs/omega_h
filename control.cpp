@@ -1,3 +1,6 @@
+#include <cstdarg>
+#include <cstdio>
+
 #ifdef USE_KOKKOS
 static bool we_called_kokkos_init = false;
 #endif
@@ -22,12 +25,11 @@ void fini() {
 #endif
 }
 
-void fail(std::string const& why) {
-  std::cerr << why;
+void fail(char const* format, ...)
+{
+  va_list ap;
+  va_start(ap, format);
+  vfprintf(stderr, format, ap);
+  va_end(ap);
   abort();
-}
-
-void fail_if(bool cond, std::string const& why) {
-  if (cond)
-    fail(why);
 }

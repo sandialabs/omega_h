@@ -2,14 +2,11 @@ void init(int& argc, char**& argv);
 
 void fini();
 
-void fail(std::string const& why) __attribute__((noreturn));
-
-void fail_if(bool cond, std::string const& why);
+void fail(char const* format, ...) __attribute__((noreturn));
 
 #ifdef __CUDA_ARCH__
 #define CHECK(cond) assert(cond)
 #else
-#define CHECK(cond) fail_if(!(cond), \
-    std::string("assertion ") + #cond + " failed at " \
-    __FILE__ " +" + std::to_string(__LINE__) + "\n")
+#define CHECK(cond) ((cond) ? ((void)0) : \
+  fail("assertion %s failed at %s +%d\n",#cond,__FILE__,__LINE__))
 #endif

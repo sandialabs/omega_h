@@ -147,16 +147,16 @@ INLINE void characteristic_quadratic(Matrix<2,2> A,
    take the largest cross product of any pair of columns */
 INLINE void single_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& v) {
-  Matrix<3,3> s = (m - (l * identity_matrix<3,3>()));
-  v = cross(s[0], s[1]);
+  subtract_from_diag(m, l);
+  v = cross(m[0], m[1]);
   Real v_norm = norm(v);
-  Vector<3> c = cross(s[1], s[2]);
+  Vector<3> c = cross(m[1], m[2]);
   Real c_norm = norm(c);
   if (c_norm > v_norm) {
     v = c;
     v_norm = c_norm;
   }
-  c = cross(s[0], s[2]);
+  c = cross(m[0], m[2]);
   c_norm = norm(c);
   if (c_norm > v_norm) {
     v = c;
