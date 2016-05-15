@@ -210,56 +210,6 @@ INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
     a[i][i] -= mu;
 }
 
-
-/* Trefethen, Lloyd N., and David Bau III.
-   Numerical linear algebra. Vol. 50. Siam, 1997.
-   Algorithm 28.2. "Practical" QR Algorithm
-
-   (Q^{(0)})^T A^{(0)} Q^{(0)}                A^{(0)} is a tridiagonalization of A
-   for k = 1,2,...
-     Pick a shift \mu^{(k)}                   e.g., Wilkinson shift
-     Q^{(k)}R^{(k)} = A^{(k-1)} - \mu^{(k)}I  QR factorization of A^{(k-1)} - \mu^{(k)}I
-     A^{(k)} = R^{(k)}Q^{(k)} + \mu^{(k)}I    Recombine factors in reverse order
-     If any off-diagonal element A^{(k)}_{j,j+1} is sufficiently close to zero,
-       set A_{j,j+1} = A_{j+1,j} = 0 to obtain
-       [ A_1   0 ]
-       [   0 A_2 ] = A^{(k)}
-       and now apply the QR algorithm to A_1 and A_2
-
-  we don't quite implement reduction fully.
-  what we do is to check the entry A_{m,m-1} for closeness
-  to zero, and in that case try to reduce (A_2 is a scalar).
-  even then, we continue to do QR decompositions
-  on the full matrix, only the shift computation is affected
-  by how far we've reduced */
-template <UInt m>
-INLINE void qr_eigen(Matrix<m,m>& a, Matrix<m,m>& q,
-    UInt max_iters = 100) {
-  Real anorm = frobenius_norm(a);
-  householder_hessenberg2(a, q);
-  UInt n = m;
-  for (UInt i = 0; i < max_iters; ++i) {
-    if (!reduce(a, anorm, n))
-      return;
-    auto mu = wilkinson_shift(a, n);
-    apply_shift(a, mu);
-    Matrix<m,m> q_k;
-    Matrix<m,m> r_k;
-    decompose_qr_reduced(a, q_k, r_k);
-    a = r_k * q_k;
-    apply_shift(a, -mu);
-    q = q * q_k;
-  }
-  NORETURN();
-}
-
-template <UInt m>
-INLINE void decompose_eigen_qr(Matrix<m,m> a, Matrix<m,m>& q,
-    Matrix<m,m>& l, UInt max_iters = 100) {
-  l = a;
-  qr_eigen(l, q, max_iters);
-}
-
 template <UInt m>
 INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
   Vector<m> x;

@@ -31,19 +31,6 @@ static void test_form_ortho_basis() {
   CHECK(are_close(transpose(f) * f, identity_matrix<3,3>()));
 }
 
-static void test_eigen_qr() {
-  auto q = rotate(PI / 4, vector_3(0,0,1)) *
-           rotate(PI / 4, vector_3(0,1,0));
-  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
-  auto l = diagonal(vector_3(1, 1, 1e-6));
-  auto a = q * l * transpose(q);
-  Matrix<3,3> q2;
-  Matrix<3,3> l2;
-  decompose_eigen_qr(a, q2, l2);
-  CHECK(are_close(transpose(q2) * q2, identity_matrix<3,3>()));
-  CHECK(are_close(q2 * l2 * transpose(q2), a));
-}
-
 static void test_least_squares() {
   Matrix<4,2> m({
       1, 1,
@@ -161,7 +148,6 @@ int main(int argc, char** argv) {
   init(argc, argv);
   test_form_ortho_basis();
   test_qr_decomps();
-  test_eigen_qr();
   test_eigen_cubic();
   test_least_squares();
   test_int128();

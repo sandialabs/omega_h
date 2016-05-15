@@ -42,9 +42,9 @@ static void test_metric_decom() {
   auto f1 = LAMBDA(UInt i) {
     auto m = get_symm<3>(metrics, i);
     Matrix<3,3> r;
-    Matrix<3,3> l;
-    decompose_eigen_qr(m, r, l);
-    auto eigenv = max2(max2(l[0][0], l[1][1]), l[2][2]);
+    Vector<3> l;
+    decompose_eigen_cubic(m, r, l);
+    auto eigenv = max2(max2(l[0], l[1]), l[2]);
     write_eigenvs[i] = eigenv;
   };
   Now t0 = now();
