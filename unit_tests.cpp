@@ -108,7 +108,29 @@ static void test_eigen_cubic(Matrix<3,3> m,
   CHECK(are_close(l,l_expect));
 }
 
+static void test_eigen_cubic(Matrix<3,3> m,
+    Vector<3> l_expect) {
+  Matrix<3,3> q;
+  Vector<3> l;
+  bool ok = decompose_eigen_cubic(m, q, l);
+  CHECK(ok);
+  CHECK(are_close(l,l_expect));
+}
+
+/*
+static void test_eigen_cubic_ortho(Matrix<3,3> m,
+    Vector<3> l_expect) {
+  Matrix<3,3> q;
+  Vector<3> l;
+  bool ok = decompose_eigen_cubic(m, q, l);
+  CHECK(ok);
+  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
+  CHECK(are_close(l,l_expect));
+}
+*/
+
 static void test_eigen_cubic() {
+  if ((0)) {
   test_eigen_cubic(
       identity_matrix<3,3>(),
       identity_matrix<3,3>(),
@@ -117,12 +139,29 @@ static void test_eigen_cubic() {
       matrix_3x3(0,0,0,0,0,0,0,0,0),
       identity_matrix<3,3>(),
       vector_3(0,0,0));
-  Matrix<3,3> q;
-  Vector<3> l;
-  bool ok = decompose_eigen_cubic(identity_matrix<3,3>(), q, l);
+  test_eigen_cubic(
+      matrix_3x3(
+        -1, 3, -1,
+        -3, 5, -1,
+        -3, 3,  1),
+      vector_3(1,2,2));
+  }
+  auto q = rotate(PI / 4, vector_3(0,0,1)) *
+           rotate(PI / 4, vector_3(0,1,0));
+  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
+  auto l = matrix_3x3(
+      1, 0, 0,
+      0, 1, 0,
+      0, 0, 1e-6);
+  auto a = q * l * transpose(q);
+  std::cout << a << '\n';
+  Matrix<3,3> q2;
+  Vector<3> l2;
+  bool ok = decompose_eigen_cubic(a, q2, l2);
   std::cout << ok << '\n';
-  std::cout << q << '\n';
-  std::cout << l << '\n';
+  std::cout << q2 << '\n';
+  std::cout << transpose(q2) * q2 << '\n';
+  std::cout << l2 << '\n';
 }
 
 int main(int argc, char** argv) {
@@ -134,6 +173,7 @@ int main(int argc, char** argv) {
   test_least_squares();
   test_int128();
   test_repro_sum();
-  test_cubic();
+  if ((0))
+    test_cubic();
   fini();
 }

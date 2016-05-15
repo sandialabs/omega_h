@@ -9,6 +9,7 @@
 INLINE UInt solve_cubic(
     Real a, Real b, Real c,
     Few<Real, 3>& roots, Few<UInt, 3>& mults) {
+  std::cerr << "a " << a << " b " << b << " c " << c << '\n';
 // http://mathworld.wolfram.com/CubicFormula.html
 // https://en.wikipedia.org/wiki/Cubic_function#Reduction_to_a_depressed_cubic
   // this is b^2 from wikipedia
@@ -22,6 +23,7 @@ INLINE UInt solve_cubic(
   // this is (-p^3/27) from wikipedia
   Real q3 = cube(q);
 //this is the (opposite of the) Cardano assumption ((q^2/4) + (p^3/27)) > 0
+  std::cerr << "r2 " << r2 << " q3 " << q3 << '\n';
   if(r2 < q3) {
 // https://en.wikipedia.org/wiki/Cubic_function#Three_real_roots
     Real t = r / sqrt(q3);
@@ -47,14 +49,19 @@ INLINE UInt solve_cubic(
   //Real u = sign(u3)*pow(fabs(u3), 1./3.);
   //even better, C++11 provides std::cbrt which solves this
     Real u = cbrt(u3);
+    std::cerr << "u3 " << u3 << " u " << u << '\n';
     Real v = (u == 0.0) ? 0.0 : (q / u);
     Real t1 = u + v;
+    std::cerr << "v " << v << " t1 " << t1 << '\n';
     // recall x = t - (b/(3a)), in our case x = t - (a/3)
     roots[0] = t1 - (a / 3.);
+    std::cerr << "roots[0] " << roots[0] << '\n';
     Real t_real = -0.5 * (u + v);
     Real t_imag = 0.5 * sqrt(3.) * (u - v);
+    std::cerr << "t_real " << t_real << " t_imag " << t_imag << '\n';
     roots[1] = (t_real) - (a / 3.);
-    if (fabs(t_imag) < EPSILON) {
+    std::cerr << "roots[1] " << roots[1] << '\n';
+    if (fabs(t_imag) < 1e-6 * fabs(t_real)) {
       if (are_close(roots[0], roots[1])) {
         mults[0] = 3;
         return 1;
@@ -114,7 +121,7 @@ INLINE void double_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& u, Vector<3>& v) {
   Matrix<3,3> s = (m - (l * identity_matrix<3,3>()));
   Vector<3> n = s[0];
-  Real n_norm = norm(v);
+  Real n_norm = norm(n);
   Vector<3> c = s[1];
   Real c_norm = norm(c);
   if (c_norm > n_norm) {

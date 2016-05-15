@@ -131,5 +131,7 @@ INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
   A[1] = normalize(A[1]);
   /* now we have 2 orthogonal unit vectors, cross product gives the third */
   A[2] = cross(A[0],A[1]);
+  std::cerr << "form_ortho_basis norms " <<
+    norm(A[0]) << ' ' << norm(A[1]) << ' ' << norm(A[2]) << '\n';
   return A;
 }
