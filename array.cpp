@@ -183,7 +183,10 @@ bool operator==(Read<T> a, Read<T> b)
 
 template <typename T>
 HostWrite<T>::HostWrite(UInt size):
-  HostWrite<T>(Write<T>(size))
+  write_(size)
+#ifdef USE_KOKKOS
+  ,mirror_(Kokkos::create_mirror_view(write_.view()))
+#endif
 {
 }
 
@@ -194,6 +197,7 @@ HostWrite<T>::HostWrite(Write<T> write):
   ,mirror_(Kokkos::create_mirror_view(write_.view()))
 #endif
 {
+  Kokkos::deep_copy(mirror_, write_.view());
 }
 
 template <typename T>
