@@ -24,11 +24,13 @@ INLINE UInt solve_cubic(
 //this is the (opposite of the) Cardano assumption ((q^2/4) + (p^3/27)) > 0
 //note that r2 may be arbitrarily close to q3, so both
 //sides of this if statement have to deal with duplicate roots
+  std::cerr << "r2 " << r2 << " q3 " << q3 << '\n';
   if(r2 < q3) {
 // https://en.wikipedia.org/wiki/Cubic_function#Three_real_roots
 // the three roots can be projected from three equidistant points on a circle
     q = -2. * sqrt(q);
     /* q is the circle radius, so if it is small enough we have a triple root */
+    std::cerr << "q " << q << '\n';
     if (fabs(q) < 1e-6) {
       roots[0] = -a;
       mults[0] = 3;
@@ -51,8 +53,8 @@ INLINE UInt solve_cubic(
        of an equilateral triangle to angle (t); there are cases when
        two vertices line up along x (edge is vertical) */
     if (are_close(roots[0], roots[1], 1e-7)) {
-      roots[1] = roots[2];
-      mults[0] = 2;
+      roots[0] = roots[2];
+      mults[1] = 2;
       return 2;
     }
     if (are_close(roots[1], roots[2], 1e-7)) {
@@ -60,7 +62,8 @@ INLINE UInt solve_cubic(
       return 2;
     }
     if (are_close(roots[0], roots[2], 1e-7)) {
-      mults[0] = 2;
+      swap2(roots[0], roots[1]);
+      mults[1] = 2;
       return 2;
     }
     return 3;
@@ -80,6 +83,7 @@ INLINE UInt solve_cubic(
     roots[0] = t1 - (a / 3.);
     Real t_real = -0.5 * (u + v);
     Real t_imag = 0.5 * sqrt(3.) * (u - v);
+    std::cerr << "t_real " << t_real << " t_imag " << t_imag << '\n';
     roots[1] = (t_real) - (a / 3.);
     if (fabs(t_imag) < 1e-6) {
       if (are_close(roots[0], roots[1])) {
@@ -217,6 +221,8 @@ INLINE bool decompose_eigen_polynomial2(
     q = identity_matrix<3,3>();
     return true;
   }
+  std::cerr << "returning false because nroots is " << nroots << '\n';
+  std::cerr << "and mults[0] is " << mults[0] << '\n';
   return false;
 }
 
@@ -281,5 +287,8 @@ INLINE bool decompose_eigen_polynomial(
     l = l * nm;
     return ok;
   }
-  return decompose_eigen_polynomial2(m, q, l);
+  /* this is the zero matrix... */
+  q = identity_matrix<dim,dim>();
+  l = zero_vector<dim>();
+  return true;
 }

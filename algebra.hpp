@@ -262,3 +262,11 @@ INLINE Matrix<m,m> diagonal(Vector<m> v) {
     a[i][i] = v[i];
   return a;
 }
+
+template <UInt n>
+INLINE Vector<n> zero_vector() {
+  Vector<n> v;
+  for (UInt i = 0; i < n; ++i)
+    v[i] = 0.0;
+  return v;
+}
