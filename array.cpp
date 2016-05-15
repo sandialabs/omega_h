@@ -197,7 +197,9 @@ HostWrite<T>::HostWrite(Write<T> write):
   ,mirror_(Kokkos::create_mirror_view(write_.view()))
 #endif
 {
+#ifdef USE_KOKKOS
   Kokkos::deep_copy(mirror_, write_.view());
+#endif
 }
 
 template <typename T>
