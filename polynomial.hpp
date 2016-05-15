@@ -24,13 +24,11 @@ INLINE UInt solve_cubic(
 //this is the (opposite of the) Cardano assumption ((q^2/4) + (p^3/27)) > 0
 //note that r2 may be arbitrarily close to q3, so both
 //sides of this if statement have to deal with duplicate roots
-  std::cerr << "r2 " << r2 << " q3 " << q3 << '\n';
   if(r2 < q3) {
 // https://en.wikipedia.org/wiki/Cubic_function#Three_real_roots
 // the three roots can be projected from three equidistant points on a circle
     q = -2. * sqrt(q);
     /* q is the circle radius, so if it is small enough we have a triple root */
-    std::cerr << "q " << q << '\n';
     if (fabs(q) < 1e-6) {
       roots[0] = -a;
       mults[0] = 3;
@@ -83,7 +81,6 @@ INLINE UInt solve_cubic(
     roots[0] = t1 - (a / 3.);
     Real t_real = -0.5 * (u + v);
     Real t_imag = 0.5 * sqrt(3.) * (u - v);
-    std::cerr << "t_real " << t_real << " t_imag " << t_imag << '\n';
     roots[1] = (t_real) - (a / 3.);
     if (fabs(t_imag) < 1e-6) {
       if (are_close(roots[0], roots[1])) {
@@ -221,8 +218,6 @@ INLINE bool decompose_eigen_polynomial2(
     q = identity_matrix<3,3>();
     return true;
   }
-  std::cerr << "returning false because nroots is " << nroots << '\n';
-  std::cerr << "and mults[0] is " << mults[0] << '\n';
   return false;
 }
 
@@ -264,7 +259,10 @@ INLINE bool decompose_eigen_polynomial(
     Matrix<dim,dim>& q,
     Vector<dim>& l) __attribute__((warn_unused_result));
 
-/* note that (q) in the output is a matrix whose
+/* decompose an m x m matrix (where m <= 3) into
+   eigenvalues and eigenvectors.
+
+   note that (q) in the output is a matrix whose
    columns are the right eigenvectors.
    hence it actually corresponds to (Q^{-T})
    in the eigendecomposition
