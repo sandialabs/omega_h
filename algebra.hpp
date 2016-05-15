@@ -10,7 +10,7 @@ INLINE bool are_close(Real a, Real b,
   Real bm = fabs(b);
   if (am < floor && bm < floor)
     return true;
-  if (fabs(b - a) / max2(am, bm) <= tol)
+  if ((fabs(b - a) / max2(am, bm)) <= tol)
     return true;
   return false;
 }
@@ -198,6 +198,15 @@ INLINE Matrix<n,m> transpose(Matrix<m,n> a) {
   for (UInt j = 0; j < n; ++j)
     b[i][j] = a[j][i];
   return b;
+}
+
+template <UInt m, UInt n>
+INLINE Real max_norm(Matrix<m,n> a) {
+  Real x = 0.0;
+  for (UInt j = 0; j < n; ++j)
+  for (UInt i = 0; i < m; ++i)
+    x = max2(x, fabs(a[j][i]));
+  return x;
 }
 
 template <UInt m, UInt n>

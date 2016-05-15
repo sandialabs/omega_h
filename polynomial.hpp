@@ -112,8 +112,8 @@ INLINE void characteristic_quadratic(Matrix<2,2> A,
    the multiplicity of this root is the dimensionality
    of that space, i.e. the number of eigenvectors. */
 
-/* in the case that the null space is 1D, take the
-   largest cross product of any pair of columns */
+/* in the case that the null space is 1D and space is 3D,
+   take the largest cross product of any pair of columns */
 INLINE void single_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& v) {
   Matrix<3,3> s = (m - (l * identity_matrix<3,3>()));
@@ -161,14 +161,7 @@ INLINE void double_eigenvector(Matrix<3,3> m, Real l,
   u = b[1]; v = b[2];
 }
 
-/* ensure people are checking the return code
-   indicating success */
-INLINE bool decompose_eigen_cubic(
-    Matrix<3,3> m,
-    Matrix<3,3>& q,
-    Few<Real, 3>& l) __attribute__((warn_unused_result));
-
-INLINE bool decompose_eigen_cubic(
+INLINE bool decompose_eigen_polynomial2(
     Matrix<3,3> m,
     Matrix<3,3>& q,
     Vector<3>& l) {
@@ -183,6 +176,7 @@ INLINE bool decompose_eigen_cubic(
       single_eigenvector(m, roots[i], q[i]);
       l[i] = roots[i];
     }
+    return true;
   }
   if (nroots == 2 && mults[1] == 2) {
     single_eigenvector(m, roots[0], q[0]);
@@ -197,4 +191,60 @@ INLINE bool decompose_eigen_cubic(
     return true;
   }
   return false;
+}
+
+/* in the case that the null space is 1D and space is 2D,
+   get the largest column and rotate it 90 deg */
+INLINE void single_eigenvector(Matrix<2,2> m, Real l,
+    Vector<2>& v) {
+  Matrix<2,2> s = (m - (l * identity_matrix<2,2>()));
+  v = perp(get_1d_column_space(s));
+}
+
+INLINE bool decompose_eigen_polynomial2(
+    Matrix<2,2> m,
+    Matrix<2,2>& q,
+    Vector<2>& l) {
+  Real a,b;
+  characteristic_quadratic(m, a, b);
+  Few<Real, 2> roots;
+  Few<UInt, 2> mults;
+  UInt nroots = solve_quadratic(a, b, roots, mults);
+  /* there are only a few output cases, see solve_quadratic() */
+  if (nroots == 2) {
+    for (UInt i = 0; i < 2; ++i) {
+      single_eigenvector(m, roots[i], q[i]);
+      l[i] = roots[i];
+    }
+  }
+  if (nroots == 1 && mults[0] == 2) {
+    l[0] = l[1] = roots[0];
+    q = identity_matrix<2,2>();
+    return true;
+  }
+  return false;
+}
+
+template <UInt dim>
+INLINE bool decompose_eigen_polynomial(
+    Matrix<dim,dim> m,
+    Matrix<dim,dim>& q,
+    Vector<dim>& l) __attribute__((warn_unused_result));
+
+template <UInt dim>
+INLINE bool decompose_eigen_polynomial(
+    Matrix<dim,dim> m,
+    Matrix<dim,dim>& q,
+    Vector<dim>& l) {
+  /* the cubic solver is especially sensitive to dynamic
+     range. what we can do is to normalize the input matrix
+     and then re-apply that norm to the eigenvalues afterwards */
+  Real nm = frobenius_norm(m);
+  if (nm > EPSILON) {
+    m = m / nm;
+    bool ok = decompose_eigen_polynomial2(m, q, l);
+    l = l * nm;
+    return ok;
+  }
+  return decompose_eigen_polynomial2(m, q, l);
 }

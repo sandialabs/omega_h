@@ -86,7 +86,7 @@ static void test_eigen_cubic(Matrix<3,3> m,
     Matrix<3,3> q_expect, Vector<3> l_expect) {
   Matrix<3,3> q;
   Vector<3> l;
-  bool ok = decompose_eigen_cubic(m, q, l);
+  bool ok = decompose_eigen_polynomial(m, q, l);
   CHECK(ok);
   CHECK(are_close(q,q_expect));
   CHECK(are_close(l,l_expect));
@@ -96,19 +96,25 @@ static void test_eigen_cubic(Matrix<3,3> m,
     Vector<3> l_expect) {
   Matrix<3,3> q;
   Vector<3> l;
-  bool ok = decompose_eigen_cubic(m, q, l);
+  bool ok = decompose_eigen_polynomial(m, q, l);
   CHECK(ok);
-  CHECK(are_close(l,l_expect));
+  CHECK(are_close(l,l_expect,1e-6));
+  std::cerr << "m\n" << m;
+  std::cerr << "q * l * invert(q)\n"
+    << q * diagonal(l) * invert(q);
 }
 
 static void test_eigen_cubic_ortho(Matrix<3,3> m,
     Vector<3> l_expect) {
   Matrix<3,3> q;
   Vector<3> l;
-  bool ok = decompose_eigen_cubic(m, q, l);
+  bool ok = decompose_eigen_polynomial(m, q, l);
   CHECK(ok);
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
   CHECK(are_close(l,l_expect));
+  std::cerr << "m\n" << m;
+  std::cerr << "q * l * transpose(q)\n"
+    << q * diagonal(l) * transpose(q);
 }
 
 static void test_eigen_cubic() {

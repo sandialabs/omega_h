@@ -61,6 +61,10 @@ INLINE Matrix<2,2> rotate(Real angle) {
       sin(angle),  cos(angle));
 }
 
+INLINE Vector<2> perp(Vector<2> v) {
+  return vector_2(-v[1], v[0]);
+}
+
 INLINE Real determinant(Matrix<2,2> m) {
   Real a = m[0][0];
   Real b = m[1][0];
