@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <chrono>
 #include <memory>
-#include <limits>
+#include <climits>
 
 #include "kokkos.hpp"
 
