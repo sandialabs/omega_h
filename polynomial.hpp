@@ -14,9 +14,9 @@ INLINE UInt solve_cubic(
   // this is b^2 from wikipedia
   Real a2 = square(a);
   // this is (-p/3) from wikipedia, Q from wolfram mathworld
-  Real q  = (a2 - 3 * b) / 9;
+  Real q  = (a2 - 3. * b) / 9.;
   // this is (q/2) from wikipedia, -R from wolfram mathworld
-  Real r  = (a * (2. * a2 - 9. * b) + 27. * c) / 54;
+  Real r  = (a * (2. * a2 - 9. * b) + 27. * c) / 54.;
   // this is (q^2/4) from wikipedia
   Real r2 = square(r);
   // this is (-p^3/27) from wikipedia
@@ -27,9 +27,10 @@ INLINE UInt solve_cubic(
   if(r2 < q3) {
 // https://en.wikipedia.org/wiki/Cubic_function#Three_real_roots
 // the three roots can be projected from three equidistant points on a circle
+    std::cerr << "circle case\n";
     q = -2. * sqrt(q);
     /* q is the circle radius, so if it is small enough we have a triple root */
-    if (fabs(q) < 1e-6) {
+    if (fabs(q) < 1e-5) {
       roots[0] = -a;
       mults[0] = 3;
       return 1;
@@ -50,16 +51,23 @@ INLINE UInt solve_cubic(
     /* detect double root cases here: this is just rotation
        of an equilateral triangle to angle (t); there are cases when
        two vertices line up along x (edge is vertical) */
-    if (are_close(roots[0], roots[1], 1e-7)) {
+    std::cerr << "roots " << roots[0] << ", "
+                          << roots[1] << ", "
+                          << roots[2] << "\n";
+    if (are_close(roots[0], roots[1], 5e-6, 5e-6)) {
       roots[0] = roots[2];
+      roots[1] = average(roots[0], roots[1]);
       mults[1] = 2;
       return 2;
     }
-    if (are_close(roots[1], roots[2], 1e-7)) {
+    if (are_close(roots[1], roots[2], 5e-6, 5e-6)) {
+      roots[1] = average(roots[1], roots[2]);
       mults[1] = 2;
       return 2;
     }
-    if (are_close(roots[0], roots[2], 1e-7)) {
+    std::cerr << "fabs(a-b) " << fabs(roots[0]-roots[2]) << '\n';
+    if (are_close(roots[0], roots[2], 5e-6, 5e-6)) {
+      roots[0] = average(roots[0], roots[2]);
       swap2(roots[0], roots[1]);
       mults[1] = 2;
       return 2;
@@ -67,6 +75,7 @@ INLINE UInt solve_cubic(
     return 3;
   } else {
 // https://en.wikipedia.org/wiki/Cubic_function#Cardano.27s_method
+    std::cerr << "cardano\n";
     Real u3 = -r - sqrt(r2 - q3);
   //std::pow will not accept a negative base (it can't tell
   //that (1./3.) is exactly the reciprocal of an odd number),
@@ -200,6 +209,7 @@ INLINE bool decompose_eigen_polynomial2(
   UInt nroots = solve_cubic(a, b, c, roots, mults);
   /* there are only a few output cases, see solve_cubic() */
   if (nroots == 3) {
+    std::cerr << "three roots\n" << '\n';
     for (UInt i = 0; i < 3; ++i) {
       single_eigenvector(m, roots[i], q[i]);
       l[i] = roots[i];
@@ -207,6 +217,7 @@ INLINE bool decompose_eigen_polynomial2(
     return true;
   }
   if (nroots == 2 && mults[1] == 2) {
+    std::cerr << "two roots\n" << '\n';
     single_eigenvector(m, roots[0], q[0]);
     l[0] = roots[0];
     double_eigenvector(m, roots[1], q[1], q[2]);
@@ -214,6 +225,7 @@ INLINE bool decompose_eigen_polynomial2(
     return true;
   }
   if (nroots == 1 && mults[0] == 3) {
+    std::cerr << "one root\n" << '\n';
     l[0] = l[1] = l[2] = roots[0];
     q = identity_matrix<3,3>();
     return true;
@@ -280,7 +292,9 @@ INLINE bool decompose_eigen_polynomial(
      and then re-apply that norm to the resulting roots */
   Real nm = max_norm(m);
   if (nm > EPSILON) {
+    std::cerr << "original matrix\n" << m;
     m = m / nm;
+    std::cerr << "normalized matrix\n" << m;
     bool ok = decompose_eigen_polynomial2(m, q, l);
     l = l * nm;
     return ok;

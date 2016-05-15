@@ -98,7 +98,7 @@ static void test_eigen_cubic(Matrix<3,3> m,
   Vector<3> l;
   bool ok = decompose_eigen_polynomial(m, q, l);
   CHECK(ok);
-  CHECK(are_close(l,l_expect,1e-6));
+  CHECK(are_close(l,l_expect,1e-8,1e-8));
   CHECK(are_close(m, transpose(q * diagonal(l) * invert(q))));
 }
 
@@ -108,9 +108,9 @@ static void test_eigen_cubic_ortho(Matrix<3,3> m,
   Vector<3> l;
   bool ok = decompose_eigen_polynomial(m, q, l);
   CHECK(ok);
-  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
-  CHECK(are_close(l,l_expect));
-  CHECK(are_close(m, (q * diagonal(l) * transpose(q))));
+  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>(), 1e-8, 1e-8));
+  CHECK(are_close(l,l_expect, 1e-8, 1e-8));
+  CHECK(are_close(m, (q * diagonal(l) * transpose(q)), 1e-8, 1e-8));
 }
 
 static void test_eigen_metric(Vector<3> lengths) {
@@ -144,22 +144,10 @@ static void test_eigen_cubic() {
      if two of them are the same they should
      appear at the end */
   test_eigen_metric(vector_3(1e+3, 1, 1));
-  {
-  auto q = rotate(PI / 4, vector_3(0,0,1)) *
-           rotate(PI / 4, vector_3(0,1,0));
-  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
-  auto l = diagonal(vector_3(1, 1, 1e-6));
-  auto a = q * l * transpose(q);
-  test_eigen_cubic_ortho(a, vector_3(1e-6, 1, 1));
-  }
-  {
-  auto q = rotate(PI / 4, vector_3(0,0,1)) *
-           rotate(PI / 4, vector_3(0,1,0));
-  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
-  auto l = diagonal(vector_3(1e-6, 1e-6, 1));
-  auto a = q * l * transpose(q);
-  test_eigen_cubic_ortho(a, vector_3(1, 1e-6, 1e-6));
-  }
+  test_eigen_metric(vector_3(1, 1e+3, 1e+3));
+  test_eigen_metric(vector_3(1e-3, 1, 1));
+  test_eigen_metric(vector_3(1, 1e-3, 1e-3));
+  test_eigen_metric(vector_3(1e-6, 1e-3, 1e-3));
 }
 
 int main(int argc, char** argv) {

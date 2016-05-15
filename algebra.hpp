@@ -1,3 +1,5 @@
+INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
+
 INLINE Real square(Real x) { return x * x; }
 
 INLINE Real cube(Real x) { return x * x * x; }
