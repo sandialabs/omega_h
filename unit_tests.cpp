@@ -151,9 +151,21 @@ static void test_eigen_cubic() {
 }
 
 static void test_sort() {
+  {
   LOs a({0,1});
   LOs perm = sort_by_keys(a);
   CHECK(perm == LOs({0,1}));
+  }
+  {
+  LOs a({0,2,0,1});
+  LOs perm = sort_by_keys<LO,2>(a);
+  CHECK(perm == LOs({1,0}));
+  }
+  {
+  LOs a({0,2,1,1});
+  LOs perm = sort_by_keys<LO,2>(a);
+  CHECK(perm == LOs({0,1}));
+  }
 }
 
 int main(int argc, char** argv) {

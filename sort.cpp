@@ -32,9 +32,12 @@ struct CompareKeySets {
   Read<T> keys_;
   CompareKeySets(Read<T> keys):keys_(keys) {}
   INLINE bool operator()(const LO& a, const LO& b) {
-    for (UInt i = 0; i < N; ++i)
-      if (keys_[a * N + i] < keys_[b * N + i])
-        return true;
+    for (UInt i = 0; i < N; ++i) {
+      T x = keys_[a * N + i];
+      T y = keys_[b * N + i];
+      if (x != y)
+        return x < y;
+    }
     return false;
   }
 };
