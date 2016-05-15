@@ -135,7 +135,7 @@ INLINE void characteristic_quadratic(Matrix<2,2> A,
   b = determinant(A);
 }
 
-/* the null space of the matrix (s = m - lI)
+/* the null space of the matrix (s = m - l*I)
    is the space spanned by the eigenvectors.
    the multiplicity of this root is the dimensionality
    of that space, i.e. the number of eigenvectors. */
