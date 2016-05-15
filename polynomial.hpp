@@ -68,6 +68,26 @@ INLINE UInt solve_cubic(
   }
 }
 
+// solve quadratic equation x^2 + a * x + b = 0
+INLINE UInt solve_quadratic(
+    Real a, Real b,
+    Few<Real, 2>& roots, Few<UInt, 2>& mults) {
+  Real disc = square(a) - 4. * b;
+  if (fabs(disc) < 1e-6) {
+    mults[0] = 2;
+    roots[0] = -a / 2.;
+    return 1;
+  }
+  if (disc > 0.0) {
+    mults[0] = 1;
+    mults[1] = 1;
+    roots[0] = (-a + sqrt(disc)) / 2.;
+    roots[1] = (-a - sqrt(disc)) / 2.;
+    return 2;
+  }
+  return 0;
+}
+
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
 INLINE void characteristic_cubic(Matrix<3,3> A,
     Real& a, Real& b, Real& c)
@@ -77,6 +97,14 @@ INLINE void characteristic_cubic(Matrix<3,3> A,
   a = -tA;
   b = c2;
   c = -determinant(A);
+}
+
+/* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
+INLINE void characteristic_quadratic(Matrix<2,2> A,
+    Real& a, Real& b)
+{
+  a = -trace(A);
+  b = determinant(A);
 }
 
 /* the null space of the matrix (s = m - lI)
@@ -107,28 +135,28 @@ INLINE void single_eigenvector(Matrix<3,3> m, Real l,
   v = v / v_norm;
 }
 
+template <UInt m>
+INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
+  Vector<m> v;
+  Real v_norm = 0;
+  for (UInt j = 0; j < m; ++j) {
+    Real c_norm = norm(a[j]);
+    if (c_norm > v_norm) {
+      v = a[j];
+      v_norm = c_norm;
+    }
+  }
+  CHECK(v_norm > EPSILON);
+  return v / v_norm;
+}
+
 /* in the case that the null space is 2D, find the
    largest-norm column and get a couple vectors
    orthogonal to that */
 INLINE void double_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& u, Vector<3>& v) {
   Matrix<3,3> s = (m - (l * identity_matrix<3,3>()));
-  Vector<3> n = s[0];
-  Real n_norm = norm(n);
-  Vector<3> c = s[1];
-  Real c_norm = norm(c);
-  if (c_norm > n_norm) {
-    n = c;
-    n_norm = c_norm;
-  }
-  c = s[2];
-  c_norm = norm(c);
-  if (c_norm > n_norm) {
-    n = c;
-    n_norm = c_norm;
-  }
-  CHECK(n_norm > EPSILON);
-  n = n / n_norm;
+  Vector<3> n = get_1d_column_space(s);
   Matrix<3,3> b = form_ortho_basis(n);
   u = b[1]; v = b[2];
 }
