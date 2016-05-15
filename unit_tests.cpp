@@ -113,6 +113,18 @@ static void test_eigen_cubic_ortho(Matrix<3,3> m,
   CHECK(are_close(m, (q * diagonal(l) * transpose(q))));
 }
 
+static void test_eigen_metric(Vector<3> lengths) {
+  auto q = rotate(PI / 4, vector_3(0,0,1)) *
+           rotate(PI / 4, vector_3(0,1,0));
+  CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
+  auto l = vector_3(
+        1.0 / square(lengths[0]),
+        1.0 / square(lengths[1]),
+        1.0 / square(lengths[2]));
+  auto a = q * diagonal(l) * transpose(q);
+  test_eigen_cubic_ortho(a, l);
+}
+
 static void test_eigen_cubic() {
   test_eigen_cubic(
       identity_matrix<3,3>(),
@@ -128,6 +140,10 @@ static void test_eigen_cubic() {
         -3, 5, -1,
         -3, 3,  1),
       vector_3(1,2,2));
+  /* the lengths have to be ordered so that
+     if two of them are the same they should
+     appear at the end */
+  test_eigen_metric(vector_3(1e+3, 1, 1));
   {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
