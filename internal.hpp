@@ -20,6 +20,8 @@ typedef std::uint16_t U16;
 typedef std::uint32_t U32;
 typedef std::uint64_t U64;
 typedef U64           UInt;
+typedef U64           GO;
+typedef U32           LO;
 typedef double Real;
 
 #define EPSILON 1e-10

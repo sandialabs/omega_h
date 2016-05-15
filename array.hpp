@@ -53,6 +53,14 @@ public:
 
 bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
 
+class LOs : public Read<LO> {
+public:
+  LOs();
+  LOs(Write<LO> write);
+  LOs(LO size, LO value);
+  LOs(std::initializer_list<LO> l);
+};
+
 template <typename T>
 class HostWrite {
   Write<T> write_;

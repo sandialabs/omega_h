@@ -103,6 +103,21 @@ bool are_close(Reals a, Reals b, Real tol, Real floor) {
         AreClose(a, b, tol, floor)));
 }
 
+LOs::LOs() {
+}
+
+LOs::LOs(Write<LO> write):
+  Read<LO>(write) {
+}
+
+LOs::LOs(LO size, LO value):
+  Read<LO>(size, value) {
+}
+
+LOs::LOs(std::initializer_list<LO> l):
+  Read<LO>(l) {
+}
+
 template <typename T>
 Read<T>::Read() {
 }
@@ -191,7 +206,7 @@ template <typename T>
 Write<T> make_linear(UInt n, T offset, T stride) {
   Write<T> a(n);
   auto f = LAMBDA(UInt i) {
-    a[i] = offset + (stride * i);
+    a[i] = offset + (stride * static_cast<T>(i));
   };
   parallel_for(n, f);
   return a;
@@ -211,3 +226,4 @@ INST_ARRAY_T(Real)
 
 template Real sum(Read<Real> a);
 template Write<U64> make_linear(UInt n, U64 offset, U64 stride);
+template Write<U32> make_linear(UInt n, U32 offset, U32 stride);
