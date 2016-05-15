@@ -44,6 +44,15 @@ UInt Write<T>::size() const {
 #endif
 }
 
+template <typename T>
+T* Write<T>::data() const {
+#ifdef USE_KOKKOS
+  return view_.data();
+#else
+  return ptr_.get();
+#endif
+}
+
 #ifdef USE_KOKKOS
 template <typename T>
 Kokkos::View<T*> Write<T>::view() const {
@@ -140,6 +149,11 @@ Read<T>::Read(std::initializer_list<T> l):
 template <typename T>
 UInt Read<T>::size() const {
   return write_.size();
+}
+
+template <typename T>
+T const* Read<T>::data() const {
+  return write_.data();
 }
 
 #ifdef USE_KOKKOS
