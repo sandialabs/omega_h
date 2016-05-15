@@ -28,7 +28,6 @@ INLINE UInt solve_cubic(
 // https://en.wikipedia.org/wiki/Cubic_function#Three_real_roots
 // the three roots can be projected from three equidistant points on a circle
     q = -2. * sqrt(q);
-    std::cerr << "q " << q << '\n';
     /* q is the circle radius, so if it is small enough we have a triple root */
     if (fabs(q) < 1e-6) {
       roots[0] = -a;
@@ -36,7 +35,6 @@ INLINE UInt solve_cubic(
       return 1;
     }
     Real t = r / sqrt(q3);
-    std::cerr << "t " << t << '\n';
     /* ensure we don't exceed the domain of acos()
        (should only exceed due to roundoff) */
     t = max2(-1., t);
@@ -82,7 +80,6 @@ INLINE UInt solve_cubic(
     roots[0] = t1 - (a / 3.);
     Real t_real = -0.5 * (u + v);
     Real t_imag = 0.5 * sqrt(3.) * (u - v);
-    std::cerr << "t_real " << t_real << " t_imag " << t_imag << '\n';
     roots[1] = (t_real) - (a / 3.);
     if (fabs(t_imag) < 1e-6) {
       if (are_close(roots[0], roots[1])) {
@@ -163,7 +160,6 @@ INLINE void single_eigenvector(Matrix<3,3> m, Real l,
   }
   CHECK(v_norm > EPSILON);
   v = v / v_norm;
-  std::cerr << "(single) norm(v) " << norm(v) << '\n';
 }
 
 template <UInt m>
@@ -186,14 +182,10 @@ INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
    orthogonal to that */
 INLINE void double_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& u, Vector<3>& v) {
-  std::cerr << "double_eigenvector\n";
   Matrix<3,3> s = (m - (l * identity_matrix<3,3>()));
-  std::cerr << "s\n" << s;
   Vector<3> n = get_1d_column_space(s);
-  std::cerr << "column space vector " << n << '\n';
   Matrix<3,3> b = form_ortho_basis(n);
   u = b[1]; v = b[2];
-  std::cerr << "norm(u) " << norm(u) << " norm(v) " << norm(v) << '\n';
 }
 
 INLINE bool decompose_eigen_polynomial2(
@@ -214,10 +206,8 @@ INLINE bool decompose_eigen_polynomial2(
     return true;
   }
   if (nroots == 2 && mults[1] == 2) {
-    std::cerr << "single root " << roots[0] << '\n';
     single_eigenvector(m, roots[0], q[0]);
     l[0] = roots[0];
-    std::cerr << "double root " << roots[1] << '\n';
     double_eigenvector(m, roots[1], q[1], q[2]);
     l[1] = l[2] = roots[1];
     return true;
@@ -286,12 +276,8 @@ INLINE bool decompose_eigen_polynomial(
      and then re-apply that norm to the resulting roots */
   Real nm = max_norm(m);
   if (nm > EPSILON) {
-    std::cerr << "original m\n" << m;
-    std::cerr << "norm(m) " << nm << '\n';
     m = m / nm;
-    std::cerr << "normalized m\n" << m;
     bool ok = decompose_eigen_polynomial2(m, q, l);
-    std::cerr << "normalized l " << l << '\n';
     l = l * nm;
     return ok;
   }
