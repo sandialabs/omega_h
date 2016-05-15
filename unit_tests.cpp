@@ -31,7 +31,7 @@ static void test_form_ortho_basis() {
   CHECK(are_close(transpose(f) * f, identity_matrix<3,3>()));
 }
 
-static void test_eigen_decomp() {
+static void test_eigen_qr() {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
@@ -88,41 +88,32 @@ static void test_cubic(Real a, Real b, Real c,
 }
 
 static void test_cubic() {
-  Few<Real, 3> roots;
-  Few<UInt, 3> mults;
-  roots[0] = 0;
-  mults[0] = 3;
   test_cubic(0, 0, 0,
-      1, roots, mults);
-  roots[0] = -1;
-  roots[1] =  2;
-  roots[2] = 0.5;
-  mults[0] = 1;
-  mults[1] = 1;
-  mults[2] = 1;
+      1, Few<Real,3>({0}), Few<UInt,3>({3}));
   test_cubic(-3. / 2., -3. / 2., 1.,
-      3, roots, mults);
-  roots[0] = -2;
-  roots[1] =  1;
-  mults[0] = 1;
-  mults[1] = 2;
+      3, Few<Real,3>({-1,2,.5}), Few<UInt,3>({1,1,1}));
   test_cubic(0, -3., 2.,
-      2, roots, mults);
-  roots[0] = -4;
-  roots[1] =  2;
-  roots[2] = -1;
-  mults[0] = 1;
-  mults[1] = 1;
-  mults[2] = 1;
+      2, Few<Real,3>({-2,1}), Few<UInt,3>({1,2}));
   test_cubic(3, -6, -8,
-      3, roots, mults);
+      3, Few<Real,3>({-4,2,-1}), Few<UInt,3>({1,1,1}));
+}
+
+static void test_eigen_cubic() {
+  Matrix<3,3> q;
+  Few<Real, 3> l;
+  bool ok = decompose_eigen_cubic(identity_matrix<3,3>(), q, l);
+  std::cout << ok << '\n';
+  std::cout << q << '\n';
+  for (UInt i = 0; i < 3; ++i)
+    std::cout << l[i] << '\n';
 }
 
 int main(int argc, char** argv) {
   init(argc, argv);
   test_form_ortho_basis();
   test_qr_decomps();
-  test_eigen_decomp();
+  test_eigen_qr();
+  test_eigen_cubic();
   test_least_squares();
   test_int128();
   test_repro_sum();
