@@ -149,6 +149,24 @@ Kokkos::View<const T*> Read<T>::view() const {
 }
 #endif
 
+template <class T>
+struct SameContent : public AndFunctor {
+  Read<T> a_;
+  Read<T> b_;
+  SameContent(Read<T> a, Read<T> b):a_(a),b_(b) {}
+  INLINE void operator()(UInt i, value_type& update) const
+  {
+    update = update && (a_[i] == b_[i]);
+  }
+};
+
+template <class T>
+bool operator==(Read<T> a, Read<T> b)
+{
+  CHECK(a.size() == b.size());
+  return parallel_reduce(a.size(), SameContent<T>(a, b));
+}
+
 template <typename T>
 HostWrite<T>::HostWrite(UInt size):
   HostWrite<T>(Write<T>(size))
@@ -216,7 +234,8 @@ Write<T> make_linear(UInt n, T offset, T stride) {
 template class Write<T>; \
 template class Read<T>; \
 template class HostWrite<T>; \
-template class HostRead<T>;
+template class HostRead<T>; \
+template bool operator==(Read<T> a, Read<T> b);
 
 INST_ARRAY_T(U8)
 INST_ARRAY_T(U16)

@@ -40,6 +40,9 @@ public:
 #endif
 };
 
+template <class T>
+bool operator==(Read<T> a, Read<T> b);
+
 template <typename T>
 T sum(Read<T> a);
 

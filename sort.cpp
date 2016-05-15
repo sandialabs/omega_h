@@ -28,9 +28,9 @@ void parallel_sort(T* b, T* e, Comp c) {
 }
 
 template <typename T, UInt N>
-struct Compare {
+struct CompareKeySets {
   Read<T> keys_;
-  Compare(Read<T> keys):keys_(keys) {}
+  CompareKeySets(Read<T> keys):keys_(keys) {}
   INLINE bool operator()(const LO& a, const LO& b) {
     for (UInt i = 0; i < N; ++i)
       if (keys_[a * N + i] < keys_[b * N + i])
@@ -40,13 +40,14 @@ struct Compare {
 };
 
 template <typename T, UInt N>
-LOs sort_by_key(Read<T> keys) {
+LOs sort_by_keys(Read<T> keys) {
   CHECK(keys.size() % N == 0);
   auto perm = make_linear<LO>(keys.size() / N, 0, 1);
-  parallel_sort(&perm[0], &perm[0] + perm.size(), Compare<T,N>(keys));
+  parallel_sort(&perm[0], &perm[0] + perm.size(), CompareKeySets<T,N>(keys));
   return perm;
 }
-template LOs sort_by_key<U32,1>(Read<U32> keys);
-template LOs sort_by_key<U32,2>(Read<U32> keys);
-template LOs sort_by_key<U32,3>(Read<U32> keys);
-template LOs sort_by_key<U64,1>(Read<U64> keys);
+
+template LOs sort_by_keys<U32,1>(Read<U32> keys);
+template LOs sort_by_keys<U32,2>(Read<U32> keys);
+template LOs sort_by_keys<U32,3>(Read<U32> keys);
+template LOs sort_by_keys<U64,1>(Read<U64> keys);

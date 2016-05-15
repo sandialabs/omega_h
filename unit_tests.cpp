@@ -150,6 +150,12 @@ static void test_eigen_cubic() {
   test_eigen_metric(vector_3(1e-6, 1e-3, 1e-3));
 }
 
+static void test_sort() {
+  LOs a({0,1});
+  LOs perm = sort_by_keys(a);
+  CHECK(perm == LOs({0,1}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_form_ortho_basis();
@@ -159,5 +165,6 @@ int main(int argc, char** argv) {
   test_int128();
   test_repro_sum();
   test_cubic();
+  test_sort();
   fini();
 }
