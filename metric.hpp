@@ -8,13 +8,8 @@ Real metric_product(
 template <UInt dim>
 Matrix<dim,dim> compose_metric(
     Matrix<dim,dim> r,
-    Few<Real, 3> eigenw) {
-  Matrix<dim,dim> l;
-  for (UInt i = 0; i < dim; ++i)
-  for (UInt j = i + 1; j < dim; ++j)
-    l[i][j] = l[j][i] = 0.0;
-  for (UInt i = 0; i < dim; ++i)
-    l[i][i] = eigenw[i];
+    Vector<3> eigenw) {
+  Matrix<dim,dim> l = diagonal(eigenw);
   return r * l * transpose(r);
 }
 
@@ -22,11 +17,10 @@ template <UInt dim>
 void decompose_metric(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& r,
-    Few<Real, 3>& eigenw) {
+    Vector<3>& eigenw) {
   Matrix<dim,dim> l;
   decompose_eigen_qr(m, r, l);
-  for (UInt i = 0; i < dim; ++i)
-    eigenw[i] = l[i][i];
+  eigenw = diagonal(l);
 }
 
 /* INRIA knows what they're doing with respect to the metric.

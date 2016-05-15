@@ -234,3 +234,22 @@ INLINE Real trace(Matrix<m,m> a) {
     t += a[i][i];
   return t;
 }
+
+template <UInt m>
+INLINE Vector<m> diagonal(Matrix<m,m> a) {
+  Vector<m> v;
+  for (UInt i = 0; i < m; ++i)
+    v[i] = a[i][i];
+  return v;
+}
+
+template <UInt m>
+INLINE Matrix<m,m> diagonal(Vector<m> v) {
+  Matrix<m,m> a;
+  for (UInt i = 0; i < m; ++i)
+  for (UInt j = i + 1; j < m; ++j)
+    a[i][j] = a[j][i] = 0.0;
+  for (UInt i = 0; i < m; ++i)
+    a[i][i] = v[i];
+  return a;
+}
