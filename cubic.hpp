@@ -43,9 +43,9 @@ INLINE UInt solve_cubic(
   //std::pow will not accept a negative base (it can't tell
   //that (1./3.) is exactly the reciprocal of an odd number),
   //so we could strip out the sign on input and put it back
-  //on output.
-  //even better, C++11 provides std::cbrt which solves this
+  //on output:
   //Real u = sign(u3)*pow(fabs(u3), 1./3.);
+  //even better, C++11 provides std::cbrt which solves this
     Real u = cbrt(u3);
     Real v = (u == 0.0) ? 0.0 : (q / u);
     Real t1 = u + v;
