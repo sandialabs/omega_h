@@ -78,7 +78,7 @@ static Read<UInt> random_perm(UInt n)
 static void test_repro_sum() {
   Reals inputs = random_reals(nelems, 0, 1e100);
   Real rs = 0, s = 0;
-  UInt niters = 1;
+  UInt niters = 200;
   {
     Now t0 = now();
     for (UInt i = 0; i < niters; ++i)
