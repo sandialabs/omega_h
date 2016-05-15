@@ -15,16 +15,16 @@ int max_exponent(Reals a) {
 
 struct ReproSum : public SumFunctor<Int128> {
   Reals a_;
-  int expo_;
-  ReproSum(Reals a, int expo):a_(a),expo_(expo) {}
+  double unit_;
+  ReproSum(Reals a, double unit):a_(a),unit_(unit) {}
   INLINE void operator()(UInt i, value_type& update) const {
-    update = update + Int128::from_double(a_[i], expo_);
+    update = update + Int128::from_double(a_[i], unit_);
   }
 };
 
 Real repro_sum(Reals a, int expo) {
-  expo -= MANTISSA_BITS;
-  return parallel_reduce(a.size(), ReproSum(a, expo)).to_double(expo);
+  double unit = exp2(expo - MANTISSA_BITS);
+  return parallel_reduce(a.size(), ReproSum(a, unit)).to_double(unit);
 }
 
 Real repro_sum(Reals a) {

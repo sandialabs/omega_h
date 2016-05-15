@@ -1,15 +1,14 @@
-double Int128::to_double(int expo) const {
+double Int128::to_double(double unit) const {
   Int128 tmp = *this;
   if (tmp < Int128(0))
     tmp = -tmp;
   while (tmp.high) {
     tmp = tmp >> 1;
-    ++expo;
+    unit *= 2;
   }
   double x = tmp.low;
   if (*this < Int128(0))
     x = -x;
-  double unit = exp2(double(expo));
   x *= unit;
   return x;
 }

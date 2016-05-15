@@ -32,10 +32,9 @@ struct Int128
   INLINE Int128(const volatile Int128& rhs):
     high(rhs.high),low(rhs.low) {
   }
-  double to_double(int expo) const;
+  double to_double(double unit) const;
   void print(std::ostream& o) const;
-  static INLINE Int128 from_double(double value, int expo) {
-    double unit = exp2(double(expo));
+  static INLINE Int128 from_double(double value, double unit) {
     double normalized = value / unit;
     double rounded = round(normalized);
     return Int128(std::int64_t(rounded));
