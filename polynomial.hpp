@@ -2,7 +2,7 @@
 // (c) Khashin S.I. http://math.ivanovo.ac.ru/dalgebra/Khashin/index.html
 // khash2 (at) gmail.com
 //
-// Dan Ibanez: took initial code, fixed the less-than-3-roots case,
+// Dan Ibanez: took initial code, fixed lots of corner cases,
 // added geometric multiplicities output, focus only on real roots
 
 // solve cubic equation x^3 + a * x^2 + b * x + c = 0
@@ -22,20 +22,49 @@ INLINE UInt solve_cubic(
   // this is (-p^3/27) from wikipedia
   Real q3 = cube(q);
 //this is the (opposite of the) Cardano assumption ((q^2/4) + (p^3/27)) > 0
+//note that r2 may be arbitrarily close to q3, so both
+//sides of this if statement have to deal with duplicate roots
   if(r2 < q3) {
 // https://en.wikipedia.org/wiki/Cubic_function#Three_real_roots
+// the three roots can be projected from three equidistant points on a circle
+    q = -2. * sqrt(q);
+    std::cerr << "q " << q << '\n';
+    /* q is the circle radius, so if it is small enough we have a triple root */
+    if (fabs(q) < 1e-6) {
+      roots[0] = -a;
+      mults[0] = 3;
+      return 1;
+    }
     Real t = r / sqrt(q3);
+    std::cerr << "t " << t << '\n';
+    /* ensure we don't exceed the domain of acos()
+       (should only exceed due to roundoff) */
     t = max2(-1., t);
     t = min2( 1., t);
-    t = acos(t);
+    t = acos(t); // angle of rotation
     a /= 3.;
-    q = -2. * sqrt(q);
     roots[0] = q * cos(t / 3.) - a;
     roots[1] = q * cos((t + 2. * PI) / 3.) - a;
     roots[2] = q * cos((t - 2. * PI) / 3.) - a;
     mults[0] = 1;
     mults[1] = 1;
     mults[2] = 1;
+    /* detect double root cases here: this is just rotation
+       of an equilateral triangle to angle (t); there are cases when
+       two vertices line up along x (edge is vertical) */
+    if (are_close(roots[0], roots[1], 1e-6)) {
+      roots[1] = roots[2];
+      mults[0] = 2;
+      return 2;
+    }
+    if (are_close(roots[1], roots[2], 1e-6)) {
+      mults[1] = 2;
+      return 2;
+    }
+    if (are_close(roots[0], roots[2], 1e-6)) {
+      mults[0] = 2;
+      return 2;
+    }
     return 3;
   } else {
 // https://en.wikipedia.org/wiki/Cubic_function#Cardano.27s_method
@@ -53,6 +82,7 @@ INLINE UInt solve_cubic(
     roots[0] = t1 - (a / 3.);
     Real t_real = -0.5 * (u + v);
     Real t_imag = 0.5 * sqrt(3.) * (u - v);
+    std::cerr << "t_real " << t_real << " t_imag " << t_imag << '\n';
     roots[1] = (t_real) - (a / 3.);
     if (fabs(t_imag) < 1e-6) {
       if (are_close(roots[0], roots[1])) {
@@ -133,6 +163,7 @@ INLINE void single_eigenvector(Matrix<3,3> m, Real l,
   }
   CHECK(v_norm > EPSILON);
   v = v / v_norm;
+  std::cerr << "(single) norm(v) " << norm(v) << '\n';
 }
 
 template <UInt m>
@@ -155,10 +186,14 @@ INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
    orthogonal to that */
 INLINE void double_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& u, Vector<3>& v) {
+  std::cerr << "double_eigenvector\n";
   Matrix<3,3> s = (m - (l * identity_matrix<3,3>()));
+  std::cerr << "s\n" << s;
   Vector<3> n = get_1d_column_space(s);
+  std::cerr << "column space vector " << n << '\n';
   Matrix<3,3> b = form_ortho_basis(n);
   u = b[1]; v = b[2];
+  std::cerr << "norm(u) " << norm(u) << " norm(v) " << norm(v) << '\n';
 }
 
 INLINE bool decompose_eigen_polynomial2(
@@ -179,8 +214,10 @@ INLINE bool decompose_eigen_polynomial2(
     return true;
   }
   if (nroots == 2 && mults[1] == 2) {
+    std::cerr << "single root " << roots[0] << '\n';
     single_eigenvector(m, roots[0], q[0]);
     l[0] = roots[0];
+    std::cerr << "double root " << roots[1] << '\n';
     double_eigenvector(m, roots[1], q[1], q[2]);
     l[1] = l[2] = roots[1];
     return true;
@@ -231,6 +268,14 @@ INLINE bool decompose_eigen_polynomial(
     Matrix<dim,dim>& q,
     Vector<dim>& l) __attribute__((warn_unused_result));
 
+/* note that (q) in the output is a matrix whose
+   columns are the right eigenvectors.
+   hence it actually corresponds to (Q^{-T})
+   in the eigendecomposition
+     M = Q \Lambda Q^{-1}
+   where Q is the change of basis matrix
+   the output should satisfy
+     m ~= transpose(q * diagonal(l) * invert(q)) */
 template <UInt dim>
 INLINE bool decompose_eigen_polynomial(
     Matrix<dim,dim> m,
@@ -238,11 +283,15 @@ INLINE bool decompose_eigen_polynomial(
     Vector<dim>& l) {
   /* the cubic solver is especially sensitive to dynamic
      range. what we can do is to normalize the input matrix
-     and then re-apply that norm to the eigenvalues afterwards */
+     and then re-apply that norm to the resulting roots */
   Real nm = frobenius_norm(m);
   if (nm > EPSILON) {
+    std::cerr << "original m\n" << m;
+    std::cerr << "norm(m) " << nm << '\n';
     m = m / nm;
+    std::cerr << "normalized m\n" << m;
     bool ok = decompose_eigen_polynomial2(m, q, l);
+    std::cerr << "normalized l " << l << '\n';
     l = l * nm;
     return ok;
   }

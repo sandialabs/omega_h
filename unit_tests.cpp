@@ -100,8 +100,11 @@ static void test_eigen_cubic(Matrix<3,3> m,
   CHECK(ok);
   CHECK(are_close(l,l_expect,1e-6));
   std::cerr << "m\n" << m;
-  std::cerr << "q * l * invert(q)\n"
-    << q * diagonal(l) * invert(q);
+  std::cerr << "l " << l << '\n';
+  std::cerr << "q\n" << q;
+  std::cerr << "transpose(q) * q\n" << (transpose(q) * q);
+  std::cerr << "transpose(q * diagonal(l) * invert(q))\n"
+    << transpose(q * diagonal(l) * invert(q));
 }
 
 static void test_eigen_cubic_ortho(Matrix<3,3> m,
@@ -118,6 +121,7 @@ static void test_eigen_cubic_ortho(Matrix<3,3> m,
 }
 
 static void test_eigen_cubic() {
+  if ((0)) {
   test_eigen_cubic(
       identity_matrix<3,3>(),
       identity_matrix<3,3>(),
@@ -126,13 +130,14 @@ static void test_eigen_cubic() {
       matrix_3x3(0,0,0,0,0,0,0,0,0),
       identity_matrix<3,3>(),
       vector_3(0,0,0));
+  }
   test_eigen_cubic(
       matrix_3x3(
         -1, 3, -1,
         -3, 5, -1,
         -3, 3,  1),
       vector_3(1,2,2));
-  {
+  if ((0)) {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
@@ -140,7 +145,7 @@ static void test_eigen_cubic() {
   auto a = q * l * transpose(q);
   test_eigen_cubic_ortho(a, vector_3(1e-6, 1, 1));
   }
-  {
+  if ((0)) {
   auto q = rotate(PI / 4, vector_3(0,0,1)) *
            rotate(PI / 4, vector_3(0,1,0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
