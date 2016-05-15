@@ -1,11 +1,12 @@
 MacBook:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.79136 seconds
-reproducibly adding 1000000 reals 200 times takes 1.29789 seconds
-adding 1000000 reals 200 times takes 0.235691 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.808844 seconds
+reproducibly adding 1000000 reals 200 times takes 1.17991 seconds
+adding 1000000 reals 200 times takes 0.217192 seconds
 
 Shannon:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.0293546 seconds
-reproducibly adding 1000000 reals 50 times takes 0.014426 seconds
-adding 1000000 reals 50 times takes 0.00537369 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.00694263 seconds
+reproducibly adding 1000000 reals 200 times takes 0.0551038 seconds
+adding 1000000 reals 200 times takes 0.021619 seconds
+
