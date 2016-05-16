@@ -18,7 +18,10 @@ sorting 1000000 sets of 3 integers 5 times takes 0.168868 seconds
 
 Shannon K40:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.00694263 seconds
-reproducibly adding 1000000 reals 200 times takes 0.0551038 seconds
-adding 1000000 reals 200 times takes 0.021619 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.0068932 seconds
+reproducibly adding 1000000 reals 100 times takes 0.0272829 seconds
+adding 1000000 reals 100 times takes 0.0108792 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.0877173 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.110506 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.131882 seconds
 
