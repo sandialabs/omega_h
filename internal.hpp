@@ -38,6 +38,7 @@ typedef double Real;
 #include "qr.hpp"
 #include "space.hpp"
 #include "polynomial.hpp"
+#include "eigen.hpp"
 #include "size.hpp"
 #include "quality.hpp"
 #include "loop.hpp"

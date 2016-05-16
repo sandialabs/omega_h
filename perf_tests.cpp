@@ -43,7 +43,7 @@ static void test_metric_decom() {
     auto m = get_symm<3>(metrics, i);
     Matrix<3,3> r;
     Vector<3> l;
-    bool ok = decompose_eigen_polynomial(m, r, l);
+    bool ok = decompose_eigen(m, r, l);
     CHECK(ok);
     auto eigenv = max2(max2(l[0], l[1]), l[2]);
     write_eigenvs[i] = eigenv;

@@ -8,19 +8,22 @@ Real metric_product(
 template <UInt dim>
 Matrix<dim,dim> compose_metric(
     Matrix<dim,dim> r,
-    Vector<3> eigenw) {
-  Matrix<dim,dim> l = diagonal(eigenw);
-  return r * l * transpose(r);
+    Vector<dim> h) {
+  Vector<dim> l;
+  for (UInt i = 0; i < dim; ++i)
+    l[i] = 1.0 / square(h[i]);
+  return r * diagonal(l) * transpose(r);
 }
 
 template <UInt dim>
 void decompose_metric(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& r,
-    Vector<3>& eigenw) {
-  Matrix<dim,dim> l;
-  decompose_eigen_qr(m, r, l);
-  eigenw = diagonal(l);
+    Vector<dim>& h) {
+  Vector<dim> l;
+  decompose_eigen_polynomial(m, r, l);
+  for (UInt i = 0; i < dim; ++i)
+    h[i] = 1.0 / sqrt(l[i]);
 }
 
 /* INRIA knows what they're doing with respect to the metric.
@@ -44,11 +47,10 @@ Matrix<dim,dim> common_basis(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b) {
   auto c = invert(a) * b;
-  Matrix<dim,dim> r;
-  Few<Real, 3> eigenw;
-  decompose_metric(c, r, eigenw);
-  (void) eigenw;
-  return r;
+  Matrix<dim,dim> p;
+  Vector<dim> l;
+  decompose_eigen_polynomial(c, p, l);
+  return p;
 }
 
 template <UInt dim>
@@ -56,11 +58,32 @@ Matrix<dim,dim> intersect_metric(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b,
     Real t) {
-  Matrix<dim,dim> p = common_basis(a, b);
-  Few<Real, dim> w;
+  auto p = common_basis(a, b);
+  Vector<dim> w;
   for (UInt i = 0; i < dim; ++i) {
     Real u = metric_product(a, p[i]);
     Real v = metric_product(b, p[i]);
     Real w[i] = max2(u, v);
   }
+  auto ip = invert(p);
+  return transpose(ip) * diagonal(w) * ip;
+}
+
+template <UInt dim>
+Matrix<dim,dim> interpolate_metric(
+    Matrix<dim,dim> a,
+    Matrix<dim,dim> b,
+    Real t) {
+  auto p = common_basis(a, b);
+  Vector<dim> w;
+  for (UInt i = 0; i < dim; ++i) {
+    Real u = metric_product(a, p[i]);
+    Real v = metric_product(b, p[i]);
+    Real h1 = 1.0 / sqrt(u);
+    Real h2 = 1.0 / sqrt(v);
+    Real h = ((1.0 - t) * h1) + (t * h2);
+    Real w = 1.0 / square(h);
+  }
+  auto ip = invert(p);
+  return transpose(ip) * diagonal(w) * ip;
 }
