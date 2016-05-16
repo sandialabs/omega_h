@@ -4,6 +4,7 @@ INLINE UInt solve_cubic(
     Real a_2, Real a_1, Real a_0,
     Few<Real, 3>& roots, Few<UInt, 3>& mults,
     Real eps = 1e-6) {
+  std::cerr << "a_2 " << a_2 << " a_1 " << a_1 << " a_0 " << a_0 << '\n';
 // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
   Real q = (9. * a_1 * a_2 - 27. * a_0 - 2. * cube(a_2)) / 27.;
@@ -11,7 +12,8 @@ INLINE UInt solve_cubic(
   Real R = q / 2.;
   Real D = cube(Q) + square(R);
   Real shift = -a_2 / 3.;
-  if (D > 0.0) {
+  if (D >= 0.0) {
+    std::cerr << "D >= 0\n";
     Real S = cbrt(R + sqrt(D));
     Real T = cbrt(R - sqrt(D));
     Real B = S + T;
@@ -22,6 +24,7 @@ INLINE UInt solve_cubic(
     roots[0] = z_1;
     roots[1] = roots[2] = z_23_real;
   } else {
+    std::cerr << "D < 0\n";
     // D < 0 implies Q < 0, since R^2 must be positive
     Real theta = acos(R / sqrt(-cube(Q)));
     Real radius = 2. * sqrt(-Q);
@@ -39,23 +42,29 @@ INLINE UInt solve_cubic(
   // root and set the second multiplicity to two
   if (fabs(roots[0] - roots[1]) < eps) {
     roots[1] = average(roots[0], roots[1]);
-    mults[1] = 2;
   } else if (fabs(roots[0] - roots[2]) < eps) {
     roots[1] = average(roots[0], roots[2]);
-    mults[1] = 2;
   } else if (fabs(roots[1] - roots[2]) < eps) {
     roots[1] = average(roots[1], roots[2]);
-    mults[1] = 2;
   } else { // no pairs were close, all roots are distinct
+    std::cerr << "three distinct roots: "
+      << roots[0] << ", "
+      << roots[1] << ", "
+      << roots[2] << "\n";
     return 3;
   }
   // if we're here, two roots were combined into roots[1].
+  mults[1] = 2;
   // lets see if they are all the same
   if (fabs(roots[0] - roots[1]) < eps) {
     roots[0] = (1. / 3.) * roots[0] + (2. / 3.) * roots[1];
     mults[0] = 3;
+    std::cerr << "one triple root: " << roots[0] << '\n';
     return 1;
   }
+  std::cerr << "single & double root: "
+      << roots[0] << ", "
+      << roots[1] << "\n";
   return 2;
 }
 

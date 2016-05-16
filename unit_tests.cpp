@@ -75,11 +75,11 @@ static void test_cubic() {
   test_cubic(0, 0, 0,
       1, Few<Real,3>({0}), Few<UInt,3>({3}));
   test_cubic(-3. / 2., -3. / 2., 1.,
-      3, Few<Real,3>({-1,2,.5}), Few<UInt,3>({1,1,1}));
+      3, Few<Real,3>({2,-1,.5}), Few<UInt,3>({1,1,1}));
   test_cubic(0, -3., 2.,
       2, Few<Real,3>({-2,1}), Few<UInt,3>({1,2}));
   test_cubic(3, -6, -8,
-      3, Few<Real,3>({-4,2,-1}), Few<UInt,3>({1,1,1}));
+      3, Few<Real,3>({2,-4,-1}), Few<UInt,3>({1,1,1}));
 }
 
 static void test_eigen_cubic(Matrix<3,3> m,
@@ -198,6 +198,7 @@ static void test_scan() {
 
 int main(int argc, char** argv) {
   init(argc, argv);
+  test_cubic();
   if ((0)) {
   test_form_ortho_basis();
   test_qr_decomps();
@@ -205,10 +206,9 @@ int main(int argc, char** argv) {
   test_least_squares();
   test_int128();
   test_repro_sum();
-  test_cubic();
   test_sort();
   test_scan();
-  }
   test_intersect_metric();
+  }
   fini();
 }
