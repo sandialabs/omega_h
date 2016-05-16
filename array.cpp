@@ -115,6 +115,10 @@ bool are_close(Reals a, Reals b, Real tol, Real floor) {
 LOs::LOs() {
 }
 
+LOs::LOs(Read<LO> base):
+  Read<LO>(base) {
+}
+
 LOs::LOs(Write<LO> write):
   Read<LO>(write) {
 }

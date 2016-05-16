@@ -78,7 +78,7 @@ static Read<UInt> random_perm(UInt n)
 static void test_repro_sum() {
   Reals inputs = random_reals(nelems, 0, 1e100);
   Real rs = 0, s = 0;
-  UInt niters = 200;
+  UInt niters = 100;
   {
     Now t0 = now();
     for (UInt i = 0; i < niters; ++i)
@@ -111,9 +111,41 @@ static void test_repro_sum() {
     std::cerr << "warning: the naive sum gave the same answer\n";
 }
 
+template <typename T>
+static Read<T> random_ints(UInt n, T from, T to) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<T> dis(from, to);
+  HostWrite<T> ha(n);
+  for (UInt i = 0; i < n; ++i)
+    ha[i] = dis(gen);
+  return ha.write();
+}
+
+template <UInt N>
+static void test_sort_n() {
+  LOs a = random_ints<LO>(nelems * N, 0, nelems);
+  LOs perm;
+  UInt niters = 5;
+  Now t0 = now();
+  for (UInt i = 0; i < niters; ++i)
+    perm = sort_by_keys<LO,N>(a);
+  Now t1 = now();
+  std::cout << "sorting " << nelems << " sets of "
+    << N << " integers " << niters
+    << " times takes " << (t1 - t0) << " seconds\n";
+}
+
+static void test_sort() {
+  test_sort_n<1>();
+  test_sort_n<2>();
+  test_sort_n<3>();
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_metric_decom();
   test_repro_sum();
+  test_sort();
   fini();
 }
