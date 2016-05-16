@@ -199,7 +199,6 @@ static void test_scan() {
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
-  if ((0)) {
   test_form_ortho_basis();
   test_qr_decomps();
   test_eigen_cubic();
@@ -209,6 +208,5 @@ int main(int argc, char** argv) {
   test_sort();
   test_scan();
   test_intersect_metric();
-  }
   fini();
 }

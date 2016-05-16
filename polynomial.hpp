@@ -35,28 +35,35 @@ INLINE UInt solve_cubic(
     roots[1] = z_2;
     roots[2] = z_3;
   }
+  std::cerr << "before post-processing, roots are:\n  "
+      << roots[0] << ", "
+      << roots[1] << ", "
+      << roots[2] << "\n";
   mults[0] = mults[1] = mults[2] = 1;
   // post-processing, decide whether pairs of roots are
   // close enough to be called repeated roots
-  // first step, if two roots are close make them the second
-  // root and set the second multiplicity to two
+  // first step, if two roots are close, then
+  // move them to the second and third slots
   if (fabs(roots[0] - roots[1]) < eps) {
-    roots[1] = average(roots[0], roots[1]);
+    swap2(roots[0], roots[2]);
   } else if (fabs(roots[0] - roots[2]) < eps) {
-    roots[1] = average(roots[0], roots[2]);
+    swap2(roots[0], roots[1]);
   } else if (fabs(roots[1] - roots[2]) < eps) {
-    roots[1] = average(roots[1], roots[2]);
-  } else { // no pairs were close, all roots are distinct
+    // no need to swap, they're already there
+  } else {
+    // no pairs were close, all three roots are distinct
     std::cerr << "three distinct roots: "
       << roots[0] << ", "
       << roots[1] << ", "
       << roots[2] << "\n";
     return 3;
   }
-  // if we're here, two roots were combined into roots[1].
+  // if we're here, two close roots are in [1] and [2]
+  roots[1] = average(roots[1], roots[2]);
   mults[1] = 2;
   // lets see if they are all the same
   if (fabs(roots[0] - roots[1]) < eps) {
+    // roots[1] is already an average, weight it properly
     roots[0] = (1. / 3.) * roots[0] + (2. / 3.) * roots[1];
     mults[0] = 3;
     std::cerr << "one triple root: " << roots[0] << '\n';
