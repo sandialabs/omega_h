@@ -1,12 +1,26 @@
 template <Int dim>
-Real metric_product(
+INLINE Real metric_product(
     Matrix<dim,dim> m,
     Vector<dim> v) {
   return v * (m * v);
 }
 
 template <Int dim>
-Vector<dim> metric_eigenvalues(Vector<dim> h) {
+INLINE Real metric_length(
+    Matrix<dim,dim> m,
+    Vector<dim> v) {
+  return sqrt(metric_product(m, v));
+}
+
+template <Int dim>
+INLINE Real metric_desired_length(
+    Matrix<dim,dim> m,
+    Vector<dim> dir) {
+  return 1.0 / metric_length(m, dir);
+}
+
+template <Int dim>
+INLINE Vector<dim> metric_eigenvalues(Vector<dim> h) {
   Vector<dim> l;
   for (Int i = 0; i < dim; ++i)
     l[i] = 1.0 / square(h[i]);
@@ -14,7 +28,7 @@ Vector<dim> metric_eigenvalues(Vector<dim> h) {
 }
 
 template <Int dim>
-Vector<dim> metric_lengths(Vector<dim> l) {
+INLINE Vector<dim> metric_lengths(Vector<dim> l) {
   Vector<dim> h;
   for (Int i = 0; i < dim; ++i)
     h[i] = 1.0 / sqrt(l[i]);
@@ -22,7 +36,7 @@ Vector<dim> metric_lengths(Vector<dim> l) {
 }
 
 template <Int dim>
-Matrix<dim,dim> compose_metric(
+INLINE Matrix<dim,dim> compose_metric(
     Matrix<dim,dim> r,
     Vector<dim> h) {
   auto l = metric_eigenvalues(h);
@@ -30,7 +44,7 @@ Matrix<dim,dim> compose_metric(
 }
 
 template <Int dim>
-void decompose_metric(
+INLINE void decompose_metric(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& r,
     Vector<dim>& h) {
@@ -57,7 +71,7 @@ https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
 */
 
 template <Int dim>
-Matrix<dim,dim> common_basis(
+INLINE Matrix<dim,dim> common_metric_basis(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b) {
   auto c = invert(a) * b;
@@ -69,10 +83,10 @@ Matrix<dim,dim> common_basis(
 }
 
 template <Int dim>
-Matrix<dim,dim> intersect_metric(
+INLINE Matrix<dim,dim> intersect_metrics(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b) {
-  auto p = common_basis(a, b);
+  auto p = common_metric_basis(a, b);
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
     Real u = metric_product(a, p[i]);
@@ -84,11 +98,11 @@ Matrix<dim,dim> intersect_metric(
 }
 
 template <Int dim>
-Matrix<dim,dim> interpolate_metric(
+INLINE Matrix<dim,dim> interpolate_metrics(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b,
     Real t) {
-  auto p = common_basis(a, b);
+  auto p = common_metric_basis(a, b);
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
     Real u = metric_product(a, p[i]);

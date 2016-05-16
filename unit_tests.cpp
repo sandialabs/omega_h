@@ -147,19 +147,26 @@ static void test_eigen_cubic() {
   test_eigen_metric(vector_3(1e-6, 1e-3, 1e-3));
 }
 
-static void test_intersect_metric() {
+static void test_intersect_ortho_metrics(
+    Vector<3> h1,
+    Vector<3> h2,
+    Vector<3> hi_expect) {
   auto q = identity_matrix<3,3>();
-  auto h1 = vector_3(0.5, 1, 1);
-  auto h2 = vector_3(1, 0.5, 1);
   auto m1 = compose_metric(q, h1);
   auto m2 = compose_metric(q, h2);
-  auto mi = intersect_metric(m1, m2);
-  Matrix<3,3> qi;
-  Vector<3> hi;
-  std::cerr << "DECOMPOSING RESULT\n";
-  decompose_metric(mi, qi, hi);
-  std::cout << "qi\n" << q;
-  std::cout << "hi " << hi << '\n';
+  auto mi = intersect_metrics(m1, m2);
+  /* if we decompose it, the eigenvectors may
+     get re-ordered. */
+  for (Int i = 0; i < 3; ++i)
+    CHECK(are_close(metric_desired_length(mi, q[i]),
+                    hi_expect[i]));
+}
+
+static void test_intersect_metrics() {
+  test_intersect_ortho_metrics(
+      vector_3(0.5,   1, 1),
+      vector_3(  1, 0.5, 1),
+      vector_3(0.5, 0.5, 1));
 }
 
 static void test_sort() {
@@ -207,6 +214,6 @@ int main(int argc, char** argv) {
   test_repro_sum();
   test_sort();
   test_scan();
-  test_intersect_metric();
+  test_intersect_metrics();
   fini();
 }
