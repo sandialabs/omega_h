@@ -46,3 +46,4 @@ typedef double Real;
 #include "access.hpp"
 #include "repro.hpp"
 #include "sort.hpp"
+#include "scan.hpp"
