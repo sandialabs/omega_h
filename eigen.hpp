@@ -89,15 +89,10 @@ INLINE bool decompose_eigen2(
     return true;
   }
   if (nroots == 2 && mults[1] == 2) {
-    std::cerr << "single/double case !\n";
     single_eigenvector(m, roots[0], q[0]);
     l[0] = roots[0];
-    std::cerr << "single: w " << l[0] << " v " << q[0] << '\n';
     double_eigenvector(m, roots[1], q[1], q[2]);
     l[1] = l[2] = roots[1];
-    std::cerr << "double: w " << l[1] << "\n";
-    std::cerr << "u " << q[1] << '\n';
-    std::cerr << "v " << q[2] << '\n';
     return true;
   }
   if (nroots == 1 && mults[0] == 3) {
@@ -168,7 +163,6 @@ INLINE bool decompose_eigen(
   Real nm = max_norm(m);
   if (nm > EPSILON) {
     m = m / nm;
-    std::cerr << "normalized matrix for eigen\n" << m;
     bool ok = decompose_eigen2(m, q, l);
     l = l * nm;
     return ok;

@@ -1,10 +1,13 @@
 // solve cubic equation x^3 + a_2 * x^2 + a_1 * x + a_0 = 0
 // this code assumes that the solution does not have complex roots !
+// the return value is the number of distinct roots,
+// the two output arrays contain root values and multiplicities.
+// roots within an *absolute* distance of (eps) are considered
+// the same.
 INLINE UInt solve_cubic(
     Real a_2, Real a_1, Real a_0,
     Few<Real, 3>& roots, Few<UInt, 3>& mults,
     Real eps = 1e-6) {
-  std::cerr << "a_2 " << a_2 << " a_1 " << a_1 << " a_0 " << a_0 << '\n';
 // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
   Real q = (9. * a_1 * a_2 - 27. * a_0 - 2. * cube(a_2)) / 27.;
@@ -13,7 +16,6 @@ INLINE UInt solve_cubic(
   Real D = cube(Q) + square(R);
   Real shift = -a_2 / 3.;
   if (D >= 0.0) {
-    std::cerr << "D >= 0\n";
     Real S = cbrt(R + sqrt(D));
     Real T = cbrt(R - sqrt(D));
     Real B = S + T;
@@ -24,7 +26,6 @@ INLINE UInt solve_cubic(
     roots[0] = z_1;
     roots[1] = roots[2] = z_23_real;
   } else {
-    std::cerr << "D < 0\n";
     // D < 0 implies Q < 0, since R^2 must be positive
     Real theta = acos(R / sqrt(-cube(Q)));
     Real radius = 2. * sqrt(-Q);
@@ -35,10 +36,6 @@ INLINE UInt solve_cubic(
     roots[1] = z_2;
     roots[2] = z_3;
   }
-  std::cerr << "before post-processing, roots are:\n  "
-      << roots[0] << ", "
-      << roots[1] << ", "
-      << roots[2] << "\n";
   mults[0] = mults[1] = mults[2] = 1;
   // post-processing, decide whether pairs of roots are
   // close enough to be called repeated roots
@@ -52,10 +49,6 @@ INLINE UInt solve_cubic(
     // no need to swap, they're already there
   } else {
     // no pairs were close, all three roots are distinct
-    std::cerr << "three distinct roots: "
-      << roots[0] << ", "
-      << roots[1] << ", "
-      << roots[2] << "\n";
     return 3;
   }
   // if we're here, two close roots are in [1] and [2]
@@ -66,12 +59,8 @@ INLINE UInt solve_cubic(
     // roots[1] is already an average, weight it properly
     roots[0] = (1. / 3.) * roots[0] + (2. / 3.) * roots[1];
     mults[0] = 3;
-    std::cerr << "one triple root: " << roots[0] << '\n';
     return 1;
   }
-  std::cerr << "single & double root: "
-      << roots[0] << ", "
-      << roots[1] << "\n";
   return 2;
 }
 

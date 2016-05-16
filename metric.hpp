@@ -72,19 +72,14 @@ template <UInt dim>
 Matrix<dim,dim> intersect_metric(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b) {
-  std::cerr << "metric a\n" << a;
-  std::cerr << "metric b\n" << b;
   auto p = common_basis(a, b);
-  std::cerr << "common basis\n" << p;
   Vector<dim> w;
   for (UInt i = 0; i < dim; ++i) {
     Real u = metric_product(a, p[i]);
     Real v = metric_product(b, p[i]);
-    std::cerr << i << ": u " << u << " v " << v << '\n';
     w[i] = max2(u, v);
   }
   auto mi = compose_eigen(p, w);
-  std::cerr << "a intersect b\n" << mi;
   return mi;
 }
 
