@@ -18,7 +18,7 @@ Vector<dim> metric_lengths(Vector<dim> l) {
   Vector<dim> h;
   for (UInt i = 0; i < dim; ++i)
     h[i] = 1.0 / sqrt(l[i]);
-  return l;
+  return h;
 }
 
 template <UInt dim>
@@ -35,7 +35,8 @@ void decompose_metric(
     Matrix<dim,dim>& r,
     Vector<dim>& h) {
   Vector<dim> l;
-  decompose_eigen_polynomial(m, r, l);
+  bool ok = decompose_eigen(m, r, l);
+  CHECK(ok);
   h = metric_lengths(l);
 }
 
@@ -62,7 +63,8 @@ Matrix<dim,dim> common_basis(
   auto c = invert(a) * b;
   Matrix<dim,dim> p;
   Vector<dim> l;
-  decompose_eigen_polynomial(c, p, l);
+  bool ok = decompose_eigen(c, p, l);
+  CHECK(ok);
   return p;
 }
 
@@ -77,8 +79,8 @@ Matrix<dim,dim> intersect_metric(
     Real v = metric_product(b, p[i]);
     w[i] = max2(u, v);
   }
-  auto ip = invert(p);
-  return transpose(ip) * diagonal(w) * ip;
+  auto mi = compose_eigen(p, w);
+  return mi;
 }
 
 template <UInt dim>
@@ -96,6 +98,5 @@ Matrix<dim,dim> interpolate_metric(
     Real h = ((1.0 - t) * h1) + (t * h2);
     w[i] = 1.0 / square(h);
   }
-  auto ip = invert(p);
-  return transpose(ip) * diagonal(w) * ip;
+  return compose_eigen(p, w);
 }
