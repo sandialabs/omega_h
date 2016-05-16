@@ -147,6 +147,21 @@ static void test_eigen_cubic() {
   test_eigen_metric(vector_3(1e-6, 1e-3, 1e-3));
 }
 
+static void test_intersect_metric() {
+  auto q = identity_matrix<3,3>();
+  auto h1 = vector_3(0.5, 1, 1);
+  auto h2 = vector_3(1, 0.5, 1);
+  auto m1 = compose_metric(q, h1);
+  auto m2 = compose_metric(q, h2);
+  auto mi = intersect_metric(m1, m2);
+  Matrix<3,3> qi;
+  Vector<3> hi;
+  std::cerr << "DECOMPOSING RESULT\n";
+  decompose_metric(mi, qi, hi);
+  std::cout << "qi\n" << q;
+  std::cout << "hi " << hi << '\n';
+}
+
 static void test_sort() {
   {
   LOs a({0,1});
@@ -183,6 +198,7 @@ static void test_scan() {
 
 int main(int argc, char** argv) {
   init(argc, argv);
+  if ((0)) {
   test_form_ortho_basis();
   test_qr_decomps();
   test_eigen_cubic();
@@ -192,5 +208,7 @@ int main(int argc, char** argv) {
   test_cubic();
   test_sort();
   test_scan();
+  }
+  test_intersect_metric();
   fini();
 }
