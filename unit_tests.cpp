@@ -174,8 +174,14 @@ static void test_sort() {
 }
 
 static void test_scan() {
+  {
   LOs scanned = offset_scan<LO>(LOs(3,1));
   CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
+  }
+  {
+  LOs scanned = offset_scan<LO>(Read<U8>(3,1));
+  CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
+  }
 }
 
 int main(int argc, char** argv) {
