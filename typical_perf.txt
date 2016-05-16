@@ -1,8 +1,11 @@
 MacBook serial:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.808844 seconds
-reproducibly adding 1000000 reals 200 times takes 1.17991 seconds
-adding 1000000 reals 200 times takes 0.217192 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.897571 seconds
+reproducibly adding 1000000 reals 100 times takes 0.667708 seconds
+adding 1000000 reals 100 times takes 0.111284 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.603771 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.772737 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.844231 seconds
 
 Pachisi with 8 threads:
 
