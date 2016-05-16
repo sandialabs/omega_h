@@ -54,7 +54,7 @@ LOs sort_by_keys(Read<T> keys) {
   return perm;
 }
 
-template LOs sort_by_keys<U32,1>(Read<U32> keys);
-template LOs sort_by_keys<U32,2>(Read<U32> keys);
-template LOs sort_by_keys<U32,3>(Read<U32> keys);
-template LOs sort_by_keys<U64,1>(Read<U64> keys);
+template LOs sort_by_keys<I32,1>(Read<I32> keys);
+template LOs sort_by_keys<I32,2>(Read<I32> keys);
+template LOs sort_by_keys<I32,3>(Read<I32> keys);
+template LOs sort_by_keys<I64,1>(Read<I64> keys);

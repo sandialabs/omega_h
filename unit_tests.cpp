@@ -191,7 +191,7 @@ static void test_scan() {
   CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
   }
   {
-  LOs scanned = offset_scan<LO>(Read<U8>(3,1));
+  LOs scanned = offset_scan<LO>(Read<I8>(3,1));
   CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
   }
 }

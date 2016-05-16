@@ -8,6 +8,12 @@ struct ArithTraits<unsigned char> {
 };
 
 template <>
+struct ArithTraits<signed char> {
+  static INLINE signed char max() { return SCHAR_MAX; }
+  static INLINE signed char min() { return SCHAR_MIN; }
+};
+
+template <>
 struct ArithTraits<unsigned int> {
   static INLINE unsigned int max() { return UINT_MAX; }
   static INLINE unsigned int min() { return 0; }
@@ -26,7 +32,19 @@ struct ArithTraits<unsigned long> {
 };
 
 template <>
+struct ArithTraits<signed long> {
+  static INLINE signed long max() { return LONG_MAX; }
+  static INLINE signed long min() { return LONG_MIN; }
+};
+
+template <>
 struct ArithTraits<unsigned long long> {
   static INLINE unsigned long long max() { return ULLONG_MAX; }
   static INLINE unsigned long long min() { return 0; }
+};
+
+template <>
+struct ArithTraits<signed long long> {
+  static INLINE signed long long max() { return LLONG_MAX; }
+  static INLINE signed long long min() { return LLONG_MIN; }
 };

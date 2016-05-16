@@ -19,5 +19,5 @@ Read<TO> offset_scan(Read<TI> a) {
   return out;
 }
 
-template Read<U32> offset_scan(Read<U8> a);
-template Read<U32> offset_scan(Read<U32> a);
+template Read<I32> offset_scan(Read<I8> a);
+template Read<I32> offset_scan(Read<I32> a);

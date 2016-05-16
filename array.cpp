@@ -208,7 +208,8 @@ HostWrite<T>::HostWrite(Write<T> write):
 
 template <typename T>
 HostWrite<T>::HostWrite(std::initializer_list<T> l):
-  HostWrite<T>(l.size()) {
+  // an initializer_list should never have over 2 billion items...
+  HostWrite<T>(static_cast<Int>(l.size())) {
   Int i = 0;
   for (auto v : l)
     operator[](i++) = v;
@@ -261,12 +262,12 @@ template class HostWrite<T>; \
 template class HostRead<T>; \
 template bool operator==(Read<T> a, Read<T> b);
 
-INST_ARRAY_T(U8)
-INST_ARRAY_T(U16)
-INST_ARRAY_T(U32)
-INST_ARRAY_T(U64)
+INST_ARRAY_T(I8)
+INST_ARRAY_T(I16)
+INST_ARRAY_T(I32)
+INST_ARRAY_T(I64)
 INST_ARRAY_T(Real)
 
 template Real sum(Read<Real> a);
-template Write<U64> make_linear(Int n, U64 offset, U64 stride);
-template Write<U32> make_linear(Int n, U32 offset, U32 stride);
+template Write<I64> make_linear(Int n, I64 offset, I64 stride);
+template Write<I32> make_linear(Int n, I32 offset, I32 stride);
