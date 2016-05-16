@@ -9,7 +9,7 @@
 #pragma GCC diagnostic pop
 #endif
 #elif defined(USE_OPENMP)
-#include "bundled/parallel_stable_sort.hpp"
+#include "intel_sort/parallel_stable_sort.hpp"
 #else
 #include <algorithm>
 #endif
