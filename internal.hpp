@@ -22,7 +22,7 @@ typedef std::int64_t I64;
 typedef I32          Int;
 typedef I32          LO;
 typedef I64          GO;
-typedef double Real;
+typedef double       Real;
 
 #define EPSILON 1e-10
 #define PI 3.141592653589793
