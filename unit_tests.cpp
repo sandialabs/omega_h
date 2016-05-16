@@ -151,15 +151,17 @@ static void test_intersect_ortho_metrics(
     Vector<3> h1,
     Vector<3> h2,
     Vector<3> hi_expect) {
-  auto q = identity_matrix<3,3>();
+  auto q = rotate(PI / 4., vector_3(0,0,1)) *
+           rotate(PI / 4., vector_3(0,1,0));
   auto m1 = compose_metric(q, h1);
   auto m2 = compose_metric(q, h2);
   auto mi = intersect_metrics(m1, m2);
   /* if we decompose it, the eigenvectors may
      get re-ordered. */
-  for (Int i = 0; i < 3; ++i)
+  for (Int i = 0; i < 3; ++i) {
     CHECK(are_close(metric_desired_length(mi, q[i]),
-                    hi_expect[i]));
+                    hi_expect[i], 1e-3));
+  }
 }
 
 static void test_intersect_metrics() {
