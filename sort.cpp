@@ -27,12 +27,12 @@ void parallel_sort(T* b, T* e, Comp c) {
 #endif
 }
 
-template <typename T, UInt N>
+template <typename T, Int N>
 struct CompareKeySets {
   T const* keys_;
   CompareKeySets(T const* keys):keys_(keys) {}
   INLINE bool operator()(const LO& a, const LO& b) const {
-    for (UInt i = 0; i < N; ++i) {
+    for (Int i = 0; i < N; ++i) {
       T x = keys_[a * N + i];
       T y = keys_[b * N + i];
       if (x != y)
@@ -42,7 +42,7 @@ struct CompareKeySets {
   }
 };
 
-template <typename T, UInt N>
+template <typename T, Int N>
 LOs sort_by_keys(Read<T> keys) {
   CHECK(keys.size() % N == 0);
   auto perm = make_linear<LO>(keys.size() / N, 0, 1);
@@ -54,7 +54,7 @@ LOs sort_by_keys(Read<T> keys) {
   return perm;
 }
 
-template LOs sort_by_keys<U32,1>(Read<U32> keys);
-template LOs sort_by_keys<U32,2>(Read<U32> keys);
-template LOs sort_by_keys<U32,3>(Read<U32> keys);
-template LOs sort_by_keys<U64,1>(Read<U64> keys);
+template LOs sort_by_keys<I32,1>(Read<I32> keys);
+template LOs sort_by_keys<I32,2>(Read<I32> keys);
+template LOs sort_by_keys<I32,3>(Read<I32> keys);
+template LOs sort_by_keys<I64,1>(Read<I64> keys);

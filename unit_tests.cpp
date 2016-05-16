@@ -1,6 +1,6 @@
 #include "internal.hpp"
 
-template <UInt m, UInt n>
+template <Int m, Int n>
 static void test_qr_decomp(Matrix<m,n> a) {
   Matrix<m,n> q;
   Matrix<n,n> r;
@@ -59,13 +59,13 @@ static void test_repro_sum() {
 }
 
 static void test_cubic(Real a, Real b, Real c,
-    UInt nroots_wanted, Few<Real, 3> roots_wanted,
-    Few<UInt, 3> mults_wanted) {
+    Int nroots_wanted, Few<Real, 3> roots_wanted,
+    Few<Int, 3> mults_wanted) {
   Few<Real, 3> roots;
-  Few<UInt, 3> mults;
-  UInt nroots = solve_cubic(a, b, c, roots, mults);
+  Few<Int, 3> mults;
+  Int nroots = solve_cubic(a, b, c, roots, mults);
   CHECK(nroots == nroots_wanted);
-  for (UInt i = 0; i < nroots; ++i) {
+  for (Int i = 0; i < nroots; ++i) {
     CHECK(mults[i] == mults_wanted[i]);
     CHECK(are_close(roots[i], roots_wanted[i]));
   }
@@ -73,13 +73,13 @@ static void test_cubic(Real a, Real b, Real c,
 
 static void test_cubic() {
   test_cubic(0, 0, 0,
-      1, Few<Real,3>({0}), Few<UInt,3>({3}));
+      1, Few<Real,3>({0}), Few<Int,3>({3}));
   test_cubic(-3. / 2., -3. / 2., 1.,
-      3, Few<Real,3>({2,-1,.5}), Few<UInt,3>({1,1,1}));
+      3, Few<Real,3>({2,-1,.5}), Few<Int,3>({1,1,1}));
   test_cubic(0, -3., 2.,
-      2, Few<Real,3>({-2,1}), Few<UInt,3>({1,2}));
+      2, Few<Real,3>({-2,1}), Few<Int,3>({1,2}));
   test_cubic(3, -6, -8,
-      3, Few<Real,3>({2,-4,-1}), Few<UInt,3>({1,1,1}));
+      3, Few<Real,3>({2,-4,-1}), Few<Int,3>({1,1,1}));
 }
 
 static void test_eigen_cubic(Matrix<3,3> m,
@@ -191,7 +191,7 @@ static void test_scan() {
   CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
   }
   {
-  LOs scanned = offset_scan<LO>(Read<U8>(3,1));
+  LOs scanned = offset_scan<LO>(Read<I8>(3,1));
   CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
   }
 }

@@ -1,27 +1,27 @@
-template <UInt dim>
+template <Int dim>
 Real metric_product(
     Matrix<dim,dim> m,
     Vector<dim> v) {
   return v * (m * v);
 }
 
-template <UInt dim>
+template <Int dim>
 Vector<dim> metric_eigenvalues(Vector<dim> h) {
   Vector<dim> l;
-  for (UInt i = 0; i < dim; ++i)
+  for (Int i = 0; i < dim; ++i)
     l[i] = 1.0 / square(h[i]);
   return l;
 }
 
-template <UInt dim>
+template <Int dim>
 Vector<dim> metric_lengths(Vector<dim> l) {
   Vector<dim> h;
-  for (UInt i = 0; i < dim; ++i)
+  for (Int i = 0; i < dim; ++i)
     h[i] = 1.0 / sqrt(l[i]);
   return h;
 }
 
-template <UInt dim>
+template <Int dim>
 Matrix<dim,dim> compose_metric(
     Matrix<dim,dim> r,
     Vector<dim> h) {
@@ -29,7 +29,7 @@ Matrix<dim,dim> compose_metric(
   return r * diagonal(l) * transpose(r);
 }
 
-template <UInt dim>
+template <Int dim>
 void decompose_metric(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& r,
@@ -56,7 +56,7 @@ void decompose_metric(
 https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
 */
 
-template <UInt dim>
+template <Int dim>
 Matrix<dim,dim> common_basis(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b) {
@@ -68,13 +68,13 @@ Matrix<dim,dim> common_basis(
   return p;
 }
 
-template <UInt dim>
+template <Int dim>
 Matrix<dim,dim> intersect_metric(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b) {
   auto p = common_basis(a, b);
   Vector<dim> w;
-  for (UInt i = 0; i < dim; ++i) {
+  for (Int i = 0; i < dim; ++i) {
     Real u = metric_product(a, p[i]);
     Real v = metric_product(b, p[i]);
     w[i] = max2(u, v);
@@ -83,14 +83,14 @@ Matrix<dim,dim> intersect_metric(
   return mi;
 }
 
-template <UInt dim>
+template <Int dim>
 Matrix<dim,dim> interpolate_metric(
     Matrix<dim,dim> a,
     Matrix<dim,dim> b,
     Real t) {
   auto p = common_basis(a, b);
   Vector<dim> w;
-  for (UInt i = 0; i < dim; ++i) {
+  for (Int i = 0; i < dim; ++i) {
     Real u = metric_product(a, p[i]);
     Real v = metric_product(b, p[i]);
     Real h1 = 1.0 / sqrt(u);

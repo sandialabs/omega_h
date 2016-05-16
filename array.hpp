@@ -4,14 +4,14 @@ class Write {
   Kokkos::View<T*> view_;
 #else
   std::shared_ptr<T> ptr_;
-  UInt size_;
+  Int size_;
 #endif
 public:
   Write();
-  Write(UInt size);
-  Write(UInt size, T value);
-  UInt size() const;
-  INLINE T& operator[](UInt i) const {
+  Write(Int size);
+  Write(Int size, T value);
+  Int size() const;
+  INLINE T& operator[](Int i) const {
 #ifdef USE_KOKKOS
     return view_(i);
 #else
@@ -30,10 +30,10 @@ class Read {
 public:
   Read();
   Read(Write<T> write);
-  Read(UInt size, T value);
+  Read(Int size, T value);
   Read(std::initializer_list<T> l);
-  UInt size() const;
-  INLINE T const& operator[](UInt i) const {
+  Int size() const;
+  INLINE T const& operator[](Int i) const {
     return write_[i];
   }
   T const* data() const;
@@ -52,7 +52,7 @@ class Reals : public Read<Real> {
 public:
   Reals();
   Reals(Write<Real> write);
-  Reals(UInt size, Real value);
+  Reals(Int size, Real value);
   Reals(std::initializer_list<Real> l);
 };
 
@@ -74,12 +74,12 @@ class HostWrite {
   typename Kokkos::View<T*>::HostMirror mirror_;
 #endif
 public:
-  HostWrite(UInt size);
+  HostWrite(Int size);
   HostWrite(Write<T> write);
   HostWrite(std::initializer_list<T> l);
   Write<T> write() const;
-  UInt size() const;
-  inline T& operator[](UInt i) const {
+  Int size() const;
+  inline T& operator[](Int i) const {
 #ifdef USE_KOKKOS
     return mirror_(i);
 #else
@@ -96,8 +96,8 @@ class HostRead {
 #endif
 public:
   HostRead(Read<T> read);
-  UInt size() const;
-  inline T const& operator[](UInt i) const {
+  Int size() const;
+  inline T const& operator[](Int i) const {
 #ifdef USE_KOKKOS
     return mirror_(i);
 #else
@@ -107,4 +107,4 @@ public:
 };
 
 template <typename T>
-Write<T> make_linear(UInt n, T offset, T stride);
+Write<T> make_linear(Int n, T offset, T stride);

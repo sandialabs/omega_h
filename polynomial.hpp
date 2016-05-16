@@ -4,9 +4,9 @@
 // the two output arrays contain root values and multiplicities.
 // roots within an *absolute* distance of (eps) are considered
 // the same.
-INLINE UInt solve_cubic(
+INLINE Int solve_cubic(
     Real a_2, Real a_1, Real a_0,
-    Few<Real, 3>& roots, Few<UInt, 3>& mults,
+    Few<Real, 3>& roots, Few<Int, 3>& mults,
     Real eps = 1e-6) {
 // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
@@ -65,9 +65,9 @@ INLINE UInt solve_cubic(
 }
 
 // solve quadratic equation x^2 + a * x + b = 0
-INLINE UInt solve_quadratic(
+INLINE Int solve_quadratic(
     Real a, Real b,
-    Few<Real, 2>& roots, Few<UInt, 2>& mults) {
+    Few<Real, 2>& roots, Few<Int, 2>& mults) {
   Real disc = square(a) - 4. * b;
   if (fabs(disc) < 1e-6) {
     mults[0] = 2;

@@ -1,12 +1,12 @@
-template <typename T, UInt n>
+template <typename T, Int n>
 class Few {
   T array_[n];
   public:
-    INLINE T& operator[](UInt i) {return array_[i];}
-    INLINE T const& operator[](UInt i) const {return array_[i];}
+    INLINE T& operator[](Int i) {return array_[i];}
+    INLINE T const& operator[](Int i) const {return array_[i];}
     INLINE Few() {}
     Few(std::initializer_list<T> l) {
-      UInt i = 0;
+      Int i = 0;
       for (auto v : l)
         array_[i++] = v;
     }

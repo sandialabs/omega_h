@@ -4,7 +4,7 @@ struct ExclScan : public SumFunctor<TO> {
   Read<TI> in_;
   Write<TO> out_;
   ExclScan(Read<TI> in, Write<TO> out):in_(in),out_(out) {}
-  INLINE void operator()(UInt i, value_type& update, bool final_pass) const {
+  INLINE void operator()(Int i, value_type& update, bool final_pass) const {
     update += in_[i];
     if (final_pass)
       out_[i + 1] = update;
@@ -19,5 +19,5 @@ Read<TO> offset_scan(Read<TI> a) {
   return out;
 }
 
-template Read<U32> offset_scan(Read<U8> a);
-template Read<U32> offset_scan(Read<U32> a);
+template Read<I32> offset_scan(Read<I8> a);
+template Read<I32> offset_scan(Read<I32> a);

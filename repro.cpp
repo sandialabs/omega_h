@@ -1,7 +1,7 @@
 struct MaxExponent : public MaxFunctor<int> {
   Reals a_;
   MaxExponent(Reals a):a_(a) {}
-  INLINE void operator()(UInt i, value_type& update) const {
+  INLINE void operator()(Int i, value_type& update) const {
     int expo;
     frexp(a_[i], &expo);
     if (expo > update)
@@ -17,7 +17,7 @@ struct ReproSum : public SumFunctor<Int128> {
   Reals a_;
   double unit_;
   ReproSum(Reals a, double unit):a_(a),unit_(unit) {}
-  INLINE void operator()(UInt i, value_type& update) const {
+  INLINE void operator()(Int i, value_type& update) const {
     update = update + Int128::from_double(a_[i], unit_);
   }
 };

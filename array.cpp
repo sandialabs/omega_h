@@ -10,7 +10,7 @@ Write<T>::Write():
 }
 
 template <typename T>
-Write<T>::Write(UInt size):
+Write<T>::Write(Int size):
 #ifdef USE_KOKKOS
   view_("omega_h", size)
 #else
@@ -22,21 +22,21 @@ Write<T>::Write(UInt size):
 
 template <typename T>
 static void fill(Write<T> a, T val) {
-  auto f = LAMBDA(UInt i) {
+  auto f = LAMBDA(Int i) {
     a[i] = val;
   };
   parallel_for(a.size(), f);
 }
 
 template <typename T>
-Write<T>::Write(UInt size, T value):
+Write<T>::Write(Int size, T value):
   Write<T>(size)
 {
   fill(*this, value);
 }
 
 template <typename T>
-UInt Write<T>::size() const {
+Int Write<T>::size() const {
 #ifdef USE_KOKKOS
   return view_.size();
 #else
@@ -65,7 +65,7 @@ struct Sum : public SumFunctor<T> {
   typedef typename SumFunctor<T>::value_type value_type;
   Read<T> a_;
   Sum(Read<T> a):a_(a) {}
-  INLINE void operator()(UInt i, value_type& update) const
+  INLINE void operator()(Int i, value_type& update) const
   {
     update = update + a_[i];
   }
@@ -84,7 +84,7 @@ Reals::Reals(Write<Real> write):
   Read<Real>(write)
 {}
 
-Reals::Reals(UInt size, Real value):
+Reals::Reals(Int size, Real value):
   Read<Real>(size, value)
 {}
 
@@ -100,7 +100,7 @@ struct AreClose : public AndFunctor {
   AreClose(Reals a, Reals b, Real tol, Real floor):
     a_(a),b_(b),tol_(tol),floor_(floor)
   {}
-  INLINE void operator()(UInt i, value_type& update) const
+  INLINE void operator()(Int i, value_type& update) const
   {
     update = update && are_close(a_[i], b_[i]);
   }
@@ -141,7 +141,7 @@ Read<T>::Read(Write<T> write):
 }
 
 template <typename T>
-Read<T>::Read(UInt size, T value):
+Read<T>::Read(Int size, T value):
   write_(size, value) {
 }
 
@@ -151,7 +151,7 @@ Read<T>::Read(std::initializer_list<T> l):
 }
 
 template <typename T>
-UInt Read<T>::size() const {
+Int Read<T>::size() const {
   return write_.size();
 }
 
@@ -172,7 +172,7 @@ struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
   SameContent(Read<T> a, Read<T> b):a_(a),b_(b) {}
-  INLINE void operator()(UInt i, value_type& update) const
+  INLINE void operator()(Int i, value_type& update) const
   {
     update = update && (a_[i] == b_[i]);
   }
@@ -186,7 +186,7 @@ bool operator==(Read<T> a, Read<T> b)
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(UInt size):
+HostWrite<T>::HostWrite(Int size):
   write_(size)
 #ifdef USE_KOKKOS
   ,mirror_(Kokkos::create_mirror_view(write_.view()))
@@ -208,8 +208,9 @@ HostWrite<T>::HostWrite(Write<T> write):
 
 template <typename T>
 HostWrite<T>::HostWrite(std::initializer_list<T> l):
-  HostWrite<T>(l.size()) {
-  UInt i = 0;
+  // an initializer_list should never have over 2 billion items...
+  HostWrite<T>(static_cast<Int>(l.size())) {
+  Int i = 0;
   for (auto v : l)
     operator[](i++) = v;
 }
@@ -223,7 +224,7 @@ Write<T> HostWrite<T>::write() const {
 }
 
 template <typename T>
-UInt HostWrite<T>::size() const {
+Int HostWrite<T>::size() const {
   return write_.size();
 }
 
@@ -240,14 +241,14 @@ HostRead<T>::HostRead(Read<T> read):
 }
 
 template <typename T>
-UInt HostRead<T>::size() const {
+Int HostRead<T>::size() const {
   return read_.size();
 }
 
 template <typename T>
-Write<T> make_linear(UInt n, T offset, T stride) {
+Write<T> make_linear(Int n, T offset, T stride) {
   Write<T> a(n);
-  auto f = LAMBDA(UInt i) {
+  auto f = LAMBDA(Int i) {
     a[i] = offset + (stride * static_cast<T>(i));
   };
   parallel_for(n, f);
@@ -261,12 +262,12 @@ template class HostWrite<T>; \
 template class HostRead<T>; \
 template bool operator==(Read<T> a, Read<T> b);
 
-INST_ARRAY_T(U8)
-INST_ARRAY_T(U16)
-INST_ARRAY_T(U32)
-INST_ARRAY_T(U64)
+INST_ARRAY_T(I8)
+INST_ARRAY_T(I16)
+INST_ARRAY_T(I32)
+INST_ARRAY_T(I64)
 INST_ARRAY_T(Real)
 
 template Real sum(Read<Real> a);
-template Write<U64> make_linear(UInt n, U64 offset, U64 stride);
-template Write<U32> make_linear(UInt n, U32 offset, U32 stride);
+template Write<I64> make_linear(Int n, I64 offset, I64 stride);
+template Write<I32> make_linear(Int n, I32 offset, I32 stride);

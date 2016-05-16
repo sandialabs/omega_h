@@ -15,13 +15,13 @@
 
 #define NORETURN(x) do { assert(0); return x; } while(0)
 
-typedef std::uint8_t  U8;
-typedef std::uint16_t U16;
-typedef std::uint32_t U32;
-typedef std::uint64_t U64;
-typedef U64           UInt;
-typedef U32           LO;
-typedef U64           GO;
+typedef std::int8_t  I8;
+typedef std::int16_t I16;
+typedef std::int32_t I32;
+typedef std::int64_t I64;
+typedef I32          Int;
+typedef I32          LO;
+typedef I64          GO;
 typedef double Real;
 
 #define EPSILON 1e-10

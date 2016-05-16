@@ -1,5 +1,5 @@
 struct AndFunctor {
-  typedef UInt value_type;
+  typedef Int value_type;
   INLINE void init(value_type& update) const {
     update = 1;
   }
