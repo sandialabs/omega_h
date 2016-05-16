@@ -113,14 +113,11 @@ static void test_eigen_cubic_ortho(Matrix<3,3> m,
   CHECK(are_close(m, compose_ortho(q, l), 1e-8, 1e-8));
 }
 
-static void test_eigen_metric(Vector<3> lengths) {
-  auto q = rotate(PI / 4, vector_3(0,0,1)) *
-           rotate(PI / 4, vector_3(0,1,0));
+static void test_eigen_metric(Vector<3> h) {
+  auto q = rotate(PI / 4., vector_3(0,0,1)) *
+           rotate(PI / 4., vector_3(0,1,0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3,3>()));
-  auto l = vector_3(
-        1.0 / square(lengths[0]),
-        1.0 / square(lengths[1]),
-        1.0 / square(lengths[2]));
+  auto l = metric_eigenvalues(h);
   auto a = compose_ortho(q, l);
   test_eigen_cubic_ortho(a, l);
 }
