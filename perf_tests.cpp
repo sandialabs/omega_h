@@ -2,14 +2,14 @@
 #include <cstdio>
 #include "internal.hpp"
 
-static UInt const nelems = 1000 * 1000;
+static Int const nelems = 1000 * 1000;
 
-static Reals random_reals(UInt n, Real from, Real to) {
+static Reals random_reals(Int n, Real from, Real to) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> dis(from, to);
   HostWrite<Real> ha(n);
-  for (UInt i = 0; i < n; ++i)
+  for (Int i = 0; i < n; ++i)
     ha[i] = dis(gen);
   return ha.write();
 }
@@ -24,7 +24,7 @@ static void test_metric_decom() {
   Reals alphas = random_reals(nelems, 0, PI / 2);
   Reals betas = random_reals(nelems, 0, PI / 2);
   Write<Real> write_metrics(nelems * 6);
-  auto f0 = LAMBDA(UInt i) {
+  auto f0 = LAMBDA(Int i) {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
              rotate( betas[i], vector_3(0, 1, 0));
     auto l = matrix_3x3(
@@ -39,7 +39,7 @@ static void test_metric_decom() {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_eigenvs(nelems);
-  auto f1 = LAMBDA(UInt i) {
+  auto f1 = LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
     Matrix<3,3> r;
     Vector<3> l;
@@ -49,8 +49,8 @@ static void test_metric_decom() {
     write_eigenvs[i] = eigenv;
   };
   Now t0 = now();
-  UInt niters = 3;
-  for (UInt i = 0; i < niters; ++i)
+  Int niters = 3;
+  for (Int i = 0; i < niters; ++i)
     parallel_for(nelems, f1);
   Now t1 = now();
   std::cout << "eigendecomposition of " << nelems << " metric tensors "
@@ -61,27 +61,27 @@ static void test_metric_decom() {
 unsigned uniform(unsigned m); /* Returns a random integer 0 <= uniform(m) <= m-1 */
 
 /* Fisher-Yates shuffle, a.k.a Knuth shuffle */
-static Read<UInt> random_perm(UInt n)
+static Read<Int> random_perm(Int n)
 {
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_int_distribution<UInt> dis;
+  std::uniform_int_distribution<Int> dis;
   /* start with identity permutation */
-  HostWrite<UInt> permutation(make_linear<UInt>(n, 0, 1));
-  for (UInt i = 0; i + 1 < n; i++) {
-    UInt j = dis(gen) % (n - i); /* A random integer such that 0 ≤ j < n-i*/
+  HostWrite<Int> permutation(make_linear<Int>(n, 0, 1));
+  for (Int i = 0; i + 1 < n; i++) {
+    Int j = dis(gen) % (n - i); /* A random integer such that 0 ≤ j < n-i*/
     std::swap(permutation[i], permutation[i + j]);
   }
-  return Read<UInt>(permutation.write());
+  return Read<Int>(permutation.write());
 }
 
 static void test_repro_sum() {
   Reals inputs = random_reals(nelems, 0, 1e100);
   Real rs = 0, s = 0;
-  UInt niters = 100;
+  Int niters = 100;
   {
     Now t0 = now();
-    for (UInt i = 0; i < niters; ++i)
+    for (Int i = 0; i < niters; ++i)
       rs = repro_sum(inputs);
     Now t1 = now();
     std::cout << "reproducibly adding " << nelems << " reals " << niters << " times "
@@ -89,16 +89,16 @@ static void test_repro_sum() {
   }
   {
     Now t0 = now();
-    for (UInt i = 0; i < niters; ++i)
+    for (Int i = 0; i < niters; ++i)
       s = sum(inputs);
     Now t1 = now();
     std::cout << "adding " << nelems << " reals " << niters << " times "
       << "takes " << (t1 - t0) << " seconds\n";
   }
   CHECK(are_close(s, rs));
-  Read<UInt> p = random_perm(nelems);
+  Read<Int> p = random_perm(nelems);
   Write<Real> write_shuffled(nelems);
-  auto f = LAMBDA(UInt i) {
+  auto f = LAMBDA(Int i) {
     write_shuffled[i] = inputs[p[i]];
   };
   parallel_for(nelems, f);
@@ -112,23 +112,23 @@ static void test_repro_sum() {
 }
 
 template <typename T>
-static Read<T> random_ints(UInt n, T from, T to) {
+static Read<T> random_ints(Int n, T from, T to) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<T> dis(from, to);
   HostWrite<T> ha(n);
-  for (UInt i = 0; i < n; ++i)
+  for (Int i = 0; i < n; ++i)
     ha[i] = dis(gen);
   return ha.write();
 }
 
-template <UInt N>
+template <Int N>
 static void test_sort_n() {
   LOs a = random_ints<LO>(nelems * N, 0, nelems);
   LOs perm;
-  UInt niters = 5;
+  Int niters = 5;
   Now t0 = now();
-  for (UInt i = 0; i < niters; ++i)
+  for (Int i = 0; i < niters; ++i)
     perm = sort_by_keys<LO,N>(a);
   Now t1 = now();
   std::cout << "sorting " << nelems << " sets of "

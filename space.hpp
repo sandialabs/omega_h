@@ -114,7 +114,7 @@ INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
   Matrix<3,3> A;
   A[0] = v;
   /* tiny custom code to sort components by absolute value */
-  struct { UInt i; Real m; } s[3] =
+  struct { Int i; Real m; } s[3] =
   {{0,fabs(v[0])},{1,fabs(v[1])},{2,fabs(v[2])}};
   if (s[2].m > s[1].m)
     swap2(s[1],s[2]);
@@ -123,9 +123,9 @@ INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
   if (s[2].m > s[1].m)
     swap2(s[1],s[2]);
   /* done, components sorted by increasing magnitude */
-  UInt lc = s[0].i;
-  UInt mc = s[1].i;
-  UInt sc = s[2].i;
+  Int lc = s[0].i;
+  Int mc = s[1].i;
+  Int sc = s[2].i;
   /* use the 2D rotation on the largest components
      (rotate v around the smallest axis) */
   A[1][lc] = -v[mc];

@@ -69,12 +69,12 @@ source:
 
 INLINE Real triangle_mean_ratio_squared(Real a, Few<Real, 3> lsq) {
   Real s = 0.0;
-  for (UInt i = 0; i < 3; ++i)
+  for (Int i = 0; i < 3; ++i)
     s += lsq[i];
   return 48 * square(a) / square(s);
 }
 
-template <UInt dim>
+template <Int dim>
 INLINE Real triangle_mean_ratio_squared(
     Few<Vector<dim>, 3> p,
     Few<Vector<dim>, 2> b) {
@@ -85,7 +85,7 @@ INLINE Real triangle_mean_ratio_squared(
 
 INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
   Real s = 0.0;
-  for (UInt i = 0; i < 6; ++i)
+  for (Int i = 0; i < 6; ++i)
     s += lsq[i];
   return 15552.0 * square(v) / cube(s);
 }

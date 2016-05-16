@@ -1,7 +1,7 @@
-template <UInt sdim, UInt edim>
+template <Int sdim, Int edim>
 INLINE Few<Vector<sdim>, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
   Few<Vector<sdim>, edim> b;
-  for (UInt i = 0; i < edim; ++i)
+  for (Int i = 0; i < edim; ++i)
     b[i] = p[i + 1] - p[0];
   return b;
 }
@@ -21,7 +21,7 @@ INLINE Real tet_volume(Few<Vector<3>, 3> b) {
 /* the following edge length functions could be replaced
    with loops and lookup tables, but last time I did
    that things got noticeably slower */
-template <UInt dim>
+template <Int dim>
 INLINE Few<Real, 3> triangle_edge_lengths_squared(
     Few<Vector<dim>, 3> p,
     Few<Vector<dim>, 2> b) {
@@ -32,7 +32,7 @@ INLINE Few<Real, 3> triangle_edge_lengths_squared(
   return lsq;
 }
 
-template <UInt dim>
+template <Int dim>
 INLINE Few<Real, 6> tet_edge_lengths_squared(
     Few<Vector<dim>, 4> p,
     Few<Vector<dim>, 3> b) {

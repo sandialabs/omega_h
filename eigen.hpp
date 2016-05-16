@@ -45,11 +45,11 @@ INLINE void single_eigenvector(Matrix<3,3> m, Real l,
   v = v / v_norm;
 }
 
-template <UInt m>
+template <Int m>
 INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
   Vector<m> v;
   Real v_norm = 0;
-  for (UInt j = 0; j < m; ++j) {
+  for (Int j = 0; j < m; ++j) {
     Real c_norm = norm(a[j]);
     if (c_norm > v_norm) {
       v = a[j];
@@ -78,11 +78,11 @@ INLINE bool decompose_eigen2(
   Real a,b,c;
   characteristic_cubic(m, a, b, c);
   Few<Real, 3> roots;
-  Few<UInt, 3> mults;
-  UInt nroots = solve_cubic(a, b, c, roots, mults);
+  Few<Int, 3> mults;
+  Int nroots = solve_cubic(a, b, c, roots, mults);
   /* there are only a few output cases, see solve_cubic() */
   if (nroots == 3) {
-    for (UInt i = 0; i < 3; ++i) {
+    for (Int i = 0; i < 3; ++i) {
       single_eigenvector(m, roots[i], q[i]);
       l[i] = roots[i];
     }
@@ -118,11 +118,11 @@ INLINE bool decompose_eigen2(
   Real a,b;
   characteristic_quadratic(m, a, b);
   Few<Real, 2> roots;
-  Few<UInt, 2> mults;
-  UInt nroots = solve_quadratic(a, b, roots, mults);
+  Few<Int, 2> mults;
+  Int nroots = solve_quadratic(a, b, roots, mults);
   /* there are only a few output cases, see solve_quadratic() */
   if (nroots == 2) {
-    for (UInt i = 0; i < 2; ++i) {
+    for (Int i = 0; i < 2; ++i) {
       single_eigenvector(m, roots[i], q[i]);
       l[i] = roots[i];
     }
@@ -135,7 +135,7 @@ INLINE bool decompose_eigen2(
   return false;
 }
 
-template <UInt dim>
+template <Int dim>
 INLINE bool decompose_eigen(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& q,
@@ -152,7 +152,7 @@ INLINE bool decompose_eigen(
    where Q is the change of basis matrix
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
-template <UInt dim>
+template <Int dim>
 INLINE bool decompose_eigen(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& q,
@@ -176,7 +176,7 @@ INLINE bool decompose_eigen(
 /* Q, again, being the matrix whose columns
    are the right eigenvectors, *not* the
    change of basis matrix */
-template <UInt dim>
+template <Int dim>
 INLINE Matrix<dim,dim> compose_eigen(
     Matrix<dim,dim> q,
     Vector<dim> l) {
@@ -186,7 +186,7 @@ INLINE Matrix<dim,dim> compose_eigen(
 /* like the above, but knowing Q is orthonormal,
    meaning in this case it *is* the change of basis
    matrix */
-template <UInt dim>
+template <Int dim>
 INLINE Matrix<dim,dim> compose_ortho(
     Matrix<dim,dim> q,
     Vector<dim> l) {
