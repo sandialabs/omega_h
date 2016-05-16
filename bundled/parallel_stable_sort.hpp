@@ -49,7 +49,7 @@ void parallel_move_merge(RandomAccessIterator1 xs, RandomAccessIterator1 xe,
                          RandomAccessIterator2 ys, RandomAccessIterator2 ye,
                          RandomAccessIterator3 zs,
                          bool destroy, Compare comp) {
-  const size_t MERGE_CUT_OFF = 2000;
+  const ssize_t MERGE_CUT_OFF = 2000;
   while( (xe-xs) + (ye-ys) > MERGE_CUT_OFF ) {
     RandomAccessIterator1 xm;
     RandomAccessIterator2 ym;
@@ -82,9 +82,8 @@ template <typename RandomAccessIterator1,
 void parallel_stable_sort_aux(RandomAccessIterator1 xs, RandomAccessIterator1 xe,
                               RandomAccessIterator2 zs,
                               int inplace, Compare comp) {
-  typedef typename std::iterator_traits<RandomAccessIterator2>::value_type T;
-  const size_t SORT_CUT_OFF = 500;
-  if( xe-xs<=SORT_CUT_OFF ) {
+  const ssize_t SORT_CUT_OFF = 500;
+  if((xe - xs) <= SORT_CUT_OFF) {
     stable_sort_base_case(xs, xe, zs, inplace, comp);
   } else {
     RandomAccessIterator1 xm = xs + (xe-xs)/2;

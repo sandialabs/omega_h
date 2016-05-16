@@ -1,10 +1,19 @@
-MacBook:
+MacBook serial:
 
 eigendecomposition of 1000000 metric tensors 3 times takes 0.808844 seconds
 reproducibly adding 1000000 reals 200 times takes 1.17991 seconds
 adding 1000000 reals 200 times takes 0.217192 seconds
 
-Shannon:
+Pachisi with 8 threads:
+
+eigendecomposition of 1000000 metric tensors 3 times takes 0.151093 seconds
+reproducibly adding 1000000 reals 100 times takes 0.125457 seconds
+adding 1000000 reals 100 times takes 0.011604 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.101459 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.135226 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.168868 seconds
+
+Shannon K40:
 
 eigendecomposition of 1000000 metric tensors 3 times takes 0.00694263 seconds
 reproducibly adding 1000000 reals 200 times takes 0.0551038 seconds

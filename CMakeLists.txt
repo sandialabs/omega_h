@@ -38,7 +38,9 @@ configure_file(config_in.hpp config.hpp)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(omega_h omega_h.cpp)
-target_link_libraries(omega_h ${KOKKOS_LIB})
+if (USE_KOKKOS)
+target_link_libraries(omega_h ${KOKKOS_LIB} dl)
+endif()
 
 add_executable(unit_tests unit_tests.cpp)
 target_link_libraries(unit_tests omega_h)
