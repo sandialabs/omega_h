@@ -97,20 +97,14 @@ INLINE Matrix<dim,dim> intersect_metrics(
   return mi;
 }
 
-template <Int dim>
-INLINE Matrix<dim,dim> interpolate_metrics(
-    Matrix<dim,dim> a,
-    Matrix<dim,dim> b,
-    Real t) {
-  auto p = common_metric_basis(a, b);
-  Vector<dim> w;
-  for (Int i = 0; i < dim; ++i) {
-    Real u = metric_product(a, p[i]);
-    Real v = metric_product(b, p[i]);
-    Real h1 = 1.0 / sqrt(u);
-    Real h2 = 1.0 / sqrt(v);
-    Real h = ((1.0 - t) * h1) + (t * h2);
-    w[i] = 1.0 / square(h);
+template <Int dim, Int n>
+INLINE Matrix<dim,dim> average_metrics(
+    Few<Matrix<dim,dim>, n> m) {
+  auto am = zero_matrix<dim,dim>();
+  for (Int i = 0; i < n; ++i) {
+    am = am + invert(m[i]);
   }
-  return compose_eigen(p, w);
+  am = am / double(n);
+  am = invert(am);
+  return am;
 }

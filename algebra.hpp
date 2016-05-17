@@ -273,6 +273,14 @@ INLINE Vector<n> zero_vector() {
   return v;
 }
 
+template <Int m, Int n>
+INLINE Matrix<m,n> zero_matrix() {
+  Matrix<m,n> a;
+  for (Int j = 0; j < n; ++j)
+    a[j] = zero_vector<m>();
+  return a;
+}
+
 template <Int m>
 INLINE void subtract_from_diag(Matrix<m,m>& a, Real mu) {
   for (Int i = 0; i < m; ++i)
