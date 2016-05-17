@@ -8,3 +8,5 @@
 #include "scan.cpp"
 #include "indset.cpp"
 #include "map.cpp"
+#include "adjacency.cpp"
+#include "invert_adj.cpp"
