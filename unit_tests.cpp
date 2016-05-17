@@ -217,6 +217,17 @@ static void test_scan() {
   }
 }
 
+static void test_invert_funnel() {
+  CHECK(invert_funnel(LOs({0,0,1,1,2,2}), 3)
+      == LOs({0,2,4,6}));
+  CHECK(invert_funnel(LOs({0,0,0,2,2,2}), 3)
+      == LOs({0,3,3,6}));
+  CHECK(invert_funnel(LOs({0,0,0,0,0,0}), 3)
+      == LOs({0,6,6,6}));
+  CHECK(invert_funnel(LOs({2,2,2,2,2,2}), 3)
+      == LOs({0,0,0,6}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -229,5 +240,6 @@ int main(int argc, char** argv) {
   test_sort();
   test_scan();
   test_intersect_metrics();
+  test_invert_funnel();
   fini();
 }
