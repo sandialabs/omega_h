@@ -34,6 +34,7 @@ typedef double       Real;
 #include "few.hpp"
 #include "int128.hpp"
 #include "traits.hpp"
+#include "atomics.hpp"
 #include "algebra.hpp"
 #include "qr.hpp"
 #include "space.hpp"
