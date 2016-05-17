@@ -49,3 +49,4 @@ typedef double       Real;
 #include "repro.hpp"
 #include "sort.hpp"
 #include "scan.hpp"
+#include "indset.hpp"
