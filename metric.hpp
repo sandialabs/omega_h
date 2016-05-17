@@ -97,6 +97,33 @@ INLINE Matrix<dim,dim> intersect_metrics(
   return mi;
 }
 
+/* Alauzet details four different ways to interpolate
+   the metric tensor:
+
+1) M(t) = ((1-t)M_1^{-1/2} + t M_2^{-1/2)^2
+
+2) M(t) = (M_1^{-1/2} (M_2^{-1/2} / M_1^{-1/2})^t)^2
+
+3) M(t) = ((1-t)M_1^{-1} + tM_2^{-1})^{-1}
+
+4) M(t) = (1-t)M_1 + t M_2
+
+The first three exhibit decent interpolation behavior.
+The last one, per-component linear interpolation,
+tends to produce very small isotropic ellipsoids given
+two anisotropic ellipsoids, so is not good enough.
+Both (1) and (2) require an eigendecomposition to get M_i^{-1/2},
+which is relatively expensive.
+Both (2) and (3) can be generalized to multiple input
+tensors, for interpolation in a triangle or tet.
+That leaves (3) as being the best choice for these three reasons:
+ - It has decent output in anisotropic cases
+ - It can be used in triangles and tets
+ - It does not require an eigendecomposition
+*/
+
+/* currently we intend only to interpolate metrics to the
+   barycenter of an entity, hence this simplified code */
 template <Int dim, Int n>
 INLINE Matrix<dim,dim> average_metrics(
     Few<Matrix<dim,dim>, n> m) {
