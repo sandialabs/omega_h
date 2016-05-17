@@ -2,6 +2,12 @@ struct Int128;
 
 std::ostream& operator<<(std::ostream& o, Int128 const& x);
 
+/*
+   We code our own int128 because we target GPUs and similar
+   systems where such a type is not guaranteed to exist.
+   TODO: wrap built-in types when they are available
+*/
+
 struct Int128
 {
   std::int64_t high;
