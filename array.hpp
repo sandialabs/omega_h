@@ -22,6 +22,8 @@ public:
 #ifdef USE_KOKKOS
   Kokkos::View<T*> view() const;
 #endif
+  void set(Int i, T value) const;
+  T get(Int i) const;
 };
 
 template <typename T>
@@ -40,6 +42,7 @@ public:
 #ifdef USE_KOKKOS
   Kokkos::View<const T*> view() const;
 #endif
+  T get(Int i) const;
 };
 
 template <class T>

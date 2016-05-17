@@ -19,5 +19,22 @@ Read<TO> offset_scan(Read<TI> a) {
   return out;
 }
 
+struct FillRight : public MaxFunctor<LO> {
+  typedef LO value_type;
+  Write<LO> a_;
+  FillRight(Write<LO> a):a_(a) {}
+  INLINE void operator()(LO i, value_type& update, bool final_pass) const {
+    if (a_[i] > update)
+      update = a_[i];
+    if (final_pass && (a_[i] == -1))
+      a_[i] = update;
+  }
+};
+
+void fill_right(Write<LO> a)
+{
+  parallel_scan(a.size(), FillRight(a));
+}
+
 template Read<I32> offset_scan(Read<I8> a);
 template Read<I32> offset_scan(Read<I32> a);

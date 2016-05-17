@@ -61,6 +61,26 @@ Kokkos::View<T*> Write<T>::view() const {
 #endif
 
 template <typename T>
+void Write<T>::set(Int i, T value) const {
+#ifdef MALLA_ENABLE_CUDA
+  cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
+#else
+  operator[](i) = value;
+#endif
+}
+
+template <typename T>
+T Write<T>::get(Int i) const {
+#ifdef USE_CUDA
+  T value;
+  cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
+  return value;
+#else
+  return operator[](i);
+#endif
+}
+
+template <typename T>
 struct Sum : public SumFunctor<T> {
   typedef typename SumFunctor<T>::value_type value_type;
   Read<T> a_;
@@ -166,6 +186,11 @@ Kokkos::View<const T*> Read<T>::view() const {
   return Kokkos::View<const T*>(write_.view());
 }
 #endif
+
+template <typename T>
+T Read<T>::get(Int i) const {
+  return write_.get(i);
+}
 
 template <class T>
 struct SameContent : public AndFunctor {
