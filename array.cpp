@@ -62,7 +62,7 @@ Kokkos::View<T*> Write<T>::view() const {
 
 template <typename T>
 void Write<T>::set(Int i, T value) const {
-#ifdef MALLA_ENABLE_CUDA
+#ifdef USE_CUDA
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
   operator[](i) = value;
