@@ -14,28 +14,28 @@ static Reals random_reals(Int n, Real from, Real to) {
   return ha.write();
 }
 
-static void test_metric_decom() {
 /* we'll generate metric tensors which have random
    rotation matrices (choose two random Euler angles.
    this is not uniform over the sphere, but thats not important),
    and desired lengths (1,1,a^2), where (a) is the desired
    amount of anisotropy (a=1000 implies 1000:1 ratio). */
-  double anisotropy = 1000;
+static double const anisotropy = 1000;
+
+static Reals random_metrics() {
   Reals alphas = random_reals(nelems, 0, PI / 2);
   Reals betas = random_reals(nelems, 0, PI / 2);
   Write<Real> write_metrics(nelems * 6);
   auto f0 = LAMBDA(Int i) {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
              rotate( betas[i], vector_3(0, 1, 0));
-    auto l = matrix_3x3(
-        1, 0, 0,
-        0, 1, 0,
-        0, 0, square(anisotropy));
-    auto m = r * l * transpose(r);
+    auto m = compose_metric(r, vector_3(1., 1., 1.0 / anisotropy));
     set_symm(write_metrics, i, m);
   };
   parallel_for(nelems, f0);
-  Reals metrics(write_metrics);
+  return write_metrics;
+}
+
+static void test_metric_decompose(Reals metrics) {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_eigenvs(nelems);
@@ -56,6 +56,30 @@ static void test_metric_decom() {
   std::cout << "eigendecomposition of " << nelems << " metric tensors "
     << niters << " times takes " << (t1 - t0) << " seconds\n";
   CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
+}
+
+static void test_metric_invert(Reals metrics) {
+  /* now, decompose the metrics and get the largest
+     eigenvalue of each */
+  Write<Real> write_vals(nelems);
+  auto f1 = LAMBDA(Int i) {
+    auto m = get_symm<3>(metrics, i);
+    auto inv = invert(m);
+    write_vals[i] = inv[0][0];
+  };
+  Now t0 = now();
+  Int niters = 30;
+  for (Int i = 0; i < niters; ++i)
+    parallel_for(nelems, f1);
+  Now t1 = now();
+  std::cout << "inversion of " << nelems << " metric tensors "
+    << niters << " times takes " << (t1 - t0) << " seconds\n";
+}
+
+static void test_metric_math() {
+  Reals metrics = random_metrics();
+  test_metric_decompose(metrics);
+  test_metric_invert(metrics);
 }
 
 unsigned uniform(unsigned m); /* Returns a random integer 0 <= uniform(m) <= m-1 */
@@ -144,7 +168,7 @@ static void test_sort() {
 
 int main(int argc, char** argv) {
   init(argc, argv);
-  test_metric_decom();
+  test_metric_math();
   test_repro_sum();
   test_sort();
   fini();
