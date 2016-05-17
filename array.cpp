@@ -12,7 +12,7 @@ Write<T>::Write():
 template <typename T>
 Write<T>::Write(Int size):
 #ifdef USE_KOKKOS
-  view_("omega_h", size)
+  view_("omega_h", static_cast<std::size_t>(size))
 #else
   ptr_(new T[size], std::default_delete<T[]>()),
   size_(size)
@@ -38,7 +38,7 @@ Write<T>::Write(Int size, T value):
 template <typename T>
 Int Write<T>::size() const {
 #ifdef USE_KOKKOS
-  return view_.size();
+  return static_cast<Int>(view_.size());
 #else
   return size_;
 #endif
