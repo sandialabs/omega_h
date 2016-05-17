@@ -7,3 +7,4 @@
 #include "sort.cpp"
 #include "scan.cpp"
 #include "indset.cpp"
+#include "map.cpp"

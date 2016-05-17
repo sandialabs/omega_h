@@ -50,3 +50,4 @@ typedef double       Real;
 #include "sort.hpp"
 #include "scan.hpp"
 #include "indset.hpp"
+#include "map.hpp"
