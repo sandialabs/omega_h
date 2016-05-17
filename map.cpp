@@ -7,6 +7,11 @@ Read<T> permute(LOs out2in, Read<T> in) {
   return out;
 }
 
+template Read<I8  > permute(LOs new2old, Read<I8  > in);
+template Read<I32 > permute(LOs new2old, Read<I32 > in);
+template Read<I64 > permute(LOs new2old, Read<I64 > in);
+template Read<Real> permute(LOs new2old, Read<Real> in);
+
 LOs invert_funnel(LOs ab2a, LO na) {
   LO nab = ab2a.size();
   Write<LO> a2ab(na + 1, -1);
@@ -27,7 +32,11 @@ LOs invert_funnel(LOs ab2a, LO na) {
   return a2ab;
 }
 
-template Read<I8  > permute(LOs new2old, Read<I8  > in);
-template Read<I32 > permute(LOs new2old, Read<I32 > in);
-template Read<I64 > permute(LOs new2old, Read<I64 > in);
-template Read<Real> permute(LOs new2old, Read<Real> in);
+void invert_map_by_sort(LOs a2b, LO nb,
+    LOs& b2ba, LOs& ba2a) {
+  LOs ab2b = a2b;
+  LOs ba2ab = sort_by_keys(ab2b);
+  LOs ba2b = permute(ba2ab, ab2b);
+  b2ba = invert_funnel(ba2b, nb);
+  ba2a = ba2ab;
+}
