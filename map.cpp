@@ -14,6 +14,26 @@ template Read<I32 > permute(LOs new2old, Read<I32 > in);
 template Read<I64 > permute(LOs new2old, Read<I64 > in);
 template Read<Real> permute(LOs new2old, Read<Real> in);
 
+LOs compound_maps(LOs a2b, LOs b2c) {
+  LO na = a2b.size();
+  Write<LO> a2c(a2b.size());
+  auto f = LAMBDA(LO a) {
+    a2c[a] = b2c[a2b[a]];
+  };
+  parallel_for(na, f);
+  return a2c;
+}
+
+LOs invert_permutation(LOs a2b) {
+  LO n = a2b.size();
+  Write<LO> b2a(n);
+  auto f = LAMBDA(LO a) {
+    b2a[a2b[a]] = a;
+  };
+  parallel_for(n, f);
+  return b2a;
+}
+
 LOs invert_funnel(LOs ab2a, LO na) {
   LO nab = ab2a.size();
   Write<LO> a2ab(na + 1, -1);
