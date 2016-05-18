@@ -204,10 +204,11 @@ static LOs read_ents(FILE* f, LO dim)
 static void test_invert_adj(LOs tets2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
   Read<GO> tet_globals(ntets, 0, 1);
+  Adj inv;
   Int niters = 5;
   Now t0 = now();
   for (Int i = 0; i < niters; ++i)
-    invert(Adj(tets2verts), 4, nverts, tet_globals);
+    inv = invert(Adj(tets2verts), 4, nverts, tet_globals);
   Now t1 = now();
   std::cout << "inverting " << ntets << " tets -> verts "
     << niters << " times takes " << (t1-t0) << " seconds\n";
