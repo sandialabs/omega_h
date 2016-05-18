@@ -25,7 +25,11 @@ static void make_canonical(LOs ev2v,
     I8 rotation = rotation_to_first<deg>(min_j);
     rotate_adj<deg>(rotation, &ev2v[begin], &canon[begin]);
     bool is_flipped = false;
-    if (deg == 3 && canon[2] < canon[1]) {
+    std::cerr << "e " << e << '\n';
+    std::cerr << "deg " << deg << '\n';
+    std::cerr << "canon[2] " << canon[begin + 2] << " canon[1] " << canon[begin + 1] << '\n';
+    if (deg == 3 && canon[begin + 2] < canon[begin + 1]) {
+      std::cerr << "flipping\n";
       is_flipped = true;
       flip_adj(&canon[begin]);
     }
@@ -74,6 +78,7 @@ void reflect_down(LOs euv2v, LOs ev2v,
   LOs ev2v_canon;
   Read<I8> e_codes;
   make_canonical<deg>(ev2v, ev2v_canon, e_codes);
+  std::cerr << "ev2v_canon\n" << ev2v_canon << '\n';
   LOs eu_sorted2eu = sort_by_keys<LO,deg>(euv2v_canon);
   std::cerr << "eu_sorted2eu\n" << eu_sorted2eu << '\n';
   LOs e_sorted2e = sort_by_keys<LO,deg>(ev2v_canon);
