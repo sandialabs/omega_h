@@ -39,23 +39,26 @@ static void make_canonical(LOs ev2v,
 /* check whether adjacent lists of (deg) vertices
    are the same */
 template <Int deg>
-INLINE static bool is_jump(LOs canon, LO h) {
-  LO a = h * deg;
-  LO b = (h + 1) * deg;
+INLINE static bool are_equal(LOs canon, LO e0, LO e1) {
+  LO a = e0 * deg;
+  LO b = e1 * deg;
   for (LO j = 0; j < deg; ++j)
     if (canon[a + j] != canon[b + j])
-      return true;
-  return false;
+      return false;
+  return true;
 }
 
 template <Int deg>
-static Read<I8> find_jumps(LOs canon) {
-  LO nh = canon.size() / deg;
-  Write<I8> jumps(nh, 0);
-  auto f = LAMBDA(LO h) {
-    jumps[h] = is_jump<deg>(canon, h);
+static Read<I8> find_jumps(LOs canon, LOs e_sorted2e) {
+  LO ne = e_sorted2e.size();
+  Write<I8> jumps(ne, 0);
+  auto f = LAMBDA(LO e_sorted) {
+    LO e0 = e_sorted2e[e_sorted];
+    LO e1 = e_sorted2e[e_sorted + 1];
+    if (!are_equal<deg>(canon, e0, e1))
+      jumps[e_sorted] = 1;
   };
-  parallel_for(nh - 1, f);
+  parallel_for(ne - 1, f);
   return jumps;
 }
 
@@ -66,12 +69,14 @@ void reflect_down(LOs euv2v, LOs ev2v,
   LOs euv2v_canon;
   Read<I8> eu_codes;
   make_canonical<deg>(euv2v, euv2v_canon, eu_codes);
+  std::cerr << "euv2v_canon\n" << euv2v_canon << '\n';
   LOs ev2v_canon;
   Read<I8> e_codes;
   make_canonical<deg>(ev2v, ev2v_canon, e_codes);
   LOs eu_sorted2eu = sort_by_keys<LO,deg>(euv2v_canon);
+  std::cerr << "eu_sorted2eu\n" << eu_sorted2eu << '\n';
   LOs e_sorted2e = sort_by_keys<LO,deg>(ev2v_canon);
-  Read<I8> jumps = find_jumps<deg>(euv2v_canon);
+  Read<I8> jumps = find_jumps<deg>(euv2v_canon, eu_sorted2eu);
   LOs eu_sorted2e_sorted = excl_scan<LO,I8>(jumps);
   std::cerr << "last entry of eu_sorted2e_sorted: "
     << eu_sorted2e_sorted.get(eu_sorted2e_sorted.size() - 1) << '\n';
