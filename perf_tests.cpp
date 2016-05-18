@@ -190,7 +190,6 @@ static LOs read_ents(FILE* f, LO dim)
 {
   LO nents;
   safe_scanf(f, 1, "%d", &nents);
-  std::cerr << nents << " ents of dim " << dim << '\n';
   LO deg = dim + 1;
   HostWrite<LO> host_array(nents * deg);
   for (LO i = 0; i < nents; ++i)
@@ -230,7 +229,6 @@ static void test_adjs() {
   CHECK(adj_file != NULL);
   LO nverts;
   safe_scanf(adj_file, 1, "%d", &nverts);
-  std::cerr << "nverts " << nverts << '\n';
   LOs tets2verts = read_ents(adj_file, 3);
   LOs tris2verts = read_ents(adj_file, 2);
   fclose(adj_file);
@@ -241,11 +239,9 @@ static void test_adjs() {
 
 int main(int argc, char** argv) {
   init(argc, argv);
-  if ((0)) {
   test_metric_math();
   test_repro_sum();
   test_sort();
-  }
   test_adjs();
   fini();
 }
