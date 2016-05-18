@@ -33,7 +33,7 @@ Adj invert(Adj down, I8 nlows_per_high, LO nlows,
   Read<I8> down_codes(down.codes);
   Write<LO> lh2h(nlh);
   Write<I8> codes(nlh);
-  if (down.codes.size()) {
+  if (down_codes.size()) {
     auto f = LAMBDA(LO lh) {
       LO hl = lh2hl[lh];
       LO h = hl / nlows_per_high;
