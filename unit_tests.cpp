@@ -333,6 +333,16 @@ static void test_reflect_down() {
   CHECK(eu2e.size() == 0);
   CHECK(codes.size() == 0);
   }
+  {
+  reflect_down<2>(LOs({0,1}), LOs({0,1}), eu2e, codes);
+  CHECK(eu2e == LOs({0}));
+  CHECK(codes == Read<I8>({0}));
+  }
+  {
+  reflect_down<2>(LOs({1,0}), LOs({0,1}), eu2e, codes);
+  CHECK(eu2e == LOs({0}));
+  CHECK(codes == Read<I8>({make_code(false, 1, 0)}));
+  }
 }
 
 int main(int argc, char** argv) {
