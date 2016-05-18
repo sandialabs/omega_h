@@ -35,9 +35,4 @@ CONSTANT static I8 const* const* const r_v_[] = {
 CONSTANT static I8 const* const* const* const simplices[] = {
   0,0,f_v_,r_v_};
 
-static I8 degrees[DIMS][DIMS] = {
-  {1,-1,-1,-1},
-  {2, 1,-1,-1},
-  {3, 3,-1,-1},
-  {4, 6, 4, 1}
-};
+extern I8 const degrees[DIMS][DIMS];
