@@ -378,9 +378,12 @@ static void test_reflect_down() {
 }
 
 static void test_form_uses() {
-  std::cerr << form_uses(LOs({0,1,2,3}),3,1);
+  CHECK(form_uses(LOs({0,1,2}),2,1) ==
+      LOs({0,1,1,2,2,0}));
   CHECK(form_uses(LOs({0,1,2,3}),3,1) ==
       LOs({0,1,1,2,2,0,0,3,1,3,2,3}));
+  CHECK(form_uses(LOs({0,1,2,3}),3,2) ==
+      LOs({0,2,1,0,1,3,1,2,3,2,0,3}));
 }
 
 int main(int argc, char** argv) {

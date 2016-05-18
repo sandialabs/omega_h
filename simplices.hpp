@@ -27,7 +27,7 @@ CONSTANT static I8 const* const rev_[] = {
 CONSTANT static I8 const rfv0[] = {0,2,1};
 CONSTANT static I8 const rfv1[] = {0,1,3};
 CONSTANT static I8 const rfv2[] = {1,2,3};
-CONSTANT static I8 const rfv3[] = {0,3,2};
+CONSTANT static I8 const rfv3[] = {2,0,3};
 CONSTANT static I8 const* const rfv_[] = {
   rfv0,rfv1,rfv2,rfv3};
 CONSTANT static I8 const* const* const r_v_[] = {
