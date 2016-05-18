@@ -317,7 +317,7 @@ static void test_tri_align() {
     I8 code1 = make_code(flip1, rot1, 0);
     I8 code2 = make_code(flip2, rot2, 0);
     align_adj<3>(code1, ident, out);
-    align_adj<3>(code1, out, out2);
+    align_adj<3>(code2, out, out2);
     Int out3[3];
     I8 code3 = compound_alignments<3>(code1, code2);
     align_adj<3>(code3, ident, out3);
