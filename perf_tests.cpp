@@ -65,7 +65,7 @@ static void test_metric_invert(Reals metrics) {
   auto f1 = LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
     auto inv = invert(m);
-    write_vals[i] = inv[0][0];
+    write_vals[i] = max_norm(inv);
   };
   Now t0 = now();
   Int niters = 30;
