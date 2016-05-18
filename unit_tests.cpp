@@ -282,6 +282,49 @@ static void test_invert_adj() {
   test_invert_adj(map::BY_ATOMICS);
 }
 
+static bool same_adj(Int a[], Int b[]) {
+  for (Int i = 0; i < 3; ++i)
+    if (a[i] != b[i])
+      return false;
+  return true;
+}
+
+static void test_tri_align() {
+  Int ident[3] = {0,1,2};
+  Int out[3];
+  Int out2[3];
+  /* check that flipping and rotating do what we want */
+  {
+  align_adj<3,Int>(make_code(true, 0, 0), ident, out);
+  Int expect[3] = {0,2,1};
+  CHECK(same_adj(out, expect));
+  }
+  {
+  align_adj<3>(make_code(false, 1, 0), ident, out);
+  Int expect[3] = {2,0,1};
+  CHECK(same_adj(out, expect));
+  }
+  {
+  align_adj<3>(make_code(false, 2, 0), ident, out);
+  Int expect[3] = {1,2,0};
+  CHECK(same_adj(out, expect));
+  }
+  /* check that compound_alignments does its job */
+  for (I8 rot1 = 0; rot1 < 3; ++rot1)
+  for (I8 flip1 = 0; flip1 < 2; ++flip1)
+  for (I8 rot2 = 0; rot2 < 3; ++rot2)
+  for (I8 flip2 = 0; flip2 < 2; ++flip2) {
+    I8 code1 = make_code(flip1, rot1, 0);
+    I8 code2 = make_code(flip2, rot2, 0);
+    align_adj<3>(code1, ident, out);
+    align_adj<3>(code1, out, out2);
+    Int out3[3];
+    I8 code3 = compound_alignments<3>(code1, code2);
+    align_adj<3>(code3, ident, out3);
+    CHECK(same_adj(out2, out3));
+  }
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -298,5 +341,6 @@ int main(int argc, char** argv) {
   test_permute();
   test_invert_map();
   test_invert_adj();
+  test_tri_align();
   fini();
 }

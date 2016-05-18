@@ -24,9 +24,6 @@ We define the rotation to take place first, so a
 code containing both a flip and rotation means
 that to get from one entity to another one must
 first rotate and then flip the vertex list.
-
-By these definitions, an alignment code expresses
-its own inverse.
 */
 
 INLINE I8 make_code(bool is_flipped, I8 rotation, I8 which_down) {
@@ -64,15 +61,28 @@ INLINE I8 flip_index(I8 index) {
 
 template <Int deg>
 INLINE I8 align_index(I8 index, I8 code) {
-  index = rotate_index<deg>(code_rotation(code));
+  index = rotate_index<deg>(index, code_rotation(code));
   if (code_is_flipped(code))
     index = flip_index<deg>(index);
   return index;
 }
 
 template <Int deg>
+INLINE I8 invert_rotation(I8 rotation) {
+  return (deg - rotation) % deg;
+}
+
+template <Int deg>
 INLINE I8 rotation_to_first(I8 new_first) {
-  return (deg - new_first) % deg;
+  return invert_rotation<deg>(new_first);
+}
+
+template <Int deg>
+INLINE I8 invert_alignment(I8 code) {
+  if (code_is_flipped(code))
+    return code; // I think flipped codes are their own inverses
+  return make_code(false,
+      invert_rotation<deg>(code_rotation(code)), 0);
 }
 
 /* returns the single transformation equivalent
@@ -80,8 +90,7 @@ INLINE I8 rotation_to_first(I8 new_first) {
    by the (code2) one. */
 template <Int deg>
 INLINE I8 compound_alignments(I8 code1, I8 code2) {
-  /* assuming that a code is its own inverse,
-     we can look for the way to undo the compound,
+  /* we can look for the inverse of the compound
      by looking at what happens to the index
      that used to be first (0) */
   I8 old_first = align_index<deg>(align_index<deg>(0, code1), code2);
@@ -89,7 +98,7 @@ INLINE I8 compound_alignments(I8 code1, I8 code2) {
      index back to being the first */
   I8 rotation = rotation_to_first<deg>(old_first);
   bool is_flipped = (code_is_flipped(code1) ^ code_is_flipped(code2));
-  return make_code(is_flipped, rotation, 0);
+  return invert_alignment<deg>(make_code(is_flipped, rotation, 0));
 }
 
 template <Int deg, typename T>
@@ -106,8 +115,8 @@ INLINE void flip_adj(T adj[]) {
 
 template <Int deg, typename T>
 INLINE void align_adj(I8 code,
-    T const& in, T out[]) {
+    T const in[], T out[]) {
   rotate_adj<deg>(code_rotation(code), in, out);
   if (code_is_flipped(code))
-    flip_adj<deg>(out);
+    flip_adj(out);
 }
