@@ -209,11 +209,11 @@ static void test_sort() {
 static void test_scan() {
   {
   LOs scanned = offset_scan<LO>(LOs(3,1));
-  CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
+  CHECK(scanned == Read<LO>(4, 0, 1));
   }
   {
   LOs scanned = offset_scan<LO>(Read<I8>(3,1));
-  CHECK(scanned == Read<LO>(make_linear<LO>(4, 0, 1)));
+  CHECK(scanned == Read<LO>(4, 0, 1));
   }
 }
 
@@ -245,8 +245,8 @@ static void test_invert_map(map::InvertMethod method) {
   LOs l2lh;
   LOs lh2hl;
   map::invert(hl2l, 4, l2lh, lh2hl, method);
-  CHECK(l2lh == LOs(make_linear<LO>(5,0,1)));
-  CHECK(lh2hl == LOs(make_linear<LO>(4,0,1)));
+  CHECK(l2lh == LOs(5,0,1));
+  CHECK(lh2hl == LOs(4,0,1));
   }
 }
 

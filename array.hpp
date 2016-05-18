@@ -10,6 +10,7 @@ public:
   Write();
   Write(Int size);
   Write(Int size, T value);
+  Write(Int size, T offset, T stride);
   Int size() const;
   INLINE T& operator[](Int i) const {
 #ifdef USE_KOKKOS
@@ -33,6 +34,7 @@ public:
   Read();
   Read(Write<T> write);
   Read(Int size, T value);
+  Read(Int size, T offset, T stride);
   Read(std::initializer_list<T> l);
   Int size() const;
   INLINE T const& operator[](Int i) const {
@@ -67,6 +69,7 @@ public:
   LOs(Read<LO> base);
   LOs(Write<LO> write);
   LOs(LO size, LO value);
+  LOs(LO size, LO offset, LO stride);
   LOs(std::initializer_list<LO> l);
 };
 
@@ -78,6 +81,7 @@ class HostWrite {
 #endif
 public:
   HostWrite(Int size);
+  HostWrite(Int size, T offset, T stride);
   HostWrite(Write<T> write);
   HostWrite(std::initializer_list<T> l);
   Write<T> write() const;
@@ -108,9 +112,6 @@ public:
 #endif
   }
 };
-
-template <typename T>
-Write<T> make_linear(Int n, T offset, T stride);
 
 template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a);

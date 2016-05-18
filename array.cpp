@@ -36,6 +36,21 @@ Write<T>::Write(Int size, T value):
 }
 
 template <typename T>
+void fill_linear(Write<T> a, T offset, T stride) {
+  auto f = LAMBDA(Int i) {
+    a[i] = offset + (stride * static_cast<T>(i));
+  };
+  parallel_for(a.size(), f);
+}
+
+template <typename T>
+Write<T>::Write(Int size, T offset, T stride):
+  Write<T>(size)
+{
+  fill_linear(*this, offset, stride);
+}
+
+template <typename T>
 Int Write<T>::size() const {
 #ifdef USE_KOKKOS
   return static_cast<Int>(view_.size());
@@ -147,6 +162,10 @@ LOs::LOs(LO size, LO value):
   Read<LO>(size, value) {
 }
 
+LOs::LOs(LO size, LO offset, LO stride):
+  Read<LO>(size, offset, stride) {
+}
+
 LOs::LOs(std::initializer_list<LO> l):
   Read<LO>(l) {
 }
@@ -163,6 +182,11 @@ Read<T>::Read(Write<T> write):
 template <typename T>
 Read<T>::Read(Int size, T value):
   write_(size, value) {
+}
+
+template <typename T>
+Read<T>::Read(Int size, T offset, T stride):
+  write_(size, offset, stride) {
 }
 
 template <typename T>
@@ -220,6 +244,12 @@ HostWrite<T>::HostWrite(Int size):
 }
 
 template <typename T>
+HostWrite<T>::HostWrite(Int size, T offset, T stride):
+  HostWrite<T>(Write<T>(size, offset, stride))
+{
+}
+
+template <typename T>
 HostWrite<T>::HostWrite(Write<T> write):
   write_(write)
 #ifdef USE_KOKKOS
@@ -271,16 +301,6 @@ Int HostRead<T>::size() const {
 }
 
 template <typename T>
-Write<T> make_linear(Int n, T offset, T stride) {
-  Write<T> a(n);
-  auto f = LAMBDA(Int i) {
-    a[i] = offset + (stride * static_cast<T>(i));
-  };
-  parallel_for(n, f);
-  return a;
-}
-
-template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a) {
   HostRead<T> ha = a;
   if (ha.size() <= 10) {
@@ -309,5 +329,3 @@ INST_ARRAY_T(I64)
 INST_ARRAY_T(Real)
 
 template Real sum(Read<Real> a);
-template Write<I64> make_linear(Int n, I64 offset, I64 stride);
-template Write<I32> make_linear(Int n, I32 offset, I32 stride);

@@ -91,7 +91,7 @@ static Read<Int> random_perm(Int n)
   std::mt19937 gen(rd());
   std::uniform_int_distribution<Int> dis;
   /* start with identity permutation */
-  HostWrite<Int> permutation(make_linear<Int>(n, 0, 1));
+  HostWrite<Int> permutation(n, 0, 1);
   for (Int i = 0; i + 1 < n; i++) {
     Int j = dis(gen) % (n - i); /* A random integer such that 0 ≤ j < n-i*/
     std::swap(permutation[i], permutation[i + j]);

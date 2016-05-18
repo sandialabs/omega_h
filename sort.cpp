@@ -45,7 +45,7 @@ struct CompareKeySets {
 template <typename T, Int N>
 LOs sort_by_keys(Read<T> keys) {
   CHECK(keys.size() % N == 0);
-  auto perm = make_linear<LO>(keys.size() / N, 0, 1);
+  Write<LO> perm(keys.size() / N, 0, 1);
   LO* begin = perm.data();
   LO* end = perm.data() + perm.size();
   T const* keyptr = keys.data();
