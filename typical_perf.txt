@@ -12,12 +12,15 @@ inverting 471055 tets -> verts 5 times by atomics takes 0.496291 seconds
 
 Pachisi with 8 threads:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.151093 seconds
-reproducibly adding 1000000 reals 100 times takes 0.125457 seconds
-adding 1000000 reals 100 times takes 0.011604 seconds
-sorting 1000000 sets of 1 integers 5 times takes 0.101459 seconds
-sorting 1000000 sets of 2 integers 5 times takes 0.135226 seconds
-sorting 1000000 sets of 3 integers 5 times takes 0.168868 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.149197 seconds
+inversion of 1000000 metric tensors 30 times takes 0.233063 seconds
+reproducibly adding 1000000 reals 100 times takes 0.118147 seconds
+adding 1000000 reals 100 times takes 0.0116759 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.0994994 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.122938 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.140998 seconds
+inverting 471055 tets -> verts 5 times by sorting takes 0.186313 seconds
+inverting 471055 tets -> verts 5 times by atomics takes 0.108118 seconds
 
 Shannon K40:
 
