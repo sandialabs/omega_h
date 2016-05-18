@@ -228,6 +228,9 @@ static void test_invert_funnel() {
       == LOs({0,0,0,6}));
 }
 
+// these tests can have degree at most 1
+// because map::invert doesn't have to be
+// deterministic in local ordering
 static void test_invert_map(map::InvertMethod method) {
   {
   LOs hl2l({});
@@ -237,12 +240,14 @@ static void test_invert_map(map::InvertMethod method) {
   CHECK(l2lh == LOs(5,0));
   CHECK(lh2hl == LOs({}));
   }
-//{
-//LOs hl2l({0,1,2,3});
-//LOs l2lh;
-//LOs lh2hl;
-//map::invert(hl2l, 4, l2lh, lh2hl, method);
-//}
+  {
+  LOs hl2l({0,1,2,3});
+  LOs l2lh;
+  LOs lh2hl;
+  map::invert(hl2l, 4, l2lh, lh2hl, method);
+  CHECK(l2lh == LOs(make_linear<LO>(5,0,1)));
+  CHECK(lh2hl == LOs(make_linear<LO>(4,0,1)));
+  }
 }
 
 static void test_invert_map() {
