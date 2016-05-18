@@ -24,10 +24,13 @@ inverting 471055 tets -> verts 5 times by atomics takes 0.108118 seconds
 
 Shannon K40:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.00648542 seconds
-inversion of 1000000 metric tensors 30 times takes 0.0256056 seconds
-reproducibly adding 1000000 reals 100 times takes 0.0271696 seconds
-adding 1000000 reals 100 times takes 0.0105471 seconds
-sorting 1000000 sets of 1 integers 5 times takes 0.0889408 seconds
-sorting 1000000 sets of 2 integers 5 times takes 0.119001 seconds
-sorting 1000000 sets of 3 integers 5 times takes 0.121102 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.00647373 seconds
+inversion of 1000000 metric tensors 30 times takes 0.026066 seconds
+reproducibly adding 1000000 reals 100 times takes 0.0278089 seconds
+adding 1000000 reals 100 times takes 0.0109524 seconds
+warning: the naive sum gave the same answer
+sorting 1000000 sets of 1 integers 5 times takes 0.0882616 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.118893 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.128794 seconds
+inverting 471055 tets -> verts 5 times by sorting takes 0.235062 seconds
+inverting 471055 tets -> verts 5 times by atomics takes 0.11837 seconds
