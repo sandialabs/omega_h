@@ -328,7 +328,6 @@ static void test_tri_align() {
 static void test_reflect_down() {
   LOs eu2e;
   Read<I8> codes;
-if ((0)) {
   {
   reflect_down<2>(LOs({}), LOs({}), eu2e, codes);
   CHECK(eu2e.size() == 0);
@@ -351,13 +350,20 @@ if ((0)) {
         make_code(false, 1, 0),
         make_code(false, 0, 0)}));
   }
-}
   {
   reflect_down<3>(LOs({0,1,2,0,2,1}), LOs({0,1,2}), eu2e, codes);
   CHECK(eu2e == LOs({0,0}));
   CHECK(codes == Read<I8>({
         make_code(false, 0, 0),
         make_code(true, 0, 0)}));
+  }
+  {
+  reflect_down<3>(LOs({0,1,2,0,2,1,1,2,0}), LOs({0,1,2}), eu2e, codes);
+  CHECK(eu2e == LOs({0,0,0}));
+  CHECK(codes == Read<I8>({
+        make_code(false, 0, 0),
+        make_code(true, 0, 0),
+        make_code(false, 2, 0)}));
   }
 }
 

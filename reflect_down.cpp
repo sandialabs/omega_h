@@ -25,14 +25,11 @@ static void make_canonical(LOs ev2v,
     I8 rotation = rotation_to_first<deg>(min_j);
     rotate_adj<deg>(rotation, &ev2v[begin], &canon[begin]);
     bool is_flipped = false;
-    std::cerr << "e " << e << '\n';
-    std::cerr << "deg " << deg << '\n';
-    std::cerr << "canon[2] " << canon[begin + 2] << " canon[1] " << canon[begin + 1] << '\n';
     if (deg == 3 && canon[begin + 2] < canon[begin + 1]) {
-      std::cerr << "flipping\n";
       is_flipped = true;
       flip_adj(&canon[begin]);
     }
+    std::cerr << "codes[" << e << "] = (" << is_flipped << ", " << Int(rotation) << ")\n";
     codes[e] = make_code(is_flipped, rotation, 0);
   };
   parallel_for(ne, f);
@@ -63,10 +60,6 @@ static Read<I8> find_jumps(LOs canon) {
   return jumps;
 }
 
-/* given entity uses and unique entities,
-   both defined by vertex lists, match
-   uses to unique entities including their
-   respective alignment codes */
 template <Int deg>
 void reflect_down(LOs euv2v, LOs ev2v,
     LOs& eu2e, Read<I8>& eu2e_codes_) {
@@ -96,7 +89,7 @@ void reflect_down(LOs euv2v, LOs ev2v,
   auto f = LAMBDA(LO eu) {
     LO e = eu2e[eu];
     eu2e_codes[eu] = compound_alignments<deg>(
-        eu_codes[eu], invert_alignment<deg>(e_codes[e]));
+        e_codes[e], invert_alignment<deg>(eu_codes[eu]));
   };
   parallel_for(neu, f);
   eu2e_codes_ = eu2e_codes;

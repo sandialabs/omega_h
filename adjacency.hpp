@@ -11,6 +11,16 @@ struct Adj {
 Adj invert(Adj down, I8 nlows_per_high, LO nlows,
     Read<GO> high_globals, map::InvertMethod method = map::BY_ATOMICS);
 
+/* given entity uses and unique entities,
+   both defined by vertex lists, match
+   uses to unique entities including their
+   respective alignment codes.
+
+   even though this is a downward adjacency, we'll
+   define the code as describing how to transform
+   the boundary entity into the entity use,
+   since typically data is being pulled into an element
+   from its boundary */
 template <Int deg>
 void reflect_down(LOs euv2v, LOs ev2v,
     LOs& eu2e, Read<I8>& eu2e_codes_);
