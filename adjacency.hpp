@@ -32,3 +32,5 @@ LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim);
 template <Int deg>
 void reflect_down(LOs euv2v, LOs ev2v,
     LOs& eu2e, Read<I8>& eu2e_codes_);
+
+Adj reflect_down(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim);

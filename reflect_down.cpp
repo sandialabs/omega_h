@@ -111,3 +111,14 @@ LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim) {
   parallel_for(nhigh, f);
   return uv2v;
 }
+
+Adj reflect_down(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim) {
+  LOs uv2v = form_uses(hv2v, high_dim, low_dim);
+  LOs hl2l;
+  Read<I8> codes;
+  if (low_dim == 1)
+    reflect_down<2>(uv2v, lv2v, hl2l, codes);
+  if (low_dim == 2)
+    reflect_down<3>(uv2v, lv2v, hl2l, codes);
+  return Adj(hl2l, codes);
+}
