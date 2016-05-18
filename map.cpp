@@ -4,6 +4,7 @@ Read<T> permute(LOs out2in, Read<T> in) {
   auto f = LAMBDA(LO i) {
     out[i] = in[out2in[i]];
   };
+  parallel_for(out.size(), f);
   return out;
 }
 
