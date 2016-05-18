@@ -52,4 +52,5 @@ typedef double       Real;
 #include "scan.hpp"
 #include "indset.hpp"
 #include "map.hpp"
+#include "align.hpp"
 #include "adjacency.hpp"

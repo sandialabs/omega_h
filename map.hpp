@@ -1,4 +1,4 @@
-template <typename T>
+template <typename T, Int width = 1>
 Read<T> permute(LOs out2in, Read<T> in);
 
 LOs invert_funnel(LOs ab2a, LO na);

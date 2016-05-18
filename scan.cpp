@@ -11,11 +11,17 @@ struct ExclScan : public SumFunctor<TO> {
   }
 };
 
-
 template <typename TO, typename TI>
 Read<TO> offset_scan(Read<TI> a) {
   Write<TO> out(a.size() + 1);
   parallel_scan(a.size(), ExclScan<TO,TI>(a, out));
+  return out;
+}
+
+template <typename TO, typename TI>
+Read<TO> excl_scan(Read<TI> a) {
+  Write<TO> out(a.size());
+  parallel_scan(a.size() - 1, ExclScan<TO,TI>(a, out));
   return out;
 }
 

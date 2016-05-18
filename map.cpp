@@ -1,8 +1,9 @@
-template <typename T>
+template <typename T, Int width>
 Read<T> permute(LOs out2in, Read<T> in) {
   Write<T> out(in.size());
   auto f = LAMBDA(LO i) {
-    out[i] = in[out2in[i]];
+    for (Int j = 0; j < width; ++j)
+      out[i * width + j] = in[out2in[i] * width + j];
   };
   parallel_for(out.size(), f);
   return out;
