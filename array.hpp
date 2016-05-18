@@ -111,3 +111,6 @@ public:
 
 template <typename T>
 Write<T> make_linear(Int n, T offset, T stride);
+
+template <typename T>
+std::ostream& operator<<(std::ostream& o, Read<T> a);

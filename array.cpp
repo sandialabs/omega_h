@@ -280,12 +280,27 @@ Write<T> make_linear(Int n, T offset, T stride) {
   return a;
 }
 
+template <typename T>
+std::ostream& operator<<(std::ostream& o, Read<T> a) {
+  HostRead<T> ha = a;
+  if (ha.size() <= 10) {
+    for (Int i = 0; i < ha.size(); ++i)
+      o << ' ' << ha[i];
+    o << '\n';
+  } else {
+    for (Int i = 0; i < ha.size(); ++i)
+      o << ha[i] << '\n';
+  }
+  return o;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
 template class HostWrite<T>; \
 template class HostRead<T>; \
-template bool operator==(Read<T> a, Read<T> b);
+template bool operator==(Read<T> a, Read<T> b); \
+template std::ostream& operator<<(std::ostream& o, Read<T> a);
 
 INST_ARRAY_T(I8)
 INST_ARRAY_T(I16)
