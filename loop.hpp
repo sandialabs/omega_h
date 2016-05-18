@@ -1,7 +1,7 @@
 template <typename T>
 void parallel_for(Int n, T const& f) {
 #ifdef USE_KOKKOS
-  if (n >= 0)
+  if (n > 0)
     Kokkos::parallel_for(static_cast<std::size_t>(n), f);
 #else
   for (Int i = 0; i < n; ++i)
@@ -15,7 +15,7 @@ typename T::value_type parallel_reduce(Int n, T f)
   typename T::value_type result;
   f.init(result);
 #ifdef USE_KOKKOS
-  if (n >= 0)
+  if (n > 0)
     Kokkos::parallel_reduce(static_cast<std::size_t>(n), f, result);
 #else
   for (Int i = 0; i < n; ++i)
@@ -28,7 +28,7 @@ template <typename T>
 void parallel_scan(Int n, T f)
 {
 #ifdef USE_KOKKOS
-  if (n >= 0)
+  if (n > 0)
     Kokkos::parallel_scan(static_cast<std::size_t>(n), f);
 #else
   typename T::value_type update;
