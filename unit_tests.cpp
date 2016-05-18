@@ -408,6 +408,10 @@ static void test_reflect_down2() {
       LOs({0,2,1,0,1,3,1,2,3,2,0,3}),3,2);
   CHECK(a.ab2b == LOs({0,1,2,3}));
   CHECK(a.codes == Read<I8>({0,0,0,0}));
+  a = reflect_down(LOs({0,1,2,3}),
+      LOs({0,1,2,0,3,1,1,3,2,2,3,0}),3,2);
+  CHECK(a.ab2b == LOs({0,1,2,3}));
+  CHECK(a.codes == Read<I8>(4, make_code(true,0,0)));
 }
 
 int main(int argc, char** argv) {
