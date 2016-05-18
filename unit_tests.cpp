@@ -228,6 +228,28 @@ static void test_invert_funnel() {
       == LOs({0,0,0,6}));
 }
 
+static void test_invert_map(map::InvertMethod method) {
+  {
+  LOs hl2l({});
+  LOs l2lh;
+  LOs lh2hl;
+  map::invert(hl2l, 4, l2lh, lh2hl, method);
+  CHECK(l2lh == LOs(5,0));
+  CHECK(lh2hl == LOs({}));
+  }
+//{
+//LOs hl2l({0,1,2,3});
+//LOs l2lh;
+//LOs lh2hl;
+//map::invert(hl2l, 4, l2lh, lh2hl, method);
+//}
+}
+
+static void test_invert_map() {
+  test_invert_map(map::BY_SORTING);
+  test_invert_map(map::BY_ATOMICS);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -241,5 +263,6 @@ int main(int argc, char** argv) {
   test_scan();
   test_intersect_metrics();
   test_invert_funnel();
+  test_invert_map();
   fini();
 }
