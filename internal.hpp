@@ -15,6 +15,12 @@
 
 #define NORETURN(x) do { assert(0); return x; } while(0)
 
+#ifdef USE_CUDA
+#define CONSTANT __constant__
+#else
+#define CONSTANT
+#endif
+
 typedef std::int8_t  I8;
 typedef std::int16_t I16;
 typedef std::int32_t I32;
@@ -41,6 +47,7 @@ typedef double       Real;
 #include "polynomial.hpp"
 #include "eigen.hpp"
 #include "metric.hpp"
+#include "simplices.hpp"
 #include "size.hpp"
 #include "quality.hpp"
 #include "loop.hpp"
