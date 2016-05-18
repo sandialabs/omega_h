@@ -215,6 +215,17 @@ static void test_invert_adj(LOs tets2verts, LO nverts,
     << " takes " << (t1-t0) << " seconds\n";
 }
 
+static void test_reflect_down(LOs tets2verts, LOs tris2verts) {
+  LO ntets = tets2verts.size() / 4;
+  Int niters = 2;
+  Now t0 = now();
+  for (Int i = 0; i < niters; ++i)
+    reflect_down(tets2verts, tris2verts, 3, 2);
+  Now t1 = now();
+  std::cout << "reflect_down " << ntets << " tets -> tris "
+    << niters << " times takes " << (t1-t0) << " seconds\n";
+}
+
 static void test_adjs() {
   FILE* adj_file = fopen("adjs.txt", "r");
   CHECK(adj_file != NULL);
@@ -225,6 +236,7 @@ static void test_adjs() {
   fclose(adj_file);
   test_invert_adj(tets2verts, nverts, map::BY_SORTING, "sorting");
   test_invert_adj(tets2verts, nverts, map::BY_ATOMICS, "atomics");
+  test_reflect_down(tets2verts, tris2verts);
 }
 
 int main(int argc, char** argv) {
