@@ -26,7 +26,7 @@ LOs invert_funnel(LOs ab2a, LO na) {
   };
   parallel_for(nab - 1, f);
   if (nab) {
-    LO a_end = ab2a[nab - 1];
+    LO a_end = ab2a.get(nab - 1);
     a2ab.set(a_end + 1, nab);
   }
   fill_right(a2ab);
