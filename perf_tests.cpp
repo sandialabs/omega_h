@@ -1,5 +1,7 @@
 #include <random>
 #include <cstdio>
+#include <cstdarg>
+
 #include "internal.hpp"
 
 static Int const nelems = 1000 * 1000;
