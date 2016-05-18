@@ -262,6 +262,28 @@ static void test_invert_map() {
   test_invert_map(map::BY_ATOMICS);
 }
 
+static void test_invert_adj(map::InvertMethod method) {
+  {
+  Adj tris2verts(LOs({0,1,2,2,3,0}));
+  Read<GO> tri_globals({0,1});
+  Adj verts2tris = invert(tris2verts, 3, 4, tri_globals, method);
+  CHECK(verts2tris.a2ab == offset_scan<LO>(LOs({2,1,2,1})));
+  CHECK(verts2tris.ab2b == LOs({0,1, 0, 0,1, 1}));
+  CHECK(verts2tris.codes == Read<I8>({
+        make_code(0, 0, 0),
+        make_code(0, 0, 2),
+        make_code(0, 0, 1),
+        make_code(0, 0, 2),
+        make_code(0, 0, 0),
+        make_code(0, 0, 1)}));
+  }
+}
+
+static void test_invert_adj() {
+  test_invert_adj(map::BY_SORTING);
+  test_invert_adj(map::BY_ATOMICS);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -277,5 +299,6 @@ int main(int argc, char** argv) {
   test_invert_funnel();
   test_permute();
   test_invert_map();
+  test_invert_adj();
   fini();
 }
