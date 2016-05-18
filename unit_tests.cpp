@@ -325,7 +325,7 @@ static void test_tri_align() {
   }
 }
 
-static void test_reflect_down() {
+static void test_reflect_down1() {
   LOs eu2e;
   Read<I8> codes;
   {
@@ -386,6 +386,19 @@ static void test_form_uses() {
       LOs({0,2,1,0,1,3,1,2,3,2,0,3}));
 }
 
+static void test_reflect_down2() {
+  Adj a;
+  a = reflect_down(LOs(),LOs(),2,1);
+  CHECK(a.ab2b == LOs({}));
+  CHECK(a.codes == Read<I8>({}));
+  a = reflect_down(LOs(),LOs(),3,1);
+  CHECK(a.ab2b == LOs({}));
+  CHECK(a.codes == Read<I8>({}));
+  a = reflect_down(LOs(),LOs(),3,2);
+  CHECK(a.ab2b == LOs({}));
+  CHECK(a.codes == Read<I8>({}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -403,7 +416,8 @@ int main(int argc, char** argv) {
   test_invert_map();
   test_invert_adj();
   test_tri_align();
-  test_reflect_down();
+  test_reflect_down1();
   test_form_uses();
+  test_reflect_down2();
   fini();
 }
