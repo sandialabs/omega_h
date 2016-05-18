@@ -44,8 +44,8 @@ static bool is_jump(LOs canon, LO h) {
   LO b = (h + 1) * deg;
   for (LO j = 0; j < deg; ++j)
     if (canon[a + j] != canon[b + j])
-      return false;
-  return true;
+      return true;
+  return false;
 }
 
 template <Int deg>
@@ -70,15 +70,22 @@ void reflect_down(LOs euv2v, LOs ev2v,
   LOs euv2v_canon;
   Read<I8> eu_codes;
   make_canonical<deg>(euv2v, euv2v_canon, eu_codes);
+  std::cerr << "euv2v_canon\n" << euv2v_canon << '\n';
   LOs ev2v_canon;
   Read<I8> e_codes;
   make_canonical<deg>(ev2v, ev2v_canon, e_codes);
   LOs eu_sorted2eu = sort_by_keys<LO,deg>(euv2v_canon);
+  std::cerr << "eu_sorted2eu\n" << eu_sorted2eu << '\n';
   LOs e_sorted2e = sort_by_keys<LO,deg>(ev2v_canon);
+  std::cerr << "e_sorted2e\n" << e_sorted2e << '\n';
   Read<I8> jumps = find_jumps<deg>(euv2v_canon);
+  std::cerr << "jumps\n" << jumps << '\n';
   LOs eu_sorted2e_sorted = excl_scan<LO,I8>(jumps);
+  std::cerr << "eu_sorted2e_sorted\n" << eu_sorted2e_sorted << '\n';
   LOs eu2eu_sorted = invert_permutation(eu_sorted2eu);
+  std::cerr << "eu2eu_sorted\n" << eu2eu_sorted << '\n';
   LOs eu2e_sorted = compound_maps(eu2eu_sorted, eu_sorted2e_sorted);
+  std::cerr << "eu2e_sorted\n" << eu2e_sorted << '\n';
   eu2e = compound_maps(eu2e_sorted, e_sorted2e);
   Write<I8> eu2e_codes(neu);
   auto f = LAMBDA(LO eu) {
