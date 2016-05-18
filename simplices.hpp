@@ -1,3 +1,14 @@
+#define DIMS 4
+
+enum {
+  VERT,
+  EDGE,
+  FACE,
+  TRI = FACE,
+  REGION,
+  TET = REGION
+};
+
 CONSTANT static I8 const fev0[] = {0,1};
 CONSTANT static I8 const fev1[] = {1,2};
 CONSTANT static I8 const fev2[] = {2,0};
@@ -23,3 +34,10 @@ CONSTANT static I8 const* const* const r_v_[] = {
   0,rev_,rfv_};
 CONSTANT static I8 const* const* const* const simplices[] = {
   0,0,f_v_,r_v_};
+
+static I8 degrees[DIMS][DIMS] = {
+  {1,-1,-1,-1},
+  {2, 1,-1,-1},
+  {3, 3,-1,-1},
+  {4, 6, 4, 1}
+};

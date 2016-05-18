@@ -11,6 +11,8 @@ struct Adj {
 Adj invert(Adj down, I8 nlows_per_high, LO nlows,
     Read<GO> high_globals, map::InvertMethod method = map::BY_ATOMICS);
 
+LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim);
+
 /* given entity uses and unique entities,
    both defined by vertex lists, match
    uses to unique entities and derive their
