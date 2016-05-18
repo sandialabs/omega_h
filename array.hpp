@@ -1,4 +1,7 @@
 template <typename T>
+class HostWrite;
+
+template <typename T>
 class Write {
 #ifdef USE_KOKKOS
   Kokkos::View<T*> view_;
@@ -11,6 +14,7 @@ public:
   Write(Int size);
   Write(Int size, T value);
   Write(Int size, T offset, T stride);
+  Write(HostWrite<T> host_write);
   Int size() const;
   INLINE T& operator[](Int i) const {
 #ifdef CHECK_BOUNDS

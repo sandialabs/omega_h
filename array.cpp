@@ -51,6 +51,12 @@ Write<T>::Write(Int size, T offset, T stride):
 }
 
 template <typename T>
+Write<T>::Write(HostWrite<T> host_write):
+  Write<T>(host_write.write())
+{
+}
+
+template <typename T>
 Int Write<T>::size() const {
 #ifdef USE_KOKKOS
   return static_cast<Int>(view_.size());
