@@ -4,6 +4,7 @@ project(omega_h CXX)
 option(USE_KOKKOS "Use Kokkos for on-node parallelism" OFF)
 option(USE_OPENMP "Use Kokkos+OpenMP for on-node parallelism" OFF)
 option(USE_CUDA "Use Kokkos+CUDA for on-node parallelism" OFF)
+option(CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
 set(CUDA_ARCH "37" CACHE STRING "compute capability for NVCC -arch=sm_?")
 
 if(USE_KOKKOS)

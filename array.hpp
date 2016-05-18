@@ -13,6 +13,10 @@ public:
   Write(Int size, T offset, T stride);
   Int size() const;
   INLINE T& operator[](Int i) const {
+#ifdef CHECK_BOUNDS
+    CHECK(0 <= i);
+    CHECK(i < size());
+#endif
 #ifdef USE_KOKKOS
     return view_(i);
 #else
@@ -89,6 +93,10 @@ public:
   Int size() const;
   inline T& operator[](Int i) const {
 #ifdef USE_KOKKOS
+#ifdef CHECK_BOUNDS
+    CHECK(0 <= i);
+    CHECK(i < size());
+#endif
     return mirror_(i);
 #else
     return write_[i];
@@ -107,6 +115,10 @@ public:
   Int size() const;
   inline T const& operator[](Int i) const {
 #ifdef USE_KOKKOS
+#ifdef CHECK_BOUNDS
+    CHECK(0 <= i);
+    CHECK(i < size());
+#endif
     return mirror_(i);
 #else
     return read_[i];
