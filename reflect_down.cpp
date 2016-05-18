@@ -73,6 +73,8 @@ void reflect_down(LOs euv2v, LOs ev2v,
   LOs e_sorted2e = sort_by_keys<LO,deg>(ev2v_canon);
   Read<I8> jumps = find_jumps<deg>(euv2v_canon);
   LOs eu_sorted2e_sorted = excl_scan<LO,I8>(jumps);
+  std::cerr << "last entry of eu_sorted2e_sorted: "
+    << eu_sorted2e_sorted.get(eu_sorted2e_sorted.size() - 1) << '\n';
   LOs eu2eu_sorted = invert_permutation(eu_sorted2eu);
   LOs eu2e_sorted = compound_maps(eu2eu_sorted, eu_sorted2e_sorted);
   eu2e = compound_maps(eu2e_sorted, e_sorted2e);

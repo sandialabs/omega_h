@@ -14,7 +14,11 @@ public:
   Int size() const;
   INLINE T& operator[](Int i) const {
 #ifdef CHECK_BOUNDS
+    if (i < 0)
+      std::cerr << "i = " << i << '\n';
     CHECK(0 <= i);
+    if (i >= size())
+      std::cerr << "i = " << i << '\n';
     CHECK(i < size());
 #endif
 #ifdef USE_KOKKOS
