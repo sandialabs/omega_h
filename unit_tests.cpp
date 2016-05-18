@@ -365,6 +365,16 @@ static void test_reflect_down() {
         make_code(true, 0, 0),
         make_code(false, 2, 0)}));
   }
+  {
+  reflect_down<3>(LOs({0,1,2,2,3,0}), LOs({0,1,2,2,3,0}), eu2e, codes);
+  CHECK(eu2e == LOs({0,1}));
+  CHECK(codes == Read<I8>({0,0}));
+  }
+  {
+  reflect_down<3>(LOs({0,1,2, 2,0,3, 2,3,0}), LOs({2,3,0,0,1,2}), eu2e, codes);
+  CHECK(eu2e == LOs({1,0,0}));
+  CHECK(codes == Read<I8>({0,make_code(true,0,0),0}));
+  }
 }
 
 int main(int argc, char** argv) {

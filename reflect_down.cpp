@@ -29,7 +29,6 @@ static void make_canonical(LOs ev2v,
       is_flipped = true;
       flip_adj(&canon[begin]);
     }
-    std::cerr << "codes[" << e << "] = (" << is_flipped << ", " << Int(rotation) << ")\n";
     codes[e] = make_code(is_flipped, rotation, 0);
   };
   parallel_for(ne, f);
@@ -67,23 +66,15 @@ void reflect_down(LOs euv2v, LOs ev2v,
   LOs euv2v_canon;
   Read<I8> eu_codes;
   make_canonical<deg>(euv2v, euv2v_canon, eu_codes);
-  std::cerr << "euv2v_canon\n" << euv2v_canon << '\n';
   LOs ev2v_canon;
   Read<I8> e_codes;
   make_canonical<deg>(ev2v, ev2v_canon, e_codes);
-  std::cerr << "ev2v_canon\n" << ev2v_canon << '\n';
   LOs eu_sorted2eu = sort_by_keys<LO,deg>(euv2v_canon);
-  std::cerr << "eu_sorted2eu\n" << eu_sorted2eu << '\n';
   LOs e_sorted2e = sort_by_keys<LO,deg>(ev2v_canon);
-  std::cerr << "e_sorted2e\n" << e_sorted2e << '\n';
   Read<I8> jumps = find_jumps<deg>(euv2v_canon);
-  std::cerr << "jumps\n" << jumps << '\n';
   LOs eu_sorted2e_sorted = excl_scan<LO,I8>(jumps);
-  std::cerr << "eu_sorted2e_sorted\n" << eu_sorted2e_sorted << '\n';
   LOs eu2eu_sorted = invert_permutation(eu_sorted2eu);
-  std::cerr << "eu2eu_sorted\n" << eu2eu_sorted << '\n';
   LOs eu2e_sorted = compound_maps(eu2eu_sorted, eu_sorted2e_sorted);
-  std::cerr << "eu2e_sorted\n" << eu2e_sorted << '\n';
   eu2e = compound_maps(eu2e_sorted, e_sorted2e);
   Write<I8> eu2e_codes(neu);
   auto f = LAMBDA(LO eu) {
