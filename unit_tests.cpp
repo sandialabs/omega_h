@@ -325,6 +325,16 @@ static void test_tri_align() {
   }
 }
 
+static void test_reflect_down() {
+  LOs eu2e;
+  Read<I8> codes;
+  {
+  reflect_down<2>(LOs({}), LOs({}), eu2e, codes);
+  CHECK(eu2e.size() == 0);
+  CHECK(codes.size() == 0);
+  }
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -342,5 +352,6 @@ int main(int argc, char** argv) {
   test_invert_map();
   test_invert_adj();
   test_tri_align();
+  test_reflect_down();
   fini();
 }
