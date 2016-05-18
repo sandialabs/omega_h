@@ -201,18 +201,16 @@ static LOs read_ents(FILE* f, LO dim)
   return host_array.write();
 }
 
-static void test_invert_adj(LOs tets2verts, LO nverts,
-    map::InvertMethod method, std::string const& method_name) {
+static void test_invert_adj(LOs tets2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
   Read<GO> tet_globals(ntets, 0, 1);
   Int niters = 5;
   Now t0 = now();
   for (Int i = 0; i < niters; ++i)
-    invert(Adj(tets2verts), 4, nverts, tet_globals, method);
+    invert(Adj(tets2verts), 4, nverts, tet_globals);
   Now t1 = now();
   std::cout << "inverting " << ntets << " tets -> verts "
-    << niters << " times by " << method_name
-    << " takes " << (t1-t0) << " seconds\n";
+    << niters << " times takes " << (t1-t0) << " seconds\n";
 }
 
 static void test_reflect_down(LOs tets2verts, LOs tris2verts) {
@@ -234,8 +232,8 @@ static void test_adjs() {
   LOs tets2verts = read_ents(adj_file, 3);
   LOs tris2verts = read_ents(adj_file, 2);
   fclose(adj_file);
-  test_invert_adj(tets2verts, nverts, map::BY_SORTING, "sorting");
-  test_invert_adj(tets2verts, nverts, map::BY_ATOMICS, "atomics");
+  if ((0))
+  test_invert_adj(tets2verts, nverts);
   test_reflect_down(tets2verts, tris2verts);
 }
 

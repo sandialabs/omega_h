@@ -18,7 +18,9 @@ LOs compound_maps(LOs a2b, LOs b2c) {
   LO na = a2b.size();
   Write<LO> a2c(a2b.size());
   auto f = LAMBDA(LO a) {
-    a2c[a] = b2c[a2b[a]];
+    LO b = a2b[a];
+    LO c = b2c[b];
+    a2c[a] = c;
   };
   parallel_for(na, f);
   return a2c;
