@@ -232,7 +232,6 @@ static void test_adjs() {
   LOs tets2verts = read_ents(adj_file, 3);
   LOs tris2verts = read_ents(adj_file, 2);
   fclose(adj_file);
-  if ((0))
   test_invert_adj(tets2verts, nverts);
   test_reflect_down(tets2verts, tris2verts);
 }
