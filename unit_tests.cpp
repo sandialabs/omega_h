@@ -6,7 +6,7 @@ static void test_qr_decomp(Matrix<m,n> a) {
   Matrix<n,n> r;
   decompose_qr_reduced(a, q, r);
   CHECK(are_close(a, q * r));
-  CHECK(are_close(transpose(q) * q, identity_matrix<m,n>()));
+  CHECK(are_close(transpose(q) * q, identity_matrix<n,n>()));
 }
 
 static void test_qr_decomps() {
@@ -377,6 +377,12 @@ static void test_reflect_down() {
   }
 }
 
+static void test_form_uses() {
+  std::cerr << form_uses(LOs({0,1,2,3}),3,1);
+  CHECK(form_uses(LOs({0,1,2,3}),3,1) ==
+      LOs({0,1,1,2,2,0,0,3,1,3,2,3}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -395,5 +401,6 @@ int main(int argc, char** argv) {
   test_invert_adj();
   test_tri_align();
   test_reflect_down();
+  test_form_uses();
   fini();
 }
