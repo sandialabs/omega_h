@@ -263,7 +263,6 @@ static void test_invert_map() {
 }
 
 static void test_invert_adj(map::InvertMethod method) {
-  {
   Adj tris2verts(LOs({0,1,2,2,3,0}));
   Read<GO> tri_globals({0,1});
   Adj verts2tris = invert(tris2verts, 3, 4, tri_globals, method);
@@ -276,7 +275,6 @@ static void test_invert_adj(map::InvertMethod method) {
         make_code(0, 0, 2),
         make_code(0, 0, 0),
         make_code(0, 0, 1)}));
-  }
 }
 
 static void test_invert_adj() {
