@@ -228,6 +228,13 @@ static void test_invert_funnel() {
       == LOs({0,0,0,6}));
 }
 
+static void test_permute() {
+  Reals data({0.1,0.2,0.3,0.4});
+  LOs perm({3,2,1,0});
+  Reals permuted = permute(perm, data);
+  CHECK(permuted == Reals({0.4,0.3,0.2,0.1}));
+}
+
 // these tests can have degree at most 1
 // because map::invert doesn't have to be
 // deterministic in local ordering
@@ -268,6 +275,7 @@ int main(int argc, char** argv) {
   test_scan();
   test_intersect_metrics();
   test_invert_funnel();
+  test_permute();
   test_invert_map();
   fini();
 }

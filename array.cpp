@@ -115,6 +115,10 @@ Reals::Reals():
   Read<Real>()
 {}
 
+Reals::Reals(Read<Real> base):
+  Read<Real>(base)
+{}
+
 Reals::Reals(Write<Real> write):
   Read<Real>(write)
 {}

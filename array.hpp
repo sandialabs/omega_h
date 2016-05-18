@@ -56,6 +56,7 @@ T sum(Read<T> a);
 class Reals : public Read<Real> {
 public:
   Reals();
+  Reals(Read<Real> base);
   Reals(Write<Real> write);
   Reals(Int size, Real value);
   Reals(std::initializer_list<Real> l);
