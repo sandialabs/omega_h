@@ -25,10 +25,10 @@ static void order_by_globals(
 }
 
 Adj invert(Adj down, I8 nlows_per_high, LO nlows,
-    Read<GO> high_globals, map::InvertMethod method) {
+    Read<GO> high_globals) {
   LOs l2lh;
   LOs lh2hl;
-  map::invert(down.ab2b, nlows, l2lh, lh2hl, method);
+  map::invert(down.ab2b, nlows, l2lh, lh2hl, map::BY_ATOMICS);
   LO nlh = lh2hl.size();
   Read<I8> down_codes(down.codes);
   Write<LO> lh2h(nlh);

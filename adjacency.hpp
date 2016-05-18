@@ -9,7 +9,7 @@ struct Adj {
 };
 
 Adj invert(Adj down, I8 nlows_per_high, LO nlows,
-    Read<GO> high_globals, map::InvertMethod method = map::BY_ATOMICS);
+    Read<GO> high_globals);
 
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low

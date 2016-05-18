@@ -39,7 +39,7 @@ static void make_canonical(LOs ev2v,
 /* check whether adjacent lists of (deg) vertices
    are the same */
 template <Int deg>
-static bool is_jump(LOs canon, LO h) {
+INLINE static bool is_jump(LOs canon, LO h) {
   LO a = h * deg;
   LO b = (h + 1) * deg;
   for (LO j = 0; j < deg; ++j)
