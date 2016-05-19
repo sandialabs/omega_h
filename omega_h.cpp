@@ -11,3 +11,4 @@
 #include "adjacency.cpp"
 #include "simplices.cpp"
 #include "tag.cpp"
+#include "mesh.cpp"

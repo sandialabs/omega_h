@@ -10,6 +10,7 @@
 #include <chrono>
 #include <memory>
 #include <climits>
+#include <vector>
 
 #include "kokkos.hpp"
 
@@ -62,3 +63,4 @@ typedef double       Real;
 #include "align.hpp"
 #include "adjacency.hpp"
 #include "tag.hpp"
+#include "mesh.hpp"
