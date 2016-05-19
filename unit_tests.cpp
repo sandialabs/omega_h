@@ -320,40 +320,40 @@ static void test_tri_align() {
   }
 }
 
-static void test_reflect_down1() {
+static void test_find_matches() {
   LOs eu2e;
   Read<I8> codes;
   {
-  reflect_down<2>(LOs({}), LOs({}), eu2e, codes);
+  find_matches_by_sorting<2>(LOs({}), LOs({}), eu2e, codes);
   CHECK(eu2e.size() == 0);
   CHECK(codes.size() == 0);
   }
   {
-  reflect_down<2>(LOs({0,1}), LOs({0,1}), eu2e, codes);
+  find_matches_by_sorting<2>(LOs({0,1}), LOs({0,1}), eu2e, codes);
   CHECK(eu2e == LOs({0}));
   CHECK(codes == Read<I8>({0}));
   }
   {
-  reflect_down<2>(LOs({1,0}), LOs({0,1}), eu2e, codes);
+  find_matches_by_sorting<2>(LOs({1,0}), LOs({0,1}), eu2e, codes);
   CHECK(eu2e == LOs({0}));
   CHECK(codes == Read<I8>({make_code(false, 1, 0)}));
   }
   {
-  reflect_down<2>(LOs({1,0,0,1}), LOs({0,1}), eu2e, codes);
+  find_matches_by_sorting<2>(LOs({1,0,0,1}), LOs({0,1}), eu2e, codes);
   CHECK(eu2e == LOs({0,0}));
   CHECK(codes == Read<I8>({
         make_code(false, 1, 0),
         make_code(false, 0, 0)}));
   }
   {
-  reflect_down<3>(LOs({0,1,2,0,2,1}), LOs({0,1,2}), eu2e, codes);
+  find_matches_by_sorting<3>(LOs({0,1,2,0,2,1}), LOs({0,1,2}), eu2e, codes);
   CHECK(eu2e == LOs({0,0}));
   CHECK(codes == Read<I8>({
         make_code(false, 0, 0),
         make_code(true, 0, 0)}));
   }
   {
-  reflect_down<3>(LOs({0,1,2,0,2,1,1,2,0}), LOs({0,1,2}), eu2e, codes);
+  find_matches_by_sorting<3>(LOs({0,1,2,0,2,1,1,2,0}), LOs({0,1,2}), eu2e, codes);
   CHECK(eu2e == LOs({0,0,0}));
   CHECK(codes == Read<I8>({
         make_code(false, 0, 0),
@@ -361,12 +361,12 @@ static void test_reflect_down1() {
         make_code(false, 2, 0)}));
   }
   {
-  reflect_down<3>(LOs({0,1,2,2,3,0}), LOs({0,1,2,2,3,0}), eu2e, codes);
+  find_matches_by_sorting<3>(LOs({0,1,2,2,3,0}), LOs({0,1,2,2,3,0}), eu2e, codes);
   CHECK(eu2e == LOs({0,1}));
   CHECK(codes == Read<I8>({0,0}));
   }
   {
-  reflect_down<3>(LOs({0,1,2, 2,0,3, 2,3,0}), LOs({2,3,0,0,1,2}), eu2e, codes);
+  find_matches_by_sorting<3>(LOs({0,1,2, 2,0,3, 2,3,0}), LOs({2,3,0,0,1,2}), eu2e, codes);
   CHECK(eu2e == LOs({1,0,0}));
   CHECK(codes == Read<I8>({0,make_code(true,0,0),0}));
   }
@@ -381,33 +381,33 @@ static void test_form_uses() {
       LOs({0,2,1,0,1,3,1,2,3,2,0,3}));
 }
 
-static void test_reflect_down2() {
+static void test_reflect_down() {
   Adj a;
-  a = reflect_down(LOs(),LOs(),2,1);
+  a = reflect_down_by_sorting(LOs(),LOs(),2,1);
   CHECK(a.ab2b == LOs({}));
   CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs(),LOs(),3,1);
+  a = reflect_down_by_sorting(LOs(),LOs(),3,1);
   CHECK(a.ab2b == LOs({}));
   CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs(),LOs(),3,2);
+  a = reflect_down_by_sorting(LOs(),LOs(),3,2);
   CHECK(a.ab2b == LOs({}));
   CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs({0,1,2}),LOs({0,1,1,2,2,0}),2,1);
+  a = reflect_down_by_sorting(LOs({0,1,2}),LOs({0,1,1,2,2,0}),2,1);
   CHECK(a.ab2b == LOs({0,1,2}));
   CHECK(a.codes == Read<I8>({0,0,0}));
-  a = reflect_down(LOs({0,1,2,3}),
+  a = reflect_down_by_sorting(LOs({0,1,2,3}),
       LOs({0,1,1,2,2,0,0,3,1,3,2,3}),3,1);
   CHECK(a.ab2b == LOs({0,1,2,3,4,5}));
   CHECK(a.codes == Read<I8>({0,0,0,0,0,0}));
-  a = reflect_down(LOs({0,1,2,3}),
+  a = reflect_down_by_sorting(LOs({0,1,2,3}),
       LOs({0,2,1,0,1,3,1,2,3,2,0,3}),3,2);
   CHECK(a.ab2b == LOs({0,1,2,3}));
   CHECK(a.codes == Read<I8>({0,0,0,0}));
-  a = reflect_down(LOs({0,1,2,3}),
+  a = reflect_down_by_sorting(LOs({0,1,2,3}),
       LOs({0,1,2,0,3,1,1,3,2,2,3,0}),3,2);
   CHECK(a.ab2b == LOs({0,1,2,3}));
   CHECK(a.codes == Read<I8>(4, make_code(true,0,0)));
-  a = reflect_down(LOs({0,1,2,2,3,0}),LOs({0,1,1,2,2,3,3,0,0,2}),2,1);
+  a = reflect_down_by_sorting(LOs({0,1,2,2,3,0}),LOs({0,1,1,2,2,3,3,0,0,2}),2,1);
   CHECK(a.ab2b == LOs({0,1,4,2,3,4}));
 }
 
@@ -428,8 +428,8 @@ int main(int argc, char** argv) {
   test_invert_map();
   test_invert_adj();
   test_tri_align();
-  test_reflect_down1();
+  test_find_matches();
   test_form_uses();
-  test_reflect_down2();
+  test_reflect_down();
   fini();
 }

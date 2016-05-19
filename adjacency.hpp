@@ -30,12 +30,12 @@ LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim);
    this function requires that all entities have
    at least one corresponding use ! */
 template <Int deg>
-void reflect_down(LOs euv2v, LOs ev2v,
+void find_matches_by_sorting(LOs euv2v, LOs ev2v,
     LOs& eu2e, Read<I8>& eu2e_codes_);
 
-Adj reflect_down(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim);
+Adj reflect_down_by_sorting(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim);
 
-LOs find_unique(LOs hv2v, I8 high_dim, I8 low_dim);
+LOs find_unique_by_sorting(LOs hv2v, I8 high_dim, I8 low_dim);
 
 /* for each entity (or entity use), sort its vertex list.
    express the sorting transformation as
@@ -45,3 +45,10 @@ void make_canonical(LOs ev2v,
     LOs& canon_, Read<I8>& codes_);
 template <Int deg>
 Read<I8> find_jumps(LOs canon, LOs e_sorted2e);
+
+template <Int deg>
+void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
+    LOs& a2b, Read<I8> codes);
+
+Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
+    I8 high_dim, I8 low_dim);

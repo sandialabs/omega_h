@@ -12,6 +12,7 @@ Adj::Adj(LOs ab2b_, Read<I8> codes_):
 Adj::Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_):
   a2ab(a2ab_),ab2b(ab2b_),codes(codes_) {
 }
+
 static void order_by_globals(
     LOs l2lh,
     Write<LO> lh2h,
@@ -72,6 +73,7 @@ Adj invert(Adj down, I8 nlows_per_high, LO nlows,
   order_by_globals(l2lh, lh2h, codes, high_globals);
   return Adj(l2lh, lh2h, codes);
 }
+
 template <Int deg>
 void make_canonical(LOs ev2v,
     LOs& canon_, Read<I8>& codes_) {
@@ -142,6 +144,7 @@ Read<I8> find_jumps(LOs canon, LOs e_sorted2e) {
 
 template Read<I8> find_jumps<2>(LOs canon, LOs e_sorted2e);
 template Read<I8> find_jumps<3>(LOs canon, LOs e_sorted2e);
+
 LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim) {
   I8 nverts_per_high = degrees[high_dim][0];
   I8 nverts_per_low = degrees[low_dim][0];
@@ -162,8 +165,9 @@ LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim) {
   parallel_for(nhigh, f);
   return uv2v;
 }
+
 template <Int deg>
-void reflect_down(LOs euv2v, LOs ev2v,
+void find_matches_by_sorting(LOs euv2v, LOs ev2v,
     LOs& eu2e, Read<I8>& eu2e_codes_) {
   LO neu = euv2v.size() / deg;
   LOs euv2v_canon;
@@ -189,18 +193,122 @@ void reflect_down(LOs euv2v, LOs ev2v,
   eu2e_codes_ = eu2e_codes;
 }
 
-template void reflect_down<2>(LOs euv2v, LOs ev2v,
-    LOs& eu2e, Read<I8>& eu2e_codes_);
-template void reflect_down<3>(LOs euv2v, LOs ev2v,
-    LOs& eu2e, Read<I8>& eu2e_codes_);
-
-Adj reflect_down(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim) {
+Adj reflect_down_by_sorting(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim) {
   LOs uv2v = form_uses(hv2v, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
   if (low_dim == 1)
-    reflect_down<2>(uv2v, lv2v, hl2l, codes);
+    find_matches_by_sorting<2>(uv2v, lv2v, hl2l, codes);
   if (low_dim == 2)
-    reflect_down<3>(uv2v, lv2v, hl2l, codes);
+    find_matches_by_sorting<3>(uv2v, lv2v, hl2l, codes);
+  return Adj(hl2l, codes);
+}
+
+template <Int deg>
+LOs find_unique_by_sorting(LOs uv2v) {
+  LOs uv2v_canon;
+  Read<I8> u_codes;
+  make_canonical<deg>(uv2v, uv2v_canon, u_codes);
+  LOs sorted2u = sort_by_keys<LO,deg>(uv2v_canon);
+  Read<I8> jumps = find_jumps<deg>(uv2v_canon, sorted2u);
+  LOs e2sorted = collect_marked(jumps);
+  LOs e2u = compound_maps(e2sorted, sorted2u);
+  return unmap<LO,deg>(e2u, uv2v);
+}
+
+LOs find_unique_by_sorting(LOs hv2v, I8 high_dim, I8 low_dim) {
+  LOs uv2v = form_uses(hv2v, high_dim, low_dim);
+  if (low_dim == 1)
+    return find_unique_by_sorting<2>(uv2v);
+  if (low_dim == 2)
+    return find_unique_by_sorting<3>(uv2v);
+  NORETURN(LOs({}));
+}
+
+template <Int deg>
+struct IsMatch;
+
+template <>
+struct IsMatch<2> {
+  INLINE static bool eval(
+      LOs const& av2v,
+      LO a_begin,
+      LOs const& bv2v,
+      LO b_begin,
+      I8 which_down,
+      I8& match_code) {
+    if (av2v[a_begin + 1] == bv2v[b_begin + (1 - which_down)]) {
+      match_code = make_code(false, which_down, 0);
+      return true;
+    }
+    return false;
+  }
+};
+
+template <>
+struct IsMatch<3> {
+  INLINE static bool eval(
+      LOs const& av2v,
+      LO a_begin,
+      LOs const& bv2v,
+      LO b_begin,
+      I8 which_down,
+      I8& match_code) {
+    if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
+        av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
+      match_code = make_code(false, rotation_to_first<3>(which_down), 0);
+      return true;
+    }
+    if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 2) % 3)] &&
+        av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 1) % 3)]) {
+      match_code = make_code(true, rotation_to_first<3>(which_down), 0);
+      return true;
+    }
+    return false;
+  }
+};
+
+template <Int deg>
+void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
+    LOs& a2b, Read<I8> codes) {
+  LO na = av2v.size() / deg;
+  LOs v2vb = v2b.a2ab;
+  LOs vb2b = v2b.ab2b;
+  Read<I8> vb_codes = v2b.codes;
+  Write<LO> a2b_(na);
+  Write<I8> codes_(na);
+  auto f = LAMBDA(LO a) {
+    LO a_begin = a * deg;
+    LO v0 = av2v[a_begin];
+    LO vb_begin = v2vb[v0];
+    LO vb_end = v2vb[v0 + 1];
+    for (LO vb = vb_begin; vb < vb_end; ++vb) {
+      LO b = vb2b[vb];
+      I8 vb_code = vb_codes[vb];
+      I8 which_down = code_which_down(vb_code);
+      LO b_begin = b * deg;
+      I8 match_code;
+      if (IsMatch<deg>::eval(av2v, a_begin, bv2v, b_begin,
+            which_down, match_code)) {
+        a2b_[a] = b;
+        codes_[a] = match_code;
+        break;
+      }
+    }
+  };
+  parallel_for(na, f);
+  a2b = a2b_;
+  codes = codes_;
+}
+
+Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
+    I8 high_dim, I8 low_dim) {
+  LOs uv2v = form_uses(hv2v, high_dim, low_dim);
+  LOs hl2l;
+  Read<I8> codes;
+  if (low_dim == 1)
+    find_matches_by_upward<2>(uv2v, lv2v, v2l, hl2l, codes);
+  if (low_dim == 2)
+    find_matches_by_upward<3>(uv2v, lv2v, v2l, hl2l, codes);
   return Adj(hl2l, codes);
 }

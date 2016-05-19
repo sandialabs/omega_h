@@ -219,7 +219,7 @@ static void test_reflect_down(LOs tets2verts, LOs tris2verts) {
   Int niters = 2;
   Now t0 = now();
   for (Int i = 0; i < niters; ++i)
-    reflect_down(tets2verts, tris2verts, 3, 2);
+    reflect_down_by_sorting(tets2verts, tris2verts, 3, 2);
   Now t1 = now();
   std::cout << "reflect_down " << ntets << " tets -> tris "
     << niters << " times takes " << (t1-t0) << " seconds\n";
