@@ -394,6 +394,7 @@ static void test_reflect_down(adj::ReflectMethod method) {
   CHECK(a.codes == Read<I8>({}));
   a = reflect_down(LOs({0,1,2}),LOs({0,1,1,2,2,0}),3,2,1,method);
   CHECK(a.ab2b == LOs({0,1,2}));
+  std::cerr << "a.codes.size() " << a.codes.size() << '\n';
   CHECK(a.codes == Read<I8>({0,0,0}));
   a = reflect_down(LOs({0,1,2,3}),
       LOs({0,1,1,2,2,0,0,3,1,3,2,3}),4,3,1,method);

@@ -272,7 +272,7 @@ struct IsMatch<3> {
 
 template <Int deg>
 void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
-    LOs& a2b, Read<I8> codes) {
+    LOs& a2b, Read<I8>& codes) {
   LO na = av2v.size() / deg;
   LOs v2vb = v2b.a2ab;
   LOs vb2b = v2b.ab2b;
@@ -300,6 +300,7 @@ void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
   };
   parallel_for(na, f);
   a2b = a2b_;
+  std::cerr << "codes_.size() " << codes_.size() << '\n';
   codes = codes_;
 }
 
@@ -312,6 +313,7 @@ Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
     find_matches_by_upward<2>(uv2v, lv2v, v2l, hl2l, codes);
   if (low_dim == 2)
     find_matches_by_upward<3>(uv2v, lv2v, v2l, hl2l, codes);
+  std::cerr << "codes.size() " << codes.size() << '\n';
   return Adj(hl2l, codes);
 }
 

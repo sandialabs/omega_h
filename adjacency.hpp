@@ -48,7 +48,7 @@ Read<I8> find_jumps(LOs canon, LOs e_sorted2e);
 
 template <Int deg>
 void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
-    LOs& a2b, Read<I8> codes);
+    LOs& a2b, Read<I8>& codes);
 
 Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
     I8 high_dim, I8 low_dim);
