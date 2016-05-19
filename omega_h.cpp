@@ -10,3 +10,4 @@
 #include "map.cpp"
 #include "adjacency.cpp"
 #include "simplices.cpp"
+#include "tag.cpp"

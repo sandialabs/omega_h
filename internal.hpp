@@ -61,3 +61,4 @@ typedef double       Real;
 #include "map.hpp"
 #include "align.hpp"
 #include "adjacency.hpp"
+#include "tag.hpp"
