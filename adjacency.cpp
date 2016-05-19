@@ -179,7 +179,9 @@ void find_matches_by_sorting(LOs euv2v, LOs ev2v,
   LOs eu_sorted2eu = sort_by_keys<LO,deg>(euv2v_canon);
   LOs e_sorted2e = sort_by_keys<LO,deg>(ev2v_canon);
   Read<I8> jumps = find_jumps<deg>(euv2v_canon, eu_sorted2eu);
-  LOs eu_sorted2e_sorted = excl_scan<LO,I8>(jumps);
+  LOs eu_sorted2e_sorted = offset_scan<LO,I8>(jumps);
+  LO ne_sorted = eu_sorted2e_sorted.get(eu_sorted2e_sorted.size() - 1);
+  CHECK(ne_sorted == (ev2v.size() / deg));
   LOs eu2eu_sorted = invert_permutation(eu_sorted2eu);
   LOs eu2e_sorted = compound_maps(eu2eu_sorted, eu_sorted2e_sorted);
   eu2e = compound_maps(eu2e_sorted, e_sorted2e);
@@ -311,4 +313,21 @@ Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
   if (low_dim == 2)
     find_matches_by_upward<3>(uv2v, lv2v, v2l, hl2l, codes);
   return Adj(hl2l, codes);
+}
+
+/* these couple functions are only to be used for testing,
+   because they compute the upward adjacency and dont return it. */
+static Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, LO nv,
+    I8 high_dim, I8 low_dim) {
+  Adj v2l = invert(lv2v, degrees[low_dim][0], nv, Read<GO>(nv, 0, 1));
+  return reflect_down_by_upward(hv2v, lv2v, v2l, high_dim, low_dim);
+}
+
+Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
+    I8 high_dim, I8 low_dim, adj::ReflectMethod method) {
+  if (method == adj::BY_SORTING)
+    return reflect_down_by_sorting(hv2v, lv2v, high_dim, low_dim);
+  if (method == adj::BY_UPWARD)
+    return reflect_down_by_upward(hv2v, lv2v, nv, high_dim, low_dim);
+  NORETURN(Adj());
 }

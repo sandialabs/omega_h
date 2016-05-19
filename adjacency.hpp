@@ -52,3 +52,12 @@ void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
 
 Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
     I8 high_dim, I8 low_dim);
+
+namespace adj {
+enum ReflectMethod {
+  BY_SORTING,
+  BY_UPWARD
+};
+}
+Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
+    I8 high_dim, I8 low_dim, adj::ReflectMethod method);
