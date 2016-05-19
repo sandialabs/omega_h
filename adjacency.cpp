@@ -167,47 +167,7 @@ LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim) {
 }
 
 template <Int deg>
-void find_matches_by_sorting(LOs euv2v, LOs ev2v,
-    LOs& eu2e, Read<I8>& eu2e_codes_) {
-  LO neu = euv2v.size() / deg;
-  LOs euv2v_canon;
-  Read<I8> eu_codes;
-  make_canonical<deg>(euv2v, euv2v_canon, eu_codes);
-  LOs ev2v_canon;
-  Read<I8> e_codes;
-  make_canonical<deg>(ev2v, ev2v_canon, e_codes);
-  LOs eu_sorted2eu = sort_by_keys<LO,deg>(euv2v_canon);
-  LOs e_sorted2e = sort_by_keys<LO,deg>(ev2v_canon);
-  Read<I8> jumps = find_jumps<deg>(euv2v_canon, eu_sorted2eu);
-  LOs eu_sorted2e_sorted = offset_scan<LO,I8>(jumps);
-  LO ne_sorted = eu_sorted2e_sorted.get(eu_sorted2e_sorted.size() - 1);
-  CHECK(ne_sorted == (ev2v.size() / deg));
-  LOs eu2eu_sorted = invert_permutation(eu_sorted2eu);
-  LOs eu2e_sorted = compound_maps(eu2eu_sorted, eu_sorted2e_sorted);
-  eu2e = compound_maps(eu2e_sorted, e_sorted2e);
-  Write<I8> eu2e_codes(neu);
-  auto f = LAMBDA(LO eu) {
-    LO e = eu2e[eu];
-    eu2e_codes[eu] = compound_alignments<deg>(
-        e_codes[e], invert_alignment<deg>(eu_codes[eu]));
-  };
-  parallel_for(neu, f);
-  eu2e_codes_ = eu2e_codes;
-}
-
-Adj reflect_down_by_sorting(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim) {
-  LOs uv2v = form_uses(hv2v, high_dim, low_dim);
-  LOs hl2l;
-  Read<I8> codes;
-  if (low_dim == 1)
-    find_matches_by_sorting<2>(uv2v, lv2v, hl2l, codes);
-  if (low_dim == 2)
-    find_matches_by_sorting<3>(uv2v, lv2v, hl2l, codes);
-  return Adj(hl2l, codes);
-}
-
-template <Int deg>
-LOs find_unique_by_sorting(LOs uv2v) {
+LOs find_unique(LOs uv2v) {
   LOs uv2v_canon;
   Read<I8> u_codes;
   make_canonical<deg>(uv2v, uv2v_canon, u_codes);
@@ -218,12 +178,12 @@ LOs find_unique_by_sorting(LOs uv2v) {
   return unmap<LO,deg>(e2u, uv2v);
 }
 
-LOs find_unique_by_sorting(LOs hv2v, I8 high_dim, I8 low_dim) {
+LOs find_unique(LOs hv2v, I8 high_dim, I8 low_dim) {
   LOs uv2v = form_uses(hv2v, high_dim, low_dim);
   if (low_dim == 1)
-    return find_unique_by_sorting<2>(uv2v);
+    return find_unique<2>(uv2v);
   if (low_dim == 2)
-    return find_unique_by_sorting<3>(uv2v);
+    return find_unique<3>(uv2v);
   NORETURN(LOs({}));
 }
 
@@ -271,7 +231,7 @@ struct IsMatch<3> {
 };
 
 template <Int deg>
-void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
+void find_matches(LOs av2v, LOs bv2v, Adj v2b,
     LOs& a2b, Read<I8>& codes) {
   LO na = av2v.size() / deg;
   LOs v2vb = v2b.a2ab;
@@ -303,33 +263,24 @@ void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
   codes = codes_;
 }
 
-Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
+Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
     I8 high_dim, I8 low_dim) {
   LOs uv2v = form_uses(hv2v, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
   if (low_dim == 1)
-    find_matches_by_upward<2>(uv2v, lv2v, v2l, hl2l, codes);
+    find_matches<2>(uv2v, lv2v, v2l, hl2l, codes);
   if (low_dim == 2)
-    find_matches_by_upward<3>(uv2v, lv2v, v2l, hl2l, codes);
+    find_matches<3>(uv2v, lv2v, v2l, hl2l, codes);
   return Adj(hl2l, codes);
 }
 
 /* these couple functions are only to be used for testing,
    because they compute the upward adjacency and dont return it. */
-static Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, LO nv,
+Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
     I8 high_dim, I8 low_dim) {
   I8 nverts_per_low = degrees[low_dim][0];
   LO nl = lv2v.size() / nverts_per_low;
   Adj v2l = invert(lv2v, nverts_per_low, nv, Read<GO>(nl, 0, 1));
-  return reflect_down_by_upward(hv2v, lv2v, v2l, high_dim, low_dim);
-}
-
-Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
-    I8 high_dim, I8 low_dim, adj::ReflectMethod method) {
-  if (method == adj::BY_SORTING)
-    return reflect_down_by_sorting(hv2v, lv2v, high_dim, low_dim);
-  if (method == adj::BY_UPWARD)
-    return reflect_down_by_upward(hv2v, lv2v, nv, high_dim, low_dim);
-  NORETURN(Adj());
+  return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);
 }
