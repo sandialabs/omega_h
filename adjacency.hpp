@@ -55,3 +55,5 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
    adjacency */
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
     I8 high_dim, I8 low_dim);
+
+Adj transit(Adj hm2m, Adj ml2l, I8 high_dim, I8 mid_dim, I8 low_dim);

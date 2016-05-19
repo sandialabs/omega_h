@@ -158,7 +158,7 @@ LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
       for (I8 uv = 0; uv < nverts_per_low; ++uv) {
         uv2v[u_begin + uv] =
-          hv2v[h_begin + simplices[high_dim][low_dim][u][uv]];
+          hv2v[h_begin + down_templates[high_dim][low_dim][u][uv]];
       }
     }
   };
