@@ -3,6 +3,7 @@ class Mesh {
     Mesh();
     void set_dim(I8 dim);
     void set_verts(LO nverts);
+    void set_ents(I8 dim, Adj down);
     I8 dim() const;
     LO nents(I8 dim) const;
     template <typename T>
@@ -14,7 +15,6 @@ class Mesh {
     I8 count_tags(I8 dim) const;
     TagBase const* get_tag(I8 dim, I8 i) const;
     bool has_ents(I8 dim) const;
-    void set_ents(I8 dim, Adj down);
     bool has_adj(I8 from, I8 to) const;
     Adj get_adj(I8 from, I8 to) const;
     Adj ask_adj(I8 from, I8 to);
