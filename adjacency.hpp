@@ -35,6 +35,8 @@ void reflect_down(LOs euv2v, LOs ev2v,
 
 Adj reflect_down(LOs hv2v, LOs lv2v, I8 high_dim, I8 low_dim);
 
+LOs find_unique(LOs hv2v, I8 high_dim, I8 low_dim);
+
 /* for each entity (or entity use), sort its vertex list.
    express the sorting transformation as
    an alignment code, output those too */

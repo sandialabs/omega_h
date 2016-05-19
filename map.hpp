@@ -5,6 +5,8 @@ LOs compound_maps(LOs a2b, LOs b2c);
 
 LOs invert_permutation(LOs a2b);
 
+LOs collect_marked(Read<I8> marks);
+
 LOs invert_funnel(LOs ab2a, LO na);
 
 namespace map {

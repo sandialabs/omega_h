@@ -38,6 +38,19 @@ LOs invert_permutation(LOs a2b) {
   return b2a;
 }
 
+LOs collect_marked(Read<I8> marks) {
+  LO ntotal = marks.size();
+  LOs offsets = offset_scan<LO,I8>(marks);
+  LO nmarked = offsets.get(offsets.size() - 1);
+  Write<LO> marked(nmarked);
+  auto f = LAMBDA(LO i) {
+    if (marks[i])
+      marked[offsets[i]] = i;
+  };
+  parallel_for(ntotal, f);
+  return marked;
+}
+
 LOs invert_funnel(LOs ab2a, LO na) {
   LO nab = ab2a.size();
   Write<LO> a2ab(na + 1, -1);
