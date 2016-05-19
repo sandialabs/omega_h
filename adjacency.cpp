@@ -300,7 +300,6 @@ void find_matches_by_upward(LOs av2v, LOs bv2v, Adj v2b,
   };
   parallel_for(na, f);
   a2b = a2b_;
-  std::cerr << "codes_.size() " << codes_.size() << '\n';
   codes = codes_;
 }
 
@@ -313,7 +312,6 @@ Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
     find_matches_by_upward<2>(uv2v, lv2v, v2l, hl2l, codes);
   if (low_dim == 2)
     find_matches_by_upward<3>(uv2v, lv2v, v2l, hl2l, codes);
-  std::cerr << "codes.size() " << codes.size() << '\n';
   return Adj(hl2l, codes);
 }
 
@@ -321,7 +319,9 @@ Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, Adj v2l,
    because they compute the upward adjacency and dont return it. */
 static Adj reflect_down_by_upward(LOs hv2v, LOs lv2v, LO nv,
     I8 high_dim, I8 low_dim) {
-  Adj v2l = invert(lv2v, degrees[low_dim][0], nv, Read<GO>(nv, 0, 1));
+  I8 nverts_per_low = degrees[low_dim][0];
+  LO nl = lv2v.size() / nverts_per_low;
+  Adj v2l = invert(lv2v, nverts_per_low, nv, Read<GO>(nl, 0, 1));
   return reflect_down_by_upward(hv2v, lv2v, v2l, high_dim, low_dim);
 }
 
