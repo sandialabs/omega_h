@@ -1,0 +1,70 @@
+template <Int deg>
+void make_canonical(LOs ev2v,
+    LOs& canon_, Read<I8>& codes_) {
+  LO nev = ev2v.size();
+  LO ne = nev / deg;
+  Write<LO> canon(nev);
+  Write<I8> codes(ne);
+  auto f = LAMBDA(LO e) {
+    LO begin = e * deg;
+    /* find the smallest vertex */
+    I8 min_j = 0;
+    LO min_v = ev2v[begin];
+    for (I8 j = 1; j < deg; ++j) {
+      LO ev = j + begin;
+      LO v = ev2v[ev];
+      if (v < min_v) {
+        min_j = j;
+        min_v = v;
+      }
+    }
+    /* rotate to make it first */
+    I8 rotation = rotation_to_first<deg>(min_j);
+    rotate_adj<deg>(rotation, &ev2v[begin], &canon[begin]);
+    bool is_flipped = false;
+    if (deg == 3 && canon[begin + 2] < canon[begin + 1]) {
+      is_flipped = true;
+      flip_adj(&canon[begin]);
+    }
+    codes[e] = make_code(is_flipped, rotation, 0);
+  };
+  parallel_for(ne, f);
+  canon_ = canon;
+  codes_ = codes;
+}
+
+template void make_canonical<2>(LOs ev2v,
+    LOs& canon_, Read<I8>& codes_);
+template void make_canonical<3>(LOs ev2v,
+    LOs& canon_, Read<I8>& codes_);
+
+/* check whether adjacent lists of (deg) vertices
+   are the same */
+template <Int deg>
+INLINE static bool are_equal(LOs canon, LO e0, LO e1) {
+  LO a = e0 * deg;
+  LO b = e1 * deg;
+  for (LO j = 0; j < deg; ++j)
+    if (canon[a + j] != canon[b + j])
+      return false;
+  return true;
+}
+
+template <Int deg>
+Read<I8> find_jumps(LOs canon, LOs e_sorted2e) {
+  LO ne = e_sorted2e.size();
+  Write<I8> jumps(ne, 0);
+  auto f = LAMBDA(LO e_sorted) {
+    LO e0 = e_sorted2e[e_sorted];
+    LO e1 = e_sorted2e[e_sorted + 1];
+    if (!are_equal<deg>(canon, e0, e1))
+      jumps[e_sorted] = 1;
+  };
+  parallel_for(ne - 1, f);
+  if (jumps.size())
+    jumps.set(jumps.size() - 1, 1);
+  return jumps;
+}
+
+template Read<I8> find_jumps<2>(LOs canon, LOs e_sorted2e);
+template Read<I8> find_jumps<3>(LOs canon, LOs e_sorted2e);
