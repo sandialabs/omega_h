@@ -9,8 +9,4 @@
 #include "indset.cpp"
 #include "map.cpp"
 #include "adjacency.cpp"
-#include "invert_adj.cpp"
-#include "canonical_sort.cpp"
-#include "form_uses.cpp"
-#include "reflect_down.cpp"
 #include "simplices.cpp"
