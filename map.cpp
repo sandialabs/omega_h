@@ -1,18 +1,20 @@
 template <typename T, Int width>
-Read<T> permute(LOs out2in, Read<T> in) {
-  Write<T> out(in.size());
-  auto f = LAMBDA(LO i) {
+Read<T> unmap(LOs a2b, Read<T> b_data) {
+  LO na = a2b.size();
+  Write<T> a_data(na * width);
+  auto f = LAMBDA(LO a) {
+    LO b = a2b[a];
     for (Int j = 0; j < width; ++j)
-      out[i * width + j] = in[out2in[i] * width + j];
+      a_data[a * width + j] = b_data[b * width + j];
   };
-  parallel_for(out.size(), f);
-  return out;
+  parallel_for(na, f);
+  return a_data;
 }
 
-template Read<I8  > permute(LOs new2old, Read<I8  > in);
-template Read<I32 > permute(LOs new2old, Read<I32 > in);
-template Read<I64 > permute(LOs new2old, Read<I64 > in);
-template Read<Real> permute(LOs new2old, Read<Real> in);
+template Read<I8  > unmap(LOs a2b, Read<I8  > b_data);
+template Read<I32 > unmap(LOs a2b, Read<I32 > b_data);
+template Read<I64 > unmap(LOs a2b, Read<I64 > b_data);
+template Read<Real> unmap(LOs a2b, Read<Real> b_data);
 
 LOs compound_maps(LOs a2b, LOs b2c) {
   LO na = a2b.size();
@@ -62,7 +64,7 @@ void invert_by_sorting(LOs a2b, LO nb,
     LOs& b2ba, LOs& ba2a) {
   LOs ab2b = a2b;
   LOs ba2ab = sort_by_keys(ab2b);
-  LOs ba2b = permute(ba2ab, ab2b);
+  LOs ba2b = unmap(ba2ab, ab2b);
   b2ba = invert_funnel(ba2b, nb);
   ba2a = ba2ab;
 }

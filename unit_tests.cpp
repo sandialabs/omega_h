@@ -231,7 +231,7 @@ static void test_invert_funnel() {
 static void test_permute() {
   Reals data({0.1,0.2,0.3,0.4});
   LOs perm({3,2,1,0});
-  Reals permuted = permute(perm, data);
+  Reals permuted = unmap(perm, data);
   CHECK(permuted == Reals({0.4,0.3,0.2,0.1}));
 }
 
