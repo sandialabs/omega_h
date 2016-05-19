@@ -360,6 +360,14 @@ static void test_reflect_down() {
   CHECK(a.ab2b == LOs({0,1,4,2,3,4}));
 }
 
+static void test_find_unique() {
+  CHECK(find_unique(LOs({}), 2, 1) == LOs({}));
+  CHECK(find_unique(LOs({}), 3, 1) == LOs({}));
+  CHECK(find_unique(LOs({}), 3, 2) == LOs({}));
+  CHECK(find_unique(LOs({0,1,2,2,3,0}),2,1) ==
+      LOs({0,1,0,2,3,0,1,2,2,3}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -379,5 +387,6 @@ int main(int argc, char** argv) {
   test_tri_align();
   test_form_uses();
   test_reflect_down();
+  test_find_unique();
   fini();
 }
