@@ -14,15 +14,17 @@ reflect_down 471055 tets -> tris by only upward 2 times takes 1.05398 seconds
 
 Pachisi with 8 threads:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.148891 seconds
-inversion of 1000000 metric tensors 30 times takes 0.232705 seconds
-reproducibly adding 1000000 reals 100 times takes 0.11169 seconds
-adding 1000000 reals 100 times takes 0.0121609 seconds
-sorting 1000000 sets of 1 integers 5 times takes 0.101216 seconds
-sorting 1000000 sets of 2 integers 5 times takes 0.117564 seconds
-sorting 1000000 sets of 3 integers 5 times takes 0.145173 seconds
-inverting 471055 tets -> verts 5 times takes 0.104814 seconds
-reflect_down 471055 tets -> tris 2 times takes 0.184152 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.149356 seconds
+inversion of 1000000 metric tensors 30 times takes 0.234058 seconds
+reproducibly adding 1000000 reals 100 times takes 0.111529 seconds
+adding 1000000 reals 100 times takes 0.0116179 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.0980069 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.124543 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.146826 seconds
+inverting 471055 tets -> verts 5 times takes 0.105121 seconds
+reflect_down 471055 tets -> tris by sorting 2 times takes 0.185458 seconds
+reflect_down 471055 tets -> tris by invert+upward 2 times takes 0.220405 seconds
+reflect_down 471055 tets -> tris by only upward 2 times takes 0.137613 seconds
 
 Shannon K40:
 
