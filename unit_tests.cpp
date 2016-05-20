@@ -368,6 +368,23 @@ static void test_find_unique() {
       LOs({0,1,0,2,3,0,1,2,2,3}));
 }
 
+static void test_hilbert() {
+  /* this is the original test from Skilling's paper */
+  hilbert::coord_t X[3] = {5,10,20}; // any position in 32x32x32 cube
+  hilbert::AxestoTranspose(X, 5, 3); // Hilbert transpose for 5 bits and 3 dimensions
+  std::stringstream stream;
+  stream << "Hilbert integer = "
+    << (X[0]>>4 & 1) << (X[1]>>4 & 1) << (X[2]>>4 & 1)
+    << (X[0]>>3 & 1) << (X[1]>>3 & 1) << (X[2]>>3 & 1)
+    << (X[0]>>2 & 1) << (X[1]>>2 & 1) << (X[2]>>2 & 1)
+    << (X[0]>>1 & 1) << (X[1]>>1 & 1) << (X[2]>>1 & 1)
+    << (X[0]>>0 & 1) << (X[1]>>0 & 1) << (X[2]>>0 & 1)
+    << " = 7865 check";
+  std::string expected =
+  "Hilbert integer = 001111010111001 = 7865 check";
+  CHECK(stream.str() == expected);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -388,5 +405,6 @@ int main(int argc, char** argv) {
   test_form_uses();
   test_reflect_down();
   test_find_unique();
+  test_hilbert();
   fini();
 }
