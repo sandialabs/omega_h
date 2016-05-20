@@ -30,3 +30,17 @@ Read<I64> hilbert_dists_from_coords(Reals coords) {
 
 template Read<I64> hilbert_dists_from_coords<2>(Reals coords);
 template Read<I64> hilbert_dists_from_coords<3>(Reals coords);
+
+template <Int dim>
+static LOs sort_coords_by_hilbert_tmpl(Reals coords) {
+  Read<I64> keys = hilbert_dists_from_coords<dim>(coords);
+  return sort_by_keys<I64,dim>(keys);
+}
+
+LOs sort_coords_by_hilbert(Reals coords, I8 dim) {
+  if (dim == 3)
+    return sort_coords_by_hilbert_tmpl<3>(coords);
+  if (dim == 2)
+    return sort_coords_by_hilbert_tmpl<2>(coords);
+  NORETURN(LOs());
+}

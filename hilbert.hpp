@@ -91,3 +91,4 @@ INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
    among the integers, with the first integer getting the most significant
    bits, and the last integer getting the least significant bits. */
 Read<I64> hilbert_dists_from_coords(Reals coords, I8 dim);
+LOs sort_coords_by_hilbert(Reals coords, I8 dim);
