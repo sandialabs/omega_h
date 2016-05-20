@@ -47,7 +47,7 @@ INLINE void single_eigenvector(Matrix<3,3> m, Real l,
 
 template <Int m>
 INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
-  Vector<m> v;
+  Vector<m> v = zero_vector<m>();
   Real v_norm = 0;
   for (Int j = 0; j < m; ++j) {
     Real c_norm = norm(a[j]);
