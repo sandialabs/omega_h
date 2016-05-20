@@ -77,10 +77,6 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
     I8 high_dim, I8 low_dim) {
-  std::cerr << "reflect_down high_dim " << Int(high_dim)
-    << " low_dim " << Int(low_dim) << '\n';
-  std::cerr << "hv2v\n" << hv2v << '\n';
-  std::cerr << "lv2v\n" << lv2v << '\n';
   LOs uv2v = form_uses(hv2v, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
@@ -88,7 +84,6 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
     find_matches<2>(uv2v, lv2v, v2l, hl2l, codes);
   if (low_dim == 2)
     find_matches<3>(uv2v, lv2v, v2l, hl2l, codes);
-  std::cerr << "hl2l\n" << hl2l << '\n';
   return Adj(hl2l, codes);
 }
 
