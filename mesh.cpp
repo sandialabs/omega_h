@@ -78,7 +78,7 @@ bool Mesh::has_ents(I8 dim) const {
 bool Mesh::has_adj(I8 from, I8 to) const {
   check_dim(from);
   check_dim(to);
-  return bool(adjs_[DIMS][DIMS]);
+  return bool(adjs_[from][to]);
 }
 
 Adj Mesh::get_adj(I8 from, I8 to) const {
