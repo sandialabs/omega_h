@@ -11,6 +11,7 @@
 #include <memory>
 #include <climits>
 #include <vector>
+#include <cfloat>
 
 #include "kokkos.hpp"
 

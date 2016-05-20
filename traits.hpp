@@ -48,3 +48,9 @@ struct ArithTraits<signed long long> {
   static INLINE signed long long max() { return LLONG_MAX; }
   static INLINE signed long long min() { return LLONG_MIN; }
 };
+
+template <>
+struct ArithTraits<double> {
+  static INLINE double max() { return DBL_MAX; }
+  static INLINE double min() { return -DBL_MAX; }
+};
