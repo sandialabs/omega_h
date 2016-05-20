@@ -22,8 +22,6 @@ void Mesh::set_ents(I8 dim, Adj down) {
   CHECK(hl2l.size() % degrees[dim][dim - 1] == 0);
   nents_[dim] = hl2l.size() / degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
-  /* todo: replace with hilbert curve on set_coords() */
-  add_tag_priv<GO>(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
 }
 
 I8 Mesh::dim() const {
@@ -37,12 +35,10 @@ LO Mesh::nents(I8 dim) const {
 
 template <typename T>
 void Mesh::add_tag(I8 dim, std::string const& name, I8 ncomps, Read<T> data) {
-  CHECK(!(dim == 0 && name == "coordinates"));
   add_tag_priv(dim, name, ncomps, data);
 }
 
 void Mesh::remove_tag(I8 dim, std::string const& name) {
-  CHECK(!(dim == 0 && name == "coordinates"));
   remove_tag_priv(dim, name);
 }
 
@@ -91,8 +87,9 @@ Adj Mesh::get_adj(I8 from, I8 to) const {
 Adj Mesh::ask_adj(I8 from, I8 to) {
   check_dim2(from);
   check_dim2(to);
-  if (has_adj(from, to))
+  if (has_adj(from, to)) {
     return get_adj(from,to);
+  }
   Adj derived = derive_adj(from, to);
   adjs_[from][to] = AdjPtr(new Adj(derived));
   return derived;
@@ -101,8 +98,7 @@ Adj Mesh::ask_adj(I8 from, I8 to) {
 Read<GO> Mesh::ask_globals(I8 dim) {
   check_dim2(dim);
   if (!has_tag(dim, "global")) {
-    /* todo: replace with hilbert curve */
-    add_tag_priv<GO>(VERT, "global", 1, Read<GO>(nents(dim), 0, 1));
+    return Read<GO>(nents(dim), 0, 1);
   }
   return get_tag<GO>(dim, "global").data();
 }
