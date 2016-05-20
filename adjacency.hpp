@@ -8,6 +8,7 @@ struct Adj : public Graph {
   Adj(LOs a2ab_, LOs ab2b_):
     Graph(a2ab_, ab2b_) {
   }
+  Adj(Graph g):Graph(g) {}
   Read<I8> codes;
 };
 

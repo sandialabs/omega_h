@@ -334,6 +334,17 @@ Read<T> multiply_each_by(T factor, Read<T> a) {
   return b;
 }
 
+template <typename T>
+Read<T> add_each(Read<T> a, Read<T> b) {
+  CHECK(a.size() == b.size());
+  Write<T> c(a.size());
+  auto f = LAMBDA(Int i) {
+    c[i] = a[i] + b[i];
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
@@ -341,7 +352,8 @@ template class HostWrite<T>; \
 template class HostRead<T>; \
 template bool operator==(Read<T> a, Read<T> b); \
 template std::ostream& operator<<(std::ostream& o, Read<T> a); \
-template Read<T> multiply_each_by(T factor, Read<T> x);
+template Read<T> multiply_each_by(T factor, Read<T> x); \
+template Read<T> add_each(Read<T> a, Read<T> b);
 
 INST_ARRAY_T(I8)
 INST_ARRAY_T(I16)

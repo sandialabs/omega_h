@@ -5,3 +5,5 @@ struct Graph {
   LOs a2ab;
   LOs ab2b;
 };
+
+Graph add_edges(Graph g1, Graph g2);
