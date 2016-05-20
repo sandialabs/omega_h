@@ -442,6 +442,14 @@ static void test_star() {
   CHECK(v2v.ab2b == LOs({
         1,2,3,0,2,3,0,1,3,0,1,2}));
   Adj e2e = mesh.ask_adj(EDGE,EDGE);
+  CHECK(e2e.a2ab == LOs(7,0,5));
+  CHECK(e2e.ab2b == LOs({
+        1,3,4,2,5,
+        3,0,2,5,4,
+        0,4,5,1,3,
+        0,1,5,4,2,
+        2,0,3,5,1,
+        1,2,4,3,0}));
   }
 }
 
