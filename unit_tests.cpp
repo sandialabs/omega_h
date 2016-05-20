@@ -423,6 +423,19 @@ static void test_build_from_elems2verts() {
   }
 }
 
+static void test_star() {
+  {
+  Mesh mesh;
+  build_from_elems2verts(mesh,2,LOs({0,1,2}),3);
+  Adj v2v = mesh.ask_adj(VERT,VERT);
+  CHECK(v2v.a2ab == LOs(4,0,2));
+  CHECK(v2v.ab2b == LOs({1,2,0,2,0,1}));
+  Adj e2e = mesh.ask_adj(EDGE,EDGE);
+  CHECK(e2e.a2ab == LOs(4,0,2));
+  std::cerr << "e2e\n" << e2e.ab2b;
+  }
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -446,5 +459,6 @@ int main(int argc, char** argv) {
   test_hilbert();
   test_bbox();
   test_build_from_elems2verts();
+  test_star();
   fini();
 }

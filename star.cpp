@@ -40,8 +40,8 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
       auto ffe = code_which_down(e2ef_code);
       auto e1 = fe2e[f * 3 + ((ffe + 1) % 3)];
       auto e2 = fe2e[f * 3 + ((ffe + 2) % 3)];
-      ee2e[ee_begin + ef * 2 + 0] = e1;
-      ee2e[ee_begin + ef * 2 + 1] = e2;
+      ee2e[ee_begin + eef * 2 + 0] = e1;
+      ee2e[ee_begin + eef * 2 + 1] = e2;
     }
   };
   parallel_for(ne, lambda);
