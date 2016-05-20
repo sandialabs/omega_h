@@ -64,3 +64,4 @@ typedef double       Real;
 #include "adjacency.hpp"
 #include "tag.hpp"
 #include "mesh.hpp"
+#include "hilbert.hpp"

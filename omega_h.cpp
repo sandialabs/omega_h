@@ -17,3 +17,4 @@
 #include "transit.cpp"
 #include "tag.cpp"
 #include "mesh.cpp"
+#include "hilbert.cpp"
