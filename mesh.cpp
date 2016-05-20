@@ -179,9 +179,22 @@ Adj Mesh::derive_adj(I8 from, I8 to) {
     Adj h2l = transit(h2m, m2l, from, to);
     return h2l;
   } else {
-    /* todo: star code */
-    NORETURN(Adj());
+    if (from == VERT && to == VERT) {
+      return verts_across_edges(ask_adj(EDGE,VERT), ask_adj(VERT,EDGE));
+    }
+    if (from == EDGE && to == EDGE) {
+      CHECK(dim() >= 2);
+      Graph g = edges_across_tris(ask_adj(TRI,EDGE),ask_adj(EDGE,TRI));
+      if (dim() == 3) {
+        g = add_edges(g, edges_across_tets(
+              ask_adj(TET,EDGE), ask_adj(EDGE,TET)));
+      }
+      return g;
+    }
+    /* todo: element-to-element dual */
   }
+  fail("can't derive adjacency from %s to %s\n",
+      plural_names[from], plural_names[to]);
 }
 
 #define INST_T(T) \

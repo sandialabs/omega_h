@@ -1,4 +1,4 @@
-Adj verts_across_edges(Adj e2v, Adj v2e) {
+Graph verts_across_edges(Adj e2v, Adj v2e) {
   auto ev2v = e2v.ab2b;
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
@@ -17,7 +17,7 @@ Adj verts_across_edges(Adj e2v, Adj v2e) {
   return Adj(v2vv, vv2v);
 }
 
-Adj edges_across_tris(Adj f2e, Adj e2f) {
+Graph edges_across_tris(Adj f2e, Adj e2f) {
   auto fe2e = f2e.ab2b;
   auto e2ef = e2f.a2ab;
   auto ef2f = e2f.ab2b;
@@ -48,7 +48,7 @@ Adj edges_across_tris(Adj f2e, Adj e2f) {
   return Adj(e2ee, ee2e);
 }
 
-Adj edges_across_tets(Adj r2e, Adj e2r) {
+Graph edges_across_tets(Adj r2e, Adj e2r) {
   auto re2e = r2e.ab2b;
   auto e2er = e2r.a2ab;
   auto er2r = e2r.ab2b;
