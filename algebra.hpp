@@ -22,6 +22,15 @@ class Vector : public Few<Real, n> {
   public:
     INLINE Vector() {}
     Vector(std::initializer_list<Real> l);
+    INLINE void operator=(Vector<n> const& rhs) volatile {
+      Few<Real, n>::operator=(rhs);
+    }
+    INLINE Vector(Vector<n> const& rhs):
+      Few<Real, n>(rhs) {
+    }
+    INLINE Vector(const volatile Vector<n>& rhs):
+      Few<Real, n>(rhs) {
+    }
 };
 
 template <Int n>
@@ -109,6 +118,15 @@ class Matrix : public Few<Vector<m>, n> {
   public:
     INLINE Matrix() {}
     Matrix(std::initializer_list<Real> l);
+    INLINE void operator=(Matrix<m,n> const& rhs) volatile {
+      Few<Vector<m>, n>::operator=(rhs);
+    }
+    INLINE Matrix(Matrix<m,n> const& rhs):
+      Few<Vector<m>, n>(rhs) {
+    }
+    INLINE Matrix(const volatile Matrix<m,n>& rhs):
+      Few<Vector<m>, n>(rhs) {
+    }
 };
 
 template <Int m, Int n>

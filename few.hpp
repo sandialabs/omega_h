@@ -10,4 +10,16 @@ class Few {
       for (auto v : l)
         array_[i++] = v;
     }
+    INLINE void operator=(Few<T,n> const& rhs) volatile {
+      for (Int i = 0; i < n; ++i)
+        array_[i] = rhs.array_[i];
+    }
+    INLINE Few(Few<T,n> const& rhs) {
+      for (Int i = 0; i < n; ++i)
+        array_[i] = rhs.array_[i];
+    }
+    INLINE Few(const volatile Few<T,n>& rhs) {
+      for (Int i = 0; i < n; ++i)
+        array_[i] = rhs.array_[i];
+    }
 };
