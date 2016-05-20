@@ -14,6 +14,10 @@
 #include <vector>
 #include <cfloat>
 
+#ifdef USE_ZLIB
+#include <zlib.h>
+#endif
+
 #include "kokkos.hpp"
 
 #define NORETURN(x) do { assert(0); return x; } while(0)
