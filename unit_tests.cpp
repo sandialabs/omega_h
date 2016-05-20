@@ -432,7 +432,16 @@ static void test_star() {
   CHECK(v2v.ab2b == LOs({1,2,0,2,0,1}));
   Adj e2e = mesh.ask_adj(EDGE,EDGE);
   CHECK(e2e.a2ab == LOs(4,0,2));
-  std::cerr << "e2e\n" << e2e.ab2b;
+  CHECK(e2e.ab2b == LOs({2,1,0,2,1,0}));
+  }
+  {
+  Mesh mesh;
+  build_from_elems2verts(mesh,3,LOs({0,1,2,3}),4);
+  Adj v2v = mesh.ask_adj(VERT,VERT);
+  CHECK(v2v.a2ab == LOs(5,0,3));
+  CHECK(v2v.ab2b == LOs({
+        1,2,3,0,2,3,0,1,3,0,1,2}));
+  Adj e2e = mesh.ask_adj(EDGE,EDGE);
   }
 }
 
