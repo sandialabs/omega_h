@@ -23,3 +23,6 @@ BBox<dim> find_bounding_box(Reals coords) {
   CHECK(coords.size() % dim == 0);
   return parallel_reduce(coords.size() / dim, BBoxFunctor<dim>(coords));
 }
+
+template BBox<2> find_bounding_box<2>(Reals coords);
+template BBox<3> find_bounding_box<3>(Reals coords);

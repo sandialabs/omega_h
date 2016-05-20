@@ -394,6 +394,19 @@ static void test_hilbert() {
   CHECK(stream2.str() == expected);
 }
 
+static void test_bbox() {
+  CHECK(are_close(BBox<2>(vector_2(-3,-3),vector_2(3,3)),
+        find_bounding_box<2>(Reals({0,-3,3,0,0,3,-3,0}))));
+  CHECK(are_close(BBox<3>(vector_3(-3,-3,-3),vector_3(3,3,3)),
+        find_bounding_box<3>(Reals({
+            0,-3, 0,
+            3, 0, 0,
+            0, 3, 0,
+           -3, 0, 0,
+            0, 0,-3,
+            0, 0, 3}))));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -415,5 +428,6 @@ int main(int argc, char** argv) {
   test_reflect_down();
   test_find_unique();
   test_hilbert();
+  test_bbox();
   fini();
 }
