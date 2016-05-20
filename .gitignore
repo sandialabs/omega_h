@@ -1,0 +1,10 @@
+CMakeCache.txt
+CMakeFiles
+Makefile
+adjs.txt
+cmake_install.cmake
+config.hpp
+libomega_h.a
+perf_tests
+unit_tests
+*.dSYM/
