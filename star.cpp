@@ -6,11 +6,11 @@ Adj verts_across_edges(Adj e2v, Adj v2e) {
   auto v2vv = v2ve;
   Write<LO> vv2v(ve2e.size());
   auto f = LAMBDA(LO ve) {
-    LO vv = ve;
-    LO e = ve2e[ve];
-    I8 ve2e_code = ve2e_codes[ve];
-    Int eev = code_which_down(ve2e_code);
-    LO v = ev2v[e * 2 + (1 - eev)];
+    auto vv = ve;
+    auto e = ve2e[ve];
+    auto ve2e_code = ve2e_codes[ve];
+    auto eev = code_which_down(ve2e_code);
+    auto v = ev2v[e * 2 + (1 - eev)];
     vv2v[vv] = v;
   };
   parallel_for(vv2v.size(), f);
@@ -32,14 +32,14 @@ Adj edges_across_tris(Adj f2e, Adj e2f) {
     auto ef_begin = e2ef[e];
     auto ef_end = e2ef[e + 1];
     auto neef = ef_end - ef_begin;
-    LO ee_begin = e2ee[e];
+    auto ee_begin = e2ee[e];
     for (Int eef = 0; eef < neef; ++eef) {
-      LO ef = ef_begin + eef;
-      LO f = ef2f[ef];
-      I8 ef2f_code = ef2f_codes[ef];
-      Int ffe = code_which_down(ef2f_code);
-      LO e1 = fe2e[f * 3 + ((ffe + 1) % 3)];
-      LO e2 = fe2e[f * 3 + ((ffe + 2) % 3)];
+      auto ef = ef_begin + eef;
+      auto f = ef2f[ef];
+      auto ef2f_code = ef2f_codes[ef];
+      auto ffe = code_which_down(ef2f_code);
+      auto e1 = fe2e[f * 3 + ((ffe + 1) % 3)];
+      auto e2 = fe2e[f * 3 + ((ffe + 2) % 3)];
       ee2e[ee_begin + ef * 2 + 0] = e1;
       ee2e[ee_begin + ef * 2 + 1] = e2;
     }
