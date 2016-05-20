@@ -63,3 +63,5 @@ CONSTANT static UpTemplate const* const* const* const up_templates[] = {
   0,0,f_u_,r_u_};
 
 extern I8 const degrees[DIMS][DIMS];
+extern char const* const singular_names[DIMS];
+extern char const* const plural_names[DIMS];

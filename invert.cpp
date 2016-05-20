@@ -38,10 +38,10 @@ Adj invert(Adj down, I8 nlows_per_high, LO nlows,
       LO hl = lh2hl[lh];
       LO h = hl / nlows_per_high;
       lh2h[lh] = h;
-      I8 which_down = hl % nlows_per_high;
+      Int which_down = hl % nlows_per_high;
       I8 down_code = down_codes[hl];
       bool is_flipped = code_is_flipped(down_code);
-      I8 rotation = code_rotation(down_code);
+      Int rotation = code_rotation(down_code);
       codes[lh] = make_code(is_flipped, rotation, which_down);
     };
     parallel_for(nlh, f);

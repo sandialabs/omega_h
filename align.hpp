@@ -26,7 +26,7 @@ that to get from one entity to another one must
 first rotate and then flip the vertex list.
 */
 
-INLINE I8 make_code(bool is_flipped, I8 rotation, I8 which_down) {
+INLINE I8 make_code(bool is_flipped, Int rotation, Int which_down) {
   return static_cast<I8>((which_down << 3) | (rotation << 1) | is_flipped);
 }
 
@@ -34,16 +34,16 @@ INLINE bool code_is_flipped(I8 code) {
   return code & 1;
 }
 
-INLINE I8 code_rotation(I8 code) {
+INLINE Int code_rotation(I8 code) {
   return (code >> 1) & 3;
 }
 
-INLINE I8 code_which_down(I8 code) {
+INLINE Int code_which_down(I8 code) {
   return (code >> 3);
 }
 
 template <Int deg>
-INLINE I8 rotate_index(I8 index, I8 rotation) {
+INLINE Int rotate_index(Int index, Int rotation) {
   return (index + rotation) % deg;
 }
 
@@ -51,7 +51,7 @@ INLINE I8 rotate_index(I8 index, I8 rotation) {
    down to a few integer ops by an expert... */
 
 template <Int deg>
-INLINE I8 flip_index(I8 index) {
+INLINE Int flip_index(Int index) {
   switch(index) {
     case 1: return 2;
     case 2: return 1;
@@ -60,20 +60,28 @@ INLINE I8 flip_index(I8 index) {
 }
 
 template <Int deg>
-INLINE I8 align_index(I8 index, I8 code) {
+INLINE Int align_index(Int index, I8 code) {
   index = rotate_index<deg>(index, code_rotation(code));
   if (code_is_flipped(code))
     index = flip_index<deg>(index);
   return index;
 }
 
+INLINE Int align_index(Int deg, Int index, I8 code) {
+  if (deg == 3)
+    return align_index<3>(index, code);
+  if (deg == 2)
+    return align_index<2>(index, code);
+  NORETURN(0);
+}
+
 template <Int deg>
-INLINE I8 invert_rotation(I8 rotation) {
+INLINE Int invert_rotation(Int rotation) {
   return (deg - rotation) % deg;
 }
 
 template <Int deg>
-INLINE I8 rotation_to_first(I8 new_first) {
+INLINE Int rotation_to_first(Int new_first) {
   return invert_rotation<deg>(new_first);
 }
 
@@ -85,6 +93,14 @@ INLINE I8 invert_alignment(I8 code) {
       invert_rotation<deg>(code_rotation(code)), 0);
 }
 
+INLINE I8 invert_alignment(Int deg, I8 code) {
+  if (deg == 3)
+    return invert_alignment<3>(code);
+  if (deg == 2)
+    return invert_alignment<2>(code);
+  NORETURN(0);
+}
+
 /* returns the single transformation equivalent
    to applying the (code1) transformation followed
    by the (code2) one. */
@@ -93,16 +109,16 @@ INLINE I8 compound_alignments(I8 code1, I8 code2) {
   /* we can look for the inverse of the compound
      by looking at what happens to the index
      that used to be first (0) */
-  I8 old_first = align_index<deg>(align_index<deg>(0, code1), code2);
+  Int old_first = align_index<deg>(align_index<deg>(0, code1), code2);
   /* the inverse transformation would bring that
      index back to being the first */
-  I8 rotation = rotation_to_first<deg>(old_first);
+  Int rotation = rotation_to_first<deg>(old_first);
   bool is_flipped = (code_is_flipped(code1) ^ code_is_flipped(code2));
   return invert_alignment<deg>(make_code(is_flipped, rotation, 0));
 }
 
 template <Int deg, typename T>
-INLINE void rotate_adj(I8 rotation,
+INLINE void rotate_adj(Int rotation,
     T const in[], T out[]) {
   for (I8 j = 0; j < deg; ++j)
     out[rotate_index<deg>(j, rotation)] = in[j];

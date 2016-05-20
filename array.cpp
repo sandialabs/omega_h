@@ -313,7 +313,7 @@ Int HostRead<T>::size() const {
 template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a) {
   HostRead<T> ha = a;
-  if (ha.size() <= 10) {
+  if (ha.size() <= 20) {
     for (Int i = 0; i < ha.size(); ++i)
       o << ' ' << ha[i];
     o << '\n';

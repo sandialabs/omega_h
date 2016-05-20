@@ -4,3 +4,17 @@ I8 const degrees[DIMS][DIMS] = {
   {3, 3,-1,-1},
   {4, 6, 4, 1}
 };
+
+char const* const singular_names[DIMS] = {
+  "vertex",
+  "edge",
+  "triangle",
+  "tet"
+};
+
+char const* const plural_names[DIMS] = {
+  "vertices",
+  "edges",
+  "triangles",
+  "tets"
+};

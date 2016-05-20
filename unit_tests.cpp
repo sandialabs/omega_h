@@ -408,12 +408,19 @@ static void test_bbox() {
 }
 
 static void test_build_from_elems2verts() {
+  {
   Mesh mesh;
   build_from_elems2verts(mesh,2,LOs({0,1,2}),3);
   CHECK(mesh.ask_adj(2,0).ab2b == LOs({0,1,2}));
   CHECK(mesh.ask_adj(2,1).ab2b == LOs({0,2,1}));
   CHECK(mesh.ask_adj(1,0).ab2b ==
       LOs({0,1,2,0,1,2}));
+  }
+  {
+  Mesh mesh;
+  build_from_elems2verts(mesh,3,LOs({0,1,2,3}),4);
+  mesh.ask_adj(3,0);
+  }
 }
 
 int main(int argc, char** argv) {

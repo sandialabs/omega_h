@@ -8,7 +8,7 @@ struct IsMatch<2> {
       LO a_begin,
       LOs const& bv2v,
       LO b_begin,
-      I8 which_down,
+      Int which_down,
       I8& match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + (1 - which_down)]) {
       match_code = make_code(false, which_down, 0);
@@ -25,7 +25,7 @@ struct IsMatch<3> {
       LO a_begin,
       LOs const& bv2v,
       LO b_begin,
-      I8 which_down,
+      Int which_down,
       I8& match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
@@ -58,16 +58,17 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
     for (LO vb = vb_begin; vb < vb_end; ++vb) {
       LO b = vb2b[vb];
       I8 vb_code = vb_codes[vb];
-      I8 which_down = code_which_down(vb_code);
+      Int which_down = code_which_down(vb_code);
       LO b_begin = b * deg;
       I8 match_code;
       if (IsMatch<deg>::eval(av2v, a_begin, bv2v, b_begin,
             which_down, match_code)) {
         a2b_[a] = b;
         codes_[a] = match_code;
-        break;
+        return;
       }
     }
+    NORETURN();
   };
   parallel_for(na, f);
   a2b = a2b_;
