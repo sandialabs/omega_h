@@ -407,6 +407,11 @@ static void test_bbox() {
             0, 0, 3}))));
 }
 
+static void test_build_from_elems2verts() {
+  Mesh mesh;
+  build_from_elems2verts(mesh,2,LOs({0,1,2}),3);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -429,5 +434,6 @@ int main(int argc, char** argv) {
   test_find_unique();
   test_hilbert();
   test_bbox();
+  test_build_from_elems2verts();
   fini();
 }
