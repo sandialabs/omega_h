@@ -39,3 +39,5 @@ class Mesh {
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
 };
+
+void build_from_elems2verts(Mesh& mesh, I8 edim, LOs ev2v, LO nverts);
