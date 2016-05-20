@@ -383,6 +383,15 @@ static void test_hilbert() {
   std::string expected =
   "Hilbert integer = 001111010111001 = 7865 check";
   CHECK(stream.str() == expected);
+  hilbert::coord_t Y[3];
+  hilbert::untranspose(X, Y, 5, 3);
+  std::stringstream stream2;
+  stream2 << "Hilbert integer = "
+    <<(Y[0]>>4 & 1)<<(Y[0]>>3 & 1)<<(Y[0]>>2 & 1)<<(Y[0]>>1 & 1)<<(Y[0]>>0 & 1)
+    <<(Y[1]>>4 & 1)<<(Y[1]>>3 & 1)<<(Y[1]>>2 & 1)<<(Y[1]>>1 & 1)<<(Y[1]>>0 & 1)
+    <<(Y[2]>>4 & 1)<<(Y[2]>>3 & 1)<<(Y[2]>>2 & 1)<<(Y[2]>>1 & 1)<<(Y[2]>>0 & 1)
+    << " = 7865 check";
+  CHECK(stream2.str() == expected);
 }
 
 int main(int argc, char** argv) {

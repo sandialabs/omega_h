@@ -74,7 +74,7 @@ INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
   for (int i = 0; i < n; ++i)
     out[i] = 0;
   for (int i = 0; i < (b * n); ++i)
-    out[i / n] |= ((in[i % n] >> (i / n)) & 1);
+    out[i / b] |= (((in[i % n] >> (b - 1 - (i / n))) & 1) << (b - 1 - (i % b)));
 }
 
 }//end namespace hilbert
