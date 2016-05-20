@@ -21,3 +21,5 @@
 #include "construct.cpp"
 #include "graph.cpp"
 #include "star.cpp"
+#include "file.cpp"
+#include "vtk.cpp"
