@@ -7,11 +7,13 @@ class Mesh {
     I8 dim() const;
     LO nents(I8 dim) const;
     template <typename T>
-    void add_tag(I8 dim, std::string const& name, I8 ncomps, Read<T> data);
-    void remove_tag(I8 dim, std::string const& name);
-    bool has_tag(I8 dim, std::string const& name) const;
+    void add_tag(I8 dim, std::string const& name, I8 ncomps);
+    template <typename T>
+    void set_tag(I8 dim, std::string const& name, Read<T> data);
     template <typename T>
     Tag<T> const& get_tag(I8 dim, std::string const& name) const;
+    void remove_tag(I8 dim, std::string const& name);
+    bool has_tag(I8 dim, std::string const& name) const;
     I8 count_tags(I8 dim) const;
     TagBase const* get_tag(I8 dim, I8 i) const;
     bool has_ents(I8 dim) const;
@@ -25,9 +27,6 @@ class Mesh {
     typedef std::vector<TagPtr> TagVector;
     typedef TagVector::iterator TagIter;
     typedef TagVector::const_iterator TagCIter;
-    template <typename T>
-    void add_tag_priv(I8 dim, std::string const& name, I8 ncomps, Read<T> data);
-    void remove_tag_priv(I8 dim, std::string const& name);
     TagIter tag_iter(I8 dim, std::string const& name);
     TagCIter tag_iter(I8 dim, std::string const& name) const;
     void check_dim(I8 dim) const;

@@ -25,13 +25,24 @@ Tag<T> const* to(TagBase const* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, I8 ncomps, Read<T> data):
-  TagBase(name, ncomps),data_(data) {
+Tag<T>* to(TagBase* t) {
+  CHECK(is<T>(t));
+  return dynamic_cast<Tag<T>*>(t);
+}
+
+template <typename T>
+Tag<T>::Tag(std::string const& name, I8 ncomps):
+  TagBase(name, ncomps) {
 }
 
 template <typename T>
 Read<T> Tag<T>::data() const {
   return data_;
+}
+
+template <typename T>
+void Tag<T>::set_data(Read<T> data) {
+  data_ = data;
 }
 
 #define INST_T(T) \

@@ -34,17 +34,20 @@ LO Mesh::nents(I8 dim) const {
 }
 
 template <typename T>
-void Mesh::add_tag(I8 dim, std::string const& name, I8 ncomps, Read<T> data) {
-  add_tag_priv(dim, name, ncomps, data);
-}
-
-void Mesh::remove_tag(I8 dim, std::string const& name) {
-  remove_tag_priv(dim, name);
-}
-
-bool Mesh::has_tag(I8 dim, std::string const& name) const {
+void Mesh::add_tag(I8 dim, std::string const& name, I8 ncomps) {
   check_dim2(dim);
-  return tag_iter(dim, name) != tags_[dim].end();
+  CHECK(!has_tag(dim, name));
+  CHECK(ncomps >= 0);
+  CHECK(tags_[dim].size() < static_cast<std::size_t>(INT8_MAX));
+  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps)));
+}
+
+template <typename T>
+void Mesh::set_tag(I8 dim, std::string const& name, Read<T> data) {
+  CHECK(has_tag(dim, name));
+  Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
+  CHECK(data.size() == nents(dim) * tag->ncomps());
+  tag->set_data(data);
 }
 
 template <typename T>
@@ -52,6 +55,17 @@ Tag<T> const& Mesh::get_tag(I8 dim, std::string const& name) const {
   check_dim2(dim);
   CHECK(has_tag(dim, name));
   return *(to<T>(tag_iter(dim, name)->get()));
+}
+
+void Mesh::remove_tag(I8 dim, std::string const& name) {
+  check_dim2(dim);
+  CHECK(has_tag(dim, name));
+  tags_[dim].erase(tag_iter(dim, name));
+}
+
+bool Mesh::has_tag(I8 dim, std::string const& name) const {
+  check_dim2(dim);
+  return tag_iter(dim, name) != tags_[dim].end();
 }
 
 I8 Mesh::count_tags(I8 dim) const {
@@ -110,22 +124,6 @@ struct HasName {
     return a->name() == name_;
   }
 };
-
-template <typename T>
-void Mesh::add_tag_priv(I8 dim, std::string const& name, I8 ncomps,
-    Read<T> data) {
-  check_dim2(dim);
-  CHECK(data.size() == nents(dim) * ncomps);
-  CHECK(!has_tag(dim, name));
-  CHECK(tags_[dim].size() < static_cast<std::size_t>(INT8_MAX));
-  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, data)));
-}
-
-void Mesh::remove_tag_priv(I8 dim, std::string const& name) {
-  check_dim2(dim);
-  CHECK(has_tag(dim, name));
-  tags_[dim].erase(tag_iter(dim, name));
-}
 
 Mesh::TagIter Mesh::tag_iter(I8 dim, std::string const& name) {
   return std::find_if(begin(tags_[dim]), end(tags_[dim]), HasName(name));
@@ -200,8 +198,8 @@ Adj Mesh::derive_adj(I8 from, I8 to) {
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     I8 dim, std::string const& name) const; \
-template void Mesh::add_tag(I8 dim, std::string const& name, \
-    I8 ncomps, Read<T> data);
+template void Mesh::add_tag<T>(I8 dim, std::string const& name, I8 ncomps); \
+template void Mesh::set_tag(I8 dim, std::string const& name, Read<T> data);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
