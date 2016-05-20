@@ -8,9 +8,9 @@ void make_canonical(LOs ev2v,
   auto f = LAMBDA(LO e) {
     LO begin = e * deg;
     /* find the smallest vertex */
-    I8 min_j = 0;
+    Int min_j = 0;
     LO min_v = ev2v[begin];
-    for (I8 j = 1; j < deg; ++j) {
+    for (Int j = 1; j < deg; ++j) {
       LO ev = j + begin;
       LO v = ev2v[ev];
       if (v < min_v) {
@@ -19,7 +19,7 @@ void make_canonical(LOs ev2v,
       }
     }
     /* rotate to make it first */
-    I8 rotation = rotation_to_first<deg>(min_j);
+    Int rotation = rotation_to_first<deg>(min_j);
     rotate_adj<deg>(rotation, &ev2v[begin], &canon[begin]);
     bool is_flipped = false;
     if (deg == 3 && canon[begin + 2] < canon[begin + 1]) {
