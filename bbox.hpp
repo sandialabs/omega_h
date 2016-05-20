@@ -5,6 +5,17 @@ struct BBox {
   INLINE BBox(Vector<dim> min_, Vector<dim> max_):min(min_),max(max_) {}
   Vector<dim> min;
   Vector<dim> max;
+  /* playing the volatile game again (see int128.hpp) */
+  INLINE void operator=(BBox<dim> const& rhs) volatile {
+    min = rhs.min;
+    max = rhs.max;
+  }
+  INLINE BBox(BBox<dim> const& rhs):
+    min(rhs.min),max(rhs.max) {
+  }
+  INLINE BBox(const volatile BBox<dim>& rhs):
+    min(rhs.min),max(rhs.max) {
+  }
 };
 
 template <Int dim>
