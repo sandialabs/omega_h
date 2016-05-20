@@ -58,3 +58,5 @@ template LOs sort_by_keys<I32,1>(Read<I32> keys);
 template LOs sort_by_keys<I32,2>(Read<I32> keys);
 template LOs sort_by_keys<I32,3>(Read<I32> keys);
 template LOs sort_by_keys<I64,1>(Read<I64> keys);
+template LOs sort_by_keys<I64,2>(Read<I64> keys);
+template LOs sort_by_keys<I64,3>(Read<I64> keys);
