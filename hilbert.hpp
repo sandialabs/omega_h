@@ -78,3 +78,16 @@ INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
 }
 
 }//end namespace hilbert
+
+/* for each set of (dim) floating-point coordinates, this function
+   outputs a set of (dim) 64-bit integers which represent the
+   closest point of a fine-grid Hilbert curve to the coordinates.
+   the resolution of the grid is chosen to be 52 bits (the floating-point
+   mantissa size), giving 2^52 grid points per axis,
+   and is scaled to the bounding box of the coordinates.
+   the output integers are such that sort_by_keys() will sort along the
+   Hilbert curve.
+   More precisely, the bits of the Hilbert distance are spread evenly
+   among the integers, with the first integer getting the most significant
+   bits, and the last integer getting the least significant bits. */
+Read<I64> hilbert_dists_from_coords(Reals coords, I8 dim);

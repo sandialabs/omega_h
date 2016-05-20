@@ -18,3 +18,4 @@
 #include "tag.cpp"
 #include "mesh.cpp"
 #include "bbox.cpp"
+#include "hilbert.cpp"
