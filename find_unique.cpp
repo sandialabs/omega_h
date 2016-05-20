@@ -81,7 +81,7 @@ LOs find_unique(LOs uv2v) {
   return unmap<LO,deg>(e2u, uv2v);
 }
 
-LOs find_unique(LOs hv2v, I8 high_dim, I8 low_dim) {
+LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {
   LOs uv2v = form_uses(hv2v, high_dim, low_dim);
   if (low_dim == 1)
     return find_unique<2>(uv2v);

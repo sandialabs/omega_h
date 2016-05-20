@@ -57,7 +57,7 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
     LO vb_end = v2vb[v0 + 1];
     for (LO vb = vb_begin; vb < vb_end; ++vb) {
       LO b = vb2b[vb];
-      I8 vb_code = vb_codes[vb];
+      auto vb_code = vb_codes[vb];
       Int which_down = code_which_down(vb_code);
       LO b_begin = b * deg;
       I8 match_code;
@@ -76,7 +76,7 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
 }
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
-    I8 high_dim, I8 low_dim) {
+    Int high_dim, Int low_dim) {
   LOs uv2v = form_uses(hv2v, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
@@ -88,8 +88,8 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
 }
 
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
-    I8 high_dim, I8 low_dim) {
-  I8 nverts_per_low = simplex_degrees[low_dim][0];
+    Int high_dim, Int low_dim) {
+  Int nverts_per_low = simplex_degrees[low_dim][0];
   LO nl = lv2v.size() / nverts_per_low;
   Adj v2l = invert(lv2v, nverts_per_low, nv, Read<GO>(nl, 0, 1));
   return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);

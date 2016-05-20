@@ -15,13 +15,13 @@ struct Adj : public Graph {
 LOs order_by_globals(
     LOs a2ab, LOs ab2b, Read<GO> b_global);
 
-Adj invert(Adj down, I8 nlows_per_high, LO nlows,
+Adj invert(Adj down, Int nlows_per_high, LO nlows,
     Read<GO> high_globals);
 
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low
    entities by high entities */
-LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim);
+LOs form_uses(LOs hv2v, Int high_dim, Int low_dim);
 
 /* given entity uses and unique entities,
    both defined by vertex lists, match
@@ -40,7 +40,7 @@ template <Int deg>
 void find_matches(LOs euv2v, LOs ev2v,
     LOs& eu2e, Read<I8>& eu2e_codes_);
 
-LOs find_unique(LOs hv2v, I8 high_dim, I8 low_dim);
+LOs find_unique(LOs hv2v, Int high_dim, Int low_dim);
 
 /* for each entity (or entity use), sort its vertex list.
    express the sorting transformation as
@@ -56,14 +56,14 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
     LOs& a2b, Read<I8>& codes);
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
-    I8 high_dim, I8 low_dim);
+    Int high_dim, Int low_dim);
 
 /* for testing only, internally computes upward
    adjacency */
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
-    I8 high_dim, I8 low_dim);
+    Int high_dim, Int low_dim);
 
-Adj transit(Adj h2m, Adj m2l, I8 high_dim, I8 low_dim);
+Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim);
 
 Graph verts_across_edges(Adj e2v, Adj v2e);
 Graph edges_across_tris(Adj f2e, Adj e2f);

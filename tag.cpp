@@ -1,4 +1,4 @@
-TagBase::TagBase(std::string const& name, I8 ncomps):
+TagBase::TagBase(std::string const& name, Int ncomps):
   name_(name),ncomps_(ncomps) {
 }
 
@@ -9,7 +9,7 @@ std::string const& TagBase::name() const {
   return name_;
 }
 
-I8 TagBase::ncomps() const {
+Int TagBase::ncomps() const {
   return ncomps_;
 }
 
@@ -31,7 +31,7 @@ Tag<T>* to(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, I8 ncomps):
+Tag<T>::Tag(std::string const& name, Int ncomps):
   TagBase(name, ncomps) {
 }
 

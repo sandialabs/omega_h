@@ -1,6 +1,6 @@
-Adj transit(Adj h2m, Adj m2l, I8 high_dim, I8 low_dim) {
+Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   CHECK(3 >= high_dim);
-  I8 mid_dim = low_dim + 1;
+  Int mid_dim = low_dim + 1;
   CHECK(high_dim > mid_dim);
   CHECK(low_dim == 1 || low_dim == 0);
   LOs hm2m = h2m.ab2b;
@@ -23,15 +23,15 @@ Adj transit(Adj h2m, Adj m2l, I8 high_dim, I8 low_dim) {
       Int hm = ut.up;
       Int hml = ut.which_down;
       LO m = hm2m[hm_begin + hm];
-      I8 m2hm_code = m2hm_codes[hm_begin + hm];
-      I8 hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
+      auto m2hm_code = m2hm_codes[hm_begin + hm];
+      auto hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
       Int ml = align_index(nlows_per_mid, hml, hm2m_code);
       LO ml_begin = m * nlows_per_mid;
       LO l = ml2l[ml_begin + ml];
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
-        I8 tet_tri_code = hm2m_code;
-        I8 tri_edge_code = ml_codes[ml_begin + ml];
+        auto tet_tri_code = hm2m_code;
+        auto tri_edge_code = ml_codes[ml_begin + ml];
         bool tet_tri_flipped = code_is_flipped(tet_tri_code);
         bool tri_edge_flipped = code_rotation(tri_edge_code) == 1;
         bool canon_flipped = ut.is_flipped;

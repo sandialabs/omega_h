@@ -1,10 +1,10 @@
 Mesh::Mesh():
   dim_(-1) {
-  for (I8 i = 0; i <= 3; ++i)
+  for (Int i = 0; i <= 3; ++i)
     nents_[i] = -1;
 }
 
-void Mesh::set_dim(I8 dim) {
+void Mesh::set_dim(Int dim) {
   CHECK(dim_ == -1);
   CHECK(dim >= 2);
   CHECK(dim <= 3);
@@ -15,7 +15,7 @@ void Mesh::set_verts(LO nverts) {
   nents_[VERT] = nverts;
 }
 
-void Mesh::set_ents(I8 dim, Adj down) {
+void Mesh::set_ents(Int dim, Adj down) {
   check_dim(dim);
   CHECK(!has_ents(dim));
   LOs hl2l = down.ab2b;
@@ -24,17 +24,17 @@ void Mesh::set_ents(I8 dim, Adj down) {
   add_adj(dim, dim - 1, down);
 }
 
-I8 Mesh::dim() const {
+Int Mesh::dim() const {
   return dim_;
 }
 
-LO Mesh::nents(I8 dim) const {
+LO Mesh::nents(Int dim) const {
   check_dim2(dim);
   return nents_[dim];
 }
 
 template <typename T>
-void Mesh::add_tag(I8 dim, std::string const& name, I8 ncomps) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
   check_dim2(dim);
   CHECK(!has_tag(dim, name));
   CHECK(ncomps >= 0);
@@ -43,7 +43,7 @@ void Mesh::add_tag(I8 dim, std::string const& name, I8 ncomps) {
 }
 
 template <typename T>
-void Mesh::set_tag(I8 dim, std::string const& name, Read<T> data) {
+void Mesh::set_tag(Int dim, std::string const& name, Read<T> data) {
   CHECK(has_tag(dim, name));
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(data.size() == nents(dim) * tag->ncomps());
@@ -51,54 +51,54 @@ void Mesh::set_tag(I8 dim, std::string const& name, Read<T> data) {
 }
 
 template <typename T>
-Tag<T> const& Mesh::get_tag(I8 dim, std::string const& name) const {
+Tag<T> const& Mesh::get_tag(Int dim, std::string const& name) const {
   check_dim2(dim);
   CHECK(has_tag(dim, name));
   return *(to<T>(tag_iter(dim, name)->get()));
 }
 
-void Mesh::remove_tag(I8 dim, std::string const& name) {
+void Mesh::remove_tag(Int dim, std::string const& name) {
   check_dim2(dim);
   CHECK(has_tag(dim, name));
   tags_[dim].erase(tag_iter(dim, name));
 }
 
-bool Mesh::has_tag(I8 dim, std::string const& name) const {
+bool Mesh::has_tag(Int dim, std::string const& name) const {
   check_dim2(dim);
   return tag_iter(dim, name) != tags_[dim].end();
 }
 
-I8 Mesh::count_tags(I8 dim) const {
+Int Mesh::count_tags(Int dim) const {
   check_dim2(dim);
-  return static_cast<I8>(tags_[dim].size());
+  return static_cast<Int>(tags_[dim].size());
 }
 
-TagBase const* Mesh::get_tag(I8 dim, I8 i) const {
+TagBase const* Mesh::get_tag(Int dim, Int i) const {
   check_dim2(dim);
   CHECK(0 <= i);
   CHECK(i <= count_tags(dim));
   return tags_[dim][static_cast<std::size_t>(i)].get();
 }
 
-bool Mesh::has_ents(I8 dim) const {
+bool Mesh::has_ents(Int dim) const {
   check_dim(dim);
   return nents_[dim] >= 0;
 }
 
-bool Mesh::has_adj(I8 from, I8 to) const {
+bool Mesh::has_adj(Int from, Int to) const {
   check_dim(from);
   check_dim(to);
   return bool(adjs_[from][to]);
 }
 
-Adj Mesh::get_adj(I8 from, I8 to) const {
+Adj Mesh::get_adj(Int from, Int to) const {
   check_dim2(from);
   check_dim2(to);
   CHECK(has_adj(from, to));
   return *(adjs_[from][to]);
 }
 
-Adj Mesh::ask_adj(I8 from, I8 to) {
+Adj Mesh::ask_adj(Int from, Int to) {
   check_dim2(from);
   check_dim2(to);
   if (has_adj(from, to)) {
@@ -109,7 +109,7 @@ Adj Mesh::ask_adj(I8 from, I8 to) {
   return derived;
 }
 
-Read<GO> Mesh::ask_globals(I8 dim) {
+Read<GO> Mesh::ask_globals(Int dim) {
   check_dim2(dim);
   if (!has_tag(dim, "global")) {
     return Read<GO>(nents(dim), 0, 1);
@@ -125,25 +125,25 @@ struct HasName {
   }
 };
 
-Mesh::TagIter Mesh::tag_iter(I8 dim, std::string const& name) {
+Mesh::TagIter Mesh::tag_iter(Int dim, std::string const& name) {
   return std::find_if(begin(tags_[dim]), end(tags_[dim]), HasName(name));
 }
 
-Mesh::TagCIter Mesh::tag_iter(I8 dim, std::string const& name) const {
+Mesh::TagCIter Mesh::tag_iter(Int dim, std::string const& name) const {
   return std::find_if(begin(tags_[dim]), end(tags_[dim]), HasName(name));
 }
 
-void Mesh::check_dim(I8 dim) const {
+void Mesh::check_dim(Int dim) const {
   CHECK(0 <= dim);
   CHECK(dim <= this->dim());
 }
 
-void Mesh::check_dim2(I8 dim) const {
+void Mesh::check_dim2(Int dim) const {
   check_dim(dim);
   CHECK(has_ents(dim));
 }
 
-void Mesh::add_adj(I8 from, I8 to, Adj adj) {
+void Mesh::add_adj(Int from, Int to, Adj adj) {
   check_dim2(from);
   check_dim2(to);
   if (to < from) {
@@ -160,12 +160,12 @@ void Mesh::add_adj(I8 from, I8 to, Adj adj) {
   adjs_[from][to] = AdjPtr(new Adj(adj));
 }
 
-Adj Mesh::derive_adj(I8 from, I8 to) {
+Adj Mesh::derive_adj(Int from, Int to) {
   check_dim(from);
   check_dim2(to);
   if (from < to) {
     Adj down = ask_adj(to, from);
-    I8 nlows_per_high = simplex_degrees[to][from];
+    Int nlows_per_high = simplex_degrees[to][from];
     LO nlows = nents(from);
     Read<GO> high_globals = ask_globals(to);
     Adj up = invert(down, nlows_per_high, nlows, high_globals);
@@ -197,9 +197,9 @@ Adj Mesh::derive_adj(I8 from, I8 to) {
 
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
-    I8 dim, std::string const& name) const; \
-template void Mesh::add_tag<T>(I8 dim, std::string const& name, I8 ncomps); \
-template void Mesh::set_tag(I8 dim, std::string const& name, Read<T> data);
+    Int dim, std::string const& name) const; \
+template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps); \
+template void Mesh::set_tag(Int dim, std::string const& name, Read<T> data);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
