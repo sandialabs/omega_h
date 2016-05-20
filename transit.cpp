@@ -7,9 +7,9 @@ Adj transit(Adj h2m, Adj m2l, I8 high_dim, I8 low_dim) {
   Read<I8> m2hm_codes = h2m.codes;
   LOs ml2l = m2l.ab2b;
   Read<I8> ml_codes = m2l.codes;
-  LO nmids_per_high = degrees[high_dim][mid_dim];
-  LO nlows_per_mid = degrees[mid_dim][low_dim];
-  LO nlows_per_high = degrees[high_dim][low_dim];
+  LO nmids_per_high = simplex_degrees[high_dim][mid_dim];
+  LO nlows_per_mid = simplex_degrees[mid_dim][low_dim];
+  LO nlows_per_high = simplex_degrees[high_dim][low_dim];
   LO nhighs = hm2m.size() / nmids_per_high;
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;

@@ -111,5 +111,13 @@ void invert(LOs a2b, LO nb,
   if (method == BY_ATOMICS)
     invert_by_atomics(a2b, nb, b2ba, ba2a);
 }
+}
 
+LOs get_degrees(LOs offsets) {
+  Write<LO> degrees(offsets.size() - 1);
+  auto f = LAMBDA(LO i) {
+    degrees[i] = offsets[i + 1] - offsets[i];
+  };
+  parallel_for(degrees.size(), f);
+  return degrees;
 }

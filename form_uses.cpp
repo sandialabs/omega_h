@@ -1,7 +1,7 @@
 LOs form_uses(LOs hv2v, I8 high_dim, I8 low_dim) {
-  I8 nverts_per_high = degrees[high_dim][0];
-  I8 nverts_per_low = degrees[low_dim][0];
-  I8 nlows_per_high = degrees[high_dim][low_dim];
+  I8 nverts_per_high = simplex_degrees[high_dim][0];
+  I8 nverts_per_low = simplex_degrees[low_dim][0];
+  I8 nlows_per_high = simplex_degrees[high_dim][low_dim];
   LO nhigh = hv2v.size() / nverts_per_high;
   LO nuses = nhigh * nlows_per_high;
   Write<LO> uv2v(nuses * nverts_per_low);

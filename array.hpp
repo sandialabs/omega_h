@@ -136,3 +136,6 @@ public:
 
 template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a);
+
+template <typename T>
+Read<T> multiply_each_by(T factor, Read<T> a);

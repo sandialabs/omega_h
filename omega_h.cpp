@@ -20,3 +20,4 @@
 #include "bbox.cpp"
 #include "hilbert.cpp"
 #include "construct.cpp"
+#include "star.cpp"

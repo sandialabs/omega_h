@@ -25,5 +25,4 @@ void invert(LOs a2b, LO nb,
 
 }
 
-LOs order_by_globals(
-    LOs a2ab, LOs ab2b, Read<GO> b_global);
+LOs get_degrees(LOs offsets);

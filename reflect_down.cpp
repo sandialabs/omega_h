@@ -89,7 +89,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
 
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
     I8 high_dim, I8 low_dim) {
-  I8 nverts_per_low = degrees[low_dim][0];
+  I8 nverts_per_low = simplex_degrees[low_dim][0];
   LO nl = lv2v.size() / nverts_per_low;
   Adj v2l = invert(lv2v, nverts_per_low, nv, Read<GO>(nl, 0, 1));
   return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);

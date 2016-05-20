@@ -324,13 +324,24 @@ std::ostream& operator<<(std::ostream& o, Read<T> a) {
   return o;
 }
 
+template <typename T>
+Read<T> multiply_each_by(T factor, Read<T> a) {
+  Write<T> b(a.size());
+  auto f = LAMBDA(Int i) {
+    b[i] = a[i] * factor;
+  };
+  parallel_for(a.size(), f);
+  return b;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
 template class HostWrite<T>; \
 template class HostRead<T>; \
 template bool operator==(Read<T> a, Read<T> b); \
-template std::ostream& operator<<(std::ostream& o, Read<T> a);
+template std::ostream& operator<<(std::ostream& o, Read<T> a); \
+template Read<T> multiply_each_by(T factor, Read<T> x);
 
 INST_ARRAY_T(I8)
 INST_ARRAY_T(I16)

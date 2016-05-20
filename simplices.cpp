@@ -1,4 +1,4 @@
-I8 const degrees[DIMS][DIMS] = {
+I8 const simplex_degrees[DIMS][DIMS] = {
   {1,-1,-1,-1},
   {2, 1,-1,-1},
   {3, 3,-1,-1},

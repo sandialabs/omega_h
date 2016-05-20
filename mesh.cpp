@@ -19,8 +19,8 @@ void Mesh::set_ents(I8 dim, Adj down) {
   check_dim(dim);
   CHECK(!has_ents(dim));
   LOs hl2l = down.ab2b;
-  CHECK(hl2l.size() % degrees[dim][dim - 1] == 0);
-  nents_[dim] = hl2l.size() / degrees[dim][dim - 1];
+  CHECK(hl2l.size() % simplex_degrees[dim][dim - 1] == 0);
+  nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
 }
 
@@ -152,10 +152,10 @@ void Mesh::add_adj(I8 from, I8 to, Adj adj) {
     CHECK(adj.a2ab.size() == 0);
     if (to == VERT)
       CHECK(adj.codes.size() == 0);
-    CHECK(adj.ab2b.size() == nents(from) * degrees[from][to]);
+    CHECK(adj.ab2b.size() == nents(from) * simplex_degrees[from][to]);
   } else {
     if (from < to) {
-      CHECK(adj.ab2b.size() == nents(to) * degrees[to][from]);
+      CHECK(adj.ab2b.size() == nents(to) * simplex_degrees[to][from]);
     }
     CHECK(adj.a2ab.size() == nents(from) + 1);
   }
@@ -167,7 +167,7 @@ Adj Mesh::derive_adj(I8 from, I8 to) {
   check_dim2(to);
   if (from < to) {
     Adj down = ask_adj(to, from);
-    I8 nlows_per_high = degrees[to][from];
+    I8 nlows_per_high = simplex_degrees[to][from];
     LO nlows = nents(from);
     Read<GO> high_globals = ask_globals(to);
     Adj up = invert(down, nlows_per_high, nlows, high_globals);

@@ -3,10 +3,14 @@ struct Adj {
   Adj(LOs ab2b_);
   Adj(LOs ab2b_, Read<I8> codes_);
   Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_);
+  Adj(LOs a2ab_, LOs ab2b_);
   LOs a2ab;
   LOs ab2b;
   Read<I8> codes;
 };
+
+LOs order_by_globals(
+    LOs a2ab, LOs ab2b, Read<GO> b_global);
 
 Adj invert(Adj down, I8 nlows_per_high, LO nlows,
     Read<GO> high_globals);
@@ -57,3 +61,6 @@ Adj reflect_down(LOs hv2v, LOs lv2v, LO nv,
     I8 high_dim, I8 low_dim);
 
 Adj transit(Adj h2m, Adj m2l, I8 high_dim, I8 low_dim);
+
+Adj verts_across_edges(Adj e2v, Adj v2e);
+Adj edges_across_tris(Adj f2e, Adj e2f);
