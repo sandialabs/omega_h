@@ -14,6 +14,7 @@ struct ExclScan : public SumFunctor<TO> {
 template <typename TO, typename TI>
 Read<TO> offset_scan(Read<TI> a) {
   Write<TO> out(a.size() + 1);
+  out.set(0, 0);
   parallel_scan(a.size(), ExclScan<TO,TI>(a, out));
   return out;
 }
