@@ -9,33 +9,33 @@ enum {
   TET = REGION
 };
 
-CONSTANT static I8 const fev0[] = {0,1};
-CONSTANT static I8 const fev1[] = {1,2};
-CONSTANT static I8 const fev2[] = {2,0};
-CONSTANT static I8 const* const fev_[] = {
+CONSTANT static Int const fev0[] = {0,1};
+CONSTANT static Int const fev1[] = {1,2};
+CONSTANT static Int const fev2[] = {2,0};
+CONSTANT static Int const* const fev_[] = {
   fev0,fev1,fev2};
-CONSTANT static I8 const* const* const f_v_[] = {
+CONSTANT static Int const* const* const f_v_[] = {
   0,fev_};
-CONSTANT static I8 const rev0[] = {0,1};
-CONSTANT static I8 const rev1[] = {1,2};
-CONSTANT static I8 const rev2[] = {2,0};
-CONSTANT static I8 const rev3[] = {0,3};
-CONSTANT static I8 const rev4[] = {1,3};
-CONSTANT static I8 const rev5[] = {2,3};
-CONSTANT static I8 const* const rev_[] = {
+CONSTANT static Int const rev0[] = {0,1};
+CONSTANT static Int const rev1[] = {1,2};
+CONSTANT static Int const rev2[] = {2,0};
+CONSTANT static Int const rev3[] = {0,3};
+CONSTANT static Int const rev4[] = {1,3};
+CONSTANT static Int const rev5[] = {2,3};
+CONSTANT static Int const* const rev_[] = {
   rev0,rev1,rev2,rev3,rev4,rev5};
-CONSTANT static I8 const rfv0[] = {0,2,1};
-CONSTANT static I8 const rfv1[] = {0,1,3};
-CONSTANT static I8 const rfv2[] = {1,2,3};
-CONSTANT static I8 const rfv3[] = {2,0,3};
-CONSTANT static I8 const* const rfv_[] = {
+CONSTANT static Int const rfv0[] = {0,2,1};
+CONSTANT static Int const rfv1[] = {0,1,3};
+CONSTANT static Int const rfv2[] = {1,2,3};
+CONSTANT static Int const rfv3[] = {2,0,3};
+CONSTANT static Int const* const rfv_[] = {
   rfv0,rfv1,rfv2,rfv3};
-CONSTANT static I8 const* const* const r_v_[] = {
+CONSTANT static Int const* const* const r_v_[] = {
   0,rev_,rfv_};
-CONSTANT static I8 const* const* const* const down_templates[] = {
+CONSTANT static Int const* const* const* const down_templates[] = {
   0,0,f_v_,r_v_};
 
-struct UpTemplate { I8 up; I8 which_down; bool is_flipped; };
+struct UpTemplate { Int up; Int which_down; bool is_flipped; };
 CONSTANT static UpTemplate const fve0[] = {{0,0,0},{2,1,0}};
 CONSTANT static UpTemplate const fve1[] = {{1,0,0},{0,1,0}};
 CONSTANT static UpTemplate const fve2[] = {{2,0,0},{1,1,0}};
@@ -63,15 +63,15 @@ CONSTANT static UpTemplate const* const* const* const up_templates[] = {
   0,0,f_u_,r_u_};
 
 /*
-CONSTANT static I8 const feov[] = {1,2,0};
-CONSTANT static I8 const fvoe[] = {2,0,1};
-CONSTANT static I8 const* const fo[] = {
+CONSTANT static Int const feov[] = {1,2,0};
+CONSTANT static Int const fvoe[] = {2,0,1};
+CONSTANT static Int const* const fo[] = {
   feov,fvoe};
-CONSTANT static I8 const rfov[] = {2,3,1,0};
-CONSTANT static I8 const rvof[] = {3,2,0,1};
+CONSTANT static Int const rfov[] = {2,3,1,0};
+CONSTANT static Int const rvof[] = {3,2,0,1};
 */
-CONSTANT static I8 const tet_edges_opp_edges[] = {5,3,4,1,2,0};
+CONSTANT static Int const tet_edges_opp_edges[] = {5,3,4,1,2,0};
 
-extern I8 const simplex_degrees[DIMS][DIMS];
+extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];
 extern char const* const plural_names[DIMS];
