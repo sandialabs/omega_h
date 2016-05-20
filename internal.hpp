@@ -63,6 +63,7 @@ typedef double       Real;
 #include "indset.hpp"
 #include "map.hpp"
 #include "align.hpp"
+#include "graph.hpp"
 #include "adjacency.hpp"
 #include "tag.hpp"
 #include "mesh.hpp"

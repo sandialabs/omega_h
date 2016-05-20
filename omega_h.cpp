@@ -9,7 +9,6 @@
 #include "indset.cpp"
 #include "map.cpp"
 #include "simplices.cpp"
-#include "adjacency.cpp"
 #include "form_uses.cpp"
 #include "find_unique.cpp"
 #include "invert.cpp"

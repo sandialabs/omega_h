@@ -1,11 +1,13 @@
-struct Adj {
-  Adj();
-  Adj(LOs ab2b_);
-  Adj(LOs ab2b_, Read<I8> codes_);
-  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_);
-  Adj(LOs a2ab_, LOs ab2b_);
-  LOs a2ab;
-  LOs ab2b;
+struct Adj : public Graph {
+  Adj() {}
+  Adj(LOs ab2b_):Graph(ab2b_) {}
+  Adj(LOs ab2b_, Read<I8> codes_):Graph(ab2b_),codes(codes_) {}
+  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_):
+    Graph(a2ab_, ab2b_),codes(codes_) {
+  }
+  Adj(LOs a2ab_, LOs ab2b_):
+    Graph(a2ab_, ab2b_) {
+  }
   Read<I8> codes;
 };
 
@@ -64,3 +66,4 @@ Adj transit(Adj h2m, Adj m2l, I8 high_dim, I8 low_dim);
 
 Adj verts_across_edges(Adj e2v, Adj v2e);
 Adj edges_across_tris(Adj f2e, Adj e2f);
+Adj edges_across_tets(Adj r2e, Adj e2r);

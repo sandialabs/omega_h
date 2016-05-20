@@ -62,6 +62,16 @@ CONSTANT static UpTemplate const* const* const r_u_[] = {
 CONSTANT static UpTemplate const* const* const* const up_templates[] = {
   0,0,f_u_,r_u_};
 
+/*
+CONSTANT static I8 const feov[] = {1,2,0};
+CONSTANT static I8 const fvoe[] = {2,0,1};
+CONSTANT static I8 const* const fo[] = {
+  feov,fvoe};
+CONSTANT static I8 const rfov[] = {2,3,1,0};
+CONSTANT static I8 const rvof[] = {3,2,0,1};
+*/
+CONSTANT static I8 const tet_edges_opp_edges[] = {5,3,4,1,2,0};
+
 extern I8 const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];
 extern char const* const plural_names[DIMS];
