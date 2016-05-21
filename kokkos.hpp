@@ -27,7 +27,7 @@
  * execute only on the device */
 
 #ifdef USE_CUDA
-#define DEVICE __device__
+#define DEVICE __device__ inline
 #else
-#define DEVICE
+#define DEVICE inline
 #endif
