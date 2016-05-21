@@ -189,6 +189,7 @@ INLINE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
     for (Int j = 0; j < 4; ++j) {
       tv2v[t * 4 + j] = hhv2v[case_template[i][j]];
     }
+    ++t;
   }
 }
 

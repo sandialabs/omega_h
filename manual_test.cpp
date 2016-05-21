@@ -6,9 +6,9 @@ int main(int argc, char** argv) {
   init(argc, argv);
   {
   Mesh mesh;
-  build_box(mesh, 1, 1, 0, 5, 13, 0);
+  build_box(mesh, 1, 1, 1, 1, 1, 1);
   std::ofstream file("out.vtu");
-  vtk::write_vtu(file, mesh, 2);
+  vtk::write_vtu(file, mesh);
   }
   fini();
 }
