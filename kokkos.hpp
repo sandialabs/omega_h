@@ -19,3 +19,15 @@
 #define INLINE inline
 #define LAMBDA [=]
 #endif
+
+/* in some cases involving __constant__ data,
+ * we can't have an inline function marked as
+ * __host__ at all (which KOKKOS_INLINE_FUNCTION does),
+ * so we need a separate macro for things that
+ * execute only on the device */
+
+#ifdef USE_CUDA
+#define DEVICE __device__
+#else
+#define DEVICE
+#endif
