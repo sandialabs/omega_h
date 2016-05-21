@@ -6,6 +6,8 @@ class Mesh {
     void set_ents(Int dim, Adj down);
     Int dim() const;
     LO nents(Int dim) const;
+    LO nelems() const;
+    LO nverts() const;
     template <typename T>
     void add_tag(Int dim, std::string const& name, Int ncomps);
     template <typename T>
@@ -38,7 +40,3 @@ class Mesh {
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
 };
-
-void build_from_elems2verts(Mesh& mesh, Int edim, LOs ev2v, LO nverts);
-void build_box(Mesh& mesh, Int dim);
-void write_vtu(std::ostream& stream, Mesh const& mesh);

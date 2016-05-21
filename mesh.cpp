@@ -33,6 +33,14 @@ LO Mesh::nents(Int dim) const {
   return nents_[dim];
 }
 
+LO Mesh::nverts() const {
+  return nents(VERT);
+}
+
+LO Mesh::nelems() const{
+  return nents(dim());
+}
+
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
   check_dim2(dim);

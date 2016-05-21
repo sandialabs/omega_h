@@ -22,4 +22,5 @@
 #include "graph.cpp"
 #include "star.cpp"
 #include "file.cpp"
+#include "base64.cpp"
 #include "vtk.cpp"

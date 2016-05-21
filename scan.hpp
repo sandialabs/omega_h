@@ -1,5 +1,7 @@
 template <typename T2, typename T1>
 Read<T2> offset_scan(Read<T1> a);
+template <typename TO, typename TI>
+Read<TO> scan(Read<TI> a);
 
 /* given an array whose values are
    either non-negative or (-1), and whose
