@@ -7,16 +7,16 @@ class Write {
   Kokkos::View<T*> view_;
 #else
   std::shared_ptr<T> ptr_;
-  Int size_;
+  LO size_;
 #endif
 public:
   Write();
-  Write(Int size);
-  Write(Int size, T value);
-  Write(Int size, T offset, T stride);
+  Write(LO size);
+  Write(LO size, T value);
+  Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
-  Int size() const;
-  INLINE T& operator[](Int i) const {
+  LO size() const;
+  INLINE T& operator[](LO i) const {
 #ifdef CHECK_BOUNDS
     if (i < 0)
       std::cerr << "i = " << i << '\n';
@@ -35,8 +35,8 @@ public:
 #ifdef USE_KOKKOS
   Kokkos::View<T*> view() const;
 #endif
-  void set(Int i, T value) const;
-  T get(Int i) const;
+  void set(LO i, T value) const;
+  T get(LO i) const;
 };
 
 template <typename T>
@@ -45,18 +45,18 @@ class Read {
 public:
   Read();
   Read(Write<T> write);
-  Read(Int size, T value);
-  Read(Int size, T offset, T stride);
+  Read(LO size, T value);
+  Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
-  Int size() const;
-  INLINE T const& operator[](Int i) const {
+  LO size() const;
+  INLINE T const& operator[](LO i) const {
     return write_[i];
   }
   T const* data() const;
 #ifdef USE_KOKKOS
   Kokkos::View<const T*> view() const;
 #endif
-  T get(Int i) const;
+  T get(LO i) const;
 };
 
 template <class T>
@@ -70,7 +70,7 @@ public:
   Reals();
   Reals(Read<Real> base);
   Reals(Write<Real> write);
-  Reals(Int size, Real value);
+  Reals(LO size, Real value);
   Reals(std::initializer_list<Real> l);
 };
 
@@ -93,13 +93,13 @@ class HostWrite {
   typename Kokkos::View<T*>::HostMirror mirror_;
 #endif
 public:
-  HostWrite(Int size);
-  HostWrite(Int size, T offset, T stride);
+  HostWrite(LO size);
+  HostWrite(LO size, T offset, T stride);
   HostWrite(Write<T> write);
   HostWrite(std::initializer_list<T> l);
   Write<T> write() const;
-  Int size() const;
-  inline T& operator[](Int i) const {
+  LO size() const;
+  inline T& operator[](LO i) const {
 #ifdef USE_KOKKOS
 #ifdef CHECK_BOUNDS
     CHECK(0 <= i);
@@ -120,8 +120,8 @@ class HostRead {
 #endif
 public:
   HostRead(Read<T> read);
-  Int size() const;
-  inline T const& operator[](Int i) const {
+  LO size() const;
+  inline T const& operator[](LO i) const {
 #ifdef USE_KOKKOS
 #ifdef CHECK_BOUNDS
     CHECK(0 <= i);

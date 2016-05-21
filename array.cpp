@@ -10,7 +10,7 @@ Write<T>::Write():
 }
 
 template <typename T>
-Write<T>::Write(Int size):
+Write<T>::Write(LO size):
 #ifdef USE_KOKKOS
   view_("omega_h", static_cast<std::size_t>(size))
 #else
@@ -22,14 +22,14 @@ Write<T>::Write(Int size):
 
 template <typename T>
 static void fill(Write<T> a, T val) {
-  auto f = LAMBDA(Int i) {
+  auto f = LAMBDA(LO i) {
     a[i] = val;
   };
   parallel_for(a.size(), f);
 }
 
 template <typename T>
-Write<T>::Write(Int size, T value):
+Write<T>::Write(LO size, T value):
   Write<T>(size)
 {
   fill(*this, value);
@@ -37,14 +37,14 @@ Write<T>::Write(Int size, T value):
 
 template <typename T>
 void fill_linear(Write<T> a, T offset, T stride) {
-  auto f = LAMBDA(Int i) {
+  auto f = LAMBDA(LO i) {
     a[i] = offset + (stride * static_cast<T>(i));
   };
   parallel_for(a.size(), f);
 }
 
 template <typename T>
-Write<T>::Write(Int size, T offset, T stride):
+Write<T>::Write(LO size, T offset, T stride):
   Write<T>(size)
 {
   fill_linear(*this, offset, stride);
@@ -57,9 +57,9 @@ Write<T>::Write(HostWrite<T> host_write):
 }
 
 template <typename T>
-Int Write<T>::size() const {
+LO Write<T>::size() const {
 #ifdef USE_KOKKOS
-  return static_cast<Int>(view_.size());
+  return static_cast<LO>(view_.size());
 #else
   return size_;
 #endif
@@ -82,7 +82,7 @@ Kokkos::View<T*> Write<T>::view() const {
 #endif
 
 template <typename T>
-void Write<T>::set(Int i, T value) const {
+void Write<T>::set(LO i, T value) const {
 #ifdef USE_CUDA
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
@@ -91,7 +91,7 @@ void Write<T>::set(Int i, T value) const {
 }
 
 template <typename T>
-T Write<T>::get(Int i) const {
+T Write<T>::get(LO i) const {
 #ifdef USE_CUDA
   T value;
   cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
@@ -106,7 +106,7 @@ struct Sum : public SumFunctor<T> {
   typedef typename SumFunctor<T>::value_type value_type;
   Read<T> a_;
   Sum(Read<T> a):a_(a) {}
-  INLINE void operator()(Int i, value_type& update) const
+  INLINE void operator()(LO i, value_type& update) const
   {
     update = update + a_[i];
   }
@@ -129,7 +129,7 @@ Reals::Reals(Write<Real> write):
   Read<Real>(write)
 {}
 
-Reals::Reals(Int size, Real value):
+Reals::Reals(LO size, Real value):
   Read<Real>(size, value)
 {}
 
@@ -145,7 +145,7 @@ struct AreClose : public AndFunctor {
   AreClose(Reals a, Reals b, Real tol, Real floor):
     a_(a),b_(b),tol_(tol),floor_(floor)
   {}
-  INLINE void operator()(Int i, value_type& update) const
+  INLINE void operator()(LO i, value_type& update) const
   {
     update = update && are_close(a_[i], b_[i]);
   }
@@ -190,12 +190,12 @@ Read<T>::Read(Write<T> write):
 }
 
 template <typename T>
-Read<T>::Read(Int size, T value):
+Read<T>::Read(LO size, T value):
   write_(size, value) {
 }
 
 template <typename T>
-Read<T>::Read(Int size, T offset, T stride):
+Read<T>::Read(LO size, T offset, T stride):
   write_(size, offset, stride) {
 }
 
@@ -205,7 +205,7 @@ Read<T>::Read(std::initializer_list<T> l):
 }
 
 template <typename T>
-Int Read<T>::size() const {
+LO Read<T>::size() const {
   return write_.size();
 }
 
@@ -222,7 +222,7 @@ Kokkos::View<const T*> Read<T>::view() const {
 #endif
 
 template <typename T>
-T Read<T>::get(Int i) const {
+T Read<T>::get(LO i) const {
   return write_.get(i);
 }
 
@@ -231,7 +231,7 @@ struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
   SameContent(Read<T> a, Read<T> b):a_(a),b_(b) {}
-  INLINE void operator()(Int i, value_type& update) const
+  INLINE void operator()(LO i, value_type& update) const
   {
     update = update && (a_[i] == b_[i]);
   }
@@ -245,7 +245,7 @@ bool operator==(Read<T> a, Read<T> b)
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(Int size):
+HostWrite<T>::HostWrite(LO size):
   write_(size)
 #ifdef USE_KOKKOS
   ,mirror_(Kokkos::create_mirror_view(write_.view()))
@@ -254,7 +254,7 @@ HostWrite<T>::HostWrite(Int size):
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(Int size, T offset, T stride):
+HostWrite<T>::HostWrite(LO size, T offset, T stride):
   HostWrite<T>(Write<T>(size, offset, stride))
 {
 }
@@ -274,8 +274,8 @@ HostWrite<T>::HostWrite(Write<T> write):
 template <typename T>
 HostWrite<T>::HostWrite(std::initializer_list<T> l):
   // an initializer_list should never have over 2 billion items...
-  HostWrite<T>(static_cast<Int>(l.size())) {
-  Int i = 0;
+  HostWrite<T>(static_cast<LO>(l.size())) {
+  LO i = 0;
   for (auto v : l)
     operator[](i++) = v;
 }
@@ -289,7 +289,7 @@ Write<T> HostWrite<T>::write() const {
 }
 
 template <typename T>
-Int HostWrite<T>::size() const {
+LO HostWrite<T>::size() const {
   return write_.size();
 }
 
@@ -306,7 +306,7 @@ HostRead<T>::HostRead(Read<T> read):
 }
 
 template <typename T>
-Int HostRead<T>::size() const {
+LO HostRead<T>::size() const {
   return read_.size();
 }
 
@@ -314,11 +314,11 @@ template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a) {
   HostRead<T> ha = a;
   if (ha.size() <= 20) {
-    for (Int i = 0; i < ha.size(); ++i)
+    for (LO i = 0; i < ha.size(); ++i)
       o << ' ' << ha[i];
     o << '\n';
   } else {
-    for (Int i = 0; i < ha.size(); ++i)
+    for (LO i = 0; i < ha.size(); ++i)
       o << ha[i] << '\n';
   }
   return o;
@@ -327,7 +327,7 @@ std::ostream& operator<<(std::ostream& o, Read<T> a) {
 template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
-  auto f = LAMBDA(Int i) {
+  auto f = LAMBDA(LO i) {
     b[i] = a[i] * factor;
   };
   parallel_for(a.size(), f);
@@ -338,7 +338,7 @@ template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(Int i) {
+  auto f = LAMBDA(LO i) {
     c[i] = a[i] + b[i];
   };
   parallel_for(c.size(), f);
