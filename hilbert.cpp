@@ -20,7 +20,8 @@ Read<I64> dists_from_coords(Reals coords) {
     maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
   int expo;
   frexp(maxl, &expo);
-  Real unit = exp2(Real(expo - MANTISSA_BITS));
+  Int nbits = MANTISSA_BITS;
+  Real unit = exp2(Real(expo - nbits));
   LO npts = coords.size() / dim;
   Write<I64> out(npts * dim);
   auto f = LAMBDA(LO i) {
@@ -30,11 +31,11 @@ Read<I64> dists_from_coords(Reals coords) {
     for (Int j = 0; j < dim; ++j) {
       Real coord = coords[i * dim + j];
       X[j] = hilbert::coord_t((coord - bbox.min[j]) / unit);
-      CHECK(X[j] < (hilbert::coord_t(1) << MANTISSA_BITS));
+      CHECK(X[j] < (hilbert::coord_t(1) << nbits));
     }
-    hilbert::AxestoTranspose(X, MANTISSA_BITS, dim);
+    hilbert::AxestoTranspose(X, nbits, dim);
     hilbert::coord_t Y[dim];
-    hilbert::untranspose(X, Y, MANTISSA_BITS, dim);
+    hilbert::untranspose(X, Y, nbits, dim);
     for (Int j = 0; j < dim; ++j)
     /* this cast *should* be safe... */
       out[i * dim + j] = static_cast<I64>(Y[j]);
