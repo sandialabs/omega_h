@@ -7,4 +7,6 @@ config.hpp
 libomega_h.a
 perf_tests
 unit_tests
+manual_test
 *.dSYM/
+*.vtu
