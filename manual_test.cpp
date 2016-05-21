@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
   Mesh mesh;
   build_box(mesh, 1, 1, 0, 1, 1, 0);
   std::ofstream file("out.vtu");
-  vtk::write_vtu(file, mesh, 1);
+  vtk::write_vtu(file, mesh, 2);
   }
   fini();
 }
