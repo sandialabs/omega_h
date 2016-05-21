@@ -78,3 +78,4 @@ typedef double       Real;
 #include "file.hpp"
 #include "base64.hpp"
 #include "simplify.hpp"
+#include "box.hpp"
