@@ -69,20 +69,16 @@ INLINE Int flip_edge_index(Int index) {
 template <Int nverts_per_ent>
 INLINE Int align_vert_index(Int index, I8 code) {
   index = rotate_index<nverts_per_ent>(index, code_rotation(code));
-  if (code_is_flipped(code))
+  if (code_is_flipped(code)) {
     index = flip_vert_index(index);
+  }
   return index;
 }
 
 INLINE Int align_edge_index(Int index, I8 code) {
-  std::cerr << "aligning edge index " << index << ":\n";
-  std::cerr << "rotation " << code_rotation(code);
   index = rotate_index<3>(index, code_rotation(code));
-  std::cerr << " gives new index " << index << '\n';
   if (code_is_flipped(code)) {
-    std::cerr << "flipping ";
     index = flip_edge_index(index);
-    std::cerr << " gives new index " << index << '\n';
   }
   return index;
 }
