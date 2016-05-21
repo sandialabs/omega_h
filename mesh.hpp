@@ -11,7 +11,10 @@ class Mesh {
     template <typename T>
     void add_tag(Int dim, std::string const& name, Int ncomps);
     template <typename T>
-    void set_tag(Int dim, std::string const& name, Read<T> data);
+    void add_tag(Int dim, std::string const& name, Int ncomps,
+        Read<T> array);
+    template <typename T>
+    void set_tag(Int dim, std::string const& name, Read<T> array);
     template <typename T>
     Tag<T> const& get_tag(Int dim, std::string const& name) const;
     void remove_tag(Int dim, std::string const& name);
@@ -22,6 +25,9 @@ class Mesh {
     bool has_adj(Int from, Int to) const;
     Adj get_adj(Int from, Int to) const;
     Adj ask_adj(Int from, Int to);
+    Adj ask_down(Int from, Int to);
+    Adj ask_up(Int from, Int to);
+    Graph ask_star(Int dim);
     Read<GO> ask_globals(Int dim);
   private:
     typedef std::shared_ptr<TagBase> TagPtr;
@@ -40,7 +46,7 @@ class Mesh {
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
   public:
-    void add_coords();
+    void add_coords(Reals array);
     Reals coords() const;
     void set_coords(Reals array);
 };

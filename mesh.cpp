@@ -51,6 +51,13 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
 }
 
 template <typename T>
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
+    Read<T> array) {
+  add_tag<T>(dim, name, ncomps);
+  set_tag<T>(dim, name, array);
+}
+
+template <typename T>
 void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   CHECK(has_tag(dim, name));
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
@@ -115,6 +122,20 @@ Adj Mesh::ask_adj(Int from, Int to) {
   Adj derived = derive_adj(from, to);
   adjs_[from][to] = AdjPtr(new Adj(derived));
   return derived;
+}
+
+Adj Mesh::ask_down(Int from, Int to) {
+  CHECK(to < from);
+  return ask_adj(from, to);
+}
+
+Adj Mesh::ask_up(Int from, Int to) {
+  CHECK(from < to);
+  return ask_adj(from, to);
+}
+
+Graph Mesh::ask_star(Int dim) {
+  return ask_adj(dim, dim);
 }
 
 Read<GO> Mesh::ask_globals(Int dim) {
@@ -203,8 +224,8 @@ Adj Mesh::derive_adj(Int from, Int to) {
       plural_names[from], plural_names[to]);
 }
 
-void Mesh::add_coords() {
-  add_tag<Real>(0, "coordinates", dim());
+void Mesh::add_coords(Reals array) {
+  add_tag<Real>(0, "coordinates", dim(), array);
 }
 
 Reals Mesh::coords() const {
@@ -219,6 +240,8 @@ void Mesh::set_coords(Reals array) {
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps); \
+template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
+    Read<T> array); \
 template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array);
 INST_T(I8)
 INST_T(I32)

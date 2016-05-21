@@ -23,8 +23,7 @@ void build_from_elems2verts(Mesh& mesh, Int edim, LOs ev2v, LO nverts) {
 void build_from_elems_and_coords(Mesh& mesh, Int edim, LOs ev2v, Reals coords) {
   LO nverts = coords.size() / edim;
   build_from_elems2verts(mesh, edim, ev2v, nverts);
-  mesh.add_coords();
-  mesh.set_coords(coords);
+  mesh.add_coords(coords);
 }
 
 void build_box(Mesh& mesh,
