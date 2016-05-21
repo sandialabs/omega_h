@@ -22,6 +22,15 @@ void Mesh::set_ents(Int dim, Adj down) {
   CHECK(hl2l.size() % simplex_degrees[dim][dim - 1] == 0);
   nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
+  if (dim == 2) {
+    std::cerr << "triangles to edges defined as:\n";
+    for (Int i = 0; i < nents(dim); ++i) {
+      std::cerr << "[" << i << "]:";
+      for (Int j = 0; j < 3; ++j)
+        std::cerr << ' ' << down.ab2b[i * 3 + j];
+      std::cerr << '\n';
+    }
+  }
 }
 
 Int Mesh::dim() const {
