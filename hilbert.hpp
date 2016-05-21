@@ -77,18 +77,10 @@ INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
     out[i / b] |= (((in[i % n] >> (b - 1 - (i / n))) & 1) << (b - 1 - (i % b)));
 }
 
-}//end namespace hilbert
+/* output a permutation from sorted points to input
+   points, such that their ordering reflects the
+   traversal of a fine-scale Hilbert curve over
+   the bounding box of the points */
+LOs sort_coords(Reals coords, I8 dim);
 
-/* for each set of (dim) floating-point coordinates, this function
-   outputs a set of (dim) 64-bit integers which represent the
-   closest point of a fine-grid Hilbert curve to the coordinates.
-   the resolution of the grid is chosen to be 52 bits (the floating-point
-   mantissa size), giving 2^52 grid points per axis,
-   and is scaled to the bounding box of the coordinates.
-   the output integers are such that sort_by_keys() will sort along the
-   Hilbert curve.
-   More precisely, the bits of the Hilbert distance are spread evenly
-   among the integers, with the first integer getting the most significant
-   bits, and the last integer getting the least significant bits. */
-Read<I64> hilbert_dists_from_coords(Reals coords, I8 dim);
-LOs sort_coords_by_hilbert(Reals coords, I8 dim);
+}//end namespace hilbert
