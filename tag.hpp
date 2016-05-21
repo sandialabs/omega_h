@@ -13,10 +13,10 @@ template <typename T>
 class Tag : public TagBase {
   public:
     Tag(std::string const& name, Int ncomps);
-    Read<T> data() const;
-    void set_data(Read<T> data);
+    Read<T> array() const;
+    void set_array(Read<T> array);
   private:
-    Read<T> data_;
+    Read<T> array_;
 };
 
 template <typename T>

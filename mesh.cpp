@@ -51,11 +51,11 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
 }
 
 template <typename T>
-void Mesh::set_tag(Int dim, std::string const& name, Read<T> data) {
+void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   CHECK(has_tag(dim, name));
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
-  CHECK(data.size() == nents(dim) * tag->ncomps());
-  tag->set_data(data);
+  CHECK(array.size() == nents(dim) * tag->ncomps());
+  tag->set_array(array);
 }
 
 template <typename T>
@@ -122,7 +122,7 @@ Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
     return Read<GO>(nents(dim), 0, 1);
   }
-  return get_tag<GO>(dim, "global").data();
+  return get_tag<GO>(dim, "global").array();
 }
 
 struct HasName {
@@ -207,7 +207,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps); \
-template void Mesh::set_tag(Int dim, std::string const& name, Read<T> data);
+template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

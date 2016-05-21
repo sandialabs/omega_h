@@ -36,13 +36,13 @@ Tag<T>::Tag(std::string const& name, Int ncomps):
 }
 
 template <typename T>
-Read<T> Tag<T>::data() const {
-  return data_;
+Read<T> Tag<T>::array() const {
+  return array_;
 }
 
 template <typename T>
-void Tag<T>::set_data(Read<T> data) {
-  data_ = data;
+void Tag<T>::set_array(Read<T> array) {
+  array_ = array;
 }
 
 #define INST_T(T) \
