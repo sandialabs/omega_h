@@ -141,12 +141,14 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int dim)
     // this ad-hoc filter adds a 3rd zero component to any
     // fields with 2 components for 2D meshes
     if (dim == 2 && tag->ncomps() == dim) {
-      Write<Real> tmp((array.size() / 2) * 3);
+      Int np = array.size() / 2;
+      Write<Real> tmp(np * 3);
       auto f = LAMBDA(Int i) {
         tmp[i * 3 + 0] = array[i * 2 + 0];
         tmp[i * 3 + 1] = array[i * 2 + 1];
         tmp[i * 3 + 2] = 0.0;
       };
+      parallel_for(np, f);
       write_array(stream, tag->name(), 3, Reals(tmp));
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array);
