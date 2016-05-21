@@ -210,7 +210,7 @@ void write_connectivity(std::ostream& stream, Mesh& mesh, Int cell_dim)
                                  simplex_degrees[cell_dim][VERT]);
   write_array(stream, "connectivity", 1, ev2v);
   write_array(stream, "offsets", 1, ends);
-  Read<I8> types(mesh.nelems(), vtk_types[cell_dim]);
+  Read<I8> types(mesh.nents(cell_dim), vtk_types[cell_dim]);
   write_array(stream, "types", 1, types);
 }
 
