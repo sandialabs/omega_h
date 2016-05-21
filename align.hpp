@@ -42,16 +42,15 @@ INLINE Int code_which_down(I8 code) {
   return (code >> 3);
 }
 
-template <Int deg>
+template <Int nverts_per_ent>
 INLINE Int rotate_index(Int index, Int rotation) {
-  return (index + rotation) % deg;
+  return (index + rotation) % nverts_per_ent;
 }
 
 /* all the following can probably be optimized
    down to a few integer ops by an expert... */
 
-template <Int deg>
-INLINE Int flip_index(Int index) {
+INLINE Int flip_vert_index(Int index) {
   switch(index) {
     case 1: return 2;
     case 2: return 1;
@@ -59,44 +58,66 @@ INLINE Int flip_index(Int index) {
   }
 }
 
-template <Int deg>
-INLINE Int align_index(Int index, I8 code) {
-  index = rotate_index<deg>(index, code_rotation(code));
-  if (code_is_flipped(code))
-    index = flip_index<deg>(index);
+INLINE Int flip_edge_index(Int index) {
+  switch(index) {
+    case 0: return 2;
+    case 2: return 0;
+    default: return 1;
+  }
+}
+
+template <Int nverts_per_ent>
+INLINE Int align_vert_index(Int index, I8 code) {
+  index = rotate_index<nverts_per_ent>(index, code_rotation(code));
+  if (code_is_flipped(code)) {
+    index = flip_vert_index(index);
+  }
   return index;
 }
 
-INLINE Int align_index(Int deg, Int index, I8 code) {
-  if (deg == 3)
-    return align_index<3>(index, code);
-  if (deg == 2)
-    return align_index<2>(index, code);
+INLINE Int align_edge_index(Int index, I8 code) {
+  index = rotate_index<3>(index, code_rotation(code));
+  if (code_is_flipped(code)) {
+    index = flip_edge_index(index);
+  }
+  return index;
+}
+
+INLINE Int align_index(Int nverts_per_ent, Int index_dim, Int index, I8 code) {
+  if (nverts_per_ent == 3) {
+    if (index_dim == 1) {
+      return align_edge_index(index, code);
+    } else {
+      return align_vert_index<3>(index, code);
+    }
+  } if (nverts_per_ent == 2) {
+    return align_vert_index<2>(index, code);
+  }
   NORETURN(0);
 }
 
-template <Int deg>
+template <Int nverts_per_ent>
 INLINE Int invert_rotation(Int rotation) {
-  return (deg - rotation) % deg;
+  return (nverts_per_ent - rotation) % nverts_per_ent;
 }
 
-template <Int deg>
+template <Int nverts_per_ent>
 INLINE Int rotation_to_first(Int new_first) {
-  return invert_rotation<deg>(new_first);
+  return invert_rotation<nverts_per_ent>(new_first);
 }
 
-template <Int deg>
+template <Int nverts_per_ent>
 INLINE I8 invert_alignment(I8 code) {
   if (code_is_flipped(code))
     return code; // I think flipped codes are their own inverses
   return make_code(false,
-      invert_rotation<deg>(code_rotation(code)), 0);
+      invert_rotation<nverts_per_ent>(code_rotation(code)), 0);
 }
 
-INLINE I8 invert_alignment(Int deg, I8 code) {
-  if (deg == 3)
+INLINE I8 invert_alignment(Int nverts_per_ent, I8 code) {
+  if (nverts_per_ent == 3)
     return invert_alignment<3>(code);
-  if (deg == 2)
+  if (nverts_per_ent == 2)
     return invert_alignment<2>(code);
   NORETURN(0);
 }
@@ -104,24 +125,25 @@ INLINE I8 invert_alignment(Int deg, I8 code) {
 /* returns the single transformation equivalent
    to applying the (code1) transformation followed
    by the (code2) one. */
-template <Int deg>
+template <Int nverts_per_ent>
 INLINE I8 compound_alignments(I8 code1, I8 code2) {
   /* we can look for the inverse of the compound
-     by looking at what happens to the index
+     by looking at what happens to the vertex
      that used to be first (0) */
-  Int old_first = align_index<deg>(align_index<deg>(0, code1), code2);
+  Int old_first = align_vert_index<nverts_per_ent>(
+      align_vert_index<nverts_per_ent>(0, code1), code2);
   /* the inverse transformation would bring that
-     index back to being the first */
-  Int rotation = rotation_to_first<deg>(old_first);
+     vertex back to being the first */
+  Int rotation = rotation_to_first<nverts_per_ent>(old_first);
   bool is_flipped = (code_is_flipped(code1) ^ code_is_flipped(code2));
-  return invert_alignment<deg>(make_code(is_flipped, rotation, 0));
+  return invert_alignment<nverts_per_ent>(make_code(is_flipped, rotation, 0));
 }
 
-template <Int deg, typename T>
+template <Int nverts_per_ent, typename T>
 INLINE void rotate_adj(Int rotation,
     T const in[], T out[]) {
-  for (I8 j = 0; j < deg; ++j)
-    out[rotate_index<deg>(j, rotation)] = in[j];
+  for (I8 j = 0; j < nverts_per_ent; ++j)
+    out[rotate_index<nverts_per_ent>(j, rotation)] = in[j];
 }
 
 template <typename T>
@@ -129,10 +151,10 @@ INLINE void flip_adj(T adj[]) {
   swap2(adj[1], adj[2]);
 }
 
-template <Int deg, typename T>
+template <Int nverts_per_ent, typename T>
 INLINE void align_adj(I8 code,
     T const in[], T out[]) {
-  rotate_adj<deg>(code_rotation(code), in, out);
+  rotate_adj<nverts_per_ent>(code_rotation(code), in, out);
   if (code_is_flipped(code))
     flip_adj(out);
 }

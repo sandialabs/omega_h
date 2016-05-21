@@ -18,16 +18,20 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   auto f = LAMBDA(LO h) {
     LO hl_begin = h * nlows_per_high;
     LO hm_begin = h * nmids_per_high;
-    for (LO hl = 0; hl < nlows_per_high; ++hl) {
+    for (Int hl = 0; hl < nlows_per_high; ++hl) {
       UpTemplate ut = up_templates[high_dim][low_dim][hl][0];
       Int hm = ut.up;
       Int hml = ut.which_down;
       LO m = hm2m[hm_begin + hm];
       auto m2hm_code = m2hm_codes[hm_begin + hm];
       auto hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
-      Int ml = align_index(nlows_per_mid, hml, hm2m_code);
+      Int ml = align_index(nlows_per_mid, low_dim, hml, hm2m_code);
       LO ml_begin = m * nlows_per_mid;
       LO l = ml2l[ml_begin + ml];
+      //safety check for duplicates.
+      //remove after this code is heavily exercised (or don't)
+      for (Int hhl2 = 0; hhl2 < hl; ++hhl2)
+        CHECK(l != hl2l[hl_begin + hhl2]);
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
         auto tet_tri_code = hm2m_code;
