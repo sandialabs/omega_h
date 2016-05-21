@@ -18,20 +18,24 @@ Read<I64> dists_from_coords(Reals coords) {
   Real maxl = 0;
   for (Int i = 0; i < dim; ++i)
     maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
-  int expo;
-  frexp(maxl, &expo);
-  Int nbits = MANTISSA_BITS;
-  Real unit = exp2(Real(expo - nbits));
   LO npts = coords.size() / dim;
   Write<I64> out(npts * dim);
   auto f = LAMBDA(LO i) {
     hilbert::coord_t X[dim];
-    /* floating-point coordinate to fine-grid integer coordinate,
-       should be non-negative since we subtract the BBox min */
+    Int nbits = MANTISSA_BITS;
     for (Int j = 0; j < dim; ++j) {
+      /* floating-point coordinate to fine-grid integer coordinate,
+         should be non-negative since we subtract the BBox min */
       Real coord = coords[i * dim + j];
-      X[j] = hilbert::coord_t((coord - bbox.min[j]) / unit);
-      CHECK(X[j] < (hilbert::coord_t(1) << nbits));
+      Real zero_to_one_coord = (coord - bbox.min[j])/maxl;
+      Real zero_to_2eP_coord = zero_to_one_coord * exp2(Real(nbits));
+      X[j] = hilbert::coord_t(zero_to_2eP_coord);
+      /* some values will just graze the acceptable range
+         (with proper floating point math they are exactly
+          equal to 2^(nbits), and we'll be safe with (>=) in case
+         floating point math is even worse than that. */
+      if (X[j] >= (hilbert::coord_t(1) << nbits))
+        X[j] = (hilbert::coord_t(1) << nbits) - 1;
     }
     hilbert::AxestoTranspose(X, nbits, dim);
     hilbert::coord_t Y[dim];
