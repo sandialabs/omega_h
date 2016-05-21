@@ -81,6 +81,6 @@ INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
    points, such that their ordering reflects the
    traversal of a fine-scale Hilbert curve over
    the bounding box of the points */
-LOs sort_coords(Reals coords, I8 dim);
+LOs sort_coords(Reals coords, Int dim);
 
 }//end namespace hilbert

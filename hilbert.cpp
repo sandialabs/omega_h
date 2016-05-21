@@ -27,14 +27,14 @@ Read<I64> dists_from_coords(Reals coords) {
     hilbert::coord_t X[dim];
     /* floating-point coordinate to fine-grid integer coordinate,
        should be non-negative since we subtract the BBox min */
-    for (I8 j = 0; j < dim; ++j) {
+    for (Int j = 0; j < dim; ++j) {
       X[j] = hilbert::coord_t((coords[i * dim + j] - bbox.min[j]) / unit);
       CHECK(X[j] < (hilbert::coord_t(1) << MANTISSA_BITS));
     }
     hilbert::AxestoTranspose(X, MANTISSA_BITS, dim);
     hilbert::coord_t Y[dim];
     hilbert::untranspose(X, Y, MANTISSA_BITS, dim);
-    for (I8 j = 0; j < dim; ++j)
+    for (Int j = 0; j < dim; ++j)
     /* this cast *should* be safe... */
       out[i * dim + j] = static_cast<I64>(Y[j]);
   };
@@ -48,7 +48,7 @@ static LOs sort_coords_tmpl(Reals coords) {
   return sort_by_keys<I64,dim>(keys);
 }
 
-LOs sort_coords(Reals coords, I8 dim) {
+LOs sort_coords(Reals coords, Int dim) {
   if (dim == 3)
     return sort_coords_tmpl<3>(coords);
   if (dim == 2)
