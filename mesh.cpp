@@ -203,6 +203,18 @@ Adj Mesh::derive_adj(Int from, Int to) {
       plural_names[from], plural_names[to]);
 }
 
+void Mesh::add_coords() {
+  add_tag<Real>(0, "coordinates", dim());
+}
+
+Reals Mesh::coords() const {
+  return get_tag<Real>(0, "coordinates").array();
+}
+
+void Mesh::set_coords(Reals array) {
+  set_tag<Real>(0, "coordinates", array);
+}
+
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \

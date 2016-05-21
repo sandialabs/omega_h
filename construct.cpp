@@ -20,6 +20,13 @@ void build_from_elems2verts(Mesh& mesh, Int edim, LOs ev2v, LO nverts) {
   add_ents2verts(mesh, edim, ev2v);
 }
 
+void build_from_elems_and_coords(Mesh& mesh, Int edim, LOs ev2v, Reals coords) {
+  LO nverts = coords.size() / edim;
+  build_from_elems2verts(mesh, edim, ev2v, nverts);
+  mesh.add_coords();
+  mesh.set_coords(coords);
+}
+
 void build_box(Mesh& mesh,
     Real x, Real y, Real z,
     LO nx, LO ny, LO nz) {
@@ -31,12 +38,12 @@ void build_box(Mesh& mesh,
     Reals coords;
     make_2d_box(x, y, nx, ny, qv2v, coords);
     LOs tv2v = simplify::tris_from_quads(qv2v);
-    build_from_elems2verts(mesh, TRI, tv2v, (nx + 1) * (ny + 1));
+    build_from_elems_and_coords(mesh, TRI, tv2v, coords);
   } else {
     LOs hv2v;
     Reals coords;
     make_3d_box(x, y, z, nx, ny, nz, hv2v, coords);
     LOs tv2v = simplify::tets_from_hexes(hv2v);
-    build_from_elems2verts(mesh, TET, tv2v, (nx + 1) * (ny + 1) * (nz + 1));
+    build_from_elems_and_coords(mesh, TET, tv2v, coords);
   }
 }

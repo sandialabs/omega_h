@@ -39,4 +39,8 @@ class Mesh {
     LO nents_[DIMS];
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
+  public:
+    void add_coords();
+    Reals coords() const;
+    void set_coords(Reals array);
 };
