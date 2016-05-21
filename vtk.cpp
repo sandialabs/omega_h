@@ -174,7 +174,7 @@ enum Type {
   VTK_PYRAMID        =14
 };
 
-CONSTANT static I8 const vtk_types[DIMS] = {
+static I8 const vtk_types[DIMS] = {
   VTK_VERTEX,
   VTK_LINE,
   VTK_TRIANGLE,

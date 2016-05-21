@@ -77,7 +77,7 @@ CONSTANT Int const hex_flip_pairs[4][2] = {
   {2,6}
 };
 
-INLINE void flip_hex(LO hhv2v[]) {
+DEVICE void flip_hex(LO hhv2v[]) {
   for (Int i = 0; i < 4; ++i)
     swap2(hhv2v[hex_flip_pairs[i][0]],
           hhv2v[hex_flip_pairs[i][1]]);
@@ -100,7 +100,7 @@ CONSTANT Int const hex_bur_faces[3][4] = {
 CONSTANT Int const hex_bur_ring[6] = {
   1,2,3,7,5,4};
 
-INLINE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
+DEVICE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
   LO tmp[6];
   for (Int i = 0; i < 6; ++i) {
     tmp[i] = hhv2v[hex_bur_ring[i]];
@@ -114,7 +114,7 @@ INLINE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
 /* rotate the hex around its centroidal XYZ axis such
    that face (new_right) becomes the right face.
    (new_right) corresponds to the table hex_bur_faces[] */
-INLINE void hex_bur_rot_to_right(LO hhv2v[], Int new_right) {
+DEVICE void hex_bur_rot_to_right(LO hhv2v[], Int new_right) {
   hex_bur_rot_ntimes(hhv2v, ((3 - new_right) % 3));
 }
 
@@ -147,7 +147,7 @@ LOs tris_from_quads(LOs qv2v) {
   return tv2v;
 }
 
-INLINE void tets_from_hex_1(
+DEVICE void tets_from_hex_1(
     LO h,
     LOs hv2v,
     LO hhv2v[],
