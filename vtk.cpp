@@ -126,7 +126,7 @@ void write_array(std::ostream& stream, std::string const& name,
   stream << "</DataArray>\n";
 }
 
-void write_tag(std::ostream& stream, TagBase const* tag, Int dim)
+void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
 {
   if (is<I8>(tag))
     write_array(stream, tag->name(), tag->ncomps(), to<I8>(tag)->data());
@@ -140,7 +140,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int dim)
     // regardless of whether this is a 2D mesh or not.
     // this ad-hoc filter adds a 3rd zero component to any
     // fields with 2 components for 2D meshes
-    if (dim == 2 && tag->ncomps() == dim) {
+    if (space_dim == 2 && tag->ncomps() == space_dim) {
       Int np = array.size() / 2;
       Write<Real> tmp(np * 3);
       auto f = LAMBDA(Int i) {
@@ -197,38 +197,42 @@ static void write_vtkfile_start_tag(std::ostream& stream)
   stream << ">\n";
 }
 
-void write_piece_start_tag(std::ostream& stream, Mesh const& mesh)
+void write_piece_start_tag(std::ostream& stream, Mesh const& mesh, Int cell_dim)
 {
   stream << "<Piece NumberOfPoints=\"" << mesh.nverts() << "\"";
-  stream << " NumberOfCells=\"" << mesh.nelems() << "\">\n";
+  stream << " NumberOfCells=\"" << mesh.nents(cell_dim) << "\">\n";
 }
 
-void write_connectivity(std::ostream& stream, Mesh& mesh)
+void write_connectivity(std::ostream& stream, Mesh& mesh, Int cell_dim)
 {
-  LOs ev2v = mesh.ask_adj(mesh.dim(), VERT).ab2b;
-  LOs ends(mesh.nelems(), simplex_degrees[mesh.dim()][VERT],
-                         simplex_degrees[mesh.dim()][VERT]);
+  LOs ev2v = mesh.ask_adj(cell_dim, VERT).ab2b;
+  LOs ends(mesh.nents(cell_dim), simplex_degrees[cell_dim][VERT],
+                                 simplex_degrees[cell_dim][VERT]);
   write_array(stream, "connectivity", 1, ev2v);
   write_array(stream, "offsets", 1, ends);
-  Read<I8> types(mesh.nelems(), vtk_types[mesh.dim()]);
+  Read<I8> types(mesh.nelems(), vtk_types[cell_dim]);
   write_array(stream, "types", 1, types);
 }
 
-}
+}//end anonymous namespace
 
-void write_vtu(std::ostream& stream, Mesh& mesh) {
+void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
   write_vtkfile_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
-  write_piece_start_tag(stream, mesh);
+  write_piece_start_tag(stream, mesh, cell_dim);
   stream << "<Points>\n";
   write_tag(stream, &(mesh.get_tag<Real>(VERT,"coordinates")), mesh.dim());
   stream << "</Points>\n";
   stream << "<Cells>\n";
-  write_connectivity(stream, mesh);
+  write_connectivity(stream, mesh, cell_dim);
   stream << "</Cells>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
   stream << "</VTKFile>\n";
+}
+
+void write_vtu(std::ostream& stream, Mesh& mesh) {
+  write_vtu(stream, mesh, mesh.dim());
 }
 
 }//end namespace vtk
