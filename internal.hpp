@@ -77,3 +77,4 @@ typedef double       Real;
 #include "hilbert.hpp"
 #include "file.hpp"
 #include "base64.hpp"
+#include "simplify.hpp"
