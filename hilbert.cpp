@@ -22,13 +22,14 @@ Read<I64> dists_from_coords(Reals coords) {
   frexp(maxl, &expo);
   Real unit = exp2(Real(expo - MANTISSA_BITS));
   LO npts = coords.size() / dim;
-  Write<I64> out;
+  Write<I64> out(npts * dim);
   auto f = LAMBDA(LO i) {
     hilbert::coord_t X[dim];
     /* floating-point coordinate to fine-grid integer coordinate,
        should be non-negative since we subtract the BBox min */
     for (Int j = 0; j < dim; ++j) {
-      X[j] = hilbert::coord_t((coords[i * dim + j] - bbox.min[j]) / unit);
+      Real coord = coords[i * dim + j];
+      X[j] = hilbert::coord_t((coord - bbox.min[j]) / unit);
       CHECK(X[j] < (hilbert::coord_t(1) << MANTISSA_BITS));
     }
     hilbert::AxestoTranspose(X, MANTISSA_BITS, dim);
