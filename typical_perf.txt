@@ -1,16 +1,14 @@
 MacBook serial:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.780168 seconds
-inversion of 1000000 metric tensors 30 times takes 1.00692 seconds
-reproducibly adding 1000000 reals 100 times takes 0.623655 seconds
-adding 1000000 reals 100 times takes 0.110019 seconds
-sorting 1000000 sets of 1 integers 5 times takes 0.627075 seconds
-sorting 1000000 sets of 2 integers 5 times takes 0.909729 seconds
-sorting 1000000 sets of 3 integers 5 times takes 0.944549 seconds
-inverting 471055 tets -> verts 5 times takes 0.351886 seconds
-reflect_down 471055 tets -> tris by sorting 2 times takes 1.16181 seconds
-reflect_down 471055 tets -> tris by invert+upward 2 times takes 1.29387 seconds
-reflect_down 471055 tets -> tris by only upward 2 times takes 1.05398 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.683257 seconds
+inversion of 1000000 metric tensors 30 times takes 0.91722 seconds
+reproducibly adding 1000000 reals 100 times takes 0.640139 seconds
+adding 1000000 reals 100 times takes 0.115755 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.574495 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.834005 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.85987 seconds
+inverting 471055 tets -> verts 5 times takes 0.461878 seconds
+reflect_down 471055 tets -> tris by only upward 2 times takes 0.844606 seconds
 
 Pachisi with 8 threads:
 
