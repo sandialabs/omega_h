@@ -9,3 +9,5 @@ void reorder_down(Mesh& old_mesh, Mesh& new_mesh,
     LOs old_lows2new_lows);
 void reorder_mesh(Mesh& old_mesh, Mesh& new_mesh,
     LOs new_verts2old_verts);
+void reorder_mesh(Mesh& mesh,
+    LOs new_verts2old_verts);

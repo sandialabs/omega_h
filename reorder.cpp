@@ -93,3 +93,10 @@ void reorder_mesh(Mesh& old_mesh, Mesh& new_mesh,
     old_lows2new_lows = invert_permutation(new_ents2old_ents);
   }
 }
+
+void reorder_mesh(Mesh& mesh,
+    LOs new_verts2old_verts) {
+  Mesh new_mesh;
+  reorder_mesh(mesh, new_mesh, new_verts2old_verts);
+  mesh = new_mesh;
+}
