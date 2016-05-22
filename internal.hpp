@@ -82,3 +82,4 @@ typedef double       Real;
 #include "surface.hpp"
 #include "mark.hpp"
 #include "classify.hpp"
+#include "reorder.hpp"

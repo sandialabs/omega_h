@@ -29,3 +29,4 @@
 #include "surface.cpp"
 #include "mark.cpp"
 #include "classify.cpp"
+#include "reorder.cpp"
