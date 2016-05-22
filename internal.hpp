@@ -81,3 +81,4 @@ typedef double       Real;
 #include "box.hpp"
 #include "surface.hpp"
 #include "mark.hpp"
+#include "classify.hpp"

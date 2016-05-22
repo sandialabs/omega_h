@@ -28,3 +28,4 @@
 #include "box.cpp"
 #include "surface.cpp"
 #include "mark.cpp"
+#include "classify.cpp"
