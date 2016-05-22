@@ -28,13 +28,13 @@ reflect_down 471055 tets -> tris by only upward 2 times takes 0.137613 seconds
 
 Shannon K80:
 
-eigendecomposition of 1000000 metric tensors 3 times takes 0.0463889 seconds
-inversion of 1000000 metric tensors 30 times takes 0.161355 seconds
-reproducibly adding 1000000 reals 100 times takes 0.0251994 seconds
-adding 1000000 reals 100 times takes 0.0099045 seconds
+eigendecomposition of 1000000 metric tensors 3 times takes 0.0464862 seconds
+inversion of 1000000 metric tensors 30 times takes 0.160404 seconds
+reproducibly adding 1000000 reals 100 times takes 0.0250536 seconds
+adding 1000000 reals 100 times takes 0.00984668 seconds
 warning: the naive sum gave the same answer
-sorting 1000000 sets of 1 integers 5 times takes 0.0728024 seconds
-sorting 1000000 sets of 2 integers 5 times takes 0.0947148 seconds
-sorting 1000000 sets of 3 integers 5 times takes 0.114276 seconds
-inverting 471055 tets -> verts 5 times takes 0.113441 seconds
-reflect_down 471055 tets -> tris by only upward 2 times takes 0.047741 seconds
+sorting 1000000 sets of 1 integers 5 times takes 0.0722773 seconds
+sorting 1000000 sets of 2 integers 5 times takes 0.0943194 seconds
+sorting 1000000 sets of 3 integers 5 times takes 0.114353 seconds
+inverting 471055 tets -> verts 5 times takes 0.113828 seconds
+reflect_down 471055 tets -> tris by only upward 2 times takes 0.048326 seconds
