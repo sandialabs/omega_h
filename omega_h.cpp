@@ -26,3 +26,4 @@
 #include "vtk.cpp"
 #include "simplify.cpp"
 #include "box.cpp"
+#include "surface.cpp"

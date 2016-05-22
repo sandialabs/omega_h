@@ -36,3 +36,11 @@ INLINE Vector<n> get_vec(Arr a, Int i) {
     v[j] = a[i * n + j];
   return v;
 }
+
+template <Int neev, Int dim>
+INLINE Few<Vector<dim>, neev> gather_vectors(Reals a, LOs ev2v, Int e) {
+  Few<Vector<dim>, neev> x;
+  for (Int i = 0; i < neev; ++i)
+    x[i] = get_vec<dim>(a, ev2v[e * neev + i]);
+  return x;
+}

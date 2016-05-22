@@ -7,6 +7,8 @@ LOs invert_permutation(LOs a2b);
 
 LOs collect_marked(Read<I8> marks);
 
+LOs invert_injective_map(LOs a2b, LO nb);
+
 LOs invert_funnel(LOs ab2a, LO na);
 
 namespace map {

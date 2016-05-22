@@ -51,6 +51,14 @@ LOs collect_marked(Read<I8> marks) {
   return marked;
 }
 
+LOs invert_injective_map(LOs a2b, LO nb) {
+  Write<LO> b2a(nb, -1);
+  auto f = LAMBDA(LO a) {
+    b2a[a2b[a]] = a;
+  };
+  return b2a;
+}
+
 LOs invert_funnel(LOs ab2a, LO na) {
   LO nab = ab2a.size();
   Write<LO> a2ab(na + 1, -1);
