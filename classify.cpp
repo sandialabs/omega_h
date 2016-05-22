@@ -52,6 +52,7 @@ void classify_vertices_by_sharp_edges(Mesh& mesh,
 
 void classify_by_angles(Mesh& mesh, Real sharp_angle) {
   auto dim = mesh.dim();
+  mesh.add_tag<I8>(dim, "class_dim", 1, Read<I8>(mesh.nelems(), static_cast<I8>(dim)));
   auto side_is_exposed = mark_exposed_sides(mesh);
   classify_sides_by_exposure(mesh, side_is_exposed);
   auto hinge_is_exposed = mark_down(mesh, dim - 1, dim - 2, side_is_exposed);
