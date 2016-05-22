@@ -3,7 +3,7 @@ Read<I8> mark_exposed_sides(Mesh& mesh) {
   auto s2sc = mesh.ask_adj(mesh.dim() - 1, mesh.dim()).a2ab;
   Write<I8> exposed(ns);
   auto f = LAMBDA(LO s) {
-    exposed[s] = static_cast<I8>(s2sc[s + 1] - s2sc[s] - 1);
+    exposed[s] = ((s2sc[s + 1] - s2sc[s]) < 2);
   };
   parallel_for(ns, f);
   return exposed;
