@@ -78,7 +78,7 @@ LOs find_unique(LOs uv2v) {
   Read<I8> jumps = find_jumps<deg>(uv2v_canon, sorted2u);
   LOs e2sorted = collect_marked(jumps);
   LOs e2u = compound_maps(e2sorted, sorted2u);
-  return unmap<LO,deg>(e2u, uv2v);
+  return unmap<LO>(e2u, uv2v, deg);
 }
 
 LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {

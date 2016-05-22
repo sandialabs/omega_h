@@ -1,5 +1,5 @@
-template <typename T, Int width = 1>
-Read<T> unmap(LOs a2b, Read<T> b_data);
+template <typename T>
+Read<T> unmap(LOs a2b, Read<T> b_data, Int width = 1);
 
 LOs compound_maps(LOs a2b, LOs b2c);
 

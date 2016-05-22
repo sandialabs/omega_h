@@ -1,5 +1,5 @@
-template <typename T, Int width>
-Read<T> unmap(LOs a2b, Read<T> b_data) {
+template <typename T>
+Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
   LO na = a2b.size();
   Write<T> a_data(na * width);
   auto f = LAMBDA(LO a) {
@@ -11,10 +11,10 @@ Read<T> unmap(LOs a2b, Read<T> b_data) {
   return a_data;
 }
 
-template Read<I8  > unmap(LOs a2b, Read<I8  > b_data);
-template Read<I32 > unmap(LOs a2b, Read<I32 > b_data);
-template Read<I64 > unmap(LOs a2b, Read<I64 > b_data);
-template Read<Real> unmap(LOs a2b, Read<Real> b_data);
+template Read<I8  > unmap(LOs a2b, Read<I8  > b_data, Int width);
+template Read<I32 > unmap(LOs a2b, Read<I32 > b_data, Int width);
+template Read<I64 > unmap(LOs a2b, Read<I64 > b_data, Int width);
+template Read<Real> unmap(LOs a2b, Read<Real> b_data, Int width);
 
 LOs compound_maps(LOs a2b, LOs b2c) {
   LO na = a2b.size();
