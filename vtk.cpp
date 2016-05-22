@@ -128,13 +128,13 @@ void write_array(std::ostream& stream, std::string const& name,
 
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
 {
-  if (is<I8>(tag))
+  if (is<I8>(tag)) {
     write_array(stream, tag->name(), tag->ncomps(), to<I8>(tag)->array());
-  else if (is<I32>(tag))
+  } else if (is<I32>(tag)) {
     write_array(stream, tag->name(), tag->ncomps(), to<I32>(tag)->array());
-  else if (is<I64>(tag))
+  } else if (is<I64>(tag)) {
     write_array(stream, tag->name(), tag->ncomps(), to<I64>(tag)->array());
-  else if (is<Real>(tag)) {
+  } else if (is<Real>(tag)) {
     Reals array = to<Real>(tag)->array();
     // VTK / Paraview expect vector fields to have 3 components
     // regardless of whether this is a 2D mesh or not.
@@ -153,8 +153,9 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array);
     }
-  } else
+  } else {
     fail("unknown tag type in write_tag");
+  }
 }
 
 enum Type {
