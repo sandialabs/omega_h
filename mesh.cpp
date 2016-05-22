@@ -206,6 +206,11 @@ Adj Mesh::derive_adj(Int from, Int to) {
     Adj h2l = transit(h2m, m2l, from, to);
     return h2l;
   } else {
+    if (from == dim() && to == dim()) {
+      return elements_across_sides(dim(),
+          ask_adj(dim(), dim() - 1), ask_adj(dim() - 1, dim()),
+          mark_exposed_sides(*this));
+    }
     if (from == VERT && to == VERT) {
       return verts_across_edges(ask_adj(EDGE,VERT), ask_adj(VERT,EDGE));
     }
@@ -218,7 +223,6 @@ Adj Mesh::derive_adj(Int from, Int to) {
       }
       return g;
     }
-    /* todo: element-to-element dual */
   }
   fail("can't derive adjacency from %s to %s\n",
       plural_names[from], plural_names[to]);
