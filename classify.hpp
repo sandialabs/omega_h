@@ -5,3 +5,4 @@ void classify_hinges_by_sharpness(Mesh& mesh,
 void classify_vertices_by_sharp_edges(Mesh& mesh,
     Read<I8> vert_is_exposed,
     Read<I8> edge_is_sharp);
+void classify_by_angles(Mesh& mesh, Real sharp_angle);

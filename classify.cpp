@@ -49,3 +49,31 @@ void classify_vertices_by_sharp_edges(Mesh& mesh,
   parallel_for(nv, f);
   mesh.add_tag<I8>(VERT, "class_dim", 1, class_dim);
 }
+
+void classify_by_angles(Mesh& mesh, Real sharp_angle) {
+  auto dim = mesh.dim();
+  auto side_is_exposed = mark_exposed_sides(mesh);
+  classify_sides_by_exposure(mesh, side_is_exposed);
+  auto hinge_is_exposed = mark_down(mesh, dim - 1, dim - 2, side_is_exposed);
+  auto surf_side2side = collect_marked(side_is_exposed);
+  auto surf_side_normals = surf::get_side_normals(mesh, surf_side2side);
+  auto surf_hinge2hinge = collect_marked(hinge_is_exposed);
+  auto nsurf_hinges = surf_hinge2hinge.size();
+  auto nsides = mesh.nents(dim - 1);
+  auto side2surf_side = invert_injective_map(surf_side2side, nsides);
+  auto surf_hinge_angles = surf::get_hinge_angles(mesh,
+      surf_side_normals, surf_hinge2hinge, side2surf_side);
+  auto nhinges = mesh.nents(dim - 2);
+  Write<I8> hinge_is_sharp(nhinges, 0);
+  auto f = LAMBDA(LO surf_hinge) {
+    LO hinge = surf_hinge2hinge[surf_hinge];
+    hinge_is_sharp[hinge] = (surf_hinge_angles[surf_hinge] >= sharp_angle);
+  };
+  parallel_for(nsurf_hinges, f);
+  classify_hinges_by_sharpness(mesh, hinge_is_exposed, hinge_is_sharp);
+  if (dim == 2)
+    return;
+  auto vert_is_exposed = mark_down(mesh, 2, 0, side_is_exposed);
+  classify_vertices_by_sharp_edges(mesh,
+      vert_is_exposed, hinge_is_sharp);
+}
