@@ -233,8 +233,8 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
       write_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
   stream << "</PointData>\n";
   stream << "<CellData>\n";
-  for (Int i = 0; i < mesh.count_tags(mesh.dim()); ++i)
-    write_tag(stream, mesh.get_tag(mesh.dim(), i), mesh.dim());
+  for (Int i = 0; i < mesh.count_tags(cell_dim); ++i)
+    write_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
   stream << "</CellData>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
