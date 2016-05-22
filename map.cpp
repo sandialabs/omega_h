@@ -56,6 +56,7 @@ LOs invert_injective_map(LOs a2b, LO nb) {
   auto f = LAMBDA(LO a) {
     b2a[a2b[a]] = a;
   };
+  parallel_for(a2b.size(), f);
   return b2a;
 }
 

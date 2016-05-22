@@ -453,6 +453,12 @@ static void test_star() {
   }
 }
 
+static void test_injective_map() {
+  LOs primes2ints({2,3,5,7});
+  LOs ints2primes = invert_injective_map(primes2ints, 8);
+  CHECK(ints2primes == LOs({-1,-1,0,1,-1,2,-1,3}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -477,5 +483,6 @@ int main(int argc, char** argv) {
   test_bbox();
   test_build_from_elems2verts();
   test_star();
+  test_injective_map();
   fini();
 }
