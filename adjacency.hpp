@@ -68,3 +68,6 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim);
 Graph verts_across_edges(Adj e2v, Adj v2e);
 Graph edges_across_tris(Adj f2e, Adj e2f);
 Graph edges_across_tets(Adj r2e, Adj e2r);
+Graph elements_across_sides(Int dim,
+    Adj elems2sides, Adj sides2elems,
+    Read<I8> side_is_exposed);

@@ -73,3 +73,45 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   parallel_for(ne, f);
   return Adj(e2ee, ee2e);
 }
+
+Graph elements_across_sides(Int dim,
+    Adj elems2sides, Adj sides2elems,
+    Read<I8> side_is_exposed) {
+  auto elem_side2side = elems2sides.ab2b;
+  auto side2side_elems = sides2elems.a2ab;
+  auto side_elem2elem = sides2elems.ab2b;
+  Int nsides_per_elem = dim + 1;
+  auto nelems = elem_side2side.size() / nsides_per_elem;
+  Write<LO> degrees(nelems);
+  auto count = LAMBDA(LO elem) {
+    auto begin = elem * nsides_per_elem;
+    auto end = begin + nsides_per_elem;
+    Int n = 0;
+    for (auto elem_side = begin; elem_side < end; ++elem_side) {
+      auto side = elem_side2side[elem_side];
+      n += !side_is_exposed[side];
+    }
+    degrees[elem] = n;
+  };
+  parallel_for(nelems, count);
+  auto elem2elem_elems = offset_scan<LO,LO>(degrees);
+  auto nelem_elems = elem2elem_elems.get(elem2elem_elems.size() - 1);
+  Write<LO> elem_elem2elem(nelem_elems);
+  auto fill = LAMBDA(LO elem) {
+    auto begin = elem * nsides_per_elem;
+    auto end = begin + nsides_per_elem;
+    LO elem_elem = elem2elem_elems[elem];
+    for (auto elem_side = begin; elem_side < end; ++elem_side) {
+      auto side = elem_side2side[elem_side];
+      if (!side_is_exposed[side]) {
+        auto side_elem = side2side_elems[side];
+        if (side_elem2elem[side_elem] == elem)
+          ++side_elem;
+        elem_elem2elem[elem_elem] = side_elem2elem[side_elem];
+        ++elem_elem;
+      }
+    }
+  };
+  parallel_for(nelems, fill);
+  return Graph(elem2elem_elems, elem_elem2elem);
+}
