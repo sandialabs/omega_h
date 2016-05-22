@@ -459,6 +459,16 @@ static void test_injective_map() {
   CHECK(ints2primes == LOs({-1,-1,0,1,-1,2,-1,3}));
 }
 
+static void test_dual() {
+  Mesh mesh;
+  build_from_elems2verts(mesh,2,LOs({0,1,2,2,3,0}),4);
+  auto t2t = mesh.ask_adj(2,2);
+  auto t2tt = t2t.a2ab;
+  auto tt2t = t2t.ab2b;
+  CHECK(t2tt == offset_scan<LO>(LOs({1,1})));
+  CHECK(tt2t == LOs({1,0}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -484,5 +494,6 @@ int main(int argc, char** argv) {
   test_build_from_elems2verts();
   test_star();
   test_injective_map();
+  test_dual();
   fini();
 }
