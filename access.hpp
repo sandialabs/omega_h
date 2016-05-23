@@ -1,5 +1,5 @@
 template <typename Arr>
-INLINE void set_symm_3(Arr a, Int i, Matrix<3,3> symm) {
+INLINE void set_symm(Arr a, Int i, Matrix<3,3> symm) {
   a[i * 6 + 0] = symm[0][0];
   a[i * 6 + 1] = symm[1][1];
   a[i * 6 + 2] = symm[2][2];
@@ -9,7 +9,7 @@ INLINE void set_symm_3(Arr a, Int i, Matrix<3,3> symm) {
 }
 
 template <typename Arr>
-INLINE void set_symm_2(Arr a, Int i, Matrix<2,2> symm) {
+INLINE void set_symm(Arr a, Int i, Matrix<2,2> symm) {
   a[i * 3 + 0] = symm[0][0];
   a[i * 3 + 1] = symm[1][1];
   a[i * 3 + 2] = symm[1][0];
@@ -41,20 +41,22 @@ INLINE Matrix<2,2> get_symm_2(Arr a, Int i) {
 
 /* working around no support for function template specialization */
 template <Int dim, typename Arr>
-struct GetSymm;
+struct SymmAccess;
 
 template <typename Arr>
-struct GetSymm<2, Arr> {
+struct SymmAccess<2, Arr> {
   INLINE static Matrix<2,2> get(Arr a, Int i) { return get_symm_2(a, i); }
 };
 
 template <typename Arr>
-struct GetSymm<3, Arr> {
+struct SymmAccess<3, Arr> {
   INLINE static Matrix<3,3> get(Arr a, Int i) { return get_symm_3(a, i); }
 };
 
 template <Int dim, typename Arr>
-Matrix<dim,dim> get_symm(Arr a, Int i) { return GetSymm<dim,Arr>::get(a, i); }
+Matrix<dim,dim> get_symm(Arr a, Int i) {
+  return SymmAccess<dim,Arr>::get(a, i);
+}
 
 template <Int n, class Arr>
 INLINE void set_vec(Arr a, Int i, Vector<n> v) {
@@ -101,3 +103,10 @@ INLINE Few<Matrix<dim,dim>, neev> gather_symms(Reals a, Few<LO, neev> v) {
     x[i] = get_symm<dim>(a, v[i]);
   return x;
 }
+
+INLINE Int symm_dofs(Int dim) {
+  return ((dim + 1) * dim) / 2;
+}
+
+template <Int dim>
+Reals repeat_symm(LO n, Matrix<dim,dim> symm);

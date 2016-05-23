@@ -31,3 +31,4 @@
 #include "classify.cpp"
 #include "reorder.cpp"
 #include "size.cpp"
+#include "access.cpp"
