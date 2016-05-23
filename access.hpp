@@ -54,7 +54,7 @@ struct SymmAccess<3, Arr> {
 };
 
 template <Int dim, typename Arr>
-Matrix<dim,dim> get_symm(Arr a, Int i) {
+INLINE Matrix<dim,dim> get_symm(Arr a, Int i) {
   return SymmAccess<dim,Arr>::get(a, i);
 }
 
