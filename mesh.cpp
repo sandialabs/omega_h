@@ -239,7 +239,7 @@ void Mesh::set_coords(Reals array) {
 
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
-    add_tag<GO>(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
+    add_tag(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
   }
   return get_tag<GO>(dim, "global").array();
 }
@@ -248,6 +248,14 @@ void Mesh::forget_globals() {
   for (Int d = 0; d <= dim(); ++d)
     if (has_tag(d, "global"))
       remove_tag(d, "global");
+}
+
+Reals Mesh::ask_edge_lengths() {
+  if (!has_tag(EDGE, "length")) {
+    auto lengths = measure_edges(*this);
+    add_tag(EDGE, "length", 1, lengths);
+  }
+  return get_tag<Real>(EDGE, "length").array();
 }
 
 #define INST_T(T) \

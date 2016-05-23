@@ -51,4 +51,5 @@ class Mesh {
     void set_coords(Reals array);
     Read<GO> ask_globals(Int dim);
     void forget_globals();
+    Reals ask_edge_lengths();
 };
