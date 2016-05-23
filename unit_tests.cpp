@@ -485,6 +485,14 @@ static void test_quality() {
   Matrix<3,3> id_metric_3 = identity_matrix<3,3>();
   CHECK(are_close(metric_tet_quality(perfect_tet, id_metric_3), 1.0));
   CHECK(are_close(metric_tet_quality(flat_tet, id_metric_3), 0.0));
+  Matrix<3,3> x_metric_3 = compose_metric(identity_matrix<3,3>(),
+      vector_3(1, 1, 0.5));
+  Few<Vector<3>, 4> x_tet;
+  for (Int i = 0; i < 4; ++i) {
+    x_tet[i] = perfect_tet[i];
+    x_tet[i][2] /= 2;
+  }
+  CHECK(are_close(metric_tet_quality(x_tet, x_metric_3), 1.0));
 }
 
 int main(int argc, char** argv) {
