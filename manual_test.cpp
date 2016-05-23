@@ -12,6 +12,8 @@ int main(int argc, char** argv) {
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh.dim());
   reorder_mesh(mesh, new_verts2old_verts);
   mesh.forget_globals();
+  mesh.add_tag(VERT, "size", 1, Reals(mesh.nverts(), 1.0));
+  mesh.ask_edge_lengths();
   {
   std::ofstream file("out.vtu");
   vtk::write_vtu(file, mesh);
