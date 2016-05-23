@@ -470,28 +470,62 @@ static void test_dual() {
 }
 
 static void test_quality() {
+  Few<Vector<2>, 3> perfect_tri({
+      vector_2( 1, 0),
+      vector_2( 0, sqrt(3.0)),
+      vector_2(-1, 0)});
   Few<Vector<3>, 4> perfect_tet({
       vector_3( 1, 0, -1.0 / sqrt(2.0)),
       vector_3(-1, 0, -1.0 / sqrt(2.0)),
       vector_3( 0,-1,  1.0 / sqrt(2.0)),
       vector_3( 0, 1,  1.0 / sqrt(2.0))});
-  CHECK(are_close(real_tet_quality(perfect_tet), 1.0));
+  Few<Vector<2>, 3> flat_tri({
+      vector_2( 1, 0),
+      vector_2( 0, 0),
+      vector_2(-1, 0)});
   Few<Vector<3>, 4> flat_tet({
       vector_3( 1, 0, 0),
       vector_3(-1, 0, 0),
       vector_3( 0,-1, 0),
       vector_3( 0, 1, 0)});
-  CHECK(are_close(real_tet_quality(flat_tet), 0.0));
+  Few<Vector<2>, 3> inv_tri({
+      vector_2( 1, 0),
+      vector_2(-1, 0),
+      vector_2( 0, sqrt(3.0))});
+  Few<Vector<3>, 4> inv_tet({
+      vector_3( 1, 0, -1.0 / sqrt(2.0)),
+      vector_3(-1, 0, -1.0 / sqrt(2.0)),
+      vector_3( 0, 1,  1.0 / sqrt(2.0)),
+      vector_3( 0,-1,  1.0 / sqrt(2.0))});
+  Matrix<2,2> id_metric_2 = identity_matrix<2,2>();
   Matrix<3,3> id_metric_3 = identity_matrix<3,3>();
-  CHECK(are_close(metric_tet_quality(perfect_tet, id_metric_3), 1.0));
-  CHECK(are_close(metric_tet_quality(flat_tet, id_metric_3), 0.0));
+  Matrix<2,2> x_metric_2 = compose_metric(identity_matrix<2,2>(),
+      vector_2(1, 0.5));
   Matrix<3,3> x_metric_3 = compose_metric(identity_matrix<3,3>(),
       vector_3(1, 1, 0.5));
+  Few<Vector<2>, 3> x_tri;
+  for (Int i = 0; i < 3; ++i) {
+    x_tri[i] = perfect_tri[i];
+    x_tri[i][1] /= 2;
+  }
   Few<Vector<3>, 4> x_tet;
   for (Int i = 0; i < 4; ++i) {
     x_tet[i] = perfect_tet[i];
     x_tet[i][2] /= 2;
   }
+  CHECK(are_close(real_triangle_quality(perfect_tri), 1.0));
+  CHECK(are_close(real_tet_quality(perfect_tet), 1.0));
+  CHECK(are_close(real_triangle_quality(flat_tri), 0.0));
+  CHECK(are_close(real_tet_quality(flat_tet), 0.0));
+  CHECK(real_triangle_quality(inv_tri) < 0.0);
+  CHECK(real_tet_quality(inv_tet) < 0.0);
+  CHECK(are_close(metric_triangle_quality(perfect_tri, id_metric_2), 1.0));
+  CHECK(are_close(metric_tet_quality(perfect_tet, id_metric_3), 1.0));
+  CHECK(are_close(metric_triangle_quality(flat_tri, id_metric_2), 0.0));
+  CHECK(are_close(metric_tet_quality(flat_tet, id_metric_3), 0.0));
+  CHECK(metric_triangle_quality(inv_tri, id_metric_2) < 0.0);
+  CHECK(metric_tet_quality(inv_tet, id_metric_3) < 0.0);
+  CHECK(are_close(metric_triangle_quality(x_tri, x_metric_2), 1.0));
   CHECK(are_close(metric_tet_quality(x_tet, x_metric_3), 1.0));
 }
 
