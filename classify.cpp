@@ -26,7 +26,7 @@ void classify_vertices_by_sharp_edges(Mesh& mesh,
     Read<I8> vert_is_exposed,
     Read<I8> edge_is_sharp) {
   auto nv = mesh.nents(VERT);
-  auto v2e = mesh.ask_adj(VERT,EDGE);
+  auto v2e = mesh.ask_up(VERT,EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   Write<I8> class_dim(nv);

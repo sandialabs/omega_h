@@ -24,10 +24,10 @@ class Mesh {
     bool has_ents(Int dim) const;
     bool has_adj(Int from, Int to) const;
     Adj get_adj(Int from, Int to) const;
-    Adj ask_adj(Int from, Int to);
     Adj ask_down(Int from, Int to);
     Adj ask_up(Int from, Int to);
     Graph ask_star(Int dim);
+    Graph ask_dual();
     Read<GO> ask_globals(Int dim);
   private:
     typedef std::shared_ptr<TagBase> TagPtr;
@@ -41,6 +41,7 @@ class Mesh {
     void check_dim2(Int dim) const;
     void add_adj(Int from, Int to, Adj adj);
     Adj derive_adj(Int from, Int to);
+    Adj ask_adj(Int from, Int to);
     Int dim_;
     LO nents_[DIMS];
     TagVector tags_[DIMS];

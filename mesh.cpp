@@ -113,17 +113,6 @@ Adj Mesh::get_adj(Int from, Int to) const {
   return *(adjs_[from][to]);
 }
 
-Adj Mesh::ask_adj(Int from, Int to) {
-  check_dim2(from);
-  check_dim2(to);
-  if (has_adj(from, to)) {
-    return get_adj(from,to);
-  }
-  Adj derived = derive_adj(from, to);
-  adjs_[from][to] = AdjPtr(new Adj(derived));
-  return derived;
-}
-
 Adj Mesh::ask_down(Int from, Int to) {
   CHECK(to < from);
   return ask_adj(from, to);
@@ -135,7 +124,12 @@ Adj Mesh::ask_up(Int from, Int to) {
 }
 
 Graph Mesh::ask_star(Int dim) {
+  CHECK(dim < this->dim());
   return ask_adj(dim, dim);
+}
+
+Graph Mesh::ask_dual() {
+  return ask_adj(dim(), dim());
 }
 
 Read<GO> Mesh::ask_globals(Int dim) {
@@ -226,6 +220,17 @@ Adj Mesh::derive_adj(Int from, Int to) {
   }
   fail("can't derive adjacency from %s to %s\n",
       plural_names[from], plural_names[to]);
+}
+
+Adj Mesh::ask_adj(Int from, Int to) {
+  check_dim2(from);
+  check_dim2(to);
+  if (has_adj(from, to)) {
+    return get_adj(from,to);
+  }
+  Adj derived = derive_adj(from, to);
+  adjs_[from][to] = AdjPtr(new Adj(derived));
+  return derived;
 }
 
 void Mesh::add_coords(Reals array) {

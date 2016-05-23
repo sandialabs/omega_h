@@ -1,6 +1,6 @@
 Read<I8> mark_exposed_sides(Mesh& mesh) {
   auto ns = mesh.nents(mesh.dim() - 1);
-  auto s2sc = mesh.ask_adj(mesh.dim() - 1, mesh.dim()).a2ab;
+  auto s2sc = mesh.ask_up(mesh.dim() - 1, mesh.dim()).a2ab;
   Write<I8> exposed(ns);
   auto f = LAMBDA(LO s) {
     exposed[s] = ((s2sc[s + 1] - s2sc[s]) < 2);
