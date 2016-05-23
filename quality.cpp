@@ -8,6 +8,7 @@ Reals measure_qualities_tmpl(Mesh const& mesh, LOs ev2v) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     qualities[e] = measurer.measure(v);
   };
+  parallel_for(nelems, f);
   return qualities;
 }
 

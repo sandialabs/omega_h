@@ -52,4 +52,5 @@ class Mesh {
     Read<GO> ask_globals(Int dim);
     void forget_globals();
     Reals ask_edge_lengths();
+    Reals ask_qualities();
 };

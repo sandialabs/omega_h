@@ -258,6 +258,14 @@ Reals Mesh::ask_edge_lengths() {
   return get_tag<Real>(EDGE, "length").array();
 }
 
+Reals Mesh::ask_qualities() {
+  if (!has_tag(dim(), "quality")) {
+    auto qualities = measure_qualities(*this);
+    add_tag(dim(), "quality", 1, qualities);
+  }
+  return get_tag<Real>(dim(), "quality").array();
+}
+
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \
