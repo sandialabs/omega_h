@@ -482,6 +482,9 @@ static void test_quality() {
       vector_3( 0,-1, 0),
       vector_3( 0, 1, 0)});
   CHECK(are_close(real_tet_quality(flat_tet), 0.0));
+  Matrix<3,3> id_metric_3 = identity_matrix<3,3>();
+  CHECK(are_close(metric_tet_quality(perfect_tet, id_metric_3), 1.0));
+  CHECK(are_close(metric_tet_quality(flat_tet, id_metric_3), 0.0));
 }
 
 int main(int argc, char** argv) {
