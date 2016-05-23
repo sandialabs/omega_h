@@ -71,25 +71,33 @@ INLINE Vector<n> get_vec(Arr a, Int i) {
 }
 
 template <Int neev>
-INLINE Few<Real, neev> gather_scalars(Reals a, LOs ev2v, Int e) {
+INLINE Few<LO, neev> gather_verts(LOs ev2v, Int e) {
+  Few<LO, neev> v;
+  for (Int i = 0; i < neev; ++i)
+    v[i] = ev2v[e * neev + i];
+  return v;
+}
+
+template <Int neev>
+INLINE Few<Real, neev> gather_scalars(Reals a, Few<LO, neev> v) {
   Few<Real, neev> x;
   for (Int i = 0; i < neev; ++i)
-    x[i] = a[ev2v[e * neev + i]];
+    x[i] = a[v[i]];
   return x;
 }
 
 template <Int neev, Int dim>
-INLINE Few<Vector<dim>, neev> gather_vectors(Reals a, LOs ev2v, Int e) {
+INLINE Few<Vector<dim>, neev> gather_vectors(Reals a, Few<LO, neev> v) {
   Few<Vector<dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
-    x[i] = get_vec<dim>(a, ev2v[e * neev + i]);
+    x[i] = get_vec<dim>(a, v[i]);
   return x;
 }
 
 template <Int neev, Int dim>
-INLINE Few<Matrix<dim,dim>, neev> gather_symms(Reals a, LOs ev2v, Int e) {
+INLINE Few<Matrix<dim,dim>, neev> gather_symms(Reals a, Few<LO, neev> v) {
   Few<Matrix<dim,dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
-    x[i] = get_symm<dim>(a, ev2v[e * neev + i]);
+    x[i] = get_symm<dim>(a, v[i]);
   return x;
 }

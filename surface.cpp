@@ -10,7 +10,8 @@ Reals get_triangle_normals(Mesh& mesh, LOs surf_tri2tri) {
   Write<Real> normals(nsurf_tris * 3);
   auto lambda = LAMBDA(LO surf_tri) {
     auto f = surf_tri2tri[surf_tri];
-    auto x = gather_vectors<3, 3>(coords, fv2v, f);
+    auto v = gather_verts<3>(fv2v, f);
+    auto x = gather_vectors<3, 3>(coords, v);
     auto b = simplex_basis<3, 2>(x);
     auto n = normalize(cross(b[0], b[1]));
     set_vec(normals, surf_tri, n);
@@ -27,7 +28,8 @@ Reals get_edge_normals(Mesh& mesh, LOs surf_edge2edge) {
   Write<Real> normals(nsurf_edges * 2);
   auto lambda = LAMBDA(LO surf_edge) {
     auto e = surf_edge2edge[surf_edge];
-    auto x = gather_vectors<2, 2>(coords, ev2v, e);
+    auto v = gather_verts<2>(ev2v, e);
+    auto x = gather_vectors<2, 2>(coords, v);
     auto b = simplex_basis<2, 1>(x);
     auto n = normalize(perp(b[0]));
     set_vec(normals, surf_edge, n);

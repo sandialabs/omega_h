@@ -24,8 +24,8 @@ INLINE Real real_edge_length(Few<Vector<dim>, 2> p) {
 }
 
 template <Int dim>
-INLINE Real real_edge_length(LOs ev2v, LO e, Reals coords) {
-  auto p = gather_vectors<2,dim>(coords, ev2v, e);
+INLINE Real real_edge_length(Few<LO, 2> v, Reals coords) {
+  auto p = gather_vectors<2,dim>(coords, v);
   return real_edge_length(p);
 }
 
@@ -35,9 +35,9 @@ INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Real iso) {
 }
 
 template <Int dim>
-INLINE Real iso_edge_length(LOs ev2v, LO e, Reals coords, Reals isos) {
-  auto p = gather_vectors<2,dim>(coords, ev2v, e);
-  auto iso = average(gather_scalars<2>(isos, ev2v, e));
+INLINE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
+  auto p = gather_vectors<2,dim>(coords, v);
+  auto iso = average(gather_scalars<2>(isos, v));
   return iso_edge_length(p, iso);
 }
 
@@ -47,8 +47,8 @@ INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Matrix<dim,dim> metric) {
 }
 
 template <Int dim>
-INLINE Real metric_edge_length(LOs ev2v, LO e, Reals coords, Reals metrics) {
-  auto p = gather_vectors<2,dim>(coords, ev2v, e);
-  auto metric = average_metrics(gather_symms<2,dim>(metrics, ev2v, e));
+INLINE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
+  auto p = gather_vectors<2,dim>(coords, v);
+  auto metric = average_metrics(gather_symms<2,dim>(metrics, v));
   return metric_edge_length(p, metric);
 }
