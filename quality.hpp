@@ -85,7 +85,7 @@ INLINE Real real_triangle_quality(Few<Vector<2>, 3> p) {
   auto b = simplex_basis<2,2>(p);
   auto a = triangle_area(b);
   if (a < 0)
-    return -1;
+    return a;
   Few<Real, 3> lsq;
   lsq[0] = norm_squared(b[0]);
   lsq[1] = norm_squared(p[2] - p[1]);
@@ -97,7 +97,7 @@ INLINE Real real_tet_quality(Few<Vector<3>, 4> p) {
   auto b = simplex_basis<3,3>(p);
   auto v = tet_volume(b);
   if (v < 0)
-    return -1;
+    return v;
   Few<Real, 6> lsq;
   lsq[0] = norm_squared(b[0]);
   lsq[1] = norm_squared(p[2] - p[1]);
@@ -119,7 +119,7 @@ INLINE Real metric_triangle_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
   auto b = simplex_basis<2,2>(p);
   auto a = triangle_area(b);
   if (a < 0)
-    return -1;
+    return a;
   a *= sqrt(determinant(metric));
   Few<Real, 3> lsq;
   lsq[0] = metric_product(metric, b[0]);
@@ -140,7 +140,7 @@ INLINE Real metric_tet_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
   auto b = simplex_basis<3,3>(p);
   auto v = tet_volume(b);
   if (v < 0)
-    return -1;
+    return v;
   v *= sqrt(determinant(metric));
   Few<Real, 6> lsq;
   lsq[0] = metric_product(metric, b[0]);
