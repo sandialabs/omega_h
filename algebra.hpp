@@ -18,6 +18,15 @@ INLINE bool are_close(Real a, Real b,
 }
 
 template <Int n>
+INLINE Real average(Few<Real, n> x) {
+  Real avg = 0;
+  for (Int i = 0; i < n; ++i)
+    avg += x[i];
+  avg /= n;
+  return avg;
+}
+
+template <Int n>
 class Vector : public Few<Real, n> {
   public:
     INLINE Vector() {}

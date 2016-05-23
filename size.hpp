@@ -18,30 +18,37 @@ INLINE Real tet_volume(Few<Vector<3>, 3> b) {
   return (cross(b[0], b[1]) * b[2]) / 6.0;
 }
 
-/* the following edge length functions could be replaced
-   with loops and lookup tables, but last time I did
-   that things got noticeably slower */
 template <Int dim>
-INLINE Few<Real, 3> triangle_edge_lengths_squared(
-    Few<Vector<dim>, 3> p,
-    Few<Vector<dim>, 2> b) {
-  Few<Real, 3> lsq;
-  lsq[0] = norm_squared(b[0]);
-  lsq[1] = norm_squared(p[2] - p[1]);
-  lsq[2] = norm_squared(b[1]);
-  return lsq;
+INLINE Real real_edge_length(Few<Vector<dim>, 2> p) {
+  return norm(p[1] - p[0]);
 }
 
 template <Int dim>
-INLINE Few<Real, 6> tet_edge_lengths_squared(
-    Few<Vector<dim>, 4> p,
-    Few<Vector<dim>, 3> b) {
-  Few<Real, 6> lsq;
-  lsq[0] = norm_squared(b[0]);
-  lsq[1] = norm_squared(p[2] - p[1]);
-  lsq[2] = norm_squared(b[1]);
-  lsq[3] = norm_squared(b[2]);
-  lsq[4] = norm_squared(p[3] - p[1]);
-  lsq[5] = norm_squared(p[3] - p[2]);
-  return lsq;
+INLINE Real real_edge_length(LOs ev2v, LO e, Reals coords) {
+  auto p = gather_vectors<2,dim>(coords, ev2v, e);
+  return real_edge_length(p);
+}
+
+template <Int dim>
+INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Real iso) {
+  return real_edge_length(p) / iso;
+}
+
+template <Int dim>
+INLINE Real iso_edge_length(LOs ev2v, LO e, Reals coords, Reals isos) {
+  auto p = gather_vectors<2,dim>(coords, ev2v, e);
+  auto iso = average(gather_scalars<2>(isos, ev2v, e));
+  return iso_edge_length(p, iso);
+}
+
+template <Int dim>
+INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Matrix<dim,dim> metric) {
+  return metric_length(metric, p[1] - p[0]);
+}
+
+template <Int dim>
+INLINE Real metric_edge_length(LOs ev2v, LO e, Reals coords, Reals metrics) {
+  auto p = gather_vectors<2,dim>(coords, ev2v, e);
+  auto metric = average_metrics(gather_symms<2,dim>(metrics, ev2v, e));
+  return metric_edge_length(p, metric);
 }

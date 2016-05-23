@@ -1,11 +1,18 @@
 template <typename Arr>
-INLINE void set_symm(Arr a, Int i, Matrix<3,3> symm) {
+INLINE void set_symm_3(Arr a, Int i, Matrix<3,3> symm) {
   a[i * 6 + 0] = symm[0][0];
   a[i * 6 + 1] = symm[1][1];
   a[i * 6 + 2] = symm[2][2];
   a[i * 6 + 3] = symm[1][0];
   a[i * 6 + 4] = symm[2][1];
   a[i * 6 + 5] = symm[2][0];
+}
+
+template <typename Arr>
+INLINE void set_symm_2(Arr a, Int i, Matrix<2,2> symm) {
+  a[i * 3 + 0] = symm[0][0];
+  a[i * 3 + 1] = symm[1][1];
+  a[i * 3 + 2] = symm[1][0];
 }
 
 template <typename Arr>
@@ -23,6 +30,32 @@ INLINE Matrix<3,3> get_symm_3(Arr a, Int i) {
   return symm;
 }
 
+template <typename Arr>
+INLINE Matrix<2,2> get_symm_2(Arr a, Int i) {
+  Matrix<2,2> symm;
+  symm[0][0] = a[i * 3 + 0];
+  symm[1][1] = a[i * 3 + 1];
+  symm[1][0] = a[i * 3 + 2];
+  return symm;
+}
+
+/* working around no support for function template specialization */
+template <Int dim, typename Arr>
+struct GetSymm;
+
+template <typename Arr>
+struct GetSymm<2, Arr> {
+  INLINE static Matrix<2,2> get(Arr a, Int i) { return get_symm_2(a, i); }
+};
+
+template <typename Arr>
+struct GetSymm<3, Arr> {
+  INLINE static Matrix<3,3> get(Arr a, Int i) { return get_symm_3(a, i); }
+};
+
+template <Int dim, typename Arr>
+Matrix<dim,dim> get_symm(Arr a, Int i) { return GetSymm<dim,Arr>::get(a, i); }
+
 template <Int n, class Arr>
 INLINE void set_vec(Arr a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j)
@@ -37,10 +70,26 @@ INLINE Vector<n> get_vec(Arr a, Int i) {
   return v;
 }
 
+template <Int neev>
+INLINE Few<Real, neev> gather_scalars(Reals a, LOs ev2v, Int e) {
+  Few<Real, neev> x;
+  for (Int i = 0; i < neev; ++i)
+    x[i] = a[ev2v[e * neev + i]];
+  return x;
+}
+
 template <Int neev, Int dim>
 INLINE Few<Vector<dim>, neev> gather_vectors(Reals a, LOs ev2v, Int e) {
   Few<Vector<dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
     x[i] = get_vec<dim>(a, ev2v[e * neev + i]);
+  return x;
+}
+
+template <Int neev, Int dim>
+INLINE Few<Matrix<dim,dim>, neev> gather_symms(Reals a, LOs ev2v, Int e) {
+  Few<Matrix<dim,dim>, neev> x;
+  for (Int i = 0; i < neev; ++i)
+    x[i] = get_symm<dim>(a, ev2v[e * neev + i]);
   return x;
 }

@@ -31,7 +31,7 @@ static Reals random_metrics() {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
              rotate( betas[i], vector_3(0, 1, 0));
     auto m = compose_metric(r, vector_3(1., 1., 1.0 / anisotropy));
-    set_symm(write_metrics, i, m);
+    set_symm_3(write_metrics, i, m);
   };
   parallel_for(nelems, f0);
   return write_metrics;

@@ -74,26 +74,9 @@ INLINE Real triangle_mean_ratio_squared(Real a, Few<Real, 3> lsq) {
   return 48 * square(a) / square(s);
 }
 
-template <Int dim>
-INLINE Real triangle_mean_ratio_squared(
-    Few<Vector<dim>, 3> p,
-    Few<Vector<dim>, 2> b) {
-  Real a = triangle_area(b);
-  Few<Real, 3> lsq = triangle_edge_lengths_squared(p, b);
-  return triangle_mean_ratio_squared(a, lsq);
-}
-
 INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
   Real s = 0.0;
   for (Int i = 0; i < 6; ++i)
     s += lsq[i];
   return 15552.0 * square(v) / cube(s);
-}
-
-INLINE Real tet_mean_ratio_cubed(
-    Few<Vector<3>, 4> p,
-    Few<Vector<3>, 3> b) {
-  Real v = tet_volume(b);
-  Few<Real, 6> lsq = tet_edge_lengths_squared(p, b);
-  return tet_mean_ratio_cubed(v, lsq);
 }
