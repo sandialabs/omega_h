@@ -10,11 +10,10 @@ int main(int argc, char** argv) {
   Reals coords = mesh.coords();
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh.dim());
   reorder_mesh(mesh, new_verts2old_verts);
-  mesh.add_tag<GO>(VERT, "global", 1, Read<GO>(mesh.nverts(), 0, 1));
-  mesh.add_tag<GO>(mesh.dim(), "global", 1, Read<GO>(mesh.nelems(), 0, 1));
+  mesh.forget_globals();
   {
-  std::ofstream file("tets.vtu");
-  vtk::write_vtu(file, mesh, 3);
+  std::ofstream file("out.vtu");
+  vtk::write_vtu(file, mesh);
   }
 //{
 //std::ofstream file("tris.vtu");

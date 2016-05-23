@@ -132,14 +132,6 @@ Graph Mesh::ask_dual() {
   return ask_adj(dim(), dim());
 }
 
-Read<GO> Mesh::ask_globals(Int dim) {
-  check_dim2(dim);
-  if (!has_tag(dim, "global")) {
-    return Read<GO>(nents(dim), 0, 1);
-  }
-  return get_tag<GO>(dim, "global").array();
-}
-
 struct HasName {
   std::string const& name_;
   HasName(std::string const& name):name_(name) {}
@@ -243,6 +235,19 @@ Reals Mesh::coords() const {
 
 void Mesh::set_coords(Reals array) {
   set_tag<Real>(0, "coordinates", array);
+}
+
+Read<GO> Mesh::ask_globals(Int dim) {
+  if (!has_tag(dim, "global")) {
+    add_tag<GO>(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
+  }
+  return get_tag<GO>(dim, "global").array();
+}
+
+void Mesh::forget_globals() {
+  for (Int d = 0; d <= dim(); ++d)
+    if (has_tag(d, "global"))
+      remove_tag(d, "global");
 }
 
 #define INST_T(T) \

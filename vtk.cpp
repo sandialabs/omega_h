@@ -215,6 +215,10 @@ void write_connectivity(std::ostream& stream, Mesh& mesh, Int cell_dim)
   write_array(stream, "types", 1, types);
 }
 
+void write_locals(std::ostream& stream, Mesh& mesh, Int ent_dim) {
+  write_array(stream, "local", 1, Read<LO>(mesh.nents(ent_dim), 0, 1));
+}
+
 }//end anonymous namespace
 
 void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
@@ -231,10 +235,12 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
   for (Int i = 0; i < mesh.count_tags(VERT); ++i)
     if (mesh.get_tag(VERT, i)->name() != "coordinates")
       write_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
+  write_locals(stream, mesh, VERT);
   stream << "</PointData>\n";
   stream << "<CellData>\n";
   for (Int i = 0; i < mesh.count_tags(cell_dim); ++i)
     write_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
+  write_locals(stream, mesh, cell_dim);
   stream << "</CellData>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";

@@ -28,7 +28,6 @@ class Mesh {
     Adj ask_up(Int from, Int to);
     Graph ask_star(Int dim);
     Graph ask_dual();
-    Read<GO> ask_globals(Int dim);
   private:
     typedef std::shared_ptr<TagBase> TagPtr;
     typedef std::shared_ptr<Adj> AdjPtr;
@@ -50,4 +49,6 @@ class Mesh {
     void add_coords(Reals array);
     Reals coords() const;
     void set_coords(Reals array);
+    Read<GO> ask_globals(Int dim);
+    void forget_globals();
 };
