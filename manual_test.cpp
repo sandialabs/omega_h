@@ -7,14 +7,14 @@ int main(int argc, char** argv) {
   {
   Mesh mesh;
   static Int const nx = 2;
-  static Int const dim = 2;
+  static Int const dim = 3;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
   auto coords = mesh.coords();
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh.dim());
   reorder_mesh(mesh, new_verts2old_verts);
   mesh.forget_globals();
-  auto metric = compose_metric(identity_matrix<dim,dim>(), vector_2(1,.5));
+  auto metric = compose_metric(identity_matrix<dim,dim>(), vector_3(1,1,.5));
   mesh.add_tag(VERT, "metric", symm_dofs(dim), repeat_symm(mesh.nverts(), metric));
   mesh.ask_edge_lengths();
   mesh.ask_qualities();
