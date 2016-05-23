@@ -52,3 +52,38 @@ INLINE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
   auto metric = average_metrics(gather_symms<2,dim>(metrics, v));
   return metric_edge_length(p, metric);
 }
+
+template <Int dim>
+struct RealEdgeLengths {
+  Reals coords;
+  RealEdgeLengths(Mesh const& mesh):coords(mesh.coords()) {}
+  INLINE Real measure(Few<LO, 2> v) const {
+    return real_edge_length<dim>(v, coords);
+  }
+};
+
+template <Int dim>
+struct IsoEdgeLengths {
+  Reals coords;
+  Reals isos;
+  IsoEdgeLengths(Mesh const& mesh):
+    coords(mesh.coords()),
+    isos(mesh.get_tag<Real>(VERT, "size").array())
+  {}
+  INLINE Real measure(Few<LO, 2> v) const {
+    return iso_edge_length<dim>(v, coords, isos);
+  }
+};
+
+template <Int dim>
+struct MetricEdgeLengths {
+  Reals coords;
+  Reals metrics;
+  MetricEdgeLengths(Mesh const& mesh):
+    coords(mesh.coords()),
+    metrics(mesh.get_tag<Real>(VERT, "metric").array())
+  {}
+  INLINE Real measure(Few<LO, 2> v) const {
+    return metric_edge_length<dim>(v, coords, metrics);
+  }
+};
