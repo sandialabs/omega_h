@@ -1,7 +1,7 @@
 template <typename EdgeLengths>
 Reals measure_edges_tmpl(Mesh& mesh, LOs ev2v) {
   EdgeLengths measurer(mesh);
-  LO nedges = ev2v.size() / 2;
+  auto nedges = ev2v.size() / 2;
   Write<Real> lengths(nedges);
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<2>(ev2v, e);

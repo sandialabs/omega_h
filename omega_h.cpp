@@ -32,3 +32,4 @@
 #include "reorder.cpp"
 #include "size.cpp"
 #include "access.cpp"
+#include "quality.cpp"
