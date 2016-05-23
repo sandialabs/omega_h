@@ -12,7 +12,8 @@ int main(int argc, char** argv) {
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh.dim());
   reorder_mesh(mesh, new_verts2old_verts);
   mesh.forget_globals();
-  mesh.add_tag(VERT, "size", 1, Reals(mesh.nverts(), 0.5));
+  auto metric = compose_metric(identity_matrix<3,3>(), vector_3(.5,.5,.5));
+  mesh.add_tag(VERT, "metric", symm_dofs(3), repeat_symm(mesh.nverts(), metric));
   mesh.ask_edge_lengths();
   {
   std::ofstream file("out.vtu");
