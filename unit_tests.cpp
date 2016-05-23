@@ -469,6 +469,15 @@ static void test_dual() {
   CHECK(tt2t == LOs({1,0}));
 }
 
+static void test_quality() {
+  Few<Vector<3>, 4> perfect_tet({
+      vector_3( 1, 0, -1.0 / sqrt(2.0)),
+      vector_3(-1, 0, -1.0 / sqrt(2.0)),
+      vector_3( 0,-1,  1.0 / sqrt(2.0)),
+      vector_3( 0, 1,  1.0 / sqrt(2.0))});
+  CHECK(are_close(real_tet_quality(perfect_tet), 1.0));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -495,5 +504,6 @@ int main(int argc, char** argv) {
   test_star();
   test_injective_map();
   test_dual();
+  test_quality();
   fini();
 }
