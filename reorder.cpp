@@ -72,9 +72,12 @@ void reorder_down(Mesh& old_mesh, Mesh& new_mesh,
   auto oel2ol = old_ents2old_lows.ab2b;
   auto oe2l_codes = old_ents2old_lows.codes;
   auto nel2ol = unmap(new_ents2old_ents, oel2ol, deg);
-  auto ne2l_codes = unmap(new_ents2old_ents, oe2l_codes, deg);
   auto nel2nl = compound_maps(nel2ol, old_lows2new_lows);
-  auto new_ents2new_lows = Adj(nel2nl, ne2l_codes);
+  auto new_ents2new_lows = Adj(nel2nl);
+  if (oe2l_codes.size()) {
+    auto ne2l_codes = unmap(new_ents2old_ents, oe2l_codes, deg);
+    new_ents2new_lows.codes = ne2l_codes;
+  }
   new_mesh.set_ents(ent_dim, new_ents2new_lows);
 }
 
