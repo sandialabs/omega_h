@@ -476,6 +476,12 @@ static void test_quality() {
       vector_3( 0,-1,  1.0 / sqrt(2.0)),
       vector_3( 0, 1,  1.0 / sqrt(2.0))});
   CHECK(are_close(real_tet_quality(perfect_tet), 1.0));
+  Few<Vector<3>, 4> flat_tet({
+      vector_3( 1, 0, 0),
+      vector_3(-1, 0, 0),
+      vector_3( 0,-1, 0),
+      vector_3( 0, 1, 0)});
+  CHECK(are_close(real_tet_quality(flat_tet), 0.0));
 }
 
 int main(int argc, char** argv) {
