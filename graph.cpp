@@ -31,7 +31,7 @@ Graph unmap_graph(LOs a2b, Graph b2c) {
   auto b2bc = b2c.a2ab;
   auto bc2c = b2c.ab2b;
   auto b_degrees = get_degrees(b2bc);
-  auto a_degrees = unmap(a2b, b_degrees);
+  auto a_degrees = unmap(a2b, b_degrees, 1);
   auto a2ac = offset_scan<LO>(a_degrees);
   auto na = a2b.size();
   Write<LO> ac2c(a2ac.last());

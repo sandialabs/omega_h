@@ -86,7 +86,7 @@ void invert_by_sorting(LOs a2b, LO nb,
     LOs& b2ba, LOs& ba2a) {
   LOs ab2b = a2b;
   LOs ba2ab = sort_by_keys(ab2b);
-  LOs ba2b = unmap(ba2ab, ab2b);
+  LOs ba2b = unmap(ba2ab, ab2b, 1);
   b2ba = invert_funnel(ba2b, nb);
   ba2a = ba2ab;
 }
