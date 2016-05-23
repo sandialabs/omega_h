@@ -57,6 +57,7 @@ public:
   Kokkos::View<const T*> view() const;
 #endif
   T get(LO i) const;
+  T last() const;
 };
 
 template <class T>

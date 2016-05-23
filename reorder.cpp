@@ -22,7 +22,7 @@ Graph find_entities_of_first_vertices(
   };
   parallel_for(nv, count);
   auto fv2fve = offset_scan<LO,LO>(degrees);
-  Write<LO> fve2e(fv2fve.get(fv2fve.size() - 1));
+  Write<LO> fve2e(fv2fve.last());
   auto fill = LAMBDA(LO v) {
     LO fve = fv2fve[v];
     for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {

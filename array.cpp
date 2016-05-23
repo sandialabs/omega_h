@@ -226,6 +226,11 @@ T Read<T>::get(LO i) const {
   return write_.get(i);
 }
 
+template <typename T>
+T Read<T>::last() const {
+  return get(size() - 1);
+}
+
 template <class T>
 struct SameContent : public AndFunctor {
   Read<T> a_;

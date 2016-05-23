@@ -26,7 +26,7 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
   auto e2ef_degrees = get_degrees(e2ef);
   auto e2ee_degrees = multiply_each_by(2, e2ef_degrees);
   auto e2ee = offset_scan<LO>(e2ee_degrees);
-  auto nee = e2ee.get(e2ee.size() - 1);
+  auto nee = e2ee.last();
   Write<LO> ee2e(nee);
   auto lambda = LAMBDA(LO e) {
     auto ef_begin = e2ef[e];
@@ -95,7 +95,7 @@ Graph elements_across_sides(Int dim,
   };
   parallel_for(nelems, count);
   auto elem2elem_elems = offset_scan<LO,LO>(degrees);
-  auto nelem_elems = elem2elem_elems.get(elem2elem_elems.size() - 1);
+  auto nelem_elems = elem2elem_elems.last();
   Write<LO> elem_elem2elem(nelem_elems);
   auto fill = LAMBDA(LO elem) {
     auto begin = elem * nsides_per_elem;

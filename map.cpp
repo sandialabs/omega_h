@@ -41,7 +41,7 @@ LOs invert_permutation(LOs a2b) {
 LOs collect_marked(Read<I8> marks) {
   LO ntotal = marks.size();
   LOs offsets = offset_scan<LO,I8>(marks);
-  LO nmarked = offsets.get(offsets.size() - 1);
+  LO nmarked = offsets.last();
   Write<LO> marked(nmarked);
   auto f = LAMBDA(LO i) {
     if (marks[i])
