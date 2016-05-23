@@ -419,7 +419,7 @@ static void test_build_from_elems2verts() {
   {
   Mesh mesh;
   build_from_elems2verts(mesh,3,LOs({0,1,2,3}),4);
-  mesh.ask_down(3,0);
+  CHECK(mesh.ask_down(3,0).ab2b == LOs({0,1,2,3}));
   }
 }
 
