@@ -30,3 +30,4 @@
 #include "mark.cpp"
 #include "classify.cpp"
 #include "reorder.cpp"
+#include "size.cpp"

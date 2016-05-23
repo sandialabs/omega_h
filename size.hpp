@@ -19,19 +19,8 @@ INLINE Real tet_volume(Few<Vector<3>, 3> b) {
 }
 
 template <Int dim>
-INLINE Real real_edge_length(Few<Vector<dim>, 2> p) {
-  return norm(p[1] - p[0]);
-}
-
-template <Int dim>
-INLINE Real real_edge_length(Few<LO, 2> v, Reals coords) {
-  auto p = gather_vectors<2,dim>(coords, v);
-  return real_edge_length(p);
-}
-
-template <Int dim>
 INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Real iso) {
-  return real_edge_length(p) / iso;
+  return norm(p[1] - p[0]) / iso;
 }
 
 template <Int dim>
@@ -52,15 +41,6 @@ INLINE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
   auto metric = average_metrics(gather_symms<2,dim>(metrics, v));
   return metric_edge_length(p, metric);
 }
-
-template <Int dim>
-struct RealEdgeLengths {
-  Reals coords;
-  RealEdgeLengths(Mesh const& mesh):coords(mesh.coords()) {}
-  INLINE Real measure(Few<LO, 2> v) const {
-    return real_edge_length<dim>(v, coords);
-  }
-};
 
 template <Int dim>
 struct IsoEdgeLengths {
@@ -87,3 +67,6 @@ struct MetricEdgeLengths {
     return metric_edge_length<dim>(v, coords, metrics);
   }
 };
+
+Reals measure_edges(Mesh& mesh, LOs ev2v);
+Reals measure_edges(Mesh& mesh);
