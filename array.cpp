@@ -249,6 +249,16 @@ bool operator==(Read<T> a, Read<T> b)
   return parallel_reduce(a.size(), SameContent<T>(a, b));
 }
 
+template <class T>
+Write<T> deep_copy(Read<T> a) {
+  Write<T> b(a.size());
+  auto f = LAMBDA(LO i) {
+    b[i] = a[i];
+  };
+  parallel_for(b.size(), f);
+  return b;
+}
+
 template <typename T>
 HostWrite<T>::HostWrite(LO size):
   write_(size)
@@ -356,6 +366,7 @@ template class Read<T>; \
 template class HostWrite<T>; \
 template class HostRead<T>; \
 template bool operator==(Read<T> a, Read<T> b); \
+template Write<T> deep_copy(Read<T> a); \
 template std::ostream& operator<<(std::ostream& o, Read<T> a); \
 template Read<T> multiply_each_by(T factor, Read<T> x); \
 template Read<T> add_each(Read<T> a, Read<T> b);
