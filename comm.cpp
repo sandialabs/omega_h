@@ -171,6 +171,26 @@ T Comm::allreduce(T x, ReduceOp op) const {
   return x;
 }
 
+#ifdef USE_MPI
+static void mpi_add_int128(void* a, void* b, int*, MPI_Datatype*) {
+  Int128* a2 = static_cast<Int128*>(a);
+  Int128* b2 = static_cast<Int128*>(b);
+  *b2 = *b2 + *a2;
+}
+#endif
+
+Int128 Comm::add_int128(Int128 x) const {
+#ifdef USE_MPI
+  MPI_Op op;
+  int commute = true;
+  CALL(MPI_Op_create(mpi_add_int128, commute, &op));
+  CALL(MPI_Allreduce(MPI_IN_PLACE, &x, sizeof(Int128), MPI_PACKED,
+        op, impl_));
+  CALL(MPI_Op_free(&op));
+#endif
+  return x;
+}
+
 template <typename T>
 T Comm::exscan(T x, ReduceOp op) const {
 #ifdef USE_MPI
