@@ -309,6 +309,10 @@ LO HostWrite<T>::size() const {
 }
 
 template <typename T>
+HostRead<T>::HostRead() {
+}
+
+template <typename T>
 HostRead<T>::HostRead(Read<T> read):
   read_(read)
 #ifdef USE_KOKKOS

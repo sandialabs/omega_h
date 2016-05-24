@@ -34,3 +34,4 @@
 #include "access.cpp"
 #include "quality.cpp"
 #include "gmsh.cpp"
+#include "comm.cpp"
