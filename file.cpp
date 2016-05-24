@@ -174,6 +174,8 @@ void read_array(std::istream& stream, Read<T>& array,
     CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete [] compressed;
   } else
+#else
+  CHECK(is_compressed == false);
 #endif
   {
     stream.read(reinterpret_cast<char*>(&uncompressed[0]),
