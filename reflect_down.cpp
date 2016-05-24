@@ -75,15 +75,20 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
   codes = codes_;
 }
 
+void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b,
+    LOs& a2b, Read<I8>& codes) {
+  if (dim == 1)
+    find_matches<2>(av2v, bv2v, v2b, a2b, codes);
+  if (dim == 2)
+    find_matches<3>(av2v, bv2v, v2b, a2b, codes);
+}
+
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
     Int high_dim, Int low_dim) {
   LOs uv2v = form_uses(hv2v, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
-  if (low_dim == 1)
-    find_matches<2>(uv2v, lv2v, v2l, hl2l, codes);
-  if (low_dim == 2)
-    find_matches<3>(uv2v, lv2v, v2l, hl2l, codes);
+  find_matches(low_dim, uv2v, lv2v, v2l, hl2l, codes);
   return Adj(hl2l, codes);
 }
 
