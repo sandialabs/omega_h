@@ -101,6 +101,8 @@ public:
   Comm();
 #ifdef USE_MPI
   Comm(MPI_Comm impl);
+#else
+  Comm(bool sends_to_self);
 #endif
   ~Comm();
   static CommPtr world();
