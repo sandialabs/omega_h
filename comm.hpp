@@ -118,7 +118,7 @@ public:
   template <typename T>
   T exscan(T x, ReduceOp op) const;
   template <typename T>
-  T bcast(T x) const;
+  void bcast(T& x) const;
   void bcast_string(std::string& s) const;
   template <typename T>
   Read<T> allgather(T x) const;

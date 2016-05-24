@@ -25,8 +25,8 @@ Comm::Comm(MPI_Comm impl):impl_(impl) {
           OSH_MPI_UNWEIGHTED));
     srcs_ = sources.write();
     dsts_ = destinations.write();
-    host_srcs_ = HostRead<I32>(srcs);
-    host_dsts_ = HostRead<I32>(dsts);
+    host_srcs_ = HostRead<I32>(srcs_);
+    host_dsts_ = HostRead<I32>(dsts_);
   }
 }
 #endif
@@ -35,16 +35,16 @@ Comm::~Comm() {
   CALL(MPI_Comm_free(&impl_));
 }
 
-static CommPtr Comm::world() {
+CommPtr Comm::world() {
   MPI_Comm impl;
   CALL(MPI_Comm_dup(MPI_COMM_WORLD, &impl));
-  return new Comm(impl);
+  return CommPtr(new Comm(impl));
 }
 
-static CommPtr Comm::self() {
+CommPtr Comm::self() {
   MPI_Comm impl;
   CALL(MPI_Comm_dup(MPI_COMM_SELF, &impl));
-  return new Comm(impl);
+  return CommPtr(new Comm(impl));
 }
 
 I32 Comm::rank() const {
@@ -62,13 +62,13 @@ I32 Comm::size() const {
 CommPtr Comm::dup() const {
   MPI_Comm impl2;
   CALL(MPI_Comm_dup(impl_, &impl2));
-  return new Comm(impl2);
+  return CommPtr(new Comm(impl2));
 }
 
 CommPtr Comm::split(I32 color, I32 key) const {
   MPI_Comm impl2;
   CALL(MPI_Comm_split(impl_, color, key, &impl2));
-  return impl2;
+  return CommPtr(new Comm(impl2));
 }
 
 CommPtr Comm::graph(Read<I32> dsts) const {
@@ -88,7 +88,7 @@ CommPtr Comm::graph(Read<I32> dsts) const {
         MPI_INFO_NULL,
         reorder,
         &impl2));
-  return new Comm(impl2);
+  return CommPtr(new Comm(impl2));
 }
 
 CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
@@ -103,7 +103,7 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
         destinations.size(), &destinations[0],
         OSH_MPI_UNWEIGHTED,
         MPI_INFO_NULL, reorder, &impl2));
-  return new Comm(impl2);
+  return CommPtr(new Comm(impl2));
 }
 
 Read<I32> Comm::sources() const {
@@ -127,7 +127,7 @@ T Comm::exscan(T x, ReduceOp op) const {
         mpi_op(op), impl_));
   if (!rank())
     return 0;
-  return value;
+  return x;
 }
 
 template <typename T>
@@ -137,9 +137,9 @@ void Comm::bcast(T& x) const {
 
 void Comm::bcast_string(std::string& s) const {
   I32 len = static_cast<I32>(s.length());
-  len = bcast(len);
-  s.resize(len);
-  CALL(MPI_Bcast(s.c_str(), len, MPI_CHAR, 0, impl_));
+  bcast(len);
+  s.resize(static_cast<std::size_t>(len));
+  CALL(MPI_Bcast(&s[0], len, MPI_CHAR, 0, impl_));
 }
 
 /* custom implementation of MPI_Neighbor_allgather
@@ -186,6 +186,8 @@ static int Neighbor_allgather(
   delete [] recvreqs;
   return MPI_SUCCESS;
 #else
+  (void) sources;
+  (void) destinations;
   return MPI_Neighbor_allgather(
       sendbuf, sendcount, sendtype,
       recvbuf, recvcount, recvtype,
@@ -239,6 +241,8 @@ static int Neighbor_alltoall(
   delete [] recvreqs;
   return MPI_SUCCESS;
 #else
+  (void) sources;
+  (void) destinations;
   return MPI_Neighbor_alltoall(
       sendbuf, sendcount, sendtype,
       recvbuf, recvcount, recvtype,
@@ -294,6 +298,8 @@ static int Neighbor_alltoallv(
   delete [] recvreqs;
   return MPI_SUCCESS;
 #else
+  (void) sources;
+  (void) destinations;
   return MPI_Neighbor_alltoallv(
       sendbuf, sendcounts, sdispls, sendtype,
       recvbuf, recvcounts, rdispls, recvtype,
@@ -315,7 +321,7 @@ Read<T> Comm::allgather(T x) const {
 template <typename T>
 Read<T> Comm::alltoall(Read<T> x) const {
   HostWrite<T> recvbuf(srcs_.size());
-  HostRead<T,int> sendbuf(x);
+  HostRead<T> sendbuf(x);
   CALL(Neighbor_alltoall(
         host_srcs_, host_dsts_,
         &sendbuf[0], 1, MpiTraits<T>::datatype(),
@@ -349,7 +355,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
 #define INST_T(T) \
 template T Comm::allreduce(T x, ReduceOp op) const; \
 template T Comm::exscan(T x, ReduceOp op) const; \
-template T Comm::bcast(T x) const; \
+template void Comm::bcast(T& x) const; \
 template Read<T> Comm::allgather(T x) const; \
 template Read<T> Comm::alltoall(Read<T> x) const; \
 template Read<T> Comm::alltoallv(Read<T> sendbuf, \
