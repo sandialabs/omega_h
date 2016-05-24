@@ -8,5 +8,6 @@ libomega_h.a
 perf_tests
 unit_tests
 manual_test
+osh_convert
 *.dSYM/
 *.vtu
