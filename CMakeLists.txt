@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 project(omega_h CXX)
 
+option(USE_MPI "Use MPI for parallelism" ON)
 option(USE_KOKKOS "Use Kokkos for on-node parallelism" OFF)
 option(USE_OPENMP "Use Kokkos+OpenMP for on-node parallelism" OFF)
 option(USE_CUDA "Use Kokkos+CUDA for on-node parallelism" OFF)
