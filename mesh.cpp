@@ -68,7 +68,8 @@ void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
 template <typename T>
 Tag<T> const& Mesh::get_tag(Int dim, std::string const& name) const {
   check_dim2(dim);
-  CHECK(has_tag(dim, name));
+  if (!has_tag(dim, name))
+    fail("expected tag %s on dimension %d\n", name.c_str(), dim);
   return *(to<T>(tag_iter(dim, name)->get()));
 }
 

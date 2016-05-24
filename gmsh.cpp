@@ -94,11 +94,10 @@ void read(std::istream& stream, Mesh& mesh) {
   }
   HostWrite<Real> host_coords(nnodes * max_dim);
   for (LO i = 0; i < nnodes; ++i) {
-    for (Int j = 0; j < mesh.dim(); ++j) {
+    for (Int j = 0; j < max_dim; ++j) {
       host_coords[i * max_dim + j] = node_coords[static_cast<std::size_t>(i)][j];
     }
   }
-  mesh.add_coords(host_coords.write());
   for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
     Int neev = ent_dim + 1;
     LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size()) / neev;
@@ -112,33 +111,32 @@ void read(std::istream& stream, Mesh& mesh) {
       host_class_id[i] = ent_class_ids[ent_dim][
         static_cast<std::size_t>(i)];
     }
+    auto eqv2v = Read<LO>(host_ev2v.write());
     if (ent_dim == max_dim) {
-      build_from_elems_and_coords(mesh, max_dim, host_ev2v.write(),
-          host_coords.write());
-      classify_elements(mesh);
-    } else {
-      auto eqv2v = Read<LO>(host_ev2v.write());
-      auto eq_class_id = Read<LO>(host_class_id.write());
-      LOs eq2e;
-      if (ent_dim == VERT) {
-        eq2e = eqv2v;
-      } else {
-        Read<I8> codes;
-        auto ev2v = mesh.ask_down(ent_dim, VERT).ab2b;
-        auto v2e = mesh.ask_up(VERT, ent_dim);
-        find_matches(ent_dim, eqv2v, ev2v, v2e, eq2e, codes);
-      }
-      Write<I8> class_dim(mesh.nents(ent_dim), -1);
-      Write<LO> class_id(mesh.nents(ent_dim), -1);
-      auto f = LAMBDA(LO eq) {
-        LO e = eq2e[eq];
-        class_dim[e] = static_cast<I8>(ent_dim);
-        class_id[e] = eq_class_id[eq];
-      };
-      parallel_for(ndim_ents, f);
-      mesh.add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
-      mesh.add_tag<LO>(ent_dim, "class_id", 1, class_id);
+      build_from_elems_and_coords(mesh, max_dim, eqv2v, host_coords.write());
     }
+    auto eq_class_id = Read<LO>(host_class_id.write());
+    LOs eq2e;
+    if (ent_dim == max_dim) {
+      eq2e = LOs(ndim_ents, 0, 1);
+    } else if (ent_dim == VERT) {
+      eq2e = eqv2v;
+    } else {
+      Read<I8> codes;
+      auto ev2v = mesh.ask_down(ent_dim, VERT).ab2b;
+      auto v2e = mesh.ask_up(VERT, ent_dim);
+      find_matches(ent_dim, eqv2v, ev2v, v2e, eq2e, codes);
+    }
+    Write<I8> class_dim(mesh.nents(ent_dim), -1);
+    Write<LO> class_id(mesh.nents(ent_dim), -1);
+    auto f = LAMBDA(LO eq) {
+      LO e = eq2e[eq];
+      class_dim[e] = static_cast<I8>(ent_dim);
+      class_id[e] = eq_class_id[eq];
+    };
+    parallel_for(ndim_ents, f);
+    mesh.add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
+    mesh.add_tag<LO>(ent_dim, "class_id", 1, class_id);
   }
   project_classification(mesh);
 }
