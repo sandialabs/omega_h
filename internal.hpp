@@ -83,3 +83,4 @@ typedef double       Real;
 #include "mark.hpp"
 #include "classify.hpp"
 #include "reorder.hpp"
+#include "gmsh.hpp"

@@ -33,3 +33,4 @@
 #include "size.cpp"
 #include "access.cpp"
 #include "quality.cpp"
+#include "gmsh.cpp"
