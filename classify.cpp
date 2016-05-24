@@ -98,13 +98,14 @@ void project_classification(Mesh& mesh) {
         return;
       Int best_dim = 4;
       LO best_id = -1;
-      for (LO lh = l2lh[l]; lh < l2lh[l]; ++lh) {
+      for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh) {
         auto h = lh2h[lh];
         if (high_class_dim[h] < best_dim) {
           best_dim = high_class_dim[h];
           best_id = high_class_id[h];
         }
       }
+      CHECK(best_dim < 4);
       class_dim[l] = static_cast<I8>(best_dim);
       class_id[l] = best_id;
     };
