@@ -50,9 +50,14 @@ void classify_vertices_by_sharp_edges(Mesh& mesh,
   mesh.add_tag<I8>(VERT, "class_dim", 1, class_dim);
 }
 
+void classify_elements(Mesh& mesh) {
+  mesh.add_tag<I8>(mesh.dim(), "class_dim", 1,
+      Read<I8>(mesh.nelems(), static_cast<I8>(mesh.dim())));
+}
+
 void classify_by_angles(Mesh& mesh, Real sharp_angle) {
   auto dim = mesh.dim();
-  mesh.add_tag<I8>(dim, "class_dim", 1, Read<I8>(mesh.nelems(), static_cast<I8>(dim)));
+  classify_elements(mesh);
   auto side_is_exposed = mark_exposed_sides(mesh);
   classify_sides_by_exposure(mesh, side_is_exposed);
   auto hinge_is_exposed = mark_down(mesh, dim - 1, dim - 2, side_is_exposed);
@@ -77,4 +82,34 @@ void classify_by_angles(Mesh& mesh, Real sharp_angle) {
   auto vert_is_exposed = mark_down(mesh, 2, 0, side_is_exposed);
   classify_vertices_by_sharp_edges(mesh,
       vert_is_exposed, hinge_is_sharp);
+}
+
+void project_classification(Mesh& mesh) {
+  for (Int d = mesh.dim() - 1; d >= VERT; --d) {
+    auto l2h = mesh.ask_up(d, d + 1);
+    auto l2lh = l2h.a2ab;
+    auto lh2h = l2h.ab2b;
+    auto high_class_dim = mesh.get_tag<I8>(d + 1, "class_dim").array();
+    auto high_class_id = mesh.get_tag<I8>(d + 1, "class_id").array();
+    Write<I8> class_dim = deep_copy(mesh.get_tag<I8>(d, "class_dim").array());
+    Write<LO> class_id = deep_copy(mesh.get_tag<LO>(d, "class_id").array());
+    auto f = LAMBDA(LO l) {
+      if (class_dim[l] >= 0)
+        return;
+      Int best_dim = 4;
+      LO best_id = -1;
+      for (LO lh = l2lh[l]; lh < l2lh[l]; ++lh) {
+        auto h = lh2h[lh];
+        if (high_class_dim[h] < best_dim) {
+          best_dim = high_class_dim[h];
+          best_id = high_class_id[h];
+        }
+      }
+      class_dim[l] = static_cast<I8>(best_dim);
+      class_id[l] = best_id;
+    };
+    parallel_for(mesh.nents(d), f);
+    mesh.set_tag<I8>(d, "class_dim", class_dim);
+    mesh.set_tag<LO>(d, "class_id", class_id);
+  }
 }
