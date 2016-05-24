@@ -77,7 +77,7 @@ enum ReduceOp {
 };
 
 #ifdef USE_MPI
-inline MPI_OP mpi_op(ReduceOp op) {
+inline MPI_Op mpi_op(ReduceOp op) {
   switch (op) {
     case MIN: return MPI_MIN,
     case MAX: return MPI_MAX,
