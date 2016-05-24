@@ -123,6 +123,7 @@ class HostRead {
   typename Kokkos::View<const T*>::HostMirror mirror_;
 #endif
 public:
+  HostRead();
   HostRead(Read<T> read);
   LO size() const;
   inline T const& operator[](LO i) const {
