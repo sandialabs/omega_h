@@ -102,6 +102,8 @@ CommPtr Comm::split(I32 color, I32 key) const {
   CALL(MPI_Comm_split(impl_, color, key, &impl2));
   return CommPtr(new Comm(impl2));
 #else
+  (void) color;
+  (void) key;
   return CommPtr(new Comm());
 #endif
 }
