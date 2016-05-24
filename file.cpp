@@ -5,10 +5,11 @@ bool is_little_endian_cpu()
   return *p == 0x1;
 }
 
-namespace file {
+namespace binary {
 
 namespace {
 
+static_assert(sizeof(Int) == 4, "osh format assumes 32 bit Int");
 static_assert(sizeof(LO) == 4, "osh format assumes 32 bit LO");
 static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
@@ -100,24 +101,27 @@ static Read<T> swap_if_needed(Read<T> array) {
   return out;
 }
 
+unsigned char const magic[2] = {0xa1,0x1a};
+Int latest_version = 1;
+
 } //end anonymous namespace
 
 template <typename T>
-void write_binary(std::ostream& stream, T val) {
+void write_value(std::ostream& stream, T val) {
   swap_if_needed(val);
   stream.write(reinterpret_cast<const char*>(&val), sizeof(T));
 }
 
 template <typename T>
-void read_binary(std::istream& stream, T& val) {
+void read_value(std::istream& stream, T& val) {
   stream.read(reinterpret_cast<char*>(&val), sizeof(T));
   swap_if_needed(val);
 }
 
 template <typename T>
-void write_binary(std::ostream& stream, Read<T> array) {
+void write_array(std::ostream& stream, Read<T> array) {
   LO size = array.size();
-  write_binary(stream, size);
+  write_value(stream, size);
   Read<T> swapped = swap_if_needed(array);
   HostRead<T> uncompressed(swapped);
   I64 uncompressed_bytes = static_cast<I64>(
@@ -134,7 +138,7 @@ void write_binary(std::ostream& stream, Read<T> array) {
       9);
   CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
-  write_binary(stream, compressed_bytes);
+  write_value(stream, compressed_bytes);
   stream.write(reinterpret_cast<const char*>(compressed), compressed_bytes);
   delete [] compressed;
 #else
@@ -144,17 +148,19 @@ void write_binary(std::ostream& stream, Read<T> array) {
 }
 
 template <typename T>
-void read_binary(std::istream& stream, Read<T>& array,
+void read_array(std::istream& stream, Read<T>& array,
     bool is_compressed) {
   LO size;
-  read_binary(stream, size);
+  read_value(stream, size);
+  CHECK(size >= 0);
   I64 uncompressed_bytes = static_cast<I64>(
       static_cast<std::size_t>(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
 #ifdef USE_ZLIB
   if (is_compressed) {
     I64 compressed_bytes;
-    read_binary(stream, compressed_bytes);
+    read_value(stream, compressed_bytes);
+    CHECK(compressed_bytes >= 0);
     Bytef* compressed = new Bytef[compressed_bytes];
     stream.read(reinterpret_cast<char*>(compressed), compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
@@ -176,11 +182,128 @@ void read_binary(std::istream& stream, Read<T>& array,
   array = swap_if_needed(Read<T>(uncompressed.write()));
 }
 
+void write(std::ostream& stream, std::string const& val)
+{
+  I32 len = static_cast<I32>(val.length());
+  write_value(stream, len);
+  stream.write(val.c_str(), len);
+}
+
+void read(std::istream& stream, std::string& val)
+{
+  I32 len;
+  read_value(stream, len);
+  CHECK(len >= 0);
+  val.resize(static_cast<std::size_t>(len));
+  stream.read(&val[0], len);
+}
+
+void write(std::ostream& stream, Mesh& mesh) {
+  stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
+  write_value(stream, latest_version);
+#ifdef USE_ZLIB
+  I8 is_compressed = true;
+#else
+  I8 is_compressed = false;
+#endif
+  write_value(stream, is_compressed);
+  Int dim = mesh.dim();
+  write_value(stream, dim);
+  LO nverts = mesh.nverts();
+  write_value(stream, nverts);
+  for (Int d = 1; d <= dim; ++d) {
+    LOs down = mesh.ask_down(d, d - 1).ab2b;
+    write_array(stream, down);
+  }
+  for (Int d = 0; d <= dim; ++d) {
+    Int ntags = mesh.count_tags(d);
+    write_value(stream, ntags);
+    for (Int i = 0; i < ntags; ++i) {
+      auto tag = mesh.get_tag(d, i);
+      write(stream, tag->name());
+      Int ncomps = tag->ncomps();
+      write_value(stream, ncomps);
+      if (is<I8>(tag)) {
+        write_value(stream, static_cast<Int>(OSH_I8));
+        write_array(stream, to<I8>(tag)->array());
+      } else if (is<I32>(tag)) {
+        write_value(stream, static_cast<Int>(OSH_I32));
+        write_array(stream, to<I32>(tag)->array());
+      } else if (is<I64>(tag)) {
+        write_value(stream, static_cast<Int>(OSH_I64));
+        write_array(stream, to<I64>(tag)->array());
+      } else if (is<Real>(tag)) {
+        write_value(stream, static_cast<Int>(OSH_F64));
+        write_array(stream, to<Real>(tag)->array());
+      } else {
+        fail("unexpected tag type in binary write\n");
+      }
+    }
+  }
+}
+
+void read(std::istream& stream, Mesh& mesh) {
+  unsigned char magic_in[2];
+  stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
+  CHECK(magic_in[0] == magic[0]);
+  CHECK(magic_in[1] == magic[1]);
+  Int version;
+  read_value(stream, version);
+  I8 is_compressed;
+  read_value(stream, is_compressed);
+#ifdef USE_ZLIB
+  CHECK(!is_compressed);
+#endif
+  CHECK(version >= 1);
+  CHECK(version <= latest_version);
+  Int dim;
+  read_value(stream, dim);
+  mesh.set_dim(dim);
+  LO nverts;
+  read_value(stream, nverts);
+  for (Int d = 1; d <= dim; ++d) {
+    LOs down;
+    read_array(stream, down, is_compressed);
+    mesh.set_ents(d, down);
+  }
+  for (Int d = 0; d <= dim; ++d) {
+    Int ntags;
+    read_value(stream, ntags);
+    for (Int i = 0; i < ntags; ++i) {
+      std::string name;
+      read(stream, name);
+      Int ncomps;
+      read_value(stream, ncomps);
+      Int type;
+      read_value(stream, type);
+      if (type == OSH_I8) {
+        Read<I8> array;
+        read_array(stream, array, is_compressed);
+        mesh.add_tag(d, name, ncomps, array);
+      } else if (type == OSH_I32) {
+        Read<I32> array;
+        read_array(stream, array, is_compressed);
+        mesh.add_tag(d, name, ncomps, array);
+      } else if (type == OSH_I64) {
+        Read<I64> array;
+        read_array(stream, array, is_compressed);
+        mesh.add_tag(d, name, ncomps, array);
+      } else if (type == OSH_F64) {
+        Read<Real> array;
+        read_array(stream, array, is_compressed);
+        mesh.add_tag(d, name, ncomps, array);
+      } else {
+        fail("unexpected tag type in binary write\n");
+      }
+    }
+  }
+}
+
 #define INST_T(T) \
-template void write_binary(std::ostream& stream, T val); \
-template void read_binary(std::istream& stream, T& val); \
-template void write_binary(std::ostream& stream, Read<T> array); \
-template void read_binary(std::istream& stream, Read<T>& array, \
+template void write_value(std::ostream& stream, T val); \
+template void read_value(std::istream& stream, T& val); \
+template void write_array(std::ostream& stream, Read<T> array); \
+template void read_array(std::istream& stream, Read<T>& array, \
     bool is_compressed);
 INST_T(I8)
 INST_T(I32)
