@@ -46,7 +46,7 @@ LOs ent_order_from_vert_order(Mesh& mesh,
 
 void reorder_tags(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim, LOs new_ents2old_ents) {
-  for (Int i = 0; i < old_mesh.count_tags(ent_dim); ++i) {
+  for (Int i = 0; i < old_mesh.ntags(ent_dim); ++i) {
     auto tag = old_mesh.get_tag(ent_dim, i);
     if (is<I8>(tag)) {
       new_mesh.add_tag<I8>(ent_dim, tag->name(), tag->ncomps(),

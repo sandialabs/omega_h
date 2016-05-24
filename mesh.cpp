@@ -84,7 +84,7 @@ bool Mesh::has_tag(Int dim, std::string const& name) const {
   return tag_iter(dim, name) != tags_[dim].end();
 }
 
-Int Mesh::count_tags(Int dim) const {
+Int Mesh::ntags(Int dim) const {
   check_dim2(dim);
   return static_cast<Int>(tags_[dim].size());
 }
@@ -92,7 +92,7 @@ Int Mesh::count_tags(Int dim) const {
 TagBase const* Mesh::get_tag(Int dim, Int i) const {
   check_dim2(dim);
   CHECK(0 <= i);
-  CHECK(i <= count_tags(dim));
+  CHECK(i <= ntags(dim));
   return tags_[dim][static_cast<std::size_t>(i)].get();
 }
 

@@ -232,13 +232,13 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
   write_connectivity(stream, mesh, cell_dim);
   stream << "</Cells>\n";
   stream << "<PointData>\n";
-  for (Int i = 0; i < mesh.count_tags(VERT); ++i)
+  for (Int i = 0; i < mesh.ntags(VERT); ++i)
     if (mesh.get_tag(VERT, i)->name() != "coordinates")
       write_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
   write_locals(stream, mesh, VERT);
   stream << "</PointData>\n";
   stream << "<CellData>\n";
-  for (Int i = 0; i < mesh.count_tags(cell_dim); ++i)
+  for (Int i = 0; i < mesh.ntags(cell_dim); ++i)
     write_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
   write_locals(stream, mesh, cell_dim);
   stream << "</CellData>\n";

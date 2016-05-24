@@ -218,7 +218,7 @@ void write(std::ostream& stream, Mesh& mesh) {
     write_array(stream, down);
   }
   for (Int d = 0; d <= dim; ++d) {
-    Int ntags = mesh.count_tags(d);
+    Int ntags = mesh.ntags(d);
     write_value(stream, ntags);
     for (Int i = 0; i < ntags; ++i) {
       auto tag = mesh.get_tag(d, i);

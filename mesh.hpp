@@ -19,7 +19,7 @@ class Mesh {
     Tag<T> const& get_tag(Int dim, std::string const& name) const;
     void remove_tag(Int dim, std::string const& name);
     bool has_tag(Int dim, std::string const& name) const;
-    Int count_tags(Int dim) const;
+    Int ntags(Int dim) const;
     TagBase const* get_tag(Int dim, Int i) const;
     bool has_ents(Int dim) const;
     bool has_adj(Int from, Int to) const;
