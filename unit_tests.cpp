@@ -529,6 +529,62 @@ static void test_quality() {
   CHECK(are_close(metric_tet_quality(x_tet, x_metric_3), 1.0));
 }
 
+static void test_file() {
+  using namespace binary;
+  std::stringstream stream;
+  std::string s = "foo";
+  LO n = 10;
+#ifdef USE_ZLIB
+  bool is_compressed = true;
+#else
+  bool is_compressed = false;
+#endif
+  I8 a = 2;
+  write_value(stream, a);
+  I32 b = 42 * 1000 * 1000;
+  write_value(stream, b);
+  I64 c = I64(42) * 1000 * 1000 * 1000;
+  write_value(stream, c);
+  Real d = 4.2;
+  write_value(stream, d);
+  Read<I8> aa(n, 0, a);
+  write_array(stream, aa);
+  Read<I32> ab(n, 0, b);
+  write_array(stream, ab);
+  Read<I64> ac(n, 0, c);
+  write_array(stream, ac);
+  Read<Real> ad(n, 0, d);
+  write_array(stream, ad);
+  write(stream, s);
+  I8 a2;
+  read_value(stream, a2);
+  CHECK(a == a2);
+  I32 b2;
+  read_value(stream, b2);
+  CHECK(b == b2);
+  I64 c2;
+  read_value(stream, c2);
+  CHECK(c == c2);
+  Real d2;
+  read_value(stream, d2);
+  CHECK(d == d2);
+  Read<I8> aa2;
+  read_array(stream, aa2, is_compressed);
+  CHECK(aa2 == aa);
+  Read<I32> ab2;
+  read_array(stream, ab2, is_compressed);
+  CHECK(ab2 == ab);
+  Read<I64> ac2;
+  read_array(stream, ac2, is_compressed);
+  CHECK(ac2 == ac);
+  Read<Real> ad2;
+  read_array(stream, ad2, is_compressed);
+  CHECK(ad2 == ad);
+  std::string s2;
+  read(stream, s2);
+  CHECK(s == s2);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -556,5 +612,6 @@ int main(int argc, char** argv) {
   test_injective_map();
   test_dual();
   test_quality();
+  test_file();
   fini();
 }
