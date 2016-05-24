@@ -158,7 +158,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
   }
 }
 
-enum Type {
+enum {
   VTK_VERTEX         = 1,
   VTK_POLY_VERTEX    = 2,
   VTK_LINE           = 3,
