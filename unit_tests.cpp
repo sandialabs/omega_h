@@ -333,13 +333,13 @@ static void test_form_uses() {
 
 static void test_reflect_down() {
   Adj a;
-  a = reflect_down(LOs(),LOs(),0,2,1);
+  a = reflect_down(LOs({}),LOs({}),0,2,1);
   CHECK(a.ab2b == LOs({}));
   CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs(),LOs(),0,3,1);
+  a = reflect_down(LOs({}),LOs({}),0,3,1);
   CHECK(a.ab2b == LOs({}));
   CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs(),LOs(),0,3,2);
+  a = reflect_down(LOs({}),LOs({}),0,3,2);
   CHECK(a.ab2b == LOs({}));
   CHECK(a.codes == Read<I8>({}));
   a = reflect_down(LOs({0,1,2}),LOs({0,1,1,2,2,0}),3,2,1);

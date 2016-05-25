@@ -92,7 +92,7 @@ CommPtr Comm::dup() const {
   CALL(MPI_Comm_dup(impl_, &impl2));
   return CommPtr(new Comm(impl2));
 #else
-  return CommPtr(new Comm(srcs_.size() != 0));
+  return CommPtr(new Comm(srcs_.size() == 1));
 #endif
 }
 
@@ -128,7 +128,7 @@ CommPtr Comm::graph(Read<I32> dsts) const {
         &impl2));
   return CommPtr(new Comm(impl2));
 #else
-  return CommPtr(new Comm(dsts.size() != 0));
+  return CommPtr(new Comm(dsts.size() == 1));
 #endif
 }
 
@@ -148,7 +148,7 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
   return CommPtr(new Comm(impl2));
 #else
   CHECK(srcs == dsts);
-  return CommPtr(new Comm(dsts.size() != 0));
+  return CommPtr(new Comm(dsts.size() == 1));
 #endif
 }
 
@@ -403,7 +403,7 @@ Read<T> Comm::allgather(T x) const {
         impl_));
   return recvbuf.write();
 #else
-  if (srcs_.size())
+  if (srcs_.size() == 1)
     return Read<T>({x});
   return Read<T>();
 #endif

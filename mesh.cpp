@@ -180,9 +180,9 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
   check_dim2(from);
   check_dim2(to);
   if (to < from) {
-    CHECK(adj.a2ab.size() == 0);
+    CHECK(!adj.a2ab.exists());
     if (to == VERT)
-      CHECK(adj.codes.size() == 0);
+      CHECK(!adj.codes.exists());
     CHECK(adj.ab2b.size() == nents(from) * simplex_degrees[from][to]);
   } else {
     if (from < to) {

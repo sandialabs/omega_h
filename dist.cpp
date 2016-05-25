@@ -1,3 +1,12 @@
+Dist::Dist() {
+}
+
+Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
+  set_comm(comm);
+  set_dest_ranks(fitems2rroots.ranks);
+  set_dest_idxs(fitems2rroots.idxs, nrroots);
+}
+
 void Dist::set_comm(CommPtr parent_comm) {
   parent_comm_ = parent_comm;
 }
@@ -67,10 +76,10 @@ Dist Dist::invert() const {
 
 template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
-  if (roots2items_[F].size()) {
+  if (roots2items_[F].exists()) {
     data = expand(data, roots2items_[F], width);
   }
-  if (items2content_[F].size()) {
+  if (items2content_[F].exists()) {
     data = permute(data, items2content_[F], width);
   }
   auto sendcounts = multiply_each_by(width,
@@ -82,7 +91,7 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   data = comm_[F]->alltoallv(data,
       sendcounts, sdispls,
       recvcounts, rdispls);
-  if (items2content_[R].size()) {
+  if (items2content_[R].exists()) {
     data = unmap(items2content_[R], data, width);
   }
   return data;

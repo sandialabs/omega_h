@@ -7,6 +7,7 @@ Write<T>::Write():
   size_(0)
 #endif
 {
+  CHECK(!exists());
 }
 
 template <typename T>
@@ -18,6 +19,7 @@ Write<T>::Write(LO size):
   size_(size)
 #endif
 {
+  CHECK(exists());
 }
 
 template <typename T>
@@ -58,6 +60,7 @@ Write<T>::Write(HostWrite<T> host_write):
 
 template <typename T>
 LO Write<T>::size() const {
+  CHECK(exists());
 #ifdef USE_KOKKOS
   return static_cast<LO>(view_.size());
 #else
@@ -99,6 +102,11 @@ T Write<T>::get(LO i) const {
 #else
   return operator[](i);
 #endif
+}
+
+template <typename T>
+bool Write<T>::exists() const {
+  return data() != nullptr;
 }
 
 template <typename T>
@@ -245,6 +253,11 @@ T Read<T>::get(LO i) const {
 template <typename T>
 T Read<T>::last() const {
   return get(size() - 1);
+}
+
+template <typename T>
+bool Read<T>::exists() const {
+  return write_.exists();
 }
 
 template <class T>

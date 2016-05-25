@@ -37,6 +37,7 @@ public:
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
+  bool exists() const;
 };
 
 template <typename T>
@@ -58,6 +59,7 @@ public:
 #endif
   T get(LO i) const;
   T last() const;
+  bool exists() const;
 };
 
 template <class T>

@@ -6,6 +6,8 @@ class Dist {
   Read<I32> msgs2ranks_[2];
   CommPtr comm_[2];
 public:
+  Dist();
+  Dist(CommPtr comm, Remotes fitems2ritems, LO nrroots);
   void set_comm(CommPtr parent_comm);
   void set_dest_ranks(Read<I32> items2ranks);
   void set_dest_idxs(LOs fitems2rroots, LO nrroots);

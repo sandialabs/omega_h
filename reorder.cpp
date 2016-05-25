@@ -74,7 +74,7 @@ void reorder_down(Mesh& old_mesh, Mesh& new_mesh,
   auto nel2ol = unmap(new_ents2old_ents, oel2ol, deg);
   auto nel2nl = compound_maps(nel2ol, old_lows2new_lows);
   auto new_ents2new_lows = Adj(nel2nl);
-  if (oe2l_codes.size()) {
+  if (oe2l_codes.exists()) {
     auto ne2l_codes = unmap(new_ents2old_ents, oe2l_codes, deg);
     new_ents2new_lows.codes = ne2l_codes;
   }
