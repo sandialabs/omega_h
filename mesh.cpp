@@ -80,7 +80,9 @@ void Mesh::remove_tag(Int dim, std::string const& name) {
 }
 
 bool Mesh::has_tag(Int dim, std::string const& name) const {
-  check_dim2(dim);
+  check_dim(dim);
+  if (!has_ents(dim))
+    return false;
   return tag_iter(dim, name) != tags_[dim].end();
 }
 
