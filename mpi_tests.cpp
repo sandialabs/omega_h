@@ -23,6 +23,7 @@ static void test_one_rank(CommPtr comm) {
 static void test_two_ranks(CommPtr comm) {
   CHECK(comm->size() == 2);
   Dist dist;
+  dist.set_comm(comm);
   /* partition is {0,1,2}{3,4},
      global reversal to
                   {4,3,2}{1,0} */
