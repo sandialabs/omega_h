@@ -25,6 +25,7 @@ void init(int& argc, char**& argv) {
 #endif
   (void)argc;
   (void)argv;
+  protect();
 }
 
 void fini() {

@@ -42,6 +42,7 @@ typedef double       Real;
 #define MANTISSA_BITS 52
 
 #include "control.hpp"
+#include "protect.hpp"
 #include "timer.hpp"
 #include "algorithm.hpp"
 #include "few.hpp"
