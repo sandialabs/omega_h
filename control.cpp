@@ -1,8 +1,6 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include "protect.hpp"
-
 #ifdef USE_MPI
 static bool we_called_mpi_init = false;
 #endif

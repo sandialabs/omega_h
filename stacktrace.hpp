@@ -2,13 +2,16 @@
 // published under the WTFPL v2.0
 
 /* Dan Ibanez: found this code for stacktrace printing,
-   cleaned it up for compilation as strict C++11 */
+   cleaned it up for compilation as strict C++11,
+   fixed the parser for OS X */
 
 #ifndef STACKTRACE_HPP
 #define STACKTRACE_HPP
 
 #include <cstdio>
 #include <cstdlib>
+#include <string>
+#include <sstream>
 #include <execinfo.h>
 #include <cxxabi.h>
 
@@ -30,60 +33,33 @@ static inline void print_stacktrace(FILE *out = stderr, int max_frames = 63)
   // this array must be free()-ed
   char** symbollist = backtrace_symbols(addrlist, addrlen);
   delete [] addrlist;
-  // allocate string which will be filled with the demangled function name
-  size_t funcnamesize = 256;
-  char* funcname = new char[funcnamesize];
   // iterate over the returned symbol lines. skip the first, it is the
   // address of this function.
   for (int i = 1; i < addrlen; i++)
   {
-    // TODO: this parsing code assumes certain GNU/Linux formatting.
-    // try adding OSX code when time allows
-    char *begin_name = 0, *begin_offset = 0, *end_offset = 0;
-    // find parentheses and +address offset surrounding the mangled name:
-    // ./module(function+0x15c) [0x8048a6d]
-    for (char *p = symbollist[i]; *p; ++p)
-    {
-      if (*p == '(')
-        begin_name = p;
-      else if (*p == '+')
-        begin_offset = p;
-      else if (*p == ')' && begin_offset) {
-        end_offset = p;
-        break;
-      }
+#ifdef __APPLE__
+    std::string line(symbollist[i]);
+    std::stringstream instream(line);
+    std::string num; instream >> num;
+    std::string obj; instream >> obj;
+    obj.resize(20, ' ');
+    std::string addr; instream >> addr;
+    std::string symbol; instream >> symbol;
+    std::string offset; instream >> offset >> offset;
+    int status;
+    char* demangled = abi::__cxa_demangle(symbol.c_str(), NULL, NULL, &status);
+    if (status == 0) {
+      symbol = demangled;
     }
-    if (begin_name && begin_offset && end_offset
-        && begin_name < begin_offset)
-    {
-      *begin_name++ = '\0';
-      *begin_offset++ = '\0';
-      *end_offset = '\0';
-      // mangled name is now in [begin_name, begin_offset) and caller
-      // offset in [begin_offset, end_offset). now apply
-      // __cxa_demangle():
-      int status;
-      char* ret = abi::__cxa_demangle(begin_name,
-          funcname, &funcnamesize, &status);
-      if (status == 0) {
-        funcname = ret; // use possibly realloc()-ed string
-        fprintf(out, "  %s : %s+%s\n",
-            symbollist[i], funcname, begin_offset);
-      }
-      else {
-        // demangling failed. Output function name as a C function with
-        // no arguments.
-        fprintf(out, "  %s : %s()+%s\n",
-            symbollist[i], begin_name, begin_offset);
-      }
-    }
-    else
-    {
-      // couldn't parse the line? print the whole line.
-      fprintf(out, " (noparse)  %s\n", symbollist[i]);
-    }
+    free(demangled);
+    std::stringstream outstream;
+    outstream << num << ' ' << obj << ' ' << addr << ' '  << symbol << " + " << offset;
+    std::string outstr = outstream.str();
+    fprintf(out, "  %s\n", outstr.c_str());
+#else
+    fprintf(out, "  %s\n", symbollist[i]);
+#endif
   }
-  delete [] funcname;
   free(symbollist);
 }
 
