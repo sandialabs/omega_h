@@ -59,7 +59,6 @@ typedef double       Real;
 #include "functors.hpp"
 #include "array.hpp"
 #include "access.hpp"
-#include "repro.hpp"
 #include "sort.hpp"
 #include "scan.hpp"
 #include "indset.hpp"
@@ -85,3 +84,4 @@ typedef double       Real;
 #include "reorder.hpp"
 #include "gmsh.hpp"
 #include "comm.hpp"
+#include "repro.hpp"

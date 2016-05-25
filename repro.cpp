@@ -22,11 +22,17 @@ struct ReproSum : public SumFunctor<Int128> {
   }
 };
 
-Real repro_sum(Reals a, int expo) {
+Real repro_sum(Reals a) {
+  int expo = max_exponent(a);
   double unit = exp2(double(expo - MANTISSA_BITS));
-  return parallel_reduce(a.size(), ReproSum(a, unit)).to_double(unit);
+  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit));
+  return fixpt_sum.to_double(unit);
 }
 
-Real repro_sum(Reals a) {
-  return repro_sum(a, max_exponent(a));
+Real repro_sum(CommPtr comm, Reals a) {
+  int expo = comm->allreduce(max_exponent(a), MAX);
+  double unit = exp2(double(expo - MANTISSA_BITS));
+  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit));
+  fixpt_sum = comm->add_int128(fixpt_sum);
+  return fixpt_sum.to_double(unit);
 }
