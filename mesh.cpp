@@ -4,6 +4,10 @@ Mesh::Mesh():
     nents_[i] = -1;
 }
 
+void Mesh::set_comm(CommPtr comm) {
+  comm_ = comm;
+}
+
 void Mesh::set_dim(Int dim) {
   CHECK(dim_ == -1);
   CHECK(dim >= 2);
@@ -22,6 +26,10 @@ void Mesh::set_ents(Int dim, Adj down) {
   CHECK(hl2l.size() % simplex_degrees[dim][dim - 1] == 0);
   nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
+}
+
+CommPtr Mesh::comm() const {
+  return comm_;
 }
 
 Int Mesh::dim() const {
@@ -249,6 +257,7 @@ void Mesh::set_coords(Reals array) {
 
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
+    CHECK(comm_->size() == 1);
     add_tag(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
   }
   return get_tag<GO>(dim, "global").array();

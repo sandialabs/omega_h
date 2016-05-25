@@ -1,9 +1,11 @@
 class Mesh {
   public:
     Mesh();
+    void set_comm(CommPtr comm);
     void set_dim(Int dim);
     void set_verts(LO nverts);
     void set_ents(Int dim, Adj down);
+    CommPtr comm() const;
     Int dim() const;
     LO nents(Int dim) const;
     LO nelems() const;
@@ -41,6 +43,7 @@ class Mesh {
     void add_adj(Int from, Int to, Adj adj);
     Adj derive_adj(Int from, Int to);
     Adj ask_adj(Int from, Int to);
+    CommPtr comm_;
     Int dim_;
     LO nents_[DIMS];
     TagVector tags_[DIMS];

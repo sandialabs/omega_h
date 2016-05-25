@@ -83,6 +83,7 @@ void reorder_down(Mesh& old_mesh, Mesh& new_mesh,
 
 void reorder_mesh(Mesh& old_mesh, Mesh& new_mesh,
     LOs new_vert2old_vert) {
+  new_mesh.set_comm(old_mesh.comm());
   new_mesh.set_dim(old_mesh.dim());
   new_mesh.set_verts(old_mesh.nverts());
   reorder_tags(old_mesh, new_mesh, VERT, new_vert2old_vert);

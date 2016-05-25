@@ -11,6 +11,7 @@ static void add_ents2verts(Mesh& mesh, Int edim, LOs ev2v) {
 }
 
 void build_from_elems2verts(Mesh& mesh, Int edim, LOs ev2v, LO nverts) {
+  mesh.set_comm(Comm::self());
   mesh.set_dim(edim);
   mesh.set_verts(nverts);
   for (Int mdim = 1; mdim < edim; ++mdim) {
