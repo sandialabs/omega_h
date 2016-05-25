@@ -233,6 +233,8 @@ static void test_permute() {
   LOs perm({3,2,1,0});
   Reals permuted = unmap(perm, data, 1);
   CHECK(permuted == Reals({0.4,0.3,0.2,0.1}));
+  Reals back = permute(permuted, perm, 1);
+  CHECK(back == data);
 }
 
 // these tests can have degree at most 1
