@@ -63,6 +63,13 @@ void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
   tag->set_array(array);
+  /* hardcoded cache invalidations */
+  if ((dim == VERT) && ((name == "coordinates") ||
+                        (name == "size") ||
+                        (name == "metric"))) {
+    if (has_tag(EDGE, "length")) remove_tag(EDGE, "length");
+    if (has_tag(this->dim(), "quality")) remove_tag(this->dim(), "quality");
+  }
 }
 
 template <typename T>
