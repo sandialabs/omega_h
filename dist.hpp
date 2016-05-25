@@ -8,7 +8,7 @@ class Dist {
 public:
   void set_comm(CommPtr parent_comm);
   void set_dest_ranks(Read<I32> items2ranks);
-  void set_dest_idxs(Read<I32> fitems2rroots, LO nrroots);
+  void set_dest_idxs(LOs fitems2rroots, LO nrroots);
   void set_roots2items(LOs froots2fitems);
   Dist invert() const;
   template <typename T>

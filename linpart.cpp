@@ -5,15 +5,15 @@ Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size)
   auto rem = total % comm_size_gt;
   auto split = ((quot + 1) * rem);
   Write<I32> ranks(globals.size());
-  Write<I32> idxs(globals.size());
+  Write<LO> idxs(globals.size());
   auto f = LAMBDA(LO i) {
     if (globals[i] < split) {
       ranks[i] = static_cast<I32>(globals[i] / (quot + 1));
-      idxs[i] = static_cast<I32>(globals[i] % (quot + 1));
+      idxs[i] = static_cast<LO>(globals[i] % (quot + 1));
     } else {
       auto g = globals[i] - split;
       ranks[i] = static_cast<I32>(g / quot + rem);
-      idxs[i] = static_cast<I32>(g % quot);
+      idxs[i] = static_cast<LO>(g % quot);
     }
   };
   parallel_for(globals.size(), f);

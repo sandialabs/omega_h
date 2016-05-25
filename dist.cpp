@@ -42,7 +42,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   msgs2content_[R] = offset_scan(rdegrees);
 }
 
-void Dist::set_dest_idxs(Read<I32> fitems2rroots, LO nrroots) {
+void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
   auto rcontent2rroots = exch(fitems2rroots, 1);
   map::invert_by_sorting(rcontent2rroots, nrroots,
       roots2items_[R], items2content_[R]);
