@@ -36,3 +36,4 @@
 #include "gmsh.cpp"
 #include "comm.cpp"
 #include "linpart.cpp"
+#include "dist.cpp"

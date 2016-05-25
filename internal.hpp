@@ -87,3 +87,4 @@ typedef double       Real;
 #include "repro.hpp"
 #include "remotes.hpp"
 #include "linpart.hpp"
+#include "dist.hpp"
