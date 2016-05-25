@@ -1,6 +1,8 @@
 #include <cstdarg>
 #include <cstdio>
 
+#include "protect.hpp"
+
 #ifdef USE_MPI
 static bool we_called_mpi_init = false;
 #endif
@@ -25,6 +27,7 @@ void init(int& argc, char**& argv) {
 #endif
   (void)argc;
   (void)argv;
+  protect();
 }
 
 void fini() {
