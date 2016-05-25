@@ -57,9 +57,7 @@ static void test_all() {
   }
   auto one = world->split(world->rank(), 0);
   if (world->rank() == 0) {
-    std::cerr << "testing \"one\"\n";
     test_one_rank(one);
-    std::cerr << "testing \"one->dup()\"\n";
     test_one_rank(one->dup());
   }
   if (world->size() >= 2) {
