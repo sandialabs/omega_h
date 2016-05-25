@@ -34,3 +34,5 @@ void invert(LOs a2b, LO nb,
 }
 
 LOs get_degrees(LOs offsets);
+
+LOs invert_fan(LOs a2b);

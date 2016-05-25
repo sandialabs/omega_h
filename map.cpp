@@ -167,3 +167,17 @@ LOs get_degrees(LOs offsets) {
   parallel_for(degrees.size(), f);
   return degrees;
 }
+
+LOs invert_fan(LOs a2b) {
+  auto na = a2b.size() - 1;
+  auto nb = a2b.last();
+  Write<LO> b2a(nb, -1);
+  auto f = LAMBDA(LO a)
+  {
+    if (a2b[a] != a2b[a + 1])
+      b2a[a2b[a]] = a;
+  };
+  parallel_for(na, f);
+  fill_right(b2a);
+  return b2a;
+}
