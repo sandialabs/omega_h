@@ -35,3 +35,4 @@
 #include "quality.cpp"
 #include "gmsh.cpp"
 #include "comm.cpp"
+#include "linpart.cpp"
