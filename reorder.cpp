@@ -21,7 +21,7 @@ Graph find_entities_of_first_vertices(
     degrees[v] = n;
   };
   parallel_for(nv, count);
-  auto fv2fve = offset_scan<LO,LO>(degrees);
+  auto fv2fve = offset_scan(LOs(degrees));
   Write<LO> fve2e(fv2fve.last());
   auto fill = LAMBDA(LO v) {
     LO fve = fv2fve[v];

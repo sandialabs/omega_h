@@ -208,7 +208,7 @@ LOs tets_from_hexes(LOs hv2v) {
       degrees[h] = 6;
   };
   parallel_for(nh, count);
-  LOs h2ht = offset_scan<LO,LO>(degrees);
+  auto h2ht = offset_scan(LOs(degrees));
   LO nt = h2ht.last();
   Write<LO> tv2v(nt * 4);
   auto fill = LAMBDA(LO h) {

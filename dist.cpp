@@ -13,7 +13,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   if (jumps.size()) {
     jumps.set(jumps.size() - 1, 1);
   }
-  auto content2msgs = offset_scan<LO>(Read<I8>(jumps));
+  auto content2msgs = offset_scan(Read<I8>(jumps));
   auto nmsgs = content2msgs.last();
   Write<I32> msgs2ranks(nmsgs);
   auto log_ranks = LAMBDA(LO i) {
@@ -39,7 +39,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   msgs2ranks_[R] = comm_[R]->sources();
   auto fdegrees = get_degrees(msgs2content_[F]);
   auto rdegrees = comm_[F]->alltoall(fdegrees);
-  msgs2content_[R] = offset_scan<LO>(rdegrees);
+  msgs2content_[R] = offset_scan(rdegrees);
 }
 
 void Dist::set_dest_idxs(Read<I32> fitems2rroots, LO nrroots) {
@@ -77,8 +77,8 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
       get_degrees(msgs2content_[F]));
   auto recvcounts = multiply_each_by(width,
       get_degrees(msgs2content_[F]));
-  auto sdispls = offset_scan<LO>(sendcounts);
-  auto rdispls = offset_scan<LO>(recvcounts);
+  auto sdispls = offset_scan(sendcounts);
+  auto rdispls = offset_scan(recvcounts);
   data = comm_[F]->alltoallv(data,
       sendcounts, sdispls,
       recvcounts, rdispls);

@@ -1,5 +1,5 @@
-template <typename T2, typename T1>
-Read<T2> offset_scan(Read<T1> a);
+template <typename T>
+LOs offset_scan(Read<T> a);
 template <typename TO, typename TI>
 Read<TO> scan(Read<TI> a);
 

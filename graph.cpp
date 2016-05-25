@@ -7,7 +7,7 @@ Graph add_edges(Graph g1, Graph g2) {
   auto deg1 = get_degrees(v2e1);
   auto deg2 = get_degrees(v2e2);
   auto deg = add_each(deg1, deg2);
-  auto v2e = offset_scan<LO>(deg);
+  auto v2e = offset_scan(deg);
   Write<LO> e2v(v2e.last());
   auto f = LAMBDA(LO v) {
     auto begin1 = v2e1[v];
@@ -32,7 +32,7 @@ Graph unmap_graph(LOs a2b, Graph b2c) {
   auto bc2c = b2c.ab2b;
   auto b_degrees = get_degrees(b2bc);
   auto a_degrees = unmap(a2b, b_degrees, 1);
-  auto a2ac = offset_scan<LO>(a_degrees);
+  auto a2ac = offset_scan(a_degrees);
   auto na = a2b.size();
   Write<LO> ac2c(a2ac.last());
   auto f = LAMBDA(LO a) {

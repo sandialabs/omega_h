@@ -208,11 +208,11 @@ static void test_sort() {
 
 static void test_scan() {
   {
-  LOs scanned = offset_scan<LO>(LOs(3,1));
+  LOs scanned = offset_scan(LOs(3,1));
   CHECK(scanned == Read<LO>(4, 0, 1));
   }
   {
-  LOs scanned = offset_scan<LO>(Read<I8>(3,1));
+  LOs scanned = offset_scan(Read<I8>(3,1));
   CHECK(scanned == Read<LO>(4, 0, 1));
   }
 }
@@ -266,7 +266,7 @@ static void test_invert_adj() {
   Adj tris2verts(LOs({0,1,2,2,3,0}));
   Read<GO> tri_globals({0,1});
   Adj verts2tris = invert(tris2verts, 3, 4, tri_globals);
-  CHECK(verts2tris.a2ab == offset_scan<LO>(LOs({2,1,2,1})));
+  CHECK(verts2tris.a2ab == offset_scan(LOs({2,1,2,1})));
   CHECK(verts2tris.ab2b == LOs({0,1, 0, 0,1, 1}));
   CHECK(verts2tris.codes == Read<I8>({
         make_code(0, 0, 0),
@@ -465,7 +465,7 @@ static void test_dual() {
   auto t2t = mesh.ask_dual();
   auto t2tt = t2t.a2ab;
   auto tt2t = t2t.ab2b;
-  CHECK(t2tt == offset_scan<LO>(LOs({1,1})));
+  CHECK(t2tt == offset_scan(LOs({1,1})));
   CHECK(tt2t == LOs({1,0}));
 }
 

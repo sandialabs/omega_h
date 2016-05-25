@@ -76,9 +76,9 @@ LOs invert_permutation(LOs a2b) {
 }
 
 LOs collect_marked(Read<I8> marks) {
-  LO ntotal = marks.size();
-  LOs offsets = offset_scan<LO,I8>(marks);
-  LO nmarked = offsets.last();
+  auto ntotal = marks.size();
+  auto offsets = offset_scan(marks);
+  auto nmarked = offsets.last();
   Write<LO> marked(nmarked);
   auto f = LAMBDA(LO i) {
     if (marks[i])
@@ -136,7 +136,7 @@ void invert_by_atomics(LOs a2b, LO nb,
     atomic_increment(&degrees[a2b[a]]);
   };
   parallel_for(na, count);
-  b2ba = offset_scan<LO>(Read<LO>(degrees));
+  b2ba = offset_scan(Read<LO>(degrees));
   LO nba = b2ba.get(nb);
   Write<LO> write_ba2a(nba);
   degrees = Write<LO>(nb, 0);

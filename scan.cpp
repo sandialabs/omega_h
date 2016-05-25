@@ -1,9 +1,9 @@
-template <typename TO, typename TI>
-struct ExclScan : public SumFunctor<TO> {
-  typedef TO value_type;
-  Read<TI> in_;
-  Write<TO> out_;
-  ExclScan(Read<TI> in, Write<TO> out):in_(in),out_(out) {}
+template <typename T>
+struct ExclScan : public SumFunctor<LO> {
+  typedef LO value_type;
+  Read<T> in_;
+  Write<LO> out_;
+  ExclScan(Read<T> in, Write<LO> out):in_(in),out_(out) {}
   INLINE void operator()(Int i, value_type& update, bool final_pass) const {
     update += in_[i];
     if (final_pass)
@@ -11,16 +11,16 @@ struct ExclScan : public SumFunctor<TO> {
   }
 };
 
-template <typename TO, typename TI>
-Read<TO> offset_scan(Read<TI> a) {
-  Write<TO> out(a.size() + 1);
+template <typename T>
+LOs offset_scan(Read<T> a) {
+  Write<LO> out(a.size() + 1);
   out.set(0, 0);
-  parallel_scan(a.size(), ExclScan<TO,TI>(a, out));
+  parallel_scan(a.size(), ExclScan<T>(a, out));
   return out;
 }
 
-template Read<I32> offset_scan(Read<I8> a);
-template Read<I32> offset_scan(Read<I32> a);
+template LOs offset_scan(Read<I8> a);
+template LOs offset_scan(Read<I32> a);
 
 template <typename TO, typename TI>
 struct InclScan : public SumFunctor<TO> {
