@@ -38,3 +38,7 @@ Remotes globals_to_linear_owners(CommPtr comm, Read<GO> globals, GO total) {
 LO linear_partition_size(CommPtr comm, GO total) {
   return linear_partition_size(total, comm->size(), comm->rank());
 }
+
+GO find_total_globals(CommPtr comm, Read<GO> globals) {
+  return comm->allreduce(max(globals), MAX) + 1;
+}

@@ -117,6 +117,22 @@ T sum(Read<T> a) {
   return parallel_reduce(a.size(), Sum<T>(a));
 }
 
+template <typename T>
+struct Max : public MaxFunctor<T> {
+  typedef T value_type;
+  Read<T> a_;
+  Max(Read<T> a):a_(a) {}
+  INLINE void operator()(LO i, value_type& update) const
+  {
+    update = max2(update, a_[i]);
+  }
+};
+
+template <typename T>
+T max(Read<T> a) {
+  return parallel_reduce(a.size(), Max<T>(a));
+}
+
 Reals::Reals():
   Read<Real>()
 {}

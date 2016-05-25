@@ -16,8 +16,7 @@ struct MaxFunctor {
     update = ArithTraits<T>::min();
   }
   INLINE void join(volatile T& update, const volatile T& input) const {
-    if (input > update)
-      update = input;
+    update = max2(update, input);
   }
 };
 
