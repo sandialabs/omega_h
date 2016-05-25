@@ -598,6 +598,13 @@ static void test_linpart() {
   CHECK(remotes.idxs == Read<I32>({2,1,0,3,2,1,0}));
 }
 
+static void test_expand() {
+  auto fan = offset_scan(LOs({2,1,3}));
+  Reals data({2.2,3.14,42.0});
+  CHECK(expand(data,fan,1) ==
+      Reals({2.2,2.2,3.14,42.0,42.0,42.0}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -627,5 +634,6 @@ int main(int argc, char** argv) {
   test_quality();
   test_file();
   test_linpart();
+  test_expand();
   fini();
 }
