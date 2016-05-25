@@ -53,8 +53,12 @@ static void test_all() {
   auto world = Comm::world();
   if (world->rank() == 0) {
     test_one_rank(Comm::self());
-    auto one = world->split(world->rank(), 0);
+  }
+  auto one = world->split(world->rank(), 0);
+  if (world->rank() == 0) {
+    std::cerr << "testing \"one\"\n";
     test_one_rank(one);
+    std::cerr << "testing \"one->dup()\"\n";
     test_one_rank(one->dup());
   }
   if (world->size() >= 2) {
