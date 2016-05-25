@@ -1,20 +1,57 @@
 template <typename T>
 Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
-  LO na = a2b.size();
+  auto na = a2b.size();
   Write<T> a_data(na * width);
   auto f = LAMBDA(LO a) {
-    LO b = a2b[a];
-    for (Int j = 0; j < width; ++j)
+    auto b = a2b[a];
+    for (Int j = 0; j < width; ++j) {
       a_data[a * width + j] = b_data[b * width + j];
+    }
   };
   parallel_for(na, f);
   return a_data;
 }
 
-template Read<I8  > unmap(LOs a2b, Read<I8  > b_data, Int width);
-template Read<I32 > unmap(LOs a2b, Read<I32 > b_data, Int width);
-template Read<I64 > unmap(LOs a2b, Read<I64 > b_data, Int width);
-template Read<Real> unmap(LOs a2b, Read<Real> b_data, Int width);
+template <typename T>
+Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
+  auto na = a2b.size() - 1;
+  auto nb = a2b.last();
+  Write<T> b_data(nb * width);
+  auto f = LAMBDA(LO a) {
+    for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
+      for (Int j = 0; j < width; ++j) {
+        b_data[b * width + j] = a_data[a * width + j];
+      }
+    }
+  };
+  parallel_for(na, f);
+  return b_data;
+}
+
+template <typename T>
+Read<T> permute(Read<T> a_data, LOs a2b, Int width) {
+  auto na = a2b.size();
+  auto nb = na;
+  Write<T> b_data(nb * width);
+  auto f = LAMBDA(LO a) {
+    auto b = a2b[a];
+    for (Int j = 0; j < width; ++j) {
+      b_data[b * width + j] = a_data[a * width + j];
+    }
+  };
+  parallel_for(na, f);
+  return b_data;
+}
+
+#define INST_T(T) \
+template Read<T> unmap(LOs a2b, Read<T> b_data, Int width); \
+template Read<T> expand(Read<T> a_data, LOs a2b, Int width); \
+template Read<T> permute(Read<T> a_data, LOs a2b, Int width);
+INST_T(I8)
+INST_T(I32)
+INST_T(I64)
+INST_T(Real)
+#undef INST_T
 
 LOs compound_maps(LOs a2b, LOs b2c) {
   LO na = a2b.size();
