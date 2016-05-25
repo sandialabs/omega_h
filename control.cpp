@@ -37,6 +37,7 @@ void fini() {
 #ifdef USE_MPI
   if (we_called_mpi_init) {
     CHECK(MPI_SUCCESS == MPI_Finalize());
+    we_called_mpi_init = false;
   }
 #endif
 }
