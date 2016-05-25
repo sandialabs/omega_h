@@ -18,10 +18,10 @@ Comm::Comm(MPI_Comm impl):impl_(impl) {
     CALL(MPI_Dist_graph_neighbors(
           impl,
           nin,
-          &sources[0],
+          sources.data(),
           OSH_MPI_UNWEIGHTED,
           nout,
-          &destinations[0],
+          destinations.data(),
           OSH_MPI_UNWEIGHTED));
     srcs_ = sources.write();
     dsts_ = destinations.write();
@@ -121,7 +121,7 @@ CommPtr Comm::graph(Read<I32> dsts) const {
         n,
         sources,
         degrees,
-        &destinations[0],
+        destinations.data(),
         OSH_MPI_UNWEIGHTED,
         MPI_INFO_NULL,
         reorder,
@@ -140,9 +140,9 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
   int reorder = 0;
   CALL(MPI_Dist_graph_create_adjacent(
         impl_,
-        sources.size(), &sources[0],
+        sources.size(), sources.data(),
         OSH_MPI_UNWEIGHTED,
-        destinations.size(), &destinations[0],
+        destinations.size(), destinations.data(),
         OSH_MPI_UNWEIGHTED,
         MPI_INFO_NULL, reorder, &impl2));
   return CommPtr(new Comm(impl2));
@@ -399,7 +399,7 @@ Read<T> Comm::allgather(T x) const {
   CALL(Neighbor_allgather(
         host_srcs_, host_dsts_,
         &x,          1, MpiTraits<T>::datatype(),
-        &recvbuf[0], 1, MpiTraits<T>::datatype(),
+        recvbuf.data(), 1, MpiTraits<T>::datatype(),
         impl_));
   return recvbuf.write();
 #else
@@ -416,8 +416,8 @@ Read<T> Comm::alltoall(Read<T> x) const {
   HostRead<T> sendbuf(x);
   CALL(Neighbor_alltoall(
         host_srcs_, host_dsts_,
-        &sendbuf[0], 1, MpiTraits<T>::datatype(),
-        &recvbuf[0], 1, MpiTraits<T>::datatype(),
+        sendbuf.data(), 1, MpiTraits<T>::datatype(),
+        recvbuf.data(), 1, MpiTraits<T>::datatype(),
         impl_));
   return recvbuf.write();
 #else
@@ -440,8 +440,10 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
   HostWrite<T> recvbuf(nrecvd);
   CALL(Neighbor_alltoallv(
         host_srcs_, host_dsts_,
-        &sendbuf[0], &sendcounts[0], &sdispls[0], MpiTraits<T>::datatype(),
-        &recvbuf[0], &recvcounts[0], &rdispls[0], MpiTraits<T>::datatype(),
+        sendbuf.data(), sendcounts.data(), sdispls.data(),
+        MpiTraits<T>::datatype(),
+        recvbuf.data(), recvcounts.data(), rdispls.data(),
+        MpiTraits<T>::datatype(),
         impl_));
   return recvbuf.write();
 #else

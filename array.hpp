@@ -114,6 +114,7 @@ public:
     return write_[i];
 #endif
   }
+  T* data() const;
 };
 
 template <typename T>
@@ -137,6 +138,7 @@ public:
     return read_[i];
 #endif
   }
+  T const* data() const;
 };
 
 template <typename T>

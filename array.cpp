@@ -309,6 +309,15 @@ LO HostWrite<T>::size() const {
 }
 
 template <typename T>
+T* HostWrite<T>::data() const {
+#ifdef USE_KOKKOS
+  return mirror_.data();
+#else
+  return write_.data();
+#endif
+}
+
+template <typename T>
 HostRead<T>::HostRead() {
 }
 
@@ -327,6 +336,15 @@ HostRead<T>::HostRead(Read<T> read):
 template <typename T>
 LO HostRead<T>::size() const {
   return read_.size();
+}
+
+template <typename T>
+T const* HostRead<T>::data() const {
+#ifdef USE_KOKKOS
+  return mirror_.data();
+#else
+  return read_.data();
+#endif
 }
 
 template <typename T>
