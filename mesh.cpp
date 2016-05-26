@@ -97,6 +97,11 @@ Tag<T> const& Mesh::get_tag(Int dim, std::string const& name) const {
   return *(to<T>(tag_iter(dim, name)->get()));
 }
 
+template <typename T>
+Read<T> Mesh::get_array(Int dim, std::string const& name) const {
+  return get_tag<T>(dim, name).array();
+}
+
 void Mesh::remove_tag(Int dim, std::string const& name) {
   check_dim2(dim);
   CHECK(has_tag(dim, name));
@@ -257,7 +262,7 @@ void Mesh::add_coords(Reals array) {
 }
 
 Reals Mesh::coords() const {
-  return get_tag<Real>(0, "coordinates").array();
+  return get_array<Real>(0, "coordinates");
 }
 
 void Mesh::set_coords(Reals array) {
@@ -269,7 +274,7 @@ Read<GO> Mesh::ask_globals(Int dim) {
     CHECK(comm_->size() == 1);
     add_tag(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
   }
-  return get_tag<GO>(dim, "global").array();
+  return get_array<GO>(dim, "global");
 }
 
 void Mesh::forget_globals() {
@@ -283,7 +288,7 @@ Reals Mesh::ask_edge_lengths() {
     auto lengths = measure_edges(*this);
     add_tag(EDGE, "length", 1, lengths);
   }
-  return get_tag<Real>(EDGE, "length").array();
+  return get_array<Real>(EDGE, "length");
 }
 
 Reals Mesh::ask_qualities() {
@@ -291,7 +296,7 @@ Reals Mesh::ask_qualities() {
     auto qualities = measure_qualities(*this);
     add_tag(dim(), "quality", 1, qualities);
   }
-  return get_tag<Real>(dim(), "quality").array();
+  return get_array<Real>(dim(), "quality");
 }
 
 Read<I32> Mesh::ask_own_ranks(Int dim) {
@@ -301,7 +306,7 @@ Read<I32> Mesh::ask_own_ranks(Int dim) {
     add_tag<I32>(dim, "owner", 1, owners.ranks);
     own_idxs_[dim] = owners.idxs;
   }
-  return get_tag<I32>(dim, "owner").array();
+  return get_array<I32>(dim, "owner");
 }
 
 Dist Mesh::ask_dist(Int dim) {
@@ -323,6 +328,8 @@ Dist Mesh::ask_dist(Int dim) {
 
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
+    Int dim, std::string const& name) const; \
+template Read<T> Mesh::get_array<T>( \
     Int dim, std::string const& name) const; \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps); \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \

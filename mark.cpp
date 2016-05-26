@@ -27,7 +27,7 @@ Read<I8> mark_down(Mesh& mesh, Int high_dim, Int low_dim,
 
 Read<I8> mark_by_class_dim(Mesh& mesh, Int ent_dim, Int class_dim) {
   auto ne = mesh.nents(ent_dim);
-  auto e2class_dim = mesh.get_tag<I8>(ent_dim, "class_dim").array();
+  auto e2class_dim = mesh.get_array<I8>(ent_dim, "class_dim");
   Write<I8> out(ne);
   auto f = LAMBDA(LO e) {
     out[e] = (e2class_dim[e] == class_dim);

@@ -89,10 +89,10 @@ void project_classification(Mesh& mesh) {
     auto l2h = mesh.ask_up(d, d + 1);
     auto l2lh = l2h.a2ab;
     auto lh2h = l2h.ab2b;
-    auto high_class_dim = mesh.get_tag<I8>(d + 1, "class_dim").array();
-    auto high_class_id = mesh.get_tag<LO>(d + 1, "class_id").array();
-    Write<I8> class_dim = deep_copy<I8>(mesh.get_tag<I8>(d, "class_dim").array());
-    Write<LO> class_id = deep_copy<LO>(mesh.get_tag<LO>(d, "class_id").array());
+    auto high_class_dim = mesh.get_array<I8>(d + 1, "class_dim");
+    auto high_class_id = mesh.get_array<LO>(d + 1, "class_id");
+    Write<I8> class_dim = deep_copy<I8>(mesh.get_array<I8>(d, "class_dim"));
+    Write<LO> class_id = deep_copy<LO>(mesh.get_array<LO>(d, "class_id"));
     auto f = LAMBDA(LO l) {
       if (class_dim[l] >= 0)
         return;

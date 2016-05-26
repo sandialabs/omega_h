@@ -183,7 +183,7 @@ struct MetricElementQualities {
   Reals metrics;
   MetricElementQualities(Mesh const& mesh):
     coords(mesh.coords()),
-    metrics(mesh.get_tag<Real>(VERT, "metric").array())
+    metrics(mesh.get_array<Real>(VERT, "metric"))
   {}
   template <Int neev>
   INLINE Real measure(Few<LO, neev> v) const {
