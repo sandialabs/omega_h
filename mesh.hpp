@@ -53,7 +53,6 @@ class Mesh {
     LO nents_[DIMS];
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
-    LOs own_idxs_[DIMS];
     DistPtr dists_[DIMS];
   public:
     void add_coords(Reals array);

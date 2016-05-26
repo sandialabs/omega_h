@@ -36,9 +36,9 @@ Graph find_entities_of_first_vertices(
 }
 
 LOs ent_order_from_vert_order(Mesh& mesh,
-    Int ent_dim, LOs new_vert2old_vert) {
+    Int ent_dim, LOs new_verts2old_verts) {
   auto old_verts2old_ents = find_entities_of_first_vertices(mesh, ent_dim);
-  auto new_verts2old_ents = unmap_graph(new_vert2old_vert, old_verts2old_ents);
+  auto new_verts2old_ents = unmap_graph(new_verts2old_verts, old_verts2old_ents);
   auto new_ents2old_ents = new_verts2old_ents.ab2b;
   CHECK(new_ents2old_ents.size() == mesh.nents(ent_dim));
   return new_ents2old_ents;
@@ -81,20 +81,39 @@ void reorder_down(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_ents(ent_dim, new_ents2new_lows);
 }
 
+static void reorder_own_idxs(Mesh& old_mesh, Mesh& new_mesh,
+    Int ent_dim,
+    LOs new_ents2old_ents,
+    LOs old_ents2new_ents) {
+  if (!old_mesh.has_tag(ent_dim, "own_idx")) return;
+  auto old_copies2old_owners = old_mesh.ask_dist(ent_dim);
+  auto old_owners2old_copies = old_copies2old_owners.invert();
+  auto old_copies2new_owners = old_owners2old_copies.exch(
+      old_ents2new_ents, 1);
+  auto new_ents2new_owners = unmap(new_ents2old_ents, old_copies2new_owners, 1);
+  new_mesh.set_tag(ent_dim, "own_idx", new_ents2new_owners);
+}
+
 void reorder_mesh(Mesh& old_mesh, Mesh& new_mesh,
-    LOs new_vert2old_vert) {
+    LOs new_verts2old_verts) {
   new_mesh.set_comm(old_mesh.comm());
   new_mesh.set_dim(old_mesh.dim());
   new_mesh.set_verts(old_mesh.nverts());
-  reorder_tags(old_mesh, new_mesh, VERT, new_vert2old_vert);
-  auto old_lows2new_lows = invert_permutation(new_vert2old_vert);
+  reorder_tags(old_mesh, new_mesh, VERT, new_verts2old_verts);
+  auto old_verts2new_verts = invert_permutation(new_verts2old_verts);
+  reorder_own_idxs(old_mesh, new_mesh, VERT,
+      new_verts2old_verts, old_verts2new_verts);
+  auto old_lows2new_lows = invert_permutation(new_verts2old_verts);
   for (Int ent_dim = 1; ent_dim <= old_mesh.dim(); ++ent_dim) {
     auto new_ents2old_ents = ent_order_from_vert_order(old_mesh,
-        ent_dim, new_vert2old_vert);
+        ent_dim, new_verts2old_verts);
     reorder_down(old_mesh, new_mesh, ent_dim, new_ents2old_ents,
         old_lows2new_lows);
     reorder_tags(old_mesh, new_mesh, ent_dim, new_ents2old_ents);
-    old_lows2new_lows = invert_permutation(new_ents2old_ents);
+    auto old_ents2new_ents = invert_permutation(new_ents2old_ents);
+    reorder_own_idxs(old_mesh, new_mesh, ent_dim,
+        new_ents2old_ents, old_ents2new_ents);
+    old_lows2new_lows = old_ents2new_ents;
   }
 }
 
