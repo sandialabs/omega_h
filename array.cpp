@@ -282,10 +282,14 @@ bool operator==(Read<T> a, Read<T> b)
 template <class T>
 Write<T> deep_copy(Read<T> a) {
   Write<T> b(a.size());
+#ifdef USE_KOKKOS
+  Kokkos::deep_copy(b.view(), a.view());
+#else
   auto f = LAMBDA(LO i) {
     b[i] = a[i];
   };
   parallel_for(b.size(), f);
+#endif
   return b;
 }
 
