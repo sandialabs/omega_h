@@ -143,6 +143,7 @@ public:
 #endif
   }
   T const* data() const;
+  T last() const;
 };
 
 template <typename T>

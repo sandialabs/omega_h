@@ -378,6 +378,11 @@ T const* HostRead<T>::data() const {
 }
 
 template <typename T>
+T HostRead<T>::last() const {
+  return operator[](size() - 1);
+}
+
+template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a) {
   HostRead<T> ha = a;
   if (ha.size() <= 20) {

@@ -436,8 +436,12 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
   HostRead<LO> sdispls(sdispls_dev);
   HostRead<LO> rdispls(rdispls_dev);
   CHECK(rdispls.size() == recvcounts.size() + 1);
-  int nrecvd = rdispls[recvcounts.size()];
+  int nrecvd = rdispls.last();
   HostWrite<T> recvbuf(nrecvd);
+  CHECK(sendcounts.size() == host_dsts_.size());
+  CHECK(recvcounts.size() == host_srcs_.size());
+  CHECK(sdispls.size() == sendcounts.size() + 1);
+  CHECK(sendbuf.size() == sdispls.last());
   CALL(Neighbor_alltoallv(
         host_srcs_, host_dsts_,
         sendbuf.data(), sendcounts.data(), sdispls.data(),
