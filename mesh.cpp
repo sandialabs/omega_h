@@ -78,6 +78,11 @@ void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
     if (has_tag(EDGE, "length")) remove_tag(EDGE, "length");
     if (has_tag(this->dim(), "quality")) remove_tag(this->dim(), "quality");
   }
+  if (name == "owner") {
+    /* todo: if own_idxs exists, recompute it based on new owner ranks */
+    CHECK(!own_idxs_[dim].exists());
+    dists_[dim] = DistPtr();
+  }
 }
 
 template <typename T>
@@ -291,19 +296,24 @@ Reals Mesh::ask_qualities() {
 }
 
 Read<I32> Mesh::ask_own_ranks(Int dim) {
-  if (!has_tag(dim, "own_rank")) {
+  if (!has_tag(dim, "owner")) {
     CHECK(comm_->size() == 1);
-    add_tag<I32>(dim, "own_rank", 1, Read<I32>(nents(dim), 0));
+    add_tag(dim, "owner", 1, Read<I32>(nents(dim), comm_->rank()));
   }
-  return get_array<I32>(dim, "own_rank");
+  return get_array<I32>(dim, "owner");
+}
+
+void Mesh::set_own_idxs(Int dim, LOs own_idxs) {
+  own_idxs_[dim] = own_idxs;
+  dists_[dim] = DistPtr();
 }
 
 LOs Mesh::ask_own_idxs(Int dim) {
-  if (!has_tag(dim, "own_idx")) {
+  if (!own_idxs_[dim].exists()) {
     CHECK(comm_->size() == 1);
-    add_tag<LO>(dim, "own_idx", 1, LOs(nents(dim), 0, 1));
+    own_idxs_[dim] = LOs(nents(dim), 0, 1);
   }
-  return get_array<LO>(dim, "own_idx");
+  return own_idxs_[dim];
 }
 
 Remotes Mesh::ask_owners(Int dim) {

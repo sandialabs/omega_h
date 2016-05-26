@@ -12,9 +12,14 @@ int main(int argc, char** argv) {
   classify_by_angles(mesh, PI / 4);
   auto coords = mesh.coords();
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh.dim());
-  for (Int d = 0; d <= mesh.dim(); ++d)
-    mesh.ask_own_idxs(d);
+  for (Int d = 0; d <= mesh.dim(); ++d) {
+    mesh.ask_owners(d);
+  }
   reorder_mesh(mesh, new_verts2old_verts);
+  for (Int d = 0; d <= mesh.dim(); ++d) {
+    CHECK(Read<I32>(mesh.nents(d), 0) == mesh.ask_own_ranks(d));
+    CHECK(LOs(mesh.nents(d), 0, 1) == mesh.ask_own_idxs(d));
+  }
   mesh.forget_globals();
   auto metric = compose_metric(identity_matrix<dim,dim>(), vector_3(1,1,.5));
   mesh.add_tag(VERT, "metric", symm_dofs(dim), repeat_symm(mesh.nverts(), metric));
