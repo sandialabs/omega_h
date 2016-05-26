@@ -13,7 +13,8 @@ Write<T>::Write():
 template <typename T>
 Write<T>::Write(LO size):
 #ifdef USE_KOKKOS
-  view_("omega_h", static_cast<std::size_t>(size))
+  /* +1 for ::exists() to work, see Kokkos issue #244 */
+  view_("omega_h", static_cast<std::size_t>(size + 1))
 #else
   ptr_(new T[size], std::default_delete<T[]>()),
   size_(size)
@@ -62,7 +63,7 @@ template <typename T>
 LO Write<T>::size() const {
   CHECK(exists());
 #ifdef USE_KOKKOS
-  return static_cast<LO>(view_.size());
+  return static_cast<LO>(view_.size() - 1);
 #else
   return size_;
 #endif
