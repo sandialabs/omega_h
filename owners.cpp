@@ -1,45 +1,41 @@
-Remotes owners_from_globals(CommPtr comm,
-    Read<GO> globals, Read<I32> own_ranks) {
-  auto ncopies = globals.size();
-  auto total = find_total_globals(comm, globals);
-  auto nlins = linear_partition_size(comm, total);
-  auto copies2lins_map = globals_to_linear_owners(comm, globals, total);
-  auto copies2lins_dist = Dist(comm, copies2lins_map, globals.size());
-  auto serv_copies2copy_idxs = copies2lins_dist.exch(LOs(ncopies, 0, 1), 1);
-  auto client2serv_comm = copies2lins_dist.comm();
-  auto lins2copies_dist = copies2lins_dist.invert();
-  auto serv_copies2clients = lins2copies_dist.items2msgs();
-  auto lins2serv_copies = lins2copies_dist.roots2items();
-  auto clients2ranks = lins2copies_dist.msgs2ranks();
-  Write<LO> lins2own_idxs(nlins);
+Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
+  auto ncopies = copies2old_owners.nitems();
+  auto old_owners2copies = copies2old_owners.invert();
+  auto nold_owners = old_owners2copies.nitems();
+  auto serv_copies2copy_idxs = copies2old_owners.exch(LOs(ncopies, 0, 1), 1);
+  auto client2serv_comm = copies2old_owners.comm();
+  auto serv_copies2clients = old_owners2copies.items2msgs();
+  auto old_owners2serv_copies = old_owners2copies.roots2items();
+  auto clients2ranks = old_owners2copies.msgs2ranks();
+  Write<LO> old_owners2own_idxs(nold_owners);
   Read<LO> copies2own_ranks;
   if (own_ranks.exists()) {
-    auto serv_copies2own_ranks = copies2lins_dist.exch(own_ranks, 1);
-    auto f = LAMBDA(LO lin) {
-      for (auto serv_copy = lins2serv_copies[lin];
-           serv_copy < lins2serv_copies[lin + 1];
+    auto serv_copies2own_ranks = copies2old_owners.exch(own_ranks, 1);
+    auto f = LAMBDA(LO old_owner) {
+      for (auto serv_copy = old_owners2serv_copies[old_owner];
+           serv_copy < old_owners2serv_copies[old_owner + 1];
            ++serv_copy) {
         auto client = serv_copies2clients[serv_copy];
         auto client_rank = clients2ranks[client];
         auto own_rank = serv_copies2own_ranks[serv_copy];
         if (own_rank == client_rank) {
           auto own_idx = serv_copies2copy_idxs[serv_copy];
-          lins2own_idxs[lin] = own_idx;
+          old_owners2own_idxs[old_owner] = own_idx;
           break;
         }
       }
     };
-    parallel_for(nlins, f);
+    parallel_for(nold_owners, f);
     copies2own_ranks = own_ranks;
   } else {
-    Write<I32> lins2own_ranks(nlins);
+    Write<I32> old_owners2own_ranks(nold_owners);
     auto clients2ncopies = client2serv_comm->allgather(ncopies);
-    auto f = LAMBDA(LO lin) {
+    auto f = LAMBDA(LO old_owner) {
       I32 own_rank = -1;
       LO nown_client_copies = -1;
       LO own_idx = -1;
-      for (auto serv_copy = lins2serv_copies[lin];
-           serv_copy < lins2serv_copies[lin + 1];
+      for (auto serv_copy = old_owners2serv_copies[old_owner];
+           serv_copy < old_owners2serv_copies[old_owner + 1];
            ++serv_copy) {
         auto client = serv_copies2clients[serv_copy];
         auto nclient_copies = clients2ncopies[client];
@@ -54,12 +50,23 @@ Remotes owners_from_globals(CommPtr comm,
           own_idx = copy_idx;
         }
       }
-      lins2own_ranks[lin] = own_rank;
-      lins2own_idxs[lin] = own_idx;
+      old_owners2own_ranks[old_owner] = own_rank;
+      old_owners2own_idxs[old_owner] = own_idx;
     };
-    parallel_for(nlins, f);
-    copies2own_ranks = lins2copies_dist.exch(Read<I32>(lins2own_ranks), 1);
+    parallel_for(nold_owners, f);
+    copies2own_ranks = old_owners2copies.exch(
+        Read<I32>(old_owners2own_ranks), 1);
   }
-  auto copies2own_idxs = lins2copies_dist.exch(Read<LO>(lins2own_idxs), 1);
+  auto copies2own_idxs = old_owners2copies.exch(
+      Read<LO>(old_owners2own_idxs), 1);
   return Remotes(copies2own_ranks, copies2own_idxs);
+}
+
+Remotes owners_from_globals(CommPtr comm,
+    Read<GO> globals, Read<I32> own_ranks) {
+  auto total = find_total_globals(comm, globals);
+  auto nlins = linear_partition_size(comm, total);
+  auto copies2lins_map = globals_to_linear_owners(comm, globals, total);
+  auto copies2lins_dist = Dist(comm, copies2lins_map, nlins);
+  return update_ownership(copies2lins_dist, own_ranks);
 }

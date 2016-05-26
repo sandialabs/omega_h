@@ -1,28 +1,30 @@
-/* given the global numbers of local copies
-   of a partitioned set of objects, construct
-   the mapping from each copy to a unique
-   owner copy.
+/* compute owners for copies of a new partitioning,
+   based on a mapping (Dist) from new copies to
+   old owners (their owners in the old partitioning).
 
-   the (own_ranks) argument may be an uninitialized
-   array (!own_ranks.exists()), in which case
-   ownership is decided to favor ranks which
-   have fewer objects, with smallest rank being
-   the tiebreaker when ranks have the same number
-   of objects.
-   if (own_ranks) is specified, it dictates the owner
-   ranks for all copies and is assumed to be consistent
-   over duplicate copies.
-   in this case we use that information to compute the
-   owner indices for all copies.
+   each of the old owners is made responsible for all
+   its new copies and selecting an owner among them.
+   thus, if both the old and new partitioning are "good",
+   this should be a highly scalable way to update
+   parallel connectivity
 
-   in both cases, the ownership is computed
-   by linearly partitioning the global numbers
-   across the communicator processes, transmitting
-   information to the linearly partitioned global
-   objects, and deciding ownership in this partitioning.
-   this can be viewed as bootstrapping the true ownership
-   from a more crude temporary ownership based on
-   linear partitioning. */
+   the (own_ranks) argument is optional. It may be
+   left uninitialized (Read<I32>(), !own_ranks.exists()),
+   in which case the owner rank will be chosen with
+   a preference for ranks that have less copies,
+   and in the case two ranks have the same number of copies,
+   the smallest rank will be chosen.
+   if (own_ranks) is specified, they will dictate the ownership
+   of the new copies and are expected to be consistent.
+ */
+
+Remotes update_ownership(Dist new_ents2old_owners, Read<I32> own_ranks);
+
+/* uses update_ownership() with a linear partitioning of
+   global numbers as the old partitioning.
+   if global numbers obey good linear arrangement properties,
+   the old partition should be decent and so this is an
+   effective fallback if only globals are available */
 
 Remotes owners_from_globals(CommPtr comm,
     Read<GO> globals, Read<I32> own_ranks);
