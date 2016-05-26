@@ -45,7 +45,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   comm_[F] = parent_comm_->graph(msgs2ranks);
   comm_[R] = parent_comm_->graph_adjacent(
       comm_[F]->destinations(), comm_[F]->sources());
-  msgs2ranks_[R] = comm_[R]->sources();
+  msgs2ranks_[R] = comm_[F]->sources();
   auto fdegrees = get_degrees(msgs2content_[F]);
   auto rdegrees = comm_[F]->alltoall(fdegrees);
   msgs2content_[R] = offset_scan(rdegrees);
