@@ -87,6 +87,4 @@ typedef double       Real;
 #include "reorder.hpp"
 #include "gmsh.hpp"
 #include "repro.hpp"
-#include "linpart.hpp"
 #include "dist.hpp"
-#include "owners.hpp"

@@ -595,17 +595,6 @@ static void test_file() {
   CHECK(s == s2);
 }
 
-static void test_linpart() {
-  GO total = 7;
-  I32 comm_size = 2;
-  CHECK(linear_partition_size(total, comm_size, 0) == 4);
-  CHECK(linear_partition_size(total, comm_size, 1) == 3);
-  Read<GO> globals({6,5,4,3,2,1,0});
-  auto remotes = globals_to_linear_owners(globals, total, comm_size);
-  CHECK(remotes.ranks == Read<I32>({1,1,1,0,0,0,0}));
-  CHECK(remotes.idxs == Read<I32>({2,1,0,3,2,1,0}));
-}
-
 static void test_expand() {
   auto fan = offset_scan(LOs({2,1,3}));
   Reals data({2.2,3.14,42.0});
@@ -641,7 +630,6 @@ int main(int argc, char** argv) {
   test_dual();
   test_quality();
   test_file();
-  test_linpart();
   test_expand();
   fini();
 }

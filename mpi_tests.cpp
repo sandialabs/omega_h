@@ -50,63 +50,8 @@ static void test_two_ranks_dist(CommPtr comm) {
   CHECK(c == a);
 }
 
-static void test_two_ranks_eq_owners(CommPtr comm) {
-  /* {0,1,2} and {2,3,4}.
-     sizes are the same, so ownership of (2)
-     will go to smallest rank, rank 0. */
-  if (comm->rank() == 0) {
-    auto owners = owners_from_globals(comm, Read<GO>({0,1,2}), Read<I32>());
-    CHECK(owners.ranks == Read<I32>({0,0,0}));
-    CHECK(owners.idxs == Read<I32>({0,1,2}));
-  } else {
-    auto owners = owners_from_globals(comm, Read<GO>({2,3,4}), Read<I32>());
-    CHECK(owners.ranks == Read<I32>({0,1,1}));
-    CHECK(owners.idxs == Read<I32>({2,1,2}));
-  }
-}
-
-static void test_two_ranks_uneq_owners(CommPtr comm) {
-  /* {0,1,2} and {2,3}.
-     now rank 1 has fewer items, so it
-     will be deemed the owner */
-  if (comm->rank() == 0) {
-    auto owners = owners_from_globals(comm, Read<GO>({0,1,2}), Read<I32>());
-    CHECK(owners.ranks == Read<I32>({0,0,1}));
-    CHECK(owners.idxs == Read<I32>({0,1,0}));
-  } else {
-    auto owners = owners_from_globals(comm, Read<GO>({2,3}), Read<I32>());
-    CHECK(owners.ranks == Read<I32>({1,1}));
-    CHECK(owners.idxs == Read<I32>({0,1}));
-  }
-}
-
-static void test_two_ranks_forced_owners(CommPtr comm) {
-  /* {0,1,2} and {2,3}.
-     rank 1 still has fewer items, but we
-     will force 0 to be the owner by specifying
-     owner ranks for the copies */
-  if (comm->rank() == 0) {
-    auto owners = owners_from_globals(comm, Read<GO>({0,1,2}),
-        Read<I32>({0,0,0}));
-    CHECK(owners.ranks == Read<I32>({0,0,0}));
-    CHECK(owners.idxs == Read<I32>({0,1,2}));
-  } else {
-    auto owners = owners_from_globals(comm, Read<GO>({2,3}),
-        Read<I32>({0,1}));
-    CHECK(owners.ranks == Read<I32>({0,1}));
-    CHECK(owners.idxs == Read<I32>({2,1}));
-  }
-}
-
-static void test_two_ranks_owners(CommPtr comm) {
-  test_two_ranks_eq_owners(comm);
-  test_two_ranks_uneq_owners(comm);
-  test_two_ranks_forced_owners(comm);
-}
-
 static void test_two_ranks(CommPtr comm) {
   test_two_ranks_dist(comm);
-  test_two_ranks_owners(comm);
 }
 
 static void test_all() {

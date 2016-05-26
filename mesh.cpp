@@ -300,22 +300,19 @@ Reals Mesh::ask_qualities() {
 }
 
 Read<I32> Mesh::ask_own_ranks(Int dim) {
-  if (!has_tag(dim, "owner")) {
-    CHECK(!own_idxs_[dim].exists());
-    auto owners = owners_from_globals(comm_, ask_globals(dim), Read<I32>());
-    add_tag<I32>(dim, "owner", 1, owners.ranks);
-    own_idxs_[dim] = owners.idxs;
+  if (!has_tag(dim, "own_rank")) {
+    CHECK(comm_->size() == 1);
+    add_tag<I32>(dim, "own_rank", 1, Read<I32>(nents(dim), 0));
   }
-  return get_array<I32>(dim, "owner");
+  return get_array<I32>(dim, "own_rank");
 }
 
 LOs Mesh::ask_own_idxs(Int dim) {
-  auto own_ranks = ask_own_ranks(dim);
-  if (!own_idxs_[dim].exists()) {
-    auto owners = owners_from_globals(comm_, ask_globals(dim), own_ranks);
-    own_idxs_[dim] = owners.idxs;
+  if (!has_tag(dim, "own_idx")) {
+    CHECK(comm_->size() == 1);
+    add_tag<LO>(dim, "own_idx", 1, LOs(nents(dim), 0, 1));
   }
-  return own_idxs_[dim];
+  return get_array<LO>(dim, "own_idx");
 }
 
 Remotes Mesh::ask_owners(Int dim) {

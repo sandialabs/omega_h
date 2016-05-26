@@ -36,6 +36,4 @@
 #include "quality.cpp"
 #include "gmsh.cpp"
 #include "comm.cpp"
-#include "linpart.cpp"
 #include "dist.cpp"
-#include "owners.cpp"
