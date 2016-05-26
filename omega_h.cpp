@@ -39,3 +39,4 @@
 #include "dist.cpp"
 #include "linpart.cpp"
 #include "owners.cpp"
+#include "migrate.cpp"
