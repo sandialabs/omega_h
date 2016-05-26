@@ -37,3 +37,5 @@
 #include "gmsh.cpp"
 #include "comm.cpp"
 #include "dist.cpp"
+#include "linpart.cpp"
+#include "owners.cpp"

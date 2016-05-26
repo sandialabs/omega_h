@@ -88,3 +88,5 @@ typedef double       Real;
 #include "gmsh.hpp"
 #include "repro.hpp"
 #include "dist.hpp"
+#include "linpart.hpp"
+#include "owners.hpp"
