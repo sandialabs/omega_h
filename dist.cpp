@@ -101,3 +101,7 @@ template Read<I8> Dist::exch(Read<I8> data, Int width) const;
 template Read<I32> Dist::exch(Read<I32> data, Int width) const;
 template Read<I64> Dist::exch(Read<I64> data, Int width) const;
 template Read<Real> Dist::exch(Read<Real> data, Int width) const;
+
+CommPtr Dist::comm(Int dir) const {
+  return comm_[dir];
+}

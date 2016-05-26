@@ -15,6 +15,6 @@ public:
   Dist invert() const;
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;
-private:
   enum { F, R };
+  CommPtr comm(Int dir) const;
 };
