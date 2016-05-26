@@ -64,5 +64,7 @@ class Mesh {
     Reals ask_edge_lengths();
     Reals ask_qualities();
     Read<I32> ask_own_ranks(Int dim);
+    LOs ask_own_idxs(Int dim);
+    Remotes ask_owners(Int dim);
     Dist ask_dist(Int dim);
 };

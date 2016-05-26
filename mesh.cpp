@@ -309,18 +309,24 @@ Read<I32> Mesh::ask_own_ranks(Int dim) {
   return get_array<I32>(dim, "owner");
 }
 
+LOs Mesh::ask_own_idxs(Int dim) {
+  auto own_ranks = ask_own_ranks(dim);
+  if (!own_idxs_[dim].exists()) {
+    auto owners = owners_from_globals(comm_, ask_globals(dim), own_ranks);
+    own_idxs_[dim] = owners.idxs;
+  }
+  return own_idxs_[dim];
+}
+
+Remotes Mesh::ask_owners(Int dim) {
+  auto own_ranks = ask_own_ranks(dim);
+  auto own_idxs = ask_own_idxs(dim);
+  return Remotes(own_ranks, own_idxs);
+}
+
 Dist Mesh::ask_dist(Int dim) {
   if (!dists_[dim]) {
-    auto own_ranks = ask_own_ranks(dim);
-    LOs own_idxs;
-    if (own_idxs_[dim].exists()) {
-      own_idxs = own_idxs_[dim];
-      own_idxs_[dim] = LOs();
-    } else {
-      auto owners = owners_from_globals(comm_, ask_globals(dim), own_ranks);
-      own_idxs = owners.idxs;
-    }
-    auto owners = Remotes(own_ranks, own_idxs);
+    auto owners = ask_owners(dim);
     dists_[dim] = DistPtr(new Dist(comm_, owners, nents(dim)));
   }
   return *(dists_[dim]);
