@@ -85,7 +85,7 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   auto sendcounts = multiply_each_by(width,
       get_degrees(msgs2content_[F]));
   auto recvcounts = multiply_each_by(width,
-      get_degrees(msgs2content_[F]));
+      get_degrees(msgs2content_[R]));
   auto sdispls = offset_scan(sendcounts);
   auto rdispls = offset_scan(recvcounts);
   data = comm_[F]->alltoallv(data,
