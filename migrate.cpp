@@ -1,4 +1,4 @@
-Remotes form_down_use_owners(Mesh& old_mesh, Int high_dim, Int low_dim) {
+Remotes form_old_use_owners(Mesh& old_mesh, Int high_dim, Int low_dim) {
   auto uses2lows = old_mesh.ask_down(high_dim, low_dim).ab2b;
   auto lows2owners = old_mesh.ask_owners(low_dim);
   auto own_ranks = unmap(uses2lows, lows2owners.ranks, 1);
@@ -40,4 +40,65 @@ Dist find_unique_use_owners(Dist uses2old_owners) {
   old_owners2uniq_uses.set_dest_ranks(uniq_serv_uses2ranks);
   old_owners2uniq_uses.set_roots2items(old_owners2uniq_serv_uses);
   return old_owners2uniq_uses;
+}
+
+LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
+  auto nnew_ents = new_ents2old_owners.nitems();
+  auto serv_ents2new_idxs = new_ents2old_owners.exch(
+      LOs(nnew_ents, 0, 1), 1);
+  auto old_owners2new_ents = new_ents2old_owners.invert();
+  auto serv_ents2ranks = old_owners2new_ents.items2ranks();
+  auto serv_uses2ranks = old_owners2new_uses.items2ranks();
+  auto nserv_uses = old_owners2new_uses.nitems();
+  auto old_owners2serv_uses = old_owners2new_uses.roots2items();
+  auto old_owners2serv_ents = old_owners2new_ents.roots2items();
+  auto nold_owners = old_owners2new_ents.nroots();
+  Write<LO> serv_uses2new_idxs(nserv_uses);
+  auto f = LAMBDA(LO old_owner) {
+    auto ebegin = old_owners2serv_ents[old_owner];
+    auto eend = old_owners2serv_ents[old_owner + 1];
+    auto ubegin = old_owners2serv_uses[old_owner];
+    auto uend = old_owners2serv_uses[old_owner + 1];
+    for (auto u = ubegin; u < uend; ++u) {
+      auto rank = serv_uses2ranks[u];
+      LO idx = -1;
+      for (auto e = ebegin; e < eend; ++e) {
+        if (serv_ents2ranks[e] == rank) {
+          idx = serv_ents2new_idxs[e];
+          break;
+        }
+      }
+      serv_uses2new_idxs[u] = idx;
+    }
+  };
+  parallel_for(nold_owners, f);
+  auto serv_uses2new_uses = old_owners2new_uses;
+  serv_uses2new_uses.set_roots2items(LOs());
+  return serv_uses2new_uses.exch(LOs(serv_uses2new_idxs), 1);
+}
+
+void pull_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
+    Dist old_owners2new_ents,
+    Adj& new_ents2new_lows, Dist& old_low_owners2new_lows) {
+  auto nlows_per_high = simplex_degrees[ent_dim][low_dim];
+  auto old_use_owners = form_old_use_owners(old_mesh,
+      ent_dim, low_dim);
+  auto new_use_own_ranks = old_owners2new_ents.exch(
+      old_use_owners.ranks, nlows_per_high);
+  auto new_use_own_idxs = old_owners2new_ents.exch(
+      old_use_owners.idxs, nlows_per_high);
+  Remotes new_use_owners(new_use_own_ranks, new_use_own_idxs);
+  Dist low_uses2old_owners(old_mesh.comm(), new_use_owners,
+      old_mesh.nents(low_dim));
+  old_low_owners2new_lows = find_unique_use_owners(
+      low_uses2old_owners);
+  auto new_lows2old_owners = old_low_owners2new_lows.invert();
+  auto old_low_owners2new_uses = low_uses2old_owners.invert();
+  auto new_conn = form_new_conn(new_lows2old_owners, old_low_owners2new_uses);
+  new_ents2new_lows.ab2b = new_conn;
+  auto old_codes = old_mesh.ask_down(ent_dim, low_dim).codes;
+  if (!old_codes.exists())
+    return;
+  auto new_codes = old_owners2new_ents.exch(old_codes, nlows_per_high);
+  new_ents2new_lows.codes = new_codes;
 }

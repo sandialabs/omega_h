@@ -1,2 +1,23 @@
-Remotes form_down_use_owners(Mesh& old_mesh, Int high_dim, Int low_dim);
+/* create arrays mapping old uses of (low_dim) entities by
+   (high_dim) entities to their old (low_dim) owners */
+Remotes form_old_use_owners(Mesh& old_mesh, Int high_dim, Int low_dim);
+
+/* given a Dist mapping new entity uses to their old owners,
+   filter out duplicate uses of the same old owner by the
+   same rank, and create a Dist mapping old owners to
+   rank-unique new entity copies. */
 Dist find_unique_use_owners(Dist uses2old_owners);
+
+/* given a Dist mapping from new entity copies to old owners,
+   and one from old owners to new entity uses,
+   form the new connectivity array, which maps each use
+   to the local index of its rank-unique copy */
+LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses);
+
+/* given a Dist mapping old owners to new copies of (ent_dim)
+   entities, project this to (low_dim) entities in the form
+   of the new (ent_dim -> low_dim) adjacency arrays as well
+   as the Dist mapping old (low_dim) owners to new copies */
+void pull_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
+    Dist old_owners2new_ents,
+    Adj& new_ents2new_lows, Dist& old_low_owners2new_lows);
