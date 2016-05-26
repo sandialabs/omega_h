@@ -2,12 +2,12 @@ Dist::Dist() {
 }
 
 Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
-  set_comm(comm);
+  set_parent_comm(comm);
   set_dest_ranks(fitems2rroots.ranks);
   set_dest_idxs(fitems2rroots.idxs, nrroots);
 }
 
-void Dist::set_comm(CommPtr parent_comm) {
+void Dist::set_parent_comm(CommPtr parent_comm) {
   parent_comm_ = parent_comm;
 }
 
@@ -102,6 +102,10 @@ template Read<I32> Dist::exch(Read<I32> data, Int width) const;
 template Read<I64> Dist::exch(Read<I64> data, Int width) const;
 template Read<Real> Dist::exch(Read<Real> data, Int width) const;
 
+CommPtr Dist::parent_comm() const {
+  return parent_comm_;
+}
+
 CommPtr Dist::comm() const {
   return comm_[F];
 }
@@ -120,6 +124,10 @@ LOs Dist::roots2items() const {
 
 Read<I32> Dist::msgs2ranks() const {
   return msgs2ranks_[F];
+}
+
+Read<I32> Dist::items2ranks() const {
+  return compound_maps(items2msgs(), msgs2ranks());
 }
 
 LO Dist::nitems() const {

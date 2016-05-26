@@ -4,14 +4,14 @@ static void test_one_rank(CommPtr comm) {
   CHECK(comm->size() == 1);
   { // make sure we can operate on zero-length data
   Dist dist;
-  dist.set_comm(comm);
+  dist.set_parent_comm(comm);
   dist.set_dest_ranks(Read<I32>({}));
   dist.set_dest_idxs(LOs({}), 0);
   dist.set_roots2items(LOs({0}));
   }
   {
   Dist dist;
-  dist.set_comm(comm);
+  dist.set_parent_comm(comm);
   dist.set_dest_ranks(Read<I32>({0,0,0,0}));
   dist.set_dest_idxs(LOs({3,2,1,0}), 4);
   Read<GO> a({0,1,2,3});
@@ -23,7 +23,7 @@ static void test_one_rank(CommPtr comm) {
 static void test_two_ranks_dist(CommPtr comm) {
   CHECK(comm->size() == 2);
   Dist dist;
-  dist.set_comm(comm);
+  dist.set_parent_comm(comm);
   /* partition is {0,1,2}{3,4},
      global reversal to
                   {4,3,2}{1,0} */
