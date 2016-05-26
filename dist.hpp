@@ -21,6 +21,7 @@ public:
   LOs roots2items() const;
   Read<I32> msgs2ranks() const;
   LO nitems() const;
+  LO nroots() const;
 private:
   enum { F, R };
 };

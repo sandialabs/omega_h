@@ -125,3 +125,7 @@ Read<I32> Dist::msgs2ranks() const {
 LO Dist::nitems() const {
   return items2content_[F].size();
 }
+
+LO Dist::nroots() const {
+  return roots2items_[F].size() - 1;
+}
