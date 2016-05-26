@@ -15,6 +15,12 @@ public:
   Dist invert() const;
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;
+  CommPtr comm() const;
+  LOs content2msgs() const;
+  LOs items2msgs() const;
+  LOs roots2items() const;
+  Read<I32> msgs2ranks() const;
+  LO nitems() const;
+private:
   enum { F, R };
-  CommPtr comm(Int dir) const;
 };

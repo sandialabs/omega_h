@@ -102,6 +102,26 @@ template Read<I32> Dist::exch(Read<I32> data, Int width) const;
 template Read<I64> Dist::exch(Read<I64> data, Int width) const;
 template Read<Real> Dist::exch(Read<Real> data, Int width) const;
 
-CommPtr Dist::comm(Int dir) const {
-  return comm_[dir];
+CommPtr Dist::comm() const {
+  return comm_[F];
+}
+
+LOs Dist::content2msgs() const {
+  return invert_fan(msgs2content_[F]);
+}
+
+LOs Dist::items2msgs() const {
+  return unmap(items2content_[F], content2msgs(), 1);
+}
+
+LOs Dist::roots2items() const {
+  return roots2items_[F];
+}
+
+Read<I32> Dist::msgs2ranks() const {
+  return msgs2ranks_[F];
+}
+
+LO Dist::nitems() const {
+  return items2content_[F].size();
 }
