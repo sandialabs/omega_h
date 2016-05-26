@@ -14,7 +14,7 @@ Comm::Comm(MPI_Comm impl):impl_(impl) {
     int nin, nout, is_weighted;
     CALL(MPI_Dist_graph_neighbors_count(impl, &nin, &nout, &is_weighted));
     HostWrite<I32> sources(nin);
-    HostWrite<I32> destinations(nin);
+    HostWrite<I32> destinations(nout);
     CALL(MPI_Dist_graph_neighbors(
           impl,
           nin,
