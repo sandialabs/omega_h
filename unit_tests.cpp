@@ -217,15 +217,23 @@ static void test_scan() {
   }
 }
 
-static void test_invert_funnel() {
+static void test_fan_and_funnel() {
   CHECK(invert_funnel(LOs({0,0,1,1,2,2}), 3)
       == LOs({0,2,4,6}));
+  CHECK(invert_fan(LOs({0,2,4,6}))
+      == LOs({0,0,1,1,2,2}));
   CHECK(invert_funnel(LOs({0,0,0,2,2,2}), 3)
       == LOs({0,3,3,6}));
+  CHECK(invert_fan(LOs({0,3,3,6}))
+      == LOs({0,0,0,2,2,2}));
   CHECK(invert_funnel(LOs({0,0,0,0,0,0}), 3)
       == LOs({0,6,6,6}));
+  CHECK(invert_fan(LOs({0,6,6,6}))
+      == LOs({0,0,0,0,0,0}));
   CHECK(invert_funnel(LOs({2,2,2,2,2,2}), 3)
       == LOs({0,0,0,6}));
+  CHECK(invert_fan(LOs({0,0,0,6}))
+      == LOs({2,2,2,2,2,2}));
 }
 
 static void test_permute() {
@@ -617,7 +625,7 @@ int main(int argc, char** argv) {
   test_sort();
   test_scan();
   test_intersect_metrics();
-  test_invert_funnel();
+  test_fan_and_funnel();
   test_permute();
   test_invert_map();
   test_invert_adj();
