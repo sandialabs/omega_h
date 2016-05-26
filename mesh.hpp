@@ -1,3 +1,5 @@
+class Dist;
+
 class Mesh {
   public:
     Mesh();
@@ -33,6 +35,7 @@ class Mesh {
   private:
     typedef std::shared_ptr<TagBase> TagPtr;
     typedef std::shared_ptr<Adj> AdjPtr;
+    typedef std::shared_ptr<Dist> DistPtr;
     typedef std::vector<TagPtr> TagVector;
     typedef TagVector::iterator TagIter;
     typedef TagVector::const_iterator TagCIter;
@@ -48,6 +51,8 @@ class Mesh {
     LO nents_[DIMS];
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
+    LOs own_idxs_[DIMS];
+    DistPtr dists_[DIMS];
   public:
     void add_coords(Reals array);
     Reals coords() const;
@@ -56,4 +61,6 @@ class Mesh {
     void forget_globals();
     Reals ask_edge_lengths();
     Reals ask_qualities();
+    Read<I32> ask_own_ranks(Int dim);
+    Dist ask_dist(Int dim);
 };

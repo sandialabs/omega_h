@@ -78,6 +78,15 @@ void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
     if (has_tag(EDGE, "length")) remove_tag(EDGE, "length");
     if (has_tag(this->dim(), "quality")) remove_tag(this->dim(), "quality");
   }
+  if (name == "owner") {
+    own_idxs_[dim] = LOs();
+    dists_[dim] = DistPtr();
+  }
+  if (name == "global") {
+    if (has_tag(dim, "owner")) remove_tag(dim, "owner");
+    own_idxs_[dim] = LOs();
+    dists_[dim] = DistPtr();
+  }
 }
 
 template <typename T>
@@ -283,6 +292,33 @@ Reals Mesh::ask_qualities() {
     add_tag(dim(), "quality", 1, qualities);
   }
   return get_tag<Real>(dim(), "quality").array();
+}
+
+Read<I32> Mesh::ask_own_ranks(Int dim) {
+  if (!has_tag(dim, "owner")) {
+    CHECK(!own_idxs_[dim].exists());
+    auto owners = owners_from_globals(comm_, ask_globals(dim), Read<I32>());
+    add_tag<I32>(dim, "owner", 1, owners.ranks);
+    own_idxs_[dim] = owners.idxs;
+  }
+  return get_tag<I32>(dim, "owner").array();
+}
+
+Dist Mesh::ask_dist(Int dim) {
+  if (!dists_[dim]) {
+    auto own_ranks = ask_own_ranks(dim);
+    LOs own_idxs;
+    if (own_idxs_[dim].exists()) {
+      own_idxs = own_idxs_[dim];
+      own_idxs_[dim] = LOs();
+    } else {
+      auto owners = owners_from_globals(comm_, ask_globals(dim), own_ranks);
+      own_idxs = owners.idxs;
+    }
+    auto owners = Remotes(own_ranks, own_idxs);
+    dists_[dim] = DistPtr(new Dist(comm_, owners, nents(dim)));
+  }
+  return *(dists_[dim]);
 }
 
 #define INST_T(T) \
