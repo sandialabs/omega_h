@@ -12,8 +12,12 @@ void bcast_mesh(Mesh& mesh, CommPtr new_comm, bool is_source) {
     mesh.set_verts(0);
   }
   for (Int d = 0; d <= dim; ++d) {
-    if (d > VERT && !is_source)
-      mesh.set_ents(d, Adj(LOs({}), Read<I8>({})));
+    if (d > VERT && !is_source) {
+      Adj down(LOs({}));
+      if (d - 1 != VERT)
+        down.codes = Read<I8>({});
+      mesh.set_ents(d, down);
+    }
     I32 ntags;
     if (is_source)
       ntags = mesh.ntags(d);
