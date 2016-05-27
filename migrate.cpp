@@ -143,7 +143,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh,
     pull_down(old_mesh, d, d - 1, old_owners2new_ents,
         high2low, old_low_owners2new_lows);
     new_mesh.set_ents(d, high2low);
-    push_tags(old_mesh, new_mesh, dim, old_owners2new_ents);
+    push_tags(old_mesh, new_mesh, d, old_owners2new_ents);
     new_ents2old_owners = old_owners2new_ents.invert();
     auto owners = update_ownership(new_ents2old_owners, Read<I32>());
     new_mesh.set_tag<I32>(d, "owner", owners.ranks);
