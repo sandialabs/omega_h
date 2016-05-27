@@ -102,3 +102,64 @@ void pull_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
   auto new_codes = old_owners2new_ents.exch(old_codes, nlows_per_high);
   new_ents2new_lows.codes = new_codes;
 }
+
+void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
+    Int ent_dim, Dist old_owners2new_ents) {
+  for (Int i = 0; i < old_mesh.ntags(ent_dim); ++i) {
+    auto tag = old_mesh.get_tag(ent_dim, i);
+    if (is<I8>(tag)) {
+      auto array = to<I8>(tag)->array();
+      array = old_owners2new_ents.exch(array, tag->ncomps());
+      new_mesh.add_tag<I8>(ent_dim, tag->name(), tag->ncomps(), array);
+    } else if (is<I32>(tag)) {
+      auto array = to<I32>(tag)->array();
+      array = old_owners2new_ents.exch(array, tag->ncomps());
+      new_mesh.add_tag<I32>(ent_dim, tag->name(), tag->ncomps(), array);
+    } else if (is<I64>(tag)) {
+      auto array = to<I64>(tag)->array();
+      array = old_owners2new_ents.exch(array, tag->ncomps());
+      new_mesh.add_tag<I64>(ent_dim, tag->name(), tag->ncomps(), array);
+    } else if (is<Real>(tag)) {
+      auto array = to<Real>(tag)->array();
+      array = old_owners2new_ents.exch(array, tag->ncomps());
+      new_mesh.add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), array);
+    }
+  }
+}
+
+void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh,
+    Remotes new_elems2old_owners) {
+  auto comm = old_mesh.comm();
+  auto dim = old_mesh.dim();
+  new_mesh.set_comm(comm);
+  new_mesh.set_dim(dim);
+  auto nold_ents = old_mesh.nents(dim);
+  Dist new_ents2old_owners(comm, new_elems2old_owners, nold_ents);
+  auto old_owners2new_ents = new_ents2old_owners.invert();
+  for (Int d = dim; d > VERT; --d) {
+    Adj high2low;
+    Dist old_low_owners2new_lows;
+    pull_down(old_mesh, d, d - 1, old_owners2new_ents,
+        high2low, old_low_owners2new_lows);
+    new_mesh.set_ents(d, high2low);
+    push_tags(old_mesh, new_mesh, dim, old_owners2new_ents);
+    new_ents2old_owners = old_owners2new_ents.invert();
+    auto owners = update_ownership(new_ents2old_owners, Read<I32>());
+    new_mesh.add_tag<I32>(d, "owner", 1, owners.ranks);
+    new_mesh.set_own_idxs(d, owners.idxs);
+    old_owners2new_ents = old_low_owners2new_lows;
+  }
+  auto new_verts2old_owners = old_owners2new_ents.invert();
+  auto nnew_verts = new_verts2old_owners.nitems();
+  new_mesh.set_verts(nnew_verts);
+  push_tags(old_mesh, new_mesh, VERT, old_owners2new_ents);
+  auto owners = update_ownership(new_ents2old_owners, Read<I32>());
+  new_mesh.add_tag<I32>(VERT, "owner", 1, owners.ranks);
+  new_mesh.set_own_idxs(VERT, owners.idxs);
+}
+
+void migrate_mesh(Mesh& mesh, Remotes new_elems2old_owners) {
+  Mesh new_mesh;
+  migrate_mesh(mesh, new_mesh, new_elems2old_owners);
+  mesh = new_mesh;
+}
