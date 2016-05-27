@@ -53,6 +53,11 @@ int main(int argc, char** argv) {
   }
   bcast_mesh(mesh, world, world->rank() == 0);
   mesh.set_comm(world);
+  if (world->rank() == 0) {
+    migrate_mesh(mesh, Remotes(Read<I32>({0}), LOs({0})));
+  } else {
+    migrate_mesh(mesh, Remotes(Read<I32>({0}), LOs({1})));
+  }
   }
   fini();
 }
