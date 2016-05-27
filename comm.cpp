@@ -152,6 +152,10 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
 #endif
 }
 
+CommPtr Comm::graph_inverse() const {
+  return graph_adjacent(destinations(), sources());
+}
+
 Read<I32> Comm::sources() const {
   return srcs_;
 }

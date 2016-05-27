@@ -42,8 +42,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   items2content_[F] = invert_permutation(content2items);
   msgs2content_[F] = msgs2content;
   comm_[F] = parent_comm_->graph(msgs2ranks);
-  comm_[R] = parent_comm_->graph_adjacent(
-      comm_[F]->destinations(), comm_[F]->sources());
+  comm_[R] = comm_[F]->graph_inverse();
   auto fdegrees = get_degrees(msgs2content_[F]);
   auto rdegrees = comm_[F]->alltoall(fdegrees);
   msgs2content_[R] = offset_scan(rdegrees);
@@ -140,6 +139,6 @@ void Dist::change_comm(CommPtr new_comm) {
   auto new_sources = comm_[F]->allgather(new_comm->rank());
   auto new_destinations = comm_[R]->allgather(new_comm->rank());
   comm_[F] = new_comm->graph_adjacent(new_sources, new_destinations);
-  comm_[R] = new_comm->graph_adjacent(new_destinations, new_sources);
+  comm_[R] = comm_[F]->graph_inverse();
   parent_comm_ = new_comm;
 }

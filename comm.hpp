@@ -113,6 +113,7 @@ public:
   CommPtr split(I32 color, I32 key) const;
   CommPtr graph(Read<I32> dsts) const;
   CommPtr graph_adjacent(Read<I32> srcs, Read<I32> dsts) const;
+  CommPtr graph_inverse() const;
   Read<I32> sources() const;
   Read<I32> destinations() const;
   template <typename T>
