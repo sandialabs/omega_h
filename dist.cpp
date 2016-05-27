@@ -128,7 +128,7 @@ Read<I32> Dist::items2ranks() const {
 }
 
 LO Dist::nitems() const {
-  return items2content_[F].size();
+  return msgs2content_[F].last();
 }
 
 LO Dist::nroots() const {
