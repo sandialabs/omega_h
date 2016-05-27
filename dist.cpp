@@ -55,7 +55,6 @@ void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
 }
 
 void Dist::set_roots2items(LOs froots2fitems) {
-  CHECK(froots2fitems.last() == nitems());
   roots2items_[F] = froots2fitems;
 }
 
