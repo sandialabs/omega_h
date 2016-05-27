@@ -3,8 +3,8 @@
 #include "internal.hpp"
 
 static void serial_test(Mesh& mesh) {
-  static Int const nx = 2;
-  static Int const dim = 3;
+  static Int const nx = 1;
+  static Int const dim = 2;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
   auto coords = mesh.coords();
@@ -18,13 +18,17 @@ static void serial_test(Mesh& mesh) {
     CHECK(LOs(mesh.nents(d), 0, 1) == mesh.ask_own_idxs(d));
   }
   mesh.forget_globals();
-  auto metric = compose_metric(identity_matrix<dim,dim>(), vector_3(1,1,.5));
+  Vector<dim> lengths;
+  for (Int i = 0; i < dim; ++i)
+    lengths[i] = 1.0;
+  lengths[dim - 1] = 0.5;
+  auto metric = compose_metric(identity_matrix<dim,dim>(), lengths);
   mesh.add_tag(VERT, "metric", symm_dofs(dim), repeat_symm(mesh.nverts(), metric));
   mesh.ask_edge_lengths();
   mesh.ask_qualities();
   if (mesh.dim() == 3) {
   std::ofstream file("tets.vtu");
-  vtk::write_vtu(file, mesh);
+  vtk::write_vtu(file, mesh, 3);
   }
   {
   std::ofstream file("tris.vtu");
