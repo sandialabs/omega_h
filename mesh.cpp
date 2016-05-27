@@ -209,7 +209,7 @@ void Mesh::check_dim2(Int dim) const {
 
 void Mesh::add_adj(Int from, Int to, Adj adj) {
   check_dim2(from);
-  check_dim2(to);
+  check_dim(to);
   if (to < from) {
     CHECK(!adj.a2ab.exists());
     if (to == VERT)
