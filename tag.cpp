@@ -45,6 +45,34 @@ void Tag<T>::set_array(Read<T> array) {
   array_ = array;
 }
 
+template <typename T>
+struct TagTraits;
+
+template <>
+struct TagTraits<I8> {
+  static TagType type() { return OSH_I8; }
+};
+
+template <>
+struct TagTraits<I32> {
+  static TagType type() { return OSH_I32; }
+};
+
+template <>
+struct TagTraits<I64> {
+  static TagType type() { return OSH_I64; }
+};
+
+template <>
+struct TagTraits<Real> {
+  static TagType type() { return OSH_F64; }
+};
+
+template <typename T>
+TagType Tag<T>::type() const {
+  return TagTraits<T>::type();
+}
+
 #define INST_T(T) \
 template bool is<T>(TagBase const* t); \
 template Tag<T> const* to<T>(TagBase const* t); \

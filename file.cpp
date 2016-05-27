@@ -14,13 +14,6 @@ static_assert(sizeof(LO) == 4, "osh format assumes 32 bit LO");
 static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
-enum {
-  OSH_I8  = 0,
-  OSH_I32 = 2,
-  OSH_I64 = 3,
-  OSH_F64 = 5,
-};
-
 INLINE std::uint32_t bswap32(std::uint32_t a)
 {
 #ifdef USE_CUDA
@@ -225,17 +218,14 @@ void write(std::ostream& stream, Mesh& mesh) {
       write(stream, tag->name());
       Int ncomps = tag->ncomps();
       write_value(stream, ncomps);
+      write_value(stream, static_cast<Int>(tag->type()));
       if (is<I8>(tag)) {
-        write_value(stream, static_cast<Int>(OSH_I8));
         write_array(stream, to<I8>(tag)->array());
       } else if (is<I32>(tag)) {
-        write_value(stream, static_cast<Int>(OSH_I32));
         write_array(stream, to<I32>(tag)->array());
       } else if (is<I64>(tag)) {
-        write_value(stream, static_cast<Int>(OSH_I64));
         write_array(stream, to<I64>(tag)->array());
       } else if (is<Real>(tag)) {
-        write_value(stream, static_cast<Int>(OSH_F64));
         write_array(stream, to<Real>(tag)->array());
       } else {
         fail("unexpected tag type in binary write\n");
