@@ -41,11 +41,9 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   parallel_for(jumps.size(), log_ends);
   items2content_[F] = invert_permutation(content2items);
   msgs2content_[F] = msgs2content;
-  msgs2ranks_[F] = msgs2ranks;
   comm_[F] = parent_comm_->graph(msgs2ranks);
   comm_[R] = parent_comm_->graph_adjacent(
       comm_[F]->destinations(), comm_[F]->sources());
-  msgs2ranks_[R] = comm_[F]->sources();
   auto fdegrees = get_degrees(msgs2content_[F]);
   auto rdegrees = comm_[F]->alltoall(fdegrees);
   msgs2content_[R] = offset_scan(rdegrees);
@@ -69,7 +67,6 @@ Dist Dist::invert() const {
     out.roots2items_[i] = roots2items_[1 - i];
     out.items2content_[i] = items2content_[1 - i];
     out.msgs2content_[i] = msgs2content_[1 - i];
-    out.msgs2ranks_[i] = msgs2ranks_[1 - i];
     out.comm_[i] = comm_[1 - i];
   }
   return out;
@@ -124,7 +121,7 @@ LOs Dist::roots2items() const {
 }
 
 Read<I32> Dist::msgs2ranks() const {
-  return msgs2ranks_[F];
+  return comm_[F]->destinations();
 }
 
 Read<I32> Dist::items2ranks() const {

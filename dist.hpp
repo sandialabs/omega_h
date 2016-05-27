@@ -3,7 +3,6 @@ class Dist {
   LOs roots2items_[2];
   LOs items2content_[2];
   LOs msgs2content_[2];
-  Read<I32> msgs2ranks_[2];
   CommPtr comm_[2];
 public:
   Dist();
