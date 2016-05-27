@@ -7,9 +7,13 @@ void bcast_mesh(Mesh& mesh, CommPtr new_comm) {
   if (is_root)
     dim = mesh.dim();
   new_comm->bcast(dim);
-  if (!is_root)
+  if (!is_root) {
     mesh.set_dim(dim);
+    mesh.set_verts(0);
+  }
   for (Int d = 0; d <= dim; ++d) {
+    if (d > VERT && !is_root)
+      mesh.set_ents(d, Adj(LOs({}), Read<I8>({})));
     I32 ntags;
     if (is_root)
       ntags = mesh.ntags(d);
@@ -39,5 +43,7 @@ void bcast_mesh(Mesh& mesh, CommPtr new_comm) {
         }
       }
     }
+    if (!is_root && mesh.has_tag(d, "owner"))
+      mesh.set_own_idxs(d, LOs({}));
   }
 }
