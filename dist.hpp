@@ -24,6 +24,7 @@ public:
   Read<I32> items2ranks() const;
   LO nitems() const;
   LO nroots() const;
+  void change_comm(CommPtr new_comm);
 private:
   enum { F, R };
 };

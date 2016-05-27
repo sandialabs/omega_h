@@ -138,3 +138,11 @@ LO Dist::nitems() const {
 LO Dist::nroots() const {
   return roots2items_[F].size() - 1;
 }
+
+void Dist::change_comm(CommPtr new_comm) {
+  auto new_sources = comm_[F]->allgather(new_comm->rank());
+  auto new_destinations = comm_[R]->allgather(new_comm->rank());
+  comm_[F] = new_comm->graph_adjacent(new_sources, new_destinations);
+  comm_[R] = new_comm->graph_adjacent(new_destinations, new_sources);
+  parent_comm_ = new_comm;
+}
