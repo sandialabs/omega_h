@@ -346,6 +346,8 @@ Remotes Mesh::ask_owners(Int dim) {
 Dist Mesh::ask_dist(Int dim) {
   if (!dists_[dim]) {
     auto owners = ask_owners(dim);
+    CHECK(owners.ranks.exists());
+    CHECK(owners.idxs.exists());
     dists_[dim] = DistPtr(new Dist(comm_, owners, nents(dim)));
   }
   return *(dists_[dim]);
