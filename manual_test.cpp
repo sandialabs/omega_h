@@ -2,10 +2,7 @@
 
 #include "internal.hpp"
 
-int main(int argc, char** argv) {
-  init(argc, argv);
-  {
-  Mesh mesh;
+static void serial_test(Mesh& mesh) {
   static Int const nx = 2;
   static Int const dim = 3;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
@@ -36,6 +33,16 @@ int main(int argc, char** argv) {
   {
   std::ofstream file("edges.vtu");
   vtk::write_vtu(file, mesh, 1);
+  }
+}
+
+int main(int argc, char** argv) {
+  init(argc, argv);
+  {
+  auto world = Comm::world();
+  Mesh mesh;
+  if (world->rank() == 0) {
+    serial_test(mesh);
   }
   }
   fini();
