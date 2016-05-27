@@ -39,10 +39,10 @@ void bcast_mesh(Mesh& mesh, CommPtr new_comm, bool is_source) {
       new_comm->bcast(tag_type);
       if (!is_source) {
         switch (tag_type) {
-          case OSH_I8: mesh.add_tag<I8>(d, name, ncomps); break;
-          case OSH_I32: mesh.add_tag<I32>(d, name, ncomps); break;
-          case OSH_I64: mesh.add_tag<I64>(d, name, ncomps); break;
-          case OSH_F64: mesh.add_tag<Real>(d, name, ncomps); break;
+          case OSH_I8: mesh.add_tag(d, name, ncomps, Read<I8>({})); break;
+          case OSH_I32: mesh.add_tag(d, name, ncomps, Read<I32>({})); break;
+          case OSH_I64: mesh.add_tag(d, name, ncomps, Read<I64>({})); break;
+          case OSH_F64: mesh.add_tag(d, name, ncomps, Read<Real>({})); break;
         }
       }
     }
