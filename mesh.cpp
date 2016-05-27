@@ -5,6 +5,14 @@ Mesh::Mesh():
 }
 
 void Mesh::set_comm(CommPtr comm) {
+  if (comm_) {
+    for (Int d = 0; d <= dim(); ++d) {
+      ask_dist(d);
+      dists_[d]->change_comm(comm);
+      auto new_own_ranks = dists_[d]->items2ranks();
+      set_tag_priv(d, "owner", new_own_ranks);
+    }
+  }
   comm_ = comm;
 }
 
@@ -66,11 +74,20 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
 }
 
 template <typename T>
-void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
+void Mesh::set_tag_priv(Int dim, std::string const& name, Read<T> array) {
   CHECK(has_tag(dim, name));
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
   tag->set_array(array);
+}
+
+template <typename T>
+void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
+  set_tag_priv(dim, name, array);
+  react_to_set_tag(dim, name);
+}
+
+void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   /* hardcoded cache invalidations */
   if ((dim == VERT) && ((name == "coordinates") ||
                         (name == "size") ||
@@ -79,8 +96,12 @@ void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
     if (has_tag(this->dim(), "quality")) remove_tag(this->dim(), "quality");
   }
   if (name == "owner") {
-    /* todo: if own_idxs exists, recompute it based on new owner ranks */
-    CHECK(!own_idxs_[dim].exists());
+    if (own_idxs_[dim].exists()) {
+      auto own_ranks = get_array<I32>(dim, name);
+      Remotes new_owners = update_ownership(ask_dist(dim), own_ranks);
+      set_tag_priv(dim, name, new_owners.ranks);
+      own_idxs_[dim] = new_owners.idxs;
+    }
     dists_[dim] = DistPtr();
   }
 }
@@ -338,7 +359,9 @@ template Read<T> Mesh::get_array<T>( \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps); \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
     Read<T> array); \
-template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array);
+template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array); \
+template void Mesh::set_tag_priv(Int dim, std::string const& name, \
+    Read<T> array);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

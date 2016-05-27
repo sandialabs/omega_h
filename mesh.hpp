@@ -48,6 +48,9 @@ class Mesh {
     void add_adj(Int from, Int to, Adj adj);
     Adj derive_adj(Int from, Int to);
     Adj ask_adj(Int from, Int to);
+    template <typename T>
+    void set_tag_priv(Int dim, std::string const& name, Read<T> array);
+    void react_to_set_tag(Int dim, std::string const& name);
     CommPtr comm_;
     Int dim_;
     LO nents_[DIMS];
