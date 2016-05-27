@@ -16,6 +16,7 @@ template <typename T>
 Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
   auto na = a2b.size() - 1;
   auto nb = a2b.last();
+  CHECK(a_data.size() == na * width);
   Write<T> b_data(nb * width);
   auto f = LAMBDA(LO a) {
     for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
