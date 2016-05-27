@@ -36,6 +36,7 @@ INLINE Matrix<2,2> get_symm_2(Arr a, Int i) {
   symm[0][0] = a[i * 3 + 0];
   symm[1][1] = a[i * 3 + 1];
   symm[1][0] = a[i * 3 + 2];
+  symm[0][1] = symm[1][0];
   return symm;
 }
 
