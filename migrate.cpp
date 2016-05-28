@@ -153,7 +153,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh,
   auto nnew_verts = new_verts2old_owners.nitems();
   new_mesh.set_verts(nnew_verts);
   push_tags(old_mesh, new_mesh, VERT, old_owners2new_ents);
-  auto owners = update_ownership(new_ents2old_owners, Read<I32>());
+  auto owners = update_ownership(new_verts2old_owners, Read<I32>());
   new_mesh.set_owners(VERT, owners);
 }
 
