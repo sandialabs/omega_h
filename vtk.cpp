@@ -263,15 +263,18 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
   write_connectivity(stream, mesh, cell_dim);
   stream << "</Cells>\n";
   stream << "<PointData>\n";
-  for (Int i = 0; i < mesh.ntags(VERT); ++i)
-    if (mesh.get_tag(VERT, i)->name() != "coordinates")
+  for (Int i = 0; i < mesh.ntags(VERT); ++i) {
+    if (mesh.get_tag(VERT, i)->name() != "coordinates") {
       write_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
+    }
+  }
   write_locals(stream, mesh, VERT);
   write_owners(stream, mesh, VERT);
   stream << "</PointData>\n";
   stream << "<CellData>\n";
-  for (Int i = 0; i < mesh.ntags(cell_dim); ++i)
+  for (Int i = 0; i < mesh.ntags(cell_dim); ++i) {
     write_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
+  }
   write_locals(stream, mesh, cell_dim);
   write_owners(stream, mesh, cell_dim);
   stream << "</CellData>\n";
@@ -285,28 +288,37 @@ void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim) {
   write_vtu(file, mesh, cell_dim);
 }
 
-void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
+void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim,
+    std::string const& piecepath) {
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
   stream << "<PPoints>\n";
   write_p_data_array<Real>(stream, "coordinates", 3);
   stream << "</PPoints>\n";
   stream << "<PPointData>\n";
-  for (Int i = 0; i < mesh.ntags(VERT); ++i)
-    if (mesh.get_tag(VERT, i)->name() != "coordinates")
+  for (Int i = 0; i < mesh.ntags(VERT); ++i) {
+    if (mesh.get_tag(VERT, i)->name() != "coordinates") {
       write_p_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
+    }
+  }
   stream << "</PPointData>\n";
   stream << "<PCellData>\n";
-  for (Int i = 0; i < mesh.ntags(cell_dim); ++i)
+  for (Int i = 0; i < mesh.ntags(cell_dim); ++i) {
     write_p_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
+  }
   stream << "</PCellData>\n";
+  for (I32 i = 0; i < mesh.comm()->size(); ++i) {
+    stream << "<Piece source=\"" << piecepath << '_'
+      << i << ".vtu\"/>\n";
+  }
   stream << "</PUnstructuredGrid>\n";
   stream << "</VTKFile>\n";
 }
 
-void write_pvtu(std::string const& filename, Mesh& mesh, Int cell_dim) {
+void write_pvtu(std::string const& filename, Mesh& mesh, Int cell_dim,
+    std::string const& piecepath) {
   std::ofstream file(filename.c_str());
-  write_pvtu(file, mesh, cell_dim);
+  write_pvtu(file, mesh, cell_dim, piecepath);
 }
 
 }//end namespace vtk
