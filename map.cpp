@@ -67,13 +67,7 @@ LOs compound_maps(LOs a2b, LOs b2c) {
 }
 
 LOs invert_permutation(LOs a2b) {
-  LO n = a2b.size();
-  Write<LO> b2a(n);
-  auto f = LAMBDA(LO a) {
-    b2a[a2b[a]] = a;
-  };
-  parallel_for(n, f);
-  return b2a;
+  return invert_injective_map(a2b, a2b.size());
 }
 
 LOs collect_marked(Read<I8> marks) {
