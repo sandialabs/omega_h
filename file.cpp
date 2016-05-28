@@ -204,6 +204,8 @@ void write(std::ostream& stream, Mesh& mesh) {
   write_value(stream, is_compressed);
   Int dim = mesh.dim();
   write_value(stream, dim);
+  I32 comm_size = mesh.comm()->size();
+  write_value(stream, comm_size);
   LO nverts = mesh.nverts();
   write_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {
@@ -256,6 +258,9 @@ void read(std::istream& stream, Mesh& mesh) {
   Int dim;
   read_value(stream, dim);
   mesh.set_dim(dim);
+  I32 comm_size;
+  read_value(stream, comm_size);
+  CHECK(comm_size == mesh.comm()->size());
   LO nverts;
   read_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {

@@ -182,7 +182,7 @@ static I8 const vtk_types[DIMS] = {
   VTK_TETRA
 };
 
-static void write_vtkfile_start_tag(std::ostream& stream)
+static void write_vtkfile_vtu_start_tag(std::ostream& stream)
 {
   stream << "<VTKFile type=\"UnstructuredGrid\" byte_order=\"";
   if (is_little_endian_cpu())
@@ -224,10 +224,36 @@ void write_owners(std::ostream& stream, Mesh& mesh, Int ent_dim) {
   write_array(stream, "owner", 1, mesh.ask_owners(ent_dim).ranks);
 }
 
+template <typename T>
+void write_p_data_array(std::ostream& stream, std::string const& name,
+    Int ncomps) {
+  stream << "<PDataArray ";
+  describe_array<T>(stream, name, ncomps);
+  stream << "/>\n";
+}
+
+void write_p_data_array2(std::ostream& stream, std::string const& name,
+    Int ncomps, Int osh_type) {
+  switch (osh_type) {
+    case OSH_I8: write_p_data_array<I8>(stream, name, ncomps); break;
+    case OSH_I32: write_p_data_array<I32>(stream, name, ncomps); break;
+    case OSH_I64: write_p_data_array<I64>(stream, name, ncomps); break;
+    case OSH_F64: write_p_data_array<Real>(stream, name, ncomps); break;
+  }
+}
+
+void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
+{
+  if (tag->type() == OSH_F64 && tag->ncomps() == space_dim)
+    write_p_data_array2(stream, tag->name(), 3, OSH_F64);
+  else
+    write_p_data_array2(stream, tag->name(), tag->ncomps(), tag->type());
+}
+
 }//end anonymous namespace
 
 void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
-  write_vtkfile_start_tag(stream);
+  write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
   stream << "<Points>\n";
@@ -254,8 +280,33 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
   stream << "</VTKFile>\n";
 }
 
-void write_vtu(std::ostream& stream, Mesh& mesh) {
-  write_vtu(stream, mesh, mesh.dim());
+void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim) {
+  std::ofstream file(filename.c_str());
+  write_vtu(file, mesh, cell_dim);
+}
+
+void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
+  stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
+  stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
+  stream << "<PPoints>\n";
+  write_p_data_array<Real>(stream, "coordinates", 3);
+  stream << "</PPoints>\n";
+  stream << "<PPointData>\n";
+  for (Int i = 0; i < mesh.ntags(VERT); ++i)
+    if (mesh.get_tag(VERT, i)->name() != "coordinates")
+      write_p_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
+  stream << "</PPointData>\n";
+  stream << "<PCellData>\n";
+  for (Int i = 0; i < mesh.ntags(cell_dim); ++i)
+    write_p_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
+  stream << "</PCellData>\n";
+  stream << "</PUnstructuredGrid>\n";
+  stream << "</VTKFile>\n";
+}
+
+void write_pvtu(std::string const& filename, Mesh& mesh, Int cell_dim) {
+  std::ofstream file(filename.c_str());
+  write_pvtu(file, mesh, cell_dim);
 }
 
 }//end namespace vtk

@@ -11,10 +11,7 @@ int main(int argc, char** argv) {
   std::ifstream in(argv[1]);
   gmsh::read(in, mesh);
   }
-  {
-  std::ofstream out(argv[2]);
-  vtk::write_vtu(out, mesh);
-  }
+  vtk::write_vtu(argv[2], mesh, mesh.dim());
   }
   fini();
 }
