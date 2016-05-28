@@ -320,7 +320,7 @@ void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim,
     write_p_data_array2(stream, "owner", 1, OSH_I32);
   stream << "</PCellData>\n";
   for (I32 i = 0; i < mesh.comm()->size(); ++i) {
-    stream << "<Piece source=\"" << piece_filename(piecepath, i) << "\"/>\n";
+    stream << "<Piece Source=\"" << piece_filename(piecepath, i) << "\"/>\n";
   }
   stream << "</PUnstructuredGrid>\n";
   stream << "</VTKFile>\n";
