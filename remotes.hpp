@@ -6,3 +6,5 @@ struct Remotes {
   Read<I32> ranks;
   LOs idxs;
 };
+
+Remotes expand(Remotes a_copies2a_owners, LOs a2b);
