@@ -288,7 +288,6 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
 }
 
 void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim) {
-  fprintf(stderr, "write_vtu(%s)\n", filename.c_str());
   std::ofstream file(filename.c_str());
   CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim);
