@@ -231,8 +231,11 @@ void write(std::ostream& stream, Mesh& mesh) {
         fail("unexpected tag type in binary write\n");
       }
     }
-    if (mesh.has_tag(d, "owner"))
-      write_array(stream, mesh.ask_own_idxs(d));
+    if (mesh.comm()->size() > 1) {
+      auto owners = mesh.ask_owners(dim);
+      write_array(stream, owners.ranks);
+      write_array(stream, owners.idxs);
+    }
   }
 }
 
@@ -290,10 +293,12 @@ void read(std::istream& stream, Mesh& mesh) {
         fail("unexpected tag type in binary write\n");
       }
     }
-    if (mesh.has_tag(d, "owner")) {
-      LOs own_idxs;
-      read_array(stream, own_idxs, is_compressed);
-      mesh.set_own_idxs(d, own_idxs);
+    if (mesh.comm()->size() > 1) {
+      Remotes owners;
+      read_array(stream, owners.ranks, is_compressed);
+      read_array(stream, owners.idxs, is_compressed);
+      mesh.set_own_ranks(d, owners.ranks);
+      mesh.set_own_idxs(d, owners.idxs);
     }
   }
 }

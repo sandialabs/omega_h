@@ -85,12 +85,15 @@ static void reorder_own_idxs(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim,
     LOs new_ents2old_ents,
     LOs old_ents2new_ents) {
-  if (!old_mesh.has_tag(ent_dim, "owner")) return;
+  if (old_mesh.comm()->size() == 1) return;
   auto old_copies2old_owners = old_mesh.ask_dist(ent_dim);
   auto old_owners2old_copies = old_copies2old_owners.invert();
   auto old_copies2new_owners = old_owners2old_copies.exch(
       old_ents2new_ents, 1);
   auto new_ents2new_owners = unmap(new_ents2old_ents, old_copies2new_owners, 1);
+  auto old_own_ranks = old_mesh.ask_owners(ent_dim).ranks;
+  auto new_own_ranks = unmap(new_ents2old_ents, old_own_ranks, 1);
+  new_mesh.set_own_ranks(ent_dim, new_own_ranks);
   new_mesh.set_own_idxs(ent_dim, new_ents2new_owners);
 }
 

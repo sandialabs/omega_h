@@ -46,7 +46,5 @@ void bcast_mesh(Mesh& mesh, CommPtr new_comm, bool is_source) {
         }
       }
     }
-    if (!is_source && mesh.has_tag(d, "owner"))
-      mesh.set_own_idxs(d, LOs({}));
   }
 }
