@@ -1,8 +1,36 @@
+#include <sys/types.h> /*required for mode_t for mkdir on some systems*/
+#include <sys/stat.h> /*using POSIX mkdir call for SMB "foo/" path*/
+#include <errno.h> /* for checking the error from mkdir */
+
 bool is_little_endian_cpu()
 {
   static std::uint16_t const endian_canary = 0x1;
   std::uint8_t const* p = reinterpret_cast<std::uint8_t const*>(&endian_canary);
   return *p == 0x1;
+}
+
+void safe_mkdir(const char* path)
+{
+  mode_t const mode = S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
+  int err;
+  errno = 0;
+  err = mkdir(path, mode);
+  if (err != 0 && errno != EEXIST) {
+    fail("omega_h could not create directory \"%s\"\n", path);
+  }
+}
+
+std::string parent_path(std::string const& path) {
+  auto pos = path.find_last_of('/');
+  CHECK(pos != std::string::npos);
+  return path.substr(0, pos);
+}
+
+std::string path_leaf_name(std::string const& path) {
+  auto pos = path.find_last_of('/');
+  if (pos == std::string::npos)
+    return path;
+  return path.substr(pos + 1, std::string::npos);
 }
 
 namespace binary {

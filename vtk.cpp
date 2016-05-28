@@ -250,6 +250,10 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
     write_p_data_array2(stream, tag->name(), tag->ncomps(), tag->type());
 }
 
+std::string piece_filename(std::string const& piecepath, I32 rank) {
+  return piecepath + '_' + std::to_string(rank) + ".vtu";
+}
+
 }//end anonymous namespace
 
 void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
@@ -301,15 +305,20 @@ void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim,
       write_p_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
     }
   }
+  write_p_data_array2(stream, "local", 1, OSH_I32);
+  if (mesh.comm()->size() > 1)
+    write_p_data_array2(stream, "owner", 1, OSH_I32);
   stream << "</PPointData>\n";
   stream << "<PCellData>\n";
   for (Int i = 0; i < mesh.ntags(cell_dim); ++i) {
     write_p_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
   }
+  write_p_data_array2(stream, "local", 1, OSH_I32);
+  if (mesh.comm()->size() > 1)
+    write_p_data_array2(stream, "owner", 1, OSH_I32);
   stream << "</PCellData>\n";
   for (I32 i = 0; i < mesh.comm()->size(); ++i) {
-    stream << "<Piece source=\"" << piecepath << '_'
-      << i << ".vtu\"/>\n";
+    stream << "<Piece source=\"" << piece_filename(piecepath, i) << "\"/>\n";
   }
   stream << "</PUnstructuredGrid>\n";
   stream << "</VTKFile>\n";
@@ -319,6 +328,20 @@ void write_pvtu(std::string const& filename, Mesh& mesh, Int cell_dim,
     std::string const& piecepath) {
   std::ofstream file(filename.c_str());
   write_pvtu(file, mesh, cell_dim, piecepath);
+}
+
+void write_parallel_vtk(std::string const& path, Mesh& mesh, Int cell_dim) {
+  auto rank = mesh.comm()->rank();
+  if (rank == 0)
+    safe_mkdir(path.c_str());
+  auto piecesdir = path + "/pieces";
+  if (rank == 0)
+    safe_mkdir(piecesdir.c_str());
+  auto piecepath = piecesdir + "/piece";
+  auto pvtuname = path + '/' + path_leaf_name(path) + ".pvtu";
+  if (rank == 0)
+    write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece");
+  write_vtu(piece_filename(piecepath, rank), mesh, cell_dim);
 }
 
 }//end namespace vtk
