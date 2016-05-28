@@ -3,7 +3,7 @@
 #include "internal.hpp"
 
 static void serial_test(Mesh& mesh) {
-  static Int const nx = 1;
+  static Int const nx = 2;
   static Int const dim = 2;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
@@ -35,15 +35,15 @@ int main(int argc, char** argv) {
   bcast_mesh(mesh, world, world->rank() == 0);
   mesh.set_comm(world);
   if (world->rank() == 0) {
-    migrate_mesh(mesh, Remotes(Read<I32>({0}), LOs({0})));
+    migrate_mesh(mesh, Remotes(Read<I32>(7, 0), LOs(7, 0, 1)));
   } else {
-    migrate_mesh(mesh, Remotes(Read<I32>({0}), LOs({1})));
+    migrate_mesh(mesh, Remotes(Read<I32>(1, 0), LOs(1, 7, 1)));
   }
   if (mesh.dim() == 3) {
   vtk::write_parallel_vtk("tets", mesh, 3);
   }
   vtk::write_parallel_vtk("tris", mesh, 2);
-//vtk::write_parallel_vtk("edges", mesh, 1);
+  vtk::write_parallel_vtk("edges", mesh, 1);
   }
   fini();
 }
