@@ -125,3 +125,9 @@ void reorder_mesh(Mesh& mesh,
   reorder_mesh(mesh, new_mesh, new_verts2old_verts);
   mesh = new_mesh;
 }
+
+void reorder_by_hilbert(Mesh& mesh) {
+  auto coords = mesh.coords();
+  LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh.dim());
+  reorder_mesh(mesh, new_verts2old_verts);
+}
