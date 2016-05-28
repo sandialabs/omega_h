@@ -40,10 +40,10 @@ int main(int argc, char** argv) {
     migrate_mesh(mesh, Remotes(Read<I32>({0}), LOs({1})));
   }
   if (mesh.dim() == 3) {
-  vtk::write_vtu("tets", mesh, 3);
+  vtk::write_parallel_vtk("tets", mesh, 3);
   }
-  vtk::write_vtu("tris", mesh, 2);
-//vtk::write_vtu("edges", mesh, 1);
+  vtk::write_parallel_vtk("tris", mesh, 2);
+//vtk::write_parallel_vtk("edges", mesh, 1);
   }
   fini();
 }
