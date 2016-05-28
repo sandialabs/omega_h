@@ -7,4 +7,5 @@ struct Remotes {
   LOs idxs;
 };
 
-Remotes expand(Remotes a_copies2a_owners, LOs a2b);
+Remotes expand(Remotes a2c, LOs a2b);
+Remotes unmap(LOs a2b, Remotes b2c);

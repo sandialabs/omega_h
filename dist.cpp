@@ -141,3 +141,9 @@ void Dist::change_comm(CommPtr new_comm) {
   comm_[R] = comm_[F]->graph_inverse();
   parent_comm_ = new_comm;
 }
+
+Remotes Dist::exch(Remotes data, Int width) const {
+  auto ranks = exch(data.ranks, width);
+  auto idxs = exch(data.idxs, width);
+  return Remotes(ranks, idxs);
+}

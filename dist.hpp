@@ -24,6 +24,7 @@ public:
   LO nitems() const;
   LO nroots() const;
   void change_comm(CommPtr new_comm);
+  Remotes exch(Remotes data, Int width) const;
 private:
   enum { F, R };
 };
