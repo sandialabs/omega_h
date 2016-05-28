@@ -34,10 +34,17 @@ int main(int argc, char** argv) {
   }
   bcast_mesh(mesh, world, world->rank() == 0);
   mesh.set_comm(world);
+  /* move all elements to rank #1 */
   if (world->rank() == 0) {
-    migrate_mesh(mesh, Remotes(Read<I32>(5, 0), LOs(5, 0, 1)));
+    migrate_mesh(mesh, Remotes(Read<I32>(0, 0), LOs(0, 0, 1)));
   } else {
-    migrate_mesh(mesh, Remotes(Read<I32>(1, 0), LOs(1, 5, 1)));
+    migrate_mesh(mesh, Remotes(Read<I32>(6, 0), LOs(6, 0, 1)));
+  }
+  /* now split them in half */
+  if (world->rank() == 0) {
+    migrate_mesh(mesh, Remotes(Read<I32>(3, 1), LOs(3, 0, 1)));
+  } else {
+    migrate_mesh(mesh, Remotes(Read<I32>(3, 1), LOs(3, 3, 1)));
   }
   if (mesh.dim() == 3) {
   vtk::write_parallel_vtk("tets", mesh, 3);
