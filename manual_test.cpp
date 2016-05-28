@@ -19,18 +19,6 @@ static void serial_test(Mesh& mesh) {
   mesh.add_tag(VERT, "metric", symm_dofs(dim), repeat_symm(mesh.nverts(), metric));
   mesh.ask_edge_lengths();
   mesh.ask_qualities();
-  if (mesh.dim() == 3) {
-  std::ofstream file("tets.vtu");
-  vtk::write_vtu(file, mesh, 3);
-  }
-  {
-  std::ofstream file("tris.vtu");
-  vtk::write_vtu(file, mesh, 2);
-  }
-  {
-  std::ofstream file("edges.vtu");
-  vtk::write_vtu(file, mesh, 1);
-  }
 }
 
 int main(int argc, char** argv) {
@@ -51,6 +39,11 @@ int main(int argc, char** argv) {
   } else {
     migrate_mesh(mesh, Remotes(Read<I32>({0}), LOs({1})));
   }
+  if (mesh.dim() == 3) {
+  vtk::write_vtu("tets", mesh, 3);
+  }
+  vtk::write_vtu("tris", mesh, 2);
+//vtk::write_vtu("edges", mesh, 1);
   }
   fini();
 }
