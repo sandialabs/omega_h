@@ -146,8 +146,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh,
     push_tags(old_mesh, new_mesh, d, old_owners2new_ents);
     new_ents2old_owners = old_owners2new_ents.invert();
     auto owners = update_ownership(new_ents2old_owners, Read<I32>());
-    new_mesh.set_own_ranks(d, owners.ranks);
-    new_mesh.set_own_idxs(d, owners.idxs);
+    new_mesh.set_owners(d, owners);
     old_owners2new_ents = old_low_owners2new_lows;
   }
   auto new_verts2old_owners = old_owners2new_ents.invert();
@@ -155,8 +154,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_verts(nnew_verts);
   push_tags(old_mesh, new_mesh, VERT, old_owners2new_ents);
   auto owners = update_ownership(new_ents2old_owners, Read<I32>());
-  new_mesh.set_own_ranks(VERT, owners.ranks);
-  new_mesh.set_own_idxs(VERT, owners.idxs);
+  new_mesh.set_owners(VERT, owners);
 }
 
 void migrate_mesh(Mesh& mesh, Remotes new_elems2old_owners) {

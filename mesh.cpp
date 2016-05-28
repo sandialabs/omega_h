@@ -301,16 +301,8 @@ Reals Mesh::ask_qualities() {
   return get_array<Real>(dim(), "quality");
 }
 
-void Mesh::set_own_ranks(Int dim, Read<I32> own_ranks) {
-  owners_[dim].ranks = own_ranks;
-  if (owners_[dim].idxs.exists()) {
-    owners_[dim] = update_ownership(ask_dist(dim), own_ranks);
-  }
-  dists_[dim] = DistPtr();
-}
-
-void Mesh::set_own_idxs(Int dim, LOs own_idxs) {
-  owners_[dim].idxs = own_idxs;
+void Mesh::set_owners(Int dim, Remotes owners) {
+  owners_[dim] = owners;
   dists_[dim] = DistPtr();
 }
 

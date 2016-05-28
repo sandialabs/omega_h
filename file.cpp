@@ -297,8 +297,7 @@ void read(std::istream& stream, Mesh& mesh) {
       Remotes owners;
       read_array(stream, owners.ranks, is_compressed);
       read_array(stream, owners.idxs, is_compressed);
-      mesh.set_own_ranks(d, owners.ranks);
-      mesh.set_own_idxs(d, owners.idxs);
+      mesh.set_owners(d, owners);
     }
   }
 }

@@ -93,8 +93,7 @@ static void reorder_own_idxs(Mesh& old_mesh, Mesh& new_mesh,
   auto new_ents2new_owners = unmap(new_ents2old_ents, old_copies2new_owners, 1);
   auto old_own_ranks = old_mesh.ask_owners(ent_dim).ranks;
   auto new_own_ranks = unmap(new_ents2old_ents, old_own_ranks, 1);
-  new_mesh.set_own_ranks(ent_dim, new_own_ranks);
-  new_mesh.set_own_idxs(ent_dim, new_ents2new_owners);
+  new_mesh.set_owners(ent_dim, Remotes(new_own_ranks, new_ents2new_owners));
 }
 
 void reorder_mesh(Mesh& old_mesh, Mesh& new_mesh,

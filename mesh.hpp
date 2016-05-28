@@ -64,8 +64,7 @@ class Mesh {
     void forget_globals();
     Reals ask_edge_lengths();
     Reals ask_qualities();
-    void set_own_ranks(Int dim, Read<I32> own_ranks);
-    void set_own_idxs(Int dim, LOs own_idxs);
+    void set_owners(Int dim, Remotes owners);
     Remotes ask_owners(Int dim);
     Dist ask_dist(Int dim);
 };
