@@ -463,6 +463,12 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
 #endif
 }
 
+void Comm::barrier() const {
+#ifdef USE_MPI
+  CALL(MPI_Barrier(impl_));
+#endif
+}
+
 #undef CALL
 
 #define INST_T(T) \

@@ -132,4 +132,5 @@ public:
   Read<T> alltoallv(Read<T> sendbuf,
       Read<LO> sendcounts, Read<LO> sdispls,
       Read<LO> recvcounts, Read<LO> rdispls) const;
+  void barrier() const;
 };

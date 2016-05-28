@@ -290,6 +290,7 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
 void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim) {
   fprintf(stderr, "write_vtu(%s)\n", filename.c_str());
   std::ofstream file(filename.c_str());
+  CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim);
 }
 
@@ -328,6 +329,7 @@ void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim,
 void write_pvtu(std::string const& filename, Mesh& mesh, Int cell_dim,
     std::string const& piecepath) {
   std::ofstream file(filename.c_str());
+  CHECK(file.is_open());
   write_pvtu(file, mesh, cell_dim, piecepath);
 }
 
@@ -336,10 +338,12 @@ void write_parallel_vtk(std::string const& path, Mesh& mesh, Int cell_dim) {
   if (rank == 0) {
     safe_mkdir(path.c_str());
   }
+  mesh.comm()->barrier();
   auto piecesdir = path + "/pieces";
   if (rank == 0) {
     safe_mkdir(piecesdir.c_str());
   }
+  mesh.comm()->barrier();
   auto piecepath = piecesdir + "/piece";
   auto pvtuname = path + '/' + path_leaf_name(path) + ".pvtu";
   if (rank == 0) {
