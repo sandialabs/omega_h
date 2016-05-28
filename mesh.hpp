@@ -48,15 +48,13 @@ class Mesh {
     void add_adj(Int from, Int to, Adj adj);
     Adj derive_adj(Int from, Int to);
     Adj ask_adj(Int from, Int to);
-    template <typename T>
-    void set_tag_priv(Int dim, std::string const& name, Read<T> array);
     void react_to_set_tag(Int dim, std::string const& name);
     CommPtr comm_;
     Int dim_;
     LO nents_[DIMS];
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
-    LOs own_idxs_[DIMS];
+    Remotes owners_[DIMS];
     DistPtr dists_[DIMS];
   public:
     void add_coords(Reals array);
@@ -66,6 +64,7 @@ class Mesh {
     void forget_globals();
     Reals ask_edge_lengths();
     Reals ask_qualities();
+    void set_own_ranks(Int dim, Read<I32> own_ranks);
     Read<I32> ask_own_ranks(Int dim);
     void set_own_idxs(Int dim, LOs own_idxs);
     LOs ask_own_idxs(Int dim);

@@ -7,10 +7,9 @@ Mesh::Mesh():
 void Mesh::set_comm(CommPtr comm) {
   if (comm_) {
     for (Int d = 0; d <= dim(); ++d) {
-      ask_dist(d);
-      dists_[d]->change_comm(comm);
-      auto new_own_ranks = dists_[d]->items2ranks();
-      set_tag_priv(d, "owner", new_own_ranks);
+      auto dist = ask_dist(d);
+      dist->change_comm(comm);
+      owners_[d].ranks = dist->items2ranks();
     }
   }
   comm_ = comm;
@@ -74,16 +73,11 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
 }
 
 template <typename T>
-void Mesh::set_tag_priv(Int dim, std::string const& name, Read<T> array) {
+void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   CHECK(has_tag(dim, name));
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
   tag->set_array(array);
-}
-
-template <typename T>
-void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
-  set_tag_priv(dim, name, array);
   react_to_set_tag(dim, name);
 }
 
@@ -94,15 +88,6 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
                         (name == "metric"))) {
     if (has_tag(EDGE, "length")) remove_tag(EDGE, "length");
     if (has_tag(this->dim(), "quality")) remove_tag(this->dim(), "quality");
-  }
-  if (name == "owner") {
-    if (own_idxs_[dim].exists()) {
-      auto own_ranks = get_array<I32>(dim, name);
-      Remotes new_owners = update_ownership(ask_dist(dim), own_ranks);
-      set_tag_priv(dim, name, new_owners.ranks);
-      own_idxs_[dim] = new_owners.idxs;
-    }
-    dists_[dim] = DistPtr();
   }
 }
 
@@ -316,31 +301,27 @@ Reals Mesh::ask_qualities() {
   return get_array<Real>(dim(), "quality");
 }
 
-Read<I32> Mesh::ask_own_ranks(Int dim) {
-  if (!has_tag(dim, "owner")) {
-    CHECK(comm_->size() == 1);
-    add_tag(dim, "owner", 1, Read<I32>(nents(dim), comm_->rank()));
+void Mesh::set_own_ranks(Int dim, Read<I32> own_ranks) {
+  owners_[dim].ranks = own_ranks;
+  if (owners_[dim].idxs.exists()) {
+    owners_[dim] = update_ownership(ask_dist(dim), own_ranks);
   }
-  return get_array<I32>(dim, "owner");
-}
-
-void Mesh::set_own_idxs(Int dim, LOs own_idxs) {
-  own_idxs_[dim] = own_idxs;
   dists_[dim] = DistPtr();
 }
 
-LOs Mesh::ask_own_idxs(Int dim) {
-  if (!own_idxs_[dim].exists()) {
-    CHECK(comm_->size() == 1);
-    own_idxs_[dim] = LOs(nents(dim), 0, 1);
-  }
-  return own_idxs_[dim];
+void Mesh::set_own_idxs(Int dim, LOs own_idxs) {
+  owners_[dim].idxs = own_idxs;
+  dists_[dim] = DistPtr();
 }
 
 Remotes Mesh::ask_owners(Int dim) {
-  auto own_ranks = ask_own_ranks(dim);
-  auto own_idxs = ask_own_idxs(dim);
-  return Remotes(own_ranks, own_idxs);
+  if (!owners_[dim].ranks.exists() ||
+      !owners_[dim].idxs.exists()) {
+    CHECK(comm_->size() == 1);
+    owners_[dim] = Remotes(Read<I32>(nents(dim), comm_->rank()),
+        LOs(nents(dim), 0, 1));
+  }
+  return owners_[dim];
 }
 
 Dist Mesh::ask_dist(Int dim) {
@@ -361,9 +342,7 @@ template Read<T> Mesh::get_array<T>( \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps); \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
     Read<T> array); \
-template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array); \
-template void Mesh::set_tag_priv(Int dim, std::string const& name, \
-    Read<T> array);
+template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
