@@ -1,6 +1,6 @@
-/* create arrays mapping old uses of (low_dim) entities by
-   (high_dim) entities to their old (low_dim) owners */
-Remotes form_old_use_owners(Mesh& old_mesh, Int high_dim, Int low_dim);
+/* create arrays mapping uses of (low_dim) entities by
+   (high_dim) entities to their (low_dim) owners */
+Remotes form_down_use_owners(Mesh& mesh, Int high_dim, Int low_dim);
 
 /* given a Dist mapping new entity uses to their old owners,
    filter out duplicate uses of the same old owner by the

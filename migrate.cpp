@@ -1,6 +1,6 @@
-Remotes form_old_use_owners(Mesh& old_mesh, Int high_dim, Int low_dim) {
-  auto uses2lows = old_mesh.ask_down(high_dim, low_dim).ab2b;
-  auto lows2owners = old_mesh.ask_owners(low_dim);
+Remotes form_down_use_owners(Mesh& mesh, Int high_dim, Int low_dim) {
+  auto uses2lows = mesh.ask_down(high_dim, low_dim).ab2b;
+  auto lows2owners = mesh.ask_owners(low_dim);
   auto own_ranks = unmap(uses2lows, lows2owners.ranks, 1);
   auto own_idxs = unmap(uses2lows, lows2owners.idxs, 1);
   return Remotes(own_ranks, own_idxs);
@@ -81,7 +81,7 @@ void pull_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents,
     Adj& new_ents2new_lows, Dist& old_low_owners2new_lows) {
   auto nlows_per_high = simplex_degrees[ent_dim][low_dim];
-  auto old_use_owners = form_old_use_owners(old_mesh,
+  auto old_use_owners = form_down_use_owners(old_mesh,
       ent_dim, low_dim);
   auto new_use_own_ranks = old_owners2new_ents.exch(
       old_use_owners.ranks, nlows_per_high);
