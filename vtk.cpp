@@ -219,6 +219,11 @@ void write_locals(std::ostream& stream, Mesh& mesh, Int ent_dim) {
   write_array(stream, "local", 1, Read<LO>(mesh.nents(ent_dim), 0, 1));
 }
 
+void write_owners(std::ostream& stream, Mesh& mesh, Int ent_dim) {
+  if (mesh.comm()->size() == 1) return;
+  write_array(stream, "owner", 1, mesh.ask_owners(ent_dim).ranks);
+}
+
 }//end anonymous namespace
 
 void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
@@ -236,11 +241,13 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
     if (mesh.get_tag(VERT, i)->name() != "coordinates")
       write_tag(stream, mesh.get_tag(VERT, i), mesh.dim());
   write_locals(stream, mesh, VERT);
+  write_owners(stream, mesh, VERT);
   stream << "</PointData>\n";
   stream << "<CellData>\n";
   for (Int i = 0; i < mesh.ntags(cell_dim); ++i)
     write_tag(stream, mesh.get_tag(cell_dim, i), mesh.dim());
   write_locals(stream, mesh, cell_dim);
+  write_owners(stream, mesh, cell_dim);
   stream << "</CellData>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
