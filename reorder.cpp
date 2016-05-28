@@ -44,79 +44,15 @@ LOs ent_order_from_vert_order(Mesh& mesh,
   return new_ents2old_ents;
 }
 
-void reorder_tags(Mesh& old_mesh, Mesh& new_mesh,
-    Int ent_dim, LOs new_ents2old_ents) {
-  for (Int i = 0; i < old_mesh.ntags(ent_dim); ++i) {
-    auto tag = old_mesh.get_tag(ent_dim, i);
-    if (is<I8>(tag)) {
-      new_mesh.add_tag<I8>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<I8>(tag)->array(), tag->ncomps()));
-    } else if (is<I32>(tag)) {
-      new_mesh.add_tag<I32>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<I32>(tag)->array(), tag->ncomps()));
-    } else if (is<I64>(tag)) {
-      new_mesh.add_tag<I64>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<I64>(tag)->array(), tag->ncomps()));
-    } else if (is<Real>(tag)) {
-      new_mesh.add_tag<Real>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<Real>(tag)->array(), tag->ncomps()));
-    }
-  }
-}
-
-void reorder_down(Mesh& old_mesh, Mesh& new_mesh,
-    Int ent_dim, LOs new_ents2old_ents,
-    LOs old_lows2new_lows) {
-  auto deg = simplex_degrees[ent_dim][ent_dim - 1];
-  auto old_ents2old_lows = old_mesh.ask_down(ent_dim, ent_dim - 1);
-  auto oel2ol = old_ents2old_lows.ab2b;
-  auto oe2l_codes = old_ents2old_lows.codes;
-  auto nel2ol = unmap(new_ents2old_ents, oel2ol, deg);
-  auto nel2nl = compound_maps(nel2ol, old_lows2new_lows);
-  auto new_ents2new_lows = Adj(nel2nl);
-  if (oe2l_codes.exists()) {
-    auto ne2l_codes = unmap(new_ents2old_ents, oe2l_codes, deg);
-    new_ents2new_lows.codes = ne2l_codes;
-  }
-  new_mesh.set_ents(ent_dim, new_ents2new_lows);
-}
-
-static void reorder_own_idxs(Mesh& old_mesh, Mesh& new_mesh,
-    Int ent_dim,
-    LOs new_ents2old_ents,
-    LOs old_ents2new_ents) {
-  if (old_mesh.comm()->size() == 1) return;
-  auto old_copies2old_owners = old_mesh.ask_dist(ent_dim);
-  auto old_owners2old_copies = old_copies2old_owners.invert();
-  auto old_copies2new_owners = old_owners2old_copies.exch(
-      old_ents2new_ents, 1);
-  auto new_ents2new_owners = unmap(new_ents2old_ents, old_copies2new_owners, 1);
-  auto old_own_ranks = old_mesh.ask_owners(ent_dim).ranks;
-  auto new_own_ranks = unmap(new_ents2old_ents, old_own_ranks, 1);
-  new_mesh.set_owners(ent_dim, Remotes(new_own_ranks, new_ents2new_owners));
-}
-
 void reorder_mesh(Mesh& old_mesh, Mesh& new_mesh,
     LOs new_verts2old_verts) {
-  new_mesh.set_comm(old_mesh.comm());
-  new_mesh.set_dim(old_mesh.dim());
-  new_mesh.set_verts(old_mesh.nverts());
-  reorder_tags(old_mesh, new_mesh, VERT, new_verts2old_verts);
-  auto old_verts2new_verts = invert_permutation(new_verts2old_verts);
-  reorder_own_idxs(old_mesh, new_mesh, VERT,
-      new_verts2old_verts, old_verts2new_verts);
-  auto old_lows2new_lows = invert_permutation(new_verts2old_verts);
+  LOs new_ents2old_ents[4];
+  new_ents2old_ents[VERT] = new_verts2old_verts;
   for (Int ent_dim = 1; ent_dim <= old_mesh.dim(); ++ent_dim) {
-    auto new_ents2old_ents = ent_order_from_vert_order(old_mesh,
+    new_ents2old_ents[ent_dim] = ent_order_from_vert_order(old_mesh,
         ent_dim, new_verts2old_verts);
-    reorder_down(old_mesh, new_mesh, ent_dim, new_ents2old_ents,
-        old_lows2new_lows);
-    reorder_tags(old_mesh, new_mesh, ent_dim, new_ents2old_ents);
-    auto old_ents2new_ents = invert_permutation(new_ents2old_ents);
-    reorder_own_idxs(old_mesh, new_mesh, ent_dim,
-        new_ents2old_ents, old_ents2new_ents);
-    old_lows2new_lows = old_ents2new_ents;
   }
+  unmap_mesh(old_mesh, new_mesh, new_ents2old_ents);
 }
 
 void reorder_mesh(Mesh& mesh,

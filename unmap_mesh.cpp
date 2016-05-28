@@ -56,13 +56,13 @@ void unmap_mesh(Mesh& old_mesh, Mesh& new_mesh,
   LOs old_lows2new_lows;
   for (Int ent_dim = 0; ent_dim <= old_mesh.dim(); ++ent_dim) {
     if (ent_dim > VERT) {
-      reorder_down(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim],
+      unmap_down(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim],
           old_lows2new_lows);
     }
-    reorder_tags(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
+    unmap_tags(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
     auto old_ents2new_ents = invert_injective_map(new_ents2old_ents[ent_dim],
         old_mesh.nents(ent_dim));
-    reorder_own_idxs(old_mesh, new_mesh, ent_dim,
+    unmap_own_idxs(old_mesh, new_mesh, ent_dim,
         new_ents2old_ents[ent_dim], old_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
