@@ -128,7 +128,7 @@ Read<I32> Dist::items2ranks() const {
 
 LOs Dist::items2dest_idxs() const {
   auto inverse = invert();
-  return inverse.exch(LOs(inverse.nroots(), 0, 1), 1);
+  return inverse.exch(LOs(ndests(), 0, 1), 1);
 }
 
 Remotes Dist::items2dests() const {
@@ -141,6 +141,12 @@ LO Dist::nitems() const {
 
 LO Dist::nroots() const {
   return roots2items_[F].size() - 1;
+}
+
+LO Dist::ndests() const {
+  if (roots2items_[F].exists())
+    return nroots();
+  return nitems();
 }
 
 void Dist::change_comm(CommPtr new_comm) {

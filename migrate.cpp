@@ -123,6 +123,19 @@ void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
   }
 }
 
+void push_ents(Mesh& old_mesh, Mesh& new_mesh, Int ent_dim,
+    Dist new_ents2old_owners, Dist old_owners2new_ents,
+    Partition mode) {
+  push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
+  Read<I32> own_ranks;
+  if ((mode == GHOSTED) || ((mode == VERTEX_BASED) && (ent_dim == VERT))) {
+    auto old_own_ranks = old_mesh.ask_owners(ent_dim).ranks;
+    own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
+  }
+  auto owners = update_ownership(new_ents2old_owners, own_ranks);
+  new_mesh.set_owners(ent_dim, owners);
+}
+
 void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
     Partition mode) {
   auto comm = old_mesh.comm();
@@ -137,23 +150,18 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
     pull_down(old_mesh, d, d - 1, old_owners2new_ents,
         high2low, old_low_owners2new_lows);
     new_mesh.set_ents(d, high2low);
-    push_tags(old_mesh, new_mesh, d, old_owners2new_ents);
     new_ents2old_owners = old_owners2new_ents.invert();
-    Read<I32> own_ranks;
-    if ((mode == GHOSTED) || ((mode == VERTEX_BASED) && (d == VERT))) {
-      auto old_own_ranks = old_mesh.ask_owners(d).ranks;
-      own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
-    }
-    auto owners = update_ownership(new_ents2old_owners, own_ranks);
-    new_mesh.set_owners(d, owners);
+    push_ents(old_mesh, new_mesh, d,
+        new_ents2old_owners, old_owners2new_ents,
+        mode);
     old_owners2new_ents = old_low_owners2new_lows;
   }
   auto new_verts2old_owners = old_owners2new_ents.invert();
   auto nnew_verts = new_verts2old_owners.nitems();
   new_mesh.set_verts(nnew_verts);
-  push_tags(old_mesh, new_mesh, VERT, old_owners2new_ents);
-  auto owners = update_ownership(new_verts2old_owners, Read<I32>());
-  new_mesh.set_owners(VERT, owners);
+  push_ents(old_mesh, new_mesh, VERT,
+      new_verts2old_owners, old_owners2new_ents,
+      mode);
 }
 
 void migrate_mesh(Mesh& mesh, Dist new_elems2old_owners) {

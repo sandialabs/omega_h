@@ -8,6 +8,7 @@ Mesh::Mesh():
 void Mesh::set_comm(CommPtr comm) {
   if (comm_) {
     for (Int d = 0; d <= dim(); ++d) {
+      ask_globals(d);
       auto dist = ask_dist(d);
       dist.change_comm(comm);
       owners_[d].ranks = dist.items2ranks();

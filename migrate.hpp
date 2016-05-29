@@ -25,6 +25,10 @@ void pull_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
 void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
     Int ent_dim, Dist old_owners2new_ents);
 
+void push_ents(Mesh& old_mesh, Mesh& new_mesh, Int ent_dim,
+    Dist new_ents2old_owners, Dist old_owners2new_ents,
+    Partition mode);
+
 void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
     Partition mode);
 void migrate_mesh(Mesh& mesh, Dist new_elems2old_owners);
