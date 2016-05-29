@@ -123,7 +123,8 @@ void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
   }
 }
 
-void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners) {
+void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
+    bool keep_own_ranks) {
   auto comm = old_mesh.comm();
   auto dim = old_mesh.dim();
   new_mesh.set_comm(comm);
@@ -138,7 +139,12 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners) {
     new_mesh.set_ents(d, high2low);
     push_tags(old_mesh, new_mesh, d, old_owners2new_ents);
     new_ents2old_owners = old_owners2new_ents.invert();
-    auto owners = update_ownership(new_ents2old_owners, Read<I32>());
+    Read<I32> own_ranks;
+    if (keep_own_ranks) {
+      auto old_own_ranks = old_mesh.ask_owners(d).ranks;
+      own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
+    }
+    auto owners = update_ownership(new_ents2old_owners, own_ranks);
     new_mesh.set_owners(d, owners);
     old_owners2new_ents = old_low_owners2new_lows;
   }
@@ -152,7 +158,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners) {
 
 void migrate_mesh(Mesh& mesh, Dist new_elems2old_owners) {
   Mesh new_mesh;
-  migrate_mesh(mesh, new_mesh, new_elems2old_owners);
+  migrate_mesh(mesh, new_mesh, new_elems2old_owners, false);
   mesh = new_mesh;
 }
 

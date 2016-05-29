@@ -77,5 +77,8 @@ void ghost_mesh(Mesh& mesh) {
   auto uses2old_owners = Dist(mesh.comm(), elem_uses, mesh.nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2ownners = own_elems2elems.invert();
-  migrate_mesh(mesh, elems2ownners);
+  Mesh new_mesh;
+  bool keep_own_ranks = true;
+  migrate_mesh(mesh, new_mesh, elems2ownners, keep_own_ranks);
+  mesh = new_mesh;
 }
