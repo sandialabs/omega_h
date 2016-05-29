@@ -94,3 +94,4 @@ typedef double       Real;
 #include "migrate.hpp"
 #include "bcast.hpp"
 #include "unmap_mesh.hpp"
+#include "ghost.hpp"
