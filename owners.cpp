@@ -12,6 +12,7 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   if (own_ranks.exists()) {
     auto serv_copies2own_ranks = copies2old_owners.exch(own_ranks, 1);
     auto f = LAMBDA(LO old_owner) {
+      auto own_idx = -1;
       for (auto serv_copy = old_owners2serv_copies[old_owner];
            serv_copy < old_owners2serv_copies[old_owner + 1];
            ++serv_copy) {
@@ -19,11 +20,11 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
         auto client_rank = clients2ranks[client];
         auto own_rank = serv_copies2own_ranks[serv_copy];
         if (own_rank == client_rank) {
-          auto own_idx = serv_copies2copy_idxs[serv_copy];
-          old_owners2own_idxs[old_owner] = own_idx;
+          own_idx = serv_copies2copy_idxs[serv_copy];
           break;
         }
       }
+      old_owners2own_idxs[old_owner] = own_idx;
     };
     parallel_for(nold_owners, f);
     copies2own_ranks = own_ranks;
