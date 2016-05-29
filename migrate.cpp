@@ -75,7 +75,7 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
   return serv_uses2new_uses.exch(LOs(serv_uses2new_idxs), 1);
 }
 
-void pull_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
+void push_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents,
     Adj& new_ents2new_lows, Dist& old_low_owners2new_lows) {
   auto nlows_per_high = simplex_degrees[ent_dim][low_dim];
@@ -147,7 +147,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
   for (Int d = dim; d > VERT; --d) {
     Adj high2low;
     Dist old_low_owners2new_lows;
-    pull_down(old_mesh, d, d - 1, old_owners2new_ents,
+    push_down(old_mesh, d, d - 1, old_owners2new_ents,
         high2low, old_low_owners2new_lows);
     new_mesh.set_ents(d, high2low);
     new_ents2old_owners = old_owners2new_ents.invert();

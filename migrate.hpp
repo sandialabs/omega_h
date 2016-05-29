@@ -18,7 +18,7 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses);
    entities, project this to (low_dim) entities in the form
    of the new (ent_dim -> low_dim) adjacency arrays as well
    as the Dist mapping old (low_dim) owners to new copies */
-void pull_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
+void push_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents,
     Adj& new_ents2new_lows, Dist& old_low_owners2new_lows);
 
