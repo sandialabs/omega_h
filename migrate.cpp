@@ -124,7 +124,7 @@ void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
 }
 
 void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
-    bool keep_own_ranks) {
+    Partition mode) {
   auto comm = old_mesh.comm();
   auto dim = old_mesh.dim();
   new_mesh.set_comm(comm);
@@ -140,7 +140,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
     push_tags(old_mesh, new_mesh, d, old_owners2new_ents);
     new_ents2old_owners = old_owners2new_ents.invert();
     Read<I32> own_ranks;
-    if (keep_own_ranks) {
+    if ((mode == GHOSTED) || ((mode == VERTEX_BASED) && (d == VERT))) {
       auto old_own_ranks = old_mesh.ask_owners(d).ranks;
       own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
     }
@@ -158,7 +158,7 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
 
 void migrate_mesh(Mesh& mesh, Dist new_elems2old_owners) {
   Mesh new_mesh;
-  migrate_mesh(mesh, new_mesh, new_elems2old_owners, false);
+  migrate_mesh(mesh, new_mesh, new_elems2old_owners, ELEMENT_BASED);
   mesh = new_mesh;
 }
 

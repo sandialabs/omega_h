@@ -26,6 +26,6 @@ void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
     Int ent_dim, Dist old_owners2new_ents);
 
 void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
-    bool keep_own_ranks);
+    Partition mode);
 void migrate_mesh(Mesh& mesh, Dist new_elems2old_owners);
 void migrate_mesh(Mesh& mesh, Remotes new_elems2old_owners);
