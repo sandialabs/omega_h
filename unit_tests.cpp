@@ -613,17 +613,6 @@ static void test_expand() {
       Reals({2.2,2.2,3.14,42.0,42.0,42.0}));
 }
 
-static void test_expand_again() {
-  auto a2b = offset_scan(LOs({3,2,3}));
-  auto a2c = offset_scan(LOs({2,3,1}));
-  auto a2bc = multiply_fans(a2b, a2c);
-  auto b_data = LOs({1,2,3, 0,1, 0,1,2});
-  auto expect = LOs({1,1,2,2,3,3,
-                     0,0,0,1,1,1,
-                     0,1,2});
-  CHECK(expand_again(a2b, b_data, a2c, a2bc) == expect);
-}
-
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -654,6 +643,5 @@ int main(int argc, char** argv) {
   test_file();
   test_linpart();
   test_expand();
-  test_expand_again();
   fini();
 }
