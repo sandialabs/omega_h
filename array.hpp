@@ -152,4 +152,6 @@ std::ostream& operator<<(std::ostream& o, Read<T> a);
 template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a);
 template <typename T>
+Read<T> multiply_each(Read<T> a, Read<T> b);
+template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b);

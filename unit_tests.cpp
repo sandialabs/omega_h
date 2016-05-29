@@ -595,13 +595,6 @@ static void test_file() {
   CHECK(s == s2);
 }
 
-static void test_expand() {
-  auto fan = offset_scan(LOs({2,1,3}));
-  Reals data({2.2,3.14,42.0});
-  CHECK(expand(data,fan,1) ==
-      Reals({2.2,2.2,3.14,42.0,42.0,42.0}));
-}
-
 static void test_linpart() {
   GO total = 7;
   I32 comm_size = 2;
@@ -611,6 +604,24 @@ static void test_linpart() {
   auto remotes = globals_to_linear_owners(globals, total, comm_size);
   CHECK(remotes.ranks == Read<I32>({1,1,1,0,0,0,0}));
   CHECK(remotes.idxs == Read<I32>({2,1,0,3,2,1,0}));
+}
+
+static void test_expand() {
+  auto fan = offset_scan(LOs({2,1,3}));
+  Reals data({2.2,3.14,42.0});
+  CHECK(expand(data,fan,1) ==
+      Reals({2.2,2.2,3.14,42.0,42.0,42.0}));
+}
+
+static void test_expand_again() {
+  auto a2b = offset_scan(LOs({3,2,3}));
+  auto a2c = offset_scan(LOs({2,3,1}));
+  auto a2bc = multiply_fans(a2b, a2c);
+  auto b_data = LOs({1,2,3, 0,1, 0,1,2});
+  auto expect = LOs({1,1,2,2,3,3,
+                     0,0,0,1,1,1,
+                     0,1,2});
+  CHECK(expand_again(a2b, b_data, a2c, a2bc) == expect);
 }
 
 int main(int argc, char** argv) {
@@ -641,7 +652,8 @@ int main(int argc, char** argv) {
   test_dual();
   test_quality();
   test_file();
-  test_expand();
   test_linpart();
+  test_expand();
+  test_expand_again();
   fini();
 }

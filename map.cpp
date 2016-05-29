@@ -44,10 +44,41 @@ Read<T> permute(Read<T> a_data, LOs a2b, Int width) {
   return b_data;
 }
 
+LOs multiply_fans(LOs a2b, LOs a2c) {
+  auto b_degrees = get_degrees(a2b);
+  auto c_degrees = get_degrees(a2c);
+  auto degrees = multiply_each(b_degrees, c_degrees);
+  auto a2bc = offset_scan(degrees);
+  return a2bc;
+}
+
+template <typename T>
+Read<T> expand_again(LOs a2b, Read<T> b_data, LOs a2c,
+    LOs a2bc) {
+  auto na = a2b.size() - 1;
+  auto nb = a2b.last();
+  CHECK(b_data.size() == nb);
+  CHECK(na == a2c.size() - 1);
+  auto nbc = a2bc.last();
+  Write<T> bc_data(nbc);
+  auto f = LAMBDA(LO a) {
+    auto bc = a2bc[a];
+    for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
+      for (auto c = a2c[a]; c < a2c[a + 1]; ++c) {
+        bc_data[bc++] = b_data[b];
+      }
+    }
+  };
+  parallel_for(na, f);
+  return bc_data;
+}
+
 #define INST_T(T) \
 template Read<T> unmap(LOs a2b, Read<T> b_data, Int width); \
 template Read<T> expand(Read<T> a_data, LOs a2b, Int width); \
-template Read<T> permute(Read<T> a_data, LOs a2b, Int width);
+template Read<T> permute(Read<T> a_data, LOs a2b, Int width); \
+template Read<T> expand_again(LOs a2b, Read<T> b_data, LOs a2c, \
+    LOs a2bc);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
