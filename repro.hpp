@@ -31,3 +31,4 @@
 int max_exponent(Reals a);
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
+void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
