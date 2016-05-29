@@ -1,5 +1,11 @@
 class Dist;
 
+enum Partition {
+  ELEMENT_BASED,
+  GHOSTED,
+  VERTEX_BASED
+};
+
 class Mesh {
   public:
     Mesh();
@@ -8,6 +14,7 @@ class Mesh {
     void set_verts(LO nverts);
     void set_ents(Int dim, Adj down);
     CommPtr comm() const;
+    Partition partition();
     Int dim() const;
     LO nents(Int dim) const;
     LO nelems() const;
@@ -49,7 +56,9 @@ class Mesh {
     Adj derive_adj(Int from, Int to);
     Adj ask_adj(Int from, Int to);
     void react_to_set_tag(Int dim, std::string const& name);
+    void set_partition(Partition partition);
     CommPtr comm_;
+    Partition partition_;
     Int dim_;
     LO nents_[DIMS];
     TagVector tags_[DIMS];
@@ -67,4 +76,5 @@ class Mesh {
     void set_owners(Int dim, Remotes owners);
     Remotes ask_owners(Int dim);
     Dist ask_dist(Int dim);
+    void ask_partition(Partition partition);
 };

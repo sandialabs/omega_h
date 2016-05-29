@@ -123,14 +123,12 @@ void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
   }
 }
 
-void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh,
-    Remotes new_elems2old_owners) {
+void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners) {
   auto comm = old_mesh.comm();
   auto dim = old_mesh.dim();
   new_mesh.set_comm(comm);
   new_mesh.set_dim(dim);
-  auto nold_ents = old_mesh.nents(dim);
-  Dist new_ents2old_owners(comm, new_elems2old_owners, nold_ents);
+  Dist new_ents2old_owners = new_elems2old_owners;
   auto old_owners2new_ents = new_ents2old_owners.invert();
   for (Int d = dim; d > VERT; --d) {
     Adj high2low;
@@ -152,8 +150,12 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_owners(VERT, owners);
 }
 
-void migrate_mesh(Mesh& mesh, Remotes new_elems2old_owners) {
+void migrate_mesh(Mesh& mesh, Dist new_elems2old_owners) {
   Mesh new_mesh;
   migrate_mesh(mesh, new_mesh, new_elems2old_owners);
   mesh = new_mesh;
+}
+
+void migrate_mesh(Mesh& mesh, Remotes new_elems2old_owners) {
+  migrate_mesh(mesh, Dist(mesh.comm(), new_elems2old_owners, mesh.nelems()));
 }

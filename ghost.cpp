@@ -63,3 +63,19 @@ Remotes push_elem_uses(
   auto items2own_elems = Remotes(Read<I32>(elem_ranks), LOs(elem_idxs));
   return items2verts.exch(items2own_elems, 1);
 }
+
+void ghost_mesh(Mesh& mesh) {
+  Remotes own_vert_uses2own_elems;
+  LOs own_verts2own_vert_uses;
+  get_own_verts2own_elem_uses(mesh,
+      own_vert_uses2own_elems,
+      own_verts2own_vert_uses);
+  auto elem_uses = push_elem_uses(
+      own_vert_uses2own_elems,
+      own_verts2own_vert_uses,
+      mesh.ask_dist(VERT).invert());
+  auto uses2old_owners = Dist(mesh.comm(), elem_uses, mesh.nelems());
+  auto own_elems2elems = find_unique_use_owners(uses2old_owners);
+  auto elems2ownners = own_elems2elems.invert();
+  migrate_mesh(mesh, elems2ownners);
+}

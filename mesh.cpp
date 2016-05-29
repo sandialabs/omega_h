@@ -2,6 +2,7 @@ Mesh::Mesh():
   dim_(-1) {
   for (Int i = 0; i <= 3; ++i)
     nents_[i] = -1;
+  partition_ = ELEMENT_BASED;
 }
 
 void Mesh::set_comm(CommPtr comm) {
