@@ -126,6 +126,15 @@ Read<I32> Dist::items2ranks() const {
   return compound_maps(items2msgs(), msgs2ranks());
 }
 
+LOs Dist::items2dest_idxs() const {
+  auto inverse = invert();
+  return inverse.exch(LOs(inverse.nroots(), 0, 1), 1);
+}
+
+Remotes Dist::items2dests() const {
+  return Remotes(items2ranks(), items2dest_idxs());
+}
+
 LO Dist::nitems() const {
   return msgs2content_[F].last();
 }

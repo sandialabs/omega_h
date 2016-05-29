@@ -21,6 +21,8 @@ public:
   LOs roots2items() const;
   Read<I32> msgs2ranks() const;
   Read<I32> items2ranks() const;
+  LOs items2dest_idxs() const;
+  Remotes items2dests() const;
   LO nitems() const;
   LO nroots() const;
   void change_comm(CommPtr new_comm);
