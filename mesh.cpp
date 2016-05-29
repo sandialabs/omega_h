@@ -317,6 +317,11 @@ Remotes Mesh::ask_owners(Int dim) {
   return owners_[dim];
 }
 
+Read<I8> Mesh::owned(Int dim) {
+  auto e2rank = ask_owners(dim).ranks;
+  return mark_equal(e2rank, comm()->rank());
+}
+
 Dist Mesh::ask_dist(Int dim) {
   if (!dists_[dim]) {
     auto owners = ask_owners(dim);
@@ -325,6 +330,22 @@ Dist Mesh::ask_dist(Int dim) {
     dists_[dim] = DistPtr(new Dist(comm_, owners, nents(dim)));
   }
   return *(dists_[dim]);
+}
+
+void Mesh::ask_partition(Partition partition) {
+  if (partition_ == partition) {
+    return;
+  }
+  if (partition_ != ELEMENT_BASED) {
+    partition_by_elems(*this);
+    partition_ = ELEMENT_BASED;
+  }
+  if (partition == GHOSTED) {
+    ghost_mesh(*this);
+  } else if (partition == VERTEX_BASED) {
+    partition_by_verts(*this);
+  }
+  partition_ = partition;
 }
 
 #define INST_T(T) \

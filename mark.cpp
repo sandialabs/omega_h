@@ -25,13 +25,22 @@ Read<I8> mark_down(Mesh& mesh, Int high_dim, Int low_dim,
   return out;
 }
 
-Read<I8> mark_by_class_dim(Mesh& mesh, Int ent_dim, Int class_dim) {
-  auto ne = mesh.nents(ent_dim);
-  auto e2class_dim = mesh.get_array<I8>(ent_dim, "class_dim");
-  Write<I8> out(ne);
-  auto f = LAMBDA(LO e) {
-    out[e] = (e2class_dim[e] == class_dim);
+template <typename T>
+Read<I8> mark_equal(Read<T> a, T val) {
+  Write<I8> out(a.size());
+  auto f = LAMBDA(LO i) {
+    out[i] = (a[i] == val);
   };
-  parallel_for(ne, f);
+  parallel_for(out.size(), f);
   return out;
+}
+
+template Read<I8> mark_equal(Read<I8> a, I8 val);
+template Read<I8> mark_equal(Read<I32> a, I32 val);
+template Read<I8> mark_equal(Read<I64> a, I64 val);
+template Read<I8> mark_equal(Read<Real> a, Real val);
+
+Read<I8> mark_by_class_dim(Mesh& mesh, Int ent_dim, Int class_dim) {
+  auto e2class_dim = mesh.get_array<I8>(ent_dim, "class_dim");
+  return mark_equal(e2class_dim, static_cast<I8>(class_dim));
 }

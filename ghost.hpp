@@ -9,3 +9,5 @@ Remotes push_elem_uses(
     Dist own_verts2verts);
 
 void ghost_mesh(Mesh& mesh);
+void partition_by_verts(Mesh& mesh);
+void partition_by_elems(Mesh& mesh);

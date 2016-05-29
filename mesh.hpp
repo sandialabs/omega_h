@@ -75,6 +75,7 @@ class Mesh {
     Reals ask_qualities();
     void set_owners(Int dim, Remotes owners);
     Remotes ask_owners(Int dim);
+    Read<I8> owned(Int dim);
     Dist ask_dist(Int dim);
     void ask_partition(Partition partition);
 };
