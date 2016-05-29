@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
   } else {
     migrate_mesh(mesh, Remotes(Read<I32>(1, 0), LOs(1, 1, 1)));
   }
-  mesh.ask_partition(GHOSTED);
+  mesh.ask_partition(VERTEX_BASED);
   if (mesh.dim() == 3) {
   vtk::write_parallel_vtk("tets", mesh, 3);
   }
