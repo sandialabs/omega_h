@@ -127,6 +127,22 @@ T sum(Read<T> a) {
 }
 
 template <typename T>
+struct Min : public MinFunctor<T> {
+  typedef T value_type;
+  Read<T> a_;
+  Min(Read<T> a):a_(a) {}
+  INLINE void operator()(LO i, value_type& update) const
+  {
+    update = min2(update, a_[i]);
+  }
+};
+
+template <typename T>
+T min(Read<T> a) {
+  return parallel_reduce(a.size(), Min<T>(a));
+}
+
+template <typename T>
 struct Max : public MaxFunctor<T> {
   typedef T value_type;
   Read<T> a_;

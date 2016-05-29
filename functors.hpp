@@ -21,6 +21,17 @@ struct MaxFunctor {
 };
 
 template <typename T>
+struct MinFunctor {
+  typedef T value_type;
+  INLINE void init(T& update) const {
+    update = ArithTraits<T>::max();
+  }
+  INLINE void join(volatile T& update, const volatile T& input) const {
+    update = min2(update, input);
+  }
+};
+
+template <typename T>
 struct SumFunctor {
   typedef T value_type;
   INLINE void init(T& update) const {
