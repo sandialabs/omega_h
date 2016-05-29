@@ -25,6 +25,7 @@ public:
   Remotes items2dests() const;
   LO nitems() const;
   LO nroots() const;
+  LO ndests() const;
   void change_comm(CommPtr new_comm);
   Remotes exch(Remotes data, Int width) const;
 private:
