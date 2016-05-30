@@ -113,3 +113,5 @@ template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim,dim> symm);
 
 Reals vectors_2d_to_3d(Reals vecs2);
+
+Reals average_field(Int degree, LOs ev2v, Int ncomps, Reals v2x);

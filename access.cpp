@@ -23,3 +23,23 @@ Reals vectors_2d_to_3d(Reals vecs2) {
   parallel_for(np, f);
   return vecs3;
 }
+
+Reals average_field(Int degree, LOs ev2v, Int ncomps, Reals v2x) {
+  CHECK(ev2v.size() % degree == 0);
+  auto ne = ev2v.size() / degree;
+  CHECK(v2x.size() % ncomps == 0);
+  Write<Real> out(ne * ncomps);
+  auto f = LAMBDA(LO i) {
+    for (Int j = 0; j < ncomps; ++j) {
+      Real comp = 0;
+      for (Int k = 0; k < degree; ++k) {
+        auto v = ev2v[i * degree + k];
+        comp += v2x[v * ncomps + j];
+      }
+      comp /= degree;
+      out[i * ncomps + j] = comp;
+    }
+  };
+  parallel_for(ne, f);
+  return out;
+}
