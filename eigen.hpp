@@ -71,7 +71,7 @@ INLINE void double_eigenvector(Matrix<3,3> m, Real l,
   u = b[1]; v = b[2];
 }
 
-INLINE bool decompose_eigen2(
+INLINE void decompose_eigen2(
     Matrix<3,3> m,
     Matrix<3,3>& q,
     Vector<3>& l) {
@@ -86,21 +86,16 @@ INLINE bool decompose_eigen2(
       single_eigenvector(m, roots[i], q[i]);
       l[i] = roots[i];
     }
-    return true;
-  }
-  if (nroots == 2 && mults[1] == 2) {
+  } else if (nroots == 2 && mults[1] == 2) {
     single_eigenvector(m, roots[0], q[0]);
     l[0] = roots[0];
     double_eigenvector(m, roots[1], q[1], q[2]);
     l[1] = l[2] = roots[1];
-    return true;
-  }
-  if (nroots == 1 && mults[0] == 3) {
+  } else {
+    CHECK(nroots == 1 && mults[0] == 3);
     l[0] = l[1] = l[2] = roots[0];
     q = identity_matrix<3,3>();
-    return true;
   }
-  return false;
 }
 
 /* in the case that the null space is 1D and space is 2D,
@@ -111,7 +106,7 @@ INLINE void single_eigenvector(Matrix<2,2> m, Real l,
   v = perp(get_1d_column_space(s));
 }
 
-INLINE bool decompose_eigen2(
+INLINE void decompose_eigen2(
     Matrix<2,2> m,
     Matrix<2,2>& q,
     Vector<2>& l) {
@@ -126,20 +121,12 @@ INLINE bool decompose_eigen2(
       single_eigenvector(m, roots[i], q[i]);
       l[i] = roots[i];
     }
-  }
-  if (nroots == 1 && mults[0] == 2) {
+  } else {
+    CHECK(nroots == 1 && mults[0] == 2);
     l[0] = l[1] = roots[0];
     q = identity_matrix<2,2>();
-    return true;
   }
-  return false;
 }
-
-template <Int dim>
-INLINE bool decompose_eigen(
-    Matrix<dim,dim> m,
-    Matrix<dim,dim>& q,
-    Vector<dim>& l) __attribute__((warn_unused_result));
 
 /* decompose an m x m matrix (where m <= 3) into
    eigenvalues and eigenvectors.
@@ -153,7 +140,7 @@ INLINE bool decompose_eigen(
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
 template <Int dim>
-INLINE bool decompose_eigen(
+INLINE void decompose_eigen(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& q,
     Vector<dim>& l) {
@@ -163,14 +150,13 @@ INLINE bool decompose_eigen(
   Real nm = max_norm(m);
   if (nm > EPSILON) {
     m = m / nm;
-    bool ok = decompose_eigen2(m, q, l);
+    decompose_eigen2(m, q, l);
     l = l * nm;
-    return ok;
+  } else {
+    /* this is the zero matrix... */
+    q = identity_matrix<dim,dim>();
+    l = zero_vector<dim>();
   }
-  /* this is the zero matrix... */
-  q = identity_matrix<dim,dim>();
-  l = zero_vector<dim>();
-  return true;
 }
 
 /* Q, again, being the matrix whose columns

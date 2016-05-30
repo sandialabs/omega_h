@@ -45,8 +45,7 @@ static void test_metric_decompose(Reals metrics) {
     auto m = get_symm_3(metrics, i);
     Matrix<3,3> r;
     Vector<3> l;
-    bool ok = decompose_eigen(m, r, l);
-    CHECK(ok);
+    decompose_eigen(m, r, l);
     auto eigenv = max2(max2(l[0], l[1]), l[2]);
     write_eigenvs[i] = eigenv;
   };

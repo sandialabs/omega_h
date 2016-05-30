@@ -49,8 +49,7 @@ INLINE void decompose_metric(
     Matrix<dim,dim>& r,
     Vector<dim>& h) {
   Vector<dim> l;
-  bool ok = decompose_eigen(m, r, l);
-  CHECK(ok);
+  decompose_eigen(m, r, l);
   h = metric_lengths(l);
 }
 
@@ -77,8 +76,7 @@ INLINE Matrix<dim,dim> common_metric_basis(
   auto c = invert(a) * b;
   Matrix<dim,dim> p;
   Vector<dim> l;
-  bool ok = decompose_eigen(c, p, l);
-  CHECK(ok);
+  decompose_eigen(c, p, l);
   return p;
 }
 
