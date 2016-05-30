@@ -95,3 +95,4 @@ typedef double       Real;
 #include "bcast.hpp"
 #include "unmap_mesh.hpp"
 #include "ghost.hpp"
+#include "inertia.hpp"

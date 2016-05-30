@@ -66,6 +66,11 @@ INLINE Vector<n> operator*(Vector<n> a, Real b) {
 }
 
 template <Int n>
+INLINE Vector<n> operator*(Real a, Vector<n> b) {
+  return b * a;
+}
+
+template <Int n>
 INLINE Vector<n> operator/(Vector<n> a, Real b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i)

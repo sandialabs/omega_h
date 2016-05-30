@@ -44,3 +44,4 @@
 #include "bcast.cpp"
 #include "unmap_mesh.cpp"
 #include "ghost.cpp"
+#include "inertia.cpp"
