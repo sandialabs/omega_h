@@ -30,9 +30,9 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   if (world->rank() == 0) {
-    migrate_mesh(mesh, Remotes(Read<I32>(3, 0), LOs(3, 0, 1)));
+    mesh.migrate(Remotes(Read<I32>(3, 0), LOs(3, 0, 1)));
   } else {
-    migrate_mesh(mesh, Remotes(Read<I32>(3, 0), LOs(3, 3, 1)));
+    mesh.migrate(Remotes(Read<I32>(3, 0), LOs(3, 3, 1)));
   }
   mesh.set_partition(VERTEX_BASED);
   if (mesh.dim() == 3) {

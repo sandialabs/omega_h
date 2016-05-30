@@ -359,6 +359,10 @@ void Mesh::set_partition(Partition partition) {
   partition_ = partition;
 }
 
+void Mesh::migrate(Remotes new_elems2old_owners) {
+  migrate_mesh(*this, new_elems2old_owners);
+}
+
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \

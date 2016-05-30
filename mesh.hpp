@@ -77,4 +77,5 @@ class Mesh {
     Read<I8> owned(Int dim);
     Dist ask_dist(Int dim);
     void set_partition(Partition partition);
+    void migrate(Remotes new_elems2old_owners);
 };
