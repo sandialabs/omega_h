@@ -155,4 +155,34 @@ Read<I8> mark_bisection_given_axis(CommPtr comm,
       axis, center, total_mass);
 }
 
+Rib recursively_bisect(CommPtr comm,
+    Reals& coords, Reals& masses, Remotes& owners,
+    Real tolerance, Rib hints) {
+  if (comm->size() == 1) {
+    return Rib();
+  }
+  CHECK(comm->size() % 2 == 0);
+  Vector<3> axis;
+  Read<I8> marks;
+  if (hints.axes.empty()) {
+    marks = inertia::mark_bisection(comm,
+        coords, masses, tolerance, axis);
+  } else {
+    axis = hints.axes.front();
+    hints.axes.erase(hints.axes.begin());
+    marks = inertia::mark_bisection_given_axis(comm,
+        coords, masses, tolerance, axis);
+  }
+  auto dist = bi_partition(comm, marks);
+  coords = dist.exch(coords, 3);
+  masses = dist.exch(masses, 1);
+  owners = dist.exch(owners, 1);
+  auto halfsize = comm->size() / 2;
+  comm = comm->split(comm->rank() / halfsize, comm->rank() % halfsize);
+  auto out = recursively_bisect(comm, coords, masses, owners,
+      tolerance, hints);
+  out.axes.insert(out.axes.begin(), axis);
+  return out;
+}
+
 } //end namespace inertia
