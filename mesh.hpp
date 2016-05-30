@@ -56,7 +56,6 @@ class Mesh {
     Adj derive_adj(Int from, Int to);
     Adj ask_adj(Int from, Int to);
     void react_to_set_tag(Int dim, std::string const& name);
-    void set_partition(Partition partition);
     CommPtr comm_;
     Partition partition_;
     Int dim_;
@@ -77,5 +76,5 @@ class Mesh {
     Remotes ask_owners(Int dim);
     Read<I8> owned(Int dim);
     Dist ask_dist(Int dim);
-    void ask_partition(Partition partition);
+    void set_partition(Partition partition);
 };

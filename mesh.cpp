@@ -343,7 +343,7 @@ Dist Mesh::ask_dist(Int dim) {
   return *(dists_[dim]);
 }
 
-void Mesh::ask_partition(Partition partition) {
+void Mesh::set_partition(Partition partition) {
   if (partition_ == partition) {
     return;
   }
