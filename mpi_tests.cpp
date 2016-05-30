@@ -98,6 +98,18 @@ static void test_two_ranks_forced_owners(CommPtr comm) {
   }
 }
 
+static void test_two_ranks_bipart(CommPtr comm) {
+  if (comm->rank() == 0) {
+    auto dist = bi_partition(comm, Read<I8>{0,1,0,1});
+    auto out = dist.exch(LOs({0,1,2,3}), 1);
+    CHECK(out == LOs({0,2,4}));
+  } else {
+    auto dist = bi_partition(comm, Read<I8>{0,1,1});
+    auto out = dist.exch(LOs({4,5,6}), 1);
+    CHECK(out == LOs({1,3,5,6}));
+  }
+}
+
 static void test_two_ranks_owners(CommPtr comm) {
   test_two_ranks_eq_owners(comm);
   test_two_ranks_uneq_owners(comm);
@@ -107,6 +119,7 @@ static void test_two_ranks_owners(CommPtr comm) {
 static void test_two_ranks(CommPtr comm) {
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
+  test_two_ranks_bipart(comm);
 }
 
 static void test_all() {
