@@ -634,6 +634,20 @@ static void test_average_field() {
   CHECK(are_close(e2x, Reals({5. / 3., 7. / 3.})));
 }
 
+template <Int n>
+static void test_positivize(Vector<n> pos) {
+  auto neg = pos * -1.0;
+  CHECK(are_close(positivize(pos), pos));
+  CHECK(are_close(positivize(neg), pos));
+}
+
+static void test_positivize() {
+  test_positivize(vector_3( 1, 1, 1));
+  test_positivize(vector_3( 1,-1, 1));
+  test_positivize(vector_2(-1, 1));
+  test_positivize(vector_2( 1, 1));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -666,5 +680,6 @@ int main(int argc, char** argv) {
   test_expand();
   test_inertial_bisect();
   test_average_field();
+  test_positivize();
   fini();
 }

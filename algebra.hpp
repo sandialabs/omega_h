@@ -318,3 +318,19 @@ INLINE void subtract_from_diag(Matrix<m,m>& a, Real mu) {
   for (Int i = 0; i < m; ++i)
     a[i][i] -= mu;
 }
+
+/* a function to disambiguate a unit vector
+   from its negative. we treat the signs of
+   the components as bits of an integer,
+   and negate the components if the resulting
+   bit pattern makes a larger integer */
+template <Int n>
+INLINE Vector<n> positivize(Vector<n> v) {
+  std::uint32_t bits = 0;
+  for (Int i = 0; i < n; ++i)
+    bits |= (std::uint32_t(v[i] >= 0.0) << i);
+  std::uint32_t neg_bits = (~bits) & ((std::uint32_t(1) << n) - 1);
+  if (neg_bits > bits)
+    return v * -1.0;
+  return v;
+}
