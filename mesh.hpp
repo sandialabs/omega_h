@@ -78,4 +78,5 @@ class Mesh {
     Dist ask_dist(Int dim);
     void set_partition(Partition partition);
     void migrate(Remotes new_elems2old_owners);
+    void reorder();
 };

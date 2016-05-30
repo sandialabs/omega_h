@@ -363,6 +363,10 @@ void Mesh::migrate(Remotes new_elems2old_owners) {
   migrate_mesh(*this, new_elems2old_owners);
 }
 
+void Mesh::reorder() {
+  reorder_by_hilbert(*this);
+}
+
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \

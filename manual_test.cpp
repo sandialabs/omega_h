@@ -7,7 +7,7 @@ static void serial_test(Mesh& mesh) {
   static Int const dim = 3;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
-  reorder_by_hilbert(mesh);
+  mesh.reorder();
   mesh.forget_globals();
   Vector<dim> lengths;
   for (Int i = 0; i < dim; ++i)
