@@ -619,6 +619,7 @@ static void test_inertial_bisect() {
   auto self = Comm::self();
   Real tolerance = 0.0;
   auto marked = inertia::mark_bisection(self, coords, masses, tolerance);
+  CHECK(marked == Read<I8>({1,1,0,0}));
 }
 
 int main(int argc, char** argv) {
