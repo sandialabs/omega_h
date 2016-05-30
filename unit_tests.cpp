@@ -618,9 +618,11 @@ static void test_inertial_bisect() {
   Reals masses(4, 1);
   auto self = Comm::self();
   Real tolerance = 0.0;
-  auto marked = inertia::mark_bisection(self, coords, masses, tolerance);
+  Vector<3> axis;
+  auto marked = inertia::mark_bisection(self, coords, masses, tolerance,
+      axis);
   CHECK(marked == Read<I8>({1,1,0,0}));
-  marked = inertia::mark_bisection(self, coords, masses, tolerance,
+  marked = inertia::mark_bisection_given_axis(self, coords, masses, tolerance,
       vector_3(0,1,0));
   CHECK(marked == Read<I8>({1,0,1,0}));
 }

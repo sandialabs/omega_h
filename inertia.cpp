@@ -133,17 +133,18 @@ Read<I8> mark_bisection_internal(CommPtr comm,
 } //end anonymous namespace
 
 Read<I8> mark_bisection(CommPtr comm,
-    Reals coords, Reals masses, Real tolerance) {
+    Reals coords, Reals masses, Real tolerance,
+    Vector<3>& axis) {
   CHECK(coords.size() == masses.size() * 3);
   auto total_mass = repro_sum(comm, masses);
   auto center = get_center(comm, coords, masses, total_mass);
-  auto axis = get_axis(comm, coords, masses, center);
+  axis = get_axis(comm, coords, masses, center);
   return mark_bisection_internal(comm,
       coords, masses, tolerance,
       axis, center, total_mass);
 }
 
-Read<I8> mark_bisection(CommPtr comm,
+Read<I8> mark_bisection_given_axis(CommPtr comm,
     Reals coords, Reals masses, Real tolerance,
     Vector<3> axis) {
   CHECK(coords.size() == masses.size() * 3);
