@@ -78,6 +78,15 @@ LOs invert_permutation(LOs a2b) {
   return invert_injective_map(a2b, a2b.size());
 }
 
+Read<I8> invert_marks(Read<I8> marks) {
+  Write<I8> out(marks.size());
+  auto f = LAMBDA(LO i) {
+    out[i] = !marks[i];
+  };
+  parallel_for(out.size(), f);
+  return out;
+}
+
 LOs collect_marked(Read<I8> marks) {
   auto ntotal = marks.size();
   auto offsets = offset_scan(marks);

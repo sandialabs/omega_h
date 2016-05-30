@@ -13,6 +13,8 @@ LOs compound_maps(LOs a2b, LOs b2c);
 
 LOs invert_permutation(LOs a2b);
 
+Read<I8> invert_marks(Read<I8> marks);
+
 LOs collect_marked(Read<I8> marks);
 
 LOs invert_injective_map(LOs a2b, LO nb);
