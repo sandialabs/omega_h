@@ -622,6 +622,13 @@ static void test_inertial_bisect() {
   CHECK(marked == Read<I8>({1,1,0,0}));
 }
 
+static void test_average_field() {
+  LOs ev2v({0,1,2,2,3,0});
+  Reals v2x({2,1,2,3});
+  auto e2x = average_field(3, ev2v, 1, v2x);
+  CHECK(are_close(e2x, Reals({5. / 3., 7. / 3.})));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -653,5 +660,6 @@ int main(int argc, char** argv) {
   test_linpart();
   test_expand();
   test_inertial_bisect();
+  test_average_field();
   fini();
 }
