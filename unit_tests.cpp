@@ -613,6 +613,17 @@ static void test_expand() {
       Reals({2.2,2.2,3.14,42.0,42.0,42.0}));
 }
 
+static void test_inertial_bisect() {
+  Reals coords({ 2, 1,0,
+                 2,-1,0,
+                -2, 1,0,
+                -2,-1,0});
+  Reals masses(4, 1);
+  auto self = Comm::self();
+  Real tolerance = 0.0;
+  auto marked = inertia::mark_bisection(self, coords, masses, tolerance);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -643,5 +654,6 @@ int main(int argc, char** argv) {
   test_file();
   test_linpart();
   test_expand();
+  test_inertial_bisect();
   fini();
 }

@@ -66,6 +66,7 @@ Real get_half_weight(CommPtr comm, Reals masses, Read<I8> marked) {
   auto f = LAMBDA(LO i) {
     weighted[i] = (Real(marked[i]) * masses[i]);
   };
+  parallel_for(n, f);
   return repro_sum(comm, Reals(weighted));
 }
 
@@ -107,7 +108,7 @@ bool mark_axis_bisection(CommPtr comm, Reals distances,
 
 } //end anonymous namespace
 
-Read<I8> mark_inertial_bisection(CommPtr comm,
+Read<I8> mark_bisection(CommPtr comm,
     Reals coords, Reals masses, Real tolerance) {
   CHECK(coords.size() == masses.size() * 3);
   auto total_mass = repro_sum(comm, masses);
@@ -125,6 +126,7 @@ Read<I8> mark_inertial_bisection(CommPtr comm,
   for (Int i = 0; i < 3 * 2; ++i) {
     auto axis2 = axis;
     axis2[i / 2] += (i % 2) * 1e-6;
+    dists = get_distances(coords, center, axis2);
     if (mark_axis_bisection(comm, dists, masses, total_mass, tolerance,
           marked)) {
       return marked;
