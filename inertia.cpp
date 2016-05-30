@@ -105,14 +105,9 @@ bool mark_axis_bisection(CommPtr comm, Reals distances,
   return false;
 }
 
-} //end anonymous namespace
-
-Read<I8> mark_bisection(CommPtr comm,
-    Reals coords, Reals masses, Real tolerance) {
-  CHECK(coords.size() == masses.size() * 3);
-  auto total_mass = repro_sum(comm, masses);
-  auto center = get_center(comm, coords, masses, total_mass);
-  auto axis = get_axis(comm, coords, masses, center);
+Read<I8> mark_bisection_internal(CommPtr comm,
+    Reals coords, Reals masses, Real tolerance,
+    Vector<3> axis, Vector<3> center, Real total_mass) {
   auto dists = get_distances(coords, center, axis);
   Read<I8> marked;
   if (mark_axis_bisection(comm, dists, masses, total_mass, tolerance,
@@ -133,6 +128,30 @@ Read<I8> mark_bisection(CommPtr comm,
   }
   std::cerr << "warning: no good inertial bisection found\n";
   return marked;
+}
+
+} //end anonymous namespace
+
+Read<I8> mark_bisection(CommPtr comm,
+    Reals coords, Reals masses, Real tolerance) {
+  CHECK(coords.size() == masses.size() * 3);
+  auto total_mass = repro_sum(comm, masses);
+  auto center = get_center(comm, coords, masses, total_mass);
+  auto axis = get_axis(comm, coords, masses, center);
+  return mark_bisection_internal(comm,
+      coords, masses, tolerance,
+      axis, center, total_mass);
+}
+
+Read<I8> mark_bisection(CommPtr comm,
+    Reals coords, Reals masses, Real tolerance,
+    Vector<3> axis) {
+  CHECK(coords.size() == masses.size() * 3);
+  auto total_mass = repro_sum(comm, masses);
+  auto center = get_center(comm, coords, masses, total_mass);
+  return mark_bisection_internal(comm,
+      coords, masses, tolerance,
+      axis, center, total_mass);
 }
 
 } //end namespace inertia
