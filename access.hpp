@@ -111,3 +111,5 @@ INLINE Int symm_dofs(Int dim) {
 
 template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim,dim> symm);
+
+Reals vectors_2d_to_3d(Reals vecs2);
