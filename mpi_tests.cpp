@@ -122,6 +122,37 @@ static void test_two_ranks(CommPtr comm) {
   test_two_ranks_bipart(comm);
 }
 
+static void test_rib(CommPtr comm) {
+  auto rank = comm->rank();
+  auto size = comm->size();
+  LO n = 5;
+  Write<Real> w_coords(n * 3);
+  auto set_coords = LAMBDA(LO i) {
+    set_vec(w_coords, i, vector_3(i * size + rank, 0, 0));
+  };
+  parallel_for(n, set_coords);
+  Reals coords(w_coords);
+  Reals masses(n, 1);
+  auto owners = Remotes(Read<I32>(n, rank), LOs(n, 0, 1));
+  auto out = inertia::recursively_bisect(comm,
+      coords, masses, owners,
+      0.01, inertia::Rib());
+  I32 size2 = 1;
+  for (auto axis : out.axes) {
+    CHECK(are_close(axis, vector_3(1,0,0)));
+    size2 *= 2;
+  }
+  CHECK(size2 == size);
+  auto check_coords = LAMBDA(LO i) {
+    auto v = get_vec<3>(coords, i);
+    CHECK(rank * n <= v[0]);
+    CHECK(v[0] < (rank + 1) * n);
+    CHECK(v[1] == 0 && v[2] == 0);
+  };
+  parallel_for(n, check_coords);
+  CHECK(masses == Reals(n, 1));
+}
+
 static void test_all() {
   auto world = Comm::world();
   if (world->rank() == 0) {
@@ -137,6 +168,7 @@ static void test_all() {
     if (world->rank() / 2 == 0)
       test_two_ranks(two);
   }
+  test_rib(world);
 }
 
 int main(int argc, char** argv) {
