@@ -5,16 +5,26 @@ Mesh::Mesh():
   partition_ = ELEMENT_BASED;
 }
 
-void Mesh::set_comm(CommPtr comm) {
-  if (comm_) {
+void Mesh::set_comm(CommPtr new_comm) {
+  auto rank_had_comm = bool(comm_);
+  auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), SUM);
+  if (0 < nnew_had_comm && nnew_had_comm < new_comm->size()) {
+    //partitioning out from small sub-communicator to larger one
+    if (!rank_had_comm) {
+      //temporarily set the uninit ranks to Comm::self()
+      comm_ = Comm::self();
+    }
+    bcast_mesh(*this, new_comm, rank_had_comm);
+  }
+  if (0 < nnew_had_comm) {
     for (Int d = 0; d <= dim(); ++d) {
       ask_globals(d);
       auto dist = ask_dist(d);
-      dist.change_comm(comm);
+      dist.change_comm(new_comm);
       owners_[d].ranks = dist.items2ranks();
     }
   }
-  comm_ = comm;
+  comm_ = new_comm;
 }
 
 void Mesh::set_dim(Int dim) {

@@ -27,10 +27,7 @@ int main(int argc, char** argv) {
   Mesh mesh;
   if (world->rank() == 0) {
     serial_test(mesh);
-  } else {
-    mesh.set_comm(self);
   }
-  bcast_mesh(mesh, world, world->rank() == 0);
   mesh.set_comm(world);
   if (world->rank() == 0) {
     migrate_mesh(mesh, Remotes(Read<I32>(3, 0), LOs(3, 0, 1)));
