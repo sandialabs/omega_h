@@ -45,7 +45,7 @@ Vector<3> get_axis(CommPtr comm, Reals coords,
       min_i = i;
     }
   }
-  return q[min_i];
+  return positivize(q[min_i]);
 }
 
 Reals get_distances(Reals coords, Vector<3> center, Vector<3> axis) {
