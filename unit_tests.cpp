@@ -620,6 +620,9 @@ static void test_inertial_bisect() {
   Real tolerance = 0.0;
   auto marked = inertia::mark_bisection(self, coords, masses, tolerance);
   CHECK(marked == Read<I8>({1,1,0,0}));
+  marked = inertia::mark_bisection(self, coords, masses, tolerance,
+      vector_3(0,1,0));
+  CHECK(marked == Read<I8>({1,0,1,0}));
 }
 
 static void test_average_field() {
