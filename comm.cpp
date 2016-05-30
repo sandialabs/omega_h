@@ -200,11 +200,14 @@ T Comm::exscan(T x, ReduceOp op) const {
 #ifdef USE_MPI
   CALL(MPI_Exscan(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(),
         mpi_op(op), impl_));
+  if (rank() == 0)
+    x = 0;
+  return x;
 #else
   (void) op;
   (void) x;
-#endif
   return 0;
+#endif
 }
 
 template <typename T>
