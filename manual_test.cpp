@@ -3,7 +3,7 @@
 #include "internal.hpp"
 
 static void serial_test(Mesh& mesh) {
-  static Int const nx = 4;
+  static Int const nx = 5;
   static Int const dim = 3;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
+  mesh.set_partition(VERTEX_BASED);
   if (mesh.dim() == 3) {
   vtk::write_parallel_vtk("tets", mesh, 3);
   }
