@@ -656,6 +656,10 @@ static void test_refine_qualities() {
   CHECK(are_close(quals,
         Reals({0.494872,0.494872,0.866025,0.494872,0.494872}),
         1e-4));
+  mesh.add_tag(VERT, "metric", symm_dofs(2),
+      repeat_symm(mesh.nverts(), identity_matrix<2,2>()));
+  auto quals2 = refine_qualities(mesh, candidates);
+  CHECK(are_close(quals2, quals));
 }
 
 int main(int argc, char** argv) {

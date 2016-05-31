@@ -1,38 +1,28 @@
 struct RealRefineQualities {
-  RealRefineQualities(Mesh const&) {}
+  RealRefineQualities(Mesh&, LOs) {}
   template <Int dim>
-  struct Helper {
-  };
-  template <Int dim>
-  Helper<dim> get_helper(Few<LO, 2>) const {
-    return Helper<dim>();
-  }
-  template <Int dim>
-  INLINE Real measure(Few<Vector<dim>, dim + 1> p,
-      Helper<dim>) const {
+  INLINE Real measure(Int, Few<Vector<dim>, dim + 1> p,
+      Few<LO, dim>) const {
     return real_element_quality(p);
   }
 };
 
 struct MetricRefineQualities {
-  Reals metrics;
-  MetricRefineQualities(Mesh const& mesh):
-    metrics(mesh.get_array<Real>(VERT, "metric"))
+  Reals vert_metrics;
+  Reals midpt_metrics;
+  MetricRefineQualities(Mesh& mesh, LOs candidates):
+    vert_metrics(mesh.get_array<Real>(VERT, "metric")),
+    midpt_metrics(average_metric(mesh, EDGE, candidates))
   {}
   template <Int dim>
-  struct Helper {
-    Matrix<dim,dim> metric;
-  };
-  template <Int dim>
-  Helper<dim> get_helper(Few<LO, 2> eev2v) const {
-    Helper<dim> helper;
-    helper.metric = average_metrics(gather_symms<2,dim>(metrics, eev2v));
-    return helper;
-  }
-  template <Int dim>
-  INLINE Real measure(Few<Vector<dim>, dim + 1> p,
-      Helper<dim> helper) const {
-    return metric_element_quality(p, helper.metric);
+  INLINE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
+      Few<LO, dim> csv2v) const {
+    Few<Matrix<dim,dim>, dim + 1> ms;
+    for (Int csv = 0; csv < dim; ++csv)
+      ms[csv] = get_symm<dim>(vert_metrics, csv2v[csv]);
+    ms[dim] = get_symm<dim>(midpt_metrics, cand);
+    auto m = average_metrics(ms);
+    return metric_element_quality(p, m);
   }
 };
 
@@ -46,13 +36,11 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
   auto ec_codes = e2c.codes;
   auto coords = mesh.coords();
   auto ncands = candidates.size();
-  auto measure = Measure(mesh);
+  auto measure = Measure(mesh, candidates);
   Write<Real> quals(ncands);
   auto f = LAMBDA(LO cand) {
     auto e = candidates[cand];
     auto eev2v = gather_verts<2>(ev2v, e);
-    typename Measure::template Helper<dim> helper;
-    helper = measure.template get_helper<dim>(eev2v);
     auto ep = gather_vectors<2, dim>(coords, eev2v);
     auto midp = (ep[0] + ep[1]) / 2.;
     auto minqual = 1.0;
@@ -69,14 +57,16 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
         auto cev = eev ^ rot;
         auto ccv = DownTemplate<dim, EDGE>::get(cce, cev);
         auto ccs = OppositeTemplate<dim, VERT>::get(ccv);
+        Few<LO, dim> csv2v;
         Few<Vector<dim>, dim + 1> ncp;
         for (Int csv = 0; csv < dim; ++csv) {
           auto ccv2 = DownTemplate<dim, dim - 1>::get(ccs, csv);
           auto v2 = ccv2v[ccv2];
+          csv2v[csv] = v2;
           ncp[csv] = get_vec<dim>(coords, v2);
         }
         ncp[dim] = midp;
-        auto cqual = measure.measure(ncp, helper);
+        auto cqual = measure.measure(cand, ncp, csv2v);
         minqual = min2(minqual, cqual);
       }
     }
