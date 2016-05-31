@@ -167,39 +167,6 @@ static void test_sort() {
   test_sort_n<3>();
 }
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-nonliteral"
-#endif
-
-static void safe_scanf(FILE* f, int nitems, const char* format, ...)
-{
-  va_list ap;
-  va_start(ap, format);
-  int ret = vfscanf(f, format, ap);
-  va_end(ap);
-  CHECK(ret == nitems);
-}
-
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-
-static LOs read_ents(FILE* f, LO dim)
-{
-  LO nents;
-  safe_scanf(f, 1, "%d", &nents);
-  LO deg = dim + 1;
-  HostWrite<LO> host_array(nents * deg);
-  for (LO i = 0; i < nents; ++i)
-    for (LO j = 0; j < deg; ++j) {
-      LO entry;
-      safe_scanf(f, 1, "%d", &entry);
-      host_array[i * deg + j] = entry;
-    }
-  return host_array.write();
-}
-
 static void test_invert_adj(LOs tets2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
   Read<GO> tet_globals(ntets, 0, 1);
@@ -230,13 +197,33 @@ static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
 }
 
 static void test_adjs() {
-  FILE* adj_file = fopen("adjs.txt", "r");
-  CHECK(adj_file != NULL);
-  LO nverts;
-  safe_scanf(adj_file, 1, "%d", &nverts);
-  LOs tets2verts = read_ents(adj_file, 3);
-  LOs tris2verts = read_ents(adj_file, 2);
-  fclose(adj_file);
+  Mesh mesh;
+  {
+  Now t0 = now();
+  auto nx = 42;
+  build_box(mesh, 1, 1, 1, nx, nx, nx);
+  Now t1 = now();
+  std::cout << "building a " << nx << 'x' << nx << 'x' << nx
+    << " box took " << (t1-t0) << " seconds\n";
+  }
+  {
+  Now t0 = now();
+  mesh.reorder();
+  Now t1 = now();
+  std::cout << "reordering a " << mesh.nelems()
+    << " tet mesh took " << (t1-t0) << " seconds\n";
+  }
+  LOs tets2verts;
+  LOs tris2verts;
+  {
+  Now t0 = now();
+  tets2verts = mesh.ask_down(TET, VERT).ab2b;
+  tris2verts = mesh.ask_down(TRI, VERT).ab2b;
+  Now t1 = now();
+  std::cout << "asking tet->vert and tri->vert of a " << mesh.nelems()
+    << " tet mesh took " << (t1-t0) << " seconds\n";
+  }
+  auto nverts = mesh.nverts();
   test_invert_adj(tets2verts, nverts);
   test_reflect_down(tets2verts, tris2verts, nverts);
 }
