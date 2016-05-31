@@ -188,7 +188,7 @@ struct AreClose : public AndFunctor {
   {}
   INLINE void operator()(LO i, value_type& update) const
   {
-    update = update && are_close(a_[i], b_[i]);
+    update = update && are_close(a_[i], b_[i], tol_, floor_);
   }
 };
 
