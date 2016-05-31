@@ -35,6 +35,35 @@ CONSTANT static Int const* const* const r_v_[] = {
 CONSTANT static Int const* const* const* const down_templates[] = {
   0,0,f_v_,r_v_};
 
+/* workaround a compiler bug in CUDA:
+ * if it knows an index at compile time, it will
+ * try to optimize the lookup out of the kernel
+ * (which in theory is good) but will fail miserably
+ * to do so correctly, resulting in
+ * "LLVM ERROR: Cannot cast between two non-generic address spaces"
+ * therefore, we re-implement array indexing here using
+ * templated classes and the destination names. */
+template <Int hdim, Int ldim>
+struct DownTemplate;
+template <>
+struct DownTemplate<3,2> {
+  DEVICE static Int get(Int a, Int b) {
+    return rfv_[a][b];
+  }
+};
+template <>
+struct DownTemplate<3,1> {
+  DEVICE static Int get(Int a, Int b) {
+    return rev_[a][b];
+  }
+};
+template <>
+struct DownTemplate<2,1> {
+  DEVICE static Int get(Int a, Int b) {
+    return fev_[a][b];
+  }
+};
+
 struct UpTemplate { Int up; Int which_down; bool is_flipped; };
 CONSTANT static UpTemplate const fve0[] = {{0,0,0},{2,1,0}};
 CONSTANT static UpTemplate const fve1[] = {{1,0,0},{0,1,0}};
@@ -68,11 +97,45 @@ CONSTANT static Int const* const fo_[] = {
   feov,fvoe};
 CONSTANT static Int const rfov[] = {2,3,1,0};
 CONSTANT static Int const rvof[] = {3,2,0,1};
-CONSTANT static Int const tet_edges_opp_edges[] = {5,3,4,1,2,0};
+CONSTANT static Int const reoe[] = {5,3,4,1,2,0};
 CONSTANT static Int const* const ro_[] = {
-  rfov,tet_edges_opp_edges,rvof};
+  rfov,reoe,rvof};
 CONSTANT static Int const* const* const opposite_templates[] = {
   0,0,fo_,ro_};
+
+/* workaround a compiler bug in CUDA, see DownTemplate<> */
+template <Int hdim, Int ldim>
+struct OppositeTemplate;
+template <>
+struct OppositeTemplate<3,2> {
+  DEVICE static Int get(Int a) {
+    return rvof[a];
+  }
+};
+template <>
+struct OppositeTemplate<3,1> {
+  DEVICE static Int get(Int a) {
+    return reoe[a];
+  }
+};
+template <>
+struct OppositeTemplate<3,0> {
+  DEVICE static Int get(Int a) {
+    return rfov[a];
+  }
+};
+template <>
+struct OppositeTemplate<2,1> {
+  DEVICE static Int get(Int a) {
+    return fvoe[a];
+  }
+};
+template <>
+struct OppositeTemplate<2,0> {
+  DEVICE static Int get(Int a) {
+    return feov[a];
+  }
+};
 
 extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];

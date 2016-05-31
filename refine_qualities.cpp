@@ -67,11 +67,11 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
            its side that is opposite to one of the edge endpoints
            and connecting it to the midpoint to form the new cell */
         auto cev = eev ^ rot;
-        auto ccv = down_templates[dim][EDGE][cce][cev];
-        auto ccs = opposite_templates[dim][VERT][ccv];
+        auto ccv = DownTemplate<dim, EDGE>::get(cce, cev);
+        auto ccs = OppositeTemplate<dim, VERT>::get(ccv);
         Few<Vector<dim>, dim + 1> ncp;
         for (Int csv = 0; csv < dim; ++csv) {
-          auto ccv2 = down_templates[dim][dim - 1][ccs][csv];
+          auto ccv2 = DownTemplate<dim, dim - 1>::get(ccs, csv);
           auto v2 = ccv2v[ccv2];
           ncp[csv] = get_vec<dim>(coords, v2);
         }
