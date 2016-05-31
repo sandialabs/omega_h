@@ -133,3 +133,5 @@ INLINE Matrix<dim,dim> average_metrics(
   am = invert(am);
   return am;
 }
+
+Reals average_metric(Mesh& mesh, Int ent_dim, LOs entities);

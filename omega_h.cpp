@@ -47,3 +47,4 @@
 #include "inertia.cpp"
 #include "bipart.cpp"
 #include "refine_qualities.cpp"
+#include "metric.cpp"
