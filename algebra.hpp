@@ -10,7 +10,7 @@ INLINE bool are_close(Real a, Real b,
     Real tol = EPSILON, Real floor = EPSILON) {
   Real am = fabs(a);
   Real bm = fabs(b);
-  if (am < floor && bm < floor)
+  if (am <= floor && bm <= floor)
     return true;
   if ((fabs(b - a) / max2(am, bm)) <= tol)
     return true;
