@@ -1,4 +1,7 @@
 template <typename T>
+void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);
+
+template <typename T>
 Read<T> unmap(LOs a2b, Read<T> b_data, Int width);
 
 template <typename T>

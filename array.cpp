@@ -448,6 +448,16 @@ Read<T> add_each(Read<T> a, Read<T> b) {
   return c;
 }
 
+template <typename T>
+Read<T> add_to_each(Read<T> a, T b) {
+  Write<T> c(a.size());
+  auto f = LAMBDA(LO i) {
+    c[i] = a[i] + b;
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
@@ -458,7 +468,8 @@ template Write<T> deep_copy(Read<T> a); \
 template std::ostream& operator<<(std::ostream& o, Read<T> a); \
 template Read<T> multiply_each_by(T factor, Read<T> x); \
 template Read<T> multiply_each(Read<T> a, Read<T> b); \
-template Read<T> add_each(Read<T> a, Read<T> b);
+template Read<T> add_each(Read<T> a, Read<T> b); \
+template Read<T> add_to_each(Read<T> a, T b);
 
 INST_ARRAY_T(I8)
 INST_ARRAY_T(I16)
