@@ -62,15 +62,17 @@ CONSTANT static UpTemplate const* const* const r_u_[] = {
 CONSTANT static UpTemplate const* const* const* const up_templates[] = {
   0,0,f_u_,r_u_};
 
-/*
 CONSTANT static Int const feov[] = {1,2,0};
 CONSTANT static Int const fvoe[] = {2,0,1};
-CONSTANT static Int const* const fo[] = {
+CONSTANT static Int const* const fo_[] = {
   feov,fvoe};
 CONSTANT static Int const rfov[] = {2,3,1,0};
 CONSTANT static Int const rvof[] = {3,2,0,1};
-*/
 CONSTANT static Int const tet_edges_opp_edges[] = {5,3,4,1,2,0};
+CONSTANT static Int const* const ro_[] = {
+  rfov,tet_edges_opp_edges,rvof};
+CONSTANT static Int const* const* const opposite_templates[] = {
+  0,0,fo_,ro_};
 
 extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];
