@@ -648,6 +648,16 @@ static void test_positivize() {
   test_positivize(vector_2( 1, 1));
 }
 
+static void test_refine_qualities() {
+  Mesh mesh;
+  build_box(mesh, 1, 1, 0, 1, 1, 0);
+  LOs candidates(mesh.nents(EDGE), 0, 1);
+  auto quals = refine_qualities(mesh, candidates);
+  CHECK(are_close(quals,
+        Reals({0.494872,0.494872,0.866025,0.494872,0.494872}),
+        1e-4));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -681,5 +691,6 @@ int main(int argc, char** argv) {
   test_inertial_bisect();
   test_average_field();
   test_positivize();
+  test_refine_qualities();
   fini();
 }
