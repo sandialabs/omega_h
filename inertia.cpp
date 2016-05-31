@@ -119,14 +119,14 @@ Read<I8> mark_bisection_internal(CommPtr comm,
   // perturb the axis vector to escape this scenario
   for (Int i = 0; i < 3 * 2; ++i) {
     auto axis2 = axis;
-    axis2[i / 2] += (i % 2) * 1e-6;
+    axis2[i / 2] += (i % 2) ? 1e-3 : -1e-3;
     dists = get_distances(coords, center, axis2);
     if (mark_axis_bisection(comm, dists, masses, total_mass, tolerance,
           marked)) {
       return marked;
     }
   }
-  std::cerr << "warning: no good inertial bisection found\n";
+  std::cerr << "omega_h warning: no good inertial bisection\n";
   return marked;
 }
 

@@ -3,8 +3,8 @@
 #include "internal.hpp"
 
 static void serial_test(Mesh& mesh) {
-  static Int const nx = 1;
-  static Int const dim = 2;
+  static Int const nx = 4;
+  static Int const dim = 3;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
   mesh.reorder();
