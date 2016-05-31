@@ -35,9 +35,8 @@ void unmap_down(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_ents(ent_dim, new_ents2new_lows);
 }
 
-void unmap_own_idxs(Mesh& old_mesh, Mesh& new_mesh,
+Remotes unmap_owners(Mesh& old_mesh,
     Int ent_dim, LOs new_ents2old_ents, LOs old_ents2new_ents) {
-  if (old_mesh.comm()->size() == 1) return;
   auto old_copies2old_owners = old_mesh.ask_dist(ent_dim);
   auto old_owners2old_copies = old_copies2old_owners.invert();
   auto old_copies2new_owners = old_owners2old_copies.exch(
@@ -45,7 +44,15 @@ void unmap_own_idxs(Mesh& old_mesh, Mesh& new_mesh,
   auto new_ents2new_owners = unmap(new_ents2old_ents, old_copies2new_owners, 1);
   auto old_own_ranks = old_mesh.ask_owners(ent_dim).ranks;
   auto new_own_ranks = unmap(new_ents2old_ents, old_own_ranks, 1);
-  new_mesh.set_owners(ent_dim, Remotes(new_own_ranks, new_ents2new_owners));
+  return Remotes(new_own_ranks, new_ents2new_owners);
+}
+
+void unmap_owners(Mesh& old_mesh, Mesh& new_mesh,
+    Int ent_dim, LOs new_ents2old_ents, LOs old_ents2new_ents) {
+  if (old_mesh.comm()->size() == 1) return;
+  auto owners = unmap_owners(old_mesh, ent_dim,
+      new_ents2old_ents, old_ents2new_ents);
+  new_mesh.set_owners(ent_dim, owners);
 }
 
 void unmap_mesh(Mesh& old_mesh, Mesh& new_mesh,
@@ -62,7 +69,7 @@ void unmap_mesh(Mesh& old_mesh, Mesh& new_mesh,
     unmap_tags(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
     auto old_ents2new_ents = invert_injective_map(new_ents2old_ents[ent_dim],
         old_mesh.nents(ent_dim));
-    unmap_own_idxs(old_mesh, new_mesh, ent_dim,
+    unmap_owners(old_mesh, new_mesh, ent_dim,
         new_ents2old_ents[ent_dim], old_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
