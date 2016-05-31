@@ -5,7 +5,7 @@ namespace {
 Reals get_triangle_normals(Mesh& mesh, LOs surf_tri2tri) {
   CHECK(mesh.dim() == 3);
   auto nsurf_tris = surf_tri2tri.size();
-  auto fv2v = mesh.ask_down(TRI,VERT).ab2b;
+  auto fv2v = mesh.ask_verts_of(TRI);
   auto coords = mesh.coords();
   Write<Real> normals(nsurf_tris * 3);
   auto lambda = LAMBDA(LO surf_tri) {
@@ -23,7 +23,7 @@ Reals get_triangle_normals(Mesh& mesh, LOs surf_tri2tri) {
 Reals get_edge_normals(Mesh& mesh, LOs surf_edge2edge) {
   CHECK(mesh.dim() == 2);
   auto nsurf_edges = surf_edge2edge.size();
-  auto ev2v = mesh.ask_down(EDGE,VERT).ab2b;
+  auto ev2v = mesh.ask_verts_of(EDGE);
   auto coords = mesh.coords();
   Write<Real> normals(nsurf_edges * 2);
   auto lambda = LAMBDA(LO surf_edge) {

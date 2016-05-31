@@ -28,8 +28,8 @@ struct MetricRefineQualities {
 
 template <typename Measure, Int dim>
 static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
-  auto ev2v = mesh.ask_down(EDGE, VERT).ab2b;
-  auto cv2v = mesh.ask_down(dim, VERT).ab2b;
+  auto ev2v = mesh.ask_verts_of(EDGE);
+  auto cv2v = mesh.ask_verts_of(dim);
   auto e2c = mesh.ask_up(EDGE, dim);
   auto e2ec = e2c.a2ab;
   auto ec2c = e2c.ab2b;

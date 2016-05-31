@@ -2,7 +2,7 @@ template <Int sdim, Int edim>
 Reals average_metric_tmpl(Mesh& mesh, LOs entities) {
   auto nents = entities.size();
   Write<Real> out(nents * symm_dofs(sdim));
-  auto ev2v = mesh.ask_down(edim, VERT).ab2b;
+  auto ev2v = mesh.ask_verts_of(edim);
   auto v_metrics = mesh.get_array<Real>(VERT, "metric");
   auto f = LAMBDA(LO i) {
     auto e = entities[i];

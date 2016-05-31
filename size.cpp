@@ -32,5 +32,5 @@ Reals measure_edges(Mesh& mesh, LOs ev2v) {
 }
 
 Reals measure_edges(Mesh& mesh) {
-  return measure_edges(mesh, mesh.ask_down(EDGE,VERT).ab2b);
+  return measure_edges(mesh, mesh.ask_verts_of(EDGE));
 }

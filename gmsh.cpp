@@ -123,7 +123,7 @@ void read(std::istream& stream, Mesh& mesh) {
       eq2e = eqv2v;
     } else {
       Read<I8> codes;
-      auto ev2v = mesh.ask_down(ent_dim, VERT).ab2b;
+      auto ev2v = mesh.ask_verts_of(ent_dim);
       auto v2e = mesh.ask_up(VERT, ent_dim);
       find_matches(ent_dim, eqv2v, ev2v, v2e, eq2e, codes);
     }

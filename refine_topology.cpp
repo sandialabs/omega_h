@@ -7,7 +7,7 @@ static void refine_edge_interiors(
     LOs& keys2pairs,
     LOs& cut_verts2verts_r,
     LOs& pair_verts2verts_r) {
-  auto edge_verts2verts = mesh.ask_down(EDGE, VERT).ab2b;
+  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
   auto nkeys = keys2edges.size();
   auto ndoms = nkeys;
   auto npairs = ndoms * 2;
@@ -58,8 +58,8 @@ void refine_domain_interiors(
     return;
   }
   auto nkeys = keys2edges.size();
-  auto edge_verts2verts = mesh.ask_down(EDGE, VERT).ab2b;
-  auto dom_verts2verts = mesh.ask_down(dim, VERT).ab2b;
+  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
+  auto dom_verts2verts = mesh.ask_verts_of(dim);
   auto edges2doms = mesh.ask_up(EDGE, dim);
   auto edges2edge_doms = edges2doms.a2ab;
   auto edge_doms2doms = edges2doms.ab2b;
