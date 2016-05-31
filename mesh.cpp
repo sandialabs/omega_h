@@ -367,6 +367,22 @@ void Mesh::reorder() {
   reorder_by_hilbert(*this);
 }
 
+void Mesh::balance() {
+  inertia::Rib hints;
+  if (rib_hints_)
+    hints = *rib_hints_;
+  auto ecoords = average_field(simplex_degrees[dim()][VERT],
+      ask_down(dim(), VERT).ab2b, dim(), coords());
+  if (dim() == 2)
+    ecoords = vectors_2d_to_3d(ecoords);
+  auto masses = Reals(nelems(), 1);
+  auto owners = ask_owners(dim());
+  hints = recursively_bisect(comm(), ecoords, masses, owners,
+      0.01, hints);
+  rib_hints_ = RibPtr(new inertia::Rib(hints));
+  migrate(owners);
+}
+
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \

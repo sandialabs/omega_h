@@ -4,7 +4,7 @@
 
 static void serial_test(Mesh& mesh) {
   static Int const nx = 1;
-  static Int const dim = 3;
+  static Int const dim = 2;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
   mesh.reorder();
@@ -29,12 +29,7 @@ int main(int argc, char** argv) {
     serial_test(mesh);
   }
   mesh.set_comm(world);
-  if (world->rank() == 0) {
-    mesh.migrate(Remotes(Read<I32>(3, 0), LOs(3, 0, 1)));
-  } else {
-    mesh.migrate(Remotes(Read<I32>(3, 0), LOs(3, 3, 1)));
-  }
-  mesh.set_partition(VERTEX_BASED);
+  mesh.balance();
   if (mesh.dim() == 3) {
   vtk::write_parallel_vtk("tets", mesh, 3);
   }

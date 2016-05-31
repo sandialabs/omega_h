@@ -1,4 +1,7 @@
 class Dist;
+namespace inertia {
+struct Rib;
+}
 
 enum Partition {
   ELEMENT_BASED,
@@ -45,6 +48,7 @@ class Mesh {
     typedef std::shared_ptr<TagBase> TagPtr;
     typedef std::shared_ptr<Adj> AdjPtr;
     typedef std::shared_ptr<Dist> DistPtr;
+    typedef std::shared_ptr<inertia::Rib> RibPtr;
     typedef std::vector<TagPtr> TagVector;
     typedef TagVector::iterator TagIter;
     typedef TagVector::const_iterator TagCIter;
@@ -64,6 +68,7 @@ class Mesh {
     AdjPtr adjs_[DIMS][DIMS];
     Remotes owners_[DIMS];
     DistPtr dists_[DIMS];
+    RibPtr rib_hints_;
   public:
     void add_coords(Reals array);
     Reals coords() const;
@@ -79,4 +84,5 @@ class Mesh {
     void set_partition(Partition partition);
     void migrate(Remotes new_elems2old_owners);
     void reorder();
+    void balance();
 };
