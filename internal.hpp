@@ -98,3 +98,4 @@ typedef double       Real;
 #include "inertia.hpp"
 #include "bipart.hpp"
 #include "refine_qualities.hpp"
+#include "refine_topology.hpp"

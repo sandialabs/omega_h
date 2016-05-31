@@ -53,7 +53,8 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
       for (Int eev = 0; eev < 2; ++eev) {
         /* a new cell is formed from an old cell by finding
            its side that is opposite to one of the edge endpoints
-           and connecting it to the midpoint to form the new cell */
+           and connecting it to the midpoint to form the new cell
+           (see refine_domain_interiors) */
         auto cev = eev ^ rot;
         auto ccv = DownTemplate<dim, EDGE>::get(cce, cev);
         auto ccs = OppositeTemplate<dim, VERT>::get(ccv);
