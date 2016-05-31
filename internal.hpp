@@ -97,3 +97,4 @@ typedef double       Real;
 #include "ghost.hpp"
 #include "inertia.hpp"
 #include "bipart.hpp"
+#include "refine_qualities.hpp"

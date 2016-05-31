@@ -46,3 +46,4 @@
 #include "ghost.cpp"
 #include "inertia.cpp"
 #include "bipart.cpp"
+#include "refine_qualities.cpp"
