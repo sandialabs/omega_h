@@ -368,6 +368,7 @@ void Mesh::reorder() {
 }
 
 void Mesh::balance() {
+  set_partition(ELEMENT_BASED);
   inertia::Rib hints;
   if (rib_hints_)
     hints = *rib_hints_;
@@ -377,8 +378,10 @@ void Mesh::balance() {
     ecoords = vectors_2d_to_3d(ecoords);
   auto masses = Reals(nelems(), 1);
   auto owners = ask_owners(dim());
+  auto total = comm_->allreduce(GO(nelems()), SUM);
+  auto avg = Real(total) / Real(comm_->size());
   hints = recursively_bisect(comm(), ecoords, masses, owners,
-      0.01, hints);
+      2.0 / avg, hints);
   rib_hints_ = RibPtr(new inertia::Rib(hints));
   migrate(owners);
 }
