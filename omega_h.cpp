@@ -49,3 +49,4 @@
 #include "metric.cpp"
 #include "refine_qualities.cpp"
 #include "refine_topology.cpp"
+#include "modify.cpp"
