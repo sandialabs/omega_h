@@ -262,14 +262,12 @@ static int Neighbor_allgather(
           static_cast<char*>(recvbuf) + i * recvwidth,
           recvcount, recvtype, sources[i], tag, comm,
           recvreqs + i));
-  delete [] sources;
   CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
     CALL(MPI_Isend(
           sendbuf,
           sendcount, sendtype, destinations[i], tag, comm,
           sendreqs + i));
-  delete [] destinations;
   CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
   delete [] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
@@ -317,14 +315,12 @@ static int Neighbor_alltoall(
           static_cast<char*>(recvbuf) + i * recvwidth,
           recvcount, recvtype, sources[i], tag, comm,
           recvreqs + i));
-  delete [] sources;
   CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
     CALL(MPI_Isend(
           static_cast<char const*>(sendbuf) + i * sendwidth,
           sendcount, sendtype, destinations[i], tag, comm,
           sendreqs + i));
-  delete [] destinations;
   CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
   delete [] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
@@ -374,14 +370,12 @@ static int Neighbor_alltoallv(
           static_cast<char*>(recvbuf) + rdispls[i] * recvwidth,
           recvcounts[i], recvtype, sources[i], tag, comm,
           recvreqs + i));
-  delete [] sources;
   CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
     CALL(MPI_Isend(
           static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth,
           sendcounts[i], sendtype, destinations[i], tag, comm,
           sendreqs + i));
-  delete [] destinations;
   CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
   delete [] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
