@@ -157,3 +157,5 @@ template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b);
 template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b);
+template <typename T>
+Read<T> add_to_each(Read<T> a, T b);

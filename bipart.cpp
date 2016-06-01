@@ -12,11 +12,8 @@ Dist bi_partition(CommPtr comm, Read<I8> marks) {
     auto start = comm->exscan(GO(marked.size()), SUM);
     Read<GO> globals(marked.size(), start, 1);
     auto owners = globals_to_linear_owners(globals, total, halfsize);
-    auto write = LAMBDA(LO i) {
-      dest_ranks[marked[i]] = owners.ranks[i] + rank_start;
-      dest_idxs[marked[i]] = owners.idxs[i];
-    };
-    parallel_for(marked.size(), write);
+    map_into(add_to_each(owners.ranks, rank_start), marked, dest_ranks, 1);
+    map_into(owners.idxs, marked, dest_idxs, 1);
     if (rank_start <= comm->rank() && comm->rank() < (rank_start + halfsize)) {
       linsize = linear_partition_size(total, halfsize, comm->rank() - rank_start);
     }

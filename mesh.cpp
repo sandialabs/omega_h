@@ -164,6 +164,10 @@ Adj Mesh::ask_down(Int from, Int to) {
   return ask_adj(from, to);
 }
 
+LOs Mesh::ask_verts_of(Int dim) {
+  return ask_adj(dim, VERT).ab2b;
+}
+
 Adj Mesh::ask_up(Int from, Int to) {
   CHECK(from < to);
   return ask_adj(from, to);
@@ -373,7 +377,7 @@ void Mesh::balance() {
   if (rib_hints_)
     hints = *rib_hints_;
   auto ecoords = average_field(simplex_degrees[dim()][VERT],
-      ask_down(dim(), VERT).ab2b, dim(), coords());
+      ask_verts_of(dim()), dim(), coords());
   if (dim() == 2)
     ecoords = vectors_2d_to_3d(ecoords);
   auto masses = Reals(nelems(), 1);

@@ -217,8 +217,8 @@ static void test_adjs() {
   LOs tris2verts;
   {
   Now t0 = now();
-  tets2verts = mesh.ask_down(TET, VERT).ab2b;
-  tris2verts = mesh.ask_down(TRI, VERT).ab2b;
+  tets2verts = mesh.ask_verts_of(TET);
+  tris2verts = mesh.ask_verts_of(TRI);
   Now t1 = now();
   std::cout << "asking tet->vert and tri->vert of a " << mesh.nelems()
     << " tet mesh took " << (t1-t0) << " seconds\n";

@@ -3,7 +3,7 @@ static void add_ents2verts(Mesh& mesh, Int edim, LOs ev2v) {
     mesh.set_ents(edim, Adj(ev2v));
   } else {
     Int ldim = edim - 1;
-    LOs lv2v = mesh.ask_down(ldim, VERT).ab2b;
+    LOs lv2v = mesh.ask_verts_of(ldim);
     Adj v2l = mesh.ask_up(VERT, ldim);
     Adj down = reflect_down(ev2v, lv2v, v2l, edim, ldim);
     mesh.set_ents(edim, down);

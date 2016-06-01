@@ -30,5 +30,5 @@ Reals measure_qualities(Mesh const& mesh, LOs ev2v) {
 }
 
 Reals measure_qualities(Mesh& mesh) {
-  return measure_qualities(mesh, mesh.ask_down(mesh.dim(), VERT).ab2b);
+  return measure_qualities(mesh, mesh.ask_verts_of(mesh.dim()));
 }

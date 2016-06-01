@@ -198,7 +198,7 @@ void write_piece_start_tag(std::ostream& stream, Mesh const& mesh, Int cell_dim)
 
 void write_connectivity(std::ostream& stream, Mesh& mesh, Int cell_dim)
 {
-  LOs ev2v = mesh.ask_down(cell_dim, VERT).ab2b;
+  LOs ev2v = mesh.ask_verts_of(cell_dim);
   LOs ends(mesh.nents(cell_dim), simplex_degrees[cell_dim][VERT],
                                  simplex_degrees[cell_dim][VERT]);
   write_array(stream, "connectivity", 1, ev2v);

@@ -1,0 +1,10 @@
+void refine_domain_interiors(
+    Mesh& mesh,
+    Int dim,
+    LOs keys2edges,
+    LOs keys2midverts,
+    LOs old_verts2new_verts,
+    LOs& keys2cuts,
+    LOs& keys2pairs,
+    LOs& cut_verts2verts_r,
+    LOs& pair_verts2verts_r);

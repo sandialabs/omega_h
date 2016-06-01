@@ -1,4 +1,17 @@
 template <typename T>
+void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
+  auto na = a2b.size();
+  CHECK(a_data.size() == na * width);
+  auto f = LAMBDA(LO a) {
+    auto b = a2b[a];
+    for (Int j = 0; j < width; ++j) {
+      b_data[b * width + j] = a_data[a * width + j];
+    }
+  };
+  parallel_for(na, f);
+}
+
+template <typename T>
 Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
   auto na = a2b.size();
   Write<T> a_data(na * width);
@@ -53,6 +66,7 @@ LOs multiply_fans(LOs a2b, LOs a2c) {
 }
 
 #define INST_T(T) \
+template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
 template Read<T> unmap(LOs a2b, Read<T> b_data, Int width); \
 template Read<T> expand(Read<T> a_data, LOs a2b, Int width); \
 template Read<T> permute(Read<T> a_data, LOs a2b, Int width);
