@@ -6,6 +6,10 @@
 
 static Int const nelems = 1000 * 1000;
 
+/* Intel compiler version 16 doesn't seem to have
+ * std::uniform_real_distribution and std::uniform_int_distribution */
+#ifndef __INTEL_COMPILER
+
 static Reals random_reals(Int n, Real from, Real to) {
   std::random_device rd;
   std::mt19937 gen(rd());
@@ -167,6 +171,8 @@ static void test_sort() {
   test_sort_n<3>();
 }
 
+#endif
+
 static void test_invert_adj(LOs tets2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
   Read<GO> tet_globals(ntets, 0, 1);
@@ -230,9 +236,11 @@ static void test_adjs() {
 
 int main(int argc, char** argv) {
   init(argc, argv);
+#ifndef __INTEL_COMPILER
   test_metric_math();
   test_repro_sum();
   test_sort();
+#endif
   test_adjs();
   fini();
 }
