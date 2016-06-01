@@ -191,11 +191,11 @@ struct HasName {
 };
 
 Mesh::TagIter Mesh::tag_iter(Int dim, std::string const& name) {
-  return std::find_if(begin(tags_[dim]), end(tags_[dim]), HasName(name));
+  return std::find_if(tags_[dim].begin(), tags_[dim].end(), HasName(name));
 }
 
 Mesh::TagCIter Mesh::tag_iter(Int dim, std::string const& name) const {
-  return std::find_if(begin(tags_[dim]), end(tags_[dim]), HasName(name));
+  return std::find_if(tags_[dim].begin(), tags_[dim].end(), HasName(name));
 }
 
 void Mesh::check_dim(Int dim) const {
