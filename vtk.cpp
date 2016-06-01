@@ -243,7 +243,8 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
 }
 
 std::string piece_filename(std::string const& piecepath, I32 rank) {
-  return piecepath + '_' + std::to_string(rank) + ".vtu";
+  typedef long long intel_type;
+  return piecepath + '_' + std::to_string(intel_type(rank)) + ".vtu";
 }
 
 }//end anonymous namespace
