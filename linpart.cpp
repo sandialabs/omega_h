@@ -1,5 +1,4 @@
-Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size)
-{
+Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
   auto comm_size_gt = GO(comm_size);
   auto quot = total / comm_size_gt;
   auto rem = total % comm_size_gt;
@@ -20,8 +19,7 @@ Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size)
   return Remotes(ranks, idxs);
 }
 
-LO linear_partition_size(GO total, I32 comm_size, I32 comm_rank)
-{
+LO linear_partition_size(GO total, I32 comm_size, I32 comm_rank) {
   auto comm_size_gt = GO(comm_size);
   auto quot = total / comm_size_gt;
   auto rem = total % comm_size_gt;
