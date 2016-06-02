@@ -8,6 +8,8 @@
 #cmakedefine OSH_USE_ZLIB
 #cmakedefine OSH_CHECK_BOUNDS
 
+#include <memory>
+
 #ifdef OSH_USE_MPI
 
 /* on BlueGene/Q the default install
@@ -76,6 +78,80 @@ typedef I32          Int;
 typedef I32          LO;
 typedef I64          GO;
 typedef double       Real;
+
+template <typename T>
+class HostWrite;
+
+template <typename T>
+class Write {
+#ifdef OSH_USE_KOKKOS
+  Kokkos::View<T*> view_;
+#else
+  std::shared_ptr<T> ptr_;
+  LO size_;
+#endif
+public:
+  Write();
+  Write(LO size);
+  Write(LO size, T value);
+  Write(LO size, T offset, T stride);
+  Write(HostWrite<T> host_write);
+  LO size() const;
+  OSH_INLINE T& operator[](LO i) const {
+#ifdef OSH_CHECK_BOUNDS
+    if (i < 0)
+      std::cerr << "i = " << i << '\n';
+    CHECK(0 <= i);
+    if (i >= size())
+      std::cerr << "i = " << i << '\n';
+    CHECK(i < size());
+#endif
+#ifdef OSH_USE_KOKKOS
+    return view_(i);
+#else
+    return ptr_.get()[i];
+#endif
+  }
+  T* data() const;
+#ifdef OSH_USE_KOKKOS
+  Kokkos::View<T*> view() const;
+#endif
+  void set(LO i, T value) const;
+  T get(LO i) const;
+  bool exists() const;
+};
+
+template <typename T>
+class Read {
+  Write<T> write_;
+public:
+  Read();
+  Read(Write<T> write);
+  Read(LO size, T value);
+  Read(LO size, T offset, T stride);
+  Read(std::initializer_list<T> l);
+  LO size() const;
+  OSH_INLINE T const& operator[](LO i) const {
+    return write_[i];
+  }
+  T const* data() const;
+#ifdef OSH_USE_KOKKOS
+  Kokkos::View<const T*> view() const;
+#endif
+  T get(LO i) const;
+  T last() const;
+  bool exists() const;
+};
+
+class LOs : public Read<LO> {
+public:
+  LOs();
+  LOs(Read<LO> base);
+  LOs(Write<LO> write);
+  LOs(LO size, LO value);
+  LOs(LO size, LO offset, LO stride);
+  LOs(std::initializer_list<LO> l);
+};
 
 //namespace osh will end here
 
