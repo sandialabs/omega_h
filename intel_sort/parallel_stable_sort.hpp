@@ -30,11 +30,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <algorithm>
-#include <omp.h>
-
-#include "pss_common.hpp"
-
 namespace pss {
 
 namespace internal {

@@ -1,20 +1,28 @@
 #include "omega_h.hpp"
 
+/* C++ standard includes */
+
+#include <cfloat>
+#include <chrono>
+#include <climits>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <iterator>
 #include <sstream>
 #include <fstream>
 #include <type_traits>
-#include <chrono>
-#include <climits>
-#include <cfloat>
+#include <utility>
+
+/* C++ ABI and POSIX includes */
 
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <signal.h>
+
+/* Third party libraries */
 
 #ifdef OSH_USE_ZLIB
 #include <zlib.h>
@@ -31,6 +39,9 @@
 #pragma GCC diagnostic pop
 #endif
 #elif defined(OSH_USE_OPENMP)
+#include <algorithm>
+#include <omp.h>
+#include "intel_sort/pss_common.hpp"
 #include "intel_sort/parallel_stable_sort.hpp"
 #else
 #include <algorithm>
