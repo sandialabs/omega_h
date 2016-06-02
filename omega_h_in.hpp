@@ -9,6 +9,7 @@
 #cmakedefine OSH_CHECK_BOUNDS
 
 #include <memory>
+#include <string>
 
 #ifdef OSH_USE_MPI
 
@@ -151,6 +152,61 @@ public:
   LOs(LO size, LO value);
   LOs(LO size, LO offset, LO stride);
   LOs(std::initializer_list<LO> l);
+};
+
+enum Xfer {
+  OSH_DONT_TRANSFER,
+  OSH_INHERIT,
+  OSH_LINEAR_INTERP,
+  OSH_POINTWISE,
+  OSH_CONSERVE,
+  OSH_GLOBAL,
+  OSH_LENGTH,
+  OSH_QUALITY,
+  OSH_METRIC
+};
+
+enum TagType {
+  OSH_I8  = 0,
+  OSH_I32 = 2,
+  OSH_I64 = 3,
+  OSH_F64 = 5,
+};
+
+class TagBase {
+  public:
+    TagBase(std::string const& name, Int ncomps, Xfer xfer);
+    virtual ~TagBase();
+    std::string const& name() const;
+    Int ncomps() const;
+    Xfer xfer() const;
+    virtual TagType type() const = 0;
+  private:
+    std::string name_;
+    Int ncomps_;
+    Xfer xfer_;
+};
+
+template <typename T>
+class Tag : public TagBase {
+  public:
+    Tag(std::string const& name, Int ncomps, Xfer xfer);
+    Read<T> array() const;
+    void set_array(Read<T> array);
+    virtual TagType type() const override;
+  private:
+    Read<T> array_;
+};
+
+class Dist;
+namespace inertia {
+struct Rib;
+}
+
+enum Partition {
+  ELEMENT_BASED,
+  GHOSTED,
+  VERTEX_BASED
 };
 
 //namespace osh will end here

@@ -1,14 +1,3 @@
-class Dist;
-namespace inertia {
-struct Rib;
-}
-
-enum Partition {
-  ELEMENT_BASED,
-  GHOSTED,
-  VERTEX_BASED
-};
-
 class Mesh {
   public:
     Mesh();
