@@ -38,9 +38,7 @@ struct MpiTraits<double> {
 };
 #endif //OSH_USE_MPI
 
-class Comm;
-
-typedef std::shared_ptr<Comm> CommPtr;
+static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");
 
 enum ReduceOp {
   MIN,
@@ -48,18 +46,9 @@ enum ReduceOp {
   SUM
 };
 
-#ifdef OSH_USE_MPI
-inline MPI_Op mpi_op(ReduceOp op) {
-  switch (op) {
-    case MIN: return MPI_MIN;
-    case MAX: return MPI_MAX;
-    case SUM: return MPI_SUM;
-  };
-  NORETURN(MPI_MIN);
-}
-#endif
+class Comm;
 
-static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");
+typedef std::shared_ptr<Comm> CommPtr;
 
 class Comm {
 #ifdef OSH_USE_MPI
@@ -106,3 +95,14 @@ public:
       Read<LO> recvcounts, Read<LO> rdispls) const;
   void barrier() const;
 };
+
+#ifdef OSH_USE_MPI
+inline MPI_Op mpi_op(ReduceOp op) {
+  switch (op) {
+    case MIN: return MPI_MIN;
+    case MAX: return MPI_MAX;
+    case SUM: return MPI_SUM;
+  };
+  NORETURN(MPI_MIN);
+}
+#endif
