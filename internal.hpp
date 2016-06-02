@@ -17,8 +17,9 @@
 #include <vector>
 #include <cfloat>
 
-#include <execinfo.h>
 #include <cxxabi.h>
+#include <execinfo.h>
+#include <signal.h>
 
 #ifdef OSH_USE_ZLIB
 #include <zlib.h>
@@ -120,3 +121,4 @@ typedef double       Real;
 #include "refine_topology.hpp"
 #include "modify.hpp"
 #include "refine.hpp"
+#include "stacktrace.hpp"

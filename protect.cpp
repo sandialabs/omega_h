@@ -1,7 +1,3 @@
-#include <signal.h>
-
-#include "stacktrace.hpp"
-
 #define NSIGS 6
 
 void osh_signal_handler(int s);
