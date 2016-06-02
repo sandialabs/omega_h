@@ -37,7 +37,7 @@ Remotes push_elem_uses(
   Write<LO> elem_idxs(nitems);
   Write<I32> vert_ranks(nitems);
   Write<LO> vert_idxs(nitems);
-  auto f = LAMBDA(LO ov) {
+  auto f = OSH_LAMBDA(LO ov) {
     auto item = own_verts2items[ov];
     for (auto sv = own_verts2serv_verts[ov];
          sv < own_verts2serv_verts[ov + 1];

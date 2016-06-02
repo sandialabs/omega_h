@@ -9,7 +9,7 @@ namespace simplify {
 
 namespace {
 
-INLINE Int find_min(LO const v[], Int n) {
+OSH_INLINE Int find_min(LO const v[], Int n) {
   Int min_i = 0;
   LO min_v = v[0];
   for (Int i = 1; i < n; ++i) {
@@ -21,23 +21,23 @@ INLINE Int find_min(LO const v[], Int n) {
   return min_i;
 }
 
-INLINE bool lt(Int v_i, Int v_j, Int v_k, Int v_l) {
+OSH_INLINE bool lt(Int v_i, Int v_j, Int v_k, Int v_l) {
   return min2(v_i, v_j) < min2(v_k, v_l);
 }
 
-INLINE void rot(LO v[], Int n) {
+OSH_INLINE void rot(LO v[], Int n) {
   LO tmp = v[n - 1];
   for (Int i = 0; i < n-1; ++i)
     v[i + 1] = v[i];
   v[0] = tmp;
 }
 
-INLINE void rot_ntimes(LO v[], Int nv, Int ntimes) {
+OSH_INLINE void rot_ntimes(LO v[], Int nv, Int ntimes) {
   for (Int i = 0; i < ntimes; ++i)
     rot(v, nv);
 }
 
-INLINE void rot_to_first(LO v[], Int nv, Int first) {
+OSH_INLINE void rot_to_first(LO v[], Int nv, Int first) {
   rot_ntimes(v, nv, ((nv - first) % nv));
 }
 
@@ -77,7 +77,7 @@ CONSTANT Int const hex_flip_pairs[4][2] = {
   {2,6}
 };
 
-DEVICE void flip_hex(LO hhv2v[]) {
+OSH_DEVICE void flip_hex(LO hhv2v[]) {
   for (Int i = 0; i < 4; ++i)
     swap2(hhv2v[hex_flip_pairs[i][0]],
           hhv2v[hex_flip_pairs[i][1]]);
@@ -100,7 +100,7 @@ CONSTANT Int const hex_bur_faces[3][4] = {
 CONSTANT Int const hex_bur_ring[6] = {
   1,2,3,7,5,4};
 
-DEVICE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
+OSH_DEVICE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
   LO tmp[6];
   for (Int i = 0; i < 6; ++i) {
     tmp[i] = hhv2v[hex_bur_ring[i]];
@@ -114,7 +114,7 @@ DEVICE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
 /* rotate the hex around its centroidal XYZ axis such
    that face (new_right) becomes the right face.
    (new_right) corresponds to the table hex_bur_faces[] */
-DEVICE void hex_bur_rot_to_right(LO hhv2v[], Int new_right) {
+OSH_DEVICE void hex_bur_rot_to_right(LO hhv2v[], Int new_right) {
   hex_bur_rot_ntimes(hhv2v, ((3 - new_right) % 3));
 }
 
@@ -125,7 +125,7 @@ LOs tris_from_quads(LOs qv2v) {
   LO nq = qv2v.size() / 4;
   LO nt = nq * 2;
   Write<LO> tv2v(nt * 3);
-  auto f = LAMBDA(LO q) {
+  auto f = OSH_LAMBDA(LO q) {
     LO qv_begin = q * 4;
     LO qqv2v[4];
     for (Int i = 0; i < 4; ++i)
@@ -147,7 +147,7 @@ LOs tris_from_quads(LOs qv2v) {
   return tv2v;
 }
 
-DEVICE void tets_from_hex_1(
+OSH_DEVICE void tets_from_hex_1(
     LO h,
     LOs hv2v,
     LO hhv2v[],
@@ -180,7 +180,7 @@ DEVICE void tets_from_hex_1(
   ndiags_into = diags_into[0] + diags_into[1] + diags_into[2];
 }
 
-INLINE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
+OSH_INLINE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
     LO const hhv2v[],
     Int const case_template[][4],
     Int nhht) {
@@ -197,7 +197,7 @@ LOs tets_from_hexes(LOs hv2v) {
   CHECK(hv2v.size() % 8 == 0);
   LO nh = hv2v.size() / 8;
   Write<LO> degrees(nh);
-  auto count = LAMBDA(LO h) {
+  auto count = OSH_LAMBDA(LO h) {
     LO hhv2v[8];
     Int diags_into[3];
     Int ndiags_into;
@@ -211,7 +211,7 @@ LOs tets_from_hexes(LOs hv2v) {
   auto h2ht = offset_scan(LOs(degrees));
   LO nt = h2ht.last();
   Write<LO> tv2v(nt * 4);
-  auto fill = LAMBDA(LO h) {
+  auto fill = OSH_LAMBDA(LO h) {
     LO hhv2v[8];
     Int diags_into[3];
     Int ndiags_into;

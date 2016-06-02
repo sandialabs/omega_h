@@ -82,7 +82,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   CHECK(nprods == keys2prods.last());
   auto old_owned = old_mesh.owned(ent_dim);
   Write<LO> old_locals(nold_ents, 0);
-  auto mark_old_same = LAMBDA(LO same_ent) {
+  auto mark_old_same = OSH_LAMBDA(LO same_ent) {
     auto old_ent = same_ents2old_ents[same_ent];
     if (old_owned[old_ent])
       old_locals[old_ent] = 1;
@@ -97,7 +97,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     auto keys2key_ents = keys2ents2.a2ab;
     auto key_ents2ents = keys2ents2.ab2b;
     Write<LO> keys2reps_w;
-    auto setup_reps = LAMBDA(LO key) {
+    auto setup_reps = OSH_LAMBDA(LO key) {
       /* the first upward adjacent entity will represent
          this cavity during the updating of global numbers.
          upward ordering should be sorted by old globals
@@ -124,14 +124,14 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
        which is independent of partitioning and ordering */
     auto edge_verts2verts = old_mesh.ask_verts_of(EDGE);
     Write<LO> keys2reps_w;
-    auto setup_reps = LAMBDA(LO key) {
+    auto setup_reps = OSH_LAMBDA(LO key) {
       auto edge = keys2ents[key];
       keys2reps_w[key] = edge_verts2verts[edge * 2 + 0];
     };
     parallel_for(nkeys, setup_reps);
     keys2reps = keys2reps_w;
   }
-  auto mark_reps = LAMBDA(LO key) {
+  auto mark_reps = OSH_LAMBDA(LO key) {
     auto rep = keys2reps[key];
     auto nkey_prods = keys2nprods[key];
     atomic_add(&old_locals[rep], nkey_prods);
@@ -147,7 +147,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   auto lin_global_count = lin_local_offsets.last();
   auto lin_global_offset = comm->exscan(lin_global_count, SUM);
   Write<GO> lin_globals(nlins);
-  auto write_lin_globals = LAMBDA(LO lin) {
+  auto write_lin_globals = OSH_LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
   };
   parallel_for(nlins, write_lin_globals);
@@ -160,7 +160,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
-  auto write_cavity_globals = LAMBDA(LO key) {
+  auto write_cavity_globals = OSH_LAMBDA(LO key) {
     auto global = keys2rep_globals[key];
     if (ent_dim == VERT) ++global;
     for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {

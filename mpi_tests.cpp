@@ -148,7 +148,7 @@ static void test_rib(CommPtr comm) {
   auto size = comm->size();
   LO n = 5;
   Write<Real> w_coords(n * 3);
-  auto set_coords = LAMBDA(LO i) {
+  auto set_coords = OSH_LAMBDA(LO i) {
     set_vec(w_coords, i, vector_3(i * size + rank, 0, 0));
   };
   parallel_for(n, set_coords);
@@ -164,7 +164,7 @@ static void test_rib(CommPtr comm) {
     size2 *= 2;
   }
   CHECK(size2 == size);
-  auto check_coords = LAMBDA(LO i) {
+  auto check_coords = OSH_LAMBDA(LO i) {
     auto v = get_vec<3>(coords, i);
     CHECK(rank * n <= v[0]);
     CHECK(v[0] < (rank + 1) * n);

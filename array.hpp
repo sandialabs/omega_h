@@ -16,7 +16,7 @@ public:
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
   LO size() const;
-  INLINE T& operator[](LO i) const {
+  OSH_INLINE T& operator[](LO i) const {
 #ifdef OSH_CHECK_BOUNDS
     if (i < 0)
       std::cerr << "i = " << i << '\n';
@@ -50,7 +50,7 @@ public:
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
   LO size() const;
-  INLINE T const& operator[](LO i) const {
+  OSH_INLINE T const& operator[](LO i) const {
     return write_[i];
   }
   T const* data() const;

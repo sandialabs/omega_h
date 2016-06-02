@@ -31,7 +31,7 @@ template <typename T, Int N>
 struct CompareKeySets {
   T const* keys_;
   CompareKeySets(T const* keys):keys_(keys) {}
-  INLINE bool operator()(const LO& a, const LO& b) const {
+  OSH_INLINE bool operator()(const LO& a, const LO& b) const {
     for (Int i = 0; i < N; ++i) {
       T x = keys_[a * N + i];
       T y = keys_[b * N + i];

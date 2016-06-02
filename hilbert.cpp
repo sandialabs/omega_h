@@ -20,7 +20,7 @@ Read<I64> dists_from_coords(Reals coords) {
     maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
   LO npts = coords.size() / dim;
   Write<I64> out(npts * dim);
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     hilbert::coord_t X[dim];
     Int nbits = MANTISSA_BITS;
     for (Int j = 0; j < dim; ++j) {

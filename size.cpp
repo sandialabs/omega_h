@@ -3,7 +3,7 @@ Reals measure_edges_tmpl(Mesh& mesh, LOs ev2v) {
   EdgeLengths measurer(mesh);
   auto nedges = ev2v.size() / 2;
   Write<Real> lengths(nedges);
-  auto f = LAMBDA(LO e) {
+  auto f = OSH_LAMBDA(LO e) {
     auto v = gather_verts<2>(ev2v, e);
     lengths[e] = measurer.measure(v);
   };

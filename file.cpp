@@ -42,7 +42,7 @@ static_assert(sizeof(LO) == 4, "osh format assumes 32 bit LO");
 static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
-INLINE std::uint32_t bswap32(std::uint32_t a)
+OSH_INLINE std::uint32_t bswap32(std::uint32_t a)
 {
 #ifdef OSH_USE_CUDA
   a = ((a & 0x000000FF) << 24) |
@@ -55,7 +55,7 @@ INLINE std::uint32_t bswap32(std::uint32_t a)
   return a;
 }
 
-INLINE std::uint64_t bswap64(std::uint64_t a)
+OSH_INLINE std::uint64_t bswap64(std::uint64_t a)
 {
 #ifdef OSH_USE_CUDA
   a = ((a & 0x00000000000000FFULL) << 56) |
@@ -77,13 +77,13 @@ struct SwapBytes;
 
 template <typename T>
 struct SwapBytes<T, 1> {
-  INLINE static void swap(T*) {
+  OSH_INLINE static void swap(T*) {
   }
 };
 
 template <typename T>
 struct SwapBytes<T, 4> {
-  INLINE static void swap(T* ptr) {
+  OSH_INLINE static void swap(T* ptr) {
     std::uint32_t* p2 = reinterpret_cast<std::uint32_t*>(ptr);
     *p2 = bswap32(*p2);
   }
@@ -91,14 +91,14 @@ struct SwapBytes<T, 4> {
 
 template <typename T>
 struct SwapBytes<T, 8> {
-  INLINE static void swap(T* ptr) {
+  OSH_INLINE static void swap(T* ptr) {
     std::uint64_t* p2 = reinterpret_cast<std::uint64_t*>(ptr);
     *p2 = bswap64(*p2);
   }
 };
 
 template <typename T>
-INLINE void swap_bytes(T* ptr) {
+OSH_INLINE void swap_bytes(T* ptr) {
   SwapBytes<T>::swap(ptr);
 }
 
@@ -115,7 +115,7 @@ static Read<T> swap_if_needed(Read<T> array) {
     return array;
   }
   Write<T> out = deep_copy(array);
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     swap_bytes(&out[i]);
   };
   parallel_for(out.size(), f);

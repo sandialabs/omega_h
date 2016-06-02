@@ -15,7 +15,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   Write<I8> codes;
   if (low_dim == 1)
     codes = Write<I8>(hl2l.size());
-  auto f = LAMBDA(LO h) {
+  auto f = OSH_LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {

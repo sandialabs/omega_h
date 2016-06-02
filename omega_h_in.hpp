@@ -23,11 +23,17 @@
 #endif
 
 #ifdef OSH_USE_KOKKOS
-#define INLINE KOKKOS_INLINE_FUNCTION
-#define LAMBDA KOKKOS_LAMBDA
+#define OSH_INLINE KOKKOS_INLINE_FUNCTION
+#define OSH_LAMBDA KOKKOS_LAMBDA
 #else
-#define INLINE inline
-#define LAMBDA [=]
+#define OSH_INLINE inline
+#define OSH_LAMBDA [=]
+#endif
+
+#ifdef OSH_USE_CUDA
+#define OSH_DEVICE __device__ inline
+#else
+#define OSH_DEVICE inline
 #endif
 
 #endif

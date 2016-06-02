@@ -1,5 +1,5 @@
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
-INLINE void characteristic_cubic(Matrix<3,3> A,
+OSH_INLINE void characteristic_cubic(Matrix<3,3> A,
     Real& a, Real& b, Real& c)
 {
   Real tA = trace(A);
@@ -10,7 +10,7 @@ INLINE void characteristic_cubic(Matrix<3,3> A,
 }
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
-INLINE void characteristic_quadratic(Matrix<2,2> A,
+OSH_INLINE void characteristic_quadratic(Matrix<2,2> A,
     Real& a, Real& b)
 {
   a = -trace(A);
@@ -24,7 +24,7 @@ INLINE void characteristic_quadratic(Matrix<2,2> A,
 
 /* in the case that the null space is 1D and space is 3D,
    take the largest cross product of any pair of columns */
-INLINE void single_eigenvector(Matrix<3,3> m, Real l,
+OSH_INLINE void single_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& v) {
   subtract_from_diag(m, l);
   v = cross(m[0], m[1]);
@@ -46,7 +46,7 @@ INLINE void single_eigenvector(Matrix<3,3> m, Real l,
 }
 
 template <Int m>
-INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
+OSH_INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
   Vector<m> v = zero_vector<m>();
   Real v_norm = 0;
   for (Int j = 0; j < m; ++j) {
@@ -63,7 +63,7 @@ INLINE Vector<m> get_1d_column_space(Matrix<m,m> a) {
 /* in the case that the null space is 2D, find the
    largest-norm column and get a couple vectors
    orthogonal to that */
-INLINE void double_eigenvector(Matrix<3,3> m, Real l,
+OSH_INLINE void double_eigenvector(Matrix<3,3> m, Real l,
     Vector<3>& u, Vector<3>& v) {
   subtract_from_diag(m, l);
   Vector<3> n = get_1d_column_space(m);
@@ -71,7 +71,7 @@ INLINE void double_eigenvector(Matrix<3,3> m, Real l,
   u = b[1]; v = b[2];
 }
 
-INLINE void decompose_eigen2(
+OSH_INLINE void decompose_eigen2(
     Matrix<3,3> m,
     Matrix<3,3>& q,
     Vector<3>& l) {
@@ -100,13 +100,13 @@ INLINE void decompose_eigen2(
 
 /* in the case that the null space is 1D and space is 2D,
    get the largest column and rotate it 90 deg */
-INLINE void single_eigenvector(Matrix<2,2> m, Real l,
+OSH_INLINE void single_eigenvector(Matrix<2,2> m, Real l,
     Vector<2>& v) {
   Matrix<2,2> s = (m - (l * identity_matrix<2,2>()));
   v = perp(get_1d_column_space(s));
 }
 
-INLINE void decompose_eigen2(
+OSH_INLINE void decompose_eigen2(
     Matrix<2,2> m,
     Matrix<2,2>& q,
     Vector<2>& l) {
@@ -140,7 +140,7 @@ INLINE void decompose_eigen2(
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
 template <Int dim>
-INLINE void decompose_eigen(
+OSH_INLINE void decompose_eigen(
     Matrix<dim,dim> m,
     Matrix<dim,dim>& q,
     Vector<dim>& l) {
@@ -163,7 +163,7 @@ INLINE void decompose_eigen(
    are the right eigenvectors, *not* the
    change of basis matrix */
 template <Int dim>
-INLINE Matrix<dim,dim> compose_eigen(
+OSH_INLINE Matrix<dim,dim> compose_eigen(
     Matrix<dim,dim> q,
     Vector<dim> l) {
   return transpose(q * diagonal(l) * invert(q));
@@ -173,7 +173,7 @@ INLINE Matrix<dim,dim> compose_eigen(
    meaning in this case it *is* the change of basis
    matrix */
 template <Int dim>
-INLINE Matrix<dim,dim> compose_ortho(
+OSH_INLINE Matrix<dim,dim> compose_ortho(
     Matrix<dim,dim> q,
     Vector<dim> l) {
   return q * diagonal(l) * transpose(q);

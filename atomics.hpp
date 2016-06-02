@@ -1,5 +1,5 @@
 template <class T>
-INLINE void atomic_increment(volatile T* const dest)
+OSH_INLINE void atomic_increment(volatile T* const dest)
 {
 #ifdef OSH_USE_KOKKOS
   return Kokkos::atomic_increment(dest);
@@ -9,7 +9,7 @@ INLINE void atomic_increment(volatile T* const dest)
 }
 
 template <class T>
-INLINE void atomic_add(volatile T* const dest, const T val)
+OSH_INLINE void atomic_add(volatile T* const dest, const T val)
 {
 #ifdef OSH_USE_KOKKOS
   return Kokkos::atomic_add(dest, val);
@@ -19,7 +19,7 @@ INLINE void atomic_add(volatile T* const dest, const T val)
 }
 
 template <class T>
-INLINE T atomic_fetch_add(volatile T* const dest, const T val)
+OSH_INLINE T atomic_fetch_add(volatile T* const dest, const T val)
 {
 #ifdef OSH_USE_KOKKOS
   return Kokkos::atomic_fetch_add(dest, val);

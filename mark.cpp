@@ -2,7 +2,7 @@ Read<I8> mark_exposed_sides(Mesh& mesh) {
   auto ns = mesh.nents(mesh.dim() - 1);
   auto s2sc = mesh.ask_up(mesh.dim() - 1, mesh.dim()).a2ab;
   Write<I8> exposed(ns);
-  auto f = LAMBDA(LO s) {
+  auto f = OSH_LAMBDA(LO s) {
     exposed[s] = ((s2sc[s + 1] - s2sc[s]) < 2);
   };
   parallel_for(ns, f);
@@ -16,7 +16,7 @@ Read<I8> mark_down(Mesh& mesh, Int high_dim, Int low_dim,
   auto lh2h = l2h.ab2b;
   auto nl = mesh.nents(low_dim);
   Write<I8> out(nl, 0);
-  auto f = LAMBDA(LO l) {
+  auto f = OSH_LAMBDA(LO l) {
     for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
       if (high_marked[lh2h[lh]])
         out[l] = 1;
@@ -28,7 +28,7 @@ Read<I8> mark_down(Mesh& mesh, Int high_dim, Int low_dim,
 template <typename T>
 Read<I8> mark_equal(Read<T> a, T val) {
   Write<I8> out(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     out[i] = (a[i] == val);
   };
   parallel_for(out.size(), f);

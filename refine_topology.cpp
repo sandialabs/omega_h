@@ -12,7 +12,7 @@ static void refine_edge_interiors(
   auto ndoms = nkeys;
   auto npairs = ndoms * 2;
   Write<LO> pair_verts2verts(npairs * 2);
-  auto f = LAMBDA(LO key) {
+  auto f = OSH_LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     pair_verts2verts[key * 4 + 0] =
@@ -74,7 +74,7 @@ void refine_domain_interiors(
   keys2pairs = multiply_each_by(2, keys2key_doms);
   Write<LO> cut_verts2verts(ncuts * (dim));
   Write<LO> pair_verts2verts(npairs * (dim + 1));
-  auto f = LAMBDA(LO key) {
+  auto f = OSH_LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     auto pair = keys2pairs[key];

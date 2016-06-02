@@ -25,7 +25,7 @@ Write<T>::Write(LO size):
 
 template <typename T>
 static void fill(Write<T> a, T val) {
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     a[i] = val;
   };
   parallel_for(a.size(), f);
@@ -40,7 +40,7 @@ Write<T>::Write(LO size, T value):
 
 template <typename T>
 void fill_linear(Write<T> a, T offset, T stride) {
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     a[i] = offset + (stride * static_cast<T>(i));
   };
   parallel_for(a.size(), f);
@@ -115,7 +115,7 @@ struct Sum : public SumFunctor<T> {
   typedef typename SumFunctor<T>::value_type value_type;
   Read<T> a_;
   Sum(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const
+  OSH_INLINE void operator()(LO i, value_type& update) const
   {
     update = update + a_[i];
   }
@@ -131,7 +131,7 @@ struct Min : public MinFunctor<T> {
   typedef T value_type;
   Read<T> a_;
   Min(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const
+  OSH_INLINE void operator()(LO i, value_type& update) const
   {
     update = min2(update, a_[i]);
   }
@@ -147,7 +147,7 @@ struct Max : public MaxFunctor<T> {
   typedef T value_type;
   Read<T> a_;
   Max(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const
+  OSH_INLINE void operator()(LO i, value_type& update) const
   {
     update = max2(update, a_[i]);
   }
@@ -186,7 +186,7 @@ struct AreClose : public AndFunctor {
   AreClose(Reals a, Reals b, Real tol, Real floor):
     a_(a),b_(b),tol_(tol),floor_(floor)
   {}
-  INLINE void operator()(LO i, value_type& update) const
+  OSH_INLINE void operator()(LO i, value_type& update) const
   {
     update = update && are_close(a_[i], b_[i], tol_, floor_);
   }
@@ -282,7 +282,7 @@ struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
   SameContent(Read<T> a, Read<T> b):a_(a),b_(b) {}
-  INLINE void operator()(LO i, value_type& update) const
+  OSH_INLINE void operator()(LO i, value_type& update) const
   {
     update = update && (a_[i] == b_[i]);
   }
@@ -301,7 +301,7 @@ Write<T> deep_copy(Read<T> a) {
 #ifdef OSH_USE_KOKKOS
   Kokkos::deep_copy(b.view(), a.view());
 #else
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     b[i] = a[i];
   };
   parallel_for(b.size(), f);
@@ -419,7 +419,7 @@ std::ostream& operator<<(std::ostream& o, Read<T> a) {
 template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     b[i] = a[i] * factor;
   };
   parallel_for(a.size(), f);
@@ -430,7 +430,7 @@ template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     c[i] = a[i] * b[i];
   };
   parallel_for(c.size(), f);
@@ -441,7 +441,7 @@ template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     c[i] = a[i] + b[i];
   };
   parallel_for(c.size(), f);
@@ -451,7 +451,7 @@ Read<T> add_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<T> add_to_each(Read<T> a, T b) {
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     c[i] = a[i] + b;
   };
   parallel_for(c.size(), f);
@@ -461,7 +461,7 @@ Read<T> add_to_each(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_geq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OSH_LAMBDA(LO i) {
     c[i] = (a[i] >= b);
   };
   parallel_for(c.size(), f);

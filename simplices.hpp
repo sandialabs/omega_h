@@ -47,19 +47,19 @@ template <Int hdim, Int ldim>
 struct DownTemplate;
 template <>
 struct DownTemplate<3,2> {
-  DEVICE static Int get(Int a, Int b) {
+  OSH_DEVICE static Int get(Int a, Int b) {
     return rfv_[a][b];
   }
 };
 template <>
 struct DownTemplate<3,1> {
-  DEVICE static Int get(Int a, Int b) {
+  OSH_DEVICE static Int get(Int a, Int b) {
     return rev_[a][b];
   }
 };
 template <>
 struct DownTemplate<2,1> {
-  DEVICE static Int get(Int a, Int b) {
+  OSH_DEVICE static Int get(Int a, Int b) {
     return fev_[a][b];
   }
 };
@@ -108,31 +108,31 @@ template <Int hdim, Int ldim>
 struct OppositeTemplate;
 template <>
 struct OppositeTemplate<3,2> {
-  DEVICE static Int get(Int a) {
+  OSH_DEVICE static Int get(Int a) {
     return rvof[a];
   }
 };
 template <>
 struct OppositeTemplate<3,1> {
-  DEVICE static Int get(Int a) {
+  OSH_DEVICE static Int get(Int a) {
     return reoe[a];
   }
 };
 template <>
 struct OppositeTemplate<3,0> {
-  DEVICE static Int get(Int a) {
+  OSH_DEVICE static Int get(Int a) {
     return rfov[a];
   }
 };
 template <>
 struct OppositeTemplate<2,1> {
-  DEVICE static Int get(Int a) {
+  OSH_DEVICE static Int get(Int a) {
     return fvoe[a];
   }
 };
 template <>
 struct OppositeTemplate<2,0> {
-  DEVICE static Int get(Int a) {
+  OSH_DEVICE static Int get(Int a) {
     return feov[a];
   }
 };

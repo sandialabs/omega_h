@@ -19,18 +19,6 @@
 #include <zlib.h>
 #endif
 
-/* in some cases involving __constant__ data,
- * we can't have an inline function marked as
- * __host__ at all (which KOKKOS_INLINE_FUNCTION does),
- * so we need a separate macro for things that
- * execute only on the device */
-
-#ifdef OSH_USE_CUDA
-#define DEVICE __device__ inline
-#else
-#define DEVICE inline
-#endif
-
 #define NORETURN(x) do { assert(0); return x; } while(0)
 
 #ifdef OSH_USE_CUDA

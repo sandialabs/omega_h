@@ -67,21 +67,21 @@ source:
    We will start off using the mean ratio cubed measures:
  */
 
-INLINE Real triangle_mean_ratio_squared(Real a, Few<Real, 3> lsq) {
+OSH_INLINE Real triangle_mean_ratio_squared(Real a, Few<Real, 3> lsq) {
   Real s = 0.0;
   for (Int i = 0; i < 3; ++i)
     s += lsq[i];
   return 48 * square(a) / square(s);
 }
 
-INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
+OSH_INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
   Real s = 0.0;
   for (Int i = 0; i < 6; ++i)
     s += lsq[i];
   return 15552.0 * square(v) / cube(s);
 }
 
-INLINE Real real_triangle_quality(Few<Vector<2>, 3> p) {
+OSH_INLINE Real real_triangle_quality(Few<Vector<2>, 3> p) {
   auto b = simplex_basis<2,2>(p);
   auto a = triangle_area(b);
   if (a < 0)
@@ -93,7 +93,7 @@ INLINE Real real_triangle_quality(Few<Vector<2>, 3> p) {
   return sqrt(triangle_mean_ratio_squared(a, lsq));
 }
 
-INLINE Real real_tet_quality(Few<Vector<3>, 4> p) {
+OSH_INLINE Real real_tet_quality(Few<Vector<3>, 4> p) {
   auto b = simplex_basis<3,3>(p);
   auto v = tet_volume(b);
   if (v < 0)
@@ -115,7 +115,7 @@ INLINE Real real_tet_quality(Few<Vector<3>, 4> p) {
    this is why edge lengths are recomputed using the metric interpolated
    to the element centroid */
 
-INLINE Real metric_triangle_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
+OSH_INLINE Real metric_triangle_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
   auto b = simplex_basis<2,2>(p);
   auto a = triangle_area(b);
   if (a < 0)
@@ -136,7 +136,7 @@ INLINE Real metric_triangle_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
 
    Mentions using $\sqrt{\det(M)}$ to compute volume in metric space. */
 
-INLINE Real metric_tet_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
+OSH_INLINE Real metric_tet_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
   auto b = simplex_basis<3,3>(p);
   auto v = tet_volume(b);
   if (v < 0)
@@ -152,19 +152,19 @@ INLINE Real metric_tet_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
   return cbrt(tet_mean_ratio_cubed(v, lsq));
 }
 
-INLINE Real real_element_quality(Few<Vector<2>, 3> p) {
+OSH_INLINE Real real_element_quality(Few<Vector<2>, 3> p) {
   return real_triangle_quality(p);
 }
 
-INLINE Real real_element_quality(Few<Vector<3>, 4> p) {
+OSH_INLINE Real real_element_quality(Few<Vector<3>, 4> p) {
   return real_tet_quality(p);
 }
 
-INLINE Real metric_element_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
+OSH_INLINE Real metric_element_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
   return metric_triangle_quality(p, metric);
 }
 
-INLINE Real metric_element_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
+OSH_INLINE Real metric_element_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
   return metric_tet_quality(p, metric);
 }
 
@@ -172,7 +172,7 @@ struct RealElementQualities {
   Reals coords;
   RealElementQualities(Mesh const& mesh):coords(mesh.coords()) {}
   template <Int neev>
-  INLINE Real measure(Few<LO, neev> v) const {
+  OSH_INLINE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
     return real_element_quality(p);
   }
@@ -186,7 +186,7 @@ struct MetricElementQualities {
     metrics(mesh.get_array<Real>(VERT, "metric"))
   {}
   template <Int neev>
-  INLINE Real measure(Few<LO, neev> v) const {
+  OSH_INLINE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
     auto metric = average_metrics(gather_symms<neev,neev - 1>(metrics, v));
     return metric_element_quality(p, metric);

@@ -2,7 +2,7 @@ void classify_sides_by_exposure(Mesh& mesh, Read<I8> side_is_exposed) {
   auto dim = mesh.dim();
   auto ns = mesh.nents(dim - 1);
   Write<I8> class_dim(ns);
-  auto f = LAMBDA(LO s) {
+  auto f = OSH_LAMBDA(LO s) {
     class_dim[s] = static_cast<I8>(dim - side_is_exposed[s]);
   };
   parallel_for(ns, f);
@@ -15,7 +15,7 @@ void classify_hinges_by_sharpness(Mesh& mesh,
   auto dim = mesh.dim();
   auto nh = mesh.nents(dim - 2);
   Write<I8> class_dim(nh);
-  auto f = LAMBDA(LO h) {
+  auto f = OSH_LAMBDA(LO h) {
     class_dim[h] = static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
   };
   parallel_for(nh, f);
@@ -30,7 +30,7 @@ void classify_vertices_by_sharp_edges(Mesh& mesh,
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   Write<I8> class_dim(nv);
-  auto f = LAMBDA(LO v) {
+  auto f = OSH_LAMBDA(LO v) {
     auto begin = v2ve[v];
     auto end = v2ve[v + 1];
     Int nadj_sharp = 0;
@@ -71,7 +71,7 @@ void classify_by_angles(Mesh& mesh, Real sharp_angle) {
       surf_side_normals, surf_hinge2hinge, side2surf_side);
   auto nhinges = mesh.nents(dim - 2);
   Write<I8> hinge_is_sharp(nhinges, 0);
-  auto f = LAMBDA(LO surf_hinge) {
+  auto f = OSH_LAMBDA(LO surf_hinge) {
     LO hinge = surf_hinge2hinge[surf_hinge];
     hinge_is_sharp[hinge] = (surf_hinge_angles[surf_hinge] >= sharp_angle);
   };
@@ -93,7 +93,7 @@ void project_classification(Mesh& mesh) {
     auto high_class_id = mesh.get_array<LO>(d + 1, "class_id");
     Write<I8> class_dim = deep_copy<I8>(mesh.get_array<I8>(d, "class_dim"));
     Write<LO> class_id = deep_copy<LO>(mesh.get_array<LO>(d, "class_id"));
-    auto f = LAMBDA(LO l) {
+    auto f = OSH_LAMBDA(LO l) {
       if (class_dim[l] >= 0)
         return;
       Int best_dim = 4;

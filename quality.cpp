@@ -4,7 +4,7 @@ Reals measure_qualities_tmpl(Mesh const& mesh, LOs ev2v) {
   auto neev = dim + 1;
   auto nelems = ev2v.size() / neev;
   Write<Real> qualities(nelems);
-  auto f = LAMBDA(LO e) {
+  auto f = OSH_LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     qualities[e] = measurer.measure(v);
   };

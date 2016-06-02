@@ -4,7 +4,7 @@
 // the two output arrays contain root values and multiplicities.
 // roots within an *absolute* distance of (eps) are considered
 // the same.
-INLINE Int solve_cubic(
+OSH_INLINE Int solve_cubic(
     Real a_2, Real a_1, Real a_0,
     Few<Real, 3>& roots, Few<Int, 3>& mults,
     Real eps = 1e-6) {
@@ -65,7 +65,7 @@ INLINE Int solve_cubic(
 }
 
 // solve quadratic equation x^2 + a * x + b = 0
-INLINE Int solve_quadratic(
+OSH_INLINE Int solve_quadratic(
     Real a, Real b,
     Few<Real, 2>& roots, Few<Int, 2>& mults) {
   Real disc = square(a) - 4. * b;

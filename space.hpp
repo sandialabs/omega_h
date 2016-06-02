@@ -1,16 +1,16 @@
-INLINE Vector<2> vector_2(Real x, Real y) {
+OSH_INLINE Vector<2> vector_2(Real x, Real y) {
   Vector<2> v;
   v[0] = x; v[1] = y;
   return v;
 }
 
-INLINE Vector<3> vector_3(Real x, Real y, Real z) {
+OSH_INLINE Vector<3> vector_3(Real x, Real y, Real z) {
   Vector<3> v;
   v[0] = x; v[1] = y; v[2] = z;
   return v;
 }
 
-INLINE Matrix<2,2> matrix_2x2(
+OSH_INLINE Matrix<2,2> matrix_2x2(
     Real a, Real b,
     Real c, Real d) {
   Matrix<2,2> o;
@@ -19,7 +19,7 @@ INLINE Matrix<2,2> matrix_2x2(
   return o;
 }
 
-INLINE Matrix<3,3> matrix_3x3(
+OSH_INLINE Matrix<3,3> matrix_3x3(
     Real a, Real b, Real c,
     Real d, Real e, Real f,
     Real g, Real h, Real i) {
@@ -30,42 +30,42 @@ INLINE Matrix<3,3> matrix_3x3(
   return o;
 }
 
-INLINE Matrix<3,3> cross(Vector<3> a) {
+OSH_INLINE Matrix<3,3> cross(Vector<3> a) {
   return matrix_3x3(
         0  , -a[2],  a[1],
        a[2],   0  , -a[0],
       -a[1],  a[0],   0  );
 }
 
-INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
+OSH_INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
   return vector_3(
       a[1] * b[2] - a[2] * b[1],
       a[2] * b[0] - a[0] * b[2],
       a[0] * b[1] - a[1] * b[0]);
 }
 
-INLINE Real cross(Vector<2> a, Vector<2> b) {
+OSH_INLINE Real cross(Vector<2> a, Vector<2> b) {
   return (a[0] * b[1] - a[1] * b[0]);
 }
 
 /* Rodrigues' Rotation Formula */
-INLINE Matrix<3,3> rotate(Real angle, Vector<3> axis) {
+OSH_INLINE Matrix<3,3> rotate(Real angle, Vector<3> axis) {
   return cos(angle) * identity_matrix<3,3>() +
          sin(angle) * cross(axis) +
          (1 - cos(angle)) * tensor_product(axis, axis);
 }
 
-INLINE Matrix<2,2> rotate(Real angle) {
+OSH_INLINE Matrix<2,2> rotate(Real angle) {
   return matrix_2x2(
       cos(angle), -sin(angle),
       sin(angle),  cos(angle));
 }
 
-INLINE Vector<2> perp(Vector<2> v) {
+OSH_INLINE Vector<2> perp(Vector<2> v) {
   return vector_2(-v[1], v[0]);
 }
 
-INLINE Real determinant(Matrix<2,2> m) {
+OSH_INLINE Real determinant(Matrix<2,2> m) {
   Real a = m[0][0];
   Real b = m[1][0];
   Real c = m[0][1];
@@ -73,7 +73,7 @@ INLINE Real determinant(Matrix<2,2> m) {
   return a * d - b * c;
 }
 
-INLINE Real determinant(Matrix<3,3> m) {
+OSH_INLINE Real determinant(Matrix<3,3> m) {
   Real a = m[0][0];
   Real b = m[1][0];
   Real c = m[2][0];
@@ -91,7 +91,7 @@ INLINE Real determinant(Matrix<3,3> m) {
        - (a * f * h);
 }
 
-INLINE Matrix<2,2> invert(Matrix<2,2> m) {
+OSH_INLINE Matrix<2,2> invert(Matrix<2,2> m) {
   Real a = m[0][0];
   Real b = m[1][0];
   Real c = m[0][1];
@@ -101,7 +101,7 @@ INLINE Matrix<2,2> invert(Matrix<2,2> m) {
      -c,  a) / determinant(m);
 }
 
-INLINE Matrix<3,3> invert(Matrix<3,3> a) {
+OSH_INLINE Matrix<3,3> invert(Matrix<3,3> a) {
   Matrix<3,3> b;
   b[0] = cross(a[1], a[2]);
   b[1] = cross(a[2], a[0]);
@@ -109,7 +109,7 @@ INLINE Matrix<3,3> invert(Matrix<3,3> a) {
   return transpose(b) / determinant(a);
 }
 
-INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
+OSH_INLINE Matrix<3,3> form_ortho_basis(Vector<3> v)
 {
   Matrix<3,3> A;
   A[0] = v;

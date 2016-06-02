@@ -3,7 +3,7 @@ struct IsMatch;
 
 template <>
 struct IsMatch<2> {
-  INLINE static bool eval(
+  OSH_INLINE static bool eval(
       LOs const& av2v,
       LO a_begin,
       LOs const& bv2v,
@@ -20,7 +20,7 @@ struct IsMatch<2> {
 
 template <>
 struct IsMatch<3> {
-  INLINE static bool eval(
+  OSH_INLINE static bool eval(
       LOs const& av2v,
       LO a_begin,
       LOs const& bv2v,
@@ -50,7 +50,7 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
   Read<I8> vb_codes = v2b.codes;
   Write<LO> a2b_(na);
   Write<I8> codes_(na);
-  auto f = LAMBDA(LO a) {
+  auto f = OSH_LAMBDA(LO a) {
     LO a_begin = a * deg;
     LO v0 = av2v[a_begin];
     LO vb_begin = v2vb[v0];

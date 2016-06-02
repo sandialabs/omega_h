@@ -3,17 +3,17 @@ struct BBoxFunctor {
   typedef BBox<dim> value_type;
   Reals coords_;
   BBoxFunctor(Reals coords):coords_(coords) {}
-  INLINE void init(value_type& update) const {
+  OSH_INLINE void init(value_type& update) const {
     for (Int i = 0; i < dim; ++i) {
       update.min[i] = ArithTraits<Real>::max();
       update.max[i] = ArithTraits<Real>::min();
     }
   }
-  INLINE void join(volatile value_type& update,
+  OSH_INLINE void join(volatile value_type& update,
       const volatile value_type& input) const {
     update = unite(update, input);
   }
-  INLINE void operator()(Int i, value_type& update) const {
+  OSH_INLINE void operator()(Int i, value_type& update) const {
     update = unite(update, BBox<dim>(get_vec<dim>(coords_, i)));
   }
 };

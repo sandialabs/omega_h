@@ -26,31 +26,31 @@ that to get from one entity to another one must
 first rotate and then flip the vertex list.
 */
 
-INLINE I8 make_code(bool is_flipped, Int rotation, Int which_down) {
+OSH_INLINE I8 make_code(bool is_flipped, Int rotation, Int which_down) {
   return static_cast<I8>((which_down << 3) | (rotation << 1) | is_flipped);
 }
 
-INLINE bool code_is_flipped(I8 code) {
+OSH_INLINE bool code_is_flipped(I8 code) {
   return code & 1;
 }
 
-INLINE Int code_rotation(I8 code) {
+OSH_INLINE Int code_rotation(I8 code) {
   return (code >> 1) & 3;
 }
 
-INLINE Int code_which_down(I8 code) {
+OSH_INLINE Int code_which_down(I8 code) {
   return (code >> 3);
 }
 
 template <Int nverts_per_ent>
-INLINE Int rotate_index(Int index, Int rotation) {
+OSH_INLINE Int rotate_index(Int index, Int rotation) {
   return (index + rotation) % nverts_per_ent;
 }
 
 /* all the following can probably be optimized
    down to a few integer ops by an expert... */
 
-INLINE Int flip_vert_index(Int index) {
+OSH_INLINE Int flip_vert_index(Int index) {
   switch(index) {
     case 1: return 2;
     case 2: return 1;
@@ -58,7 +58,7 @@ INLINE Int flip_vert_index(Int index) {
   }
 }
 
-INLINE Int flip_edge_index(Int index) {
+OSH_INLINE Int flip_edge_index(Int index) {
   switch(index) {
     case 0: return 2;
     case 2: return 0;
@@ -67,7 +67,7 @@ INLINE Int flip_edge_index(Int index) {
 }
 
 template <Int nverts_per_ent>
-INLINE Int align_vert_index(Int index, I8 code) {
+OSH_INLINE Int align_vert_index(Int index, I8 code) {
   index = rotate_index<nverts_per_ent>(index, code_rotation(code));
   if (code_is_flipped(code)) {
     index = flip_vert_index(index);
@@ -75,7 +75,7 @@ INLINE Int align_vert_index(Int index, I8 code) {
   return index;
 }
 
-INLINE Int align_edge_index(Int index, I8 code) {
+OSH_INLINE Int align_edge_index(Int index, I8 code) {
   index = rotate_index<3>(index, code_rotation(code));
   if (code_is_flipped(code)) {
     index = flip_edge_index(index);
@@ -83,7 +83,7 @@ INLINE Int align_edge_index(Int index, I8 code) {
   return index;
 }
 
-INLINE Int align_index(Int nverts_per_ent, Int index_dim, Int index, I8 code) {
+OSH_INLINE Int align_index(Int nverts_per_ent, Int index_dim, Int index, I8 code) {
   if (nverts_per_ent == 3) {
     if (index_dim == 1) {
       return align_edge_index(index, code);
@@ -97,24 +97,24 @@ INLINE Int align_index(Int nverts_per_ent, Int index_dim, Int index, I8 code) {
 }
 
 template <Int nverts_per_ent>
-INLINE Int invert_rotation(Int rotation) {
+OSH_INLINE Int invert_rotation(Int rotation) {
   return (nverts_per_ent - rotation) % nverts_per_ent;
 }
 
 template <Int nverts_per_ent>
-INLINE Int rotation_to_first(Int new_first) {
+OSH_INLINE Int rotation_to_first(Int new_first) {
   return invert_rotation<nverts_per_ent>(new_first);
 }
 
 template <Int nverts_per_ent>
-INLINE I8 invert_alignment(I8 code) {
+OSH_INLINE I8 invert_alignment(I8 code) {
   if (code_is_flipped(code))
     return code; // I think flipped codes are their own inverses
   return make_code(false,
       invert_rotation<nverts_per_ent>(code_rotation(code)), 0);
 }
 
-INLINE I8 invert_alignment(Int nverts_per_ent, I8 code) {
+OSH_INLINE I8 invert_alignment(Int nverts_per_ent, I8 code) {
   if (nverts_per_ent == 3)
     return invert_alignment<3>(code);
   if (nverts_per_ent == 2)
@@ -126,7 +126,7 @@ INLINE I8 invert_alignment(Int nverts_per_ent, I8 code) {
    to applying the (code1) transformation followed
    by the (code2) one. */
 template <Int nverts_per_ent>
-INLINE I8 compound_alignments(I8 code1, I8 code2) {
+OSH_INLINE I8 compound_alignments(I8 code1, I8 code2) {
   /* we can look for the inverse of the compound
      by looking at what happens to the vertex
      that used to be first (0) */
@@ -140,19 +140,19 @@ INLINE I8 compound_alignments(I8 code1, I8 code2) {
 }
 
 template <Int nverts_per_ent, typename T>
-INLINE void rotate_adj(Int rotation,
+OSH_INLINE void rotate_adj(Int rotation,
     T const in[], T out[]) {
   for (I8 j = 0; j < nverts_per_ent; ++j)
     out[rotate_index<nverts_per_ent>(j, rotation)] = in[j];
 }
 
 template <typename T>
-INLINE void flip_adj(T adj[]) {
+OSH_INLINE void flip_adj(T adj[]) {
   swap2(adj[1], adj[2]);
 }
 
 template <Int nverts_per_ent, typename T>
-INLINE void align_adj(I8 code,
+OSH_INLINE void align_adj(I8 code,
     T const in[], T out[]) {
   rotate_adj<nverts_per_ent>(code_rotation(code), in, out);
   if (code_is_flipped(code))
