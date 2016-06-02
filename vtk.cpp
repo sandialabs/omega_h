@@ -325,7 +325,7 @@ void write_pvtu(std::string const& filename, Mesh& mesh, Int cell_dim,
   write_pvtu(file, mesh, cell_dim, piecepath);
 }
 
-void write_parallel_vtk(std::string const& path, Mesh& mesh, Int cell_dim) {
+void write_parallel(std::string const& path, Mesh& mesh, Int cell_dim) {
   auto rank = mesh.comm()->rank();
   if (rank == 0) {
     safe_mkdir(path.c_str());

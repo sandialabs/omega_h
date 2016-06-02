@@ -33,10 +33,10 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_partition(VERTEX_BASED);
   if (mesh.dim() == 3) {
-  vtk::write_parallel_vtk("tets", mesh, 3);
+  vtk::write_parallel("tets", mesh, 3);
   }
-  vtk::write_parallel_vtk("tris", mesh, 2);
-  vtk::write_parallel_vtk("edges", mesh, 1);
+  vtk::write_parallel("tris", mesh, 2);
+  vtk::write_parallel("edges", mesh, 1);
   }
   fini();
 }
