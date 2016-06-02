@@ -1,19 +1,3 @@
-#if defined(OSH_USE_CUDA)
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include <thrust/device_ptr.h>
-#include <thrust/sort.h>
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-#elif defined(OSH_USE_OPENMP)
-#include "intel_sort/parallel_stable_sort.hpp"
-#else
-#include <algorithm>
-#endif
-
 template <typename T, typename Comp>
 void parallel_sort(T* b, T* e, Comp c) {
 #if defined(OSH_USE_CUDA)

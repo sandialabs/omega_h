@@ -19,6 +19,22 @@
 #include <zlib.h>
 #endif
 
+#if defined(OSH_USE_CUDA)
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+#include <thrust/device_ptr.h>
+#include <thrust/sort.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+#elif defined(OSH_USE_OPENMP)
+#include "intel_sort/parallel_stable_sort.hpp"
+#else
+#include <algorithm>
+#endif
+
 #define NORETURN(x) do { assert(0); return x; } while(0)
 
 #ifdef OSH_USE_CUDA
