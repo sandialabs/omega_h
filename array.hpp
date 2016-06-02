@@ -14,15 +14,6 @@ T min(Read<T> a);
 template <typename T>
 T max(Read<T> a);
 
-class Reals : public Read<Real> {
-public:
-  Reals();
-  Reals(Read<Real> base);
-  Reals(Write<Real> write);
-  Reals(LO size, Real value);
-  Reals(std::initializer_list<Real> l);
-};
-
 bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
 
 template <typename T>

@@ -154,6 +154,15 @@ public:
   LOs(std::initializer_list<LO> l);
 };
 
+class Reals : public Read<Real> {
+public:
+  Reals();
+  Reals(Read<Real> base);
+  Reals(Write<Real> write);
+  Reals(LO size, Real value);
+  Reals(std::initializer_list<Real> l);
+};
+
 enum Xfer {
   OSH_DONT_TRANSFER,
   OSH_INHERIT,
@@ -198,7 +207,15 @@ class Tag : public TagBase {
     Read<T> array_;
 };
 
-class Dist;
+struct Remotes {
+  Remotes() {}
+  Remotes(Read<I32> ranks_, LOs idxs_):
+    ranks(ranks_),idxs(idxs_) {
+  }
+  Read<I32> ranks;
+  LOs idxs;
+};
+
 namespace inertia {
 struct Rib;
 }
