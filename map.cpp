@@ -207,3 +207,21 @@ LOs invert_fan(LOs a2b) {
   fill_right(b2a);
   return b2a;
 }
+
+template <typename T>
+Read<T> fan_sum(LOs a2b, Read<T> b_data, Int width) {
+  auto na = a2b.size() - 1;
+  Write<T> a_data(na);
+  auto f = LAMBDA(LO a) {
+    for (Int j = 0; j < width; ++j) {
+      a_data[a * width + j] = 0;
+      for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
+        a_data[a * width + j] += b_data[b * width + j];
+      }
+    }
+  };
+  parallel_for(na, f);
+  return a_data;
+}
+
+template Read<I32> fan_sum(LOs a2b, Read<I32> b_data, Int width);

@@ -98,6 +98,14 @@ template Read<I32> Dist::exch(Read<I32> data, Int width) const;
 template Read<I64> Dist::exch(Read<I64> data, Int width) const;
 template Read<Real> Dist::exch(Read<Real> data, Int width) const;
 
+template <typename T>
+Read<T> Dist::exch_sum(Read<T> data, Int width) const {
+  Read<T> item_data = exch(data, width);
+  return fan_sum(roots2items_[R], item_data, width);
+}
+
+template Read<I32> Dist::exch_sum(Read<I32> data, Int width) const;
+
 CommPtr Dist::parent_comm() const {
   return parent_comm_;
 }

@@ -43,3 +43,6 @@ void invert(LOs a2b, LO nb,
 LOs get_degrees(LOs offsets);
 
 LOs invert_fan(LOs a2b);
+
+template <typename T>
+Read<T> fan_sum(LOs a2b, Read<T> b_data);

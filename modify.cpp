@@ -72,7 +72,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     LOs prods2new_ents,
     LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
-  CHECK(ent_dim >= key_dim);
+  CHECK(ent_dim >= key_dim || ent_dim == VERT);
   auto nold_ents = old_mesh.nents(ent_dim);
   auto nsame_ents = same_ents2old_ents.size();
   CHECK(nsame_ents == same_ents2new_ents.size());
@@ -92,7 +92,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   LOs keys2reps;
   if (key_dim == ent_dim) {
     keys2reps = keys2ents;
-  } else {
+  } else if (ent_dim > key_dim) {
     auto keys2ents2 = old_mesh.ask_up(key_dim, ent_dim);
     auto keys2key_ents = keys2ents2.a2ab;
     auto key_ents2ents = keys2ents2.ab2b;
@@ -109,11 +109,32 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     };
     parallel_for(nkeys, setup_reps);
     keys2reps = keys2reps_w;
+  } else {
+    CHECK(ent_dim == VERT);
+    CHECK(key_dim == EDGE);
+    /* in the case of finding new globals for vertices after
+       refining, we will use an endpoint vertex of the edge
+       as the "representative" entity.
+       this causes some concern because unlike before,
+       when the reprentative was on the interior of the old cavity,
+       it is now on the boundary.
+       this is the reason for the atomic_add for old_locals
+       and the exch_sum later on.
+       I can't think of a nicer way to determine new vertex globals
+       which is independent of partitioning and ordering */
+    auto edge_verts2verts = old_mesh.ask_verts_of(EDGE);
+    Write<LO> keys2reps_w;
+    auto setup_reps = LAMBDA(LO key) {
+      auto edge = keys2ents[key];
+      keys2reps_w[key] = edge_verts2verts[edge * 2 + 0];
+    };
+    parallel_for(nkeys, setup_reps);
+    keys2reps = keys2reps_w;
   }
   auto mark_reps = LAMBDA(LO key) {
     auto rep = keys2reps[key];
     auto nkey_prods = keys2nprods[key];
-    old_locals[rep] = nkey_prods;
+    atomic_add(&old_locals[rep], nkey_prods);
   };
   parallel_for(nkeys, mark_reps);
   auto old_globals = old_mesh.get_array<GO>(ent_dim, "global");
@@ -121,7 +142,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
   auto nlins = lins2old_ents.nitems();
-  auto lin_locals = old_ents2lins.exch(LOs(old_locals), 1);
+  auto lin_locals = old_ents2lins.exch_sum(LOs(old_locals), 1);
   auto lin_local_offsets = offset_scan(lin_locals);
   auto lin_global_count = lin_local_offsets.last();
   auto lin_global_offset = comm->exscan(lin_global_count, SUM);
@@ -141,6 +162,7 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   auto write_cavity_globals = LAMBDA(LO key) {
     auto global = keys2rep_globals[key];
+    if (ent_dim == VERT) ++global;
     for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
       auto new_ent = prods2new_ents[prod];
       new_globals[new_ent] = global++;
