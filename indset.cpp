@@ -63,6 +63,7 @@ Read<I8> find(
     if (candidates[i]) initial_state[i] = UNKNOWN;
     else initial_state[i] = NOT_IN;
   };
+  parallel_for(n, f);
   auto comm = owners2copies.parent_comm();
   auto state = Read<I8>(initial_state);
   while (comm->allreduce(max(state), MAX) == UNKNOWN) {
