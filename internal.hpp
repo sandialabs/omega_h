@@ -2,6 +2,7 @@
 
 /* C++ standard includes */
 
+#include <cerrno>
 #include <cfloat>
 #include <chrono>
 #include <climits>
@@ -21,6 +22,8 @@
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 /* Third party libraries */
 

@@ -1,7 +1,3 @@
-#include <sys/types.h> /*required for mode_t for mkdir on some systems*/
-#include <sys/stat.h> /*using POSIX mkdir call for SMB "foo/" path*/
-#include <errno.h> /* for checking the error from mkdir */
-
 bool is_little_endian_cpu()
 {
   static std::uint16_t const endian_canary = 0x1;
