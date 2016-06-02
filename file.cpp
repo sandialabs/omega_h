@@ -249,6 +249,7 @@ void write(std::ostream& stream, Mesh& mesh) {
       Int ncomps = tag->ncomps();
       write_value(stream, ncomps);
       write_value(stream, static_cast<Int>(tag->type()));
+      write_value(stream, static_cast<Int>(tag->xfer()));
       if (is<I8>(tag)) {
         write_array(stream, to<I8>(tag)->array());
       } else if (is<I32>(tag)) {
@@ -306,22 +307,25 @@ void read(std::istream& stream, Mesh& mesh) {
       read_value(stream, ncomps);
       Int type;
       read_value(stream, type);
+      Int xfer_int;
+      read_value(stream, xfer_int);
+      Xfer xfer = static_cast<Xfer>(xfer_int);
       if (type == OSH_I8) {
         Read<I8> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, array);
+        mesh.add_tag(d, name, ncomps, xfer, array);
       } else if (type == OSH_I32) {
         Read<I32> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, array);
+        mesh.add_tag(d, name, ncomps, xfer, array);
       } else if (type == OSH_I64) {
         Read<I64> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, array);
+        mesh.add_tag(d, name, ncomps, xfer, array);
       } else if (type == OSH_F64) {
         Read<Real> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, array);
+        mesh.add_tag(d, name, ncomps, xfer, array);
       } else {
         fail("unexpected tag type in binary write\n");
       }

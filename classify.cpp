@@ -6,7 +6,7 @@ void classify_sides_by_exposure(Mesh& mesh, Read<I8> side_is_exposed) {
     class_dim[s] = static_cast<I8>(dim - side_is_exposed[s]);
   };
   parallel_for(ns, f);
-  mesh.add_tag<I8>(dim - 1, "class_dim", 1, class_dim);
+  mesh.add_tag<I8>(dim - 1, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
 void classify_hinges_by_sharpness(Mesh& mesh,
@@ -19,7 +19,7 @@ void classify_hinges_by_sharpness(Mesh& mesh,
     class_dim[h] = static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
   };
   parallel_for(nh, f);
-  mesh.add_tag<I8>(dim - 2, "class_dim", 1, class_dim);
+  mesh.add_tag<I8>(dim - 2, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
 void classify_vertices_by_sharp_edges(Mesh& mesh,
@@ -47,12 +47,12 @@ void classify_vertices_by_sharp_edges(Mesh& mesh,
     }
   };
   parallel_for(nv, f);
-  mesh.add_tag<I8>(VERT, "class_dim", 1, class_dim);
+  mesh.add_tag<I8>(VERT, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
 void classify_elements(Mesh& mesh) {
   mesh.add_tag<I8>(mesh.dim(), "class_dim", 1,
-      Read<I8>(mesh.nelems(), static_cast<I8>(mesh.dim())));
+      OSH_INHERIT, Read<I8>(mesh.nelems(), static_cast<I8>(mesh.dim())));
 }
 
 void classify_by_angles(Mesh& mesh, Real sharp_angle) {

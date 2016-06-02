@@ -23,10 +23,11 @@ class Mesh {
     LO nelems() const;
     LO nverts() const;
     template <typename T>
-    void add_tag(Int dim, std::string const& name, Int ncomps);
+    void add_tag(Int dim, std::string const& name, Int ncomps,
+        Xfer xfer);
     template <typename T>
     void add_tag(Int dim, std::string const& name, Int ncomps,
-        Read<T> array);
+        Xfer xfer, Read<T> array);
     template <typename T>
     void set_tag(Int dim, std::string const& name, Read<T> array);
     template <typename T>

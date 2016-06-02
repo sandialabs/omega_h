@@ -169,5 +169,5 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     }
   };
   parallel_for(nkeys, write_cavity_globals);
-  new_mesh.add_tag(ent_dim, "global", 1, Read<GO>(new_globals));
+  new_mesh.add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
 }

@@ -14,7 +14,8 @@ static void serial_test(Mesh& mesh) {
     lengths[i] = 1.0;
   lengths[dim - 1] = 0.5;
   auto metric = compose_metric(identity_matrix<dim,dim>(), lengths);
-  mesh.add_tag(VERT, "metric", symm_dofs(dim), repeat_symm(mesh.nverts(), metric));
+  mesh.add_tag(VERT, "metric", symm_dofs(dim), OSH_METRIC,
+      repeat_symm(mesh.nverts(), metric));
   mesh.ask_edge_lengths();
   mesh.ask_qualities();
 }

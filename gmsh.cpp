@@ -135,8 +135,8 @@ void read(std::istream& stream, Mesh& mesh) {
       class_id[e] = eq_class_id[eq];
     };
     parallel_for(ndim_ents, f);
-    mesh.add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
-    mesh.add_tag<LO>(ent_dim, "class_id", 1, class_id);
+    mesh.add_tag<I8>(ent_dim, "class_dim", 1, OSH_INHERIT, class_dim);
+    mesh.add_tag<LO>(ent_dim, "class_id", 1, OSH_INHERIT, class_id);
   }
   project_classification(mesh);
 }
