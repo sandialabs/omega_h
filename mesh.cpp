@@ -1,5 +1,6 @@
 Mesh::Mesh():
-  dim_(-1) {
+  dim_(-1),
+  partition_(-1) {
   for (Int i = 0; i <= 3; ++i)
     nents_[i] = -1;
   partition_ = ELEMENT_BASED;
@@ -348,7 +349,16 @@ Dist Mesh::ask_dist(Int dim) {
   return *(dists_[dim]);
 }
 
+Partition Mesh::partition() const {
+  CHECK(partition_ != -1);
+  return static_cast<Partition>(partition_);
+}
+
 void Mesh::set_partition(Partition partition) {
+  if (partition_ == -1) {
+    partition_ = partition;
+    return;
+  }
   if (partition_ == partition) {
     return;
   }

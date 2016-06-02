@@ -17,7 +17,7 @@ class Mesh {
     void set_verts(LO nverts);
     void set_ents(Int dim, Adj down);
     CommPtr comm() const;
-    Partition partition();
+    Partition partition() const;
     Int dim() const;
     LO nents(Int dim) const;
     LO nelems() const;
@@ -62,9 +62,9 @@ class Mesh {
     Adj derive_adj(Int from, Int to);
     Adj ask_adj(Int from, Int to);
     void react_to_set_tag(Int dim, std::string const& name);
-    CommPtr comm_;
-    Partition partition_;
     Int dim_;
+    CommPtr comm_;
+    Int partition_;
     LO nents_[DIMS];
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];

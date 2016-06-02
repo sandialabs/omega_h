@@ -234,6 +234,8 @@ void write(std::ostream& stream, Mesh& mesh) {
   write_value(stream, dim);
   I32 comm_size = mesh.comm()->size();
   write_value(stream, comm_size);
+  Int partition = mesh.partition();
+  write_value(stream, partition);
   LO nverts = mesh.nverts();
   write_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {
@@ -290,6 +292,9 @@ void read(std::istream& stream, Mesh& mesh) {
   I32 comm_size;
   read_value(stream, comm_size);
   CHECK(comm_size == mesh.comm()->size());
+  Int partition;
+  read_value(stream, partition);
+  mesh.set_partition(static_cast<Partition>(partition));
   LO nverts;
   read_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {
