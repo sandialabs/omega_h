@@ -1,5 +1,3 @@
-#include <fstream>
-
 #include "internal.hpp"
 
 static void serial_test(Mesh& mesh) {
