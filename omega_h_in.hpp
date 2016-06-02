@@ -358,6 +358,28 @@ private:
   enum { F, R };
 };
 
+struct Graph {
+  Graph() {}
+  Graph(LOs ab2b_):ab2b(ab2b_) {}
+  Graph(LOs a2ab_, LOs ab2b_):a2ab(a2ab_),ab2b(ab2b_) {}
+  LOs a2ab;
+  LOs ab2b;
+};
+
+struct Adj : public Graph {
+  Adj() {}
+  Adj(LOs ab2b_):Graph(ab2b_) {}
+  Adj(LOs ab2b_, Read<I8> codes_):Graph(ab2b_),codes(codes_) {}
+  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_):
+    Graph(a2ab_, ab2b_),codes(codes_) {
+  }
+  Adj(LOs a2ab_, LOs ab2b_):
+    Graph(a2ab_, ab2b_) {
+  }
+  Adj(Graph g):Graph(g) {}
+  Read<I8> codes;
+};
+
 namespace inertia {
 struct Rib;
 }

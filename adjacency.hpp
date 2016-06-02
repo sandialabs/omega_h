@@ -1,17 +1,3 @@
-struct Adj : public Graph {
-  Adj() {}
-  Adj(LOs ab2b_):Graph(ab2b_) {}
-  Adj(LOs ab2b_, Read<I8> codes_):Graph(ab2b_),codes(codes_) {}
-  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_):
-    Graph(a2ab_, ab2b_),codes(codes_) {
-  }
-  Adj(LOs a2ab_, LOs ab2b_):
-    Graph(a2ab_, ab2b_) {
-  }
-  Adj(Graph g):Graph(g) {}
-  Read<I8> codes;
-};
-
 LOs order_by_globals(
     LOs a2ab, LOs ab2b, Read<GO> b_global);
 
