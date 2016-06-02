@@ -1,7 +1,7 @@
 bool refine(Mesh& mesh, Real min_qual) {
   mesh.set_partition(GHOSTED);
   auto comm = mesh.comm();
-  auto edges_are_cands = mesh.get_array<I8>(EDGE, "candidates");
+  auto edges_are_cands = mesh.get_array<I8>(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_quals = refine_qualities(mesh, cands2edges);
   auto cands_are_good = each_geq_to(cand_quals, min_qual);
