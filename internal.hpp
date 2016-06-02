@@ -1,6 +1,7 @@
 #include "omega_h.hpp"
 
 #include <cmath>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>

@@ -1,6 +1,3 @@
-#include <cstdarg>
-#include <cstdio>
-
 #ifdef OSH_USE_MPI
 static bool we_called_mpi_init = false;
 #endif
