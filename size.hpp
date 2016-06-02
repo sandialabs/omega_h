@@ -1,5 +1,6 @@
 template <Int sdim, Int edim>
-OSH_INLINE Few<Vector<sdim>, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
+OSH_INLINE Few<Vector<sdim>, edim> simplex_basis(
+    Few<Vector<sdim>, edim + 1> p) {
   Few<Vector<sdim>, edim> b;
   for (Int i = 0; i < edim; ++i)
     b[i] = p[i + 1] - p[0];
@@ -31,7 +32,8 @@ OSH_INLINE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
 }
 
 template <Int dim>
-OSH_INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Matrix<dim,dim> metric) {
+OSH_INLINE Real metric_edge_length(Few<Vector<dim>, 2> p,
+    Matrix<dim,dim> metric) {
   return metric_length(metric, p[1] - p[0]);
 }
 
