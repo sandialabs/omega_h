@@ -40,3 +40,11 @@ LO linear_partition_size(CommPtr comm, GO total) {
 GO find_total_globals(CommPtr comm, Read<GO> globals) {
   return comm->allreduce(max(globals), MAX) + 1;
 }
+
+Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals) {
+  auto total = find_total_globals(comm, globals);
+  auto nlins = linear_partition_size(comm, total);
+  auto copies2lins_map = globals_to_linear_owners(comm, globals, total);
+  auto copies2lins_dist = Dist(comm, copies2lins_map, nlins);
+  return copies2lins_dist;
+}
