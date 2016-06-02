@@ -1,31 +1,3 @@
-#ifdef OSH_USE_MPI
-
-/* on BlueGene/Q the default install
- * defines MPICH2_CONST to empty if we
- * don't define it first, causing tons
- * of compile errors.
- *
- * in addition, the mpicxx.h header is full
- * of "const MPICH2_CONST", probably as a workaround
- * for the first mistake above.
- * as a result, properly defining MPICH2_CONST to const
- * also causes compile errors.
- * luckily, we can avoid including mpicxx.h with
- * MPICH_SKIP_MPICXX.
- */
-#ifdef __bgq__
-#define MPICH2_CONST const
-#define MPICH_SKIP_MPICXX
-#endif
-
-/* have Clang diagnostics ignore everything
- * inside mpi.h
- */
-#ifdef __clang__
-#pragma clang system_header
-#endif
-#include <mpi.h>
-
 #ifdef OMPI_MPI_H
 /* OpenMPI defines MPI_UNWEIGHTED using (void*)
  * which causes compile errors with strict
@@ -36,6 +8,7 @@
 #define OSH_MPI_UNWEIGHTED MPI_UNWEIGHTED
 #endif
 
+#ifdef OSH_USE_MPI
 template <class T>
 struct MpiTraits;
 
@@ -63,8 +36,7 @@ template <>
 struct MpiTraits<double> {
   static MPI_Datatype datatype() { return MPI_DOUBLE; }
 };
-
-#endif
+#endif //OSH_USE_MPI
 
 class Comm;
 
