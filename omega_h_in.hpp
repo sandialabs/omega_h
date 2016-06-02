@@ -163,6 +163,31 @@ public:
   Reals(std::initializer_list<Real> l);
 };
 
+template <typename T>
+class HostRead {
+  Read<T> read_;
+#ifdef OSH_USE_KOKKOS
+  typename Kokkos::View<const T*>::HostMirror mirror_;
+#endif
+public:
+  HostRead();
+  HostRead(Read<T> read);
+  LO size() const;
+  inline T const& operator[](LO i) const {
+#ifdef OSH_USE_KOKKOS
+#ifdef OSH_CHECK_BOUNDS
+    CHECK(0 <= i);
+    CHECK(i < size());
+#endif
+    return mirror_(i);
+#else
+    return read_[i];
+#endif
+  }
+  T const* data() const;
+  T last() const;
+};
+
 enum Xfer {
   OSH_DONT_TRANSFER,
   OSH_INHERIT,
@@ -214,6 +239,113 @@ struct Remotes {
   }
   Read<I32> ranks;
   LOs idxs;
+};
+
+struct Int128
+{
+  std::int64_t high;
+  std::uint64_t low;
+  OSH_INLINE Int128();
+  OSH_INLINE Int128(std::int64_t h, std::uint64_t l);
+  OSH_INLINE Int128(std::int64_t value);
+  OSH_INLINE void operator=(Int128 const& rhs) volatile;
+  OSH_INLINE Int128(Int128 const& rhs);
+  OSH_INLINE Int128(const volatile Int128& rhs);
+  double to_double(double unit) const;
+  void print(std::ostream& o) const;
+  static OSH_INLINE Int128 from_double(double value, double unit);
+};
+
+enum ReduceOp {
+  MIN,
+  MAX,
+  SUM
+};
+
+class Comm;
+
+typedef std::shared_ptr<Comm> CommPtr;
+
+class Comm {
+#ifdef OSH_USE_MPI
+  MPI_Comm impl_;
+#endif
+  Read<I32> srcs_;
+  HostRead<I32> host_srcs_;
+  Read<I32> dsts_;
+  HostRead<I32> host_dsts_;
+public:
+  Comm();
+#ifdef OSH_USE_MPI
+  Comm(MPI_Comm impl);
+#else
+  Comm(bool sends_to_self);
+#endif
+  ~Comm();
+  static CommPtr world();
+  static CommPtr self();
+  I32 rank() const;
+  I32 size() const;
+  CommPtr dup() const;
+  CommPtr split(I32 color, I32 key) const;
+  CommPtr graph(Read<I32> dsts) const;
+  CommPtr graph_adjacent(Read<I32> srcs, Read<I32> dsts) const;
+  CommPtr graph_inverse() const;
+  Read<I32> sources() const;
+  Read<I32> destinations() const;
+  template <typename T>
+  T allreduce(T x, ReduceOp op) const;
+  Int128 add_int128(Int128 x) const;
+  template <typename T>
+  T exscan(T x, ReduceOp op) const;
+  template <typename T>
+  void bcast(T& x) const;
+  void bcast_string(std::string& s) const;
+  template <typename T>
+  Read<T> allgather(T x) const;
+  template <typename T>
+  Read<T> alltoall(Read<T> x) const;
+  template <typename T>
+  Read<T> alltoallv(Read<T> sendbuf,
+      Read<LO> sendcounts, Read<LO> sdispls,
+      Read<LO> recvcounts, Read<LO> rdispls) const;
+  void barrier() const;
+};
+
+class Dist {
+  CommPtr parent_comm_;
+  LOs roots2items_[2];
+  LOs items2content_[2];
+  LOs msgs2content_[2];
+  CommPtr comm_[2];
+public:
+  Dist();
+  Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots);
+  void set_parent_comm(CommPtr parent_comm);
+  void set_dest_ranks(Read<I32> items2ranks);
+  void set_dest_idxs(LOs fitems2rroots, LO nrroots);
+  void set_roots2items(LOs froots2fitems);
+  Dist invert() const;
+  template <typename T>
+  Read<T> exch(Read<T> data, Int width) const;
+  template <typename T>
+  Read<T> exch_sum(Read<T> data, Int width) const;
+  CommPtr parent_comm() const;
+  CommPtr comm() const;
+  LOs content2msgs() const;
+  LOs items2msgs() const;
+  LOs roots2items() const;
+  Read<I32> msgs2ranks() const;
+  Read<I32> items2ranks() const;
+  LOs items2dest_idxs() const;
+  Remotes items2dests() const;
+  LO nitems() const;
+  LO nroots() const;
+  LO ndests() const;
+  void change_comm(CommPtr new_comm);
+  Remotes exch(Remotes data, Int width) const;
+private:
+  enum { F, R };
 };
 
 namespace inertia {

@@ -44,31 +44,6 @@ public:
 };
 
 template <typename T>
-class HostRead {
-  Read<T> read_;
-#ifdef OSH_USE_KOKKOS
-  typename Kokkos::View<const T*>::HostMirror mirror_;
-#endif
-public:
-  HostRead();
-  HostRead(Read<T> read);
-  LO size() const;
-  inline T const& operator[](LO i) const {
-#ifdef OSH_USE_KOKKOS
-#ifdef OSH_CHECK_BOUNDS
-    CHECK(0 <= i);
-    CHECK(i < size());
-#endif
-    return mirror_(i);
-#else
-    return read_[i];
-#endif
-  }
-  T const* data() const;
-  T last() const;
-};
-
-template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a);
 
 template <typename T>

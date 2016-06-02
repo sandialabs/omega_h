@@ -8,43 +8,43 @@ std::ostream& operator<<(std::ostream& o, Int128 const& x);
    TODO: wrap built-in types when they are available
 */
 
-struct Int128
-{
-  std::int64_t high;
-  std::uint64_t low;
-  OSH_INLINE Int128() {}
-  OSH_INLINE Int128(std::int64_t h, std::uint64_t l):
-    high(h),low(l) {
-  }
-  OSH_INLINE Int128(std::int64_t value):
-    Int128(
-      std::int64_t(-1) * (value < 0),
-      std::uint64_t(value)) {
-  }
-  /* volatile... why is this not done by default...
-   * returning void instead of reference to *this
-   * to silence GCC's warning that the reference
-   * is unused. */
-  OSH_INLINE void operator=(Int128 const& rhs) volatile {
-    high = rhs.high;
-    low = rhs.low;
-  }
-  /* which implies we have to declare a regular copy
-     constructor */
-  OSH_INLINE Int128(Int128 const& rhs):
-    high(rhs.high),low(rhs.low) {
-  }
-  /* and a volatile rhs one ? */
-  OSH_INLINE Int128(const volatile Int128& rhs):
-    high(rhs.high),low(rhs.low) {
-  }
-  double to_double(double unit) const;
-  void print(std::ostream& o) const;
-  static OSH_INLINE Int128 from_double(double value, double unit) {
-    double normalized = value / unit;
-    return Int128(std::int64_t(normalized));
-  }
-};
+OSH_INLINE Int128::Int128() {
+}
+
+OSH_INLINE Int128::Int128(std::int64_t h, std::uint64_t l):
+  high(h),low(l) {
+}
+
+OSH_INLINE Int128::Int128(std::int64_t value):
+  Int128(
+    std::int64_t(-1) * (value < 0),
+    std::uint64_t(value)) {
+}
+
+/* volatile... why is this not done by default...
+ * returning void instead of reference to *this
+ * to silence GCC's warning that the reference
+ * is unused. */
+OSH_INLINE void Int128::operator=(Int128 const& rhs) volatile {
+  high = rhs.high;
+  low = rhs.low;
+}
+
+/* which implies we have to declare a regular copy
+   constructor */
+OSH_INLINE Int128::Int128(Int128 const& rhs):
+  high(rhs.high),low(rhs.low) {
+}
+
+/* and a volatile rhs one ? */
+OSH_INLINE Int128::Int128(const volatile Int128& rhs):
+  high(rhs.high),low(rhs.low) {
+}
+
+OSH_INLINE Int128 Int128::from_double(double value, double unit) {
+  double normalized = value / unit;
+  return Int128(std::int64_t(normalized));
+}
 
 /* we moved the actual operators out here to take
  * their arguments by value, the CUDA compiler

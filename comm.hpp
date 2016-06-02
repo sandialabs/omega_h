@@ -40,62 +40,6 @@ struct MpiTraits<double> {
 
 static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");
 
-enum ReduceOp {
-  MIN,
-  MAX,
-  SUM
-};
-
-class Comm;
-
-typedef std::shared_ptr<Comm> CommPtr;
-
-class Comm {
-#ifdef OSH_USE_MPI
-  MPI_Comm impl_;
-#endif
-  Read<I32> srcs_;
-  HostRead<I32> host_srcs_;
-  Read<I32> dsts_;
-  HostRead<I32> host_dsts_;
-public:
-  Comm();
-#ifdef OSH_USE_MPI
-  Comm(MPI_Comm impl);
-#else
-  Comm(bool sends_to_self);
-#endif
-  ~Comm();
-  static CommPtr world();
-  static CommPtr self();
-  I32 rank() const;
-  I32 size() const;
-  CommPtr dup() const;
-  CommPtr split(I32 color, I32 key) const;
-  CommPtr graph(Read<I32> dsts) const;
-  CommPtr graph_adjacent(Read<I32> srcs, Read<I32> dsts) const;
-  CommPtr graph_inverse() const;
-  Read<I32> sources() const;
-  Read<I32> destinations() const;
-  template <typename T>
-  T allreduce(T x, ReduceOp op) const;
-  Int128 add_int128(Int128 x) const;
-  template <typename T>
-  T exscan(T x, ReduceOp op) const;
-  template <typename T>
-  void bcast(T& x) const;
-  void bcast_string(std::string& s) const;
-  template <typename T>
-  Read<T> allgather(T x) const;
-  template <typename T>
-  Read<T> alltoall(Read<T> x) const;
-  template <typename T>
-  Read<T> alltoallv(Read<T> sendbuf,
-      Read<LO> sendcounts, Read<LO> sdispls,
-      Read<LO> recvcounts, Read<LO> rdispls) const;
-  void barrier() const;
-};
-
 #ifdef OSH_USE_MPI
 inline MPI_Op mpi_op(ReduceOp op) {
   switch (op) {

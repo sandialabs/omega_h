@@ -78,7 +78,6 @@
 #include "tag.hpp"
 #include "comm.hpp"
 #include "remotes.hpp"
-#include "dist.hpp"
 #include "mesh.hpp"
 #include "indset.hpp"
 #include "metric.hpp"
