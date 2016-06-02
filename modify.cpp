@@ -38,3 +38,28 @@ void modify_conn(Mesh& old_mesh, Mesh& new_mesh,
       LOs(new_ent_lows2new_lows), Read<I8>(new_ent_low_codes));
   new_mesh.set_ents(ent_dim, new_ents2new_lows);
 }
+
+void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
+    Int ent_dim,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    LOs old_ents2new_ents) {
+  auto same_owners = unmap_owners(old_mesh, ent_dim,
+      same_ents2old_ents, old_ents2new_ents);
+  auto same_own_ranks = same_owners.ranks;
+  auto same_own_idxs = same_owners.idxs;
+  auto nprods = prods2new_ents.size();
+  auto prod_own_ranks = Read<I32>(nprods, new_mesh.comm()->rank());
+  auto prod_own_idxs = prods2new_ents;
+  auto nsame_ents = same_ents2old_ents.size();
+  auto nnew_ents = nsame_ents + nprods;
+  Write<I32> new_own_ranks(nnew_ents);
+  Write<LO> new_own_idxs(nnew_ents);
+  map_into(same_own_ranks, same_ents2new_ents, new_own_ranks, 1);
+  map_into(same_own_idxs, same_ents2new_ents, new_own_idxs, 1);
+  map_into(prod_own_ranks, prods2new_ents, new_own_ranks, 1);
+  map_into(prod_own_idxs, prods2new_ents, new_own_idxs, 1);
+  auto new_owners = Remotes(Read<I32>(new_own_ranks), LOs(new_own_idxs));
+  new_mesh.set_owners(ent_dim, new_owners);
+}
