@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <cassert>
 #include <initializer_list>
 #include <iostream>
 #include <sstream>
@@ -47,11 +46,12 @@
 #define CONSTANT
 #endif
 
+#define CHECK(cond) OSH_CHECK(cond)
+
 #define EPSILON 1e-10
 #define PI 3.141592653589793
 #define MANTISSA_BITS 52
 
-#include "control.hpp"
 #include "protect.hpp"
 #include "timer.hpp"
 #include "algorithm.hpp"

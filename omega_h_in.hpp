@@ -8,6 +8,7 @@
 #cmakedefine OSH_USE_ZLIB
 #cmakedefine OSH_CHECK_BOUNDS
 
+#include <cassert>
 #include <memory>
 #include <string>
 
@@ -71,6 +72,19 @@
 
 //namespace osh will start here
 
+void init(int& argc, char**& argv);
+
+void fini();
+
+void fail(char const* format, ...) __attribute__((noreturn));
+
+#ifdef __CUDA_ARCH__
+#define OSH_CHECK(cond) assert(cond)
+#else
+#define OSH_CHECK(cond) ((cond) ? ((void)0) : \
+  fail("assertion %s failed at %s +%d\n",#cond,__FILE__,__LINE__))
+#endif
+
 typedef std::int8_t  I8;
 typedef std::int16_t I16;
 typedef std::int32_t I32;
@@ -100,12 +114,8 @@ public:
   LO size() const;
   OSH_INLINE T& operator[](LO i) const {
 #ifdef OSH_CHECK_BOUNDS
-    if (i < 0)
-      std::cerr << "i = " << i << '\n';
-    CHECK(0 <= i);
-    if (i >= size())
-      std::cerr << "i = " << i << '\n';
-    CHECK(i < size());
+    OSH_CHECK(0 <= i);
+    OSH_CHECK(i < size());
 #endif
 #ifdef OSH_USE_KOKKOS
     return view_(i);
@@ -176,8 +186,8 @@ public:
   inline T const& operator[](LO i) const {
 #ifdef OSH_USE_KOKKOS
 #ifdef OSH_CHECK_BOUNDS
-    CHECK(0 <= i);
-    CHECK(i < size());
+    OSH_CHECK(0 <= i);
+    OSH_CHECK(i < size());
 #endif
     return mirror_(i);
 #else
