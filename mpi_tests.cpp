@@ -110,6 +110,26 @@ static void test_two_ranks_bipart(CommPtr comm) {
   }
 }
 
+static void test_two_ranks_exch_sum(CommPtr comm) {
+  Dist dist;
+  dist.set_parent_comm(comm);
+  /* three copies on each side, two are shared and
+     owned by rank 0 */
+  if (comm->rank() == 0) {
+    dist.set_dest_ranks(Read<I32>({0,0,0}));
+    dist.set_dest_idxs( LOs      ({0,1,2}), 3);
+  } else {
+    dist.set_dest_ranks(Read<I32>({0,0,1}));
+    dist.set_dest_idxs( LOs      ({1,2,0}), 1);
+  }
+  auto recvd = dist.exch_sum(LOs({1,1,1}), 1);
+  if (comm->rank() == 0) {
+    CHECK(recvd == LOs({1,2,2}));
+  } else {
+    CHECK(recvd == LOs({1}));
+  }
+}
+
 static void test_two_ranks_owners(CommPtr comm) {
   test_two_ranks_eq_owners(comm);
   test_two_ranks_uneq_owners(comm);
@@ -120,6 +140,7 @@ static void test_two_ranks(CommPtr comm) {
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
   test_two_ranks_bipart(comm);
+  test_two_ranks_exch_sum(comm);
 }
 
 static void test_rib(CommPtr comm) {
