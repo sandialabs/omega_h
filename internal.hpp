@@ -1,17 +1,14 @@
 #include "omega_h.hpp"
 
 #include <cmath>
-#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <initializer_list>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <type_traits>
 #include <chrono>
 #include <climits>
-#include <vector>
 #include <cfloat>
 
 #include <cxxabi.h>
@@ -78,7 +75,6 @@
 #include "tag.hpp"
 #include "comm.hpp"
 #include "remotes.hpp"
-#include "mesh.hpp"
 #include "indset.hpp"
 #include "metric.hpp"
 #include "size.hpp"

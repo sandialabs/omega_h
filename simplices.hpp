@@ -1,14 +1,3 @@
-#define DIMS 4
-
-enum {
-  VERT,
-  EDGE,
-  FACE,
-  TRI = FACE,
-  REGION,
-  TET = REGION
-};
-
 CONSTANT static Int const fev0[] = {0,1};
 CONSTANT static Int const fev1[] = {1,2};
 CONSTANT static Int const fev2[] = {2,0};
