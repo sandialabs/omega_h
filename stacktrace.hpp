@@ -5,16 +5,6 @@
    cleaned it up for compilation as strict C++11,
    fixed the parser for OS X */
 
-#ifndef STACKTRACE_HPP
-#define STACKTRACE_HPP
-
-#include <cstdio>
-#include <cstdlib>
-#include <string>
-#include <sstream>
-#include <execinfo.h>
-#include <cxxabi.h>
-
 /** Print a demangled stack backtrace of the caller function to FILE* out. */
 static inline void print_stacktrace(FILE *out = stderr, int max_frames = 63)
 {
@@ -62,5 +52,3 @@ static inline void print_stacktrace(FILE *out = stderr, int max_frames = 63)
   }
   free(symbollist);
 }
-
-#endif // STACKTRACE_H

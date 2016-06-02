@@ -1,12 +1,14 @@
 #include "omega_h.hpp"
 
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
+#include <cstdio>
 #include <cstdlib>
 #include <cassert>
 #include <initializer_list>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <fstream>
 #include <type_traits>
 #include <chrono>
@@ -14,6 +16,9 @@
 #include <climits>
 #include <vector>
 #include <cfloat>
+
+#include <execinfo.h>
+#include <cxxabi.h>
 
 #ifdef OSH_USE_ZLIB
 #include <zlib.h>
