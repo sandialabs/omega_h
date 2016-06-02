@@ -44,7 +44,7 @@ static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
 INLINE std::uint32_t bswap32(std::uint32_t a)
 {
-#ifdef USE_CUDA
+#ifdef OSH_USE_CUDA
   a = ((a & 0x000000FF) << 24) |
       ((a & 0x0000FF00) <<  8) |
       ((a & 0x00FF0000) >>  8) |
@@ -57,7 +57,7 @@ INLINE std::uint32_t bswap32(std::uint32_t a)
 
 INLINE std::uint64_t bswap64(std::uint64_t a)
 {
-#ifdef USE_CUDA
+#ifdef OSH_USE_CUDA
   a = ((a & 0x00000000000000FFULL) << 56) |
       ((a & 0x000000000000FF00ULL) << 40) |
       ((a & 0x0000000000FF0000ULL) << 24) |
@@ -147,7 +147,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   HostRead<T> uncompressed(swapped);
   I64 uncompressed_bytes = static_cast<I64>(
       static_cast<std::size_t>(size) * sizeof(T));
-#ifdef USE_ZLIB
+#ifdef OSH_USE_ZLIB
   uLong source_bytes = static_cast<uLong>(uncompressed_bytes);
   uLong dest_bytes = ::compressBound(source_bytes);
   Bytef* compressed = new Bytef[dest_bytes];
@@ -177,7 +177,7 @@ void read_array(std::istream& stream, Read<T>& array,
   I64 uncompressed_bytes = static_cast<I64>(
       static_cast<std::size_t>(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
-#ifdef USE_ZLIB
+#ifdef OSH_USE_ZLIB
   if (is_compressed) {
     I64 compressed_bytes;
     read_value(stream, compressed_bytes);
@@ -224,7 +224,7 @@ void read(std::istream& stream, std::string& val)
 void write(std::ostream& stream, Mesh& mesh) {
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
   write_value(stream, latest_version);
-#ifdef USE_ZLIB
+#ifdef OSH_USE_ZLIB
   I8 is_compressed = true;
 #else
   I8 is_compressed = false;
@@ -281,7 +281,7 @@ void read(std::istream& stream, Mesh& mesh) {
   read_value(stream, version);
   I8 is_compressed;
   read_value(stream, is_compressed);
-#ifdef USE_ZLIB
+#ifdef OSH_USE_ZLIB
   CHECK(!is_compressed);
 #endif
   CHECK(version >= 1);

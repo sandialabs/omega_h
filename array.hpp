@@ -3,7 +3,7 @@ class HostWrite;
 
 template <typename T>
 class Write {
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
   Kokkos::View<T*> view_;
 #else
   std::shared_ptr<T> ptr_;
@@ -17,7 +17,7 @@ public:
   Write(HostWrite<T> host_write);
   LO size() const;
   INLINE T& operator[](LO i) const {
-#ifdef CHECK_BOUNDS
+#ifdef OSH_CHECK_BOUNDS
     if (i < 0)
       std::cerr << "i = " << i << '\n';
     CHECK(0 <= i);
@@ -25,14 +25,14 @@ public:
       std::cerr << "i = " << i << '\n';
     CHECK(i < size());
 #endif
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
     return view_(i);
 #else
     return ptr_.get()[i];
 #endif
   }
   T* data() const;
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
   Kokkos::View<T*> view() const;
 #endif
   void set(LO i, T value) const;
@@ -54,7 +54,7 @@ public:
     return write_[i];
   }
   T const* data() const;
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
   Kokkos::View<const T*> view() const;
 #endif
   T get(LO i) const;
@@ -99,7 +99,7 @@ public:
 template <typename T>
 class HostWrite {
   Write<T> write_;
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
 #endif
 public:
@@ -110,8 +110,8 @@ public:
   Write<T> write() const;
   LO size() const;
   inline T& operator[](LO i) const {
-#ifdef USE_KOKKOS
-#ifdef CHECK_BOUNDS
+#ifdef OSH_USE_KOKKOS
+#ifdef OSH_CHECK_BOUNDS
     CHECK(0 <= i);
     CHECK(i < size());
 #endif
@@ -126,7 +126,7 @@ public:
 template <typename T>
 class HostRead {
   Read<T> read_;
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
   typename Kokkos::View<const T*>::HostMirror mirror_;
 #endif
 public:
@@ -134,8 +134,8 @@ public:
   HostRead(Read<T> read);
   LO size() const;
   inline T const& operator[](LO i) const {
-#ifdef USE_KOKKOS
-#ifdef CHECK_BOUNDS
+#ifdef OSH_USE_KOKKOS
+#ifdef OSH_CHECK_BOUNDS
     CHECK(0 <= i);
     CHECK(i < size());
 #endif

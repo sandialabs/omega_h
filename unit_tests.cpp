@@ -541,7 +541,7 @@ static void test_file() {
   std::stringstream stream;
   std::string s = "foo";
   LO n = 10;
-#ifdef USE_ZLIB
+#ifdef OSH_USE_ZLIB
   bool is_compressed = true;
 #else
   bool is_compressed = false;

@@ -1,15 +1,15 @@
 #include <cstdarg>
 #include <cstdio>
 
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
 static bool we_called_mpi_init = false;
 #endif
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
 static bool we_called_kokkos_init = false;
 #endif
 
 void init(int& argc, char**& argv) {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   int mpi_is_init;
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
   if (!mpi_is_init) {
@@ -17,7 +17,7 @@ void init(int& argc, char**& argv) {
     we_called_mpi_init = true;
   }
 #endif
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
   if (!Kokkos::DefaultExecutionSpace::is_initialized()) {
     Kokkos::initialize(argc, argv);
     we_called_kokkos_init = true;
@@ -29,13 +29,13 @@ void init(int& argc, char**& argv) {
 }
 
 void fini() {
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
   if (we_called_kokkos_init) {
     Kokkos::finalize();
     we_called_kokkos_init = false;
   }
 #endif
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   if (we_called_mpi_init) {
     CHECK(MPI_SUCCESS == MPI_Finalize());
     we_called_mpi_init = false;

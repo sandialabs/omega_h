@@ -1,12 +1,12 @@
 #define CALL(f) CHECK(MPI_SUCCESS == (f))
 
 Comm::Comm() {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   impl_ = MPI_COMM_NULL;
 #endif
 }
 
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
 Comm::Comm(MPI_Comm impl):impl_(impl) {
   int topo_type;
   CALL(MPI_Topo_test(impl, &topo_type));
@@ -41,13 +41,13 @@ Comm::Comm(bool sends_to_self) {
 #endif
 
 Comm::~Comm() {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   CALL(MPI_Comm_free(&impl_));
 #endif
 }
 
 CommPtr Comm::world() {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Comm impl;
   CALL(MPI_Comm_dup(MPI_COMM_WORLD, &impl));
   return CommPtr(new Comm(impl));
@@ -57,7 +57,7 @@ CommPtr Comm::world() {
 }
 
 CommPtr Comm::self() {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Comm impl;
   CALL(MPI_Comm_dup(MPI_COMM_SELF, &impl));
   return CommPtr(new Comm(impl));
@@ -67,7 +67,7 @@ CommPtr Comm::self() {
 }
 
 I32 Comm::rank() const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   I32 r;
   CALL(MPI_Comm_rank(impl_, &r));
   return r;
@@ -77,7 +77,7 @@ I32 Comm::rank() const {
 }
 
 I32 Comm::size() const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   I32 s;
   CALL(MPI_Comm_size(impl_, &s));
   return s;
@@ -87,7 +87,7 @@ I32 Comm::size() const {
 }
 
 CommPtr Comm::dup() const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Comm impl2;
   CALL(MPI_Comm_dup(impl_, &impl2));
   return CommPtr(new Comm(impl2));
@@ -97,7 +97,7 @@ CommPtr Comm::dup() const {
 }
 
 CommPtr Comm::split(I32 color, I32 key) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Comm impl2;
   CALL(MPI_Comm_split(impl_, color, key, &impl2));
   return CommPtr(new Comm(impl2));
@@ -109,7 +109,7 @@ CommPtr Comm::split(I32 color, I32 key) const {
 }
 
 CommPtr Comm::graph(Read<I32> dsts) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Comm impl2;
   int n = 1;
   int sources[1] = {rank()};
@@ -133,7 +133,7 @@ CommPtr Comm::graph(Read<I32> dsts) const {
 }
 
 CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Comm impl2;
   HostRead<I32> sources(srcs);
   HostRead<I32> destinations(dsts);
@@ -166,7 +166,7 @@ Read<I32> Comm::destinations() const {
 
 template <typename T>
 T Comm::allreduce(T x, ReduceOp op) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   CALL(MPI_Allreduce(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(),
         mpi_op(op), impl_));
 #else
@@ -175,7 +175,7 @@ T Comm::allreduce(T x, ReduceOp op) const {
   return x;
 }
 
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
 static void mpi_add_int128(void* a, void* b, int*, MPI_Datatype*) {
   Int128* a2 = static_cast<Int128*>(a);
   Int128* b2 = static_cast<Int128*>(b);
@@ -184,7 +184,7 @@ static void mpi_add_int128(void* a, void* b, int*, MPI_Datatype*) {
 #endif
 
 Int128 Comm::add_int128(Int128 x) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Op op;
   int commute = true;
   CALL(MPI_Op_create(mpi_add_int128, commute, &op));
@@ -197,7 +197,7 @@ Int128 Comm::add_int128(Int128 x) const {
 
 template <typename T>
 T Comm::exscan(T x, ReduceOp op) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   CALL(MPI_Exscan(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(),
         mpi_op(op), impl_));
   if (rank() == 0)
@@ -212,7 +212,7 @@ T Comm::exscan(T x, ReduceOp op) const {
 
 template <typename T>
 void Comm::bcast(T& x) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   CALL(MPI_Bcast(&x, 1, MpiTraits<T>::datatype(), 0, impl_));
 #else
   (void) x;
@@ -220,7 +220,7 @@ void Comm::bcast(T& x) const {
 }
 
 void Comm::bcast_string(std::string& s) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   I32 len = static_cast<I32>(s.length());
   bcast(len);
   s.resize(static_cast<std::size_t>(len));
@@ -230,7 +230,7 @@ void Comm::bcast_string(std::string& s) const {
 #endif
 }
 
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
 
 /* custom implementation of MPI_Neighbor_allgather
  * in the case that we are using an MPI older
@@ -391,11 +391,11 @@ static int Neighbor_alltoallv(
 #endif // end if MPI_VERSION < 3
 }
 
-#endif //end ifdef USE_MPI
+#endif //end ifdef OSH_USE_MPI
 
 template <typename T>
 Read<T> Comm::allgather(T x) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   HostWrite<T> recvbuf(srcs_.size());
   CALL(Neighbor_allgather(
         host_srcs_, host_dsts_,
@@ -412,7 +412,7 @@ Read<T> Comm::allgather(T x) const {
 
 template <typename T>
 Read<T> Comm::alltoall(Read<T> x) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   HostWrite<T> recvbuf(srcs_.size());
   HostRead<T> sendbuf(x);
   CALL(Neighbor_alltoall(
@@ -430,7 +430,7 @@ template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
     Read<LO> sendcounts_dev, Read<LO> sdispls_dev,
     Read<LO> recvcounts_dev, Read<LO> rdispls_dev) const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   HostRead<T> sendbuf(sendbuf_dev);
   HostRead<LO> sendcounts(sendcounts_dev);
   HostRead<LO> recvcounts(recvcounts_dev);
@@ -461,7 +461,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
 }
 
 void Comm::barrier() const {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   CALL(MPI_Barrier(impl_));
 #endif
 }

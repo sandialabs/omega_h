@@ -96,7 +96,7 @@ void write_array(std::ostream& stream, std::string const& name,
   HostRead<T> uncompressed(array);
   std::size_t uncompressed_bytes = sizeof(T) *
     static_cast<std::size_t>(array.size());
-#ifdef USE_ZLIB
+#ifdef OSH_USE_ZLIB
   uLong source_bytes = uncompressed_bytes;
   uLong dest_bytes = ::compressBound(source_bytes);
   Bytef* compressed = new Bytef[dest_bytes];
@@ -184,7 +184,7 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream)
   stream << "\" header_type=\"";
   stream << Traits<std::size_t>::name();
   stream << "\"";
-#ifdef USE_ZLIB
+#ifdef OSH_USE_ZLIB
   stream << " compressor=\"vtkZLibDataCompressor\"";
 #endif
   stream << ">\n";

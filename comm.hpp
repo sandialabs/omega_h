@@ -1,4 +1,4 @@
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
 
 /* on BlueGene/Q the default install
  * defines MPICH2_CONST to empty if we
@@ -76,7 +76,7 @@ enum ReduceOp {
   SUM
 };
 
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
 inline MPI_Op mpi_op(ReduceOp op) {
   switch (op) {
     case MIN: return MPI_MIN;
@@ -90,7 +90,7 @@ inline MPI_Op mpi_op(ReduceOp op) {
 static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");
 
 class Comm {
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   MPI_Comm impl_;
 #endif
   Read<I32> srcs_;
@@ -99,7 +99,7 @@ class Comm {
   HostRead<I32> host_dsts_;
 public:
   Comm();
-#ifdef USE_MPI
+#ifdef OSH_USE_MPI
   Comm(MPI_Comm impl);
 #else
   Comm(bool sends_to_self);

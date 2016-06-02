@@ -1,4 +1,4 @@
-#if defined(USE_CUDA)
+#if defined(OSH_USE_CUDA)
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -8,7 +8,7 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-#elif defined(USE_OPENMP)
+#elif defined(OSH_USE_OPENMP)
 #include "intel_sort/parallel_stable_sort.hpp"
 #else
 #include <algorithm>
@@ -16,11 +16,11 @@
 
 template <typename T, typename Comp>
 void parallel_sort(T* b, T* e, Comp c) {
-#if defined(USE_CUDA)
+#if defined(OSH_USE_CUDA)
   auto bptr = thrust::device_ptr<T>(b);
   auto eptr = thrust::device_ptr<T>(e);
   thrust::stable_sort(bptr, eptr, c);
-#elif defined(USE_OPENMP)
+#elif defined(OSH_USE_OPENMP)
   pss::parallel_stable_sort(b, e, c);
 #else
   std::stable_sort(b, e, c);

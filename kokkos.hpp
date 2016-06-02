@@ -1,4 +1,4 @@
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
 #ifdef __clang__
 #pragma clang system_header
 #endif
@@ -12,7 +12,7 @@
 #endif
 #endif
 
-#ifdef USE_KOKKOS
+#ifdef OSH_USE_KOKKOS
 #define INLINE KOKKOS_INLINE_FUNCTION
 #define LAMBDA KOKKOS_LAMBDA
 #else
@@ -26,7 +26,7 @@
  * so we need a separate macro for things that
  * execute only on the device */
 
-#ifdef USE_CUDA
+#ifdef OSH_USE_CUDA
 #define DEVICE __device__ inline
 #else
 #define DEVICE inline
