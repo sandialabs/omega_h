@@ -52,7 +52,7 @@ message(FATAL_ERROR "Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
 endif()
 set(CMAKE_CXX_FLAGS "${FLAGS}")
 
-configure_file(config_in.hpp config.hpp)
+configure_file(omega_h_in.hpp omega_h.hpp)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(omega_h omega_h.cpp)

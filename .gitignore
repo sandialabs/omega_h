@@ -3,7 +3,7 @@ CMakeFiles
 Makefile
 adjs.txt
 cmake_install.cmake
-config.hpp
+omega_h.hpp
 libomega_h.a
 perf_tests
 unit_tests

@@ -1,4 +1,4 @@
-#include "config.hpp"
+#include "omega_h.hpp"
 
 #include <cstdint>
 #include <cmath>
