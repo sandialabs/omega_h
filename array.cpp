@@ -123,39 +123,42 @@ struct Sum : public SumFunctor<T> {
 
 template <typename T>
 T sum(Read<T> a) {
-  return parallel_reduce(a.size(), Sum<T>(a));
+  auto r = parallel_reduce(a.size(), Sum<T>(a));
+  return static_cast<T>(r); //see StandinTraits
 }
 
 template <typename T>
 struct Min : public MinFunctor<T> {
-  typedef T value_type;
+  typedef typename MinFunctor<T>::value_type value_type;
   Read<T> a_;
   Min(Read<T> a):a_(a) {}
   OSH_INLINE void operator()(LO i, value_type& update) const
   {
-    update = min2(update, a_[i]);
+    update = min2<value_type>(update, a_[i]);
   }
 };
 
 template <typename T>
 T min(Read<T> a) {
-  return parallel_reduce(a.size(), Min<T>(a));
+  auto r = parallel_reduce(a.size(), Min<T>(a));
+  return static_cast<T>(r); //see StandinTraits
 }
 
 template <typename T>
 struct Max : public MaxFunctor<T> {
-  typedef T value_type;
+  typedef typename MaxFunctor<T>::value_type value_type;
   Read<T> a_;
   Max(Read<T> a):a_(a) {}
   OSH_INLINE void operator()(LO i, value_type& update) const
   {
-    update = max2(update, a_[i]);
+    update = max2<value_type>(update, a_[i]);
   }
 };
 
 template <typename T>
 T max(Read<T> a) {
-  return parallel_reduce(a.size(), Max<T>(a));
+  auto r = parallel_reduce(a.size(), Max<T>(a));
+  return static_cast<T>(r); //see StandinTraits
 }
 
 Reals::Reals():
