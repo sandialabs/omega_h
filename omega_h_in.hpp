@@ -160,7 +160,7 @@ public:
 class LOs : public Read<LO> {
 public:
   LOs();
-  LOs(Read<LO> base);
+  OSH_INLINE LOs(Read<LO> base):Read<LO>(base) {}
   LOs(Write<LO> write);
   LOs(LO size, LO value);
   LOs(LO size, LO offset, LO stride);
@@ -170,7 +170,7 @@ public:
 class Reals : public Read<Real> {
 public:
   Reals();
-  Reals(Read<Real> base);
+  OSH_INLINE Reals(Read<Real> base):Read<Real>(base) {}
   Reals(Write<Real> write);
   Reals(LO size, Real value);
   Reals(std::initializer_list<Real> l);
