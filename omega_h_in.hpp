@@ -523,6 +523,16 @@ class Mesh {
     void balance();
 };
 
+namespace gmsh {
+void read(std::istream& stream, Mesh& mesh);
+}
+
+namespace vtk {
+void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim);
+void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim);
+void write_parallel(std::string const& path, Mesh& mesh, Int cell_dim);
+}
+
 } //end namespace osh
 
 #endif

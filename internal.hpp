@@ -108,7 +108,6 @@ namespace osh {
 #include "mark.hpp"
 #include "classify.hpp"
 #include "reorder.hpp"
-#include "gmsh.hpp"
 #include "repro.hpp"
 #include "linpart.hpp"
 #include "owners.hpp"
