@@ -1,4 +1,7 @@
 #include "internal.hpp"
+
+namespace osh {
+
 #include "control.cpp"
 #include "protect.cpp"
 #include "timer.cpp"
@@ -51,3 +54,5 @@
 #include "refine_topology.cpp"
 #include "modify.cpp"
 #include "refine.cpp"
+
+} //end namespace osh

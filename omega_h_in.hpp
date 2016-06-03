@@ -73,7 +73,7 @@
 #define OSH_DEVICE inline
 #endif //OSH_USE_CUDA
 
-//namespace osh will start here
+namespace osh {
 
 void init(int& argc, char**& argv);
 
@@ -484,6 +484,6 @@ class Mesh {
     void balance();
 };
 
-//namespace osh will end here
+} //end namespace osh
 
 #endif

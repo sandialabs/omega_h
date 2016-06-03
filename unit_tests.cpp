@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+using namespace osh;
+
 template <Int m, Int n>
 static void test_qr_decomp(Matrix<m,n> a) {
   Matrix<m,n> q;

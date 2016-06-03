@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+using namespace osh;
+
 static void serial_test(Mesh& mesh) {
   static Int const nx = 5;
   static Int const dim = 3;

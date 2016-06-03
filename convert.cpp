@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+using namespace osh;
+
 int main(int argc, char** argv) {
   init(argc, argv);
   {

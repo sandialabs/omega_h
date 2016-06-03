@@ -4,6 +4,8 @@
 
 #include "internal.hpp"
 
+using namespace osh;
+
 static Int const nelems = 1000 * 1000;
 
 /* Intel compiler version 16 doesn't seem to have

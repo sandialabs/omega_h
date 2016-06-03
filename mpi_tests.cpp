@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+using namespace osh;
+
 static void test_one_rank(CommPtr comm) {
   CHECK(comm->size() == 1);
   { // make sure we can operate on zero-length data

@@ -64,6 +64,8 @@
 #define PI 3.141592653589793
 #define MANTISSA_BITS 52
 
+namespace osh {
+
 #include "protect.hpp"
 #include "timer.hpp"
 #include "algorithm.hpp"
@@ -121,3 +123,5 @@
 #include "modify.hpp"
 #include "refine.hpp"
 #include "stacktrace.hpp"
+
+} //end namespace osh
