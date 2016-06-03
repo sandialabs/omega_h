@@ -52,8 +52,11 @@ message(FATAL_ERROR "Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
 endif()
 set(CMAKE_CXX_FLAGS "${FLAGS}")
 
-configure_file(omega_h_in.hpp omega_h.hpp)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+configure_file(
+  "${PROJECT_SOURCE_DIR}/omega_h_in.hpp"
+  "${PROJECT_BINARY_DIR}/omega_h.hpp"
+  )
+include_directories(${PROJECT_BINARY_DIR})
 
 add_library(omega_h omega_h.cpp)
 if(OSH_USE_KOKKOS)
@@ -75,3 +78,8 @@ add_executable(ex1 ex1.cpp)
 target_link_libraries(ex1 omega_h)
 add_executable(ex2 ex2.cpp)
 target_link_libraries(ex2 omega_h)
+
+install(FILES "${PROJECT_BINARY_DIR}/omega_h.hpp"
+        DESTINATION include)
+install(TARGETS omega_h DESTINATION lib)
+install(TARGETS osh_convert DESTINATION bin)
