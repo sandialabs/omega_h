@@ -5,7 +5,16 @@ static bool we_called_mpi_init = false;
 static bool we_called_kokkos_init = false;
 #endif
 
-void init(int& argc, char**& argv) {
+void init_internal(int& argc, char**& argv, char const* head_desc) {
+  std::string lib_desc = OSH_DESC;
+  if (lib_desc != head_desc) {
+    std::stringstream msg;
+    msg << "omega_h description string mismatch.\n";
+    msg << "header says: " << head_desc << '\n';
+    msg << "library says: " << lib_desc << '\n';
+    std::string msg_str = msg.str();
+    fail("%s\n", msg_str.c_str());
+  }
 #ifdef OSH_USE_MPI
   int mpi_is_init;
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));

@@ -1,12 +1,47 @@
 #ifndef OMEGA_H_HPP
 #define OMEGA_H_HPP
 
+#define OSH_MAJOR 0
+#define OSH_MINOR 3
+
 #cmakedefine OSH_USE_MPI
 #cmakedefine OSH_USE_KOKKOS
 #cmakedefine OSH_USE_OPENMP
 #cmakedefine OSH_USE_CUDA
 #cmakedefine OSH_USE_ZLIB
 #cmakedefine OSH_CHECK_BOUNDS
+
+#define OSH_TOSTR2(s) #s
+#define OSH_TOSTR(s) OSH_TOSTR2(s)
+#ifdef OSH_USE_MPI
+#define OSH_MPI_STR "MPI"
+#else
+#define OSH_MPI_STR ""
+#endif
+#ifdef OSH_USE_KOKKOS
+#define OSH_KOKKOS_STR "Kokkos"
+#else
+#define OSH_KOKKOS_STR ""
+#endif
+#ifdef OSH_USE_OPENMP
+#define OSH_OPENMP_STR "OpenMP"
+#else
+#define OSH_OPENMP_STR ""
+#endif
+#ifdef OSH_USE_CUDA
+#define OSH_CUDA_STR "CUDA"
+#else
+#define OSH_CUDA_STR ""
+#endif
+#ifdef OSH_USE_ZLIB
+#define OSH_ZLIB_STR "zlib"
+#else
+#define OSH_ZLIB_STR ""
+#endif
+#define OSH_DESC \
+"omega_h v" OSH_TOSTR(OSH_MAJOR) "." OSH_TOSTR(OSH_MINOR) \
+": " OSH_MPI_STR "," OSH_KOKKOS_STR "," \
+OSH_OPENMP_STR "," OSH_CUDA_STR "," OSH_ZLIB_STR
 
 #include <cassert>
 #include <cstdint>
@@ -75,7 +110,11 @@
 
 namespace osh {
 
-void init(int& argc, char**& argv);
+void init_internal(int& argc, char**& argv, char const* head_desc);
+
+inline void init(int& argc, char**& argv) {
+  init_internal(argc, argv, OSH_DESC);
+}
 
 void fini();
 
