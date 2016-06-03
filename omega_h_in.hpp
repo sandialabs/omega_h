@@ -11,6 +11,12 @@
 #cmakedefine OSH_USE_ZLIB
 #cmakedefine OSH_CHECK_BOUNDS
 
+/* this block of preprocessor code creates a string
+   literal describing the version and compile options
+   used to configure this header.
+   this is used to ensure that during user application
+   compiles, the header included matches the library linked to.
+   it is not foolproof, but better than nothing */
 #define OSH_TOSTR2(s) #s
 #define OSH_TOSTR(s) OSH_TOSTR2(s)
 #ifdef OSH_USE_MPI
@@ -43,12 +49,16 @@
 ": " OSH_MPI_STR "," OSH_KOKKOS_STR "," \
 OSH_OPENMP_STR "," OSH_CUDA_STR "," OSH_ZLIB_STR
 
+/* standard C++ headers required to parse this file */
+
 #include <cassert>
 #include <cstdint>
 #include <initializer_list>
 #include <memory>
 #include <string>
 #include <vector>
+
+/* MPI include block */
 
 #ifdef OSH_USE_MPI
 
@@ -79,6 +89,8 @@ OSH_OPENMP_STR "," OSH_CUDA_STR "," OSH_ZLIB_STR
 #include <mpi.h>
 
 #endif //OSH_USE_MPI
+
+/* Kokkos include block */
 
 #ifdef OSH_USE_KOKKOS
 #ifdef __clang__
