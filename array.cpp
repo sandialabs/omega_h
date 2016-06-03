@@ -408,13 +408,18 @@ T HostRead<T>::last() const {
 template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a) {
   HostRead<T> ha = a;
+  typedef typename StandinTraits<T>::type vt;
   if (ha.size() <= 20) {
-    for (LO i = 0; i < ha.size(); ++i)
-      o << ' ' << ha[i];
+    for (LO i = 0; i < ha.size(); ++i) {
+      vt v = ha[i];
+      o << ' ' << v;
+    }
     o << '\n';
   } else {
-    for (LO i = 0; i < ha.size(); ++i)
-      o << ha[i] << '\n';
+    for (LO i = 0; i < ha.size(); ++i) {
+      vt v = ha[i];
+      o << v << '\n';
+    }
   }
   return o;
 }

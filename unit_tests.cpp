@@ -664,6 +664,14 @@ static void test_refine_qualities() {
   CHECK(are_close(quals2, quals));
 }
 
+static void test_i8_array_print() {
+  Read<I8> a({1,1,1});
+  std::stringstream stream;
+  stream << a;
+  std::string str = stream.str();
+  CHECK(str == " 1 1 1\n");
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -698,5 +706,6 @@ int main(int argc, char** argv) {
   test_average_field();
   test_positivize();
   test_refine_qualities();
+  test_i8_array_print();
   fini();
 }
