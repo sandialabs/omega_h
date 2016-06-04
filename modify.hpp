@@ -13,6 +13,24 @@ void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
     LOs same_ents2new_ents,
     LOs old_ents2new_ents);
 
+LOs collect_same(Mesh& mesh,
+    Int ent_dim,
+    Int key_dim,
+    LOs keys2kds);
+
+LOs get_keys2reps(Mesh& mesh,
+    Int ent_dim,
+    Int key_dim,
+    LOs keys2kds,
+    LOs keys2nprods);
+
+LOs get_rep_counts(
+    Mesh& mesh,
+    Int ent_dim,
+    LOs keys2reps,
+    LOs keys2nprods,
+    LOs same_ents2ents);
+
 void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim,
     Int key_dim,

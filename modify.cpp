@@ -64,36 +64,35 @@ void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_owners(ent_dim, new_owners);
 }
 
-void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
+LOs collect_same(Mesh& mesh,
     Int ent_dim,
     Int key_dim,
-    LOs keys2ents,
-    LOs keys2prods,
-    LOs prods2new_ents,
-    LOs same_ents2old_ents,
-    LOs same_ents2new_ents) {
+    LOs keys2kds) {
+  auto nkds = mesh.nents(key_dim);
+  auto kds_are_keys = mark_image(keys2kds, nkds);
+  auto kds2ents = mesh.ask_graph(key_dim, ent_dim);
+  auto kds2kd_ents = kds2ents.a2ab;
+  auto kd_ents2ents = kds2ents.ab2b;
+  auto kd_ents_are_adj = expand(kds_are_keys, kds2kd_ents, 1);
+  auto ents_are_adj = permute(kd_ents_are_adj, kd_ents2ents, 1);
+  auto ents_are_same = invert_marks(ents_are_adj);
+  auto same_ents2old_ents = collect_marked(ents_are_same);
+  return same_ents2old_ents;
+}
+
+LOs get_keys2reps(Mesh& mesh,
+    Int ent_dim,
+    Int key_dim,
+    LOs keys2kds,
+    LOs keys2nprods) {
   CHECK(ent_dim >= key_dim || ent_dim == VERT);
-  auto nold_ents = old_mesh.nents(ent_dim);
-  auto nsame_ents = same_ents2old_ents.size();
-  CHECK(nsame_ents == same_ents2new_ents.size());
-  auto nkeys = keys2ents.size();
-  CHECK(nkeys + 1 == keys2prods.size());
-  auto nprods = prods2new_ents.size();
-  CHECK(nprods == keys2prods.last());
-  auto old_owned = old_mesh.owned(ent_dim);
-  Write<LO> old_locals(nold_ents, 0);
-  auto mark_old_same = OSH_LAMBDA(LO same_ent) {
-    auto old_ent = same_ents2old_ents[same_ent];
-    if (old_owned[old_ent])
-      old_locals[old_ent] = 1;
-  };
-  parallel_for(nsame_ents, mark_old_same);
-  auto keys2nprods = get_degrees(keys2prods);
+  auto nkeys = keys2kds.size();
+  CHECK(nkeys == keys2nprods.size());
   LOs keys2reps;
   if (key_dim == ent_dim) {
-    keys2reps = keys2ents;
+    keys2reps = keys2kds;
   } else if (ent_dim > key_dim) {
-    auto keys2ents2 = old_mesh.ask_up(key_dim, ent_dim);
+    auto keys2ents2 = mesh.ask_up(key_dim, ent_dim);
     auto keys2key_ents = keys2ents2.a2ab;
     auto key_ents2ents = keys2ents2.ab2b;
     Write<LO> keys2reps_w;
@@ -118,32 +117,76 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
        this causes some concern because unlike before,
        when the reprentative was on the interior of the old cavity,
        it is now on the boundary.
-       this is the reason for the atomic_add for old_locals
+       this is the reason for the atomic_add in get_local_rep_counts()
        and the exch_sum later on.
        I can't think of a nicer way to determine new vertex globals
        which is independent of partitioning and ordering */
-    auto edge_verts2verts = old_mesh.ask_verts_of(EDGE);
+    auto edge_verts2verts = mesh.ask_verts_of(EDGE);
     Write<LO> keys2reps_w;
     auto setup_reps = OSH_LAMBDA(LO key) {
-      auto edge = keys2ents[key];
+      auto edge = keys2kds[key];
       keys2reps_w[key] = edge_verts2verts[edge * 2 + 0];
     };
     parallel_for(nkeys, setup_reps);
     keys2reps = keys2reps_w;
   }
+  return keys2reps;
+}
+
+LOs get_rep_counts(
+    Mesh& mesh,
+    Int ent_dim,
+    LOs keys2reps,
+    LOs keys2nprods,
+    LOs same_ents2ents) {
+  auto nkeys = keys2reps.size();
+  auto nents = mesh.nents(ent_dim);
+  CHECK(nkeys == keys2nprods.size());
+  auto nsame_ents = same_ents2ents.size();
+  auto owned = mesh.owned(ent_dim);
+  Write<LO> rep_counts(nents, 0);
+  auto mark_same = OSH_LAMBDA(LO same_ent) {
+    auto ent = same_ents2ents[same_ent];
+    if (owned[ent])
+      rep_counts[ent] = 1;
+  };
+  parallel_for(nsame_ents, mark_same);
   auto mark_reps = OSH_LAMBDA(LO key) {
     auto rep = keys2reps[key];
     auto nkey_prods = keys2nprods[key];
-    atomic_add(&old_locals[rep], nkey_prods);
+    atomic_add(&rep_counts[rep], nkey_prods);
   };
   parallel_for(nkeys, mark_reps);
+  return rep_counts;
+}
+
+void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
+    Int ent_dim,
+    Int key_dim,
+    LOs keys2kds,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  CHECK(ent_dim >= key_dim || ent_dim == VERT);
+  auto nsame_ents = same_ents2old_ents.size();
+  CHECK(nsame_ents == same_ents2new_ents.size());
+  auto nkeys = keys2kds.size();
+  CHECK(nkeys + 1 == keys2prods.size());
+  auto nprods = prods2new_ents.size();
+  CHECK(nprods == keys2prods.last());
+  auto keys2nprods = get_degrees(keys2prods);
+  auto keys2reps = get_keys2reps(old_mesh, ent_dim, key_dim,
+      keys2kds, keys2nprods);
+  auto rep_counts = get_rep_counts(old_mesh, ent_dim,
+      keys2reps, keys2nprods, same_ents2old_ents);
   auto old_globals = old_mesh.get_array<GO>(ent_dim, "global");
   auto comm = old_mesh.comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
   auto nlins = lins2old_ents.nitems();
-  auto lin_locals = old_ents2lins.exch_sum(LOs(old_locals), 1);
-  auto lin_local_offsets = offset_scan(lin_locals);
+  auto lin_rep_counts = old_ents2lins.exch_sum(LOs(rep_counts), 1);
+  auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
   auto lin_global_offset = comm->exscan(lin_global_count, SUM);
   Write<GO> lin_globals(nlins);
