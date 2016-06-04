@@ -533,6 +533,7 @@ class Mesh {
     void migrate(Remotes new_elems2old_owners);
     void reorder();
     void balance();
+    Graph ask_graph(Int from, Int to);
 };
 
 namespace gmsh {

@@ -401,6 +401,18 @@ void Mesh::balance() {
   migrate(owners);
 }
 
+Graph Mesh::ask_graph(Int from, Int to) {
+  if (to > from)
+    return ask_up(from, to);
+  if (from < to) {
+    auto down = ask_down(from, to);
+    auto a2ab = LOs(nents(from) + 1, 0, simplex_degrees[from][to]);
+    return Graph(a2ab, down.ab2b);
+  }
+  CHECK(from == to);
+  return Graph(LOs(nents(to) + 1, 0, 1), LOs(nents(to), 0, 1));
+}
+
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \
