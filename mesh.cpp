@@ -413,6 +413,11 @@ Graph Mesh::ask_graph(Int from, Int to) {
   return Graph(LOs(nents(to) + 1, 0, 1), LOs(nents(to), 0, 1));
 }
 
+template <typename T>
+Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
+  return ask_dist(ent_dim).invert().exch(a, width);
+}
+
 #define INST_T(T) \
 template Tag<T> const& Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \
@@ -422,7 +427,8 @@ template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
     Xfer xfer); \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
     Xfer xfer, Read<T> array); \
-template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array);
+template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array); \
+template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
