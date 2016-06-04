@@ -160,6 +160,53 @@ LOs get_rep_counts(
   return rep_counts;
 }
 
+template <typename T>
+void find_new_offsets(
+    Int ent_dim,
+    Read<T> old_ents2new_offsets,
+    LOs same_ents2old_ents,
+    LOs keys2reps,
+    LOs keys2prods,
+    Read<T>& same_ents2new_offsets,
+    Read<T>& prods2new_offsets) {
+  same_ents2new_offsets = unmap(same_ents2old_ents,
+      old_ents2new_offsets, 1);
+  auto keys2new_offsets = unmap(keys2reps,
+      old_ents2new_offsets, 1);
+  auto nprods = keys2prods.last();
+  Write<T> prods2new_offsets_w(nprods);
+  auto nkeys = keys2reps.size();
+  CHECK(nkeys == keys2prods.size() - 1);
+  auto write_prod_offsets = OSH_LAMBDA(LO key) {
+    auto offset = keys2new_offsets[key];
+    if (ent_dim == VERT) ++offset;
+    for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
+      prods2new_offsets_w[prod] = offset++;
+    }
+  };
+  parallel_for(nkeys, write_prod_offsets);
+  prods2new_offsets = prods2new_offsets_w;
+}
+
+template
+void find_new_offsets(
+    Int ent_dim,
+    Read<LO> old_ents2new_offsets,
+    LOs same_ents2old_ents,
+    LOs keys2reps,
+    LOs keys2prods,
+    Read<LO>& same_ents2new_offsets,
+    Read<LO>& prods2new_offsets);
+template
+void find_new_offsets(
+    Int ent_dim,
+    Read<GO> old_ents2new_offsets,
+    LOs same_ents2old_ents,
+    LOs keys2reps,
+    LOs keys2prods,
+    Read<GO>& same_ents2new_offsets,
+    Read<GO>& prods2new_offsets);
+
 void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim,
     Int key_dim,
@@ -196,21 +243,14 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   parallel_for(nlins, write_lin_globals);
   auto old_ents2new_globals = lins2old_ents.exch(
       Read<GO>(lin_globals), 1);
-  auto same_ents2new_globals = unmap(same_ents2old_ents,
-      old_ents2new_globals, 1);
-  auto keys2rep_globals = unmap(keys2reps, old_ents2new_globals, 1);
+  Read<GO> same_ents2new_globals;
+  Read<GO> prods2new_globals;
+  find_new_offsets(ent_dim, old_ents2new_globals, same_ents2old_ents,
+      keys2reps, keys2prods, same_ents2new_globals, prods2new_globals);
   auto nnew_ents = new_mesh.nents(ent_dim);
   CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
-  auto write_cavity_globals = OSH_LAMBDA(LO key) {
-    auto global = keys2rep_globals[key];
-    if (ent_dim == VERT) ++global;
-    for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
-      auto new_ent = prods2new_ents[prod];
-      new_globals[new_ent] = global++;
-    }
-  };
-  parallel_for(nkeys, write_cavity_globals);
+  map_into(prods2new_globals, prods2new_ents, new_globals, 1);
   new_mesh.add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
 }
