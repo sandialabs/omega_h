@@ -79,6 +79,7 @@ Read<I8> find_indset(
     Int ent_dim,
     Reals quality,
     Read<I8> candidates) {
+  CHECK(mesh.partition() == GHOSTED);
   auto graph = mesh.ask_star(ent_dim);
   auto xadj = graph.a2ab;
   auto adj = graph.ab2b;
