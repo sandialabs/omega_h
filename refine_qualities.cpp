@@ -74,6 +74,7 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
     quals[cand] = minqual;
   };
   parallel_for(ncands, f);
+  //TODO: sync qualities in parallel
   return quals;
 }
 

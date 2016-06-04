@@ -179,6 +179,8 @@ static void find_new_offsets(
   CHECK(nkeys == keys2prods.size() - 1);
   auto write_prod_offsets = OSH_LAMBDA(LO key) {
     auto offset = keys2new_offsets[key];
+    /* TODO: the vertex scheme here doesn't work when multiple
+       cavities share a representative vertex */
     if (ent_dim == VERT) ++offset;
     for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
       prods2new_offsets_w[prod] = offset++;
