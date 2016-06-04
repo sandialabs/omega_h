@@ -1,4 +1,4 @@
-void modify_conn(Mesh& old_mesh, Mesh& new_mesh,
+static void modify_conn(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim,
     LOs prod_verts2verts,
     LOs prods2new_ents,
@@ -39,7 +39,7 @@ void modify_conn(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_ents(ent_dim, new_ents2new_lows);
 }
 
-void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
+static void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim,
     LOs prods2new_ents,
     LOs same_ents2old_ents,
@@ -64,7 +64,7 @@ void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_owners(ent_dim, new_owners);
 }
 
-LOs collect_same(Mesh& mesh,
+static LOs collect_same(Mesh& mesh,
     Int ent_dim,
     Int key_dim,
     LOs keys2kds) {
@@ -80,7 +80,7 @@ LOs collect_same(Mesh& mesh,
   return same_ents2old_ents;
 }
 
-LOs get_keys2reps(Mesh& mesh,
+static LOs get_keys2reps(Mesh& mesh,
     Int ent_dim,
     Int key_dim,
     LOs keys2kds,
@@ -133,7 +133,7 @@ LOs get_keys2reps(Mesh& mesh,
   return keys2reps;
 }
 
-LOs get_rep_counts(
+static LOs get_rep_counts(
     Mesh& mesh,
     Int ent_dim,
     LOs keys2reps,
@@ -161,7 +161,7 @@ LOs get_rep_counts(
 }
 
 template <typename T>
-void find_new_offsets(
+static void find_new_offsets(
     Int ent_dim,
     Read<T> old_ents2new_offsets,
     LOs same_ents2old_ents,
@@ -188,26 +188,7 @@ void find_new_offsets(
   prods2new_offsets = prods2new_offsets_w;
 }
 
-template
-void find_new_offsets(
-    Int ent_dim,
-    Read<LO> old_ents2new_offsets,
-    LOs same_ents2old_ents,
-    LOs keys2reps,
-    LOs keys2prods,
-    Read<LO>& same_ents2new_offsets,
-    Read<LO>& prods2new_offsets);
-template
-void find_new_offsets(
-    Int ent_dim,
-    Read<GO> old_ents2new_offsets,
-    LOs same_ents2old_ents,
-    LOs keys2reps,
-    LOs keys2prods,
-    Read<GO>& same_ents2new_offsets,
-    Read<GO>& prods2new_offsets);
-
-void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
+static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim,
     Int key_dim,
     LOs keys2kds,
@@ -250,4 +231,42 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
   new_mesh.add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
+}
+
+void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
+    Int ent_dim, Int key_dim,
+    LOs keys2kds,
+    LOs keys2prods,
+    LOs prod_verts2verts,
+    LOs old_lows2new_lows) {
+  auto same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim,
+      keys2kds);
+  auto keys2nprods = get_degrees(keys2prods);
+  auto keys2reps = get_keys2reps(old_mesh, ent_dim, key_dim,
+      keys2kds, keys2nprods);
+  auto rep_counts = get_rep_counts(old_mesh, ent_dim,
+      keys2reps, keys2nprods, same_ents2old_ents);
+  auto local_offsets = offset_scan(rep_counts);
+  auto nnew_ents = local_offsets.last();
+  LOs same_ents2new_ents;
+  LOs prods2new_ents;
+  find_new_offsets(ent_dim, local_offsets, same_ents2old_ents,
+      keys2reps, keys2prods, same_ents2new_ents, prods2new_ents);
+  auto nold_ents = old_mesh.nents(ent_dim);
+  auto old_ents2new_ents_w = Write<LO>(nold_ents, -1);
+  map_into(same_ents2new_ents, same_ents2old_ents, old_ents2new_ents_w, 1);
+  auto old_ents2new_ents = LOs(old_ents2new_ents_w);
+  if (ent_dim == VERT) {
+    new_mesh.set_verts(nnew_ents);
+  } else {
+    modify_conn(old_mesh, new_mesh, ent_dim, prod_verts2verts,
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+        old_lows2new_lows);
+  }
+  modify_owners(old_mesh, new_mesh, ent_dim, prods2new_ents,
+      same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
+  modify_globals(old_mesh, new_mesh, ent_dim, key_dim,
+      keys2kds, keys2prods, prods2new_ents,
+      same_ents2old_ents, same_ents2new_ents,
+      keys2reps, rep_counts);
 }
