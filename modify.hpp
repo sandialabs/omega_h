@@ -3,4 +3,8 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
     LOs keys2kds,
     LOs keys2prods,
     LOs prod_verts2verts,
-    LOs old_lows2new_lows);
+    LOs old_lows2new_lows,
+    LOs& prods2new_ents,
+    LOs& same_ents2old_ents,
+    LOs& same_ents2new_ents,
+    LOs& old_ents2new_ents);

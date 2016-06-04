@@ -238,8 +238,12 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
     LOs keys2kds,
     LOs keys2prods,
     LOs prod_verts2verts,
-    LOs old_lows2new_lows) {
-  auto same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim,
+    LOs old_lows2new_lows,
+    LOs& prods2new_ents,
+    LOs& same_ents2old_ents,
+    LOs& same_ents2new_ents,
+    LOs& old_ents2new_ents) {
+  same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim,
       keys2kds);
   auto keys2nprods = get_degrees(keys2prods);
   auto keys2reps = get_keys2reps(old_mesh, ent_dim, key_dim,
@@ -248,14 +252,12 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
       keys2reps, keys2nprods, same_ents2old_ents);
   auto local_offsets = offset_scan(rep_counts);
   auto nnew_ents = local_offsets.last();
-  LOs same_ents2new_ents;
-  LOs prods2new_ents;
   find_new_offsets(ent_dim, local_offsets, same_ents2old_ents,
       keys2reps, keys2prods, same_ents2new_ents, prods2new_ents);
   auto nold_ents = old_mesh.nents(ent_dim);
   auto old_ents2new_ents_w = Write<LO>(nold_ents, -1);
   map_into(same_ents2new_ents, same_ents2old_ents, old_ents2new_ents_w, 1);
-  auto old_ents2new_ents = LOs(old_ents2new_ents_w);
+  old_ents2new_ents = LOs(old_ents2new_ents_w);
   if (ent_dim == VERT) {
     new_mesh.set_verts(nnew_ents);
   } else {
