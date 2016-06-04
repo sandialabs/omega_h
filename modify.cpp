@@ -214,7 +214,9 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     LOs keys2prods,
     LOs prods2new_ents,
     LOs same_ents2old_ents,
-    LOs same_ents2new_ents) {
+    LOs same_ents2new_ents,
+    LOs keys2reps,
+    LOs rep_counts) {
   CHECK(ent_dim >= key_dim || ent_dim == VERT);
   auto nsame_ents = same_ents2old_ents.size();
   CHECK(nsame_ents == same_ents2new_ents.size());
@@ -222,11 +224,6 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   CHECK(nkeys + 1 == keys2prods.size());
   auto nprods = prods2new_ents.size();
   CHECK(nprods == keys2prods.last());
-  auto keys2nprods = get_degrees(keys2prods);
-  auto keys2reps = get_keys2reps(old_mesh, ent_dim, key_dim,
-      keys2kds, keys2nprods);
-  auto rep_counts = get_rep_counts(old_mesh, ent_dim,
-      keys2reps, keys2nprods, same_ents2old_ents);
   auto old_globals = old_mesh.get_array<GO>(ent_dim, "global");
   auto comm = old_mesh.comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);

@@ -48,4 +48,6 @@ void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     LOs keys2prods,
     LOs prods2new_ents,
     LOs same_ents2old_ents,
-    LOs same_ents2new_ents);
+    LOs same_ents2new_ents,
+    LOs keys2reps,
+    LOs rep_counts);
