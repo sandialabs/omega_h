@@ -219,20 +219,41 @@ LOs invert_fan(LOs a2b) {
   return b2a;
 }
 
-template <typename T>
-Read<T> fan_sum(LOs a2b, Read<T> b_data, Int width) {
+template <typename Functor>
+static Read<typename Functor::input_type>
+fan_reduce_tmpl(
+    LOs a2b,
+    Read<typename Functor::input_type> b_data,
+    Int width) {
+  typedef typename Functor::input_type T;
+  typedef typename Functor::value_type VT;
   auto na = a2b.size() - 1;
   Write<T> a_data(na);
   auto f = OSH_LAMBDA(LO a) {
+    auto functor = Functor();
     for (Int j = 0; j < width; ++j) {
-      a_data[a * width + j] = 0;
+      VT res;
+      functor.init(res);
       for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
-        a_data[a * width + j] += b_data[b * width + j];
+        functor.join(res, b_data[b * width + j]);
       }
+      a_data[a * width + j] = static_cast<T>(res);
     }
   };
   parallel_for(na, f);
   return a_data;
 }
 
-template Read<I32> fan_sum(LOs a2b, Read<I32> b_data, Int width);
+template <typename T>
+Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, ReduceOp op) {
+  switch (op) {
+  case MIN: return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
+  case MAX: return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
+  case SUM: return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
+  }
+}
+
+template
+Read<I32> fan_reduce(LOs a2b, Read<I32> b_data, Int width, ReduceOp op);
+template
+Read<Real> fan_reduce(LOs a2b, Read<Real> b_data, Int width, ReduceOp op);

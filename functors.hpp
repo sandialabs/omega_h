@@ -27,6 +27,7 @@ struct AndFunctor {
 template <typename T>
 struct MaxFunctor {
   typedef typename StandinTraits<T>::type value_type;
+  typedef T input_type;
   OSH_INLINE void init(value_type& update) const {
     update = ArithTraits<T>::min();
   }
@@ -40,6 +41,7 @@ struct MaxFunctor {
 template <typename T>
 struct MinFunctor {
   typedef typename StandinTraits<T>::type value_type;
+  typedef T input_type;
   OSH_INLINE void init(value_type& update) const {
     update = ArithTraits<T>::max();
   }
@@ -53,6 +55,7 @@ struct MinFunctor {
 template <typename T>
 struct SumFunctor {
   typedef typename StandinTraits<T>::type value_type;
+  typedef T input_type;
   OSH_INLINE void init(value_type& update) const {
     update = 0;
   }

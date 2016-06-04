@@ -393,7 +393,7 @@ public:
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;
   template <typename T>
-  Read<T> exch_sum(Read<T> data, Int width) const;
+  Read<T> exch_reduce(Read<T> data, Int width, ReduceOp op) const;
   CommPtr parent_comm() const;
   CommPtr comm() const;
   LOs content2msgs() const;

@@ -48,3 +48,9 @@ LOs invert_fan(LOs a2b);
 
 template <typename T>
 Read<T> fan_sum(LOs a2b, Read<T> b_data);
+template <typename T>
+Read<T> fan_max(LOs a2b, Read<T> b_data);
+template <typename T>
+Read<T> fan_min(LOs a2b, Read<T> b_data);
+template <typename T>
+Read<T> fan_reduce(LOs a2b, Read<T> b_data, ReduceOp op);
