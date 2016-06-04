@@ -10,3 +10,5 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
     LOs& same_ents2old_ents,
     LOs& same_ents2new_ents,
     LOs& old_ents2new_ents);
+
+void set_owners_by_indset(Mesh& mesh, Int key_dim, LOs keys2kds);

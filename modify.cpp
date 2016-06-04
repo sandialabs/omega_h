@@ -344,3 +344,27 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
       same_ents2old_ents, same_ents2new_ents,
       keys2reps, rep_counts);
 }
+
+void set_owners_by_indset(Mesh& mesh, Int key_dim, LOs keys2kds) {
+  auto kd_owners = mesh.ask_owners(key_dim);
+  auto nkeys = keys2kds.size();
+  for (Int ent_dim = key_dim + 1; ent_dim <= mesh.dim(); ++ent_dim) {
+    auto keys2ents = mesh.ask_up(key_dim, ent_dim);
+    auto k2ke = keys2ents.a2ab;
+    auto ke2e = keys2ents.ab2b;
+    auto ent_owners = mesh.ask_owners(ent_dim);
+    auto ents2owners = mesh.ask_dist(ent_dim);
+    auto new_own_ranks = deep_copy(ent_owners.ranks);
+    auto f = LAMBDA(LO k) {
+      auto kd = keys2kds[k];
+      auto rank = kd_owners.ranks[kd];
+      for (auto ke = k2ke[k]; ke < k2ke[k + 1]; ++ke) {
+        auto e = ke2e[ke];
+        new_own_ranks[e] = rank;
+      }
+    };
+    parallel_for(nkeys, f);
+    ent_owners = update_ownership(ents2owners, new_own_ranks);
+    mesh.set_owners(ent_dim, ent_owners);
+  }
+}
