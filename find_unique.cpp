@@ -5,7 +5,7 @@ void make_canonical(LOs ev2v,
   LO ne = nev / deg;
   Write<LO> canon(nev);
   Write<I8> codes(ne);
-  auto f = OSH_LAMBDA(LO e) {
+  auto f = LAMBDA(LO e) {
     LO begin = e * deg;
     /* find the smallest vertex */
     Int min_j = 0;
@@ -41,7 +41,7 @@ template void make_canonical<3>(LOs ev2v,
 /* check whether adjacent lists of (deg) vertices
    are the same */
 template <Int deg>
-OSH_INLINE static bool are_equal(LOs canon, LO e0, LO e1) {
+INLINE static bool are_equal(LOs canon, LO e0, LO e1) {
   LO a = e0 * deg;
   LO b = e1 * deg;
   for (LO j = 0; j < deg; ++j)
@@ -54,7 +54,7 @@ template <Int deg>
 Read<I8> find_jumps(LOs canon, LOs e_sorted2e) {
   LO ne = e_sorted2e.size();
   Write<I8> jumps(ne, 0);
-  auto f = OSH_LAMBDA(LO e_sorted) {
+  auto f = LAMBDA(LO e_sorted) {
     LO e0 = e_sorted2e[e_sorted];
     LO e1 = e_sorted2e[e_sorted + 1];
     if (!are_equal<deg>(canon, e0, e1))

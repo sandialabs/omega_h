@@ -7,7 +7,7 @@ Read<I8> local_iteration(
     Read<I8> old_state) {
   auto n = global.size();
   Write<I8> new_state(old_state.size());
-  auto f = OSH_LAMBDA(LO v) {
+  auto f = LAMBDA(LO v) {
     if (old_state[v] != UNKNOWN) return;
     auto begin = xadj[v];
     auto end = xadj[v + 1];
@@ -59,7 +59,7 @@ Read<I8> find(
   CHECK(quality.size() == n);
   CHECK(candidates.size() == n);
   auto initial_state = Write<I8>(n);
-  auto f = OSH_LAMBDA(LO i) {
+  auto f = LAMBDA(LO i) {
     if (candidates[i]) initial_state[i] = UNKNOWN;
     else initial_state[i] = NOT_IN;
   };

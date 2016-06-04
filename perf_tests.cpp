@@ -33,7 +33,7 @@ static Reals random_metrics() {
   Reals alphas = random_reals(nelems, 0, PI / 2);
   Reals betas = random_reals(nelems, 0, PI / 2);
   Write<Real> write_metrics(nelems * 6);
-  auto f0 = OSH_LAMBDA(Int i) {
+  auto f0 = LAMBDA(Int i) {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
              rotate( betas[i], vector_3(0, 1, 0));
     auto m = compose_metric(r, vector_3(1., 1., 1.0 / anisotropy));
@@ -47,7 +47,7 @@ static void test_metric_decompose(Reals metrics) {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_eigenvs(nelems);
-  auto f1 = OSH_LAMBDA(Int i) {
+  auto f1 = LAMBDA(Int i) {
     auto m = get_symm_3(metrics, i);
     Matrix<3,3> r;
     Vector<3> l;
@@ -69,7 +69,7 @@ static void test_metric_invert(Reals metrics) {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_vals(nelems);
-  auto f1 = OSH_LAMBDA(Int i) {
+  auto f1 = LAMBDA(Int i) {
     auto m = get_symm_3(metrics, i);
     auto inv = invert(m);
     write_vals[i] = max_norm(inv);
@@ -129,7 +129,7 @@ static void test_repro_sum() {
   CHECK(are_close(s, rs));
   Read<Int> p = random_perm(nelems);
   Write<Real> write_shuffled(nelems);
-  auto f = OSH_LAMBDA(Int i) {
+  auto f = LAMBDA(Int i) {
     write_shuffled[i] = inputs[p[i]];
   };
   parallel_for(nelems, f);

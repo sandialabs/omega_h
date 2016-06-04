@@ -1,12 +1,12 @@
-OSH_INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
+INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
 
-OSH_INLINE Real square(Real x) { return x * x; }
+INLINE Real square(Real x) { return x * x; }
 
-OSH_INLINE Real cube(Real x) { return x * x * x; }
+INLINE Real cube(Real x) { return x * x * x; }
 
-OSH_INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
+INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
-OSH_INLINE bool are_close(Real a, Real b,
+INLINE bool are_close(Real a, Real b,
     Real tol = EPSILON, Real floor = EPSILON) {
   Real am = fabs(a);
   Real bm = fabs(b);
@@ -18,7 +18,7 @@ OSH_INLINE bool are_close(Real a, Real b,
 }
 
 template <Int n>
-OSH_INLINE Real average(Few<Real, n> x) {
+INLINE Real average(Few<Real, n> x) {
   Real avg = 0;
   for (Int i = 0; i < n; ++i)
     avg += x[i];
@@ -29,15 +29,15 @@ OSH_INLINE Real average(Few<Real, n> x) {
 template <Int n>
 class Vector : public Few<Real, n> {
   public:
-    OSH_INLINE Vector() {}
+    INLINE Vector() {}
     Vector(std::initializer_list<Real> l);
-    OSH_INLINE void operator=(Vector<n> const& rhs) volatile {
+    INLINE void operator=(Vector<n> const& rhs) volatile {
       Few<Real, n>::operator=(rhs);
     }
-    OSH_INLINE Vector(Vector<n> const& rhs):
+    INLINE Vector(Vector<n> const& rhs):
       Few<Real, n>(rhs) {
     }
-    OSH_INLINE Vector(const volatile Vector<n>& rhs):
+    INLINE Vector(const volatile Vector<n>& rhs):
       Few<Real, n>(rhs) {
     }
 };
@@ -58,7 +58,7 @@ std::ostream& operator<<(std::ostream& o, Vector<n> v) {
 }
 
 template <Int n>
-OSH_INLINE Vector<n> operator*(Vector<n> a, Real b) {
+INLINE Vector<n> operator*(Vector<n> a, Real b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i)
     c[i] = a[i] * b;
@@ -66,12 +66,12 @@ OSH_INLINE Vector<n> operator*(Vector<n> a, Real b) {
 }
 
 template <Int n>
-OSH_INLINE Vector<n> operator*(Real a, Vector<n> b) {
+INLINE Vector<n> operator*(Real a, Vector<n> b) {
   return b * a;
 }
 
 template <Int n>
-OSH_INLINE Vector<n> operator/(Vector<n> a, Real b) {
+INLINE Vector<n> operator/(Vector<n> a, Real b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i)
     c[i] = a[i] / b;
@@ -79,7 +79,7 @@ OSH_INLINE Vector<n> operator/(Vector<n> a, Real b) {
 }
 
 template <Int n>
-OSH_INLINE Real operator*(Vector<n> a, Vector<n> b) {
+INLINE Real operator*(Vector<n> a, Vector<n> b) {
   Real c = a[0] * b[0];
   for (Int i = 1; i < n; ++i)
     c += a[i] * b[i];
@@ -87,22 +87,22 @@ OSH_INLINE Real operator*(Vector<n> a, Vector<n> b) {
 }
 
 template <Int n>
-OSH_INLINE Real norm_squared(Vector<n> v) {
+INLINE Real norm_squared(Vector<n> v) {
   return v * v;
 }
 
 template <Int n>
-OSH_INLINE Real norm(Vector<n> v) {
+INLINE Real norm(Vector<n> v) {
   return sqrt(norm_squared(v));
 }
 
 template <Int n>
-OSH_INLINE Vector<n> normalize(Vector<n> v) {
+INLINE Vector<n> normalize(Vector<n> v) {
   return v / norm(v);
 }
 
 template <Int n>
-OSH_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
+INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i)
     c[i] = a[i] + b[i];
@@ -110,7 +110,7 @@ OSH_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
 }
 
 template <Int n>
-OSH_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
+INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i)
     c[i] = a[i] - b[i];
@@ -118,7 +118,7 @@ OSH_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
 }
 
 template <Int n>
-OSH_INLINE bool are_close(Vector<n> a, Vector<n> b,
+INLINE bool are_close(Vector<n> a, Vector<n> b,
     Real tol = EPSILON, Real floor = EPSILON) {
   for (Int i = 0; i < n; ++i)
     if (!are_close(a[i], b[i], tol, floor))
@@ -130,15 +130,15 @@ OSH_INLINE bool are_close(Vector<n> a, Vector<n> b,
 template <Int m, Int n>
 class Matrix : public Few<Vector<m>, n> {
   public:
-    OSH_INLINE Matrix() {}
+    INLINE Matrix() {}
     Matrix(std::initializer_list<Real> l);
-    OSH_INLINE void operator=(Matrix<m,n> const& rhs) volatile {
+    INLINE void operator=(Matrix<m,n> const& rhs) volatile {
       Few<Vector<m>, n>::operator=(rhs);
     }
-    OSH_INLINE Matrix(Matrix<m,n> const& rhs):
+    INLINE Matrix(Matrix<m,n> const& rhs):
       Few<Vector<m>, n>(rhs) {
     }
-    OSH_INLINE Matrix(const volatile Matrix<m,n>& rhs):
+    INLINE Matrix(const volatile Matrix<m,n>& rhs):
       Few<Vector<m>, n>(rhs) {
     }
 };
@@ -164,7 +164,7 @@ std::ostream& operator<<(std::ostream& o, Matrix<m,n> a)
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> identity_matrix() {
+INLINE Matrix<m,n> identity_matrix() {
   Matrix<m,n> a;
   for (Int j = 0; j < n; ++j)
   for (Int i = 0; i < m; ++i)
@@ -173,7 +173,7 @@ OSH_INLINE Matrix<m,n> identity_matrix() {
 }
 
 template <Int m, Int n>
-OSH_INLINE Vector<m> operator*(Matrix<m,n> a, Vector<n> b) {
+INLINE Vector<m> operator*(Matrix<m,n> a, Vector<n> b) {
   Vector<m> c = a[0] * b[0];
   for (Int j = 1; j < n; ++j)
     c = c + a[j] * b[j];
@@ -181,7 +181,7 @@ OSH_INLINE Vector<m> operator*(Matrix<m,n> a, Vector<n> b) {
 }
 
 template <Int m, Int n, Int p>
-OSH_INLINE Matrix<m,n> operator*(Matrix<m,p> a, Matrix<p,n> b) {
+INLINE Matrix<m,n> operator*(Matrix<m,p> a, Matrix<p,n> b) {
   Matrix<m,n> c;
   for (Int j = 0; j < n; ++j)
     c[j] = a * b[j];
@@ -189,7 +189,7 @@ OSH_INLINE Matrix<m,n> operator*(Matrix<m,p> a, Matrix<p,n> b) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> operator*(Matrix<m,n> a, Real b) {
+INLINE Matrix<m,n> operator*(Matrix<m,n> a, Real b) {
   Matrix<m,n> c;
   for (Int j = 0; j < n; ++j)
     c[j] = a[j] * b;
@@ -197,12 +197,12 @@ OSH_INLINE Matrix<m,n> operator*(Matrix<m,n> a, Real b) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> operator*(Real a, Matrix<m,n> b) {
+INLINE Matrix<m,n> operator*(Real a, Matrix<m,n> b) {
   return b * a;
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> operator/(Matrix<m,n> a, Real b) {
+INLINE Matrix<m,n> operator/(Matrix<m,n> a, Real b) {
   Matrix<m,n> c;
   for (Int j = 0; j < n; ++j)
     c[j] = a[j] / b;
@@ -210,7 +210,7 @@ OSH_INLINE Matrix<m,n> operator/(Matrix<m,n> a, Real b) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> operator+(Matrix<m,n> a, Matrix<m,n> b) {
+INLINE Matrix<m,n> operator+(Matrix<m,n> a, Matrix<m,n> b) {
   Matrix<m,n> c;
   for (Int j = 0; j < n; ++j)
     c[j] = a[j] + b[j];
@@ -218,7 +218,7 @@ OSH_INLINE Matrix<m,n> operator+(Matrix<m,n> a, Matrix<m,n> b) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> operator-(Matrix<m,n> a, Matrix<m,n> b) {
+INLINE Matrix<m,n> operator-(Matrix<m,n> a, Matrix<m,n> b) {
   Matrix<m,n> c;
   for (Int j = 0; j < n; ++j)
     c[j] = a[j] - b[j];
@@ -226,7 +226,7 @@ OSH_INLINE Matrix<m,n> operator-(Matrix<m,n> a, Matrix<m,n> b) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<n,m> transpose(Matrix<m,n> a) {
+INLINE Matrix<n,m> transpose(Matrix<m,n> a) {
   Matrix<n,m> b;
   for (Int i = 0; i < m; ++i)
   for (Int j = 0; j < n; ++j)
@@ -235,7 +235,7 @@ OSH_INLINE Matrix<n,m> transpose(Matrix<m,n> a) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Real max_norm(Matrix<m,n> a) {
+INLINE Real max_norm(Matrix<m,n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)
   for (Int i = 0; i < m; ++i)
@@ -244,7 +244,7 @@ OSH_INLINE Real max_norm(Matrix<m,n> a) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Real frobenius_norm(Matrix<m,n> a) {
+INLINE Real frobenius_norm(Matrix<m,n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)
   for (Int i = 0; i < m; ++i)
@@ -253,7 +253,7 @@ OSH_INLINE Real frobenius_norm(Matrix<m,n> a) {
 }
 
 template <Int m, Int n>
-OSH_INLINE bool are_close(Matrix<m,n> a, Matrix<m,n> b,
+INLINE bool are_close(Matrix<m,n> a, Matrix<m,n> b,
     Real tol = EPSILON, Real floor = EPSILON) {
   for (Int j = 0; j < n; ++j)
     if (!are_close(a[j], b[j], tol, floor))
@@ -262,7 +262,7 @@ OSH_INLINE bool are_close(Matrix<m,n> a, Matrix<m,n> b,
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> tensor_product(Vector<m> a, Vector<n> b) {
+INLINE Matrix<m,n> tensor_product(Vector<m> a, Vector<n> b) {
   Matrix<m,n> c;
   for (Int j = 0; j < n; ++j)
   for (Int i = 0; i < m; ++i)
@@ -271,7 +271,7 @@ OSH_INLINE Matrix<m,n> tensor_product(Vector<m> a, Vector<n> b) {
 }
 
 template <Int m>
-OSH_INLINE Real trace(Matrix<m,m> a) {
+INLINE Real trace(Matrix<m,m> a) {
   Real t = a[0][0];
   for (Int i = 1; i < m; ++i)
     t += a[i][i];
@@ -279,7 +279,7 @@ OSH_INLINE Real trace(Matrix<m,m> a) {
 }
 
 template <Int m>
-OSH_INLINE Vector<m> diagonal(Matrix<m,m> a) {
+INLINE Vector<m> diagonal(Matrix<m,m> a) {
   Vector<m> v;
   for (Int i = 0; i < m; ++i)
     v[i] = a[i][i];
@@ -287,7 +287,7 @@ OSH_INLINE Vector<m> diagonal(Matrix<m,m> a) {
 }
 
 template <Int m>
-OSH_INLINE Matrix<m,m> diagonal(Vector<m> v) {
+INLINE Matrix<m,m> diagonal(Vector<m> v) {
   Matrix<m,m> a;
   for (Int i = 0; i < m; ++i)
   for (Int j = i + 1; j < m; ++j)
@@ -298,7 +298,7 @@ OSH_INLINE Matrix<m,m> diagonal(Vector<m> v) {
 }
 
 template <Int n>
-OSH_INLINE Vector<n> zero_vector() {
+INLINE Vector<n> zero_vector() {
   Vector<n> v;
   for (Int i = 0; i < n; ++i)
     v[i] = 0.0;
@@ -306,7 +306,7 @@ OSH_INLINE Vector<n> zero_vector() {
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<m,n> zero_matrix() {
+INLINE Matrix<m,n> zero_matrix() {
   Matrix<m,n> a;
   for (Int j = 0; j < n; ++j)
     a[j] = zero_vector<m>();
@@ -314,7 +314,7 @@ OSH_INLINE Matrix<m,n> zero_matrix() {
 }
 
 template <Int m>
-OSH_INLINE void subtract_from_diag(Matrix<m,m>& a, Real mu) {
+INLINE void subtract_from_diag(Matrix<m,m>& a, Real mu) {
   for (Int i = 0; i < m; ++i)
     a[i][i] -= mu;
 }
@@ -325,7 +325,7 @@ OSH_INLINE void subtract_from_diag(Matrix<m,m>& a, Real mu) {
    and negate the components if the resulting
    bit pattern makes a larger integer */
 template <Int n>
-OSH_INLINE Vector<n> positivize(Vector<n> v) {
+INLINE Vector<n> positivize(Vector<n> v) {
   std::uint32_t bits = 0;
   for (Int i = 0; i < n; ++i)
     bits |= (std::uint32_t(v[i] >= 0.0) << i);

@@ -1,7 +1,7 @@
 struct MaxExponent : public MaxFunctor<int> {
   Reals a_;
   MaxExponent(Reals a):a_(a) {}
-  OSH_INLINE void operator()(Int i, value_type& update) const {
+  INLINE void operator()(Int i, value_type& update) const {
     int expo;
     frexp(a_[i], &expo);
     if (expo > update)
@@ -17,7 +17,7 @@ struct ReproSum : public SumFunctor<Int128> {
   Reals a_;
   double unit_;
   ReproSum(Reals a, double unit):a_(a),unit_(unit) {}
-  OSH_INLINE void operator()(Int i, value_type& update) const {
+  INLINE void operator()(Int i, value_type& update) const {
     update = update + Int128::from_double(a_[i], unit_);
   }
 };
@@ -42,7 +42,7 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
   auto n = a.size() / ncomps;
   for (Int j = 0; j < ncomps; ++j) {
     Write<Real> comp(n);
-    auto f = OSH_LAMBDA(LO i) {
+    auto f = LAMBDA(LO i) {
       comp[i] = a[i * ncomps + j];
     };
     parallel_for(n, f);

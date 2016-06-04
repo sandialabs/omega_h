@@ -12,7 +12,7 @@ Dist find_unique_use_owners(Dist uses2old_owners) {
   auto old_owners2serv_uses = old_owners2uses.roots2items();
   Write<I8> keep(nserv_uses, 1);
   Write<LO> degrees(nold_owners);
-  auto f = OSH_LAMBDA(LO old_owner) {
+  auto f = LAMBDA(LO old_owner) {
     LO degree = 0;
     auto begin = old_owners2serv_uses[old_owner];
     auto end = old_owners2serv_uses[old_owner + 1];
@@ -52,7 +52,7 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
   auto old_owners2serv_ents = old_owners2new_ents.roots2items();
   auto nold_owners = old_owners2new_ents.nroots();
   Write<LO> serv_uses2new_idxs(nserv_uses);
-  auto f = OSH_LAMBDA(LO old_owner) {
+  auto f = LAMBDA(LO old_owner) {
     auto ebegin = old_owners2serv_ents[old_owner];
     auto eend = old_owners2serv_ents[old_owner + 1];
     auto ubegin = old_owners2serv_uses[old_owner];

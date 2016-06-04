@@ -4,7 +4,7 @@ Reals average_metric_tmpl(Mesh& mesh, LOs entities) {
   Write<Real> out(nents * symm_dofs(sdim));
   auto ev2v = mesh.ask_verts_of(edim);
   auto v_metrics = mesh.get_array<Real>(VERT, "metric");
-  auto f = OSH_LAMBDA(LO i) {
+  auto f = LAMBDA(LO i) {
     auto e = entities[i];
     auto v = gather_verts<edim + 1>(ev2v, e);
     auto ms = gather_symms<edim + 1, sdim>(v_metrics, v);

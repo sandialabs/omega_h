@@ -7,7 +7,7 @@ void make_2d_box(Real x, Real y, LO nx, LO ny,
   Real dx = x / nx;
   Real dy = y / ny;
   Write<Real> coords_(nv * 2);
-  auto fill_coords = OSH_LAMBDA(LO v) {
+  auto fill_coords = LAMBDA(LO v) {
     LO i = v % nvx;
     LO j = v / nvx;
     coords_[v * 2 + 0] = i * dx;
@@ -15,7 +15,7 @@ void make_2d_box(Real x, Real y, LO nx, LO ny,
   };
   parallel_for(nv, fill_coords);
   Write<LO> qv2v_(nq * 4);
-  auto fill_conn = OSH_LAMBDA(LO q) {
+  auto fill_conn = LAMBDA(LO q) {
     LO i = q % nx;
     LO j = q / nx;
     qv2v_[q * 4 + 0] = (j + 0) * nvx + (i + 0);
@@ -43,7 +43,7 @@ void make_3d_box(
   Real dy = y / ny;
   Real dz = z / nz;
   Write<Real> coords_(nv * 3);
-  auto fill_coords = OSH_LAMBDA(LO v) {
+  auto fill_coords = LAMBDA(LO v) {
     LO ij = v % nvxy;
     LO k = v / nvxy;
     LO i = ij % nvx;
@@ -54,7 +54,7 @@ void make_3d_box(
   };
   parallel_for(nv, fill_coords);
   Write<LO> hv2v_(nh * 8);
-  auto fill_conn = OSH_LAMBDA(LO h) {
+  auto fill_conn = LAMBDA(LO h) {
     LO ij = h % nxy;
     LO k = h / nxy;
     LO i = ij % nx;

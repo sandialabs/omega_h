@@ -10,7 +10,7 @@ static void refine_edges_to_pairs(
   auto ndoms = nkeys;
   auto npairs = ndoms * 2;
   Write<LO> pair_verts2verts_w(npairs * 2);
-  auto f = OSH_LAMBDA(LO key) {
+  auto f = LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     pair_verts2verts_w[key * 4 + 0] =
@@ -66,7 +66,7 @@ void refine_domains_to_pairs(
   auto npairs = ndoms * 2;
   keys2pairs = multiply_each_by(2, keys2key_doms);
   Write<LO> pair_verts2verts_w(npairs * (dim + 1));
-  auto f = OSH_LAMBDA(LO key) {
+  auto f = LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     auto pair = keys2pairs[key];
@@ -124,7 +124,7 @@ void refine_domains_to_cuts(
   auto ncuts = ndoms;
   keys2cuts = keys2key_doms;
   Write<LO> cut_verts2verts_w(ncuts * (dim));
-  auto f = OSH_LAMBDA(LO key) {
+  auto f = LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     auto cut = keys2cuts[key];
@@ -173,7 +173,7 @@ void combine_pairs_and_cuts(
   auto nprods = keys2prods.last();
   auto nppv = simplex_degrees[ent_dim][VERT];
   auto prod_verts2verts_w = Write<LO>(nprods * nppv);
-  auto f = OSH_LAMBDA(LO key) {
+  auto f = LAMBDA(LO key) {
     auto prod = keys2prods[key];
     for (auto pair = keys2pairs[key]; pair < keys2pairs[key]; ++pair) {
       for (Int ppv = 0; ppv < nppv; ++ppv) {

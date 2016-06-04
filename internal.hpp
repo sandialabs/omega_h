@@ -59,6 +59,9 @@
 #endif
 
 #define CHECK(cond) OSH_CHECK(cond)
+#define LAMBDA OSH_LAMBDA
+#define INLINE OSH_INLINE
+#define DEVICE OSH_DEVICE
 
 #define EPSILON 1e-10
 #define PI 3.141592653589793

@@ -1,5 +1,5 @@
 template <typename Arr>
-OSH_INLINE void set_symm(Arr a, Int i, Matrix<3,3> symm) {
+INLINE void set_symm(Arr a, Int i, Matrix<3,3> symm) {
   a[i * 6 + 0] = symm[0][0];
   a[i * 6 + 1] = symm[1][1];
   a[i * 6 + 2] = symm[2][2];
@@ -9,14 +9,14 @@ OSH_INLINE void set_symm(Arr a, Int i, Matrix<3,3> symm) {
 }
 
 template <typename Arr>
-OSH_INLINE void set_symm(Arr a, Int i, Matrix<2,2> symm) {
+INLINE void set_symm(Arr a, Int i, Matrix<2,2> symm) {
   a[i * 3 + 0] = symm[0][0];
   a[i * 3 + 1] = symm[1][1];
   a[i * 3 + 2] = symm[1][0];
 }
 
 template <typename Arr>
-OSH_INLINE Matrix<3,3> get_symm_3(Arr a, Int i) {
+INLINE Matrix<3,3> get_symm_3(Arr a, Int i) {
   Matrix<3,3> symm;
   symm[0][0] = a[i * 6 + 0];
   symm[1][1] = a[i * 6 + 1];
@@ -31,7 +31,7 @@ OSH_INLINE Matrix<3,3> get_symm_3(Arr a, Int i) {
 }
 
 template <typename Arr>
-OSH_INLINE Matrix<2,2> get_symm_2(Arr a, Int i) {
+INLINE Matrix<2,2> get_symm_2(Arr a, Int i) {
   Matrix<2,2> symm;
   symm[0][0] = a[i * 3 + 0];
   symm[1][1] = a[i * 3 + 1];
@@ -46,27 +46,27 @@ struct SymmAccess;
 
 template <typename Arr>
 struct SymmAccess<2, Arr> {
-  OSH_INLINE static Matrix<2,2> get(Arr a, Int i) { return get_symm_2(a, i); }
+  INLINE static Matrix<2,2> get(Arr a, Int i) { return get_symm_2(a, i); }
 };
 
 template <typename Arr>
 struct SymmAccess<3, Arr> {
-  OSH_INLINE static Matrix<3,3> get(Arr a, Int i) { return get_symm_3(a, i); }
+  INLINE static Matrix<3,3> get(Arr a, Int i) { return get_symm_3(a, i); }
 };
 
 template <Int dim, typename Arr>
-OSH_INLINE Matrix<dim,dim> get_symm(Arr a, Int i) {
+INLINE Matrix<dim,dim> get_symm(Arr a, Int i) {
   return SymmAccess<dim,Arr>::get(a, i);
 }
 
 template <Int n, class Arr>
-OSH_INLINE void set_vec(Arr a, Int i, Vector<n> v) {
+INLINE void set_vec(Arr a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j)
     a[i * n + j] = v[j];
 }
 
 template <Int n, class Arr>
-OSH_INLINE Vector<n> get_vec(Arr a, Int i) {
+INLINE Vector<n> get_vec(Arr a, Int i) {
   Vector<n> v;
   for (Int j = 0; j < n; ++j)
     v[j] = a[i * n + j];
@@ -74,7 +74,7 @@ OSH_INLINE Vector<n> get_vec(Arr a, Int i) {
 }
 
 template <Int neev>
-OSH_INLINE Few<LO, neev> gather_verts(LOs ev2v, Int e) {
+INLINE Few<LO, neev> gather_verts(LOs ev2v, Int e) {
   Few<LO, neev> v;
   for (Int i = 0; i < neev; ++i)
     v[i] = ev2v[e * neev + i];
@@ -82,7 +82,7 @@ OSH_INLINE Few<LO, neev> gather_verts(LOs ev2v, Int e) {
 }
 
 template <Int neev>
-OSH_INLINE Few<Real, neev> gather_scalars(Reals a, Few<LO, neev> v) {
+INLINE Few<Real, neev> gather_scalars(Reals a, Few<LO, neev> v) {
   Few<Real, neev> x;
   for (Int i = 0; i < neev; ++i)
     x[i] = a[v[i]];
@@ -90,7 +90,7 @@ OSH_INLINE Few<Real, neev> gather_scalars(Reals a, Few<LO, neev> v) {
 }
 
 template <Int neev, Int dim>
-OSH_INLINE Few<Vector<dim>, neev> gather_vectors(Reals a, Few<LO, neev> v) {
+INLINE Few<Vector<dim>, neev> gather_vectors(Reals a, Few<LO, neev> v) {
   Few<Vector<dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
     x[i] = get_vec<dim>(a, v[i]);
@@ -98,14 +98,14 @@ OSH_INLINE Few<Vector<dim>, neev> gather_vectors(Reals a, Few<LO, neev> v) {
 }
 
 template <Int neev, Int dim>
-OSH_INLINE Few<Matrix<dim,dim>, neev> gather_symms(Reals a, Few<LO, neev> v) {
+INLINE Few<Matrix<dim,dim>, neev> gather_symms(Reals a, Few<LO, neev> v) {
   Few<Matrix<dim,dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
     x[i] = get_symm<dim>(a, v[i]);
   return x;
 }
 
-OSH_INLINE Int symm_dofs(Int dim) {
+INLINE Int symm_dofs(Int dim) {
   return ((dim + 1) * dim) / 2;
 }
 

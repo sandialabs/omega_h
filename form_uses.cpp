@@ -5,7 +5,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   LO nhigh = hv2v.size() / nverts_per_high;
   LO nuses = nhigh * nlows_per_high;
   Write<LO> uv2v(nuses * nverts_per_low);
-  auto f = OSH_LAMBDA(LO h) {
+  auto f = LAMBDA(LO h) {
     LO h_begin = h * nverts_per_high;
     for (Int u = 0; u < nlows_per_high; ++u) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;

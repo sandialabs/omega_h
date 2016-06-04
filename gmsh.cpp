@@ -129,7 +129,7 @@ void read(std::istream& stream, Mesh& mesh) {
     }
     Write<I8> class_dim(mesh.nents(ent_dim), -1);
     Write<LO> class_id(mesh.nents(ent_dim), -1);
-    auto f = OSH_LAMBDA(LO eq) {
+    auto f = LAMBDA(LO eq) {
       LO e = eq2e[eq];
       class_dim[e] = static_cast<I8>(ent_dim);
       class_id[e] = eq_class_id[eq];

@@ -4,7 +4,7 @@ static void order_by_globals(
     Write<I8> codes,
     Read<GO> hg) {
   LO nl = l2lh.size() - 1;
-  auto f = OSH_LAMBDA(LO l) {
+  auto f = LAMBDA(LO l) {
     LO begin = l2lh[l];
     LO end = l2lh[l + 1];
     for (LO j = begin; j < end; ++j) {
@@ -34,7 +34,7 @@ Adj invert(Adj down, Int nlows_per_high, LO nlows,
   Write<LO> lh2h(nlh);
   Write<I8> codes(nlh);
   if (down_codes.exists()) {
-    auto f = OSH_LAMBDA(LO lh) {
+    auto f = LAMBDA(LO lh) {
       LO hl = lh2hl[lh];
       LO h = hl / nlows_per_high;
       lh2h[lh] = h;
@@ -46,7 +46,7 @@ Adj invert(Adj down, Int nlows_per_high, LO nlows,
     };
     parallel_for(nlh, f);
   } else {
-    auto f = OSH_LAMBDA(LO lh) {
+    auto f = LAMBDA(LO lh) {
       LO hl = lh2hl[lh];
       LO h = hl / nlows_per_high;
       lh2h[lh] = h;

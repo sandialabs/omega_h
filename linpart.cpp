@@ -5,7 +5,7 @@ Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
   auto split = ((quot + 1) * rem);
   Write<I32> ranks(globals.size());
   Write<LO> idxs(globals.size());
-  auto f = OSH_LAMBDA(LO i) {
+  auto f = LAMBDA(LO i) {
     if (globals[i] < split) {
       ranks[i] = static_cast<I32>(globals[i] / (quot + 1));
       idxs[i] = static_cast<LO>(globals[i] % (quot + 1));

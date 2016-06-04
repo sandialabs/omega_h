@@ -5,7 +5,7 @@ Graph verts_across_edges(Adj e2v, Adj v2e) {
   auto v2ve_codes = v2e.codes;
   auto v2vv = v2ve;
   Write<LO> vv2v(ve2e.size());
-  auto f = OSH_LAMBDA(LO ve) {
+  auto f = LAMBDA(LO ve) {
     auto vv = ve;
     auto e = ve2e[ve];
     auto v2ve_code = v2ve_codes[ve];
@@ -28,7 +28,7 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
   auto e2ee = offset_scan(e2ee_degrees);
   auto nee = e2ee.last();
   Write<LO> ee2e(nee);
-  auto lambda = OSH_LAMBDA(LO e) {
+  auto lambda = LAMBDA(LO e) {
     auto ef_begin = e2ef[e];
     auto ef_end = e2ef[e + 1];
     auto neef = ef_end - ef_begin;
@@ -56,7 +56,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   auto ne = e2er.size() - 1;
   auto e2ee = e2er;
   Write<LO> ee2e(er2r.size());
-  auto f = OSH_LAMBDA(LO e) {
+  auto f = LAMBDA(LO e) {
     auto er_begin = e2er[e];
     auto er_end = e2er[e + 1];
     for (auto er = er_begin; er < er_end; ++ er) {
@@ -83,7 +83,7 @@ Graph elements_across_sides(Int dim,
   Int nsides_per_elem = dim + 1;
   auto nelems = elem_side2side.size() / nsides_per_elem;
   Write<LO> degrees(nelems);
-  auto count = OSH_LAMBDA(LO elem) {
+  auto count = LAMBDA(LO elem) {
     auto begin = elem * nsides_per_elem;
     auto end = begin + nsides_per_elem;
     Int n = 0;
@@ -97,7 +97,7 @@ Graph elements_across_sides(Int dim,
   auto elem2elem_elems = offset_scan(LOs(degrees));
   auto nelem_elems = elem2elem_elems.last();
   Write<LO> elem_elem2elem(nelem_elems);
-  auto fill = OSH_LAMBDA(LO elem) {
+  auto fill = LAMBDA(LO elem) {
     auto begin = elem * nsides_per_elem;
     auto end = begin + nsides_per_elem;
     LO elem_elem = elem2elem_elems[elem];

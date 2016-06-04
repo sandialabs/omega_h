@@ -13,7 +13,7 @@ Graph find_entities_of_first_vertices(
   auto ve_codes = v2e.codes;
   auto nv = mesh.nverts();
   Write<LO> degrees(nv);
-  auto count = OSH_LAMBDA(LO v) {
+  auto count = LAMBDA(LO v) {
     Int n = 0;
     for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
       n += (code_which_down(ve_codes[ve]) == 0);
@@ -23,7 +23,7 @@ Graph find_entities_of_first_vertices(
   parallel_for(nv, count);
   auto fv2fve = offset_scan(LOs(degrees));
   Write<LO> fve2e(fv2fve.last());
-  auto fill = OSH_LAMBDA(LO v) {
+  auto fill = LAMBDA(LO v) {
     LO fve = fv2fve[v];
     for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
       if (code_which_down(ve_codes[ve]) == 0) {

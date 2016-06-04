@@ -12,7 +12,7 @@
    are there to support hessenberg reduction / tri-diagonalization */
 
 template <Int m, Int n>
-OSH_INLINE bool householder_vector(Matrix<m,n> a, Real anorm,
+INLINE bool householder_vector(Matrix<m,n> a, Real anorm,
     Int k, Int o,
     Vector<m>& v_k) {
   Real norm_x = 0;
@@ -39,7 +39,7 @@ OSH_INLINE bool householder_vector(Matrix<m,n> a, Real anorm,
 }
 
 template <Int m, Int n>
-OSH_INLINE void reflect_columns(Matrix<m,n>& a, Vector<m> v_k, Int k, Int o) {
+INLINE void reflect_columns(Matrix<m,n>& a, Vector<m> v_k, Int k, Int o) {
   for (Int j = k; j < n; ++j) {
     Real dot = 0;
     for (Int i = k + o; i < m; ++i)
@@ -50,7 +50,7 @@ OSH_INLINE void reflect_columns(Matrix<m,n>& a, Vector<m> v_k, Int k, Int o) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Int factorize_qr_householder(Matrix<m,n>& a,
+INLINE Int factorize_qr_householder(Matrix<m,n>& a,
     Few<Vector<m>, n>& v) {
   Real anorm = frobenius_norm(a);
   Int rank = 0;
@@ -68,7 +68,7 @@ OSH_INLINE Int factorize_qr_householder(Matrix<m,n>& a,
    for k=1 to n
      b_{k:m} = b_{k:m} - 2 v_k (v_k^* b_{k:m}) */
 template <Int m, Int n>
-OSH_INLINE void implicit_q_trans_b(Vector<m>& b,
+INLINE void implicit_q_trans_b(Vector<m>& b,
     Few<Vector<m>, n> v) {
   for (Int k = 0; k < n; ++k) {
     Real dot = 0;
@@ -86,7 +86,7 @@ OSH_INLINE void implicit_q_trans_b(Vector<m>& b,
    for k=n downto 1
      x_{k:m} = x_{k:m} - 2 v_k (v_k^* b_{k:m}) */
 template <Int m, Int n>
-OSH_INLINE void implicit_q_x(Vector<m>& x,
+INLINE void implicit_q_x(Vector<m>& x,
     Few<Vector<m>, n> v) {
   for (Int k2 = 0; k2 < n; ++k2) {
     Int k = n - k2 - 1;
@@ -99,7 +99,7 @@ OSH_INLINE void implicit_q_x(Vector<m>& x,
 }
 
 template <Int m, Int n>
-OSH_INLINE Matrix<n,n> reduced_r_from_full(Matrix<m,n> fr) {
+INLINE Matrix<n,n> reduced_r_from_full(Matrix<m,n> fr) {
   Matrix<n,n> rr;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < n; ++i)
@@ -108,7 +108,7 @@ OSH_INLINE Matrix<n,n> reduced_r_from_full(Matrix<m,n> fr) {
 }
 
 template <Int m, Int n>
-OSH_INLINE Int decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) {
+INLINE Int decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) {
   Few<Vector<m>, n> v;
   Int rank = factorize_qr_householder(a, v);
   r = reduced_r_from_full(a);
@@ -120,7 +120,7 @@ OSH_INLINE Int decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& 
 
 /* A_{1:m,k+1:m} = A_{1:m,k+1:m} - 2(A_{1:m,k+1:m}v_k)v_k^* */
 template <Int m>
-OSH_INLINE void reflect_rows(Matrix<m,m>& a, Vector<m> v_k, Int k) {
+INLINE void reflect_rows(Matrix<m,m>& a, Vector<m> v_k, Int k) {
   for (Int i = 0; i < m; ++i) {
     Real dot = 0;
     for (Int j = k + 1; j < m; ++j)
@@ -143,7 +143,7 @@ OSH_INLINE void reflect_rows(Matrix<m,m>& a, Vector<m> v_k, Int k) {
      A_{k+1:m,k:m} = A_{k+1:m,k:m} - 2 v_k (v_k^* A_{k+1:m,k:m})
      A_{1:m,k+1:m} = A_{1:m,k+1:m} - 2(A_{1:m,k+1:m}v_k)v_k^* */
 template <Int m>
-OSH_INLINE void householder_hessenberg(Matrix<m,m>& a,
+INLINE void householder_hessenberg(Matrix<m,m>& a,
     Few<Vector<m>, m - 2>& v) {
   Real anorm = frobenius_norm(a);
   for (Int k = 0; k < m - 2; ++k) {
@@ -154,7 +154,7 @@ OSH_INLINE void householder_hessenberg(Matrix<m,m>& a,
 }
 
 template <Int m>
-OSH_INLINE
+INLINE
 typename std::enable_if<(m > 2)>::type
 householder_hessenberg2(Matrix<m,m>& a,
     Matrix<m,m>& q) {
@@ -166,7 +166,7 @@ householder_hessenberg2(Matrix<m,m>& a,
 }
 
 template <Int m>
-OSH_INLINE
+INLINE
 typename std::enable_if<!(m > 2)>::type
 householder_hessenberg2(Matrix<m,m>&,
     Matrix<m,m>& q) {
@@ -174,7 +174,7 @@ householder_hessenberg2(Matrix<m,m>&,
 }
 
 template <Int m>
-OSH_INLINE bool reduce(Matrix<m,m> a, Real anorm, Int& n) {
+INLINE bool reduce(Matrix<m,m> a, Real anorm, Int& n) {
   for (; n >= 2; --n)
     if (fabs(a[n - 2][n - 1]) > EPSILON * anorm)
       return true;
@@ -195,7 +195,7 @@ OSH_INLINE bool reduce(Matrix<m,m> a, Real anorm, Int& n) {
 
    where \delta = (a_{m-1} - a_m) / 2    */
 template <Int m>
-OSH_INLINE Real wilkinson_shift(Matrix<m,m> a, Int n) {
+INLINE Real wilkinson_shift(Matrix<m,m> a, Int n) {
   auto anm1 = a[n - 2][n - 2];
   auto an   = a[n - 1][n - 1];
   auto bnm1 = a[n - 2][n - 1];
@@ -205,12 +205,12 @@ OSH_INLINE Real wilkinson_shift(Matrix<m,m> a, Int n) {
 }
 
 template <Int m>
-OSH_INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
+INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
   subtract_from_diag(a, mu);
 }
 
 template <Int m>
-OSH_INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
+INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
   Vector<m> x;
   for (Int ii = 0; ii < m; ++ii) {
     Int i = m - ii - 1;
@@ -230,7 +230,7 @@ OSH_INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
    2. Compute the vector \hat{Q}^* b
    3. Solve the upper-triangular system \hat{R} x = \hat{Q}^* b for x  */
 template <Int m, Int n>
-OSH_INLINE bool solve_least_squares_qr(Matrix<m,n> a, Vector<m> b,
+INLINE bool solve_least_squares_qr(Matrix<m,n> a, Vector<m> b,
     Vector<n>& x) {
   Few<Vector<m>, n> v;
   Int rank = factorize_qr_householder(a, v);

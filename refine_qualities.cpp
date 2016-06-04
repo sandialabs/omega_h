@@ -1,7 +1,7 @@
 struct RealRefineQualities {
   RealRefineQualities(Mesh&, LOs) {}
   template <Int dim>
-  OSH_INLINE Real measure(Int, Few<Vector<dim>, dim + 1> p,
+  INLINE Real measure(Int, Few<Vector<dim>, dim + 1> p,
       Few<LO, dim>) const {
     return real_element_quality(p);
   }
@@ -15,7 +15,7 @@ struct MetricRefineQualities {
     midpt_metrics(average_metric(mesh, EDGE, candidates))
   {}
   template <Int dim>
-  OSH_INLINE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
+  INLINE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
       Few<LO, dim> csv2v) const {
     Few<Matrix<dim,dim>, dim + 1> ms;
     for (Int csv = 0; csv < dim; ++csv)
@@ -38,7 +38,7 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
   auto ncands = candidates.size();
   auto measure = Measure(mesh, candidates);
   Write<Real> quals(ncands);
-  auto f = OSH_LAMBDA(LO cand) {
+  auto f = LAMBDA(LO cand) {
     auto e = candidates[cand];
     auto eev2v = gather_verts<2>(ev2v, e);
     auto ep = gather_vectors<2, dim>(coords, eev2v);
