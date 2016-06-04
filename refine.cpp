@@ -14,6 +14,8 @@ bool refine(Mesh& mesh, Real min_qual) {
   map_into(cand_quals, cands2edges, edge_quals_w, 1);
   auto edge_quals = Reals(edge_quals_w);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_initial);
+  mesh.add_tag(EDGE, "edge2rep_order", 1, OSH_DONT_TRANSFER,
+      get_edge2rep_order(mesh, edges_are_keys));
   //TODO: alter partition to make cavities local
   auto keys2edges = collect_marked(edges_are_keys);
   auto nkeys = keys2edges.size();

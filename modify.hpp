@@ -1,3 +1,5 @@
+LOs get_edge2rep_order(Mesh& mesh, Read<I8> edges_are_keys);
+
 void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
     Int ent_dim, Int key_dim,
     LOs keys2kds,

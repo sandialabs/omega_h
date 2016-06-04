@@ -160,13 +160,54 @@ static LOs get_rep_counts(
   return rep_counts;
 }
 
+/* one more thing we need to for the pathological
+   case of new vertices is to resolve the situation
+   where multiple cavities share the same representative
+   vertex of the old mesh.
+   that vertex represents the sum of all adjacent cavities
+   and has a single global number from which the new globals
+   of all new cavity vertices are computed.
+   we just need to determine an order in which to assign
+   adjacent globals from the representative.
+   the most intuitive order is the upward adjacent ordering
+   from vertices to edges (guaranteed to be sorted by globals).
+   however, this is only available in full in GHOSTED mode.
+   so, this function writes down that ordering while in GHOSTED
+   mode so it can be used later by find_new_offsets, which
+   runs in ELEMENT_BASED mode */
+
+LOs get_edge2rep_order(Mesh& mesh, Read<I8> edges_are_keys) {
+  auto nedges = mesh.nents(EDGE);
+  auto nverts = mesh.nents(VERT);
+  auto order_w = Write<LO>(nedges, -1);
+  auto verts2edges = mesh.ask_up(VERT, EDGE);
+  auto v2ve = verts2edges.a2ab;
+  auto ve2e = verts2edges.ab2b;
+  auto ve_codes = verts2edges.codes;
+  auto f = OSH_LAMBDA(LO v) {
+    LO i = 0;
+    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
+      auto e = ve2e[ve];
+      auto code = ve_codes[ve];
+      auto dir = code_which_down(code);
+      if (dir == 0 && edges_are_keys[e]) {
+        order_w[e] = i++;
+      }
+    }
+  };
+  parallel_for(nverts, f);
+  return order_w;
+}
+
 template <typename T>
 static void find_new_offsets(
     Int ent_dim,
     Read<T> old_ents2new_offsets,
     LOs same_ents2old_ents,
+    LOs keys2kds,
     LOs keys2reps,
     LOs keys2prods,
+    LOs edge2rep_order,
     Read<T>& same_ents2new_offsets,
     Read<T>& prods2new_offsets) {
   same_ents2new_offsets = unmap(same_ents2old_ents,
@@ -177,16 +218,32 @@ static void find_new_offsets(
   Write<T> prods2new_offsets_w(nprods);
   auto nkeys = keys2reps.size();
   CHECK(nkeys == keys2prods.size() - 1);
-  auto write_prod_offsets = OSH_LAMBDA(LO key) {
-    auto offset = keys2new_offsets[key];
-    /* TODO: the vertex scheme here doesn't work when multiple
-       cavities share a representative vertex */
-    if (ent_dim == VERT) ++offset;
-    for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
-      prods2new_offsets_w[prod] = offset++;
-    }
-  };
-  parallel_for(nkeys, write_prod_offsets);
+  if (ent_dim == VERT) {
+    CHECK(edge2rep_order.exists());
+    CHECK(keys2kds.exists());
+    auto write_prod_offsets = OSH_LAMBDA(LO key) {
+      // plus one because the representatives
+      // exist in the new mesh, so they will get
+      // the global number of that vertex in the new mesh,
+      // which gets saved to same_ents2new_offsets above
+      // the globals for new vertices start after that one,
+      // and are ordered by edge2rep_order
+      auto offset = keys2new_offsets[key] + 1;
+      auto edge = keys2kds[key];
+      for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
+        prods2new_offsets_w[prod] = offset + edge2rep_order[edge];
+      }
+    };
+    parallel_for(nkeys, write_prod_offsets);
+  } else {
+    auto write_prod_offsets = OSH_LAMBDA(LO key) {
+      auto offset = keys2new_offsets[key];
+      for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
+        prods2new_offsets_w[prod] = offset++;
+      }
+    };
+    parallel_for(nkeys, write_prod_offsets);
+  }
   prods2new_offsets = prods2new_offsets_w;
 }
 
@@ -225,8 +282,13 @@ static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
       Read<GO>(lin_globals), 1);
   Read<GO> same_ents2new_globals;
   Read<GO> prods2new_globals;
+  auto edge2rep_order = LOs();
+  if (ent_dim == VERT) {
+    edge2rep_order = old_mesh.get_array<LO>(EDGE, "edge2rep_order");
+  }
   find_new_offsets(ent_dim, old_ents2new_globals, same_ents2old_ents,
-      keys2reps, keys2prods, same_ents2new_globals, prods2new_globals);
+      keys2kds, keys2reps, keys2prods, edge2rep_order,
+      same_ents2new_globals, prods2new_globals);
   auto nnew_ents = new_mesh.nents(ent_dim);
   CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
@@ -254,8 +316,16 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
       keys2reps, keys2nprods, same_ents2old_ents);
   auto local_offsets = offset_scan(rep_counts);
   auto nnew_ents = local_offsets.last();
+  auto edge2rep_order = LOs();
+  if (ent_dim == VERT) {
+    /* recompute this because the local version differs
+       from the global one */
+    auto edges_are_keys = mark_image(keys2kds, old_mesh.nents(EDGE));
+    edge2rep_order = get_edge2rep_order(old_mesh, edges_are_keys);
+  }
   find_new_offsets(ent_dim, local_offsets, same_ents2old_ents,
-      keys2reps, keys2prods, same_ents2new_ents, prods2new_ents);
+      keys2kds, keys2reps, keys2prods, edge2rep_order,
+      same_ents2new_ents, prods2new_ents);
   auto nold_ents = old_mesh.nents(ent_dim);
   auto old_ents2new_ents_w = Write<LO>(nold_ents, -1);
   map_into(same_ents2new_ents, same_ents2old_ents, old_ents2new_ents_w, 1);
