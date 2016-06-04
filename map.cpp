@@ -114,6 +114,17 @@ LOs collect_marked(Read<I8> marks) {
   return marked;
 }
 
+Read<I8> mark_image(LOs a2b, LO nb) {
+  auto na = a2b.size();
+  Write<I8> out(nb, 0);
+  auto f = OSH_LAMBDA(LO a) {
+    auto b = a2b[a];
+    out[b] = 1;
+  };
+  parallel_for(na, f);
+  return out;
+}
+
 LOs invert_injective_map(LOs a2b, LO nb) {
   Write<LO> b2a(nb, -1);
   auto f = OSH_LAMBDA(LO a) {

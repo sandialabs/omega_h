@@ -20,6 +20,8 @@ Read<I8> invert_marks(Read<I8> marks);
 
 LOs collect_marked(Read<I8> marks);
 
+Read<I8> mark_image(LOs a2b, LO nb);
+
 LOs invert_injective_map(LOs a2b, LO nb);
 
 LOs invert_funnel(LOs ab2a, LO na);
