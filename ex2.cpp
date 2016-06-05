@@ -14,11 +14,11 @@ int main(int argc, char** argv) {
       Read<I8>(mesh.nents(EDGE), 1));
   bool did = refine(mesh, 0.0);
   CHECK(did);
-  if (mesh.dim() == 3) {
-  vtk::write_parallel("tets", mesh, 3);
-  }
-  vtk::write_parallel("tris", mesh, 2);
-  vtk::write_parallel("edges", mesh, 1);
+//if (mesh.dim() == 3) {
+//vtk::write_parallel("tets", mesh, 3);
+//}
+//vtk::write_parallel("tris", mesh, 2);
+//vtk::write_parallel("edges", mesh, 1);
   }
   fini();
 }
