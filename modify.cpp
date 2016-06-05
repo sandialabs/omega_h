@@ -85,7 +85,7 @@ static LOs get_keys2reps(Mesh& mesh,
     Int key_dim,
     LOs keys2kds,
     LOs keys2nprods) {
-  CHECK(ent_dim >= key_dim || ent_dim == VERT);
+  CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
   auto nkeys = keys2kds.size();
   CHECK(nkeys == keys2nprods.size());
   LOs keys2reps;
@@ -109,8 +109,7 @@ static LOs get_keys2reps(Mesh& mesh,
     parallel_for(nkeys, setup_reps);
     keys2reps = keys2reps_w;
   } else {
-    CHECK(ent_dim == VERT);
-    CHECK(key_dim == EDGE);
+    CHECK(ent_dim == VERT && key_dim == EDGE);
     /* in the case of finding new globals for vertices after
        refining, we will use an endpoint vertex of the edge
        as the "representative" entity.
@@ -201,7 +200,6 @@ LOs get_edge2rep_order(Mesh& mesh, Read<I8> edges_are_keys) {
 
 template <typename T>
 static void find_new_offsets(
-    Int ent_dim,
     Read<T> old_ents2new_offsets,
     LOs same_ents2old_ents,
     LOs keys2kds,
@@ -218,8 +216,7 @@ static void find_new_offsets(
   Write<T> prods2new_offsets_w(nprods);
   auto nkeys = keys2reps.size();
   CHECK(nkeys == keys2prods.size() - 1);
-  if (ent_dim == VERT) {
-    CHECK(edge2rep_order.exists());
+  if (edge2rep_order.exists()) {
     CHECK(keys2kds.exists());
     auto write_prod_offsets = LAMBDA(LO key) {
       // plus one because the representatives
@@ -257,7 +254,7 @@ static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     LOs same_ents2new_ents,
     LOs keys2reps,
     LOs rep_counts) {
-  CHECK(ent_dim >= key_dim || ent_dim == VERT);
+  CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
   auto nsame_ents = same_ents2old_ents.size();
   CHECK(nsame_ents == same_ents2new_ents.size());
   auto nkeys = keys2kds.size();
@@ -283,10 +280,10 @@ static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   Read<GO> same_ents2new_globals;
   Read<GO> prods2new_globals;
   auto edge2rep_order = LOs();
-  if (ent_dim == VERT) {
+  if (ent_dim == VERT && key_dim == EDGE) {
     edge2rep_order = old_mesh.get_array<LO>(EDGE, "edge2rep_order");
   }
-  find_new_offsets(ent_dim, old_ents2new_globals, same_ents2old_ents,
+  find_new_offsets(old_ents2new_globals, same_ents2old_ents,
       keys2kds, keys2reps, keys2prods, edge2rep_order,
       same_ents2new_globals, prods2new_globals);
   auto nnew_ents = new_mesh.nents(ent_dim);
@@ -317,13 +314,13 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
   auto local_offsets = offset_scan(rep_counts);
   auto nnew_ents = local_offsets.last();
   auto edge2rep_order = LOs();
-  if (ent_dim == VERT) {
+  if (ent_dim == VERT && key_dim == EDGE) {
     /* recompute this because the local version differs
        from the global one */
     auto edges_are_keys = mark_image(keys2kds, old_mesh.nents(EDGE));
     edge2rep_order = get_edge2rep_order(old_mesh, edges_are_keys);
   }
-  find_new_offsets(ent_dim, local_offsets, same_ents2old_ents,
+  find_new_offsets(local_offsets, same_ents2old_ents,
       keys2kds, keys2reps, keys2prods, edge2rep_order,
       same_ents2new_ents, prods2new_ents);
   auto nold_ents = old_mesh.nents(ent_dim);
