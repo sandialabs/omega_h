@@ -150,7 +150,6 @@ static LOs get_rep_counts(
   auto owned = mesh.owned(ent_dim);
   CHECK(owned.size() == nents);
   Write<LO> rep_counts(nents, 0);
-  std::cerr << "BEFORE\n";
   auto mark_same = LAMBDA(LO same_ent) {
     auto ent = same_ents2ents[same_ent];
     CHECK(ent < nents);
@@ -158,7 +157,6 @@ static LOs get_rep_counts(
       rep_counts[ent] = 1;
   };
   parallel_for(nsame_ents, mark_same);
-  std::cerr << "HERE\n";
   auto mark_reps = LAMBDA(LO key) {
     auto rep = keys2reps[key];
     auto nkey_prods = keys2nprods[key];
