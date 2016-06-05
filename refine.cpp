@@ -38,7 +38,7 @@ static void refine_element_based(Mesh& mesh) {
     auto keys2prods = LOs();
     auto prod_verts2verts = LOs();
     if (ent_dim == VERT) {
-      keys2prods = LOs(nkeys, 0, 1);
+      keys2prods = LOs(nkeys + 1, 0, 1);
     } else {
       refine_products(mesh, ent_dim, keys2edges, keys2midverts,
           old_verts2new_verts, keys2prods, prod_verts2verts);
