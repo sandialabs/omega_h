@@ -672,6 +672,15 @@ static void test_i8_array_print() {
   CHECK(str == " 1 1 1\n");
 }
 
+static void test_mark_up_down() {
+  Mesh mesh;
+  build_box(mesh, 1, 1, 0, 1, 1, 0);
+  CHECK(mark_down(mesh, TRI, VERT, Read<I8>({1,0}))
+        == Read<I8>({1,1,0,1}));
+  CHECK(mark_up(mesh, VERT, TRI, Read<I8>({0,1,0,0}))
+        == Read<I8>({1,0}));
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -707,5 +716,6 @@ int main(int argc, char** argv) {
   test_positivize();
   test_refine_qualities();
   test_i8_array_print();
+  test_mark_up_down();
   fini();
 }
