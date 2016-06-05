@@ -95,7 +95,7 @@ static LOs get_keys2reps(Mesh& mesh,
     auto keys2ents2 = mesh.ask_up(key_dim, ent_dim);
     auto keys2key_ents = keys2ents2.a2ab;
     auto key_ents2ents = keys2ents2.ab2b;
-    Write<LO> keys2reps_w;
+    Write<LO> keys2reps_w(nkeys);
     auto setup_reps = LAMBDA(LO key) {
       /* the first upward adjacent entity will represent
          this cavity during the updating of global numbers.
@@ -121,7 +121,7 @@ static LOs get_keys2reps(Mesh& mesh,
        I can't think of a nicer way to determine new vertex globals
        which is independent of partitioning and ordering */
     auto edge_verts2verts = mesh.ask_verts_of(EDGE);
-    Write<LO> keys2reps_w;
+    Write<LO> keys2reps_w(nkeys);
     auto setup_reps = LAMBDA(LO key) {
       auto edge = keys2kds[key];
       keys2reps_w[key] = edge_verts2verts[edge * 2 + 0];
