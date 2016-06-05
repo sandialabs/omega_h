@@ -193,3 +193,32 @@ void combine_pairs_and_cuts(
   parallel_for(nkeys, f);
   prod_verts2verts = prod_verts2verts_w;
 }
+
+void refine_products(
+    Mesh& mesh,
+    Int ent_dim,
+    LOs keys2edges,
+    LOs keys2midverts,
+    LOs old_verts2new_verts,
+    LOs& keys2prods,
+    LOs& prod_verts2verts) {
+  auto keys2pairs = LOs();
+  auto pair_verts2verts = LOs();
+  refine_domains_to_pairs(mesh, ent_dim, keys2edges,
+      keys2midverts, old_verts2new_verts,
+      keys2pairs, pair_verts2verts);
+  if (ent_dim == mesh.dim()) {
+    keys2prods = keys2pairs;
+    prod_verts2verts = pair_verts2verts;
+  } else {
+    auto keys2cuts = LOs();
+    auto cut_verts2verts = LOs();
+    refine_domains_to_cuts(mesh, ent_dim + 1, keys2edges,
+        keys2midverts, old_verts2new_verts,
+        keys2cuts, cut_verts2verts);
+    combine_pairs_and_cuts(ent_dim,
+        keys2cuts, keys2pairs,
+        cut_verts2verts, pair_verts2verts,
+        keys2prods, prod_verts2verts);
+  }
+}

@@ -19,8 +19,17 @@ void refine_domains_to_cuts(
 void combine_pairs_and_cuts(
     Int ent_dim,
     LOs keys2cuts,
-    LOs keys2pairs_last,
+    LOs keys2pairs,
     LOs cut_verts2verts,
-    LOs pair_verts2verts_last,
+    LOs pair_verts2verts,
+    LOs& keys2prods,
+    LOs& prod_verts2verts);
+
+void refine_products(
+    Mesh& mesh,
+    Int ent_dim,
+    LOs keys2edges,
+    LOs keys2midverts,
+    LOs old_verts2new_verts,
     LOs& keys2prods,
     LOs& prod_verts2verts);

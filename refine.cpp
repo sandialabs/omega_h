@@ -1,5 +1,4 @@
 static bool refine_ghosted(Mesh& mesh, Real min_qual) {
-  mesh.set_partition(GHOSTED);
   auto comm = mesh.comm();
   auto edges_are_cands = mesh.get_array<I8>(EDGE, "candidate");
   mesh.remove_tag(EDGE, "candidate");
@@ -24,7 +23,6 @@ static bool refine_ghosted(Mesh& mesh, Real min_qual) {
 }
 
 static void refine_element_based(Mesh& mesh) {
-  mesh.set_partition(ELEMENT_BASED);
   auto comm = mesh.comm();
   auto edges_are_keys = mesh.get_array<I8>(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
@@ -34,18 +32,38 @@ static void refine_element_based(Mesh& mesh) {
   new_mesh.set_dim(mesh.dim());
   new_mesh.set_partition(mesh.partition());
   auto keys2midverts = LOs();
-  auto same_verts2old_verts = LOs();
-  auto same_verts2new_verts = LOs();
   auto old_verts2new_verts = LOs();
-  modify_ents(mesh, new_mesh, VERT, EDGE, keys2edges, LOs(nkeys, 0, 1),
-      LOs(), LOs(), keys2midverts,
-      same_verts2old_verts, same_verts2new_verts,
-      old_verts2new_verts);
-  /* TODO */
+  auto old_lows2new_lows = LOs();
+  for (Int ent_dim = 0; ent_dim <= mesh.dim(); ++ent_dim) {
+    auto keys2prods = LOs();
+    auto prod_verts2verts = LOs();
+    if (ent_dim == VERT) {
+      keys2prods = LOs(nkeys, 0, 1);
+    } else {
+      refine_products(mesh, ent_dim, keys2edges, keys2midverts,
+          old_verts2new_verts, keys2prods, prod_verts2verts);
+    }
+    auto prods2new_ents = LOs();
+    auto same_ents2old_ents = LOs();
+    auto same_ents2new_ents = LOs();
+    auto old_ents2new_ents = LOs();
+    modify_ents(mesh, new_mesh, ent_dim, EDGE, keys2edges,
+        keys2prods, prod_verts2verts, old_lows2new_lows,
+        prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents,
+        old_ents2new_ents);
+    if (ent_dim == VERT) {
+      keys2midverts = prods2new_ents;
+      old_verts2new_verts = old_ents2new_ents;
+    }
+    old_lows2new_lows = old_ents2new_ents;
+  }
 }
 
 bool refine(Mesh& mesh, Real min_qual) {
+  mesh.set_partition(GHOSTED);
   if (!refine_ghosted(mesh, min_qual)) return false;
+  mesh.set_partition(ELEMENT_BASED);
   refine_element_based(mesh);
   return true;
 }
