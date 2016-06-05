@@ -175,14 +175,14 @@ void combine_pairs_and_cuts(
   auto prod_verts2verts_w = Write<LO>(nprods * nppv);
   auto f = LAMBDA(LO key) {
     auto prod = keys2prods[key];
-    for (auto pair = keys2pairs[key]; pair < keys2pairs[key]; ++pair) {
+    for (auto pair = keys2pairs[key]; pair < keys2pairs[key + 1]; ++pair) {
       for (Int ppv = 0; ppv < nppv; ++ppv) {
         prod_verts2verts_w[prod * nppv + ppv] =
           pair_verts2verts[pair * nppv + ppv];
       }
       ++prod;
     }
-    for (auto cut = keys2cuts[key]; cut < keys2cuts[key]; ++cut) {
+    for (auto cut = keys2cuts[key]; cut < keys2cuts[key + 1]; ++cut) {
       for (Int ppv = 0; ppv < nppv; ++ppv) {
         prod_verts2verts_w[prod * nppv + ppv] =
           cut_verts2verts[cut * nppv + ppv];

@@ -243,15 +243,14 @@ static void find_new_offsets(
       // and are ordered by edge2rep_order
       auto offset = keys2new_offsets[key] + 1;
       auto edge = keys2kds[key];
-      for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
-        prods2new_offsets_w[prod] = offset + edge2rep_order[edge];
-      }
+      auto prod = key;
+      prods2new_offsets_w[prod] = offset + edge2rep_order[edge];
     };
     parallel_for(nkeys, write_prod_offsets);
   } else {
     auto write_prod_offsets = LAMBDA(LO key) {
       auto offset = keys2new_offsets[key];
-      for (auto prod = keys2prods[key]; prod < keys2prods[key]; ++prod) {
+      for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
         prods2new_offsets_w[prod] = offset++;
       }
     };
