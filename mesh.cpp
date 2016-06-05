@@ -402,9 +402,10 @@ void Mesh::balance() {
 }
 
 Graph Mesh::ask_graph(Int from, Int to) {
-  if (to > from)
+  if (to > from) {
     return ask_up(from, to);
-  if (from < to) {
+  }
+  if (to < from) {
     auto down = ask_down(from, to);
     auto a2ab = LOs(nents(from) + 1, 0, simplex_degrees[from][to]);
     return Graph(a2ab, down.ab2b);
