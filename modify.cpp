@@ -306,6 +306,8 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
     LOs& old_ents2new_ents) {
   same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim,
       keys2kds);
+  auto nkeys = keys2kds.size();
+  CHECK(nkeys == keys2prods.size() - 1);
   auto keys2nprods = get_degrees(keys2prods);
   auto keys2reps = get_keys2reps(old_mesh, ent_dim, key_dim,
       keys2kds, keys2nprods);
