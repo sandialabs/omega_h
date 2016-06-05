@@ -1,10 +1,21 @@
+CONSTANT static Int const fvv0[] = {0};
+CONSTANT static Int const fvv1[] = {1};
+CONSTANT static Int const fvv2[] = {2};
 CONSTANT static Int const fev0[] = {0,1};
 CONSTANT static Int const fev1[] = {1,2};
 CONSTANT static Int const fev2[] = {2,0};
+CONSTANT static Int const* const fvv_[] = {
+  fvv0,fvv1,fvv2};
 CONSTANT static Int const* const fev_[] = {
   fev0,fev1,fev2};
 CONSTANT static Int const* const* const f_v_[] = {
-  0,fev_};
+  fvv_,fev_};
+CONSTANT static Int const rvv0[] = {0};
+CONSTANT static Int const rvv1[] = {1};
+CONSTANT static Int const rvv2[] = {2};
+CONSTANT static Int const rvv3[] = {3};
+CONSTANT static Int const* const rvv_[] = {
+  rvv0,rvv1,rvv2,rvv3};
 CONSTANT static Int const rev0[] = {0,1};
 CONSTANT static Int const rev1[] = {1,2};
 CONSTANT static Int const rev2[] = {2,0};
@@ -20,7 +31,7 @@ CONSTANT static Int const rfv3[] = {2,0,3};
 CONSTANT static Int const* const rfv_[] = {
   rfv0,rfv1,rfv2,rfv3};
 CONSTANT static Int const* const* const r_v_[] = {
-  0,rev_,rfv_};
+  rvv_,rev_,rfv_};
 CONSTANT static Int const* const* const* const down_templates[] = {
   0,0,f_v_,r_v_};
 
