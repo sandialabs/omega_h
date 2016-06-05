@@ -68,16 +68,21 @@ static LOs collect_same(Mesh& mesh,
     Int ent_dim,
     Int key_dim,
     LOs keys2kds) {
+  if (ent_dim < key_dim) {
+    auto nents = mesh.nents(ent_dim);
+    return LOs(nents, 0, 1);
+  }
   auto nkds = mesh.nents(key_dim);
   auto kds_are_keys = mark_image(keys2kds, nkds);
-  auto kds2ents = mesh.ask_graph(key_dim, ent_dim);
-  auto kds2kd_ents = kds2ents.a2ab;
-  auto kd_ents2ents = kds2ents.ab2b;
-  auto kd_ents_are_adj = expand(kds_are_keys, kds2kd_ents, 1);
-  auto ents_are_adj = permute(kd_ents_are_adj, kd_ents2ents, 1);
-  auto ents_are_same = invert_marks(ents_are_adj);
-  auto same_ents2old_ents = collect_marked(ents_are_same);
-  return same_ents2old_ents;
+  auto ents_are_adj = Read<I8>();
+  if (ent_dim == key_dim) {
+    ents_are_adj = kds_are_keys;
+  } else {
+    CHECK(ent_dim > key_dim);
+    ents_are_adj = mark_up(mesh, key_dim, ent_dim, kds_are_keys);
+  }
+  auto ents_not_adj = invert_marks(ents_are_adj);
+  return collect_marked(ents_not_adj);
 }
 
 static LOs get_keys2reps(Mesh& mesh,
@@ -143,13 +148,17 @@ static LOs get_rep_counts(
   CHECK(nkeys == keys2nprods.size());
   auto nsame_ents = same_ents2ents.size();
   auto owned = mesh.owned(ent_dim);
+  CHECK(owned.size() == nents);
   Write<LO> rep_counts(nents, 0);
+  std::cerr << "BEFORE\n";
   auto mark_same = LAMBDA(LO same_ent) {
     auto ent = same_ents2ents[same_ent];
+    CHECK(ent < nents);
     if (owned[ent])
       rep_counts[ent] = 1;
   };
   parallel_for(nsame_ents, mark_same);
+  std::cerr << "HERE\n";
   auto mark_reps = LAMBDA(LO key) {
     auto rep = keys2reps[key];
     auto nkey_prods = keys2nprods[key];
