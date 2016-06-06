@@ -49,3 +49,103 @@ void transfer_metric(Mesh& old_mesh, Mesh& new_mesh,
     }
   }
 }
+
+template <typename T>
+static void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
+    LOs keys2edges,
+    Int prod_dim,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2new_ents,
+    std::string const& name) {
+  auto& old_tag = old_mesh.get_tag<T>(prod_dim, name);
+  auto ncomps = old_tag.ncomps();
+  auto nprods = keys2prods.last();
+  auto prod_data = Write<T>(nprods * ncomps);
+  auto nkeys = keys2edges.size();
+  /* transfer pairs */
+  if (prod_dim > VERT) {
+    auto dom_dim = prod_dim;
+    auto dom_data = old_mesh.get_array<T>(dom_dim, name);
+    auto edges2doms = old_mesh.ask_graph(EDGE, dom_dim);
+    auto edges2edge_doms = edges2doms.a2ab;
+    auto edge_doms2doms = edges2doms.ab2b;
+    auto f = LAMBDA(LO key) {
+      auto edge = keys2edges[key];
+      auto prod = keys2prods[key];
+      for (auto edge_dom = edges2edge_doms[edge];
+           edge_dom < edges2edge_doms[edge + 1];
+           ++edge_dom) {
+        auto dom = edge_doms2doms[edge_dom];
+        for (Int pair = 0; pair < 2; ++pair) {
+          for (Int comp = 0; comp < ncomps; ++comp) {
+            prod_data[prod * ncomps + comp] =
+              dom_data[dom * ncomps + comp];
+          }
+          ++prod;
+        }
+      }
+    };
+    parallel_for(nkeys, f);
+  }
+  if (prod_dim < old_mesh.dim()) {
+    auto dom_dim = prod_dim + 1;
+    auto dom_data = old_mesh.get_array<T>(dom_dim, name);
+    auto edges2doms = old_mesh.ask_graph(EDGE, dom_dim);
+    auto edges2edge_doms = edges2doms.a2ab;
+    auto edge_doms2doms = edges2doms.ab2b;
+    auto f = LAMBDA(LO key) {
+      auto edge = keys2edges[key];
+      auto ndoms = edges2edge_doms[edge + 1] - edges2edge_doms[edge];
+      auto prod = keys2prods[key + 1] - ndoms;
+      for (auto edge_dom = edges2edge_doms[edge];
+           edge_dom < edges2edge_doms[edge + 1];
+           ++edge_dom) {
+        auto dom = edge_doms2doms[edge_dom];
+        for (Int comp = 0; comp < ncomps; ++comp) {
+          prod_data[prod * ncomps + comp] =
+            dom_data[dom * ncomps + comp];
+        }
+        ++prod;
+      }
+    };
+    parallel_for(nkeys, f);
+  }
+  transfer_common(old_mesh, new_mesh, prod_dim, same_ents2new_ents,
+      prods2new_ents, &old_tag, Read<T>(prod_data));
+}
+
+void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
+    LOs keys2edges,
+    Int prod_dim,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2new_ents) {
+  for (Int i = 0; i < old_mesh.ntags(prod_dim); ++i) {
+    auto tagbase = old_mesh.get_tag(prod_dim, i);
+    if (tagbase->xfer() == OSH_INHERIT) {
+      switch(tagbase->type()) {
+      case OSH_I8:
+        transfer_inherit_refine<I8>(old_mesh, new_mesh,
+            keys2edges, prod_dim, keys2prods,
+            prods2new_ents, same_ents2new_ents, tagbase->name());
+        break;
+      case OSH_I32:
+        transfer_inherit_refine<I32>(old_mesh, new_mesh,
+            keys2edges, prod_dim, keys2prods,
+            prods2new_ents, same_ents2new_ents, tagbase->name());
+        break;
+      case OSH_I64:
+        transfer_inherit_refine<I64>(old_mesh, new_mesh,
+            keys2edges, prod_dim, keys2prods,
+            prods2new_ents, same_ents2new_ents, tagbase->name());
+        break;
+      case OSH_F64:
+        transfer_inherit_refine<Real>(old_mesh, new_mesh,
+            keys2edges, prod_dim, keys2prods,
+            prods2new_ents, same_ents2new_ents, tagbase->name());
+        break;
+      }
+    }
+  }
+}
