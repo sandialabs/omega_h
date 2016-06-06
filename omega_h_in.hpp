@@ -546,7 +546,27 @@ namespace vtk {
 void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim);
 void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim);
 void write_parallel(std::string const& path, Mesh& mesh, Int cell_dim);
-}
+class Writer {
+    Mesh& mesh_;
+    std::string root_path_;
+    Int cell_dim_;
+    std::vector<Real> times_;
+  public:
+    Writer(Mesh& mesh, std::string const& root_path, Int cell_dim);
+    Writer(Writer const& other);
+    ~Writer();
+    void write(Real time);
+    void write();
+};
+class FullWriter {
+    std::vector<Writer> writers_;
+  public:
+    FullWriter(Mesh& mesh, std::string const& root_path);
+    ~FullWriter();
+    void write(Real time);
+    void write();
+};
+} // end namespace vtk
 
 } //end namespace osh
 

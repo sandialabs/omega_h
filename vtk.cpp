@@ -247,6 +247,26 @@ std::string piece_filename(std::string const& piecepath, I32 rank) {
   return piecepath + '_' + std::to_string(intel_type(rank)) + ".vtu";
 }
 
+std::string repeat_path(std::string const& path) {
+  return path + '/' + path_leaf_name(path);
+}
+
+std::string get_rel_step_path(std::size_t step) {
+  return "steps/step_" + std::to_string(step);
+}
+
+std::string get_step_path(std::string const& root_path, std::size_t step) {
+  return root_path + '/' + get_rel_step_path(step);
+}
+
+std::string get_pvtu_path(std::string const& step_path) {
+  return repeat_path(step_path) + ".pvtu";
+}
+
+std::string get_pvd_path(std::string const& root_path) {
+  return repeat_path(root_path) + ".pvd";
+}
+
 }//end anonymous namespace
 
 void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
@@ -337,11 +357,78 @@ void write_parallel(std::string const& path, Mesh& mesh, Int cell_dim) {
   }
   mesh.comm()->barrier();
   auto piecepath = piecesdir + "/piece";
-  auto pvtuname = path + '/' + path_leaf_name(path) + ".pvtu";
+  auto pvtuname = get_pvtu_path(path);
   if (rank == 0) {
     write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece");
   }
   write_vtu(piece_filename(piecepath, rank), mesh, cell_dim);
+}
+
+void write_pvd(std::string const& root_path, std::vector<Real> const& times) {
+  std::string pvdpath = get_pvd_path(root_path);
+  std::ofstream file(pvdpath.c_str());
+  CHECK(file.is_open());
+  file << "<VTKFile type=\"Collection\" version=\"0.1\">\n";
+  file << "<Collection>\n";
+  for (std::size_t step = 0; step < times.size(); ++step) {
+    file << "<DataSet timestep=\"" << times[step] << "\" part=\"0\" ";
+    auto relstep = get_rel_step_path(step);
+    auto relpvtu = get_pvtu_path(relstep);
+    file << "file=\"" << relpvtu << "\"/>\n";
+  }
+  file << "</Collection>\n";
+  file << "</VTKFile>\n";
+}
+
+Writer::Writer(Mesh& mesh, std::string const& root_path, Int cell_dim):
+  mesh_(mesh),
+  root_path_(root_path),
+  cell_dim_(cell_dim) {
+  auto comm = mesh.comm();
+  auto rank = comm->rank();
+  if (rank == 0) safe_mkdir(root_path_.c_str());
+  comm->barrier();
+  auto stepsdir = root_path_ + "/steps";
+  if (rank == 0) safe_mkdir(stepsdir.c_str());
+  comm->barrier();
+}
+
+Writer::Writer(Writer const& other):
+  mesh_(other.mesh_),
+  root_path_(other.root_path_),
+  cell_dim_(other.cell_dim_),
+  times_(other.times_) {
+}
+
+Writer::~Writer() {
+  write_pvd(root_path_, times_);
+}
+
+void Writer::write(Real time) {
+  write_parallel(get_step_path(root_path_, times_.size()), mesh_, cell_dim_);
+  times_.push_back(time);
+}
+
+void Writer::write() {
+  this->write(Real(times_.size()));
+}
+
+FullWriter::FullWriter(Mesh& mesh, std::string const& root_path) {
+  for (Int i = EDGE; i <= mesh.dim(); ++i)
+    writers_.push_back(Writer(mesh, root_path + plural_names[i], i));
+}
+
+FullWriter::~FullWriter() {
+}
+
+void FullWriter::write(Real time) {
+  for (auto& writer : writers_)
+    writer.write(time);
+}
+
+void FullWriter::write() {
+  for (auto& writer : writers_)
+    writer.write();
 }
 
 }//end namespace vtk
