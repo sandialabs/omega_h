@@ -10,13 +10,15 @@ int main(int argc, char** argv) {
   static Int const dim = 2;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
-  for (Int i = 0; i < 2; ++i) {
+  vtk::FullWriter writer(mesh, "out");
+  writer.write();
+  for (Int i = 0; i < 1; ++i) {
     mesh.add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER,
         Read<I8>(mesh.nents(EDGE), 1));
     bool did = refine(mesh, 0.0);
     CHECK(did);
+    writer.write();
   }
-//vtk::write_parallel("tris", mesh, 2);
   }
   fini();
 }

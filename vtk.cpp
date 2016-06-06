@@ -414,8 +414,12 @@ void Writer::write() {
 }
 
 FullWriter::FullWriter(Mesh& mesh, std::string const& root_path) {
+  auto comm = mesh.comm();
+  auto rank = comm->rank();
+  if (rank == 0) safe_mkdir(root_path.c_str());
+  comm->barrier();
   for (Int i = EDGE; i <= mesh.dim(); ++i)
-    writers_.push_back(Writer(mesh, root_path + plural_names[i], i));
+    writers_.push_back(Writer(mesh, root_path + "/" + plural_names[i], i));
 }
 
 FullWriter::~FullWriter() {
