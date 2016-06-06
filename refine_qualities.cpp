@@ -12,7 +12,8 @@ struct MetricRefineQualities {
   Reals midpt_metrics;
   MetricRefineQualities(Mesh& mesh, LOs candidates):
     vert_metrics(mesh.get_array<Real>(VERT, "metric")),
-    midpt_metrics(average_metric(mesh, EDGE, candidates))
+    midpt_metrics(average_metric(mesh, EDGE, candidates,
+          mesh.get_array<Real>(VERT, "metric")))
   {}
   template <Int dim>
   INLINE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,

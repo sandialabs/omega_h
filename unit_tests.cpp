@@ -630,9 +630,10 @@ static void test_inertial_bisect() {
 }
 
 static void test_average_field() {
-  LOs ev2v({0,1,2,2,3,0});
-  Reals v2x({2,1,2,3});
-  auto e2x = average_field(3, ev2v, 1, v2x);
+  Mesh mesh;
+  build_box(mesh, 1, 1, 0, 1, 1, 0);
+  Reals v2x({2,1,3,2});
+  auto e2x = average_field(mesh, 2, LOs({0,1}), 1, v2x);
   CHECK(are_close(e2x, Reals({5. / 3., 7. / 3.})));
 }
 

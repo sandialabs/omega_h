@@ -387,8 +387,8 @@ void Mesh::balance() {
   inertia::Rib hints;
   if (rib_hints_)
     hints = *rib_hints_;
-  auto ecoords = average_field(simplex_degrees[dim()][VERT],
-      ask_verts_of(dim()), dim(), coords());
+  auto ecoords = average_field(*this, dim(), LOs(nelems(), 0, 1), dim(),
+      coords());
   if (dim() == 2)
     ecoords = vectors_2d_to_3d(ecoords);
   auto masses = Reals(nelems(), 1);

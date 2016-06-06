@@ -24,22 +24,24 @@ Reals vectors_2d_to_3d(Reals vecs2) {
   return vecs3;
 }
 
-Reals average_field(Int degree, LOs ev2v, Int ncomps, Reals v2x) {
-  CHECK(ev2v.size() % degree == 0);
-  auto ne = ev2v.size() / degree;
+Reals average_field(Mesh& mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
+  auto ev2v = mesh.ask_verts_of(dim);
+  auto degree = simplex_degrees[dim][VERT];
   CHECK(v2x.size() % ncomps == 0);
-  Write<Real> out(ne * ncomps);
-  auto f = LAMBDA(LO i) {
+  auto na = a2e.size();
+  Write<Real> out(na * ncomps);
+  auto f = LAMBDA(LO a) {
+    auto e = a2e[a];
     for (Int j = 0; j < ncomps; ++j) {
       Real comp = 0;
       for (Int k = 0; k < degree; ++k) {
-        auto v = ev2v[i * degree + k];
+        auto v = ev2v[e * degree + k];
         comp += v2x[v * ncomps + j];
       }
       comp /= degree;
-      out[i * ncomps + j] = comp;
+      out[a * ncomps + j] = comp;
     }
   };
-  parallel_for(ne, f);
+  parallel_for(na, f);
   return out;
 }
