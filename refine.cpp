@@ -52,13 +52,16 @@ static void refine_element_based(Mesh& mesh) {
         prods2new_ents,
         same_ents2old_ents, same_ents2new_ents,
         old_ents2new_ents);
+    transfer_inherit_refine(mesh, new_mesh, keys2edges, ent_dim,
+        keys2prods, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
     if (ent_dim == VERT) {
       keys2midverts = prods2new_ents;
       old_verts2new_verts = old_ents2new_ents;
       transfer_linear_interp(mesh, new_mesh, keys2edges, keys2midverts,
-          same_ents2new_ents);
+          same_ents2old_ents, same_ents2new_ents);
       transfer_metric(mesh, new_mesh, keys2edges, keys2midverts,
-          same_ents2new_ents);
+          same_ents2old_ents, same_ents2new_ents);
     }
     old_lows2new_lows = old_ents2new_ents;
   }
