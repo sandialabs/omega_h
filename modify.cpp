@@ -284,8 +284,9 @@ static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   auto comm = old_mesh.comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
-  auto nlins = lins2old_ents.nitems();
+  auto nlins = lins2old_ents.nroots();
   auto lin_rep_counts = old_ents2lins.exch_reduce(LOs(rep_counts), 1, SUM);
+  CHECK(lin_rep_counts.size() == nlins);
   auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
   auto lin_global_offset = comm->exscan(lin_global_count, SUM);
