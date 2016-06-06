@@ -68,6 +68,8 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
           ncp[csv] = get_vec<dim>(coords, v2);
         }
         ncp[dim] = midp;
+        flip_new_elem<dim>(&csv2v[0]);
+        flip_new_elem<dim>(&ncp[0]);
         auto cqual = measure.measure(cand, ncp, csv2v);
         minqual = min2(minqual, cqual);
       }

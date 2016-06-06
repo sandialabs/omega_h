@@ -33,3 +33,34 @@ void refine_products(
     LOs old_verts2new_verts,
     LOs& keys2prods,
     LOs& prod_verts2verts);
+
+
+/* as it happens, the triangle-of-tet-to-vertices template
+   specifies all triangles curling outward
+   (such that implicit face derivation orients all surface
+    faces outward), while the tet-to-vertices convention
+   has the bottom face curling inward for consistency
+   with Gmsh, PUMI, Simmetrix, etc.
+   rather than break either of those two compatibilities,
+   we will remember to flip the triangle here to get
+   the right orientation for new tets */
+template <Int dim>
+struct FlipNewElem;
+template <>
+struct FlipNewElem<2> {
+  template <typename T>
+  INLINE static void flip(T ev[]) { (void) ev; }
+};
+template <>
+struct FlipNewElem<3> {
+  template <typename T>
+  INLINE static void flip(T ev[]) { swap2(ev[1], ev[2]); }
+};
+template <Int dim, typename T>
+INLINE void flip_new_elem(T ev[]) {
+  FlipNewElem<dim>::flip(ev);
+}
+template <typename T>
+INLINE void flip_new_elem(Int dim, T ev[]) {
+  if (dim == 3) swap2(ev[1], ev[2]);
+}

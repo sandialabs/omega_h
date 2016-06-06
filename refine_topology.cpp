@@ -93,6 +93,7 @@ void refine_domains_to_pairs(
           ppv2v[dsv] = nv;
         }
         ppv2v[dim] = midvert;
+        flip_new_elem(dim, ppv2v);
         ++pair;
       }
     }
