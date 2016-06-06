@@ -106,9 +106,9 @@ static LOs get_keys2reps(Mesh& mesh,
   if (key_dim == ent_dim) {
     keys2reps = keys2kds;
   } else if (ent_dim > key_dim) {
-    auto keys2ents2 = mesh.ask_up(key_dim, ent_dim);
-    auto keys2key_ents = keys2ents2.a2ab;
-    auto key_ents2ents = keys2ents2.ab2b;
+    auto kds2ents = mesh.ask_up(key_dim, ent_dim);
+    auto kds2kd_ents = kds2ents.a2ab;
+    auto kd_ents2ents = kds2ents.ab2b;
     Write<LO> keys2reps_w(nkeys);
     auto setup_reps = LAMBDA(LO key) {
       /* the first upward adjacent entity will represent
@@ -116,8 +116,10 @@ static LOs get_keys2reps(Mesh& mesh,
          upward ordering should be sorted by old globals
          already, so this is actually the adjacent entity
          with the lowest old global number */
-      auto key_ent = keys2key_ents[key];
-      auto rep = key_ents2ents[key_ent];
+      auto kd = keys2kds[key];
+      auto first_kd_ent = kds2kd_ents[kd];
+      auto first_adj = kd_ents2ents[first_kd_ent];
+      auto rep = first_adj;
       keys2reps_w[key] = rep;
     };
     parallel_for(nkeys, setup_reps);
@@ -251,7 +253,8 @@ static void find_new_offsets(
     auto write_prod_offsets = LAMBDA(LO key) {
       auto offset = keys2new_offsets[key];
       for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
-        prods2new_offsets_w[prod] = offset++;
+        prods2new_offsets_w[prod] = offset;
+        ++offset;
       }
     };
     parallel_for(nkeys, write_prod_offsets);
