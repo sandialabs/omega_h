@@ -62,6 +62,7 @@ static void refine_element_based(Mesh& mesh) {
     }
     old_lows2new_lows = old_ents2new_ents;
   }
+  mesh = new_mesh;
 }
 
 bool refine(Mesh& mesh, Real min_qual) {
