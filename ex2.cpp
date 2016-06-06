@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
   classify_by_angles(mesh, PI / 4);
   vtk::FullWriter writer(mesh, "out");
   writer.write();
-  for (Int i = 0; i < 1; ++i) {
+  for (Int i = 0; i < 2; ++i) {
     mesh.add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER,
         Read<I8>(mesh.nents(EDGE), 1));
     bool did = refine(mesh, 0.0);
