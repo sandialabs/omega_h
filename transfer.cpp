@@ -3,6 +3,7 @@ static void transfer_common(
     Mesh& old_mesh,
     Mesh& new_mesh,
     Int ent_dim,
+    LOs same_ents2old_ents,
     LOs same_ents2new_ents,
     LOs prods2new_ents,
     TagBase const* tagbase,
@@ -11,7 +12,7 @@ static void transfer_common(
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
   auto old_data = old_mesh.get_array<T>(ent_dim, name);
-  auto same_data = old_data;
+  auto same_data = unmap(same_ents2old_ents, old_data, ncomps);
   auto nnew_ents = new_mesh.nents(ent_dim);
   auto new_data = Write<T>(nnew_ents * ncomps);
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
@@ -22,6 +23,7 @@ static void transfer_common(
 void transfer_linear_interp(Mesh& old_mesh, Mesh& new_mesh,
     LOs keys2edges,
     LOs keys2midverts,
+    LOs same_verts2old_verts,
     LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh.ntags(VERT); ++i) {
     auto tagbase = old_mesh.get_tag(VERT, i);
@@ -30,7 +32,8 @@ void transfer_linear_interp(Mesh& old_mesh, Mesh& new_mesh,
       auto old_data = old_mesh.get_array<Real>(VERT, tagbase->name());
       auto prod_data = average_field(old_mesh, EDGE, keys2edges, ncomps, old_data);
       transfer_common(old_mesh, new_mesh, VERT,
-          same_verts2new_verts, keys2midverts, tagbase, prod_data);
+          same_verts2old_verts, same_verts2new_verts,
+          keys2midverts, tagbase, prod_data);
     }
   }
 }
@@ -38,6 +41,7 @@ void transfer_linear_interp(Mesh& old_mesh, Mesh& new_mesh,
 void transfer_metric(Mesh& old_mesh, Mesh& new_mesh,
     LOs keys2edges,
     LOs keys2midverts,
+    LOs same_verts2old_verts,
     LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh.ntags(VERT); ++i) {
     auto tagbase = old_mesh.get_tag(VERT, i);
@@ -45,7 +49,8 @@ void transfer_metric(Mesh& old_mesh, Mesh& new_mesh,
       auto old_data = old_mesh.get_array<Real>(VERT, tagbase->name());
       auto prod_data = average_metric(old_mesh, EDGE, keys2edges, old_data);
       transfer_common(old_mesh, new_mesh, VERT,
-          same_verts2new_verts, keys2midverts, tagbase, prod_data);
+          same_verts2old_verts, same_verts2new_verts,
+          keys2midverts, tagbase, prod_data);
     }
   }
 }
@@ -56,6 +61,7 @@ static void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
     Int prod_dim,
     LOs keys2prods,
     LOs prods2new_ents,
+    LOs same_ents2old_ents,
     LOs same_ents2new_ents,
     std::string const& name) {
   auto& old_tag = old_mesh.get_tag<T>(prod_dim, name);
@@ -111,8 +117,9 @@ static void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
     };
     parallel_for(nkeys, f);
   }
-  transfer_common(old_mesh, new_mesh, prod_dim, same_ents2new_ents,
-      prods2new_ents, &old_tag, Read<T>(prod_data));
+  transfer_common(old_mesh, new_mesh, prod_dim,
+      same_ents2old_ents, same_ents2new_ents, prods2new_ents,
+      &old_tag, Read<T>(prod_data));
 }
 
 void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
@@ -120,6 +127,7 @@ void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
     Int prod_dim,
     LOs keys2prods,
     LOs prods2new_ents,
+    LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh.ntags(prod_dim); ++i) {
     auto tagbase = old_mesh.get_tag(prod_dim, i);
@@ -127,23 +135,23 @@ void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
       switch(tagbase->type()) {
       case OSH_I8:
         transfer_inherit_refine<I8>(old_mesh, new_mesh,
-            keys2edges, prod_dim, keys2prods,
-            prods2new_ents, same_ents2new_ents, tagbase->name());
+            keys2edges, prod_dim, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase->name());
         break;
       case OSH_I32:
         transfer_inherit_refine<I32>(old_mesh, new_mesh,
-            keys2edges, prod_dim, keys2prods,
-            prods2new_ents, same_ents2new_ents, tagbase->name());
+            keys2edges, prod_dim, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase->name());
         break;
       case OSH_I64:
         transfer_inherit_refine<I64>(old_mesh, new_mesh,
-            keys2edges, prod_dim, keys2prods,
-            prods2new_ents, same_ents2new_ents, tagbase->name());
+            keys2edges, prod_dim, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase->name());
         break;
       case OSH_F64:
         transfer_inherit_refine<Real>(old_mesh, new_mesh,
-            keys2edges, prod_dim, keys2prods,
-            prods2new_ents, same_ents2new_ents, tagbase->name());
+            keys2edges, prod_dim, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase->name());
         break;
       }
     }
