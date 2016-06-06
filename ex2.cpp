@@ -12,8 +12,8 @@ int main(int argc, char** argv) {
     build_box(mesh, 2, 1, 1, 2, 1, (dim == 3) ? 1 : 0);
     classify_by_angles(mesh, PI / 4);
   }
-//mesh.set_comm(world);
-//mesh.balance();
+  mesh.set_comm(world);
+  mesh.balance();
   vtk::FullWriter writer(mesh, "out");
   writer.write();
   for (Int i = 0; i < 1; ++i) {
