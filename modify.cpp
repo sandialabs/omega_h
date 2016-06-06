@@ -35,8 +35,9 @@ static void modify_conn(Mesh& old_mesh, Mesh& new_mesh,
   if (low_dim > VERT) {
     new_ent_low_codes = Write<I8>(nnew_ents * down_degree);
     auto old_ent_low_codes = old_ents2old_lows.codes;
+    CHECK(same_ents2old_ents.size() == same_ents2new_ents.size());
     auto same_ent_low_codes = unmap(
-        same_ents2old_ents, old_ent_low_codes, 1);
+        same_ents2old_ents, old_ent_low_codes, down_degree);
     map_into(same_ent_low_codes, same_ents2new_ents, new_ent_low_codes,
         down_degree);
     auto prod_low_codes = prods2new_lows.codes;
