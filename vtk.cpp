@@ -103,7 +103,7 @@ void write_array(std::ostream& stream, std::string const& name,
   int ret = ::compress2(
       compressed,
       &dest_bytes,
-      reinterpret_cast<const Bytef*>(&uncompressed[0]),
+      reinterpret_cast<const Bytef*>(uncompressed.data()),
       source_bytes,
       9); //compress to the max
   CHECK(ret == Z_OK);
@@ -119,7 +119,7 @@ void write_array(std::ostream& stream, std::string const& name,
 #else
   std::string enc_header = base64::encode(&uncompressed_bytes,
       sizeof(std::size_t));
-  std::string encoded = base64::encode(&uncompressed[0],
+  std::string encoded = base64::encode(uncompressed.data(),
       uncompressed_bytes);
 #endif
   stream << enc_header << encoded << '\n';
