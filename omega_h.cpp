@@ -54,5 +54,6 @@ namespace osh {
 #include "refine_topology.cpp"
 #include "modify.cpp"
 #include "refine.cpp"
+#include "transfer.cpp"
 
 } //end namespace osh

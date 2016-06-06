@@ -125,5 +125,6 @@ namespace osh {
 #include "modify.hpp"
 #include "refine.hpp"
 #include "stacktrace.hpp"
+#include "transfer.hpp"
 
 } //end namespace osh
