@@ -6,7 +6,7 @@ Read<I8> local_iteration(
     Read<GO> global,
     Read<I8> old_state) {
   auto n = global.size();
-  Write<I8> new_state(old_state.size());
+  Write<I8> new_state = deep_copy(old_state);
   auto f = LAMBDA(LO v) {
     if (old_state[v] != UNKNOWN) return;
     auto begin = xadj[v];

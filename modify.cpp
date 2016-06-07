@@ -133,7 +133,7 @@ static LOs get_keys2reps(Mesh& mesh,
        this causes some concern because unlike before,
        when the reprentative was on the interior of the old cavity,
        it is now on the boundary.
-       this is the reason for the atomic_add in get_local_rep_counts()
+       this is the reason for the atomic_add in get_rep_counts()
        and the exch_sum later on.
        I can't think of a nicer way to determine new vertex globals
        which is independent of partitioning and ordering */
@@ -154,7 +154,8 @@ static LOs get_rep_counts(
     Int ent_dim,
     LOs keys2reps,
     LOs keys2nprods,
-    LOs same_ents2ents) {
+    LOs same_ents2ents,
+    bool are_global) {
   auto nkeys = keys2reps.size();
   auto nents = mesh.nents(ent_dim);
   CHECK(nkeys == keys2nprods.size());
@@ -165,7 +166,7 @@ static LOs get_rep_counts(
   auto mark_same = LAMBDA(LO same_ent) {
     auto ent = same_ents2ents[same_ent];
     CHECK(ent < nents);
-    if (owned[ent])
+    if ((!are_global) || owned[ent])
       rep_counts[ent] = 1;
   };
   parallel_for(nsame_ents, mark_same);
@@ -272,7 +273,7 @@ static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
     LOs same_ents2old_ents,
     LOs same_ents2new_ents,
     LOs keys2reps,
-    LOs rep_counts) {
+    LOs global_rep_counts) {
   CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
   auto nsame_ents = same_ents2old_ents.size();
   CHECK(nsame_ents == same_ents2new_ents.size());
@@ -284,8 +285,9 @@ static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   auto comm = old_mesh.comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
-  auto nlins = lins2old_ents.nitems();
-  auto lin_rep_counts = old_ents2lins.exch_reduce(LOs(rep_counts), 1, SUM);
+  auto nlins = lins2old_ents.nroots();
+  auto lin_rep_counts = old_ents2lins.exch_reduce(global_rep_counts, 1, SUM);
+  CHECK(lin_rep_counts.size() == nlins);
   auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
   auto lin_global_offset = comm->exscan(lin_global_count, SUM);
@@ -330,9 +332,9 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
   auto keys2nprods = get_degrees(keys2prods);
   auto keys2reps = get_keys2reps(old_mesh, ent_dim, key_dim,
       keys2kds, keys2nprods);
-  auto rep_counts = get_rep_counts(old_mesh, ent_dim,
-      keys2reps, keys2nprods, same_ents2old_ents);
-  auto local_offsets = offset_scan(rep_counts);
+  auto local_rep_counts = get_rep_counts(old_mesh, ent_dim,
+      keys2reps, keys2nprods, same_ents2old_ents, false);
+  auto local_offsets = offset_scan(local_rep_counts);
   auto nnew_ents = local_offsets.last();
   auto edge2rep_order = LOs();
   if (ent_dim == VERT && key_dim == EDGE) {
@@ -357,32 +359,35 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
   }
   modify_owners(old_mesh, new_mesh, ent_dim, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
+  auto global_rep_counts = get_rep_counts(old_mesh, ent_dim,
+      keys2reps, keys2nprods, same_ents2old_ents, true);
   modify_globals(old_mesh, new_mesh, ent_dim, key_dim,
       keys2kds, keys2prods, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents,
-      keys2reps, rep_counts);
+      keys2reps, global_rep_counts);
 }
 
 void set_owners_by_indset(Mesh& mesh, Int key_dim, LOs keys2kds) {
   auto kd_owners = mesh.ask_owners(key_dim);
   auto nkeys = keys2kds.size();
-  for (Int ent_dim = key_dim + 1; ent_dim <= mesh.dim(); ++ent_dim) {
-    auto keys2ents = mesh.ask_up(key_dim, ent_dim);
-    auto k2ke = keys2ents.a2ab;
-    auto ke2e = keys2ents.ab2b;
-    auto ent_owners = mesh.ask_owners(ent_dim);
-    auto ents2owners = mesh.ask_dist(ent_dim);
-    auto new_own_ranks = deep_copy(ent_owners.ranks);
-    auto f = LAMBDA(LO k) {
-      auto kd = keys2kds[k];
-      auto rank = kd_owners.ranks[kd];
-      for (auto ke = k2ke[k]; ke < k2ke[k + 1]; ++ke) {
-        auto e = ke2e[ke];
-        new_own_ranks[e] = rank;
-      }
-    };
-    parallel_for(nkeys, f);
-    ent_owners = update_ownership(ents2owners, new_own_ranks);
-    mesh.set_owners(ent_dim, ent_owners);
-  }
+  auto elem_dim = mesh.dim();
+  auto kds2elems = mesh.ask_up(key_dim, elem_dim);
+  auto kds2kd_elems = kds2elems.a2ab;
+  auto kd_elems2elems = kds2elems.ab2b;
+  auto elem_owners = mesh.ask_owners(elem_dim);
+  auto elems2owners = mesh.ask_dist(elem_dim);
+  auto new_own_ranks = deep_copy(elem_owners.ranks);
+  auto f = LAMBDA(LO key) {
+    auto kd = keys2kds[key];
+    auto kd_rank = kd_owners.ranks[kd];
+    for (auto kd_elem = kds2kd_elems[kd];
+         kd_elem < kds2kd_elems[kd + 1];
+         ++kd_elem) {
+      auto elem = kd_elems2elems[kd_elem];
+      new_own_ranks[elem] = kd_rank;
+    }
+  };
+  parallel_for(nkeys, f);
+  elem_owners = update_ownership(elems2owners, new_own_ranks);
+  mesh.set_owners(elem_dim, elem_owners);
 }
