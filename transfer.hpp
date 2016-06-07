@@ -17,3 +17,8 @@ void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
     LOs prods2new_ents,
     LOs same_ents2old_ents,
     LOs same_ents2new_ents);
+
+void transfer_length(Mesh& old_mesh, Mesh& new_mesh,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    LOs prods2new_ents);

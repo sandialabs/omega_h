@@ -62,6 +62,9 @@ static void refine_element_based(Mesh& mesh) {
           same_ents2old_ents, same_ents2new_ents);
       transfer_metric(mesh, new_mesh, keys2edges, keys2midverts,
           same_ents2old_ents, same_ents2new_ents);
+    } else if (ent_dim == EDGE) {
+      transfer_length(mesh, new_mesh,
+          same_ents2old_ents, same_ents2new_ents, prods2new_ents);
     }
     old_lows2new_lows = old_ents2new_ents;
   }
