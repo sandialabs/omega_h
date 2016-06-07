@@ -38,7 +38,7 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
   auto coords = mesh.coords();
   auto ncands = candidates.size();
   auto measure = Measure(mesh, candidates);
-  Write<Real> quals(ncands);
+  Write<Real> quals_w(ncands);
   auto f = LAMBDA(LO cand) {
     auto e = candidates[cand];
     auto eev2v = gather_verts<2>(ev2v, e);
@@ -74,11 +74,15 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
         minqual = min2(minqual, cqual);
       }
     }
-    quals[cand] = minqual;
+    quals_w[cand] = minqual;
   };
   parallel_for(ncands, f);
-  // only owners get the right answer above, sync:
-  return mesh.sync_array(EDGE, Reals(quals), 1);
+  auto cand_quals = Reals(quals_w);
+  auto edge_quals_w = Write<Real>(mesh.nedges(), -1);
+  map_into(cand_quals, candidates, edge_quals_w, 1);
+  auto edge_quals = Reals(edge_quals_w);
+  edge_quals = mesh.sync_array(EDGE, edge_quals, 1);
+  return unmap(candidates, edge_quals, 1);
 }
 
 Reals refine_qualities(Mesh& mesh, LOs candidates) {
