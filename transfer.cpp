@@ -172,3 +172,19 @@ void transfer_length(Mesh& old_mesh, Mesh& new_mesh,
     }
   }
 }
+
+void transfer_quality(Mesh& old_mesh, Mesh& new_mesh,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    LOs prods2new_ents) {
+  auto dim = old_mesh.dim();
+  for (Int i = 0; i < old_mesh.ntags(dim); ++i) {
+    auto tagbase = old_mesh.get_tag(dim, i);
+    if (tagbase->xfer() == OSH_QUALITY) {
+      auto prod_data = measure_qualities(new_mesh, prods2new_ents);
+      transfer_common(old_mesh, new_mesh, dim,
+          same_ents2old_ents, same_ents2new_ents, prods2new_ents,
+          tagbase, prod_data);
+    }
+  }
+}
