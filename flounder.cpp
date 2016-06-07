@@ -13,9 +13,12 @@ int main(int argc, char** argv) {
     auto coords = mesh.coords();
     auto f = LAMBDA(LO v) {
       auto x = get_vec<2>(coords, v);
-      auto area = 1e-5 + (1e-3) * x[0];
+      auto s = cos(x[0] * 8.0 * M_PI) / 4.0 + 1.0 / 2.0;
+      auto d = fabs(x[1] - s);
+      auto area = 1e-6 + d * 1e-4;
       auto length = sqrt(area);
-      size[v] = length;
+      auto fudge = 1.4;
+      size[v] = length * fudge;
     };
     parallel_for(mesh.nverts(), f);
     mesh.add_tag(VERT, "size", 1, OSH_DONT_TRANSFER, Reals(size));
