@@ -61,12 +61,16 @@ LO Mesh::nents(Int dim) const {
   return nents_[dim];
 }
 
+LO Mesh::nelems() const{
+  return nents(dim());
+}
+
 LO Mesh::nverts() const {
   return nents(VERT);
 }
 
-LO Mesh::nelems() const{
-  return nents(dim());
+LO Mesh::nedges() const {
+  return nents(EDGE);
 }
 
 template <typename T>
