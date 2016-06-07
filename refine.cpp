@@ -5,7 +5,7 @@ static bool refine_ghosted(Mesh& mesh, Real min_qual) {
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_quals = refine_qualities(mesh, cands2edges);
   auto cands_are_good = each_geq_to(cand_quals, min_qual);
-  if (comm->allreduce(max(cands_are_good), MAX) == 0) return false;
+  if (comm->allreduce(max(cands_are_good), MAX) != 1) return false;
   auto nedges = mesh.nents(EDGE);
   auto edges_are_initial_w = Write<I8>(nedges, 0);
   map_into(cands_are_good, cands2edges, edges_are_initial_w, 1);
