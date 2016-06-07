@@ -8,7 +8,6 @@ int main(int argc, char** argv) {
   Mesh mesh;
   build_box(mesh, 1, 1, 0, 1, 1, 0);
   classify_by_angles(mesh, PI / 4);
-  vtk::FullWriter writer(mesh, "out");
   do {
     Write<Real> size(mesh.nverts());
     auto coords = mesh.coords();
@@ -21,8 +20,8 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), f);
     mesh.add_tag(VERT, "size", 1, OSH_DONT_TRANSFER, Reals(size));
     std::cerr << mesh.nelems() << '\n';
-    writer.write();
   } while(refine_by_size(mesh, 0.3));
+  vtk::write_vtu("out.vtu", mesh, mesh.dim());
   }
   fini();
 }
