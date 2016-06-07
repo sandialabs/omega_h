@@ -73,6 +73,14 @@ LO Mesh::nedges() const {
   return nents(EDGE);
 }
 
+GO Mesh::nglobal_ents(Int dim) {
+  if (partition_ == ELEMENT_BASED && dim == this->dim()) {
+    return comm_->allreduce(GO(nents(dim)), SUM);
+  }
+  auto nowned = sum(this->owned(dim));
+  return comm_->allreduce(GO(nowned), SUM);
+}
+
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
     Xfer xfer) {
