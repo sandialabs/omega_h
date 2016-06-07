@@ -110,16 +110,16 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
 }
 
 template <typename T>
-Tag<T> const& Mesh::get_tag(Int dim, std::string const& name) const {
+Tag<T> const* Mesh::get_tag(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name))
     fail("expected tag %s on dimension %d\n", name.c_str(), dim);
-  return *(to<T>(tag_iter(dim, name)->get()));
+  return to<T>(tag_iter(dim, name)->get());
 }
 
 template <typename T>
 Read<T> Mesh::get_array(Int dim, std::string const& name) const {
-  return get_tag<T>(dim, name).array();
+  return get_tag<T>(dim, name)->array();
 }
 
 void Mesh::remove_tag(Int dim, std::string const& name) {
@@ -425,7 +425,7 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
 }
 
 #define INST_T(T) \
-template Tag<T> const& Mesh::get_tag<T>( \
+template Tag<T> const* Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \
 template Read<T> Mesh::get_array<T>( \
     Int dim, std::string const& name) const; \

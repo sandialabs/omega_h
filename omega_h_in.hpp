@@ -478,7 +478,7 @@ class Mesh {
     template <typename T>
     void set_tag(Int dim, std::string const& name, Read<T> array);
     template <typename T>
-    Tag<T> const& get_tag(Int dim, std::string const& name) const;
+    Tag<T> const* get_tag(Int dim, std::string const& name) const;
     template <typename T>
     Read<T> get_array(Int dim, std::string const& name) const;
     void remove_tag(Int dim, std::string const& name);

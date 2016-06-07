@@ -274,7 +274,7 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
   stream << "<Points>\n";
-  write_tag(stream, &(mesh.get_tag<Real>(VERT,"coordinates")), mesh.dim());
+  write_tag(stream, mesh.get_tag<Real>(VERT,"coordinates"), mesh.dim());
   stream << "</Points>\n";
   stream << "<Cells>\n";
   write_connectivity(stream, mesh, cell_dim);

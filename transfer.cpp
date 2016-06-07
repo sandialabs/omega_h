@@ -64,8 +64,8 @@ static void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
     LOs same_ents2old_ents,
     LOs same_ents2new_ents,
     std::string const& name) {
-  auto& old_tag = old_mesh.get_tag<T>(prod_dim, name);
-  auto ncomps = old_tag.ncomps();
+  auto old_tag = old_mesh.get_tag<T>(prod_dim, name);
+  auto ncomps = old_tag->ncomps();
   auto nprods = keys2prods.last();
   auto prod_data = Write<T>(nprods * ncomps);
   auto nkeys = keys2edges.size();
@@ -119,7 +119,7 @@ static void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,
   }
   transfer_common(old_mesh, new_mesh, prod_dim,
       same_ents2old_ents, same_ents2new_ents, prods2new_ents,
-      &old_tag, Read<T>(prod_data));
+      old_tag, Read<T>(prod_data));
 }
 
 void transfer_inherit_refine(Mesh& old_mesh, Mesh& new_mesh,

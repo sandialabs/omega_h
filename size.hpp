@@ -63,7 +63,7 @@ struct MetricEdgeLengths {
   Reals metrics;
   MetricEdgeLengths(Mesh const& mesh):
     coords(mesh.coords()),
-    metrics(mesh.get_tag<Real>(VERT, "metric").array())
+    metrics(mesh.get_array<Real>(VERT, "metric"))
   {}
   INLINE Real measure(Few<LO, 2> v) const {
     return metric_edge_length<dim>(v, coords, metrics);
