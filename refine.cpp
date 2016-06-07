@@ -75,3 +75,10 @@ bool refine(Mesh& mesh, Real min_qual) {
   refine_element_based(mesh);
   return true;
 }
+
+bool refine_by_size(Mesh& mesh, Real min_qual) {
+  auto lengths = mesh.ask_edge_lengths();
+  auto edge_is_cand = each_geq_to(lengths, 1.5);
+  mesh.add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edge_is_cand);
+  return refine(mesh, min_qual);
+}
