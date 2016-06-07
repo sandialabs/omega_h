@@ -78,6 +78,8 @@ add_executable(ex1 ex1.cpp)
 target_link_libraries(ex1 omega_h)
 add_executable(ex2 ex2.cpp)
 target_link_libraries(ex2 omega_h)
+add_executable(flounder flounder.cpp)
+target_link_libraries(flounder omega_h)
 
 install(FILES "${PROJECT_BINARY_DIR}/omega_h.hpp"
         DESTINATION include)
