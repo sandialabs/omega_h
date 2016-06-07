@@ -359,7 +359,7 @@ Partition Mesh::partition() const {
 }
 
 void Mesh::set_partition(Partition partition) {
-  if (partition_ == -1) {
+  if ((partition_ == -1) || (comm_->size() == 1)) {
     partition_ = partition;
     return;
   }
@@ -420,6 +420,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
 
 template <typename T>
 Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
+  if (comm_->size() == 1) return a;
   return ask_dist(ent_dim).invert().exch(a, width);
 }
 

@@ -357,8 +357,10 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents,
         old_lows2new_lows);
   }
-  modify_owners(old_mesh, new_mesh, ent_dim, prods2new_ents,
-      same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
+  if (old_mesh.comm()->size() > 1) {
+    modify_owners(old_mesh, new_mesh, ent_dim, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
+  }
   auto global_rep_counts = get_rep_counts(old_mesh, ent_dim,
       keys2reps, keys2nprods, same_ents2old_ents, true);
   modify_globals(old_mesh, new_mesh, ent_dim, key_dim,
@@ -368,6 +370,7 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
 }
 
 void set_owners_by_indset(Mesh& mesh, Int key_dim, LOs keys2kds) {
+  if (mesh.comm()->size() == 1) return;
   auto kd_owners = mesh.ask_owners(key_dim);
   auto nkeys = keys2kds.size();
   auto elem_dim = mesh.dim();

@@ -1,6 +1,12 @@
 namespace indset {
 
-Read<I8> local_iteration(
+enum {
+  NOT_IN,
+  IN,
+  UNKNOWN
+};
+
+static Read<I8> local_iteration(
     LOs xadj, LOs adj,
     Reals quality,
     Read<GO> global,
@@ -38,19 +44,19 @@ Read<I8> local_iteration(
   return new_state;
 }
 
-Read<I8> iteration(
-    Dist owners2copies,
+static Read<I8> iteration(
+    Mesh& mesh, Int dim,
     LOs xadj, LOs adj,
     Reals quality,
     Read<GO> global,
     Read<I8> old_state) {
   auto local_state = local_iteration(xadj, adj, quality, global, old_state);
-  auto synced_state = owners2copies.exch(local_state, 1);
+  auto synced_state = mesh.sync_array(dim, local_state, 1);
   return synced_state;
 }
 
-Read<I8> find(
-    Dist owners2copies,
+static Read<I8> find(
+    Mesh& mesh, Int dim,
     LOs xadj, LOs adj,
     Reals quality,
     Read<GO> global,
@@ -64,10 +70,10 @@ Read<I8> find(
     else initial_state[i] = NOT_IN;
   };
   parallel_for(n, f);
-  auto comm = owners2copies.parent_comm();
+  auto comm = mesh.comm();
   auto state = Read<I8>(initial_state);
   while (comm->allreduce(max(state), MAX) == UNKNOWN) {
-    state = iteration(owners2copies, xadj, adj, quality, global, state);
+    state = iteration(mesh, dim, xadj, adj, quality, global, state);
   }
   return state;
 }
@@ -84,6 +90,5 @@ Read<I8> find_indset(
   auto xadj = graph.a2ab;
   auto adj = graph.ab2b;
   auto globals = mesh.ask_globals(ent_dim);
-  auto owners2copies = mesh.ask_dist(ent_dim).invert();
-  return indset::find(owners2copies, xadj, adj, quality, globals, candidates);
+  return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
 }
