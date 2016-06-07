@@ -8,7 +8,7 @@ template <class T>
 Write<T> deep_copy(Read<T> a);
 
 template <typename T>
-T sum(Read<T> a);
+typename StandinTraits<T>::type sum(Read<T> a);
 template <typename T>
 T min(Read<T> a);
 template <typename T>

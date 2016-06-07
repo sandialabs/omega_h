@@ -122,9 +122,8 @@ struct Sum : public SumFunctor<T> {
 };
 
 template <typename T>
-T sum(Read<T> a) {
-  auto r = parallel_reduce(a.size(), Sum<T>(a));
-  return static_cast<T>(r); //see StandinTraits
+typename StandinTraits<T>::type sum(Read<T> a) {
+  return parallel_reduce(a.size(), Sum<T>(a));
 }
 
 template <typename T>
@@ -132,8 +131,7 @@ struct Min : public MinFunctor<T> {
   typedef typename MinFunctor<T>::value_type value_type;
   Read<T> a_;
   Min(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const
-  {
+  INLINE void operator()(LO i, value_type& update) const {
     update = min2<value_type>(update, a_[i]);
   }
 };
@@ -149,8 +147,7 @@ struct Max : public MaxFunctor<T> {
   typedef typename MaxFunctor<T>::value_type value_type;
   Read<T> a_;
   Max(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const
-  {
+  INLINE void operator()(LO i, value_type& update) const {
     update = max2<value_type>(update, a_[i]);
   }
 };
@@ -185,8 +182,7 @@ struct AreClose : public AndFunctor {
   AreClose(Reals a, Reals b, Real tol, Real floor):
     a_(a),b_(b),tol_(tol),floor_(floor)
   {}
-  INLINE void operator()(LO i, value_type& update) const
-  {
+  INLINE void operator()(LO i, value_type& update) const {
     update = update && are_close(a_[i], b_[i], tol_, floor_);
   }
 };
@@ -277,8 +273,7 @@ struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
   SameContent(Read<T> a, Read<T> b):a_(a),b_(b) {}
-  INLINE void operator()(LO i, value_type& update) const
-  {
+  INLINE void operator()(LO i, value_type& update) const {
     update = update && (a_[i] == b_[i]);
   }
 };
@@ -315,8 +310,7 @@ HostWrite<T>::HostWrite(LO size):
 
 template <typename T>
 HostWrite<T>::HostWrite(LO size, T offset, T stride):
-  HostWrite<T>(Write<T>(size, offset, stride))
-{
+  HostWrite<T>(Write<T>(size, offset, stride)) {
 }
 
 template <typename T>
