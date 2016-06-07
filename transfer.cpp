@@ -188,3 +188,28 @@ void transfer_quality(Mesh& old_mesh, Mesh& new_mesh,
     }
   }
 }
+
+void transfer_refine(Mesh& old_mesh, Mesh& new_mesh,
+    LOs keys2edges,
+    LOs keys2midverts,
+    Int prod_dim,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  transfer_inherit_refine(old_mesh, new_mesh, keys2edges, prod_dim,
+      keys2prods, prods2new_ents,
+      same_ents2old_ents, same_ents2new_ents);
+  if (prod_dim == VERT) {
+    transfer_linear_interp(old_mesh, new_mesh, keys2edges, keys2midverts,
+        same_ents2old_ents, same_ents2new_ents);
+    transfer_metric(old_mesh, new_mesh, keys2edges, keys2midverts,
+        same_ents2old_ents, same_ents2new_ents);
+  } else if (prod_dim == EDGE) {
+    transfer_length(old_mesh, new_mesh,
+        same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+  } else if (prod_dim == old_mesh.dim()) {
+    transfer_quality(old_mesh, new_mesh,
+        same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+  }
+}
