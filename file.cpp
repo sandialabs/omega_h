@@ -152,7 +152,7 @@ void write_array(std::ostream& stream, Read<T> array) {
       &dest_bytes,
       reinterpret_cast<const Bytef*>(&uncompressed[0]),
       source_bytes,
-      9);
+      Z_BEST_SPEED);
   CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
   write_value(stream, compressed_bytes);

@@ -105,7 +105,7 @@ void write_array(std::ostream& stream, std::string const& name,
       &dest_bytes,
       reinterpret_cast<const Bytef*>(uncompressed.data()),
       source_bytes,
-      9); //compress to the max
+      Z_BEST_SPEED);
   CHECK(ret == Z_OK);
   std::string encoded = base64::encode(compressed, dest_bytes);
   delete [] compressed;
