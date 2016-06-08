@@ -27,17 +27,20 @@ static bool compare_copy_data(
 }
 
 bool compare_meshes(Mesh& a, Mesh& b, Real tol, Real floor,
-    bool accept_superset) {
+    bool accept_superset, bool verbose) {
   CHECK(a.comm()->size() == b.comm()->size());
   CHECK(a.comm()->rank() == b.comm()->rank());
   auto comm = a.comm();
+  auto should_print = verbose && (comm->rank() == 0);
   if (a.dim() != b.dim()) {
-    std::cout << "mesh dimensions differ\n";
+    if (should_print) std::cout << "mesh dimensions differ\n";
     return false;
   }
   for (Int dim = 0; dim <= a.dim(); ++dim) {
     if (a.nglobal_ents(dim) != b.nglobal_ents(dim)) {
-      std::cout << "global " << singular_names[dim] << " counts differ\n";
+      if (should_print) {
+        std::cout << "global " << singular_names[dim] << " counts differ\n";
+      }
       return false;
     }
     auto a_globals = a.ask_globals(dim);
@@ -48,8 +51,10 @@ bool compare_meshes(Mesh& a, Mesh& b, Real tol, Real floor,
       auto tag = a.get_tag(dim, i);
       auto name = tag->name();
       if (!b.has_tag(dim, name)) {
-        std::cout << singular_names[dim] << " tag \"" << name
-                  << "\" exists in first mesh but not second\n";
+        if (should_print) {
+          std::cout << singular_names[dim] << " tag \"" << name
+                    << "\" exists in first mesh but not second\n";
+        }
         return false;
       }
       auto ncomps = tag->ncomps();
@@ -81,8 +86,10 @@ bool compare_meshes(Mesh& a, Mesh& b, Real tol, Real floor,
         break;
       }
       if (!ok) {
-        std::cout << singular_names[dim] << " tag \""
-          << name << "\" values are different\n";
+        if (should_print) {
+          std::cout << singular_names[dim] << " tag \""
+            << name << "\" values are different\n";
+        }
         return false;
       }
     }
@@ -90,8 +97,10 @@ bool compare_meshes(Mesh& a, Mesh& b, Real tol, Real floor,
       for (Int i = 0; i < b.ntags(dim); ++i) {
         auto tag = b.get_tag(dim, i);
         if (!a.has_tag(dim, tag->name())) {
-          std::cout << singular_names[dim] << " tag \"" << tag->name()
-            << "\" exists in second mesh but not in first\n";
+          if (should_print) {
+            std::cout << singular_names[dim] << " tag \"" << tag->name()
+              << "\" exists in second mesh but not in first\n";
+          }
           return false;
         }
       }
