@@ -682,6 +682,12 @@ static void test_mark_up_down() {
         == Read<I8>({1,0}));
 }
 
+static void test_compare_meshes() {
+  Mesh mesh;
+  build_box(mesh, 1, 1, 0, 1, 1, 0);
+  CHECK(mesh == mesh);
+}
+
 int main(int argc, char** argv) {
   init(argc, argv);
   test_cubic();
@@ -718,5 +724,6 @@ int main(int argc, char** argv) {
   test_refine_qualities();
   test_i8_array_print();
   test_mark_up_down();
+  test_compare_meshes();
   fini();
 }
