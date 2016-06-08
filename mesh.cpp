@@ -85,7 +85,10 @@ template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
     Xfer xfer) {
   check_dim2(dim);
-  CHECK(!has_tag(dim, name));
+  if (has_tag(dim, name)) {
+    fail("omega_h: add_tag(): \"%s\" already exists. use set_tag or remove_tag\n",
+        name.c_str());
+  }
   CHECK(ncomps >= 0);
   CHECK(tags_[dim].size() < static_cast<std::size_t>(INT8_MAX));
   tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer)));
