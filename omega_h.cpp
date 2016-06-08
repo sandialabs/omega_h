@@ -55,5 +55,6 @@ namespace osh {
 #include "modify.cpp"
 #include "refine.cpp"
 #include "transfer.cpp"
+#include "compare.cpp"
 
 } //end namespace osh

@@ -28,3 +28,9 @@ Remotes update_ownership(Dist new_ents2old_owners, Read<I32> own_ranks);
 
 Remotes owners_from_globals(CommPtr comm,
     Read<GO> globals, Read<I32> own_ranks);
+
+template <typename T>
+Read<T> reduce_data_to_owners(
+    Read<T> copy_data,
+    Dist copies2owners,
+    Int ncomps);

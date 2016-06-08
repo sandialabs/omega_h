@@ -68,3 +68,36 @@ Remotes owners_from_globals(CommPtr comm,
   auto copies2lins_dist = copies_to_linear_owners(comm, globals);
   return update_ownership(copies2lins_dist, own_ranks);
 }
+
+template <typename T>
+Read<T> reduce_data_to_owners(
+    Read<T> copy_data,
+    Dist copies2owners,
+    Int ncomps) {
+  auto owners2copies = copies2owners.invert();
+  auto serv_copy_data = copies2owners.exch(copy_data, ncomps);
+  auto nowners = owners2copies.nroots();
+  auto comm = copies2owners.parent_comm();
+  auto owners2serv_copies = owners2copies.roots2items();
+  auto owner_data_w = Write<T>(nowners * ncomps);
+  auto f = LAMBDA(LO owner) {
+    auto sc_begin = owners2serv_copies[owner];
+    for (Int c = 0; c < ncomps; ++c) {
+      owner_data_w[owner * ncomps + c] =
+           serv_copy_data[sc_begin * ncomps + c];
+    }
+  };
+  parallel_for(nowners, f);
+  return owner_data_w;
+}
+
+#define INST_T(T) \
+template Read<T> reduce_data_to_owners( \
+    Read<T> copy_data, \
+    Dist copies2owners, \
+    Int ncomps);
+INST_T(I8)
+INST_T(I32)
+INST_T(I64)
+INST_T(Real)
+#undef INST_T
