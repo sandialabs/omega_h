@@ -540,6 +540,7 @@ class Mesh {
     Graph ask_graph(Int from, Int to);
     template <typename T>
     Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
+    bool operator==(Mesh& other);
 };
 
 namespace gmsh {

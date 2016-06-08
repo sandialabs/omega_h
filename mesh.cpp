@@ -438,6 +438,10 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
   return ask_dist(ent_dim).invert().exch(a, width);
 }
 
+bool Mesh::operator==(Mesh& other) {
+  return compare_meshes(*this, other, 0.0, 0.0, false, false);
+}
+
 #define INST_T(T) \
 template Tag<T> const* Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \
