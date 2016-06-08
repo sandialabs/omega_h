@@ -175,6 +175,12 @@ T Comm::allreduce(T x, ReduceOp op) const {
   return x;
 }
 
+bool Comm::reduce_or(bool x) const {
+  I8 y = x;
+  y = allreduce(y, MAX);
+  return static_cast<bool>(y);
+}
+
 #ifdef OSH_USE_MPI
 static void mpi_add_int128(void* a, void* b, int*, MPI_Datatype*) {
   Int128* a2 = static_cast<Int128*>(a);

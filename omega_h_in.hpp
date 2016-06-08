@@ -359,6 +359,7 @@ public:
   Read<I32> destinations() const;
   template <typename T>
   T allreduce(T x, ReduceOp op) const;
+  bool reduce_or(bool x) const;
   Int128 add_int128(Int128 x) const;
   template <typename T>
   T exscan(T x, ReduceOp op) const;
