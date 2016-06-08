@@ -683,9 +683,15 @@ static void test_mark_up_down() {
 }
 
 static void test_compare_meshes() {
-  Mesh mesh;
-  build_box(mesh, 1, 1, 0, 1, 1, 0);
-  CHECK(mesh == mesh);
+  Mesh a;
+  build_box(a, 1, 1, 0, 4, 4, 0);
+  CHECK(a == a);
+  Mesh b = a;
+  b.reorder();
+  CHECK(a == b);
+  b.add_tag<I8>(VERT, "foo", 1, OSH_DONT_TRANSFER,
+      Read<I8>(b.nverts(), 1));
+  CHECK(!(a == b));
 }
 
 int main(int argc, char** argv) {
