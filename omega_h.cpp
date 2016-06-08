@@ -56,5 +56,6 @@ namespace osh {
 #include "refine.cpp"
 #include "transfer.cpp"
 #include "compare.cpp"
+#include "check_collapse.cpp"
 
 } //end namespace osh

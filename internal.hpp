@@ -127,5 +127,6 @@ namespace osh {
 #include "stacktrace.hpp"
 #include "transfer.hpp"
 #include "compare.hpp"
+#include "collapse.hpp"
 
 } //end namespace osh
