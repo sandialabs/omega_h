@@ -6,15 +6,17 @@ INLINE Real cube(Real x) { return x * x * x; }
 
 INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
-INLINE bool are_close(Real a, Real b,
-    Real tol = EPSILON, Real floor = EPSILON) {
+INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
   Real am = fabs(a);
   Real bm = fabs(b);
   if (am <= floor && bm <= floor)
-    return true;
-  if ((fabs(b - a) / max2(am, bm)) <= tol)
-    return true;
-  return false;
+    return 0.0;
+  return fabs(b - a) / max2(am, bm);
+}
+
+INLINE bool are_close(Real a, Real b,
+    Real tol = EPSILON, Real floor = EPSILON) {
+  return rel_diff_with_floor(a, b, floor) <= tol;
 }
 
 template <Int n>
