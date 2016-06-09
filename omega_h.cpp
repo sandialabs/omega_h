@@ -59,5 +59,6 @@ namespace osh {
 #include "check_collapse.cpp"
 #include "coarsen_qualities.cpp"
 #include "coarsen_topology.cpp"
+#include "coarsen.cpp"
 
 } //end namespace osh

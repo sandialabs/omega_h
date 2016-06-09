@@ -45,10 +45,9 @@ void find_rails(Mesh& mesh,
 }
 
 LOs get_verts_onto(Mesh& mesh,
-    LOs keys2verts,
     LOs rails2edges,
     Read<I8> rail_col_dirs) {
-  auto nkeys = keys2verts.size();
+  auto nkeys = rails2edges.size();
   auto ev2v = mesh.ask_verts_of(EDGE);
   auto keys2verts_onto_w = Write<LO>(nkeys, -1);
   auto set_key_onto = LAMBDA(LO key) {
@@ -133,7 +132,8 @@ Adj find_coarsen_domains(Mesh& mesh,
 LOs coarsen_topology(Mesh& mesh,
     LOs keys2verts_onto,
     Int dom_dim,
-    Adj keys2doms) {
+    Adj keys2doms,
+    LOs old_verts2new_verts) {
   auto nccv = simplex_degrees[dom_dim][VERT];
   auto cv2v = mesh.ask_verts_of(dom_dim);
   auto k2kc = keys2doms.a2ab;
@@ -152,9 +152,14 @@ LOs coarsen_topology(Mesh& mesh,
       auto ccv_col = code_which_down(kc_code);
       auto ppv2v = &prod_verts2verts[prod * nccv];
       for (Int ccv = 0; ccv < nccv; ++ccv) {
-        ppv2v[ccv] = cv2v[c * nccv + ccv];
+        LO old_v;
+        if (ccv == ccv_col) {
+          old_v = v_onto;
+        } else {
+          old_v = cv2v[c * nccv + ccv];
+        }
+        ppv2v[ccv] = old_verts2new_verts[old_v];
       }
-      ppv2v[ccv_col] = v_onto;
     }
   };
   parallel_for(nkeys, f);

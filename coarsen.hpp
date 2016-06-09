@@ -35,11 +35,13 @@ void find_rails(Mesh& mesh,
     Read<I8>& rail_col_dirs);
 
 LOs get_verts_onto(Mesh& mesh,
-    LOs keys2verts,
     LOs rails2edges,
     Read<I8> rail_col_dirs);
 
 LOs coarsen_topology(Mesh& mesh,
     LOs keys2verts_onto,
     Int dom_dim,
-    Adj keys2doms);
+    Adj keys2doms,
+    LOs old_verts2new_verts);
+
+bool coarsen(Mesh& mesh, Real min_qual, bool improve);
