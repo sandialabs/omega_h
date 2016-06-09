@@ -113,3 +113,38 @@ void choose_vertex_collapses(Mesh& mesh,
   verts_are_cands = verts_are_cands_w;
   vert_quals = vert_quals_w;
 }
+
+static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
+  auto codes_w = Write<I8>(codes.size());
+  auto f = LAMBDA(LO cand) {
+    auto code = codes[cand];
+    for (Int dir = 0; dir < 2; ++dir) {
+      if (!keep_dirs[cand * 2 + dir]) {
+        code = dont_collapse(code, dir);
+      }
+    }
+    codes_w[cand] = code;
+  };
+  parallel_for(codes_w.size(), f);
+  return codes_w;
+}
+
+Read<I8> filter_coarsen_min_qual(Read<I8> cand_codes,
+    Reals cand_quals, Real min_qual) {
+  auto keep_dirs = each_geq_to(cand_quals, min_qual);
+  return filter_coarsen_dirs(cand_codes, keep_dirs);
+}
+
+Read<I8> filter_coarsen_improve(Mesh& mesh,
+    LOs cands2edges,
+    Read<I8> cand_codes,
+    Reals cand_quals) {
+  auto elem_quals = mesh.ask_qualities();
+  auto verts2elems = mesh.ask_up(VERT, mesh.dim());
+  auto vert_old_quals = graph_reduce(verts2elems, elem_quals, 1, MIN);
+  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
+  auto edge_old_quals = unmap(edge_verts2verts, vert_old_quals, 1);
+  auto cand_old_quals = unmap(cands2edges, edge_old_quals, 2);
+  auto keep_dirs = gt_each(cand_quals, cand_old_quals);
+  return filter_coarsen_dirs(cand_codes, keep_dirs);
+}

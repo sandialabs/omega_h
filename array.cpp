@@ -463,6 +463,27 @@ Read<I8> each_geq_to(Read<T> a, T b) {
   return c;
 }
 
+template <typename T>
+Read<I8> gt_each(Read<T> a, Read<T> b) {
+  CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) {
+    c[i] = (a[i] > b[i]);
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
+Read<I8> each_neq_to(Read<T> a, T b) {
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) {
+    c[i] = (a[i] != b);
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
@@ -475,7 +496,8 @@ template Read<T> multiply_each_by(T factor, Read<T> x); \
 template Read<T> multiply_each(Read<T> a, Read<T> b); \
 template Read<T> add_each(Read<T> a, Read<T> b); \
 template Read<T> add_to_each(Read<T> a, T b); \
-template Read<I8> each_geq_to(Read<T> a, T b);
+template Read<I8> each_geq_to(Read<T> a, T b); \
+template Read<I8> each_neq_to(Read<T> a, T b);
 
 INST_ARRAY_T(I8)
 INST_ARRAY_T(I16)

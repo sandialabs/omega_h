@@ -11,6 +11,14 @@ Reals coarsen_qualities(Mesh& mesh,
     LOs cands2edges,
     Read<I8> cand_codes);
 
+Read<I8> filter_coarsen_min_qual(Read<I8> cand_codes,
+    Reals cand_quals, Real min_qual);
+
+Read<I8> filter_coarsen_improve(Mesh& mesh,
+    LOs cands2edges,
+    Read<I8> cand_codes,
+    Reals cand_quals);
+
 void choose_vertex_collapses(Mesh& mesh,
     LOs cands2edges,
     Read<I8> cand_edge_codes,
