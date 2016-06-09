@@ -8,3 +8,7 @@ Adj find_coarsen_domains(Mesh& mesh,
 Reals coarsen_qualities(Mesh& mesh,
     LOs cands2edges,
     Read<I8> cand_codes);
+LOs coarsen_topology(Mesh& mesh,
+    LOs keys2verts_onto,
+    Int dom_dim,
+    Adj keys2doms);
