@@ -69,3 +69,17 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
   parallel_for(na, f);
   return Adj(a2ac, ac2c, ac_codes);
 }
+
+template <typename T>
+Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, ReduceOp op) {
+  auto a2ab = a2b.a2ab;
+  auto ab2b = a2b.ab2b;
+  auto ab_data = unmap(ab2b, b_data, width);
+  return fan_reduce(a2ab, ab_data, width, op);
+}
+#define INST_T(T) \
+template \
+Read<T> graph_reduce(Graph, Read<T>, Int, ReduceOp);
+INST_T(I32)
+INST_T(Real)
+#undef INST_T
