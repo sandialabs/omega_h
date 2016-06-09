@@ -8,18 +8,20 @@
    edges were equally good, the first upward
    adjacent will be chosen */
 
-LOs find_verts_onto(Mesh& mesh,
+void find_rails(Mesh& mesh,
     LOs keys2verts,
     Reals vert_quals,
     Read<I8> edge_cand_codes,
-    Reals edge_cand_quals) {
+    Reals edge_cand_quals,
+    LOs& rails2edges,
+    Read<I8>& rail_col_dirs) {
   auto nkeys = keys2verts.size();
   auto v2e = mesh.ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   auto ve_codes = v2e.codes;
-  auto ev2v = mesh.ask_verts_of(EDGE);
-  auto keys2verts_onto = Write<LO>(nkeys, -1);
+  auto rails2edges_w = Write<LO>(nkeys, -1);
+  auto rail_col_dirs_w = Write<I8>(nkeys, -1);
   auto f = LAMBDA(LO key) {
     auto v = keys2verts[key];
     auto vert_qual = vert_quals[v];
@@ -31,18 +33,36 @@ LOs find_verts_onto(Mesh& mesh,
       if (!collapses(cand_code, eev)) continue;
       auto edge_qual = edge_cand_quals[e * 2 + eev];
       if (edge_qual == vert_qual) {
-        keys2verts_onto[key] = ev2v[e * 2 + (1 - eev)];
+        rails2edges_w[key] = e;
+        rail_col_dirs_w[key] = static_cast<I8>(eev);
         return;
       }
     }
   };
   parallel_for(nkeys, f);
-  return keys2verts_onto;
+  rails2edges = rails2edges_w;
+  rail_col_dirs = rail_col_dirs_w;
+}
+
+LOs get_verts_onto(Mesh& mesh,
+    LOs keys2verts,
+    LOs rails2edges,
+    Read<I8> rail_col_dirs) {
+  auto nkeys = keys2verts.size();
+  auto ev2v = mesh.ask_verts_of(EDGE);
+  auto keys2verts_onto_w = Write<LO>(nkeys, -1);
+  auto set_key_onto = LAMBDA(LO key) {
+    auto e = rails2edges[key];
+    auto eev = rail_col_dirs[key];
+    keys2verts_onto_w[key] = ev2v[e * 2 + (1 - eev)];
+  };
+  parallel_for(nkeys, set_key_onto);
+  return keys2verts_onto_w;
 }
 
 static void mark_dead_ents(Mesh& mesh,
     LOs rails2edges,
-    Read<I8> rail_col_verts,
+    Read<I8> rail_col_dirs,
     Int cell_dim,
     Write<I8>& dead_cells,
     Write<I8>& dead_sides) {
@@ -55,7 +75,7 @@ static void mark_dead_ents(Mesh& mesh,
   auto nrails = rails2edges.size();
   auto f = LAMBDA(LO rail) {
     auto e = rails2edges[rail];
-    auto eev_col = rail_col_verts[rail];
+    auto eev_col = rail_col_dirs[rail];
     auto eev_onto = 1 - eev_col;
     for (auto ec = e2ec[e]; ec < e2ec[e + 1]; ++ec) {
       auto c = ec2c[ec];
@@ -75,13 +95,13 @@ static void mark_dead_ents(Mesh& mesh,
 
 Few<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
     LOs rails2edges,
-    Read<I8> rail_col_verts) {
+    Read<I8> rail_col_dirs) {
   Few<Write<I8>, 4> writes;
   writes[EDGE] = deep_copy(mark_image(rails2edges, mesh.nedges()));
   for (Int dim = EDGE + 1; dim <= mesh.dim(); ++dim)
     writes[dim] = Write<I8>(mesh.nents(dim), 0);
   for (Int dim = mesh.dim(); dim > EDGE; --dim)
-    mark_dead_ents(mesh, rails2edges, rail_col_verts,
+    mark_dead_ents(mesh, rails2edges, rail_col_dirs,
         dim, writes[dim], writes[dim - 1]);
   Few<Read<I8>, 4> reads;
   for (Int dim = 0; dim < 4; ++dim)

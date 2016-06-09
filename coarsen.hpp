@@ -1,6 +1,6 @@
 Few<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
     LOs rails2edges,
-    Read<I8> rail_col_verts);
+    Read<I8> rail_col_dirs);
 
 Adj find_coarsen_domains(Mesh& mesh,
     LOs keys2verts,
@@ -26,11 +26,18 @@ void choose_vertex_collapses(Mesh& mesh,
     Read<I8>& verts_are_cands,
     Reals& vert_quals);
 
-LOs find_verts_onto(Mesh& mesh,
+void find_rails(Mesh& mesh,
     LOs keys2verts,
     Reals vert_quals,
     Read<I8> edge_cand_codes,
-    Reals edge_cand_quals);
+    Reals edge_cand_quals,
+    LOs& rails2edges,
+    Read<I8>& rail_col_dirs);
+
+LOs get_verts_onto(Mesh& mesh,
+    LOs keys2verts,
+    LOs rails2edges,
+    Read<I8> rail_col_dirs);
 
 LOs coarsen_topology(Mesh& mesh,
     LOs keys2verts_onto,
