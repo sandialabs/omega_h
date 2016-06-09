@@ -213,3 +213,74 @@ void transfer_refine(Mesh& old_mesh, Mesh& new_mesh,
         same_ents2old_ents, same_ents2new_ents, prods2new_ents);
   }
 }
+
+template <typename T>
+static void transfer_inherit_coarsen(Mesh& old_mesh, Mesh& new_mesh,
+    Adj keys2doms,
+    Int prod_dim,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    TagBase const* tagbase) {
+  auto name = tagbase->name();
+  auto old_tag = to<T>(tagbase);
+  auto ncomps = old_tag->ncomps();
+  auto dom_data = old_tag->array();
+  auto key_doms2doms = keys2doms.ab2b;
+  auto prod_data = unmap(key_doms2doms, dom_data, ncomps);
+  transfer_common(old_mesh, new_mesh, prod_dim,
+      same_ents2old_ents, same_ents2new_ents, prods2new_ents,
+      old_tag, prod_data);
+}
+
+static void transfer_inherit_coarsen(Mesh& old_mesh, Mesh& new_mesh,
+    Adj keys2doms,
+    Int prod_dim,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  for (Int i = 0; i < old_mesh.ntags(prod_dim); ++i) {
+    auto tagbase = old_mesh.get_tag(prod_dim, i);
+    if (tagbase->xfer() == OSH_INHERIT) {
+      switch(tagbase->type()) {
+      case OSH_I8:
+        transfer_inherit_coarsen<I8>(old_mesh, new_mesh,
+            keys2doms, prod_dim, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      case OSH_I32:
+        transfer_inherit_coarsen<I32>(old_mesh, new_mesh,
+            keys2doms, prod_dim, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      case OSH_I64:
+        transfer_inherit_coarsen<I64>(old_mesh, new_mesh,
+            keys2doms, prod_dim, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      case OSH_F64:
+        transfer_inherit_coarsen<Real>(old_mesh, new_mesh,
+            keys2doms, prod_dim, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      }
+    }
+  }
+}
+
+void transfer_coarsen(Mesh& old_mesh, Mesh& new_mesh,
+    Adj keys2doms,
+    Int prod_dim,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  transfer_inherit_coarsen(old_mesh, new_mesh, keys2doms, prod_dim,
+      prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+  if (prod_dim == EDGE) {
+    transfer_length(old_mesh, new_mesh,
+        same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+  } else if (prod_dim == old_mesh.dim()) {
+    transfer_quality(old_mesh, new_mesh,
+        same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+  }
+}

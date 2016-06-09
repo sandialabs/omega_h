@@ -36,3 +36,10 @@ void transfer_refine(Mesh& old_mesh, Mesh& new_mesh,
     LOs prods2new_ents,
     LOs same_ents2old_ents,
     LOs same_ents2new_ents);
+
+void transfer_coarsen(Mesh& old_mesh, Mesh& new_mesh,
+    Adj keys2doms,
+    Int prod_dim,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents);
