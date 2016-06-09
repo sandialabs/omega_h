@@ -58,5 +58,6 @@ namespace osh {
 #include "compare.cpp"
 #include "check_collapse.cpp"
 #include "find_coarsen_domains.cpp"
+#include "coarsen_qualities.cpp"
 
 } //end namespace osh

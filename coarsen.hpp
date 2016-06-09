@@ -5,3 +5,6 @@ Adj find_coarsen_domains(Mesh& mesh,
     LOs keys2verts,
     Int ent_dim,
     Read<I8> ents_are_dead);
+Reals coarsen_qualities(Mesh& mesh,
+    LOs cands2edges,
+    Read<I8> cand_codes);
