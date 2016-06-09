@@ -1,3 +1,45 @@
+/* this function is in some sense
+   the inverse of choose_vertex_collapses(),
+   and shares much the same logic.
+   after the independent set of key vertices
+   is chosen, we go back and figure out which
+   of the adjacent edges it was collapsing across.
+   we do this by matching quality, so if two
+   edges were equally good, the first upward
+   adjacent will be chosen */
+
+LOs find_verts_onto(Mesh& mesh,
+    LOs keys2verts,
+    Reals vert_quals,
+    Read<I8> edge_cand_codes,
+    Reals edge_cand_quals) {
+  auto nkeys = keys2verts.size();
+  auto v2e = mesh.ask_up(VERT, EDGE);
+  auto v2ve = v2e.a2ab;
+  auto ve2e = v2e.ab2b;
+  auto ve_codes = v2e.codes;
+  auto ev2v = mesh.ask_verts_of(EDGE);
+  auto keys2verts_onto = Write<LO>(nkeys, -1);
+  auto f = LAMBDA(LO key) {
+    auto v = keys2verts[key];
+    auto vert_qual = vert_quals[v];
+    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
+      auto e = ve2e[ve];
+      auto ve_code = ve_codes[ve];
+      auto eev = code_which_down(ve_code);
+      auto cand_code = edge_cand_codes[e];
+      if (!collapses(cand_code, eev)) continue;
+      auto edge_qual = edge_cand_quals[e * 2 + eev];
+      if (edge_qual == vert_qual) {
+        keys2verts_onto[key] = ev2v[e * 2 + (1 - eev)];
+        return;
+      }
+    }
+  };
+  parallel_for(nkeys, f);
+  return keys2verts_onto;
+}
+
 static void mark_dead_ents(Mesh& mesh,
     LOs rails2edges,
     Read<I8> rail_col_verts,
