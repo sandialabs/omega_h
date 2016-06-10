@@ -107,7 +107,7 @@ static void coarsen_element_based2(Mesh& mesh) {
     auto keys2prods = LOs();
     auto prod_verts2verts = LOs();
     if (ent_dim == VERT) {
-      keys2prods = LOs(nkeys, 0);
+      keys2prods = LOs(nkeys + 1, 0);
     } else {
       auto keys2doms = find_coarsen_domains(mesh, keys2verts, ent_dim,
           dead_ents[ent_dim]);
