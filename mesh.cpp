@@ -127,7 +127,7 @@ template <typename T>
 Tag<T> const* Mesh::get_tag(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name))
-    fail("expected tag %s on dimension %d\n", name.c_str(), dim);
+    fail("expected tag %s on %s\n", name.c_str(), plural_names[dim]);
   return to<T>(tag_iter(dim, name)->get());
 }
 
