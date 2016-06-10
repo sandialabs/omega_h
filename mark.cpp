@@ -22,7 +22,7 @@ Read<I8> mark_down(Mesh& mesh, Int high_dim, Int low_dim,
         out[l] = 1;
   };
   parallel_for(nl, f);
-  return out;
+  return mesh.sync_array(low_dim, Read<I8>(out), 1);
 }
 
 Read<I8> mark_up(Mesh& mesh, Int low_dim, Int high_dim,
