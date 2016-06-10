@@ -18,9 +18,9 @@ static Reals get_edge_quals(Mesh& mesh) {
 }
 
 static void put_edge_quals(Mesh& mesh, LOs cands2edges, Reals cand_quals) {
-  auto edge_cand_quals_w = Write<Real>(mesh.nedges(), -1.0);
-  map_into(cand_quals, cands2edges, edge_cand_quals_w, 1);
-  mesh.add_tag(EDGE, "collapse_qualities", 1, OSH_DONT_TRANSFER,
+  auto edge_cand_quals_w = Write<Real>(mesh.nedges() * 2, -1.0);
+  map_into(cand_quals, cands2edges, edge_cand_quals_w, 2);
+  mesh.add_tag(EDGE, "collapse_qualities", 2, OSH_DONT_TRANSFER,
       Reals(edge_cand_quals_w));
 }
 
@@ -46,7 +46,7 @@ static void filter_coarsen_candidates(
   cands2edges = unmap(new2old, cands2edges, 1);
   cand_codes = unmap(new2old, cand_codes, 1);
   if (cand_quals.exists())
-    cand_quals = unmap(new2old, cand_quals, 1);
+    cand_quals = unmap(new2old, cand_quals, 2);
 }
 
 static bool coarsen_ghosted(Mesh& mesh, Real min_qual, bool improve) {
