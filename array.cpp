@@ -461,6 +461,17 @@ Read<T> add_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
+Read<T> subtract_each(Read<T> a, Read<T> b) {
+  CHECK(a.size() == b.size());
+  Write<T> c(a.size());
+  auto f = LAMBDA(LO i) {
+    c[i] = a[i] - b[i];
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Read<T> add_to_each(Read<T> a, T b) {
   Write<T> c(a.size());
   auto f = LAMBDA(LO i) {
@@ -513,6 +524,7 @@ template Read<T> multiply_each_by(T factor, Read<T> x); \
 template Read<T> multiply_each(Read<T> a, Read<T> b); \
 template Read<T> divide_each(Read<T> a, Read<T> b); \
 template Read<T> add_each(Read<T> a, Read<T> b); \
+template Read<T> subtract_each(Read<T> a, Read<T> b); \
 template Read<T> add_to_each(Read<T> a, T b); \
 template Read<I8> each_geq_to(Read<T> a, T b); \
 template Read<I8> each_neq_to(Read<T> a, T b);

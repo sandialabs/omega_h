@@ -55,6 +55,8 @@ Read<T> divide_each(Read<T> a, Read<T> b);
 template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b);
 template <typename T>
+Read<T> subtract_each(Read<T> a, Read<T> b);
+template <typename T>
 Read<T> add_to_each(Read<T> a, T b);
 template <typename T>
 Read<I8> each_geq_to(Read<T> a, T b);
