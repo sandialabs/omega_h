@@ -106,10 +106,11 @@ static void coarsen_element_based2(Mesh& mesh) {
   for (Int ent_dim = 0; ent_dim <= mesh.dim(); ++ent_dim) {
     auto keys2prods = LOs();
     auto prod_verts2verts = LOs();
+    auto keys2doms = Adj();
     if (ent_dim == VERT) {
       keys2prods = LOs(nkeys + 1, 0);
     } else {
-      auto keys2doms = find_coarsen_domains(mesh, keys2verts, ent_dim,
+      keys2doms = find_coarsen_domains(mesh, keys2verts, ent_dim,
           dead_ents[ent_dim]);
       keys2prods = keys2doms.a2ab;
       prod_verts2verts = coarsen_topology(mesh, keys2verts_onto,
@@ -125,7 +126,8 @@ static void coarsen_element_based2(Mesh& mesh) {
         same_ents2old_ents, same_ents2new_ents,
         old_ents2new_ents);
     if (ent_dim == VERT) old_verts2new_verts = old_ents2new_ents;
-    /* TODO: transfer for coarsening ! */
+    transfer_coarsen(mesh, new_mesh, keys2doms, ent_dim, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   mesh = new_mesh;
