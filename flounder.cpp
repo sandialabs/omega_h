@@ -8,6 +8,7 @@ int main(int argc, char** argv) {
   Mesh mesh;
   build_box(mesh, 1, 1, 0, 1, 1, 0);
   classify_by_angles(mesh, PI / 4);
+  mesh.add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);
   Now t0 = now();
   do {
     Write<Real> size(mesh.nverts());
@@ -21,7 +22,7 @@ int main(int argc, char** argv) {
       size[v] = length;
     };
     parallel_for(mesh.nverts(), f);
-    mesh.add_tag(VERT, "size", 1, OSH_DONT_TRANSFER, Reals(size));
+    mesh.set_tag(VERT, "size", Reals(size));
   } while(refine_by_size(mesh, 0.3));
   Now t1 = now();
   std::cout << "refinement time " << (t1-t0) << " seconds ";
