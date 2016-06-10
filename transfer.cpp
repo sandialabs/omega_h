@@ -288,7 +288,9 @@ void transfer_no_products(Mesh& old_mesh, Mesh& new_mesh,
     LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh.ntags(prod_dim); ++i) {
     auto tagbase = old_mesh.get_tag(prod_dim, i);
-    if (tagbase->xfer() != OSH_DONT_TRANSFER) {
+    if ((tagbase->xfer() == OSH_INHERIT) ||
+        (tagbase->xfer() == OSH_LINEAR_INTERP) ||
+        (tagbase->xfer() == OSH_METRIC)) {
       switch(tagbase->type()) {
       case OSH_I8:
         transfer_no_products_tmpl<I8>(old_mesh, new_mesh,
