@@ -45,3 +45,6 @@ LOs coarsen_topology(Mesh& mesh,
     LOs old_verts2new_verts);
 
 bool coarsen(Mesh& mesh, Real min_qual, bool improve);
+
+bool coarsen_verts(Mesh& mesh, Read<I8> vert_marks,
+    Real min_qual, bool improve);

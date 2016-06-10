@@ -139,3 +139,22 @@ bool coarsen(Mesh& mesh, Real min_qual, bool improve) {
   coarsen_element_based2(mesh);
   return true;
 }
+
+bool coarsen_verts(Mesh& mesh, Read<I8> vert_marks,
+    Real min_qual, bool improve) {
+  auto ev2v = mesh.ask_verts_of(EDGE);
+  Write<I8> edge_codes_w(mesh.nedges(), DONT_COLLAPSE);
+  auto f = LAMBDA(LO e) {
+    I8 code = DONT_COLLAPSE;
+    for (Int eev = 0; eev < 2; ++eev) {
+      if (vert_marks[ev2v[e * 2 + eev]]) {
+        code = do_collapse(code, eev);
+      }
+    }
+    edge_codes_w[e] = code;
+  };
+  parallel_for(mesh.nedges(), f);
+  mesh.add_tag(EDGE, "collapse_code", 1, OSH_DONT_TRANSFER,
+      Read<I8>(edge_codes_w));
+  return coarsen(mesh, min_qual, improve);
+}
