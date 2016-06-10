@@ -64,3 +64,5 @@ template <typename T>
 Read<I8> gt_each(Read<T> a, Read<T> b);
 template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b);
+template <typename T>
+Read<I8> each_eq_to(Read<T> a, T b);

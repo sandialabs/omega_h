@@ -354,7 +354,7 @@ Remotes Mesh::ask_owners(Int dim) {
 
 Read<I8> Mesh::owned(Int dim) {
   auto e2rank = ask_owners(dim).ranks;
-  return mark_equal(e2rank, comm()->rank());
+  return each_eq_to(e2rank, comm()->rank());
 }
 
 Dist Mesh::ask_dist(Int dim) {
