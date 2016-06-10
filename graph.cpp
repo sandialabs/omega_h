@@ -83,3 +83,17 @@ Read<T> graph_reduce(Graph, Read<T>, Int, ReduceOp);
 INST_T(I32)
 INST_T(Real)
 #undef INST_T
+
+Reals graph_weighted_average(Graph a2b, Reals ab_weights,
+    Reals b_data, Int width) {
+  auto a2ab = a2b.a2ab;
+  auto ab2b = a2b.ab2b;
+  auto nab = a2ab.last();
+  CHECK(ab_weights.size() == nab);
+  CHECK(b_data.size() % width == 0);
+  auto total_weights = fan_reduce(a2ab, ab_weights, 1, SUM);
+  auto ab_data = unmap(ab2b, b_data, width);
+  auto weighted_ab_data = multiply_each(ab_data, ab_weights);
+  auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, SUM);
+  return divide_each(weighted_sums, total_weights);
+}

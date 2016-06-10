@@ -423,12 +423,29 @@ Read<T> multiply_each_by(T factor, Read<T> a) {
 
 template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  CHECK(a.size() % b.size() == 0);
+  auto width = a.size() / b.size();
   Write<T> c(a.size());
   auto f = LAMBDA(LO i) {
-    c[i] = a[i] * b[i];
+    for (Int j = 0; j < width; ++j) {
+      c[i * width + j] = a[i * width + j] * b[i];
+    }
   };
-  parallel_for(c.size(), f);
+  parallel_for(b.size(), f);
+  return c;
+}
+
+template <typename T>
+Read<T> divide_each(Read<T> a, Read<T> b) {
+  CHECK(a.size() % b.size() == 0);
+  auto width = a.size() / b.size();
+  Write<T> c(a.size());
+  auto f = LAMBDA(LO i) {
+    for (Int j = 0; j < width; ++j) {
+      c[i * width + j] = a[i * width + j] / b[i];
+    }
+  };
+  parallel_for(b.size(), f);
   return c;
 }
 
@@ -494,6 +511,7 @@ template Write<T> deep_copy(Read<T> a); \
 template std::ostream& operator<<(std::ostream& o, Read<T> a); \
 template Read<T> multiply_each_by(T factor, Read<T> x); \
 template Read<T> multiply_each(Read<T> a, Read<T> b); \
+template Read<T> divide_each(Read<T> a, Read<T> b); \
 template Read<T> add_each(Read<T> a, Read<T> b); \
 template Read<T> add_to_each(Read<T> a, T b); \
 template Read<I8> each_geq_to(Read<T> a, T b); \
