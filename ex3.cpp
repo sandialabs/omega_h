@@ -15,8 +15,6 @@ int main(int argc, char** argv) {
   vtk::FullWriter writer(mesh, "out");
   mesh.add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER,
       Read<I8>(mesh.nedges(), 1));
-  mesh.ask_edge_lengths();
-  mesh.ask_qualities();
   writer.write();
   refine(mesh, 0.3);
   writer.write();

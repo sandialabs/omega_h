@@ -108,5 +108,10 @@ Read<I8> check_collapse_exposure(Mesh& mesh,
     cand_codes = check_collapse_exposure(
         mesh, cands2edges, cand_codes, cell_dim);
   }
+  auto edge_codes_w = Write<I8>(mesh.nedges(), DONT_COLLAPSE);
+  map_into(cand_codes, cands2edges, edge_codes_w, 1);
+  auto edge_codes = Read<I8>(edge_codes_w);
+  edge_codes = mesh.sync_array(EDGE, edge_codes, 1);
+  cand_codes = unmap(cands2edges, edge_codes, 1);
   return cand_codes;
 }

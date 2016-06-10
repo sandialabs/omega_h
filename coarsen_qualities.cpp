@@ -10,7 +10,7 @@ static Reals coarsen_qualities_tmpl(Mesh& mesh,
   auto vc2c = v2c.ab2b;
   auto vc_codes = v2c.codes;
   auto ncands = cands2edges.size();
-  auto qualities = Write<Real>(ncands * 2);
+  auto qualities = Write<Real>(ncands * 2, -1.0);
   auto f = LAMBDA(LO cand) {
     auto e = cands2edges[cand];
     auto code = cand_codes[cand];
@@ -111,7 +111,9 @@ void choose_vertex_collapses(Mesh& mesh,
   };
   parallel_for(mesh.nverts(), f);
   verts_are_cands = verts_are_cands_w;
+  verts_are_cands = mesh.sync_array(VERT, verts_are_cands, 1);
   vert_quals = vert_quals_w;
+  vert_quals = mesh.sync_array(VERT, vert_quals, 1);
 }
 
 static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
