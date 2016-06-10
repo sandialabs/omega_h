@@ -1,5 +1,5 @@
 Reals solve_laplacian(Mesh& mesh, Reals initial, Int width, Real tol) {
-  CHECK(mesh.partition() == GHOSTED);
+  CHECK(mesh.owners_have_all_upward(VERT));
   CHECK(initial.size() == mesh.nverts() * width);
   auto comm = mesh.comm();
   auto state = initial;

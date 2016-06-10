@@ -542,6 +542,8 @@ class Mesh {
     Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
     bool operator==(Mesh& other);
     Real min_quality();
+    bool could_be_shared(Int ent_dim);
+    bool owners_have_all_upward(Int ent_dim);
 };
 
 namespace gmsh {

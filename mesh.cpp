@@ -434,7 +434,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
 
 template <typename T>
 Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
-  if (comm_->size() == 1) return a;
+  if (!could_be_shared(ent_dim)) return a;
   return ask_dist(ent_dim).invert().exch(a, width);
 }
 
@@ -444,6 +444,17 @@ bool Mesh::operator==(Mesh& other) {
 
 Real Mesh::min_quality() {
   return comm_->allreduce(min(ask_qualities()), MIN);
+}
+
+bool Mesh::could_be_shared(Int ent_dim) {
+  return !((comm_->size() == 1) ||
+           (partition_ == ELEMENT_BASED && ent_dim == dim()));
+}
+
+bool Mesh::owners_have_all_upward(Int ent_dim) {
+  return ((comm_->size() == 1) ||
+          (partition_ == GHOSTED) ||
+          (partition_ == VERTEX_BASED && ent_dim == VERT));
 }
 
 #define INST_T(T) \
