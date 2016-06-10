@@ -129,5 +129,6 @@ namespace osh {
 #include "compare.hpp"
 #include "collapse.hpp"
 #include "coarsen.hpp"
+#include "warp.hpp"
 
 } //end namespace osh

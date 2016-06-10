@@ -442,6 +442,10 @@ bool Mesh::operator==(Mesh& other) {
   return compare_meshes(*this, other, 0.0, 0.0, false, false);
 }
 
+Real Mesh::min_quality() {
+  return comm_->allreduce(min(ask_qualities()), MIN);
+}
+
 #define INST_T(T) \
 template Tag<T> const* Mesh::get_tag<T>( \
     Int dim, std::string const& name) const; \

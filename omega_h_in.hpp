@@ -541,6 +541,7 @@ class Mesh {
     template <typename T>
     Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
     bool operator==(Mesh& other);
+    Real min_quality();
 };
 
 namespace gmsh {
