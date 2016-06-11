@@ -97,7 +97,12 @@ LOs compound_maps(LOs a2b, LOs b2c) {
 }
 
 LOs invert_permutation(LOs a2b) {
-  return invert_injective_map(a2b, a2b.size());
+  Write<LO> b2a(a2b.size());
+  auto f = LAMBDA(LO a) {
+    b2a[a2b[a]] = a;
+  };
+  parallel_for(a2b.size(), f);
+  return b2a;
 }
 
 Read<I8> invert_marks(Read<I8> marks) {
