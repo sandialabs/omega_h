@@ -130,5 +130,6 @@ namespace osh {
 #include "collapse.hpp"
 #include "coarsen.hpp"
 #include "warp.hpp"
+#include "laplace.hpp"
 
 } //end namespace osh

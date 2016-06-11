@@ -63,10 +63,10 @@ Read<I8> mark_class_closure(Mesh& mesh, Int ent_dim, Int class_dim, I32 class_id
 }
 
 Read<I8> mark_class_closures(Mesh& mesh, Int ent_dim,
-    HostRead<Int> class_dims, HostRead<I32> class_ids) {
+    std::vector<Int> class_dims, std::vector<I32> class_ids) {
   CHECK(class_dims.size() == class_ids.size());
   auto marks = Read<I8>(mesh.nents(ent_dim), 0);
-  for (LO i = 0; i < class_dims.size(); ++i) {
+  for (std::size_t i = 0; i < class_dims.size(); ++i) {
     marks = lor_each(marks, mark_class_closure(
           mesh, ent_dim, class_dims[i], class_ids[i]));
   }

@@ -9,6 +9,6 @@ Read<I8> mark_by_class_dim(Mesh& mesh, Int ent_dim, Int class_dim);
 Read<I8> mark_by_class(Mesh& mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closure(Mesh& mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closures(Mesh& mesh, Int ent_dim,
-    HostRead<Int> class_dims, HostRead<I32> class_ids);
+    std::vector<Int> class_dims, std::vector<I32> class_ids);
 
 Read<I8> mark_by_owner(Mesh& mesh, Int ent_dim, I32 rank);

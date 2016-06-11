@@ -61,5 +61,6 @@ namespace osh {
 #include "coarsen_topology.cpp"
 #include "coarsen.cpp"
 #include "warp.cpp"
+#include "laplace.cpp"
 
 } //end namespace osh

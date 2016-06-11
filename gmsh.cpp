@@ -141,4 +141,10 @@ void read(std::istream& stream, Mesh& mesh) {
   project_classification(mesh);
 }
 
+void read(std::string const& filename, Mesh& mesh) {
+  std::ifstream file(filename.c_str());
+  CHECK(file.is_open());
+  read(file, mesh);
+}
+
 }

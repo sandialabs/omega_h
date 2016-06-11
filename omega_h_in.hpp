@@ -548,6 +548,7 @@ class Mesh {
 
 namespace gmsh {
 void read(std::istream& stream, Mesh& mesh);
+void read(std::string const& filename, Mesh& mesh);
 }
 
 namespace vtk {

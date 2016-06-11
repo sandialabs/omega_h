@@ -9,6 +9,8 @@ Reals solve_laplacian(Mesh& mesh, Reals initial, Int width, Real tol) {
   auto b2v = collect_marked(boundary);
   auto weights = Reals(star.ab2b.size(), 1.0);
   auto bc_data = unmap(b2v, initial, width);
+  Real maxdiff;
+  Int niters = 0;
   do {
     auto new_state_nobc = graph_weighted_average(star, weights, state, width);
     auto new_state_w = deep_copy(new_state_nobc);
@@ -18,8 +20,10 @@ Reals solve_laplacian(Mesh& mesh, Reals initial, Int width, Real tol) {
     auto diff = subtract_each(new_state, state);
     auto diffsq = multiply_each(diff, diff);
     auto maxdiffsq = comm->allreduce(max(diffsq), MAX);
-    auto maxdiff = sqrt(maxdiffsq);
+    maxdiff = sqrt(maxdiffsq);
     state = new_state;
-  } while(maxdiff > tol);
+    ++niters;
+  } while (maxdiff > tol);
+  std::cout << "laplacian solve took " << niters << " iterations\n";
   return state;
 }
