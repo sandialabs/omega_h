@@ -1,4 +1,4 @@
-Few<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
+std::array<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs);
 
