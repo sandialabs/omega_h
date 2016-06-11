@@ -48,3 +48,27 @@ Read<I8> mark_by_class_dim(Mesh& mesh, Int ent_dim, Int class_dim) {
   auto e2class_dim = mesh.get_array<I8>(ent_dim, "class_dim");
   return each_eq_to(e2class_dim, static_cast<I8>(class_dim));
 }
+
+Read<I8> mark_by_class(Mesh& mesh, Int ent_dim, Int class_dim, I32 class_id) {
+  auto e2class_id = mesh.get_array<I32>(ent_dim, "class_id");
+  auto id_marks = each_eq_to(e2class_id, class_id);
+  return land_each(id_marks, mark_by_class_dim(mesh, ent_dim, class_dim));
+}
+
+Read<I8> mark_class_closure(Mesh& mesh, Int ent_dim, Int class_dim, I32 class_id) {
+  CHECK(ent_dim <= class_dim);
+  auto eq_marks = mark_by_class(mesh, class_dim, class_dim, class_id);
+  if (ent_dim == class_dim) return eq_marks;
+  return mark_down(mesh, class_dim, ent_dim, eq_marks);
+}
+
+Read<I8> mark_class_closures(Mesh& mesh, Int ent_dim,
+    HostRead<Int> class_dims, HostRead<I32> class_ids) {
+  CHECK(class_dims.size() == class_ids.size());
+  auto marks = Read<I8>(mesh.nents(ent_dim), 0);
+  for (LO i = 0; i < class_dims.size(); ++i) {
+    marks = lor_each(marks, mark_class_closure(
+          mesh, ent_dim, class_dims[i], class_ids[i]));
+  }
+  return marks;
+}
