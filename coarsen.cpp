@@ -108,7 +108,7 @@ static void coarsen_element_based2(Mesh& mesh) {
       keys2prods = LOs(nkeys + 1, 0);
     } else {
       keys2doms = find_coarsen_domains(mesh, keys2verts, ent_dim,
-          dead_ents[ent_dim]);
+          dead_ents[size_t(ent_dim)]);
       keys2prods = keys2doms.a2ab;
       prod_verts2verts = coarsen_topology(mesh, keys2verts_onto,
           ent_dim, keys2doms, old_verts2new_verts);

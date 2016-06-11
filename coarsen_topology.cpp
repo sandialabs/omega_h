@@ -92,19 +92,19 @@ static void mark_dead_ents(Mesh& mesh,
   parallel_for(nrails, f);
 }
 
-Few<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
+std::array<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs) {
-  Few<Write<I8>, 4> writes;
+  std::array<Write<I8>, 4> writes;
   writes[EDGE] = deep_copy(mark_image(rails2edges, mesh.nedges()));
   for (Int dim = EDGE + 1; dim <= mesh.dim(); ++dim)
-    writes[dim] = Write<I8>(mesh.nents(dim), 0);
+    writes[size_t(dim)] = Write<I8>(mesh.nents(dim), 0);
   for (Int dim = mesh.dim(); dim > EDGE; --dim)
     mark_dead_ents(mesh, rails2edges, rail_col_dirs,
-        dim, writes[dim], writes[dim - 1]);
-  Few<Read<I8>, 4> reads;
+        dim, writes[size_t(dim)], writes[size_t(dim - 1)]);
+  std::array<Read<I8>, 4> reads;
   for (Int dim = 0; dim < 4; ++dim)
-    reads[dim] = writes[dim];
+    reads[size_t(dim)] = writes[size_t(dim)];
   return reads;
 }
 

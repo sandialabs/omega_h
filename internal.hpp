@@ -2,6 +2,7 @@
 
 /* C++ standard includes */
 
+#include <array>
 #include <cerrno>
 #include <cfloat>
 #include <chrono>
