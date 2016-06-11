@@ -78,9 +78,7 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
   };
   parallel_for(ncands, f);
   auto cand_quals = Reals(quals_w);
-  auto edge_quals_w = Write<Real>(mesh.nedges(), -1);
-  map_into(cand_quals, candidates, edge_quals_w, 1);
-  auto edge_quals = Reals(edge_quals_w);
+  auto edge_quals = map_onto(cand_quals, candidates, mesh.nedges(), -1.0, 1);
   edge_quals = mesh.sync_array(EDGE, edge_quals, 1);
   return unmap(candidates, edge_quals, 1);
 }

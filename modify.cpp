@@ -347,9 +347,8 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
       keys2kds, keys2reps, keys2prods, edge2rep_order,
       same_ents2new_ents, prods2new_ents);
   auto nold_ents = old_mesh.nents(ent_dim);
-  auto old_ents2new_ents_w = Write<LO>(nold_ents, -1);
-  map_into(same_ents2new_ents, same_ents2old_ents, old_ents2new_ents_w, 1);
-  old_ents2new_ents = LOs(old_ents2new_ents_w);
+  old_ents2new_ents = map_onto(same_ents2new_ents, same_ents2old_ents,
+      nold_ents, -1, 1);
   if (ent_dim == VERT) {
     new_mesh.set_verts(nnew_ents);
   } else {

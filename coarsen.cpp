@@ -5,10 +5,9 @@ static Read<I8> get_edge_codes(Mesh& mesh) {
 }
 
 static void put_edge_codes(Mesh& mesh, LOs cands2edges, Read<I8> cand_codes) {
-  auto edge_cand_codes_w = Write<I8>(mesh.nedges(), DONT_COLLAPSE);
-  map_into(cand_codes, cands2edges, edge_cand_codes_w, 1);
-  mesh.add_tag(EDGE, "collapse_code", 1, OSH_DONT_TRANSFER,
-      Read<I8>(edge_cand_codes_w));
+  auto edge_codes = map_onto(cand_codes, cands2edges, mesh.nedges(),
+      I8(DONT_COLLAPSE), 1);
+  mesh.add_tag(EDGE, "collapse_code", 1, OSH_DONT_TRANSFER, edge_codes);
 }
 
 static Reals get_edge_quals(Mesh& mesh) {
@@ -18,10 +17,8 @@ static Reals get_edge_quals(Mesh& mesh) {
 }
 
 static void put_edge_quals(Mesh& mesh, LOs cands2edges, Reals cand_quals) {
-  auto edge_cand_quals_w = Write<Real>(mesh.nedges() * 2, -1.0);
-  map_into(cand_quals, cands2edges, edge_cand_quals_w, 2);
-  mesh.add_tag(EDGE, "collapse_qualities", 2, OSH_DONT_TRANSFER,
-      Reals(edge_cand_quals_w));
+  auto edge_quals = map_onto(cand_quals, cands2edges, mesh.nedges(), -1.0, 2);
+  mesh.add_tag(EDGE, "collapse_qualities", 2, OSH_DONT_TRANSFER, edge_quals);
 }
 
 static bool coarsen_element_based1(Mesh& mesh) {

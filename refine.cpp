@@ -7,12 +7,8 @@ static bool refine_ghosted(Mesh& mesh, Real min_qual) {
   auto cands_are_good = each_geq_to(cand_quals, min_qual);
   if (comm->allreduce(max(cands_are_good), MAX) != 1) return false;
   auto nedges = mesh.nents(EDGE);
-  auto edges_are_initial_w = Write<I8>(nedges, 0);
-  map_into(cands_are_good, cands2edges, edges_are_initial_w, 1);
-  auto edges_are_initial = Read<I8>(edges_are_initial_w);
-  auto edge_quals_w = Write<Real>(nedges, 0.);
-  map_into(cand_quals, cands2edges, edge_quals_w, 1);
-  auto edge_quals = Reals(edge_quals_w);
+  auto edges_are_initial = map_onto(cands_are_good, cands2edges, nedges, I8(0), 1);
+  auto edge_quals = map_onto(cand_quals, cands2edges, nedges, 0.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_initial);
   mesh.add_tag(EDGE, "key", 1, OSH_DONT_TRANSFER, edges_are_keys);
   mesh.add_tag(EDGE, "edge2rep_order", 1, OSH_DONT_TRANSFER,

@@ -522,6 +522,26 @@ Read<I8> each_eq_to(Read<T> a, T b) {
   return c;
 }
 
+Read<I8> land_each(Read<I8> a, Read<I8> b) {
+  CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) {
+    c[i] = (a[i] && b[i]);
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+Read<I8> lor_each(Read<I8> a, Read<I8> b) {
+  CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) {
+    c[i] = (a[i] || b[i]);
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
@@ -545,5 +565,6 @@ INST_ARRAY_T(I16)
 INST_ARRAY_T(I32)
 INST_ARRAY_T(I64)
 INST_ARRAY_T(Real)
+#undef INST_ARRAY_T
 
 template Real sum(Read<Real> a);

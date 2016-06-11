@@ -12,6 +12,13 @@ void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
 }
 
 template <typename T>
+Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width) {
+  auto out = Write<T>(nb * width, init_val);
+  map_into(a_data, a2b, out, width);
+  return out;
+}
+
+template <typename T>
 Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
   auto na = a2b.size();
   Write<T> a_data(na * width);
@@ -67,6 +74,7 @@ LOs multiply_fans(LOs a2b, LOs a2c) {
 
 #define INST_T(T) \
 template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
+template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width); \
 template Read<T> unmap(LOs a2b, Read<T> b_data, Int width); \
 template Read<T> expand(Read<T> a_data, LOs a2b, Int width); \
 template Read<T> permute(Read<T> a_data, LOs a2b, Int width);

@@ -66,3 +66,5 @@ template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b);
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
+Read<I8> land_each(Read<I8> a, Read<I8> b);
+Read<I8> lor_each(Read<I8> a, Read<I8> b);

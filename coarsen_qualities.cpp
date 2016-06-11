@@ -67,9 +67,7 @@ Reals coarsen_qualities(Mesh& mesh,
           mesh, cands2edges, cand_codes);
     }
   }
-  auto edge_quals_w = Write<Real>(mesh.nedges() * 2, -1);
-  map_into(cand_quals, cands2edges, edge_quals_w, 2);
-  auto edge_quals = Reals(edge_quals_w);
+  auto edge_quals = map_onto(cand_quals, cands2edges, mesh.nedges(), -1.0, 2);
   edge_quals = mesh.sync_array(EDGE, edge_quals, 2);
   return unmap(cands2edges, edge_quals, 2);
 }
