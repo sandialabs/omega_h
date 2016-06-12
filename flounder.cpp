@@ -7,6 +7,7 @@ int main(int argc, char** argv) {
   Mesh mesh;
   build_box(&mesh, 1, 1, 0, 1, 1, 0);
   classify_by_angles(&mesh, PI / 4);
+  mesh.keep_canonical_globals(false);
   mesh.add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);
   Now t0 = now();
   Int i = 0;

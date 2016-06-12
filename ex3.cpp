@@ -9,6 +9,7 @@ int main(int argc, char** argv) {
   static Int const dim = 3;
   if (world->rank() == 0) {
     build_box(&mesh, 1, 1, 1, 1, 1, (dim == 3) ? 1 : 0);
+    mesh.keep_canonical_globals(false);
     classify_by_angles(&mesh, PI / 4);
     for (Int i = 0; i < 5; ++i) {
       mesh.add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER,
