@@ -28,5 +28,5 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), f);
     mesh.set_tag(VERT, "size", Reals(size));
     writer.write();
-  } while(refine_by_size(&mesh, 0.3));
+  } while(refine_by_size(&mesh, 1.5, 0.3));
 }
