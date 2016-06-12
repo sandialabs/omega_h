@@ -474,6 +474,7 @@ class Mesh {
     void set_dim(Int dim);
     void set_verts(LO nverts);
     void set_ents(Int dim, Adj down);
+    void keep_canonical_globals(bool yn);
     CommPtr comm() const;
     Partition partition() const;
     Int dim() const;
@@ -482,6 +483,7 @@ class Mesh {
     LO nverts() const;
     LO nedges() const;
     GO nglobal_ents(Int dim);
+    bool keeps_canonical_globals() const;
     template <typename T>
     void add_tag(Int dim, std::string const& name, Int ncomps,
         Xfer xfer);
@@ -531,6 +533,7 @@ class Mesh {
     Remotes owners_[DIMS];
     DistPtr dists_[DIMS];
     RibPtr rib_hints_;
+    bool keeps_canonical_globals_;
   public:
     void add_coords(Reals array);
     Reals coords() const;

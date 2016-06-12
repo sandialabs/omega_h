@@ -10,6 +10,10 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   if (is_source) partition = mesh->partition();
   new_comm->bcast(partition);
   if (!is_source) mesh->set_partition(static_cast<Partition>(partition));
+  I32 keep_canon;
+  if (is_source) keep_canon = mesh->keeps_canonical_globals();
+  new_comm->bcast(keep_canon);
+  if (!is_source) mesh->keep_canonical_globals(keep_canon);
   if (!is_source) mesh->set_verts(0);
   for (Int d = 0; d <= dim; ++d) {
     if (d > VERT && !is_source) {

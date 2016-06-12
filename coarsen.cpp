@@ -98,6 +98,7 @@ static void coarsen_element_based2(Mesh* mesh) {
   new_mesh.set_comm(mesh->comm());
   new_mesh.set_dim(mesh->dim());
   new_mesh.set_partition(mesh->partition());
+  new_mesh.keep_canonical_globals(mesh->keeps_canonical_globals());
   auto old_verts2new_verts = LOs();
   auto old_lows2new_lows = LOs();
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {

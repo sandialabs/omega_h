@@ -4,6 +4,7 @@ Mesh::Mesh():
   for (Int i = 0; i <= 3; ++i)
     nents_[i] = -1;
   partition_ = ELEMENT_BASED;
+  keeps_canonical_globals_ = true;
 }
 
 void Mesh::set_comm(CommPtr new_comm) {
@@ -46,6 +47,14 @@ void Mesh::set_ents(Int dim, Adj down) {
   CHECK(hl2l.size() % simplex_degrees[dim][dim - 1] == 0);
   nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
+}
+
+void Mesh::keep_canonical_globals(bool yn) {
+  keeps_canonical_globals_ = yn;
+}
+
+bool Mesh::keeps_canonical_globals() const {
+  return keeps_canonical_globals_;
 }
 
 CommPtr Mesh::comm() const {

@@ -232,6 +232,8 @@ void write(std::ostream& stream, Mesh* mesh) {
   write_value(stream, comm_size);
   Int partition = mesh->partition();
   write_value(stream, partition);
+  Int keep_canon = mesh->keeps_canonical_globals();
+  write_value(stream, keep_canon);
   LO nverts = mesh->nverts();
   write_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {
@@ -291,6 +293,9 @@ void read(std::istream& stream, Mesh* mesh) {
   Int partition;
   read_value(stream, partition);
   mesh->set_partition(static_cast<Partition>(partition));
+  Int keep_canon;
+  read_value(stream, keep_canon);
+  mesh->keep_canonical_globals(keep_canon);
   LO nverts;
   read_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {
