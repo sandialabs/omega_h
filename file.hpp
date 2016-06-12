@@ -17,7 +17,7 @@ void read_array(std::istream& stream, Read<T>& array,
 void write(std::ostream& stream, std::string const& val);
 void read(std::istream& stream, std::string& val);
 
-void write(std::ostream& stream, Mesh& mesh);
-void read(std::istream& stream, Mesh& mesh);
+void write(std::ostream& stream, Mesh* mesh);
+void read(std::istream& stream, Mesh* mesh);
 
 }

@@ -560,21 +560,21 @@ class Mesh {
 };
 
 namespace gmsh {
-void read(std::istream& stream, Mesh& mesh);
-void read(std::string const& filename, Mesh& mesh);
+void read(std::istream& stream, Mesh* mesh);
+void read(std::string const& filename, Mesh* mesh);
 }
 
 namespace vtk {
-void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim);
-void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim);
-void write_parallel(std::string const& path, Mesh& mesh, Int cell_dim);
+void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim);
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim);
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim);
 class Writer {
-    Mesh& mesh_;
+    Mesh* mesh_;
     std::string root_path_;
     Int cell_dim_;
     std::vector<Real> times_;
   public:
-    Writer(Mesh& mesh, std::string const& root_path, Int cell_dim);
+    Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
     Writer(Writer const& other);
     ~Writer();
     void write(Real time);
@@ -583,7 +583,7 @@ class Writer {
 class FullWriter {
     std::vector<Writer> writers_;
   public:
-    FullWriter(Mesh& mesh, std::string const& root_path);
+    FullWriter(Mesh* mesh, std::string const& root_path);
     ~FullWriter();
     void write(Real time);
     void write();

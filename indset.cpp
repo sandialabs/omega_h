@@ -45,18 +45,18 @@ static Read<I8> local_iteration(
 }
 
 static Read<I8> iteration(
-    Mesh& mesh, Int dim,
+    Mesh* mesh, Int dim,
     LOs xadj, LOs adj,
     Reals quality,
     Read<GO> global,
     Read<I8> old_state) {
   auto local_state = local_iteration(xadj, adj, quality, global, old_state);
-  auto synced_state = mesh.sync_array(dim, local_state, 1);
+  auto synced_state = mesh->sync_array(dim, local_state, 1);
   return synced_state;
 }
 
 static Read<I8> find(
-    Mesh& mesh, Int dim,
+    Mesh* mesh, Int dim,
     LOs xadj, LOs adj,
     Reals quality,
     Read<GO> global,
@@ -70,7 +70,7 @@ static Read<I8> find(
     else initial_state[i] = NOT_IN;
   };
   parallel_for(n, f);
-  auto comm = mesh.comm();
+  auto comm = mesh->comm();
   auto state = Read<I8>(initial_state);
   while (comm->allreduce(max(state), MAX) == UNKNOWN) {
     state = iteration(mesh, dim, xadj, adj, quality, global, state);
@@ -81,14 +81,14 @@ static Read<I8> find(
 }
 
 Read<I8> find_indset(
-    Mesh& mesh,
+    Mesh* mesh,
     Int ent_dim,
     Reals quality,
     Read<I8> candidates) {
-  mesh.owners_have_all_upward(ent_dim);
-  auto graph = mesh.ask_star(ent_dim);
+  mesh->owners_have_all_upward(ent_dim);
+  auto graph = mesh->ask_star(ent_dim);
   auto xadj = graph.a2ab;
   auto adj = graph.ab2b;
-  auto globals = mesh.ask_globals(ent_dim);
+  auto globals = mesh->ask_globals(ent_dim);
   return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
 }

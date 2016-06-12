@@ -170,7 +170,7 @@ INLINE Real metric_element_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
 
 struct RealElementQualities {
   Reals coords;
-  RealElementQualities(Mesh const& mesh):coords(mesh.coords()) {}
+  RealElementQualities(Mesh const* mesh):coords(mesh->coords()) {}
   template <Int neev>
   INLINE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
@@ -181,9 +181,9 @@ struct RealElementQualities {
 struct MetricElementQualities {
   Reals coords;
   Reals metrics;
-  MetricElementQualities(Mesh const& mesh):
-    coords(mesh.coords()),
-    metrics(mesh.get_array<Real>(VERT, "metric"))
+  MetricElementQualities(Mesh const* mesh):
+    coords(mesh->coords()),
+    metrics(mesh->get_array<Real>(VERT, "metric"))
   {}
   template <Int neev>
   INLINE Real measure(Few<LO, neev> v) const {
@@ -193,5 +193,5 @@ struct MetricElementQualities {
   }
 };
 
-Reals measure_qualities(Mesh& mesh, LOs a2e);
-Reals measure_qualities(Mesh& mesh);
+Reals measure_qualities(Mesh* mesh, LOs a2e);
+Reals measure_qualities(Mesh* mesh);

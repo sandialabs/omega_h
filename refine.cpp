@@ -1,36 +1,36 @@
-static bool refine_ghosted(Mesh& mesh, Real min_qual) {
-  auto comm = mesh.comm();
-  auto edges_are_cands = mesh.get_array<I8>(EDGE, "candidate");
-  mesh.remove_tag(EDGE, "candidate");
+static bool refine_ghosted(Mesh* mesh, Real min_qual) {
+  auto comm = mesh->comm();
+  auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
+  mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_quals = refine_qualities(mesh, cands2edges);
   auto cands_are_good = each_geq_to(cand_quals, min_qual);
   if (comm->allreduce(max(cands_are_good), MAX) != 1) return false;
-  auto nedges = mesh.nents(EDGE);
+  auto nedges = mesh->nents(EDGE);
   auto edges_are_initial = map_onto(cands_are_good, cands2edges, nedges, I8(0), 1);
   auto edge_quals = map_onto(cand_quals, cands2edges, nedges, 0.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_initial);
-  mesh.add_tag(EDGE, "key", 1, OSH_DONT_TRANSFER, edges_are_keys);
-  mesh.add_tag(EDGE, "edge2rep_order", 1, OSH_DONT_TRANSFER,
+  mesh->add_tag(EDGE, "key", 1, OSH_DONT_TRANSFER, edges_are_keys);
+  mesh->add_tag(EDGE, "edge2rep_order", 1, OSH_DONT_TRANSFER,
       get_edge2rep_order(mesh, edges_are_keys));
   auto keys2edges = collect_marked(edges_are_keys);
   set_owners_by_indset(mesh, EDGE, keys2edges);
   return true;
 }
 
-static void refine_element_based(Mesh& mesh) {
-  auto comm = mesh.comm();
-  auto edges_are_keys = mesh.get_array<I8>(EDGE, "key");
+static void refine_element_based(Mesh* mesh) {
+  auto comm = mesh->comm();
+  auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
   auto nkeys = keys2edges.size();
   auto new_mesh = Mesh();
   new_mesh.set_comm(comm);
-  new_mesh.set_dim(mesh.dim());
-  new_mesh.set_partition(mesh.partition());
+  new_mesh.set_dim(mesh->dim());
+  new_mesh.set_partition(mesh->partition());
   auto keys2midverts = LOs();
   auto old_verts2new_verts = LOs();
   auto old_lows2new_lows = LOs();
-  for (Int ent_dim = 0; ent_dim <= mesh.dim(); ++ent_dim) {
+  for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
     auto keys2prods = LOs();
     auto prod_verts2verts = LOs();
     if (ent_dim == VERT) {
@@ -43,7 +43,7 @@ static void refine_element_based(Mesh& mesh) {
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents(mesh, new_mesh, ent_dim, EDGE, keys2edges,
+    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
         keys2prods, prod_verts2verts, old_lows2new_lows,
         prods2new_ents,
         same_ents2old_ents, same_ents2new_ents,
@@ -52,27 +52,27 @@ static void refine_element_based(Mesh& mesh) {
       keys2midverts = prods2new_ents;
       old_verts2new_verts = old_ents2new_ents;
     }
-    transfer_refine(mesh, new_mesh, keys2edges, keys2midverts, ent_dim,
+    transfer_refine(mesh, &new_mesh, keys2edges, keys2midverts, ent_dim,
         keys2prods, prods2new_ents,
         same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
-  mesh = new_mesh;
+  *mesh = new_mesh;
 }
 
-bool refine(Mesh& mesh, Real min_qual) {
-  mesh.set_partition(GHOSTED);
+bool refine(Mesh* mesh, Real min_qual) {
+  mesh->set_partition(GHOSTED);
   if (!refine_ghosted(mesh, min_qual)) return false;
-  mesh.set_partition(ELEMENT_BASED);
+  mesh->set_partition(ELEMENT_BASED);
   refine_element_based(mesh);
   return true;
 }
 
-bool refine_by_size(Mesh& mesh, Real min_qual) {
-  auto comm = mesh.comm();
-  auto lengths = mesh.ask_edge_lengths();
+bool refine_by_size(Mesh* mesh, Real min_qual) {
+  auto comm = mesh->comm();
+  auto lengths = mesh->ask_edge_lengths();
   auto edge_is_cand = each_geq_to(lengths, 1.5);
   if (comm->allreduce(max(edge_is_cand), MAX) != 1) return false;
-  mesh.add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edge_is_cand);
+  mesh->add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edge_is_cand);
   return refine(mesh, min_qual);
 }

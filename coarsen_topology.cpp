@@ -8,7 +8,7 @@
    edges were equally good, the first upward
    adjacent will be chosen */
 
-void find_rails(Mesh& mesh,
+void find_rails(Mesh* mesh,
     LOs keys2verts,
     Reals vert_quals,
     Read<I8> edge_cand_codes,
@@ -16,7 +16,7 @@ void find_rails(Mesh& mesh,
     LOs& rails2edges,
     Read<I8>& rail_col_dirs) {
   auto nkeys = keys2verts.size();
-  auto v2e = mesh.ask_up(VERT, EDGE);
+  auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   auto ve_codes = v2e.codes;
@@ -44,11 +44,11 @@ void find_rails(Mesh& mesh,
   rail_col_dirs = rail_col_dirs_w;
 }
 
-LOs get_verts_onto(Mesh& mesh,
+LOs get_verts_onto(Mesh* mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs) {
   auto nkeys = rails2edges.size();
-  auto ev2v = mesh.ask_verts_of(EDGE);
+  auto ev2v = mesh->ask_verts_of(EDGE);
   auto keys2verts_onto_w = Write<LO>(nkeys, -1);
   auto set_key_onto = LAMBDA(LO key) {
     auto e = rails2edges[key];
@@ -59,17 +59,17 @@ LOs get_verts_onto(Mesh& mesh,
   return keys2verts_onto_w;
 }
 
-static void mark_dead_ents(Mesh& mesh,
+static void mark_dead_ents(Mesh* mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs,
     Int cell_dim,
     Write<I8>& dead_cells,
     Write<I8>& dead_sides) {
-  auto e2c = mesh.ask_up(EDGE, cell_dim);
+  auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;
   auto ec2c = e2c.ab2b;
   auto ec_codes = e2c.codes;
-  auto cs2s = mesh.ask_down(cell_dim, cell_dim - 1).ab2b;
+  auto cs2s = mesh->ask_down(cell_dim, cell_dim - 1).ab2b;
   auto nccs = simplex_degrees[cell_dim][cell_dim - 1];
   auto nrails = rails2edges.size();
   auto f = LAMBDA(LO rail) {
@@ -92,14 +92,14 @@ static void mark_dead_ents(Mesh& mesh,
   parallel_for(nrails, f);
 }
 
-std::array<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
+std::array<Read<I8>, 4> mark_dead_ents(Mesh* mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs) {
   std::array<Write<I8>, 4> writes;
-  writes[EDGE] = deep_copy(mark_image(rails2edges, mesh.nedges()));
-  for (Int dim = EDGE + 1; dim <= mesh.dim(); ++dim)
-    writes[size_t(dim)] = Write<I8>(mesh.nents(dim), 0);
-  for (Int dim = mesh.dim(); dim > EDGE; --dim)
+  writes[EDGE] = deep_copy(mark_image(rails2edges, mesh->nedges()));
+  for (Int dim = EDGE + 1; dim <= mesh->dim(); ++dim)
+    writes[size_t(dim)] = Write<I8>(mesh->nents(dim), 0);
+  for (Int dim = mesh->dim(); dim > EDGE; --dim)
     mark_dead_ents(mesh, rails2edges, rail_col_dirs,
         dim, writes[size_t(dim)], writes[size_t(dim - 1)]);
   std::array<Read<I8>, 4> reads;
@@ -108,12 +108,12 @@ std::array<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
   return reads;
 }
 
-Adj find_coarsen_domains(Mesh& mesh,
+Adj find_coarsen_domains(Mesh* mesh,
     LOs keys2verts,
     Int ent_dim,
     Read<I8> ents_are_dead) {
   auto nkeys = keys2verts.size();
-  auto v2e = mesh.ask_up(VERT, ent_dim);
+  auto v2e = mesh->ask_up(VERT, ent_dim);
   auto k2e = unmap_adjacency(keys2verts, v2e);
   auto k2ke = k2e.a2ab;
   auto ke2e = k2e.ab2b;
@@ -129,13 +129,13 @@ Adj find_coarsen_domains(Mesh& mesh,
   return Adj(k2lke, lke2e, lke_codes);
 }
 
-LOs coarsen_topology(Mesh& mesh,
+LOs coarsen_topology(Mesh* mesh,
     LOs keys2verts_onto,
     Int dom_dim,
     Adj keys2doms,
     LOs old_verts2new_verts) {
   auto nccv = simplex_degrees[dom_dim][VERT];
-  auto cv2v = mesh.ask_verts_of(dom_dim);
+  auto cv2v = mesh->ask_verts_of(dom_dim);
   auto k2kc = keys2doms.a2ab;
   auto kc2c = keys2doms.ab2b;
   auto kc_codes = keys2doms.codes;

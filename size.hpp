@@ -48,9 +48,9 @@ template <Int dim>
 struct IsoEdgeLengths {
   Reals coords;
   Reals isos;
-  IsoEdgeLengths(Mesh const& mesh):
-    coords(mesh.coords()),
-    isos(mesh.get_array<Real>(VERT, "size"))
+  IsoEdgeLengths(Mesh const* mesh):
+    coords(mesh->coords()),
+    isos(mesh->get_array<Real>(VERT, "size"))
   {}
   INLINE Real measure(Few<LO, 2> v) const {
     return iso_edge_length<dim>(v, coords, isos);
@@ -61,14 +61,14 @@ template <Int dim>
 struct MetricEdgeLengths {
   Reals coords;
   Reals metrics;
-  MetricEdgeLengths(Mesh const& mesh):
-    coords(mesh.coords()),
-    metrics(mesh.get_array<Real>(VERT, "metric"))
+  MetricEdgeLengths(Mesh const* mesh):
+    coords(mesh->coords()),
+    metrics(mesh->get_array<Real>(VERT, "metric"))
   {}
   INLINE Real measure(Few<LO, 2> v) const {
     return metric_edge_length<dim>(v, coords, metrics);
   }
 };
 
-Reals measure_edges(Mesh& mesh, LOs a2e);
-Reals measure_edges(Mesh& mesh);
+Reals measure_edges(Mesh* mesh, LOs a2e);
+Reals measure_edges(Mesh* mesh);
