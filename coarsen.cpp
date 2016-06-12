@@ -158,3 +158,18 @@ bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks,
       Read<I8>(edge_codes_w));
   return coarsen(mesh, min_qual, improve);
 }
+
+bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks,
+    Real min_qual, bool improve) {
+  auto vert_marks = mark_down(mesh, ent_dim, VERT, marks);
+  return coarsen_verts(mesh, vert_marks, min_qual, improve);
+}
+
+bool coarsen_by_size(Mesh* mesh, Real min_len,
+    Real min_qual, bool improve) {
+  auto comm = mesh->comm();
+  auto lengths = mesh->ask_edge_lengths();
+  auto edge_is_cand = each_lt(lengths, min_len);
+  if (comm->allreduce(max(edge_is_cand), MAX) != 1) return false;
+  return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, improve);
+}

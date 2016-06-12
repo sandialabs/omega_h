@@ -61,6 +61,10 @@ Read<T> add_to_each(Read<T> a, T b);
 template <typename T>
 Read<I8> each_geq_to(Read<T> a, T b);
 template <typename T>
+Read<I8> each_gt(Read<T> a, T b);
+template <typename T>
+Read<I8> each_lt(Read<T> a, T b);
+template <typename T>
 Read<I8> gt_each(Read<T> a, Read<T> b);
 template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b);
