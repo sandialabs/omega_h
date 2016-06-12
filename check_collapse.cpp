@@ -2,9 +2,9 @@ Read<I8> check_collapse_class(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
   auto ncands = cands2edges.size();
-  auto verts2class_dim = mesh.get_array<I8>(VERT, "class_dim");
-  auto edges2class_dim = mesh.get_array<I8>(EDGE, "class_dim");
-  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
+  auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
+  auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
+  auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto cand_codes_w = Write<I8>(ncands);
   auto f = LAMBDA(LO cand) {
     auto code = cand_codes[cand];
@@ -63,14 +63,14 @@ static Read<I8> check_collapse_exposure(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes,
     Int cell_dim) {
-  auto e2c = mesh.ask_up(EDGE, cell_dim);
+  auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;
   auto ec2c = e2c.ab2b;
   auto ec_codes = e2c.codes;
-  auto cs2s = mesh.ask_down(cell_dim, cell_dim - 1).ab2b;
+  auto cs2s = mesh->ask_down(cell_dim, cell_dim - 1).ab2b;
   auto nccs = simplex_degrees[cell_dim][cell_dim - 1];
-  auto c2dim = mesh.get_array<I8>(cell_dim, "class_dim");
-  auto s2dim = mesh.get_array<I8>(cell_dim - 1, "class_dim");
+  auto c2dim = mesh->get_array<I8>(cell_dim, "class_dim");
+  auto s2dim = mesh->get_array<I8>(cell_dim - 1, "class_dim");
   auto ncands = cands2edges.size();
   auto cand_codes_w = Write<I8>(ncands);
   auto f = LAMBDA(LO cand) {
@@ -103,11 +103,11 @@ static Read<I8> check_collapse_exposure(Mesh* mesh,
 Read<I8> check_collapse_exposure(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
-  CHECK(mesh.partition() == GHOSTED);
-  for (Int cell_dim = EDGE + 1; cell_dim <= mesh.dim(); ++cell_dim) {
+  CHECK(mesh->partition() == GHOSTED);
+  for (Int cell_dim = EDGE + 1; cell_dim <= mesh->dim(); ++cell_dim) {
     cand_codes = check_collapse_exposure(
         mesh, cands2edges, cand_codes, cell_dim);
   }
-  return mesh.sync_subset_array(EDGE, cand_codes, cands2edges,
+  return mesh->sync_subset_array(EDGE, cand_codes, cands2edges,
       I8(DONT_COLLAPSE), 1);
 }

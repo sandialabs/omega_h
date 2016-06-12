@@ -7,5 +7,5 @@ int main(int argc, char** argv) {
   CHECK(argc == 3);
   Mesh mesh;
   gmsh::read(argv[1], mesh);
-  vtk::write_vtu(argv[2], mesh, mesh.dim());
+  vtk::write_vtu(argv[2], mesh, mesh->dim());
 }

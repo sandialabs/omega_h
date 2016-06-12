@@ -216,22 +216,22 @@ static void test_adjs() {
   }
   {
   Now t0 = now();
-  mesh.reorder();
+  mesh->reorder();
   Now t1 = now();
-  std::cout << "reordering a " << mesh.nelems()
+  std::cout << "reordering a " << mesh->nelems()
     << " tet mesh took " << (t1-t0) << " seconds\n";
   }
   LOs tets2verts;
   LOs tris2verts;
   {
   Now t0 = now();
-  tets2verts = mesh.ask_verts_of(TET);
-  tris2verts = mesh.ask_verts_of(TRI);
+  tets2verts = mesh->ask_verts_of(TET);
+  tris2verts = mesh->ask_verts_of(TRI);
   Now t1 = now();
-  std::cout << "asking tet->vert and tri->vert of a " << mesh.nelems()
+  std::cout << "asking tet->vert and tri->vert of a " << mesh->nelems()
     << " tet mesh took " << (t1-t0) << " seconds\n";
   }
-  auto nverts = mesh.nverts();
+  auto nverts = mesh->nverts();
   test_invert_adj(tets2verts, nverts);
   test_reflect_down(tets2verts, tris2verts, nverts);
 }

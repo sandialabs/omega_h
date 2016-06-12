@@ -1,15 +1,15 @@
 Dist get_local_elem_uses2own_verts(Mesh* mesh) {
-  auto verts2elems = mesh.ask_up(VERT, mesh.dim());
+  auto verts2elems = mesh->ask_up(VERT, mesh->dim());
   auto verts2uses = verts2elems.a2ab;
-  auto verts2own_verts = mesh.ask_owners(VERT);
+  auto verts2own_verts = mesh->ask_owners(VERT);
   auto uses2own_verts = expand(verts2own_verts, verts2uses);
-  return Dist(mesh.comm(), uses2own_verts, mesh.nverts());
+  return Dist(mesh->comm(), uses2own_verts, mesh->nverts());
 }
 
 Remotes get_local_elem_uses2own_elems(Mesh* mesh) {
-  auto verts2elems = mesh.ask_up(VERT, mesh.dim());
+  auto verts2elems = mesh->ask_up(VERT, mesh->dim());
   auto uses2elems = verts2elems.ab2b;
-  auto elems2own = mesh.ask_owners(mesh.dim());
+  auto elems2own = mesh->ask_owners(mesh->dim());
   return unmap(uses2elems, elems2own);
 }
 
@@ -73,8 +73,8 @@ void ghost_mesh(Mesh* mesh) {
   auto elem_uses = push_elem_uses(
       own_vert_uses2own_elems,
       own_verts2own_vert_uses,
-      mesh.ask_dist(VERT).invert());
-  auto uses2old_owners = Dist(mesh.comm(), elem_uses, mesh.nelems());
+      mesh->ask_dist(VERT).invert());
+  auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2ownners = own_elems2elems.invert();
   Mesh new_mesh;
@@ -88,8 +88,8 @@ void partition_by_verts(Mesh* mesh) {
   get_own_verts2own_elem_uses(mesh,
       own_vert_uses2own_elems,
       own_verts2own_vert_uses);
-  auto uses2old_owners = Dist(mesh.comm(),
-      own_vert_uses2own_elems, mesh.nelems());
+  auto uses2old_owners = Dist(mesh->comm(),
+      own_vert_uses2own_elems, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2ownners = own_elems2elems.invert();
   Mesh new_mesh;
@@ -98,9 +98,9 @@ void partition_by_verts(Mesh* mesh) {
 }
 
 void partition_by_elems(Mesh* mesh) {
-  auto dim = mesh.dim();
-  auto all2owners = mesh.ask_owners(dim);
-  auto marked_owned = mesh.owned(dim);
+  auto dim = mesh->dim();
+  auto all2owners = mesh->ask_owners(dim);
+  auto marked_owned = mesh->owned(dim);
   auto owned2all = collect_marked(marked_owned);
   auto owned2owners = unmap(owned2all, all2owners);
   migrate_mesh(mesh, owned2owners);

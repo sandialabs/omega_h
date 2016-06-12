@@ -10,13 +10,13 @@ int main(int argc, char** argv) {
     build_box(mesh, 1, 1, 1, 4, 4, 4);
     classify_by_angles(mesh, PI / 4);
   }
-  mesh.set_comm(world);
-  mesh.balance();
-  mesh.add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);
+  mesh->set_comm(world);
+  mesh->balance();
+  mesh->add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);
   vtk::FullWriter writer(mesh, "out");
   do {
-    Write<Real> size(mesh.nverts());
-    auto coords = mesh.coords();
+    Write<Real> size(mesh->nverts());
+    auto coords = mesh->coords();
     auto f = LAMBDA(LO v) {
       auto x = get_vec<3>(coords, v);
       auto coarse = 0.5;
@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
       auto d = fabs(radius - 0.5);
       size[v] = coarse * d + fine * (1 - d);
     };
-    parallel_for(mesh.nverts(), f);
-    mesh.set_tag(VERT, "size", Reals(size));
+    parallel_for(mesh->nverts(), f);
+    mesh->set_tag(VERT, "size", Reals(size));
     writer.write();
   } while(refine_by_size(mesh, 0.3));
 }

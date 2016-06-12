@@ -420,15 +420,15 @@ static void test_build_from_elems2verts() {
   {
   Mesh mesh;
   build_from_elems2verts(mesh,2,LOs({0,1,2}),3);
-  CHECK(mesh.ask_down(2,0).ab2b == LOs({0,1,2}));
-  CHECK(mesh.ask_down(2,1).ab2b == LOs({0,2,1}));
-  CHECK(mesh.ask_down(1,0).ab2b ==
+  CHECK(mesh->ask_down(2,0).ab2b == LOs({0,1,2}));
+  CHECK(mesh->ask_down(2,1).ab2b == LOs({0,2,1}));
+  CHECK(mesh->ask_down(1,0).ab2b ==
       LOs({0,1,2,0,1,2}));
   }
   {
   Mesh mesh;
   build_from_elems2verts(mesh,3,LOs({0,1,2,3}),4);
-  CHECK(mesh.ask_down(3,0).ab2b == LOs({0,1,2,3}));
+  CHECK(mesh->ask_down(3,0).ab2b == LOs({0,1,2,3}));
   }
 }
 
@@ -436,21 +436,21 @@ static void test_star() {
   {
   Mesh mesh;
   build_from_elems2verts(mesh,2,LOs({0,1,2}),3);
-  Adj v2v = mesh.ask_star(VERT);
+  Adj v2v = mesh->ask_star(VERT);
   CHECK(v2v.a2ab == LOs(4,0,2));
   CHECK(v2v.ab2b == LOs({1,2,0,2,0,1}));
-  Adj e2e = mesh.ask_star(EDGE);
+  Adj e2e = mesh->ask_star(EDGE);
   CHECK(e2e.a2ab == LOs(4,0,2));
   CHECK(e2e.ab2b == LOs({2,1,0,2,1,0}));
   }
   {
   Mesh mesh;
   build_from_elems2verts(mesh,3,LOs({0,1,2,3}),4);
-  Adj v2v = mesh.ask_star(VERT);
+  Adj v2v = mesh->ask_star(VERT);
   CHECK(v2v.a2ab == LOs(5,0,3));
   CHECK(v2v.ab2b == LOs({
         1,2,3,0,2,3,0,1,3,0,1,2}));
-  Adj e2e = mesh.ask_star(EDGE);
+  Adj e2e = mesh->ask_star(EDGE);
   CHECK(e2e.a2ab == LOs(7,0,5));
   CHECK(e2e.ab2b == LOs({
         1,3,4,2,5,
@@ -471,7 +471,7 @@ static void test_injective_map() {
 static void test_dual() {
   Mesh mesh;
   build_from_elems2verts(mesh,2,LOs({0,1,2,2,3,0}),4);
-  auto t2t = mesh.ask_dual();
+  auto t2t = mesh->ask_dual();
   auto t2tt = t2t.a2ab;
   auto tt2t = t2t.ab2b;
   CHECK(t2tt == offset_scan(LOs({1,1})));
@@ -654,13 +654,13 @@ static void test_positivize() {
 static void test_refine_qualities() {
   Mesh mesh;
   build_box(mesh, 1, 1, 0, 1, 1, 0);
-  LOs candidates(mesh.nents(EDGE), 0, 1);
+  LOs candidates(mesh->nents(EDGE), 0, 1);
   auto quals = refine_qualities(mesh, candidates);
   CHECK(are_close(quals,
         Reals({0.494872,0.494872,0.866025,0.494872,0.494872}),
         1e-4));
-  mesh.add_tag(VERT, "metric", symm_dofs(2), OSH_METRIC,
-      repeat_symm(mesh.nverts(), identity_matrix<2,2>()));
+  mesh->add_tag(VERT, "metric", symm_dofs(2), OSH_METRIC,
+      repeat_symm(mesh->nverts(), identity_matrix<2,2>()));
   auto quals2 = refine_qualities(mesh, candidates);
   CHECK(are_close(quals2, quals));
 }

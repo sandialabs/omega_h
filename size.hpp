@@ -49,8 +49,8 @@ struct IsoEdgeLengths {
   Reals coords;
   Reals isos;
   IsoEdgeLengths(Mesh const& mesh):
-    coords(mesh.coords()),
-    isos(mesh.get_array<Real>(VERT, "size"))
+    coords(mesh->coords()),
+    isos(mesh->get_array<Real>(VERT, "size"))
   {}
   INLINE Real measure(Few<LO, 2> v) const {
     return iso_edge_length<dim>(v, coords, isos);
@@ -62,8 +62,8 @@ struct MetricEdgeLengths {
   Reals coords;
   Reals metrics;
   MetricEdgeLengths(Mesh const& mesh):
-    coords(mesh.coords()),
-    metrics(mesh.get_array<Real>(VERT, "metric"))
+    coords(mesh->coords()),
+    metrics(mesh->get_array<Real>(VERT, "metric"))
   {}
   INLINE Real measure(Few<LO, 2> v) const {
     return metric_edge_length<dim>(v, coords, metrics);

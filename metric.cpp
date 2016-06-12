@@ -2,7 +2,7 @@ template <Int sdim, Int edim>
 static Reals average_metric_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
   Write<Real> out(na * symm_dofs(sdim));
-  auto ev2v = mesh.ask_verts_of(edim);
+  auto ev2v = mesh->ask_verts_of(edim);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
     auto v = gather_verts<edim + 1>(ev2v, e);
@@ -15,7 +15,7 @@ static Reals average_metric_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
 }
 
 Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
-  if (mesh.dim() == 3) {
+  if (mesh->dim() == 3) {
     if (ent_dim == 3) {
       return average_metric_tmpl<3,3>(mesh, entities, v2m);
     } else if (ent_dim == 2) {
@@ -25,7 +25,7 @@ Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
       return average_metric_tmpl<3,1>(mesh, entities, v2m);
     }
   } else {
-    CHECK(mesh.dim() == 2);
+    CHECK(mesh->dim() == 2);
     if (ent_dim == 2) {
       return average_metric_tmpl<2,2>(mesh, entities, v2m);
     } else {

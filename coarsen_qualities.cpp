@@ -3,9 +3,9 @@ static Reals coarsen_qualities_tmpl(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
   Measure measure(mesh);
-  auto ev2v = mesh.ask_verts_of(EDGE);
-  auto cv2v = mesh.ask_verts_of(dim);
-  auto v2c = mesh.ask_up(VERT, dim);
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto cv2v = mesh->ask_verts_of(dim);
+  auto v2c = mesh->ask_up(VERT, dim);
   auto v2vc = v2c.a2ab;
   auto vc2c = v2c.ab2b;
   auto vc_codes = v2c.codes;
@@ -47,10 +47,10 @@ static Reals coarsen_qualities_tmpl(Mesh* mesh,
 Reals coarsen_qualities(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
-  CHECK(mesh.partition() == GHOSTED);
+  CHECK(mesh->partition() == GHOSTED);
   auto cand_quals = Reals();
-  if (mesh.dim() == 3) {
-    if (mesh.has_tag(VERT, "metric")) {
+  if (mesh->dim() == 3) {
+    if (mesh->has_tag(VERT, "metric")) {
       cand_quals = coarsen_qualities_tmpl<MetricElementQualities,3>(
           mesh, cands2edges, cand_codes);
     } else {
@@ -58,8 +58,8 @@ Reals coarsen_qualities(Mesh* mesh,
           mesh, cands2edges, cand_codes);
     }
   } else {
-    CHECK(mesh.dim() == 2);
-    if (mesh.has_tag(VERT, "metric")) {
+    CHECK(mesh->dim() == 2);
+    if (mesh->has_tag(VERT, "metric")) {
       cand_quals = coarsen_qualities_tmpl<MetricElementQualities,2>(
           mesh, cands2edges, cand_codes);
     } else {
@@ -67,7 +67,7 @@ Reals coarsen_qualities(Mesh* mesh,
           mesh, cands2edges, cand_codes);
     }
   }
-  return mesh.sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 2);
+  return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 2);
 }
 
 void choose_vertex_collapses(Mesh* mesh,
@@ -76,15 +76,15 @@ void choose_vertex_collapses(Mesh* mesh,
     Reals cand_edge_quals,
     Read<I8>& verts_are_cands,
     Reals& vert_quals) {
-  CHECK(mesh.partition() == GHOSTED);
-  auto edges2cands = invert_injective_map(cands2edges, mesh.nedges());
-  auto v2e = mesh.ask_up(VERT, EDGE);
+  CHECK(mesh->partition() == GHOSTED);
+  auto edges2cands = invert_injective_map(cands2edges, mesh->nedges());
+  auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   auto ve_codes = v2e.codes;
-  auto ev2v = mesh.ask_verts_of(EDGE);
-  auto verts_are_cands_w = Write<I8>(mesh.nverts());
-  auto vert_quals_w = Write<Real>(mesh.nverts());
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto verts_are_cands_w = Write<I8>(mesh->nverts());
+  auto vert_quals_w = Write<Real>(mesh->nverts());
   auto f = LAMBDA(LO v) {
     bool vert_is_cand = false;
     Real best_qual = -1.0;
@@ -105,11 +105,11 @@ void choose_vertex_collapses(Mesh* mesh,
     verts_are_cands_w[v] = vert_is_cand;
     vert_quals_w[v] = best_qual;
   };
-  parallel_for(mesh.nverts(), f);
+  parallel_for(mesh->nverts(), f);
   verts_are_cands = verts_are_cands_w;
-  verts_are_cands = mesh.sync_array(VERT, verts_are_cands, 1);
+  verts_are_cands = mesh->sync_array(VERT, verts_are_cands, 1);
   vert_quals = vert_quals_w;
-  vert_quals = mesh.sync_array(VERT, vert_quals, 1);
+  vert_quals = mesh->sync_array(VERT, vert_quals, 1);
 }
 
 static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
@@ -137,10 +137,10 @@ Read<I8> filter_coarsen_improve(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes,
     Reals cand_quals) {
-  auto elem_quals = mesh.ask_qualities();
-  auto verts2elems = mesh.ask_up(VERT, mesh.dim());
+  auto elem_quals = mesh->ask_qualities();
+  auto verts2elems = mesh->ask_up(VERT, mesh->dim());
   auto vert_old_quals = graph_reduce(verts2elems, elem_quals, 1, MIN);
-  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
+  auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto edge_old_quals = unmap(edge_verts2verts, vert_old_quals, 1);
   auto cand_old_quals = unmap(cands2edges, edge_old_quals, 2);
   auto keep_dirs = gt_each(cand_quals, cand_old_quals);

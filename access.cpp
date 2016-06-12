@@ -25,7 +25,7 @@ Reals vectors_2d_to_3d(Reals vecs2) {
 }
 
 Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
-  auto ev2v = mesh.ask_verts_of(dim);
+  auto ev2v = mesh->ask_verts_of(dim);
   auto degree = simplex_degrees[dim][VERT];
   CHECK(v2x.size() % ncomps == 0);
   auto na = a2e.size();

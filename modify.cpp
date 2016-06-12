@@ -7,7 +7,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh,
     LOs old_lows2new_lows) {
   auto low_dim = ent_dim - 1;
   auto down_degree = simplex_degrees[ent_dim][low_dim];
-  auto old_ents2old_lows = old_mesh.ask_down(ent_dim, low_dim);
+  auto old_ents2old_lows = old_mesh->ask_down(ent_dim, low_dim);
   auto old_ent_lows2old_lows = old_ents2old_lows.ab2b;
   auto same_ent_lows2old_lows = unmap(
       same_ents2old_ents, old_ent_lows2old_lows, down_degree);
@@ -15,8 +15,8 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh,
       same_ent_lows2old_lows, old_lows2new_lows);
   auto prods2new_lows = Adj();
   if (low_dim > VERT) {
-    auto new_low_verts2new_verts = new_mesh.ask_verts_of(low_dim);
-    auto new_verts2new_lows = new_mesh.ask_up(VERT, low_dim);
+    auto new_low_verts2new_verts = new_mesh->ask_verts_of(low_dim);
+    auto new_verts2new_lows = new_mesh->ask_up(VERT, low_dim);
     prods2new_lows = reflect_down(prod_verts2verts,
       new_low_verts2new_verts, new_verts2new_lows, ent_dim, low_dim);
   } else {
@@ -46,7 +46,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh,
   }
   auto new_ents2new_lows = Adj(
       LOs(new_ent_lows2new_lows), Read<I8>(new_ent_low_codes));
-  new_mesh.set_ents(ent_dim, new_ents2new_lows);
+  new_mesh->set_ents(ent_dim, new_ents2new_lows);
 }
 
 static void modify_owners(Mesh* old_mesh, Mesh* new_mesh,
@@ -60,7 +60,7 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh,
   auto same_own_ranks = same_owners.ranks;
   auto same_own_idxs = same_owners.idxs;
   auto nprods = prods2new_ents.size();
-  auto prod_own_ranks = Read<I32>(nprods, new_mesh.comm()->rank());
+  auto prod_own_ranks = Read<I32>(nprods, new_mesh->comm()->rank());
   auto prod_own_idxs = prods2new_ents;
   auto nsame_ents = same_ents2old_ents.size();
   auto nnew_ents = nsame_ents + nprods;
@@ -71,7 +71,7 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh,
   map_into(prod_own_ranks, prods2new_ents, new_own_ranks, 1);
   map_into(prod_own_idxs, prods2new_ents, new_own_idxs, 1);
   auto new_owners = Remotes(Read<I32>(new_own_ranks), LOs(new_own_idxs));
-  new_mesh.set_owners(ent_dim, new_owners);
+  new_mesh->set_owners(ent_dim, new_owners);
 }
 
 static LOs collect_same(Mesh* mesh,
@@ -79,10 +79,10 @@ static LOs collect_same(Mesh* mesh,
     Int key_dim,
     LOs keys2kds) {
   if (ent_dim < key_dim) {
-    auto nents = mesh.nents(ent_dim);
+    auto nents = mesh->nents(ent_dim);
     return LOs(nents, 0, 1);
   }
-  auto nkds = mesh.nents(key_dim);
+  auto nkds = mesh->nents(key_dim);
   auto kds_are_keys = mark_image(keys2kds, nkds);
   auto ents_are_adj = Read<I8>();
   if (ent_dim == key_dim) {
@@ -107,7 +107,7 @@ static LOs get_keys2reps(Mesh* mesh,
   if (key_dim == ent_dim) {
     keys2reps = keys2kds;
   } else if (ent_dim > key_dim) {
-    auto kds2ents = mesh.ask_up(key_dim, ent_dim);
+    auto kds2ents = mesh->ask_up(key_dim, ent_dim);
     auto kds2kd_ents = kds2ents.a2ab;
     auto kd_ents2ents = kds2ents.ab2b;
     Write<LO> keys2reps_w(nkeys);
@@ -137,7 +137,7 @@ static LOs get_keys2reps(Mesh* mesh,
        and the exch_sum later on.
        I can't think of a nicer way to determine new vertex globals
        which is independent of partitioning and ordering */
-    auto edge_verts2verts = mesh.ask_verts_of(EDGE);
+    auto edge_verts2verts = mesh->ask_verts_of(EDGE);
     Write<LO> keys2reps_w(nkeys);
     auto setup_reps = LAMBDA(LO key) {
       auto edge = keys2kds[key];
@@ -157,10 +157,10 @@ static LOs get_rep_counts(
     LOs same_ents2ents,
     bool are_global) {
   auto nkeys = keys2reps.size();
-  auto nents = mesh.nents(ent_dim);
+  auto nents = mesh->nents(ent_dim);
   CHECK(nkeys == keys2nprods.size());
   auto nsame_ents = same_ents2ents.size();
-  auto owned = mesh.owned(ent_dim);
+  auto owned = mesh->owned(ent_dim);
   CHECK(owned.size() == nents);
   Write<LO> rep_counts(nents, 0);
   auto mark_same = LAMBDA(LO same_ent) {
@@ -182,7 +182,7 @@ static LOs get_rep_counts(
 /* one more thing we need to for the pathological
    case of new vertices is to resolve the situation
    where multiple cavities share the same representative
-   vertex of the old mesh.
+   vertex of the old mesh->
    that vertex represents the sum of all adjacent cavities
    and has a single global number from which the new globals
    of all new cavity vertices are computed.
@@ -196,10 +196,10 @@ static LOs get_rep_counts(
    runs in ELEMENT_BASED mode */
 
 LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
-  auto nedges = mesh.nents(EDGE);
-  auto nverts = mesh.nents(VERT);
+  auto nedges = mesh->nents(EDGE);
+  auto nverts = mesh->nents(VERT);
   auto order_w = Write<LO>(nedges, -1);
-  auto verts2edges = mesh.ask_up(VERT, EDGE);
+  auto verts2edges = mesh->ask_up(VERT, EDGE);
   auto v2ve = verts2edges.a2ab;
   auto ve2e = verts2edges.ab2b;
   auto ve_codes = verts2edges.codes;
@@ -281,8 +281,8 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
   CHECK(nkeys + 1 == keys2prods.size());
   auto nprods = prods2new_ents.size();
   CHECK(nprods == keys2prods.last());
-  auto old_globals = old_mesh.ask_globals(ent_dim);
-  auto comm = old_mesh.comm();
+  auto old_globals = old_mesh->ask_globals(ent_dim);
+  auto comm = old_mesh->comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
   auto nlins = lins2old_ents.nroots();
@@ -302,17 +302,17 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
   Read<GO> prods2new_globals;
   auto edge2rep_order = LOs();
   if (ent_dim == VERT && key_dim == EDGE) {
-    edge2rep_order = old_mesh.get_array<LO>(EDGE, "edge2rep_order");
+    edge2rep_order = old_mesh->get_array<LO>(EDGE, "edge2rep_order");
   }
   find_new_offsets(old_ents2new_globals, same_ents2old_ents,
       keys2kds, keys2reps, keys2prods, edge2rep_order,
       same_ents2new_globals, prods2new_globals);
-  auto nnew_ents = new_mesh.nents(ent_dim);
+  auto nnew_ents = new_mesh->nents(ent_dim);
   CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
-  new_mesh.add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
+  new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
 }
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
@@ -340,23 +340,23 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
   if (ent_dim == VERT && key_dim == EDGE) {
     /* recompute this because the local version differs
        from the global one */
-    auto edges_are_keys = mark_image(keys2kds, old_mesh.nents(EDGE));
+    auto edges_are_keys = mark_image(keys2kds, old_mesh->nents(EDGE));
     edge2rep_order = get_edge2rep_order(old_mesh, edges_are_keys);
   }
   find_new_offsets(local_offsets, same_ents2old_ents,
       keys2kds, keys2reps, keys2prods, edge2rep_order,
       same_ents2new_ents, prods2new_ents);
-  auto nold_ents = old_mesh.nents(ent_dim);
+  auto nold_ents = old_mesh->nents(ent_dim);
   old_ents2new_ents = map_onto(same_ents2new_ents, same_ents2old_ents,
       nold_ents, -1, 1);
   if (ent_dim == VERT) {
-    new_mesh.set_verts(nnew_ents);
+    new_mesh->set_verts(nnew_ents);
   } else {
     modify_conn(old_mesh, new_mesh, ent_dim, prod_verts2verts,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents,
         old_lows2new_lows);
   }
-  if (old_mesh.comm()->size() > 1) {
+  if (old_mesh->comm()->size() > 1) {
     modify_owners(old_mesh, new_mesh, ent_dim, prods2new_ents,
         same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
   }
@@ -369,15 +369,15 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
 }
 
 void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
-  if (mesh.comm()->size() == 1) return;
-  auto kd_owners = mesh.ask_owners(key_dim);
+  if (mesh->comm()->size() == 1) return;
+  auto kd_owners = mesh->ask_owners(key_dim);
   auto nkeys = keys2kds.size();
-  auto elem_dim = mesh.dim();
-  auto kds2elems = mesh.ask_up(key_dim, elem_dim);
+  auto elem_dim = mesh->dim();
+  auto kds2elems = mesh->ask_up(key_dim, elem_dim);
   auto kds2kd_elems = kds2elems.a2ab;
   auto kd_elems2elems = kds2elems.ab2b;
-  auto elem_owners = mesh.ask_owners(elem_dim);
-  auto elems2owners = mesh.ask_dist(elem_dim);
+  auto elem_owners = mesh->ask_owners(elem_dim);
+  auto elems2owners = mesh->ask_dist(elem_dim);
   auto new_own_ranks = deep_copy(elem_owners.ranks);
   auto f = LAMBDA(LO key) {
     auto kd = keys2kds[key];
@@ -391,5 +391,5 @@ void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
   };
   parallel_for(nkeys, f);
   elem_owners = update_ownership(elems2owners, new_own_ranks);
-  mesh.set_owners(elem_dim, elem_owners);
+  mesh->set_owners(elem_dim, elem_owners);
 }

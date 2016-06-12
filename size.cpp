@@ -1,7 +1,7 @@
 template <typename EdgeLengths>
 Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
   EdgeLengths measurer(mesh);
-  auto ev2v = mesh.ask_verts_of(EDGE);
+  auto ev2v = mesh->ask_verts_of(EDGE);
   auto na = a2e.size();
   Write<Real> lengths(na);
   auto f = LAMBDA(LO a) {
@@ -14,19 +14,19 @@ Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
 }
 
 Reals measure_edges(Mesh* mesh, LOs a2e) {
-  if (mesh.dim() == 3) {
-    if (mesh.has_tag(VERT, "size")) {
+  if (mesh->dim() == 3) {
+    if (mesh->has_tag(VERT, "size")) {
       return measure_edges_tmpl<IsoEdgeLengths<3>>(mesh, a2e);
     }
-    if (mesh.has_tag(VERT, "metric")) {
+    if (mesh->has_tag(VERT, "metric")) {
       return measure_edges_tmpl<MetricEdgeLengths<3>>(mesh, a2e);
     }
   } else {
-    CHECK(mesh.dim() == 2);
-    if (mesh.has_tag(VERT, "size")) {
+    CHECK(mesh->dim() == 2);
+    if (mesh->has_tag(VERT, "size")) {
       return measure_edges_tmpl<IsoEdgeLengths<2>>(mesh, a2e);
     }
-    if (mesh.has_tag(VERT, "metric")) {
+    if (mesh->has_tag(VERT, "metric")) {
       return measure_edges_tmpl<MetricEdgeLengths<2>>(mesh, a2e);
     }
   }
@@ -34,5 +34,5 @@ Reals measure_edges(Mesh* mesh, LOs a2e) {
 }
 
 Reals measure_edges(Mesh* mesh) {
-  return measure_edges(mesh, LOs(mesh.nedges(), 0, 1));
+  return measure_edges(mesh, LOs(mesh->nedges(), 0, 1));
 }

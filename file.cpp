@@ -226,23 +226,23 @@ void write(std::ostream& stream, Mesh* mesh) {
   I8 is_compressed = false;
 #endif
   write_value(stream, is_compressed);
-  Int dim = mesh.dim();
+  Int dim = mesh->dim();
   write_value(stream, dim);
-  I32 comm_size = mesh.comm()->size();
+  I32 comm_size = mesh->comm()->size();
   write_value(stream, comm_size);
-  Int partition = mesh.partition();
+  Int partition = mesh->partition();
   write_value(stream, partition);
-  LO nverts = mesh.nverts();
+  LO nverts = mesh->nverts();
   write_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {
-    LOs down = mesh.ask_down(d, d - 1).ab2b;
+    LOs down = mesh->ask_down(d, d - 1).ab2b;
     write_array(stream, down);
   }
   for (Int d = 0; d <= dim; ++d) {
-    Int ntags = mesh.ntags(d);
+    Int ntags = mesh->ntags(d);
     write_value(stream, ntags);
     for (Int i = 0; i < ntags; ++i) {
-      auto tag = mesh.get_tag(d, i);
+      auto tag = mesh->get_tag(d, i);
       write(stream, tag->name());
       Int ncomps = tag->ncomps();
       write_value(stream, ncomps);
@@ -260,8 +260,8 @@ void write(std::ostream& stream, Mesh* mesh) {
         fail("unexpected tag type in binary write\n");
       }
     }
-    if (mesh.comm()->size() > 1) {
-      auto owners = mesh.ask_owners(dim);
+    if (mesh->comm()->size() > 1) {
+      auto owners = mesh->ask_owners(dim);
       write_array(stream, owners.ranks);
       write_array(stream, owners.idxs);
     }
@@ -284,19 +284,19 @@ void read(std::istream& stream, Mesh* mesh) {
   CHECK(version <= latest_version);
   Int dim;
   read_value(stream, dim);
-  mesh.set_dim(dim);
+  mesh->set_dim(dim);
   I32 comm_size;
   read_value(stream, comm_size);
-  CHECK(comm_size == mesh.comm()->size());
+  CHECK(comm_size == mesh->comm()->size());
   Int partition;
   read_value(stream, partition);
-  mesh.set_partition(static_cast<Partition>(partition));
+  mesh->set_partition(static_cast<Partition>(partition));
   LO nverts;
   read_value(stream, nverts);
   for (Int d = 1; d <= dim; ++d) {
     LOs down;
     read_array(stream, down, is_compressed);
-    mesh.set_ents(d, down);
+    mesh->set_ents(d, down);
   }
   for (Int d = 0; d <= dim; ++d) {
     Int ntags;
@@ -314,28 +314,28 @@ void read(std::istream& stream, Mesh* mesh) {
       if (type == OSH_I8) {
         Read<I8> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, xfer, array);
+        mesh->add_tag(d, name, ncomps, xfer, array);
       } else if (type == OSH_I32) {
         Read<I32> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, xfer, array);
+        mesh->add_tag(d, name, ncomps, xfer, array);
       } else if (type == OSH_I64) {
         Read<I64> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, xfer, array);
+        mesh->add_tag(d, name, ncomps, xfer, array);
       } else if (type == OSH_F64) {
         Read<Real> array;
         read_array(stream, array, is_compressed);
-        mesh.add_tag(d, name, ncomps, xfer, array);
+        mesh->add_tag(d, name, ncomps, xfer, array);
       } else {
         fail("unexpected tag type in binary write\n");
       }
     }
-    if (mesh.comm()->size() > 1) {
+    if (mesh->comm()->size() > 1) {
       Remotes owners;
       read_array(stream, owners.ranks, is_compressed);
       read_array(stream, owners.idxs, is_compressed);
-      mesh.set_owners(d, owners);
+      mesh->set_owners(d, owners);
     }
   }
 }

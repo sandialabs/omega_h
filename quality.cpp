@@ -1,7 +1,7 @@
 template <typename ElementQualities, Int dim>
 Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
   ElementQualities measurer(mesh);
-  auto ev2v = mesh.ask_verts_of(mesh.dim());
+  auto ev2v = mesh->ask_verts_of(mesh->dim());
   auto na = a2e.size();
   Write<Real> qualities(na);
   auto f = LAMBDA(LO a) {
@@ -14,15 +14,15 @@ Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
 }
 
 Reals measure_qualities(Mesh* mesh, LOs a2e) {
-  if (mesh.dim() == 3) {
-    if (mesh.has_tag(VERT, "metric")) {
+  if (mesh->dim() == 3) {
+    if (mesh->has_tag(VERT, "metric")) {
       return measure_qualities_tmpl<MetricElementQualities,3>(mesh, a2e);
     } else {
       return measure_qualities_tmpl<RealElementQualities,3>(mesh, a2e);
     }
   } else {
-    CHECK(mesh.dim() == 2);
-    if (mesh.has_tag(VERT, "metric")) {
+    CHECK(mesh->dim() == 2);
+    if (mesh->has_tag(VERT, "metric")) {
       return measure_qualities_tmpl<MetricElementQualities,2>(mesh, a2e);
     } else {
       return measure_qualities_tmpl<RealElementQualities,2>(mesh, a2e);
@@ -31,5 +31,5 @@ Reals measure_qualities(Mesh* mesh, LOs a2e) {
 }
 
 Reals measure_qualities(Mesh* mesh) {
-  return measure_qualities(mesh, LOs(mesh.nelems(), 0, 1));
+  return measure_qualities(mesh, LOs(mesh->nelems(), 0, 1));
 }

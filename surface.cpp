@@ -3,10 +3,10 @@ namespace surf {
 namespace {
 
 Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
-  CHECK(mesh.dim() == 3);
+  CHECK(mesh->dim() == 3);
   auto nsurf_tris = surf_tri2tri.size();
-  auto fv2v = mesh.ask_verts_of(TRI);
-  auto coords = mesh.coords();
+  auto fv2v = mesh->ask_verts_of(TRI);
+  auto coords = mesh->coords();
   Write<Real> normals(nsurf_tris * 3);
   auto lambda = LAMBDA(LO surf_tri) {
     auto f = surf_tri2tri[surf_tri];
@@ -21,10 +21,10 @@ Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
 }
 
 Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
-  CHECK(mesh.dim() == 2);
+  CHECK(mesh->dim() == 2);
   auto nsurf_edges = surf_edge2edge.size();
-  auto ev2v = mesh.ask_verts_of(EDGE);
-  auto coords = mesh.coords();
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto coords = mesh->coords();
   Write<Real> normals(nsurf_edges * 2);
   auto lambda = LAMBDA(LO surf_edge) {
     auto e = surf_edge2edge[surf_edge];
@@ -44,7 +44,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh,
     LOs surf_hinge2hinge,
     LOs side2surf_side) {
   auto nsurf_hinges = surf_hinge2hinge.size();
-  auto hinges2sides = mesh.ask_up(dim - 2, dim - 1);
+  auto hinges2sides = mesh->ask_up(dim - 2, dim - 1);
   auto hinges2hinge_sides = hinges2sides.a2ab;
   auto hinge_sides2sides = hinges2sides.ab2b;
   Write<Real> angles(nsurf_hinges);
@@ -70,7 +70,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh,
 } //end anonymous namespace
 
 Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
-  if (mesh.dim() == 3)
+  if (mesh->dim() == 3)
     return get_triangle_normals(mesh, surf_side2side);
   else
     return get_edge_normals(mesh, surf_side2side);
@@ -80,7 +80,7 @@ Reals get_hinge_angles(Mesh* mesh,
     Reals surf_side_normals,
     LOs surf_hinge2hinge,
     LOs side2surf_side) {
-  if (mesh.dim() == 3)
+  if (mesh->dim() == 3)
     return get_hinge_angles_tmpl<3>(mesh,
         surf_side_normals, surf_hinge2hinge, side2surf_side);
   else

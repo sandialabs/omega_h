@@ -5,7 +5,7 @@ static void refine_edges_to_pairs(
     LOs old_verts2new_verts,
     LOs& keys2pairs,
     LOs& pair_verts2verts) {
-  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
+  auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto nkeys = keys2edges.size();
   auto ndoms = nkeys;
   auto npairs = ndoms * 2;
@@ -53,9 +53,9 @@ void refine_domains_to_pairs(
     return;
   }
   auto nkeys = keys2edges.size();
-  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
-  auto dom_verts2verts = mesh.ask_verts_of(dim);
-  auto edges2doms = mesh.ask_up(EDGE, dim);
+  auto edge_verts2verts = mesh->ask_verts_of(EDGE);
+  auto dom_verts2verts = mesh->ask_verts_of(dim);
+  auto edges2doms = mesh->ask_up(EDGE, dim);
   auto edges2edge_doms = edges2doms.a2ab;
   auto edge_doms2doms = edges2doms.ab2b;
   auto edge_dom_codes = edges2doms.codes;
@@ -112,9 +112,9 @@ void refine_domains_to_cuts(
     LOs& cut_verts2verts) {
   CHECK(dim > EDGE);
   auto nkeys = keys2edges.size();
-  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
-  auto dom_verts2verts = mesh.ask_verts_of(dim);
-  auto edges2doms = mesh.ask_up(EDGE, dim);
+  auto edge_verts2verts = mesh->ask_verts_of(EDGE);
+  auto dom_verts2verts = mesh->ask_verts_of(dim);
+  auto edges2doms = mesh->ask_up(EDGE, dim);
   auto edges2edge_doms = edges2doms.a2ab;
   auto edge_doms2doms = edges2doms.ab2b;
   auto edge_dom_codes = edges2doms.codes;
@@ -208,7 +208,7 @@ void refine_products(
   refine_domains_to_pairs(mesh, ent_dim, keys2edges,
       keys2midverts, old_verts2new_verts,
       keys2pairs, pair_verts2verts);
-  if (ent_dim == mesh.dim()) {
+  if (ent_dim == mesh->dim()) {
     keys2prods = keys2pairs;
     prod_verts2verts = pair_verts2verts;
   } else {

@@ -11,9 +11,9 @@ struct MetricRefineQualities {
   Reals vert_metrics;
   Reals midpt_metrics;
   MetricRefineQualities(Mesh* mesh, LOs candidates):
-    vert_metrics(mesh.get_array<Real>(VERT, "metric")),
+    vert_metrics(mesh->get_array<Real>(VERT, "metric")),
     midpt_metrics(average_metric(mesh, EDGE, candidates,
-          mesh.get_array<Real>(VERT, "metric")))
+          mesh->get_array<Real>(VERT, "metric")))
   {}
   template <Int dim>
   INLINE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
@@ -29,13 +29,13 @@ struct MetricRefineQualities {
 
 template <typename Measure, Int dim>
 static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
-  auto ev2v = mesh.ask_verts_of(EDGE);
-  auto cv2v = mesh.ask_verts_of(dim);
-  auto e2c = mesh.ask_up(EDGE, dim);
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto cv2v = mesh->ask_verts_of(dim);
+  auto e2c = mesh->ask_up(EDGE, dim);
   auto e2ec = e2c.a2ab;
   auto ec2c = e2c.ab2b;
   auto ec_codes = e2c.codes;
-  auto coords = mesh.coords();
+  auto coords = mesh->coords();
   auto ncands = candidates.size();
   auto measure = Measure(mesh, candidates);
   Write<Real> quals_w(ncands);
@@ -78,12 +78,12 @@ static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
   };
   parallel_for(ncands, f);
   auto cand_quals = Reals(quals_w);
-  return mesh.sync_subset_array(EDGE, cand_quals, candidates, -1.0, 1);
+  return mesh->sync_subset_array(EDGE, cand_quals, candidates, -1.0, 1);
 }
 
 Reals refine_qualities(Mesh* mesh, LOs candidates) {
-  auto dim = mesh.dim();
-  auto have_metric = mesh.has_tag(VERT, "metric");
+  auto dim = mesh->dim();
+  auto have_metric = mesh->has_tag(VERT, "metric");
   if (have_metric) {
     if (dim == 3) {
       return refine_qualities_tmpl<MetricRefineQualities,3>(

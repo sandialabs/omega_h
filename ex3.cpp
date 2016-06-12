@@ -11,17 +11,17 @@ int main(int argc, char** argv) {
     build_box(mesh, 1, 1, 1, 1, 1, (dim == 3) ? 1 : 0);
     classify_by_angles(mesh, PI / 4);
     for (Int i = 0; i < 5; ++i) {
-      mesh.add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER,
-          Read<I8>(mesh.nedges(), 1));
+      mesh->add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER,
+          Read<I8>(mesh->nedges(), 1));
       refine(mesh, 0.3);
     }
   }
-  mesh.set_comm(world);
-  mesh.balance();
+  mesh->set_comm(world);
+  mesh->balance();
   vtk::FullWriter writer(mesh, "out");
   writer.write();
   for (Int i = 0; i < 2; ++i) {
-    coarsen_verts(mesh, Read<I8>(mesh.nverts(), 1), 0.3, false);
+    coarsen_verts(mesh, Read<I8>(mesh->nverts(), 1), 0.3, false);
     writer.write();
   }
 }

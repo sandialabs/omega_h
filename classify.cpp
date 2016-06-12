@@ -1,32 +1,32 @@
 void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
-  auto dim = mesh.dim();
-  auto ns = mesh.nents(dim - 1);
+  auto dim = mesh->dim();
+  auto ns = mesh->nents(dim - 1);
   Write<I8> class_dim(ns);
   auto f = LAMBDA(LO s) {
     class_dim[s] = static_cast<I8>(dim - side_is_exposed[s]);
   };
   parallel_for(ns, f);
-  mesh.add_tag<I8>(dim - 1, "class_dim", 1, OSH_INHERIT, class_dim);
+  mesh->add_tag<I8>(dim - 1, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
 void classify_hinges_by_sharpness(Mesh* mesh,
     Read<I8> hinge_is_exposed,
     Read<I8> hinge_is_sharp) {
-  auto dim = mesh.dim();
-  auto nh = mesh.nents(dim - 2);
+  auto dim = mesh->dim();
+  auto nh = mesh->nents(dim - 2);
   Write<I8> class_dim(nh);
   auto f = LAMBDA(LO h) {
     class_dim[h] = static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
   };
   parallel_for(nh, f);
-  mesh.add_tag<I8>(dim - 2, "class_dim", 1, OSH_INHERIT, class_dim);
+  mesh->add_tag<I8>(dim - 2, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
 void classify_vertices_by_sharp_edges(Mesh* mesh,
     Read<I8> vert_is_exposed,
     Read<I8> edge_is_sharp) {
-  auto nv = mesh.nents(VERT);
-  auto v2e = mesh.ask_up(VERT,EDGE);
+  auto nv = mesh->nents(VERT);
+  auto v2e = mesh->ask_up(VERT,EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   Write<I8> class_dim(nv);
@@ -47,16 +47,16 @@ void classify_vertices_by_sharp_edges(Mesh* mesh,
     }
   };
   parallel_for(nv, f);
-  mesh.add_tag<I8>(VERT, "class_dim", 1, OSH_INHERIT, class_dim);
+  mesh->add_tag<I8>(VERT, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
 void classify_elements(Mesh* mesh) {
-  mesh.add_tag<I8>(mesh.dim(), "class_dim", 1,
-      OSH_INHERIT, Read<I8>(mesh.nelems(), static_cast<I8>(mesh.dim())));
+  mesh->add_tag<I8>(mesh->dim(), "class_dim", 1,
+      OSH_INHERIT, Read<I8>(mesh->nelems(), static_cast<I8>(mesh->dim())));
 }
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle) {
-  auto dim = mesh.dim();
+  auto dim = mesh->dim();
   classify_elements(mesh);
   auto side_is_exposed = mark_exposed_sides(mesh);
   classify_sides_by_exposure(mesh, side_is_exposed);
@@ -65,11 +65,11 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
   auto surf_side_normals = surf::get_side_normals(mesh, surf_side2side);
   auto surf_hinge2hinge = collect_marked(hinge_is_exposed);
   auto nsurf_hinges = surf_hinge2hinge.size();
-  auto nsides = mesh.nents(dim - 1);
+  auto nsides = mesh->nents(dim - 1);
   auto side2surf_side = invert_injective_map(surf_side2side, nsides);
   auto surf_hinge_angles = surf::get_hinge_angles(mesh,
       surf_side_normals, surf_hinge2hinge, side2surf_side);
-  auto nhinges = mesh.nents(dim - 2);
+  auto nhinges = mesh->nents(dim - 2);
   Write<I8> hinge_is_sharp(nhinges, 0);
   auto f = LAMBDA(LO surf_hinge) {
     LO hinge = surf_hinge2hinge[surf_hinge];
@@ -85,14 +85,14 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
 }
 
 void project_classification(Mesh* mesh) {
-  for (Int d = mesh.dim() - 1; d >= VERT; --d) {
-    auto l2h = mesh.ask_up(d, d + 1);
+  for (Int d = mesh->dim() - 1; d >= VERT; --d) {
+    auto l2h = mesh->ask_up(d, d + 1);
     auto l2lh = l2h.a2ab;
     auto lh2h = l2h.ab2b;
-    auto high_class_dim = mesh.get_array<I8>(d + 1, "class_dim");
-    auto high_class_id = mesh.get_array<LO>(d + 1, "class_id");
-    Write<I8> class_dim = deep_copy<I8>(mesh.get_array<I8>(d, "class_dim"));
-    Write<LO> class_id = deep_copy<LO>(mesh.get_array<LO>(d, "class_id"));
+    auto high_class_dim = mesh->get_array<I8>(d + 1, "class_dim");
+    auto high_class_id = mesh->get_array<LO>(d + 1, "class_id");
+    Write<I8> class_dim = deep_copy<I8>(mesh->get_array<I8>(d, "class_dim"));
+    Write<LO> class_id = deep_copy<LO>(mesh->get_array<LO>(d, "class_id"));
     auto f = LAMBDA(LO l) {
       if (class_dim[l] >= 0)
         return;
@@ -109,8 +109,8 @@ void project_classification(Mesh* mesh) {
       class_dim[l] = static_cast<I8>(best_dim);
       class_id[l] = best_id;
     };
-    parallel_for(mesh.nents(d), f);
-    mesh.set_tag<I8>(d, "class_dim", class_dim);
-    mesh.set_tag<LO>(d, "class_id", class_id);
+    parallel_for(mesh->nents(d), f);
+    mesh->set_tag<I8>(d, "class_dim", class_dim);
+    mesh->set_tag<LO>(d, "class_id", class_id);
   }
 }
