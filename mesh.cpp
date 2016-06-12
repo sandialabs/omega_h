@@ -438,6 +438,16 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
   return ask_dist(ent_dim).invert().exch(a, width);
 }
 
+template <typename T>
+Read<T> Mesh::sync_subset_array(Int ent_dim,
+    Read<T> a_data, LOs a2e, T default_val, Int width) {
+  if (!could_be_shared(ent_dim)) return a_data;
+  auto e_data = map_onto(a_data, a2e, nents(ent_dim),
+      default_val, width);
+  e_data = sync_array(ent_dim, e_data, width);
+  return unmap(a2e, e_data, width);
+}
+
 bool Mesh::operator==(Mesh& other) {
   return compare_meshes(*this, other, 0.0, 0.0, false, false);
 }
@@ -467,7 +477,9 @@ template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
     Xfer xfer, Read<T> array); \
 template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array); \
-template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);
+template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
+template Read<T> Mesh::sync_subset_array(Int ent_dim, \
+    Read<T> a_data, LOs a2e, T default_val, Int width);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

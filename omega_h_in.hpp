@@ -540,6 +540,9 @@ class Mesh {
     Graph ask_graph(Int from, Int to);
     template <typename T>
     Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
+    template <typename T>
+    Read<T> sync_subset_array(Int ent_dim,
+        Read<T> a_data, LOs a2e, T default_val, Int width);
     bool operator==(Mesh& other);
     Real min_quality();
     bool could_be_shared(Int ent_dim);

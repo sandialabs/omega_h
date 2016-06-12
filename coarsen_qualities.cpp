@@ -67,9 +67,7 @@ Reals coarsen_qualities(Mesh& mesh,
           mesh, cands2edges, cand_codes);
     }
   }
-  auto edge_quals = map_onto(cand_quals, cands2edges, mesh.nedges(), -1.0, 2);
-  edge_quals = mesh.sync_array(EDGE, edge_quals, 2);
-  return unmap(cands2edges, edge_quals, 2);
+  return mesh.sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 2);
 }
 
 void choose_vertex_collapses(Mesh& mesh,
