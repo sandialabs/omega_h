@@ -48,7 +48,7 @@ template <Int dim>
 struct IsoEdgeLengths {
   Reals coords;
   Reals isos;
-  IsoEdgeLengths(Mesh const& mesh):
+  IsoEdgeLengths(Mesh const* mesh):
     coords(mesh->coords()),
     isos(mesh->get_array<Real>(VERT, "size"))
   {}
@@ -61,7 +61,7 @@ template <Int dim>
 struct MetricEdgeLengths {
   Reals coords;
   Reals metrics;
-  MetricEdgeLengths(Mesh const& mesh):
+  MetricEdgeLengths(Mesh const* mesh):
     coords(mesh->coords()),
     metrics(mesh->get_array<Real>(VERT, "metric"))
   {}

@@ -190,7 +190,7 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream)
   stream << ">\n";
 }
 
-void write_piece_start_tag(std::ostream& stream, Mesh const& mesh, Int cell_dim)
+void write_piece_start_tag(std::ostream& stream, Mesh const* mesh, Int cell_dim)
 {
   stream << "<Piece NumberOfPoints=\"" << mesh->nverts() << "\"";
   stream << " NumberOfCells=\"" << mesh->nents(cell_dim) << "\">\n";
