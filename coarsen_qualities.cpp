@@ -1,5 +1,5 @@
 template <typename Measure, Int dim>
-static Reals coarsen_qualities_tmpl(Mesh& mesh,
+static Reals coarsen_qualities_tmpl(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
   Measure measure(mesh);
@@ -44,7 +44,7 @@ static Reals coarsen_qualities_tmpl(Mesh& mesh,
   return qualities;
 }
 
-Reals coarsen_qualities(Mesh& mesh,
+Reals coarsen_qualities(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
   CHECK(mesh.partition() == GHOSTED);
@@ -70,7 +70,7 @@ Reals coarsen_qualities(Mesh& mesh,
   return mesh.sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 2);
 }
 
-void choose_vertex_collapses(Mesh& mesh,
+void choose_vertex_collapses(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_edge_codes,
     Reals cand_edge_quals,
@@ -133,7 +133,7 @@ Read<I8> filter_coarsen_min_qual(Read<I8> cand_codes,
   return filter_coarsen_dirs(cand_codes, keep_dirs);
 }
 
-Read<I8> filter_coarsen_improve(Mesh& mesh,
+Read<I8> filter_coarsen_improve(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes,
     Reals cand_quals) {

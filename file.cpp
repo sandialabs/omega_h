@@ -217,7 +217,7 @@ void read(std::istream& stream, std::string& val)
   stream.read(&val[0], len);
 }
 
-void write(std::ostream& stream, Mesh& mesh) {
+void write(std::ostream& stream, Mesh* mesh) {
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
   write_value(stream, latest_version);
 #ifdef OSH_USE_ZLIB
@@ -268,7 +268,7 @@ void write(std::ostream& stream, Mesh& mesh) {
   }
 }
 
-void read(std::istream& stream, Mesh& mesh) {
+void read(std::istream& stream, Mesh* mesh) {
   unsigned char magic_in[2];
   stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
   CHECK(magic_in[0] == magic[0]);

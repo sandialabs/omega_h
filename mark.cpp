@@ -1,4 +1,4 @@
-Read<I8> mark_exposed_sides(Mesh& mesh) {
+Read<I8> mark_exposed_sides(Mesh* mesh) {
   auto ns = mesh.nents(mesh.dim() - 1);
   auto s2sc = mesh.ask_up(mesh.dim() - 1, mesh.dim()).a2ab;
   Write<I8> exposed(ns);
@@ -9,7 +9,7 @@ Read<I8> mark_exposed_sides(Mesh& mesh) {
   return exposed;
 }
 
-Read<I8> mark_down(Mesh& mesh, Int high_dim, Int low_dim,
+Read<I8> mark_down(Mesh* mesh, Int high_dim, Int low_dim,
     Read<I8> high_marked) {
   auto l2h = mesh.ask_up(low_dim, high_dim);
   auto l2lh = l2h.a2ab;
@@ -25,7 +25,7 @@ Read<I8> mark_down(Mesh& mesh, Int high_dim, Int low_dim,
   return mesh.sync_array(low_dim, Read<I8>(out), 1);
 }
 
-Read<I8> mark_up(Mesh& mesh, Int low_dim, Int high_dim,
+Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim,
     Read<I8> low_marked) {
   auto l2h = mesh.ask_down(high_dim, low_dim);
   auto deg = simplex_degrees[high_dim][low_dim];
@@ -44,25 +44,25 @@ Read<I8> mark_up(Mesh& mesh, Int low_dim, Int high_dim,
   return out;
 }
 
-Read<I8> mark_by_class_dim(Mesh& mesh, Int ent_dim, Int class_dim) {
+Read<I8> mark_by_class_dim(Mesh* mesh, Int ent_dim, Int class_dim) {
   auto e2class_dim = mesh.get_array<I8>(ent_dim, "class_dim");
   return each_eq_to(e2class_dim, static_cast<I8>(class_dim));
 }
 
-Read<I8> mark_by_class(Mesh& mesh, Int ent_dim, Int class_dim, I32 class_id) {
+Read<I8> mark_by_class(Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id) {
   auto e2class_id = mesh.get_array<I32>(ent_dim, "class_id");
   auto id_marks = each_eq_to(e2class_id, class_id);
   return land_each(id_marks, mark_by_class_dim(mesh, ent_dim, class_dim));
 }
 
-Read<I8> mark_class_closure(Mesh& mesh, Int ent_dim, Int class_dim, I32 class_id) {
+Read<I8> mark_class_closure(Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id) {
   CHECK(ent_dim <= class_dim);
   auto eq_marks = mark_by_class(mesh, class_dim, class_dim, class_id);
   if (ent_dim == class_dim) return eq_marks;
   return mark_down(mesh, class_dim, ent_dim, eq_marks);
 }
 
-Read<I8> mark_class_closures(Mesh& mesh, Int ent_dim,
+Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids) {
   CHECK(class_dims.size() == class_ids.size());
   auto marks = Read<I8>(mesh.nents(ent_dim), 0);

@@ -26,7 +26,7 @@ static bool compare_copy_data(
   return comm->reduce_and(local_result);
 }
 
-bool compare_meshes(Mesh& a, Mesh& b, Real tol, Real floor,
+bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     bool accept_superset, bool verbose) {
   CHECK(a.comm()->size() == b.comm()->size());
   CHECK(a.comm()->rank() == b.comm()->rank());

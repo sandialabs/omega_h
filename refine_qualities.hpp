@@ -1,1 +1,1 @@
-Reals refine_qualities(Mesh& mesh, LOs candidates);
+Reals refine_qualities(Mesh* mesh, LOs candidates);

@@ -196,7 +196,7 @@ void write_piece_start_tag(std::ostream& stream, Mesh const& mesh, Int cell_dim)
   stream << " NumberOfCells=\"" << mesh.nents(cell_dim) << "\">\n";
 }
 
-void write_connectivity(std::ostream& stream, Mesh& mesh, Int cell_dim)
+void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim)
 {
   LOs ev2v = mesh.ask_verts_of(cell_dim);
   LOs ends(mesh.nents(cell_dim), simplex_degrees[cell_dim][VERT],
@@ -207,11 +207,11 @@ void write_connectivity(std::ostream& stream, Mesh& mesh, Int cell_dim)
   write_array(stream, "types", 1, types);
 }
 
-void write_locals(std::ostream& stream, Mesh& mesh, Int ent_dim) {
+void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim) {
   write_array(stream, "local", 1, Read<LO>(mesh.nents(ent_dim), 0, 1));
 }
 
-void write_owners(std::ostream& stream, Mesh& mesh, Int ent_dim) {
+void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
   if (mesh.comm()->size() == 1) return;
   write_array(stream, "owner", 1, mesh.ask_owners(ent_dim).ranks);
 }
@@ -269,7 +269,7 @@ std::string get_pvd_path(std::string const& root_path) {
 
 }//end anonymous namespace
 
-void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
+void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
@@ -300,13 +300,13 @@ void write_vtu(std::ostream& stream, Mesh& mesh, Int cell_dim) {
   stream << "</VTKFile>\n";
 }
 
-void write_vtu(std::string const& filename, Mesh& mesh, Int cell_dim) {
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
   std::ofstream file(filename.c_str());
   CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim);
 }
 
-void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim,
+void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     std::string const& piecepath) {
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
@@ -338,14 +338,14 @@ void write_pvtu(std::ostream& stream, Mesh& mesh, Int cell_dim,
   stream << "</VTKFile>\n";
 }
 
-void write_pvtu(std::string const& filename, Mesh& mesh, Int cell_dim,
+void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     std::string const& piecepath) {
   std::ofstream file(filename.c_str());
   CHECK(file.is_open());
   write_pvtu(file, mesh, cell_dim, piecepath);
 }
 
-void write_parallel(std::string const& path, Mesh& mesh, Int cell_dim) {
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
   auto rank = mesh.comm()->rank();
   if (rank == 0) {
     safe_mkdir(path.c_str());
@@ -380,7 +380,7 @@ void write_pvd(std::string const& root_path, std::vector<Real> const& times) {
   file << "</VTKFile>\n";
 }
 
-Writer::Writer(Mesh& mesh, std::string const& root_path, Int cell_dim):
+Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim):
   mesh_(mesh),
   root_path_(root_path),
   cell_dim_(cell_dim) {
@@ -413,7 +413,7 @@ void Writer::write() {
   this->write(Real(times_.size()));
 }
 
-FullWriter::FullWriter(Mesh& mesh, std::string const& root_path) {
+FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
   auto comm = mesh.comm();
   auto rank = comm->rank();
   if (rank == 0) safe_mkdir(root_path.c_str());

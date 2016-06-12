@@ -1,4 +1,4 @@
-Reals solve_laplacian(Mesh& mesh, Reals initial, Int width, Real tol) {
+Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
   CHECK(mesh.owners_have_all_upward(VERT));
   CHECK(initial.size() == mesh.nverts() * width);
   auto comm = mesh.comm();

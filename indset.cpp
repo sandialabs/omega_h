@@ -45,7 +45,7 @@ static Read<I8> local_iteration(
 }
 
 static Read<I8> iteration(
-    Mesh& mesh, Int dim,
+    Mesh* mesh, Int dim,
     LOs xadj, LOs adj,
     Reals quality,
     Read<GO> global,
@@ -56,7 +56,7 @@ static Read<I8> iteration(
 }
 
 static Read<I8> find(
-    Mesh& mesh, Int dim,
+    Mesh* mesh, Int dim,
     LOs xadj, LOs adj,
     Reals quality,
     Read<GO> global,
@@ -81,7 +81,7 @@ static Read<I8> find(
 }
 
 Read<I8> find_indset(
-    Mesh& mesh,
+    Mesh* mesh,
     Int ent_dim,
     Reals quality,
     Read<I8> candidates) {

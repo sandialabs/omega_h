@@ -1,27 +1,27 @@
-static Read<I8> get_edge_codes(Mesh& mesh) {
+static Read<I8> get_edge_codes(Mesh* mesh) {
   auto edge_cand_codes = mesh.get_array<I8>(EDGE, "collapse_code");
   mesh.remove_tag(EDGE, "collapse_code");
   return edge_cand_codes;
 }
 
-static void put_edge_codes(Mesh& mesh, LOs cands2edges, Read<I8> cand_codes) {
+static void put_edge_codes(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   auto edge_codes = map_onto(cand_codes, cands2edges, mesh.nedges(),
       I8(DONT_COLLAPSE), 1);
   mesh.add_tag(EDGE, "collapse_code", 1, OSH_DONT_TRANSFER, edge_codes);
 }
 
-static Reals get_edge_quals(Mesh& mesh) {
+static Reals get_edge_quals(Mesh* mesh) {
   auto edge_cand_quals = mesh.get_array<Real>(EDGE, "collapse_qualities");
   mesh.remove_tag(EDGE, "collapse_qualities");
   return edge_cand_quals;
 }
 
-static void put_edge_quals(Mesh& mesh, LOs cands2edges, Reals cand_quals) {
+static void put_edge_quals(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh.nedges(), -1.0, 2);
   mesh.add_tag(EDGE, "collapse_qualities", 2, OSH_DONT_TRANSFER, edge_quals);
 }
 
-static bool coarsen_element_based1(Mesh& mesh) {
+static bool coarsen_element_based1(Mesh* mesh) {
   auto comm = mesh.comm();
   auto edge_cand_codes = get_edge_codes(mesh);
   auto edges_are_cands = each_neq_to(edge_cand_codes, I8(DONT_COLLAPSE));
@@ -46,7 +46,7 @@ static void filter_coarsen_candidates(
     cand_quals = unmap(new2old, cand_quals, 2);
 }
 
-static bool coarsen_ghosted(Mesh& mesh, Real min_qual, bool improve) {
+static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   auto comm = mesh.comm();
   auto edge_cand_codes = get_edge_codes(mesh);
   auto edges_are_cands = each_neq_to(edge_cand_codes, I8(DONT_COLLAPSE));
@@ -81,7 +81,7 @@ static bool coarsen_ghosted(Mesh& mesh, Real min_qual, bool improve) {
   return true;
 }
 
-static void coarsen_element_based2(Mesh& mesh) {
+static void coarsen_element_based2(Mesh* mesh) {
   auto verts_are_keys = mesh.get_array<I8>(VERT, "key");
   auto vert_quals = mesh.get_array<Real>(VERT, "collapse_quality");
   auto edge_codes = get_edge_codes(mesh);
@@ -130,7 +130,7 @@ static void coarsen_element_based2(Mesh& mesh) {
   mesh = new_mesh;
 }
 
-bool coarsen(Mesh& mesh, Real min_qual, bool improve) {
+bool coarsen(Mesh* mesh, Real min_qual, bool improve) {
   if (!coarsen_element_based1(mesh)) return false;
   mesh.set_partition(GHOSTED);
   if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
@@ -139,7 +139,7 @@ bool coarsen(Mesh& mesh, Real min_qual, bool improve) {
   return true;
 }
 
-bool coarsen_verts(Mesh& mesh, Read<I8> vert_marks,
+bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks,
     Real min_qual, bool improve) {
   auto ev2v = mesh.ask_verts_of(EDGE);
   Write<I8> edge_codes_w(mesh.nedges(), DONT_COLLAPSE);

@@ -1,4 +1,4 @@
-void unmap_tags(Mesh& old_mesh, Mesh& new_mesh,
+void unmap_tags(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim, LOs new_ents2old_ents) {
   for (Int i = 0; i < old_mesh.ntags(ent_dim); ++i) {
     auto tag = old_mesh.get_tag(ent_dim, i);
@@ -18,7 +18,7 @@ void unmap_tags(Mesh& old_mesh, Mesh& new_mesh,
   }
 }
 
-void unmap_down(Mesh& old_mesh, Mesh& new_mesh,
+void unmap_down(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim, LOs new_ents2old_ents,
     LOs old_lows2new_lows) {
   auto deg = simplex_degrees[ent_dim][ent_dim - 1];
@@ -35,7 +35,7 @@ void unmap_down(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_ents(ent_dim, new_ents2new_lows);
 }
 
-Remotes unmap_owners(Mesh& old_mesh,
+Remotes unmap_owners(Mesh* old_mesh,
     Int ent_dim, LOs new_ents2old_ents, LOs old_ents2new_ents) {
   auto old_copies2old_owners = old_mesh.ask_dist(ent_dim);
   auto old_owners2old_copies = old_copies2old_owners.invert();
@@ -47,7 +47,7 @@ Remotes unmap_owners(Mesh& old_mesh,
   return Remotes(new_own_ranks, new_ents2new_owners);
 }
 
-void unmap_owners(Mesh& old_mesh, Mesh& new_mesh,
+void unmap_owners(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim, LOs new_ents2old_ents, LOs old_ents2new_ents) {
   if (old_mesh.comm()->size() == 1) return;
   auto owners = unmap_owners(old_mesh, ent_dim,
@@ -55,7 +55,7 @@ void unmap_owners(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_owners(ent_dim, owners);
 }
 
-void unmap_mesh(Mesh& old_mesh, Mesh& new_mesh,
+void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh,
     LOs new_ents2old_ents[]) {
   new_mesh.set_comm(old_mesh.comm());
   new_mesh.set_dim(old_mesh.dim());

@@ -1,4 +1,4 @@
-bool warp_to_limit(Mesh& mesh, Real min_qual) {
+bool warp_to_limit(Mesh* mesh, Real min_qual) {
   if (!mesh.has_tag(VERT, "warp")) return false;
   CHECK(mesh.min_quality() >= min_qual);
   auto coords = mesh.coords();

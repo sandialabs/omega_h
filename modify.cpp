@@ -1,4 +1,4 @@
-static void modify_conn(Mesh& old_mesh, Mesh& new_mesh,
+static void modify_conn(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim,
     LOs prod_verts2verts,
     LOs prods2new_ents,
@@ -49,7 +49,7 @@ static void modify_conn(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_ents(ent_dim, new_ents2new_lows);
 }
 
-static void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
+static void modify_owners(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim,
     LOs prods2new_ents,
     LOs same_ents2old_ents,
@@ -74,7 +74,7 @@ static void modify_owners(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.set_owners(ent_dim, new_owners);
 }
 
-static LOs collect_same(Mesh& mesh,
+static LOs collect_same(Mesh* mesh,
     Int ent_dim,
     Int key_dim,
     LOs keys2kds) {
@@ -95,7 +95,7 @@ static LOs collect_same(Mesh& mesh,
   return collect_marked(ents_not_adj);
 }
 
-static LOs get_keys2reps(Mesh& mesh,
+static LOs get_keys2reps(Mesh* mesh,
     Int ent_dim,
     Int key_dim,
     LOs keys2kds,
@@ -150,7 +150,7 @@ static LOs get_keys2reps(Mesh& mesh,
 }
 
 static LOs get_rep_counts(
-    Mesh& mesh,
+    Mesh* mesh,
     Int ent_dim,
     LOs keys2reps,
     LOs keys2nprods,
@@ -195,7 +195,7 @@ static LOs get_rep_counts(
    mode so it can be used later by find_new_offsets, which
    runs in ELEMENT_BASED mode */
 
-LOs get_edge2rep_order(Mesh& mesh, Read<I8> edges_are_keys) {
+LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
   auto nedges = mesh.nents(EDGE);
   auto nverts = mesh.nents(VERT);
   auto order_w = Write<LO>(nedges, -1);
@@ -264,7 +264,7 @@ static void find_new_offsets(
   prods2new_offsets = prods2new_offsets_w;
 }
 
-static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
+static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim,
     Int key_dim,
     LOs keys2kds,
@@ -315,7 +315,7 @@ static void modify_globals(Mesh& old_mesh, Mesh& new_mesh,
   new_mesh.add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
 }
 
-void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
+void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim, Int key_dim,
     LOs keys2kds,
     LOs keys2prods,
@@ -368,7 +368,7 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
       keys2reps, global_rep_counts);
 }
 
-void set_owners_by_indset(Mesh& mesh, Int key_dim, LOs keys2kds) {
+void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
   if (mesh.comm()->size() == 1) return;
   auto kd_owners = mesh.ask_owners(key_dim);
   auto nkeys = keys2kds.size();

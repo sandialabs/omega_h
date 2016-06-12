@@ -2,7 +2,7 @@
 
 using namespace osh;
 
-static void serial_test(Mesh& mesh) {
+static void serial_test(Mesh* mesh) {
   static Int const nx = 5;
   static Int const dim = 3;
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);

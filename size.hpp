@@ -70,5 +70,5 @@ struct MetricEdgeLengths {
   }
 };
 
-Reals measure_edges(Mesh& mesh, LOs a2e);
-Reals measure_edges(Mesh& mesh);
+Reals measure_edges(Mesh* mesh, LOs a2e);
+Reals measure_edges(Mesh* mesh);

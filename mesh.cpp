@@ -448,7 +448,7 @@ Read<T> Mesh::sync_subset_array(Int ent_dim,
   return unmap(a2e, e_data, width);
 }
 
-bool Mesh::operator==(Mesh& other) {
+bool Mesh::operator==(Mesh* other) {
   return compare_meshes(*this, other, 0.0, 0.0, false, false);
 }
 

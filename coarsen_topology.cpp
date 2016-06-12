@@ -8,7 +8,7 @@
    edges were equally good, the first upward
    adjacent will be chosen */
 
-void find_rails(Mesh& mesh,
+void find_rails(Mesh* mesh,
     LOs keys2verts,
     Reals vert_quals,
     Read<I8> edge_cand_codes,
@@ -44,7 +44,7 @@ void find_rails(Mesh& mesh,
   rail_col_dirs = rail_col_dirs_w;
 }
 
-LOs get_verts_onto(Mesh& mesh,
+LOs get_verts_onto(Mesh* mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs) {
   auto nkeys = rails2edges.size();
@@ -59,7 +59,7 @@ LOs get_verts_onto(Mesh& mesh,
   return keys2verts_onto_w;
 }
 
-static void mark_dead_ents(Mesh& mesh,
+static void mark_dead_ents(Mesh* mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs,
     Int cell_dim,
@@ -92,7 +92,7 @@ static void mark_dead_ents(Mesh& mesh,
   parallel_for(nrails, f);
 }
 
-std::array<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
+std::array<Read<I8>, 4> mark_dead_ents(Mesh* mesh,
     LOs rails2edges,
     Read<I8> rail_col_dirs) {
   std::array<Write<I8>, 4> writes;
@@ -108,7 +108,7 @@ std::array<Read<I8>, 4> mark_dead_ents(Mesh& mesh,
   return reads;
 }
 
-Adj find_coarsen_domains(Mesh& mesh,
+Adj find_coarsen_domains(Mesh* mesh,
     LOs keys2verts,
     Int ent_dim,
     Read<I8> ents_are_dead) {
@@ -129,7 +129,7 @@ Adj find_coarsen_domains(Mesh& mesh,
   return Adj(k2lke, lke2e, lke_codes);
 }
 
-LOs coarsen_topology(Mesh& mesh,
+LOs coarsen_topology(Mesh* mesh,
     LOs keys2verts_onto,
     Int dom_dim,
     Adj keys2doms,

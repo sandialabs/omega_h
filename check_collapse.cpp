@@ -1,4 +1,4 @@
-Read<I8> check_collapse_class(Mesh& mesh,
+Read<I8> check_collapse_class(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
   auto ncands = cands2edges.size();
@@ -59,7 +59,7 @@ vertex ~~~~~~~~>  *
 
 */
 
-static Read<I8> check_collapse_exposure(Mesh& mesh,
+static Read<I8> check_collapse_exposure(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes,
     Int cell_dim) {
@@ -100,7 +100,7 @@ static Read<I8> check_collapse_exposure(Mesh& mesh,
   return cand_codes_w;
 }
 
-Read<I8> check_collapse_exposure(Mesh& mesh,
+Read<I8> check_collapse_exposure(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
   CHECK(mesh.partition() == GHOSTED);

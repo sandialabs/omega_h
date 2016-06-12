@@ -1,5 +1,5 @@
 static void refine_edges_to_pairs(
-    Mesh& mesh,
+    Mesh* mesh,
     LOs keys2edges,
     LOs keys2midverts,
     LOs old_verts2new_verts,
@@ -39,7 +39,7 @@ static void refine_edges_to_pairs(
  */
 
 void refine_domains_to_pairs(
-    Mesh& mesh,
+    Mesh* mesh,
     Int dim,
     LOs keys2edges,
     LOs keys2midverts,
@@ -103,7 +103,7 @@ void refine_domains_to_pairs(
 }
 
 void refine_domains_to_cuts(
-    Mesh& mesh,
+    Mesh* mesh,
     Int dim,
     LOs keys2edges,
     LOs keys2midverts,
@@ -196,7 +196,7 @@ void combine_pairs_and_cuts(
 }
 
 void refine_products(
-    Mesh& mesh,
+    Mesh* mesh,
     Int ent_dim,
     LOs keys2edges,
     LOs keys2midverts,

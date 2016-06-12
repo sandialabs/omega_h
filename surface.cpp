@@ -2,7 +2,7 @@ namespace surf {
 
 namespace {
 
-Reals get_triangle_normals(Mesh& mesh, LOs surf_tri2tri) {
+Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
   CHECK(mesh.dim() == 3);
   auto nsurf_tris = surf_tri2tri.size();
   auto fv2v = mesh.ask_verts_of(TRI);
@@ -20,7 +20,7 @@ Reals get_triangle_normals(Mesh& mesh, LOs surf_tri2tri) {
   return normals;
 }
 
-Reals get_edge_normals(Mesh& mesh, LOs surf_edge2edge) {
+Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
   CHECK(mesh.dim() == 2);
   auto nsurf_edges = surf_edge2edge.size();
   auto ev2v = mesh.ask_verts_of(EDGE);
@@ -39,7 +39,7 @@ Reals get_edge_normals(Mesh& mesh, LOs surf_edge2edge) {
 }
 
 template <Int dim>
-Reals get_hinge_angles_tmpl(Mesh& mesh,
+Reals get_hinge_angles_tmpl(Mesh* mesh,
     Reals surf_side_normals,
     LOs surf_hinge2hinge,
     LOs side2surf_side) {
@@ -69,14 +69,14 @@ Reals get_hinge_angles_tmpl(Mesh& mesh,
 
 } //end anonymous namespace
 
-Reals get_side_normals(Mesh& mesh, LOs surf_side2side) {
+Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
   if (mesh.dim() == 3)
     return get_triangle_normals(mesh, surf_side2side);
   else
     return get_edge_normals(mesh, surf_side2side);
 }
 
-Reals get_hinge_angles(Mesh& mesh,
+Reals get_hinge_angles(Mesh* mesh,
     Reals surf_side_normals,
     LOs surf_hinge2hinge,
     LOs side2surf_side) {

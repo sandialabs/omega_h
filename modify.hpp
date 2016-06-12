@@ -1,6 +1,6 @@
-LOs get_edge2rep_order(Mesh& mesh, Read<I8> edges_are_keys);
+LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys);
 
-void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
+void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
     Int ent_dim, Int key_dim,
     LOs keys2kds,
     LOs keys2prods,
@@ -11,4 +11,4 @@ void modify_ents(Mesh& old_mesh, Mesh& new_mesh,
     LOs& same_ents2new_ents,
     LOs& old_ents2new_ents);
 
-void set_owners_by_indset(Mesh& mesh, Int key_dim, LOs keys2kds);
+void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds);

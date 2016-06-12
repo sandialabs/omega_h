@@ -32,7 +32,7 @@ void seek_line(std::istream& stream, std::string const& want) {
 
 } //end anonymous namespace
 
-void read(std::istream& stream, Mesh& mesh) {
+void read(std::istream& stream, Mesh* mesh) {
   seek_line(stream, "$MeshFormat");
   Real format;
   Int file_type;
@@ -141,7 +141,7 @@ void read(std::istream& stream, Mesh& mesh) {
   project_classification(mesh);
 }
 
-void read(std::string const& filename, Mesh& mesh) {
+void read(std::string const& filename, Mesh* mesh) {
   std::ifstream file(filename.c_str());
   CHECK(file.is_open());
   read(file, mesh);

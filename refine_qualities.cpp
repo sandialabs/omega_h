@@ -1,5 +1,5 @@
 struct RealRefineQualities {
-  RealRefineQualities(Mesh&, LOs) {}
+  RealRefineQualities(Mesh*, LOs) {}
   template <Int dim>
   INLINE Real measure(Int, Few<Vector<dim>, dim + 1> p,
       Few<LO, dim>) const {
@@ -10,7 +10,7 @@ struct RealRefineQualities {
 struct MetricRefineQualities {
   Reals vert_metrics;
   Reals midpt_metrics;
-  MetricRefineQualities(Mesh& mesh, LOs candidates):
+  MetricRefineQualities(Mesh* mesh, LOs candidates):
     vert_metrics(mesh.get_array<Real>(VERT, "metric")),
     midpt_metrics(average_metric(mesh, EDGE, candidates,
           mesh.get_array<Real>(VERT, "metric")))
@@ -28,7 +28,7 @@ struct MetricRefineQualities {
 };
 
 template <typename Measure, Int dim>
-static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
+static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
   auto ev2v = mesh.ask_verts_of(EDGE);
   auto cv2v = mesh.ask_verts_of(dim);
   auto e2c = mesh.ask_up(EDGE, dim);
@@ -81,7 +81,7 @@ static Reals refine_qualities_tmpl(Mesh& mesh, LOs candidates) {
   return mesh.sync_subset_array(EDGE, cand_quals, candidates, -1.0, 1);
 }
 
-Reals refine_qualities(Mesh& mesh, LOs candidates) {
+Reals refine_qualities(Mesh* mesh, LOs candidates) {
   auto dim = mesh.dim();
   auto have_metric = mesh.has_tag(VERT, "metric");
   if (have_metric) {

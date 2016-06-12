@@ -1,4 +1,4 @@
-static bool refine_ghosted(Mesh& mesh, Real min_qual) {
+static bool refine_ghosted(Mesh* mesh, Real min_qual) {
   auto comm = mesh.comm();
   auto edges_are_cands = mesh.get_array<I8>(EDGE, "candidate");
   mesh.remove_tag(EDGE, "candidate");
@@ -18,7 +18,7 @@ static bool refine_ghosted(Mesh& mesh, Real min_qual) {
   return true;
 }
 
-static void refine_element_based(Mesh& mesh) {
+static void refine_element_based(Mesh* mesh) {
   auto comm = mesh.comm();
   auto edges_are_keys = mesh.get_array<I8>(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
@@ -60,7 +60,7 @@ static void refine_element_based(Mesh& mesh) {
   mesh = new_mesh;
 }
 
-bool refine(Mesh& mesh, Real min_qual) {
+bool refine(Mesh* mesh, Real min_qual) {
   mesh.set_partition(GHOSTED);
   if (!refine_ghosted(mesh, min_qual)) return false;
   mesh.set_partition(ELEMENT_BASED);
@@ -68,7 +68,7 @@ bool refine(Mesh& mesh, Real min_qual) {
   return true;
 }
 
-bool refine_by_size(Mesh& mesh, Real min_qual) {
+bool refine_by_size(Mesh* mesh, Real min_qual) {
   auto comm = mesh.comm();
   auto lengths = mesh.ask_edge_lengths();
   auto edge_is_cand = each_geq_to(lengths, 1.5);

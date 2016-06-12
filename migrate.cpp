@@ -1,4 +1,4 @@
-Remotes form_down_use_owners(Mesh& mesh, Int high_dim, Int low_dim) {
+Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim) {
   auto uses2lows = mesh.ask_down(high_dim, low_dim).ab2b;
   auto lows2owners = mesh.ask_owners(low_dim);
   return unmap(uses2lows, lows2owners);
@@ -75,7 +75,7 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
   return serv_uses2new_uses.exch(LOs(serv_uses2new_idxs), 1);
 }
 
-void push_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
+void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents,
     Adj& new_ents2new_lows, Dist& old_low_owners2new_lows) {
   auto nlows_per_high = simplex_degrees[ent_dim][low_dim];
@@ -98,7 +98,7 @@ void push_down(Mesh& old_mesh, Int ent_dim, Int low_dim,
   new_ents2new_lows.codes = new_codes;
 }
 
-void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
+void push_tags(Mesh const& old_mesh, Mesh* new_mesh,
     Int ent_dim, Dist old_owners2new_ents) {
   CHECK(old_owners2new_ents.nroots() == old_mesh.nents(ent_dim));
   for (Int i = 0; i < old_mesh.ntags(ent_dim); ++i) {
@@ -127,7 +127,7 @@ void push_tags(Mesh const& old_mesh, Mesh& new_mesh,
   }
 }
 
-void push_ents(Mesh& old_mesh, Mesh& new_mesh, Int ent_dim,
+void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents,
     Partition mode) {
   push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
@@ -140,7 +140,7 @@ void push_ents(Mesh& old_mesh, Mesh& new_mesh, Int ent_dim,
   new_mesh.set_owners(ent_dim, owners);
 }
 
-void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
+void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
     Partition mode) {
   auto comm = old_mesh.comm();
   auto dim = old_mesh.dim();
@@ -168,12 +168,12 @@ void migrate_mesh(Mesh& old_mesh, Mesh& new_mesh, Dist new_elems2old_owners,
       mode);
 }
 
-void migrate_mesh(Mesh& mesh, Dist new_elems2old_owners) {
+void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners) {
   Mesh new_mesh;
   migrate_mesh(mesh, new_mesh, new_elems2old_owners, ELEMENT_BASED);
   mesh = new_mesh;
 }
 
-void migrate_mesh(Mesh& mesh, Remotes new_elems2old_owners) {
+void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners) {
   migrate_mesh(mesh, Dist(mesh.comm(), new_elems2old_owners, mesh.nelems()));
 }

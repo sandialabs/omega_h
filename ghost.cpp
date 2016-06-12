@@ -1,4 +1,4 @@
-Dist get_local_elem_uses2own_verts(Mesh& mesh) {
+Dist get_local_elem_uses2own_verts(Mesh* mesh) {
   auto verts2elems = mesh.ask_up(VERT, mesh.dim());
   auto verts2uses = verts2elems.a2ab;
   auto verts2own_verts = mesh.ask_owners(VERT);
@@ -6,14 +6,14 @@ Dist get_local_elem_uses2own_verts(Mesh& mesh) {
   return Dist(mesh.comm(), uses2own_verts, mesh.nverts());
 }
 
-Remotes get_local_elem_uses2own_elems(Mesh& mesh) {
+Remotes get_local_elem_uses2own_elems(Mesh* mesh) {
   auto verts2elems = mesh.ask_up(VERT, mesh.dim());
   auto uses2elems = verts2elems.ab2b;
   auto elems2own = mesh.ask_owners(mesh.dim());
   return unmap(uses2elems, elems2own);
 }
 
-void get_own_verts2own_elem_uses(Mesh& mesh,
+void get_own_verts2own_elem_uses(Mesh* mesh,
     Remotes& serv_uses2own_elems,
     LOs& own_verts2serv_uses) {
   auto local_uses2own_elems = get_local_elem_uses2own_elems(mesh);
@@ -64,7 +64,7 @@ Remotes push_elem_uses(
   return items2verts.exch(items2own_elems, 1);
 }
 
-void ghost_mesh(Mesh& mesh) {
+void ghost_mesh(Mesh* mesh) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
   get_own_verts2own_elem_uses(mesh,
@@ -82,7 +82,7 @@ void ghost_mesh(Mesh& mesh) {
   mesh = new_mesh;
 }
 
-void partition_by_verts(Mesh& mesh) {
+void partition_by_verts(Mesh* mesh) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
   get_own_verts2own_elem_uses(mesh,
@@ -97,7 +97,7 @@ void partition_by_verts(Mesh& mesh) {
   mesh = new_mesh;
 }
 
-void partition_by_elems(Mesh& mesh) {
+void partition_by_elems(Mesh* mesh) {
   auto dim = mesh.dim();
   auto all2owners = mesh.ask_owners(dim);
   auto marked_owned = mesh.owned(dim);
