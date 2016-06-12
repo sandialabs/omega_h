@@ -695,7 +695,7 @@ static void test_compare_meshes() {
 }
 
 int main(int argc, char** argv) {
-  init(argc, argv);
+  auto lib = Library(&argc, &argv);
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();
@@ -731,5 +731,4 @@ int main(int argc, char** argv) {
   test_i8_array_print();
   test_mark_up_down();
   test_compare_meshes();
-  fini();
 }

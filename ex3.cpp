@@ -3,9 +3,8 @@
 using namespace osh;
 
 int main(int argc, char** argv) {
-  init(argc, argv);
-  {
-  auto world = Comm::world();
+  auto lib = Library(&argc, &argv);
+  auto world = lib.world();
   Mesh mesh;
   static Int const dim = 3;
   if (world->rank() == 0) {
@@ -25,6 +24,4 @@ int main(int argc, char** argv) {
     coarsen_verts(mesh, Read<I8>(mesh.nverts(), 1), 0.3, false);
     writer.write();
   }
-  }
-  fini();
 }

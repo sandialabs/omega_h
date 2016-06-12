@@ -3,9 +3,8 @@
 using namespace osh;
 
 int main(int argc, char** argv) {
-  init(argc, argv);
-  {
-  auto world = Comm::world();
+  auto lib = Library(&argc, &argv);
+  auto world = lib.world();
   Mesh mesh;
   if (world->rank() == 0) {
     build_box(mesh, 1, 1, 1, 4, 4, 4);
@@ -30,7 +29,4 @@ int main(int argc, char** argv) {
     mesh.set_tag(VERT, "size", Reals(size));
     writer.write();
   } while(refine_by_size(mesh, 0.3));
-  }
-  fini();
 }
-

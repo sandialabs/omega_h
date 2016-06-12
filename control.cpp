@@ -5,7 +5,7 @@ static bool we_called_mpi_init = false;
 static bool we_called_kokkos_init = false;
 #endif
 
-void init_internal(int& argc, char**& argv, char const* head_desc) {
+void init_internal(int* argc, char*** argv, char const* head_desc) {
   std::string lib_desc = OSH_DESC;
   if (lib_desc != head_desc) {
     std::stringstream msg;
@@ -19,13 +19,13 @@ void init_internal(int& argc, char**& argv, char const* head_desc) {
   int mpi_is_init;
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
   if (!mpi_is_init) {
-    CHECK(MPI_SUCCESS == MPI_Init(&argc, &argv));
+    CHECK(MPI_SUCCESS == MPI_Init(argc, argv));
     we_called_mpi_init = true;
   }
 #endif
 #ifdef OSH_USE_KOKKOS
   if (!Kokkos::DefaultExecutionSpace::is_initialized()) {
-    Kokkos::initialize(argc, argv);
+    Kokkos::initialize(*argc, *argv);
     we_called_kokkos_init = true;
   }
 #endif
@@ -66,3 +66,15 @@ void fail(char const* format, ...)
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
+
+Library::~Library() {
+  osh::fini();
+}
+
+CommPtr Library::world() {
+  return Comm::world();
+}
+
+CommPtr Library::self() {
+  return Comm::self();
+}

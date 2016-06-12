@@ -122,9 +122,9 @@ OSH_OPENMP_STR "," OSH_CUDA_STR "," OSH_ZLIB_STR
 
 namespace osh {
 
-void init_internal(int& argc, char**& argv, char const* head_desc);
+void init_internal(int* argc, char*** argv, char const* head_desc);
 
-inline void init(int& argc, char**& argv) {
+inline void init(int* argc, char*** argv) {
   init_internal(argc, argv, OSH_DESC);
 }
 
@@ -445,6 +445,16 @@ struct Adj : public Graph {
   }
   Adj(Graph g):Graph(g) {}
   Read<I8> codes;
+};
+
+class Library {
+  public:
+    inline Library(int* argc, char*** argv) {
+      osh::init(argc, argv);
+    }
+    ~Library();
+    CommPtr world();
+    CommPtr self();
 };
 
 namespace inertia {

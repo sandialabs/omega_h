@@ -3,8 +3,7 @@
 using namespace osh;
 
 int main(int argc, char** argv) {
-  init(argc, argv);
-  {
+  auto lib = Library(&argc, &argv);
   Mesh mesh;
   build_box(mesh, 1, 1, 0, 1, 1, 0);
   classify_by_angles(mesh, PI / 4);
@@ -30,7 +29,4 @@ int main(int argc, char** argv) {
   std::cout << "refinement time " << (t1-t0) << " seconds ";
   std::cout << mesh.nelems() << " final triangles\n";
   std::cout << "took " << i << " iterations\n";
-  }
-  fini();
 }
-

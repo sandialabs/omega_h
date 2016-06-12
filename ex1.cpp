@@ -21,10 +21,9 @@ static void serial_test(Mesh& mesh) {
 }
 
 int main(int argc, char** argv) {
-  init(argc, argv);
-  {
-  auto world = Comm::world();
-  auto self = Comm::self();
+  auto lib = Library(&argc, &argv);
+  auto world = lib.world();
+  auto self = lib.self();
   Mesh mesh;
   if (world->rank() == 0) {
     serial_test(mesh);
@@ -37,6 +36,4 @@ int main(int argc, char** argv) {
   }
   vtk::write_parallel("tris", mesh, 2);
   vtk::write_parallel("edges", mesh, 1);
-  }
-  fini();
 }

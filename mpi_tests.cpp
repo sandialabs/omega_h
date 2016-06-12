@@ -176,10 +176,11 @@ static void test_rib(CommPtr comm) {
   CHECK(masses == Reals(n, 1));
 }
 
-static void test_all() {
-  auto world = Comm::world();
+int main(int argc, char** argv) {
+  auto lib = Library(&argc, &argv);
+  auto world = lib.world();
   if (world->rank() == 0) {
-    test_one_rank(Comm::self());
+    test_one_rank(lib.self());
   }
   auto one = world->split(world->rank(), 0);
   if (world->rank() == 0) {
@@ -192,10 +193,4 @@ static void test_all() {
       test_two_ranks(two);
   }
   test_rib(world);
-}
-
-int main(int argc, char** argv) {
-  init(argc, argv);
-  test_all();
-  fini();
 }

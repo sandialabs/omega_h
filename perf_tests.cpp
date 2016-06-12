@@ -237,12 +237,11 @@ static void test_adjs() {
 }
 
 int main(int argc, char** argv) {
-  init(argc, argv);
+  auto lib = Library(&argc, &argv);
 #ifndef __INTEL_COMPILER
   test_metric_math();
   test_repro_sum();
   test_sort();
 #endif
   test_adjs();
-  fini();
 }

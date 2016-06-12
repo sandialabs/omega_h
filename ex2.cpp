@@ -3,9 +3,8 @@
 using namespace osh;
 
 int main(int argc, char** argv) {
-  init(argc, argv);
-  {
-  auto world = Comm::world();
+  auto lib = Library(&argc, &argv);
+  auto world = lib.world();
   Mesh mesh;
   static Int const dim = 2;
   if (world->rank() == 0) {
@@ -28,6 +27,4 @@ int main(int argc, char** argv) {
     std::cerr << mesh.nglobal_ents(EDGE) << " edges\n";
     writer.write();
   } while(refine_by_size(mesh, 0.3));
-  }
-  fini();
 }

@@ -3,10 +3,9 @@
 using namespace osh;
 
 int main(int argc, char** argv) {
-  init(argc, argv);
-  {
-  auto world = Comm::world();
-  auto self = Comm::self();
+  auto lib = Library(&argc, &argv);
+  auto world = lib.world();
+  auto self = lib.self();
   Mesh mesh;
   gmsh::read("ring.msh", mesh);
   auto ids = std::vector<I32>({6,7,8,9});
@@ -26,6 +25,4 @@ int main(int argc, char** argv) {
   auto solution = solve_laplacian(mesh, initial, 1, 1e-2);
   mesh.add_tag(VERT, "solution", 1, OSH_LINEAR_INTERP, solution);
   vtk::write_parallel("out", mesh, mesh.dim());
-  }
-  fini();
 }
