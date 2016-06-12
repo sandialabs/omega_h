@@ -325,6 +325,7 @@ static void modify_globals_cheap(Mesh* old_mesh, Mesh* new_mesh,
     auto start = new_mesh->comm()->exscan(GO(nnew_ents), SUM);
     auto globals = Read<GO>(nnew_ents, start, 1);
     new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, globals);
+    return;
   }
   auto old_owned = old_mesh->owned(ent_dim);
   auto same_owned = unmap(same_ents2old_ents, old_owned, 1);
