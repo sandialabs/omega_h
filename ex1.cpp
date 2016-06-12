@@ -26,14 +26,14 @@ int main(int argc, char** argv) {
   auto self = lib.self();
   Mesh mesh;
   if (world->rank() == 0) {
-    serial_test(mesh);
+    serial_test(&mesh);
   }
-  mesh->set_comm(world);
-  mesh->balance();
-  mesh->set_partition(VERTEX_BASED);
-  if (mesh->dim() == 3) {
-  vtk::write_parallel("tets", mesh, 3);
+  mesh.set_comm(world);
+  mesh.balance();
+  mesh.set_partition(VERTEX_BASED);
+  if (mesh.dim() == 3) {
+  vtk::write_parallel("tets", &mesh, 3);
   }
-  vtk::write_parallel("tris", mesh, 2);
-  vtk::write_parallel("edges", mesh, 1);
+  vtk::write_parallel("tris", &mesh, 2);
+  vtk::write_parallel("edges", &mesh, 1);
 }

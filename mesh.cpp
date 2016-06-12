@@ -15,7 +15,7 @@ void Mesh::set_comm(CommPtr new_comm) {
       //temporarily set the uninit ranks to Comm::self()
       comm_ = Comm::self();
     }
-    bcast_mesh(*this, new_comm, rank_had_comm);
+    bcast_mesh(this, new_comm, rank_had_comm);
   }
   if (0 < nnew_had_comm) {
     for (Int d = 0; d <= dim(); ++d) {
@@ -265,7 +265,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     if (from == dim() && to == dim()) {
       return elements_across_sides(dim(),
           ask_adj(dim(), dim() - 1), ask_adj(dim() - 1, dim()),
-          mark_exposed_sides(*this));
+          mark_exposed_sides(this));
     }
     if (from == VERT && to == VERT) {
       return verts_across_edges(ask_adj(EDGE,VERT), ask_adj(VERT,EDGE));
@@ -323,7 +323,7 @@ void Mesh::forget_globals() {
 
 Reals Mesh::ask_edge_lengths() {
   if (!has_tag(EDGE, "length")) {
-    auto lengths = measure_edges(*this);
+    auto lengths = measure_edges(this);
     add_tag(EDGE, "length", 1, OSH_LENGTH, lengths);
   }
   return get_array<Real>(EDGE, "length");
@@ -331,7 +331,7 @@ Reals Mesh::ask_edge_lengths() {
 
 Reals Mesh::ask_qualities() {
   if (!has_tag(dim(), "quality")) {
-    auto qualities = measure_qualities(*this);
+    auto qualities = measure_qualities(this);
     add_tag(dim(), "quality", 1, OSH_QUALITY, qualities);
   }
   return get_array<Real>(dim(), "quality");
@@ -381,23 +381,23 @@ void Mesh::set_partition(Partition partition) {
     return;
   }
   if (partition_ != ELEMENT_BASED) {
-    partition_by_elems(*this);
+    partition_by_elems(this);
     partition_ = ELEMENT_BASED;
   }
   if (partition == GHOSTED) {
-    ghost_mesh(*this);
+    ghost_mesh(this);
   } else if (partition == VERTEX_BASED) {
-    partition_by_verts(*this);
+    partition_by_verts(this);
   }
   partition_ = partition;
 }
 
 void Mesh::migrate(Remotes new_elems2old_owners) {
-  migrate_mesh(*this, new_elems2old_owners);
+  migrate_mesh(this, new_elems2old_owners);
 }
 
 void Mesh::reorder() {
-  reorder_by_hilbert(*this);
+  reorder_by_hilbert(this);
 }
 
 void Mesh::balance() {
@@ -405,7 +405,7 @@ void Mesh::balance() {
   inertia::Rib hints;
   if (rib_hints_)
     hints = *rib_hints_;
-  auto ecoords = average_field(*this, dim(), LOs(nelems(), 0, 1), dim(),
+  auto ecoords = average_field(this, dim(), LOs(nelems(), 0, 1), dim(),
       coords());
   if (dim() == 2)
     ecoords = vectors_2d_to_3d(ecoords);
@@ -448,8 +448,8 @@ Read<T> Mesh::sync_subset_array(Int ent_dim,
   return unmap(a2e, e_data, width);
 }
 
-bool Mesh::operator==(Mesh* other) {
-  return compare_meshes(*this, other, 0.0, 0.0, false, false);
+bool Mesh::operator==(Mesh& other) {
+  return compare_meshes(this, &other, 0.0, 0.0, false, false);
 }
 
 Real Mesh::min_quality() {

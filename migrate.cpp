@@ -170,8 +170,8 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
 
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners) {
   Mesh new_mesh;
-  migrate_mesh(mesh, new_mesh, new_elems2old_owners, ELEMENT_BASED);
-  mesh = new_mesh;
+  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, ELEMENT_BASED);
+  *mesh = new_mesh;
 }
 
 void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners) {

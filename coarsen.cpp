@@ -95,9 +95,9 @@ static void coarsen_element_based2(Mesh* mesh) {
   auto dead_ents = mark_dead_ents(mesh, rails2edges, rail_col_dirs);
   auto keys2verts_onto = get_verts_onto(mesh, rails2edges, rail_col_dirs);
   auto new_mesh = Mesh();
-  new_mesh->set_comm(mesh->comm());
-  new_mesh->set_dim(mesh->dim());
-  new_mesh->set_partition(mesh->partition());
+  new_mesh.set_comm(mesh->comm());
+  new_mesh.set_dim(mesh->dim());
+  new_mesh.set_partition(mesh->partition());
   auto old_verts2new_verts = LOs();
   auto old_lows2new_lows = LOs();
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
@@ -117,17 +117,17 @@ static void coarsen_element_based2(Mesh* mesh) {
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents(mesh, new_mesh, ent_dim, VERT, keys2verts,
+    modify_ents(mesh, &new_mesh, ent_dim, VERT, keys2verts,
         keys2prods, prod_verts2verts, old_lows2new_lows,
         prods2new_ents,
         same_ents2old_ents, same_ents2new_ents,
         old_ents2new_ents);
     if (ent_dim == VERT) old_verts2new_verts = old_ents2new_ents;
-    transfer_coarsen(mesh, new_mesh, keys2doms, ent_dim, prods2new_ents,
+    transfer_coarsen(mesh, &new_mesh, keys2doms, ent_dim, prods2new_ents,
         same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
-  mesh = new_mesh;
+  *mesh = new_mesh;
 }
 
 bool coarsen(Mesh* mesh, Real min_qual, bool improve) {

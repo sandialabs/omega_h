@@ -28,29 +28,29 @@ static bool compare_copy_data(
 
 bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     bool accept_superset, bool verbose) {
-  CHECK(a.comm()->size() == b.comm()->size());
-  CHECK(a.comm()->rank() == b.comm()->rank());
-  auto comm = a.comm();
+  CHECK(a->comm()->size() == b->comm()->size());
+  CHECK(a->comm()->rank() == b->comm()->rank());
+  auto comm = a->comm();
   auto should_print = verbose && (comm->rank() == 0);
-  if (a.dim() != b.dim()) {
+  if (a->dim() != b->dim()) {
     if (should_print) std::cout << "mesh dimensions differ\n";
     return false;
   }
-  for (Int dim = 0; dim <= a.dim(); ++dim) {
-    if (a.nglobal_ents(dim) != b.nglobal_ents(dim)) {
+  for (Int dim = 0; dim <= a->dim(); ++dim) {
+    if (a->nglobal_ents(dim) != b->nglobal_ents(dim)) {
       if (should_print) {
         std::cout << "global " << singular_names[dim] << " counts differ\n";
       }
       return false;
     }
-    auto a_globals = a.ask_globals(dim);
-    auto b_globals = b.ask_globals(dim);
+    auto a_globals = a->ask_globals(dim);
+    auto b_globals = b->ask_globals(dim);
     auto a_dist = copies_to_linear_owners(comm, a_globals);
     auto b_dist = copies_to_linear_owners(comm, b_globals);
-    for (Int i = 0; i < a.ntags(dim); ++i) {
-      auto tag = a.get_tag(dim, i);
+    for (Int i = 0; i < a->ntags(dim); ++i) {
+      auto tag = a->get_tag(dim, i);
       auto name = tag->name();
-      if (!b.has_tag(dim, name)) {
+      if (!b->has_tag(dim, name)) {
         if (should_print) {
           std::cout << singular_names[dim] << " tag \"" << name
                     << "\" exists in first mesh but not second\n";
@@ -62,26 +62,26 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       switch (tag->type()) {
       case OSH_I8:
         ok = compare_copy_data(
-            a.get_array<I8>(dim, name), a_dist,
-            b.get_array<I8>(dim, name), b_dist,
+            a->get_array<I8>(dim, name), a_dist,
+            b->get_array<I8>(dim, name), b_dist,
             ncomps, tol, floor);
         break;
       case OSH_I32:
         ok = compare_copy_data(
-            a.get_array<I32>(dim, name), a_dist,
-            b.get_array<I32>(dim, name), b_dist,
+            a->get_array<I32>(dim, name), a_dist,
+            b->get_array<I32>(dim, name), b_dist,
             ncomps, tol, floor);
         break;
       case OSH_I64:
         ok = compare_copy_data(
-            a.get_array<I64>(dim, name), a_dist,
-            b.get_array<I64>(dim, name), b_dist,
+            a->get_array<I64>(dim, name), a_dist,
+            b->get_array<I64>(dim, name), b_dist,
             ncomps, tol, floor);
         break;
       case OSH_F64:
         ok = compare_copy_data(
-            a.get_array<Real>(dim, name), a_dist,
-            b.get_array<Real>(dim, name), b_dist,
+            a->get_array<Real>(dim, name), a_dist,
+            b->get_array<Real>(dim, name), b_dist,
             ncomps, tol, floor);
         break;
       }
@@ -94,9 +94,9 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       }
     }
     if (!accept_superset) {
-      for (Int i = 0; i < b.ntags(dim); ++i) {
-        auto tag = b.get_tag(dim, i);
-        if (!a.has_tag(dim, tag->name())) {
+      for (Int i = 0; i < b->ntags(dim); ++i) {
+        auto tag = b->get_tag(dim, i);
+        if (!a->has_tag(dim, tag->name())) {
           if (should_print) {
             std::cout << singular_names[dim] << " tag \"" << tag->name()
               << "\" exists in second mesh but not in first\n";

@@ -24,9 +24,9 @@ static void refine_element_based(Mesh* mesh) {
   auto keys2edges = collect_marked(edges_are_keys);
   auto nkeys = keys2edges.size();
   auto new_mesh = Mesh();
-  new_mesh->set_comm(comm);
-  new_mesh->set_dim(mesh->dim());
-  new_mesh->set_partition(mesh->partition());
+  new_mesh.set_comm(comm);
+  new_mesh.set_dim(mesh->dim());
+  new_mesh.set_partition(mesh->partition());
   auto keys2midverts = LOs();
   auto old_verts2new_verts = LOs();
   auto old_lows2new_lows = LOs();
@@ -43,7 +43,7 @@ static void refine_element_based(Mesh* mesh) {
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents(mesh, new_mesh, ent_dim, EDGE, keys2edges,
+    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
         keys2prods, prod_verts2verts, old_lows2new_lows,
         prods2new_ents,
         same_ents2old_ents, same_ents2new_ents,
@@ -52,12 +52,12 @@ static void refine_element_based(Mesh* mesh) {
       keys2midverts = prods2new_ents;
       old_verts2new_verts = old_ents2new_ents;
     }
-    transfer_refine(mesh, new_mesh, keys2edges, keys2midverts, ent_dim,
+    transfer_refine(mesh, &new_mesh, keys2edges, keys2midverts, ent_dim,
         keys2prods, prods2new_ents,
         same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
-  mesh = new_mesh;
+  *mesh = new_mesh;
 }
 
 bool refine(Mesh* mesh, Real min_qual) {

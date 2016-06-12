@@ -58,8 +58,8 @@ void reorder_mesh(Mesh* old_mesh, Mesh* new_mesh,
 void reorder_mesh(Mesh* mesh,
     LOs new_verts2old_verts) {
   Mesh new_mesh;
-  reorder_mesh(mesh, new_mesh, new_verts2old_verts);
-  mesh = new_mesh;
+  reorder_mesh(mesh, &new_mesh, new_verts2old_verts);
+  *mesh = new_mesh;
 }
 
 void reorder_by_hilbert(Mesh* mesh) {
