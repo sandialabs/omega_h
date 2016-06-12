@@ -45,9 +45,9 @@ static void refine_element_based(Mesh* mesh) {
     auto old_ents2new_ents = LOs();
     modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
         keys2prods, prod_verts2verts, old_lows2new_lows,
-        prods2new_ents,
-        same_ents2old_ents, same_ents2new_ents,
-        old_ents2new_ents);
+        &prods2new_ents,
+        &same_ents2old_ents, &same_ents2new_ents,
+        &old_ents2new_ents);
     if (ent_dim == VERT) {
       keys2midverts = prods2new_ents;
       old_verts2new_verts = old_ents2new_ents;

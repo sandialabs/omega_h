@@ -119,9 +119,9 @@ static void coarsen_element_based2(Mesh* mesh) {
     auto old_ents2new_ents = LOs();
     modify_ents(mesh, &new_mesh, ent_dim, VERT, keys2verts,
         keys2prods, prod_verts2verts, old_lows2new_lows,
-        prods2new_ents,
-        same_ents2old_ents, same_ents2new_ents,
-        old_ents2new_ents);
+        &prods2new_ents,
+        &same_ents2old_ents, &same_ents2new_ents,
+        &old_ents2new_ents);
     if (ent_dim == VERT) old_verts2new_verts = old_ents2new_ents;
     transfer_coarsen(mesh, &new_mesh, keys2doms, ent_dim, prods2new_ents,
         same_ents2old_ents, same_ents2new_ents);

@@ -226,9 +226,9 @@ static void find_new_offsets(
     LOs keys2reps,
     LOs keys2prods,
     LOs edge2rep_order,
-    Read<T>& same_ents2new_offsets,
-    Read<T>& prods2new_offsets) {
-  same_ents2new_offsets = unmap(same_ents2old_ents,
+    Read<T>* p_same_ents2new_offsets,
+    Read<T>* p_prods2new_offsets) {
+  *p_same_ents2new_offsets = unmap(same_ents2old_ents,
       old_ents2new_offsets, 1);
   auto keys2new_offsets = unmap(keys2reps,
       old_ents2new_offsets, 1);
@@ -261,7 +261,7 @@ static void find_new_offsets(
     };
     parallel_for(nkeys, write_prod_offsets);
   }
-  prods2new_offsets = prods2new_offsets_w;
+  *p_prods2new_offsets = prods2new_offsets_w;
 }
 
 static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
@@ -306,7 +306,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
   }
   find_new_offsets(old_ents2new_globals, same_ents2old_ents,
       keys2kds, keys2reps, keys2prods, edge2rep_order,
-      same_ents2new_globals, prods2new_globals);
+      &same_ents2new_globals, &prods2new_globals);
   auto nnew_ents = new_mesh->nents(ent_dim);
   CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
@@ -321,11 +321,11 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2prods,
     LOs prod_verts2verts,
     LOs old_lows2new_lows,
-    LOs& prods2new_ents,
-    LOs& same_ents2old_ents,
-    LOs& same_ents2new_ents,
-    LOs& old_ents2new_ents) {
-  same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim,
+    LOs* p_prods2new_ents,
+    LOs* p_same_ents2old_ents,
+    LOs* p_same_ents2new_ents,
+    LOs* p_old_ents2new_ents) {
+  *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim,
       keys2kds);
   auto nkeys = keys2kds.size();
   CHECK(nkeys == keys2prods.size() - 1);
@@ -333,7 +333,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
   auto keys2reps = get_keys2reps(old_mesh, ent_dim, key_dim,
       keys2kds, keys2nprods);
   auto local_rep_counts = get_rep_counts(old_mesh, ent_dim,
-      keys2reps, keys2nprods, same_ents2old_ents, false);
+      keys2reps, keys2nprods, *p_same_ents2old_ents, false);
   auto local_offsets = offset_scan(local_rep_counts);
   auto nnew_ents = local_offsets.last();
   auto edge2rep_order = LOs();
@@ -343,28 +343,28 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
     auto edges_are_keys = mark_image(keys2kds, old_mesh->nents(EDGE));
     edge2rep_order = get_edge2rep_order(old_mesh, edges_are_keys);
   }
-  find_new_offsets(local_offsets, same_ents2old_ents,
+  find_new_offsets(local_offsets, *p_same_ents2old_ents,
       keys2kds, keys2reps, keys2prods, edge2rep_order,
-      same_ents2new_ents, prods2new_ents);
+      p_same_ents2new_ents, p_prods2new_ents);
   auto nold_ents = old_mesh->nents(ent_dim);
-  old_ents2new_ents = map_onto(same_ents2new_ents, same_ents2old_ents,
+  *p_old_ents2new_ents = map_onto(*p_same_ents2new_ents, *p_same_ents2old_ents,
       nold_ents, -1, 1);
   if (ent_dim == VERT) {
     new_mesh->set_verts(nnew_ents);
   } else {
     modify_conn(old_mesh, new_mesh, ent_dim, prod_verts2verts,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+        *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
         old_lows2new_lows);
   }
   if (old_mesh->comm()->size() > 1) {
-    modify_owners(old_mesh, new_mesh, ent_dim, prods2new_ents,
-        same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
+    modify_owners(old_mesh, new_mesh, ent_dim, *p_prods2new_ents,
+        *p_same_ents2old_ents, *p_same_ents2new_ents, *p_old_ents2new_ents);
   }
   auto global_rep_counts = get_rep_counts(old_mesh, ent_dim,
-      keys2reps, keys2nprods, same_ents2old_ents, true);
+      keys2reps, keys2nprods, *p_same_ents2old_ents, true);
   modify_globals(old_mesh, new_mesh, ent_dim, key_dim,
-      keys2kds, keys2prods, prods2new_ents,
-      same_ents2old_ents, same_ents2new_ents,
+      keys2kds, keys2prods, *p_prods2new_ents,
+      *p_same_ents2old_ents, *p_same_ents2new_ents,
       keys2reps, global_rep_counts);
 }
 
