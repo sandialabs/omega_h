@@ -11,8 +11,10 @@ static bool refine_ghosted(Mesh* mesh, Real min_qual) {
   auto edge_quals = map_onto(cand_quals, cands2edges, nedges, 0.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_initial);
   mesh->add_tag(EDGE, "key", 1, OSH_DONT_TRANSFER, edges_are_keys);
-  mesh->add_tag(EDGE, "edge2rep_order", 1, OSH_DONT_TRANSFER,
-      get_edge2rep_order(mesh, edges_are_keys));
+  if (mesh->keeps_canonical_globals()) {
+    mesh->add_tag(EDGE, "edge2rep_order", 1, OSH_DONT_TRANSFER,
+        get_edge2rep_order(mesh, edges_are_keys));
+  }
   auto keys2edges = collect_marked(edges_are_keys);
   set_owners_by_indset(mesh, EDGE, keys2edges);
   return true;
