@@ -26,5 +26,5 @@ int main(int argc, char** argv) {
     std::cerr << mesh.nglobal_ents(mesh.dim()) << " elements\n";
     std::cerr << mesh.nglobal_ents(EDGE) << " edges\n";
     writer.write();
-  } while(refine_by_size(&mesh, 1.5, 0.3));
+  } while(refine_by_size(&mesh, 1.5, 0.47));
 }

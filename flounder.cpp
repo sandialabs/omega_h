@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), f);
     mesh.set_tag(VERT, "size", Reals(size));
     ++i;
-  } while(refine_by_size(&mesh, 1.5, 0.3));
+  } while(refine_by_size(&mesh, 1.5, 0.47));
   Now t1 = now();
   std::cout << "refinement time " << (t1-t0) << " seconds ";
   std::cout << mesh.nelems() << " final triangles\n";
