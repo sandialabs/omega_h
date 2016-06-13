@@ -315,11 +315,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
   new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
 }
 
-static void modify_globals_cheap(Mesh* old_mesh, Mesh* new_mesh,
-    Int ent_dim,
-    LOs prods2new_ents,
-    LOs same_ents2old_ents,
-    LOs same_ents2new_ents) {
+static void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   auto nnew_ents = new_mesh->nents(ent_dim);
   if (!new_mesh->could_be_shared(ent_dim)) {
     auto start = new_mesh->comm()->exscan(GO(nnew_ents), SUM);
@@ -327,13 +323,7 @@ static void modify_globals_cheap(Mesh* old_mesh, Mesh* new_mesh,
     new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, globals);
     return;
   }
-  auto old_owned = old_mesh->owned(ent_dim);
-  auto same_owned = unmap(same_ents2old_ents, old_owned, 1);
-  auto new_owned_w = Write<I8>(new_mesh->nents(ent_dim), 0);
-  map_into(same_owned, same_ents2new_ents, new_owned_w, 1);
-  auto nprods = prods2new_ents.size();
-  map_into(Read<I8>(nprods, 1), prods2new_ents, new_owned_w, 1);
-  auto new_owned = Read<I8>(new_owned_w);
+  auto new_owned = new_mesh->owned(ent_dim);
   auto local_offsets = offset_scan(new_owned);
   auto nnew_owned = local_offsets.last();
   auto start = new_mesh->comm()->exscan(GO(nnew_owned), SUM);
@@ -399,8 +389,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh,
         *p_same_ents2old_ents, *p_same_ents2new_ents,
         keys2reps, global_rep_counts);
   } else {
-    modify_globals_cheap(old_mesh, new_mesh, ent_dim,
-        *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents);
+    globals_from_owners(new_mesh, ent_dim);
   }
 }
 
