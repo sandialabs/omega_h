@@ -92,6 +92,8 @@ add_executable(corner corner.cpp)
 target_link_libraries(corner omega_h)
 add_executable(ring ring.cpp)
 target_link_libraries(ring omega_h)
+add_executable(coarsen_test coarsen_test.cpp)
+target_link_libraries(coarsen_test omega_h)
 
 install(FILES "${PROJECT_BINARY_DIR}/omega_h.hpp"
         DESTINATION include)
