@@ -19,14 +19,16 @@ int main(int argc, char** argv) {
     auto coords = mesh.coords();
     auto f = LAMBDA(LO v) {
       auto x = get_vec<3>(coords, v);
-      auto coarse = 0.5;
+      auto coarse = 0.3;
       auto fine = 0.05;
       auto radius = norm(x);
-      auto d = fabs(radius - 0.5);
-      size[v] = coarse * d + fine * (1 - d);
+      auto diagonal = sqrt(3) - 0.5;
+      auto distance = fabs(radius - 0.5) / diagonal;
+      size[v] = coarse * distance + fine * (1.0 - distance);
     };
     parallel_for(mesh.nverts(), f);
     mesh.set_tag(VERT, "size", Reals(size));
+    mesh.ask_edge_lengths();
     writer.write();
-  } while(refine_by_size(&mesh, 1.5, 0.47));
+  } while(refine_by_size(&mesh, 4.0 / 3.0, 0.47));
 }
