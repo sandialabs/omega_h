@@ -8,13 +8,8 @@ static void goal_stats(Mesh* mesh,
     Real maxval) {
   auto low_marks = each_lt(values, floor);
   auto high_marks = each_gt(values, ceil);
-  if (mesh->could_be_shared(ent_dim)) {
-    auto own_marks = mesh->owned(ent_dim);
-    low_marks = land_each(low_marks, own_marks);
-    high_marks = land_each(high_marks, own_marks);
-  }
-  auto nlow = mesh->comm()->allreduce(GO(sum(low_marks)), SUM);
-  auto nhigh = mesh->comm()->allreduce(GO(sum(high_marks)), SUM);
+  auto nlow = count_owned_marks(mesh, ent_dim, low_marks);
+  auto nhigh = count_owned_marks(mesh, ent_dim, high_marks);
   auto ntotal = mesh->nglobal_ents(ent_dim);
   auto nmid = ntotal - nlow - nhigh;
   if (mesh->comm()->rank() == 0) {
@@ -89,16 +84,27 @@ bool adapt(Mesh* mesh,
     Real qual_ceil,
     Real qual_floor,
     Real len_floor,
-    Real len_ceil) {
+    Real len_ceil,
+    Int nlayers) {
   if (adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil)) {
     return false;
   }
-  auto qual_ceil2 = min2(qual_ceil, mesh->min_quality());
-  while (refine_by_size(mesh, len_ceil, qual_ceil2)) {
+  auto allow_qual = min2(qual_ceil, mesh->min_quality());
+  while (refine_by_size(mesh, len_ceil, allow_qual)) {
     adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
   }
-  while (coarsen_by_size(mesh, len_floor, qual_ceil2)) {
+  while (coarsen_by_size(mesh, len_floor, allow_qual)) {
     adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
+  }
+  while (mesh->min_quality() < qual_ceil) {
+    if (coarsen_slivers(mesh, qual_ceil, nlayers)) {
+      adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
+      continue;
+    }
+    if (mesh->comm()->rank() == 0) {
+      std::cout << "adapt() could not satisfy quality\n";
+    }
+    break;
   }
   return true;
 }

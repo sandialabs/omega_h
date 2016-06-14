@@ -80,6 +80,7 @@ Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, ReduceOp op) {
 #define INST_T(T) \
 template \
 Read<T> graph_reduce(Graph, Read<T>, Int, ReduceOp);
+INST_T(I8)
 INST_T(I32)
 INST_T(Real)
 #undef INST_T

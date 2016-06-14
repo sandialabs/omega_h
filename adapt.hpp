@@ -14,4 +14,5 @@ bool adapt(Mesh* mesh,
     Real qual_ceil,
     Real qual_floor,
     Real len_floor,
-    Real len_ceil);
+    Real len_ceil,
+    Int nlayers);

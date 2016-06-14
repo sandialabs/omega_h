@@ -248,7 +248,8 @@ fan_reduce_tmpl(
       VT res;
       functor.init(res);
       for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
-        functor.join(res, b_data[b * width + j]);
+        VT update = b_data[b * width + j];
+        functor.join(res, update);
       }
       a_data[a * width + j] = static_cast<T>(res);
     }
@@ -267,7 +268,9 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, ReduceOp op) {
   NORETURN(Read<T>());
 }
 
-template
-Read<I32> fan_reduce(LOs a2b, Read<I32> b_data, Int width, ReduceOp op);
-template
-Read<Real> fan_reduce(LOs a2b, Read<Real> b_data, Int width, ReduceOp op);
+#define INST_T(T) \
+template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, ReduceOp op);
+INST_T(I8)
+INST_T(I32)
+INST_T(Real)
+#undef INST_T

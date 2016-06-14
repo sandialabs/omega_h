@@ -72,3 +72,20 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
   }
   return marks;
 }
+
+Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers) {
+  auto dual = mesh->ask_dual();
+  for (Int i = 0; i < nlayers; ++i) {
+    marks = graph_reduce(dual, marks, 1, MAX);
+    marks = mesh->sync_array(mesh->dim(), marks, 1);
+  }
+  return marks;
+}
+
+GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks)
+{
+  if (mesh->could_be_shared(ent_dim)) {
+    marks = land_each(marks, mesh->owned(ent_dim));
+  }
+  return mesh->comm()->allreduce(GO(sum(marks)), SUM);
+}

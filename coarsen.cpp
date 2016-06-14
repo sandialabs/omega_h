@@ -173,3 +173,12 @@ bool coarsen_by_size(Mesh* mesh, Real min_len,
   if (comm->allreduce(max(edge_is_cand), MAX) != 1) return false;
   return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, false);
 }
+
+bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers) {
+  auto comm = mesh->comm();
+  auto quals = mesh->ask_qualities();
+  auto elem_is_cand = each_lt(quals, qual_ceil);
+  if (comm->allreduce(max(elem_is_cand), MAX) != 1) return false;
+  elem_is_cand = mark_dual_layers(mesh, elem_is_cand, nlayers);
+  return coarsen_ents(mesh, mesh->dim(), elem_is_cand, 0.0, true);
+}
