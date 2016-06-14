@@ -13,7 +13,16 @@ Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
   return lengths;
 }
 
-Reals measure_edges(Mesh* mesh, LOs a2e) {
+Reals measure_edges_real(Mesh* mesh, LOs a2e) {
+  if (mesh->dim() == 3) {
+    return measure_edges_tmpl<RealEdgeLengths<3>>(mesh, a2e);
+  } else {
+    CHECK(mesh->dim() == 2);
+    return measure_edges_tmpl<RealEdgeLengths<2>>(mesh, a2e);
+  }
+}
+
+Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "size")) {
       return measure_edges_tmpl<IsoEdgeLengths<3>>(mesh, a2e);
@@ -33,13 +42,17 @@ Reals measure_edges(Mesh* mesh, LOs a2e) {
   fail("measure_edges(): no size field exists!\n");
 }
 
-Reals measure_edges(Mesh* mesh) {
-  return measure_edges(mesh, LOs(mesh->nedges(), 0, 1));
+Reals measure_edges_real(Mesh* mesh) {
+  return measure_edges_real(mesh, LOs(mesh->nedges(), 0, 1));
+}
+
+Reals measure_edges_metric(Mesh* mesh) {
+  return measure_edges_metric(mesh, LOs(mesh->nedges(), 0, 1));
 }
 
 Reals find_identity_size(Mesh* mesh) {
   CHECK(mesh->owners_have_all_upward(VERT));
-  auto lens = mesh->ask_edge_lengths();
+  auto lens = measure_edges_real(mesh);
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto nve = v2e.a2ab.last();
   auto weights = Reals(nve, 1.0);

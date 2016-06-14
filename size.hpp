@@ -45,6 +45,18 @@ INLINE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
 }
 
 template <Int dim>
+struct RealEdgeLengths {
+  Reals coords;
+  RealEdgeLengths(Mesh const* mesh):
+    coords(mesh->coords())
+  {}
+  INLINE Real measure(Few<LO, 2> v) const {
+    auto p = gather_vectors<2,dim>(coords, v);
+    return norm(p[1] - p[0]);
+  }
+};
+
+template <Int dim>
 struct IsoEdgeLengths {
   Reals coords;
   Reals isos;
@@ -70,7 +82,9 @@ struct MetricEdgeLengths {
   }
 };
 
-Reals measure_edges(Mesh* mesh, LOs a2e);
-Reals measure_edges(Mesh* mesh);
+Reals measure_edges_real(Mesh* mesh, LOs a2e);
+Reals measure_edges_metric(Mesh* mesh, LOs a2e);
+Reals measure_edges_real(Mesh* mesh);
+Reals measure_edges_metric(Mesh* mesh);
 
 Reals find_identity_size(Mesh* mesh);

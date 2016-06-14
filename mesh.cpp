@@ -332,7 +332,7 @@ void Mesh::forget_globals() {
 
 Reals Mesh::ask_edge_lengths() {
   if (!has_tag(EDGE, "length")) {
-    auto lengths = measure_edges(this);
+    auto lengths = measure_edges_metric(this);
     add_tag(EDGE, "length", 1, OSH_LENGTH, lengths);
   }
   return get_array<Real>(EDGE, "length");

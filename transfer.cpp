@@ -165,7 +165,7 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
     if (tagbase->xfer() == OSH_LENGTH) {
-      auto prod_data = measure_edges(new_mesh, prods2new_ents);
+      auto prod_data = measure_edges_metric(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, EDGE,
           same_ents2old_ents, same_ents2new_ents, prods2new_ents,
           tagbase, prod_data);
