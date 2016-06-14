@@ -86,6 +86,11 @@ bool adapt(Mesh* mesh,
     Real len_floor,
     Real len_ceil,
     Int nlayers) {
+  CHECK(0.0 <= qual_floor);
+  CHECK(qual_floor <= qual_ceil);
+  CHECK(qual_ceil <= 1.0);
+  CHECK(0.0 < len_floor);
+  CHECK(len_floor <= 2.0 * len_ceil);
   if (adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil)) {
     return false;
   }
