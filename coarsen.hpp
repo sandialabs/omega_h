@@ -53,4 +53,4 @@ bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks,
     Real min_qual, bool improve);
 
 bool coarsen_by_size(Mesh* mesh, Real min_len,
-    Real min_qual, bool improve);
+    Real min_qual);

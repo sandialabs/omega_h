@@ -166,10 +166,10 @@ bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks,
 }
 
 bool coarsen_by_size(Mesh* mesh, Real min_len,
-    Real min_qual, bool improve) {
+    Real min_qual) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_edge_lengths();
   auto edge_is_cand = each_lt(lengths, min_len);
   if (comm->allreduce(max(edge_is_cand), MAX) != 1) return false;
-  return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, improve);
+  return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, false);
 }

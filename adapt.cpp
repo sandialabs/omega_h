@@ -8,14 +8,14 @@ static void goal_stats(Mesh* mesh,
     Real maxval) {
   auto low_marks = each_lt(values, floor);
   auto high_marks = each_gt(values, ceil);
-  if (mesh->could_be_shared(mesh->dim())) {
-    auto own_marks = mesh->owned(mesh->dim());
+  if (mesh->could_be_shared(ent_dim)) {
+    auto own_marks = mesh->owned(ent_dim);
     low_marks = land_each(low_marks, own_marks);
     high_marks = land_each(high_marks, own_marks);
   }
   auto nlow = mesh->comm()->allreduce(GO(sum(low_marks)), SUM);
   auto nhigh = mesh->comm()->allreduce(GO(sum(high_marks)), SUM);
-  auto ntotal = mesh->nglobal_ents(mesh->dim());
+  auto ntotal = mesh->nglobal_ents(ent_dim);
   auto nmid = ntotal - nlow - nhigh;
   if (mesh->comm()->rank() == 0) {
     std::ios::fmtflags stream_state(std::cout.flags());
@@ -58,6 +58,7 @@ static void adapt_summary(Mesh* mesh,
       qual_floor, qual_ceil, minqual, maxqual);
   goal_stats(mesh, "length", EDGE, mesh->ask_edge_lengths(),
       len_floor, len_ceil, minlen, maxlen);
+  std::cout << '\n';
 }
 
 bool adapt_check(Mesh* mesh,
@@ -74,7 +75,7 @@ bool adapt_check(Mesh* mesh,
       maxlen <= len_ceil) {
     if (mesh->comm()->rank() == 0) {
       std::cout << "mesh is good: quality " << minqual << "~" << maxqual
-        << ", length " << minlen << "~" << maxlen << '\n';
+        << ", length " << minlen << "~" << maxlen << "\n\n";
     }
     return true;
   }
@@ -92,6 +93,12 @@ bool adapt(Mesh* mesh,
   if (adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil)) {
     return false;
   }
-  /* TODO: cascade into modification */
-  return false;
+  auto qual_ceil2 = min2(qual_ceil, mesh->min_quality());
+  while (refine_by_size(mesh, len_ceil, qual_ceil2)) {
+    adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
+  }
+  while (coarsen_by_size(mesh, len_floor, qual_ceil2)) {
+    adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
+  }
+  return true;
 }

@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
   mesh.add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);
   vtk::FullWriter writer(&mesh, "out");
   mesh.set_tag(VERT, "size", Reals(mesh.nverts(), 1.0));
-  while (coarsen_by_size(&mesh, 2.0 / 3.0, 0.47, false)) {
+  while (coarsen_by_size(&mesh, 2.0 / 3.0, 0.47)) {
     writer.write();
   }
 }
