@@ -81,24 +81,24 @@ bool adapt_check(Mesh* mesh,
 }
 
 bool adapt(Mesh* mesh,
-    Real qual_ceil,
     Real qual_floor,
+    Real qual_ceil,
     Real len_floor,
     Real len_ceil,
     Int nlayers) {
-  if (adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil)) {
+  if (adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil)) {
     return false;
   }
   auto allow_qual = min2(qual_ceil, mesh->min_quality());
   while (refine_by_size(mesh, len_ceil, allow_qual)) {
-    adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
+    adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
   }
   while (coarsen_by_size(mesh, len_floor, allow_qual)) {
-    adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
+    adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
   }
   while (mesh->min_quality() < qual_ceil) {
     if (coarsen_slivers(mesh, qual_ceil, nlayers)) {
-      adapt_check(mesh, qual_ceil, qual_floor, len_floor, len_ceil);
+      adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
       continue;
     }
     if (mesh->comm()->rank() == 0) {
