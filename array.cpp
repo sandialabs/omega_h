@@ -523,6 +523,17 @@ Read<I8> gt_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
+Read<I8> geq_each(Read<T> a, Read<T> b) {
+  CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) {
+    c[i] = (a[i] >= b[i]);
+  };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = LAMBDA(LO i) {

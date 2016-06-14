@@ -11,6 +11,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <sstream>
@@ -132,5 +133,6 @@ namespace osh {
 #include "coarsen.hpp"
 #include "warp.hpp"
 #include "laplace.hpp"
+#include "adapt.hpp"
 
 } //end namespace osh

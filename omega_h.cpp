@@ -62,5 +62,6 @@ namespace osh {
 #include "coarsen.cpp"
 #include "warp.cpp"
 #include "laplace.cpp"
+#include "adapt.cpp"
 
 } //end namespace osh

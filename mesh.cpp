@@ -83,7 +83,7 @@ LO Mesh::nedges() const {
 }
 
 GO Mesh::nglobal_ents(Int dim) {
-  if (partition_ == ELEMENT_BASED && dim == this->dim()) {
+  if (!could_be_shared(dim)) {
     return comm_->allreduce(GO(nents(dim)), SUM);
   }
   auto nowned = sum(this->owned(dim));
