@@ -36,3 +36,12 @@ Reals measure_edges(Mesh* mesh, LOs a2e) {
 Reals measure_edges(Mesh* mesh) {
   return measure_edges(mesh, LOs(mesh->nedges(), 0, 1));
 }
+
+Reals find_identity_size(Mesh* mesh) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto lens = mesh->ask_edge_lengths();
+  auto v2e = mesh->ask_up(VERT, EDGE);
+  auto nve = v2e.a2ab.last();
+  auto weights = Reals(nve, 1.0);
+  return graph_weighted_average(v2e, weights, lens, 1);
+}

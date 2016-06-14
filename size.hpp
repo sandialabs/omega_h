@@ -72,3 +72,5 @@ struct MetricEdgeLengths {
 
 Reals measure_edges(Mesh* mesh, LOs a2e);
 Reals measure_edges(Mesh* mesh);
+
+Reals find_identity_size(Mesh* mesh);
