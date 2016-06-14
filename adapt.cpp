@@ -2,8 +2,8 @@ static void goal_stats(Mesh* mesh,
     char const* name,
     Int ent_dim,
     Reals values,
-    Real ceil,
     Real floor,
+    Real ceil,
     Real minval,
     Real maxval) {
   auto low_marks = each_lt(values, floor);
@@ -19,9 +19,9 @@ static void goal_stats(Mesh* mesh,
   auto nmid = ntotal - nlow - nhigh;
   if (mesh->comm()->rank() == 0) {
     std::ios::fmtflags stream_state(std::cout.flags());
-    std::cout << std::fixed << std::setprecision(3);
+    std::cout << std::fixed << std::setprecision(2);
     std::cout << ntotal << " " << plural_names[ent_dim];
-    std::cout << ", " << name << " " << minval << "~" << maxval;
+    std::cout << ", " << name << " [" << minval << "," << maxval << "]";
     if (nlow) {
       std::cout << ", " << nlow << " <" << floor;
     }
