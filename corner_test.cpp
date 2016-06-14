@@ -32,5 +32,4 @@ int main(int argc, char** argv) {
     adapt_check(&mesh, 0.40, 0.47, 2.0 / 3.0, 4.0 / 3.0);
     writer.write();
   } while(refine_by_size(&mesh, 4.0 / 3.0, 0.47));
-  mesh.set_tag(VERT, "size", Reals(mesh.nverts(), 1.0));
 }
