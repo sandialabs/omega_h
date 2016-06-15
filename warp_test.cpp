@@ -2,6 +2,27 @@
 
 using namespace osh;
 
+static void add_dye(Mesh* mesh) {
+  auto dye_w = Write<Real>(mesh->nverts());
+  auto coords = mesh->coords();
+  auto dye_fun = LAMBDA(LO vert) {
+    auto x = get_vec<2>(coords, vert);
+    auto left_cen = vector_2(.25, .5);
+    auto right_cen = vector_2(.75, .5);
+    auto left_dist = norm(x - left_cen);
+    auto right_dist = norm(x - right_cen);
+    auto dist = min2(left_dist, right_dist);
+    if (dist < .25) {
+      auto dir = sign(left_dist - right_dist);
+      dye_w[vert] = 4.0 * dir * (.25 - dist);
+    } else {
+      dye_w[vert] = 0;
+    }
+  };
+  parallel_for(mesh->nverts(), dye_fun);
+  mesh->add_tag(VERT, "dye", 1, OSH_LINEAR_INTERP, Reals(dye_w));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
@@ -17,13 +38,14 @@ int main(int argc, char** argv) {
   mesh.set_partition(GHOSTED);
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
+  add_dye(&mesh);
   vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   for (Int i = 0; i < 8; ++i) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
-    auto f = LAMBDA(LO vert) {
+    auto warp_fun = LAMBDA(LO vert) {
       auto x0 = get_vec<dim>(coords, vert);
       auto x1 = zero_vector<dim>();
       x1[0] = x0[0]; x1[1] = x0[1];
@@ -42,7 +64,7 @@ int main(int argc, char** argv) {
       auto w = dst - x0;
       set_vec<dim>(warp_w, vert, w);
     };
-    parallel_for(mesh.nverts(), f);
+    parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, OSH_LINEAR_INTERP, Reals(warp_w));
     while (warp_to_limit(&mesh, 0.37)) {
       if (world->rank() == 0) std::cout << "after warp_to_limit\n";
