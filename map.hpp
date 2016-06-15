@@ -2,7 +2,7 @@ template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);
 
 template <typename T>
-Read<T> map_onto(Read<T> a_data, LOs a2b, T init_val, Int width);
+Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width);
 
 template <typename T>
 Read<T> unmap(LOs a2b, Read<T> b_data, Int width);
