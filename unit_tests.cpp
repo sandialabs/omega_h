@@ -694,6 +694,19 @@ static void test_compare_meshes() {
   CHECK(!(a == b));
 }
 
+static void test_swap2d_topology() {
+  Mesh mesh;
+  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  std::array<LOs, 3> keys2prods;
+  std::array<LOs, 3> prod_verts2verts;
+  auto keys2edges = LOs({2});
+  swap2d_topology(&mesh, keys2edges, &keys2prods, &prod_verts2verts);
+  CHECK(prod_verts2verts[EDGE] == LOs({2,1}));
+  CHECK(prod_verts2verts[TRI] == LOs({3,2,1, 0,1,2}));
+  CHECK(keys2prods[EDGE] == LOs(1, 0, 1));
+  CHECK(keys2prods[TRI] == LOs(1, 0, 2));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -731,4 +744,5 @@ int main(int argc, char** argv) {
   test_i8_array_print();
   test_mark_up_down();
   test_compare_meshes();
+  test_swap2d_topology();
 }
