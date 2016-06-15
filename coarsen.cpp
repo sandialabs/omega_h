@@ -82,12 +82,17 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
 }
 
 static void coarsen_element_based2(Mesh* mesh) {
+  auto comm = mesh->comm();
   auto verts_are_keys = mesh->get_array<I8>(VERT, "key");
   auto vert_quals = mesh->get_array<Real>(VERT, "collapse_quality");
   auto edge_codes = get_edge_codes(mesh);
   auto edge_quals = get_edge_quals(mesh);
   auto keys2verts = collect_marked(verts_are_keys);
   auto nkeys = keys2verts.size();
+  auto ntotal_keys = comm->allreduce(GO(nkeys), SUM);
+  if (comm->rank() == 0) {
+    std::cout << "coarsening " << ntotal_keys << " vertices\n";
+  }
   auto rails2edges = LOs();
   auto rail_col_dirs = Read<I8>();
   find_rails(mesh, keys2verts, vert_quals, edge_codes, edge_quals,
@@ -175,6 +180,7 @@ bool coarsen_by_size(Mesh* mesh, Real min_len,
 }
 
 bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers) {
+  mesh->set_partition(GHOSTED);
   auto comm = mesh->comm();
   auto quals = mesh->ask_qualities();
   auto elem_is_cand = each_lt(quals, qual_ceil);

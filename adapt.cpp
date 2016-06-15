@@ -95,13 +95,21 @@ bool adapt(Mesh* mesh,
     return false;
   }
   auto allow_qual = min2(qual_ceil, mesh->min_quality());
+  if (mesh->comm()->rank() == 0) {
+    std::cout << "addressing edge lengths\n";
+  }
   while (refine_by_size(mesh, len_ceil, allow_qual)) {
     adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
   }
   while (coarsen_by_size(mesh, len_floor, allow_qual)) {
     adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
   }
+  bool first = true;
   while (mesh->min_quality() < qual_ceil) {
+    if (mesh->comm()->rank() == 0 && first) {
+      std::cout << "addressing element qualities\n";
+    }
+    if (first) first = false;
     if (coarsen_slivers(mesh, qual_ceil, nlayers)) {
       adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
       continue;

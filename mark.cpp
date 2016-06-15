@@ -74,6 +74,7 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
 }
 
 Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers) {
+  CHECK(mesh->partition() == GHOSTED);
   auto dual = mesh->ask_dual();
   for (Int i = 0; i < nlayers; ++i) {
     marks = graph_reduce(dual, marks, 1, MAX);

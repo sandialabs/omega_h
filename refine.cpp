@@ -25,6 +25,10 @@ static void refine_element_based(Mesh* mesh) {
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
   auto nkeys = keys2edges.size();
+  auto ntotal_keys = comm->allreduce(GO(nkeys), SUM);
+  if (comm->rank() == 0) {
+    std::cout << "refining " << ntotal_keys << " edges\n";
+  }
   auto new_mesh = Mesh();
   new_mesh.set_comm(comm);
   new_mesh.set_dim(mesh->dim());
