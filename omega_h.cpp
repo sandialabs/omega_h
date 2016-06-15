@@ -64,5 +64,6 @@ namespace osh {
 #include "laplace.cpp"
 #include "adapt.cpp"
 #include "swap2d_qualities.cpp"
+#include "swap2d_topology.cpp"
 
 } //end namespace osh
