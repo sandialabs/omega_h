@@ -371,3 +371,82 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+
+template <typename T>
+static void transfer_inherit_swap_tmpl(Mesh* old_mesh, Mesh* new_mesh,
+    Int prod_dim,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    TagBase const* tagbase) {
+  auto name = tagbase->name();
+  auto old_tag = old_mesh->get_tag<T>(EDGE, name);
+  auto ncomps = old_tag->ncomps();
+  auto edge_data = old_tag->array();
+  auto key_data = unmap(keys2edges, edge_data, ncomps);
+  auto prod_data = expand(key_data, keys2prods, ncomps);
+  transfer_common(old_mesh, new_mesh, prod_dim,
+      same_ents2old_ents, same_ents2new_ents, prods2new_ents,
+      old_tag, prod_data);
+}
+
+void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh,
+    Int prod_dim,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
+    auto tagbase = old_mesh->get_tag(prod_dim, i);
+    if (tagbase->xfer() == OSH_INHERIT) {
+      switch(tagbase->type()) {
+      case OSH_I8:
+        transfer_inherit_swap_tmpl<I8>(old_mesh, new_mesh, prod_dim,
+            keys2edges, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      case OSH_I32:
+        transfer_inherit_swap_tmpl<I32>(old_mesh, new_mesh, prod_dim,
+            keys2edges, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      case OSH_I64:
+        transfer_inherit_swap_tmpl<I64>(old_mesh, new_mesh, prod_dim,
+            keys2edges, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      case OSH_F64:
+        transfer_inherit_swap_tmpl<Real>(old_mesh, new_mesh, prod_dim,
+            keys2edges, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+        break;
+      }
+    }
+  }
+}
+
+void transfer_swap(Mesh* old_mesh, Mesh* new_mesh,
+    Int prod_dim,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  if (prod_dim == VERT) {
+    transfer_copy(old_mesh, new_mesh, prod_dim);
+  } else {
+    transfer_inherit_swap(old_mesh, new_mesh, prod_dim, keys2edges,
+        keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+  }
+  if (prod_dim == EDGE) {
+    transfer_length(old_mesh, new_mesh,
+        same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+  }
+  if (prod_dim == old_mesh->dim()) {
+    transfer_quality(old_mesh, new_mesh,
+        same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+  }
+}

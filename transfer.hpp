@@ -51,3 +51,19 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh,
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh,
     Int prod_dim);
+
+void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh,
+    Int prod_dim,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents);
+
+void transfer_swap(Mesh* old_mesh, Mesh* new_mesh,
+    Int prod_dim,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents);
