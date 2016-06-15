@@ -1,5 +1,6 @@
 void swap2d_topology(Mesh* mesh, LOs keys2edges,
-    LOs* prod_tv2v, LOs* prod_ev2v) {
+    std::array<LOs, 3>* keys2prods,
+    std::array<LOs, 3>* prod_verts2verts) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto tv2v = mesh->ask_verts_of(TRI);
   auto e2t = mesh->ask_up(EDGE, TRI);
@@ -33,6 +34,8 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
     }
   };
   parallel_for(nkeys, f);
-  *prod_tv2v = tri_verts2verts_w;
-  *prod_ev2v = edge_verts2verts_w;
+  keys2prods->at(EDGE) = LOs(nkeys, 0, 1);
+  keys2prods->at(TRI) = LOs(nkeys, 0, 2);
+  prod_verts2verts->at(EDGE) = edge_verts2verts_w;
+  prod_verts2verts->at(TRI) = tri_verts2verts_w;
 }
