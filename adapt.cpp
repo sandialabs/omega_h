@@ -114,10 +114,10 @@ bool adapt(Mesh* mesh,
       adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
       continue;
     }
-    if (coarsen_slivers(mesh, qual_ceil, nlayers)) {
-      adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
-      continue;
-    }
+  //if (coarsen_slivers(mesh, qual_ceil, nlayers)) {
+  //  adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+  //  continue;
+  //}
     if (mesh->comm()->rank() == 0) {
       std::cout << "adapt() could not satisfy quality\n";
     }
