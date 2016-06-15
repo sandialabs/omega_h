@@ -33,6 +33,11 @@ static void swap2d_element_based2(Mesh* mesh) {
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   mesh->remove_tag(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
+  auto nkeys = keys2edges.size();
+  auto ntotal_keys = comm->allreduce(GO(nkeys), SUM);
+  if (comm->rank() == 0) {
+    std::cout << "swapping " << ntotal_keys << " 2D edges\n";
+  }
   auto new_mesh = mesh->copy_meta();
   new_mesh.set_verts(mesh->nverts());
   new_mesh.set_owners(VERT, mesh->ask_owners(VERT));
