@@ -16,6 +16,12 @@ static bool swap2d_ghosted(Mesh* mesh) {
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_quals = swap2d_qualities(mesh, cands2edges);
+  {
+    auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 1);
+    mesh->add_tag(EDGE, "cand_qual", 1, OSH_DONT_TRANSFER, edge_quals);
+    vtk::write_parallel("cand_quals", mesh, 1);
+    mesh->remove_tag(EDGE, "cand_qual");
+  }
   filter_swap2d_improve(mesh, &cands2edges, &cand_quals);
   /* cavity quality checks */
   if (comm->reduce_and(cands2edges.size() == 0)) return false;

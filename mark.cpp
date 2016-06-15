@@ -94,5 +94,10 @@ Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {
   CHECK(mesh->partition() == GHOSTED);
   auto quals = mesh->ask_qualities();
   auto elems_are_slivers = each_lt(quals, qual_ceil);
+  {
+    mesh->add_tag(mesh->dim(), "sliver", 1, OSH_DONT_TRANSFER, elems_are_slivers);
+    vtk::write_parallel("input_tris", mesh, mesh->dim());
+    mesh->remove_tag(mesh->dim(), "sliver");
+  }
   return mark_dual_layers(mesh, elems_are_slivers, nlayers);
 }
