@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), f);
     mesh.add_tag(VERT, "warp", dim, OSH_LINEAR_INTERP, Reals(warp_w));
     Int wi = 0;
-    while (warp_to_limit(&mesh, 0.37)) {
+    while (warp_to_limit(&mesh, 0.0)) {
       if (world->rank() == 0) std::cout << "warp step " << wi++ << '\n';
       adapt(&mesh, 0.37, 0.99, 2.0 / 3.0, 4.0 / 3.0, 0);
       writer.write();
