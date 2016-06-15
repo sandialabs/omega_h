@@ -98,10 +98,10 @@ bool adapt(Mesh* mesh,
   if (mesh->comm()->rank() == 0) {
     std::cout << "addressing edge lengths\n";
   }
-  while (refine_by_size(mesh, len_ceil, allow_qual)) {
+  while (coarsen_by_size(mesh, len_floor, allow_qual)) {
     adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
   }
-  while (coarsen_by_size(mesh, len_floor, allow_qual)) {
+  while (refine_by_size(mesh, len_ceil, allow_qual)) {
     adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
   }
   bool first = true;
