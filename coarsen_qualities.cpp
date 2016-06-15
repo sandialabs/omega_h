@@ -140,6 +140,7 @@ Read<I8> filter_coarsen_improve(Mesh* mesh,
   auto elem_quals = mesh->ask_qualities();
   auto verts2elems = mesh->ask_up(VERT, mesh->dim());
   auto vert_old_quals = graph_reduce(verts2elems, elem_quals, 1, MIN);
+  vert_old_quals = mesh->sync_array(VERT, vert_old_quals, 1);
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto edge_old_quals = unmap(edge_verts2verts, vert_old_quals, 1);
   auto cand_old_quals = unmap(cands2edges, edge_old_quals, 2);
