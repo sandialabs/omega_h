@@ -165,8 +165,6 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
     Partition mode) {
   auto comm = old_mesh->comm();
   auto dim = old_mesh->dim();
-  new_mesh->set_comm(comm);
-  new_mesh->set_dim(dim);
   print_migrate_stats(comm, new_elems2old_owners);
   Dist new_ents2old_owners = new_elems2old_owners;
   auto old_owners2new_ents = new_ents2old_owners.invert();
@@ -191,7 +189,7 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
 }
 
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners) {
-  Mesh new_mesh;
+  auto new_mesh = mesh->copy_meta();
   migrate_mesh(mesh, &new_mesh, new_elems2old_owners, ELEMENT_BASED);
   *mesh = new_mesh;
 }

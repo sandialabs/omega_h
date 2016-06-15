@@ -29,11 +29,7 @@ static void refine_element_based(Mesh* mesh) {
   if (comm->rank() == 0) {
     std::cout << "refining " << ntotal_keys << " edges\n";
   }
-  auto new_mesh = Mesh();
-  new_mesh.set_comm(comm);
-  new_mesh.set_dim(mesh->dim());
-  new_mesh.set_partition(mesh->partition());
-  new_mesh.keep_canonical_globals(mesh->keeps_canonical_globals());
+  auto new_mesh = mesh->copy_meta();
   auto keys2midverts = LOs();
   auto old_verts2new_verts = LOs();
   auto old_lows2new_lows = LOs();

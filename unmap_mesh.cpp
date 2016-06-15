@@ -57,8 +57,6 @@ void unmap_owners(Mesh* old_mesh, Mesh* new_mesh,
 
 void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh,
     LOs new_ents2old_ents[]) {
-  new_mesh->set_comm(old_mesh->comm());
-  new_mesh->set_dim(old_mesh->dim());
   new_mesh->set_verts(old_mesh->nverts());
   LOs old_lows2new_lows;
   for (Int ent_dim = 0; ent_dim <= old_mesh->dim(); ++ent_dim) {

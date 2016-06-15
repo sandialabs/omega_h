@@ -99,11 +99,7 @@ static void coarsen_element_based2(Mesh* mesh) {
       rails2edges, rail_col_dirs);
   auto dead_ents = mark_dead_ents(mesh, rails2edges, rail_col_dirs);
   auto keys2verts_onto = get_verts_onto(mesh, rails2edges, rail_col_dirs);
-  auto new_mesh = Mesh();
-  new_mesh.set_comm(mesh->comm());
-  new_mesh.set_dim(mesh->dim());
-  new_mesh.set_partition(mesh->partition());
-  new_mesh.keep_canonical_globals(mesh->keeps_canonical_globals());
+  auto new_mesh = mesh->copy_meta();
   auto old_verts2new_verts = LOs();
   auto old_lows2new_lows = LOs();
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {

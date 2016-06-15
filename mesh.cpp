@@ -466,15 +466,25 @@ Real Mesh::min_quality() {
   return comm_->allreduce(min(ask_qualities()), MIN);
 }
 
-bool Mesh::could_be_shared(Int ent_dim) {
+bool Mesh::could_be_shared(Int ent_dim) const {
   return !((comm_->size() == 1) ||
            (partition_ == ELEMENT_BASED && ent_dim == dim()));
 }
 
-bool Mesh::owners_have_all_upward(Int ent_dim) {
+bool Mesh::owners_have_all_upward(Int ent_dim) const {
   return ((comm_->size() == 1) ||
           (partition_ == GHOSTED) ||
           (partition_ == VERTEX_BASED && ent_dim == VERT));
+}
+
+Mesh Mesh::copy_meta() const {
+  Mesh m;
+  m.dim_ = this->dim_;
+  m.comm_ = this->comm_;
+  m.partition_ = this->partition_;
+  m.rib_hints_ = this->rib_hints_;
+  m.keeps_canonical_globals_ = this->keeps_canonical_globals_;
+  return m;
 }
 
 #define INST_T(T) \

@@ -559,8 +559,9 @@ class Mesh {
         Read<T> a_data, LOs a2e, T default_val, Int width);
     bool operator==(Mesh& other);
     Real min_quality();
-    bool could_be_shared(Int ent_dim);
-    bool owners_have_all_upward(Int ent_dim);
+    bool could_be_shared(Int ent_dim) const;
+    bool owners_have_all_upward(Int ent_dim) const;
+    Mesh copy_meta() const;
 };
 
 namespace gmsh {
