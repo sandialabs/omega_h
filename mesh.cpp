@@ -15,11 +15,25 @@ void Mesh::set_comm(CommPtr new_comm) {
     if (!rank_had_comm) {
       //temporarily set the uninit ranks to Comm::self()
       comm_ = Comm::self();
+    } else {
+      /* forget RIB hints. this prevents some ranks from
+         having hints while the new ranks do not, which would
+         break RIB. also, since repartitioning does not change
+         the geometric properties of the mesh and our RIB code
+         is partition and order independent, it will recover
+         the same axes of separation as before */
+      rib_hints_ = RibPtr();
     }
     bcast_mesh(this, new_comm, rank_had_comm);
   }
+  /* if some ranks already have mesh data, their
+     parallel info needs updating, we'll do this
+     by using the old Dist to set new owners */
   if (0 < nnew_had_comm) {
     for (Int d = 0; d <= dim(); ++d) {
+      /* in the case of serial to parallel, globals may not be
+         here yet, so this call will make sure they get cached
+         and subsequently migrated */
       ask_globals(d);
       auto dist = ask_dist(d);
       dist.change_comm(new_comm);
@@ -325,6 +339,7 @@ Read<GO> Mesh::ask_globals(Int dim) {
 }
 
 void Mesh::forget_globals() {
+  CHECK(comm_->size() == 1);
   for (Int d = 0; d <= dim(); ++d)
     if (has_tag(d, "global"))
       remove_tag(d, "global");

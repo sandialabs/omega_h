@@ -164,12 +164,19 @@ LO Dist::ndests() const {
   return nitems();
 }
 
+/* this is the key algorithm for moving from one communicator
+   to another. essentially, we have to map from old ranks to
+   new ranks, and rebuild graph communicators as well */
 void Dist::change_comm(CommPtr new_comm) {
+  // gather the new ranks of our neighbors
   auto new_sources = comm_[F]->allgather(new_comm->rank());
   auto new_destinations = comm_[R]->allgather(new_comm->rank());
+  // rebuild graph communicators from these new neighbor lists
   comm_[F] = new_comm->graph_adjacent(new_sources, new_destinations);
   comm_[R] = comm_[F]->graph_inverse();
+  // replace parent_comm_
   parent_comm_ = new_comm;
+  // thats it! since all rank information is queried from graph comms
 }
 
 Remotes Dist::exch(Remotes data, Int width) const {
