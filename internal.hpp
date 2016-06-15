@@ -134,5 +134,6 @@ namespace osh {
 #include "warp.hpp"
 #include "laplace.hpp"
 #include "adapt.hpp"
+#include "swap2d.hpp"
 
 } //end namespace osh

@@ -63,5 +63,6 @@ namespace osh {
 #include "warp.cpp"
 #include "laplace.cpp"
 #include "adapt.cpp"
+#include "swap2d_qualities.cpp"
 
 } //end namespace osh
