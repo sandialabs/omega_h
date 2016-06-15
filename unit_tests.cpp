@@ -703,8 +703,8 @@ static void test_swap2d_topology() {
   swap2d_topology(&mesh, keys2edges, &keys2prods, &prod_verts2verts);
   CHECK(prod_verts2verts[EDGE] == LOs({2,1}));
   CHECK(prod_verts2verts[TRI] == LOs({3,2,1, 0,1,2}));
-  CHECK(keys2prods[EDGE] == LOs(1, 0, 1));
-  CHECK(keys2prods[TRI] == LOs(1, 0, 2));
+  CHECK(keys2prods[EDGE] == offset_scan(LOs({1})));
+  CHECK(keys2prods[TRI] == offset_scan(LOs({2})));
 }
 
 int main(int argc, char** argv) {

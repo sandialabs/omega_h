@@ -34,8 +34,8 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
     }
   };
   parallel_for(nkeys, f);
-  keys2prods->at(EDGE) = LOs(nkeys, 0, 1);
-  keys2prods->at(TRI) = LOs(nkeys, 0, 2);
+  keys2prods->at(EDGE) = LOs(nkeys + 1, 0, 1);
+  keys2prods->at(TRI) = LOs(nkeys + 1, 0, 2);
   prod_verts2verts->at(EDGE) = edge_verts2verts_w;
   prod_verts2verts->at(TRI) = tri_verts2verts_w;
 }
