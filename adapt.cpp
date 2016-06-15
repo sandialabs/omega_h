@@ -106,10 +106,14 @@ bool adapt(Mesh* mesh,
   }
   bool first = true;
   while (mesh->min_quality() < qual_ceil) {
-    if (mesh->comm()->rank() == 0 && first) {
+    if (first && mesh->comm()->rank() == 0) {
       std::cout << "addressing element qualities\n";
     }
     if (first) first = false;
+    if (mesh->dim() == 2 && swap2d(mesh, qual_ceil, nlayers)) {
+      adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+      continue;
+    }
     if (coarsen_slivers(mesh, qual_ceil, nlayers)) {
       adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
       continue;
