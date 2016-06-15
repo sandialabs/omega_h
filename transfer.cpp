@@ -335,3 +335,38 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh,
         same_ents2old_ents, same_ents2new_ents, prods2new_ents);
   }
 }
+
+template <typename T>
+static void transfer_copy_tmpl(Mesh* new_mesh,
+    Int prod_dim,
+    TagBase const* tagbase) {
+  auto old_tag = to<T>(tagbase);
+  auto name = old_tag->name();
+  auto ncomps = old_tag->ncomps();
+  auto xfer = old_tag->xfer();
+  auto old_data = old_tag->array();
+  new_mesh->add_tag(prod_dim, name, ncomps, xfer, old_data);
+}
+
+void transfer_copy(Mesh* old_mesh, Mesh* new_mesh,
+    Int prod_dim) {
+  for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
+    auto tagbase = old_mesh->get_tag(prod_dim, i);
+    if (tagbase->xfer() != OSH_DONT_TRANSFER) {
+      switch(tagbase->type()) {
+      case OSH_I8:
+        transfer_copy_tmpl<I8>(new_mesh, prod_dim, tagbase);
+        break;
+      case OSH_I32:
+        transfer_copy_tmpl<I32>(new_mesh, prod_dim, tagbase);
+        break;
+      case OSH_I64:
+        transfer_copy_tmpl<I64>(new_mesh, prod_dim, tagbase);
+        break;
+      case OSH_F64:
+        transfer_copy_tmpl<Real>(new_mesh, prod_dim, tagbase);
+        break;
+      }
+    }
+  }
+}
