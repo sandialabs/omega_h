@@ -17,3 +17,5 @@ Read<I8> mark_by_owner(Mesh* mesh, Int ent_dim, I32 rank);
 Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers);
 
 GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks);
+
+Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers);

@@ -178,9 +178,7 @@ bool coarsen_by_size(Mesh* mesh, Real min_len,
 bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers) {
   mesh->set_partition(GHOSTED);
   auto comm = mesh->comm();
-  auto quals = mesh->ask_qualities();
-  auto elem_is_cand = each_lt(quals, qual_ceil);
-  if (comm->allreduce(max(elem_is_cand), MAX) != 1) return false;
-  elem_is_cand = mark_dual_layers(mesh, elem_is_cand, nlayers);
-  return coarsen_ents(mesh, mesh->dim(), elem_is_cand, 0.0, true);
+  auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
+  CHECK(comm->allreduce(max(elems_are_cands), MAX) == 1);
+  return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true);
 }

@@ -83,10 +83,16 @@ Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers) {
   return marks;
 }
 
-GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks)
-{
+GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks) {
   if (mesh->could_be_shared(ent_dim)) {
     marks = land_each(marks, mesh->owned(ent_dim));
   }
   return mesh->comm()->allreduce(GO(sum(marks)), SUM);
+}
+
+Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {
+  CHECK(mesh->partition() == GHOSTED);
+  auto quals = mesh->ask_qualities();
+  auto elems_are_slivers = each_lt(quals, qual_ceil);
+  return mark_dual_layers(mesh, elems_are_slivers, nlayers);
 }
