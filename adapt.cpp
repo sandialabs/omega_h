@@ -53,7 +53,7 @@ static void adapt_summary(Mesh* mesh,
       qual_floor, qual_ceil, minqual, maxqual);
   goal_stats(mesh, "length", EDGE, mesh->ask_edge_lengths(),
       len_floor, len_ceil, minlen, maxlen);
-  std::cout << '\n';
+  if (mesh->comm()->rank() == 0) std::cout << '\n';
 }
 
 bool adapt_check(Mesh* mesh,
@@ -69,8 +69,8 @@ bool adapt_check(Mesh* mesh,
       len_floor <= minlen &&
       maxlen <= len_ceil) {
     if (mesh->comm()->rank() == 0) {
-      std::cout << "mesh is good: quality " << minqual << "~" << maxqual
-        << ", length " << minlen << "~" << maxlen << "\n\n";
+      std::cout << "mesh is good: quality [" << minqual << "," << maxqual
+        << "], length [" << minlen << "," << maxlen << "]\n\n";
     }
     return true;
   }

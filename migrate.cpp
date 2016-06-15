@@ -140,12 +140,34 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->set_owners(ent_dim, owners);
 }
 
+static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
+  auto msgs2ranks = new_elems2old_owners.msgs2ranks();
+  auto msgs2content = new_elems2old_owners.msgs2content();
+  auto msg_content_size = get_degrees(msgs2content);
+  auto msgs2ranks_h = HostRead<I32>(msgs2ranks);
+  LO nintern = 0;
+  for (LO msg = 0; msg < msgs2ranks_h.size(); ++msg) {
+    if (msgs2ranks_h[msg] == comm->rank()) {
+      nintern = msg_content_size[msg];
+    }
+  }
+  auto npulled = msgs2content.last();
+  auto nextern = npulled - nintern;
+  auto total_pulled = comm->allreduce(GO(npulled), SUM);
+  auto total_extern = comm->allreduce(GO(nextern), SUM);
+  if (comm->rank() == 0) {
+    std::cout << "migration pulling (" << total_extern
+      << " remote) / (" << total_pulled << " total) elements\n";
+  }
+}
+
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
     Partition mode) {
   auto comm = old_mesh->comm();
   auto dim = old_mesh->dim();
   new_mesh->set_comm(comm);
   new_mesh->set_dim(dim);
+  print_migrate_stats(comm, new_elems2old_owners);
   Dist new_ents2old_owners = new_elems2old_owners;
   auto old_owners2new_ents = new_ents2old_owners.invert();
   for (Int d = dim; d > VERT; --d) {

@@ -117,6 +117,10 @@ CommPtr Dist::comm() const {
   return comm_[F];
 }
 
+LOs Dist::msgs2content() const {
+  return msgs2content_[F];
+}
+
 LOs Dist::content2msgs() const {
   return invert_fan(msgs2content_[F]);
 }

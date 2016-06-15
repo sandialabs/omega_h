@@ -398,6 +398,7 @@ public:
   Read<T> exch_reduce(Read<T> data, Int width, ReduceOp op) const;
   CommPtr parent_comm() const;
   CommPtr comm() const;
+  LOs msgs2content() const;
   LOs content2msgs() const;
   LOs items2msgs() const;
   LOs roots2items() const;
