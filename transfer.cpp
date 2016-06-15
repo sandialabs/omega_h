@@ -215,7 +215,7 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh,
 }
 
 template <typename T>
-static void transfer_inherit_coarsen(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_inherit_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
     Adj keys2doms,
     Int prod_dim,
     LOs prods2new_ents,
@@ -244,22 +244,22 @@ static void transfer_inherit_coarsen(Mesh* old_mesh, Mesh* new_mesh,
     if (tagbase->xfer() == OSH_INHERIT) {
       switch(tagbase->type()) {
       case OSH_I8:
-        transfer_inherit_coarsen<I8>(old_mesh, new_mesh,
+        transfer_inherit_coarsen_tmpl<I8>(old_mesh, new_mesh,
             keys2doms, prod_dim, prods2new_ents,
             same_ents2old_ents, same_ents2new_ents, tagbase);
         break;
       case OSH_I32:
-        transfer_inherit_coarsen<I32>(old_mesh, new_mesh,
+        transfer_inherit_coarsen_tmpl<I32>(old_mesh, new_mesh,
             keys2doms, prod_dim, prods2new_ents,
             same_ents2old_ents, same_ents2new_ents, tagbase);
         break;
       case OSH_I64:
-        transfer_inherit_coarsen<I64>(old_mesh, new_mesh,
+        transfer_inherit_coarsen_tmpl<I64>(old_mesh, new_mesh,
             keys2doms, prod_dim, prods2new_ents,
             same_ents2old_ents, same_ents2new_ents, tagbase);
         break;
       case OSH_F64:
-        transfer_inherit_coarsen<Real>(old_mesh, new_mesh,
+        transfer_inherit_coarsen_tmpl<Real>(old_mesh, new_mesh,
             keys2doms, prod_dim, prods2new_ents,
             same_ents2old_ents, same_ents2new_ents, tagbase);
         break;
@@ -370,3 +370,4 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh,
     }
   }
 }
+
