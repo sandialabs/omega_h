@@ -410,6 +410,7 @@ void Mesh::reorder() {
 }
 
 void Mesh::balance() {
+  if (comm_->size() == 1) return;
   set_partition(ELEMENT_BASED);
   inertia::Rib hints;
   if (rib_hints_)
