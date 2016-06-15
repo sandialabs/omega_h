@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
   vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
-  for (Int i = 0; i < 8; ++i) {
+  for (Int i = 0; i < 5; ++i) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
     auto f = LAMBDA(LO vert) {
