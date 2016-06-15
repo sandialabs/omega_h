@@ -20,7 +20,8 @@ int main(int argc, char** argv) {
   vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
-  for (Int i = 0; i < 5; ++i) {
+  for (Int i = 0; i < 4; ++i) {
+    if (world->rank() == 0) std::cout << "rotation step " << i << '\n';
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
     auto f = LAMBDA(LO vert) {
@@ -44,8 +45,9 @@ int main(int argc, char** argv) {
     };
     parallel_for(mesh.nverts(), f);
     mesh.add_tag(VERT, "warp", dim, OSH_LINEAR_INTERP, Reals(warp_w));
+    Int wi = 0;
     while (warp_to_limit(&mesh, 0.37)) {
-      if (world->rank() == 0) std::cout << "after warp_to_limit\n";
+      if (world->rank() == 0) std::cout << "warp step " << wi++ << '\n';
       adapt(&mesh, 0.37, 0.47, 2.0 / 3.0, 4.0 / 3.0, 4);
       writer.write();
     }
