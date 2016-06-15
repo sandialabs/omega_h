@@ -6,9 +6,9 @@ static void add_dye(Mesh* mesh) {
   auto dye_w = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
   auto dye_fun = LAMBDA(LO vert) {
-    auto x = get_vec<2>(coords, vert);
-    auto left_cen = vector_2(.25, .5);
-    auto right_cen = vector_2(.75, .5);
+    auto x = get_vec<3>(coords, vert);
+    auto left_cen = vector_3(.25, .5, .5);
+    auto right_cen = vector_3(.75, .5, .5);
     auto left_dist = norm(x - left_cen);
     auto right_dist = norm(x - right_cen);
     auto dist = min2(left_dist, right_dist);
@@ -26,7 +26,7 @@ static void add_dye(Mesh* mesh) {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  constexpr Int dim = 2;
+  constexpr Int dim = 3;
   Mesh mesh;
   if (world->rank() == 0) {
     auto nx = 12;
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
   vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
-  for (Int i = 0; i < 8; ++i) {
+  for (Int i = 0; i < 4; ++i) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
     auto warp_fun = LAMBDA(LO vert) {
