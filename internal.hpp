@@ -138,5 +138,6 @@ namespace osh {
 #include "swap3d_tables.hpp"
 #include "swap3d_loop.hpp"
 #include "swap3d_choice.hpp"
+#include "swap3d.hpp"
 
 } //end namespace osh
