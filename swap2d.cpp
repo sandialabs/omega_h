@@ -16,7 +16,7 @@ static bool swap2d_ghosted(Mesh* mesh) {
   return true;
 }
 
-static void swap2d_element_based2(Mesh* mesh) {
+static void swap2d_element_based(Mesh* mesh) {
   auto comm = mesh->comm();
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   mesh->remove_tag(EDGE, "key");
@@ -60,6 +60,6 @@ bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers) {
   if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
   if (!swap2d_ghosted(mesh)) return false;
   mesh->set_partition(ELEMENT_BASED);
-  swap2d_element_based2(mesh);
+  swap2d_element_based(mesh);
   return true;
 }
