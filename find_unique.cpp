@@ -41,7 +41,7 @@ template void make_canonical<3>(LOs ev2v,
 /* check whether adjacent lists of (deg) vertices
    are the same */
 template <Int deg>
-INLINE static bool are_equal(LOs canon, LO e0, LO e1) {
+DEVICE static bool are_equal(LOs canon, LO e0, LO e1) {
   LO a = e0 * deg;
   LO b = e1 * deg;
   for (LO j = 0; j < deg; ++j)

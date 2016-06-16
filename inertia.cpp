@@ -30,7 +30,11 @@ Matrix<3,3> get_matrix(CommPtr comm, Reals coords,
   parallel_for(n, f);
   Real symm[6];
   repro_sum(comm, Reals(weighted_contrib), symm_dofs(3), symm);
-  return get_symm<3>(symm, 0);
+  auto m = Matrix<3,3>({
+      {symm[0], symm[3], symm[5]},
+      {symm[3], symm[1], symm[4]},
+      {symm[5], symm[4], symm[2]}});
+  return m;
 }
 
 Vector<3> get_axis(CommPtr comm, Reals coords,

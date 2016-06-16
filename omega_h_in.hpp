@@ -108,16 +108,16 @@ OSH_OPENMP_STR "," OSH_CUDA_STR "," OSH_ZLIB_STR
 
 #ifdef OSH_USE_KOKKOS
 #define OSH_INLINE KOKKOS_INLINE_FUNCTION
-#define OSH_LAMBDA KOKKOS_LAMBDA
 #else
 #define OSH_INLINE inline
-#define OSH_LAMBDA [=]
 #endif //OSH_USE_KOKKOS
 
 #ifdef OSH_USE_CUDA
 #define OSH_DEVICE __device__ inline
+#define OSH_LAMBDA [=]__device__
 #else
 #define OSH_DEVICE inline
+#define OSH_LAMBDA [=]
 #endif //OSH_USE_CUDA
 
 namespace osh {
@@ -166,7 +166,7 @@ public:
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
   LO size() const;
-  OSH_INLINE T& operator[](LO i) const {
+  OSH_DEVICE T& operator[](LO i) const {
 #ifdef OSH_CHECK_BOUNDS
     OSH_CHECK(0 <= i);
     OSH_CHECK(i < size());
@@ -196,7 +196,7 @@ public:
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
   LO size() const;
-  OSH_INLINE T const& operator[](LO i) const {
+  OSH_DEVICE T const& operator[](LO i) const {
     return write_[i];
   }
   T const* data() const;
