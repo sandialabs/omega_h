@@ -33,19 +33,21 @@ DEVICE Loop find_loop(
   for (Int i = 0; i < MAX_EDGE_SWAP; ++i) {
     tmp_edges[i][0] = tmp_edges[i][1] = -1;
   }
-  for (auto edge_tet = begin_use; edge_tet < end_use; ++edge_tet) {
+  for (Int loop_edge = 0; loop_edge < loop.size; ++loop_edge) {
+    auto edge_tet = begin_use + loop_edge;
     auto tet = edge_tets2tets[edge_tet];
     auto code = edge_tet_codes[edge_tet];
     auto rre = code_which_down(code);
     auto rot = code_rotation(code);
     auto rre_opp = OppositeTemplate<TET,EDGE>::get(rre);
-    for (Int rev = 0; rev < 2; ++rev) {
+    for (Int eev = 0; eev < 2; ++eev) {
       /* we rely on the fact that tet-edge-vertices are
          defined such that the opposite edge curls around
          the input edge. */
+      auto rev = rot ^ eev;
       auto rrv = DownTemplate<TET,EDGE>::get(rre_opp, rev);
-      auto v = tet_verts2verts[tet * 6 + rrv];
-      tmp_edges[edge_tet - begin_use][rot ^ rev] = v;
+      auto v = tet_verts2verts[tet * 4 + rrv];
+      tmp_edges[edge_tet - begin_use][eev] = v;
     }
   }
   /* Upward adjacency from edges to tets is not ordered
