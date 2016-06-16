@@ -707,6 +707,30 @@ static void test_swap2d_topology() {
   CHECK(keys2prods[TRI] == offset_scan(LOs({2})));
 }
 
+static void test_swap3d_loop() {
+  Mesh mesh;
+  build_box(&mesh, 1, 1, 1, 1, 1, 1);
+  auto edges2tets = mesh.ask_up(EDGE, TET);
+  auto edges2edge_tets = edges2tets.a2ab;
+  auto edge_tets2tets = edges2tets.ab2b;
+  auto edge_tet_codes = edges2tets.codes;
+  auto edge_verts2verts = mesh.ask_verts_of(EDGE);
+  auto tet_verts2verts = mesh.ask_verts_of(TET);
+  auto f = LAMBDA(LO foo) {
+    (void) foo;
+    LO edge = 6;
+    auto loop = swap3d::find_loop(
+        edges2edge_tets,
+        edge_tets2tets,
+        edge_tet_codes,
+        edge_verts2verts,
+        tet_verts2verts,
+        edge);
+    CHECK(loop.size == 6);
+  };
+  parallel_for(LO(1), f);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -745,4 +769,5 @@ int main(int argc, char** argv) {
   test_mark_up_down();
   test_compare_meshes();
   test_swap2d_topology();
+  test_swap3d_loop();
 }

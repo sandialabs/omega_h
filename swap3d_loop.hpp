@@ -10,7 +10,7 @@ struct Loop {
   Few<LO, MAX_EDGE_SWAP> loop_verts2verts;
 };
 
-INLINE Loop find_loop(
+DEVICE Loop find_loop(
     LOs const& edges2edge_tets,
     LOs const& edge_tets2tets,
     Read<I8> const& edge_tet_codes,

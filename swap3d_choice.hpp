@@ -6,7 +6,7 @@ struct Choice {
 };
 
 template <typename Measure>
-INLINE Choice choose(Loop loop, Measure const& measure) {
+DEVICE Choice choose(Loop loop, Measure const& measure) {
   auto nmeshes = swap_mesh_counts[loop.size];
   auto nmesh_tris = swap_mesh_sizes[loop.size];
   auto uniq_tris2loop_verts = swap_triangles[loop.size];
