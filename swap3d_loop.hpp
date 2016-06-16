@@ -62,7 +62,7 @@ DEVICE Loop find_loop(
       if (tmp_edges[j][0] == tmp_edges[i][1]) break;
     }
     CHECK(j < loop.size);
-    swap2(tmp_edges[i], tmp_edges[j]);
+    swap2(tmp_edges[i + 1], tmp_edges[j]);
   }
   for (Int lv = 0; lv < loop.size; ++lv) {
     loop.loop_verts2verts[lv] = tmp_edges[lv][0];
