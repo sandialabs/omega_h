@@ -172,7 +172,7 @@ struct RealElementQualities {
   Reals coords;
   RealElementQualities(Mesh const* mesh):coords(mesh->coords()) {}
   template <Int neev>
-  INLINE Real measure(Few<LO, neev> v) const {
+  DEVICE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
     return real_element_quality(p);
   }
@@ -186,7 +186,7 @@ struct MetricElementQualities {
     metrics(mesh->get_array<Real>(VERT, "metric"))
   {}
   template <Int neev>
-  INLINE Real measure(Few<LO, neev> v) const {
+  DEVICE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
     auto metric = average_metrics(gather_symms<neev,neev - 1>(metrics, v));
     return metric_element_quality(p, metric);

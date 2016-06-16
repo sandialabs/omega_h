@@ -32,7 +32,7 @@ template <Int n>
 class Vector : public Few<Real, n> {
   public:
     INLINE Vector() {}
-    Vector(std::initializer_list<Real> l);
+    inline Vector(std::initializer_list<Real> l):Few<Real, n>(l) {}
     INLINE void operator=(Vector<n> const& rhs) volatile {
       Few<Real, n>::operator=(rhs);
     }
@@ -43,13 +43,6 @@ class Vector : public Few<Real, n> {
       Few<Real, n>(rhs) {
     }
 };
-
-template <Int n>
-Vector<n>::Vector(std::initializer_list<Real> l) {
-  Int i = 0;
-  for (Real v : l)
-    (*this)[i++] = v;
-}
 
 template <Int n>
 std::ostream& operator<<(std::ostream& o, Vector<n> v) {
@@ -133,7 +126,8 @@ template <Int m, Int n>
 class Matrix : public Few<Vector<m>, n> {
   public:
     INLINE Matrix() {}
-    Matrix(std::initializer_list<Real> l);
+    inline Matrix(std::initializer_list<Vector<m>> l):Few<Vector<m>, n>(l) {}
+    inline Matrix(std::initializer_list<Real> l);
     INLINE void operator=(Matrix<m,n> const& rhs) volatile {
       Few<Vector<m>, n>::operator=(rhs);
     }
@@ -146,7 +140,7 @@ class Matrix : public Few<Vector<m>, n> {
 };
 
 template <Int m, Int n>
-Matrix<m,n>::Matrix(std::initializer_list<Real> l) {
+inline Matrix<m,n>::Matrix(std::initializer_list<Real> l) {
   Int k = 0;
   for (Real v : l) {
     (*this)[k % n][k / n] = v;

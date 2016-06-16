@@ -3,7 +3,7 @@ struct IsMatch;
 
 template <>
 struct IsMatch<2> {
-  INLINE static bool eval(
+  DEVICE static bool eval(
       LOs const& av2v,
       LO a_begin,
       LOs const& bv2v,
@@ -20,7 +20,7 @@ struct IsMatch<2> {
 
 template <>
 struct IsMatch<3> {
-  INLINE static bool eval(
+  DEVICE static bool eval(
       LOs const& av2v,
       LO a_begin,
       LOs const& bv2v,

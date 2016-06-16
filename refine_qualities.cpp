@@ -16,7 +16,7 @@ struct MetricRefineQualities {
           mesh->get_array<Real>(VERT, "metric")))
   {}
   template <Int dim>
-  INLINE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
+  DEVICE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
       Few<LO, dim> csv2v) const {
     Few<Matrix<dim,dim>, dim + 1> ms;
     for (Int csv = 0; csv < dim; ++csv)
