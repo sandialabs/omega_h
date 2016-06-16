@@ -135,5 +135,8 @@ namespace osh {
 #include "laplace.hpp"
 #include "adapt.hpp"
 #include "swap2d.hpp"
+#include "swap3d_tables.hpp"
+#include "swap3d_loop.hpp"
+#include "swap3d_choice.hpp"
 
 } //end namespace osh
