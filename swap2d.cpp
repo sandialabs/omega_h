@@ -1,7 +1,9 @@
-static bool swap2d_element_based1(Mesh* mesh) {
+bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
+  mesh->set_partition(GHOSTED);
   auto comm = mesh->comm();
-  auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
-  mesh->remove_tag(EDGE, "candidate");
+  auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
+  CHECK(comm->allreduce(max(elems_are_cands), MAX) == 1);
+  auto edges_are_cands = mark_down(mesh, mesh->dim(), EDGE, elems_are_cands);
   auto edges_are_inter = mark_by_class_dim(mesh, EDGE, mesh->dim());
   edges_are_cands = land_each(edges_are_cands, edges_are_inter);
   /* only swap interior edges */
@@ -69,13 +71,7 @@ static void swap2d_element_based2(Mesh* mesh) {
 }
 
 bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers) {
-  mesh->set_partition(GHOSTED);
-  auto comm = mesh->comm();
-  auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
-  CHECK(comm->allreduce(max(elems_are_cands), MAX) == 1);
-  auto edges_are_cands = mark_down(mesh, mesh->dim(), EDGE, elems_are_cands);
-  mesh->add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edges_are_cands);
-  if (!swap2d_element_based1(mesh)) return false;
+  if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
   if (!swap2d_ghosted(mesh)) return false;
   mesh->set_partition(ELEMENT_BASED);
   swap2d_element_based2(mesh);
