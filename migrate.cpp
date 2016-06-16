@@ -144,11 +144,12 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
   auto msgs2ranks = new_elems2old_owners.msgs2ranks();
   auto msgs2content = new_elems2old_owners.msgs2content();
   auto msg_content_size = get_degrees(msgs2content);
+  auto msg_content_size_h = HostRead<LO>(msg_content_size);
   auto msgs2ranks_h = HostRead<I32>(msgs2ranks);
   LO nintern = 0;
   for (LO msg = 0; msg < msgs2ranks_h.size(); ++msg) {
     if (msgs2ranks_h[msg] == comm->rank()) {
-      nintern = msg_content_size[msg];
+      nintern = msg_content_size_h[msg];
     }
   }
   auto npulled = msgs2content.last();

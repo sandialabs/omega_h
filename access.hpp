@@ -1,5 +1,5 @@
 template <typename Arr>
-INLINE void set_symm(Arr const& a, Int i, Matrix<3,3> symm) {
+DEVICE void set_symm(Arr const& a, Int i, Matrix<3,3> symm) {
   a[i * 6 + 0] = symm[0][0];
   a[i * 6 + 1] = symm[1][1];
   a[i * 6 + 2] = symm[2][2];
@@ -9,14 +9,14 @@ INLINE void set_symm(Arr const& a, Int i, Matrix<3,3> symm) {
 }
 
 template <typename Arr>
-INLINE void set_symm(Arr const& a, Int i, Matrix<2,2> symm) {
+DEVICE void set_symm(Arr const& a, Int i, Matrix<2,2> symm) {
   a[i * 3 + 0] = symm[0][0];
   a[i * 3 + 1] = symm[1][1];
   a[i * 3 + 2] = symm[1][0];
 }
 
 template <typename Arr>
-INLINE Matrix<3,3> get_symm_3(Arr const& a, Int i) {
+DEVICE Matrix<3,3> get_symm_3(Arr const& a, Int i) {
   Matrix<3,3> symm;
   symm[0][0] = a[i * 6 + 0];
   symm[1][1] = a[i * 6 + 1];
@@ -31,7 +31,7 @@ INLINE Matrix<3,3> get_symm_3(Arr const& a, Int i) {
 }
 
 template <typename Arr>
-INLINE Matrix<2,2> get_symm_2(Arr const& a, Int i) {
+DEVICE Matrix<2,2> get_symm_2(Arr const& a, Int i) {
   Matrix<2,2> symm;
   symm[0][0] = a[i * 3 + 0];
   symm[1][1] = a[i * 3 + 1];
@@ -46,31 +46,31 @@ struct SymmAccess;
 
 template <typename Arr>
 struct SymmAccess<2, Arr> {
-  INLINE static Matrix<2,2> get(Arr const& a, Int i) {
+  DEVICE static Matrix<2,2> get(Arr const& a, Int i) {
     return get_symm_2(a, i);
   }
 };
 
 template <typename Arr>
 struct SymmAccess<3, Arr> {
-  INLINE static Matrix<3,3> get(Arr const& a, Int i) {
+  DEVICE static Matrix<3,3> get(Arr const& a, Int i) {
     return get_symm_3(a, i);
   }
 };
 
 template <Int dim, typename Arr>
-INLINE Matrix<dim,dim> get_symm(Arr const& a, Int i) {
+DEVICE Matrix<dim,dim> get_symm(Arr const& a, Int i) {
   return SymmAccess<dim,Arr>::get(a, i);
 }
 
 template <Int n, class Arr>
-INLINE void set_vec(Arr const& a, Int i, Vector<n> v) {
+DEVICE void set_vec(Arr const& a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j)
     a[i * n + j] = v[j];
 }
 
 template <Int n, class Arr>
-INLINE Vector<n> get_vec(Arr const& a, Int i) {
+DEVICE Vector<n> get_vec(Arr const& a, Int i) {
   Vector<n> v;
   for (Int j = 0; j < n; ++j)
     v[j] = a[i * n + j];
@@ -78,7 +78,7 @@ INLINE Vector<n> get_vec(Arr const& a, Int i) {
 }
 
 template <Int neev>
-INLINE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
+DEVICE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
   Few<LO, neev> v;
   for (Int i = 0; i < neev; ++i)
     v[i] = ev2v[e * neev + i];
@@ -86,7 +86,7 @@ INLINE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
 }
 
 template <Int neev>
-INLINE Few<Real, neev>
+DEVICE Few<Real, neev>
 gather_scalars(Reals const& a, Few<LO, neev> v) {
   Few<Real, neev> x;
   for (Int i = 0; i < neev; ++i)
@@ -95,7 +95,7 @@ gather_scalars(Reals const& a, Few<LO, neev> v) {
 }
 
 template <Int neev, Int dim>
-INLINE Few<Vector<dim>, neev>
+DEVICE Few<Vector<dim>, neev>
 gather_vectors(Reals const& a, Few<LO, neev> v) {
   Few<Vector<dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
@@ -104,7 +104,7 @@ gather_vectors(Reals const& a, Few<LO, neev> v) {
 }
 
 template <Int neev, Int dim>
-INLINE Few<Matrix<dim,dim>, neev>
+DEVICE Few<Matrix<dim,dim>, neev>
 gather_symms(Reals const& a, Few<LO, neev> v) {
   Few<Matrix<dim,dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
@@ -112,7 +112,7 @@ gather_symms(Reals const& a, Few<LO, neev> v) {
   return x;
 }
 
-INLINE Int symm_dofs(Int dim) {
+INLINE constexpr Int symm_dofs(Int dim) {
   return ((dim + 1) * dim) / 2;
 }
 

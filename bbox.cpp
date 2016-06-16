@@ -13,7 +13,7 @@ struct BBoxFunctor {
       const volatile value_type& input) const {
     update = unite(update, input);
   }
-  INLINE void operator()(Int i, value_type& update) const {
+  DEVICE void operator()(Int i, value_type& update) const {
     update = unite(update, BBox<dim>(get_vec<dim>(coords_, i)));
   }
 };

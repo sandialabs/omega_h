@@ -180,7 +180,7 @@ DEVICE void tets_from_hex_1(
   ndiags_into = diags_into[0] + diags_into[1] + diags_into[2];
 }
 
-INLINE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
+DEVICE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
     LO const hhv2v[],
     Int const case_template[][4],
     Int nhht) {
