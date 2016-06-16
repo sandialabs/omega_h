@@ -1,24 +1,10 @@
-bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
-  mesh->set_partition(GHOSTED);
-  auto comm = mesh->comm();
-  auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
-  CHECK(comm->allreduce(max(elems_are_cands), MAX) == 1);
-  auto edges_are_cands = mark_down(mesh, mesh->dim(), EDGE, elems_are_cands);
-  auto edges_are_inter = mark_by_class_dim(mesh, EDGE, mesh->dim());
-  edges_are_cands = land_each(edges_are_cands, edges_are_inter);
-  /* only swap interior edges */
-  if (comm->reduce_and(max(edges_are_cands) <= 0)) return false;
-  mesh->add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edges_are_cands);
-  return true;
-}
-
 static bool swap2d_ghosted(Mesh* mesh) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_quals = swap2d_qualities(mesh, cands2edges);
-  filter_swap2d_improve(mesh, &cands2edges, &cand_quals);
+  filter_swap_improve(mesh, &cands2edges, &cand_quals);
   /* cavity quality checks */
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   edges_are_cands = mark_image(cands2edges, mesh->nedges());
