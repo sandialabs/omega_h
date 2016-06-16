@@ -60,7 +60,6 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
       choice.quality = mesh_minqual;
     }
   }
-  CHECK(choice.mesh >= 0);
   return choice;
 }
 
