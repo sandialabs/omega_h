@@ -1,5 +1,6 @@
 template <typename Measure>
-static Reals swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
+static void swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges,
+    Reals* cand_quals, Read<I8>* cand_configs) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -9,7 +10,8 @@ static Reals swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
   auto edges_are_owned = mesh->owned(EDGE);
   Measure measure(mesh);
   auto ncands = cands2edges.size();
-  auto cand_quals = Write<Real>(ncands);
+  auto cand_quals_w = Write<Real>(ncands);
+  auto cand_configs_w = Write<I8>(ncands);
   auto f = LAMBDA(LO cand) {
     auto edge = cands2edges[cand];
     /* non-owned edges will have incomplete cavities
@@ -17,7 +19,8 @@ static Reals swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
        in find_loop(). don't bother; their results
        will be overwritten by the owner's anyways */
     if (!edges_are_owned[edge]) {
-      cand_quals[cand] = -1.0;
+      cand_configs_w[cand] = -1;
+      cand_quals_w[cand] = -1.0;
       return;
     }
     auto loop = swap3d::find_loop(
@@ -28,28 +31,32 @@ static Reals swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
         tet_verts2verts,
         edge);
     if (loop.size > swap3d::MAX_EDGE_SWAP) {
-      cand_quals[cand] = -1.0;
+      cand_configs_w[cand] = -1;
+      cand_quals_w[cand] = -1.0;
       return;
     }
     auto choice = swap3d::choose(loop, measure);
-    if (choice.mesh == -1) {
-      cand_quals[cand] = -1.0;
-      return;
-    }
-    cand_quals[cand] = choice.quality;
+    static_assert(swap3d::MAX_CONFIGS <= INT8_MAX,
+        "int8_t must be able to represent all swap configurations");
+    cand_configs_w[cand] = static_cast<I8>(choice.mesh);
+    cand_quals_w[cand] = choice.quality;
   };
   parallel_for(ncands, f);
-  return cand_quals;
+  *cand_quals = cand_quals_w;
+  *cand_configs = cand_configs_w;
 }
 
-Reals swap3d_qualities(Mesh* mesh, LOs cands2edges) {
+void swap3d_qualities(Mesh* mesh, LOs cands2edges,
+    Reals* cand_quals, Read<I8>* cand_configs) {
   CHECK(mesh->partition() == GHOSTED);
-  auto cand_quals = Reals();
   CHECK(mesh->dim() == 3);
   if (mesh->has_tag(VERT, "metric")) {
-    cand_quals = swap3d_qualities_tmpl<MetricElementQualities>(mesh, cands2edges);
+    swap3d_qualities_tmpl<MetricElementQualities>(mesh, cands2edges,
+        cand_quals, cand_configs);
   } else {
-    cand_quals = swap3d_qualities_tmpl<RealElementQualities>(mesh, cands2edges);
+    swap3d_qualities_tmpl<RealElementQualities>(mesh, cands2edges,
+        cand_quals, cand_configs);
   }
-  return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);
+  *cand_quals = mesh->sync_subset_array(EDGE, *cand_quals, cands2edges, -1.0, 1);
+  *cand_configs = mesh->sync_subset_array(EDGE, *cand_configs, cands2edges, I8(-1), 1);
 }

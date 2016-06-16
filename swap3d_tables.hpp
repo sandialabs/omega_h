@@ -2,7 +2,8 @@ namespace swap3d {
 
 enum {
   MAX_EDGE_SWAP = 7,
-  MAX_UNIQUE_TRIS = 35
+  MAX_UNIQUE_TRIS = 35,
+  MAX_CONFIGS = 42
 };
 
 typedef Int const swap_tri_t[3];
