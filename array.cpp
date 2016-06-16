@@ -115,7 +115,7 @@ struct Sum : public SumFunctor<T> {
   typedef typename SumFunctor<T>::value_type value_type;
   Read<T> a_;
   Sum(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const
+  DEVICE void operator()(LO i, value_type& update) const
   {
     update = update + a_[i];
   }
@@ -131,7 +131,7 @@ struct Min : public MinFunctor<T> {
   typedef typename MinFunctor<T>::value_type value_type;
   Read<T> a_;
   Min(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const {
+  DEVICE void operator()(LO i, value_type& update) const {
     update = min2<value_type>(update, a_[i]);
   }
 };
@@ -147,7 +147,7 @@ struct Max : public MaxFunctor<T> {
   typedef typename MaxFunctor<T>::value_type value_type;
   Read<T> a_;
   Max(Read<T> a):a_(a) {}
-  INLINE void operator()(LO i, value_type& update) const {
+  DEVICE void operator()(LO i, value_type& update) const {
     update = max2<value_type>(update, a_[i]);
   }
 };
@@ -182,7 +182,7 @@ struct AreClose : public AndFunctor {
   AreClose(Reals a, Reals b, Real tol, Real floor):
     a_(a),b_(b),tol_(tol),floor_(floor)
   {}
-  INLINE void operator()(LO i, value_type& update) const {
+  DEVICE void operator()(LO i, value_type& update) const {
     update = update && are_close(a_[i], b_[i], tol_, floor_);
   }
 };
@@ -273,7 +273,7 @@ struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
   SameContent(Read<T> a, Read<T> b):a_(a),b_(b) {}
-  INLINE void operator()(LO i, value_type& update) const {
+  DEVICE void operator()(LO i, value_type& update) const {
     update = update && (a_[i] == b_[i]);
   }
 };
