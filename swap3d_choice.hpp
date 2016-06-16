@@ -40,7 +40,7 @@ INLINE Choice choose(Loop loop, Measure const& measure) {
            (mfr means Region of Face of Mesh) */
         Real tri_minqual = 1.0;
         for (Int tri_tet = 0; tri_tet < 2; ++tri_tet) {
-          tet_verts2verts[3] = loop.edge_verts2verts[1 - tri_tet];
+          tet_verts2verts[3] = loop.eev2v[1 - tri_tet];
           auto tet_qual = measure.measure(tet_verts2verts);
           tri_minqual = min2(tri_minqual, tet_qual);
           swap2(tet_verts2verts[1], tet_verts2verts[2]);

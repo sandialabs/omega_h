@@ -6,10 +6,66 @@ namespace swap3d {
    the second edge vertex to the first. */
 struct Loop {
   Int size;
-  Few<LO, 2> edge_verts2verts;
+  Few<LO, 2> eev2v;
   Few<LO, MAX_EDGE_SWAP> loop_verts2verts;
 };
 
-/* TODO: function to find Ring given Mesh and edge */
+INLINE Loop find_loop(
+    LOs const& edges2edge_tets,
+    LOs const& edge_tets2tets,
+    Read<I8> const& edge_tet_codes,
+    LOs const& edge_verts2verts,
+    LOs const& tet_verts2verts,
+    LO edge) {
+  Loop loop;
+  auto begin_use = edges2edge_tets[edge];
+  auto end_use = edges2edge_tets[edge + 1];
+  loop.size = end_use - begin_use;
+  if (loop.size > MAX_EDGE_SWAP) return loop;
+  CHECK(loop.size >= 3);
+  for (Int eev = 0; eev < 2; ++eev) {
+    loop.eev2v[eev] = edge_verts2verts[edge * 2 + eev];
+  }
+  /* collect the endpoints of the loop edges.
+     each pair of endpoints is chosen to be pointing
+     in the direction of curl. */
+  Few<LO, 2> tmp_edges[MAX_EDGE_SWAP];
+  for (Int i = 0; i < MAX_EDGE_SWAP; ++i) {
+    tmp_edges[i][0] = tmp_edges[i][1] = -1;
+  }
+  for (auto edge_tet = begin_use; edge_tet < end_use; ++edge_tet) {
+    auto tet = edge_tets2tets[edge_tet];
+    auto code = edge_tet_codes[edge_tet];
+    auto rre = code_which_down(code);
+    auto rot = code_rotation(code);
+    auto rre_opp = OppositeTemplate<TET,EDGE>::get(rre);
+    for (Int rev = 0; rev < 2; ++rev) {
+      /* we rely on the fact that tet-edge-vertices are
+         defined such that the opposite edge curls around
+         the input edge. */
+      auto rrv = DownTemplate<TET,EDGE>::get(rre_opp, rev);
+      auto v = tet_verts2verts[tet * 6 + rrv];
+      tmp_edges[edge_tet - begin_use][rot ^ rev] = v;
+    }
+  }
+  /* Upward adjacency from edges to tets is not ordered
+   * to curl around; it is ordered by global numbers.
+   * The following code uses insertion sort to
+   * order the edges around the loop by matching their
+   * endpoints.
+   * Remember, there are at most 7 edges to sort. */
+  for (Int i = 0; i < loop.size - 1; ++i) {
+    Int j;
+    for (j = i + 1; j < loop.size; ++j) {
+      if (tmp_edges[j][0] == tmp_edges[i][1]) break;
+    }
+    CHECK(j < loop.size);
+    swap2(tmp_edges[i], tmp_edges[j]);
+  }
+  for (Int lv = 0; lv < loop.size; ++lv) {
+    loop.loop_verts2verts[lv] = tmp_edges[lv][0];
+  }
+  return loop;
+}
 
 }//end namespace swap3d
