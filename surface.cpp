@@ -57,8 +57,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh,
     for (auto hs = begin; hs < end; ++hs) {
       auto s = hinge_sides2sides[hs];
       auto ss = side2surf_side[s];
-      if (-1 == ss)
-        continue;
+      if (-1 == ss) continue;
       n[i++] = get_vec<dim>(surf_side_normals, ss);
     }
     angles[surf_hinge] = acos(n[0] * n[1]);
@@ -70,22 +69,24 @@ Reals get_hinge_angles_tmpl(Mesh* mesh,
 } //end anonymous namespace
 
 Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
-  if (mesh->dim() == 3)
+  if (mesh->dim() == 3) {
     return get_triangle_normals(mesh, surf_side2side);
-  else
+  } else {
     return get_edge_normals(mesh, surf_side2side);
+  }
 }
 
 Reals get_hinge_angles(Mesh* mesh,
     Reals surf_side_normals,
     LOs surf_hinge2hinge,
     LOs side2surf_side) {
-  if (mesh->dim() == 3)
+  if (mesh->dim() == 3) {
     return get_hinge_angles_tmpl<3>(mesh,
         surf_side_normals, surf_hinge2hinge, side2surf_side);
-  else
+  } else {
     return get_hinge_angles_tmpl<2>(mesh,
         surf_side_normals, surf_hinge2hinge, side2surf_side);
+  }
 }
 
 } //end namespace surface
