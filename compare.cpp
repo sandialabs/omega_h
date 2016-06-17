@@ -26,6 +26,13 @@ static bool compare_copy_data(
   return comm->reduce_and(local_result);
 }
 
+static Read<GO> get_local_conn(Mesh* mesh, Int dim) {
+  auto h2l = mesh->ask_down(dim, dim - 1);
+  auto l_globals = mesh->ask_globals(dim - 1);
+  auto hl2l_globals = unmap(h2l.ab2b, l_globals, 1);
+  return hl2l_globals;
+}
+
 bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     bool accept_superset, bool verbose) {
   CHECK(a->comm()->size() == b->comm()->size());
@@ -47,6 +54,20 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     auto b_globals = b->ask_globals(dim);
     auto a_dist = copies_to_linear_owners(comm, a_globals);
     auto b_dist = copies_to_linear_owners(comm, b_globals);
+    if (dim > 0) {
+      auto a_conn = get_local_conn(a, dim);
+      auto b_conn = get_local_conn(b, dim);
+      auto ok = compare_copy_data(
+          a_conn, a_dist,
+          b_conn, b_dist,
+          dim + 1, 0.0, 0.0);
+      if (!ok) {
+        if (should_print) {
+          std::cout << singular_names[dim] << " connectivity doesn't match\n";
+        }
+        return false;
+      }
+    }
     for (Int i = 0; i < a->ntags(dim); ++i) {
       auto tag = a->get_tag(dim, i);
       auto name = tag->name();
