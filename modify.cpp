@@ -134,7 +134,7 @@ static LOs get_keys2reps(Mesh* mesh,
        when the reprentative was on the interior of the old cavity,
        it is now on the boundary.
        this is the reason for the atomic_add in get_rep_counts()
-       and the exch_sum later on.
+       and the exch_reduce(SUM) later on.
        I can't think of a nicer way to determine new vertex globals
        which is independent of partitioning and ordering */
     auto edge_verts2verts = mesh->ask_verts_of(EDGE);

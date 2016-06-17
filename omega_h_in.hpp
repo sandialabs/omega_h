@@ -484,7 +484,6 @@ class Mesh {
     LO nverts() const;
     LO nedges() const;
     GO nglobal_ents(Int dim);
-    bool keeps_canonical_globals() const;
     template <typename T>
     void add_tag(Int dim, std::string const& name, Int ncomps,
         Xfer xfer);
@@ -509,11 +508,12 @@ class Mesh {
     Adj ask_up(Int from, Int to);
     Graph ask_star(Int dim);
     Graph ask_dual();
-  private:
+  public:
     typedef std::shared_ptr<TagBase> TagPtr;
     typedef std::shared_ptr<Adj> AdjPtr;
     typedef std::shared_ptr<Dist> DistPtr;
     typedef std::shared_ptr<inertia::Rib> RibPtr;
+  private:
     typedef std::vector<TagPtr> TagVector;
     typedef TagVector::iterator TagIter;
     typedef TagVector::const_iterator TagCIter;
@@ -562,6 +562,9 @@ class Mesh {
     bool could_be_shared(Int ent_dim) const;
     bool owners_have_all_upward(Int ent_dim) const;
     Mesh copy_meta() const;
+    bool keeps_canonical_globals() const;
+    RibPtr rib_hints() const;
+    void set_rib_hints(RibPtr hints);
 };
 
 namespace gmsh {

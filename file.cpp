@@ -119,7 +119,7 @@ static Read<T> swap_if_needed(Read<T> array) {
 }
 
 unsigned char const magic[2] = {0xa1,0x1a};
-Int latest_version = 1;
+I32 latest_version = 1;
 
 } //end anonymous namespace
 
@@ -217,6 +217,114 @@ void read(std::istream& stream, std::string& val)
   stream.read(&val[0], len);
 }
 
+static void write_meta(std::ostream& stream, Mesh const* mesh) {
+  auto dim = I8(mesh->dim());
+  write_value(stream, dim);
+  I32 comm_size = mesh->comm()->size();
+  write_value(stream, comm_size);
+  I32 comm_rank = mesh->comm()->rank();
+  write_value(stream, comm_rank);
+  I8 partition = mesh->partition();
+  write_value(stream, partition);
+  auto hints = mesh->rib_hints();
+  I8 have_hints = (hints == nullptr);
+  write_value(stream, have_hints);
+  if (have_hints) {
+    auto naxes = I32(hints->axes.size());
+    write_value(stream, naxes);
+    for (auto axis : hints->axes) {
+      for (Int i = 0; i < 3; ++i) write_value(stream, axis[i]);
+    }
+  }
+  I8 keeps_canon = mesh->keeps_canonical_globals();
+  write_value(stream, keeps_canon);
+}
+
+static void read_meta(std::istream& stream, Mesh* mesh) {
+  I8 dim;
+  read_value(stream, dim);
+  mesh->set_dim(Int(dim));
+  I32 comm_size;
+  read_value(stream, comm_size);
+  CHECK(mesh->comm()->size() == comm_size);
+  I32 comm_rank;
+  read_value(stream, comm_rank);
+  CHECK(mesh->comm()->rank() == comm_rank);
+  I8 partition;
+  read_value(stream, partition);
+  mesh->set_partition(Partition(partition));
+  I8 have_hints;
+  read_value(stream, have_hints);
+  if (have_hints) {
+    I32 naxes;
+    read_value(stream, naxes);
+    auto hints = Mesh::RibPtr(new inertia::Rib());
+    for (I32 i = 0; i < naxes; ++i) {
+      Vector<3> axis;
+      for (Int j = 0; j < 3; ++j) read_value(stream, axis[j]);
+      hints->axes.push_back(axis);
+    }
+    mesh->set_rib_hints(hints);
+  }
+  I8 keeps_canon;
+  read_value(stream, keeps_canon);
+  mesh->keep_canonical_globals(bool(keeps_canon));
+}
+
+static void write_tag(std::ostream& stream, TagBase const* tag) {
+  std::string name = tag->name();
+  write(stream, name);
+  auto ncomps = I8(tag->ncomps());
+  write_value(stream, ncomps);
+  I8 type = tag->type();
+  write_value(stream, type);
+  I8 xfer_int = tag->xfer();
+  write_value(stream, xfer_int);
+  if (is<I8>(tag)) {
+    write_array(stream, to<I8>(tag)->array());
+  } else if (is<I32>(tag)) {
+    write_array(stream, to<I32>(tag)->array());
+  } else if (is<I64>(tag)) {
+    write_array(stream, to<I64>(tag)->array());
+  } else if (is<Real>(tag)) {
+    write_array(stream, to<Real>(tag)->array());
+  } else {
+    fail("unexpected tag type in binary write\n");
+  }
+}
+
+static void read_tag(std::istream& stream, Mesh* mesh,
+    Int d, bool is_compressed) {
+  std::string name;
+  read(stream, name);
+  I8 ncomps;
+  read_value(stream, ncomps);
+  I8 type;
+  read_value(stream, type);
+  I8 xfer_int;
+  read_value(stream, xfer_int);
+  Xfer xfer = static_cast<Xfer>(xfer_int);
+  if (type == OSH_I8) {
+    Read<I8> array;
+    read_array(stream, array, is_compressed);
+    mesh->add_tag(d, name, ncomps, xfer, array);
+  } else if (type == OSH_I32) {
+    Read<I32> array;
+    read_array(stream, array, is_compressed);
+    mesh->add_tag(d, name, ncomps, xfer, array);
+  } else if (type == OSH_I64) {
+    Read<I64> array;
+    read_array(stream, array, is_compressed);
+    mesh->add_tag(d, name, ncomps, xfer, array);
+  } else if (type == OSH_F64) {
+    Read<Real> array;
+    read_array(stream, array, is_compressed);
+    mesh->add_tag(d, name, ncomps, xfer, array);
+  } else {
+    fail("unexpected tag type in binary read\n");
+  }
+}
+
 void write(std::ostream& stream, Mesh* mesh) {
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
   write_value(stream, latest_version);
@@ -226,44 +334,21 @@ void write(std::ostream& stream, Mesh* mesh) {
   I8 is_compressed = false;
 #endif
   write_value(stream, is_compressed);
-  Int dim = mesh->dim();
-  write_value(stream, dim);
-  I32 comm_size = mesh->comm()->size();
-  write_value(stream, comm_size);
-  Int partition = mesh->partition();
-  write_value(stream, partition);
-  Int keep_canon = mesh->keeps_canonical_globals();
-  write_value(stream, keep_canon);
+  write_meta(stream, mesh);
   LO nverts = mesh->nverts();
   write_value(stream, nverts);
-  for (Int d = 1; d <= dim; ++d) {
+  for (Int d = 1; d <= mesh->dim(); ++d) {
     LOs down = mesh->ask_down(d, d - 1).ab2b;
     write_array(stream, down);
   }
-  for (Int d = 0; d <= dim; ++d) {
+  for (Int d = 0; d <= mesh->dim(); ++d) {
     Int ntags = mesh->ntags(d);
     write_value(stream, ntags);
     for (Int i = 0; i < ntags; ++i) {
-      auto tag = mesh->get_tag(d, i);
-      write(stream, tag->name());
-      Int ncomps = tag->ncomps();
-      write_value(stream, ncomps);
-      write_value(stream, static_cast<Int>(tag->type()));
-      write_value(stream, static_cast<Int>(tag->xfer()));
-      if (is<I8>(tag)) {
-        write_array(stream, to<I8>(tag)->array());
-      } else if (is<I32>(tag)) {
-        write_array(stream, to<I32>(tag)->array());
-      } else if (is<I64>(tag)) {
-        write_array(stream, to<I64>(tag)->array());
-      } else if (is<Real>(tag)) {
-        write_array(stream, to<Real>(tag)->array());
-      } else {
-        fail("unexpected tag type in binary write\n");
-      }
+      write_tag(stream, mesh->get_tag(d, i));
     }
     if (mesh->comm()->size() > 1) {
-      auto owners = mesh->ask_owners(dim);
+      auto owners = mesh->ask_owners(d);
       write_array(stream, owners.ranks);
       write_array(stream, owners.idxs);
     }
@@ -275,66 +360,29 @@ void read(std::istream& stream, Mesh* mesh) {
   stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
   CHECK(magic_in[0] == magic[0]);
   CHECK(magic_in[1] == magic[1]);
-  Int version;
+  I32 version;
   read_value(stream, version);
-  I8 is_compressed;
-  read_value(stream, is_compressed);
-#ifdef OSH_USE_ZLIB
-  CHECK(!is_compressed);
-#endif
   CHECK(version >= 1);
   CHECK(version <= latest_version);
-  Int dim;
-  read_value(stream, dim);
-  mesh->set_dim(dim);
-  I32 comm_size;
-  read_value(stream, comm_size);
-  CHECK(comm_size == mesh->comm()->size());
-  Int partition;
-  read_value(stream, partition);
-  mesh->set_partition(static_cast<Partition>(partition));
-  Int keep_canon;
-  read_value(stream, keep_canon);
-  mesh->keep_canonical_globals(keep_canon);
+  I8 is_compressed;
+  read_value(stream, is_compressed);
+#ifndef OSH_USE_ZLIB
+  CHECK(!is_compressed);
+#endif
+  read_meta(stream, mesh);
   LO nverts;
   read_value(stream, nverts);
-  for (Int d = 1; d <= dim; ++d) {
+  mesh->set_verts(nverts);
+  for (Int d = 1; d <= mesh->dim(); ++d) {
     LOs down;
     read_array(stream, down, is_compressed);
     mesh->set_ents(d, down);
   }
-  for (Int d = 0; d <= dim; ++d) {
+  for (Int d = 0; d <= mesh->dim(); ++d) {
     Int ntags;
     read_value(stream, ntags);
     for (Int i = 0; i < ntags; ++i) {
-      std::string name;
-      read(stream, name);
-      Int ncomps;
-      read_value(stream, ncomps);
-      Int type;
-      read_value(stream, type);
-      Int xfer_int;
-      read_value(stream, xfer_int);
-      Xfer xfer = static_cast<Xfer>(xfer_int);
-      if (type == OSH_I8) {
-        Read<I8> array;
-        read_array(stream, array, is_compressed);
-        mesh->add_tag(d, name, ncomps, xfer, array);
-      } else if (type == OSH_I32) {
-        Read<I32> array;
-        read_array(stream, array, is_compressed);
-        mesh->add_tag(d, name, ncomps, xfer, array);
-      } else if (type == OSH_I64) {
-        Read<I64> array;
-        read_array(stream, array, is_compressed);
-        mesh->add_tag(d, name, ncomps, xfer, array);
-      } else if (type == OSH_F64) {
-        Read<Real> array;
-        read_array(stream, array, is_compressed);
-        mesh->add_tag(d, name, ncomps, xfer, array);
-      } else {
-        fail("unexpected tag type in binary write\n");
-      }
+      read_tag(stream, mesh, d, is_compressed);
     }
     if (mesh->comm()->size() > 1) {
       Remotes owners;

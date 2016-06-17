@@ -113,7 +113,8 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
         name.c_str());
   }
   CHECK(ncomps >= 0);
-  CHECK(tags_[dim].size() < static_cast<std::size_t>(INT8_MAX));
+  CHECK(ncomps <= Int(INT8_MAX));
+  CHECK(tags_[dim].size() < size_t(INT8_MAX));
   tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer)));
 }
 
@@ -362,6 +363,9 @@ Reals Mesh::ask_qualities() {
 }
 
 void Mesh::set_owners(Int dim, Remotes owners) {
+  check_dim2(dim);
+  CHECK(nents(dim) == owners.ranks.size());
+  CHECK(nents(dim) == owners.idxs.size());
   owners_[dim] = owners;
   dists_[dim] = DistPtr();
 }
@@ -500,6 +504,14 @@ Mesh Mesh::copy_meta() const {
   m.rib_hints_ = this->rib_hints_;
   m.keeps_canonical_globals_ = this->keeps_canonical_globals_;
   return m;
+}
+
+Mesh::RibPtr Mesh::rib_hints() const {
+  return rib_hints_;
+}
+
+void Mesh::set_rib_hints(RibPtr hints) {
+  rib_hints_ = hints;
 }
 
 #define INST_T(T) \
