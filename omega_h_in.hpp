@@ -121,6 +121,17 @@ OSH_OPENMP_STR "," OSH_CUDA_STR "," OSH_ZLIB_STR
 #endif //OSH_USE_CUDA
 
 namespace osh {
+void fail(char const* format, ...) __attribute__((noreturn));
+}
+
+#ifdef __CUDA_ARCH__
+#define OSH_CHECK(cond) assert(cond)
+#else
+#define OSH_CHECK(cond) ((cond) ? ((void)0) : \
+  osh::fail("assertion %s failed at %s +%d\n",#cond,__FILE__,__LINE__))
+#endif
+
+namespace osh {
 
 void init_internal(int* argc, char*** argv, char const* head_desc);
 
@@ -129,15 +140,6 @@ inline void init(int* argc, char*** argv) {
 }
 
 void fini();
-
-void fail(char const* format, ...) __attribute__((noreturn));
-
-#ifdef __CUDA_ARCH__
-#define OSH_CHECK(cond) assert(cond)
-#else
-#define OSH_CHECK(cond) ((cond) ? ((void)0) : \
-  fail("assertion %s failed at %s +%d\n",#cond,__FILE__,__LINE__))
-#endif
 
 typedef std::int8_t  I8;
 typedef std::int16_t I16;
