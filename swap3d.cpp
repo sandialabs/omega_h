@@ -6,6 +6,7 @@ static bool swap3d_ghosted(Mesh* mesh) {
   auto cand_quals = Reals();
   auto cand_configs = Read<I8>();
   swap3d_qualities(mesh, cands2edges, &cand_quals, &cand_configs);
+  auto edge_configs = map_onto(cand_configs, cands2edges, mesh->nedges(), I8(-1), 1);
   /* swap3d_qualities sets the quality to -1.0 when no configuration
      is found, so *assuming that the input mesh has no negative elements*
      it is sufficient to simply filter by quality improvement. */
@@ -14,7 +15,6 @@ static bool swap3d_ghosted(Mesh* mesh) {
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   edges_are_cands = mark_image(cands2edges, mesh->nedges());
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 1);
-  auto edge_configs = map_onto(cand_configs, cands2edges, mesh->nedges(), I8(-1), 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
   mesh->add_tag(EDGE, "key", 1, OSH_DONT_TRANSFER, edges_are_keys);
   mesh->add_tag(EDGE, "config", 1, OSH_DONT_TRANSFER, edge_configs);
