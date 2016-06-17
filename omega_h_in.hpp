@@ -2,7 +2,7 @@
 #define OMEGA_H_HPP
 
 #define OSH_MAJOR 0
-#define OSH_MINOR 3
+#define OSH_MINOR 5
 
 #cmakedefine OSH_USE_MPI
 #cmakedefine OSH_USE_KOKKOS
