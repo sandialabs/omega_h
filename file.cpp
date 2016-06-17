@@ -411,6 +411,21 @@ void read(std::istream& stream, Mesh* mesh) {
   }
 }
 
+static void write_nparts(std::string const& path, Mesh* mesh) {
+  auto filepath = path + "/nparts";
+  std::ofstream file(filepath.c_str());
+  CHECK(file.is_open());
+  file << mesh->comm()->size() << '\n';
+}
+
+static I32 read_nparts(std::string const& path) {
+  auto filepath = path + "/nparts";
+  std::ifstream file(filepath.c_str());
+  I32 nparts;
+  file >> nparts;
+  return nparts;
+}
+
 void write(std::string const& path, Mesh* mesh) {
   safe_mkdir(path.c_str());
   mesh->comm()->barrier();
@@ -418,14 +433,29 @@ void write(std::string const& path, Mesh* mesh) {
   std::ofstream file(filepath.c_str());
   CHECK(file.is_open());
   write(file, mesh);
+  write_nparts(path, mesh);
 }
 
-void read(std::string const& path, CommPtr comm, Mesh* mesh) {
+static void read2(std::string const& path, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
   auto filepath = path + "/" + std::to_string(mesh->comm()->rank());
   std::ifstream file(filepath.c_str());
   CHECK(file.is_open());
   read(file, mesh);
+}
+
+void read(std::string const& path, CommPtr comm, Mesh* mesh) {
+  auto nparts = read_nparts(path);
+  if (nparts > comm->size()) {
+    osh_fail("path \"%s\" contains %d parts, but only %d ranks are reading it\n",
+        path.c_str(), nparts, comm->size());
+  }
+  bool in_subcomm = (comm->rank() < nparts);
+  auto subcomm = comm->split(I32(!in_subcomm), 0);
+  if (in_subcomm) {
+    read2(path, subcomm, mesh);
+  }
+  mesh->set_comm(comm);
 }
 
 } //end namespace file
