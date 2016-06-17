@@ -146,7 +146,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
       write_array(stream, tag->name(), tag->ncomps(), array);
     }
   } else {
-    fail("unknown tag type in write_tag");
+    osh_fail("unknown tag type in write_tag");
   }
 }
 

@@ -5,7 +5,8 @@ static bool we_called_mpi_init = false;
 static bool we_called_kokkos_init = false;
 #endif
 
-void init_internal(int* argc, char*** argv, char const* head_desc) {
+extern "C" void osh_init_internal(
+    int* argc, char*** argv, char const* head_desc) {
   std::string lib_desc = OSH_DESC;
   if (lib_desc != head_desc) {
     std::stringstream msg;
@@ -13,7 +14,7 @@ void init_internal(int* argc, char*** argv, char const* head_desc) {
     msg << "header says: " << head_desc << '\n';
     msg << "library says: " << lib_desc << '\n';
     std::string msg_str = msg.str();
-    fail("%s\n", msg_str.c_str());
+    osh_fail("%s\n", msg_str.c_str());
   }
 #ifdef OSH_USE_MPI
   int mpi_is_init;
@@ -34,7 +35,7 @@ void init_internal(int* argc, char*** argv, char const* head_desc) {
   protect();
 }
 
-void fini() {
+extern "C" void osh_finalize(void) {
 #ifdef OSH_USE_KOKKOS
   if (we_called_kokkos_init) {
     Kokkos::finalize();
@@ -54,7 +55,7 @@ void fini() {
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
 
-void fail(char const* format, ...)
+extern "C" void osh_fail(char const* format, ...)
 {
   va_list ap;
   va_start(ap, format);
@@ -68,7 +69,7 @@ void fail(char const* format, ...)
 #endif
 
 Library::~Library() {
-  osh::fini();
+  osh_finalize();
 }
 
 CommPtr Library::world() {

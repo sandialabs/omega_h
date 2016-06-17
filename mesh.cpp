@@ -109,7 +109,7 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
     Xfer xfer) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
-    fail("omega_h: add_tag(): \"%s\" already exists. use set_tag or remove_tag\n",
+    osh_fail("omega_h: add_tag(): \"%s\" already exists. use set_tag or remove_tag\n",
         name.c_str());
   }
   CHECK(ncomps >= 0);
@@ -150,8 +150,9 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
 template <typename T>
 Tag<T> const* Mesh::get_tag(Int dim, std::string const& name) const {
   check_dim2(dim);
-  if (!has_tag(dim, name))
-    fail("expected tag %s on %s\n", name.c_str(), plural_names[dim]);
+  if (!has_tag(dim, name)) {
+    osh_fail("expected tag %s on %s\n", name.c_str(), plural_names[dim]);
+  }
   return to<T>(tag_iter(dim, name)->get());
 }
 
@@ -310,7 +311,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
       return g;
     }
   }
-  fail("can't derive adjacency from %s to %s\n",
+  osh_fail("can't derive adjacency from %s to %s\n",
       plural_names[from], plural_names[to]);
 }
 

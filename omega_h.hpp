@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_HPP
 #define OMEGA_H_HPP
 
-#include "omega_h_config.h"
+#include "omega_h.h"
 
 /* standard C++ headers required to parse this file */
 
@@ -11,38 +11,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-/* MPI include block */
-
-#ifdef OSH_USE_MPI
-
-/* on BlueGene/Q the default install
- * defines MPICH2_CONST to empty if we
- * don't define it first, causing tons
- * of compile errors.
- *
- * in addition, the mpicxx.h header is full
- * of "const MPICH2_CONST", probably as a workaround
- * for the first mistake above.
- * as a result, properly defining MPICH2_CONST to const
- * also causes compile errors.
- * luckily, we can avoid including mpicxx.h with
- * MPICH_SKIP_MPICXX.
- */
-#ifdef __bgq__
-#define MPICH2_CONST const
-#define MPICH_SKIP_MPICXX
-#endif
-
-/* have Clang diagnostics ignore everything
- * inside mpi.h
- */
-#ifdef __clang__
-#pragma clang system_header
-#endif
-#include <mpi.h>
-
-#endif //OSH_USE_MPI
 
 /* Kokkos include block */
 
@@ -75,25 +43,6 @@
 #endif //OSH_USE_CUDA
 
 namespace osh {
-void fail(char const* format, ...) __attribute__((noreturn));
-}
-
-#ifdef __CUDA_ARCH__
-#define OSH_CHECK(cond) assert(cond)
-#else
-#define OSH_CHECK(cond) ((cond) ? ((void)0) : \
-  osh::fail("assertion %s failed at %s +%d\n",#cond,__FILE__,__LINE__))
-#endif
-
-namespace osh {
-
-void init_internal(int* argc, char*** argv, char const* head_desc);
-
-inline void init(int* argc, char*** argv) {
-  init_internal(argc, argv, OSH_DESC);
-}
-
-void fini();
 
 typedef std::int8_t  I8;
 typedef std::int16_t I16;
@@ -408,7 +357,7 @@ class Library {
   public:
     Library(Library const&) {}
     inline Library(int* argc, char*** argv) {
-      osh::init(argc, argv);
+      osh_init(argc, argv);
     }
     ~Library();
     CommPtr world();

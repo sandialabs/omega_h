@@ -12,7 +12,7 @@ void safe_mkdir(const char* path)
   errno = 0;
   err = mkdir(path, mode);
   if (err != 0 && errno != EEXIST) {
-    fail("omega_h could not create directory \"%s\"\n", path);
+    osh_fail("omega_h could not create directory \"%s\"\n", path);
   }
 }
 
@@ -301,7 +301,7 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   } else if (is<Real>(tag)) {
     write_array(stream, to<Real>(tag)->array());
   } else {
-    fail("unexpected tag type in binary write\n");
+    osh_fail("unexpected tag type in binary write\n");
   }
 }
 
@@ -333,7 +333,7 @@ static void read_tag(std::istream& stream, Mesh* mesh,
     read_array(stream, array, is_compressed);
     mesh->add_tag(d, name, ncomps, xfer, array);
   } else {
-    fail("unexpected tag type in binary read\n");
+    osh_fail("unexpected tag type in binary read\n");
   }
 }
 
