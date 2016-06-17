@@ -72,8 +72,8 @@ int main(int argc, char** argv) {
   osh::binary::read(filea, lib.world(), &a);
   osh::Mesh b;
   osh::binary::read(fileb, lib.world(), &b);
-  auto are_different = compare_meshes(&a, &b,
+  auto are_same = compare_meshes(&a, &b,
       tol, floor, allow_superset, true);
-  if (are_different) return 2;
+  if (!are_same) return 2;
   return 0;
 }
