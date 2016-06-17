@@ -59,8 +59,8 @@ endif()
 set(CMAKE_CXX_FLAGS "${FLAGS}")
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/omega_h_in.hpp"
-  "${PROJECT_BINARY_DIR}/omega_h.hpp"
+  "${PROJECT_SOURCE_DIR}/omega_h_config_in.h"
+  "${PROJECT_BINARY_DIR}/omega_h_config.h"
   )
 include_directories(${PROJECT_BINARY_DIR})
 
@@ -99,8 +99,10 @@ target_link_libraries(coarsen_test omega_h)
 add_executable(warp_test warp_test.cpp)
 target_link_libraries(warp_test omega_h)
 
-install(FILES "${PROJECT_BINARY_DIR}/omega_h.hpp"
-        DESTINATION include)
+install(FILES
+  "${PROJECT_BINARY_DIR}/omega_h_config.h"
+  "${PROJECT_BINARY_DIR}/omega_h.hpp"
+  DESTINATION include)
 install(TARGETS omega_h DESTINATION lib)
 install(TARGETS msh2osh DESTINATION bin)
 install(TARGETS osh2vtk DESTINATION bin)
