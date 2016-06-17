@@ -345,11 +345,12 @@ Read<GO> Mesh::ask_globals(Int dim) {
   return get_array<GO>(dim, "global");
 }
 
-void Mesh::forget_globals() {
+void Mesh::reset_globals() {
   CHECK(comm_->size() == 1);
-  for (Int d = 0; d <= dim(); ++d)
-    if (has_tag(d, "global"))
-      remove_tag(d, "global");
+  for (Int d = 0; d <= dim(); ++d) {
+    if (has_tag(d, "global")) remove_tag(d, "global");
+    ask_globals(d);
+  }
 }
 
 Reals Mesh::ask_edge_lengths() {

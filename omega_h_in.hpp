@@ -542,7 +542,7 @@ class Mesh {
     Reals coords() const;
     void set_coords(Reals array);
     Read<GO> ask_globals(Int dim);
-    void forget_globals();
+    void reset_globals();
     Reals ask_edge_lengths();
     Reals ask_qualities();
     void set_owners(Int dim, Remotes owners);

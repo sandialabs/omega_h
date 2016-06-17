@@ -8,7 +8,7 @@ static void serial_test(Mesh* mesh) {
   build_box(mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   classify_by_angles(mesh, PI / 4);
   mesh->reorder();
-  mesh->forget_globals();
+  mesh->reset_globals();
   Vector<dim> lengths;
   for (Int i = 0; i < dim; ++i)
     lengths[i] = 1.0;
