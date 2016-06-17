@@ -606,6 +606,11 @@ bool adapt(Mesh* mesh,
     Real len_ceil,
     Int nlayers);
 
+namespace binary {
+void write(std::string const& path, Mesh* mesh);
+void read(std::string const& path, CommPtr comm, Mesh* mesh);
+}
+
 } //end namespace osh
 
 #endif

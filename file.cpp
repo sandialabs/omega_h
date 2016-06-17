@@ -201,6 +201,18 @@ void read_array(std::istream& stream, Read<T>& array,
   array = swap_if_needed(Read<T>(uncompressed.write()));
 }
 
+#define INST_T(T) \
+template void write_value(std::ostream& stream, T val); \
+template void read_value(std::istream& stream, T& val); \
+template void write_array(std::ostream& stream, Read<T> array); \
+template void read_array(std::istream& stream, Read<T>& array, \
+    bool is_compressed);
+INST_T(I8)
+INST_T(I32)
+INST_T(I64)
+INST_T(Real)
+#undef INST_T
+
 void write(std::ostream& stream, std::string const& val)
 {
   I32 len = static_cast<I32>(val.length());
@@ -393,16 +405,21 @@ void read(std::istream& stream, Mesh* mesh) {
   }
 }
 
-#define INST_T(T) \
-template void write_value(std::ostream& stream, T val); \
-template void read_value(std::istream& stream, T& val); \
-template void write_array(std::ostream& stream, Read<T> array); \
-template void read_array(std::istream& stream, Read<T>& array, \
-    bool is_compressed);
-INST_T(I8)
-INST_T(I32)
-INST_T(I64)
-INST_T(Real)
-#undef INST_T
+void write(std::string const& path, Mesh* mesh) {
+  safe_mkdir(path.c_str());
+  mesh->comm()->barrier();
+  auto filepath = path + "/" + std::to_string(mesh->comm()->rank());
+  std::ofstream file(filepath.c_str());
+  CHECK(file.is_open());
+  write(file, mesh);
+}
+
+void read(std::string const& path, CommPtr comm, Mesh* mesh) {
+  mesh->set_comm(comm);
+  auto filepath = path + "/" + std::to_string(mesh->comm()->rank());
+  std::ifstream file(filepath.c_str());
+  CHECK(file.is_open());
+  read(file, mesh);
+}
 
 } //end namespace file
