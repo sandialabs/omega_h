@@ -8,11 +8,3 @@ bool adapt_check(Mesh* mesh,
     Real qual_ceil,
     Real len_floor,
     Real len_ceil);
-
-/* returns true if the mesh topology was modified. */
-bool adapt(Mesh* mesh,
-    Real qual_floor,
-    Real qual_ceil,
-    Real len_floor,
-    Real len_ceil,
-    Int nlayers);

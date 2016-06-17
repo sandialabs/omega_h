@@ -595,6 +595,14 @@ class FullWriter {
 };
 } // end namespace vtk
 
+/* returns true if the mesh was modified. */
+bool adapt(Mesh* mesh,
+    Real qual_floor,
+    Real qual_ceil,
+    Real len_floor,
+    Real len_ceil,
+    Int nlayers);
+
 } //end namespace osh
 
 #endif
