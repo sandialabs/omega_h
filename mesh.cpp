@@ -255,13 +255,19 @@ void Mesh::check_dim2(Int dim) const {
 void Mesh::add_adj(Int from, Int to, Adj adj) {
   check_dim2(from);
   check_dim(to);
+  CHECK(adj.ab2b.exists());
   if (to < from) {
     CHECK(!adj.a2ab.exists());
-    if (to == VERT)
+    if (to == VERT) {
       CHECK(!adj.codes.exists());
+    } else {
+      CHECK(adj.codes.exists());
+    }
     CHECK(adj.ab2b.size() == nents(from) * simplex_degrees[from][to]);
   } else {
     if (from < to) {
+      CHECK(adj.a2ab.exists());
+      CHECK(adj.codes.exists());
       CHECK(adj.ab2b.size() == nents(to) * simplex_degrees[to][from]);
     }
     CHECK(adj.a2ab.size() == nents(from) + 1);

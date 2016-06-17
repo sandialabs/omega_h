@@ -192,7 +192,7 @@ static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
   LO ntris = tris2verts.size() / 3;
   Int niters = 2;
-  Adj verts2tris = invert(tris2verts, 3, nverts, Read<GO>(ntris, 0, 1));
+  Adj verts2tris = invert(Adj(tris2verts), 3, nverts, Read<GO>(ntris, 0, 1));
   {
   Now t0 = now();
   for (Int i = 0; i < niters; ++i)

@@ -350,8 +350,11 @@ void write(std::ostream& stream, Mesh* mesh) {
   LO nverts = mesh->nverts();
   write_value(stream, nverts);
   for (Int d = 1; d <= mesh->dim(); ++d) {
-    LOs down = mesh->ask_down(d, d - 1).ab2b;
-    write_array(stream, down);
+    auto down = mesh->ask_down(d, d - 1);
+    write_array(stream, down.ab2b);
+    if (d > 1) {
+      write_array(stream, down.codes);
+    }
   }
   for (Int d = 0; d <= mesh->dim(); ++d) {
     Int ntags = mesh->ntags(d);
@@ -386,8 +389,11 @@ void read(std::istream& stream, Mesh* mesh) {
   read_value(stream, nverts);
   mesh->set_verts(nverts);
   for (Int d = 1; d <= mesh->dim(); ++d) {
-    LOs down;
-    read_array(stream, down, is_compressed);
+    Adj down;
+    read_array(stream, down.ab2b, is_compressed);
+    if (d > 1) {
+      read_array(stream, down.codes, is_compressed);
+    }
     mesh->set_ents(d, down);
   }
   for (Int d = 0; d <= mesh->dim(); ++d) {
