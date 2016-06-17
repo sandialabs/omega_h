@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_HPP
-#define OMEGA_H_HPP
+#ifndef OMEGA_H_CONFIG_H
+#define OMEGA_H_CONFIG_H
 
 #define OSH_MAJOR 0
 #define OSH_MINOR 5
