@@ -8,6 +8,7 @@ static void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v) {
     Adj down = reflect_down(ev2v, lv2v, v2l, edim, ldim);
     mesh->set_ents(edim, down);
   }
+  mesh->ask_globals(edim);
 }
 
 void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
