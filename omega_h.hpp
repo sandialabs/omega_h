@@ -406,6 +406,7 @@ struct Adj : public Graph {
 
 class Library {
   public:
+    Library(Library const&) {}
     inline Library(int* argc, char*** argv) {
       osh::init(argc, argv);
     }
