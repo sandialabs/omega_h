@@ -90,11 +90,13 @@ bool adapt(Mesh* mesh,
   CHECK(qual_floor <= qual_ceil);
   CHECK(qual_ceil <= 1.0);
   CHECK(0.0 < len_floor);
-  CHECK(len_floor <= 2.0 * len_ceil);
+  CHECK(2.0 * len_floor <= len_ceil);
   if (adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil)) {
     return false;
   }
-  auto allow_qual = min2(qual_ceil, mesh->min_quality());
+  auto input_qual = mesh->min_quality();
+  CHECK(input_qual > 0.0);
+  auto allow_qual = min2(qual_ceil, input_qual);
   if (mesh->comm()->rank() == 0) {
     std::cout << "addressing edge lengths\n";
   }
