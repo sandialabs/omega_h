@@ -134,11 +134,11 @@ namespace osh {
 #include "warp.hpp"
 #include "laplace.hpp"
 #include "adapt.hpp"
-#include "swap.hpp"
 #include "swap2d.hpp"
 #include "swap3d_tables.hpp"
 #include "swap3d_loop.hpp"
 #include "swap3d_choice.hpp"
 #include "swap3d.hpp"
+#include "swap.hpp"
 
 } //end namespace osh
