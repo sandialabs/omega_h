@@ -239,7 +239,7 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
   I8 partition = mesh->partition();
   write_value(stream, partition);
   auto hints = mesh->rib_hints();
-  I8 have_hints = (hints == nullptr);
+  I8 have_hints = (hints != nullptr);
   write_value(stream, have_hints);
   if (have_hints) {
     auto naxes = I32(hints->axes.size());
