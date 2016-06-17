@@ -538,7 +538,7 @@ static void test_quality() {
   CHECK(are_close(metric_tet_quality(x_tet, x_metric_3), 1.0));
 }
 
-static void test_file() {
+static void test_file_components() {
   using namespace binary;
   std::stringstream stream;
   std::string s = "foo";
@@ -739,6 +739,17 @@ static void test_swap3d_loop() {
   parallel_for(LO(1), f);
 }
 
+static void test_file() {
+  Mesh mesh0;
+  build_box(&mesh0, .2, .3, .4, 2, 3, 4);
+  std::stringstream stream;
+  binary::write(stream, &mesh0);
+  Mesh mesh1;
+  mesh1.set_comm(Comm::self());
+  binary::read(stream, &mesh1);
+  CHECK(mesh0 == mesh1);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -766,7 +777,7 @@ int main(int argc, char** argv) {
   test_injective_map();
   test_dual();
   test_quality();
-  test_file();
+  test_file_components();
   test_linpart();
   test_expand();
   test_inertial_bisect();
@@ -778,4 +789,5 @@ int main(int argc, char** argv) {
   test_compare_meshes();
   test_swap2d_topology();
   test_swap3d_loop();
+  test_file();
 }
