@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
   vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
-  for (Int i = 0; i < 4; ++i) {
+  for (Int i = 0; i < 2; ++i) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
     auto warp_fun = LAMBDA(LO vert) {
@@ -71,6 +71,12 @@ int main(int argc, char** argv) {
       adapt(&mesh, 0.37, 0.47, 1.0 / 2.0, 3.0 / 2.0, 4);
       writer.write();
     }
+  //if (i == 0) {
+  //  binary::write("restart.osh", &mesh);
+  //  Mesh mesh2;
+  //  binary::read("restart.osh", world, &mesh2);
+  //  mesh = mesh2;
+  //}
   }
 }
 

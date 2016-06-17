@@ -82,6 +82,8 @@ add_executable(msh2osh msh2osh.cpp)
 target_link_libraries(msh2osh omega_h)
 add_executable(osh2vtk osh2vtk.cpp)
 target_link_libraries(osh2vtk omega_h)
+add_executable(oshdiff oshdiff.cpp)
+target_link_libraries(oshdiff omega_h)
 add_executable(ex1 ex1.cpp)
 target_link_libraries(ex1 omega_h)
 add_executable(ex2 ex2.cpp)
@@ -103,6 +105,11 @@ install(FILES
   "${PROJECT_BINARY_DIR}/omega_h_config.h"
   "${PROJECT_BINARY_DIR}/omega_h.hpp"
   DESTINATION include)
-install(TARGETS omega_h DESTINATION lib)
-install(TARGETS msh2osh DESTINATION bin)
-install(TARGETS osh2vtk DESTINATION bin)
+install(TARGETS
+  omega_h
+  msh2osh
+  osh2vtk
+  oshdiff
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)

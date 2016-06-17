@@ -128,7 +128,6 @@ namespace osh {
 #include "refine.hpp"
 #include "stacktrace.hpp"
 #include "transfer.hpp"
-#include "compare.hpp"
 #include "collapse.hpp"
 #include "coarsen.hpp"
 #include "warp.hpp"
