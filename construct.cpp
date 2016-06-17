@@ -15,6 +15,7 @@ void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
   mesh->set_partition(ELEMENT_BASED);
   mesh->set_dim(edim);
   mesh->set_verts(nverts);
+  mesh->ask_globals(VERT);
   for (Int mdim = 1; mdim < edim; ++mdim) {
     LOs mv2v = find_unique(ev2v, edim, mdim);
     add_ents2verts(mesh, mdim, mv2v);
