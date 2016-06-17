@@ -4,7 +4,7 @@ install_manifest.txt
 Makefile
 adjs.txt
 cmake_install.cmake
-omega_h.hpp
+omega_h_config.h
 libomega_h.a
 perf_tests
 unit_tests
