@@ -65,6 +65,11 @@ bool adapt_check(Mesh* mesh,
   get_minmax(mesh, mesh->ask_qualities(), &minqual, &maxqual);
   Real minlen, maxlen;
   get_minmax(mesh, mesh->ask_edge_lengths(), &minlen, &maxlen);
+  {
+    auto copy_lens = mesh->ask_edge_lengths();
+    auto synced_lens = mesh->sync_array(EDGE, copy_lens, 1);
+    CHECK(copy_lens == synced_lens);
+  }
   if (qual_ceil <= minqual &&
       len_floor <= minlen &&
       maxlen <= len_ceil) {
