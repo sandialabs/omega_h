@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
-  for (Int i = 0; i < 4; ++i) {
+  for (Int i = 0; i < 8; ++i) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
     auto warp_fun = LAMBDA(LO vert) {
