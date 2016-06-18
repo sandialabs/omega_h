@@ -26,7 +26,9 @@ bool check_regression(std::string const& prefix, Mesh* mesh,
     }
     return true;
   }
-  std::cout << "meshes not exactly the same, trying superset...\n";
+  if (comm->rank() == 0) {
+    std::cout << "meshes not exactly the same, trying superset...\n";
+  }
   if (compare_meshes(mesh, &mesh2, tol, floor, true, true)) {
     auto newpath = prefix + "_new.osh";
     binary::write(newpath, mesh);
