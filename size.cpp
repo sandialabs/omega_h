@@ -56,5 +56,7 @@ Reals find_identity_size(Mesh* mesh) {
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto nve = v2e.a2ab.last();
   auto weights = Reals(nve, 1.0);
-  return graph_weighted_average(v2e, weights, lens, 1);
+  auto own_isos = graph_weighted_average(v2e, weights, lens, 1);
+  auto synced_isos = mesh->sync_array(VERT, own_isos, 1);
+  return synced_isos;
 }
