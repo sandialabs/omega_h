@@ -463,6 +463,8 @@ class Mesh {
     template <typename T>
     Read<T> sync_subset_array(Int ent_dim,
         Read<T> a_data, LOs a2e, T default_val, Int width);
+    template <typename T>
+    Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, ReduceOp op);
     bool operator==(Mesh& other);
     Real min_quality();
     bool could_be_shared(Int ent_dim) const;
