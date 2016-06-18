@@ -139,5 +139,6 @@ namespace osh {
 #include "swap3d_choice.hpp"
 #include "swap3d.hpp"
 #include "swap.hpp"
+#include "consistent.hpp"
 
 } //end namespace osh

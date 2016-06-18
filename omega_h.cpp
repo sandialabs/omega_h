@@ -71,5 +71,6 @@ namespace osh {
 #include "swap3d_topology.cpp"
 #include "swap3d.cpp"
 #include "regress.cpp"
+#include "consistent.cpp"
 
 } //end namespace osh
