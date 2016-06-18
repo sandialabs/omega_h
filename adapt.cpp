@@ -13,6 +13,7 @@ static void goal_stats(Mesh* mesh,
   auto ntotal = mesh->nglobal_ents(ent_dim);
   auto nmid = ntotal - nlow - nhigh;
   if (mesh->comm()->rank() == 0) {
+    auto precision_before = std::cout.precision();
     std::ios::fmtflags stream_state(std::cout.flags());
     std::cout << std::fixed << std::setprecision(2);
     std::cout << ntotal << " " << plural_names[ent_dim];
@@ -28,6 +29,7 @@ static void goal_stats(Mesh* mesh,
     }
     std::cout << '\n';
     std::cout.flags(stream_state);
+    std::cout.precision(precision_before);
   }
 }
 

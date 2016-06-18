@@ -42,6 +42,7 @@ int main(int argc, char** argv) {
   vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
+  Now t0 = now();
   for (Int i = 0; i < 4; ++i) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
@@ -72,6 +73,8 @@ int main(int argc, char** argv) {
       writer.write();
     }
   }
+  Now t1 = now();
+  std::cout << "test took " << (t1 - t0) << " seconds\n";
   bool ok = check_regression("gold_warp", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;
