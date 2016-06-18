@@ -16,6 +16,13 @@ void safe_mkdir(const char* path)
   }
 }
 
+bool directory_exists(const char* path) {
+  struct stat info;
+  if (stat(path, &info) != 0) return false;
+  CHECK(info.st_mode & S_IFDIR);
+  return true;
+}
+
 std::string parent_path(std::string const& path) {
   auto pos = path.find_last_of('/');
   CHECK(pos != std::string::npos);

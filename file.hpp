@@ -1,5 +1,6 @@
 bool is_little_endian_cpu();
 void safe_mkdir(const char* path);
+bool directory_exists(const char* path);
 std::string parent_path(std::string const& path);
 std::string path_leaf_name(std::string const& path);
 

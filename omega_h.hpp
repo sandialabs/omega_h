@@ -519,6 +519,8 @@ void read(std::string const& path, CommPtr comm, Mesh* mesh);
 
 bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     bool accept_superset, bool verbose);
+bool check_regression(std::string const& prefix, Mesh* mesh,
+    Real tol, Real floor);
 
 } //end namespace osh
 

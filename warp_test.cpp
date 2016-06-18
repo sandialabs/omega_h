@@ -71,12 +71,6 @@ int main(int argc, char** argv) {
       adapt(&mesh, 0.37, 0.47, 1.0 / 2.0, 3.0 / 2.0, 4);
       writer.write();
     }
-  //if (i == 0) {
-  //  binary::write("restart.osh", &mesh);
-  //  Mesh mesh2;
-  //  binary::read("restart.osh", world, &mesh2);
-  //  mesh = mesh2;
-  //}
   }
 }
 
