@@ -356,6 +356,7 @@ void Mesh::reset_globals() {
 
 Reals Mesh::ask_edge_lengths() {
   if (!has_tag(EDGE, "length")) {
+    fprintf(stderr, "rank %d forming edge lengths\n", comm_->rank());
     auto lengths = measure_edges_metric(this);
     add_tag(EDGE, "length", 1, OSH_LENGTH, lengths);
   }
