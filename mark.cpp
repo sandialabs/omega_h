@@ -11,6 +11,7 @@ Read<I8> mark_exposed_sides(Mesh* mesh) {
 
 Read<I8> mark_down(Mesh* mesh, Int high_dim, Int low_dim,
     Read<I8> high_marked) {
+  CHECK(mesh->owners_have_all_upward(low_dim));
   auto l2h = mesh->ask_up(low_dim, high_dim);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
