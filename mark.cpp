@@ -11,19 +11,23 @@ Read<I8> mark_exposed_sides(Mesh* mesh) {
 
 Read<I8> mark_down(Mesh* mesh, Int high_dim, Int low_dim,
     Read<I8> high_marked) {
-  CHECK(mesh->owners_have_all_upward(low_dim));
   auto l2h = mesh->ask_up(low_dim, high_dim);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
   auto nl = mesh->nents(low_dim);
-  Write<I8> out(nl, 0);
+  Write<I8> low_marks_w(nl, 0);
   auto f = LAMBDA(LO l) {
     for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
       if (high_marked[lh2h[lh]])
-        out[l] = 1;
+        low_marks_w[l] = 1;
   };
   parallel_for(nl, f);
-  return mesh->sync_array(low_dim, Read<I8>(out), 1);
+  auto low_marks = Read<I8>(low_marks_w);
+  if (!mesh->owners_have_all_upward(low_dim)) {
+    low_marks = mesh->reduce_array(low_dim, low_marks, 1, MAX);
+  }
+  low_marks = mesh->sync_array(low_dim, low_marks, 1);
+  return low_marks;
 }
 
 Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim,
