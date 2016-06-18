@@ -357,6 +357,16 @@ void Mesh::reset_globals() {
 Reals Mesh::ask_edge_lengths() {
   if (!has_tag(EDGE, "length")) {
     fprintf(stderr, "rank %d forming edge lengths\n", comm_->rank());
+    {
+      auto copy_coords = coords();
+      auto synced_coords = sync_array(VERT, copy_coords, 3);
+      CHECK(copy_coords == synced_coords);
+    }
+    {
+      auto copy_isos = get_array<Real>(VERT, "size");
+      auto synced_isos = sync_array(VERT, copy_isos, 1);
+      CHECK(copy_isos == synced_isos);
+    }
     auto lengths = measure_edges_metric(this);
     add_tag(EDGE, "length", 1, OSH_LENGTH, lengths);
   }
