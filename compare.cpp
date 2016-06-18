@@ -43,6 +43,7 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     if (should_print) std::cout << "mesh dimensions differ\n";
     return false;
   }
+  bool mesh_ok = true;
   for (Int dim = 0; dim <= a->dim(); ++dim) {
     if (a->nglobal_ents(dim) != b->nglobal_ents(dim)) {
       if (should_print) {
@@ -65,7 +66,8 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
         }
-        return false;
+        mesh_ok = false;
+        continue;
       }
     }
     for (Int i = 0; i < a->ntags(dim); ++i) {
@@ -76,7 +78,8 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
           std::cout << singular_names[dim] << " tag \"" << name
                     << "\" exists in first mesh but not second\n";
         }
-        return false;
+        mesh_ok = false;
+        continue;
       }
       auto ncomps = tag->ncomps();
       bool ok;
@@ -111,7 +114,7 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
           std::cout << singular_names[dim] << " tag \""
             << name << "\" values are different\n";
         }
-        return false;
+        mesh_ok = false;
       }
     }
     if (!accept_superset) {
@@ -122,10 +125,10 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
             std::cout << singular_names[dim] << " tag \"" << tag->name()
               << "\" exists in second mesh but not in first\n";
           }
-          return false;
+          mesh_ok = false;
         }
       }
     }
   }
-  return true;
+  return mesh_ok;
 }
