@@ -8,13 +8,15 @@ bool check_regression(std::string const& prefix, Mesh* mesh,
       std::cout << "gold path \"" << goldpath << "\" did not exist yet,\n";
       std::cout << "created it from this run.\n";
       return true;
-    } else if (comm->rank() == 0) {
+    } else {
       auto tmppath = prefix + "_tmp.osh";
       binary::write(tmppath, mesh);
-      std::cout << "gold path \"" << goldpath;
-      std::cout << "\" does not exist and this run is parallel.\n";
-      std::cout << "If you really want to use this run as the gold, do:\n";
-      std::cout << "  mv \"" << tmppath << "\" \"" << goldpath << "\"\n";
+      if (comm->rank() == 0) {
+        std::cout << "gold path \"" << goldpath;
+        std::cout << "\" does not exist and this run is parallel.\n";
+        std::cout << "If you really want to use this run as the gold, do:\n";
+        std::cout << "  mv \"" << tmppath << "\" \"" << goldpath << "\"\n";
+      }
       return false;
     }
   }
