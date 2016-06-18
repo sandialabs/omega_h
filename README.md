@@ -23,7 +23,7 @@ reproducibility, which are important for regression
 testing, debugging, and research publication:
 
 1. Results are fully deterministic in serial and parallel,
-including OpenMP and CUDA modes.
+even in OpenMP and CUDA modes.
 2. Results are independent of the ordering of mesh entities
 3. Results are independent of the partitioning of the mesh
 4. Parallel behavior is independent of the local ordering
@@ -34,7 +34,7 @@ Compiling
 
 The bare minimum requirements are the [CMake build system][2]
 and a C++11 compliant compiler.
-Our build system support Clang, GNU, and Intel compilers.
+Our build system supports Clang, GNU, and Intel compilers.
 It is strongly recommended to use the widely available [zlib][3]
 for file compression.
 
