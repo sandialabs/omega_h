@@ -433,7 +433,16 @@ static I32 read_nparts(std::string const& path) {
   return nparts;
 }
 
+static bool ends_with(std::string const& path, std::string const& ext) {
+  if (path.length() < ext.length()) return false;
+  return path.substr(path.length() - ext.length(), ext.length()) == ext;
+}
+
 void write(std::string const& path, Mesh* mesh) {
+  if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
+    std::cout << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
+    std::cout << "instead of just \"" << path << "\"\n";
+  }
   safe_mkdir(path.c_str());
   mesh->comm()->barrier();
   auto filepath = path + "/" + std::to_string(mesh->comm()->rank());
