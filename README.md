@@ -14,7 +14,7 @@ Omega_h can use the following forms of parallelism:
 2. OpenMP shared memory and threads
 3. CUDA shared memory and threads
 
-The latter two are enabled via the [Kokkos library][1]
+The latter two are enabled via the [Kokkos library][1].
 All forms of parallelism are optional, Omega_h can
 run in serial without an MPI or Kokkos installation.
 
