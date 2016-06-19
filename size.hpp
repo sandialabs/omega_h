@@ -112,3 +112,5 @@ struct RealElementSizes {
     return real_element_size<neev - 1>(p);
   }
 };
+
+Reals measure_elements_real(Mesh* mesh);

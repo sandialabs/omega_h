@@ -1,5 +1,5 @@
 template <typename EdgeLengths>
-Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
+static Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
   EdgeLengths measurer(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto na = a2e.size();
@@ -59,4 +59,27 @@ Reals find_identity_size(Mesh* mesh) {
   auto own_isos = graph_weighted_average(v2e, weights, lens, 1);
   auto synced_isos = mesh->sync_array(VERT, own_isos, 1);
   return synced_isos;
+}
+
+template <Int dim>
+static Reals measure_elements_real_tmpl(Mesh* mesh) {
+  RealElementSizes measurer(mesh);
+  auto ev2v = mesh->ask_verts_of(dim);
+  auto ne = mesh->nelems();
+  Write<Real> sizes(ne);
+  auto f = LAMBDA(LO e) {
+    auto v = gather_verts<dim + 1>(ev2v, e);
+    sizes[e] = measurer.measure(v);
+  };
+  parallel_for(ne, f);
+  return sizes;
+}
+
+Reals measure_elements_real(Mesh* mesh) {
+  if (mesh->dim() == 3) {
+    return measure_elements_real_tmpl<3>(mesh);
+  } else {
+    CHECK(mesh->dim() == 2);
+    return measure_elements_real_tmpl<2>(mesh);
+  }
 }
