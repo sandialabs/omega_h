@@ -39,6 +39,8 @@ int main(int argc, char** argv) {
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
   add_dye(&mesh);
+  mesh.add_tag(mesh.dim(), "mass", 1, OSH_CONSERVE,
+      measure_elements_real(&mesh));
   vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
