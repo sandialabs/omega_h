@@ -189,6 +189,65 @@ void transfer_quality(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    std::string const& name) {
+  auto prod_dim = old_mesh->dim();
+  auto old_tag = old_mesh->get_tag<Real>(prod_dim, name);
+  auto ncomps = old_tag->ncomps();
+  auto nprods = keys2prods.last();
+  auto prod_data = Write<Real>(nprods * ncomps);
+  auto nkeys = keys2edges.size();
+  /* transfer pairs */
+  auto dom_dim = prod_dim;
+  auto dom_data = old_mesh->get_array<Real>(dom_dim, name);
+  auto edges2doms = old_mesh->ask_graph(EDGE, dom_dim);
+  auto edges2edge_doms = edges2doms.a2ab;
+  auto edge_doms2doms = edges2doms.ab2b;
+  auto f = LAMBDA(LO key) {
+    auto edge = keys2edges[key];
+    auto prod = keys2prods[key];
+    for (auto edge_dom = edges2edge_doms[edge];
+         edge_dom < edges2edge_doms[edge + 1];
+         ++edge_dom) {
+      auto dom = edge_doms2doms[edge_dom];
+      for (Int pair = 0; pair < 2; ++pair) {
+        for (Int comp = 0; comp < ncomps; ++comp) {
+          prod_data[prod * ncomps + comp] =
+            dom_data[dom * ncomps + comp] / 2.0;
+        }
+        ++prod;
+      }
+    }
+  };
+  parallel_for(nkeys, f);
+  transfer_common(old_mesh, new_mesh, prod_dim,
+      same_ents2old_ents, same_ents2new_ents, prods2new_ents,
+      old_tag, Read<Real>(prod_data));
+}
+
+static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (tagbase->xfer() == OSH_CONSERVE) {
+      transfer_conserve_refine(old_mesh, new_mesh,
+          keys2edges, keys2prods, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents,
+          tagbase->name());
+    }
+  }
+}
+
 void transfer_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2edges,
     LOs keys2midverts,
@@ -211,6 +270,9 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh,
   } else if (prod_dim == old_mesh->dim()) {
     transfer_quality(old_mesh, new_mesh,
         same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+    transfer_conserve_refine(old_mesh, new_mesh,
+        keys2edges, keys2prods, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
   }
 }
 
