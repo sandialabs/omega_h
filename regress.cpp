@@ -22,16 +22,14 @@ bool check_regression(std::string const& prefix, Mesh* mesh,
   }
   Mesh mesh2;
   binary::read(goldpath, comm, &mesh2);
-  if (compare_meshes(mesh, &mesh2, tol, floor, false, true)) {
+  auto res = compare_meshes(mesh, &mesh2, tol, floor, true);
+  if (res == SAME_MESH) {
     if (comm->rank() == 0) {
       std::cout << "This run matches gold \"" << goldpath << "\"\n";
     }
     return true;
   }
-  if (comm->rank() == 0) {
-    std::cout << "meshes not exactly the same, trying superset...\n";
-  }
-  if (compare_meshes(mesh, &mesh2, tol, floor, true, true)) {
+  if (res == SUPERSET_MESH) {
     auto newpath = prefix + "_new.osh";
     binary::write(newpath, mesh);
     if (comm->rank() == 0) {

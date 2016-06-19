@@ -64,23 +64,23 @@ static Read<GO> get_local_conn(Mesh* mesh, Int dim) {
   return hl2l_globals;
 }
 
-bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
-    bool accept_superset, bool verbose) {
+MeshComparison
+compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose) {
   CHECK(a->comm()->size() == b->comm()->size());
   CHECK(a->comm()->rank() == b->comm()->rank());
   auto comm = a->comm();
   auto should_print = verbose && (comm->rank() == 0);
   if (a->dim() != b->dim()) {
     if (should_print) std::cout << "mesh dimensions differ\n";
-    return false;
+    return DIFFERENT_MESH;
   }
-  bool mesh_ok = true;
+  MeshComparison result = SAME_MESH;
   for (Int dim = 0; dim <= a->dim(); ++dim) {
     if (a->nglobal_ents(dim) != b->nglobal_ents(dim)) {
       if (should_print) {
         std::cout << "global " << singular_names[dim] << " counts differ\n";
       }
-      return false;
+      return DIFFERENT_MESH;
     }
     auto a_globals = a->ask_globals(dim);
     auto b_globals = b->ask_globals(dim);
@@ -97,7 +97,7 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
         }
-        mesh_ok = false;
+        result = DIFFERENT_MESH;
         continue;
       }
     }
@@ -109,7 +109,7 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
           std::cout << singular_names[dim] << " tag \"" << name
                     << "\" exists in first mesh but not second\n";
         }
-        mesh_ok = false;
+        result = DIFFERENT_MESH;
         continue;
       }
       auto ncomps = tag->ncomps();
@@ -145,21 +145,21 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
           std::cout << singular_names[dim] << " tag \""
             << name << "\" values are different\n";
         }
-        mesh_ok = false;
+        result = DIFFERENT_MESH;
       }
     }
-    if (!accept_superset) {
-      for (Int i = 0; i < b->ntags(dim); ++i) {
-        auto tag = b->get_tag(dim, i);
-        if (!a->has_tag(dim, tag->name())) {
-          if (should_print) {
-            std::cout << singular_names[dim] << " tag \"" << tag->name()
-              << "\" exists in second mesh but not in first\n";
-          }
-          mesh_ok = false;
+    for (Int i = 0; i < b->ntags(dim); ++i) {
+      auto tag = b->get_tag(dim, i);
+      if (!a->has_tag(dim, tag->name())) {
+        if (should_print) {
+          std::cout << singular_names[dim] << " tag \"" << tag->name()
+            << "\" exists in second mesh but not in first\n";
+        }
+        if (result == SAME_MESH) {
+          result = SUPERSET_MESH;
         }
       }
     }
   }
-  return mesh_ok;
+  return result;
 }
