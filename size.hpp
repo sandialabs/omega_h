@@ -11,12 +11,20 @@ INLINE Real triangle_area(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
 }
 
+INLINE Real element_size(Few<Vector<2>, 2> b) {
+  return triangle_area(b);
+}
+
 INLINE Real triangle_area(Few<Vector<3>, 2> b) {
   return norm(cross(b[0], b[1])) / 2.0;
 }
 
 INLINE Real tet_volume(Few<Vector<3>, 3> b) {
   return (cross(b[0], b[1]) * b[2]) / 6.0;
+}
+
+INLINE Real element_size(Few<Vector<3>, 3> b) {
+  return tet_volume(b);
 }
 
 template <Int dim>
@@ -88,3 +96,19 @@ Reals measure_edges_real(Mesh* mesh);
 Reals measure_edges_metric(Mesh* mesh);
 
 Reals find_identity_size(Mesh* mesh);
+
+template <Int dim>
+INLINE Real real_element_size(Few<Vector<dim>, dim + 1> p) {
+  auto b = simplex_basis<dim,dim>(p);
+  return element_size(b);
+}
+
+struct RealElementSizes {
+  Reals coords;
+  RealElementSizes(Mesh const* mesh):coords(mesh->coords()) {}
+  template <Int neev>
+  DEVICE Real measure(Few<LO, neev> v) const {
+    auto p = gather_vectors<neev, neev - 1>(coords, v);
+    return real_element_size<neev - 1>(p);
+  }
+};
