@@ -375,7 +375,90 @@ void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+template <Int dim>
+static void transfer_conserve_tmpl(Mesh* old_mesh, Mesh* new_mesh,
+    Int key_dim,
+    LOs keys2kds,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    TagBase const* tagbase) {
+  auto name = tagbase->name();
+  auto old_tag = to<Real>(tagbase);
+  auto ncomps = old_tag->ncomps();
+  auto old_data = old_tag->array();
+  auto kds2elems = old_mesh->ask_up(key_dim, dim);
+  auto kds2kd_elems = kds2elems.a2ab;
+  auto kd_elems2elems = kds2elems.ab2b;
+  auto measure = RealElementSizes(new_mesh);
+  auto elem_verts2verts = new_mesh->ask_verts_of(dim);
+  auto nkeys = keys2kds.size();
+  auto nprods = keys2prods.last();
+  auto prod_data_w = Write<Real>(nprods * ncomps);
+  auto f = LAMBDA(LO key) {
+    auto kd = keys2kds[key];
+    Real total_new_size = 0.0;
+    for (auto prod = keys2prods[key];
+         prod < keys2prods[key + 1];
+         ++prod) {
+      auto new_elem = prods2new_ents[prod];
+      auto v = gather_verts<dim + 1>(elem_verts2verts, new_elem);
+      auto size = measure.measure(v);
+      total_new_size += size;
+    }
+    for (Int comp = 0; comp < ncomps; ++comp) {
+      Real sum = 0.0;
+      for (auto kd_elem = kds2kd_elems[kd];
+           kd_elem < kds2kd_elems[kd + 1];
+           ++kd_elem) {
+        auto old_elem = kd_elems2elems[kd_elem];
+        sum += old_data[old_elem * ncomps + comp];
+      }
+      for (auto prod = keys2prods[key];
+           prod < keys2prods[key + 1];
+           ++prod) {
+        auto new_elem = prods2new_ents[prod];
+        auto v = gather_verts<dim + 1>(elem_verts2verts, new_elem);
+        auto size = measure.measure(v);
+        prod_data_w[prod * ncomps + comp] =
+          sum * (size / total_new_size);
+      }
+    }
+  };
+  parallel_for(nkeys, f);
+  auto prod_data = Reals(prod_data_w);
+  transfer_common(old_mesh, new_mesh, dim,
+      same_ents2old_ents, same_ents2new_ents, prods2new_ents,
+      old_tag, prod_data);
+}
+
+void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh,
+    Int key_dim,
+    LOs keys2kds,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  auto dim = new_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (tagbase->xfer() == OSH_CONSERVE) {
+      if (dim == 3) {
+        transfer_conserve_tmpl<3>(old_mesh, new_mesh,
+            key_dim, keys2kds, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+      } else if (dim == 2) {
+        transfer_conserve_tmpl<2>(old_mesh, new_mesh,
+            key_dim, keys2kds, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+      }
+    }
+  }
+}
+
 void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh,
+    LOs keys2verts,
     Adj keys2doms,
     Int prod_dim,
     LOs prods2new_ents,
@@ -395,6 +478,9 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh,
   if (prod_dim == old_mesh->dim()) {
     transfer_quality(old_mesh, new_mesh,
         same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+    transfer_conserve(old_mesh, new_mesh, VERT,
+        keys2verts, keys2doms.a2ab, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
   }
 }
 
@@ -510,5 +596,8 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh,
   if (prod_dim == old_mesh->dim()) {
     transfer_quality(old_mesh, new_mesh,
         same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+    transfer_conserve(old_mesh, new_mesh, EDGE,
+        keys2edges, keys2prods, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
   }
 }
