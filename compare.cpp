@@ -1,28 +1,59 @@
 template <typename T>
 struct CompareArrays {
-  static bool compare(Read<T> a, Read<T> b, Real, Real) {
+  static bool compare(CommPtr, Read<T> a, Read<T> b, Real, Real, Int, Int) {
     return a == b;
   }
 };
 
 template <>
 struct CompareArrays<Real> {
-  static bool compare(Read<Real> a, Read<Real> b, Real tol, Real floor) {
-    return are_close(a, b, tol, floor);
+  static bool compare(CommPtr comm, Read<Real> a, Read<Real> b,
+      Real tol, Real floor, Int ncomps, Int dim) {
+    if (are_close(a, b, tol, floor)) return true;
+/* if floating point arrays are different, we find the value with the largest
+   relative difference and print it out for users to determine whether this
+   is actually a serious regression (and where in the mesh it is most serious)
+   or whether tolerances simply need adjusting */
+    auto ah = HostRead<Real>(a);
+    auto bh = HostRead<Real>(b);
+    LO max_i = -1;
+    Real max_diff = 0.0;
+    for (LO i = 0; i < ah.size(); ++i) {
+      auto diff = rel_diff_with_floor(ah[i], bh[i], floor);
+      if (diff > max_diff) {
+        max_i = i;
+        max_diff = diff;
+      }
+    }
+    auto global_start = comm->exscan(GO(ah.size()), SUM);
+    auto global_max_diff = comm->allreduce(max_diff, MAX);
+    I32 rank_cand = ArithTraits<I32>::max();
+    if (max_diff == global_max_diff) rank_cand = comm->rank();
+    auto best_rank = comm->allreduce(rank_cand, MIN);
+    if (comm->rank() == best_rank) {
+      auto global_max_i = global_start + max_i;
+      auto ent_global = global_max_i / ncomps;
+      auto comp = global_max_i % ncomps;
+      std::cout << "max diff at " << singular_names[dim]
+        << " " << ent_global << ", comp " << comp
+        << ", values " << ah[max_i] << " vs " << bh[max_i] << '\n';
+    }
+    return false;
   }
 };
 
 template <typename T>
 static bool compare_copy_data(
+    Int dim,
     Read<T> a_data, Dist a_dist,
     Read<T> b_data, Dist b_dist,
     Int ncomps, Real tol, Real floor) {
   auto a_lin_data = reduce_data_to_owners(a_data, a_dist, ncomps);
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
-  bool local_result = CompareArrays<T>::compare(
-      a_lin_data, b_lin_data, tol, floor);
   auto comm = a_dist.parent_comm();
+  bool local_result = CompareArrays<T>::compare(
+      comm, a_lin_data, b_lin_data, tol, floor, ncomps, dim);
   return comm->reduce_and(local_result);
 }
 
@@ -58,7 +89,7 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     if (dim > 0) {
       auto a_conn = get_local_conn(a, dim);
       auto b_conn = get_local_conn(b, dim);
-      auto ok = compare_copy_data(
+      auto ok = compare_copy_data(dim,
           a_conn, a_dist,
           b_conn, b_dist,
           dim + 1, 0.0, 0.0);
@@ -85,25 +116,25 @@ bool compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       bool ok;
       switch (tag->type()) {
       case OSH_I8:
-        ok = compare_copy_data(
+        ok = compare_copy_data(dim,
             a->get_array<I8>(dim, name), a_dist,
             b->get_array<I8>(dim, name), b_dist,
             ncomps, tol, floor);
         break;
       case OSH_I32:
-        ok = compare_copy_data(
+        ok = compare_copy_data(dim,
             a->get_array<I32>(dim, name), a_dist,
             b->get_array<I32>(dim, name), b_dist,
             ncomps, tol, floor);
         break;
       case OSH_I64:
-        ok = compare_copy_data(
+        ok = compare_copy_data(dim,
             a->get_array<I64>(dim, name), a_dist,
             b->get_array<I64>(dim, name), b_dist,
             ncomps, tol, floor);
         break;
       case OSH_F64:
-        ok = compare_copy_data(
+        ok = compare_copy_data(dim,
             a->get_array<Real>(dim, name), a_dist,
             b->get_array<Real>(dim, name), b_dist,
             ncomps, tol, floor);
