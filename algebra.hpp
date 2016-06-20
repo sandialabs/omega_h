@@ -121,6 +121,23 @@ INLINE bool are_close(Vector<n> a, Vector<n> b,
   return true;
 }
 
+template <Int n>
+INLINE Vector<n> zero_vector() {
+  Vector<n> v;
+  for (Int i = 0; i < n; ++i)
+    v[i] = 0.0;
+  return v;
+}
+
+template <Int m, Int n>
+INLINE Vector<m> average(Few<Vector<m>, n> x) {
+  Vector<m> avg = zero_vector<m>();
+  for (Int i = 0; i < n; ++i)
+    avg = avg + x[i];
+  avg = avg / n;
+  return avg;
+}
+
 /* column-first storage and indexing !!! */
 template <Int m, Int n>
 class Matrix : public Few<Vector<m>, n> {
@@ -291,14 +308,6 @@ INLINE Matrix<m,m> diagonal(Vector<m> v) {
   for (Int i = 0; i < m; ++i)
     a[i][i] = v[i];
   return a;
-}
-
-template <Int n>
-INLINE Vector<n> zero_vector() {
-  Vector<n> v;
-  for (Int i = 0; i < n; ++i)
-    v[i] = 0.0;
-  return v;
 }
 
 template <Int m, Int n>
