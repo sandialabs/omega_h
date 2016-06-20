@@ -39,7 +39,7 @@ bool check_regression(std::string const& prefix, Mesh* mesh,
       std::cout << "  rm -rf \"" << goldpath << "\"\n",
       std::cout << "  mv \"" << newpath << "\" \"" << goldpath << "\"\n";
     }
-    return true;
+    return false;
   }
   auto badpath = prefix + "_bad.osh";
   binary::write(badpath, mesh);
