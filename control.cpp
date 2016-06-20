@@ -7,7 +7,7 @@ static bool we_called_kokkos_init = false;
 
 extern "C" void osh_init_internal(
     int* argc, char*** argv, char const* head_desc) {
-  std::string lib_desc = OSH_DESC;
+  std::string lib_desc = OSH_VERSION;
   if (lib_desc != head_desc) {
     std::stringstream msg;
     msg << "omega_h description string mismatch.\n";

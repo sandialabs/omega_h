@@ -1,8 +1,9 @@
 #ifndef OMEGA_H_CONFIG_H
 #define OMEGA_H_CONFIG_H
 
-#define OSH_MAJOR 0
-#define OSH_MINOR 5
+#define OSH_MAJOR @OSH_MAJOR@
+#define OSH_MINOR @OSH_MINOR@
+#define OSH_PATCH @OSH_PATCH@
 
 #cmakedefine OSH_USE_MPI
 #cmakedefine OSH_USE_KOKKOS
@@ -20,33 +21,38 @@
 #define OSH_TOSTR2(s) #s
 #define OSH_TOSTR(s) OSH_TOSTR2(s)
 #ifdef OSH_USE_MPI
-#define OSH_MPI_STR "MPI"
+#define OSH_MPI_STR "1"
 #else
-#define OSH_MPI_STR ""
+#define OSH_MPI_STR "0"
 #endif
 #ifdef OSH_USE_KOKKOS
-#define OSH_KOKKOS_STR "Kokkos"
+#define OSH_KOKKOS_STR "1"
 #else
-#define OSH_KOKKOS_STR ""
+#define OSH_KOKKOS_STR "0"
 #endif
 #ifdef OSH_USE_OPENMP
-#define OSH_OPENMP_STR "OpenMP"
+#define OSH_OPENMP_STR "1"
 #else
-#define OSH_OPENMP_STR ""
+#define OSH_OPENMP_STR "0"
 #endif
 #ifdef OSH_USE_CUDA
-#define OSH_CUDA_STR "CUDA"
+#define OSH_CUDA_STR "1"
 #else
-#define OSH_CUDA_STR ""
+#define OSH_CUDA_STR "0"
 #endif
 #ifdef OSH_USE_ZLIB
-#define OSH_ZLIB_STR "zlib"
+#define OSH_ZLIB_STR "1"
 #else
-#define OSH_ZLIB_STR ""
+#define OSH_ZLIB_STR "0"
 #endif
-#define OSH_DESC \
-"omega_h v" OSH_TOSTR(OSH_MAJOR) "." OSH_TOSTR(OSH_MINOR) \
-": " OSH_MPI_STR "," OSH_KOKKOS_STR "," \
-OSH_OPENMP_STR "," OSH_CUDA_STR "," OSH_ZLIB_STR
+#ifdef OSH_CHECK_BOUNDS
+#define OSH_BOUNDS_STR "1"
+#else
+#define OSH_BOUNDS_STR "0"
+#endif
+#define OSH_VERSION \
+OSH_TOSTR(OSH_MAJOR) "." OSH_TOSTR(OSH_MINOR) "." OSH_TOSTR(OSH_PATCH) \
+"+" OSH_MPI_STR OSH_KOKKOS_STR OSH_OPENMP_STR OSH_CUDA_STR OSH_ZLIB_STR \
+OSH_BOUNDS_STR
 
 #endif

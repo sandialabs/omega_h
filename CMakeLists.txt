@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 2.6)
 project(omega_h CXX)
 
+set(OSH_MAJOR "0")
+set(OSH_MINOR "5")
+set(OSH_PATCH "0")
+
 option(OSH_USE_MPI "Use MPI for parallelism" ON)
 option(OSH_USE_KOKKOS "Use Kokkos for on-node parallelism" OFF)
 option(OSH_USE_OPENMP "Use Kokkos+OpenMP for on-node parallelism" OFF)

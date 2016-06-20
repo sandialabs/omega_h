@@ -48,7 +48,7 @@ void osh_fail(char const* format, ...) __attribute__((noreturn));
 void osh_init_internal(int* argc, char*** argv, char const* head_desc);
 
 inline static void osh_init(int* argc, char*** argv) {
-  osh_init_internal(argc, argv, OSH_DESC);
+  osh_init_internal(argc, argv, OSH_VERSION);
 }
 
 void osh_finalize(void);
