@@ -107,6 +107,7 @@ target_link_libraries(warp_test omega_h)
 
 install(FILES
   "${PROJECT_BINARY_DIR}/omega_h_config.h"
+  "${PROJECT_BINARY_DIR}/omega_h.h"
   "${PROJECT_BINARY_DIR}/omega_h.hpp"
   DESTINATION include)
 install(TARGETS
