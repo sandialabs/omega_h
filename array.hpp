@@ -14,6 +14,13 @@ T min(Read<T> a);
 template <typename T>
 T max(Read<T> a);
 
+template <typename T>
+typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a);
+template <typename T>
+T min(CommPtr comm, Read<T> a);
+template <typename T>
+T max(CommPtr comm, Read<T> a);
+
 bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
 
 template <typename T>

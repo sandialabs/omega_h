@@ -158,6 +158,21 @@ T max(Read<T> a) {
   return static_cast<T>(r); //see StandinTraits
 }
 
+template <typename T>
+typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a) {
+  return comm->allreduce(sum(a), SUM);
+}
+
+template <typename T>
+T min(CommPtr comm, Read<T> a) {
+  return comm->allreduce(min(a), MIN);
+}
+
+template <typename T>
+T max(CommPtr comm, Read<T> a) {
+  return comm->allreduce(min(a), MAX);
+}
+
 Reals::Reals():
   Read<Real>()
 {}
@@ -579,6 +594,12 @@ template class Read<T>; \
 template class HostWrite<T>; \
 template class HostRead<T>; \
 template bool operator==(Read<T> a, Read<T> b); \
+template typename StandinTraits<T>::type sum(Read<T> a); \
+template T min(Read<T> a); \
+template T max(Read<T> a); \
+template typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a); \
+template T min(CommPtr comm, Read<T> a); \
+template T max(CommPtr comm, Read<T> a); \
 template Write<T> deep_copy(Read<T> a); \
 template std::ostream& operator<<(std::ostream& o, Read<T> a); \
 template Read<T> multiply_each_by(T factor, Read<T> x); \
@@ -595,10 +616,7 @@ template Read<I8> each_eq_to(Read<T> a, T b); \
 template Read<I8> gt_each(Read<T> a, Read<T> b);
 
 INST_ARRAY_T(I8)
-INST_ARRAY_T(I16)
 INST_ARRAY_T(I32)
 INST_ARRAY_T(I64)
 INST_ARRAY_T(Real)
 #undef INST_ARRAY_T
-
-template Real sum(Read<Real> a);
