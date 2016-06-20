@@ -158,6 +158,23 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+static void transfer_pointwise_refine(Mesh* old_mesh, Mesh* new_mesh,
+    LOs keys2edges,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (tagbase->xfer() == OSH_POINTWISE) {
+      transfer_inherit_refine<Real>(old_mesh, new_mesh,
+          keys2edges, dim, keys2prods, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents, tagbase->name());
+    }
+  }
+}
+
 void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents,
     LOs same_ents2new_ents,
@@ -273,6 +290,8 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh,
     transfer_conserve_refine(old_mesh, new_mesh,
         keys2edges, keys2prods, prods2new_ents,
         same_ents2old_ents, same_ents2new_ents);
+    transfer_pointwise_refine(old_mesh, new_mesh, keys2edges, keys2prods,
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
 }
 
