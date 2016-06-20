@@ -530,6 +530,18 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose);
 bool check_regression(std::string const& prefix, Mesh* mesh,
     Real tol, Real floor);
 
+OSH_INLINE bool code_is_flipped(I8 code) {
+  return code & 1;
+}
+
+OSH_INLINE Int code_rotation(I8 code) {
+  return (code >> 1) & 3;
+}
+
+OSH_INLINE Int code_which_down(I8 code) {
+  return (code >> 3);
+}
+
 } //end namespace osh
 
 #endif

@@ -30,18 +30,6 @@ INLINE I8 make_code(bool is_flipped, Int rotation, Int which_down) {
   return static_cast<I8>((which_down << 3) | (rotation << 1) | is_flipped);
 }
 
-INLINE bool code_is_flipped(I8 code) {
-  return code & 1;
-}
-
-INLINE Int code_rotation(I8 code) {
-  return (code >> 1) & 3;
-}
-
-INLINE Int code_which_down(I8 code) {
-  return (code >> 3);
-}
-
 template <Int nverts_per_ent>
 INLINE Int rotate_index(Int index, Int rotation) {
   return (index + rotation) % nverts_per_ent;
