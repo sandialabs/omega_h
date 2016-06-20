@@ -313,6 +313,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
   }
   osh_fail("can't derive adjacency from %s to %s\n",
       plural_names[from], plural_names[to]);
+  NORETURN(Adj());
 }
 
 Adj Mesh::ask_adj(Int from, Int to) {

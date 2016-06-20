@@ -17,6 +17,7 @@ Int type_dim(Int type) {
     case GMSH_TET:  return 3;
   }
   osh_fail("omega_h can only accept linear simplices from Gmsh");
+  NORETURN(-1);
 }
 
 void seek_line(std::istream& stream, std::string const& want) {

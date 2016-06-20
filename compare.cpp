@@ -113,7 +113,7 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose) {
         continue;
       }
       auto ncomps = tag->ncomps();
-      bool ok;
+      bool ok = false;
       switch (tag->type()) {
       case OSH_I8:
         ok = compare_copy_data(dim,

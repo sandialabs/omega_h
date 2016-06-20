@@ -40,6 +40,7 @@ Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
     }
   }
   osh_fail("measure_edges(): no size field exists!\n");
+  NORETURN(Reals());
 }
 
 Reals measure_edges_real(Mesh* mesh) {
