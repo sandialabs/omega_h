@@ -763,6 +763,58 @@ void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+template <Int dim>
+static void transfer_pointwise_swap_tmpl(Mesh* old_mesh, Mesh* new_mesh,
+    LOs keys2kds,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    TagBase const* tagbase) {
+  auto name = tagbase->name();
+  auto old_tag = to<Real>(tagbase);
+  auto ncomps = old_tag->ncomps();
+  auto old_data = old_tag->array();
+  auto kds2elems = old_mesh->ask_up(EDGE, dim);
+  auto kds2kd_elems = kds2elems.a2ab;
+  auto kd_elems2elems = kds2elems.ab2b;
+  auto nkeys = keys2kds.size();
+  auto nprods = keys2prods.last();
+  auto prod_data_w = Write<Real>(nprods * ncomps);
+  auto f = LAMBDA(LO key) {
+    transfer_average_cavity(key, keys2kds, kds2kd_elems, kd_elems2elems,
+        keys2prods, ncomps, old_data, prod_data_w);
+  };
+  parallel_for(nkeys, f);
+  auto prod_data = Reals(prod_data_w);
+  transfer_common(old_mesh, new_mesh, dim,
+      same_ents2old_ents, same_ents2new_ents, prods2new_ents,
+      old_tag, prod_data);
+}
+
+static void transfer_pointwise_swap(Mesh* old_mesh, Mesh* new_mesh,
+    LOs keys2kds,
+    LOs keys2prods,
+    LOs prods2new_ents,
+    LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  auto dim = new_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (tagbase->xfer() == OSH_POINTWISE) {
+      if (dim == 3) {
+        transfer_pointwise_swap_tmpl<3>(old_mesh, new_mesh,
+            keys2kds, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+      } else if (dim == 2) {
+        transfer_pointwise_swap_tmpl<2>(old_mesh, new_mesh,
+            keys2kds, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+      }
+    }
+  }
+}
+
 void transfer_swap(Mesh* old_mesh, Mesh* new_mesh,
     Int prod_dim,
     LOs keys2edges,
@@ -784,6 +836,9 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh,
     transfer_quality(old_mesh, new_mesh,
         same_ents2old_ents, same_ents2new_ents, prods2new_ents);
     transfer_conserve(old_mesh, new_mesh, EDGE,
+        keys2edges, keys2prods, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
+    transfer_pointwise_swap(old_mesh, new_mesh,
         keys2edges, keys2prods, prods2new_ents,
         same_ents2old_ents, same_ents2new_ents);
   }
