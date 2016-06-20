@@ -29,7 +29,7 @@ static void add_pointwise(Mesh* mesh) {
       LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
   auto pw_w = Write<Real>(mesh->nelems());
   auto pw_fun = LAMBDA(LO elem) {
-    pw_w[elem] = ecoords[elem * dim + (dim - 1)];
+    pw_w[elem] = ecoords[elem * dim];
   };
   parallel_for(mesh->nelems(), pw_fun);
   mesh->add_tag(dim, "pointwise", 1, OSH_POINTWISE, Reals(pw_w));
