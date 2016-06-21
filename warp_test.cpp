@@ -92,7 +92,9 @@ int main(int argc, char** argv) {
   mesh.set_partition(ELEMENT_BASED);
   CHECK(are_close(1.0, sum(mesh.comm(),
           mesh.get_array<Real>(mesh.dim(), "mass"))));
-  std::cout << "test took " << (t1 - t0) << " seconds\n";
+  if (mesh.comm()->rank() == 0) {
+    std::cout << "test took " << (t1 - t0) << " seconds\n";
+  }
   bool ok = check_regression("gold_warp", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;
