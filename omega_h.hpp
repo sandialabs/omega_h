@@ -65,7 +65,7 @@ class Write {
   LO size_;
 #endif
 public:
-  Write();
+  OSH_INLINE Write();
   Write(LO size);
   Write(LO size, T value);
   Write(LO size, T offset, T stride);
@@ -92,10 +92,21 @@ public:
 };
 
 template <typename T>
+OSH_INLINE Write<T>::Write():
+#ifdef OSH_USE_KOKKOS
+  view_()
+#else
+  ptr_(),
+  size_(0)
+#endif
+{
+}
+
+template <typename T>
 class Read {
   Write<T> write_;
 public:
-  Read();
+  OSH_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value);
   Read(LO size, T offset, T stride);
@@ -115,7 +126,7 @@ public:
 
 class LOs : public Read<LO> {
 public:
-  LOs();
+  OSH_INLINE LOs() {}
   OSH_INLINE LOs(Read<LO> base):Read<LO>(base) {}
   LOs(Write<LO> write);
   LOs(LO size, LO value);
