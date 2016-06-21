@@ -558,6 +558,10 @@ void build_box(Mesh* mesh,
     Real x, Real y, Real z,
     LO nx, LO ny, LO nz);
 
+Real repro_sum(Reals a);
+Real repro_sum(CommPtr comm, Reals a);
+void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
+
 OSH_INLINE bool code_is_flipped(I8 code) {
   return code & 1;
 }
