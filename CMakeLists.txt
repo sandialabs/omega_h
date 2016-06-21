@@ -17,7 +17,7 @@ option(OSH_SYMBOLS "Compile with debug symbols" ON)
 
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp)
-  find_library(KOKKOS_LIB kokkos)
+  find_library(KOKKOS_LIB NAMES kokkos kokkoscore)
   include_directories(${KOKKOS_INCLUDE})
 endif()
 
