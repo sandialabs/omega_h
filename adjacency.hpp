@@ -35,9 +35,6 @@ template <Int deg>
 void find_matches(LOs av2v, LOs bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out);
 
-void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out);
-
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
     Int high_dim, Int low_dim);
 

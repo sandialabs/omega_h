@@ -356,6 +356,9 @@ struct Adj : public Graph {
   Read<I8> codes;
 };
 
+void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b,
+    LOs* a2b_out, Read<I8>* codes_out);
+
 class Library {
   public:
     Library(Library const&) {}
