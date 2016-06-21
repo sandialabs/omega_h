@@ -160,6 +160,33 @@ public:
   T last() const;
 };
 
+template <typename T>
+class HostWrite {
+  Write<T> write_;
+#ifdef OSH_USE_KOKKOS
+  typename Kokkos::View<T*>::HostMirror mirror_;
+#endif
+public:
+  HostWrite(LO size);
+  HostWrite(LO size, T offset, T stride);
+  HostWrite(Write<T> write);
+  HostWrite(std::initializer_list<T> l);
+  Write<T> write() const;
+  LO size() const;
+  inline T& operator[](LO i) const {
+#ifdef OSH_USE_KOKKOS
+#ifdef OSH_CHECK_BOUNDS
+    OSH_CHECK(0 <= i);
+    OSH_CHECK(i < size());
+#endif
+    return mirror_(i);
+#else
+    return write_[i];
+#endif
+  }
+  T* data() const;
+};
+
 enum Xfer {
   OSH_DONT_TRANSFER,
   OSH_INHERIT,
