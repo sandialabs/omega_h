@@ -160,16 +160,32 @@ public:
   T last() const;
 };
 
-enum Xfer {
-  OSH_DONT_TRANSFER,
-  OSH_INHERIT,
-  OSH_LINEAR_INTERP,
-  OSH_POINTWISE,
-  OSH_CONSERVE,
-  OSH_GLOBAL,
-  OSH_LENGTH,
-  OSH_QUALITY,
-  OSH_METRIC
+template <typename T>
+class HostWrite {
+  Write<T> write_;
+#ifdef OSH_USE_KOKKOS
+  typename Kokkos::View<T*>::HostMirror mirror_;
+#endif
+public:
+  HostWrite();
+  HostWrite(LO size);
+  HostWrite(LO size, T offset, T stride);
+  HostWrite(Write<T> write);
+  HostWrite(std::initializer_list<T> l);
+  Write<T> write() const;
+  LO size() const;
+  inline T& operator[](LO i) const {
+#ifdef OSH_USE_KOKKOS
+#ifdef OSH_CHECK_BOUNDS
+    OSH_CHECK(0 <= i);
+    OSH_CHECK(i < size());
+#endif
+    return mirror_(i);
+#else
+    return write_[i];
+#endif
+  }
+  T* data() const;
 };
 
 enum TagType {
@@ -181,22 +197,22 @@ enum TagType {
 
 class TagBase {
   public:
-    TagBase(std::string const& name, Int ncomps, Xfer xfer);
+    TagBase(std::string const& name, Int ncomps, osh_xfer xfer);
     virtual ~TagBase();
     std::string const& name() const;
     Int ncomps() const;
-    Xfer xfer() const;
+    osh_xfer xfer() const;
     virtual TagType type() const = 0;
   private:
     std::string name_;
     Int ncomps_;
-    Xfer xfer_;
+    osh_xfer xfer_;
 };
 
 template <typename T>
 class Tag : public TagBase {
   public:
-    Tag(std::string const& name, Int ncomps, Xfer xfer);
+    Tag(std::string const& name, Int ncomps, osh_xfer xfer);
     Read<T> array() const;
     void set_array(Read<T> array);
     virtual TagType type() const override;
@@ -398,10 +414,10 @@ class Mesh {
     GO nglobal_ents(Int dim);
     template <typename T>
     void add_tag(Int dim, std::string const& name, Int ncomps,
-        Xfer xfer);
+        osh_xfer xfer);
     template <typename T>
     void add_tag(Int dim, std::string const& name, Int ncomps,
-        Xfer xfer, Read<T> array);
+        osh_xfer xfer, Read<T> array);
     template <typename T>
     void set_tag(Int dim, std::string const& name, Read<T> array);
     template <typename T>

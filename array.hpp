@@ -1,6 +1,3 @@
-template <typename T>
-class HostWrite;
-
 template <class T>
 bool operator==(Read<T> a, Read<T> b);
 
@@ -22,33 +19,6 @@ template <typename T>
 T max(CommPtr comm, Read<T> a);
 
 bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
-
-template <typename T>
-class HostWrite {
-  Write<T> write_;
-#ifdef OSH_USE_KOKKOS
-  typename Kokkos::View<T*>::HostMirror mirror_;
-#endif
-public:
-  HostWrite(LO size);
-  HostWrite(LO size, T offset, T stride);
-  HostWrite(Write<T> write);
-  HostWrite(std::initializer_list<T> l);
-  Write<T> write() const;
-  LO size() const;
-  inline T& operator[](LO i) const {
-#ifdef OSH_USE_KOKKOS
-#ifdef OSH_CHECK_BOUNDS
-    CHECK(0 <= i);
-    CHECK(i < size());
-#endif
-    return mirror_(i);
-#else
-    return write_[i];
-#endif
-  }
-  T* data() const;
-};
 
 template <typename T>
 std::ostream& operator<<(std::ostream& o, Read<T> a);

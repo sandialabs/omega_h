@@ -322,7 +322,7 @@ static void read_tag(std::istream& stream, Mesh* mesh,
   read_value(stream, type);
   I8 xfer_int;
   read_value(stream, xfer_int);
-  Xfer xfer = static_cast<Xfer>(xfer_int);
+  osh_xfer xfer = static_cast<osh_xfer>(xfer_int);
   if (type == OSH_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);

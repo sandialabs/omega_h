@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     std::cout << "    -help (Print this summary and exit.)\n";
     std::cout << "    -tolerance <$val> (Overrides the default tolerance of 1.0E-6.)\n";
     std::cout << "    -Floor <$val> (Overrides the default floor tolerance of 0.0.)\n";
-    return 0;
+    return -1;
   }
   osh::Mesh a;
   osh::binary::read(filea, lib.world(), &a);

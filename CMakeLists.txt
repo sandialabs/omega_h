@@ -18,13 +18,15 @@ option(OSH_SYMBOLS "Compile with debug symbols" ON)
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp)
   find_library(KOKKOS_LIB NAMES kokkos kokkoscore)
-  include_directories(${KOKKOS_INCLUDE})
+  set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${KOKKOS_INCLUDE})
 endif()
 
 if(OSH_USE_ZLIB)
   find_package(ZLIB REQUIRED)
-  include_directories(${ZLIB_INCLUDE_DIRS})
+  set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
 endif()
+
+include_directories(${DEP_INCLUDE_DIRS})
 
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 set(FLAGS "--std=c++11 -fno-omit-frame-pointer -ferror-limit=1")

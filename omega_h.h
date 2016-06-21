@@ -39,6 +39,18 @@
 
 #include <assert.h>
 
+enum osh_xfer {
+  OSH_DONT_TRANSFER,
+  OSH_INHERIT,
+  OSH_LINEAR_INTERP,
+  OSH_POINTWISE,
+  OSH_CONSERVE,
+  OSH_GLOBAL,
+  OSH_LENGTH,
+  OSH_QUALITY,
+  OSH_METRIC
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif

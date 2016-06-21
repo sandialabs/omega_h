@@ -315,6 +315,11 @@ Write<T> deep_copy(Read<T> a) {
 }
 
 template <typename T>
+HostWrite<T>::HostWrite()
+{
+}
+
+template <typename T>
 HostWrite<T>::HostWrite(LO size):
   write_(size)
 #ifdef OSH_USE_KOKKOS
