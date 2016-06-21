@@ -167,6 +167,7 @@ class HostWrite {
   typename Kokkos::View<T*>::HostMirror mirror_;
 #endif
 public:
+  HostWrite();
   HostWrite(LO size);
   HostWrite(LO size, T offset, T stride);
   HostWrite(Write<T> write);
