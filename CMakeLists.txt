@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
-project(omega_h CXX)
+project(Omega_h CXX)
 
 set(OSH_MAJOR "0")
 set(OSH_MINOR "5")
@@ -110,11 +110,11 @@ install(FILES
   "${PROJECT_SOURCE_DIR}/omega_h.h"
   "${PROJECT_SOURCE_DIR}/omega_h.hpp"
   DESTINATION include)
+install(TARGETS omega_h EXPORT omega_h-targets DESTINATION lib)
+install(EXPORT omega_h-targets DESTINATION lib)
+install(FILES omega_h-config.cmake DESTINATION lib/omega_h)
 install(TARGETS
-  omega_h
   msh2osh
   osh2vtk
   oshdiff
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
+  DESTINATION bin)
