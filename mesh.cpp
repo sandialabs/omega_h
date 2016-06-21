@@ -106,7 +106,7 @@ GO Mesh::nglobal_ents(Int dim) {
 
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
-    Xfer xfer) {
+    osh_xfer xfer) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
     osh_fail("omega_h: add_tag(): \"%s\" already exists. use set_tag or remove_tag\n",
@@ -120,7 +120,7 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
 
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
-    Xfer xfer, Read<T> array) {
+    osh_xfer xfer, Read<T> array) {
   add_tag<T>(dim, name, ncomps, xfer);
   set_tag<T>(dim, name, array);
 }
@@ -535,9 +535,9 @@ template Tag<T> const* Mesh::get_tag<T>( \
 template Read<T> Mesh::get_array<T>( \
     Int dim, std::string const& name) const; \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-    Xfer xfer); \
+    osh_xfer xfer); \
 template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-    Xfer xfer, Read<T> array); \
+    osh_xfer xfer, Read<T> array); \
 template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array); \
 template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
 template Read<T> Mesh::sync_subset_array(Int ent_dim, \

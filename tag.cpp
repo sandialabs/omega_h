@@ -1,4 +1,4 @@
-TagBase::TagBase(std::string const& name, Int ncomps, Xfer xfer):
+TagBase::TagBase(std::string const& name, Int ncomps, osh_xfer xfer):
   name_(name),ncomps_(ncomps),xfer_(xfer) {
 }
 
@@ -13,7 +13,7 @@ Int TagBase::ncomps() const {
   return ncomps_;
 }
 
-Xfer TagBase::xfer() const {
+osh_xfer TagBase::xfer() const {
   return xfer_;
 }
 
@@ -35,7 +35,7 @@ Tag<T>* to(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, Int ncomps, Xfer xfer):
+Tag<T>::Tag(std::string const& name, Int ncomps, osh_xfer xfer):
   TagBase(name, ncomps, xfer) {
 }
 
