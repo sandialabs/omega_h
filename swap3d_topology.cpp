@@ -1,9 +1,9 @@
-std::array<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
+Few<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edges2ntets = get_degrees(edges2edge_tets);
   auto nkeys = keys2edges.size();
-  std::array<Write<LO>, 4> keys2nprods_w;
+  Few<Write<LO>, 4> keys2nprods_w;
   for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     keys2nprods_w[prod_dim] = Write<LO>(nkeys);
   }
@@ -20,7 +20,7 @@ std::array<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
     keys2nprods_w[TET][key] = nprod_tets;
   };
   parallel_for(nkeys, f);
-  std::array<LOs, 4> keys2prods;
+  Few<LOs, 4> keys2prods;
   for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     keys2prods[prod_dim] = offset_scan(
         LOs(keys2nprods_w[prod_dim]));
@@ -28,17 +28,17 @@ std::array<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   return keys2prods;
 }
 
-std::array<LOs, 4> swap3d_topology(Mesh* mesh,
+Few<LOs, 4> swap3d_topology(Mesh* mesh,
     LOs keys2edges,
     Read<I8> edge_configs,
-    std::array<LOs, 4> keys2prods) {
+    Few<LOs, 4> keys2prods) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
   auto edge_tet_codes = edges2tets.codes;
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto tet_verts2verts = mesh->ask_verts_of(TET);
-  std::array<Write<LO>, 4> prod_verts2verts_w;
+  Few<Write<LO>, 4> prod_verts2verts_w;
   for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     prod_verts2verts_w[prod_dim] = Write<LO>(
         keys2prods[prod_dim].last() * Int(prod_dim + 1));
@@ -108,7 +108,7 @@ std::array<LOs, 4> swap3d_topology(Mesh* mesh,
     }
   };
   parallel_for(nkeys, f);
-  std::array<LOs, 4> prod_verts2verts;
+  Few<LOs, 4> prod_verts2verts;
   for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     prod_verts2verts[prod_dim] = prod_verts2verts_w[prod_dim];
   }

@@ -1,16 +1,4 @@
 template <typename T>
-Write<T>::Write():
-#ifdef OSH_USE_KOKKOS
-  view_()
-#else
-  ptr_(),
-  size_(0)
-#endif
-{
-  CHECK(!exists());
-}
-
-template <typename T>
 Write<T>::Write(LO size):
 #ifdef OSH_USE_KOKKOS
   /* +1 for ::exists() to work, see Kokkos issue #244 */
@@ -208,9 +196,6 @@ bool are_close(Reals a, Reals b, Real tol, Real floor) {
         AreClose(a, b, tol, floor)));
 }
 
-LOs::LOs() {
-}
-
 LOs::LOs(Write<LO> write):
   Read<LO>(write) {
 }
@@ -225,10 +210,6 @@ LOs::LOs(LO size, LO offset, LO stride):
 
 LOs::LOs(std::initializer_list<LO> l):
   Read<LO>(l) {
-}
-
-template <typename T>
-Read<T>::Read() {
 }
 
 template <typename T>
