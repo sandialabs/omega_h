@@ -10,9 +10,6 @@ Read<T> unmap(LOs a2b, Read<T> b_data, Int width);
 template <typename T>
 Read<T> expand(Read<T> a_data, LOs a2b, Int width);
 
-template <typename T>
-Read<T> permute(Read<T> a_data, LOs a2b, Int width);
-
 LOs multiply_fans(LOs a2b, LOs a2c);
 
 LOs compound_maps(LOs a2b, LOs b2c);

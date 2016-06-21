@@ -123,6 +123,9 @@ public:
   LOs(std::initializer_list<LO> l);
 };
 
+template <typename T>
+Read<T> permute(Read<T> a_data, LOs a2b, Int width);
+
 class Reals : public Read<Real> {
 public:
   Reals();
