@@ -4,7 +4,7 @@ Few<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   auto edges2ntets = get_degrees(edges2edge_tets);
   auto nkeys = keys2edges.size();
   Few<Write<LO>, 4> keys2nprods_w;
-  for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     keys2nprods_w[prod_dim] = Write<LO>(nkeys);
   }
   auto f = LAMBDA(LO key) {
@@ -21,7 +21,7 @@ Few<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   };
   parallel_for(nkeys, f);
   Few<LOs, 4> keys2prods;
-  for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     keys2prods[prod_dim] = offset_scan(
         LOs(keys2nprods_w[prod_dim]));
   }
@@ -39,7 +39,7 @@ Few<LOs, 4> swap3d_topology(Mesh* mesh,
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto tet_verts2verts = mesh->ask_verts_of(TET);
   Few<Write<LO>, 4> prod_verts2verts_w;
-  for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     prod_verts2verts_w[prod_dim] = Write<LO>(
         keys2prods[prod_dim].last() * Int(prod_dim + 1));
   }
@@ -109,7 +109,7 @@ Few<LOs, 4> swap3d_topology(Mesh* mesh,
   };
   parallel_for(nkeys, f);
   Few<LOs, 4> prod_verts2verts;
-  for (size_t prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     prod_verts2verts[prod_dim] = prod_verts2verts_w[prod_dim];
   }
   return prod_verts2verts;
