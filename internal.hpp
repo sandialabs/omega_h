@@ -101,7 +101,6 @@ namespace osh {
 #include "metric.hpp"
 #include "size.hpp"
 #include "quality.hpp"
-#include "construct.hpp"
 #include "vtk.hpp"
 #include "bbox.hpp"
 #include "hilbert.hpp"

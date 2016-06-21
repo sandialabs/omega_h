@@ -536,6 +536,12 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose);
 bool check_regression(std::string const& prefix, Mesh* mesh,
     Real tol, Real floor);
 
+void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts);
+void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords);
+void build_box(Mesh* mesh,
+    Real x, Real y, Real z,
+    LO nx, LO ny, LO nz);
+
 OSH_INLINE bool code_is_flipped(I8 code) {
   return code & 1;
 }
