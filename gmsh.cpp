@@ -128,14 +128,11 @@ void read(std::istream& stream, Mesh* mesh) {
       auto v2e = mesh->ask_up(VERT, ent_dim);
       find_matches(ent_dim, eqv2v, ev2v, v2e, &eq2e, &codes);
     }
-    Write<I8> class_dim(mesh->nents(ent_dim), -1);
-    Write<LO> class_id(mesh->nents(ent_dim), -1);
-    auto f = LAMBDA(LO eq) {
-      LO e = eq2e[eq];
-      class_dim[e] = static_cast<I8>(ent_dim);
-      class_id[e] = eq_class_id[eq];
-    };
-    parallel_for(ndim_ents, f);
+    auto eq_class_dim = Read<I8>(ndim_ents, I8(ent_dim));
+    auto class_dim = map_onto(eq_class_dim, eq2e,
+        mesh->nents(ent_dim), I8(-1), 1);
+    auto class_id = map_onto(eq_class_id, eq2e,
+        mesh->nents(ent_dim), -1, 1);
     mesh->add_tag<I8>(ent_dim, "class_dim", 1, OSH_INHERIT, class_dim);
     mesh->add_tag<LO>(ent_dim, "class_id", 1, OSH_INHERIT, class_id);
   }
