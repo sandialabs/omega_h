@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
   add_pointwise(&mesh);
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
+  vtk::FullWriter writer(&mesh, "out");
   Now t0 = now();
   for (Int i = 0; i < 8; ++i) {
     auto coords = mesh.coords();
@@ -70,6 +71,7 @@ int main(int argc, char** argv) {
       Real rot_a = 0;
       if (polar_r < 0.5) {
         rot_a = (PI / 8) * (2.0 * (0.5 - polar_r));
+        if (i >= 4) rot_a = -rot_a;
       }
       auto dest_a = polar_a + rot_a;
       auto dst = x0;
@@ -84,6 +86,7 @@ int main(int argc, char** argv) {
     while (warp_to_limit(&mesh, 0.30)) {
       if (world->rank() == 0) std::cout << "after warp_to_limit\n";
       adapt(&mesh, 0.30, 0.40, 1.0 / 2.0, 3.0 / 2.0, 4);
+      writer.write();
     }
   }
   Now t1 = now();
