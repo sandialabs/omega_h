@@ -2,16 +2,10 @@ CMakeCache.txt
 CMakeFiles
 install_manifest.txt
 Makefile
-adjs.txt
 cmake_install.cmake
 omega_h_config.h
 libomega_h.a
 perf_tests
 unit_tests
-ex1
-ex2
-ex3
-mpi_tests
-osh_convert
 *.dSYM/
 *.vtu
