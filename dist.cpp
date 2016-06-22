@@ -50,8 +50,9 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
 
 void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
   auto rcontent2rroots = exch(fitems2rroots, 1);
-  map::invert_by_sorting(rcontent2rroots, nrroots,
-      roots2items_[R], items2content_[R]);
+  auto rroots2rcontent = map::invert_by_sorting(rcontent2rroots, nrroots);
+  roots2items_[R] = rroots2rcontent.a2ab;
+  items2content_[R] = rroots2rcontent.ab2b;
 }
 
 void Dist::set_roots2items(LOs froots2fitems) {

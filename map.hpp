@@ -33,12 +33,9 @@ enum InvertMethod {
   BY_ATOMICS
 };
 
-void invert_by_sorting(LOs a2b, LO nb,
-    LOs& b2ba, LOs& ba2a);
-void invert_by_atomics(LOs a2b, LO nb,
-    LOs& b2ba, LOs& ba2a);
-void invert(LOs a2b, LO nb,
-    LOs& b2ba, LOs& ba2a, InvertMethod method);
+Graph invert_by_sorting(LOs a2b, LO nb);
+Graph invert_by_atomics(LOs a2b, LO nb);
+Graph invert(LOs a2b, LO nb, InvertMethod method);
 
 }
 

@@ -169,24 +169,23 @@ LOs invert_funnel(LOs ab2a, LO na) {
 
 namespace map {
 
-void invert_by_sorting(LOs a2b, LO nb,
-    LOs& b2ba, LOs& ba2a) {
-  LOs ab2b = a2b;
-  LOs ba2ab = sort_by_keys(ab2b);
-  LOs ba2b = unmap(ba2ab, ab2b, 1);
-  b2ba = invert_funnel(ba2b, nb);
-  ba2a = ba2ab;
+Graph invert_by_sorting(LOs a2b, LO nb) {
+  auto ab2b = a2b;
+  auto ba2ab = sort_by_keys(ab2b);
+  auto ba2b = unmap(ba2ab, ab2b, 1);
+  auto b2ba = invert_funnel(ba2b, nb);
+  auto ba2a = ba2ab;
+  return Graph(b2ba, ba2a);
 }
 
-void invert_by_atomics(LOs a2b, LO nb,
-    LOs& b2ba, LOs& ba2a) {
+Graph invert_by_atomics(LOs a2b, LO nb) {
   LO na = a2b.size();
   Write<LO> degrees(nb, 0);
   auto count = LAMBDA(LO a) {
     atomic_increment(&degrees[a2b[a]]);
   };
   parallel_for(na, count);
-  b2ba = offset_scan(Read<LO>(degrees));
+  auto b2ba = offset_scan(Read<LO>(degrees));
   LO nba = b2ba.get(nb);
   Write<LO> write_ba2a(nba);
   degrees = Write<LO>(nb, 0);
@@ -197,17 +196,18 @@ void invert_by_atomics(LOs a2b, LO nb,
     write_ba2a[first + j] = a;
   };
   parallel_for(na, fill);
-  ba2a = write_ba2a;
+  auto ba2a = LOs(write_ba2a);
+  return Graph(b2ba, ba2a);
 }
 
-void invert(LOs a2b, LO nb,
-    LOs& b2ba, LOs& ba2a, InvertMethod method) {
-  if (method == BY_SORTING)
-    invert_by_sorting(a2b, nb, b2ba, ba2a);
-  if (method == BY_ATOMICS)
-    invert_by_atomics(a2b, nb, b2ba, ba2a);
+Graph invert(LOs a2b, LO nb, InvertMethod method) {
+  switch (method) {
+  case BY_SORTING: return invert_by_sorting(a2b, nb);
+  case BY_ATOMICS: return invert_by_atomics(a2b, nb);
+  }
 }
-}
+
+} //end namespace map
 
 LOs get_degrees(LOs offsets) {
   Write<LO> degrees(offsets.size() - 1);

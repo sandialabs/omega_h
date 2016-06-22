@@ -250,19 +250,15 @@ static void test_permute() {
 static void test_invert_map(map::InvertMethod method) {
   {
   LOs hl2l({});
-  LOs l2lh;
-  LOs lh2hl;
-  map::invert(hl2l, 4, l2lh, lh2hl, method);
-  CHECK(l2lh == LOs(5,0));
-  CHECK(lh2hl == LOs({}));
+  auto l2hl = map::invert(hl2l, 4, method);
+  CHECK(l2hl.a2ab == LOs(5,0));
+  CHECK(l2hl.ab2b == LOs({}));
   }
   {
   LOs hl2l({0,1,2,3});
-  LOs l2lh;
-  LOs lh2hl;
-  map::invert(hl2l, 4, l2lh, lh2hl, method);
-  CHECK(l2lh == LOs(5,0,1));
-  CHECK(lh2hl == LOs(4,0,1));
+  auto l2hl = map::invert(hl2l, 4, method);
+  CHECK(l2hl.a2ab == LOs(5,0,1));
+  CHECK(l2hl.ab2b == LOs(4,0,1));
   }
 }
 
