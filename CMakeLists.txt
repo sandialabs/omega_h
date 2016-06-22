@@ -18,11 +18,13 @@ option(OSH_SYMBOLS "Compile with debug symbols" ON)
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp)
   find_library(KOKKOS_LIB NAMES kokkos kokkoscore)
+  set(DEP_LIBS ${DEP_LIBS} ${KOKKOS_LIB})
   set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${KOKKOS_INCLUDE})
 endif()
 
 if(OSH_USE_ZLIB)
   find_package(ZLIB REQUIRED)
+  set(DEP_LIBS ${DEP_LIBS} ${ZLIB_LIBRARIES})
   set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
 endif()
 
@@ -71,12 +73,7 @@ configure_file(
 include_directories(${PROJECT_BINARY_DIR})
 
 add_library(omega_h omega_h.cpp)
-if(OSH_USE_KOKKOS)
-target_link_libraries(omega_h ${KOKKOS_LIB} dl)
-endif()
-if(OSH_USE_ZLIB)
-target_link_libraries(omega_h ${ZLIB_LIBRARIES})
-endif()
+target_link_libraries(omega_h ${DEP_LIBS})
 
 add_executable(unit_tests unit_tests.cpp)
 target_link_libraries(unit_tests omega_h)
