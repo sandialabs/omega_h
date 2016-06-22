@@ -46,6 +46,12 @@ enum osh_type {
   OSH_F64 = 5,
 };
 
+enum osh_op {
+  OSH_MIN,
+  OSH_MAX,
+  OSH_SUM
+};
+
 enum osh_xfer {
   OSH_DONT_TRANSFER,
   OSH_INHERIT,

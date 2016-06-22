@@ -25,11 +25,11 @@ struct CompareArrays<Real> {
         max_diff = diff;
       }
     }
-    auto global_start = comm->exscan(GO(ah.size()), SUM);
-    auto global_max_diff = comm->allreduce(max_diff, MAX);
+    auto global_start = comm->exscan(GO(ah.size()), OSH_SUM);
+    auto global_max_diff = comm->allreduce(max_diff, OSH_MAX);
     I32 rank_cand = ArithTraits<I32>::max();
     if (max_diff == global_max_diff) rank_cand = comm->rank();
-    auto best_rank = comm->allreduce(rank_cand, MIN);
+    auto best_rank = comm->allreduce(rank_cand, OSH_MIN);
     if (comm->rank() == best_rank) {
       auto global_max_i = global_start + max_i;
       auto ent_global = global_max_i / ncomps;

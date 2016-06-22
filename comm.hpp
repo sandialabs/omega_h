@@ -41,11 +41,11 @@ struct MpiTraits<double> {
 static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");
 
 #ifdef OSH_USE_MPI
-inline MPI_Op mpi_op(ReduceOp op) {
+inline MPI_Op mpi_op(osh_op op) {
   switch (op) {
-    case MIN: return MPI_MIN;
-    case MAX: return MPI_MAX;
-    case SUM: return MPI_SUM;
+    case OSH_MIN: return MPI_MIN;
+    case OSH_MAX: return MPI_MAX;
+    case OSH_SUM: return MPI_SUM;
   };
   NORETURN(MPI_MIN);
 }

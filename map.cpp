@@ -259,17 +259,17 @@ fan_reduce_tmpl(
 }
 
 template <typename T>
-Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, ReduceOp op) {
+Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
   switch (op) {
-  case MIN: return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
-  case MAX: return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
-  case SUM: return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
+  case OSH_MIN: return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
+  case OSH_MAX: return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
+  case OSH_SUM: return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
   }
   NORETURN(Read<T>());
 }
 
 #define INST_T(T) \
-template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, ReduceOp op);
+template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(Real)

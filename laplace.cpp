@@ -19,7 +19,7 @@ Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
     new_state = mesh->sync_array(VERT, new_state, width);
     auto diff = subtract_each(new_state, state);
     auto diffsq = multiply_each(diff, diff);
-    auto maxdiffsq = comm->allreduce(max(diffsq), MAX);
+    auto maxdiffsq = comm->allreduce(max(diffsq), OSH_MAX);
     maxdiff = sqrt(maxdiffsq);
     state = new_state;
     ++niters;

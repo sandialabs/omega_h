@@ -165,7 +165,7 @@ Read<I32> Comm::destinations() const {
 }
 
 template <typename T>
-T Comm::allreduce(T x, ReduceOp op) const {
+T Comm::allreduce(T x, osh_op op) const {
 #ifdef OSH_USE_MPI
   CALL(MPI_Allreduce(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(),
         mpi_op(op), impl_));
@@ -177,13 +177,13 @@ T Comm::allreduce(T x, ReduceOp op) const {
 
 bool Comm::reduce_or(bool x) const {
   I8 y = x;
-  y = allreduce(y, MAX);
+  y = allreduce(y, OSH_MAX);
   return static_cast<bool>(y);
 }
 
 bool Comm::reduce_and(bool x) const {
   I8 y = x;
-  y = allreduce(y, MIN);
+  y = allreduce(y, OSH_MIN);
   return static_cast<bool>(y);
 }
 
@@ -208,7 +208,7 @@ Int128 Comm::add_int128(Int128 x) const {
 }
 
 template <typename T>
-T Comm::exscan(T x, ReduceOp op) const {
+T Comm::exscan(T x, osh_op op) const {
 #ifdef OSH_USE_MPI
   CALL(MPI_Exscan(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(),
         mpi_op(op), impl_));
@@ -481,8 +481,8 @@ void Comm::barrier() const {
 #undef CALL
 
 #define INST_T(T) \
-template T Comm::allreduce(T x, ReduceOp op) const; \
-template T Comm::exscan(T x, ReduceOp op) const; \
+template T Comm::allreduce(T x, osh_op op) const; \
+template T Comm::exscan(T x, osh_op op) const; \
 template void Comm::bcast(T& x) const; \
 template Read<T> Comm::allgather(T x) const; \
 template Read<T> Comm::alltoall(Read<T> x) const; \

@@ -148,17 +148,17 @@ T max(Read<T> a) {
 
 template <typename T>
 typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a) {
-  return comm->allreduce(sum(a), SUM);
+  return comm->allreduce(sum(a), OSH_SUM);
 }
 
 template <typename T>
 T min(CommPtr comm, Read<T> a) {
-  return comm->allreduce(min(a), MIN);
+  return comm->allreduce(min(a), OSH_MIN);
 }
 
 template <typename T>
 T max(CommPtr comm, Read<T> a) {
-  return comm->allreduce(min(a), MAX);
+  return comm->allreduce(min(a), OSH_MAX);
 }
 
 Reals::Reals():

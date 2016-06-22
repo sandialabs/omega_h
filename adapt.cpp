@@ -38,8 +38,8 @@ static void get_minmax(
     Reals values,
     Real* p_minval,
     Real* p_maxval) {
-  *p_minval = mesh->comm()->allreduce(min(values), MIN);
-  *p_maxval = mesh->comm()->allreduce(max(values), MAX);
+  *p_minval = mesh->comm()->allreduce(min(values), OSH_MIN);
+  *p_maxval = mesh->comm()->allreduce(max(values), OSH_MAX);
 }
 
 static void adapt_summary(Mesh* mesh,

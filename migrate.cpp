@@ -154,8 +154,8 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
   }
   auto npulled = msgs2content.last();
   auto nextern = npulled - nintern;
-  auto total_pulled = comm->allreduce(GO(npulled), SUM);
-  auto total_extern = comm->allreduce(GO(nextern), SUM);
+  auto total_pulled = comm->allreduce(GO(npulled), OSH_SUM);
+  auto total_extern = comm->allreduce(GO(nextern), OSH_SUM);
   if (comm->rank() == 0) {
     std::cout << "migration pulling (" << total_extern
       << " remote) / (" << total_pulled << " total) elements\n";

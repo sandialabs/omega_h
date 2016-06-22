@@ -53,4 +53,4 @@ Read<T> fan_max(LOs a2b, Read<T> b_data);
 template <typename T>
 Read<T> fan_min(LOs a2b, Read<T> b_data);
 template <typename T>
-Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, ReduceOp op);
+Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);

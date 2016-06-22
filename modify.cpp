@@ -286,11 +286,12 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
   auto nlins = lins2old_ents.nroots();
-  auto lin_rep_counts = old_ents2lins.exch_reduce(global_rep_counts, 1, SUM);
+  auto lin_rep_counts = old_ents2lins.exch_reduce(
+      global_rep_counts, 1, OSH_SUM);
   CHECK(lin_rep_counts.size() == nlins);
   auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
-  auto lin_global_offset = comm->exscan(lin_global_count, SUM);
+  auto lin_global_offset = comm->exscan(lin_global_count, OSH_SUM);
   Write<GO> lin_globals(nlins);
   auto write_lin_globals = LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
@@ -318,7 +319,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh,
 static void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   auto nnew_ents = new_mesh->nents(ent_dim);
   if (!new_mesh->could_be_shared(ent_dim)) {
-    auto start = new_mesh->comm()->exscan(GO(nnew_ents), SUM);
+    auto start = new_mesh->comm()->exscan(GO(nnew_ents), OSH_SUM);
     auto globals = Read<GO>(nnew_ents, start, 1);
     new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, globals);
     return;
@@ -326,7 +327,7 @@ static void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   auto new_owned = new_mesh->owned(ent_dim);
   auto local_offsets = offset_scan(new_owned);
   auto nnew_owned = local_offsets.last();
-  auto start = new_mesh->comm()->exscan(GO(nnew_owned), SUM);
+  auto start = new_mesh->comm()->exscan(GO(nnew_owned), OSH_SUM);
   auto new_globals_w = Write<GO>(nnew_ents);
   parallel_for(nnew_ents, LAMBDA(LO e) {
     new_globals_w[e] = local_offsets[e] + start;

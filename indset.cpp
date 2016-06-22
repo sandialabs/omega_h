@@ -72,7 +72,7 @@ static Read<I8> find(
   parallel_for(n, f);
   auto comm = mesh->comm();
   auto state = Read<I8>(initial_state);
-  while (comm->allreduce(max(state), MAX) == UNKNOWN) {
+  while (comm->allreduce(max(state), OSH_MAX) == UNKNOWN) {
     state = iteration(mesh, dim, xadj, adj, quality, global, state);
   }
   return state;

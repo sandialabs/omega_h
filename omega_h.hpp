@@ -248,12 +248,6 @@ struct Int128
   static OSH_INLINE Int128 from_double(double value, double unit);
 };
 
-enum ReduceOp {
-  MIN,
-  MAX,
-  SUM
-};
-
 class Comm;
 
 typedef std::shared_ptr<Comm> CommPtr;
@@ -286,12 +280,12 @@ public:
   Read<I32> sources() const;
   Read<I32> destinations() const;
   template <typename T>
-  T allreduce(T x, ReduceOp op) const;
+  T allreduce(T x, osh_op op) const;
   bool reduce_or(bool x) const;
   bool reduce_and(bool x) const;
   Int128 add_int128(Int128 x) const;
   template <typename T>
-  T exscan(T x, ReduceOp op) const;
+  T exscan(T x, osh_op op) const;
   template <typename T>
   void bcast(T& x) const;
   void bcast_string(std::string& s) const;
@@ -323,7 +317,7 @@ public:
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;
   template <typename T>
-  Read<T> exch_reduce(Read<T> data, Int width, ReduceOp op) const;
+  Read<T> exch_reduce(Read<T> data, Int width, osh_op op) const;
   CommPtr parent_comm() const;
   CommPtr comm() const;
   LOs msgs2content() const;
@@ -490,7 +484,7 @@ class Mesh {
     Read<T> sync_subset_array(Int ent_dim,
         Read<T> a_data, LOs a2e, T default_val, Int width);
     template <typename T>
-    Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, ReduceOp op);
+    Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op);
     bool operator==(Mesh& other);
     Real min_quality();
     bool could_be_shared(Int ent_dim) const;

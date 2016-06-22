@@ -38,7 +38,7 @@ LO linear_partition_size(CommPtr comm, GO total) {
 }
 
 GO find_total_globals(CommPtr comm, Read<GO> globals) {
-  return comm->allreduce(max(globals), MAX) + 1;
+  return comm->allreduce(max(globals), OSH_MAX) + 1;
 }
 
 Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals) {

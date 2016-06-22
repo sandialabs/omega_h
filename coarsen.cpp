@@ -89,7 +89,7 @@ static void coarsen_element_based2(Mesh* mesh) {
   auto edge_quals = get_edge_quals(mesh);
   auto keys2verts = collect_marked(verts_are_keys);
   auto nkeys = keys2verts.size();
-  auto ntotal_keys = comm->allreduce(GO(nkeys), SUM);
+  auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
   if (comm->rank() == 0) {
     std::cout << "coarsening " << ntotal_keys << " vertices\n";
   }
@@ -171,7 +171,7 @@ bool coarsen_by_size(Mesh* mesh, Real min_len,
   auto comm = mesh->comm();
   auto lengths = mesh->ask_edge_lengths();
   auto edge_is_cand = each_lt(lengths, min_len);
-  if (comm->allreduce(max(edge_is_cand), MAX) != 1) return false;
+  if (comm->allreduce(max(edge_is_cand), OSH_MAX) != 1) return false;
   return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, false);
 }
 
@@ -179,6 +179,6 @@ bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers) {
   mesh->set_partition(GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
-  CHECK(comm->allreduce(max(elems_are_cands), MAX) == 1);
+  CHECK(comm->allreduce(max(elems_are_cands), OSH_MAX) == 1);
   return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true);
 }

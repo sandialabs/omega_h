@@ -124,7 +124,7 @@ static void test_two_ranks_exch_sum(CommPtr comm) {
     dist.set_dest_ranks(Read<I32>({0,0,1}));
     dist.set_dest_idxs( LOs      ({1,2,0}), 1);
   }
-  auto recvd = dist.exch_reduce(LOs({1,1,1}), 1, SUM);
+  auto recvd = dist.exch_reduce(LOs({1,1,1}), 1, OSH_SUM);
   if (comm->rank() == 0) {
     CHECK(recvd == LOs({1,2,2}));
   } else {

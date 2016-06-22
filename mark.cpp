@@ -24,7 +24,7 @@ Read<I8> mark_down(Mesh* mesh, Int high_dim, Int low_dim,
   parallel_for(nl, f);
   auto low_marks = Read<I8>(low_marks_w);
   if (!mesh->owners_have_all_upward(low_dim)) {
-    low_marks = mesh->reduce_array(low_dim, low_marks, 1, MAX);
+    low_marks = mesh->reduce_array(low_dim, low_marks, 1, OSH_MAX);
   }
   low_marks = mesh->sync_array(low_dim, low_marks, 1);
   return low_marks;
@@ -82,7 +82,7 @@ Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers) {
   CHECK(mesh->partition() == GHOSTED);
   auto dual = mesh->ask_dual();
   for (Int i = 0; i < nlayers; ++i) {
-    marks = graph_reduce(dual, marks, 1, MAX);
+    marks = graph_reduce(dual, marks, 1, OSH_MAX);
     marks = mesh->sync_array(mesh->dim(), marks, 1);
   }
   return marks;
@@ -92,7 +92,7 @@ GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks) {
   if (mesh->could_be_shared(ent_dim)) {
     marks = land_each(marks, mesh->owned(ent_dim));
   }
-  return mesh->comm()->allreduce(GO(sum(marks)), SUM);
+  return mesh->comm()->allreduce(GO(sum(marks)), OSH_SUM);
 }
 
 Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {

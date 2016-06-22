@@ -31,7 +31,7 @@ static void swap3d_element_based(Mesh* mesh) {
   mesh->remove_tag(EDGE, "config");
   auto keys2edges = collect_marked(edges_are_keys);
   auto nkeys = keys2edges.size();
-  auto ntotal_keys = comm->allreduce(GO(nkeys), SUM);
+  auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
   if (comm->rank() == 0) {
     std::cout << "swapping " << ntotal_keys << " 3D edges\n";
   }

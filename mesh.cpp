@@ -9,7 +9,7 @@ Mesh::Mesh():
 
 void Mesh::set_comm(CommPtr new_comm) {
   auto rank_had_comm = bool(comm_);
-  auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), SUM);
+  auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), OSH_SUM);
   if (0 < nnew_had_comm && nnew_had_comm < new_comm->size()) {
     //partitioning out from small sub-communicator to larger one
     if (!rank_had_comm) {
@@ -98,10 +98,10 @@ LO Mesh::nedges() const {
 
 GO Mesh::nglobal_ents(Int dim) {
   if (!could_be_shared(dim)) {
-    return comm_->allreduce(GO(nents(dim)), SUM);
+    return comm_->allreduce(GO(nents(dim)), OSH_SUM);
   }
   auto nowned = sum(this->owned(dim));
-  return comm_->allreduce(GO(nowned), SUM);
+  return comm_->allreduce(GO(nowned), OSH_SUM);
 }
 
 template <typename T>
@@ -449,7 +449,7 @@ void Mesh::balance() {
     ecoords = vectors_2d_to_3d(ecoords);
   auto masses = Reals(nelems(), 1);
   auto owners = ask_owners(dim());
-  auto total = comm_->allreduce(GO(nelems()), SUM);
+  auto total = comm_->allreduce(GO(nelems()), OSH_SUM);
   auto avg = Real(total) / Real(comm_->size());
   hints = recursively_bisect(comm(), ecoords, masses, owners,
       2.0 / avg, hints);
@@ -487,7 +487,7 @@ Read<T> Mesh::sync_subset_array(Int ent_dim,
 }
 
 template <typename T>
-Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, ReduceOp op) {
+Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op) {
   if (!could_be_shared(ent_dim)) return a;
   return ask_dist(ent_dim).exch_reduce(a, width, op);
 }
@@ -497,7 +497,7 @@ bool Mesh::operator==(Mesh& other) {
 }
 
 Real Mesh::min_quality() {
-  return comm_->allreduce(min(ask_qualities()), MIN);
+  return comm_->allreduce(min(ask_qualities()), OSH_MIN);
 }
 
 bool Mesh::could_be_shared(Int ent_dim) const {
@@ -543,7 +543,7 @@ template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
 template Read<T> Mesh::sync_subset_array(Int ent_dim, \
     Read<T> a_data, LOs a2e, T default_val, Int width); \
 template Read<T> Mesh::reduce_array(Int ent_dim, \
-    Read<T> a, Int width, ReduceOp op);
+    Read<T> a, Int width, osh_op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

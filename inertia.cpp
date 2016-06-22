@@ -88,8 +88,8 @@ bool mark_axis_bisection(CommPtr comm, Reals distances,
     Read<I8>& marked) {
   auto n = distances.size();
   CHECK(n == masses.size());
-  auto max_dist = comm->allreduce(max(distances), MAX);
-  auto min_dist = comm->allreduce(min(distances), MIN);
+  auto max_dist = comm->allreduce(max(distances), OSH_MAX);
+  auto min_dist = comm->allreduce(min(distances), OSH_MIN);
   auto range = max2(fabs(min_dist), fabs(max_dist));
   auto step = range / 2.;
   Real distance = 0.;
