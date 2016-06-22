@@ -54,7 +54,6 @@ int main(int argc, char** argv) {
   mesh.add_tag(mesh.dim(), "mass", 1, OSH_CONSERVE,
       measure_elements_real(&mesh));
   add_pointwise(&mesh);
-  vtk::FullWriter writer(&mesh, "out");
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
@@ -85,7 +84,6 @@ int main(int argc, char** argv) {
     while (warp_to_limit(&mesh, 0.30)) {
       if (world->rank() == 0) std::cout << "after warp_to_limit\n";
       adapt(&mesh, 0.30, 0.40, 1.0 / 2.0, 3.0 / 2.0, 4);
-      writer.write();
     }
   }
   Now t1 = now();
