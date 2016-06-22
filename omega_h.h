@@ -39,6 +39,13 @@
 
 #include <assert.h>
 
+enum osh_type {
+  OSH_I8  = 0,
+  OSH_I32 = 2,
+  OSH_I64 = 3,
+  OSH_F64 = 5,
+};
+
 enum osh_xfer {
   OSH_DONT_TRANSFER,
   OSH_INHERIT,

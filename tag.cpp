@@ -54,26 +54,26 @@ struct TagTraits;
 
 template <>
 struct TagTraits<I8> {
-  static TagType type() { return OSH_I8; }
+  static osh_type type() { return OSH_I8; }
 };
 
 template <>
 struct TagTraits<I32> {
-  static TagType type() { return OSH_I32; }
+  static osh_type type() { return OSH_I32; }
 };
 
 template <>
 struct TagTraits<I64> {
-  static TagType type() { return OSH_I64; }
+  static osh_type type() { return OSH_I64; }
 };
 
 template <>
 struct TagTraits<Real> {
-  static TagType type() { return OSH_F64; }
+  static osh_type type() { return OSH_F64; }
 };
 
 template <typename T>
-TagType Tag<T>::type() const {
+osh_type Tag<T>::type() const {
   return TagTraits<T>::type();
 }
 

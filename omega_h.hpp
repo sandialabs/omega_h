@@ -199,13 +199,6 @@ public:
   T* data() const;
 };
 
-enum TagType {
-  OSH_I8  = 0,
-  OSH_I32 = 2,
-  OSH_I64 = 3,
-  OSH_F64 = 5,
-};
-
 class TagBase {
   public:
     TagBase(std::string const& name, Int ncomps, osh_xfer xfer);
@@ -213,7 +206,7 @@ class TagBase {
     std::string const& name() const;
     Int ncomps() const;
     osh_xfer xfer() const;
-    virtual TagType type() const = 0;
+    virtual osh_type type() const = 0;
   private:
     std::string name_;
     Int ncomps_;
@@ -226,7 +219,7 @@ class Tag : public TagBase {
     Tag(std::string const& name, Int ncomps, osh_xfer xfer);
     Read<T> array() const;
     void set_array(Read<T> array);
-    virtual TagType type() const override;
+    virtual osh_type type() const override;
   private:
     Read<T> array_;
 };
