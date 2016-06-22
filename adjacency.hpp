@@ -14,9 +14,8 @@ LOs find_unique(LOs hv2v, Int high_dim, Int low_dim);
 /* for each entity (or entity use), sort its vertex list.
    express the sorting transformation as
    an alignment code, output those too */
-template <Int deg>
-void make_canonical(LOs ev2v,
-    LOs& canon_, Read<I8>& codes_);
+template <Int deg, typename T>
+void make_canonical(Read<T> ev2v, Read<T>* canon_out, Read<I8>* codes_out);
 template <Int deg>
 Read<I8> find_jumps(LOs canon, LOs e_sorted2e);
 
