@@ -20,11 +20,7 @@ Read<I8> get_codes_to_canonical(Read<T> ev2v) {
     auto rotation = rotation_to_first<deg>(min_j);
     T tmp[deg];
     rotate_adj<deg>(rotation, &ev2v[begin], tmp);
-    auto is_flipped = false;
-    if (deg == 3 && tmp[2] < tmp[1]) {
-      is_flipped = true;
-      flip_adj(tmp);
-    }
+    auto is_flipped = (deg == 3 && tmp[2] < tmp[1]);
     codes[e] = make_code(is_flipped, rotation, 0);
   };
   parallel_for(ne, f);
