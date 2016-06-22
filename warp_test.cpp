@@ -58,7 +58,6 @@ int main(int argc, char** argv) {
   add_pointwise(&mesh);
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
-  vtk::FullWriter writer(&mesh, "out");
   Now t0 = now();
   for (Int i = 0; i < 8; ++i) {
     auto coords = mesh.coords();
@@ -88,7 +87,6 @@ int main(int argc, char** argv) {
     while (warp_to_limit(&mesh, 0.30)) {
       if (world->rank() == 0) std::cout << "after warp_to_limit\n";
       adapt(&mesh, 0.30, 0.40, 1.0 / 2.0, 3.0 / 2.0, 4);
-      writer.write();
     }
   }
   Now t1 = now();
