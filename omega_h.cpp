@@ -72,5 +72,6 @@ namespace osh {
 #include "swap3d.cpp"
 #include "regress.cpp"
 #include "consistent.cpp"
+#include "align.cpp"
 
 } //end namespace osh

@@ -146,3 +146,6 @@ INLINE void align_adj(I8 code,
   if (code_is_flipped(code))
     flip_adj(out);
 }
+
+template <Int deg, typename T>
+Read<T> align_ev2v(Read<T> ev2v, Read<I8> codes);

@@ -1,8 +1,7 @@
 template <Int deg, typename T>
-void make_canonical(Read<T> ev2v, Read<T>* canon_out, Read<I8>* codes_out) {
+Read<I8> get_codes_to_canonical(Read<T> ev2v) {
   LO nev = ev2v.size();
   LO ne = nev / deg;
-  Write<T> canon(nev);
   Write<I8> codes(ne);
   auto f = LAMBDA(LO e) {
     LO begin = e * deg;
@@ -19,27 +18,26 @@ void make_canonical(Read<T> ev2v, Read<T>* canon_out, Read<I8>* codes_out) {
     }
     /* rotate to make it first */
     auto rotation = rotation_to_first<deg>(min_j);
-    rotate_adj<deg>(rotation, &ev2v[begin], &canon[begin]);
+    T tmp[deg];
+    rotate_adj<deg>(rotation, &ev2v[begin], tmp);
     auto is_flipped = false;
-    if (deg == 3 && canon[begin + 2] < canon[begin + 1]) {
+    if (deg == 3 && tmp[2] < tmp[1]) {
       is_flipped = true;
-      flip_adj(&canon[begin]);
+      flip_adj(tmp);
     }
     codes[e] = make_code(is_flipped, rotation, 0);
   };
   parallel_for(ne, f);
-  *canon_out = canon;
-  *codes_out = codes;
+  return codes;
 }
 
-#define INST_CANON(deg,T) \
-template void make_canonical<deg, T>(Read<T> ev2v, \
-    Read<T>* canon_out, Read<I8>* codes_out);
-INST_CANON(2,LO)
-INST_CANON(3,LO)
-INST_CANON(2,GO)
-INST_CANON(3,GO)
-#undef INST_CANON
+#define INST(deg,T) \
+template Read<I8> get_codes_to_canonical<deg>(Read<T> ev2v);
+INST(2,LO)
+INST(3,LO)
+INST(2,GO)
+INST(3,GO)
+#undef INST
 
 /* check whether adjacent lists of (deg) vertices
    are the same */
@@ -73,9 +71,8 @@ template Read<I8> find_canonical_jumps<3>(LOs canon, LOs e_sorted2e);
 
 template <Int deg>
 LOs find_unique(LOs uv2v) {
-  LOs uv2v_canon;
-  Read<I8> u_codes;
-  make_canonical<deg>(uv2v, &uv2v_canon, &u_codes);
+  auto codes = get_codes_to_canonical<deg>(uv2v);
+  auto uv2v_canon = align_ev2v<deg>(uv2v, codes);
   auto sorted2u = sort_by_keys<LO,deg>(uv2v_canon);
   auto jumps = find_canonical_jumps<deg>(uv2v_canon, sorted2u);
   auto e2sorted = collect_marked(jumps);
