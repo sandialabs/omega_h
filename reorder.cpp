@@ -7,32 +7,10 @@
    "responsible for" that entity */
 Graph find_entities_of_first_vertices(
     Mesh* mesh, Int ent_dim) {
-  auto v2e = mesh->ask_up(VERT, ent_dim);
-  auto v2ve = v2e.a2ab;
-  auto ve2e = v2e.ab2b;
-  auto ve_codes = v2e.codes;
-  auto nv = mesh->nverts();
-  Write<LO> degrees(nv);
-  auto count = LAMBDA(LO v) {
-    Int n = 0;
-    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
-      n += (code_which_down(ve_codes[ve]) == 0);
-    }
-    degrees[v] = n;
-  };
-  parallel_for(nv, count);
-  auto fv2fve = offset_scan(LOs(degrees));
-  Write<LO> fve2e(fv2fve.last());
-  auto fill = LAMBDA(LO v) {
-    LO fve = fv2fve[v];
-    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
-      if (code_which_down(ve_codes[ve]) == 0) {
-        fve2e[fve++] = ve2e[ve];
-      }
-    }
-  };
-  parallel_for(nv, fill);
-  return Graph(fv2fve, fve2e);
+  auto ev2v = mesh->ask_verts_of(ent_dim);
+  auto e2fv = get_component(ev2v, ent_dim + 1, 0);
+  auto fv2e = map::invert_by_atomics(e2fv, mesh->nverts());
+  return fv2e;
 }
 
 LOs ent_order_from_vert_order(Mesh* mesh,
