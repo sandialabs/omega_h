@@ -11,11 +11,11 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim);
 
 LOs find_unique(LOs hv2v, Int high_dim, Int low_dim);
 
-/* for each entity (or entity use), sort its vertex list.
-   express the sorting transformation as
-   an alignment code, output those too */
+/* for each entity (or entity use), sort its vertex list
+   and express the sorting transformation as an alignment code */
 template <Int deg, typename T>
-void make_canonical(Read<T> ev2v, Read<T>* canon_out, Read<I8>* codes_out);
+Read<I8> get_codes_to_canonical(Read<T> ev2v);
+
 template <Int deg>
 Read<I8> find_canonical_jumps(LOs canon, LOs e_sorted2e);
 

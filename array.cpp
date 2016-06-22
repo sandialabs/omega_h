@@ -574,6 +574,17 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b) {
   return c;
 }
 
+template <typename T>
+Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
+  CHECK(a.size() % ncomps == 0);
+  Write<T> b(a.size() / ncomps);
+  auto f = LAMBDA(LO i) {
+    b[i] = a[i * ncomps + comp];
+  };
+  parallel_for(b.size(), f);
+  return b;
+}
+
 #define INST_ARRAY_T(T) \
 template class Write<T>; \
 template class Read<T>; \
@@ -599,7 +610,8 @@ template Read<I8> each_gt(Read<T> a, T b); \
 template Read<I8> each_lt(Read<T> a, T b); \
 template Read<I8> each_neq_to(Read<T> a, T b); \
 template Read<I8> each_eq_to(Read<T> a, T b); \
-template Read<I8> gt_each(Read<T> a, Read<T> b);
+template Read<I8> gt_each(Read<T> a, Read<T> b); \
+template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 
 INST_ARRAY_T(I8)
 INST_ARRAY_T(I32)

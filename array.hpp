@@ -49,3 +49,6 @@ template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
 Read<I8> land_each(Read<I8> a, Read<I8> b);
 Read<I8> lor_each(Read<I8> a, Read<I8> b);
+
+template <typename T>
+Read<T> get_component(Read<T> a, Int ncomps, Int comp);

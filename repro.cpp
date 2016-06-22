@@ -68,14 +68,7 @@ Real repro_sum(CommPtr comm, Reals a) {
 }
 
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
-  CHECK(a.size() % ncomps == 0);
-  auto n = a.size() / ncomps;
-  for (Int j = 0; j < ncomps; ++j) {
-    Write<Real> comp(n);
-    auto f = LAMBDA(LO i) {
-      comp[i] = a[i * ncomps + j];
-    };
-    parallel_for(n, f);
-    result[j] = repro_sum(comm, Reals(comp));
+  for (Int comp = 0; comp < ncomps; ++comp) {
+    result[comp] = repro_sum(comm, get_component(a, ncomps, comp));
   }
 }
