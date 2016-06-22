@@ -3,15 +3,16 @@ struct IsMatch;
 
 template <>
 struct IsMatch<2> {
+  template <typename T>
   DEVICE static bool eval(
-      LOs const& av2v,
+      Read<T> const& av2v,
       LO a_begin,
-      LOs const& bv2v,
+      Read<T> const& bv2v,
       LO b_begin,
       Int which_down,
-      I8& match_code) {
+      I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + (1 - which_down)]) {
-      match_code = make_code(false, which_down, 0);
+      *match_code = make_code(false, which_down, 0);
       return true;
     }
     return false;
@@ -20,49 +21,53 @@ struct IsMatch<2> {
 
 template <>
 struct IsMatch<3> {
+  template <typename T>
   DEVICE static bool eval(
-      LOs const& av2v,
+      Read<T> const& av2v,
       LO a_begin,
-      LOs const& bv2v,
+      Read<T> const& bv2v,
       LO b_begin,
       Int which_down,
-      I8& match_code) {
+      I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
-      match_code = make_code(false, rotation_to_first<3>(which_down), 0);
+      *match_code = make_code(false, rotation_to_first<3>(which_down), 0);
       return true;
     }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 2) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 1) % 3)]) {
-      match_code = make_code(true, rotation_to_first<3>(which_down), 0);
+      *match_code = make_code(true, rotation_to_first<3>(which_down), 0);
       return true;
     }
     return false;
   }
 };
 
-template <Int deg>
-void find_matches(LOs av2v, LOs bv2v, Adj v2b,
+template <Int deg, typename T>
+void find_matches_deg(LOs a2fv,
+    Read<T> av2v, Read<T> bv2v,
+    Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out) {
-  LO na = av2v.size() / deg;
+  LO na = a2fv.size();
+  CHECK(na * deg == av2v.size());
   LOs v2vb = v2b.a2ab;
   LOs vb2b = v2b.ab2b;
   Read<I8> vb_codes = v2b.codes;
   Write<LO> a2b(na);
   Write<I8> codes(na);
   auto f = LAMBDA(LO a) {
-    LO a_begin = a * deg;
-    LO v0 = av2v[a_begin];
-    LO vb_begin = v2vb[v0];
-    LO vb_end = v2vb[v0 + 1];
+    auto fv = a2fv[a];
+    auto a_begin = a * deg;
+    auto vb_begin = v2vb[fv];
+    auto vb_end = v2vb[fv + 1];
     for (LO vb = vb_begin; vb < vb_end; ++vb) {
-      LO b = vb2b[vb];
+      auto b = vb2b[vb];
       auto vb_code = vb_codes[vb];
-      Int which_down = code_which_down(vb_code);
-      LO b_begin = b * deg;
+      auto which_down = code_which_down(vb_code);
+      auto b_begin = b * deg;
       I8 match_code;
       if (IsMatch<deg>::eval(av2v, a_begin, bv2v, b_begin,
-            which_down, match_code)) {
+            which_down, &match_code)) {
         a2b[a] = b;
         codes[a] = match_code;
         return;
@@ -75,12 +80,23 @@ void find_matches(LOs av2v, LOs bv2v, Adj v2b,
   *codes_out = codes;
 }
 
+template <typename T>
+void find_matches_ex(Int dim, LOs a2fv,
+    Read<T> av2v, Read<T> bv2v,
+    Adj v2b,
+    LOs* a2b_out, Read<I8>* codes_out) {
+  if (dim == 1) {
+    find_matches_deg<2>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
+  } else if (dim == 2) {
+    find_matches_deg<3>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
+  }
+}
+
 void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out) {
-  if (dim == 1)
-    find_matches<2>(av2v, bv2v, v2b, a2b_out, codes_out);
-  if (dim == 2)
-    find_matches<3>(av2v, bv2v, v2b, a2b_out, codes_out);
+  auto deg = dim + 1;
+  auto a2fv = get_component(av2v, deg, 0);
+  find_matches_ex(dim, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
 }
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,

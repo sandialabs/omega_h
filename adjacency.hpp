@@ -30,8 +30,15 @@ Read<I8> find_canonical_jumps(LOs canon, LOs e_sorted2e);
    since typically data is being pulled into an element
    from its boundary
 */
-template <Int deg>
-void find_matches(LOs av2v, LOs bv2v, Adj v2b,
+template <Int deg, typename T>
+void find_matches_deg(LOs a2fv,
+    Read<T> av2v, Read<T> bv2v,
+    Adj v2b,
+    LOs* a2b_out, Read<I8>* codes_out);
+template <typename T>
+void find_matches_ex(Int dim, LOs a2fv,
+    Read<T> av2v, Read<T> bv2v,
+    Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out);
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
