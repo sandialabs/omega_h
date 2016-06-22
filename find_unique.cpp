@@ -44,7 +44,7 @@ INST_CANON(3,GO)
 /* check whether adjacent lists of (deg) vertices
    are the same */
 template <Int deg>
-DEVICE static bool are_equal(LOs canon, LO e0, LO e1) {
+DEVICE static bool are_equal(LOs const& canon, LO e0, LO e1) {
   LO a = e0 * deg;
   LO b = e1 * deg;
   for (LO j = 0; j < deg; ++j)
@@ -54,7 +54,7 @@ DEVICE static bool are_equal(LOs canon, LO e0, LO e1) {
 }
 
 template <Int deg>
-Read<I8> find_jumps(LOs canon, LOs e_sorted2e) {
+Read<I8> find_canonical_jumps(LOs canon, LOs e_sorted2e) {
   auto ne = e_sorted2e.size();
   Write<I8> jumps(ne, 0);
   auto f = LAMBDA(LO e_sorted) {
@@ -68,8 +68,8 @@ Read<I8> find_jumps(LOs canon, LOs e_sorted2e) {
   return jumps;
 }
 
-template Read<I8> find_jumps<2>(LOs canon, LOs e_sorted2e);
-template Read<I8> find_jumps<3>(LOs canon, LOs e_sorted2e);
+template Read<I8> find_canonical_jumps<2>(LOs canon, LOs e_sorted2e);
+template Read<I8> find_canonical_jumps<3>(LOs canon, LOs e_sorted2e);
 
 template <Int deg>
 LOs find_unique(LOs uv2v) {
@@ -77,7 +77,7 @@ LOs find_unique(LOs uv2v) {
   Read<I8> u_codes;
   make_canonical<deg>(uv2v, &uv2v_canon, &u_codes);
   auto sorted2u = sort_by_keys<LO,deg>(uv2v_canon);
-  auto jumps = find_jumps<deg>(uv2v_canon, sorted2u);
+  auto jumps = find_canonical_jumps<deg>(uv2v_canon, sorted2u);
   auto e2sorted = collect_marked(jumps);
   auto e2u = compound_maps(e2sorted, sorted2u);
   return unmap<LO>(e2u, uv2v, deg);

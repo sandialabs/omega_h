@@ -17,7 +17,7 @@ LOs find_unique(LOs hv2v, Int high_dim, Int low_dim);
 template <Int deg, typename T>
 void make_canonical(Read<T> ev2v, Read<T>* canon_out, Read<I8>* codes_out);
 template <Int deg>
-Read<I8> find_jumps(LOs canon, LOs e_sorted2e);
+Read<I8> find_canonical_jumps(LOs canon, LOs e_sorted2e);
 
 /* given entity uses and unique entities,
    both defined by vertex lists, match
