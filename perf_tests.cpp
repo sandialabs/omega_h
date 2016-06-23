@@ -153,24 +153,23 @@ static Read<T> random_ints(Int n, T from, T to) {
   return ha.write();
 }
 
-template <Int N>
-static void test_sort_n() {
-  LOs a = random_ints<LO>(nelems * N, 0, nelems);
+static void test_sort_n(Int width) {
+  LOs a = random_ints<LO>(nelems * width, 0, nelems);
   LOs perm;
   Int niters = 5;
   Now t0 = now();
   for (Int i = 0; i < niters; ++i)
-    perm = sort_by_keys<LO,N>(a);
+    perm = sort_by_keys(a, width);
   Now t1 = now();
   std::cout << "sorting " << nelems << " sets of "
-    << N << " integers " << niters
+    << width << " integers " << niters
     << " times takes " << (t1 - t0) << " seconds\n";
 }
 
 static void test_sort() {
-  test_sort_n<1>();
-  test_sort_n<2>();
-  test_sort_n<3>();
+  test_sort_n(1);
+  test_sort_n(2);
+  test_sort_n(3);
 }
 
 #endif

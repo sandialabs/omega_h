@@ -50,8 +50,8 @@ Read<I64> dists_from_coords(Reals coords) {
 
 template <Int dim>
 static LOs sort_coords_tmpl(Reals coords) {
-  Read<I64> keys = hilbert::dists_from_coords<dim>(coords);
-  return sort_by_keys<I64,dim>(keys);
+  auto keys = hilbert::dists_from_coords<dim>(coords);
+  return sort_by_keys(keys);
 }
 
 LOs sort_coords(Reals coords, Int dim) {

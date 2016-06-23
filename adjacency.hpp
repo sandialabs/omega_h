@@ -13,11 +13,10 @@ LOs find_unique(LOs hv2v, Int high_dim, Int low_dim);
 
 /* for each entity (or entity use), sort its vertex list
    and express the sorting transformation as an alignment code */
-template <Int deg, typename T>
-Read<I8> get_codes_to_canonical(Read<T> ev2v);
+template <typename T>
+Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);
 
-template <Int deg>
-Read<I8> find_canonical_jumps(LOs canon, LOs e_sorted2e);
+Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e);
 
 /* given entity uses and unique entities,
    both defined by vertex lists, match
