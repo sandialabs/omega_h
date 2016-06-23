@@ -58,10 +58,9 @@ void build_box(Mesh* mesh,
    part, which creates the right entities but with inconsistent
    alignment and no ownership information.
    This function establishes the ownership of derived entities
-   and returns the information necessary to make their alignments
-   consistent.
+   and canonicalizes their connectivity.
    It does this by expressing connectivity in terms of vertex
-   global numbers, canonicalizing it, and sending each entity
+   global numbers, locally sorting, and sending each entity
    to its lowest-global-number vertex.
    It uses a linear partitioning of the vertices by global number,
    and each "server" vertex handles the entity copies for which
@@ -74,13 +73,13 @@ void resolve_derived_copies(
     CommPtr comm,
     Read<GO> verts2globs,
     Int deg,
-    LOs ent_verts2verts,
-    Read<I8>* p_canon_codes,
+    LOs* p_ent_verts2verts,
     Remotes* p_ents2owners) {
-  auto ev2vg = unmap(ent_verts2verts, verts2globs, 1);
+  auto ev2v = *p_ent_verts2verts;
+  auto ev2vg = unmap(ev2v, verts2globs, 1);
   auto canon_codes = get_codes_to_canonical(deg, ev2vg);
-  *p_canon_codes = canon_codes;
-  auto ev2v_canon = align_ev2v(deg, ent_verts2verts, canon_codes);
+  auto ev2v_canon = align_ev2v(deg, ev2v, canon_codes);
+  *p_ent_verts2verts = ev2v_canon;
   auto ev2vg_canon = align_ev2v(deg, ev2vg, canon_codes);
   auto e2fv = get_component(ev2v_canon, deg, 0);
   auto total_verts = find_total_globals(comm, verts2globs);
