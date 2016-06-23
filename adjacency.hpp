@@ -35,7 +35,7 @@ void find_matches_deg(LOs a2fv,
     Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out);
 template <typename T>
-void find_matches_ex(Int dim, LOs a2fv,
+void find_matches_ex(Int deg, LOs a2fv,
     Read<T> av2v, Read<T> bv2v,
     Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out);

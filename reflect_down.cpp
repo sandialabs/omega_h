@@ -81,13 +81,13 @@ void find_matches_deg(LOs a2fv,
 }
 
 template <typename T>
-void find_matches_ex(Int dim, LOs a2fv,
+void find_matches_ex(Int deg, LOs a2fv,
     Read<T> av2v, Read<T> bv2v,
     Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out) {
-  if (dim == 1) {
+  if (deg == 2) {
     find_matches_deg<2>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
-  } else if (dim == 2) {
+  } else if (deg == 3) {
     find_matches_deg<3>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
   }
 }
@@ -96,7 +96,7 @@ void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out) {
   auto deg = dim + 1;
   auto a2fv = get_component(av2v, deg, 0);
-  find_matches_ex(dim, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
+  find_matches_ex(deg, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
 }
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l,
