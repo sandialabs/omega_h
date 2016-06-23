@@ -406,7 +406,7 @@ std::ostream& operator<<(std::ostream& o, Read<T> a) {
     o << '\n';
     for (LO i = 0; i < ha.size(); ++i) {
       vt v = ha[i];
-      o << v << '\n';
+      o << i << ": " << v << '\n';
     }
   }
   return o;

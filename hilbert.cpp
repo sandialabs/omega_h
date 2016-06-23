@@ -13,7 +13,7 @@ namespace hilbert {
    bits, and the last integer getting the least significant bits. */
 
 template <Int dim>
-Read<I64> dists_from_coords(Reals coords) {
+static Read<I64> dists_from_coords_dim(Reals coords) {
   auto bbox = find_bounding_box<dim>(coords);
   Real maxl = 0;
   for (Int i = 0; i < dim; ++i)
@@ -48,18 +48,15 @@ Read<I64> dists_from_coords(Reals coords) {
   return out;
 }
 
-template <Int dim>
-static LOs sort_coords_tmpl(Reals coords) {
-  auto keys = hilbert::dists_from_coords<dim>(coords);
-  return sort_by_keys(keys);
+static Read<I64> dists_from_coords(Reals coords, Int dim) {
+  if (dim == 3) return dists_from_coords_dim<3>(coords);
+  if (dim == 2) return dists_from_coords_dim<2>(coords);
+  NORETURN(Read<I64>());
 }
 
 LOs sort_coords(Reals coords, Int dim) {
-  if (dim == 3)
-    return sort_coords_tmpl<3>(coords);
-  if (dim == 2)
-    return sort_coords_tmpl<2>(coords);
-  NORETURN(LOs());
+  auto keys = hilbert::dists_from_coords(coords, dim);
+  return sort_by_keys(keys, dim);
 }
 
 }//end namespace hilbert
