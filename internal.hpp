@@ -138,5 +138,6 @@ namespace osh {
 #include "swap3d.hpp"
 #include "swap.hpp"
 #include "consistent.hpp"
+#include "construct.hpp"
 
 } //end namespace osh
