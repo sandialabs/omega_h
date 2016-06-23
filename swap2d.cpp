@@ -16,15 +16,17 @@ static bool swap2d_ghosted(Mesh* mesh) {
   return true;
 }
 
-static void swap2d_element_based(Mesh* mesh) {
+static void swap2d_element_based(Mesh* mesh, bool verbose) {
   auto comm = mesh->comm();
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   mesh->remove_tag(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
-  auto nkeys = keys2edges.size();
-  auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
-  if (comm->rank() == 0) {
-    std::cout << "swapping " << ntotal_keys << " 2D edges\n";
+  if (verbose) {
+    auto nkeys = keys2edges.size();
+    auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
+    if (comm->rank() == 0) {
+      std::cout << "swapping " << ntotal_keys << " 2D edges\n";
+    }
   }
   auto new_mesh = mesh->copy_meta();
   new_mesh.set_verts(mesh->nverts());
@@ -56,10 +58,10 @@ static void swap2d_element_based(Mesh* mesh) {
   *mesh = new_mesh;
 }
 
-bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers) {
+bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
   if (!swap2d_ghosted(mesh)) return false;
   mesh->set_partition(ELEMENT_BASED);
-  swap2d_element_based(mesh);
+  swap2d_element_based(mesh, verbose);
   return true;
 }

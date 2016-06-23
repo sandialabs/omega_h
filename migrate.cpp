@@ -163,10 +163,10 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 }
 
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
-    Partition mode) {
+    Partition mode, bool verbose) {
   auto comm = old_mesh->comm();
   auto dim = old_mesh->dim();
-  print_migrate_stats(comm, new_elems2old_owners);
+  if (verbose) print_migrate_stats(comm, new_elems2old_owners);
   Dist new_ents2old_owners = new_elems2old_owners;
   auto old_owners2new_ents = new_ents2old_owners.invert();
   for (Int d = dim; d > VERT; --d) {
@@ -189,12 +189,14 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
       mode);
 }
 
-void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners) {
+void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose) {
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, ELEMENT_BASED);
+  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, ELEMENT_BASED,
+      verbose);
   *mesh = new_mesh;
 }
 
-void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners) {
-  migrate_mesh(mesh, Dist(mesh->comm(), new_elems2old_owners, mesh->nelems()));
+void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose) {
+  migrate_mesh(mesh, Dist(mesh->comm(), new_elems2old_owners, mesh->nelems()),
+      verbose);
 }

@@ -30,6 +30,6 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Partition mode);
 
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
-    Partition mode);
-void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners);
-void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners);
+    Partition mode, bool verbose);
+void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose);
+void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose);

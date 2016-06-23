@@ -8,4 +8,4 @@ Few<LOs, 4> swap3d_topology(Mesh* mesh,
     Read<I8> edge_configs,
     Few<LOs, 4> keys2prods);
 
-bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers);
+bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);

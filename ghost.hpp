@@ -8,6 +8,6 @@ Remotes push_elem_uses(
     LOs own_verts2serv_uses,
     Dist own_verts2verts);
 
-void ghost_mesh(Mesh* mesh);
-void partition_by_verts(Mesh* mesh);
-void partition_by_elems(Mesh* mesh);
+void ghost_mesh(Mesh* mesh, bool verbose);
+void partition_by_verts(Mesh* mesh, bool verbose);
+void partition_by_elems(Mesh* mesh, bool verbose);

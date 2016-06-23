@@ -81,7 +81,7 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   return true;
 }
 
-static void coarsen_element_based2(Mesh* mesh) {
+static void coarsen_element_based2(Mesh* mesh, bool verbose) {
   auto comm = mesh->comm();
   auto verts_are_keys = mesh->get_array<I8>(VERT, "key");
   auto vert_quals = mesh->get_array<Real>(VERT, "collapse_quality");
@@ -89,9 +89,11 @@ static void coarsen_element_based2(Mesh* mesh) {
   auto edge_quals = get_edge_quals(mesh);
   auto keys2verts = collect_marked(verts_are_keys);
   auto nkeys = keys2verts.size();
-  auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
-  if (comm->rank() == 0) {
-    std::cout << "coarsening " << ntotal_keys << " vertices\n";
+  if (verbose) {
+    auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
+    if (comm->rank() == 0) {
+      std::cout << "coarsening " << ntotal_keys << " vertices\n";
+    }
   }
   auto rails2edges = LOs();
   auto rail_col_dirs = Read<I8>();
@@ -132,17 +134,18 @@ static void coarsen_element_based2(Mesh* mesh) {
   *mesh = new_mesh;
 }
 
-bool coarsen(Mesh* mesh, Real min_qual, bool improve) {
+bool coarsen(Mesh* mesh, Real min_qual, bool improve,
+    bool verbose) {
   if (!coarsen_element_based1(mesh)) return false;
   mesh->set_partition(GHOSTED);
   if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
   mesh->set_partition(ELEMENT_BASED);
-  coarsen_element_based2(mesh);
+  coarsen_element_based2(mesh, verbose);
   return true;
 }
 
 bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks,
-    Real min_qual, bool improve) {
+    Real min_qual, bool improve, bool verbose) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   Write<I8> edge_codes_w(mesh->nedges(), DONT_COLLAPSE);
   auto f = LAMBDA(LO e) {
@@ -157,28 +160,32 @@ bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks,
   parallel_for(mesh->nedges(), f);
   mesh->add_tag(EDGE, "collapse_code", 1, OSH_DONT_TRANSFER,
       Read<I8>(edge_codes_w));
-  return coarsen(mesh, min_qual, improve);
+  return coarsen(mesh, min_qual, improve, verbose);
 }
 
 bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks,
-    Real min_qual, bool improve) {
+    Real min_qual, bool improve, bool verbose) {
   auto vert_marks = mark_down(mesh, ent_dim, VERT, marks);
-  return coarsen_verts(mesh, vert_marks, min_qual, improve);
+  return coarsen_verts(mesh, vert_marks, min_qual, improve,
+      verbose);
 }
 
 bool coarsen_by_size(Mesh* mesh, Real min_len,
-    Real min_qual) {
+    Real min_qual, bool verbose) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_edge_lengths();
   auto edge_is_cand = each_lt(lengths, min_len);
   if (comm->allreduce(max(edge_is_cand), OSH_MAX) != 1) return false;
-  return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, false);
+  return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, false,
+      verbose);
 }
 
-bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers) {
+bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers,
+    bool verbose) {
   mesh->set_partition(GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
   CHECK(comm->allreduce(max(elems_are_cands), OSH_MAX) == 1);
-  return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true);
+  return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true,
+      verbose);
 }

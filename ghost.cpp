@@ -64,7 +64,7 @@ Remotes push_elem_uses(
   return items2verts.exch(items2own_elems, 1);
 }
 
-void ghost_mesh(Mesh* mesh) {
+void ghost_mesh(Mesh* mesh, bool verbose) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
   get_own_verts2own_elem_uses(mesh,
@@ -78,11 +78,11 @@ void ghost_mesh(Mesh* mesh) {
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2ownners = own_elems2elems.invert();
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, elems2ownners, GHOSTED);
+  migrate_mesh(mesh, &new_mesh, elems2ownners, GHOSTED, verbose);
   *mesh = new_mesh;
 }
 
-void partition_by_verts(Mesh* mesh) {
+void partition_by_verts(Mesh* mesh, bool verbose) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
   get_own_verts2own_elem_uses(mesh,
@@ -93,15 +93,16 @@ void partition_by_verts(Mesh* mesh) {
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2ownners = own_elems2elems.invert();
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, elems2ownners, VERTEX_BASED);
+  migrate_mesh(mesh, &new_mesh, elems2ownners, VERTEX_BASED,
+      verbose);
   *mesh = new_mesh;
 }
 
-void partition_by_elems(Mesh* mesh) {
+void partition_by_elems(Mesh* mesh, bool verbose) {
   auto dim = mesh->dim();
   auto all2owners = mesh->ask_owners(dim);
   auto marked_owned = mesh->owned(dim);
   auto owned2all = collect_marked(marked_owned);
   auto owned2owners = unmap(owned2all, all2owners);
-  migrate_mesh(mesh, owned2owners);
+  migrate_mesh(mesh, owned2owners, verbose);
 }

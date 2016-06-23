@@ -85,8 +85,7 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, OSH_LINEAR_INTERP, Reals(warp_w));
     while (warp_to_limit(&mesh, 0.30)) {
-      if (world->rank() == 0) std::cout << "after warp_to_limit\n";
-      adapt(&mesh, 0.30, 0.40, 1.0 / 2.0, 3.0 / 2.0, 4);
+      adapt(&mesh, 0.30, 0.40, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
     }
   }
   Now t1 = now();

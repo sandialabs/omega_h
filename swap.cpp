@@ -26,8 +26,8 @@ void filter_swap_improve(Mesh* mesh,
   *cand_quals = unmap(kept2old, *cand_quals, 1);
 }
 
-bool swap_edges(Mesh* mesh, Real qual_ceil, Int nlayers) {
-  if (mesh->dim() == 3) return run_swap3d(mesh, qual_ceil, nlayers);
-  if (mesh->dim() == 2) return swap2d(mesh, qual_ceil, nlayers);
+bool swap_edges(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
+  if (mesh->dim() == 3) return run_swap3d(mesh, qual_ceil, nlayers, verbose);
+  if (mesh->dim() == 2) return swap2d(mesh, qual_ceil, nlayers, verbose);
   return false;
 }

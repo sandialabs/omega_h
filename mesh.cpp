@@ -409,7 +409,7 @@ Partition Mesh::partition() const {
   return static_cast<Partition>(partition_);
 }
 
-void Mesh::set_partition(Partition partition) {
+void Mesh::set_partition(Partition partition, bool verbose) {
   if ((partition_ == -1) || (comm_->size() == 1)) {
     partition_ = partition;
     return;
@@ -418,19 +418,19 @@ void Mesh::set_partition(Partition partition) {
     return;
   }
   if (partition_ != ELEMENT_BASED) {
-    partition_by_elems(this);
+    partition_by_elems(this, verbose);
     partition_ = ELEMENT_BASED;
   }
   if (partition == GHOSTED) {
-    ghost_mesh(this);
+    ghost_mesh(this, verbose);
   } else if (partition == VERTEX_BASED) {
-    partition_by_verts(this);
+    partition_by_verts(this, verbose);
   }
   partition_ = partition;
 }
 
-void Mesh::migrate(Remotes new_elems2old_owners) {
-  migrate_mesh(this, new_elems2old_owners);
+void Mesh::migrate(Remotes new_elems2old_owners, bool verbose) {
+  migrate_mesh(this, new_elems2old_owners, verbose);
 }
 
 void Mesh::reorder() {

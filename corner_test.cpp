@@ -31,5 +31,5 @@ int main(int argc, char** argv) {
     mesh.ask_edge_lengths();
     adapt_check(&mesh, 0.40, 0.47, 2.0 / 3.0, 4.0 / 3.0);
     writer.write();
-  } while(refine_by_size(&mesh, 4.0 / 3.0, 0.47));
+  } while(refine_by_size(&mesh, 4.0 / 3.0, 0.47, true));
 }

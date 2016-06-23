@@ -20,13 +20,13 @@ static bool refine_ghosted(Mesh* mesh, Real min_qual) {
   return true;
 }
 
-static void refine_element_based(Mesh* mesh) {
+static void refine_element_based(Mesh* mesh, bool verbose) {
   auto comm = mesh->comm();
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
   auto nkeys = keys2edges.size();
   auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
-  if (comm->rank() == 0) {
+  if (verbose && comm->rank() == 0) {
     std::cout << "refining " << ntotal_keys << " edges\n";
   }
   auto new_mesh = mesh->copy_meta();
@@ -63,19 +63,20 @@ static void refine_element_based(Mesh* mesh) {
   *mesh = new_mesh;
 }
 
-bool refine(Mesh* mesh, Real min_qual) {
+bool refine(Mesh* mesh, Real min_qual, bool verbose) {
   mesh->set_partition(GHOSTED);
   if (!refine_ghosted(mesh, min_qual)) return false;
   mesh->set_partition(ELEMENT_BASED);
-  refine_element_based(mesh);
+  refine_element_based(mesh, verbose);
   return true;
 }
 
-bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual) {
+bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual,
+    bool verbose) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_edge_lengths();
   auto edge_is_cand = each_gt(lengths, max_len);
   if (comm->allreduce(max(edge_is_cand), OSH_MAX) != 1) return false;
   mesh->add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edge_is_cand);
-  return refine(mesh, min_qual);
+  return refine(mesh, min_qual, verbose);
 }

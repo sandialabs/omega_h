@@ -7,4 +7,5 @@ bool adapt_check(Mesh* mesh,
     Real qual_floor,
     Real qual_ceil,
     Real len_floor,
-    Real len_ceil);
+    Real len_ceil,
+    bool verbose = true);

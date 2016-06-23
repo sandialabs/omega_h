@@ -473,8 +473,8 @@ class Mesh {
     Remotes ask_owners(Int dim);
     Read<I8> owned(Int dim);
     Dist ask_dist(Int dim);
-    void set_partition(Partition partition);
-    void migrate(Remotes new_elems2old_owners);
+    void set_partition(Partition partition, bool verbose = false);
+    void migrate(Remotes new_elems2old_owners, bool verbose = false);
     void reorder();
     void balance();
     Graph ask_graph(Int from, Int to);
@@ -532,7 +532,8 @@ bool adapt(Mesh* mesh,
     Real qual_ceil,
     Real len_floor,
     Real len_ceil,
-    Int nlayers);
+    Int nlayers,
+    Int verbosity);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
