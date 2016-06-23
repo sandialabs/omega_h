@@ -159,10 +159,14 @@ LO Dist::nroots() const {
   return roots2items_[F].size() - 1;
 }
 
-LO Dist::ndests() const {
+LO Dist::nsrcs() const {
   if (roots2items_[F].exists())
     return nroots();
   return nitems();
+}
+
+LO Dist::ndests() const {
+  return invert().nsrcs();
 }
 
 /* this is the key algorithm for moving from one communicator

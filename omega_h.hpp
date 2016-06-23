@@ -331,6 +331,7 @@ public:
   LO nitems() const;
   LO nroots() const;
   LO ndests() const;
+  LO nsrcs() const;
   void change_comm(CommPtr new_comm);
   Remotes exch(Remotes data, Int width) const;
 private:

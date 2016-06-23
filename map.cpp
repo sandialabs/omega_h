@@ -51,16 +51,9 @@ Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
 
 template <typename T>
 Read<T> permute(Read<T> a_data, LOs a2b, Int width) {
-  auto na = a2b.size();
-  auto nb = na;
+  auto nb = a2b.size();
   Write<T> b_data(nb * width);
-  auto f = LAMBDA(LO a) {
-    auto b = a2b[a];
-    for (Int j = 0; j < width; ++j) {
-      b_data[b * width + j] = a_data[a * width + j];
-    }
-  };
-  parallel_for(na, f);
+  map_into(a_data, a2b, b_data, width);
   return b_data;
 }
 
