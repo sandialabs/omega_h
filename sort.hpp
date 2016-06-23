@@ -1,2 +1,2 @@
-template <typename T, Int N = 1>
-LOs sort_by_keys(Read<T> keys);
+template <typename T>
+LOs sort_by_keys(Read<T> keys, Int width = 1);

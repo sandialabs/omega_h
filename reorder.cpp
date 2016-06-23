@@ -15,8 +15,15 @@ Graph find_entities_of_first_vertices(
 
 LOs ent_order_from_vert_order(Mesh* mesh,
     Int ent_dim, LOs new_verts2old_verts) {
+  CHECK(new_verts2old_verts.size() == mesh->nverts());
   auto old_verts2old_ents = find_entities_of_first_vertices(mesh, ent_dim);
+  CHECK(old_verts2old_ents.a2ab.size() == mesh->nverts() + 1);
+  CHECK(old_verts2old_ents.a2ab.last() == mesh->nents(ent_dim));
+  CHECK(old_verts2old_ents.ab2b.size() == mesh->nents(ent_dim));
   auto new_verts2old_ents = unmap_graph(new_verts2old_verts, old_verts2old_ents);
+  CHECK(new_verts2old_ents.a2ab.size() == mesh->nverts() + 1);
+  CHECK(new_verts2old_ents.a2ab.last() == mesh->nents(ent_dim));
+  CHECK(new_verts2old_ents.ab2b.size() == mesh->nents(ent_dim));
   auto new_ents2old_ents = new_verts2old_ents.ab2b;
   CHECK(new_ents2old_ents.size() == mesh->nents(ent_dim));
   return new_ents2old_ents;

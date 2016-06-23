@@ -190,17 +190,17 @@ static void test_sort() {
   }
   {
   LOs a({0,2,0,1});
-  LOs perm = sort_by_keys<LO,2>(a);
+  LOs perm = sort_by_keys(a, 2);
   CHECK(perm == LOs({1,0}));
   }
   {
   LOs a({0,2,1,1});
-  LOs perm = sort_by_keys<LO,2>(a);
+  LOs perm = sort_by_keys(a, 2);
   CHECK(perm == LOs({0,1}));
   }
   {
   LOs a({1,2,3,1,2,2,3,0,0});
-  LOs perm = sort_by_keys<LO,3>(a);
+  LOs perm = sort_by_keys(a, 3);
   CHECK(perm == LOs({1,0,2}));
   }
 }
