@@ -138,11 +138,33 @@ static void test_two_ranks_owners(CommPtr comm) {
   test_two_ranks_forced_owners(comm);
 }
 
+static void test_resolve_derived(CommPtr comm) {
+  auto verts2globs = Read<GO>();
+  if (comm->rank() == 0) {
+    verts2globs = Read<GO>({0,1,3});
+  } else {
+    verts2globs = Read<GO>({1,2,3});
+  }
+  auto ev2v = LOs({0,1,1,2,2,0});
+  auto owners = Remotes();
+  resolve_derived_copies(comm, verts2globs, 2, &ev2v, &owners);
+  for (I32 rank = 0; rank < 2; ++rank) {
+    if (comm->rank() == rank) {
+      std::cerr << "rank " << rank << "\n";
+      std::cerr << "ev2v: " << ev2v << '\n';
+      std::cerr << "own ranks: " << owners.ranks << '\n';
+      std::cerr << "own idxs: " << owners.idxs << '\n';
+    }
+    comm->barrier();
+  }
+}
+
 static void test_two_ranks(CommPtr comm) {
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
   test_two_ranks_bipart(comm);
   test_two_ranks_exch_sum(comm);
+  test_resolve_derived(comm);
 }
 
 static void test_rib(CommPtr comm) {
