@@ -56,7 +56,6 @@ bool parse_start_tag(std::string const& line,
       break;
     }
   }
-  std::cout << "final state " << state << '\n';
   if (state == 7) {
     *tag_out = tag;
     return true;
