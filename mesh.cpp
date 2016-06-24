@@ -345,7 +345,8 @@ Reals Mesh::coords() const {
 }
 
 void Mesh::set_coords(Reals array) {
-  set_tag<Real>(0, "coordinates", array);
+  CHECK(array.size() == nverts() * dim());
+  set_tag<Real>(VERT, "coordinates", array);
 }
 
 Read<GO> Mesh::ask_globals(Int dim) {
