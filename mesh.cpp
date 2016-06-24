@@ -130,8 +130,17 @@ void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   CHECK(has_tag(dim, name));
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
+  /* don't do cache invalidation if this is the first
+     time we are setting the value for this tag
+     (i.e. we just created it).
+     creation typically happens during migration/adaptation,
+     when we do not want any invalidation to take place.
+     the invalidation is there to prevent users changing coordinates
+     etc. without updating dependent fields */
+  if (tag->array().exists()) {
+    react_to_set_tag(dim, name);
+  }
   tag->set_array(array);
-  react_to_set_tag(dim, name);
 }
 
 void Mesh::react_to_set_tag(Int dim, std::string const& name) {
