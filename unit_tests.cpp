@@ -746,6 +746,20 @@ static void test_file() {
   CHECK(mesh0 == mesh1);
 }
 
+static void test_xml() {
+  xml::StartTag tag;
+  CHECK(!xml::parse_start_tag("AQAAAAAAAADABg", &tag));
+  CHECK(!xml::parse_start_tag("   <Foo bar=\"qu", &tag));
+  CHECK(!xml::parse_start_tag("   <Foo bar=", &tag));
+  CHECK(xml::parse_start_tag("   <Foo bar=\"quux\"   >", &tag));
+  CHECK(tag.elem_name == "Foo");
+  CHECK(tag.attribs["bar"] == "quux");
+  CHECK(xml::parse_start_tag("   <Elem att=\"val\"  answer=\"42\" />", &tag));
+  CHECK(tag.elem_name == "Elem");
+  CHECK(tag.attribs["att"] == "val");
+  CHECK(tag.attribs["answer"] == "42");
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -786,4 +800,5 @@ int main(int argc, char** argv) {
   test_swap2d_topology();
   test_swap3d_loop();
   test_file();
+  test_xml();
 }

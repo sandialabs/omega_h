@@ -36,7 +36,7 @@ bool parse_start_tag(std::string const& line,
       }
       break;
     case 4:
-      if (c == '=') state = 4;
+      if (c == '=') state = 5;
       else att_nm.push_back(c);
       break;
     case 5:
@@ -56,6 +56,7 @@ bool parse_start_tag(std::string const& line,
       break;
     }
   }
+  std::cout << "final state " << state << '\n';
   if (state == 7) {
     *tag_out = tag;
     return true;
