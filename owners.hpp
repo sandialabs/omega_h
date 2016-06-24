@@ -34,3 +34,5 @@ Read<T> reduce_data_to_owners(
     Read<T> copy_data,
     Dist copies2owners,
     Int ncomps);
+
+void globals_from_owners(Mesh* new_mesh, Int ent_dim);

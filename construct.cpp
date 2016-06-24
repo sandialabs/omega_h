@@ -8,8 +8,7 @@ static void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v,
       resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
     } else {
       auto ne = ev2v.size() / deg;
-      owners.ranks = Read<I32>(ne, comm->rank());
-      owners.idxs = LOs(ne, 0, 1);
+      owners = identity_remotes(comm, ne);
     }
   }
   if (edim == 1) {
@@ -23,6 +22,7 @@ static void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v,
   }
   if (comm->size() > 1) {
     mesh->set_owners(edim, owners);
+    globals_from_owners(mesh, edim);
   } else {
     mesh->ask_globals(edim);
   }
@@ -36,6 +36,10 @@ void build_from_elems2verts(Mesh* mesh,
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
   mesh->add_tag(VERT, "global", 1, OSH_GLOBAL, vert_globals);
+  if (comm->size() > 1) {
+    mesh->set_owners(VERT, owners_from_globals(
+          comm, vert_globals, Read<I32>()));
+  }
   for (Int mdim = 1; mdim < edim; ++mdim) {
     auto mv2v = find_unique(ev2v, edim, mdim);
     add_ents2verts(mesh, mdim, mv2v, vert_globals);

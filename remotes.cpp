@@ -7,3 +7,7 @@ Remotes unmap(LOs a2b, Remotes b2c) {
   return Remotes(unmap(a2b, b2c.ranks, 1),
                  unmap(a2b, b2c.idxs, 1));
 }
+
+Remotes identity_remotes(CommPtr comm, LO n) {
+  return Remotes(Read<I32>(comm->rank()), LOs(n, 0, 1));
+}
