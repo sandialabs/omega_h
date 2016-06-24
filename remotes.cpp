@@ -9,5 +9,5 @@ Remotes unmap(LOs a2b, Remotes b2c) {
 }
 
 Remotes identity_remotes(CommPtr comm, LO n) {
-  return Remotes(Read<I32>(comm->rank()), LOs(n, 0, 1));
+  return Remotes(Read<I32>(n, comm->rank()), LOs(n, 0, 1));
 }
