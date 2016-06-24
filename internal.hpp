@@ -18,6 +18,7 @@
 #include <fstream>
 #include <type_traits>
 #include <utility>
+#include <map>
 
 /* C++ ABI and POSIX includes */
 
@@ -139,5 +140,6 @@ namespace osh {
 #include "swap.hpp"
 #include "consistent.hpp"
 #include "construct.hpp"
+#include "xml.hpp"
 
 } //end namespace osh

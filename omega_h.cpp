@@ -73,5 +73,6 @@ namespace osh {
 #include "regress.cpp"
 #include "consistent.cpp"
 #include "align.cpp"
+#include "xml.cpp"
 
 } //end namespace osh
