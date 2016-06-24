@@ -160,12 +160,35 @@ static void test_resolve_derived(CommPtr comm) {
   }
 }
 
+static void test_construct(CommPtr comm) {
+  auto verts2globs = Read<GO>();
+  if (comm->rank() == 0) {
+    verts2globs = Read<GO>({0,1,3});
+  } else {
+    verts2globs = Read<GO>({1,2,3});
+  }
+  auto tv2v = LOs({0,1,2});
+  Mesh mesh;
+  build_from_elems2verts(&mesh, comm, 2, tv2v, verts2globs);
+  auto ev2v = mesh.ask_verts_of(EDGE);
+  auto owners = mesh.ask_owners(EDGE);
+  CHECK(ev2v == LOs({0,1,0,2,1,2}));
+  if (comm->rank() == 0) {
+    CHECK(owners.ranks == Read<I32>({0,0,0}));
+    CHECK(owners.idxs == Read<LO>({0,1,2}));
+  } else {
+    CHECK(owners.ranks == Read<I32>({1,0,1}));
+    CHECK(owners.idxs == Read<LO>({0,2,2}));
+  }
+}
+
 static void test_two_ranks(CommPtr comm) {
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
   test_two_ranks_bipart(comm);
   test_two_ranks_exch_sum(comm);
   test_resolve_derived(comm);
+  test_construct(comm);
 }
 
 static void test_rib(CommPtr comm) {
