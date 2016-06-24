@@ -55,7 +55,6 @@ static void adapt_summary(Mesh* mesh,
       qual_floor, qual_ceil, minqual, maxqual);
   goal_stats(mesh, "length", EDGE, mesh->ask_edge_lengths(),
       len_floor, len_ceil, minlen, maxlen);
-  if (mesh->comm()->rank() == 0) std::cout << '\n';
 }
 
 bool adapt_check(Mesh* mesh,
@@ -73,7 +72,7 @@ bool adapt_check(Mesh* mesh,
       maxlen <= len_ceil) {
     if (verbose && mesh->comm()->rank() == 0) {
       std::cout << "mesh is good: quality [" << minqual << "," << maxqual
-        << "], length [" << minlen << "," << maxlen << "]\n\n";
+        << "], length [" << minlen << "," << maxlen << "]\n";
     }
     return true;
   }
@@ -92,11 +91,16 @@ bool adapt(Mesh* mesh,
     Real len_ceil,
     Int nlayers,
     Int verbosity) {
+  Now t0 = now();
+  auto comm = mesh->comm();
   CHECK(0.0 <= qual_floor);
   CHECK(qual_floor <= qual_ceil);
   CHECK(qual_ceil <= 1.0);
   CHECK(0.0 < len_floor);
   CHECK(2.0 * len_floor <= len_ceil);
+  if (verbosity >= 1 && comm->rank() == 0) {
+    std::cout << "before adapting:\n";
+  }
   if (adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil,
         (verbosity >= 1))) {
     return false;
@@ -104,7 +108,8 @@ bool adapt(Mesh* mesh,
   auto input_qual = mesh->min_quality();
   CHECK(input_qual > 0.0);
   auto allow_qual = min2(qual_ceil, input_qual);
-  if ((verbosity >= 2) && mesh->comm()->rank() == 0) {
+  Now t1 = now();
+  if ((verbosity >= 2) && comm->rank() == 0) {
     std::cout << "addressing edge lengths\n";
   }
   while (refine_by_size(mesh, len_ceil, allow_qual,
@@ -118,9 +123,10 @@ bool adapt(Mesh* mesh,
       adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
     }
   }
+  Now t2 = now();
   bool first = true;
   while (mesh->min_quality() < qual_ceil) {
-    if ((verbosity >= 2) && first && mesh->comm()->rank() == 0) {
+    if ((verbosity >= 2) && first && comm->rank() == 0) {
       std::cout << "addressing element qualities\n";
     }
     if (first) first = false;
@@ -136,12 +142,26 @@ bool adapt(Mesh* mesh,
       }
       continue;
     }
-    if ((verbosity >= 1) && mesh->comm()->rank() == 0) {
+    if ((verbosity >= 1) && comm->rank() == 0) {
       std::cout << "adapt() could not satisfy quality\n";
     }
     break;
   }
-  adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil,
-        (verbosity >= 1));
+  if (verbosity == 1) {
+    if (comm->rank() == 0) {
+      std::cout << "after adapting:\n";
+    }
+    adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+  }
+  Now t3 = now();
+  if (verbosity >= 1 && comm->rank() == 0) {
+    std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
+  }
+  if (!first && verbosity >= 1 && comm->rank() == 0) {
+    std::cout << "addressing element qualities took " << (t3 - t2) << " seconds\n";
+  }
+  if (verbosity >= 1 && comm->rank() == 0) {
+    std::cout << "adapting took " << (t3 - t0) << " seconds\n\n";
+  }
   return true;
 }
