@@ -381,8 +381,8 @@ class Library {
       osh_init(argc, argv);
     }
     ~Library();
-    CommPtr world();
-    CommPtr self();
+    CommPtr world() const;
+    CommPtr self() const;
 };
 
 namespace inertia {
@@ -497,8 +497,8 @@ class Mesh {
 };
 
 namespace gmsh {
-void read(std::istream& stream, Mesh* mesh);
-void read(std::string const& filename, Mesh* mesh);
+void read(std::istream& stream, Library const& lib, Mesh* mesh);
+void read(std::string const& filename, Library const& lib, Mesh* mesh);
 }
 
 namespace vtk {
@@ -552,9 +552,14 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose);
 bool check_regression(std::string const& prefix, Mesh* mesh,
     Real tol, Real floor);
 
-void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts);
-void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords);
+void build_from_elems2verts(Mesh* mesh,
+    CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
+void build_from_elems2verts(Mesh* mesh,
+    Library const& lib, Int edim, LOs ev2v, LO nverts);
+void build_from_elems_and_coords(Mesh* mesh,
+    Library const& lib, Int edim, LOs ev2v, Reals coords);
 void build_box(Mesh* mesh,
+    Library const& lib,
     Real x, Real y, Real z,
     LO nx, LO ny, LO nz);
 

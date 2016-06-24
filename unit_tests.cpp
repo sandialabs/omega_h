@@ -412,10 +412,10 @@ static void test_bbox() {
             0, 0, 3}))));
 }
 
-static void test_build_from_elems2verts() {
+static void test_build_from_elems2verts(Library const& lib) {
   {
   Mesh mesh;
-  build_from_elems2verts(&mesh, 2, LOs({0,1,2}), 3);
+  build_from_elems2verts(&mesh, lib, 2, LOs({0,1,2}), 3);
   CHECK(mesh.ask_down(2,0).ab2b == LOs({0,1,2}));
   CHECK(mesh.ask_down(2,1).ab2b == LOs({0,2,1}));
   CHECK(mesh.ask_down(1,0).ab2b ==
@@ -423,15 +423,15 @@ static void test_build_from_elems2verts() {
   }
   {
   Mesh mesh;
-  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
+  build_from_elems2verts(&mesh, lib, 3, LOs({0,1,2,3}), 4);
   CHECK(mesh.ask_down(3,0).ab2b == LOs({0,1,2,3}));
   }
 }
 
-static void test_star() {
+static void test_star(Library const& lib) {
   {
   Mesh mesh;
-  build_from_elems2verts(&mesh, 2, LOs({0,1,2}), 3);
+  build_from_elems2verts(&mesh, lib, 2, LOs({0,1,2}), 3);
   Adj v2v = mesh.ask_star(VERT);
   CHECK(v2v.a2ab == LOs(4,0,2));
   CHECK(v2v.ab2b == LOs({1,2,0,2,0,1}));
@@ -441,7 +441,7 @@ static void test_star() {
   }
   {
   Mesh mesh;
-  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
+  build_from_elems2verts(&mesh, lib, 3, LOs({0,1,2,3}), 4);
   Adj v2v = mesh.ask_star(VERT);
   CHECK(v2v.a2ab == LOs(5,0,3));
   CHECK(v2v.ab2b == LOs({
@@ -464,9 +464,9 @@ static void test_injective_map() {
   CHECK(ints2primes == LOs({-1,-1,0,1,-1,2,-1,3}));
 }
 
-static void test_dual() {
+static void test_dual(Library const& lib) {
   Mesh mesh;
-  build_from_elems2verts(&mesh, 2, LOs({0,1,2,2,3,0}), 4);
+  build_from_elems2verts(&mesh, lib, 2, LOs({0,1,2,2,3,0}), 4);
   auto t2t = mesh.ask_dual();
   auto t2tt = t2t.a2ab;
   auto tt2t = t2t.ab2b;
@@ -625,9 +625,9 @@ static void test_inertial_bisect() {
   CHECK(marked == Read<I8>({1,0,1,0}));
 }
 
-static void test_average_field() {
+static void test_average_field(Library const& lib) {
   Mesh mesh;
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
   Reals v2x({2,1,3,2});
   auto e2x = average_field(&mesh, 2, LOs({0,1}), 1, v2x);
   CHECK(are_close(e2x, Reals({5. / 3., 7. / 3.})));
@@ -647,9 +647,9 @@ static void test_positivize() {
   test_positivize(vector_2( 1, 1));
 }
 
-static void test_refine_qualities() {
+static void test_refine_qualities(Library const& lib) {
   Mesh mesh;
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
   LOs candidates(mesh.nents(EDGE), 0, 1);
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(quals,
@@ -669,18 +669,18 @@ static void test_i8_array_print() {
   CHECK(str == " 1 1 1\n");
 }
 
-static void test_mark_up_down() {
+static void test_mark_up_down(Library const& lib) {
   Mesh mesh;
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
   CHECK(mark_down(&mesh, TRI, VERT, Read<I8>({1,0}))
         == Read<I8>({1,1,0,1}));
   CHECK(mark_up(&mesh, VERT, TRI, Read<I8>({0,1,0,0}))
         == Read<I8>({1,0}));
 }
 
-static void test_compare_meshes() {
+static void test_compare_meshes(Library const& lib) {
   Mesh a;
-  build_box(&a, 1, 1, 0, 4, 4, 0);
+  build_box(&a, lib, 1, 1, 0, 4, 4, 0);
   CHECK(a == a);
   Mesh b = a;
   b.reorder();
@@ -690,9 +690,9 @@ static void test_compare_meshes() {
   CHECK(!(a == b));
 }
 
-static void test_swap2d_topology() {
+static void test_swap2d_topology(Library const& lib) {
   Mesh mesh;
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
   std::array<LOs, 3> keys2prods;
   std::array<LOs, 3> prod_verts2verts;
   auto keys2edges = LOs({2});
@@ -703,9 +703,9 @@ static void test_swap2d_topology() {
   CHECK(keys2prods[TRI] == offset_scan(LOs({2})));
 }
 
-static void test_swap3d_loop() {
+static void test_swap3d_loop(Library const& lib) {
   Mesh mesh;
-  build_box(&mesh, 1, 1, 1, 1, 1, 1);
+  build_box(&mesh, lib, 1, 1, 1, 1, 1, 1);
   auto edges2tets = mesh.ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -735,9 +735,9 @@ static void test_swap3d_loop() {
   parallel_for(LO(1), f);
 }
 
-static void test_file() {
+static void test_file(Library const& lib) {
   Mesh mesh0;
-  build_box(&mesh0, .2, .3, .4, 2, 3, 4);
+  build_box(&mesh0, lib, .2, .3, .4, 2, 3, 4);
   std::stringstream stream;
   binary::write(stream, &mesh0);
   Mesh mesh1;
@@ -782,23 +782,23 @@ int main(int argc, char** argv) {
   test_find_unique();
   test_hilbert();
   test_bbox();
-  test_build_from_elems2verts();
-  test_star();
+  test_build_from_elems2verts(lib);
+  test_star(lib);
   test_injective_map();
-  test_dual();
+  test_dual(lib);
   test_quality();
   test_file_components();
   test_linpart();
   test_expand();
   test_inertial_bisect();
-  test_average_field();
+  test_average_field(lib);
   test_positivize();
-  test_refine_qualities();
+  test_refine_qualities(lib);
   test_i8_array_print();
-  test_mark_up_down();
-  test_compare_meshes();
-  test_swap2d_topology();
-  test_swap3d_loop();
-  test_file();
+  test_mark_up_down(lib);
+  test_compare_meshes(lib);
+  test_swap2d_topology(lib);
+  test_swap3d_loop(lib);
+  test_file(lib);
   test_xml();
 }

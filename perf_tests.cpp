@@ -203,12 +203,12 @@ static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
   }
 }
 
-static void test_adjs() {
+static void test_adjs(Library const& lib) {
   Mesh mesh;
   {
   Now t0 = now();
   auto nx = 42;
-  build_box(&mesh, 1, 1, 1, nx, nx, nx);
+  build_box(&mesh, lib, 1, 1, 1, nx, nx, nx);
   Now t1 = now();
   std::cout << "building a " << nx << 'x' << nx << 'x' << nx
     << " box took " << (t1-t0) << " seconds\n";
@@ -242,5 +242,5 @@ int main(int argc, char** argv) {
   test_repro_sum();
   test_sort();
 #endif
-  test_adjs();
+  test_adjs(lib);
 }

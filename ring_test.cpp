@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
   auto world = lib.world();
   auto self = lib.self();
   Mesh mesh;
-  gmsh::read("ring.msh", &mesh);
+  gmsh::read("ring.msh", lib, &mesh);
   auto ids = std::vector<I32>({6,7,8,9});
   auto verts_are_bdry = mark_class_closures(&mesh, VERT,
       std::vector<Int>(ids.size(), 1), ids);

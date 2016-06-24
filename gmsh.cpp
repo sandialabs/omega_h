@@ -33,7 +33,7 @@ void seek_line(std::istream& stream, std::string const& want) {
 
 } //end anonymous namespace
 
-void read(std::istream& stream, Mesh* mesh) {
+void read(std::istream& stream, Library const& lib, Mesh* mesh) {
   seek_line(stream, "$MeshFormat");
   Real format;
   Int file_type;
@@ -114,7 +114,8 @@ void read(std::istream& stream, Mesh* mesh) {
     }
     auto eqv2v = Read<LO>(host_ev2v.write());
     if (ent_dim == max_dim) {
-      build_from_elems_and_coords(mesh, max_dim, eqv2v, host_coords.write());
+      build_from_elems_and_coords(mesh, lib, max_dim, eqv2v,
+          host_coords.write());
     }
     auto eq_class_id = Read<LO>(host_class_id.write());
     LOs eq2e;
@@ -139,10 +140,10 @@ void read(std::istream& stream, Mesh* mesh) {
   project_classification(mesh);
 }
 
-void read(std::string const& filename, Mesh* mesh) {
+void read(std::string const& filename, Library const& lib, Mesh* mesh) {
   std::ifstream file(filename.c_str());
   CHECK(file.is_open());
-  read(file, mesh);
+  read(file, lib, mesh);
 }
 
 }

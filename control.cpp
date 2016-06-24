@@ -72,10 +72,10 @@ Library::~Library() {
   osh_finalize();
 }
 
-CommPtr Library::world() {
+CommPtr Library::world() const {
   return Comm::world();
 }
 
-CommPtr Library::self() {
+CommPtr Library::self() const {
   return Comm::self();
 }

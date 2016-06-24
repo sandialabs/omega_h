@@ -5,7 +5,7 @@ using namespace osh;
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   Mesh mesh;
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
   classify_by_angles(&mesh, PI / 4);
   mesh.keep_canonical_globals(false);
   mesh.add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);

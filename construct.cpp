@@ -1,4 +1,17 @@
-static void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v) {
+static void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v,
+    Read<GO> vert_globals) {
+  auto comm = mesh->comm();
+  Remotes owners;
+  if (comm->size() > 1) {
+    auto deg = edim + 1;
+    if (edim < mesh->dim()) {
+      resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
+    } else {
+      auto ne = ev2v.size() / deg;
+      owners.ranks = Read<I32>(ne, comm->rank());
+      owners.idxs = LOs(ne, 0, 1);
+    }
+  }
   if (edim == 1) {
     mesh->set_ents(edim, Adj(ev2v));
   } else {
@@ -8,29 +21,42 @@ static void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v) {
     auto down = reflect_down(ev2v, lv2v, v2l, edim, ldim);
     mesh->set_ents(edim, down);
   }
-  mesh->ask_globals(edim);
+  if (comm->size() > 1) {
+    mesh->set_owners(edim, owners);
+  } else {
+    mesh->ask_globals(edim);
+  }
 }
 
-void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
-  mesh->set_comm(Comm::self());
+void build_from_elems2verts(Mesh* mesh,
+    CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals) {
+  mesh->set_comm(comm);
   mesh->set_partition(ELEMENT_BASED);
   mesh->set_dim(edim);
+  auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
-  mesh->ask_globals(VERT);
+  mesh->add_tag(VERT, "global", 1, OSH_GLOBAL, vert_globals);
   for (Int mdim = 1; mdim < edim; ++mdim) {
     auto mv2v = find_unique(ev2v, edim, mdim);
-    add_ents2verts(mesh, mdim, mv2v);
+    add_ents2verts(mesh, mdim, mv2v, vert_globals);
   }
-  add_ents2verts(mesh, edim, ev2v);
+  add_ents2verts(mesh, edim, ev2v, vert_globals);
 }
 
-void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
+void build_from_elems2verts(Mesh* mesh,
+    Library const& lib, Int edim, LOs ev2v, LO nverts) {
+  build_from_elems2verts(mesh, lib.self(), edim, ev2v, Read<GO>(nverts, 0, 1));
+}
+
+void build_from_elems_and_coords(Mesh* mesh,
+    Library const& lib, Int edim, LOs ev2v, Reals coords) {
   auto nverts = coords.size() / edim;
-  build_from_elems2verts(mesh, edim, ev2v, nverts);
+  build_from_elems2verts(mesh, lib, edim, ev2v, nverts);
   mesh->add_coords(coords);
 }
 
 void build_box(Mesh* mesh,
+    Library const& lib,
     Real x, Real y, Real z,
     LO nx, LO ny, LO nz) {
   CHECK(nx > 0);
@@ -41,13 +67,13 @@ void build_box(Mesh* mesh,
     Reals coords;
     make_2d_box(x, y, nx, ny, &qv2v, &coords);
     auto tv2v = simplify::tris_from_quads(qv2v);
-    build_from_elems_and_coords(mesh, TRI, tv2v, coords);
+    build_from_elems_and_coords(mesh, lib, TRI, tv2v, coords);
   } else {
     LOs hv2v;
     Reals coords;
     make_3d_box(x, y, z, nx, ny, nz, &hv2v, &coords);
     auto tv2v = simplify::tets_from_hexes(hv2v);
-    build_from_elems_and_coords(mesh, TET, tv2v, coords);
+    build_from_elems_and_coords(mesh, lib, TET, tv2v, coords);
   }
 }
 
