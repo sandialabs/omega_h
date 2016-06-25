@@ -8,4 +8,6 @@ struct StartTag {
 bool parse_start_tag(std::string const& line,
     StartTag* tag_out);
 
+StartTag read_start_tag(std::istream& stream);
+
 }

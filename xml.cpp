@@ -63,4 +63,12 @@ bool parse_start_tag(std::string const& line,
   return false;
 }
 
+StartTag read_start_tag(std::istream& stream) {
+  std::string line;
+  std::getline(stream, line);
+  xml::StartTag st;
+  CHECK(parse_start_tag(line, &st));
+  return st;
+}
+
 }
