@@ -1,4 +1,4 @@
-static void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v,
+void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v,
     Read<GO> vert_globals) {
   auto comm = mesh->comm();
   Remotes owners;
