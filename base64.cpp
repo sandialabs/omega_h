@@ -111,12 +111,20 @@ void decode_4(char const* in, unsigned char* out, std::size_t nout = 3)
 
 } //end anonymous namespace
 
+std::size_t encoded_size(std::size_t size) {
+  auto quot = size / 3;
+  auto rem = size % 3;
+  auto nunits = rem ? (quot + 1) : quot;
+  auto nchars = nunits * 4;
+  return nchars;
+}
+
 std::string encode(void const* data, std::size_t size)
 {
-  std::size_t quot = size / 3;
-  std::size_t rem = size % 3;
-  std::size_t nunits = rem ? (quot + 1) : quot;
-  std::size_t nchars = nunits * 4;
+  auto quot = size / 3;
+  auto rem = size % 3;
+  auto nunits = rem ? (quot + 1) : quot;
+  auto nchars = nunits * 4;
   std::string out(nchars, '\0');
   unsigned char const* in = static_cast<unsigned char const*>(data);
   for (std::size_t i = 0; i < quot; ++i)
