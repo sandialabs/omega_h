@@ -24,6 +24,18 @@ Reals vectors_2d_to_3d(Reals vecs2) {
   return vecs3;
 }
 
+Reals vectors_3d_to_2d(Reals vecs3) {
+  CHECK(vecs3.size() % 3 == 0);
+  Int np = vecs3.size() / 3;
+  Write<Real> vecs2(np * 2);
+  auto f = LAMBDA(Int i) {
+    vecs3[i * 2 + 0] = vecs2[i * 3 + 0];
+    vecs3[i * 2 + 1] = vecs2[i * 3 + 1];
+  };
+  parallel_for(np, f);
+  return vecs2;
+}
+
 Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   auto ev2v = mesh->ask_verts_of(dim);
   auto degree = simplex_degrees[dim][VERT];
