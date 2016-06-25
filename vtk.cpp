@@ -177,7 +177,7 @@ Read<T> read_array(std::istream& stream, LO size,
     compressed_bytes = uncompressed_bytes;
     encoded = enc_both.substr(nentry_chars);
   }
-  CHECK(uncompressed_bytes == size * sizeof(T));
+  CHECK(uncompressed_bytes == std::size_t(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
 #ifdef OSH_USE_ZLIB
   if (is_compressed) {
@@ -198,7 +198,8 @@ Read<T> read_array(std::istream& stream, LO size,
   {
     base64::decode(encoded, uncompressed.data(), uncompressed_bytes);
   }
-  return swap_if_needed(Read<T>(uncompressed.write()), is_little_endian);
+  return binary::swap_if_needed(
+      Read<T>(uncompressed.write()), is_little_endian);
 }
 
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
@@ -462,7 +463,7 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   stream << "<PointData>\n";
   write_locals_and_owners(stream, mesh, VERT);
   if (mesh->has_tag(VERT, "global")) {
-    write_tag(stream, mesh->get_tagbase(VERT, "global"), mesh->dim());
+    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim());
   }
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tag = mesh->get_tag(VERT, i);
