@@ -152,18 +152,22 @@ Read<T> read_array(std::istream& stream, LO size,
     bool is_little_endian,
     bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
-  auto nentry_chars = base64::encoded_size(sizeof(std::size_t));
-#ifdef OSH_USE_ZLIB
+  std::cerr << "enc_both = \"" << enc_both << "\"\n";
   std::size_t uncompressed_bytes, compressed_bytes;
   std::string encoded;
+#ifdef OSH_USE_ZLIB
   if (is_compressed) {
     std::size_t header[4];
+    auto nheader_chars = base64::encoded_size(sizeof(header));
+    auto enc_header = enc_both.substr(0, nheader_chars);
+    std::cerr << "enc_header = \"" << enc_header << "\"\n";
+    base64::decode(enc_header, header, sizeof(header));
     for (std::size_t i = 0; i < 4; ++i) {
-      auto enc_entry = enc_both.substr(i * nentry_chars, nentry_chars);
-      base64::decode(enc_entry, &header[i], sizeof(header[i]));
+      std::cerr << "decoded entry " << header[i] << '\n';
       binary::swap_if_needed(header[i], is_little_endian);
+      std::cerr << "swapped entry " << header[i] << '\n';
     }
-    encoded = enc_both.substr(4 * nentry_chars);
+    encoded = enc_both.substr(nheader_chars);
     uncompressed_bytes = header[2];
     compressed_bytes = header[3];
   } else
@@ -171,11 +175,12 @@ Read<T> read_array(std::istream& stream, LO size,
   CHECK(is_compressed == false);
 #endif
   {
-    auto enc_entry = enc_both.substr(0, nentry_chars);
-    base64::decode(enc_entry, &uncompressed_bytes, sizeof(uncompressed_bytes));
+    auto nheader_chars = base64::encoded_size(sizeof(std::size_t));
+    auto enc_header = enc_both.substr(0, nheader_chars);
+    base64::decode(enc_header, &uncompressed_bytes, sizeof(uncompressed_bytes));
     binary::swap_if_needed(uncompressed_bytes, is_little_endian);
     compressed_bytes = uncompressed_bytes;
-    encoded = enc_both.substr(nentry_chars);
+    encoded = enc_both.substr(nheader_chars);
   }
   CHECK(uncompressed_bytes == std::size_t(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
