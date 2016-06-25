@@ -86,6 +86,27 @@ void describe_array(std::ostream& stream, std::string const& name,
   stream << " format=\"binary\"";
 }
 
+bool read_array_start_tag(std::istream& stream,
+    osh_type* type_out,
+    std::string* name_out,
+    Int* ncomps_out) {
+  auto st = xml::read_tag(stream);
+  if (st.elem_name != "DataArray" ||
+      st.type != xml::Tag::START) {
+    CHECK(st.type == xml::Tag::END);
+    return false;
+  }
+  auto type_name = st.attribs["type"];
+  if (type_name == "Int8")         *type_out = OSH_I8;
+  else if (type_name == "Int32")   *type_out = OSH_I32;
+  else if (type_name == "Int64")   *type_out = OSH_I64;
+  else if (type_name == "Float64") *type_out = OSH_F64;
+  *name_out = st.attribs["Name"];
+  *ncomps_out = std::stoi(st.attribs["NumberOfComponents"]);
+  CHECK(st.attribs["format"] == "binary");
+  return true;
+}
+
 template <typename T>
 void write_array(std::ostream& stream, std::string const& name,
     Int ncomps, Read<T> array)
@@ -126,6 +147,60 @@ void write_array(std::ostream& stream, std::string const& name,
   stream << "</DataArray>\n";
 }
 
+template <typename T>
+Read<T> read_array(std::istream& stream, LO size,
+    bool is_little_endian,
+    bool is_compressed) {
+  auto enc_both = base64::read_encoded(stream);
+  auto nentry_chars = base64::encoded_size(sizeof(std::size_t));
+#ifdef OSH_USE_ZLIB
+  std::size_t uncompressed_bytes, compressed_bytes;
+  std::string encoded;
+  if (is_compressed) {
+    std::size_t header[4];
+    for (std::size_t i = 0; i < 4; ++i) {
+      auto enc_entry = enc_both.substr(i * nentry_chars, nentry_chars);
+      base64::decode(enc_entry, &header[i], sizeof(header[i]));
+      binary::swap_if_needed(header[i], is_little_endian);
+    }
+    encoded = enc_both.substr(4 * nentry_chars);
+    uncompressed_bytes = header[2];
+    compressed_bytes = header[3];
+  } else
+#else
+  CHECK(is_compressed == false);
+#endif
+  {
+    auto enc_entry = enc_both.substr(0, nentry_chars);
+    base64::decode(enc_entry, &uncompressed_bytes, sizeof(uncompressed_bytes));
+    binary::swap_if_needed(uncompressed_bytes, is_little_endian);
+    compressed_bytes = uncompressed_bytes;
+    encoded = enc_both.substr(nentry_chars);
+  }
+  CHECK(uncompressed_bytes == size * sizeof(T));
+  HostWrite<T> uncompressed(size);
+#ifdef OSH_USE_ZLIB
+  if (is_compressed) {
+    Bytef* compressed = new Bytef[compressed_bytes];
+    base64::decode(encoded, compressed, compressed_bytes);
+    uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
+    uLong source_bytes = static_cast<uLong>(compressed_bytes);
+    int ret = ::uncompress(
+        reinterpret_cast<Bytef*>(uncompressed.data()),
+        &dest_bytes,
+        compressed,
+        source_bytes);
+    CHECK(ret == Z_OK);
+    CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
+    delete [] compressed;
+  } else
+#endif
+  {
+    base64::decode(encoded, uncompressed.data(), uncompressed_bytes);
+  }
+  return swap_if_needed(Read<T>(uncompressed.write()), is_little_endian);
+}
+
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
 {
   if (is<I8>(tag)) {
@@ -148,6 +223,55 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
   } else {
     osh_fail("unknown tag type in write_tag");
   }
+}
+
+bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
+    bool is_little_endian, bool is_compressed) {
+  osh_type type;
+  std::string name;
+  Int ncomps;
+  if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
+    return false;
+  }
+  auto size = mesh->nents(ent_dim) * ncomps;
+  if (type == OSH_I8) {
+    auto array = read_array<I8>(stream, size,
+        is_little_endian, is_compressed);
+    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
+  } else if (type == OSH_I32) {
+    auto array = read_array<I32>(stream, size,
+        is_little_endian, is_compressed);
+    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
+  } else if (type == OSH_I64) {
+    auto array = read_array<I64>(stream, size,
+        is_little_endian, is_compressed);
+    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
+  } else {
+    auto array = read_array<Real>(stream, size,
+        is_little_endian, is_compressed);
+    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
+  }
+  auto et = xml::read_tag(stream);
+  CHECK(et.elem_name == "DataArray");
+  CHECK(et.type == xml::Tag::END);
+  return true;
+}
+
+template <typename T>
+Read<T> read_known_array(std::istream& stream, std::string const& name,
+    LO nents, Int ncomps, bool is_little_endian, bool is_compressed) {
+  auto st = xml::read_tag(stream);
+  CHECK(st.elem_name == "DataArray");
+  CHECK(st.type == xml::Tag::START);
+  CHECK(st.attribs["type"] == Traits<T>::name());
+  CHECK(st.attribs["Name"] == name);
+  CHECK(st.attribs["NumberOfComponents"] == std::to_string(ncomps));
+  auto array = read_array<T>(stream, nents * ncomps,
+      is_little_endian, is_compressed);
+  auto et = xml::read_tag(stream);
+  CHECK(et.elem_name == "DataArray");
+  CHECK(et.type == xml::Tag::END);
+  return array;
 }
 
 enum {
@@ -190,21 +314,57 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream)
   stream << ">\n";
 }
 
+static void read_vtkfile_vtu_start_tag(std::istream& stream,
+    bool* is_little_endian_out,
+    bool* is_compressed_out) {
+  auto st = xml::read_tag(stream);
+  CHECK(st.elem_name == "VTKFile");
+  CHECK(st.attribs["header_type"] == Traits<std::size_t>::name());
+  auto is_little_endian = (st.attribs["byte_order"] == "LittleEndian");
+  *is_little_endian_out = is_little_endian;
+  auto is_compressed = (st.attribs.count("compressor") == 1);
+  *is_compressed_out = is_compressed;
+}
+
 void write_piece_start_tag(std::ostream& stream, Mesh const* mesh, Int cell_dim)
 {
   stream << "<Piece NumberOfPoints=\"" << mesh->nverts() << "\"";
   stream << " NumberOfCells=\"" << mesh->nents(cell_dim) << "\">\n";
 }
 
+void read_piece_start_tag(std::istream& stream,
+    LO* nverts_out, LO* ncells_out) {
+  auto st = xml::read_tag(stream);
+  CHECK(st.elem_name == "Piece");
+  *nverts_out = std::stoi(st.attribs["NumberOfPoints"]);
+  *ncells_out = std::stoi(st.attribs["NumberOfCells"]);
+}
+
 void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim)
 {
+  Read<I8> types(mesh->nents(cell_dim), vtk_types[cell_dim]);
+  write_array(stream, "types", 1, types);
   LOs ev2v = mesh->ask_verts_of(cell_dim);
   LOs ends(mesh->nents(cell_dim), simplex_degrees[cell_dim][VERT],
                                  simplex_degrees[cell_dim][VERT]);
   write_array(stream, "connectivity", 1, ev2v);
   write_array(stream, "offsets", 1, ends);
-  Read<I8> types(mesh->nents(cell_dim), vtk_types[cell_dim]);
-  write_array(stream, "types", 1, types);
+}
+
+void read_connectivity(std::istream& stream,
+    CommPtr comm, LO ncells,
+    bool is_little_endian, bool is_compressed,
+    Int* dim_out) {
+  auto types = read_known_array<I8>(stream, "types",
+      ncells, 1, is_little_endian, is_compressed);
+  Int dim = -1;
+  if (types.size()) {
+    auto type = types.get(0);
+    if (type == VTK_TRIANGLE) dim = 2;
+    if (type == VTK_TETRA)    dim = 3;
+  }
+  dim = comm->allreduce(dim, OSH_MAX);
+  *dim_out = dim;
 }
 
 void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim) {
@@ -273,16 +433,20 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
-  stream << "<Points>\n";
-  write_tag(stream, mesh->get_tag<Real>(VERT,"coordinates"), mesh->dim());
-  stream << "</Points>\n";
   stream << "<Cells>\n";
   write_connectivity(stream, mesh, cell_dim);
   stream << "</Cells>\n";
+  stream << "<Points>\n";
+  write_tag(stream, mesh->get_tag<Real>(VERT,"coordinates"), mesh->dim());
+  stream << "</Points>\n";
   stream << "<PointData>\n";
+  if (mesh->has_tag(VERT, "global")) {
+    write_tag(stream, mesh->get_tagbase(VERT, "global"), mesh->dim());
+  }
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
-    if (mesh->get_tag(VERT, i)->name() != "coordinates") {
-      write_tag(stream, mesh->get_tag(VERT, i), mesh->dim());
+    auto tag = mesh->get_tag(VERT, i);
+    if (tag->name() != "coordinates" && tag->name() != "global") {
+      write_tag(stream, tag, mesh->dim());
     }
   }
   write_locals(stream, mesh, VERT);
@@ -298,6 +462,17 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
   stream << "</VTKFile>\n";
+}
+
+void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
+  bool is_little_endian, is_compressed;
+  read_vtkfile_vtu_start_tag(stream, &is_little_endian, &is_compressed);
+  CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
+  LO nverts, ncells;
+  read_piece_start_tag(stream, &nverts, &ncells);
+  CHECK(xml::read_tag(stream).elem_name == "Points");
+  mesh->set_comm(comm);
+  mesh->set_partition(ELEMENT_BASED);
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
