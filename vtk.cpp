@@ -535,22 +535,27 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   write_p_data_array<Real>(stream, "coordinates", 3);
   stream << "</PPoints>\n";
   stream << "<PPointData>\n";
+  write_p_data_array2(stream, "local", 1, OSH_I32);
+  if (mesh->comm()->size() > 1) {
+    write_p_data_array2(stream, "owner", 1, OSH_I32);
+  }
+  if (mesh->has_tag(VERT, "global")) {
+    write_p_data_array2(stream, "global", 1, OSH_I64);
+  }
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
-    if (mesh->get_tag(VERT, i)->name() != "coordinates") {
-      write_p_tag(stream, mesh->get_tag(VERT, i), mesh->dim());
+    auto tag = mesh->get_tag(VERT, i);
+    if (tag->name() != "coordinates" && tag->name() != "global") {
+      write_p_tag(stream, tag, mesh->dim());
     }
   }
+  stream << "</PPointData>\n";
+  stream << "<PCellData>\n";
   write_p_data_array2(stream, "local", 1, OSH_I32);
   if (mesh->comm()->size() > 1)
     write_p_data_array2(stream, "owner", 1, OSH_I32);
-  stream << "</PPointData>\n";
-  stream << "<PCellData>\n";
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     write_p_tag(stream, mesh->get_tag(cell_dim, i), mesh->dim());
   }
-  write_p_data_array2(stream, "local", 1, OSH_I32);
-  if (mesh->comm()->size() > 1)
-    write_p_data_array2(stream, "owner", 1, OSH_I32);
   stream << "</PCellData>\n";
   for (I32 i = 0; i < mesh->comm()->size(); ++i) {
     stream << "<Piece Source=\"" << piece_filename(piecepath, i) << "\"/>\n";
