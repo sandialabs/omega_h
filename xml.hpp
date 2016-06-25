@@ -1,13 +1,18 @@
 namespace xml {
 
-struct StartTag {
+struct Tag {
   std::string elem_name;
+  enum {
+    START,
+    END,
+    SELF_CLOSING
+  } type;
   std::map<std::string, std::string> attribs;
 };
 
-bool parse_start_tag(std::string const& line,
-    StartTag* tag_out);
+bool parse_tag(std::string const& line,
+    xml::Tag* tag_out);
 
-StartTag read_start_tag(std::istream& stream);
+xml::Tag read_tag(std::istream& stream);
 
 }

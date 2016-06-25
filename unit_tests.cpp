@@ -747,17 +747,22 @@ static void test_file(Library const& lib) {
 }
 
 static void test_xml() {
-  xml::StartTag tag;
-  CHECK(!xml::parse_start_tag("AQAAAAAAAADABg", &tag));
-  CHECK(!xml::parse_start_tag("   <Foo bar=\"qu", &tag));
-  CHECK(!xml::parse_start_tag("   <Foo bar=", &tag));
-  CHECK(xml::parse_start_tag("   <Foo bar=\"quux\"   >", &tag));
+  xml::Tag tag;
+  CHECK(!xml::parse_tag("AQAAAAAAAADABg", &tag));
+  CHECK(!xml::parse_tag("   <Foo bar=\"qu", &tag));
+  CHECK(!xml::parse_tag("   <Foo bar=", &tag));
+  CHECK(xml::parse_tag("   <Foo bar=\"quux\"   >", &tag));
   CHECK(tag.elem_name == "Foo");
   CHECK(tag.attribs["bar"] == "quux");
-  CHECK(xml::parse_start_tag("   <Elem att=\"val\"  answer=\"42\" />", &tag));
+  CHECK(tag.type == xml::Tag::START);
+  CHECK(xml::parse_tag("   <Elem att=\"val\"  answer=\"42\" />", &tag));
   CHECK(tag.elem_name == "Elem");
   CHECK(tag.attribs["att"] == "val");
   CHECK(tag.attribs["answer"] == "42");
+  CHECK(tag.type == xml::Tag::SELF_CLOSING);
+  CHECK(xml::parse_tag("</Foo>", &tag));
+  CHECK(tag.elem_name == "Foo");
+  CHECK(tag.type == xml::Tag::END);
 }
 
 int main(int argc, char** argv) {

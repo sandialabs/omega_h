@@ -1,16 +1,17 @@
 namespace xml {
 
-bool parse_start_tag(std::string const& line,
-    StartTag* tag_out) {
+bool parse_tag(std::string const& line,
+    xml::Tag* tag_out) {
 /* state machine transitions:
-  < Foo   bar="quux" >
---|-|--|--|--||----|-|--
-0 1 2  3  4  56    3 7         */
-  StartTag tag;
+  </ Foo   bar="quux" />
+--||-|--|--|--||----|-||-
+0 12 3  4  5  67    3 89   */
+  xml::Tag tag;
   Int state = 0;
   std::string att_nm;
   std::string att_val;
   char quot = '\0';
+  tag.type = xml::Tag::START;
   for (auto c : line) {
     switch (state) {
     case 0:
@@ -18,56 +19,75 @@ bool parse_start_tag(std::string const& line,
       else if (c != ' ') return false;
       break;
     case 1:
-      if (c != ' ') {
+      if (c == '/') {
+        tag.type = xml::Tag::END;
         state = 2;
+      } else if (c != ' ') {
         tag.elem_name.push_back(c);
+        state = 3;
       }
       break;
     case 2:
-      if (c == ' ') state = 3;
-      else tag.elem_name.push_back(c);
+      if (c != ' ') {
+        state = 3;
+        tag.elem_name.push_back(c);
+      }
       break;
     case 3:
-      if (c == '/' || c == '>') {
-        state = 7;
+      if (c == ' ') state = 4;
+      else if (c == '/') state = 8;
+      else if (c == '>') state = 9;
+      else tag.elem_name.push_back(c);
+      break;
+    case 4:
+      if (c == '/') {
+        tag.type = xml::Tag::SELF_CLOSING;
+        state = 8;
+      } else if (c == '>') {
+        state = 9;
       } else if (c != ' ') {
-        state = 4;
+        state = 5;
         att_nm.push_back(c);
       }
       break;
-    case 4:
-      if (c == '=') state = 5;
+    case 5:
+      if (c == '=') state = 6;
       else att_nm.push_back(c);
       break;
-    case 5:
+    case 6:
       if (c == '\"' || c == '\'') {
         quot = c;
-        state = 6;
+        state = 7;
       }
       break;
-    case 6:
+    case 7:
       if (c == quot) {
         tag.attribs[att_nm] = att_val;
         att_nm = att_val = std::string();
-        state = 3;
+        state = 4;
       } else {
         att_val.push_back(c);
       }
       break;
+    case 8:
+      if (c == '>') {
+        state = 9;
+      }
+      break;
     }
   }
-  if (state == 7) {
+  if (state == 9) {
     *tag_out = tag;
     return true;
   }
   return false;
 }
 
-StartTag read_start_tag(std::istream& stream) {
+xml::Tag read_tag(std::istream& stream) {
   std::string line;
   std::getline(stream, line);
-  xml::StartTag st;
-  CHECK(parse_start_tag(line, &st));
+  xml::Tag st;
+  CHECK(parse_tag(line, &st));
   return st;
 }
 
