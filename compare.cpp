@@ -57,9 +57,10 @@ static bool compare_copy_data(
   return comm->reduce_and(local_result);
 }
 
-static Read<GO> get_local_conn(Mesh* mesh, Int dim) {
-  auto h2l = mesh->ask_down(dim, dim - 1);
-  auto l_globals = mesh->ask_globals(dim - 1);
+static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
+  auto low_dim = ((full) ? (dim - 1) : (VERT));
+  auto h2l = mesh->ask_down(dim, low_dim);
+  auto l_globals = mesh->ask_globals(low_dim);
   auto hl2l_globals = unmap(h2l.ab2b, l_globals, 1);
   return hl2l_globals;
 }
@@ -89,8 +90,8 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     auto a_dist = copies_to_linear_owners(comm, a_globals);
     auto b_dist = copies_to_linear_owners(comm, b_globals);
     if (dim > 0) {
-      auto a_conn = get_local_conn(a, dim);
-      auto b_conn = get_local_conn(b, dim);
+      auto a_conn = get_local_conn(a, dim, full);
+      auto b_conn = get_local_conn(b, dim, full);
       auto ok = compare_copy_data(dim,
           a_conn, a_dist,
           b_conn, b_dist,
