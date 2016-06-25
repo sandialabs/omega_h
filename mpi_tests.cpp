@@ -182,13 +182,29 @@ static void test_construct(CommPtr comm) {
   }
 }
 
-static void test_two_ranks(CommPtr comm) {
+static void test_read_vtu(Library const& lib, CommPtr comm) {
+  Mesh mesh0;
+  if (comm->rank() == 0) {
+    build_box(&mesh0, lib, 1, 1, 0, 1, 1, 0);
+  }
+  mesh0.set_comm(comm);
+  mesh0.balance();
+  std::stringstream stream;
+  vtk::write_vtu(stream, &mesh0, mesh0.dim());
+  Mesh mesh1;
+  vtk::read_vtu(stream, comm, &mesh1);
+  CHECK(SAME_MESH == compare_meshes(&mesh0, &mesh1, 0.0, 0.0,
+        true, false));
+}
+
+static void test_two_ranks(Library const& lib, CommPtr comm) {
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
   test_two_ranks_bipart(comm);
   test_two_ranks_exch_sum(comm);
   test_resolve_derived(comm);
   test_construct(comm);
+  test_read_vtu(lib, comm);
 }
 
 static void test_rib(CommPtr comm) {
@@ -235,8 +251,9 @@ int main(int argc, char** argv) {
   }
   if (world->size() >= 2) {
     auto two = world->split(world->rank() / 2, world->rank() % 2);
-    if (world->rank() / 2 == 0)
-      test_two_ranks(two);
+    if (world->rank() / 2 == 0) {
+      test_two_ranks(lib, two);
+    }
   }
   test_rib(world);
 }

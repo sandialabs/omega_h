@@ -548,7 +548,8 @@ enum MeshComparison {
 };
 
 MeshComparison
-compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose);
+compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
+    bool verbose, bool full = true);
 bool check_regression(std::string const& prefix, Mesh* mesh,
     Real tol, Real floor);
 

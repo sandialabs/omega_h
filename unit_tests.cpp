@@ -772,11 +772,8 @@ static void test_read_vtu(Library const& lib) {
   vtk::write_vtu(stream, &mesh0, mesh0.dim());
   Mesh mesh1;
   vtk::read_vtu(stream, mesh0.comm(), &mesh1);
-  CHECK(mesh0.dim() == mesh1.dim());
-  CHECK(mesh0.ask_verts_of(mesh0.dim()) ==
-        mesh1.ask_verts_of(mesh1.dim()));
-  CHECK(mesh0.coords() == mesh1.coords());
-  CHECK(mesh0.ask_globals(VERT) == mesh1.ask_globals(VERT));
+  CHECK(SAME_MESH == compare_meshes(&mesh0, &mesh1, 0.0, 0.0,
+        true, false));
 }
 
 int main(int argc, char** argv) {
