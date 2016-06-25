@@ -65,7 +65,8 @@ static Read<GO> get_local_conn(Mesh* mesh, Int dim) {
 }
 
 MeshComparison
-compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose) {
+compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
+    bool verbose, bool full) {
   CHECK(a->comm()->size() == b->comm()->size());
   CHECK(a->comm()->rank() == b->comm()->rank());
   auto comm = a->comm();
@@ -82,6 +83,7 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor, bool verbose) {
       }
       return DIFFERENT_MESH;
     }
+    if (!full && (0 < dim) && (dim < a->dim())) continue;
     auto a_globals = a->ask_globals(dim);
     auto b_globals = b->ask_globals(dim);
     auto a_dist = copies_to_linear_owners(comm, a_globals);
