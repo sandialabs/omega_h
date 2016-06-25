@@ -105,16 +105,21 @@ INLINE void swap_bytes(T* ptr) {
   SwapBytes<T>::swap(ptr);
 }
 
+unsigned char const magic[2] = {0xa1,0x1a};
+I32 latest_version = 1;
+
+} //end anonymous namespace
+
 template <typename T>
-void swap_if_needed(T& val) {
-  if (!is_little_endian_cpu()) {
+void swap_if_needed(T& val, bool is_little_endian) {
+  if (is_little_endian != is_little_endian_cpu()) {
     swap_bytes(&val);
   }
 }
 
 template <typename T>
-static Read<T> swap_if_needed(Read<T> array) {
-  if (is_little_endian_cpu()) {
+Read<T> swap_if_needed(Read<T> array, bool is_little_endian) {
+  if (is_little_endian == is_little_endian_cpu()) {
     return array;
   }
   Write<T> out = deep_copy(array);
@@ -124,11 +129,6 @@ static Read<T> swap_if_needed(Read<T> array) {
   parallel_for(out.size(), f);
   return out;
 }
-
-unsigned char const magic[2] = {0xa1,0x1a};
-I32 latest_version = 1;
-
-} //end anonymous namespace
 
 template <typename T>
 void write_value(std::ostream& stream, T val) {
@@ -190,7 +190,7 @@ void read_array(std::istream& stream, Read<T>& array,
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
     int ret = ::uncompress(
-        reinterpret_cast<Bytef*>(&uncompressed[0]),
+        reinterpret_cast<Bytef*>(uncompressed.data()),
         &dest_bytes,
         compressed,
         source_bytes);
@@ -202,7 +202,7 @@ void read_array(std::istream& stream, Read<T>& array,
   CHECK(is_compressed == false);
 #endif
   {
-    stream.read(reinterpret_cast<char*>(&uncompressed[0]),
+    stream.read(reinterpret_cast<char*>(uncompressed.data()),
         uncompressed_bytes);
   }
   array = swap_if_needed(Read<T>(uncompressed.write()));
