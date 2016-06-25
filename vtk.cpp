@@ -152,18 +152,18 @@ Read<T> read_array(std::istream& stream, LO size,
     bool is_little_endian,
     bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
-  auto nentry_chars = base64::encoded_size(sizeof(std::size_t));
-#ifdef OSH_USE_ZLIB
   std::size_t uncompressed_bytes, compressed_bytes;
   std::string encoded;
+#ifdef OSH_USE_ZLIB
   if (is_compressed) {
     std::size_t header[4];
+    auto nheader_chars = base64::encoded_size(sizeof(header));
+    auto enc_header = enc_both.substr(0, nheader_chars);
+    base64::decode(enc_header, header, sizeof(header));
     for (std::size_t i = 0; i < 4; ++i) {
-      auto enc_entry = enc_both.substr(i * nentry_chars, nentry_chars);
-      base64::decode(enc_entry, &header[i], sizeof(header[i]));
       binary::swap_if_needed(header[i], is_little_endian);
     }
-    encoded = enc_both.substr(4 * nentry_chars);
+    encoded = enc_both.substr(nheader_chars);
     uncompressed_bytes = header[2];
     compressed_bytes = header[3];
   } else
@@ -171,11 +171,12 @@ Read<T> read_array(std::istream& stream, LO size,
   CHECK(is_compressed == false);
 #endif
   {
-    auto enc_entry = enc_both.substr(0, nentry_chars);
-    base64::decode(enc_entry, &uncompressed_bytes, sizeof(uncompressed_bytes));
+    auto nheader_chars = base64::encoded_size(sizeof(std::size_t));
+    auto enc_header = enc_both.substr(0, nheader_chars);
+    base64::decode(enc_header, &uncompressed_bytes, sizeof(uncompressed_bytes));
     binary::swap_if_needed(uncompressed_bytes, is_little_endian);
     compressed_bytes = uncompressed_bytes;
-    encoded = enc_both.substr(nentry_chars);
+    encoded = enc_both.substr(nheader_chars);
   }
   CHECK(uncompressed_bytes == std::size_t(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
@@ -234,6 +235,10 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
     return false;
   }
+  /* tags like "global" are set by the construction mechanism,
+     and it is somewhat complex to anticipate when they exist
+     so we can just remove them if they are going to be reset. */
+  if (mesh->has_tag(ent_dim, name)) mesh->remove_tag(ent_dim, name);
   auto size = mesh->nents(ent_dim) * ncomps;
   if (type == OSH_I8) {
     auto array = read_array<I8>(stream, size,
