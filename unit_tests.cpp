@@ -767,7 +767,7 @@ static void test_xml() {
 
 static void test_read_vtu(Library const& lib) {
   Mesh mesh0;
-  build_box(&mesh0, lib, 1, 1, 0, 1, 1, 0);
+  build_box(&mesh0, lib, 1, 1, 1, 1, 1, 1);
   std::stringstream stream;
   vtk::write_vtu(stream, &mesh0, mesh0.dim());
   Mesh mesh1;
