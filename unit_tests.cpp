@@ -765,6 +765,15 @@ static void test_xml() {
   CHECK(tag.type == xml::Tag::END);
 }
 
+static void test_read_vtu(Library const& lib) {
+  Mesh mesh0;
+  build_box(&mesh0, lib, 1, 1, 0, 1, 1, 0);
+  std::stringstream stream;
+  vtk::write_vtu(stream, &mesh0, mesh0.dim());
+  Mesh mesh1;
+  vtk::read_vtu(stream, mesh0.comm(), &mesh1);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -806,4 +815,5 @@ int main(int argc, char** argv) {
   test_swap3d_loop(lib);
   test_file(lib);
   test_xml();
+  test_read_vtu(lib);
 }
