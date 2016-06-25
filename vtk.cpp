@@ -393,12 +393,12 @@ void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
   write_owners(stream, mesh, ent_dim);
 }
 
-void read_locals_and_owners(std::istream& stream, Mesh* mesh, Int ent_dim,
+void read_locals_and_owners(std::istream& stream, CommPtr comm, LO nents,
     bool is_little_endian, bool is_compressed) {
-  read_known_array<LO>(stream, "local", mesh->nents(ent_dim), 1,
+  read_known_array<LO>(stream, "local", nents, 1,
       is_little_endian, is_compressed);
-  if (mesh->comm()->size() == 1) return;
-  read_known_array<I32>(stream, "owner", mesh->nents(ent_dim), 1,
+  if (comm->size() == 1) return;
+  read_known_array<I32>(stream, "owner", nents, 1,
       is_little_endian, is_compressed);
 }
 
@@ -505,7 +505,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   if (dim == 2) coords = vectors_3d_to_2d(coords);
   CHECK(xml::read_tag(stream).elem_name == "Points");
   CHECK(xml::read_tag(stream).elem_name == "PointData");
-  read_locals_and_owners(stream, mesh, VERT,
+  read_locals_and_owners(stream, comm, nverts,
       is_little_endian, is_compressed);
   Read<GO> vert_globals;
   if (comm->size() > 1) {
@@ -518,7 +518,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   mesh->add_tag(VERT, "coordinates", dim, OSH_LINEAR_INTERP, coords);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed));
   CHECK(xml::read_tag(stream).elem_name == "CellData");
-  read_locals_and_owners(stream, mesh, dim,
+  read_locals_and_owners(stream, comm, ncells,
       is_little_endian, is_compressed);
   while (read_tag(stream, mesh, dim, is_little_endian, is_compressed));
   CHECK(xml::read_tag(stream).elem_name == "Piece");
