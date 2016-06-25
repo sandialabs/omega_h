@@ -354,7 +354,7 @@ void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim)
 void read_connectivity(std::istream& stream,
     CommPtr comm, LO ncells,
     bool is_little_endian, bool is_compressed,
-    Int* dim_out) {
+    Int* dim_out, LOs* ev2v_out) {
   auto types = read_known_array<I8>(stream, "types",
       ncells, 1, is_little_endian, is_compressed);
   Int dim = -1;
@@ -364,7 +364,13 @@ void read_connectivity(std::istream& stream,
     if (type == VTK_TETRA)    dim = 3;
   }
   dim = comm->allreduce(dim, OSH_MAX);
+  CHECK(dim == 2 || dim == 3);
   *dim_out = dim;
+  auto ev2v = read_known_array<LO>(stream, "connectivity",
+      ncells * (dim + 1), 1, is_little_endian, is_compressed);
+  *ev2v_out = ev2v;
+  read_known_array<LO>(stream, "offsets", ncells, 1,
+      is_little_endian, is_compressed);
 }
 
 void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim) {
@@ -374,6 +380,20 @@ void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim) {
 void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
   if (mesh->comm()->size() == 1) return;
   write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks);
+}
+
+void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
+  write_locals(stream, mesh, ent_dim);
+  write_owners(stream, mesh, ent_dim);
+}
+
+void read_locals_and_owners(std::istream& stream, Mesh* mesh, Int ent_dim,
+    bool is_little_endian, bool is_compressed) {
+  read_known_array<LO>(stream, "local", mesh->nents(ent_dim), 1,
+      is_little_endian, is_compressed);
+  if (mesh->comm()->size() == 1) return;
+  read_known_array<I32>(stream, "owner", mesh->nents(ent_dim), 1,
+      is_little_endian, is_compressed);
 }
 
 template <typename T>
@@ -440,6 +460,7 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   write_tag(stream, mesh->get_tag<Real>(VERT,"coordinates"), mesh->dim());
   stream << "</Points>\n";
   stream << "<PointData>\n";
+  write_locals_and_owners(stream, mesh, VERT);
   if (mesh->has_tag(VERT, "global")) {
     write_tag(stream, mesh->get_tagbase(VERT, "global"), mesh->dim());
   }
@@ -449,15 +470,12 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
       write_tag(stream, tag, mesh->dim());
     }
   }
-  write_locals(stream, mesh, VERT);
-  write_owners(stream, mesh, VERT);
   stream << "</PointData>\n";
   stream << "<CellData>\n";
+  write_locals_and_owners(stream, mesh, cell_dim);
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     write_tag(stream, mesh->get_tag(cell_dim, i), mesh->dim());
   }
-  write_locals(stream, mesh, cell_dim);
-  write_owners(stream, mesh, cell_dim);
   stream << "</CellData>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
@@ -470,9 +488,36 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
   LO nverts, ncells;
   read_piece_start_tag(stream, &nverts, &ncells);
+  CHECK(xml::read_tag(stream).elem_name == "Cells");
+  Int dim; LOs ev2v;
+  read_connectivity(stream, comm, ncells, is_little_endian, is_compressed,
+      &dim, &ev2v);
+  CHECK(xml::read_tag(stream).elem_name == "Cells");
   CHECK(xml::read_tag(stream).elem_name == "Points");
-  mesh->set_comm(comm);
-  mesh->set_partition(ELEMENT_BASED);
+  auto coords = read_known_array<Real>(stream, "coordinates",
+      nverts, 3, is_little_endian, is_compressed);
+  if (dim == 2) coords = vectors_3d_to_2d(coords);
+  CHECK(xml::read_tag(stream).elem_name == "Points");
+  CHECK(xml::read_tag(stream).elem_name == "PointData");
+  Read<GO> vert_globals;
+  if (comm->size() > 1) {
+    vert_globals = read_known_array<GO>(stream, "global",
+        nverts, 1, is_little_endian, is_compressed);
+  } else {
+    vert_globals = Read<GO>(nverts, 0, 1);
+  }
+  build_from_elems2verts(mesh, comm, dim, ev2v, vert_globals);
+  mesh->add_tag(VERT, "coordinates", dim, OSH_LINEAR_INTERP, coords);
+  read_locals_and_owners(stream, mesh, VERT,
+      is_little_endian, is_compressed);
+  while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed));
+  CHECK(xml::read_tag(stream).elem_name == "CellData");
+  read_locals_and_owners(stream, mesh, dim,
+      is_little_endian, is_compressed);
+  while (read_tag(stream, mesh, dim, is_little_endian, is_compressed));
+  CHECK(xml::read_tag(stream).elem_name == "Piece");
+  CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
+  CHECK(xml::read_tag(stream).elem_name == "VTKFile");
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
