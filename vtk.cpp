@@ -152,7 +152,6 @@ Read<T> read_array(std::istream& stream, LO size,
     bool is_little_endian,
     bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
-  std::cerr << "enc_both = \"" << enc_both << "\"\n";
   std::size_t uncompressed_bytes, compressed_bytes;
   std::string encoded;
 #ifdef OSH_USE_ZLIB
@@ -160,12 +159,9 @@ Read<T> read_array(std::istream& stream, LO size,
     std::size_t header[4];
     auto nheader_chars = base64::encoded_size(sizeof(header));
     auto enc_header = enc_both.substr(0, nheader_chars);
-    std::cerr << "enc_header = \"" << enc_header << "\"\n";
     base64::decode(enc_header, header, sizeof(header));
     for (std::size_t i = 0; i < 4; ++i) {
-      std::cerr << "decoded entry " << header[i] << '\n';
       binary::swap_if_needed(header[i], is_little_endian);
-      std::cerr << "swapped entry " << header[i] << '\n';
     }
     encoded = enc_both.substr(nheader_chars);
     uncompressed_bytes = header[2];
@@ -239,6 +235,10 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
     return false;
   }
+  /* tags like "global" are set by the construction mechanism,
+     and it is somewhat complex to anticipate when they exist
+     so we can just remove them if they are going to be reset. */
+  if (mesh->has_tag(ent_dim, name)) mesh->remove_tag(ent_dim, name);
   auto size = mesh->nents(ent_dim) * ncomps;
   if (type == OSH_I8) {
     auto array = read_array<I8>(stream, size,
