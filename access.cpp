@@ -29,8 +29,8 @@ Reals vectors_3d_to_2d(Reals vecs3) {
   Int np = vecs3.size() / 3;
   Write<Real> vecs2(np * 2);
   auto f = LAMBDA(Int i) {
-    vecs3[i * 2 + 0] = vecs2[i * 3 + 0];
-    vecs3[i * 2 + 1] = vecs2[i * 3 + 1];
+    vecs2[i * 2 + 0] = vecs3[i * 3 + 0];
+    vecs2[i * 2 + 1] = vecs3[i * 3 + 1];
   };
   parallel_for(np, f);
   return vecs2;
