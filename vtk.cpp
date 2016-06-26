@@ -433,10 +433,6 @@ std::string piece_filename(std::string const& piecepath, I32 rank) {
   return piecepath + '_' + std::to_string(intel_type(rank)) + ".vtu";
 }
 
-std::string repeat_path(std::string const& path) {
-  return path + '/' + path_leaf_name(path);
-}
-
 std::string get_rel_step_path(std::size_t step) {
   return "steps/step_" + std::to_string(step);
 }
@@ -448,11 +444,11 @@ std::string get_step_path(std::string const& root_path, std::size_t step) {
 }//end anonymous namespace
 
 std::string get_pvtu_path(std::string const& step_path) {
-  return repeat_path(step_path) + ".pvtu";
+  return step_path + "/pieces.pvtu";
 }
 
 std::string get_pvd_path(std::string const& root_path) {
-  return repeat_path(root_path) + ".pvd";
+  return root_path + "/steps.pvd";
 }
 
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
