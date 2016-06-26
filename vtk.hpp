@@ -1,5 +1,7 @@
 namespace vtk {
 
+std::string get_pvtu_path(std::string const& step_path);
+
 std::string get_pvd_path(std::string const& root_path);
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,

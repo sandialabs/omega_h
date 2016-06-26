@@ -445,11 +445,11 @@ std::string get_step_path(std::string const& root_path, std::size_t step) {
   return root_path + '/' + get_rel_step_path(step);
 }
 
+}//end anonymous namespace
+
 std::string get_pvtu_path(std::string const& step_path) {
   return repeat_path(step_path) + ".pvtu";
 }
-
-}//end anonymous namespace
 
 std::string get_pvd_path(std::string const& root_path) {
   return repeat_path(root_path) + ".pvd";

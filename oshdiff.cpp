@@ -60,12 +60,13 @@ int main(int argc, char** argv) {
   }
   if (get_help || !filea || !fileb) {
     std::cout << "\n";
-    std::cout << "usage: oshdiff [options] dir1.osh dir2.osh\n";
-    std::cout << "   or: oshdiff [-help]             (usage)\n";
+    std::cout << "usage: oshdiff [options] gold.osh result.osh\n";
+    std::cout << "   or: oshdiff [-help]               (usage)\n";
     std::cout << "\n";
     std::cout << "    -help (Print this summary and exit.)\n";
     std::cout << "    -tolerance <$val> (Overrides the default tolerance of 1.0E-6.)\n";
     std::cout << "    -Floor <$val> (Overrides the default floor tolerance of 0.0.)\n";
+    std::cout << "    -superset (Allow result to have more arrays than gold)\n";
     return -1;
   }
   osh::Mesh a;
