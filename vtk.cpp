@@ -449,11 +449,11 @@ std::string get_pvtu_path(std::string const& step_path) {
   return repeat_path(step_path) + ".pvtu";
 }
 
+}//end anonymous namespace
+
 std::string get_pvd_path(std::string const& root_path) {
   return repeat_path(root_path) + ".pvd";
 }
-
-}//end anonymous namespace
 
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   write_vtkfile_vtu_start_tag(stream);
@@ -576,6 +576,37 @@ void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
   write_pvtu(file, mesh, cell_dim, piecepath);
 }
 
+void read_pvtu(std::istream& stream, CommPtr comm,
+    I32* npieces_out, std::string* vtupath_out) {
+  I32 npieces = 0;
+  std::string vtupath;
+  for (std::string line; std::getline(stream, line);) {
+    xml::Tag tag;
+    if (!xml::parse_tag(line, &tag)) continue;
+    if (tag.elem_name != "Piece") continue;
+    if (npieces == comm->rank()) {
+      vtupath = tag.attribs["Source"];
+    }
+    ++npieces;
+  }
+  CHECK(npieces >= 1);
+  CHECK(npieces <= comm->size());
+  *npieces_out = npieces;
+  *vtupath_out = vtupath;
+}
+
+void read_pvtu(std::string const& pvtupath, CommPtr comm,
+    I32* npieces_out, std::string* vtupath_out) {
+  auto parentpath = parent_path(pvtupath);
+  I32 npieces; std::string vtupath;
+  std::ifstream stream(pvtupath.c_str());
+  CHECK(stream.is_open());
+  read_pvtu(stream, comm, &npieces, &vtupath);
+  vtupath = parentpath + "/" + vtupath;
+  *npieces_out = npieces;
+  *vtupath_out = vtupath;
+}
+
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
   auto rank = mesh->comm()->rank();
   if (rank == 0) {
@@ -595,6 +626,19 @@ void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
   write_vtu(piece_filename(piecepath, rank), mesh, cell_dim);
 }
 
+void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
+  I32 npieces; std::string vtupath;
+  read_pvtu(pvtupath, comm, &npieces, &vtupath);
+  bool in_subcomm = (comm->rank() < npieces);
+  auto subcomm = comm->split(I32(!in_subcomm), 0);
+  if (in_subcomm) {
+    std::ifstream vtustream(vtupath.c_str());
+    CHECK(vtustream.is_open());
+    read_vtu(vtustream, subcomm, mesh);
+  }
+  mesh->set_comm(comm);
+}
+
 void write_pvd(std::string const& root_path, std::vector<Real> const& times) {
   std::string pvdpath = get_pvd_path(root_path);
   std::ofstream file(pvdpath.c_str());
@@ -609,6 +653,37 @@ void write_pvd(std::string const& root_path, std::vector<Real> const& times) {
   }
   file << "</Collection>\n";
   file << "</VTKFile>\n";
+}
+
+void read_pvd(std::istream& stream,
+    std::vector<Real>* times_out,
+    std::vector<std::string>* pvtupaths_out) {
+  std::vector<Real> times;
+  std::vector<std::string> pvtupaths;
+  for (std::string line; std::getline(stream, line);) {
+    xml::Tag tag;
+    if (!xml::parse_tag(line, &tag)) continue;
+    if (tag.elem_name != "DataSet") continue;
+    times.push_back(std::stod(tag.attribs["timestep"]));
+    pvtupaths.push_back(tag.attribs["file"]);
+  }
+  *times_out = times;
+  *pvtupaths_out = pvtupaths;
+}
+
+void read_pvd(std::string const& pvdpath,
+    std::vector<Real>* times_out,
+    std::vector<std::string>* pvtupaths_out) {
+  std::vector<Real> times;
+  std::vector<std::string> pvtupaths;
+  std::ifstream pvdstream(pvdpath.c_str());
+  CHECK(pvdstream.is_open());
+  read_pvd(pvdstream, &times, &pvtupaths);
+  auto parentpath = parent_path(pvdpath);
+  for (auto& pvtupath : pvtupaths)
+    pvtupath = parentpath + "/" + pvtupath;
+  *times_out = times;
+  *pvtupaths_out = pvtupaths;
 }
 
 Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim):
