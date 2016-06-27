@@ -43,51 +43,39 @@ static void copy_class(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
 }
 
 static void copy_conn(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
-    int d) {
+    apf::Numbering* vert_nums, int d) {
   auto nhigh = osh::LO(mesh_apf->count(d));
-  auto ld = d - 1;
-  auto deg = osh::simplex_degrees[d][d - 1];
-  auto nverts_per_low = osh::simplex_degrees[ld][osh::VERT];
-  osh::HostWrite<osh::LO> host_conn(nhigh * deg);
-  osh::HostWrite<osh::I8> host_codes;
-  if (ld > 0) host_codes = osh::HostWrite<osh::I8>(nhigh * deg);
-  auto low_nums = apf::numberOverlapDimension(mesh_apf, "apf2osh", ld);
+  auto deg = d + 1;
+  osh::HostWrite<osh::LO> host_ev2v(nhigh * deg);
   auto iter = mesh_apf->begin(d);
   apf::MeshEntity* he;
   int i = 0;
   while ((he = mesh_apf->iterate(iter))) {
-    apf::Downward down;
-    auto deg2 = mesh_apf->getDownward(he, ld, down);
+    apf::Downward eev;
+    auto deg2 = mesh_apf->getDownward(he, 0, eev);
     OSH_CHECK(deg == deg2);
     for (int j = 0; j < deg; ++j) {
-      host_conn[i * deg + j] = apf::getNumber(low_nums, down[j], 0, 0);
-      if (ld > 0) {
-        int which; bool flip_apf; int rot_apf;
-        apf::getAlignment(mesh_apf, he, down[j], which, flip_apf, rot_apf);
-        auto rot_osh = osh::rotation_to_first(nverts_per_low, rot_apf);
-        auto first_code = osh::make_code(flip_apf, 0, 0);
-        auto second_code = osh::make_code(false, rot_osh, 0);
-        auto use2ent_code = osh::compound_alignments(
-            nverts_per_low, first_code, second_code);
-        auto ent2use_code = osh::invert_alignment(
-            nverts_per_low, use2ent_code);
-        host_codes[i * deg + j] = ent2use_code;
-      }
+      host_ev2v[i * deg + j] = apf::getNumber(vert_nums, eev[j], 0, 0);
     }
     ++i;
   }
   mesh_apf->end(iter);
-  apf::destroyNumbering(low_nums);
+  auto ev2v = osh::LOs(host_ev2v.write());
   osh::Adj high2low;
-  high2low.ab2b = host_conn.write();
-  if (ld > 0) high2low.codes = host_codes.write();
+  if (d == 1) {
+    high2low.ab2b = ev2v;
+  } else {
+    auto lv2v = mesh_osh->ask_verts_of(d - 1);
+    auto v2l = mesh_osh->ask_up(0, d - 1);
+    high2low = osh::reflect_down(ev2v, lv2v, v2l, d, d - 1);
+  }
   mesh_osh->set_ents(d, high2low);
 }
 
 static void copy_globals(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
     int dim) {
   apf::GlobalNumbering* globals_apf = apf::makeGlobal(
-      apf::numberOwnedDimension(mesh_apf, "smb2osh", dim));
+      apf::numberOwnedDimension(mesh_apf, "smb2osh_global", dim));
   apf::synchronize(globals_apf);
   auto nents = osh::LO(mesh_apf->count(dim));
   osh::HostWrite<osh::GO> host_globals(nents);
@@ -120,11 +108,13 @@ static void apf2osh(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh) {
   copy_coords(mesh_apf, mesh_osh);
   copy_class(mesh_apf, mesh_osh, 0);
   copy_globals(mesh_apf, mesh_osh, 0);
+  auto vert_nums = apf::numberOverlapDimension(mesh_apf, "apf2osh", 0);
   for (int d = 1; d <= dim; ++d) {
-    copy_conn(mesh_apf, mesh_osh, d);
+    copy_conn(mesh_apf, mesh_osh, vert_nums, d);
     copy_class(mesh_apf, mesh_osh, d);
     copy_globals(mesh_apf, mesh_osh, d);
   }
+  apf::destroyNumbering(vert_nums);
 }
 
 int main(int argc, char** argv) {
