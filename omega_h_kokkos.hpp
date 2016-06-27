@@ -1,0 +1,26 @@
+#ifndef OMEGA_H_KOKKOS_HPP
+#define OMEGA_H_KOKKOS_HPP
+
+#ifdef OSH_USE_KOKKOS
+
+OSH_SYSTEM_HEADER
+
+#include <Kokkos_Core.hpp>
+
+#endif //OSH_USE_KOKKOS
+
+#ifdef OSH_USE_KOKKOS
+#define OSH_INLINE KOKKOS_INLINE_FUNCTION
+#else
+#define OSH_INLINE inline
+#endif //OSH_USE_KOKKOS
+
+#ifdef OSH_USE_CUDA
+#define OSH_DEVICE __device__ inline
+#define OSH_LAMBDA [=]__device__
+#else
+#define OSH_DEVICE inline
+#define OSH_LAMBDA [=]
+#endif //OSH_USE_CUDA
+
+#endif
