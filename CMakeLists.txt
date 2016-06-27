@@ -124,8 +124,8 @@ endif()
 
 install(FILES
   "${PROJECT_BINARY_DIR}/omega_h_config.h"
-  "${PROJECT_SOURCE_DIR}/omega_h.h"
   "${PROJECT_SOURCE_DIR}/omega_h_mpi.h"
+  "${PROJECT_SOURCE_DIR}/omega_h_c.h"
   "${PROJECT_SOURCE_DIR}/omega_h_kokkos.hpp"
   "${PROJECT_SOURCE_DIR}/omega_h.hpp"
   DESTINATION include)

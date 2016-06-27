@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_H
-#define OMEGA_H_H
+#ifndef OMEGA_H_C_H
+#define OMEGA_H_C_H
 
 #include "omega_h_config.h"
 
