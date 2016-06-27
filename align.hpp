@@ -94,6 +94,11 @@ INLINE Int rotation_to_first(Int new_first) {
   return invert_rotation<nverts_per_ent>(new_first);
 }
 
+INLINE Int rotation_to_first(Int deg, Int new_first) {
+  if (deg == 3) return rotation_to_first<3>(new_first);
+  return rotation_to_first<2>(new_first);
+}
+
 template <Int nverts_per_ent>
 INLINE I8 invert_alignment(I8 code) {
   if (code_is_flipped(code))
@@ -125,6 +130,11 @@ INLINE I8 compound_alignments(I8 code1, I8 code2) {
   Int rotation = rotation_to_first<nverts_per_ent>(old_first);
   bool is_flipped = (code_is_flipped(code1) ^ code_is_flipped(code2));
   return invert_alignment<nverts_per_ent>(make_code(is_flipped, rotation, 0));
+}
+
+INLINE I8 compound_alignments(Int deg, I8 code1, I8 code2) {
+  if (deg == 3) return compound_alignments<3>(code1, code2);
+  return compound_alignments<2>(code1, code2);
 }
 
 template <Int nverts_per_ent, typename T>

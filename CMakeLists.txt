@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.11)
 project(Omega_h CXX)
 
 set(OSH_MAJOR "0")
@@ -14,6 +14,7 @@ option(OSH_USE_ZLIB "Use zlib for file compression" ON)
 option(OSH_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
 option(OSH_OPTIMIZE "Compile with optimization" ON)
 option(OSH_SYMBOLS "Compile with debug symbols" ON)
+option(OSH_BUILD_SMB2OSH "Enable building the smb2osh program" OFF)
 
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp)
@@ -99,6 +100,27 @@ add_executable(coarsen_test coarsen_test.cpp)
 target_link_libraries(coarsen_test omega_h)
 add_executable(warp_test warp_test.cpp)
 target_link_libraries(warp_test omega_h)
+
+if(OSH_BUILD_SMB2OSH)
+find_path(APF_INCLUDE apf.h)
+find_library(MDS_LIB NAMES mds)
+find_library(APF_LIB NAMES apf)
+find_library(MTH_LIB NAMES mth)
+find_library(LION_LIB NAMES lion)
+find_library(GMI_LIB NAMES gmi)
+find_library(PCU_LIB NAMES pcu)
+add_executable(smb2osh smb2osh.cpp)
+target_include_directories(smb2osh PRIVATE ${APF_INCLUDE})
+target_link_libraries(smb2osh
+    omega_h
+    ${APF_LIB}
+    ${MTH_LIB}
+    ${LION_LIB}
+    ${MDS_LIB}
+    ${GMI_LIB}
+    ${PCU_LIB})
+install(TARGETS smb2osh DESTINATION bin)
+endif()
 
 install(FILES
   "${PROJECT_BINARY_DIR}/omega_h_config.h"
