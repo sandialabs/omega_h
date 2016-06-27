@@ -198,6 +198,7 @@ Graph invert(LOs a2b, LO nb, InvertMethod method) {
   case BY_SORTING: return invert_by_sorting(a2b, nb);
   case BY_ATOMICS: return invert_by_atomics(a2b, nb);
   }
+  NORETURN(Graph());
 }
 
 } //end namespace map

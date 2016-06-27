@@ -147,16 +147,31 @@ INLINE void rotate_adj(Int rotation,
 }
 
 template <typename T>
-INLINE void flip_adj(T adj[]) {
+INLINE void flip_adj3(T adj[]) {
   swap2(adj[1], adj[2]);
 }
+
+template <Int deg>
+struct FlipAdj;
+template <>
+struct FlipAdj<3> {
+  template <typename T>
+  INLINE static void flip(T adj[]) { flip_adj3(adj); }
+};
+template <>
+struct FlipAdj<2> {
+  template <typename T>
+  INLINE static void flip(T adj[]) { (void)adj; }
+};
+template <Int deg, typename T>
+INLINE void flip_adj(T adj[]) { FlipAdj<deg>::flip(adj); }
 
 template <Int nverts_per_ent, typename T>
 INLINE void align_adj(I8 code,
     T const in[], T out[]) {
   rotate_adj<nverts_per_ent>(code_rotation(code), in, out);
   if (code_is_flipped(code))
-    flip_adj(out);
+    flip_adj<nverts_per_ent>(out);
 }
 
 template <typename T>

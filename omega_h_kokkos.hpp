@@ -5,7 +5,16 @@
 
 OSH_SYSTEM_HEADER
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #include <Kokkos_Core.hpp>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #endif //OSH_USE_KOKKOS
 

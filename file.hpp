@@ -9,7 +9,7 @@ namespace binary {
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian = true);
 template <typename T>
-Read<T> swap_if_needed(Read<T> array, bool is_little_endian = true);
+Read<T> swap_if_needed(Read<T> array, bool is_little_endian);
 
 template <typename T>
 void write_value(std::ostream& stream, T val);
