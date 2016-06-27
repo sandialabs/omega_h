@@ -96,7 +96,8 @@ INLINE Int rotation_to_first(Int new_first) {
 
 INLINE Int rotation_to_first(Int deg, Int new_first) {
   if (deg == 3) return rotation_to_first<3>(new_first);
-  return rotation_to_first<2>(new_first);
+  if (deg == 2) return rotation_to_first<2>(new_first);
+  NORETURN(-1);
 }
 
 template <Int nverts_per_ent>
@@ -134,7 +135,8 @@ INLINE I8 compound_alignments(I8 code1, I8 code2) {
 
 INLINE I8 compound_alignments(Int deg, I8 code1, I8 code2) {
   if (deg == 3) return compound_alignments<3>(code1, code2);
-  return compound_alignments<2>(code1, code2);
+  if (deg == 2) return compound_alignments<2>(code1, code2);
+  NORETURN(-1);
 }
 
 template <Int nverts_per_ent, typename T>
