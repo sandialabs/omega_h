@@ -125,4 +125,5 @@ install(TARGETS
   msh2osh
   osh2vtk
   oshdiff
+  vtkdiff
   DESTINATION bin)
