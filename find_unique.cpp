@@ -11,6 +11,7 @@ template <>
 struct IsFlipped<2> {
   template <typename T>
   INLINE static bool is(T adj[]) {
+    (void) adj;
     return false;
   }
 };
