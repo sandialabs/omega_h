@@ -1,5 +1,4 @@
 #include "internal.hpp"
-
 #include "smb2osh.hpp"
 
 static void copy_coords(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh) {
@@ -18,7 +17,7 @@ static void copy_coords(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh) {
     ++i;
   }
   mesh_apf->end(iter);
-  mesh_osh->add_tag(0, "coordinates", 1, OSH_LINEAR_INTERP,
+  mesh_osh->add_tag(0, "coordinates", dim, OSH_LINEAR_INTERP,
       osh::Reals(host_coords.write()));
 }
 
@@ -48,6 +47,7 @@ static void copy_conn(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
   auto nhigh = osh::LO(mesh_apf->count(d));
   auto ld = d - 1;
   auto deg = osh::simplex_degrees[d][d - 1];
+  auto nverts_per_low = osh::simplex_degrees[ld][osh::VERT];
   osh::HostWrite<osh::LO> host_conn(nhigh * deg);
   osh::HostWrite<osh::I8> host_codes;
   if (ld > 0) host_codes = osh::HostWrite<osh::I8>(nhigh * deg);
@@ -64,12 +64,13 @@ static void copy_conn(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
       if (ld > 0) {
         int which; bool flip_apf; int rot_apf;
         apf::getAlignment(mesh_apf, he, down[j], which, flip_apf, rot_apf);
-        auto rot_osh = osh::rotation_to_first(deg, rot_apf);
+        auto rot_osh = osh::rotation_to_first(nverts_per_low, rot_apf);
         auto first_code = osh::make_code(flip_apf, 0, 0);
         auto second_code = osh::make_code(false, rot_osh, 0);
         auto use2ent_code = osh::compound_alignments(
-            deg, first_code, second_code);
-        auto ent2use_code = osh::invert_alignment(deg, use2ent_code);
+            nverts_per_low, first_code, second_code);
+        auto ent2use_code = osh::invert_alignment(
+            nverts_per_low, use2ent_code);
         host_codes[i * deg + j] = ent2use_code;
       }
     }
