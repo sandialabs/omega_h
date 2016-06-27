@@ -146,7 +146,7 @@ template <typename T>
 void write_array(std::ostream& stream, Read<T> array) {
   LO size = array.size();
   write_value(stream, size);
-  Read<T> swapped = swap_if_needed(array);
+  Read<T> swapped = swap_if_needed(array, true);
   HostRead<T> uncompressed(swapped);
   I64 uncompressed_bytes = static_cast<I64>(
       static_cast<std::size_t>(size) * sizeof(T));
@@ -205,7 +205,7 @@ void read_array(std::istream& stream, Read<T>& array,
     stream.read(reinterpret_cast<char*>(uncompressed.data()),
         uncompressed_bytes);
   }
-  array = swap_if_needed(Read<T>(uncompressed.write()));
+  array = swap_if_needed(Read<T>(uncompressed.write()), true);
 }
 
 #define INST_T(T) \
