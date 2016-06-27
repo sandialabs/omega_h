@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
       dst[1] = sin(dest_a) * polar_r;
       dst = dst + mid;
       auto w = dst - x0;
-      set_vec<dim>(warp_w, vert, w);
+      set_vector<dim>(warp_w, vert, w);
     };
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, OSH_LINEAR_INTERP, Reals(warp_w));
