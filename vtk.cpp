@@ -696,6 +696,14 @@ void read_pvd(std::string const& pvdpath,
   *pvtupaths_out = pvtupaths;
 }
 
+Writer::Writer():
+  mesh_(nullptr),
+  root_path_("/not-set"),
+  cell_dim_(-1),
+  step_(-1),
+  pvd_pos_(0) {
+}
+
 Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim):
   mesh_(mesh),
   root_path_(root_path),

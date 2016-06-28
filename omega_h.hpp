@@ -482,6 +482,7 @@ class Writer {
     Int step_;
     std::streampos pvd_pos_;
   public:
+    Writer();
     Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
     Writer(Writer const& other);
     ~Writer();
