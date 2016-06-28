@@ -231,7 +231,7 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     bool is_little_endian, bool is_compressed) {
   osh_type type;
   std::string name;
-  Int ncomps;
+  Int ncomps = -1;
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
     return false;
   }
