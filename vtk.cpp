@@ -433,11 +433,11 @@ std::string piece_filename(std::string const& piecepath, I32 rank) {
   return piecepath + '_' + std::to_string(intel_type(rank)) + ".vtu";
 }
 
-std::string get_rel_step_path(std::size_t step) {
+std::string get_rel_step_path(Int step) {
   return "steps/step_" + std::to_string(step);
 }
 
-std::string get_step_path(std::string const& root_path, std::size_t step) {
+std::string get_step_path(std::string const& root_path, Int step) {
   return root_path + '/' + get_rel_step_path(step);
 }
 
@@ -635,18 +635,32 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-void write_pvd(std::string const& root_path, std::vector<Real> const& times) {
+std::streampos write_initial_pvd(std::string const& root_path) {
   std::string pvdpath = get_pvd_path(root_path);
   std::ofstream file(pvdpath.c_str());
   CHECK(file.is_open());
   file << "<VTKFile type=\"Collection\" version=\"0.1\">\n";
   file << "<Collection>\n";
-  for (std::size_t step = 0; step < times.size(); ++step) {
-    file << "<DataSet timestep=\"" << times[step] << "\" part=\"0\" ";
-    auto relstep = get_rel_step_path(step);
-    auto relpvtu = get_pvtu_path(relstep);
-    file << "file=\"" << relpvtu << "\"/>\n";
-  }
+  auto pos = file.tellp();
+  file << "</Collection>\n";
+  file << "</VTKFile>\n";
+  return pos;
+}
+
+void update_pvd(std::string const& root_path,
+    std::streampos* pos_inout,
+    Int step,
+    Real time) {
+  std::string pvdpath = get_pvd_path(root_path);
+  std::fstream file;
+  file.open(pvdpath.c_str(), std::ios::out | std::ios::in);
+  CHECK(file.is_open());
+  file.seekp(*pos_inout);
+  file << "<DataSet timestep=\"" << time << "\" part=\"0\" ";
+  auto relstep = get_rel_step_path(step);
+  auto relpvtu = get_pvtu_path(relstep);
+  file << "file=\"" << relpvtu << "\"/>\n";
+  *pos_inout = file.tellp();
   file << "</Collection>\n";
   file << "</VTKFile>\n";
 }
@@ -685,7 +699,9 @@ void read_pvd(std::string const& pvdpath,
 Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim):
   mesh_(mesh),
   root_path_(root_path),
-  cell_dim_(cell_dim) {
+  cell_dim_(cell_dim),
+  step_(0),
+  pvd_pos_(0) {
   auto comm = mesh->comm();
   auto rank = comm->rank();
   if (rank == 0) safe_mkdir(root_path_.c_str());
@@ -693,26 +709,32 @@ Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim):
   auto stepsdir = root_path_ + "/steps";
   if (rank == 0) safe_mkdir(stepsdir.c_str());
   comm->barrier();
+  if (rank == 0) {
+    pvd_pos_ = write_initial_pvd(root_path);
+  }
 }
 
 Writer::Writer(Writer const& other):
   mesh_(other.mesh_),
   root_path_(other.root_path_),
   cell_dim_(other.cell_dim_),
-  times_(other.times_) {
+  step_(other.step_),
+  pvd_pos_(other.pvd_pos_) {
 }
 
 Writer::~Writer() {
-  write_pvd(root_path_, times_);
 }
 
 void Writer::write(Real time) {
-  write_parallel(get_step_path(root_path_, times_.size()), mesh_, cell_dim_);
-  times_.push_back(time);
+  write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_);
+  if (mesh_->comm()->rank() == 0) {
+    update_pvd(root_path_, &pvd_pos_, step_, time);
+  }
+  ++step_;
 }
 
 void Writer::write() {
-  this->write(Real(times_.size()));
+  this->write(Real(step_));
 }
 
 FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {

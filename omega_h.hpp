@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <iosfwd>
 
 #include "omega_h_c.h"
 #include "omega_h_kokkos.hpp"
@@ -478,7 +479,8 @@ class Writer {
     Mesh* mesh_;
     std::string root_path_;
     Int cell_dim_;
-    std::vector<Real> times_;
+    Int step_;
+    std::streampos pvd_pos_;
   public:
     Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
     Writer(Writer const& other);
