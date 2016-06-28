@@ -10,7 +10,7 @@ Vector<3> get_center(CommPtr comm, Reals coords, Reals masses,
   auto n = masses.size();
   Write<Real> weighted_coords(n * 3);
   auto f = LAMBDA(LO i) {
-    set_vec<3>(weighted_coords, i, masses[i] * get_vec<3>(coords, i));
+    set_vector<3>(weighted_coords, i, masses[i] * get_vec<3>(coords, i));
   };
   parallel_for(n, f);
   Vector<3> result;

@@ -213,7 +213,7 @@ static void test_rib(CommPtr comm) {
   LO n = 5;
   Write<Real> w_coords(n * 3);
   auto set_coords = LAMBDA(LO i) {
-    set_vec(w_coords, i, vector_3(i * size + rank, 0, 0));
+    set_vector(w_coords, i, vector_3(i * size + rank, 0, 0));
   };
   parallel_for(n, set_coords);
   Reals coords(w_coords);

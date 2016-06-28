@@ -10,7 +10,11 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     std::string const& piecepath);
 
-void write_pvd(std::string const& root_path, std::vector<Real> const& times);
+std::streampos write_initial_pvd(std::string const& root_path);
+void update_pvd(std::string const& root_path,
+    std::streampos* pos_inout,
+    Int step,
+    Real time);
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh);
 

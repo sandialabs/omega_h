@@ -64,7 +64,7 @@ DEVICE Matrix<dim,dim> get_symm(Arr const& a, Int i) {
 }
 
 template <Int n, class Arr>
-DEVICE void set_vec(Arr const& a, Int i, Vector<n> v) {
+DEVICE void set_vector(Arr const& a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j)
     a[i * n + j] = v[j];
 }
