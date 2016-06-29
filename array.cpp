@@ -1,3 +1,12 @@
+#ifdef OSH_USE_KOKKOS
+template <typename T>
+Write<T>::Write(Kokkos::View<T*> view):
+  view_(view)
+{
+  CHECK(exists());
+}
+#endif
+
 template <typename T>
 Write<T>::Write(LO size):
 #ifdef OSH_USE_KOKKOS

@@ -36,6 +36,9 @@ class Write {
 #endif
 public:
   OSH_INLINE Write();
+#ifdef OSH_USE_KOKKOS
+  Write(Kokkos::View<T*> view);
+#endif
   Write(LO size);
   Write(LO size, T value);
   Write(LO size, T offset, T stride);
