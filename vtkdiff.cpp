@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+#include <cstring>
+
 using namespace osh;
 
 int main(int argc, char** argv) {

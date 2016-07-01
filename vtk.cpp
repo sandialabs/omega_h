@@ -229,7 +229,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
 
 bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     bool is_little_endian, bool is_compressed) {
-  osh_type type;
+  osh_type type = OSH_I8;
   std::string name;
   Int ncomps = -1;
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
