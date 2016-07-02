@@ -111,6 +111,9 @@ template <typename T>
 void write_array(std::ostream& stream, std::string const& name,
     Int ncomps, Read<T> array)
 {
+  if (!(array.exists())) {
+    osh_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
+  }
   stream << "<DataArray ";
   describe_array<T>(stream, name, ncomps);
   stream << ">\n";
@@ -218,6 +221,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim)
       // regardless of whether this is a 2D mesh or not.
       // this filter adds a 3rd zero component to any
       // fields with 2 components for 2D meshes
+      CHECK(array.exists());
       write_array(stream, tag->name(), 3, vectors_2d_to_3d(array));
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array);
