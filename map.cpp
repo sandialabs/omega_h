@@ -234,8 +234,9 @@ fan_reduce_tmpl(
     Int width) {
   typedef typename Functor::input_type T;
   typedef typename Functor::value_type VT;
+  CHECK(a2b.last() * width == b_data.size());
   auto na = a2b.size() - 1;
-  Write<T> a_data(na);
+  Write<T> a_data(na * width);
   auto f = LAMBDA(LO a) {
     auto functor = Functor();
     for (Int j = 0; j < width; ++j) {
