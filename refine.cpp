@@ -64,9 +64,9 @@ static void refine_element_based(Mesh* mesh, bool verbose) {
 }
 
 bool refine(Mesh* mesh, Real min_qual, bool verbose) {
-  mesh->set_partition(GHOSTED);
+  mesh->set_parting(OSH_GHOSTED);
   if (!refine_ghosted(mesh, min_qual)) return false;
-  mesh->set_partition(ELEMENT_BASED);
+  mesh->set_parting(OSH_ELEM_BASED);
   refine_element_based(mesh, verbose);
   return true;
 }

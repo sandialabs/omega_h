@@ -27,9 +27,9 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh,
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents,
-    Partition mode);
+    osh_parting mode);
 
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
-    Partition mode, bool verbose);
+    osh_parting mode, bool verbose);
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose);
 void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose);

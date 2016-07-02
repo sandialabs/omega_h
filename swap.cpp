@@ -1,5 +1,5 @@
 bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
-  mesh->set_partition(GHOSTED);
+  mesh->set_parting(OSH_GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
   CHECK(comm->allreduce(max(elems_are_cands), OSH_MAX) == 1);

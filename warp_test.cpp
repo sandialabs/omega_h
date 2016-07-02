@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.set_partition(GHOSTED);
+  mesh.set_parting(OSH_GHOSTED);
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
   add_dye(&mesh);
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
     }
   }
   Now t1 = now();
-  mesh.set_partition(ELEMENT_BASED);
+  mesh.set_parting(OSH_ELEM_BASED);
   CHECK(are_close(1.0, sum(mesh.comm(),
           mesh.get_array<Real>(mesh.dim(), "mass"))));
   if (mesh.comm()->rank() == 0) {

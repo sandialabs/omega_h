@@ -31,7 +31,7 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v,
 void build_from_elems2verts(Mesh* mesh,
     CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals) {
   mesh->set_comm(comm);
-  mesh->set_partition(ELEMENT_BASED);
+  mesh->set_parting(OSH_ELEM_BASED);
   mesh->set_dim(edim);
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);

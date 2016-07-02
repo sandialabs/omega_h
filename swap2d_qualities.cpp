@@ -40,7 +40,7 @@ static Reals swap2d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
 }
 
 Reals swap2d_qualities(Mesh* mesh, LOs cands2edges) {
-  CHECK(mesh->partition() == GHOSTED);
+  CHECK(mesh->parting() == OSH_GHOSTED);
   auto cand_quals = Reals();
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {

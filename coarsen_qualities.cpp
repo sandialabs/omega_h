@@ -47,7 +47,7 @@ static Reals coarsen_qualities_tmpl(Mesh* mesh,
 Reals coarsen_qualities(Mesh* mesh,
     LOs cands2edges,
     Read<I8> cand_codes) {
-  CHECK(mesh->partition() == GHOSTED);
+  CHECK(mesh->parting() == OSH_GHOSTED);
   auto cand_quals = Reals();
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {
@@ -76,7 +76,7 @@ void choose_vertex_collapses(Mesh* mesh,
     Reals cand_edge_quals,
     Read<I8>& verts_are_cands,
     Reals& vert_quals) {
-  CHECK(mesh->partition() == GHOSTED);
+  CHECK(mesh->parting() == OSH_GHOSTED);
   auto edges2cands = invert_injective_map(cands2edges, mesh->nedges());
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;

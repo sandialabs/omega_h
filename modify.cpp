@@ -190,10 +190,10 @@ static LOs get_rep_counts(
    adjacent globals from the representative.
    the most intuitive order is the upward adjacent ordering
    from vertices to edges (guaranteed to be sorted by globals).
-   however, this is only available in full in GHOSTED mode.
-   so, this function writes down that ordering while in GHOSTED
+   however, this is only available in full in OSH_GHOSTED mode.
+   so, this function writes down that ordering while in OSH_GHOSTED
    mode so it can be used later by find_new_offsets, which
-   runs in ELEMENT_BASED mode */
+   runs in OSH_ELEM_BASED mode */
 
 LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
   auto nedges = mesh->nents(EDGE);

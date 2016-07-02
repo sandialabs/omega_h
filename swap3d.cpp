@@ -69,7 +69,7 @@ static void swap3d_element_based(Mesh* mesh, bool verbose) {
 bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
   if (!swap3d_ghosted(mesh)) return false;
-  mesh->set_partition(ELEMENT_BASED);
+  mesh->set_parting(OSH_ELEM_BASED);
   swap3d_element_based(mesh, verbose);
   return true;
 }

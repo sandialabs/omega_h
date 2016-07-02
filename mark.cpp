@@ -79,7 +79,7 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
 }
 
 Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers) {
-  CHECK(mesh->partition() == GHOSTED);
+  CHECK(mesh->parting() == OSH_GHOSTED);
   auto dual = mesh->ask_dual();
   for (Int i = 0; i < nlayers; ++i) {
     marks = graph_reduce(dual, marks, 1, OSH_MAX);
@@ -96,7 +96,7 @@ GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks) {
 }
 
 Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {
-  CHECK(mesh->partition() == GHOSTED);
+  CHECK(mesh->parting() == OSH_GHOSTED);
   auto quals = mesh->ask_qualities();
   auto elems_are_slivers = each_lt(quals, qual_ceil);
   return mark_dual_layers(mesh, elems_are_slivers, nlayers);

@@ -42,6 +42,12 @@ enum osh_xfer {
   OSH_METRIC
 };
 
+enum osh_parting {
+  OSH_ELEM_BASED,
+  OSH_GHOSTED,
+  OSH_VERT_BASED,
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif

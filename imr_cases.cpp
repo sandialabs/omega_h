@@ -139,12 +139,12 @@ static void run_case(Library const& lib, Case const& c) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.set_partition(GHOSTED);
+  mesh.set_parting(OSH_GHOSTED);
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
   vtk::Writer writer(&mesh, "out", mesh.dim());
   for (Int step = 0; step < c.time_steps(); ++step) {
-    mesh.set_partition(GHOSTED);
+    mesh.set_parting(OSH_GHOSTED);
     auto objs = c.objects();
     auto motion_w = Write<Real>(mesh.nverts() * mesh.dim(), 0.0);
     for (auto obj : objs) {
@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.set_partition(GHOSTED);
+  mesh.set_parting(OSH_GHOSTED);
   std::string name = argv[1];
   if (name == "translate_ball") run_case(lib, TranslateBall());
   else if (name == "rotate_ball") run_case(lib, RotateBall());

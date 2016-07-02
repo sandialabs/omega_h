@@ -61,7 +61,7 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
 bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
   if (!swap2d_ghosted(mesh)) return false;
-  mesh->set_partition(ELEMENT_BASED);
+  mesh->set_parting(OSH_ELEM_BASED);
   swap2d_element_based(mesh, verbose);
   return true;
 }

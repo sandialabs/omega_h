@@ -362,12 +362,6 @@ namespace inertia {
 struct Rib;
 }
 
-enum Partition {
-  ELEMENT_BASED,
-  GHOSTED,
-  VERTEX_BASED
-};
-
 class Mesh {
   public:
     Mesh();
@@ -377,7 +371,7 @@ class Mesh {
     void set_ents(Int dim, Adj down);
     void keep_canonical_globals(bool yn);
     CommPtr comm() const;
-    Partition partition() const;
+    osh_parting parting() const;
     Int dim() const;
     LO nents(Int dim) const;
     LO nelems() const;
@@ -427,7 +421,7 @@ class Mesh {
     void react_to_set_tag(Int dim, std::string const& name);
     Int dim_;
     CommPtr comm_;
-    Int partition_;
+    Int parting_;
     LO nents_[DIMS];
     TagVector tags_[DIMS];
     AdjPtr adjs_[DIMS][DIMS];
@@ -447,7 +441,7 @@ class Mesh {
     Remotes ask_owners(Int dim);
     Read<I8> owned(Int dim);
     Dist ask_dist(Int dim);
-    void set_partition(Partition partition, bool verbose = false);
+    void set_parting(osh_parting parting, bool verbose = false);
     void migrate(Remotes new_elems2old_owners, bool verbose = false);
     void reorder();
     void balance();

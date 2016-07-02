@@ -137,9 +137,9 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
 bool coarsen(Mesh* mesh, Real min_qual, bool improve,
     bool verbose) {
   if (!coarsen_element_based1(mesh)) return false;
-  mesh->set_partition(GHOSTED);
+  mesh->set_parting(OSH_GHOSTED);
   if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
-  mesh->set_partition(ELEMENT_BASED);
+  mesh->set_parting(OSH_ELEM_BASED);
   coarsen_element_based2(mesh, verbose);
   return true;
 }
@@ -182,7 +182,7 @@ bool coarsen_by_size(Mesh* mesh, Real min_len,
 
 bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers,
     bool verbose) {
-  mesh->set_partition(GHOSTED);
+  mesh->set_parting(OSH_GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
   CHECK(comm->allreduce(max(elems_are_cands), OSH_MAX) == 1);

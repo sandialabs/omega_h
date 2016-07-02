@@ -129,10 +129,10 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh,
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents,
-    Partition mode) {
+    osh_parting mode) {
   push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
   Read<I32> own_ranks;
-  if ((mode == GHOSTED) || ((mode == VERTEX_BASED) && (ent_dim == VERT))) {
+  if ((mode == OSH_GHOSTED) || ((mode == OSH_VERT_BASED) && (ent_dim == VERT))) {
     auto old_own_ranks = old_mesh->ask_owners(ent_dim).ranks;
     own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
   }
@@ -163,7 +163,7 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 }
 
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
-    Partition mode, bool verbose) {
+    osh_parting mode, bool verbose) {
   auto comm = old_mesh->comm();
   auto dim = old_mesh->dim();
   if (verbose) print_migrate_stats(comm, new_elems2old_owners);
@@ -191,7 +191,7 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
 
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose) {
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, ELEMENT_BASED,
+  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, OSH_ELEM_BASED,
       verbose);
   *mesh = new_mesh;
 }

@@ -243,8 +243,8 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
   write_value(stream, comm_size);
   I32 comm_rank = mesh->comm()->rank();
   write_value(stream, comm_rank);
-  I8 partition = mesh->partition();
-  write_value(stream, partition);
+  I8 parting = mesh->parting();
+  write_value(stream, parting);
   auto hints = mesh->rib_hints();
   I8 have_hints = (hints != nullptr);
   write_value(stream, have_hints);
@@ -269,9 +269,9 @@ static void read_meta(std::istream& stream, Mesh* mesh) {
   I32 comm_rank;
   read_value(stream, comm_rank);
   CHECK(mesh->comm()->rank() == comm_rank);
-  I8 partition;
-  read_value(stream, partition);
-  mesh->set_partition(Partition(partition));
+  I8 parting;
+  read_value(stream, parting);
+  mesh->set_parting(osh_parting(parting));
   I8 have_hints;
   read_value(stream, have_hints);
   if (have_hints) {

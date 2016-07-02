@@ -1,9 +1,9 @@
 Mesh::Mesh():
   dim_(-1),
-  partition_(-1) {
+  parting_(-1) {
   for (Int i = 0; i <= 3; ++i)
     nents_[i] = -1;
-  partition_ = ELEMENT_BASED;
+  parting_ = OSH_ELEM_BASED;
   keeps_canonical_globals_ = true;
 }
 
@@ -414,29 +414,29 @@ Dist Mesh::ask_dist(Int dim) {
   return *(dists_[dim]);
 }
 
-Partition Mesh::partition() const {
-  CHECK(partition_ != -1);
-  return static_cast<Partition>(partition_);
+osh_parting Mesh::parting() const {
+  CHECK(parting_ != -1);
+  return osh_parting(parting_);
 }
 
-void Mesh::set_partition(Partition partition, bool verbose) {
-  if ((partition_ == -1) || (comm_->size() == 1)) {
-    partition_ = partition;
+void Mesh::set_parting(osh_parting parting, bool verbose) {
+  if ((parting_ == -1) || (comm_->size() == 1)) {
+    parting_ = parting;
     return;
   }
-  if (partition_ == partition) {
+  if (parting_ == parting) {
     return;
   }
-  if (partition_ != ELEMENT_BASED) {
+  if (parting_ != OSH_ELEM_BASED) {
     partition_by_elems(this, verbose);
-    partition_ = ELEMENT_BASED;
+    parting_ = OSH_ELEM_BASED;
   }
-  if (partition == GHOSTED) {
+  if (parting == OSH_GHOSTED) {
     ghost_mesh(this, verbose);
-  } else if (partition == VERTEX_BASED) {
+  } else if (parting == OSH_VERT_BASED) {
     partition_by_verts(this, verbose);
   }
-  partition_ = partition;
+  parting_ = parting;
 }
 
 void Mesh::migrate(Remotes new_elems2old_owners, bool verbose) {
@@ -449,7 +449,7 @@ void Mesh::reorder() {
 
 void Mesh::balance() {
   if (comm_->size() == 1) return;
-  set_partition(ELEMENT_BASED);
+  set_parting(OSH_ELEM_BASED);
   inertia::Rib hints;
   if (rib_hints_)
     hints = *rib_hints_;
@@ -512,20 +512,20 @@ Real Mesh::min_quality() {
 
 bool Mesh::could_be_shared(Int ent_dim) const {
   return !((comm_->size() == 1) ||
-           (partition_ == ELEMENT_BASED && ent_dim == dim()));
+           (parting_ == OSH_ELEM_BASED && ent_dim == dim()));
 }
 
 bool Mesh::owners_have_all_upward(Int ent_dim) const {
   return ((comm_->size() == 1) ||
-          (partition_ == GHOSTED) ||
-          (partition_ == VERTEX_BASED && ent_dim == VERT));
+          (parting_ == OSH_GHOSTED) ||
+          (parting_ == OSH_VERT_BASED && ent_dim == VERT));
 }
 
 Mesh Mesh::copy_meta() const {
   Mesh m;
   m.dim_ = this->dim_;
   m.comm_ = this->comm_;
-  m.partition_ = this->partition_;
+  m.parting_ = this->parting_;
   m.rib_hints_ = this->rib_hints_;
   m.keeps_canonical_globals_ = this->keeps_canonical_globals_;
   return m;
