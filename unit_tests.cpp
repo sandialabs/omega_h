@@ -776,6 +776,17 @@ static void test_read_vtu(Library const& lib) {
         true, false));
 }
 
+static void test_interpolate_metrics() {
+  auto a = repeat_symm(4, compose_metric(identity_matrix<2,2>(),
+        vector_2(1.0 / 100.0, 1.0)));
+  auto b = repeat_symm(4, compose_metric(identity_matrix<2,2>(),
+        vector_2(1.0, 1.0)));
+  auto c = interpolate_metrics(2, a, b, 0.0);
+  CHECK(are_close(a, c));
+  c = interpolate_metrics(2, a, b, 1.0);
+  CHECK(are_close(b, c));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -818,4 +829,5 @@ int main(int argc, char** argv) {
   test_file(lib);
   test_xml();
   test_read_vtu(lib);
+  test_interpolate_metrics();
 }
