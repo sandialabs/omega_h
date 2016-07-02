@@ -65,6 +65,34 @@ struct RotateBall : public Case {
   }
 };
 
+struct CollideBalls : public Case {
+  ~CollideBalls() {}
+  virtual const char* file_name() const override {
+    return "balls_in_box.msh";
+  }
+  virtual std::vector<I32> objects() const override {
+    return std::vector<I32>({72,110});
+  }
+  virtual Int time_steps() const override {
+    return 12;
+  }
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
+    (void) m;
+    (void) step;
+    (void) object;
+    auto out = Write<Real>(ov2v.size() * 3);
+    auto f = LAMBDA(LO ov) {
+      if (object == 72) {
+        set_vector<3>(out, ov, vector_3(0, 0, 0.02));
+      } else {
+        set_vector<3>(out, ov, vector_3(0, 0,-0.02));
+      }
+    };
+    parallel_for(ov2v.size(), f);
+    return out;
+  }
+};
+
 static void run_case(Library const& lib, Case const& c) {
   auto world = lib.world();
   Mesh mesh;
@@ -117,6 +145,7 @@ int main(int argc, char** argv) {
   std::string name = argv[1];
   if (name == "translate_ball") run_case(lib, TranslateBall());
   else if (name == "rotate_ball") run_case(lib, RotateBall());
+  else if (name == "collide_balls") run_case(lib, CollideBalls());
   else osh_fail("unknown case \"%s\"", argv[1]);
 }
 
