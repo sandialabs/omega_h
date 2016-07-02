@@ -100,6 +100,8 @@ add_executable(coarsen_test coarsen_test.cpp)
 target_link_libraries(coarsen_test omega_h)
 add_executable(warp_test warp_test.cpp)
 target_link_libraries(warp_test omega_h)
+add_executable(imr_cases imr_cases.cpp)
+target_link_libraries(imr_cases omega_h)
 
 if(OSH_BUILD_SMB2OSH)
 find_path(APF_INCLUDE apf.h)
