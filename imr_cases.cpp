@@ -3,15 +3,18 @@
 using namespace osh;
 
 struct Case {
-  virtual ~Case() {}
+  virtual ~Case();
   virtual const char* file_name() const = 0;
   virtual std::vector<I32> objects() const = 0;
   virtual Int time_steps() const = 0;
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const = 0;
 };
 
+Case::~Case() {
+}
+
 struct TranslateBall : public Case {
-  ~TranslateBall() {}
+  ~TranslateBall();
   virtual const char* file_name() const override {
     return "ball_in_cube.msh";
   }
@@ -34,8 +37,11 @@ struct TranslateBall : public Case {
   }
 };
 
+TranslateBall::~TranslateBall() {
+}
+
 struct RotateBall : public Case {
-  ~RotateBall() {}
+  ~RotateBall();
   virtual const char* file_name() const override {
     return "ball_in_cube.msh";
   }
@@ -65,8 +71,11 @@ struct RotateBall : public Case {
   }
 };
 
+RotateBall::~RotateBall() {
+}
+
 struct CollideBalls : public Case {
-  ~CollideBalls() {}
+  ~CollideBalls();
   virtual const char* file_name() const override {
     return "balls_in_box.msh";
   }
@@ -92,8 +101,11 @@ struct CollideBalls : public Case {
   }
 };
 
+CollideBalls::~CollideBalls() {
+}
+
 struct CylinderTube : public Case {
-  ~CylinderTube() {}
+  ~CylinderTube();
   virtual const char* file_name() const override {
     return "cylinder_thru_tube.msh";
   }
@@ -115,6 +127,9 @@ struct CylinderTube : public Case {
     return out;
   }
 };
+
+CylinderTube::~CylinderTube() {
+}
 
 static void run_case(Library const& lib, Case const& c) {
   auto world = lib.world();
