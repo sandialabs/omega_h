@@ -7,7 +7,7 @@ struct Case {
   virtual const char* file_name() const = 0;
   virtual std::vector<I32> objects() const = 0;
   virtual Int time_steps() const = 0;
-  virtual Reals motion(Mesh* m, Int step, I32 object, LOs object_verts) const = 0;
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const = 0;
 };
 
 struct TranslateBall : public Case {
@@ -21,15 +21,46 @@ struct TranslateBall : public Case {
   virtual Int time_steps() const override {
     return 12;
   }
-  virtual Reals motion(Mesh* m, Int step, I32 object, LOs object_verts) const override {
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void) m;
     (void) step;
     (void) object;
-    auto out = Write<Real>(object_verts.size() * 3);
+    auto out = Write<Real>(ov2v.size() * 3);
     auto f = LAMBDA(LO ov) {
       set_vector<3>(out, ov, vector_3(0.02, 0, 0));
     };
-    parallel_for(object_verts.size(), f);
+    parallel_for(ov2v.size(), f);
+    return out;
+  }
+};
+
+struct RotateBall : public Case {
+  ~RotateBall() {}
+  virtual const char* file_name() const override {
+    return "ball_in_cube.msh";
+  }
+  virtual std::vector<I32> objects() const override {
+    return std::vector<I32>({72});
+  }
+  virtual Int time_steps() const override {
+    return 16;
+  }
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
+    (void) step;
+    (void) object;
+    auto coords = m->coords();
+    auto out = Write<Real>(ov2v.size() * 3);
+    auto rot = rotate(PI / 16, vector_3(0,0,1));
+    auto f = LAMBDA(LO ov) {
+      auto v = ov2v[ov];
+      auto x = get_vector<3>(coords, v);
+      auto mid = vector_3(.5, .5, 0);
+      x = x - mid;
+      auto x2 = rot * x;
+      auto w = x2 - x;
+      set_vector<3>(out, ov, w);
+    };
+    parallel_for(ov2v.size(), f);
     return out;
   }
 };
@@ -47,15 +78,14 @@ static void run_case(Library const& lib, Case const& c) {
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
   vtk::Writer writer(&mesh, "out", mesh.dim());
   for (Int step = 0; step < c.time_steps(); ++step) {
+    mesh.set_partition(GHOSTED);
     auto objs = c.objects();
     auto motion_w = Write<Real>(mesh.nverts() * mesh.dim(), 0.0);
     for (auto obj : objs) {
       auto verts_on_obj = mark_class_closure(
           &mesh, osh::VERT, mesh.dim(), obj);
       auto ov2v = collect_marked(verts_on_obj);
-      std::cerr << ov2v.size() << " vertices on object " << obj << '\n';
       auto obj_motion = c.motion(&mesh, step, obj, ov2v);
-      std::cerr << "max motion component " << max(obj_motion) << '\n';
       map_into(obj_motion, ov2v, motion_w, mesh.dim());
     }
     auto motion = Reals(motion_w);
@@ -86,6 +116,7 @@ int main(int argc, char** argv) {
   mesh.set_partition(GHOSTED);
   std::string name = argv[1];
   if (name == "translate_ball") run_case(lib, TranslateBall());
+  else if (name == "rotate_ball") run_case(lib, RotateBall());
   else osh_fail("unknown case \"%s\"", argv[1]);
 }
 
