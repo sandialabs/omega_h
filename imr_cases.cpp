@@ -3,23 +3,25 @@
 using namespace osh;
 
 struct Case {
+  virtual ~Case() {}
   virtual const char* file_name() const = 0;
   virtual std::vector<I32> objects() const = 0;
   virtual Int time_steps() const = 0;
-  virtual Reals motion(Mesh* m, Int step, Int object, LOs object_verts) const;
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs object_verts) const = 0;
 };
 
 struct TranslateBall : public Case {
-  virtual const char* file_name() const {
+  ~TranslateBall() {}
+  virtual const char* file_name() const override {
     return "ball_in_cube.msh";
   }
-  virtual std::vector<I32> objects() const {
+  virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72});
   }
-  virtual Int time_steps() const {
+  virtual Int time_steps() const override {
     return 12;
   }
-  virtual Reals motion(Mesh* m, Int step, I32 object, LOs object_verts) const {
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs object_verts) const override {
     (void) m;
     (void) step;
     (void) object;
@@ -42,7 +44,6 @@ static void run_case(Library const& lib, Case const& c) {
   mesh.set_partition(GHOSTED);
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
-  mesh.add_tag<Real>(VERT, "warp", mesh.dim(), OSH_LINEAR_INTERP);
   vtk::Writer writer(&mesh, "out", mesh.dim());
   for (Int step = 0; step < c.time_steps(); ++step) {
     auto objs = c.objects();
@@ -55,8 +56,8 @@ static void run_case(Library const& lib, Case const& c) {
       map_into(obj_motion, ov2v, motion_w, mesh.dim());
     }
     auto motion = Reals(motion_w);
-    motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-3);
-    mesh.set_tag(VERT, "warp", motion);
+  //motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-3);
+    mesh.add_tag(VERT, "warp", mesh.dim(), OSH_LINEAR_INTERP, motion);
     while (warp_to_limit(&mesh, 0.20)) {
       adapt(&mesh, 0.20, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
       writer.write();
