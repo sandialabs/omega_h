@@ -10,7 +10,7 @@ Vector<3> get_center(CommPtr comm, Reals coords, Reals masses,
   auto n = masses.size();
   Write<Real> weighted_coords(n * 3);
   auto f = LAMBDA(LO i) {
-    set_vector<3>(weighted_coords, i, masses[i] * get_vec<3>(coords, i));
+    set_vector<3>(weighted_coords, i, masses[i] * get_vector<3>(coords, i));
   };
   parallel_for(n, f);
   Vector<3> result;
@@ -23,7 +23,7 @@ Matrix<3,3> get_matrix(CommPtr comm, Reals coords,
   auto n = masses.size();
   Write<Real> weighted_contrib(n * symm_dofs(3));
   auto f = LAMBDA(LO i) {
-    auto x = get_vec<3>(coords, i);
+    auto x = get_vector<3>(coords, i);
     auto dxc = cross(x - center);
     set_symm(weighted_contrib, i, -masses[i] * (dxc * dxc));
   };
@@ -57,7 +57,7 @@ Reals get_distances(Reals coords, Vector<3> center, Vector<3> axis) {
   auto n = coords.size() / 3;
   Write<Real> distances(n);
   auto f = LAMBDA(LO i) {
-    distances[i] = (get_vec<3>(coords, i) - center) * axis;
+    distances[i] = (get_vector<3>(coords, i) - center) * axis;
   };
   parallel_for(n, f);
   return distances;

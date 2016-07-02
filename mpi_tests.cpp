@@ -229,7 +229,7 @@ static void test_rib(CommPtr comm) {
   }
   CHECK(size2 == size);
   auto check_coords = LAMBDA(LO i) {
-    auto v = get_vec<3>(coords, i);
+    auto v = get_vector<3>(coords, i);
     CHECK(rank * n <= v[0]);
     CHECK(v[0] < (rank + 1) * n);
     CHECK(v[1] == 0 && v[2] == 0);

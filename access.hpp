@@ -70,7 +70,7 @@ DEVICE void set_vector(Arr const& a, Int i, Vector<n> v) {
 }
 
 template <Int n, class Arr>
-DEVICE Vector<n> get_vec(Arr const& a, Int i) {
+DEVICE Vector<n> get_vector(Arr const& a, Int i) {
   Vector<n> v;
   for (Int j = 0; j < n; ++j)
     v[j] = a[i * n + j];
@@ -99,7 +99,7 @@ DEVICE Few<Vector<dim>, neev>
 gather_vectors(Reals const& a, Few<LO, neev> v) {
   Few<Vector<dim>, neev> x;
   for (Int i = 0; i < neev; ++i)
-    x[i] = get_vec<dim>(a, v[i]);
+    x[i] = get_vector<dim>(a, v[i]);
   return x;
 }
 

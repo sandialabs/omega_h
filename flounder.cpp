@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     Write<Real> size(mesh.nverts());
     auto coords = mesh.coords();
     auto f = LAMBDA(LO v) {
-      auto x = get_vec<2>(coords, v);
+      auto x = get_vector<2>(coords, v);
       auto s = cos(x[0] * 8.0 * M_PI) / 4.0 + 1.0 / 2.0;
       auto d = fabs(x[1] - s);
       auto area = 1e-7 + d * 1e-5;

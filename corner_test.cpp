@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     Write<Real> size(mesh.nverts());
     auto coords = mesh.coords();
     auto f = LAMBDA(LO v) {
-      auto x = get_vec<3>(coords, v);
+      auto x = get_vector<3>(coords, v);
       auto coarse = 0.4;
       auto fine = 0.1;
       auto radius = norm(x);

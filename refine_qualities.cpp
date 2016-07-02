@@ -65,7 +65,7 @@ static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
           auto ccv2 = DownTemplate<dim, dim - 1>::get(ccs, csv);
           auto v2 = ccv2v[ccv2];
           csv2v[csv] = v2;
-          ncp[csv] = get_vec<dim>(coords, v2);
+          ncp[csv] = get_vector<dim>(coords, v2);
         }
         ncp[dim] = midp;
         flip_new_elem<dim>(&csv2v[0]);

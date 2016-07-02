@@ -58,7 +58,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh,
       auto s = hinge_sides2sides[hs];
       auto ss = side2surf_side[s];
       if (-1 == ss) continue;
-      n[i++] = get_vec<dim>(surf_side_normals, ss);
+      n[i++] = get_vector<dim>(surf_side_normals, ss);
     }
     angles[surf_hinge] = acos(n[0] * n[1]);
   };

@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   auto coords = mesh.coords();
   auto f = LAMBDA(LO bv) {
     auto v = bv2v[bv];
-    auto x = get_vec<2>(coords, v);
+    auto x = get_vector<2>(coords, v);
     auto theta = atan2(x[1], x[0]);
     initial_w[v] = 4.0 * sin(5.0 * theta);
   };

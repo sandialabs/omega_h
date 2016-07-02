@@ -6,7 +6,7 @@ static void add_dye(Mesh* mesh) {
   auto dye_w = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
   auto dye_fun = LAMBDA(LO vert) {
-    auto x = get_vec<3>(coords, vert);
+    auto x = get_vector<3>(coords, vert);
     auto left_cen = vector_3(.25, .5, .5);
     auto right_cen = vector_3(.75, .5, .5);
     auto left_dist = norm(x - left_cen);
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
     auto warp_fun = LAMBDA(LO vert) {
-      auto x0 = get_vec<dim>(coords, vert);
+      auto x0 = get_vector<dim>(coords, vert);
       auto x1 = zero_vector<dim>();
       x1[0] = x0[0]; x1[1] = x0[1];
       auto x2 = x1 - mid;
