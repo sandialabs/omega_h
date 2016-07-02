@@ -59,7 +59,7 @@ static void run_case(Library const& lib, Case const& c) {
       map_into(obj_motion, ov2v, motion_w, mesh.dim());
     }
     auto motion = Reals(motion_w);
-  //motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-3);
+    motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-3);
     mesh.add_tag(VERT, "warp", mesh.dim(), OSH_LINEAR_INTERP, motion);
     while (warp_to_limit(&mesh, 0.20)) {
       adapt(&mesh, 0.20, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
