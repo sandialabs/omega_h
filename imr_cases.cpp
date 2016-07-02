@@ -29,6 +29,7 @@ struct TranslateBall : public Case {
     auto f = LAMBDA(LO ov) {
       set_vector<3>(out, ov, vector_3(0.02, 0, 0));
     };
+    parallel_for(object_verts.size(), f);
     return out;
   }
 };
@@ -52,7 +53,9 @@ static void run_case(Library const& lib, Case const& c) {
       auto verts_on_obj = mark_class_closure(
           &mesh, osh::VERT, mesh.dim(), obj);
       auto ov2v = collect_marked(verts_on_obj);
+      std::cerr << ov2v.size() << " vertices on object " << obj << '\n';
       auto obj_motion = c.motion(&mesh, step, obj, ov2v);
+      std::cerr << "max motion component " << max(obj_motion) << '\n';
       map_into(obj_motion, ov2v, motion_w, mesh.dim());
     }
     auto motion = Reals(motion_w);
