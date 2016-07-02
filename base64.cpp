@@ -70,9 +70,6 @@ void encode_1(unsigned char const* in, char* out)
   out[3] = '=';
 }
 
-/* we don't use convert_int here because it is
-   performance-critical code and the ranges should
-   be impossible to violate */
 template <class T>
 unsigned U(T val)
 {
