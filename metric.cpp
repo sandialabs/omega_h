@@ -34,3 +34,25 @@ Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
     }
   }
 }
+
+template <Int dim>
+Reals interpolate_metrics(Reals a, Reals b, Real t) {
+  CHECK(a.size() == b.size());
+  CHECK(a.size() % symm_dofs(dim) == 0);
+  auto n = a.size() / symm_dofs(dim);
+  auto out = Write<Real>(n * symm_dofs(dim));
+  auto f = LAMBDA(LO i) {
+    auto am = get_symm<dim>(a, i);
+    auto bm = get_symm<dim>(b, i);
+    auto cm = interpolate_metrics(am, bm, t);
+    set_symm(out, i, cm);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t) {
+  if (dim == 3) return interpolate_metrics<3>(a, b, t);
+  CHECK(dim == 2);
+  return interpolate_metrics<2>(a, b, t);
+}

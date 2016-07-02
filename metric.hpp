@@ -120,6 +120,12 @@ That leaves (3) as being the best choice for these three reasons:
  - It does not require an eigendecomposition
 */
 
+template <Int dim>
+INLINE Matrix<dim,dim> interpolate_metrics(
+    Matrix<dim,dim> a, Matrix<dim,dim> b, Real t) {
+  return invert((invert(a) * (1.0 - t)) + (invert(b) * t));
+}
+
 /* currently we intend only to interpolate metrics to the
    barycenter of an entity, hence this simplified code */
 template <Int dim, Int n>
@@ -135,3 +141,4 @@ INLINE Matrix<dim,dim> average_metrics(
 }
 
 Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
+Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t);
