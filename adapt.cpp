@@ -107,7 +107,7 @@ bool adapt(Mesh* mesh,
   }
   auto input_qual = mesh->min_quality();
   CHECK(input_qual > 0.0);
-  auto allow_qual = min2(qual_ceil, input_qual);
+  auto allow_qual = min2(qual_floor, input_qual);
   Now t1 = now();
   if ((verbosity >= 2) && comm->rank() == 0) {
     std::cout << "addressing edge lengths\n";

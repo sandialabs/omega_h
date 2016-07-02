@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, OSH_LINEAR_INTERP, Reals(warp_w));
     while (warp_to_limit(&mesh, 0.20)) {
-      adapt(&mesh, 0.20, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
+      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
     }
   }
   Now t1 = now();
