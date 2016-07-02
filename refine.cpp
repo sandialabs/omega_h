@@ -74,7 +74,7 @@ bool refine(Mesh* mesh, Real min_qual, bool verbose) {
 bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual,
     bool verbose) {
   auto comm = mesh->comm();
-  auto lengths = mesh->ask_edge_lengths();
+  auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_gt(lengths, max_len);
   if (comm->allreduce(max(edge_is_cand), OSH_MAX) != 1) return false;
   mesh->add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edge_is_cand);

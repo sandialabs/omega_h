@@ -53,7 +53,7 @@ static void adapt_summary(Mesh* mesh,
     Real maxlen) {
   goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
       qual_floor, qual_ceil, minqual, maxqual);
-  goal_stats(mesh, "length", EDGE, mesh->ask_edge_lengths(),
+  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
       len_floor, len_ceil, minlen, maxlen);
 }
 
@@ -66,7 +66,7 @@ bool adapt_check(Mesh* mesh,
   Real minqual, maxqual;
   get_minmax(mesh, mesh->ask_qualities(), &minqual, &maxqual);
   Real minlen, maxlen;
-  get_minmax(mesh, mesh->ask_edge_lengths(), &minlen, &maxlen);
+  get_minmax(mesh, mesh->ask_lengths(), &minlen, &maxlen);
   if (qual_ceil <= minqual &&
       len_floor <= minlen &&
       maxlen <= len_ceil) {

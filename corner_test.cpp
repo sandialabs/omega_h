@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     };
     parallel_for(mesh.nverts(), f);
     mesh.set_tag(VERT, "size", Reals(size));
-    mesh.ask_edge_lengths();
+    mesh.ask_lengths();
     adapt_check(&mesh, 0.40, 0.47, 2.0 / 3.0, 4.0 / 3.0);
     writer.write();
   } while(refine_by_size(&mesh, 4.0 / 3.0, 0.47, true));

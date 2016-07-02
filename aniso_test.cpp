@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   auto metrics = repeat_symm(mesh.nverts(), metric);
   mesh.add_tag(VERT, "metric", symm_dofs(mesh.dim()),
       OSH_METRIC, metrics);
-  mesh.ask_edge_lengths();
+  mesh.ask_lengths();
   mesh.ask_qualities();
   vtk::FullWriter writer(&mesh, "out");
   writer.write();
