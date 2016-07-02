@@ -79,7 +79,6 @@ struct CollideBalls : public Case {
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void) m;
     (void) step;
-    (void) object;
     auto out = Write<Real>(ov2v.size() * 3);
     auto f = LAMBDA(LO ov) {
       if (object == 72) {
@@ -87,6 +86,30 @@ struct CollideBalls : public Case {
       } else {
         set_vector<3>(out, ov, vector_3(0, 0,-0.02));
       }
+    };
+    parallel_for(ov2v.size(), f);
+    return out;
+  }
+};
+
+struct CylinderTube : public Case {
+  ~CylinderTube() {}
+  virtual const char* file_name() const override {
+    return "cylinder_thru_tube.msh";
+  }
+  virtual std::vector<I32> objects() const override {
+    return std::vector<I32>({73});
+  }
+  virtual Int time_steps() const override {
+    return 12;
+  }
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
+    (void) m;
+    (void) step;
+    (void) object;
+    auto out = Write<Real>(ov2v.size() * 3);
+    auto f = LAMBDA(LO ov) {
+      set_vector<3>(out, ov, vector_3(0, 0, 0.02));
     };
     parallel_for(ov2v.size(), f);
     return out;
@@ -146,6 +169,7 @@ int main(int argc, char** argv) {
   if (name == "translate_ball") run_case(lib, TranslateBall());
   else if (name == "rotate_ball") run_case(lib, RotateBall());
   else if (name == "collide_balls") run_case(lib, CollideBalls());
+  else if (name == "cylinder_thru_tube") run_case(lib, CylinderTube());
   else osh_fail("unknown case \"%s\"", argv[1]);
 }
 
