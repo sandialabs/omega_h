@@ -27,7 +27,7 @@ static inline void print_stacktrace(FILE *out = stderr, int max_frames = 63)
   // address of this function.
   for (int i = 1; i < addrlen; i++)
   {
-#ifdef __APPLE__
+#if __APPLE__
     std::string line(symbollist[i]);
     std::stringstream instream(line);
     std::string num; instream >> num;
@@ -44,10 +44,30 @@ static inline void print_stacktrace(FILE *out = stderr, int max_frames = 63)
     free(demangled);
     std::stringstream outstream;
     outstream << num << ' ' << obj << ' ' << addr << ' '  << symbol << " + " << offset;
-    std::string outstr = outstream.str();
+    auto outstr = outstream.str();
     fprintf(out, "  %s\n", outstr.c_str());
+#elif __linux__
+    std::string line(symbollist[i]);
+    auto open_paren = line.find_first_of('(');
+    auto start = open_paren + 1;
+    auto plus = line.find_first_of('+');
+    if (!(start < line.size() && start < plus && plus < line.size())) {
+      fprintf(out, "%s\n", symbollist[i]);
+      continue;
+    }
+    auto symbol = line.substr(start, (plus - start));
+    int status;
+    char* demangled = abi::__cxa_demangle(symbol.c_str(), NULL, NULL, &status);
+    if (status == 0) {
+      symbol = demangled;
+    }
+    free(demangled);
+    std::stringstream outstream;
+    outstream << line.substr(0, start) << symbol << line.substr(plus, line.size());
+    auto outstr = outstream.str();
+    fprintf(out, "%s\n", outstr.c_str());
 #else
-    fprintf(out, "  %s\n", symbollist[i]);
+    fprintf(out, "%s\n", symbollist[i]);
 #endif
   }
   free(symbollist);
