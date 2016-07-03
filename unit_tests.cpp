@@ -787,6 +787,28 @@ static void test_interpolate_metrics() {
   CHECK(are_close(b, c));
 }
 
+static void test_element_identity_metric() {
+  /* perfect tri with edge lengths = 2 */
+  Few<Vector<2>, 3> perfect_tri({
+      vector_2( 1, 0),
+      vector_2( 0, sqrt(3.0)),
+      vector_2(-1, 0)});
+  auto afm = element_identity_metric(perfect_tri);
+  auto bfm = compose_metric(identity_matrix<2,2>(),
+      vector_2(2, 2));
+  CHECK(are_close(afm, bfm));
+  /* perfect tet with edge lengths = 2 */
+  Few<Vector<3>, 4> perfect_tet({
+      vector_3( 1, 0, -1.0 / sqrt(2.0)),
+      vector_3(-1, 0, -1.0 / sqrt(2.0)),
+      vector_3( 0,-1,  1.0 / sqrt(2.0)),
+      vector_3( 0, 1,  1.0 / sqrt(2.0))});
+  auto arm = element_identity_metric(perfect_tet);
+  auto brm = compose_metric(identity_matrix<3,3>(),
+      vector_3(2, 2, 2));
+  CHECK(are_close(arm, brm));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -830,4 +852,5 @@ int main(int argc, char** argv) {
   test_xml();
   test_read_vtu(lib);
   test_interpolate_metrics();
+  test_element_identity_metric();
 }
