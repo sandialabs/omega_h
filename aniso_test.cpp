@@ -27,6 +27,8 @@ int main(int argc, char** argv) {
   mesh.ask_qualities();
   vtk::FullWriter writer(&mesh, "out");
   writer.write();
-//adapt(&mesh, 0.10, 0.20, 2.0 / 3.0, 4.0 / 3.0, 4, 2);
-//writer.write();
+  while (approach_metric(&mesh, 0.30)) {
+    adapt(&mesh, 0.40, 0.40, 2.0 / 3.0, 4.0 / 3.0, 4, 2);
+    writer.write();
+  }
 }
