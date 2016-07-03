@@ -74,6 +74,10 @@ INLINE Real triangle_mean_ratio_squared(Real a, Few<Real, 3> lsq) {
   return 48 * square(a) / square(s);
 }
 
+INLINE Real mean_ratio(Real a, Few<Real, 3> lsq) {
+  return sqrt(triangle_mean_ratio_squared(a, lsq));
+}
+
 INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
   Real s = 0.0;
   for (Int i = 0; i < 6; ++i)
@@ -81,31 +85,22 @@ INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
   return 15552.0 * square(v) / cube(s);
 }
 
-INLINE Real real_triangle_quality(Few<Vector<2>, 3> p) {
-  auto b = simplex_basis<2,2>(p);
-  auto a = triangle_area(b);
-  if (a < 0)
-    return a;
-  Few<Real, 3> lsq;
-  lsq[0] = norm_squared(b[0]);
-  lsq[1] = norm_squared(p[2] - p[1]);
-  lsq[2] = norm_squared(b[1]);
-  return sqrt(triangle_mean_ratio_squared(a, lsq));
+INLINE Real mean_ratio(Real a, Few<Real, 6> lsq) {
+  return cbrt(tet_mean_ratio_cubed(a, lsq));
 }
 
-INLINE Real real_tet_quality(Few<Vector<3>, 4> p) {
-  auto b = simplex_basis<3,3>(p);
-  auto v = tet_volume(b);
-  if (v < 0)
-    return v;
-  Few<Real, 6> lsq;
-  lsq[0] = norm_squared(b[0]);
-  lsq[1] = norm_squared(p[2] - p[1]);
-  lsq[2] = norm_squared(b[1]);
-  lsq[3] = norm_squared(b[2]);
-  lsq[4] = norm_squared(p[3] - p[1]);
-  lsq[5] = norm_squared(p[3] - p[2]);
-  return cbrt(tet_mean_ratio_cubed(v, lsq));
+template <Int dim>
+INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
+  auto b = simplex_basis<dim,dim>(p);
+  auto s = element_size(b);
+  if (s < 0)
+    return s;
+  auto ev = element_edge_vectors(p, b);
+  Few<Real, decltype(ev)::size> lsq;
+  for (Int i = 0; i < decltype(ev)::size; ++i) {
+    lsq[i] = norm_squared(ev[i]);
+  }
+  return mean_ratio(s, lsq);
 }
 
 /* note that we will always use a constant metric tensor over the whole
@@ -115,19 +110,6 @@ INLINE Real real_tet_quality(Few<Vector<3>, 4> p) {
    this is why edge lengths are recomputed using the metric interpolated
    to the element centroid */
 
-INLINE Real metric_triangle_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
-  auto b = simplex_basis<2,2>(p);
-  auto a = triangle_area(b);
-  if (a < 0)
-    return a;
-  a *= sqrt(determinant(metric));
-  Few<Real, 3> lsq;
-  lsq[0] = metric_product(metric, b[0]);
-  lsq[1] = metric_product(metric, p[2] - p[1]);
-  lsq[2] = metric_product(metric, b[1]);
-  return sqrt(triangle_mean_ratio_squared(a, lsq));
-}
-
 /* This paper:
 
    Loseille, Adrien, Victorien Menier, and Frederic Alauzet.
@@ -136,36 +118,20 @@ INLINE Real metric_triangle_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
 
    Mentions using $\sqrt{\det(M)}$ to compute volume in metric space. */
 
-INLINE Real metric_tet_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
-  auto b = simplex_basis<3,3>(p);
-  auto v = tet_volume(b);
-  if (v < 0)
-    return v;
-  v *= sqrt(determinant(metric));
-  Few<Real, 6> lsq;
-  lsq[0] = metric_product(metric, b[0]);
-  lsq[1] = metric_product(metric, p[2] - p[1]);
-  lsq[2] = metric_product(metric, b[1]);
-  lsq[3] = metric_product(metric, b[2]);
-  lsq[4] = metric_product(metric, p[3] - p[1]);
-  lsq[5] = metric_product(metric, p[3] - p[2]);
-  return cbrt(tet_mean_ratio_cubed(v, lsq));
-}
-
-INLINE Real real_element_quality(Few<Vector<2>, 3> p) {
-  return real_triangle_quality(p);
-}
-
-INLINE Real real_element_quality(Few<Vector<3>, 4> p) {
-  return real_tet_quality(p);
-}
-
-INLINE Real metric_element_quality(Few<Vector<2>, 3> p, Matrix<2,2> metric) {
-  return metric_triangle_quality(p, metric);
-}
-
-INLINE Real metric_element_quality(Few<Vector<3>, 4> p, Matrix<3,3> metric) {
-  return metric_tet_quality(p, metric);
+template <Int dim>
+INLINE Real metric_element_quality(
+    Few<Vector<dim>, dim + 1> p,
+    Matrix<dim,dim> metric) {
+  auto b = simplex_basis<dim,dim>(p);
+  auto s = element_size(b) * sqrt(determinant(metric));
+  if (s < 0)
+    return s;
+  auto ev = element_edge_vectors(p, b);
+  Few<Real, decltype(ev)::size> lsq;
+  for (Int i = 0; i < decltype(ev)::size; ++i) {
+    lsq[i] = metric_product(metric, ev[i]);
+  }
+  return mean_ratio(s, lsq);
 }
 
 struct RealElementQualities {

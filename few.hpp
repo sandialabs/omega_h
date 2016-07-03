@@ -2,6 +2,7 @@ template <typename T, Int n>
 class Few {
   T array_[n];
   public:
+    enum { size = n };
     INLINE T& operator[](Int i) {return array_[i];}
     INLINE T const& operator[](Int i) const {return array_[i];}
     INLINE Few() {}

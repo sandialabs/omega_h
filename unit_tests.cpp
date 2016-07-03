@@ -518,20 +518,20 @@ static void test_quality() {
     x_tet[i] = perfect_tet[i];
     x_tet[i][2] /= 2;
   }
-  CHECK(are_close(real_triangle_quality(perfect_tri), 1.0));
-  CHECK(are_close(real_tet_quality(perfect_tet), 1.0));
-  CHECK(are_close(real_triangle_quality(flat_tri), 0.0));
-  CHECK(are_close(real_tet_quality(flat_tet), 0.0));
-  CHECK(real_triangle_quality(inv_tri) < 0.0);
-  CHECK(real_tet_quality(inv_tet) < 0.0);
-  CHECK(are_close(metric_triangle_quality(perfect_tri, id_metric_2), 1.0));
-  CHECK(are_close(metric_tet_quality(perfect_tet, id_metric_3), 1.0));
-  CHECK(are_close(metric_triangle_quality(flat_tri, id_metric_2), 0.0));
-  CHECK(are_close(metric_tet_quality(flat_tet, id_metric_3), 0.0));
-  CHECK(metric_triangle_quality(inv_tri, id_metric_2) < 0.0);
-  CHECK(metric_tet_quality(inv_tet, id_metric_3) < 0.0);
-  CHECK(are_close(metric_triangle_quality(x_tri, x_metric_2), 1.0));
-  CHECK(are_close(metric_tet_quality(x_tet, x_metric_3), 1.0));
+  CHECK(are_close(real_element_quality(perfect_tri), 1.0));
+  CHECK(are_close(real_element_quality(perfect_tet), 1.0));
+  CHECK(are_close(real_element_quality(flat_tri), 0.0));
+  CHECK(are_close(real_element_quality(flat_tet), 0.0));
+  CHECK(real_element_quality(inv_tri) < 0.0);
+  CHECK(real_element_quality(inv_tet) < 0.0);
+  CHECK(are_close(metric_element_quality(perfect_tri, id_metric_2), 1.0));
+  CHECK(are_close(metric_element_quality(perfect_tet, id_metric_3), 1.0));
+  CHECK(are_close(metric_element_quality(flat_tri, id_metric_2), 0.0));
+  CHECK(are_close(metric_element_quality(flat_tet, id_metric_3), 0.0));
+  CHECK(metric_element_quality(inv_tri, id_metric_2) < 0.0);
+  CHECK(metric_element_quality(inv_tet, id_metric_3) < 0.0);
+  CHECK(are_close(metric_element_quality(x_tri, x_metric_2), 1.0));
+  CHECK(are_close(metric_element_quality(x_tet, x_metric_3), 1.0));
 }
 
 static void test_file_components() {
