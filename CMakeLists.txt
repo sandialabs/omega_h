@@ -70,8 +70,7 @@ set(CMAKE_CXX_FLAGS "${FLAGS}")
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/omega_h_config_in.h"
-  "${PROJECT_BINARY_DIR}/omega_h_config.h"
-  )
+  "${PROJECT_BINARY_DIR}/omega_h_config.h")
 include_directories(${PROJECT_BINARY_DIR})
 
 add_library(omega_h omega_h.cpp)
@@ -139,13 +138,11 @@ install(EXPORT omega_h-targets DESTINATION lib)
 configure_file(
   "${PROJECT_SOURCE_DIR}/omega_h-config-in.cmake"
   "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
-  @ONLY
-  )
+  @ONLY)
 configure_file(
   "${PROJECT_SOURCE_DIR}/omega_h-config-version-in.cmake"
   "${PROJECT_BINARY_DIR}/omega_h-config-version.cmake"
-  @ONLY
-  )
+  @ONLY)
 install(FILES
   "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
   "${PROJECT_BINARY_DIR}/omega_h-config-version.cmake"
