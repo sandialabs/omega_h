@@ -48,7 +48,7 @@ static void test_metric_decompose(Reals metrics) {
      eigenvalue of each */
   Write<Real> write_eigenvs(nelems);
   auto f1 = LAMBDA(Int i) {
-    auto m = get_symm_3(metrics, i);
+    auto m = get_symm<3>(metrics, i);
     Matrix<3,3> r;
     Vector<3> l;
     decompose_eigen(m, r, l);
@@ -70,7 +70,7 @@ static void test_metric_invert(Reals metrics) {
      eigenvalue of each */
   Write<Real> write_vals(nelems);
   auto f1 = LAMBDA(Int i) {
-    auto m = get_symm_3(metrics, i);
+    auto m = get_symm<3>(metrics, i);
     auto inv = invert(m);
     write_vals[i] = max_norm(inv);
   };

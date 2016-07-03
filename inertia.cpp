@@ -28,13 +28,9 @@ Matrix<3,3> get_matrix(CommPtr comm, Reals coords,
     set_symm(weighted_contrib, i, -masses[i] * (dxc * dxc));
   };
   parallel_for(n, f);
-  Real symm[6];
-  repro_sum(comm, Reals(weighted_contrib), symm_dofs(3), symm);
-  auto m = Matrix<3,3>({
-      {symm[0], symm[3], symm[5]},
-      {symm[3], symm[1], symm[4]},
-      {symm[5], symm[4], symm[2]}});
-  return m;
+  Vector<6> v;
+  repro_sum(comm, Reals(weighted_contrib), 6, &v[0]);
+  return vector2symm(v);
 }
 
 Vector<3> get_axis(CommPtr comm, Reals coords,

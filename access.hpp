@@ -1,68 +1,3 @@
-template <typename Arr>
-DEVICE void set_symm(Arr const& a, Int i, Matrix<3,3> symm) {
-  a[i * 6 + 0] = symm[0][0];
-  a[i * 6 + 1] = symm[1][1];
-  a[i * 6 + 2] = symm[2][2];
-  a[i * 6 + 3] = symm[1][0];
-  a[i * 6 + 4] = symm[2][1];
-  a[i * 6 + 5] = symm[2][0];
-}
-
-template <typename Arr>
-DEVICE void set_symm(Arr const& a, Int i, Matrix<2,2> symm) {
-  a[i * 3 + 0] = symm[0][0];
-  a[i * 3 + 1] = symm[1][1];
-  a[i * 3 + 2] = symm[1][0];
-}
-
-template <typename Arr>
-DEVICE Matrix<3,3> get_symm_3(Arr const& a, Int i) {
-  Matrix<3,3> symm;
-  symm[0][0] = a[i * 6 + 0];
-  symm[1][1] = a[i * 6 + 1];
-  symm[2][2] = a[i * 6 + 2];
-  symm[1][0] = a[i * 6 + 3];
-  symm[2][1] = a[i * 6 + 4];
-  symm[2][0] = a[i * 6 + 5];
-  symm[0][1] = symm[1][0];
-  symm[1][2] = symm[2][1];
-  symm[0][2] = symm[2][0];
-  return symm;
-}
-
-template <typename Arr>
-DEVICE Matrix<2,2> get_symm_2(Arr const& a, Int i) {
-  Matrix<2,2> symm;
-  symm[0][0] = a[i * 3 + 0];
-  symm[1][1] = a[i * 3 + 1];
-  symm[1][0] = a[i * 3 + 2];
-  symm[0][1] = symm[1][0];
-  return symm;
-}
-
-/* working around no support for function template specialization */
-template <Int dim, typename Arr>
-struct SymmAccess;
-
-template <typename Arr>
-struct SymmAccess<2, Arr> {
-  DEVICE static Matrix<2,2> get(Arr const& a, Int i) {
-    return get_symm_2(a, i);
-  }
-};
-
-template <typename Arr>
-struct SymmAccess<3, Arr> {
-  DEVICE static Matrix<3,3> get(Arr const& a, Int i) {
-    return get_symm_3(a, i);
-  }
-};
-
-template <Int dim, typename Arr>
-DEVICE Matrix<dim,dim> get_symm(Arr const& a, Int i) {
-  return SymmAccess<dim,Arr>::get(a, i);
-}
-
 template <Int n, class Arr>
 DEVICE void set_vector(Arr const& a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j)
@@ -75,6 +10,62 @@ DEVICE Vector<n> get_vector(Arr const& a, Int i) {
   for (Int j = 0; j < n; ++j)
     v[j] = a[i * n + j];
   return v;
+}
+
+INLINE constexpr Int symm_dofs(Int dim) {
+  return ((dim + 1) * dim) / 2;
+}
+
+INLINE Vector<3> symm2vector(Matrix<2,2> symm) {
+  Vector<3> v;
+  v[0] = symm[0][0];
+  v[1] = symm[1][1];
+  v[2] = symm[1][0];
+  return v;
+}
+
+INLINE Matrix<2,2> vector2symm(Vector<3> v) {
+  Matrix<2,2> symm;
+  symm[0][0] = v[0];
+  symm[1][1] = v[1];
+  symm[1][0] = v[2];
+  symm[0][1] = symm[1][0];
+  return symm;
+}
+
+INLINE Vector<6> symm2vector(Matrix<3,3> symm) {
+  Vector<6> v;
+  v[0] = symm[0][0];
+  v[1] = symm[1][1];
+  v[2] = symm[2][2];
+  v[3] = symm[1][0];
+  v[4] = symm[2][1];
+  v[5] = symm[2][0];
+  return v;
+}
+
+INLINE Matrix<3,3> vector2symm(Vector<6> v) {
+  Matrix<3,3> symm;
+  symm[0][0] = v[0];
+  symm[1][1] = v[1];
+  symm[2][2] = v[2];
+  symm[1][0] = v[3];
+  symm[2][1] = v[4];
+  symm[2][0] = v[5];
+  symm[0][1] = symm[1][0];
+  symm[1][2] = symm[2][1];
+  symm[0][2] = symm[2][0];
+  return symm;
+}
+
+template <Int n, typename Arr>
+DEVICE void set_symm(Arr const& a, Int i, Matrix<n,n> symm) {
+  set_vector(a, i, symm2vector(symm));
+}
+
+template <Int n, typename Arr>
+DEVICE Matrix<n,n> get_symm(Arr const& a, Int i) {
+  return vector2symm(get_vector<symm_dofs(n)>(a, i));
 }
 
 template <Int neev>
@@ -110,10 +101,6 @@ gather_symms(Reals const& a, Few<LO, neev> v) {
   for (Int i = 0; i < neev; ++i)
     x[i] = get_symm<dim>(a, v[i]);
   return x;
-}
-
-INLINE constexpr Int symm_dofs(Int dim) {
-  return ((dim + 1) * dim) / 2;
 }
 
 template <Int dim>
