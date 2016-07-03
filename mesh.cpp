@@ -503,7 +503,7 @@ Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op) {
 }
 
 bool Mesh::operator==(Mesh& other) {
-  return SAME_MESH == compare_meshes(this, &other, 0.0, 0.0, false);
+  return OSH_SAME == compare_meshes(this, &other, 0.0, 0.0, false);
 }
 
 Real Mesh::min_quality() {

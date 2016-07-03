@@ -65,7 +65,7 @@ static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
   return hl2l_globals;
 }
 
-MeshComparison
+osh_comparison
 compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     bool verbose, bool full) {
   CHECK(a->comm()->size() == b->comm()->size());
@@ -74,15 +74,15 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
   auto should_print = verbose && (comm->rank() == 0);
   if (a->dim() != b->dim()) {
     if (should_print) std::cout << "mesh dimensions differ\n";
-    return DIFFERENT_MESH;
+    return OSH_DIFF;
   }
-  MeshComparison result = SAME_MESH;
+  osh_comparison result = OSH_SAME;
   for (Int dim = 0; dim <= a->dim(); ++dim) {
     if (a->nglobal_ents(dim) != b->nglobal_ents(dim)) {
       if (should_print) {
         std::cout << "global " << singular_names[dim] << " counts differ\n";
       }
-      return DIFFERENT_MESH;
+      return OSH_DIFF;
     }
     if (!full && (0 < dim) && (dim < a->dim())) continue;
     auto a_globals = a->ask_globals(dim);
@@ -100,7 +100,7 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
         }
-        result = DIFFERENT_MESH;
+        result = OSH_DIFF;
         continue;
       }
     }
@@ -112,7 +112,7 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
           std::cout << singular_names[dim] << " tag \"" << name
                     << "\" exists in first mesh but not second\n";
         }
-        result = DIFFERENT_MESH;
+        result = OSH_DIFF;
         continue;
       }
       auto ncomps = tag->ncomps();
@@ -148,7 +148,7 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
           std::cout << singular_names[dim] << " tag \""
             << name << "\" values are different\n";
         }
-        result = DIFFERENT_MESH;
+        result = OSH_DIFF;
       }
     }
     for (Int i = 0; i < b->ntags(dim); ++i) {
@@ -158,8 +158,8 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
           std::cout << singular_names[dim] << " tag \"" << tag->name()
             << "\" exists in second mesh but not in first\n";
         }
-        if (result == SAME_MESH) {
-          result = SUPERSET_MESH;
+        if (result == OSH_SAME) {
+          result = OSH_MORE;
         }
       }
     }

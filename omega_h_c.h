@@ -48,6 +48,12 @@ enum osh_parting {
   OSH_VERT_BASED,
 };
 
+enum osh_comparison {
+  OSH_SAME,
+  OSH_MORE,
+  OSH_DIFF
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif

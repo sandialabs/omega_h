@@ -772,7 +772,7 @@ static void test_read_vtu(Library const& lib) {
   vtk::write_vtu(stream, &mesh0, mesh0.dim());
   Mesh mesh1;
   vtk::read_vtu(stream, mesh0.comm(), &mesh1);
-  CHECK(SAME_MESH == compare_meshes(&mesh0, &mesh1, 0.0, 0.0,
+  CHECK(OSH_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0,
         true, false));
 }
 

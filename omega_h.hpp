@@ -510,13 +510,7 @@ void write(std::string const& path, Mesh* mesh);
 void read(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
-enum MeshComparison {
-  SAME_MESH,
-  SUPERSET_MESH,
-  DIFFERENT_MESH
-};
-
-MeshComparison
+osh_comparison
 compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     bool verbose, bool full = true);
 bool check_regression(std::string const& prefix, Mesh* mesh,

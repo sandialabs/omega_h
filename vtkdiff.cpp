@@ -83,8 +83,8 @@ int main(int argc, char** argv) {
     Mesh meshb;
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
-    if (res == SAME_MESH) return 0;
-    if (allow_superset && res == SUPERSET_MESH) return 0;
+    if (res == OSH_SAME) return 0;
+    if (allow_superset && res == OSH_MORE) return 0;
     return 2;
   }
   auto pvdpatha = vtk::get_pvd_path(patha);
@@ -115,11 +115,11 @@ int main(int argc, char** argv) {
     Mesh meshb;
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
-    if (res == DIFFERENT_MESH) {
+    if (res == OSH_DIFF) {
       std::cout << "step " << step << " differs.\n";
       return 2;
     }
-    if (res == SUPERSET_MESH && !allow_superset) {
+    if (res == OSH_MORE && !allow_superset) {
       std::cout << "step " << step << " is a superset but \"-superset\" not given\n";
       return 2;
     }
