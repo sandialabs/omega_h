@@ -135,3 +135,41 @@ INLINE Few<Vector<3>, 6> element_edge_vectors(
   ev[5] = p[3] - p[2];
   return ev;
 }
+
+INLINE Matrix<2,2> element_identity_metric(Few<Vector<2>, 3> p) {
+  auto b = simplex_basis<2,2>(p);
+  auto ev = element_edge_vectors(p, b);
+  Matrix<3,3> a;
+  Vector<3> rhs;
+  for (Int i = 0; i < 3; ++i) {
+    /* ax^2 + by^2 + 2cxy = 1 */
+    a[0][i] = square(ev[i][0]);
+    a[1][i] = square(ev[i][1]);
+    a[2][i] = 2 * ev[i][0] * ev[i][1];
+    rhs[i] = 1.0;
+  }
+  auto x = invert(a) * rhs;
+  return vector2symm(x);
+}
+
+INLINE Matrix<3,3> element_identity_metric(Few<Vector<3>, 4> p) {
+  auto b = simplex_basis<3,3>(p);
+  auto ev = element_edge_vectors(p, b);
+  Matrix<6,6> a;
+  Vector<6> rhs;
+  for (Int i = 0; i < 6; ++i) {
+    /* ax^2 + by^2 + cz^2 + 2dxy + 2eyz + 2fxz = 1 */
+    a[0][i] = square(ev[i][0]);
+    a[1][i] = square(ev[i][1]);
+    a[2][i] = square(ev[i][2]);
+    a[3][i] = 2 * ev[i][0] * ev[i][1];
+    a[4][i] = 2 * ev[i][1] * ev[i][2];
+    a[5][i] = 2 * ev[i][0] * ev[i][2];
+    rhs[i] = 1.0;
+  }
+  Vector<6> x;
+  /* least squares should decay to exact solution when A is square */
+  auto ok = solve_least_squares_qr(a, rhs, x);
+  CHECK(ok);
+  return vector2symm(x);
+}
