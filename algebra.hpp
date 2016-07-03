@@ -113,6 +113,14 @@ INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
 }
 
 template <Int n>
+INLINE Vector<n> operator-(Vector<n> a) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i)
+    c[i] = -a[i];
+  return c;
+}
+
+template <Int n>
 INLINE bool are_close(Vector<n> a, Vector<n> b,
     Real tol = EPSILON, Real floor = EPSILON) {
   for (Int i = 0; i < n; ++i)

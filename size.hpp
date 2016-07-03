@@ -114,3 +114,24 @@ struct RealElementSizes {
 };
 
 Reals measure_elements_real(Mesh* mesh);
+
+INLINE Few<Vector<2>, 3> element_edge_vectors(
+    Few<Vector<2>, 3> p, Few<Vector<2>, 2> b) {
+  Few<Vector<2>, 3> ev;
+  ev[0] = b[0];
+  ev[1] = p[2] - p[1];
+  ev[2] = -b[1];
+  return ev;
+}
+
+INLINE Few<Vector<3>, 6> element_edge_vectors(
+    Few<Vector<3>, 4> p, Few<Vector<3>, 3> b) {
+  Few<Vector<3>, 6> ev;
+  ev[0] = b[0];
+  ev[1] = p[2] - p[1];
+  ev[2] = -b[1];
+  ev[3] = b[2];
+  ev[4] = p[3] - p[1];
+  ev[5] = p[3] - p[2];
+  return ev;
+}
