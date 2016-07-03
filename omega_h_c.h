@@ -1,6 +1,8 @@
 #ifndef OMEGA_H_C_H
 #define OMEGA_H_C_H
 
+#include <assert.h>
+
 #include "omega_h_config.h"
 
 #define OSH_PRAGMA(x) _Pragma(#x)
@@ -13,15 +15,22 @@
 
 #include "omega_h_mpi.h"
 
-/* standard C headers required to parse this file */
-
-#include <assert.h>
-
 enum osh_type {
   OSH_I8  = 0,
   OSH_I32 = 2,
   OSH_I64 = 3,
   OSH_F64 = 5,
+};
+
+enum {
+  OSH_DIMS = 4
+};
+
+enum {
+  OSH_VERT = 0,
+  OSH_EDGE = 1,
+  OSH_TRI  = 2,
+  OSH_TET  = 3
 };
 
 enum osh_op {

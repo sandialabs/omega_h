@@ -319,15 +319,15 @@ struct Graph {
   LOs ab2b;
 };
 
-enum { DIMS = 4 };
+enum {
+  DIMS = OSH_DIMS
+};
 
 enum {
-  VERT,
-  EDGE,
-  FACE,
-  TRI = FACE,
-  REGION,
-  TET = REGION
+  VERT = OSH_VERT,
+  EDGE = OSH_EDGE,
+  TRI  = OSH_TRI,
+  TET  = OSH_TET
 };
 
 struct Adj : public Graph {
