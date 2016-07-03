@@ -14,15 +14,19 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  auto metric = compose_metric(identity_matrix<2,2>(),
-      vector_2(1.0 / 32.0, 1.0 / 4.0));
-  auto metrics = repeat_symm(mesh.nverts(), metric);
+  mesh.set_parting(OSH_GHOSTED);
+  auto metrics = find_identity_metric(&mesh);
   mesh.add_tag(VERT, "metric", symm_dofs(mesh.dim()),
       OSH_METRIC, metrics);
+  auto target_metric = compose_metric(identity_matrix<2,2>(),
+      vector_2(1.0 / 32.0, 1.0 / 4.0));
+  auto target_metrics = repeat_symm(mesh.nverts(), target_metric);
+  mesh.add_tag(VERT, "target_metric", symm_dofs(mesh.dim()),
+      OSH_METRIC, target_metrics);
   mesh.ask_lengths();
   mesh.ask_qualities();
   vtk::FullWriter writer(&mesh, "out");
   writer.write();
-  adapt(&mesh, 0.10, 0.20, 2.0 / 3.0, 4.0 / 3.0, 4, 2);
-  writer.write();
+//adapt(&mesh, 0.10, 0.20, 2.0 / 3.0, 4.0 / 3.0, 4, 2);
+//writer.write();
 }
