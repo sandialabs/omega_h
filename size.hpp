@@ -173,3 +173,5 @@ INLINE Matrix<3,3> element_identity_metric(Few<Vector<3>, 4> p) {
   CHECK(ok);
   return vector2symm(x);
 }
+
+Reals find_identity_metric(Mesh* mesh);

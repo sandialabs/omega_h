@@ -84,3 +84,49 @@ Reals measure_elements_real(Mesh* mesh) {
     return measure_elements_real_tmpl<2>(mesh);
   }
 }
+
+template <Int dim>
+static Reals find_identity_metric_tmpl(Mesh* mesh) {
+  CHECK(dim == mesh->dim());
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto coords = mesh->coords();
+  auto ev2v = mesh->ask_verts_of(dim);
+  auto elem_metrics_w = Write<Real>(mesh->nelems() * symm_dofs(dim));
+  auto f0 = LAMBDA(LO e) {
+    auto v = gather_verts<dim + 1>(ev2v, e);
+    auto p = gather_vectors<dim + 1, dim>(coords, v);
+    auto m = element_identity_metric(p);
+    set_symm(elem_metrics_w, e, m);
+  };
+  parallel_for(mesh->nelems(), f0);
+  auto elem_metrics = Reals(elem_metrics_w);
+  auto elem_sizes = measure_elements_real(mesh);
+  auto v2e = mesh->ask_up(VERT, dim);
+  auto v2ve = v2e.a2ab;
+  auto ve2e = v2e.ab2b;
+  auto vert_metrics_w = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto f1 = LAMBDA(LO v) {
+    Real ess = 0.0;
+    auto iems = zero_matrix<dim,dim>();
+    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
+      auto e = ve2e[ve];
+      auto em = get_symm<dim>(elem_metrics, e);
+      auto es = elem_sizes[e];
+      auto iem = invert(em);
+      iems = iems + (iem * es);
+      ess += es;
+    }
+    auto vm = invert(iems / ess);
+    set_symm(vert_metrics_w, v, vm);
+  };
+  return vert_metrics_w;
+}
+
+Reals find_identity_metric(Mesh* mesh) {
+  if (mesh->dim() == 3) {
+    return find_identity_metric_tmpl<3>(mesh);
+  } else {
+    CHECK(mesh->dim() == 2);
+    return find_identity_metric_tmpl<2>(mesh);
+  }
+}
