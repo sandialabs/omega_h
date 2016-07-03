@@ -18,3 +18,22 @@ bool warp_to_limit(Mesh* mesh, Real min_qual) {
   mesh->set_tag(VERT, "warp", remainder);
   return true;
 }
+
+bool approach_metric(Mesh* mesh, Real min_qual) {
+  if (!mesh->has_tag(VERT, "target_metric")) return false;
+  CHECK(mesh->min_quality() >= min_qual);
+  auto orig = mesh->get_array<Real>(VERT, "metric");
+  auto target = mesh->get_array<Real>(VERT, "target_metric");
+  mesh->set_tag(VERT, "metric", target);
+  if (mesh->min_quality() >= min_qual) {
+    mesh->remove_tag(VERT, "target_metric");
+    return true;
+  }
+  Real t = 1.0;
+  do {
+    t /= 2.0;
+    auto current = interpolate_metrics(mesh->dim(), orig, target, t);
+    mesh->set_tag(VERT, "metric", current);
+  } while (mesh->min_quality() < min_qual);
+  return true;
+}
