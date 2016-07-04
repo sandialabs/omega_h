@@ -148,7 +148,7 @@ DEVICE void tets_from_hex_1(LO h, LOs hv2v, LO hhv2v[], Int diags_into[],
      front-lower-left */
   if (min_i >= 4) flip_hex(hhv2v);
   /* check the diagonals going into the
-     back-upper-left corner */
+     back-upper-right corner */
   for (Int i = 0; i < 3; ++i) {
     diags_into[i] = lt(hhv2v[hex_bur_faces[i][0]], hhv2v[hex_bur_faces[i][2]],
                        hhv2v[hex_bur_faces[i][1]], hhv2v[hex_bur_faces[i][3]]);
