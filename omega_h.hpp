@@ -547,6 +547,9 @@ Read<I8> mark_class_closure(Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids);
 
+bool warp_to_limit(Mesh* mesh, Real min_qual);
+bool approach_metric(Mesh* mesh, Real min_qual);
+
 } //end namespace osh
 
 #endif
