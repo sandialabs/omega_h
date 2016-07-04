@@ -550,6 +550,9 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
 bool warp_to_limit(Mesh* mesh, Real min_qual);
 bool approach_metric(Mesh* mesh, Real min_qual);
 
+Reals find_identity_size(Mesh* mesh);
+Reals find_identity_metric(Mesh* mesh);
+
 } //end namespace osh
 
 #endif

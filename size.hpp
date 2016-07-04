@@ -95,8 +95,6 @@ Reals measure_edges_metric(Mesh* mesh, LOs a2e);
 Reals measure_edges_real(Mesh* mesh);
 Reals measure_edges_metric(Mesh* mesh);
 
-Reals find_identity_size(Mesh* mesh);
-
 template <Int dim>
 INLINE Real real_element_size(Few<Vector<dim>, dim + 1> p) {
   auto b = simplex_basis<dim,dim>(p);
@@ -173,5 +171,3 @@ INLINE Matrix<3,3> element_identity_metric(Few<Vector<3>, 4> p) {
   CHECK(ok);
   return vector2symm(x);
 }
-
-Reals find_identity_metric(Mesh* mesh);
