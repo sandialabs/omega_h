@@ -119,6 +119,7 @@ static Reals find_identity_metric_tmpl(Mesh* mesh) {
     auto vm = invert(iems / ess);
     set_symm(vert_metrics_w, v, vm);
   };
+  parallel_for(mesh->nverts(), f1);
   return vert_metrics_w;
 }
 
