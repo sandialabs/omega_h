@@ -69,8 +69,10 @@ int main(int argc, char** argv) {
     std::cout << "   or: vtkdiff [-help]               (usage)\n";
     std::cout << "\n";
     std::cout << "    -help (Print this summary and exit.)\n";
-    std::cout << "    -tolerance <$val> (Overrides the default tolerance of 1.0E-6.)\n";
-    std::cout << "    -Floor <$val> (Overrides the default floor tolerance of 0.0.)\n";
+    std::cout << "    -tolerance <$val> (Overrides the default tolerance of "
+                 "1.0E-6.)\n";
+    std::cout << "    -Floor <$val> (Overrides the default floor tolerance of "
+                 "0.0.)\n";
     std::cout << "    -superset (Allow result to have more arrays than gold)\n";
     std::cout << "    -onestep (Expect only a .pvtu for a single time step)\n";
     return -1;
@@ -96,16 +98,16 @@ int main(int argc, char** argv) {
   std::vector<std::string> pvtupathsb;
   vtk::read_pvd(pvdpathb, &timesb, &pvtupathsb);
   if (timesa.size() != timesb.size()) {
-    std::cout << "different number of time steps ("
-      << timesa.size() << " vs " << timesb.size() << ")\n";
+    std::cout << "different number of time steps (" << timesa.size() << " vs "
+              << timesb.size() << ")\n";
     return 2;
   }
   for (std::size_t step = 0; step < timesa.size(); ++step) {
     auto timea = timesa[step];
     auto timeb = timesb[step];
     if (!are_close(timea, timeb, tol, floor)) {
-      std::cout << "time for step " << step << " differs ("
-        << timea << " vs " << timeb << ")\n";
+      std::cout << "time for step " << step << " differs (" << timea << " vs "
+                << timeb << ")\n";
       return 2;
     }
     auto pvtupatha = pvtupathsa[step];
@@ -120,7 +122,8 @@ int main(int argc, char** argv) {
       return 2;
     }
     if (res == OSH_MORE && !allow_superset) {
-      std::cout << "step " << step << " is a superset but \"-superset\" not given\n";
+      std::cout << "step " << step
+                << " is a superset but \"-superset\" not given\n";
       return 2;
     }
   }

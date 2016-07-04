@@ -1,53 +1,41 @@
 template <Int dim>
-INLINE Real metric_product(
-    Matrix<dim,dim> m,
-    Vector<dim> v) {
+INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
   return v * (m * v);
 }
 
 template <Int dim>
-INLINE Real metric_length(
-    Matrix<dim,dim> m,
-    Vector<dim> v) {
+INLINE Real metric_length(Matrix<dim, dim> m, Vector<dim> v) {
   return sqrt(metric_product(m, v));
 }
 
 template <Int dim>
-INLINE Real metric_desired_length(
-    Matrix<dim,dim> m,
-    Vector<dim> dir) {
+INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
 template <Int dim>
 INLINE Vector<dim> metric_eigenvalues(Vector<dim> h) {
   Vector<dim> l;
-  for (Int i = 0; i < dim; ++i)
-    l[i] = 1.0 / square(h[i]);
+  for (Int i = 0; i < dim; ++i) l[i] = 1.0 / square(h[i]);
   return l;
 }
 
 template <Int dim>
 INLINE Vector<dim> metric_lengths(Vector<dim> l) {
   Vector<dim> h;
-  for (Int i = 0; i < dim; ++i)
-    h[i] = 1.0 / sqrt(l[i]);
+  for (Int i = 0; i < dim; ++i) h[i] = 1.0 / sqrt(l[i]);
   return h;
 }
 
 template <Int dim>
-INLINE Matrix<dim,dim> compose_metric(
-    Matrix<dim,dim> r,
-    Vector<dim> h) {
+INLINE Matrix<dim, dim> compose_metric(Matrix<dim, dim> r, Vector<dim> h) {
   auto l = metric_eigenvalues(h);
   return r * diagonal(l) * transpose(r);
 }
 
 template <Int dim>
-INLINE void decompose_metric(
-    Matrix<dim,dim> m,
-    Matrix<dim,dim>& r,
-    Vector<dim>& h) {
+INLINE void decompose_metric(Matrix<dim, dim> m, Matrix<dim, dim>& r,
+                             Vector<dim>& h) {
   Vector<dim> l;
   decompose_eigen(m, r, l);
   h = metric_lengths(l);
@@ -70,20 +58,18 @@ https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
 */
 
 template <Int dim>
-INLINE Matrix<dim,dim> common_metric_basis(
-    Matrix<dim,dim> a,
-    Matrix<dim,dim> b) {
+INLINE Matrix<dim, dim> common_metric_basis(Matrix<dim, dim> a,
+                                            Matrix<dim, dim> b) {
   auto c = invert(a) * b;
-  Matrix<dim,dim> p;
+  Matrix<dim, dim> p;
   Vector<dim> l;
   decompose_eigen(c, p, l);
   return p;
 }
 
 template <Int dim>
-INLINE Matrix<dim,dim> intersect_metrics(
-    Matrix<dim,dim> a,
-    Matrix<dim,dim> b) {
+INLINE Matrix<dim, dim> intersect_metrics(Matrix<dim, dim> a,
+                                          Matrix<dim, dim> b) {
   auto p = common_metric_basis(a, b);
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
@@ -121,17 +107,16 @@ That leaves (3) as being the best choice for these three reasons:
 */
 
 template <Int dim>
-INLINE Matrix<dim,dim> interpolate_metrics(
-    Matrix<dim,dim> a, Matrix<dim,dim> b, Real t) {
+INLINE Matrix<dim, dim> interpolate_metrics(Matrix<dim, dim> a,
+                                            Matrix<dim, dim> b, Real t) {
   return invert((invert(a) * (1.0 - t)) + (invert(b) * t));
 }
 
 /* currently we intend only to interpolate metrics to the
    barycenter of an entity, hence this simplified code */
 template <Int dim, Int n>
-INLINE Matrix<dim,dim> average_metrics(
-    Few<Matrix<dim,dim>, n> m) {
-  auto am = zero_matrix<dim,dim>();
+INLINE Matrix<dim, dim> average_metrics(Few<Matrix<dim, dim>, n> m) {
+  auto am = zero_matrix<dim, dim>();
   for (Int i = 0; i < n; ++i) {
     am = am + invert(m[i]);
   }

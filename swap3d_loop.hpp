@@ -10,13 +10,10 @@ struct Loop {
   Few<LO, MAX_EDGE_SWAP> loop_verts2verts;
 };
 
-DEVICE Loop find_loop(
-    LOs const& edges2edge_tets,
-    LOs const& edge_tets2tets,
-    Read<I8> const& edge_tet_codes,
-    LOs const& edge_verts2verts,
-    LOs const& tet_verts2verts,
-    LO edge) {
+DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2tets,
+                      Read<I8> const& edge_tet_codes,
+                      LOs const& edge_verts2verts, LOs const& tet_verts2verts,
+                      LO edge) {
   Loop loop;
   auto begin_use = edges2edge_tets[edge];
   auto end_use = edges2edge_tets[edge + 1];
@@ -39,13 +36,13 @@ DEVICE Loop find_loop(
     auto code = edge_tet_codes[edge_tet];
     auto rre = code_which_down(code);
     auto rot = code_rotation(code);
-    auto rre_opp = OppositeTemplate<TET,EDGE>::get(rre);
+    auto rre_opp = OppositeTemplate<TET, EDGE>::get(rre);
     for (Int eev = 0; eev < 2; ++eev) {
       /* we rely on the fact that tet-edge-vertices are
          defined such that the opposite edge curls around
          the input edge. */
       auto rev = rot ^ eev;
-      auto rrv = DownTemplate<TET,EDGE>::get(rre_opp, rev);
+      auto rrv = DownTemplate<TET, EDGE>::get(rre_opp, rev);
       auto v = tet_verts2verts[tet * 4 + rrv];
       tmp_edges[edge_tet - begin_use][eev] = v;
     }
@@ -70,4 +67,4 @@ DEVICE Loop find_loop(
   return loop;
 }
 
-}//end namespace swap3d
+}  // end namespace swap3d

@@ -14,14 +14,14 @@
 
 namespace osh {
 
-typedef std::int8_t  I8;
+typedef std::int8_t I8;
 typedef std::int16_t I16;
 typedef std::int32_t I32;
 typedef std::int64_t I64;
-typedef I32          Int;
-typedef I32          LO;
-typedef I64          GO;
-typedef double       Real;
+typedef I32 Int;
+typedef I32 LO;
+typedef I64 GO;
+typedef double Real;
 
 template <typename T>
 class HostWrite;
@@ -34,7 +34,7 @@ class Write {
   std::shared_ptr<T> ptr_;
   LO size_;
 #endif
-public:
+ public:
   OSH_INLINE Write();
 #ifdef OSH_USE_KOKKOS
   Write(Kokkos::View<T*> view);
@@ -65,12 +65,13 @@ public:
 };
 
 template <typename T>
-OSH_INLINE Write<T>::Write():
+OSH_INLINE Write<T>::Write()
+    :
 #ifdef OSH_USE_KOKKOS
-  view_()
+      view_()
 #else
-  ptr_(),
-  size_(0)
+      ptr_(),
+      size_(0)
 #endif
 {
 }
@@ -78,16 +79,15 @@ OSH_INLINE Write<T>::Write():
 template <typename T>
 class Read {
   Write<T> write_;
-public:
+
+ public:
   OSH_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value);
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
   LO size() const;
-  OSH_DEVICE T const& operator[](LO i) const {
-    return write_[i];
-  }
+  OSH_DEVICE T const& operator[](LO i) const { return write_[i]; }
   T const* data() const;
 #ifdef OSH_USE_KOKKOS
   Kokkos::View<const T*> view() const;
@@ -98,9 +98,9 @@ public:
 };
 
 class LOs : public Read<LO> {
-public:
+ public:
   OSH_INLINE LOs() {}
-  OSH_INLINE LOs(Read<LO> base):Read<LO>(base) {}
+  OSH_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
   LOs(Write<LO> write);
   LOs(LO size, LO value);
   LOs(LO size, LO offset, LO stride);
@@ -111,9 +111,9 @@ template <typename T>
 Read<T> permute(Read<T> a_data, LOs a2b, Int width);
 
 class Reals : public Read<Real> {
-public:
+ public:
   Reals();
-  OSH_INLINE Reals(Read<Real> base):Read<Real>(base) {}
+  OSH_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
   Reals(Write<Real> write);
   Reals(LO size, Real value);
   Reals(std::initializer_list<Real> l);
@@ -125,7 +125,7 @@ class HostRead {
 #ifdef OSH_USE_KOKKOS
   typename Kokkos::View<const T*>::HostMirror mirror_;
 #endif
-public:
+ public:
   HostRead();
   HostRead(Read<T> read);
   LO size() const;
@@ -150,7 +150,7 @@ class HostWrite {
 #ifdef OSH_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
 #endif
-public:
+ public:
   HostWrite();
   HostWrite(LO size);
   HostWrite(LO size, T offset, T stride);
@@ -173,41 +173,40 @@ public:
 };
 
 class TagBase {
-  public:
-    TagBase(std::string const& name, Int ncomps, osh_xfer xfer);
-    virtual ~TagBase();
-    std::string const& name() const;
-    Int ncomps() const;
-    osh_xfer xfer() const;
-    virtual osh_type type() const = 0;
-  private:
-    std::string name_;
-    Int ncomps_;
-    osh_xfer xfer_;
+ public:
+  TagBase(std::string const& name, Int ncomps, osh_xfer xfer);
+  virtual ~TagBase();
+  std::string const& name() const;
+  Int ncomps() const;
+  osh_xfer xfer() const;
+  virtual osh_type type() const = 0;
+
+ private:
+  std::string name_;
+  Int ncomps_;
+  osh_xfer xfer_;
 };
 
 template <typename T>
 class Tag : public TagBase {
-  public:
-    Tag(std::string const& name, Int ncomps, osh_xfer xfer);
-    Read<T> array() const;
-    void set_array(Read<T> array);
-    virtual osh_type type() const override;
-  private:
-    Read<T> array_;
+ public:
+  Tag(std::string const& name, Int ncomps, osh_xfer xfer);
+  Read<T> array() const;
+  void set_array(Read<T> array);
+  virtual osh_type type() const override;
+
+ private:
+  Read<T> array_;
 };
 
 struct Remotes {
   Remotes() {}
-  Remotes(Read<I32> ranks_, LOs idxs_):
-    ranks(ranks_),idxs(idxs_) {
-  }
+  Remotes(Read<I32> ranks_, LOs idxs_) : ranks(ranks_), idxs(idxs_) {}
   Read<I32> ranks;
   LOs idxs;
 };
 
-struct Int128
-{
+struct Int128 {
   std::int64_t high;
   std::uint64_t low;
   OSH_INLINE Int128();
@@ -233,7 +232,8 @@ class Comm {
   HostRead<I32> host_srcs_;
   Read<I32> dsts_;
   HostRead<I32> host_dsts_;
-public:
+
+ public:
   Comm();
 #ifdef OSH_USE_MPI
   Comm(MPI_Comm impl);
@@ -267,9 +267,8 @@ public:
   template <typename T>
   Read<T> alltoall(Read<T> x) const;
   template <typename T>
-  Read<T> alltoallv(Read<T> sendbuf,
-      Read<LO> sendcounts, Read<LO> sdispls,
-      Read<LO> recvcounts, Read<LO> rdispls) const;
+  Read<T> alltoallv(Read<T> sendbuf, Read<LO> sendcounts, Read<LO> sdispls,
+                    Read<LO> recvcounts, Read<LO> rdispls) const;
   void barrier() const;
 };
 
@@ -279,7 +278,8 @@ class Dist {
   LOs items2content_[2];
   LOs msgs2content_[2];
   CommPtr comm_[2];
-public:
+
+ public:
   Dist();
   Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots);
   void set_parent_comm(CommPtr parent_comm);
@@ -307,55 +307,44 @@ public:
   LO nsrcs() const;
   void change_comm(CommPtr new_comm);
   Remotes exch(Remotes data, Int width) const;
-private:
+
+ private:
   enum { F, R };
 };
 
 struct Graph {
   Graph() {}
-  explicit Graph(LOs ab2b_):ab2b(ab2b_) {}
-  Graph(LOs a2ab_, LOs ab2b_):a2ab(a2ab_),ab2b(ab2b_) {}
+  explicit Graph(LOs ab2b_) : ab2b(ab2b_) {}
+  Graph(LOs a2ab_, LOs ab2b_) : a2ab(a2ab_), ab2b(ab2b_) {}
   LOs a2ab;
   LOs ab2b;
 };
 
-enum {
-  DIMS = OSH_DIMS
-};
+enum { DIMS = OSH_DIMS };
 
-enum {
-  VERT = OSH_VERT,
-  EDGE = OSH_EDGE,
-  TRI  = OSH_TRI,
-  TET  = OSH_TET
-};
+enum { VERT = OSH_VERT, EDGE = OSH_EDGE, TRI = OSH_TRI, TET = OSH_TET };
 
 struct Adj : public Graph {
   Adj() {}
-  explicit Adj(LOs ab2b_):Graph(ab2b_) {}
-  Adj(LOs ab2b_, Read<I8> codes_):Graph(ab2b_),codes(codes_) {}
-  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_):
-    Graph(a2ab_, ab2b_),codes(codes_) {
-  }
-  Adj(LOs a2ab_, LOs ab2b_):
-    Graph(a2ab_, ab2b_) {
-  }
-  Adj(Graph g):Graph(g) {}
+  explicit Adj(LOs ab2b_) : Graph(ab2b_) {}
+  Adj(LOs ab2b_, Read<I8> codes_) : Graph(ab2b_), codes(codes_) {}
+  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_)
+      : Graph(a2ab_, ab2b_), codes(codes_) {}
+  Adj(LOs a2ab_, LOs ab2b_) : Graph(a2ab_, ab2b_) {}
+  Adj(Graph g) : Graph(g) {}
   Read<I8> codes;
 };
 
-void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out);
+void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out,
+                  Read<I8>* codes_out);
 
 class Library {
-  public:
-    Library(Library const&) {}
-    inline Library(int* argc, char*** argv) {
-      osh_init(argc, argv);
-    }
-    ~Library();
-    CommPtr world() const;
-    CommPtr self() const;
+ public:
+  Library(Library const&) {}
+  inline Library(int* argc, char*** argv) { osh_init(argc, argv); }
+  ~Library();
+  CommPtr world() const;
+  CommPtr self() const;
 };
 
 namespace inertia {
@@ -363,104 +352,106 @@ struct Rib;
 }
 
 class Mesh {
-  public:
-    Mesh();
-    void set_comm(CommPtr comm);
-    void set_dim(Int dim);
-    void set_verts(LO nverts);
-    void set_ents(Int dim, Adj down);
-    void keep_canonical_globals(bool yn);
-    CommPtr comm() const;
-    osh_parting parting() const;
-    Int dim() const;
-    LO nents(Int dim) const;
-    LO nelems() const;
-    LO nverts() const;
-    LO nedges() const;
-    GO nglobal_ents(Int dim);
-    template <typename T>
-    void add_tag(Int dim, std::string const& name, Int ncomps,
-        osh_xfer xfer);
-    template <typename T>
-    void add_tag(Int dim, std::string const& name, Int ncomps,
-        osh_xfer xfer, Read<T> array);
-    template <typename T>
-    void set_tag(Int dim, std::string const& name, Read<T> array);
-    template <typename T>
-    Tag<T> const* get_tag(Int dim, std::string const& name) const;
-    template <typename T>
-    Read<T> get_array(Int dim, std::string const& name) const;
-    void remove_tag(Int dim, std::string const& name);
-    bool has_tag(Int dim, std::string const& name) const;
-    Int ntags(Int dim) const;
-    TagBase const* get_tag(Int dim, Int i) const;
-    bool has_ents(Int dim) const;
-    bool has_adj(Int from, Int to) const;
-    Adj get_adj(Int from, Int to) const;
-    Adj ask_down(Int from, Int to);
-    LOs ask_verts_of(Int dim);
-    Adj ask_up(Int from, Int to);
-    Graph ask_star(Int dim);
-    Graph ask_dual();
-  public:
-    typedef std::shared_ptr<TagBase> TagPtr;
-    typedef std::shared_ptr<Adj> AdjPtr;
-    typedef std::shared_ptr<Dist> DistPtr;
-    typedef std::shared_ptr<inertia::Rib> RibPtr;
-  private:
-    typedef std::vector<TagPtr> TagVector;
-    typedef TagVector::iterator TagIter;
-    typedef TagVector::const_iterator TagCIter;
-    TagIter tag_iter(Int dim, std::string const& name);
-    TagCIter tag_iter(Int dim, std::string const& name) const;
-    void check_dim(Int dim) const;
-    void check_dim2(Int dim) const;
-    void add_adj(Int from, Int to, Adj adj);
-    Adj derive_adj(Int from, Int to);
-    Adj ask_adj(Int from, Int to);
-    void react_to_set_tag(Int dim, std::string const& name);
-    Int dim_;
-    CommPtr comm_;
-    Int parting_;
-    LO nents_[DIMS];
-    TagVector tags_[DIMS];
-    AdjPtr adjs_[DIMS][DIMS];
-    Remotes owners_[DIMS];
-    DistPtr dists_[DIMS];
-    RibPtr rib_hints_;
-    bool keeps_canonical_globals_;
-  public:
-    void add_coords(Reals array);
-    Reals coords() const;
-    void set_coords(Reals array);
-    Read<GO> ask_globals(Int dim);
-    void reset_globals();
-    Reals ask_lengths();
-    Reals ask_qualities();
-    void set_owners(Int dim, Remotes owners);
-    Remotes ask_owners(Int dim);
-    Read<I8> owned(Int dim);
-    Dist ask_dist(Int dim);
-    void set_parting(osh_parting parting, bool verbose = false);
-    void migrate(Remotes new_elems2old_owners, bool verbose = false);
-    void reorder();
-    void balance();
-    Graph ask_graph(Int from, Int to);
-    template <typename T>
-    Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
-    template <typename T>
-    Read<T> sync_subset_array(Int ent_dim,
-        Read<T> a_data, LOs a2e, T default_val, Int width);
-    template <typename T>
-    Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op);
-    bool operator==(Mesh& other);
-    Real min_quality();
-    bool could_be_shared(Int ent_dim) const;
-    bool owners_have_all_upward(Int ent_dim) const;
-    Mesh copy_meta() const;
-    bool keeps_canonical_globals() const;
-    RibPtr rib_hints() const;
-    void set_rib_hints(RibPtr hints);
+ public:
+  Mesh();
+  void set_comm(CommPtr comm);
+  void set_dim(Int dim);
+  void set_verts(LO nverts);
+  void set_ents(Int dim, Adj down);
+  void keep_canonical_globals(bool yn);
+  CommPtr comm() const;
+  osh_parting parting() const;
+  Int dim() const;
+  LO nents(Int dim) const;
+  LO nelems() const;
+  LO nverts() const;
+  LO nedges() const;
+  GO nglobal_ents(Int dim);
+  template <typename T>
+  void add_tag(Int dim, std::string const& name, Int ncomps, osh_xfer xfer);
+  template <typename T>
+  void add_tag(Int dim, std::string const& name, Int ncomps, osh_xfer xfer,
+               Read<T> array);
+  template <typename T>
+  void set_tag(Int dim, std::string const& name, Read<T> array);
+  template <typename T>
+  Tag<T> const* get_tag(Int dim, std::string const& name) const;
+  template <typename T>
+  Read<T> get_array(Int dim, std::string const& name) const;
+  void remove_tag(Int dim, std::string const& name);
+  bool has_tag(Int dim, std::string const& name) const;
+  Int ntags(Int dim) const;
+  TagBase const* get_tag(Int dim, Int i) const;
+  bool has_ents(Int dim) const;
+  bool has_adj(Int from, Int to) const;
+  Adj get_adj(Int from, Int to) const;
+  Adj ask_down(Int from, Int to);
+  LOs ask_verts_of(Int dim);
+  Adj ask_up(Int from, Int to);
+  Graph ask_star(Int dim);
+  Graph ask_dual();
+
+ public:
+  typedef std::shared_ptr<TagBase> TagPtr;
+  typedef std::shared_ptr<Adj> AdjPtr;
+  typedef std::shared_ptr<Dist> DistPtr;
+  typedef std::shared_ptr<inertia::Rib> RibPtr;
+
+ private:
+  typedef std::vector<TagPtr> TagVector;
+  typedef TagVector::iterator TagIter;
+  typedef TagVector::const_iterator TagCIter;
+  TagIter tag_iter(Int dim, std::string const& name);
+  TagCIter tag_iter(Int dim, std::string const& name) const;
+  void check_dim(Int dim) const;
+  void check_dim2(Int dim) const;
+  void add_adj(Int from, Int to, Adj adj);
+  Adj derive_adj(Int from, Int to);
+  Adj ask_adj(Int from, Int to);
+  void react_to_set_tag(Int dim, std::string const& name);
+  Int dim_;
+  CommPtr comm_;
+  Int parting_;
+  LO nents_[DIMS];
+  TagVector tags_[DIMS];
+  AdjPtr adjs_[DIMS][DIMS];
+  Remotes owners_[DIMS];
+  DistPtr dists_[DIMS];
+  RibPtr rib_hints_;
+  bool keeps_canonical_globals_;
+
+ public:
+  void add_coords(Reals array);
+  Reals coords() const;
+  void set_coords(Reals array);
+  Read<GO> ask_globals(Int dim);
+  void reset_globals();
+  Reals ask_lengths();
+  Reals ask_qualities();
+  void set_owners(Int dim, Remotes owners);
+  Remotes ask_owners(Int dim);
+  Read<I8> owned(Int dim);
+  Dist ask_dist(Int dim);
+  void set_parting(osh_parting parting, bool verbose = false);
+  void migrate(Remotes new_elems2old_owners, bool verbose = false);
+  void reorder();
+  void balance();
+  Graph ask_graph(Int from, Int to);
+  template <typename T>
+  Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
+  template <typename T>
+  Read<T> sync_subset_array(Int ent_dim, Read<T> a_data, LOs a2e, T default_val,
+                            Int width);
+  template <typename T>
+  Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op);
+  bool operator==(Mesh& other);
+  Real min_quality();
+  bool could_be_shared(Int ent_dim) const;
+  bool owners_have_all_upward(Int ent_dim) const;
+  Mesh copy_meta() const;
+  bool keeps_canonical_globals() const;
+  RibPtr rib_hints() const;
+  void set_rib_hints(RibPtr hints);
 };
 
 namespace gmsh {
@@ -473,79 +464,69 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim);
 class Writer {
-    Mesh* mesh_;
-    std::string root_path_;
-    Int cell_dim_;
-    Int step_;
-    std::streampos pvd_pos_;
-  public:
-    Writer();
-    Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
-    Writer(Writer const& other);
-    ~Writer();
-    void write(Real time);
-    void write();
+  Mesh* mesh_;
+  std::string root_path_;
+  Int cell_dim_;
+  Int step_;
+  std::streampos pvd_pos_;
+
+ public:
+  Writer();
+  Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
+  Writer(Writer const& other);
+  ~Writer();
+  void write(Real time);
+  void write();
 };
 class FullWriter {
-    std::vector<Writer> writers_;
-  public:
-    FullWriter(Mesh* mesh, std::string const& root_path);
-    ~FullWriter();
-    void write(Real time);
-    void write();
+  std::vector<Writer> writers_;
+
+ public:
+  FullWriter(Mesh* mesh, std::string const& root_path);
+  ~FullWriter();
+  void write(Real time);
+  void write();
 };
-} // end namespace vtk
+}  // end namespace vtk
 
 /* returns true if the mesh was modified. */
-bool adapt(Mesh* mesh,
-    Real qual_floor,
-    Real qual_ceil,
-    Real len_floor,
-    Real len_ceil,
-    Int nlayers,
-    Int verbosity);
+bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
+           Real len_ceil, Int nlayers, Int verbosity);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
 void read(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
-osh_comparison
-compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
-    bool verbose, bool full = true);
-bool check_regression(std::string const& prefix, Mesh* mesh,
-    Real tol, Real floor);
+osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
+                              bool verbose, bool full = true);
+bool check_regression(std::string const& prefix, Mesh* mesh, Real tol,
+                      Real floor);
 
-void build_from_elems2verts(Mesh* mesh,
-    CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
-void build_from_elems2verts(Mesh* mesh,
-    Library const& lib, Int edim, LOs ev2v, LO nverts);
-void build_from_elems_and_coords(Mesh* mesh,
-    Library const& lib, Int edim, LOs ev2v, Reals coords);
-void build_box(Mesh* mesh,
-    Library const& lib,
-    Real x, Real y, Real z,
-    LO nx, LO ny, LO nz);
+void build_from_elems2verts(Mesh* mesh, CommPtr comm, Int edim, LOs ev2v,
+                            Read<GO> vert_globals);
+void build_from_elems2verts(Mesh* mesh, Library const& lib, Int edim, LOs ev2v,
+                            LO nverts);
+void build_from_elems_and_coords(Mesh* mesh, Library const& lib, Int edim,
+                                 LOs ev2v, Reals coords);
+void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
+               LO ny, LO nz);
 
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
 
-OSH_INLINE bool code_is_flipped(I8 code) {
-  return code & 1;
-}
+OSH_INLINE bool code_is_flipped(I8 code) { return code & 1; }
 
-OSH_INLINE Int code_rotation(I8 code) {
-  return (code >> 1) & 3;
-}
+OSH_INLINE Int code_rotation(I8 code) { return (code >> 1) & 3; }
 
-OSH_INLINE Int code_which_down(I8 code) {
-  return (code >> 3);
-}
+OSH_INLINE Int code_which_down(I8 code) { return (code >> 3); }
 
-Read<I8> mark_class_closure(Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
+Read<I8> mark_class_closure(Mesh* mesh, Int ent_dim, Int class_dim,
+                            I32 class_id);
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
-    std::vector<Int> class_dims, std::vector<I32> class_ids);
+                             std::vector<Int> class_dims,
+                             std::vector<I32> class_ids);
 
 bool warp_to_limit(Mesh* mesh, Real min_qual);
 bool approach_metric(Mesh* mesh, Real min_qual);
@@ -553,6 +534,6 @@ bool approach_metric(Mesh* mesh, Real min_qual);
 Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -1,6 +1,5 @@
-void swap2d_topology(Mesh* mesh, LOs keys2edges,
-    std::array<LOs, 3>* keys2prods,
-    std::array<LOs, 3>* prod_verts2verts) {
+void swap2d_topology(Mesh* mesh, LOs keys2edges, std::array<LOs, 3>* keys2prods,
+                     std::array<LOs, 3>* prod_verts2verts) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto tv2v = mesh->ask_verts_of(TRI);
   auto e2t = mesh->ask_up(EDGE, TRI);
@@ -21,7 +20,7 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
       auto tte = code_which_down(code);
       auto rot = code_rotation(code);
       t[rot] = et2t[et];
-      auto ttv = OppositeTemplate<TRI,EDGE>::get(tte);
+      auto ttv = OppositeTemplate<TRI, EDGE>::get(tte);
       ov[rot] = tv2v[t[rot] * 3 + ttv];
     }
     auto ev = gather_verts<2>(ev2v, e);

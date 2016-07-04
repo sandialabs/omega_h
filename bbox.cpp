@@ -2,7 +2,7 @@ template <Int dim>
 struct BBoxFunctor {
   typedef BBox<dim> value_type;
   Reals coords_;
-  BBoxFunctor(Reals coords):coords_(coords) {}
+  BBoxFunctor(Reals coords) : coords_(coords) {}
   INLINE void init(value_type& update) const {
     for (Int i = 0; i < dim; ++i) {
       update.min[i] = ArithTraits<Real>::max();
@@ -10,7 +10,7 @@ struct BBoxFunctor {
     }
   }
   INLINE void join(volatile value_type& update,
-      const volatile value_type& input) const {
+                   const volatile value_type& input) const {
     update = unite(update, input);
   }
   DEVICE void operator()(Int i, value_type& update) const {

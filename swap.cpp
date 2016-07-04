@@ -12,8 +12,7 @@ bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
   return true;
 }
 
-void filter_swap_improve(Mesh* mesh,
-    LOs* cands2edges, Reals* cand_quals) {
+void filter_swap_improve(Mesh* mesh, LOs* cands2edges, Reals* cand_quals) {
   CHECK(mesh->owners_have_all_upward(EDGE));
   auto elem_quals = mesh->ask_qualities();
   auto edges2elems = mesh->ask_up(EDGE, mesh->dim());

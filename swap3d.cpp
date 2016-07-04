@@ -6,7 +6,8 @@ static bool swap3d_ghosted(Mesh* mesh) {
   auto cand_quals = Reals();
   auto cand_configs = Read<I8>();
   swap3d_qualities(mesh, cands2edges, &cand_quals, &cand_configs);
-  auto edge_configs = map_onto(cand_configs, cands2edges, mesh->nedges(), I8(-1), 1);
+  auto edge_configs =
+      map_onto(cand_configs, cands2edges, mesh->nedges(), I8(-1), 1);
   /* swap3d_qualities sets the quality to -1.0 when no configuration
      is found, so *assuming that the input mesh has no negative elements*
      it is sufficient to simply filter by quality improvement. */
@@ -42,25 +43,19 @@ static void swap3d_element_based(Mesh* mesh, bool verbose) {
   new_mesh.set_owners(VERT, mesh->ask_owners(VERT));
   transfer_copy(mesh, &new_mesh, VERT);
   auto keys2prods = swap3d_keys_to_prods(mesh, keys2edges);
-  auto prod_verts2verts = swap3d_topology(mesh, keys2edges,
-      edges_configs, keys2prods);
+  auto prod_verts2verts =
+      swap3d_topology(mesh, keys2edges, edges_configs, keys2prods);
   auto old_lows2new_lows = LOs(mesh->nverts(), 0, 1);
   for (Int ent_dim = EDGE; ent_dim <= mesh->dim(); ++ent_dim) {
     auto prods2new_ents = LOs();
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
-        keys2prods[ent_dim],
-        prod_verts2verts[ent_dim],
-        old_lows2new_lows,
-        &prods2new_ents,
-        &same_ents2old_ents,
-        &same_ents2new_ents,
-        &old_ents2new_ents);
-    transfer_swap(mesh, &new_mesh, ent_dim, keys2edges,
-        keys2prods[ent_dim],
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods[ent_dim],
+                prod_verts2verts[ent_dim], old_lows2new_lows, &prods2new_ents,
+                &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
+    transfer_swap(mesh, &new_mesh, ent_dim, keys2edges, keys2prods[ent_dim],
+                  prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;

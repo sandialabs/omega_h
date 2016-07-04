@@ -17,20 +17,20 @@ static Reals average_metric_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
 Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
   if (mesh->dim() == 3) {
     if (ent_dim == 3) {
-      return average_metric_tmpl<3,3>(mesh, entities, v2m);
+      return average_metric_tmpl<3, 3>(mesh, entities, v2m);
     } else if (ent_dim == 2) {
-      return average_metric_tmpl<3,2>(mesh, entities, v2m);
+      return average_metric_tmpl<3, 2>(mesh, entities, v2m);
     } else {
       CHECK(ent_dim == 1);
-      return average_metric_tmpl<3,1>(mesh, entities, v2m);
+      return average_metric_tmpl<3, 1>(mesh, entities, v2m);
     }
   } else {
     CHECK(mesh->dim() == 2);
     if (ent_dim == 2) {
-      return average_metric_tmpl<2,2>(mesh, entities, v2m);
+      return average_metric_tmpl<2, 2>(mesh, entities, v2m);
     } else {
       CHECK(ent_dim == 1);
-      return average_metric_tmpl<2,1>(mesh, entities, v2m);
+      return average_metric_tmpl<2, 1>(mesh, entities, v2m);
     }
   }
 }

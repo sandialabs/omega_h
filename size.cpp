@@ -107,7 +107,7 @@ static Reals find_identity_metric_tmpl(Mesh* mesh) {
   auto vert_metrics_w = Write<Real>(mesh->nverts() * symm_dofs(dim));
   auto f1 = LAMBDA(LO v) {
     Real ess = 0.0;
-    auto iems = zero_matrix<dim,dim>();
+    auto iems = zero_matrix<dim, dim>();
     for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
       auto e = ve2e[ve];
       auto em = get_symm<dim>(elem_metrics, e);

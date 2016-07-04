@@ -15,7 +15,8 @@ Dist bi_partition(CommPtr comm, Read<I8> marks) {
     map_into(add_to_each(owners.ranks, rank_start), marked, dest_ranks, 1);
     map_into(owners.idxs, marked, dest_idxs, 1);
     if (rank_start <= comm->rank() && comm->rank() < (rank_start + halfsize)) {
-      linsize = linear_partition_size(total, halfsize, comm->rank() - rank_start);
+      linsize =
+          linear_partition_size(total, halfsize, comm->rank() - rank_start);
     }
     rank_start += halfsize;
   }

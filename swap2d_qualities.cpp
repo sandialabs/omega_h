@@ -20,7 +20,7 @@ static Reals swap2d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
       auto tte = code_which_down(code);
       auto rot = code_rotation(code);
       t[rot] = et2t[et];
-      auto ttv = OppositeTemplate<TRI,EDGE>::get(tte);
+      auto ttv = OppositeTemplate<TRI, EDGE>::get(tte);
       ov[rot] = tv2v[t[rot] * 3 + ttv];
     }
     auto ev = gather_verts<2>(ev2v, e);
@@ -44,20 +44,20 @@ Reals swap2d_qualities(Mesh* mesh, LOs cands2edges) {
   auto cand_quals = Reals();
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {
-      cand_quals = swap2d_qualities_tmpl<MetricElementQualities,3>(
-          mesh, cands2edges);
+      cand_quals =
+          swap2d_qualities_tmpl<MetricElementQualities, 3>(mesh, cands2edges);
     } else {
-      cand_quals = swap2d_qualities_tmpl<RealElementQualities,3>(
-          mesh, cands2edges);
+      cand_quals =
+          swap2d_qualities_tmpl<RealElementQualities, 3>(mesh, cands2edges);
     }
   } else {
     CHECK(mesh->dim() == 2);
     if (mesh->has_tag(VERT, "metric")) {
-      cand_quals = swap2d_qualities_tmpl<MetricElementQualities,2>(
-          mesh, cands2edges);
+      cand_quals =
+          swap2d_qualities_tmpl<MetricElementQualities, 2>(mesh, cands2edges);
     } else {
-      cand_quals = swap2d_qualities_tmpl<RealElementQualities,2>(
-          mesh, cands2edges);
+      cand_quals =
+          swap2d_qualities_tmpl<RealElementQualities, 2>(mesh, cands2edges);
     }
   }
   return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);

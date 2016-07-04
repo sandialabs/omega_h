@@ -16,23 +16,23 @@ static bool tags_are_consistent(Mesh* mesh, Int dim) {
   for (Int i = 0; i < mesh->ntags(dim); ++i) {
     auto tagbase = mesh->get_tag(dim, i);
     bool ok = false;
-    switch(tagbase->type()) {
-    case OSH_I8:
-      ok = is_consistent<I8>(mesh, dim, tagbase);
-      break;
-    case OSH_I32:
-      ok = is_consistent<I32>(mesh, dim, tagbase);
-      break;
-    case OSH_I64:
-      ok = is_consistent<I64>(mesh, dim, tagbase);
-      break;
-    case OSH_F64:
-      ok = is_consistent<Real>(mesh, dim, tagbase);
-      break;
+    switch (tagbase->type()) {
+      case OSH_I8:
+        ok = is_consistent<I8>(mesh, dim, tagbase);
+        break;
+      case OSH_I32:
+        ok = is_consistent<I32>(mesh, dim, tagbase);
+        break;
+      case OSH_I64:
+        ok = is_consistent<I64>(mesh, dim, tagbase);
+        break;
+      case OSH_F64:
+        ok = is_consistent<Real>(mesh, dim, tagbase);
+        break;
     }
     if (!ok && mesh->comm()->rank() == 0) {
-      std::cerr << singular_names[dim] << " tag "
-        << tagbase->name() << " is not consistent\n";
+      std::cerr << singular_names[dim] << " tag " << tagbase->name()
+                << " is not consistent\n";
       return false;
     }
   }

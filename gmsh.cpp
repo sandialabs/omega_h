@@ -5,16 +5,20 @@ namespace {
 enum {
   GMSH_VERT = 15,
   GMSH_LINE = 1,
-  GMSH_TRI  = 2,
-  GMSH_TET  = 4,
+  GMSH_TRI = 2,
+  GMSH_TET = 4,
 };
 
 Int type_dim(Int type) {
   switch (type) {
-    case GMSH_VERT: return 0;
-    case GMSH_LINE: return 1;
-    case GMSH_TRI:  return 2;
-    case GMSH_TET:  return 3;
+    case GMSH_VERT:
+      return 0;
+    case GMSH_LINE:
+      return 1;
+    case GMSH_TRI:
+      return 2;
+    case GMSH_TET:
+      return 3;
   }
   osh_fail("omega_h can only accept linear simplices from Gmsh");
   NORETURN(-1);
@@ -31,7 +35,7 @@ void seek_line(std::istream& stream, std::string const& want) {
   CHECK(stream);
 }
 
-} //end anonymous namespace
+}  // end anonymous namespace
 
 void read(std::istream& stream, Library const& lib, Mesh* mesh) {
   seek_line(stream, "$MeshFormat");
@@ -96,7 +100,8 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
   HostWrite<Real> host_coords(nnodes * max_dim);
   for (LO i = 0; i < nnodes; ++i) {
     for (Int j = 0; j < max_dim; ++j) {
-      host_coords[i * max_dim + j] = node_coords[static_cast<std::size_t>(i)][j];
+      host_coords[i * max_dim + j] =
+          node_coords[static_cast<std::size_t>(i)][j];
     }
   }
   for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
@@ -106,16 +111,15 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
     HostWrite<LO> host_class_id(ndim_ents);
     for (LO i = 0; i < ndim_ents; ++i) {
       for (Int j = 0; j < neev; ++j) {
-        host_ev2v[i * neev + j] = ent_nodes[ent_dim][
-          static_cast<std::size_t>(i * neev + j)];
+        host_ev2v[i * neev + j] =
+            ent_nodes[ent_dim][static_cast<std::size_t>(i * neev + j)];
       }
-      host_class_id[i] = ent_class_ids[ent_dim][
-        static_cast<std::size_t>(i)];
+      host_class_id[i] = ent_class_ids[ent_dim][static_cast<std::size_t>(i)];
     }
     auto eqv2v = Read<LO>(host_ev2v.write());
     if (ent_dim == max_dim) {
       build_from_elems_and_coords(mesh, lib, max_dim, eqv2v,
-          host_coords.write());
+                                  host_coords.write());
     }
     auto eq_class_id = Read<LO>(host_class_id.write());
     LOs eq2e;
@@ -130,10 +134,9 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
       find_matches(ent_dim, eqv2v, ev2v, v2e, &eq2e, &codes);
     }
     auto eq_class_dim = Read<I8>(ndim_ents, I8(ent_dim));
-    auto class_dim = map_onto(eq_class_dim, eq2e,
-        mesh->nents(ent_dim), I8(-1), 1);
-    auto class_id = map_onto(eq_class_id, eq2e,
-        mesh->nents(ent_dim), -1, 1);
+    auto class_dim =
+        map_onto(eq_class_dim, eq2e, mesh->nents(ent_dim), I8(-1), 1);
+    auto class_id = map_onto(eq_class_id, eq2e, mesh->nents(ent_dim), -1, 1);
     mesh->add_tag<I8>(ent_dim, "class_dim", 1, OSH_INHERIT, class_dim);
     mesh->add_tag<LO>(ent_dim, "class_id", 1, OSH_INHERIT, class_id);
   }
@@ -145,5 +148,4 @@ void read(std::string const& filename, Library const& lib, Mesh* mesh) {
   CHECK(file.is_open());
   read(file, lib, mesh);
 }
-
 }

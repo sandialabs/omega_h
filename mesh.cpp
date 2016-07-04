@@ -1,6 +1,4 @@
-Mesh::Mesh():
-  dim_(-1),
-  parting_(-1) {
+Mesh::Mesh() : dim_(-1), parting_(-1) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = OSH_ELEM_BASED;
   keeps_canonical_globals_ = true;
@@ -10,9 +8,9 @@ void Mesh::set_comm(CommPtr new_comm) {
   auto rank_had_comm = bool(comm_);
   auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), OSH_SUM);
   if (0 < nnew_had_comm && nnew_had_comm < new_comm->size()) {
-    //partitioning out from small sub-communicator to larger one
+    // partitioning out from small sub-communicator to larger one
     if (!rank_had_comm) {
-      //temporarily set the uninit ranks to Comm::self()
+      // temporarily set the uninit ranks to Comm::self()
       comm_ = Comm::self();
     } else {
       /* forget RIB hints. this prevents some ranks from
@@ -49,9 +47,7 @@ void Mesh::set_dim(Int dim) {
   dim_ = dim;
 }
 
-void Mesh::set_verts(LO nverts) {
-  nents_[VERT] = nverts;
-}
+void Mesh::set_verts(LO nverts) { nents_[VERT] = nverts; }
 
 void Mesh::set_ents(Int dim, Adj down) {
   check_dim(dim);
@@ -62,38 +58,24 @@ void Mesh::set_ents(Int dim, Adj down) {
   add_adj(dim, dim - 1, down);
 }
 
-void Mesh::keep_canonical_globals(bool yn) {
-  keeps_canonical_globals_ = yn;
-}
+void Mesh::keep_canonical_globals(bool yn) { keeps_canonical_globals_ = yn; }
 
-bool Mesh::keeps_canonical_globals() const {
-  return keeps_canonical_globals_;
-}
+bool Mesh::keeps_canonical_globals() const { return keeps_canonical_globals_; }
 
-CommPtr Mesh::comm() const {
-  return comm_;
-}
+CommPtr Mesh::comm() const { return comm_; }
 
-Int Mesh::dim() const {
-  return dim_;
-}
+Int Mesh::dim() const { return dim_; }
 
 LO Mesh::nents(Int dim) const {
   check_dim2(dim);
   return nents_[dim];
 }
 
-LO Mesh::nelems() const{
-  return nents(dim());
-}
+LO Mesh::nelems() const { return nents(dim()); }
 
-LO Mesh::nverts() const {
-  return nents(VERT);
-}
+LO Mesh::nverts() const { return nents(VERT); }
 
-LO Mesh::nedges() const {
-  return nents(EDGE);
-}
+LO Mesh::nedges() const { return nents(EDGE); }
 
 GO Mesh::nglobal_ents(Int dim) {
   if (!could_be_shared(dim)) {
@@ -105,10 +87,12 @@ GO Mesh::nglobal_ents(Int dim) {
 
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
-    osh_xfer xfer) {
+                   osh_xfer xfer) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
-    osh_fail("omega_h: add_tag(): \"%s\" already exists. use set_tag or remove_tag\n",
+    osh_fail(
+        "omega_h: add_tag(): \"%s\" already exists. use set_tag or "
+        "remove_tag\n",
         name.c_str());
   }
   CHECK(ncomps >= 0);
@@ -118,8 +102,8 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
-    osh_xfer xfer, Read<T> array) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, osh_xfer xfer,
+                   Read<T> array) {
   add_tag<T>(dim, name, ncomps, xfer);
   set_tag<T>(dim, name, array);
 }
@@ -144,13 +128,11 @@ void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
 
 void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   /* hardcoded cache invalidations */
-  if ((dim == VERT) && ((name == "coordinates") ||
-                        (name == "size") ||
-                        (name == "metric"))) {
+  if ((dim == VERT) &&
+      ((name == "coordinates") || (name == "size") || (name == "metric"))) {
     if (has_tag(EDGE, "length")) remove_tag(EDGE, "length");
   }
-  if ((dim == VERT) && ((name == "coordinates") ||
-                        (name == "metric"))) {
+  if ((dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
     if (has_tag(this->dim(), "quality")) remove_tag(this->dim(), "quality");
   }
 }
@@ -177,8 +159,7 @@ void Mesh::remove_tag(Int dim, std::string const& name) {
 
 bool Mesh::has_tag(Int dim, std::string const& name) const {
   check_dim(dim);
-  if (!has_ents(dim))
-    return false;
+  if (!has_ents(dim)) return false;
   return tag_iter(dim, name) != tags_[dim].end();
 }
 
@@ -217,9 +198,7 @@ Adj Mesh::ask_down(Int from, Int to) {
   return ask_adj(from, to);
 }
 
-LOs Mesh::ask_verts_of(Int dim) {
-  return ask_adj(dim, VERT).ab2b;
-}
+LOs Mesh::ask_verts_of(Int dim) { return ask_adj(dim, VERT).ab2b; }
 
 Adj Mesh::ask_up(Int from, Int to) {
   CHECK(from < to);
@@ -231,13 +210,11 @@ Graph Mesh::ask_star(Int dim) {
   return ask_adj(dim, dim);
 }
 
-Graph Mesh::ask_dual() {
-  return ask_adj(dim(), dim());
-}
+Graph Mesh::ask_dual() { return ask_adj(dim(), dim()); }
 
 struct HasName {
   std::string const& name_;
-  HasName(std::string const& name):name_(name) {}
+  HasName(std::string const& name) : name_(name) {}
   bool operator()(std::shared_ptr<TagBase> const& a) {
     return a->name() == name_;
   }
@@ -302,25 +279,25 @@ Adj Mesh::derive_adj(Int from, Int to) {
     return h2l;
   } else {
     if (from == dim() && to == dim()) {
-      return elements_across_sides(dim(),
-          ask_adj(dim(), dim() - 1), ask_adj(dim() - 1, dim()),
-          mark_exposed_sides(this));
+      return elements_across_sides(dim(), ask_adj(dim(), dim() - 1),
+                                   ask_adj(dim() - 1, dim()),
+                                   mark_exposed_sides(this));
     }
     if (from == VERT && to == VERT) {
-      return verts_across_edges(ask_adj(EDGE,VERT), ask_adj(VERT,EDGE));
+      return verts_across_edges(ask_adj(EDGE, VERT), ask_adj(VERT, EDGE));
     }
     if (from == EDGE && to == EDGE) {
       CHECK(dim() >= 2);
-      Graph g = edges_across_tris(ask_adj(TRI,EDGE),ask_adj(EDGE,TRI));
+      Graph g = edges_across_tris(ask_adj(TRI, EDGE), ask_adj(EDGE, TRI));
       if (dim() == 3) {
-        g = add_edges(g, edges_across_tets(
-              ask_adj(TET,EDGE), ask_adj(EDGE,TET)));
+        g = add_edges(
+            g, edges_across_tets(ask_adj(TET, EDGE), ask_adj(EDGE, TET)));
       }
       return g;
     }
   }
-  osh_fail("can't derive adjacency from %s to %s\n",
-      plural_names[from], plural_names[to]);
+  osh_fail("can't derive adjacency from %s to %s\n", plural_names[from],
+           plural_names[to]);
   NORETURN(Adj());
 }
 
@@ -328,7 +305,7 @@ Adj Mesh::ask_adj(Int from, Int to) {
   check_dim2(from);
   check_dim2(to);
   if (has_adj(from, to)) {
-    return get_adj(from,to);
+    return get_adj(from, to);
   }
   Adj derived = derive_adj(from, to);
   adjs_[from][to] = AdjPtr(new Adj(derived));
@@ -339,9 +316,7 @@ void Mesh::add_coords(Reals array) {
   add_tag<Real>(0, "coordinates", dim(), OSH_LINEAR_INTERP, array);
 }
 
-Reals Mesh::coords() const {
-  return get_array<Real>(0, "coordinates");
-}
+Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
 
 void Mesh::set_coords(Reals array) {
   CHECK(array.size() == nverts() * dim());
@@ -389,11 +364,10 @@ void Mesh::set_owners(Int dim, Remotes owners) {
 }
 
 Remotes Mesh::ask_owners(Int dim) {
-  if (!owners_[dim].ranks.exists() ||
-      !owners_[dim].idxs.exists()) {
+  if (!owners_[dim].ranks.exists() || !owners_[dim].idxs.exists()) {
     CHECK(comm_->size() == 1);
-    owners_[dim] = Remotes(Read<I32>(nents(dim), comm_->rank()),
-        LOs(nents(dim), 0, 1));
+    owners_[dim] =
+        Remotes(Read<I32>(nents(dim), comm_->rank()), LOs(nents(dim), 0, 1));
   }
   return owners_[dim];
 }
@@ -442,26 +416,21 @@ void Mesh::migrate(Remotes new_elems2old_owners, bool verbose) {
   migrate_mesh(this, new_elems2old_owners, verbose);
 }
 
-void Mesh::reorder() {
-  reorder_by_hilbert(this);
-}
+void Mesh::reorder() { reorder_by_hilbert(this); }
 
 void Mesh::balance() {
   if (comm_->size() == 1) return;
   set_parting(OSH_ELEM_BASED);
   inertia::Rib hints;
-  if (rib_hints_)
-    hints = *rib_hints_;
-  auto ecoords = average_field(this, dim(), LOs(nelems(), 0, 1), dim(),
-      coords());
-  if (dim() == 2)
-    ecoords = vectors_2d_to_3d(ecoords);
+  if (rib_hints_) hints = *rib_hints_;
+  auto ecoords =
+      average_field(this, dim(), LOs(nelems(), 0, 1), dim(), coords());
+  if (dim() == 2) ecoords = vectors_2d_to_3d(ecoords);
   auto masses = Reals(nelems(), 1);
   auto owners = ask_owners(dim());
   auto total = comm_->allreduce(GO(nelems()), OSH_SUM);
   auto avg = Real(total) / Real(comm_->size());
-  hints = recursively_bisect(comm(), ecoords, masses, owners,
-      2.0 / avg, hints);
+  hints = recursively_bisect(comm(), ecoords, masses, owners, 2.0 / avg, hints);
   rib_hints_ = RibPtr(new inertia::Rib(hints));
   migrate(owners);
 }
@@ -486,11 +455,10 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
 }
 
 template <typename T>
-Read<T> Mesh::sync_subset_array(Int ent_dim,
-    Read<T> a_data, LOs a2e, T default_val, Int width) {
+Read<T> Mesh::sync_subset_array(Int ent_dim, Read<T> a_data, LOs a2e,
+                                T default_val, Int width) {
   if (!could_be_shared(ent_dim)) return a_data;
-  auto e_data = map_onto(a_data, a2e, nents(ent_dim),
-      default_val, width);
+  auto e_data = map_onto(a_data, a2e, nents(ent_dim), default_val, width);
   e_data = sync_array(ent_dim, e_data, width);
   return unmap(a2e, e_data, width);
 }
@@ -515,8 +483,7 @@ bool Mesh::could_be_shared(Int ent_dim) const {
 }
 
 bool Mesh::owners_have_all_upward(Int ent_dim) const {
-  return ((comm_->size() == 1) ||
-          (parting_ == OSH_GHOSTED) ||
+  return ((comm_->size() == 1) || (parting_ == OSH_GHOSTED) ||
           (parting_ == OSH_VERT_BASED && ent_dim == VERT));
 }
 
@@ -530,29 +497,25 @@ Mesh Mesh::copy_meta() const {
   return m;
 }
 
-Mesh::RibPtr Mesh::rib_hints() const {
-  return rib_hints_;
-}
+Mesh::RibPtr Mesh::rib_hints() const { return rib_hints_; }
 
-void Mesh::set_rib_hints(RibPtr hints) {
-  rib_hints_ = hints;
-}
+void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
 
-#define INST_T(T) \
-template Tag<T> const* Mesh::get_tag<T>( \
-    Int dim, std::string const& name) const; \
-template Read<T> Mesh::get_array<T>( \
-    Int dim, std::string const& name) const; \
-template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-    osh_xfer xfer); \
-template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-    osh_xfer xfer, Read<T> array); \
-template void Mesh::set_tag(Int dim, std::string const& name, Read<T> array); \
-template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
-template Read<T> Mesh::sync_subset_array(Int ent_dim, \
-    Read<T> a_data, LOs a2e, T default_val, Int width); \
-template Read<T> Mesh::reduce_array(Int ent_dim, \
-    Read<T> a, Int width, osh_op op);
+#define INST_T(T)                                                              \
+  template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
+      const;                                                                   \
+  template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
+  template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
+                                 osh_xfer xfer);                               \
+  template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
+                                 osh_xfer xfer, Read<T> array);                \
+  template void Mesh::set_tag(Int dim, std::string const& name,                \
+                              Read<T> array);                                  \
+  template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
+  template Read<T> Mesh::sync_subset_array(Int ent_dim, Read<T> a_data,        \
+                                           LOs a2e, T default_val, Int width); \
+  template Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width,       \
+                                      osh_op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

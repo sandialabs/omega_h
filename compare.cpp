@@ -7,13 +7,15 @@ struct CompareArrays {
 
 template <>
 struct CompareArrays<Real> {
-  static bool compare(CommPtr comm, Read<Real> a, Read<Real> b,
-      Real tol, Real floor, Int ncomps, Int dim) {
+  static bool compare(CommPtr comm, Read<Real> a, Read<Real> b, Real tol,
+                      Real floor, Int ncomps, Int dim) {
     if (are_close(a, b, tol, floor)) return true;
-/* if floating point arrays are different, we find the value with the largest
-   relative difference and print it out for users to determine whether this
-   is actually a serious regression (and where in the mesh it is most serious)
-   or whether tolerances simply need adjusting */
+    /* if floating point arrays are different, we find the value with the
+       largest
+       relative difference and print it out for users to determine whether this
+       is actually a serious regression (and where in the mesh it is most
+       serious)
+       or whether tolerances simply need adjusting */
     auto ah = HostRead<Real>(a);
     auto bh = HostRead<Real>(b);
     LO max_i = -1;
@@ -34,26 +36,24 @@ struct CompareArrays<Real> {
       auto global_max_i = global_start + max_i;
       auto ent_global = global_max_i / ncomps;
       auto comp = global_max_i % ncomps;
-      std::cout << "max diff at " << singular_names[dim]
-        << " " << ent_global << ", comp " << comp
-        << ", values " << ah[max_i] << " vs " << bh[max_i] << '\n';
+      std::cout << "max diff at " << singular_names[dim] << " " << ent_global
+                << ", comp " << comp << ", values " << ah[max_i] << " vs "
+                << bh[max_i] << '\n';
     }
     return false;
   }
 };
 
 template <typename T>
-static bool compare_copy_data(
-    Int dim,
-    Read<T> a_data, Dist a_dist,
-    Read<T> b_data, Dist b_dist,
-    Int ncomps, Real tol, Real floor) {
+static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
+                              Read<T> b_data, Dist b_dist, Int ncomps, Real tol,
+                              Real floor) {
   auto a_lin_data = reduce_data_to_owners(a_data, a_dist, ncomps);
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
   auto comm = a_dist.parent_comm();
-  bool local_result = CompareArrays<T>::compare(
-      comm, a_lin_data, b_lin_data, tol, floor, ncomps, dim);
+  bool local_result = CompareArrays<T>::compare(comm, a_lin_data, b_lin_data,
+                                                tol, floor, ncomps, dim);
   return comm->reduce_and(local_result);
 }
 
@@ -65,9 +65,8 @@ static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
   return hl2l_globals;
 }
 
-osh_comparison
-compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
-    bool verbose, bool full) {
+osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
+                              bool verbose, bool full) {
   CHECK(a->comm()->size() == b->comm()->size());
   CHECK(a->comm()->rank() == b->comm()->rank());
   auto comm = a->comm();
@@ -92,10 +91,8 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
     if (dim > 0) {
       auto a_conn = get_local_conn(a, dim, full);
       auto b_conn = get_local_conn(b, dim, full);
-      auto ok = compare_copy_data(dim,
-          a_conn, a_dist,
-          b_conn, b_dist,
-          dim + 1, 0.0, 0.0);
+      auto ok = compare_copy_data(dim, a_conn, a_dist, b_conn, b_dist, dim + 1,
+                                  0.0, 0.0);
       if (!ok) {
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
@@ -118,35 +115,31 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       auto ncomps = tag->ncomps();
       bool ok = false;
       switch (tag->type()) {
-      case OSH_I8:
-        ok = compare_copy_data(dim,
-            a->get_array<I8>(dim, name), a_dist,
-            b->get_array<I8>(dim, name), b_dist,
-            ncomps, tol, floor);
-        break;
-      case OSH_I32:
-        ok = compare_copy_data(dim,
-            a->get_array<I32>(dim, name), a_dist,
-            b->get_array<I32>(dim, name), b_dist,
-            ncomps, tol, floor);
-        break;
-      case OSH_I64:
-        ok = compare_copy_data(dim,
-            a->get_array<I64>(dim, name), a_dist,
-            b->get_array<I64>(dim, name), b_dist,
-            ncomps, tol, floor);
-        break;
-      case OSH_F64:
-        ok = compare_copy_data(dim,
-            a->get_array<Real>(dim, name), a_dist,
-            b->get_array<Real>(dim, name), b_dist,
-            ncomps, tol, floor);
-        break;
+        case OSH_I8:
+          ok = compare_copy_data(dim, a->get_array<I8>(dim, name), a_dist,
+                                 b->get_array<I8>(dim, name), b_dist, ncomps,
+                                 tol, floor);
+          break;
+        case OSH_I32:
+          ok = compare_copy_data(dim, a->get_array<I32>(dim, name), a_dist,
+                                 b->get_array<I32>(dim, name), b_dist, ncomps,
+                                 tol, floor);
+          break;
+        case OSH_I64:
+          ok = compare_copy_data(dim, a->get_array<I64>(dim, name), a_dist,
+                                 b->get_array<I64>(dim, name), b_dist, ncomps,
+                                 tol, floor);
+          break;
+        case OSH_F64:
+          ok = compare_copy_data(dim, a->get_array<Real>(dim, name), a_dist,
+                                 b->get_array<Real>(dim, name), b_dist, ncomps,
+                                 tol, floor);
+          break;
       }
       if (!ok) {
         if (should_print) {
-          std::cout << singular_names[dim] << " tag \""
-            << name << "\" values are different\n";
+          std::cout << singular_names[dim] << " tag \"" << name
+                    << "\" values are different\n";
         }
         result = OSH_DIFF;
       }
@@ -156,7 +149,7 @@ compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       if (!a->has_tag(dim, tag->name())) {
         if (should_print) {
           std::cout << singular_names[dim] << " tag \"" << tag->name()
-            << "\" exists in second mesh but not in first\n";
+                    << "\" exists in second mesh but not in first\n";
         }
         if (result == OSH_SAME) {
           result = OSH_MORE;

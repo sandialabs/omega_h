@@ -1,21 +1,13 @@
-TagBase::TagBase(std::string const& name, Int ncomps, osh_xfer xfer):
-  name_(name),ncomps_(ncomps),xfer_(xfer) {
-}
+TagBase::TagBase(std::string const& name, Int ncomps, osh_xfer xfer)
+    : name_(name), ncomps_(ncomps), xfer_(xfer) {}
 
-TagBase::~TagBase() {
-}
+TagBase::~TagBase() {}
 
-std::string const& TagBase::name() const {
-  return name_;
-}
+std::string const& TagBase::name() const { return name_; }
 
-Int TagBase::ncomps() const {
-  return ncomps_;
-}
+Int TagBase::ncomps() const { return ncomps_; }
 
-osh_xfer TagBase::xfer() const {
-  return xfer_;
-}
+osh_xfer TagBase::xfer() const { return xfer_; }
 
 template <typename T>
 bool is(TagBase const* t) {
@@ -35,9 +27,8 @@ Tag<T>* to(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, Int ncomps, osh_xfer xfer):
-  TagBase(name, ncomps, xfer) {
-}
+Tag<T>::Tag(std::string const& name, Int ncomps, osh_xfer xfer)
+    : TagBase(name, ncomps, xfer) {}
 
 template <typename T>
 Read<T> Tag<T>::array() const {
@@ -77,10 +68,10 @@ osh_type Tag<T>::type() const {
   return TagTraits<T>::type();
 }
 
-#define INST_T(T) \
-template bool is<T>(TagBase const* t); \
-template Tag<T> const* to<T>(TagBase const* t); \
-template class Tag<T>;
+#define INST_T(T)                                 \
+  template bool is<T>(TagBase const* t);          \
+  template Tag<T> const* to<T>(TagBase const* t); \
+  template class Tag<T>;
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

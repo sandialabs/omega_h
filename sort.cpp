@@ -14,13 +14,12 @@ void parallel_sort(T* b, T* e, Comp c) {
 template <typename T, Int N>
 struct CompareKeySets {
   T const* keys_;
-  CompareKeySets(T const* keys):keys_(keys) {}
+  CompareKeySets(T const* keys) : keys_(keys) {}
   INLINE bool operator()(const LO& a, const LO& b) const {
     for (Int i = 0; i < N; ++i) {
       T x = keys_[a * N + i];
       T y = keys_[b * N + i];
-      if (x != y)
-        return x < y;
+      if (x != y) return x < y;
     }
     return false;
   }
@@ -33,23 +32,25 @@ static LOs sort_by_keys_tmpl(Read<T> keys) {
   LO* begin = perm.data();
   LO* end = perm.data() + perm.size();
   T const* keyptr = keys.data();
-  parallel_sort<LO,CompareKeySets<T,N>>(
-      begin, end, CompareKeySets<T,N>(keyptr));
+  parallel_sort<LO, CompareKeySets<T, N>>(begin, end,
+                                          CompareKeySets<T, N>(keyptr));
   return perm;
 }
 
 template <typename T>
 LOs sort_by_keys(Read<T> keys, Int width) {
   switch (width) {
-  case 1: return sort_by_keys_tmpl<1>(keys);
-  case 2: return sort_by_keys_tmpl<2>(keys);
-  case 3: return sort_by_keys_tmpl<3>(keys);
+    case 1:
+      return sort_by_keys_tmpl<1>(keys);
+    case 2:
+      return sort_by_keys_tmpl<2>(keys);
+    case 3:
+      return sort_by_keys_tmpl<3>(keys);
   }
   NORETURN(LOs());
 }
 
-#define INST(T) \
-template LOs sort_by_keys(Read<T> keys, Int width);
+#define INST(T) template LOs sort_by_keys(Read<T> keys, Int width);
 INST(LO)
 INST(GO)
 #undef INST

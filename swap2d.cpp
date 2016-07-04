@@ -34,8 +34,7 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
   transfer_copy(mesh, &new_mesh, VERT);
   std::array<LOs, 3> keys2prods;
   std::array<LOs, 3> prod_verts2verts;
-  swap2d_topology(mesh, keys2edges,
-      &keys2prods, &prod_verts2verts);
+  swap2d_topology(mesh, keys2edges, &keys2prods, &prod_verts2verts);
   auto old_lows2new_lows = LOs(mesh->nverts(), 0, 1);
   for (Int ent_dim = EDGE; ent_dim <= mesh->dim(); ++ent_dim) {
     auto prods2new_ents = LOs();
@@ -43,16 +42,12 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
     modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
-        keys2prods[size_t(ent_dim)],
-        prod_verts2verts[size_t(ent_dim)],
-        old_lows2new_lows,
-        &prods2new_ents,
-        &same_ents2old_ents,
-        &same_ents2new_ents,
-        &old_ents2new_ents);
+                keys2prods[size_t(ent_dim)], prod_verts2verts[size_t(ent_dim)],
+                old_lows2new_lows, &prods2new_ents, &same_ents2old_ents,
+                &same_ents2new_ents, &old_ents2new_ents);
     transfer_swap(mesh, &new_mesh, ent_dim, keys2edges,
-        keys2prods[size_t(ent_dim)],
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+                  keys2prods[size_t(ent_dim)], prods2new_ents,
+                  same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;

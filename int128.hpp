@@ -8,18 +8,12 @@ std::ostream& operator<<(std::ostream& o, Int128 const& x);
    TODO: wrap built-in types when they are available
 */
 
-INLINE Int128::Int128() {
-}
+INLINE Int128::Int128() {}
 
-INLINE Int128::Int128(std::int64_t h, std::uint64_t l):
-  high(h),low(l) {
-}
+INLINE Int128::Int128(std::int64_t h, std::uint64_t l) : high(h), low(l) {}
 
-INLINE Int128::Int128(std::int64_t value):
-  Int128(
-    std::int64_t(-1) * (value < 0),
-    std::uint64_t(value)) {
-}
+INLINE Int128::Int128(std::int64_t value)
+    : Int128(std::int64_t(-1) * (value < 0), std::uint64_t(value)) {}
 
 /* volatile... why is this not done by default...
  * returning void instead of reference to *this
@@ -32,14 +26,11 @@ INLINE void Int128::operator=(Int128 const& rhs) volatile {
 
 /* which implies we have to declare a regular copy
    constructor */
-INLINE Int128::Int128(Int128 const& rhs):
-  high(rhs.high),low(rhs.low) {
-}
+INLINE Int128::Int128(Int128 const& rhs) : high(rhs.high), low(rhs.low) {}
 
 /* and a volatile rhs one ? */
-INLINE Int128::Int128(const volatile Int128& rhs):
-  high(rhs.high),low(rhs.low) {
-}
+INLINE Int128::Int128(const volatile Int128& rhs)
+    : high(rhs.high), low(rhs.low) {}
 
 INLINE Int128 Int128::from_double(double value, double unit) {
   double normalized = value / unit;
@@ -70,14 +61,11 @@ INLINE Int128 operator-(Int128 lhs, Int128 rhs) {
   return difference;
 }
 
-INLINE Int128 operator-(Int128 x) {
-  return Int128(0) - x;
-}
+INLINE Int128 operator-(Int128 x) { return Int128(0) - x; }
 
 INLINE Int128 operator>>(Int128 x, int expo) {
   Int128 shifted;
-  shifted.low = (x.low >> expo) |
-    (std::uint64_t(x.high) << (64 - expo));
+  shifted.low = (x.low >> expo) | (std::uint64_t(x.high) << (64 - expo));
   shifted.high = x.high >> expo;
   return shifted;
 }
@@ -87,7 +75,6 @@ INLINE bool operator==(Int128 lhs, Int128 rhs) {
 }
 
 INLINE bool operator<(Int128 lhs, Int128 rhs) {
-  if (lhs.high != rhs.high)
-    return lhs.high < rhs.high;
+  if (lhs.high != rhs.high) return lhs.high < rhs.high;
   return lhs.low < rhs.low;
 }

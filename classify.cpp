@@ -9,24 +9,23 @@ void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
   mesh->add_tag<I8>(dim - 1, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
-void classify_hinges_by_sharpness(Mesh* mesh,
-    Read<I8> hinge_is_exposed,
-    Read<I8> hinge_is_sharp) {
+void classify_hinges_by_sharpness(Mesh* mesh, Read<I8> hinge_is_exposed,
+                                  Read<I8> hinge_is_sharp) {
   auto dim = mesh->dim();
   auto nh = mesh->nents(dim - 2);
   Write<I8> class_dim(nh);
   auto f = LAMBDA(LO h) {
-    class_dim[h] = static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
+    class_dim[h] =
+        static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
   };
   parallel_for(nh, f);
   mesh->add_tag<I8>(dim - 2, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
-void classify_vertices_by_sharp_edges(Mesh* mesh,
-    Read<I8> vert_is_exposed,
-    Read<I8> edge_is_sharp) {
+void classify_vertices_by_sharp_edges(Mesh* mesh, Read<I8> vert_is_exposed,
+                                      Read<I8> edge_is_sharp) {
   auto nv = mesh->nents(VERT);
-  auto v2e = mesh->ask_up(VERT,EDGE);
+  auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   Write<I8> class_dim(nv);
@@ -51,8 +50,8 @@ void classify_vertices_by_sharp_edges(Mesh* mesh,
 }
 
 void classify_elements(Mesh* mesh) {
-  mesh->add_tag<I8>(mesh->dim(), "class_dim", 1,
-      OSH_INHERIT, Read<I8>(mesh->nelems(), static_cast<I8>(mesh->dim())));
+  mesh->add_tag<I8>(mesh->dim(), "class_dim", 1, OSH_INHERIT,
+                    Read<I8>(mesh->nelems(), static_cast<I8>(mesh->dim())));
 }
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle) {
@@ -67,8 +66,8 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
   auto nsurf_hinges = surf_hinge2hinge.size();
   auto nsides = mesh->nents(dim - 1);
   auto side2surf_side = invert_injective_map(surf_side2side, nsides);
-  auto surf_hinge_angles = surf::get_hinge_angles(mesh,
-      surf_side_normals, surf_hinge2hinge, side2surf_side);
+  auto surf_hinge_angles = surf::get_hinge_angles(
+      mesh, surf_side_normals, surf_hinge2hinge, side2surf_side);
   auto nhinges = mesh->nents(dim - 2);
   Write<I8> hinge_is_sharp(nhinges, 0);
   auto f = LAMBDA(LO surf_hinge) {
@@ -77,11 +76,9 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
   };
   parallel_for(nsurf_hinges, f);
   classify_hinges_by_sharpness(mesh, hinge_is_exposed, hinge_is_sharp);
-  if (dim == 2)
-    return;
+  if (dim == 2) return;
   auto vert_is_exposed = mark_down(mesh, 2, 0, side_is_exposed);
-  classify_vertices_by_sharp_edges(mesh,
-      vert_is_exposed, hinge_is_sharp);
+  classify_vertices_by_sharp_edges(mesh, vert_is_exposed, hinge_is_sharp);
 }
 
 void project_classification(Mesh* mesh) {
@@ -94,8 +91,7 @@ void project_classification(Mesh* mesh) {
     Write<I8> class_dim = deep_copy<I8>(mesh->get_array<I8>(d, "class_dim"));
     Write<LO> class_id = deep_copy<LO>(mesh->get_array<LO>(d, "class_id"));
     auto f = LAMBDA(LO l) {
-      if (class_dim[l] >= 0)
-        return;
+      if (class_dim[l] >= 0) return;
       Int best_dim = 4;
       LO best_id = -1;
       for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh) {

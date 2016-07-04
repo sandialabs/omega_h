@@ -25,6 +25,6 @@ OSH_SYSTEM_HEADER
 
 #include <mpi.h>
 
-#endif //OSH_USE_MPI
+#endif  // OSH_USE_MPI
 
-#endif //OMEGA_H_MPI_H
+#endif  // OMEGA_H_MPI_H

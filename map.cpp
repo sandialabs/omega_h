@@ -65,12 +65,12 @@ LOs multiply_fans(LOs a2b, LOs a2c) {
   return a2bc;
 }
 
-#define INST_T(T) \
-template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
-template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width); \
-template Read<T> unmap(LOs a2b, Read<T> b_data, Int width); \
-template Read<T> expand(Read<T> a_data, LOs a2b, Int width); \
-template Read<T> permute(Read<T> a_data, LOs a2b, Int width);
+#define INST_T(T)                                                              \
+  template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
+  template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
+  template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
+  template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
+  template Read<T> permute(Read<T> a_data, LOs a2b, Int width);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
@@ -91,18 +91,14 @@ LOs compound_maps(LOs a2b, LOs b2c) {
 
 LOs invert_permutation(LOs a2b) {
   Write<LO> b2a(a2b.size());
-  auto f = LAMBDA(LO a) {
-    b2a[a2b[a]] = a;
-  };
+  auto f = LAMBDA(LO a) { b2a[a2b[a]] = a; };
   parallel_for(a2b.size(), f);
   return b2a;
 }
 
 Read<I8> invert_marks(Read<I8> marks) {
   Write<I8> out(marks.size());
-  auto f = LAMBDA(LO i) {
-    out[i] = !marks[i];
-  };
+  auto f = LAMBDA(LO i) { out[i] = !marks[i]; };
   parallel_for(out.size(), f);
   return out;
 }
@@ -113,8 +109,7 @@ LOs collect_marked(Read<I8> marks) {
   auto nmarked = offsets.last();
   Write<LO> marked(nmarked);
   auto f = LAMBDA(LO i) {
-    if (marks[i])
-      marked[offsets[i]] = i;
+    if (marks[i]) marked[offsets[i]] = i;
   };
   parallel_for(ntotal, f);
   return marked;
@@ -133,9 +128,7 @@ Read<I8> mark_image(LOs a2b, LO nb) {
 
 LOs invert_injective_map(LOs a2b, LO nb) {
   Write<LO> b2a(nb, -1);
-  auto f = LAMBDA(LO a) {
-    b2a[a2b[a]] = a;
-  };
+  auto f = LAMBDA(LO a) { b2a[a2b[a]] = a; };
   parallel_for(a2b.size(), f);
   return b2a;
 }
@@ -174,9 +167,7 @@ Graph invert_by_sorting(LOs a2b, LO nb) {
 Graph invert_by_atomics(LOs a2b, LO nb) {
   LO na = a2b.size();
   Write<LO> degrees(nb, 0);
-  auto count = LAMBDA(LO a) {
-    atomic_increment(&degrees[a2b[a]]);
-  };
+  auto count = LAMBDA(LO a) { atomic_increment(&degrees[a2b[a]]); };
   parallel_for(na, count);
   auto b2ba = offset_scan(Read<LO>(degrees));
   LO nba = b2ba.get(nb);
@@ -195,19 +186,19 @@ Graph invert_by_atomics(LOs a2b, LO nb) {
 
 Graph invert(LOs a2b, LO nb, InvertMethod method) {
   switch (method) {
-  case BY_SORTING: return invert_by_sorting(a2b, nb);
-  case BY_ATOMICS: return invert_by_atomics(a2b, nb);
+    case BY_SORTING:
+      return invert_by_sorting(a2b, nb);
+    case BY_ATOMICS:
+      return invert_by_atomics(a2b, nb);
   }
   NORETURN(Graph());
 }
 
-} //end namespace map
+}  // end namespace map
 
 LOs get_degrees(LOs offsets) {
   Write<LO> degrees(offsets.size() - 1);
-  auto f = LAMBDA(LO i) {
-    degrees[i] = offsets[i + 1] - offsets[i];
-  };
+  auto f = LAMBDA(LO i) { degrees[i] = offsets[i + 1] - offsets[i]; };
   parallel_for(degrees.size(), f);
   return degrees;
 }
@@ -216,10 +207,8 @@ LOs invert_fan(LOs a2b) {
   auto na = a2b.size() - 1;
   auto nb = a2b.last();
   Write<LO> b2a(nb, -1);
-  auto f = LAMBDA(LO a)
-  {
-    if (a2b[a] != a2b[a + 1])
-      b2a[a2b[a]] = a;
+  auto f = LAMBDA(LO a) {
+    if (a2b[a] != a2b[a + 1]) b2a[a2b[a]] = a;
   };
   parallel_for(na, f);
   fill_right(b2a);
@@ -227,11 +216,8 @@ LOs invert_fan(LOs a2b) {
 }
 
 template <typename Functor>
-static Read<typename Functor::input_type>
-fan_reduce_tmpl(
-    LOs a2b,
-    Read<typename Functor::input_type> b_data,
-    Int width) {
+static Read<typename Functor::input_type> fan_reduce_tmpl(
+    LOs a2b, Read<typename Functor::input_type> b_data, Int width) {
   typedef typename Functor::input_type T;
   typedef typename Functor::value_type VT;
   CHECK(a2b.last() * width == b_data.size());
@@ -256,15 +242,18 @@ fan_reduce_tmpl(
 template <typename T>
 Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
   switch (op) {
-  case OSH_MIN: return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
-  case OSH_MAX: return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
-  case OSH_SUM: return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
+    case OSH_MIN:
+      return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
+    case OSH_MAX:
+      return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
+    case OSH_SUM:
+      return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
   }
   NORETURN(Read<T>());
 }
 
 #define INST_T(T) \
-template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
+  template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(Real)

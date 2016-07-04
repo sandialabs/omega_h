@@ -17,10 +17,8 @@ Graph add_edges(Graph g1, Graph g2) {
     auto begin = v2e[v];
     auto end = v2e[v + 1];
     auto k = begin;
-    for (auto j = begin1; j < end1; ++j)
-      e2v[k++] = e2v1[j];
-    for (auto j = begin2; j < end2; ++j)
-      e2v[k++] = e2v2[j];
+    for (auto j = begin1; j < end1; ++j) e2v[k++] = e2v1[j];
+    for (auto j = begin2; j < end2; ++j) e2v[k++] = e2v2[j];
     CHECK(k == end);
   };
   parallel_for(nv, f);
@@ -77,16 +75,14 @@ Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, osh_op op) {
   auto ab_data = unmap(ab2b, b_data, width);
   return fan_reduce(a2ab, ab_data, width, op);
 }
-#define INST_T(T) \
-template \
-Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
+#define INST_T(T) template Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
 INST_T(I8)
 INST_T(I32)
 INST_T(Real)
 #undef INST_T
 
-Reals graph_weighted_average(Graph a2b, Reals ab_weights,
-    Reals b_data, Int width) {
+Reals graph_weighted_average(Graph a2b, Reals ab_weights, Reals b_data,
+                             Int width) {
   auto a2ab = a2b.a2ab;
   auto ab2b = a2b.ab2b;
   auto nab = a2ab.last();

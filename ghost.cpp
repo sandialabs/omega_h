@@ -13,9 +13,8 @@ Remotes get_local_elem_uses2own_elems(Mesh* mesh) {
   return unmap(uses2elems, elems2own);
 }
 
-void get_own_verts2own_elem_uses(Mesh* mesh,
-    Remotes& serv_uses2own_elems,
-    LOs& own_verts2serv_uses) {
+void get_own_verts2own_elem_uses(Mesh* mesh, Remotes& serv_uses2own_elems,
+                                 LOs& own_verts2serv_uses) {
   auto local_uses2own_elems = get_local_elem_uses2own_elems(mesh);
   auto local_uses2own_verts = get_local_elem_uses2own_verts(mesh);
   serv_uses2own_elems = local_uses2own_verts.exch(local_uses2own_elems, 1);
@@ -23,14 +22,12 @@ void get_own_verts2own_elem_uses(Mesh* mesh,
   own_verts2serv_uses = own_verts2local_uses.roots2items();
 }
 
-Remotes push_elem_uses(
-    Remotes serv_uses2own_elems,
-    LOs own_verts2serv_uses,
-    Dist own_verts2verts) {
+Remotes push_elem_uses(Remotes serv_uses2own_elems, LOs own_verts2serv_uses,
+                       Dist own_verts2verts) {
   auto nown_verts = own_verts2verts.nroots();
   auto own_verts2serv_verts = own_verts2verts.roots2items();
-  auto own_verts2items = multiply_fans(
-      own_verts2serv_uses, own_verts2serv_verts);
+  auto own_verts2items =
+      multiply_fans(own_verts2serv_uses, own_verts2serv_verts);
   auto nitems = own_verts2items.last();
   auto serv_verts2verts = own_verts2verts.items2dests();
   Write<I32> elem_ranks(nitems);
@@ -39,11 +36,9 @@ Remotes push_elem_uses(
   Write<LO> vert_idxs(nitems);
   auto f = LAMBDA(LO ov) {
     auto item = own_verts2items[ov];
-    for (auto sv = own_verts2serv_verts[ov];
-         sv < own_verts2serv_verts[ov + 1];
+    for (auto sv = own_verts2serv_verts[ov]; sv < own_verts2serv_verts[ov + 1];
          ++sv) {
-      for (auto su = own_verts2serv_uses[ov];
-           su < own_verts2serv_uses[ov + 1];
+      for (auto su = own_verts2serv_uses[ov]; su < own_verts2serv_uses[ov + 1];
            ++su) {
         elem_ranks[item] = serv_uses2own_elems.ranks[su];
         elem_idxs[item] = serv_uses2own_elems.idxs[su];
@@ -58,8 +53,7 @@ Remotes push_elem_uses(
   auto verts2own_verts = own_verts2verts.invert();
   auto nverts = verts2own_verts.nitems();
   auto items2verts_map = Remotes(Read<I32>(vert_ranks), LOs(vert_idxs));
-  Dist items2verts(own_verts2verts.parent_comm(),
-      items2verts_map, nverts);
+  Dist items2verts(own_verts2verts.parent_comm(), items2verts_map, nverts);
   auto items2own_elems = Remotes(Read<I32>(elem_ranks), LOs(elem_idxs));
   return items2verts.exch(items2own_elems, 1);
 }
@@ -67,13 +61,11 @@ Remotes push_elem_uses(
 void ghost_mesh(Mesh* mesh, bool verbose) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(mesh,
-      own_vert_uses2own_elems,
-      own_verts2own_vert_uses);
-  auto elem_uses = push_elem_uses(
-      own_vert_uses2own_elems,
-      own_verts2own_vert_uses,
-      mesh->ask_dist(VERT).invert());
+  get_own_verts2own_elem_uses(mesh, own_vert_uses2own_elems,
+                              own_verts2own_vert_uses);
+  auto elem_uses =
+      push_elem_uses(own_vert_uses2own_elems, own_verts2own_vert_uses,
+                     mesh->ask_dist(VERT).invert());
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2owners = own_elems2elems.invert();
@@ -85,16 +77,14 @@ void ghost_mesh(Mesh* mesh, bool verbose) {
 void partition_by_verts(Mesh* mesh, bool verbose) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(mesh,
-      own_vert_uses2own_elems,
-      own_verts2own_vert_uses);
-  auto uses2old_owners = Dist(mesh->comm(),
-      own_vert_uses2own_elems, mesh->nelems());
+  get_own_verts2own_elem_uses(mesh, own_vert_uses2own_elems,
+                              own_verts2own_vert_uses);
+  auto uses2old_owners =
+      Dist(mesh->comm(), own_vert_uses2own_elems, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2owners = own_elems2elems.invert();
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, elems2owners, OSH_VERT_BASED,
-      verbose);
+  migrate_mesh(mesh, &new_mesh, elems2owners, OSH_VERT_BASED, verbose);
   *mesh = new_mesh;
 }
 

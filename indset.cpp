@@ -1,16 +1,9 @@
 namespace indset {
 
-enum {
-  NOT_IN,
-  IN,
-  UNKNOWN
-};
+enum { NOT_IN, IN, UNKNOWN };
 
-static Read<I8> local_iteration(
-    LOs xadj, LOs adj,
-    Reals quality,
-    Read<GO> global,
-    Read<I8> old_state) {
+static Read<I8> local_iteration(LOs xadj, LOs adj, Reals quality,
+                                Read<GO> global, Read<I8> old_state) {
   auto n = global.size();
   Write<I8> new_state = deep_copy(old_state);
   auto f = LAMBDA(LO v) {
@@ -44,30 +37,24 @@ static Read<I8> local_iteration(
   return new_state;
 }
 
-static Read<I8> iteration(
-    Mesh* mesh, Int dim,
-    LOs xadj, LOs adj,
-    Reals quality,
-    Read<GO> global,
-    Read<I8> old_state) {
+static Read<I8> iteration(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
+                          Read<GO> global, Read<I8> old_state) {
   auto local_state = local_iteration(xadj, adj, quality, global, old_state);
   auto synced_state = mesh->sync_array(dim, local_state, 1);
   return synced_state;
 }
 
-static Read<I8> find(
-    Mesh* mesh, Int dim,
-    LOs xadj, LOs adj,
-    Reals quality,
-    Read<GO> global,
-    Read<I8> candidates) {
+static Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
+                     Read<GO> global, Read<I8> candidates) {
   auto n = global.size();
   CHECK(quality.size() == n);
   CHECK(candidates.size() == n);
   auto initial_state = Write<I8>(n);
   auto f = LAMBDA(LO i) {
-    if (candidates[i]) initial_state[i] = UNKNOWN;
-    else initial_state[i] = NOT_IN;
+    if (candidates[i])
+      initial_state[i] = UNKNOWN;
+    else
+      initial_state[i] = NOT_IN;
   };
   parallel_for(n, f);
   auto comm = mesh->comm();
@@ -77,14 +64,10 @@ static Read<I8> find(
   }
   return state;
 }
-
 }
 
-Read<I8> find_indset(
-    Mesh* mesh,
-    Int ent_dim,
-    Reals quality,
-    Read<I8> candidates) {
+Read<I8> find_indset(Mesh* mesh, Int ent_dim, Reals quality,
+                     Read<I8> candidates) {
   mesh->owners_have_all_upward(ent_dim);
   auto graph = mesh->ask_star(ent_dim);
   auto xadj = graph.a2ab;

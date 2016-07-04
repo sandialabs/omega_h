@@ -16,8 +16,7 @@ template <Int dim>
 static Read<I64> dists_from_coords_dim(Reals coords) {
   auto bbox = find_bounding_box<dim>(coords);
   Real maxl = 0;
-  for (Int i = 0; i < dim; ++i)
-    maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
+  for (Int i = 0; i < dim; ++i) maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
   LO npts = coords.size() / dim;
   Write<I64> out(npts * dim);
   auto f = LAMBDA(LO i) {
@@ -27,7 +26,7 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
       /* floating-point coordinate to fine-grid integer coordinate,
          should be non-negative since we subtract the BBox min */
       Real coord = coords[i * dim + j];
-      Real zero_to_one_coord = (coord - bbox.min[j])/maxl;
+      Real zero_to_one_coord = (coord - bbox.min[j]) / maxl;
       Real zero_to_2eP_coord = zero_to_one_coord * exp2(Real(nbits));
       X[j] = hilbert::coord_t(zero_to_2eP_coord);
       /* some values will just graze the acceptable range
@@ -40,8 +39,7 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
     hilbert::AxestoTranspose(X, nbits, dim);
     hilbert::coord_t Y[dim];
     hilbert::untranspose(X, Y, nbits, dim);
-    for (Int j = 0; j < dim; ++j)
-    /* this cast *should* be safe... */
+    for (Int j = 0; j < dim; ++j) /* this cast *should* be safe... */
       out[i * dim + j] = static_cast<I64>(Y[j]);
   };
   parallel_for(npts, f);
@@ -59,4 +57,4 @@ LOs sort_coords(Reals coords, Int dim) {
   return sort_by_keys(keys, dim);
 }
 
-}//end namespace hilbert
+}  // end namespace hilbert

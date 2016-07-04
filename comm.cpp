@@ -7,7 +7,7 @@ Comm::Comm() {
 }
 
 #ifdef OSH_USE_MPI
-Comm::Comm(MPI_Comm impl):impl_(impl) {
+Comm::Comm(MPI_Comm impl) : impl_(impl) {
   int topo_type;
   CALL(MPI_Topo_test(impl, &topo_type));
   if (topo_type == MPI_DIST_GRAPH) {
@@ -15,14 +15,9 @@ Comm::Comm(MPI_Comm impl):impl_(impl) {
     CALL(MPI_Dist_graph_neighbors_count(impl, &nin, &nout, &is_weighted));
     HostWrite<I32> sources(nin);
     HostWrite<I32> destinations(nout);
-    CALL(MPI_Dist_graph_neighbors(
-          impl,
-          nin,
-          sources.data(),
-          OSH_MPI_UNWEIGHTED,
-          nout,
-          destinations.data(),
-          OSH_MPI_UNWEIGHTED));
+    CALL(MPI_Dist_graph_neighbors(impl, nin, sources.data(), OSH_MPI_UNWEIGHTED,
+                                  nout, destinations.data(),
+                                  OSH_MPI_UNWEIGHTED));
     srcs_ = sources.write();
     dsts_ = destinations.write();
     host_srcs_ = HostRead<I32>(srcs_);
@@ -102,8 +97,8 @@ CommPtr Comm::split(I32 color, I32 key) const {
   CALL(MPI_Comm_split(impl_, color, key, &impl2));
   return CommPtr(new Comm(impl2));
 #else
-  (void) color;
-  (void) key;
+  (void)color;
+  (void)key;
   return CommPtr(new Comm());
 #endif
 }
@@ -116,16 +111,9 @@ CommPtr Comm::graph(Read<I32> dsts) const {
   int degrees[1] = {dsts.size()};
   HostRead<I32> destinations(dsts);
   int reorder = 0;
-  CALL(MPI_Dist_graph_create(
-        impl_,
-        n,
-        sources,
-        degrees,
-        destinations.data(),
-        OSH_MPI_UNWEIGHTED,
-        MPI_INFO_NULL,
-        reorder,
-        &impl2));
+  CALL(MPI_Dist_graph_create(impl_, n, sources, degrees, destinations.data(),
+                             OSH_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder,
+                             &impl2));
   return CommPtr(new Comm(impl2));
 #else
   return CommPtr(new Comm(dsts.size() == 1));
@@ -138,13 +126,10 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
   HostRead<I32> sources(srcs);
   HostRead<I32> destinations(dsts);
   int reorder = 0;
-  CALL(MPI_Dist_graph_create_adjacent(
-        impl_,
-        sources.size(), sources.data(),
-        OSH_MPI_UNWEIGHTED,
-        destinations.size(), destinations.data(),
-        OSH_MPI_UNWEIGHTED,
-        MPI_INFO_NULL, reorder, &impl2));
+  CALL(MPI_Dist_graph_create_adjacent(impl_, sources.size(), sources.data(),
+                                      OSH_MPI_UNWEIGHTED, destinations.size(),
+                                      destinations.data(), OSH_MPI_UNWEIGHTED,
+                                      MPI_INFO_NULL, reorder, &impl2));
   return CommPtr(new Comm(impl2));
 #else
   CHECK(srcs == dsts);
@@ -156,21 +141,17 @@ CommPtr Comm::graph_inverse() const {
   return graph_adjacent(destinations(), sources());
 }
 
-Read<I32> Comm::sources() const {
-  return srcs_;
-}
+Read<I32> Comm::sources() const { return srcs_; }
 
-Read<I32> Comm::destinations() const {
-  return dsts_;
-}
+Read<I32> Comm::destinations() const { return dsts_; }
 
 template <typename T>
 T Comm::allreduce(T x, osh_op op) const {
 #ifdef OSH_USE_MPI
-  CALL(MPI_Allreduce(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(),
-        mpi_op(op), impl_));
+  CALL(MPI_Allreduce(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(), mpi_op(op),
+                     impl_));
 #else
-  (void) op;
+  (void)op;
 #endif
   return x;
 }
@@ -200,8 +181,7 @@ Int128 Comm::add_int128(Int128 x) const {
   MPI_Op op;
   int commute = true;
   CALL(MPI_Op_create(mpi_add_int128, commute, &op));
-  CALL(MPI_Allreduce(MPI_IN_PLACE, &x, sizeof(Int128), MPI_PACKED,
-        op, impl_));
+  CALL(MPI_Allreduce(MPI_IN_PLACE, &x, sizeof(Int128), MPI_PACKED, op, impl_));
   CALL(MPI_Op_free(&op));
 #endif
   return x;
@@ -210,14 +190,13 @@ Int128 Comm::add_int128(Int128 x) const {
 template <typename T>
 T Comm::exscan(T x, osh_op op) const {
 #ifdef OSH_USE_MPI
-  CALL(MPI_Exscan(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(),
-        mpi_op(op), impl_));
-  if (rank() == 0)
-    x = 0;
+  CALL(MPI_Exscan(MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(), mpi_op(op),
+                  impl_));
+  if (rank() == 0) x = 0;
   return x;
 #else
-  (void) op;
-  (void) x;
+  (void)op;
+  (void)x;
   return 0;
 #endif
 }
@@ -227,7 +206,7 @@ void Comm::bcast(T& x) const {
 #ifdef OSH_USE_MPI
   CALL(MPI_Bcast(&x, 1, MpiTraits<T>::datatype(), 0, impl_));
 #else
-  (void) x;
+  (void)x;
 #endif
 }
 
@@ -238,7 +217,7 @@ void Comm::bcast_string(std::string& s) const {
   s.resize(static_cast<std::size_t>(len));
   CALL(MPI_Bcast(&s[0], len, MPI_CHAR, 0, impl_));
 #else
-  (void) s;
+  (void)s;
 #endif
 }
 
@@ -249,17 +228,11 @@ void Comm::bcast_string(std::string& s) const {
  * than version 3.0
  */
 
-static int Neighbor_allgather(
-    HostRead<I32> sources,
-    HostRead<I32> destinations,
-    const void *sendbuf,
-    int sendcount,
-    MPI_Datatype sendtype,
-    void *recvbuf,
-    int recvcount,
-    MPI_Datatype recvtype,
-    MPI_Comm comm)
-{
+static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
+                              const void* sendbuf, int sendcount,
+                              MPI_Datatype sendtype, void* recvbuf,
+                              int recvcount, MPI_Datatype recvtype,
+                              MPI_Comm comm) {
 #if MPI_VERSION < 3
   static int const tag = 42;
   int indegree, outdegree;
@@ -270,29 +243,23 @@ static int Neighbor_allgather(
   MPI_Request* recvreqs = new MPI_Request[indegree];
   MPI_Request* sendreqs = new MPI_Request[outdegree];
   for (int i = 0; i < indegree; ++i)
-    CALL(MPI_Irecv(
-          static_cast<char*>(recvbuf) + i * recvwidth,
-          recvcount, recvtype, sources[i], tag, comm,
-          recvreqs + i));
+    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * recvwidth, recvcount,
+                   recvtype, sources[i], tag, comm, recvreqs + i));
   CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Isend(
-          sendbuf,
-          sendcount, sendtype, destinations[i], tag, comm,
-          sendreqs + i));
+    CALL(MPI_Isend(sendbuf, sendcount, sendtype, destinations[i], tag, comm,
+                   sendreqs + i));
   CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-  delete [] sendreqs;
+  delete[] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
-  delete [] recvreqs;
+  delete[] recvreqs;
   return MPI_SUCCESS;
 #else
-  (void) sources;
-  (void) destinations;
-  return MPI_Neighbor_allgather(
-      sendbuf, sendcount, sendtype,
-      recvbuf, recvcount, recvtype,
-      comm);
-#endif // end if MPI_VERSION < 3
+  (void)sources;
+  (void)destinations;
+  return MPI_Neighbor_allgather(sendbuf, sendcount, sendtype, recvbuf,
+                                recvcount, recvtype, comm);
+#endif  // end if MPI_VERSION < 3
 }
 
 /* custom implementation of MPI_Neighbor_alltoall
@@ -300,17 +267,11 @@ static int Neighbor_allgather(
  * than version 3.0
  */
 
-static int Neighbor_alltoall(
-    HostRead<I32> sources,
-    HostRead<I32> destinations,
-    const void *sendbuf,
-    int sendcount,
-    MPI_Datatype sendtype,
-    void *recvbuf,
-    int recvcount,
-    MPI_Datatype recvtype,
-    MPI_Comm comm)
-{
+static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
+                             const void* sendbuf, int sendcount,
+                             MPI_Datatype sendtype, void* recvbuf,
+                             int recvcount, MPI_Datatype recvtype,
+                             MPI_Comm comm) {
 #if MPI_VERSION < 3
   static int const tag = 42;
   int indegree, outdegree;
@@ -323,29 +284,23 @@ static int Neighbor_alltoall(
   MPI_Request* recvreqs = new MPI_Request[indegree];
   MPI_Request* sendreqs = new MPI_Request[outdegree];
   for (int i = 0; i < indegree; ++i)
-    CALL(MPI_Irecv(
-          static_cast<char*>(recvbuf) + i * recvwidth,
-          recvcount, recvtype, sources[i], tag, comm,
-          recvreqs + i));
+    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * recvwidth, recvcount,
+                   recvtype, sources[i], tag, comm, recvreqs + i));
   CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Isend(
-          static_cast<char const*>(sendbuf) + i * sendwidth,
-          sendcount, sendtype, destinations[i], tag, comm,
-          sendreqs + i));
+    CALL(MPI_Isend(static_cast<char const*>(sendbuf) + i * sendwidth, sendcount,
+                   sendtype, destinations[i], tag, comm, sendreqs + i));
   CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-  delete [] sendreqs;
+  delete[] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
-  delete [] recvreqs;
+  delete[] recvreqs;
   return MPI_SUCCESS;
 #else
-  (void) sources;
-  (void) destinations;
-  return MPI_Neighbor_alltoall(
-      sendbuf, sendcount, sendtype,
-      recvbuf, recvcount, recvtype,
-      comm);
-#endif // end if MPI_VERSION < 3
+  (void)sources;
+  (void)destinations;
+  return MPI_Neighbor_alltoall(sendbuf, sendcount, sendtype, recvbuf, recvcount,
+                               recvtype, comm);
+#endif  // end if MPI_VERSION < 3
 }
 
 /* custom implementation of MPI_Neighbor_alltoallv
@@ -353,19 +308,12 @@ static int Neighbor_alltoall(
  * than version 3.0
  */
 
-static int Neighbor_alltoallv(
-    HostRead<I32> sources,
-    HostRead<I32> destinations,
-    const void *sendbuf,
-    const int sendcounts[],
-    const int sdispls[],
-    MPI_Datatype sendtype,
-    void *recvbuf,
-    const int recvcounts[],
-    const int rdispls[],
-    MPI_Datatype recvtype,
-    MPI_Comm comm)
-{
+static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
+                              const void* sendbuf, const int sendcounts[],
+                              const int sdispls[], MPI_Datatype sendtype,
+                              void* recvbuf, const int recvcounts[],
+                              const int rdispls[], MPI_Datatype recvtype,
+                              MPI_Comm comm) {
 #if MPI_VERSION < 3
   static int const tag = 42;
   int indegree, outdegree;
@@ -378,46 +326,39 @@ static int Neighbor_alltoallv(
   MPI_Request* recvreqs = new MPI_Request[indegree];
   MPI_Request* sendreqs = new MPI_Request[outdegree];
   for (int i = 0; i < indegree; ++i)
-    CALL(MPI_Irecv(
-          static_cast<char*>(recvbuf) + rdispls[i] * recvwidth,
-          recvcounts[i], recvtype, sources[i], tag, comm,
-          recvreqs + i));
+    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + rdispls[i] * recvwidth,
+                   recvcounts[i], recvtype, sources[i], tag, comm,
+                   recvreqs + i));
   CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Isend(
-          static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth,
-          sendcounts[i], sendtype, destinations[i], tag, comm,
-          sendreqs + i));
+    CALL(MPI_Isend(static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth,
+                   sendcounts[i], sendtype, destinations[i], tag, comm,
+                   sendreqs + i));
   CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-  delete [] sendreqs;
+  delete[] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
-  delete [] recvreqs;
+  delete[] recvreqs;
   return MPI_SUCCESS;
 #else
-  (void) sources;
-  (void) destinations;
-  return MPI_Neighbor_alltoallv(
-      sendbuf, sendcounts, sdispls, sendtype,
-      recvbuf, recvcounts, rdispls, recvtype,
-      comm);
-#endif // end if MPI_VERSION < 3
+  (void)sources;
+  (void)destinations;
+  return MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf,
+                                recvcounts, rdispls, recvtype, comm);
+#endif  // end if MPI_VERSION < 3
 }
 
-#endif //end ifdef OSH_USE_MPI
+#endif  // end ifdef OSH_USE_MPI
 
 template <typename T>
 Read<T> Comm::allgather(T x) const {
 #ifdef OSH_USE_MPI
   HostWrite<T> recvbuf(srcs_.size());
-  CALL(Neighbor_allgather(
-        host_srcs_, host_dsts_,
-        &x,          1, MpiTraits<T>::datatype(),
-        recvbuf.data(), 1, MpiTraits<T>::datatype(),
-        impl_));
+  CALL(Neighbor_allgather(host_srcs_, host_dsts_, &x, 1,
+                          MpiTraits<T>::datatype(), recvbuf.data(), 1,
+                          MpiTraits<T>::datatype(), impl_));
   return recvbuf.write();
 #else
-  if (srcs_.size() == 1)
-    return Read<T>({x});
+  if (srcs_.size() == 1) return Read<T>({x});
   return Read<T>();
 #endif
 }
@@ -427,11 +368,9 @@ Read<T> Comm::alltoall(Read<T> x) const {
 #ifdef OSH_USE_MPI
   HostWrite<T> recvbuf(srcs_.size());
   HostRead<T> sendbuf(x);
-  CALL(Neighbor_alltoall(
-        host_srcs_, host_dsts_,
-        sendbuf.data(), 1, MpiTraits<T>::datatype(),
-        recvbuf.data(), 1, MpiTraits<T>::datatype(),
-        impl_));
+  CALL(Neighbor_alltoall(host_srcs_, host_dsts_, sendbuf.data(), 1,
+                         MpiTraits<T>::datatype(), recvbuf.data(), 1,
+                         MpiTraits<T>::datatype(), impl_));
   return recvbuf.write();
 #else
   return x;
@@ -439,9 +378,9 @@ Read<T> Comm::alltoall(Read<T> x) const {
 }
 
 template <typename T>
-Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
-    Read<LO> sendcounts_dev, Read<LO> sdispls_dev,
-    Read<LO> recvcounts_dev, Read<LO> rdispls_dev) const {
+Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
+                        Read<LO> sdispls_dev, Read<LO> recvcounts_dev,
+                        Read<LO> rdispls_dev) const {
 #ifdef OSH_USE_MPI
   HostRead<T> sendbuf(sendbuf_dev);
   HostRead<LO> sendcounts(sendcounts_dev);
@@ -456,18 +395,15 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
   CHECK(sdispls.size() == sendcounts.size() + 1);
   CHECK(sendbuf.size() == sdispls.last());
   CALL(Neighbor_alltoallv(
-        host_srcs_, host_dsts_,
-        sendbuf.data(), sendcounts.data(), sdispls.data(),
-        MpiTraits<T>::datatype(),
-        recvbuf.data(), recvcounts.data(), rdispls.data(),
-        MpiTraits<T>::datatype(),
-        impl_));
+      host_srcs_, host_dsts_, sendbuf.data(), sendcounts.data(), sdispls.data(),
+      MpiTraits<T>::datatype(), recvbuf.data(), recvcounts.data(),
+      rdispls.data(), MpiTraits<T>::datatype(), impl_));
   return recvbuf.write();
 #else
-  (void) sendcounts_dev;
-  (void) recvcounts_dev;
-  (void) sdispls_dev;
-  (void) rdispls_dev;
+  (void)sendcounts_dev;
+  (void)recvcounts_dev;
+  (void)sdispls_dev;
+  (void)rdispls_dev;
   return sendbuf_dev;
 #endif
 }
@@ -480,15 +416,15 @@ void Comm::barrier() const {
 
 #undef CALL
 
-#define INST_T(T) \
-template T Comm::allreduce(T x, osh_op op) const; \
-template T Comm::exscan(T x, osh_op op) const; \
-template void Comm::bcast(T& x) const; \
-template Read<T> Comm::allgather(T x) const; \
-template Read<T> Comm::alltoall(Read<T> x) const; \
-template Read<T> Comm::alltoallv(Read<T> sendbuf, \
-    Read<LO> sendcounts, Read<LO> sdispls, \
-    Read<LO> recvcounts, Read<LO> rdispls) const;
+#define INST_T(T)                                                         \
+  template T Comm::allreduce(T x, osh_op op) const;                       \
+  template T Comm::exscan(T x, osh_op op) const;                          \
+  template void Comm::bcast(T& x) const;                                  \
+  template Read<T> Comm::allgather(T x) const;                            \
+  template Read<T> Comm::alltoall(Read<T> x) const;                       \
+  template Read<T> Comm::alltoallv(Read<T> sendbuf, Read<LO> sendcounts,  \
+                                   Read<LO> sdispls, Read<LO> recvcounts, \
+                                   Read<LO> rdispls) const;
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

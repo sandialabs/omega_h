@@ -1,6 +1,5 @@
-Read<I8> check_collapse_class(Mesh* mesh,
-    LOs cands2edges,
-    Read<I8> cand_codes) {
+Read<I8> check_collapse_class(Mesh* mesh, LOs cands2edges,
+                              Read<I8> cand_codes) {
   auto ncands = cands2edges.size();
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
@@ -13,8 +12,7 @@ Read<I8> check_collapse_class(Mesh* mesh,
     for (Int eev = 0; eev < 2; ++eev)
       eev2v[eev] = edge_verts2verts[edge * 2 + eev];
     Int eev_cd[2];
-    for (Int eev = 0; eev < 2; ++eev)
-      eev_cd[eev] = verts2class_dim[eev2v[eev]];
+    for (Int eev = 0; eev < 2; ++eev) eev_cd[eev] = verts2class_dim[eev2v[eev]];
     Int e_cd = edges2class_dim[edge];
     /* if both vertices are classified onto the same dimension,
        the edge must also be classified onto that dimension */
@@ -59,10 +57,8 @@ vertex ~~~~~~~~>  *
 
 */
 
-static Read<I8> check_collapse_exposure(Mesh* mesh,
-    LOs cands2edges,
-    Read<I8> cand_codes,
-    Int cell_dim) {
+static Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
+                                        Read<I8> cand_codes, Int cell_dim) {
   auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;
   auto ec2c = e2c.ab2b;
@@ -100,14 +96,13 @@ static Read<I8> check_collapse_exposure(Mesh* mesh,
   return cand_codes_w;
 }
 
-Read<I8> check_collapse_exposure(Mesh* mesh,
-    LOs cands2edges,
-    Read<I8> cand_codes) {
+Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
+                                 Read<I8> cand_codes) {
   CHECK(mesh->parting() == OSH_GHOSTED);
   for (Int cell_dim = EDGE + 1; cell_dim <= mesh->dim(); ++cell_dim) {
-    cand_codes = check_collapse_exposure(
-        mesh, cands2edges, cand_codes, cell_dim);
+    cand_codes =
+        check_collapse_exposure(mesh, cands2edges, cand_codes, cell_dim);
   }
   return mesh->sync_subset_array(EDGE, cand_codes, cands2edges,
-      I8(DONT_COLLAPSE), 1);
+                                 I8(DONT_COLLAPSE), 1);
 }

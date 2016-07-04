@@ -1,20 +1,19 @@
 #ifdef OSH_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view):
-  view_(view)
-{
+Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
   CHECK(exists());
 }
 #endif
 
 template <typename T>
-Write<T>::Write(LO size):
+Write<T>::Write(LO size)
+    :
 #ifdef OSH_USE_KOKKOS
-  /* +1 for ::exists() to work, see Kokkos issue #244 */
-  view_("omega_h", static_cast<std::size_t>(size + 1))
+      /* +1 for ::exists() to work, see Kokkos issue #244 */
+      view_("omega_h", static_cast<std::size_t>(size + 1))
 #else
-  ptr_(new T[size], std::default_delete<T[]>()),
-  size_(size)
+      ptr_(new T[size], std::default_delete<T[]>()),
+      size_(size)
 #endif
 {
   CHECK(exists());
@@ -22,39 +21,28 @@ Write<T>::Write(LO size):
 
 template <typename T>
 static void fill(Write<T> a, T val) {
-  auto f = LAMBDA(LO i) {
-    a[i] = val;
-  };
+  auto f = LAMBDA(LO i) { a[i] = val; };
   parallel_for(a.size(), f);
 }
 
 template <typename T>
-Write<T>::Write(LO size, T value):
-  Write<T>(size)
-{
+Write<T>::Write(LO size, T value) : Write<T>(size) {
   fill(*this, value);
 }
 
 template <typename T>
 void fill_linear(Write<T> a, T offset, T stride) {
-  auto f = LAMBDA(LO i) {
-    a[i] = offset + (stride * static_cast<T>(i));
-  };
+  auto f = LAMBDA(LO i) { a[i] = offset + (stride * static_cast<T>(i)); };
   parallel_for(a.size(), f);
 }
 
 template <typename T>
-Write<T>::Write(LO size, T offset, T stride):
-  Write<T>(size)
-{
+Write<T>::Write(LO size, T offset, T stride) : Write<T>(size) {
   fill_linear(*this, offset, stride);
 }
 
 template <typename T>
-Write<T>::Write(HostWrite<T> host_write):
-  Write<T>(host_write.write())
-{
-}
+Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
 template <typename T>
 LO Write<T>::size() const {
@@ -111,9 +99,8 @@ template <typename T>
 struct Sum : public SumFunctor<T> {
   typedef typename SumFunctor<T>::value_type value_type;
   Read<T> a_;
-  Sum(Read<T> a):a_(a) {}
-  DEVICE void operator()(LO i, value_type& update) const
-  {
+  Sum(Read<T> a) : a_(a) {}
+  DEVICE void operator()(LO i, value_type& update) const {
     update = update + a_[i];
   }
 };
@@ -127,7 +114,7 @@ template <typename T>
 struct Min : public MinFunctor<T> {
   typedef typename MinFunctor<T>::value_type value_type;
   Read<T> a_;
-  Min(Read<T> a):a_(a) {}
+  Min(Read<T> a) : a_(a) {}
   DEVICE void operator()(LO i, value_type& update) const {
     update = min2<value_type>(update, a_[i]);
   }
@@ -136,14 +123,14 @@ struct Min : public MinFunctor<T> {
 template <typename T>
 T min(Read<T> a) {
   auto r = parallel_reduce(a.size(), Min<T>(a));
-  return static_cast<T>(r); //see StandinTraits
+  return static_cast<T>(r);  // see StandinTraits
 }
 
 template <typename T>
 struct Max : public MaxFunctor<T> {
   typedef typename MaxFunctor<T>::value_type value_type;
   Read<T> a_;
-  Max(Read<T> a):a_(a) {}
+  Max(Read<T> a) : a_(a) {}
   DEVICE void operator()(LO i, value_type& update) const {
     update = max2<value_type>(update, a_[i]);
   }
@@ -152,7 +139,7 @@ struct Max : public MaxFunctor<T> {
 template <typename T>
 T max(Read<T> a) {
   auto r = parallel_reduce(a.size(), Max<T>(a));
-  return static_cast<T>(r); //see StandinTraits
+  return static_cast<T>(r);  // see StandinTraits
 }
 
 template <typename T>
@@ -170,30 +157,21 @@ T max(CommPtr comm, Read<T> a) {
   return comm->allreduce(min(a), OSH_MAX);
 }
 
-Reals::Reals():
-  Read<Real>()
-{}
+Reals::Reals() : Read<Real>() {}
 
-Reals::Reals(Write<Real> write):
-  Read<Real>(write)
-{}
+Reals::Reals(Write<Real> write) : Read<Real>(write) {}
 
-Reals::Reals(LO size, Real value):
-  Read<Real>(size, value)
-{}
+Reals::Reals(LO size, Real value) : Read<Real>(size, value) {}
 
-Reals::Reals(std::initializer_list<Real> l):
-  Read<Real>(l)
-{}
+Reals::Reals(std::initializer_list<Real> l) : Read<Real>(l) {}
 
 struct AreClose : public AndFunctor {
   Reals a_;
   Reals b_;
   Real tol_;
   Real floor_;
-  AreClose(Reals a, Reals b, Real tol, Real floor):
-    a_(a),b_(b),tol_(tol),floor_(floor)
-  {}
+  AreClose(Reals a, Reals b, Real tol, Real floor)
+      : a_(a), b_(b), tol_(tol), floor_(floor) {}
   DEVICE void operator()(LO i, value_type& update) const {
     update = update && are_close(a_[i], b_[i], tol_, floor_);
   }
@@ -201,45 +179,29 @@ struct AreClose : public AndFunctor {
 
 bool are_close(Reals a, Reals b, Real tol, Real floor) {
   CHECK(a.size() == b.size());
-  return static_cast<bool>(parallel_reduce(a.size(),
-        AreClose(a, b, tol, floor)));
+  return static_cast<bool>(
+      parallel_reduce(a.size(), AreClose(a, b, tol, floor)));
 }
 
-LOs::LOs(Write<LO> write):
-  Read<LO>(write) {
-}
+LOs::LOs(Write<LO> write) : Read<LO>(write) {}
 
-LOs::LOs(LO size, LO value):
-  Read<LO>(size, value) {
-}
+LOs::LOs(LO size, LO value) : Read<LO>(size, value) {}
 
-LOs::LOs(LO size, LO offset, LO stride):
-  Read<LO>(size, offset, stride) {
-}
+LOs::LOs(LO size, LO offset, LO stride) : Read<LO>(size, offset, stride) {}
 
-LOs::LOs(std::initializer_list<LO> l):
-  Read<LO>(l) {
-}
+LOs::LOs(std::initializer_list<LO> l) : Read<LO>(l) {}
 
 template <typename T>
-Read<T>::Read(Write<T> write):
-  write_(write) {
-}
+Read<T>::Read(Write<T> write) : write_(write) {}
 
 template <typename T>
-Read<T>::Read(LO size, T value):
-  write_(size, value) {
-}
+Read<T>::Read(LO size, T value) : write_(size, value) {}
 
 template <typename T>
-Read<T>::Read(LO size, T offset, T stride):
-  write_(size, offset, stride) {
-}
+Read<T>::Read(LO size, T offset, T stride) : write_(size, offset, stride) {}
 
 template <typename T>
-Read<T>::Read(std::initializer_list<T> l):
-  Read<T>(HostWrite<T>(l).write()) {
-}
+Read<T>::Read(std::initializer_list<T> l) : Read<T>(HostWrite<T>(l).write()) {}
 
 template <typename T>
 LO Read<T>::size() const {
@@ -277,15 +239,14 @@ template <class T>
 struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
-  SameContent(Read<T> a, Read<T> b):a_(a),b_(b) {}
+  SameContent(Read<T> a, Read<T> b) : a_(a), b_(b) {}
   DEVICE void operator()(LO i, value_type& update) const {
     update = update && (a_[i] == b_[i]);
   }
 };
 
 template <class T>
-bool operator==(Read<T> a, Read<T> b)
-{
+bool operator==(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   return parallel_reduce(a.size(), SameContent<T>(a, b));
 }
@@ -296,38 +257,35 @@ Write<T> deep_copy(Read<T> a) {
 #ifdef OSH_USE_KOKKOS
   Kokkos::deep_copy(b.view(), a.view());
 #else
-  auto f = LAMBDA(LO i) {
-    b[i] = a[i];
-  };
+  auto f = LAMBDA(LO i) { b[i] = a[i]; };
   parallel_for(b.size(), f);
 #endif
   return b;
 }
 
 template <typename T>
-HostWrite<T>::HostWrite()
-{
-}
+HostWrite<T>::HostWrite() {}
 
 template <typename T>
-HostWrite<T>::HostWrite(LO size):
-  write_(size)
+HostWrite<T>::HostWrite(LO size)
+    : write_(size)
 #ifdef OSH_USE_KOKKOS
-  ,mirror_(Kokkos::create_mirror_view(write_.view()))
+      ,
+      mirror_(Kokkos::create_mirror_view(write_.view()))
 #endif
 {
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(LO size, T offset, T stride):
-  HostWrite<T>(Write<T>(size, offset, stride)) {
-}
+HostWrite<T>::HostWrite(LO size, T offset, T stride)
+    : HostWrite<T>(Write<T>(size, offset, stride)) {}
 
 template <typename T>
-HostWrite<T>::HostWrite(Write<T> write):
-  write_(write)
+HostWrite<T>::HostWrite(Write<T> write)
+    : write_(write)
 #ifdef OSH_USE_KOKKOS
-  ,mirror_(Kokkos::create_mirror_view(write_.view()))
+      ,
+      mirror_(Kokkos::create_mirror_view(write_.view()))
 #endif
 {
 #ifdef OSH_USE_KOKKOS
@@ -336,12 +294,11 @@ HostWrite<T>::HostWrite(Write<T> write):
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(std::initializer_list<T> l):
-  // an initializer_list should never have over 2 billion items...
-  HostWrite<T>(static_cast<LO>(l.size())) {
+HostWrite<T>::HostWrite(std::initializer_list<T> l)
+    :  // an initializer_list should never have over 2 billion items...
+      HostWrite<T>(static_cast<LO>(l.size())) {
   LO i = 0;
-  for (auto v : l)
-    operator[](i++) = v;
+  for (auto v : l) operator[](i++) = v;
 }
 
 template <typename T>
@@ -367,14 +324,14 @@ T* HostWrite<T>::data() const {
 }
 
 template <typename T>
-HostRead<T>::HostRead() {
-}
+HostRead<T>::HostRead() {}
 
 template <typename T>
-HostRead<T>::HostRead(Read<T> read):
-  read_(read)
+HostRead<T>::HostRead(Read<T> read)
+    : read_(read)
 #ifdef OSH_USE_KOKKOS
-  ,mirror_(Kokkos::create_mirror_view(read.view()))
+      ,
+      mirror_(Kokkos::create_mirror_view(read.view()))
 #endif
 {
 #ifdef OSH_USE_KOKKOS
@@ -424,9 +381,7 @@ std::ostream& operator<<(std::ostream& o, Read<T> a) {
 template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
-  auto f = LAMBDA(LO i) {
-    b[i] = a[i] * factor;
-  };
+  auto f = LAMBDA(LO i) { b[i] = a[i] * factor; };
   parallel_for(a.size(), f);
   return b;
 }
@@ -463,9 +418,7 @@ template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = a[i] + b[i];
-  };
+  auto f = LAMBDA(LO i) { c[i] = a[i] + b[i]; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -474,9 +427,7 @@ template <typename T>
 Read<T> subtract_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = a[i] - b[i];
-  };
+  auto f = LAMBDA(LO i) { c[i] = a[i] - b[i]; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -484,9 +435,7 @@ Read<T> subtract_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<T> add_to_each(Read<T> a, T b) {
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = a[i] + b;
-  };
+  auto f = LAMBDA(LO i) { c[i] = a[i] + b; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -494,9 +443,7 @@ Read<T> add_to_each(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_geq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] >= b);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] >= b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -504,9 +451,7 @@ Read<I8> each_geq_to(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_gt(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] > b);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] > b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -514,9 +459,7 @@ Read<I8> each_gt(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_lt(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] < b);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] < b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -525,9 +468,7 @@ template <typename T>
 Read<I8> gt_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] > b[i]);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] > b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -536,9 +477,7 @@ template <typename T>
 Read<I8> geq_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] >= b[i]);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] >= b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -546,9 +485,7 @@ Read<I8> geq_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] != b);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] != b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -556,9 +493,7 @@ Read<I8> each_neq_to(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] == b);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] == b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -566,9 +501,7 @@ Read<I8> each_eq_to(Read<T> a, T b) {
 Read<I8> land_each(Read<I8> a, Read<I8> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] && b[i]);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] && b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -576,9 +509,7 @@ Read<I8> land_each(Read<I8> a, Read<I8> b) {
 Read<I8> lor_each(Read<I8> a, Read<I8> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) {
-    c[i] = (a[i] || b[i]);
-  };
+  auto f = LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -587,40 +518,38 @@ template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   CHECK(a.size() % ncomps == 0);
   Write<T> b(a.size() / ncomps);
-  auto f = LAMBDA(LO i) {
-    b[i] = a[i * ncomps + comp];
-  };
+  auto f = LAMBDA(LO i) { b[i] = a[i * ncomps + comp]; };
   parallel_for(b.size(), f);
   return b;
 }
 
-#define INST_ARRAY_T(T) \
-template class Write<T>; \
-template class Read<T>; \
-template class HostWrite<T>; \
-template class HostRead<T>; \
-template bool operator==(Read<T> a, Read<T> b); \
-template typename StandinTraits<T>::type sum(Read<T> a); \
-template T min(Read<T> a); \
-template T max(Read<T> a); \
-template typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a); \
-template T min(CommPtr comm, Read<T> a); \
-template T max(CommPtr comm, Read<T> a); \
-template Write<T> deep_copy(Read<T> a); \
-template std::ostream& operator<<(std::ostream& o, Read<T> a); \
-template Read<T> multiply_each_by(T factor, Read<T> x); \
-template Read<T> multiply_each(Read<T> a, Read<T> b); \
-template Read<T> divide_each(Read<T> a, Read<T> b); \
-template Read<T> add_each(Read<T> a, Read<T> b); \
-template Read<T> subtract_each(Read<T> a, Read<T> b); \
-template Read<T> add_to_each(Read<T> a, T b); \
-template Read<I8> each_geq_to(Read<T> a, T b); \
-template Read<I8> each_gt(Read<T> a, T b); \
-template Read<I8> each_lt(Read<T> a, T b); \
-template Read<I8> each_neq_to(Read<T> a, T b); \
-template Read<I8> each_eq_to(Read<T> a, T b); \
-template Read<I8> gt_each(Read<T> a, Read<T> b); \
-template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
+#define INST_ARRAY_T(T)                                                  \
+  template class Write<T>;                                               \
+  template class Read<T>;                                                \
+  template class HostWrite<T>;                                           \
+  template class HostRead<T>;                                            \
+  template bool operator==(Read<T> a, Read<T> b);                        \
+  template typename StandinTraits<T>::type sum(Read<T> a);               \
+  template T min(Read<T> a);                                             \
+  template T max(Read<T> a);                                             \
+  template typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a); \
+  template T min(CommPtr comm, Read<T> a);                               \
+  template T max(CommPtr comm, Read<T> a);                               \
+  template Write<T> deep_copy(Read<T> a);                                \
+  template std::ostream& operator<<(std::ostream& o, Read<T> a);         \
+  template Read<T> multiply_each_by(T factor, Read<T> x);                \
+  template Read<T> multiply_each(Read<T> a, Read<T> b);                  \
+  template Read<T> divide_each(Read<T> a, Read<T> b);                    \
+  template Read<T> add_each(Read<T> a, Read<T> b);                       \
+  template Read<T> subtract_each(Read<T> a, Read<T> b);                  \
+  template Read<T> add_to_each(Read<T> a, T b);                          \
+  template Read<I8> each_geq_to(Read<T> a, T b);                         \
+  template Read<I8> each_gt(Read<T> a, T b);                             \
+  template Read<I8> each_lt(Read<T> a, T b);                             \
+  template Read<I8> each_neq_to(Read<T> a, T b);                         \
+  template Read<I8> each_eq_to(Read<T> a, T b);                          \
+  template Read<I8> gt_each(Read<T> a, Read<T> b);                       \
+  template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 
 INST_ARRAY_T(I8)
 INST_ARRAY_T(I32)

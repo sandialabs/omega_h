@@ -1,8 +1,7 @@
 struct RealRefineQualities {
   RealRefineQualities(Mesh*, LOs) {}
   template <Int dim>
-  INLINE Real measure(Int, Few<Vector<dim>, dim + 1> p,
-      Few<LO, dim>) const {
+  INLINE Real measure(Int, Few<Vector<dim>, dim + 1> p, Few<LO, dim>) const {
     return real_element_quality(p);
   }
 };
@@ -10,15 +9,14 @@ struct RealRefineQualities {
 struct MetricRefineQualities {
   Reals vert_metrics;
   Reals midpt_metrics;
-  MetricRefineQualities(Mesh* mesh, LOs candidates):
-    vert_metrics(mesh->get_array<Real>(VERT, "metric")),
-    midpt_metrics(average_metric(mesh, EDGE, candidates,
-          mesh->get_array<Real>(VERT, "metric")))
-  {}
+  MetricRefineQualities(Mesh* mesh, LOs candidates)
+      : vert_metrics(mesh->get_array<Real>(VERT, "metric")),
+        midpt_metrics(average_metric(mesh, EDGE, candidates,
+                                     mesh->get_array<Real>(VERT, "metric"))) {}
   template <Int dim>
   DEVICE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
-      Few<LO, dim> csv2v) const {
-    Few<Matrix<dim,dim>, dim + 1> ms;
+                      Few<LO, dim> csv2v) const {
+    Few<Matrix<dim, dim>, dim + 1> ms;
     for (Int csv = 0; csv < dim; ++csv)
       ms[csv] = get_symm<dim>(vert_metrics, csv2v[csv]);
     ms[dim] = get_symm<dim>(midpt_metrics, cand);
@@ -86,22 +84,17 @@ Reals refine_qualities(Mesh* mesh, LOs candidates) {
   auto have_metric = mesh->has_tag(VERT, "metric");
   if (have_metric) {
     if (dim == 3) {
-      return refine_qualities_tmpl<MetricRefineQualities,3>(
-          mesh, candidates);
+      return refine_qualities_tmpl<MetricRefineQualities, 3>(mesh, candidates);
     } else {
       CHECK(dim == 2);
-      return refine_qualities_tmpl<MetricRefineQualities,2>(
-          mesh, candidates);
+      return refine_qualities_tmpl<MetricRefineQualities, 2>(mesh, candidates);
     }
   } else {
     if (dim == 3) {
-      return refine_qualities_tmpl<RealRefineQualities,3>(
-          mesh, candidates);
+      return refine_qualities_tmpl<RealRefineQualities, 3>(mesh, candidates);
     } else {
       CHECK(dim == 2);
-      return refine_qualities_tmpl<RealRefineQualities,2>(
-          mesh, candidates);
+      return refine_qualities_tmpl<RealRefineQualities, 2>(mesh, candidates);
     }
   }
 }
-

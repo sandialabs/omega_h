@@ -18,11 +18,10 @@ static void copy_coords(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh) {
   }
   mesh_apf->end(iter);
   mesh_osh->add_tag(0, "coordinates", dim, OSH_LINEAR_INTERP,
-      osh::Reals(host_coords.write()));
+                    osh::Reals(host_coords.write()));
 }
 
-static void copy_class(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
-    int dim) {
+static void copy_class(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh, int dim) {
   auto nents = osh::LO(mesh_apf->count(dim));
   auto host_class_id = osh::HostWrite<osh::LO>(nents);
   auto host_class_dim = osh::HostWrite<osh::I8>(nents);
@@ -37,13 +36,13 @@ static void copy_class(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
   }
   mesh_apf->end(iter);
   mesh_osh->add_tag(dim, "class_dim", 1, OSH_INHERIT,
-      osh::Read<osh::I8>(host_class_dim.write()));
+                    osh::Read<osh::I8>(host_class_dim.write()));
   mesh_osh->add_tag(dim, "class_id", 1, OSH_INHERIT,
-      osh::LOs(host_class_id.write()));
+                    osh::LOs(host_class_id.write()));
 }
 
 static void copy_conn(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
-    apf::Numbering* vert_nums, int d) {
+                      apf::Numbering* vert_nums, int d) {
   auto nhigh = osh::LO(mesh_apf->count(d));
   auto deg = d + 1;
   osh::HostWrite<osh::LO> host_ev2v(nhigh * deg);
@@ -72,8 +71,7 @@ static void copy_conn(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
   mesh_osh->set_ents(d, high2low);
 }
 
-static void copy_globals(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
-    int dim) {
+static void copy_globals(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh, int dim) {
   apf::GlobalNumbering* globals_apf = apf::makeGlobal(
       apf::numberOwnedDimension(mesh_apf, "smb2osh_global", dim));
   apf::synchronize(globals_apf);
@@ -89,9 +87,9 @@ static void copy_globals(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
   apf::destroyGlobalNumbering(globals_apf);
   auto globals = osh::Read<osh::GO>(host_globals.write());
   mesh_osh->add_tag(dim, "global", 1, OSH_GLOBAL,
-      osh::Read<osh::GO>(host_globals.write()));
+                    osh::Read<osh::GO>(host_globals.write()));
   auto owners = osh::owners_from_globals(mesh_osh->comm(), globals,
-      osh::Read<osh::I32>());
+                                         osh::Read<osh::I32>());
   mesh_osh->set_owners(dim, owners);
 }
 
@@ -118,7 +116,7 @@ static void apf2osh(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh) {
 }
 
 int main(int argc, char** argv) {
-  MPI_Init(&argc,&argv);
+  MPI_Init(&argc, &argv);
   PCU_Comm_Init();
   if (argc != 4) {
     if (PCU_Comm_Self() == 0) {
@@ -134,13 +132,13 @@ int main(int argc, char** argv) {
   gmi_register_null();
   apf::Mesh2* am = apf::loadMdsMesh(argv[1], argv[2]);
   {
-  auto lib = osh::Library(&argc, &argv);
-  auto world = lib.world();
-  osh::Mesh om;
-  apf2osh(am, &om);
-  am->destroyNative();
-  apf::destroyMesh(am);
-  osh::binary::write(argv[3], &om);
+    auto lib = osh::Library(&argc, &argv);
+    auto world = lib.world();
+    osh::Mesh om;
+    apf2osh(am, &om);
+    am->destroyNative();
+    apf::destroyMesh(am);
+    osh::binary::write(argv[3], &om);
   }
   PCU_Comm_Free();
   MPI_Finalize();

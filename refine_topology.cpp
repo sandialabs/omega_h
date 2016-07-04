@@ -1,10 +1,6 @@
-static void refine_edges_to_pairs(
-    Mesh* mesh,
-    LOs keys2edges,
-    LOs keys2midverts,
-    LOs old_verts2new_verts,
-    LOs& keys2pairs,
-    LOs& pair_verts2verts) {
+static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
+                                  LOs old_verts2new_verts, LOs& keys2pairs,
+                                  LOs& pair_verts2verts) {
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto nkeys = keys2edges.size();
   auto ndoms = nkeys;
@@ -14,11 +10,11 @@ static void refine_edges_to_pairs(
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     pair_verts2verts_w[key * 4 + 0] =
-      old_verts2new_verts[edge_verts2verts[edge * 2 + 0]];
+        old_verts2new_verts[edge_verts2verts[edge * 2 + 0]];
     pair_verts2verts_w[key * 4 + 1] = midvert;
     pair_verts2verts_w[key * 4 + 2] = midvert;
     pair_verts2verts_w[key * 4 + 3] =
-      old_verts2new_verts[edge_verts2verts[edge * 2 + 1]];
+        old_verts2new_verts[edge_verts2verts[edge * 2 + 1]];
   };
   parallel_for(nkeys, f);
   keys2pairs = LOs(nkeys + 1, 0, 2);
@@ -38,18 +34,13 @@ static void refine_edges_to_pairs(
    interior entities created during mesh modification.
  */
 
-void refine_domains_to_pairs(
-    Mesh* mesh,
-    Int dim,
-    LOs keys2edges,
-    LOs keys2midverts,
-    LOs old_verts2new_verts,
-    LOs& keys2pairs,
-    LOs& pair_verts2verts) {
+void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
+                             LOs keys2midverts, LOs old_verts2new_verts,
+                             LOs& keys2pairs, LOs& pair_verts2verts) {
   CHECK(dim > VERT);
   if (dim == EDGE) {
     refine_edges_to_pairs(mesh, keys2edges, keys2midverts, old_verts2new_verts,
-        keys2pairs, pair_verts2verts);
+                          keys2pairs, pair_verts2verts);
     return;
   }
   auto nkeys = keys2edges.size();
@@ -71,8 +62,7 @@ void refine_domains_to_pairs(
     auto midvert = keys2midverts[key];
     auto pair = keys2pairs[key];
     for (auto edge_dom = edges2edge_doms[edge];
-         edge_dom < edges2edge_doms[edge + 1];
-         ++edge_dom) {
+         edge_dom < edges2edge_doms[edge + 1]; ++edge_dom) {
       auto dom = edge_doms2doms[edge_dom];
       auto code = edge_dom_codes[edge_dom];
       auto dde = code_which_down(code);
@@ -102,14 +92,9 @@ void refine_domains_to_pairs(
   pair_verts2verts = pair_verts2verts_w;
 }
 
-void refine_domains_to_cuts(
-    Mesh* mesh,
-    Int dim,
-    LOs keys2edges,
-    LOs keys2midverts,
-    LOs old_verts2new_verts,
-    LOs& keys2cuts,
-    LOs& cut_verts2verts) {
+void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
+                            LOs keys2midverts, LOs old_verts2new_verts,
+                            LOs& keys2cuts, LOs& cut_verts2verts) {
   CHECK(dim > EDGE);
   auto nkeys = keys2edges.size();
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
@@ -130,8 +115,7 @@ void refine_domains_to_cuts(
     auto midvert = keys2midverts[key];
     auto cut = keys2cuts[key];
     for (auto edge_dom = edges2edge_doms[edge];
-         edge_dom < edges2edge_doms[edge + 1];
-         ++edge_dom) {
+         edge_dom < edges2edge_doms[edge + 1]; ++edge_dom) {
       auto dom = edge_doms2doms[edge_dom];
       auto code = edge_dom_codes[edge_dom];
       auto dde = code_which_down(code);
@@ -157,14 +141,9 @@ void refine_domains_to_cuts(
   cut_verts2verts = cut_verts2verts_w;
 }
 
-void combine_pairs_and_cuts(
-    Int ent_dim,
-    LOs keys2cuts,
-    LOs keys2pairs,
-    LOs cut_verts2verts,
-    LOs pair_verts2verts,
-    LOs& keys2prods,
-    LOs& prod_verts2verts) {
+void combine_pairs_and_cuts(Int ent_dim, LOs keys2cuts, LOs keys2pairs,
+                            LOs cut_verts2verts, LOs pair_verts2verts,
+                            LOs& keys2prods, LOs& prod_verts2verts) {
   auto nkeys = keys2cuts.size() - 1;
   CHECK(nkeys == keys2pairs.size() - 1);
   auto keys2ncuts = get_degrees(keys2cuts);
@@ -179,14 +158,14 @@ void combine_pairs_and_cuts(
     for (auto pair = keys2pairs[key]; pair < keys2pairs[key + 1]; ++pair) {
       for (Int ppv = 0; ppv < nppv; ++ppv) {
         prod_verts2verts_w[prod * nppv + ppv] =
-          pair_verts2verts[pair * nppv + ppv];
+            pair_verts2verts[pair * nppv + ppv];
       }
       ++prod;
     }
     for (auto cut = keys2cuts[key]; cut < keys2cuts[key + 1]; ++cut) {
       for (Int ppv = 0; ppv < nppv; ++ppv) {
         prod_verts2verts_w[prod * nppv + ppv] =
-          cut_verts2verts[cut * nppv + ppv];
+            cut_verts2verts[cut * nppv + ppv];
       }
       ++prod;
     }
@@ -195,31 +174,22 @@ void combine_pairs_and_cuts(
   prod_verts2verts = prod_verts2verts_w;
 }
 
-void refine_products(
-    Mesh* mesh,
-    Int ent_dim,
-    LOs keys2edges,
-    LOs keys2midverts,
-    LOs old_verts2new_verts,
-    LOs& keys2prods,
-    LOs& prod_verts2verts) {
+void refine_products(Mesh* mesh, Int ent_dim, LOs keys2edges, LOs keys2midverts,
+                     LOs old_verts2new_verts, LOs& keys2prods,
+                     LOs& prod_verts2verts) {
   auto keys2pairs = LOs();
   auto pair_verts2verts = LOs();
-  refine_domains_to_pairs(mesh, ent_dim, keys2edges,
-      keys2midverts, old_verts2new_verts,
-      keys2pairs, pair_verts2verts);
+  refine_domains_to_pairs(mesh, ent_dim, keys2edges, keys2midverts,
+                          old_verts2new_verts, keys2pairs, pair_verts2verts);
   if (ent_dim == mesh->dim()) {
     keys2prods = keys2pairs;
     prod_verts2verts = pair_verts2verts;
   } else {
     auto keys2cuts = LOs();
     auto cut_verts2verts = LOs();
-    refine_domains_to_cuts(mesh, ent_dim + 1, keys2edges,
-        keys2midverts, old_verts2new_verts,
-        keys2cuts, cut_verts2verts);
-    combine_pairs_and_cuts(ent_dim,
-        keys2cuts, keys2pairs,
-        cut_verts2verts, pair_verts2verts,
-        keys2prods, prod_verts2verts);
+    refine_domains_to_cuts(mesh, ent_dim + 1, keys2edges, keys2midverts,
+                           old_verts2new_verts, keys2cuts, cut_verts2verts);
+    combine_pairs_and_cuts(ent_dim, keys2cuts, keys2pairs, cut_verts2verts,
+                           pair_verts2verts, keys2prods, prod_verts2verts);
   }
 }

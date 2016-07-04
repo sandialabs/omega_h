@@ -1,9 +1,9 @@
 #ifndef OMEGA_H_CONFIG_H
 #define OMEGA_H_CONFIG_H
 
-#define OSH_MAJOR @OSH_MAJOR@
-#define OSH_MINOR @OSH_MINOR@
-#define OSH_PATCH @OSH_PATCH@
+#define OSH_MAJOR @OSH_MAJOR @
+#define OSH_MINOR @OSH_MINOR @
+#define OSH_PATCH @OSH_PATCH @
 
 #cmakedefine OSH_USE_MPI
 #cmakedefine OSH_USE_KOKKOS
@@ -50,9 +50,10 @@
 #else
 #define OSH_BOUNDS_STR "0"
 #endif
-#define OSH_VERSION \
-OSH_TOSTR(OSH_MAJOR) "." OSH_TOSTR(OSH_MINOR) "." OSH_TOSTR(OSH_PATCH) \
-"+" OSH_MPI_STR OSH_KOKKOS_STR OSH_OPENMP_STR OSH_CUDA_STR OSH_ZLIB_STR \
-OSH_BOUNDS_STR
+#define OSH_VERSION                                                         \
+  OSH_TOSTR(OSH_MAJOR)                                                      \
+  "." OSH_TOSTR(OSH_MINOR) "." OSH_TOSTR(                                   \
+      OSH_PATCH) "+" OSH_MPI_STR OSH_KOKKOS_STR OSH_OPENMP_STR OSH_CUDA_STR \
+      OSH_ZLIB_STR OSH_BOUNDS_STR
 
 #endif

@@ -52,8 +52,7 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
       mesh_minqual = min2(mesh_minqual, tri_minqual);
       /* if we know this swap configuration will make
          negative tets, don't bother computing the rest of it. */
-      if (mesh_minqual < 0.0)
-        break;
+      if (mesh_minqual < 0.0) break;
     }
     if (mesh_minqual > choice.quality) {
       choice.mesh = mesh;
@@ -63,4 +62,4 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
   return choice;
 }
 
-}//end namespace swap3d
+}  // end namespace swap3d

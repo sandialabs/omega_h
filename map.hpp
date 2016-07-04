@@ -28,15 +28,11 @@ LOs invert_funnel(LOs ab2a, LO na);
 
 namespace map {
 
-enum InvertMethod {
-  BY_SORTING,
-  BY_ATOMICS
-};
+enum InvertMethod { BY_SORTING, BY_ATOMICS };
 
 Graph invert_by_sorting(LOs a2b, LO nb);
 Graph invert_by_atomics(LOs a2b, LO nb);
 Graph invert(LOs a2b, LO nb, InvertMethod method);
-
 }
 
 LOs get_degrees(LOs offsets);

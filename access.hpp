@@ -1,22 +1,18 @@
 template <Int n, class Arr>
 DEVICE void set_vector(Arr const& a, Int i, Vector<n> v) {
-  for (Int j = 0; j < n; ++j)
-    a[i * n + j] = v[j];
+  for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
 }
 
 template <Int n, class Arr>
 DEVICE Vector<n> get_vector(Arr const& a, Int i) {
   Vector<n> v;
-  for (Int j = 0; j < n; ++j)
-    v[j] = a[i * n + j];
+  for (Int j = 0; j < n; ++j) v[j] = a[i * n + j];
   return v;
 }
 
-INLINE constexpr Int symm_dofs(Int dim) {
-  return ((dim + 1) * dim) / 2;
-}
+INLINE constexpr Int symm_dofs(Int dim) { return ((dim + 1) * dim) / 2; }
 
-INLINE Vector<3> symm2vector(Matrix<2,2> symm) {
+INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
   Vector<3> v;
   v[0] = symm[0][0];
   v[1] = symm[1][1];
@@ -24,8 +20,8 @@ INLINE Vector<3> symm2vector(Matrix<2,2> symm) {
   return v;
 }
 
-INLINE Matrix<2,2> vector2symm(Vector<3> v) {
-  Matrix<2,2> symm;
+INLINE Matrix<2, 2> vector2symm(Vector<3> v) {
+  Matrix<2, 2> symm;
   symm[0][0] = v[0];
   symm[1][1] = v[1];
   symm[1][0] = v[2];
@@ -33,7 +29,7 @@ INLINE Matrix<2,2> vector2symm(Vector<3> v) {
   return symm;
 }
 
-INLINE Vector<6> symm2vector(Matrix<3,3> symm) {
+INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
   Vector<6> v;
   v[0] = symm[0][0];
   v[1] = symm[1][1];
@@ -44,8 +40,8 @@ INLINE Vector<6> symm2vector(Matrix<3,3> symm) {
   return v;
 }
 
-INLINE Matrix<3,3> vector2symm(Vector<6> v) {
-  Matrix<3,3> symm;
+INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
+  Matrix<3, 3> symm;
   symm[0][0] = v[0];
   symm[1][1] = v[1];
   symm[2][2] = v[2];
@@ -59,52 +55,46 @@ INLINE Matrix<3,3> vector2symm(Vector<6> v) {
 }
 
 template <Int n, typename Arr>
-DEVICE void set_symm(Arr const& a, Int i, Matrix<n,n> symm) {
+DEVICE void set_symm(Arr const& a, Int i, Matrix<n, n> symm) {
   set_vector(a, i, symm2vector(symm));
 }
 
 template <Int n, typename Arr>
-DEVICE Matrix<n,n> get_symm(Arr const& a, Int i) {
+DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
   return vector2symm(get_vector<symm_dofs(n)>(a, i));
 }
 
 template <Int neev>
 DEVICE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
   Few<LO, neev> v;
-  for (Int i = 0; i < neev; ++i)
-    v[i] = ev2v[e * neev + i];
+  for (Int i = 0; i < neev; ++i) v[i] = ev2v[e * neev + i];
   return v;
 }
 
 template <Int neev>
-DEVICE Few<Real, neev>
-gather_scalars(Reals const& a, Few<LO, neev> v) {
+DEVICE Few<Real, neev> gather_scalars(Reals const& a, Few<LO, neev> v) {
   Few<Real, neev> x;
-  for (Int i = 0; i < neev; ++i)
-    x[i] = a[v[i]];
+  for (Int i = 0; i < neev; ++i) x[i] = a[v[i]];
   return x;
 }
 
 template <Int neev, Int dim>
-DEVICE Few<Vector<dim>, neev>
-gather_vectors(Reals const& a, Few<LO, neev> v) {
+DEVICE Few<Vector<dim>, neev> gather_vectors(Reals const& a, Few<LO, neev> v) {
   Few<Vector<dim>, neev> x;
-  for (Int i = 0; i < neev; ++i)
-    x[i] = get_vector<dim>(a, v[i]);
+  for (Int i = 0; i < neev; ++i) x[i] = get_vector<dim>(a, v[i]);
   return x;
 }
 
 template <Int neev, Int dim>
-DEVICE Few<Matrix<dim,dim>, neev>
-gather_symms(Reals const& a, Few<LO, neev> v) {
-  Few<Matrix<dim,dim>, neev> x;
-  for (Int i = 0; i < neev; ++i)
-    x[i] = get_symm<dim>(a, v[i]);
+DEVICE Few<Matrix<dim, dim>, neev> gather_symms(Reals const& a,
+                                                Few<LO, neev> v) {
+  Few<Matrix<dim, dim>, neev> x;
+  for (Int i = 0; i < neev; ++i) x[i] = get_symm<dim>(a, v[i]);
   return x;
 }
 
 template <Int dim>
-Reals repeat_symm(LO n, Matrix<dim,dim> symm);
+Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 
 Reals vectors_2d_to_3d(Reals vecs2);
 Reals vectors_3d_to_2d(Reals vecs2);

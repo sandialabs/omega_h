@@ -17,8 +17,7 @@ static Reals random_reals(Int n, Real from, Real to) {
   std::mt19937 gen(rd());
   std::uniform_real_distribution<> dis(from, to);
   HostWrite<Real> ha(n);
-  for (Int i = 0; i < n; ++i)
-    ha[i] = dis(gen);
+  for (Int i = 0; i < n; ++i) ha[i] = dis(gen);
   return ha.write();
 }
 
@@ -35,7 +34,7 @@ static Reals random_metrics() {
   Write<Real> write_metrics(nelems * 6);
   auto f0 = LAMBDA(Int i) {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
-             rotate( betas[i], vector_3(0, 1, 0));
+             rotate(betas[i], vector_3(0, 1, 0));
     auto m = compose_metric(r, vector_3(1., 1., 1.0 / anisotropy));
     set_symm(write_metrics, i, m);
   };
@@ -49,7 +48,7 @@ static void test_metric_decompose(Reals metrics) {
   Write<Real> write_eigenvs(nelems);
   auto f1 = LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
-    Matrix<3,3> r;
+    Matrix<3, 3> r;
     Vector<3> l;
     decompose_eigen(m, r, l);
     auto eigenv = max2(max2(l[0], l[1]), l[2]);
@@ -57,11 +56,10 @@ static void test_metric_decompose(Reals metrics) {
   };
   Now t0 = now();
   Int niters = 3;
-  for (Int i = 0; i < niters; ++i)
-    parallel_for(nelems, f1);
+  for (Int i = 0; i < niters; ++i) parallel_for(nelems, f1);
   Now t1 = now();
   std::cout << "eigendecomposition of " << nelems << " metric tensors "
-    << niters << " times takes " << (t1 - t0) << " seconds\n";
+            << niters << " times takes " << (t1 - t0) << " seconds\n";
   CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
 }
 
@@ -76,11 +74,10 @@ static void test_metric_invert(Reals metrics) {
   };
   Now t0 = now();
   Int niters = 30;
-  for (Int i = 0; i < niters; ++i)
-    parallel_for(nelems, f1);
+  for (Int i = 0; i < niters; ++i) parallel_for(nelems, f1);
   Now t1 = now();
-  std::cout << "inversion of " << nelems << " metric tensors "
-    << niters << " times takes " << (t1 - t0) << " seconds\n";
+  std::cout << "inversion of " << nelems << " metric tensors " << niters
+            << " times takes " << (t1 - t0) << " seconds\n";
 }
 
 static void test_metric_math() {
@@ -89,11 +86,11 @@ static void test_metric_math() {
   test_metric_invert(metrics);
 }
 
-unsigned uniform(unsigned m); /* Returns a random integer 0 <= uniform(m) <= m-1 */
+unsigned uniform(
+    unsigned m); /* Returns a random integer 0 <= uniform(m) <= m-1 */
 
 /* Fisher-Yates shuffle, a.k.a Knuth shuffle */
-static Read<Int> random_perm(Int n)
-{
+static Read<Int> random_perm(Int n) {
   std::random_device rd;
   std::mt19937 gen(rd());
   std::uniform_int_distribution<Int> dis;
@@ -112,34 +109,30 @@ static void test_repro_sum() {
   Int niters = 100;
   {
     Now t0 = now();
-    for (Int i = 0; i < niters; ++i)
-      rs = repro_sum(inputs);
+    for (Int i = 0; i < niters; ++i) rs = repro_sum(inputs);
     Now t1 = now();
-    std::cout << "reproducibly adding " << nelems << " reals " << niters << " times "
-      << "takes " << (t1 - t0) << " seconds\n";
+    std::cout << "reproducibly adding " << nelems << " reals " << niters
+              << " times "
+              << "takes " << (t1 - t0) << " seconds\n";
   }
   {
     Now t0 = now();
-    for (Int i = 0; i < niters; ++i)
-      s = sum(inputs);
+    for (Int i = 0; i < niters; ++i) s = sum(inputs);
     Now t1 = now();
     std::cout << "adding " << nelems << " reals " << niters << " times "
-      << "takes " << (t1 - t0) << " seconds\n";
+              << "takes " << (t1 - t0) << " seconds\n";
   }
   CHECK(are_close(s, rs));
   Read<Int> p = random_perm(nelems);
   Write<Real> write_shuffled(nelems);
-  auto f = LAMBDA(Int i) {
-    write_shuffled[i] = inputs[p[i]];
-  };
+  auto f = LAMBDA(Int i) { write_shuffled[i] = inputs[p[i]]; };
   parallel_for(nelems, f);
   Reals shuffled(write_shuffled);
   Real rs2 = repro_sum(shuffled);
   Real s2 = sum(shuffled);
   CHECK(are_close(s2, rs2));
   CHECK(rs == rs2); /* bitwise reproducibility ! */
-  if (s == s2)
-    std::cerr << "warning: the naive sum gave the same answer\n";
+  if (s == s2) std::cerr << "warning: the naive sum gave the same answer\n";
 }
 
 template <typename T>
@@ -148,8 +141,7 @@ static Read<T> random_ints(Int n, T from, T to) {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<T> dis(from, to);
   HostWrite<T> ha(n);
-  for (Int i = 0; i < n; ++i)
-    ha[i] = dis(gen);
+  for (Int i = 0; i < n; ++i) ha[i] = dis(gen);
   return ha.write();
 }
 
@@ -158,12 +150,10 @@ static void test_sort_n(Int width) {
   LOs perm;
   Int niters = 5;
   Now t0 = now();
-  for (Int i = 0; i < niters; ++i)
-    perm = sort_by_keys(a, width);
+  for (Int i = 0; i < niters; ++i) perm = sort_by_keys(a, width);
   Now t1 = now();
-  std::cout << "sorting " << nelems << " sets of "
-    << width << " integers " << niters
-    << " times takes " << (t1 - t0) << " seconds\n";
+  std::cout << "sorting " << nelems << " sets of " << width << " integers "
+            << niters << " times takes " << (t1 - t0) << " seconds\n";
 }
 
 static void test_sort() {
@@ -183,8 +173,8 @@ static void test_invert_adj(LOs tets2verts, LO nverts) {
   for (Int i = 0; i < niters; ++i)
     inv = invert(Adj(tets2verts), 4, nverts, tet_globals);
   Now t1 = now();
-  std::cout << "inverting " << ntets << " tets -> verts "
-    << niters << " times takes " << (t1-t0) << " seconds\n";
+  std::cout << "inverting " << ntets << " tets -> verts " << niters
+            << " times takes " << (t1 - t0) << " seconds\n";
 }
 
 static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
@@ -193,42 +183,42 @@ static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
   Int niters = 2;
   Adj verts2tris = invert(Adj(tris2verts), 3, nverts, Read<GO>(ntris, 0, 1));
   {
-  Now t0 = now();
-  for (Int i = 0; i < niters; ++i)
-    reflect_down(tets2verts, tris2verts, verts2tris, 3, 2);
-  Now t1 = now();
-  std::cout << "reflect_down " << ntets << " tets -> tris "
-    << "by only upward "
-    << niters << " times takes " << (t1-t0) << " seconds\n";
+    Now t0 = now();
+    for (Int i = 0; i < niters; ++i)
+      reflect_down(tets2verts, tris2verts, verts2tris, 3, 2);
+    Now t1 = now();
+    std::cout << "reflect_down " << ntets << " tets -> tris "
+              << "by only upward " << niters << " times takes " << (t1 - t0)
+              << " seconds\n";
   }
 }
 
 static void test_adjs(Library const& lib) {
   Mesh mesh;
   {
-  Now t0 = now();
-  auto nx = 42;
-  build_box(&mesh, lib, 1, 1, 1, nx, nx, nx);
-  Now t1 = now();
-  std::cout << "building a " << nx << 'x' << nx << 'x' << nx
-    << " box took " << (t1-t0) << " seconds\n";
+    Now t0 = now();
+    auto nx = 42;
+    build_box(&mesh, lib, 1, 1, 1, nx, nx, nx);
+    Now t1 = now();
+    std::cout << "building a " << nx << 'x' << nx << 'x' << nx << " box took "
+              << (t1 - t0) << " seconds\n";
   }
   {
-  Now t0 = now();
-  mesh.reorder();
-  Now t1 = now();
-  std::cout << "reordering a " << mesh.nelems()
-    << " tet mesh took " << (t1-t0) << " seconds\n";
+    Now t0 = now();
+    mesh.reorder();
+    Now t1 = now();
+    std::cout << "reordering a " << mesh.nelems() << " tet mesh took "
+              << (t1 - t0) << " seconds\n";
   }
   LOs tets2verts;
   LOs tris2verts;
   {
-  Now t0 = now();
-  tets2verts = mesh.ask_verts_of(TET);
-  tris2verts = mesh.ask_verts_of(TRI);
-  Now t1 = now();
-  std::cout << "asking tet->vert and tri->vert of a " << mesh.nelems()
-    << " tet mesh took " << (t1-t0) << " seconds\n";
+    Now t0 = now();
+    tets2verts = mesh.ask_verts_of(TET);
+    tris2verts = mesh.ask_verts_of(TRI);
+    Now t1 = now();
+    std::cout << "asking tet->vert and tri->vert of a " << mesh.nelems()
+              << " tet mesh took " << (t1 - t0) << " seconds\n";
   }
   auto nverts = mesh.nverts();
   test_invert_adj(tets2verts, nverts);

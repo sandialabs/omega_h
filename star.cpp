@@ -59,11 +59,11 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   auto f = LAMBDA(LO e) {
     auto er_begin = e2er[e];
     auto er_end = e2er[e + 1];
-    for (auto er = er_begin; er < er_end; ++ er) {
+    for (auto er = er_begin; er < er_end; ++er) {
       auto r = er2r[er];
       auto e2er_code = e2er_codes[er];
       auto rre = code_which_down(e2er_code);
-      auto rre_opp = OppositeTemplate<3,1>::get(rre);
+      auto rre_opp = OppositeTemplate<3, 1>::get(rre);
       auto re_begin = r * 6;
       auto e_opp = re2e[re_begin + rre_opp];
       auto ee = er;
@@ -74,9 +74,8 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   return Adj(e2ee, ee2e);
 }
 
-Graph elements_across_sides(Int dim,
-    Adj elems2sides, Adj sides2elems,
-    Read<I8> side_is_exposed) {
+Graph elements_across_sides(Int dim, Adj elems2sides, Adj sides2elems,
+                            Read<I8> side_is_exposed) {
   auto elem_side2side = elems2sides.ab2b;
   auto side2side_elems = sides2elems.a2ab;
   auto side_elem2elem = sides2elems.ab2b;
@@ -105,8 +104,7 @@ Graph elements_across_sides(Int dim,
       auto side = elem_side2side[elem_side];
       if (!side_is_exposed[side]) {
         auto side_elem = side2side_elems[side];
-        if (side_elem2elem[side_elem] == elem)
-          ++side_elem;
+        if (side_elem2elem[side_elem] == elem) ++side_elem;
         elem_elem2elem[elem_elem] = side_elem2elem[side_elem];
         ++elem_elem;
       }

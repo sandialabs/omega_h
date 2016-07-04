@@ -1,5 +1,5 @@
-bool check_regression(std::string const& prefix, Mesh* mesh,
-    Real tol, Real floor) {
+bool check_regression(std::string const& prefix, Mesh* mesh, Real tol,
+                      Real floor) {
   auto comm = mesh->comm();
   auto goldpath = prefix + ".osh";
   if (!directory_exists(goldpath.c_str())) {
@@ -37,7 +37,7 @@ bool check_regression(std::string const& prefix, Mesh* mesh,
       std::cout << "has more tags than \"" << goldpath << "\"\n";
       std::cout << "It should probably be made the new gold, like this:\n";
       std::cout << "  rm -rf \"" << goldpath << "\"\n",
-      std::cout << "  mv \"" << newpath << "\" \"" << goldpath << "\"\n";
+          std::cout << "  mv \"" << newpath << "\" \"" << goldpath << "\"\n";
     }
     return false;
   }

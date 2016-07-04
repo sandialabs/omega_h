@@ -25,12 +25,10 @@ static void add_dye(Mesh* mesh) {
 
 static void add_pointwise(Mesh* mesh) {
   auto dim = mesh->dim();
-  auto ecoords = average_field(mesh, dim,
-      LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
+  auto ecoords =
+      average_field(mesh, dim, LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
   auto pw_w = Write<Real>(mesh->nelems());
-  auto pw_fun = LAMBDA(LO elem) {
-    pw_w[elem] = ecoords[elem * dim];
-  };
+  auto pw_fun = LAMBDA(LO elem) { pw_w[elem] = ecoords[elem * dim]; };
   parallel_for(mesh->nelems(), pw_fun);
   mesh->add_tag(dim, "pointwise", 1, OSH_POINTWISE, Reals(pw_w));
 }
@@ -54,7 +52,7 @@ int main(int argc, char** argv) {
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
   add_dye(&mesh);
   mesh.add_tag(mesh.dim(), "mass", 1, OSH_CONSERVE,
-      measure_elements_real(&mesh));
+               measure_elements_real(&mesh));
   add_pointwise(&mesh);
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
@@ -65,7 +63,8 @@ int main(int argc, char** argv) {
     auto warp_fun = LAMBDA(LO vert) {
       auto x0 = get_vector<dim>(coords, vert);
       auto x1 = zero_vector<dim>();
-      x1[0] = x0[0]; x1[1] = x0[1];
+      x1[0] = x0[0];
+      x1[1] = x0[1];
       auto x2 = x1 - mid;
       auto polar_a = atan2(x2[1], x2[0]);
       auto polar_r = norm(x2);
@@ -90,8 +89,8 @@ int main(int argc, char** argv) {
   }
   Now t1 = now();
   mesh.set_parting(OSH_ELEM_BASED);
-  CHECK(are_close(1.0, sum(mesh.comm(),
-          mesh.get_array<Real>(mesh.dim(), "mass"))));
+  CHECK(are_close(1.0,
+                  sum(mesh.comm(), mesh.get_array<Real>(mesh.dim(), "mass"))));
   if (mesh.comm()->rank() == 0) {
     std::cout << "test took " << (t1 - t0) << " seconds\n";
   }

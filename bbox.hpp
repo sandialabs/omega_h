@@ -1,8 +1,8 @@
 template <Int dim>
 struct BBox {
   INLINE BBox() {}
-  INLINE BBox(Vector<dim> x):min(x),max(x) {}
-  INLINE BBox(Vector<dim> min_, Vector<dim> max_):min(min_),max(max_) {}
+  INLINE BBox(Vector<dim> x) : min(x), max(x) {}
+  INLINE BBox(Vector<dim> min_, Vector<dim> max_) : min(min_), max(max_) {}
   Vector<dim> min;
   Vector<dim> max;
   /* playing the volatile game again (see int128.hpp) */
@@ -10,12 +10,8 @@ struct BBox {
     min = rhs.min;
     max = rhs.max;
   }
-  INLINE BBox(BBox<dim> const& rhs):
-    min(rhs.min),max(rhs.max) {
-  }
-  INLINE BBox(const volatile BBox<dim>& rhs):
-    min(rhs.min),max(rhs.max) {
-  }
+  INLINE BBox(BBox<dim> const& rhs) : min(rhs.min), max(rhs.max) {}
+  INLINE BBox(const volatile BBox<dim>& rhs) : min(rhs.min), max(rhs.max) {}
 };
 
 template <Int dim>

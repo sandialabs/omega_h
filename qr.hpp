@@ -12,46 +12,37 @@
    are there to support hessenberg reduction / tri-diagonalization */
 
 template <Int m, Int n>
-INLINE bool householder_vector(Matrix<m,n> a, Real anorm,
-    Int k, Int o,
-    Vector<m>& v_k) {
+INLINE bool householder_vector(Matrix<m, n> a, Real anorm, Int k, Int o,
+                               Vector<m>& v_k) {
   Real norm_x = 0;
-  for (Int i = k + o; i < m; ++i)
-    norm_x += square(a[k][i]);
+  for (Int i = k + o; i < m; ++i) norm_x += square(a[k][i]);
   norm_x = sqrt(norm_x);
-  //if the x vector is nearly zero, use the exact zero vector as the
-  //householder vector and avoid extra work and divide by zero below
+  // if the x vector is nearly zero, use the exact zero vector as the
+  // householder vector and avoid extra work and divide by zero below
   if (norm_x <= EPSILON * anorm) {
-    for (Int i = k + o; i < m; ++i)
-      v_k[i] = 0.0;
+    for (Int i = k + o; i < m; ++i) v_k[i] = 0.0;
     return false;
   }
-  for (Int i = k + o; i < m; ++i)
-    v_k[i] = a[k][i];
+  for (Int i = k + o; i < m; ++i) v_k[i] = a[k][i];
   v_k[k + o] += sign(a[k][k + o]) * norm_x;
   Real norm_v_k = 0;
-  for (Int i = k + o; i < m; ++i)
-    norm_v_k += square(v_k[i]);
+  for (Int i = k + o; i < m; ++i) norm_v_k += square(v_k[i]);
   norm_v_k = sqrt(norm_v_k);
-  for (Int i = k + o; i < m; ++i)
-    v_k[i] /= norm_v_k;
+  for (Int i = k + o; i < m; ++i) v_k[i] /= norm_v_k;
   return true;
 }
 
 template <Int m, Int n>
-INLINE void reflect_columns(Matrix<m,n>& a, Vector<m> v_k, Int k, Int o) {
+INLINE void reflect_columns(Matrix<m, n>& a, Vector<m> v_k, Int k, Int o) {
   for (Int j = k; j < n; ++j) {
     Real dot = 0;
-    for (Int i = k + o; i < m; ++i)
-      dot += a[j][i] * v_k[i];
-    for (Int i = k + o; i < m; ++i)
-      a[j][i] -= 2 * dot * v_k[i];
+    for (Int i = k + o; i < m; ++i) dot += a[j][i] * v_k[i];
+    for (Int i = k + o; i < m; ++i) a[j][i] -= 2 * dot * v_k[i];
   }
 }
 
 template <Int m, Int n>
-INLINE Int factorize_qr_householder(Matrix<m,n>& a,
-    Few<Vector<m>, n>& v) {
+INLINE Int factorize_qr_householder(Matrix<m, n>& a, Few<Vector<m>, n>& v) {
   Real anorm = frobenius_norm(a);
   Int rank = 0;
   for (Int k = 0; k < n; ++k) {
@@ -68,14 +59,11 @@ INLINE Int factorize_qr_householder(Matrix<m,n>& a,
    for k=1 to n
      b_{k:m} = b_{k:m} - 2 v_k (v_k^* b_{k:m}) */
 template <Int m, Int n>
-INLINE void implicit_q_trans_b(Vector<m>& b,
-    Few<Vector<m>, n> v) {
+INLINE void implicit_q_trans_b(Vector<m>& b, Few<Vector<m>, n> v) {
   for (Int k = 0; k < n; ++k) {
     Real dot = 0;
-    for (Int i = k; i < m; ++i)
-      dot += v[k][i] * b[i];
-    for (Int i = k; i < m; ++i)
-      b[i] -= 2 * dot * v[k][i];
+    for (Int i = k; i < m; ++i) dot += v[k][i] * b[i];
+    for (Int i = k; i < m; ++i) b[i] -= 2 * dot * v[k][i];
   }
 }
 
@@ -86,47 +74,41 @@ INLINE void implicit_q_trans_b(Vector<m>& b,
    for k=n downto 1
      x_{k:m} = x_{k:m} - 2 v_k (v_k^* b_{k:m}) */
 template <Int m, Int n>
-INLINE void implicit_q_x(Vector<m>& x,
-    Few<Vector<m>, n> v) {
+INLINE void implicit_q_x(Vector<m>& x, Few<Vector<m>, n> v) {
   for (Int k2 = 0; k2 < n; ++k2) {
     Int k = n - k2 - 1;
     Real dot = 0;
-    for (Int i = k; i < m; ++i)
-      dot += v[k][i] * x[i];
-    for (Int i = k; i < m; ++i)
-      x[i] -= 2 * dot * v[k][i];
+    for (Int i = k; i < m; ++i) dot += v[k][i] * x[i];
+    for (Int i = k; i < m; ++i) x[i] -= 2 * dot * v[k][i];
   }
 }
 
 template <Int m, Int n>
-INLINE Matrix<n,n> reduced_r_from_full(Matrix<m,n> fr) {
-  Matrix<n,n> rr;
+INLINE Matrix<n, n> reduced_r_from_full(Matrix<m, n> fr) {
+  Matrix<n, n> rr;
   for (Int j = 0; j < n; ++j)
-    for (Int i = 0; i < n; ++i)
-      rr[j][i] = fr[j][i];
+    for (Int i = 0; i < n; ++i) rr[j][i] = fr[j][i];
   return rr;
 }
 
 template <Int m, Int n>
-INLINE Int decompose_qr_reduced(Matrix<m,n> a, Matrix<m,n>& q, Matrix<n,n>& r) {
+INLINE Int decompose_qr_reduced(Matrix<m, n> a, Matrix<m, n>& q,
+                                Matrix<n, n>& r) {
   Few<Vector<m>, n> v;
   Int rank = factorize_qr_householder(a, v);
   r = reduced_r_from_full(a);
-  q = identity_matrix<m,n>();
-  for (Int j = 0; j < n; ++j)
-    implicit_q_x(q[j], v);
+  q = identity_matrix<m, n>();
+  for (Int j = 0; j < n; ++j) implicit_q_x(q[j], v);
   return rank;
 }
 
 /* A_{1:m,k+1:m} = A_{1:m,k+1:m} - 2(A_{1:m,k+1:m}v_k)v_k^* */
 template <Int m>
-INLINE void reflect_rows(Matrix<m,m>& a, Vector<m> v_k, Int k) {
+INLINE void reflect_rows(Matrix<m, m>& a, Vector<m> v_k, Int k) {
   for (Int i = 0; i < m; ++i) {
     Real dot = 0;
-    for (Int j = k + 1; j < m; ++j)
-      dot += a[j][i] * v_k[j];
-    for (Int j = k + 1; j < m; ++j)
-      a[j][i] -= 2 * dot * v_k[j];
+    for (Int j = k + 1; j < m; ++j) dot += a[j][i] * v_k[j];
+    for (Int j = k + 1; j < m; ++j) a[j][i] -= 2 * dot * v_k[j];
   }
 }
 
@@ -143,8 +125,7 @@ INLINE void reflect_rows(Matrix<m,m>& a, Vector<m> v_k, Int k) {
      A_{k+1:m,k:m} = A_{k+1:m,k:m} - 2 v_k (v_k^* A_{k+1:m,k:m})
      A_{1:m,k+1:m} = A_{1:m,k+1:m} - 2(A_{1:m,k+1:m}v_k)v_k^* */
 template <Int m>
-INLINE void householder_hessenberg(Matrix<m,m>& a,
-    Few<Vector<m>, m - 2>& v) {
+INLINE void householder_hessenberg(Matrix<m, m>& a, Few<Vector<m>, m - 2>& v) {
   Real anorm = frobenius_norm(a);
   for (Int k = 0; k < m - 2; ++k) {
     householder_vector(a, anorm, k, 1, v[k]);
@@ -154,30 +135,24 @@ INLINE void householder_hessenberg(Matrix<m,m>& a,
 }
 
 template <Int m>
-INLINE
-typename std::enable_if<(m > 2)>::type
-householder_hessenberg2(Matrix<m,m>& a,
-    Matrix<m,m>& q) {
+INLINE typename std::enable_if<(m > 2)>::type householder_hessenberg2(
+    Matrix<m, m>& a, Matrix<m, m>& q) {
   Few<Vector<m>, m - 2> v;
   householder_hessenberg(a, v);
-  q = identity_matrix<m,m>();
-  for (Int j = 0; j < m; ++j)
-    implicit_q_x(q[j], v);
+  q = identity_matrix<m, m>();
+  for (Int j = 0; j < m; ++j) implicit_q_x(q[j], v);
 }
 
 template <Int m>
-INLINE
-typename std::enable_if<!(m > 2)>::type
-householder_hessenberg2(Matrix<m,m>&,
-    Matrix<m,m>& q) {
-  q = identity_matrix<m,m>();
+INLINE typename std::enable_if<!(m > 2)>::type householder_hessenberg2(
+    Matrix<m, m>&, Matrix<m, m>& q) {
+  q = identity_matrix<m, m>();
 }
 
 template <Int m>
-INLINE bool reduce(Matrix<m,m> a, Real anorm, Int& n) {
+INLINE bool reduce(Matrix<m, m> a, Real anorm, Int& n) {
   for (; n >= 2; --n)
-    if (fabs(a[n - 2][n - 1]) > EPSILON * anorm)
-      return true;
+    if (fabs(a[n - 2][n - 1]) > EPSILON * anorm) return true;
   return false;
 }
 
@@ -195,28 +170,27 @@ INLINE bool reduce(Matrix<m,m> a, Real anorm, Int& n) {
 
    where \delta = (a_{m-1} - a_m) / 2    */
 template <Int m>
-INLINE Real wilkinson_shift(Matrix<m,m> a, Int n) {
+INLINE Real wilkinson_shift(Matrix<m, m> a, Int n) {
   auto anm1 = a[n - 2][n - 2];
-  auto an   = a[n - 1][n - 1];
+  auto an = a[n - 1][n - 1];
   auto bnm1 = a[n - 2][n - 1];
-  auto delta  = (anm1 - an) / 2;
+  auto delta = (anm1 - an) / 2;
   auto denom = fabs(delta) + sqrt(square(delta) + square(bnm1));
   return an - ((sign(delta) * square(bnm1)) / denom);
 }
 
 template <Int m>
-INLINE void apply_shift(Matrix<m,m>& a, Real mu) {
+INLINE void apply_shift(Matrix<m, m>& a, Real mu) {
   subtract_from_diag(a, mu);
 }
 
 template <Int m>
-INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
+INLINE Vector<m> solve_upper_triangular(Matrix<m, m> a, Vector<m> b) {
   Vector<m> x;
   for (Int ii = 0; ii < m; ++ii) {
     Int i = m - ii - 1;
     x[i] = b[i];
-    for (Int j = i + 1; j < m; ++j)
-      x[i] -= a[j][i] * x[j];
+    for (Int j = i + 1; j < m; ++j) x[i] -= a[j][i] * x[j];
     x[i] /= a[i][i];
   }
   return x;
@@ -230,18 +204,15 @@ INLINE Vector<m> solve_upper_triangular(Matrix<m,m> a, Vector<m> b) {
    2. Compute the vector \hat{Q}^* b
    3. Solve the upper-triangular system \hat{R} x = \hat{Q}^* b for x  */
 template <Int m, Int n>
-INLINE bool solve_least_squares_qr(Matrix<m,n> a, Vector<m> b,
-    Vector<n>& x) {
+INLINE bool solve_least_squares_qr(Matrix<m, n> a, Vector<m> b, Vector<n>& x) {
   Few<Vector<m>, n> v;
   Int rank = factorize_qr_householder(a, v);
-  if (rank != n)
-    return false;
-  Matrix<n,n> r = reduced_r_from_full(a);
+  if (rank != n) return false;
+  Matrix<n, n> r = reduced_r_from_full(a);
   Vector<m> qtb_full = b;
   implicit_q_trans_b(qtb_full, v);
   Vector<n> qtb;
-  for (Int i = 0; i < n; ++i)
-    qtb[i] = qtb_full[i];
+  for (Int i = 0; i < n; ++i) qtb[i] = qtb_full[i];
   x = solve_upper_triangular(r, qtb);
   return true;
 }

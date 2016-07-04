@@ -69,8 +69,7 @@ source:
 
 INLINE Real triangle_mean_ratio_squared(Real a, Few<Real, 3> lsq) {
   Real s = 0.0;
-  for (Int i = 0; i < 3; ++i)
-    s += lsq[i];
+  for (Int i = 0; i < 3; ++i) s += lsq[i];
   return 48 * square(a) / square(s);
 }
 
@@ -80,8 +79,7 @@ INLINE Real mean_ratio(Real a, Few<Real, 3> lsq) {
 
 INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
   Real s = 0.0;
-  for (Int i = 0; i < 6; ++i)
-    s += lsq[i];
+  for (Int i = 0; i < 6; ++i) s += lsq[i];
   return 15552.0 * square(v) / cube(s);
 }
 
@@ -91,10 +89,9 @@ INLINE Real mean_ratio(Real a, Few<Real, 6> lsq) {
 
 template <Int dim>
 INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
-  auto b = simplex_basis<dim,dim>(p);
+  auto b = simplex_basis<dim, dim>(p);
   auto s = element_size(b);
-  if (s < 0)
-    return s;
+  if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);
   Few<Real, decltype(ev)::size> lsq;
   for (Int i = 0; i < decltype(ev)::size; ++i) {
@@ -119,13 +116,11 @@ INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
    Mentions using $\sqrt{\det(M)}$ to compute volume in metric space. */
 
 template <Int dim>
-INLINE Real metric_element_quality(
-    Few<Vector<dim>, dim + 1> p,
-    Matrix<dim,dim> metric) {
-  auto b = simplex_basis<dim,dim>(p);
+INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p,
+                                   Matrix<dim, dim> metric) {
+  auto b = simplex_basis<dim, dim>(p);
   auto s = element_size(b) * sqrt(determinant(metric));
-  if (s < 0)
-    return s;
+  if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);
   Few<Real, decltype(ev)::size> lsq;
   for (Int i = 0; i < decltype(ev)::size; ++i) {
@@ -136,7 +131,7 @@ INLINE Real metric_element_quality(
 
 struct RealElementQualities {
   Reals coords;
-  RealElementQualities(Mesh const* mesh):coords(mesh->coords()) {}
+  RealElementQualities(Mesh const* mesh) : coords(mesh->coords()) {}
   template <Int neev>
   DEVICE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
@@ -147,14 +142,13 @@ struct RealElementQualities {
 struct MetricElementQualities {
   Reals coords;
   Reals metrics;
-  MetricElementQualities(Mesh const* mesh):
-    coords(mesh->coords()),
-    metrics(mesh->get_array<Real>(VERT, "metric"))
-  {}
+  MetricElementQualities(Mesh const* mesh)
+      : coords(mesh->coords()),
+        metrics(mesh->get_array<Real>(VERT, "metric")) {}
   template <Int neev>
   DEVICE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
-    auto metric = average_metrics(gather_symms<neev,neev - 1>(metrics, v));
+    auto metric = average_metrics(gather_symms<neev, neev - 1>(metrics, v));
     return metric_element_quality(p, metric);
   }
 };

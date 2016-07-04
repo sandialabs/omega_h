@@ -4,11 +4,9 @@
 // the two output arrays contain root values and multiplicities.
 // roots within an *absolute* distance of (eps) are considered
 // the same.
-INLINE Int solve_cubic(
-    Real a_2, Real a_1, Real a_0,
-    Few<Real, 3>& roots, Few<Int, 3>& mults,
-    Real eps = 1e-6) {
-// http://mathworld.wolfram.com/CubicFormula.html
+INLINE Int solve_cubic(Real a_2, Real a_1, Real a_0, Few<Real, 3>& roots,
+                       Few<Int, 3>& mults, Real eps = 1e-6) {
+  // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
   Real q = (9. * a_1 * a_2 - 27. * a_0 - 2. * cube(a_2)) / 27.;
   Real Q = p / 3.;
@@ -21,15 +19,15 @@ INLINE Int solve_cubic(
     Real B = S + T;
     Real z_1 = shift + B;
     Real z_23_real = shift - (1. / 2.) * B;
-  //warning: we simply assume the imaginary component is small !
-  //Real z_23_imag = (1. / 2.) * sqrt(3.) * A;
+    // warning: we simply assume the imaginary component is small !
+    // Real z_23_imag = (1. / 2.) * sqrt(3.) * A;
     roots[0] = z_1;
     roots[1] = roots[2] = z_23_real;
   } else {
     // D < 0 implies Q < 0, since R^2 must be positive
     Real theta = acos(R / sqrt(-cube(Q)));
     Real radius = 2. * sqrt(-Q);
-    Real z_1 = radius * cos((theta          ) / 3.) + shift;
+    Real z_1 = radius * cos((theta) / 3.) + shift;
     Real z_2 = radius * cos((theta + 2. * PI) / 3.) + shift;
     Real z_3 = radius * cos((theta - 2. * PI) / 3.) + shift;
     roots[0] = z_1;
@@ -65,9 +63,8 @@ INLINE Int solve_cubic(
 }
 
 // solve quadratic equation x^2 + a * x + b = 0
-INLINE Int solve_quadratic(
-    Real a, Real b,
-    Few<Real, 2>& roots, Few<Int, 2>& mults) {
+INLINE Int solve_quadratic(Real a, Real b, Few<Real, 2>& roots,
+                           Few<Int, 2>& mults) {
   Real disc = square(a) - 4. * b;
   if (fabs(disc) < 1e-6) {
     mults[0] = 2;

@@ -53,7 +53,11 @@
 #include <algorithm>
 #endif
 
-#define NORETURN(x) do { assert(0); return x; } while(0)
+#define NORETURN(x) \
+  do {              \
+    assert(0);      \
+    return x;       \
+  } while (0)
 
 #ifdef OSH_USE_CUDA
 #define CONSTANT __constant__
@@ -141,4 +145,4 @@ namespace osh {
 #include "construct.hpp"
 #include "xml.hpp"
 
-} //end namespace osh
+}  // end namespace osh

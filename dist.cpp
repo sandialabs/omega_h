@@ -1,5 +1,4 @@
-Dist::Dist() {
-}
+Dist::Dist() {}
 
 Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
   set_parent_comm(comm);
@@ -7,9 +6,7 @@ Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
   set_dest_idxs(fitems2rroots.idxs, nrroots);
 }
 
-void Dist::set_parent_comm(CommPtr parent_comm) {
-  parent_comm_ = parent_comm;
-}
+void Dist::set_parent_comm(CommPtr parent_comm) { parent_comm_ = parent_comm; }
 
 void Dist::set_dest_ranks(Read<I32> items2ranks) {
   auto content2items = sort_by_keys(items2ranks);
@@ -79,15 +76,11 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   if (items2content_[F].exists()) {
     data = permute(data, items2content_[F], width);
   }
-  auto sendcounts = multiply_each_by(width,
-      get_degrees(msgs2content_[F]));
-  auto recvcounts = multiply_each_by(width,
-      get_degrees(msgs2content_[R]));
+  auto sendcounts = multiply_each_by(width, get_degrees(msgs2content_[F]));
+  auto recvcounts = multiply_each_by(width, get_degrees(msgs2content_[R]));
   auto sdispls = offset_scan(sendcounts);
   auto rdispls = offset_scan(recvcounts);
-  data = comm_[F]->alltoallv(data,
-      sendcounts, sdispls,
-      recvcounts, rdispls);
+  data = comm_[F]->alltoallv(data, sendcounts, sdispls, recvcounts, rdispls);
   if (items2content_[R].exists()) {
     data = unmap(items2content_[R], data, width);
   }
@@ -105,38 +98,26 @@ Read<T> Dist::exch_reduce(Read<T> data, Int width, osh_op op) const {
   return fan_reduce(roots2items_[R], item_data, width, op);
 }
 
-template Read<I32>
-Dist::exch_reduce(Read<I32> data, Int width, osh_op op) const;
-template Read<Real>
-Dist::exch_reduce(Read<Real> data, Int width, osh_op op) const;
+template Read<I32> Dist::exch_reduce(Read<I32> data, Int width,
+                                     osh_op op) const;
+template Read<Real> Dist::exch_reduce(Read<Real> data, Int width,
+                                      osh_op op) const;
 
-CommPtr Dist::parent_comm() const {
-  return parent_comm_;
-}
+CommPtr Dist::parent_comm() const { return parent_comm_; }
 
-CommPtr Dist::comm() const {
-  return comm_[F];
-}
+CommPtr Dist::comm() const { return comm_[F]; }
 
-LOs Dist::msgs2content() const {
-  return msgs2content_[F];
-}
+LOs Dist::msgs2content() const { return msgs2content_[F]; }
 
-LOs Dist::content2msgs() const {
-  return invert_fan(msgs2content_[F]);
-}
+LOs Dist::content2msgs() const { return invert_fan(msgs2content_[F]); }
 
 LOs Dist::items2msgs() const {
   return unmap(items2content_[F], content2msgs(), 1);
 }
 
-LOs Dist::roots2items() const {
-  return roots2items_[F];
-}
+LOs Dist::roots2items() const { return roots2items_[F]; }
 
-Read<I32> Dist::msgs2ranks() const {
-  return comm_[F]->destinations();
-}
+Read<I32> Dist::msgs2ranks() const { return comm_[F]->destinations(); }
 
 Read<I32> Dist::items2ranks() const {
   return compound_maps(items2msgs(), msgs2ranks());
@@ -151,23 +132,16 @@ Remotes Dist::items2dests() const {
   return Remotes(items2ranks(), items2dest_idxs());
 }
 
-LO Dist::nitems() const {
-  return msgs2content_[F].last();
-}
+LO Dist::nitems() const { return msgs2content_[F].last(); }
 
-LO Dist::nroots() const {
-  return roots2items_[F].size() - 1;
-}
+LO Dist::nroots() const { return roots2items_[F].size() - 1; }
 
 LO Dist::nsrcs() const {
-  if (roots2items_[F].exists())
-    return nroots();
+  if (roots2items_[F].exists()) return nroots();
   return nitems();
 }
 
-LO Dist::ndests() const {
-  return invert().nsrcs();
-}
+LO Dist::ndests() const { return invert().nsrcs(); }
 
 /* this is the key algorithm for moving from one communicator
    to another. essentially, we have to map from old ranks to

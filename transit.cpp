@@ -13,8 +13,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   auto nhighs = hm2m.size() / nmids_per_high;
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;
-  if (low_dim == 1)
-    codes = Write<I8>(hl2l.size());
+  if (low_dim == 1) codes = Write<I8>(hl2l.size());
   auto f = LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
@@ -28,10 +27,9 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       auto ml = align_index(nlows_per_mid, low_dim, hml, hm2m_code);
       auto ml_begin = m * nlows_per_mid;
       auto l = ml2l[ml_begin + ml];
-      //safety check for duplicates.
-      //remove after this code is heavily exercised (or don't)
-      for (Int hhl2 = 0; hhl2 < hl; ++hhl2)
-        CHECK(l != hl2l[hl_begin + hhl2]);
+      // safety check for duplicates.
+      // remove after this code is heavily exercised (or don't)
+      for (Int hhl2 = 0; hhl2 < hl; ++hhl2) CHECK(l != hl2l[hl_begin + hhl2]);
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
         auto tet_tri_code = hm2m_code;
@@ -39,15 +37,13 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
         auto tet_tri_flipped = code_is_flipped(tet_tri_code);
         auto tri_edge_flipped = bool(code_rotation(tri_edge_code) == 1);
         auto canon_flipped = ut.is_flipped;
-        bool tet_edge_flipped = tet_tri_flipped ^
-                                tri_edge_flipped ^
-                                canon_flipped;
+        bool tet_edge_flipped =
+            tet_tri_flipped ^ tri_edge_flipped ^ canon_flipped;
         codes[hl_begin + hl] = make_code(false, tet_edge_flipped, 0);
       }
     }
   };
   parallel_for(nhighs, f);
-  if (low_dim == 1)
-    return Adj(hl2l, codes);
+  if (low_dim == 1) return Adj(hl2l, codes);
   return Adj(hl2l);
 }

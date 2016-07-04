@@ -11,7 +11,7 @@ template <>
 struct IsFlipped<2> {
   template <typename T>
   INLINE static bool is(T adj[]) {
-    (void) adj;
+    (void)adj;
     return false;
   }
 };
@@ -55,8 +55,7 @@ Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
   }
 }
 
-#define INST(T) \
-template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);
+#define INST(T) template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);
 INST(LO)
 INST(GO)
 #undef INST
@@ -67,8 +66,7 @@ DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
   LO a = e0 * deg;
   LO b = e1 * deg;
   for (LO j = 0; j < deg; ++j)
-    if (canon[a + j] != canon[b + j])
-      return false;
+    if (canon[a + j] != canon[b + j]) return false;
   return true;
 }
 
@@ -78,8 +76,7 @@ Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e) {
   auto f = LAMBDA(LO e_sorted) {
     auto e0 = e_sorted2e[e_sorted];
     auto e1 = e_sorted2e[e_sorted + 1];
-    if (!are_equal(deg, canon, e0, e1))
-      jumps[e_sorted] = 1;
+    if (!are_equal(deg, canon, e0, e1)) jumps[e_sorted] = 1;
   };
   parallel_for(ne - 1, f);
   if (jumps.size()) jumps.set(jumps.size() - 1, 1);

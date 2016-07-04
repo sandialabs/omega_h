@@ -16,16 +16,16 @@ Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
 Reals measure_qualities(Mesh* mesh, LOs a2e) {
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {
-      return measure_qualities_tmpl<MetricElementQualities,3>(mesh, a2e);
+      return measure_qualities_tmpl<MetricElementQualities, 3>(mesh, a2e);
     } else {
-      return measure_qualities_tmpl<RealElementQualities,3>(mesh, a2e);
+      return measure_qualities_tmpl<RealElementQualities, 3>(mesh, a2e);
     }
   } else {
     CHECK(mesh->dim() == 2);
     if (mesh->has_tag(VERT, "metric")) {
-      return measure_qualities_tmpl<MetricElementQualities,2>(mesh, a2e);
+      return measure_qualities_tmpl<MetricElementQualities, 2>(mesh, a2e);
     } else {
-      return measure_qualities_tmpl<RealElementQualities,2>(mesh, a2e);
+      return measure_qualities_tmpl<RealElementQualities, 2>(mesh, a2e);
     }
   }
 }

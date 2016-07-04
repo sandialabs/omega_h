@@ -14,13 +14,12 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_parting(OSH_GHOSTED);
   auto metrics = find_identity_metric(&mesh);
-  mesh.add_tag(VERT, "metric", symm_dofs(mesh.dim()),
-      OSH_METRIC, metrics);
-  auto target_metric = compose_metric(identity_matrix<3,3>(),
-      vector_3(1.0 / 64.0, 1.0 / 4.0, 1.0 / 8.0));
+  mesh.add_tag(VERT, "metric", symm_dofs(mesh.dim()), OSH_METRIC, metrics);
+  auto target_metric = compose_metric(
+      identity_matrix<3, 3>(), vector_3(1.0 / 64.0, 1.0 / 4.0, 1.0 / 8.0));
   auto target_metrics = repeat_symm(mesh.nverts(), target_metric);
-  mesh.add_tag(VERT, "target_metric", symm_dofs(mesh.dim()),
-      OSH_METRIC, target_metrics);
+  mesh.add_tag(VERT, "target_metric", symm_dofs(mesh.dim()), OSH_METRIC,
+               target_metrics);
   mesh.ask_lengths();
   mesh.ask_qualities();
   vtk::FullWriter writer(&mesh, "out");

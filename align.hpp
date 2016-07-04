@@ -39,18 +39,24 @@ INLINE Int rotate_index(Int index, Int rotation) {
    down to a few integer ops by an expert... */
 
 INLINE Int flip_vert_index(Int index) {
-  switch(index) {
-    case 1: return 2;
-    case 2: return 1;
-    default: return 0;
+  switch (index) {
+    case 1:
+      return 2;
+    case 2:
+      return 1;
+    default:
+      return 0;
   }
 }
 
 INLINE Int flip_edge_index(Int index) {
-  switch(index) {
-    case 0: return 2;
-    case 2: return 0;
-    default: return 1;
+  switch (index) {
+    case 0:
+      return 2;
+    case 2:
+      return 0;
+    default:
+      return 1;
   }
 }
 
@@ -78,7 +84,8 @@ INLINE Int align_index(Int nverts_per_ent, Int index_dim, Int index, I8 code) {
     } else {
       return align_vert_index<3>(index, code);
     }
-  } if (nverts_per_ent == 2) {
+  }
+  if (nverts_per_ent == 2) {
     return align_vert_index<2>(index, code);
   }
   NORETURN(0);
@@ -103,16 +110,14 @@ INLINE Int rotation_to_first(Int deg, Int new_first) {
 template <Int nverts_per_ent>
 INLINE I8 invert_alignment(I8 code) {
   if (code_is_flipped(code))
-    return code; // I think flipped codes are their own inverses
-  return make_code(false,
-      invert_rotation<nverts_per_ent>(code_rotation(code)), 0);
+    return code;  // I think flipped codes are their own inverses
+  return make_code(false, invert_rotation<nverts_per_ent>(code_rotation(code)),
+                   0);
 }
 
 INLINE I8 invert_alignment(Int nverts_per_ent, I8 code) {
-  if (nverts_per_ent == 3)
-    return invert_alignment<3>(code);
-  if (nverts_per_ent == 2)
-    return invert_alignment<2>(code);
+  if (nverts_per_ent == 3) return invert_alignment<3>(code);
+  if (nverts_per_ent == 2) return invert_alignment<2>(code);
   NORETURN(0);
 }
 
@@ -140,8 +145,7 @@ INLINE I8 compound_alignments(Int deg, I8 code1, I8 code2) {
 }
 
 template <Int nverts_per_ent, typename T>
-INLINE void rotate_adj(Int rotation,
-    T const in[], T out[]) {
+INLINE void rotate_adj(Int rotation, T const in[], T out[]) {
   for (I8 j = 0; j < nverts_per_ent; ++j)
     out[rotate_index<nverts_per_ent>(j, rotation)] = in[j];
 }
@@ -156,22 +160,26 @@ struct FlipAdj;
 template <>
 struct FlipAdj<3> {
   template <typename T>
-  INLINE static void flip(T adj[]) { flip_adj3(adj); }
+  INLINE static void flip(T adj[]) {
+    flip_adj3(adj);
+  }
 };
 template <>
 struct FlipAdj<2> {
   template <typename T>
-  INLINE static void flip(T adj[]) { (void)adj; }
+  INLINE static void flip(T adj[]) {
+    (void)adj;
+  }
 };
 template <Int deg, typename T>
-INLINE void flip_adj(T adj[]) { FlipAdj<deg>::flip(adj); }
+INLINE void flip_adj(T adj[]) {
+  FlipAdj<deg>::flip(adj);
+}
 
 template <Int nverts_per_ent, typename T>
-INLINE void align_adj(I8 code,
-    T const in[], T out[]) {
+INLINE void align_adj(I8 code, T const in[], T out[]) {
   rotate_adj<nverts_per_ent>(code_rotation(code), in, out);
-  if (code_is_flipped(code))
-    flip_adj<nverts_per_ent>(out);
+  if (code_is_flipped(code)) flip_adj<nverts_per_ent>(out);
 }
 
 template <typename T>

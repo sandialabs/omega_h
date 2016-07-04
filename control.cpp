@@ -5,8 +5,8 @@ static bool we_called_mpi_init = false;
 static bool we_called_kokkos_init = false;
 #endif
 
-extern "C" void osh_init_internal(
-    int* argc, char*** argv, char const* head_desc) {
+extern "C" void osh_init_internal(int* argc, char*** argv,
+                                  char const* head_desc) {
   std::string lib_desc = OSH_VERSION;
   if (lib_desc != head_desc) {
     std::stringstream msg;
@@ -55,8 +55,7 @@ extern "C" void osh_finalize(void) {
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
 
-extern "C" void osh_fail(char const* format, ...)
-{
+extern "C" void osh_fail(char const* format, ...) {
   va_list ap;
   va_start(ap, format);
   vfprintf(stderr, format, ap);
@@ -68,14 +67,8 @@ extern "C" void osh_fail(char const* format, ...)
 #pragma clang diagnostic pop
 #endif
 
-Library::~Library() {
-  osh_finalize();
-}
+Library::~Library() { osh_finalize(); }
 
-CommPtr Library::world() const {
-  return Comm::world();
-}
+CommPtr Library::world() const { return Comm::world(); }
 
-CommPtr Library::self() const {
-  return Comm::self();
-}
+CommPtr Library::self() const { return Comm::self(); }

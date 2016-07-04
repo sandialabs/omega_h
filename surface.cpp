@@ -39,10 +39,8 @@ Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
 }
 
 template <Int dim>
-Reals get_hinge_angles_tmpl(Mesh* mesh,
-    Reals surf_side_normals,
-    LOs surf_hinge2hinge,
-    LOs side2surf_side) {
+Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
+                            LOs surf_hinge2hinge, LOs side2surf_side) {
   auto nsurf_hinges = surf_hinge2hinge.size();
   auto hinges2sides = mesh->ask_up(dim - 2, dim - 1);
   auto hinges2hinge_sides = hinges2sides.a2ab;
@@ -66,7 +64,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh,
   return angles;
 }
 
-} //end anonymous namespace
+}  // end anonymous namespace
 
 Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
   if (mesh->dim() == 3) {
@@ -76,17 +74,15 @@ Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
   }
 }
 
-Reals get_hinge_angles(Mesh* mesh,
-    Reals surf_side_normals,
-    LOs surf_hinge2hinge,
-    LOs side2surf_side) {
+Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
+                       LOs surf_hinge2hinge, LOs side2surf_side) {
   if (mesh->dim() == 3) {
-    return get_hinge_angles_tmpl<3>(mesh,
-        surf_side_normals, surf_hinge2hinge, side2surf_side);
+    return get_hinge_angles_tmpl<3>(mesh, surf_side_normals, surf_hinge2hinge,
+                                    side2surf_side);
   } else {
-    return get_hinge_angles_tmpl<2>(mesh,
-        surf_side_normals, surf_hinge2hinge, side2surf_side);
+    return get_hinge_angles_tmpl<2>(mesh, surf_side_normals, surf_hinge2hinge,
+                                    side2surf_side);
   }
 }
 
-} //end namespace surface
+}  // end namespace surface

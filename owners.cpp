@@ -14,8 +14,7 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
     auto f = LAMBDA(LO old_owner) {
       auto own_idx = -1;
       for (auto serv_copy = old_owners2serv_copies[old_owner];
-           serv_copy < old_owners2serv_copies[old_owner + 1];
-           ++serv_copy) {
+           serv_copy < old_owners2serv_copies[old_owner + 1]; ++serv_copy) {
         auto client = serv_copies2clients[serv_copy];
         auto client_rank = clients2ranks[client];
         auto own_rank = serv_copies2own_ranks[serv_copy];
@@ -36,13 +35,11 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
       LO nown_client_copies = -1;
       LO own_idx = -1;
       for (auto serv_copy = old_owners2serv_copies[old_owner];
-           serv_copy < old_owners2serv_copies[old_owner + 1];
-           ++serv_copy) {
+           serv_copy < old_owners2serv_copies[old_owner + 1]; ++serv_copy) {
         auto client = serv_copies2clients[serv_copy];
         auto nclient_copies = clients2ncopies[client];
         auto client_rank = clients2ranks[client];
-        if ((own_rank == -1) ||
-            (nclient_copies < nown_client_copies) ||
+        if ((own_rank == -1) || (nclient_copies < nown_client_copies) ||
             ((nclient_copies == nown_client_copies) &&
              (client_rank < own_rank))) {
           auto copy_idx = serv_copies2copy_idxs[serv_copy];
@@ -55,25 +52,23 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
       old_owners2own_idxs[old_owner] = own_idx;
     };
     parallel_for(nold_owners, f);
-    copies2own_ranks = old_owners2copies.exch(
-        Read<I32>(old_owners2own_ranks), 1);
+    copies2own_ranks =
+        old_owners2copies.exch(Read<I32>(old_owners2own_ranks), 1);
   }
-  auto copies2own_idxs = old_owners2copies.exch(
-      Read<LO>(old_owners2own_idxs), 1);
+  auto copies2own_idxs =
+      old_owners2copies.exch(Read<LO>(old_owners2own_idxs), 1);
   return Remotes(copies2own_ranks, copies2own_idxs);
 }
 
-Remotes owners_from_globals(CommPtr comm,
-    Read<GO> globals, Read<I32> own_ranks) {
+Remotes owners_from_globals(CommPtr comm, Read<GO> globals,
+                            Read<I32> own_ranks) {
   auto copies2lins_dist = copies_to_linear_owners(comm, globals);
   return update_ownership(copies2lins_dist, own_ranks);
 }
 
 template <typename T>
-Read<T> reduce_data_to_owners(
-    Read<T> copy_data,
-    Dist copies2owners,
-    Int ncomps) {
+Read<T> reduce_data_to_owners(Read<T> copy_data, Dist copies2owners,
+                              Int ncomps) {
   auto owners2copies = copies2owners.invert();
   auto serv_copy_data = copies2owners.exch(copy_data, ncomps);
   auto nowners = owners2copies.nroots();
@@ -83,19 +78,16 @@ Read<T> reduce_data_to_owners(
   auto f = LAMBDA(LO owner) {
     auto sc_begin = owners2serv_copies[owner];
     for (Int c = 0; c < ncomps; ++c) {
-      owner_data_w[owner * ncomps + c] =
-           serv_copy_data[sc_begin * ncomps + c];
+      owner_data_w[owner * ncomps + c] = serv_copy_data[sc_begin * ncomps + c];
     }
   };
   parallel_for(nowners, f);
   return owner_data_w;
 }
 
-#define INST_T(T) \
-template Read<T> reduce_data_to_owners( \
-    Read<T> copy_data, \
-    Dist copies2owners, \
-    Int ncomps);
+#define INST_T(T)                                           \
+  template Read<T> reduce_data_to_owners(Read<T> copy_data, \
+                                         Dist copies2owners, Int ncomps);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
@@ -115,9 +107,8 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   auto nnew_owned = local_offsets.last();
   auto start = new_mesh->comm()->exscan(GO(nnew_owned), OSH_SUM);
   auto new_globals_w = Write<GO>(nnew_ents);
-  parallel_for(nnew_ents, LAMBDA(LO e) {
-    new_globals_w[e] = local_offsets[e] + start;
-  });
+  parallel_for(nnew_ents,
+               LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; });
   auto new_globals = Read<GO>(new_globals_w);
   new_globals = new_mesh->sync_array(ent_dim, new_globals, 1);
   new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, new_globals);

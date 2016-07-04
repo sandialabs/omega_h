@@ -1,13 +1,11 @@
-bool is_little_endian_cpu()
-{
+bool is_little_endian_cpu() {
   static std::uint16_t const endian_canary = 0x1;
   std::uint8_t const* p = reinterpret_cast<std::uint8_t const*>(&endian_canary);
   return *p == 0x1;
 }
 
-void safe_mkdir(const char* path)
-{
-  mode_t const mode = S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
+void safe_mkdir(const char* path) {
+  mode_t const mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
   int err;
   errno = 0;
   err = mkdir(path, mode);
@@ -31,8 +29,7 @@ std::string parent_path(std::string const& path) {
 
 std::string path_leaf_name(std::string const& path) {
   auto pos = path.find_last_of('/');
-  if (pos == std::string::npos)
-    return path;
+  if (pos == std::string::npos) return path;
   return path.substr(pos + 1, std::string::npos);
 }
 
@@ -45,30 +42,23 @@ static_assert(sizeof(LO) == 4, "osh format assumes 32 bit LO");
 static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
-INLINE std::uint32_t bswap32(std::uint32_t a)
-{
+INLINE std::uint32_t bswap32(std::uint32_t a) {
 #ifdef OSH_USE_CUDA
-  a = ((a & 0x000000FF) << 24) |
-      ((a & 0x0000FF00) <<  8) |
-      ((a & 0x00FF0000) >>  8) |
-      ((a & 0xFF000000) >> 24);
+  a = ((a & 0x000000FF) << 24) | ((a & 0x0000FF00) << 8) |
+      ((a & 0x00FF0000) >> 8) | ((a & 0xFF000000) >> 24);
 #else
   a = __builtin_bswap32(a);
 #endif
   return a;
 }
 
-INLINE std::uint64_t bswap64(std::uint64_t a)
-{
+INLINE std::uint64_t bswap64(std::uint64_t a) {
 #ifdef OSH_USE_CUDA
   a = ((a & 0x00000000000000FFULL) << 56) |
       ((a & 0x000000000000FF00ULL) << 40) |
-      ((a & 0x0000000000FF0000ULL) << 24) |
-      ((a & 0x00000000FF000000ULL) <<  8) |
-      ((a & 0x000000FF00000000ULL) >>  8) |
-      ((a & 0x0000FF0000000000ULL) >> 24) |
-      ((a & 0x00FF000000000000ULL) >> 40) |
-      ((a & 0xFF00000000000000ULL) >> 56);
+      ((a & 0x0000000000FF0000ULL) << 24) | ((a & 0x00000000FF000000ULL) << 8) |
+      ((a & 0x000000FF00000000ULL) >> 8) | ((a & 0x0000FF0000000000ULL) >> 24) |
+      ((a & 0x00FF000000000000ULL) >> 40) | ((a & 0xFF00000000000000ULL) >> 56);
 #else
   a = __builtin_bswap64(a);
 #endif
@@ -80,8 +70,7 @@ struct SwapBytes;
 
 template <typename T>
 struct SwapBytes<T, 1> {
-  INLINE static void swap(T*) {
-  }
+  INLINE static void swap(T*) {}
 };
 
 template <typename T>
@@ -105,10 +94,10 @@ INLINE void swap_bytes(T* ptr) {
   SwapBytes<T>::swap(ptr);
 }
 
-unsigned char const magic[2] = {0xa1,0x1a};
+unsigned char const magic[2] = {0xa1, 0x1a};
 I32 latest_version = 1;
 
-} //end anonymous namespace
+}  // end anonymous namespace
 
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian) {
@@ -123,9 +112,7 @@ Read<T> swap_if_needed(Read<T> array, bool is_little_endian) {
     return array;
   }
   Write<T> out = deep_copy(array);
-  auto f = LAMBDA(LO i) {
-    swap_bytes(&out[i]);
-  };
+  auto f = LAMBDA(LO i) { swap_bytes(&out[i]); };
   parallel_for(out.size(), f);
   return out;
 }
@@ -148,37 +135,33 @@ void write_array(std::ostream& stream, Read<T> array) {
   write_value(stream, size);
   Read<T> swapped = swap_if_needed(array, true);
   HostRead<T> uncompressed(swapped);
-  I64 uncompressed_bytes = static_cast<I64>(
-      static_cast<std::size_t>(size) * sizeof(T));
+  I64 uncompressed_bytes =
+      static_cast<I64>(static_cast<std::size_t>(size) * sizeof(T));
 #ifdef OSH_USE_ZLIB
   uLong source_bytes = static_cast<uLong>(uncompressed_bytes);
   uLong dest_bytes = ::compressBound(source_bytes);
   Bytef* compressed = new Bytef[dest_bytes];
-  int ret = ::compress2(
-      compressed,
-      &dest_bytes,
-      reinterpret_cast<const Bytef*>(&uncompressed[0]),
-      source_bytes,
-      Z_BEST_SPEED);
+  int ret = ::compress2(compressed, &dest_bytes,
+                        reinterpret_cast<const Bytef*>(&uncompressed[0]),
+                        source_bytes, Z_BEST_SPEED);
   CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
   write_value(stream, compressed_bytes);
   stream.write(reinterpret_cast<const char*>(compressed), compressed_bytes);
-  delete [] compressed;
+  delete[] compressed;
 #else
   stream.write(reinterpret_cast<const char*>(&uncompressed[0]),
-      uncompressed_bytes);
+               uncompressed_bytes);
 #endif
 }
 
 template <typename T>
-void read_array(std::istream& stream, Read<T>& array,
-    bool is_compressed) {
+void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   LO size;
   read_value(stream, size);
   CHECK(size >= 0);
-  I64 uncompressed_bytes = static_cast<I64>(
-      static_cast<std::size_t>(size) * sizeof(T));
+  I64 uncompressed_bytes =
+      static_cast<I64>(static_cast<std::size_t>(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
 #ifdef OSH_USE_ZLIB
   if (is_compressed) {
@@ -189,46 +172,41 @@ void read_array(std::istream& stream, Read<T>& array,
     stream.read(reinterpret_cast<char*>(compressed), compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
-    int ret = ::uncompress(
-        reinterpret_cast<Bytef*>(uncompressed.data()),
-        &dest_bytes,
-        compressed,
-        source_bytes);
+    int ret = ::uncompress(reinterpret_cast<Bytef*>(uncompressed.data()),
+                           &dest_bytes, compressed, source_bytes);
     CHECK(ret == Z_OK);
     CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
-    delete [] compressed;
+    delete[] compressed;
   } else
 #else
   CHECK(is_compressed == false);
 #endif
   {
     stream.read(reinterpret_cast<char*>(uncompressed.data()),
-        uncompressed_bytes);
+                uncompressed_bytes);
   }
   array = swap_if_needed(Read<T>(uncompressed.write()), true);
 }
 
-#define INST_T(T) \
-template void write_value(std::ostream& stream, T val); \
-template void read_value(std::istream& stream, T& val); \
-template void write_array(std::ostream& stream, Read<T> array); \
-template void read_array(std::istream& stream, Read<T>& array, \
-    bool is_compressed);
+#define INST_T(T)                                                 \
+  template void write_value(std::ostream& stream, T val);         \
+  template void read_value(std::istream& stream, T& val);         \
+  template void write_array(std::ostream& stream, Read<T> array); \
+  template void read_array(std::istream& stream, Read<T>& array,  \
+                           bool is_compressed);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-void write(std::ostream& stream, std::string const& val)
-{
+void write(std::ostream& stream, std::string const& val) {
   I32 len = static_cast<I32>(val.length());
   write_value(stream, len);
   stream.write(val.c_str(), len);
 }
 
-void read(std::istream& stream, std::string& val)
-{
+void read(std::istream& stream, std::string& val) {
   I32 len;
   read_value(stream, len);
   CHECK(len >= 0);
@@ -312,8 +290,8 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   }
 }
 
-static void read_tag(std::istream& stream, Mesh* mesh,
-    Int d, bool is_compressed) {
+static void read_tag(std::istream& stream, Mesh* mesh, Int d,
+                     bool is_compressed) {
   std::string name;
   read(stream, name);
   I8 ncomps;
@@ -440,7 +418,8 @@ static bool ends_with(std::string const& path, std::string const& ext) {
 
 void write(std::string const& path, Mesh* mesh) {
   if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
-    std::cout << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
+    std::cout
+        << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
     std::cout << "instead of just \"" << path << "\"\n";
   }
   safe_mkdir(path.c_str());
@@ -463,7 +442,8 @@ static void read2(std::string const& path, CommPtr comm, Mesh* mesh) {
 void read(std::string const& path, CommPtr comm, Mesh* mesh) {
   auto nparts = read_nparts(path);
   if (nparts > comm->size()) {
-    osh_fail("path \"%s\" contains %d parts, but only %d ranks are reading it\n",
+    osh_fail(
+        "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
         path.c_str(), nparts, comm->size());
   }
   bool in_subcomm = (comm->rank() < nparts);
@@ -474,4 +454,4 @@ void read(std::string const& path, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-} //end namespace file
+}  // end namespace file

@@ -75,4 +75,4 @@ namespace osh {
 #include "align.cpp"
 #include "xml.cpp"
 
-} //end namespace osh
+}  // end namespace osh
