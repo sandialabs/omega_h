@@ -15,6 +15,7 @@ option(OSH_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
 option(OSH_OPTIMIZE "Compile with optimization" ON)
 option(OSH_SYMBOLS "Compile with debug symbols" ON)
 option(OSH_BUILD_SMB2OSH "Enable building the smb2osh program" OFF)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp)
@@ -72,6 +73,22 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/omega_h_config_in.h"
   "${PROJECT_BINARY_DIR}/omega_h_config.h")
 include_directories(${PROJECT_BINARY_DIR})
+
+# CMake RPATH "always full" configuration, see:
+# https://cmake.org/Wiki/CMake_RPATH_handling#Always_full_RPATH
+# use, i.e. don't skip the full RPATH for the build tree
+set(CMAKE_SKIP_BUILD_RPATH False)
+# when building, don't use the install RPATH already
+# (but later on when installing)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH False)
+# the RPATH to be used when installing, but only if it's not a system directory
+list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+if("${isSystemDir}" STREQUAL "-1")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+endif("${isSystemDir}" STREQUAL "-1")
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 
 add_library(omega_h omega_h.cpp)
 target_link_libraries(omega_h ${DEP_LIBS})
