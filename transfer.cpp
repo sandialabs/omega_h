@@ -495,7 +495,7 @@ DEVICE static bool transfer_fit_cavity(
     auto qtb_full = b;
     implicit_q_trans_b(qtb_full, householder_vecs);
     Vector<dim + 1> qtb;
-    for (Int i = 0; i < n; ++i) qtb[i] = qtb_full[i];
+    for (Int i = 0; i < dim + 1; ++i) qtb[i] = qtb_full[i];
     auto coeffs = solve_upper_triangular(r, qtb);
     for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
       auto new_elem = prods2new_elems[prod];
