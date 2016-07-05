@@ -70,7 +70,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${FLAGS}")
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/omega_h_config_in.h"
+  "${PROJECT_SOURCE_DIR}/omega_h_config.h.in"
   "${PROJECT_BINARY_DIR}/omega_h_config.h")
 include_directories(${PROJECT_BINARY_DIR})
 
