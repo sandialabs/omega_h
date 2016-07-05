@@ -1,5 +1,7 @@
 #include "omega_h.hpp"
 
+#include <cstdlib>
+
 int main(int argc, char** argv) {
   auto lib = osh::Library(&argc, &argv);
   OSH_CHECK(argc == 3 || argc == 4);

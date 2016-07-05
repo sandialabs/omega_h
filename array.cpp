@@ -523,7 +523,7 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   return b;
 }
 
-#define INST_ARRAY_T(T)                                                  \
+#define INST(T)                                                          \
   template class Write<T>;                                               \
   template class Read<T>;                                                \
   template class HostWrite<T>;                                           \
@@ -551,8 +551,8 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   template Read<I8> gt_each(Read<T> a, Read<T> b);                       \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 
-INST_ARRAY_T(I8)
-INST_ARRAY_T(I32)
-INST_ARRAY_T(I64)
-INST_ARRAY_T(Real)
-#undef INST_ARRAY_T
+INST(I8)
+INST(I32)
+INST(I64)
+INST(Real)
+#undef INST

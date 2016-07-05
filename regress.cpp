@@ -36,8 +36,8 @@ bool check_regression(std::string const& prefix, Mesh* mesh, Real tol,
       std::cout << "This run, stored at \"" << newpath << "\",\n";
       std::cout << "has more tags than \"" << goldpath << "\"\n";
       std::cout << "It should probably be made the new gold, like this:\n";
-      std::cout << "  rm -rf \"" << goldpath << "\"\n",
-          std::cout << "  mv \"" << newpath << "\" \"" << goldpath << "\"\n";
+      std::cout << "  rm -rf \"" << goldpath << "\"\n";
+      std::cout << "  mv \"" << newpath << "\" \"" << goldpath << "\"\n";
     }
     return false;
   }

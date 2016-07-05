@@ -47,3 +47,19 @@ template <typename T>
 Read<T> fan_min(LOs a2b, Read<T> b_data);
 template <typename T>
 Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
+
+#define INST_T(T)                                                         \
+  extern template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, \
+                                Int width);                               \
+  extern template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T,     \
+                                   Int width);                            \
+  extern template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);      \
+  extern template Read<T> expand(Read<T> a_data, LOs a2b, Int width);     \
+  extern template Read<T> permute(Read<T> a_data, LOs a2b, Int width);    \
+  extern template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width,  \
+                                     osh_op op);
+INST_T(I8)
+INST_T(I32)
+INST_T(I64)
+INST_T(Real)
+#undef INST_T

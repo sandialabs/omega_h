@@ -87,21 +87,11 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   return data;
 }
 
-template Read<I8> Dist::exch(Read<I8> data, Int width) const;
-template Read<I32> Dist::exch(Read<I32> data, Int width) const;
-template Read<I64> Dist::exch(Read<I64> data, Int width) const;
-template Read<Real> Dist::exch(Read<Real> data, Int width) const;
-
 template <typename T>
 Read<T> Dist::exch_reduce(Read<T> data, Int width, osh_op op) const {
   Read<T> item_data = exch(data, width);
   return fan_reduce(roots2items_[R], item_data, width, op);
 }
-
-template Read<I32> Dist::exch_reduce(Read<I32> data, Int width,
-                                     osh_op op) const;
-template Read<Real> Dist::exch_reduce(Read<Real> data, Int width,
-                                      osh_op op) const;
 
 CommPtr Dist::parent_comm() const { return parent_comm_; }
 
@@ -163,3 +153,12 @@ Remotes Dist::exch(Remotes data, Int width) const {
   auto idxs = exch(data.idxs, width);
   return Remotes(ranks, idxs);
 }
+
+#define INST_T(T)                                             \
+  template Read<T> Dist::exch(Read<T> data, Int width) const; \
+  template Read<T> Dist::exch_reduce(Read<T> data, Int width, osh_op op) const;
+INST_T(I8)
+INST_T(I32)
+INST_T(I64)
+INST_T(Real)
+#undef INST_T

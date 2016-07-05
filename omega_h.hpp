@@ -537,6 +537,38 @@ bool approach_metric(Mesh* mesh, Real min_qual);
 Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);
 
+/* begin explicit instantiation declarations */
+#define OSH_EXPL_INST_DECL(T)                                                  \
+  extern template class Read<T>;                                               \
+  extern template class Write<T>;                                              \
+  extern template class HostRead<T>;                                           \
+  extern template class HostWrite<T>;                                          \
+  extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
+  extern template Read<T> Dist::exch_reduce<T>(Read<T> data, Int width,        \
+                                               osh_op op) const;               \
+  extern template Tag<T> const* Mesh::get_tag<T>(                              \
+      Int dim, std::string const& name) const;                                 \
+  extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
+      const;                                                                   \
+  extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
+                                        Int ncomps, osh_xfer xfer);            \
+  extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
+                                        Int ncomps, osh_xfer xfer,             \
+                                        Read<T> array);                        \
+  extern template void Mesh::set_tag(Int dim, std::string const& name,         \
+                                     Read<T> array);                           \
+  extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
+  extern template Read<T> Mesh::sync_subset_array(                             \
+      Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
+  extern template Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a,           \
+                                             Int width, osh_op op);
+OSH_EXPL_INST_DECL(I8)
+OSH_EXPL_INST_DECL(I32)
+OSH_EXPL_INST_DECL(I64)
+OSH_EXPL_INST_DECL(Real)
+#undef OSH_EXPL_INST_DECL
+/* end explicit instantiation declarations */
+
 }  // end namespace osh
 
 #endif

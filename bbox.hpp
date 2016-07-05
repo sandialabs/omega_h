@@ -31,3 +31,6 @@ INLINE bool are_close(BBox<dim> a, BBox<dim> b) {
 
 template <Int dim>
 BBox<dim> find_bounding_box(Reals coords);
+
+extern template BBox<2> find_bounding_box<2>(Reals coords);
+extern template BBox<3> find_bounding_box<3>(Reals coords);

@@ -65,18 +65,6 @@ LOs multiply_fans(LOs a2b, LOs a2c) {
   return a2bc;
 }
 
-#define INST_T(T)                                                              \
-  template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
-  template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
-  template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
-  template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
-  template Read<T> permute(Read<T> a_data, LOs a2b, Int width);
-INST_T(I8)
-INST_T(I32)
-INST_T(I64)
-INST_T(Real)
-#undef INST_T
-
 LOs compound_maps(LOs a2b, LOs b2c) {
   LO na = a2b.size();
   Write<LO> a2c(a2b.size());
@@ -252,9 +240,15 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
   NORETURN(Read<T>());
 }
 
-#define INST_T(T) \
+#define INST_T(T)                                                              \
+  template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
+  template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
+  template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
+  template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
+  template Read<T> permute(Read<T> a_data, LOs a2b, Int width);                \
   template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
 INST_T(I8)
 INST_T(I32)
+INST_T(I64)
 INST_T(Real)
 #undef INST_T

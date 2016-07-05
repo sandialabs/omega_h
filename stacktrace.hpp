@@ -25,7 +25,7 @@ static inline void print_stacktrace(FILE* out = stderr, int max_frames = 63) {
   // iterate over the returned symbol lines. skip the first, it is the
   // address of this function.
   for (int i = 1; i < addrlen; i++) {
-#if __APPLE__
+#if defined(__APPLE__)
     std::string line(symbollist[i]);
     std::stringstream instream(line);
     std::string num;
@@ -50,7 +50,7 @@ static inline void print_stacktrace(FILE* out = stderr, int max_frames = 63) {
               << offset;
     auto outstr = outstream.str();
     fprintf(out, "  %s\n", outstr.c_str());
-#elif __linux__
+#elif defined(__linux__)
     std::string line(symbollist[i]);
     auto open_paren = line.find_first_of('(');
     auto start = open_paren + 1;

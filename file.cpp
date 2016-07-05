@@ -188,17 +188,17 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   array = swap_if_needed(Read<T>(uncompressed.write()), true);
 }
 
-#define INST_T(T)                                                 \
+#define INST(T)                                                   \
   template void write_value(std::ostream& stream, T val);         \
   template void read_value(std::istream& stream, T& val);         \
   template void write_array(std::ostream& stream, Read<T> array); \
   template void read_array(std::istream& stream, Read<T>& array,  \
                            bool is_compressed);
-INST_T(I8)
-INST_T(I32)
-INST_T(I64)
-INST_T(Real)
-#undef INST_T
+INST(I8)
+INST(I32)
+INST(I64)
+INST(Real)
+#undef INST
 
 void write(std::ostream& stream, std::string const& val) {
   I32 len = static_cast<I32>(val.length());
