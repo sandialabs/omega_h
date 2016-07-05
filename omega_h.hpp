@@ -374,6 +374,7 @@ class Mesh {
                Read<T> array);
   template <typename T>
   void set_tag(Int dim, std::string const& name, Read<T> array);
+  TagBase const* get_tagbase(Int dim, std::string const& name) const;
   template <typename T>
   Tag<T> const* get_tag(Int dim, std::string const& name) const;
   template <typename T>
@@ -444,6 +445,8 @@ class Mesh {
                             Int width);
   template <typename T>
   Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op);
+  void sync_tag(Int dim, std::string const& name);
+  void reduce_tag(Int dim, std::string const& name, osh_op op);
   bool operator==(Mesh& other);
   Real min_quality();
   bool could_be_shared(Int ent_dim) const;

@@ -137,13 +137,17 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   }
 }
 
-template <typename T>
-Tag<T> const* Mesh::get_tag(Int dim, std::string const& name) const {
+TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
     osh_fail("expected tag %s on %s\n", name.c_str(), plural_names[dim]);
   }
-  return to<T>(tag_iter(dim, name)->get());
+  return tag_iter(dim, name)->get();
+}
+
+template <typename T>
+Tag<T> const* Mesh::get_tag(Int dim, std::string const& name) const {
+  return to<T>(get_tagbase(dim, name));
 }
 
 template <typename T>
@@ -467,6 +471,62 @@ template <typename T>
 Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op) {
   if (!could_be_shared(ent_dim)) return a;
   return ask_dist(ent_dim).exch_reduce(a, width, op);
+}
+
+void Mesh::sync_tag(Int dim, std::string const& name) {
+  auto tagbase = get_tagbase(dim, name);
+  switch (tagbase->type()) {
+    case OSH_I8: {
+      auto out = sync_array(dim, to<I8>(tagbase)->array(), tagbase->ncomps());
+      set_tag(dim, name, out);
+      break;
+    }
+    case OSH_I32: {
+      auto out = sync_array(dim, to<I32>(tagbase)->array(), tagbase->ncomps());
+      set_tag(dim, name, out);
+      break;
+    }
+    case OSH_I64: {
+      auto out = sync_array(dim, to<I64>(tagbase)->array(), tagbase->ncomps());
+      set_tag(dim, name, out);
+      break;
+    }
+    case OSH_F64: {
+      auto out = sync_array(dim, to<Real>(tagbase)->array(), tagbase->ncomps());
+      set_tag(dim, name, out);
+      break;
+    }
+  }
+}
+
+void Mesh::reduce_tag(Int dim, std::string const& name, osh_op op) {
+  auto tagbase = get_tagbase(dim, name);
+  switch (tagbase->type()) {
+    case OSH_I8: {
+      auto out =
+          reduce_array(dim, to<I8>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(dim, name, out);
+      break;
+    }
+    case OSH_I32: {
+      auto out =
+          reduce_array(dim, to<I32>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(dim, name, out);
+      break;
+    }
+    case OSH_I64: {
+      auto out =
+          reduce_array(dim, to<I64>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(dim, name, out);
+      break;
+    }
+    case OSH_F64: {
+      auto out =
+          reduce_array(dim, to<Real>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(dim, name, out);
+      break;
+    }
+  }
 }
 
 bool Mesh::operator==(Mesh& other) {
