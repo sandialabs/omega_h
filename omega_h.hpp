@@ -287,6 +287,7 @@ class Dist {
  public:
   Dist();
   Dist(Dist const& other);
+  Dist& operator=(Dist const& other);
   Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots);
   void set_parent_comm(CommPtr parent_comm);
   void set_dest_ranks(Read<I32> items2ranks);
@@ -315,6 +316,7 @@ class Dist {
   Remotes exch(Remotes data, Int width) const;
 
  private:
+  void copy(Dist const& other);
   enum { F, R };
 };
 

@@ -1,13 +1,10 @@
 Dist::Dist() {}
 
-Dist::Dist(Dist const& other) {
-  parent_comm_ = other.parent_comm_;
-  for (Int i = 0; i < 2; ++i) {
-    roots2items_[i] = other.roots2items_[i];
-    items2content_[i] = other.items2content_[i];
-    msgs2content_[i] = other.msgs2content_[i];
-    comm_[i] = other.comm_[i];
-  }
+Dist::Dist(Dist const& other) { copy(other); }
+
+Dist& Dist::operator=(Dist const& other) {
+  copy(other);
+  return *this;
 }
 
 Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
@@ -162,6 +159,16 @@ Remotes Dist::exch(Remotes data, Int width) const {
   auto ranks = exch(data.ranks, width);
   auto idxs = exch(data.idxs, width);
   return Remotes(ranks, idxs);
+}
+
+void Dist::copy(Dist const& other) {
+  parent_comm_ = other.parent_comm_;
+  for (Int i = 0; i < 2; ++i) {
+    roots2items_[i] = other.roots2items_[i];
+    items2content_[i] = other.items2content_[i];
+    msgs2content_[i] = other.msgs2content_[i];
+    comm_[i] = other.comm_[i];
+  }
 }
 
 #define INST_T(T)                                             \
