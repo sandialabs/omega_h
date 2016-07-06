@@ -34,9 +34,10 @@ class Write {
   std::shared_ptr<T> ptr_;
   LO size_;
 #endif
-/* separate boolean instead of data()==nullptr,
-   see Kokkos issue #244 */
+  /* separate boolean instead of data()==nullptr,
+     see Kokkos issue #244 */
   bool exists_;
+
  public:
   OSH_INLINE Write();
 #ifdef OSH_USE_KOKKOS
@@ -76,8 +77,8 @@ OSH_INLINE Write<T>::Write()
       ptr_(),
       size_(0)
 #endif
-     ,exists_(false)
-{
+      ,
+      exists_(false) {
 }
 
 template <typename T>

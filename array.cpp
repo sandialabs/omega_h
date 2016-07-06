@@ -1,7 +1,6 @@
 #ifdef OSH_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {
-}
+Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {}
 #endif
 
 template <typename T>
@@ -13,8 +12,8 @@ Write<T>::Write(LO size)
       ptr_(new T[size], std::default_delete<T[]>()),
       size_(size)
 #endif
-     ,exists_(true)
-{
+      ,
+      exists_(true) {
 }
 
 template <typename T>
