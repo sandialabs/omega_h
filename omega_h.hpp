@@ -531,6 +531,8 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
                              std::vector<Int> class_dims,
                              std::vector<I32> class_ids);
 
+LOs collect_marked(Read<I8> marks);
+
 bool warp_to_limit(Mesh* mesh, Real min_qual);
 bool approach_metric(Mesh* mesh, Real min_qual);
 
