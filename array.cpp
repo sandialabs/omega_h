@@ -9,14 +9,13 @@ template <typename T>
 Write<T>::Write(LO size)
     :
 #ifdef OSH_USE_KOKKOS
-      /* +1 for ::exists() to work, see Kokkos issue #244 */
-      view_("omega_h", static_cast<std::size_t>(size + 1))
+      view_("omega_h", static_cast<std::size_t>(size))
 #else
       ptr_(new T[size], std::default_delete<T[]>()),
       size_(size)
 #endif
+     ,exists_(true)
 {
-  CHECK(exists());
 }
 
 template <typename T>
@@ -48,7 +47,7 @@ template <typename T>
 LO Write<T>::size() const {
   CHECK(exists());
 #ifdef OSH_USE_KOKKOS
-  return static_cast<LO>(view_.size() - 1);
+  return static_cast<LO>(view_.size());
 #else
   return size_;
 #endif
@@ -92,7 +91,7 @@ T Write<T>::get(LO i) const {
 
 template <typename T>
 bool Write<T>::exists() const {
-  return data() != nullptr;
+  return exists_;
 }
 
 template <typename T>
