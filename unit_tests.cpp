@@ -655,6 +655,7 @@ static void test_file(Library const& lib) {
   Mesh mesh1;
   mesh1.set_comm(Comm::self());
   binary::read(stream, &mesh1);
+  mesh1.set_comm(lib.world());
   CHECK(mesh0 == mesh1);
 }
 
