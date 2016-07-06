@@ -110,7 +110,10 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, osh_xfer xfer,
 
 template <typename T>
 void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
-  CHECK(has_tag(dim, name));
+  if (!has_tag(dim, name)) {
+    osh_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
+             plural_names[dim], name.c_str());
+  }
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
   /* don't do cache invalidation if this is the first
