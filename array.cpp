@@ -1,7 +1,6 @@
 #ifdef OSH_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
-  CHECK(exists());
+Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {
 }
 #endif
 
