@@ -11,6 +11,7 @@
 #cmakedefine OSH_USE_CUDA
 #cmakedefine OSH_USE_ZLIB
 #cmakedefine OSH_CHECK_BOUNDS
+#cmakedefine OSH_PROTECT
 
 /* this block of preprocessor code creates a string
    literal describing the version and compile options

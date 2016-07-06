@@ -18,6 +18,7 @@ option(OSH_BUILD_SMB2OSH "Enable building the smb2osh program" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(OSH_SANITIZE_ADDRESS "Use -fsanitize=address" OFF)
 set(Kokkos_PREFIX "" CACHE STRING "Kokkos installation directory")
+option(OSH_PROTECT "Catch OS signals and print stack" OFF)
 
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp PATHS "${Kokkos_PREFIX}/include")

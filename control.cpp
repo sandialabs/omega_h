@@ -32,7 +32,9 @@ extern "C" void osh_init_internal(int* argc, char*** argv,
 #endif
   (void)argc;
   (void)argv;
+#ifdef OSH_PROTECT
   protect();
+#endif
 }
 
 extern "C" void osh_finalize(void) {
