@@ -285,6 +285,7 @@ class Dist {
 
  public:
   Dist();
+  Dist(Dist const& other);
   Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots);
   void set_parent_comm(CommPtr parent_comm);
   void set_dest_ranks(Read<I32> items2ranks);

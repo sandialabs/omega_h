@@ -1,5 +1,15 @@
 Dist::Dist() {}
 
+Dist::Dist(Dist const& other) {
+  parent_comm_ = other.parent_comm_;
+  for (Int i = 0; i < 2; ++i) {
+    roots2items_[i] = other.roots2items_[i];
+    items2content_[i] = other.items2content_[i];
+    msgs2content_[i] = other.msgs2content_[i];
+    comm_[i] = other.comm_[i];
+  }
+}
+
 Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
   set_parent_comm(comm);
   set_dest_ranks(fitems2rroots.ranks);
