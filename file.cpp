@@ -406,6 +406,9 @@ static void write_nparts(std::string const& path, Mesh* mesh) {
 static I32 read_nparts(std::string const& path) {
   auto filepath = path + "/nparts";
   std::ifstream file(filepath.c_str());
+  if (!file.is_open()) {
+    osh_fail("could not open file \"%s\"\n", filepath.c_str());
+  }
   I32 nparts;
   file >> nparts;
   return nparts;
