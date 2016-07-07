@@ -647,16 +647,31 @@ static void test_swap3d_loop(Library const& lib) {
   parallel_for(LO(1), f);
 }
 
-static void test_file(Library const& lib) {
-  Mesh mesh0;
-  build_box(&mesh0, lib, .2, .3, .4, 2, 3, 4);
+static void build_empty_mesh(Mesh* mesh, Library const& lib, Int dim) {
+  build_from_elems_and_coords(mesh, lib, dim, LOs({}), Reals({}));
+}
+
+static void test_file(Library const& lib, Mesh* mesh0) {
   std::stringstream stream;
-  binary::write(stream, &mesh0);
+  binary::write(stream, mesh0);
   Mesh mesh1;
   mesh1.set_comm(Comm::self());
   binary::read(stream, &mesh1);
   mesh1.set_comm(lib.world());
-  CHECK(mesh0 == mesh1);
+  CHECK(*mesh0 == mesh1);
+}
+
+static void test_file(Library const& lib) {
+  {
+    Mesh mesh0;
+    build_box(&mesh0, lib, 1, 1, 1, 1, 1, 1);
+    test_file(lib, &mesh0);
+  }
+  {
+    Mesh mesh0;
+    build_empty_mesh(&mesh0, lib, 3);
+    test_file(lib, &mesh0);
+  }
 }
 
 static void test_xml() {
@@ -678,14 +693,18 @@ static void test_xml() {
   CHECK(tag.type == xml::Tag::END);
 }
 
+static void test_read_vtu(Mesh* mesh0) {
+  std::stringstream stream;
+  vtk::write_vtu(stream, mesh0, mesh0->dim());
+  Mesh mesh1;
+  vtk::read_vtu(stream, mesh0->comm(), &mesh1);
+  CHECK(OSH_SAME == compare_meshes(mesh0, &mesh1, 0.0, 0.0, true, false));
+}
+
 static void test_read_vtu(Library const& lib) {
   Mesh mesh0;
   build_box(&mesh0, lib, 1, 1, 1, 1, 1, 1);
-  std::stringstream stream;
-  vtk::write_vtu(stream, &mesh0, mesh0.dim());
-  Mesh mesh1;
-  vtk::read_vtu(stream, mesh0.comm(), &mesh1);
-  CHECK(OSH_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, false));
+  test_read_vtu(&mesh0);
 }
 
 static void test_interpolate_metrics() {

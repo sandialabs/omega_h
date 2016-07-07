@@ -59,14 +59,11 @@ class NonNullPtr {
   static T scratch[1];
 
  public:
-  static T* get(T* p) {
-    return (p == nullptr) ? scratch : p;
-  }
-  static T const* get(T const* p) {
-    return (p == nullptr) ? scratch : p;
-  }
+  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
+  static T const* get(T const* p) { return (p == nullptr) ? scratch : p; }
 };
-template <typename T> T NonNullPtr<T>::scratch[1] = {0};
+template <typename T>
+T NonNullPtr<T>::scratch[1] = {0};
 
 template <typename T>
 T* Write<T>::data() const {
@@ -538,7 +535,7 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
 }
 
 #define INST(T)                                                          \
-  template class NonNullPtr<T>;                                               \
+  template class NonNullPtr<T>;                                          \
   template class Write<T>;                                               \
   template class Read<T>;                                                \
   template class HostWrite<T>;                                           \

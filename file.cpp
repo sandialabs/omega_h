@@ -142,7 +142,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   uLong dest_bytes = ::compressBound(source_bytes);
   Bytef* compressed = new Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-                        reinterpret_cast<const Bytef*>(&uncompressed[0]),
+                        reinterpret_cast<const Bytef*>(uncompressed.data()),
                         source_bytes, Z_BEST_SPEED);
   CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
@@ -150,7 +150,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   stream.write(reinterpret_cast<const char*>(compressed), compressed_bytes);
   delete[] compressed;
 #else
-  stream.write(reinterpret_cast<const char*>(&uncompressed[0]),
+  stream.write(reinterpret_cast<const char*>(uncompressed.data()),
                uncompressed_bytes);
 #endif
 }
