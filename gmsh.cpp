@@ -145,7 +145,9 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
 
 void read(std::string const& filename, Library const& lib, Mesh* mesh) {
   std::ifstream file(filename.c_str());
-  CHECK(file.is_open());
+  if (!file.is_open()) {
+    osh_fail("couldn't open \"%s\"\n", filename.c_str());
+  }
   read(file, lib, mesh);
 }
 }
