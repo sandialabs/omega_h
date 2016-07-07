@@ -582,7 +582,9 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
   I32 npieces;
   std::string vtupath;
   std::ifstream stream(pvtupath.c_str());
-  CHECK(stream.is_open());
+  if (!stream.is_open()) {
+    osh_fail("couldn't open \"%s\"\n", pvtupath.c_str());
+  }
   read_pvtu(stream, comm, &npieces, &vtupath);
   vtupath = parentpath + "/" + vtupath;
   *npieces_out = npieces;
