@@ -143,7 +143,8 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
-    osh_fail("expected tag %s on %s\n", name.c_str(), plural_names[dim]);
+    osh_fail("get_tagbase(%s,%s): doesn't exist\n", plural_names[dim],
+             name.c_str());
   }
   return tag_iter(dim, name)->get();
 }
