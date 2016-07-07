@@ -175,9 +175,16 @@ Read<T> read_array(std::istream& stream, LO size, bool is_little_endian,
     base64::decode(encoded, compressed, compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
-    int ret = ::uncompress(reinterpret_cast<Bytef*>(uncompressed.data()),
-                           &dest_bytes, compressed, source_bytes);
-    CHECK(ret == Z_OK);
+    Bytef* uncompressed_ptr = reinterpret_cast<Bytef*>(uncompressed.data());
+    /* ZLib returns Z_STREAM_ERROR if uncompressed_ptr is NULL, even
+       when dest_bytes is zero. */
+    Bytef workaround[1];
+    if (uncompressed_bytes == 0) uncompressed_ptr = workaround;
+    int ret =
+        ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
+    if (ret != Z_OK) {
+      osh_fail("code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
+    }
     CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete[] compressed;
   } else

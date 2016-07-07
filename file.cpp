@@ -172,8 +172,13 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
     stream.read(reinterpret_cast<char*>(compressed), compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
-    int ret = ::uncompress(reinterpret_cast<Bytef*>(uncompressed.data()),
-                           &dest_bytes, compressed, source_bytes);
+    Bytef* uncompressed_ptr = reinterpret_cast<Bytef*>(uncompressed.data());
+    /* ZLib returns Z_STREAM_ERROR if uncompressed_ptr is NULL, even
+       when dest_bytes is zero. */
+    Bytef workaround[1];
+    if (uncompressed_bytes == 0) uncompressed_ptr = workaround;
+    int ret =
+        ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     CHECK(ret == Z_OK);
     CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete[] compressed;
