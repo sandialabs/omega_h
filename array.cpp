@@ -51,10 +51,27 @@ LO Write<T>::size() const {
 #endif
 }
 
+/* Several C libraries including ZLib and
+   OpenMPI will throw errors when input pointers
+   are NULL, even if they point to arrays of size zero. */
+template <typename T>
+class NonNullPtr {
+  static T scratch[1];
+
+ public:
+  static T* get(T* p) {
+    return (p == nullptr) ? scratch : p;
+  }
+  static T const* get(T const* p) {
+    return (p == nullptr) ? scratch : p;
+  }
+};
+template <typename T> T NonNullPtr<T>::scratch[1] = {0};
+
 template <typename T>
 T* Write<T>::data() const {
 #ifdef OSH_USE_KOKKOS
-  return view_.data();
+  return NonNullPtr<T>::get(view_.data());
 #else
   return ptr_.get();
 #endif
@@ -314,7 +331,7 @@ LO HostWrite<T>::size() const {
 template <typename T>
 T* HostWrite<T>::data() const {
 #ifdef OSH_USE_KOKKOS
-  return mirror_.data();
+  return NonNullPtr<T>::get(mirror_.data());
 #else
   return write_.data();
 #endif
@@ -344,7 +361,7 @@ LO HostRead<T>::size() const {
 template <typename T>
 T const* HostRead<T>::data() const {
 #ifdef OSH_USE_KOKKOS
-  return mirror_.data();
+  return NonNullPtr<T>::get(mirror_.data());
 #else
   return read_.data();
 #endif
@@ -521,6 +538,7 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
 }
 
 #define INST(T)                                                          \
+  template class NonNullPtr<T>;                                               \
   template class Write<T>;                                               \
   template class Read<T>;                                                \
   template class HostWrite<T>;                                           \
