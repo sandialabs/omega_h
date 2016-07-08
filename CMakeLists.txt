@@ -159,11 +159,11 @@ install(FILES
 install(TARGETS omega_h EXPORT omega_h-targets DESTINATION lib)
 install(EXPORT omega_h-targets DESTINATION lib)
 configure_file(
-  "${PROJECT_SOURCE_DIR}/omega_h-config-in.cmake"
+  "${PROJECT_SOURCE_DIR}/omega_h-config.cmake.in"
   "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
   @ONLY)
 configure_file(
-  "${PROJECT_SOURCE_DIR}/omega_h-config-version-in.cmake"
+  "${PROJECT_SOURCE_DIR}/omega_h-config-version.cmake.in"
   "${PROJECT_BINARY_DIR}/omega_h-config-version.cmake"
   @ONLY)
 install(FILES
