@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(Omega_h CXX)
 
-set(OSH_MAJOR "0")
-set(OSH_MINOR "5")
+set(OSH_MAJOR "1")
+set(OSH_MINOR "0")
 set(OSH_PATCH "0")
 
 option(OSH_USE_MPI "Use MPI for parallelism" ON)
