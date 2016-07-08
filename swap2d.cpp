@@ -32,8 +32,8 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
   new_mesh.set_verts(mesh->nverts());
   new_mesh.set_owners(VERT, mesh->ask_owners(VERT));
   transfer_copy(mesh, &new_mesh, VERT);
-  std::array<LOs, 3> keys2prods;
-  std::array<LOs, 3> prod_verts2verts;
+  HostFew<LOs, 3> keys2prods;
+  HostFew<LOs, 3> prod_verts2verts;
   swap2d_topology(mesh, keys2edges, &keys2prods, &prod_verts2verts);
   auto old_lows2new_lows = LOs(mesh->nverts(), 0, 1);
   for (Int ent_dim = EDGE; ent_dim <= mesh->dim(); ++ent_dim) {

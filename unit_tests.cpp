@@ -609,8 +609,8 @@ static void test_compare_meshes(Library const& lib) {
 static void test_swap2d_topology(Library const& lib) {
   Mesh mesh;
   build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
-  std::array<LOs, 3> keys2prods;
-  std::array<LOs, 3> prod_verts2verts;
+  HostFew<LOs, 3> keys2prods;
+  HostFew<LOs, 3> prod_verts2verts;
   auto keys2edges = LOs({2});
   swap2d_topology(&mesh, keys2edges, &keys2prods, &prod_verts2verts);
   CHECK(prod_verts2verts[EDGE] == LOs({2, 1}));
