@@ -29,7 +29,7 @@ access from your own CMake files using these CMake commands:
 
 ```cmake
 find_package(Omega_h 1.0.0)
-include_directories(Omega_h_INCLUDE_DIRS)
+include_directories(${Omega_h_INCLUDE_DIRS})
 target_link_libraries(myprogram omega_h)
 ```
 
