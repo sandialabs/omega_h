@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.8.11)
 project(Omega_h CXX)
 
+#trying to force BUILD_TESTING to default to OFF
+set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
+
+include(CTest)
+enable_testing()
+
 set(OSH_MAJOR "1")
 set(OSH_MINOR "0")
 set(OSH_PATCH "0")
@@ -19,6 +25,8 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(OSH_SANITIZE_ADDRESS "Use -fsanitize=address" OFF)
 set(Kokkos_PREFIX "" CACHE STRING "Kokkos installation directory")
 option(OSH_PROTECT "Catch OS signals and print stack" OFF)
+set(Gmodel_PREFIX "" CACHE STRING "Gmodel installation directory")
+set(Gmsh_PREFIX "" CACHE STRING "Gmsh installation directory")
 
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp PATHS "${Kokkos_PREFIX}/include")
@@ -99,12 +107,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 add_library(omega_h omega_h.cpp)
 target_link_libraries(omega_h ${DEP_LIBS})
 
-add_executable(unit_tests unit_tests.cpp)
-target_link_libraries(unit_tests omega_h)
-add_executable(perf_tests perf_tests.cpp)
-target_link_libraries(perf_tests omega_h)
-add_executable(mpi_tests mpi_tests.cpp)
-target_link_libraries(mpi_tests omega_h)
 add_executable(msh2osh msh2osh.cpp)
 target_link_libraries(msh2osh omega_h)
 add_executable(osh2vtk osh2vtk.cpp)
@@ -113,40 +115,104 @@ add_executable(oshdiff oshdiff.cpp)
 target_link_libraries(oshdiff omega_h)
 add_executable(vtkdiff vtkdiff.cpp)
 target_link_libraries(vtkdiff omega_h)
-add_executable(flounder flounder.cpp)
-target_link_libraries(flounder omega_h)
-add_executable(corner_test corner_test.cpp)
-target_link_libraries(corner_test omega_h)
-add_executable(ring_test ring_test.cpp)
-target_link_libraries(ring_test omega_h)
-add_executable(coarsen_test coarsen_test.cpp)
-target_link_libraries(coarsen_test omega_h)
-add_executable(warp_test warp_test.cpp)
-target_link_libraries(warp_test omega_h)
-add_executable(imr_cases imr_cases.cpp)
-target_link_libraries(imr_cases omega_h)
-add_executable(aniso_test aniso_test.cpp)
-target_link_libraries(aniso_test omega_h)
+
+if(BUILD_TESTING)
+  if(OSH_USE_MPI)
+    get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+    find_program(MPIRUN mpirun PATHS ${COMPILER_DIR})
+  endif()
+  find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
+  find_package(Gmodel 1.0.1 PATHS ${Gmodel_PREFIX})
+
+  function(test_func TEST_NAME NUM_PROCS)
+    if(MPIRUN)
+      set(TEST_STR ${MPIRUN} -np ${NUM_PROCS} ${ARGN})
+    else()
+      if(NOT (${NUM_PROCS} EQUAL "1"))
+        message(FATAL_ERROR "test_func with ${NUM_PROCS} procs but MPI disabled")
+      endif()
+      set(TEST_STR ${MPIRUN} -np ${NUM_PROCS} ${ARGN})
+    endif()
+    add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
+  endfunction(test_func)
+
+  if(Gmodel_FOUND)
+    function(gen_func MODEL_NAME MODEL_DIM)
+      add_executable(gen_${MODEL_NAME} gen_${MODEL_NAME}.cpp)
+      target_include_directories(gen_${MODEL_NAME} PRIVATE
+                                 ${Gmodel_INCLUDE_DIRS})
+      target_link_libraries(gen_${MODEL_NAME} gmodel)
+      add_test(NAME gen_${MODEL_NAME} COMMAND ./gen_${MODEL_NAME})
+      if(GMSH)
+        if("${MODEL_DIM}" EQUAL "2")
+          add_test(NAME mesh_${MODEL_NAME} COMMAND
+                   ${GMSH} -2 -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
+        else()
+          add_test(NAME mesh_${MODEL_NAME} COMMAND
+                   ${GMSH} -3 -optimize_netgen -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
+        endif()
+        set_tests_properties(mesh_${MODEL_NAME} PROPERTIES DEPENDS gen_${MODEL_NAME})
+      endif()
+    endfunction(gen_func)
+    gen_func(ring 2)
+    gen_func(ball_in_cube 3)
+    gen_func(balls_in_box 3)
+    gen_func(cylinder_thru_tube 3)
+  endif()
+
+  add_executable(unit_tests unit_tests.cpp)
+  target_link_libraries(unit_tests omega_h)
+  test_func(unit_tests 1 ./unit_tests)
+  add_executable(mpi_tests mpi_tests.cpp)
+  target_link_libraries(mpi_tests omega_h)
+  if(OSH_USE_MPI)
+    test_func(mpi_tests 4 ./mpi_tests)
+  else()
+    test_func(mpi_tests 1 ./mpi_tests)
+  endif()
+  add_executable(warp_test warp_test.cpp)
+  target_link_libraries(warp_test omega_h)
+  test_func(warp_test_serial 1 ./warp_test)
+  test_func(warp_test_parallel 2 ./warp_test)
+  add_executable(perf_tests perf_tests.cpp)
+  target_link_libraries(perf_tests omega_h)
+  add_executable(flounder flounder.cpp)
+  target_link_libraries(flounder omega_h)
+  add_executable(corner_test corner_test.cpp)
+  target_link_libraries(corner_test omega_h)
+  add_executable(coarsen_test coarsen_test.cpp)
+  target_link_libraries(coarsen_test omega_h)
+  add_executable(aniso_test aniso_test.cpp)
+  target_link_libraries(aniso_test omega_h)
+  add_executable(ring_test ring_test.cpp)
+  target_link_libraries(ring_test omega_h)
+  add_executable(imr_cases imr_cases.cpp)
+  target_link_libraries(imr_cases omega_h)
+  if(Gmodel_FOUND AND GMSH)
+    add_test(NAME ring_test COMMAND ./ring_test)
+    set_tests_properties(ring_test PROPERTIES DEPENDS mesh_ring)
+  endif()
+endif()
 
 if(OSH_BUILD_SMB2OSH)
-find_path(APF_INCLUDE apf.h)
-find_library(MDS_LIB NAMES mds)
-find_library(APF_LIB NAMES apf)
-find_library(MTH_LIB NAMES mth)
-find_library(LION_LIB NAMES lion)
-find_library(GMI_LIB NAMES gmi)
-find_library(PCU_LIB NAMES pcu)
-add_executable(smb2osh smb2osh.cpp)
-target_include_directories(smb2osh PRIVATE ${APF_INCLUDE})
-target_link_libraries(smb2osh
-    omega_h
-    ${APF_LIB}
-    ${MTH_LIB}
-    ${LION_LIB}
-    ${MDS_LIB}
-    ${GMI_LIB}
-    ${PCU_LIB})
-install(TARGETS smb2osh DESTINATION bin)
+  find_path(APF_INCLUDE apf.h)
+  find_library(MDS_LIB NAMES mds)
+  find_library(APF_LIB NAMES apf)
+  find_library(MTH_LIB NAMES mth)
+  find_library(LION_LIB NAMES lion)
+  find_library(GMI_LIB NAMES gmi)
+  find_library(PCU_LIB NAMES pcu)
+  add_executable(smb2osh smb2osh.cpp)
+  target_include_directories(smb2osh PRIVATE ${APF_INCLUDE})
+  target_link_libraries(smb2osh
+      omega_h
+      ${APF_LIB}
+      ${MTH_LIB}
+      ${LION_LIB}
+      ${MDS_LIB}
+      ${GMI_LIB}
+      ${PCU_LIB})
+  install(TARGETS smb2osh DESTINATION bin)
 endif()
 
 install(FILES
@@ -176,8 +242,3 @@ install(TARGETS
   oshdiff
   vtkdiff
   DESTINATION bin)
-
-configure_file(
-  "${PROJECT_SOURCE_DIR}/run_tests.sh"
-  "${PROJECT_BINARY_DIR}/run_tests.sh"
-  COPYONLY)
