@@ -1,3 +1,8 @@
+#ifndef OWNERS_HPP
+#define OWNERS_HPP
+
+namespace osh {
+
 /* compute owners for copies of a new partitioning,
    based on a mapping (Dist) from new copies to
    old owners (their owners in the old partitioning).
@@ -34,3 +39,7 @@ Read<T> reduce_data_to_owners(Read<T> copy_data, Dist copies2owners,
                               Int ncomps);
 
 void globals_from_owners(Mesh* new_mesh, Int ent_dim);
+
+} //end namespace osh
+
+#endif

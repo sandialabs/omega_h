@@ -1,3 +1,8 @@
+#ifndef COMM_HPP
+#define COMM_HPP
+
+namespace osh {
+
 #ifdef OMPI_MPI_H
 /* OpenMPI defines MPI_UNWEIGHTED using (void*)
  * which causes compile errors with strict
@@ -52,4 +57,8 @@ inline MPI_Op mpi_op(osh_op op) {
   };
   NORETURN(MPI_MIN);
 }
+#endif
+
+} //end namespace osh
+
 #endif

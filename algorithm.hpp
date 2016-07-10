@@ -1,3 +1,8 @@
+#ifndef ALGORITHM_HPP
+#define ALGORITHM_HPP
+
+namespace osh {
+
 template <typename T>
 INLINE T max2(T a, T b) {
   return (b > a) ? (b) : (a);
@@ -12,3 +17,7 @@ INLINE void swap2(T& a, T& b) {
   a = b;
   b = c;
 }
+
+} //end namespace osh
+
+#endif

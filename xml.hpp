@@ -1,3 +1,8 @@
+#ifndef XML_HPP
+#define XML_HPP
+
+namespace osh {
+
 namespace xml {
 
 struct Tag {
@@ -10,3 +15,7 @@ bool parse_tag(std::string const& line, xml::Tag* tag_out);
 
 xml::Tag read_tag(std::istream& stream);
 }
+
+} //end namespace osh
+
+#endif

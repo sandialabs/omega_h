@@ -1,3 +1,8 @@
+#ifndef QR_HPP
+#define QR_HPP
+
+namespace osh {
+
 /* Trefethen, Lloyd N., and David Bau III.
    Numerical linear algebra. Vol. 50. Siam, 1997.
    Algorithm 10.1. Householder QR Factorization
@@ -216,3 +221,7 @@ INLINE bool solve_least_squares_qr(Matrix<m, n> a, Vector<m> b, Vector<n>& x) {
   x = solve_upper_triangular(r, qtb);
   return true;
 }
+
+} //end namespace osh
+
+#endif

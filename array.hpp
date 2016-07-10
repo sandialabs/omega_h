@@ -1,3 +1,8 @@
+#ifndef ARRAY_HPP
+#define ARRAY_HPP
+
+namespace osh {
+
 template <class T>
 bool operator==(Read<T> a, Read<T> b);
 
@@ -87,3 +92,7 @@ INST_DECL(I32)
 INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
+
+} //end namespace osh
+
+#endif

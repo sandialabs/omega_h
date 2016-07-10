@@ -1,3 +1,8 @@
+#ifndef FILE_HPP
+#define FILE_HPP
+
+namespace osh {
+
 bool is_little_endian_cpu();
 void safe_mkdir(const char* path);
 bool directory_exists(const char* path);
@@ -38,3 +43,7 @@ INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 }
+
+} //end namespace osh
+
+#endif

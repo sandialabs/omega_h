@@ -1,3 +1,8 @@
+#ifndef SWAP3D_TABLES_HPP
+#define SWAP3D_TABLES_HPP
+
+namespace osh {
+
 namespace swap3d {
 
 enum { MAX_EDGE_SWAP = 7, MAX_UNIQUE_TRIS = 35, MAX_CONFIGS = 42 };
@@ -272,3 +277,7 @@ CONSTANT static Int const swap_nint_edges[MAX_EDGE_SWAP + 1] = {0, 0, 0, 0,
                                                                 1, 2, 3, 4};
 
 }  // end namespace swap3d
+
+} //end namespace osh
+
+#endif

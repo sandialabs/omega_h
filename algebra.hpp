@@ -1,3 +1,8 @@
+#ifndef ALGEBRA_HPP
+#define ALGEBRA_HPP
+
+namespace osh {
+
 INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
 
 INLINE Real square(Real x) { return x * x; }
@@ -305,3 +310,7 @@ INLINE Vector<n> positivize(Vector<n> v) {
   if (neg_bits > bits) return v * -1.0;
   return v;
 }
+
+} //end namespace osh
+
+#endif

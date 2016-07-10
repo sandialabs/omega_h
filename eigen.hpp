@@ -1,3 +1,8 @@
+#ifndef EIGEN_HPP
+#define EIGEN_HPP
+
+namespace osh {
+
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
 INLINE void characteristic_cubic(Matrix<3, 3> A, Real& a, Real& b, Real& c) {
   Real tA = trace(A);
@@ -161,3 +166,7 @@ template <Int dim>
 INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
+
+} //end namespace osh
+
+#endif

@@ -1,3 +1,8 @@
+#ifndef INT128_HPP
+#define INT128_HPP
+
+namespace osh {
+
 struct Int128;
 
 std::ostream& operator<<(std::ostream& o, Int128 const& x);
@@ -78,3 +83,7 @@ INLINE bool operator<(Int128 lhs, Int128 rhs) {
   if (lhs.high != rhs.high) return lhs.high < rhs.high;
   return lhs.low < rhs.low;
 }
+
+} //end namespace osh
+
+#endif

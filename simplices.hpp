@@ -1,3 +1,8 @@
+#ifndef SIMPLICES_HPP
+#define SIMPLICES_HPP
+
+namespace osh {
+
 CONSTANT static Int const fvv0[] = {0};
 CONSTANT static Int const fvv1[] = {1};
 CONSTANT static Int const fvv2[] = {2};
@@ -114,3 +119,7 @@ struct OppositeTemplate<2, 0> {
 extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];
 extern char const* const plural_names[DIMS];
+
+} //end namespace osh
+
+#endif

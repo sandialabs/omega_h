@@ -1,3 +1,8 @@
+#ifndef BIPART_HPP
+#define BIPART_HPP
+
+namespace osh {
+
 /* given a distributed set of items, and a boolean
    for each item indicating which half of the new
    partitioning it belongs in, construct a Dist
@@ -9,3 +14,7 @@
    sort-like operations (RIB in particular) */
 
 Dist bi_partition(CommPtr comm, Read<I8> marks);
+
+} //end namespace osh
+
+#endif

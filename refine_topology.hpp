@@ -1,3 +1,8 @@
+#ifndef REFINE_TOPOLOGY_HPP
+#define REFINE_TOPOLOGY_HPP
+
+namespace osh {
+
 void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
                              LOs keys2midverts, LOs old_verts2new_verts,
                              LOs& keys2pairs, LOs& pair_verts2verts);
@@ -47,3 +52,7 @@ template <typename T>
 INLINE void flip_new_elem(Int dim, T ev[]) {
   if (dim == 3) swap2(ev[1], ev[2]);
 }
+
+} //end namespace osh
+
+#endif

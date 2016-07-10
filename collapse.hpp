@@ -1,3 +1,8 @@
+#ifndef COLLAPSE_HPP
+#define COLLAPSE_HPP
+
+namespace osh {
+
 enum {
   DONT_COLLAPSE = 0x0,
   COLLAPSE_LEFT = 0x1,
@@ -19,3 +24,7 @@ Read<I8> check_collapse_class(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
 
 Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
                                  Read<I8> cand_codes);
+
+} //end namespace osh
+
+#endif

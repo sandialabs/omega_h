@@ -1,3 +1,8 @@
+#ifndef HILBERT_HPP
+#define HILBERT_HPP
+
+namespace osh {
+
 namespace hilbert {
 
 /* The following code is verbatim plus one bug fix from the paper:
@@ -98,3 +103,7 @@ INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
 LOs sort_coords(Reals coords, Int dim);
 
 }  // end namespace hilbert
+
+} //end namespace osh
+
+#endif

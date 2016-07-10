@@ -1,3 +1,8 @@
+#ifndef POLYNOMIAL_HPP
+#define POLYNOMIAL_HPP
+
+namespace osh {
+
 // solve cubic equation x^3 + a_2 * x^2 + a_1 * x + a_0 = 0
 // this code assumes that the solution does not have complex roots !
 // the return value is the number of distinct roots,
@@ -80,3 +85,7 @@ INLINE Int solve_quadratic(Real a, Real b, Few<Real, 2>& roots,
   }
   return 0;
 }
+
+} //end namespace osh
+
+#endif

@@ -1,3 +1,8 @@
+#ifndef SCAN_HPP
+#define SCAN_HPP
+
+namespace osh {
+
 template <typename T>
 LOs offset_scan(Read<T> a);
 
@@ -11,3 +16,7 @@ extern template LOs offset_scan(Read<I32> a);
    entries with the nearest non-negative
    value to the left */
 void fill_right(Write<LO> a);
+
+} //end namespace osh
+
+#endif

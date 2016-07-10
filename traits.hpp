@@ -1,3 +1,8 @@
+#ifndef TRAITS_HPP
+#define TRAITS_HPP
+
+namespace osh {
+
 template <typename T>
 struct ArithTraits;
 
@@ -54,3 +59,7 @@ struct ArithTraits<double> {
   static INLINE double max() { return DBL_MAX; }
   static INLINE double min() { return -DBL_MAX; }
 };
+
+} //end namespace osh
+
+#endif

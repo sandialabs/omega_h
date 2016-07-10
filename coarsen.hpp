@@ -1,3 +1,8 @@
+#ifndef COARSEN_HPP
+#define COARSEN_HPP
+
+namespace osh {
+
 HostFew<Read<I8>, 4> mark_dead_ents(Mesh* mesh, LOs rails2edges,
                                     Read<I8> rail_col_dirs);
 
@@ -36,3 +41,7 @@ bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks, Real min_qual,
 bool coarsen_by_size(Mesh* mesh, Real min_len, Real min_qual, bool verbose);
 
 bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);
+
+} //end namespace osh
+
+#endif

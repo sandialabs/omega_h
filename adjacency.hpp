@@ -1,3 +1,8 @@
+#ifndef ADJACENCY_HPP
+#define ADJACENCY_HPP
+
+namespace osh {
+
 LOs order_by_globals(LOs a2ab, LOs ab2b, Read<GO> b_global);
 
 Adj invert(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals);
@@ -47,3 +52,7 @@ Graph edges_across_tris(Adj f2e, Adj e2f);
 Graph edges_across_tets(Adj r2e, Adj e2r);
 Graph elements_across_sides(Int dim, Adj elems2sides, Adj sides2elems,
                             Read<I8> side_is_exposed);
+
+} //end namespace osh
+
+#endif

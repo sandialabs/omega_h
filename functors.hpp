@@ -1,3 +1,8 @@
+#ifndef FUNCTORS_HPP
+#define FUNCTORS_HPP
+
+namespace osh {
+
 /* we use I8 for storing very small values efficiently,
    but since it boils down to 'char' usually, this causes
    problems when printing values or using Kokkos reductions.
@@ -54,3 +59,7 @@ struct SumFunctor {
     update = update + input;
   }
 };
+
+} //end namespace osh
+
+#endif

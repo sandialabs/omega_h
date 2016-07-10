@@ -1,3 +1,8 @@
+#ifndef QUALITY_HPP
+#define QUALITY_HPP
+
+namespace osh {
+
 /* There are several kinds of shape functions that have
    been used successfully for mesh adaptation.
    Each kind has a triangle and a tet variant.
@@ -155,3 +160,7 @@ struct MetricElementQualities {
 
 Reals measure_qualities(Mesh* mesh, LOs a2e);
 Reals measure_qualities(Mesh* mesh);
+
+} //end namespace osh
+
+#endif
