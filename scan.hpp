@@ -1,6 +1,8 @@
 #ifndef SCAN_HPP
 #define SCAN_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 template <typename T>

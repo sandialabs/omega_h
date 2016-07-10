@@ -1,6 +1,8 @@
 #ifndef INT128_HPP
 #define INT128_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 struct Int128;

@@ -8,7 +8,6 @@
 #include <array>
 #include <cerrno>
 #include <cfloat>
-#include <chrono>
 #include <climits>
 #include <cmath>
 #include <cstdarg>
@@ -22,14 +21,6 @@
 #include <type_traits>
 #include <utility>
 #include <map>
-
-/* C++ ABI and POSIX includes */
-
-#include <cxxabi.h>
-#include <execinfo.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 /* Third party libraries */
 

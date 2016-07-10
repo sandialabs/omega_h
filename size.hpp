@@ -1,6 +1,12 @@
 #ifndef SIZE_HPP
 #define SIZE_HPP
 
+#include "access.hpp"
+#include "algebra.hpp"
+#include "few.hpp"
+#include "qr.hpp"
+#include "space.hpp"
+
 namespace osh {
 
 template <Int sdim, Int edim>

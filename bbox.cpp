@@ -1,4 +1,8 @@
-#include "internal.hpp"
+#include "bbox.hpp"
+
+#include "access.hpp"
+#include "loop.hpp"
+#include "traits.hpp"
 
 namespace osh {
 

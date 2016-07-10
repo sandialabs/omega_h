@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "map.hpp"
+
+#include "array.hpp"
+#include "atomics.hpp"
+#include "loop.hpp"
+#include "scan.hpp"
+#include "sort.hpp"
 
 namespace osh {
 

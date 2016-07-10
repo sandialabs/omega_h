@@ -1,6 +1,7 @@
 #ifndef FUNCTORS_HPP
 #define FUNCTORS_HPP
 
+#include "algorithm.hpp"
 #include "traits.hpp"
 
 namespace osh {

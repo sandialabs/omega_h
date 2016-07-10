@@ -1,6 +1,10 @@
 #ifndef TIMER_HPP
 #define TIMER_HPP
 
+#include <chrono>
+
+#include "internal.hpp"
+
 namespace osh {
 
 struct Now {

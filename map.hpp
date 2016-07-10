@@ -1,6 +1,8 @@
 #ifndef MAP_HPP
 #define MAP_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 template <typename T>

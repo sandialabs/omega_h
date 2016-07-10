@@ -1,4 +1,7 @@
-#include "internal.hpp"
+#include "scan.hpp"
+
+#include "functors.hpp"
+#include "loop.hpp"
 
 namespace osh {
 

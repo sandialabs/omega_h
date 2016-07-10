@@ -1,3 +1,5 @@
+#include "base64.hpp"
+
 #include "internal.hpp"
 
 namespace osh {

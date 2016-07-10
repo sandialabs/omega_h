@@ -1,6 +1,8 @@
 #ifndef SIMPLICES_HPP
 #define SIMPLICES_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 CONSTANT static Int const fvv0[] = {0};

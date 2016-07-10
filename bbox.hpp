@@ -1,6 +1,8 @@
 #ifndef BBOX_HPP
 #define BBOX_HPP
 
+#include "algebra.hpp"
+
 namespace osh {
 
 template <Int dim>

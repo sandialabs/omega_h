@@ -1,4 +1,7 @@
-#include "internal.hpp"
+#include "indset.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
 
 namespace osh {
 

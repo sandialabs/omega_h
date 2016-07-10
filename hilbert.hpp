@@ -1,6 +1,8 @@
 #ifndef HILBERT_HPP
 #define HILBERT_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 namespace hilbert {

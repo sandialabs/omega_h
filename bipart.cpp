@@ -1,4 +1,9 @@
+#include "bipart.hpp"
+
+#include "array.hpp"
 #include "internal.hpp"
+#include "linpart.hpp"
+#include "map.hpp"
 
 namespace osh {
 

@@ -1,4 +1,9 @@
-#include "internal.hpp"
+#include "adjacency.hpp"
+
+#include "algorithm.hpp"
+#include "align.hpp"
+#include "loop.hpp"
+#include "map.hpp"
 
 namespace osh {
 

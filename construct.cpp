@@ -1,4 +1,14 @@
-#include "internal.hpp"
+#include "construct.hpp"
+
+#include "adjacency.hpp"
+#include "align.hpp"
+#include "array.hpp"
+#include "box.hpp"
+#include "linpart.hpp"
+#include "map.hpp"
+#include "owners.hpp"
+#include "remotes.hpp"
+#include "simplify.hpp"
 
 namespace osh {
 

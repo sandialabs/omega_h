@@ -1,6 +1,8 @@
 #ifndef BIPART_HPP
 #define BIPART_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 /* given a distributed set of items, and a boolean

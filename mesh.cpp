@@ -1,5 +1,20 @@
 #include "internal.hpp"
 
+#include "adjacency.hpp"
+#include "array.hpp"
+#include "bcast.hpp"
+#include "ghost.hpp"
+#include "graph.hpp"
+#include "inertia.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+#include "migrate.hpp"
+#include "quality.hpp"
+#include "reorder.hpp"
+#include "simplices.hpp"
+#include "size.hpp"
+#include "tag.hpp"
+
 namespace osh {
 
 Mesh::Mesh() : dim_(-1), parting_(-1) {

@@ -1,6 +1,8 @@
 #ifndef INERTIA_HPP
 #define INERTIA_HPP
 
+#include "algebra.hpp"
+
 namespace osh {
 
 namespace inertia {

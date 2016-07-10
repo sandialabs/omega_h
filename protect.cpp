@@ -1,4 +1,9 @@
-#include "internal.hpp"
+#include "protect.hpp"
+
+#include <cstdio>
+#include <signal.h>
+
+#include "stacktrace.hpp"
 
 namespace osh {
 

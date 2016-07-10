@@ -193,6 +193,12 @@ INLINE void align_adj(I8 code, T const in[], T out[]) {
 template <typename T>
 Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes);
 
+#define INST_DECL(T) \
+  extern template Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes);
+INST_DECL(LO)
+INST_DECL(GO)
+#undef INST_DECL
+
 } //end namespace osh
 
 #endif

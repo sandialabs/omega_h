@@ -72,14 +72,15 @@ osh_type Tag<T>::type() const {
   return TagTraits<T>::type();
 }
 
-#define INST_T(T)                                 \
+#define INST(T)                                 \
   template bool is<T>(TagBase const* t);          \
   template Tag<T> const* to<T>(TagBase const* t); \
+  template Tag<T>* to<T>(TagBase* t); \
   template class Tag<T>;
-INST_T(I8)
-INST_T(I32)
-INST_T(I64)
-INST_T(Real)
-#undef INST_T
+INST(I8)
+INST(I32)
+INST(I64)
+INST(Real)
+#undef INST
 
 } //end namespace osh

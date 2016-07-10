@@ -1,4 +1,4 @@
-#include "internal.hpp"
+#include "simplices.hpp"
 
 namespace osh {
 

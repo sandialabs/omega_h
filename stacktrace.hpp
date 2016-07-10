@@ -1,6 +1,12 @@
 #ifndef STACKTRACE_HPP
 #define STACKTRACE_HPP
 
+#include <cstdlib>
+#include <cxxabi.h>
+#include <execinfo.h>
+#include <string>
+#include <sstream>
+
 namespace osh {
 
 // stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
