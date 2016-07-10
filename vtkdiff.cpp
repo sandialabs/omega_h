@@ -1,10 +1,11 @@
-#include "internal.hpp"
-
-namespace osh {
-
-#include "internal.hpp"
+#include "omega_h.hpp"
 
 #include <cstring>
+#include <cstdlib>
+#include <iostream>
+
+#include "algebra.hpp"
+#include "vtk.hpp"
 
 using namespace osh;
 
@@ -133,5 +134,3 @@ int main(int argc, char** argv) {
   }
   return 0;
 }
-
-} //end namespace osh

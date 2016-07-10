@@ -111,7 +111,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
 }
 
 #define INST(T) \
-extern template \
+template \
 void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b, \
                      LOs* a2b_out, Read<I8>* codes_out);
 INST(LO)

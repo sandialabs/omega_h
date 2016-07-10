@@ -1,7 +1,3 @@
-#include "internal.hpp"
-
-namespace osh {
-
 #include "omega_h.hpp"
 
 int main(int argc, char** argv) {
@@ -11,5 +7,3 @@ int main(int argc, char** argv) {
   osh::gmsh::read(argv[1], lib, &mesh);
   osh::binary::write(argv[2], &mesh);
 }
-
-} //end namespace osh
