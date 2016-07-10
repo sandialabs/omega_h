@@ -1,7 +1,4 @@
-#include "internal.hpp"
-
-namespace osh {
-
+#include "access.hpp"
 #include "internal.hpp"
 
 using namespace osh;
@@ -32,5 +29,3 @@ int main(int argc, char** argv) {
   if (!ok) return 2;
   return 0;
 }
-
-} //end namespace osh

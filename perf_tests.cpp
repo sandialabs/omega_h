@@ -1,12 +1,18 @@
-#include "internal.hpp"
-
-namespace osh {
-
 #include <random>
 #include <cstdio>
 #include <cstdarg>
+#include <iostream>
 
+#include "adjacency.hpp"
+#include "array.hpp"
+#include "access.hpp"
+#include "eigen.hpp"
 #include "internal.hpp"
+#include "loop.hpp"
+#include "metric.hpp"
+#include "sort.hpp"
+#include "space.hpp"
+#include "timer.hpp"
 
 using namespace osh;
 
@@ -238,5 +244,3 @@ int main(int argc, char** argv) {
 #endif
   test_adjs(lib);
 }
-
-} //end namespace osh

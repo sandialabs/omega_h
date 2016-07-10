@@ -1,3 +1,11 @@
+#include "access.hpp"
+#include "classify.hpp"
+#include "internal.hpp"
+#include "metric.hpp"
+#include "space.hpp"
+
+using namespace osh;
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();

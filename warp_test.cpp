@@ -1,8 +1,13 @@
-#include "internal.hpp"
+#include <iostream>
 
-namespace osh {
-
+#include "access.hpp"
+#include "array.hpp"
+#include "classify.hpp"
+#include "loop.hpp"
 #include "internal.hpp"
+#include "size.hpp"
+#include "space.hpp"
+#include "timer.hpp"
 
 using namespace osh;
 
@@ -102,5 +107,3 @@ int main(int argc, char** argv) {
   if (!ok) return 2;
   return 0;
 }
-
-} //end namespace osh

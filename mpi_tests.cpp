@@ -1,9 +1,5 @@
 #include "internal.hpp"
 
-namespace osh {
-
-#include "internal.hpp"
-
 using namespace osh;
 
 static void test_one_rank(CommPtr comm) {
@@ -259,5 +255,3 @@ int main(int argc, char** argv) {
   }
   test_rib(world);
 }
-
-} //end namespace osh
