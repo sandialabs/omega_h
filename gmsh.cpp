@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+#include <fstream>
+
 #include "algebra.hpp"
 #include "classify.hpp"
 #include "map.hpp"

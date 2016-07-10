@@ -1,5 +1,11 @@
 #include "vtk.hpp"
 
+#include <fstream>
+
+#ifdef OSH_USE_ZLIB
+#include <zlib.h>
+#endif
+
 #include "access.hpp"
 #include "base64.hpp"
 #include "file.hpp"

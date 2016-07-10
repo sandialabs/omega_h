@@ -1,5 +1,7 @@
 #include "consistent.hpp"
 
+#include <iostream>
+
 #include "array.hpp"
 #include "tag.hpp"
 #include "simplices.hpp"

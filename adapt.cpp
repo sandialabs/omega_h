@@ -1,5 +1,8 @@
 #include "adapt.hpp"
 
+#include <iostream>
+#include <iomanip>
+
 #include "algorithm.hpp"
 #include "array.hpp"
 #include "coarsen.hpp"

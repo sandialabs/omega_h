@@ -1,7 +1,14 @@
 #include "file.hpp"
 
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <iostream>
+#include <fstream>
+
+#ifdef OSH_USE_ZLIB
+#include <zlib.h>
+#endif
 
 #include "array.hpp"
 #include "inertia.hpp"

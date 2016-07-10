@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+#include <cmath>
+
 #include "array.hpp"
 #include "functors.hpp"
 #include "int128.hpp"

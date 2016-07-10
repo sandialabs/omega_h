@@ -5,10 +5,6 @@
 
 namespace osh {
 
-struct Int128;
-
-std::ostream& operator<<(std::ostream& o, Int128 const& x);
-
 /*
    We code our own int128 because we target GPUs and similar
    systems where such a type is not guaranteed to exist.
@@ -25,7 +21,8 @@ INLINE Int128::Int128(std::int64_t value)
 /* volatile... why is this not done by default...
  * returning void instead of reference to *this
  * to silence GCC's warning that the reference
- * is unused. */
+ * is unused.
+ */
 INLINE void Int128::operator=(Int128 const& rhs) volatile {
   high = rhs.high;
   low = rhs.low;

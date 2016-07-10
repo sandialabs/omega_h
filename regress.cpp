@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+#include <iostream>
+
 #include "file.hpp"
 
 namespace osh {

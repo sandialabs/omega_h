@@ -1,5 +1,7 @@
 #include "inertia.hpp"
 
+#include <iostream>
+
 #include "access.hpp"
 #include "array.hpp"
 #include "bipart.hpp"

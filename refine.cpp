@@ -1,5 +1,7 @@
 #include "refine.hpp"
 
+#include <iostream>
+
 #include "array.hpp"
 #include "indset.hpp"
 #include "map.hpp"

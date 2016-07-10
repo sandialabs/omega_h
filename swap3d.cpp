@@ -1,5 +1,7 @@
 #include "swap3d.hpp"
 
+#include <iostream>
+
 #include "indset.hpp"
 #include "map.hpp"
 #include "modify.hpp"

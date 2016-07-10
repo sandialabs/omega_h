@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+#include <iostream>
+
 #include "algebra.hpp"
 #include "array.hpp"
 #include "linpart.hpp"

@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+#include <algorithm>
+
 #include "adjacency.hpp"
 #include "array.hpp"
 #include "bcast.hpp"

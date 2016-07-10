@@ -1,5 +1,8 @@
 #include "internal.hpp"
 
+#include <sstream>
+#include <cstdarg>
+
 namespace osh {
 
 #ifdef OSH_USE_MPI

@@ -1,6 +1,9 @@
 #ifndef TRAITS_HPP
 #define TRAITS_HPP
 
+#include <cfloat>
+#include <climits>
+
 namespace osh {
 
 template <typename T>

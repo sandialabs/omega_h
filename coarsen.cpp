@@ -1,5 +1,7 @@
 #include "coarsen.hpp"
 
+#include <iostream>
+
 #include "array.hpp"
 #include "collapse.hpp"
 #include "indset.hpp"

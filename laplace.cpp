@@ -1,5 +1,8 @@
 #include "laplace.hpp"
 
+#include <cmath>
+#include <iostream>
+
 #include "array.hpp"
 #include "graph.hpp"
 #include "map.hpp"
