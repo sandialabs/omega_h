@@ -1,4 +1,13 @@
-#include "internal.hpp"
+#include "adapt.hpp"
+
+#include "algorithm.hpp"
+#include "array.hpp"
+#include "coarsen.hpp"
+#include "mark.hpp"
+#include "refine.hpp"
+#include "simplices.hpp"
+#include "swap.hpp"
+#include "timer.hpp"
 
 namespace osh {
 

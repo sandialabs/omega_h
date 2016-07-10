@@ -1,6 +1,9 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
+#include "internal.hpp"
+#include "functors.hpp"
+
 namespace osh {
 
 template <class T>

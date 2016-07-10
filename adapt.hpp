@@ -1,6 +1,8 @@
 #ifndef ADAPT_HPP
 #define ADAPT_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 /* if the mesh satisfies quality and

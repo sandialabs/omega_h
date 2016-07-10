@@ -1,6 +1,8 @@
 #ifndef COARSEN_HPP
 #define COARSEN_HPP
 
+#include "few.hpp"
+
 namespace osh {
 
 HostFew<Read<I8>, 4> mark_dead_ents(Mesh* mesh, LOs rails2edges,

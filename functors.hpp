@@ -1,6 +1,8 @@
 #ifndef FUNCTORS_HPP
 #define FUNCTORS_HPP
 
+#include "traits.hpp"
+
 namespace osh {
 
 /* we use I8 for storing very small values efficiently,
