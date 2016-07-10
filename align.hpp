@@ -1,6 +1,9 @@
 #ifndef ALIGN_HPP
 #define ALIGN_HPP
 
+#include "internal.hpp"
+#include "algorithm.hpp"
+
 namespace osh {
 
 /* a six-bit code describes the alignment relationship
