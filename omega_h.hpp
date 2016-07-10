@@ -23,6 +23,8 @@ typedef I32 LO;
 typedef I64 GO;
 typedef double Real;
 
+constexpr Real PI = 3.141592653589793;
+
 template <typename T>
 class HostWrite;
 
