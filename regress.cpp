@@ -1,5 +1,7 @@
 #include "internal.hpp"
 
+#include "file.hpp"
+
 namespace osh {
 
 bool check_regression(std::string const& prefix, Mesh* mesh, Real tol,

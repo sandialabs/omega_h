@@ -1,6 +1,9 @@
 #ifndef SWAP3D_HPP
 #define SWAP3D_HPP
 
+#include "internal.hpp"
+#include "few.hpp"
+
 namespace osh {
 
 void swap3d_qualities(Mesh* mesh, LOs cands2edges, Reals* cand_quals,

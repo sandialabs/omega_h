@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "swap3d.hpp"
+
+#include "indset.hpp"
+#include "map.hpp"
+#include "modify.hpp"
+#include "swap.hpp"
+#include "transfer.hpp"
 
 namespace osh {
 

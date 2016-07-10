@@ -1,5 +1,12 @@
 #include "coarsen.hpp"
 
+#include "array.hpp"
+#include "collapse.hpp"
+#include "graph.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "simplices.hpp"
+
 namespace osh {
 
 /* this function is in some sense
@@ -92,12 +99,12 @@ HostFew<Read<I8>, 4> mark_dead_ents(Mesh* mesh, LOs rails2edges,
   HostFew<Write<I8>, 4> writes;
   writes[EDGE] = deep_copy(mark_image(rails2edges, mesh->nedges()));
   for (Int dim = EDGE + 1; dim <= mesh->dim(); ++dim)
-    writes[size_t(dim)] = Write<I8>(mesh->nents(dim), 0);
+    writes[dim] = Write<I8>(mesh->nents(dim), 0);
   for (Int dim = mesh->dim(); dim > EDGE; --dim)
-    mark_dead_ents(mesh, rails2edges, rail_col_dirs, dim, writes[size_t(dim)],
-                   writes[size_t(dim - 1)]);
+    mark_dead_ents(mesh, rails2edges, rail_col_dirs, dim, writes[dim],
+                   writes[dim - 1]);
   HostFew<Read<I8>, 4> reads;
-  for (Int dim = 0; dim < 4; ++dim) reads[size_t(dim)] = writes[size_t(dim)];
+  for (Int dim = 0; dim < 4; ++dim) reads[dim] = writes[dim];
   return reads;
 }
 

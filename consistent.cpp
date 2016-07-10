@@ -1,4 +1,8 @@
-#include "internal.hpp"
+#include "consistent.hpp"
+
+#include "array.hpp"
+#include "tag.hpp"
+#include "simplices.hpp"
 
 namespace osh {
 

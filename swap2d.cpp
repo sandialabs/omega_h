@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "swap2d.hpp"
+
+#include "indset.hpp"
+#include "map.hpp"
+#include "modify.hpp"
+#include "swap.hpp"
+#include "transfer.hpp"
 
 namespace osh {
 
@@ -46,11 +52,11 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
     modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
-                keys2prods[size_t(ent_dim)], prod_verts2verts[size_t(ent_dim)],
+                keys2prods[ent_dim], prod_verts2verts[ent_dim],
                 old_lows2new_lows, &prods2new_ents, &same_ents2old_ents,
                 &same_ents2new_ents, &old_ents2new_ents);
     transfer_swap(mesh, &new_mesh, ent_dim, keys2edges,
-                  keys2prods[size_t(ent_dim)], prods2new_ents,
+                  keys2prods[ent_dim], prods2new_ents,
                   same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }

@@ -1,3 +1,5 @@
+#include "xml.hpp"
+
 #include "internal.hpp"
 
 namespace osh {

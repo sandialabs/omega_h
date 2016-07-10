@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "swap3d.hpp"
+
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
+#include "swap3d_loop.hpp"
+#include "swap3d_tables.hpp"
 
 namespace osh {
 

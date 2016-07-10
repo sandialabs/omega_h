@@ -1,4 +1,13 @@
-#include "internal.hpp"
+#include "coarsen.hpp"
+
+#include "array.hpp"
+#include "collapse.hpp"
+#include "indset.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+#include "modify.hpp"
+#include "transfer.hpp"
 
 namespace osh {
 
@@ -113,7 +122,7 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
       keys2prods = LOs(nkeys + 1, 0);
     } else {
       keys2doms = find_coarsen_domains(mesh, keys2verts, ent_dim,
-                                       dead_ents[size_t(ent_dim)]);
+                                       dead_ents[ent_dim]);
       keys2prods = keys2doms.a2ab;
       prod_verts2verts = coarsen_topology(mesh, keys2verts_onto, ent_dim,
                                           keys2doms, old_verts2new_verts);

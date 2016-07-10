@@ -1,6 +1,10 @@
 #ifndef XML_HPP
 #define XML_HPP
 
+#include <string>
+#include <map>
+#include <iosfwd>
+
 namespace osh {
 
 namespace xml {

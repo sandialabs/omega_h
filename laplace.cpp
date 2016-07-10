@@ -1,4 +1,9 @@
-#include "internal.hpp"
+#include "laplace.hpp"
+
+#include "array.hpp"
+#include "graph.hpp"
+#include "map.hpp"
+#include "mark.hpp"
 
 namespace osh {
 

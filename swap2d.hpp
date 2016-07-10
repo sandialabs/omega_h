@@ -1,6 +1,9 @@
 #ifndef SWAP2D_HPP
 #define SWAP2D_HPP
 
+#include "internal.hpp"
+#include "few.hpp"
+
 namespace osh {
 
 Reals swap2d_qualities(Mesh* mesh, LOs cands2edges);

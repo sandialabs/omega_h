@@ -1,6 +1,8 @@
 #ifndef SWAP_HPP
 #define SWAP_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers);

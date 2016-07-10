@@ -1,6 +1,8 @@
 #ifndef SWAP3D_CHOICE_HPP
 #define SWAP3D_CHOICE_HPP
 
+#include "swap3d_loop.hpp"
+
 namespace osh {
 
 namespace swap3d {

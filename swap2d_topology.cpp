@@ -1,4 +1,8 @@
-#include "internal.hpp"
+#include "swap2d.hpp"
+
+#include "access.hpp"
+#include "loop.hpp"
+#include "simplices.hpp"
 
 namespace osh {
 

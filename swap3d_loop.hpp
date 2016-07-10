@@ -1,6 +1,11 @@
 #ifndef SWAP3D_LOOP_HPP
 #define SWAP3D_LOOP_HPP
 
+#include "swap3d_tables.hpp"
+
+#include "algorithm.hpp"
+#include "simplices.hpp"
+
 namespace osh {
 
 namespace swap3d {

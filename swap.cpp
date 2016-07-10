@@ -1,4 +1,11 @@
-#include "internal.hpp"
+#include "swap.hpp"
+
+#include "array.hpp"
+#include "graph.hpp"
+#include "mark.hpp"
+#include "map.hpp"
+#include "swap3d.hpp"
+#include "swap2d.hpp"
 
 namespace osh {
 
