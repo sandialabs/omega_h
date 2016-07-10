@@ -104,7 +104,80 @@ endif("${isSystemDir}" STREQUAL "-1")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 
-add_library(omega_h omega_h.cpp)
+add_library(omega_h
+control.cpp
+protect.cpp
+timer.cpp
+array.cpp
+int128.cpp
+repro.cpp
+sort.cpp
+scan.cpp
+indset.cpp
+map.cpp
+simplices.cpp
+form_uses.cpp
+find_unique.cpp
+invert.cpp
+reflect_down.cpp
+transit.cpp
+tag.cpp
+mesh.cpp
+bbox.cpp
+hilbert.cpp
+construct.cpp
+graph.cpp
+star.cpp
+file.cpp
+base64.cpp
+vtk.cpp
+simplify.cpp
+box.cpp
+surface.cpp
+mark.cpp
+classify.cpp
+reorder.cpp
+size.cpp
+access.cpp
+quality.cpp
+gmsh.cpp
+comm.cpp
+remotes.cpp
+dist.cpp
+linpart.cpp
+owners.cpp
+migrate.cpp
+bcast.cpp
+unmap_mesh.cpp
+ghost.cpp
+inertia.cpp
+bipart.cpp
+metric.cpp
+refine_qualities.cpp
+refine_topology.cpp
+modify.cpp
+refine.cpp
+transfer.cpp
+compare.cpp
+check_collapse.cpp
+coarsen_qualities.cpp
+coarsen_topology.cpp
+coarsen.cpp
+approach.cpp
+laplace.cpp
+adapt.cpp
+swap.cpp
+swap2d_qualities.cpp
+swap2d_topology.cpp
+swap2d.cpp
+swap3d_qualities.cpp
+swap3d_topology.cpp
+swap3d.cpp
+regress.cpp
+consistent.cpp
+align.cpp
+xml.cpp
+)
 target_link_libraries(omega_h ${DEP_LIBS})
 
 add_executable(msh2osh msh2osh.cpp)
