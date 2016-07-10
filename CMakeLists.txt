@@ -142,16 +142,20 @@ if(BUILD_TESTING)
       target_include_directories(gen_${MODEL_NAME} PRIVATE
                                  ${Gmodel_INCLUDE_DIRS})
       target_link_libraries(gen_${MODEL_NAME} gmodel)
-      add_test(NAME gen_${MODEL_NAME} COMMAND ./gen_${MODEL_NAME})
+      add_custom_command(OUTPUT ${MODEL_NAME}.geo
+                         COMMAND ./gen_${MODEL_NAME}
+                         DEPENDS gen_${MODEL_NAME}
+                         COMMENT "generating ${MODEL_NAME}.geo")
       if(GMSH)
         if("${MODEL_DIM}" EQUAL "2")
-          add_test(NAME mesh_${MODEL_NAME} COMMAND
-                   ${GMSH} -2 -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
+          set(GMSH_CMD ${GMSH} -2 -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
         else()
-          add_test(NAME mesh_${MODEL_NAME} COMMAND
-                   ${GMSH} -3 -optimize_netgen -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
+          set(GMSH_CMD ${GMSH} -3 -optimize_netgen -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
         endif()
-        set_tests_properties(mesh_${MODEL_NAME} PROPERTIES DEPENDS gen_${MODEL_NAME})
+        add_custom_command(OUTPUT ${MODEL_NAME}.msh
+                           COMMAND ${GMSH_CMD}
+                           DEPENDS ${MODEL_NAME}.geo
+                           COMMENT "generating ${MODEL_NAME}.msh")
       endif()
     endfunction(gen_func)
     gen_func(ring 2)
@@ -162,16 +166,19 @@ if(BUILD_TESTING)
 
   add_executable(unit_tests unit_tests.cpp)
   target_link_libraries(unit_tests omega_h)
-  test_func(unit_tests 1 ./unit_tests)
+  set(TEST_EXES ${TEST_EXES} unit_tests)
+  test_func(run_unit_tests 1 ./unit_tests)
   add_executable(mpi_tests mpi_tests.cpp)
   target_link_libraries(mpi_tests omega_h)
+  set(TEST_EXES ${TEST_EXES} mpi_tests)
   if(OSH_USE_MPI)
-    test_func(mpi_tests 4 ./mpi_tests)
+    test_func(run_mpi_tests 4 ./mpi_tests)
   else()
-    test_func(mpi_tests 1 ./mpi_tests)
+    test_func(run_mpi_tests 1 ./mpi_tests)
   endif()
   add_executable(warp_test warp_test.cpp)
   target_link_libraries(warp_test omega_h)
+  set(TEST_EXES ${TEST_EXES} warp_test)
   test_func(warp_test_serial 1 ./warp_test)
   test_func(warp_test_parallel 2 ./warp_test)
   add_executable(perf_tests perf_tests.cpp)
@@ -189,9 +196,11 @@ if(BUILD_TESTING)
   add_executable(imr_cases imr_cases.cpp)
   target_link_libraries(imr_cases omega_h)
   if(Gmodel_FOUND AND GMSH)
-    add_test(NAME ring_test COMMAND ./ring_test)
-    set_tests_properties(ring_test PROPERTIES DEPENDS mesh_ring)
+    set(TEST_EXES ${TEST_EXES} ring_test)
+    test_func(run_ring_test 1 ./ring_test)
   endif()
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
+      DEPENDS ${TEST_EXES} ring.msh)
 endif()
 
 if(OSH_BUILD_SMB2OSH)
