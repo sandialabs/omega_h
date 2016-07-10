@@ -1,6 +1,9 @@
 #ifndef ALGEBRA_HPP
 #define ALGEBRA_HPP
 
+#include "algorithm.hpp"
+#include "few.hpp"
+
 namespace osh {
 
 INLINE Real average(Real a, Real b) { return (a + b) / 2.; }

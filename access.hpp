@@ -1,6 +1,9 @@
 #ifndef ACCESS_HPP
 #define ACCESS_HPP
 
+#include "internal.hpp"
+#include "algebra.hpp"
+
 namespace osh {
 
 template <Int n, class Arr>

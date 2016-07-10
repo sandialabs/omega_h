@@ -1,4 +1,7 @@
-#include "internal.hpp"
+#include "access.hpp"
+
+#include "loop.hpp"
+#include "simplices.hpp"
 
 namespace osh {
 
