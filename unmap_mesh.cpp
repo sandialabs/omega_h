@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 void unmap_tags(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
                 LOs new_ents2old_ents) {
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
@@ -73,3 +77,5 @@ void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_ents2old_ents[]) {
     old_lows2new_lows = old_ents2new_ents;
   }
 }
+
+} //end namespace osh

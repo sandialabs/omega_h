@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
                              Read<GO> hg) {
   LO nl = l2lh.size() - 1;
@@ -54,3 +58,5 @@ Adj invert(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
   order_by_globals(l2lh, lh2h, codes, high_globals);
   return Adj(l2lh, lh2h, codes);
 }
+
+} //end namespace osh

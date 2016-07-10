@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename T>
 struct CompareArrays {
   static bool compare(CommPtr, Read<T> a, Read<T> b, Real, Real, Int, Int) {
@@ -159,3 +163,5 @@ osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
   }
   return result;
 }
+
+} //end namespace osh

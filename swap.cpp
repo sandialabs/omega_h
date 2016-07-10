@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
   mesh->set_parting(OSH_GHOSTED);
   auto comm = mesh->comm();
@@ -30,3 +34,5 @@ bool swap_edges(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   if (mesh->dim() == 2) return swap2d(mesh, qual_ceil, nlayers, verbose);
   return false;
 }
+
+} //end namespace osh

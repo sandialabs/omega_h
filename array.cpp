@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 #ifdef OSH_USE_KOKKOS
 template <typename T>
 Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {}
@@ -568,3 +572,5 @@ INST(I32)
 INST(I64)
 INST(Real)
 #undef INST
+
+} //end namespace osh

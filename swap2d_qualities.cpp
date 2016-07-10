@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename Measure, Int dim>
 static Reals swap2d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
   auto ev2v = mesh->ask_verts_of(EDGE);
@@ -62,3 +66,5 @@ Reals swap2d_qualities(Mesh* mesh, LOs cands2edges) {
   }
   return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);
 }
+
+} //end namespace osh

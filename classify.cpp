@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
   auto dim = mesh->dim();
   auto ns = mesh->nents(dim - 1);
@@ -110,3 +114,5 @@ void project_classification(Mesh* mesh) {
     mesh->set_tag<LO>(d, "class_id", class_id);
   }
 }
+
+} //end namespace osh

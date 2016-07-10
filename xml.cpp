@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 namespace xml {
 
 bool parse_tag(std::string const& line, xml::Tag* tag_out) {
@@ -98,3 +102,5 @@ xml::Tag read_tag(std::istream& stream) {
   return st;
 }
 }
+
+} //end namespace osh

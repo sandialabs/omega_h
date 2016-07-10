@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 static Read<I8> get_edge_codes(Mesh* mesh) {
   auto edge_cand_codes = mesh->get_array<I8>(EDGE, "collapse_code");
   mesh->remove_tag(EDGE, "collapse_code");
@@ -178,3 +182,5 @@ bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   CHECK(comm->allreduce(max(elems_are_cands), OSH_MAX) == 1);
   return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true, verbose);
 }
+
+} //end namespace osh

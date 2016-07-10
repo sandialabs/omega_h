@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
                                   LOs old_verts2new_verts, LOs& keys2pairs,
                                   LOs& pair_verts2verts) {
@@ -193,3 +197,5 @@ void refine_products(Mesh* mesh, Int ent_dim, LOs keys2edges, LOs keys2midverts,
                            pair_verts2verts, keys2prods, prod_verts2verts);
   }
 }
+
+} //end namespace osh

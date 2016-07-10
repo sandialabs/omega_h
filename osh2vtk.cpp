@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 #include "omega_h.hpp"
 
 #include <cstdlib>
@@ -11,3 +15,5 @@ int main(int argc, char** argv) {
   if (argc == 4) dim = atoi(argv[2]);
   osh::vtk::write_parallel(argv[argc - 1], &mesh, dim);
 }
+
+} //end namespace osh

@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   auto ncopies = copies2old_owners.nitems();
   auto old_owners2copies = copies2old_owners.invert();
@@ -113,3 +117,5 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   new_globals = new_mesh->sync_array(ent_dim, new_globals, 1);
   new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, new_globals);
 }
+
+} //end namespace osh

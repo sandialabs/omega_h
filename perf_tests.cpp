@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 #include <random>
 #include <cstdio>
 #include <cstdarg>
@@ -234,3 +238,5 @@ int main(int argc, char** argv) {
 #endif
   test_adjs(lib);
 }
+
+} //end namespace osh

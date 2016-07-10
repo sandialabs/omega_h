@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 static bool swap2d_ghosted(Mesh* mesh) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
@@ -60,3 +64,5 @@ bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   swap2d_element_based(mesh, verbose);
   return true;
 }
+
+} //end namespace osh

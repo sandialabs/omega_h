@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 namespace indset {
 
 enum { NOT_IN, IN, UNKNOWN };
@@ -75,3 +79,5 @@ Read<I8> find_indset(Mesh* mesh, Int ent_dim, Reals quality,
   auto globals = mesh->ask_globals(ent_dim);
   return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
 }
+
+} //end namespace osh

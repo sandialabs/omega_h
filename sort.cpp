@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename T, typename Comp>
 void parallel_sort(T* b, T* e, Comp c) {
 #if defined(OSH_USE_CUDA)
@@ -54,3 +58,5 @@ LOs sort_by_keys(Read<T> keys, Int width) {
 INST(LO)
 INST(GO)
 #undef INST
+
+} //end namespace osh

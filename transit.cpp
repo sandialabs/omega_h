@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
@@ -47,3 +51,5 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   if (low_dim == 1) return Adj(hl2l, codes);
   return Adj(hl2l);
 }
+
+} //end namespace osh

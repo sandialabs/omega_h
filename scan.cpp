@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename T>
 struct ExclScan : public SumFunctor<LO> {
   typedef LO value_type;
@@ -32,3 +36,5 @@ struct FillRight : public MaxFunctor<LO> {
 };
 
 void fill_right(Write<LO> a) { parallel_scan(a.size(), FillRight(a)); }
+
+} //end namespace osh

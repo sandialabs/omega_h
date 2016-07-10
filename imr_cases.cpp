@@ -1,5 +1,9 @@
 #include "internal.hpp"
 
+namespace osh {
+
+#include "internal.hpp"
+
 using namespace osh;
 
 struct Case {
@@ -168,3 +172,5 @@ int main(int argc, char** argv) {
   else
     osh_fail("unknown case \"%s\"", argv[1]);
 }
+
+} //end namespace osh

@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 #include "omega_h.hpp"
 
 #include <iostream>
@@ -81,3 +85,5 @@ int main(int argc, char** argv) {
   if (allow_superset && res == OSH_MORE) return 0;
   return 2;
 }
+
+} //end namespace osh

@@ -1,5 +1,9 @@
 #include "internal.hpp"
 
+namespace osh {
+
+#include "internal.hpp"
+
 using namespace osh;
 
 int main(int argc, char** argv) {
@@ -31,3 +35,5 @@ int main(int argc, char** argv) {
   std::cout << mesh.nelems() << " final triangles\n";
   std::cout << "took " << i << " iterations\n";
 }
+
+} //end namespace osh

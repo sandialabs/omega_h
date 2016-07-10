@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 Now now() {
   Now t;
   t.impl = std::chrono::high_resolution_clock::now();
@@ -9,3 +13,5 @@ Real operator-(Now b, Now a) {
              .count() *
          1e-9;
 }
+
+} //end namespace osh

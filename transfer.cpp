@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename T>
 static void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
                             LOs same_ents2old_ents, LOs same_ents2new_ents,
@@ -748,3 +752,5 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
                             same_ents2new_ents);
   }
 }
+
+} //end namespace osh

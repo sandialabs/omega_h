@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 Dist::Dist() {}
 
 Dist::Dist(Dist const& other) { copy(other); }
@@ -179,3 +183,5 @@ INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
+
+} //end namespace osh

@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <Int deg>
 struct IsMatch;
 
@@ -100,3 +104,5 @@ Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
   Adj v2l = invert(l2v, nverts_per_low, nv, Read<GO>(nl, 0, 1));
   return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);
 }
+
+} //end namespace osh

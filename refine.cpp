@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 static bool refine_ghosted(Mesh* mesh, Real min_qual) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
@@ -78,3 +82,5 @@ bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual, bool verbose) {
   mesh->add_tag(EDGE, "candidate", 1, OSH_DONT_TRANSFER, edge_is_cand);
   return refine(mesh, min_qual, verbose);
 }
+
+} //end namespace osh

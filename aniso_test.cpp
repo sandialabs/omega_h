@@ -1,5 +1,9 @@
 #include "internal.hpp"
 
+namespace osh {
+
+#include "internal.hpp"
+
 using namespace osh;
 
 int main(int argc, char** argv) {
@@ -29,3 +33,5 @@ int main(int argc, char** argv) {
     writer.write();
   }
 }
+
+} //end namespace osh

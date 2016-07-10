@@ -1,5 +1,9 @@
 #include "internal.hpp"
 
+namespace osh {
+
+#include "internal.hpp"
+
 using namespace osh;
 
 template <Int m, Int n>
@@ -779,3 +783,5 @@ int main(int argc, char** argv) {
   test_interpolate_metrics();
   test_element_identity_metric();
 }
+
+} //end namespace osh

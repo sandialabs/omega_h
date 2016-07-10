@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 TagBase::TagBase(std::string const& name, Int ncomps, osh_xfer xfer)
     : name_(name), ncomps_(ncomps), xfer_(xfer) {}
 
@@ -77,3 +81,5 @@ INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
+
+} //end namespace osh

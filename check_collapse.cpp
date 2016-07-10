@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 Read<I8> check_collapse_class(Mesh* mesh, LOs cands2edges,
                               Read<I8> cand_codes) {
   auto ncands = cands2edges.size();
@@ -106,3 +110,5 @@ Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
   return mesh->sync_subset_array(EDGE, cand_codes, cands2edges,
                                  I8(DONT_COLLAPSE), 1);
 }
+
+} //end namespace osh

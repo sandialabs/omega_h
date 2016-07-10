@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 namespace vtk {
 
 namespace {
@@ -747,3 +751,5 @@ void FullWriter::write() {
 }
 
 }  // end namespace vtk
+
+} //end namespace osh

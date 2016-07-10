@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 struct RealRefineQualities {
   RealRefineQualities(Mesh*, LOs) {}
   template <Int dim>
@@ -98,3 +102,5 @@ Reals refine_qualities(Mesh* mesh, LOs candidates) {
     }
   }
 }
+
+} //end namespace osh

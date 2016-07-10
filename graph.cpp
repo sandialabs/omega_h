@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 Graph add_edges(Graph g1, Graph g2) {
   auto v2e1 = g1.a2ab;
   auto e2v1 = g1.ab2b;
@@ -94,3 +98,5 @@ Reals graph_weighted_average(Graph a2b, Reals ab_weights, Reals b_data,
   auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, OSH_SUM);
   return divide_each(weighted_sums, total_weights);
 }
+
+} //end namespace osh

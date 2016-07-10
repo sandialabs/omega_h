@@ -1,5 +1,9 @@
 #include "internal.hpp"
 
+namespace osh {
+
+#include "internal.hpp"
+
 using namespace osh;
 
 int main(int argc, char** argv) {
@@ -33,3 +37,5 @@ int main(int argc, char** argv) {
     writer.write();
   } while (refine_by_size(&mesh, 4.0 / 3.0, 0.47, true));
 }
+
+} //end namespace osh

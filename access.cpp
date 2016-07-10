@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm) {
   Write<Real> symms(n * symm_dofs(dim));
@@ -55,3 +59,5 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   parallel_for(na, f);
   return out;
 }
+
+} //end namespace osh

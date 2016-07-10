@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 namespace inertia {
 
 namespace {
@@ -172,3 +176,5 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
 }
 
 }  // end namespace inertia
+
+} //end namespace osh

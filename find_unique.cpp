@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <Int deg>
 struct IsFlipped;
 template <>
@@ -97,3 +101,5 @@ LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {
   auto uv2v = form_uses(hv2v, high_dim, low_dim);
   return find_unique_deg(low_dim + 1, uv2v);
 }
+
+} //end namespace osh

@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename ElementQualities, Int dim>
 Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
   ElementQualities measurer(mesh);
@@ -33,3 +37,5 @@ Reals measure_qualities(Mesh* mesh, LOs a2e) {
 Reals measure_qualities(Mesh* mesh) {
   return measure_qualities(mesh, LOs(mesh->nelems(), 0, 1));
 }
+
+} //end namespace osh

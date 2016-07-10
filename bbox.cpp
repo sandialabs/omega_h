@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 template <Int dim>
 struct BBoxFunctor {
   typedef BBox<dim> value_type;
@@ -26,3 +30,5 @@ BBox<dim> find_bounding_box(Reals coords) {
 
 template BBox<2> find_bounding_box<2>(Reals coords);
 template BBox<3> find_bounding_box<3>(Reals coords);
+
+} //end namespace osh

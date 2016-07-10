@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 double Int128::to_double(double unit) const {
   Int128 tmp = *this;
   if (tmp < Int128(0)) tmp = -tmp;
@@ -21,3 +25,5 @@ std::ostream& operator<<(std::ostream& o, Int128 const& x) {
   x.print(o);
   return o;
 }
+
+} //end namespace osh

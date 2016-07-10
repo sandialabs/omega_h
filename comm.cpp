@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 #define CALL(f) CHECK(MPI_SUCCESS == (f))
 
 Comm::Comm() {
@@ -430,3 +434,5 @@ INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
+
+} //end namespace osh

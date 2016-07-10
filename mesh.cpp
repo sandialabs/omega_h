@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 Mesh::Mesh() : dim_(-1), parting_(-1) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = OSH_ELEM_BASED;
@@ -585,3 +589,5 @@ INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
+
+} //end namespace osh

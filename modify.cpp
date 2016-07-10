@@ -1,3 +1,7 @@
+#include "internal.hpp"
+
+namespace osh {
+
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
                         LOs prod_verts2verts, LOs prods2new_ents,
                         LOs same_ents2old_ents, LOs same_ents2new_ents,
@@ -361,3 +365,5 @@ void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
   elem_owners = update_ownership(elems2owners, new_own_ranks);
   mesh->set_owners(elem_dim, elem_owners);
 }
+
+} //end namespace osh
