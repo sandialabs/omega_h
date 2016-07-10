@@ -1,6 +1,8 @@
 #ifndef TAG_HPP
 #define TAG_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 template <typename T>

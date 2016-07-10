@@ -1,6 +1,8 @@
 #ifndef SORT_HPP
 #define SORT_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 template <typename T>
