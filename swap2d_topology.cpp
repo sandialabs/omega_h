@@ -1,4 +1,5 @@
-void swap2d_topology(Mesh* mesh, LOs keys2edges, HostFew<LOs, 3>* keys2prods_out,
+void swap2d_topology(Mesh* mesh, LOs keys2edges,
+                     HostFew<LOs, 3>* keys2prods_out,
                      HostFew<LOs, 3>* prod_verts2verts_out) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto tv2v = mesh->ask_verts_of(TRI);

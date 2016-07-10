@@ -84,7 +84,7 @@ static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
 }
 
 HostFew<Read<I8>, 4> mark_dead_ents(Mesh* mesh, LOs rails2edges,
-                                       Read<I8> rail_col_dirs) {
+                                    Read<I8> rail_col_dirs) {
   HostFew<Write<I8>, 4> writes;
   writes[EDGE] = deep_copy(mark_image(rails2edges, mesh->nedges()));
   for (Int dim = EDGE + 1; dim <= mesh->dim(); ++dim)
