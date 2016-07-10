@@ -211,7 +211,7 @@ if(BUILD_TESTING)
 
   if(Gmodel_FOUND)
     function(gen_func MODEL_NAME MODEL_DIM)
-      add_executable(gen_${MODEL_NAME} gen_${MODEL_NAME}.cpp)
+      add_executable(gen_${MODEL_NAME} gen/${MODEL_NAME}.cpp)
       target_include_directories(gen_${MODEL_NAME} PRIVATE
                                  ${Gmodel_INCLUDE_DIRS})
       target_link_libraries(gen_${MODEL_NAME} gmodel)
