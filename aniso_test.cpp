@@ -1,11 +1,3 @@
-#include "internal.hpp"
-
-namespace osh {
-
-#include "internal.hpp"
-
-using namespace osh;
-
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
@@ -33,5 +25,3 @@ int main(int argc, char** argv) {
     writer.write();
   }
 }
-
-} //end namespace osh

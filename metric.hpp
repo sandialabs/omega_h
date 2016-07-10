@@ -1,6 +1,8 @@
 #ifndef METRIC_HPP
 #define METRIC_HPP
 
+#include "algebra.hpp"
+
 namespace osh {
 
 template <Int dim>

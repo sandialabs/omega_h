@@ -553,6 +553,14 @@ Reals find_identity_metric(Mesh* mesh);
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
+  extern template T Comm::allreduce(T x, osh_op op) const;                       \
+  extern template T Comm::exscan(T x, osh_op op) const;                          \
+  extern template void Comm::bcast(T& x) const;                                  \
+  extern template Read<T> Comm::allgather(T x) const;                            \
+  extern template Read<T> Comm::alltoall(Read<T> x) const;                       \
+  extern template Read<T> Comm::alltoallv(Read<T> sendbuf, Read<LO> sendcounts,  \
+                                   Read<LO> sdispls, Read<LO> recvcounts, \
+                                   Read<LO> rdispls) const; \
   extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
   extern template Read<T> Dist::exch_reduce<T>(Read<T> data, Int width,        \
                                                osh_op op) const;               \

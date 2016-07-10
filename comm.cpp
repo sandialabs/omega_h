@@ -420,7 +420,7 @@ void Comm::barrier() const {
 
 #undef CALL
 
-#define INST_T(T)                                                         \
+#define INST(T)                                                         \
   template T Comm::allreduce(T x, osh_op op) const;                       \
   template T Comm::exscan(T x, osh_op op) const;                          \
   template void Comm::bcast(T& x) const;                                  \
@@ -429,10 +429,10 @@ void Comm::barrier() const {
   template Read<T> Comm::alltoallv(Read<T> sendbuf, Read<LO> sendcounts,  \
                                    Read<LO> sdispls, Read<LO> recvcounts, \
                                    Read<LO> rdispls) const;
-INST_T(I8)
-INST_T(I32)
-INST_T(I64)
-INST_T(Real)
-#undef INST_T
+INST(I8)
+INST(I32)
+INST(I64)
+INST(Real)
+#undef INST
 
 } //end namespace osh

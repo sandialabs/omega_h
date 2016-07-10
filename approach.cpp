@@ -1,4 +1,6 @@
 #include "internal.hpp"
+#include "array.hpp"
+#include "metric.hpp"
 
 namespace osh {
 
