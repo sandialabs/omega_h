@@ -1,6 +1,8 @@
 #ifndef SMB2OSH_HPP
 #define SMB2OSH_HPP
 
+#include "internal.hpp"
+
 OSH_SYSTEM_HEADER
 
 #include <PCU.h>

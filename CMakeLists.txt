@@ -21,6 +21,7 @@ option(OSH_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
 option(OSH_OPTIMIZE "Compile with optimization" ON)
 option(OSH_SYMBOLS "Compile with debug symbols" ON)
 option(OSH_BUILD_SMB2OSH "Enable building the smb2osh program" OFF)
+set(SCOREC_PREFIX "" CACHE STRING "SCOREC/core install directory")
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(OSH_SANITIZE_ADDRESS "Use -fsanitize=address" OFF)
 set(Kokkos_PREFIX "" CACHE STRING "Kokkos installation directory")
@@ -283,23 +284,26 @@ if(BUILD_TESTING)
 endif()
 
 if(OSH_BUILD_SMB2OSH)
-  find_path(APF_INCLUDE apf.h)
-  find_library(MDS_LIB NAMES mds)
-  find_library(APF_LIB NAMES apf)
-  find_library(MTH_LIB NAMES mth)
-  find_library(LION_LIB NAMES lion)
-  find_library(GMI_LIB NAMES gmi)
-  find_library(PCU_LIB NAMES pcu)
+  find_path(SCOREC_INCLUDE apf.h PATHS ${SCOREC_PREFIX}/include)
+  find_library(MDS_LIB NAMES mds PATHS ${SCOREC_PREFIX}/lib)
+  find_library(APF_LIB NAMES apf PATHS ${SCOREC_PREFIX}/lib)
+  find_library(MTH_LIB NAMES mth PATHS ${SCOREC_PREFIX}/lib)
+  find_library(LION_LIB NAMES lion PATHS ${SCOREC_PREFIX}/lib)
+  find_library(GMI_LIB NAMES gmi PATHS ${SCOREC_PREFIX}/lib)
+  find_library(PCU_LIB NAMES pcu PATHS ${SCOREC_PREFIX}/lib)
   add_executable(smb2osh smb2osh.cpp)
-  target_include_directories(smb2osh PRIVATE ${APF_INCLUDE})
+  target_include_directories(smb2osh PRIVATE ${SCOREC_INCLUDE})
   target_link_libraries(smb2osh
       omega_h
       ${APF_LIB}
-      ${MTH_LIB}
-      ${LION_LIB}
       ${MDS_LIB}
       ${GMI_LIB}
       ${PCU_LIB})
+  if (MTH_LIB AND LION_LIB)
+    target_link_libraries(smb2osh
+        ${MTH_LIB}
+        ${LION_LIB})
+  endif()
   install(TARGETS smb2osh DESTINATION bin)
 endif()
 
