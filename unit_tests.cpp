@@ -1,8 +1,4 @@
-#include "internal.hpp"
-
-namespace osh {
-
-#include "internal.hpp"
+#include "all.hpp"
 
 using namespace osh;
 
@@ -583,14 +579,6 @@ static void test_refine_qualities(Library const& lib) {
   CHECK(are_close(quals2, quals));
 }
 
-static void test_i8_array_print() {
-  Read<I8> a({1, 1, 1});
-  std::stringstream stream;
-  stream << a;
-  std::string str = stream.str();
-  CHECK(str == " 1 1 1\n");
-}
-
 static void test_mark_up_down(Library const& lib) {
   Mesh mesh;
   build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
@@ -772,7 +760,6 @@ int main(int argc, char** argv) {
   test_average_field(lib);
   test_positivize();
   test_refine_qualities(lib);
-  test_i8_array_print();
   test_mark_up_down(lib);
   test_compare_meshes(lib);
   test_swap2d_topology(lib);
@@ -783,5 +770,3 @@ int main(int argc, char** argv) {
   test_interpolate_metrics();
   test_element_identity_metric();
 }
-
-} //end namespace osh
