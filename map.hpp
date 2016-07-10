@@ -1,3 +1,10 @@
+#ifndef MAP_HPP
+#define MAP_HPP
+
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);
 
@@ -61,3 +68,7 @@ INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
+
+}  // end namespace osh
+
+#endif

@@ -1,3 +1,10 @@
+#include "internal.hpp"
+
+#include <cstdarg>
+#include <sstream>
+
+namespace osh {
+
 #ifdef OSH_USE_MPI
 static bool we_called_mpi_init = false;
 #endif
@@ -74,3 +81,5 @@ Library::~Library() { osh_finalize(); }
 CommPtr Library::world() const { return Comm::world(); }
 
 CommPtr Library::self() const { return Comm::self(); }
+
+}  // end namespace osh

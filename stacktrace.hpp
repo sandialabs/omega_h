@@ -1,3 +1,14 @@
+#ifndef STACKTRACE_HPP
+#define STACKTRACE_HPP
+
+#include <cxxabi.h>
+#include <execinfo.h>
+#include <cstdlib>
+#include <sstream>
+#include <string>
+
+namespace osh {
+
 // stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
 // published under the WTFPL v2.0
 
@@ -77,3 +88,7 @@ static inline void print_stacktrace(FILE* out = stderr, int max_frames = 63) {
   }
   free(symbollist);
 }
+
+}  // end namespace osh
+
+#endif

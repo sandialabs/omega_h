@@ -1,3 +1,12 @@
+#include "protect.hpp"
+
+#include <signal.h>
+#include <cstdio>
+
+#include "stacktrace.hpp"
+
+namespace osh {
+
 #define NSIGS 6
 
 void osh_signal_handler(int s);
@@ -29,3 +38,5 @@ void osh_signal_handler(int s) {
 }
 
 #undef NSIGS
+
+}  // end namespace osh

@@ -1,3 +1,15 @@
+#include "swap3d.hpp"
+
+#include <iostream>
+
+#include "indset.hpp"
+#include "map.hpp"
+#include "modify.hpp"
+#include "swap.hpp"
+#include "transfer.hpp"
+
+namespace osh {
+
 static bool swap3d_ghosted(Mesh* mesh) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
@@ -68,3 +80,5 @@ bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   swap3d_element_based(mesh, verbose);
   return true;
 }
+
+}  // end namespace osh

@@ -1,3 +1,17 @@
+#include "construct.hpp"
+
+#include "adjacency.hpp"
+#include "align.hpp"
+#include "array.hpp"
+#include "box.hpp"
+#include "linpart.hpp"
+#include "map.hpp"
+#include "owners.hpp"
+#include "remotes.hpp"
+#include "simplify.hpp"
+
+namespace osh {
+
 void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   auto comm = mesh->comm();
   Remotes owners;
@@ -127,3 +141,5 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   auto e2oe = out_dist.exch(se2oe, 1);
   *p_ents2owners = e2oe;
 }
+
+}  // end namespace osh

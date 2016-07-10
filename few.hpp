@@ -1,3 +1,10 @@
+#ifndef FEW_HPP
+#define FEW_HPP
+
+#include "internal.hpp"
+
+namespace osh {
+
 template <typename T, Int n>
 class Few {
   T array_[n];
@@ -37,3 +44,7 @@ class HostFew {
     for (auto v : l) array_[i++] = v;
   }
 };
+
+}  // end namespace osh
+
+#endif

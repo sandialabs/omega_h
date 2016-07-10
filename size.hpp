@@ -1,3 +1,15 @@
+#ifndef SIZE_HPP
+#define SIZE_HPP
+
+#include "access.hpp"
+#include "algebra.hpp"
+#include "few.hpp"
+#include "metric.hpp"
+#include "qr.hpp"
+#include "space.hpp"
+
+namespace osh {
+
 template <Int sdim, Int edim>
 INLINE Few<Vector<sdim>, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
   Few<Vector<sdim>, edim> b;
@@ -159,3 +171,7 @@ INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
   CHECK(ok);
   return vector2symm(x);
 }
+
+}  // end namespace osh
+
+#endif

@@ -1,3 +1,19 @@
+#include "modify.hpp"
+
+#include "adjacency.hpp"
+#include "array.hpp"
+#include "atomics.hpp"
+#include "linpart.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+#include "owners.hpp"
+#include "scan.hpp"
+#include "simplices.hpp"
+#include "unmap_mesh.hpp"
+
+namespace osh {
+
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
                         LOs prod_verts2verts, LOs prods2new_ents,
                         LOs same_ents2old_ents, LOs same_ents2new_ents,
@@ -361,3 +377,5 @@ void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
   elem_owners = update_ownership(elems2owners, new_own_ranks);
   mesh->set_owners(elem_dim, elem_owners);
 }
+
+}  // end namespace osh

@@ -1,3 +1,10 @@
+#include "size.hpp"
+
+#include "graph.hpp"
+#include "loop.hpp"
+
+namespace osh {
+
 template <typename EdgeLengths>
 static Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
   EdgeLengths measurer(mesh);
@@ -131,3 +138,5 @@ Reals find_identity_metric(Mesh* mesh) {
     return find_identity_metric_tmpl<2>(mesh);
   }
 }
+
+}  // end namespace osh

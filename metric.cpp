@@ -1,3 +1,10 @@
+#include "metric.hpp"
+
+#include "access.hpp"
+#include "loop.hpp"
+
+namespace osh {
+
 template <Int sdim, Int edim>
 static Reals average_metric_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
@@ -56,3 +63,5 @@ Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t) {
   CHECK(dim == 2);
   return interpolate_metrics<2>(a, b, t);
 }
+
+}  // end namespace osh

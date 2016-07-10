@@ -1,3 +1,26 @@
+#include "sort.hpp"
+
+#include <algorithm>
+
+#if defined(OSH_USE_CUDA)
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+#include <thrust/device_ptr.h>
+#include <thrust/sort.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+#elif defined(OSH_USE_OPENMP)
+#include <omp.h>
+#include "intel_sort/parallel_stable_sort.hpp"
+#include "intel_sort/pss_common.hpp"
+#else
+#endif
+
+namespace osh {
+
 template <typename T, typename Comp>
 void parallel_sort(T* b, T* e, Comp c) {
 #if defined(OSH_USE_CUDA)
@@ -54,3 +77,5 @@ LOs sort_by_keys(Read<T> keys, Int width) {
 INST(LO)
 INST(GO)
 #undef INST
+
+}  // end namespace osh

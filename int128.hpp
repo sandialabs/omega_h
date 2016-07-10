@@ -1,6 +1,9 @@
-struct Int128;
+#ifndef INT128_HPP
+#define INT128_HPP
 
-std::ostream& operator<<(std::ostream& o, Int128 const& x);
+#include "internal.hpp"
+
+namespace osh {
 
 /*
    We code our own int128 because we target GPUs and similar
@@ -18,7 +21,8 @@ INLINE Int128::Int128(std::int64_t value)
 /* volatile... why is this not done by default...
  * returning void instead of reference to *this
  * to silence GCC's warning that the reference
- * is unused. */
+ * is unused.
+ */
 INLINE void Int128::operator=(Int128 const& rhs) volatile {
   high = rhs.high;
   low = rhs.low;
@@ -78,3 +82,7 @@ INLINE bool operator<(Int128 lhs, Int128 rhs) {
   if (lhs.high != rhs.high) return lhs.high < rhs.high;
   return lhs.low < rhs.low;
 }
+
+}  // end namespace osh
+
+#endif

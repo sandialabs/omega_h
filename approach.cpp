@@ -1,3 +1,9 @@
+#include "array.hpp"
+#include "internal.hpp"
+#include "metric.hpp"
+
+namespace osh {
+
 bool warp_to_limit(Mesh* mesh, Real min_qual) {
   if (!mesh->has_tag(VERT, "warp")) return false;
   CHECK(mesh->min_quality() >= min_qual);
@@ -37,3 +43,5 @@ bool approach_metric(Mesh* mesh, Real min_qual) {
   } while (mesh->min_quality() < min_qual);
   return true;
 }
+
+}  // end namespace osh

@@ -27,6 +27,7 @@ set(Kokkos_PREFIX "" CACHE STRING "Kokkos installation directory")
 option(OSH_PROTECT "Catch OS signals and print stack" OFF)
 set(Gmodel_PREFIX "" CACHE STRING "Gmodel installation directory")
 set(Gmsh_PREFIX "" CACHE STRING "Gmsh installation directory")
+option(OSH_ONE_FILE "Compile omega_h as a single file" ON)
 
 if(OSH_USE_KOKKOS)
   find_path(KOKKOS_INCLUDE Kokkos_Core.hpp PATHS "${Kokkos_PREFIX}/include")
@@ -104,7 +105,85 @@ endif("${isSystemDir}" STREQUAL "-1")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 
-add_library(omega_h omega_h.cpp)
+if(OSH_ONE_FILE)
+  add_library(omega_h omega_h.cpp)
+else()
+  add_library(omega_h
+  control.cpp
+  protect.cpp
+  timer.cpp
+  array.cpp
+  int128.cpp
+  repro.cpp
+  sort.cpp
+  scan.cpp
+  indset.cpp
+  map.cpp
+  simplices.cpp
+  form_uses.cpp
+  find_unique.cpp
+  invert.cpp
+  reflect_down.cpp
+  transit.cpp
+  tag.cpp
+  mesh.cpp
+  bbox.cpp
+  hilbert.cpp
+  construct.cpp
+  graph.cpp
+  star.cpp
+  file.cpp
+  base64.cpp
+  vtk.cpp
+  simplify.cpp
+  box.cpp
+  surface.cpp
+  mark.cpp
+  classify.cpp
+  reorder.cpp
+  size.cpp
+  access.cpp
+  quality.cpp
+  gmsh.cpp
+  comm.cpp
+  remotes.cpp
+  dist.cpp
+  linpart.cpp
+  owners.cpp
+  migrate.cpp
+  bcast.cpp
+  unmap_mesh.cpp
+  ghost.cpp
+  inertia.cpp
+  bipart.cpp
+  metric.cpp
+  refine_qualities.cpp
+  refine_topology.cpp
+  modify.cpp
+  refine.cpp
+  transfer.cpp
+  compare.cpp
+  check_collapse.cpp
+  coarsen_qualities.cpp
+  coarsen_topology.cpp
+  coarsen.cpp
+  approach.cpp
+  laplace.cpp
+  adapt.cpp
+  swap.cpp
+  swap2d_qualities.cpp
+  swap2d_topology.cpp
+  swap2d.cpp
+  swap3d_qualities.cpp
+  swap3d_topology.cpp
+  swap3d.cpp
+  regress.cpp
+  consistent.cpp
+  align.cpp
+  xml.cpp
+  )
+endif()
+
 target_link_libraries(omega_h ${DEP_LIBS})
 
 add_executable(msh2osh msh2osh.cpp)
@@ -138,7 +217,7 @@ if(BUILD_TESTING)
 
   if(Gmodel_FOUND)
     function(gen_func MODEL_NAME MODEL_DIM)
-      add_executable(gen_${MODEL_NAME} gen_${MODEL_NAME}.cpp)
+      add_executable(gen_${MODEL_NAME} gen/${MODEL_NAME}.cpp)
       target_include_directories(gen_${MODEL_NAME} PRIVATE
                                  ${Gmodel_INCLUDE_DIRS})
       target_link_libraries(gen_${MODEL_NAME} gmodel)

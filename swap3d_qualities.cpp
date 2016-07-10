@@ -1,3 +1,12 @@
+#include "swap3d.hpp"
+
+#include "loop.hpp"
+#include "quality.hpp"
+#include "swap3d_choice.hpp"
+#include "swap3d_loop.hpp"
+
+namespace osh {
+
 template <typename Measure>
 static void swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges,
                                   Reals* cand_quals, Read<I8>* cand_configs) {
@@ -58,3 +67,5 @@ void swap3d_qualities(Mesh* mesh, LOs cands2edges, Reals* cand_quals,
   *cand_configs =
       mesh->sync_subset_array(EDGE, *cand_configs, cands2edges, I8(-1), 1);
 }
+
+}  // end namespace osh

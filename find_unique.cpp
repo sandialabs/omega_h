@@ -1,3 +1,12 @@
+#include "adjacency.hpp"
+
+#include "align.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "sort.hpp"
+
+namespace osh {
+
 template <Int deg>
 struct IsFlipped;
 template <>
@@ -55,11 +64,6 @@ Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
   }
 }
 
-#define INST(T) template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);
-INST(LO)
-INST(GO)
-#undef INST
-
 /* check whether adjacent lists of (deg) vertices
    are the same */
 DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
@@ -97,3 +101,10 @@ LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {
   auto uv2v = form_uses(hv2v, high_dim, low_dim);
   return find_unique_deg(low_dim + 1, uv2v);
 }
+
+#define INST(T) template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);
+INST(LO)
+INST(GO)
+#undef INST
+
+}  // end namespace osh

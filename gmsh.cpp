@@ -1,3 +1,13 @@
+#include "internal.hpp"
+
+#include <fstream>
+
+#include "algebra.hpp"
+#include "classify.hpp"
+#include "map.hpp"
+
+namespace osh {
+
 namespace gmsh {
 
 namespace {
@@ -151,3 +161,5 @@ void read(std::string const& filename, Library const& lib, Mesh* mesh) {
   read(file, lib, mesh);
 }
 }
+
+}  // end namespace osh

@@ -1,3 +1,14 @@
+#include "internal.hpp"
+
+#include <cmath>
+
+#include "array.hpp"
+#include "functors.hpp"
+#include "int128.hpp"
+#include "loop.hpp"
+
+namespace osh {
+
 /* A reproducible sum of floating-point values.
    this operation is one of the key places where
    a program's output begins to depend on parallel
@@ -71,3 +82,5 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
     result[comp] = repro_sum(comm, get_component(a, ncomps, comp));
   }
 }
+
+}  // end namespace osh

@@ -75,6 +75,16 @@ This requires `OSH_USE_KOKKOS`.
 If this is `ON`, set `OSH_CUDA_ARCH` to the compute capability of
 your GPUs.
 
+#### OSH_ONE_FILE
+Default: `ON`
+
+Omega_h includes all other sources in `omega_h.cpp` for a (up to 4X)
+faster compile time from scratch.
+Reasons to set this to `OFF` include:
+* You have many cores on the compiling machine (at least 8), then
+  you can get a faster compile time with `make -j`.
+* You are a developer who would prefer faster incremental rebuilds.
+
 ## Contributing
 
 Please open a Github issue to ask a question, report a bug,

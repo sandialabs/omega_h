@@ -1,3 +1,12 @@
+#include "mark.hpp"
+
+#include "array.hpp"
+#include "graph.hpp"
+#include "loop.hpp"
+#include "simplices.hpp"
+
+namespace osh {
+
 Read<I8> mark_exposed_sides(Mesh* mesh) {
   auto ns = mesh->nents(mesh->dim() - 1);
   auto s2sc = mesh->ask_up(mesh->dim() - 1, mesh->dim()).a2ab;
@@ -99,3 +108,5 @@ Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {
   auto elems_are_slivers = each_lt(quals, qual_ceil);
   return mark_dual_layers(mesh, elems_are_slivers, nlayers);
 }
+
+}  // end namespace osh

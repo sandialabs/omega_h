@@ -1,3 +1,24 @@
+#include "internal.hpp"
+
+#include <algorithm>
+
+#include "adjacency.hpp"
+#include "array.hpp"
+#include "bcast.hpp"
+#include "ghost.hpp"
+#include "graph.hpp"
+#include "inertia.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+#include "migrate.hpp"
+#include "quality.hpp"
+#include "reorder.hpp"
+#include "simplices.hpp"
+#include "size.hpp"
+#include "tag.hpp"
+
+namespace osh {
+
 Mesh::Mesh() : dim_(-1), parting_(-1) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = OSH_ELEM_BASED;
@@ -585,3 +606,5 @@ INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
+
+}  // end namespace osh

@@ -1,3 +1,15 @@
+#include "coarsen.hpp"
+
+#include "access.hpp"
+#include "array.hpp"
+#include "collapse.hpp"
+#include "graph.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "quality.hpp"
+
+namespace osh {
+
 template <typename Measure, Int dim>
 static Reals coarsen_qualities_tmpl(Mesh* mesh, LOs cands2edges,
                                     Read<I8> cand_codes) {
@@ -139,3 +151,5 @@ Read<I8> filter_coarsen_improve(Mesh* mesh, LOs cands2edges,
   auto keep_dirs = gt_each(cand_quals, cand_old_quals);
   return filter_coarsen_dirs(cand_codes, keep_dirs);
 }
+
+}  // end namespace osh

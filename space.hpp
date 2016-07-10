@@ -1,3 +1,10 @@
+#ifndef SPACE_HPP
+#define SPACE_HPP
+
+#include "algebra.hpp"
+
+namespace osh {
+
 INLINE Vector<2> vector_2(Real x, Real y) {
   Vector<2> v;
   v[0] = x;
@@ -118,3 +125,7 @@ INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   A[2] = cross(A[0], A[1]);
   return A;
 }
+
+}  // end namespace osh
+
+#endif

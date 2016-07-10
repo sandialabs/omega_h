@@ -1,3 +1,16 @@
+#include "inertia.hpp"
+
+#include <iostream>
+
+#include "access.hpp"
+#include "array.hpp"
+#include "bipart.hpp"
+#include "eigen.hpp"
+#include "loop.hpp"
+#include "space.hpp"
+
+namespace osh {
+
 namespace inertia {
 
 namespace {
@@ -172,3 +185,5 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
 }
 
 }  // end namespace inertia
+
+}  // end namespace osh

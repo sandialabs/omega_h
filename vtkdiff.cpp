@@ -1,6 +1,11 @@
-#include "internal.hpp"
+#include "omega_h.hpp"
 
+#include <cstdlib>
 #include <cstring>
+#include <iostream>
+
+#include "algebra.hpp"
+#include "vtk.hpp"
 
 using namespace osh;
 

@@ -1,3 +1,13 @@
+#include "swap3d.hpp"
+
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
+#include "swap3d_loop.hpp"
+#include "swap3d_tables.hpp"
+
+namespace osh {
+
 Few<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
@@ -107,3 +117,5 @@ Few<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges, Read<I8> edge_configs,
   }
   return prod_verts2verts;
 }
+
+}  // end namespace osh

@@ -1,3 +1,18 @@
+#include "coarsen.hpp"
+
+#include <iostream>
+
+#include "array.hpp"
+#include "collapse.hpp"
+#include "indset.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+#include "modify.hpp"
+#include "transfer.hpp"
+
+namespace osh {
+
 static Read<I8> get_edge_codes(Mesh* mesh) {
   auto edge_cand_codes = mesh->get_array<I8>(EDGE, "collapse_code");
   mesh->remove_tag(EDGE, "collapse_code");
@@ -108,8 +123,8 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
     if (ent_dim == VERT) {
       keys2prods = LOs(nkeys + 1, 0);
     } else {
-      keys2doms = find_coarsen_domains(mesh, keys2verts, ent_dim,
-                                       dead_ents[size_t(ent_dim)]);
+      keys2doms =
+          find_coarsen_domains(mesh, keys2verts, ent_dim, dead_ents[ent_dim]);
       keys2prods = keys2doms.a2ab;
       prod_verts2verts = coarsen_topology(mesh, keys2verts_onto, ent_dim,
                                           keys2doms, old_verts2new_verts);
@@ -178,3 +193,5 @@ bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   CHECK(comm->allreduce(max(elems_are_cands), OSH_MAX) == 1);
   return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true, verbose);
 }
+
+}  // end namespace osh

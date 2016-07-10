@@ -1,3 +1,9 @@
+#include "base64.hpp"
+
+#include "internal.hpp"
+
+namespace osh {
+
 namespace base64 {
 
 namespace {
@@ -137,3 +143,5 @@ std::string read_encoded(std::istream& f) {
 }
 
 }  // end namespace base64
+
+}  // end namespace osh

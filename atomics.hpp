@@ -1,3 +1,8 @@
+#ifndef ATOMICS_HPP
+#define ATOMICS_HPP
+
+namespace osh {
+
 template <class T>
 INLINE void atomic_increment(volatile T* const dest) {
 #ifdef OSH_USE_KOKKOS
@@ -26,3 +31,7 @@ INLINE T atomic_fetch_add(volatile T* const dest, const T val) {
   return tmp;
 #endif
 }
+
+}  // end namespace osh
+
+#endif

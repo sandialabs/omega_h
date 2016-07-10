@@ -1,3 +1,13 @@
+#ifndef SWAP3D_LOOP_HPP
+#define SWAP3D_LOOP_HPP
+
+#include "swap3d_tables.hpp"
+
+#include "algorithm.hpp"
+#include "simplices.hpp"
+
+namespace osh {
+
 namespace swap3d {
 
 /* by definition, the loop vertices curl
@@ -68,3 +78,7 @@ DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2tets,
 }
 
 }  // end namespace swap3d
+
+}  // end namespace osh
+
+#endif

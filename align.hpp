@@ -1,3 +1,11 @@
+#ifndef ALIGN_HPP
+#define ALIGN_HPP
+
+#include "algorithm.hpp"
+#include "internal.hpp"
+
+namespace osh {
+
 /* a six-bit code describes the alignment relationship
    between a simplex and a lower-dimensional simplex
    on its boundary:
@@ -184,3 +192,13 @@ INLINE void align_adj(I8 code, T const in[], T out[]) {
 
 template <typename T>
 Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes);
+
+#define INST_DECL(T) \
+  extern template Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes);
+INST_DECL(LO)
+INST_DECL(GO)
+#undef INST_DECL
+
+}  // end namespace osh
+
+#endif

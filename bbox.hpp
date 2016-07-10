@@ -1,3 +1,10 @@
+#ifndef BBOX_HPP
+#define BBOX_HPP
+
+#include "algebra.hpp"
+
+namespace osh {
+
 template <Int dim>
 struct BBox {
   INLINE BBox() {}
@@ -34,3 +41,7 @@ BBox<dim> find_bounding_box(Reals coords);
 
 extern template BBox<2> find_bounding_box<2>(Reals coords);
 extern template BBox<3> find_bounding_box<3>(Reals coords);
+
+}  // end namespace osh
+
+#endif

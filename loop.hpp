@@ -1,3 +1,8 @@
+#ifndef LOOP_HPP
+#define LOOP_HPP
+
+namespace osh {
+
 template <typename T>
 void parallel_for(Int n, T const& f) {
 #ifdef OSH_USE_KOKKOS
@@ -29,3 +34,7 @@ void parallel_scan(Int n, T f) {
   for (Int i = 0; i < n; ++i) f(i, update, true);
 #endif
 }
+
+}  // end namespace osh
+
+#endif

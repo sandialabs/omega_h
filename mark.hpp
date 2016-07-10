@@ -1,3 +1,10 @@
+#ifndef MARK_HPP
+#define MARK_HPP
+
+#include "internal.hpp"
+
+namespace osh {
+
 Read<I8> mark_exposed_sides(Mesh* mesh);
 
 Read<I8> mark_down(Mesh* mesh, Int high_dim, Int low_dim,
@@ -14,3 +21,7 @@ Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers);
 GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks);
 
 Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers);
+
+}  // end namespace osh
+
+#endif

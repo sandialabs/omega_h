@@ -1,3 +1,10 @@
+#ifndef VTK_HPP
+#define VTK_HPP
+
+#include "internal.hpp"
+
+namespace osh {
+
 namespace vtk {
 
 std::string get_pvtu_path(std::string const& step_path);
@@ -30,3 +37,7 @@ void read_pvd(std::istream& stream, std::vector<Real>* times_out,
 void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
               std::vector<std::string>* pvtupaths_out);
 }
+
+}  // end namespace osh
+
+#endif

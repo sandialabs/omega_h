@@ -1,3 +1,9 @@
+#include "align.hpp"
+
+#include "loop.hpp"
+
+namespace osh {
+
 template <Int deg, typename T>
 static Read<T> align_ev2v_deg(Read<T> ev2v, Read<I8> codes) {
   CHECK(ev2v.size() == codes.size() * deg);
@@ -25,3 +31,5 @@ Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes) {
 INST(LO)
 INST(GO)
 #undef INST
+
+}  // end namespace osh

@@ -1,3 +1,13 @@
+#include "consistent.hpp"
+
+#include <iostream>
+
+#include "array.hpp"
+#include "simplices.hpp"
+#include "tag.hpp"
+
+namespace osh {
+
 template <typename T>
 static bool is_consistent(Mesh* mesh, Int dim, Read<T> copy_data, Int ncomps) {
   auto synced_data = mesh->sync_array(dim, copy_data, ncomps);
@@ -45,3 +55,5 @@ bool tags_are_consistent(Mesh* mesh) {
   }
   return true;
 }
+
+}  // end namespace osh

@@ -1,3 +1,12 @@
+#include "array.hpp"
+
+#include "algebra.hpp"
+#include "algorithm.hpp"
+#include "functors.hpp"
+#include "loop.hpp"
+
+namespace osh {
+
 #ifdef OSH_USE_KOKKOS
 template <typename T>
 Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {}
@@ -370,26 +379,6 @@ T HostRead<T>::last() const {
 }
 
 template <typename T>
-std::ostream& operator<<(std::ostream& o, Read<T> a) {
-  HostRead<T> ha = a;
-  typedef typename StandinTraits<T>::type vt;
-  if (ha.size() <= 30) {
-    for (LO i = 0; i < ha.size(); ++i) {
-      vt v = ha[i];
-      o << ' ' << v;
-    }
-    o << '\n';
-  } else {
-    o << '\n';
-    for (LO i = 0; i < ha.size(); ++i) {
-      vt v = ha[i];
-      o << i << ": " << v << '\n';
-    }
-  }
-  return o;
-}
-
-template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
   auto f = LAMBDA(LO i) { b[i] = a[i] * factor; };
@@ -548,7 +537,6 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   template T min(CommPtr comm, Read<T> a);                               \
   template T max(CommPtr comm, Read<T> a);                               \
   template Write<T> deep_copy(Read<T> a);                                \
-  template std::ostream& operator<<(std::ostream& o, Read<T> a);         \
   template Read<T> multiply_each_by(T factor, Read<T> x);                \
   template Read<T> multiply_each(Read<T> a, Read<T> b);                  \
   template Read<T> divide_each(Read<T> a, Read<T> b);                    \
@@ -568,3 +556,5 @@ INST(I32)
 INST(I64)
 INST(Real)
 #undef INST
+
+}  // end namespace osh

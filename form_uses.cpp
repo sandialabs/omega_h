@@ -1,3 +1,10 @@
+#include "adjacency.hpp"
+
+#include "loop.hpp"
+#include "simplices.hpp"
+
+namespace osh {
+
 LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   Int nverts_per_high = simplex_degrees[high_dim][0];
   Int nverts_per_low = simplex_degrees[low_dim][0];
@@ -18,3 +25,5 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   parallel_for(nhigh, f);
   return uv2v;
 }
+
+}  // end namespace osh

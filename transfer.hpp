@@ -1,3 +1,10 @@
+#ifndef TRANSFER_HPP
+#define TRANSFER_HPP
+
+#include "internal.hpp"
+
+namespace osh {
+
 void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh, LOs key_verts2verts,
                             LOs keys2midverts, LOs same_verts2old_verts,
                             LOs same_verts2new_verts);
@@ -41,3 +48,7 @@ void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
 void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
                    LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
                    LOs same_ents2new_ents);
+
+}  // end namespace osh
+
+#endif

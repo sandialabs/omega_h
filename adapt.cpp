@@ -1,3 +1,19 @@
+#include "adapt.hpp"
+
+#include <iomanip>
+#include <iostream>
+
+#include "algorithm.hpp"
+#include "array.hpp"
+#include "coarsen.hpp"
+#include "mark.hpp"
+#include "refine.hpp"
+#include "simplices.hpp"
+#include "swap.hpp"
+#include "timer.hpp"
+
+namespace osh {
+
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
                        Real floor, Real ceil, Real minval, Real maxval) {
   auto low_marks = each_lt(values, floor);
@@ -138,3 +154,5 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
   }
   return true;
 }
+
+}  // end namespace osh

@@ -1,4 +1,8 @@
 #include "internal.hpp"
+
+namespace osh {
+
+#include "internal.hpp"
 #include "smb2osh.hpp"
 
 static void copy_coords(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh) {
@@ -143,3 +147,5 @@ int main(int argc, char** argv) {
   PCU_Comm_Free();
   MPI_Finalize();
 }
+
+}  // end namespace osh

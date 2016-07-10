@@ -1,3 +1,13 @@
+#ifndef ALGEBRA_HPP
+#define ALGEBRA_HPP
+
+#include <cmath>
+
+#include "algorithm.hpp"
+#include "few.hpp"
+
+namespace osh {
+
 INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
 
 INLINE Real square(Real x) { return x * x; }
@@ -37,13 +47,6 @@ class Vector : public Few<Real, n> {
   INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
   INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
 };
-
-template <Int n>
-std::ostream& operator<<(std::ostream& o, Vector<n> v) {
-  for (Int i = 0; i < n; ++i) o << ' ' << v[i];
-  o << '\n';
-  return o;
-}
 
 template <Int n>
 INLINE Vector<n> operator*(Vector<n> a, Real b) {
@@ -151,15 +154,6 @@ inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
     (*this)[k % n][k / n] = v;
     ++k;
   }
-}
-
-template <Int m, Int n>
-std::ostream& operator<<(std::ostream& o, Matrix<m, n> a) {
-  for (Int i = 0; i < m; ++i) {
-    for (Int j = 0; j < n; ++j) o << ' ' << a[j][i];
-    o << '\n';
-  }
-  return o;
 }
 
 template <Int m, Int n>
@@ -305,3 +299,7 @@ INLINE Vector<n> positivize(Vector<n> v) {
   if (neg_bits > bits) return v * -1.0;
   return v;
 }
+
+}  // end namespace osh
+
+#endif

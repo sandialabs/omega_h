@@ -3,12 +3,12 @@
 
 OSH_SYSTEM_HEADER
 
+#include <PCU.h>
 #include <apf.h>
-#include <gmi_mesh.h>
-#include <gmi_null.h>
 #include <apfMDS.h>
 #include <apfMesh2.h>
 #include <apfNumbering.h>
-#include <PCU.h>
+#include <gmi_mesh.h>
+#include <gmi_null.h>
 
 #endif

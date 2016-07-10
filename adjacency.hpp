@@ -1,3 +1,10 @@
+#ifndef ADJACENCY_HPP
+#define ADJACENCY_HPP
+
+#include "internal.hpp"
+
+namespace osh {
+
 LOs order_by_globals(LOs a2ab, LOs ab2b, Read<GO> b_global);
 
 Adj invert(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals);
@@ -47,3 +54,16 @@ Graph edges_across_tris(Adj f2e, Adj e2f);
 Graph edges_across_tets(Adj r2e, Adj e2r);
 Graph elements_across_sides(Int dim, Adj elems2sides, Adj sides2elems,
                             Read<I8> side_is_exposed);
+
+#define INST_DECL(T)                                                        \
+  extern template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);   \
+  extern template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v,     \
+                                       Read<T> bv2v, Adj v2b, LOs* a2b_out, \
+                                       Read<I8>* codes_out);
+INST_DECL(LO)
+INST_DECL(GO)
+#undef INST_DECL
+
+}  // end namespace osh
+
+#endif

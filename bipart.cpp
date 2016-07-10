@@ -1,3 +1,12 @@
+#include "bipart.hpp"
+
+#include "array.hpp"
+#include "internal.hpp"
+#include "linpart.hpp"
+#include "map.hpp"
+
+namespace osh {
+
 Dist bi_partition(CommPtr comm, Read<I8> marks) {
   CHECK(comm->size() % 2 == 0);
   Write<I32> dest_ranks(marks.size());
@@ -23,3 +32,5 @@ Dist bi_partition(CommPtr comm, Read<I8> marks) {
   auto dests = Remotes(Read<I32>(dest_ranks), Read<LO>(dest_idxs));
   return Dist(comm, dests, linsize);
 }
+
+}  // end namespace osh

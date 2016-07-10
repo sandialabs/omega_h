@@ -1,3 +1,11 @@
+#include "hilbert.hpp"
+
+#include "bbox.hpp"
+#include "loop.hpp"
+#include "sort.hpp"
+
+namespace osh {
+
 namespace hilbert {
 
 /* for each set of (dim) floating-point coordinates, this function
@@ -58,3 +66,5 @@ LOs sort_coords(Reals coords, Int dim) {
 }
 
 }  // end namespace hilbert
+
+}  // end namespace osh

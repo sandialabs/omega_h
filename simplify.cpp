@@ -1,3 +1,11 @@
+#include "simplify.hpp"
+
+#include "algorithm.hpp"
+#include "loop.hpp"
+#include "scan.hpp"
+
+namespace osh {
+
 namespace simplify {
 
 /* The algorithms here are described in:
@@ -219,3 +227,5 @@ LOs tets_from_hexes(LOs hv2v) {
 }
 
 }  // end namespace simplify
+
+}  // end namespace osh

@@ -1,8 +1,18 @@
-#include <random>
-#include <cstdio>
 #include <cstdarg>
+#include <cstdio>
+#include <iostream>
+#include <random>
 
+#include "access.hpp"
+#include "adjacency.hpp"
+#include "array.hpp"
+#include "eigen.hpp"
 #include "internal.hpp"
+#include "loop.hpp"
+#include "metric.hpp"
+#include "sort.hpp"
+#include "space.hpp"
+#include "timer.hpp"
 
 using namespace osh;
 

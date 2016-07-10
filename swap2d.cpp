@@ -1,3 +1,15 @@
+#include "swap2d.hpp"
+
+#include <iostream>
+
+#include "indset.hpp"
+#include "map.hpp"
+#include "modify.hpp"
+#include "swap.hpp"
+#include "transfer.hpp"
+
+namespace osh {
+
 static bool swap2d_ghosted(Mesh* mesh) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
@@ -41,13 +53,11 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
-                keys2prods[size_t(ent_dim)], prod_verts2verts[size_t(ent_dim)],
-                old_lows2new_lows, &prods2new_ents, &same_ents2old_ents,
-                &same_ents2new_ents, &old_ents2new_ents);
-    transfer_swap(mesh, &new_mesh, ent_dim, keys2edges,
-                  keys2prods[size_t(ent_dim)], prods2new_ents,
-                  same_ents2old_ents, same_ents2new_ents);
+    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods[ent_dim],
+                prod_verts2verts[ent_dim], old_lows2new_lows, &prods2new_ents,
+                &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
+    transfer_swap(mesh, &new_mesh, ent_dim, keys2edges, keys2prods[ent_dim],
+                  prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
@@ -60,3 +70,5 @@ bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   swap2d_element_based(mesh, verbose);
   return true;
 }
+
+}  // end namespace osh

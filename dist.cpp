@@ -1,3 +1,13 @@
+#include "internal.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
+#include "sort.hpp"
+
+namespace osh {
+
 Dist::Dist() {}
 
 Dist::Dist(Dist const& other) { copy(other); }
@@ -179,3 +189,5 @@ INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
+
+}  // end namespace osh

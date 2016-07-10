@@ -1,3 +1,12 @@
+#include "ghost.hpp"
+
+#include "loop.hpp"
+#include "map.hpp"
+#include "migrate.hpp"
+#include "remotes.hpp"
+
+namespace osh {
+
 Dist get_local_elem_uses2own_verts(Mesh* mesh) {
   auto verts2elems = mesh->ask_up(VERT, mesh->dim());
   auto verts2uses = verts2elems.a2ab;
@@ -96,3 +105,5 @@ void partition_by_elems(Mesh* mesh, bool verbose) {
   auto owned2owners = unmap(owned2all, all2owners);
   migrate_mesh(mesh, owned2owners, verbose);
 }
+
+}  // end namespace osh

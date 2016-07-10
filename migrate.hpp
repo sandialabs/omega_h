@@ -1,3 +1,10 @@
+#ifndef MIGRATE_HPP
+#define MIGRATE_HPP
+
+#include "internal.hpp"
+
+namespace osh {
+
 /* create arrays mapping uses of (low_dim) entities by
    (high_dim) entities to their (low_dim) owners */
 Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim);
@@ -33,3 +40,7 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
                   osh_parting mode, bool verbose);
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose);
 void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose);
+
+}  // end namespace osh
+
+#endif

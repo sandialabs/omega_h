@@ -1,3 +1,10 @@
+#ifndef SWAP3D_CHOICE_HPP
+#define SWAP3D_CHOICE_HPP
+
+#include "swap3d_loop.hpp"
+
+namespace osh {
+
 namespace swap3d {
 
 struct Choice {
@@ -63,3 +70,7 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
 }
 
 }  // end namespace swap3d
+
+}  // end namespace osh
+
+#endif

@@ -1,3 +1,13 @@
+#include "reorder.hpp"
+
+#include "array.hpp"
+#include "graph.hpp"
+#include "hilbert.hpp"
+#include "map.hpp"
+#include "unmap_mesh.hpp"
+
+namespace osh {
+
 /* Construct a graph from each vertex
    to the entities which use that vertex
    as their first vertex in the canonical
@@ -50,3 +60,5 @@ void reorder_by_hilbert(Mesh* mesh) {
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh->dim());
   reorder_mesh(mesh, new_verts2old_verts);
 }
+
+}  // end namespace osh

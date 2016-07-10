@@ -1,3 +1,13 @@
+#include "adjacency.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
+#include "simplices.hpp"
+
+namespace osh {
+
 Graph verts_across_edges(Adj e2v, Adj v2e) {
   auto ev2v = e2v.ab2b;
   auto v2ve = v2e.a2ab;
@@ -113,3 +123,5 @@ Graph elements_across_sides(Int dim, Adj elems2sides, Adj sides2elems,
   parallel_for(nelems, fill);
   return Graph(elem2elem_elems, elem_elem2elem);
 }
+
+}  // end namespace osh

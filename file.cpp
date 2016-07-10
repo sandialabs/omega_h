@@ -1,3 +1,22 @@
+#include "file.hpp"
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <cerrno>
+#include <fstream>
+#include <iostream>
+
+#ifdef OSH_USE_ZLIB
+#include <zlib.h>
+#endif
+
+#include "array.hpp"
+#include "inertia.hpp"
+#include "loop.hpp"
+#include "tag.hpp"
+
+namespace osh {
+
 bool is_little_endian_cpu() {
   static std::uint16_t const endian_canary = 0x1;
   std::uint8_t const* p = reinterpret_cast<std::uint8_t const*>(&endian_canary);
@@ -188,18 +207,6 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   }
   array = swap_if_needed(Read<T>(uncompressed.write()), true);
 }
-
-#define INST(T)                                                   \
-  template void write_value(std::ostream& stream, T val);         \
-  template void read_value(std::istream& stream, T& val);         \
-  template void write_array(std::ostream& stream, Read<T> array); \
-  template void read_array(std::istream& stream, Read<T>& array,  \
-                           bool is_compressed);
-INST(I8)
-INST(I32)
-INST(I64)
-INST(Real)
-#undef INST
 
 void write(std::ostream& stream, std::string const& val) {
   I32 len = static_cast<I32>(val.length());
@@ -458,4 +465,23 @@ void read(std::string const& path, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-}  // end namespace file
+#define INST(T)                                                          \
+  template void swap_if_needed(T& val, bool is_little_endian);           \
+  template Read<T> swap_if_needed(Read<T> array, bool is_little_endian); \
+  template void write_value(std::ostream& stream, T val);                \
+  template void read_value(std::istream& stream, T& val);                \
+  template void write_array(std::ostream& stream, Read<T> array);        \
+  template void read_array(std::istream& stream, Read<T>& array,         \
+                           bool is_compressed);
+INST(I8)
+INST(I32)
+INST(I64)
+INST(Real)
+#undef INST
+
+// for VTK compression headers
+template void swap_if_needed(std::size_t& val, bool is_little_endian);
+
+}  // end namespace binary
+
+}  // end namespace osh

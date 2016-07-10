@@ -1,3 +1,10 @@
+#include "linpart.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
+
+namespace osh {
+
 Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
   auto comm_size_gt = GO(comm_size);
   auto quot = total / comm_size_gt;
@@ -50,3 +57,5 @@ Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals) {
   auto copies2lins_dist = Dist(comm, copies2lins_map, nlins);
   return copies2lins_dist;
 }
+
+}  // end namespace osh

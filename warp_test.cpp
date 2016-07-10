@@ -1,4 +1,13 @@
+#include <iostream>
+
+#include "access.hpp"
+#include "array.hpp"
+#include "classify.hpp"
 #include "internal.hpp"
+#include "loop.hpp"
+#include "size.hpp"
+#include "space.hpp"
+#include "timer.hpp"
 
 using namespace osh;
 

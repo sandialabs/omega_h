@@ -1,3 +1,15 @@
+#include "laplace.hpp"
+
+#include <cmath>
+#include <iostream>
+
+#include "array.hpp"
+#include "graph.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+
+namespace osh {
+
 Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(initial.size() == mesh->nverts() * width);
@@ -27,3 +39,5 @@ Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
   std::cout << "laplacian solve took " << niters << " iterations\n";
   return state;
 }
+
+}  // end namespace osh
