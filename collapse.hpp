@@ -27,6 +27,6 @@ Read<I8> check_collapse_class(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
 Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
                                  Read<I8> cand_codes);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

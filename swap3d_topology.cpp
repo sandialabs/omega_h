@@ -118,4 +118,4 @@ Few<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges, Read<I8> edge_configs,
   return prod_verts2verts;
 }
 
-} //end namespace osh
+}  // end namespace osh

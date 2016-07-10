@@ -14,8 +14,8 @@
 #endif
 #elif defined(OSH_USE_OPENMP)
 #include <omp.h>
-#include "intel_sort/pss_common.hpp"
 #include "intel_sort/parallel_stable_sort.hpp"
+#include "intel_sort/pss_common.hpp"
 #else
 #endif
 
@@ -78,4 +78,4 @@ INST(LO)
 INST(GO)
 #undef INST
 
-} //end namespace osh
+}  // end namespace osh

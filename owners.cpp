@@ -113,7 +113,7 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, new_globals);
 }
 
-#define INST(T)                                           \
+#define INST(T)                                             \
   template Read<T> reduce_data_to_owners(Read<T> copy_data, \
                                          Dist copies2owners, Int ncomps);
 INST(I8)
@@ -122,4 +122,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-} //end namespace osh
+}  // end namespace osh

@@ -52,4 +52,4 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
   *prod_verts2verts_out = prod_verts2verts;
 }
 
-} //end namespace osh
+}  // end namespace osh

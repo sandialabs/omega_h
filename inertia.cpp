@@ -186,4 +186,4 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
 
 }  // end namespace inertia
 
-} //end namespace osh
+}  // end namespace osh

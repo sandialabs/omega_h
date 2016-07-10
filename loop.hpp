@@ -35,6 +35,6 @@ void parallel_scan(Int n, T f) {
 #endif
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

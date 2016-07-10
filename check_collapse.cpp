@@ -114,4 +114,4 @@ Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
                                  I8(DONT_COLLAPSE), 1);
 }
 
-} //end namespace osh
+}  // end namespace osh

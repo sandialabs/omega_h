@@ -1,11 +1,11 @@
-#include <random>
-#include <cstdio>
 #include <cstdarg>
+#include <cstdio>
 #include <iostream>
+#include <random>
 
+#include "access.hpp"
 #include "adjacency.hpp"
 #include "array.hpp"
-#include "access.hpp"
 #include "eigen.hpp"
 #include "internal.hpp"
 #include "loop.hpp"

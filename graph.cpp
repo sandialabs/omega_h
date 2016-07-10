@@ -105,4 +105,4 @@ INST(I32)
 INST(Real)
 #undef INST
 
-} //end namespace osh
+}  // end namespace osh

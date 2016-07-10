@@ -144,4 +144,4 @@ std::string read_encoded(std::istream& f) {
 
 }  // end namespace base64
 
-} //end namespace osh
+}  // end namespace osh

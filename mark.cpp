@@ -109,4 +109,4 @@ Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {
   return mark_dual_layers(mesh, elems_are_slivers, nlayers);
 }
 
-} //end namespace osh
+}  // end namespace osh

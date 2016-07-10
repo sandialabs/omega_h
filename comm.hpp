@@ -61,6 +61,6 @@ inline MPI_Op mpi_op(osh_op op) {
 }
 #endif
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

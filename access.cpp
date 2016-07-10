@@ -63,4 +63,4 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   return out;
 }
 
-} //end namespace osh
+}  // end namespace osh

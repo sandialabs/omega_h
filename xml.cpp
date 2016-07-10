@@ -107,4 +107,4 @@ xml::Tag read_tag(std::istream& stream) {
 }
 }
 
-} //end namespace osh
+}  // end namespace osh

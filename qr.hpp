@@ -222,6 +222,6 @@ INLINE bool solve_least_squares_qr(Matrix<m, n> a, Vector<m> b, Vector<n>& x) {
   return true;
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

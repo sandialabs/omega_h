@@ -1,7 +1,7 @@
 #include "adapt.hpp"
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "algorithm.hpp"
 #include "array.hpp"
@@ -155,4 +155,4 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
   return true;
 }
 
-} //end namespace osh
+}  // end namespace osh

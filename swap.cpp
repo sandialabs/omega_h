@@ -2,10 +2,10 @@
 
 #include "array.hpp"
 #include "graph.hpp"
-#include "mark.hpp"
 #include "map.hpp"
-#include "swap3d.hpp"
+#include "mark.hpp"
 #include "swap2d.hpp"
+#include "swap3d.hpp"
 
 namespace osh {
 
@@ -42,4 +42,4 @@ bool swap_edges(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   return false;
 }
 
-} //end namespace osh
+}  // end namespace osh

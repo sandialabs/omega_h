@@ -112,4 +112,4 @@ Reals refine_qualities(Mesh* mesh, LOs candidates) {
   }
 }
 
-} //end namespace osh
+}  // end namespace osh

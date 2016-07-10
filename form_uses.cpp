@@ -26,4 +26,4 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
-} //end namespace osh
+}  // end namespace osh

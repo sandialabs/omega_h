@@ -300,6 +300,6 @@ INLINE Vector<n> positivize(Vector<n> v) {
   return v;
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -45,6 +45,6 @@ class HostFew {
   }
 };
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

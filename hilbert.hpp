@@ -106,6 +106,6 @@ LOs sort_coords(Reals coords, Int dim);
 
 }  // end namespace hilbert
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

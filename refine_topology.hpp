@@ -56,6 +56,6 @@ INLINE void flip_new_elem(Int dim, T ev[]) {
   if (dim == 3) swap2(ev[1], ev[2]);
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

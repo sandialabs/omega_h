@@ -142,4 +142,4 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   *p_ents2owners = e2oe;
 }
 
-} //end namespace osh
+}  // end namespace osh

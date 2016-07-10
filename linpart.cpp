@@ -58,4 +58,4 @@ Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals) {
   return copies2lins_dist;
 }
 
-} //end namespace osh
+}  // end namespace osh

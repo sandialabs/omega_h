@@ -124,4 +124,4 @@ Graph elements_across_sides(Int dim, Adj elems2sides, Adj sides2elems,
   return Graph(elem2elem_elems, elem_elem2elem);
 }
 
-} //end namespace osh
+}  // end namespace osh

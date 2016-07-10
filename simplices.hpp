@@ -122,6 +122,6 @@ extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];
 extern char const* const plural_names[DIMS];
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

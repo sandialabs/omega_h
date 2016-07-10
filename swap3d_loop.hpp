@@ -79,6 +79,6 @@ DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2tets,
 
 }  // end namespace swap3d
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

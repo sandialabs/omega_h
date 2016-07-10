@@ -9,8 +9,8 @@
 #include "access.hpp"
 #include "base64.hpp"
 #include "file.hpp"
-#include "tag.hpp"
 #include "simplices.hpp"
+#include "tag.hpp"
 #include "xml.hpp"
 
 namespace osh {
@@ -765,4 +765,4 @@ void FullWriter::write() {
 
 }  // end namespace vtk
 
-} //end namespace osh
+}  // end namespace osh

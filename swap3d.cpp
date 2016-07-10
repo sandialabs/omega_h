@@ -81,4 +81,4 @@ bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   return true;
 }
 
-} //end namespace osh
+}  // end namespace osh

@@ -64,4 +64,4 @@ Adj invert(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
   return Adj(l2lh, lh2h, codes);
 }
 
-} //end namespace osh
+}  // end namespace osh

@@ -121,4 +121,4 @@ void project_classification(Mesh* mesh) {
   }
 }
 
-} //end namespace osh
+}  // end namespace osh

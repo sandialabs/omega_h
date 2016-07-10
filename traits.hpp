@@ -63,6 +63,6 @@ struct ArithTraits<double> {
   static INLINE double min() { return -DBL_MAX; }
 };
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

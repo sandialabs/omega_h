@@ -1,7 +1,7 @@
 #include "internal.hpp"
 
-#include <sstream>
 #include <cstdarg>
+#include <sstream>
 
 namespace osh {
 
@@ -82,4 +82,4 @@ CommPtr Library::world() const { return Comm::world(); }
 
 CommPtr Library::self() const { return Comm::self(); }
 
-} //end namespace osh
+}  // end namespace osh

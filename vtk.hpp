@@ -38,6 +38,6 @@ void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
               std::vector<std::string>* pvtupaths_out);
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

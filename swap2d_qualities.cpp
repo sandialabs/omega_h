@@ -72,4 +72,4 @@ Reals swap2d_qualities(Mesh* mesh, LOs cands2edges) {
   return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);
 }
 
-} //end namespace osh
+}  // end namespace osh

@@ -135,6 +135,6 @@ INLINE Matrix<dim, dim> average_metrics(Few<Matrix<dim, dim>, n> m) {
 Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
 Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

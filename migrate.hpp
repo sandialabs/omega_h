@@ -41,6 +41,6 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose);
 void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

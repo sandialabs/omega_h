@@ -15,6 +15,6 @@ void unmap_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
                   LOs new_ents2old_ents, LOs old_ents2new_ents);
 void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_ents2old_ents[]);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -40,4 +40,4 @@ struct FillRight : public MaxFunctor<LO> {
 
 void fill_right(Write<LO> a) { parallel_scan(a.size(), FillRight(a)); }
 
-} //end namespace osh
+}  // end namespace osh

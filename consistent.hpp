@@ -7,6 +7,6 @@ namespace osh {
 
 bool tags_are_consistent(Mesh* mesh);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -107,4 +107,4 @@ INST(LO)
 INST(GO)
 #undef INST
 
-} //end namespace osh
+}  // end namespace osh

@@ -761,4 +761,4 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
   }
 }
 
-} //end namespace osh
+}  // end namespace osh

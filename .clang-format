@@ -1,6 +1,1 @@
 BasedOnStyle: Google
-# internal.hpp includes need to be in a particular
-# order, essentially because our headers are unconventionally
-# bare and do not include what they use.
-# if that stops being the case, remove this line.
-SortIncludes: false

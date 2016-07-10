@@ -1,7 +1,7 @@
 #include "coarsen.hpp"
 
-#include "array.hpp"
 #include "access.hpp"
+#include "array.hpp"
 #include "collapse.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
@@ -152,4 +152,4 @@ Read<I8> filter_coarsen_improve(Mesh* mesh, LOs cands2edges,
   return filter_coarsen_dirs(cand_codes, keep_dirs);
 }
 
-} //end namespace osh
+}  // end namespace osh

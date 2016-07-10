@@ -148,4 +148,4 @@ int main(int argc, char** argv) {
   MPI_Finalize();
 }
 
-} //end namespace osh
+}  // end namespace osh

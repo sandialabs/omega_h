@@ -1,8 +1,8 @@
 #ifndef ALIGN_HPP
 #define ALIGN_HPP
 
-#include "internal.hpp"
 #include "algorithm.hpp"
+#include "internal.hpp"
 
 namespace osh {
 
@@ -199,6 +199,6 @@ INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

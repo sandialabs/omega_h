@@ -61,4 +61,4 @@ void reorder_by_hilbert(Mesh* mesh) {
   reorder_mesh(mesh, new_verts2old_verts);
 }
 
-} //end namespace osh
+}  // end namespace osh

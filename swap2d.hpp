@@ -1,8 +1,8 @@
 #ifndef SWAP2D_HPP
 #define SWAP2D_HPP
 
-#include "internal.hpp"
 #include "few.hpp"
+#include "internal.hpp"
 
 namespace osh {
 
@@ -14,6 +14,6 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
 
 bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

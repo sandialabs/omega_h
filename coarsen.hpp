@@ -44,6 +44,6 @@ bool coarsen_by_size(Mesh* mesh, Real min_len, Real min_qual, bool verbose);
 
 bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

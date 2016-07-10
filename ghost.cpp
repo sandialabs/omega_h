@@ -106,4 +106,4 @@ void partition_by_elems(Mesh* mesh, bool verbose) {
   migrate_mesh(mesh, owned2owners, verbose);
 }
 
-} //end namespace osh
+}  // end namespace osh

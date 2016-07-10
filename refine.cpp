@@ -93,4 +93,4 @@ bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual, bool verbose) {
   return refine(mesh, min_qual, verbose);
 }
 
-} //end namespace osh
+}  // end namespace osh

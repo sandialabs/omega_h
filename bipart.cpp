@@ -33,4 +33,4 @@ Dist bi_partition(CommPtr comm, Read<I8> marks) {
   return Dist(comm, dests, linsize);
 }
 
-} //end namespace osh
+}  // end namespace osh

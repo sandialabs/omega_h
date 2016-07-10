@@ -1,8 +1,8 @@
 #ifndef SWAP3D_HPP
 #define SWAP3D_HPP
 
-#include "internal.hpp"
 #include "few.hpp"
+#include "internal.hpp"
 
 namespace osh {
 
@@ -16,6 +16,6 @@ Few<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges, Read<I8> edge_configs,
 
 bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

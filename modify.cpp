@@ -1,7 +1,7 @@
 #include "modify.hpp"
 
-#include "array.hpp"
 #include "adjacency.hpp"
+#include "array.hpp"
 #include "atomics.hpp"
 #include "linpart.hpp"
 #include "loop.hpp"
@@ -378,4 +378,4 @@ void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
   mesh->set_owners(elem_dim, elem_owners);
 }
 
-} //end namespace osh
+}  // end namespace osh

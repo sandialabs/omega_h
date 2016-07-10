@@ -69,6 +69,6 @@ INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

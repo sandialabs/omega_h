@@ -123,8 +123,8 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
     if (ent_dim == VERT) {
       keys2prods = LOs(nkeys + 1, 0);
     } else {
-      keys2doms = find_coarsen_domains(mesh, keys2verts, ent_dim,
-                                       dead_ents[ent_dim]);
+      keys2doms =
+          find_coarsen_domains(mesh, keys2verts, ent_dim, dead_ents[ent_dim]);
       keys2prods = keys2doms.a2ab;
       prod_verts2verts = coarsen_topology(mesh, keys2verts_onto, ent_dim,
                                           keys2doms, old_verts2new_verts);
@@ -194,4 +194,4 @@ bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true, verbose);
 }
 
-} //end namespace osh
+}  // end namespace osh

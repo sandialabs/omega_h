@@ -1,10 +1,10 @@
 #include "file.hpp"
 
-#include <cerrno>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <iostream>
+#include <sys/types.h>
+#include <cerrno>
 #include <fstream>
+#include <iostream>
 
 #ifdef OSH_USE_ZLIB
 #include <zlib.h>
@@ -465,14 +465,13 @@ void read(std::string const& path, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-#define INST(T)                                                   \
-template void swap_if_needed(T& val, bool is_little_endian); \
-template Read<T> swap_if_needed(Read<T> array, \
-                                bool is_little_endian); \
-  template void write_value(std::ostream& stream, T val);         \
-  template void read_value(std::istream& stream, T& val);         \
-  template void write_array(std::ostream& stream, Read<T> array); \
-  template void read_array(std::istream& stream, Read<T>& array,  \
+#define INST(T)                                                          \
+  template void swap_if_needed(T& val, bool is_little_endian);           \
+  template Read<T> swap_if_needed(Read<T> array, bool is_little_endian); \
+  template void write_value(std::ostream& stream, T val);                \
+  template void read_value(std::istream& stream, T& val);                \
+  template void write_array(std::ostream& stream, Read<T> array);        \
+  template void read_array(std::istream& stream, Read<T>& array,         \
                            bool is_compressed);
 INST(I8)
 INST(I32)
@@ -480,9 +479,9 @@ INST(I64)
 INST(Real)
 #undef INST
 
-//for VTK compression headers
+// for VTK compression headers
 template void swap_if_needed(std::size_t& val, bool is_little_endian);
 
 }  // end namespace binary
 
-} //end namespace osh
+}  // end namespace osh

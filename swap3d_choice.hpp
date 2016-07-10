@@ -71,6 +71,6 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
 
 }  // end namespace swap3d
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -86,6 +86,6 @@ INLINE Int solve_quadratic(Real a, Real b, Few<Real, 2>& roots,
   return 0;
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

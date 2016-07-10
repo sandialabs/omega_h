@@ -64,4 +64,4 @@ Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t) {
   return interpolate_metrics<2>(a, b, t);
 }
 
-} //end namespace osh
+}  // end namespace osh

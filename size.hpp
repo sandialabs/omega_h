@@ -172,6 +172,6 @@ INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
   return vector2symm(x);
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

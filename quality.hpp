@@ -165,6 +165,6 @@ struct MetricElementQualities {
 Reals measure_qualities(Mesh* mesh, LOs a2e);
 Reals measure_qualities(Mesh* mesh);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

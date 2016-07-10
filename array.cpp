@@ -557,4 +557,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-} //end namespace osh
+}  // end namespace osh

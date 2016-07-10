@@ -126,6 +126,6 @@ INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   return A;
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

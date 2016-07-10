@@ -139,4 +139,4 @@ Reals find_identity_metric(Mesh* mesh) {
   }
 }
 
-} //end namespace osh
+}  // end namespace osh

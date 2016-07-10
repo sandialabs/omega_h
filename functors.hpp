@@ -63,6 +63,6 @@ struct SumFunctor {
   }
 };
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -162,4 +162,4 @@ void read(std::string const& filename, Library const& lib, Mesh* mesh) {
 }
 }
 
-} //end namespace osh
+}  // end namespace osh

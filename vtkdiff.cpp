@@ -1,7 +1,7 @@
 #include "omega_h.hpp"
 
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #include "algebra.hpp"

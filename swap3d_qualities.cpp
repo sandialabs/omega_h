@@ -68,4 +68,4 @@ void swap3d_qualities(Mesh* mesh, LOs cands2edges, Reals* cand_quals,
       mesh->sync_subset_array(EDGE, *cand_configs, cands2edges, I8(-1), 1);
 }
 
-} //end namespace osh
+}  // end namespace osh

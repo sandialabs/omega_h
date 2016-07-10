@@ -15,4 +15,4 @@ double Int128::to_double(double unit) const {
   return x;
 }
 
-} //end namespace osh
+}  // end namespace osh

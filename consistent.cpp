@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "array.hpp"
-#include "tag.hpp"
 #include "simplices.hpp"
+#include "tag.hpp"
 
 namespace osh {
 
@@ -56,4 +56,4 @@ bool tags_are_consistent(Mesh* mesh) {
   return true;
 }
 
-} //end namespace osh
+}  // end namespace osh

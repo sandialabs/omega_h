@@ -14,4 +14,4 @@ Real operator-(Now b, Now a) {
          1e-9;
 }
 
-} //end namespace osh
+}  // end namespace osh

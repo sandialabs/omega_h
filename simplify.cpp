@@ -228,4 +228,4 @@ LOs tets_from_hexes(LOs hv2v) {
 
 }  // end namespace simplify
 
-} //end namespace osh
+}  // end namespace osh

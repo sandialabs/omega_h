@@ -110,12 +110,11 @@ Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
   return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);
 }
 
-#define INST(T) \
-template \
-void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b, \
-                     LOs* a2b_out, Read<I8>* codes_out);
+#define INST(T)                                                                \
+  template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, \
+                                Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
 INST(LO)
 INST(GO)
 #undef INST
 
-} //end namespace osh
+}  // end namespace osh

@@ -20,6 +20,6 @@ INLINE void swap2(T& a, T& b) {
   b = c;
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -83,4 +83,4 @@ Read<I8> find_indset(Mesh* mesh, Int ent_dim, Reals quality,
   return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
 }
 
-} //end namespace osh
+}  // end namespace osh

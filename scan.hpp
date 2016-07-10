@@ -19,6 +19,6 @@ extern template LOs offset_scan(Read<I32> a);
    value to the left */
 void fill_right(Write<LO> a);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

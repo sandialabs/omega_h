@@ -82,4 +82,4 @@ void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_ents2old_ents[]) {
   }
 }
 
-} //end namespace osh
+}  // end namespace osh

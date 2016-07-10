@@ -49,6 +49,6 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
                    LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
                    LOs same_ents2new_ents);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

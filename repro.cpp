@@ -83,4 +83,4 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
   }
 }
 
-} //end namespace osh
+}  // end namespace osh

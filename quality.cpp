@@ -40,4 +40,4 @@ Reals measure_qualities(Mesh* mesh) {
   return measure_qualities(mesh, LOs(mesh->nelems(), 0, 1));
 }
 
-} //end namespace osh
+}  // end namespace osh

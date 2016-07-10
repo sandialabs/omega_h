@@ -16,6 +16,6 @@ Now now();
 
 Real operator-(Now b, Now a);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -14,6 +14,6 @@ void classify_elements(Mesh* mesh);
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
 void project_classification(Mesh* mesh);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

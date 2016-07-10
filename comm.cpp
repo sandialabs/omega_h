@@ -422,7 +422,7 @@ void Comm::barrier() const {
 
 #undef CALL
 
-#define INST(T)                                                         \
+#define INST(T)                                                           \
   template T Comm::allreduce(T x, osh_op op) const;                       \
   template T Comm::exscan(T x, osh_op op) const;                          \
   template void Comm::bcast(T& x) const;                                  \
@@ -437,4 +437,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-} //end namespace osh
+}  // end namespace osh

@@ -17,6 +17,6 @@ namespace osh {
 
 Dist bi_partition(CommPtr comm, Read<I8> marks);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

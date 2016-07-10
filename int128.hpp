@@ -83,6 +83,6 @@ INLINE bool operator<(Int128 lhs, Int128 rhs) {
   return lhs.low < rhs.low;
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

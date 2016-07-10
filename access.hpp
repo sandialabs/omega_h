@@ -1,8 +1,8 @@
 #ifndef ACCESS_HPP
 #define ACCESS_HPP
 
-#include "internal.hpp"
 #include "algebra.hpp"
+#include "internal.hpp"
 
 namespace osh {
 
@@ -111,6 +111,6 @@ Reals vectors_3d_to_2d(Reals vecs2);
 
 Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

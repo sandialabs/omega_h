@@ -278,6 +278,6 @@ CONSTANT static Int const swap_nint_edges[MAX_EDGE_SWAP + 1] = {0, 0, 0, 0,
 
 }  // end namespace swap3d
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

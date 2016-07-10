@@ -16,6 +16,6 @@ void ghost_mesh(Mesh* mesh, bool verbose);
 void partition_by_verts(Mesh* mesh, bool verbose);
 void partition_by_elems(Mesh* mesh, bool verbose);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

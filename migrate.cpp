@@ -208,4 +208,4 @@ void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose) {
                verbose);
 }
 
-} //end namespace osh
+}  // end namespace osh

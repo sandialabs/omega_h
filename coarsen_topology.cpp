@@ -161,4 +161,4 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
   return prod_verts2verts;
 }
 
-} //end namespace osh
+}  // end namespace osh

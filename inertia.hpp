@@ -19,6 +19,6 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
                        Remotes& owners, Real tolerance, Rib hints);
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

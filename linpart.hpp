@@ -12,6 +12,6 @@ LO linear_partition_size(CommPtr comm, GO total);
 GO find_total_globals(CommPtr comm, Read<GO> globals);
 Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

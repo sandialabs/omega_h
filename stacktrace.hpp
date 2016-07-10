@@ -1,11 +1,11 @@
 #ifndef STACKTRACE_HPP
 #define STACKTRACE_HPP
 
-#include <cstdlib>
 #include <cxxabi.h>
 #include <execinfo.h>
-#include <string>
+#include <cstdlib>
 #include <sstream>
+#include <string>
 
 namespace osh {
 
@@ -89,6 +89,6 @@ static inline void print_stacktrace(FILE* out = stderr, int max_frames = 63) {
   free(symbollist);
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

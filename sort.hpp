@@ -13,6 +13,6 @@ INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

@@ -170,6 +170,6 @@ INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

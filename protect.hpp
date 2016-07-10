@@ -5,6 +5,6 @@ namespace osh {
 
 void protect();
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

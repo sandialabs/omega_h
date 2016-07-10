@@ -204,4 +204,4 @@ void refine_products(Mesh* mesh, Int ent_dim, LOs keys2edges, LOs keys2midverts,
   }
 }
 
-} //end namespace osh
+}  // end namespace osh

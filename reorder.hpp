@@ -11,6 +11,6 @@ void reorder_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_verts2old_verts);
 void reorder_mesh(Mesh* mesh, LOs new_verts2old_verts);
 void reorder_by_hilbert(Mesh* mesh);
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

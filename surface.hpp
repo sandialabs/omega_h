@@ -11,6 +11,6 @@ Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
                        LOs surf_hinge2hinge, LOs side2surf_side);
 }
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif

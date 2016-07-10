@@ -173,4 +173,4 @@ osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
   return result;
 }
 
-} //end namespace osh
+}  // end namespace osh

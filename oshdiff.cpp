@@ -1,7 +1,7 @@
 #include "omega_h.hpp"
 
-#include <iostream>
 #include <cstring>
+#include <iostream>
 
 using namespace osh;
 

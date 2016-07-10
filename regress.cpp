@@ -58,4 +58,4 @@ bool check_regression(std::string const& prefix, Mesh* mesh, Real tol,
   return false;
 }
 
-} //end namespace osh
+}  // end namespace osh

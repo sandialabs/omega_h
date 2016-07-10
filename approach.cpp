@@ -1,5 +1,5 @@
-#include "internal.hpp"
 #include "array.hpp"
+#include "internal.hpp"
 #include "metric.hpp"
 
 namespace osh {
@@ -44,4 +44,4 @@ bool approach_metric(Mesh* mesh, Real min_qual) {
   return true;
 }
 
-} //end namespace osh
+}  // end namespace osh

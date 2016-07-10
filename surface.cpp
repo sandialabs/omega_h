@@ -1,8 +1,8 @@
 #include "surface.hpp"
 
 #include "access.hpp"
-#include "size.hpp"
 #include "loop.hpp"
+#include "size.hpp"
 
 namespace osh {
 
@@ -95,4 +95,4 @@ Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
 
 }  // end namespace surface
 
-} //end namespace osh
+}  // end namespace osh

@@ -13,12 +13,13 @@ Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, osh_op op);
 Reals graph_weighted_average(Graph a2b, Reals ab_weights, Reals b_data,
                              Int width);
 
-#define INST_DECL(T) extern template Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
+#define INST_DECL(T) \
+  extern template Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
 INST_DECL(I8)
 INST_DECL(I32)
 INST_DECL(Real)
 #undef INST_DECL
 
-} //end namespace osh
+}  // end namespace osh
 
 #endif
