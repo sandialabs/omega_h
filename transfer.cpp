@@ -1,4 +1,12 @@
-#include "internal.hpp"
+#include "transfer.hpp"
+
+#include "access.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "metric.hpp"
+#include "quality.hpp"
+#include "size.hpp"
+#include "tag.hpp"
 
 namespace osh {
 

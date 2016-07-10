@@ -1,6 +1,8 @@
 #ifndef GHOST_HPP
 #define GHOST_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 Dist get_local_elem_uses2own_verts(Mesh* mesh);

@@ -1,6 +1,9 @@
 #ifndef EIGEN_HPP
 #define EIGEN_HPP
 
+#include "polynomial.hpp"
+#include "space.hpp"
+
 namespace osh {
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */

@@ -1,4 +1,12 @@
-#include "internal.hpp"
+#include "migrate.hpp"
+
+#include "loop.hpp"
+#include "map.hpp"
+#include "owners.hpp"
+#include "remotes.hpp"
+#include "scan.hpp"
+#include "simplices.hpp"
+#include "tag.hpp"
 
 namespace osh {
 

@@ -1,6 +1,8 @@
 #ifndef CLASSIFY_HPP
 #define CLASSIFY_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed);

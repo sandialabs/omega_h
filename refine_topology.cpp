@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "refine_topology.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
+#include "simplices.hpp"
 
 namespace osh {
 

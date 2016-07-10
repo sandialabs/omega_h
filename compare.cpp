@@ -1,5 +1,12 @@
 #include "internal.hpp"
 
+#include "algebra.hpp"
+#include "array.hpp"
+#include "linpart.hpp"
+#include "map.hpp"
+#include "owners.hpp"
+#include "simplices.hpp"
+
 namespace osh {
 
 template <typename T>

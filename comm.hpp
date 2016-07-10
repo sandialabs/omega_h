@@ -1,6 +1,8 @@
 #ifndef COMM_HPP
 #define COMM_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 #ifdef OMPI_MPI_H

@@ -1,4 +1,12 @@
-#include "internal.hpp"
+#include "coarsen.hpp"
+
+#include "array.hpp"
+#include "access.hpp"
+#include "collapse.hpp"
+#include "graph.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "quality.hpp"
 
 namespace osh {
 

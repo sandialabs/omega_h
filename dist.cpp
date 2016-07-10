@@ -1,5 +1,11 @@
 #include "internal.hpp"
 
+#include "array.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
+#include "sort.hpp"
+
 namespace osh {
 
 Dist::Dist() {}

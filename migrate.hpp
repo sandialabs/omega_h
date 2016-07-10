@@ -1,6 +1,8 @@
 #ifndef MIGRATE_HPP
 #define MIGRATE_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 /* create arrays mapping uses of (low_dim) entities by

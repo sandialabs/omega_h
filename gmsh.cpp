@@ -1,5 +1,9 @@
 #include "internal.hpp"
 
+#include "algebra.hpp"
+#include "classify.hpp"
+#include "map.hpp"
+
 namespace osh {
 
 namespace gmsh {

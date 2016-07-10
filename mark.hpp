@@ -1,6 +1,8 @@
 #ifndef MARK_HPP
 #define MARK_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 Read<I8> mark_exposed_sides(Mesh* mesh);

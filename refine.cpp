@@ -1,4 +1,12 @@
-#include "internal.hpp"
+#include "refine.hpp"
+
+#include "array.hpp"
+#include "indset.hpp"
+#include "map.hpp"
+#include "modify.hpp"
+#include "refine_qualities.hpp"
+#include "refine_topology.hpp"
+#include "transfer.hpp"
 
 namespace osh {
 

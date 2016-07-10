@@ -1,4 +1,11 @@
-#include "internal.hpp"
+#include "inertia.hpp"
+
+#include "access.hpp"
+#include "array.hpp"
+#include "bipart.hpp"
+#include "eigen.hpp"
+#include "loop.hpp"
+#include "space.hpp"
 
 namespace osh {
 

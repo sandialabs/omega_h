@@ -1,4 +1,8 @@
-#include "internal.hpp"
+#include "unmap_mesh.hpp"
+
+#include "map.hpp"
+#include "simplices.hpp"
+#include "tag.hpp"
 
 namespace osh {
 

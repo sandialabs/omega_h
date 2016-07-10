@@ -1,4 +1,9 @@
-#include "internal.hpp"
+#include "graph.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
 
 namespace osh {
 
@@ -79,11 +84,6 @@ Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, osh_op op) {
   auto ab_data = unmap(ab2b, b_data, width);
   return fan_reduce(a2ab, ab_data, width, op);
 }
-#define INST_T(T) template Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
-INST_T(I8)
-INST_T(I32)
-INST_T(Real)
-#undef INST_T
 
 Reals graph_weighted_average(Graph a2b, Reals ab_weights, Reals b_data,
                              Int width) {
@@ -98,5 +98,11 @@ Reals graph_weighted_average(Graph a2b, Reals ab_weights, Reals b_data,
   auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, OSH_SUM);
   return divide_each(weighted_sums, total_weights);
 }
+
+#define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
+INST(I8)
+INST(I32)
+INST(Real)
+#undef INST
 
 } //end namespace osh

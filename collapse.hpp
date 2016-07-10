@@ -1,6 +1,8 @@
 #ifndef COLLAPSE_HPP
 #define COLLAPSE_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 enum {

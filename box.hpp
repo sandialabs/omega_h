@@ -1,6 +1,8 @@
 #ifndef BOX_HPP
 #define BOX_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 void make_2d_box(Real x, Real y, LO nx, LO ny, LOs* qv2v_out,

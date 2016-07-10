@@ -1,4 +1,7 @@
-#include "internal.hpp"
+#include "linpart.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
 
 namespace osh {
 

@@ -1,6 +1,8 @@
 #ifndef TRANSFER_HPP
 #define TRANSFER_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh, LOs key_verts2verts,

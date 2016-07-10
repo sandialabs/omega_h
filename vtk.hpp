@@ -1,6 +1,8 @@
 #ifndef VTK_HPP
 #define VTK_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 namespace vtk {

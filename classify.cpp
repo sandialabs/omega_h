@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "classify.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+#include "surface.hpp"
 
 namespace osh {
 

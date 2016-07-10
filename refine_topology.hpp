@@ -1,6 +1,9 @@
 #ifndef REFINE_TOPOLOGY_HPP
 #define REFINE_TOPOLOGY_HPP
 
+#include "algorithm.hpp"
+#include "internal.hpp"
+
 namespace osh {
 
 void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,

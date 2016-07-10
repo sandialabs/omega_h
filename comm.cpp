@@ -1,4 +1,6 @@
-#include "internal.hpp"
+#include "comm.hpp"
+
+#include "int128.hpp"
 
 namespace osh {
 

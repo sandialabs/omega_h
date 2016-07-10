@@ -1,4 +1,16 @@
-#include "internal.hpp"
+#include "modify.hpp"
+
+#include "array.hpp"
+#include "adjacency.hpp"
+#include "atomics.hpp"
+#include "linpart.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
+#include "owners.hpp"
+#include "scan.hpp"
+#include "simplices.hpp"
+#include "unmap_mesh.hpp"
 
 namespace osh {
 

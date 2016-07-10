@@ -1,4 +1,8 @@
-#include "internal.hpp"
+#include "owners.hpp"
+
+#include "linpart.hpp"
+#include "loop.hpp"
+#include "scan.hpp"
 
 namespace osh {
 
@@ -89,15 +93,6 @@ Read<T> reduce_data_to_owners(Read<T> copy_data, Dist copies2owners,
   return owner_data_w;
 }
 
-#define INST_T(T)                                           \
-  template Read<T> reduce_data_to_owners(Read<T> copy_data, \
-                                         Dist copies2owners, Int ncomps);
-INST_T(I8)
-INST_T(I32)
-INST_T(I64)
-INST_T(Real)
-#undef INST_T
-
 void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   auto nnew_ents = new_mesh->nents(ent_dim);
   if (!new_mesh->could_be_shared(ent_dim)) {
@@ -117,5 +112,14 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   new_globals = new_mesh->sync_array(ent_dim, new_globals, 1);
   new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, new_globals);
 }
+
+#define INST(T)                                           \
+  template Read<T> reduce_data_to_owners(Read<T> copy_data, \
+                                         Dist copies2owners, Int ncomps);
+INST(I8)
+INST(I32)
+INST(I64)
+INST(Real)
+#undef INST
 
 } //end namespace osh

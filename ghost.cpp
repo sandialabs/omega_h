@@ -1,4 +1,9 @@
-#include "internal.hpp"
+#include "ghost.hpp"
+
+#include "loop.hpp"
+#include "map.hpp"
+#include "migrate.hpp"
+#include "remotes.hpp"
 
 namespace osh {
 

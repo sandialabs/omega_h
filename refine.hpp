@@ -1,6 +1,8 @@
 #ifndef REFINE_HPP
 #define REFINE_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 bool refine(Mesh* mesh, Real min_qual, bool verbose);

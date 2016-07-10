@@ -1,4 +1,7 @@
-#include "internal.hpp"
+#include "size.hpp"
+
+#include "graph.hpp"
+#include "loop.hpp"
 
 namespace osh {
 

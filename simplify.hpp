@@ -1,6 +1,8 @@
 #ifndef SIMPLIFY_HPP
 #define SIMPLIFY_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 namespace simplify {

@@ -1,4 +1,8 @@
-#include "internal.hpp"
+#include "surface.hpp"
+
+#include "access.hpp"
+#include "size.hpp"
+#include "loop.hpp"
 
 namespace osh {
 

@@ -1,6 +1,8 @@
 #ifndef SPACE_HPP
 #define SPACE_HPP
 
+#include "algebra.hpp"
+
 namespace osh {
 
 INLINE Vector<2> vector_2(Real x, Real y) {

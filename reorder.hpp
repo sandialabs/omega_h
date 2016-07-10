@@ -1,6 +1,8 @@
 #ifndef REORDER_HPP
 #define REORDER_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim);

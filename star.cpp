@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "adjacency.hpp"
+
+#include "array.hpp"
+#include "loop.hpp"
+#include "map.hpp"
+#include "scan.hpp"
+#include "simplices.hpp"
 
 namespace osh {
 

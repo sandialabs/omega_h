@@ -1,7 +1,7 @@
 #ifndef METRIC_HPP
 #define METRIC_HPP
 
-#include "algebra.hpp"
+#include "space.hpp"
 
 namespace osh {
 

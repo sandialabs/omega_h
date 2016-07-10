@@ -1,6 +1,8 @@
 #ifndef OWNERS_HPP
 #define OWNERS_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 /* compute owners for copies of a new partitioning,
@@ -39,6 +41,15 @@ Read<T> reduce_data_to_owners(Read<T> copy_data, Dist copies2owners,
                               Int ncomps);
 
 void globals_from_owners(Mesh* new_mesh, Int ent_dim);
+
+#define INST_DECL(T)                                           \
+  extern template Read<T> reduce_data_to_owners(Read<T> copy_data, \
+                                         Dist copies2owners, Int ncomps);
+INST_DECL(I8)
+INST_DECL(I32)
+INST_DECL(I64)
+INST_DECL(Real)
+#undef INST_DECL
 
 } //end namespace osh
 

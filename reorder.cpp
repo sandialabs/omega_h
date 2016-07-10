@@ -1,4 +1,10 @@
-#include "internal.hpp"
+#include "reorder.hpp"
+
+#include "array.hpp"
+#include "graph.hpp"
+#include "hilbert.hpp"
+#include "map.hpp"
+#include "unmap_mesh.hpp"
 
 namespace osh {
 

@@ -1,6 +1,8 @@
 #ifndef SURFACE_HPP
 #define SURFACE_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 namespace surf {

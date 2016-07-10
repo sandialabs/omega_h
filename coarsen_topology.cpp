@@ -1,4 +1,4 @@
-#include "internal.hpp"
+#include "coarsen.hpp"
 
 namespace osh {
 

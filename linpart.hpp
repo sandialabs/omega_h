@@ -1,6 +1,8 @@
 #ifndef LINPART_HPP
 #define LINPART_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size);

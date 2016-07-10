@@ -1,6 +1,8 @@
 #ifndef MODIFY_HPP
 #define MODIFY_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys);
