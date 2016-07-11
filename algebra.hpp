@@ -300,6 +300,8 @@ INLINE Vector<n> positivize(Vector<n> v) {
   return v;
 }
 
+Reals normalize_vectors(Reals vs, Int dim);
+
 }  // end namespace osh
 
 #endif

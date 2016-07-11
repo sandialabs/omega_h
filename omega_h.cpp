@@ -1,5 +1,6 @@
 #include "access.cpp"
 #include "adapt.cpp"
+#include "algebra.cpp"
 #include "align.cpp"
 #include "approach.cpp"
 #include "array.cpp"

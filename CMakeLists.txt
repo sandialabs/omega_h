@@ -110,6 +110,7 @@ if(OSH_ONE_FILE)
   add_library(omega_h omega_h.cpp)
 else()
   add_library(omega_h
+  algebra.cpp
   control.cpp
   protect.cpp
   timer.cpp
