@@ -549,6 +549,8 @@ bool approach_metric(Mesh* mesh, Real min_qual);
 Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);
 
+void classify_by_angles(Mesh* mesh, Real sharp_angle);
+
 /* begin explicit instantiation declarations */
 #define OSH_EXPL_INST_DECL(T)                                                  \
   extern template class Read<T>;                                               \
