@@ -604,6 +604,37 @@ class Matrix : public Few<Vector<m>, n> {
   OSH_INLINE Matrix(const volatile Matrix<m, n>& rhs) : Few<Vector<m>, n>(rhs) {}
 };
 
+template <Int n>
+OSH_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
+  for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
+}
+
+OSH_INLINE constexpr Int symm_dofs(Int dim) { return ((dim + 1) * dim) / 2; }
+
+OSH_INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
+  Vector<3> v;
+  v[0] = symm[0][0];
+  v[1] = symm[1][1];
+  v[2] = symm[1][0];
+  return v;
+}
+
+OSH_INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
+  Vector<6> v;
+  v[0] = symm[0][0];
+  v[1] = symm[1][1];
+  v[2] = symm[2][2];
+  v[3] = symm[1][0];
+  v[4] = symm[2][1];
+  v[5] = symm[2][0];
+  return v;
+}
+
+template <Int n>
+OSH_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
+  set_vector(a, i, symm2vector(symm));
+}
+
 /* begin explicit instantiation declarations */
 #define OSH_EXPL_INST_DECL(T)                                                  \
   extern template class Read<T>;                                               \
