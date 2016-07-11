@@ -107,7 +107,7 @@ Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
  */
 
 static Reals tri_vert_normal_weights(Mesh* mesh, LOs surf_tri2tri) {
-  auto ntris = mesh->nents(TRI);
+  auto ntris = mesh->ntris();
   auto tri2surf_tri = invert_injective_map(surf_tri2tri, ntris);
   auto v2f = mesh->ask_up(VERT, TRI);
   auto fv2v = mesh->ask_verts_of(TRI);

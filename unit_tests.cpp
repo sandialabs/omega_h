@@ -569,7 +569,7 @@ static void test_positivize() {
 static void test_refine_qualities(Library const& lib) {
   Mesh mesh;
   build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
-  LOs candidates(mesh.nents(EDGE), 0, 1);
+  LOs candidates(mesh.nedges(), 0, 1);
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(
       quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));

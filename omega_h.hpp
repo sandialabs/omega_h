@@ -374,8 +374,10 @@ class Mesh {
   Int dim() const;
   LO nents(Int dim) const;
   LO nelems() const;
-  LO nverts() const;
+  LO ntets() const;
+  LO ntris() const;
   LO nedges() const;
+  LO nverts() const;
   GO nglobal_ents(Int dim);
   template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps, osh_xfer xfer);
