@@ -42,7 +42,11 @@ Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
     auto v = gather_verts<2>(ev2v, e);
     auto x = gather_vectors<2, 2>(coords, v);
     auto b = simplex_basis<2, 1>(x);
-    auto n = normalize(perp(b[0]));
+    /* right now omega_h generates edges counter-clockwise
+     * around triangles, so the outward-facing normal is the
+     * negative of what perp() gives
+     */
+    auto n = -normalize(perp(b[0]));
     set_vector(normals, surf_edge, n);
   };
   parallel_for(nsurf_edges, lambda);
