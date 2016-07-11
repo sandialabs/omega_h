@@ -70,11 +70,6 @@ DEVICE Few<Matrix<dim, dim>, neev> gather_symms(Reals const& a,
   return x;
 }
 
-template <Int dim>
-Reals repeat_symm(LO n, Matrix<dim, dim> symm);
-extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
-extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
-
 Reals vectors_2d_to_3d(Reals vecs2);
 Reals vectors_3d_to_2d(Reals vecs2);
 

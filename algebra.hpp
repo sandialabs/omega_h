@@ -9,8 +9,6 @@ namespace osh {
 
 INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
 
-INLINE Real square(Real x) { return x * x; }
-
 INLINE Real cube(Real x) { return x * x * x; }
 
 INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
@@ -33,18 +31,6 @@ INLINE Real average(Few<Real, n> x) {
   for (Int i = 0; i < n; ++i) avg += x[i];
   avg /= n;
   return avg;
-}
-
-template <Int n>
-INLINE Vector<n> operator*(Vector<n> a, Real b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] * b;
-  return c;
-}
-
-template <Int n>
-INLINE Vector<n> operator*(Real a, Vector<n> b) {
-  return b * a;
 }
 
 template <Int n>
@@ -74,20 +60,6 @@ INLINE Real norm(Vector<n> v) {
 template <Int n>
 INLINE Vector<n> normalize(Vector<n> v) {
   return v / norm(v);
-}
-
-template <Int n>
-INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] + b[i];
-  return c;
-}
-
-template <Int n>
-INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] - b[i];
-  return c;
 }
 
 template <Int n>
@@ -130,28 +102,6 @@ inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
 }
 
 template <Int m, Int n>
-INLINE Matrix<m, n> identity_matrix() {
-  Matrix<m, n> a;
-  for (Int j = 0; j < n; ++j)
-    for (Int i = 0; i < m; ++i) a[j][i] = (i == j);
-  return a;
-}
-
-template <Int m, Int n>
-INLINE Vector<m> operator*(Matrix<m, n> a, Vector<n> b) {
-  Vector<m> c = a[0] * b[0];
-  for (Int j = 1; j < n; ++j) c = c + a[j] * b[j];
-  return c;
-}
-
-template <Int m, Int n, Int p>
-INLINE Matrix<m, n> operator*(Matrix<m, p> a, Matrix<p, n> b) {
-  Matrix<m, n> c;
-  for (Int j = 0; j < n; ++j) c[j] = a * b[j];
-  return c;
-}
-
-template <Int m, Int n>
 INLINE Matrix<m, n> operator*(Matrix<m, n> a, Real b) {
   Matrix<m, n> c;
   for (Int j = 0; j < n; ++j) c[j] = a[j] * b;
@@ -182,14 +132,6 @@ INLINE Matrix<m, n> operator-(Matrix<m, n> a, Matrix<m, n> b) {
   Matrix<m, n> c;
   for (Int j = 0; j < n; ++j) c[j] = a[j] - b[j];
   return c;
-}
-
-template <Int m, Int n>
-INLINE Matrix<n, m> transpose(Matrix<m, n> a) {
-  Matrix<n, m> b;
-  for (Int i = 0; i < m; ++i)
-    for (Int j = 0; j < n; ++j) b[i][j] = a[j][i];
-  return b;
 }
 
 template <Int m, Int n>
@@ -236,15 +178,6 @@ INLINE Vector<m> diagonal(Matrix<m, m> a) {
   Vector<m> v;
   for (Int i = 0; i < m; ++i) v[i] = a[i][i];
   return v;
-}
-
-template <Int m>
-INLINE Matrix<m, m> diagonal(Vector<m> v) {
-  Matrix<m, m> a;
-  for (Int i = 0; i < m; ++i)
-    for (Int j = i + 1; j < m; ++j) a[i][j] = a[j][i] = 0.0;
-  for (Int i = 0; i < m; ++i) a[i][i] = v[i];
-  return a;
 }
 
 template <Int m, Int n>

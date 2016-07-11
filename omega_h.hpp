@@ -575,6 +575,8 @@ class Few {
   }
 };
 
+OSH_INLINE Real square(Real x) { return x * x; }
+
 template <Int n>
 class Vector : public Few<Real, n> {
  public:
@@ -586,6 +588,47 @@ class Vector : public Few<Real, n> {
   OSH_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
   OSH_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
 };
+
+template <Int n>
+OSH_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i) c[i] = a[i] + b[i];
+  return c;
+}
+
+template <Int n>
+OSH_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i) c[i] = a[i] - b[i];
+  return c;
+}
+
+template <Int n>
+OSH_INLINE Vector<n> operator*(Vector<n> a, Real b) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i) c[i] = a[i] * b;
+  return c;
+}
+
+template <Int n>
+OSH_INLINE Vector<n> operator*(Real a, Vector<n> b) {
+  return b * a;
+}
+
+OSH_INLINE Vector<2> vector_2(Real x, Real y) {
+  Vector<2> v;
+  v[0] = x;
+  v[1] = y;
+  return v;
+}
+
+OSH_INLINE Vector<3> vector_3(Real x, Real y, Real z) {
+  Vector<3> v;
+  v[0] = x;
+  v[1] = y;
+  v[2] = z;
+  return v;
+}
 
 /* column-first storage and indexing !!! */
 template <Int m, Int n>
@@ -603,6 +646,45 @@ class Matrix : public Few<Vector<m>, n> {
   OSH_INLINE Matrix(Matrix<m, n> const& rhs) : Few<Vector<m>, n>(rhs) {}
   OSH_INLINE Matrix(const volatile Matrix<m, n>& rhs) : Few<Vector<m>, n>(rhs) {}
 };
+
+template <Int m, Int n>
+OSH_INLINE Vector<m> operator*(Matrix<m, n> a, Vector<n> b) {
+  Vector<m> c = a[0] * b[0];
+  for (Int j = 1; j < n; ++j) c = c + a[j] * b[j];
+  return c;
+}
+
+template <Int m, Int n, Int p>
+OSH_INLINE Matrix<m, n> operator*(Matrix<m, p> a, Matrix<p, n> b) {
+  Matrix<m, n> c;
+  for (Int j = 0; j < n; ++j) c[j] = a * b[j];
+  return c;
+}
+
+template <Int m, Int n>
+OSH_INLINE Matrix<n, m> transpose(Matrix<m, n> a) {
+  Matrix<n, m> b;
+  for (Int i = 0; i < m; ++i)
+    for (Int j = 0; j < n; ++j) b[i][j] = a[j][i];
+  return b;
+}
+
+template <Int m, Int n>
+OSH_INLINE Matrix<m, n> identity_matrix() {
+  Matrix<m, n> a;
+  for (Int j = 0; j < n; ++j)
+    for (Int i = 0; i < m; ++i) a[j][i] = (i == j);
+  return a;
+}
+
+template <Int m>
+OSH_INLINE Matrix<m, m> diagonal(Vector<m> v) {
+  Matrix<m, m> a;
+  for (Int i = 0; i < m; ++i)
+    for (Int j = i + 1; j < m; ++j) a[i][j] = a[j][i] = 0.0;
+  for (Int i = 0; i < m; ++i) a[i][i] = v[i];
+  return a;
+}
 
 template <Int n>
 OSH_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
@@ -634,6 +716,24 @@ template <Int n>
 OSH_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
   set_vector(a, i, symm2vector(symm));
 }
+
+template <Int dim>
+OSH_INLINE Vector<dim> metric_eigenvalues(Vector<dim> h) {
+  Vector<dim> l;
+  for (Int i = 0; i < dim; ++i) l[i] = 1.0 / square(h[i]);
+  return l;
+}
+
+template <Int dim>
+OSH_INLINE Matrix<dim, dim> compose_metric(Matrix<dim, dim> r, Vector<dim> h) {
+  auto l = metric_eigenvalues(h);
+  return r * diagonal(l) * transpose(r);
+}
+
+template <Int dim>
+Reals repeat_symm(LO n, Matrix<dim, dim> symm);
+extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
+extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
 
 /* begin explicit instantiation declarations */
 #define OSH_EXPL_INST_DECL(T)                                                  \
