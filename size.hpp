@@ -3,7 +3,6 @@
 
 #include "access.hpp"
 #include "algebra.hpp"
-#include "few.hpp"
 #include "metric.hpp"
 #include "qr.hpp"
 #include "space.hpp"

@@ -1,8 +1,7 @@
 #ifndef SWAP2D_HPP
 #define SWAP2D_HPP
 
-#include "few.hpp"
-#include "internal.hpp"
+#include "host_few.hpp"
 
 namespace osh {
 

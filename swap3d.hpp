@@ -1,7 +1,6 @@
 #ifndef SWAP3D_HPP
 #define SWAP3D_HPP
 
-#include "few.hpp"
 #include "internal.hpp"
 
 namespace osh {

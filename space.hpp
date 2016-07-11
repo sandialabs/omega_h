@@ -5,21 +5,6 @@
 
 namespace osh {
 
-INLINE Vector<2> vector_2(Real x, Real y) {
-  Vector<2> v;
-  v[0] = x;
-  v[1] = y;
-  return v;
-}
-
-INLINE Vector<3> vector_3(Real x, Real y, Real z) {
-  Vector<3> v;
-  v[0] = x;
-  v[1] = y;
-  v[2] = z;
-  return v;
-}
-
 INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
   Matrix<2, 2> o;
   o[0] = vector_2(a, c);

@@ -94,9 +94,13 @@ LO Mesh::nents(Int dim) const {
 
 LO Mesh::nelems() const { return nents(dim()); }
 
-LO Mesh::nverts() const { return nents(VERT); }
+LO Mesh::ntets() const { return nents(TET); }
+
+LO Mesh::ntris() const { return nents(TRI); }
 
 LO Mesh::nedges() const { return nents(EDGE); }
+
+LO Mesh::nverts() const { return nents(VERT); }
 
 GO Mesh::nglobal_ents(Int dim) {
   if (!could_be_shared(dim)) {
