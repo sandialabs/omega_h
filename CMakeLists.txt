@@ -243,6 +243,7 @@ if(BUILD_TESTING)
     gen_func(ball_in_cube 3)
     gen_func(balls_in_box 3)
     gen_func(cylinder_thru_tube 3)
+    gen_func(ball 3)
   endif()
 
   add_executable(unit_tests unit_tests.cpp)
