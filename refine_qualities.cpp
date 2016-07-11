@@ -2,7 +2,6 @@
 
 #include "access.hpp"
 #include "algebra.hpp"
-#include "few.hpp"
 #include "loop.hpp"
 #include "metric.hpp"
 #include "quality.hpp"

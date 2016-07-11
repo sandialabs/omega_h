@@ -4,7 +4,6 @@
 #include <cmath>
 
 #include "algorithm.hpp"
-#include "few.hpp"
 
 namespace osh {
 
