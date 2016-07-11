@@ -575,6 +575,35 @@ class Few {
   }
 };
 
+template <Int n>
+class Vector : public Few<Real, n> {
+ public:
+  OSH_INLINE Vector() {}
+  inline Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
+  OSH_INLINE void operator=(Vector<n> const& rhs) volatile {
+    Few<Real, n>::operator=(rhs);
+  }
+  OSH_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
+  OSH_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
+};
+
+/* column-first storage and indexing !!! */
+template <Int m, Int n>
+class Matrix : public Few<Vector<m>, n> {
+ public:
+  OSH_INLINE Matrix() {}
+  /* these constructors accept the matrix in
+   * row-first order for convenience.
+   */
+  inline Matrix(std::initializer_list<Vector<m>> l) : Few<Vector<m>, n>(l) {}
+  inline Matrix(std::initializer_list<Real> l);
+  OSH_INLINE void operator=(Matrix<m, n> const& rhs) volatile {
+    Few<Vector<m>, n>::operator=(rhs);
+  }
+  OSH_INLINE Matrix(Matrix<m, n> const& rhs) : Few<Vector<m>, n>(rhs) {}
+  OSH_INLINE Matrix(const volatile Matrix<m, n>& rhs) : Few<Vector<m>, n>(rhs) {}
+};
+
 /* begin explicit instantiation declarations */
 #define OSH_EXPL_INST_DECL(T)                                                  \
   extern template class Read<T>;                                               \

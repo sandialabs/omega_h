@@ -36,18 +36,6 @@ INLINE Real average(Few<Real, n> x) {
 }
 
 template <Int n>
-class Vector : public Few<Real, n> {
- public:
-  INLINE Vector() {}
-  inline Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
-  INLINE void operator=(Vector<n> const& rhs) volatile {
-    Few<Real, n>::operator=(rhs);
-  }
-  INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
-  INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
-};
-
-template <Int n>
 INLINE Vector<n> operator*(Vector<n> a, Real b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] * b;
@@ -131,20 +119,6 @@ INLINE Vector<m> average(Few<Vector<m>, n> x) {
   avg = avg / n;
   return avg;
 }
-
-/* column-first storage and indexing !!! */
-template <Int m, Int n>
-class Matrix : public Few<Vector<m>, n> {
- public:
-  INLINE Matrix() {}
-  inline Matrix(std::initializer_list<Vector<m>> l) : Few<Vector<m>, n>(l) {}
-  inline Matrix(std::initializer_list<Real> l);
-  INLINE void operator=(Matrix<m, n> const& rhs) volatile {
-    Few<Vector<m>, n>::operator=(rhs);
-  }
-  INLINE Matrix(Matrix<m, n> const& rhs) : Few<Vector<m>, n>(rhs) {}
-  INLINE Matrix(const volatile Matrix<m, n>& rhs) : Few<Vector<m>, n>(rhs) {}
-};
 
 template <Int m, Int n>
 inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
