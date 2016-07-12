@@ -287,6 +287,11 @@ if(BUILD_TESTING)
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
+  if(OSH_USE_CUDA)
+    add_executable(test_view test_view.cpp)
+    target_link_libraries(test_view omega_h)
+    test_func(run_view_test 1 ./test_view)
+  endif()
 endif()
 
 if(OSH_BUILD_SMB2OSH)
