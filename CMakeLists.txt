@@ -283,9 +283,10 @@ if(BUILD_TESTING)
   if(Gmodel_FOUND AND GMSH)
     set(TEST_EXES ${TEST_EXES} ring_test)
     test_func(run_ring_test 1 ./ring_test)
+    set(TEST_MSHS ${TEST_MSHS} ring.msh)
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-      DEPENDS ${TEST_EXES} ring.msh)
+      DEPENDS ${TEST_EXES} ${TEST_MSHS})
 endif()
 
 if(OSH_BUILD_SMB2OSH)
