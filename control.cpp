@@ -1,4 +1,5 @@
 #include "internal.hpp"
+#include "protect.hpp"
 
 #include <cstdarg>
 #include <sstream>
