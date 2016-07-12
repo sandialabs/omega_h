@@ -54,6 +54,25 @@ Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
 }
 
 template <Int dim>
+Reals get_edge_tangents_tmpl(Mesh* mesh, LOs crease_edge2edge) {
+  CHECK(mesh->dim() == dim);
+  auto ncrease_edges = crease_edge2edge.size();
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto coords = mesh->coords();
+  Write<Real> normals(ncrease_edges * 2);
+  auto lambda = LAMBDA(LO crease_edge) {
+    auto e = crease_edge2edge[crease_edge];
+    auto v = gather_verts<2>(ev2v, e);
+    auto x = gather_vectors<2, 2>(coords, v);
+    auto b = simplex_basis<2, 1>(x);
+    auto n = normalize(b[0]);
+    set_vector(normals, crease_edge, n);
+  };
+  parallel_for(ncrease_edges, lambda);
+  return normals;
+}
+
+template <Int dim>
 Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
                             LOs surf_hinge2hinge, LOs side2surf_side) {
   auto nsurf_hinges = surf_hinge2hinge.size();
@@ -87,6 +106,14 @@ Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
   } else {
     return get_edge_normals(mesh, surf_side2side);
   }
+}
+
+Reals get_edge_tangents(Mesh* mesh, LOs crease_edge2edge) {
+  switch (mesh->dim()) {
+    case 3: return get_edge_tangents_tmpl<3>(mesh, crease_edge2edge);
+    case 2: return get_edge_tangents_tmpl<2>(mesh, crease_edge2edge);
+  }
+  NORETURN(Reals());
 }
 
 Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
