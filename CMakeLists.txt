@@ -313,15 +313,17 @@ if(OSH_BUILD_SMB2OSH)
   install(TARGETS smb2osh DESTINATION bin)
 endif()
 
-install(FILES
+set(OSH_HEADERS
   "${PROJECT_BINARY_DIR}/omega_h_config.h"
   "${PROJECT_SOURCE_DIR}/omega_h_mpi.h"
   "${PROJECT_SOURCE_DIR}/omega_h_c.h"
   "${PROJECT_SOURCE_DIR}/omega_h_kokkos.hpp"
   "${PROJECT_SOURCE_DIR}/omega_h.hpp"
-  DESTINATION include)
+  )
+
+install(FILES ${OSH_HEADERS} DESTINATION include)
 install(TARGETS omega_h EXPORT omega_h-targets DESTINATION lib)
-install(EXPORT omega_h-targets DESTINATION lib)
+install(EXPORT omega_h-targets DESTINATION lib/omega_h)
 configure_file(
   "${PROJECT_SOURCE_DIR}/omega_h-config.cmake.in"
   "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
