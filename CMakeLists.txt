@@ -30,21 +30,6 @@ set(Gmodel_PREFIX "" CACHE STRING "Gmodel installation directory")
 set(Gmsh_PREFIX "" CACHE STRING "Gmsh installation directory")
 option(OSH_ONE_FILE "Compile omega_h as a single file" ON)
 
-if(OSH_USE_KOKKOS)
-  find_path(KOKKOS_INCLUDE Kokkos_Core.hpp PATHS "${Kokkos_PREFIX}/include")
-  find_library(KOKKOS_LIB NAMES kokkos kokkoscore PATHS "${Kokkos_PREFIX}/lib")
-  set(DEP_LIBS ${DEP_LIBS} ${KOKKOS_LIB})
-  set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${KOKKOS_INCLUDE})
-endif()
-
-if(OSH_USE_ZLIB)
-  find_package(ZLIB REQUIRED)
-  set(DEP_LIBS ${DEP_LIBS} ${ZLIB_LIBRARIES})
-  set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
-endif()
-
-include_directories(${DEP_INCLUDE_DIRS})
-
 set(FLAGS "--std=c++11")
 if(OSH_OPTIMIZE)
   set(FLAGS "${FLAGS} -O2")
@@ -89,7 +74,6 @@ set(CMAKE_CXX_FLAGS "${FLAGS}")
 configure_file(
   "${PROJECT_SOURCE_DIR}/omega_h_config.h.in"
   "${PROJECT_BINARY_DIR}/omega_h_config.h")
-include_directories(${PROJECT_BINARY_DIR})
 
 # CMake RPATH "always full" configuration, see:
 # https://cmake.org/Wiki/CMake_RPATH_handling#Always_full_RPATH
@@ -187,7 +171,25 @@ else()
   )
 endif()
 
-target_link_libraries(omega_h ${DEP_LIBS})
+#for users to find all our headers after we're installed:
+target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
+
+#find our generated omega_h_config.h, during build only
+target_include_directories(omega_h PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>)
+
+if(OSH_USE_KOKKOS)
+  find_package(Kokkos REQUIRED PATHS ${Kokkos_PREFIX})
+  target_link_libraries(omega_h kokkoscore)
+  target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
+  set(DEP_LIBS ${DEP_LIBS} ${KOKKOS_LIB})
+  set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${KOKKOS_INCLUDE})
+endif()
+
+if(OSH_USE_ZLIB)
+  find_package(ZLIB REQUIRED)
+  target_link_libraries(omega_h ${ZLIB_LIBRARIES})
+  target_include_directories(omega_h PRIVATE ${ZLIB_INCLUDE_DIRS})
+endif()
 
 add_executable(msh2osh msh2osh.cpp)
 target_link_libraries(msh2osh omega_h)
