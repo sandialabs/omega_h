@@ -145,15 +145,13 @@ static Reals tri_vert_normal_weights(Mesh* mesh, LOs surf_tri2tri) {
  * one over the length of the edge.
  */
 
-static Reals edge_vert_normal_weights(Mesh* mesh, LOs surf_edge2edge) {
-  auto surf_edge2len = measure_edges_real(mesh, surf_edge2edge);
-  auto nsurf_edges = surf_edge2edge.size();
-  auto surf_edge2weight_w = Write<Real>(nsurf_edges);
-  auto f = LAMBDA(LO se) { surf_edge2weight_w[se] = 1.0 / surf_edge2len[se]; };
-  parallel_for(nsurf_edges, f);
-  auto surf_edge2weight = Reals(surf_edge2weight_w);
-  auto edge2weight =
-      map_onto(surf_edge2weight, surf_edge2edge, mesh->nedges(), 0.0, 1);
+static Reals get_recip_length_weights(Mesh* mesh) {
+  auto edge2len = measure_edges_real(mesh);
+  auto nedges = mesh->nedges();
+  auto edge2weight_w = Write<Real>(nedges);
+  auto f = LAMBDA(LO se) { edge2weight_w[se] = 1.0 / edge2len[se]; };
+  parallel_for(nedges, f);
+  auto edge2weight = Reals(edge2weight_w);
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ve2e = v2e.ab2b;
   auto ve2weight = unmap(ve2e, edge2weight, 1);
@@ -162,7 +160,7 @@ static Reals edge_vert_normal_weights(Mesh* mesh, LOs surf_edge2edge) {
 
 static Reals side_vert_normal_weights(Mesh* mesh, LOs surf_side2side) {
   if (mesh->dim() == 3) return tri_vert_normal_weights(mesh, surf_side2side);
-  if (mesh->dim() == 2) return edge_vert_normal_weights(mesh, surf_side2side);
+  if (mesh->dim() == 2) return get_recip_length_weights(mesh);
   NORETURN(Reals());
 }
 
