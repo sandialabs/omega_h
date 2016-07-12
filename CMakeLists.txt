@@ -204,7 +204,7 @@ if(BUILD_TESTING)
     find_program(MPIRUN mpirun PATHS ${COMPILER_DIR})
   endif()
   find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
-  find_package(Gmodel 1.0.1 PATHS ${Gmodel_PREFIX})
+  find_package(Gmodel 1.0.1 QUIET PATHS ${Gmodel_PREFIX})
 
   function(test_func TEST_NAME NUM_PROCS)
     if(MPIRUN)
