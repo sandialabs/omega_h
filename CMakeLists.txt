@@ -289,7 +289,7 @@ if(BUILD_TESTING)
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
-  if(OSH_USE_CUDA)
+  if(OSH_USE_KOKKOS)
     add_executable(test_view test_view.cpp)
     target_link_libraries(test_view omega_h)
   endif()
