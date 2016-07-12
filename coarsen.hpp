@@ -1,7 +1,7 @@
 #ifndef COARSEN_HPP
 #define COARSEN_HPP
 
-#include "few.hpp"
+#include "host_few.hpp"
 
 namespace osh {
 

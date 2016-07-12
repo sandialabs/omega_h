@@ -21,23 +21,10 @@ INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
 }
 
 template <Int dim>
-INLINE Vector<dim> metric_eigenvalues(Vector<dim> h) {
-  Vector<dim> l;
-  for (Int i = 0; i < dim; ++i) l[i] = 1.0 / square(h[i]);
-  return l;
-}
-
-template <Int dim>
 INLINE Vector<dim> metric_lengths(Vector<dim> l) {
   Vector<dim> h;
   for (Int i = 0; i < dim; ++i) h[i] = 1.0 / sqrt(l[i]);
   return h;
-}
-
-template <Int dim>
-INLINE Matrix<dim, dim> compose_metric(Matrix<dim, dim> r, Vector<dim> h) {
-  auto l = metric_eigenvalues(h);
-  return r * diagonal(l) * transpose(r);
 }
 
 template <Int dim>

@@ -20,7 +20,7 @@ static bool refine_ghosted(Mesh* mesh, Real min_qual) {
   auto cand_quals = refine_qualities(mesh, cands2edges);
   auto cands_are_good = each_geq_to(cand_quals, min_qual);
   if (comm->allreduce(max(cands_are_good), OSH_MAX) != 1) return false;
-  auto nedges = mesh->nents(EDGE);
+  auto nedges = mesh->nedges();
   auto edges_are_initial =
       map_onto(cands_are_good, cands2edges, nedges, I8(0), 1);
   auto edge_quals = map_onto(cand_quals, cands2edges, nedges, 0.0, 1);

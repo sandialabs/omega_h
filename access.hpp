@@ -7,24 +7,9 @@
 namespace osh {
 
 template <Int n, class Arr>
-DEVICE void set_vector(Arr const& a, Int i, Vector<n> v) {
-  for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
-}
-
-template <Int n, class Arr>
 DEVICE Vector<n> get_vector(Arr const& a, Int i) {
   Vector<n> v;
   for (Int j = 0; j < n; ++j) v[j] = a[i * n + j];
-  return v;
-}
-
-INLINE constexpr Int symm_dofs(Int dim) { return ((dim + 1) * dim) / 2; }
-
-INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
-  Vector<3> v;
-  v[0] = symm[0][0];
-  v[1] = symm[1][1];
-  v[2] = symm[1][0];
   return v;
 }
 
@@ -35,17 +20,6 @@ INLINE Matrix<2, 2> vector2symm(Vector<3> v) {
   symm[1][0] = v[2];
   symm[0][1] = symm[1][0];
   return symm;
-}
-
-INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
-  Vector<6> v;
-  v[0] = symm[0][0];
-  v[1] = symm[1][1];
-  v[2] = symm[2][2];
-  v[3] = symm[1][0];
-  v[4] = symm[2][1];
-  v[5] = symm[2][0];
-  return v;
 }
 
 INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
@@ -60,11 +34,6 @@ INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
   symm[1][2] = symm[2][1];
   symm[0][2] = symm[2][0];
   return symm;
-}
-
-template <Int n, typename Arr>
-DEVICE void set_symm(Arr const& a, Int i, Matrix<n, n> symm) {
-  set_vector(a, i, symm2vector(symm));
 }
 
 template <Int n, typename Arr>
@@ -100,11 +69,6 @@ DEVICE Few<Matrix<dim, dim>, neev> gather_symms(Reals const& a,
   for (Int i = 0; i < neev; ++i) x[i] = get_symm<dim>(a, v[i]);
   return x;
 }
-
-template <Int dim>
-Reals repeat_symm(LO n, Matrix<dim, dim> symm);
-extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
-extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
 
 Reals vectors_2d_to_3d(Reals vecs2);
 Reals vectors_3d_to_2d(Reals vecs2);

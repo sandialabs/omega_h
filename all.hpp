@@ -21,7 +21,6 @@
 #include "consistent.hpp"
 #include "construct.hpp"
 #include "eigen.hpp"
-#include "few.hpp"
 #include "file.hpp"
 #include "functors.hpp"
 #include "ghost.hpp"

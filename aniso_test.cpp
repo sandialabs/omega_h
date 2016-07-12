@@ -1,8 +1,4 @@
-#include "access.hpp"
-#include "classify.hpp"
-#include "internal.hpp"
-#include "metric.hpp"
-#include "space.hpp"
+#include "omega_h.hpp"
 
 using namespace osh;
 

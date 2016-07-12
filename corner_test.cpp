@@ -1,6 +1,5 @@
 #include "access.hpp"
 #include "adapt.hpp"
-#include "classify.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
 #include "refine.hpp"

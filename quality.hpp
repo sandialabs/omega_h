@@ -2,7 +2,6 @@
 #define QUALITY_HPP
 
 #include "algebra.hpp"
-#include "few.hpp"
 #include "size.hpp"
 
 namespace osh {

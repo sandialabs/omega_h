@@ -34,7 +34,7 @@ void classify_hinges_by_sharpness(Mesh* mesh, Read<I8> hinge_is_exposed,
 
 void classify_vertices_by_sharp_edges(Mesh* mesh, Read<I8> vert_is_exposed,
                                       Read<I8> edge_is_sharp) {
-  auto nv = mesh->nents(VERT);
+  auto nv = mesh->nverts();
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;

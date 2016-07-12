@@ -194,8 +194,8 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
    runs in OSH_ELEM_BASED mode */
 
 LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
-  auto nedges = mesh->nents(EDGE);
-  auto nverts = mesh->nents(VERT);
+  auto nedges = mesh->nedges();
+  auto nverts = mesh->nverts();
   auto order_w = Write<LO>(nedges, -1);
   auto verts2edges = mesh->ask_up(VERT, EDGE);
   auto v2ve = verts2edges.a2ab;
@@ -321,7 +321,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   if (ent_dim == VERT && key_dim == EDGE) {
     /* recompute this because the local version differs
        from the global one */
-    auto edges_are_keys = mark_image(keys2kds, old_mesh->nents(EDGE));
+    auto edges_are_keys = mark_image(keys2kds, old_mesh->nedges());
     edge2rep_order = get_edge2rep_order(old_mesh, edges_are_keys);
   }
   find_new_offsets(local_offsets, *p_same_ents2old_ents, keys2kds, keys2reps,
