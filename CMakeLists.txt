@@ -200,7 +200,7 @@ target_link_libraries(vtkdiff omega_h)
 
 if(BUILD_TESTING)
   if(OSH_USE_MPI)
-    get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+    get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} PATH)
     find_program(MPIRUN mpirun PATHS ${COMPILER_DIR})
   endif()
   find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
