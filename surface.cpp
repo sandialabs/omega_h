@@ -101,11 +101,13 @@ Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
 }  // end anonymous namespace
 
 Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
-  if (mesh->dim() == 3) {
-    return get_triangle_normals(mesh, surf_side2side);
-  } else {
-    return get_edge_normals(mesh, surf_side2side);
+  switch (mesh->dim()) {
+    case 3:
+      return get_triangle_normals(mesh, surf_side2side);
+    case 2:
+      return get_edge_normals(mesh, surf_side2side);
   }
+  NORETURN(Reals());
 }
 
 Reals get_edge_tangents(Mesh* mesh, LOs crease_edge2edge) {
@@ -118,13 +120,15 @@ Reals get_edge_tangents(Mesh* mesh, LOs crease_edge2edge) {
 
 Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
                        LOs surf_hinge2hinge, LOs side2surf_side) {
-  if (mesh->dim() == 3) {
-    return get_hinge_angles_tmpl<3>(mesh, surf_side_normals, surf_hinge2hinge,
-                                    side2surf_side);
-  } else {
-    return get_hinge_angles_tmpl<2>(mesh, surf_side_normals, surf_hinge2hinge,
-                                    side2surf_side);
+  switch (mesh->dim()) {
+    case 3:
+      return get_hinge_angles_tmpl<3>(mesh, surf_side_normals, surf_hinge2hinge,
+                                      side2surf_side);
+    case 2:
+      return get_hinge_angles_tmpl<2>(mesh, surf_side_normals, surf_hinge2hinge,
+                                      side2surf_side);
   }
+  NORETURN(Reals());
 }
 
 /*
