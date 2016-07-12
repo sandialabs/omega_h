@@ -34,6 +34,8 @@ extern "C" void osh_init_internal(int* argc, char*** argv,
 #endif
 #ifdef OSH_USE_KOKKOS
   if (!Kokkos::DefaultExecutionSpace::is_initialized()) {
+    CHECK(argc != nullptr);
+    CHECK(argv != nullptr);
     Kokkos::initialize(*argc, *argv);
     we_called_kokkos_init = true;
   }
