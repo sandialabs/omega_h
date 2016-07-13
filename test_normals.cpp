@@ -28,16 +28,18 @@ int main(int argc, char** argv) {
     auto verts_are_curv = osh::mark_by_class_dim(&mesh, osh::VERT, osh::EDGE);
     auto curv_edge2edge = osh::collect_marked(edges_are_curv);
     auto curv_vert2vert = osh::collect_marked(verts_are_curv);
-    auto curv_edge_tangents = osh::surf::get_edge_tangents(&mesh, curv_edge2edge);
+    auto curv_edge_tangents =
+        osh::surf::get_edge_tangents(&mesh, curv_edge2edge);
     auto edge_tangents = map_onto(curv_edge_tangents, curv_edge2edge,
                                   mesh.nedges(), 0.0, mesh.dim());
-    mesh.add_tag(osh::EDGE, "tangent", mesh.dim(), OSH_DONT_TRANSFER, edge_tangents);
-    auto curv_vert_tangents = osh::surf::get_vert_tangents(&mesh,
-        curv_edge2edge, curv_edge_tangents, curv_vert2vert);
+    mesh.add_tag(osh::EDGE, "tangent", mesh.dim(), OSH_DONT_TRANSFER,
+                 edge_tangents);
+    auto curv_vert_tangents = osh::surf::get_vert_tangents(
+        &mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
     auto vert_tangents = map_onto(curv_vert_tangents, curv_vert2vert,
-        mesh.nverts(), 0.0, mesh.dim());
+                                  mesh.nverts(), 0.0, mesh.dim());
     mesh.add_tag(osh::VERT, "tangent", mesh.dim(), OSH_DONT_TRANSFER,
-        vert_tangents);
+                 vert_tangents);
     osh::vtk::write_vtu(argv[3], &mesh, osh::EDGE);
   }
 }

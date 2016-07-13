@@ -22,10 +22,10 @@ namespace {
 /* start of C++ ritual dance to print a string based on
    type properties */
 
-#if defined( __clang__ )
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-member-function"
-#elif defined( __GNUC__ )
+#elif defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
@@ -87,9 +87,9 @@ struct Traits<T,
   inline static char const* name() { return FloatTraits<sizeof(T)>::name(); }
 };
 
-#if defined( __clang__ )
+#if defined(__clang__)
 #pragma clang diagnostic pop
-#elif defined( __GNUC__ )
+#elif defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 

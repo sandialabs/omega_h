@@ -201,21 +201,21 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
   return normalize_vectors(surf_vert_normals, dim);
 }
 
-Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge, Reals curv_edge_tangents,
-                        LOs curv_vert2vert) {
+Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
+                        Reals curv_edge_tangents, LOs curv_vert2vert) {
   CHECK(mesh->dim() == 3);
   CHECK(mesh->owners_have_all_upward(VERT));
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   auto nve = ve2e.size();
-/* We would like to handle meshes where the mesh edges along
- * a model edge do not all point in the same direction
- * (this will be very common when we derive edges from only
- *  element connectivity).
- * In order to handle this case, we locally negate vectors as
- * necessary to get a correct tangent vector at each vertex
- */
+  /* We would like to handle meshes where the mesh edges along
+   * a model edge do not all point in the same direction
+   * (this will be very common when we derive edges from only
+   *  element connectivity).
+   * In order to handle this case, we locally negate vectors as
+   * necessary to get a correct tangent vector at each vertex
+   */
   auto edge2curv_edge = invert_injective_map(curv_edge2edge, mesh->nedges());
   auto graph_tangents_w = Write<Real>(nve * 3);
   auto nv = mesh->nverts();
@@ -231,21 +231,23 @@ Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge, Reals curv_edge_tangents
       auto code = v2e.codes[ve];
       auto eev = code_which_down(code);
       auto tangent = get_vector<3>(curv_edge_tangents, ce);
-      if (eev == lc) set_vector(graph_tangents_w, ve, tangent);
-      else  set_vector(graph_tangents_w, ve, -tangent);
+      if (eev == lc)
+        set_vector(graph_tangents_w, ve, tangent);
+      else
+        set_vector(graph_tangents_w, ve, -tangent);
       ++lc;
     }
   };
   parallel_for(nv, neg_func);
   auto graph_tangents = Reals(graph_tangents_w);
   auto weights = get_recip_length_weights(mesh);
-  auto vert_tangents = graph_weighted_average_arc_data(v2e, weights, graph_tangents, 3);
+  auto vert_tangents =
+      graph_weighted_average_arc_data(v2e, weights, graph_tangents, 3);
   vert_tangents = mesh->sync_array(VERT, vert_tangents, 3);
   auto curv_vert_tangents = unmap(curv_vert2vert, vert_tangents, 3);
   for (Int i = 0; i < curv_vert_tangents.size() / 3; ++i) {
     auto vec = get_vector<3>(curv_vert_tangents, i);
-    fprintf(stderr, "vec[%d] = %f %f %f\n", i,
-        vec[0], vec[1], vec[2]);
+    fprintf(stderr, "vec[%d] = %f %f %f\n", i, vec[0], vec[1], vec[2]);
   }
   return normalize_vectors(curv_vert_tangents, 3);
 }

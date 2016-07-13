@@ -646,7 +646,8 @@ class Matrix : public Few<Vector<m>, n> {
     Few<Vector<m>, n>::operator=(rhs);
   }
   OSH_INLINE Matrix(Matrix<m, n> const& rhs) : Few<Vector<m>, n>(rhs) {}
-  OSH_INLINE Matrix(const volatile Matrix<m, n>& rhs) : Few<Vector<m>, n>(rhs) {}
+  OSH_INLINE Matrix(const volatile Matrix<m, n>& rhs)
+      : Few<Vector<m>, n>(rhs) {}
 };
 
 template <Int m, Int n>
