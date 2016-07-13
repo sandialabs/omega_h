@@ -54,25 +54,6 @@ Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
 }
 
 template <Int dim>
-Reals get_edge_tangents_tmpl(Mesh* mesh, LOs crease_edge2edge) {
-  CHECK(mesh->dim() == dim);
-  auto ncrease_edges = crease_edge2edge.size();
-  auto ev2v = mesh->ask_verts_of(EDGE);
-  auto coords = mesh->coords();
-  Write<Real> normals(ncrease_edges * 2);
-  auto lambda = LAMBDA(LO crease_edge) {
-    auto e = crease_edge2edge[crease_edge];
-    auto v = gather_verts<2>(ev2v, e);
-    auto x = gather_vectors<2, 2>(coords, v);
-    auto b = simplex_basis<2, 1>(x);
-    auto n = normalize(b[0]);
-    set_vector(normals, crease_edge, n);
-  };
-  parallel_for(ncrease_edges, lambda);
-  return normals;
-}
-
-template <Int dim>
 Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
                             LOs surf_hinge2hinge, LOs side2surf_side) {
   auto nsurf_hinges = surf_hinge2hinge.size();
@@ -110,12 +91,22 @@ Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
   NORETURN(Reals());
 }
 
-Reals get_edge_tangents(Mesh* mesh, LOs crease_edge2edge) {
-  switch (mesh->dim()) {
-    case 3: return get_edge_tangents_tmpl<3>(mesh, crease_edge2edge);
-    case 2: return get_edge_tangents_tmpl<2>(mesh, crease_edge2edge);
-  }
-  NORETURN(Reals());
+Reals get_edge_tangents(Mesh* mesh, LOs curv_edge2edge) {
+  CHECK(mesh->dim() == 3);
+  auto ncurv_edges = curv_edge2edge.size();
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto coords = mesh->coords();
+  Write<Real> normals(ncurv_edges * 3);
+  auto lambda = LAMBDA(LO curv_edge) {
+    auto e = curv_edge2edge[curv_edge];
+    auto v = gather_verts<2>(ev2v, e);
+    auto x = gather_vectors<2, 3>(coords, v);
+    auto b = simplex_basis<3, 1>(x);
+    auto n = normalize(b[0]);
+    set_vector(normals, curv_edge, n);
+  };
+  parallel_for(ncurv_edges, lambda);
+  return normals;
 }
 
 Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
@@ -208,6 +199,55 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
   vert_normals = mesh->sync_array(VERT, vert_normals, dim);
   auto surf_vert_normals = unmap(surf_vert2vert, vert_normals, dim);
   return normalize_vectors(surf_vert_normals, dim);
+}
+
+Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge, Reals curv_edge_tangents,
+                        LOs curv_vert2vert) {
+  CHECK(mesh->dim() == 3);
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto v2e = mesh->ask_up(VERT, EDGE);
+  auto v2ve = v2e.a2ab;
+  auto ve2e = v2e.ab2b;
+  auto nve = ve2e.size();
+/* We would like to handle meshes where the mesh edges along
+ * a model edge do not all point in the same direction
+ * (this will be very common when we derive edges from only
+ *  element connectivity).
+ * In order to handle this case, we locally negate vectors as
+ * necessary to get a correct tangent vector at each vertex
+ */
+  auto edge2curv_edge = invert_injective_map(curv_edge2edge, mesh->nedges());
+  auto graph_tangents_w = Write<Real>(nve * 3);
+  auto nv = mesh->nverts();
+  auto neg_func = LAMBDA(LO v) {
+    Int lc = 0;
+    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
+      auto e = ve2e[ve];
+      auto ce = edge2curv_edge[e];
+      if (-1 == ce) {
+        set_vector(graph_tangents_w, ve, zero_vector<3>());
+        continue;
+      }
+      auto code = v2e.codes[ve];
+      auto eev = code_which_down(code);
+      auto tangent = get_vector<3>(curv_edge_tangents, ce);
+      if (eev == lc) set_vector(graph_tangents_w, ve, tangent);
+      else  set_vector(graph_tangents_w, ve, -tangent);
+      ++lc;
+    }
+  };
+  parallel_for(nv, neg_func);
+  auto graph_tangents = Reals(graph_tangents_w);
+  auto weights = get_recip_length_weights(mesh);
+  auto vert_tangents = graph_weighted_average_arc_data(v2e, weights, graph_tangents, 3);
+  vert_tangents = mesh->sync_array(VERT, vert_tangents, 3);
+  auto curv_vert_tangents = unmap(curv_vert2vert, vert_tangents, 3);
+  for (Int i = 0; i < curv_vert_tangents.size() / 3; ++i) {
+    auto vec = get_vector<3>(curv_vert_tangents, i);
+    fprintf(stderr, "vec[%d] = %f %f %f\n", i,
+        vec[0], vec[1], vec[2]);
+  }
+  return normalize_vectors(curv_vert_tangents, 3);
 }
 
 }  // end namespace surf
