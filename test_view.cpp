@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   assert(marked_read.size() == nents);
   std::cerr << "marked mesh entities\n";
   Kokkos::View<osh::I8 const*> marked = marked_read.view();
-  OSH_CHECK(marked.size() == nents);
+  OSH_CHECK(marked.size() == static_cast<std::size_t>(nents));
   std::cerr << "got marked = marked_read.view()\n";
   typename Kokkos::View<osh::I8 const*>::HostMirror mirror = Kokkos::create_mirror_view(marked);
   std::cerr << "ran mirror = Kokkos::create_mirror_view(marked)\n";
