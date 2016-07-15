@@ -106,8 +106,7 @@ INLINE Matrix<dim, dim> interpolate_metrics(Matrix<dim, dim> a,
   return invert((invert(a) * (1.0 - t)) + (invert(b) * t));
 }
 
-/* currently we intend only to interpolate metrics to the
-   barycenter of an entity, hence this simplified code */
+/* same as above, but for the barycenter of an entity */
 template <Int dim, Int n>
 INLINE Matrix<dim, dim> average_metrics(Few<Matrix<dim, dim>, n> m) {
   auto am = zero_matrix<dim, dim>();
