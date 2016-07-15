@@ -179,7 +179,7 @@ target_include_directories(omega_h PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR
 
 if(OSH_USE_KOKKOS)
   find_package(Kokkos REQUIRED PATHS ${Kokkos_PREFIX})
-  target_link_libraries(omega_h kokkoscore)
+  target_link_libraries(omega_h PUBLIC kokkoscore)
   target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
   set(DEP_LIBS ${DEP_LIBS} ${KOKKOS_LIB})
   set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${KOKKOS_INCLUDE})
@@ -187,7 +187,7 @@ endif()
 
 if(OSH_USE_ZLIB)
   find_package(ZLIB REQUIRED)
-  target_link_libraries(omega_h ${ZLIB_LIBRARIES})
+  target_link_libraries(omega_h PRIVATE ${ZLIB_LIBRARIES})
   target_include_directories(omega_h PRIVATE ${ZLIB_INCLUDE_DIRS})
 endif()
 
