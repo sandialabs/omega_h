@@ -193,7 +193,7 @@ endif()
 
 function(exe_func EXE_NAME)
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
-  target_link_libraries(${EXE_NAME} omega_h)
+  target_link_libraries(${EXE_NAME} PRIVATE omega_h)
 endfunction(exe_func)
 
 exe_func(msh2osh)
@@ -285,25 +285,9 @@ if(BUILD_TESTING)
 endif()
 
 if(OSH_BUILD_SMB2OSH)
-  find_path(SCOREC_INCLUDE apf.h PATHS ${SCOREC_PREFIX}/include)
-  find_library(MDS_LIB NAMES mds PATHS ${SCOREC_PREFIX}/lib)
-  find_library(APF_LIB NAMES apf PATHS ${SCOREC_PREFIX}/lib)
-  find_library(MTH_LIB NAMES mth PATHS ${SCOREC_PREFIX}/lib)
-  find_library(LION_LIB NAMES lion PATHS ${SCOREC_PREFIX}/lib)
-  find_library(GMI_LIB NAMES gmi PATHS ${SCOREC_PREFIX}/lib)
-  find_library(PCU_LIB NAMES pcu PATHS ${SCOREC_PREFIX}/lib)
+  find_package(SCOREC 1.0.1 REQUIRED PATHS ${SCOREC_PREFIX})
   exe_func(smb2osh)
-  target_include_directories(smb2osh PRIVATE ${SCOREC_INCLUDE})
-  target_link_libraries(smb2osh
-      ${APF_LIB}
-      ${MDS_LIB}
-      ${GMI_LIB}
-      ${PCU_LIB})
-  if (MTH_LIB AND LION_LIB)
-    target_link_libraries(smb2osh
-        ${MTH_LIB}
-        ${LION_LIB})
-  endif()
+  target_link_libraries(smb2osh PRIVATE scorec)
   install(TARGETS smb2osh DESTINATION bin)
 endif()
 
