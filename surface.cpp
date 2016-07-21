@@ -245,10 +245,6 @@ Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
       graph_weighted_average_arc_data(v2e, weights, graph_tangents, 3);
   vert_tangents = mesh->sync_array(VERT, vert_tangents, 3);
   auto curv_vert_tangents = unmap(curv_vert2vert, vert_tangents, 3);
-  for (Int i = 0; i < curv_vert_tangents.size() / 3; ++i) {
-    auto vec = get_vector<3>(curv_vert_tangents, i);
-    fprintf(stderr, "vec[%d] = %f %f %f\n", i, vec[0], vec[1], vec[2]);
-  }
   return normalize_vectors(curv_vert_tangents, 3);
 }
 
