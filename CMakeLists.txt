@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.0.0)
 project(Omega_h CXX)
 
 #trying to force BUILD_TESTING to default to OFF
