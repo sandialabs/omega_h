@@ -119,7 +119,7 @@ if(BUILD_TESTING)
     find_program(MPIRUN mpirun PATHS ${COMPILER_DIR})
   endif()
   find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
-  find_package(Gmodel 1.0.1 QUIET PATHS ${Gmodel_PREFIX})
+  find_package(Gmodel 1.2.0 QUIET PATHS ${Gmodel_PREFIX})
 
   function(test_func TEST_NAME NUM_PROCS)
     if(MPIRUN)
@@ -136,9 +136,7 @@ if(BUILD_TESTING)
   if(Gmodel_FOUND)
     function(gen_func MODEL_NAME MODEL_DIM)
       add_executable(gen_${MODEL_NAME} gen/${MODEL_NAME}.cpp)
-      target_include_directories(gen_${MODEL_NAME} PRIVATE
-                                 ${Gmodel_INCLUDE_DIRS})
-      target_link_libraries(gen_${MODEL_NAME} gmodel)
+      target_link_libraries(gen_${MODEL_NAME} PRIVATE gmodel)
       add_custom_command(OUTPUT ${MODEL_NAME}.geo
                          COMMAND ./gen_${MODEL_NAME}
                          DEPENDS gen_${MODEL_NAME}
