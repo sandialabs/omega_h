@@ -8,7 +8,7 @@ include(CTest)
 enable_testing()
 
 set(OSH_MAJOR "1")
-set(OSH_MINOR "3")
+set(OSH_MINOR "4")
 set(OSH_PATCH "0")
 
 option(OSH_USE_MPI "Use MPI for parallelism" ON)
