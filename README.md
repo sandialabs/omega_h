@@ -63,8 +63,7 @@ Default: `OFF`
 
 Whether to use [Kokkos][2] for on-node parallelism.
 If this is `ON`, set `Kokkos_PREFIX` to your Kokkos installation.
-You can install Kokkos either on [its own][2] or as part of
-[Trilinos][4].
+You can install Kokkos as part of [Trilinos][4].
 
 #### OSH_USE_CUDA
 Default: `OFF`
