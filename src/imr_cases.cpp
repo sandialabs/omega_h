@@ -28,6 +28,9 @@ struct TranslateBall : public Case {
     (void)m;
     (void)step;
     (void)object;
+    return static_motion(ov2v);
+  }
+  static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
     auto f = LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0.02, 0, 0)); };
     parallel_for(ov2v.size(), f);
@@ -47,6 +50,9 @@ struct RotateBall : public Case {
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)step;
     (void)object;
+    return static_motion(m, ov2v);
+  }
+  static Reals static_motion(Mesh* m, LOs ov2v) {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
     auto rot = rotate(PI / 16, vector_3(0, 0, 1));
@@ -76,6 +82,9 @@ struct CollideBalls : public Case {
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)m;
     (void)step;
+    return static_motion(object, ov2v);
+  }
+  static Reals static_motion(I32 object, LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
     auto f = LAMBDA(LO ov) {
       if (object == 72) {
@@ -104,6 +113,9 @@ struct CylinderTube : public Case {
     (void)m;
     (void)step;
     (void)object;
+    return static_motion(ov2v);
+  }
+  static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
     auto f = LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0, 0, 0.02)); };
     parallel_for(ov2v.size(), f);
