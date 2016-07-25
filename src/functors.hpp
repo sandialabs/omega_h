@@ -18,11 +18,16 @@ struct StandinTraits {
 
 template <>
 struct StandinTraits<I8> {
-  typedef I32 type;
+  typedef I64 type;
+};
+
+template <>
+struct StandinTraits<I32> {
+  typedef I64 type;
 };
 
 struct AndFunctor {
-  typedef Int value_type;
+  typedef I64 value_type;
   INLINE void init(value_type& update) const { update = 1; }
   INLINE void join(volatile value_type& update,
                    const volatile value_type& input) const {
