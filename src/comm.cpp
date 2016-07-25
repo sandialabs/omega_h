@@ -1,5 +1,6 @@
 #include "comm.hpp"
 
+#include "array.hpp"
 #include "int128.hpp"
 
 namespace osh {
