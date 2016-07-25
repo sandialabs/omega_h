@@ -32,12 +32,18 @@ Comm::Comm(MPI_Comm impl) : impl_(impl) {
   }
 }
 #else
-Comm::Comm(bool sends_to_self) {
-  if (sends_to_self) {
-    srcs_ = Read<LO>({0});
-    dsts_ = Read<LO>({0});
+Comm::Comm(bool is_graph, bool sends_to_self) {
+  if (is_graph) {
+    if (sends_to_self) {
+      srcs_ = Read<LO>({0});
+    } else {
+      srcs_ = Read<LO>({});
+    }
+    dsts_ = srcs_;
     host_srcs_ = HostRead<I32>(srcs_);
     host_dsts_ = HostRead<I32>(dsts_);
+  } else {
+    CHECK(!sends_to_self);
   }
 }
 #endif
@@ -94,7 +100,7 @@ CommPtr Comm::dup() const {
   CALL(MPI_Comm_dup(impl_, &impl2));
   return CommPtr(new Comm(impl2));
 #else
-  return CommPtr(new Comm(srcs_.size() == 1));
+  return CommPtr(new Comm(srcs_.exists(), srcs_.exists() && srcs_.size() == 1));
 #endif
 }
 
@@ -123,7 +129,7 @@ CommPtr Comm::graph(Read<I32> dsts) const {
                              &impl2));
   return CommPtr(new Comm(impl2));
 #else
-  return CommPtr(new Comm(dsts.size() == 1));
+  return CommPtr(new Comm(true, dsts.size() == 1));
 #endif
 }
 
@@ -140,7 +146,7 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
   return CommPtr(new Comm(impl2));
 #else
   CHECK(srcs == dsts);
-  return CommPtr(new Comm(dsts.size() == 1));
+  return CommPtr(new Comm(true, dsts.size() == 1));
 #endif
 }
 
@@ -366,7 +372,7 @@ Read<T> Comm::allgather(T x) const {
   return recvbuf.write();
 #else
   if (srcs_.size() == 1) return Read<T>({x});
-  return Read<T>();
+  return Read<T>({});
 #endif
 }
 
