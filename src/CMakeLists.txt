@@ -99,6 +99,7 @@ endif()
 
 if(OSH_USE_ZLIB)
   find_package(ZLIB REQUIRED)
+  message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
   target_link_libraries(omega_h PRIVATE ${ZLIB_LIBRARIES})
   target_include_directories(omega_h PRIVATE ${ZLIB_INCLUDE_DIRS})
 endif()
