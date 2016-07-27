@@ -70,8 +70,8 @@ Default: `OFF`
 
 Whether to use CUDA via Kokkos.
 This requires `OSH_USE_KOKKOS`.
-If this is `ON`, set `OSH_CUDA_ARCH` to the compute capability of
-your GPUs.
+If this is `ON`, set `CMAKE_CXX_COMPILER` to your copy of
+[nvcc_wrapper][7].
 
 #### OSH_ONE_FILE
 Default: `ON`
@@ -114,3 +114,4 @@ This library is released under the FreeBSD license.
 [4]: https://github.com/trilinos/Trilinos
 [5]: http://clang.llvm.org/docs/ClangFormat.html
 [6]: http://zlib.net
+[7]: http://github.com/kokkos/nvcc_wrapper
