@@ -31,6 +31,7 @@ set(Gmodel_PREFIX "" CACHE PATH "Gmodel installation directory")
 set(Gmsh_PREFIX "" CACHE PATH "Gmsh installation directory")
 option(OSH_ONE_FILE "Compile omega_h as a single file" ON)
 set(OSH_CXX_FLAGS "" CACHE STRING "Extra compiler flags")
+set(ZLIB_PREFIX "" CACHE PATH "zlib installation directory")
 
 set(FLAGS "--std=c++11")
 if(OSH_OPTIMIZE)
