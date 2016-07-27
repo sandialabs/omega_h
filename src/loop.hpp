@@ -1,6 +1,8 @@
 #ifndef LOOP_HPP
 #define LOOP_HPP
 
+#include "internal.hpp"
+
 namespace osh {
 
 template <typename T>
