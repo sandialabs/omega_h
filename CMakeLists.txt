@@ -77,6 +77,7 @@ else()
   message(FATAL_ERROR "Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
 endif()
 set(CMAKE_CXX_FLAGS "${FLAGS} ${OSH_CXX_FLAGS}")
+message(STATUS "Compiler flags: ${CMAKE_CXX_FLAGS}")
 
 # CMake RPATH "always full" configuration, see:
 # https://cmake.org/Wiki/CMake_RPATH_handling#Always_full_RPATH
