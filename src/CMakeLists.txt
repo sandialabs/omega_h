@@ -159,6 +159,7 @@ if(BUILD_TESTING)
     gen_func(balls_in_box 3)
     gen_func(cylinder_thru_tube 3)
     gen_func(ball 3)
+    gen_func(twin_rotor 3)
   endif()
 
   exe_func(unit_tests)
