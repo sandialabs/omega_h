@@ -50,7 +50,7 @@ struct MaxExponent : public MaxFunctor<int> {
 };
 
 static int max_exponent(Reals a) {
-  return parallel_reduce(a.size(), MaxExponent(a));
+  return static_cast<int>(parallel_reduce(a.size(), MaxExponent(a)));
 }
 
 struct ReproSum : public SumFunctor<Int128> {
