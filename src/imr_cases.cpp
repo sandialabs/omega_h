@@ -144,7 +144,7 @@ struct TwinRotor : public Case {
     out.insert(out.end(), assembly1.begin(), assembly1.end());
     return out;
   }
-  virtual Int time_steps() const override { return 2; }
+  virtual Int time_steps() const override { return 6; }
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)step;
     Vector<3> center;
