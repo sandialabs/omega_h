@@ -5,6 +5,8 @@
 #include "map.hpp"
 #include "space.hpp"
 
+#include <set>
+
 using namespace osh;
 
 struct Case {
@@ -125,6 +127,51 @@ struct CylinderTube : public Case {
 
 CylinderTube::~CylinderTube() {}
 
+struct TwinRotor : public Case {
+  std::set<I32> assembly0;
+  std::set<I32> assembly1;
+  TwinRotor() :
+    assembly0({66,98,126}),
+    assembly1({254,253,252}) {
+  }
+  ~TwinRotor();
+  virtual const char* file_name() const override {
+    return "cylinder_thru_tube.msh";
+  }
+  virtual std::vector<I32> objects() const override {
+    std::vector<I32> out;
+    out.insert(out.end(), assembly0.begin(), assembly0.end());
+    out.insert(out.end(), assembly1.begin(), assembly1.end());
+    return out;
+  }
+  virtual Int time_steps() const override { return 2; }
+  virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
+    (void)step;
+    Vector<3> center;
+    if (assembly0.count(object))
+      center = vector_3(-.25,0,0);
+    else if (assembly1.count(object))
+      center = vector_3(.25,0,0);
+    else
+      osh_fail("object %d not in either assembly\n", object);
+    return static_motion(m, ov2v, center);
+  }
+  static Reals static_motion(Mesh* m, LOs ov2v, Vector<3> center) {
+    auto coords = m->coords();
+    auto out = Write<Real>(ov2v.size() * 3);
+    auto rm = rotate(PI / 8, vector_3(0,0,1));
+    auto f = LAMBDA(LO ov) {
+      auto v = ov2v[ov];
+      auto x = get_vector<3>(coords, v);
+      set_vector(out, ov, (rm * (x - center)) + center);
+    };
+    parallel_for(ov2v.size(), f);
+    return out;
+  }
+};
+
+TwinRotor::~TwinRotor() {}
+
 static void run_case(Library const& lib, Case const& c) {
   auto world = lib.world();
   Mesh mesh;
@@ -182,6 +229,8 @@ int main(int argc, char** argv) {
     run_case(lib, CollideBalls());
   else if (name == "cylinder_thru_tube")
     run_case(lib, CylinderTube());
+  else if (name == "twin_rotor")
+    run_case(lib, TwinRotor());
   else
     osh_fail("unknown case \"%s\"", argv[1]);
 }

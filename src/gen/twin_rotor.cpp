@@ -1,4 +1,5 @@
 #include <gmodel.hpp>
+#include <iostream>
 
 int main() {
   double major = 0.15;
@@ -57,4 +58,12 @@ int main() {
   gmod::add_to_group(model, assembly1);
   gmod::add_to_group(model, fluid);
   gmod::write_closure_to_geo(model, "twin_rotor.geo");
+  std::cout << "assembly0 regions:";
+  for (auto vol_use : assembly0->used)
+    std::cout << ' ' << vol_use.obj->id;
+  std::cout << '\n';
+  std::cout << "assembly1 regions:";
+  for (auto vol_use : assembly1->used)
+    std::cout << ' ' << vol_use.obj->id;
+  std::cout << '\n';
 }
