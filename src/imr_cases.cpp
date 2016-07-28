@@ -136,7 +136,7 @@ struct TwinRotor : public Case {
   }
   ~TwinRotor();
   virtual const char* file_name() const override {
-    return "cylinder_thru_tube.msh";
+    return "twin_rotor.msh";
   }
   virtual std::vector<I32> objects() const override {
     std::vector<I32> out;
