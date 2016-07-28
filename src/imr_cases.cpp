@@ -4,8 +4,10 @@
 #include "loop.hpp"
 #include "map.hpp"
 #include "space.hpp"
+#include "timer.hpp"
 
 #include <set>
+#include <iostream>
 
 using namespace osh;
 
@@ -144,7 +146,7 @@ struct TwinRotor : public Case {
     out.insert(out.end(), assembly1.begin(), assembly1.end());
     return out;
   }
-  virtual Int time_steps() const override { return 6; }
+  virtual Int time_steps() const override { return 16; }
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)step;
     Vector<3> center;
@@ -163,7 +165,7 @@ struct TwinRotor : public Case {
   static Reals static_motion(Mesh* m, LOs ov2v, Vector<3> center, Real dir) {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
-    auto rm = rotate(dir * PI / 8, vector_3(0,0,1));
+    auto rm = rotate(dir * PI / 32, vector_3(0,0,1));
     auto f = LAMBDA(LO ov) {
       auto v = ov2v[ov];
       auto x = get_vector<3>(coords, v);
@@ -188,6 +190,7 @@ static void run_case(Library const& lib, Case const& c) {
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
   vtk::Writer writer(&mesh, "out", mesh.dim());
+  Now t0 = now();
   for (Int step = 0; step < c.time_steps(); ++step) {
     mesh.set_parting(OSH_GHOSTED);
     auto objs = c.objects();
@@ -201,11 +204,16 @@ static void run_case(Library const& lib, Case const& c) {
     auto motion = Reals(motion_w);
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-3);
     mesh.add_tag(VERT, "warp", mesh.dim(), OSH_LINEAR_INTERP, motion);
+    int warp_step = 0;
     while (warp_to_limit(&mesh, 0.20)) {
+      std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step << '\n';
       adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
+      ++warp_step;
     }
     writer.write();
   }
+  Now t1 = now();
+  std::cout << "case took " << (t1-t0) << " seconds to run\n";
 }
 
 int main(int argc, char** argv) {

@@ -11,12 +11,11 @@ int main() {
   double height = 1.0;
   double thickness = 0.2;
   double spacing = width - height;
-  gmod::default_size = minor / 4;
+  gmod::default_size = 0.015;
   auto edisk0 = gmod::new_elliptical_disk(gmod::Vector{0, 0, 0},
       gmod::Vector{major / 2, 0, 0},
       gmod::Vector{0, 0, minor / 2});
   auto edisk1 = gmod::copy_closure(edisk0);
-  gmod::default_size = diameter / 4;
   auto disk0 = gmod::new_disk(gmod::Vector{0, 0, 0},
       gmod::Vector{0, 1, 0}, gmod::Vector{diameter / 2, 0, 0});
   auto blade0 =
@@ -45,7 +44,6 @@ int main() {
   gmod::transform_closure(assembly1,
       gmod::rotation_matrix(gmod::Vector{0, 0, 1}, gmod::PI / 2),
       gmod::Vector{spacing / 2, 0, 0});
-  gmod::default_size = 0.02;
   auto fluid = gmod::new_cube(
       gmod::Vector{-width / 2, -height / 2, - thickness / 2},
       gmod::Vector{width, 0, 0},
