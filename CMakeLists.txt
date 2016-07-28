@@ -32,6 +32,12 @@ option(OSH_ONE_FILE "Compile omega_h as a single file" ON)
 set(OSH_CXX_FLAGS "" CACHE STRING "Extra compiler flags")
 set(ZLIB_PREFIX "" CACHE PATH "zlib installation directory")
 
+#If not building shared libs, then prefer static
+#dependency libs
+if(NOT BUILD_SHARED_LIBS)
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
+endif()
+
 set(FLAGS "--std=c++11")
 if(OSH_OPTIMIZE)
   set(FLAGS "${FLAGS} -O2")
