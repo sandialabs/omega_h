@@ -148,22 +148,26 @@ struct TwinRotor : public Case {
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)step;
     Vector<3> center;
-    if (assembly0.count(object))
+    Real dir;
+    if (assembly0.count(object)) {
       center = vector_3(-.25,0,0);
-    else if (assembly1.count(object))
+      dir = 1.0;
+    } else if (assembly1.count(object)) {
       center = vector_3(.25,0,0);
-    else
+      dir = -1.0;
+    } else {
       osh_fail("object %d not in either assembly\n", object);
-    return static_motion(m, ov2v, center);
+    }
+    return static_motion(m, ov2v, center, dir);
   }
-  static Reals static_motion(Mesh* m, LOs ov2v, Vector<3> center) {
+  static Reals static_motion(Mesh* m, LOs ov2v, Vector<3> center, Real dir) {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
-    auto rm = rotate(PI / 8, vector_3(0,0,1));
+    auto rm = rotate(dir * PI / 8, vector_3(0,0,1));
     auto f = LAMBDA(LO ov) {
       auto v = ov2v[ov];
       auto x = get_vector<3>(coords, v);
-      set_vector(out, ov, (rm * (x - center)) + center);
+      set_vector(out, ov, ((rm * (x - center)) + center) - x);
     };
     parallel_for(ov2v.size(), f);
     return out;
