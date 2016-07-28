@@ -45,7 +45,7 @@ int main() {
   gmod::transform_closure(assembly1,
       gmod::rotation_matrix(gmod::Vector{0, 0, 1}, gmod::PI / 2),
       gmod::Vector{spacing / 2, 0, 0});
-  gmod::default_size = 0.1;
+  gmod::default_size = 0.02;
   auto fluid = gmod::new_cube(
       gmod::Vector{-width / 2, -height / 2, - thickness / 2},
       gmod::Vector{width, 0, 0},
