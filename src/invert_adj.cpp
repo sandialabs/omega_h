@@ -2,39 +2,10 @@
 
 #include "algorithm.hpp"
 #include "align.hpp"
-#include "local_sort.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 
-#define MAX_UPWARD 100
-
 namespace osh {
-
-struct SortableAdj {
-  struct value_type {
-    LO high;
-    I8 code;
-  };
-  typedef GO key_type;
-  SortableAdj(Write<LO> const& lh2h, Write<I8> const& codes,
-      Read<GO> const& hg, LO begin):hg_(hg) {
-    lh2h_ptr_ = lh2h.data() + begin;
-    codes_ptr_ = codes.data() + begin;
-  }
-  Read<GO> const& hg_;
-  LO* lh2h_ptr_;
-  I8* codes_ptr_;
-  key_type key(Int i) const {
-    return hg_[lh2h_ptr_[i]];
-  }
-  value_type value(Int i) const {
-    return value_type{ lh2h_ptr_[i], codes_ptr_[i] };
-  }
-  void set(Int i, value_type const& x) const {
-    lh2h_ptr_[i] = x.high;
-    codes_ptr_[i] = x.code;
-  }
-};
 
 static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
                              Read<GO> hg) {
@@ -42,10 +13,23 @@ static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
   auto f = LAMBDA(LO l) {
     LO begin = l2lh[l];
     LO end = l2lh[l + 1];
-    auto n = end - begin;
-    selection_sort(SortableAdj{lh2h, codes, hg, begin}, n);
-  //CHECK(n <= MAX_UPWARD);
-  //top_down_merge_sort<MAX_UPWARD>(SortableAdj{lh2h, codes, hg, begin}, n);
+    for (auto i = begin; i < end; ++i) {
+      auto k = i;
+      auto i_key = hg[lh2h[i]];
+      for (auto j = i + 1; j < end; ++j) {
+        auto j_key = hg[lh2h[j]];
+        if (j_key < i_key) {
+          k = j;
+          i_key = j_key;
+        }
+      }
+      auto tmp_h = lh2h[i];
+      auto tmp_code = codes[i];
+      lh2h[i] = lh2h[k];
+      codes[i] = codes[k];
+      lh2h[k] = tmp_h;
+      codes[k] = tmp_code;
+    }
   };
   parallel_for(nl, f);
 }
