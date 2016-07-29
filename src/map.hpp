@@ -31,14 +31,9 @@ LOs invert_injective_map(LOs a2b, LO nb);
 
 LOs invert_funnel(LOs ab2a, LO na);
 
-namespace map {
+Graph invert_map_by_sorting(LOs a2b, LO nb);
 
-enum InvertMethod { BY_SORTING, BY_ATOMICS };
-
-Graph invert_by_sorting(LOs a2b, LO nb);
-Graph invert_by_atomics(LOs a2b, LO nb);
-Graph invert(LOs a2b, LO nb, InvertMethod method);
-}
+Graph invert_map_by_atomics(LOs a2b, LO nb);
 
 LOs get_degrees(LOs offsets);
 

@@ -203,24 +203,24 @@ static void test_permute() {
 // these tests can have degree at most 1
 // because map::invert doesn't have to be
 // deterministic in local ordering
-static void test_invert_map(map::InvertMethod method) {
+static void test_invert_map(Graph (*invert_funcptr)(LOs a2b, LO nb)) {
   {
     LOs hl2l({});
-    auto l2hl = map::invert(hl2l, 4, method);
+    auto l2hl = invert_funcptr(hl2l, 4);
     CHECK(l2hl.a2ab == LOs(5, 0));
     CHECK(l2hl.ab2b == LOs({}));
   }
   {
     LOs hl2l({0, 1, 2, 3});
-    auto l2hl = map::invert(hl2l, 4, method);
+    auto l2hl = invert_funcptr(hl2l, 4);
     CHECK(l2hl.a2ab == LOs(5, 0, 1));
     CHECK(l2hl.ab2b == LOs(4, 0, 1));
   }
 }
 
 static void test_invert_map() {
-  test_invert_map(map::BY_SORTING);
-  test_invert_map(map::BY_ATOMICS);
+  test_invert_map(invert_map_by_sorting);
+  test_invert_map(invert_map_by_atomics);
 }
 
 static void test_invert_adj() {

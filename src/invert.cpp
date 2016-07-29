@@ -31,7 +31,7 @@ static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
 }
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
-  auto l2hl = map::invert(down.ab2b, nlows, map::BY_ATOMICS);
+  auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
   LO nlh = lh2hl.size();

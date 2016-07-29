@@ -151,9 +151,7 @@ LOs invert_funnel(LOs ab2a, LO na) {
   return a2ab;
 }
 
-namespace map {
-
-Graph invert_by_sorting(LOs a2b, LO nb) {
+Graph invert_map_by_sorting(LOs a2b, LO nb) {
   auto ab2b = a2b;
   auto ba2ab = sort_by_keys(ab2b);
   auto ba2b = unmap(ba2ab, ab2b, 1);
@@ -162,7 +160,7 @@ Graph invert_by_sorting(LOs a2b, LO nb) {
   return Graph(b2ba, ba2a);
 }
 
-Graph invert_by_atomics(LOs a2b, LO nb) {
+Graph invert_map_by_atomics(LOs a2b, LO nb) {
   LO na = a2b.size();
   Write<LO> degrees(nb, 0);
   auto count = LAMBDA(LO a) { atomic_increment(&degrees[a2b[a]]); };
@@ -181,18 +179,6 @@ Graph invert_by_atomics(LOs a2b, LO nb) {
   auto ba2a = LOs(write_ba2a);
   return Graph(b2ba, ba2a);
 }
-
-Graph invert(LOs a2b, LO nb, InvertMethod method) {
-  switch (method) {
-    case BY_SORTING:
-      return invert_by_sorting(a2b, nb);
-    case BY_ATOMICS:
-      return invert_by_atomics(a2b, nb);
-  }
-  NORETURN(Graph());
-}
-
-}  // end namespace map
 
 LOs get_degrees(LOs offsets) {
   Write<LO> degrees(offsets.size() - 1);
