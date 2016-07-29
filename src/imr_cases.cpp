@@ -146,7 +146,7 @@ struct TwinRotor : public Case {
     out.insert(out.end(), assembly1.begin(), assembly1.end());
     return out;
   }
-  virtual Int time_steps() const override { return 16; }
+  virtual Int time_steps() const override { return 2; }
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)step;
     Vector<3> center;
@@ -186,10 +186,12 @@ static void run_case(Library const& lib, Case const& c) {
   }
   mesh.set_comm(world);
   mesh.balance();
+  mesh.reorder();
   mesh.set_parting(OSH_GHOSTED);
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OSH_LINEAR_INTERP, size);
   vtk::Writer writer(&mesh, "out", mesh.dim());
+  writer.write();
   Now t0 = now();
   for (Int step = 0; step < c.time_steps(); ++step) {
     mesh.set_parting(OSH_GHOSTED);
