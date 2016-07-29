@@ -15,7 +15,15 @@ struct SortableArray {
   key_type key(Int i) const { return ptr[i]; }
   value_type const& value(Int i) const { return ptr[i]; }
   void set(Int i, value_type const& x) const { ptr[i] = x; }
+  void swap(Int i, Int j) const { swap2(ptr[i], ptr[j]); }
 };
+
+template <typename Sortable>
+INLINE void swap_sortable(Sortable const& sortable, Int i, Int j) {
+  auto tmp = sortable.value(i);
+  sortable.set(i, sortable.value(j));
+  sortable.set(j, tmp);
+}
 
 template <typename Sortable>
 INLINE void copy_back(Sortable const& sortable, Int begin, Int end,
@@ -67,9 +75,7 @@ INLINE void selection_sort(Sortable const& sortable, Int n) {
     for (Int j = i + 1; j < n; ++j) {
       if (sortable.key(j) < i_key) k = j;
     }
-    auto tmp = sortable.value(i);
-    sortable.set(i, sortable.value(k));
-    sortable.set(k, tmp);
+    swap_sortable(sortable, i, k);
   }
 }
 
@@ -78,9 +84,37 @@ INLINE void selection_sort(Item array[], Int n) {
   selection_sort(SortableArray<Item>(array), n);
 }
 
-INLINE Int heapsort_parent(Int i) { return (i - 1) / 2; }
-INLINE Int heapsort_left_child(Int i) { return 2 * i + 1; }
-INLINE Int heapsort_right_child(Int i) { return 2 * i + 2; }
+template <typename Sortable>
+INLINE Int quicksort_partition(Sortable const& sortable, Int begin, Int end) {
+  auto pivot = sortable.key(end - 1);
+  auto first_half_end = begin;
+  for (auto j = begin; j < end - 1; ++j) {
+    if (sortable.key(j) <= pivot) {
+      swap_sortable(sortable, first_half_end, j);
+      ++first_half_end;
+    }
+  }
+  swap_sortable(sortable, first_half_end, end - 1);
+  return first_half_end;
+}
+
+template <typename Sortable>
+INLINE void quicksort(Sortable const& sortable, Int begin, Int end) {
+  if (end - begin < 2) return;
+  auto p = quicksort_partition(sortable, begin, end);
+  quicksort(sortable, begin, p);
+  quicksort(sortable, p + 1, end);
+}
+
+template <typename Sortable>
+INLINE void quicksort(Sortable const& sortable, Int n) {
+  quicksort(sortable, 0, n);
+}
+
+template <typename Item>
+INLINE void quicksort(Item array[], Int n) {
+  quicksort(SortableArray<Item>(array), n);
+}
 
 }
 

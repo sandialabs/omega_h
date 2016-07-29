@@ -736,6 +736,7 @@ static void test_local_sort(void (*sort_funcptr)(int array[], Int n)) {
 static void test_local_sort() {
   test_local_sort(top_down_merge_sort<8,int>);
   test_local_sort(selection_sort<int>);
+  test_local_sort(quicksort<int>);
 }
 
 int main(int argc, char** argv) {
