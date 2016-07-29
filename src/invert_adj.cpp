@@ -12,36 +12,34 @@ namespace osh {
 
 static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
                              Read<GO> hg) {
-  struct Item {
-    GO high_global;
-    LO high;
-    I8 code;
-    DEVICE bool operator<(Item const& other) {
-      return high_global < other.high_global;
+  struct SortableAdj {
+    struct value_type {
+      LO high;
+      I8 code;
+    };
+    Write<LO> const& lh2h;
+    Write<I8> const& codes;
+    Read<GO> const& hg;
+    LO begin;
+    bool is_less(Int i, Int j) const {
+      return hg[lh2h[begin + i]] < hg[lh2h[begin + j]];
+    }
+    value_type get(Int i) const {
+      return value_type{ lh2h[begin + i], codes[begin + i] };
+    }
+    void set(Int i, value_type const& x) const {
+      lh2h[begin + i] = x.high;
+      codes[begin + i] = x.code;
     }
   };
   LO nl = l2lh.size() - 1;
   auto f = LAMBDA(LO l) {
     LO begin = l2lh[l];
     LO end = l2lh[l + 1];
-    CHECK(end - begin <= MAX_UPWARD);
-    LocalMergeSort<Item, MAX_UPWARD> sorter;
-    sorter.n = end - begin;
-    for (Int i = 0; i < sorter.n; ++i) {
-      auto lh = begin + i;
-      Item item;
-      item.high = lh2h[lh];
-      item.code = codes[lh];
-      item.high_global = hg[item.high];
-      sorter.array[i] = item;
-    }
-    sorter.run();
-    for (Int i = 0; i < sorter.n; ++i) {
-      auto lh = begin + i;
-      auto item = sorter.array[i];
-      lh2h[lh] = item.high;
-      codes[lh] = item.code;
-    }
+    auto n = end - begin;
+    selection_sort(SortableAdj{lh2h, codes, hg, begin}, n);
+    CHECK(n <= MAX_UPWARD);
+    top_down_merge_sort<MAX_UPWARD>(SortableAdj{lh2h, codes, hg, begin}, n);
   };
   parallel_for(nl, f);
 }

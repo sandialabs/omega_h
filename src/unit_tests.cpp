@@ -726,17 +726,16 @@ static void test_element_identity_metric() {
   CHECK(are_close(arm, brm));
 }
 
+static void test_local_sort(void (*sort_funcptr)(int array[], Int n)) {
+  int array[] = {55,33,44,22,11};
+  sort_funcptr(array, 5);
+  for (int i = 0; i < 5; ++i)
+    CHECK(array[i] == (i + 1) * 11);
+}
+
 static void test_local_sort() {
-  LocalMergeSort<int, 8> sorter;
-  sorter.n = 5;
-  sorter.array[0] = 55;
-  sorter.array[1] = 33;
-  sorter.array[2] = 44;
-  sorter.array[3] = 22;
-  sorter.array[4] = 11;
-  sorter.run();
-  for (int i = 0; i < sorter.n; ++i)
-    CHECK(sorter.array[i] == (i + 1) * 11);
+  test_local_sort(top_down_merge_sort<8,int>);
+  test_local_sort(selection_sort<int>);
 }
 
 int main(int argc, char** argv) {
