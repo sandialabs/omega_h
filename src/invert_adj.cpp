@@ -17,19 +17,24 @@ static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
       LO high;
       I8 code;
     };
-    Write<LO> const& lh2h;
-    Write<I8> const& codes;
-    Read<GO> const& hg;
-    LO begin;
-    bool is_less(Int i, Int j) const {
-      return hg[lh2h[begin + i]] < hg[lh2h[begin + j]];
+    typedef GO key_type;
+    SortableAdj(Write<LO> const& lh2h, Write<I8> const& codes,
+        Read<GO> const& hg, LO begin):hg_(hg) {
+      lh2h_ptr_ = lh2h.data() + begin;
+      codes_ptr_ = codes.data() + begin;
     }
-    value_type get(Int i) const {
-      return value_type{ lh2h[begin + i], codes[begin + i] };
+    Read<GO> const& hg_;
+    LO* lh2h_ptr_;
+    I8* codes_ptr_;
+    key_type key(Int i) const {
+      return hg_[lh2h_ptr_[i]];
+    }
+    value_type value(Int i) const {
+      return value_type{ lh2h_ptr_[i], codes_ptr_[i] };
     }
     void set(Int i, value_type const& x) const {
-      lh2h[begin + i] = x.high;
-      codes[begin + i] = x.code;
+      lh2h_ptr_[i] = x.high;
+      codes_ptr_[i] = x.code;
     }
   };
   LO nl = l2lh.size() - 1;
@@ -38,8 +43,8 @@ static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
     LO end = l2lh[l + 1];
     auto n = end - begin;
     selection_sort(SortableAdj{lh2h, codes, hg, begin}, n);
-    CHECK(n <= MAX_UPWARD);
-    top_down_merge_sort<MAX_UPWARD>(SortableAdj{lh2h, codes, hg, begin}, n);
+  //CHECK(n <= MAX_UPWARD);
+  //top_down_merge_sort<MAX_UPWARD>(SortableAdj{lh2h, codes, hg, begin}, n);
   };
   parallel_for(nl, f);
 }

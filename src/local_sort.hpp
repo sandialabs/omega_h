@@ -9,10 +9,11 @@ namespace osh {
 template <typename Item>
 struct SortableArray {
   typedef Item value_type;
+  typedef Item key_type;
   Item* ptr;
   SortableArray(Item array[]):ptr(array) {}
-  bool is_less(Int i, Int j) const { return ptr[i] < ptr[j]; }
-  value_type const& get(Int i) const { return ptr[i]; }
+  key_type key(Int i) const { return ptr[i]; }
+  value_type const& value(Int i) const { return ptr[i]; }
   void set(Int i, value_type const& x) const { ptr[i] = x; }
 };
 
@@ -29,10 +30,10 @@ INLINE void top_down_merge(Sortable const& sortable, Int begin, Int middle, Int 
   auto i = begin;
   auto j = middle;
   for (auto k = begin; k < end; ++k) {
-    if (i < middle && (j >= end || (!sortable.is_less(j, i))))
-      scratch[k] = sortable.get(i++);
+    if (i < middle && (j >= end || (sortable.key(i) <= sortable.key(j))))
+      scratch[k] = sortable.value(i++);
     else
-      scratch[k] = sortable.get(j++);
+      scratch[k] = sortable.value(j++);
   }
 }
 
@@ -61,12 +62,13 @@ INLINE void top_down_merge_sort(Item array[], Int n) {
 template <typename Sortable>
 INLINE void selection_sort(Sortable const& sortable, Int n) {
   for (Int i = 0; i < n; ++i) {
-    Int k = i;
+    auto k = i;
+    auto i_key = sortable.key(i);
     for (Int j = i + 1; j < n; ++j) {
-      if (sortable.is_less(j, k)) k = j;
+      if (sortable.key(j) < i_key) k = j;
     }
-    auto tmp = sortable.get(i);
-    sortable.set(i, sortable.get(k));
+    auto tmp = sortable.value(i);
+    sortable.set(i, sortable.value(k));
     sortable.set(k, tmp);
   }
 }
