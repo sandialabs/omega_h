@@ -90,7 +90,18 @@ target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 if(OSH_USE_KOKKOS)
-  find_package(Kokkos REQUIRED PATHS ${Kokkos_PREFIX})
+  if ("${Kokkos_PREFIX}" STREQUAL "")
+    #allow CMake to search other prefixes if Kokkos_PREFIX is not set
+    find_package(Kokkos REQUIRED)
+  else()
+    #but if Kokkos_PREFIX is set, don't find it anywhere else:
+    find_package(Kokkos REQUIRED PATHS ${Kokkos_PREFIX} NO_DEFAULT_PATH)
+  endif()
+  message(STATUS "Kokkos_CONFIG: ${Kokkos_CONFIG}")
+  get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
+  message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
+  get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
+  message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
   target_link_libraries(omega_h PUBLIC kokkoscore)
   target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
   set(DEP_LIBS ${DEP_LIBS} ${KOKKOS_LIB})
