@@ -31,6 +31,7 @@
 #include "int128.hpp"
 #include "laplace.hpp"
 #include "linpart.hpp"
+#include "local_sort.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 #include "mark.hpp"

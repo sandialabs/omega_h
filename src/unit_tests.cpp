@@ -726,6 +726,19 @@ static void test_element_identity_metric() {
   CHECK(are_close(arm, brm));
 }
 
+static void test_local_sort() {
+  LocalMergeSort<int, 8> sorter;
+  sorter.n = 5;
+  sorter.array[0] = 55;
+  sorter.array[1] = 33;
+  sorter.array[2] = 44;
+  sorter.array[3] = 22;
+  sorter.array[4] = 11;
+  sorter.run();
+  for (int i = 0; i < sorter.n; ++i)
+    CHECK(sorter.array[i] == (i + 1) * 11);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -769,4 +782,5 @@ int main(int argc, char** argv) {
   test_read_vtu(lib);
   test_interpolate_metrics();
   test_element_identity_metric();
+  test_local_sort();
 }
