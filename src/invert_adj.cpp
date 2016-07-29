@@ -10,33 +10,34 @@
 
 namespace osh {
 
+struct SortableAdj {
+  struct value_type {
+    LO high;
+    I8 code;
+  };
+  typedef GO key_type;
+  SortableAdj(Write<LO> const& lh2h, Write<I8> const& codes,
+      Read<GO> const& hg, LO begin):hg_(hg) {
+    lh2h_ptr_ = lh2h.data() + begin;
+    codes_ptr_ = codes.data() + begin;
+  }
+  Read<GO> const& hg_;
+  LO* lh2h_ptr_;
+  I8* codes_ptr_;
+  key_type key(Int i) const {
+    return hg_[lh2h_ptr_[i]];
+  }
+  value_type value(Int i) const {
+    return value_type{ lh2h_ptr_[i], codes_ptr_[i] };
+  }
+  void set(Int i, value_type const& x) const {
+    lh2h_ptr_[i] = x.high;
+    codes_ptr_[i] = x.code;
+  }
+};
+
 static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
                              Read<GO> hg) {
-  struct SortableAdj {
-    struct value_type {
-      LO high;
-      I8 code;
-    };
-    typedef GO key_type;
-    SortableAdj(Write<LO> const& lh2h, Write<I8> const& codes,
-        Read<GO> const& hg, LO begin):hg_(hg) {
-      lh2h_ptr_ = lh2h.data() + begin;
-      codes_ptr_ = codes.data() + begin;
-    }
-    Read<GO> const& hg_;
-    LO* lh2h_ptr_;
-    I8* codes_ptr_;
-    key_type key(Int i) const {
-      return hg_[lh2h_ptr_[i]];
-    }
-    value_type value(Int i) const {
-      return value_type{ lh2h_ptr_[i], codes_ptr_[i] };
-    }
-    void set(Int i, value_type const& x) const {
-      lh2h_ptr_[i] = x.high;
-      codes_ptr_[i] = x.code;
-    }
-  };
   LO nl = l2lh.size() - 1;
   auto f = LAMBDA(LO l) {
     LO begin = l2lh[l];
