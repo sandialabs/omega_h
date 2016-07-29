@@ -20,7 +20,7 @@ else()
   simplices.cpp
   form_uses.cpp
   find_unique.cpp
-  invert.cpp
+  invert_adj.cpp
   reflect_down.cpp
   transit.cpp
   tag.cpp

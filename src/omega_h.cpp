@@ -30,7 +30,7 @@
 #include "indset.cpp"
 #include "inertia.cpp"
 #include "int128.cpp"
-#include "invert.cpp"
+#include "invert_adj.cpp"
 #include "laplace.cpp"
 #include "linpart.cpp"
 #include "map.cpp"
