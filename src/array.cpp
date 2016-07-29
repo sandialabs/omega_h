@@ -16,7 +16,8 @@ template <typename T>
 Write<T>::Write(LO size)
     :
 #ifdef OSH_USE_KOKKOS
-      view_("omega_h", static_cast<std::size_t>(size))
+      view_(Kokkos::ViewAllocateWithoutInitializing("omega_h"),
+            static_cast<std::size_t>(size))
 #else
       ptr_(new T[size], std::default_delete<T[]>()),
       size_(size)
