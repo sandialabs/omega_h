@@ -181,7 +181,7 @@ static void test_invert_adj(LOs tets2verts, LO nverts) {
   Int niters = 5;
   Now t0 = now();
   for (Int i = 0; i < niters; ++i)
-    inv = invert(Adj(tets2verts), 4, nverts, tet_globals);
+    inv = invert_adj(Adj(tets2verts), 4, nverts, tet_globals);
   Now t1 = now();
   std::cout << "inverting " << ntets << " tets -> verts " << niters
             << " times takes " << (t1 - t0) << " seconds\n";
@@ -191,7 +191,8 @@ static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
   LO ntris = tris2verts.size() / 3;
   Int niters = 2;
-  Adj verts2tris = invert(Adj(tris2verts), 3, nverts, Read<GO>(ntris, 0, 1));
+  Adj verts2tris =
+      invert_adj(Adj(tris2verts), 3, nverts, Read<GO>(ntris, 0, 1));
   {
     Now t0 = now();
     for (Int i = 0; i < niters; ++i)

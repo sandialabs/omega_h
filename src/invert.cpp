@@ -30,7 +30,7 @@ static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
   parallel_for(nl, f);
 }
 
-Adj invert(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
+Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
   auto l2hl = map::invert(down.ab2b, nlows, map::BY_ATOMICS);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;

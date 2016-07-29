@@ -302,7 +302,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     Int nlows_per_high = simplex_degrees[to][from];
     LO nlows = nents(from);
     Read<GO> high_globals = ask_globals(to);
-    Adj up = invert(down, nlows_per_high, nlows, high_globals);
+    Adj up = invert_adj(down, nlows_per_high, nlows, high_globals);
     return up;
   } else if (to < from) {
     CHECK(to + 1 < from);

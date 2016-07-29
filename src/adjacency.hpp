@@ -7,7 +7,7 @@ namespace osh {
 
 LOs order_by_globals(LOs a2ab, LOs ab2b, Read<GO> b_global);
 
-Adj invert(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals);
+Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals);
 
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low
