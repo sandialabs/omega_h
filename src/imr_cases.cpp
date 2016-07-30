@@ -215,7 +215,9 @@ static void run_case(Library const& lib, Case const& c) {
     writer.write();
   }
   Now t1 = now();
-  std::cout << "case took " << (t1-t0) << " seconds to run\n";
+  if (world->rank() == 0) {
+    std::cout << "case took " << (t1-t0) << " seconds to run\n";
+  }
 }
 
 int main(int argc, char** argv) {
