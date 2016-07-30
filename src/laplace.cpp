@@ -36,7 +36,9 @@ Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
     state = new_state;
     ++niters;
   } while (maxdiff > tol);
-  std::cout << "laplacian solve took " << niters << " iterations\n";
+  if (comm->rank() == 0) {
+    std::cout << "laplacian solve took " << niters << " iterations\n";
+  }
   return state;
 }
 
