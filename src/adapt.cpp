@@ -7,6 +7,7 @@
 #include "array.hpp"
 #include "coarsen.hpp"
 #include "mark.hpp"
+#include "quality.hpp"
 #include "refine.hpp"
 #include "simplices.hpp"
 #include "swap.hpp"
@@ -78,6 +79,12 @@ bool adapt_check(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
   return false;
 }
 
+static void do_histogram(Mesh* mesh) {
+  auto histogram = get_quality_histogram(mesh);
+  if (mesh->comm()->rank() == 0)
+    print_quality_histogram(histogram);
+}
+
 bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
            Real len_ceil, Int nlayers, Int verbosity) {
   Now t0 = now();
@@ -94,6 +101,7 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
                   (verbosity >= 1))) {
     return false;
   }
+  if (verbosity >= 3) do_histogram(mesh);
   auto input_qual = mesh->min_quality();
   CHECK(input_qual > 0.0);
   auto allow_qual = min2(qual_floor, input_qual);
@@ -142,6 +150,7 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
     adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
   }
   Now t3 = now();
+  if (verbosity >= 3) do_histogram(mesh);
   if (verbosity >= 1 && comm->rank() == 0) {
     std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
   }
