@@ -3,6 +3,7 @@
 
 #include "algebra.hpp"
 #include "size.hpp"
+#include "host_few.hpp"
 
 namespace osh {
 
@@ -163,6 +164,13 @@ struct MetricElementQualities {
 
 Reals measure_qualities(Mesh* mesh, LOs a2e);
 Reals measure_qualities(Mesh* mesh);
+
+constexpr Int nquality_histogram_buckets = 10;
+
+typedef HostFew<GO, nquality_histogram_buckets> QualityHistogram;
+
+QualityHistogram get_quality_histogram(Mesh* mesh);
+void print_quality_histogram(QualityHistogram histogram);
 
 }  // end namespace osh
 
