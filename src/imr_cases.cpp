@@ -211,7 +211,7 @@ static void run_case(Library const& lib, Case const& c) {
       if (world->rank() == 0) {
         std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step << '\n';
       }
-      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
+      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
       ++warp_step;
     }
     writer.write();
