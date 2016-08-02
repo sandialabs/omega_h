@@ -27,6 +27,9 @@ namespace osh {
 
 namespace r3d {
 
+constexpr Real ONE_THIRD = (1.0 / 3.0);
+constexpr Real ONE_SIXTH = (1.0 / 6.0);
+
 template <Int dim>
 struct Plane {
   Vector<dim> n; /*!< Unit-length normal vector. */
@@ -81,7 +84,7 @@ OSH_INLINE Vector<3> wav(Vector<3> va, Real wa, Vector<3> vb, Real wb) {
  * The number of planes in the input array.
  *
  */
-void clip(Poly<3>* poly, Plane<3> planes[], Int nplanes) {
+OSH_INLINE void clip(Poly<3>* poly, Plane<3> planes[], Int nplanes) {
   // direct access to vertex buffer
   Vertex<3>* vertbuffer = poly->verts;
   Int* nverts = &poly->nverts;
@@ -161,6 +164,135 @@ void clip(Poly<3>* poly, Plane<3> planes[], Int nplanes) {
       for (np = 0; np < 3; ++np)
         vertbuffer[v].pnbrs[np] = clipped[vertbuffer[v].pnbrs[np]];
   }
+}
+
+/**
+ * \brief Initialize a polyhedron as a tetrahedron.
+ *
+ * \param [out] poly
+ * The polyhedron to initialize.
+ *
+ * \param [in] verts
+ * An array of four vectors, giving the vertices of the tetrahedron.
+ *
+ */
+OSH_INLINE void init_tet(Poly<3>* poly, Vector<3>* verts) {
+  // direct access to vertex buffer
+  Vertex<3>* vertbuffer = poly->verts;
+  Int* nverts = &poly->nverts;
+
+  // initialize graph connectivity
+  *nverts = 4;
+  vertbuffer[0].pnbrs[0] = 1;
+  vertbuffer[0].pnbrs[1] = 3;
+  vertbuffer[0].pnbrs[2] = 2;
+  vertbuffer[1].pnbrs[0] = 2;
+  vertbuffer[1].pnbrs[1] = 3;
+  vertbuffer[1].pnbrs[2] = 0;
+  vertbuffer[2].pnbrs[0] = 0;
+  vertbuffer[2].pnbrs[1] = 3;
+  vertbuffer[2].pnbrs[2] = 1;
+  vertbuffer[3].pnbrs[0] = 1;
+  vertbuffer[3].pnbrs[1] = 2;
+  vertbuffer[3].pnbrs[2] = 0;
+
+  // copy vertex coordinates
+  Int v;
+  for (v = 0; v < 4; ++v) vertbuffer[v].pos = verts[v];
+}
+
+OSH_INLINE void norm(Vector<3>& v) {
+  v = osh::normalize(v);
+}
+
+/**
+ * \brief Get four faces (unit normals and distances to the origin)
+ * from a four-vertex description of a tetrahedron.
+ *
+ * \param [out] faces
+ * Array of four planes defining the faces of the tetrahedron.
+ *
+ * \param [in] verts
+ * Array of four vectors defining the vertices of the tetrahedron.
+ *
+ */
+OSH_INLINE void tet_faces_from_verts(Plane<3> faces[], Vector<3> verts[]) {
+  Vector<3> tmpcent;
+  faces[0].n[0] = ((verts[3][1] - verts[1][1])*(verts[2][2] - verts[1][2])
+      - (verts[2][1] - verts[1][1])*(verts[3][2] - verts[1][2]));
+  faces[0].n[1] = ((verts[2][0] - verts[1][0])*(verts[3][2] - verts[1][2])
+      - (verts[3][0] - verts[1][0])*(verts[2][2] - verts[1][2]));
+  faces[0].n[2] = ((verts[3][0] - verts[1][0])*(verts[2][1] - verts[1][1])
+      - (verts[2][0] - verts[1][0])*(verts[3][1] - verts[1][1]));
+  r3d::norm(faces[0].n);
+  tmpcent[0] = ONE_THIRD*(verts[1][0] + verts[2][0] + verts[3][0]);
+  tmpcent[1] = ONE_THIRD*(verts[1][1] + verts[2][1] + verts[3][1]);
+  tmpcent[2] = ONE_THIRD*(verts[1][2] + verts[2][2] + verts[3][2]);
+  faces[0].d = -(faces[0].n * tmpcent);
+
+  faces[1].n[0] = ((verts[2][1] - verts[0][1])*(verts[3][2] - verts[2][2])
+      - (verts[2][1] - verts[3][1])*(verts[0][2] - verts[2][2]));
+  faces[1].n[1] = ((verts[3][0] - verts[2][0])*(verts[2][2] - verts[0][2])
+      - (verts[0][0] - verts[2][0])*(verts[2][2] - verts[3][2]));
+  faces[1].n[2] = ((verts[2][0] - verts[0][0])*(verts[3][1] - verts[2][1])
+      - (verts[2][0] - verts[3][0])*(verts[0][1] - verts[2][1]));
+  r3d::norm(faces[1].n);
+  tmpcent[0] = ONE_THIRD*(verts[2][0] + verts[3][0] + verts[0][0]);
+  tmpcent[1] = ONE_THIRD*(verts[2][1] + verts[3][1] + verts[0][1]);
+  tmpcent[2] = ONE_THIRD*(verts[2][2] + verts[3][2] + verts[0][2]);
+  faces[1].d = -(faces[1].n * tmpcent);
+
+  faces[2].n[0] = ((verts[1][1] - verts[3][1])*(verts[0][2] - verts[3][2])
+      - (verts[0][1] - verts[3][1])*(verts[1][2] - verts[3][2]));
+  faces[2].n[1] = ((verts[0][0] - verts[3][0])*(verts[1][2] - verts[3][2])
+      - (verts[1][0] - verts[3][0])*(verts[0][2] - verts[3][2]));
+  faces[2].n[2] = ((verts[1][0] - verts[3][0])*(verts[0][1] - verts[3][1])
+      - (verts[0][0] - verts[3][0])*(verts[1][1] - verts[3][1]));
+  r3d::norm(faces[2].n);
+  tmpcent[0] = ONE_THIRD*(verts[3][0] + verts[0][0] + verts[1][0]);
+  tmpcent[1] = ONE_THIRD*(verts[3][1] + verts[0][1] + verts[1][1]);
+  tmpcent[2] = ONE_THIRD*(verts[3][2] + verts[0][2] + verts[1][2]);
+  faces[2].d = -(faces[2].n * tmpcent);
+
+  faces[3].n[0] = ((verts[0][1] - verts[2][1])*(verts[1][2] - verts[0][2])
+      - (verts[0][1] - verts[1][1])*(verts[2][2] - verts[0][2]));
+  faces[3].n[1] = ((verts[1][0] - verts[0][0])*(verts[0][2] - verts[2][2])
+      - (verts[2][0] - verts[0][0])*(verts[0][2] - verts[1][2]));
+  faces[3].n[2] = ((verts[0][0] - verts[2][0])*(verts[1][1] - verts[0][1])
+      - (verts[0][0] - verts[1][0])*(verts[2][1] - verts[0][1]));
+  r3d::norm(faces[3].n);
+  tmpcent[0] = ONE_THIRD*(verts[0][0] + verts[1][0] + verts[2][0]);
+  tmpcent[1] = ONE_THIRD*(verts[0][1] + verts[1][1] + verts[2][1]);
+  tmpcent[2] = ONE_THIRD*(verts[0][2] + verts[1][2] + verts[2][2]);
+  faces[3].d = -(faces[3].n * tmpcent);
+}
+
+/**
+ * \brief Get the signed volume of the tetrahedron defined by the input vertices.
+ *
+ * \param [in] verts
+ * Four vertices defining a tetrahedron from which to calculate a volume.
+ *
+ * \return
+ * The signed volume of the input tetrahedron.
+ *
+ */
+OSH_INLINE Real orient(Vector<3>* verts) {
+  Real adx, bdx, cdx;
+  Real ady, bdy, cdy;
+  Real adz, bdz, cdz;
+  adx = verts[0][0] - verts[3][0];
+  bdx = verts[1][0] - verts[3][0];
+  cdx = verts[2][0] - verts[3][0];
+  ady = verts[0][1] - verts[3][1];
+  bdy = verts[1][1] - verts[3][1];
+  cdy = verts[2][1] - verts[3][1];
+  adz = verts[0][2] - verts[3][2];
+  bdz = verts[1][2] - verts[3][2];
+  cdz = verts[2][2] - verts[3][2];
+  return -ONE_SIXTH*(adx * (bdy * cdz - bdz * cdy)
+      + bdx * (cdy * adz - cdz * ady)
+      + cdx * (ady * bdz - adz * bdy));
 }
 
 }  // end namespace r3d
