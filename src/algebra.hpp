@@ -42,13 +42,6 @@ INLINE Vector<n> operator/(Vector<n> a, Real b) {
 }
 
 template <Int n>
-INLINE Real operator*(Vector<n> a, Vector<n> b) {
-  Real c = a[0] * b[0];
-  for (Int i = 1; i < n; ++i) c += a[i] * b[i];
-  return c;
-}
-
-template <Int n>
 INLINE Real norm_squared(Vector<n> v) {
   return v * v;
 }

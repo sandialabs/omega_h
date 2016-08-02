@@ -105,6 +105,13 @@ OSH_INLINE Vector<n> operator*(Real a, Vector<n> b) {
   return b * a;
 }
 
+template <Int n>
+OSH_INLINE Real operator*(Vector<n> a, Vector<n> b) {
+  Real c = a[0] * b[0];
+  for (Int i = 1; i < n; ++i) c += a[i] * b[i];
+  return c;
+}
+
 OSH_INLINE Vector<2> vector_2(Real x, Real y) {
   Vector<2> v;
   v[0] = x;
