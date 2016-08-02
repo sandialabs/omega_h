@@ -10,7 +10,8 @@
 
 namespace osh {
 
-Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
+Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol,
+                      Real floor) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(initial.size() == mesh->nverts() * width);
   auto comm = mesh->comm();
@@ -21,7 +22,7 @@ Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
   auto b2v = collect_marked(boundary);
   auto weights = Reals(star.ab2b.size(), 1.0);
   auto bc_data = unmap(b2v, initial, width);
-  Real maxdiff;
+  bool done = false;
   Int niters = 0;
   do {
     auto new_state_nobc = graph_weighted_average(star, weights, state, width);
@@ -29,13 +30,11 @@ Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol) {
     map_into(bc_data, b2v, new_state_w, width);
     auto new_state = Reals(new_state_w);
     new_state = mesh->sync_array(VERT, new_state, width);
-    auto diff = subtract_each(new_state, state);
-    auto diffsq = multiply_each(diff, diff);
-    auto maxdiffsq = comm->allreduce(max(diffsq), OSH_MAX);
-    maxdiff = sqrt(maxdiffsq);
+    auto local_done = are_close(state, new_state, tol, floor);
+    done = comm->reduce_and(local_done);
     state = new_state;
     ++niters;
-  } while (maxdiff > tol);
+  } while (!done);
   if (comm->rank() == 0) {
     std::cout << "laplacian solve took " << niters << " iterations\n";
   }
