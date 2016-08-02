@@ -1,7 +1,7 @@
 #include "quality.hpp"
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "array.hpp"
 #include "loop.hpp"

@@ -81,8 +81,7 @@ bool adapt_check(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
 
 static void do_histogram(Mesh* mesh) {
   auto histogram = get_quality_histogram(mesh);
-  if (mesh->comm()->rank() == 0)
-    print_quality_histogram(histogram);
+  if (mesh->comm()->rank() == 0) print_quality_histogram(histogram);
 }
 
 bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,

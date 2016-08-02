@@ -6,8 +6,8 @@
 #include "space.hpp"
 #include "timer.hpp"
 
-#include <set>
 #include <iostream>
+#include <set>
 
 using namespace osh;
 
@@ -132,14 +132,9 @@ CylinderTube::~CylinderTube() {}
 struct TwinRotor : public Case {
   std::set<I32> assembly0;
   std::set<I32> assembly1;
-  TwinRotor() :
-    assembly0({66,98,126}),
-    assembly1({254,253,252}) {
-  }
+  TwinRotor() : assembly0({66, 98, 126}), assembly1({254, 253, 252}) {}
   ~TwinRotor();
-  virtual const char* file_name() const override {
-    return "twin_rotor.msh";
-  }
+  virtual const char* file_name() const override { return "twin_rotor.msh"; }
   virtual std::vector<I32> objects() const override {
     std::vector<I32> out;
     out.insert(out.end(), assembly0.begin(), assembly0.end());
@@ -152,10 +147,10 @@ struct TwinRotor : public Case {
     Vector<3> center;
     Real dir;
     if (assembly0.count(object)) {
-      center = vector_3(-.25,0,0);
+      center = vector_3(-.25, 0, 0);
       dir = 1.0;
     } else if (assembly1.count(object)) {
-      center = vector_3(.25,0,0);
+      center = vector_3(.25, 0, 0);
       dir = -1.0;
     } else {
       osh_fail("object %d not in either assembly\n", object);
@@ -165,7 +160,7 @@ struct TwinRotor : public Case {
   static Reals static_motion(Mesh* m, LOs ov2v, Vector<3> center, Real dir) {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
-    auto rm = rotate(dir * PI / 32, vector_3(0,0,1));
+    auto rm = rotate(dir * PI / 32, vector_3(0, 0, 1));
     auto f = LAMBDA(LO ov) {
       auto v = ov2v[ov];
       auto x = get_vector<3>(coords, v);
@@ -185,8 +180,8 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     CHECK(niters >= 0);
     if (niters > c.time_steps()) {
       std::cerr << "warning: requesting " << niters
-                << " time steps but the case is designed for "
-                << c.time_steps() << '\n';
+                << " time steps but the case is designed for " << c.time_steps()
+                << '\n';
     }
   }
   auto world = lib.world();
@@ -219,7 +214,8 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     int warp_step = 0;
     while (warp_to_limit(&mesh, 0.20)) {
       if (world->rank() == 0) {
-        std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step << '\n';
+        std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step
+                  << '\n';
       }
       adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
       ++warp_step;
@@ -228,7 +224,7 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
   }
   Now t1 = now();
   if (world->rank() == 0) {
-    std::cout << "case took " << (t1-t0) << " seconds to run\n";
+    std::cout << "case took " << (t1 - t0) << " seconds to run\n";
   }
 }
 

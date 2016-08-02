@@ -111,8 +111,7 @@ GO Mesh::nglobal_ents(Int dim) {
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
-                   Int xfer) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
     osh_fail(
@@ -595,9 +594,9 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
   template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-                                 Int xfer);                               \
+                                 Int xfer);                                    \
   template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-                                 Int xfer, Read<T> array);                \
+                                 Int xfer, Read<T> array);                     \
   template void Mesh::set_tag(Int dim, std::string const& name,                \
                               Read<T> array);                                  \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
