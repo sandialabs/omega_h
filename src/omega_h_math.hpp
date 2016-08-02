@@ -1,0 +1,171 @@
+#ifndef OMEGA_H_MATH_HPP
+#define OMEGA_H_MATH_HPP
+
+#include "omega_h.hpp"
+
+namespace osh {
+
+OSH_INLINE Real square(Real x) { return x * x; }
+
+template <Int n>
+class Vector : public Few<Real, n> {
+ public:
+  OSH_INLINE Vector() {}
+  inline Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
+  OSH_INLINE void operator=(Vector<n> const& rhs) volatile {
+    Few<Real, n>::operator=(rhs);
+  }
+  OSH_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
+  OSH_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
+};
+
+template <Int n>
+OSH_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i) c[i] = a[i] + b[i];
+  return c;
+}
+
+template <Int n>
+OSH_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i) c[i] = a[i] - b[i];
+  return c;
+}
+
+template <Int n>
+OSH_INLINE Vector<n> operator*(Vector<n> a, Real b) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i) c[i] = a[i] * b;
+  return c;
+}
+
+template <Int n>
+OSH_INLINE Vector<n> operator*(Real a, Vector<n> b) {
+  return b * a;
+}
+
+OSH_INLINE Vector<2> vector_2(Real x, Real y) {
+  Vector<2> v;
+  v[0] = x;
+  v[1] = y;
+  return v;
+}
+
+OSH_INLINE Vector<3> vector_3(Real x, Real y, Real z) {
+  Vector<3> v;
+  v[0] = x;
+  v[1] = y;
+  v[2] = z;
+  return v;
+}
+
+/* column-first storage and indexing !!! */
+template <Int m, Int n>
+class Matrix : public Few<Vector<m>, n> {
+ public:
+  OSH_INLINE Matrix() {}
+  /* these constructors accept the matrix in
+   * row-first order for convenience.
+   */
+  inline Matrix(std::initializer_list<Vector<m>> l) : Few<Vector<m>, n>(l) {}
+  inline Matrix(std::initializer_list<Real> l);
+  OSH_INLINE void operator=(Matrix<m, n> const& rhs) volatile {
+    Few<Vector<m>, n>::operator=(rhs);
+  }
+  OSH_INLINE Matrix(Matrix<m, n> const& rhs) : Few<Vector<m>, n>(rhs) {}
+  OSH_INLINE Matrix(const volatile Matrix<m, n>& rhs)
+      : Few<Vector<m>, n>(rhs) {}
+};
+
+template <Int m, Int n>
+OSH_INLINE Vector<m> operator*(Matrix<m, n> a, Vector<n> b) {
+  Vector<m> c = a[0] * b[0];
+  for (Int j = 1; j < n; ++j) c = c + a[j] * b[j];
+  return c;
+}
+
+template <Int m, Int n, Int p>
+OSH_INLINE Matrix<m, n> operator*(Matrix<m, p> a, Matrix<p, n> b) {
+  Matrix<m, n> c;
+  for (Int j = 0; j < n; ++j) c[j] = a * b[j];
+  return c;
+}
+
+template <Int m, Int n>
+OSH_INLINE Matrix<n, m> transpose(Matrix<m, n> a) {
+  Matrix<n, m> b;
+  for (Int i = 0; i < m; ++i)
+    for (Int j = 0; j < n; ++j) b[i][j] = a[j][i];
+  return b;
+}
+
+template <Int m, Int n>
+OSH_INLINE Matrix<m, n> identity_matrix() {
+  Matrix<m, n> a;
+  for (Int j = 0; j < n; ++j)
+    for (Int i = 0; i < m; ++i) a[j][i] = (i == j);
+  return a;
+}
+
+template <Int m>
+OSH_INLINE Matrix<m, m> diagonal(Vector<m> v) {
+  Matrix<m, m> a;
+  for (Int i = 0; i < m; ++i)
+    for (Int j = i + 1; j < m; ++j) a[i][j] = a[j][i] = 0.0;
+  for (Int i = 0; i < m; ++i) a[i][i] = v[i];
+  return a;
+}
+
+template <Int n>
+OSH_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
+  for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
+}
+
+OSH_INLINE constexpr Int symm_dofs(Int dim) { return ((dim + 1) * dim) / 2; }
+
+OSH_INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
+  Vector<3> v;
+  v[0] = symm[0][0];
+  v[1] = symm[1][1];
+  v[2] = symm[1][0];
+  return v;
+}
+
+OSH_INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
+  Vector<6> v;
+  v[0] = symm[0][0];
+  v[1] = symm[1][1];
+  v[2] = symm[2][2];
+  v[3] = symm[1][0];
+  v[4] = symm[2][1];
+  v[5] = symm[2][0];
+  return v;
+}
+
+template <Int n>
+OSH_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
+  set_vector(a, i, symm2vector(symm));
+}
+
+template <Int dim>
+OSH_INLINE Vector<dim> metric_eigenvalues(Vector<dim> h) {
+  Vector<dim> l;
+  for (Int i = 0; i < dim; ++i) l[i] = 1.0 / square(h[i]);
+  return l;
+}
+
+template <Int dim>
+OSH_INLINE Matrix<dim, dim> compose_metric(Matrix<dim, dim> r, Vector<dim> h) {
+  auto l = metric_eigenvalues(h);
+  return r * diagonal(l) * transpose(r);
+}
+
+template <Int dim>
+Reals repeat_symm(LO n, Matrix<dim, dim> symm);
+extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
+extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
+
+}  // end namespace osh
+
+#endif

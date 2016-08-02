@@ -1,4 +1,5 @@
 #include "omega_h.hpp"
+#include "omega_h_math.hpp"
 
 using namespace osh;
 

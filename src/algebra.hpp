@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "algorithm.hpp"
+#include "omega_h_math.hpp"
 
 namespace osh {
 
