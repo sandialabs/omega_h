@@ -2,8 +2,8 @@
 #define QUALITY_HPP
 
 #include "algebra.hpp"
-#include "size.hpp"
 #include "host_few.hpp"
+#include "size.hpp"
 
 namespace osh {
 

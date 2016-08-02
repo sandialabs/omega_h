@@ -599,10 +599,9 @@ class Few {
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
       const;                                                                   \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-                                        Int ncomps, Int xfer);            \
+                                        Int ncomps, Int xfer);                 \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-                                        Int ncomps, Int xfer,             \
-                                        Read<T> array);                        \
+                                        Int ncomps, Int xfer, Read<T> array);  \
   extern template void Mesh::set_tag(Int dim, std::string const& name,         \
                                      Read<T> array);                           \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
