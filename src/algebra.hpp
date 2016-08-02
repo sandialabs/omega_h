@@ -35,28 +35,6 @@ INLINE Real average(Few<Real, n> x) {
 }
 
 template <Int n>
-INLINE Vector<n> operator/(Vector<n> a, Real b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] / b;
-  return c;
-}
-
-template <Int n>
-INLINE Real norm_squared(Vector<n> v) {
-  return v * v;
-}
-
-template <Int n>
-INLINE Real norm(Vector<n> v) {
-  return sqrt(norm_squared(v));
-}
-
-template <Int n>
-INLINE Vector<n> normalize(Vector<n> v) {
-  return v / norm(v);
-}
-
-template <Int n>
 INLINE Vector<n> operator-(Vector<n> a) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = -a[i];

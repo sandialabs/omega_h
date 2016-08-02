@@ -3,6 +3,7 @@
 
 #include <cfloat>
 #include <climits>
+#include <cmath>
 
 #include "omega_h.hpp"
 
@@ -106,10 +107,32 @@ OSH_INLINE Vector<n> operator*(Real a, Vector<n> b) {
 }
 
 template <Int n>
+OSH_INLINE Vector<n> operator/(Vector<n> a, Real b) {
+  Vector<n> c;
+  for (Int i = 0; i < n; ++i) c[i] = a[i] / b;
+  return c;
+}
+
+template <Int n>
 OSH_INLINE Real operator*(Vector<n> a, Vector<n> b) {
   Real c = a[0] * b[0];
   for (Int i = 1; i < n; ++i) c += a[i] * b[i];
   return c;
+}
+
+template <Int n>
+OSH_INLINE Real norm_squared(Vector<n> v) {
+  return v * v;
+}
+
+template <Int n>
+OSH_INLINE Real norm(Vector<n> v) {
+  return sqrt(norm_squared(v));
+}
+
+template <Int n>
+OSH_INLINE Vector<n> normalize(Vector<n> v) {
+  return v / norm(v);
 }
 
 OSH_INLINE Vector<2> vector_2(Real x, Real y) {
