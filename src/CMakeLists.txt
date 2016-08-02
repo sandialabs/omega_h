@@ -210,6 +210,7 @@ if(BUILD_TESTING)
   if(OSH_USE_KOKKOS)
     exe_func(test_view)
   endif()
+  exe_func(test_r3d)
 endif()
 
 if(OSH_BUILD_SMB2OSH)
