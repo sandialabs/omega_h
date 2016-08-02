@@ -2,7 +2,7 @@
 #define FUNCTORS_HPP
 
 #include "algorithm.hpp"
-#include "traits.hpp"
+#include "omega_h_math.hpp"
 
 namespace osh {
 

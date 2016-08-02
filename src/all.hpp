@@ -63,7 +63,6 @@
 #include "swap3d_tables.hpp"
 #include "tag.hpp"
 #include "timer.hpp"
-#include "traits.hpp"
 #include "transfer.hpp"
 #include "unmap_mesh.hpp"
 #include "vtk.hpp"

@@ -2,7 +2,7 @@
 
 #include "access.hpp"
 #include "loop.hpp"
-#include "traits.hpp"
+#include "omega_h_math.hpp"
 
 namespace osh {
 
