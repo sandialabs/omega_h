@@ -40,6 +40,8 @@ enum osh_xfer {
   OSH_METRIC
 };
 
+enum { OSH_XFERS = OSH_METRIC + 1 };
+
 enum osh_parting {
   OSH_ELEM_BASED,
   OSH_GHOSTED,

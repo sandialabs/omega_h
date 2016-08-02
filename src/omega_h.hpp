@@ -181,23 +181,23 @@ class HostWrite {
 
 class TagBase {
  public:
-  TagBase(std::string const& name, Int ncomps, osh_xfer xfer);
+  TagBase(std::string const& name, Int ncomps, Int xfer);
   virtual ~TagBase();
   std::string const& name() const;
   Int ncomps() const;
-  osh_xfer xfer() const;
+  Int xfer() const;
   virtual osh_type type() const = 0;
 
  private:
   std::string name_;
   Int ncomps_;
-  osh_xfer xfer_;
+  Int xfer_;
 };
 
 template <typename T>
 class Tag : public TagBase {
  public:
-  Tag(std::string const& name, Int ncomps, osh_xfer xfer);
+  Tag(std::string const& name, Int ncomps, Int xfer);
   Read<T> array() const;
   void set_array(Read<T> array);
   virtual osh_type type() const override;
@@ -380,9 +380,9 @@ class Mesh {
   LO nverts() const;
   GO nglobal_ents(Int dim);
   template <typename T>
-  void add_tag(Int dim, std::string const& name, Int ncomps, osh_xfer xfer);
+  void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer);
   template <typename T>
-  void add_tag(Int dim, std::string const& name, Int ncomps, osh_xfer xfer,
+  void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
                Read<T> array);
   template <typename T>
   void set_tag(Int dim, std::string const& name, Read<T> array);
@@ -760,9 +760,9 @@ extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
       const;                                                                   \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-                                        Int ncomps, osh_xfer xfer);            \
+                                        Int ncomps, Int xfer);            \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-                                        Int ncomps, osh_xfer xfer,             \
+                                        Int ncomps, Int xfer,             \
                                         Read<T> array);                        \
   extern template void Mesh::set_tag(Int dim, std::string const& name,         \
                                      Read<T> array);                           \
