@@ -228,6 +228,7 @@ set(OSH_HEADERS
   omega_h_c.h
   omega_h_kokkos.hpp
   omega_h.hpp
+  omega_h_math.hpp
   )
 
 install(FILES ${OSH_HEADERS} DESTINATION include)
