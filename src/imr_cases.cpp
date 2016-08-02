@@ -146,7 +146,7 @@ struct TwinRotor : public Case {
     out.insert(out.end(), assembly1.begin(), assembly1.end());
     return out;
   }
-  virtual Int time_steps() const override { return 4; }
+  virtual Int time_steps() const override { return 16; }
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)step;
     Vector<3> center;
@@ -178,7 +178,17 @@ struct TwinRotor : public Case {
 
 TwinRotor::~TwinRotor() {}
 
-static void run_case(Library const& lib, Case const& c) {
+static void run_case(Library const& lib, Case const& c, Int niters) {
+  if (niters == -1) {
+    niters = c.time_steps();
+  } else {
+    CHECK(niters >= 0);
+    if (niters > c.time_steps()) {
+      std::cerr << "warning: requesting " << niters
+                << " time steps but the case is designed for "
+                << c.time_steps() << '\n';
+    }
+  }
   auto world = lib.world();
   Mesh mesh;
   if (world->rank() == 0) {
@@ -193,7 +203,7 @@ static void run_case(Library const& lib, Case const& c) {
   vtk::Writer writer(&mesh, "out", mesh.dim());
   writer.write();
   Now t0 = now();
-  for (Int step = 0; step < c.time_steps(); ++step) {
+  for (Int step = 0; step < niters; ++step) {
     mesh.set_parting(OSH_GHOSTED);
     auto objs = c.objects();
     auto motion_w = Write<Real>(mesh.nverts() * mesh.dim(), 0.0);
@@ -211,7 +221,7 @@ static void run_case(Library const& lib, Case const& c) {
       if (world->rank() == 0) {
         std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step << '\n';
       }
-      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
+      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
       ++warp_step;
     }
     writer.write();
@@ -224,31 +234,28 @@ static void run_case(Library const& lib, Case const& c) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-  CHECK(argc == 2);
-  auto world = lib.world();
-  constexpr Int dim = 3;
-  Mesh mesh;
-  if (world->rank() == 0) {
-    auto nx = 10;
-    build_box(&mesh, lib, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
-    classify_by_angles(&mesh, PI / 4);
-    mesh.reorder();
-    mesh.reset_globals();
+  std::string name;
+  Int niters = -1;
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if (arg == "--niters") {
+      if (i == argc - 1) osh_fail("--niters needs an argument\n");
+      ++i;
+      niters = atoi(argv[i]);
+    } else {
+      name = arg;
+    }
   }
-  mesh.set_comm(world);
-  mesh.balance();
-  mesh.set_parting(OSH_GHOSTED);
-  std::string name = argv[1];
   if (name == "translate_ball")
-    run_case(lib, TranslateBall());
+    run_case(lib, TranslateBall(), niters);
   else if (name == "rotate_ball")
-    run_case(lib, RotateBall());
+    run_case(lib, RotateBall(), niters);
   else if (name == "collide_balls")
-    run_case(lib, CollideBalls());
+    run_case(lib, CollideBalls(), niters);
   else if (name == "cylinder_thru_tube")
-    run_case(lib, CylinderTube());
+    run_case(lib, CylinderTube(), niters);
   else if (name == "twin_rotor")
-    run_case(lib, TwinRotor());
+    run_case(lib, TwinRotor(), niters);
   else
     osh_fail("unknown case \"%s\"", argv[1]);
 }
