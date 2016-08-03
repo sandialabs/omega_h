@@ -23,8 +23,6 @@
 
 #include "omega_h_math.hpp"
 
-#include <iostream>
-
 namespace osh {
 
 namespace r3d {
