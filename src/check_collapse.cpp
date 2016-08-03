@@ -106,9 +106,7 @@ static Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
 Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
                                  Read<I8> cand_codes) {
   CHECK(mesh->parting() == OSH_GHOSTED);
-  auto mesh_dim = mesh->dim();
-  CHECK(mesh_dim <= 3);
-  for (Int cell_dim = EDGE + 1; cell_dim <= mesh_dim; ++cell_dim) {
+  for (Int cell_dim = EDGE + 1; cell_dim <= mesh->dim(); ++cell_dim) {
     cand_codes =
         check_collapse_exposure(mesh, cands2edges, cand_codes, cell_dim);
   }
