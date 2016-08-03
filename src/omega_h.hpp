@@ -364,7 +364,7 @@ struct Rib;
 class Mesh {
  public:
   Mesh();
-  void set_comm(CommPtr comm);
+  void set_comm(CommPtr const& comm);
   void set_dim(Int dim);
   void set_verts(LO nverts);
   void set_ents(Int dim, Adj down);

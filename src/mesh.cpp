@@ -25,7 +25,7 @@ Mesh::Mesh() : dim_(-1), parting_(-1) {
   keeps_canonical_globals_ = true;
 }
 
-void Mesh::set_comm(CommPtr new_comm) {
+void Mesh::set_comm(CommPtr const& new_comm) {
   auto rank_had_comm = bool(comm_);
   auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), OSH_SUM);
   if (0 < nnew_had_comm && nnew_had_comm < new_comm->size()) {
