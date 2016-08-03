@@ -303,7 +303,8 @@ struct NumMoments<2, order> {
  *
  */
 
-void reduce(Polytope<3>* poly, Real* moments, Int polyorder) {
+template <Int polyorder>
+void reduce_3d(Polytope<3>* poly, Real* moments) {
   Int* nverts = &poly->nverts;
   if(*nverts <= 0) return;
 
@@ -448,7 +449,8 @@ void reduce(Polytope<3>* poly, Real* moments, Int polyorder) {
  * Order of moments is row-major, i.e. `1`, `x`, `y`, `x^2`, `x*y`, `y^2`, `x^3`, `x^2*y`...
  *
  */
-OSH_INLINE void reduce(Polytope<2>* poly, Real* moments, Int polyorder) {
+template <Int polyorder>
+OSH_INLINE void reduce_2d(Polytope<2>* poly, Real* moments) {
   Int* nverts = &poly->nverts;
   if(*nverts <= 0) return;
 
