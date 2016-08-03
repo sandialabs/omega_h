@@ -225,10 +225,10 @@ OSH_INLINE Plane<3> tet_face_from_verts(
  *
  */
 OSH_INLINE void tet_faces_from_verts(Plane<3> faces[], Vector<3> verts[]) {
-  faces[0] = tet_faces_from_verts(verts[1], verts[2], verts[3]);
-  faces[1] = tet_faces_from_verts(verts[0], verts[3], verts[2]);
-  faces[2] = tet_faces_from_verts(verts[0], verts[1], verts[3]);
-  faces[3] = tet_faces_from_verts(verts[0], verts[2], verts[1]);
+  faces[0] = tet_face_from_verts(verts[3], verts[2], verts[1]);
+  faces[1] = tet_face_from_verts(verts[0], verts[2], verts[3]);
+  faces[2] = tet_face_from_verts(verts[0], verts[3], verts[1]);
+  faces[3] = tet_face_from_verts(verts[0], verts[1], verts[2]);
 }
 
 }  // end namespace r3d

@@ -9,7 +9,6 @@ int main() {
     {0,1,0},
     {0,0,1}
   };
-  std::cout << "volume is " << osh::r3d::orient(verts) << '\n';
   osh::r3d::Plane<3> faces[4];
   osh::r3d::tet_faces_from_verts(faces, verts);
   for (osh::Int i = 0; i < 4; ++i) {
