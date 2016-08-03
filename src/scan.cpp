@@ -7,7 +7,7 @@ namespace osh {
 
 template <typename T>
 struct ExclScan : public SumFunctor<I64> {
-  typedef I64 value_type;
+  using value_type = I64;
   Read<T> in_;
   Write<LO> out_;
   ExclScan(Read<T> in, Write<LO> out) : in_(in), out_(out) {}
@@ -29,7 +29,7 @@ template LOs offset_scan(Read<I8> a);
 template LOs offset_scan(Read<I32> a);
 
 struct FillRight : public MaxFunctor<I64> {
-  typedef I64 value_type;
+  using value_type = I64;
   Write<LO> a_;
   FillRight(Write<LO> a) : a_(a) {}
   DEVICE void operator()(LO i, value_type& update, bool final_pass) const {
