@@ -285,7 +285,7 @@ Write<T> deep_copy(Read<T> a) {
 }
 
 template <typename T>
-HostWrite<T>::HostWrite() {}
+HostWrite<T>::HostWrite() = default;
 
 template <typename T>
 HostWrite<T>::HostWrite(LO size)
@@ -345,7 +345,7 @@ T* HostWrite<T>::data() const {
 }
 
 template <typename T>
-HostRead<T>::HostRead() {}
+HostRead<T>::HostRead() = default;
 
 template <typename T>
 HostRead<T>::HostRead(Read<T> read)
