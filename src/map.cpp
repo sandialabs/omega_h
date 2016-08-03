@@ -152,11 +152,11 @@ LOs invert_funnel(LOs ab2a, LO na) {
 }
 
 Graph invert_map_by_sorting(LOs a2b, LO nb) {
-  auto ab2b = a2b;
+  auto& ab2b = a2b;
   auto ba2ab = sort_by_keys(ab2b);
   auto ba2b = unmap(ba2ab, ab2b, 1);
   auto b2ba = invert_funnel(ba2b, nb);
-  auto ba2a = ba2ab;
+  auto& ba2a = ba2ab;
   return Graph(b2ba, ba2a);
 }
 
