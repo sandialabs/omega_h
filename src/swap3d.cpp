@@ -58,9 +58,7 @@ static void swap3d_element_based(Mesh* mesh, bool verbose) {
   auto prod_verts2verts =
       swap3d_topology(mesh, keys2edges, edges_configs, keys2prods);
   auto old_lows2new_lows = LOs(mesh->nverts(), 0, 1);
-  auto mesh_dim = mesh->dim();
-  CHECK(mesh_dim <= 3);
-  for (Int ent_dim = EDGE; ent_dim <= mesh_dim; ++ent_dim) {
+  for (Int ent_dim = EDGE; ent_dim <= mesh->dim(); ++ent_dim) {
     auto prods2new_ents = LOs();
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
