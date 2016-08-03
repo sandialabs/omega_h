@@ -48,7 +48,7 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
   HostFew<LOs, 3> prod_verts2verts;
   swap2d_topology(mesh, keys2edges, &keys2prods, &prod_verts2verts);
   auto old_lows2new_lows = LOs(mesh->nverts(), 0, 1);
-  for (Int ent_dim = EDGE; ent_dim <= mesh->dim(); ++ent_dim) {
+  for (Int ent_dim = EDGE; ent_dim <= 2; ++ent_dim) {
     auto prods2new_ents = LOs();
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
