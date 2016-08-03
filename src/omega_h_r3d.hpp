@@ -201,16 +201,13 @@ OSH_INLINE void init_tet(Poly<3>* poly, Vector<3>* verts) {
   for (v = 0; v < 4; ++v) vertbuffer[v].pos = verts[v];
 }
 
-OSH_INLINE void norm(Vector<3>& v) {
-  v = osh::normalize(v);
-}
+OSH_INLINE void norm(Vector<3>& v) { v = osh::normalize(v); }
 
-OSH_INLINE Plane<3> tet_face_from_verts(
-    Vector<3> a, Vector<3> b, Vector<3> c) {
-  auto center = ONE_THIRD*(a + b + c);
+OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
+  auto center = ONE_THIRD * (a + b + c);
   auto normal = normalize(cross((b - a), (c - a)));
   auto d = -(normal * center);
-  return Plane<3>{ normal, d };
+  return Plane<3>{normal, d};
 }
 
 /**

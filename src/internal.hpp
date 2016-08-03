@@ -6,12 +6,12 @@
 #ifdef __clang__
 #define NORETURN(x) \
   do {              \
-    assert(false);      \
+    assert(false);  \
   } while (false)
 #else
 #define NORETURN(x) \
   do {              \
-    assert(false);      \
+    assert(false);  \
     return x;       \
   } while (false)
 #endif
