@@ -85,8 +85,6 @@ bool Mesh::keeps_canonical_globals() const { return keeps_canonical_globals_; }
 
 CommPtr Mesh::comm() const { return comm_; }
 
-Int Mesh::dim() const { return dim_; }
-
 LO Mesh::nents(Int dim) const {
   check_dim2(dim);
   return nents_[dim];

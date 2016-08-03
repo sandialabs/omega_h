@@ -371,7 +371,10 @@ class Mesh {
   void keep_canonical_globals(bool yn);
   CommPtr comm() const;
   osh_parting parting() const;
-  Int dim() const;
+  inline Int dim() const {
+    OSH_CHECK(0 <= dim_ && dim_ <= 3);
+    return dim_;
+  }
   LO nents(Int dim) const;
   LO nelems() const;
   LO ntets() const;
