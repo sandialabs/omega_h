@@ -228,6 +228,156 @@ OSH_INLINE void tet_faces_from_verts(Plane<3> faces[], Vector<3> verts[]) {
   faces[3] = tet_face_from_verts(verts[0], verts[1], verts[2]);
 }
 
+constexpr Int num_moments(Int order) {
+  return ((order+1)*(order+2)*(order+3)/6);
+}
+
+/**
+ * \brief Integrate a polynomial density over a polyhedron using simplicial decomposition.
+ * Uses the fast recursive method of Koehl (2012) to carry out the integration.
+ *
+ * \param [in] poly
+ * The polyhedron over which to integrate.
+ *
+ * \param [in] polyorder
+ * Order of the polynomial density field. 0 for constant (1 moment), 1 for linear
+ * (4 moments), 2 for quadratic (10 moments), etc.
+ *
+ * \param [in, out] moments
+ * Array to be filled with the integration results, up to the specified `polyorder`. Must be at
+ * least `(polyorder+1)*(polyorder+2)*(polyorder+3)/6` long. A conventient macro,
+ * `num_moments()` is provided to compute the number of moments for a given order.
+ * Order of moments is row-major, i.e. `1`, `x`, `y`, `z`, `x^2`,
+ * `x*y`, `x*z`, `y^2`, `y*z`, `z^2`, `x^3`, `x^2*y`...
+ *
+ */
+void reduce(Poly<3>* poly, Real* moments, Int polyorder) {
+  // var declarations
+  Real sixv;
+  Int np, m, i, j, k, corder;
+  Int vstart, pstart, vcur, vnext, pnext;
+  Vector<3> v0, v1, v2;
+
+  // direct access to vertex buffer
+  Vertex<3>* vertbuffer = poly->verts;
+  Int* nverts = &poly->nverts;
+
+  // zero the moments
+  for(m = 0; m < num_moments(polyorder); ++m)
+    moments[m] = 0.0;
+
+  if(*nverts <= 0) return;
+
+  // for keeping track of which edges have been visited
+  Int emarks[Poly<3>::max_verts][3] = {{}}; // initialized to zero
+
+  // Storage for coefficients
+  // keep two layers of the pyramid of coefficients
+  // Note: Uses twice as much space as needed, but indexing is faster this way
+  Int prevlayer = 0;
+  Int curlayer = 1;
+  Real S[polyorder+1][polyorder+1][2];
+  Real D[polyorder+1][polyorder+1][2];
+  Real C[polyorder+1][polyorder+1][2];
+
+  // loop over all vertices to find the starting point for each face
+  for(vstart = 0; vstart < *nverts; ++vstart)
+  for(pstart = 0; pstart < 3; ++pstart) {
+
+    // skip this face if we have marked it
+    if(emarks[vstart][pstart]) continue;
+
+    // initialize face looping
+    pnext = pstart;
+    vcur = vstart;
+    emarks[vcur][pnext] = 1;
+    vnext = vertbuffer[vcur].pnbrs[pnext];
+    v0 = vertbuffer[vcur].pos;
+
+    // move to the second edge
+    for(np = 0; np < 3; ++np) if(vertbuffer[vnext].pnbrs[np] == vcur) break;
+    vcur = vnext;
+    pnext = (np+1)%3;
+    emarks[vcur][pnext] = 1;
+    vnext = vertbuffer[vcur].pnbrs[pnext];
+
+    // make a triangle fan using edges
+    // and first vertex
+    while(vnext != vstart) {
+
+      v2 = vertbuffer[vcur].pos;
+      v1 = vertbuffer[vnext].pos;
+
+      sixv = (-v2[0]*v1[1]*v0[2] + v1[0]*v2[1]*v0[2] + v2[0]*v0[1]*v1[2]
+             - v0[0]*v2[1]*v1[2] - v1[0]*v0[1]*v2[2] + v0[0]*v1[1]*v2[2]);
+
+      // calculate the moments
+      // using the fast recursive method of Koehl (2012)
+      // essentially building a set of trinomial pyramids, one layer at a time
+
+      // base case
+      S[0][0][prevlayer] = 1.0;
+      D[0][0][prevlayer] = 1.0;
+      C[0][0][prevlayer] = 1.0;
+      moments[0] += ONE_SIXTH*sixv;
+
+      // build up successive polynomial orders
+      for(corder = 1, m = 1; corder <= polyorder; ++corder) {
+        for(i = corder; i >= 0; --i)
+        for(j = corder - i; j >= 0; --j, ++m) {
+          k = corder - i - j;
+          C[i][j][curlayer] = 0;
+          D[i][j][curlayer] = 0;
+          S[i][j][curlayer] = 0;
+          if(i > 0) {
+            C[i][j][curlayer] += v2[0]*C[i-1][j][prevlayer];
+            D[i][j][curlayer] += v1[0]*D[i-1][j][prevlayer];
+            S[i][j][curlayer] += v0[0]*S[i-1][j][prevlayer];
+          }
+          if(j > 0) {
+            C[i][j][curlayer] += v2[1]*C[i][j-1][prevlayer];
+            D[i][j][curlayer] += v1[1]*D[i][j-1][prevlayer];
+            S[i][j][curlayer] += v0[1]*S[i][j-1][prevlayer];
+          }
+          if(k > 0) {
+            C[i][j][curlayer] += v2[2]*C[i][j][prevlayer];
+            D[i][j][curlayer] += v1[2]*D[i][j][prevlayer];
+            S[i][j][curlayer] += v0[2]*S[i][j][prevlayer];
+          }
+          D[i][j][curlayer] += C[i][j][curlayer];
+          S[i][j][curlayer] += D[i][j][curlayer];
+          moments[m] += sixv*S[i][j][curlayer];
+        }
+        curlayer = 1 - curlayer;
+        prevlayer = 1 - prevlayer;
+      }
+
+      // move to the next edge
+      for(np = 0; np < 3; ++np) if(vertbuffer[vnext].pnbrs[np] == vcur) break;
+      vcur = vnext;
+      pnext = (np+1)%3;
+      emarks[vcur][pnext] = 1;
+      vnext = vertbuffer[vcur].pnbrs[pnext];
+    }
+  }
+
+  // reuse C to recursively compute the leading multinomial coefficients
+  C[0][0][prevlayer] = 1.0;
+  for(corder = 1, m = 1; corder <= polyorder; ++corder) {
+    for(i = corder; i >= 0; --i)
+    for(j = corder - i; j >= 0; --j, ++m) {
+      k = corder - i - j;
+      C[i][j][curlayer] = 0.0;
+      if(i > 0) C[i][j][curlayer] += C[i-1][j][prevlayer];
+      if(j > 0) C[i][j][curlayer] += C[i][j-1][prevlayer];
+      if(k > 0) C[i][j][curlayer] += C[i][j][prevlayer];
+      moments[m] /= C[i][j][curlayer]*(corder+1)*(corder+2)*(corder+3);
+    }
+    curlayer = 1 - curlayer;
+    prevlayer = 1 - prevlayer;
+  }
+}
+
 }  // end namespace r3d
 
 }  // end namespace osh
