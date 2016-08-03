@@ -159,7 +159,7 @@ void write_array(std::ostream& stream, Read<T> array) {
 #ifdef OSH_USE_ZLIB
   uLong source_bytes = static_cast<uLong>(uncompressed_bytes);
   uLong dest_bytes = ::compressBound(source_bytes);
-  Bytef* compressed = new Bytef[dest_bytes];
+  auto compressed = new Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
                         reinterpret_cast<const Bytef*>(uncompressed.data()),
                         source_bytes, Z_BEST_SPEED);
@@ -187,7 +187,7 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
     I64 compressed_bytes;
     read_value(stream, compressed_bytes);
     CHECK(compressed_bytes >= 0);
-    Bytef* compressed = new Bytef[compressed_bytes];
+    auto compressed = new Bytef[compressed_bytes];
     stream.read(reinterpret_cast<char*>(compressed), compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
