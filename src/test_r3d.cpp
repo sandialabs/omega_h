@@ -11,7 +11,7 @@ int main() {
               << "(" << faces[i].n[0] << "," << faces[i].n[1] << ","
               << faces[i].n[2] << ") * " << faces[i].d << '\n';
   }
-  osh::r3d::Poly<3> a;
+  osh::r3d::Polytope<3> a;
   osh::r3d::init_tet(&a, verts);
   std::cout << "tet nverts " << a.nverts << '\n';
 }

@@ -59,74 +59,120 @@ struct MaxVerts<3> {
  * \brief A polyhedron. Can be convex, nonconvex, even multiply-connected.
  */
 template <Int dim>
-struct Poly {
+struct Polytope {
   enum { max_verts = MaxVerts<dim>::value };
   Vertex<dim> verts[max_verts]; /*!< Vertex buffer. */
   Int nverts;                   /*!< Number of vertices in the buffer. */
 };
 
-OSH_INLINE Vector<3> wav(Vector<3> va, Real wa, Vector<3> vb, Real wb) {
-  Vector<3> vr;
-  for (Int i = 0; i < 3; ++i) vr[i] = (wa * va[i] + wb * vb[i]) / (wa + wb);
+template <Int dim>
+OSH_INLINE Vector<dim> wav(Vector<dim> va, Real wa, Vector<dim> vb, Real wb) {
+  Vector<dim> vr;
+  for (Int i = 0; i < dim; ++i) vr[i] = (wa * va[i] + wb * vb[i]) / (wa + wb);
   return vr;
 }
 
+/* This class encapsulates the code that was different
+ * between r3d_clip and r2d_clip
+ */
+
+template <Int dim>
+struct ClipHelper;
+
+template <>
+struct ClipHelper<3> {
+  static void relink(Int onv, Int* nverts, Vertex<3>* vertbuffer) {
+    for (auto vstart = onv; vstart < *nverts; ++vstart) {
+      auto vcur = vstart;
+      auto vnext = vertbuffer[vcur].pnbrs[0];
+      do {
+        Int np;
+        for (np = 0; np < 3; ++np)
+          if (vertbuffer[vnext].pnbrs[np] == vcur) break;
+        vcur = vnext;
+        auto pnext = (np + 1) % 3;
+        vnext = vertbuffer[vcur].pnbrs[pnext];
+      } while (vcur < onv);
+      vertbuffer[vstart].pnbrs[2] = vcur;
+      vertbuffer[vcur].pnbrs[1] = vstart;
+    }
+  }
+};
+
+template <>
+struct ClipHelper<2> {
+  static void relink(Int onv, Int* nverts, Vertex<2>* vertbuffer) {
+    for(auto vstart = onv; vstart < *nverts; ++vstart) {
+      if(vertbuffer[vstart].pnbrs[1] >= 0) continue;
+      auto vcur = vertbuffer[vstart].pnbrs[0];
+      do {
+        vcur = vertbuffer[vcur].pnbrs[0];
+      } while(vcur < onv);
+      vertbuffer[vstart].pnbrs[1] = vcur;
+      vertbuffer[vcur].pnbrs[0] = vstart;
+    }
+  }
+};
+
 /**
- * \brief Clip a polyhedron against an arbitrary number of clip planes.
+ * \brief Clip a polytope against an arbitrary number of clip planes (find its intersection with a set of half-spaces).
  *
  * \param [in, out] poly
- * The polyhedron to be clipped.
+ * The polygon to be clipped.
  *
  * \param [in] planes
- * An array of planes against which to clip this polyhedron.
+ * An array of planes against which to clip this polygon.
  *
  * \param[in] nplanes
  * The number of planes in the input array.
  *
  */
-OSH_INLINE void clip(Poly<3>* poly, Plane<3> planes[], Int nplanes) {
-  // direct access to vertex buffer
-  Vertex<3>* vertbuffer = poly->verts;
+template <Int dim>
+OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
   Int* nverts = &poly->nverts;
-  if (*nverts <= 0) return;
+  if(*nverts <= 0) return;
+
+  // direct access to vertex buffer
+  Vertex<dim>* vertbuffer = poly->verts;
 
   // variable declarations
-  Int v, p, np, onv, vcur, vnext, vstart, pnext, numunclipped;
+  Int v, p, np, onv, vstart, vcur, vnext, numunclipped;
 
   // signed distances to the clipping plane
-  Real sdists[Poly<3>::max_verts];
+  Real sdists[Polytope<2>::max_verts];
   Real smin, smax;
 
   // loop over each clip plane
-  for (p = 0; p < nplanes; ++p) {
+  for(p = 0; p < nplanes; ++p) {
     // calculate signed distances to the clip plane
     onv = *nverts;
     smin = ArithTraits<Real>::max();
     smax = ArithTraits<Real>::min();
 
     // for marking clipped vertices
-    Int clipped[Poly<3>::max_verts] = {};  // all initialized to zero
-    for (v = 0; v < onv; ++v) {
+    Int clipped[decltype(poly)::max_verts] = {};  // all initialized to zero
+    for(v = 0; v < onv; ++v) {
       sdists[v] = planes[p].d + (vertbuffer[v].pos * planes[p].n);
-      if (sdists[v] < smin) smin = sdists[v];
-      if (sdists[v] > smax) smax = sdists[v];
-      if (sdists[v] < 0.0) clipped[v] = 1;
+      if(sdists[v] < smin) smin = sdists[v];
+      if(sdists[v] > smax) smax = sdists[v];
+      if(sdists[v] < 0.0) clipped[v] = 1;
     }
 
     // skip this face if the poly lies entirely on one side of it
-    if (smin >= 0.0) continue;
-    if (smax <= 0.0) {
+    if(smin >= 0.0) continue;
+    if(smax <= 0.0) {
       *nverts = 0;
       return;
     }
 
     // check all edges and insert new vertices on the bisected edges
-    for (vcur = 0; vcur < onv; ++vcur) {
-      if (clipped[vcur]) continue;
-      for (np = 0; np < 3; ++np) {
+    for(vcur = 0; vcur < onv; ++vcur) {
+      if(clipped[vcur]) continue;
+      for(np = 0; np < dim; ++np) {
         vnext = vertbuffer[vcur].pnbrs[np];
-        if (!clipped[vnext]) continue;
-        vertbuffer[*nverts].pnbrs[0] = vcur;
+        if(!clipped[vnext]) continue;
+        vertbuffer[*nverts].pnbrs[1-np] = vcur;
+        vertbuffer[*nverts].pnbrs[np] = -1;
         vertbuffer[vcur].pnbrs[np] = *nverts;
         vertbuffer[*nverts].pos = wav(vertbuffer[vcur].pos, -sdists[vnext],
                                       vertbuffer[vnext].pos, sdists[vcur]);
@@ -134,34 +180,22 @@ OSH_INLINE void clip(Poly<3>* poly, Plane<3> planes[], Int nplanes) {
       }
     }
 
-    // for each new vert, search around the faces for its new neighbors
+    // for each new vert, search around the poly for its new neighbors
     // and doubly-link everything
-    for (vstart = onv; vstart < *nverts; ++vstart) {
-      vcur = vstart;
-      vnext = vertbuffer[vcur].pnbrs[0];
-      do {
-        for (np = 0; np < 3; ++np)
-          if (vertbuffer[vnext].pnbrs[np] == vcur) break;
-        vcur = vnext;
-        pnext = (np + 1) % 3;
-        vnext = vertbuffer[vcur].pnbrs[pnext];
-      } while (vcur < onv);
-      vertbuffer[vstart].pnbrs[2] = vcur;
-      vertbuffer[vcur].pnbrs[1] = vstart;
-    }
+    ClipHelper<dim>::relink(onv, nverts, vertbuffer);
 
     // go through and compress the vertex list, removing clipped verts
     // and re-indexing accordingly (reusing `clipped` to re-index everything)
     numunclipped = 0;
-    for (v = 0; v < *nverts; ++v) {
-      if (!clipped[v]) {
+    for(v = 0; v < *nverts; ++v) {
+      if(!clipped[v]) {
         vertbuffer[numunclipped] = vertbuffer[v];
         clipped[v] = numunclipped++;
       }
     }
     *nverts = numunclipped;
-    for (v = 0; v < *nverts; ++v)
-      for (np = 0; np < 3; ++np)
+    for(v = 0; v < *nverts; ++v)
+      for (np = 0; np < dim; ++np)
         vertbuffer[v].pnbrs[np] = clipped[vertbuffer[v].pnbrs[np]];
   }
 }
@@ -176,7 +210,7 @@ OSH_INLINE void clip(Poly<3>* poly, Plane<3> planes[], Int nplanes) {
  * An array of four vectors, giving the vertices of the tetrahedron.
  *
  */
-OSH_INLINE void init_tet(Poly<3>* poly, Vector<3>* verts) {
+OSH_INLINE void init_tet(Polytope<3>* poly, Vector<3>* verts) {
   // direct access to vertex buffer
   Vertex<3>* vertbuffer = poly->verts;
   Int* nverts = &poly->nverts;
@@ -228,9 +262,26 @@ OSH_INLINE void tet_faces_from_verts(Plane<3> faces[], Vector<3> verts[]) {
   faces[3] = tet_face_from_verts(verts[0], verts[1], verts[2]);
 }
 
-constexpr Int num_moments(Int order) {
+constexpr Int num_moments_3d(Int order) {
   return ((order+1)*(order+2)*(order+3)/6);
 }
+
+constexpr Int num_moments_2d(Int order) {
+  return ((order+1)*(order+2)/2);
+}
+
+template <Int dim, Int order>
+struct NumMoments;
+
+template <Int order>
+struct NumMoments<3, order> {
+  enum { value = num_moments_3d(order) };
+};
+
+template <Int order>
+struct NumMoments<2, order> {
+  enum { value = num_moments_2d(order) };
+};
 
 /**
  * \brief Integrate a polynomial density over a polyhedron using simplicial decomposition.
@@ -246,12 +297,12 @@ constexpr Int num_moments(Int order) {
  * \param [in, out] moments
  * Array to be filled with the integration results, up to the specified `polyorder`. Must be at
  * least `(polyorder+1)*(polyorder+2)*(polyorder+3)/6` long. A conventient macro,
- * `num_moments()` is provided to compute the number of moments for a given order.
+ * `num_moments_3d()` is provided to compute the number of moments for a given order.
  * Order of moments is row-major, i.e. `1`, `x`, `y`, `z`, `x^2`,
  * `x*y`, `x*z`, `y^2`, `y*z`, `z^2`, `x^3`, `x^2*y`...
  *
  */
-void reduce(Poly<3>* poly, Real* moments, Int polyorder) {
+void reduce(Polytope<3>* poly, Real* moments, Int polyorder) {
   // var declarations
   Real sixv;
   Int np, m, i, j, k, corder;
@@ -263,13 +314,13 @@ void reduce(Poly<3>* poly, Real* moments, Int polyorder) {
   Int* nverts = &poly->nverts;
 
   // zero the moments
-  for(m = 0; m < num_moments(polyorder); ++m)
+  for(m = 0; m < num_moments_3d(polyorder); ++m)
     moments[m] = 0.0;
 
   if(*nverts <= 0) return;
 
   // for keeping track of which edges have been visited
-  Int emarks[Poly<3>::max_verts][3] = {{}}; // initialized to zero
+  Int emarks[Polytope<3>::max_verts][3] = {{}}; // initialized to zero
 
   // Storage for coefficients
   // keep two layers of the pyramid of coefficients
@@ -377,6 +428,12 @@ void reduce(Poly<3>* poly, Real* moments, Int polyorder) {
     prevlayer = 1 - prevlayer;
   }
 }
+
+template <Int dim, Int order>
+struct Polynomial {
+  enum { nterms = NumMoments<dim, order>::value };
+  Real coeffs[nterms];
+};
 
 }  // end namespace r3d
 
