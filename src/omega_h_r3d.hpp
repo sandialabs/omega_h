@@ -23,6 +23,8 @@
 
 #include "omega_h_math.hpp"
 
+#include <iostream>
+
 namespace osh {
 
 namespace r3d {
@@ -97,6 +99,11 @@ struct ClipHelper<3> {
       vertbuffer[vcur].pnbrs[1] = vstart;
     }
   }
+  static void links_at_nverts(Int* nverts, Vertex<3>* vertbuffer, Int vcur,
+                              Int np) {
+    (void)np;
+    vertbuffer[*nverts].pnbrs[0] = vcur;
+  }
 };
 
 template <>
@@ -111,6 +118,11 @@ struct ClipHelper<2> {
       vertbuffer[vstart].pnbrs[1] = vcur;
       vertbuffer[vcur].pnbrs[0] = vstart;
     }
+  }
+  static void links_at_nverts(Int* nverts, Vertex<3>* vertbuffer, Int vcur,
+                              Int np) {
+    vertbuffer[*nverts].pnbrs[1-np] = vcur;
+    vertbuffer[*nverts].pnbrs[np] = -1;
   }
 };
 
@@ -172,8 +184,7 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
       for (np = 0; np < dim; ++np) {
         vnext = vertbuffer[vcur].pnbrs[np];
         if (!clipped[vnext]) continue;
-        vertbuffer[*nverts].pnbrs[1 - np] = vcur;
-        vertbuffer[*nverts].pnbrs[np] = -1;
+        ClipHelper<dim>::links_at_nverts(nverts, vertbuffer, vcur, np);
         vertbuffer[vcur].pnbrs[np] = *nverts;
         vertbuffer[*nverts].pos = wav(vertbuffer[vcur].pos, -sdists[vnext],
                                       vertbuffer[vnext].pos, sdists[vcur]);
