@@ -202,8 +202,8 @@ LOs invert_fan(LOs a2b) {
 template <typename Functor>
 static Read<typename Functor::input_type> fan_reduce_tmpl(
     LOs a2b, Read<typename Functor::input_type> b_data, Int width) {
-  typedef typename Functor::input_type T;
-  typedef typename Functor::value_type VT;
+  using T = typename Functor::input_type;
+  using VT = typename Functor::value_type;
   CHECK(a2b.last() * width == b_data.size());
   auto na = a2b.size() - 1;
   Write<T> a_data(na * width);
