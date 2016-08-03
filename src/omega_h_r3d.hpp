@@ -151,7 +151,7 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
     smax = ArithTraits<Real>::min();
 
     // for marking clipped vertices
-    Int clipped[decltype(poly)::max_verts] = {};  // all initialized to zero
+    Int clipped[MaxVerts<dim>::value] = {};  // all initialized to zero
     for (v = 0; v < onv; ++v) {
       sdists[v] = planes[p].d + (vertbuffer[v].pos * planes[p].n);
       if (sdists[v] < smin) smin = sdists[v];
