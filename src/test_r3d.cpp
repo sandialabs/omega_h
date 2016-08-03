@@ -14,4 +14,13 @@ int main() {
   osh::r3d::Polytope<3> a;
   osh::r3d::init_tet(&a, verts);
   std::cout << "tet nverts " << a.nverts << '\n';
+  constexpr osh::Int nplanes = 1;
+  osh::r3d::Plane<3> planes[nplanes] = {
+    {{1,0,0},-1}
+  };
+  osh::r3d::clip(&a, planes, nplanes);
+  std::cout << "after clipping, nverts = " << a.nverts << '\n';
+  auto volume = osh::r3d::integrate(&a,
+      osh::r3d::Polynomial<3,0>{{1}});
+  std::cout << " and volume = " << volume << '\n';
 }
