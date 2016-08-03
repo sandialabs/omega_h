@@ -140,7 +140,7 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
 #ifdef OSH_USE_ZLIB
   uLong source_bytes = uncompressed_bytes;
   uLong dest_bytes = ::compressBound(source_bytes);
-  Bytef* compressed = new Bytef[dest_bytes];
+  auto compressed = new Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
                         reinterpret_cast<const Bytef*>(uncompressed.data()),
                         source_bytes, Z_BEST_SPEED);
@@ -193,7 +193,7 @@ Read<T> read_array(std::istream& stream, LO size, bool is_little_endian,
   HostWrite<T> uncompressed(size);
 #ifdef OSH_USE_ZLIB
   if (is_compressed) {
-    Bytef* compressed = new Bytef[compressed_bytes];
+    auto compressed = new Bytef[compressed_bytes];
     base64::decode(encoded, compressed, compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
