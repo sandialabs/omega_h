@@ -263,7 +263,7 @@ static void read_meta(std::istream& stream, Mesh* mesh) {
   if (have_hints) {
     I32 naxes;
     read_value(stream, naxes);
-    auto hints = Mesh::RibPtr(new inertia::Rib());
+    auto hints = std::make_shared<inertia::Rib>();
     for (I32 i = 0; i < naxes; ++i) {
       Vector<3> axis;
       for (Int j = 0; j < 3; ++j) read_value(stream, axis[j]);
