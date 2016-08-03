@@ -436,7 +436,7 @@ class Mesh {
  public:
   void add_coords(Reals array);
   Reals coords() const;
-  void set_coords(Reals array);
+  void set_coords(Reals const& array);
   Read<GO> ask_globals(Int dim);
   void reset_globals();
   Reals ask_lengths();

@@ -350,7 +350,7 @@ void Mesh::add_coords(Reals array) {
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
 
-void Mesh::set_coords(Reals array) {
+void Mesh::set_coords(Reals const& array) {
   CHECK(array.size() == nverts() * dim());
   set_tag<Real>(VERT, "coordinates", array);
 }
