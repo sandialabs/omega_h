@@ -8,7 +8,7 @@ namespace osh {
 
 template <Int dim>
 struct BBoxFunctor {
-  typedef BBox<dim> value_type;
+  using value_type = BBox<dim>;
   Reals coords_;
   BBoxFunctor(Reals coords) : coords_(coords) {}
   INLINE void init(value_type& update) const {
