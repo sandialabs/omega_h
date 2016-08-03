@@ -5,9 +5,9 @@
 
 #define NORETURN(x) \
   do {              \
-    assert(0);      \
+    assert(false);      \
     return x;       \
-  } while (0)
+  } while (false)
 
 #ifdef OSH_USE_CUDA
 #define CONSTANT __constant__
