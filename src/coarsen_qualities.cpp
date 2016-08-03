@@ -44,6 +44,7 @@ static Reals coarsen_qualities_tmpl(Mesh* mesh, LOs cands2edges,
           }
         }
         if (will_die) continue;
+        CHECK(0 <= ccv_col && ccv_col < dim + 1);
         ccv2v[ccv_col] = v_onto;  // vertices of new cell
         auto qual = measure.measure(ccv2v);
         minqual = min2(minqual, qual);
