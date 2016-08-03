@@ -1,6 +1,6 @@
 #include "protect.hpp"
 
-#include <signal.h>
+#include <csignal>
 #include <cstdio>
 
 #include "stacktrace.hpp"
