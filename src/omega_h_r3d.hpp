@@ -302,7 +302,11 @@ struct NumMoments<2, order> {
  * `x*y`, `x*z`, `y^2`, `y*z`, `z^2`, `x^3`, `x^2*y`...
  *
  */
+
 void reduce(Polytope<3>* poly, Real* moments, Int polyorder) {
+  Int* nverts = &poly->nverts;
+  if(*nverts <= 0) return;
+
   // var declarations
   Real sixv;
   Int np, m, i, j, k, corder;
@@ -311,13 +315,10 @@ void reduce(Polytope<3>* poly, Real* moments, Int polyorder) {
 
   // direct access to vertex buffer
   Vertex<3>* vertbuffer = poly->verts;
-  Int* nverts = &poly->nverts;
 
   // zero the moments
   for(m = 0; m < num_moments_3d(polyorder); ++m)
     moments[m] = 0.0;
-
-  if(*nverts <= 0) return;
 
   // for keeping track of which edges have been visited
   Int emarks[Polytope<3>::max_verts][3] = {{}}; // initialized to zero
@@ -423,6 +424,101 @@ void reduce(Polytope<3>* poly, Real* moments, Int polyorder) {
       if(j > 0) C[i][j][curlayer] += C[i][j-1][prevlayer];
       if(k > 0) C[i][j][curlayer] += C[i][j][prevlayer];
       moments[m] /= C[i][j][curlayer]*(corder+1)*(corder+2)*(corder+3);
+    }
+    curlayer = 1 - curlayer;
+    prevlayer = 1 - prevlayer;
+  }
+}
+
+/**
+ * \brief Integrate a polynomial density over a polygon using simplicial decomposition.
+ * Uses the fast recursive method of Koehl (2012) to carry out the integration.
+ *
+ * \param [in] poly
+ * The polygon over which to integrate.
+ *
+ * \param [in] polyorder
+ * Order of the polynomial density field. 0 for constant (1 moment), 1 for linear
+ * (4 moments), 2 for quadratic (10 moments), etc.
+ *
+ * \param [in, out] moments
+ * Array to be filled with the integration results, up to the specified `polyorder`. Must be at
+ * least `(polyorder+1)*(polyorder+2)/2` long. A conventient macro,
+ * `R2D_NUM_MOMENTS()` is provided to compute the number of moments for a given order.
+ * Order of moments is row-major, i.e. `1`, `x`, `y`, `x^2`, `x*y`, `y^2`, `x^3`, `x^2*y`...
+ *
+ */
+OSH_INLINE void reduce(Polytope<2>* poly, Real* moments, Int polyorder) {
+  Int* nverts = &poly->nverts;
+  if(*nverts <= 0) return;
+
+  // var declarations
+  Int vcur, vnext, m, i, j, corder;
+  Real twoa;
+  Vector<2> v0, v1;
+
+  // direct access to vertex buffer
+  Vertex<2>* vertbuffer = poly->verts;
+
+  // zero the moments
+  for(m = 0; m < num_moments_2d(polyorder); ++m)
+    moments[m] = 0.0;
+
+  // Storage for coefficients
+  // keep two layers of the triangle of coefficients
+  Int prevlayer = 0;
+  Int curlayer = 1;
+  Real D[polyorder+1][2];
+  Real C[polyorder+1][2];
+
+  // iterate over edges and compute a sum over simplices
+  for(vcur = 0; vcur < *nverts; ++vcur) {
+
+    vnext = vertbuffer[vcur].pnbrs[0];
+    v0 = vertbuffer[vcur].pos;
+    v1 = vertbuffer[vnext].pos;
+    twoa = (v0[0]*v1[1] - v0[1]*v1[0]);
+
+    // calculate the moments
+    // using the fast recursive method of Koehl (2012)
+    // essentially building a set of Pascal's triangles, one layer at a time
+
+    // base case
+    D[0][prevlayer] = 1.0;
+    C[0][prevlayer] = 1.0;
+    moments[0] += 0.5*twoa;
+
+    // build up successive polynomial orders
+    for(corder = 1, m = 1; corder <= polyorder; ++corder) {
+      for(i = corder; i >= 0; --i, ++m) {
+        j = corder - i;
+        C[i][curlayer] = 0;
+        D[i][curlayer] = 0;
+        if(i > 0) {
+          C[i][curlayer] += v1[0]*C[i-1][prevlayer];
+          D[i][curlayer] += v0[0]*D[i-1][prevlayer];
+        }
+        if(j > 0) {
+          C[i][curlayer] += v1[1]*C[i][prevlayer];
+          D[i][curlayer] += v0[1]*D[i][prevlayer];
+        }
+        D[i][curlayer] += C[i][curlayer];
+        moments[m] += twoa*D[i][curlayer];
+      }
+      curlayer = 1 - curlayer;
+      prevlayer = 1 - prevlayer;
+    }
+  }
+
+  // reuse C to recursively compute the leading multinomial coefficients
+  C[0][prevlayer] = 1.0;
+  for(corder = 1, m = 1; corder <= polyorder; ++corder) {
+    for(i = corder; i >= 0; --i, ++m) {
+      j = corder - i;
+      C[i][curlayer] = 0.0;
+      if(i > 0) C[i][curlayer] += C[i-1][prevlayer];
+      if(j > 0) C[i][curlayer] += C[i][prevlayer];
+      moments[m] /= C[i][curlayer]*(corder+1)*(corder+2);
     }
     curlayer = 1 - curlayer;
     prevlayer = 1 - prevlayer;
