@@ -136,7 +136,7 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
   Vertex<dim>* vertbuffer = poly->verts;
 
   // variable declarations
-  Int v, p, np, onv, vstart, vcur, vnext, numunclipped;
+  Int v, p, np, onv, vcur, vnext, numunclipped;
 
   // signed distances to the clipping plane
   Real sdists[Polytope<2>::max_verts];
