@@ -205,6 +205,14 @@ OSH_INLINE void norm(Vector<3>& v) {
   v = osh::normalize(v);
 }
 
+OSH_INLINE Plane<3> tet_face_from_verts(
+    Vector<3> a, Vector<3> b, Vector<3> c) {
+  auto center = ONE_THIRD*(a + b + c);
+  auto normal = normalize(cross((b - a), (c - a)));
+  auto d = -(normal * center);
+  return Plane<3>{ normal, d };
+}
+
 /**
  * \brief Get four faces (unit normals and distances to the origin)
  * from a four-vertex description of a tetrahedron.
@@ -217,82 +225,10 @@ OSH_INLINE void norm(Vector<3>& v) {
  *
  */
 OSH_INLINE void tet_faces_from_verts(Plane<3> faces[], Vector<3> verts[]) {
-  Vector<3> tmpcent;
-  faces[0].n[0] = ((verts[3][1] - verts[1][1])*(verts[2][2] - verts[1][2])
-      - (verts[2][1] - verts[1][1])*(verts[3][2] - verts[1][2]));
-  faces[0].n[1] = ((verts[2][0] - verts[1][0])*(verts[3][2] - verts[1][2])
-      - (verts[3][0] - verts[1][0])*(verts[2][2] - verts[1][2]));
-  faces[0].n[2] = ((verts[3][0] - verts[1][0])*(verts[2][1] - verts[1][1])
-      - (verts[2][0] - verts[1][0])*(verts[3][1] - verts[1][1]));
-  r3d::norm(faces[0].n);
-  tmpcent[0] = ONE_THIRD*(verts[1][0] + verts[2][0] + verts[3][0]);
-  tmpcent[1] = ONE_THIRD*(verts[1][1] + verts[2][1] + verts[3][1]);
-  tmpcent[2] = ONE_THIRD*(verts[1][2] + verts[2][2] + verts[3][2]);
-  faces[0].d = -(faces[0].n * tmpcent);
-
-  faces[1].n[0] = ((verts[2][1] - verts[0][1])*(verts[3][2] - verts[2][2])
-      - (verts[2][1] - verts[3][1])*(verts[0][2] - verts[2][2]));
-  faces[1].n[1] = ((verts[3][0] - verts[2][0])*(verts[2][2] - verts[0][2])
-      - (verts[0][0] - verts[2][0])*(verts[2][2] - verts[3][2]));
-  faces[1].n[2] = ((verts[2][0] - verts[0][0])*(verts[3][1] - verts[2][1])
-      - (verts[2][0] - verts[3][0])*(verts[0][1] - verts[2][1]));
-  r3d::norm(faces[1].n);
-  tmpcent[0] = ONE_THIRD*(verts[2][0] + verts[3][0] + verts[0][0]);
-  tmpcent[1] = ONE_THIRD*(verts[2][1] + verts[3][1] + verts[0][1]);
-  tmpcent[2] = ONE_THIRD*(verts[2][2] + verts[3][2] + verts[0][2]);
-  faces[1].d = -(faces[1].n * tmpcent);
-
-  faces[2].n[0] = ((verts[1][1] - verts[3][1])*(verts[0][2] - verts[3][2])
-      - (verts[0][1] - verts[3][1])*(verts[1][2] - verts[3][2]));
-  faces[2].n[1] = ((verts[0][0] - verts[3][0])*(verts[1][2] - verts[3][2])
-      - (verts[1][0] - verts[3][0])*(verts[0][2] - verts[3][2]));
-  faces[2].n[2] = ((verts[1][0] - verts[3][0])*(verts[0][1] - verts[3][1])
-      - (verts[0][0] - verts[3][0])*(verts[1][1] - verts[3][1]));
-  r3d::norm(faces[2].n);
-  tmpcent[0] = ONE_THIRD*(verts[3][0] + verts[0][0] + verts[1][0]);
-  tmpcent[1] = ONE_THIRD*(verts[3][1] + verts[0][1] + verts[1][1]);
-  tmpcent[2] = ONE_THIRD*(verts[3][2] + verts[0][2] + verts[1][2]);
-  faces[2].d = -(faces[2].n * tmpcent);
-
-  faces[3].n[0] = ((verts[0][1] - verts[2][1])*(verts[1][2] - verts[0][2])
-      - (verts[0][1] - verts[1][1])*(verts[2][2] - verts[0][2]));
-  faces[3].n[1] = ((verts[1][0] - verts[0][0])*(verts[0][2] - verts[2][2])
-      - (verts[2][0] - verts[0][0])*(verts[0][2] - verts[1][2]));
-  faces[3].n[2] = ((verts[0][0] - verts[2][0])*(verts[1][1] - verts[0][1])
-      - (verts[0][0] - verts[1][0])*(verts[2][1] - verts[0][1]));
-  r3d::norm(faces[3].n);
-  tmpcent[0] = ONE_THIRD*(verts[0][0] + verts[1][0] + verts[2][0]);
-  tmpcent[1] = ONE_THIRD*(verts[0][1] + verts[1][1] + verts[2][1]);
-  tmpcent[2] = ONE_THIRD*(verts[0][2] + verts[1][2] + verts[2][2]);
-  faces[3].d = -(faces[3].n * tmpcent);
-}
-
-/**
- * \brief Get the signed volume of the tetrahedron defined by the input vertices.
- *
- * \param [in] verts
- * Four vertices defining a tetrahedron from which to calculate a volume.
- *
- * \return
- * The signed volume of the input tetrahedron.
- *
- */
-OSH_INLINE Real orient(Vector<3>* verts) {
-  Real adx, bdx, cdx;
-  Real ady, bdy, cdy;
-  Real adz, bdz, cdz;
-  adx = verts[0][0] - verts[3][0];
-  bdx = verts[1][0] - verts[3][0];
-  cdx = verts[2][0] - verts[3][0];
-  ady = verts[0][1] - verts[3][1];
-  bdy = verts[1][1] - verts[3][1];
-  cdy = verts[2][1] - verts[3][1];
-  adz = verts[0][2] - verts[3][2];
-  bdz = verts[1][2] - verts[3][2];
-  cdz = verts[2][2] - verts[3][2];
-  return -ONE_SIXTH*(adx * (bdy * cdz - bdz * cdy)
-      + bdx * (cdy * adz - cdz * ady)
-      + cdx * (ady * bdz - adz * bdy));
+  faces[0] = tet_faces_from_verts(verts[1], verts[2], verts[3]);
+  faces[1] = tet_faces_from_verts(verts[0], verts[3], verts[2]);
+  faces[2] = tet_faces_from_verts(verts[0], verts[1], verts[3]);
+  faces[3] = tet_faces_from_verts(verts[0], verts[2], verts[1]);
 }
 
 }  // end namespace r3d
