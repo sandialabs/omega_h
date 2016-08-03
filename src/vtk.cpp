@@ -730,14 +730,9 @@ Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim)
   }
 }
 
-Writer::Writer(Writer const& other)
-    : mesh_(other.mesh_),
-      root_path_(other.root_path_),
-      cell_dim_(other.cell_dim_),
-      step_(other.step_),
-      pvd_pos_(other.pvd_pos_) {}
+Writer::Writer(Writer const&) = default;
 
-Writer::~Writer() {}
+Writer::~Writer() = default;
 
 void Writer::write(Real time) {
   write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_);
@@ -758,7 +753,7 @@ FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
     writers_.push_back(Writer(mesh, root_path + "/" + plural_names[i], i));
 }
 
-FullWriter::~FullWriter() {}
+FullWriter::~FullWriter() = default;
 
 void FullWriter::write(Real time) {
   for (auto& writer : writers_) writer.write(time);
