@@ -82,12 +82,8 @@ Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
 }  // end anonymous namespace
 
 Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
-  switch (mesh->dim()) {
-    case 3:
-      return get_triangle_normals(mesh, surf_side2side);
-    case 2:
-      return get_edge_normals(mesh, surf_side2side);
-  }
+  if (mesh->dim() == 3) return get_triangle_normals(mesh, surf_side2side);
+  if (mesh->dim() == 2) return get_edge_normals(mesh, surf_side2side);
   NORETURN(Reals());
 }
 

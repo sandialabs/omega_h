@@ -4,10 +4,7 @@
 #include "omega_h.hpp"
 
 #ifdef __clang__
-#define NORETURN(x) \
-  do {              \
-    assert(false);  \
-  } while (false)
+#define NORETURN(x) assert(false)
 #else
 #define NORETURN(x) \
   do {              \
