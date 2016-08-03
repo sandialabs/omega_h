@@ -12,24 +12,6 @@ INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
   return o;
 }
 
-INLINE Matrix<3, 3> matrix_3x3(Real a, Real b, Real c, Real d, Real e, Real f,
-                               Real g, Real h, Real i) {
-  Matrix<3, 3> o;
-  o[0] = vector_3(a, d, g);
-  o[1] = vector_3(b, e, h);
-  o[2] = vector_3(c, f, i);
-  return o;
-}
-
-INLINE Matrix<3, 3> cross(Vector<3> a) {
-  return matrix_3x3(0, -a[2], a[1], a[2], 0, -a[0], -a[1], a[0], 0);
-}
-
-INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
-  return vector_3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
-                  a[0] * b[1] - a[1] * b[0]);
-}
-
 INLINE Real cross(Vector<2> a, Vector<2> b) {
   return (a[0] * b[1] - a[1] * b[0]);
 }
