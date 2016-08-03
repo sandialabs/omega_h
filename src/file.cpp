@@ -431,7 +431,7 @@ void write(std::string const& path, Mesh* mesh) {
   if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
     std::cout
         << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
-    std::cout << R"(instead of just ")" << path << "\"\n";
+    std::cout << "instead of just \"" << path << "\"\n";
   }
   safe_mkdir(path.c_str());
   mesh->comm()->barrier();
