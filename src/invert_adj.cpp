@@ -56,7 +56,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
       LO h = hl / nlows_per_high;
       lh2h[lh] = h;
       Int which_down = hl % nlows_per_high;
-      codes[lh] = make_code(0, 0, which_down);
+      codes[lh] = make_code(false, 0, which_down);
     };
     parallel_for(nlh, f);
   }
