@@ -1,5 +1,5 @@
 ---
-Checks:          'clang-analyzer*,modernize*,performance*,-performance-unnecessary-value-param'
+Checks:          'clang-analyzer*,modernize*,performance*,-performance-unnecessary-value-param,-modernize-pass-by-value'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
