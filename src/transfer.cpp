@@ -15,7 +15,7 @@ static void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
                             LOs same_ents2old_ents, LOs same_ents2new_ents,
                             LOs prods2new_ents, TagBase const* tagbase,
                             Read<T> prod_data) {
-  auto name = tagbase->name();
+  auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
@@ -610,7 +610,7 @@ template <typename T>
 static void transfer_copy_tmpl(Mesh* new_mesh, Int prod_dim,
                                TagBase const* tagbase) {
   auto old_tag = to<T>(tagbase);
-  auto name = old_tag->name();
+  auto const& name = old_tag->name();
   auto ncomps = old_tag->ncomps();
   auto xfer = old_tag->xfer();
   auto old_data = old_tag->array();
@@ -646,7 +646,7 @@ static void transfer_inherit_swap_tmpl(Mesh* old_mesh, Mesh* new_mesh,
                                        LOs same_ents2old_ents,
                                        LOs same_ents2new_ents,
                                        TagBase const* tagbase) {
-  auto name = tagbase->name();
+  auto const& name = tagbase->name();
   auto old_tag = old_mesh->get_tag<T>(EDGE, name);
   auto ncomps = old_tag->ncomps();
   auto edge_data = old_tag->array();
