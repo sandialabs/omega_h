@@ -119,7 +119,7 @@ osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       auto const& name = tag->name();
       if (!b->has_tag(dim, name)) {
         if (should_print) {
-          std::cout << singular_names[dim] << R"( tag ")" << name
+          std::cout << singular_names[dim] << " tag \"" << name
                     << "\" exists in first mesh but not second\n";
         }
         result = OSH_DIFF;
@@ -151,7 +151,7 @@ osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       }
       if (!ok) {
         if (should_print) {
-          std::cout << singular_names[dim] << R"( tag ")" << name
+          std::cout << singular_names[dim] << " tag \"" << name
                     << "\" values are different\n";
         }
         result = OSH_DIFF;
@@ -161,7 +161,7 @@ osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
       auto tag = b->get_tag(dim, i);
       if (!a->has_tag(dim, tag->name())) {
         if (should_print) {
-          std::cout << singular_names[dim] << R"( tag ")" << tag->name()
+          std::cout << singular_names[dim] << " tag \"" << tag->name()
                     << "\" exists in second mesh but not in first\n";
         }
         if (result == OSH_SAME) {
