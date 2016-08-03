@@ -3,11 +3,18 @@
 
 #include "omega_h.hpp"
 
+#ifdef __clang__
+#define NORETURN(x) \
+  do {              \
+    assert(false);      \
+  } while (false)
+#else
 #define NORETURN(x) \
   do {              \
     assert(false);      \
     return x;       \
   } while (false)
+#endif
 
 #ifdef OSH_USE_CUDA
 #define CONSTANT __constant__
