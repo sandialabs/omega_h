@@ -290,7 +290,7 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
     }
     CHECK(adj.a2ab.size() == nents(from) + 1);
   }
-  adjs_[from][to] = AdjPtr(new Adj(adj));
+  adjs_[from][to] = std::make_shared<Adj>(adj);
 }
 
 Adj Mesh::derive_adj(Int from, Int to) {
@@ -340,7 +340,7 @@ Adj Mesh::ask_adj(Int from, Int to) {
     return get_adj(from, to);
   }
   Adj derived = derive_adj(from, to);
-  adjs_[from][to] = AdjPtr(new Adj(derived));
+  adjs_[from][to] = std::make_shared<Adj>(derived);
   return derived;
 }
 
@@ -414,7 +414,7 @@ Dist Mesh::ask_dist(Int dim) {
     auto owners = ask_owners(dim);
     CHECK(owners.ranks.exists());
     CHECK(owners.idxs.exists());
-    dists_[dim] = DistPtr(new Dist(comm_, owners, nents(dim)));
+    dists_[dim] = std::make_shared<Dist>(comm_, owners, nents(dim));
   }
   return *(dists_[dim]);
 }
@@ -463,7 +463,7 @@ void Mesh::balance() {
   auto total = comm_->allreduce(GO(nelems()), OSH_SUM);
   auto avg = Real(total) / Real(comm_->size());
   hints = recursively_bisect(comm(), ecoords, masses, owners, 2.0 / avg, hints);
-  rib_hints_ = RibPtr(new inertia::Rib(hints));
+  rib_hints_ = std::make_shared<inertia::Rib>(hints);
   migrate(owners);
 }
 
