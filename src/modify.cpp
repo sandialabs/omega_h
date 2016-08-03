@@ -70,7 +70,7 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto same_own_idxs = same_owners.idxs;
   auto nprods = prods2new_ents.size();
   auto prod_own_ranks = Read<I32>(nprods, new_mesh->comm()->rank());
-  auto prod_own_idxs = prods2new_ents;
+  auto& prod_own_idxs = prods2new_ents;
   auto nsame_ents = same_ents2old_ents.size();
   auto nnew_ents = nsame_ents + nprods;
   Write<I32> new_own_ranks(nnew_ents);
