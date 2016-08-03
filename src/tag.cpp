@@ -5,7 +5,7 @@ namespace osh {
 TagBase::TagBase(std::string const& name, Int ncomps, Int xfer)
     : name_(name), ncomps_(ncomps), xfer_(xfer) {}
 
-TagBase::~TagBase() {}
+TagBase::~TagBase() = default;
 
 std::string const& TagBase::name() const { return name_; }
 
