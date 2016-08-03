@@ -1,3 +1,6 @@
+#ifndef PARALLEL_STABLE_SORT_HPP
+#define PARALLEL_STABLE_SORT_HPP
+
 /*
   Copyright (C) 2014 Intel Corporation
   All rights reserved.
@@ -29,6 +32,8 @@
   WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 */
+
+#include "pss_common.hpp"
 
 namespace pss {
 
@@ -111,3 +116,5 @@ void parallel_stable_sort(RandomAccessIterator xs, RandomAccessIterator xe,
 }
 
 } // namespace pss
+
+#endif

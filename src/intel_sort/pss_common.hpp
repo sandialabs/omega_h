@@ -1,3 +1,6 @@
+#ifndef PSS_COMMON_HPP
+#define PSS_COMMON_HPP
+
 /*
   Copyright (C) 2014 Intel Corporation
   All rights reserved.
@@ -114,3 +117,5 @@ void parallel_stable_sort(RandomAccessIterator xs, RandomAccessIterator xe) {
 }
 
 } // namespace pss
+
+#endif
