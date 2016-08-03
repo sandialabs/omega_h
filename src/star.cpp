@@ -13,7 +13,7 @@ Graph verts_across_edges(Adj e2v, Adj v2e) {
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   auto v2ve_codes = v2e.codes;
-  auto v2vv = v2ve;
+  auto& v2vv = v2ve;
   Write<LO> vv2v(ve2e.size());
   auto f = LAMBDA(LO ve) {
     auto vv = ve;
@@ -64,7 +64,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   auto er2r = e2r.ab2b;
   auto e2er_codes = e2r.codes;
   auto ne = e2er.size() - 1;
-  auto e2ee = e2er;
+  auto& e2ee = e2er;
   Write<LO> ee2e(er2r.size());
   auto f = LAMBDA(LO e) {
     auto er_begin = e2er[e];
