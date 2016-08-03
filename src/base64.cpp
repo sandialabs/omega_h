@@ -8,11 +8,11 @@ namespace base64 {
 
 namespace {
 
-char const* const value_to_char =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "+/";
+char const value_to_char[] = {
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    '+', '/'};
 
 unsigned char const char_to_value[256] = {
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -132,7 +132,7 @@ void decode(std::string const& text, void* data, std::size_t size) {
 
 std::string read_encoded(std::istream& f) {
   std::string out;
-  while (1) {
+  while (true) {
     int c = f.get();
     if (c < 0 || c > 127) break;
     unsigned char val = char_to_value[c];
