@@ -16,7 +16,7 @@ int main() {
   std::cout << "tet nverts " << a.nverts << '\n';
   constexpr osh::Int nplanes = 1;
   osh::r3d::Plane<3> planes[nplanes] = {
-    {{1,0,0},-1}
+    {{1,0,0},-0.5}
   };
   osh::r3d::clip(&a, planes, nplanes);
   std::cout << "after clipping, nverts = " << a.nverts << '\n';
