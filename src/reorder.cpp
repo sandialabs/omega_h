@@ -42,7 +42,9 @@ LOs ent_order_from_vert_order(Mesh* mesh, Int ent_dim,
 void reorder_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_verts2old_verts) {
   LOs new_ents2old_ents[4];
   new_ents2old_ents[VERT] = new_verts2old_verts;
-  for (Int ent_dim = 1; ent_dim <= old_mesh->dim(); ++ent_dim) {
+  auto mesh_dim = old_mesh->dim();
+  CHECK(mesh_dim <= 3);
+  for (Int ent_dim = 1; ent_dim <= mesh_dim; ++ent_dim) {
     new_ents2old_ents[ent_dim] =
         ent_order_from_vert_order(old_mesh, ent_dim, new_verts2old_verts);
   }
