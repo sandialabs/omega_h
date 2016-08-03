@@ -118,7 +118,7 @@ bool Write<T>::exists() const {
 
 template <typename T>
 struct Sum : public SumFunctor<T> {
-  typedef typename SumFunctor<T>::value_type value_type;
+  using typename SumFunctor<T>::value_type;
   Read<T> a_;
   Sum(Read<T> a) : a_(a) {}
   DEVICE void operator()(LO i, value_type& update) const {
@@ -133,7 +133,7 @@ typename StandinTraits<T>::type sum(Read<T> a) {
 
 template <typename T>
 struct Min : public MinFunctor<T> {
-  typedef typename MinFunctor<T>::value_type value_type;
+  using typename MinFunctor<T>::value_type;
   Read<T> a_;
   Min(Read<T> a) : a_(a) {}
   DEVICE void operator()(LO i, value_type& update) const {
@@ -149,7 +149,7 @@ T min(Read<T> a) {
 
 template <typename T>
 struct Max : public MaxFunctor<T> {
-  typedef typename MaxFunctor<T>::value_type value_type;
+  using typename MaxFunctor<T>::value_type;
   Read<T> a_;
   Max(Read<T> a) : a_(a) {}
   DEVICE void operator()(LO i, value_type& update) const {
