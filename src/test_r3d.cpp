@@ -39,6 +39,12 @@ static void test_2d() {
   OSH_CHECK(osh::are_close(faces[1].d, -faces[1].n[0]));
   OSH_CHECK(osh::are_close(faces[2].n, osh::vector_2(1, 0)));
   OSH_CHECK(osh::are_close(faces[2].d, 0));
+  auto a = osh::r3d::init(verts);
+  OSH_CHECK(a.nverts == 3);
+  auto b = osh::r3d::clip(a, osh::Few<osh::r3d::Plane<2>, 1>({{{1, 0}, -0.5}}));
+  OSH_CHECK(b.nverts == 3);
+  auto area = osh::r3d::measure(b);
+  OSH_CHECK(osh::are_close(area, osh::square(0.5) / 2.0));
 }
 
 int main() {

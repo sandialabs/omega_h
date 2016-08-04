@@ -117,7 +117,7 @@ struct ClipHelper<2> {
       vertbuffer[vcur].pnbrs[0] = vstart;
     }
   }
-  static void links_at_nverts(Int* nverts, Vertex<3>* vertbuffer, Int vcur,
+  static void links_at_nverts(Int* nverts, Vertex<2>* vertbuffer, Int vcur,
                               Int np) {
     vertbuffer[*nverts].pnbrs[1 - np] = vcur;
     vertbuffer[*nverts].pnbrs[np] = -1;
