@@ -27,9 +27,10 @@ static void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->add_tag(ent_dim, name, ncomps, xfer, Read<T>(new_data));
 }
 
-static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
-                            LOs keys2midverts, LOs same_verts2old_verts,
-                            LOs same_verts2new_verts) {
+static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
+                                   LOs keys2edges, LOs keys2midverts,
+                                   LOs same_verts2old_verts,
+                                   LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (tagbase->xfer() == OSH_LINEAR_INTERP) {
@@ -44,8 +45,8 @@ static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edge
 }
 
 static void transfer_metric(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
-                     LOs keys2midverts, LOs same_verts2old_verts,
-                     LOs same_verts2new_verts) {
+                            LOs keys2midverts, LOs same_verts2old_verts,
+                            LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (tagbase->xfer() == OSH_METRIC) {
@@ -118,9 +119,11 @@ static void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh,
                   Read<T>(prod_data));
 }
 
-static void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
-                             Int prod_dim, LOs keys2prods, LOs prods2new_ents,
-                             LOs same_ents2old_ents, LOs same_ents2new_ents) {
+static void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh,
+                                    LOs keys2edges, Int prod_dim,
+                                    LOs keys2prods, LOs prods2new_ents,
+                                    LOs same_ents2old_ents,
+                                    LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if (tagbase->xfer() == OSH_INHERIT) {
@@ -170,8 +173,9 @@ static void transfer_pointwise_refine(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
-                     LOs same_ents2new_ents, LOs prods2new_ents) {
+static void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
+                            LOs same_ents2old_ents, LOs same_ents2new_ents,
+                            LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
     if (tagbase->xfer() == OSH_LENGTH) {
@@ -182,8 +186,9 @@ static void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_en
   }
 }
 
-static void transfer_quality(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
-                      LOs same_ents2new_ents, LOs prods2new_ents) {
+static void transfer_quality(Mesh* old_mesh, Mesh* new_mesh,
+                             LOs same_ents2old_ents, LOs same_ents2new_ents,
+                             LOs prods2new_ents) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
@@ -337,7 +342,8 @@ static void transfer_no_products_tmpl(Mesh* old_mesh, Mesh* new_mesh,
 }
 
 static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
-                          LOs same_ents2old_ents, LOs same_ents2new_ents) {
+                                 LOs same_ents2old_ents,
+                                 LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if ((tagbase->xfer() == OSH_INHERIT) ||
@@ -418,8 +424,8 @@ static void transfer_conserve_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 }
 
 static void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-                       LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-                       LOs same_ents2old_ents, LOs same_ents2new_ents) {
+                              LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
+                              LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
@@ -657,8 +663,9 @@ static void transfer_inherit_swap_tmpl(Mesh* old_mesh, Mesh* new_mesh,
 }
 
 static void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
-                           LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
-                           LOs same_ents2old_ents, LOs same_ents2new_ents) {
+                                  LOs keys2edges, LOs keys2prods,
+                                  LOs prods2new_ents, LOs same_ents2old_ents,
+                                  LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if (tagbase->xfer() == OSH_INHERIT) {

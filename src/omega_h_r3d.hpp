@@ -119,7 +119,7 @@ struct ClipHelper<2> {
   }
   static void links_at_nverts(Int* nverts, Vertex<3>* vertbuffer, Int vcur,
                               Int np) {
-    vertbuffer[*nverts].pnbrs[1-np] = vcur;
+    vertbuffer[*nverts].pnbrs[1 - np] = vcur;
     vertbuffer[*nverts].pnbrs[np] = -1;
   }
 };
@@ -211,7 +211,8 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
 }
 
 template <Int dim, Int nplanes>
-OSH_INLINE Polytope<dim> clip(Polytope<dim> poly, Few<Plane<dim>, nplanes> planes) {
+OSH_INLINE Polytope<dim> clip(Polytope<dim> poly,
+                              Few<Plane<dim>, nplanes> planes) {
   clip(&poly, planes.data(), nplanes);
   return poly;
 }
