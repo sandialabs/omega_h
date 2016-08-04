@@ -574,10 +574,10 @@ struct Integration<3, order> {
 };
 
 template <Int dim, Int order>
-OSH_INLINE Real integrate(Polytope<dim>* polytope,
+OSH_INLINE Real integrate(Polytope<dim> polytope,
                           Polynomial<dim, order> polynomial) {
   Real moments[decltype(polynomial)::nterms];
-  Integration<dim, order>::get_moments(polytope, moments);
+  Integration<dim, order>::get_moments(&polytope, moments);
   Real result = 0;
   for (Int i = 0; i < decltype(polynomial)::nterms; ++i)
     result += moments[i] * polynomial.coeffs[i];

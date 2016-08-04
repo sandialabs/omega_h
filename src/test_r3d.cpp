@@ -22,7 +22,6 @@ int main() {
   };
   osh::r3d::clip(&a, planes, nplanes);
   OSH_CHECK(a.nverts == 4);
-  auto volume = osh::r3d::integrate(&a,
-      osh::r3d::Polynomial<3,0>{{1}});
+  auto volume = osh::r3d::integrate(a, osh::r3d::Polynomial<3,0>{{1}});
   OSH_CHECK(osh::are_close(volume, osh::cube(0.5) / 6.0));
 }
