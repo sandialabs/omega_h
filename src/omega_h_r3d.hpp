@@ -590,6 +590,11 @@ OSH_INLINE Real integrate(Polytope<dim> polytope,
   return result;
 }
 
+template <Int dim>
+OSH_INLINE Real measure(Polytope<dim> polytope) {
+  return integrate(polytope, Polynomial<dim, 0>{{1}});
+}
+
 }  // end namespace r3d
 
 }  // end namespace osh
