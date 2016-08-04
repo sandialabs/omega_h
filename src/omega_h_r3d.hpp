@@ -565,7 +565,7 @@ struct Polynomial {
 template <Int dim, Int order>
 OSH_INLINE Real integrate(Polytope<dim> polytope,
                           Polynomial<dim, order> polynomial) {
-  Real moments[decltype(polynomial)::nterms];
+  Real moments[decltype(polynomial)::nterms] = {};
   reduce<order>(&polytope, moments);
   Real result = 0;
   for (Int i = 0; i < decltype(polynomial)::nterms; ++i)
