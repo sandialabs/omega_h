@@ -213,17 +213,18 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
 /**
  * \brief Initialize a polyhedron as a tetrahedron.
  *
- * \param [out] poly
- * The polyhedron to initialize.
+ * \returns
+ * The initialized polyhedron.
  *
  * \param [in] verts
  * An array of four vectors, giving the vertices of the tetrahedron.
  *
  */
-OSH_INLINE void init_tet(Polytope<3>* poly, Vector<3>* verts) {
+OSH_INLINE Polytope<3> init_tet(Few<Vector<3>, 4> verts) {
+  Polytope<3> poly;
   // direct access to vertex buffer
-  Vertex<3>* vertbuffer = poly->verts;
-  Int* nverts = &poly->nverts;
+  Vertex<3>* vertbuffer = poly.verts;
+  Int* nverts = &poly.nverts;
 
   // initialize graph connectivity
   *nverts = 4;
@@ -241,8 +242,9 @@ OSH_INLINE void init_tet(Polytope<3>* poly, Vector<3>* verts) {
   vertbuffer[3].pnbrs[2] = 0;
 
   // copy vertex coordinates
-  Int v;
-  for (v = 0; v < 4; ++v) vertbuffer[v].pos = verts[v];
+  for (Int v = 0; v < 4; ++v) vertbuffer[v].pos = verts[v];
+
+  return poly;
 }
 
 OSH_INLINE void norm(Vector<3>& v) { v = osh::normalize(v); }
