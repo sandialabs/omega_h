@@ -7,11 +7,11 @@ int main() {
   double blade_length = 0.3;
   double link_length = 0.2;
   double diameter = 0.05;
-  double width = 1.5;
-  double height = 1.0;
-  double thickness = 0.2;
+  double width = 1.7;
+  double height = 1.2;
+  double thickness = 0.4;
   double spacing = width - height;
-  gmod::default_size = 0.015;
+  gmod::default_size = 0.005;
   auto edisk0 = gmod::new_elliptical_disk(gmod::Vector{0, 0, 0},
       gmod::Vector{major / 2, 0, 0},
       gmod::Vector{0, 0, minor / 2});
@@ -44,6 +44,7 @@ int main() {
   gmod::transform_closure(assembly1,
       gmod::rotation_matrix(gmod::Vector{0, 0, 1}, gmod::PI / 2),
       gmod::Vector{spacing / 2, 0, 0});
+  gmod::default_size = 0.04;
   auto fluid = gmod::new_cube(
       gmod::Vector{-width / 2, -height / 2, - thickness / 2},
       gmod::Vector{width, 0, 0},
