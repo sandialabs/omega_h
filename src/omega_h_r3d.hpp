@@ -227,7 +227,7 @@ OSH_INLINE Polytope<dim> clip(Polytope<dim> poly,
  * An array of four vectors, giving the vertices of the tetrahedron.
  *
  */
-OSH_INLINE Polytope<3> init_tet(Few<Vector<3>, 4> verts) {
+OSH_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
   Polytope<3> poly;
   // direct access to vertex buffer
   Vertex<3>* vertbuffer = poly.verts;
@@ -251,6 +251,33 @@ OSH_INLINE Polytope<3> init_tet(Few<Vector<3>, 4> verts) {
   // copy vertex coordinates
   for (Int v = 0; v < 4; ++v) vertbuffer[v].pos = verts[v];
 
+  return poly;
+}
+
+/**
+ * \brief Initialize a triangle from a list of vertices.
+ *
+ * \returns
+ * The initialized polygon.
+ *
+ * \param [in] vertices
+ * Array of length `numverts` giving the vertices of the input polygon, in counterclockwise order.
+ *
+ */
+OSH_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
+  constexpr Int numverts = 3;
+  Polytope<2> poly;
+  // direct access to vertex buffer
+  Vertex<2>* vertbuffer = poly.verts;
+  Int* nverts = &poly.nverts;
+  // init the poly
+  *nverts = numverts;
+  Int v;
+  for(v = 0; v < *nverts; ++v) {
+    vertbuffer[v].pos = vertices[v];
+    vertbuffer[v].pnbrs[0] = (v+1)%(numverts);
+    vertbuffer[v].pnbrs[1] = (*nverts+v-1)%(numverts);
+  }
   return poly;
 }
 

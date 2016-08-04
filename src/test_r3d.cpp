@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-int main() {
+static void test_3d() {
   osh::Few<osh::Vector<3>, 4> verts = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
   auto faces = osh::r3d::faces_from_verts(verts);
@@ -16,7 +16,7 @@ int main() {
     OSH_CHECK(osh::are_close(faces[i + 1].n, v));
     OSH_CHECK(osh::are_close(faces[i + 1].d, 0));
   }
-  auto a = osh::r3d::init_tet(verts);
+  auto a = osh::r3d::init(verts);
   OSH_CHECK(a.nverts == 4);
   auto b =
       osh::r3d::clip(a, osh::Few<osh::r3d::Plane<3>, 1>({{{1, 0, 0}, -0.5}}));
@@ -28,4 +28,20 @@ int main() {
   OSH_CHECK(c.nverts == 6);
   volume = osh::r3d::measure(c);
   OSH_CHECK(osh::are_close(volume, (1. / 6.) - (osh::cube(0.5) / 6.)));
+}
+
+static void test_2d() {
+  osh::Few<osh::Vector<2>, 3> verts = {{0, 0}, {1, 0}, {0, 1}};
+  auto faces = osh::r3d::faces_from_verts(verts);
+  OSH_CHECK(osh::are_close(faces[0].n, osh::vector_2(0, 1)));
+  OSH_CHECK(osh::are_close(faces[0].d, 0));
+  OSH_CHECK(osh::are_close(faces[1].n, -osh::normalize(osh::vector_2(1, 1))));
+  OSH_CHECK(osh::are_close(faces[1].d, -faces[1].n[0]));
+  OSH_CHECK(osh::are_close(faces[2].n, osh::vector_2(1, 0)));
+  OSH_CHECK(osh::are_close(faces[2].d, 0));
+}
+
+int main() {
+  test_3d();
+  test_2d();
 }
