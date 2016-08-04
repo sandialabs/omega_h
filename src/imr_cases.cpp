@@ -209,7 +209,7 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
       map_into(obj_motion, ov2v, motion_w, mesh.dim());
     }
     auto motion = Reals(motion_w);
-    motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-3);
+    motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), OSH_LINEAR_INTERP, motion);
     int warp_step = 0;
     while (warp_to_limit(&mesh, 0.20)) {
