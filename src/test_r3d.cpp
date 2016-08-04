@@ -5,8 +5,7 @@
 
 int main() {
   osh::Few<osh::Vector<3>, 4> verts = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-  osh::r3d::Plane<3> faces[4];
-  osh::r3d::tet_faces_from_verts(faces, verts.data());
+  auto faces = osh::r3d::tet_faces_from_verts(verts);
   OSH_CHECK(osh::are_close(faces[0].n, -osh::normalize(osh::vector_3(1,1,1))));
   OSH_CHECK(osh::are_close(faces[0].d, -faces[0].n[0]));
   for (osh::Int i = 0; i < 3; ++i) {

@@ -267,11 +267,13 @@ OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
  * Array of four vectors defining the vertices of the tetrahedron.
  *
  */
-OSH_INLINE void tet_faces_from_verts(Plane<3> faces[], Vector<3> verts[]) {
+OSH_INLINE Few<Plane<3>, 4> tet_faces_from_verts(Few<Vector<3>, 4> verts) {
+  Few<Plane<3>, 4> faces;
   faces[0] = tet_face_from_verts(verts[3], verts[2], verts[1]);
   faces[1] = tet_face_from_verts(verts[0], verts[2], verts[3]);
   faces[2] = tet_face_from_verts(verts[0], verts[3], verts[1]);
   faces[3] = tet_face_from_verts(verts[0], verts[1], verts[2]);
+  return faces;
 }
 
 constexpr Int num_moments_3d(Int order) {
