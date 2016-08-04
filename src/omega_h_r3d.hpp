@@ -254,7 +254,8 @@ OSH_INLINE Polytope<3> init_tet(Few<Vector<3>, 4> verts) {
   return poly;
 }
 
-OSH_INLINE void norm(Vector<3>& v) { v = osh::normalize(v); }
+template <Int dim>
+OSH_INLINE void norm(Vector<dim>& v) { v = osh::normalize(v); }
 
 OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
   auto center = ONE_THIRD * (a + b + c);
@@ -274,12 +275,42 @@ OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
  * Array of four vectors defining the vertices of the tetrahedron.
  *
  */
-OSH_INLINE Few<Plane<3>, 4> tet_faces_from_verts(Few<Vector<3>, 4> verts) {
+OSH_INLINE Few<Plane<3>, 4> faces_from_verts(Few<Vector<3>, 4> verts) {
   Few<Plane<3>, 4> faces;
   faces[0] = tet_face_from_verts(verts[3], verts[2], verts[1]);
   faces[1] = tet_face_from_verts(verts[0], verts[2], verts[3]);
   faces[2] = tet_face_from_verts(verts[0], verts[3], verts[1]);
   faces[3] = tet_face_from_verts(verts[0], verts[1], verts[2]);
+  return faces;
+}
+
+/**
+ * \brief Get all faces (unit normals and distances to the origin)
+ * from a triangle.
+ *
+ * \returns
+ * Array of planes of length `numverts` defining the faces of the polygon.
+ *
+ * \param [in] vertices
+ * Array of length `numverts` giving the vertices of the input triangle, in counterclockwise order.
+ *
+ */
+OSH_INLINE Few<Plane<2>, 3> faces_from_verts(Few<Vector<2>, 3> vertices) {
+  constexpr Int numverts = 3;
+  Int f;
+  Vector<2> p0, p1;
+  Few<Plane<2>, 3> faces;
+  // calculate a centroid and a unit normal for each face
+  for(f = 0; f < numverts; ++f) {
+    p0 = vertices[f];
+    p1 = vertices[(f+1)%numverts];
+    // normal of the edge
+    faces[f].n[0] = p0[1] - p1[1];
+    faces[f].n[1] = p1[0] - p0[0];
+    // normalize the normals and set the signed distance to origin
+    r3d::norm(faces[f].n);
+    faces[f].d = -(faces[f].n * p0);
+  }
   return faces;
 }
 

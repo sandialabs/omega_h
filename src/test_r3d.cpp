@@ -6,7 +6,7 @@
 int main() {
   osh::Few<osh::Vector<3>, 4> verts = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-  auto faces = osh::r3d::tet_faces_from_verts(verts);
+  auto faces = osh::r3d::faces_from_verts(verts);
   OSH_CHECK(
       osh::are_close(faces[0].n, -osh::normalize(osh::vector_3(1, 1, 1))));
   OSH_CHECK(osh::are_close(faces[0].d, -faces[0].n[0]));
