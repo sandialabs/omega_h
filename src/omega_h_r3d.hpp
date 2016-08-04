@@ -273,11 +273,10 @@ OSH_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
   Int* nverts = &poly.nverts;
   // init the poly
   *nverts = numverts;
-  Int v;
-  for (v = 0; v < *nverts; ++v) {
+  for (Int v = 0; v < *nverts; ++v) {
     vertbuffer[v].pos = vertices[v];
     vertbuffer[v].pnbrs[0] = (v + 1) % (numverts);
-    vertbuffer[v].pnbrs[1] = (*nverts + v - 1) % (numverts);
+    vertbuffer[v].pnbrs[1] = (numverts + v - 1) % (numverts);
   }
   return poly;
 }
