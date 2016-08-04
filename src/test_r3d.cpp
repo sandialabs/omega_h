@@ -16,11 +16,12 @@ int main() {
   }
   auto a = osh::r3d::init_tet(verts);
   OSH_CHECK(a.nverts == 4);
-  osh::Few<osh::r3d::Plane<3>, 1> planes({
-    {{1,0,0},-0.5}
-  });
-  auto b = osh::r3d::clip(a, planes);
+  auto b = osh::r3d::clip(a, osh::Few<osh::r3d::Plane<3>, 1>({{{1,0,0},-0.5}}));
   OSH_CHECK(b.nverts == 4);
   auto volume = osh::r3d::measure(b);
   OSH_CHECK(osh::are_close(volume, osh::cube(0.5) / 6.0));
+  auto c = osh::r3d::clip(a, osh::Few<osh::r3d::Plane<3>, 1>({{{-1,0,0},0.5}}));
+  OSH_CHECK(c.nverts == 6);
+  volume = osh::r3d::measure(c);
+  OSH_CHECK(osh::are_close(volume, (1. / 6.) - (osh::cube(0.5) / 6.)));
 }
