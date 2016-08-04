@@ -45,6 +45,10 @@ static void test_2d() {
   OSH_CHECK(b.nverts == 3);
   auto area = osh::r3d::measure(b);
   OSH_CHECK(osh::are_close(area, osh::square(0.5) / 2.0));
+  auto c = osh::r3d::clip(a, osh::Few<osh::r3d::Plane<2>, 1>({{{-1, 0}, 0.5}}));
+  OSH_CHECK(c.nverts == 4);
+  area = osh::r3d::measure(c);
+  OSH_CHECK(osh::are_close(area, (1. / 2.) - (osh::square(0.5) / 2.0)));
 }
 
 int main() {
