@@ -232,6 +232,7 @@ set(OSH_HEADERS
   omega_h.hpp
   omega_h_math.hpp
   omega_h_functors.hpp
+  omega_h_r3d.hpp
   )
 
 install(FILES ${OSH_HEADERS} DESTINATION include)
