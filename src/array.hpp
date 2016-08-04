@@ -1,7 +1,7 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
-#include "functors.hpp"
+#include "omega_h_functors.hpp"
 #include "internal.hpp"
 
 namespace osh {

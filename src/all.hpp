@@ -21,7 +21,7 @@
 #include "construct.hpp"
 #include "eigen.hpp"
 #include "file.hpp"
-#include "functors.hpp"
+#include "omega_h_functors.hpp"
 #include "ghost.hpp"
 #include "graph.hpp"
 #include "hilbert.hpp"

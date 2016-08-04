@@ -3,7 +3,7 @@
 #include <cmath>
 
 #include "array.hpp"
-#include "functors.hpp"
+#include "omega_h_functors.hpp"
 #include "int128.hpp"
 #include "loop.hpp"
 

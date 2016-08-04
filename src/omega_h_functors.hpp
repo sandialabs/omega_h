@@ -1,7 +1,6 @@
-#ifndef FUNCTORS_HPP
-#define FUNCTORS_HPP
+#ifndef OMEGA_H_FUNCTORS_HPP
+#define OMEGA_H_FUNCTORS_HPP
 
-#include "internal.hpp"
 #include "omega_h_math.hpp"
 
 namespace osh {
@@ -28,8 +27,8 @@ struct StandinTraits<I32> {
 
 struct AndFunctor {
   typedef I64 value_type;
-  INLINE void init(value_type& update) const { update = 1; }
-  INLINE void join(volatile value_type& update,
+  OSH_INLINE void init(value_type& update) const { update = 1; }
+  OSH_INLINE void join(volatile value_type& update,
                    const volatile value_type& input) const {
     update = update && input;
   }
@@ -39,8 +38,8 @@ template <typename T>
 struct MaxFunctor {
   typedef typename StandinTraits<T>::type value_type;
   typedef T input_type;
-  INLINE void init(value_type& update) const { update = ArithTraits<T>::min(); }
-  INLINE void join(volatile value_type& update,
+  OSH_INLINE void init(value_type& update) const { update = ArithTraits<T>::min(); }
+  OSH_INLINE void join(volatile value_type& update,
                    const volatile value_type& input) const {
     update = max2(update, input);
   }
@@ -50,8 +49,8 @@ template <typename T>
 struct MinFunctor {
   typedef typename StandinTraits<T>::type value_type;
   typedef T input_type;
-  INLINE void init(value_type& update) const { update = ArithTraits<T>::max(); }
-  INLINE void join(volatile value_type& update,
+  OSH_INLINE void init(value_type& update) const { update = ArithTraits<T>::max(); }
+  OSH_INLINE void join(volatile value_type& update,
                    const volatile value_type& input) const {
     update = min2(update, input);
   }
@@ -61,8 +60,8 @@ template <typename T>
 struct SumFunctor {
   typedef typename StandinTraits<T>::type value_type;
   typedef T input_type;
-  INLINE void init(value_type& update) const { update = 0; }
-  INLINE void join(volatile value_type& update,
+  OSH_INLINE void init(value_type& update) const { update = 0; }
+  OSH_INLINE void join(volatile value_type& update,
                    const volatile value_type& input) const {
     update = update + input;
   }
