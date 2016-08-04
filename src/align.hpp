@@ -1,7 +1,6 @@
 #ifndef ALIGN_HPP
 #define ALIGN_HPP
 
-#include "algorithm.hpp"
 #include "internal.hpp"
 
 namespace osh {

@@ -1,16 +1,16 @@
 #ifndef FUNCTORS_HPP
 #define FUNCTORS_HPP
 
-#include "algorithm.hpp"
+#include "internal.hpp"
 #include "omega_h_math.hpp"
 
 namespace osh {
 
-/* we use I8 for storing very small values efficiently,
-   but since it boils down to 'char' usually, this causes
-   problems when printing values or using Kokkos reductions.
-   StandinTraits just replaces I8 with I32 */
-
+/* values smaller than 64 bits cause wrong reduction
+ * answers on GPUs; the StandinTraits system raises
+ * such values to their equivalent 64-bit type which is
+ * then used as the reduction value_type
+ */
 template <typename T>
 struct StandinTraits {
   typedef T type;

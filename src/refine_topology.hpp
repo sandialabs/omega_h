@@ -1,7 +1,6 @@
 #ifndef REFINE_TOPOLOGY_HPP
 #define REFINE_TOPOLOGY_HPP
 
-#include "algorithm.hpp"
 #include "internal.hpp"
 
 namespace osh {

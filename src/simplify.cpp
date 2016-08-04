@@ -1,6 +1,5 @@
 #include "simplify.hpp"
 
-#include "algorithm.hpp"
 #include "loop.hpp"
 #include "scan.hpp"
 

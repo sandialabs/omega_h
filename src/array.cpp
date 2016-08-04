@@ -1,7 +1,6 @@
 #include "array.hpp"
 
 #include "algebra.hpp"
-#include "algorithm.hpp"
 #include "functors.hpp"
 #include "loop.hpp"
 

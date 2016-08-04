@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "algorithm.hpp"
+#include "internal.hpp"
 #include "omega_h_math.hpp"
 
 namespace osh {

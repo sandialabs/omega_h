@@ -3,7 +3,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include "algorithm.hpp"
 #include "array.hpp"
 #include "coarsen.hpp"
 #include "mark.hpp"

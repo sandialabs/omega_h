@@ -3,7 +3,6 @@
 
 #include "swap3d_tables.hpp"
 
-#include "algorithm.hpp"
 #include "simplices.hpp"
 
 namespace osh {

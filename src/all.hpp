@@ -5,7 +5,6 @@
 #include "adapt.hpp"
 #include "adjacency.hpp"
 #include "algebra.hpp"
-#include "algorithm.hpp"
 #include "align.hpp"
 #include "array.hpp"
 #include "atomics.hpp"
