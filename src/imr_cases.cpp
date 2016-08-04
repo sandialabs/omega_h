@@ -211,6 +211,9 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     auto motion = Reals(motion_w);
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), OSH_LINEAR_INTERP, motion);
+    auto size = mesh.get_array<Real>(VERT, "size");
+    size = solve_laplacian(&mesh, size, 1, 1e-2);
+    mesh.set_tag(VERT, "size", size);
     int warp_step = 0;
     while (warp_to_limit(&mesh, 0.20)) {
       if (world->rank() == 0) {
