@@ -635,6 +635,14 @@ OSH_INLINE Real measure(Polytope<dim> polytope) {
   return integrate(polytope, Polynomial<dim, 0>{{1}});
 }
 
+template <Int dim>
+OSH_INLINE Polytope<dim> intersect_simplices(Few<Vector<dim>, dim + 1> verts0,
+    Few<Vector<dim>, dim + 1> verts1) {
+  auto poly0 = init(verts0);
+  auto faces1 = faces_from_verts(verts1);
+  return clip(poly0, faces1);
+}
+
 }  // end namespace r3d
 
 }  // end namespace osh

@@ -28,6 +28,10 @@ static void test_3d() {
   OSH_CHECK(c.nverts == 6);
   volume = osh::r3d::measure(c);
   OSH_CHECK(osh::are_close(volume, (1. / 6.) - (osh::cube(0.5) / 6.)));
+  osh::Few<osh::Vector<3>, 4> verts2 = {
+      {1, 0, 0}, {1, 1, 0}, {0, 0, 0}, {1, 0, 1}};
+  volume = osh::r3d::measure(osh::r3d::intersect_simplices(verts, verts2));
+  OSH_CHECK(osh::are_close(volume, (1. / 3.) * (1. / 4.) * (1. / 2.)));
 }
 
 static void test_2d() {
@@ -49,6 +53,9 @@ static void test_2d() {
   OSH_CHECK(c.nverts == 4);
   area = osh::r3d::measure(c);
   OSH_CHECK(osh::are_close(area, (1. / 2.) - (osh::square(0.5) / 2.0)));
+  osh::Few<osh::Vector<2>, 3> verts2 = {{0, 0}, {1, 0}, {1, 1}};
+  area = osh::r3d::measure(osh::r3d::intersect_simplices(verts, verts2));
+  OSH_CHECK(osh::are_close(area, 1. / 4.));
 }
 
 int main() {
