@@ -329,7 +329,7 @@ struct NumMoments<2, order> {
  */
 
 template <Int polyorder>
-OSH_INLINE void reduce_3d(Polytope<3>* poly, Real* moments) {
+OSH_INLINE void reduce(Polytope<3>* poly, Real* moments) {
   Int* nverts = &poly->nverts;
   if (*nverts <= 0) return;
 
@@ -481,7 +481,7 @@ OSH_INLINE void reduce_3d(Polytope<3>* poly, Real* moments) {
  *
  */
 template <Int polyorder>
-OSH_INLINE void reduce_2d(Polytope<2>* poly, Real* moments) {
+OSH_INLINE void reduce(Polytope<2>* poly, Real* moments) {
   Int* nverts = &poly->nverts;
   if (*nverts <= 0) return;
 
@@ -563,27 +563,10 @@ struct Polynomial {
 };
 
 template <Int dim, Int order>
-struct Integration;
-
-template <Int order>
-struct Integration<2, order> {
-  OSH_INLINE static void get_moments(Polytope<2>* poly, Real* moments) {
-    reduce_2d<order>(poly, moments);
-  }
-};
-
-template <Int order>
-struct Integration<3, order> {
-  OSH_INLINE static void get_moments(Polytope<3>* poly, Real* moments) {
-    reduce_3d<order>(poly, moments);
-  }
-};
-
-template <Int dim, Int order>
 OSH_INLINE Real integrate(Polytope<dim> polytope,
                           Polynomial<dim, order> polynomial) {
   Real moments[decltype(polynomial)::nterms];
-  Integration<dim, order>::get_moments(&polytope, moments);
+  reduce<order>(&polytope, moments);
   Real result = 0;
   for (Int i = 0; i < decltype(polynomial)::nterms; ++i)
     result += moments[i] * polynomial.coeffs[i];
