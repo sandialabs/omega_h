@@ -578,6 +578,8 @@ class Few {
   OSH_INLINE Few(const volatile Few<T, n>& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
+  OSH_INLINE T* data() { return array_; }
+  OSH_INLINE T const* data() const { return array_; }
 };
 
 /* begin explicit instantiation declarations */
