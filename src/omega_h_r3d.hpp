@@ -128,7 +128,7 @@ struct ClipHelper<2> {
  * \brief Clip a polytope against an arbitrary number of clip planes (find its
  * intersection with a set of half-spaces).
  *
- * \param [in, out] poly
+ * \param [in,out] poly
  * The polygon to be clipped.
  *
  * \param [in] planes
@@ -266,7 +266,7 @@ OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
  * \brief Get four faces (unit normals and distances to the origin)
  * from a four-vertex description of a tetrahedron.
  *
- * \param [out] faces
+ * \returns
  * Array of four planes defining the faces of the tetrahedron.
  *
  * \param [in] verts
@@ -309,15 +309,14 @@ struct NumMoments<2, order> {
  *
  * \details Uses the fast recursive method of Koehl (2012) to carry out the
  * integration.
+ * The template parameter is the order of the polynomial density field.
+ * 0 for constant (1 moment), 1 for linear (4 moments),
+ * 2 for quadratic (10 moments), etc.
  *
  * \param [in] poly
  * The polyhedron over which to integrate.
  *
- * \param [in] polyorder
- * Order of the polynomial density field. 0 for constant (1 moment), 1 for
- * linear (4 moments), 2 for quadratic (10 moments), etc.
- *
- * \param [in, out] moments
+ * \param [in,out] moments
  * Array to be filled with the integration results, up to the specified
  * `polyorder`. Must be at least
  * `(polyorder+1)*(polyorder+2)*(polyorder+3)/6` long.
@@ -463,15 +462,14 @@ OSH_INLINE void reduce(Polytope<3>* poly, Real* moments) {
  *
  * \details Uses the fast recursive method of Koehl (2012) to carry out the
  * integration.
+ * The template parameter is the order of the polynomial density field.
+ * 0 for constant (1 moment), 1 for linear (4 moments),
+ * 2 for quadratic (10 moments), etc.
  *
  * \param [in] poly
  * The polygon over which to integrate.
  *
- * \param [in] polyorder
- * Order of the polynomial density field. 0 for constant (1 moment), 1 for
- * linear (4 moments), 2 for quadratic (10 moments), etc.
- *
- * \param [in, out] moments
+ * \param [in,out] moments
  * Array to be filled with the integration results, up to the specified
  * `polyorder`. Must be at least `(polyorder+1)*(polyorder+2)/2` long.
  * A conventient macro, `R2D_NUM_MOMENTS()` is provided to compute the

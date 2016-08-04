@@ -283,7 +283,7 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   write_value(stream, ncomps);
   I8 type = tag->type();
   write_value(stream, type);
-  I8 xfer_int = tag->xfer();
+  I8 xfer_int = static_cast<I8>(tag->xfer());
   write_value(stream, xfer_int);
   if (is<I8>(tag)) {
     write_array(stream, to<I8>(tag)->array());
