@@ -211,6 +211,7 @@ if(BUILD_TESTING)
     exe_func(test_view)
   endif()
   exe_func(test_r3d)
+  test_func(run_test_r3d 1 ./test_r3d)
 endif()
 
 if(OSH_BUILD_SMB2OSH)
