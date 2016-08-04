@@ -97,8 +97,8 @@ struct ClipHelper<3> {
       vertbuffer[vcur].pnbrs[1] = vstart;
     }
   }
-  OSH_INLINE static void links_at_nverts(Int* nverts, Vertex<3>* vertbuffer, Int vcur,
-                              Int np) {
+  OSH_INLINE static void links_at_nverts(Int* nverts, Vertex<3>* vertbuffer,
+                                         Int vcur, Int np) {
     (void)np;
     vertbuffer[*nverts].pnbrs[0] = vcur;
   }
@@ -117,8 +117,8 @@ struct ClipHelper<2> {
       vertbuffer[vcur].pnbrs[0] = vstart;
     }
   }
-  OSH_INLINE static void links_at_nverts(Int* nverts, Vertex<2>* vertbuffer, Int vcur,
-                              Int np) {
+  OSH_INLINE static void links_at_nverts(Int* nverts, Vertex<2>* vertbuffer,
+                                         Int vcur, Int np) {
     vertbuffer[*nverts].pnbrs[1 - np] = vcur;
     vertbuffer[*nverts].pnbrs[np] = -1;
   }
@@ -261,7 +261,8 @@ OSH_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
  * The initialized polygon.
  *
  * \param [in] vertices
- * Array of length `numverts` giving the vertices of the input polygon, in counterclockwise order.
+ * Array of length `numverts` giving the vertices of the input polygon, in
+ * counterclockwise order.
  *
  */
 OSH_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
@@ -273,16 +274,18 @@ OSH_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
   // init the poly
   *nverts = numverts;
   Int v;
-  for(v = 0; v < *nverts; ++v) {
+  for (v = 0; v < *nverts; ++v) {
     vertbuffer[v].pos = vertices[v];
-    vertbuffer[v].pnbrs[0] = (v+1)%(numverts);
-    vertbuffer[v].pnbrs[1] = (*nverts+v-1)%(numverts);
+    vertbuffer[v].pnbrs[0] = (v + 1) % (numverts);
+    vertbuffer[v].pnbrs[1] = (*nverts + v - 1) % (numverts);
   }
   return poly;
 }
 
 template <Int dim>
-OSH_INLINE void norm(Vector<dim>& v) { v = osh::normalize(v); }
+OSH_INLINE void norm(Vector<dim>& v) {
+  v = osh::normalize(v);
+}
 
 OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
   auto center = ONE_THIRD * (a + b + c);
@@ -319,7 +322,8 @@ OSH_INLINE Few<Plane<3>, 4> faces_from_verts(Few<Vector<3>, 4> verts) {
  * Array of planes of length `numverts` defining the faces of the polygon.
  *
  * \param [in] vertices
- * Array of length `numverts` giving the vertices of the input triangle, in counterclockwise order.
+ * Array of length `numverts` giving the vertices of the input triangle, in
+ * counterclockwise order.
  *
  */
 OSH_INLINE Few<Plane<2>, 3> faces_from_verts(Few<Vector<2>, 3> vertices) {
@@ -328,9 +332,9 @@ OSH_INLINE Few<Plane<2>, 3> faces_from_verts(Few<Vector<2>, 3> vertices) {
   Vector<2> p0, p1;
   Few<Plane<2>, 3> faces;
   // calculate a centroid and a unit normal for each face
-  for(f = 0; f < numverts; ++f) {
+  for (f = 0; f < numverts; ++f) {
     p0 = vertices[f];
-    p1 = vertices[(f+1)%numverts];
+    p1 = vertices[(f + 1) % numverts];
     // normal of the edge
     faces[f].n[0] = p0[1] - p1[1];
     faces[f].n[1] = p1[0] - p0[0];
@@ -637,7 +641,7 @@ OSH_INLINE Real measure(Polytope<dim> polytope) {
 
 template <Int dim>
 OSH_INLINE Polytope<dim> intersect_simplices(Few<Vector<dim>, dim + 1> verts0,
-    Few<Vector<dim>, dim + 1> verts1) {
+                                             Few<Vector<dim>, dim + 1> verts1) {
   auto poly0 = init(verts0);
   auto faces1 = faces_from_verts(verts1);
   return clip(poly0, faces1);
