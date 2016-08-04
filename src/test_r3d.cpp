@@ -16,12 +16,11 @@ int main() {
   }
   auto a = osh::r3d::init_tet(verts);
   OSH_CHECK(a.nverts == 4);
-  constexpr osh::Int nplanes = 1;
-  osh::r3d::Plane<3> planes[nplanes] = {
+  osh::Few<osh::r3d::Plane<3>, 1> planes({
     {{1,0,0},-0.5}
-  };
-  osh::r3d::clip(&a, planes, nplanes);
-  OSH_CHECK(a.nverts == 4);
-  auto volume = osh::r3d::integrate(a, osh::r3d::Polynomial<3,0>{{1}});
+  });
+  auto b = osh::r3d::clip(a, planes);
+  OSH_CHECK(b.nverts == 4);
+  auto volume = osh::r3d::integrate(b, osh::r3d::Polynomial<3,0>{{1}});
   OSH_CHECK(osh::are_close(volume, osh::cube(0.5) / 6.0));
 }

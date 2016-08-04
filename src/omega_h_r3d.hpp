@@ -210,6 +210,12 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
   }
 }
 
+template <Int dim, Int nplanes>
+OSH_INLINE Polytope<dim> clip(Polytope<dim> poly, Few<Plane<dim>, nplanes> planes) {
+  clip(&poly, planes.data(), nplanes);
+  return poly;
+}
+
 /**
  * \brief Initialize a polyhedron as a tetrahedron.
  *
