@@ -343,7 +343,11 @@ T* HostWrite<T>::data() const {
 }
 
 template <typename T>
+#ifdef __INTEL_COMPILER
+HostRead<T>::HostRead() {}
+#else
 HostRead<T>::HostRead() = default;
+#endif
 
 template <typename T>
 HostRead<T>::HostRead(Read<T> read)

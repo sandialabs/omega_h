@@ -280,7 +280,7 @@ Read<T> read_known_array(std::istream& stream, std::string const& name,
   CHECK(st.type == xml::Tag::START);
   CHECK(st.attribs["Name"] == name);
   CHECK(st.attribs["type"] == Traits<T>::name());
-  CHECK(st.attribs["NumberOfComponents"] == std::to_string(ncomps));
+  CHECK(st.attribs["NumberOfComponents"] == to_string(ncomps));
   auto array =
       read_array<T>(stream, nents * ncomps, is_little_endian, is_compressed);
   auto et = xml::read_tag(stream);
@@ -438,12 +438,11 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
 }
 
 std::string piece_filename(std::string const& piecepath, I32 rank) {
-  using intel_type = long long;
-  return piecepath + '_' + std::to_string(intel_type(rank)) + ".vtu";
+  return piecepath + '_' + to_string(rank) + ".vtu";
 }
 
 std::string get_rel_step_path(Int step) {
-  return "steps/step_" + std::to_string(step);
+  return "steps/step_" + to_string(step);
 }
 
 std::string get_step_path(std::string const& root_path, Int step) {

@@ -435,7 +435,7 @@ void write(std::string const& path, Mesh* mesh) {
   }
   safe_mkdir(path.c_str());
   mesh->comm()->barrier();
-  auto filepath = path + "/" + std::to_string(mesh->comm()->rank());
+  auto filepath = path + "/" + to_string(mesh->comm()->rank());
   std::ofstream file(filepath.c_str());
   CHECK(file.is_open());
   write(file, mesh);
@@ -444,7 +444,7 @@ void write(std::string const& path, Mesh* mesh) {
 
 static void read2(std::string const& path, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
-  auto filepath = path + "/" + std::to_string(mesh->comm()->rank());
+  auto filepath = path + "/" + to_string(mesh->comm()->rank());
   std::ifstream file(filepath.c_str());
   CHECK(file.is_open());
   read(file, mesh);

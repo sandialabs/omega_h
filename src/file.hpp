@@ -51,6 +51,17 @@ INST_DECL(Real)
 extern template void swap_if_needed(std::size_t& val, bool is_little_endian);
 }
 
+inline std::string to_string(I32 x) {
+#ifdef __INTEL_COMPILER
+/* Intel compiler doesn't seem to have 32-bit specializations
+ * for std::to_string, which makes it non-compliant with C++11
+ */
+  return std::to_string(static_cast<long long>(x));
+#else
+  return std::to_string(x);
+#endif
+}
+
 }  // end namespace osh
 
 #endif
