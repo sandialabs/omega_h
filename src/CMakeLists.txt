@@ -123,10 +123,17 @@ function(exe_func EXE_NAME)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
 endfunction(exe_func)
 
-exe_func(msh2osh)
-exe_func(osh2vtk)
-exe_func(oshdiff)
-exe_func(vtkdiff)
+function(util_func EXE_NAME)
+  exe_func(${EXE_NAME})
+  install(TARGETS ${EXE_NAME} EXPORT ${EXE_NAME}-targets DESTINATION bin)
+  install(EXPORT ${EXE_NAME}-targets NAMESPACE Omega_h:: DESTINATION lib/omega_h)
+  set(OSH_TARGETS ${OSH_TARGETS} ${EXE_NAME} PARENT_SCOPE)
+endfunction(util_func)
+
+util_func(msh2osh)
+util_func(osh2vtk)
+util_func(oshdiff)
+util_func(vtkdiff)
 
 if(BUILD_TESTING)
   if(OSH_USE_MPI)
@@ -238,9 +245,5 @@ set(OSH_HEADERS
 install(FILES ${OSH_HEADERS} DESTINATION include)
 install(TARGETS omega_h EXPORT omega_h-targets DESTINATION lib)
 install(EXPORT omega_h-targets DESTINATION lib/omega_h)
-install(TARGETS
-  msh2osh
-  osh2vtk
-  oshdiff
-  vtkdiff
-  DESTINATION bin)
+
+set(OSH_TARGETS ${OSH_TARGETS} omega_h PARENT_SCOPE)
