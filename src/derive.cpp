@@ -1,7 +1,11 @@
 #include "derive.hpp"
 
+#include <iostream>
+
 #include "access.hpp"
+#include "graph.hpp"
 #include "loop.hpp"
+#include "map.hpp"
 #include "space.hpp"
 
 namespace osh {
@@ -11,7 +15,7 @@ Matrix<dim, dim> get_simplex_jacobian(Few<Vector<dim>, dim + 1> evv2x) {
   Matrix<dim, dim> dx_dxi;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
-      dx_dxi[i][j] = evv2x[i + 1][j] - evv2x[0][j];
+      dx_dxi[j][i] = evv2x[i + 1][j] - evv2x[0][j];
     }
   }
   return dx_dxi;
@@ -28,7 +32,7 @@ static Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
     Vector<dim> du_dxi;
     for (Int i = 0; i < dim; ++i) du_dxi[i] = evv2u[i + 1] - evv2u[0];
     auto evv2x = gather_vectors<dim + 1, dim>(coords, evv2v);
-    auto dx_dxi = get_simplex_jacobian<dim>(evv2x);
+    Matrix<dim, dim> dx_dxi = get_simplex_jacobian<dim>(evv2x);
     auto dxi_dx = invert(dx_dxi);
     auto du_dx = dxi_dx * du_dxi;
     set_vector(out, e, du_dx);
@@ -71,6 +75,18 @@ Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients) {
   if (mesh->dim() == 3) return derive_element_hessians_dim<3>(mesh, vert_gradients);
   if (mesh->dim() == 2) return derive_element_hessians_dim<2>(mesh, vert_gradients);
   NORETURN(Reals());
+}
+
+Reals recover_by_quality(Mesh* mesh, Reals elem_values) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  CHECK(elem_values.size() % mesh->nelems() == 0);
+  auto ncomps = elem_values.size() / mesh->nelems();
+  auto out = Write<Real>(mesh->nverts() * ncomps);
+  auto elem_quals = mesh->ask_qualities();
+  auto v2e = mesh->ask_graph(VERT, mesh->dim());
+  auto ve2e = v2e.ab2b;
+  auto weights = unmap(ve2e, elem_quals, 1);
+  return graph_weighted_average(v2e, weights, elem_values, ncomps);
 }
 
 }
