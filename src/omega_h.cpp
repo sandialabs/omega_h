@@ -20,6 +20,7 @@
 #include "construct.cpp"
 #include "control.cpp"
 #include "dist.cpp"
+#include "derive.cpp"
 #include "file.cpp"
 #include "find_unique.cpp"
 #include "form_uses.cpp"

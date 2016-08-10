@@ -19,6 +19,7 @@
 #include "comm.hpp"
 #include "consistent.hpp"
 #include "construct.hpp"
+#include "derive.hpp"
 #include "eigen.hpp"
 #include "file.hpp"
 #include "omega_h_functors.hpp"

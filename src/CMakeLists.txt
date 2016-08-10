@@ -79,6 +79,7 @@ else()
   consistent.cpp
   align.cpp
   xml.cpp
+  derive.cpp
   )
 endif()
 
