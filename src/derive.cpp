@@ -11,7 +11,7 @@
 namespace osh {
 
 template <Int dim>
-Matrix<dim, dim> get_simplex_jacobian(Few<Vector<dim>, dim + 1> evv2x) {
+INLINE Matrix<dim, dim> get_simplex_jacobian(Few<Vector<dim>, dim + 1> evv2x) {
   Matrix<dim, dim> dx_dxi;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
