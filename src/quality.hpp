@@ -92,8 +92,8 @@ INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
   return 15552.0 * square(v) / cube(s);
 }
 
-INLINE Real mean_ratio(Real a, Few<Real, 6> lsq) {
-  return cbrt(tet_mean_ratio_cubed(a, lsq));
+INLINE Real mean_ratio(Real v, Few<Real, 6> lsq) {
+  return cbrt(tet_mean_ratio_cubed(v, lsq));
 }
 
 template <Int dim>
