@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(Omega_h CXX)
+project(Omega_h LANGUAGES CXX)
 
 #trying to force BUILD_TESTING to default to OFF
 set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
