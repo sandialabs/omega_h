@@ -14,6 +14,12 @@ INLINE Real cube(Real x) { return x * x * x; }
 
 INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
+INLINE Real raise(Real x, Int p) {
+  Real out = 1.;
+  for (Int i = 0; i < p; ++i) out *= x;
+  return out;
+}
+
 INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
   Real am = fabs(a);
   Real bm = fabs(b);

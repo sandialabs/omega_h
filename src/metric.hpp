@@ -78,7 +78,7 @@ INLINE Matrix<dim, dim> intersect_metrics(Matrix<dim, dim> a,
 /* Alauzet details four different ways to interpolate
    the metric tensor:
 
-1) M(t) = ((1-t)M_1^{-1/2} + t M_2^{-1/2)^2
+1) M(t) = ((1-t)M_1^{-1/2} + t M_2^{-1/2})^{-2}
 
 2) M(t) = (M_1^{-1/2} (M_2^{-1/2} / M_1^{-1/2})^t)^2
 

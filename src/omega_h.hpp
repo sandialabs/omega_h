@@ -533,6 +533,7 @@ void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
+Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
 
 OSH_INLINE bool code_is_flipped(I8 code) { return code & 1; }
 

@@ -6,6 +6,7 @@
 #include "omega_h_functors.hpp"
 #include "int128.hpp"
 #include "loop.hpp"
+#include "map.hpp"
 
 namespace osh {
 
@@ -81,6 +82,15 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
   for (Int comp = 0; comp < ncomps; ++comp) {
     result[comp] = repro_sum(comm, get_component(a, ncomps, comp));
   }
+}
+
+Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
+  if (mesh->could_be_shared(dim)) {
+    auto owned = mesh->owned(dim);
+    auto o2e = collect_marked(owned);
+    a = unmap(o2e, a, 1);
+  }
+  return repro_sum(mesh->comm(), a);
 }
 
 }  // end namespace osh
