@@ -185,7 +185,7 @@ Reals find_identity_metric(Mesh* mesh) {
 */
 
 template <typename EdgeVectors>
-Real mean_squared_iso_length(EdgeVectors edge_vectors, Real h) {
+INLINE Real mean_squared_iso_length(EdgeVectors edge_vectors, Real h) {
   auto nedges = EdgeVectors::size;
   Real msl = 0;
   for (Int i = 0; i < nedges; ++i) {
