@@ -171,9 +171,8 @@ INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
   return vector2symm(x);
 }
 
-Reals perfect_size_volumes(Mesh* mesh, Reals v2h);
-Reals perfect_metric_volumes(Mesh* mesh, Reals v2m);
-Real volume_scalar_for_nelems(Mesh* mesh, Real volume_sum, Real target_nelems);
+Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h);
+Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m);
 Reals scale_size_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
 Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 

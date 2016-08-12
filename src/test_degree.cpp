@@ -45,10 +45,8 @@ void tet_run(osh::Real side_angle_in_degrees) {
   auto tet_height = sqrt(1. - osh::square(circumradius));
   auto tet_volume = 1. / 3. * surf_tri_area * tet_height;
   std::cout << "tet_volume " << tet_volume << '\n';
-  osh::Few<osh::Real, 6> lsq;
-  for (osh::Int i = 0; i < 3; ++i) lsq[i] = 1.;
-  for (osh::Int i = 3; i < 6; ++i) lsq[i] = osh::square(cord_length);
-  auto quality = osh::mean_ratio(tet_volume, lsq);
+  auto msl = (3 * osh::square(cord_length) + 3.) / 6.;
+  auto quality = osh::tet_mean_ratio(tet_volume, msl);
   std::cout << "quality " << quality << '\n';
 }
 
@@ -67,10 +65,8 @@ void tri_run(osh::Real side_angle_in_degrees) {
   auto height = sqrt(1. - osh::square(half_cord_length));
   auto area = cord_length * height / 2.;
   std::cout << "area " << area << '\n';
-  osh::Few<osh::Real, 3> lsq;
-  lsq[0] = osh::square(cord_length);
-  lsq[1] = lsq[2] = 1.;
-  auto quality = osh::mean_ratio(area, lsq);
+  auto msl = (osh::square(cord_length) + 2.) / 3.;
+  auto quality = osh::tri_mean_ratio(area, msl);
   std::cout << "quality " << quality << '\n';
 }
 

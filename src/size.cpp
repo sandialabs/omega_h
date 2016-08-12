@@ -3,6 +3,7 @@
 #include "array.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
+#include "quality.hpp"
 
 namespace osh {
 
@@ -167,91 +168,113 @@ Reals find_identity_metric(Mesh* mesh) {
  * that this tetrahedron would have if we scaled it until its
  * root mean squared edge length was one.
  * This happens to be exactly the correction factor we need in this case.
+ * In fact, if we use such a correction factor, most terms cancel
+ * out and we are left with the following weights for existing elements:
+ *
+ * isotropic case: $\frac{l_{RMS}^3}{h^3}$
+ * anisotropic case: $\frac{l_{M,RMS}^3}$
+ *
+ * Where $l_{M,RMS}$ is the root mean squared value of $v_i^T \mathcal{M} v_i$,
+ * for edge vector $v_i$, i.e. the root mean squared metric edge length.
+ * In both cases, the (more accurate) scaling factor is simply
+ * the root mean squared edge length to the power of the element dimension.
  *
  * When we need to scale desired edge lengths, we
  * use the inverse of the square root of the $\beta$ factor.
  * (a metric tensor eigenvalue is $(1/h^2)$, where $h$ is desired length).
 */
 
-struct IsoDilation {
+template <typename EdgeVectors>
+Real mean_squared_iso_length(EdgeVectors edge_vectors, Real h) {
+  auto nedges = EdgeVectors::size;
+  Real msl = 0;
+  for (Int i = 0; i < nedges; ++i) {
+    msl += norm_squared(edge_vectors[i]) / square(h);
+  }
+  return msl / nedges;
+}
+
+struct MeanSquaredIsoLength {
   Reals e2h;
-  IsoDilation(Mesh* mesh, Reals v2h) {
+  MeanSquaredIsoLength(Mesh* mesh, Reals v2h) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
     e2h = average_field(mesh, mesh->dim(), e2e, 1, v2h);
   }
-  template <Int dim>
-  DEVICE Real get_dilation(LO e) const {
-    return 1. / raise(e2h[e], dim);
+  template <Int dim, typename EdgeVectors>
+  DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
+    auto h = e2h[e];
+    return mean_squared_iso_length(edge_vectors, h);
   }
 };
 
-struct AnisoDilation {
+struct MeanSquaredMetricLength {
   Reals e2m;
-  AnisoDilation(Mesh* mesh, Reals v2m) {
+  MeanSquaredMetricLength(Mesh* mesh, Reals v2m) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
     e2m = average_metric(mesh, mesh->dim(), e2e, v2m);
   }
-  template <Int dim>
-  DEVICE Real get_dilation(LO e) const {
-    return sqrt(determinant(get_symm<dim>(e2m, e)));
+  template <Int dim, typename EdgeVectors>
+  DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
+    auto m = get_symm<dim>(e2m, e);
+    return mean_squared_metric_length(edge_vectors, m);
   }
 };
 
-template <Int dim, typename Dilation>
-static Reals perfect_metric_volumes_tmpl(Mesh* mesh, Reals v2sf) {
-  auto dilation_measurer = Dilation(mesh, v2sf);
-  auto e2q = mesh->ask_qualities();
+template <Int dim, typename MeanSquaredLength>
+static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2sf) {
+  auto msl_obj = MeanSquaredLength(mesh, v2sf);
   auto ev2v = mesh->ask_verts_of(dim);
-  auto real_vol_measurer = RealElementSizes(mesh);
+  auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
   auto f = LAMBDA(LO e) {
-    auto evv2v = gather_verts<dim + 1>(ev2v, e);
-    auto dilation = dilation_measurer.template get_dilation<dim>(e);
-    auto volume = real_vol_measurer.measure(evv2v);
-    auto quality = e2q[e];
-    auto quality_correction = 1. / sqrt(raise(quality, dim));
-    out_w[e] = volume * dilation * quality_correction;
+    auto eev2v = gather_verts<dim + 1>(ev2v, e);
+    auto eev2x = gather_vectors<dim + 1, dim>(coords, eev2v);
+    auto basis = simplex_basis<dim, dim>(eev2x);
+    auto edge_vectors = element_edge_vectors(eev2x, basis);
+    auto msl = msl_obj.template get<dim>(e, edge_vectors);
+    out_w[e] = raise(sqrt(msl), dim);
   };
   parallel_for(mesh->nelems(), f);
   return Reals(out_w);
 }
 
-Reals perfect_size_volumes(Mesh* mesh, Reals v2h) {
-  if (mesh->dim() == 3) return perfect_metric_volumes_tmpl<3,IsoDilation>(mesh, v2h);
-  if (mesh->dim() == 2) return perfect_metric_volumes_tmpl<2,IsoDilation>(mesh, v2h);
+Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h) {
+  if (mesh->dim() == 3) {
+    return expected_elems_per_elem_tmpl<3,MeanSquaredIsoLength>(mesh, v2h);
+  }
+  if (mesh->dim() == 2) {
+    return expected_elems_per_elem_tmpl<2,MeanSquaredIsoLength>(mesh, v2h);
+  }
   NORETURN(Reals());
 }
 
-Reals perfect_metric_volumes(Mesh* mesh, Reals v2m) {
-  if (mesh->dim() == 3) return perfect_metric_volumes_tmpl<3,AnisoDilation>(mesh, v2m);
-  if (mesh->dim() == 2) return perfect_metric_volumes_tmpl<2,AnisoDilation>(mesh, v2m);
+Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m) {
+  if (mesh->dim() == 3) {
+    return expected_elems_per_elem_tmpl<3,MeanSquaredMetricLength>(mesh, v2m);
+  }
+  if (mesh->dim() == 2) {
+    return expected_elems_per_elem_tmpl<2,MeanSquaredMetricLength>(mesh, v2m);
+  }
   NORETURN(Reals());
-}
-
-Real volume_scalar_for_nelems(Mesh* mesh, Real volume_sum, Real target_nelems) {
-  Real unit_edge_volume = 0;
-  if (mesh->dim() == 3) unit_edge_volume = 1. / sqrt(72.);
-  if (mesh->dim() == 2) unit_edge_volume = sqrt(3.) / 4.;
-  return target_nelems * unit_edge_volume / volume_sum;
 }
 
 Reals scale_size_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems) {
-  auto vols = perfect_size_volumes(mesh, v2h);
-  auto vol_sum = repro_sum_owned(mesh, mesh->dim(), vols);
-  auto vol_scal = volume_scalar_for_nelems(mesh, vol_sum, target_nelems);
+  auto elems_per_elem = expected_elems_per_elem_iso(mesh, v2h);
+  auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
+  auto size_scal = target_nelems / elems;
   Real h_scal = 0;
-  if (mesh->dim() == 3) h_scal = 1. / cbrt(vol_scal);
-  if (mesh->dim() == 2) h_scal = 1. / sqrt(vol_scal);
+  if (mesh->dim() == 3) h_scal = 1. / cbrt(size_scal);
+  if (mesh->dim() == 2) h_scal = 1. / sqrt(size_scal);
   return multiply_each_by(h_scal, v2h);
 }
 
 Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
-  auto vols = perfect_metric_volumes(mesh, v2m);
-  auto vol_sum = repro_sum_owned(mesh, mesh->dim(), vols);
-  auto vol_scal = volume_scalar_for_nelems(mesh, vol_sum, target_nelems);
+  auto elems_per_elem = expected_elems_per_elem_metric(mesh, v2m);
+  auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
+  auto size_scal = target_nelems / elems;
   Real m_scal = 0;
-  if (mesh->dim() == 3) m_scal = cbrt(square(vol_scal));
-  if (mesh->dim() == 2) m_scal = vol_scal;
+  if (mesh->dim() == 3) m_scal = cbrt(square(size_scal));
+  if (mesh->dim() == 2) m_scal = size_scal;
   return multiply_each_by(m_scal, v2m);
 }
 

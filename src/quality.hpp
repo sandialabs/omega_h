@@ -76,24 +76,56 @@ source:
    We will start off using the mean ratio cubed measures:
  */
 
-INLINE Real triangle_mean_ratio_squared(Real a, Few<Real, 3> lsq) {
-  Real s = 0.0;
-  for (Int i = 0; i < 3; ++i) s += lsq[i];
-  return 48 * square(a) / square(s);
+INLINE Real perfect_tri_area() {
+  return sqrt(3.) / 4.;
 }
 
-INLINE Real mean_ratio(Real a, Few<Real, 3> lsq) {
-  return sqrt(triangle_mean_ratio_squared(a, lsq));
+INLINE Real tri_mean_ratio(Real a, Real msl) {
+  return a / (perfect_tri_area() * msl);
 }
 
-INLINE Real tet_mean_ratio_cubed(Real v, Few<Real, 6> lsq) {
-  Real s = 0.0;
-  for (Int i = 0; i < 6; ++i) s += lsq[i];
-  return 15552.0 * square(v) / cube(s);
+INLINE Real perfect_tet_volume_squared() {
+  return 1. / 72.;
 }
 
-INLINE Real mean_ratio(Real v, Few<Real, 6> lsq) {
-  return cbrt(tet_mean_ratio_cubed(v, lsq));
+INLINE Real tet_mean_ratio_cubed(Real v, Real msl) {
+  return square(v) / (perfect_tet_volume_squared() * cube(msl));
+}
+
+INLINE Real tet_mean_ratio(Real v, Real msl) {
+  return cbrt(tet_mean_ratio_cubed(v, msl));
+}
+
+template <Int dim>
+struct MeanRatio;
+
+template <>
+struct MeanRatio<2> {
+  INLINE static Real get(Real a, Real msl) {
+    return tri_mean_ratio(a, msl);
+  }
+};
+
+template <>
+struct MeanRatio<3> {
+  INLINE static Real get(Real v, Real msl) {
+    return tet_mean_ratio(v, msl);
+  }
+};
+
+template <Int dim>
+INLINE Real mean_ratio(Real v, Real msl) {
+  return MeanRatio<dim>::get(v, msl);
+}
+
+template <typename EdgeVectors>
+Real mean_squared_real_length(EdgeVectors edge_vectors) {
+  auto nedges = EdgeVectors::size;
+  Real msl = 0;
+  for (Int i = 0; i < nedges; ++i) {
+    msl += norm_squared(edge_vectors[i]);
+  }
+  return msl / nedges;
 }
 
 template <Int dim>
@@ -102,11 +134,8 @@ INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
   auto s = element_size(b);
   if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);
-  Few<Real, decltype(ev)::size> lsq;
-  for (Int i = 0; i < decltype(ev)::size; ++i) {
-    lsq[i] = norm_squared(ev[i]);
-  }
-  return mean_ratio(s, lsq);
+  auto msl = mean_squared_real_length(ev);
+  return mean_ratio<dim>(s, msl);
 }
 
 /* note that we will always use a constant metric tensor over the whole
@@ -124,6 +153,16 @@ INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
 
    Mentions using $\sqrt{\det(M)}$ to compute volume in metric space. */
 
+template <Int dim, typename EdgeVectors>
+Real mean_squared_metric_length(EdgeVectors edge_vectors, Matrix<dim, dim> metric) {
+  auto nedges = EdgeVectors::size;
+  Real msl = 0;
+  for (Int i = 0; i < nedges; ++i) {
+    msl += metric_product(metric, edge_vectors[i]);
+  }
+  return msl / nedges;
+}
+
 template <Int dim>
 INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p,
                                    Matrix<dim, dim> metric) {
@@ -131,11 +170,8 @@ INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p,
   auto s = element_size(b) * sqrt(determinant(metric));
   if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);
-  Few<Real, decltype(ev)::size> lsq;
-  for (Int i = 0; i < decltype(ev)::size; ++i) {
-    lsq[i] = metric_product(metric, ev[i]);
-  }
-  return mean_ratio(s, lsq);
+  auto msl = mean_squared_metric_length(ev, metric);
+  return mean_ratio<dim>(s, msl);
 }
 
 struct RealElementQualities {
