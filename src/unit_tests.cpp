@@ -726,6 +726,28 @@ static void test_element_identity_metric() {
   CHECK(are_close(arm, brm));
 }
 
+static void test_recover_hessians(Library const& lib) {
+  Mesh mesh;
+  build_box(&mesh, lib, 1, 1, 0, 4, 4, 0);
+  classify_by_angles(&mesh, osh::PI / 4);
+  auto u_w = Write<Real>(mesh.nverts());
+  auto coords = mesh.coords();
+  // attach a field = x^2 + y^2
+  auto f = LAMBDA(LO v) {
+    auto x = get_vector<2>(coords, v);
+    u_w[v] = square(x[0]) + square(x[1]);
+  };
+  parallel_for(mesh.nverts(), f);
+  auto u = osh::Reals(u_w);
+  mesh.add_tag(osh::VERT, "u", 1, OSH_DONT_TRANSFER, u);
+  auto hess = recover_hessians(&mesh, u);
+  // its second derivative is exactly 2dx + 2dy,
+  // and both recovery steps are linear so the current
+  // algorithm should get an exact answer
+  auto expected_hess = repeat_symm(mesh.nverts(), diagonal(vector_2(2,2)));
+  CHECK(are_close(hess, expected_hess));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -769,4 +791,5 @@ int main(int argc, char** argv) {
   test_read_vtu(lib);
   test_interpolate_metrics();
   test_element_identity_metric();
+  test_recover_hessians(lib);
 }
