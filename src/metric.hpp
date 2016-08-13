@@ -98,28 +98,48 @@ That leaves (3) as being the best choice for these three reasons:
  - It has decent output in anisotropic cases
  - It can be used in triangles and tets
  - It does not require an eigendecomposition
+
+Looking a (1), (2) and (3) suggests that their only
+difference is an operation we will call "linearization",
+in this case converting the metric tensor into a quantity
+that can be safely linearly interpolated.
+(1) M^{-1/2}
+(2) M^{-1}
+(3) M
 */
+
+template <Int dim>
+INLINE Matrix<dim,dim> linearize_metric(Matrix<dim, dim> m) {
+  return invert(m);
+}
+
+template <Int dim>
+INLINE Matrix<dim,dim> delinearize_metric(Matrix<dim, dim> m) {
+  return invert(m);
+}
 
 template <Int dim>
 INLINE Matrix<dim, dim> interpolate_metrics(Matrix<dim, dim> a,
                                             Matrix<dim, dim> b, Real t) {
-  return invert((invert(a) * (1.0 - t)) + (invert(b) * t));
+  return delinearize_metric((linearize_metric(a) * (1.0 - t))
+                          + (linearize_metric(b) * t));
 }
 
 /* same as above, but for the barycenter of an entity */
 template <Int dim, Int n>
-INLINE Matrix<dim, dim> average_metrics(Few<Matrix<dim, dim>, n> m) {
+INLINE Matrix<dim, dim> average_metrics(Few<Matrix<dim, dim>, n> ms) {
   auto am = zero_matrix<dim, dim>();
   for (Int i = 0; i < n; ++i) {
-    am = am + invert(m[i]);
+    am = am + linearize_metric(ms[i]);
   }
   am = am / double(n);
-  am = invert(am);
-  return am;
+  return delinearize_metric(am);
 }
 
 Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
 Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t);
+Reals linearize_metrics(Int dim, Reals metrics);
+Reals delinearize_metrics(Int dim, Reals linear_metrics);
 
 }  // end namespace osh
 
