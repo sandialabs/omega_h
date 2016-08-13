@@ -230,6 +230,8 @@ Adj Mesh::ask_down(Int from, Int to) {
 
 LOs Mesh::ask_verts_of(Int dim) { return ask_adj(dim, VERT).ab2b; }
 
+LOs Mesh::ask_elem_verts() { return ask_verts_of(dim()); }
+
 Adj Mesh::ask_up(Int from, Int to) {
   CHECK(from < to);
   return ask_adj(from, to);

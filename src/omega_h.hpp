@@ -403,6 +403,7 @@ class Mesh {
   Adj get_adj(Int from, Int to) const;
   Adj ask_down(Int from, Int to);
   LOs ask_verts_of(Int dim);
+  LOs ask_elem_verts();
   Adj ask_up(Int from, Int to);
   Graph ask_star(Int dim);
   Graph ask_dual();

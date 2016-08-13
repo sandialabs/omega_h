@@ -74,7 +74,7 @@ Reals find_identity_size(Mesh* mesh) {
 template <Int dim>
 static Reals measure_elements_real_tmpl(Mesh* mesh) {
   RealElementSizes measurer(mesh);
-  auto ev2v = mesh->ask_verts_of(dim);
+  auto ev2v = mesh->ask_elem_verts();
   auto ne = mesh->nelems();
   Write<Real> sizes(ne);
   auto f = LAMBDA(LO e) {
@@ -99,7 +99,7 @@ static Reals find_identity_metric_tmpl(Mesh* mesh) {
   CHECK(dim == mesh->dim());
   CHECK(mesh->owners_have_all_upward(VERT));
   auto coords = mesh->coords();
-  auto ev2v = mesh->ask_verts_of(dim);
+  auto ev2v = mesh->ask_elem_verts();
   auto elem_metrics_w = Write<Real>(mesh->nelems() * symm_dofs(dim));
   auto f0 = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
@@ -223,7 +223,7 @@ struct MeanSquaredMetricLength {
 template <Int dim, typename MeanSquaredLength>
 static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2sf) {
   auto msl_obj = MeanSquaredLength(mesh, v2sf);
-  auto ev2v = mesh->ask_verts_of(dim);
+  auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
   auto f = LAMBDA(LO e) {

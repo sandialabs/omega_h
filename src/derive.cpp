@@ -24,7 +24,7 @@ INLINE Matrix<dim, dim> get_simplex_jacobian(Few<Vector<dim>, dim + 1> evv2x) {
 template <Int dim>
 static Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
   auto coords = mesh->coords();
-  auto ev2v = mesh->ask_verts_of(mesh->dim());
+  auto ev2v = mesh->ask_elem_verts();
   auto out = Write<Real>(mesh->nelems() * dim);
   auto f = LAMBDA(LO e) {
     auto evv2v = gather_verts<dim + 1>(ev2v, e);
@@ -44,7 +44,7 @@ static Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
 template <Int dim>
 static Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
   auto coords = mesh->coords();
-  auto ev2v = mesh->ask_verts_of(mesh->dim());
+  auto ev2v = mesh->ask_elem_verts();
   auto out = Write<Real>(mesh->nelems() * symm_dofs(dim));
   auto f = LAMBDA(LO e) {
     auto evv2v = gather_verts<dim + 1>(ev2v, e);

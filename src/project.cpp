@@ -31,7 +31,7 @@ static Reals project_to_interior_dim(Mesh* mesh, Reals e_data, Int ncomps,
   auto v2e = mesh->ask_up(VERT, dim);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
-  auto ev2v = mesh->ask_verts_of(dim);
+  auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto owned = mesh->owned(VERT);
   auto out = Write<Real>(mesh->nverts() * ncomps);
