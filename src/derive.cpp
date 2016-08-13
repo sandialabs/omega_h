@@ -77,16 +77,4 @@ Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients) {
   NORETURN(Reals());
 }
 
-Reals recover_by_quality(Mesh* mesh, Reals elem_values) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  CHECK(elem_values.size() % mesh->nelems() == 0);
-  auto ncomps = elem_values.size() / mesh->nelems();
-  auto out = Write<Real>(mesh->nverts() * ncomps);
-  auto elem_quals = mesh->ask_qualities();
-  auto v2e = mesh->ask_graph(VERT, mesh->dim());
-  auto ve2e = v2e.ab2b;
-  auto weights = unmap(ve2e, elem_quals, 1);
-  return graph_weighted_average(v2e, weights, elem_values, ncomps);
-}
-
 }

@@ -6,17 +6,18 @@
  * based on surrounding element values
  * and evaluate that polynomial to obtain their
  * values.
- * We then run several iterations in which boundary
- * vertices that don't yet have a value will set
- * their value as an average of adjacent vertex values,
- * if any.
+ * Boundary nodes evaluate the polynomial of a
+ * nearby interior node. This involves storing
+ * the polynomial coefficients on the interior nodes
+ * and copying them over to the boundary in a diffusive
+ * fashion.
  *
  * This approach is inspired by the following paper:
- * Pain, C. C., et al.
- * "Tetrahedral mesh optimisation and adaptivity for
- *  steady-state and transient finite element calculations."
- * Computer Methods in Applied Mechanics and Engineering
- * 190.29 (2001): 3771-3796.
+ * Boussetta, Ramzy, Thierry Coupez, and Lionel Fourment.
+ * "Adaptive remeshing based on a posteriori error estimation
+ *  for forging simulation."
+ * Computer methods in applied mechanics and engineering
+ * 195.48 (2006): 6626-6645.
  */
 
 #include "array.hpp"
@@ -26,7 +27,7 @@
 namespace osh {
 
 template <Int dim>
-static Reals project_to_interior_dim(Mesh* mesh, Reals e_data, Int ncomps,
+static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps,
     Read<I8> interior) {
   auto v2e = mesh->ask_up(VERT, dim);
   auto v2ve = v2e.a2ab;
@@ -34,35 +35,33 @@ static Reals project_to_interior_dim(Mesh* mesh, Reals e_data, Int ncomps,
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto owned = mesh->owned(VERT);
-  auto out = Write<Real>(mesh->nverts() * ncomps);
+  auto out = Write<Real>(mesh->nverts() * ncomps * (dim + 1));
   auto f = LAMBDA(LO v) {
     if (!owned[v] || !interior[v]) return;
     auto qr_decomp = get_cavity_qr_decomposition<dim>(v, v2ve,
         ve2e, ev2v, coords);
-    auto x = get_vector<dim>(coords, v);
     for (Int comp = 0; comp < ncomps; ++comp) {
       auto coeffs = fit_cavity_polynomial<dim>(qr_decomp, v,
           v2ve, ve2e, e_data, comp, ncomps);
-      auto val = eval_polynomial<dim>(coeffs, x);
-      out[v * ncomps + comp] = val;
+      set_vector(out, v * ncomps + comp, coeffs);
     }
   };
   parallel_for(mesh->nverts(), f);
   return mesh->sync_array(VERT, Reals(out), ncomps);
 }
 
-static Reals project_to_interior(Mesh* mesh, Reals e_data, Int ncomps,
+static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps,
     Read<I8> interior) {
   if (mesh->dim() == 3) {
-    return project_to_interior_dim<3>(mesh, e_data, ncomps, interior);
+    return get_interior_coeffs_dim<3>(mesh, e_data, ncomps, interior);
   }
   if (mesh->dim() == 2) {
-    return project_to_interior_dim<2>(mesh, e_data, ncomps, interior);
+    return get_interior_coeffs_dim<2>(mesh, e_data, ncomps, interior);
   }
   NORETURN(Reals());
 }
 
-static void project_to_exterior(Mesh* mesh, Reals* p_v_data, Int ncomps, Read<I8>* p_visited) {
+static void diffuse_to_exterior(Mesh* mesh, Reals* p_v_data, Int ncomps, Read<I8>* p_visited) {
   auto v_data = *p_v_data;
   auto visited = *p_visited;
   auto new_data = deep_copy(v_data);
@@ -71,6 +70,7 @@ static void project_to_exterior(Mesh* mesh, Reals* p_v_data, Int ncomps, Read<I8
   auto v2vv = v2v.a2ab;
   auto vv2v = v2v.ab2b;
   auto f = LAMBDA(LO v) {
+    if (visited[v]) return;
     Int nadj = 0;
     for (auto vv = v2vv[v]; vv < v2vv[v + 1]; ++vv) {
       auto ov = vv2v[vv];
@@ -88,10 +88,38 @@ static void project_to_exterior(Mesh* mesh, Reals* p_v_data, Int ncomps, Read<I8
     new_visited[v] = 1;
   };
   parallel_for(mesh->nverts(), f);
+  v_data = new_data;
+  visited = new_visited;
   v_data = mesh->sync_array(VERT, v_data, ncomps);
   visited = mesh->sync_array(VERT, visited, 1);
   *p_v_data = v_data;
   *p_visited = visited;
+}
+
+template <Int dim>
+static Reals evaluate_coeffs_dim(Mesh* mesh, Reals v_coeffs, Int ncomps) {
+  auto coords = mesh->coords();
+  auto out = Write<Real>(mesh->nverts() * ncomps);
+  auto f = LAMBDA(LO v) {
+    auto x = get_vector<dim>(coords, v);
+    for (Int comp = 0; comp < ncomps; ++comp) {
+      auto coeffs = get_vector<dim + 1>(v_coeffs, v * ncomps + comp);
+      auto val = eval_polynomial(coeffs, x);
+      out[v * ncomps + comp] = val;
+    }
+  };
+  parallel_for(mesh->nverts(), f);
+  return out;
+}
+
+static Reals evaluate_coeffs(Mesh* mesh, Reals v_coeffs, Int ncomps) {
+  if (mesh->dim() == 3) {
+    return evaluate_coeffs_dim<3>(mesh, v_coeffs, ncomps);
+  }
+  if (mesh->dim() == 2) {
+    return evaluate_coeffs_dim<2>(mesh, v_coeffs, ncomps);
+  }
+  NORETURN(Reals());
 }
 
 Reals project(Mesh* mesh, Reals e_data) {
@@ -105,12 +133,12 @@ Reals project(Mesh* mesh, Reals e_data) {
   auto comm = mesh->comm();
   auto have_interior_verts = comm->reduce_or(have_local_interior);
   CHECK(have_interior_verts);
-  auto v_data = project_to_interior(mesh, e_data, ncomps, interior);
+  auto v_coeffs = get_interior_coeffs(mesh, e_data, ncomps, interior);
   auto visited = interior;
   while (comm->reduce_or(min(visited) == 0)) {
-    project_to_exterior(mesh, &v_data, ncomps, &visited);
+    diffuse_to_exterior(mesh, &v_coeffs, ncomps * (dim + 1), &visited);
   }
-  return v_data;
+  return evaluate_coeffs(mesh, v_coeffs, ncomps);
 }
 
 } // end namespace osh
