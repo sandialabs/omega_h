@@ -42,6 +42,7 @@
 #include "modify.cpp"
 #include "owners.cpp"
 #include "protect.cpp"
+#include "project.cpp"
 #include "quality.cpp"
 #include "refine.cpp"
 #include "refine_qualities.cpp"

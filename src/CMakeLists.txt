@@ -80,6 +80,7 @@ else()
   align.cpp
   xml.cpp
   derive.cpp
+  project.cpp
   )
 endif()
 

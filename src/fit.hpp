@@ -10,12 +10,11 @@
  * MaxFitPoints denotes the maximum number of adjacent
  * sample points that will be accepted into the fitting
  * process.
- * If there happen to be more adjacent elements, their values
- * will be ignored.
  * These limits were chosen to be approximately twice the
- * typical number of elements adjacent to a vertex.
+ * number of elements adjacent to a vertex.
  */
 
+#include "access.hpp"
 #include "qr.hpp"
 
 namespace osh {
@@ -52,6 +51,7 @@ get_cavity_qr_decomposition(LO k, LOs const& k2ke, LOs const& ke2e,
     LOs const& ev2v, Reals const& coords) {
   constexpr auto max_fit_pts = MaxFitPoints<dim>::value;
   Matrix<max_fit_pts, dim + 1> vandermonde;
+  CHECK(k2ke[k + 1] - k2ke[k] <= max_fit_pts);
   Int nfit_pts = 0;
   for (auto ke = k2ke[k]; ke < k2ke[k + 1]; ++ke) {
     auto e = ke2e[ke];
@@ -63,7 +63,6 @@ get_cavity_qr_decomposition(LO k, LOs const& k2ke, LOs const& ke2e,
       vandermonde[1 + j][nfit_pts] = centroid[j];
     }
     ++nfit_pts;
-    if (nfit_pts == max_fit_pts) break;
   }
   for (auto i = nfit_pts; i < max_fit_pts; ++i) {
     for (Int j = 0; j < (dim + 1); ++j) {
@@ -98,7 +97,6 @@ fit_cavity_polynomial(CavityQrDecomposition<dim> qr_decomp, LO k,
     auto e = ke2e[ke];
     b[nfit_pts] = e_data[e * ncomps + comp];
     ++nfit_pts;
-    if (nfit_pts == max_fit_pts) break;
   }
   for (auto i = nfit_pts; i < max_fit_pts; ++i) b[i] = 0;
   auto qtb_full = b;
