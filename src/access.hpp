@@ -70,6 +70,26 @@ DEVICE Few<Matrix<dim, dim>, neev> gather_symms(Reals const& a,
   return x;
 }
 
+template <Int dim>
+DEVICE void set_matrix(Write<Real> const& a, Int i, Matrix<dim, dim> m) {
+  for (Int j = 0; j < dim; ++j) {
+    for (Int k = 0; k < dim; ++k) {
+      a[(i * dim + j) * dim + k] = m[j][k];
+    }
+  }
+}
+
+template <Int dim>
+DEVICE Matrix<dim, dim> get_matrix(Reals const& a, Int i) {
+  Matrix<dim, dim> m;
+  for (Int j = 0; j < dim; ++j) {
+    for (Int k = 0; k < dim; ++k) {
+      m[j][k] = a[(i * dim + j) * dim + k];
+    }
+  }
+  return m;
+}
+
 Reals vectors_2d_to_3d(Reals vecs2);
 Reals vectors_3d_to_2d(Reals vecs2);
 
