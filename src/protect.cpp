@@ -34,7 +34,7 @@ void osh_signal_handler(int s) {
       fprintf(stderr, "omega_h caught %s\n", known_signals[i].name);
   print_stacktrace();
   signal(s, SIG_DFL);
-  raise(s);
+  ::raise(s);
 }
 
 #undef NSIGS
