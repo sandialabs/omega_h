@@ -27,17 +27,17 @@
 namespace osh {
 
 template <Int dim>
-static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps,
-    Read<I8> interior) {
+static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
   auto v2e = mesh->ask_up(VERT, dim);
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto owned = mesh->owned(VERT);
+  auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto out = Write<Real>(mesh->nverts() * ncomps * (dim + 1));
   auto f = LAMBDA(LO v) {
-    if (!owned[v] || !interior[v]) return;
+    if (!owned[v] || (class_dim[v] != dim)) return;
     auto qr_decomp = get_cavity_qr_decomposition<dim>(v, v2ve,
         ve2e, ev2v, coords);
     for (Int comp = 0; comp < ncomps; ++comp) {
@@ -50,13 +50,12 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps,
   return mesh->sync_array(VERT, Reals(out), ncomps * (dim + 1));
 }
 
-static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps,
-    Read<I8> interior) {
+static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps) {
   if (mesh->dim() == 3) {
-    return get_interior_coeffs_dim<3>(mesh, e_data, ncomps, interior);
+    return get_interior_coeffs_dim<3>(mesh, e_data, ncomps);
   }
   if (mesh->dim() == 2) {
-    return get_interior_coeffs_dim<2>(mesh, e_data, ncomps, interior);
+    return get_interior_coeffs_dim<2>(mesh, e_data, ncomps);
   }
   NORETURN(Reals());
 }
@@ -122,20 +121,25 @@ static Reals evaluate_coeffs(Mesh* mesh, Reals v_coeffs, Int ncomps) {
   NORETURN(Reals());
 }
 
-Reals project(Mesh* mesh, Reals e_data) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  CHECK(e_data.size() % mesh->nelems() == 0);
-  auto ncomps = e_data.size() / mesh->nelems();
-  auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
+bool has_interior_verts(Mesh* mesh) {
   auto dim = mesh->dim();
+  auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto interior = each_eq_to(class_dim, I8(dim));
   auto have_local_interior = (max(interior) == 1);
   auto comm = mesh->comm();
-  auto have_interior_verts = comm->reduce_or(have_local_interior);
-  CHECK(have_interior_verts);
-  auto v_coeffs = get_interior_coeffs(mesh, e_data, ncomps, interior);
-  auto visited = interior;
-  while (comm->reduce_or(min(visited) == 0)) {
+  return comm->reduce_or(have_local_interior);
+}
+
+Reals project(Mesh* mesh, Reals e_data) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  CHECK(e_data.size() % mesh->nelems() == 0);
+  CHECK(has_interior_verts(mesh));
+  auto ncomps = e_data.size() / mesh->nelems();
+  auto dim = mesh->dim();
+  auto v_coeffs = get_interior_coeffs(mesh, e_data, ncomps);
+  auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
+  auto visited = each_eq_to(class_dim, I8(dim));
+  while (mesh->comm()->reduce_or(min(visited) == 0)) {
     diffuse_to_exterior(mesh, &v_coeffs, ncomps * (dim + 1), &visited);
   }
   return evaluate_coeffs(mesh, v_coeffs, ncomps);

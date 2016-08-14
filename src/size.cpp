@@ -102,7 +102,22 @@ static Reals element_identity_sizes(Mesh* mesh) {
   NORETURN(Reals());
 }
 
+static Reals find_identity_size2(Mesh* mesh) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto lens = measure_edges_real(mesh);
+  auto v2e = mesh->ask_up(VERT, EDGE);
+  auto nve = v2e.a2ab.last();
+  auto weights = Reals(nve, 1.0);
+  auto own_isos = graph_weighted_average(v2e, weights, lens, 1);
+  auto synced_isos = mesh->sync_array(VERT, own_isos, 1);
+  return synced_isos;
+}
+
 Reals find_identity_size(Mesh* mesh) {
+  if (!has_interior_verts(mesh)) {
+    // fall back on the old algorithm if there are no interior vertices
+    return find_identity_size2(mesh);
+  }
   auto e_h = element_identity_sizes(mesh);
   auto v_h = project(mesh, e_h);
   return v_h;
