@@ -102,10 +102,10 @@ target_include_directories(omega_h
 macro(osh_find_package PKG_NAME VERSION)
   set(${PKG_NAME}_PREFIX "" CACHE PATH "${PKG_NAME} install directory")
   if ("${${PKG_NAME}_PREFIX}" STREQUAL "")
-    #allow CMake to search other prefixes if Kokkos_PREFIX is not set
+    #allow CMake to search other prefixes if ${PKG_NAME}_PREFIX is not set
     find_package(${PKG_NAME} ${VERSION} REQUIRED)
   else()
-    #but if Kokkos_PREFIX is set, don't find it anywhere else:
+    #but if ${PKG_NAME}_PREFIX is set, don't find it anywhere else:
     find_package(${PKG_NAME} ${VERSION} REQUIRED PATHS ${${PKG_NAME}_PREFIX} NO_DEFAULT_PATH)
   endif()
   message(STATUS "${PKG_NAME}_CONFIG: ${${PKG_NAME}_CONFIG}")
