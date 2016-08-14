@@ -47,7 +47,7 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps,
     }
   };
   parallel_for(mesh->nverts(), f);
-  return mesh->sync_array(VERT, Reals(out), ncomps);
+  return mesh->sync_array(VERT, Reals(out), ncomps * (dim + 1));
 }
 
 static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps,
