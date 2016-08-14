@@ -7,8 +7,8 @@ set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
 include(CTest)
 enable_testing()
 
-set(OSH_MAJOR "1")
-set(OSH_MINOR "5")
+set(OSH_MAJOR "2")
+set(OSH_MINOR "0")
 set(OSH_PATCH "0")
 
 option(OSH_USE_MPI "Use MPI for parallelism" ON)

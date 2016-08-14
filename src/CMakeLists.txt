@@ -2,10 +2,7 @@ configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/omega_h_config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/omega_h_config.h")
 
-if(OSH_ONE_FILE)
-  add_library(omega_h omega_h.cpp)
-else()
-  add_library(omega_h
+set(OSH_SOURCES
   algebra.cpp
   control.cpp
   protect.cpp
@@ -80,7 +77,19 @@ else()
   align.cpp
   xml.cpp
   derive.cpp
+  project.cpp
   )
+
+if(OSH_ONE_FILE)
+  foreach(source IN LISTS OSH_SOURCES)
+    set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
+  endforeach()
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/omega_h.cpp "${ONE_FILE_CONTENTS}")
+  add_library(omega_h omega_h.cpp)
+  target_include_directories(omega_h
+      PRIVATE  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+else()
+  add_library(omega_h ${OSH_SOURCES})
 endif()
 
 #for users to find all our headers after we're installed:
@@ -220,12 +229,8 @@ if(BUILD_TESTING)
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
-  if(OSH_USE_KOKKOS)
-    exe_func(test_view)
-  endif()
-  exe_func(test_r3d)
-  test_func(run_test_r3d 1 ./test_r3d)
-  exe_func(test_hessian)
+  exe_func(r3d_test)
+  test_func(run_test_r3d 1 ./r3d_test)
   exe_func(test_degree)
 endif()
 

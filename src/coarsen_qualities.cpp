@@ -13,9 +13,10 @@ namespace osh {
 template <typename Measure, Int dim>
 static Reals coarsen_qualities_tmpl(Mesh* mesh, LOs cands2edges,
                                     Read<I8> cand_codes) {
+  CHECK(mesh->dim() == dim);
   Measure measure(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
-  auto cv2v = mesh->ask_verts_of(dim);
+  auto cv2v = mesh->ask_elem_verts();
   auto v2c = mesh->ask_up(VERT, dim);
   auto v2vc = v2c.a2ab;
   auto vc2c = v2c.ab2b;

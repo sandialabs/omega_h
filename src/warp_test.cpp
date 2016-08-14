@@ -31,14 +31,34 @@ static void add_dye(Mesh* mesh) {
   mesh->add_tag(VERT, "dye", 1, OSH_LINEAR_INTERP, Reals(dye_w));
 }
 
-static void add_pointwise(Mesh* mesh) {
+static Reals form_pointwise(Mesh* mesh) {
   auto dim = mesh->dim();
   auto ecoords =
       average_field(mesh, dim, LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
   auto pw_w = Write<Real>(mesh->nelems());
   auto pw_fun = LAMBDA(LO elem) { pw_w[elem] = ecoords[elem * dim]; };
   parallel_for(mesh->nelems(), pw_fun);
-  mesh->add_tag(dim, "pointwise", 1, OSH_POINTWISE, Reals(pw_w));
+  return pw_w;
+}
+
+static void add_pointwise(Mesh* mesh) {
+  auto data = form_pointwise(mesh);
+  mesh->add_tag(mesh->dim(), "pointwise", 1, OSH_POINTWISE, data);
+}
+
+static void postprocess_conserve(Mesh* mesh) {
+  auto volume = measure_elements_real(mesh);
+  auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
+  CHECK(are_close(1.0, sum(mesh->comm(), mass)));
+  auto density = divide_each(mass, volume);
+  mesh->add_tag(mesh->dim(), "density", 1, OSH_DONT_TRANSFER, density);
+}
+
+static void postprocess_pointwise(Mesh* mesh) {
+  auto data = mesh->get_array<Real>(mesh->dim(), "pointwise");
+  auto expected = form_pointwise(mesh);
+  auto diff = subtract_each(data, expected);
+  mesh->add_tag(mesh->dim(), "pointwise_err", 1, OSH_DONT_TRANSFER, diff);
 }
 
 int main(int argc, char** argv) {
@@ -97,11 +117,11 @@ int main(int argc, char** argv) {
   }
   Now t1 = now();
   mesh.set_parting(OSH_ELEM_BASED);
-  CHECK(are_close(1.0,
-                  sum(mesh.comm(), mesh.get_array<Real>(mesh.dim(), "mass"))));
   if (mesh.comm()->rank() == 0) {
     std::cout << "test took " << (t1 - t0) << " seconds\n";
   }
+  postprocess_conserve(&mesh);
+  postprocess_pointwise(&mesh);
   bool ok = check_regression("gold_warp", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;

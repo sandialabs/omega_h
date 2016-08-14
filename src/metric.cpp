@@ -64,4 +64,40 @@ Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t) {
   return interpolate_metrics<2>(a, b, t);
 }
 
+template <Int dim>
+Reals linearize_metrics_dim(Reals metrics) {
+  auto n = metrics.size() / symm_dofs(dim);
+  auto out = Write<Real>(n * dim * dim);
+  auto f = LAMBDA(LO i) {
+    set_matrix(out, i, linearize_metric(get_symm<dim>(metrics, i)));
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+template <Int dim>
+Reals delinearize_metrics_dim(Reals lms) {
+  auto n = lms.size() / square(dim);
+  auto out = Write<Real>(n * dim * dim);
+  auto f = LAMBDA(LO i) {
+    set_symm(out, i, delinearize_metric(get_matrix<dim>(lms, i)));
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals linearize_metrics(Int dim, Reals metrics) {
+  CHECK(metrics.size() % symm_dofs(dim) == 0);
+  if (dim == 3) return linearize_metrics_dim<3>(metrics);
+  if (dim == 2) return linearize_metrics_dim<2>(metrics);
+  NORETURN(Reals());
+}
+
+Reals delinearize_metrics(Int dim, Reals linear_metrics) {
+  CHECK(linear_metrics.size() % square(dim) == 0);
+  if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
+  if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);
+  NORETURN(Reals());
+}
+
 }  // end namespace osh

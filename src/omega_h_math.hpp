@@ -66,7 +66,8 @@ struct ArithTraits<double> {
   static OSH_INLINE double min() { return -DBL_MAX; }
 };
 
-OSH_INLINE Real square(Real x) { return x * x; }
+template <typename T>
+OSH_INLINE T square(T x) { return x * x; }
 
 template <Int n>
 class Vector : public Few<Real, n> {
