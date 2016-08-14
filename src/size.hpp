@@ -133,6 +133,24 @@ INLINE Few<Vector<3>, 6> element_edge_vectors(Few<Vector<3>, 4> p,
   return ev;
 }
 
+template <typename EdgeVectors>
+INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
+  auto nedges = EdgeVectors::size;
+  Real msl = 0;
+  for (Int i = 0; i < nedges; ++i) {
+    msl += norm_squared(edge_vectors[i]);
+  }
+  return msl / nedges;
+}
+
+template <Int dim>
+INLINE Real element_identity_size(Few<Vector<dim>, dim + 1> p) {
+  auto b = simplex_basis<dim, dim>(p);
+  auto ev = element_edge_vectors(p, b);
+  auto h = sqrt(mean_squared_real_length(ev));
+  return h;
+}
+
 INLINE Matrix<2, 2> element_identity_metric(Few<Vector<2>, 3> p) {
   auto b = simplex_basis<2, 2>(p);
   auto ev = element_edge_vectors(p, b);

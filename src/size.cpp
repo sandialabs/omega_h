@@ -3,6 +3,7 @@
 #include "array.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
+#include "project.hpp"
 #include "quality.hpp"
 
 namespace osh {
@@ -60,17 +61,6 @@ Reals measure_edges_metric(Mesh* mesh) {
   return measure_edges_metric(mesh, LOs(mesh->nedges(), 0, 1));
 }
 
-Reals find_identity_size(Mesh* mesh) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  auto lens = measure_edges_real(mesh);
-  auto v2e = mesh->ask_up(VERT, EDGE);
-  auto nve = v2e.a2ab.last();
-  auto weights = Reals(nve, 1.0);
-  auto own_isos = graph_weighted_average(v2e, weights, lens, 1);
-  auto synced_isos = mesh->sync_array(VERT, own_isos, 1);
-  return synced_isos;
-}
-
 template <Int dim>
 static Reals measure_elements_real_tmpl(Mesh* mesh) {
   RealElementSizes measurer(mesh);
@@ -86,59 +76,65 @@ static Reals measure_elements_real_tmpl(Mesh* mesh) {
 }
 
 Reals measure_elements_real(Mesh* mesh) {
-  if (mesh->dim() == 3) {
-    return measure_elements_real_tmpl<3>(mesh);
-  } else {
-    CHECK(mesh->dim() == 2);
-    return measure_elements_real_tmpl<2>(mesh);
-  }
+  if (mesh->dim() == 3) return measure_elements_real_tmpl<3>(mesh);
+  if (mesh->dim() == 2) return measure_elements_real_tmpl<2>(mesh);
+  NORETURN(Reals());
 }
 
 template <Int dim>
-static Reals find_identity_metric_tmpl(Mesh* mesh) {
-  CHECK(dim == mesh->dim());
-  CHECK(mesh->owners_have_all_upward(VERT));
+static Reals element_identity_sizes_dim(Mesh* mesh) {
   auto coords = mesh->coords();
   auto ev2v = mesh->ask_elem_verts();
-  auto elem_metrics_w = Write<Real>(mesh->nelems() * symm_dofs(dim));
-  auto f0 = LAMBDA(LO e) {
+  auto out = Write<Real>(mesh->nelems());
+  auto f = LAMBDA(LO e) {
+    auto v = gather_verts<dim + 1>(ev2v, e);
+    auto p = gather_vectors<dim + 1, dim>(coords, v);
+    auto h = element_identity_size(p);
+    out[e] = h;
+  };
+  parallel_for(mesh->nelems(), f);
+  return out;
+}
+
+static Reals element_identity_sizes(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_identity_sizes_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_identity_sizes_dim<2>(mesh);
+  NORETURN(Reals());
+}
+
+Reals find_identity_size(Mesh* mesh) {
+  auto e_h = element_identity_sizes(mesh);
+  auto v_h = project(mesh, e_h);
+  return v_h;
+}
+
+template <Int dim>
+static Reals element_identity_metrics_dim(Mesh* mesh) {
+  auto ev2v = mesh->ask_elem_verts();
+  auto coords = mesh->coords();
+  auto out = Write<Real>(mesh->nelems() * symm_dofs(dim));
+  auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
     auto m = element_identity_metric(p);
-    set_symm(elem_metrics_w, e, m);
+    set_symm(out, e, m);
   };
-  parallel_for(mesh->nelems(), f0);
-  auto elem_metrics = Reals(elem_metrics_w);
-  auto elem_sizes = measure_elements_real(mesh);
-  auto v2e = mesh->ask_up(VERT, dim);
-  auto v2ve = v2e.a2ab;
-  auto ve2e = v2e.ab2b;
-  auto vert_metrics_w = Write<Real>(mesh->nverts() * symm_dofs(dim));
-  auto f1 = LAMBDA(LO v) {
-    Real ess = 0.0;
-    auto iems = zero_matrix<dim, dim>();
-    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
-      auto e = ve2e[ve];
-      auto em = get_symm<dim>(elem_metrics, e);
-      auto es = elem_sizes[e];
-      auto iem = invert(em);
-      iems = iems + (iem * es);
-      ess += es;
-    }
-    auto vm = invert(iems / ess);
-    set_symm(vert_metrics_w, v, vm);
-  };
-  parallel_for(mesh->nverts(), f1);
-  return vert_metrics_w;
+  parallel_for(mesh->nelems(), f);
+  return out;
+}
+
+static Reals element_identity_metrics(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_identity_metrics_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_identity_metrics_dim<2>(mesh);
+  NORETURN(Reals());
 }
 
 Reals find_identity_metric(Mesh* mesh) {
-  if (mesh->dim() == 3) {
-    return find_identity_metric_tmpl<3>(mesh);
-  } else {
-    CHECK(mesh->dim() == 2);
-    return find_identity_metric_tmpl<2>(mesh);
-  }
+  auto e_metric = element_identity_metrics(mesh);
+  auto e_linear = linearize_metrics(mesh->dim(), e_metric);
+  auto v_linear = project(mesh, e_linear);
+  auto v_metric = delinearize_metrics(mesh->dim(), v_linear);
+  return v_metric;
 }
 
 /* The algorithms below are for scaling a size field such that
@@ -177,7 +173,8 @@ Reals find_identity_metric(Mesh* mesh) {
  * Where $l_{M,RMS}$ is the root mean squared value of $v_i^T \mathcal{M} v_i$,
  * for edge vector $v_i$, i.e. the root mean squared metric edge length.
  * In both cases, the (more accurate) scaling factor is simply
- * the root mean squared edge length to the power of the element dimension.
+ * the root mean squared edge length in metric space
+ * to the power of the element dimension.
  *
  * When we need to scale desired edge lengths, we
  * use the inverse of the square root of the $\beta$ factor.
