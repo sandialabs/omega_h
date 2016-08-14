@@ -232,7 +232,6 @@ if(BUILD_TESTING)
   exe_func(r3d_test)
   test_func(run_test_r3d 1 ./r3d_test)
   exe_func(test_degree)
-  exe_func(test_sf_scale)
 endif()
 
 if(OSH_BUILD_SMB2OSH)

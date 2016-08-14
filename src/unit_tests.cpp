@@ -757,6 +757,34 @@ static void test_recover_hessians(Library const& lib) {
   test_recover_hessians_dim<3>(lib);
 }
 
+template <Int dim>
+static void test_sf_scale_dim(Library const& lib) {
+  Mesh mesh;
+  Int one_if_3d = ((dim == 3) ? 1 : 0);
+  build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
+  classify_by_angles(&mesh, osh::PI / 4);
+  auto target_nelems = mesh.nelems();
+  {
+    auto size = osh::find_identity_size(&mesh);
+    auto elems_per_elem = expected_elems_per_elem_iso(&mesh, size);
+    auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
+    auto size_scal = target_nelems / elems;
+    CHECK(are_close(size_scal, 1.));
+  }
+  {
+    auto metric = osh::find_identity_metric(&mesh);
+    auto elems_per_elem = expected_elems_per_elem_metric(&mesh, metric);
+    auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
+    auto size_scal = target_nelems / elems;
+    CHECK(are_close(size_scal, 1.));
+  }
+}
+
+static void test_sf_scale(Library const& lib) {
+  test_sf_scale_dim<2>(lib);
+  test_sf_scale_dim<3>(lib);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -801,4 +829,5 @@ int main(int argc, char** argv) {
   test_interpolate_metrics();
   test_element_identity_metric();
   test_recover_hessians(lib);
+  test_sf_scale(lib);
 }
