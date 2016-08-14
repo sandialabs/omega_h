@@ -726,16 +726,18 @@ static void test_element_identity_metric() {
   CHECK(are_close(arm, brm));
 }
 
-static void test_recover_hessians(Library const& lib) {
+template <Int dim>
+static void test_recover_hessians_dim(Library const& lib) {
   Mesh mesh;
-  build_box(&mesh, lib, 1, 1, 0, 4, 4, 0);
+  Int one_if_3d = ((dim == 3) ? 1 : 0);
+  build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
   classify_by_angles(&mesh, osh::PI / 4);
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
-  // attach a field = x^2 + y^2
+  // attach a field = x^2 + y^2 (+ z^2)
   auto f = LAMBDA(LO v) {
-    auto x = get_vector<2>(coords, v);
-    u_w[v] = square(x[0]) + square(x[1]);
+    auto x = get_vector<dim>(coords, v);
+    u_w[v] = norm_squared(x);
   };
   parallel_for(mesh.nverts(), f);
   auto u = osh::Reals(u_w);
@@ -744,8 +746,15 @@ static void test_recover_hessians(Library const& lib) {
   // its second derivative is exactly 2dx + 2dy,
   // and both recovery steps are linear so the current
   // algorithm should get an exact answer
-  auto expected_hess = repeat_symm(mesh.nverts(), diagonal(vector_2(2,2)));
+  Vector<dim> dv;
+  for (Int i = 0; i < dim; ++i) dv[i] = 2;
+  auto expected_hess = repeat_symm(mesh.nverts(), diagonal(dv));
   CHECK(are_close(hess, expected_hess));
+}
+
+static void test_recover_hessians(Library const& lib) {
+  test_recover_hessians_dim<2>(lib);
+  test_recover_hessians_dim<3>(lib);
 }
 
 int main(int argc, char** argv) {
