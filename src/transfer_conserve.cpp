@@ -1,6 +1,7 @@
 #include "transfer_conserve.hpp"
 
 #include "loop.hpp"
+#include "omega_h_r3d.hpp"
 #include "size.hpp"
 #include "tag.hpp"
 #include "transfer.hpp"
@@ -119,6 +120,79 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
             same_ents2old_ents, same_ents2new_ents, tagbase);
       } else if (dim == 2) {
         transfer_conserve_tmpl<2>(
+            old_mesh, new_mesh, key_dim, keys2kds, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+      }
+    }
+  }
+}
+
+template <Int dim>
+static void transfer_conserve_r3d_tmpl(
+    Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+    LOs keys2kds, LOs keys2prods,
+    LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents,
+    TagBase const* tagbase) {
+  CHECK(old_mesh->dim() == dim);
+  auto name = tagbase->name();
+  auto old_tag = to<Real>(tagbase);
+  auto ncomps = old_tag->ncomps();
+  auto old_data = old_tag->array();
+  auto kds2elems = old_mesh->ask_up(key_dim, dim);
+  auto kds2kd_elems = kds2elems.a2ab;
+  auto kd_elems2elems = kds2elems.ab2b;
+  auto old_ev2v = old_mesh->ask_elem_verts();
+  auto old_coords = old_mesh->coords();
+  auto new_ev2v = new_mesh->ask_elem_verts();
+  auto new_coords = new_mesh->coords();
+  auto nkeys = keys2kds.size();
+  auto nprods = keys2prods.last();
+  auto prod_data_w = Write<Real>(nprods * ncomps);
+  auto f = LAMBDA(LO key) {
+    auto kd = keys2kds[key];
+    for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
+      auto target_elem = prods2new_ents[prod];
+      auto target_verts = gather_verts<dim + 1>(new_ev2v, target_elem);
+      auto target_points = gather_vectors<dim + 1, dim>(new_coords, target_verts);
+      auto target_p = &prod_data_w[target_elem * ncomps];
+      for (Int comp = 0; comp < ncomps; ++comp) target_p[comp] = 0;
+      for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
+           ++kd_elem) {
+        auto donor_elem = kd_elems2elems[kd_elem];
+        auto donor_p = &old_data[donor_elem * ncomps];
+        auto donor_verts = gather_verts<dim + 1>(old_ev2v, donor_elem);
+        auto donor_points = gather_vectors<dim + 1, dim>(old_coords, donor_verts);
+        auto intersection = r3d::intersect_simplices(target_points, donor_points);
+        auto intersection_size = r3d::measure(intersection);
+        for (Int comp = 0; comp < ncomps; ++comp) {
+          target_p[comp] += intersection_size * donor_p[comp];
+        }
+      }
+      auto target_basis = simplex_basis<dim, dim>(target_points);
+      auto target_size = element_size(target_basis);
+      for (Int comp = 0; comp < ncomps; ++comp) target_p[comp] /= target_size;
+    }
+  };
+  parallel_for(nkeys, f);
+  auto prod_data = Reals(prod_data_w);
+  transfer_common(old_mesh, new_mesh, dim, same_ents2old_ents,
+                  same_ents2new_ents, prods2new_ents, old_tag, prod_data);
+}
+
+void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+                       LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
+                       LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  auto dim = new_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (tagbase->xfer() == OSH_CONSERVE_R3D) {
+      if (dim == 3) {
+        transfer_conserve_r3d_tmpl<3>(
+            old_mesh, new_mesh, key_dim, keys2kds, keys2prods, prods2new_ents,
+            same_ents2old_ents, same_ents2new_ents, tagbase);
+      } else if (dim == 2) {
+        transfer_conserve_r3d_tmpl<2>(
             old_mesh, new_mesh, key_dim, keys2kds, keys2prods, prods2new_ents,
             same_ents2old_ents, same_ents2new_ents, tagbase);
       }

@@ -37,7 +37,8 @@ enum osh_xfer {
   OSH_GLOBAL,
   OSH_LENGTH,
   OSH_QUALITY,
-  OSH_METRIC
+  OSH_METRIC,
+  OSH_CONSERVE_R3D
 };
 
 enum { OSH_XFERS = OSH_METRIC + 1 };
