@@ -100,18 +100,6 @@ target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
 target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
-macro(osh_find_package PKG_NAME VERSION)
-  set(${PKG_NAME}_PREFIX "" CACHE PATH "${PKG_NAME} install directory")
-  if ("${${PKG_NAME}_PREFIX}" STREQUAL "")
-    #allow CMake to search other prefixes if ${PKG_NAME}_PREFIX is not set
-    find_package(${PKG_NAME} ${VERSION} REQUIRED)
-  else()
-    #but if ${PKG_NAME}_PREFIX is set, don't find it anywhere else:
-    find_package(${PKG_NAME} ${VERSION} REQUIRED PATHS ${${PKG_NAME}_PREFIX} NO_DEFAULT_PATH)
-  endif()
-  message(STATUS "${PKG_NAME}_CONFIG: ${${PKG_NAME}_CONFIG}")
-endmacro(osh_find_package)
-
 if(OSH_USE_KOKKOS)
   osh_find_package(Kokkos "")
   get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
@@ -263,3 +251,4 @@ install(TARGETS omega_h EXPORT omega_h-targets DESTINATION lib)
 install(EXPORT omega_h-targets DESTINATION lib/omega_h)
 
 set(OSH_TARGETS ${OSH_TARGETS} omega_h PARENT_SCOPE)
+osh_end_subdir()

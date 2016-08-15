@@ -99,6 +99,25 @@ endif("${isSystemDir}" STREQUAL "-1")
 # which point to directories outside the build tree to the install RPATH
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 
+macro(osh_find_package PKG_NAME VERSION)
+  set(${PKG_NAME}_PREFIX "" CACHE PATH "${PKG_NAME} install directory")
+  if ("${${PKG_NAME}_PREFIX}" STREQUAL "")
+    #allow CMake to search other prefixes if ${PKG_NAME}_PREFIX is not set
+    find_package(${PKG_NAME} ${VERSION} REQUIRED)
+  else()
+    #but if ${PKG_NAME}_PREFIX is set, don't find it anywhere else:
+    find_package(${PKG_NAME} ${VERSION} REQUIRED PATHS ${${PKG_NAME}_PREFIX} NO_DEFAULT_PATH)
+    set(OSH_DEP_PREFIXES ${OSH_DEP_PREFIXES} ${${PKG_NAME}_PREFIX})
+  endif()
+  message(STATUS "${PKG_NAME}_CONFIG: ${${PKG_NAME}_CONFIG}")
+  set(OSH_DEPS ${OSH_DEPS} ${PKG_NAME})
+endmacro(osh_find_package)
+
+macro(osh_end_subdir)
+  set(OSH_DEPS ${OSH_DEPS} PARENT_SCOPE)
+  set(OSH_DEP_PREFIXES ${OSH_DEP_PREFIXES} PARENT_SCOPE)
+endmacro(osh_end_subdir)
+
 add_subdirectory(src)
 
 include(CMakePackageConfigHelpers)
