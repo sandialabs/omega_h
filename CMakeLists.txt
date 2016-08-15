@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(Omega_h LANGUAGES CXX)
+
+set(OSH_MAJOR "2")
+set(OSH_MINOR "0")
+set(OSH_PATCH "1")
+set(OSH_VERSION "${OSH_MAJOR}.${OSH_MINOR}.${OSH_PATCH}")
+
+project(Omega_h VERSION ${OSH_VERSION} LANGUAGES CXX)
 
 #trying to force BUILD_TESTING to default to OFF
 set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
 
 include(CTest)
 enable_testing()
-
-set(OSH_MAJOR "2")
-set(OSH_MINOR "0")
-set(OSH_PATCH "1")
 
 option(OSH_USE_MPI "Use MPI for parallelism" ON)
 option(OSH_USE_KOKKOS "Use Kokkos for on-node parallelism" OFF)
