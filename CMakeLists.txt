@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
 
 set(OSH_MAJOR "2")
-set(OSH_MINOR "0")
-set(OSH_PATCH "1")
+set(OSH_MINOR "2")
+set(OSH_PATCH "0")
 set(OSH_VERSION "${OSH_MAJOR}.${OSH_MINOR}.${OSH_PATCH}")
 
 project(Omega_h VERSION ${OSH_VERSION} LANGUAGES CXX)
