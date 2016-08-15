@@ -68,15 +68,19 @@ static Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
 
 Reals derive_element_gradients(Mesh* mesh, Reals vert_values) {
   CHECK(vert_values.size() == mesh->nverts());
-  if (mesh->dim() == 3) return derive_element_gradients_dim<3>(mesh, vert_values);
-  if (mesh->dim() == 2) return derive_element_gradients_dim<2>(mesh, vert_values);
+  if (mesh->dim() == 3)
+    return derive_element_gradients_dim<3>(mesh, vert_values);
+  if (mesh->dim() == 2)
+    return derive_element_gradients_dim<2>(mesh, vert_values);
   NORETURN(Reals());
 }
 
 Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients) {
   CHECK(vert_gradients.size() == mesh->nverts() * mesh->dim());
-  if (mesh->dim() == 3) return derive_element_hessians_dim<3>(mesh, vert_gradients);
-  if (mesh->dim() == 2) return derive_element_hessians_dim<2>(mesh, vert_gradients);
+  if (mesh->dim() == 3)
+    return derive_element_hessians_dim<3>(mesh, vert_gradients);
+  if (mesh->dim() == 2)
+    return derive_element_hessians_dim<2>(mesh, vert_gradients);
   NORETURN(Reals());
 }
 
@@ -94,5 +98,4 @@ Reals recover_hessians(Mesh* mesh, Reals vert_values) {
   auto v_grad = recover_gradients(mesh, vert_values);
   return recover_hessians_from_gradients(mesh, v_grad);
 }
-
 }

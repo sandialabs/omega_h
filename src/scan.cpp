@@ -1,7 +1,7 @@
 #include "scan.hpp"
 
-#include "omega_h_functors.hpp"
 #include "loop.hpp"
+#include "omega_h_functors.hpp"
 
 namespace osh {
 

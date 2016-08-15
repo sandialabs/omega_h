@@ -356,11 +356,11 @@ DEVICE static void transfer_fit_cavity(
     LOs const& new_elem_verts2verts, Reals const& new_coords, Int ncomps,
     Reals const& old_data, Write<Real> const& prod_data_w) {
   auto kd = keys2kds[key];
-  auto qr_decomp = get_cavity_qr_decomposition<dim>(kd, kds2kd_elems,
-      kd_elems2elems, old_elem_verts2verts, old_coords);
+  auto qr_decomp = get_cavity_qr_decomposition<dim>(
+      kd, kds2kd_elems, kd_elems2elems, old_elem_verts2verts, old_coords);
   for (Int comp = 0; comp < ncomps; ++comp) {
-    auto coeffs = fit_cavity_polynomial<dim>(qr_decomp, kd,
-        kds2kd_elems, kd_elems2elems, old_data, comp, ncomps);
+    auto coeffs = fit_cavity_polynomial<dim>(
+        qr_decomp, kd, kds2kd_elems, kd_elems2elems, old_data, comp, ncomps);
     for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
       auto new_elem = prods2new_elems[prod];
       auto v = gather_verts<dim + 1>(new_elem_verts2verts, new_elem);
@@ -396,10 +396,10 @@ static void transfer_pointwise_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
   auto prod_data_w = Write<Real>(nprods * ncomps);
   auto f = LAMBDA(LO key) {
     if (kd_class_dim[keys2kds[key]] == dim) {
-      transfer_fit_cavity<dim>(
-          key, keys2kds, kds2kd_elems, kd_elems2elems, old_elem_verts2verts,
-          old_coords, keys2prods, prods2new_ents, new_elem_verts2verts,
-          new_coords, ncomps, old_data, prod_data_w);
+      transfer_fit_cavity<dim>(key, keys2kds, kds2kd_elems, kd_elems2elems,
+                               old_elem_verts2verts, old_coords, keys2prods,
+                               prods2new_ents, new_elem_verts2verts, new_coords,
+                               ncomps, old_data, prod_data_w);
     } else {
       transfer_average_cavity(key, keys2kds, kds2kd_elems, kd_elems2elems,
                               keys2prods, ncomps, old_data, prod_data_w);
@@ -615,12 +615,11 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
   }
 }
 
-#define INST(T) \
-template \
-void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, \
-                     LOs same_ents2old_ents, LOs same_ents2new_ents, \
-                     LOs prods2new_ents, TagBase const* tagbase, \
-                     Read<T> prod_data);
+#define INST(T)                                                              \
+  template void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, \
+                                LOs same_ents2old_ents,                      \
+                                LOs same_ents2new_ents, LOs prods2new_ents,  \
+                                TagBase const* tagbase, Read<T> prod_data);
 INST(I8)
 INST(I32)
 INST(I64)

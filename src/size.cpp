@@ -252,20 +252,20 @@ static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2sf) {
 
 Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h) {
   if (mesh->dim() == 3) {
-    return expected_elems_per_elem_tmpl<3,MeanSquaredIsoLength>(mesh, v2h);
+    return expected_elems_per_elem_tmpl<3, MeanSquaredIsoLength>(mesh, v2h);
   }
   if (mesh->dim() == 2) {
-    return expected_elems_per_elem_tmpl<2,MeanSquaredIsoLength>(mesh, v2h);
+    return expected_elems_per_elem_tmpl<2, MeanSquaredIsoLength>(mesh, v2h);
   }
   NORETURN(Reals());
 }
 
 Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m) {
   if (mesh->dim() == 3) {
-    return expected_elems_per_elem_tmpl<3,MeanSquaredMetricLength>(mesh, v2m);
+    return expected_elems_per_elem_tmpl<3, MeanSquaredMetricLength>(mesh, v2m);
   }
   if (mesh->dim() == 2) {
-    return expected_elems_per_elem_tmpl<2,MeanSquaredMetricLength>(mesh, v2m);
+    return expected_elems_per_elem_tmpl<2, MeanSquaredMetricLength>(mesh, v2m);
   }
   NORETURN(Reals());
 }

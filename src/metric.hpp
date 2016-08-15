@@ -109,20 +109,20 @@ that can be safely linearly interpolated.
 */
 
 template <Int dim>
-INLINE Matrix<dim,dim> linearize_metric(Matrix<dim, dim> m) {
+INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
   return invert(m);
 }
 
 template <Int dim>
-INLINE Matrix<dim,dim> delinearize_metric(Matrix<dim, dim> m) {
+INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> m) {
   return invert(m);
 }
 
 template <Int dim>
 INLINE Matrix<dim, dim> interpolate_metrics(Matrix<dim, dim> a,
                                             Matrix<dim, dim> b, Real t) {
-  return delinearize_metric((linearize_metric(a) * (1.0 - t))
-                          + (linearize_metric(b) * t));
+  return delinearize_metric((linearize_metric(a) * (1.0 - t)) +
+                            (linearize_metric(b) * t));
 }
 
 /* same as above, but for the barycenter of an entity */

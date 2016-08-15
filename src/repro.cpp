@@ -3,10 +3,10 @@
 #include <cmath>
 
 #include "array.hpp"
-#include "omega_h_functors.hpp"
 #include "int128.hpp"
 #include "loop.hpp"
 #include "map.hpp"
+#include "omega_h_functors.hpp"
 
 namespace osh {
 

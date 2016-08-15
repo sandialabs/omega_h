@@ -67,7 +67,9 @@ struct ArithTraits<double> {
 };
 
 template <typename T>
-OSH_INLINE T square(T x) { return x * x; }
+OSH_INLINE T square(T x) {
+  return x * x;
+}
 
 template <Int n>
 class Vector : public Few<Real, n> {

@@ -44,10 +44,9 @@ static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
                   Read<Real>(prod_data));
 }
 
-void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
-                              LOs keys2edges, LOs keys2prods,
-                              LOs prods2new_ents, LOs same_ents2old_ents,
-                              LOs same_ents2new_ents) {
+void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+                              LOs keys2prods, LOs prods2new_ents,
+                              LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
@@ -127,4 +126,4 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   }
 }
 
-} // end namespace osh
+}  // end namespace osh
