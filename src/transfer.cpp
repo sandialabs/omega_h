@@ -13,7 +13,7 @@
 namespace osh {
 
 template <typename T>
-static void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
+void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents,
     TagBase const* tagbase, Read<T> prod_data) {
   auto const& name = tagbase->name();
