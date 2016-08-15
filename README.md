@@ -90,19 +90,6 @@ request features, etc.
 If you'd like to contribute, please fork the repository and use a feature
 branch. Pull requests are welcome.
 
-We use [clang-format][5] to maintain a consistent code style.
-Developers are encouraged to install it
-
-```shell
-sudo apt-get install clang-format-3.5
-```
-
-And run something like this before committing unstaged changes:
-
-```shell
-git clang-format -f
-```
-
 ## Licensing
 
 This library is released under the FreeBSD license.
