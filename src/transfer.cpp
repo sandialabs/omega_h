@@ -61,12 +61,10 @@ static void transfer_metric(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
 }
 
 template <typename T>
-static void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh,
-                                    LOs keys2edges, Int prod_dim,
-                                    LOs keys2prods, LOs prods2new_ents,
-                                    LOs same_ents2old_ents,
-                                    LOs same_ents2new_ents,
-                                    std::string const& name) {
+void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+                             Int prod_dim, LOs keys2prods, LOs prods2new_ents,
+                             LOs same_ents2old_ents, LOs same_ents2new_ents,
+                             std::string const& name) {
   auto old_tag = old_mesh->get_tag<T>(prod_dim, name);
   auto ncomps = old_tag->ncomps();
   auto nprods = keys2prods.last();
@@ -226,6 +224,9 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     transfer_pointwise_refine(old_mesh, new_mesh, keys2edges, keys2prods,
                               prods2new_ents, same_ents2old_ents,
                               same_ents2new_ents);
+    transfer_conserve_r3d_refine(old_mesh, new_mesh, keys2edges, keys2prods,
+                                 prods2new_ents, same_ents2old_ents,
+                                 same_ents2new_ents);
   }
 }
 
@@ -456,6 +457,9 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
     transfer_pointwise_coarsen(old_mesh, new_mesh, keys2verts, keys2doms.a2ab,
                                prods2new_ents, same_ents2old_ents,
                                same_ents2new_ents);
+    transfer_conserve_r3d(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
+                          prods2new_ents, same_ents2old_ents,
+                          same_ents2new_ents);
   }
 }
 
@@ -612,6 +616,9 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     transfer_pointwise_swap(old_mesh, new_mesh, keys2edges, keys2prods,
                             prods2new_ents, same_ents2old_ents,
                             same_ents2new_ents);
+    transfer_conserve_r3d(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
+                          prods2new_ents, same_ents2old_ents,
+                          same_ents2new_ents);
   }
 }
 
@@ -619,7 +626,11 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
   template void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, \
                                 LOs same_ents2old_ents,                      \
                                 LOs same_ents2new_ents, LOs prods2new_ents,  \
-                                TagBase const* tagbase, Read<T> prod_data);
+                                TagBase const* tagbase, Read<T> prod_data);  \
+  template void transfer_inherit_refine<T>(                                  \
+      Mesh * old_mesh, Mesh * new_mesh, LOs keys2edges, Int prod_dim,        \
+      LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,            \
+      LOs same_ents2new_ents, std::string const& name);
 INST(I8)
 INST(I32)
 INST(I64)

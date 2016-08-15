@@ -200,4 +200,19 @@ void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   }
 }
 
+void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
+                                  LOs keys2edges, LOs keys2prods,
+                                  LOs prods2new_ents, LOs same_ents2old_ents,
+                                  LOs same_ents2new_ents) {
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (tagbase->xfer() == OSH_CONSERVE_R3D) {
+      transfer_inherit_refine<Real>(
+          old_mesh, new_mesh, keys2edges, dim, keys2prods, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents, tagbase->name());
+    }
+  }
+}
+
 }  // end namespace osh
