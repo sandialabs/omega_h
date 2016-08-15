@@ -20,6 +20,24 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim);
 
+template <typename T>
+void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
+                     LOs same_ents2old_ents, LOs same_ents2new_ents,
+                     LOs prods2new_ents, TagBase const* tagbase,
+                     Read<T> prod_data);
+
+#define INST_DECL(T) \
+extern template \
+void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, \
+                     LOs same_ents2old_ents, LOs same_ents2new_ents, \
+                     LOs prods2new_ents, TagBase const* tagbase, \
+                     Read<T> prod_data);
+INST_DECL(I8)
+INST_DECL(I32)
+INST_DECL(I64)
+INST_DECL(Real)
+#undef INST_DECL
+
 }  // end namespace osh
 
 #endif

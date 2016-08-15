@@ -57,6 +57,7 @@ set(OSH_SOURCES
   modify.cpp
   refine.cpp
   transfer.cpp
+  transfer_conserve.cpp
   compare.cpp
   check_collapse.cpp
   coarsen_qualities.cpp
