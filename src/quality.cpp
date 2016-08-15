@@ -60,8 +60,8 @@ QualityHistogram get_quality_histogram(Mesh* mesh) {
   for (Int i = 0; i < nquality_histogram_buckets; ++i) {
     auto floor = interval * i;
     auto ceil = interval * (i + 1);
-    auto marked = land_each(each_geq_to(owned_qualities, floor),
-                            each_lt(owned_qualities, ceil));
+    auto marked = land_each(
+        each_geq_to(owned_qualities, floor), each_lt(owned_qualities, ceil));
     auto nlocal_marked = sum(marked);
     auto nglobal_marked = mesh->comm()->allreduce(nlocal_marked, OSH_SUM);
     histogram[i] = nglobal_marked;

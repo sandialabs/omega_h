@@ -27,8 +27,8 @@ INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
   return fabs(b - a) / max2(am, bm);
 }
 
-INLINE bool are_close(Real a, Real b, Real tol = EPSILON,
-                      Real floor = EPSILON) {
+INLINE bool are_close(
+    Real a, Real b, Real tol = EPSILON, Real floor = EPSILON) {
   return rel_diff_with_floor(a, b, floor) <= tol;
 }
 
@@ -48,8 +48,8 @@ INLINE Vector<n> operator-(Vector<n> a) {
 }
 
 template <Int n>
-INLINE bool are_close(Vector<n> a, Vector<n> b, Real tol = EPSILON,
-                      Real floor = EPSILON) {
+INLINE bool are_close(
+    Vector<n> a, Vector<n> b, Real tol = EPSILON, Real floor = EPSILON) {
   for (Int i = 0; i < n; ++i)
     if (!are_close(a[i], b[i], tol, floor)) return false;
   return true;
@@ -120,8 +120,8 @@ INLINE Real max_norm(Matrix<m, n> a) {
   return x;
 }
 
-template <Int m, Int n>
-INLINE Real frobenius_norm(Matrix<m, n> a) {
+template <Int max_m, Int max_n>
+INLINE Real frobenius_norm(Int m, Int n, Matrix<max_m, max_n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < m; ++i) x += square(a[j][i]);
@@ -129,8 +129,8 @@ INLINE Real frobenius_norm(Matrix<m, n> a) {
 }
 
 template <Int m, Int n>
-INLINE bool are_close(Matrix<m, n> a, Matrix<m, n> b, Real tol = EPSILON,
-                      Real floor = EPSILON) {
+INLINE bool are_close(
+    Matrix<m, n> a, Matrix<m, n> b, Real tol = EPSILON, Real floor = EPSILON) {
   for (Int j = 0; j < n; ++j)
     if (!are_close(a[j], b[j], tol, floor)) return false;
   return true;

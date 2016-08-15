@@ -66,8 +66,8 @@ INLINE Vector<m> get_1d_column_space(Matrix<m, m> a) {
 /* in the case that the null space is 2D, find the
    largest-norm column and get a couple vectors
    orthogonal to that */
-INLINE void double_eigenvector(Matrix<3, 3> m, Real l, Vector<3>& u,
-                               Vector<3>& v) {
+INLINE void double_eigenvector(
+    Matrix<3, 3> m, Real l, Vector<3>& u, Vector<3>& v) {
   subtract_from_diag(m, l);
   Vector<3> n = get_1d_column_space(m);
   Matrix<3, 3> b = form_ortho_basis(n);
@@ -137,8 +137,8 @@ INLINE void decompose_eigen2(Matrix<2, 2> m, Matrix<2, 2>& q, Vector<2>& l) {
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
 template <Int dim>
-INLINE void decompose_eigen(Matrix<dim, dim> m, Matrix<dim, dim>& q,
-                            Vector<dim>& l) {
+INLINE void decompose_eigen(
+    Matrix<dim, dim> m, Matrix<dim, dim>& q, Vector<dim>& l) {
   /* the cubic solver is especially sensitive to dynamic
      range. what we can do is to normalize the input matrix
      and then re-apply that norm to the resulting roots */

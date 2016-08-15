@@ -76,17 +76,13 @@ source:
    We will start off using the mean ratio cubed measures:
  */
 
-INLINE Real perfect_tri_area() {
-  return sqrt(3.) / 4.;
-}
+INLINE Real perfect_tri_area() { return sqrt(3.) / 4.; }
 
 INLINE Real tri_mean_ratio(Real a, Real msl) {
   return a / (perfect_tri_area() * msl);
 }
 
-INLINE Real perfect_tet_volume_squared() {
-  return 1. / 72.;
-}
+INLINE Real perfect_tet_volume_squared() { return 1. / 72.; }
 
 INLINE Real tet_mean_ratio_cubed(Real v, Real msl) {
   return square(v) / (perfect_tet_volume_squared() * cube(msl));
@@ -101,16 +97,12 @@ struct MeanRatio;
 
 template <>
 struct MeanRatio<2> {
-  INLINE static Real get(Real a, Real msl) {
-    return tri_mean_ratio(a, msl);
-  }
+  INLINE static Real get(Real a, Real msl) { return tri_mean_ratio(a, msl); }
 };
 
 template <>
 struct MeanRatio<3> {
-  INLINE static Real get(Real v, Real msl) {
-    return tet_mean_ratio(v, msl);
-  }
+  INLINE static Real get(Real v, Real msl) { return tet_mean_ratio(v, msl); }
 };
 
 template <Int dim>
@@ -144,7 +136,8 @@ INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
    Mentions using $\sqrt{\det(M)}$ to compute volume in metric space. */
 
 template <Int dim, typename EdgeVectors>
-INLINE Real mean_squared_metric_length(EdgeVectors edge_vectors, Matrix<dim, dim> metric) {
+INLINE Real mean_squared_metric_length(
+    EdgeVectors edge_vectors, Matrix<dim, dim> metric) {
   auto nedges = EdgeVectors::size;
   Real msl = 0;
   for (Int i = 0; i < nedges; ++i) {
@@ -154,8 +147,8 @@ INLINE Real mean_squared_metric_length(EdgeVectors edge_vectors, Matrix<dim, dim
 }
 
 template <Int dim>
-INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p,
-                                   Matrix<dim, dim> metric) {
+INLINE Real metric_element_quality(
+    Few<Vector<dim>, dim + 1> p, Matrix<dim, dim> metric) {
   auto b = simplex_basis<dim, dim>(p);
   auto s = element_size(b) * sqrt(determinant(metric));
   if (s < 0) return s;

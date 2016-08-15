@@ -7,7 +7,6 @@ namespace osh {
 
 bool has_interior_verts(Mesh* mesh);
 Reals project(Mesh* mesh, Reals e_data);
-
 }
 
 #endif

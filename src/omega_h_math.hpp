@@ -67,7 +67,9 @@ struct ArithTraits<double> {
 };
 
 template <typename T>
-OSH_INLINE T square(T x) { return x * x; }
+OSH_INLINE T square(T x) {
+  return x * x;
+}
 
 template <Int n>
 class Vector : public Few<Real, n> {
@@ -191,16 +193,21 @@ OSH_INLINE Matrix<n, m> transpose(Matrix<m, n> a) {
   return b;
 }
 
-template <Int m, Int n>
-OSH_INLINE Matrix<m, n> identity_matrix() {
-  Matrix<m, n> a;
+template <Int max_m, Int max_n>
+OSH_INLINE Matrix<max_m, max_n> identity_matrix(Int m, Int n) {
+  Matrix<max_m, max_n> a;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < m; ++i) a[j][i] = (i == j);
   return a;
 }
 
-OSH_INLINE Matrix<3, 3> matrix_3x3(Real a, Real b, Real c, Real d, Real e,
-                                   Real f, Real g, Real h, Real i) {
+template <Int max_m, Int max_n>
+OSH_INLINE Matrix<max_m, max_n> identity_matrix() {
+  return identity_matrix<max_m, max_n>(max_m, max_n);
+}
+
+OSH_INLINE Matrix<3, 3> matrix_3x3(
+    Real a, Real b, Real c, Real d, Real e, Real f, Real g, Real h, Real i) {
   Matrix<3, 3> o;
   o[0] = vector_3(a, d, g);
   o[1] = vector_3(b, e, h);
@@ -214,7 +221,7 @@ OSH_INLINE Matrix<3, 3> cross(Vector<3> a) {
 
 OSH_INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
   return vector_3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
-                  a[0] * b[1] - a[1] * b[0]);
+      a[0] * b[1] - a[1] * b[0]);
 }
 
 template <Int m>

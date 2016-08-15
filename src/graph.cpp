@@ -85,8 +85,8 @@ Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, osh_op op) {
   return fan_reduce(a2ab, ab_data, width, op);
 }
 
-Reals graph_weighted_average_arc_data(Graph a2b, Reals ab_weights,
-                                      Reals ab_data, Int width) {
+Reals graph_weighted_average_arc_data(
+    Graph a2b, Reals ab_weights, Reals ab_data, Int width) {
   auto a2ab = a2b.a2ab;
   auto ab2b = a2b.ab2b;
   auto nab = a2ab.last();
@@ -98,8 +98,8 @@ Reals graph_weighted_average_arc_data(Graph a2b, Reals ab_weights,
   return divide_each(weighted_sums, total_weights);
 }
 
-Reals graph_weighted_average(Graph a2b, Reals ab_weights, Reals b_data,
-                             Int width) {
+Reals graph_weighted_average(
+    Graph a2b, Reals ab_weights, Reals b_data, Int width) {
   auto ab2b = a2b.ab2b;
   auto ab_data = unmap(ab2b, b_data, width);
   return graph_weighted_average_arc_data(a2b, ab_weights, ab_data, width);

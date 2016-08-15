@@ -1,15 +1,17 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(Omega_h LANGUAGES CXX)
+
+set(OSH_MAJOR "2")
+set(OSH_MINOR "2")
+set(OSH_PATCH "0")
+set(OSH_VERSION "${OSH_MAJOR}.${OSH_MINOR}.${OSH_PATCH}")
+
+project(Omega_h VERSION ${OSH_VERSION} LANGUAGES CXX)
 
 #trying to force BUILD_TESTING to default to OFF
 set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
 
 include(CTest)
 enable_testing()
-
-set(OSH_MAJOR "2")
-set(OSH_MINOR "0")
-set(OSH_PATCH "1")
 
 option(OSH_USE_MPI "Use MPI for parallelism" ON)
 option(OSH_USE_KOKKOS "Use Kokkos for on-node parallelism" OFF)
@@ -99,14 +101,18 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 
 add_subdirectory(src)
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/omega_h-config.cmake.in"
-  "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
-  @ONLY)
-configure_file(
-  "${PROJECT_SOURCE_DIR}/omega_h-config-version.cmake.in"
-  "${PROJECT_BINARY_DIR}/omega_h-config-version.cmake"
-  @ONLY)
+include(CMakePackageConfigHelpers)
+set(INCLUDE_INSTALL_DIR include/)
+set(LIB_INSTALL_DIR lib/)
+configure_package_config_file(
+    omega_h-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/omega_h-config.cmake
+    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/omega_h
+    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/omega_h-config-version.cmake
+                                 VERSION ${OSH_VERSION}
+                                 COMPATIBILITY SameMajorVersion)
 install(FILES
   "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
   "${PROJECT_BINARY_DIR}/omega_h-config-version.cmake"

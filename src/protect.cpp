@@ -14,8 +14,7 @@ void osh_signal_handler(int s);
 static struct {
   int code;
   const char* name;
-} const known_signals[NSIGS] = {
-    {SIGTERM, "termination"},        {SIGABRT, "abort"},
+} const known_signals[NSIGS] = {{SIGTERM, "termination"}, {SIGABRT, "abort"},
     {SIGSEGV, "segmentation fault"}, {SIGINT, "interrupt"},
     {SIGILL, "illegal instruction"}, {SIGFPE, "floating point exception"}};
 

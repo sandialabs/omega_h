@@ -6,8 +6,8 @@
 
 namespace osh {
 
-static void order_by_globals(LOs l2lh, Write<LO> lh2h, Write<I8> codes,
-                             Read<GO> hg) {
+static void order_by_globals(
+    LOs l2lh, Write<LO> lh2h, Write<I8> codes, Read<GO> hg) {
   LO nl = l2lh.size() - 1;
   auto f = LAMBDA(LO l) {
     LO begin = l2lh[l];

@@ -83,7 +83,7 @@ struct Traits<T, typename std::enable_if<std::is_integral<T>::value>::type> {
 
 template <typename T>
 struct Traits<T,
-              typename std::enable_if<std::is_floating_point<T>::value>::type> {
+    typename std::enable_if<std::is_floating_point<T>::value>::type> {
   inline static char const* name() { return FloatTraits<sizeof(T)>::name(); }
 };
 
@@ -104,7 +104,7 @@ void describe_array(std::ostream& stream, std::string const& name, Int ncomps) {
 }
 
 bool read_array_start_tag(std::istream& stream, osh_type* type_out,
-                          std::string* name_out, Int* ncomps_out) {
+    std::string* name_out, Int* ncomps_out) {
   auto st = xml::read_tag(stream);
   if (st.elem_name != "DataArray" || st.type != xml::Tag::START) {
     CHECK(st.type == xml::Tag::END);
@@ -126,8 +126,8 @@ bool read_array_start_tag(std::istream& stream, osh_type* type_out,
 }
 
 template <typename T>
-void write_array(std::ostream& stream, std::string const& name, Int ncomps,
-                 Read<T> array) {
+void write_array(
+    std::ostream& stream, std::string const& name, Int ncomps, Read<T> array) {
   if (!(array.exists())) {
     osh_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
@@ -142,13 +142,13 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-                        reinterpret_cast<const Bytef*>(uncompressed.data()),
-                        source_bytes, Z_BEST_SPEED);
+      reinterpret_cast<const Bytef*>(uncompressed.data()), source_bytes,
+      Z_BEST_SPEED);
   CHECK(ret == Z_OK);
   std::string encoded = base64::encode(compressed, dest_bytes);
   delete[] compressed;
-  std::size_t header[4] = {1, uncompressed_bytes, uncompressed_bytes,
-                           dest_bytes};
+  std::size_t header[4] = {
+      1, uncompressed_bytes, uncompressed_bytes, dest_bytes};
   std::string enc_header = base64::encode(header, sizeof(header));
 #else
   std::string enc_header =
@@ -160,8 +160,8 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
 }
 
 template <typename T>
-Read<T> read_array(std::istream& stream, LO size, bool is_little_endian,
-                   bool is_compressed) {
+Read<T> read_array(
+    std::istream& stream, LO size, bool is_little_endian, bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
   std::size_t uncompressed_bytes, compressed_bytes;
   std::string encoded;
@@ -210,8 +210,8 @@ Read<T> read_array(std::istream& stream, LO size, bool is_little_endian,
   {
     base64::decode(encoded, uncompressed.data(), uncompressed_bytes);
   }
-  return binary::swap_if_needed(Read<T>(uncompressed.write()),
-                                is_little_endian);
+  return binary::swap_if_needed(
+      Read<T>(uncompressed.write()), is_little_endian);
 }
 
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
@@ -239,7 +239,7 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
 }
 
 bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
-              bool is_little_endian, bool is_compressed) {
+    bool is_little_endian, bool is_compressed) {
   osh_type type = OSH_I8;
   std::string name;
   Int ncomps = -1;
@@ -273,8 +273,7 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
 
 template <typename T>
 Read<T> read_known_array(std::istream& stream, std::string const& name,
-                         LO nents, Int ncomps, bool is_little_endian,
-                         bool is_compressed) {
+    LO nents, Int ncomps, bool is_little_endian, bool is_compressed) {
   auto st = xml::read_tag(stream);
   CHECK(st.elem_name == "DataArray");
   CHECK(st.type == xml::Tag::START);
@@ -306,8 +305,8 @@ enum {
   VTK_PYRAMID = 14
 };
 
-static I8 const vtk_types[DIMS] = {VTK_VERTEX, VTK_LINE, VTK_TRIANGLE,
-                                   VTK_TETRA};
+static I8 const vtk_types[DIMS] = {
+    VTK_VERTEX, VTK_LINE, VTK_TRIANGLE, VTK_TETRA};
 
 static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
   stream << "<VTKFile type=\"UnstructuredGrid\" byte_order=\"";
@@ -324,9 +323,8 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
   stream << ">\n";
 }
 
-static void read_vtkfile_vtu_start_tag(std::istream& stream,
-                                       bool* is_little_endian_out,
-                                       bool* is_compressed_out) {
+static void read_vtkfile_vtu_start_tag(
+    std::istream& stream, bool* is_little_endian_out, bool* is_compressed_out) {
   auto st = xml::read_tag(stream);
   CHECK(st.elem_name == "VTKFile");
   CHECK(st.attribs["header_type"] == Traits<std::size_t>::name());
@@ -336,14 +334,14 @@ static void read_vtkfile_vtu_start_tag(std::istream& stream,
   *is_compressed_out = is_compressed;
 }
 
-void write_piece_start_tag(std::ostream& stream, Mesh const* mesh,
-                           Int cell_dim) {
+void write_piece_start_tag(
+    std::ostream& stream, Mesh const* mesh, Int cell_dim) {
   stream << "<Piece NumberOfPoints=\"" << mesh->nverts() << "\"";
   stream << " NumberOfCells=\"" << mesh->nents(cell_dim) << "\">\n";
 }
 
-void read_piece_start_tag(std::istream& stream, LO* nverts_out,
-                          LO* ncells_out) {
+void read_piece_start_tag(
+    std::istream& stream, LO* nverts_out, LO* ncells_out) {
   auto st = xml::read_tag(stream);
   CHECK(st.elem_name == "Piece");
   *nverts_out = std::stoi(st.attribs["NumberOfPoints"]);
@@ -355,16 +353,15 @@ void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   write_array(stream, "types", 1, types);
   LOs ev2v = mesh->ask_verts_of(cell_dim);
   LOs ends(mesh->nents(cell_dim), simplex_degrees[cell_dim][VERT],
-           simplex_degrees[cell_dim][VERT]);
+      simplex_degrees[cell_dim][VERT]);
   write_array(stream, "connectivity", 1, ev2v);
   write_array(stream, "offsets", 1, ends);
 }
 
 void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
-                       bool is_little_endian, bool is_compressed, Int* dim_out,
-                       LOs* ev2v_out) {
-  auto types = read_known_array<I8>(stream, "types", ncells, 1,
-                                    is_little_endian, is_compressed);
+    bool is_little_endian, bool is_compressed, Int* dim_out, LOs* ev2v_out) {
+  auto types = read_known_array<I8>(
+      stream, "types", ncells, 1, is_little_endian, is_compressed);
   Int dim = -1;
   if (types.size()) {
     auto type = types.get(0);
@@ -375,10 +372,10 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
   CHECK(dim == 2 || dim == 3);
   *dim_out = dim;
   auto ev2v = read_known_array<LO>(stream, "connectivity", ncells * (dim + 1),
-                                   1, is_little_endian, is_compressed);
+      1, is_little_endian, is_compressed);
   *ev2v_out = ev2v;
-  read_known_array<LO>(stream, "offsets", ncells, 1, is_little_endian,
-                       is_compressed);
+  read_known_array<LO>(
+      stream, "offsets", ncells, 1, is_little_endian, is_compressed);
 }
 
 void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim) {
@@ -396,24 +393,24 @@ void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
 }
 
 void read_locals_and_owners(std::istream& stream, CommPtr comm, LO nents,
-                            bool is_little_endian, bool is_compressed) {
-  read_known_array<LO>(stream, "local", nents, 1, is_little_endian,
-                       is_compressed);
+    bool is_little_endian, bool is_compressed) {
+  read_known_array<LO>(
+      stream, "local", nents, 1, is_little_endian, is_compressed);
   if (comm->size() == 1) return;
-  read_known_array<I32>(stream, "owner", nents, 1, is_little_endian,
-                        is_compressed);
+  read_known_array<I32>(
+      stream, "owner", nents, 1, is_little_endian, is_compressed);
 }
 
 template <typename T>
-void write_p_data_array(std::ostream& stream, std::string const& name,
-                        Int ncomps) {
+void write_p_data_array(
+    std::ostream& stream, std::string const& name, Int ncomps) {
   stream << "<PDataArray ";
   describe_array<T>(stream, name, ncomps);
   stream << "/>\n";
 }
 
-void write_p_data_array2(std::ostream& stream, std::string const& name,
-                         Int ncomps, Int osh_type) {
+void write_p_data_array2(
+    std::ostream& stream, std::string const& name, Int ncomps, Int osh_type) {
   switch (osh_type) {
     case OSH_I8:
       write_p_data_array<I8>(stream, name, ncomps);
@@ -501,20 +498,20 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   CHECK(xml::read_tag(stream).elem_name == "Cells");
   Int dim;
   LOs ev2v;
-  read_connectivity(stream, comm, ncells, is_little_endian, is_compressed, &dim,
-                    &ev2v);
+  read_connectivity(
+      stream, comm, ncells, is_little_endian, is_compressed, &dim, &ev2v);
   CHECK(xml::read_tag(stream).elem_name == "Cells");
   CHECK(xml::read_tag(stream).elem_name == "Points");
-  auto coords = read_known_array<Real>(stream, "coordinates", nverts, 3,
-                                       is_little_endian, is_compressed);
+  auto coords = read_known_array<Real>(
+      stream, "coordinates", nverts, 3, is_little_endian, is_compressed);
   if (dim == 2) coords = vectors_3d_to_2d(coords);
   CHECK(xml::read_tag(stream).elem_name == "Points");
   CHECK(xml::read_tag(stream).elem_name == "PointData");
   read_locals_and_owners(stream, comm, nverts, is_little_endian, is_compressed);
   Read<GO> vert_globals;
   if (comm->size() > 1) {
-    vert_globals = read_known_array<GO>(stream, "global", nverts, 1,
-                                        is_little_endian, is_compressed);
+    vert_globals = read_known_array<GO>(
+        stream, "global", nverts, 1, is_little_endian, is_compressed);
   } else {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
@@ -538,7 +535,7 @@ void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
 }
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-                std::string const& piecepath) {
+    std::string const& piecepath) {
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
   stream << "<PPoints>\n";
@@ -575,14 +572,14 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 }
 
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-                std::string const& piecepath) {
+    std::string const& piecepath) {
   std::ofstream file(filename.c_str());
   CHECK(file.is_open());
   write_pvtu(file, mesh, cell_dim, piecepath);
 }
 
 void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
-               std::string* vtupath_out) {
+    std::string* vtupath_out) {
   I32 npieces = 0;
   std::string vtupath;
   for (std::string line; std::getline(stream, line);) {
@@ -601,7 +598,7 @@ void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
 }
 
 void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
-               std::string* vtupath_out) {
+    std::string* vtupath_out) {
   auto parentpath = parent_path(pvtupath);
   I32 npieces;
   std::string vtupath;
@@ -661,7 +658,7 @@ std::streampos write_initial_pvd(std::string const& root_path) {
 }
 
 void update_pvd(std::string const& root_path, std::streampos* pos_inout,
-                Int step, Real time) {
+    Int step, Real time) {
   std::string pvdpath = get_pvd_path(root_path);
   std::fstream file;
   file.open(pvdpath.c_str(), std::ios::out | std::ios::in);
@@ -677,7 +674,7 @@ void update_pvd(std::string const& root_path, std::streampos* pos_inout,
 }
 
 void read_pvd(std::istream& stream, std::vector<Real>* times_out,
-              std::vector<std::string>* pvtupaths_out) {
+    std::vector<std::string>* pvtupaths_out) {
   std::vector<Real> times;
   std::vector<std::string> pvtupaths;
   for (std::string line; std::getline(stream, line);) {
@@ -692,7 +689,7 @@ void read_pvd(std::istream& stream, std::vector<Real>* times_out,
 }
 
 void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
-              std::vector<std::string>* pvtupaths_out) {
+    std::vector<std::string>* pvtupaths_out) {
   std::vector<Real> times;
   std::vector<std::string> pvtupaths;
   std::ifstream pvdstream(pvdpath.c_str());

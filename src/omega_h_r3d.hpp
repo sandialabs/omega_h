@@ -97,8 +97,8 @@ struct ClipHelper<3> {
       vertbuffer[vcur].pnbrs[1] = vstart;
     }
   }
-  OSH_INLINE static void links_at_nverts(Int* nverts, Vertex<3>* vertbuffer,
-                                         Int vcur, Int np) {
+  OSH_INLINE static void links_at_nverts(
+      Int* nverts, Vertex<3>* vertbuffer, Int vcur, Int np) {
     (void)np;
     vertbuffer[*nverts].pnbrs[0] = vcur;
   }
@@ -117,8 +117,8 @@ struct ClipHelper<2> {
       vertbuffer[vcur].pnbrs[0] = vstart;
     }
   }
-  OSH_INLINE static void links_at_nverts(Int* nverts, Vertex<2>* vertbuffer,
-                                         Int vcur, Int np) {
+  OSH_INLINE static void links_at_nverts(
+      Int* nverts, Vertex<2>* vertbuffer, Int vcur, Int np) {
     vertbuffer[*nverts].pnbrs[1 - np] = vcur;
     vertbuffer[*nverts].pnbrs[np] = -1;
   }
@@ -185,7 +185,7 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
         ClipHelper<dim>::links_at_nverts(nverts, vertbuffer, vcur, np);
         vertbuffer[vcur].pnbrs[np] = *nverts;
         vertbuffer[*nverts].pos = wav(vertbuffer[vcur].pos, -sdists[vnext],
-                                      vertbuffer[vnext].pos, sdists[vcur]);
+            vertbuffer[vnext].pos, sdists[vcur]);
         (*nverts)++;
       }
     }
@@ -211,8 +211,8 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
 }
 
 template <Int dim, Int nplanes>
-OSH_INLINE Polytope<dim> clip(Polytope<dim> poly,
-                              Few<Plane<dim>, nplanes> planes) {
+OSH_INLINE Polytope<dim> clip(
+    Polytope<dim> poly, Few<Plane<dim>, nplanes> planes) {
   clip(&poly, planes.data(), nplanes);
   return poly;
 }
@@ -623,8 +623,8 @@ struct Polynomial {
 };
 
 template <Int dim, Int order>
-OSH_INLINE Real integrate(Polytope<dim> polytope,
-                          Polynomial<dim, order> polynomial) {
+OSH_INLINE Real integrate(
+    Polytope<dim> polytope, Polynomial<dim, order> polynomial) {
   Real moments[decltype(polynomial)::nterms] = {};
   reduce<order>(&polytope, moments);
   Real result = 0;
@@ -639,8 +639,8 @@ OSH_INLINE Real measure(Polytope<dim> polytope) {
 }
 
 template <Int dim>
-OSH_INLINE Polytope<dim> intersect_simplices(Few<Vector<dim>, dim + 1> verts0,
-                                             Few<Vector<dim>, dim + 1> verts1) {
+OSH_INLINE Polytope<dim> intersect_simplices(
+    Few<Vector<dim>, dim + 1> verts0, Few<Vector<dim>, dim + 1> verts1) {
   auto poly0 = init(verts0);
   auto faces1 = faces_from_verts(verts1);
   return clip(poly0, faces1);

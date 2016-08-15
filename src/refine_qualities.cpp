@@ -23,11 +23,11 @@ struct MetricRefineQualities {
   Reals midpt_metrics;
   MetricRefineQualities(Mesh* mesh, LOs candidates)
       : vert_metrics(mesh->get_array<Real>(VERT, "metric")),
-        midpt_metrics(average_metric(mesh, EDGE, candidates,
-                                     mesh->get_array<Real>(VERT, "metric"))) {}
+        midpt_metrics(average_metric(
+            mesh, EDGE, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
   template <Int dim>
-  DEVICE Real measure(Int cand, Few<Vector<dim>, dim + 1> p,
-                      Few<LO, dim> csv2v) const {
+  DEVICE Real measure(
+      Int cand, Few<Vector<dim>, dim + 1> p, Few<LO, dim> csv2v) const {
     Few<Matrix<dim, dim>, dim + 1> ms;
     for (Int csv = 0; csv < dim; ++csv)
       ms[csv] = get_symm<dim>(vert_metrics, csv2v[csv]);

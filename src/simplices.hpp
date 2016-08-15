@@ -32,8 +32,8 @@ CONSTANT static Int const rfv2[] = {1, 2, 3};
 CONSTANT static Int const rfv3[] = {2, 0, 3};
 CONSTANT static Int const* const rfv_[] = {rfv0, rfv1, rfv2, rfv3};
 CONSTANT static Int const* const* const r_v_[] = {rvv_, rev_, rfv_};
-CONSTANT static Int const* const* const* const down_templates[] = {0, 0, f_v_,
-                                                                   r_v_};
+CONSTANT static Int const* const* const* const down_templates[] = {
+    0, 0, f_v_, r_v_};
 
 /* workaround a compiler bug in CUDA:
  * if it knows an index at compile time, it will
@@ -79,8 +79,8 @@ CONSTANT static UpTemplate const ref2[] = {{0, 0, 1}, {3, 0, 0}};
 CONSTANT static UpTemplate const ref3[] = {{1, 2, 1}, {3, 1, 0}};
 CONSTANT static UpTemplate const ref4[] = {{2, 2, 1}, {1, 1, 0}};
 CONSTANT static UpTemplate const ref5[] = {{3, 2, 1}, {2, 1, 0}};
-CONSTANT static UpTemplate const* const ref_[] = {ref0, ref1, ref2,
-                                                  ref3, ref4, ref5};
+CONSTANT static UpTemplate const* const ref_[] = {
+    ref0, ref1, ref2, ref3, ref4, ref5};
 CONSTANT static UpTemplate const* const* const r_u_[] = {rve_, ref_};
 CONSTANT static UpTemplate const* const* const* const up_templates[] = {
     0, 0, f_u_, r_u_};

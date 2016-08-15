@@ -20,8 +20,8 @@ namespace osh {
    adjacent will be chosen */
 
 void find_rails(Mesh* mesh, LOs keys2verts, Reals vert_quals,
-                Read<I8> edge_cand_codes, Reals edge_cand_quals,
-                LOs& rails2edges, Read<I8>& rail_col_dirs) {
+    Read<I8> edge_cand_codes, Reals edge_cand_quals, LOs& rails2edges,
+    Read<I8>& rail_col_dirs) {
   auto nkeys = keys2verts.size();
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
@@ -65,8 +65,7 @@ LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
 }
 
 static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
-                           Int cell_dim, Write<I8>& dead_cells,
-                           Write<I8>& dead_sides) {
+    Int cell_dim, Write<I8>& dead_cells, Write<I8>& dead_sides) {
   auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;
   auto ec2c = e2c.ab2b;
@@ -94,22 +93,22 @@ static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
   parallel_for(nrails, f);
 }
 
-HostFew<Read<I8>, 4> mark_dead_ents(Mesh* mesh, LOs rails2edges,
-                                    Read<I8> rail_col_dirs) {
+HostFew<Read<I8>, 4> mark_dead_ents(
+    Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
   HostFew<Write<I8>, 4> writes;
   writes[EDGE] = deep_copy(mark_image(rails2edges, mesh->nedges()));
   for (Int dim = EDGE + 1; dim <= mesh->dim(); ++dim)
     writes[dim] = Write<I8>(mesh->nents(dim), 0);
   for (Int dim = mesh->dim(); dim > EDGE; --dim)
-    mark_dead_ents(mesh, rails2edges, rail_col_dirs, dim, writes[dim],
-                   writes[dim - 1]);
+    mark_dead_ents(
+        mesh, rails2edges, rail_col_dirs, dim, writes[dim], writes[dim - 1]);
   HostFew<Read<I8>, 4> reads;
   for (Int dim = 0; dim < 4; ++dim) reads[dim] = writes[dim];
   return reads;
 }
 
-Adj find_coarsen_domains(Mesh* mesh, LOs keys2verts, Int ent_dim,
-                         Read<I8> ents_are_dead) {
+Adj find_coarsen_domains(
+    Mesh* mesh, LOs keys2verts, Int ent_dim, Read<I8> ents_are_dead) {
   auto nkeys = keys2verts.size();
   auto v2e = mesh->ask_up(VERT, ent_dim);
   auto k2e = unmap_adjacency(keys2verts, v2e);
@@ -128,7 +127,7 @@ Adj find_coarsen_domains(Mesh* mesh, LOs keys2verts, Int ent_dim,
 }
 
 LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
-                     Adj keys2doms, LOs old_verts2new_verts) {
+    Adj keys2doms, LOs old_verts2new_verts) {
   auto nccv = simplex_degrees[dom_dim][VERT];
   auto cv2v = mesh->ask_verts_of(dom_dim);
   auto k2kc = keys2doms.a2ab;

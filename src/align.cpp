@@ -26,7 +26,7 @@ Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes) {
   }
 }
 
-#define INST(T) \
+#define INST(T)                                                                \
   template Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes);
 INST(LO)
 INST(GO)

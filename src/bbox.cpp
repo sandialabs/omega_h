@@ -17,8 +17,8 @@ struct BBoxFunctor {
       update.max[i] = ArithTraits<Real>::min();
     }
   }
-  INLINE void join(volatile value_type& update,
-                   const volatile value_type& input) const {
+  INLINE void join(
+      volatile value_type& update, const volatile value_type& input) const {
     update = unite(update, input);
   }
   DEVICE void operator()(Int i, value_type& update) const {

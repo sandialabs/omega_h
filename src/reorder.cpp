@@ -22,8 +22,8 @@ Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim) {
   return fv2e;
 }
 
-LOs ent_order_from_vert_order(Mesh* mesh, Int ent_dim,
-                              LOs new_verts2old_verts) {
+LOs ent_order_from_vert_order(
+    Mesh* mesh, Int ent_dim, LOs new_verts2old_verts) {
   CHECK(new_verts2old_verts.size() == mesh->nverts());
   auto old_verts2old_ents = find_entities_of_first_vertices(mesh, ent_dim);
   CHECK(old_verts2old_ents.a2ab.size() == mesh->nverts() + 1);

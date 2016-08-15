@@ -62,16 +62,16 @@ CONSTANT Int const htv2hhv_0[5][4] = {
    into the back-upper-right corner,
    on the right face */
 CONSTANT Int const htv2hhv_1[6][4] = {{0, 5, 7, 4}, {0, 1, 7, 5}, {1, 6, 7, 5},
-                                      {0, 7, 2, 3}, {0, 7, 1, 2}, {1, 7, 6, 2}};
+    {0, 7, 2, 3}, {0, 7, 1, 2}, {1, 7, 6, 2}};
 /* tets from a hex with 2 diagonals
    into the back-upper-right corner,
    none on the right face */
 CONSTANT Int const htv2hhv_2[6][4] = {{0, 4, 5, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
-                                      {0, 1, 2, 5}, {0, 3, 6, 2}, {0, 6, 5, 2}};
+    {0, 1, 2, 5}, {0, 3, 6, 2}, {0, 6, 5, 2}};
 /* tets from a hex with 3 diagonals
    into the back-upper-right corner */
 CONSTANT Int const htv2hhv_3[6][4] = {{0, 2, 3, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
-                                      {0, 5, 6, 4}, {1, 5, 6, 0}, {1, 6, 2, 0}};
+    {0, 5, 6, 4}, {1, 5, 6, 0}, {1, 6, 2, 0}};
 
 CONSTANT Int const hex_flip_pairs[4][2] = {{0, 4}, {3, 5}, {1, 7}, {2, 6}};
 
@@ -138,8 +138,8 @@ LOs tris_from_quads(LOs qv2v) {
   return tv2v;
 }
 
-DEVICE void tets_from_hex_1(LO h, LOs hv2v, LO hhv2v[], Int diags_into[],
-                            Int& ndiags_into) {
+DEVICE void tets_from_hex_1(
+    LO h, LOs hv2v, LO hhv2v[], Int diags_into[], Int& ndiags_into) {
   LO hv_begin = h * 8;
   for (Int i = 0; i < 8; ++i) {
     hhv2v[i] = hv2v[hv_begin + i];
@@ -158,13 +158,13 @@ DEVICE void tets_from_hex_1(LO h, LOs hv2v, LO hhv2v[], Int diags_into[],
      back-upper-right corner */
   for (Int i = 0; i < 3; ++i) {
     diags_into[i] = lt(hhv2v[hex_bur_faces[i][0]], hhv2v[hex_bur_faces[i][2]],
-                       hhv2v[hex_bur_faces[i][1]], hhv2v[hex_bur_faces[i][3]]);
+        hhv2v[hex_bur_faces[i][1]], hhv2v[hex_bur_faces[i][3]]);
   }
   ndiags_into = diags_into[0] + diags_into[1] + diags_into[2];
 }
 
 DEVICE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h, LO const hhv2v[],
-                               Int const case_template[][4], Int nhht) {
+    Int const case_template[][4], Int nhht) {
   LO t = h2ht[h];
   for (Int i = 0; i < nhht; ++i) {
     for (Int j = 0; j < 4; ++j) {

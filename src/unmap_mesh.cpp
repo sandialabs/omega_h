@@ -6,32 +6,28 @@
 
 namespace osh {
 
-void unmap_tags(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-                LOs new_ents2old_ents) {
+void unmap_tags(
+    Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, LOs new_ents2old_ents) {
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
     if (is<I8>(tag)) {
-      new_mesh->add_tag<I8>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+      new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
           unmap(new_ents2old_ents, to<I8>(tag)->array(), tag->ncomps()));
     } else if (is<I32>(tag)) {
-      new_mesh->add_tag<I32>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+      new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
           unmap(new_ents2old_ents, to<I32>(tag)->array(), tag->ncomps()));
     } else if (is<I64>(tag)) {
-      new_mesh->add_tag<I64>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+      new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
           unmap(new_ents2old_ents, to<I64>(tag)->array(), tag->ncomps()));
     } else if (is<Real>(tag)) {
-      new_mesh->add_tag<Real>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+      new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
           unmap(new_ents2old_ents, to<Real>(tag)->array(), tag->ncomps()));
     }
   }
 }
 
 void unmap_down(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-                LOs new_ents2old_ents, LOs old_lows2new_lows) {
+    LOs new_ents2old_ents, LOs old_lows2new_lows) {
   auto deg = simplex_degrees[ent_dim][ent_dim - 1];
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, ent_dim - 1);
   auto oel2ol = old_ents2old_lows.ab2b;
@@ -46,8 +42,8 @@ void unmap_down(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->set_ents(ent_dim, new_ents2new_lows);
 }
 
-Remotes unmap_owners(Mesh* old_mesh, Int ent_dim, LOs new_ents2old_ents,
-                     LOs old_ents2new_ents) {
+Remotes unmap_owners(
+    Mesh* old_mesh, Int ent_dim, LOs new_ents2old_ents, LOs old_ents2new_ents) {
   auto old_copies2old_owners = old_mesh->ask_dist(ent_dim);
   auto old_owners2old_copies = old_copies2old_owners.invert();
   auto old_copies2new_owners = old_owners2old_copies.exch(old_ents2new_ents, 1);
@@ -58,7 +54,7 @@ Remotes unmap_owners(Mesh* old_mesh, Int ent_dim, LOs new_ents2old_ents,
 }
 
 void unmap_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-                  LOs new_ents2old_ents, LOs old_ents2new_ents) {
+    LOs new_ents2old_ents, LOs old_ents2new_ents) {
   if (old_mesh->comm()->size() == 1) return;
   auto owners =
       unmap_owners(old_mesh, ent_dim, new_ents2old_ents, old_ents2new_ents);
@@ -71,13 +67,13 @@ void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_ents2old_ents[]) {
   for (Int ent_dim = 0; ent_dim <= old_mesh->dim(); ++ent_dim) {
     if (ent_dim > VERT) {
       unmap_down(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim],
-                 old_lows2new_lows);
+          old_lows2new_lows);
     }
     unmap_tags(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
-    auto old_ents2new_ents = invert_injective_map(new_ents2old_ents[ent_dim],
-                                                  old_mesh->nents(ent_dim));
+    auto old_ents2new_ents = invert_injective_map(
+        new_ents2old_ents[ent_dim], old_mesh->nents(ent_dim));
     unmap_owners(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim],
-                 old_ents2new_ents);
+        old_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
 }

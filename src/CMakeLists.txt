@@ -57,6 +57,7 @@ set(OSH_SOURCES
   modify.cpp
   refine.cpp
   transfer.cpp
+  transfer_conserve.cpp
   compare.cpp
   check_collapse.cpp
   coarsen_qualities.cpp
@@ -102,10 +103,10 @@ target_include_directories(omega_h
 macro(osh_find_package PKG_NAME VERSION)
   set(${PKG_NAME}_PREFIX "" CACHE PATH "${PKG_NAME} install directory")
   if ("${${PKG_NAME}_PREFIX}" STREQUAL "")
-    #allow CMake to search other prefixes if Kokkos_PREFIX is not set
+    #allow CMake to search other prefixes if ${PKG_NAME}_PREFIX is not set
     find_package(${PKG_NAME} ${VERSION} REQUIRED)
   else()
-    #but if Kokkos_PREFIX is set, don't find it anywhere else:
+    #but if ${PKG_NAME}_PREFIX is set, don't find it anywhere else:
     find_package(${PKG_NAME} ${VERSION} REQUIRED PATHS ${${PKG_NAME}_PREFIX} NO_DEFAULT_PATH)
   endif()
   message(STATUS "${PKG_NAME}_CONFIG: ${${PKG_NAME}_CONFIG}")
@@ -116,7 +117,9 @@ if(OSH_USE_KOKKOS)
   get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
   message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
   get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
-  message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
+  if(kokkoscore_LINK)
+    message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
+  endif()
   target_link_libraries(omega_h PUBLIC kokkoscore)
   target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
   set(DEP_LIBS ${DEP_LIBS} ${KOKKOS_LIB})

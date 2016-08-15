@@ -10,8 +10,8 @@
 
 namespace osh {
 
-Reals solve_laplacian(Mesh* mesh, Reals initial, Int width, Real tol,
-                      Real floor) {
+Reals solve_laplacian(
+    Mesh* mesh, Reals initial, Int width, Real tol, Real floor) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(initial.size() == mesh->nverts() * width);
   auto comm = mesh->comm();

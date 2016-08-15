@@ -55,7 +55,7 @@ Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
 
 template <Int dim>
 Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
-                            LOs surf_hinge2hinge, LOs side2surf_side) {
+    LOs surf_hinge2hinge, LOs side2surf_side) {
   auto nsurf_hinges = surf_hinge2hinge.size();
   auto hinges2sides = mesh->ask_up(dim - 2, dim - 1);
   auto hinges2hinge_sides = hinges2sides.a2ab;
@@ -106,14 +106,14 @@ Reals get_edge_tangents(Mesh* mesh, LOs curv_edge2edge) {
 }
 
 Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
-                       LOs surf_hinge2hinge, LOs side2surf_side) {
+    LOs surf_hinge2hinge, LOs side2surf_side) {
   switch (mesh->dim()) {
     case 3:
-      return get_hinge_angles_tmpl<3>(mesh, surf_side_normals, surf_hinge2hinge,
-                                      side2surf_side);
+      return get_hinge_angles_tmpl<3>(
+          mesh, surf_side_normals, surf_hinge2hinge, side2surf_side);
     case 2:
-      return get_hinge_angles_tmpl<2>(mesh, surf_side_normals, surf_hinge2hinge,
-                                      side2surf_side);
+      return get_hinge_angles_tmpl<2>(
+          mesh, surf_side_normals, surf_hinge2hinge, side2surf_side);
   }
   NORETURN(Reals());
 }
@@ -183,7 +183,7 @@ static Reals side_vert_normal_weights(Mesh* mesh, LOs surf_side2side) {
 }
 
 Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
-                       LOs surf_vert2vert) {
+    LOs surf_vert2vert) {
   CHECK(mesh->owners_have_all_upward(VERT));
   auto weights = side_vert_normal_weights(mesh, surf_side2side);
   auto dim = mesh->dim();
@@ -198,7 +198,7 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
 }
 
 Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
-                        Reals curv_edge_tangents, LOs curv_vert2vert) {
+    Reals curv_edge_tangents, LOs curv_vert2vert) {
   CHECK(mesh->dim() == 3);
   CHECK(mesh->owners_have_all_upward(VERT));
   auto v2e = mesh->ask_up(VERT, EDGE);

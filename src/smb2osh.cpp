@@ -20,7 +20,7 @@ static void copy_coords(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh) {
   }
   mesh_apf->end(iter);
   mesh_osh->add_tag(0, "coordinates", dim, OSH_LINEAR_INTERP,
-                    osh::Reals(host_coords.write()));
+      osh::Reals(host_coords.write()));
 }
 
 static void copy_class(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh, int dim) {
@@ -38,13 +38,13 @@ static void copy_class(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh, int dim) {
   }
   mesh_apf->end(iter);
   mesh_osh->add_tag(dim, "class_dim", 1, OSH_INHERIT,
-                    osh::Read<osh::I8>(host_class_dim.write()));
-  mesh_osh->add_tag(dim, "class_id", 1, OSH_INHERIT,
-                    osh::LOs(host_class_id.write()));
+      osh::Read<osh::I8>(host_class_dim.write()));
+  mesh_osh->add_tag(
+      dim, "class_id", 1, OSH_INHERIT, osh::LOs(host_class_id.write()));
 }
 
 static void copy_conn(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh,
-                      apf::Numbering* vert_nums, int d) {
+    apf::Numbering* vert_nums, int d) {
   auto nhigh = osh::LO(mesh_apf->count(d));
   auto deg = d + 1;
   osh::HostWrite<osh::LO> host_ev2v(nhigh * deg);
@@ -88,10 +88,10 @@ static void copy_globals(apf::Mesh* mesh_apf, osh::Mesh* mesh_osh, int dim) {
   mesh_apf->end(iter);
   apf::destroyGlobalNumbering(globals_apf);
   auto globals = osh::Read<osh::GO>(host_globals.write());
-  mesh_osh->add_tag(dim, "global", 1, OSH_GLOBAL,
-                    osh::Read<osh::GO>(host_globals.write()));
-  auto owners = osh::owners_from_globals(mesh_osh->comm(), globals,
-                                         osh::Read<osh::I32>());
+  mesh_osh->add_tag(
+      dim, "global", 1, OSH_GLOBAL, osh::Read<osh::GO>(host_globals.write()));
+  auto owners = osh::owners_from_globals(
+      mesh_osh->comm(), globals, osh::Read<osh::I32>());
   mesh_osh->set_owners(dim, owners);
 }
 

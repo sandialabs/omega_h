@@ -22,8 +22,8 @@ Remotes get_local_elem_uses2own_elems(Mesh* mesh) {
   return unmap(uses2elems, elems2own);
 }
 
-void get_own_verts2own_elem_uses(Mesh* mesh, Remotes& serv_uses2own_elems,
-                                 LOs& own_verts2serv_uses) {
+void get_own_verts2own_elem_uses(
+    Mesh* mesh, Remotes& serv_uses2own_elems, LOs& own_verts2serv_uses) {
   auto local_uses2own_elems = get_local_elem_uses2own_elems(mesh);
   auto local_uses2own_verts = get_local_elem_uses2own_verts(mesh);
   serv_uses2own_elems = local_uses2own_verts.exch(local_uses2own_elems, 1);
@@ -32,7 +32,7 @@ void get_own_verts2own_elem_uses(Mesh* mesh, Remotes& serv_uses2own_elems,
 }
 
 Remotes push_elem_uses(Remotes serv_uses2own_elems, LOs own_verts2serv_uses,
-                       Dist own_verts2verts) {
+    Dist own_verts2verts) {
   auto nown_verts = own_verts2verts.nroots();
   auto own_verts2serv_verts = own_verts2verts.roots2items();
   auto own_verts2items =
@@ -70,11 +70,10 @@ Remotes push_elem_uses(Remotes serv_uses2own_elems, LOs own_verts2serv_uses,
 void ghost_mesh(Mesh* mesh, bool verbose) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(mesh, own_vert_uses2own_elems,
-                              own_verts2own_vert_uses);
-  auto elem_uses =
-      push_elem_uses(own_vert_uses2own_elems, own_verts2own_vert_uses,
-                     mesh->ask_dist(VERT).invert());
+  get_own_verts2own_elem_uses(
+      mesh, own_vert_uses2own_elems, own_verts2own_vert_uses);
+  auto elem_uses = push_elem_uses(own_vert_uses2own_elems,
+      own_verts2own_vert_uses, mesh->ask_dist(VERT).invert());
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2owners = own_elems2elems.invert();
@@ -86,8 +85,8 @@ void ghost_mesh(Mesh* mesh, bool verbose) {
 void partition_by_verts(Mesh* mesh, bool verbose) {
   Remotes own_vert_uses2own_elems;
   LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(mesh, own_vert_uses2own_elems,
-                              own_verts2own_vert_uses);
+  get_own_verts2own_elem_uses(
+      mesh, own_vert_uses2own_elems, own_verts2own_vert_uses);
   auto uses2old_owners =
       Dist(mesh->comm(), own_vert_uses2own_elems, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);

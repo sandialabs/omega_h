@@ -10,7 +10,7 @@ namespace osh {
 // roots within an *absolute* distance of (eps) are considered
 // the same.
 INLINE Int solve_cubic(Real a_2, Real a_1, Real a_0, Few<Real, 3>& roots,
-                       Few<Int, 3>& mults, Real eps = 1e-6) {
+    Few<Int, 3>& mults, Real eps = 1e-6) {
   // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
   Real q = (9. * a_1 * a_2 - 27. * a_0 - 2. * cube(a_2)) / 27.;
@@ -68,8 +68,8 @@ INLINE Int solve_cubic(Real a_2, Real a_1, Real a_0, Few<Real, 3>& roots,
 }
 
 // solve quadratic equation x^2 + a * x + b = 0
-INLINE Int solve_quadratic(Real a, Real b, Few<Real, 2>& roots,
-                           Few<Int, 2>& mults) {
+INLINE Int solve_quadratic(
+    Real a, Real b, Few<Real, 2>& roots, Few<Int, 2>& mults) {
   Real disc = square(a) - 4. * b;
   if (fabs(disc) < 1e-6) {
     mults[0] = 2;

@@ -21,14 +21,14 @@
  * https://en.wikipedia.org/wiki/Tetrahedron#Volume
  */
 
-void tet_run(osh::Real side_angle_in_degrees) {
+static void tet_run(osh::Real side_angle_in_degrees) {
   auto side_angle = side_angle_in_degrees / 180. * osh::PI;
   std::cout << "side_angle " << side_angle << '\n';
-  auto dihedral_angle = acos(
-      (cos(side_angle) - osh::square(cos(side_angle))) /
-      (osh::square(sin(side_angle))));
+  auto dihedral_angle = acos((cos(side_angle) - osh::square(cos(side_angle))) /
+                             (osh::square(sin(side_angle))));
   std::cout << "dihedral_angle " << dihedral_angle << '\n';
-  std::cout << "dihedral_angle in degrees " << (dihedral_angle * 180. / osh::PI) << '\n';
+  std::cout << "dihedral_angle in degrees " << (dihedral_angle * 180. / osh::PI)
+            << '\n';
   auto solid_angle = 3. * dihedral_angle - osh::PI;
   std::cout << "solid_angle " << solid_angle << '\n';
   auto degree = 4. * osh::PI / solid_angle;
@@ -53,7 +53,7 @@ void tet_run(osh::Real side_angle_in_degrees) {
 /* Here is the 2D triangle analogue.
  */
 
-void tri_run(osh::Real side_angle_in_degrees) {
+static void tri_run(osh::Real side_angle_in_degrees) {
   auto side_angle = side_angle_in_degrees / 180. * osh::PI;
   std::cout << "side_angle " << side_angle << '\n';
   auto degree = 2. * osh::PI / side_angle;

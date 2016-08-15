@@ -4,17 +4,17 @@ using namespace osh;
 
 template <Int m, Int n>
 static void test_qr_decomp(Matrix<m, n> a) {
-  Matrix<m, n> q;
-  Matrix<n, n> r;
-  decompose_qr_reduced(a, q, r);
+  auto qr = factorize_qr_householder(m, n, a);
+  auto r = qr.r;
+  auto q = identity_matrix<m, n>();
+  for (Int j = 0; j < n; ++j) implicit_q_x(m, n, q[j], qr.v);
   CHECK(are_close(a, q * r));
   CHECK(are_close(transpose(q) * q, identity_matrix<n, n>()));
 }
 
 static void test_qr_decomps() {
-  test_qr_decomp(Matrix<3, 3>({0, 0, 0, 0, 0, 0, 0, 0, 0}));
-  test_qr_decomp(Matrix<3, 3>(
-      {EPSILON, 0, 0, EPSILON, EPSILON, 0, EPSILON, EPSILON, EPSILON}));
+  test_qr_decomp(identity_matrix<3, 3>());
+  test_qr_decomp(Matrix<3, 3>({EPSILON, 0, 0, 0, EPSILON, 0, 0, 0, EPSILON}));
   test_qr_decomp(Matrix<3, 3>({12, -51, 4, 6, 167, -68, -4, 24, -41}));
 }
 
@@ -28,8 +28,7 @@ static void test_form_ortho_basis() {
 static void test_least_squares() {
   Matrix<4, 2> m({1, 1, 1, 2, 1, 3, 1, 4});
   Vector<4> b({6, 5, 7, 10});
-  Vector<2> x;
-  CHECK(solve_least_squares_qr(m, b, x));
+  auto x = solve_using_qr(m, b);
   CHECK(are_close(x, vector_2(3.5, 1.4)));
 }
 
@@ -49,7 +48,7 @@ static void test_repro_sum() {
 }
 
 static void test_cubic(Real a, Real b, Real c, Int nroots_wanted,
-                       Few<Real, 3> roots_wanted, Few<Int, 3> mults_wanted) {
+    Few<Real, 3> roots_wanted, Few<Int, 3> mults_wanted) {
   Few<Real, 3> roots;
   Few<Int, 3> mults;
   Int nroots = solve_cubic(a, b, c, roots, mults);
@@ -63,13 +62,13 @@ static void test_cubic(Real a, Real b, Real c, Int nroots_wanted,
 static void test_cubic() {
   test_cubic(0, 0, 0, 1, Few<Real, 3>({0}), Few<Int, 3>({3}));
   test_cubic(-3. / 2., -3. / 2., 1., 3, Few<Real, 3>({2, -1, .5}),
-             Few<Int, 3>({1, 1, 1}));
+      Few<Int, 3>({1, 1, 1}));
   test_cubic(0, -3., 2., 2, Few<Real, 3>({-2, 1}), Few<Int, 3>({1, 2}));
   test_cubic(3, -6, -8, 3, Few<Real, 3>({2, -4, -1}), Few<Int, 3>({1, 1, 1}));
 }
 
-static void test_eigen_cubic(Matrix<3, 3> m, Matrix<3, 3> q_expect,
-                             Vector<3> l_expect) {
+static void test_eigen_cubic(
+    Matrix<3, 3> m, Matrix<3, 3> q_expect, Vector<3> l_expect) {
   Matrix<3, 3> q;
   Vector<3> l;
   decompose_eigen(m, q, l);
@@ -104,12 +103,12 @@ static void test_eigen_metric(Vector<3> h) {
 }
 
 static void test_eigen_cubic() {
-  test_eigen_cubic(identity_matrix<3, 3>(), identity_matrix<3, 3>(),
-                   vector_3(1, 1, 1));
+  test_eigen_cubic(
+      identity_matrix<3, 3>(), identity_matrix<3, 3>(), vector_3(1, 1, 1));
   test_eigen_cubic(matrix_3x3(0, 0, 0, 0, 0, 0, 0, 0, 0),
-                   identity_matrix<3, 3>(), vector_3(0, 0, 0));
-  test_eigen_cubic(matrix_3x3(-1, 3, -1, -3, 5, -1, -3, 3, 1),
-                   vector_3(1, 2, 2));
+      identity_matrix<3, 3>(), vector_3(0, 0, 0));
+  test_eigen_cubic(
+      matrix_3x3(-1, 3, -1, -3, 5, -1, -3, 3, 1), vector_3(1, 2, 2));
   /* the lengths have to be ordered so that
      if two of them are the same they should
      appear at the end */
@@ -120,8 +119,8 @@ static void test_eigen_cubic() {
   test_eigen_metric(vector_3(1e-6, 1e-3, 1e-3));
 }
 
-static void test_intersect_ortho_metrics(Vector<3> h1, Vector<3> h2,
-                                         Vector<3> hi_expect) {
+static void test_intersect_ortho_metrics(
+    Vector<3> h1, Vector<3> h2, Vector<3> hi_expect) {
   auto q =
       rotate(PI / 4., vector_3(0, 0, 1)) * rotate(PI / 4., vector_3(0, 1, 0));
   auto m1 = compose_metric(q, h1);
@@ -135,15 +134,14 @@ static void test_intersect_ortho_metrics(Vector<3> h1, Vector<3> h2,
 }
 
 static void test_intersect_metrics() {
-  test_intersect_ortho_metrics(vector_3(0.5, 1, 1), vector_3(1, 0.5, 1),
-                               vector_3(0.5, 0.5, 1));
-  test_intersect_ortho_metrics(vector_3(1e-3, 1, 1), vector_3(1, 1, 1e-3),
-                               vector_3(1e-3, 1, 1e-3));
+  test_intersect_ortho_metrics(
+      vector_3(0.5, 1, 1), vector_3(1, 0.5, 1), vector_3(0.5, 0.5, 1));
+  test_intersect_ortho_metrics(
+      vector_3(1e-3, 1, 1), vector_3(1, 1, 1e-3), vector_3(1e-3, 1, 1e-3));
   test_intersect_ortho_metrics(vector_3(1e-3, 1e-3, 1), vector_3(1, 1, 1e-3),
-                               vector_3(1e-3, 1e-3, 1e-3));
+      vector_3(1e-3, 1e-3, 1e-3));
   test_intersect_ortho_metrics(vector_3(1e-6, 1e-3, 1e-3),
-                               vector_3(1e-3, 1e-3, 1e-6),
-                               vector_3(1e-6, 1e-3, 1e-6));
+      vector_3(1e-3, 1e-3, 1e-6), vector_3(1e-6, 1e-3, 1e-6));
 }
 
 static void test_sort() {
@@ -231,7 +229,7 @@ static void test_invert_adj() {
   CHECK(verts2tris.ab2b == LOs({0, 1, 0, 0, 1, 1}));
   CHECK(verts2tris.codes ==
         Read<I8>({make_code(0, 0, 0), make_code(0, 0, 2), make_code(0, 0, 1),
-                  make_code(0, 0, 2), make_code(0, 0, 0), make_code(0, 0, 1)}));
+            make_code(0, 0, 2), make_code(0, 0, 0), make_code(0, 0, 1)}));
 }
 
 static bool same_adj(Int a[], Int b[]) {
@@ -298,20 +296,20 @@ static void test_reflect_down() {
   a = reflect_down(LOs({0, 1, 2}), LOs({0, 1, 1, 2, 2, 0}), 3, 2, 1);
   CHECK(a.ab2b == LOs({0, 1, 2}));
   CHECK(a.codes == Read<I8>({0, 0, 0}));
-  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}),
-                   4, 3, 1);
+  a = reflect_down(
+      LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}), 4, 3, 1);
   CHECK(a.ab2b == LOs({0, 1, 2, 3, 4, 5}));
   CHECK(a.codes == Read<I8>({0, 0, 0, 0, 0, 0}));
-  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}),
-                   4, 3, 2);
+  a = reflect_down(
+      LOs({0, 1, 2, 3}), LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}), 4, 3, 2);
   CHECK(a.ab2b == LOs({0, 1, 2, 3}));
   CHECK(a.codes == Read<I8>({0, 0, 0, 0}));
-  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 2, 0, 3, 1, 1, 3, 2, 2, 3, 0}),
-                   4, 3, 2);
+  a = reflect_down(
+      LOs({0, 1, 2, 3}), LOs({0, 1, 2, 0, 3, 1, 1, 3, 2, 2, 3, 0}), 4, 3, 2);
   CHECK(a.ab2b == LOs({0, 1, 2, 3}));
   CHECK(a.codes == Read<I8>(4, make_code(true, 0, 0)));
-  a = reflect_down(LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}),
-                   4, 2, 1);
+  a = reflect_down(
+      LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}), 4, 2, 1);
   CHECK(a.ab2b == LOs({0, 1, 4, 2, 3, 4}));
 }
 
@@ -327,7 +325,7 @@ static void test_hilbert() {
   /* this is the original test from Skilling's paper */
   hilbert::coord_t X[3] = {5, 10, 20};  // any position in 32x32x32 cube
   hilbert::AxestoTranspose(X, 5,
-                           3);  // Hilbert transpose for 5 bits and 3 dimensions
+      3);  // Hilbert transpose for 5 bits and 3 dimensions
   std::stringstream stream;
   stream << "Hilbert integer = " << (X[0] >> 4 & 1) << (X[1] >> 4 & 1)
          << (X[2] >> 4 & 1) << (X[0] >> 3 & 1) << (X[1] >> 3 & 1)
@@ -351,10 +349,10 @@ static void test_hilbert() {
 
 static void test_bbox() {
   CHECK(are_close(BBox<2>(vector_2(-3, -3), vector_2(3, 3)),
-                  find_bounding_box<2>(Reals({0, -3, 3, 0, 0, 3, -3, 0}))));
+      find_bounding_box<2>(Reals({0, -3, 3, 0, 0, 3, -3, 0}))));
   CHECK(are_close(BBox<3>(vector_3(-3, -3, -3), vector_3(3, 3, 3)),
-                  find_bounding_box<3>(Reals({0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0,
-                                              0, 0, 0, -3, 0, 0, 3}))));
+      find_bounding_box<3>(
+          Reals({0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, -3, 0, 0, 3}))));
 }
 
 static void test_build_from_elems2verts(Library const& lib) {
@@ -391,8 +389,8 @@ static void test_star(Library const& lib) {
     CHECK(v2v.ab2b == LOs({1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2}));
     Adj e2e = mesh.ask_star(EDGE);
     CHECK(e2e.a2ab == LOs(7, 0, 5));
-    CHECK(e2e.ab2b == LOs({1, 3, 4, 2, 5, 3, 0, 2, 5, 4, 0, 4, 5, 1, 3,
-                           0, 1, 5, 4, 2, 2, 0, 3, 5, 1, 1, 2, 4, 3, 0}));
+    CHECK(e2e.ab2b == LOs({1, 3, 4, 2, 5, 3, 0, 2, 5, 4, 0, 4, 5, 1, 3, 0, 1, 5,
+                          4, 2, 2, 0, 3, 5, 1, 1, 2, 4, 3, 0}));
   }
 }
 
@@ -417,15 +415,15 @@ static void test_quality() {
       {vector_2(1, 0), vector_2(0, sqrt(3.0)), vector_2(-1, 0)});
   Few<Vector<3>, 4> perfect_tet(
       {vector_3(1, 0, -1.0 / sqrt(2.0)), vector_3(-1, 0, -1.0 / sqrt(2.0)),
-       vector_3(0, -1, 1.0 / sqrt(2.0)), vector_3(0, 1, 1.0 / sqrt(2.0))});
+          vector_3(0, -1, 1.0 / sqrt(2.0)), vector_3(0, 1, 1.0 / sqrt(2.0))});
   Few<Vector<2>, 3> flat_tri({vector_2(1, 0), vector_2(0, 0), vector_2(-1, 0)});
   Few<Vector<3>, 4> flat_tet({vector_3(1, 0, 0), vector_3(-1, 0, 0),
-                              vector_3(0, -1, 0), vector_3(0, 1, 0)});
+      vector_3(0, -1, 0), vector_3(0, 1, 0)});
   Few<Vector<2>, 3> inv_tri(
       {vector_2(1, 0), vector_2(-1, 0), vector_2(0, sqrt(3.0))});
   Few<Vector<3>, 4> inv_tet(
       {vector_3(1, 0, -1.0 / sqrt(2.0)), vector_3(-1, 0, -1.0 / sqrt(2.0)),
-       vector_3(0, 1, 1.0 / sqrt(2.0)), vector_3(0, -1, 1.0 / sqrt(2.0))});
+          vector_3(0, 1, 1.0 / sqrt(2.0)), vector_3(0, -1, 1.0 / sqrt(2.0))});
   Matrix<2, 2> id_metric_2 = identity_matrix<2, 2>();
   Matrix<3, 3> id_metric_3 = identity_matrix<3, 3>();
   Matrix<2, 2> x_metric_2 =
@@ -539,8 +537,8 @@ static void test_inertial_bisect() {
   Vector<3> axis;
   auto marked = inertia::mark_bisection(self, coords, masses, tolerance, axis);
   CHECK(marked == Read<I8>({1, 1, 0, 0}));
-  marked = inertia::mark_bisection_given_axis(self, coords, masses, tolerance,
-                                              vector_3(0, 1, 0));
+  marked = inertia::mark_bisection_given_axis(
+      self, coords, masses, tolerance, vector_3(0, 1, 0));
   CHECK(marked == Read<I8>({1, 0, 1, 0}));
 }
 
@@ -574,7 +572,7 @@ static void test_refine_qualities(Library const& lib) {
   CHECK(are_close(
       quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));
   mesh.add_tag(VERT, "metric", symm_dofs(2), OSH_METRIC,
-               repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
+      repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
   auto quals2 = refine_qualities(&mesh, candidates);
   CHECK(are_close(quals2, quals));
 }
@@ -582,8 +580,8 @@ static void test_refine_qualities(Library const& lib) {
 static void test_mark_up_down(Library const& lib) {
   Mesh mesh;
   build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
-  CHECK(mark_down(&mesh, TRI, VERT, Read<I8>({1, 0})) ==
-        Read<I8>({1, 1, 0, 1}));
+  CHECK(
+      mark_down(&mesh, TRI, VERT, Read<I8>({1, 0})) == Read<I8>({1, 1, 0, 1}));
   CHECK(mark_up(&mesh, VERT, TRI, Read<I8>({0, 1, 0, 0})) == Read<I8>({1, 0}));
 }
 
@@ -624,9 +622,8 @@ static void test_swap3d_loop(Library const& lib) {
   auto f = LAMBDA(LO foo) {
     (void)foo;
     LO edge = 6;
-    auto loop =
-        swap3d::find_loop(edges2edge_tets, edge_tets2tets, edge_tet_codes,
-                          edge_verts2verts, tet_verts2verts, edge);
+    auto loop = swap3d::find_loop(edges2edge_tets, edge_tets2tets,
+        edge_tet_codes, edge_verts2verts, tet_verts2verts, edge);
     CHECK(loop.eev2v[0] == 7);
     CHECK(loop.eev2v[1] == 0);
     CHECK(loop.size == 6);
@@ -720,7 +717,7 @@ static void test_element_identity_metric() {
   /* perfect tet with edge lengths = 2 */
   Few<Vector<3>, 4> perfect_tet(
       {vector_3(1, 0, -1.0 / sqrt(2.0)), vector_3(-1, 0, -1.0 / sqrt(2.0)),
-       vector_3(0, -1, 1.0 / sqrt(2.0)), vector_3(0, 1, 1.0 / sqrt(2.0))});
+          vector_3(0, -1, 1.0 / sqrt(2.0)), vector_3(0, 1, 1.0 / sqrt(2.0))});
   auto arm = element_identity_metric(perfect_tet);
   auto brm = compose_metric(identity_matrix<3, 3>(), vector_3(2, 2, 2));
   CHECK(are_close(arm, brm));

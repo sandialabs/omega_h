@@ -161,16 +161,16 @@ void write_array(std::ostream& stream, Read<T> array) {
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-                        reinterpret_cast<const Bytef*>(uncompressed.data()),
-                        source_bytes, Z_BEST_SPEED);
+      reinterpret_cast<const Bytef*>(uncompressed.data()), source_bytes,
+      Z_BEST_SPEED);
   CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
   write_value(stream, compressed_bytes);
   stream.write(reinterpret_cast<const char*>(compressed), compressed_bytes);
   delete[] compressed;
 #else
-  stream.write(reinterpret_cast<const char*>(uncompressed.data()),
-               uncompressed_bytes);
+  stream.write(
+      reinterpret_cast<const char*>(uncompressed.data()), uncompressed_bytes);
 #endif
 }
 
@@ -202,8 +202,8 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   CHECK(is_compressed == false);
 #endif
   {
-    stream.read(reinterpret_cast<char*>(uncompressed.data()),
-                uncompressed_bytes);
+    stream.read(
+        reinterpret_cast<char*>(uncompressed.data()), uncompressed_bytes);
   }
   array = swap_if_needed(Read<T>(uncompressed.write()), true);
 }
@@ -298,8 +298,8 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   }
 }
 
-static void read_tag(std::istream& stream, Mesh* mesh, Int d,
-                     bool is_compressed) {
+static void read_tag(
+    std::istream& stream, Mesh* mesh, Int d, bool is_compressed) {
   std::string name;
   read(stream, name);
   I8 ncomps;
@@ -465,14 +465,14 @@ void read(std::string const& path, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-#define INST(T)                                                          \
-  template void swap_if_needed(T& val, bool is_little_endian);           \
-  template Read<T> swap_if_needed(Read<T> array, bool is_little_endian); \
-  template void write_value(std::ostream& stream, T val);                \
-  template void read_value(std::istream& stream, T& val);                \
-  template void write_array(std::ostream& stream, Read<T> array);        \
-  template void read_array(std::istream& stream, Read<T>& array,         \
-                           bool is_compressed);
+#define INST(T)                                                                \
+  template void swap_if_needed(T& val, bool is_little_endian);                 \
+  template Read<T> swap_if_needed(Read<T> array, bool is_little_endian);       \
+  template void write_value(std::ostream& stream, T val);                      \
+  template void read_value(std::istream& stream, T& val);                      \
+  template void write_array(std::ostream& stream, Read<T> array);              \
+  template void read_array(                                                    \
+      std::istream& stream, Read<T>& array, bool is_compressed);
 INST(I8)
 INST(I32)
 INST(I64)

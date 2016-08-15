@@ -28,7 +28,7 @@ This should install Omega_h under the given prefix in a way you can
 access from your own CMake files using these CMake commands:
 
 ```cmake
-find_package(Omega_h 1.4.2)
+find_package(Omega_h)
 target_link_libraries(myprogram omega_h)
 ```
 
@@ -89,19 +89,6 @@ Please open a Github issue to ask a question, report a bug,
 request features, etc.
 If you'd like to contribute, please fork the repository and use a feature
 branch. Pull requests are welcome.
-
-We use [clang-format][5] to maintain a consistent code style.
-Developers are encouraged to install it
-
-```shell
-sudo apt-get install clang-format-3.5
-```
-
-And run something like this before committing unstaged changes:
-
-```shell
-git clang-format -f
-```
 
 ## Licensing
 
