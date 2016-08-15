@@ -148,7 +148,7 @@ static void transfer_conserve_r3d_tmpl(Mesh* old_mesh, Mesh* new_mesh,
       auto target_verts = gather_verts<dim + 1>(new_ev2v, target_elem);
       auto target_points =
           gather_vectors<dim + 1, dim>(new_coords, target_verts);
-      auto target_p = &prod_data_w[target_elem * ncomps];
+      auto target_p = &prod_data_w[prod * ncomps];
       for (Int comp = 0; comp < ncomps; ++comp) target_p[comp] = 0;
       for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
            ++kd_elem) {
