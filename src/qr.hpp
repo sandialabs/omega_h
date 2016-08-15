@@ -17,8 +17,8 @@ namespace osh {
    are there to support hessenberg reduction / tri-diagonalization */
 
 template <Int m, Int n>
-INLINE bool householder_vector(Matrix<m, n> a, Real anorm, Int k, Int o,
-                               Vector<m>& v_k) {
+INLINE bool householder_vector(
+    Matrix<m, n> a, Real anorm, Int k, Int o, Vector<m>& v_k) {
   Real norm_x = 0;
   for (Int i = k + o; i < m; ++i) norm_x += square(a[k][i]);
   norm_x = sqrt(norm_x);
@@ -97,8 +97,8 @@ INLINE Matrix<n, n> reduced_r_from_full(Matrix<m, n> fr) {
 }
 
 template <Int m, Int n>
-INLINE Int decompose_qr_reduced(Matrix<m, n> a, Matrix<m, n>& q,
-                                Matrix<n, n>& r) {
+INLINE Int decompose_qr_reduced(
+    Matrix<m, n> a, Matrix<m, n>& q, Matrix<n, n>& r) {
   Few<Vector<m>, n> v;
   Int rank = factorize_qr_householder(a, v);
   r = reduced_r_from_full(a);

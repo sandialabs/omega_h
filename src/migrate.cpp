@@ -88,14 +88,14 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
 }
 
 void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
-               Dist old_owners2new_ents, Adj& new_ents2new_lows,
-               Dist& old_low_owners2new_lows) {
+    Dist old_owners2new_ents, Adj& new_ents2new_lows,
+    Dist& old_low_owners2new_lows) {
   auto nlows_per_high = simplex_degrees[ent_dim][low_dim];
   auto old_use_owners = form_down_use_owners(old_mesh, ent_dim, low_dim);
   Remotes new_use_owners =
       old_owners2new_ents.exch(old_use_owners, nlows_per_high);
-  Dist low_uses2old_owners(old_mesh->comm(), new_use_owners,
-                           old_mesh->nents(low_dim));
+  Dist low_uses2old_owners(
+      old_mesh->comm(), new_use_owners, old_mesh->nents(low_dim));
   old_low_owners2new_lows = find_unique_use_owners(low_uses2old_owners);
   auto new_lows2old_owners = old_low_owners2new_lows.invert();
   auto old_low_owners2new_uses = low_uses2old_owners.invert();
@@ -108,37 +108,36 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
 }
 
 void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
-               Dist old_owners2new_ents) {
+    Dist old_owners2new_ents) {
   CHECK(old_owners2new_ents.nroots() == old_mesh->nents(ent_dim));
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
     if (is<I8>(tag)) {
       auto array = to<I8>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
-                            array);
+      new_mesh->add_tag<I8>(
+          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), array);
     } else if (is<I32>(tag)) {
       auto array = to<I32>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
-                             array);
+      new_mesh->add_tag<I32>(
+          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), array);
     } else if (is<I64>(tag)) {
       auto array = to<I64>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
-                             array);
+      new_mesh->add_tag<I64>(
+          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), array);
     } else if (is<Real>(tag)) {
       auto array = to<Real>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
-                              array);
+      new_mesh->add_tag<Real>(
+          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), array);
     }
   }
 }
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-               Dist new_ents2old_owners, Dist old_owners2new_ents,
-               osh_parting mode) {
+    Dist new_ents2old_owners, Dist old_owners2new_ents, osh_parting mode) {
   push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
   Read<I32> own_ranks;
   if ((mode == OSH_GHOSTED) ||
@@ -173,7 +172,7 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 }
 
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
-                  osh_parting mode, bool verbose) {
+    osh_parting mode, bool verbose) {
   auto comm = old_mesh->comm();
   auto dim = old_mesh->dim();
   if (verbose) print_migrate_stats(comm, new_elems2old_owners);
@@ -183,18 +182,18 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
     Adj high2low;
     Dist old_low_owners2new_lows;
     push_down(old_mesh, d, d - 1, old_owners2new_ents, high2low,
-              old_low_owners2new_lows);
+        old_low_owners2new_lows);
     new_mesh->set_ents(d, high2low);
     new_ents2old_owners = old_owners2new_ents.invert();
-    push_ents(old_mesh, new_mesh, d, new_ents2old_owners, old_owners2new_ents,
-              mode);
+    push_ents(
+        old_mesh, new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
     old_owners2new_ents = old_low_owners2new_lows;
   }
   auto new_verts2old_owners = old_owners2new_ents.invert();
   auto nnew_verts = new_verts2old_owners.nitems();
   new_mesh->set_verts(nnew_verts);
   push_ents(old_mesh, new_mesh, VERT, new_verts2old_owners, old_owners2new_ents,
-            mode);
+      mode);
 }
 
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose) {
@@ -204,8 +203,8 @@ void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose) {
 }
 
 void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose) {
-  migrate_mesh(mesh, Dist(mesh->comm(), new_elems2old_owners, mesh->nelems()),
-               verbose);
+  migrate_mesh(
+      mesh, Dist(mesh->comm(), new_elems2old_owners, mesh->nelems()), verbose);
 }
 
 }  // end namespace osh

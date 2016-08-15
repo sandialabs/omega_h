@@ -49,7 +49,7 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
         auto client_rank = clients2ranks[client];
         if ((own_rank == -1) || (nclient_copies < nown_client_copies) ||
             ((nclient_copies == nown_client_copies) &&
-             (client_rank < own_rank))) {
+                (client_rank < own_rank))) {
           auto copy_idx = serv_copies2copy_idxs[serv_copy];
           own_rank = client_rank;
           nown_client_copies = nclient_copies;
@@ -68,15 +68,15 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   return Remotes(copies2own_ranks, copies2own_idxs);
 }
 
-Remotes owners_from_globals(CommPtr comm, Read<GO> globals,
-                            Read<I32> own_ranks) {
+Remotes owners_from_globals(
+    CommPtr comm, Read<GO> globals, Read<I32> own_ranks) {
   auto copies2lins_dist = copies_to_linear_owners(comm, globals);
   return update_ownership(copies2lins_dist, own_ranks);
 }
 
 template <typename T>
-Read<T> reduce_data_to_owners(Read<T> copy_data, Dist copies2owners,
-                              Int ncomps) {
+Read<T> reduce_data_to_owners(
+    Read<T> copy_data, Dist copies2owners, Int ncomps) {
   auto owners2copies = copies2owners.invert();
   auto serv_copy_data = copies2owners.exch(copy_data, ncomps);
   auto nowners = owners2copies.nroots();
@@ -106,16 +106,16 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   auto nnew_owned = local_offsets.last();
   auto start = new_mesh->comm()->exscan(GO(nnew_owned), OSH_SUM);
   auto new_globals_w = Write<GO>(nnew_ents);
-  parallel_for(nnew_ents,
-               LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; });
+  parallel_for(
+      nnew_ents, LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; });
   auto new_globals = Read<GO>(new_globals_w);
   new_globals = new_mesh->sync_array(ent_dim, new_globals, 1);
   new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, new_globals);
 }
 
-#define INST(T)                                             \
-  template Read<T> reduce_data_to_owners(Read<T> copy_data, \
-                                         Dist copies2owners, Int ncomps);
+#define INST(T)                                                                \
+  template Read<T> reduce_data_to_owners(                                      \
+      Read<T> copy_data, Dist copies2owners, Int ncomps);
 INST(I8)
 INST(I32)
 INST(I64)

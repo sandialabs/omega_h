@@ -13,8 +13,8 @@ static bool we_called_mpi_init = false;
 static bool we_called_kokkos_init = false;
 #endif
 
-extern "C" void osh_init_internal(int* argc, char*** argv,
-                                  char const* head_desc) {
+extern "C" void osh_init_internal(
+    int* argc, char*** argv, char const* head_desc) {
   std::string lib_desc = OSH_VERSION;
   if (lib_desc != head_desc) {
     std::stringstream msg;

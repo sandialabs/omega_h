@@ -136,8 +136,8 @@ INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
    Mentions using $\sqrt{\det(M)}$ to compute volume in metric space. */
 
 template <Int dim, typename EdgeVectors>
-INLINE Real mean_squared_metric_length(EdgeVectors edge_vectors,
-                                       Matrix<dim, dim> metric) {
+INLINE Real mean_squared_metric_length(
+    EdgeVectors edge_vectors, Matrix<dim, dim> metric) {
   auto nedges = EdgeVectors::size;
   Real msl = 0;
   for (Int i = 0; i < nedges; ++i) {
@@ -147,8 +147,8 @@ INLINE Real mean_squared_metric_length(EdgeVectors edge_vectors,
 }
 
 template <Int dim>
-INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p,
-                                   Matrix<dim, dim> metric) {
+INLINE Real metric_element_quality(
+    Few<Vector<dim>, dim + 1> p, Matrix<dim, dim> metric) {
   auto b = simplex_basis<dim, dim>(p);
   auto s = element_size(b) * sqrt(determinant(metric));
   if (s < 0) return s;

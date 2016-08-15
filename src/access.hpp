@@ -63,8 +63,8 @@ DEVICE Few<Vector<dim>, neev> gather_vectors(Reals const& a, Few<LO, neev> v) {
 }
 
 template <Int neev, Int dim>
-DEVICE Few<Matrix<dim, dim>, neev> gather_symms(Reals const& a,
-                                                Few<LO, neev> v) {
+DEVICE Few<Matrix<dim, dim>, neev> gather_symms(
+    Reals const& a, Few<LO, neev> v) {
   Few<Matrix<dim, dim>, neev> x;
   for (Int i = 0; i < neev; ++i) x[i] = get_symm<dim>(a, v[i]);
   return x;

@@ -8,8 +8,8 @@
 namespace osh {
 
 template <typename Measure>
-static void swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges,
-                                  Reals* cand_quals, Read<I8>* cand_configs) {
+static void swap3d_qualities_tmpl(
+    Mesh* mesh, LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -32,9 +32,8 @@ static void swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges,
       cand_quals_w[cand] = -1.0;
       return;
     }
-    auto loop =
-        swap3d::find_loop(edges2edge_tets, edge_tets2tets, edge_tet_codes,
-                          edge_verts2verts, tet_verts2verts, edge);
+    auto loop = swap3d::find_loop(edges2edge_tets, edge_tets2tets,
+        edge_tet_codes, edge_verts2verts, tet_verts2verts, edge);
     if (loop.size > swap3d::MAX_EDGE_SWAP) {
       cand_configs_w[cand] = -1;
       cand_quals_w[cand] = -1.0;
@@ -42,7 +41,7 @@ static void swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges,
     }
     auto choice = swap3d::choose(loop, measure);
     static_assert(swap3d::MAX_CONFIGS <= INT8_MAX,
-                  "int8_t must be able to represent all swap configurations");
+        "int8_t must be able to represent all swap configurations");
     cand_configs_w[cand] = static_cast<I8>(choice.mesh);
     cand_quals_w[cand] = choice.quality;
   };
@@ -51,16 +50,16 @@ static void swap3d_qualities_tmpl(Mesh* mesh, LOs cands2edges,
   *cand_configs = cand_configs_w;
 }
 
-void swap3d_qualities(Mesh* mesh, LOs cands2edges, Reals* cand_quals,
-                      Read<I8>* cand_configs) {
+void swap3d_qualities(
+    Mesh* mesh, LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
   CHECK(mesh->parting() == OSH_GHOSTED);
   CHECK(mesh->dim() == 3);
   if (mesh->has_tag(VERT, "metric")) {
-    swap3d_qualities_tmpl<MetricElementQualities>(mesh, cands2edges, cand_quals,
-                                                  cand_configs);
+    swap3d_qualities_tmpl<MetricElementQualities>(
+        mesh, cands2edges, cand_quals, cand_configs);
   } else {
-    swap3d_qualities_tmpl<RealElementQualities>(mesh, cands2edges, cand_quals,
-                                                cand_configs);
+    swap3d_qualities_tmpl<RealElementQualities>(
+        mesh, cands2edges, cand_quals, cand_configs);
   }
   *cand_quals =
       mesh->sync_subset_array(EDGE, *cand_quals, cands2edges, -1.0, 1);

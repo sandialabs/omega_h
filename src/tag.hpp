@@ -13,10 +13,10 @@ Tag<T> const* to(TagBase const* t);
 template <typename T>
 Tag<T>* to(TagBase* t);
 
-#define INST_DECL(T)                                     \
-  extern template bool is<T>(TagBase const* t);          \
-  extern template Tag<T> const* to<T>(TagBase const* t); \
-  extern template Tag<T>* to<T>(TagBase * t);            \
+#define INST_DECL(T)                                                           \
+  extern template bool is<T>(TagBase const* t);                                \
+  extern template Tag<T> const* to<T>(TagBase const* t);                       \
+  extern template Tag<T>* to<T>(TagBase * t);                                  \
   extern template class Tag<T>;
 INST_DECL(I8)
 INST_DECL(I32)

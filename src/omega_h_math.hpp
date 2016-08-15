@@ -201,8 +201,8 @@ OSH_INLINE Matrix<m, n> identity_matrix() {
   return a;
 }
 
-OSH_INLINE Matrix<3, 3> matrix_3x3(Real a, Real b, Real c, Real d, Real e,
-                                   Real f, Real g, Real h, Real i) {
+OSH_INLINE Matrix<3, 3> matrix_3x3(
+    Real a, Real b, Real c, Real d, Real e, Real f, Real g, Real h, Real i) {
   Matrix<3, 3> o;
   o[0] = vector_3(a, d, g);
   o[1] = vector_3(b, e, h);
@@ -216,7 +216,7 @@ OSH_INLINE Matrix<3, 3> cross(Vector<3> a) {
 
 OSH_INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
   return vector_3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
-                  a[0] * b[1] - a[1] * b[0]);
+      a[0] * b[1] - a[1] * b[0]);
 }
 
 template <Int m>

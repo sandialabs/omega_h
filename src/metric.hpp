@@ -28,8 +28,8 @@ INLINE Vector<dim> metric_lengths(Vector<dim> l) {
 }
 
 template <Int dim>
-INLINE void decompose_metric(Matrix<dim, dim> m, Matrix<dim, dim>& r,
-                             Vector<dim>& h) {
+INLINE void decompose_metric(
+    Matrix<dim, dim> m, Matrix<dim, dim>& r, Vector<dim>& h) {
   Vector<dim> l;
   decompose_eigen(m, r, l);
   h = metric_lengths(l);
@@ -52,8 +52,8 @@ https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
 */
 
 template <Int dim>
-INLINE Matrix<dim, dim> common_metric_basis(Matrix<dim, dim> a,
-                                            Matrix<dim, dim> b) {
+INLINE Matrix<dim, dim> common_metric_basis(
+    Matrix<dim, dim> a, Matrix<dim, dim> b) {
   auto c = invert(a) * b;
   Matrix<dim, dim> p;
   Vector<dim> l;
@@ -62,8 +62,8 @@ INLINE Matrix<dim, dim> common_metric_basis(Matrix<dim, dim> a,
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> intersect_metrics(Matrix<dim, dim> a,
-                                          Matrix<dim, dim> b) {
+INLINE Matrix<dim, dim> intersect_metrics(
+    Matrix<dim, dim> a, Matrix<dim, dim> b) {
   auto p = common_metric_basis(a, b);
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
@@ -119,10 +119,10 @@ INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> m) {
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> interpolate_metrics(Matrix<dim, dim> a,
-                                            Matrix<dim, dim> b, Real t) {
-  return delinearize_metric((linearize_metric(a) * (1.0 - t)) +
-                            (linearize_metric(b) * t));
+INLINE Matrix<dim, dim> interpolate_metrics(
+    Matrix<dim, dim> a, Matrix<dim, dim> b, Real t) {
+  return delinearize_metric(
+      (linearize_metric(a) * (1.0 - t)) + (linearize_metric(b) * t));
 }
 
 /* same as above, but for the barycenter of an entity */

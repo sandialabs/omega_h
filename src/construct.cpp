@@ -41,8 +41,8 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   }
 }
 
-void build_from_elems2verts(Mesh* mesh, CommPtr comm, Int edim, LOs ev2v,
-                            Read<GO> vert_globals) {
+void build_from_elems2verts(
+    Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals) {
   mesh->set_comm(comm);
   mesh->set_parting(OSH_ELEM_BASED);
   mesh->set_dim(edim);
@@ -50,8 +50,8 @@ void build_from_elems2verts(Mesh* mesh, CommPtr comm, Int edim, LOs ev2v,
   mesh->set_verts(nverts);
   mesh->add_tag(VERT, "global", 1, OSH_GLOBAL, vert_globals);
   if (comm->size() > 1) {
-    mesh->set_owners(VERT,
-                     owners_from_globals(comm, vert_globals, Read<I32>()));
+    mesh->set_owners(
+        VERT, owners_from_globals(comm, vert_globals, Read<I32>()));
   }
   for (Int mdim = 1; mdim < edim; ++mdim) {
     auto mv2v = find_unique(ev2v, edim, mdim);
@@ -60,20 +60,20 @@ void build_from_elems2verts(Mesh* mesh, CommPtr comm, Int edim, LOs ev2v,
   add_ents2verts(mesh, edim, ev2v, vert_globals);
 }
 
-void build_from_elems2verts(Mesh* mesh, Library const& lib, Int edim, LOs ev2v,
-                            LO nverts) {
+void build_from_elems2verts(
+    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, LO nverts) {
   build_from_elems2verts(mesh, lib.self(), edim, ev2v, Read<GO>(nverts, 0, 1));
 }
 
-void build_from_elems_and_coords(Mesh* mesh, Library const& lib, Int edim,
-                                 LOs ev2v, Reals coords) {
+void build_from_elems_and_coords(
+    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, Reals coords) {
   auto nverts = coords.size() / edim;
   build_from_elems2verts(mesh, lib, edim, ev2v, nverts);
   mesh->add_coords(coords);
 }
 
 void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
-               LO ny, LO nz) {
+    LO ny, LO nz) {
   CHECK(nx > 0);
   CHECK(ny > 0);
   CHECK(nz >= 0);
@@ -111,7 +111,7 @@ void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
 */
 
 void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
-                            LOs* p_ent_verts2verts, Remotes* p_ents2owners) {
+    LOs* p_ent_verts2verts, Remotes* p_ents2owners) {
   auto ev2v = *p_ent_verts2verts;
   auto ev2vg = unmap(ev2v, verts2globs, 1);
   auto canon_codes = get_codes_to_canonical(deg, ev2vg);

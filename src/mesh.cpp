@@ -124,8 +124,8 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
-                   Read<T> array) {
+void Mesh::add_tag(
+    Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array) {
   add_tag<T>(dim, name, ncomps, xfer);
   set_tag<T>(dim, name, array);
 }
@@ -134,7 +134,7 @@ template <typename T>
 void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   if (!has_tag(dim, name)) {
     osh_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
-             plural_names[dim], name.c_str());
+        plural_names[dim], name.c_str());
   }
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
@@ -165,8 +165,8 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
-    osh_fail("get_tagbase(%s,%s): doesn't exist\n", plural_names[dim],
-             name.c_str());
+    osh_fail(
+        "get_tagbase(%s,%s): doesn't exist\n", plural_names[dim], name.c_str());
   }
   return tag_iter(dim, name)->get();
 }
@@ -312,8 +312,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
   } else {
     if (from == dim() && to == dim()) {
       return elements_across_sides(dim(), ask_adj(dim(), dim() - 1),
-                                   ask_adj(dim() - 1, dim()),
-                                   mark_exposed_sides(this));
+          ask_adj(dim() - 1, dim()), mark_exposed_sides(this));
     }
     if (from == VERT && to == VERT) {
       return verts_across_edges(ask_adj(EDGE, VERT), ask_adj(VERT, EDGE));
@@ -329,7 +328,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     }
   }
   osh_fail("can't derive adjacency from %s to %s\n", plural_names[from],
-           plural_names[to]);
+      plural_names[to]);
   NORETURN(Adj());
 }
 
@@ -487,8 +486,8 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
 }
 
 template <typename T>
-Read<T> Mesh::sync_subset_array(Int ent_dim, Read<T> a_data, LOs a2e,
-                                T default_val, Int width) {
+Read<T> Mesh::sync_subset_array(
+    Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width) {
   if (!could_be_shared(ent_dim)) return a_data;
   auto e_data = map_onto(a_data, a2e, nents(ent_dim), default_val, width);
   e_data = sync_array(ent_dim, e_data, width);
@@ -566,8 +565,8 @@ Real Mesh::min_quality() {
 }
 
 bool Mesh::could_be_shared(Int ent_dim) const {
-  return !((comm_->size() == 1) ||
-           (parting_ == OSH_ELEM_BASED && ent_dim == dim()));
+  return !(
+      (comm_->size() == 1) || (parting_ == OSH_ELEM_BASED && ent_dim == dim()));
 }
 
 bool Mesh::owners_have_all_upward(Int ent_dim) const {
@@ -593,17 +592,17 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
-  template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-                                 Int xfer);                                    \
-  template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-                                 Int xfer, Read<T> array);                     \
-  template void Mesh::set_tag(Int dim, std::string const& name,                \
-                              Read<T> array);                                  \
+  template void Mesh::add_tag<T>(                                              \
+      Int dim, std::string const& name, Int ncomps, Int xfer);                 \
+  template void Mesh::add_tag<T>(                                              \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);  \
+  template void Mesh::set_tag(                                                 \
+      Int dim, std::string const& name, Read<T> array);                        \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
-  template Read<T> Mesh::sync_subset_array(Int ent_dim, Read<T> a_data,        \
-                                           LOs a2e, T default_val, Int width); \
-  template Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width,       \
-                                      osh_op op);
+  template Read<T> Mesh::sync_subset_array(                                    \
+      Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
+  template Read<T> Mesh::reduce_array(                                         \
+      Int ent_dim, Read<T> a, Int width, osh_op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

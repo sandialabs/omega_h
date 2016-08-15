@@ -9,10 +9,8 @@
 namespace osh {
 
 static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
-                                     LOs keys2edges, LOs keys2prods,
-                                     LOs prods2new_ents, LOs same_ents2old_ents,
-                                     LOs same_ents2new_ents,
-                                     std::string const& name) {
+    LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, std::string const& name) {
   auto prod_dim = old_mesh->dim();
   auto old_tag = old_mesh->get_tag<Real>(prod_dim, name);
   auto ncomps = old_tag->ncomps();
@@ -41,30 +39,27 @@ static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
   };
   parallel_for(nkeys, f);
   transfer_common(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
-                  same_ents2new_ents, prods2new_ents, old_tag,
-                  Read<Real>(prod_data));
+      same_ents2new_ents, prods2new_ents, old_tag, Read<Real>(prod_data));
 }
 
 void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
-                              LOs keys2prods, LOs prods2new_ents,
-                              LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (tagbase->xfer() == OSH_CONSERVE) {
       transfer_conserve_refine(old_mesh, new_mesh, keys2edges, keys2prods,
-                               prods2new_ents, same_ents2old_ents,
-                               same_ents2new_ents, tagbase->name());
+          prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase->name());
     }
   }
 }
 
 template <Int dim>
 static void transfer_conserve_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-                                   LOs keys2kds, LOs keys2prods,
-                                   LOs prods2new_ents, LOs same_ents2old_ents,
-                                   LOs same_ents2new_ents,
-                                   TagBase const* tagbase) {
+    LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, TagBase const* tagbase) {
   auto name = tagbase->name();
   auto old_tag = to<Real>(tagbase);
   auto ncomps = old_tag->ncomps();
@@ -104,36 +99,33 @@ static void transfer_conserve_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   parallel_for(nkeys, f);
   auto prod_data = Reals(prod_data_w);
   transfer_common(old_mesh, new_mesh, dim, same_ents2old_ents,
-                  same_ents2new_ents, prods2new_ents, old_tag, prod_data);
+      same_ents2new_ents, prods2new_ents, old_tag, prod_data);
 }
 
 void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-                       LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-                       LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (tagbase->xfer() == OSH_CONSERVE) {
       if (dim == 3) {
-        transfer_conserve_tmpl<3>(
-            old_mesh, new_mesh, key_dim, keys2kds, keys2prods, prods2new_ents,
-            same_ents2old_ents, same_ents2new_ents, tagbase);
+        transfer_conserve_tmpl<3>(old_mesh, new_mesh, key_dim, keys2kds,
+            keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+            tagbase);
       } else if (dim == 2) {
-        transfer_conserve_tmpl<2>(
-            old_mesh, new_mesh, key_dim, keys2kds, keys2prods, prods2new_ents,
-            same_ents2old_ents, same_ents2new_ents, tagbase);
+        transfer_conserve_tmpl<2>(old_mesh, new_mesh, key_dim, keys2kds,
+            keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+            tagbase);
       }
     }
   }
 }
 
 template <Int dim>
-static void transfer_conserve_r3d_tmpl(
-    Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-    LOs keys2kds, LOs keys2prods,
-    LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents,
-    TagBase const* tagbase) {
+static void transfer_conserve_r3d_tmpl(Mesh* old_mesh, Mesh* new_mesh,
+    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase) {
   CHECK(old_mesh->dim() == dim);
   auto name = tagbase->name();
   auto old_tag = to<Real>(tagbase);
@@ -154,7 +146,8 @@ static void transfer_conserve_r3d_tmpl(
     for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
       auto target_elem = prods2new_ents[prod];
       auto target_verts = gather_verts<dim + 1>(new_ev2v, target_elem);
-      auto target_points = gather_vectors<dim + 1, dim>(new_coords, target_verts);
+      auto target_points =
+          gather_vectors<dim + 1, dim>(new_coords, target_verts);
       auto target_p = &prod_data_w[target_elem * ncomps];
       for (Int comp = 0; comp < ncomps; ++comp) target_p[comp] = 0;
       for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
@@ -162,8 +155,10 @@ static void transfer_conserve_r3d_tmpl(
         auto donor_elem = kd_elems2elems[kd_elem];
         auto donor_p = &old_data[donor_elem * ncomps];
         auto donor_verts = gather_verts<dim + 1>(old_ev2v, donor_elem);
-        auto donor_points = gather_vectors<dim + 1, dim>(old_coords, donor_verts);
-        auto intersection = r3d::intersect_simplices(target_points, donor_points);
+        auto donor_points =
+            gather_vectors<dim + 1, dim>(old_coords, donor_verts);
+        auto intersection =
+            r3d::intersect_simplices(target_points, donor_points);
         auto intersection_size = r3d::measure(intersection);
         for (Int comp = 0; comp < ncomps; ++comp) {
           target_p[comp] += intersection_size * donor_p[comp];
@@ -177,40 +172,39 @@ static void transfer_conserve_r3d_tmpl(
   parallel_for(nkeys, f);
   auto prod_data = Reals(prod_data_w);
   transfer_common(old_mesh, new_mesh, dim, same_ents2old_ents,
-                  same_ents2new_ents, prods2new_ents, old_tag, prod_data);
+      same_ents2new_ents, prods2new_ents, old_tag, prod_data);
 }
 
 void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-                       LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-                       LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (tagbase->xfer() == OSH_CONSERVE_R3D) {
       if (dim == 3) {
-        transfer_conserve_r3d_tmpl<3>(
-            old_mesh, new_mesh, key_dim, keys2kds, keys2prods, prods2new_ents,
-            same_ents2old_ents, same_ents2new_ents, tagbase);
+        transfer_conserve_r3d_tmpl<3>(old_mesh, new_mesh, key_dim, keys2kds,
+            keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+            tagbase);
       } else if (dim == 2) {
-        transfer_conserve_r3d_tmpl<2>(
-            old_mesh, new_mesh, key_dim, keys2kds, keys2prods, prods2new_ents,
-            same_ents2old_ents, same_ents2new_ents, tagbase);
+        transfer_conserve_r3d_tmpl<2>(old_mesh, new_mesh, key_dim, keys2kds,
+            keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+            tagbase);
       }
     }
   }
 }
 
 void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
-                                  LOs keys2edges, LOs keys2prods,
-                                  LOs prods2new_ents, LOs same_ents2old_ents,
-                                  LOs same_ents2new_ents) {
+    LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (tagbase->xfer() == OSH_CONSERVE_R3D) {
-      transfer_inherit_refine<Real>(
-          old_mesh, new_mesh, keys2edges, dim, keys2prods, prods2new_ents,
-          same_ents2old_ents, same_ents2new_ents, tagbase->name());
+      transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges, dim,
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase->name());
     }
   }
 }

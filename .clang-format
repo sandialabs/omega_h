@@ -1,1 +1,5 @@
 BasedOnStyle: Google
+DerivePointerAlignment: false
+PointerAlignment: Left
+AlignAfterOpenBracket: DontAlign
+AlignEscapedNewlinesLeft: false

@@ -275,7 +275,7 @@ class Comm {
   Read<T> alltoall(Read<T> x) const;
   template <typename T>
   Read<T> alltoallv(Read<T> sendbuf, Read<LO> sendcounts, Read<LO> sdispls,
-                    Read<LO> recvcounts, Read<LO> rdispls) const;
+      Read<LO> recvcounts, Read<LO> rdispls) const;
   void barrier() const;
 };
 
@@ -345,8 +345,8 @@ struct Adj : public Graph {
   Read<I8> codes;
 };
 
-void find_matches(Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out,
-                  Read<I8>* codes_out);
+void find_matches(
+    Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
 
 class Library {
  public:
@@ -385,8 +385,8 @@ class Mesh {
   template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer);
   template <typename T>
-  void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
-               Read<T> array);
+  void add_tag(
+      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);
   template <typename T>
   void set_tag(Int dim, std::string const& name, Read<T> array);
   TagBase const* get_tagbase(Int dim, std::string const& name) const;
@@ -457,8 +457,8 @@ class Mesh {
   template <typename T>
   Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
   template <typename T>
-  Read<T> sync_subset_array(Int ent_dim, Read<T> a_data, LOs a2e, T default_val,
-                            Int width);
+  Read<T> sync_subset_array(
+      Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);
   template <typename T>
   Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op);
   void sync_tag(Int dim, std::string const& name);
@@ -510,26 +510,26 @@ class FullWriter {
 
 /* returns true if the mesh was modified. */
 bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-           Real len_ceil, Int nlayers, Int verbosity);
+    Real len_ceil, Int nlayers, Int verbosity);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
 void read(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
-osh_comparison compare_meshes(Mesh* a, Mesh* b, Real tol, Real floor,
-                              bool verbose, bool full = true);
-bool check_regression(std::string const& prefix, Mesh* mesh, Real tol,
-                      Real floor);
+osh_comparison compare_meshes(
+    Mesh* a, Mesh* b, Real tol, Real floor, bool verbose, bool full = true);
+bool check_regression(
+    std::string const& prefix, Mesh* mesh, Real tol, Real floor);
 
-void build_from_elems2verts(Mesh* mesh, CommPtr comm, Int edim, LOs ev2v,
-                            Read<GO> vert_globals);
-void build_from_elems2verts(Mesh* mesh, Library const& lib, Int edim, LOs ev2v,
-                            LO nverts);
-void build_from_elems_and_coords(Mesh* mesh, Library const& lib, Int edim,
-                                 LOs ev2v, Reals coords);
+void build_from_elems2verts(
+    Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
+void build_from_elems2verts(
+    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, LO nverts);
+void build_from_elems_and_coords(
+    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, Reals coords);
 void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
-               LO ny, LO nz);
+    LO ny, LO nz);
 
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
@@ -542,11 +542,10 @@ OSH_INLINE Int code_rotation(I8 code) { return (code >> 1) & 3; }
 
 OSH_INLINE Int code_which_down(I8 code) { return (code >> 3); }
 
-Read<I8> mark_class_closure(Mesh* mesh, Int ent_dim, Int class_dim,
-                            I32 class_id);
+Read<I8> mark_class_closure(
+    Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
-                             std::vector<Int> class_dims,
-                             std::vector<I32> class_ids);
+    std::vector<Int> class_dims, std::vector<I32> class_ids);
 
 LOs collect_marked(Read<I8> marks);
 
@@ -612,27 +611,27 @@ OSH_INLINE void swap2(T& a, T& b) {
   extern template void Comm::bcast(T& x) const;                                \
   extern template Read<T> Comm::allgather(T x) const;                          \
   extern template Read<T> Comm::alltoall(Read<T> x) const;                     \
-  extern template Read<T> Comm::alltoallv(                                     \
-      Read<T> sendbuf, Read<LO> sendcounts, Read<LO> sdispls,                  \
-      Read<LO> recvcounts, Read<LO> rdispls) const;                            \
+  extern template Read<T> Comm::alltoallv(Read<T> sendbuf,                     \
+      Read<LO> sendcounts, Read<LO> sdispls, Read<LO> recvcounts,              \
+      Read<LO> rdispls) const;                                                 \
   extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
-  extern template Read<T> Dist::exch_reduce<T>(Read<T> data, Int width,        \
-                                               osh_op op) const;               \
+  extern template Read<T> Dist::exch_reduce<T>(                                \
+      Read<T> data, Int width, osh_op op) const;                               \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \
       Int dim, std::string const& name) const;                                 \
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
       const;                                                                   \
-  extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-                                        Int ncomps, Int xfer);                 \
-  extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-                                        Int ncomps, Int xfer, Read<T> array);  \
-  extern template void Mesh::set_tag(Int dim, std::string const& name,         \
-                                     Read<T> array);                           \
+  extern template void Mesh::add_tag<T>(                                       \
+      Int dim, std::string const& name, Int ncomps, Int xfer);                 \
+  extern template void Mesh::add_tag<T>(                                       \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);  \
+  extern template void Mesh::set_tag(                                          \
+      Int dim, std::string const& name, Read<T> array);                        \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
   extern template Read<T> Mesh::sync_subset_array(                             \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
-  extern template Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a,           \
-                                             Int width, osh_op op);
+  extern template Read<T> Mesh::reduce_array(                                  \
+      Int ent_dim, Read<T> a, Int width, osh_op op);
 OSH_EXPL_INST_DECL(I8)
 OSH_EXPL_INST_DECL(I32)
 OSH_EXPL_INST_DECL(I64)

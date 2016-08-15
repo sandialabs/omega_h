@@ -58,32 +58,32 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b);
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 
-#define INST_DECL(T)                                                \
-  extern template class Write<T>;                                   \
-  extern template class Read<T>;                                    \
-  extern template class HostWrite<T>;                               \
-  extern template class HostRead<T>;                                \
-  extern template bool operator==(Read<T> a, Read<T> b);            \
-  extern template typename StandinTraits<T>::type sum(Read<T> a);   \
-  extern template T min(Read<T> a);                                 \
-  extern template T max(Read<T> a);                                 \
-  extern template typename StandinTraits<T>::type sum(CommPtr comm, \
-                                                      Read<T> a);   \
-  extern template T min(CommPtr comm, Read<T> a);                   \
-  extern template T max(CommPtr comm, Read<T> a);                   \
-  extern template Write<T> deep_copy(Read<T> a);                    \
-  extern template Read<T> multiply_each_by(T factor, Read<T> x);    \
-  extern template Read<T> multiply_each(Read<T> a, Read<T> b);      \
-  extern template Read<T> divide_each(Read<T> a, Read<T> b);        \
-  extern template Read<T> add_each(Read<T> a, Read<T> b);           \
-  extern template Read<T> subtract_each(Read<T> a, Read<T> b);      \
-  extern template Read<T> add_to_each(Read<T> a, T b);              \
-  extern template Read<I8> each_geq_to(Read<T> a, T b);             \
-  extern template Read<I8> each_gt(Read<T> a, T b);                 \
-  extern template Read<I8> each_lt(Read<T> a, T b);                 \
-  extern template Read<I8> each_neq_to(Read<T> a, T b);             \
-  extern template Read<I8> each_eq_to(Read<T> a, T b);              \
-  extern template Read<I8> gt_each(Read<T> a, Read<T> b);           \
+#define INST_DECL(T)                                                           \
+  extern template class Write<T>;                                              \
+  extern template class Read<T>;                                               \
+  extern template class HostWrite<T>;                                          \
+  extern template class HostRead<T>;                                           \
+  extern template bool operator==(Read<T> a, Read<T> b);                       \
+  extern template typename StandinTraits<T>::type sum(Read<T> a);              \
+  extern template T min(Read<T> a);                                            \
+  extern template T max(Read<T> a);                                            \
+  extern template typename StandinTraits<T>::type sum(                         \
+      CommPtr comm, Read<T> a);                                                \
+  extern template T min(CommPtr comm, Read<T> a);                              \
+  extern template T max(CommPtr comm, Read<T> a);                              \
+  extern template Write<T> deep_copy(Read<T> a);                               \
+  extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
+  extern template Read<T> multiply_each(Read<T> a, Read<T> b);                 \
+  extern template Read<T> divide_each(Read<T> a, Read<T> b);                   \
+  extern template Read<T> add_each(Read<T> a, Read<T> b);                      \
+  extern template Read<T> subtract_each(Read<T> a, Read<T> b);                 \
+  extern template Read<T> add_to_each(Read<T> a, T b);                         \
+  extern template Read<I8> each_geq_to(Read<T> a, T b);                        \
+  extern template Read<I8> each_gt(Read<T> a, T b);                            \
+  extern template Read<I8> each_lt(Read<T> a, T b);                            \
+  extern template Read<I8> each_neq_to(Read<T> a, T b);                        \
+  extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
+  extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 
 INST_DECL(I8)

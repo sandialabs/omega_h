@@ -46,9 +46,8 @@ struct CavityQrDecomposition {
  */
 
 template <Int dim>
-DEVICE CavityQrDecomposition<dim> get_cavity_qr_decomposition(
-    LO k, LOs const& k2ke, LOs const& ke2e, LOs const& ev2v,
-    Reals const& coords) {
+DEVICE CavityQrDecomposition<dim> get_cavity_qr_decomposition(LO k,
+    LOs const& k2ke, LOs const& ke2e, LOs const& ev2v, Reals const& coords) {
   constexpr auto max_fit_pts = MaxFitPoints<dim>::value;
   Matrix<max_fit_pts, dim + 1> vandermonde;
   CHECK(k2ke[k + 1] - k2ke[k] <= max_fit_pts);

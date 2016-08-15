@@ -9,8 +9,7 @@
 namespace osh {
 
 static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
-                                  LOs old_verts2new_verts, LOs& keys2pairs,
-                                  LOs& pair_verts2verts) {
+    LOs old_verts2new_verts, LOs& keys2pairs, LOs& pair_verts2verts) {
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto nkeys = keys2edges.size();
   auto ndoms = nkeys;
@@ -45,12 +44,12 @@ static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
  */
 
 void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
-                             LOs keys2midverts, LOs old_verts2new_verts,
-                             LOs& keys2pairs, LOs& pair_verts2verts) {
+    LOs keys2midverts, LOs old_verts2new_verts, LOs& keys2pairs,
+    LOs& pair_verts2verts) {
   CHECK(dim > VERT);
   if (dim == EDGE) {
     refine_edges_to_pairs(mesh, keys2edges, keys2midverts, old_verts2new_verts,
-                          keys2pairs, pair_verts2verts);
+        keys2pairs, pair_verts2verts);
     return;
   }
   auto nkeys = keys2edges.size();
@@ -103,8 +102,8 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
 }
 
 void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
-                            LOs keys2midverts, LOs old_verts2new_verts,
-                            LOs& keys2cuts, LOs& cut_verts2verts) {
+    LOs keys2midverts, LOs old_verts2new_verts, LOs& keys2cuts,
+    LOs& cut_verts2verts) {
   CHECK(dim > EDGE);
   auto nkeys = keys2edges.size();
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
@@ -152,8 +151,8 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
 }
 
 void combine_pairs_and_cuts(Int ent_dim, LOs keys2cuts, LOs keys2pairs,
-                            LOs cut_verts2verts, LOs pair_verts2verts,
-                            LOs& keys2prods, LOs& prod_verts2verts) {
+    LOs cut_verts2verts, LOs pair_verts2verts, LOs& keys2prods,
+    LOs& prod_verts2verts) {
   auto nkeys = keys2cuts.size() - 1;
   CHECK(nkeys == keys2pairs.size() - 1);
   auto keys2ncuts = get_degrees(keys2cuts);
@@ -185,12 +184,11 @@ void combine_pairs_and_cuts(Int ent_dim, LOs keys2cuts, LOs keys2pairs,
 }
 
 void refine_products(Mesh* mesh, Int ent_dim, LOs keys2edges, LOs keys2midverts,
-                     LOs old_verts2new_verts, LOs& keys2prods,
-                     LOs& prod_verts2verts) {
+    LOs old_verts2new_verts, LOs& keys2prods, LOs& prod_verts2verts) {
   auto keys2pairs = LOs();
   auto pair_verts2verts = LOs();
   refine_domains_to_pairs(mesh, ent_dim, keys2edges, keys2midverts,
-                          old_verts2new_verts, keys2pairs, pair_verts2verts);
+      old_verts2new_verts, keys2pairs, pair_verts2verts);
   if (ent_dim == mesh->dim()) {
     keys2prods = keys2pairs;
     prod_verts2verts = pair_verts2verts;
@@ -198,9 +196,9 @@ void refine_products(Mesh* mesh, Int ent_dim, LOs keys2edges, LOs keys2midverts,
     auto keys2cuts = LOs();
     auto cut_verts2verts = LOs();
     refine_domains_to_cuts(mesh, ent_dim + 1, keys2edges, keys2midverts,
-                           old_verts2new_verts, keys2cuts, cut_verts2verts);
+        old_verts2new_verts, keys2cuts, cut_verts2verts);
     combine_pairs_and_cuts(ent_dim, keys2cuts, keys2pairs, cut_verts2verts,
-                           pair_verts2verts, keys2prods, prod_verts2verts);
+        pair_verts2verts, keys2prods, prod_verts2verts);
   }
 }
 

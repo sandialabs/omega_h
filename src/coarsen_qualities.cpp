@@ -11,8 +11,8 @@
 namespace osh {
 
 template <typename Measure, Int dim>
-static Reals coarsen_qualities_tmpl(Mesh* mesh, LOs cands2edges,
-                                    Read<I8> cand_codes) {
+static Reals coarsen_qualities_tmpl(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   CHECK(mesh->dim() == dim);
   Measure measure(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
@@ -82,8 +82,8 @@ Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
 }
 
 void choose_vertex_collapses(Mesh* mesh, LOs cands2edges,
-                             Read<I8> cand_edge_codes, Reals cand_edge_quals,
-                             Read<I8>& verts_are_cands, Reals& vert_quals) {
+    Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>& verts_are_cands,
+    Reals& vert_quals) {
   CHECK(mesh->parting() == OSH_GHOSTED);
   auto edges2cands = invert_injective_map(cands2edges, mesh->nedges());
   auto v2e = mesh->ask_up(VERT, EDGE);
@@ -135,14 +135,14 @@ static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
   return codes_w;
 }
 
-Read<I8> filter_coarsen_min_qual(Read<I8> cand_codes, Reals cand_quals,
-                                 Real min_qual) {
+Read<I8> filter_coarsen_min_qual(
+    Read<I8> cand_codes, Reals cand_quals, Real min_qual) {
   auto keep_dirs = each_geq_to(cand_quals, min_qual);
   return filter_coarsen_dirs(cand_codes, keep_dirs);
 }
 
-Read<I8> filter_coarsen_improve(Mesh* mesh, LOs cands2edges,
-                                Read<I8> cand_codes, Reals cand_quals) {
+Read<I8> filter_coarsen_improve(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Reals cand_quals) {
   auto elem_quals = mesh->ask_qualities();
   auto verts2elems = mesh->ask_up(VERT, mesh->dim());
   auto vert_old_quals = graph_reduce(verts2elems, elem_quals, 1, OSH_MIN);

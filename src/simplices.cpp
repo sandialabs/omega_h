@@ -7,7 +7,7 @@ Int const simplex_degrees[DIMS][DIMS] = {
 
 char const* const singular_names[DIMS] = {"vertex", "edge", "triangle", "tet"};
 
-char const* const plural_names[DIMS] = {"vertices", "edges", "triangles",
-                                        "tets"};
+char const* const plural_names[DIMS] = {
+    "vertices", "edges", "triangles", "tets"};
 
 }  // end namespace osh

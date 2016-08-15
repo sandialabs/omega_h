@@ -181,8 +181,8 @@ void Dist::copy(Dist const& other) {
   }
 }
 
-#define INST_T(T)                                             \
-  template Read<T> Dist::exch(Read<T> data, Int width) const; \
+#define INST_T(T)                                                              \
+  template Read<T> Dist::exch(Read<T> data, Int width) const;                  \
   template Read<T> Dist::exch_reduce(Read<T> data, Int width, osh_op op) const;
 INST_T(I8)
 INST_T(I32)

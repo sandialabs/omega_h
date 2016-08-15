@@ -84,8 +84,8 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   return Adj(e2ee, ee2e);
 }
 
-Graph elements_across_sides(Int dim, Adj elems2sides, Adj sides2elems,
-                            Read<I8> side_is_exposed) {
+Graph elements_across_sides(
+    Int dim, Adj elems2sides, Adj sides2elems, Read<I8> side_is_exposed) {
   auto elem_side2side = elems2sides.ab2b;
   auto side2side_elems = sides2elems.a2ab;
   auto side_elem2elem = sides2elems.ab2b;

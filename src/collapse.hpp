@@ -24,8 +24,8 @@ INLINE I8 dont_collapse(I8 code, Int col_v) {
 
 Read<I8> check_collapse_class(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
 
-Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
-                                 Read<I8> cand_codes);
+Read<I8> check_collapse_exposure(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
 
 }  // end namespace osh
 

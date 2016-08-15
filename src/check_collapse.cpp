@@ -5,8 +5,8 @@
 
 namespace osh {
 
-Read<I8> check_collapse_class(Mesh* mesh, LOs cands2edges,
-                              Read<I8> cand_codes) {
+Read<I8> check_collapse_class(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   auto ncands = cands2edges.size();
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
@@ -64,8 +64,8 @@ vertex ~~~~~~~~>  *
 
 */
 
-static Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
-                                        Read<I8> cand_codes, Int cell_dim) {
+static Read<I8> check_collapse_exposure(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Int cell_dim) {
   auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;
   auto ec2c = e2c.ab2b;
@@ -103,15 +103,15 @@ static Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
   return cand_codes_w;
 }
 
-Read<I8> check_collapse_exposure(Mesh* mesh, LOs cands2edges,
-                                 Read<I8> cand_codes) {
+Read<I8> check_collapse_exposure(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   CHECK(mesh->parting() == OSH_GHOSTED);
   for (Int cell_dim = EDGE + 1; cell_dim <= mesh->dim(); ++cell_dim) {
     cand_codes =
         check_collapse_exposure(mesh, cands2edges, cand_codes, cell_dim);
   }
-  return mesh->sync_subset_array(EDGE, cand_codes, cands2edges,
-                                 I8(DONT_COLLAPSE), 1);
+  return mesh->sync_subset_array(
+      EDGE, cand_codes, cands2edges, I8(DONT_COLLAPSE), 1);
 }
 
 }  // end namespace osh

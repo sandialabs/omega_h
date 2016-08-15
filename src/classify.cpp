@@ -19,8 +19,8 @@ void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
   mesh->add_tag<I8>(dim - 1, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
-void classify_hinges_by_sharpness(Mesh* mesh, Read<I8> hinge_is_exposed,
-                                  Read<I8> hinge_is_sharp) {
+void classify_hinges_by_sharpness(
+    Mesh* mesh, Read<I8> hinge_is_exposed, Read<I8> hinge_is_sharp) {
   auto dim = mesh->dim();
   auto nh = mesh->nents(dim - 2);
   Write<I8> class_dim(nh);
@@ -32,8 +32,8 @@ void classify_hinges_by_sharpness(Mesh* mesh, Read<I8> hinge_is_exposed,
   mesh->add_tag<I8>(dim - 2, "class_dim", 1, OSH_INHERIT, class_dim);
 }
 
-void classify_vertices_by_sharp_edges(Mesh* mesh, Read<I8> vert_is_exposed,
-                                      Read<I8> edge_is_sharp) {
+void classify_vertices_by_sharp_edges(
+    Mesh* mesh, Read<I8> vert_is_exposed, Read<I8> edge_is_sharp) {
   auto nv = mesh->nverts();
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
@@ -61,7 +61,7 @@ void classify_vertices_by_sharp_edges(Mesh* mesh, Read<I8> vert_is_exposed,
 
 void classify_elements(Mesh* mesh) {
   mesh->add_tag<I8>(mesh->dim(), "class_dim", 1, OSH_INHERIT,
-                    Read<I8>(mesh->nelems(), static_cast<I8>(mesh->dim())));
+      Read<I8>(mesh->nelems(), static_cast<I8>(mesh->dim())));
 }
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle) {

@@ -41,8 +41,8 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
     auto qr_decomp =
         get_cavity_qr_decomposition<dim>(v, v2ve, ve2e, ev2v, coords);
     for (Int comp = 0; comp < ncomps; ++comp) {
-      auto coeffs = fit_cavity_polynomial<dim>(qr_decomp, v, v2ve, ve2e, e_data,
-                                               comp, ncomps);
+      auto coeffs = fit_cavity_polynomial<dim>(
+          qr_decomp, v, v2ve, ve2e, e_data, comp, ncomps);
       set_vector(out, v * ncomps + comp, coeffs);
     }
   };
@@ -60,8 +60,8 @@ static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps) {
   NORETURN(Reals());
 }
 
-static void diffuse_to_exterior(Mesh* mesh, Reals* p_v_data, Int ncomps,
-                                Read<I8>* p_visited) {
+static void diffuse_to_exterior(
+    Mesh* mesh, Reals* p_v_data, Int ncomps, Read<I8>* p_visited) {
   auto v_data = *p_v_data;
   auto visited = *p_visited;
   auto new_data = deep_copy(v_data);

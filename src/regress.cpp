@@ -6,8 +6,8 @@
 
 namespace osh {
 
-bool check_regression(std::string const& prefix, Mesh* mesh, Real tol,
-                      Real floor) {
+bool check_regression(
+    std::string const& prefix, Mesh* mesh, Real tol, Real floor) {
   auto comm = mesh->comm();
   auto goldpath = prefix + ".osh";
   if (!directory_exists(goldpath.c_str())) {

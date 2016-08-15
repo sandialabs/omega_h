@@ -118,8 +118,8 @@ template <Int nverts_per_ent>
 INLINE I8 invert_alignment(I8 code) {
   if (code_is_flipped(code))
     return code;  // I think flipped codes are their own inverses
-  return make_code(false, invert_rotation<nverts_per_ent>(code_rotation(code)),
-                   0);
+  return make_code(
+      false, invert_rotation<nverts_per_ent>(code_rotation(code)), 0);
 }
 
 INLINE I8 invert_alignment(Int nverts_per_ent, I8 code) {
@@ -192,7 +192,7 @@ INLINE void align_adj(I8 code, T const in[], T out[]) {
 template <typename T>
 Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes);
 
-#define INST_DECL(T) \
+#define INST_DECL(T)                                                           \
   extern template Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes);
 INST_DECL(LO)
 INST_DECL(GO)

@@ -33,15 +33,15 @@ void read(std::istream& stream, std::string& val);
 void write(std::ostream& stream, Mesh* mesh);
 void read(std::istream& stream, Mesh* mesh);
 
-#define INST_DECL(T)                                                     \
-  extern template void swap_if_needed(T& val, bool is_little_endian);    \
-  extern template Read<T> swap_if_needed(Read<T> array,                  \
-                                         bool is_little_endian);         \
-  extern template void write_value(std::ostream& stream, T val);         \
-  extern template void read_value(std::istream& stream, T& val);         \
-  extern template void write_array(std::ostream& stream, Read<T> array); \
-  extern template void read_array(std::istream& stream, Read<T>& array,  \
-                                  bool is_compressed);
+#define INST_DECL(T)                                                           \
+  extern template void swap_if_needed(T& val, bool is_little_endian);          \
+  extern template Read<T> swap_if_needed(                                      \
+      Read<T> array, bool is_little_endian);                                   \
+  extern template void write_value(std::ostream& stream, T val);               \
+  extern template void read_value(std::istream& stream, T& val);               \
+  extern template void write_array(std::ostream& stream, Read<T> array);       \
+  extern template void read_array(                                             \
+      std::istream& stream, Read<T>& array, bool is_compressed);
 INST_DECL(I8)
 INST_DECL(I32)
 INST_DECL(I64)

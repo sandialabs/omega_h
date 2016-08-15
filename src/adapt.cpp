@@ -15,7 +15,7 @@
 namespace osh {
 
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
-                       Real floor, Real ceil, Real minval, Real maxval) {
+    Real floor, Real ceil, Real minval, Real maxval) {
   auto low_marks = each_lt(values, floor);
   auto high_marks = each_gt(values, ceil);
   auto nlow = count_owned_marks(mesh, ent_dim, low_marks);
@@ -43,23 +43,23 @@ static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
   }
 }
 
-static void get_minmax(Mesh* mesh, Reals values, Real* p_minval,
-                       Real* p_maxval) {
+static void get_minmax(
+    Mesh* mesh, Reals values, Real* p_minval, Real* p_maxval) {
   *p_minval = mesh->comm()->allreduce(min(values), OSH_MIN);
   *p_maxval = mesh->comm()->allreduce(max(values), OSH_MAX);
 }
 
 static void adapt_summary(Mesh* mesh, Real qual_floor, Real qual_ceil,
-                          Real len_floor, Real len_ceil, Real minqual,
-                          Real maxqual, Real minlen, Real maxlen) {
+    Real len_floor, Real len_ceil, Real minqual, Real maxqual, Real minlen,
+    Real maxlen) {
   goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(), qual_floor,
-             qual_ceil, minqual, maxqual);
+      qual_ceil, minqual, maxqual);
   goal_stats(mesh, "length", EDGE, mesh->ask_lengths(), len_floor, len_ceil,
-             minlen, maxlen);
+      minlen, maxlen);
 }
 
 bool adapt_check(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-                 Real len_ceil, bool verbose) {
+    Real len_ceil, bool verbose) {
   Real minqual, maxqual;
   get_minmax(mesh, mesh->ask_qualities(), &minqual, &maxqual);
   Real minlen, maxlen;
@@ -73,7 +73,7 @@ bool adapt_check(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
   }
   if (verbose) {
     adapt_summary(mesh, qual_floor, qual_ceil, len_floor, len_ceil, minqual,
-                  maxqual, minlen, maxlen);
+        maxqual, minlen, maxlen);
   }
   return false;
 }
@@ -84,7 +84,7 @@ static void do_histogram(Mesh* mesh) {
 }
 
 bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-           Real len_ceil, Int nlayers, Int verbosity) {
+    Real len_ceil, Int nlayers, Int verbosity) {
   Now t0 = now();
   auto comm = mesh->comm();
   CHECK(0.0 <= qual_floor);
@@ -95,8 +95,8 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
   if (verbosity >= 1 && comm->rank() == 0) {
     std::cout << "before adapting:\n";
   }
-  if (adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil,
-                  (verbosity >= 1))) {
+  if (adapt_check(
+          mesh, qual_floor, qual_ceil, len_floor, len_ceil, (verbosity >= 1))) {
     return false;
   }
   if (verbosity >= 3) do_histogram(mesh);

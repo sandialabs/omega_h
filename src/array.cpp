@@ -15,7 +15,7 @@ Write<T>::Write(LO size)
     :
 #ifdef OSH_USE_KOKKOS
       view_(Kokkos::ViewAllocateWithoutInitializing("omega_h"),
-            static_cast<std::size_t>(size))
+          static_cast<std::size_t>(size))
 #else
       ptr_(new T[size], std::default_delete<T[]>()),
       size_(size)
@@ -527,32 +527,32 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   return b;
 }
 
-#define INST(T)                                                          \
-  template class NonNullPtr<T>;                                          \
-  template class Write<T>;                                               \
-  template class Read<T>;                                                \
-  template class HostWrite<T>;                                           \
-  template class HostRead<T>;                                            \
-  template bool operator==(Read<T> a, Read<T> b);                        \
-  template typename StandinTraits<T>::type sum(Read<T> a);               \
-  template T min(Read<T> a);                                             \
-  template T max(Read<T> a);                                             \
-  template typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a); \
-  template T min(CommPtr comm, Read<T> a);                               \
-  template T max(CommPtr comm, Read<T> a);                               \
-  template Write<T> deep_copy(Read<T> a);                                \
-  template Read<T> multiply_each_by(T factor, Read<T> x);                \
-  template Read<T> multiply_each(Read<T> a, Read<T> b);                  \
-  template Read<T> divide_each(Read<T> a, Read<T> b);                    \
-  template Read<T> add_each(Read<T> a, Read<T> b);                       \
-  template Read<T> subtract_each(Read<T> a, Read<T> b);                  \
-  template Read<T> add_to_each(Read<T> a, T b);                          \
-  template Read<I8> each_geq_to(Read<T> a, T b);                         \
-  template Read<I8> each_gt(Read<T> a, T b);                             \
-  template Read<I8> each_lt(Read<T> a, T b);                             \
-  template Read<I8> each_neq_to(Read<T> a, T b);                         \
-  template Read<I8> each_eq_to(Read<T> a, T b);                          \
-  template Read<I8> gt_each(Read<T> a, Read<T> b);                       \
+#define INST(T)                                                                \
+  template class NonNullPtr<T>;                                                \
+  template class Write<T>;                                                     \
+  template class Read<T>;                                                      \
+  template class HostWrite<T>;                                                 \
+  template class HostRead<T>;                                                  \
+  template bool operator==(Read<T> a, Read<T> b);                              \
+  template typename StandinTraits<T>::type sum(Read<T> a);                     \
+  template T min(Read<T> a);                                                   \
+  template T max(Read<T> a);                                                   \
+  template typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a);       \
+  template T min(CommPtr comm, Read<T> a);                                     \
+  template T max(CommPtr comm, Read<T> a);                                     \
+  template Write<T> deep_copy(Read<T> a);                                      \
+  template Read<T> multiply_each_by(T factor, Read<T> x);                      \
+  template Read<T> multiply_each(Read<T> a, Read<T> b);                        \
+  template Read<T> divide_each(Read<T> a, Read<T> b);                          \
+  template Read<T> add_each(Read<T> a, Read<T> b);                             \
+  template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
+  template Read<T> add_to_each(Read<T> a, T b);                                \
+  template Read<I8> each_geq_to(Read<T> a, T b);                               \
+  template Read<I8> each_gt(Read<T> a, T b);                                   \
+  template Read<I8> each_lt(Read<T> a, T b);                                   \
+  template Read<I8> each_neq_to(Read<T> a, T b);                               \
+  template Read<I8> each_eq_to(Read<T> a, T b);                                \
+  template Read<I8> gt_each(Read<T> a, Read<T> b);                             \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 
 INST(I8)

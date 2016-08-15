@@ -55,8 +55,8 @@ static LOs sort_by_keys_tmpl(Read<T> keys) {
   LO* begin = perm.data();
   LO* end = perm.data() + perm.size();
   T const* keyptr = keys.data();
-  parallel_sort<LO, CompareKeySets<T, N>>(begin, end,
-                                          CompareKeySets<T, N>(keyptr));
+  parallel_sort<LO, CompareKeySets<T, N>>(
+      begin, end, CompareKeySets<T, N>(keyptr));
   return perm;
 }
 

@@ -37,8 +37,8 @@ Few<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   return keys2prods;
 }
 
-Few<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges, Read<I8> edge_configs,
-                            Few<LOs, 4> keys2prods) {
+Few<LOs, 4> swap3d_topology(
+    Mesh* mesh, LOs keys2edges, Read<I8> edge_configs, Few<LOs, 4> keys2prods) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -54,9 +54,8 @@ Few<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges, Read<I8> edge_configs,
   auto f = LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto config = edge_configs[edge];
-    auto loop =
-        swap3d::find_loop(edges2edge_tets, edge_tets2tets, edge_tet_codes,
-                          edge_verts2verts, tet_verts2verts, edge);
+    auto loop = swap3d::find_loop(edges2edge_tets, edge_tets2tets,
+        edge_tet_codes, edge_verts2verts, tet_verts2verts, edge);
     auto nplane_tris = swap3d::swap_mesh_sizes[loop.size];
     auto nplane_edges = swap3d::swap_nint_edges[loop.size];
     for (Int plane_edge = 0; plane_edge < nplane_edges; ++plane_edge) {

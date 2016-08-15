@@ -36,10 +36,10 @@ Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e);
 */
 template <Int deg, typename T>
 void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-                      LOs* a2b_out, Read<I8>* codes_out);
+    LOs* a2b_out, Read<I8>* codes_out);
 template <typename T>
 void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-                     LOs* a2b_out, Read<I8>* codes_out);
+    LOs* a2b_out, Read<I8>* codes_out);
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
 
@@ -52,14 +52,13 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim);
 Graph verts_across_edges(Adj e2v, Adj v2e);
 Graph edges_across_tris(Adj f2e, Adj e2f);
 Graph edges_across_tets(Adj r2e, Adj e2r);
-Graph elements_across_sides(Int dim, Adj elems2sides, Adj sides2elems,
-                            Read<I8> side_is_exposed);
+Graph elements_across_sides(
+    Int dim, Adj elems2sides, Adj sides2elems, Read<I8> side_is_exposed);
 
-#define INST_DECL(T)                                                        \
-  extern template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);   \
-  extern template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v,     \
-                                       Read<T> bv2v, Adj v2b, LOs* a2b_out, \
-                                       Read<I8>* codes_out);
+#define INST_DECL(T)                                                           \
+  extern template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);      \
+  extern template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v,        \
+      Read<T> bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
 INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
