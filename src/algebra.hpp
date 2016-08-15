@@ -120,8 +120,8 @@ INLINE Real max_norm(Matrix<m, n> a) {
   return x;
 }
 
-template <Int m, Int n>
-INLINE Real frobenius_norm(Matrix<m, n> a) {
+template <Int max_m, Int max_n>
+INLINE Real frobenius_norm(Int m, Int n, Matrix<max_m, max_n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < m; ++i) x += square(a[j][i]);
