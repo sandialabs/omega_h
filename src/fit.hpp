@@ -32,13 +32,6 @@ struct MaxFitPoints<3> {
   enum { value = 48 };
 };
 
-template <Int dim>
-struct CavityQrDecomposition {
-  enum { max_fit_pts = MaxFitPoints<dim>::value };
-  Few<Vector<max_fit_pts>, dim + 1> householder_vecs;
-  Matrix<dim + 1, dim + 1> r;
-};
-
 /* Computes the QR decomposition for the Vandermonde
  * matrix involved in the least-squares fit.
  * This depends only on the centroids of the adjacent
@@ -46,34 +39,28 @@ struct CavityQrDecomposition {
  */
 
 template <Int dim>
-DEVICE CavityQrDecomposition<dim> get_cavity_qr_decomposition(LO k,
-    LOs const& k2ke, LOs const& ke2e, LOs const& ev2v, Reals const& coords) {
+DEVICE QRFactorization<MaxFitPoints<dim>::value, dim + 1>
+get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
+    LOs const& ev2v, Reals const& coords) {
   constexpr auto max_fit_pts = MaxFitPoints<dim>::value;
   Matrix<max_fit_pts, dim + 1> vandermonde;
-  CHECK(k2ke[k + 1] - k2ke[k] <= max_fit_pts);
-  Int nfit_pts = 0;
-  for (auto ke = k2ke[k]; ke < k2ke[k + 1]; ++ke) {
+  auto begin = k2ke[k];
+  auto end = k2ke[k + 1];
+  auto nfit_pts = end - begin;
+  CHECK(nfit_pts <= max_fit_pts);
+  for (auto i = 0; i < nfit_pts; ++i) {
+    auto ke = begin + i;
     auto e = ke2e[ke];
     auto eev2v = gather_verts<dim + 1>(ev2v, e);
     auto eev2x = gather_vectors<dim + 1, dim>(coords, eev2v);
     auto centroid = average(eev2x);
-    vandermonde[0][nfit_pts] = 1.0;
+    vandermonde[0][i] = 1.0;
     for (Int j = 0; j < dim; ++j) {
-      vandermonde[1 + j][nfit_pts] = centroid[j];
-    }
-    ++nfit_pts;
-  }
-  for (auto i = nfit_pts; i < max_fit_pts; ++i) {
-    for (Int j = 0; j < (dim + 1); ++j) {
-      vandermonde[j][i] = 0.0;
+      vandermonde[1 + j][i] = centroid[j];
     }
   }
-  Few<Vector<max_fit_pts>, dim + 1> householder_vecs;
-  auto r_full = vandermonde;
-  auto rank = factorize_qr_householder(r_full, householder_vecs);
-  CHECK(rank == dim + 1);
-  auto r = reduced_r_from_full(r_full);
-  return {householder_vecs, r};
+  auto qr = factorize_qr_householder(nfit_pts, dim + 1, vandermonde);
+  return qr;
 }
 
 /* Computes the linear polynomial coefficients
@@ -87,22 +74,21 @@ DEVICE CavityQrDecomposition<dim> get_cavity_qr_decomposition(LO k,
 
 template <Int dim>
 DEVICE Vector<dim + 1> fit_cavity_polynomial(
-    CavityQrDecomposition<dim> qr_decomp, LO k, LOs const& k2ke,
-    LOs const& ke2e, Reals const& e_data, Int comp, Int ncomps) {
+    QRFactorization<MaxFitPoints<dim>::value, dim + 1> qr, LO k,
+    LOs const& k2ke, LOs const& ke2e, Reals const& e_data, Int comp,
+    Int ncomps) {
   constexpr auto max_fit_pts = MaxFitPoints<dim>::value;
+  auto begin = k2ke[k];
+  auto end = k2ke[k + 1];
+  auto nfit_pts = end - begin;
   Vector<max_fit_pts> b;
-  Int nfit_pts = 0;
-  for (auto ke = k2ke[k]; ke < k2ke[k + 1]; ++ke) {
+  for (auto i = 0; i < nfit_pts; ++i) {
+    auto ke = i + begin;
     auto e = ke2e[ke];
-    b[nfit_pts] = e_data[e * ncomps + comp];
-    ++nfit_pts;
+    b[i] = e_data[e * ncomps + comp];
   }
-  for (auto i = nfit_pts; i < max_fit_pts; ++i) b[i] = 0;
-  auto qtb_full = b;
-  implicit_q_trans_b(qtb_full, qr_decomp.householder_vecs);
-  Vector<dim + 1> qtb;
-  for (Int i = 0; i < dim + 1; ++i) qtb[i] = qtb_full[i];
-  auto coeffs = solve_upper_triangular(qr_decomp.r, qtb);
+  auto qtb = implicit_q_trans_b(nfit_pts, dim + 1, qr.v, b);
+  auto coeffs = solve_upper_triangular(dim + 1, qr.r, qtb);
   return coeffs;
 }
 

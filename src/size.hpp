@@ -182,10 +182,7 @@ INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
     a[5][i] = 2 * ev[i][0] * ev[i][2];
     rhs[i] = 1.0;
   }
-  Vector<6> x;
-  /* least squares should decay to exact solution when A is square */
-  auto ok = solve_least_squares_qr(a, rhs, x);
-  CHECK(ok);
+  auto x = solve_using_qr(a, rhs);
   return vector2symm(x);
 }
 

@@ -193,12 +193,17 @@ OSH_INLINE Matrix<n, m> transpose(Matrix<m, n> a) {
   return b;
 }
 
-template <Int m, Int n>
-OSH_INLINE Matrix<m, n> identity_matrix() {
-  Matrix<m, n> a;
+template <Int max_m, Int max_n>
+OSH_INLINE Matrix<max_m, max_n> identity_matrix(Int m, Int n) {
+  Matrix<max_m, max_n> a;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < m; ++i) a[j][i] = (i == j);
   return a;
+}
+
+template <Int max_m, Int max_n>
+OSH_INLINE Matrix<max_m, max_n> identity_matrix() {
+  return identity_matrix<max_m, max_n>(max_m, max_n);
 }
 
 OSH_INLINE Matrix<3, 3> matrix_3x3(

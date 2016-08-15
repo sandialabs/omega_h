@@ -4,17 +4,17 @@ using namespace osh;
 
 template <Int m, Int n>
 static void test_qr_decomp(Matrix<m, n> a) {
-  Matrix<m, n> q;
-  Matrix<n, n> r;
-  decompose_qr_reduced(a, q, r);
+  auto qr = factorize_qr_householder(m, n, a);
+  auto r = qr.r;
+  auto q = identity_matrix<m, n>();
+  for (Int j = 0; j < n; ++j) implicit_q_x(m, n, q[j], qr.v);
   CHECK(are_close(a, q * r));
   CHECK(are_close(transpose(q) * q, identity_matrix<n, n>()));
 }
 
 static void test_qr_decomps() {
-  test_qr_decomp(Matrix<3, 3>({0, 0, 0, 0, 0, 0, 0, 0, 0}));
-  test_qr_decomp(Matrix<3, 3>(
-      {EPSILON, 0, 0, EPSILON, EPSILON, 0, EPSILON, EPSILON, EPSILON}));
+  test_qr_decomp(identity_matrix<3, 3>());
+  test_qr_decomp(Matrix<3, 3>({EPSILON, 0, 0, 0, EPSILON, 0, 0, 0, EPSILON}));
   test_qr_decomp(Matrix<3, 3>({12, -51, 4, 6, 167, -68, -4, 24, -41}));
 }
 
@@ -28,8 +28,7 @@ static void test_form_ortho_basis() {
 static void test_least_squares() {
   Matrix<4, 2> m({1, 1, 1, 2, 1, 3, 1, 4});
   Vector<4> b({6, 5, 7, 10});
-  Vector<2> x;
-  CHECK(solve_least_squares_qr(m, b, x));
+  auto x = solve_using_qr(m, b);
   CHECK(are_close(x, vector_2(3.5, 1.4)));
 }
 

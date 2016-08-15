@@ -324,7 +324,7 @@ DEVICE static void transfer_fit_cavity(LO key, LOs const& keys2kds,
     LOs const& new_elem_verts2verts, Reals const& new_coords, Int ncomps,
     Reals const& old_data, Write<Real> const& prod_data_w) {
   auto kd = keys2kds[key];
-  auto qr_decomp = get_cavity_qr_decomposition<dim>(
+  auto qr_decomp = get_cavity_qr_factorization<dim>(
       kd, kds2kd_elems, kd_elems2elems, old_elem_verts2verts, old_coords);
   for (Int comp = 0; comp < ncomps; ++comp) {
     auto coeffs = fit_cavity_polynomial<dim>(
