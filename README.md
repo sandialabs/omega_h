@@ -28,7 +28,7 @@ This should install Omega_h under the given prefix in a way you can
 access from your own CMake files using these CMake commands:
 
 ```cmake
-find_package(Omega_h 1.4.2)
+find_package(Omega_h)
 target_link_libraries(myprogram omega_h)
 ```
 
