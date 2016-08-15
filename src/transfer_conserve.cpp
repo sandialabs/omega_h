@@ -150,6 +150,14 @@ static void transfer_conserve_r3d_tmpl(Mesh* old_mesh, Mesh* new_mesh,
           gather_vectors<dim + 1, dim>(new_coords, target_verts);
       auto target_p = &prod_data_w[prod * ncomps];
       for (Int comp = 0; comp < ncomps; ++comp) target_p[comp] = 0;
+      /* total_size will track the sum of the volumes of donor element
+       * intersections with this target element.
+       * if the cavity boundaries are the same, it should end up equal
+       * to target element volume, but if this is an edge collapse on
+       * a curved boundary it could be less and we use it as the denominator
+       * to avoid losing conservation in that case.
+       */
+      Real total_size = 0;
       for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
            ++kd_elem) {
         auto donor_elem = kd_elems2elems[kd_elem];
@@ -163,10 +171,9 @@ static void transfer_conserve_r3d_tmpl(Mesh* old_mesh, Mesh* new_mesh,
         for (Int comp = 0; comp < ncomps; ++comp) {
           target_p[comp] += intersection_size * donor_p[comp];
         }
+        total_size += intersection_size;
       }
-      auto target_basis = simplex_basis<dim, dim>(target_points);
-      auto target_size = element_size(target_basis);
-      for (Int comp = 0; comp < ncomps; ++comp) target_p[comp] /= target_size;
+      for (Int comp = 0; comp < ncomps; ++comp) target_p[comp] /= total_size;
     }
   };
   parallel_for(nkeys, f);
