@@ -1,3 +1,7 @@
+set(Omega_h_VERSION @OSH_VERSION@)
+
+@PACKAGE_INIT@
+
 include(CMakeFindDependencyMacro)
 # we will use find_dependency, but we don't want to force
 # our users to have to specify where all of our dependencies
@@ -16,8 +20,9 @@ set(OSH_TARGETS "@OSH_TARGETS@")
 foreach(target IN LISTS OSH_TARGETS)
   include(${CMAKE_CURRENT_LIST_DIR}/${target}-targets.cmake)
 endforeach()
-get_filename_component(Omega_h_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}" PATH)
-get_filename_component(Omega_h_INCLUDE_DIR "${Omega_h_LIB_DIR}/../include" ABSOLUTE)
+
+set_and_check(Omega_h_LIB_DIR "@PACKAGE_LIB_INSTALL_DIR@")
+set_and_check(Omega_h_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
 set(Omega_h_INCLUDE_DIRS ${Omega_h_INCLUDE_DIR} @DEP_INCLUDE_DIRS@)
 set(Omega_h_COMPILER "@CMAKE_CXX_COMPILER@")
 set(Omega_h_FLAGS "@FLAGS@")
