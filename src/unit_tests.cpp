@@ -13,9 +13,8 @@ static void test_qr_decomp(Matrix<m, n> a) {
 }
 
 static void test_qr_decomps() {
-  test_qr_decomp(identity_matrix<3,3>());
-  test_qr_decomp(Matrix<3, 3>(
-      {EPSILON, 0, 0, 0, EPSILON, 0, 0, 0, EPSILON}));
+  test_qr_decomp(identity_matrix<3, 3>());
+  test_qr_decomp(Matrix<3, 3>({EPSILON, 0, 0, 0, EPSILON, 0, 0, 0, EPSILON}));
   test_qr_decomp(Matrix<3, 3>({12, -51, 4, 6, 167, -68, -4, 24, -41}));
 }
 

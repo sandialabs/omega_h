@@ -40,8 +40,8 @@ struct MaxFitPoints<3> {
 
 template <Int dim>
 DEVICE QRFactorization<MaxFitPoints<dim>::value, dim + 1>
-get_cavity_qr_factorization(LO k,
-    LOs const& k2ke, LOs const& ke2e, LOs const& ev2v, Reals const& coords) {
+get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
+    LOs const& ev2v, Reals const& coords) {
   constexpr auto max_fit_pts = MaxFitPoints<dim>::value;
   Matrix<max_fit_pts, dim + 1> vandermonde;
   auto begin = k2ke[k];
@@ -74,8 +74,9 @@ get_cavity_qr_factorization(LO k,
 
 template <Int dim>
 DEVICE Vector<dim + 1> fit_cavity_polynomial(
-    QRFactorization<MaxFitPoints<dim>::value, dim + 1> qr, LO k, LOs const& k2ke,
-    LOs const& ke2e, Reals const& e_data, Int comp, Int ncomps) {
+    QRFactorization<MaxFitPoints<dim>::value, dim + 1> qr, LO k,
+    LOs const& k2ke, LOs const& ke2e, Reals const& e_data, Int comp,
+    Int ncomps) {
   constexpr auto max_fit_pts = MaxFitPoints<dim>::value;
   auto begin = k2ke[k];
   auto end = k2ke[k + 1];

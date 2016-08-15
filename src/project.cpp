@@ -38,11 +38,10 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
   auto out = Write<Real>(mesh->nverts() * ncomps * (dim + 1));
   auto f = LAMBDA(LO v) {
     if (!owned[v] || (class_dim[v] != dim)) return;
-    auto qr =
-        get_cavity_qr_factorization<dim>(v, v2ve, ve2e, ev2v, coords);
+    auto qr = get_cavity_qr_factorization<dim>(v, v2ve, ve2e, ev2v, coords);
     for (Int comp = 0; comp < ncomps; ++comp) {
-      auto coeffs = fit_cavity_polynomial<dim>(
-          qr, v, v2ve, ve2e, e_data, comp, ncomps);
+      auto coeffs =
+          fit_cavity_polynomial<dim>(qr, v, v2ve, ve2e, e_data, comp, ncomps);
       set_vector(out, v * ncomps + comp, coeffs);
     }
   };
