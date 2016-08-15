@@ -101,13 +101,15 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
 
 add_subdirectory(src)
 
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/omega_h-config-version.cmake
+                                 VERSION ${OSH_VERSION}
+                                 COMPATIBILITY SameMajorVersion)
+
 configure_file(
   "${PROJECT_SOURCE_DIR}/omega_h-config.cmake.in"
   "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
-  @ONLY)
-configure_file(
-  "${PROJECT_SOURCE_DIR}/omega_h-config-version.cmake.in"
-  "${PROJECT_BINARY_DIR}/omega_h-config-version.cmake"
   @ONLY)
 install(FILES
   "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
