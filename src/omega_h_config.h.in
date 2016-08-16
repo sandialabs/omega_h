@@ -1,17 +1,36 @@
 #ifndef OMEGA_H_CONFIG_H
 #define OMEGA_H_CONFIG_H
 
-#define OSH_MAJOR @OSH_MAJOR@
-#define OSH_MINOR @OSH_MINOR@
-#define OSH_PATCH @OSH_PATCH@
+#define OSH_MAJOR @Omega_h_VERSION_MAJOR@
+#define OSH_MINOR @Omega_h_VERSION_MINOR@
+#define OSH_PATCH @Omega_h_VERSION_PATCH@
 
-#cmakedefine OSH_USE_MPI
-#cmakedefine OSH_USE_KOKKOS
-#cmakedefine OSH_USE_OPENMP
-#cmakedefine OSH_USE_CUDA
-#cmakedefine OSH_USE_ZLIB
-#cmakedefine OSH_CHECK_BOUNDS
-#cmakedefine OSH_PROTECT
+#cmakedefine Omega_h_USE_MPI
+#cmakedefine Omega_h_USE_Kokkos
+#cmakedefine Omega_h_USE_OpenMP
+#cmakedefine Omega_h_USE_CUDA
+#cmakedefine Omega_h_USE_ZLIB
+#cmakedefine Omega_h_CHECK_BOUNDS
+#cmakedefine Omega_h_PROTECT
+
+#ifdef Omega_h_USE_MPI
+#define OSH_USE_MPI
+#endif
+#ifdef Omega_h_USE_Kokkos
+#define OSH_USE_Kokkos
+#endif
+#ifdef Omega_h_USE_CUDA
+#define OSH_USE_CUDA
+#endif
+#ifdef Omega_h_USE_ZLIB
+#define OSH_USE_ZLIB
+#endif
+#ifdef Omega_h_CHECK_BOUNDS
+#define OSH_CHECK_BOUNDS
+#endif
+#ifdef Omega_h_PROTECT
+#define OSH_PROTECT
+#endif
 
 /* this block of preprocessor code creates a string
    literal describing the version and compile options
