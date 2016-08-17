@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-using namespace osh;
+using namespace Omega_h;
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);

@@ -6,7 +6,7 @@
 #include "map.hpp"
 #include "unmap_mesh.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* Construct a graph from each vertex
    to the entities which use that vertex
@@ -61,4 +61,4 @@ void reorder_by_hilbert(Mesh* mesh) {
   reorder_mesh(mesh, new_verts2old_verts);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

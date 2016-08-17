@@ -10,7 +10,7 @@
 #include "tag.hpp"
 #include "transfer_conserve.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
@@ -583,4 +583,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

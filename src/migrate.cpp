@@ -10,7 +10,7 @@
 #include "simplices.hpp"
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim) {
   auto uses2lows = mesh->ask_down(high_dim, low_dim).ab2b;
@@ -207,4 +207,4 @@ void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose) {
       mesh, Dist(mesh->comm(), new_elems2old_owners, mesh->nelems()), verbose);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

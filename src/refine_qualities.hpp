@@ -3,10 +3,10 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Reals refine_qualities(Mesh* mesh, LOs candidates);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

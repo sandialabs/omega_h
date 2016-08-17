@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* if the mesh satisfies quality and
    length requirements, print a short
@@ -13,6 +13,6 @@ namespace osh {
 bool adapt_check(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
     Real len_ceil, bool verbose = true);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

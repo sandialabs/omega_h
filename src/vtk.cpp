@@ -13,7 +13,7 @@
 #include "tag.hpp"
 #include "xml.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace vtk {
 
@@ -761,4 +761,4 @@ void FullWriter::write() {
 
 }  // end namespace vtk
 
-}  // end namespace osh
+}  // end namespace Omega_h

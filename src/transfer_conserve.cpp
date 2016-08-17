@@ -6,7 +6,7 @@
 #include "tag.hpp"
 #include "transfer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
@@ -216,4 +216,4 @@ void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -5,7 +5,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 struct Now {
   typedef std::chrono::time_point<std::chrono::high_resolution_clock> Impl;
@@ -16,6 +16,6 @@ Now now();
 
 Real operator-(Now b, Now a);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

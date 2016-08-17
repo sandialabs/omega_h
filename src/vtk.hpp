@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace vtk {
 
@@ -38,6 +38,6 @@ void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
     std::vector<std::string>* pvtupaths_out);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

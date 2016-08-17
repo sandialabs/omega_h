@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 LOs order_by_globals(LOs a2ab, LOs ab2b, Read<GO> b_global);
 
@@ -63,6 +63,6 @@ INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

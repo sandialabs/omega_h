@@ -6,7 +6,7 @@
 #include "mark.hpp"
 #include "surface.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
   auto dim = mesh->dim();
@@ -121,4 +121,4 @@ void project_classification(Mesh* mesh) {
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

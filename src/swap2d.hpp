@@ -3,7 +3,7 @@
 
 #include "host_few.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Reals swap2d_qualities(Mesh* mesh, LOs cands2edges);
 
@@ -12,6 +12,6 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
 
 bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

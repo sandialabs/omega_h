@@ -3,7 +3,7 @@
 #include "array.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace indset {
 
@@ -83,4 +83,4 @@ Read<I8> find_indset(
   return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

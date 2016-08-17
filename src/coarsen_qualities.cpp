@@ -8,7 +8,7 @@
 #include "map.hpp"
 #include "quality.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename Measure, Int dim>
 static Reals coarsen_qualities_tmpl(
@@ -154,4 +154,4 @@ Read<I8> filter_coarsen_improve(
   return filter_coarsen_dirs(cand_codes, keep_dirs);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

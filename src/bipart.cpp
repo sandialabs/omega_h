@@ -5,7 +5,7 @@
 #include "linpart.hpp"
 #include "map.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Dist bi_partition(CommPtr comm, Read<I8> marks) {
   CHECK(comm->size() % 2 == 0);
@@ -33,4 +33,4 @@ Dist bi_partition(CommPtr comm, Read<I8> marks) {
   return Dist(comm, dests, linsize);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -15,7 +15,7 @@
 #include "loop.hpp"
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 bool is_little_endian_cpu() {
   static std::uint16_t const endian_canary = 0x1;
@@ -484,4 +484,4 @@ template void swap_if_needed(std::size_t& val, bool is_little_endian);
 
 }  // end namespace binary
 
-}  // end namespace osh
+}  // end namespace Omega_h

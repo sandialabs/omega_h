@@ -3,7 +3,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Read<I8> check_collapse_class(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
@@ -114,4 +114,4 @@ Read<I8> check_collapse_exposure(
       EDGE, cand_codes, cands2edges, I8(DONT_COLLAPSE), 1);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

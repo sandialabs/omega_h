@@ -3,7 +3,7 @@
 
 #include "omega_h.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,

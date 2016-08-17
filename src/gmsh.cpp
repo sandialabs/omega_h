@@ -6,7 +6,7 @@
 #include "classify.hpp"
 #include "map.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace gmsh {
 
@@ -162,4 +162,4 @@ void read(std::string const& filename, Library const& lib, Mesh* mesh) {
 }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -3,7 +3,7 @@
 #include "array.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
   auto comm_size_gt = GO(comm_size);
@@ -58,4 +58,4 @@ Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals) {
   return copies2lins_dist;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

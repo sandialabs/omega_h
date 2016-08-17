@@ -3,7 +3,7 @@
 
 #include "omega_h.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 bool has_interior_verts(Mesh* mesh);
 Reals project(Mesh* mesh, Reals e_data);

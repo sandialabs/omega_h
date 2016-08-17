@@ -7,7 +7,7 @@
 
 #include "omega_h.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 struct ArithTraits;
@@ -282,6 +282,6 @@ Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

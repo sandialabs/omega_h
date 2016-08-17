@@ -1,7 +1,7 @@
 #ifndef POLYNOMIAL_HPP
 #define POLYNOMIAL_HPP
 
-namespace osh {
+namespace Omega_h {
 
 // solve cubic equation x^3 + a_2 * x^2 + a_1 * x + a_0 = 0
 // this code assumes that the solution does not have complex roots !
@@ -86,6 +86,6 @@ INLINE Int solve_quadratic(
   return 0;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

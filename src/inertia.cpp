@@ -9,7 +9,7 @@
 #include "loop.hpp"
 #include "space.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace inertia {
 
@@ -185,4 +185,4 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
 
 }  // end namespace inertia
 
-}  // end namespace osh
+}  // end namespace Omega_h

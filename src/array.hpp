@@ -4,7 +4,7 @@
 #include "internal.hpp"
 #include "omega_h_functors.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <class T>
 bool operator==(Read<T> a, Read<T> b);
@@ -92,6 +92,6 @@ INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

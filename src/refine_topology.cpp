@@ -6,7 +6,7 @@
 #include "scan.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
     LOs old_verts2new_verts, LOs& keys2pairs, LOs& pair_verts2verts) {
@@ -202,4 +202,4 @@ void refine_products(Mesh* mesh, Int ent_dim, LOs keys2edges, LOs keys2midverts,
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

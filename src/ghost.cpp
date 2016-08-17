@@ -5,7 +5,7 @@
 #include "migrate.hpp"
 #include "remotes.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Dist get_local_elem_uses2own_verts(Mesh* mesh) {
   auto verts2elems = mesh->ask_up(VERT, mesh->dim());
@@ -105,4 +105,4 @@ void partition_by_elems(Mesh* mesh, bool verbose) {
   migrate_mesh(mesh, owned2owners, verbose);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

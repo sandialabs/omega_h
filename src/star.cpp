@@ -6,7 +6,7 @@
 #include "scan.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Graph verts_across_edges(Adj e2v, Adj v2e) {
   auto ev2v = e2v.ab2b;
@@ -124,4 +124,4 @@ Graph elements_across_sides(
   return Graph(elem2elem_elems, elem_elem2elem);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

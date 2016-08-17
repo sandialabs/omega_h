@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 #ifdef OMPI_MPI_H
 /* OpenMPI defines MPI_UNWEIGHTED using (void*)
@@ -61,6 +61,6 @@ inline MPI_Op mpi_op(Omega_h_Op op) {
 }
 #endif
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

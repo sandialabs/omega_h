@@ -6,7 +6,7 @@
 #include "scan.hpp"
 #include "sort.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Dist::Dist() {}
 
@@ -190,4 +190,4 @@ INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-}  // end namespace osh
+}  // end namespace Omega_h

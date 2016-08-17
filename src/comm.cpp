@@ -3,7 +3,7 @@
 #include "array.hpp"
 #include "int128.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 #define CALL(f) CHECK(MPI_SUCCESS == (f))
 
@@ -431,4 +431,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

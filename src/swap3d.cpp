@@ -8,7 +8,7 @@
 #include "swap.hpp"
 #include "transfer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static bool swap3d_ghosted(Mesh* mesh) {
   auto comm = mesh->comm();
@@ -81,4 +81,4 @@ bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   return true;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

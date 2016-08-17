@@ -6,7 +6,7 @@
 #include "simplices.hpp"
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 static bool is_consistent(Mesh* mesh, Int dim, Read<T> copy_data, Int ncomps) {
@@ -56,4 +56,4 @@ bool tags_are_consistent(Mesh* mesh) {
   return true;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

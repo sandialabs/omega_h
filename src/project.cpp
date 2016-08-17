@@ -24,7 +24,7 @@
 #include "fit.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
@@ -145,4 +145,4 @@ Reals project(Mesh* mesh, Reals e_data) {
   return evaluate_coeffs(mesh, v_coeffs, ncomps);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

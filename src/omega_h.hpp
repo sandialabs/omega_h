@@ -12,7 +12,7 @@
 #include "omega_h_c.h"
 #include "omega_h_kokkos.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 typedef std::int8_t I8;
 typedef std::int16_t I16;
@@ -639,6 +639,6 @@ OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
 /* end explicit instantiation declarations */
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

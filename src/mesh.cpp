@@ -17,7 +17,7 @@
 #include "size.hpp"
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Mesh::Mesh() : dim_(-1), parting_(-1) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
@@ -609,4 +609,4 @@ INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-}  // end namespace osh
+}  // end namespace Omega_h

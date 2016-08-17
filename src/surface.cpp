@@ -7,7 +7,7 @@
 #include "map.hpp"
 #include "size.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace surf {
 
@@ -246,4 +246,4 @@ Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
 
 }  // end namespace surf
 
-}  // end namespace osh
+}  // end namespace Omega_h

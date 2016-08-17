@@ -3,7 +3,7 @@
 #include <cstring>
 #include <iostream>
 
-using namespace osh;
+using namespace Omega_h;
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
@@ -72,10 +72,10 @@ int main(int argc, char** argv) {
     std::cout << "    -superset (Allow result to have more arrays than gold)\n";
     return -1;
   }
-  osh::Mesh a;
-  osh::binary::read(filea, lib.world(), &a);
-  osh::Mesh b;
-  osh::binary::read(fileb, lib.world(), &b);
+  Omega_h::Mesh a;
+  Omega_h::binary::read(filea, lib.world(), &a);
+  Omega_h::Mesh b;
+  Omega_h::binary::read(fileb, lib.world(), &b);
   auto res = compare_meshes(&a, &b, tol, floor, true);
   if (res == OMEGA_H_SAME) return 0;
   if (allow_superset && res == OMEGA_H_MORE) return 0;

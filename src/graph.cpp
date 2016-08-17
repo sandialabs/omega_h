@@ -5,7 +5,7 @@
 #include "map.hpp"
 #include "scan.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Graph add_edges(Graph g1, Graph g2) {
   auto v2e1 = g1.a2ab;
@@ -111,4 +111,4 @@ INST(I32)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

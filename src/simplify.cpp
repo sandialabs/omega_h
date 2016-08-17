@@ -3,7 +3,7 @@
 #include "loop.hpp"
 #include "scan.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace simplify {
 
@@ -227,4 +227,4 @@ LOs tets_from_hexes(LOs hv2v) {
 
 }  // end namespace simplify
 
-}  // end namespace osh
+}  // end namespace Omega_h

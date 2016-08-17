@@ -4,7 +4,7 @@
 #include <cstdarg>
 #include <sstream>
 
-namespace osh {
+namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
 static bool we_called_mpi_init = false;
@@ -85,4 +85,4 @@ CommPtr Library::world() const { return Comm::world(); }
 
 CommPtr Library::self() const { return Comm::self(); }
 
-}  // end namespace osh
+}  // end namespace Omega_h

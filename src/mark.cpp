@@ -5,7 +5,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Read<I8> mark_exposed_sides(Mesh* mesh) {
   auto ns = mesh->nents(mesh->dim() - 1);
@@ -108,4 +108,4 @@ Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {
   return mark_dual_layers(mesh, elems_are_slivers, nlayers);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

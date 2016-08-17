@@ -8,7 +8,7 @@
 #include "map.hpp"
 #include "omega_h_functors.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* A reproducible sum of floating-point values.
    this operation is one of the key places where
@@ -93,4 +93,4 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
   return repro_sum(mesh->comm(), a);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

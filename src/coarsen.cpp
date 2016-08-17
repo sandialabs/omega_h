@@ -11,7 +11,7 @@
 #include "modify.hpp"
 #include "transfer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static Read<I8> get_edge_codes(Mesh* mesh) {
   auto edge_cand_codes = mesh->get_array<I8>(EDGE, "collapse_code");
@@ -194,4 +194,4 @@ bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true, verbose);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

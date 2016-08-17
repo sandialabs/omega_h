@@ -8,7 +8,7 @@
 #include "space.hpp"
 #include "timer.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 static void add_dye(Mesh* mesh) {
   auto dye_w = Write<Real>(mesh->nverts());

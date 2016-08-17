@@ -9,7 +9,7 @@
 #include "owners.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 struct CompareArrays {
@@ -168,4 +168,4 @@ Omega_h_Comparison compare_meshes(
   return result;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

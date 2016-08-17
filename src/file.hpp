@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 bool is_little_endian_cpu();
 void safe_mkdir(const char* path);
@@ -62,6 +62,6 @@ inline std::string to_string(I32 x) {
 #endif
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

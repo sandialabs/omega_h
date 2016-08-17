@@ -4,7 +4,7 @@
 #include "loop.hpp"
 #include "scan.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   auto ncopies = copies2old_owners.nitems();
@@ -122,4 +122,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

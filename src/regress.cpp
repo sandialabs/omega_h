@@ -4,7 +4,7 @@
 
 #include "file.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 bool check_regression(
     std::string const& prefix, Mesh* mesh, Real tol, Real floor) {
@@ -58,4 +58,4 @@ bool check_regression(
   return false;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

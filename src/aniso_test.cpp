@@ -1,7 +1,7 @@
 #include "omega_h.hpp"
 #include "omega_h_math.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);

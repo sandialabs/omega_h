@@ -7,7 +7,7 @@
 #include "loop.hpp"
 #include "map.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename ElementQualities, Int dim>
 Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
@@ -84,4 +84,4 @@ void print_quality_histogram(QualityHistogram histogram) {
   std::cout.precision(precision_before);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

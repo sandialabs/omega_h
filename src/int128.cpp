@@ -1,6 +1,6 @@
 #include "int128.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 double Int128::to_double(double unit) const {
   Int128 tmp = *this;
@@ -15,4 +15,4 @@ double Int128::to_double(double unit) const {
   return x;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

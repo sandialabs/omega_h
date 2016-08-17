@@ -10,7 +10,7 @@
 #include "remotes.hpp"
 #include "simplify.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   auto comm = mesh->comm();
@@ -142,4 +142,4 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   *p_ents2owners = e2oe;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

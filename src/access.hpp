@@ -4,7 +4,7 @@
 #include "algebra.hpp"
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int n, class Arr>
 DEVICE Vector<n> get_vector(Arr const& a, Int i) {
@@ -95,6 +95,6 @@ Reals vectors_3d_to_2d(Reals vecs2);
 
 Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

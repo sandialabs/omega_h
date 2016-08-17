@@ -10,7 +10,7 @@
 #include "refine_topology.hpp"
 #include "transfer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static bool refine_ghosted(Mesh* mesh, Real min_qual) {
   auto comm = mesh->comm();
@@ -92,4 +92,4 @@ bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual, bool verbose) {
   return refine(mesh, min_qual, verbose);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

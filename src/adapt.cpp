@@ -12,7 +12,7 @@
 #include "swap.hpp"
 #include "timer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     Real floor, Real ceil, Real minval, Real maxval) {
@@ -162,4 +162,4 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
   return true;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

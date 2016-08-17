@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 void parallel_for(Int n, T const& f) {
@@ -43,6 +43,6 @@ void parallel_scan(Int n, T f) {
 #endif
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

@@ -3,7 +3,7 @@
 #include "access.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int sdim, Int edim>
 static Reals average_metric_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
@@ -100,4 +100,4 @@ Reals delinearize_metrics(Int dim, Reals linear_metrics) {
   NORETURN(Reals());
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

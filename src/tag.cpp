@@ -1,6 +1,6 @@
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 TagBase::TagBase(std::string const& name, Int ncomps, Int xfer)
     : name_(name), ncomps_(ncomps), xfer_(xfer) {}
@@ -83,4 +83,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

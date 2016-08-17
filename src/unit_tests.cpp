@@ -1,6 +1,6 @@
 #include "all.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 template <Int m, Int n>
 static void test_qr_decomp(Matrix<m, n> a) {
@@ -728,7 +728,7 @@ static void test_recover_hessians_dim(Library const& lib) {
   Mesh mesh;
   Int one_if_3d = ((dim == 3) ? 1 : 0);
   build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
-  classify_by_angles(&mesh, osh::PI / 4);
+  classify_by_angles(&mesh, Omega_h::PI / 4);
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
   // attach a field = x^2 + y^2 (+ z^2)
@@ -737,8 +737,8 @@ static void test_recover_hessians_dim(Library const& lib) {
     u_w[v] = norm_squared(x);
   };
   parallel_for(mesh.nverts(), f);
-  auto u = osh::Reals(u_w);
-  mesh.add_tag(osh::VERT, "u", 1, OMEGA_H_DONT_TRANSFER, u);
+  auto u = Omega_h::Reals(u_w);
+  mesh.add_tag(Omega_h::VERT, "u", 1, OMEGA_H_DONT_TRANSFER, u);
   auto hess = recover_hessians(&mesh, u);
   // its second derivative is exactly 2dx + 2dy,
   // and both recovery steps are linear so the current
@@ -759,17 +759,17 @@ static void test_sf_scale_dim(Library const& lib) {
   Mesh mesh;
   Int one_if_3d = ((dim == 3) ? 1 : 0);
   build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
-  classify_by_angles(&mesh, osh::PI / 4);
+  classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   {
-    auto size = osh::find_identity_size(&mesh);
+    auto size = Omega_h::find_identity_size(&mesh);
     auto elems_per_elem = expected_elems_per_elem_iso(&mesh, size);
     auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
     auto size_scal = target_nelems / elems;
     CHECK(are_close(size_scal, 1.));
   }
   {
-    auto metric = osh::find_identity_metric(&mesh);
+    auto metric = Omega_h::find_identity_metric(&mesh);
     auto elems_per_elem = expected_elems_per_elem_metric(&mesh, metric);
     auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
     auto size_scal = target_nelems / elems;

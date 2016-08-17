@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 LOs sort_by_keys(Read<T> keys, Int width = 1);
@@ -13,6 +13,6 @@ INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

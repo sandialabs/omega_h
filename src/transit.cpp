@@ -4,7 +4,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   CHECK(3 >= high_dim);
@@ -56,4 +56,4 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   return Adj(hl2l);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -1,6 +1,6 @@
 #include "all.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 static void test_one_rank(CommPtr comm) {
   CHECK(comm->size() == 1);

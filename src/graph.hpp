@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Graph add_edges(Graph g1, Graph g2);
 Graph unmap_graph(LOs a2b, Graph b2c);
@@ -22,6 +22,6 @@ INST_DECL(I32)
 INST_DECL(Real)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

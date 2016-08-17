@@ -17,7 +17,7 @@
 #include "access.hpp"
 #include "qr.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 struct MaxFitPoints;
@@ -99,6 +99,6 @@ DEVICE Real eval_polynomial(Vector<dim + 1> coeffs, Vector<dim> x) {
   return val;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

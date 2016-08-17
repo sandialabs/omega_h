@@ -3,7 +3,7 @@
 #include "algebra.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
@@ -561,4 +561,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

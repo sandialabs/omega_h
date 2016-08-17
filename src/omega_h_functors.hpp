@@ -3,7 +3,7 @@
 
 #include "omega_h_math.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* values smaller than 64 bits cause wrong reduction
  * answers on GPUs; the StandinTraits system raises
@@ -71,6 +71,6 @@ struct SumFunctor {
   }
 };
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

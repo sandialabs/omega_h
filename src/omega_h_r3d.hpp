@@ -23,7 +23,7 @@
 
 #include "omega_h_math.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace r3d {
 
@@ -283,7 +283,7 @@ OMEGA_H_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
 
 template <Int dim>
 OMEGA_H_INLINE void norm(Vector<dim>& v) {
-  v = osh::normalize(v);
+  v = Omega_h::normalize(v);
 }
 
 OMEGA_H_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
@@ -648,6 +648,6 @@ OMEGA_H_INLINE Polytope<dim> intersect_simplices(
 
 }  // end namespace r3d
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

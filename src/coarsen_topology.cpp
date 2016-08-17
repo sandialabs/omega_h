@@ -7,7 +7,7 @@
 #include "map.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* this function is in some sense
    the inverse of choose_vertex_collapses(),
@@ -160,4 +160,4 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
   return prod_verts2verts;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

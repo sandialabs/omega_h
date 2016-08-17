@@ -5,7 +5,7 @@
 #include <map>
 #include <string>
 
-namespace osh {
+namespace Omega_h {
 
 namespace xml {
 
@@ -20,6 +20,6 @@ bool parse_tag(std::string const& line, xml::Tag* tag_out);
 xml::Tag read_tag(std::istream& stream);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

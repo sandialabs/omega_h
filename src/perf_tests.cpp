@@ -14,7 +14,7 @@
 #include "space.hpp"
 #include "timer.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 static Int const nelems = 1000 * 1000;
 

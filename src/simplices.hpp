@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 CONSTANT static Int const fvv0[] = {0};
 CONSTANT static Int const fvv1[] = {1};
@@ -122,6 +122,6 @@ extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];
 extern char const* const plural_names[DIMS];
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

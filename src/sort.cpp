@@ -19,7 +19,7 @@
 #else
 #endif
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T, typename Comp>
 void parallel_sort(T* b, T* e, Comp c) {
@@ -78,4 +78,4 @@ INST(LO)
 INST(GO)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

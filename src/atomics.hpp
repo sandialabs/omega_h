@@ -1,7 +1,7 @@
 #ifndef ATOMICS_HPP
 #define ATOMICS_HPP
 
-namespace osh {
+namespace Omega_h {
 
 template <class T>
 INLINE void atomic_increment(volatile T* const dest) {
@@ -32,6 +32,6 @@ INLINE T atomic_fetch_add(volatile T* const dest, const T val) {
 #endif
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

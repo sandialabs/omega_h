@@ -3,7 +3,7 @@
 #include "loop.hpp"
 #include "omega_h_functors.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 struct ExclScan : public SumFunctor<I64> {
@@ -40,4 +40,4 @@ struct FillRight : public MaxFunctor<I64> {
 
 void fill_right(Write<LO> a) { parallel_scan(a.size(), FillRight(a)); }
 
-}  // end namespace osh
+}  // end namespace Omega_h

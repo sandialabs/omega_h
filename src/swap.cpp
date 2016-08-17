@@ -7,7 +7,7 @@
 #include "swap2d.hpp"
 #include "swap3d.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
   mesh->set_parting(OMEGA_H_GHOSTED);
@@ -42,4 +42,4 @@ bool swap_edges(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   return false;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

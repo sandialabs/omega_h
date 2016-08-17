@@ -2,7 +2,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace base64 {
 
@@ -142,4 +142,4 @@ std::string read_encoded(std::istream& f) {
 
 }  // end namespace base64
 
-}  // end namespace osh
+}  // end namespace Omega_h
