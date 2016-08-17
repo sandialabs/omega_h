@@ -109,7 +109,7 @@ GO Mesh::nglobal_ents(Int dim) {
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
     Omega_h_fail(
@@ -120,13 +120,13 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
   CHECK(ncomps >= 0);
   CHECK(ncomps <= Int(INT8_MAX));
   CHECK(tags_[dim].size() < size_t(INT8_MAX));
-  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer)));
+  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer, outflags)));
 }
 
 template <typename T>
 void Mesh::add_tag(
-    Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array) {
-  add_tag<T>(dim, name, ncomps, xfer);
+    Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags, Read<T> array) {
+  add_tag<T>(dim, name, ncomps, xfer, outflags);
   set_tag<T>(dim, name, array);
 }
 
@@ -593,9 +593,9 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
   template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps, Int xfer);                 \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);                 \
   template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);  \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags, Read<T> array);  \
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array);                        \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
