@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
   build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
   classify_by_angles(&mesh, PI / 4);
   mesh.keep_canonical_globals(false);
-  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_LINEAR_INTERP);
+  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT);
   Now t0 = now();
   Int i = 0;
   do {

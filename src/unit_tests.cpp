@@ -572,7 +572,7 @@ static void test_refine_qualities(Library const& lib) {
   CHECK(are_close(
       quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));
   mesh.add_tag(VERT, "metric", symm_dofs(2), OMEGA_H_METRIC,
-      repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
+      OMEGA_H_DO_OUTPUT, repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
   auto quals2 = refine_qualities(&mesh, candidates);
   CHECK(are_close(quals2, quals));
 }
@@ -592,7 +592,7 @@ static void test_compare_meshes(Library const& lib) {
   Mesh b = a;
   b.reorder();
   CHECK(a == b);
-  b.add_tag<I8>(VERT, "foo", 1, OMEGA_H_DONT_TRANSFER, Read<I8>(b.nverts(), 1));
+  b.add_tag<I8>(VERT, "foo", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, Read<I8>(b.nverts(), 1));
   CHECK(!(a == b));
 }
 
@@ -738,7 +738,7 @@ static void test_recover_hessians_dim(Library const& lib) {
   };
   parallel_for(mesh.nverts(), f);
   auto u = Omega_h::Reals(u_w);
-  mesh.add_tag(Omega_h::VERT, "u", 1, OMEGA_H_DONT_TRANSFER, u);
+  mesh.add_tag(Omega_h::VERT, "u", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, u);
   auto hess = recover_hessians(&mesh, u);
   // its second derivative is exactly 2dx + 2dy,
   // and both recovery steps are linear so the current
