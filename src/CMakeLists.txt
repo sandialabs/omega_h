@@ -110,7 +110,7 @@ endif()
 bob_public_dep(ZLIB "" ON)
 if(Omega_h_USE_ZLIB)
   message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
-  target_link_libraries(omega_h PRIVATE ZLIB::ZLIB)
+  target_link_libraries(omega_h PUBLIC ZLIB::ZLIB)
 endif()
 
 function(osh_add_exe EXE_NAME)
