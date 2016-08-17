@@ -1,7 +1,7 @@
 #ifndef INTERNAL_HPP
 #define INTERNAL_HPP
 
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 #ifdef __clang__
 #define NORETURN(x) assert(false)

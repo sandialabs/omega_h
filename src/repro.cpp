@@ -6,7 +6,7 @@
 #include "int128.hpp"
 #include "loop.hpp"
 #include "map.hpp"
-#include "omega_h_functors.hpp"
+#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 

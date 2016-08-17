@@ -36,7 +36,7 @@
 #include "metric.hpp"
 #include "migrate.hpp"
 #include "modify.hpp"
-#include "omega_h_functors.hpp"
+#include "Omega_h_functors.hpp"
 #include "owners.hpp"
 #include "polynomial.hpp"
 #include "protect.hpp"

@@ -21,7 +21,7 @@
  * ----
  */
 
-#include "omega_h_math.hpp"
+#include "Omega_h_math.hpp"
 
 namespace Omega_h {
 

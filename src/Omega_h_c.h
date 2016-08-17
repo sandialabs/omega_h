@@ -3,7 +3,7 @@
 
 #include <assert.h>
 
-#include "omega_h_config.h"
+#include "Omega_h_config.h"
 
 #define OMEGA_H_PRAGMA(x) _Pragma(#x)
 
@@ -13,7 +13,7 @@
 #define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(GCC system_header)
 #endif
 
-#include "omega_h_mpi.h"
+#include "Omega_h_mpi.h"
 
 enum Omega_h_Type {
   OMEGA_H_I8 = 0,

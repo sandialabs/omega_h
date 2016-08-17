@@ -1,4 +1,4 @@
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);

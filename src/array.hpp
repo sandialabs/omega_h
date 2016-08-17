@@ -2,7 +2,7 @@
 #define ARRAY_HPP
 
 #include "internal.hpp"
-#include "omega_h_functors.hpp"
+#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 

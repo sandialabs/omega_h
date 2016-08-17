@@ -5,7 +5,7 @@
 #include <climits>
 #include <cmath>
 
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 namespace Omega_h {
 

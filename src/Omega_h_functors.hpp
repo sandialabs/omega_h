@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_FUNCTORS_HPP
 #define OMEGA_H_FUNCTORS_HPP
 
-#include "omega_h_math.hpp"
+#include "Omega_h_math.hpp"
 
 namespace Omega_h {
 

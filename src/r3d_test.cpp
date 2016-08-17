@@ -1,5 +1,5 @@
 #include "algebra.hpp"
-#include "omega_h_r3d.hpp"
+#include "Omega_h_r3d.hpp"
 
 #include <iostream>
 

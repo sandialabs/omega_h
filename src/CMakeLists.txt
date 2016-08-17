@@ -239,18 +239,18 @@ foreach(def_var IN LISTS DEF_VARS)
   set(${uppercase_var} ${Omega_h_${def_var}})
 endforeach()
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/omega_h_config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/omega_h_config.h")
+  "${CMAKE_CURRENT_SOURCE_DIR}/Omega_h_config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
 
 set(Omega_h_HEADERS
-  "${CMAKE_CURRENT_BINARY_DIR}/omega_h_config.h"
-  omega_h_mpi.h
-  omega_h_c.h
-  omega_h_kokkos.hpp
-  omega_h.hpp
-  omega_h_math.hpp
-  omega_h_functors.hpp
-  omega_h_r3d.hpp
+  "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h"
+  Omega_h_mpi.h
+  Omega_h_c.h
+  Omega_h_kokkos.hpp
+  Omega_h.hpp
+  Omega_h_math.hpp
+  Omega_h_functors.hpp
+  Omega_h_r3d.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

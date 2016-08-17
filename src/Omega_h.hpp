@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "omega_h_c.h"
-#include "omega_h_kokkos.hpp"
+#include "Omega_h_c.h"
+#include "Omega_h_kokkos.hpp"
 
 namespace Omega_h {
 

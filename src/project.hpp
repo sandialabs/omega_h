@@ -1,7 +1,7 @@
 #ifndef PROJECT_HPP
 #define PROJECT_HPP
 
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 namespace Omega_h {
 

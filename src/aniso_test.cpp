@@ -1,5 +1,5 @@
-#include "omega_h.hpp"
-#include "omega_h_math.hpp"
+#include "Omega_h.hpp"
+#include "Omega_h_math.hpp"
 
 using namespace Omega_h;
 

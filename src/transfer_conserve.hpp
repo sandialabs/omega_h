@@ -1,7 +1,7 @@
 #ifndef TRANSFER_CONSERVE_HPP
 #define TRANSFER_CONSERVE_HPP
 
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 namespace Omega_h {
 

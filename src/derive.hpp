@@ -1,7 +1,7 @@
 #ifndef DERIVE_HPP
 #define DERIVE_HPP
 
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 namespace Omega_h {
 

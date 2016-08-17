@@ -1,6 +1,6 @@
 #include "map.hpp"
 #include "mark.hpp"
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 #include "surface.hpp"
 
 int main(int argc, char** argv) {

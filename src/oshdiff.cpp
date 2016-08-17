@@ -1,4 +1,4 @@
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 #include <cstring>
 #include <iostream>
