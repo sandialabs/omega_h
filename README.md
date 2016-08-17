@@ -20,7 +20,7 @@ a C++11 compiler, and [ZLib][6] installed.
 ```shell
 git clone git@github.com:ibaned/omega_h2.git
 cd omega_h2
-cmake . -DCMAKE_INSTALL_PREFIX=/your/choice -DOSH_USE_MPI=OFF
+cmake . -DCMAKE_INSTALL_PREFIX=/your/choice -DOmega_h_USE_MPI=OFF
 make install
 ```
 
@@ -29,7 +29,7 @@ access from your own CMake files using these CMake commands:
 
 ```cmake
 find_package(Omega_h)
-target_link_libraries(myprogram omega_h)
+target_link_libraries(myprogram Omega_h::omega_h)
 ```
 
 ## Features
@@ -50,7 +50,7 @@ Omega_h provides at least the following:
 
 Below we document some key CMake configuration options:
 
-#### OSH_USE_MPI
+#### Omega_h_USE_MPI
 Default: `ON`
 
 Whether to enable MPI parallelism.
@@ -58,22 +58,24 @@ We recommend using [MPICH][3] or another MPI 3.0 implementation,
 but we also support MPI version 2.1.
 If this is `ON`, set `CMAKE_CXX_COMPILER` to your MPI compiler wrapper.
 
-#### OSH_USE_KOKKOS
+#### Omega_h_USE_Kokkos
 Default: `OFF`
 
 Whether to use [Kokkos][2] for on-node parallelism.
 If this is `ON`, set `Kokkos_PREFIX` to your Kokkos installation.
 You can install Kokkos as part of [Trilinos][4].
+Please see [this file][8] for an example of how to configure
+Trilinos to install only the Kokkos package.
 
-#### OSH_USE_CUDA
+#### Omega_h_USE_CUDA
 Default: `OFF`
 
 Whether to use CUDA via Kokkos.
-This requires `OSH_USE_KOKKOS`.
+This requires `Omega_h_USE_Kokkos`.
 If this is `ON`, set `CMAKE_CXX_COMPILER` to your copy of
 [nvcc_wrapper][7].
 
-#### OSH_ONE_FILE
+#### Omega_h_ONE_FILE
 Default: `ON`
 
 Omega_h includes all other sources in `omega_h.cpp` for a (up to 4X)
@@ -102,3 +104,4 @@ This library is released under the FreeBSD license.
 [5]: http://clang.llvm.org/docs/ClangFormat.html
 [6]: http://zlib.net
 [7]: http://github.com/kokkos/nvcc_wrapper
+[8]: https://github.com/ibaned/omega_h2/blob/master/aux/do-config-trilinos-kokkos.sh
