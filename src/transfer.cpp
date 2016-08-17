@@ -10,7 +10,7 @@
 #include "tag.hpp"
 #include "transfer_conserve.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
@@ -33,7 +33,7 @@ static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
-    if (tagbase->xfer() == OSH_LINEAR_INTERP) {
+    if (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) {
       auto ncomps = tagbase->ncomps();
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
       auto prod_data =
@@ -48,7 +48,7 @@ static void transfer_metric(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, LOs same_verts2old_verts, LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
-    if (tagbase->xfer() == OSH_METRIC) {
+    if (tagbase->xfer() == OMEGA_H_METRIC) {
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
       auto prod_data = average_metric(old_mesh, EDGE, keys2edges, old_data);
       transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
@@ -119,24 +119,24 @@ static void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() == OSH_INHERIT) {
+    if (tagbase->xfer() == OMEGA_H_INHERIT) {
       switch (tagbase->type()) {
-        case OSH_I8:
+        case OMEGA_H_I8:
           transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,
               keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase->name());
           break;
-        case OSH_I32:
+        case OMEGA_H_I32:
           transfer_inherit_refine<I32>(old_mesh, new_mesh, keys2edges, prod_dim,
               keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase->name());
           break;
-        case OSH_I64:
+        case OMEGA_H_I64:
           transfer_inherit_refine<I64>(old_mesh, new_mesh, keys2edges, prod_dim,
               keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase->name());
           break;
-        case OSH_F64:
+        case OMEGA_H_F64:
           transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges,
               prod_dim, keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase->name());
@@ -152,7 +152,7 @@ static void transfer_pointwise_refine(Mesh* old_mesh, Mesh* new_mesh,
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_POINTWISE) {
+    if (tagbase->xfer() == OMEGA_H_POINTWISE) {
       transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges, dim,
           keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
           tagbase->name());
@@ -164,7 +164,7 @@ static void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
-    if (tagbase->xfer() == OSH_LENGTH) {
+    if (tagbase->xfer() == OMEGA_H_LENGTH) {
       auto prod_data = measure_edges_metric(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, EDGE, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
@@ -177,7 +177,7 @@ static void transfer_quality(Mesh* old_mesh, Mesh* new_mesh,
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_QUALITY) {
+    if (tagbase->xfer() == OMEGA_H_QUALITY) {
       auto prod_data = measure_qualities(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, dim, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
@@ -229,24 +229,24 @@ static void transfer_inherit_coarsen(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() == OSH_INHERIT) {
+    if (tagbase->xfer() == OMEGA_H_INHERIT) {
       switch (tagbase->type()) {
-        case OSH_I8:
+        case OMEGA_H_I8:
           transfer_inherit_coarsen_tmpl<I8>(old_mesh, new_mesh, keys2doms,
               prod_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
               tagbase);
           break;
-        case OSH_I32:
+        case OMEGA_H_I32:
           transfer_inherit_coarsen_tmpl<I32>(old_mesh, new_mesh, keys2doms,
               prod_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
               tagbase);
           break;
-        case OSH_I64:
+        case OMEGA_H_I64:
           transfer_inherit_coarsen_tmpl<I64>(old_mesh, new_mesh, keys2doms,
               prod_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
               tagbase);
           break;
-        case OSH_F64:
+        case OMEGA_H_F64:
           transfer_inherit_coarsen_tmpl<Real>(old_mesh, new_mesh, keys2doms,
               prod_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
               tagbase);
@@ -271,23 +271,23 @@ static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if ((tagbase->xfer() == OSH_INHERIT) ||
-        (tagbase->xfer() == OSH_LINEAR_INTERP) ||
-        (tagbase->xfer() == OSH_METRIC)) {
+    if ((tagbase->xfer() == OMEGA_H_INHERIT) ||
+        (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) ||
+        (tagbase->xfer() == OMEGA_H_METRIC)) {
       switch (tagbase->type()) {
-        case OSH_I8:
+        case OMEGA_H_I8:
           transfer_no_products_tmpl<I8>(old_mesh, new_mesh, prod_dim,
               same_ents2old_ents, same_ents2new_ents, tagbase);
           break;
-        case OSH_I32:
+        case OMEGA_H_I32:
           transfer_no_products_tmpl<I32>(old_mesh, new_mesh, prod_dim,
               same_ents2old_ents, same_ents2new_ents, tagbase);
           break;
-        case OSH_I64:
+        case OMEGA_H_I64:
           transfer_no_products_tmpl<I64>(old_mesh, new_mesh, prod_dim,
               same_ents2old_ents, same_ents2new_ents, tagbase);
           break;
-        case OSH_F64:
+        case OMEGA_H_F64:
           transfer_no_products_tmpl<Real>(old_mesh, new_mesh, prod_dim,
               same_ents2old_ents, same_ents2new_ents, tagbase);
           break;
@@ -381,7 +381,7 @@ static void transfer_pointwise_coarsen(Mesh* old_mesh, Mesh* new_mesh,
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_POINTWISE) {
+    if (tagbase->xfer() == OMEGA_H_POINTWISE) {
       if (dim == 3) {
         transfer_pointwise_coarsen_tmpl<3>(old_mesh, new_mesh, keys2kds,
             keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
@@ -435,18 +435,18 @@ static void transfer_copy_tmpl(
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() != OSH_DONT_TRANSFER) {
+    if (tagbase->xfer() != OMEGA_H_DONT_TRANSFER) {
       switch (tagbase->type()) {
-        case OSH_I8:
+        case OMEGA_H_I8:
           transfer_copy_tmpl<I8>(new_mesh, prod_dim, tagbase);
           break;
-        case OSH_I32:
+        case OMEGA_H_I32:
           transfer_copy_tmpl<I32>(new_mesh, prod_dim, tagbase);
           break;
-        case OSH_I64:
+        case OMEGA_H_I64:
           transfer_copy_tmpl<I64>(new_mesh, prod_dim, tagbase);
           break;
-        case OSH_F64:
+        case OMEGA_H_F64:
           transfer_copy_tmpl<Real>(new_mesh, prod_dim, tagbase);
           break;
       }
@@ -473,24 +473,24 @@ static void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() == OSH_INHERIT) {
+    if (tagbase->xfer() == OMEGA_H_INHERIT) {
       switch (tagbase->type()) {
-        case OSH_I8:
+        case OMEGA_H_I8:
           transfer_inherit_swap_tmpl<I8>(old_mesh, new_mesh, prod_dim,
               keys2edges, keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase);
           break;
-        case OSH_I32:
+        case OMEGA_H_I32:
           transfer_inherit_swap_tmpl<I32>(old_mesh, new_mesh, prod_dim,
               keys2edges, keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase);
           break;
-        case OSH_I64:
+        case OMEGA_H_I64:
           transfer_inherit_swap_tmpl<I64>(old_mesh, new_mesh, prod_dim,
               keys2edges, keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase);
           break;
-        case OSH_F64:
+        case OMEGA_H_F64:
           transfer_inherit_swap_tmpl<Real>(old_mesh, new_mesh, prod_dim,
               keys2edges, keys2prods, prods2new_ents, same_ents2old_ents,
               same_ents2new_ents, tagbase);
@@ -530,7 +530,7 @@ static void transfer_pointwise_swap(Mesh* old_mesh, Mesh* new_mesh,
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_POINTWISE) {
+    if (tagbase->xfer() == OMEGA_H_POINTWISE) {
       if (dim == 3) {
         transfer_pointwise_swap_tmpl<3>(old_mesh, new_mesh, keys2kds,
             keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
@@ -583,4 +583,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

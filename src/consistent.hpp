@@ -3,10 +3,10 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 bool tags_are_consistent(Mesh* mesh);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

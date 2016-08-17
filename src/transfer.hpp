@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, Int prod_dim, LOs keys2prods, LOs prods2new_ents,
@@ -42,6 +42,6 @@ INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

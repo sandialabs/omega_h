@@ -3,7 +3,7 @@
 
 #include "space.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
@@ -141,6 +141,6 @@ Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t);
 Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

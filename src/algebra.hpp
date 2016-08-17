@@ -4,9 +4,9 @@
 #include <cmath>
 
 #include "internal.hpp"
-#include "omega_h_math.hpp"
+#include "Omega_h_math.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
 
@@ -186,6 +186,6 @@ INLINE Vector<n> positivize(Vector<n> v) {
 
 Reals normalize_vectors(Reals vs, Int dim);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

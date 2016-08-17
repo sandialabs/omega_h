@@ -1,11 +1,11 @@
 #ifndef ATOMICS_HPP
 #define ATOMICS_HPP
 
-namespace osh {
+namespace Omega_h {
 
 template <class T>
 INLINE void atomic_increment(volatile T* const dest) {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   return Kokkos::atomic_increment(dest);
 #else
   ++(*dest);
@@ -14,7 +14,7 @@ INLINE void atomic_increment(volatile T* const dest) {
 
 template <class T>
 INLINE void atomic_add(volatile T* const dest, const T val) {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   return Kokkos::atomic_add(dest, val);
 #else
   *dest += val;
@@ -23,7 +23,7 @@ INLINE void atomic_add(volatile T* const dest, const T val) {
 
 template <class T>
 INLINE T atomic_fetch_add(volatile T* const dest, const T val) {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   return Kokkos::atomic_fetch_add(dest, val);
 #else
   T tmp = *dest;
@@ -32,6 +32,6 @@ INLINE T atomic_fetch_add(volatile T* const dest, const T val) {
 #endif
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

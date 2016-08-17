@@ -4,7 +4,7 @@
 #include "simplices.hpp"
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void unmap_tags(
     Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, LOs new_ents2old_ents) {
@@ -78,4 +78,4 @@ void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_ents2old_ents[]) {
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -1,9 +1,9 @@
-#ifndef SMB2OSH_HPP
-#define SMB2OSH_HPP
+#ifndef SMB2OMEGA_H_HPP
+#define SMB2OMEGA_H_HPP
 
 #include "internal.hpp"
 
-OSH_SYSTEM_HEADER
+OMEGA_H_SYSTEM_HEADER
 
 #include <PCU.h>
 #include <apf.h>

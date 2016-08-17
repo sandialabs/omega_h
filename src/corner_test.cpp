@@ -4,7 +4,7 @@
 #include "loop.hpp"
 #include "refine.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);
+  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_LINEAR_INTERP);
   vtk::FullWriter writer(&mesh, "out");
   do {
     Write<Real> size(mesh.nverts());

@@ -1,6 +1,6 @@
 #include "all.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 template <Int m, Int n>
 static void test_qr_decomp(Matrix<m, n> a) {
@@ -461,7 +461,7 @@ static void test_file_components() {
   std::stringstream stream;
   std::string s = "foo";
   LO n = 10;
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   bool is_compressed = true;
 #else
   bool is_compressed = false;
@@ -571,7 +571,7 @@ static void test_refine_qualities(Library const& lib) {
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(
       quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));
-  mesh.add_tag(VERT, "metric", symm_dofs(2), OSH_METRIC,
+  mesh.add_tag(VERT, "metric", symm_dofs(2), OMEGA_H_METRIC,
       repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
   auto quals2 = refine_qualities(&mesh, candidates);
   CHECK(are_close(quals2, quals));
@@ -592,7 +592,7 @@ static void test_compare_meshes(Library const& lib) {
   Mesh b = a;
   b.reorder();
   CHECK(a == b);
-  b.add_tag<I8>(VERT, "foo", 1, OSH_DONT_TRANSFER, Read<I8>(b.nverts(), 1));
+  b.add_tag<I8>(VERT, "foo", 1, OMEGA_H_DONT_TRANSFER, Read<I8>(b.nverts(), 1));
   CHECK(!(a == b));
 }
 
@@ -687,7 +687,7 @@ static void test_read_vtu(Mesh* mesh0) {
   vtk::write_vtu(stream, mesh0, mesh0->dim());
   Mesh mesh1;
   vtk::read_vtu(stream, mesh0->comm(), &mesh1);
-  CHECK(OSH_SAME == compare_meshes(mesh0, &mesh1, 0.0, 0.0, true, false));
+  CHECK(OMEGA_H_SAME == compare_meshes(mesh0, &mesh1, 0.0, 0.0, true, false));
 }
 
 static void test_read_vtu(Library const& lib) {
@@ -728,7 +728,7 @@ static void test_recover_hessians_dim(Library const& lib) {
   Mesh mesh;
   Int one_if_3d = ((dim == 3) ? 1 : 0);
   build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
-  classify_by_angles(&mesh, osh::PI / 4);
+  classify_by_angles(&mesh, Omega_h::PI / 4);
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
   // attach a field = x^2 + y^2 (+ z^2)
@@ -737,8 +737,8 @@ static void test_recover_hessians_dim(Library const& lib) {
     u_w[v] = norm_squared(x);
   };
   parallel_for(mesh.nverts(), f);
-  auto u = osh::Reals(u_w);
-  mesh.add_tag(osh::VERT, "u", 1, OSH_DONT_TRANSFER, u);
+  auto u = Omega_h::Reals(u_w);
+  mesh.add_tag(Omega_h::VERT, "u", 1, OMEGA_H_DONT_TRANSFER, u);
   auto hess = recover_hessians(&mesh, u);
   // its second derivative is exactly 2dx + 2dy,
   // and both recovery steps are linear so the current
@@ -759,17 +759,17 @@ static void test_sf_scale_dim(Library const& lib) {
   Mesh mesh;
   Int one_if_3d = ((dim == 3) ? 1 : 0);
   build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
-  classify_by_angles(&mesh, osh::PI / 4);
+  classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   {
-    auto size = osh::find_identity_size(&mesh);
+    auto size = Omega_h::find_identity_size(&mesh);
     auto elems_per_elem = expected_elems_per_elem_iso(&mesh, size);
     auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
     auto size_scal = target_nelems / elems;
     CHECK(are_close(size_scal, 1.));
   }
   {
-    auto metric = osh::find_identity_metric(&mesh);
+    auto metric = Omega_h::find_identity_metric(&mesh);
     auto elems_per_elem = expected_elems_per_elem_metric(&mesh, metric);
     auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
     auto size_scal = target_nelems / elems;

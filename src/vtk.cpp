@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
 #endif
 
@@ -13,7 +13,7 @@
 #include "tag.hpp"
 #include "xml.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace vtk {
 
@@ -103,7 +103,7 @@ void describe_array(std::ostream& stream, std::string const& name, Int ncomps) {
   stream << " format=\"binary\"";
 }
 
-bool read_array_start_tag(std::istream& stream, osh_type* type_out,
+bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     std::string* name_out, Int* ncomps_out) {
   auto st = xml::read_tag(stream);
   if (st.elem_name != "DataArray" || st.type != xml::Tag::START) {
@@ -112,13 +112,13 @@ bool read_array_start_tag(std::istream& stream, osh_type* type_out,
   }
   auto type_name = st.attribs["type"];
   if (type_name == "Int8")
-    *type_out = OSH_I8;
+    *type_out = OMEGA_H_I8;
   else if (type_name == "Int32")
-    *type_out = OSH_I32;
+    *type_out = OMEGA_H_I32;
   else if (type_name == "Int64")
-    *type_out = OSH_I64;
+    *type_out = OMEGA_H_I64;
   else if (type_name == "Float64")
-    *type_out = OSH_F64;
+    *type_out = OMEGA_H_F64;
   *name_out = st.attribs["Name"];
   *ncomps_out = std::stoi(st.attribs["NumberOfComponents"]);
   CHECK(st.attribs["format"] == "binary");
@@ -129,7 +129,7 @@ template <typename T>
 void write_array(
     std::ostream& stream, std::string const& name, Int ncomps, Read<T> array) {
   if (!(array.exists())) {
-    osh_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
+    Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
   stream << "<DataArray ";
   describe_array<T>(stream, name, ncomps);
@@ -137,7 +137,7 @@ void write_array(
   HostRead<T> uncompressed(array);
   std::size_t uncompressed_bytes =
       sizeof(T) * static_cast<std::size_t>(array.size());
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   uLong source_bytes = uncompressed_bytes;
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new Bytef[dest_bytes];
@@ -165,7 +165,7 @@ Read<T> read_array(
   auto enc_both = base64::read_encoded(stream);
   std::size_t uncompressed_bytes, compressed_bytes;
   std::string encoded;
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
     std::size_t header[4];
     auto nheader_chars = base64::encoded_size(sizeof(header));
@@ -191,7 +191,7 @@ Read<T> read_array(
   }
   CHECK(uncompressed_bytes == std::size_t(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
     auto compressed = new Bytef[compressed_bytes];
     base64::decode(encoded, compressed, compressed_bytes);
@@ -201,7 +201,8 @@ Read<T> read_array(
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     if (ret != Z_OK) {
-      osh_fail("code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
+      Omega_h_fail(
+          "code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
     }
     CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete[] compressed;
@@ -234,13 +235,13 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
       write_array(stream, tag->name(), tag->ncomps(), array);
     }
   } else {
-    osh_fail("unknown tag type in write_tag");
+    Omega_h_fail("unknown tag type in write_tag");
   }
 }
 
 bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     bool is_little_endian, bool is_compressed) {
-  osh_type type = OSH_I8;
+  Omega_h_Type type = OMEGA_H_I8;
   std::string name;
   Int ncomps = -1;
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
@@ -251,19 +252,19 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
      so we can just remove them if they are going to be reset. */
   if (mesh->has_tag(ent_dim, name)) mesh->remove_tag(ent_dim, name);
   auto size = mesh->nents(ent_dim) * ncomps;
-  if (type == OSH_I8) {
+  if (type == OMEGA_H_I8) {
     auto array = read_array<I8>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
-  } else if (type == OSH_I32) {
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, array);
+  } else if (type == OMEGA_H_I32) {
     auto array = read_array<I32>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
-  } else if (type == OSH_I64) {
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, array);
+  } else if (type == OMEGA_H_I64) {
     auto array = read_array<I64>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, array);
   } else {
     auto array =
         read_array<Real>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(ent_dim, name, ncomps, OSH_DONT_TRANSFER, array);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, array);
   }
   auto et = xml::read_tag(stream);
   CHECK(et.elem_name == "DataArray");
@@ -317,7 +318,7 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
   stream << "\" header_type=\"";
   stream << Traits<std::size_t>::name();
   stream << "\"";
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   stream << " compressor=\"vtkZLibDataCompressor\"";
 #endif
   stream << ">\n";
@@ -368,7 +369,7 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
     if (type == VTK_TRIANGLE) dim = 2;
     if (type == VTK_TETRA) dim = 3;
   }
-  dim = comm->allreduce(dim, OSH_MAX);
+  dim = comm->allreduce(dim, OMEGA_H_MAX);
   CHECK(dim == 2 || dim == 3);
   *dim_out = dim;
   auto ev2v = read_known_array<LO>(stream, "connectivity", ncells * (dim + 1),
@@ -409,27 +410,27 @@ void write_p_data_array(
   stream << "/>\n";
 }
 
-void write_p_data_array2(
-    std::ostream& stream, std::string const& name, Int ncomps, Int osh_type) {
-  switch (osh_type) {
-    case OSH_I8:
+void write_p_data_array2(std::ostream& stream, std::string const& name,
+    Int ncomps, Int Omega_h_Type) {
+  switch (Omega_h_Type) {
+    case OMEGA_H_I8:
       write_p_data_array<I8>(stream, name, ncomps);
       break;
-    case OSH_I32:
+    case OMEGA_H_I32:
       write_p_data_array<I32>(stream, name, ncomps);
       break;
-    case OSH_I64:
+    case OMEGA_H_I64:
       write_p_data_array<I64>(stream, name, ncomps);
       break;
-    case OSH_F64:
+    case OMEGA_H_F64:
       write_p_data_array<Real>(stream, name, ncomps);
       break;
   }
 }
 
 void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
-  if (tag->type() == OSH_F64 && tag->ncomps() == space_dim)
-    write_p_data_array2(stream, tag->name(), 3, OSH_F64);
+  if (tag->type() == OMEGA_H_F64 && tag->ncomps() == space_dim)
+    write_p_data_array2(stream, tag->name(), 3, OMEGA_H_F64);
   else
     write_p_data_array2(stream, tag->name(), tag->ncomps(), tag->type());
 }
@@ -516,7 +517,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
   build_from_elems2verts(mesh, comm, dim, ev2v, vert_globals);
-  mesh->add_tag(VERT, "coordinates", dim, OSH_LINEAR_INTERP, coords);
+  mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP, coords);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
     ;
   CHECK(xml::read_tag(stream).elem_name == "CellData");
@@ -542,12 +543,12 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   write_p_data_array<Real>(stream, "coordinates", 3);
   stream << "</PPoints>\n";
   stream << "<PPointData>\n";
-  write_p_data_array2(stream, "local", 1, OSH_I32);
+  write_p_data_array2(stream, "local", 1, OMEGA_H_I32);
   if (mesh->comm()->size() > 1) {
-    write_p_data_array2(stream, "owner", 1, OSH_I32);
+    write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
   }
   if (mesh->has_tag(VERT, "global")) {
-    write_p_data_array2(stream, "global", 1, OSH_I64);
+    write_p_data_array2(stream, "global", 1, OMEGA_H_I64);
   }
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tag = mesh->get_tag(VERT, i);
@@ -557,9 +558,9 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   }
   stream << "</PPointData>\n";
   stream << "<PCellData>\n";
-  write_p_data_array2(stream, "local", 1, OSH_I32);
+  write_p_data_array2(stream, "local", 1, OMEGA_H_I32);
   if (mesh->comm()->size() > 1)
-    write_p_data_array2(stream, "owner", 1, OSH_I32);
+    write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     write_p_tag(stream, mesh->get_tag(cell_dim, i), mesh->dim());
   }
@@ -604,7 +605,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
   std::string vtupath;
   std::ifstream stream(pvtupath.c_str());
   if (!stream.is_open()) {
-    osh_fail("couldn't open \"%s\"\n", pvtupath.c_str());
+    Omega_h_fail("couldn't open \"%s\"\n", pvtupath.c_str());
   }
   read_pvtu(stream, comm, &npieces, &vtupath);
   vtupath = parentpath + "/" + vtupath;
@@ -761,4 +762,4 @@ void FullWriter::write() {
 
 }  // end namespace vtk
 
-}  // end namespace osh
+}  // end namespace Omega_h

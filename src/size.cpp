@@ -6,7 +6,7 @@
 #include "project.hpp"
 #include "quality.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename EdgeLengths>
 static Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
@@ -49,7 +49,7 @@ Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
       return measure_edges_tmpl<MetricEdgeLengths<2>>(mesh, a2e);
     }
   }
-  osh_fail("measure_edges(): no size field exists!\n");
+  Omega_h_fail("measure_edges(): no size field exists!\n");
   NORETURN(Reals());
 }
 
@@ -290,4 +290,4 @@ Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   return multiply_each_by(m_scal, v2m);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

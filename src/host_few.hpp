@@ -3,9 +3,9 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
-/* this class is different from osh::Few<T,n>
+/* this class is different from Omega_h::Few<T,n>
  * because it avoids dealing with volatile
  * operations, thus saving its members from having
  * to implement them. */
@@ -24,6 +24,6 @@ class HostFew {
   }
 };
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

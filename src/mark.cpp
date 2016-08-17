@@ -5,7 +5,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Read<I8> mark_exposed_sides(Mesh* mesh) {
   auto ns = mesh->nents(mesh->dim() - 1);
@@ -30,7 +30,7 @@ Read<I8> mark_down(
   parallel_for(nl, f);
   auto low_marks = Read<I8>(low_marks_w);
   if (!mesh->owners_have_all_upward(low_dim)) {
-    low_marks = mesh->reduce_array(low_dim, low_marks, 1, OSH_MAX);
+    low_marks = mesh->reduce_array(low_dim, low_marks, 1, OMEGA_H_MAX);
   }
   low_marks = mesh->sync_array(low_dim, low_marks, 1);
   return low_marks;
@@ -85,10 +85,10 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
 }
 
 Read<I8> mark_dual_layers(Mesh* mesh, Read<I8> marks, Int nlayers) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto dual = mesh->ask_dual();
   for (Int i = 0; i < nlayers; ++i) {
-    marks = graph_reduce(dual, marks, 1, OSH_MAX);
+    marks = graph_reduce(dual, marks, 1, OMEGA_H_MAX);
     marks = mesh->sync_array(mesh->dim(), marks, 1);
   }
   return marks;
@@ -98,14 +98,14 @@ GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks) {
   if (mesh->could_be_shared(ent_dim)) {
     marks = land_each(marks, mesh->owned(ent_dim));
   }
-  return mesh->comm()->allreduce(GO(sum(marks)), OSH_SUM);
+  return mesh->comm()->allreduce(GO(sum(marks)), OMEGA_H_SUM);
 }
 
 Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto quals = mesh->ask_qualities();
   auto elems_are_slivers = each_lt(quals, qual_ceil);
   return mark_dual_layers(mesh, elems_are_slivers, nlayers);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

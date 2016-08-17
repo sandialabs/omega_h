@@ -4,7 +4,7 @@
 #include "polynomial.hpp"
 #include "space.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
 INLINE void characteristic_cubic(Matrix<3, 3> A, Real& a, Real& b, Real& c) {
@@ -170,6 +170,6 @@ INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

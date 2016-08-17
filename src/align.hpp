@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* a six-bit code describes the alignment relationship
    between a simplex and a lower-dimensional simplex
@@ -198,6 +198,6 @@ INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

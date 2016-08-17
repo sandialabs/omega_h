@@ -5,7 +5,7 @@
 #include "map.hpp"
 #include "scan.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Graph add_edges(Graph g1, Graph g2) {
   auto v2e1 = g1.a2ab;
@@ -78,7 +78,7 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
 }
 
 template <typename T>
-Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, osh_op op) {
+Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   auto a2ab = a2b.a2ab;
   auto ab2b = a2b.ab2b;
   auto ab_data = unmap(ab2b, b_data, width);
@@ -92,9 +92,9 @@ Reals graph_weighted_average_arc_data(
   auto nab = a2ab.last();
   CHECK(ab_weights.size() == nab);
   CHECK(ab_data.size() % width == 0);
-  auto total_weights = fan_reduce(a2ab, ab_weights, 1, OSH_SUM);
+  auto total_weights = fan_reduce(a2ab, ab_weights, 1, OMEGA_H_SUM);
   auto weighted_ab_data = multiply_each(ab_data, ab_weights);
-  auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, OSH_SUM);
+  auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, OMEGA_H_SUM);
   return divide_each(weighted_sums, total_weights);
 }
 
@@ -105,10 +105,10 @@ Reals graph_weighted_average(
   return graph_weighted_average_arc_data(a2b, ab_weights, ab_data, width);
 }
 
-#define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
+#define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);
 INST(I8)
 INST(I32)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

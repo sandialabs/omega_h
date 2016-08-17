@@ -8,7 +8,7 @@
 #include "swap.hpp"
 #include "transfer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static bool swap3d_ghosted(Mesh* mesh) {
   auto comm = mesh->comm();
@@ -29,8 +29,8 @@ static bool swap3d_ghosted(Mesh* mesh) {
   edges_are_cands = mark_image(cands2edges, mesh->nedges());
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
-  mesh->add_tag(EDGE, "key", 1, OSH_DONT_TRANSFER, edges_are_keys);
-  mesh->add_tag(EDGE, "config", 1, OSH_DONT_TRANSFER, edge_configs);
+  mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER, edges_are_keys);
+  mesh->add_tag(EDGE, "config", 1, OMEGA_H_DONT_TRANSFER, edge_configs);
   auto keys2edges = collect_marked(edges_are_keys);
   set_owners_by_indset(mesh, EDGE, keys2edges);
   return true;
@@ -45,7 +45,7 @@ static void swap3d_element_based(Mesh* mesh, bool verbose) {
   auto keys2edges = collect_marked(edges_are_keys);
   if (verbose) {
     auto nkeys = keys2edges.size();
-    auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
+    auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
     if (comm->rank() == 0) {
       std::cout << "swapping " << ntotal_keys << " 3D edges\n";
     }
@@ -76,9 +76,9 @@ static void swap3d_element_based(Mesh* mesh, bool verbose) {
 bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
   if (!swap3d_ghosted(mesh)) return false;
-  mesh->set_parting(OSH_ELEM_BASED);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
   swap3d_element_based(mesh, verbose);
   return true;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

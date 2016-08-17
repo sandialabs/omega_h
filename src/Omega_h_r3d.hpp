@@ -21,9 +21,9 @@
  * ----
  */
 
-#include "omega_h_math.hpp"
+#include "Omega_h_math.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace r3d {
 
@@ -66,7 +66,8 @@ struct Polytope {
 };
 
 template <Int dim>
-OSH_INLINE Vector<dim> wav(Vector<dim> va, Real wa, Vector<dim> vb, Real wb) {
+OMEGA_H_INLINE Vector<dim> wav(
+    Vector<dim> va, Real wa, Vector<dim> vb, Real wb) {
   Vector<dim> vr;
   for (Int i = 0; i < dim; ++i) vr[i] = (wa * va[i] + wb * vb[i]) / (wa + wb);
   return vr;
@@ -81,7 +82,8 @@ struct ClipHelper;
 
 template <>
 struct ClipHelper<3> {
-  OSH_INLINE static void relink(Int onv, Int* nverts, Vertex<3>* vertbuffer) {
+  OMEGA_H_INLINE static void relink(
+      Int onv, Int* nverts, Vertex<3>* vertbuffer) {
     for (auto vstart = onv; vstart < *nverts; ++vstart) {
       auto vcur = vstart;
       auto vnext = vertbuffer[vcur].pnbrs[0];
@@ -97,7 +99,7 @@ struct ClipHelper<3> {
       vertbuffer[vcur].pnbrs[1] = vstart;
     }
   }
-  OSH_INLINE static void links_at_nverts(
+  OMEGA_H_INLINE static void links_at_nverts(
       Int* nverts, Vertex<3>* vertbuffer, Int vcur, Int np) {
     (void)np;
     vertbuffer[*nverts].pnbrs[0] = vcur;
@@ -106,7 +108,8 @@ struct ClipHelper<3> {
 
 template <>
 struct ClipHelper<2> {
-  OSH_INLINE static void relink(Int onv, Int* nverts, Vertex<2>* vertbuffer) {
+  OMEGA_H_INLINE static void relink(
+      Int onv, Int* nverts, Vertex<2>* vertbuffer) {
     for (auto vstart = onv; vstart < *nverts; ++vstart) {
       if (vertbuffer[vstart].pnbrs[1] >= 0) continue;
       auto vcur = vertbuffer[vstart].pnbrs[0];
@@ -117,7 +120,7 @@ struct ClipHelper<2> {
       vertbuffer[vcur].pnbrs[0] = vstart;
     }
   }
-  OSH_INLINE static void links_at_nverts(
+  OMEGA_H_INLINE static void links_at_nverts(
       Int* nverts, Vertex<2>* vertbuffer, Int vcur, Int np) {
     vertbuffer[*nverts].pnbrs[1 - np] = vcur;
     vertbuffer[*nverts].pnbrs[np] = -1;
@@ -139,7 +142,7 @@ struct ClipHelper<2> {
  *
  */
 template <Int dim>
-OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
+OMEGA_H_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
   Int* nverts = &poly->nverts;
   if (*nverts <= 0) return;
 
@@ -211,7 +214,7 @@ OSH_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
 }
 
 template <Int dim, Int nplanes>
-OSH_INLINE Polytope<dim> clip(
+OMEGA_H_INLINE Polytope<dim> clip(
     Polytope<dim> poly, Few<Plane<dim>, nplanes> planes) {
   clip(&poly, planes.data(), nplanes);
   return poly;
@@ -227,7 +230,7 @@ OSH_INLINE Polytope<dim> clip(
  * An array of four vectors, giving the vertices of the tetrahedron.
  *
  */
-OSH_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
+OMEGA_H_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
   Polytope<3> poly;
   // direct access to vertex buffer
   Vertex<3>* vertbuffer = poly.verts;
@@ -265,7 +268,7 @@ OSH_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
  * counterclockwise order.
  *
  */
-OSH_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
+OMEGA_H_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
   constexpr Int numverts = 3;
   Polytope<2> poly;
   // direct access to vertex buffer
@@ -282,11 +285,12 @@ OSH_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
 }
 
 template <Int dim>
-OSH_INLINE void norm(Vector<dim>& v) {
-  v = osh::normalize(v);
+OMEGA_H_INLINE void norm(Vector<dim>& v) {
+  v = Omega_h::normalize(v);
 }
 
-OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
+OMEGA_H_INLINE Plane<3> tet_face_from_verts(
+    Vector<3> a, Vector<3> b, Vector<3> c) {
   auto center = ONE_THIRD * (a + b + c);
   auto normal = normalize(cross((b - a), (c - a)));
   auto d = -(normal * center);
@@ -304,7 +308,7 @@ OSH_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
  * Array of four vectors defining the vertices of the tetrahedron.
  *
  */
-OSH_INLINE Few<Plane<3>, 4> faces_from_verts(Few<Vector<3>, 4> verts) {
+OMEGA_H_INLINE Few<Plane<3>, 4> faces_from_verts(Few<Vector<3>, 4> verts) {
   Few<Plane<3>, 4> faces;
   faces[0] = tet_face_from_verts(verts[3], verts[2], verts[1]);
   faces[1] = tet_face_from_verts(verts[0], verts[2], verts[3]);
@@ -325,7 +329,7 @@ OSH_INLINE Few<Plane<3>, 4> faces_from_verts(Few<Vector<3>, 4> verts) {
  * counterclockwise order.
  *
  */
-OSH_INLINE Few<Plane<2>, 3> faces_from_verts(Few<Vector<2>, 3> vertices) {
+OMEGA_H_INLINE Few<Plane<2>, 3> faces_from_verts(Few<Vector<2>, 3> vertices) {
   constexpr Int numverts = 3;
   Int f;
   Vector<2> p0, p1;
@@ -344,11 +348,11 @@ OSH_INLINE Few<Plane<2>, 3> faces_from_verts(Few<Vector<2>, 3> vertices) {
   return faces;
 }
 
-OSH_INLINE constexpr Int num_moments_3d(Int order) {
+OMEGA_H_INLINE constexpr Int num_moments_3d(Int order) {
   return ((order + 1) * (order + 2) * (order + 3) / 6);
 }
 
-OSH_INLINE constexpr Int num_moments_2d(Int order) {
+OMEGA_H_INLINE constexpr Int num_moments_2d(Int order) {
   return ((order + 1) * (order + 2) / 2);
 }
 
@@ -390,7 +394,7 @@ struct NumMoments<2, order> {
  */
 
 template <Int polyorder>
-OSH_INLINE void reduce(Polytope<3>* poly, Real* moments) {
+OMEGA_H_INLINE void reduce(Polytope<3>* poly, Real* moments) {
   Int* nverts = &poly->nverts;
   if (*nverts <= 0) return;
 
@@ -541,7 +545,7 @@ OSH_INLINE void reduce(Polytope<3>* poly, Real* moments) {
  *
  */
 template <Int polyorder>
-OSH_INLINE void reduce(Polytope<2>* poly, Real* moments) {
+OMEGA_H_INLINE void reduce(Polytope<2>* poly, Real* moments) {
   Int* nverts = &poly->nverts;
   if (*nverts <= 0) return;
 
@@ -623,7 +627,7 @@ struct Polynomial {
 };
 
 template <Int dim, Int order>
-OSH_INLINE Real integrate(
+OMEGA_H_INLINE Real integrate(
     Polytope<dim> polytope, Polynomial<dim, order> polynomial) {
   Real moments[decltype(polynomial)::nterms] = {};
   reduce<order>(&polytope, moments);
@@ -634,12 +638,12 @@ OSH_INLINE Real integrate(
 }
 
 template <Int dim>
-OSH_INLINE Real measure(Polytope<dim> polytope) {
+OMEGA_H_INLINE Real measure(Polytope<dim> polytope) {
   return integrate(polytope, Polynomial<dim, 0>{{1}});
 }
 
 template <Int dim>
-OSH_INLINE Polytope<dim> intersect_simplices(
+OMEGA_H_INLINE Polytope<dim> intersect_simplices(
     Few<Vector<dim>, dim + 1> verts0, Few<Vector<dim>, dim + 1> verts1) {
   auto poly0 = init(verts0);
   auto faces1 = faces_from_verts(verts1);
@@ -648,6 +652,6 @@ OSH_INLINE Polytope<dim> intersect_simplices(
 
 }  // end namespace r3d
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

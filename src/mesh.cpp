@@ -17,17 +17,17 @@
 #include "size.hpp"
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Mesh::Mesh() : dim_(-1), parting_(-1) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
-  parting_ = OSH_ELEM_BASED;
+  parting_ = OMEGA_H_ELEM_BASED;
   keeps_canonical_globals_ = true;
 }
 
 void Mesh::set_comm(CommPtr const& new_comm) {
   auto rank_had_comm = bool(comm_);
-  auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), OSH_SUM);
+  auto nnew_had_comm = new_comm->allreduce(I32(rank_had_comm), OMEGA_H_SUM);
   if (0 < nnew_had_comm && nnew_had_comm < new_comm->size()) {
     // partitioning out from small sub-communicator to larger one
     if (!rank_had_comm) {
@@ -102,17 +102,17 @@ LO Mesh::nverts() const { return nents(VERT); }
 
 GO Mesh::nglobal_ents(Int dim) {
   if (!could_be_shared(dim)) {
-    return comm_->allreduce(GO(nents(dim)), OSH_SUM);
+    return comm_->allreduce(GO(nents(dim)), OMEGA_H_SUM);
   }
   auto nowned = sum(this->owned(dim));
-  return comm_->allreduce(GO(nowned), OSH_SUM);
+  return comm_->allreduce(GO(nowned), OMEGA_H_SUM);
 }
 
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
-    osh_fail(
+    Omega_h_fail(
         "omega_h: add_tag(): \"%s\" already exists. use set_tag or "
         "remove_tag\n",
         name.c_str());
@@ -133,7 +133,7 @@ void Mesh::add_tag(
 template <typename T>
 void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   if (!has_tag(dim, name)) {
-    osh_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
+    Omega_h_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
         plural_names[dim], name.c_str());
   }
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
@@ -165,7 +165,7 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
-    osh_fail(
+    Omega_h_fail(
         "get_tagbase(%s,%s): doesn't exist\n", plural_names[dim], name.c_str());
   }
   return tag_iter(dim, name)->get();
@@ -327,7 +327,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
       return g;
     }
   }
-  osh_fail("can't derive adjacency from %s to %s\n", plural_names[from],
+  Omega_h_fail("can't derive adjacency from %s to %s\n", plural_names[from],
       plural_names[to]);
   NORETURN(Adj());
 }
@@ -344,7 +344,7 @@ Adj Mesh::ask_adj(Int from, Int to) {
 }
 
 void Mesh::add_coords(Reals array) {
-  add_tag<Real>(0, "coordinates", dim(), OSH_LINEAR_INTERP, array);
+  add_tag<Real>(0, "coordinates", dim(), OMEGA_H_LINEAR_INTERP, array);
 }
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
@@ -357,7 +357,7 @@ void Mesh::set_coords(Reals const& array) {
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
     CHECK(comm_->size() == 1);
-    add_tag(dim, "global", 1, OSH_GLOBAL, Read<GO>(nents(dim), 0, 1));
+    add_tag(dim, "global", 1, OMEGA_H_GLOBAL, Read<GO>(nents(dim), 0, 1));
   }
   return get_array<GO>(dim, "global");
 }
@@ -373,7 +373,7 @@ void Mesh::reset_globals() {
 Reals Mesh::ask_lengths() {
   if (!has_tag(EDGE, "length")) {
     auto lengths = measure_edges_metric(this);
-    add_tag(EDGE, "length", 1, OSH_LENGTH, lengths);
+    add_tag(EDGE, "length", 1, OMEGA_H_LENGTH, lengths);
   }
   return get_array<Real>(EDGE, "length");
 }
@@ -381,7 +381,7 @@ Reals Mesh::ask_lengths() {
 Reals Mesh::ask_qualities() {
   if (!has_tag(dim(), "quality")) {
     auto qualities = measure_qualities(this);
-    add_tag(dim(), "quality", 1, OSH_QUALITY, qualities);
+    add_tag(dim(), "quality", 1, OMEGA_H_QUALITY, qualities);
   }
   return get_array<Real>(dim(), "quality");
 }
@@ -418,12 +418,12 @@ Dist Mesh::ask_dist(Int dim) {
   return *(dists_[dim]);
 }
 
-osh_parting Mesh::parting() const {
+Omega_h_Parting Mesh::parting() const {
   CHECK(parting_ != -1);
-  return osh_parting(parting_);
+  return Omega_h_Parting(parting_);
 }
 
-void Mesh::set_parting(osh_parting parting, bool verbose) {
+void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
   if ((parting_ == -1) || (comm_->size() == 1)) {
     parting_ = parting;
     return;
@@ -431,13 +431,13 @@ void Mesh::set_parting(osh_parting parting, bool verbose) {
   if (parting_ == parting) {
     return;
   }
-  if (parting_ != OSH_ELEM_BASED) {
+  if (parting_ != OMEGA_H_ELEM_BASED) {
     partition_by_elems(this, verbose);
-    parting_ = OSH_ELEM_BASED;
+    parting_ = OMEGA_H_ELEM_BASED;
   }
-  if (parting == OSH_GHOSTED) {
+  if (parting == OMEGA_H_GHOSTED) {
     ghost_mesh(this, verbose);
-  } else if (parting == OSH_VERT_BASED) {
+  } else if (parting == OMEGA_H_VERT_BASED) {
     partition_by_verts(this, verbose);
   }
   parting_ = parting;
@@ -451,7 +451,7 @@ void Mesh::reorder() { reorder_by_hilbert(this); }
 
 void Mesh::balance() {
   if (comm_->size() == 1) return;
-  set_parting(OSH_ELEM_BASED);
+  set_parting(OMEGA_H_ELEM_BASED);
   inertia::Rib hints;
   if (rib_hints_) hints = *rib_hints_;
   auto ecoords =
@@ -459,7 +459,7 @@ void Mesh::balance() {
   if (dim() == 2) ecoords = vectors_2d_to_3d(ecoords);
   auto masses = Reals(nelems(), 1);
   auto owners = ask_owners(dim());
-  auto total = comm_->allreduce(GO(nelems()), OSH_SUM);
+  auto total = comm_->allreduce(GO(nelems()), OMEGA_H_SUM);
   auto avg = Real(total) / Real(comm_->size());
   hints = recursively_bisect(comm(), ecoords, masses, owners, 2.0 / avg, hints);
   rib_hints_ = std::make_shared<inertia::Rib>(hints);
@@ -495,7 +495,7 @@ Read<T> Mesh::sync_subset_array(
 }
 
 template <typename T>
-Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op) {
+Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, Omega_h_Op op) {
   if (!could_be_shared(ent_dim)) return a;
   return ask_dist(ent_dim).exch_reduce(a, width, op);
 }
@@ -503,22 +503,22 @@ Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op) {
 void Mesh::sync_tag(Int dim, std::string const& name) {
   auto tagbase = get_tagbase(dim, name);
   switch (tagbase->type()) {
-    case OSH_I8: {
+    case OMEGA_H_I8: {
       auto out = sync_array(dim, to<I8>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
     }
-    case OSH_I32: {
+    case OMEGA_H_I32: {
       auto out = sync_array(dim, to<I32>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
     }
-    case OSH_I64: {
+    case OMEGA_H_I64: {
       auto out = sync_array(dim, to<I64>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
     }
-    case OSH_F64: {
+    case OMEGA_H_F64: {
       auto out = sync_array(dim, to<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
@@ -526,28 +526,28 @@ void Mesh::sync_tag(Int dim, std::string const& name) {
   }
 }
 
-void Mesh::reduce_tag(Int dim, std::string const& name, osh_op op) {
+void Mesh::reduce_tag(Int dim, std::string const& name, Omega_h_Op op) {
   auto tagbase = get_tagbase(dim, name);
   switch (tagbase->type()) {
-    case OSH_I8: {
+    case OMEGA_H_I8: {
       auto out =
           reduce_array(dim, to<I8>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
       break;
     }
-    case OSH_I32: {
+    case OMEGA_H_I32: {
       auto out =
           reduce_array(dim, to<I32>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
       break;
     }
-    case OSH_I64: {
+    case OMEGA_H_I64: {
       auto out =
           reduce_array(dim, to<I64>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
       break;
     }
-    case OSH_F64: {
+    case OMEGA_H_F64: {
       auto out =
           reduce_array(dim, to<Real>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
@@ -557,21 +557,21 @@ void Mesh::reduce_tag(Int dim, std::string const& name, osh_op op) {
 }
 
 bool Mesh::operator==(Mesh& other) {
-  return OSH_SAME == compare_meshes(this, &other, 0.0, 0.0, false);
+  return OMEGA_H_SAME == compare_meshes(this, &other, 0.0, 0.0, false);
 }
 
 Real Mesh::min_quality() {
-  return comm_->allreduce(min(ask_qualities()), OSH_MIN);
+  return comm_->allreduce(min(ask_qualities()), OMEGA_H_MIN);
 }
 
 bool Mesh::could_be_shared(Int ent_dim) const {
-  return !(
-      (comm_->size() == 1) || (parting_ == OSH_ELEM_BASED && ent_dim == dim()));
+  return !((comm_->size() == 1) ||
+           (parting_ == OMEGA_H_ELEM_BASED && ent_dim == dim()));
 }
 
 bool Mesh::owners_have_all_upward(Int ent_dim) const {
-  return ((comm_->size() == 1) || (parting_ == OSH_GHOSTED) ||
-          (parting_ == OSH_VERT_BASED && ent_dim == VERT));
+  return ((comm_->size() == 1) || (parting_ == OMEGA_H_GHOSTED) ||
+          (parting_ == OMEGA_H_VERT_BASED && ent_dim == VERT));
 }
 
 Mesh Mesh::copy_meta() const {
@@ -602,11 +602,11 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
   template Read<T> Mesh::sync_subset_array(                                    \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   template Read<T> Mesh::reduce_array(                                         \
-      Int ent_dim, Read<T> a, Int width, osh_op op);
+      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-}  // end namespace osh
+}  // end namespace Omega_h

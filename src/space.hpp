@@ -3,7 +3,7 @@
 
 #include "algebra.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
   Matrix<2, 2> o;
@@ -93,6 +93,6 @@ INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   return A;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

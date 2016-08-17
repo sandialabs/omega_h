@@ -7,7 +7,7 @@
 #include "loop.hpp"
 #include "map.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename ElementQualities, Int dim>
 Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
@@ -63,7 +63,7 @@ QualityHistogram get_quality_histogram(Mesh* mesh) {
     auto marked = land_each(
         each_geq_to(owned_qualities, floor), each_lt(owned_qualities, ceil));
     auto nlocal_marked = sum(marked);
-    auto nglobal_marked = mesh->comm()->allreduce(nlocal_marked, OSH_SUM);
+    auto nglobal_marked = mesh->comm()->allreduce(nlocal_marked, OMEGA_H_SUM);
     histogram[i] = nglobal_marked;
   }
   return histogram;
@@ -84,4 +84,4 @@ void print_quality_histogram(QualityHistogram histogram) {
   std::cout.precision(precision_before);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

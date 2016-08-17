@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /*
    We code our own int128 because we target GPUs and similar
@@ -83,6 +83,6 @@ INLINE bool operator<(Int128 lhs, Int128 rhs) {
   return lhs.low < rhs.low;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

@@ -1,6 +1,6 @@
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 TagBase::TagBase(std::string const& name, Int ncomps, Int xfer)
     : name_(name), ncomps_(ncomps), xfer_(xfer) {}
@@ -49,26 +49,26 @@ struct TagTraits;
 
 template <>
 struct TagTraits<I8> {
-  static osh_type type() { return OSH_I8; }
+  static Omega_h_Type type() { return OMEGA_H_I8; }
 };
 
 template <>
 struct TagTraits<I32> {
-  static osh_type type() { return OSH_I32; }
+  static Omega_h_Type type() { return OMEGA_H_I32; }
 };
 
 template <>
 struct TagTraits<I64> {
-  static osh_type type() { return OSH_I64; }
+  static Omega_h_Type type() { return OMEGA_H_I64; }
 };
 
 template <>
 struct TagTraits<Real> {
-  static osh_type type() { return OSH_F64; }
+  static Omega_h_Type type() { return OMEGA_H_F64; }
 };
 
 template <typename T>
-osh_type Tag<T>::type() const {
+Omega_h_Type Tag<T>::type() const {
   return TagTraits<T>::type();
 }
 
@@ -83,4 +83,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

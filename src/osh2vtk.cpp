@@ -1,13 +1,13 @@
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 #include <cstdlib>
 
 int main(int argc, char** argv) {
-  auto lib = osh::Library(&argc, &argv);
-  OSH_CHECK(argc == 3 || argc == 4);
-  osh::Mesh mesh;
-  osh::binary::read(argv[1], lib.world(), &mesh);
+  auto lib = Omega_h::Library(&argc, &argv);
+  OMEGA_H_CHECK(argc == 3 || argc == 4);
+  Omega_h::Mesh mesh;
+  Omega_h::binary::read(argv[1], lib.world(), &mesh);
   auto dim = mesh.dim();
   if (argc == 4) dim = atoi(argv[2]);
-  osh::vtk::write_parallel(argv[argc - 1], &mesh, dim);
+  Omega_h::vtk::write_parallel(argv[argc - 1], &mesh, dim);
 }

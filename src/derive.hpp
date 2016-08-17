@@ -1,9 +1,9 @@
 #ifndef DERIVE_HPP
 #define DERIVE_HPP
 
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Reals derive_element_gradients(Mesh* mesh, Reals vert_values);
 Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients);

@@ -1,7 +1,7 @@
 #ifndef SWAP3D_TABLES_HPP
 #define SWAP3D_TABLES_HPP
 
-namespace osh {
+namespace Omega_h {
 
 namespace swap3d {
 
@@ -274,6 +274,6 @@ CONSTANT static Int const swap_nint_edges[MAX_EDGE_SWAP + 1] = {
 
 }  // end namespace swap3d
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

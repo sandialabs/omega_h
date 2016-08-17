@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* given a distributed set of items, and a boolean
    for each item indicating which half of the new
@@ -17,6 +17,6 @@ namespace osh {
 
 Dist bi_partition(CommPtr comm, Read<I8> marks);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

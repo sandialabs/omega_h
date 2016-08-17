@@ -3,13 +3,13 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace simplify {
 LOs tris_from_quads(LOs qv2v);
 LOs tets_from_hexes(LOs hv2v);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

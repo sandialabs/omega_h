@@ -6,7 +6,7 @@
 #include "classify.hpp"
 #include "map.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace gmsh {
 
@@ -30,7 +30,7 @@ Int type_dim(Int type) {
     case GMSH_TET:
       return 3;
   }
-  osh_fail("omega_h can only accept linear simplices from Gmsh");
+  Omega_h_fail("omega_h can only accept linear simplices from Gmsh");
   NORETURN(-1);
 }
 
@@ -147,8 +147,8 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
     auto class_dim =
         map_onto(eq_class_dim, eq2e, mesh->nents(ent_dim), I8(-1), 1);
     auto class_id = map_onto(eq_class_id, eq2e, mesh->nents(ent_dim), -1, 1);
-    mesh->add_tag<I8>(ent_dim, "class_dim", 1, OSH_INHERIT, class_dim);
-    mesh->add_tag<LO>(ent_dim, "class_id", 1, OSH_INHERIT, class_id);
+    mesh->add_tag<I8>(ent_dim, "class_dim", 1, OMEGA_H_INHERIT, class_dim);
+    mesh->add_tag<LO>(ent_dim, "class_id", 1, OMEGA_H_INHERIT, class_id);
   }
   project_classification(mesh);
 }
@@ -156,10 +156,10 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
 void read(std::string const& filename, Library const& lib, Mesh* mesh) {
   std::ifstream file(filename.c_str());
   if (!file.is_open()) {
-    osh_fail("couldn't open \"%s\"\n", filename.c_str());
+    Omega_h_fail("couldn't open \"%s\"\n", filename.c_str());
   }
   read(file, lib, mesh);
 }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

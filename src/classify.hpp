@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed);
 void classify_hinges_by_sharpness(
@@ -13,6 +13,6 @@ void classify_vertices_by_sharp_edges(
 void classify_elements(Mesh* mesh);
 void project_classification(Mesh* mesh);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

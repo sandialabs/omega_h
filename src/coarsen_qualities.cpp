@@ -8,7 +8,7 @@
 #include "map.hpp"
 #include "quality.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename Measure, Int dim>
 static Reals coarsen_qualities_tmpl(
@@ -58,7 +58,7 @@ static Reals coarsen_qualities_tmpl(
 }
 
 Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto cand_quals = Reals();
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {
@@ -84,7 +84,7 @@ Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
 void choose_vertex_collapses(Mesh* mesh, LOs cands2edges,
     Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>& verts_are_cands,
     Reals& vert_quals) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto edges2cands = invert_injective_map(cands2edges, mesh->nedges());
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto v2ve = v2e.a2ab;
@@ -145,7 +145,7 @@ Read<I8> filter_coarsen_improve(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Reals cand_quals) {
   auto elem_quals = mesh->ask_qualities();
   auto verts2elems = mesh->ask_up(VERT, mesh->dim());
-  auto vert_old_quals = graph_reduce(verts2elems, elem_quals, 1, OSH_MIN);
+  auto vert_old_quals = graph_reduce(verts2elems, elem_quals, 1, OMEGA_H_MIN);
   vert_old_quals = mesh->sync_array(VERT, vert_old_quals, 1);
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto edge_old_quals = unmap(edge_verts2verts, vert_old_quals, 1);
@@ -154,4 +154,4 @@ Read<I8> filter_coarsen_improve(
   return filter_coarsen_dirs(cand_codes, keep_dirs);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

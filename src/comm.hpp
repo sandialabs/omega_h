@@ -3,19 +3,19 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 #ifdef OMPI_MPI_H
 /* OpenMPI defines MPI_UNWEIGHTED using (void*)
  * which causes compile errors with strict
  * compile options
  */
-#define OSH_MPI_UNWEIGHTED reinterpret_cast<int*>(MPI_UNWEIGHTED)
+#define OMEGA_H_MPI_UNWEIGHTED reinterpret_cast<int*>(MPI_UNWEIGHTED)
 #else
-#define OSH_MPI_UNWEIGHTED MPI_UNWEIGHTED
+#define OMEGA_H_MPI_UNWEIGHTED MPI_UNWEIGHTED
 #endif
 
-#ifdef OSH_USE_MPI
+#ifdef OMEGA_H_USE_MPI
 template <class T>
 struct MpiTraits;
 
@@ -43,24 +43,24 @@ template <>
 struct MpiTraits<double> {
   static MPI_Datatype datatype() { return MPI_DOUBLE; }
 };
-#endif  // OSH_USE_MPI
+#endif  // OMEGA_H_USE_MPI
 
 static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");
 
-#ifdef OSH_USE_MPI
-inline MPI_Op mpi_op(osh_op op) {
+#ifdef OMEGA_H_USE_MPI
+inline MPI_Op mpi_op(Omega_h_Op op) {
   switch (op) {
-    case OSH_MIN:
+    case OMEGA_H_MIN:
       return MPI_MIN;
-    case OSH_MAX:
+    case OMEGA_H_MAX:
       return MPI_MAX;
-    case OSH_SUM:
+    case OMEGA_H_SUM:
       return MPI_SUM;
   };
   NORETURN(MPI_MIN);
 }
 #endif
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

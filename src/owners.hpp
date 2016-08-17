@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* compute owners for copies of a new partitioning,
    based on a mapping (Dist) from new copies to
@@ -51,6 +51,6 @@ INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

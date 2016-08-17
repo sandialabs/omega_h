@@ -6,9 +6,9 @@
 #include "int128.hpp"
 #include "loop.hpp"
 #include "map.hpp"
-#include "omega_h_functors.hpp"
+#include "Omega_h_functors.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* A reproducible sum of floating-point values.
    this operation is one of the key places where
@@ -71,7 +71,7 @@ Real repro_sum(Reals a) {
 }
 
 Real repro_sum(CommPtr comm, Reals a) {
-  int expo = comm->allreduce(max_exponent(a), OSH_MAX);
+  int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit));
   fixpt_sum = comm->add_int128(fixpt_sum);
@@ -93,4 +93,4 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
   return repro_sum(mesh->comm(), a);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

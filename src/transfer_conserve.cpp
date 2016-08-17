@@ -1,12 +1,12 @@
 #include "transfer_conserve.hpp"
 
 #include "loop.hpp"
-#include "omega_h_r3d.hpp"
+#include "Omega_h_r3d.hpp"
 #include "size.hpp"
 #include "tag.hpp"
 #include "transfer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
@@ -48,7 +48,7 @@ void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_CONSERVE) {
+    if (tagbase->xfer() == OMEGA_H_CONSERVE) {
       transfer_conserve_refine(old_mesh, new_mesh, keys2edges, keys2prods,
           prods2new_ents, same_ents2old_ents, same_ents2new_ents,
           tagbase->name());
@@ -108,7 +108,7 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_CONSERVE) {
+    if (tagbase->xfer() == OMEGA_H_CONSERVE) {
       if (dim == 3) {
         transfer_conserve_tmpl<3>(old_mesh, new_mesh, key_dim, keys2kds,
             keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
@@ -188,7 +188,7 @@ void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_CONSERVE_R3D) {
+    if (tagbase->xfer() == OMEGA_H_CONSERVE_R3D) {
       if (dim == 3) {
         transfer_conserve_r3d_tmpl<3>(old_mesh, new_mesh, key_dim, keys2kds,
             keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
@@ -208,7 +208,7 @@ void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OSH_CONSERVE_R3D) {
+    if (tagbase->xfer() == OMEGA_H_CONSERVE_R3D) {
       transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges, dim,
           keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
           tagbase->name());
@@ -216,4 +216,4 @@ void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

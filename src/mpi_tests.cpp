@@ -1,6 +1,6 @@
 #include "all.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 static void test_one_rank(CommPtr comm) {
   CHECK(comm->size() == 1);
@@ -124,7 +124,7 @@ static void test_two_ranks_exch_sum(CommPtr comm) {
     dist.set_dest_ranks(Read<I32>({0, 0, 1}));
     dist.set_dest_idxs(LOs({1, 2, 0}), 1);
   }
-  auto recvd = dist.exch_reduce(LOs({1, 1, 1}), 1, OSH_SUM);
+  auto recvd = dist.exch_reduce(LOs({1, 1, 1}), 1, OMEGA_H_SUM);
   if (comm->rank() == 0) {
     CHECK(recvd == LOs({1, 2, 2}));
   } else {
@@ -193,7 +193,7 @@ static void test_read_vtu(Library const& lib, CommPtr comm) {
   vtk::write_vtu(stream, &mesh0, mesh0.dim());
   Mesh mesh1;
   vtk::read_vtu(stream, comm, &mesh1);
-  CHECK(OSH_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, false));
+  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, false));
 }
 
 static void test_two_ranks(Library const& lib, CommPtr comm) {

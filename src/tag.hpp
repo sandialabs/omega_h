@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 bool is(TagBase const* t);
@@ -24,6 +24,6 @@ INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

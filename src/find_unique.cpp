@@ -5,7 +5,7 @@
 #include "map.hpp"
 #include "sort.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int deg>
 struct IsFlipped;
@@ -107,4 +107,4 @@ INST(LO)
 INST(GO)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

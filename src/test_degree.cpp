@@ -21,17 +21,18 @@
  * https://en.wikipedia.org/wiki/Tetrahedron#Volume
  */
 
-static void tet_run(osh::Real side_angle_in_degrees) {
-  auto side_angle = side_angle_in_degrees / 180. * osh::PI;
+static void tet_run(Omega_h::Real side_angle_in_degrees) {
+  auto side_angle = side_angle_in_degrees / 180. * Omega_h::PI;
   std::cout << "side_angle " << side_angle << '\n';
-  auto dihedral_angle = acos((cos(side_angle) - osh::square(cos(side_angle))) /
-                             (osh::square(sin(side_angle))));
+  auto dihedral_angle =
+      acos((cos(side_angle) - Omega_h::square(cos(side_angle))) /
+           (Omega_h::square(sin(side_angle))));
   std::cout << "dihedral_angle " << dihedral_angle << '\n';
-  std::cout << "dihedral_angle in degrees " << (dihedral_angle * 180. / osh::PI)
-            << '\n';
-  auto solid_angle = 3. * dihedral_angle - osh::PI;
+  std::cout << "dihedral_angle in degrees "
+            << (dihedral_angle * 180. / Omega_h::PI) << '\n';
+  auto solid_angle = 3. * dihedral_angle - Omega_h::PI;
   std::cout << "solid_angle " << solid_angle << '\n';
-  auto degree = 4. * osh::PI / solid_angle;
+  auto degree = 4. * Omega_h::PI / solid_angle;
   std::cout << "degree " << degree << '\n';
   auto half_side_angle = side_angle / 2.;
   auto half_cord_length = sin(half_side_angle);
@@ -41,37 +42,37 @@ static void tet_run(osh::Real side_angle_in_degrees) {
   auto inradius = surf_tri_height / 3.;
   auto circumradius = inradius * 2.;
   std::cout << "circumradius " << circumradius << '\n';
-  auto surf_tri_area = sqrt(3.) / 4. * osh::square(cord_length);
-  auto tet_height = sqrt(1. - osh::square(circumradius));
+  auto surf_tri_area = sqrt(3.) / 4. * Omega_h::square(cord_length);
+  auto tet_height = sqrt(1. - Omega_h::square(circumradius));
   auto tet_volume = 1. / 3. * surf_tri_area * tet_height;
   std::cout << "tet_volume " << tet_volume << '\n';
-  auto msl = (3 * osh::square(cord_length) + 3.) / 6.;
-  auto quality = osh::tet_mean_ratio(tet_volume, msl);
+  auto msl = (3 * Omega_h::square(cord_length) + 3.) / 6.;
+  auto quality = Omega_h::tet_mean_ratio(tet_volume, msl);
   std::cout << "quality " << quality << '\n';
 }
 
 /* Here is the 2D triangle analogue.
  */
 
-static void tri_run(osh::Real side_angle_in_degrees) {
-  auto side_angle = side_angle_in_degrees / 180. * osh::PI;
+static void tri_run(Omega_h::Real side_angle_in_degrees) {
+  auto side_angle = side_angle_in_degrees / 180. * Omega_h::PI;
   std::cout << "side_angle " << side_angle << '\n';
-  auto degree = 2. * osh::PI / side_angle;
+  auto degree = 2. * Omega_h::PI / side_angle;
   std::cout << "degree " << degree << '\n';
   auto half_side_angle = side_angle / 2.;
   auto half_cord_length = sin(half_side_angle);
   auto cord_length = 2. * half_cord_length;
   std::cout << "cord_length " << cord_length << '\n';
-  auto height = sqrt(1. - osh::square(half_cord_length));
+  auto height = sqrt(1. - Omega_h::square(half_cord_length));
   auto area = cord_length * height / 2.;
   std::cout << "area " << area << '\n';
-  auto msl = (osh::square(cord_length) + 2.) / 3.;
-  auto quality = osh::tri_mean_ratio(area, msl);
+  auto msl = (Omega_h::square(cord_length) + 2.) / 3.;
+  auto quality = Omega_h::tri_mean_ratio(area, msl);
   std::cout << "quality " << quality << '\n';
 }
 
 int main(int argc, char** argv) {
-  OSH_CHECK(argc == 2);
+  OMEGA_H_CHECK(argc == 2);
   std::cout << "\nTETRAHEDRON:\n";
   tet_run(atof(argv[1]));
   std::cout << "\nTRIANGLE:\n";

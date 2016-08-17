@@ -6,7 +6,7 @@
 #include "scan.hpp"
 #include "sort.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Dist::Dist() {}
 
@@ -105,7 +105,7 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
 }
 
 template <typename T>
-Read<T> Dist::exch_reduce(Read<T> data, Int width, osh_op op) const {
+Read<T> Dist::exch_reduce(Read<T> data, Int width, Omega_h_Op op) const {
   Read<T> item_data = exch(data, width);
   return fan_reduce(roots2items_[R], item_data, width, op);
 }
@@ -183,11 +183,12 @@ void Dist::copy(Dist const& other) {
 
 #define INST_T(T)                                                              \
   template Read<T> Dist::exch(Read<T> data, Int width) const;                  \
-  template Read<T> Dist::exch_reduce(Read<T> data, Int width, osh_op op) const;
+  template Read<T> Dist::exch_reduce(Read<T> data, Int width, Omega_h_Op op)   \
+      const;
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-}  // end namespace osh
+}  // end namespace Omega_h
