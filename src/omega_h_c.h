@@ -5,75 +5,75 @@
 
 #include "omega_h_config.h"
 
-#define OSH_PRAGMA(x) _Pragma(#x)
+#define OMEGA_H_PRAGMA(x) _Pragma(#x)
 
 #if defined(__clang__)
-#define OSH_SYSTEM_HEADER OSH_PRAGMA(clang system_header)
+#define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(clang system_header)
 #elif defined(__GNUC__)
-#define OSH_SYSTEM_HEADER OSH_PRAGMA(GCC system_header)
+#define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(GCC system_header)
 #endif
 
 #include "omega_h_mpi.h"
 
-enum osh_type {
-  OSH_I8 = 0,
-  OSH_I32 = 2,
-  OSH_I64 = 3,
-  OSH_F64 = 5,
+enum Omega_h_type {
+  OMEGA_H_I8 = 0,
+  OMEGA_H_I32 = 2,
+  OMEGA_H_I64 = 3,
+  OMEGA_H_F64 = 5,
 };
 
-enum { OSH_DIMS = 4 };
+enum { OMEGA_H_DIMS = 4 };
 
-enum { OSH_VERT = 0, OSH_EDGE = 1, OSH_TRI = 2, OSH_TET = 3 };
+enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_TET = 3 };
 
-enum osh_op { OSH_MIN, OSH_MAX, OSH_SUM };
+enum Omega_h_op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
-enum osh_xfer {
-  OSH_DONT_TRANSFER,
-  OSH_INHERIT,
-  OSH_LINEAR_INTERP,
-  OSH_POINTWISE,
-  OSH_CONSERVE,
-  OSH_GLOBAL,
-  OSH_LENGTH,
-  OSH_QUALITY,
-  OSH_METRIC,
-  OSH_CONSERVE_R3D
+enum Omega_h_xfer {
+  OMEGA_H_DONT_TRANSFER,
+  OMEGA_H_INHERIT,
+  OMEGA_H_LINEAR_INTERP,
+  OMEGA_H_POINTWISE,
+  OMEGA_H_CONSERVE,
+  OMEGA_H_GLOBAL,
+  OMEGA_H_LENGTH,
+  OMEGA_H_QUALITY,
+  OMEGA_H_METRIC,
+  OMEGA_H_CONSERVE_R3D
 };
 
-enum { OSH_XFERS = OSH_METRIC + 1 };
+enum { OMEGA_H_XFERS = OMEGA_H_METRIC + 1 };
 
-enum osh_parting {
-  OSH_ELEM_BASED,
-  OSH_GHOSTED,
-  OSH_VERT_BASED,
+enum Omega_h_parting {
+  OMEGA_H_ELEM_BASED,
+  OMEGA_H_GHOSTED,
+  OMEGA_H_VERT_BASED,
 };
 
-enum osh_comparison { OSH_SAME, OSH_MORE, OSH_DIFF };
+enum Omega_h_comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void osh_fail(char const* format, ...) __attribute__((noreturn));
+void Omega_h_fail(char const* format, ...) __attribute__((noreturn));
 
-void osh_init_internal(int* argc, char*** argv, char const* head_desc);
+void Omega_h_init_internal(int* argc, char*** argv, char const* head_desc);
 
-inline static void osh_init(int* argc, char*** argv) {
-  osh_init_internal(argc, argv, OSH_VERSION);
+inline static void Omega_h_init(int* argc, char*** argv) {
+  Omega_h_init_internal(argc, argv, OMEGA_H_VERSION);
 }
 
-void osh_finalize(void);
+void Omega_h_finalize(void);
 
 #ifdef __cplusplus
 }  // end of extern "C" block
 #endif
 
 #ifdef __CUDA_ARCH__
-#define OSH_CHECK(cond) assert(cond)
+#define OMEGA_H_CHECK(cond) assert(cond)
 #else
-#define OSH_CHECK(cond)                                                    \
-  ((cond) ? ((void)0) : osh_fail("assertion %s failed at %s +%d\n", #cond, \
+#define OMEGA_H_CHECK(cond)                                                    \
+  ((cond) ? ((void)0) : Omega_h_fail("assertion %s failed at %s +%d\n", #cond, \
                                  __FILE__, __LINE__))
 #endif
 

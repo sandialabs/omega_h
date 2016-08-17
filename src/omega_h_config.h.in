@@ -1,36 +1,17 @@
 #ifndef OMEGA_H_CONFIG_H
 #define OMEGA_H_CONFIG_H
 
-#define OSH_MAJOR @Omega_h_VERSION_MAJOR@
-#define OSH_MINOR @Omega_h_VERSION_MINOR@
-#define OSH_PATCH @Omega_h_VERSION_PATCH@
+#define OMEGA_H_VERSION_MAJOR @OMEGA_H_VERSION_MAJOR@
+#define OMEGA_H_VERSION_MINOR @OMEGA_H_VERSION_MINOR@
+#define OMEGA_H_VERSION_PATCH @OMEGA_H_VERSION_PATCH@
 
-#cmakedefine Omega_h_USE_MPI
-#cmakedefine Omega_h_USE_Kokkos
-#cmakedefine Omega_h_USE_OpenMP
-#cmakedefine Omega_h_USE_CUDA
-#cmakedefine Omega_h_USE_ZLIB
-#cmakedefine Omega_h_CHECK_BOUNDS
-#cmakedefine Omega_h_PROTECT
-
-#ifdef Omega_h_USE_MPI
-#define OSH_USE_MPI
-#endif
-#ifdef Omega_h_USE_Kokkos
-#define OSH_USE_Kokkos
-#endif
-#ifdef Omega_h_USE_CUDA
-#define OSH_USE_CUDA
-#endif
-#ifdef Omega_h_USE_ZLIB
-#define OSH_USE_ZLIB
-#endif
-#ifdef Omega_h_CHECK_BOUNDS
-#define OSH_CHECK_BOUNDS
-#endif
-#ifdef Omega_h_PROTECT
-#define OSH_PROTECT
-#endif
+#cmakedefine OMEGA_H_USE_MPI
+#cmakedefine OMEGA_H_USE_KOKKOS
+#cmakedefine OMEGA_H_USE_OPENMP
+#cmakedefine OMEGA_H_USE_CUDA
+#cmakedefine OMEGA_H_USE_ZLIB
+#cmakedefine OMEGA_H_CHECK_BOUNDS
+#cmakedefine OMEGA_H_PROTECT
 
 /* this block of preprocessor code creates a string
    literal describing the version and compile options
@@ -38,42 +19,43 @@
    this is used to ensure that during user application
    compiles, the header included matches the library linked to.
    it is not foolproof, but better than nothing */
-#define OSH_TOSTR2(s) #s
-#define OSH_TOSTR(s) OSH_TOSTR2(s)
-#ifdef OSH_USE_MPI
-#define OSH_MPI_STR "1"
+#define OMEGA_H_TOSTR2(s) #s
+#define OMEGA_H_TOSTR(s) OMEGA_H_TOSTR2(s)
+#ifdef OMEGA_H_USE_MPI
+#define OMEGA_H_MPI_STR "1"
 #else
-#define OSH_MPI_STR "0"
+#define OMEGA_H_MPI_STR "0"
 #endif
-#ifdef OSH_USE_KOKKOS
-#define OSH_KOKKOS_STR "1"
+#ifdef OMEGA_H_USE_KOKKOS
+#define OMEGA_H_KOKKOS_STR "1"
 #else
-#define OSH_KOKKOS_STR "0"
+#define OMEGA_H_KOKKOS_STR "0"
 #endif
-#ifdef OSH_USE_OPENMP
-#define OSH_OPENMP_STR "1"
+#ifdef OMEGA_H_USE_OPENMP
+#define OMEGA_H_OPENMP_STR "1"
 #else
-#define OSH_OPENMP_STR "0"
+#define OMEGA_H_OPENMP_STR "0"
 #endif
-#ifdef OSH_USE_CUDA
-#define OSH_CUDA_STR "1"
+#ifdef OMEGA_H_USE_CUDA
+#define OMEGA_H_CUDA_STR "1"
 #else
-#define OSH_CUDA_STR "0"
+#define OMEGA_H_CUDA_STR "0"
 #endif
-#ifdef OSH_USE_ZLIB
-#define OSH_ZLIB_STR "1"
+#ifdef OMEGA_H_USE_ZLIB
+#define OMEGA_H_ZLIB_STR "1"
 #else
-#define OSH_ZLIB_STR "0"
+#define OMEGA_H_ZLIB_STR "0"
 #endif
-#ifdef OSH_CHECK_BOUNDS
-#define OSH_BOUNDS_STR "1"
+#ifdef OMEGA_H_CHECK_BOUNDS
+#define OMEGA_H_BOUNDS_STR "1"
 #else
-#define OSH_BOUNDS_STR "0"
+#define OMEGA_H_BOUNDS_STR "0"
 #endif
-#define OSH_VERSION                                                         \
-  OSH_TOSTR(OSH_MAJOR)                                                      \
-  "." OSH_TOSTR(OSH_MINOR) "." OSH_TOSTR(                                   \
-      OSH_PATCH) "+" OSH_MPI_STR OSH_KOKKOS_STR OSH_OPENMP_STR OSH_CUDA_STR \
-      OSH_ZLIB_STR OSH_BOUNDS_STR
+#define OMEGA_H_VERSION                                 \
+  OMEGA_H_TOSTR(OMEGA_H_VERSION_MAJOR) "."              \
+  OMEGA_H_TOSTR(OMEGA_H_VERSION_MINOR) "."              \
+  OMEGA_H_TOSTR(OMEGA_H_VERSION_PATCH) "+"              \
+  OMEGA_H_MPI_STR OMEGA_H_KOKKOS_STR OMEGA_H_OPENMP_STR \
+  OMEGA_H_CUDA_STR OMEGA_H_ZLIB_STR OMEGA_H_BOUNDS_STR
 
 #endif

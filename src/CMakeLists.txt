@@ -222,6 +222,22 @@ if(Omega_h_USE_SCOREC)
   target_link_libraries(smb2osh PRIVATE SCOREC::core)
 endif()
 
+set(DEF_VARS
+    VERSION_MAJOR
+    VERSION_MINOR
+    VERSION_PATCH
+    USE_MPI
+    USE_Kokkos
+    USE_OpenMP
+    USE_CUDA
+    USE_ZLIB
+    CHECK_BOUNDS
+    PROTECT
+    )
+foreach(def_var IN LISTS DEF_VARS)
+  string(TOUPPER "Omega_h_${def_var}" uppercase_var)
+  set(${uppercase_var} ${Omega_h_${def_var}})
+endforeach()
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/omega_h_config.h.in"
   "${CMAKE_CURRENT_BINARY_DIR}/omega_h_config.h")
