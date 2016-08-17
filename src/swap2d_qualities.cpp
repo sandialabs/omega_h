@@ -49,7 +49,7 @@ static Reals swap2d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
 }
 
 Reals swap2d_qualities(Mesh* mesh, LOs cands2edges) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto cand_quals = Reals();
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {

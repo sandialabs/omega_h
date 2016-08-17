@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#if defined(OSH_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA)
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -12,7 +12,7 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-#elif defined(OSH_USE_OPENMP)
+#elif defined(OMEGA_H_USE_OPENMP)
 #include <omp.h>
 #include "intel_sort/parallel_stable_sort.hpp"
 #include "intel_sort/pss_common.hpp"
@@ -23,11 +23,11 @@ namespace osh {
 
 template <typename T, typename Comp>
 void parallel_sort(T* b, T* e, Comp c) {
-#if defined(OSH_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA)
   auto bptr = thrust::device_ptr<T>(b);
   auto eptr = thrust::device_ptr<T>(e);
   thrust::stable_sort(bptr, eptr, c);
-#elif defined(OSH_USE_OPENMP)
+#elif defined(OMEGA_H_USE_OPENMP)
   pss::parallel_stable_sort(b, e, c);
 #else
   std::stable_sort(b, e, c);

@@ -71,7 +71,7 @@ static void tri_run(osh::Real side_angle_in_degrees) {
 }
 
 int main(int argc, char** argv) {
-  OSH_CHECK(argc == 2);
+  OMEGA_H_CHECK(argc == 2);
   std::cout << "\nTETRAHEDRON:\n";
   tet_run(atof(argv[1]));
   std::cout << "\nTRIANGLE:\n";

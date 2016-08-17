@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
 #endif
 
@@ -62,7 +62,7 @@ static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
 INLINE std::uint32_t bswap32(std::uint32_t a) {
-#ifdef OSH_USE_CUDA
+#ifdef OMEGA_H_USE_CUDA
   a = ((a & 0x000000FF) << 24) | ((a & 0x0000FF00) << 8) |
       ((a & 0x00FF0000) >> 8) | ((a & 0xFF000000) >> 24);
 #else
@@ -72,7 +72,7 @@ INLINE std::uint32_t bswap32(std::uint32_t a) {
 }
 
 INLINE std::uint64_t bswap64(std::uint64_t a) {
-#ifdef OSH_USE_CUDA
+#ifdef OMEGA_H_USE_CUDA
   a = ((a & 0x00000000000000FFULL) << 56) |
       ((a & 0x000000000000FF00ULL) << 40) |
       ((a & 0x0000000000FF0000ULL) << 24) | ((a & 0x00000000FF000000ULL) << 8) |
@@ -156,7 +156,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   HostRead<T> uncompressed(swapped);
   I64 uncompressed_bytes =
       static_cast<I64>(static_cast<std::size_t>(size) * sizeof(T));
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   uLong source_bytes = static_cast<uLong>(uncompressed_bytes);
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new Bytef[dest_bytes];
@@ -182,7 +182,7 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   I64 uncompressed_bytes =
       static_cast<I64>(static_cast<std::size_t>(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
     I64 compressed_bytes;
     read_value(stream, compressed_bytes);
@@ -309,19 +309,19 @@ static void read_tag(
   I8 xfer_i8;
   read_value(stream, xfer_i8);
   Int xfer = static_cast<Int>(xfer_i8);
-  if (type == OSH_I8) {
+  if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);
     mesh->add_tag(d, name, ncomps, xfer, array);
-  } else if (type == OSH_I32) {
+  } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed);
     mesh->add_tag(d, name, ncomps, xfer, array);
-  } else if (type == OSH_I64) {
+  } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed);
     mesh->add_tag(d, name, ncomps, xfer, array);
-  } else if (type == OSH_F64) {
+  } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed);
     mesh->add_tag(d, name, ncomps, xfer, array);
@@ -333,7 +333,7 @@ static void read_tag(
 void write(std::ostream& stream, Mesh* mesh) {
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
   write_value(stream, latest_version);
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   I8 is_compressed = true;
 #else
   I8 is_compressed = false;
@@ -374,7 +374,7 @@ void read(std::istream& stream, Mesh* mesh) {
   CHECK(version <= latest_version);
   I8 is_compressed;
   read_value(stream, is_compressed);
-#ifndef OSH_USE_ZLIB
+#ifndef OMEGA_H_USE_ZLIB
   CHECK(!is_compressed);
 #endif
   read_meta(stream, mesh);

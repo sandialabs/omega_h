@@ -92,9 +92,9 @@ Reals graph_weighted_average_arc_data(
   auto nab = a2ab.last();
   CHECK(ab_weights.size() == nab);
   CHECK(ab_data.size() % width == 0);
-  auto total_weights = fan_reduce(a2ab, ab_weights, 1, OSH_SUM);
+  auto total_weights = fan_reduce(a2ab, ab_weights, 1, OMEGA_H_SUM);
   auto weighted_ab_data = multiply_each(ab_data, ab_weights);
-  auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, OSH_SUM);
+  auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, OMEGA_H_SUM);
   return divide_each(weighted_sums, total_weights);
 }
 

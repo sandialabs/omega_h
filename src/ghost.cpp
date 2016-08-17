@@ -78,7 +78,7 @@ void ghost_mesh(Mesh* mesh, bool verbose) {
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2owners = own_elems2elems.invert();
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, elems2owners, OSH_GHOSTED, verbose);
+  migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_GHOSTED, verbose);
   *mesh = new_mesh;
 }
 
@@ -92,7 +92,7 @@ void partition_by_verts(Mesh* mesh, bool verbose) {
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2owners = own_elems2elems.invert();
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, elems2owners, OSH_VERT_BASED, verbose);
+  migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_VERT_BASED, verbose);
   *mesh = new_mesh;
 }
 

@@ -234,7 +234,7 @@ OMEGA_H_INLINE Matrix<m, m> diagonal(Vector<m> v) {
 }
 
 template <Int n>
-OSH_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
+OMEGA_H_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
 }
 
@@ -260,7 +260,7 @@ OMEGA_H_INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
 }
 
 template <Int n>
-OSH_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
+OMEGA_H_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
   set_vector(a, i, symm2vector(symm));
 }
 

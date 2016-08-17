@@ -52,7 +52,7 @@ static void swap3d_qualities_tmpl(
 
 void swap3d_qualities(
     Mesh* mesh, LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   CHECK(mesh->dim() == 3);
   if (mesh->has_tag(VERT, "metric")) {
     swap3d_qualities_tmpl<MetricElementQualities>(

@@ -140,8 +140,8 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents, osh_parting mode) {
   push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
   Read<I32> own_ranks;
-  if ((mode == OSH_GHOSTED) ||
-      ((mode == OSH_VERT_BASED) && (ent_dim == VERT))) {
+  if ((mode == OMEGA_H_GHOSTED) ||
+      ((mode == OMEGA_H_VERT_BASED) && (ent_dim == VERT))) {
     auto old_own_ranks = old_mesh->ask_owners(ent_dim).ranks;
     own_ranks = old_owners2new_ents.exch(old_own_ranks, 1);
   }
@@ -163,8 +163,8 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
   }
   auto npulled = msgs2content.last();
   auto nextern = npulled - nintern;
-  auto total_pulled = comm->allreduce(GO(npulled), OSH_SUM);
-  auto total_extern = comm->allreduce(GO(nextern), OSH_SUM);
+  auto total_pulled = comm->allreduce(GO(npulled), OMEGA_H_SUM);
+  auto total_extern = comm->allreduce(GO(nextern), OMEGA_H_SUM);
   if (comm->rank() == 0) {
     std::cout << "migration pulling (" << total_extern << " remote) / ("
               << total_pulled << " total) elements\n";
@@ -198,7 +198,7 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
 
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose) {
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, OSH_ELEM_BASED, verbose);
+  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, OMEGA_H_ELEM_BASED, verbose);
   *mesh = new_mesh;
 }
 

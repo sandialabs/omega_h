@@ -5,7 +5,7 @@
 
 namespace osh {
 
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {}
 #endif
@@ -13,7 +13,7 @@ Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {}
 template <typename T>
 Write<T>::Write(LO size)
     :
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
       view_(Kokkos::ViewAllocateWithoutInitializing("omega_h"),
           static_cast<std::size_t>(size))
 #else
@@ -52,7 +52,7 @@ Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 template <typename T>
 LO Write<T>::size() const {
   CHECK(exists());
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   return static_cast<LO>(view_.size());
 #else
   return size_;
@@ -75,14 +75,14 @@ T NonNullPtr<T>::scratch[1] = {0};
 
 template <typename T>
 T* Write<T>::data() const {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   return NonNullPtr<T>::get(view_.data());
 #else
   return ptr_.get();
 #endif
 }
 
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 Kokkos::View<T*> Write<T>::view() const {
   return view_;
@@ -91,7 +91,7 @@ Kokkos::View<T*> Write<T>::view() const {
 
 template <typename T>
 void Write<T>::set(LO i, T value) const {
-#ifdef OSH_USE_CUDA
+#ifdef OMEGA_H_USE_CUDA
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
   operator[](i) = value;
@@ -100,7 +100,7 @@ void Write<T>::set(LO i, T value) const {
 
 template <typename T>
 T Write<T>::get(LO i) const {
-#ifdef OSH_USE_CUDA
+#ifdef OMEGA_H_USE_CUDA
   T value;
   cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
   return value;
@@ -163,17 +163,17 @@ T max(Read<T> a) {
 
 template <typename T>
 typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a) {
-  return comm->allreduce(sum(a), OSH_SUM);
+  return comm->allreduce(sum(a), OMEGA_H_SUM);
 }
 
 template <typename T>
 T min(CommPtr comm, Read<T> a) {
-  return comm->allreduce(min(a), OSH_MIN);
+  return comm->allreduce(min(a), OMEGA_H_MIN);
 }
 
 template <typename T>
 T max(CommPtr comm, Read<T> a) {
-  return comm->allreduce(min(a), OSH_MAX);
+  return comm->allreduce(min(a), OMEGA_H_MAX);
 }
 
 Reals::Reals() : Read<Real>() {}
@@ -232,7 +232,7 @@ T const* Read<T>::data() const {
   return write_.data();
 }
 
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 Kokkos::View<const T*> Read<T>::view() const {
   return Kokkos::View<const T*>(write_.view());
@@ -273,7 +273,7 @@ bool operator==(Read<T> a, Read<T> b) {
 template <class T>
 Write<T> deep_copy(Read<T> a) {
   Write<T> b(a.size());
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(b.view(), a.view());
 #else
   auto f = LAMBDA(LO i) { b[i] = a[i]; };
@@ -288,7 +288,7 @@ HostWrite<T>::HostWrite() = default;
 template <typename T>
 HostWrite<T>::HostWrite(LO size)
     : write_(size)
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
       ,
       mirror_(Kokkos::create_mirror_view(write_.view()))
 #endif
@@ -302,12 +302,12 @@ HostWrite<T>::HostWrite(LO size, T offset, T stride)
 template <typename T>
 HostWrite<T>::HostWrite(Write<T> write)
     : write_(write)
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
       ,
       mirror_(Kokkos::create_mirror_view(write_.view()))
 #endif
 {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(mirror_, write_.view());
 #endif
 }
@@ -322,7 +322,7 @@ HostWrite<T>::HostWrite(std::initializer_list<T> l)
 
 template <typename T>
 Write<T> HostWrite<T>::write() const {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(write_.view(), mirror_);
 #endif
   return write_;
@@ -335,7 +335,7 @@ LO HostWrite<T>::size() const {
 
 template <typename T>
 T* HostWrite<T>::data() const {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   return NonNullPtr<T>::get(mirror_.data());
 #else
   return write_.data();
@@ -353,12 +353,12 @@ HostRead<T>::HostRead() = default;
 template <typename T>
 HostRead<T>::HostRead(Read<T> read)
     : read_(read)
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
       ,
       mirror_(Kokkos::create_mirror_view(read.view()))
 #endif
 {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(mirror_, read_.view());
 #endif
 }
@@ -370,7 +370,7 @@ LO HostRead<T>::size() const {
 
 template <typename T>
 T const* HostRead<T>::data() const {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   return NonNullPtr<T>::get(mirror_.data());
 #else
   return read_.data();

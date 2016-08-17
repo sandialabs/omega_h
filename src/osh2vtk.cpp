@@ -4,7 +4,7 @@
 
 int main(int argc, char** argv) {
   auto lib = osh::Library(&argc, &argv);
-  OSH_CHECK(argc == 3 || argc == 4);
+  OMEGA_H_CHECK(argc == 3 || argc == 4);
   osh::Mesh mesh;
   osh::binary::read(argv[1], lib.world(), &mesh);
   auto dim = mesh.dim();

@@ -30,7 +30,7 @@ class HostWrite;
 
 template <typename T>
 class Write {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_;
 #else
   std::shared_ptr<T> ptr_;
@@ -42,7 +42,7 @@ class Write {
 
  public:
   OMEGA_H_INLINE Write();
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Write(Kokkos::View<T*> view);
 #endif
   Write(LO size);
@@ -50,19 +50,19 @@ class Write {
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
   LO size() const;
-  OSH_DEVICE T& operator[](LO i) const {
-#ifdef OSH_CHECK_BOUNDS
-    OSH_CHECK(0 <= i);
-    OSH_CHECK(i < size());
+  OMEGA_H_DEVICE T& operator[](LO i) const {
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
 #endif
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
     return view_(i);
 #else
     return ptr_.get()[i];
 #endif
   }
   T* data() const;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view() const;
 #endif
   void set(LO i, T value) const;
@@ -73,7 +73,7 @@ class Write {
 template <typename T>
 OMEGA_H_INLINE Write<T>::Write()
     :
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
       view_()
 #else
       ptr_(),
@@ -94,9 +94,9 @@ class Read {
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
   LO size() const;
-  OSH_DEVICE T const& operator[](LO i) const { return write_[i]; }
+  OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
   T const* data() const;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<const T*> view() const;
 #endif
   T get(LO i) const;
@@ -129,7 +129,7 @@ class Reals : public Read<Real> {
 template <typename T>
 class HostRead {
   Read<T> read_;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<const T*>::HostMirror mirror_;
 #endif
  public:
@@ -137,10 +137,10 @@ class HostRead {
   HostRead(Read<T> read);
   LO size() const;
   inline T const& operator[](LO i) const {
-#ifdef OSH_USE_KOKKOS
-#ifdef OSH_CHECK_BOUNDS
-    OSH_CHECK(0 <= i);
-    OSH_CHECK(i < size());
+#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
 #endif
     return mirror_(i);
 #else
@@ -154,7 +154,7 @@ class HostRead {
 template <typename T>
 class HostWrite {
   Write<T> write_;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
 #endif
  public:
@@ -166,10 +166,10 @@ class HostWrite {
   Write<T> write() const;
   LO size() const;
   inline T& operator[](LO i) const {
-#ifdef OSH_USE_KOKKOS
-#ifdef OSH_CHECK_BOUNDS
-    OSH_CHECK(0 <= i);
-    OSH_CHECK(i < size());
+#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
 #endif
     return mirror_(i);
 #else
@@ -232,7 +232,7 @@ class Comm;
 typedef std::shared_ptr<Comm> CommPtr;
 
 class Comm {
-#ifdef OSH_USE_MPI
+#ifdef OMEGA_H_USE_MPI
   MPI_Comm impl_;
 #endif
   Read<I32> srcs_;
@@ -242,7 +242,7 @@ class Comm {
 
  public:
   Comm();
-#ifdef OSH_USE_MPI
+#ifdef OMEGA_H_USE_MPI
   Comm(MPI_Comm impl);
 #else
   Comm(bool is_graph, bool sends_to_self);
@@ -330,9 +330,9 @@ struct Graph {
   LOs ab2b;
 };
 
-enum { DIMS = OSH_DIMS };
+enum { DIMS = OMEGA_H_DIMS };
 
-enum { VERT = OSH_VERT, EDGE = OSH_EDGE, TRI = OSH_TRI, TET = OSH_TET };
+enum { VERT = OMEGA_H_VERT, EDGE = OMEGA_H_EDGE, TRI = OMEGA_H_TRI, TET = OMEGA_H_TET };
 
 struct Adj : public Graph {
   Adj() {}
@@ -372,7 +372,7 @@ class Mesh {
   CommPtr comm() const;
   osh_parting parting() const;
   inline Int dim() const {
-    OSH_CHECK(0 <= dim_ && dim_ <= 3);
+    OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
   LO nents(Int dim) const;
@@ -601,7 +601,7 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
 }
 
 /* begin explicit instantiation declarations */
-#define OSH_EXPL_INST_DECL(T)                                                  \
+#define OMEGA_H_EXPL_INST_DECL(T)                                                  \
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
@@ -632,11 +632,11 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
       Int ent_dim, Read<T> a, Int width, osh_op op);
-OSH_EXPL_INST_DECL(I8)
-OSH_EXPL_INST_DECL(I32)
-OSH_EXPL_INST_DECL(I64)
-OSH_EXPL_INST_DECL(Real)
-#undef OSH_EXPL_INST_DECL
+OMEGA_H_EXPL_INST_DECL(I8)
+OMEGA_H_EXPL_INST_DECL(I32)
+OMEGA_H_EXPL_INST_DECL(I64)
+OMEGA_H_EXPL_INST_DECL(Real)
+#undef OMEGA_H_EXPL_INST_DECL
 /* end explicit instantiation declarations */
 
 }  // end namespace osh

@@ -27,16 +27,16 @@ static bool tags_are_consistent(Mesh* mesh, Int dim) {
     auto tagbase = mesh->get_tag(dim, i);
     bool ok = false;
     switch (tagbase->type()) {
-      case OSH_I8:
+      case OMEGA_H_I8:
         ok = is_consistent<I8>(mesh, dim, tagbase);
         break;
-      case OSH_I32:
+      case OMEGA_H_I32:
         ok = is_consistent<I32>(mesh, dim, tagbase);
         break;
-      case OSH_I64:
+      case OMEGA_H_I64:
         ok = is_consistent<I64>(mesh, dim, tagbase);
         break;
-      case OSH_F64:
+      case OMEGA_H_F64:
         ok = is_consistent<Real>(mesh, dim, tagbase);
         break;
     }

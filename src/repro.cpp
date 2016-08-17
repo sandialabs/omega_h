@@ -71,7 +71,7 @@ Real repro_sum(Reals a) {
 }
 
 Real repro_sum(CommPtr comm, Reals a) {
-  int expo = comm->allreduce(max_exponent(a), OSH_MAX);
+  int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
   double unit = exp2(double(expo - MANTISSA_BITS));
   Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit));
   fixpt_sum = comm->add_int128(fixpt_sum);

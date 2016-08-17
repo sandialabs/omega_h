@@ -17,8 +17,8 @@ Dist bi_partition(CommPtr comm, Read<I8> marks) {
   for (Int half = 0; half < 2; ++half) {
     marks = invert_marks(marks);
     auto marked = collect_marked(marks);
-    auto total = comm->allreduce(GO(marked.size()), OSH_SUM);
-    auto start = comm->exscan(GO(marked.size()), OSH_SUM);
+    auto total = comm->allreduce(GO(marked.size()), OMEGA_H_SUM);
+    auto start = comm->exscan(GO(marked.size()), OMEGA_H_SUM);
     Read<GO> globals(marked.size(), start, 1);
     auto owners = globals_to_linear_owners(globals, total, halfsize);
     map_into(add_to_each(owners.ranks, rank_start), marked, dest_ranks, 1);

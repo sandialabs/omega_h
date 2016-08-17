@@ -45,8 +45,8 @@ static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
 
 static void get_minmax(
     Mesh* mesh, Reals values, Real* p_minval, Real* p_maxval) {
-  *p_minval = mesh->comm()->allreduce(min(values), OSH_MIN);
-  *p_maxval = mesh->comm()->allreduce(max(values), OSH_MAX);
+  *p_minval = mesh->comm()->allreduce(min(values), OMEGA_H_MIN);
+  *p_maxval = mesh->comm()->allreduce(max(values), OMEGA_H_MAX);
 }
 
 static void adapt_summary(Mesh* mesh, Real qual_floor, Real qual_ceil,

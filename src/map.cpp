@@ -226,11 +226,11 @@ static Read<typename Functor::input_type> fan_reduce_tmpl(
 template <typename T>
 Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
   switch (op) {
-    case OSH_MIN:
+    case OMEGA_H_MIN:
       return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
-    case OSH_MAX:
+    case OMEGA_H_MAX:
       return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
-    case OSH_SUM:
+    case OMEGA_H_SUM:
       return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
   }
   NORETURN(Read<T>());

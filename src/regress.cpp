@@ -31,13 +31,13 @@ bool check_regression(
   Mesh gold_mesh;
   binary::read(goldpath, comm, &gold_mesh);
   auto res = compare_meshes(&gold_mesh, mesh, tol, floor, true);
-  if (res == OSH_SAME) {
+  if (res == OMEGA_H_SAME) {
     if (comm->rank() == 0) {
       std::cout << "This run matches gold \"" << goldpath << "\"\n";
     }
     return true;
   }
-  if (res == OSH_MORE) {
+  if (res == OMEGA_H_MORE) {
     auto newpath = prefix + "_new.osh";
     binary::write(newpath, mesh);
     if (comm->rank() == 0) {

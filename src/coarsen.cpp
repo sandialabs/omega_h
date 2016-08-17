@@ -22,7 +22,7 @@ static Read<I8> get_edge_codes(Mesh* mesh) {
 static void put_edge_codes(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   auto edge_codes =
       map_onto(cand_codes, cands2edges, mesh->nedges(), I8(DONT_COLLAPSE), 1);
-  mesh->add_tag(EDGE, "collapse_code", 1, OSH_DONT_TRANSFER, edge_codes);
+  mesh->add_tag(EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER, edge_codes);
 }
 
 static Reals get_edge_quals(Mesh* mesh) {
@@ -33,7 +33,7 @@ static Reals get_edge_quals(Mesh* mesh) {
 
 static void put_edge_quals(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 2);
-  mesh->add_tag(EDGE, "collapse_qualities", 2, OSH_DONT_TRANSFER, edge_quals);
+  mesh->add_tag(EDGE, "collapse_qualities", 2, OMEGA_H_DONT_TRANSFER, edge_quals);
 }
 
 static bool coarsen_element_based1(Mesh* mesh) {
@@ -84,8 +84,8 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   choose_vertex_collapses(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
       verts_are_cands, vert_quals);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
-  mesh->add_tag(VERT, "key", 1, OSH_DONT_TRANSFER, verts_are_keys);
-  mesh->add_tag(VERT, "collapse_quality", 1, OSH_DONT_TRANSFER, vert_quals);
+  mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, verts_are_keys);
+  mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER, vert_quals);
   put_edge_codes(mesh, cands2edges, cand_edge_codes);
   put_edge_quals(mesh, cands2edges, cand_edge_quals);
   auto keys2verts = collect_marked(verts_are_keys);
@@ -102,7 +102,7 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
   auto keys2verts = collect_marked(verts_are_keys);
   auto nkeys = keys2verts.size();
   if (verbose) {
-    auto ntotal_keys = comm->allreduce(GO(nkeys), OSH_SUM);
+    auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
     if (comm->rank() == 0) {
       std::cout << "coarsening " << ntotal_keys << " vertices\n";
     }
@@ -146,9 +146,9 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
 
 bool coarsen(Mesh* mesh, Real min_qual, bool improve, bool verbose) {
   if (!coarsen_element_based1(mesh)) return false;
-  mesh->set_parting(OSH_GHOSTED);
+  mesh->set_parting(OMEGA_H_GHOSTED);
   if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
-  mesh->set_parting(OSH_ELEM_BASED);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
   coarsen_element_based2(mesh, verbose);
   return true;
 }
@@ -168,7 +168,7 @@ bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks, Real min_qual, bool improve,
   };
   parallel_for(mesh->nedges(), f);
   mesh->add_tag(
-      EDGE, "collapse_code", 1, OSH_DONT_TRANSFER, Read<I8>(edge_codes_w));
+      EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER, Read<I8>(edge_codes_w));
   return coarsen(mesh, min_qual, improve, verbose);
 }
 
@@ -182,15 +182,15 @@ bool coarsen_by_size(Mesh* mesh, Real min_len, Real min_qual, bool verbose) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_lt(lengths, min_len);
-  if (comm->allreduce(max(edge_is_cand), OSH_MAX) != 1) return false;
+  if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
   return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, false, verbose);
 }
 
 bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
-  mesh->set_parting(OSH_GHOSTED);
+  mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
-  CHECK(comm->allreduce(max(elems_are_cands), OSH_MAX) == 1);
+  CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);
   return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true, verbose);
 }
 

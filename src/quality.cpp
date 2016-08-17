@@ -63,7 +63,7 @@ QualityHistogram get_quality_histogram(Mesh* mesh) {
     auto marked = land_each(
         each_geq_to(owned_qualities, floor), each_lt(owned_qualities, ceil));
     auto nlocal_marked = sum(marked);
-    auto nglobal_marked = mesh->comm()->allreduce(nlocal_marked, OSH_SUM);
+    auto nglobal_marked = mesh->comm()->allreduce(nlocal_marked, OMEGA_H_SUM);
     histogram[i] = nglobal_marked;
   }
   return histogram;
