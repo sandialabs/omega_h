@@ -21,7 +21,7 @@
 
 #define CHECK(cond) OSH_CHECK(cond)
 #define LAMBDA OSH_LAMBDA
-#define INLINE OSH_INLINE
+#define INLINE OMEGA_H_INLINE
 #define DEVICE OSH_DEVICE
 
 #define EPSILON 1e-10

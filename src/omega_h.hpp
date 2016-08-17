@@ -41,7 +41,7 @@ class Write {
   bool exists_;
 
  public:
-  OSH_INLINE Write();
+  OMEGA_H_INLINE Write();
 #ifdef OSH_USE_KOKKOS
   Write(Kokkos::View<T*> view);
 #endif
@@ -71,7 +71,7 @@ class Write {
 };
 
 template <typename T>
-OSH_INLINE Write<T>::Write()
+OMEGA_H_INLINE Write<T>::Write()
     :
 #ifdef OSH_USE_KOKKOS
       view_()
@@ -88,7 +88,7 @@ class Read {
   Write<T> write_;
 
  public:
-  OSH_INLINE Read() {}
+  OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value);
   Read(LO size, T offset, T stride);
@@ -106,8 +106,8 @@ class Read {
 
 class LOs : public Read<LO> {
  public:
-  OSH_INLINE LOs() {}
-  OSH_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
+  OMEGA_H_INLINE LOs() {}
+  OMEGA_H_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
   LOs(Write<LO> write);
   LOs(LO size, LO value);
   LOs(LO size, LO offset, LO stride);
@@ -120,7 +120,7 @@ Read<T> permute(Read<T> a_data, LOs a2b, Int width);
 class Reals : public Read<Real> {
  public:
   Reals();
-  OSH_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
+  OMEGA_H_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
   Reals(Write<Real> write);
   Reals(LO size, Real value);
   Reals(std::initializer_list<Real> l);
@@ -216,15 +216,15 @@ struct Remotes {
 struct Int128 {
   std::int64_t high;
   std::uint64_t low;
-  OSH_INLINE Int128();
-  OSH_INLINE Int128(std::int64_t h, std::uint64_t l);
-  OSH_INLINE Int128(std::int64_t value);
-  OSH_INLINE void operator=(Int128 const& rhs) volatile;
-  OSH_INLINE Int128(Int128 const& rhs);
-  OSH_INLINE Int128(const volatile Int128& rhs);
+  OMEGA_H_INLINE Int128();
+  OMEGA_H_INLINE Int128(std::int64_t h, std::uint64_t l);
+  OMEGA_H_INLINE Int128(std::int64_t value);
+  OMEGA_H_INLINE void operator=(Int128 const& rhs) volatile;
+  OMEGA_H_INLINE Int128(Int128 const& rhs);
+  OMEGA_H_INLINE Int128(const volatile Int128& rhs);
   double to_double(double unit) const;
   void print(std::ostream& o) const;
-  static OSH_INLINE Int128 from_double(double value, double unit);
+  static OMEGA_H_INLINE Int128 from_double(double value, double unit);
 };
 
 class Comm;
@@ -536,11 +536,11 @@ Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
 Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
 
-OSH_INLINE bool code_is_flipped(I8 code) { return code & 1; }
+OMEGA_H_INLINE bool code_is_flipped(I8 code) { return code & 1; }
 
-OSH_INLINE Int code_rotation(I8 code) { return (code >> 1) & 3; }
+OMEGA_H_INLINE Int code_rotation(I8 code) { return (code >> 1) & 3; }
 
-OSH_INLINE Int code_which_down(I8 code) { return (code >> 3); }
+OMEGA_H_INLINE Int code_which_down(I8 code) { return (code >> 3); }
 
 Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
@@ -563,38 +563,38 @@ class Few {
 
  public:
   enum { size = n };
-  OSH_INLINE T& operator[](Int i) { return array_[i]; }
-  OSH_INLINE T const& operator[](Int i) const { return array_[i]; }
-  OSH_INLINE Few() {}
+  OMEGA_H_INLINE T& operator[](Int i) { return array_[i]; }
+  OMEGA_H_INLINE T const& operator[](Int i) const { return array_[i]; }
+  OMEGA_H_INLINE Few() {}
   Few(std::initializer_list<T> l) {
     Int i = 0;
     for (auto v : l) array_[i++] = v;
   }
-  OSH_INLINE void operator=(Few<T, n> const& rhs) volatile {
+  OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
-  OSH_INLINE Few(Few<T, n> const& rhs) {
+  OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
-  OSH_INLINE Few(const volatile Few<T, n>& rhs) {
+  OMEGA_H_INLINE Few(const volatile Few<T, n>& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
-  OSH_INLINE T* data() { return array_; }
-  OSH_INLINE T const* data() const { return array_; }
+  OMEGA_H_INLINE T* data() { return array_; }
+  OMEGA_H_INLINE T const* data() const { return array_; }
 };
 
 template <typename T>
-OSH_INLINE T max2(T a, T b) {
+OMEGA_H_INLINE T max2(T a, T b) {
   return (b > a) ? (b) : (a);
 }
 
 template <typename T>
-OSH_INLINE T min2(T a, T b) {
+OMEGA_H_INLINE T min2(T a, T b) {
   return (b < a) ? (b) : (a);
 }
 
 template <typename T>
-OSH_INLINE void swap2(T& a, T& b) {
+OMEGA_H_INLINE void swap2(T& a, T& b) {
   T c = a;
   a = b;
   b = c;
