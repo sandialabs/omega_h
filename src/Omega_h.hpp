@@ -181,23 +181,25 @@ class HostWrite {
 
 class TagBase {
  public:
-  TagBase(std::string const& name, Int ncomps, Int xfer);
+  TagBase(std::string const& name, Int ncomps, Int xfer, Int outflags);
   virtual ~TagBase();
   std::string const& name() const;
   Int ncomps() const;
   Int xfer() const;
+  Int outflags() const;
   virtual Omega_h_Type type() const = 0;
 
  private:
   std::string name_;
   Int ncomps_;
   Int xfer_;
+  Int outflags_;
 };
 
 template <typename T>
 class Tag : public TagBase {
  public:
-  Tag(std::string const& name, Int ncomps, Int xfer);
+  Tag(std::string const& name, Int ncomps, Int xfer, Int outflags);
   Read<T> array() const;
   void set_array(Read<T> array);
   virtual Omega_h_Type type() const override;
@@ -388,10 +390,11 @@ class Mesh {
   LO nverts() const;
   GO nglobal_ents(Int dim);
   template <typename T>
-  void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer);
+  void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);
   template <typename T>
   void add_tag(
-      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);
+      Int dim, std::string const& name, Int ncomps, Int xfer,
+      Int outflags, Read<T> array);
   template <typename T>
   void set_tag(Int dim, std::string const& name, Read<T> array);
   TagBase const* get_tagbase(Int dim, std::string const& name) const;
@@ -627,9 +630,9 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
       const;                                                                   \
   extern template void Mesh::add_tag<T>(                                       \
-      Int dim, std::string const& name, Int ncomps, Int xfer);                 \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);  \
   extern template void Mesh::add_tag<T>(                                       \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);  \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags, Read<T> array);  \
   extern template void Mesh::set_tag(                                          \
       Int dim, std::string const& name, Read<T> array);                        \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \

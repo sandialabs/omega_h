@@ -109,7 +109,7 @@ GO Mesh::nglobal_ents(Int dim) {
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
     Omega_h_fail(
@@ -120,13 +120,13 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
   CHECK(ncomps >= 0);
   CHECK(ncomps <= Int(INT8_MAX));
   CHECK(tags_[dim].size() < size_t(INT8_MAX));
-  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer)));
+  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer, outflags)));
 }
 
 template <typename T>
 void Mesh::add_tag(
-    Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array) {
-  add_tag<T>(dim, name, ncomps, xfer);
+    Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags, Read<T> array) {
+  add_tag<T>(dim, name, ncomps, xfer, outflags);
   set_tag<T>(dim, name, array);
 }
 
@@ -344,7 +344,7 @@ Adj Mesh::ask_adj(Int from, Int to) {
 }
 
 void Mesh::add_coords(Reals array) {
-  add_tag<Real>(0, "coordinates", dim(), OMEGA_H_LINEAR_INTERP, array);
+  add_tag<Real>(0, "coordinates", dim(), OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, array);
 }
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
@@ -357,7 +357,7 @@ void Mesh::set_coords(Reals const& array) {
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
     CHECK(comm_->size() == 1);
-    add_tag(dim, "global", 1, OMEGA_H_GLOBAL, Read<GO>(nents(dim), 0, 1));
+    add_tag(dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, Read<GO>(nents(dim), 0, 1));
   }
   return get_array<GO>(dim, "global");
 }
@@ -373,7 +373,7 @@ void Mesh::reset_globals() {
 Reals Mesh::ask_lengths() {
   if (!has_tag(EDGE, "length")) {
     auto lengths = measure_edges_metric(this);
-    add_tag(EDGE, "length", 1, OMEGA_H_LENGTH, lengths);
+    add_tag(EDGE, "length", 1, OMEGA_H_LENGTH, OMEGA_H_DO_OUTPUT, lengths);
   }
   return get_array<Real>(EDGE, "length");
 }
@@ -381,7 +381,7 @@ Reals Mesh::ask_lengths() {
 Reals Mesh::ask_qualities() {
   if (!has_tag(dim(), "quality")) {
     auto qualities = measure_qualities(this);
-    add_tag(dim(), "quality", 1, OMEGA_H_QUALITY, qualities);
+    add_tag(dim(), "quality", 1, OMEGA_H_QUALITY, OMEGA_H_DO_OUTPUT, qualities);
   }
   return get_array<Real>(dim(), "quality");
 }
@@ -593,9 +593,9 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
   template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps, Int xfer);                 \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);                 \
   template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);  \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags, Read<T> array);  \
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array);                        \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \

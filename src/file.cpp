@@ -114,7 +114,7 @@ INLINE void swap_bytes(T* ptr) {
 }
 
 unsigned char const magic[2] = {0xa1, 0x1a};
-I32 latest_version = 1;
+I32 latest_version = 2;
 
 }  // end anonymous namespace
 
@@ -283,8 +283,10 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   write_value(stream, ncomps);
   I8 type = tag->type();
   write_value(stream, type);
-  I8 xfer_int = static_cast<I8>(tag->xfer());
-  write_value(stream, xfer_int);
+  I8 xfer_i8 = static_cast<I8>(tag->xfer());
+  write_value(stream, xfer_i8);
+  I8 outflags_i8 = static_cast<I8>(tag->outflags());
+  write_value(stream, outflags_i8);
   if (is<I8>(tag)) {
     write_array(stream, to<I8>(tag)->array());
   } else if (is<I32>(tag)) {
@@ -299,7 +301,7 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
 }
 
 static void read_tag(
-    std::istream& stream, Mesh* mesh, Int d, bool is_compressed) {
+    std::istream& stream, Mesh* mesh, Int d, bool is_compressed, I32 version) {
   std::string name;
   read(stream, name);
   I8 ncomps;
@@ -308,23 +310,28 @@ static void read_tag(
   read_value(stream, type);
   I8 xfer_i8;
   read_value(stream, xfer_i8);
+  I8 outflags_i8 = OMEGA_H_DO_OUTPUT;
+  if (version >= 2) {
+    read_value(stream, outflags_i8);
+  }
   Int xfer = static_cast<Int>(xfer_i8);
+  Int outflags = static_cast<Int>(outflags_i8);
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
   } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
   } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
   } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
   } else {
     Omega_h_fail("unexpected tag type in binary read\n");
   }
@@ -393,7 +400,7 @@ void read(std::istream& stream, Mesh* mesh) {
     Int ntags;
     read_value(stream, ntags);
     for (Int i = 0; i < ntags; ++i) {
-      read_tag(stream, mesh, d, is_compressed);
+      read_tag(stream, mesh, d, is_compressed, version);
     }
     if (mesh->comm()->size() > 1) {
       Remotes owners;

@@ -22,7 +22,7 @@ static Read<I8> get_edge_codes(Mesh* mesh) {
 static void put_edge_codes(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   auto edge_codes =
       map_onto(cand_codes, cands2edges, mesh->nedges(), I8(DONT_COLLAPSE), 1);
-  mesh->add_tag(EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER, edge_codes);
+  mesh->add_tag(EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT, edge_codes);
 }
 
 static Reals get_edge_quals(Mesh* mesh) {
@@ -34,7 +34,7 @@ static Reals get_edge_quals(Mesh* mesh) {
 static void put_edge_quals(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 2);
   mesh->add_tag(
-      EDGE, "collapse_qualities", 2, OMEGA_H_DONT_TRANSFER, edge_quals);
+      EDGE, "collapse_qualities", 2, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT, edge_quals);
 }
 
 static bool coarsen_element_based1(Mesh* mesh) {
@@ -85,8 +85,8 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   choose_vertex_collapses(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
       verts_are_cands, vert_quals);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
-  mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, verts_are_keys);
-  mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER, vert_quals);
+  mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT, verts_are_keys);
+  mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT, vert_quals);
   put_edge_codes(mesh, cands2edges, cand_edge_codes);
   put_edge_quals(mesh, cands2edges, cand_edge_quals);
   auto keys2verts = collect_marked(verts_are_keys);
@@ -169,7 +169,7 @@ bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks, Real min_qual, bool improve,
   };
   parallel_for(mesh->nedges(), f);
   mesh->add_tag(
-      EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER, Read<I8>(edge_codes_w));
+      EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT, Read<I8>(edge_codes_w));
   return coarsen(mesh, min_qual, improve, verbose);
 }
 

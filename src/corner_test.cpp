@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_LINEAR_INTERP);
+  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT);
   vtk::FullWriter writer(&mesh, "out");
   do {
     Write<Real> size(mesh.nverts());

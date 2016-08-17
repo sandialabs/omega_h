@@ -51,6 +51,13 @@ enum Omega_h_Parting {
 
 enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
 
+enum Omega_h_Outflags {
+  OMEGA_H_DONT_OUTPUT = 0x0,
+  OMEGA_H_DO_SAVE     = 0x1,
+  OMEGA_H_DO_VIZ      = 0x2,
+  OMEGA_H_DO_OUTPUT   = OMEGA_H_DO_SAVE | OMEGA_H_DO_VIZ
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
