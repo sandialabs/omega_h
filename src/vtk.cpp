@@ -216,6 +216,7 @@ Read<T> read_array(
 }
 
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
+  if (!(tag->outflags() & OMEGA_H_DO_VIZ)) return;
   if (is<I8>(tag)) {
     write_array(stream, tag->name(), tag->ncomps(), to<I8>(tag)->array());
   } else if (is<I32>(tag)) {
@@ -429,6 +430,7 @@ void write_p_data_array2(std::ostream& stream, std::string const& name,
 }
 
 void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
+  if (!(tag->outflags() & OMEGA_H_DO_VIZ)) return;
   if (tag->type() == OMEGA_H_F64 && tag->ncomps() == space_dim)
     write_p_data_array2(stream, tag->name(), 3, OMEGA_H_F64);
   else

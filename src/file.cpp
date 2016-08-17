@@ -277,6 +277,7 @@ static void read_meta(std::istream& stream, Mesh* mesh) {
 }
 
 static void write_tag(std::ostream& stream, TagBase const* tag) {
+  if (!(tag->outflags() & OMEGA_H_DO_SAVE)) return;
   std::string name = tag->name();
   write(stream, name);
   auto ncomps = I8(tag->ncomps());
@@ -357,9 +358,12 @@ void write(std::ostream& stream, Mesh* mesh) {
     }
   }
   for (Int d = 0; d <= mesh->dim(); ++d) {
-    Int ntags = mesh->ntags(d);
-    write_value(stream, ntags);
-    for (Int i = 0; i < ntags; ++i) {
+    Int nsaved_tags = 0;
+    for (Int i = 0; i < mesh->ntags(d); ++i)
+      if (mesh->get_tag(d, i)->outflags() & OMEGA_H_DO_SAVE)
+        ++nsaved_tags;
+    write_value(stream, nsaved_tags);
+    for (Int i = 0; i < mesh->ntags(d); ++i) {
       write_tag(stream, mesh->get_tag(d, i));
     }
     if (mesh->comm()->size() > 1) {
