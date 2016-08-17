@@ -1,8 +1,4 @@
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/omega_h_config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/omega_h_config.h")
-
-set(OSH_SOURCES
+set(Omega_h_SOURCES
   algebra.cpp
   control.cpp
   protect.cpp
@@ -81,8 +77,8 @@ set(OSH_SOURCES
   project.cpp
   )
 
-if(OSH_ONE_FILE)
-  foreach(source IN LISTS OSH_SOURCES)
+if(Omega_h_ONE_FILE)
+  foreach(source IN LISTS Omega_h_SOURCES)
     set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
   endforeach()
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/omega_h.cpp "${ONE_FILE_CONTENTS}")
@@ -90,18 +86,17 @@ if(OSH_ONE_FILE)
   target_include_directories(omega_h
       PRIVATE  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 else()
-  add_library(omega_h ${OSH_SOURCES})
+  add_library(omega_h ${Omega_h_SOURCES})
 endif()
-
 #for users to find all our headers after we're installed:
 target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
-
 #find our generated omega_h_config.h, during build only
 target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+bob_export_target(omega_h)
 
-if(OSH_USE_KOKKOS)
-  osh_find_package(Kokkos "")
+bob_public_dep(Kokkos "" OFF)
+if(Omega_h_USE_Kokkos)
   get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
   message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
   get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
@@ -110,44 +105,37 @@ if(OSH_USE_KOKKOS)
   endif()
   target_link_libraries(omega_h PUBLIC kokkoscore)
   target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
-  set(DEP_LIBS ${DEP_LIBS} ${KOKKOS_LIB})
-  set(DEP_INCLUDE_DIRS ${DEP_INCLUDE_DIRS} ${KOKKOS_INCLUDE})
 endif()
 
-if(OSH_USE_ZLIB)
-  if(NOT "${ZLIB_PREFIX}" STREQUAL "")
-    set(ZLIB_ROOT "${ZLIB_PREFIX}")
-  endif()
-  find_package(ZLIB REQUIRED)
+bob_public_dep(ZLIB "" ON)
+if(Omega_h_USE_ZLIB)
   message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
-  target_link_libraries(omega_h PRIVATE ${ZLIB_LIBRARIES})
-  target_include_directories(omega_h PRIVATE ${ZLIB_INCLUDE_DIRS})
+  target_link_libraries(omega_h PRIVATE ZLIB::ZLIB)
 endif()
 
-function(exe_func EXE_NAME)
+function(osh_add_exe EXE_NAME)
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
-endfunction(exe_func)
+endfunction(osh_add_exe)
 
-function(util_func EXE_NAME)
-  exe_func(${EXE_NAME})
-  install(TARGETS ${EXE_NAME} EXPORT ${EXE_NAME}-targets DESTINATION bin)
-  install(EXPORT ${EXE_NAME}-targets NAMESPACE Omega_h:: DESTINATION lib/omega_h)
-  set(OSH_TARGETS ${OSH_TARGETS} ${EXE_NAME} PARENT_SCOPE)
-endfunction(util_func)
+macro(osh_add_util EXE_NAME)
+  osh_add_exe(${EXE_NAME})
+  bob_export_target(${EXE_NAME})
+endmacro(osh_add_util)
 
-util_func(msh2osh)
-util_func(osh2vtk)
-util_func(oshdiff)
-util_func(vtkdiff)
+osh_add_util(msh2osh)
+osh_add_util(osh2vtk)
+osh_add_util(oshdiff)
+osh_add_util(vtkdiff)
+
+bob_private_dep(Gmodel 1.2.0 OFF)
 
 if(BUILD_TESTING)
-  if(OSH_USE_MPI)
+  if(Omega_h_USE_MPI)
     get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} PATH)
     find_program(MPIRUN mpirun PATHS ${COMPILER_DIR})
   endif()
   find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
-  find_package(Gmodel 1.2.0 QUIET PATHS ${Gmodel_PREFIX})
 
   function(test_func TEST_NAME NUM_PROCS)
     if(MPIRUN)
@@ -161,7 +149,7 @@ if(BUILD_TESTING)
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
   endfunction(test_func)
 
-  if(Gmodel_FOUND)
+  if(Omega_h_USE_Gmodel)
     function(gen_func MODEL_NAME MODEL_DIM)
       add_executable(gen_${MODEL_NAME} gen/${MODEL_NAME}.cpp)
       target_link_libraries(gen_${MODEL_NAME} PRIVATE gmodel)
@@ -189,53 +177,56 @@ if(BUILD_TESTING)
     gen_func(twin_rotor 3)
   endif()
 
-  exe_func(unit_tests)
+  osh_add_exe(unit_tests)
   set(TEST_EXES ${TEST_EXES} unit_tests)
   test_func(run_unit_tests 1 ./unit_tests)
-  exe_func(mpi_tests)
+  osh_add_exe(mpi_tests)
   set(TEST_EXES ${TEST_EXES} mpi_tests)
-  if(OSH_USE_MPI)
+  if(Omega_h_USE_MPI)
     test_func(run_mpi_tests 4 ./mpi_tests)
   else()
     test_func(run_mpi_tests 1 ./mpi_tests)
   endif()
-  exe_func(warp_test)
+  osh_add_exe(warp_test)
   set(TEST_EXES ${TEST_EXES} warp_test)
   test_func(warp_test_serial 1 ./warp_test)
-  if(OSH_USE_MPI)
+  if(Omega_h_USE_MPI)
     test_func(warp_test_parallel 2 ./warp_test)
   endif()
-  exe_func(perf_tests)
-  exe_func(flounder)
-  exe_func(corner_test)
-  exe_func(coarsen_test)
-  exe_func(aniso_test)
-  exe_func(ring_test)
-  exe_func(imr_cases)
-  exe_func(test_normals)
-  if(Gmodel_FOUND AND GMSH)
+  osh_add_exe(perf_tests)
+  osh_add_exe(flounder)
+  osh_add_exe(corner_test)
+  osh_add_exe(coarsen_test)
+  osh_add_exe(aniso_test)
+  osh_add_exe(ring_test)
+  osh_add_exe(imr_cases)
+  osh_add_exe(test_normals)
+  if(Omega_h_USE_Gmodel AND GMSH)
     set(TEST_EXES ${TEST_EXES} ring_test)
     test_func(run_ring_test 1 ./ring_test)
     set(TEST_MSHS ${TEST_MSHS} ring.msh)
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
-  exe_func(r3d_test)
+  osh_add_exe(r3d_test)
   test_func(run_test_r3d 1 ./r3d_test)
-  exe_func(test_degree)
+  osh_add_exe(test_degree)
 endif()
 
-if(OSH_BUILD_SMB2OSH)
-  if(NOT OSH_USE_MPI)
+bob_private_dep(SCOREC 2.0.0 OFF)
+if(Omega_h_USE_SCOREC)
+  if(NOT Omega_h_USE_MPI)
     message(FATAL_ERROR "Building smb2osh requires enabling MPI")
   endif()
-  osh_find_package(SCOREC 2.0.0)
-  util_func(smb2osh)
+  osh_add_util(smb2osh)
   target_link_libraries(smb2osh PRIVATE SCOREC::core)
-  install(TARGETS smb2osh DESTINATION bin)
 endif()
 
-set(OSH_HEADERS
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/omega_h_config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/omega_h_config.h")
+
+set(Omega_h_HEADERS
   "${CMAKE_CURRENT_BINARY_DIR}/omega_h_config.h"
   omega_h_mpi.h
   omega_h_c.h
@@ -246,9 +237,6 @@ set(OSH_HEADERS
   omega_h_r3d.hpp
   )
 
-install(FILES ${OSH_HEADERS} DESTINATION include)
-install(TARGETS omega_h EXPORT omega_h-targets DESTINATION lib)
-install(EXPORT omega_h-targets DESTINATION lib/omega_h)
+install(FILES ${Omega_h_HEADERS} DESTINATION include)
 
-set(OSH_TARGETS ${OSH_TARGETS} omega_h PARENT_SCOPE)
-osh_end_subdir()
+bob_end_subdir()

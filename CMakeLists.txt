@@ -1,138 +1,50 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-set(OSH_MAJOR "2")
-set(OSH_MINOR "2")
-set(OSH_PATCH "0")
-set(OSH_VERSION "${OSH_MAJOR}.${OSH_MINOR}.${OSH_PATCH}")
+project(Omega_h VERSION 3.0.0 LANGUAGES CXX)
 
-project(Omega_h VERSION ${OSH_VERSION} LANGUAGES CXX)
+include(cmake/bob.cmake)
 
-#trying to force BUILD_TESTING to default to OFF
-set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
+bob_begin_package()
 
-include(CTest)
-enable_testing()
-
-option(OSH_USE_MPI "Use MPI for parallelism" ON)
-option(OSH_USE_KOKKOS "Use Kokkos for on-node parallelism" OFF)
-option(OSH_USE_OPENMP "Use Kokkos+OpenMP for on-node parallelism" OFF)
-option(OSH_USE_PTHREAD "Use Kokkos+Pthread for on-node parallelism" OFF)
-option(OSH_USE_CUDA "Use Kokkos+CUDA for on-node parallelism" OFF)
-option(OSH_USE_ZLIB "Use zlib for file compression" ON)
-option(OSH_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
-option(OSH_OPTIMIZE "Compile with optimization" ON)
-option(OSH_SYMBOLS "Compile with debug symbols" ON)
-option(OSH_BUILD_SMB2OSH "Enable building the smb2osh program" OFF)
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(OSH_SANITIZE_ADDRESS "Use -fsanitize=address" OFF)
-option(OSH_PROTECT "Catch OS signals and print stack" OFF)
-set(Gmodel_PREFIX "" CACHE PATH "Gmodel installation directory")
+option(Omega_h_USE_MPI "Use MPI for parallelism" ON)
+option(Omega_h_USE_OpenMP "Use Kokkos+OpenMP for on-node parallelism" OFF)
+option(Omega_h_USE_PTHREADS "Use Kokkos+Pthread for on-node parallelism" OFF)
+option(Omega_h_USE_CUDA "Use Kokkos+CUDA for on-node parallelism" OFF)
+option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
+option(Omega_h_SANITIZE_ADDRESS "Use -fsanitize=address" OFF)
+option(Omega_h_PROTECT "Catch OS signals and print stack" OFF)
 set(Gmsh_PREFIX "" CACHE PATH "Gmsh installation directory")
-option(OSH_ONE_FILE "Compile omega_h as a single file" ON)
-set(OSH_CXX_FLAGS "" CACHE STRING "Extra compiler flags")
-set(ZLIB_PREFIX "" CACHE PATH "zlib installation directory")
+option(Omega_h_ONE_FILE "Compile omega_h as a single file" ON)
 
-#If not building shared libs, then prefer static
-#dependency libs
-if(NOT BUILD_SHARED_LIBS)
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
-endif()
-
-set(FLAGS "--std=c++11")
-if(OSH_OPTIMIZE)
-  set(FLAGS "${FLAGS} -O2")
-else()
-  set(FLAGS "${FLAGS} -O0")
-endif()
-if(OSH_SYMBOLS)
-  set(FLAGS "${FLAGS} -g")
-endif()
-if(OSH_SANITIZE_ADDRESS)
+bob_begin_cxx_flags()
+bob_cxx11_flags()
+if(Omega_h_SANITIZE_ADDRESS)
   set(FLAGS "${FLAGS} -fsanitize=address")
 endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
-  set(FLAGS "${FLAGS} -Werror -Weverything -Wno-c++98-compat")
-  set(FLAGS "${FLAGS} -Wno-c++98-compat-pedantic -Wno-padded")
-  set(FLAGS "${FLAGS} -Wno-float-equal")
-  set(FLAGS "${FLAGS} -Wno-weak-template-vtables")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  if(OSH_USE_CUDA)
-    set(FLAGS "${FLAGS} -Werror -Wall -Wextra")
+  if(Omega_h_USE_CUDA)
     set(FLAGS "${FLAGS} -expt-extended-lambda")
-  elseif(OSH_USE_OPENMP)
+  elseif(Omega_h_USE_OpenMP)
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
-    set(FLAGS "${FLAGS} -Werror -Wall -Wextra")
     set(FLAGS "${FLAGS} -fopenmp")
-  elseif(OSH_USE_PTHREAD)
+  elseif(Omega_h_USE_PTHREAD)
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
-    set(FLAGS "${FLAGS} -Werror -Wall -Wextra")
     set(FLAGS "${FLAGS} -pthread")
   else()
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
-    set(FLAGS "${FLAGS} -Werror -Wall -Wextra")
   endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  set(FLAGS "${FLAGS} -debug")
-  if(OSH_USE_OPENMP)
+  if(Omega_h_USE_OpenMP)
     set(FLAGS "${FLAGS} -qopenmp")
   endif()
 else()
-  message(FATAL_ERROR "Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
+  message(WARNING "Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
 endif()
-set(CMAKE_CXX_FLAGS "${FLAGS} ${OSH_CXX_FLAGS}")
-message(STATUS "Compiler flags: ${CMAKE_CXX_FLAGS}")
-
-# CMake RPATH "always full" configuration, see:
-# https://cmake.org/Wiki/CMake_RPATH_handling#Always_full_RPATH
-# use, i.e. don't skip the full RPATH for the build tree
-set(CMAKE_SKIP_BUILD_RPATH False)
-# when building, don't use the install RPATH already
-# (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH False)
-# the RPATH to be used when installing, but only if it's not a system directory
-list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-if("${isSystemDir}" STREQUAL "-1")
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-endif("${isSystemDir}" STREQUAL "-1")
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
-
-macro(osh_find_package PKG_NAME VERSION)
-  set(${PKG_NAME}_PREFIX "" CACHE PATH "${PKG_NAME} install directory")
-  if ("${${PKG_NAME}_PREFIX}" STREQUAL "")
-    #allow CMake to search other prefixes if ${PKG_NAME}_PREFIX is not set
-    find_package(${PKG_NAME} ${VERSION} REQUIRED)
-  else()
-    #but if ${PKG_NAME}_PREFIX is set, don't find it anywhere else:
-    find_package(${PKG_NAME} ${VERSION} REQUIRED PATHS ${${PKG_NAME}_PREFIX} NO_DEFAULT_PATH)
-    set(OSH_DEP_PREFIXES ${OSH_DEP_PREFIXES} ${${PKG_NAME}_PREFIX})
-  endif()
-  message(STATUS "${PKG_NAME}_CONFIG: ${${PKG_NAME}_CONFIG}")
-  set(OSH_DEPS ${OSH_DEPS} ${PKG_NAME})
-endmacro(osh_find_package)
-
-macro(osh_end_subdir)
-  set(OSH_DEPS ${OSH_DEPS} PARENT_SCOPE)
-  set(OSH_DEP_PREFIXES ${OSH_DEP_PREFIXES} PARENT_SCOPE)
-endmacro(osh_end_subdir)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
+bob_end_cxx_flags()
 
 add_subdirectory(src)
 
-include(CMakePackageConfigHelpers)
-set(INCLUDE_INSTALL_DIR include/)
-set(LIB_INSTALL_DIR lib/)
-configure_package_config_file(
-    omega_h-config.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/omega_h-config.cmake
-    INSTALL_DESTINATION ${LIB_INSTALL_DIR}/omega_h
-    PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
-    NO_CHECK_REQUIRED_COMPONENTS_MACRO)
-write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/omega_h-config-version.cmake
-                                 VERSION ${OSH_VERSION}
-                                 COMPATIBILITY SameMajorVersion)
-install(FILES
-  "${PROJECT_BINARY_DIR}/omega_h-config.cmake"
-  "${PROJECT_BINARY_DIR}/omega_h-config-version.cmake"
-  DESTINATION lib/omega_h)
+bob_end_package()
