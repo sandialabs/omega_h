@@ -224,7 +224,7 @@ static Read<typename Functor::input_type> fan_reduce_tmpl(
 }
 
 template <typename T>
-Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
+Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   switch (op) {
     case OMEGA_H_MIN:
       return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
@@ -242,7 +242,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
   template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
   template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
   template Read<T> permute(Read<T> a_data, LOs a2b, Int width);                \
-  template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
+  template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

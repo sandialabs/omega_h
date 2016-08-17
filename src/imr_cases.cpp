@@ -153,7 +153,7 @@ struct TwinRotor : public Case {
       center = vector_3(.25, 0, 0);
       dir = -1.0;
     } else {
-      osh_fail("object %d not in either assembly\n", object);
+      Omega_h_fail("object %d not in either assembly\n", object);
     }
     return static_motion(m, ov2v, center, dir);
   }
@@ -242,7 +242,7 @@ int main(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
     if (arg == "--niters") {
-      if (i == argc - 1) osh_fail("--niters needs an argument\n");
+      if (i == argc - 1) Omega_h_fail("--niters needs an argument\n");
       ++i;
       niters = atoi(argv[i]);
     } else {
@@ -260,5 +260,5 @@ int main(int argc, char** argv) {
   else if (name == "twin_rotor")
     run_case(lib, TwinRotor(), niters);
   else
-    osh_fail("unknown case \"%s\"", argv[1]);
+    Omega_h_fail("unknown case \"%s\"", argv[1]);
 }

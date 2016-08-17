@@ -186,7 +186,7 @@ class TagBase {
   std::string const& name() const;
   Int ncomps() const;
   Int xfer() const;
-  virtual osh_type type() const = 0;
+  virtual Omega_h_Type type() const = 0;
 
  private:
   std::string name_;
@@ -200,7 +200,7 @@ class Tag : public TagBase {
   Tag(std::string const& name, Int ncomps, Int xfer);
   Read<T> array() const;
   void set_array(Read<T> array);
-  virtual osh_type type() const override;
+  virtual Omega_h_Type type() const override;
 
  private:
   Read<T> array_;
@@ -260,12 +260,12 @@ class Comm {
   Read<I32> sources() const;
   Read<I32> destinations() const;
   template <typename T>
-  T allreduce(T x, osh_op op) const;
+  T allreduce(T x, Omega_h_Op op) const;
   bool reduce_or(bool x) const;
   bool reduce_and(bool x) const;
   Int128 add_int128(Int128 x) const;
   template <typename T>
-  T exscan(T x, osh_op op) const;
+  T exscan(T x, Omega_h_Op op) const;
   template <typename T>
   void bcast(T& x) const;
   void bcast_string(std::string& s) const;
@@ -299,7 +299,7 @@ class Dist {
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;
   template <typename T>
-  Read<T> exch_reduce(Read<T> data, Int width, osh_op op) const;
+  Read<T> exch_reduce(Read<T> data, Int width, Omega_h_Op op) const;
   CommPtr parent_comm() const;
   CommPtr comm() const;
   LOs msgs2content() const;
@@ -351,7 +351,7 @@ void find_matches(
 class Library {
  public:
   Library(Library const&) {}
-  inline Library(int* argc, char*** argv) { osh_init(argc, argv); }
+  inline Library(int* argc, char*** argv) { Omega_h_init(argc, argv); }
   ~Library();
   CommPtr world() const;
   CommPtr self() const;
@@ -370,7 +370,7 @@ class Mesh {
   void set_ents(Int dim, Adj down);
   void keep_canonical_globals(bool yn);
   CommPtr comm() const;
-  osh_parting parting() const;
+  Omega_h_Parting parting() const;
   inline Int dim() const {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
@@ -449,7 +449,7 @@ class Mesh {
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);
   Dist ask_dist(Int dim);
-  void set_parting(osh_parting parting, bool verbose = false);
+  void set_parting(Omega_h_Parting parting, bool verbose = false);
   void migrate(Remotes new_elems2old_owners, bool verbose = false);
   void reorder();
   void balance();
@@ -460,9 +460,9 @@ class Mesh {
   Read<T> sync_subset_array(
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);
   template <typename T>
-  Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op);
+  Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
   void sync_tag(Int dim, std::string const& name);
-  void reduce_tag(Int dim, std::string const& name, osh_op op);
+  void reduce_tag(Int dim, std::string const& name, Omega_h_Op op);
   bool operator==(Mesh& other);
   Real min_quality();
   bool could_be_shared(Int ent_dim) const;
@@ -517,7 +517,7 @@ void write(std::string const& path, Mesh* mesh);
 void read(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
-osh_comparison compare_meshes(
+Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, Real tol, Real floor, bool verbose, bool full = true);
 bool check_regression(
     std::string const& prefix, Mesh* mesh, Real tol, Real floor);
@@ -606,8 +606,8 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
-  extern template T Comm::allreduce(T x, osh_op op) const;                     \
-  extern template T Comm::exscan(T x, osh_op op) const;                        \
+  extern template T Comm::allreduce(T x, Omega_h_Op op) const;                     \
+  extern template T Comm::exscan(T x, Omega_h_Op op) const;                        \
   extern template void Comm::bcast(T& x) const;                                \
   extern template Read<T> Comm::allgather(T x) const;                          \
   extern template Read<T> Comm::alltoall(Read<T> x) const;                     \
@@ -616,7 +616,7 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
       Read<LO> rdispls) const;                                                 \
   extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
   extern template Read<T> Dist::exch_reduce<T>(                                \
-      Read<T> data, Int width, osh_op op) const;                               \
+      Read<T> data, Int width, Omega_h_Op op) const;                               \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \
       Int dim, std::string const& name) const;                                 \
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
@@ -631,7 +631,7 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   extern template Read<T> Mesh::sync_subset_array(                             \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
-      Int ent_dim, Read<T> a, Int width, osh_op op);
+      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)

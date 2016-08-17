@@ -49,7 +49,7 @@ Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
       return measure_edges_tmpl<MetricEdgeLengths<2>>(mesh, a2e);
     }
   }
-  osh_fail("measure_edges(): no size field exists!\n");
+  Omega_h_fail("measure_edges(): no size field exists!\n");
   NORETURN(Reals());
 }
 

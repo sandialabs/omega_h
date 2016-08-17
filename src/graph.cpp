@@ -78,7 +78,7 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
 }
 
 template <typename T>
-Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, osh_op op) {
+Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   auto a2ab = a2b.a2ab;
   auto ab2b = a2b.ab2b;
   auto ab_data = unmap(ab2b, b_data, width);
@@ -105,7 +105,7 @@ Reals graph_weighted_average(
   return graph_weighted_average_arc_data(a2b, ab_weights, ab_data, width);
 }
 
-#define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, osh_op);
+#define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);
 INST(I8)
 INST(I32)
 INST(Real)

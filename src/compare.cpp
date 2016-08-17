@@ -77,7 +77,7 @@ static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
   return hl2l_globals;
 }
 
-osh_comparison compare_meshes(
+Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, Real tol, Real floor, bool verbose, bool full) {
   CHECK(a->comm()->size() == b->comm()->size());
   CHECK(a->comm()->rank() == b->comm()->rank());
@@ -87,7 +87,7 @@ osh_comparison compare_meshes(
     if (should_print) std::cout << "mesh dimensions differ\n";
     return OMEGA_H_DIFF;
   }
-  osh_comparison result = OMEGA_H_SAME;
+  Omega_h_Comparison result = OMEGA_H_SAME;
   for (Int dim = 0; dim <= a->dim(); ++dim) {
     if (a->nglobal_ents(dim) != b->nglobal_ents(dim)) {
       if (should_print) {

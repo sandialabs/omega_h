@@ -137,7 +137,7 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
 }
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    Dist new_ents2old_owners, Dist old_owners2new_ents, osh_parting mode) {
+    Dist new_ents2old_owners, Dist old_owners2new_ents, Omega_h_Parting mode) {
   push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
   Read<I32> own_ranks;
   if ((mode == OMEGA_H_GHOSTED) ||
@@ -172,7 +172,7 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 }
 
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
-    osh_parting mode, bool verbose) {
+    Omega_h_Parting mode, bool verbose) {
   auto comm = old_mesh->comm();
   auto dim = old_mesh->dim();
   if (verbose) print_migrate_stats(comm, new_elems2old_owners);

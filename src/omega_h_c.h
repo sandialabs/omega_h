@@ -15,7 +15,7 @@
 
 #include "omega_h_mpi.h"
 
-enum Omega_h_type {
+enum Omega_h_Type {
   OMEGA_H_I8 = 0,
   OMEGA_H_I32 = 2,
   OMEGA_H_I64 = 3,
@@ -26,9 +26,9 @@ enum { OMEGA_H_DIMS = 4 };
 
 enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_TET = 3 };
 
-enum Omega_h_op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
+enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
-enum Omega_h_xfer {
+enum Omega_h_Xfer {
   OMEGA_H_DONT_TRANSFER,
   OMEGA_H_INHERIT,
   OMEGA_H_LINEAR_INTERP,
@@ -41,15 +41,15 @@ enum Omega_h_xfer {
   OMEGA_H_CONSERVE_R3D
 };
 
-enum { OMEGA_H_XFERS = OMEGA_H_METRIC + 1 };
+enum { OMEGA_H_XFERS = OMEGA_H_CONSERVE_R3D + 1 };
 
-enum Omega_h_parting {
+enum Omega_h_Parting {
   OMEGA_H_ELEM_BASED,
   OMEGA_H_GHOSTED,
   OMEGA_H_VERT_BASED,
 };
 
-enum Omega_h_comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
+enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
 
 #ifdef __cplusplus
 extern "C" {

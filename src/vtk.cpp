@@ -103,7 +103,7 @@ void describe_array(std::ostream& stream, std::string const& name, Int ncomps) {
   stream << " format=\"binary\"";
 }
 
-bool read_array_start_tag(std::istream& stream, osh_type* type_out,
+bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     std::string* name_out, Int* ncomps_out) {
   auto st = xml::read_tag(stream);
   if (st.elem_name != "DataArray" || st.type != xml::Tag::START) {
@@ -129,7 +129,7 @@ template <typename T>
 void write_array(
     std::ostream& stream, std::string const& name, Int ncomps, Read<T> array) {
   if (!(array.exists())) {
-    osh_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
+    Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
   stream << "<DataArray ";
   describe_array<T>(stream, name, ncomps);
@@ -201,7 +201,7 @@ Read<T> read_array(
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     if (ret != Z_OK) {
-      osh_fail("code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
+      Omega_h_fail("code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
     }
     CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete[] compressed;
@@ -234,13 +234,13 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
       write_array(stream, tag->name(), tag->ncomps(), array);
     }
   } else {
-    osh_fail("unknown tag type in write_tag");
+    Omega_h_fail("unknown tag type in write_tag");
   }
 }
 
 bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     bool is_little_endian, bool is_compressed) {
-  osh_type type = OMEGA_H_I8;
+  Omega_h_Type type = OMEGA_H_I8;
   std::string name;
   Int ncomps = -1;
   if (!read_array_start_tag(stream, &type, &name, &ncomps)) {
@@ -410,8 +410,8 @@ void write_p_data_array(
 }
 
 void write_p_data_array2(
-    std::ostream& stream, std::string const& name, Int ncomps, Int osh_type) {
-  switch (osh_type) {
+    std::ostream& stream, std::string const& name, Int ncomps, Int Omega_h_Type) {
+  switch (Omega_h_Type) {
     case OMEGA_H_I8:
       write_p_data_array<I8>(stream, name, ncomps);
       break;
@@ -604,7 +604,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
   std::string vtupath;
   std::ifstream stream(pvtupath.c_str());
   if (!stream.is_open()) {
-    osh_fail("couldn't open \"%s\"\n", pvtupath.c_str());
+    Omega_h_fail("couldn't open \"%s\"\n", pvtupath.c_str());
   }
   read_pvtu(stream, comm, &npieces, &vtupath);
   vtupath = parentpath + "/" + vtupath;

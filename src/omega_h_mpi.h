@@ -1,9 +1,9 @@
 #ifndef OMEGA_H_MPI_H
 #define OMEGA_H_MPI_H
 
-#ifdef OSH_USE_MPI
+#ifdef OMEGA_H_USE_MPI
 
-OSH_SYSTEM_HEADER
+OMEGA_H_SYSTEM_HEADER
 
 /* on BlueGene/Q the default install
  * defines MPICH2_CONST to empty if we
@@ -25,6 +25,6 @@ OSH_SYSTEM_HEADER
 
 #include <mpi.h>
 
-#endif  // OSH_USE_MPI
+#endif  // ifdef OMEGA_H_USE_MPI
 
-#endif  // OMEGA_H_MPI_H
+#endif  // ifndef OMEGA_H_MPI_H

@@ -29,7 +29,7 @@ void safe_mkdir(const char* path) {
   errno = 0;
   err = mkdir(path, mode);
   if (err != 0 && errno != EEXIST) {
-    osh_fail("omega_h could not create directory \"%s\"\n", path);
+    Omega_h_fail("omega_h could not create directory \"%s\"\n", path);
   }
 }
 
@@ -257,7 +257,7 @@ static void read_meta(std::istream& stream, Mesh* mesh) {
   CHECK(mesh->comm()->rank() == comm_rank);
   I8 parting;
   read_value(stream, parting);
-  mesh->set_parting(osh_parting(parting));
+  mesh->set_parting(Omega_h_Parting(parting));
   I8 have_hints;
   read_value(stream, have_hints);
   if (have_hints) {
@@ -294,7 +294,7 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   } else if (is<Real>(tag)) {
     write_array(stream, to<Real>(tag)->array());
   } else {
-    osh_fail("unexpected tag type in binary write\n");
+    Omega_h_fail("unexpected tag type in binary write\n");
   }
 }
 
@@ -326,7 +326,7 @@ static void read_tag(
     read_array(stream, array, is_compressed);
     mesh->add_tag(d, name, ncomps, xfer, array);
   } else {
-    osh_fail("unexpected tag type in binary read\n");
+    Omega_h_fail("unexpected tag type in binary read\n");
   }
 }
 
@@ -415,7 +415,7 @@ static I32 read_nparts(std::string const& path) {
   auto filepath = path + "/nparts";
   std::ifstream file(filepath.c_str());
   if (!file.is_open()) {
-    osh_fail("could not open file \"%s\"\n", filepath.c_str());
+    Omega_h_fail("could not open file \"%s\"\n", filepath.c_str());
   }
   I32 nparts;
   file >> nparts;
@@ -453,7 +453,7 @@ static void read2(std::string const& path, CommPtr comm, Mesh* mesh) {
 void read(std::string const& path, CommPtr comm, Mesh* mesh) {
   auto nparts = read_nparts(path);
   if (nparts > comm->size()) {
-    osh_fail(
+    Omega_h_fail(
         "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
         path.c_str(), nparts, comm->size());
   }

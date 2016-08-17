@@ -156,7 +156,7 @@ Read<I32> Comm::sources() const { return srcs_; }
 Read<I32> Comm::destinations() const { return dsts_; }
 
 template <typename T>
-T Comm::allreduce(T x, osh_op op) const {
+T Comm::allreduce(T x, Omega_h_Op op) const {
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Allreduce(
       MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(), mpi_op(op), impl_));
@@ -198,7 +198,7 @@ Int128 Comm::add_int128(Int128 x) const {
 }
 
 template <typename T>
-T Comm::exscan(T x, osh_op op) const {
+T Comm::exscan(T x, Omega_h_Op op) const {
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Exscan(
       MPI_IN_PLACE, &x, 1, MpiTraits<T>::datatype(), mpi_op(op), impl_));
@@ -418,8 +418,8 @@ void Comm::barrier() const {
 #undef CALL
 
 #define INST(T)                                                                \
-  template T Comm::allreduce(T x, osh_op op) const;                            \
-  template T Comm::exscan(T x, osh_op op) const;                               \
+  template T Comm::allreduce(T x, Omega_h_Op op) const;                            \
+  template T Comm::exscan(T x, Omega_h_Op op) const;                               \
   template void Comm::bcast(T& x) const;                                       \
   template Read<T> Comm::allgather(T x) const;                                 \
   template Read<T> Comm::alltoall(Read<T> x) const;                            \

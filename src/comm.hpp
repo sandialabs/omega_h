@@ -48,7 +48,7 @@ struct MpiTraits<double> {
 static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");
 
 #ifdef OMEGA_H_USE_MPI
-inline MPI_Op mpi_op(osh_op op) {
+inline MPI_Op mpi_op(Omega_h_Op op) {
   switch (op) {
     case OMEGA_H_MIN:
       return MPI_MIN;

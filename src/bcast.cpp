@@ -13,7 +13,7 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   I32 parting;
   if (is_source) parting = mesh->parting();
   new_comm->bcast(parting);
-  if (!is_source) mesh->set_parting(static_cast<osh_parting>(parting));
+  if (!is_source) mesh->set_parting(static_cast<Omega_h_Parting>(parting));
   I32 keep_canon;
   if (is_source) keep_canon = mesh->keeps_canonical_globals();
   new_comm->bcast(keep_canon);

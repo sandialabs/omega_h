@@ -30,7 +30,7 @@ Int type_dim(Int type) {
     case GMSH_TET:
       return 3;
   }
-  osh_fail("omega_h can only accept linear simplices from Gmsh");
+  Omega_h_fail("omega_h can only accept linear simplices from Gmsh");
   NORETURN(-1);
 }
 
@@ -156,7 +156,7 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
 void read(std::string const& filename, Library const& lib, Mesh* mesh) {
   std::ifstream file(filename.c_str());
   if (!file.is_open()) {
-    osh_fail("couldn't open \"%s\"\n", filename.c_str());
+    Omega_h_fail("couldn't open \"%s\"\n", filename.c_str());
   }
   read(file, lib, mesh);
 }

@@ -112,7 +112,7 @@ template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
-    osh_fail(
+    Omega_h_fail(
         "omega_h: add_tag(): \"%s\" already exists. use set_tag or "
         "remove_tag\n",
         name.c_str());
@@ -133,7 +133,7 @@ void Mesh::add_tag(
 template <typename T>
 void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
   if (!has_tag(dim, name)) {
-    osh_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
+    Omega_h_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
         plural_names[dim], name.c_str());
   }
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
@@ -165,7 +165,7 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
-    osh_fail(
+    Omega_h_fail(
         "get_tagbase(%s,%s): doesn't exist\n", plural_names[dim], name.c_str());
   }
   return tag_iter(dim, name)->get();
@@ -327,7 +327,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
       return g;
     }
   }
-  osh_fail("can't derive adjacency from %s to %s\n", plural_names[from],
+  Omega_h_fail("can't derive adjacency from %s to %s\n", plural_names[from],
       plural_names[to]);
   NORETURN(Adj());
 }
@@ -418,12 +418,12 @@ Dist Mesh::ask_dist(Int dim) {
   return *(dists_[dim]);
 }
 
-osh_parting Mesh::parting() const {
+Omega_h_Parting Mesh::parting() const {
   CHECK(parting_ != -1);
-  return osh_parting(parting_);
+  return Omega_h_Parting(parting_);
 }
 
-void Mesh::set_parting(osh_parting parting, bool verbose) {
+void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
   if ((parting_ == -1) || (comm_->size() == 1)) {
     parting_ = parting;
     return;
@@ -495,7 +495,7 @@ Read<T> Mesh::sync_subset_array(
 }
 
 template <typename T>
-Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op) {
+Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, Omega_h_Op op) {
   if (!could_be_shared(ent_dim)) return a;
   return ask_dist(ent_dim).exch_reduce(a, width, op);
 }
@@ -526,7 +526,7 @@ void Mesh::sync_tag(Int dim, std::string const& name) {
   }
 }
 
-void Mesh::reduce_tag(Int dim, std::string const& name, osh_op op) {
+void Mesh::reduce_tag(Int dim, std::string const& name, Omega_h_Op op) {
   auto tagbase = get_tagbase(dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
@@ -602,7 +602,7 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
   template Read<T> Mesh::sync_subset_array(                                    \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   template Read<T> Mesh::reduce_array(                                         \
-      Int ent_dim, Read<T> a, Int width, osh_op op);
+      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
