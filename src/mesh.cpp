@@ -344,7 +344,7 @@ Adj Mesh::ask_adj(Int from, Int to) {
 }
 
 void Mesh::add_coords(Reals array) {
-  add_tag<Real>(0, "coordinates", dim(), OMEGA_H_LINEAR_INTERP, array);
+  add_tag<Real>(0, "coordinates", dim(), OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, array);
 }
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
@@ -357,7 +357,7 @@ void Mesh::set_coords(Reals const& array) {
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
     CHECK(comm_->size() == 1);
-    add_tag(dim, "global", 1, OMEGA_H_GLOBAL, Read<GO>(nents(dim), 0, 1));
+    add_tag(dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, Read<GO>(nents(dim), 0, 1));
   }
   return get_array<GO>(dim, "global");
 }
@@ -373,7 +373,7 @@ void Mesh::reset_globals() {
 Reals Mesh::ask_lengths() {
   if (!has_tag(EDGE, "length")) {
     auto lengths = measure_edges_metric(this);
-    add_tag(EDGE, "length", 1, OMEGA_H_LENGTH, lengths);
+    add_tag(EDGE, "length", 1, OMEGA_H_LENGTH, OMEGA_H_DO_OUTPUT, lengths);
   }
   return get_array<Real>(EDGE, "length");
 }
@@ -381,7 +381,7 @@ Reals Mesh::ask_lengths() {
 Reals Mesh::ask_qualities() {
   if (!has_tag(dim(), "quality")) {
     auto qualities = measure_qualities(this);
-    add_tag(dim(), "quality", 1, OMEGA_H_QUALITY, qualities);
+    add_tag(dim(), "quality", 1, OMEGA_H_QUALITY, OMEGA_H_DO_OUTPUT, qualities);
   }
   return get_array<Real>(dim(), "quality");
 }

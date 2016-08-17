@@ -199,7 +199,7 @@ class TagBase {
 template <typename T>
 class Tag : public TagBase {
  public:
-  Tag(std::string const& name, Int ncomps, Int xfer);
+  Tag(std::string const& name, Int ncomps, Int xfer, Int outflags);
   Read<T> array() const;
   void set_array(Read<T> array);
   virtual Omega_h_Type type() const override;

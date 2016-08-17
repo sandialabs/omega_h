@@ -19,13 +19,14 @@ void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
+  auto outflags = tagbase->outflags();
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
   auto same_data = unmap(same_ents2old_ents, old_data, ncomps);
   auto nnew_ents = new_mesh->nents(ent_dim);
   auto new_data = Write<T>(nnew_ents * ncomps);
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
   map_into(prod_data, prods2new_ents, new_data, ncomps);
-  new_mesh->add_tag(ent_dim, name, ncomps, xfer, Read<T>(new_data));
+  new_mesh->add_tag(ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data));
 }
 
 static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
@@ -428,8 +429,9 @@ static void transfer_copy_tmpl(
   auto const& name = old_tag->name();
   auto ncomps = old_tag->ncomps();
   auto xfer = old_tag->xfer();
+  auto outflags = old_tag->outflags();
   auto old_data = old_tag->array();
-  new_mesh->add_tag(prod_dim, name, ncomps, xfer, old_data);
+  new_mesh->add_tag(prod_dim, name, ncomps, xfer, outflags, old_data);
 }
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {

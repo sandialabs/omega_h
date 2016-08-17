@@ -43,19 +43,22 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
       I32 tag_xfer;
       if (is_source) tag_xfer = tag->xfer();
       new_comm->bcast(tag_xfer);
+      I32 tag_outflags;
+      if (is_source) tag_outflags = tag->outflags();
+      new_comm->bcast(tag_outflags);
       if (!is_source) {
         switch (tag_type) {
           case OMEGA_H_I8:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<I8>({}));
+            mesh->add_tag(d, name, ncomps, tag_xfer, tag_outflags, Read<I8>({}));
             break;
           case OMEGA_H_I32:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<I32>({}));
+            mesh->add_tag(d, name, ncomps, tag_xfer, tag_outflags, Read<I32>({}));
             break;
           case OMEGA_H_I64:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<I64>({}));
+            mesh->add_tag(d, name, ncomps, tag_xfer, tag_outflags, Read<I64>({}));
             break;
           case OMEGA_H_F64:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<Real>({}));
+            mesh->add_tag(d, name, ncomps, tag_xfer, tag_outflags, Read<Real>({}));
             break;
         }
       }

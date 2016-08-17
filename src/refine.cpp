@@ -25,10 +25,10 @@ static bool refine_ghosted(Mesh* mesh, Real min_qual) {
       map_onto(cands_are_good, cands2edges, nedges, I8(0), 1);
   auto edge_quals = map_onto(cand_quals, cands2edges, nedges, 0.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_initial);
-  mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER, edges_are_keys);
+  mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT, edges_are_keys);
   if (mesh->keeps_canonical_globals()) {
     mesh->add_tag(EDGE, "edge2rep_order", 1, OMEGA_H_DONT_TRANSFER,
-        get_edge2rep_order(mesh, edges_are_keys));
+        OMEGA_H_DONT_OUTPUT, get_edge2rep_order(mesh, edges_are_keys));
   }
   auto keys2edges = collect_marked(edges_are_keys);
   set_owners_by_indset(mesh, EDGE, keys2edges);
@@ -88,7 +88,7 @@ bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual, bool verbose) {
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_gt(lengths, max_len);
   if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
-  mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER, edge_is_cand);
+  mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT, edge_is_cand);
   return refine(mesh, min_qual, verbose);
 }
 
