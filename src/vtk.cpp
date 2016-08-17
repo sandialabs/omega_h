@@ -201,7 +201,8 @@ Read<T> read_array(
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     if (ret != Z_OK) {
-      Omega_h_fail("code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
+      Omega_h_fail(
+          "code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
     }
     CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete[] compressed;
@@ -409,8 +410,8 @@ void write_p_data_array(
   stream << "/>\n";
 }
 
-void write_p_data_array2(
-    std::ostream& stream, std::string const& name, Int ncomps, Int Omega_h_Type) {
+void write_p_data_array2(std::ostream& stream, std::string const& name,
+    Int ncomps, Int Omega_h_Type) {
   switch (Omega_h_Type) {
     case OMEGA_H_I8:
       write_p_data_array<I8>(stream, name, ncomps);

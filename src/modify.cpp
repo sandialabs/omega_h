@@ -295,7 +295,8 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
-  new_mesh->add_tag(ent_dim, "global", 1, OMEGA_H_GLOBAL, Read<GO>(new_globals));
+  new_mesh->add_tag(
+      ent_dim, "global", 1, OMEGA_H_GLOBAL, Read<GO>(new_globals));
 }
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,

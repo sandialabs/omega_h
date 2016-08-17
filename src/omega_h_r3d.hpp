@@ -66,7 +66,8 @@ struct Polytope {
 };
 
 template <Int dim>
-OMEGA_H_INLINE Vector<dim> wav(Vector<dim> va, Real wa, Vector<dim> vb, Real wb) {
+OMEGA_H_INLINE Vector<dim> wav(
+    Vector<dim> va, Real wa, Vector<dim> vb, Real wb) {
   Vector<dim> vr;
   for (Int i = 0; i < dim; ++i) vr[i] = (wa * va[i] + wb * vb[i]) / (wa + wb);
   return vr;
@@ -81,7 +82,8 @@ struct ClipHelper;
 
 template <>
 struct ClipHelper<3> {
-  OMEGA_H_INLINE static void relink(Int onv, Int* nverts, Vertex<3>* vertbuffer) {
+  OMEGA_H_INLINE static void relink(
+      Int onv, Int* nverts, Vertex<3>* vertbuffer) {
     for (auto vstart = onv; vstart < *nverts; ++vstart) {
       auto vcur = vstart;
       auto vnext = vertbuffer[vcur].pnbrs[0];
@@ -106,7 +108,8 @@ struct ClipHelper<3> {
 
 template <>
 struct ClipHelper<2> {
-  OMEGA_H_INLINE static void relink(Int onv, Int* nverts, Vertex<2>* vertbuffer) {
+  OMEGA_H_INLINE static void relink(
+      Int onv, Int* nverts, Vertex<2>* vertbuffer) {
     for (auto vstart = onv; vstart < *nverts; ++vstart) {
       if (vertbuffer[vstart].pnbrs[1] >= 0) continue;
       auto vcur = vertbuffer[vstart].pnbrs[0];
@@ -286,7 +289,8 @@ OMEGA_H_INLINE void norm(Vector<dim>& v) {
   v = Omega_h::normalize(v);
 }
 
-OMEGA_H_INLINE Plane<3> tet_face_from_verts(Vector<3> a, Vector<3> b, Vector<3> c) {
+OMEGA_H_INLINE Plane<3> tet_face_from_verts(
+    Vector<3> a, Vector<3> b, Vector<3> c) {
   auto center = ONE_THIRD * (a + b + c);
   auto normal = normalize(cross((b - a), (c - a)));
   auto d = -(normal * center);

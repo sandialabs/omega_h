@@ -238,7 +238,9 @@ OMEGA_H_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
 }
 
-OMEGA_H_INLINE constexpr Int symm_dofs(Int dim) { return ((dim + 1) * dim) / 2; }
+OMEGA_H_INLINE constexpr Int symm_dofs(Int dim) {
+  return ((dim + 1) * dim) / 2;
+}
 
 OMEGA_H_INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
   Vector<3> v;
@@ -272,7 +274,8 @@ OMEGA_H_INLINE Vector<dim> metric_eigenvalues(Vector<dim> h) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> compose_metric(Matrix<dim, dim> r, Vector<dim> h) {
+OMEGA_H_INLINE Matrix<dim, dim> compose_metric(
+    Matrix<dim, dim> r, Vector<dim> h) {
   auto l = metric_eigenvalues(h);
   return r * diagonal(l) * transpose(r);
 }

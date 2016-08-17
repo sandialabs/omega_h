@@ -22,8 +22,9 @@ Comm::Comm(MPI_Comm impl) : impl_(impl) {
     CALL(MPI_Dist_graph_neighbors_count(impl, &nin, &nout, &is_weighted));
     HostWrite<I32> sources(nin);
     HostWrite<I32> destinations(nout);
-    CALL(MPI_Dist_graph_neighbors(impl, nin, sources.data(), OMEGA_H_MPI_UNWEIGHTED,
-        nout, destinations.data(), OMEGA_H_MPI_UNWEIGHTED));
+    CALL(MPI_Dist_graph_neighbors(impl, nin, sources.data(),
+        OMEGA_H_MPI_UNWEIGHTED, nout, destinations.data(),
+        OMEGA_H_MPI_UNWEIGHTED));
     srcs_ = sources.write();
     dsts_ = destinations.write();
     host_srcs_ = HostRead<I32>(srcs_);
@@ -418,8 +419,8 @@ void Comm::barrier() const {
 #undef CALL
 
 #define INST(T)                                                                \
-  template T Comm::allreduce(T x, Omega_h_Op op) const;                            \
-  template T Comm::exscan(T x, Omega_h_Op op) const;                               \
+  template T Comm::allreduce(T x, Omega_h_Op op) const;                        \
+  template T Comm::exscan(T x, Omega_h_Op op) const;                           \
   template void Comm::bcast(T& x) const;                                       \
   template Read<T> Comm::allgather(T x) const;                                 \
   template Read<T> Comm::alltoall(Read<T> x) const;                            \

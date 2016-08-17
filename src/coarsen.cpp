@@ -33,7 +33,8 @@ static Reals get_edge_quals(Mesh* mesh) {
 
 static void put_edge_quals(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 2);
-  mesh->add_tag(EDGE, "collapse_qualities", 2, OMEGA_H_DONT_TRANSFER, edge_quals);
+  mesh->add_tag(
+      EDGE, "collapse_qualities", 2, OMEGA_H_DONT_TRANSFER, edge_quals);
 }
 
 static bool coarsen_element_based1(Mesh* mesh) {

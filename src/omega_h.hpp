@@ -332,7 +332,12 @@ struct Graph {
 
 enum { DIMS = OMEGA_H_DIMS };
 
-enum { VERT = OMEGA_H_VERT, EDGE = OMEGA_H_EDGE, TRI = OMEGA_H_TRI, TET = OMEGA_H_TET };
+enum {
+  VERT = OMEGA_H_VERT,
+  EDGE = OMEGA_H_EDGE,
+  TRI = OMEGA_H_TRI,
+  TET = OMEGA_H_TET
+};
 
 struct Adj : public Graph {
   Adj() {}
@@ -601,13 +606,13 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
 }
 
 /* begin explicit instantiation declarations */
-#define OMEGA_H_EXPL_INST_DECL(T)                                                  \
+#define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
-  extern template T Comm::allreduce(T x, Omega_h_Op op) const;                     \
-  extern template T Comm::exscan(T x, Omega_h_Op op) const;                        \
+  extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
+  extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \
   extern template Read<T> Comm::allgather(T x) const;                          \
   extern template Read<T> Comm::alltoall(Read<T> x) const;                     \
@@ -616,7 +621,7 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
       Read<LO> rdispls) const;                                                 \
   extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
   extern template Read<T> Dist::exch_reduce<T>(                                \
-      Read<T> data, Int width, Omega_h_Op op) const;                               \
+      Read<T> data, Int width, Omega_h_Op op) const;                           \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \
       Int dim, std::string const& name) const;                                 \
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \

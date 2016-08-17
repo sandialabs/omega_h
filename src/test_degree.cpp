@@ -24,11 +24,12 @@
 static void tet_run(Omega_h::Real side_angle_in_degrees) {
   auto side_angle = side_angle_in_degrees / 180. * Omega_h::PI;
   std::cout << "side_angle " << side_angle << '\n';
-  auto dihedral_angle = acos((cos(side_angle) - Omega_h::square(cos(side_angle))) /
-                             (Omega_h::square(sin(side_angle))));
+  auto dihedral_angle =
+      acos((cos(side_angle) - Omega_h::square(cos(side_angle))) /
+           (Omega_h::square(sin(side_angle))));
   std::cout << "dihedral_angle " << dihedral_angle << '\n';
-  std::cout << "dihedral_angle in degrees " << (dihedral_angle * 180. / Omega_h::PI)
-            << '\n';
+  std::cout << "dihedral_angle in degrees "
+            << (dihedral_angle * 180. / Omega_h::PI) << '\n';
   auto solid_angle = 3. * dihedral_angle - Omega_h::PI;
   std::cout << "solid_angle " << solid_angle << '\n';
   auto degree = 4. * Omega_h::PI / solid_angle;

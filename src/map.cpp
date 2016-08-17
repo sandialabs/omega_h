@@ -242,7 +242,8 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
   template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
   template Read<T> permute(Read<T> a_data, LOs a2b, Int width);                \
-  template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
+  template Read<T> fan_reduce(                                                 \
+      LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)

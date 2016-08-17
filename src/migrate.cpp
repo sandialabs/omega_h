@@ -198,7 +198,8 @@ void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
 
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose) {
   auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, new_elems2old_owners, OMEGA_H_ELEM_BASED, verbose);
+  migrate_mesh(
+      mesh, &new_mesh, new_elems2old_owners, OMEGA_H_ELEM_BASED, verbose);
   *mesh = new_mesh;
 }
 

@@ -205,7 +205,8 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     auto objs = c.objects();
     auto motion_w = Write<Real>(mesh.nverts() * mesh.dim(), 0.0);
     for (auto obj : objs) {
-      auto verts_on_obj = mark_class_closure(&mesh, Omega_h::VERT, mesh.dim(), obj);
+      auto verts_on_obj =
+          mark_class_closure(&mesh, Omega_h::VERT, mesh.dim(), obj);
       auto ov2v = collect_marked(verts_on_obj);
       auto obj_motion = c.motion(&mesh, step, obj, ov2v);
       map_into(obj_motion, ov2v, motion_w, mesh.dim());

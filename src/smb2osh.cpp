@@ -73,7 +73,8 @@ static void copy_conn(apf::Mesh* mesh_apf, Omega_h::Mesh* mesh_osh,
   mesh_osh->set_ents(d, high2low);
 }
 
-static void copy_globals(apf::Mesh* mesh_apf, Omega_h::Mesh* mesh_osh, int dim) {
+static void copy_globals(
+    apf::Mesh* mesh_apf, Omega_h::Mesh* mesh_osh, int dim) {
   apf::GlobalNumbering* globals_apf = apf::makeGlobal(
       apf::numberOwnedDimension(mesh_apf, "smb2osh_global", dim));
   apf::synchronize(globals_apf);
@@ -88,8 +89,8 @@ static void copy_globals(apf::Mesh* mesh_apf, Omega_h::Mesh* mesh_osh, int dim) 
   mesh_apf->end(iter);
   apf::destroyGlobalNumbering(globals_apf);
   auto globals = Omega_h::Read<Omega_h::GO>(host_globals.write());
-  mesh_osh->add_tag(
-      dim, "global", 1, OMEGA_H_GLOBAL, Omega_h::Read<Omega_h::GO>(host_globals.write()));
+  mesh_osh->add_tag(dim, "global", 1, OMEGA_H_GLOBAL,
+      Omega_h::Read<Omega_h::GO>(host_globals.write()));
   auto owners = Omega_h::owners_from_globals(
       mesh_osh->comm(), globals, Omega_h::Read<Omega_h::I32>());
   mesh_osh->set_owners(dim, owners);

@@ -565,8 +565,8 @@ Real Mesh::min_quality() {
 }
 
 bool Mesh::could_be_shared(Int ent_dim) const {
-  return !(
-      (comm_->size() == 1) || (parting_ == OMEGA_H_ELEM_BASED && ent_dim == dim()));
+  return !((comm_->size() == 1) ||
+           (parting_ == OMEGA_H_ELEM_BASED && ent_dim == dim()));
 }
 
 bool Mesh::owners_have_all_upward(Int ent_dim) const {
