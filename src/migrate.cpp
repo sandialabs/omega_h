@@ -115,23 +115,23 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
     if (is<I8>(tag)) {
       auto array = to<I8>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<I8>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), tag->outflags(), array);
+      new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+          tag->outflags(), array);
     } else if (is<I32>(tag)) {
       auto array = to<I32>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<I32>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), tag->outflags(), array);
+      new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+          tag->outflags(), array);
     } else if (is<I64>(tag)) {
       auto array = to<I64>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<I64>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), tag->outflags(), array);
+      new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+          tag->outflags(), array);
     } else if (is<Real>(tag)) {
       auto array = to<Real>(tag)->array();
       array = old_owners2new_ents.exch(array, tag->ncomps());
-      new_mesh->add_tag<Real>(
-          ent_dim, tag->name(), tag->ncomps(), tag->xfer(), tag->outflags(), array);
+      new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), tag->xfer(),
+          tag->outflags(), array);
     }
   }
 }

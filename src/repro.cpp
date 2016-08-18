@@ -2,11 +2,11 @@
 
 #include <cmath>
 
+#include "Omega_h_functors.hpp"
 #include "array.hpp"
 #include "int128.hpp"
 #include "loop.hpp"
 #include "map.hpp"
-#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 

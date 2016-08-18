@@ -37,10 +37,10 @@ static void copy_class(apf::Mesh* mesh_apf, Omega_h::Mesh* mesh_osh, int dim) {
     ++i;
   }
   mesh_apf->end(iter);
-  mesh_osh->add_tag(dim, "class_dim", 1, OMEGA_H_INHERIT,
-      OMEGA_H_DO_OUTPUT, Omega_h::Read<Omega_h::I8>(host_class_dim.write()));
-  mesh_osh->add_tag(
-      dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, Omega_h::LOs(host_class_id.write()));
+  mesh_osh->add_tag(dim, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
+      Omega_h::Read<Omega_h::I8>(host_class_dim.write()));
+  mesh_osh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
+      Omega_h::LOs(host_class_id.write()));
 }
 
 static void copy_conn(apf::Mesh* mesh_apf, Omega_h::Mesh* mesh_osh,
@@ -89,8 +89,8 @@ static void copy_globals(
   mesh_apf->end(iter);
   apf::destroyGlobalNumbering(globals_apf);
   auto globals = Omega_h::Read<Omega_h::GO>(host_globals.write());
-  mesh_osh->add_tag(dim, "global", 1, OMEGA_H_GLOBAL,
-      OMEGA_H_DO_OUTPUT, Omega_h::Read<Omega_h::GO>(host_globals.write()));
+  mesh_osh->add_tag(dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT,
+      Omega_h::Read<Omega_h::GO>(host_globals.write()));
   auto owners = Omega_h::owners_from_globals(
       mesh_osh->comm(), globals, Omega_h::Read<Omega_h::I32>());
   mesh_osh->set_owners(dim, owners);

@@ -109,7 +109,8 @@ GO Mesh::nglobal_ents(Int dim) {
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags) {
+void Mesh::add_tag(
+    Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
     Omega_h_fail(
@@ -124,8 +125,8 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer, Int o
 }
 
 template <typename T>
-void Mesh::add_tag(
-    Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags, Read<T> array) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
+    Int outflags, Read<T> array) {
   add_tag<T>(dim, name, ncomps, xfer, outflags);
   set_tag<T>(dim, name, array);
 }
@@ -344,7 +345,8 @@ Adj Mesh::ask_adj(Int from, Int to) {
 }
 
 void Mesh::add_coords(Reals array) {
-  add_tag<Real>(0, "coordinates", dim(), OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, array);
+  add_tag<Real>(
+      0, "coordinates", dim(), OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, array);
 }
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
@@ -357,7 +359,8 @@ void Mesh::set_coords(Reals const& array) {
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
     CHECK(comm_->size() == 1);
-    add_tag(dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, Read<GO>(nents(dim), 0, 1));
+    add_tag(dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT,
+        Read<GO>(nents(dim), 0, 1));
   }
   return get_array<GO>(dim, "global");
 }
@@ -593,9 +596,9 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
   template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);                 \
-  template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags, Read<T> array);  \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
+  template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
+      Int xfer, Int outflags, Read<T> array);                                  \
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array);                        \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \

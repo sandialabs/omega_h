@@ -1,6 +1,6 @@
+#include "Omega_h.hpp"
 #include "map.hpp"
 #include "mark.hpp"
-#include "Omega_h.hpp"
 #include "surface.hpp"
 
 int main(int argc, char** argv) {
@@ -16,13 +16,14 @@ int main(int argc, char** argv) {
       Omega_h::surf::get_side_normals(&mesh, surf_side2side);
   auto side_normals = map_onto(
       surf_side_normals, surf_side2side, mesh.nents(sdim), 0.0, mesh.dim());
-  mesh.add_tag(sdim, "normal", mesh.dim(), OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, side_normals);
+  mesh.add_tag(sdim, "normal", mesh.dim(), OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DO_OUTPUT, side_normals);
   auto surf_vert_normals = Omega_h::surf::get_vert_normals(
       &mesh, surf_side2side, surf_side_normals, surf_vert2vert);
   auto vert_normals = map_onto(
       surf_vert_normals, surf_vert2vert, mesh.nverts(), 0.0, mesh.dim());
-  mesh.add_tag(
-      Omega_h::VERT, "normal", mesh.dim(), OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, vert_normals);
+  mesh.add_tag(Omega_h::VERT, "normal", mesh.dim(), OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DO_OUTPUT, vert_normals);
   Omega_h::vtk::write_vtu(argv[2], &mesh, sdim);
   if (mesh.dim() == 3) {
     auto edges_are_curv =

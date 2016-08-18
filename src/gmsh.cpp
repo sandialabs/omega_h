@@ -147,8 +147,10 @@ void read(std::istream& stream, Library const& lib, Mesh* mesh) {
     auto class_dim =
         map_onto(eq_class_dim, eq2e, mesh->nents(ent_dim), I8(-1), 1);
     auto class_id = map_onto(eq_class_id, eq2e, mesh->nents(ent_dim), -1, 1);
-    mesh->add_tag<I8>(ent_dim, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
-    mesh->add_tag<LO>(ent_dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_id);
+    mesh->add_tag<I8>(
+        ent_dim, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
+    mesh->add_tag<LO>(
+        ent_dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_id);
   }
   project_classification(mesh);
 }

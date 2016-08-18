@@ -3,8 +3,8 @@
 
 #include <cmath>
 
-#include "internal.hpp"
 #include "Omega_h_math.hpp"
+#include "internal.hpp"
 
 namespace Omega_h {
 

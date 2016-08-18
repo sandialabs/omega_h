@@ -28,7 +28,8 @@ static void add_dye(Mesh* mesh) {
     }
   };
   parallel_for(mesh->nverts(), dye_fun);
-  mesh->add_tag(VERT, "dye", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, Reals(dye_w));
+  mesh->add_tag(
+      VERT, "dye", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, Reals(dye_w));
 }
 
 static Reals form_pointwise(Mesh* mesh) {
@@ -43,7 +44,8 @@ static Reals form_pointwise(Mesh* mesh) {
 
 static void add_pointwise(Mesh* mesh) {
   auto data = form_pointwise(mesh);
-  mesh->add_tag(mesh->dim(), "pointwise", 1, OMEGA_H_POINTWISE, OMEGA_H_DO_OUTPUT, data);
+  mesh->add_tag(
+      mesh->dim(), "pointwise", 1, OMEGA_H_POINTWISE, OMEGA_H_DO_OUTPUT, data);
 }
 
 static void postprocess_conserve(Mesh* mesh) {
@@ -51,14 +53,16 @@ static void postprocess_conserve(Mesh* mesh) {
   auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
   CHECK(are_close(1.0, sum(mesh->comm(), mass)));
   auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, density);
+  mesh->add_tag(mesh->dim(), "density", 1, OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DO_OUTPUT, density);
 }
 
 static void postprocess_pointwise(Mesh* mesh) {
   auto data = mesh->get_array<Real>(mesh->dim(), "pointwise");
   auto expected = form_pointwise(mesh);
   auto diff = subtract_each(data, expected);
-  mesh->add_tag(mesh->dim(), "pointwise_err", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, diff);
+  mesh->add_tag(mesh->dim(), "pointwise_err", 1, OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DO_OUTPUT, diff);
 }
 
 int main(int argc, char** argv) {
@@ -79,8 +83,8 @@ int main(int argc, char** argv) {
   auto size = find_identity_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
   add_dye(&mesh);
-  mesh.add_tag(
-      mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT, measure_elements_real(&mesh));
+  mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
+      measure_elements_real(&mesh));
   mesh.add_tag(mesh.dim(), "density_r3d", 1, OMEGA_H_CONSERVE_R3D,
       OMEGA_H_DO_OUTPUT, Reals(mesh.nelems(), 1.0));
   add_pointwise(&mesh);
@@ -112,7 +116,8 @@ int main(int argc, char** argv) {
       set_vector<dim>(warp_w, vert, w);
     };
     parallel_for(mesh.nverts(), warp_fun);
-    mesh.add_tag(VERT, "warp", dim, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, Reals(warp_w));
+    mesh.add_tag(VERT, "warp", dim, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT,
+        Reals(warp_w));
     while (warp_to_limit(&mesh, 0.20)) {
       adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
     }

@@ -1,8 +1,8 @@
 #include "bbox.hpp"
 
+#include "Omega_h_math.hpp"
 #include "access.hpp"
 #include "loop.hpp"
-#include "Omega_h_math.hpp"
 
 namespace Omega_h {
 

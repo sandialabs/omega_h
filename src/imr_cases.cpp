@@ -195,7 +195,8 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
     auto size = find_identity_size(&mesh);
-    mesh.add_tag(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
+    mesh.add_tag(
+        VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
   }
   vtk::Writer writer(&mesh, "out", mesh.dim());
   writer.write();
@@ -213,7 +214,8 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     }
     auto motion = Reals(motion_w);
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
-    mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, motion);
+    mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, motion);
     {
       auto size = mesh.get_array<Real>(VERT, "size");
       size = solve_laplacian(&mesh, size, 1, 1e-2);

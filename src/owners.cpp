@@ -98,7 +98,8 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   if (!new_mesh->could_be_shared(ent_dim)) {
     auto start = new_mesh->comm()->exscan(GO(nnew_ents), OMEGA_H_SUM);
     auto globals = Read<GO>(nnew_ents, start, 1);
-    new_mesh->add_tag(ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, globals);
+    new_mesh->add_tag(
+        ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, globals);
     return;
   }
   auto new_owned = new_mesh->owned(ent_dim);
@@ -110,7 +111,8 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
       nnew_ents, LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; });
   auto new_globals = Read<GO>(new_globals_w);
   new_globals = new_mesh->sync_array(ent_dim, new_globals, 1);
-  new_mesh->add_tag(ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, new_globals);
+  new_mesh->add_tag(
+      ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, new_globals);
 }
 
 #define INST(T)                                                                \

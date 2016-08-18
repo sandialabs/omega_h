@@ -360,8 +360,7 @@ void write(std::ostream& stream, Mesh* mesh) {
   for (Int d = 0; d <= mesh->dim(); ++d) {
     Int nsaved_tags = 0;
     for (Int i = 0; i < mesh->ntags(d); ++i)
-      if (mesh->get_tag(d, i)->outflags() & OMEGA_H_DO_SAVE)
-        ++nsaved_tags;
+      if (mesh->get_tag(d, i)->outflags() & OMEGA_H_DO_SAVE) ++nsaved_tags;
     write_value(stream, nsaved_tags);
     for (Int i = 0; i < mesh->ntags(d); ++i) {
       write_tag(stream, mesh->get_tag(d, i));
