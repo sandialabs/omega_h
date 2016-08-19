@@ -1,5 +1,8 @@
 #include "Omega_h.hpp"
 #include "Omega_h_math.hpp"
+#include "timer.hpp"
+
+#include <iostream>
 
 using namespace Omega_h;
 
@@ -24,10 +27,13 @@ int main(int argc, char** argv) {
       OMEGA_H_DO_OUTPUT, target_metrics);
   mesh.ask_lengths();
   mesh.ask_qualities();
-  vtk::FullWriter writer(&mesh, "out");
-  writer.write();
+  Now t0 = now();
   while (approach_metric(&mesh, 0.20)) {
-    adapt(&mesh, 0.20, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 2);
-    writer.write();
+    adapt(&mesh, 0.20, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 0);
   }
+  Now t1 = now();
+  std::cout << "anisotropic approach took " << (t1-t0) << " seconds\n";
+  bool ok = check_regression("gold_aniso", &mesh, 0.0, 0.0);
+  if (!ok) return 2;
+  return 0;
 }
