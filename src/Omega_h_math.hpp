@@ -67,7 +67,7 @@ struct ArithTraits<double> {
 };
 
 template <typename T>
-OMEGA_H_INLINE T square(T x) {
+constexpr OMEGA_H_INLINE T square(T x) {
   return x * x;
 }
 
