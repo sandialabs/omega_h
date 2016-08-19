@@ -22,14 +22,6 @@ namespace {
 /* start of C++ ritual dance to print a string based on
    type properties */
 
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-member-function"
-#elif defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
-
 template <bool is_signed, std::size_t size>
 struct IntTraits;
 
@@ -44,11 +36,6 @@ struct IntTraits<true, 4> {
 };
 
 template <>
-struct IntTraits<false, 4> {
-  inline static char const* name() { return "UInt32"; }
-};
-
-template <>
 struct IntTraits<true, 8> {
   inline static char const* name() { return "Int64"; }
 };
@@ -60,11 +47,6 @@ struct IntTraits<false, 8> {
 
 template <std::size_t size>
 struct FloatTraits;
-
-template <>
-struct FloatTraits<4> {
-  inline static char const* name() { return "Float32"; }
-};
 
 template <>
 struct FloatTraits<8> {
@@ -86,12 +68,6 @@ struct Traits<T,
     typename std::enable_if<std::is_floating_point<T>::value>::type> {
   inline static char const* name() { return FloatTraits<sizeof(T)>::name(); }
 };
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#elif defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
 
 /* end of C++ ritual dance to get a string based on type properties */
 
@@ -321,6 +297,7 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
   else
     stream << "BigEndian";
   stream << "\" header_type=\"";
+  static_assert(sizeof(std::size_t) == 8, "UInt32 Traits was removed to silence warnings");
   stream << Traits<std::size_t>::name();
   stream << "\"";
 #ifdef OMEGA_H_USE_ZLIB
