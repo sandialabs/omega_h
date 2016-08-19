@@ -1,6 +1,7 @@
 #include "size.hpp"
 
 #include "array.hpp"
+#include "eigen.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
 #include "project.hpp"
@@ -290,11 +291,50 @@ Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   return multiply_each_by(m_scal, v2m);
 }
 
-#if 0
 template <Int dim>
-INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
-    Real error_bound, Real hmin, Real hmax) {
+static INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
+    Real eps, Real hmin, Real hmax) {
+  auto ed = decompose_eigen(hessian);
+  auto r = ed.q;
+  auto l = ed.l;
+  constexpr auto c_num = square(dim);
+  constexpr auto c_denom = 2 * square(dim + 1);
+  decltype(l) tilde_l;
+  for (Int i = 0; i < dim; ++i) {
+    tilde_l[i] = min2(max2((c_num * fabs(l[i])) / (c_denom * eps),
+                           1. / square(hmax)), 1. / square(hmin));
+  }
+  return compose_eigen(r, tilde_l);
 }
-#endif
+
+/* A Hessian-based anisotropic size field, from
+ * Alauzet's tech report:
+ *
+ * F. Alauzet, P.J. Frey, Estimateur d'erreur geometrique
+ * et metriques anisotropes pour l'adaptation de maillage.
+ * Partie I: aspects theoriques,
+ * RR-4759, INRIA Rocquencourt, 2003.
+ */
+
+template <Int dim>
+static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmin, Real hmax) {
+  auto ncomps = symm_dofs(dim);
+  CHECK(hessians.size() % ncomps == 0);
+  auto n = hessians.size() / ncomps;
+  auto out = Write<Real>(n * ncomps);
+  auto f = LAMBDA(LO i) {
+    auto hess = get_symm<dim>(hessians, i);
+    auto m = metric_from_hessian(hess, eps, hmin, hmax);
+    set_symm(out, i, m);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmin, Real hmax) {
+  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps, hmin, hmax);
+  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps, hmin, hmax);
+  NORETURN(Reals());
+}
 
 }  // end namespace Omega_h

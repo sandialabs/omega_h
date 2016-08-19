@@ -191,6 +191,8 @@ Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m);
 Reals scale_size_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
 Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
+
 }  // end namespace Omega_h
 
 #endif
