@@ -290,4 +290,11 @@ Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   return multiply_each_by(m_scal, v2m);
 }
 
+#if 0
+template <Int dim>
+INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
+    Real error_bound, Real hmin, Real hmax) {
+}
+#endif
+
 }  // end namespace Omega_h

@@ -69,25 +69,25 @@ static void test_cubic() {
 
 static void test_eigen_cubic(
     Matrix<3, 3> m, Matrix<3, 3> q_expect, Vector<3> l_expect) {
-  Matrix<3, 3> q;
-  Vector<3> l;
-  decompose_eigen(m, q, l);
+  auto ed = decompose_eigen(m);
+  auto q = ed.q;
+  auto l = ed.l;
   CHECK(are_close(q, q_expect));
   CHECK(are_close(l, l_expect));
 }
 
 static void test_eigen_cubic(Matrix<3, 3> m, Vector<3> l_expect) {
-  Matrix<3, 3> q;
-  Vector<3> l;
-  decompose_eigen(m, q, l);
+  auto ed = decompose_eigen(m);
+  auto q = ed.q;
+  auto l = ed.l;
   CHECK(are_close(l, l_expect, 1e-8, 1e-8));
   CHECK(are_close(m, compose_eigen(q, l)));
 }
 
 static void test_eigen_cubic_ortho(Matrix<3, 3> m, Vector<3> l_expect) {
-  Matrix<3, 3> q;
-  Vector<3> l;
-  decompose_eigen(m, q, l);
+  auto ed = decompose_eigen(m);
+  auto q = ed.q;
+  auto l = ed.l;
   CHECK(are_close(transpose(q) * q, identity_matrix<3, 3>(), 1e-8, 1e-8));
   CHECK(are_close(l, l_expect, 1e-8, 1e-8));
   CHECK(are_close(m, compose_ortho(q, l), 1e-8, 1e-8));

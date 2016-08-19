@@ -55,10 +55,7 @@ template <Int dim>
 INLINE Matrix<dim, dim> common_metric_basis(
     Matrix<dim, dim> a, Matrix<dim, dim> b) {
   auto c = invert(a) * b;
-  Matrix<dim, dim> p;
-  Vector<dim> l;
-  decompose_eigen(c, p, l);
-  return p;
+  return decompose_eigen(c).q;
 }
 
 template <Int dim>

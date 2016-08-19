@@ -48,9 +48,9 @@ Matrix<3, 3> get_matrix(
 
 Vector<3> get_axis(CommPtr comm, Reals coords, Reals masses, Vector<3> center) {
   auto m = get_matrix(comm, coords, masses, center);
-  Matrix<3, 3> q;
-  Vector<3> l;
-  decompose_eigen(m, q, l);
+  auto ed = decompose_eigen(m);
+  auto l = ed.l;
+  auto q = ed.q;
   Int min_i = 0;
   for (Int i = 1; i < 3; ++i) {
     if (l[i] < l[min_i]) {
