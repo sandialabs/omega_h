@@ -78,7 +78,7 @@ Reals linearize_metrics_dim(Reals metrics) {
 template <Int dim>
 Reals delinearize_metrics_dim(Reals lms) {
   auto n = lms.size() / square(dim);
-  auto out = Write<Real>(n * dim * dim);
+  auto out = Write<Real>(n * symm_dofs(dim));
   auto f = LAMBDA(LO i) {
     set_symm(out, i, delinearize_metric(get_matrix<dim>(lms, i)));
   };
