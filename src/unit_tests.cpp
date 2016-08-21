@@ -766,17 +766,13 @@ static void test_sf_scale_dim(Library const& lib) {
   auto target_nelems = mesh.nelems();
   {
     auto size = Omega_h::find_identity_size(&mesh);
-    auto elems_per_elem = expected_elems_per_elem_iso(&mesh, size);
-    auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
-    auto size_scal = target_nelems / elems;
+    auto size_scal = size_scalar_for_nelems(&mesh, size, target_nelems);
     CHECK(are_close(size_scal, 1.));
   }
   {
     auto metric = Omega_h::find_identity_metric(&mesh);
-    auto elems_per_elem = expected_elems_per_elem_metric(&mesh, metric);
-    auto elems = repro_sum_owned(&mesh, mesh.dim(), elems_per_elem);
-    auto size_scal = target_nelems / elems;
-    CHECK(are_close(size_scal, 1.));
+    auto metric_scal = metric_scalar_for_nelems(&mesh, metric, target_nelems);
+    CHECK(are_close(metric_scal, 1.));
   }
 }
 

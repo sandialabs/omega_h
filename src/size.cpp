@@ -271,24 +271,24 @@ Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m) {
   NORETURN(Reals());
 }
 
-Reals scale_size_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems) {
+Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems) {
   auto elems_per_elem = expected_elems_per_elem_iso(mesh, v2h);
   auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
   auto size_scal = target_nelems / elems;
   Real h_scal = 0;
   if (mesh->dim() == 3) h_scal = 1. / cbrt(size_scal);
   if (mesh->dim() == 2) h_scal = 1. / sqrt(size_scal);
-  return multiply_each_by(h_scal, v2h);
+  return h_scal;
 }
 
-Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
+Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   auto elems_per_elem = expected_elems_per_elem_metric(mesh, v2m);
   auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
   auto size_scal = target_nelems / elems;
   Real m_scal = 0;
   if (mesh->dim() == 3) m_scal = cbrt(square(size_scal));
   if (mesh->dim() == 2) m_scal = size_scal;
-  return multiply_each_by(m_scal, v2m);
+  return m_scal;
 }
 
 template <Int dim>
