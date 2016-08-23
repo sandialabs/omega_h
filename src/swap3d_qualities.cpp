@@ -5,7 +5,7 @@
 #include "swap3d_choice.hpp"
 #include "swap3d_loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename Measure>
 static void swap3d_qualities_tmpl(
@@ -52,7 +52,7 @@ static void swap3d_qualities_tmpl(
 
 void swap3d_qualities(
     Mesh* mesh, LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   CHECK(mesh->dim() == 3);
   if (mesh->has_tag(VERT, "metric")) {
     swap3d_qualities_tmpl<MetricElementQualities>(
@@ -67,4 +67,4 @@ void swap3d_qualities(
       mesh->sync_subset_array(EDGE, *cand_configs, cands2edges, I8(-1), 1);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

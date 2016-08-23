@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* create arrays mapping uses of (low_dim) entities by
    (high_dim) entities to their (low_dim) owners */
@@ -33,13 +33,13 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist old_owners2new_ents);
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    Dist new_ents2old_owners, Dist old_owners2new_ents, osh_parting mode);
+    Dist new_ents2old_owners, Dist old_owners2new_ents, Omega_h_Parting mode);
 
 void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
-    osh_parting mode, bool verbose);
+    Omega_h_Parting mode, bool verbose);
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose);
 void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

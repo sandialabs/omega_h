@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void swap3d_qualities(
     Mesh* mesh, LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs);
@@ -15,6 +15,6 @@ Few<LOs, 4> swap3d_topology(
 
 bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

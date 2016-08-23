@@ -1,7 +1,7 @@
 #ifndef INTERNAL_HPP
 #define INTERNAL_HPP
 
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 #ifdef __clang__
 #define NORETURN(x) assert(false)
@@ -13,16 +13,16 @@
   } while (false)
 #endif
 
-#ifdef OSH_USE_CUDA
+#ifdef OMEGA_H_USE_CUDA
 #define CONSTANT __constant__
 #else
 #define CONSTANT
 #endif
 
-#define CHECK(cond) OSH_CHECK(cond)
-#define LAMBDA OSH_LAMBDA
-#define INLINE OSH_INLINE
-#define DEVICE OSH_DEVICE
+#define CHECK(cond) OMEGA_H_CHECK(cond)
+#define LAMBDA OMEGA_H_LAMBDA
+#define INLINE OMEGA_H_INLINE
+#define DEVICE OMEGA_H_DEVICE
 
 #define EPSILON 1e-10
 #define MANTISSA_BITS 52

@@ -8,7 +8,7 @@
 #include "refine_topology.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 struct RealRefineQualities {
   RealRefineQualities(Mesh*, LOs) {}
@@ -111,4 +111,4 @@ Reals refine_qualities(Mesh* mesh, LOs candidates) {
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

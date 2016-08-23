@@ -1,10 +1,10 @@
 #ifndef PROTECT_HPP
 #define PROTECT_HPP
 
-namespace osh {
+namespace Omega_h {
 
 void protect();
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

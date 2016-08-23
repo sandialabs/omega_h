@@ -1,7 +1,7 @@
 #ifndef QR_HPP
 #define QR_HPP
 
-namespace osh {
+namespace Omega_h {
 
 /* Trefethen, Lloyd N., and David Bau III.
    Numerical linear algebra. Vol. 50. Siam, 1997.
@@ -148,6 +148,6 @@ INLINE Vector<max_n> solve_using_qr(Matrix<max_m, max_n> a, Vector<max_m> b) {
   return solve_using_qr(max_m, max_n, a, b);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

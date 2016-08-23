@@ -1,9 +1,9 @@
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
-TagBase::TagBase(std::string const& name, Int ncomps, Int xfer)
-    : name_(name), ncomps_(ncomps), xfer_(xfer) {}
+TagBase::TagBase(std::string const& name, Int ncomps, Int xfer, Int outflags)
+    : name_(name), ncomps_(ncomps), xfer_(xfer), outflags_(outflags) {}
 
 TagBase::~TagBase() = default;
 
@@ -12,6 +12,8 @@ std::string const& TagBase::name() const { return name_; }
 Int TagBase::ncomps() const { return ncomps_; }
 
 Int TagBase::xfer() const { return xfer_; }
+
+Int TagBase::outflags() const { return outflags_; }
 
 template <typename T>
 bool is(TagBase const* t) {
@@ -31,8 +33,8 @@ Tag<T>* to(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, Int ncomps, Int xfer)
-    : TagBase(name, ncomps, xfer) {}
+Tag<T>::Tag(std::string const& name, Int ncomps, Int xfer, Int outflags)
+    : TagBase(name, ncomps, xfer, outflags) {}
 
 template <typename T>
 Read<T> Tag<T>::array() const {
@@ -49,26 +51,26 @@ struct TagTraits;
 
 template <>
 struct TagTraits<I8> {
-  static osh_type type() { return OSH_I8; }
+  static Omega_h_Type type() { return OMEGA_H_I8; }
 };
 
 template <>
 struct TagTraits<I32> {
-  static osh_type type() { return OSH_I32; }
+  static Omega_h_Type type() { return OMEGA_H_I32; }
 };
 
 template <>
 struct TagTraits<I64> {
-  static osh_type type() { return OSH_I64; }
+  static Omega_h_Type type() { return OMEGA_H_I64; }
 };
 
 template <>
 struct TagTraits<Real> {
-  static osh_type type() { return OSH_F64; }
+  static Omega_h_Type type() { return OMEGA_H_F64; }
 };
 
 template <typename T>
-osh_type Tag<T>::type() const {
+Omega_h_Type Tag<T>::type() const {
   return TagTraits<T>::type();
 }
 
@@ -83,4 +85,4 @@ INST(I64)
 INST(Real)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

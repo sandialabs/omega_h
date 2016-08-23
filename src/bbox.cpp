@@ -1,10 +1,10 @@
 #include "bbox.hpp"
 
+#include "Omega_h_math.hpp"
 #include "access.hpp"
 #include "loop.hpp"
-#include "omega_h_math.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 struct BBoxFunctor {
@@ -35,4 +35,4 @@ BBox<dim> find_bounding_box(Reals coords) {
 template BBox<2> find_bounding_box<2>(Reals coords);
 template BBox<3> find_bounding_box<3>(Reals coords);
 
-}  // end namespace osh
+}  // end namespace Omega_h

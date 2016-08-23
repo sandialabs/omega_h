@@ -3,7 +3,7 @@
 #include "array.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace indset {
 
@@ -66,7 +66,7 @@ static Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
   parallel_for(n, f);
   auto comm = mesh->comm();
   auto state = Read<I8>(initial_state);
-  while (comm->allreduce(max(state), OSH_MAX) == UNKNOWN) {
+  while (comm->allreduce(max(state), OMEGA_H_MAX) == UNKNOWN) {
     state = iteration(mesh, dim, xadj, adj, quality, global, state);
   }
   return state;
@@ -83,4 +83,4 @@ Read<I8> find_indset(
   return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

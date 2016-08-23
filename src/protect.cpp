@@ -5,7 +5,7 @@
 
 #include "stacktrace.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 #define NSIGS 6
 
@@ -38,4 +38,4 @@ void osh_signal_handler(int s) {
 
 #undef NSIGS
 
-}  // end namespace osh
+}  // end namespace Omega_h

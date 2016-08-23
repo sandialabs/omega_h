@@ -6,7 +6,7 @@
 #include "swap3d_loop.hpp"
 #include "swap3d_tables.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Few<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
@@ -117,4 +117,4 @@ Few<LOs, 4> swap3d_topology(
   return prod_verts2verts;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

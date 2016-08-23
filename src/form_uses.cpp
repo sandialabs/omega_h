@@ -3,7 +3,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   Int nverts_per_high = simplex_degrees[high_dim][0];
@@ -26,4 +26,4 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

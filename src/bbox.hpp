@@ -3,7 +3,7 @@
 
 #include "algebra.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 struct BBox {
@@ -42,6 +42,6 @@ BBox<dim> find_bounding_box(Reals coords);
 extern template BBox<2> find_bounding_box<2>(Reals coords);
 extern template BBox<3> find_bounding_box<3>(Reals coords);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

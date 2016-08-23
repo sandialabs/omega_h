@@ -3,7 +3,7 @@
 #include "array.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
   auto comm_size_gt = GO(comm_size);
@@ -45,7 +45,7 @@ LO linear_partition_size(CommPtr comm, GO total) {
 }
 
 GO find_total_globals(CommPtr comm, Read<GO> globals) {
-  auto a = comm->allreduce(max(globals), OSH_MAX);
+  auto a = comm->allreduce(max(globals), OMEGA_H_MAX);
   if (a < 0) return 0;
   return a + 1;
 }
@@ -58,4 +58,4 @@ Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals) {
   return copies2lins_dist;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

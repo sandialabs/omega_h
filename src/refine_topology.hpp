@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
     LOs keys2midverts, LOs old_verts2new_verts, LOs& keys2pairs,
@@ -54,6 +54,6 @@ INLINE void flip_new_elem(Int dim, T ev[]) {
   if (dim == 3) swap2(ev[1], ev[2]);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

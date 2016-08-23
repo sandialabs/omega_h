@@ -4,7 +4,7 @@
 #include "loop.hpp"
 #include "map.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static void order_by_globals(
     LOs l2lh, Write<LO> lh2h, Write<I8> codes, Read<GO> hg) {
@@ -63,4 +63,4 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
   return Adj(l2lh, lh2h, codes);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
 #endif
 
@@ -15,7 +15,7 @@
 #include "loop.hpp"
 #include "tag.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 bool is_little_endian_cpu() {
   static std::uint16_t const endian_canary = 0x1;
@@ -29,7 +29,7 @@ void safe_mkdir(const char* path) {
   errno = 0;
   err = mkdir(path, mode);
   if (err != 0 && errno != EEXIST) {
-    osh_fail("omega_h could not create directory \"%s\"\n", path);
+    Omega_h_fail("omega_h could not create directory \"%s\"\n", path);
   }
 }
 
@@ -62,7 +62,7 @@ static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
 INLINE std::uint32_t bswap32(std::uint32_t a) {
-#ifdef OSH_USE_CUDA
+#ifdef OMEGA_H_USE_CUDA
   a = ((a & 0x000000FF) << 24) | ((a & 0x0000FF00) << 8) |
       ((a & 0x00FF0000) >> 8) | ((a & 0xFF000000) >> 24);
 #else
@@ -72,7 +72,7 @@ INLINE std::uint32_t bswap32(std::uint32_t a) {
 }
 
 INLINE std::uint64_t bswap64(std::uint64_t a) {
-#ifdef OSH_USE_CUDA
+#ifdef OMEGA_H_USE_CUDA
   a = ((a & 0x00000000000000FFULL) << 56) |
       ((a & 0x000000000000FF00ULL) << 40) |
       ((a & 0x0000000000FF0000ULL) << 24) | ((a & 0x00000000FF000000ULL) << 8) |
@@ -114,7 +114,7 @@ INLINE void swap_bytes(T* ptr) {
 }
 
 unsigned char const magic[2] = {0xa1, 0x1a};
-I32 latest_version = 1;
+I32 latest_version = 2;
 
 }  // end anonymous namespace
 
@@ -156,7 +156,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   HostRead<T> uncompressed(swapped);
   I64 uncompressed_bytes =
       static_cast<I64>(static_cast<std::size_t>(size) * sizeof(T));
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   uLong source_bytes = static_cast<uLong>(uncompressed_bytes);
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new Bytef[dest_bytes];
@@ -182,7 +182,7 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   I64 uncompressed_bytes =
       static_cast<I64>(static_cast<std::size_t>(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
     I64 compressed_bytes;
     read_value(stream, compressed_bytes);
@@ -257,7 +257,7 @@ static void read_meta(std::istream& stream, Mesh* mesh) {
   CHECK(mesh->comm()->rank() == comm_rank);
   I8 parting;
   read_value(stream, parting);
-  mesh->set_parting(osh_parting(parting));
+  mesh->set_parting(Omega_h_Parting(parting));
   I8 have_hints;
   read_value(stream, have_hints);
   if (have_hints) {
@@ -277,14 +277,17 @@ static void read_meta(std::istream& stream, Mesh* mesh) {
 }
 
 static void write_tag(std::ostream& stream, TagBase const* tag) {
+  if (!(tag->outflags() & OMEGA_H_DO_SAVE)) return;
   std::string name = tag->name();
   write(stream, name);
   auto ncomps = I8(tag->ncomps());
   write_value(stream, ncomps);
   I8 type = tag->type();
   write_value(stream, type);
-  I8 xfer_int = static_cast<I8>(tag->xfer());
-  write_value(stream, xfer_int);
+  I8 xfer_i8 = static_cast<I8>(tag->xfer());
+  write_value(stream, xfer_i8);
+  I8 outflags_i8 = static_cast<I8>(tag->outflags());
+  write_value(stream, outflags_i8);
   if (is<I8>(tag)) {
     write_array(stream, to<I8>(tag)->array());
   } else if (is<I32>(tag)) {
@@ -294,12 +297,12 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   } else if (is<Real>(tag)) {
     write_array(stream, to<Real>(tag)->array());
   } else {
-    osh_fail("unexpected tag type in binary write\n");
+    Omega_h_fail("unexpected tag type in binary write\n");
   }
 }
 
 static void read_tag(
-    std::istream& stream, Mesh* mesh, Int d, bool is_compressed) {
+    std::istream& stream, Mesh* mesh, Int d, bool is_compressed, I32 version) {
   std::string name;
   read(stream, name);
   I8 ncomps;
@@ -308,32 +311,37 @@ static void read_tag(
   read_value(stream, type);
   I8 xfer_i8;
   read_value(stream, xfer_i8);
+  I8 outflags_i8 = OMEGA_H_DO_OUTPUT;
+  if (version >= 2) {
+    read_value(stream, outflags_i8);
+  }
   Int xfer = static_cast<Int>(xfer_i8);
-  if (type == OSH_I8) {
+  Int outflags = static_cast<Int>(outflags_i8);
+  if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
-  } else if (type == OSH_I32) {
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+  } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
-  } else if (type == OSH_I64) {
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+  } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
-  } else if (type == OSH_F64) {
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+  } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
   } else {
-    osh_fail("unexpected tag type in binary read\n");
+    Omega_h_fail("unexpected tag type in binary read\n");
   }
 }
 
 void write(std::ostream& stream, Mesh* mesh) {
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
   write_value(stream, latest_version);
-#ifdef OSH_USE_ZLIB
+#ifdef OMEGA_H_USE_ZLIB
   I8 is_compressed = true;
 #else
   I8 is_compressed = false;
@@ -350,9 +358,11 @@ void write(std::ostream& stream, Mesh* mesh) {
     }
   }
   for (Int d = 0; d <= mesh->dim(); ++d) {
-    Int ntags = mesh->ntags(d);
-    write_value(stream, ntags);
-    for (Int i = 0; i < ntags; ++i) {
+    Int nsaved_tags = 0;
+    for (Int i = 0; i < mesh->ntags(d); ++i)
+      if (mesh->get_tag(d, i)->outflags() & OMEGA_H_DO_SAVE) ++nsaved_tags;
+    write_value(stream, nsaved_tags);
+    for (Int i = 0; i < mesh->ntags(d); ++i) {
       write_tag(stream, mesh->get_tag(d, i));
     }
     if (mesh->comm()->size() > 1) {
@@ -374,7 +384,7 @@ void read(std::istream& stream, Mesh* mesh) {
   CHECK(version <= latest_version);
   I8 is_compressed;
   read_value(stream, is_compressed);
-#ifndef OSH_USE_ZLIB
+#ifndef OMEGA_H_USE_ZLIB
   CHECK(!is_compressed);
 #endif
   read_meta(stream, mesh);
@@ -393,7 +403,7 @@ void read(std::istream& stream, Mesh* mesh) {
     Int ntags;
     read_value(stream, ntags);
     for (Int i = 0; i < ntags; ++i) {
-      read_tag(stream, mesh, d, is_compressed);
+      read_tag(stream, mesh, d, is_compressed, version);
     }
     if (mesh->comm()->size() > 1) {
       Remotes owners;
@@ -415,7 +425,7 @@ static I32 read_nparts(std::string const& path) {
   auto filepath = path + "/nparts";
   std::ifstream file(filepath.c_str());
   if (!file.is_open()) {
-    osh_fail("could not open file \"%s\"\n", filepath.c_str());
+    Omega_h_fail("could not open file \"%s\"\n", filepath.c_str());
   }
   I32 nparts;
   file >> nparts;
@@ -453,7 +463,7 @@ static void read2(std::string const& path, CommPtr comm, Mesh* mesh) {
 void read(std::string const& path, CommPtr comm, Mesh* mesh) {
   auto nparts = read_nparts(path);
   if (nparts > comm->size()) {
-    osh_fail(
+    Omega_h_fail(
         "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
         path.c_str(), nparts, comm->size());
   }
@@ -484,4 +494,4 @@ template void swap_if_needed(std::size_t& val, bool is_little_endian);
 
 }  // end namespace binary
 
-}  // end namespace osh
+}  // end namespace Omega_h

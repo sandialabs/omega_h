@@ -1,12 +1,13 @@
 #include "size.hpp"
 
 #include "array.hpp"
+#include "eigen.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
 #include "project.hpp"
 #include "quality.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename EdgeLengths>
 static Reals measure_edges_tmpl(Mesh* mesh, LOs a2e) {
@@ -49,7 +50,7 @@ Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
       return measure_edges_tmpl<MetricEdgeLengths<2>>(mesh, a2e);
     }
   }
-  osh_fail("measure_edges(): no size field exists!\n");
+  Omega_h_fail("measure_edges(): no size field exists!\n");
   NORETURN(Reals());
 }
 
@@ -270,24 +271,70 @@ Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m) {
   NORETURN(Reals());
 }
 
-Reals scale_size_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems) {
+Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems) {
   auto elems_per_elem = expected_elems_per_elem_iso(mesh, v2h);
   auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
   auto size_scal = target_nelems / elems;
   Real h_scal = 0;
   if (mesh->dim() == 3) h_scal = 1. / cbrt(size_scal);
   if (mesh->dim() == 2) h_scal = 1. / sqrt(size_scal);
-  return multiply_each_by(h_scal, v2h);
+  return h_scal;
 }
 
-Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
+Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   auto elems_per_elem = expected_elems_per_elem_metric(mesh, v2m);
   auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
   auto size_scal = target_nelems / elems;
   Real m_scal = 0;
   if (mesh->dim() == 3) m_scal = cbrt(square(size_scal));
   if (mesh->dim() == 2) m_scal = size_scal;
-  return multiply_each_by(m_scal, v2m);
+  return m_scal;
 }
 
-}  // end namespace osh
+template <Int dim>
+static INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
+    Real eps, Real hmin, Real hmax) {
+  auto ed = decompose_eigen(hessian);
+  auto r = ed.q;
+  auto l = ed.l;
+  constexpr auto c_num = square(dim);
+  constexpr auto c_denom = 2 * square(dim + 1);
+  decltype(l) tilde_l;
+  for (Int i = 0; i < dim; ++i) {
+    tilde_l[i] = min2(max2((c_num * fabs(l[i])) / (c_denom * eps),
+                           1. / square(hmax)), 1. / square(hmin));
+  }
+  return compose_eigen(r, tilde_l);
+}
+
+/* A Hessian-based anisotropic size field, from
+ * Alauzet's tech report:
+ *
+ * F. Alauzet, P.J. Frey, Estimateur d'erreur geometrique
+ * et metriques anisotropes pour l'adaptation de maillage.
+ * Partie I: aspects theoriques,
+ * RR-4759, INRIA Rocquencourt, 2003.
+ */
+
+template <Int dim>
+static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmin, Real hmax) {
+  auto ncomps = symm_dofs(dim);
+  CHECK(hessians.size() % ncomps == 0);
+  auto n = hessians.size() / ncomps;
+  auto out = Write<Real>(n * ncomps);
+  auto f = LAMBDA(LO i) {
+    auto hess = get_symm<dim>(hessians, i);
+    auto m = metric_from_hessian(hess, eps, hmin, hmax);
+    set_symm(out, i, m);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmin, Real hmax) {
+  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps, hmin, hmax);
+  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps, hmin, hmax);
+  NORETURN(Reals());
+}
+
+}  // end namespace Omega_h

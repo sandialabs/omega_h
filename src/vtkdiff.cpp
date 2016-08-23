@@ -1,4 +1,4 @@
-#include "omega_h.hpp"
+#include "Omega_h.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -7,7 +7,7 @@
 #include "algebra.hpp"
 #include "vtk.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
@@ -90,8 +90,8 @@ int main(int argc, char** argv) {
     Mesh meshb;
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
-    if (res == OSH_SAME) return 0;
-    if (allow_superset && res == OSH_MORE) return 0;
+    if (res == OMEGA_H_SAME) return 0;
+    if (allow_superset && res == OMEGA_H_MORE) return 0;
     return 2;
   }
   auto pvdpatha = vtk::get_pvd_path(patha);
@@ -122,11 +122,11 @@ int main(int argc, char** argv) {
     Mesh meshb;
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
-    if (res == OSH_DIFF) {
+    if (res == OMEGA_H_DIFF) {
       std::cout << "step " << step << " differs.\n";
       return 2;
     }
-    if (res == OSH_MORE && !allow_superset) {
+    if (res == OMEGA_H_MORE && !allow_superset) {
       std::cout << "step " << step
                 << " is a superset but \"-superset\" not given\n";
       return 2;

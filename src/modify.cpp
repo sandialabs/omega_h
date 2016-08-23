@@ -12,7 +12,7 @@
 #include "simplices.hpp"
 #include "unmap_mesh.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs prods2new_ents, LOs same_ents2old_ents,
@@ -186,10 +186,10 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
    adjacent globals from the representative.
    the most intuitive order is the upward adjacent ordering
    from vertices to edges (guaranteed to be sorted by globals).
-   however, this is only available in full in OSH_GHOSTED mode.
-   so, this function writes down that ordering while in OSH_GHOSTED
+   however, this is only available in full in OMEGA_H_GHOSTED mode.
+   so, this function writes down that ordering while in OMEGA_H_GHOSTED
    mode so it can be used later by find_new_offsets, which
-   runs in OSH_ELEM_BASED mode */
+   runs in OMEGA_H_ELEM_BASED mode */
 
 LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
   auto nedges = mesh->nedges();
@@ -270,11 +270,11 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto lins2old_ents = old_ents2lins.invert();
   auto nlins = lins2old_ents.nroots();
   auto lin_rep_counts =
-      old_ents2lins.exch_reduce(global_rep_counts, 1, OSH_SUM);
+      old_ents2lins.exch_reduce(global_rep_counts, 1, OMEGA_H_SUM);
   CHECK(lin_rep_counts.size() == nlins);
   auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
-  auto lin_global_offset = comm->exscan(lin_global_count, OSH_SUM);
+  auto lin_global_offset = comm->exscan(lin_global_count, OMEGA_H_SUM);
   Write<GO> lin_globals(nlins);
   auto write_lin_globals = LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
@@ -295,7 +295,8 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
-  new_mesh->add_tag(ent_dim, "global", 1, OSH_GLOBAL, Read<GO>(new_globals));
+  new_mesh->add_tag(ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT,
+      Read<GO>(new_globals));
 }
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
@@ -371,4 +372,4 @@ void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
   mesh->set_owners(elem_dim, elem_owners);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

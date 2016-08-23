@@ -4,7 +4,7 @@
 #include <istream>
 #include <string>
 
-namespace osh {
+namespace Omega_h {
 
 namespace base64 {
 
@@ -14,6 +14,6 @@ void decode(std::string const& text, void* data, std::size_t size);
 std::string read_encoded(std::istream& f);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

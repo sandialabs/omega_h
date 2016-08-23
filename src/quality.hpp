@@ -5,7 +5,7 @@
 #include "host_few.hpp"
 #include "size.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* There are several kinds of shape functions that have
    been used successfully for mesh adaptation.
@@ -191,6 +191,6 @@ typedef HostFew<GO, nquality_histogram_buckets> QualityHistogram;
 QualityHistogram get_quality_histogram(Mesh* mesh);
 void print_quality_histogram(QualityHistogram histogram);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

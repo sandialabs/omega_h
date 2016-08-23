@@ -4,7 +4,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace xml {
 
@@ -107,4 +107,4 @@ xml::Tag read_tag(std::istream& stream) {
 }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

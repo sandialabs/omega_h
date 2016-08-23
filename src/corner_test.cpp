@@ -4,7 +4,7 @@
 #include "loop.hpp"
 #include "refine.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
@@ -16,15 +16,14 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.add_tag<Real>(VERT, "size", 1, OSH_LINEAR_INTERP);
-  vtk::FullWriter writer(&mesh, "out");
+  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT);
   do {
     Write<Real> size(mesh.nverts());
     auto coords = mesh.coords();
     auto f = LAMBDA(LO v) {
       auto x = get_vector<3>(coords, v);
       auto coarse = 0.4;
-      auto fine = 0.1;
+      auto fine = 0.06;
       auto radius = norm(x);
       auto diagonal = sqrt(3) - 0.5;
       auto distance = fabs(radius - 0.5) / diagonal;
@@ -33,7 +32,9 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), f);
     mesh.set_tag(VERT, "size", Reals(size));
     mesh.ask_lengths();
-    adapt_check(&mesh, 0.40, 0.47, 2.0 / 3.0, 4.0 / 3.0);
-    writer.write();
-  } while (refine_by_size(&mesh, 4.0 / 3.0, 0.47, true));
+    mesh.ask_qualities();
+  } while (refine_by_size(&mesh, 4.0 / 3.0, 0.47, false));
+  bool ok = check_regression("gold_corner", &mesh, 0.0, 0.0);
+  if (!ok) return 2;
+  return 0;
 }

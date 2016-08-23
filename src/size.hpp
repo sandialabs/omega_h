@@ -7,7 +7,7 @@
 #include "qr.hpp"
 #include "space.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int sdim, Int edim>
 INLINE Few<Vector<sdim>, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
@@ -188,9 +188,11 @@ INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
 
 Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h);
 Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m);
-Reals scale_size_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
-Reals scale_metric_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
+Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
+Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 
-}  // end namespace osh
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
+
+}  // end namespace Omega_h
 
 #endif

@@ -3,7 +3,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm) {
@@ -63,4 +63,4 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   return out;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

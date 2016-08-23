@@ -5,7 +5,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int deg>
 struct IsMatch;
@@ -117,4 +117,4 @@ INST(LO)
 INST(GO)
 #undef INST
 
-}  // end namespace osh
+}  // end namespace Omega_h

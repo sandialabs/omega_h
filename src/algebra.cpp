@@ -2,7 +2,7 @@
 #include "access.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 static Reals normalize_vectors_tmpl(Reals vs) {

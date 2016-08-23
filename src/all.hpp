@@ -1,6 +1,7 @@
 #ifndef ALL_HPP
 #define ALL_HPP
 
+#include "Omega_h_functors.hpp"
 #include "access.hpp"
 #include "adapt.hpp"
 #include "adjacency.hpp"
@@ -36,7 +37,6 @@
 #include "metric.hpp"
 #include "migrate.hpp"
 #include "modify.hpp"
-#include "omega_h_functors.hpp"
 #include "owners.hpp"
 #include "polynomial.hpp"
 #include "protect.hpp"

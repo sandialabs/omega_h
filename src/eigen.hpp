@@ -4,7 +4,7 @@
 #include "polynomial.hpp"
 #include "space.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
 INLINE void characteristic_cubic(Matrix<3, 3> A, Real& a, Real& b, Real& c) {
@@ -28,9 +28,9 @@ INLINE void characteristic_quadratic(Matrix<2, 2> A, Real& a, Real& b) {
 
 /* in the case that the null space is 1D and space is 3D,
    take the largest cross product of any pair of columns */
-INLINE void single_eigenvector(Matrix<3, 3> m, Real l, Vector<3>& v) {
+INLINE Vector<3> single_eigenvector(Matrix<3, 3> m, Real l) {
   subtract_from_diag(m, l);
-  v = cross(m[0], m[1]);
+  auto v = cross(m[0], m[1]);
   Real v_norm = norm(v);
   Vector<3> c = cross(m[1], m[2]);
   Real c_norm = norm(c);
@@ -46,6 +46,7 @@ INLINE void single_eigenvector(Matrix<3, 3> m, Real l, Vector<3>& v) {
   }
   CHECK(v_norm > EPSILON);
   v = v / v_norm;
+  return v;
 }
 
 template <Int m>
@@ -66,56 +67,68 @@ INLINE Vector<m> get_1d_column_space(Matrix<m, m> a) {
 /* in the case that the null space is 2D, find the
    largest-norm column and get a couple vectors
    orthogonal to that */
-INLINE void double_eigenvector(
-    Matrix<3, 3> m, Real l, Vector<3>& u, Vector<3>& v) {
+INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
   subtract_from_diag(m, l);
   Vector<3> n = get_1d_column_space(m);
   Matrix<3, 3> b = form_ortho_basis(n);
-  u = b[1];
-  v = b[2];
+  Few<Vector<3>, 2> out;
+  out[0] = b[1]; out[1] = b[2];
+  return out;
 }
 
-INLINE void decompose_eigen2(Matrix<3, 3> m, Matrix<3, 3>& q, Vector<3>& l) {
+template <Int dim>
+struct EigenDecomposition {
+  Matrix<dim, dim> q;
+  Vector<dim> l;
+};
+
+INLINE EigenDecomposition<3> decompose_eigen_dim(Matrix<3, 3> m) {
   Real a, b, c;
   characteristic_cubic(m, a, b, c);
   Few<Real, 3> roots;
   Few<Int, 3> mults;
   Int nroots = solve_cubic(a, b, c, roots, mults);
   /* there are only a few output cases, see solve_cubic() */
+  Matrix<3, 3> q;
+  Vector<3> l;
   if (nroots == 3) {
     for (Int i = 0; i < 3; ++i) {
-      single_eigenvector(m, roots[i], q[i]);
+      q[i] = single_eigenvector(m, roots[i]);
       l[i] = roots[i];
     }
   } else if (nroots == 2 && mults[1] == 2) {
-    single_eigenvector(m, roots[0], q[0]);
+    q[0] = single_eigenvector(m, roots[0]);
     l[0] = roots[0];
-    double_eigenvector(m, roots[1], q[1], q[2]);
+    auto dev = double_eigenvector(m, roots[1]);
+    q[1] = dev[0]; q[2] = dev[1];
     l[1] = l[2] = roots[1];
   } else {
     CHECK(nroots == 1 && mults[0] == 3);
     l[0] = l[1] = l[2] = roots[0];
     q = identity_matrix<3, 3>();
   }
+  return {q, l};
 }
 
 /* in the case that the null space is 1D and space is 2D,
    get the largest column and rotate it 90 deg */
-INLINE void single_eigenvector(Matrix<2, 2> m, Real l, Vector<2>& v) {
+INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l) {
   Matrix<2, 2> s = (m - (l * identity_matrix<2, 2>()));
-  v = perp(get_1d_column_space(s));
+  return perp(get_1d_column_space(s));
 }
 
-INLINE void decompose_eigen2(Matrix<2, 2> m, Matrix<2, 2>& q, Vector<2>& l) {
+INLINE EigenDecomposition<2> decompose_eigen_dim(Matrix<2, 2> m) {
   Real a, b;
   characteristic_quadratic(m, a, b);
   Few<Real, 2> roots;
   Few<Int, 2> mults;
   Int nroots = solve_quadratic(a, b, roots, mults);
   /* there are only a few output cases, see solve_quadratic() */
+  Matrix<2, 2> q;
+  Vector<2> l;
   if (nroots == 2) {
     for (Int i = 0; i < 2; ++i) {
-      single_eigenvector(m, roots[i], q[i]);
+      q[i] = single_eigenvector(m, roots[i]);
       l[i] = roots[i];
     }
   } else {
@@ -123,6 +136,7 @@ INLINE void decompose_eigen2(Matrix<2, 2> m, Matrix<2, 2>& q, Vector<2>& l) {
     l[0] = l[1] = roots[0];
     q = identity_matrix<2, 2>();
   }
+  return {q, l};
 }
 
 /* decompose an m x m matrix (where m <= 3) into
@@ -137,21 +151,18 @@ INLINE void decompose_eigen2(Matrix<2, 2> m, Matrix<2, 2>& q, Vector<2>& l) {
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
 template <Int dim>
-INLINE void decompose_eigen(
-    Matrix<dim, dim> m, Matrix<dim, dim>& q, Vector<dim>& l) {
+INLINE EigenDecomposition<dim> decompose_eigen(Matrix<dim, dim> m) {
   /* the cubic solver is especially sensitive to dynamic
      range. what we can do is to normalize the input matrix
      and then re-apply that norm to the resulting roots */
   Real nm = max_norm(m);
-  if (nm > EPSILON) {
-    m = m / nm;
-    decompose_eigen2(m, q, l);
-    l = l * nm;
-  } else {
+  if (nm <= EPSILON) {
     /* this is the zero matrix... */
-    q = identity_matrix<dim, dim>();
-    l = zero_vector<dim>();
+    return {identity_matrix<dim, dim>(), zero_vector<dim>()};
   }
+  m = m / nm;
+  auto decomp = decompose_eigen_dim(m);
+  return {decomp.q, decomp.l * nm};
 }
 
 /* Q, again, being the matrix whose columns
@@ -170,6 +181,6 @@ INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace hilbert {
 
@@ -106,6 +106,6 @@ LOs sort_coords(Reals coords, Int dim);
 
 }  // end namespace hilbert
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

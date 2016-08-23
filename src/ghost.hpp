@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Dist get_local_elem_uses2own_verts(Mesh* mesh);
 Remotes get_local_elem_uses2own_elems(Mesh* mesh);
@@ -16,6 +16,6 @@ void ghost_mesh(Mesh* mesh, bool verbose);
 void partition_by_verts(Mesh* mesh, bool verbose);
 void partition_by_elems(Mesh* mesh, bool verbose);
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

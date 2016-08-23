@@ -9,7 +9,7 @@
 #include "owners.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 struct CompareArrays {
@@ -40,11 +40,11 @@ struct CompareArrays<Real> {
         max_diff = diff;
       }
     }
-    auto global_start = comm->exscan(GO(ah.size()), OSH_SUM);
-    auto global_max_diff = comm->allreduce(max_diff, OSH_MAX);
+    auto global_start = comm->exscan(GO(ah.size()), OMEGA_H_SUM);
+    auto global_max_diff = comm->allreduce(max_diff, OMEGA_H_MAX);
     I32 rank_cand = ArithTraits<I32>::max();
     if (max_diff == global_max_diff) rank_cand = comm->rank();
-    auto best_rank = comm->allreduce(rank_cand, OSH_MIN);
+    auto best_rank = comm->allreduce(rank_cand, OMEGA_H_MIN);
     if (comm->rank() == best_rank) {
       auto global_max_i = global_start + max_i;
       auto ent_global = global_max_i / ncomps;
@@ -77,7 +77,7 @@ static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
   return hl2l_globals;
 }
 
-osh_comparison compare_meshes(
+Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, Real tol, Real floor, bool verbose, bool full) {
   CHECK(a->comm()->size() == b->comm()->size());
   CHECK(a->comm()->rank() == b->comm()->rank());
@@ -85,15 +85,15 @@ osh_comparison compare_meshes(
   auto should_print = verbose && (comm->rank() == 0);
   if (a->dim() != b->dim()) {
     if (should_print) std::cout << "mesh dimensions differ\n";
-    return OSH_DIFF;
+    return OMEGA_H_DIFF;
   }
-  osh_comparison result = OSH_SAME;
+  Omega_h_Comparison result = OMEGA_H_SAME;
   for (Int dim = 0; dim <= a->dim(); ++dim) {
     if (a->nglobal_ents(dim) != b->nglobal_ents(dim)) {
       if (should_print) {
         std::cout << "global " << singular_names[dim] << " counts differ\n";
       }
-      return OSH_DIFF;
+      return OMEGA_H_DIFF;
     }
     if (!full && (0 < dim) && (dim < a->dim())) continue;
     auto a_globals = a->ask_globals(dim);
@@ -109,7 +109,7 @@ osh_comparison compare_meshes(
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
         }
-        result = OSH_DIFF;
+        result = OMEGA_H_DIFF;
         continue;
       }
     }
@@ -121,25 +121,25 @@ osh_comparison compare_meshes(
           std::cout << singular_names[dim] << " tag \"" << name
                     << "\" exists in first mesh but not second\n";
         }
-        result = OSH_DIFF;
+        result = OMEGA_H_DIFF;
         continue;
       }
       auto ncomps = tag->ncomps();
       bool ok = false;
       switch (tag->type()) {
-        case OSH_I8:
+        case OMEGA_H_I8:
           ok = compare_copy_data(dim, a->get_array<I8>(dim, name), a_dist,
               b->get_array<I8>(dim, name), b_dist, ncomps, tol, floor);
           break;
-        case OSH_I32:
+        case OMEGA_H_I32:
           ok = compare_copy_data(dim, a->get_array<I32>(dim, name), a_dist,
               b->get_array<I32>(dim, name), b_dist, ncomps, tol, floor);
           break;
-        case OSH_I64:
+        case OMEGA_H_I64:
           ok = compare_copy_data(dim, a->get_array<I64>(dim, name), a_dist,
               b->get_array<I64>(dim, name), b_dist, ncomps, tol, floor);
           break;
-        case OSH_F64:
+        case OMEGA_H_F64:
           ok = compare_copy_data(dim, a->get_array<Real>(dim, name), a_dist,
               b->get_array<Real>(dim, name), b_dist, ncomps, tol, floor);
           break;
@@ -149,7 +149,7 @@ osh_comparison compare_meshes(
           std::cout << singular_names[dim] << " tag \"" << name
                     << "\" values are different\n";
         }
-        result = OSH_DIFF;
+        result = OMEGA_H_DIFF;
       }
     }
     for (Int i = 0; i < b->ntags(dim); ++i) {
@@ -159,8 +159,8 @@ osh_comparison compare_meshes(
           std::cout << singular_names[dim] << " tag \"" << tag->name()
                     << "\" exists in second mesh but not in first\n";
         }
-        if (result == OSH_SAME) {
-          result = OSH_MORE;
+        if (result == OMEGA_H_SAME) {
+          result = OMEGA_H_MORE;
         }
       }
     }
@@ -168,4 +168,4 @@ osh_comparison compare_meshes(
   return result;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

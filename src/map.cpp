@@ -6,7 +6,7 @@
 #include "scan.hpp"
 #include "sort.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
@@ -224,13 +224,13 @@ static Read<typename Functor::input_type> fan_reduce_tmpl(
 }
 
 template <typename T>
-Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
+Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   switch (op) {
-    case OSH_MIN:
+    case OMEGA_H_MIN:
       return fan_reduce_tmpl<MinFunctor<T>>(a2b, b_data, width);
-    case OSH_MAX:
+    case OMEGA_H_MAX:
       return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
-    case OSH_SUM:
+    case OMEGA_H_SUM:
       return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
   }
   NORETURN(Read<T>());
@@ -242,11 +242,12 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op) {
   template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
   template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
   template Read<T> permute(Read<T> a_data, LOs a2b, Int width);                \
-  template Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
+  template Read<T> fan_reduce(                                                 \
+      LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -1,6 +1,6 @@
 #include "timer.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 Now now() {
   Now t;
@@ -14,4 +14,4 @@ Real operator-(Now b, Now a) {
          1e-9;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

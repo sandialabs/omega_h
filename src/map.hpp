@@ -3,7 +3,7 @@
 
 #include "internal.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);
@@ -46,7 +46,7 @@ Read<T> fan_max(LOs a2b, Read<T> b_data);
 template <typename T>
 Read<T> fan_min(LOs a2b, Read<T> b_data);
 template <typename T>
-Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
+Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 
 #define INST_T(T)                                                              \
   extern template void map_into(                                               \
@@ -57,13 +57,13 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, osh_op op);
   extern template Read<T> expand(Read<T> a_data, LOs a2b, Int width);          \
   extern template Read<T> permute(Read<T> a_data, LOs a2b, Int width);         \
   extern template Read<T> fan_reduce(                                          \
-      LOs a2b, Read<T> b_data, Int width, osh_op op);
+      LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 INST_T(I8)
 INST_T(I32)
 INST_T(I64)
 INST_T(Real)
 #undef INST_T
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

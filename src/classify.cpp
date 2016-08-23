@@ -6,7 +6,7 @@
 #include "mark.hpp"
 #include "surface.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
   auto dim = mesh->dim();
@@ -16,7 +16,8 @@ void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
     class_dim[s] = static_cast<I8>(dim - side_is_exposed[s]);
   };
   parallel_for(ns, f);
-  mesh->add_tag<I8>(dim - 1, "class_dim", 1, OSH_INHERIT, class_dim);
+  mesh->add_tag<I8>(
+      dim - 1, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
 }
 
 void classify_hinges_by_sharpness(
@@ -29,7 +30,8 @@ void classify_hinges_by_sharpness(
         static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
   };
   parallel_for(nh, f);
-  mesh->add_tag<I8>(dim - 2, "class_dim", 1, OSH_INHERIT, class_dim);
+  mesh->add_tag<I8>(
+      dim - 2, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
 }
 
 void classify_vertices_by_sharp_edges(
@@ -56,11 +58,13 @@ void classify_vertices_by_sharp_edges(
     }
   };
   parallel_for(nv, f);
-  mesh->add_tag<I8>(VERT, "class_dim", 1, OSH_INHERIT, class_dim);
+  mesh->add_tag<I8>(
+      VERT, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
 }
 
 void classify_elements(Mesh* mesh) {
-  mesh->add_tag<I8>(mesh->dim(), "class_dim", 1, OSH_INHERIT,
+  mesh->add_tag<I8>(mesh->dim(), "class_dim", 1, OMEGA_H_INHERIT,
+      OMEGA_H_DO_OUTPUT,
       Read<I8>(mesh->nelems(), static_cast<I8>(mesh->dim())));
 }
 
@@ -121,4 +125,4 @@ void project_classification(Mesh* mesh) {
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

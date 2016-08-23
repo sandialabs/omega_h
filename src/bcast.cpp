@@ -1,6 +1,6 @@
 #include "bcast.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   if (new_comm->rank() == 0) {
@@ -13,7 +13,7 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   I32 parting;
   if (is_source) parting = mesh->parting();
   new_comm->bcast(parting);
-  if (!is_source) mesh->set_parting(static_cast<osh_parting>(parting));
+  if (!is_source) mesh->set_parting(static_cast<Omega_h_Parting>(parting));
   I32 keep_canon;
   if (is_source) keep_canon = mesh->keeps_canonical_globals();
   new_comm->bcast(keep_canon);
@@ -43,19 +43,26 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
       I32 tag_xfer;
       if (is_source) tag_xfer = tag->xfer();
       new_comm->bcast(tag_xfer);
+      I32 tag_outflags;
+      if (is_source) tag_outflags = tag->outflags();
+      new_comm->bcast(tag_outflags);
       if (!is_source) {
         switch (tag_type) {
-          case OSH_I8:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<I8>({}));
+          case OMEGA_H_I8:
+            mesh->add_tag(
+                d, name, ncomps, tag_xfer, tag_outflags, Read<I8>({}));
             break;
-          case OSH_I32:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<I32>({}));
+          case OMEGA_H_I32:
+            mesh->add_tag(
+                d, name, ncomps, tag_xfer, tag_outflags, Read<I32>({}));
             break;
-          case OSH_I64:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<I64>({}));
+          case OMEGA_H_I64:
+            mesh->add_tag(
+                d, name, ncomps, tag_xfer, tag_outflags, Read<I64>({}));
             break;
-          case OSH_F64:
-            mesh->add_tag(d, name, ncomps, tag_xfer, Read<Real>({}));
+          case OMEGA_H_F64:
+            mesh->add_tag(
+                d, name, ncomps, tag_xfer, tag_outflags, Read<Real>({}));
             break;
         }
       }
@@ -63,4 +70,4 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   }
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

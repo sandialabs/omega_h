@@ -4,7 +4,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void swap2d_topology(Mesh* mesh, LOs keys2edges,
     HostFew<LOs, 3>* keys2prods_out, HostFew<LOs, 3>* prod_verts2verts_out) {
@@ -51,4 +51,4 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
   *prod_verts2verts_out = prod_verts2verts;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

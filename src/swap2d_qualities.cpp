@@ -5,7 +5,7 @@
 #include "quality.hpp"
 #include "simplices.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <typename Measure, Int dim>
 static Reals swap2d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
@@ -49,7 +49,7 @@ static Reals swap2d_qualities_tmpl(Mesh* mesh, LOs cands2edges) {
 }
 
 Reals swap2d_qualities(Mesh* mesh, LOs cands2edges) {
-  CHECK(mesh->parting() == OSH_GHOSTED);
+  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto cand_quals = Reals();
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {
@@ -72,4 +72,4 @@ Reals swap2d_qualities(Mesh* mesh, LOs cands2edges) {
   return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

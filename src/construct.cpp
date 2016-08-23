@@ -10,7 +10,7 @@
 #include "remotes.hpp"
 #include "simplify.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   auto comm = mesh->comm();
@@ -44,11 +44,12 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
 void build_from_elems2verts(
     Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals) {
   mesh->set_comm(comm);
-  mesh->set_parting(OSH_ELEM_BASED);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->set_dim(edim);
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
-  mesh->add_tag(VERT, "global", 1, OSH_GLOBAL, vert_globals);
+  mesh->add_tag(
+      VERT, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, vert_globals);
   if (comm->size() > 1) {
     mesh->set_owners(
         VERT, owners_from_globals(comm, vert_globals, Read<I32>()));
@@ -142,4 +143,4 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   *p_ents2owners = e2oe;
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

@@ -9,7 +9,7 @@
 #include "loop.hpp"
 #include "space.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace inertia {
 
@@ -48,9 +48,9 @@ Matrix<3, 3> get_matrix(
 
 Vector<3> get_axis(CommPtr comm, Reals coords, Reals masses, Vector<3> center) {
   auto m = get_matrix(comm, coords, masses, center);
-  Matrix<3, 3> q;
-  Vector<3> l;
-  decompose_eigen(m, q, l);
+  auto ed = decompose_eigen(m);
+  auto l = ed.l;
+  auto q = ed.q;
   Int min_i = 0;
   for (Int i = 1; i < 3; ++i) {
     if (l[i] < l[min_i]) {
@@ -91,8 +91,8 @@ bool mark_axis_bisection(CommPtr comm, Reals distances, Reals masses,
     Real total_mass, Real tolerance, Read<I8>& marked) {
   auto n = distances.size();
   CHECK(n == masses.size());
-  auto max_dist = comm->allreduce(max(distances), OSH_MAX);
-  auto min_dist = comm->allreduce(min(distances), OSH_MIN);
+  auto max_dist = comm->allreduce(max(distances), OMEGA_H_MAX);
+  auto min_dist = comm->allreduce(min(distances), OMEGA_H_MIN);
   auto range = max2(fabs(min_dist), fabs(max_dist));
   auto step = range / 2.;
   Real distance = 0.;
@@ -185,4 +185,4 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
 
 }  // end namespace inertia
 
-}  // end namespace osh
+}  // end namespace Omega_h

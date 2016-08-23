@@ -3,7 +3,7 @@
 #include "access.hpp"
 #include "loop.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int sdim, Int edim>
 static Reals average_metric_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
@@ -78,7 +78,7 @@ Reals linearize_metrics_dim(Reals metrics) {
 template <Int dim>
 Reals delinearize_metrics_dim(Reals lms) {
   auto n = lms.size() / square(dim);
-  auto out = Write<Real>(n * dim * dim);
+  auto out = Write<Real>(n * symm_dofs(dim));
   auto f = LAMBDA(LO i) {
     set_symm(out, i, delinearize_metric(get_matrix<dim>(lms, i)));
   };
@@ -100,4 +100,4 @@ Reals delinearize_metrics(Int dim, Reals linear_metrics) {
   NORETURN(Reals());
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h

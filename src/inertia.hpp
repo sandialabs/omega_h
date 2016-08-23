@@ -3,7 +3,7 @@
 
 #include "algebra.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 namespace inertia {
 
@@ -19,6 +19,6 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
     Remotes& owners, Real tolerance, Rib hints);
 }
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

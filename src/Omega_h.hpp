@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
-#include "omega_h_c.h"
-#include "omega_h_kokkos.hpp"
+#include "Omega_h_c.h"
+#include "Omega_h_kokkos.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 typedef std::int8_t I8;
 typedef std::int16_t I16;
@@ -30,7 +30,7 @@ class HostWrite;
 
 template <typename T>
 class Write {
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view_;
 #else
   std::shared_ptr<T> ptr_;
@@ -41,8 +41,8 @@ class Write {
   bool exists_;
 
  public:
-  OSH_INLINE Write();
-#ifdef OSH_USE_KOKKOS
+  OMEGA_H_INLINE Write();
+#ifdef OMEGA_H_USE_KOKKOS
   Write(Kokkos::View<T*> view);
 #endif
   Write(LO size);
@@ -50,19 +50,19 @@ class Write {
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
   LO size() const;
-  OSH_DEVICE T& operator[](LO i) const {
-#ifdef OSH_CHECK_BOUNDS
-    OSH_CHECK(0 <= i);
-    OSH_CHECK(i < size());
+  OMEGA_H_DEVICE T& operator[](LO i) const {
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
 #endif
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
     return view_(i);
 #else
     return ptr_.get()[i];
 #endif
   }
   T* data() const;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view() const;
 #endif
   void set(LO i, T value) const;
@@ -71,9 +71,9 @@ class Write {
 };
 
 template <typename T>
-OSH_INLINE Write<T>::Write()
+OMEGA_H_INLINE Write<T>::Write()
     :
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
       view_()
 #else
       ptr_(),
@@ -88,15 +88,15 @@ class Read {
   Write<T> write_;
 
  public:
-  OSH_INLINE Read() {}
+  OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value);
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
   LO size() const;
-  OSH_DEVICE T const& operator[](LO i) const { return write_[i]; }
+  OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
   T const* data() const;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<const T*> view() const;
 #endif
   T get(LO i) const;
@@ -106,8 +106,8 @@ class Read {
 
 class LOs : public Read<LO> {
  public:
-  OSH_INLINE LOs() {}
-  OSH_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
+  OMEGA_H_INLINE LOs() {}
+  OMEGA_H_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
   LOs(Write<LO> write);
   LOs(LO size, LO value);
   LOs(LO size, LO offset, LO stride);
@@ -120,7 +120,7 @@ Read<T> permute(Read<T> a_data, LOs a2b, Int width);
 class Reals : public Read<Real> {
  public:
   Reals();
-  OSH_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
+  OMEGA_H_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
   Reals(Write<Real> write);
   Reals(LO size, Real value);
   Reals(std::initializer_list<Real> l);
@@ -129,7 +129,7 @@ class Reals : public Read<Real> {
 template <typename T>
 class HostRead {
   Read<T> read_;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<const T*>::HostMirror mirror_;
 #endif
  public:
@@ -137,10 +137,10 @@ class HostRead {
   HostRead(Read<T> read);
   LO size() const;
   inline T const& operator[](LO i) const {
-#ifdef OSH_USE_KOKKOS
-#ifdef OSH_CHECK_BOUNDS
-    OSH_CHECK(0 <= i);
-    OSH_CHECK(i < size());
+#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
 #endif
     return mirror_(i);
 #else
@@ -154,7 +154,7 @@ class HostRead {
 template <typename T>
 class HostWrite {
   Write<T> write_;
-#ifdef OSH_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
 #endif
  public:
@@ -166,10 +166,10 @@ class HostWrite {
   Write<T> write() const;
   LO size() const;
   inline T& operator[](LO i) const {
-#ifdef OSH_USE_KOKKOS
-#ifdef OSH_CHECK_BOUNDS
-    OSH_CHECK(0 <= i);
-    OSH_CHECK(i < size());
+#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
 #endif
     return mirror_(i);
 #else
@@ -181,26 +181,28 @@ class HostWrite {
 
 class TagBase {
  public:
-  TagBase(std::string const& name, Int ncomps, Int xfer);
+  TagBase(std::string const& name, Int ncomps, Int xfer, Int outflags);
   virtual ~TagBase();
   std::string const& name() const;
   Int ncomps() const;
   Int xfer() const;
-  virtual osh_type type() const = 0;
+  Int outflags() const;
+  virtual Omega_h_Type type() const = 0;
 
  private:
   std::string name_;
   Int ncomps_;
   Int xfer_;
+  Int outflags_;
 };
 
 template <typename T>
 class Tag : public TagBase {
  public:
-  Tag(std::string const& name, Int ncomps, Int xfer);
+  Tag(std::string const& name, Int ncomps, Int xfer, Int outflags);
   Read<T> array() const;
   void set_array(Read<T> array);
-  virtual osh_type type() const override;
+  virtual Omega_h_Type type() const override;
 
  private:
   Read<T> array_;
@@ -216,15 +218,15 @@ struct Remotes {
 struct Int128 {
   std::int64_t high;
   std::uint64_t low;
-  OSH_INLINE Int128();
-  OSH_INLINE Int128(std::int64_t h, std::uint64_t l);
-  OSH_INLINE Int128(std::int64_t value);
-  OSH_INLINE void operator=(Int128 const& rhs) volatile;
-  OSH_INLINE Int128(Int128 const& rhs);
-  OSH_INLINE Int128(const volatile Int128& rhs);
+  OMEGA_H_INLINE Int128();
+  OMEGA_H_INLINE Int128(std::int64_t h, std::uint64_t l);
+  OMEGA_H_INLINE Int128(std::int64_t value);
+  OMEGA_H_INLINE void operator=(Int128 const& rhs) volatile;
+  OMEGA_H_INLINE Int128(Int128 const& rhs);
+  OMEGA_H_INLINE Int128(const volatile Int128& rhs);
   double to_double(double unit) const;
   void print(std::ostream& o) const;
-  static OSH_INLINE Int128 from_double(double value, double unit);
+  static OMEGA_H_INLINE Int128 from_double(double value, double unit);
 };
 
 class Comm;
@@ -232,7 +234,7 @@ class Comm;
 typedef std::shared_ptr<Comm> CommPtr;
 
 class Comm {
-#ifdef OSH_USE_MPI
+#ifdef OMEGA_H_USE_MPI
   MPI_Comm impl_;
 #endif
   Read<I32> srcs_;
@@ -242,7 +244,7 @@ class Comm {
 
  public:
   Comm();
-#ifdef OSH_USE_MPI
+#ifdef OMEGA_H_USE_MPI
   Comm(MPI_Comm impl);
 #else
   Comm(bool is_graph, bool sends_to_self);
@@ -260,12 +262,12 @@ class Comm {
   Read<I32> sources() const;
   Read<I32> destinations() const;
   template <typename T>
-  T allreduce(T x, osh_op op) const;
+  T allreduce(T x, Omega_h_Op op) const;
   bool reduce_or(bool x) const;
   bool reduce_and(bool x) const;
   Int128 add_int128(Int128 x) const;
   template <typename T>
-  T exscan(T x, osh_op op) const;
+  T exscan(T x, Omega_h_Op op) const;
   template <typename T>
   void bcast(T& x) const;
   void bcast_string(std::string& s) const;
@@ -299,7 +301,7 @@ class Dist {
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;
   template <typename T>
-  Read<T> exch_reduce(Read<T> data, Int width, osh_op op) const;
+  Read<T> exch_reduce(Read<T> data, Int width, Omega_h_Op op) const;
   CommPtr parent_comm() const;
   CommPtr comm() const;
   LOs msgs2content() const;
@@ -330,9 +332,14 @@ struct Graph {
   LOs ab2b;
 };
 
-enum { DIMS = OSH_DIMS };
+enum { DIMS = OMEGA_H_DIMS };
 
-enum { VERT = OSH_VERT, EDGE = OSH_EDGE, TRI = OSH_TRI, TET = OSH_TET };
+enum {
+  VERT = OMEGA_H_VERT,
+  EDGE = OMEGA_H_EDGE,
+  TRI = OMEGA_H_TRI,
+  TET = OMEGA_H_TET
+};
 
 struct Adj : public Graph {
   Adj() {}
@@ -351,7 +358,7 @@ void find_matches(
 class Library {
  public:
   Library(Library const&) {}
-  inline Library(int* argc, char*** argv) { osh_init(argc, argv); }
+  inline Library(int* argc, char*** argv) { Omega_h_init(argc, argv); }
   ~Library();
   CommPtr world() const;
   CommPtr self() const;
@@ -370,9 +377,9 @@ class Mesh {
   void set_ents(Int dim, Adj down);
   void keep_canonical_globals(bool yn);
   CommPtr comm() const;
-  osh_parting parting() const;
+  Omega_h_Parting parting() const;
   inline Int dim() const {
-    OSH_CHECK(0 <= dim_ && dim_ <= 3);
+    OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
   LO nents(Int dim) const;
@@ -383,10 +390,11 @@ class Mesh {
   LO nverts() const;
   GO nglobal_ents(Int dim);
   template <typename T>
-  void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer);
-  template <typename T>
   void add_tag(
-      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);
+  template <typename T>
+  void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
+      Int outflags, Read<T> array);
   template <typename T>
   void set_tag(Int dim, std::string const& name, Read<T> array);
   TagBase const* get_tagbase(Int dim, std::string const& name) const;
@@ -449,7 +457,7 @@ class Mesh {
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);
   Dist ask_dist(Int dim);
-  void set_parting(osh_parting parting, bool verbose = false);
+  void set_parting(Omega_h_Parting parting, bool verbose = false);
   void migrate(Remotes new_elems2old_owners, bool verbose = false);
   void reorder();
   void balance();
@@ -460,9 +468,9 @@ class Mesh {
   Read<T> sync_subset_array(
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);
   template <typename T>
-  Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, osh_op op);
+  Read<T> reduce_array(Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
   void sync_tag(Int dim, std::string const& name);
-  void reduce_tag(Int dim, std::string const& name, osh_op op);
+  void reduce_tag(Int dim, std::string const& name, Omega_h_Op op);
   bool operator==(Mesh& other);
   Real min_quality();
   bool could_be_shared(Int ent_dim) const;
@@ -517,7 +525,7 @@ void write(std::string const& path, Mesh* mesh);
 void read(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
-osh_comparison compare_meshes(
+Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, Real tol, Real floor, bool verbose, bool full = true);
 bool check_regression(
     std::string const& prefix, Mesh* mesh, Real tol, Real floor);
@@ -536,11 +544,11 @@ Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
 Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
 
-OSH_INLINE bool code_is_flipped(I8 code) { return code & 1; }
+OMEGA_H_INLINE bool code_is_flipped(I8 code) { return code & 1; }
 
-OSH_INLINE Int code_rotation(I8 code) { return (code >> 1) & 3; }
+OMEGA_H_INLINE Int code_rotation(I8 code) { return (code >> 1) & 3; }
 
-OSH_INLINE Int code_which_down(I8 code) { return (code >> 3); }
+OMEGA_H_INLINE Int code_which_down(I8 code) { return (code >> 3); }
 
 Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
@@ -563,51 +571,51 @@ class Few {
 
  public:
   enum { size = n };
-  OSH_INLINE T& operator[](Int i) { return array_[i]; }
-  OSH_INLINE T const& operator[](Int i) const { return array_[i]; }
-  OSH_INLINE Few() {}
+  OMEGA_H_INLINE T& operator[](Int i) { return array_[i]; }
+  OMEGA_H_INLINE T const& operator[](Int i) const { return array_[i]; }
+  OMEGA_H_INLINE Few() {}
   Few(std::initializer_list<T> l) {
     Int i = 0;
     for (auto v : l) array_[i++] = v;
   }
-  OSH_INLINE void operator=(Few<T, n> const& rhs) volatile {
+  OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
-  OSH_INLINE Few(Few<T, n> const& rhs) {
+  OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
-  OSH_INLINE Few(const volatile Few<T, n>& rhs) {
+  OMEGA_H_INLINE Few(const volatile Few<T, n>& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
-  OSH_INLINE T* data() { return array_; }
-  OSH_INLINE T const* data() const { return array_; }
+  OMEGA_H_INLINE T* data() { return array_; }
+  OMEGA_H_INLINE T const* data() const { return array_; }
 };
 
 template <typename T>
-OSH_INLINE T max2(T a, T b) {
+OMEGA_H_INLINE T max2(T a, T b) {
   return (b > a) ? (b) : (a);
 }
 
 template <typename T>
-OSH_INLINE T min2(T a, T b) {
+OMEGA_H_INLINE T min2(T a, T b) {
   return (b < a) ? (b) : (a);
 }
 
 template <typename T>
-OSH_INLINE void swap2(T& a, T& b) {
+OMEGA_H_INLINE void swap2(T& a, T& b) {
   T c = a;
   a = b;
   b = c;
 }
 
 /* begin explicit instantiation declarations */
-#define OSH_EXPL_INST_DECL(T)                                                  \
+#define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
-  extern template T Comm::allreduce(T x, osh_op op) const;                     \
-  extern template T Comm::exscan(T x, osh_op op) const;                        \
+  extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
+  extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \
   extern template Read<T> Comm::allgather(T x) const;                          \
   extern template Read<T> Comm::alltoall(Read<T> x) const;                     \
@@ -616,29 +624,29 @@ OSH_INLINE void swap2(T& a, T& b) {
       Read<LO> rdispls) const;                                                 \
   extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
   extern template Read<T> Dist::exch_reduce<T>(                                \
-      Read<T> data, Int width, osh_op op) const;                               \
+      Read<T> data, Int width, Omega_h_Op op) const;                           \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \
       Int dim, std::string const& name) const;                                 \
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
       const;                                                                   \
   extern template void Mesh::add_tag<T>(                                       \
-      Int dim, std::string const& name, Int ncomps, Int xfer);                 \
-  extern template void Mesh::add_tag<T>(                                       \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Read<T> array);  \
+      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
+  extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
+      Int ncomps, Int xfer, Int outflags, Read<T> array);                      \
   extern template void Mesh::set_tag(                                          \
       Int dim, std::string const& name, Read<T> array);                        \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
   extern template Read<T> Mesh::sync_subset_array(                             \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \
-      Int ent_dim, Read<T> a, Int width, osh_op op);
-OSH_EXPL_INST_DECL(I8)
-OSH_EXPL_INST_DECL(I32)
-OSH_EXPL_INST_DECL(I64)
-OSH_EXPL_INST_DECL(Real)
-#undef OSH_EXPL_INST_DECL
+      Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
+OMEGA_H_EXPL_INST_DECL(I8)
+OMEGA_H_EXPL_INST_DECL(I32)
+OMEGA_H_EXPL_INST_DECL(I64)
+OMEGA_H_EXPL_INST_DECL(Real)
+#undef OMEGA_H_EXPL_INST_DECL
 /* end explicit instantiation declarations */
 
-}  // end namespace osh
+}  // end namespace Omega_h
 
 #endif

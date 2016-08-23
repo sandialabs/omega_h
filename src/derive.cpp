@@ -9,7 +9,7 @@
 #include "project.hpp"
 #include "space.hpp"
 
-namespace osh {
+namespace Omega_h {
 
 template <Int dim>
 INLINE Matrix<dim, dim> get_simplex_jacobian(Few<Vector<dim>, dim + 1> evv2x) {

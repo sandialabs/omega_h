@@ -14,7 +14,7 @@
 #include "space.hpp"
 #include "timer.hpp"
 
-using namespace osh;
+using namespace Omega_h;
 
 static Int const nelems = 1000 * 1000;
 
@@ -58,9 +58,7 @@ static void test_metric_decompose(Reals metrics) {
   Write<Real> write_eigenvs(nelems);
   auto f1 = LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
-    Matrix<3, 3> r;
-    Vector<3> l;
-    decompose_eigen(m, r, l);
+    auto l = decompose_eigen(m).l;
     auto eigenv = max2(max2(l[0], l[1]), l[2]);
     write_eigenvs[i] = eigenv;
   };
