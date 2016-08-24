@@ -18,6 +18,7 @@ function(bob_always_full_rpath)
 endfunction(bob_always_full_rpath)
 
 macro(bob_begin_package)
+  message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
   #try to force BUILD_TESTING to be OFF by default
   set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
   include(CTest)
