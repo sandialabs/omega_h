@@ -291,6 +291,15 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   return m_scal;
 }
 
+/* A Hessian-based anisotropic size field, from
+ * Alauzet's tech report:
+ *
+ * F. Alauzet, P.J. Frey, Estimateur d'erreur geometrique
+ * et metriques anisotropes pour l'adaptation de maillage.
+ * Partie I: aspects theoriques,
+ * RR-4759, INRIA Rocquencourt, 2003.
+ */
+
 template <Int dim>
 static INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
     Real eps, Real hmin, Real hmax) {
@@ -306,15 +315,6 @@ static INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
   }
   return compose_eigen(r, tilde_l);
 }
-
-/* A Hessian-based anisotropic size field, from
- * Alauzet's tech report:
- *
- * F. Alauzet, P.J. Frey, Estimateur d'erreur geometrique
- * et metriques anisotropes pour l'adaptation de maillage.
- * Partie I: aspects theoriques,
- * RR-4759, INRIA Rocquencourt, 2003.
- */
 
 template <Int dim>
 static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmin, Real hmax) {
@@ -332,9 +332,35 @@ static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmin, Real 
 }
 
 Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmin, Real hmax) {
+  CHECK(hmin > 0);
+  CHECK(hmax > 0);
+  CHECK(hmin <= hmax);
+  CHECK(eps > 0);
   if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps, hmin, hmax);
   if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps, hmin, hmax);
   NORETURN(Reals());
+}
+
+Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems, Real tolerance,
+    Reals hessians, Real hmin, Real hmax) {
+  CHECK(tolerance > 0);
+  CHECK(target_nelems > 0);
+  auto dim = mesh->dim();
+  Real scalar;
+  Reals metric;
+  Real eps = 1.0;
+  Int niters = 0;
+  do {
+    metric = metric_from_hessians(dim, hessians, eps, hmin, hmax);
+    scalar = metric_scalar_for_nelems(mesh, metric, target_nelems);
+    eps /= scalar;
+    ++niters;
+  } while (fabs(scalar - 1.0) > tolerance);
+  if (mesh->comm()->rank() == 0) {
+    std::cout << "after " << niters << " iterations,"
+      << " metric targets " << target_nelems
+      << "*" << scalar << " elements 
+  }
 }
 
 }  // end namespace Omega_h
