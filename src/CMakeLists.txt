@@ -111,7 +111,7 @@ bob_public_dep(ZLIB "" ON)
 if(Omega_h_USE_ZLIB)
   message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
   # The ZLIB::ZLIB imported target is not present in CMake 3.0.0
-  if (CMAKE_VERSION VERSION_LESS "3.0.1")
+  if (CMAKE_VERSION VERSION_LESS "3.1.0")
     target_link_libraries(omega_h PUBLIC ${ZLIB_LIBRARIES})
     target_include_directories(omega_h PUBLIC ${ZLIB_INCLUDE_DIRS})
   else()
