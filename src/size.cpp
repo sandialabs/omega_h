@@ -312,8 +312,8 @@ static INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
   constexpr auto c_denom = 2 * square(dim + 1);
   decltype(l) tilde_l;
   for (Int i = 0; i < dim; ++i) {
-    tilde_l[i] = min2(max2((c_num * fabs(l[i])) / (c_denom * eps),
-                           1. / square(hmax)), 1. / square(hmin));
+    auto val = (c_num * fabs(l[i])) / (c_denom * eps);
+    tilde_l[i] = min2(max2(val, 1. / square(hmax)), 1. / square(hmin));
   }
   return compose_eigen(r, tilde_l);
 }
