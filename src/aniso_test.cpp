@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     adapt(&mesh, 0.20, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 0);
   }
   Now t1 = now();
-  std::cout << "anisotropic approach took " << (t1-t0) << " seconds\n";
+  std::cout << "anisotropic approach took " << (t1 - t0) << " seconds\n";
   bool ok = check_regression("gold_aniso", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;

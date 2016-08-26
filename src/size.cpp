@@ -303,8 +303,8 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
  */
 
 template <Int dim>
-static INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
-    Real eps, Real hmin, Real hmax) {
+static INLINE Matrix<dim, dim> metric_from_hessian(
+    Matrix<dim, dim> hessian, Real eps, Real hmin, Real hmax) {
   auto ed = decompose_eigen(hessian);
   auto r = ed.q;
   auto l = ed.l;
@@ -319,7 +319,8 @@ static INLINE Matrix<dim, dim> metric_from_hessian(Matrix<dim, dim> hessian,
 }
 
 template <Int dim>
-static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmin, Real hmax) {
+static Reals metric_from_hessians_dim(
+    Reals hessians, Real eps, Real hmin, Real hmax) {
   auto ncomps = symm_dofs(dim);
   CHECK(hessians.size() % ncomps == 0);
   auto n = hessians.size() / ncomps;
@@ -333,7 +334,8 @@ static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmin, Real 
   return out;
 }
 
-Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmin, Real hmax) {
+Reals metric_from_hessians(
+    Int dim, Reals hessians, Real eps, Real hmin, Real hmax) {
   CHECK(hmin > 0);
   CHECK(hmax > 0);
   CHECK(hmin <= hmax);
@@ -343,8 +345,8 @@ Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmin, Real hm
   NORETURN(Reals());
 }
 
-Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems, Real tolerance,
-    Reals hessians, Real hmin, Real hmax) {
+Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
+    Real tolerance, Reals hessians, Real hmin, Real hmax) {
   CHECK(tolerance > 0);
   CHECK(target_nelems > 0);
   auto dim = mesh->dim();
@@ -360,8 +362,8 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems, Real toler
   } while (fabs(scalar - 1.0) > tolerance);
   if (mesh->comm()->rank() == 0) {
     std::cout << "after " << niters << " iterations,"
-      << " metric targets " << target_nelems
-      << "*" << scalar << " elements\n";
+              << " metric targets " << target_nelems << "*" << scalar
+              << " elements\n";
   }
   return metric;
 }
