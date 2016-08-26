@@ -1,5 +1,7 @@
 #include "size.hpp"
 
+#include <iostream>
+
 #include "array.hpp"
 #include "eigen.hpp"
 #include "graph.hpp"
@@ -359,8 +361,9 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems, Real toler
   if (mesh->comm()->rank() == 0) {
     std::cout << "after " << niters << " iterations,"
       << " metric targets " << target_nelems
-      << "*" << scalar << " elements 
+      << "*" << scalar << " elements\n";
   }
+  return metric;
 }
 
 }  // end namespace Omega_h
