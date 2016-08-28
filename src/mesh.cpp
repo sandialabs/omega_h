@@ -439,7 +439,7 @@ void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
     parting_ = OMEGA_H_ELEM_BASED;
   }
   if (parting == OMEGA_H_GHOSTED) {
-    ghost_mesh(this, verbose);
+    ghost_mesh(this, 1, verbose);
   } else if (parting == OMEGA_H_VERT_BASED) {
     partition_by_verts(this, verbose);
   }

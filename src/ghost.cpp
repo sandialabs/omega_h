@@ -86,8 +86,7 @@ static Dist close_up(Mesh* mesh, RemoteGraph own_verts2own_elems,
   return elems2owners;
 }
 
-#if 0
-static Dist close_down(Mesh* mesh, Remote old_use_owners, Dist elems2owners) {
+static Dist close_down(Mesh* mesh, Remotes old_use_owners, Dist elems2owners) {
   auto nverts_per_elem = mesh->dim() + 1;
   auto owners2elems = elems2owners.invert();
   auto new_use_owners = owners2elems.exch(old_use_owners, nverts_per_elem);
@@ -95,12 +94,20 @@ static Dist close_down(Mesh* mesh, Remote old_use_owners, Dist elems2owners) {
   auto verts2owners = find_unique_use_owners(uses2old_owners);
   return verts2owners;
 }
-#endif
 
-void ghost_mesh(Mesh* mesh, bool verbose) {
+void ghost_mesh(Mesh* mesh, Int nlayers, bool verbose) {
+  CHECK(nlayers >= 1);
   auto own_verts2own_elems = get_own_verts2own_elems(mesh);
   auto verts2owners = mesh->ask_dist(VERT);
   auto elems2owners = close_up(mesh, own_verts2own_elems, verts2owners);
+  auto vert_use_owners = Remotes();
+  if (nlayers > 1) {
+    vert_use_owners = form_down_use_owners(mesh, mesh->dim(), VERT);
+  }
+  for (Int i = 1; i < nlayers; ++i) {
+    verts2owners = close_down(mesh, vert_use_owners, elems2owners);
+    elems2owners = close_up(mesh, own_verts2own_elems, verts2owners);
+  }
   auto new_mesh = mesh->copy_meta();
   migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_GHOSTED, verbose);
   *mesh = new_mesh;

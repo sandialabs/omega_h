@@ -22,7 +22,7 @@ void get_own_verts2own_elem_uses(
     Mesh* mesh, Remotes& serv_uses2own_elems, LOs& own_verts2serv_uses);
 Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts);
 
-void ghost_mesh(Mesh* mesh, bool verbose);
+void ghost_mesh(Mesh* mesh, Int nlayers, bool verbose);
 void partition_by_verts(Mesh* mesh, bool verbose);
 void partition_by_elems(Mesh* mesh, bool verbose);
 
