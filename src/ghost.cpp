@@ -22,17 +22,38 @@ Remotes get_local_elem_uses2own_elems(Mesh* mesh) {
   return unmap(uses2elems, elems2own);
 }
 
-void get_own_verts2own_elem_uses(
-    Mesh* mesh, Remotes& serv_uses2own_elems, LOs& own_verts2serv_uses) {
+/* a graph from local items to global items.
+ * locals2edges is an offset map from local items to edges
+ * outgoing from local items.
+ * edges2remotes is a map from edges outgoing from local
+ * items, to the remote destinations of said edges.
+ */
+struct RemoteGraph {
+  LOs locals2edges;
+  Remotes edges2remotes;
+};
+
+/* form the RemoteGraph from vertices to all adjacent elements,
+ * including elements on other ranks.
+ */
+RemoteGraph get_own_verts2own_elems(Mesh* mesh) {
   auto local_uses2own_elems = get_local_elem_uses2own_elems(mesh);
   auto local_uses2own_verts = get_local_elem_uses2own_verts(mesh);
-  serv_uses2own_elems = local_uses2own_verts.exch(local_uses2own_elems, 1);
+  auto serv_uses2own_elems = local_uses2own_verts.exch(local_uses2own_elems, 1);
   auto own_verts2local_uses = local_uses2own_verts.invert();
-  own_verts2serv_uses = own_verts2local_uses.roots2items();
+  auto own_verts2serv_uses = own_verts2local_uses.roots2items();
+  return {own_verts2serv_uses, serv_uses2own_elems};
 }
 
-Remotes push_elem_uses(Remotes serv_uses2own_elems, LOs own_verts2serv_uses,
-    Dist own_verts2verts) {
+/* given the global connectivity graph from vertices to all adjacent elements
+ * and a description of which ranks will obtain copies of which vertices,
+ * determine the list of all elements that each rank will need copies of
+ * in a ghosted setting, i.e. the list of all elements adjacent to any
+ * vertices that have been assigned to this rank.
+ */
+Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
+  auto own_verts2serv_uses = own_verts2own_elems.locals2edges;
+  auto serv_uses2own_elems = own_verts2own_elems.edges2remotes;
   auto nown_verts = own_verts2verts.nroots();
   auto own_verts2serv_verts = own_verts2verts.roots2items();
   auto own_verts2items =
@@ -68,12 +89,8 @@ Remotes push_elem_uses(Remotes serv_uses2own_elems, LOs own_verts2serv_uses,
 }
 
 void ghost_mesh(Mesh* mesh, bool verbose) {
-  Remotes own_vert_uses2own_elems;
-  LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(
-      mesh, own_vert_uses2own_elems, own_verts2own_vert_uses);
-  auto elem_uses = push_elem_uses(own_vert_uses2own_elems,
-      own_verts2own_vert_uses, mesh->ask_dist(VERT).invert());
+  auto own_verts2own_elems = get_own_verts2own_elems(mesh);
+  auto elem_uses = push_elem_uses(own_verts2own_elems, mesh->ask_dist(VERT).invert());
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2owners = own_elems2elems.invert();
@@ -83,12 +100,12 @@ void ghost_mesh(Mesh* mesh, bool verbose) {
 }
 
 void partition_by_verts(Mesh* mesh, bool verbose) {
-  Remotes own_vert_uses2own_elems;
-  LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(
-      mesh, own_vert_uses2own_elems, own_verts2own_vert_uses);
-  auto uses2old_owners =
-      Dist(mesh->comm(), own_vert_uses2own_elems, mesh->nelems());
+  /* vertex-based partitioning is defined as gathering the elements
+   * adjacent to owned vertices, hence the graph from owned vertices
+   * to elements already contains what we need and we can skip push_elem_uses()
+   */
+  auto elem_uses = get_own_verts2own_elems(mesh).edges2remotes;
+  auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
   auto own_elems2elems = find_unique_use_owners(uses2old_owners);
   auto elems2owners = own_elems2elems.invert();
   auto new_mesh = mesh->copy_meta();
