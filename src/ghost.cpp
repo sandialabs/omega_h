@@ -92,8 +92,7 @@ void ghost_mesh(Mesh* mesh, bool verbose) {
   auto own_verts2own_elems = get_own_verts2own_elems(mesh);
   auto elem_uses = push_elem_uses(own_verts2own_elems, mesh->ask_dist(VERT).invert());
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
-  auto own_elems2elems = find_unique_use_owners(uses2old_owners);
-  auto elems2owners = own_elems2elems.invert();
+  auto elems2owners = find_unique_use_owners(uses2old_owners);
   auto new_mesh = mesh->copy_meta();
   migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_GHOSTED, verbose);
   *mesh = new_mesh;
@@ -106,8 +105,7 @@ void partition_by_verts(Mesh* mesh, bool verbose) {
    */
   auto elem_uses = get_own_verts2own_elems(mesh).edges2remotes;
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
-  auto own_elems2elems = find_unique_use_owners(uses2old_owners);
-  auto elems2owners = own_elems2elems.invert();
+  auto elems2owners = find_unique_use_owners(uses2old_owners);
   auto new_mesh = mesh->copy_meta();
   migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_VERT_BASED, verbose);
   *mesh = new_mesh;
