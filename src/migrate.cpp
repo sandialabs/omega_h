@@ -140,6 +140,13 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents, Omega_h_Parting mode) {
   push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
   Read<I32> own_ranks;
+  /* if we are ghosting, each entity should remain owned by the
+   * same rank that owned it before ghosting, as this is the only
+   * mechanism we have to identify the ghost layers.
+   * if we are doing a vertex-based partitioning, at least the
+   * vertices ought to retain their original owners, for similar
+   * reasons.
+   */
   if ((mode == OMEGA_H_GHOSTED) ||
       ((mode == OMEGA_H_VERT_BASED) && (ent_dim == VERT))) {
     auto old_own_ranks = old_mesh->ask_owners(ent_dim).ranks;
