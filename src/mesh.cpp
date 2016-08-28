@@ -19,9 +19,10 @@
 
 namespace Omega_h {
 
-Mesh::Mesh() : dim_(-1), parting_(-1) {
+Mesh::Mesh() : dim_(-1) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = OMEGA_H_ELEM_BASED;
+  nghost_layers_ = 0;
   keeps_canonical_globals_ = true;
 }
 
@@ -426,6 +427,13 @@ Omega_h_Parting Mesh::parting() const {
   return Omega_h_Parting(parting_);
 }
 
+Int Mesh::nghost_layers() const { return nghost_layers_; }
+
+void Mesh::ghost(Int nlayers, bool verbose) {
+  ghost_mesh(this, nlayers, verbose);
+  nghost_layers_ = nlayers;
+}
+
 void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
   if ((parting_ == -1) || (comm_->size() == 1)) {
     parting_ = parting;
@@ -437,11 +445,13 @@ void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
   if (parting_ != OMEGA_H_ELEM_BASED) {
     partition_by_elems(this, verbose);
     parting_ = OMEGA_H_ELEM_BASED;
+    nghost_layers_ = 0;
   }
   if (parting == OMEGA_H_GHOSTED) {
-    ghost_mesh(this, 1, verbose);
+    this->ghost(1, verbose);
   } else if (parting == OMEGA_H_VERT_BASED) {
     partition_by_verts(this, verbose);
+    nghost_layers_ = 0;
   }
   parting_ = parting;
 }

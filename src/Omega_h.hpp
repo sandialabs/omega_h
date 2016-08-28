@@ -437,6 +437,7 @@ class Mesh {
   Int dim_;
   CommPtr comm_;
   Int parting_;
+  Int nghost_layers_;
   LO nents_[DIMS];
   TagVector tags_[DIMS];
   AdjPtr adjs_[DIMS][DIMS];
@@ -457,6 +458,8 @@ class Mesh {
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);
   Dist ask_dist(Int dim);
+  Int nghost_layers() const;
+  void ghost(Int nlayers, bool verbose);
   void set_parting(Omega_h_Parting parting, bool verbose = false);
   void migrate(Remotes new_elems2old_owners, bool verbose = false);
   void reorder();
