@@ -96,15 +96,17 @@ static Dist close_down(Mesh* mesh, Remotes old_use_owners, Dist elems2owners) {
 }
 
 void ghost_mesh(Mesh* mesh, Int nlayers, bool verbose) {
-  CHECK(nlayers >= 1);
+  CHECK(mesh->nghost_layers() >= 0);
+  CHECK(nlayers > mesh->nghost_layers());
+  auto nnew_layers = nlayers - mesh->nghost_layers();
   auto own_verts2own_elems = get_own_verts2own_elems(mesh);
   auto verts2owners = mesh->ask_dist(VERT);
   auto elems2owners = close_up(mesh, own_verts2own_elems, verts2owners);
   auto vert_use_owners = Remotes();
-  if (nlayers > 1) {
+  if (nnew_layers > 1) {
     vert_use_owners = form_down_use_owners(mesh, mesh->dim(), VERT);
   }
-  for (Int i = 1; i < nlayers; ++i) {
+  for (Int i = 1; i < nnew_layers; ++i) {
     verts2owners = close_down(mesh, vert_use_owners, elems2owners);
     elems2owners = close_up(mesh, own_verts2own_elems, verts2owners);
   }

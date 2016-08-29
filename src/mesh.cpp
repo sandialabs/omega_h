@@ -429,31 +429,36 @@ Omega_h_Parting Mesh::parting() const {
 
 Int Mesh::nghost_layers() const { return nghost_layers_; }
 
-void Mesh::ghost(Int nlayers, bool verbose) {
-  ghost_mesh(this, nlayers, verbose);
+void Mesh::set_parting(Omega_h_Parting parting, Int nlayers, bool verbose) {
+  if (parting_ == -1) {
+    parting_ = parting;
+    nghost_layers_ = nlayers;
+    return;
+  }
+  if (parting_ == parting && nghost_layers_ == nlayers) {
+    return;
+  }
+  if (parting == OMEGA_H_ELEM_BASED) {
+    CHECK(nlayers == 0);
+    if (comm_->size() > 1) partition_by_elems(this, verbose);
+  } else if (parting == OMEGA_H_GHOSTED) {
+    if (parting_ != OMEGA_H_GHOSTED || nlayers < nghost_layers_) {
+      set_parting(OMEGA_H_ELEM_BASED, 0, verbose);
+    }
+    if (comm_->size() > 1) ghost_mesh(this, nlayers, verbose);
+  } else if (parting == OMEGA_H_VERT_BASED) {
+    CHECK(nlayers == 1);
+    if (comm_->size() > 1) partition_by_verts(this, verbose);
+  }
+  parting_ = parting;
   nghost_layers_ = nlayers;
 }
 
 void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
-  if ((parting_ == -1) || (comm_->size() == 1)) {
-    parting_ = parting;
-    return;
-  }
-  if (parting_ == parting) {
-    return;
-  }
-  if (parting_ != OMEGA_H_ELEM_BASED) {
-    partition_by_elems(this, verbose);
-    parting_ = OMEGA_H_ELEM_BASED;
-    nghost_layers_ = 0;
-  }
-  if (parting == OMEGA_H_GHOSTED) {
-    this->ghost(1, verbose);
-  } else if (parting == OMEGA_H_VERT_BASED) {
-    partition_by_verts(this, verbose);
-    nghost_layers_ = 0;
-  }
-  parting_ = parting;
+  if (parting == OMEGA_H_ELEM_BASED)
+    set_parting(parting, 0, verbose);
+  else
+    set_parting(parting, 1, verbose);
 }
 
 void Mesh::migrate(Remotes new_elems2old_owners, bool verbose) {
@@ -592,6 +597,7 @@ Mesh Mesh::copy_meta() const {
   m.dim_ = this->dim_;
   m.comm_ = this->comm_;
   m.parting_ = this->parting_;
+  m.nghost_layers_ = this->nghost_layers_;
   m.rib_hints_ = this->rib_hints_;
   m.keeps_canonical_globals_ = this->keeps_canonical_globals_;
   return m;
