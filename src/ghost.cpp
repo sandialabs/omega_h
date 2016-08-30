@@ -25,7 +25,7 @@ Remotes get_local_elem_uses2own_elems(Mesh* mesh) {
 /* form the RemoteGraph from vertices to all adjacent elements,
  * including elements on other ranks.
  */
-RemoteGraph get_own_verts2own_elems(Mesh* mesh) {
+static RemoteGraph get_own_verts2own_elems(Mesh* mesh) {
   auto local_uses2own_elems = get_local_elem_uses2own_elems(mesh);
   auto local_uses2own_verts = get_local_elem_uses2own_verts(mesh);
   auto serv_uses2own_elems = local_uses2own_verts.exch(local_uses2own_elems, 1);
