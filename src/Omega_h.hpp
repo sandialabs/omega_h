@@ -558,6 +558,8 @@ Read<I8> mark_class_closure(
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids);
 
+template <typename T>
+Read<I8> each_eq_to(Read<T> a, T b);
 LOs collect_marked(Read<I8> marks);
 
 bool warp_to_limit(Mesh* mesh, Real min_qual);
@@ -617,6 +619,7 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
+  extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
   extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \
