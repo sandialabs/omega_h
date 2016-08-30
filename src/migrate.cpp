@@ -50,7 +50,7 @@ Dist find_unique_use_owners(Dist uses2old_owners) {
   old_owners2uniq_uses.set_parent_comm(uses2old_owners.parent_comm());
   old_owners2uniq_uses.set_dest_ranks(uniq_serv_uses2ranks);
   old_owners2uniq_uses.set_roots2items(old_owners2uniq_serv_uses);
-  return old_owners2uniq_uses;
+  return old_owners2uniq_uses.invert();
 }
 
 LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
@@ -92,12 +92,12 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
     Dist& old_low_owners2new_lows) {
   auto nlows_per_high = simplex_degrees[ent_dim][low_dim];
   auto old_use_owners = form_down_use_owners(old_mesh, ent_dim, low_dim);
-  Remotes new_use_owners =
+  auto new_use_owners =
       old_owners2new_ents.exch(old_use_owners, nlows_per_high);
   Dist low_uses2old_owners(
       old_mesh->comm(), new_use_owners, old_mesh->nents(low_dim));
-  old_low_owners2new_lows = find_unique_use_owners(low_uses2old_owners);
-  auto new_lows2old_owners = old_low_owners2new_lows.invert();
+  auto new_lows2old_owners = find_unique_use_owners(low_uses2old_owners);
+  old_low_owners2new_lows = new_lows2old_owners.invert();
   auto old_low_owners2new_uses = low_uses2old_owners.invert();
   auto new_conn = form_new_conn(new_lows2old_owners, old_low_owners2new_uses);
   new_ents2new_lows.ab2b = new_conn;
@@ -140,6 +140,13 @@ void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents, Omega_h_Parting mode) {
   push_tags(old_mesh, new_mesh, ent_dim, old_owners2new_ents);
   Read<I32> own_ranks;
+  /* if we are ghosting, each entity should remain owned by the
+   * same rank that owned it before ghosting, as this is the only
+   * mechanism we have to identify the ghost layers.
+   * if we are doing a vertex-based partitioning, at least the
+   * vertices ought to retain their original owners, for similar
+   * reasons.
+   */
   if ((mode == OMEGA_H_GHOSTED) ||
       ((mode == OMEGA_H_VERT_BASED) && (ent_dim == VERT))) {
     auto old_own_ranks = old_mesh->ask_owners(ent_dim).ranks;

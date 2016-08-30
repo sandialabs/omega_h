@@ -13,14 +13,11 @@ namespace Omega_h {
      v_k = v_k / \|v_k\|_2          <- note this can divide by zero if x={0}
      A_{k:m,k:n} = A_{k:m,k:n} - 2 v_k (v_k^* A_{k:m,k:n}) */
 
-/* the "o" (offset) parameters to householder_vector and reflect_columns
-   are there to support hessenberg reduction / tri-diagonalization */
-
 template <Int max_m, Int max_n>
 INLINE Vector<max_m> householder_vector(
-    Int m, Matrix<max_m, max_n> a, Real anorm, Int k, Int o) {
+    Int m, Matrix<max_m, max_n> a, Real anorm, Int k) {
   Real norm_x = 0;
-  for (Int i = k + o; i < m; ++i) norm_x += square(a[k][i]);
+  for (Int i = k; i < m; ++i) norm_x += square(a[k][i]);
   norm_x = sqrt(norm_x);
   /* technically, every matrix has a QR decomposition.
    * if norm_x is close to zero here, the matrix is rank-deficient
@@ -32,22 +29,22 @@ INLINE Vector<max_m> householder_vector(
    */
   CHECK(norm_x > EPSILON * anorm);
   Vector<max_m> v_k;
-  for (Int i = k + o; i < m; ++i) v_k[i] = a[k][i];
-  v_k[k + o] += sign(a[k][k + o]) * norm_x;
+  for (Int i = k; i < m; ++i) v_k[i] = a[k][i];
+  v_k[k] += sign(a[k][k]) * norm_x;
   Real norm_v_k = 0;
-  for (Int i = k + o; i < m; ++i) norm_v_k += square(v_k[i]);
+  for (Int i = k; i < m; ++i) norm_v_k += square(v_k[i]);
   norm_v_k = sqrt(norm_v_k);
-  for (Int i = k + o; i < m; ++i) v_k[i] /= norm_v_k;
+  for (Int i = k; i < m; ++i) v_k[i] /= norm_v_k;
   return v_k;
 }
 
 template <Int max_m, Int max_n>
 INLINE void reflect_columns(
-    Int m, Int n, Matrix<max_m, max_n>& a, Vector<max_m> v_k, Int k, Int o) {
+    Int m, Int n, Matrix<max_m, max_n>& a, Vector<max_m> v_k, Int k) {
   for (Int j = k; j < n; ++j) {
     Real dot = 0;
-    for (Int i = k + o; i < m; ++i) dot += a[j][i] * v_k[i];
-    for (Int i = k + o; i < m; ++i) a[j][i] -= 2 * dot * v_k[i];
+    for (Int i = k; i < m; ++i) dot += a[j][i] * v_k[i];
+    for (Int i = k; i < m; ++i) a[j][i] -= 2 * dot * v_k[i];
   }
 }
 
@@ -63,8 +60,8 @@ INLINE QRFactorization<max_m, max_n> factorize_qr_householder(
   Few<Vector<max_m>, max_n> v;
   Real anorm = frobenius_norm(m, n, a);
   for (Int k = 0; k < n; ++k) {
-    v[k] = householder_vector(m, a, anorm, k, 0);
-    reflect_columns(m, n, a, v[k], k, 0);
+    v[k] = householder_vector(m, a, anorm, k);
+    reflect_columns(m, n, a, v[k], k);
   }
   auto r = reduced_r_from_full(n, a);
   return {v, r};

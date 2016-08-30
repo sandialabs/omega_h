@@ -238,6 +238,13 @@ OMEGA_H_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
 }
 
+template <Int n, class Arr>
+OMEGA_H_DEVICE Vector<n> get_vector(Arr const& a, Int i) {
+  Vector<n> v;
+  for (Int j = 0; j < n; ++j) v[j] = a[i * n + j];
+  return v;
+}
+
 OMEGA_H_INLINE constexpr Int symm_dofs(Int dim) {
   return ((dim + 1) * dim) / 2;
 }
@@ -248,6 +255,15 @@ OMEGA_H_INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
   v[1] = symm[1][1];
   v[2] = symm[1][0];
   return v;
+}
+
+OMEGA_H_INLINE Matrix<2, 2> vector2symm(Vector<3> v) {
+  Matrix<2, 2> symm;
+  symm[0][0] = v[0];
+  symm[1][1] = v[1];
+  symm[1][0] = v[2];
+  symm[0][1] = symm[1][0];
+  return symm;
 }
 
 OMEGA_H_INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
@@ -261,9 +277,28 @@ OMEGA_H_INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
   return v;
 }
 
+OMEGA_H_INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
+  Matrix<3, 3> symm;
+  symm[0][0] = v[0];
+  symm[1][1] = v[1];
+  symm[2][2] = v[2];
+  symm[1][0] = v[3];
+  symm[2][1] = v[4];
+  symm[2][0] = v[5];
+  symm[0][1] = symm[1][0];
+  symm[1][2] = symm[2][1];
+  symm[0][2] = symm[2][0];
+  return symm;
+}
+
 template <Int n>
 OMEGA_H_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
   set_vector(a, i, symm2vector(symm));
+}
+
+template <Int n, typename Arr>
+OMEGA_H_DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
+  return vector2symm(get_vector<symm_dofs(n)>(a, i));
 }
 
 template <Int dim>

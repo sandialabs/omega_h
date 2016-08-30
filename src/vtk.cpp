@@ -297,7 +297,8 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
   else
     stream << "BigEndian";
   stream << "\" header_type=\"";
-  static_assert(sizeof(std::size_t) == 8, "UInt32 Traits was removed to silence warnings");
+  static_assert(sizeof(std::size_t) == 8,
+      "UInt32 Traits was removed to silence warnings");
   stream << Traits<std::size_t>::name();
   stream << "\"";
 #ifdef OMEGA_H_USE_ZLIB

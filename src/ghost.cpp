@@ -22,17 +22,27 @@ Remotes get_local_elem_uses2own_elems(Mesh* mesh) {
   return unmap(uses2elems, elems2own);
 }
 
-void get_own_verts2own_elem_uses(
-    Mesh* mesh, Remotes& serv_uses2own_elems, LOs& own_verts2serv_uses) {
+/* form the RemoteGraph from vertices to all adjacent elements,
+ * including elements on other ranks.
+ */
+RemoteGraph get_own_verts2own_elems(Mesh* mesh) {
   auto local_uses2own_elems = get_local_elem_uses2own_elems(mesh);
   auto local_uses2own_verts = get_local_elem_uses2own_verts(mesh);
-  serv_uses2own_elems = local_uses2own_verts.exch(local_uses2own_elems, 1);
+  auto serv_uses2own_elems = local_uses2own_verts.exch(local_uses2own_elems, 1);
   auto own_verts2local_uses = local_uses2own_verts.invert();
-  own_verts2serv_uses = own_verts2local_uses.roots2items();
+  auto own_verts2serv_uses = own_verts2local_uses.roots2items();
+  return {own_verts2serv_uses, serv_uses2own_elems};
 }
 
-Remotes push_elem_uses(Remotes serv_uses2own_elems, LOs own_verts2serv_uses,
-    Dist own_verts2verts) {
+/* given the global connectivity graph from vertices to all adjacent elements
+ * and a description of which ranks will obtain copies of which vertices,
+ * determine the list of all element uses by each rank, which is essentially
+ * the list of elements that will have copies on that rank but with
+ * duplicates that need to be filtered out by find_unique_use_owners().
+ */
+Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
+  auto own_verts2serv_uses = own_verts2own_elems.locals2edges;
+  auto serv_uses2own_elems = own_verts2own_elems.edges2remotes;
   auto nown_verts = own_verts2verts.nroots();
   auto own_verts2serv_verts = own_verts2verts.roots2items();
   auto own_verts2items =
@@ -67,30 +77,52 @@ Remotes push_elem_uses(Remotes serv_uses2own_elems, LOs own_verts2serv_uses,
   return items2verts.exch(items2own_elems, 1);
 }
 
-void ghost_mesh(Mesh* mesh, bool verbose) {
-  Remotes own_vert_uses2own_elems;
-  LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(
-      mesh, own_vert_uses2own_elems, own_verts2own_vert_uses);
-  auto elem_uses = push_elem_uses(own_vert_uses2own_elems,
-      own_verts2own_vert_uses, mesh->ask_dist(VERT).invert());
+static Dist close_up(Mesh* mesh, RemoteGraph own_verts2own_elems,
+    Dist verts2owners) {
+  auto own_verts2verts = verts2owners.invert();
+  auto elem_uses = push_elem_uses(own_verts2own_elems, own_verts2verts);
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
-  auto own_elems2elems = find_unique_use_owners(uses2old_owners);
-  auto elems2owners = own_elems2elems.invert();
+  auto elems2owners = find_unique_use_owners(uses2old_owners);
+  return elems2owners;
+}
+
+static Dist close_down(Mesh* mesh, Remotes old_use_owners, Dist elems2owners) {
+  auto nverts_per_elem = mesh->dim() + 1;
+  auto owners2elems = elems2owners.invert();
+  auto new_use_owners = owners2elems.exch(old_use_owners, nverts_per_elem);
+  Dist uses2old_owners(mesh->comm(), new_use_owners, mesh->nents(VERT));
+  auto verts2owners = find_unique_use_owners(uses2old_owners);
+  return verts2owners;
+}
+
+void ghost_mesh(Mesh* mesh, Int nlayers, bool verbose) {
+  CHECK(mesh->nghost_layers() >= 0);
+  CHECK(nlayers > mesh->nghost_layers());
+  auto nnew_layers = nlayers - mesh->nghost_layers();
+  auto own_verts2own_elems = get_own_verts2own_elems(mesh);
+  auto verts2owners = mesh->ask_dist(VERT);
+  auto elems2owners = close_up(mesh, own_verts2own_elems, verts2owners);
+  auto vert_use_owners = Remotes();
+  if (nnew_layers > 1) {
+    vert_use_owners = form_down_use_owners(mesh, mesh->dim(), VERT);
+  }
+  for (Int i = 1; i < nnew_layers; ++i) {
+    verts2owners = close_down(mesh, vert_use_owners, elems2owners);
+    elems2owners = close_up(mesh, own_verts2own_elems, verts2owners);
+  }
   auto new_mesh = mesh->copy_meta();
   migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_GHOSTED, verbose);
   *mesh = new_mesh;
 }
 
 void partition_by_verts(Mesh* mesh, bool verbose) {
-  Remotes own_vert_uses2own_elems;
-  LOs own_verts2own_vert_uses;
-  get_own_verts2own_elem_uses(
-      mesh, own_vert_uses2own_elems, own_verts2own_vert_uses);
-  auto uses2old_owners =
-      Dist(mesh->comm(), own_vert_uses2own_elems, mesh->nelems());
-  auto own_elems2elems = find_unique_use_owners(uses2old_owners);
-  auto elems2owners = own_elems2elems.invert();
+  /* vertex-based partitioning is defined as gathering the elements
+   * adjacent to owned vertices, hence the graph from owned vertices
+   * to elements already contains what we need and we can skip push_elem_uses()
+   */
+  auto elem_uses = get_own_verts2own_elems(mesh).edges2remotes;
+  auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
+  auto elems2owners = find_unique_use_owners(uses2old_owners);
   auto new_mesh = mesh->copy_meta();
   migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_VERT_BASED, verbose);
   *mesh = new_mesh;

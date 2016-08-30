@@ -114,7 +114,7 @@ INLINE void swap_bytes(T* ptr) {
 }
 
 unsigned char const magic[2] = {0xa1, 0x1a};
-I32 latest_version = 2;
+I32 latest_version = 3;
 
 }  // end anonymous namespace
 
@@ -231,6 +231,8 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
   write_value(stream, comm_rank);
   I8 parting = mesh->parting();
   write_value(stream, parting);
+  I32 nghost_layers = mesh->nghost_layers();
+  write_value(stream, nghost_layers);
   auto hints = mesh->rib_hints();
   I8 have_hints = (hints != nullptr);
   write_value(stream, have_hints);
@@ -245,7 +247,7 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
   write_value(stream, keeps_canon);
 }
 
-static void read_meta(std::istream& stream, Mesh* mesh) {
+static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
   I8 dim;
   read_value(stream, dim);
   mesh->set_dim(Int(dim));
@@ -257,7 +259,13 @@ static void read_meta(std::istream& stream, Mesh* mesh) {
   CHECK(mesh->comm()->rank() == comm_rank);
   I8 parting;
   read_value(stream, parting);
-  mesh->set_parting(Omega_h_Parting(parting));
+  if (version >= 3) {
+    I32 nghost_layers;
+    read_value(stream, nghost_layers);
+    mesh->set_parting(Omega_h_Parting(parting), nghost_layers, false);
+  } else {
+    mesh->set_parting(Omega_h_Parting(parting));
+  }
   I8 have_hints;
   read_value(stream, have_hints);
   if (have_hints) {
@@ -387,7 +395,7 @@ void read(std::istream& stream, Mesh* mesh) {
 #ifndef OMEGA_H_USE_ZLIB
   CHECK(!is_compressed);
 #endif
-  read_meta(stream, mesh);
+  read_meta(stream, mesh, version);
   LO nverts;
   read_value(stream, nverts);
   mesh->set_verts(nverts);

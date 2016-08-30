@@ -72,7 +72,8 @@ INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
   Vector<3> n = get_1d_column_space(m);
   Matrix<3, 3> b = form_ortho_basis(n);
   Few<Vector<3>, 2> out;
-  out[0] = b[1]; out[1] = b[2];
+  out[0] = b[1];
+  out[1] = b[2];
   return out;
 }
 
@@ -100,7 +101,8 @@ INLINE EigenDecomposition<3> decompose_eigen_dim(Matrix<3, 3> m) {
     q[0] = single_eigenvector(m, roots[0]);
     l[0] = roots[0];
     auto dev = double_eigenvector(m, roots[1]);
-    q[1] = dev[0]; q[2] = dev[1];
+    q[1] = dev[0];
+    q[2] = dev[1];
     l[1] = l[2] = roots[1];
   } else {
     CHECK(nroots == 1 && mults[0] == 3);

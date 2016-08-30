@@ -11,8 +11,7 @@ Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim);
 
 /* given a Dist mapping new entity uses to their old owners,
    filter out duplicate uses of the same old owner by the
-   same rank, and create a Dist mapping old owners to
-   rank-unique new entity copies. */
+   same rank, and create a Dist mapping unique uses to their old owners. */
 Dist find_unique_use_owners(Dist uses2old_owners);
 
 /* given a Dist mapping from new entity copies to old owners,
