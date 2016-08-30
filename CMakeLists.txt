@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 3.1.0 LANGUAGES CXX)
+project(Omega_h VERSION 3.1.1 LANGUAGES CXX)
 
 include(cmake/bob.cmake)
 
