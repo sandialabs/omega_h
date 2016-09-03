@@ -17,6 +17,8 @@ void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
+Graph get_buffered_conflict_graph(Graph unbuffered_conflicts,
+    Read<I8> unbuffered_indset);
 }
 
 #endif

@@ -75,6 +75,7 @@ set(Omega_h_SOURCES
   xml.cpp
   derive.cpp
   project.cpp
+  buffered_conflict.cpp
   )
 
 if(Omega_h_ONE_FILE)
