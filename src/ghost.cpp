@@ -77,8 +77,8 @@ Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
   return items2verts.exch(items2own_elems, 1);
 }
 
-static Dist close_up(Mesh* mesh, RemoteGraph own_verts2own_elems,
-    Dist verts2owners) {
+static Dist close_up(
+    Mesh* mesh, RemoteGraph own_verts2own_elems, Dist verts2owners) {
   auto own_verts2verts = verts2owners.invert();
   auto elem_uses = push_elem_uses(own_verts2own_elems, own_verts2verts);
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());

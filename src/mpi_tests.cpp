@@ -1,13 +1,13 @@
 #include "Omega_h.hpp"
-#include "internal.hpp"
 #include "Omega_h_math.hpp"
 #include "array.hpp"
-#include "vtk.hpp"
-#include "loop.hpp"
-#include "owners.hpp"
 #include "bipart.hpp"
 #include "construct.hpp"
 #include "inertia.hpp"
+#include "internal.hpp"
+#include "loop.hpp"
+#include "owners.hpp"
+#include "vtk.hpp"
 
 #include <sstream>
 
