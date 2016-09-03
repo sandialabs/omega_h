@@ -1,4 +1,5 @@
-#include "all.hpp"
+#include "Omega_h.hpp"
+#include "coarsen.hpp"
 
 using namespace Omega_h;
 

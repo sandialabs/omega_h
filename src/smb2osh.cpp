@@ -1,7 +1,10 @@
 #include <iostream>
 
-#include "all.hpp"
 #include "smb2osh.hpp"
+
+#include "Omega_h.hpp"
+#include "adjacency.hpp"
+#include "owners.hpp"
 
 static void copy_coords(apf::Mesh* mesh_apf, Omega_h::Mesh* mesh_osh) {
   auto dim = mesh_apf->getDimension();

@@ -1,4 +1,31 @@
-#include "all.hpp"
+#include "Omega_h_math.hpp"
+#include "internal.hpp"
+#include "int128.hpp"
+#include "size.hpp"
+#include "derive.hpp"
+#include "eigen.hpp"
+#include "loop.hpp"
+#include "array.hpp"
+#include "xml.hpp"
+#include "vtk.hpp"
+#include "swap3d_loop.hpp"
+#include "swap3d_choice.hpp"
+#include "quality.hpp"
+#include "scan.hpp"
+#include "mark.hpp"
+#include "sort.hpp"
+#include "map.hpp"
+#include "adjacency.hpp"
+#include "align.hpp"
+#include "hilbert.hpp"
+#include "bbox.hpp"
+#include "file.hpp"
+#include "linpart.hpp"
+#include "inertia.hpp"
+#include "refine_qualities.hpp"
+#include "swap2d.hpp"
+
+#include <sstream>
 
 using namespace Omega_h;
 
