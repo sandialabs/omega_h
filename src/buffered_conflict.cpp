@@ -6,15 +6,17 @@ namespace Omega_h {
 
 namespace {
 
-DEVICE Int add_unique(LO* stack, Int n, LO v) {
+DEVICE Int add_unique(LO* stack, Int n, LO v, Int stack_max) {
   for (Int i = 0; i < n; ++i)
     if (stack[i] == v) return n;
+  CHECK(n < stack_max);
   stack[n++] = v;
   return n;
 }
 
 DEVICE Int distance_3_from_node(Graph const& g,
     Read<I8> const& indset, LO v, LO* stack, Int stack_max) {
+  if (!indset[v]) return 0;
   Int n = 0;
   for (auto ab1 = g.a2ab[v]; ab1 < g.a2ab[v + 1]; ++ab1) {
     auto b1 = g.ab2b[ab1];
@@ -23,8 +25,7 @@ DEVICE Int distance_3_from_node(Graph const& g,
       for (auto ab3 = g.a2ab[b2]; ab3 < g.a2ab[b2 + 1]; ++ab3) {
         auto b3 = g.ab2b[ab3];
         if (v != b3 && indset[b3]) {
-          CHECK(n < stack_max);
-          n = add_unique(stack, n, b3);
+          n = add_unique(stack, n, b3, stack_max);
         }
       }
     }

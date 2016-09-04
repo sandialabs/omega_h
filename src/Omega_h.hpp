@@ -330,6 +330,8 @@ struct Graph {
   Graph(LOs a2ab_, LOs ab2b_) : a2ab(a2ab_), ab2b(ab2b_) {}
   LOs a2ab;
   LOs ab2b;
+  LO nnodes() const;
+  LO nedges() const;
 };
 
 enum { DIMS = OMEGA_H_DIMS };

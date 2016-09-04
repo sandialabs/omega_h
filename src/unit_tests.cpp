@@ -24,6 +24,7 @@
 #include "swap3d_loop.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
+#include "transfer_conserve.hpp"
 
 #include <sstream>
 
@@ -808,6 +809,24 @@ static void test_sf_scale(Library const& lib) {
   test_sf_scale_dim<3>(lib);
 }
 
+static void test_buffered_conflict(Library const& lib) {
+  Mesh mesh;
+  build_box(&mesh, lib, 1, 1, 0, 3, 3, 0);
+  classify_by_angles(&mesh, PI / 4);
+  auto g = mesh.ask_star(VERT);
+  auto class_dim = mesh.get_array<I8>(VERT, "class_dim");
+  auto indset = each_eq_to(class_dim, I8(0));
+  auto bg = get_buffered_conflict_graph(g, indset);
+  auto known_degrees_w = Write<LO>(bg.nnodes(), 0);
+  known_degrees_w.set(0, 3);
+  known_degrees_w.set(3, 2);
+  known_degrees_w.set(12, 2);
+  known_degrees_w.set(15, 3);
+  auto offsets = offset_scan(LOs(known_degrees_w));
+  CHECK(bg.a2ab == offsets);
+  CHECK(bg.ab2b == LOs({3,12,15,0,15,0,15,0,3,12}));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -853,4 +872,5 @@ int main(int argc, char** argv) {
   test_element_identity_metric();
   test_recover_hessians(lib);
   test_sf_scale(lib);
+  test_buffered_conflict(lib);
 }
