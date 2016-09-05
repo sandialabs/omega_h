@@ -34,7 +34,8 @@ static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
-    if (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) {
+    if (tagbase->xfer() == OMEGA_H_LINEAR_INTERP ||
+        tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY) {
       auto ncomps = tagbase->ncomps();
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
       auto prod_data =
@@ -274,7 +275,8 @@ static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if ((tagbase->xfer() == OMEGA_H_INHERIT) ||
         (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) ||
-        (tagbase->xfer() == OMEGA_H_METRIC)) {
+        (tagbase->xfer() == OMEGA_H_METRIC) ||
+        (tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_no_products_tmpl<I8>(old_mesh, new_mesh, prod_dim,
