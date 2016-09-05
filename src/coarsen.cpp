@@ -10,6 +10,7 @@
 #include "mark.hpp"
 #include "modify.hpp"
 #include "transfer.hpp"
+#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
@@ -150,9 +151,14 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
 
 bool coarsen(Mesh* mesh, Real min_qual, bool improve, bool verbose) {
   if (!coarsen_element_based1(mesh)) return false;
-  mesh->set_parting(OMEGA_H_GHOSTED);
+  Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
+  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers);
   if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
-  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  if (needs_buffer_layers(mesh)) {
+    mesh->set_parting(OMEGA_H_GHOSTED, 1);
+  } else {
+    mesh->set_parting(OMEGA_H_ELEM_BASED);
+  }
   coarsen_element_based2(mesh, verbose);
   return true;
 }
