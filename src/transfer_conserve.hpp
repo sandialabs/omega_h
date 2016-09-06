@@ -18,7 +18,7 @@ void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
 bool needs_buffer_layers(Mesh* mesh);
-Graph get_buffered_conflict_graph(Mesh* mesh, Int key_dim,
+Graph get_buffered_conflicts(Mesh* mesh, Int key_dim,
     Read<I8> unbuffered_indset);
 Graph get_buffered_elems(Mesh* mesh, Int key_dim,
     Read<I8> buffered_indset);

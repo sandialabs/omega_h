@@ -816,23 +816,15 @@ static void test_buffered_conflict(Library const& lib) {
   classify_by_angles(&mesh, PI / 4);
   auto class_dim = mesh.get_array<I8>(VERT, "class_dim");
   auto indset = each_eq_to(class_dim, I8(0));
-  auto bg = get_buffered_conflict_graph(&mesh, VERT, indset);
+  auto bg = get_buffered_conflicts(&mesh, VERT, indset);
   auto known_degrees_w = Write<LO>(bg.nnodes(), 0);
   known_degrees_w.set(0, 3);
   known_degrees_w.set(3, 2);
   known_degrees_w.set(12, 2);
   known_degrees_w.set(15, 3);
   auto offsets = offset_scan(LOs(known_degrees_w));
-  for (LO a = 0; a < bg.a2ab.size() - 1; ++a) {
-    std::cerr << a << ":";
-    for (auto ab = bg.a2ab[a]; ab < bg.a2ab[a + 1]; ++ab) {
-      auto b = bg.ab2b[ab];
-      std::cerr << ' ' << b;
-    }
-    std::cerr << '\n';
-  }
   CHECK(bg.a2ab == offsets);
-  CHECK(bg.ab2b == LOs({3,12,15,0,15,0,15,0,3,12}));
+  CHECK(bg.ab2b == LOs({3,15,12,0,15,15,0,0,3,12}));
 }
 
 int main(int argc, char** argv) {
