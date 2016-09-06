@@ -1,6 +1,7 @@
 #include "internal.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 #include "adjacency.hpp"
 #include "array.hpp"
@@ -430,6 +431,15 @@ Omega_h_Parting Mesh::parting() const {
 Int Mesh::nghost_layers() const { return nghost_layers_; }
 
 void Mesh::set_parting(Omega_h_Parting parting, Int nlayers, bool verbose) {
+  if (verbose && comm_->rank() == 0) {
+    std::cout << "going to ";
+    switch (parting) {
+      case OMEGA_H_ELEM_BASED: std::cout << "element based"; break;
+      case OMEGA_H_VERT_BASED: std::cout << "vertex based"; break;
+      case OMEGA_H_GHOSTED: std::cout << "ghosted (" << nlayers << " layers)"; break;
+    };
+    std::cout << " partitioning\n";
+  }
   if (parting_ == -1) {
     parting_ = parting;
     nghost_layers_ = nlayers;
