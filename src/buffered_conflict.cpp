@@ -2,6 +2,12 @@
 #include "loop.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
+#include "indset.hpp"
+
+// for debug
+#include "array.hpp"
+#include "map.hpp"
+#include <iostream>
 
 namespace Omega_h {
 
@@ -100,6 +106,7 @@ struct ElemsDistance2 {
         }
       }
     }
+    std::cerr << "n = " << n << '\n';
     return n;
   }
 };
@@ -135,9 +142,9 @@ LOs fill(Mesh* mesh, Int key_dim, Read<I8> indset, LOs offsets) {
 
 template <typename Op>
 Graph get_graph(Mesh* mesh, Int key_dim, Read<I8> indset) {
-  auto degrees = count<KeysDistance3>(mesh, key_dim, indset);
+  auto degrees = count<Op>(mesh, key_dim, indset);
   auto a2ab = offset_scan(degrees);
-  auto ab2b = fill<KeysDistance3>(mesh, key_dim, indset, a2ab);
+  auto ab2b = fill<Op>(mesh, key_dim, indset, a2ab);
   return Graph{a2ab, ab2b};
 }
 
@@ -151,6 +158,18 @@ Graph get_buffered_conflict_graph(Mesh* mesh, Int key_dim,
 Graph get_buffered_elems(Mesh* mesh, Int key_dim,
     Read<I8> buffered_indset) {
   return get_graph<ElemsDistance2>(mesh, key_dim, buffered_indset);
+}
+
+Read<I8> find_buffered_indset(
+    Mesh* mesh, Int key_dim,
+    Reals qualities,
+    Read<I8> unbuffered_indset) {
+  auto g = get_buffered_elems(mesh, key_dim, unbuffered_indset);
+  auto degrees = get_degrees(g.a2ab);
+  auto max_deg = mesh->comm()->allreduce(max(degrees), OMEGA_H_MAX);
+  std::cerr << "max cavity elements " << max_deg << '\n';
+  (void) qualities;
+  NORETURN(Read<I8>());
 }
 
 } // end namespace Omega_h

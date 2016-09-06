@@ -5,7 +5,6 @@
 #include "size.hpp"
 #include "tag.hpp"
 #include "transfer.hpp"
-#include "indset.hpp"
 
 namespace Omega_h {
 
@@ -222,16 +221,6 @@ bool needs_buffer_layers(Mesh* mesh) {
     if (mesh->get_tag(VERT, i)->xfer() == OMEGA_H_MOMENTUM_VELOCITY)
       return true;
   return false;
-}
-
-Read<I8> find_buffered_indset(
-    Mesh* mesh, Int key_dim,
-    Reals qualities,
-    Read<I8> unbuffered_indset) {
-  auto buffered_conflicts = get_buffered_conflict_graph(mesh, key_dim,
-      unbuffered_indset);
-  return find_indset(mesh, key_dim, buffered_conflicts,
-      qualities, unbuffered_indset);
 }
 
 }  // end namespace Omega_h
