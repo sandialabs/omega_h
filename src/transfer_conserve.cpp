@@ -228,8 +228,7 @@ Read<I8> find_buffered_indset(
     Mesh* mesh, Int key_dim,
     Reals qualities,
     Read<I8> unbuffered_indset) {
-  auto unbuffered_conflicts = mesh->ask_star(key_dim);
-  auto buffered_conflicts = get_buffered_conflict_graph(unbuffered_conflicts,
+  auto buffered_conflicts = get_buffered_conflict_graph(mesh, key_dim,
       unbuffered_indset);
   return find_indset(mesh, key_dim, buffered_conflicts,
       qualities, unbuffered_indset);

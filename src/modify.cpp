@@ -358,18 +358,18 @@ void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
   auto kd_elems2elems = kds2elems.ab2b;
   auto elem_owners = mesh->ask_owners(elem_dim);
   auto elems2owners = mesh->ask_dist(elem_dim);
-  auto new_own_ranks = deep_copy(elem_owners.ranks);
+  auto new_elem_ranks = deep_copy(elem_owners.ranks);
   auto f = LAMBDA(LO key) {
     auto kd = keys2kds[key];
     auto kd_rank = kd_owners.ranks[kd];
     for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
          ++kd_elem) {
       auto elem = kd_elems2elems[kd_elem];
-      new_own_ranks[elem] = kd_rank;
+      new_elem_ranks[elem] = kd_rank;
     }
   };
   parallel_for(nkeys, f);
-  elem_owners = update_ownership(elems2owners, new_own_ranks);
+  elem_owners = update_ownership(elems2owners, new_elem_ranks);
   mesh->set_owners(elem_dim, elem_owners);
 }
 
