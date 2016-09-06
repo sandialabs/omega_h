@@ -11,6 +11,7 @@
 #include "scan.hpp"
 #include "simplices.hpp"
 #include "unmap_mesh.hpp"
+#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
