@@ -453,7 +453,7 @@ void Mesh::set_parting(Omega_h_Parting parting, Int nlayers, bool verbose) {
     if (comm_->size() > 1) partition_by_elems(this, verbose);
   } else if (parting == OMEGA_H_GHOSTED) {
     if (parting_ != OMEGA_H_GHOSTED || nlayers < nghost_layers_) {
-      set_parting(OMEGA_H_ELEM_BASED, 0, verbose);
+      set_parting(OMEGA_H_ELEM_BASED, 0, false);
     }
     if (comm_->size() > 1) ghost_mesh(this, nlayers, verbose);
   } else if (parting == OMEGA_H_VERT_BASED) {
