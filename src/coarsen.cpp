@@ -87,6 +87,10 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   choose_vertex_collapses(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
       verts_are_cands, vert_quals);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
+  if (needs_buffer_layers(mesh)) {
+    verts_are_keys = find_buffered_indset(mesh, VERT,
+        vert_quals, verts_are_keys);
+  }
   mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
       verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
