@@ -158,11 +158,7 @@ bool coarsen(Mesh* mesh, Real min_qual, bool improve, bool verbose) {
   Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
   mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, true);
   if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
-  if (needs_buffer_layers(mesh)) {
-    mesh->set_parting(OMEGA_H_GHOSTED, 1, true);
-  } else {
-    mesh->set_parting(OMEGA_H_ELEM_BASED, true);
-  }
+  mesh->set_parting(OMEGA_H_ELEM_BASED, true);
   coarsen_element_based2(mesh, verbose);
   return true;
 }
