@@ -32,7 +32,7 @@ static bool refine_ghosted(Mesh* mesh, Real min_qual) {
         OMEGA_H_DONT_OUTPUT, get_edge2rep_order(mesh, edges_are_keys));
   }
   auto keys2edges = collect_marked(edges_are_keys);
-  set_owners_by_indset(mesh, EDGE, keys2edges);
+  set_owners_by_indset(mesh, EDGE, keys2edges, mesh->ask_up(EDGE, mesh->dim()));
   return true;
 }
 

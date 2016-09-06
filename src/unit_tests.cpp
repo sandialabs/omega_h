@@ -816,7 +816,8 @@ static void test_buffered_conflict(Library const& lib) {
   classify_by_angles(&mesh, PI / 4);
   auto class_dim = mesh.get_array<I8>(VERT, "class_dim");
   auto indset = each_eq_to(class_dim, I8(0));
-  auto bg = get_buffered_conflicts(&mesh, VERT, indset);
+  auto kds2buf_elems = get_buffered_elems(&mesh, VERT, indset);
+  auto bg = get_buffered_conflicts(&mesh, VERT, kds2buf_elems, indset);
   auto known_degrees_w = Write<LO>(bg.nnodes(), 0);
   known_degrees_w.set(0, 3);
   known_degrees_w.set(3, 2);

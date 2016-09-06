@@ -2,7 +2,6 @@
 #include "loop.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
-#include "indset.hpp"
 
 namespace Omega_h {
 
@@ -120,8 +119,7 @@ Graph get_buffered_elems(Mesh* mesh, Int key_dim,
 }
 
 Graph get_buffered_conflicts(Mesh* mesh, Int key_dim,
-    Read<I8> unbuffered_indset) {
-  auto keys2buf_elems = get_buffered_elems(mesh, key_dim, unbuffered_indset);
+    Graph keys2buf_elems, Read<I8> unbuffered_indset) {
   auto elems2verts = mesh->ask_elem_verts();
   auto nverts_per_elem = simplex_degrees[mesh->dim()][VERT];
   auto verts2elems = mesh->ask_up(VERT, mesh->dim());
@@ -151,14 +149,6 @@ Graph get_buffered_conflicts(Mesh* mesh, Int key_dim,
   };
   parallel_for(nkeys, fill);
   return Graph(offsets, edges);
-}
-
-Read<I8> find_buffered_indset(
-    Mesh* mesh, Int key_dim,
-    Reals qualities,
-    Read<I8> unbuffered_indset) {
-  auto conflicts = get_buffered_conflicts(mesh, key_dim, unbuffered_indset);
-  return find_indset(mesh, key_dim, conflicts, qualities, unbuffered_indset);
 }
 
 } // end namespace Omega_h

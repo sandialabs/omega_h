@@ -348,12 +348,11 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   }
 }
 
-void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
-  if (mesh->comm()->size() == 1) return;
+void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds,
+    Graph kds2elems) {
   auto kd_owners = mesh->ask_owners(key_dim);
   auto nkeys = keys2kds.size();
   auto elem_dim = mesh->dim();
-  auto kds2elems = mesh->ask_up(key_dim, elem_dim);
   auto kds2kd_elems = kds2elems.a2ab;
   auto kd_elems2elems = kds2elems.ab2b;
   auto elem_owners = mesh->ask_owners(elem_dim);
