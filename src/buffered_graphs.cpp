@@ -109,7 +109,7 @@ Graph get_buffered_elems(Mesh* mesh, Int key_dim,
     auto begin = offsets[key];
     auto end = offsets[key + 1];
     auto stack_max = end - begin;
-    auto stack = edges.data() + begin;
+    auto stack = &edges[begin];
     find_distance_2_elems(keys2elems, elems2verts,
         nverts_per_elem, verts2elems,
         unbuffered_indset, key, stack, stack_max);
@@ -142,7 +142,7 @@ Graph get_buffered_conflicts(Mesh* mesh, Int key_dim,
     auto begin = offsets[key];
     auto end = offsets[key + 1];
     auto stack_max = end - begin;
-    auto stack = edges.data() + begin;
+    auto stack = &edges[begin];
     find_distance_3_keys(keys2buf_elems, elems2verts,
         nverts_per_elem, verts2elems, elems2keys, nkeys_per_elem,
         unbuffered_indset, key, stack, stack_max);
