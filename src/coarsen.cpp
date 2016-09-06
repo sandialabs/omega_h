@@ -87,6 +87,16 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   choose_vertex_collapses(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
       verts_are_cands, vert_quals);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
+  Graph verts2cav_elems;
+  if (needs_buffer_layers(mesh)) {
+    verts2cav_elems = get_buffered_elems(mesh, VERT, verts_are_keys);
+    auto buf_conflicts = get_buffered_conflicts(mesh, VERT, verts2cav_elems,
+        verts_are_keys);
+    verts_are_keys = find_indset(mesh, VERT, buf_conflicts,
+        vert_quals, verts_are_keys);
+  } else {
+    verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
+  }
   mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
       verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
@@ -94,7 +104,7 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   put_edge_codes(mesh, cands2edges, cand_edge_codes);
   put_edge_quals(mesh, cands2edges, cand_edge_quals);
   auto keys2verts = collect_marked(verts_are_keys);
-  set_owners_by_indset(mesh, VERT, keys2verts);
+  set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
 }
 
@@ -152,13 +162,9 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
 bool coarsen(Mesh* mesh, Real min_qual, bool improve, bool verbose) {
   if (!coarsen_element_based1(mesh)) return false;
   Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
-  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers);
+  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, true);
   if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
-  if (needs_buffer_layers(mesh)) {
-    mesh->set_parting(OMEGA_H_GHOSTED, 1);
-  } else {
-    mesh->set_parting(OMEGA_H_ELEM_BASED);
-  }
+  mesh->set_parting(OMEGA_H_ELEM_BASED, true);
   coarsen_element_based2(mesh, verbose);
   return true;
 }

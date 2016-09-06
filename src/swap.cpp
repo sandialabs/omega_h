@@ -12,7 +12,7 @@ namespace Omega_h {
 
 bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
   Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
-  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers);
+  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, true);
   auto comm = mesh->comm();
   auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
   CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);

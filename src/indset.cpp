@@ -74,13 +74,20 @@ static Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
 }
 
 Read<I8> find_indset(
-    Mesh* mesh, Int ent_dim, Reals quality, Read<I8> candidates) {
-  mesh->owners_have_all_upward(ent_dim);
-  auto graph = mesh->ask_star(ent_dim);
+    Mesh* mesh, Int ent_dim, Graph graph,
+    Reals quality, Read<I8> candidates) {
   auto xadj = graph.a2ab;
   auto adj = graph.ab2b;
   auto globals = mesh->ask_globals(ent_dim);
   return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
+}
+
+Read<I8> find_indset(
+    Mesh* mesh, Int ent_dim, Reals quality, Read<I8> candidates) {
+  mesh->owners_have_all_upward(ent_dim);
+  CHECK(mesh->owners_have_all_upward(ent_dim));
+  auto graph = mesh->ask_star(ent_dim);
+  return find_indset(mesh, ent_dim, graph, quality, candidates);
 }
 
 }  // end namespace Omega_h

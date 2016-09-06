@@ -7,6 +7,7 @@
 #include "modify.hpp"
 #include "swap.hpp"
 #include "transfer.hpp"
+#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
@@ -29,12 +30,22 @@ static bool swap3d_ghosted(Mesh* mesh) {
   edges_are_cands = mark_image(cands2edges, mesh->nedges());
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
+  Graph edges2cav_elems;
+  if (needs_buffer_layers(mesh)) {
+    edges2cav_elems = get_buffered_elems(mesh, EDGE, edges_are_keys);
+    auto buf_conflicts = get_buffered_conflicts(mesh, EDGE, edges2cav_elems,
+        edges_are_keys);
+    edges_are_keys = find_indset(mesh, EDGE, buf_conflicts,
+        edge_quals, edges_are_keys);
+  } else {
+    edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
+  }
   mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
       edges_are_keys);
   mesh->add_tag(EDGE, "config", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
       edge_configs);
   auto keys2edges = collect_marked(edges_are_keys);
-  set_owners_by_indset(mesh, EDGE, keys2edges);
+  set_owners_by_indset(mesh, EDGE, keys2edges, edges2cav_elems);
   return true;
 }
 
@@ -78,7 +89,7 @@ static void swap3d_element_based(Mesh* mesh, bool verbose) {
 bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
   if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
   if (!swap3d_ghosted(mesh)) return false;
-  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->set_parting(OMEGA_H_ELEM_BASED, true);
   swap3d_element_based(mesh, verbose);
   return true;
 }
