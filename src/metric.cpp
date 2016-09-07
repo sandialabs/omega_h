@@ -1,5 +1,6 @@
 #include "metric.hpp"
 
+#include "array.hpp"
 #include "access.hpp"
 #include "loop.hpp"
 #include "size.hpp"
@@ -214,6 +215,60 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
               << " elements\n";
   }
   return metric;
+}
+
+template <Int dim>
+static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m, Vector<dim> x,
+    Matrix<dim, dim> am, Vector<dim> ax) {
+  auto v = ax - x;
+  auto rdist = norm(v);
+  auto dir = v / rdist;
+  auto h = metric_desired_length(m, dir);
+  auto ah = metric_desired_length(am, dir);
+  auto h_avg = average(h, ah);
+  auto mdist = rdist / h_avg;
+  auto h_scalar = 1.0 + mdist;
+  auto m_scalar = 1.0 / square(h_scalar);
+  auto limit_m = am * m_scalar;
+  return intersect_metrics(m, limit_m);
+}
+
+template <Int dim>
+static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto v2v = mesh->ask_star(VERT);
+  auto coords = mesh->coords();
+  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto f = LAMBDA(LO v) {
+    auto m = get_symm<dim>(metrics, v);
+    auto x = get_vector<dim>(coords, v);
+    for (auto vv = v2v.a2ab[v]; vv < v2v.a2ab[v + 1]; ++vv) {
+      auto av = v2v.ab2b[vv];
+      auto am = get_symm<dim>(metrics, av);
+      auto ax = get_vector<dim>(coords, av);
+      m = limit_metric_by_adj(m, x, am, ax);
+    }
+    set_symm(out, v, m);
+  };
+  parallel_for(mesh->nverts(), f);
+  metrics = Reals(out);
+  metrics = mesh->sync_array(mesh->dim(), metrics, symm_dofs(dim));
+  return metrics;
+}
+
+static Reals limit_metrics_once_by_adj(Mesh* mesh, Reals metrics) {
+  if (mesh->dim() == 3) return limit_metrics_once_by_adj_dim<3>(mesh, metrics);
+  if (mesh->dim() == 2) return limit_metrics_once_by_adj_dim<2>(mesh, metrics);
+  NORETURN(Reals());
+}
+
+Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics) {
+  Reals metrics2 = metrics;
+  do {
+    metrics = metrics2;
+    metrics2 = limit_metrics_once_by_adj(mesh, metrics);
+  } while (!are_close(metrics, metrics2));
+  return metrics2;
 }
 
 }  // end namespace Omega_h

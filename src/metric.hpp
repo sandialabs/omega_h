@@ -153,6 +153,8 @@ Reals metric_from_hessians(
 Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
     Real tolerance, Reals hessians, Real hmin, Real hmax);
 
+Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics);
+
 }  // end namespace Omega_h
 
 #endif
