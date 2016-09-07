@@ -100,4 +100,44 @@ Reals delinearize_metrics(Int dim, Reals linear_metrics) {
   NORETURN(Reals());
 }
 
+template <Int dim>
+static Few<Reals, dim> axes_from_metrics_dim(Reals metrics) {
+  CHECK(metrics.size() % symm_dofs(dim) == 0);
+  auto n = metrics.size() / symm_dofs(dim);
+  Few<Write<Real>, dim> w;
+  for (Int i = 0; i < dim; ++i) w[i] = Write<Real>(n * dim);
+  auto f = LAMBDA(LO i) {
+    auto md = decompose_metric(get_symm<dim>(metrics, i));
+    for (Int j = 0; j < dim; ++j) set_vector(w[j], i, md.q[j] * md.l[j]);
+  };
+  parallel_for(n, f);
+  Few<Reals, dim> r;
+  for (Int i = 0; i < dim; ++i) r[i] = Reals(w[i]);
+  return r;
+}
+
+template <Int dim>
+static void axes_from_metric_field_dim(Mesh* mesh, std::string const& metric_name,
+    std::string const& output_prefix) {
+  auto metrics = mesh->get_array<Real>(VERT, metric_name);
+  auto axes = axes_from_metrics_dim<dim>(metrics);
+  for (Int i = 0; i < dim; ++i) {
+    mesh->add_tag(VERT, output_prefix + '_' + std::to_string(i), dim,
+        OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, axes[i]);
+  }
+}
+
+void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
+    std::string const& axis_prefix) {
+  if (mesh->dim() == 3) {
+    axes_from_metric_field_dim<3>(mesh, metric_name, axis_prefix);
+    return;
+  }
+  if (mesh->dim() == 2) {
+    axes_from_metric_field_dim<2>(mesh, metric_name, axis_prefix);
+    return;
+  }
+  NORETURN();
+}
+
 }  // end namespace Omega_h

@@ -196,9 +196,6 @@ Reals metric_from_hessians(
 Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
     Real tolerance, Reals hessians, Real hmin, Real hmax);
 
-void decompose_metric_field(Mesh* mesh, std::string const& metric_name,
-    std::string const& output_prefix);
-
 }  // end namespace Omega_h
 
 #endif

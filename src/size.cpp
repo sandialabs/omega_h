@@ -368,42 +368,4 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
   return metric;
 }
 
-template <Int dim>
-static Few<Reals, dim> decompose_metrics_dim(Reals metrics) {
-  CHECK(metrics.size() % symm_dofs(dim) == 0);
-  auto n = metrics.size() / symm_dofs(dim);
-  Few<Write<Real>, dim> w;
-  for (Int i = 0; i < dim; ++i) w[i] = Write<Real>(n * dim);
-  auto f = LAMBDA(LO i) {
-    auto md = decompose_metric(get_symm<dim>(metrics, i));
-    for (Int j = 0; j < dim; ++j)
-      set_vector(w[j], i, md.q[j] * md.l[j]);
-  };
-  Few<Reals, dim> r;
-  for (Int i = 0; i < dim; ++i) r[i] = Reals(w[i]);
-  return r;
-}
-
-template <Int dim>
-static void decompose_metric_field_dim(Mesh* mesh, std::string const& metric_name,
-    std::string const& output_prefix) {
-  auto metrics = mesh->get_array<Real>(VERT, metric_name);
-  auto axes = decompose_metrics_dim<dim>(metrics);
-  for (Int i = 0; i < dim; ++i) {
-    mesh->add_tag(VERT, output_prefix + '_' + std::to_string(i), dim,
-        OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, axes[i]);
-  }
-}
-
-void decompose_metric_field(Mesh* mesh, std::string const& metric_name,
-    std::string const& output_prefix) {
-  if (mesh->dim() == 3) {
-    decompose_metric_field_dim<3>(mesh, metric_name, output_prefix);
-  }
-  if (mesh->dim() == 2) {
-    decompose_metric_field_dim<2>(mesh, metric_name, output_prefix);
-  }
-  NORETURN();
-}
-
 }  // end namespace Omega_h
