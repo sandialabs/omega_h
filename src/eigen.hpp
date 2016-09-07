@@ -78,12 +78,12 @@ INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
 }
 
 template <Int dim>
-struct EigenDecomposition {
+struct Decomposition {
   Matrix<dim, dim> q;
   Vector<dim> l;
 };
 
-INLINE EigenDecomposition<3> decompose_eigen_dim(Matrix<3, 3> m) {
+INLINE Decomposition<3> decompose_eigen_dim(Matrix<3, 3> m) {
   Real a, b, c;
   characteristic_cubic(m, a, b, c);
   Few<Real, 3> roots;
@@ -119,7 +119,7 @@ INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l) {
   return perp(get_1d_column_space(s));
 }
 
-INLINE EigenDecomposition<2> decompose_eigen_dim(Matrix<2, 2> m) {
+INLINE Decomposition<2> decompose_eigen_dim(Matrix<2, 2> m) {
   Real a, b;
   characteristic_quadratic(m, a, b);
   Few<Real, 2> roots;
@@ -153,7 +153,7 @@ INLINE EigenDecomposition<2> decompose_eigen_dim(Matrix<2, 2> m) {
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
 template <Int dim>
-INLINE EigenDecomposition<dim> decompose_eigen(Matrix<dim, dim> m) {
+INLINE Decomposition<dim> decompose_eigen(Matrix<dim, dim> m) {
   /* the cubic solver is especially sensitive to dynamic
      range. what we can do is to normalize the input matrix
      and then re-apply that norm to the resulting roots */

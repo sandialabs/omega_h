@@ -90,17 +90,21 @@ function(bob_end_cxx_flags)
   set(CMAKE_CXX_FLAGS "${FLAGS}" PARENT_SCOPE)
 endfunction(bob_end_cxx_flags)
 
-macro(bob_private_dep pkg_name version default)
-  option(${PROJECT_NAME}_USE_${pkg_name} "Whether to use ${pkg_name}" ${default})
+macro(bob_private_dep pkg_name)
+  option(${PROJECT_NAME}_USE_${pkg_name} "Whether to use ${pkg_name}"
+         ${${PROJECT_NAME}_USE_${pkg_name}_DEFAULT})
   message(STATUS "${PROJECT_NAME}_USE_${pkg_name}: ${${PROJECT_NAME}_USE_${pkg_name}}")
   if(${PROJECT_NAME}_USE_${pkg_name})
-    set(${pkg_name}_PREFIX "" CACHE PATH "${pkg_name} install directory")
+    set(${pkg_name}_PREFIX "${${pkg_name}_PREFIX_DEFAULT}"
+        CACHE PATH "${pkg_name} install directory")
     if (${pkg_name}_PREFIX)
+      message(STATUS "${pkg_name}_PREFIX ${${pkg_name}_PREFIX}")
       #if ${pkg_name}_PREFIX is set, don't find it anywhere else:
-      find_package(${pkg_name} ${version} REQUIRED PATHS ${${pkg_name}_PREFIX} NO_DEFAULT_PATH)
+      find_package(${pkg_name} ${${pkg_name}_REQUIRED_VERSION}
+                   REQUIRED PATHS ${${pkg_name}_PREFIX} NO_DEFAULT_PATH)
     else()
       #allow CMake to search other prefixes if ${pkg_name}_PREFIX is not set
-      find_package(${pkg_name} ${version} REQUIRED)
+      find_package(${pkg_name} ${${pkg_name}_REQUIRED_VERSION} REQUIRED)
     endif()
     if(${pkg_name}_CONFIG)
       message(STATUS "${pkg_name}_CONFIG: ${${pkg_name}_CONFIG}")
@@ -108,8 +112,8 @@ macro(bob_private_dep pkg_name version default)
   endif()
 endmacro(bob_private_dep)
 
-macro(bob_public_dep pkg_name version default)
-  bob_private_dep(${pkg_name} "${version}" ${default})
+macro(bob_public_dep pkg_name)
+  bob_private_dep(${pkg_name} "${version}" ${on_default})
   if(${PROJECT_NAME}_USE_${pkg_name})
     if (${pkg_name}_PREFIX)
       set(${PROJECT_NAME}_DEP_PREFIXES ${${PROJECT_NAME}_DEP_PREFIXES}
@@ -166,15 +170,19 @@ endforeach()
 set(${PROJECT_NAME}_COMPILER \"${CMAKE_CXX_COMPILER}\")
 set(${PROJECT_NAME}_CXX_FLAGS \"${CMAKE_CXX_FLAGS}\")
 ")
-  file(WRITE
-      ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-      "${CONFIG_CONTENT}")
-  write_basic_package_version_file(
-      ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-      VERSION ${PROJECT_VERSION}
-      COMPATIBILITY SameMajorVersion)
   install(FILES
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-    "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
     DESTINATION lib/cmake/${PROJECT_NAME})
+  if(PROJECT_VERSION)
+    file(WRITE
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+        "${CONFIG_CONTENT}")
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion)
+    install(FILES
+      "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+      DESTINATION lib/cmake/${PROJECT_NAME})
+  endif()
 endfunction(bob_end_package)

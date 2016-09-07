@@ -6,18 +6,20 @@
 #include "mark.hpp"
 #include "swap2d.hpp"
 #include "swap3d.hpp"
+#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
 bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
-  mesh->set_parting(OMEGA_H_GHOSTED);
+  Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
+  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, true);
   auto comm = mesh->comm();
   auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
   CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);
   auto edges_are_cands = mark_down(mesh, mesh->dim(), EDGE, elems_are_cands);
+  /* only swap interior edges */
   auto edges_are_inter = mark_by_class_dim(mesh, EDGE, mesh->dim());
   edges_are_cands = land_each(edges_are_cands, edges_are_inter);
-  /* only swap interior edges */
   if (comm->reduce_and(max(edges_are_cands) <= 0)) return false;
   mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, edges_are_cands);

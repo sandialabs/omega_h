@@ -71,15 +71,6 @@ INLINE Vector<m> average(Few<Vector<m>, n> x) {
 }
 
 template <Int m, Int n>
-inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
-  Int k = 0;
-  for (Real v : l) {
-    (*this)[k % n][k / n] = v;
-    ++k;
-  }
-}
-
-template <Int m, Int n>
 INLINE Matrix<m, n> operator*(Matrix<m, n> a, Real b) {
   Matrix<m, n> c;
   for (Int j = 0; j < n; ++j) c[j] = a[j] * b;

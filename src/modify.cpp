@@ -11,6 +11,7 @@
 #include "scan.hpp"
 #include "simplices.hpp"
 #include "unmap_mesh.hpp"
+#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
@@ -347,28 +348,27 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   }
 }
 
-void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds) {
-  if (mesh->comm()->size() == 1) return;
+void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds,
+    Graph kds2elems) {
   auto kd_owners = mesh->ask_owners(key_dim);
   auto nkeys = keys2kds.size();
   auto elem_dim = mesh->dim();
-  auto kds2elems = mesh->ask_up(key_dim, elem_dim);
   auto kds2kd_elems = kds2elems.a2ab;
   auto kd_elems2elems = kds2elems.ab2b;
   auto elem_owners = mesh->ask_owners(elem_dim);
   auto elems2owners = mesh->ask_dist(elem_dim);
-  auto new_own_ranks = deep_copy(elem_owners.ranks);
+  auto new_elem_ranks = deep_copy(elem_owners.ranks);
   auto f = LAMBDA(LO key) {
     auto kd = keys2kds[key];
     auto kd_rank = kd_owners.ranks[kd];
     for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
          ++kd_elem) {
       auto elem = kd_elems2elems[kd_elem];
-      new_own_ranks[elem] = kd_rank;
+      new_elem_ranks[elem] = kd_rank;
     }
   };
   parallel_for(nkeys, f);
-  elem_owners = update_ownership(elems2owners, new_own_ranks);
+  elem_owners = update_ownership(elems2owners, new_elem_ranks);
   mesh->set_owners(elem_dim, elem_owners);
 }
 

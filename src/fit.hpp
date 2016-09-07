@@ -47,6 +47,7 @@ get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
   auto begin = k2ke[k];
   auto end = k2ke[k + 1];
   auto nfit_pts = end - begin;
+  CHECK(nfit_pts >= dim + 1);
   CHECK(nfit_pts <= max_fit_pts);
   for (auto i = 0; i < nfit_pts; ++i) {
     auto ke = begin + i;

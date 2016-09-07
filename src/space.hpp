@@ -66,6 +66,13 @@ INLINE Matrix<3, 3> invert(Matrix<3, 3> a) {
   return transpose(b) / determinant(a);
 }
 
+INLINE Matrix<2, 2> form_ortho_basis(Vector<2> v) {
+  Matrix<2, 2> A;
+  A[0] = normalize(v);
+  A[1] = perp(A[0]);
+  return A;
+}
+
 INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   Matrix<3, 3> A;
   A[0] = v;

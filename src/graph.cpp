@@ -7,6 +7,14 @@
 
 namespace Omega_h {
 
+LO Graph::nnodes() const {
+  return a2ab.size() - 1;
+}
+
+LO Graph::nedges() const {
+  return ab2b.size();
+}
+
 Graph add_edges(Graph g1, Graph g2) {
   auto v2e1 = g1.a2ab;
   auto e2v1 = g1.ab2b;

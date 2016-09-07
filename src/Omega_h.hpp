@@ -330,6 +330,8 @@ struct Graph {
   Graph(LOs a2ab_, LOs ab2b_) : a2ab(a2ab_), ab2b(ab2b_) {}
   LOs a2ab;
   LOs ab2b;
+  LO nnodes() const;
+  LO nedges() const;
 };
 
 enum { DIMS = OMEGA_H_DIMS };
@@ -567,6 +569,8 @@ bool approach_metric(Mesh* mesh, Real min_qual);
 
 Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);
+void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
+    std::string const& axis_prefix);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
 

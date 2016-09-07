@@ -216,4 +216,11 @@ void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+bool needs_buffer_layers(Mesh* mesh) {
+  for (Int i = 0; i < mesh->ntags(VERT); ++i)
+    if (mesh->get_tag(VERT, i)->xfer() == OMEGA_H_MOMENTUM_VELOCITY)
+      return true;
+  return false;
+}
+
 }  // end namespace Omega_h

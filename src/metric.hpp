@@ -2,6 +2,7 @@
 #define METRIC_HPP
 
 #include "space.hpp"
+#include "eigen.hpp"
 
 namespace Omega_h {
 
@@ -28,11 +29,10 @@ INLINE Vector<dim> metric_lengths(Vector<dim> l) {
 }
 
 template <Int dim>
-INLINE void decompose_metric(
-    Matrix<dim, dim> m, Matrix<dim, dim>& r, Vector<dim>& h) {
-  Vector<dim> l;
-  decompose_eigen(m, r, l);
-  h = metric_lengths(l);
+INLINE Decomposition<dim> decompose_metric(Matrix<dim, dim> m) {
+  auto ed = decompose_eigen(m);
+  auto h = metric_lengths(ed.l);
+  return {ed.q, h};
 }
 
 /* INRIA knows what they're doing with respect to the metric.

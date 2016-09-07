@@ -172,6 +172,15 @@ class Matrix : public Few<Vector<m>, n> {
 };
 
 template <Int m, Int n>
+inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
+  Int k = 0;
+  for (Real v : l) {
+    (*this)[k % n][k / n] = v;
+    ++k;
+  }
+}
+
+template <Int m, Int n>
 OMEGA_H_INLINE Vector<m> operator*(Matrix<m, n> a, Vector<n> b) {
   Vector<m> c = a[0] * b[0];
   for (Int j = 1; j < n; ++j) c = c + a[j] * b[j];

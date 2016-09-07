@@ -75,6 +75,7 @@ set(Omega_h_SOURCES
   xml.cpp
   derive.cpp
   project.cpp
+  buffered_graphs.cpp
   )
 
 if(Omega_h_ONE_FILE)
@@ -95,7 +96,8 @@ target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 bob_export_target(omega_h)
 
-bob_public_dep(Kokkos "" OFF)
+set(Omega_h_USE_Kokkos_DEFAULT OFF)
+bob_public_dep(Kokkos)
 if(Omega_h_USE_Kokkos)
   get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
   message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
@@ -107,7 +109,8 @@ if(Omega_h_USE_Kokkos)
   target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
 endif()
 
-bob_public_dep(ZLIB "" ON)
+set(Omega_h_USE_ZLIB_DEFAULT ON)
+bob_public_dep(ZLIB)
 if(Omega_h_USE_ZLIB)
   message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
   # The ZLIB::ZLIB imported target is not present in CMake 3.0.0
@@ -134,7 +137,9 @@ osh_add_util(osh2vtk)
 osh_add_util(oshdiff)
 osh_add_util(vtkdiff)
 
-bob_private_dep(Gmodel 1.2.0 OFF)
+set(Gmodel_REQUIRED_VERSION 1.2.0)
+set(Omega_h_USE_Gmodel_DEFAULT OFF)
+bob_private_dep(Gmodel)
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
@@ -206,7 +211,6 @@ if(BUILD_TESTING)
     test_func(warp_test_parallel 2 ./warp_test)
   endif()
   osh_add_exe(perf_tests)
-  osh_add_exe(flounder)
   osh_add_exe(ring_test)
   if(Omega_h_USE_Gmodel AND GMSH)
     set(TEST_EXES ${TEST_EXES} ring_test)
@@ -222,7 +226,9 @@ if(BUILD_TESTING)
   osh_add_exe(test_degree)
 endif()
 
-bob_private_dep(SCOREC 2.0.0 OFF)
+set(SCOREC_REQUIRED_VERSION 2.0.0)
+set(Omega_h_USE_SCOREC_DEFAULT OFF)
+bob_private_dep(SCOREC)
 if(Omega_h_USE_SCOREC)
   if(NOT Omega_h_USE_MPI)
     message(FATAL_ERROR "Building smb2osh requires enabling MPI")

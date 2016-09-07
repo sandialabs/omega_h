@@ -1,9 +1,9 @@
 #ifndef ACCESS_HPP
 #define ACCESS_HPP
 
+#include "Omega_h_math.hpp"
 #include "algebra.hpp"
 #include "internal.hpp"
-#include "Omega_h_math.hpp"
 
 namespace Omega_h {
 
