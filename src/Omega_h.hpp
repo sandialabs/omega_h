@@ -571,8 +571,8 @@ bool approach_metric(Mesh* mesh, Real min_qual);
 
 Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);
-void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
-    std::string const& axis_prefix);
+void axes_from_metric_field(
+    Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
 Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate);
 
 template <typename T, Int n>

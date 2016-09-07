@@ -12,8 +12,8 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents);
 
-void set_owners_by_indset(Mesh* mesh, Int key_dim, LOs keys2kds,
-    Graph kds2elems);
+void set_owners_by_indset(
+    Mesh* mesh, Int key_dim, LOs keys2kds, Graph kds2elems);
 
 }  // end namespace Omega_h
 

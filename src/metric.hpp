@@ -1,8 +1,8 @@
 #ifndef METRIC_HPP
 #define METRIC_HPP
 
-#include "space.hpp"
 #include "eigen.hpp"
+#include "space.hpp"
 
 namespace Omega_h {
 

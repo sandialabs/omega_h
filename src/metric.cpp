@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-#include "array.hpp"
 #include "access.hpp"
+#include "array.hpp"
 #include "loop.hpp"
 #include "size.hpp"
 
@@ -121,8 +121,8 @@ static Few<Reals, dim> axes_from_metrics_dim(Reals metrics) {
 }
 
 template <Int dim>
-static void axes_from_metric_field_dim(Mesh* mesh, std::string const& metric_name,
-    std::string const& output_prefix) {
+static void axes_from_metric_field_dim(Mesh* mesh,
+    std::string const& metric_name, std::string const& output_prefix) {
   auto metrics = mesh->get_array<Real>(VERT, metric_name);
   auto axes = axes_from_metrics_dim<dim>(metrics);
   for (Int i = 0; i < dim; ++i) {
@@ -220,8 +220,8 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
 }
 
 template <Int dim>
-static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m, Vector<dim> x,
-    Matrix<dim, dim> am, Vector<dim> ax, Real max_rate) {
+static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m,
+    Vector<dim> x, Matrix<dim, dim> am, Vector<dim> ax, Real max_rate) {
   auto v = ax - x;
   auto rdist = norm(v);
   auto dir = v / rdist;
@@ -236,8 +236,8 @@ static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m, Vector<di
 }
 
 template <Int dim>
-static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics,
-    Real max_rate) {
+static Reals limit_metrics_once_by_adj_dim(
+    Mesh* mesh, Reals metrics, Real max_rate) {
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
@@ -258,7 +258,8 @@ static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics,
   return metrics;
 }
 
-static Reals limit_metrics_once_by_adj(Mesh* mesh, Reals metrics, Real max_rate) {
+static Reals limit_metrics_once_by_adj(
+    Mesh* mesh, Reals metrics, Real max_rate) {
   if (mesh->dim() == 3) {
     return limit_metrics_once_by_adj_dim<3>(mesh, metrics, max_rate);
   }

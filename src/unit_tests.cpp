@@ -22,12 +22,12 @@
 #include "swap2d.hpp"
 #include "swap3d_choice.hpp"
 #include "swap3d_loop.hpp"
+#include "transfer_conserve.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
-#include "transfer_conserve.hpp"
 
+#include <iostream>  //REMOVE NOW
 #include <sstream>
-#include <iostream> //REMOVE NOW
 
 using namespace Omega_h;
 
@@ -164,7 +164,7 @@ static void test_intersect_ortho_metrics(
 
 static void test_intersect_subset_metrics() {
   auto h1 = vector_2(1, 2);
-  auto r1 = identity_matrix<2,2>();
+  auto r1 = identity_matrix<2, 2>();
   auto h2 = vector_2(2, 3);
   auto r2 = rotate(PI / 4);
   auto m1 = compose_metric(r1, h1);
@@ -837,7 +837,7 @@ static void test_buffered_conflict(Library const& lib) {
   known_degrees_w.set(15, 3);
   auto offsets = offset_scan(LOs(known_degrees_w));
   CHECK(bg.a2ab == offsets);
-  CHECK(bg.ab2b == LOs({3,15,12,0,15,15,0,0,3,12}));
+  CHECK(bg.ab2b == LOs({3, 15, 12, 0, 15, 15, 0, 0, 3, 12}));
 }
 
 int main(int argc, char** argv) {
