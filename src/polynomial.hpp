@@ -1,6 +1,8 @@
 #ifndef POLYNOMIAL_HPP
 #define POLYNOMIAL_HPP
 
+#include "algebra.hpp"
+
 namespace Omega_h {
 
 // solve cubic equation x^3 + a_2 * x^2 + a_1 * x + a_0 = 0
