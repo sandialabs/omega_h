@@ -1,5 +1,7 @@
 #include "metric.hpp"
 
+#include <iostream>
+
 #include "array.hpp"
 #include "access.hpp"
 #include "loop.hpp"

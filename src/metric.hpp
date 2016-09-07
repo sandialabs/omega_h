@@ -4,8 +4,6 @@
 #include "space.hpp"
 #include "eigen.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 template <Int dim>
