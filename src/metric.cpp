@@ -238,7 +238,6 @@ static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m, Vector<di
 template <Int dim>
 static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics,
     Real max_rate) {
-  CHECK(mesh->owners_have_all_upward(VERT));
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
@@ -270,11 +269,13 @@ static Reals limit_metrics_once_by_adj(Mesh* mesh, Reals metrics, Real max_rate)
 }
 
 Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto comm = mesh->comm();
   Reals metrics2 = metrics;
   do {
     metrics = metrics2;
     metrics2 = limit_metrics_once_by_adj(mesh, metrics, max_rate);
-  } while (!are_close(metrics, metrics2));
+  } while (!comm->reduce_and(are_close(metrics, metrics2)));
   return metrics2;
 }
 
