@@ -4,6 +4,8 @@
 #include "space.hpp"
 #include "eigen.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 template <Int dim>
@@ -49,27 +51,35 @@ INLINE Decomposition<dim> decompose_metric(Matrix<dim, dim> m) {
    RR-4759, INRIA Rocquencourt, 2003.
 
 https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
+
+   This metric interpolation code is from Section 2.2 of
+   that report, with one slight correction to Remark 2.5,
+   where we suspect that in the more general case, if
+   all eigenvalues of N are above one or all are below one,
+   then one metric encompasses the other.
 */
 
 template <Int dim>
-INLINE Matrix<dim, dim> common_metric_basis(
-    Matrix<dim, dim> a, Matrix<dim, dim> b) {
-  auto c = invert(a) * b;
-  return decompose_eigen(c).q;
-}
-
-template <Int dim>
 INLINE Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> a, Matrix<dim, dim> b) {
-  auto p = common_metric_basis(a, b);
+    Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
+  auto n = invert(m1) * m2;
+  auto n_decomp = decompose_eigen(n);
+  bool all_above_one = true;
+  bool all_below_one = true;
+  for (Int i = 0; i < dim; ++i) {
+    if (n_decomp.l[i] > 1) all_below_one = false;
+    if (n_decomp.l[i] < 1) all_above_one = false;
+  }
+  if (all_below_one) return m1;
+  if (all_above_one) return m2;
+  auto p = n_decomp.q;
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
-    Real u = metric_product(a, p[i]);
-    Real v = metric_product(b, p[i]);
+    Real u = metric_product(m1, p[i]);
+    Real v = metric_product(m2, p[i]);
     w[i] = max2(u, v);
   }
-  auto mi = compose_eigen(p, w);
-  return mi;
+  return compose_eigen(p, w);
 }
 
 /* Alauzet details four different ways to interpolate
