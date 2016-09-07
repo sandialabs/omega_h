@@ -219,7 +219,7 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
 
 template <Int dim>
 static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m, Vector<dim> x,
-    Matrix<dim, dim> am, Vector<dim> ax) {
+    Matrix<dim, dim> am, Vector<dim> ax, Real max_rate) {
   auto v = ax - x;
   auto rdist = norm(v);
   auto dir = v / rdist;
@@ -227,14 +227,15 @@ static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m, Vector<di
   auto ah = metric_desired_length(am, dir);
   auto h_avg = average(h, ah);
   auto mdist = rdist / h_avg;
-  auto h_scalar = 1.0 + mdist;
+  auto h_scalar = 1.0 + max_rate * mdist;
   auto m_scalar = 1.0 / square(h_scalar);
   auto limit_m = am * m_scalar;
   return intersect_metrics(m, limit_m);
 }
 
 template <Int dim>
-static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics) {
+static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics,
+    Real max_rate) {
   CHECK(mesh->owners_have_all_upward(VERT));
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
@@ -246,7 +247,7 @@ static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics) {
       auto av = v2v.ab2b[vv];
       auto am = get_symm<dim>(metrics, av);
       auto ax = get_vector<dim>(coords, av);
-      m = limit_metric_by_adj(m, x, am, ax);
+      m = limit_metric_by_adj(m, x, am, ax, max_rate);
     }
     set_symm(out, v, m);
   };
@@ -256,17 +257,21 @@ static Reals limit_metrics_once_by_adj_dim(Mesh* mesh, Reals metrics) {
   return metrics;
 }
 
-static Reals limit_metrics_once_by_adj(Mesh* mesh, Reals metrics) {
-  if (mesh->dim() == 3) return limit_metrics_once_by_adj_dim<3>(mesh, metrics);
-  if (mesh->dim() == 2) return limit_metrics_once_by_adj_dim<2>(mesh, metrics);
+static Reals limit_metrics_once_by_adj(Mesh* mesh, Reals metrics, Real max_rate) {
+  if (mesh->dim() == 3) {
+    return limit_metrics_once_by_adj_dim<3>(mesh, metrics, max_rate);
+  }
+  if (mesh->dim() == 2) {
+    return limit_metrics_once_by_adj_dim<2>(mesh, metrics, max_rate);
+  }
   NORETURN(Reals());
 }
 
-Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics) {
+Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate) {
   Reals metrics2 = metrics;
   do {
     metrics = metrics2;
-    metrics2 = limit_metrics_once_by_adj(mesh, metrics);
+    metrics2 = limit_metrics_once_by_adj(mesh, metrics, max_rate);
   } while (!are_close(metrics, metrics2));
   return metrics2;
 }

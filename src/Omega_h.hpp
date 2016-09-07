@@ -544,6 +544,8 @@ void build_from_elems_and_coords(
 void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
     LO ny, LO nz);
 
+void classify_by_angles(Mesh* mesh, Real sharp_angle);
+
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
@@ -571,8 +573,7 @@ Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);
 void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
     std::string const& axis_prefix);
-
-void classify_by_angles(Mesh* mesh, Real sharp_angle);
+Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate);
 
 template <typename T, Int n>
 class Few {
