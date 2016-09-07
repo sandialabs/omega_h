@@ -90,10 +90,10 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
   Graph verts2cav_elems;
   if (needs_buffer_layers(mesh)) {
     verts2cav_elems = get_buffered_elems(mesh, VERT, verts_are_keys);
-    auto buf_conflicts = get_buffered_conflicts(mesh, VERT, verts2cav_elems,
-        verts_are_keys);
-    verts_are_keys = find_indset(mesh, VERT, buf_conflicts,
-        vert_quals, verts_are_keys);
+    auto buf_conflicts =
+        get_buffered_conflicts(mesh, VERT, verts2cav_elems, verts_are_keys);
+    verts_are_keys =
+        find_indset(mesh, VERT, buf_conflicts, vert_quals, verts_are_keys);
   } else {
     verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
   }

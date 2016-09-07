@@ -74,8 +74,7 @@ static Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
 }
 
 Read<I8> find_indset(
-    Mesh* mesh, Int ent_dim, Graph graph,
-    Reals quality, Read<I8> candidates) {
+    Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates) {
   auto xadj = graph.a2ab;
   auto adj = graph.ab2b;
   auto globals = mesh->ask_globals(ent_dim);

@@ -26,10 +26,10 @@ static bool swap2d_ghosted(Mesh* mesh) {
   Graph edges2cav_elems;
   if (needs_buffer_layers(mesh)) {
     edges2cav_elems = get_buffered_elems(mesh, EDGE, edges_are_keys);
-    auto buf_conflicts = get_buffered_conflicts(mesh, EDGE, edges2cav_elems,
-        edges_are_keys);
-    edges_are_keys = find_indset(mesh, EDGE, buf_conflicts,
-        edge_quals, edges_are_keys);
+    auto buf_conflicts =
+        get_buffered_conflicts(mesh, EDGE, edges2cav_elems, edges_are_keys);
+    edges_are_keys =
+        find_indset(mesh, EDGE, buf_conflicts, edge_quals, edges_are_keys);
   } else {
     edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
   }
