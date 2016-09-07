@@ -79,7 +79,9 @@ INLINE Matrix<dim, dim> intersect_metrics(
     Real v = metric_product(m2, p[i]);
     w[i] = max2(u, v);
   }
-  return compose_eigen(p, w);
+  auto ip = invert(p);
+  auto m = transpose(ip) * diagonal(w) * ip;
+  return m;
 }
 
 /* Alauzet details four different ways to interpolate
