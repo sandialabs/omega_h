@@ -148,6 +148,11 @@ Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t);
 Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);
 
+Reals metric_from_hessians(
+    Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
+Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
+    Real tolerance, Reals hessians, Real hmin, Real hmax);
+
 }  // end namespace Omega_h
 
 #endif
