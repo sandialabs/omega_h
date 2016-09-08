@@ -813,7 +813,6 @@ static void test_sf_scale_dim(Library const& lib) {
   {
     auto metric = Omega_h::find_identity_metric(&mesh);
     auto metric_scal = metric_scalar_for_nelems(&mesh, metric, target_nelems);
-    std::cerr << "metric scalar now " << metric_scal << '\n';
     CHECK(are_close(metric_scal, 1., 1e-3));
   }
 }
