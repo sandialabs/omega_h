@@ -13,8 +13,8 @@ namespace Omega_h {
 
 template <typename T>
 struct CompareArrays {
-  static bool compare(CommPtr, Read<T> a, Read<T> b, Real, Real, Int, Int) {
-    return a == b;
+  static bool compare(CommPtr comm, Read<T> a, Read<T> b, Real, Real, Int, Int) {
+    return comm->reduce_and(a == b);
   }
 };
 
@@ -22,12 +22,11 @@ template <>
 struct CompareArrays<Real> {
   static bool compare(CommPtr comm, Read<Real> a, Read<Real> b, Real tol,
       Real floor, Int ncomps, Int dim) {
-    if (are_close(a, b, tol, floor)) return true;
+    if (comm->reduce_and(are_close(a, b, tol, floor))) return true;
     /* if floating point arrays are different, we find the value with the
-       largest
-       relative difference and print it out for users to determine whether this
-       is actually a serious regression (and where in the mesh it is most
-       serious)
+       largest relative difference and print it out for users to determine
+       whether this is actually a serious regression
+       (and where in the mesh it is most serious)
        or whether tolerances simply need adjusting */
     auto ah = HostRead<Real>(a);
     auto bh = HostRead<Real>(b);
@@ -64,9 +63,9 @@ static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
   auto comm = a_dist.parent_comm();
-  bool local_result = CompareArrays<T>::compare(
+  auto ret = CompareArrays<T>::compare(
       comm, a_lin_data, b_lin_data, tol, floor, ncomps, dim);
-  return comm->reduce_and(local_result);
+  return ret;
 }
 
 static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
