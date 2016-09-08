@@ -13,7 +13,8 @@ namespace Omega_h {
 
 template <typename T>
 struct CompareArrays {
-  static bool compare(CommPtr comm, Read<T> a, Read<T> b, Real, Real, Int, Int) {
+  static bool compare(
+      CommPtr comm, Read<T> a, Read<T> b, Real, Real, Int, Int) {
     return comm->reduce_and(a == b);
   }
 };

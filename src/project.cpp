@@ -22,8 +22,8 @@
 
 #include "array.hpp"
 #include "fit.hpp"
-#include "loop.hpp"
 #include "graph.hpp"
+#include "loop.hpp"
 
 namespace Omega_h {
 
