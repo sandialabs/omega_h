@@ -574,6 +574,10 @@ Reals find_identity_metric(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
 Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate);
+Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h);
+Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m);
+Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
+Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 
 template <typename T, Int n>
 class Few {
