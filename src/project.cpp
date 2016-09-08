@@ -23,6 +23,7 @@
 #include "array.hpp"
 #include "fit.hpp"
 #include "loop.hpp"
+#include "graph.hpp"
 
 namespace Omega_h {
 
@@ -130,7 +131,7 @@ bool has_interior_verts(Mesh* mesh) {
   return comm->reduce_or(have_local_interior);
 }
 
-Reals project(Mesh* mesh, Reals e_data) {
+Reals project_by_fit(Mesh* mesh, Reals e_data) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(e_data.size() % mesh->nelems() == 0);
   CHECK(has_interior_verts(mesh));
@@ -143,6 +144,16 @@ Reals project(Mesh* mesh, Reals e_data) {
     diffuse_to_exterior(mesh, &v_coeffs, ncomps * (dim + 1), &visited);
   }
   return evaluate_coeffs(mesh, v_coeffs, ncomps);
+}
+
+Reals project_by_average(Mesh* mesh, Reals e_data) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  CHECK(e_data.size() % mesh->nelems() == 0);
+  auto ncomps = e_data.size() / mesh->nelems();
+  auto verts2elems = mesh->ask_up(VERT, mesh->dim());
+  auto weights = Reals(verts2elems.ab2b.size(), 1.0);
+  auto avgs = graph_weighted_average(verts2elems, weights, e_data, ncomps);
+  return mesh->sync_array(VERT, avgs, ncomps);
 }
 
 }  // end namespace Omega_h

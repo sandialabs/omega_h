@@ -86,12 +86,12 @@ Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients) {
 
 Reals recover_gradients(Mesh* mesh, Reals vert_values) {
   auto e_grad = derive_element_gradients(mesh, vert_values);
-  return project(mesh, e_grad);
+  return project_by_fit(mesh, e_grad);
 }
 
 Reals recover_hessians_from_gradients(Mesh* mesh, Reals vert_gradients) {
   auto e_hess = derive_element_hessians(mesh, vert_gradients);
-  return project(mesh, e_hess);
+  return project_by_fit(mesh, e_hess);
 }
 
 Reals recover_hessians(Mesh* mesh, Reals vert_values) {
