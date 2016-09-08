@@ -225,10 +225,8 @@ static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m,
   auto v = ax - x;
   auto rdist = norm(v);
   auto dir = v / rdist;
-  auto h = metric_desired_length(m, dir);
   auto ah = metric_desired_length(am, dir);
-  auto h_avg = average(h, ah);
-  auto mdist = rdist / h_avg;
+  auto mdist = rdist / ah;
   auto h_scalar = 1.0 + max_rate * mdist;
   auto m_scalar = 1.0 / square(h_scalar);
   auto limit_m = am * m_scalar;
