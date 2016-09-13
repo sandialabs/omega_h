@@ -223,4 +223,55 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
+static bool starts_with(std::string const& a, std::string const& b) {
+  return 0 == a.compare(0, b.length(), b);
+}
+
+static std::string remove_prefix(std::string const& a, std::string const& prefix) {
+  return a.substr(prefix.length(), std::string::npos);
+}
+
+template <Int dim>
+static void transfer_momentum_velocity_dim(
+    Mesh* donor_mesh, Mesh* target_mesh,
+    TagBase const* tagbase) {
+  auto velocity_name = tagbase->name();
+  if (!starts_with(name, "velocity")) {
+    Omega_h_fail("%s tranferred as momentum-velocity,"
+                 " but name needs to start with \"velocity\"\n",
+                 name.c_str());
+  }
+  auto suffix = remove_prefix(name, "velocity");
+  auto density_name = std::string("density") + suffix;
+  auto donor_velocity = donor_mesh->get_array<Real>(VERT, velocity_name);
+  auto donor_density = donor_mesh->get_array<Real>(dim, density_name);
+  auto target_density = target_mesh->get_array<Real>(dim, density_name);
+  auto f = LAMBDA(LO key) {
+    constexpr Int max_dofs = 48;
+    Matrix<max_dofs, max_dofs> A;
+    for
+  };
+}
+
+static void transfer_momentum_velocity(Mesh* donor_mesh, Mesh* target_mesh,
+    Int key_dim,
+    LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  auto elem_dim = donor_mesh->dim();
+  auto nkeys = keys2kds.size();
+  auto nkds = donor_mesh->nents(key_dim);
+  auto kds_are_keys = map_onto<I8>(Read<I8>(nkeys, 1), keys2kds, nkds, 0, 1);
+  auto kds2donor_elems = get_buffered_elems(donor_mesh, key_dim, kds_are_keys);
+  auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
+  auto keys2donor_interior = get_donor_elems(donor_mesh, key_dim, keys2kds);
+  auto keys2target_interior = Graph(keys2prods, prods2new_ents);
+  auto keys2donor_verts = get_closure_verts(donor_mesh, keys2donor_interior);
+  auto keys2target_verts = get_closure_verts(target_mesh, keys2target_interior);
+  auto ndonor_elems = donor_mesh->nelems();
+  auto donor_elems2target_elems = map_onto<LO>(same_ents2new_ents,
+      same_ents2old_ents, ndonor_elems, -1, 1);
+  auto verts2dofs = number_cavity_ents(target_mesh, keys2target_verts,
+      elem_dim);
+}
+
 }  // end namespace Omega_h
