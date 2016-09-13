@@ -87,8 +87,8 @@ int main(int argc, char** argv) {
       measure_elements_real(&mesh));
   mesh.add_tag(mesh.dim(), "density_r3d", 1, OMEGA_H_CONSERVE_R3D,
       OMEGA_H_DO_OUTPUT, Reals(mesh.nelems(), 1.0));
-  // mesh.add_tag(VERT, "velocity", 3, OMEGA_H_MOMENTUM_VELOCITY,
-  //    OMEGA_H_DO_OUTPUT, Reals(mesh.nverts() * 3, 0));
+  mesh.add_tag(VERT, "velocity", 3, OMEGA_H_MOMENTUM_VELOCITY,
+     OMEGA_H_DO_OUTPUT, Reals(mesh.nverts() * 3, 0));
   add_pointwise(&mesh);
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
