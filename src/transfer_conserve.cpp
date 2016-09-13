@@ -341,7 +341,6 @@ static void transfer_momentum_velocity(Mesh* donor_mesh, Mesh* target_mesh,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto elem_dim = donor_mesh->dim();
-  auto keys2donor_interior = get_donor_elems(donor_mesh, key_dim, keys2kds);
   auto keys2donor_verts = get_closure_verts(donor_mesh, keys2donor_interior);
   auto ndonor_elems = donor_mesh->nelems();
 }

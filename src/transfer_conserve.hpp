@@ -29,8 +29,10 @@ Read<I8> find_buffered_indset(
 
 Graph get_closure_verts(
     Mesh* mesh, Graph keys2elems);
-Graph get_donor_elems(
+Graph get_donor_interior_elems(
     Mesh* mesh, Int key_dim, LOs keys2kds);
+Graph get_target_buffer_elems(Graph keys2donor_elems,
+    LOs donor_elems2target_elems);
 }
 
 #endif
