@@ -171,4 +171,21 @@ Graph get_donor_elems(
   return unmap_graph(keys2kds, kds2elems);
 }
 
+LOs number_cavity_ents(Mesh* mesh, Graph keys2ents, Int ent_dim) {
+  auto nents = mesh->nents(ent_dim);
+  auto nkeys = keys2ents.nnodes();
+  auto out = Write<LO>(nents);
+  auto f = LAMBDA(LO key) {
+    Int i = 0;
+    for (auto ke = keys2ents.a2ab[key];
+         ke < keys2ents.a2ab[key + 1];
+         ++ke) {
+      auto ent = keys2ents.ab2b[ke];
+      out[ent] = i++;
+    }
+  };
+  parallel_for(nkeys, f);
+  return out;
+}
+
 }  // end namespace Omega_h
