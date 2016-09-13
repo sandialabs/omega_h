@@ -186,6 +186,19 @@ INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
   return vector2symm(x);
 }
 
+template <Int dim>
+struct ParentElementSize;
+
+template <>
+struct ParentElementSize<2> {
+  constexpr Real value = 1.0 / 2.0;
+};
+
+template <>
+struct ParentElementSize<3> {
+  constexpr Real value = 1.0 / 6.0;
+};
+
 }  // end namespace Omega_h
 
 #endif

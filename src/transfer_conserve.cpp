@@ -231,6 +231,85 @@ static std::string remove_prefix(std::string const& a, std::string const& prefix
   return a.substr(prefix.length(), std::string::npos);
 }
 
+class MomentumVelocity {
+protected:
+  LOs target_elem_verts2verts;
+  LOs verts2dofs;
+  Graph keys2donor_elems;
+  LOs donor_elems2target_elems;
+
+public:
+  MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh,
+      Int key_dim, LOs keys2kds,
+      LOs keys2prods, LOs prods2new_ents, LOs prods2new_ents,
+      LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    auto elem_dim = donor_mesh->dim();
+    this->target_elem_verts2verts = target_mesh->ask_verts_of(elem_dim);
+    auto keys2target_interior = Graph(keys2prods, prods2new_ents);
+    auto keys2target_verts = get_closure_verts(target_mesh, keys2target_interior);
+    this->verts2dofs = number_cavity_ents(target_mesh, keys2target_verts,
+        elem_dim);
+    auto nkeys = keys2kds.size();
+    auto nkds = donor_mesh->nents(key_dim);
+    auto kds_are_keys = map_onto<I8>(Read<I8>(nkeys, 1), keys2kds, nkds, 0, 1);
+    auto kds2donor_elems = get_buffered_elems(donor_mesh, key_dim, kds_are_keys);
+    this->keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
+    this->donor_elems2target_elems = map_onto<LO>(same_ents2new_ents,
+      same_ents2old_ents, ndonor_elems, -1, 1);
+  };
+};
+
+template <Int dim>
+class MomentumVelocityDim : public MomentumVelocity {
+public:
+  constexpr Int max_dofs = 30;
+  constexpr Real coupling_factor =
+    ParentElementSize<dim>::value / (dim + 1) * (dim + 2);
+  using MassMatrix = Matrix<max_dofs, max_dofs>;
+  constexpr Int nverts_per_elem = dim + 1;
+
+protected:
+  Reals target_densities;
+  Reals target_sizes;
+
+public:
+  MomentumVelocityDim(MomentumVelocity parent,
+      TagBase const* tagbase):
+    MomentumVelocity(parent) {
+  }
+
+protected:
+
+  DEVICE void elem_into_mass_matrix(LO elem, MassMatrix& A) {
+    constexpr auto nverts_per_elem = dim + 1;
+    auto rho_a = target_densities[elem];
+    auto V_a = target_sizes[elem];
+    auto contrib = coupling_factor * rho_a * V_a;
+    for (Int elem_vert1 = 0; elem_vert1 < nverts_per_elem; ++elem_vert1) {
+      auto vert1 = target_elem_verts2verts[elem * nverts_per_elem + elem_vert1];
+      auto dof1 = verts2dofs[vert1];
+      if (dof1 < 0) continue;
+      for (Int elem_vert2 = elem_vert1 + 1; elem_vert2 < nverts_per_elem;
+           ++elem_vert2) {
+        auto vert2 = target_elem_verts2verts[elem * nverts_per_elem + elem_vert2];
+        auto dof2 = verts2dofs[vert2];
+        if (dof2 < 0) continue;
+        A[dof1][dof2] += contrib;
+      }
+    }
+  }
+
+  DEVICE MassMatrix assemble_mass_matrix(LO key) {
+    MassMatrix A = zero_matrix<max_dofs, max_dofs>();
+      auto donor_elem = keys2donor_elems.ab2b[kde];
+      auto target_elem = donor_elems2target_elems[donor_elem];
+      if (target_elem < 0) continue; //not a buffer element
+      elem_into_mass_matrix(target_elem, A);
+    }
+  }
+
+};
+
 template <Int dim>
 static void transfer_momentum_velocity_dim(
     Mesh* donor_mesh, Mesh* target_mesh,
@@ -247,9 +326,13 @@ static void transfer_momentum_velocity_dim(
   auto donor_density = donor_mesh->get_array<Real>(dim, density_name);
   auto target_density = target_mesh->get_array<Real>(dim, density_name);
   auto f = LAMBDA(LO key) {
-    constexpr Int max_dofs = 48;
     Matrix<max_dofs, max_dofs> A;
-    for
+    Vector<max_dofs> b_common;
+    for (kde = keys2donor_elems.a2ab[key];
+         kde < keys2donor_elems.a2ab[key + 1];
+         ++kde) {
+      auto donor_elem = keys2donor_elems.ab2b[kde];
+    }
   };
 }
 
@@ -258,20 +341,9 @@ static void transfer_momentum_velocity(Mesh* donor_mesh, Mesh* target_mesh,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto elem_dim = donor_mesh->dim();
-  auto nkeys = keys2kds.size();
-  auto nkds = donor_mesh->nents(key_dim);
-  auto kds_are_keys = map_onto<I8>(Read<I8>(nkeys, 1), keys2kds, nkds, 0, 1);
-  auto kds2donor_elems = get_buffered_elems(donor_mesh, key_dim, kds_are_keys);
-  auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
   auto keys2donor_interior = get_donor_elems(donor_mesh, key_dim, keys2kds);
-  auto keys2target_interior = Graph(keys2prods, prods2new_ents);
   auto keys2donor_verts = get_closure_verts(donor_mesh, keys2donor_interior);
-  auto keys2target_verts = get_closure_verts(target_mesh, keys2target_interior);
   auto ndonor_elems = donor_mesh->nelems();
-  auto donor_elems2target_elems = map_onto<LO>(same_ents2new_ents,
-      same_ents2old_ents, ndonor_elems, -1, 1);
-  auto verts2dofs = number_cavity_ents(target_mesh, keys2target_verts,
-      elem_dim);
 }
 
 }  // end namespace Omega_h
