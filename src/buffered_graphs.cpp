@@ -1,3 +1,4 @@
+#include "graph.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
 #include "scan.hpp"
@@ -27,6 +28,7 @@ public:
     verts2elems = mesh->ask_up(VERT, mesh->dim());
     indset = unbuffered_indset;
   }
+  LO count() const { return keys2elems.nnodes(); }
   enum { stack_max = 256 };
   DEVICE Int run(LO key, LO* stack, Int stack_max) const {
     if (!indset[key]) return 0;
@@ -67,6 +69,7 @@ public:
     nkeys_per_elem = simplex_degrees[mesh->dim()][key_dim];
     indset = unbuffered_indset;
   }
+  LO count() const { return keys2buf_elems.nnodes(); }
   enum { stack_max = 32 };
   DEVICE Int run(LO key, LO* stack, Int stack_max) const {
     if (!indset[key]) return 0;
@@ -94,39 +97,78 @@ public:
   }
 };
 
+class FindClosureVerts {
+  Graph keys2elems;
+  LOs elems2verts;
+  Int nverts_per_elem;
+public:
+  FindClosureVerts(Mesh* mesh, Graph keys2elems_) {
+    keys2elems = keys2elems_;
+    elems2verts = mesh->ask_elem_verts();
+    nverts_per_elem = simplex_degrees[mesh->dim()][VERT];
+  }
+  LO count() const { return keys2elems.nnodes(); }
+  enum { stack_max = 50 };
+  DEVICE Int run(LO key, LO* stack, Int stack_max) const {
+    Int n = 0;
+    for (auto key_elem = keys2elems.a2ab[key];
+         key_elem < keys2elems.a2ab[key + 1]; ++key_elem) {
+      auto elem1 = keys2elems.ab2b[key_elem];
+      for (auto elem_vert = elem1 * nverts_per_elem;
+           elem_vert < (elem1 + 1) * nverts_per_elem; ++elem_vert) {
+        auto vert = elems2verts[elem_vert];
+        n = add_unique(stack, n, vert, stack_max);
+      }
+    }
+    return n;
+  }
+};
+
 template <typename Specialization>
-Graph get_graph(Mesh* mesh, Int key_dim, Specialization spec) {
-  auto nkeys = mesh->nents(key_dim);
-  auto degrees_w = Write<LO>(nkeys);
-  auto count = LAMBDA(LO key) {
+Graph get_graph(Specialization spec) {
+  auto n = spec.count();
+  auto degrees_w = Write<LO>(n);
+  auto count = LAMBDA(LO i) {
     constexpr Int stack_max = Specialization::stack_max;
     LO stack[stack_max];
-    degrees_w[key] = spec.run(key, stack, stack_max);
+    degrees_w[i] = spec.run(i, stack, stack_max);
   };
-  parallel_for(nkeys, count);
+  parallel_for(n, count);
   auto degrees = LOs(degrees_w);
   auto offsets = offset_scan(degrees);
   auto edges = Write<LO>(offsets.last());
-  auto fill = LAMBDA(LO key) {
-    auto begin = offsets[key];
-    auto end = offsets[key + 1];
+  auto fill = LAMBDA(LO i) {
+    auto begin = offsets[i];
+    auto end = offsets[i + 1];
     auto stack_max = end - begin;
     auto stack = &edges[begin];
-    spec.run(key, stack, stack_max);
+    spec.run(i, stack, stack_max);
   };
-  parallel_for(nkeys, fill);
+  parallel_for(n, fill);
   return Graph(offsets, edges);
 }
 
 Graph get_buffered_elems(Mesh* mesh, Int key_dim, Read<I8> unbuffered_indset) {
   FindDistance2Elems spec(mesh, key_dim, unbuffered_indset);
-  return get_graph(mesh, key_dim, spec);
+  return get_graph(spec);
 }
 
 Graph get_buffered_conflicts(
     Mesh* mesh, Int key_dim, Graph keys2buf_elems, Read<I8> unbuffered_indset) {
   FindDistance3Keys spec(mesh, key_dim, keys2buf_elems, unbuffered_indset);
-  return get_graph(mesh, key_dim, spec);
+  return get_graph(spec);
+}
+
+Graph get_closure_verts(
+    Mesh* mesh, Graph keys2elems) {
+  FindClosureVerts spec(mesh, keys2elems);
+  return get_graph(spec);
+}
+
+Graph get_donor_elems(
+    Mesh* mesh, Int key_dim, LOs keys2kds) {
+  auto kds2elems = mesh->ask_up(key_dim, mesh->dim());
+  return unmap_graph(keys2kds, kds2elems);
 }
 
 }  // end namespace Omega_h
