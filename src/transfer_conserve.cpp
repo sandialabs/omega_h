@@ -235,8 +235,9 @@ class MomentumVelocity {
 protected:
   LOs target_elem_verts2verts;
   LOs verts2dofs;
-  Graph keys2donor_elems;
-  LOs donor_elems2target_elems;
+  Graph keys2target_buffer;
+  Graph keys2target_interior;
+  Graph keys2donor_interior;
 
 public:
   MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh,
@@ -245,7 +246,7 @@ public:
       LOs same_ents2old_ents, LOs same_ents2new_ents) {
     auto elem_dim = donor_mesh->dim();
     this->target_elem_verts2verts = target_mesh->ask_verts_of(elem_dim);
-    auto keys2target_interior = Graph(keys2prods, prods2new_ents);
+    this->keys2target_interior = Graph(keys2prods, prods2new_ents);
     auto keys2target_verts = get_closure_verts(target_mesh, keys2target_interior);
     this->verts2dofs = number_cavity_ents(target_mesh, keys2target_verts,
         elem_dim);
@@ -253,9 +254,11 @@ public:
     auto nkds = donor_mesh->nents(key_dim);
     auto kds_are_keys = map_onto<I8>(Read<I8>(nkeys, 1), keys2kds, nkds, 0, 1);
     auto kds2donor_elems = get_buffered_elems(donor_mesh, key_dim, kds_are_keys);
-    this->keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
-    this->donor_elems2target_elems = map_onto<LO>(same_ents2new_ents,
+    auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
+    auto donor_elems2target_elems = map_onto<LO>(same_ents2new_ents,
       same_ents2old_ents, ndonor_elems, -1, 1);
+    this->keys2target_buffer = get_target_buffer_elems(keys2donor_elems,
+        donor_elems2target_elems);
   };
 };
 
@@ -299,13 +302,22 @@ protected:
     }
   }
 
-  DEVICE MassMatrix assemble_mass_matrix(LO key) {
-    MassMatrix A = zero_matrix<max_dofs, max_dofs>();
-      auto donor_elem = keys2donor_elems.ab2b[kde];
-      auto target_elem = donor_elems2target_elems[donor_elem];
-      if (target_elem < 0) continue; //not a buffer element
+  DEVICE MassMatrix elems_into_mass_matrix(LO key, Graph const& keys2elems,
+      MassMatrix& A) {
+    for (ke = keys2elems.a2ab[key];
+         ke < keys2elems.a2ab[key + 1];
+         ++ke) {
+      auto target_elem = keys2elems.ab2b[ke];
       elem_into_mass_matrix(target_elem, A);
     }
+    return A;
+  }
+
+  DEVICE MassMatrix assemble_mass_matrix(LO key) {
+    MassMatrix A = zero_matrix<max_dofs, max_dofs>();
+    elems_into_mass_matrix(key, keys2target_interior, A);
+    elems_into_mass_matrix(key, keys2target_buffer, A);
+    return A;
   }
 
 };
