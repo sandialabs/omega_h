@@ -234,10 +234,12 @@ static std::string remove_prefix(std::string const& a, std::string const& prefix
 class MomentumVelocity {
 protected:
   LOs target_elem_verts2verts;
+  LOs donor_elem_verts2verts;
   LOs verts2dofs;
   Graph keys2target_buffer;
   Graph keys2target_interior;
   Graph keys2donor_interior;
+  LOs target_elems2donor_elems;
 
 public:
   MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh,
@@ -246,6 +248,7 @@ public:
       LOs same_ents2old_ents, LOs same_ents2new_ents) {
     auto elem_dim = donor_mesh->dim();
     this->target_elem_verts2verts = target_mesh->ask_verts_of(elem_dim);
+    this->donor_elem_verts2verts = donor_mesh->ask_verts_of(elem_dim);
     this->keys2target_interior = Graph(keys2prods, prods2new_ents);
     auto keys2target_verts = get_closure_verts(target_mesh, keys2target_interior);
     this->verts2dofs = number_cavity_ents(target_mesh, keys2target_verts,
@@ -259,32 +262,49 @@ public:
       same_ents2old_ents, ndonor_elems, -1, 1);
     this->keys2target_buffer = get_target_buffer_elems(keys2donor_elems,
         donor_elems2target_elems);
+    auto ntarget_elems = target_mesh->nelems();
+    this->target_elems2donor_elems = map_onto<LO>(same_ents2old_ents,
+      same_ents2new_ents, ntarget_elems, -1, 1);
   };
 };
 
 template <Int dim>
 class MomentumVelocityDim : public MomentumVelocity {
 public:
-  constexpr Int max_dofs = 30;
+  constexpr Int nverts_per_elem = dim + 1;
+  constexpr Int max_dofs = (AvgDegree<dim,0,1> + 1) * 2;
   constexpr Real coupling_factor =
     ParentElementSize<dim>::value / (dim + 1) * (dim + 2);
   using MassMatrix = Matrix<max_dofs, max_dofs>;
-  constexpr Int nverts_per_elem = dim + 1;
+  using RHS = Matrix<max_dofs, dim>;
 
 protected:
+  Reals donor_velocities;
+  Reals donor_densities;
   Reals target_densities;
   Reals target_sizes;
 
 public:
   MomentumVelocityDim(MomentumVelocity parent,
       TagBase const* tagbase):
-    MomentumVelocity(parent) {
+      MomentumVelocity(parent) {
+    auto velocity_name = tagbase->name();
+    if (!starts_with(name, "velocity")) {
+      Omega_h_fail("%s tranferred as momentum-velocity,"
+                   " but name needs to start with \"velocity\"\n",
+                   name.c_str());
+    }
+    auto suffix = remove_prefix(name, "velocity");
+    auto density_name = std::string("density") + suffix;
+    this->donor_velocities = donor_mesh->get_array<Real>(VERT, velocity_name);
+    this->donor_densities = donor_mesh->get_array<Real>(dim, density_name);
+    this->target_densities = target_mesh->get_array<Real>(dim, density_name);
+    this->target_sizes = measure_elements_real(target_mesh);
   }
 
 protected:
 
   DEVICE void elem_into_mass_matrix(LO elem, MassMatrix& A) {
-    constexpr auto nverts_per_elem = dim + 1;
     auto rho_a = target_densities[elem];
     auto V_a = target_sizes[elem];
     auto contrib = coupling_factor * rho_a * V_a;
@@ -298,6 +318,32 @@ protected:
         auto dof2 = verts2dofs[vert2];
         if (dof2 < 0) continue;
         A[dof1][dof2] += contrib;
+      }
+    }
+  }
+
+  /* accepts a target buffer element */
+  DEVICE void buffer_elem_into_rhs(LO target_elem, RHS& b) {
+    auto rho_a = target_densities[target_elem];
+    auto V_a = target_sizes[target_elem];
+    auto contrib = coupling_factor * rho_a * V_a;
+    auto donor_elem = target_elems2donor_elems[target_elem];
+    for (Int elem_vert1 = 0; elem_vert1 < nverts_per_elem; ++elem_vert1) {
+      auto target_vert1 = target_elem_verts2verts[
+        target_elem * nverts_per_elem + elem_vert1];
+      auto dof1 = verts2dofs[target_vert1];
+      if (dof1 < 0) continue;
+      auto donor_vert = donor_elem_verts2verts[
+        donor_elem * nverts_per_elem + elem_vert1];
+      auto donor_velocity = get_vector<dim>(donor_velocities, donor_vert);
+      for (Int elem_vert2 = elem_vert1 + 1; elem_vert2 < nverts_per_elem;
+           ++elem_vert2) {
+        auto target_vert2 = target_elem_verts2verts[
+          target_elem * nverts_per_elem + elem_vert2];
+        auto dof2 = verts2dofs[target_vert2];
+        if (dof2 < 0) continue;
+        for (Int i = 0; i < dim; ++i)
+          b[i][dof2] += donor_velocity[i] * contrib;
       }
     }
   }
@@ -326,17 +372,6 @@ template <Int dim>
 static void transfer_momentum_velocity_dim(
     Mesh* donor_mesh, Mesh* target_mesh,
     TagBase const* tagbase) {
-  auto velocity_name = tagbase->name();
-  if (!starts_with(name, "velocity")) {
-    Omega_h_fail("%s tranferred as momentum-velocity,"
-                 " but name needs to start with \"velocity\"\n",
-                 name.c_str());
-  }
-  auto suffix = remove_prefix(name, "velocity");
-  auto density_name = std::string("density") + suffix;
-  auto donor_velocity = donor_mesh->get_array<Real>(VERT, velocity_name);
-  auto donor_density = donor_mesh->get_array<Real>(dim, density_name);
-  auto target_density = target_mesh->get_array<Real>(dim, density_name);
   auto f = LAMBDA(LO key) {
     Matrix<max_dofs, max_dofs> A;
     Vector<max_dofs> b_common;
