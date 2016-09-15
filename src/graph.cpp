@@ -113,7 +113,7 @@ Graph filter_graph(Graph g, Read<I8> keep_edge) {
   auto degrees = graph_reduce(g, keep_edge, 1, OMEGA_H_SUM);
   auto offsets = offset_scan(degrees);
   auto kept2old = collect_marked(keep_edge);
-  auto edges = unmap(kept2old, g.ab2b);
+  auto edges = unmap(kept2old, g.ab2b, 1);
   return Graph(offsets, edges);
 }
 

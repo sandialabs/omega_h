@@ -191,12 +191,12 @@ struct ParentElementSize;
 
 template <>
 struct ParentElementSize<2> {
-  constexpr Real value = 1.0 / 2.0;
+  static constexpr Real value = 1.0 / 2.0;
 };
 
 template <>
 struct ParentElementSize<3> {
-  constexpr Real value = 1.0 / 6.0;
+  static constexpr Real value = 1.0 / 6.0;
 };
 
 }  // end namespace Omega_h

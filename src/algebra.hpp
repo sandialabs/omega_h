@@ -47,15 +47,6 @@ INLINE Vector<n> operator-(Vector<n> a) {
   return c;
 }
 
-/* Moore-Penrose pseudo-inverse of a vector */
-template <Int n>
-INLINE Vector<n> pseudo_invert(Vector<n> a) {
-  auto nsq = a * a;
-  if (nsq < EPSILON)
-    return zero_vector<n>();
-  return a / nsq;
-}
-
 template <Int n>
 INLINE bool are_close(
     Vector<n> a, Vector<n> b, Real tol = EPSILON, Real floor = EPSILON) {
@@ -77,6 +68,15 @@ INLINE Vector<m> average(Few<Vector<m>, n> x) {
   for (Int i = 0; i < n; ++i) avg = avg + x[i];
   avg = avg / n;
   return avg;
+}
+
+/* Moore-Penrose pseudo-inverse of a vector */
+template <Int n>
+INLINE Vector<n> pseudo_invert(Vector<n> a) {
+  auto nsq = a * a;
+  if (nsq < EPSILON)
+    return zero_vector<n>();
+  return a / nsq;
 }
 
 template <Int m, Int n>

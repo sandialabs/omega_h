@@ -123,27 +123,27 @@ extern char const* const singular_names[DIMS];
 extern char const* const plural_names[DIMS];
 
 template <Int dim, Int low, Int high>
-struct AvgDeg;
+struct AvgDegree;
 
 template <>
 struct AvgDegree<2,0,1> {
-  constexpr Int value = 6;
-}
+  static constexpr Int value = 6;
+};
 
 template <>
 struct AvgDegree<2,0,2> {
-  constexpr Int value = 6;
-}
+  static constexpr Int value = 6;
+};
 
 template <>
 struct AvgDegree<3,0,1> {
-  constexpr Int value = 14;
-}
+  static constexpr Int value = 14;
+};
 
 template <>
 struct AvgDegree<3,0,3> {
-  constexpr Int value = 24;
-}
+  static constexpr Int value = 24;
+};
 
 }  // end namespace Omega_h
 
