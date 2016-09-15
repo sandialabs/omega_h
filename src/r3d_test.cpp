@@ -1,5 +1,6 @@
 #include "Omega_h_r3d.hpp"
 #include "algebra.hpp"
+#include "basis_polynomial.hpp"
 
 #include <iostream>
 
@@ -65,7 +66,34 @@ static void test_2d() {
   OMEGA_H_CHECK(Omega_h::are_close(area, 1. / 4.));
 }
 
+template <Int dim>
+static void test_pair_integral_dim(Few<Vector<dim>, dim + 1> elem_pts) {
+  auto parent_size = Omega_h::ParentElementSize<dim>::value;
+  auto polytope = Omega_h::r3d::init(elem_pts);
+  for (Int i = 0; i <= dim; ++i) {
+    auto polynomial1 = Omega_h::get_basis_polynomial(elem_pts, i);
+    for (Int j = 0; j <= dim; ++j) {
+      if (i ==j) continue;
+      auto polynomial2 = Omega_h::get_basis_polynomial(elem_pts, j);
+      auto pair_polynomial = polynomial1 * polynomial2;
+      auto integral = Omega_h::r3d::integrate(polytope, pair_polynomial);
+      std::cout << i << " X " << j << " = " << integral << '\n';
+    }
+  }
+}
+
+static void test_pair_integrals {
+  Few<Vector<3>, 4> parent_tet = {
+      {0,0,0},
+      {1,0,0},
+      {0,1,0},
+      {0,0,1}
+  };
+  test_pair_integral_dim<3>(parent_tet);
+}
+
 int main() {
   test_3d();
   test_2d();
+  test_pair_integrals();
 }

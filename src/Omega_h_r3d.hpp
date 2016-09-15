@@ -19,6 +19,13 @@
  * Government nor LANS makes any warranty, express or implied, or assumes any
  * liability or responsibility for the use of this software.
  * ----
+ * We keep our own copy due to two major changes:
+ *  (1) annotation to execute on GPUs via CUDA using Kokkos.
+ *      this also requires the code to be in a header file,
+ *      because Kokkos is incompatible with relocatable device code
+ *      in CUDA versions prior to 8.0.
+ *  (2) rewritten in modern C++ with templating over
+ *      dimension where easily applicable.
  */
 
 #include "Omega_h_math.hpp"

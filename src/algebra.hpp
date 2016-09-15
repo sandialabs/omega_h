@@ -47,6 +47,15 @@ INLINE Vector<n> operator-(Vector<n> a) {
   return c;
 }
 
+/* Moore-Penrose pseudo-inverse of a vector */
+template <Int n>
+INLINE Vector<n> pseudo_invert(Vector<n> a) {
+  auto nsq = a * a;
+  if (nsq < EPSILON)
+    return zero_vector<n>();
+  return a / nsq;
+}
+
 template <Int n>
 INLINE bool are_close(
     Vector<n> a, Vector<n> b, Real tol = EPSILON, Real floor = EPSILON) {

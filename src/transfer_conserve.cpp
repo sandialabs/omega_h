@@ -240,6 +240,8 @@ protected:
   Graph keys2target_interior;
   Graph keys2donor_interior;
   LOs target_elems2donor_elems;
+  Reals target_coords;
+  Reals donor_coords;
 
 public:
   MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh,
@@ -265,6 +267,8 @@ public:
     auto ntarget_elems = target_mesh->nelems();
     this->target_elems2donor_elems = map_onto<LO>(same_ents2old_ents,
       same_ents2new_ents, ntarget_elems, -1, 1);
+    this->target_coords = target_mesh->coords();
+    this->donor_coords = donor_mesh->coords();
   };
 };
 
@@ -312,8 +316,9 @@ protected:
       auto vert1 = target_elem_verts2verts[elem * nverts_per_elem + elem_vert1];
       auto dof1 = verts2dofs[vert1];
       if (dof1 < 0) continue;
-      for (Int elem_vert2 = elem_vert1 + 1; elem_vert2 < nverts_per_elem;
+      for (Int elem_vert2 = 0; elem_vert2 < nverts_per_elem;
            ++elem_vert2) {
+        if (elem_vert2 == elem_vert1) continue;
         auto vert2 = target_elem_verts2verts[elem * nverts_per_elem + elem_vert2];
         auto dof2 = verts2dofs[vert2];
         if (dof2 < 0) continue;
@@ -335,8 +340,9 @@ protected:
       auto donor_vert = donor_elem_verts2verts[
         donor_elem * nverts_per_elem + elem_vert1];
       auto donor_velocity = get_vector<dim>(donor_velocities, donor_vert);
-      for (Int elem_vert2 = elem_vert1 + 1; elem_vert2 < nverts_per_elem;
+      for (Int elem_vert2 = 0; elem_vert2 < nverts_per_elem;
            ++elem_vert2) {
+        if (elem_vert2 == elem_vert1) continue;
         auto target_vert2 = target_elem_verts2verts[
           target_elem * nverts_per_elem + elem_vert2];
         auto dof2 = verts2dofs[target_vert2];
@@ -348,6 +354,18 @@ protected:
   }
 
   DEVICE void elem_pair_into_rhs(LO target_elem, LO donor_elem, RHS& b) {
+    auto target_pts = gather_vectors<dim + 1, dim>(
+        target_coords, target_elem_verts2verts);
+    auto donor_pts = gather_vectors<dim + 1, dim>(
+        donor_coords, donor_elem_verts2verts);
+    auto domain = r3d::intersect_simplices(target_pts, donor_pts);
+    for (Int elem_vert1 = 0; elem_vert1 < nverts_per_elem; ++elem_vert1) {
+      for (Int elem_vert2 = 0; elem_vert2 < nverts_per_elem;
+           ++elem_vert2) {
+        if (elem_vert2 == elem_vert1) continue;
+        /* TODO ! */
+      }
+    }
   }
 
   DEVICE MassMatrix elems_into_mass_matrix(LO key, Graph const& keys2elems,
