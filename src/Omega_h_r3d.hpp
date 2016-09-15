@@ -390,7 +390,6 @@ struct NumMoments<2, order> {
  * of moments for a given order.
  * Order of moments is row-major, i.e. `1`, `x`, `y`, `z`, `x^2`,
  * `x*y`, `x*z`, `y^2`, `y*z`, `z^2`, `x^3`, `x^2*y`...
- *
  */
 
 template <Int polyorder>
@@ -648,6 +647,21 @@ OMEGA_H_INLINE Polytope<dim> intersect_simplices(
   auto poly0 = init(verts0);
   auto faces1 = faces_from_verts(verts1);
   return clip(poly0, faces1);
+}
+
+/* multiply two linear polynomials into a second-order one.
+ * not confident this algorithm works for higher orders.
+ */
+template <Int dim>
+Polynomial<dim, 2> operator*(Polynomial<dim, 1> a, Polynomial<dim, 2> b) {
+  Polynomial<dim, 2> c;
+  Int k = 0;
+  for (Int i = 0; i <= dim; ++i) {
+    c.coeffs[k++] = a.coeffs[i] * b.coeffs[i];
+    for (Int j = i + 1; j <= dim; ++j)
+      c.coeffs[k++] = a.coeffs[i] * b.coeffs[j] + a.coeffs[j] * b.coeffs[i];
+  }
+  return c;
 }
 
 }  // end namespace r3d

@@ -322,7 +322,6 @@ protected:
     }
   }
 
-  /* accepts a target buffer element */
   DEVICE void buffer_elem_into_rhs(LO target_elem, RHS& b) {
     auto rho_a = target_densities[target_elem];
     auto V_a = target_sizes[target_elem];
@@ -346,6 +345,9 @@ protected:
           b[i][dof2] += donor_velocity[i] * contrib;
       }
     }
+  }
+
+  DEVICE void elem_pair_into_rhs(LO target_elem, LO donor_elem, RHS& b) {
   }
 
   DEVICE MassMatrix elems_into_mass_matrix(LO key, Graph const& keys2elems,
