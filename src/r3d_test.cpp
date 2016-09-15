@@ -66,13 +66,13 @@ static void test_2d() {
   OMEGA_H_CHECK(Omega_h::are_close(area, 1. / 4.));
 }
 
-template <Int dim>
-static void test_pair_integral_dim(Few<Vector<dim>, dim + 1> elem_pts) {
-  auto parent_size = Omega_h::ParentElementSize<dim>::value;
+template <Omega_h::Int dim>
+static void test_pair_integral_dim(Omega_h::Few<Omega_h::Vector<dim>, dim + 1> elem_pts) {
+//auto parent_size = Omega_h::ParentElementSize<dim>::value;
   auto polytope = Omega_h::r3d::init(elem_pts);
-  for (Int i = 0; i <= dim; ++i) {
+  for (Omega_h::Int i = 0; i <= dim; ++i) {
     auto polynomial1 = Omega_h::get_basis_polynomial(elem_pts, i);
-    for (Int j = 0; j <= dim; ++j) {
+    for (Omega_h::Int j = 0; j <= dim; ++j) {
       if (i ==j) continue;
       auto polynomial2 = Omega_h::get_basis_polynomial(elem_pts, j);
       auto pair_polynomial = polynomial1 * polynomial2;
@@ -82,8 +82,8 @@ static void test_pair_integral_dim(Few<Vector<dim>, dim + 1> elem_pts) {
   }
 }
 
-static void test_pair_integrals {
-  Few<Vector<3>, 4> parent_tet = {
+static void test_pair_integrals() {
+  Omega_h::Few<Omega_h::Vector<3>, 4> parent_tet = {
       {0,0,0},
       {1,0,0},
       {0,1,0},

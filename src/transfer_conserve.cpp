@@ -5,6 +5,9 @@
 #include "size.hpp"
 #include "tag.hpp"
 #include "transfer.hpp"
+#include "map.hpp"
+#include "graph.hpp"
+#include "simplices.hpp"
 
 namespace Omega_h {
 
@@ -246,7 +249,7 @@ protected:
 public:
   MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh,
       Int key_dim, LOs keys2kds,
-      LOs keys2prods, LOs prods2new_ents, LOs prods2new_ents,
+      LOs keys2prods, LOs prods2new_ents,
       LOs same_ents2old_ents, LOs same_ents2new_ents) {
     auto elem_dim = donor_mesh->dim();
     this->target_elem_verts2verts = target_mesh->ask_verts_of(elem_dim);
@@ -260,6 +263,7 @@ public:
     auto kds_are_keys = map_onto<I8>(Read<I8>(nkeys, 1), keys2kds, nkds, 0, 1);
     auto kds2donor_elems = get_buffered_elems(donor_mesh, key_dim, kds_are_keys);
     auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
+    auto ndonor_elems = donor_mesh->nelems();
     auto donor_elems2target_elems = map_onto<LO>(same_ents2new_ents,
       same_ents2old_ents, ndonor_elems, -1, 1);
     this->keys2target_buffer = get_target_buffer_elems(keys2donor_elems,
@@ -275,9 +279,9 @@ public:
 template <Int dim>
 class MomentumVelocityDim : public MomentumVelocity {
 public:
-  constexpr Int nverts_per_elem = dim + 1;
-  constexpr Int max_dofs = (AvgDegree<dim,0,1> + 1) * 2;
-  constexpr Real coupling_factor =
+  static constexpr Int nverts_per_elem = dim + 1;
+  static constexpr Int max_dofs = (AvgDegree<dim,0,1>::value + 1) * 2;
+  static constexpr Real coupling_factor =
     ParentElementSize<dim>::value / (dim + 1) * (dim + 2);
   using MassMatrix = Matrix<max_dofs, max_dofs>;
   using RHS = Matrix<max_dofs, dim>;
@@ -289,16 +293,19 @@ protected:
   Reals target_sizes;
 
 public:
-  MomentumVelocityDim(MomentumVelocity parent,
+  MomentumVelocityDim(
+      MomentumVelocity parent,
+      Mesh* donor_mesh,
+      Mesh* target_mesh,
       TagBase const* tagbase):
       MomentumVelocity(parent) {
     auto velocity_name = tagbase->name();
-    if (!starts_with(name, "velocity")) {
+    if (!starts_with(velocity_name, "velocity")) {
       Omega_h_fail("%s tranferred as momentum-velocity,"
                    " but name needs to start with \"velocity\"\n",
-                   name.c_str());
+                   velocity_name.c_str());
     }
-    auto suffix = remove_prefix(name, "velocity");
+    auto suffix = remove_prefix(velocity_name, "velocity");
     auto density_name = std::string("density") + suffix;
     this->donor_velocities = donor_mesh->get_array<Real>(VERT, velocity_name);
     this->donor_densities = donor_mesh->get_array<Real>(dim, density_name);
@@ -370,7 +377,7 @@ protected:
 
   DEVICE MassMatrix elems_into_mass_matrix(LO key, Graph const& keys2elems,
       MassMatrix& A) {
-    for (ke = keys2elems.a2ab[key];
+    for (auto ke = keys2elems.a2ab[key];
          ke < keys2elems.a2ab[key + 1];
          ++ke) {
       auto target_elem = keys2elems.ab2b[ke];
@@ -387,29 +394,5 @@ protected:
   }
 
 };
-
-template <Int dim>
-static void transfer_momentum_velocity_dim(
-    Mesh* donor_mesh, Mesh* target_mesh,
-    TagBase const* tagbase) {
-  auto f = LAMBDA(LO key) {
-    Matrix<max_dofs, max_dofs> A;
-    Vector<max_dofs> b_common;
-    for (kde = keys2donor_elems.a2ab[key];
-         kde < keys2donor_elems.a2ab[key + 1];
-         ++kde) {
-      auto donor_elem = keys2donor_elems.ab2b[kde];
-    }
-  };
-}
-
-static void transfer_momentum_velocity(Mesh* donor_mesh, Mesh* target_mesh,
-    Int key_dim,
-    LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents) {
-  auto elem_dim = donor_mesh->dim();
-  auto keys2donor_verts = get_closure_verts(donor_mesh, keys2donor_interior);
-  auto ndonor_elems = donor_mesh->nelems();
-}
 
 }  // end namespace Omega_h

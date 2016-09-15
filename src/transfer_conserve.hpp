@@ -33,6 +33,7 @@ Graph get_donor_interior_elems(
     Mesh* mesh, Int key_dim, LOs keys2kds);
 Graph get_target_buffer_elems(Graph keys2donor_elems,
     LOs donor_elems2target_elems);
+LOs number_cavity_ents(Mesh* mesh, Graph keys2ents, Int ent_dim);
 }
 
 #endif

@@ -23,7 +23,6 @@ INLINE r3d::Polynomial<dim, 1> get_basis_polynomial(
     Few<Vector<dim>, dim + 1> elem_pts,
     Int elem_vert) {
   auto dx_dxi = simplex_basis<dim, dim>(elem_pts);
-  auto dxi_dx = invert(J);
   Vector<3> dxi_deta;
   if (elem_vert) {
     dxi_deta = zero_vector<dim>();

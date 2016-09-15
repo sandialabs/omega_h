@@ -660,7 +660,7 @@ OMEGA_H_INLINE Polytope<dim> intersect_simplices(
  * not confident this algorithm works for higher orders.
  */
 template <Int dim>
-Polynomial<dim, 2> operator*(Polynomial<dim, 1> a, Polynomial<dim, 2> b) {
+Polynomial<dim, 2> operator*(Polynomial<dim, 1> a, Polynomial<dim, 1> b) {
   Polynomial<dim, 2> c;
   Int k = 0;
   for (Int i = 0; i <= dim; ++i) {

@@ -153,12 +153,6 @@ Graph get_buffered_elems(Mesh* mesh, Int key_dim, Read<I8> unbuffered_indset) {
   return get_graph(spec);
 }
 
-Graph get_target_buffer_elems(Graph keys2buffered_elems_,
-    LOs donor_elems2target_elems_) {
-  FindTargetBufferElems spec(keys2buffered_elems_, donor_elems2target_elems_);
-  return get_graph(spec);
-}
-
 Graph get_buffered_conflicts(
     Mesh* mesh, Int key_dim, Graph keys2buf_elems, Read<I8> unbuffered_indset) {
   FindDistance3Keys spec(mesh, key_dim, keys2buf_elems, unbuffered_indset);
