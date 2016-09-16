@@ -10,8 +10,8 @@
 namespace Omega_h {
 
 template <Int sdim, Int edim>
-INLINE Few<Vector<sdim>, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
-  Few<Vector<sdim>, edim> b;
+INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
+  Matrix<sdim, edim> b;
   for (Int i = 0; i < edim; ++i) b[i] = p[i + 1] - p[0];
   return b;
 }
@@ -185,6 +185,19 @@ INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
   auto x = solve_using_qr(a, rhs);
   return vector2symm(x);
 }
+
+template <Int dim>
+struct ParentElementSize;
+
+template <>
+struct ParentElementSize<2> {
+  static constexpr Real value = 1.0 / 2.0;
+};
+
+template <>
+struct ParentElementSize<3> {
+  static constexpr Real value = 1.0 / 6.0;
+};
 
 }  // end namespace Omega_h
 

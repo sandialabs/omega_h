@@ -165,16 +165,28 @@ Graph get_closure_verts(
   return get_graph(spec);
 }
 
-Graph get_donor_elems(
+Graph get_donor_interior_elems(
     Mesh* mesh, Int key_dim, LOs keys2kds) {
   auto kds2elems = mesh->ask_up(key_dim, mesh->dim());
   return unmap_graph(keys2kds, kds2elems);
 }
 
+Graph get_target_buffer_elems(Graph keys2donor_elems,
+    LOs donor_elems2target_elems) {
+  auto nedges = keys2donor_elems.nedges();
+  Write<I8> keep_w(nedges);
+  auto f = LAMBDA(LO edge) {
+    keep_w[edge] = (donor_elems2target_elems[keys2donor_elems.ab2b[edge]] >= 0);
+  };
+  parallel_for(nedges, f);
+  auto keep = Read<I8>(keep_w);
+  return filter_graph(keys2donor_elems, keep);
+}
+
 LOs number_cavity_ents(Mesh* mesh, Graph keys2ents, Int ent_dim) {
   auto nents = mesh->nents(ent_dim);
   auto nkeys = keys2ents.nnodes();
-  auto out = Write<LO>(nents);
+  auto out = Write<LO>(nents, -1);
   auto f = LAMBDA(LO key) {
     Int i = 0;
     for (auto ke = keys2ents.a2ab[key];
