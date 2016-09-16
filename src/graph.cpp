@@ -126,10 +126,10 @@ Graph filter_graph(Graph g, Read<I8> keep_edge) {
   return filter_graph2(g, keep_edge).g;
 }
 
-std::map<Int, Graph> categorize_graph(Graph g, Read<I32> edge_categories) {
+std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories) {
   std::map<Int, Graph> result;
   auto remaining_graph = g;
-  auto remaining_categories = edge_categories;
+  auto remaining_categories = unmap(g.ab2b, b_categories, 1);
   while (remaining_categories.size()) {
     auto category = remaining_categories.first();
     auto edge_is_in = each_eq_to(remaining_categories, category);
