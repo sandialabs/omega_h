@@ -18,6 +18,7 @@ Reals graph_weighted_average(
     Graph a2b, Reals ab_weights, Reals b_data, Int width);
 Graph filter_graph(Graph g, Read<I8> keep_edge);
 std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories);
+bool operator==(Graph a, Graph b);
 
 #define INST_DECL(T)                                                           \
   extern template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);

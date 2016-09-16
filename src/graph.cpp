@@ -115,7 +115,7 @@ struct FilteredGraph {
 };
 
 static FilteredGraph filter_graph2(Graph g, Read<I8> keep_edge) {
-  auto degrees = graph_reduce(g, keep_edge, 1, OMEGA_H_SUM);
+  auto degrees = fan_reduce(g.a2ab, keep_edge, 1, OMEGA_H_SUM);
   auto offsets = offset_scan(degrees);
   auto kept2old = collect_marked(keep_edge);
   auto edges = unmap(kept2old, g.ab2b, 1);
@@ -126,10 +126,10 @@ Graph filter_graph(Graph g, Read<I8> keep_edge) {
   return filter_graph2(g, keep_edge).g;
 }
 
-std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories) {
+std::map<Int, Graph> categorize_graph(Graph g, Read<I32> edge_categories) {
   std::map<Int, Graph> result;
   auto remaining_graph = g;
-  auto remaining_categories = b_categories;
+  auto remaining_categories = edge_categories;
   while (remaining_categories.size()) {
     auto category = remaining_categories.first();
     auto edge_is_in = each_eq_to(remaining_categories, category);
@@ -141,6 +141,10 @@ std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories) {
     remaining_categories = unmap(filtered.kept2old, remaining_categories, 1);
   }
   return result;
+}
+
+bool operator==(Graph a, Graph b) {
+  return a.a2ab == b.a2ab && a.ab2b == b.ab2b;
 }
 
 #define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);
