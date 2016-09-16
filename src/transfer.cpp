@@ -13,20 +13,29 @@
 namespace Omega_h {
 
 template <typename T>
-void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents,
-    TagBase const* tagbase, Read<T> prod_data) {
+void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,
+    Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
   auto outflags = tagbase->outflags();
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
   auto same_data = unmap(same_ents2old_ents, old_data, ncomps);
-  auto nnew_ents = new_mesh->nents(ent_dim);
-  auto new_data = Write<T>(nnew_ents * ncomps);
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
-  map_into(prod_data, prods2new_ents, new_data, ncomps);
   new_mesh->add_tag(ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data));
+}
+
+template <typename T>
+void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents,
+    TagBase const* tagbase, Read<T> prod_data) {
+  auto nnew_ents = new_mesh->nents(ent_dim);
+  auto ncomps = tagbase->ncomps();
+  auto new_data = Write<T>(nnew_ents * ncomps);
+  map_into(prod_data, prods2new_ents, new_data, ncomps);
+  transfer_common2(old_mesh, new_mesh, ent_dim, same_ents2old_ents,
+      same_ents2new_ents, tagbase, new_data);
 }
 
 static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
@@ -574,6 +583,9 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 }
 
 #define INST(T)                                                                \
+  template void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,  \
+      LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,  \
+      Write<T> new_data);                                                      \
   template void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,   \
       LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents,      \
       TagBase const* tagbase, Read<T> prod_data);                              \

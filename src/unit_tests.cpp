@@ -6,6 +6,7 @@
 #include "derive.hpp"
 #include "eigen.hpp"
 #include "file.hpp"
+#include "graph.hpp"
 #include "hilbert.hpp"
 #include "inertia.hpp"
 #include "int128.hpp"
@@ -840,6 +841,18 @@ static void test_buffered_conflict(Library const& lib) {
   CHECK(bg.ab2b == LOs({3, 15, 12, 0, 15, 15, 0, 0, 3, 12}));
 }
 
+static void test_categorize_graph() {
+  auto g = Graph(LOs({0, 4, 8}), LOs({0, 1, 2, 3, 4, 5, 6, 7}));
+  auto b_categories = Read<I32>({8, 8, 42, 8, 42, 42, 42, 42});
+  auto g8 = Graph(LOs({0, 3, 3}), LOs({0, 1, 3}));
+  auto g42 = Graph(LOs({0, 1, 5}), LOs({2, 4, 5, 6, 7}));
+  auto result = categorize_graph(g, b_categories);
+  CHECK(result.size() == 2);
+  auto tmp = result[8];
+  CHECK(result[8] == g8);
+  CHECK(result[42] == g42);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_cubic();
@@ -886,4 +899,5 @@ int main(int argc, char** argv) {
   test_recover_hessians(lib);
   test_sf_scale(lib);
   test_buffered_conflict(lib);
+  test_categorize_graph();
 }

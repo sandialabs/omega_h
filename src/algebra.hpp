@@ -70,6 +70,14 @@ INLINE Vector<m> average(Few<Vector<m>, n> x) {
   return avg;
 }
 
+/* Moore-Penrose pseudo-inverse of a vector */
+template <Int n>
+INLINE Vector<n> pseudo_invert(Vector<n> a) {
+  auto nsq = a * a;
+  if (nsq < EPSILON) return zero_vector<n>();
+  return a / nsq;
+}
+
 template <Int m, Int n>
 INLINE Matrix<m, n> operator*(Matrix<m, n> a, Real b) {
   Matrix<m, n> c;
