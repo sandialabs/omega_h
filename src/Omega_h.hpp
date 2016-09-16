@@ -100,6 +100,7 @@ class Read {
   Kokkos::View<const T*> view() const;
 #endif
   T get(LO i) const;
+  T first() const;
   T last() const;
   bool exists() const;
 };

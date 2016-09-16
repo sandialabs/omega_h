@@ -245,6 +245,11 @@ T Read<T>::get(LO i) const {
 }
 
 template <typename T>
+T Read<T>::first() const {
+  return get(0);
+}
+
+template <typename T>
 T Read<T>::last() const {
   return get(size() - 1);
 }
