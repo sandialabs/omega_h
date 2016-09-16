@@ -14,8 +14,8 @@ namespace Omega_h {
 
 template <typename T>
 void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    LOs same_ents2old_ents, LOs same_ents2new_ents,
-    TagBase const* tagbase, Write<T> new_data) {
+    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,
+    Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
@@ -583,10 +583,9 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 }
 
 #define INST(T)                                                                \
-template \
-void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, \
-    LOs same_ents2old_ents, LOs same_ents2new_ents, \
-    TagBase const* tagbase, Write<T> new_data); \
+  template void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,  \
+      LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,  \
+      Write<T> new_data);                                                      \
   template void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,   \
       LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents,      \
       TagBase const* tagbase, Read<T> prod_data);                              \

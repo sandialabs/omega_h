@@ -20,16 +20,14 @@ namespace Omega_h {
 
 template <Int dim>
 INLINE r3d::Polynomial<dim, 1> get_basis_polynomial(
-    Few<Vector<dim>, dim + 1> elem_pts,
-    Int elem_vert) {
+    Few<Vector<dim>, dim + 1> elem_pts, Int elem_vert) {
   auto dx_dxi = simplex_basis<dim, dim>(elem_pts);
   Vector<dim> db_dxi;
   if (elem_vert) {
     db_dxi = zero_vector<dim>();
     db_dxi[elem_vert - 1] = 1;
   } else {
-    for (Int i = 0; i < dim; ++i)
-      db_dxi[i] = -1;
+    for (Int i = 0; i < dim; ++i) db_dxi[i] = -1;
   }
   auto dxi_db = pseudo_invert(db_dxi);
   auto dx_db = dx_dxi * dxi_db;
@@ -39,11 +37,9 @@ INLINE r3d::Polynomial<dim, 1> get_basis_polynomial(
   auto origin_val = db_dx * (-origin);
   r3d::Polynomial<dim, 1> poly;
   poly.coeffs[0] = origin_val;
-  for (Int i = 0; i < dim; ++i)
-    poly.coeffs[i + 1] = db_dx[i];
+  for (Int i = 0; i < dim; ++i) poly.coeffs[i + 1] = db_dx[i];
   return poly;
 }
-
 }
 
 #endif

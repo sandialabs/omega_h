@@ -21,8 +21,8 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim);
 
 template <typename T>
 void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    LOs same_ents2old_ents, LOs same_ents2new_ents,
-    TagBase const* tagbase, Write<T> new_data);
+    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,
+    Write<T> new_data);
 template <typename T>
 void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents,
@@ -33,10 +33,9 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs same_ents2new_ents, std::string const& name);
 
 #define INST_DECL(T)                                                           \
-extern template \
-void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, \
-    LOs same_ents2old_ents, LOs same_ents2new_ents, \
-    TagBase const* tagbase, Write<T> new_data); \
+  extern template void transfer_common2(Mesh* old_mesh, Mesh* new_mesh,        \
+      Int ent_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,             \
+      TagBase const* tagbase, Write<T> new_data);                              \
   extern template void transfer_common(Mesh* old_mesh, Mesh* new_mesh,         \
       Int ent_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,             \
       LOs prods2new_ents, TagBase const* tagbase, Read<T> prod_data);          \

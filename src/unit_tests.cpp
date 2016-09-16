@@ -6,6 +6,7 @@
 #include "derive.hpp"
 #include "eigen.hpp"
 #include "file.hpp"
+#include "graph.hpp"
 #include "hilbert.hpp"
 #include "inertia.hpp"
 #include "int128.hpp"
@@ -25,7 +26,6 @@
 #include "transfer_conserve.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
-#include "graph.hpp"
 
 #include <iostream>  //REMOVE NOW
 #include <sstream>
@@ -842,16 +842,10 @@ static void test_buffered_conflict(Library const& lib) {
 }
 
 static void test_categorize_graph() {
-  auto g = Graph(
-      LOs({0,4,8}),
-      LOs({1,2,3,4,5,6,7,8}));
-  auto b_categories = Read<I32>({8,8,42,8,42,42,42,42});
-  auto g8 = Graph(
-      LOs({0,3,3}),
-      LOs({1,2,4}));
-  auto g42 = Graph(
-      LOs({0,1,5}),
-      LOs({3,5,6,7,8}));
+  auto g = Graph(LOs({0, 4, 8}), LOs({1, 2, 3, 4, 5, 6, 7, 8}));
+  auto b_categories = Read<I32>({8, 8, 42, 8, 42, 42, 42, 42});
+  auto g8 = Graph(LOs({0, 3, 3}), LOs({1, 2, 4}));
+  auto g42 = Graph(LOs({0, 1, 5}), LOs({3, 5, 6, 7, 8}));
   auto result = categorize_graph(g, b_categories);
   CHECK(result.size() == 2);
   auto tmp = result[8];

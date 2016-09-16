@@ -74,8 +74,7 @@ INLINE Vector<m> average(Few<Vector<m>, n> x) {
 template <Int n>
 INLINE Vector<n> pseudo_invert(Vector<n> a) {
   auto nsq = a * a;
-  if (nsq < EPSILON)
-    return zero_vector<n>();
+  if (nsq < EPSILON) return zero_vector<n>();
   return a / nsq;
 }
 

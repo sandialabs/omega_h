@@ -20,7 +20,8 @@ class FindDistance2Elems {
   Int nverts_per_elem;
   Graph verts2elems;
   Read<I8> indset;
-public:
+
+ public:
   FindDistance2Elems(Mesh* mesh, Int key_dim, Read<I8> unbuffered_indset) {
     keys2elems = mesh->ask_up(key_dim, mesh->dim());
     elems2verts = mesh->ask_elem_verts();
@@ -58,7 +59,8 @@ class FindDistance3Keys {
   LOs elems2keys;
   Int nkeys_per_elem;
   Read<I8> indset;
-public:
+
+ public:
   FindDistance3Keys(Mesh* mesh, Int key_dim, Graph keys2buf_elems_,
       Read<I8> unbuffered_indset) {
     keys2buf_elems = keys2buf_elems_;
@@ -101,7 +103,8 @@ class FindClosureVerts {
   Graph keys2elems;
   LOs elems2verts;
   Int nverts_per_elem;
-public:
+
+ public:
   FindClosureVerts(Mesh* mesh, Graph keys2elems_) {
     keys2elems = keys2elems_;
     elems2verts = mesh->ask_elem_verts();
@@ -159,20 +162,18 @@ Graph get_buffered_conflicts(
   return get_graph(spec);
 }
 
-Graph get_closure_verts(
-    Mesh* mesh, Graph keys2elems) {
+Graph get_closure_verts(Mesh* mesh, Graph keys2elems) {
   FindClosureVerts spec(mesh, keys2elems);
   return get_graph(spec);
 }
 
-Graph get_donor_interior_elems(
-    Mesh* mesh, Int key_dim, LOs keys2kds) {
+Graph get_donor_interior_elems(Mesh* mesh, Int key_dim, LOs keys2kds) {
   auto kds2elems = mesh->ask_up(key_dim, mesh->dim());
   return unmap_graph(keys2kds, kds2elems);
 }
 
-Graph get_target_buffer_elems(Graph keys2donor_elems,
-    LOs donor_elems2target_elems) {
+Graph get_target_buffer_elems(
+    Graph keys2donor_elems, LOs donor_elems2target_elems) {
   auto nedges = keys2donor_elems.nedges();
   Write<I8> keep_w(nedges);
   auto f = LAMBDA(LO edge) {
@@ -189,9 +190,7 @@ LOs number_cavity_ents(Mesh* mesh, Graph keys2ents, Int ent_dim) {
   auto out = Write<LO>(nents, -1);
   auto f = LAMBDA(LO key) {
     Int i = 0;
-    for (auto ke = keys2ents.a2ab[key];
-         ke < keys2ents.a2ab[key + 1];
-         ++ke) {
+    for (auto ke = keys2ents.a2ab[key]; ke < keys2ents.a2ab[key + 1]; ++ke) {
       auto ent = keys2ents.ab2b[ke];
       out[ent] = i++;
     }
