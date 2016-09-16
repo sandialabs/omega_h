@@ -4,8 +4,6 @@
 #include "Omega_h_r3d.hpp"
 #include "size.hpp"
 
-#include <iostream> //REMOVE THIS NOW
-
 namespace Omega_h {
 
 /* Convert one of the linear simplex basis
@@ -33,34 +31,12 @@ INLINE r3d::Polynomial<dim, 1> get_basis_polynomial(
     for (Int i = 0; i < dim; ++i)
       db_dxi[i] = -1;
   }
-  std::cout << "db_dxi";
-  for (Int i = 0; i < dim; ++i)
-    std::cout << ' ' << db_dxi[i];
-  std::cout << '\n';
   auto dxi_db = pseudo_invert(db_dxi);
-  std::cout << "dxi_db";
-  for (Int i = 0; i < dim; ++i)
-    std::cout << ' ' << dxi_db[i];
-  std::cout << '\n';
   auto dx_db = dx_dxi * dxi_db;
-  std::cout << "dx_db";
-  for (Int i = 0; i < dim; ++i)
-    std::cout << ' ' << dx_db[i];
-  std::cout << '\n';
   auto db_dx = pseudo_invert(dx_db);
-  std::cout << "db_dx";
-  for (Int i = 0; i < dim; ++i)
-    std::cout << ' ' << db_dx[i];
-  std::cout << '\n';
   auto other_vert = (elem_vert + 1) % (dim + 1);
-  std::cout << "other vert " << other_vert << '\n';
   auto origin = elem_pts[other_vert];
-  std::cout << "origin";
-  for (Int i = 0; i < dim; ++i)
-    std::cout << ' ' << origin[i];
-  std::cout << '\n';
   auto origin_val = db_dx * (-origin);
-  std::cout << "origin val " << origin_val << '\n';
   r3d::Polynomial<dim, 1> poly;
   poly.coeffs[0] = origin_val;
   for (Int i = 0; i < dim; ++i)
