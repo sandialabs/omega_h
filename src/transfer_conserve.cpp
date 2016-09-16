@@ -60,67 +60,106 @@ void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
 }
 
 template <Int dim>
-static void transfer_conserve_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-    LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, TagBase const* tagbase) {
-  auto name = tagbase->name();
+static void transfer_conserve_dim(
+    Mesh* new_mesh,
+    TagBase const* tagbase,
+    Graph keys2old_mat_elems,
+    Graph keys2new_mat_elems,
+    Write<Real> new_data_w) {
+  auto ncomps = tagbase->ncomps();
   auto old_tag = to<Real>(tagbase);
-  auto ncomps = old_tag->ncomps();
   auto old_data = old_tag->array();
-  auto kds2elems = old_mesh->ask_up(key_dim, dim);
-  auto kds2kd_elems = kds2elems.a2ab;
-  auto kd_elems2elems = kds2elems.ab2b;
-  auto measure = RealElementSizes(new_mesh);
   auto elem_verts2verts = new_mesh->ask_verts_of(dim);
-  auto nkeys = keys2kds.size();
-  auto nprods = keys2prods.last();
-  auto prod_data_w = Write<Real>(nprods * ncomps);
+  auto measure = RealElementSizes(new_mesh);
+  auto nkeys = keys2old_mat_elems.nnodes();
   auto f = LAMBDA(LO key) {
-    auto kd = keys2kds[key];
     Real total_new_size = 0.0;
-    for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
-      auto new_elem = prods2new_ents[prod];
+    for (auto kne = keys2new_mat_elems.a2ab[key];
+         kne < keys2new_mat_elems.a2ab[key + 1];
+         ++kne) {
+      auto new_elem = keys2new_mat_elems.ab2b[kne];
       auto v = gather_verts<dim + 1>(elem_verts2verts, new_elem);
       auto size = measure.measure(v);
       total_new_size += size;
     }
     for (Int comp = 0; comp < ncomps; ++comp) {
       Real sum = 0.0;
-      for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
-           ++kd_elem) {
-        auto old_elem = kd_elems2elems[kd_elem];
+      for (auto koe = keys2old_mat_elems.a2ab[key];
+           koe < keys2old_mat_elems.a2ab[key + 1];
+           ++koe) {
+        auto old_elem = keys2old_mat_elems.ab2b[koe];
         sum += old_data[old_elem * ncomps + comp];
       }
-      for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
-        auto new_elem = prods2new_ents[prod];
+      for (auto kne = keys2new_mat_elems.a2ab[key];
+           kne < keys2new_mat_elems.a2ab[key + 1];
+           ++kne) {
+        auto new_elem = keys2new_mat_elems.ab2b[kne];
         auto v = gather_verts<dim + 1>(elem_verts2verts, new_elem);
         auto size = measure.measure(v);
-        prod_data_w[prod * ncomps + comp] = sum * (size / total_new_size);
+        new_data_w[new_elem * ncomps + comp] = sum * (size / total_new_size);
       }
     }
   };
   parallel_for(nkeys, f);
-  auto prod_data = Reals(prod_data_w);
-  transfer_common(old_mesh, new_mesh, dim, same_ents2old_ents,
-      same_ents2new_ents, prods2new_ents, old_tag, prod_data);
+}
+
+static void transfer_conserve_tag(Mesh* old_mesh, Mesh* new_mesh,
+    std::map<Int, Graph> keys2old_elems_cat,
+    std::map<Int, Graph> keys2new_elems_cat,
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    TagBase const* tagbase) {
+  auto dim = old_mesh->dim();
+  auto nnew_elems = new_mesh->nelems();
+  auto ncomps = tagbase->ncomps();
+  auto new_data_w = Write<Real>(nnew_elems * ncomps);
+  for (auto pair : keys2old_elems_cat) {
+    auto mat = pair.first;
+    auto keys2old_mat_elems = pair.second;
+    CHECK(keys2new_elems_cat.count(mat));
+    auto keys2new_mat_elems = keys2new_elems_cat[mat];
+    if (dim == 3)
+      transfer_conserve_dim<3>(new_mesh, tagbase,
+          keys2old_mat_elems, keys2new_mat_elems, new_data_w);
+    if (dim == 2)
+      transfer_conserve_dim<2>(new_mesh, tagbase,
+          keys2old_mat_elems, keys2new_mat_elems, new_data_w);
+  }
+  transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
+      same_ents2new_ents, tagbase, new_data_w);
+}
+
+static bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer) {
+  for (Int i = 0; i < mesh->ntags(dim); ++i)
+    if (mesh->get_tag(dim, i)->xfer() == xfer)
+      return true;
+  return false;
 }
 
 void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
+  if (!has_xfer(old_mesh, dim, OMEGA_H_CONSERVE)) return;
+  auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
+  auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
+  auto keys2new_elems = Graph(keys2prods, prods2new_ents);
+  std::map<Int, Graph> keys2old_elems_cat;
+  std::map<Int, Graph> keys2new_elems_cat;
+  if (old_mesh->has_tag(dim, "class_id")) {
+    auto old_class_id = old_mesh->get_array<I32>(dim, "class_id");
+    auto new_class_id = new_mesh->get_array<I32>(dim, "class_id");
+    keys2old_elems_cat = categorize_graph(keys2old_elems, old_class_id);
+    keys2new_elems_cat = categorize_graph(keys2new_elems, new_class_id);
+  } else {
+    keys2old_elems_cat[-1] = keys2old_elems;
+    keys2new_elems_cat[-1] = keys2new_elems;
+  }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (tagbase->xfer() == OMEGA_H_CONSERVE) {
-      if (dim == 3) {
-        transfer_conserve_tmpl<3>(old_mesh, new_mesh, key_dim, keys2kds,
-            keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-            tagbase);
-      } else if (dim == 2) {
-        transfer_conserve_tmpl<2>(old_mesh, new_mesh, key_dim, keys2kds,
-            keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-            tagbase);
-      }
+      transfer_conserve_tag(old_mesh, new_mesh,
+          keys2old_elems_cat, keys2new_elems_cat,
+          same_ents2old_ents, same_ents2new_ents, tagbase);
     }
   }
 }
