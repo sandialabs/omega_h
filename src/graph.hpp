@@ -1,6 +1,8 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
+#include <map>
+
 #include "internal.hpp"
 
 namespace Omega_h {
@@ -15,6 +17,7 @@ Reals graph_weighted_average_arc_data(
 Reals graph_weighted_average(
     Graph a2b, Reals ab_weights, Reals b_data, Int width);
 Graph filter_graph(Graph g, Read<I8> keep_edge);
+std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories);
 
 #define INST_DECL(T)                                                           \
   extern template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);

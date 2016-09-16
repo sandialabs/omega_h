@@ -109,12 +109,38 @@ Reals graph_weighted_average(
   return graph_weighted_average_arc_data(a2b, ab_weights, ab_data, width);
 }
 
-Graph filter_graph(Graph g, Read<I8> keep_edge) {
+struct FilteredGraph {
+  Graph g;
+  LOs kept2old;
+};
+
+static FilteredGraph filter_graph2(Graph g, Read<I8> keep_edge) {
   auto degrees = graph_reduce(g, keep_edge, 1, OMEGA_H_SUM);
   auto offsets = offset_scan(degrees);
   auto kept2old = collect_marked(keep_edge);
   auto edges = unmap(kept2old, g.ab2b, 1);
-  return Graph(offsets, edges);
+  return {Graph(offsets, edges), kept2old};
+}
+
+Graph filter_graph(Graph g, Read<I8> keep_edge) {
+  return filter_graph2(g, keep_edge).g;
+}
+
+std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories) {
+  std::map<Int, Graph> result;
+  auto remaining_graph = g;
+  auto remaining_categories = b_categories;
+  while (remaining_categories.size()) {
+    auto category = remaining_categories.first();
+    auto edge_is_in = each_eq_to(remaining_categories, category);
+    auto edge_not_in = invert_marks(edge_is_in);
+    auto category_graph = filter_graph(remaining_graph, edge_is_in);
+    result[category] = category_graph;
+    auto filtered = filter_graph2(remaining_graph, edge_not_in);
+    remaining_graph = filtered.g;
+    remaining_categories = unmap(filtered.kept2old, remaining_categories, 1);
+  }
+  return result;
 }
 
 #define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);
