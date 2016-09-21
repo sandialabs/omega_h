@@ -16,20 +16,13 @@
 
 #include "access.hpp"
 #include "qr.hpp"
+#include "simplices.hpp"
 
 namespace Omega_h {
 
 template <Int dim>
-struct MaxFitPoints;
-
-template <>
-struct MaxFitPoints<2> {
-  enum { value = 12 };
-};
-
-template <>
-struct MaxFitPoints<3> {
-  enum { value = 48 };
+struct MaxFitPoints {
+  enum { value = AvgDegree<dim, 0, dim>::value * 2 };
 };
 
 /* Computes the QR decomposition for the Vandermonde

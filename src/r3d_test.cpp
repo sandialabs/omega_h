@@ -69,27 +69,16 @@ static void test_2d() {
 template <Omega_h::Int dim>
 static void test_pair_integral_dim(
     Omega_h::Few<Omega_h::Vector<dim>, dim + 1> elem_pts) {
-  std::cerr << "TEST_PAIR_INTEGRAL_DIM<" << dim << ">\n";
   auto size = Omega_h::element_size(Omega_h::simplex_basis<dim, dim>(elem_pts));
   auto polytope = Omega_h::r3d::init(elem_pts);
   for (Omega_h::Int i = 0; i <= dim; ++i) {
     auto polynomial1 = Omega_h::get_basis_polynomial(elem_pts, i);
-    std::cout << "first polynomial";
-    for (Omega_h::Int j = 0; j <= dim; ++j)
-      std::cout << ' ' << polynomial1.coeffs[j];
-    std::cout << '\n';
     for (Omega_h::Int j = 0; j <= dim; ++j) {
-      if (i == j) continue;
       auto polynomial2 = Omega_h::get_basis_polynomial(elem_pts, j);
-      std::cout << "second polynomial";
-      for (Omega_h::Int k = 0; k <= dim; ++k)
-        std::cout << ' ' << polynomial2.coeffs[k];
-      std::cout << '\n';
       auto pair_polynomial = polynomial1 * polynomial2;
       auto integral = Omega_h::r3d::integrate(polytope, pair_polynomial);
-      std::cout << "integral " << integral << '\n';
-      OMEGA_H_CHECK(
-          Omega_h::are_close(integral, size / ((dim + 1) * (dim + 2))));
+      OMEGA_H_CHECK(Omega_h::are_close(
+          integral, size * (1 + (i == j)) / ((dim + 1) * (dim + 2))));
     }
   }
 }
@@ -103,14 +92,13 @@ static void test_pair_integrals() {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1},
   };
   test_pair_integral_dim<3>(parent_tet);
-  // failing, will fix soon
-  // Omega_h::Few<Omega_h::Vector<2>, 3> perfect_tri(
-  //    {{1, 0}, {0, sqrt(3.0)}, {-1, 0}});
-  // test_pair_integral_dim<2>(perfect_tri);
-  // Omega_h::Few<Omega_h::Vector<3>, 4> perfect_tet(
-  //    {{1, 0, -1.0 / sqrt(2.0)}, {1, 0, -1.0 / sqrt(2.0)},
-  //     {0, -1, 1.0 / sqrt(2.0)}, {0, 1, 1.0 / sqrt(2.0)}});
-  // test_pair_integral_dim<3>(perfect_tet);
+  Omega_h::Few<Omega_h::Vector<2>, 3> perfect_tri(
+      {{1, 0}, {0, sqrt(3.0)}, {-1, 0}});
+  test_pair_integral_dim<2>(perfect_tri);
+  Omega_h::Few<Omega_h::Vector<3>, 4> perfect_tet(
+      {{1, 0, -1.0 / sqrt(2.0)}, {-1, 0, -1.0 / sqrt(2.0)},
+          {0, -1, 1.0 / sqrt(2.0)}, {0, 1, 1.0 / sqrt(2.0)}});
+  test_pair_integral_dim<3>(perfect_tet);
 }
 
 int main() {

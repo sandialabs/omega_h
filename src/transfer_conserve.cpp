@@ -256,6 +256,8 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
+#if 0
+
 static bool starts_with(std::string const& a, std::string const& b) {
   return 0 == a.compare(0, b.length(), b);
 }
@@ -305,7 +307,7 @@ class MomentumVelocity {
         same_ents2old_ents, same_ents2new_ents, ntarget_elems, -1, 1);
     this->target_coords = target_mesh->coords();
     this->donor_coords = donor_mesh->coords();
-  };
+  }
 };
 
 template <Int dim>
@@ -387,20 +389,6 @@ class MomentumVelocityDim : public MomentumVelocity {
     }
   }
 
-  DEVICE void elem_pair_into_rhs(LO target_elem, LO donor_elem, RHS& b) {
-    auto target_pts =
-        gather_vectors<dim + 1, dim>(target_coords, target_elem_verts2verts);
-    auto donor_pts =
-        gather_vectors<dim + 1, dim>(donor_coords, donor_elem_verts2verts);
-    auto domain = r3d::intersect_simplices(target_pts, donor_pts);
-    for (Int elem_vert1 = 0; elem_vert1 < nverts_per_elem; ++elem_vert1) {
-      for (Int elem_vert2 = 0; elem_vert2 < nverts_per_elem; ++elem_vert2) {
-        if (elem_vert2 == elem_vert1) continue;
-        /* TODO ! */
-      }
-    }
-  }
-
   DEVICE MassMatrix elems_into_mass_matrix(
       LO key, Graph const& keys2elems, MassMatrix& A) {
     for (auto ke = keys2elems.a2ab[key]; ke < keys2elems.a2ab[key + 1]; ++ke) {
@@ -417,5 +405,7 @@ class MomentumVelocityDim : public MomentumVelocity {
     return A;
   }
 };
+
+#endif
 
 }  // end namespace Omega_h

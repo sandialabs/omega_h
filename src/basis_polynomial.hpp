@@ -22,6 +22,7 @@ template <Int dim>
 INLINE r3d::Polynomial<dim, 1> get_basis_polynomial(
     Few<Vector<dim>, dim + 1> elem_pts, Int elem_vert) {
   auto dx_dxi = simplex_basis<dim, dim>(elem_pts);
+  auto dxi_dx = invert(dx_dxi);
   Vector<dim> db_dxi;
   if (elem_vert) {
     db_dxi = zero_vector<dim>();
@@ -29,9 +30,7 @@ INLINE r3d::Polynomial<dim, 1> get_basis_polynomial(
   } else {
     for (Int i = 0; i < dim; ++i) db_dxi[i] = -1;
   }
-  auto dxi_db = pseudo_invert(db_dxi);
-  auto dx_db = dx_dxi * dxi_db;
-  auto db_dx = pseudo_invert(dx_db);
+  auto db_dx = transpose(dxi_dx) * db_dxi;
   auto other_vert = (elem_vert + 1) % (dim + 1);
   auto origin = elem_pts[other_vert];
   auto origin_val = db_dx * (-origin);

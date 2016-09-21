@@ -161,18 +161,18 @@ Graph invert_map_by_sorting(LOs a2b, LO nb) {
 }
 
 Graph invert_map_by_atomics(LOs a2b, LO nb) {
-  LO na = a2b.size();
+  auto na = a2b.size();
   Write<LO> degrees(nb, 0);
   auto count = LAMBDA(LO a) { atomic_increment(&degrees[a2b[a]]); };
   parallel_for(na, count);
   auto b2ba = offset_scan(Read<LO>(degrees));
-  LO nba = b2ba.get(nb);
+  auto nba = b2ba.get(nb);
   Write<LO> write_ba2a(nba);
-  degrees = Write<LO>(nb, 0);
+  auto positions = Write<LO>(nb, 0);
   auto fill = LAMBDA(LO a) {
-    LO b = a2b[a];
-    LO first = b2ba[b];
-    LO j = atomic_fetch_add<LO>(&degrees[a2b[a]], 1);
+    auto b = a2b[a];
+    auto first = b2ba[b];
+    auto j = atomic_fetch_add<LO>(&positions[a2b[a]], 1);
     write_ba2a[first + j] = a;
   };
   parallel_for(na, fill);
