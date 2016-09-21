@@ -3,6 +3,7 @@
 #include "loop.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
+#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
