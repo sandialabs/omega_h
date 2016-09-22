@@ -256,8 +256,6 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
-#if 0
-
 static bool starts_with(std::string const& a, std::string const& b) {
   return 0 == a.compare(0, b.length(), b);
 }
@@ -405,7 +403,5 @@ class MomentumVelocityDim : public MomentumVelocity {
     return A;
   }
 };
-
-#endif
 
 }  // end namespace Omega_h
