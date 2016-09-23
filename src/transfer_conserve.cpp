@@ -271,7 +271,7 @@ class MomentumVelocity {
       Omega_h_fail(
           "%s tranferred as momentum-conserving velocity,"
           " but its name is not \"velocity\"\n",
-          velocity_name);
+          velocity_name.c_str());
     }
     this->target_masses = target_mesh->get_array<Real>(dim, "mass");
     this->donor_masses = donor_mesh->get_array<Real>(dim, "mass");
