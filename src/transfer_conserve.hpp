@@ -17,6 +17,9 @@ void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
+void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+    LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_elems2old_elems,
+    LOs same_elems2new_elems, LOs same_verts2old_verts, LOs old_verts2new_verts);
 
 bool needs_buffer_layers(Mesh* mesh);
 

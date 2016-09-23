@@ -19,6 +19,8 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim);
 
+bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer);
+
 template <typename T>
 void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,

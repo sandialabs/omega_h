@@ -12,6 +12,12 @@
 
 namespace Omega_h {
 
+bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer) {
+  for (Int i = 0; i < mesh->ntags(dim); ++i)
+    if (mesh->get_tag(dim, i)->xfer() == xfer) return true;
+  return false;
+}
+
 template <typename T>
 void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,
@@ -284,8 +290,7 @@ static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if ((tagbase->xfer() == OMEGA_H_INHERIT) ||
         (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) ||
-        (tagbase->xfer() == OMEGA_H_METRIC) ||
-        (tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY)) {
+        (tagbase->xfer() == OMEGA_H_METRIC)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_no_products_tmpl<I8>(old_mesh, new_mesh, prod_dim,
