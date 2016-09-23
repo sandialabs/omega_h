@@ -262,9 +262,8 @@ class MomentumVelocity {
   Write<Real> target_velocities;
 
  public:
-  MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh,
-      Int key_dim, TagBase const* tagbase,
-      LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
+  MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh, Int key_dim,
+      TagBase const* tagbase, LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
       LOs same_verts2old_verts, LOs same_verts2new_verts) {
     CHECK(tagbase->ncomps() == dim);
     this->target_masses = target_mesh->get_array<Real>(dim, "mass");
@@ -278,27 +277,20 @@ class MomentumVelocity {
         get_closure_verts(target_mesh, keys2target_interior);
     auto kds2elems = donor_mesh->ask_up(key_dim, dim);
     auto keys2donor_interior = unmap_graph(keys2kds, kds2elems);
-    this->keys2donor_verts =
-        get_closure_verts(donor_mesh, keys2donor_interior);
+    this->keys2donor_verts = get_closure_verts(donor_mesh, keys2donor_interior);
     this->target_verts2elems = target_mesh->ask_up(VERT, dim);
     this->donor_verts2elems = donor_mesh->ask_up(VERT, dim);
   }
 
   template <typename Arr>
-  static DEVICE Vector<dim> get_interior_momentum(
-      LO key,
-      Graph const& keys2verts,
-      Graph const& verts2elems,
-      Reals const& masses,
+  static DEVICE Vector<dim> get_interior_momentum(LO key,
+      Graph const& keys2verts, Graph const& verts2elems, Reals const& masses,
       Arr const& velocities) {
     Vector<dim> momentum = zero_vector<dim>();
-    for (auto kv = keys2verts.a2ab[key];
-         kv < keys2verts.a2ab[key + 1];
-         ++kv) {
+    for (auto kv = keys2verts.a2ab[key]; kv < keys2verts.a2ab[key + 1]; ++kv) {
       auto vert = keys2verts.ab2b[kv];
       auto velocity = get_vector<dim>(velocities, vert);
-      for (auto ve = verts2elems.a2ab[vert];
-           ve < verts2elems.a2ab[vert + 1];
+      for (auto ve = verts2elems.a2ab[vert]; ve < verts2elems.a2ab[vert + 1];
            ++ve) {
         auto elem = verts2elems.ab2b[ve];
         auto mass = masses[elem];
@@ -309,12 +301,10 @@ class MomentumVelocity {
   }
 
   DEVICE void operator()(LO key) const {
-    auto donor_momentum = get_interior_momentum(
-        key, keys2donor_verts, donor_verts2elems,
-        donor_masses, donor_velocities);
-    auto target_momentum = get_interior_momentum(
-        key, keys2target_verts, target_verts2elems,
-        target_masses, target_velocities);
+    auto donor_momentum = get_interior_momentum(key, keys2donor_verts,
+        donor_verts2elems, donor_masses, donor_velocities);
+    auto target_momentum = get_interior_momentum(key, keys2target_verts,
+        target_verts2elems, target_masses, target_velocities);
     Vector<dim> scalars;
     for (Int i = 0; i < dim; ++i) {
       if (fabs(donor_momentum[i]) < EPSILON) {
@@ -324,8 +314,7 @@ class MomentumVelocity {
       }
     }
     for (auto kv = keys2target_verts.a2ab[key];
-         kv < keys2target_verts.a2ab[key + 1];
-         ++kv) {
+         kv < keys2target_verts.a2ab[key + 1]; ++kv) {
       auto vert = keys2target_verts.ab2b[kv];
       auto velocity = get_vector<dim>(target_velocities, vert);
       for (Int i = 0; i < dim; ++i) {
@@ -335,36 +324,34 @@ class MomentumVelocity {
     }
   }
 
-  static void apply(Mesh* donor_mesh, Mesh* target_mesh,
-      Int key_dim, TagBase const* tagbase,
-      LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
+  static void apply(Mesh* donor_mesh, Mesh* target_mesh, Int key_dim,
+      TagBase const* tagbase, LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
       LOs same_verts2old_verts, LOs same_verts2new_verts) {
     MomentumVelocity<dim> self(donor_mesh, target_mesh, key_dim, tagbase,
-        keys2kds, keys2prods, prods2new_elems,
-        same_verts2old_verts, same_verts2new_verts);
+        keys2kds, keys2prods, prods2new_elems, same_verts2old_verts,
+        same_verts2new_verts);
     auto nkeys = keys2kds.size();
     parallel_for(nkeys, self);
     transfer_common3(target_mesh, VERT, tagbase, self.target_velocities);
   }
-
 };
 
 void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-    LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
-    LOs same_verts2old_verts, LOs same_verts2new_verts) {
+    LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_verts2old_verts,
+    LOs same_verts2new_verts) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY) {
       if (dim == 3) {
         MomentumVelocity<3>::apply(old_mesh, new_mesh, key_dim, tagbase,
-            keys2kds, keys2prods, prods2new_elems,
-            same_verts2old_verts, same_verts2new_verts);
+            keys2kds, keys2prods, prods2new_elems, same_verts2old_verts,
+            same_verts2new_verts);
       }
       if (dim == 2) {
         MomentumVelocity<2>::apply(old_mesh, new_mesh, key_dim, tagbase,
-            keys2kds, keys2prods, prods2new_elems,
-            same_verts2old_verts, same_verts2new_verts);
+            keys2kds, keys2prods, prods2new_elems, same_verts2old_verts,
+            same_verts2new_verts);
       }
       CHECK(new_mesh->has_tag(VERT, tagbase->name()));
     }

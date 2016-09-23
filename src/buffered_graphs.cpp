@@ -112,7 +112,7 @@ class FindClosureVerts {
     nverts_per_elem = simplex_degrees[mesh->dim()][VERT];
   }
   LO count() const { return keys2elems.nnodes(); }
-  enum { stack_max = (AvgDegree<3,0,3>::value + 1) * 2 };
+  enum { stack_max = (AvgDegree<3, 0, 3>::value + 1) * 2 };
   DEVICE Int run(LO key, LO* stack, Int stack_max) const {
     Int n = 0;
     for (auto key_elem = keys2elems.a2ab[key];

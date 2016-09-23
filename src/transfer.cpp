@@ -19,8 +19,8 @@ bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer) {
 }
 
 template <typename T>
-void transfer_common3(Mesh* new_mesh, Int ent_dim,
-    TagBase const* tagbase, Write<T> new_data) {
+void transfer_common3(
+    Mesh* new_mesh, Int ent_dim, TagBase const* tagbase, Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
@@ -422,7 +422,8 @@ static void transfer_pointwise_coarsen(Mesh* old_mesh, Mesh* new_mesh,
 
 void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, LOs same_verts2old_verts, LOs same_verts2new_verts) {
+    LOs same_ents2new_ents, LOs same_verts2old_verts,
+    LOs same_verts2new_verts) {
   if (prod_dim == VERT) {
     transfer_no_products(
         old_mesh, new_mesh, prod_dim, same_ents2old_ents, same_ents2new_ents);
@@ -575,7 +576,8 @@ static void transfer_pointwise_swap(Mesh* old_mesh, Mesh* new_mesh,
 
 void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, LOs same_verts2old_verts, LOs same_verts2new_verts) {
+    LOs same_ents2new_ents, LOs same_verts2old_verts,
+    LOs same_verts2new_verts) {
   if (prod_dim == VERT) {
     transfer_copy(old_mesh, new_mesh, prod_dim);
   } else {
@@ -601,9 +603,8 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 }
 
 #define INST(T)                                                                \
-template \
-void transfer_common3(Mesh* new_mesh, Int ent_dim, \
-    TagBase const* tagbase, Write<T> new_data); \
+  template void transfer_common3(                                              \
+      Mesh* new_mesh, Int ent_dim, TagBase const* tagbase, Write<T> new_data); \
   template void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,  \
       LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,  \
       Write<T> new_data);                                                      \

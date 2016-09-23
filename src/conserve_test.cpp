@@ -49,11 +49,11 @@ int main(int argc, char** argv) {
   auto coords = mesh.coords();
   auto f = LAMBDA(LO vert) {
     auto x = get_vector<2>(coords, vert);
-    set_vector(velocity, vert, vector_2(1,0) * sqrt(fabs(x[0])));
+    set_vector(velocity, vert, vector_2(1, 0) * sqrt(fabs(x[0])));
   };
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
-    OMEGA_H_DO_OUTPUT, Reals(velocity));
+      OMEGA_H_DO_OUTPUT, Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
   adapt(&mesh, 0.30, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 3);
   postprocess_conserve(&mesh);
@@ -63,4 +63,3 @@ int main(int argc, char** argv) {
   if (!ok) return 2;
   return 0;
 }
-
