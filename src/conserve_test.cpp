@@ -19,7 +19,7 @@ static void postprocess_conserve(Mesh* mesh) {
       OMEGA_H_DO_OUTPUT, density);
 }
 
-static void print_total_momentum(Mesh* mesh) {
+static Vector<2> get_total_momentum(Mesh* mesh) {
   auto vert_velocities = mesh->get_array<Real>(VERT, "velocity");
   auto elem_velocities = average_field(mesh, mesh->dim(),
       LOs(mesh->nelems(), 0, 1), mesh->dim(), vert_velocities);
@@ -27,23 +27,19 @@ static void print_total_momentum(Mesh* mesh) {
   auto momenta = multiply_each(elem_velocities, masses);
   Vector<2> total;
   repro_sum(mesh->comm(), momenta, mesh->dim(), &total[0]);
-  std::cout << "total momentum " << total[0] <<  ' ' << total[1] << '\n';
+  return total;
 }
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
+  CHECK(world->size() == 1);
   Mesh mesh;
-  if (world->rank() == 0) {
-    auto nx = 10;
-    build_box(&mesh, lib, 1, 1, 0, nx, nx, 0);
-    classify_by_angles(&mesh, PI / 4);
-    mesh.reorder();
-    mesh.reset_globals();
-  }
-  mesh.set_comm(world);
-  mesh.balance();
-  mesh.set_parting(OMEGA_H_GHOSTED);
+  auto nx = 10;
+  build_box(&mesh, lib, 1, 1, 0, nx, nx, 0);
+  classify_by_angles(&mesh, PI / 4);
+  mesh.reorder();
+  mesh.reset_globals();
   auto size = find_identity_size(&mesh);
   size = multiply_each_by(1.3, size);
   mesh.add_tag(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
@@ -58,10 +54,11 @@ int main(int argc, char** argv) {
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
     OMEGA_H_DO_OUTPUT, Reals(velocity));
-  print_total_momentum(&mesh);
+  auto momentum_before = get_total_momentum(&mesh);
   adapt(&mesh, 0.30, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 3);
   postprocess_conserve(&mesh);
-  print_total_momentum(&mesh);
+  auto momentum_after = get_total_momentum(&mesh);
+  CHECK(are_close(momentum_before, momentum_after));
   bool ok = check_regression("gold_conserve", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;
