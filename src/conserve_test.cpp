@@ -40,13 +40,7 @@ int main(int argc, char** argv) {
       measure_elements_real(&mesh));
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
     OMEGA_H_DO_OUTPUT, Reals(mesh.nverts() * mesh.dim(), 1));
-  Now t0 = now();
   adapt(&mesh, 0.30, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 3);
-  Now t1 = now();
-  mesh.set_parting(OMEGA_H_ELEM_BASED);
-  if (mesh.comm()->rank() == 0) {
-    std::cout << "test took " << (t1 - t0) << " seconds\n";
-  }
   postprocess_conserve(&mesh);
   bool ok = check_regression("gold_conserve", &mesh, 0.0, 0.0);
   if (!ok) return 2;

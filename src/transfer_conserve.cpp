@@ -359,6 +359,7 @@ void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
             keys2kds, keys2prods, prods2new_elems,
             same_verts2old_verts, same_verts2new_verts);
       }
+      CHECK(new_mesh->has_tag(VERT, tagbase->name()));
     }
   }
 }

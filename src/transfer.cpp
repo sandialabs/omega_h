@@ -422,7 +422,7 @@ static void transfer_pointwise_coarsen(Mesh* old_mesh, Mesh* new_mesh,
 
 void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents) {
+    LOs same_ents2new_ents, LOs same_verts2old_verts, LOs same_verts2new_verts) {
   if (prod_dim == VERT) {
     transfer_no_products(
         old_mesh, new_mesh, prod_dim, same_ents2old_ents, same_ents2new_ents);
@@ -443,6 +443,9 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_conserve_r3d(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_momentum_velocity(old_mesh, new_mesh, VERT, keys2verts,
+        keys2doms.a2ab, prods2new_ents, same_verts2old_verts,
+        same_verts2new_verts);
   }
 }
 
@@ -572,7 +575,7 @@ static void transfer_pointwise_swap(Mesh* old_mesh, Mesh* new_mesh,
 
 void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents) {
+    LOs same_ents2new_ents, LOs same_verts2old_verts, LOs same_verts2new_verts) {
   if (prod_dim == VERT) {
     transfer_copy(old_mesh, new_mesh, prod_dim);
   } else {
@@ -592,6 +595,8 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_conserve_r3d(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_momentum_velocity(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
+        prods2new_ents, same_verts2old_verts, same_verts2new_verts);
   }
 }
 
