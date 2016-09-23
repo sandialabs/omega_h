@@ -19,6 +19,11 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim);
 
+bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer);
+
+template <typename T>
+void transfer_common3(Mesh* new_mesh, Int ent_dim,
+    TagBase const* tagbase, Write<T> new_data);
 template <typename T>
 void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,
@@ -33,6 +38,9 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs same_ents2new_ents, std::string const& name);
 
 #define INST_DECL(T)                                                           \
+extern template \
+void transfer_common3(Mesh* new_mesh, Int ent_dim, \
+    TagBase const* tagbase, Write<T> new_data); \
   extern template void transfer_common2(Mesh* old_mesh, Mesh* new_mesh,        \
       Int ent_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,             \
       TagBase const* tagbase, Write<T> new_data);                              \
