@@ -256,88 +256,90 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
-static bool starts_with(std::string const& a, std::string const& b) {
-  return 0 == a.compare(0, b.length(), b);
-}
-
-static std::string remove_prefix(
-    std::string const& a, std::string const& prefix) {
-  return a.substr(prefix.length(), std::string::npos);
-}
-
-class MomentumVelocity {
- protected:
-  LOs target_elem_verts2verts;
-  LOs donor_elem_verts2verts;
-  Graph keys2target_buffer;
-  Graph keys2target_interior;
-  Graph keys2target_verts;
-  Graph keys2donor_interior;
-  LOs same_verts
-
- public:
-  MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh, Int key_dim,
-      LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-      LOs same_elems2old_elems, LOs same_elems2new_elems) {
-    auto elem_dim = donor_mesh->dim();
-    this->target_elem_verts2verts = target_mesh->ask_verts_of(elem_dim);
-    this->keys2target_interior = Graph(keys2prods, prods2new_ents);
-    this->keys2target_verts =
-        get_closure_verts(target_mesh, keys2target_interior);
-    auto nkeys = keys2kds.size();
-    auto nkds = donor_mesh->nents(key_dim);
-    auto kds_are_keys = map_onto<I8>(Read<I8>(nkeys, 1), keys2kds, nkds, 0, 1);
-    auto kds2donor_elems =
-        get_buffered_elems(donor_mesh, key_dim, kds_are_keys);
-    auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
-    auto ndonor_elems = donor_mesh->nelems();
-    auto donor_elems2target_elems = map_onto<LO>(
-        same_elems2new_elems, same_elems2old_elems, ndonor_elems, -1, 1);
-    this->keys2target_buffer =
-        get_target_buffer_elems(keys2donor_elems, donor_elems2target_elems);
-    this->keys2donor_interior = Graph(keys2prods, prods2new_ents);
-  }
-};
-
 template <Int dim>
-class MomentumVelocityDim : public MomentumVelocity {
- protected:
+class MomentumVelocity {
+  Graph keys2target_verts;
+  Graph keys2donor_verts;
+  Graph target_verts2elems;
+  Graph donor_verts2elems;
   Reals target_masses;
-  Reals target_momenta;
+  Reals donor_masses;
+  Reals donor_velocities;
   Write<Real> target_velocities;
 
  public:
-  MomentumVelocityDim(MomentumVelocity parent, Mesh* donor_mesh,
-      Mesh* target_mesh, TagBase const* tagbase,
+  MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh,
+      Int key_dim, TagBase const* tagbase,
+      LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
+      LOs same_elems2old_elems, LOs same_elems2new_elems,
       LOs same_verts2old_verts, LOs same_verts2new_verts) {
-      : MomentumVelocity(parent) {
     auto velocity_name = tagbase->name();
-    if (!starts_with(velocity_name, "velocity")) {
+    if (velocity_name != "velocity") {
       Omega_h_fail(
-          "%s tranferred as momentum-velocity,"
-          " but name needs to start with \"velocity\"\n",
-          velocity_name.c_str());
+          "%s tranferred as momentum-conserving velocity,"
+          " but its name is not \"velocity\"\n",
+          velocity_name);
     }
-    auto suffix = remove_prefix(velocity_name, "velocity");
-    auto mass_name = std::string("mass") + suffix;
-    auto momentum_name = std::string("momentum") + suffix;
-    this->target_masses = target_mesh->get_array<Real>(dim, mass_name);
-    this->target_momenta = target_mesh->get_array<Real>(dim, momentum_name);
-    auto donor_velocities = donor_mesh->get_array<Real>(VERT, velocity_name);
-    auto ntarget_verts = target_mesh->nverts();
-    target_velocities = Write<Real>(ntarget_verts * dim);
+    this->target_masses = target_mesh->get_array<Real>(dim, "mass");
+    this->donor_masses = donor_mesh->get_array<Real>(dim, "mass");
+    this->donor_velocities = donor_mesh->get_array<Real>(VERT, velocity_name);
+    this->target_velocities = Write<Real>(target_mesh->nverts() * dim);
     auto same_velocities = unmap(same_verts2old_verts, donor_velocities, dim);
     map_into(same_velocities, same_verts2new_verts, target_velocities, dim);
+    auto keys2target_interior = Graph(keys2prods, prods2new_ents);
+    this->keys2target_verts =
+        get_closure_verts(target_mesh, keys2target_interior);
+    auto kds2elems = donor_mesh->ask_up(key_dim, dim);
+    auto keys2donor_interior = unmap_graph(keys2kds, kds2elems);
+    this->keys2donor_verts =
+        get_closure_verts(donor_mesh, keys2donor_interior);
+    this->target_verts2elems = target_mesh->ask_up(VERT, dim);
+    this->donor_verts2elems = donor_mesh->ask_up(VERT, dim);
+  }
+
+  template <typename Arr>
+  DEVICE Vector<dim> get_interior_momentum(
+      LO key,
+      Graph const& keys2verts,
+      Graph const& verts2elems,
+      Reals const& masses,
+      Arr const& velocities) {
+    Vector<dim> momentum = zero_vector<dim>();
+    for (auto kv = keys2verts.a2ab[key];
+         kv < keys2verts.a2ab[key + 1];
+         ++kv) {
+      auto vert = keys2verts.ab2b[kv];
+      auto velocity = get_vector<dim>(velocities, vert);
+      for (ve = verts2elems.a2ab[vert];
+           ve < verts2elems.a2ab[vert + 1];
+           ++ve) {
+        auto elem = verts2elems.ab2b[ve];
+        auto mass = masses[elem];
+        total_momentum = total_momentum + mass * velocity / 4.0;
+      }
+    }
+    return momentum;
   }
 
   DEVICE void operator()(LO key) {
-    Vector<dim> total_momentum = zero_vector<dim>();
-    for (ktb = keys2target_buffer.a2ab[key];
-         ktb < keys2target_buffer.a2ab[key + 1];
-         ++ktb) {
-      auto buffer_elem = keys2target_buffer.ab2b[ktb];
+    auto donor_momentum = get_interior_momentum(
+        key, keys2donor_verts, donor_verts2elems,
+        donor_masses, donor_velocities);
+    auto target_momentum = get_interior_momentum(
+        key, keys2target_verts, target_verts2elems,
+        target_masses, target_velocities);
+    for (auto kv = keys2target_verts.a2ab[key];
+         kv < keys2target_verts.a2ab[key + 1];
+         ++kv) {
+      auto vert = keys2target_verts.ab2b[kv];
+      auto velocity = get_vector<dim>(target_velocities, vert);
+      for (Int i = 0; i < dim; ++i) {
+        velocity[i] = velocity[i] * target_momentum[i] / donor_momentum[i];
+      }
+      set_vector<dim>(target_velocities, vert, velocity);
     }
   }
+
 };
 
 }  // end namespace Omega_h
