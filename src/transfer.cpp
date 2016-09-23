@@ -19,17 +19,25 @@ bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer) {
 }
 
 template <typename T>
+void transfer_common3(Mesh* new_mesh, Int ent_dim,
+    TagBase const* tagbase, Write<T> new_data) {
+  auto const& name = tagbase->name();
+  auto ncomps = tagbase->ncomps();
+  auto xfer = tagbase->xfer();
+  auto outflags = tagbase->outflags();
+  new_mesh->add_tag(ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data));
+}
+
+template <typename T>
 void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,
     Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
-  auto xfer = tagbase->xfer();
-  auto outflags = tagbase->outflags();
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
   auto same_data = unmap(same_ents2old_ents, old_data, ncomps);
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
-  new_mesh->add_tag(ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data));
+  transfer_common3(new_mesh, ent_dim, tagbase, new_data);
 }
 
 template <typename T>
@@ -588,6 +596,9 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 }
 
 #define INST(T)                                                                \
+template \
+void transfer_common3(Mesh* new_mesh, Int ent_dim, \
+    TagBase const* tagbase, Write<T> new_data); \
   template void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,  \
       LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase,  \
       Write<T> new_data);                                                      \
