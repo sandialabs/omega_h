@@ -266,16 +266,11 @@ class MomentumVelocity {
       Int key_dim, TagBase const* tagbase,
       LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
       LOs same_verts2old_verts, LOs same_verts2new_verts) {
-    auto velocity_name = tagbase->name();
-    if (velocity_name != "velocity") {
-      Omega_h_fail(
-          "%s tranferred as momentum-conserving velocity,"
-          " but its name is not \"velocity\"\n",
-          velocity_name.c_str());
-    }
+    CHECK(tagbase->name() == "velocity");
+    CHECK(tagbase->ncomps() == dim);
     this->target_masses = target_mesh->get_array<Real>(dim, "mass");
     this->donor_masses = donor_mesh->get_array<Real>(dim, "mass");
-    this->donor_velocities = donor_mesh->get_array<Real>(VERT, velocity_name);
+    this->donor_velocities = donor_mesh->get_array<Real>(VERT, "velocity");
     this->target_velocities = Write<Real>(target_mesh->nverts() * dim);
     auto same_velocities = unmap(same_verts2old_verts, donor_velocities, dim);
     map_into(same_velocities, same_verts2new_verts, target_velocities, dim);
