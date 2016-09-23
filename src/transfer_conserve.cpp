@@ -350,6 +350,7 @@ class MomentumVelocity {
 void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
     LOs same_verts2old_verts, LOs same_verts2new_verts) {
+  auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY) {
