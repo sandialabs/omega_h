@@ -316,13 +316,21 @@ class MomentumVelocity {
     auto target_momentum = get_interior_momentum(
         key, keys2target_verts, target_verts2elems,
         target_masses, target_velocities);
+    Vector<dim> scalars;
+    for (Int i = 0; i < dim; ++i) {
+      if (fabs(donor_momentum[i]) < EPSILON) {
+        scalars[i] = 1;
+      } else {
+        scalars[i] = target_momentum[i] / donor_momentum[i];
+      }
+    }
     for (auto kv = keys2target_verts.a2ab[key];
          kv < keys2target_verts.a2ab[key + 1];
          ++kv) {
       auto vert = keys2target_verts.ab2b[kv];
       auto velocity = get_vector<dim>(target_velocities, vert);
       for (Int i = 0; i < dim; ++i) {
-        velocity[i] = velocity[i] * target_momentum[i] / donor_momentum[i];
+        velocity[i] = velocity[i] * scalars[i];
       }
       set_vector<dim>(target_velocities, vert, velocity);
     }
