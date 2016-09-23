@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto size = find_identity_size(&mesh);
-  size = multiply_each_by(2.0, size);
+  size = multiply_each_by(1.3, size);
   mesh.add_tag(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
       measure_elements_real(&mesh));
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
   auto coords = mesh.coords();
   auto f = LAMBDA(LO vert) {
     auto x = get_vector<2>(coords, vert);
-    set_vector(velocity, vert, vector_2(1,0) * x[0]);
+    set_vector(velocity, vert, vector_2(1,0) * sqrt(fabs(x[0])));
   };
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,

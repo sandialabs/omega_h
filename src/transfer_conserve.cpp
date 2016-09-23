@@ -321,7 +321,7 @@ class MomentumVelocity {
       if (fabs(donor_momentum[i]) < EPSILON) {
         scalars[i] = 1;
       } else {
-        scalars[i] = target_momentum[i] / donor_momentum[i];
+        scalars[i] = donor_momentum[i] / target_momentum[i];
       }
     }
     for (auto kv = keys2target_verts.a2ab[key];
