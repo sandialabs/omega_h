@@ -121,12 +121,6 @@ static void transfer_conserve_tag(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, tagbase, new_data_w);
 }
 
-static bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer) {
-  for (Int i = 0; i < mesh->ntags(dim); ++i)
-    if (mesh->get_tag(dim, i)->xfer() == xfer) return true;
-  return false;
-}
-
 void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
@@ -256,156 +250,112 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
-#if 0
-
-static bool starts_with(std::string const& a, std::string const& b) {
-  return 0 == a.compare(0, b.length(), b);
-}
-
-static std::string remove_prefix(
-    std::string const& a, std::string const& prefix) {
-  return a.substr(prefix.length(), std::string::npos);
-}
-
+template <Int dim>
 class MomentumVelocity {
- protected:
-  LOs target_elem_verts2verts;
-  LOs donor_elem_verts2verts;
-  LOs verts2dofs;
-  Graph keys2target_buffer;
-  Graph keys2target_interior;
-  Graph keys2donor_interior;
-  LOs target_elems2donor_elems;
-  Reals target_coords;
-  Reals donor_coords;
+  Graph keys2target_verts;
+  Graph keys2donor_verts;
+  Graph target_verts2elems;
+  Graph donor_verts2elems;
+  Reals target_masses;
+  Reals donor_masses;
+  Reals donor_velocities;
+  Write<Real> target_velocities;
 
  public:
   MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh, Int key_dim,
-      LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-      LOs same_ents2new_ents) {
-    auto elem_dim = donor_mesh->dim();
-    this->target_elem_verts2verts = target_mesh->ask_verts_of(elem_dim);
-    this->donor_elem_verts2verts = donor_mesh->ask_verts_of(elem_dim);
-    this->keys2target_interior = Graph(keys2prods, prods2new_ents);
-    auto keys2target_verts =
+      TagBase const* tagbase, LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
+      LOs same_verts2old_verts, LOs same_verts2new_verts) {
+    CHECK(tagbase->ncomps() == dim);
+    this->target_masses = target_mesh->get_array<Real>(dim, "mass");
+    this->donor_masses = donor_mesh->get_array<Real>(dim, "mass");
+    this->donor_velocities = to<Real>(tagbase)->array();
+    this->target_velocities = Write<Real>(target_mesh->nverts() * dim);
+    auto same_velocities = unmap(same_verts2old_verts, donor_velocities, dim);
+    map_into(same_velocities, same_verts2new_verts, target_velocities, dim);
+    auto keys2target_interior = Graph(keys2prods, prods2new_elems);
+    this->keys2target_verts =
         get_closure_verts(target_mesh, keys2target_interior);
-    this->verts2dofs =
-        number_cavity_ents(target_mesh, keys2target_verts, elem_dim);
+    auto kds2elems = donor_mesh->ask_up(key_dim, dim);
+    auto keys2donor_interior = unmap_graph(keys2kds, kds2elems);
+    this->keys2donor_verts = get_closure_verts(donor_mesh, keys2donor_interior);
+    this->target_verts2elems = target_mesh->ask_up(VERT, dim);
+    this->donor_verts2elems = donor_mesh->ask_up(VERT, dim);
+  }
+
+  template <typename Arr>
+  static DEVICE Vector<dim> get_interior_momentum(LO key,
+      Graph const& keys2verts, Graph const& verts2elems, Reals const& masses,
+      Arr const& velocities) {
+    Vector<dim> momentum = zero_vector<dim>();
+    for (auto kv = keys2verts.a2ab[key]; kv < keys2verts.a2ab[key + 1]; ++kv) {
+      auto vert = keys2verts.ab2b[kv];
+      auto velocity = get_vector<dim>(velocities, vert);
+      for (auto ve = verts2elems.a2ab[vert]; ve < verts2elems.a2ab[vert + 1];
+           ++ve) {
+        auto elem = verts2elems.ab2b[ve];
+        auto mass = masses[elem];
+        momentum = momentum + mass * velocity / 4.0;
+      }
+    }
+    return momentum;
+  }
+
+  DEVICE void operator()(LO key) const {
+    auto donor_momentum = get_interior_momentum(key, keys2donor_verts,
+        donor_verts2elems, donor_masses, donor_velocities);
+    auto target_momentum = get_interior_momentum(key, keys2target_verts,
+        target_verts2elems, target_masses, target_velocities);
+    Vector<dim> scalars;
+    for (Int i = 0; i < dim; ++i) {
+      if (fabs(donor_momentum[i]) < EPSILON) {
+        scalars[i] = 1;
+      } else {
+        scalars[i] = donor_momentum[i] / target_momentum[i];
+      }
+    }
+    for (auto kv = keys2target_verts.a2ab[key];
+         kv < keys2target_verts.a2ab[key + 1]; ++kv) {
+      auto vert = keys2target_verts.ab2b[kv];
+      auto velocity = get_vector<dim>(target_velocities, vert);
+      for (Int i = 0; i < dim; ++i) {
+        velocity[i] = velocity[i] * scalars[i];
+      }
+      set_vector<dim>(target_velocities, vert, velocity);
+    }
+  }
+
+  static void apply(Mesh* donor_mesh, Mesh* target_mesh, Int key_dim,
+      TagBase const* tagbase, LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
+      LOs same_verts2old_verts, LOs same_verts2new_verts) {
+    MomentumVelocity<dim> self(donor_mesh, target_mesh, key_dim, tagbase,
+        keys2kds, keys2prods, prods2new_elems, same_verts2old_verts,
+        same_verts2new_verts);
     auto nkeys = keys2kds.size();
-    auto nkds = donor_mesh->nents(key_dim);
-    auto kds_are_keys = map_onto<I8>(Read<I8>(nkeys, 1), keys2kds, nkds, 0, 1);
-    auto kds2donor_elems =
-        get_buffered_elems(donor_mesh, key_dim, kds_are_keys);
-    auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
-    auto ndonor_elems = donor_mesh->nelems();
-    auto donor_elems2target_elems = map_onto<LO>(
-        same_ents2new_ents, same_ents2old_ents, ndonor_elems, -1, 1);
-    this->keys2target_buffer =
-        get_target_buffer_elems(keys2donor_elems, donor_elems2target_elems);
-    auto ntarget_elems = target_mesh->nelems();
-    this->target_elems2donor_elems = map_onto<LO>(
-        same_ents2old_ents, same_ents2new_ents, ntarget_elems, -1, 1);
-    this->target_coords = target_mesh->coords();
-    this->donor_coords = donor_mesh->coords();
+    parallel_for(nkeys, self);
+    transfer_common3(target_mesh, VERT, tagbase, self.target_velocities);
   }
 };
 
-template <Int dim>
-class MomentumVelocityDim : public MomentumVelocity {
- public:
-  static constexpr Int nverts_per_elem = dim + 1;
-  static constexpr Int max_dofs = (AvgDegree<dim, 0, 1>::value + 1) * 2;
-  static constexpr Real coupling_factor =
-      ParentElementSize<dim>::value / (dim + 1) * (dim + 2);
-  using MassMatrix = Matrix<max_dofs, max_dofs>;
-  using RHS = Matrix<max_dofs, dim>;
-
- protected:
-  Reals donor_velocities;
-  Reals donor_densities;
-  Reals target_densities;
-  Reals target_sizes;
-
- public:
-  MomentumVelocityDim(MomentumVelocity parent, Mesh* donor_mesh,
-      Mesh* target_mesh, TagBase const* tagbase)
-      : MomentumVelocity(parent) {
-    auto velocity_name = tagbase->name();
-    if (!starts_with(velocity_name, "velocity")) {
-      Omega_h_fail(
-          "%s tranferred as momentum-velocity,"
-          " but name needs to start with \"velocity\"\n",
-          velocity_name.c_str());
-    }
-    auto suffix = remove_prefix(velocity_name, "velocity");
-    auto density_name = std::string("density") + suffix;
-    this->donor_velocities = donor_mesh->get_array<Real>(VERT, velocity_name);
-    this->donor_densities = donor_mesh->get_array<Real>(dim, density_name);
-    this->target_densities = target_mesh->get_array<Real>(dim, density_name);
-    this->target_sizes = measure_elements_real(target_mesh);
-  }
-
- protected:
-  DEVICE void elem_into_mass_matrix(LO elem, MassMatrix& A) {
-    auto rho_a = target_densities[elem];
-    auto V_a = target_sizes[elem];
-    auto contrib = coupling_factor * rho_a * V_a;
-    for (Int elem_vert1 = 0; elem_vert1 < nverts_per_elem; ++elem_vert1) {
-      auto vert1 = target_elem_verts2verts[elem * nverts_per_elem + elem_vert1];
-      auto dof1 = verts2dofs[vert1];
-      if (dof1 < 0) continue;
-      for (Int elem_vert2 = 0; elem_vert2 < nverts_per_elem; ++elem_vert2) {
-        if (elem_vert2 == elem_vert1) continue;
-        auto vert2 =
-            target_elem_verts2verts[elem * nverts_per_elem + elem_vert2];
-        auto dof2 = verts2dofs[vert2];
-        if (dof2 < 0) continue;
-        A[dof1][dof2] += contrib;
+void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+    LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_verts2old_verts,
+    LOs same_verts2new_verts) {
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
+    auto tagbase = old_mesh->get_tag(VERT, i);
+    if (tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY) {
+      if (dim == 3) {
+        MomentumVelocity<3>::apply(old_mesh, new_mesh, key_dim, tagbase,
+            keys2kds, keys2prods, prods2new_elems, same_verts2old_verts,
+            same_verts2new_verts);
       }
-    }
-  }
-
-  DEVICE void buffer_elem_into_rhs(LO target_elem, RHS& b) {
-    auto rho_a = target_densities[target_elem];
-    auto V_a = target_sizes[target_elem];
-    auto contrib = coupling_factor * rho_a * V_a;
-    auto donor_elem = target_elems2donor_elems[target_elem];
-    for (Int elem_vert1 = 0; elem_vert1 < nverts_per_elem; ++elem_vert1) {
-      auto target_vert1 =
-          target_elem_verts2verts[target_elem * nverts_per_elem + elem_vert1];
-      auto dof1 = verts2dofs[target_vert1];
-      if (dof1 < 0) continue;
-      auto donor_vert =
-          donor_elem_verts2verts[donor_elem * nverts_per_elem + elem_vert1];
-      auto donor_velocity = get_vector<dim>(donor_velocities, donor_vert);
-      for (Int elem_vert2 = 0; elem_vert2 < nverts_per_elem; ++elem_vert2) {
-        if (elem_vert2 == elem_vert1) continue;
-        auto target_vert2 =
-            target_elem_verts2verts[target_elem * nverts_per_elem + elem_vert2];
-        auto dof2 = verts2dofs[target_vert2];
-        if (dof2 < 0) continue;
-        for (Int i = 0; i < dim; ++i) b[i][dof2] += donor_velocity[i] * contrib;
+      if (dim == 2) {
+        MomentumVelocity<2>::apply(old_mesh, new_mesh, key_dim, tagbase,
+            keys2kds, keys2prods, prods2new_elems, same_verts2old_verts,
+            same_verts2new_verts);
       }
+      CHECK(new_mesh->has_tag(VERT, tagbase->name()));
     }
   }
-
-  DEVICE MassMatrix elems_into_mass_matrix(
-      LO key, Graph const& keys2elems, MassMatrix& A) {
-    for (auto ke = keys2elems.a2ab[key]; ke < keys2elems.a2ab[key + 1]; ++ke) {
-      auto target_elem = keys2elems.ab2b[ke];
-      elem_into_mass_matrix(target_elem, A);
-    }
-    return A;
-  }
-
-  DEVICE MassMatrix assemble_mass_matrix(LO key) {
-    MassMatrix A = zero_matrix<max_dofs, max_dofs>();
-    elems_into_mass_matrix(key, keys2target_interior, A);
-    elems_into_mass_matrix(key, keys2target_buffer, A);
-    return A;
-  }
-};
-
-#endif
+}
 
 }  // end namespace Omega_h

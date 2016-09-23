@@ -17,6 +17,9 @@ void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
+void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+    LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_verts2old_verts,
+    LOs same_verts2new_verts);
 
 bool needs_buffer_layers(Mesh* mesh);
 
@@ -31,7 +34,6 @@ Graph get_closure_verts(Mesh* mesh, Graph keys2elems);
 Graph get_donor_interior_elems(Mesh* mesh, Int key_dim, LOs keys2kds);
 Graph get_target_buffer_elems(
     Graph keys2donor_elems, LOs donor_elems2target_elems);
-LOs number_cavity_ents(Mesh* mesh, Graph keys2ents, Int ent_dim);
 }
 
 #endif

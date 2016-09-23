@@ -63,7 +63,8 @@ enum Omega_h_Outflags {
 extern "C" {
 #endif
 
-void Omega_h_fail(char const* format, ...) __attribute__((noreturn));
+void Omega_h_fail(char const* format, ...)
+  __attribute__((noreturn,format(printf,1,2)));
 
 void Omega_h_init_internal(int* argc, char*** argv, char const* head_desc);
 
