@@ -294,7 +294,7 @@ class MomentumVelocity {
            ++ve) {
         auto elem = verts2elems.ab2b[ve];
         auto mass = masses[elem];
-        momentum = momentum + mass * velocity / 4.0;
+        momentum = momentum + mass * velocity / (dim + 1);
       }
     }
     return momentum;
@@ -305,22 +305,23 @@ class MomentumVelocity {
         donor_verts2elems, donor_masses, donor_velocities);
     auto target_momentum = get_interior_momentum(key, keys2target_verts,
         target_verts2elems, target_masses, target_velocities);
-    Vector<dim> scalars;
-    for (Int i = 0; i < dim; ++i) {
-      if (fabs(donor_momentum[i]) < EPSILON) {
-        scalars[i] = 1;
-      } else {
-        scalars[i] = donor_momentum[i] / target_momentum[i];
+    auto momentum_diff = (donor_momentum - target_momentum);
+    auto begin = keys2target_verts.a2ab[key];
+    auto end = keys2target_verts.a2ab[key + 1];
+    auto ntarget_verts = end - begin;
+    auto momentum_factor = (dim + 1) * momentum_diff / ntarget_verts;
+    for (auto ktv = begin; ktv < end; ++ktv) {
+      auto vert = keys2target_verts.ab2b[ktv];
+      Real mass_sum = 0;
+      for (auto ve = target_verts2elems.a2ab[vert];
+           ve < target_verts2elems.a2ab[vert + 1]; ++ve) {
+        auto elem = target_verts2elems.ab2b[ve];
+        auto mass = target_masses[elem];
+        mass_sum += mass;
       }
-    }
-    for (auto kv = keys2target_verts.a2ab[key];
-         kv < keys2target_verts.a2ab[key + 1]; ++kv) {
-      auto vert = keys2target_verts.ab2b[kv];
       auto velocity = get_vector<dim>(target_velocities, vert);
-      for (Int i = 0; i < dim; ++i) {
-        velocity[i] = velocity[i] * scalars[i];
-      }
-      set_vector<dim>(target_velocities, vert, velocity);
+      velocity = velocity + (momentum_factor / mass_sum);
+      set_vector(target_velocities, vert, velocity);
     }
   }
 
