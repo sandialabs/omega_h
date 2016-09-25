@@ -58,15 +58,15 @@ int main(int argc, char** argv) {
   adapt(&mesh, 0.30, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 3);
   postprocess_conserve(&mesh);
   auto momentum_after = get_total_momentum(&mesh);
-  std::cerr << "before"
+  std::cout << "before"
     << ' ' << momentum_before[0]
     << ' ' << momentum_before[1]
     << '\n';
-  std::cerr << "after"
+  std::cout << "after"
     << ' ' << momentum_after[0]
     << ' ' << momentum_after[1]
     << '\n';
-//CHECK(are_close(momentum_before, momentum_after));
+  CHECK(are_close(momentum_before, momentum_after));
   bool ok = check_regression("gold_conserve", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;
