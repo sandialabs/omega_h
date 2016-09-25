@@ -308,7 +308,7 @@ class MomentumVelocity {
     auto momentum_diff = (donor_momentum - target_momentum);
     auto begin = keys2target_verts.a2ab[key];
     auto end = keys2target_verts.a2ab[key + 1];
-    auto ntarget_verts = begin - end;
+    auto ntarget_verts = end - begin;
     auto momentum_factor = (dim + 1) * momentum_diff / ntarget_verts;
     for (auto ktv = begin; ktv < end; ++ktv) {
       auto vert = keys2target_verts.ab2b[ktv];
