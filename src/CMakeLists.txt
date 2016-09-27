@@ -136,6 +136,7 @@ osh_add_util(msh2osh)
 osh_add_util(osh2vtk)
 osh_add_util(oshdiff)
 osh_add_util(vtkdiff)
+osh_add_util(osh_box)
 
 set(Gmodel_REQUIRED_VERSION 1.2.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)

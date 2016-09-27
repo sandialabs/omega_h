@@ -5,7 +5,9 @@
 
 namespace Omega_h {
 
+#ifdef OMEGA_H_USE_MPI
 #define CALL(f) CHECK(MPI_SUCCESS == (f))
+#endif
 
 Comm::Comm() {
 #ifdef OMEGA_H_USE_MPI
