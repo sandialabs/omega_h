@@ -84,11 +84,11 @@ if(Omega_h_ONE_FILE)
   endforeach()
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/omega_h.cpp "${ONE_FILE_CONTENTS}")
   add_library(omega_h omega_h.cpp)
-  target_include_directories(omega_h
-      PRIVATE  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
+target_include_directories(omega_h
+    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 #for users to find all our headers after we're installed:
 target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
 #find our generated omega_h_config.h, during build only
@@ -273,5 +273,13 @@ set(Omega_h_HEADERS
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
+
+set(Meshb_REQUIRED_VERSION 7.12)
+set(Omega_h_USE_Meshb_DEFAULT OFF)
+bob_private_dep(Meshb)
+if(Omega_h_USE_Meshb)
+  osh_add_util(meshb2osh)
+  target_link_libraries(meshb2osh PRIVATE Meshb::meshb)
+endif()
 
 bob_end_subdir()
