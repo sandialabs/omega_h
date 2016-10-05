@@ -1,6 +1,8 @@
 #ifndef OMEGA_H_KOKKOS_HPP
 #define OMEGA_H_KOKKOS_HPP
 
+#include <Omega_h_c.h>
+
 #ifdef OMEGA_H_USE_KOKKOS
 
 OMEGA_H_SYSTEM_HEADER

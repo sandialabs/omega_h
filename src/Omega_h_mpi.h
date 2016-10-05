@@ -1,6 +1,8 @@
 #ifndef OMEGA_H_MPI_H
 #define OMEGA_H_MPI_H
 
+#include <Omega_h_c.h>
+
 #ifdef OMEGA_H_USE_MPI
 
 OMEGA_H_SYSTEM_HEADER

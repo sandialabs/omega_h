@@ -3,17 +3,8 @@
 
 #include <assert.h>
 
-#include "Omega_h_config.h"
-
-#define OMEGA_H_PRAGMA(x) _Pragma(#x)
-
-#if defined(__clang__)
-#define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(clang system_header)
-#elif defined(__GNUC__)
-#define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(GCC system_header)
-#endif
-
-#include "Omega_h_mpi.h"
+#include <Omega_h_macros.h>
+#include <Omega_h_mpi.h>
 
 enum Omega_h_Type {
   OMEGA_H_I8 = 0,
