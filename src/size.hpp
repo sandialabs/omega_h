@@ -32,28 +32,49 @@ INLINE Real tet_volume(Few<Vector<3>, 3> b) {
 
 INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
 
+/* Loseille, Adrien, and Rainald Lohner.
+ * "On 3D anisotropic local remeshing for surface, volume and boundary layers."
+ * Proceedings of the 18th International Meshing Roundtable.
+ * Springer Berlin Heidelberg, 2009. 611-630.
+ *
+ * Loseille's edge length integral assumes an interpolation $h(t) = h_0^{1-t}h_1^t$,
+ * which is consistent with the Log-Euclidean metric interpolation we now use.
+ */
+
 template <Int dim>
-INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Real iso) {
-  return norm(p[1] - p[0]) / iso;
+INLINE Real edge_length(Real l_a, Real l_b) {
+  auto r = l_a / l_b;
+  return ((r - 1) / (l_a * (::log(l_a / l_b))));
+}
+
+template <Int dim>
+INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Few<Real, 2> hs) {
+  auto real_l = norm(p[1] - p[0]);
+  auto l_a = real_l / hs[0];
+  auto l_b = real_l / hs[0];
+  return edge_length(l_a, l_b);
 }
 
 template <Int dim>
 DEVICE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
   auto p = gather_vectors<2, dim>(coords, v);
-  auto iso = average(gather_scalars<2>(isos, v));
-  return iso_edge_length(p, iso);
+  auto hs = average(gather_scalars<2>(isos, v));
+  return iso_edge_length(p, hs);
 }
 
 template <Int dim>
-INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Matrix<dim, dim> metric) {
-  return metric_length(metric, p[1] - p[0]);
+INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Few<Matrix<dim, dim>, 2> ms) {
+  auto v = p[1] - p[0];
+  auto l_a = metric_length(ms[0], v);
+  auto l_b = metric_length(ms[1], v);
+  return edge_length(l_a, l_b);
 }
 
 template <Int dim>
 DEVICE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
   auto p = gather_vectors<2, dim>(coords, v);
-  auto metric = average_metrics(gather_symms<2, dim>(metrics, v));
-  return metric_edge_length(p, metric);
+  auto ms = gather_symms<2, dim>(metrics, v);
+  return metric_edge_length(p, ms);
 }
 
 template <Int dim>
@@ -198,6 +219,24 @@ template <>
 struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
+
+INLINE Real linearize_iso(Real h) {
+  return log(h);
+}
+
+INLINE Real delinearize_iso(Real log_h) {
+  return exp(m);
+}
+
+INLINE Real interpolate_iso(Real a, Real b, Real t) {
+  return delinearize_iso(
+      (linearize_iso(a) * (1.0 - t)) + (linearize_iso(b) * t));
+}
+
+Reals get_midedge_isos(Mesh* mesh, LOs entities, Reals v2h);
+Reals interpolate_between_isos(Reals a, Reals b, Real t);
+Reals linearize_isos(Reals isos);
+Reals delinearize_isos(Reals log_isos);
 
 }  // end namespace Omega_h
 

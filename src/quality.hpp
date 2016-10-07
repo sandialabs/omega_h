@@ -176,8 +176,9 @@ struct MetricElementQualities {
   template <Int neev>
   DEVICE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
-    auto metric = average_metrics(gather_symms<neev, neev - 1>(metrics, v));
-    return metric_element_quality(p, metric);
+    auto ms = gather_symms<neev, neev - 1>(metrics, v);
+    auto m = mindet_metric(ms);
+    return metric_element_quality(p, m);
   }
 };
 
