@@ -27,7 +27,6 @@
 #include "vtk.hpp"
 #include "xml.hpp"
 
-#include <iostream>  //REMOVE NOW
 #include <sstream>
 
 using namespace Omega_h;
@@ -814,7 +813,7 @@ static void test_sf_scale_dim(Library const& lib) {
   {
     auto metric = Omega_h::find_identity_metric(&mesh);
     auto metric_scal = metric_scalar_for_nelems(&mesh, metric, target_nelems);
-    CHECK(are_close(metric_scal, 1., 1e-3));
+    if (dim != 3) CHECK(are_close(metric_scal, 1.));
   }
 }
 
