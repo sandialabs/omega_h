@@ -76,6 +76,7 @@ set(Omega_h_SOURCES
   derive.cpp
   project.cpp
   buffered_graphs.cpp
+  overshoot.cpp
   )
 
 if(Omega_h_ONE_FILE)

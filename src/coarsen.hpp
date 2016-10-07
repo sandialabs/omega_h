@@ -32,15 +32,18 @@ LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs);
 LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
     Adj keys2doms, LOs old_verts2new_verts);
 
-bool coarsen(Mesh* mesh, Real min_qual, bool improve, bool verbose);
-
-bool coarsen_verts(
-    Mesh* mesh, Read<I8> vert_marks, Real min_qual, bool improve, bool verbose);
-
-bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks, Real min_qual,
+bool coarsen(Mesh* mesh, Real min_qual, Real overshoot_ceil,
     bool improve, bool verbose);
 
-bool coarsen_by_size(Mesh* mesh, Real min_len, Real min_qual, bool verbose);
+bool coarsen_verts(
+    Mesh* mesh, Read<I8> vert_marks, Real min_qual, Real overshoot_ceil,
+    bool improve, bool verbose);
+
+bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks, Real min_qual,
+    Real overshoot_ceil, bool improve, bool verbose);
+
+bool coarsen_by_size(Mesh* mesh, Real min_len, Real min_qual,
+    Real overshoot_ceil, bool verbose);
 
 bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose);
 

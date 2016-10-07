@@ -84,7 +84,7 @@ static void do_histogram(Mesh* mesh) {
 }
 
 bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, Int nlayers, Int verbosity) {
+    Real len_ceil, Real overshoot_factor, Int nlayers, Int verbosity) {
   Now t0 = now();
   auto comm = mesh->comm();
   CHECK(0.0 <= qual_floor);
@@ -116,7 +116,8 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
       }
       did_anything = true;
     }
-    if (coarsen_by_size(mesh, len_floor, allow_qual, (verbosity >= 2))) {
+    if (coarsen_by_size(mesh, len_floor, allow_qual,
+         len_ceil * overshoot_factor, (verbosity >= 2))) {
       if (verbosity >= 2) {
         adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
       }

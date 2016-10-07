@@ -524,7 +524,7 @@ class FullWriter {
 
 /* returns true if the mesh was modified. */
 bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, Int nlayers, Int verbosity);
+    Real len_ceil, Real overshoot_factor, Int nlayers, Int verbosity);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);

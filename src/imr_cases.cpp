@@ -227,7 +227,7 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
         std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step
                   << '\n';
       }
-      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
+      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, -1.0, 4, 2);
       ++warp_step;
     }
     writer.write();
