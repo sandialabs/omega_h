@@ -27,9 +27,9 @@ static Reals midedge_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
 
 Reals get_midedge_metrics(Mesh* mesh, LOs entities, Reals v2m) {
   if (mesh->dim() == 3) {
-    return midedge_metric_tmpl<3>(mesh, entities, v2m);
+    return midedge_metrics_tmpl<3>(mesh, entities, v2m);
   } else if (mesh->dim() == 2) {
-    return midedge_metric_tmpl<2>(mesh, entities, v2m);
+    return midedge_metrics_tmpl<2>(mesh, entities, v2m);
   }
   NORETURN(Reals());
 }
@@ -68,7 +68,7 @@ Reals interpolate_between_metrics_dim(Reals a, Reals b, Real t) {
   auto f = LAMBDA(LO i) {
     auto am = get_symm<dim>(a, i);
     auto bm = get_symm<dim>(b, i);
-    auto cm = interpolate_metrics(am, bm, t);
+    auto cm = interpolate_metric(am, bm, t);
     set_symm(out, i, cm);
   };
   parallel_for(n, f);
@@ -76,9 +76,13 @@ Reals interpolate_between_metrics_dim(Reals a, Reals b, Real t) {
 }
 
 Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t) {
-  if (dim == 3) return interpolate_metrics<3>(a, b, t);
-  CHECK(dim == 2);
-  return interpolate_metrics<2>(a, b, t);
+  if (dim == 3) {
+    return interpolate_between_metrics_dim<3>(a, b, t);
+  }
+  if (dim == 2) {
+    return interpolate_between_metrics_dim<2>(a, b, t);
+  }
+  NORETURN(Reals());
 }
 
 template <Int dim>

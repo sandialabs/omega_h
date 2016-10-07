@@ -122,7 +122,7 @@ INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
 
 template <Int dim>
 INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
-  return exp(m);
+  return exp(log_m);
 }
 
 template <Int dim>

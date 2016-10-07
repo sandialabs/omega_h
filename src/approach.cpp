@@ -1,6 +1,7 @@
 #include "array.hpp"
 #include "internal.hpp"
 #include "metric.hpp"
+#include "size.hpp"
 
 namespace Omega_h {
 
@@ -47,9 +48,13 @@ static bool approach_either(Mesh* mesh, Real min_qual,
   return true;
 }
 
+static Reals isos_wrapper(Int, Reals orig, Reals target, Real t) {
+  return interpolate_between_isos(orig, target, t);
+}
+
 bool approach_size_field(Mesh* mesh, Real min_qual) {
   if (mesh->has_tag(VERT, "size")) {
-    approach_either(mesh, min_qual, "size", &interpolate_between_isos);
+    approach_either(mesh, min_qual, "size", &isos_wrapper);
   }
   if (mesh->has_tag(VERT, "metric")) {
     approach_either(mesh, min_qual, "metric", &interpolate_between_metrics);

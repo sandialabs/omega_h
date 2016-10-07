@@ -41,7 +41,6 @@ INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
  * which is consistent with the Log-Euclidean metric interpolation we now use.
  */
 
-template <Int dim>
 INLINE Real edge_length(Real l_a, Real l_b) {
   auto r = l_a / l_b;
   return ((r - 1) / (l_a * (::log(l_a / l_b))));
@@ -58,7 +57,7 @@ INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Few<Real, 2> hs) {
 template <Int dim>
 DEVICE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
   auto p = gather_vectors<2, dim>(coords, v);
-  auto hs = average(gather_scalars<2>(isos, v));
+  auto hs = gather_scalars<2>(isos, v);
   return iso_edge_length(p, hs);
 }
 
@@ -221,11 +220,11 @@ struct ParentElementSize<3> {
 };
 
 INLINE Real linearize_iso(Real h) {
-  return log(h);
+  return ::log(h);
 }
 
 INLINE Real delinearize_iso(Real log_h) {
-  return exp(m);
+  return ::exp(log_h);
 }
 
 INLINE Real interpolate_iso(Real a, Real b, Real t) {
