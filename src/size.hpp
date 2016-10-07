@@ -42,8 +42,10 @@ INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
  */
 
 INLINE Real edge_length(Real l_a, Real l_b) {
-  auto r = l_a / l_b;
-  return ((r - 1) / (l_a * (::log(l_a / l_b))));
+  if (::fabs(l_a - l_b) > 1e-3) {
+    return (l_a - l_b) / (::log(l_a / l_b));
+  }
+  return (l_a + l_b) / 2.;
 }
 
 template <Int dim>

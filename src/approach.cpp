@@ -54,10 +54,10 @@ static Reals isos_wrapper(Int, Reals orig, Reals target, Real t) {
 
 bool approach_size_field(Mesh* mesh, Real min_qual) {
   if (mesh->has_tag(VERT, "size")) {
-    approach_either(mesh, min_qual, "size", &isos_wrapper);
+    return approach_either(mesh, min_qual, "size", &isos_wrapper);
   }
   if (mesh->has_tag(VERT, "metric")) {
-    approach_either(mesh, min_qual, "metric", &interpolate_between_metrics);
+    return approach_either(mesh, min_qual, "metric", &interpolate_between_metrics);
   }
   NORETURN(true);
 }

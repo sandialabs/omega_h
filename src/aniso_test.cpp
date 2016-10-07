@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
   mesh.ask_qualities();
   Now t0 = now();
   while (approach_size_field(&mesh, 0.20)) {
-    adapt(&mesh, 0.20, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 0);
+    adapt(&mesh, 0.20, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 3);
   }
   Now t1 = now();
   std::cout << "anisotropic approach took " << (t1 - t0) << " seconds\n";
