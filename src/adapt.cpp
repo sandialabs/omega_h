@@ -107,16 +107,22 @@ bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
   if ((verbosity >= 2) && comm->rank() == 0) {
     std::cout << "addressing edge lengths\n";
   }
-  while (refine_by_size(mesh, len_ceil, allow_qual, (verbosity >= 2))) {
-    if (verbosity >= 2) {
-      adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+  bool did_anything;
+  do {
+    did_anything = false;
+    if (refine_by_size(mesh, len_ceil, allow_qual, (verbosity >= 2))) {
+      if (verbosity >= 2) {
+        adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+      }
+      did_anything = true;
     }
-  }
-  while (coarsen_by_size(mesh, len_floor, allow_qual, (verbosity >= 2))) {
-    if (verbosity >= 2) {
-      adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+    if (coarsen_by_size(mesh, len_floor, allow_qual, (verbosity >= 2))) {
+      if (verbosity >= 2) {
+        adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+      }
+      did_anything = true;
     }
-  }
+  } while (did_anything);
   Now t2 = now();
   bool first = true;
   while (mesh->min_quality() < qual_ceil) {
