@@ -605,6 +605,12 @@ static void test_positivize() {
   test_positivize(vector_2(1, 1));
 }
 
+static void test_edge_length() {
+  CHECK(are_close(1., edge_length(1., 1.)));
+  CHECK(edge_length(1., 2.) > 1.);
+  CHECK(edge_length(1., 2.) < 1.5);
+}
+
 static void test_refine_qualities(Library const& lib) {
   Mesh mesh;
   build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
@@ -854,6 +860,7 @@ static void test_categorize_graph() {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  test_edge_length();
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();
