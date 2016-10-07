@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
   mesh.ask_lengths();
   mesh.ask_qualities();
   Now t0 = now();
-  while (approach_metric(&mesh, 0.20)) {
+  while (approach_size_field(&mesh, 0.20)) {
     adapt(&mesh, 0.20, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 0);
   }
   Now t1 = now();

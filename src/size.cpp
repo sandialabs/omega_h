@@ -107,7 +107,9 @@ static Reals element_identity_sizes(Mesh* mesh) {
 
 Reals find_identity_size(Mesh* mesh) {
   auto e_h = element_identity_sizes(mesh);
-  auto v_h = project_by_average(mesh, e_h);
+  auto e_linear = linearize_isos(e_h);
+  auto v_linear = project_by_average(mesh, e_linear);
+  auto v_h = delinearize_isos(v_linear);
   return v_h;
 }
 

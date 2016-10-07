@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
   mesh.reset_globals();
   auto size = find_identity_size(&mesh);
   size = multiply_each_by(1.3, size);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
+  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
       measure_elements_real(&mesh));
   auto velocity = Write<Real>(mesh.nverts() * mesh.dim());

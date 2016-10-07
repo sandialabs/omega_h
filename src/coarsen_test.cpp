@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT);
+  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT);
   mesh.set_tag(VERT, "size", Reals(mesh.nverts(), 1.0));
   while (coarsen_by_size(&mesh, 2.0 / 3.0, 0.47, false))
     ;
