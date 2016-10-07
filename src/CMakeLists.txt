@@ -77,6 +77,7 @@ set(Omega_h_SOURCES
   project.cpp
   buffered_graphs.cpp
   overshoot.cpp
+  collapse_vertex.cpp
   )
 
 if(Omega_h_ONE_FILE)

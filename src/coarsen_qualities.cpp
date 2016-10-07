@@ -81,45 +81,6 @@ Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 2);
 }
 
-void choose_vertex_collapses(Mesh* mesh, LOs cands2edges,
-    Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>& verts_are_cands,
-    Reals& vert_quals) {
-  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
-  auto edges2cands = invert_injective_map(cands2edges, mesh->nedges());
-  auto v2e = mesh->ask_up(VERT, EDGE);
-  auto v2ve = v2e.a2ab;
-  auto ve2e = v2e.ab2b;
-  auto ve_codes = v2e.codes;
-  auto ev2v = mesh->ask_verts_of(EDGE);
-  auto verts_are_cands_w = Write<I8>(mesh->nverts());
-  auto vert_quals_w = Write<Real>(mesh->nverts());
-  auto f = LAMBDA(LO v) {
-    bool vert_is_cand = false;
-    Real best_qual = -1.0;
-    for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
-      auto e = ve2e[ve];
-      auto cand = edges2cands[e];
-      if (cand == -1) continue;
-      auto ve_code = ve_codes[ve];
-      auto eev = code_which_down(ve_code);
-      auto cand_code = cand_edge_codes[cand];
-      if (!collapses(cand_code, eev)) continue;
-      auto qual = cand_edge_quals[cand * 2 + eev];
-      if (qual > best_qual) {
-        vert_is_cand = true;
-        best_qual = qual;
-      }
-    }
-    verts_are_cands_w[v] = vert_is_cand;
-    vert_quals_w[v] = best_qual;
-  };
-  parallel_for(mesh->nverts(), f);
-  verts_are_cands = verts_are_cands_w;
-  verts_are_cands = mesh->sync_array(VERT, verts_are_cands, 1);
-  vert_quals = vert_quals_w;
-  vert_quals = mesh->sync_array(VERT, vert_quals, 1);
-}
-
 static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
   auto codes_w = Write<I8>(codes.size());
   auto f = LAMBDA(LO cand) {
