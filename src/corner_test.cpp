@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     auto f = LAMBDA(LO v) {
       auto x = get_vector<3>(coords, v);
       auto coarse = 0.4;
-      auto fine = 0.06;
+      auto fine = 0.04;
       auto radius = norm(x);
       auto diagonal = sqrt(3) - 0.5;
       auto distance = fabs(radius - 0.5) / diagonal;
@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
     mesh.set_tag(VERT, "size", Reals(size));
     mesh.ask_lengths();
     mesh.ask_qualities();
-  } while (refine_by_size(&mesh, 4.0 / 3.0, 0.47, false));
+  } while (refine_by_size(&mesh, sqrt(2.0), 0.47, false));
   bool ok = check_regression("gold_corner", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;
