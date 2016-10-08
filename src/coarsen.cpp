@@ -28,18 +28,6 @@ static void put_edge_codes(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
       OMEGA_H_DONT_OUTPUT, edge_codes);
 }
 
-static Reals get_edge_quals(Mesh* mesh) {
-  auto edge_cand_quals = mesh->get_array<Real>(EDGE, "collapse_qualities");
-  mesh->remove_tag(EDGE, "collapse_qualities");
-  return edge_cand_quals;
-}
-
-static void put_edge_quals(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
-  auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 2);
-  mesh->add_tag(EDGE, "collapse_qualities", 2, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, edge_quals);
-}
-
 static bool coarsen_element_based1(Mesh* mesh) {
   auto comm = mesh->comm();
   auto edge_cand_codes = get_edge_codes(mesh);
@@ -93,8 +81,9 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual,
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   auto verts_are_cands = Read<I8>();
   auto vert_quals = Reals();
-  choose_vertex_collapses(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
-      verts_are_cands, vert_quals);
+  auto vert_rails = Read<GO>();
+  choose_rails(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
+      &verts_are_cands, &vert_quals, &vert_rails);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
   Graph verts2cav_elems;
   if (needs_buffer_layers(mesh)) {
@@ -110,8 +99,8 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual,
       verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, vert_quals);
-  put_edge_codes(mesh, cands2edges, cand_edge_codes);
-  put_edge_quals(mesh, cands2edges, cand_edge_quals);
+  mesh->add_tag(VERT, "collapse_rail", 1, OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DONT_OUTPUT, vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
@@ -121,8 +110,8 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
   auto comm = mesh->comm();
   auto verts_are_keys = mesh->get_array<I8>(VERT, "key");
   auto vert_quals = mesh->get_array<Real>(VERT, "collapse_quality");
-  auto edge_codes = get_edge_codes(mesh);
-  auto edge_quals = get_edge_quals(mesh);
+  auto vert_rails = mesh->get_array<GO>(VERT, "collapse_rail");
+  mesh->remove_tag(VERT, "collapse_rail");
   auto keys2verts = collect_marked(verts_are_keys);
   auto nkeys = keys2verts.size();
   if (verbose) {
@@ -133,8 +122,7 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
   }
   auto rails2edges = LOs();
   auto rail_col_dirs = Read<I8>();
-  find_rails(mesh, keys2verts, vert_quals, edge_codes, edge_quals, rails2edges,
-      rail_col_dirs);
+  find_rails(mesh, keys2verts, vert_rails, &rails2edges, &rail_col_dirs);
   auto dead_ents = mark_dead_ents(mesh, rails2edges, rail_col_dirs);
   auto keys2verts_onto = get_verts_onto(mesh, rails2edges, rail_col_dirs);
   auto new_mesh = mesh->copy_meta();

@@ -19,13 +19,11 @@ Read<I8> filter_coarsen_min_qual(
 Read<I8> filter_coarsen_improve(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Reals cand_quals);
 
-void choose_vertex_collapses(Mesh* mesh, LOs cands2edges,
-    Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>& verts_are_cands,
-    Reals& vert_quals);
-
-void find_rails(Mesh* mesh, LOs keys2verts, Reals vert_quals,
-    Read<I8> edge_cand_codes, Reals edge_cand_quals, LOs& rails2edges,
-    Read<I8>& rail_col_dirs);
+void choose_rails(Mesh* mesh, LOs cands2edges,
+    Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>* verts_are_cands,
+    Reals* vert_quals, Read<GO>* vert_rails);
+void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
+    LOs* rails2edges, Read<I8>* rail_col_dirs);
 
 LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs);
 
