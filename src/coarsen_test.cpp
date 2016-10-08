@@ -1,6 +1,8 @@
 #include "coarsen.hpp"
 #include "Omega_h.hpp"
 
+#include <cmath>
+
 using namespace Omega_h;
 
 int main(int argc, char** argv) {
@@ -15,7 +17,7 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT);
   mesh.set_tag(VERT, "size", Reals(mesh.nverts(), 1.0));
-  while (coarsen_by_size(&mesh, 2.0 / 3.0, 0.47, -1.0, false))
+  while (coarsen_by_size(&mesh, 1.0 / sqrt(2.0), 0.47, -1.0, false))
     ;
   bool ok = check_regression("gold_coarsen", &mesh, 0.0, 0.0);
   if (!ok) return 2;
