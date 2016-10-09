@@ -1,6 +1,5 @@
 #include "Omega_h_r3d.hpp"
 #include "algebra.hpp"
-#include "basis_polynomial.hpp"
 
 #include <iostream>
 
@@ -66,43 +65,7 @@ static void test_2d() {
   OMEGA_H_CHECK(Omega_h::are_close(area, 1. / 4.));
 }
 
-template <Omega_h::Int dim>
-static void test_pair_integral_dim(
-    Omega_h::Few<Omega_h::Vector<dim>, dim + 1> elem_pts) {
-  auto size = Omega_h::element_size(Omega_h::simplex_basis<dim, dim>(elem_pts));
-  auto polytope = Omega_h::r3d::init(elem_pts);
-  for (Omega_h::Int i = 0; i <= dim; ++i) {
-    auto polynomial1 = Omega_h::get_basis_polynomial(elem_pts, i);
-    for (Omega_h::Int j = 0; j <= dim; ++j) {
-      auto polynomial2 = Omega_h::get_basis_polynomial(elem_pts, j);
-      auto pair_polynomial = polynomial1 * polynomial2;
-      auto integral = Omega_h::r3d::integrate(polytope, pair_polynomial);
-      OMEGA_H_CHECK(Omega_h::are_close(
-          integral, size * (1 + (i == j)) / ((dim + 1) * (dim + 2))));
-    }
-  }
-}
-
-static void test_pair_integrals() {
-  Omega_h::Few<Omega_h::Vector<2>, 3> parent_tri = {
-      {0, 0}, {1, 0}, {0, 1},
-  };
-  test_pair_integral_dim<2>(parent_tri);
-  Omega_h::Few<Omega_h::Vector<3>, 4> parent_tet = {
-      {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1},
-  };
-  test_pair_integral_dim<3>(parent_tet);
-  Omega_h::Few<Omega_h::Vector<2>, 3> perfect_tri(
-      {{1, 0}, {0, sqrt(3.0)}, {-1, 0}});
-  test_pair_integral_dim<2>(perfect_tri);
-  Omega_h::Few<Omega_h::Vector<3>, 4> perfect_tet(
-      {{1, 0, -1.0 / sqrt(2.0)}, {-1, 0, -1.0 / sqrt(2.0)},
-          {0, -1, 1.0 / sqrt(2.0)}, {0, 1, 1.0 / sqrt(2.0)}});
-  test_pair_integral_dim<3>(perfect_tet);
-}
-
 int main() {
   test_3d();
   test_2d();
-  test_pair_integrals();
 }
