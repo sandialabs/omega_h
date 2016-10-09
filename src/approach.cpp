@@ -5,7 +5,8 @@
 
 namespace Omega_h {
 
-bool warp_to_limit(Mesh* mesh, Real min_qual) {
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
+  auto min_qual = opts.min_quality_allowed;
   if (!mesh->has_tag(VERT, "warp")) return false;
   CHECK(mesh->min_quality() >= min_qual);
   auto coords = mesh->coords();
@@ -52,7 +53,8 @@ static Reals isos_wrapper(Int, Reals orig, Reals target, Real t) {
   return interpolate_between_isos(orig, target, t);
 }
 
-bool approach_size_field(Mesh* mesh, Real min_qual) {
+bool approach_size_field(Mesh* mesh, AdaptOpts const& opts) {
+  auto min_qual = opts.min_quality_allowed;
   if (mesh->has_tag(VERT, "size")) {
     return approach_either(mesh, min_qual, "size", &isos_wrapper);
   }

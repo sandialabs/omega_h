@@ -216,18 +216,17 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP,
         OMEGA_H_DO_OUTPUT, motion);
-    {
-      auto size = mesh.get_array<Real>(VERT, "size");
-      size = solve_laplacian(&mesh, size, 1, 1e-2);
-      mesh.set_tag(VERT, "size", size);
-    }
+    auto size = mesh.get_array<Real>(VERT, "size");
+    size = solve_laplacian(&mesh, size, 1, 1e-2);
+    mesh.set_tag(VERT, "size", size);
+    auto opts = AdaptOpts();
     int warp_step = 0;
-    while (warp_to_limit(&mesh, 0.20)) {
+    while (warp_to_limit(&mesh, opts)) {
       if (world->rank() == 0) {
         std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step
                   << '\n';
       }
-      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, -1.0, 4, 2);
+      adapt(&mesh, opts);
       ++warp_step;
     }
     writer.write();

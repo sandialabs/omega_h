@@ -14,6 +14,13 @@
 
 namespace Omega_h {
 
+AdaptOpts::AdaptOpts() {
+  min_quality_desired = 0.30;
+  min_quality_allowed = 0.20;
+  nsliver_layers = 4;
+  verbosity = EACH_REBUILD;
+}
+
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     Real floor, Real ceil, Real minval, Real maxval) {
   auto low_marks = each_lt(values, floor);
@@ -163,7 +170,7 @@ static void post_adapt(Mesh* mesh, AdaptOpts const& opts,
               << " seconds\n";
   }
   Now t4 = now();
-  if (opts.verbosity > SILENT && !mesh->comm()->rank() == 0) {
+  if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "adapting took " << (t4 - t0) << " seconds\n\n";
   }
 }
