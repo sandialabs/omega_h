@@ -40,12 +40,12 @@ static bool swap2d_ghosted(Mesh* mesh) {
   return true;
 }
 
-static void swap2d_element_based(Mesh* mesh, bool verbose) {
+static void swap2d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   mesh->remove_tag(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
-  if (verbose) {
+  if (opts.verbosity >= EACH_REBUILD) {
     auto nkeys = keys2edges.size();
     auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
     if (comm->rank() == 0) {
@@ -78,11 +78,11 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
   *mesh = new_mesh;
 }
 
-bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
-  if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
+bool swap_edges_2d(Mesh* mesh, AdaptOpts const& opts) {
+  if (!swap_part1(mesh, opts)) return false;
   if (!swap2d_ghosted(mesh)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  swap2d_element_based(mesh, verbose);
+  swap2d_element_based(mesh, opts);
   return true;
 }
 

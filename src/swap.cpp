@@ -10,11 +10,12 @@
 
 namespace Omega_h {
 
-bool swap_part1(Mesh* mesh, Real qual_ceil, Int nlayers) {
+bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
   Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
   mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, false);
   auto comm = mesh->comm();
-  auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
+  auto elems_are_cands = mark_sliver_layers(mesh, opts.min_quality_desired,
+      opts.nsliver_layers);
   CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);
   auto edges_are_cands = mark_down(mesh, mesh->dim(), EDGE, elems_are_cands);
   /* only swap interior edges */
@@ -39,9 +40,9 @@ void filter_swap_improve(Mesh* mesh, LOs* cands2edges, Reals* cand_quals) {
   *cand_quals = unmap(kept2old, *cand_quals, 1);
 }
 
-bool swap_edges(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
-  if (mesh->dim() == 3) return run_swap3d(mesh, qual_ceil, nlayers, verbose);
-  if (mesh->dim() == 2) return swap2d(mesh, qual_ceil, nlayers, verbose);
+bool swap_edges(Mesh* mesh, AdaptOpts const& opts) {
+  if (mesh->dim() == 3) return swap_edges_3d(mesh, opts);
+  if (mesh->dim() == 2) return swap_edges_2d(mesh, opts);
   return false;
 }
 

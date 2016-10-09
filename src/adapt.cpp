@@ -131,7 +131,7 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
     std::cout << "addressing element qualities\n";
   }
   do {
-    if (swap_edges(mesh, qual_ceil, nlayers, (verbosity >= 2))) {
+    if (swap_edges(mesh, opts)) {
       post_rebuild(mesh, opts);
       continue;
     }
