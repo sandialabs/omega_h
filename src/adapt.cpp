@@ -63,7 +63,7 @@ bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   get_minmax(mesh, mesh->ask_qualities(), &minqual, &maxqual);
   Real minlen, maxlen;
   get_minmax(mesh, mesh->ask_lengths(), &minlen, &maxlen);
-  if (minqual >= opts.minimum_quality_desired &&
+  if (minqual >= opts.min_quality_desired &&
       minlen >= min_length_desired &&
       maxlen <= max_length_desired) {
     if (opts.verbosity > SILENT && mesh->comm()->rank() == 0) {
@@ -73,7 +73,8 @@ bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
     return true;
   }
   if (opts.verbosity > SILENT) {
-    adapt_summary(mesh, qual_floor, qual_ceil, minqual,
+    adapt_summary(mesh, opts.min_quality_allowed,
+        opts.min_quality_desired, minqual,
         maxqual, minlen, maxlen);
   }
   return false;
@@ -85,25 +86,26 @@ static void do_histogram(Mesh* mesh) {
 }
 
 static void validate(Mesh* mesh, AdaptOpts const& opts) {
-  CHECK(0.0 <= opts.minimum_quality_allowed);
-  CHECK(opts.minimum_quality_allowed <=
-        opts.minimum_quality_desired);
-  CHECK(opts.minimum_quality_desired <= 1.0);
-  CHECK(opts.nsliver_layers_considered >= 0);
-  CHECK(opts.nsliver_layers_considered < 100);
-  CHECK(mesh->min_quality() >= opts.minimum_quality_allowed);
+  CHECK(0.0 <= opts.min_quality_allowed);
+  CHECK(opts.min_quality_allowed <=
+        opts.min_quality_desired);
+  CHECK(opts.min_quality_desired <= 1.0);
+  CHECK(opts.nsliver_layers >= 0);
+  CHECK(opts.nsliver_layers < 100);
+  CHECK(mesh->min_quality() >= opts.min_quality_allowed);
 }
 
 static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
   validate(mesh, opts);
-  if (opts.verbosity >= EACH_ADAPT && !mesh->comm->rank()) {
+  if (opts.verbosity >= EACH_ADAPT && !mesh->comm()->rank()) {
     std::cout << "before adapting:\n";
   }
   if (adapt_check(mesh, opts)) return false;
-  if (verbosity >= EXTRA_STATS) do_histogram(mesh);
-  if ((verbosity >= EACH_REBUILD) && mesh->comm->rank() == 0) {
+  if (opts.verbosity >= EXTRA_STATS) do_histogram(mesh);
+  if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths\n";
   }
+  return true;
 }
 
 static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
@@ -127,7 +129,7 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
 
 static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   if (mesh->min_quality() >= opts.min_quality_desired) return;
-  if ((verbosity >= EACH_REBUILD) && !mesh->comm->rank()) {
+  if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing element qualities\n";
   }
   do {
@@ -139,7 +141,7 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       post_rebuild(mesh, opts);
       continue;
     }
-    if ((verbosity > SILENT) && mesh->comm->rank() == 0) {
+    if ((opts.verbosity > SILENT) && !mesh->comm()->rank()) {
       std::cout << "adapt() could not satisfy quality\n";
     }
     break;
@@ -149,26 +151,26 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 static void post_adapt(Mesh* mesh, AdaptOpts const& opts,
     Now t0, Now t1, Now t2, Now t3) {
   if (opts.verbosity == EACH_ADAPT) {
-    if (mesh->comm->rank() == 0) std::cout << "after adapting:\n";
+    if (!mesh->comm()->rank()) std::cout << "after adapting:\n";
     adapt_check(mesh, opts);
   }
-  if (verbosity >= EXTRA_STATS) do_histogram(mesh);
-  if (verbosity > SILENT && mesh->comm->rank() == 0) {
+  if (opts.verbosity >= EXTRA_STATS) do_histogram(mesh);
+  if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
   }
-  if (verbosity > SILENT && mesh->comm->rank() == 0) {
+  if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "addressing element qualities took " << (t3 - t2)
               << " seconds\n";
   }
   Now t4 = now();
-  if (verbosity > SILENT && mesh->comm->rank() == 0) {
+  if (opts.verbosity > SILENT && !mesh->comm()->rank() == 0) {
     std::cout << "adapting took " << (t4 - t0) << " seconds\n\n";
   }
 }
 
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   Now t0 = now();
-  pre_adapt(mesh, opts);
+  if (!pre_adapt(mesh, opts)) return false;
   Now t1 = now();
   satisfy_lengths(mesh, opts);
   Now t2 = now();
