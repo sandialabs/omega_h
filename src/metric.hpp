@@ -142,7 +142,7 @@ INLINE Matrix<dim, dim> mindet_metric(Few<Matrix<dim, dim>, n> ms) {
   auto mindet = determinant(m);
   for (Int i = 1; i < n; ++i) {
     auto det = determinant(ms[i]);
-    if (det < mindet) {
+    if (det > mindet) {
       m = ms[i];
       mindet = det;
     }
