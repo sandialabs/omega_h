@@ -23,9 +23,9 @@ struct MetricRefineQualities {
   Reals midpt_metrics;
   MetricRefineQualities(Mesh* mesh, LOs candidates)
       : vert_metrics(mesh->get_array<Real>(VERT, "metric")),
-/* TODO: we could reuse the results of this instead of recomputing
- * them when transferring an OMEGA_H_METRIC field in transfer.cpp
- */
+        /* TODO: we could reuse the results of this instead of recomputing
+         * them when transferring an OMEGA_H_METRIC field in transfer.cpp
+         */
         midpt_metrics(get_midedge_metrics(
             mesh, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
   template <Int dim>

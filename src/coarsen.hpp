@@ -19,12 +19,12 @@ Read<I8> filter_coarsen_min_qual(
 Read<I8> filter_coarsen_improve(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Reals cand_quals);
 
-Read<I8> prevent_overshoot(Mesh* mesh,
-   AdaptOpts const& opts, LOs cands2edges, Read<I8> cand_codes);
+Read<I8> prevent_overshoot(
+    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges, Read<I8> cand_codes);
 
-void choose_rails(Mesh* mesh, LOs cands2edges,
-    Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>* verts_are_cands,
-    Reals* vert_quals, Read<GO>* vert_rails);
+void choose_rails(Mesh* mesh, LOs cands2edges, Read<I8> cand_edge_codes,
+    Reals cand_edge_quals, Read<I8>* verts_are_cands, Reals* vert_quals,
+    Read<GO>* vert_rails);
 void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
     LOs* rails2edges, Read<I8>* rail_col_dirs);
 

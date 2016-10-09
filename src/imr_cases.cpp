@@ -195,8 +195,7 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
     auto size = find_identity_size(&mesh);
-    mesh.add_tag(
-        VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
+    mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   }
   vtk::Writer writer(&mesh, "out", mesh.dim());
   writer.write();

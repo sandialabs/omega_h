@@ -37,7 +37,8 @@ INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
  * Proceedings of the 18th International Meshing Roundtable.
  * Springer Berlin Heidelberg, 2009. 611-630.
  *
- * Loseille's edge length integral assumes an interpolation $h(t) = h_0^{1-t}h_1^t$,
+ * Loseille's edge length integral assumes an interpolation $h(t) =
+ * h_0^{1-t}h_1^t$,
  * which is consistent with the Log-Euclidean metric interpolation we now use.
  */
 
@@ -64,7 +65,8 @@ DEVICE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
 }
 
 template <Int dim>
-INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Few<Matrix<dim, dim>, 2> ms) {
+INLINE Real metric_edge_length(
+    Few<Vector<dim>, 2> p, Few<Matrix<dim, dim>, 2> ms) {
   auto v = p[1] - p[0];
   auto l_a = metric_length(ms[0], v);
   auto l_b = metric_length(ms[1], v);
@@ -221,13 +223,9 @@ struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
 
-INLINE Real linearize_iso(Real h) {
-  return ::log(h);
-}
+INLINE Real linearize_iso(Real h) { return ::log(h); }
 
-INLINE Real delinearize_iso(Real log_h) {
-  return ::exp(log_h);
-}
+INLINE Real delinearize_iso(Real log_h) { return ::exp(log_h); }
 
 INLINE Real interpolate_iso(Real a, Real b, Real t) {
   return delinearize_iso(

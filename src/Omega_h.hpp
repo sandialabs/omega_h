@@ -522,15 +522,10 @@ class FullWriter {
 };
 }  // end namespace vtk
 
-enum Verbosity {
-  SILENT,
-  EACH_ADAPT,
-  EACH_REBUILD,
-  EXTRA_STATS
-};
+enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
 
 struct AdaptOpts {
-  AdaptOpts(); // sets defaults
+  AdaptOpts();  // sets defaults
   Real min_length_desired;
   Real max_length_desired;
   Real min_quality_allowed;

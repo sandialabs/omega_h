@@ -1,7 +1,7 @@
 #include "coarsen.hpp"
 #include "collapse.hpp"
-#include "map.hpp"
 #include "loop.hpp"
+#include "map.hpp"
 
 /* this file deals with the choice of which
  * edge collapse a vertex will participate in.
@@ -9,9 +9,9 @@
 
 namespace Omega_h {
 
-void choose_rails(Mesh* mesh, LOs cands2edges,
-    Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>* verts_are_cands,
-    Reals* vert_quals, Read<GO>* vert_rails) {
+void choose_rails(Mesh* mesh, LOs cands2edges, Read<I8> cand_edge_codes,
+    Reals cand_edge_quals, Read<I8>* verts_are_cands, Reals* vert_quals,
+    Read<GO>* vert_rails) {
   CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto edges2cands = invert_injective_map(cands2edges, mesh->nedges());
   auto v2e = mesh->ask_up(VERT, EDGE);
@@ -40,8 +40,7 @@ void choose_rails(Mesh* mesh, LOs cands2edges,
       auto global = globals[e];
       auto length = lengths[e];
       auto qual = cand_edge_quals[cand * 2 + eev];
-      if ((best_global == -1) ||
-          (length < best_length) ||
+      if ((best_global == -1) || (length < best_length) ||
           ((length == best_length) && (qual > best_qual))) {
         vert_is_cand = true;
         best_global = global;
@@ -103,5 +102,4 @@ void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
   *rails2edges = rails2edges_w;
   *rail_col_dirs = rail_col_dirs_w;
 }
-
 }

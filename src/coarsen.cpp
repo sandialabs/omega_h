@@ -49,18 +49,12 @@ static void filter_coarsen_candidates(
   if (cand_quals.exists()) cand_quals = unmap(new2old, cand_quals, 2);
 }
 
-enum Overshoot {
-  DONT_OVERSHOOT,
-  ALLOW_OVERSHOOT
-};
+enum Overshoot { DONT_OVERSHOOT, ALLOW_OVERSHOOT };
 
-enum Improve {
-  DONT_IMPROVE,
-  IMPROVE_LOCALLY
-};
+enum Improve { DONT_IMPROVE, IMPROVE_LOCALLY };
 
-static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
-   Overshoot overshoot, Improve improve) {
+static bool coarsen_ghosted(
+    Mesh* mesh, AdaptOpts const& opts, Overshoot overshoot, Improve improve) {
   auto comm = mesh->comm();
   auto edge_cand_codes = get_edge_codes(mesh);
   auto edges_are_cands = each_neq_to(edge_cand_codes, I8(DONT_COLLAPSE));
@@ -72,15 +66,15 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
   /* edge length overshoot check */
   if (overshoot == DONT_OVERSHOOT) {
-    cand_edge_codes = prevent_overshoot(mesh, opts,
-        cands2edges, cand_edge_codes);
+    cand_edge_codes =
+        prevent_overshoot(mesh, opts, cands2edges, cand_edge_codes);
     filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
   }
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   /* cavity quality checks */
   cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
-  cand_edge_codes = filter_coarsen_min_qual(cand_edge_codes, cand_edge_quals,
-          opts.min_quality_allowed);
+  cand_edge_codes = filter_coarsen_min_qual(
+      cand_edge_codes, cand_edge_quals, opts.min_quality_allowed);
   if (improve == IMPROVE_LOCALLY) {
     cand_edge_codes = filter_coarsen_improve(
         mesh, cands2edges, cand_edge_codes, cand_edge_quals);
@@ -174,8 +168,8 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
   *mesh = new_mesh;
 }
 
-static bool coarsen(Mesh* mesh, AdaptOpts const& opts, Overshoot overshoot,
-    Improve improve) {
+static bool coarsen(
+    Mesh* mesh, AdaptOpts const& opts, Overshoot overshoot, Improve improve) {
   if (!coarsen_element_based1(mesh)) return false;
   Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
   mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, false);
@@ -206,8 +200,8 @@ static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
   return coarsen(mesh, opts, overshoot, improve);
 }
 
-static bool coarsen_ents(Mesh* mesh, AdaptOpts const& opts,
-    Int ent_dim, Read<I8> marks, Overshoot overshoot, Improve improve) {
+static bool coarsen_ents(Mesh* mesh, AdaptOpts const& opts, Int ent_dim,
+    Read<I8> marks, Overshoot overshoot, Improve improve) {
   auto vert_marks = mark_down(mesh, ent_dim, VERT, marks);
   return coarsen_verts(mesh, opts, vert_marks, overshoot, improve);
 }
@@ -224,11 +218,10 @@ bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
 bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
-  auto elems_are_cands = mark_sliver_layers(mesh,
-      opts.min_quality_desired, opts.nsliver_layers);
+  auto elems_are_cands =
+      mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
   CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);
-  return coarsen_ents(
-      mesh, opts, mesh->dim(), elems_are_cands, ALLOW_OVERSHOOT,
+  return coarsen_ents(mesh, opts, mesh->dim(), elems_are_cands, ALLOW_OVERSHOOT,
       IMPROVE_LOCALLY);
 }
 

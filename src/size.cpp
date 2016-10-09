@@ -315,9 +315,7 @@ Reals interpolate_between_isos(Reals a, Reals b, Real t) {
 Reals linearize_isos(Reals isos) {
   auto n = isos.size();
   auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) {
-    out[i] = linearize_iso(isos[i]);
-  };
+  auto f = LAMBDA(LO i) { out[i] = linearize_iso(isos[i]); };
   parallel_for(n, f);
   return out;
 }
@@ -325,9 +323,7 @@ Reals linearize_isos(Reals isos) {
 Reals delinearize_isos(Reals log_isos) {
   auto n = log_isos.size();
   auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) {
-    out[i] = delinearize_iso(log_isos[i]);
-  };
+  auto f = LAMBDA(LO i) { out[i] = delinearize_iso(log_isos[i]); };
   parallel_for(n, f);
   return out;
 }

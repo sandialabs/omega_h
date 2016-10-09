@@ -1,5 +1,5 @@
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
 #include "Omega_h.hpp"
 #include "box.hpp"
@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
   if (argc != 8) {
     if (world->rank() == 0) {
       std::cout << "usage: " << argv[0]
-        << " length width height nx ny nz output.osh\n";
+                << " length width height nx ny nz output.osh\n";
       std::cout << " where ny is the number of elements along the Y axis.\n";
       std::cout << " set nz=0 to generate a 2D mesh.\n";
     }

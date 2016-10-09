@@ -1,15 +1,14 @@
 #include "coarsen.hpp"
 #include "collapse.hpp"
-#include "size.hpp"
 #include "loop.hpp"
 #include "refine.hpp"
+#include "size.hpp"
 
 namespace Omega_h {
 
 template <typename EdgeLengths, Int dim>
 static Read<I8> prevent_overshoot_tmpl(
-    Mesh* mesh, AdaptOpts const& opts,
-    LOs cands2edges, Read<I8> cand_codes) {
+    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges, Read<I8> cand_codes) {
   CHECK(mesh->dim() == dim);
   auto maxlength = opts.max_length_desired;
   EdgeLengths measurer(mesh);
@@ -46,8 +45,8 @@ static Read<I8> prevent_overshoot_tmpl(
       EDGE, Read<I8>(out), cands2edges, I8(DONT_COLLAPSE), 1);
 }
 
-Read<I8> prevent_overshoot(Mesh* mesh, AdaptOpts const& opts,
-    LOs cands2edges, Read<I8> cand_codes) {
+Read<I8> prevent_overshoot(
+    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges, Read<I8> cand_codes) {
   if (mesh->has_tag(VERT, "size") && mesh->dim() == 3) {
     return prevent_overshoot_tmpl<IsoEdgeLengths<3>, 3>(
         mesh, opts, cands2edges, cand_codes);
@@ -66,5 +65,4 @@ Read<I8> prevent_overshoot(Mesh* mesh, AdaptOpts const& opts,
   }
   NORETURN(Read<I8>());
 }
-
 }

@@ -58,12 +58,12 @@ static void get_minmax(
   *p_maxval = mesh->comm()->allreduce(max(values), OMEGA_H_MAX);
 }
 
-static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
-    Real minqual, Real maxqual, Real minlen, Real maxlen) {
+static void adapt_summary(Mesh* mesh, AdaptOpts const& opts, Real minqual,
+    Real maxqual, Real minlen, Real maxlen) {
   goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
       opts.min_quality_allowed, opts.min_quality_desired, minqual, maxqual);
-  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
-      opts.min_length_desired, opts.max_length_desired, minlen, maxlen);
+  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(), opts.min_length_desired,
+      opts.max_length_desired, minlen, maxlen);
 }
 
 bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
@@ -72,8 +72,7 @@ bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   Real minlen, maxlen;
   get_minmax(mesh, mesh->ask_lengths(), &minlen, &maxlen);
   if (minqual >= opts.min_quality_desired &&
-      minlen >= opts.min_length_desired &&
-      maxlen <= opts.max_length_desired) {
+      minlen >= opts.min_length_desired && maxlen <= opts.max_length_desired) {
     if (opts.verbosity > SILENT && mesh->comm()->rank() == 0) {
       std::cout << "mesh is good: quality [" << minqual << "," << maxqual
                 << "], length [" << minlen << "," << maxlen << "]\n";
@@ -81,8 +80,7 @@ bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
     return true;
   }
   if (opts.verbosity > SILENT) {
-    adapt_summary(mesh, opts, minqual,
-        maxqual, minlen, maxlen);
+    adapt_summary(mesh, opts, minqual, maxqual, minlen, maxlen);
   }
   return false;
 }
@@ -94,8 +92,7 @@ static void do_histogram(Mesh* mesh) {
 
 static void validate(Mesh* mesh, AdaptOpts const& opts) {
   CHECK(0.0 <= opts.min_quality_allowed);
-  CHECK(opts.min_quality_allowed <=
-        opts.min_quality_desired);
+  CHECK(opts.min_quality_allowed <= opts.min_quality_desired);
   CHECK(opts.min_quality_desired <= 1.0);
   CHECK(opts.nsliver_layers >= 0);
   CHECK(opts.nsliver_layers < 100);
@@ -155,8 +152,8 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   } while (mesh->min_quality() < opts.min_quality_desired);
 }
 
-static void post_adapt(Mesh* mesh, AdaptOpts const& opts,
-    Now t0, Now t1, Now t2, Now t3) {
+static void post_adapt(
+    Mesh* mesh, AdaptOpts const& opts, Now t0, Now t1, Now t2, Now t3) {
   if (opts.verbosity == EACH_ADAPT) {
     if (!mesh->comm()->rank()) std::cout << "after adapting:\n";
     adapt_check(mesh, opts);
