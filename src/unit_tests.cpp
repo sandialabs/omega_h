@@ -756,18 +756,18 @@ static void test_interpolate_metrics() {
   CHECK(are_close(b, c));
 }
 
-static void test_element_identity_metric() {
+static void test_element_implied_metric() {
   /* perfect tri with edge lengths = 2 */
   Few<Vector<2>, 3> perfect_tri(
       {vector_2(1, 0), vector_2(0, sqrt(3.0)), vector_2(-1, 0)});
-  auto afm = element_identity_metric(perfect_tri);
+  auto afm = element_implied_metric(perfect_tri);
   auto bfm = compose_metric(identity_matrix<2, 2>(), vector_2(2, 2));
   CHECK(are_close(afm, bfm));
   /* perfect tet with edge lengths = 2 */
   Few<Vector<3>, 4> perfect_tet(
       {vector_3(1, 0, -1.0 / sqrt(2.0)), vector_3(-1, 0, -1.0 / sqrt(2.0)),
           vector_3(0, -1, 1.0 / sqrt(2.0)), vector_3(0, 1, 1.0 / sqrt(2.0))});
-  auto arm = element_identity_metric(perfect_tet);
+  auto arm = element_implied_metric(perfect_tet);
   auto brm = compose_metric(identity_matrix<3, 3>(), vector_3(2, 2, 2));
   CHECK(are_close(arm, brm));
 }
@@ -812,12 +812,12 @@ static void test_sf_scale_dim(Library const& lib) {
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   {
-    auto size = Omega_h::find_identity_size(&mesh);
+    auto size = Omega_h::find_implied_size(&mesh);
     auto size_scal = size_scalar_for_nelems(&mesh, size, target_nelems);
     CHECK(are_close(size_scal, 1.));
   }
   {
-    auto metric = Omega_h::find_identity_metric(&mesh);
+    auto metric = Omega_h::find_implied_metric(&mesh);
     auto metric_scal = metric_scalar_for_nelems(&mesh, metric, target_nelems);
     if (dim != 3) CHECK(are_close(metric_scal, 1.));
   }
@@ -901,7 +901,7 @@ int main(int argc, char** argv) {
   test_xml();
   test_read_vtu(lib);
   test_interpolate_metrics();
-  test_element_identity_metric();
+  test_element_implied_metric();
   test_recover_hessians(lib);
   test_sf_scale(lib);
   test_buffered_conflict(lib);

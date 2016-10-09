@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
   mesh.set_comm(world);
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto metrics = find_identity_metric(&mesh);
+  auto metrics = find_implied_metric(&mesh);
   mesh.add_tag(VERT, "metric", symm_dofs(mesh.dim()), OMEGA_H_METRIC,
       OMEGA_H_DO_OUTPUT, metrics);
   auto target_metric = compose_metric(

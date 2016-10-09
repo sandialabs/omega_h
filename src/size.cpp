@@ -85,28 +85,28 @@ Reals measure_elements_real(Mesh* mesh) {
 }
 
 template <Int dim>
-static Reals element_identity_sizes_dim(Mesh* mesh) {
+static Reals element_implied_sizes_dim(Mesh* mesh) {
   auto coords = mesh->coords();
   auto ev2v = mesh->ask_elem_verts();
   auto out = Write<Real>(mesh->nelems());
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto h = element_identity_size(p);
+    auto h = element_implied_size(p);
     out[e] = h;
   };
   parallel_for(mesh->nelems(), f);
   return out;
 }
 
-static Reals element_identity_sizes(Mesh* mesh) {
-  if (mesh->dim() == 3) return element_identity_sizes_dim<3>(mesh);
-  if (mesh->dim() == 2) return element_identity_sizes_dim<2>(mesh);
+static Reals element_implied_sizes(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_implied_sizes_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_sizes_dim<2>(mesh);
   NORETURN(Reals());
 }
 
-Reals find_identity_size(Mesh* mesh) {
-  auto e_h = element_identity_sizes(mesh);
+Reals find_implied_size(Mesh* mesh) {
+  auto e_h = element_implied_sizes(mesh);
   auto e_linear = linearize_isos(e_h);
   auto v_linear = project_by_average(mesh, e_linear);
   auto v_h = delinearize_isos(v_linear);
@@ -114,28 +114,28 @@ Reals find_identity_size(Mesh* mesh) {
 }
 
 template <Int dim>
-static Reals element_identity_metrics_dim(Mesh* mesh) {
+static Reals element_implied_metrics_dim(Mesh* mesh) {
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nelems() * symm_dofs(dim));
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto m = element_identity_metric(p);
+    auto m = element_implied_metric(p);
     set_symm(out, e, m);
   };
   parallel_for(mesh->nelems(), f);
   return out;
 }
 
-static Reals element_identity_metrics(Mesh* mesh) {
-  if (mesh->dim() == 3) return element_identity_metrics_dim<3>(mesh);
-  if (mesh->dim() == 2) return element_identity_metrics_dim<2>(mesh);
+static Reals element_implied_metrics(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_implied_metrics_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_metrics_dim<2>(mesh);
   NORETURN(Reals());
 }
 
-Reals find_identity_metric(Mesh* mesh) {
-  auto e_metric = element_identity_metrics(mesh);
+Reals find_implied_metric(Mesh* mesh) {
+  auto e_metric = element_implied_metrics(mesh);
   auto e_linear = linearize_metrics(mesh->dim(), e_metric);
   auto v_linear = project_by_average(mesh, e_linear);
   auto v_metric = delinearize_metrics(mesh->dim(), v_linear);

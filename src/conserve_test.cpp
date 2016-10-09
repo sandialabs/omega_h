@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
   classify_by_angles(&mesh, PI / 4);
   mesh.reorder();
   mesh.reset_globals();
-  auto size = find_identity_size(&mesh);
+  auto size = find_implied_size(&mesh);
   size = multiply_each_by(1.3, size);
   mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,

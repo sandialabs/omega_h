@@ -581,8 +581,8 @@ LOs collect_marked(Read<I8> marks);
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
 bool approach_size_field(Mesh* mesh, AdaptOpts const& opts);
 
-Reals find_identity_size(Mesh* mesh);
-Reals find_identity_metric(Mesh* mesh);
+Reals find_implied_size(Mesh* mesh);
+Reals find_implied_metric(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
 Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate);

@@ -168,14 +168,14 @@ INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
 }
 
 template <Int dim>
-INLINE Real element_identity_size(Few<Vector<dim>, dim + 1> p) {
+INLINE Real element_implied_size(Few<Vector<dim>, dim + 1> p) {
   auto b = simplex_basis<dim, dim>(p);
   auto ev = element_edge_vectors(p, b);
   auto h = sqrt(mean_squared_real_length(ev));
   return h;
 }
 
-INLINE Matrix<2, 2> element_identity_metric(Few<Vector<2>, 3> p) {
+INLINE Matrix<2, 2> element_implied_metric(Few<Vector<2>, 3> p) {
   auto b = simplex_basis<2, 2>(p);
   auto ev = element_edge_vectors(p, b);
   Matrix<3, 3> a;
@@ -191,7 +191,7 @@ INLINE Matrix<2, 2> element_identity_metric(Few<Vector<2>, 3> p) {
   return vector2symm(x);
 }
 
-INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
+INLINE Matrix<3, 3> element_implied_metric(Few<Vector<3>, 4> p) {
   auto b = simplex_basis<3, 3>(p);
   auto ev = element_edge_vectors(p, b);
   Matrix<6, 6> a;
