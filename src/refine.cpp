@@ -87,7 +87,7 @@ static bool refine(Mesh* mesh, AdaptOpts const& opts) {
 bool refine_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
-  auto edge_is_cand = each_gt(lengths, max_length_desired);
+  auto edge_is_cand = each_gt(lengths, opts.max_length_desired);
   if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
   mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, edge_is_cand);

@@ -15,6 +15,8 @@
 namespace Omega_h {
 
 AdaptOpts::AdaptOpts() {
+  min_length_desired = 1.0 / sqrt(2.0);
+  max_length_desired = sqrt(2.0);
   min_quality_desired = 0.30;
   min_quality_allowed = 0.20;
   nsliver_layers = 4;
@@ -56,13 +58,12 @@ static void get_minmax(
   *p_maxval = mesh->comm()->allreduce(max(values), OMEGA_H_MAX);
 }
 
-static void adapt_summary(Mesh* mesh, Real qual_floor, Real qual_ceil,
-    Real minqual, Real maxqual, Real minlen,
-    Real maxlen) {
-  goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(), qual_floor,
-      qual_ceil, minqual, maxqual);
+static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
+    Real minqual, Real maxqual, Real minlen, Real maxlen) {
+  goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
+      opts.min_quality_allowed, opts.min_quality_desired, minqual, maxqual);
   goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
-      min_length_desired, max_length_desired, minlen, maxlen);
+      opts.min_length_desired, opts.max_length_desired, minlen, maxlen);
 }
 
 bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
@@ -71,8 +72,8 @@ bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   Real minlen, maxlen;
   get_minmax(mesh, mesh->ask_lengths(), &minlen, &maxlen);
   if (minqual >= opts.min_quality_desired &&
-      minlen >= min_length_desired &&
-      maxlen <= max_length_desired) {
+      minlen >= opts.min_length_desired &&
+      maxlen <= opts.max_length_desired) {
     if (opts.verbosity > SILENT && mesh->comm()->rank() == 0) {
       std::cout << "mesh is good: quality [" << minqual << "," << maxqual
                 << "], length [" << minlen << "," << maxlen << "]\n";
@@ -80,8 +81,7 @@ bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
     return true;
   }
   if (opts.verbosity > SILENT) {
-    adapt_summary(mesh, opts.min_quality_allowed,
-        opts.min_quality_desired, minqual,
+    adapt_summary(mesh, opts, minqual,
         maxqual, minlen, maxlen);
   }
   return false;

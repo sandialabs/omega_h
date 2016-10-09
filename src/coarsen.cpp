@@ -72,7 +72,8 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
   /* edge length overshoot check */
   if (overshoot == DONT_OVERSHOOT) {
-    cand_edge_codes = prevent_overshoot(mesh, cands2edges, cand_edge_codes);
+    cand_edge_codes = prevent_overshoot(mesh, opts,
+        cands2edges, cand_edge_codes);
     filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
   }
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
@@ -214,7 +215,7 @@ static bool coarsen_ents(Mesh* mesh, AdaptOpts const& opts,
 bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
-  auto edge_is_cand = each_lt(lengths, min_length_desired);
+  auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
   if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
   return coarsen_ents(
       mesh, opts, EDGE, edge_is_cand, DONT_OVERSHOOT, DONT_IMPROVE);

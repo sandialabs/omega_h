@@ -5,9 +5,6 @@
 
 namespace Omega_h {
 
-/* This is (1/sqrt(2)), but sqrt() is not constexpr */
-constexpr Real min_length_desired = 0.7071067811865475;
-
 HostFew<Read<I8>, 4> mark_dead_ents(
     Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs);
 
@@ -22,7 +19,8 @@ Read<I8> filter_coarsen_min_qual(
 Read<I8> filter_coarsen_improve(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Reals cand_quals);
 
-Read<I8> prevent_overshoot(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
+Read<I8> prevent_overshoot(Mesh* mesh,
+   AdaptOpts const& opts, LOs cands2edges, Read<I8> cand_codes);
 
 void choose_rails(Mesh* mesh, LOs cands2edges,
     Read<I8> cand_edge_codes, Reals cand_edge_quals, Read<I8>* verts_are_cands,

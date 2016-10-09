@@ -8,8 +8,10 @@ namespace Omega_h {
 
 template <typename EdgeLengths, Int dim>
 static Read<I8> prevent_overshoot_tmpl(
-    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
+    Mesh* mesh, AdaptOpts const& opts,
+    LOs cands2edges, Read<I8> cand_codes) {
   CHECK(mesh->dim() == dim);
+  auto maxlength = opts.max_length_desired;
   EdgeLengths measurer(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto v2v = mesh->ask_star(VERT);
@@ -28,7 +30,7 @@ static Read<I8> prevent_overshoot_tmpl(
         if (v_adj == v_onto) continue;
         Few<LO, 2> new_ev; new_ev[0] = v_onto; new_ev[1] = v_adj;
         auto length = measurer.measure(new_ev);
-        if (length > max_length_desired) {
+        if (length >= maxlength) {
           code = dont_collapse(code, eev_col);
           break;
         }
@@ -41,22 +43,23 @@ static Read<I8> prevent_overshoot_tmpl(
       EDGE, Read<I8>(out), cands2edges, I8(DONT_COLLAPSE), 1);
 }
 
-Read<I8> prevent_overshoot(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
+Read<I8> prevent_overshoot(Mesh* mesh, AdaptOpts const& opts,
+    LOs cands2edges, Read<I8> cand_codes) {
   if (mesh->has_tag(VERT, "size") && mesh->dim() == 3) {
     return prevent_overshoot_tmpl<IsoEdgeLengths<3>, 3>(
-        mesh, cands2edges, cand_codes);
+        mesh, opts, cands2edges, cand_codes);
   }
   if (mesh->has_tag(VERT, "metric") && mesh->dim() == 3) {
     return prevent_overshoot_tmpl<MetricEdgeLengths<3>, 3>(
-        mesh, cands2edges, cand_codes);
+        mesh, opts, cands2edges, cand_codes);
   }
   if (mesh->has_tag(VERT, "size") && mesh->dim() == 2) {
     return prevent_overshoot_tmpl<IsoEdgeLengths<2>, 2>(
-        mesh, cands2edges, cand_codes);
+        mesh, opts, cands2edges, cand_codes);
   }
   if (mesh->has_tag(VERT, "metric") && mesh->dim() == 2) {
     return prevent_overshoot_tmpl<MetricEdgeLengths<2>, 2>(
-        mesh, cands2edges, cand_codes);
+        mesh, opts, cands2edges, cand_codes);
   }
   NORETURN(Read<I8>());
 }
