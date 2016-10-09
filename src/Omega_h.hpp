@@ -522,9 +522,23 @@ class FullWriter {
 };
 }  // end namespace vtk
 
-/* returns true if the mesh was modified. */
-bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, Real overshoot_factor, Int nlayers, Int verbosity);
+enum Verbosity {
+  SILENT,
+  EACH_ADAPT,
+  EACH_REBUILD,
+  EXTRA_STATS
+};
+
+struct AdaptOpts {
+  AdaptOpts(); // sets defaults
+  Real min_quality_allowed;
+  Real min_quality_desired;
+  Int nsliver_layers;
+  Verbosity verbosity;
+};
+
+/* returns false if the mesh was not modified. */
+bool adapt(Mesh* mesh, AdaptOpts const& opts);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
@@ -567,8 +581,8 @@ template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
 LOs collect_marked(Read<I8> marks);
 
-bool warp_to_limit(Mesh* mesh, Real min_qual);
-bool approach_size_field(Mesh* mesh, Real min_qual);
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
+bool approach_size_field(Mesh* mesh, AdaptOpts const& opts);
 
 Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);

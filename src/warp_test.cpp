@@ -87,9 +87,8 @@ int main(int argc, char** argv) {
       measure_elements_real(&mesh));
   mesh.add_tag(mesh.dim(), "density_r3d", 1, OMEGA_H_CONSERVE_R3D,
       OMEGA_H_DO_OUTPUT, Reals(mesh.nelems(), 1.0));
-  // mesh.add_tag(VERT, "velocity", 3, OMEGA_H_MOMENTUM_VELOCITY,
-  //   OMEGA_H_DO_OUTPUT, Reals(mesh.nverts() * 3, 0));
   add_pointwise(&mesh);
+  auto opts = AdaptOpts();
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
@@ -120,9 +119,7 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT,
         Reals(warp_w));
-    while (warp_to_limit(&mesh, 0.20)) {
-      adapt(&mesh, 0.20, 0.30, 1.0 / sqrt(2.0), sqrt(2.0), 1.0, 4, 3);
-    }
+    while (warp_to_limit(&mesh, opts)) adapt(&mesh, opts);
   }
   Now t1 = now();
   mesh.set_parting(OMEGA_H_ELEM_BASED);

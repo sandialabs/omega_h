@@ -17,6 +17,8 @@ int main(int argc, char** argv) {
   mesh.set_comm(world);
   mesh.balance();
   mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT);
+  auto opts = AdaptOpts();
+  opts.min_quality_allowed = 0.47;
   do {
     Write<Real> size(mesh.nverts());
     auto coords = mesh.coords();
@@ -33,7 +35,7 @@ int main(int argc, char** argv) {
     mesh.set_tag(VERT, "size", Reals(size));
     mesh.ask_lengths();
     mesh.ask_qualities();
-  } while (refine_by_size(&mesh, sqrt(2.0), 0.47, false));
+  } while (refine_by_size(&mesh, opts));
   bool ok = check_regression("gold_corner", &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;
