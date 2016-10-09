@@ -220,6 +220,8 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     size = solve_laplacian(&mesh, size, 1, 1e-2);
     mesh.set_tag(VERT, "size", size);
     auto opts = AdaptOpts();
+    opts.min_length_desired = 0.5;
+    opts.max_length_desired = 1.5;
     int warp_step = 0;
     while (warp_to_limit(&mesh, opts)) {
       if (world->rank() == 0) {
