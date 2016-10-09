@@ -14,7 +14,7 @@ static Read<I8> prevent_overshoot_tmpl(
   auto maxlength = opts.max_length_desired;
   EdgeLengths measurer(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
-  auto v2v = mesh->ask_star(VERT);
+  auto v2e = mesh->ask_up(VERT, EDGE);
   auto ncands = cands2edges.size();
   auto out = Write<I8>(ncands);
   auto f = LAMBDA(LO cand) {
@@ -25,11 +25,14 @@ static Read<I8> prevent_overshoot_tmpl(
       auto v_col = ev2v[e * 2 + eev_col];
       auto eev_onto = 1 - eev_col;
       auto v_onto = ev2v[e * 2 + eev_onto];
-      for (auto vv = v2v.a2ab[v_col]; vv < v2v.a2ab[v_col + 1]; ++vv) {
-        auto v_adj = v2v.ab2b[vv];
-        if (v_adj == v_onto) continue;
-        Few<LO, 2> new_ev; new_ev[0] = v_onto; new_ev[1] = v_adj;
-        auto length = measurer.measure(new_ev);
+      for (auto ve = v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
+        auto e2 = v2e.ab2b[ve];
+        if (e2 == e) continue;
+        Few<LO, 2> eev2v = gather_verts<2>(ev2v, e2);
+        for (Int i = 0; i < 2; ++i) {
+          if (eev2v[i] == v_col) eev2v[i] = v_onto;
+        }
+        auto length = measurer.measure(eev2v);
         if (length >= maxlength) {
           code = dont_collapse(code, eev_col);
           break;
