@@ -139,12 +139,12 @@ INLINE Matrix<dim, dim> interpolate_metric(
 template <Int dim, Int n>
 INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   auto m = ms[0];
-  auto mindet = determinant(m);
+  auto maxdet = determinant(m);
   for (Int i = 1; i < n; ++i) {
     auto det = determinant(ms[i]);
-    if (det > mindet) {
+    if (det > maxdet) {
       m = ms[i];
-      mindet = det;
+      maxdet = det;
     }
   }
   return m;
