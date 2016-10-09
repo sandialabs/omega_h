@@ -35,7 +35,7 @@ struct MetricRefineQualities {
     for (Int csv = 0; csv < dim; ++csv)
       ms[csv] = get_symm<dim>(vert_metrics, csv2v[csv]);
     ms[dim] = get_symm<dim>(midpt_metrics, cand);
-    auto m = mindet_metric(ms);
+    auto m = maxdet_metric(ms);
     return metric_element_quality(p, m);
   }
 };

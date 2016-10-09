@@ -137,7 +137,7 @@ INLINE Matrix<dim, dim> interpolate_metric(
  * basically, choose the one that is asking for the largest real-space volume.
  */
 template <Int dim, Int n>
-INLINE Matrix<dim, dim> mindet_metric(Few<Matrix<dim, dim>, n> ms) {
+INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   auto m = ms[0];
   auto mindet = determinant(m);
   for (Int i = 1; i < n; ++i) {
@@ -151,7 +151,7 @@ INLINE Matrix<dim, dim> mindet_metric(Few<Matrix<dim, dim>, n> ms) {
 }
 
 Reals get_midedge_metrics(Mesh* mesh, LOs entities, Reals v2m);
-Reals get_mindet_metrics(Mesh* mesh, LOs entities, Reals v2m);
+Reals get_maxdet_metrics(Mesh* mesh, LOs entities, Reals v2m);
 Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
 Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);

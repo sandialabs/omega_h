@@ -35,7 +35,7 @@ Reals get_midedge_metrics(Mesh* mesh, LOs entities, Reals v2m) {
 }
 
 template <Int dim>
-static Reals mindet_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
+static Reals maxdet_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
   Write<Real> out(na * symm_dofs(dim));
   auto ev2v = mesh->ask_verts_of(dim);
@@ -43,18 +43,18 @@ static Reals mindet_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
     auto e = a2e[a];
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto ms = gather_symms<dim + 1, dim>(v2m, v);
-    auto m = mindet_metric(ms);
+    auto m = maxdet_metric(ms);
     set_symm(out, a, m);
   };
   parallel_for(na, f);
   return out;
 }
 
-Reals get_mindet_metrics(Mesh* mesh, LOs entities, Reals v2m) {
+Reals get_maxdet_metrics(Mesh* mesh, LOs entities, Reals v2m) {
   if (mesh->dim() == 3) {
-    return mindet_metrics_tmpl<3>(mesh, entities, v2m);
+    return maxdet_metrics_tmpl<3>(mesh, entities, v2m);
   } else if (mesh->dim() == 2) {
-    return mindet_metrics_tmpl<2>(mesh, entities, v2m);
+    return maxdet_metrics_tmpl<2>(mesh, entities, v2m);
   }
   NORETURN(Reals());
 }

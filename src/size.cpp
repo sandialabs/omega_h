@@ -213,10 +213,10 @@ struct MeanSquaredMetricLength {
   Reals e2m;
   MeanSquaredMetricLength(Mesh* mesh, Reals v2m) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
-    /* TODO: if this is the only use of get_mindet_metrics, we can
+    /* TODO: if this is the only use of get_maxdet_metrics, we can
      * omit the dummy e2e map altogether
      */
-    e2m = get_mindet_metrics(mesh, e2e, v2m);
+    e2m = get_maxdet_metrics(mesh, e2e, v2m);
   }
   template <Int dim, typename EdgeVectors>
   DEVICE Real get(LO e, EdgeVectors edge_vectors) const {

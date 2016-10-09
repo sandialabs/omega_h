@@ -177,7 +177,7 @@ struct MetricElementQualities {
   DEVICE Real measure(Few<LO, neev> v) const {
     auto p = gather_vectors<neev, neev - 1>(coords, v);
     auto ms = gather_symms<neev, neev - 1>(metrics, v);
-    auto m = mindet_metric(ms);
+    auto m = maxdet_metric(ms);
     return metric_element_quality(p, m);
   }
 };
