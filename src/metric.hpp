@@ -117,34 +117,42 @@ that can be safely linearly interpolated.
 
 template <Int dim>
 INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
-  return invert(m);
+  return log(m);
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> m) {
-  return invert(m);
+INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
+  return exp(log_m);
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> interpolate_metrics(
+INLINE Matrix<dim, dim> interpolate_metric(
     Matrix<dim, dim> a, Matrix<dim, dim> b, Real t) {
   return delinearize_metric(
       (linearize_metric(a) * (1.0 - t)) + (linearize_metric(b) * t));
 }
 
-/* same as above, but for the barycenter of an entity */
+/* a cheap hackish variant of interpolation for getting a metric
+ * tensor to use to measure an element's quality.
+ * basically, choose the one that is asking for the largest real-space volume.
+ */
 template <Int dim, Int n>
-INLINE Matrix<dim, dim> average_metrics(Few<Matrix<dim, dim>, n> ms) {
-  auto am = zero_matrix<dim, dim>();
-  for (Int i = 0; i < n; ++i) {
-    am = am + linearize_metric(ms[i]);
+INLINE Matrix<dim, dim> mindet_metric(Few<Matrix<dim, dim>, n> ms) {
+  auto m = ms[0];
+  auto mindet = determinant(m);
+  for (Int i = 1; i < n; ++i) {
+    auto det = determinant(ms[i]);
+    if (det < mindet) {
+      m = ms[i];
+      mindet = det;
+    }
   }
-  am = am / double(n);
-  return delinearize_metric(am);
+  return m;
 }
 
-Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
-Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t);
+Reals get_midedge_metrics(Mesh* mesh, LOs entities, Reals v2m);
+Reals get_mindet_metrics(Mesh* mesh, LOs entities, Reals v2m);
+Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
 Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);
 

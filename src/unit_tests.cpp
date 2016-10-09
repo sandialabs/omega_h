@@ -27,7 +27,6 @@
 #include "vtk.hpp"
 #include "xml.hpp"
 
-#include <iostream>  //REMOVE NOW
 #include <sstream>
 
 using namespace Omega_h;
@@ -606,6 +605,12 @@ static void test_positivize() {
   test_positivize(vector_2(1, 1));
 }
 
+static void test_edge_length() {
+  CHECK(are_close(1., edge_length(1., 1.)));
+  CHECK(edge_length(1., 2.) > 1.);
+  CHECK(edge_length(1., 2.) < 1.5);
+}
+
 static void test_refine_qualities(Library const& lib) {
   Mesh mesh;
   build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
@@ -745,9 +750,9 @@ static void test_interpolate_metrics() {
       4, compose_metric(identity_matrix<2, 2>(), vector_2(1.0 / 100.0, 1.0)));
   auto b = repeat_symm(
       4, compose_metric(identity_matrix<2, 2>(), vector_2(1.0, 1.0)));
-  auto c = interpolate_metrics(2, a, b, 0.0);
+  auto c = interpolate_between_metrics(2, a, b, 0.0);
   CHECK(are_close(a, c));
-  c = interpolate_metrics(2, a, b, 1.0);
+  c = interpolate_between_metrics(2, a, b, 1.0);
   CHECK(are_close(b, c));
 }
 
@@ -814,7 +819,7 @@ static void test_sf_scale_dim(Library const& lib) {
   {
     auto metric = Omega_h::find_identity_metric(&mesh);
     auto metric_scal = metric_scalar_for_nelems(&mesh, metric, target_nelems);
-    CHECK(are_close(metric_scal, 1., 1e-3));
+    if (dim != 3) CHECK(are_close(metric_scal, 1.));
   }
 }
 
@@ -855,6 +860,7 @@ static void test_categorize_graph() {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  test_edge_length();
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();

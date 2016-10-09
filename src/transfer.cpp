@@ -69,13 +69,26 @@ static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+static void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+    LOs keys2midverts, LOs same_verts2old_verts, LOs same_verts2new_verts) {
+  for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
+    auto tagbase = old_mesh->get_tag(VERT, i);
+    if (tagbase->xfer() == OMEGA_H_SIZE) {
+      auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
+      auto prod_data = get_midedge_isos(old_mesh, keys2edges, old_data);
+      transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
+          same_verts2new_verts, keys2midverts, tagbase, prod_data);
+    }
+  }
+}
+
 static void transfer_metric(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, LOs same_verts2old_verts, LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (tagbase->xfer() == OMEGA_H_METRIC) {
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
-      auto prod_data = average_metric(old_mesh, EDGE, keys2edges, old_data);
+      auto prod_data = get_midedge_metrics(old_mesh, keys2edges, old_data);
       transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
           same_verts2new_verts, keys2midverts, tagbase, prod_data);
     }
@@ -218,6 +231,8 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
   if (prod_dim == VERT) {
     transfer_linear_interp(old_mesh, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
+    transfer_size(old_mesh, new_mesh, keys2edges, keys2midverts,
+        same_ents2old_ents, same_ents2new_ents);
     transfer_metric(old_mesh, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
   } else if (prod_dim == EDGE) {
@@ -298,7 +313,8 @@ static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if ((tagbase->xfer() == OMEGA_H_INHERIT) ||
         (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) ||
-        (tagbase->xfer() == OMEGA_H_METRIC)) {
+        (tagbase->xfer() == OMEGA_H_METRIC) ||
+        (tagbase->xfer() == OMEGA_H_SIZE)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_no_products_tmpl<I8>(old_mesh, new_mesh, prod_dim,

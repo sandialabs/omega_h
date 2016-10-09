@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto size = find_identity_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
+  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   add_dye(&mesh);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
       measure_elements_real(&mesh));
@@ -121,7 +121,7 @@ int main(int argc, char** argv) {
     mesh.add_tag(VERT, "warp", dim, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT,
         Reals(warp_w));
     while (warp_to_limit(&mesh, 0.20)) {
-      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
+      adapt(&mesh, 0.20, 0.30, 1.0 / sqrt(2.0), sqrt(2.0), 1.0, 4, 3);
     }
   }
   Now t1 = now();

@@ -107,7 +107,9 @@ static Reals element_identity_sizes(Mesh* mesh) {
 
 Reals find_identity_size(Mesh* mesh) {
   auto e_h = element_identity_sizes(mesh);
-  auto v_h = project_by_average(mesh, e_h);
+  auto e_linear = linearize_isos(e_h);
+  auto v_linear = project_by_average(mesh, e_linear);
+  auto v_h = delinearize_isos(v_linear);
   return v_h;
 }
 
@@ -211,7 +213,10 @@ struct MeanSquaredMetricLength {
   Reals e2m;
   MeanSquaredMetricLength(Mesh* mesh, Reals v2m) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
-    e2m = average_metric(mesh, mesh->dim(), e2e, v2m);
+    /* TODO: if this is the only use of get_mindet_metrics, we can
+     * omit the dummy e2e map altogether
+     */
+    e2m = get_mindet_metrics(mesh, e2e, v2m);
   }
   template <Int dim, typename EdgeVectors>
   DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
@@ -276,6 +281,55 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   if (mesh->dim() == 3) m_scal = cbrt(square(size_scal));
   if (mesh->dim() == 2) m_scal = size_scal;
   return m_scal;
+}
+
+Reals get_midedge_isos(Mesh* mesh, LOs a2e, Reals v2h) {
+  auto na = a2e.size();
+  Write<Real> out(na);
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto f = LAMBDA(LO a) {
+    auto e = a2e[a];
+    auto v = gather_verts<2>(ev2v, e);
+    auto hs = gather_scalars<2>(v2h, v);
+    auto h = interpolate_iso(hs[0], hs[1], 1.0 / 2.0);
+    out[a] = h;
+  };
+  parallel_for(na, f);
+  return out;
+}
+
+Reals interpolate_between_isos(Reals a, Reals b, Real t) {
+  CHECK(a.size() == b.size());
+  auto n = a.size();
+  auto out = Write<Real>(n);
+  auto f = LAMBDA(LO i) {
+    auto ah = a[i];
+    auto bh = b[i];
+    auto ch = interpolate_iso(ah, bh, t);
+    out[i] = ch;
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals linearize_isos(Reals isos) {
+  auto n = isos.size();
+  auto out = Write<Real>(n);
+  auto f = LAMBDA(LO i) {
+    out[i] = linearize_iso(isos[i]);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals delinearize_isos(Reals log_isos) {
+  auto n = log_isos.size();
+  auto out = Write<Real>(n);
+  auto f = LAMBDA(LO i) {
+    out[i] = delinearize_iso(log_isos[i]);
+  };
+  parallel_for(n, f);
+  return out;
 }
 
 }  // end namespace Omega_h

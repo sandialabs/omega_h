@@ -76,6 +76,8 @@ set(Omega_h_SOURCES
   derive.cpp
   project.cpp
   buffered_graphs.cpp
+  overshoot.cpp
+  collapse_rail.cpp
   )
 
 if(Omega_h_ONE_FILE)
@@ -263,6 +265,7 @@ configure_file(
 
 set(Omega_h_HEADERS
   "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h"
+  Omega_h_macros.h
   Omega_h_mpi.h
   Omega_h_c.h
   Omega_h_kokkos.hpp

@@ -23,8 +23,11 @@ struct MetricRefineQualities {
   Reals midpt_metrics;
   MetricRefineQualities(Mesh* mesh, LOs candidates)
       : vert_metrics(mesh->get_array<Real>(VERT, "metric")),
-        midpt_metrics(average_metric(
-            mesh, EDGE, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
+/* TODO: we could reuse the results of this instead of recomputing
+ * them when transferring an OMEGA_H_METRIC field in transfer.cpp
+ */
+        midpt_metrics(get_midedge_metrics(
+            mesh, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
   template <Int dim>
   DEVICE Real measure(
       Int cand, Few<Vector<dim>, dim + 1> p, Few<LO, dim> csv2v) const {
@@ -32,7 +35,7 @@ struct MetricRefineQualities {
     for (Int csv = 0; csv < dim; ++csv)
       ms[csv] = get_symm<dim>(vert_metrics, csv2v[csv]);
     ms[dim] = get_symm<dim>(midpt_metrics, cand);
-    auto m = average_metrics(ms);
+    auto m = mindet_metric(ms);
     return metric_element_quality(p, m);
   }
 };

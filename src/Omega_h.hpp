@@ -524,7 +524,7 @@ class FullWriter {
 
 /* returns true if the mesh was modified. */
 bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, Int nlayers, Int verbosity);
+    Real len_ceil, Real overshoot_factor, Int nlayers, Int verbosity);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
@@ -568,7 +568,7 @@ Read<I8> each_eq_to(Read<T> a, T b);
 LOs collect_marked(Read<I8> marks);
 
 bool warp_to_limit(Mesh* mesh, Real min_qual);
-bool approach_metric(Mesh* mesh, Real min_qual);
+bool approach_size_field(Mesh* mesh, Real min_qual);
 
 Reals find_identity_size(Mesh* mesh);
 Reals find_identity_metric(Mesh* mesh);
