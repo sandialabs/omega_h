@@ -12,13 +12,13 @@
 
 namespace Omega_h {
 
-static bool refine_ghosted(Mesh* mesh, Real min_qual) {
+static bool refine_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_quals = refine_qualities(mesh, cands2edges);
-  auto cands_are_good = each_geq_to(cand_quals, min_qual);
+  auto cands_are_good = each_geq_to(cand_quals, opts.min_quality_allowed);
   if (comm->allreduce(max(cands_are_good), OMEGA_H_MAX) != 1) return false;
   auto nedges = mesh->nedges();
   auto edges_are_initial =
@@ -36,13 +36,13 @@ static bool refine_ghosted(Mesh* mesh, Real min_qual) {
   return true;
 }
 
-static void refine_element_based(Mesh* mesh, bool verbose) {
+static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
   auto nkeys = keys2edges.size();
   auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
-  if (verbose && comm->rank() == 0) {
+  if (opts.verbosity >= EACH_REBUILD && comm->rank() == 0) {
     std::cout << "refining " << ntotal_keys << " edges\n";
   }
   auto new_mesh = mesh->copy_meta();
@@ -76,22 +76,22 @@ static void refine_element_based(Mesh* mesh, bool verbose) {
   *mesh = new_mesh;
 }
 
-bool refine(Mesh* mesh, Real min_qual, bool verbose) {
+static bool refine(Mesh* mesh, AdaptOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
-  if (!refine_ghosted(mesh, min_qual)) return false;
+  if (!refine_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  refine_element_based(mesh, verbose);
+  refine_element_based(mesh, opts);
   return true;
 }
 
-bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual, bool verbose) {
+bool refine_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
-  auto edge_is_cand = each_gt(lengths, max_len);
+  auto edge_is_cand = each_gt(lengths, max_length_desired);
   if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
   mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, edge_is_cand);
-  return refine(mesh, min_qual, verbose);
+  return refine(mesh, opts);
 }
 
 }  // end namespace Omega_h

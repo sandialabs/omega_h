@@ -5,8 +5,10 @@
 
 namespace Omega_h {
 
-bool refine(Mesh* mesh, Real min_qual, bool verbose);
-bool refine_by_size(Mesh* mesh, Real max_len, Real min_qual, bool verbose);
+/* This is sqrt(2), but sqrt() is not constexpr */
+constexpr Real max_length_desired = 1.4142135623730951;
+
+bool refine_by_size(Mesh* mesh, AdaptOpts const& opts);
 
 }  // end namespace Omega_h
 

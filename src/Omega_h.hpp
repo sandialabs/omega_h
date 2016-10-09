@@ -522,9 +522,22 @@ class FullWriter {
 };
 }  // end namespace vtk
 
-/* returns true if the mesh was modified. */
-bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, Real overshoot_factor, Int nlayers, Int verbosity);
+enum Verbosity {
+  SILENT,
+  EACH_ADAPT,
+  EACH_REBUILD,
+  EXTRA_STATS
+};
+
+struct AdaptOpts {
+  Real min_quality_allowed;
+  Real min_quality_desired;
+  Int nsliver_layers;
+  Verbosity verbosity;
+};
+
+/* returns false if the mesh was not modified. */
+bool adapt(Mesh* mesh, AdaptOpts const& opts);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
