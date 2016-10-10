@@ -299,17 +299,10 @@ Reals get_midedge_isos(Mesh* mesh, LOs a2e, Reals v2h) {
 }
 
 Reals interpolate_between_isos(Reals a, Reals b, Real t) {
-  CHECK(a.size() == b.size());
-  auto n = a.size();
-  auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) {
-    auto ah = a[i];
-    auto bh = b[i];
-    auto ch = interpolate_metric(ah, bh, t);
-    out[i] = ch;
-  };
-  parallel_for(n, f);
-  return out;
+  auto log_a = linearize_isos(a);
+  auto log_b = linearize_isos(b);
+  auto log_c = interpolate_between(a, b, t);
+  return delinearize_isos(log_c);
 }
 
 Reals linearize_isos(Reals isos) {

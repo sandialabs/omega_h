@@ -59,30 +59,11 @@ Reals get_maxdet_metrics(Mesh* mesh, LOs entities, Reals v2m) {
   NORETURN(Reals());
 }
 
-template <Int dim>
-Reals interpolate_between_metrics_dim(Reals a, Reals b, Real t) {
-  CHECK(a.size() == b.size());
-  CHECK(a.size() % symm_dofs(dim) == 0);
-  auto n = a.size() / symm_dofs(dim);
-  auto out = Write<Real>(n * symm_dofs(dim));
-  auto f = LAMBDA(LO i) {
-    auto am = get_symm<dim>(a, i);
-    auto bm = get_symm<dim>(b, i);
-    auto cm = interpolate_metric(am, bm, t);
-    set_symm(out, i, cm);
-  };
-  parallel_for(n, f);
-  return out;
-}
-
 Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t) {
-  if (dim == 3) {
-    return interpolate_between_metrics_dim<3>(a, b, t);
-  }
-  if (dim == 2) {
-    return interpolate_between_metrics_dim<2>(a, b, t);
-  }
-  NORETURN(Reals());
+  auto log_a = linearize_metrics(dim, a);
+  auto log_b = linearize_metrics(dim, b);
+  auto log_c = interpolate_between(log_a, log_b, t);
+  return delinearize_metrics(dim, log_c);
 }
 
 template <Int dim>
