@@ -14,11 +14,34 @@ INLINE Real cube(Real x) { return x * x * x; }
 
 INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
-INLINE Real raise(Real x, Int p) {
-  Real out = 1.;
-  for (Int i = 0; i < p; ++i) out *= x;
+template <Int p>
+INLINE Real raise(Real x) {
+  Real out = x;
+  for (Int i = 1; i < p; ++i) out *= x;
   return out;
 }
+
+template <Int dp>
+struct Root;
+
+template <>
+struct Root<2> {
+  static INLINE Real eval(Real x) { return sqrt(x); }
+};
+
+template <Int np, Int dp>
+struct Power {
+  static INLINE Real eval(Real x) { return Root<dp>::eval(raise<np>(x)); }
+  static_assert(np != dp, "equal case should be specialized");
+};
+
+template <Int p>
+struct Power<p, p> {
+  static INLINE Real eval(Real x) { return x; }
+};
+
+template <Int np, Int dp>
+INLINE Real power(Real x) { return Power<np, dp>::eval(x); }
 
 INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
   Real am = fabs(a);

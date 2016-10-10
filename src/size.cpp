@@ -237,7 +237,7 @@ static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2sf) {
     auto basis = simplex_basis<dim, dim>(eev2x);
     auto edge_vectors = element_edge_vectors(eev2x, basis);
     auto msl = msl_obj.template get<dim>(e, edge_vectors);
-    out_w[e] = raise(sqrt(msl), dim);
+    out_w[e] = power<dim, 2>(msl);
   };
   parallel_for(mesh->nelems(), f);
   return Reals(out_w);
