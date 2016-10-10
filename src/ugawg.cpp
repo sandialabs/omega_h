@@ -7,8 +7,22 @@
 
 using namespace Omega_h;
 
-constexpr Int dim = 2;
+template <Int dim>
+struct DimOpts;
 
+template <>
+struct DimOpts<2> {
+  static constexpr Real min_quality_allowed = 0.40;
+  static constexpr Real min_quality_desired = 0.50;
+};
+
+template <>
+struct DimOpts<3> {
+  static constexpr Real min_quality_allowed = 0.20;
+  static constexpr Real min_quality_desired = 0.30;
+};
+
+template <Int dim>
 static void set_target_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto target_metrics_w = Write<Real>(mesh->nverts() * symm_dofs(dim));
@@ -24,8 +38,8 @@ static void set_target_metric(Mesh* mesh) {
   mesh->set_tag(VERT, "target_metric", Reals(target_metrics_w));
 }
 
-int main(int argc, char** argv) {
-  auto lib = Library(&argc, &argv);
+template <Int dim>
+void run_case(Library const& lib) {
   auto world = lib.world();
   Mesh mesh;
   if (world->rank() == 0) {
@@ -40,25 +54,30 @@ int main(int argc, char** argv) {
       OMEGA_H_DO_OUTPUT, implied_metrics);
   mesh.add_tag<Real>(VERT, "target_metric", symm_dofs(mesh.dim()), OMEGA_H_METRIC,
       OMEGA_H_DO_OUTPUT);
-  set_target_metric(&mesh);
+  set_target_metric<dim>(&mesh);
   mesh.ask_lengths();
   mesh.ask_qualities();
   vtk::FullWriter writer(&mesh, "debug");
   writer.write();
   auto opts = AdaptOpts();
-  opts.min_quality_allowed = 0.40;
-  opts.min_quality_desired = 0.50;
+  opts.min_quality_allowed = DimOpts<dim>::min_quality_allowed;
+  opts.min_quality_desired = DimOpts<dim>::min_quality_desired;
   opts.verbosity = EXTRA_STATS;
   Now t0 = now();
   while (approach_size_field(&mesh, opts)) {
     adapt(&mesh, opts);
     if (mesh.has_tag(VERT, "target_metric")) {
-      set_target_metric(&mesh);
+      set_target_metric<dim>(&mesh);
     }
     writer.write();
   }
   Now t1 = now();
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
+}
+
+int main(int argc, char** argv) {
+  auto lib = Library(&argc, &argv);
+  run_case<3>(lib);
   return 0;
 }
 
