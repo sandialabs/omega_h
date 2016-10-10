@@ -6,7 +6,7 @@ include(cmake/bob.cmake)
 
 bob_begin_package()
 
-option(Omega_h_USE_MPI "Use MPI for parallelism" ON)
+option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 option(Omega_h_USE_OpenMP "Use Kokkos+OpenMP for on-node parallelism" OFF)
 option(Omega_h_USE_PTHREADS "Use Kokkos+Pthread for on-node parallelism" OFF)
 option(Omega_h_USE_CUDA "Use Kokkos+CUDA for on-node parallelism" OFF)
