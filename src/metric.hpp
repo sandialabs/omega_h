@@ -169,6 +169,7 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
  * accepts a metric tensor or nothing (nothing being the case
  * of isotropic quality, where the actual isotropic value doesn't
  * matter because our shape measure is scale-invariant)
+ */
 struct DummyIsoMetric {};
 
 }  // end namespace Omega_h

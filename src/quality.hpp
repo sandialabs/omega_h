@@ -47,23 +47,6 @@ INLINE Real metric_size(Few<Vector<dim>, dim> basis, Matrix<dim, dim> metric) {
   return element_size(basis) * sqrt(determinant(metric));
 }
 
-template <Int dim, typename EdgeVectors>
-INLINE Real mean_squared_metric_length(
-    EdgeVectors edge_vectors, DummyIsoMetric) {
-  return mean_squared_real_length(edge_vectors);
-}
-
-template <Int dim, typename EdgeVectors>
-INLINE Real mean_squared_metric_length(
-    EdgeVectors edge_vectors, Matrix<dim, dim> metric) {
-  auto nedges = EdgeVectors::size;
-  Real msl = 0;
-  for (Int i = 0; i < nedges; ++i) {
-    msl += metric_product(metric, edge_vectors[i]);
-  }
-  return msl / nedges;
-}
-
 /* note that we will always use a constant metric tensor over the whole
  * element to compute its quality, because that way we are computing
  * the quality of the element after a single linear transformation which
@@ -80,7 +63,7 @@ template <Int dim, typename Metric>
 INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p,
     Metric metric) {
   auto b = simplex_basis<dim, dim>(p);
-  auto s = metric_element_size(b, metric);
+  auto s = metric_size(b, metric);
   if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);
   auto msl = mean_squared_metric_length(ev, metric);

@@ -25,6 +25,16 @@ template <Int dp>
 struct Root;
 
 template <>
+struct Root<0> {
+  static INLINE Real eval(Real) { return 1.0; }
+};
+
+template <>
+struct Root<1> {
+  static INLINE Real eval(Real x) { return x; }
+};
+
+template <>
 struct Root<2> {
   static INLINE Real eval(Real x) { return sqrt(x); }
 };

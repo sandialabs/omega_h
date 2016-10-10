@@ -25,21 +25,15 @@ static void set_target_metric(Mesh* mesh) {
 
 template <Int dim>
 void run_case(Mesh* mesh) {
-  auto world = lib.world();
-  Mesh mesh;
-  if (world->rank() == 0) {
-    build_box(mesh, lib, 1, 1, 1, 8, 8, 8 * (dim - 2));
-    classify_by_angles(mesh, PI / 4);
-  }
-  mesh->set_comm(world);
-  mesh->balance();
+  auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = find_implied_metric(mesh);
   mesh->add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
       OMEGA_H_DO_OUTPUT, implied_metrics);
-  mesh->add_tag<Real>(VERT, "target_metric", symm_dofs(mesh.dim()), OMEGA_H_METRIC,
+  mesh->add_tag<Real>(VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC,
       OMEGA_H_DO_OUTPUT);
   set_target_metric<dim>(mesh);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->ask_lengths();
   mesh->ask_qualities();
   vtk::FullWriter writer(mesh, "debug");
@@ -49,7 +43,7 @@ void run_case(Mesh* mesh) {
   Now t0 = now();
   while (approach_size_field(mesh, opts)) {
     adapt(mesh, opts);
-    if (mesh.has_tag(VERT, "target_metric")) {
+    if (mesh->has_tag(VERT, "target_metric")) {
       set_target_metric<dim>(mesh);
     }
     writer.write();

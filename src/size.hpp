@@ -168,7 +168,7 @@ INLINE Real squared_metric_length(Vector<dim> v, Matrix<dim, dim> m) {
 }
 
 template <typename EdgeVectors, typename Metric>
-INLINE Real mean_squared_squared_length(EdgeVectors edge_vectors,
+INLINE Real mean_squared_metric_length(EdgeVectors edge_vectors,
     Metric metric) {
   auto nedges = EdgeVectors::size;
   Real msl = 0;
