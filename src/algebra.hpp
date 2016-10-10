@@ -70,12 +70,11 @@ INLINE bool are_close(
   return rel_diff_with_floor(a, b, floor) <= tol;
 }
 
-template <Int n>
-INLINE Real average(Few<Real, n> x) {
-  Real avg = 0;
-  for (Int i = 0; i < n; ++i) avg += x[i];
-  avg /= n;
-  return avg;
+template <Int n, typename T>
+INLINE T average(Few<T, n> x) {
+  auto avg = x[0];
+  for (Int i = 1; i < n; ++i) avg = avg + x[i];
+  return avg / n;
 }
 
 template <Int n>
@@ -98,14 +97,6 @@ INLINE Vector<n> zero_vector() {
   Vector<n> v;
   for (Int i = 0; i < n; ++i) v[i] = 0.0;
   return v;
-}
-
-template <Int m, Int n>
-INLINE Vector<m> average(Few<Vector<m>, n> x) {
-  Vector<m> avg = zero_vector<m>();
-  for (Int i = 0; i < n; ++i) avg = avg + x[i];
-  avg = avg / n;
-  return avg;
 }
 
 /* Moore-Penrose pseudo-inverse of a vector */
