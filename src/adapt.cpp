@@ -14,11 +14,17 @@
 
 namespace Omega_h {
 
-AdaptOpts::AdaptOpts() {
+AdaptOpts::AdaptOpts(Mesh* mesh) {
   min_length_desired = 1.0 / sqrt(2.0);
   max_length_desired = sqrt(2.0);
-  min_quality_desired = 0.30;
-  min_quality_allowed = 0.20;
+  if (mesh->dim() == 3) {
+    min_quality_allowed = 0.20;
+    min_quality_desired = 0.30;
+  }
+  if (mesh->dim() == 2) {
+    min_quality_allowed = 0.30;
+    min_quality_desired = 0.40;
+  }
   nsliver_layers = 4;
   verbosity = EACH_REBUILD;
 }

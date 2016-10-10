@@ -157,14 +157,30 @@ INLINE Few<Vector<3>, 6> element_edge_vectors(
   return ev;
 }
 
-template <typename EdgeVectors>
-INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
+template <Int dim>
+INLINE Real squared_metric_length(Vector<dim> v, DummyIsoMetric) {
+  return norm_squared(v);
+}
+
+template <Int dim>
+INLINE Real squared_metric_length(Vector<dim> v, Matrix<dim, dim> m) {
+  return metric_product(m, v);
+}
+
+template <typename EdgeVectors, typename Metric>
+INLINE Real mean_squared_metric_length(EdgeVectors edge_vectors,
+    Metric metric) {
   auto nedges = EdgeVectors::size;
   Real msl = 0;
   for (Int i = 0; i < nedges; ++i) {
-    msl += norm_squared(edge_vectors[i]);
+    msl += squared_metric_length(edge_vectors[i], metric);
   }
   return msl / nedges;
+}
+
+template <typename EdgeVectors>
+INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
+  return mean_squared_metric_length(edge_vectors, DummyIsoMetric());
 }
 
 template <Int dim>

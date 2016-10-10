@@ -47,7 +47,7 @@ static void tet_run(Omega_h::Real side_angle_in_degrees) {
   auto tet_volume = 1. / 3. * surf_tri_area * tet_height;
   std::cout << "tet_volume " << tet_volume << '\n';
   auto msl = (3 * Omega_h::square(cord_length) + 3.) / 6.;
-  auto quality = Omega_h::tet_mean_ratio(tet_volume, msl);
+  auto quality = Omega_h::mean_ratio<3>(tet_volume, msl);
   std::cout << "quality " << quality << '\n';
 }
 
@@ -67,7 +67,7 @@ static void tri_run(Omega_h::Real side_angle_in_degrees) {
   auto area = cord_length * height / 2.;
   std::cout << "area " << area << '\n';
   auto msl = (Omega_h::square(cord_length) + 2.) / 3.;
-  auto quality = Omega_h::tri_mean_ratio(area, msl);
+  auto quality = Omega_h::mean_ratio<2>(area, msl);
   std::cout << "quality " << quality << '\n';
 }
 
