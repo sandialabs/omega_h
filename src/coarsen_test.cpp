@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT);
   mesh.set_tag(VERT, "size", Reals(mesh.nverts(), 1.0));
-  auto opts = AdaptOpts();
+  auto opts = AdaptOpts(&mesh);
   opts.min_quality_allowed = 0.47;
   while (coarsen_by_size(&mesh, opts))
     ;

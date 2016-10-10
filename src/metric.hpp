@@ -134,7 +134,11 @@ INLINE Matrix<dim, dim> interpolate_metric(
 
 /* a cheap hackish variant of interpolation for getting a metric
  * tensor to use to measure an element's quality.
- * basically, choose the one that is asking for the largest real-space volume.
+ * basically, choose the one that is asking for the smallest real-space volume
+ * (big determinant means large metric volume which triggers refinement)
+ * the reason we use a cheap hack is because the Log-Euclidean interpolation
+ * we use is rather expensive, and we'd like to avoid calling it for every
+ * potential element (we do a lot of cavity pre-evaluation).
  */
 template <Int dim, Int n>
 INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
@@ -160,6 +164,12 @@ Reals metric_from_hessians(
     Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
 Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
     Real tolerance, Reals hessians, Real hmin, Real hmax);
+
+/* used to achieve templated versions of code that either
+ * accepts a metric tensor or nothing (nothing being the case
+ * of isotropic quality, where the actual isotropic value doesn't
+ * matter because our shape measure is scale-invariant)
+struct DummyIsoMetric {};
 
 }  // end namespace Omega_h
 

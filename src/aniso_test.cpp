@@ -27,13 +27,9 @@ int main(int argc, char** argv) {
       OMEGA_H_DO_OUTPUT, target_metrics);
   mesh.ask_lengths();
   mesh.ask_qualities();
-  auto opts = AdaptOpts();
-  opts.min_quality_allowed = 0.20;
-  opts.min_quality_desired = 0.30;
+  auto opts = AdaptOpts(&mesh);
   Now t0 = now();
-  while (approach_size_field(&mesh, opts)) {
-    adapt(&mesh, opts);
-  }
+  while (approach_size_field(&mesh, opts)) adapt(&mesh, opts);
   Now t1 = now();
   std::cout << "anisotropic approach took " << (t1 - t0) << " seconds\n";
   bool ok = check_regression("gold_aniso", &mesh, 0.0, 0.0);

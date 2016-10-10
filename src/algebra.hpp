@@ -29,6 +29,11 @@ struct Root<2> {
   static INLINE Real eval(Real x) { return sqrt(x); }
 };
 
+template <>
+struct Root<3> {
+  static INLINE Real eval(Real x) { return cbrt(x); }
+};
+
 template <Int np, Int dp>
 struct Power {
   static INLINE Real eval(Real x) { return Root<dp>::eval(raise<np>(x)); }
