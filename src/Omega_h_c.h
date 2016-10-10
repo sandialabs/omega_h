@@ -44,9 +44,9 @@ enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
 
 enum Omega_h_Outflags {
   OMEGA_H_DONT_OUTPUT = 0x0,
-  OMEGA_H_DO_SAVE     = 0x1,
-  OMEGA_H_DO_VIZ      = 0x2,
-  OMEGA_H_DO_OUTPUT   = OMEGA_H_DO_SAVE | OMEGA_H_DO_VIZ
+  OMEGA_H_DO_SAVE = 0x1,
+  OMEGA_H_DO_VIZ = 0x2,
+  OMEGA_H_DO_OUTPUT = OMEGA_H_DO_SAVE | OMEGA_H_DO_VIZ
 };
 
 #ifdef __cplusplus
@@ -54,7 +54,7 @@ extern "C" {
 #endif
 
 void Omega_h_fail(char const* format, ...)
-  __attribute__((noreturn,format(printf,1,2)));
+    __attribute__((noreturn, format(printf, 1, 2)));
 
 void Omega_h_init_internal(int* argc, char*** argv, char const* head_desc);
 
@@ -73,7 +73,7 @@ void Omega_h_finalize(void);
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
   ((cond) ? ((void)0) : Omega_h_fail("assertion %s failed at %s +%d\n", #cond, \
-                                 __FILE__, __LINE__))
+                            __FILE__, __LINE__))
 #endif
 
 #endif
