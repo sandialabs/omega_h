@@ -125,9 +125,12 @@ INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
   return exp(log_m);
 }
 
-template <Int dim>
-INLINE Matrix<dim, dim> interpolate_metric(
-    Matrix<dim, dim> a, Matrix<dim, dim> b, Real t) {
+INLINE Real linearize_metric(Real h) { return ::log(h); }
+
+INLINE Real delinearize_metric(Real log_h) { return ::exp(log_h); }
+
+template <typename T>
+INLINE T interpolate_metric(T a, T b, Real t) {
   return delinearize_metric(
       (linearize_metric(a) * (1.0 - t)) + (linearize_metric(b) * t));
 }

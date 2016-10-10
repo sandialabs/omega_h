@@ -239,15 +239,6 @@ struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
 
-INLINE Real linearize_iso(Real h) { return ::log(h); }
-
-INLINE Real delinearize_iso(Real log_h) { return ::exp(log_h); }
-
-INLINE Real interpolate_iso(Real a, Real b, Real t) {
-  return delinearize_iso(
-      (linearize_iso(a) * (1.0 - t)) + (linearize_iso(b) * t));
-}
-
 Reals get_midedge_isos(Mesh* mesh, LOs entities, Reals v2h);
 Reals interpolate_between_isos(Reals a, Reals b, Real t);
 Reals linearize_isos(Reals isos);

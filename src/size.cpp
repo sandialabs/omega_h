@@ -291,7 +291,7 @@ Reals get_midedge_isos(Mesh* mesh, LOs a2e, Reals v2h) {
     auto e = a2e[a];
     auto v = gather_verts<2>(ev2v, e);
     auto hs = gather_scalars<2>(v2h, v);
-    auto h = interpolate_iso(hs[0], hs[1], 1.0 / 2.0);
+    auto h = interpolate_metric(hs[0], hs[1], 1.0 / 2.0);
     out[a] = h;
   };
   parallel_for(na, f);
@@ -305,7 +305,7 @@ Reals interpolate_between_isos(Reals a, Reals b, Real t) {
   auto f = LAMBDA(LO i) {
     auto ah = a[i];
     auto bh = b[i];
-    auto ch = interpolate_iso(ah, bh, t);
+    auto ch = interpolate_metric(ah, bh, t);
     out[i] = ch;
   };
   parallel_for(n, f);
@@ -315,7 +315,7 @@ Reals interpolate_between_isos(Reals a, Reals b, Real t) {
 Reals linearize_isos(Reals isos) {
   auto n = isos.size();
   auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) { out[i] = linearize_iso(isos[i]); };
+  auto f = LAMBDA(LO i) { out[i] = linearize_metric(isos[i]); };
   parallel_for(n, f);
   return out;
 }
@@ -323,7 +323,7 @@ Reals linearize_isos(Reals isos) {
 Reals delinearize_isos(Reals log_isos) {
   auto n = log_isos.size();
   auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) { out[i] = delinearize_iso(log_isos[i]); };
+  auto f = LAMBDA(LO i) { out[i] = delinearize_metric(log_isos[i]); };
   parallel_for(n, f);
   return out;
 }
