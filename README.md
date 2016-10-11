@@ -3,8 +3,8 @@
 # Omega_h
 > Reliable mesh adaptation
 
-Omega_h is a C++11 library that implements tet and triangle mesh adaptativity,
-with a focus on scalable HPC performance using MPI and OpenMP or CUDA.
+Omega_h is a C++11 library that implements tetrahedron and triangle mesh adaptativity,
+with a focus on scalable HPC performance using (optionally) MPI, OpenMP, or CUDA.
 It is intended to provided adaptive functionality to existing simulation codes.
 Mesh adaptivity allows one to minimize both discretization error and number
 of degrees of freedom live during the simulation, as well as enabling moving
@@ -15,7 +15,7 @@ portable across many different architectures.
 ## Installing / Getting started
 
 For a bare minimum setup with no parallelism, you just need [CMake][0],
-a C++11 compiler, and [ZLib][6] installed.
+a C++11 compiler, and preferably [ZLib][6] installed.
 
 ```shell
 git clone git@github.com:ibaned/omega_h2.git
