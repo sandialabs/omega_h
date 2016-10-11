@@ -20,7 +20,7 @@ a C++11 compiler, and [ZLib][6] installed.
 ```shell
 git clone git@github.com:ibaned/omega_h2.git
 cd omega_h2
-cmake . -DCMAKE_INSTALL_PREFIX=/your/choice -DOmega_h_USE_MPI=OFF
+cmake . -DCMAKE_INSTALL_PREFIX=/your/choice
 make install
 ```
 
@@ -51,7 +51,7 @@ Omega_h provides at least the following:
 Below we document some key CMake configuration options:
 
 #### Omega_h_USE_MPI
-Default: `ON`
+Default: `OFF`
 
 Whether to enable MPI parallelism.
 We recommend using [MPICH][3] or another MPI 3.0 implementation,
