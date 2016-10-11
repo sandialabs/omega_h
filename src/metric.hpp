@@ -129,10 +129,19 @@ INLINE Real linearize_metric(Real h) { return ::log(h); }
 
 INLINE Real delinearize_metric(Real log_h) { return ::exp(log_h); }
 
-template <typename T>
-INLINE T interpolate_metric(T a, T b, Real t) {
-  return delinearize_metric(
-      (linearize_metric(a) * (1.0 - t)) + (linearize_metric(b) * t));
+template <Int n, typename T>
+INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
+  Few<T, n> log_ms;
+  for (Int i = 0; i < n; ++i) log_ms[i] = linearize_metric(ms[i]);
+  return log_ms;
+}
+
+/* the "proper" way to interpolate the metric tensor to
+ * the center of a simplex; does several eigendecompositions
+ */
+template <Int n, typename T>
+INLINE T average_metric(Few<T, n> ms) {
+  return delinearize_metric(average(linearize_metrics(ms)));
 }
 
 /* a cheap hackish variant of interpolation for getting a metric
@@ -157,8 +166,7 @@ INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   return m;
 }
 
-Reals get_midedge_metrics(Mesh* mesh, LOs entities, Reals v2m);
-Reals get_maxdet_metrics(Mesh* mesh, LOs entities, Reals v2m);
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
 Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
 Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);

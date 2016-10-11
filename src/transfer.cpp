@@ -75,7 +75,7 @@ static void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (tagbase->xfer() == OMEGA_H_SIZE) {
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
-      auto prod_data = get_midedge_isos(old_mesh, keys2edges, old_data);
+      auto prod_data = get_mident_isos(old_mesh, EDGE, keys2edges, old_data);
       transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
           same_verts2new_verts, keys2midverts, tagbase, prod_data);
     }
@@ -88,7 +88,7 @@ static void transfer_metric(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (tagbase->xfer() == OMEGA_H_METRIC) {
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
-      auto prod_data = get_midedge_metrics(old_mesh, keys2edges, old_data);
+      auto prod_data = get_mident_metrics(old_mesh, EDGE, keys2edges, old_data);
       transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
           same_verts2new_verts, keys2midverts, tagbase, prod_data);
     }

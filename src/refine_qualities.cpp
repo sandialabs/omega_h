@@ -26,8 +26,8 @@ struct MetricRefineQualities {
         /* TODO: we could reuse the results of this instead of recomputing
          * them when transferring an OMEGA_H_METRIC field in transfer.cpp
          */
-        midpt_metrics(get_midedge_metrics(
-            mesh, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
+        midpt_metrics(get_mident_metrics(
+            mesh, EDGE, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
   template <Int dim>
   DEVICE Real measure(
       Int cand, Few<Vector<dim>, dim + 1> p, Few<LO, dim> csv2v) const {

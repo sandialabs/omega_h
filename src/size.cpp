@@ -186,26 +186,17 @@ Reals find_implied_metric(Mesh* mesh) {
  * (a metric tensor eigenvalue is $(1/h^2)$, where $h$ is desired length).
 */
 
-template <typename EdgeVectors>
-INLINE Real mean_squared_iso_length(EdgeVectors edge_vectors, Real h) {
-  auto nedges = EdgeVectors::size;
-  Real msl = 0;
-  for (Int i = 0; i < nedges; ++i) {
-    msl += norm_squared(edge_vectors[i]) / square(h);
-  }
-  return msl / nedges;
-}
-
 struct MeanSquaredIsoLength {
   Reals e2h;
   MeanSquaredIsoLength(Mesh* mesh, Reals v2h) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
-    e2h = average_field(mesh, mesh->dim(), e2e, 1, v2h);
+    e2h = get_mident_isos(mesh, mesh->dim(), e2e, v2h);
   }
   template <Int dim, typename EdgeVectors>
   DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
     auto h = e2h[e];
-    return mean_squared_iso_length(edge_vectors, h);
+    return mean_squared_metric_length(edge_vectors, DummyIsoMetric()) /
+      square(h);
   }
 };
 
@@ -213,10 +204,7 @@ struct MeanSquaredMetricLength {
   Reals e2m;
   MeanSquaredMetricLength(Mesh* mesh, Reals v2m) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
-    /* TODO: if this is the only use of get_maxdet_metrics, we can
-     * omit the dummy e2e map altogether
-     */
-    e2m = get_maxdet_metrics(mesh, e2e, v2m);
+    e2m = get_mident_metrics(mesh, mesh->dim(), e2e, v2m);
   }
   template <Int dim, typename EdgeVectors>
   DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
@@ -283,19 +271,27 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   return m_scal;
 }
 
-Reals get_midedge_isos(Mesh* mesh, LOs a2e, Reals v2h) {
+template <Int edim>
+Reals get_mident_isos_tmpl(Mesh* mesh, LOs a2e, Reals v2h) {
   auto na = a2e.size();
   Write<Real> out(na);
-  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto ev2v = mesh->ask_verts_of(edim);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
-    auto v = gather_verts<2>(ev2v, e);
-    auto hs = gather_scalars<2>(v2h, v);
-    auto h = interpolate_metric(hs[0], hs[1], 1.0 / 2.0);
+    auto v = gather_verts<edim + 1>(ev2v, e);
+    auto hs = gather_scalars<edim + 1>(v2h, v);
+    auto h = average_metric(hs);
     out[a] = h;
   };
   parallel_for(na, f);
   return out;
+}
+
+Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs a2e, Reals v2h) {
+  if (ent_dim == 3) return get_mident_isos_tmpl<3>(mesh, a2e, v2h);
+  if (ent_dim == 2) return get_mident_isos_tmpl<2>(mesh, a2e, v2h);
+  if (ent_dim == 1) return get_mident_isos_tmpl<1>(mesh, a2e, v2h);
+  NORETURN(Reals());
 }
 
 Reals interpolate_between_isos(Reals a, Reals b, Real t) {

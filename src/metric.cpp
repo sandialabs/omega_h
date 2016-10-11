@@ -9,52 +9,34 @@
 
 namespace Omega_h {
 
-template <Int dim>
-static Reals midedge_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
+template <Int sdim, Int edim>
+static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
-  Write<Real> out(na * symm_dofs(dim));
-  auto ev2v = mesh->ask_verts_of(EDGE);
+  Write<Real> out(na * symm_dofs(sdim));
+  auto ev2v = mesh->ask_verts_of(edim);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
-    auto v = gather_verts<2>(ev2v, e);
-    auto ms = gather_symms<2, dim>(v2m, v);
-    auto m = interpolate_metric(ms[0], ms[1], 1.0 / 2.0);
+    auto v = gather_verts<edim + 1>(ev2v, e);
+    auto ms = gather_symms<edim + 1, sdim>(v2m, v);
+    auto m = average_metric(ms);
     set_symm(out, a, m);
   };
   parallel_for(na, f);
   return out;
 }
 
-Reals get_midedge_metrics(Mesh* mesh, LOs entities, Reals v2m) {
-  if (mesh->dim() == 3) {
-    return midedge_metrics_tmpl<3>(mesh, entities, v2m);
-  } else if (mesh->dim() == 2) {
-    return midedge_metrics_tmpl<2>(mesh, entities, v2m);
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
+  if (mesh->dim() == 3 && ent_dim == 3) {
+    return mident_metrics_tmpl<3, 3>(mesh, entities, v2m);
   }
-  NORETURN(Reals());
-}
-
-template <Int dim>
-static Reals maxdet_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
-  auto na = a2e.size();
-  Write<Real> out(na * symm_dofs(dim));
-  auto ev2v = mesh->ask_verts_of(dim);
-  auto f = LAMBDA(LO a) {
-    auto e = a2e[a];
-    auto v = gather_verts<dim + 1>(ev2v, e);
-    auto ms = gather_symms<dim + 1, dim>(v2m, v);
-    auto m = maxdet_metric(ms);
-    set_symm(out, a, m);
-  };
-  parallel_for(na, f);
-  return out;
-}
-
-Reals get_maxdet_metrics(Mesh* mesh, LOs entities, Reals v2m) {
-  if (mesh->dim() == 3) {
-    return maxdet_metrics_tmpl<3>(mesh, entities, v2m);
-  } else if (mesh->dim() == 2) {
-    return maxdet_metrics_tmpl<2>(mesh, entities, v2m);
+  if (mesh->dim() == 3 && ent_dim == 1) {
+    return mident_metrics_tmpl<3, 1>(mesh, entities, v2m);
+  }
+  if (mesh->dim() == 2 && ent_dim == 2) {
+    return mident_metrics_tmpl<2, 2>(mesh, entities, v2m);
+  }
+  if (mesh->dim() == 2 && ent_dim == 1) {
+    return mident_metrics_tmpl<2, 1>(mesh, entities, v2m);
   }
   NORETURN(Reals());
 }

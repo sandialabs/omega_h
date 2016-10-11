@@ -239,7 +239,7 @@ struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
 
-Reals get_midedge_isos(Mesh* mesh, LOs entities, Reals v2h);
+Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs entities, Reals v2h);
 Reals interpolate_between_isos(Reals a, Reals b, Real t);
 Reals linearize_isos(Reals isos);
 Reals delinearize_isos(Reals log_isos);
