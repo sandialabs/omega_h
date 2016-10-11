@@ -5,8 +5,8 @@
 #include "access.hpp"
 #include "array.hpp"
 #include "loop.hpp"
-#include "size.hpp"
 #include "project.hpp"
+#include "size.hpp"
 
 namespace Omega_h {
 
@@ -203,8 +203,8 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
 /* gradation limiting code: */
 
 template <Int dim>
-static INLINE Matrix<dim, dim> form_limiting_metric(Matrix<dim, dim> m,
-    Real real_dist, Real log_rate) {
+static INLINE Matrix<dim, dim> form_limiting_metric(
+    Matrix<dim, dim> m, Real real_dist, Real log_rate) {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) {
     decomp.l[i] /= square(1 + decomp.l[i] * real_dist * log_rate);

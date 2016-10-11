@@ -42,8 +42,8 @@ static void safe_goto(long long file, GmfKwdCod key) {
 }
 
 template <int version>
-static void read_meshb_version(osh::Mesh* mesh,
-    long long file, int ver, int dim) {
+static void read_meshb_version(
+    osh::Mesh* mesh, long long file, int ver, int dim) {
   using Index = typename VersionTypes<version>::Index;
   using Real = typename VersionTypes<version>::Real;
   using Line = typename VersionTypes<version>::Line;
@@ -90,8 +90,7 @@ static void read_meshb_version(osh::Mesh* mesh,
     OMEGA_H_CHECK(ref == i + 1);
     for (int j = 0; j <= dim; ++j) elems2verts[i * (dim + 1) + j] = tmp[j] - 1;
   }
-  osh::build_from_elems2verts(
-      mesh, dim, osh::LOs(elems2verts.write()), nverts);
+  osh::build_from_elems2verts(mesh, dim, osh::LOs(elems2verts.write()), nverts);
   mesh->add_tag(osh::VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, osh::Reals(coords.write()));
   GmfCloseMesh(file);

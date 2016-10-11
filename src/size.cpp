@@ -194,7 +194,7 @@ struct MeanSquaredIsoLength {
   DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
     auto h = e2h[e];
     return mean_squared_metric_length(edge_vectors, DummyIsoMetric()) /
-      square(h);
+           square(h);
   }
 };
 

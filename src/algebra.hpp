@@ -56,7 +56,9 @@ struct Power<p, p> {
 };
 
 template <Int np, Int dp>
-INLINE Real power(Real x) { return Power<np, dp>::eval(x); }
+INLINE Real power(Real x) {
+  return Power<np, dp>::eval(x);
+}
 
 INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
   Real am = fabs(a);

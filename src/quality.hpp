@@ -12,16 +12,18 @@ struct EquilateralSize;
 
 template <>
 struct EquilateralSize<2> {
-  static constexpr Real value = 0.4330127018922193; //sqrt(3)/4
+  static constexpr Real value = 0.4330127018922193;  // sqrt(3)/4
 };
 
 template <>
 struct EquilateralSize<3> {
-  static constexpr Real value = 0.1178511301977579; //1/sqrt(72)
+  static constexpr Real value = 0.1178511301977579;  // 1/sqrt(72)
 };
 
 template <Int dim>
-constexpr Real equilateral_size() { return EquilateralSize<dim>::value; }
+constexpr Real equilateral_size() {
+  return EquilateralSize<dim>::value;
+}
 
 template <Int dim>
 INLINE Real mean_ratio(Real size, Real mean_squared_length) {
@@ -60,8 +62,7 @@ INLINE Real metric_size(Few<Vector<dim>, dim> basis, Matrix<dim, dim> metric) {
  */
 
 template <Int dim, typename Metric>
-INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p,
-    Metric metric) {
+INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Metric metric) {
   auto b = simplex_basis<dim, dim>(p);
   auto s = metric_size(b, metric);
   if (s < 0) return s;

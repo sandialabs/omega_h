@@ -1,7 +1,7 @@
 #include "Omega_h.hpp"
 #include "Omega_h_math.hpp"
-#include "timer.hpp"
 #include "loop.hpp"
+#include "timer.hpp"
 
 #include <iostream>
 
@@ -30,8 +30,8 @@ void run_case(Mesh* mesh) {
   auto implied_metrics = find_implied_metric(mesh);
   mesh->add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
       OMEGA_H_DO_OUTPUT, implied_metrics);
-  mesh->add_tag<Real>(VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC,
-      OMEGA_H_DO_OUTPUT);
+  mesh->add_tag<Real>(
+      VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT);
   set_target_metric<dim>(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->ask_lengths();
@@ -64,4 +64,3 @@ int main(int argc, char** argv) {
   if (mesh.dim() == 3) run_case<3>(&mesh);
   return 0;
 }
-
