@@ -69,10 +69,10 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
   constexpr Int dim = 3;
-  Mesh mesh;
+  Mesh mesh(&lib);
   if (world->rank() == 0) {
     auto nx = 10;
-    build_box(&mesh, lib, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
+    build_box(&mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
     classify_by_angles(&mesh, PI / 4);
     mesh.reorder();
     mesh.reset_globals();

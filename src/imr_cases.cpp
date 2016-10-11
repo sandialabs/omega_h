@@ -173,7 +173,7 @@ struct TwinRotor : public Case {
 
 TwinRotor::~TwinRotor() {}
 
-static void run_case(Library const& lib, Case const& c, Int niters) {
+static void run_case(Library* lib, Case const& c, Int niters) {
   if (niters == -1) {
     niters = c.time_steps();
   } else {
@@ -184,10 +184,10 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
                 << '\n';
     }
   }
-  auto world = lib.world();
-  Mesh mesh;
+  auto world = lib->world();
+  Mesh mesh(lib);
   if (world->rank() == 0) {
-    gmsh::read(c.file_name(), lib, &mesh);
+    gmsh::read(c.file_name(), &mesh);
   }
   mesh.set_comm(world);
   mesh.balance();
@@ -253,15 +253,15 @@ int main(int argc, char** argv) {
     }
   }
   if (name == "translate_ball")
-    run_case(lib, TranslateBall(), niters);
+    run_case(&lib, TranslateBall(), niters);
   else if (name == "rotate_ball")
-    run_case(lib, RotateBall(), niters);
+    run_case(&lib, RotateBall(), niters);
   else if (name == "collide_balls")
-    run_case(lib, CollideBalls(), niters);
+    run_case(&lib, CollideBalls(), niters);
   else if (name == "cylinder_thru_tube")
-    run_case(lib, CylinderTube(), niters);
+    run_case(&lib, CylinderTube(), niters);
   else if (name == "twin_rotor")
-    run_case(lib, TwinRotor(), niters);
+    run_case(&lib, TwinRotor(), niters);
   else
     Omega_h_fail("unknown case \"%s\"", argv[1]);
 }

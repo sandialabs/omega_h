@@ -42,7 +42,7 @@ static void safe_goto(long long file, GmfKwdCod key) {
 }
 
 template <int version>
-static void read_meshb_version(osh::Library const& lib, osh::Mesh* mesh,
+static void read_meshb_version(osh::Mesh* mesh,
     long long file, int ver, int dim) {
   using Index = typename VersionTypes<version>::Index;
   using Real = typename VersionTypes<version>::Real;
@@ -91,15 +91,14 @@ static void read_meshb_version(osh::Library const& lib, osh::Mesh* mesh,
     for (int j = 0; j <= dim; ++j) elems2verts[i * (dim + 1) + j] = tmp[j] - 1;
   }
   osh::build_from_elems2verts(
-      mesh, lib, dim, osh::LOs(elems2verts.write()), nverts);
+      mesh, dim, osh::LOs(elems2verts.write()), nverts);
   mesh->add_tag(osh::VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, osh::Reals(coords.write()));
   GmfCloseMesh(file);
   (void)mesh;
 }
 
-static void read_meshb(
-    osh::Library const& lib, osh::Mesh* mesh, const char* filepath) {
+static void read_meshb(osh::Mesh* mesh, const char* filepath) {
   int ver, dim;
   auto file = GmfOpenMesh(filepath, GmfRead, &ver, &dim);
   if (!file) {
@@ -108,16 +107,16 @@ static void read_meshb(
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   switch (ver) {
     case 1:
-      read_meshb_version<1>(lib, mesh, file, ver, dim);
+      read_meshb_version<1>(mesh, file, ver, dim);
       return;
     case 2:
-      read_meshb_version<2>(lib, mesh, file, ver, dim);
+      read_meshb_version<2>(mesh, file, ver, dim);
       return;
     case 3:
-      read_meshb_version<3>(lib, mesh, file, ver, dim);
+      read_meshb_version<3>(mesh, file, ver, dim);
       return;
     case 4:
-      read_meshb_version<4>(lib, mesh, file, ver, dim);
+      read_meshb_version<4>(mesh, file, ver, dim);
       return;
   }
   Omega_h_fail("unknown libMeshb version %d\n", ver);
@@ -129,8 +128,8 @@ int main(int argc, char** argv) {
     std::cout << "usage: " << argv[0] << " input.meshb output.osh\n";
     return -1;
   }
-  osh::Mesh mesh;
-  read_meshb(lib, &mesh, argv[1]);
+  osh::Mesh mesh(&lib);
+  read_meshb(&mesh, argv[1]);
   osh::binary::write(argv[2], &mesh);
   return 0;
 }

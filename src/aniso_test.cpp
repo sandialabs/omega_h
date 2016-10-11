@@ -9,9 +9,9 @@ using namespace Omega_h;
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  Mesh mesh;
+  Mesh mesh(&lib);
   if (world->rank() == 0) {
-    build_box(&mesh, lib, 1, 1, .5, 8, 8, 4);
+    build_box(&mesh, 1, 1, .5, 8, 8, 4);
     classify_by_angles(&mesh, PI / 4);
   }
   mesh.set_comm(world);

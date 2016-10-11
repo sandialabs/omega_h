@@ -23,9 +23,9 @@ int main(int argc, char** argv) {
   auto ny = atoi(argv[5]);
   auto nz = atoi(argv[6]);
   auto outdir = argv[7];
-  Omega_h::Mesh mesh;
+  Omega_h::Mesh mesh(&lib);
   if (world->rank() == 0) {
-    Omega_h::build_box(&mesh, lib, x, y, z, nx, ny, nz);
+    Omega_h::build_box(&mesh, x, y, z, nx, ny, nz);
     Omega_h::classify_by_angles(&mesh, Omega_h::PI / 4);
     Omega_h::set_box_class_ids(&mesh, x, y, z, nx, ny, nz);
   }
