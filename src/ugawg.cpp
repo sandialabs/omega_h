@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     std::cout << "usage: " << argv[0] << " input.osh\n";
     return -1;
   }
-  Mesh mesh;
+  Mesh mesh(&lib);
   binary::read(argv[1], lib.world(), &mesh);
   if (mesh.dim() == 2) run_case<2>(&mesh);
   if (mesh.dim() == 3) run_case<3>(&mesh);

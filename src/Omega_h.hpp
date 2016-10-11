@@ -373,7 +373,8 @@ struct Rib;
 
 class Mesh {
  public:
-  Mesh();
+  Mesh(Library* library);
+  Library* library() const;
   void set_comm(CommPtr const& comm);
   void set_dim(Int dim);
   void set_verts(LO nverts);
@@ -448,6 +449,7 @@ class Mesh {
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;
   bool keeps_canonical_globals_;
+  Library* library_;
 
  public:
   void add_coords(Reals array);
@@ -488,8 +490,8 @@ class Mesh {
 };
 
 namespace gmsh {
-void read(std::istream& stream, Library const& lib, Mesh* mesh);
-void read(std::string const& filename, Library const& lib, Mesh* mesh);
+void read(std::istream& stream, Mesh* mesh);
+void read(std::string const& filename, Mesh* mesh);
 }
 
 namespace vtk {
@@ -549,11 +551,9 @@ bool check_regression(
 
 void build_from_elems2verts(
     Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
-void build_from_elems2verts(
-    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, LO nverts);
-void build_from_elems_and_coords(
-    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, Reals coords);
-void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
+void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts);
+void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords);
+void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx,
     LO ny, LO nz);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);

@@ -5,8 +5,8 @@
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
-  Omega_h::Mesh mesh;
-  Omega_h::gmsh::read(argv[1], lib, &mesh);
+  Omega_h::Mesh mesh(&lib);
+  Omega_h::gmsh::read(argv[1], &mesh);
   auto sdim = mesh.dim() - 1;
   auto sides_are_surf = Omega_h::mark_by_class_dim(&mesh, sdim, sdim);
   auto verts_are_surf = Omega_h::mark_by_class_dim(&mesh, Omega_h::VERT, sdim);

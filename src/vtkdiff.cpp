@@ -85,9 +85,9 @@ int main(int argc, char** argv) {
   if (one_step) {
     auto pvtupatha = vtk::get_pvtu_path(patha);
     auto pvtupathb = vtk::get_pvtu_path(pathb);
-    Mesh mesha;
+    Mesh mesha(&lib);
     vtk::read_parallel(pvtupatha, lib.world(), &mesha);
-    Mesh meshb;
+    Mesh meshb(&lib);
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
     if (res == OMEGA_H_SAME) return 0;
@@ -117,9 +117,9 @@ int main(int argc, char** argv) {
     }
     auto pvtupatha = pvtupathsa[step];
     auto pvtupathb = pvtupathsb[step];
-    Mesh mesha;
+    Mesh mesha(&lib);
     vtk::read_parallel(pvtupatha, lib.world(), &mesha);
-    Mesh meshb;
+    Mesh meshb(&lib);
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
     if (res == OMEGA_H_DIFF) {

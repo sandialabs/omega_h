@@ -34,9 +34,9 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
   CHECK(world->size() == 1);
-  Mesh mesh;
+  Mesh mesh(&lib);
   auto nx = 10;
-  build_box(&mesh, lib, 1, 1, 0, nx, nx, 0);
+  build_box(&mesh, 1, 1, 0, nx, nx, 0);
   classify_by_angles(&mesh, PI / 4);
   mesh.reorder();
   mesh.reset_globals();
