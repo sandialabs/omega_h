@@ -243,6 +243,7 @@ Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs entities, Reals v2h);
 Reals interpolate_between_isos(Reals a, Reals b, Real t);
 Reals linearize_isos(Reals isos);
 Reals delinearize_isos(Reals log_isos);
+Reals project_isos(Mesh* mesh, Reals e2h);
 
 }  // end namespace Omega_h
 

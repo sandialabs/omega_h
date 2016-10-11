@@ -170,6 +170,7 @@ Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
 Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
 Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);
+Reals project_metrics(Mesh* mesh, Reals e2m);
 
 Reals metric_from_hessians(
     Int dim, Reals hessians, Real eps, Real hmin, Real hmax);

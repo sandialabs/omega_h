@@ -105,12 +105,14 @@ static Reals element_implied_sizes(Mesh* mesh) {
   NORETURN(Reals());
 }
 
-Reals find_implied_size(Mesh* mesh) {
-  auto e_h = element_implied_sizes(mesh);
-  auto e_linear = linearize_isos(e_h);
+Reals project_isos(Mesh* mesh, Reals e2h) {
+  auto e_linear = linearize_isos(e2h);
   auto v_linear = project_by_average(mesh, e_linear);
-  auto v_h = delinearize_isos(v_linear);
-  return v_h;
+  return delinearize_isos(v_linear);
+}
+
+Reals find_implied_size(Mesh* mesh) {
+  return project_isos(mesh, element_implied_sizes(mesh));
 }
 
 template <Int dim>
@@ -135,11 +137,7 @@ static Reals element_implied_metrics(Mesh* mesh) {
 }
 
 Reals find_implied_metric(Mesh* mesh) {
-  auto e_metric = element_implied_metrics(mesh);
-  auto e_linear = linearize_metrics(mesh->dim(), e_metric);
-  auto v_linear = project_by_average(mesh, e_linear);
-  auto v_metric = delinearize_metrics(mesh->dim(), v_linear);
-  return v_metric;
+  return project_metrics(mesh, element_implied_metrics(mesh));
 }
 
 /* The algorithms below are for scaling a size field such that
@@ -315,6 +313,11 @@ Reals delinearize_isos(Reals log_isos) {
   auto f = LAMBDA(LO i) { out[i] = delinearize_metric(log_isos[i]); };
   parallel_for(n, f);
   return out;
+}
+
+Reals smooth_isos_once(Mesh* mesh, Reals v2h) {
+  auto e2e = LOs(mesh->nelems(), 0, 1);
+  return project_isos(mesh, get_mident_isos(mesh, mesh->dim(), e2e, v2h));
 }
 
 }  // end namespace Omega_h

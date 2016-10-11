@@ -590,6 +590,8 @@ Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h);
 Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m);
 Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
 Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
+Reals smooth_metric_once(Mesh* mesh, Reals v2m);
+Reals smooth_isos_once(Mesh* mesh, Reals v2h);
 
 template <typename T, Int n>
 class Few {

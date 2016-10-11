@@ -6,6 +6,7 @@
 #include "array.hpp"
 #include "loop.hpp"
 #include "size.hpp"
+#include "project.hpp"
 
 namespace Omega_h {
 
@@ -256,6 +257,17 @@ Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate) {
     metrics2 = limit_metrics_once_by_adj(mesh, metrics, max_rate);
   } while (!comm->reduce_and(are_close(metrics, metrics2)));
   return metrics2;
+}
+
+Reals project_metrics(Mesh* mesh, Reals e2m) {
+  auto e_linear = linearize_metrics(mesh->dim(), e2m);
+  auto v_linear = project_by_average(mesh, e_linear);
+  return delinearize_metrics(mesh->dim(), v_linear);
+}
+
+Reals smooth_metric_once(Mesh* mesh, Reals v2m) {
+  auto e2e = LOs(mesh->nelems(), 0, 1);
+  return project_metrics(mesh, get_mident_metrics(mesh, mesh->dim(), e2e, v2m));
 }
 
 }  // end namespace Omega_h
