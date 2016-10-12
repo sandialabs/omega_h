@@ -31,7 +31,7 @@ class FindDistance2Elems {
     indset = unbuffered_indset;
   }
   LO count() const { return keys2elems.nnodes(); }
-  enum { stack_max = 256 };
+  enum { stack_max = 512 };
   DEVICE Int run(LO key, LO* stack, Int stack_max) const {
     if (!indset[key]) return 0;
     Int n = 0;
@@ -73,7 +73,7 @@ class FindDistance3Keys {
     indset = unbuffered_indset;
   }
   LO count() const { return keys2buf_elems.nnodes(); }
-  enum { stack_max = 32 };
+  enum { stack_max = 64 };
   DEVICE Int run(LO key, LO* stack, Int stack_max) const {
     if (!indset[key]) return 0;
     Int n = 0;
