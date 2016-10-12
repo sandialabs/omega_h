@@ -477,7 +477,8 @@ static void transfer_copy_tmpl(
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() != OMEGA_H_DONT_TRANSFER) {
+    if (tagbase->xfer() != OMEGA_H_DONT_TRANSFER &&
+        tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_copy_tmpl<I8>(new_mesh, prod_dim, tagbase);
