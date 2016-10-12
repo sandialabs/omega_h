@@ -591,12 +591,9 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs same_verts2old_verts,
     LOs same_verts2new_verts) {
-  if (prod_dim == VERT) {
-    transfer_copy(old_mesh, new_mesh, prod_dim);
-  } else {
-    transfer_inherit_swap(old_mesh, new_mesh, prod_dim, keys2edges, keys2prods,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-  }
+  CHECK(prod_dim != VERT);
+  transfer_inherit_swap(old_mesh, new_mesh, prod_dim, keys2edges, keys2prods,
+      prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
