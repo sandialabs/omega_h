@@ -75,6 +75,15 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
   auto nkeys = keys2old_mat_elems.nnodes();
   constexpr auto max_targets = AvgDegree<dim, 0, dim>::value * 2;
   auto f = LAMBDA(LO key) {
+    auto kte_begin = keys2new_mat_elems.a2ab[key];
+    auto kte_end = keys2new_mat_elems.a2ab[key + 1];
+    auto ntargets = kte_end - kte_begin;
+    for (Int i = 0; i < ntargets; ++i) {
+      auto target_elem = keys2new_mat_elems.ab2b[kte_begin + i];
+      for (Int comp = 0; comp < ncomps; ++comp) {
+        new_data_w[target_elem * ncomps + comp] = 0;
+      }
+    }
     for (auto kde = keys2old_mat_elems.a2ab[key];
          kde < keys2old_mat_elems.a2ab[key + 1]; ++kde) {
       auto donor_elem = keys2old_mat_elems.ab2b[kde];
@@ -83,30 +92,24 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
           gather_vectors<dim + 1, dim>(old_coords, donor_verts);
       Vector<max_targets> coeffs;
       Real total_size = 0.0;
-      Int i = 0;
-      for (auto kte = keys2new_mat_elems.a2ab[key];
-           kte < keys2new_mat_elems.a2ab[key + 1]; ++kte) {
-        auto target_elem = keys2new_mat_elems.ab2b[kte];
+      for (Int i = 0; i < ntargets; ++i) {
+        auto target_elem = keys2new_mat_elems.ab2b[kte_begin + i];
         auto target_verts = gather_verts<dim + 1>(new_ev2v, target_elem);
         auto target_points =
             gather_vectors<dim + 1, dim>(new_coords, target_verts);
         auto intersection =
             r3d::intersect_simplices(target_points, donor_points);
         auto intersection_size = r3d::measure(intersection);
-        coeffs[i++] = intersection_size;
+        coeffs[i] = intersection_size;
         total_size += intersection_size;
       }
-      auto ntargets = i;
-      for (i = 0; i < ntargets; ++i) coeffs[i] /= total_size;
-      i = 0;
-      for (auto kte = keys2new_mat_elems.a2ab[key];
-           kte < keys2new_mat_elems.a2ab[key + 1]; ++kte) {
-        auto target_elem = keys2new_mat_elems.ab2b[kte];
+      for (Int i = 0; i < ntargets; ++i) coeffs[i] /= total_size;
+      for (Int i = 0; i < ntargets; ++i) {
+        auto target_elem = keys2new_mat_elems.ab2b[kte_begin + i];
         for (Int comp = 0; comp < ncomps; ++comp) {
           new_data_w[target_elem * ncomps + comp] +=
             coeffs[i] * old_data[donor_elem * ncomps + comp];
         }
-        ++i;
       }
     }
   };
