@@ -129,7 +129,7 @@ INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
 template <Int dim>
 Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
   Affine<dim> a;
-  a.r = simplex_basis(p);
+  a.r = simplex_basis<dim, dim>(p);
   a.t = p[0];
   return a;
 }
