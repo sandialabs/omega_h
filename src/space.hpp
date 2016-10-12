@@ -100,6 +100,51 @@ INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   return A;
 }
 
+template <Int dim>
+struct Affine {
+  Matrix<dim, dim> r;
+  Vector<dim> t;
+};
+
+template <Int dim>
+Vector<dim> operator*(Affine<dim> a, Vector<dim> v) {
+  return (a.r * v) + a.t;
+}
+
+template <Int dim>
+Affine<dim> invert(Affine<dim> a) {
+  Affine<dim> ai;
+  ai.r = invert(a.r);
+  ai.t = -(ai.r * a.t);
+  return ai;
+}
+
+template <Int sdim, Int edim>
+INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
+  Matrix<sdim, edim> b;
+  for (Int i = 0; i < edim; ++i) b[i] = p[i + 1] - p[0];
+  return b;
+}
+
+template <Int dim>
+Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
+  Affine<dim> a;
+  a.r = simplex_basis<dim, dim>(p);
+  a.t = p[0];
+  return a;
+}
+
+template <Int dim>
+Vector<dim + 1> form_barycentric(Vector<dim> c) {
+  Vector<dim + 1> bc;
+  bc[dim] = 1.0;
+  for (Int i = 0; i < dim; ++i) {
+    bc[i] = c[i];
+    bc[dim] -= c[i];
+  }
+  return bc;
+}
+
 }  // end namespace Omega_h
 
 #endif

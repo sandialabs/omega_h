@@ -9,13 +9,6 @@
 
 namespace Omega_h {
 
-template <Int sdim, Int edim>
-INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
-  Matrix<sdim, edim> b;
-  for (Int i = 0; i < edim; ++i) b[i] = p[i + 1] - p[0];
-  return b;
-}
-
 INLINE Real triangle_area(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
 }
