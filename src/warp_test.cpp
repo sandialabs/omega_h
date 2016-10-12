@@ -85,8 +85,6 @@ int main(int argc, char** argv) {
   add_dye(&mesh);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
       measure_elements_real(&mesh));
-  mesh.add_tag(mesh.dim(), "density_r3d", 1, OMEGA_H_CONSERVE_R3D,
-      OMEGA_H_DO_OUTPUT, Reals(mesh.nelems(), 1.0));
   add_pointwise(&mesh);
   auto opts = AdaptOpts(&mesh);
   auto mid = zero_vector<dim>();

@@ -102,7 +102,7 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
       for (auto kte = keys2new_mat_elems.a2ab[key];
            kte < keys2new_mat_elems.a2ab[key + 1]; ++kte) {
         auto target_elem = keys2new_mat_elems.ab2b[kte];
-        for (Int j = 0; j < ncomps; ++j) {
+        for (Int comp = 0; comp < ncomps; ++comp) {
           new_data_w[target_elem * ncomps + comp] +=
             coeffs[i] * old_data[donor_elem * ncomps + comp];
         }
