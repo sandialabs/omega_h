@@ -61,8 +61,7 @@ void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
 
 template <Int dim>
 static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
-    TagBase const* tagbase,
-    Graph keys2old_mat_elems, Graph keys2new_mat_elems,
+    TagBase const* tagbase, Graph keys2old_mat_elems, Graph keys2new_mat_elems,
     Write<Real> new_data_w) {
   auto ncomps = tagbase->ncomps();
   auto old_tag = to<Real>(tagbase);
@@ -88,8 +87,7 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
          kde < keys2old_mat_elems.a2ab[key + 1]; ++kde) {
       auto donor_elem = keys2old_mat_elems.ab2b[kde];
       auto donor_verts = gather_verts<dim + 1>(old_ev2v, donor_elem);
-      auto donor_points =
-          gather_vectors<dim + 1, dim>(old_coords, donor_verts);
+      auto donor_points = gather_vectors<dim + 1, dim>(old_coords, donor_verts);
       Vector<max_targets> coeffs;
       Real total_size = 0.0;
       for (Int i = 0; i < ntargets; ++i) {
@@ -108,7 +106,7 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
         auto target_elem = keys2new_mat_elems.ab2b[kte_begin + i];
         for (Int comp = 0; comp < ncomps; ++comp) {
           new_data_w[target_elem * ncomps + comp] +=
-            coeffs[i] * old_data[donor_elem * ncomps + comp];
+              coeffs[i] * old_data[donor_elem * ncomps + comp];
         }
       }
     }
