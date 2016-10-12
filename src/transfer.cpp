@@ -356,31 +356,7 @@ DEVICE static void transfer_average_cavity(LO key, LOs const& keys2kds,
 }
 
 template <Int dim>
-DEVICE static void transfer_fit_cavity(LO key, LOs const& keys2kds,
-    LOs const& kds2kd_elems, LOs const& kd_elems2elems,
-    LOs const& old_elem_verts2verts, Reals const& old_coords,
-    LOs const& keys2prods, LOs const& prods2new_elems,
-    LOs const& new_elem_verts2verts, Reals const& new_coords, Int ncomps,
-    Reals const& old_data, Write<Real> const& prod_data_w) {
-  auto kd = keys2kds[key];
-  auto qr_decomp = get_cavity_qr_factorization<dim>(
-      kd, kds2kd_elems, kd_elems2elems, old_elem_verts2verts, old_coords);
-  for (Int comp = 0; comp < ncomps; ++comp) {
-    auto coeffs = fit_cavity_polynomial<dim>(
-        qr_decomp, kd, kds2kd_elems, kd_elems2elems, old_data, comp, ncomps);
-    for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
-      auto new_elem = prods2new_elems[prod];
-      auto v = gather_verts<dim + 1>(new_elem_verts2verts, new_elem);
-      auto p = gather_vectors<dim + 1, dim>(new_coords, v);
-      auto x = average(p);
-      auto val = eval_polynomial<dim>(coeffs, x);
-      prod_data_w[prod * ncomps + comp] = val;
-    }
-  }
-}
-
-template <Int dim>
-static void transfer_pointwise_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, TagBase const* tagbase) {
   auto name = tagbase->name();
@@ -399,13 +375,32 @@ static void transfer_pointwise_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
   auto nprods = keys2prods.last();
   auto prod_data_w = Write<Real>(nprods * ncomps);
   auto f = LAMBDA(LO key) {
-    if (kd_class_dim[keys2kds[key]] == dim) {
-      transfer_fit_cavity<dim>(key, keys2kds, kds2kd_elems, kd_elems2elems,
-          old_elem_verts2verts, old_coords, keys2prods, prods2new_ents,
-          new_elem_verts2verts, new_coords, ncomps, old_data, prod_data_w);
-    } else {
-      transfer_average_cavity(key, keys2kds, kds2kd_elems, kd_elems2elems,
-          keys2prods, ncomps, old_data, prod_data_w);
+    auto kd = keys2kds[key];
+    for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
+      auto new_elem = prods2new_elems[prod];
+      auto new_v = gather_verts<dim + 1>(new_elem_verts2verts, new_elem);
+      auto new_vp = gather_vectors<dim + 1, dim>(new_coords, new_v);
+      auto new_ip = average(new_vp);
+      LO best_old_elem = -1;
+      Real best_distance = 0.0;
+      for (auto kde = kds2kd_elems[kd]; kde < kds2kd_elems[kd + 1]; ++kde) {
+        auto old_elem = kd_elems2elems[kde];
+        auto old_v = gather_verts<dim + 1>(old_elem_verts2verts, old_elem);
+        auto old_vp = gather_vectors<dim + 1, dim>(old_coords, old_v);
+        auto a = simplex_affine(old_vp);
+        auto ia = invert(a);
+        auto xi = ia * new_ip;
+        auto bc = form_barycentric(xi);
+        auto distance = -minimum(bc);
+        if (best_old_elem == -1 || distance < best_distance) {
+          best_old_elem = old_elem;
+          best_distance = distance;
+        }
+      }
+      for (Int comp = 0; comp < ncomps; ++comp) {
+        prod_data_w[prod * ncomps + comp] =
+          old_data[best_old_elem * ncomps + comp];
+      }
     }
   };
   parallel_for(nkeys, f);
@@ -414,7 +409,7 @@ static void transfer_pointwise_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, prods2new_ents, old_tag, prod_data);
 }
 
-static void transfer_pointwise_coarsen(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
@@ -422,11 +417,11 @@ static void transfer_pointwise_coarsen(Mesh* old_mesh, Mesh* new_mesh,
     auto tagbase = old_mesh->get_tag(dim, i);
     if (tagbase->xfer() == OMEGA_H_POINTWISE) {
       if (dim == 3) {
-        transfer_pointwise_coarsen_tmpl<3>(old_mesh, new_mesh, keys2kds,
+        transfer_pointwise_tmpl<3>(old_mesh, new_mesh, keys2kds,
             keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
             tagbase);
       } else if (dim == 2) {
-        transfer_pointwise_coarsen_tmpl<2>(old_mesh, new_mesh, keys2kds,
+        transfer_pointwise_tmpl<2>(old_mesh, new_mesh, keys2kds,
             keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
             tagbase);
       }
@@ -454,7 +449,7 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
         prods2new_ents);
     transfer_conserve(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_pointwise_coarsen(old_mesh, new_mesh, keys2verts, keys2doms.a2ab,
+    transfer_pointwise(old_mesh, new_mesh, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_momentum_velocity(old_mesh, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_verts2old_verts,
@@ -603,7 +598,7 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
         prods2new_ents);
     transfer_conserve(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_pointwise_swap(old_mesh, new_mesh, keys2edges, keys2prods,
+    transfer_pointwise(old_mesh, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_momentum_velocity(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_verts2old_verts, same_verts2new_verts);
