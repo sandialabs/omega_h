@@ -245,8 +245,6 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise_refine(old_mesh, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_r3d_refine(old_mesh, new_mesh, keys2edges, keys2prods,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
 }
 
@@ -458,8 +456,6 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise_coarsen(old_mesh, new_mesh, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_r3d(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_momentum_velocity(old_mesh, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_verts2old_verts,
         same_verts2new_verts);
@@ -610,8 +606,6 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     transfer_conserve(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise_swap(old_mesh, new_mesh, keys2edges, keys2prods,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_r3d(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_momentum_velocity(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_verts2old_verts, same_verts2new_verts);
