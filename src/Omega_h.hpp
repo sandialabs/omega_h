@@ -67,7 +67,7 @@ class Write {
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
-  bool exists() const;
+  OMEGA_H_INLINE bool exists() const { return exists_; }
 };
 
 template <typename T>
@@ -102,7 +102,7 @@ class Read {
   T get(LO i) const;
   T first() const;
   T last() const;
-  bool exists() const;
+  OMEGA_H_INLINE bool exists() const { return write_.exists(); }
 };
 
 class LOs : public Read<LO> {

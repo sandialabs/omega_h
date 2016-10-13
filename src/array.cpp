@@ -110,11 +110,6 @@ T Write<T>::get(LO i) const {
 }
 
 template <typename T>
-bool Write<T>::exists() const {
-  return exists_;
-}
-
-template <typename T>
 struct Sum : public SumFunctor<T> {
   using typename SumFunctor<T>::value_type;
   Read<T> a_;
@@ -252,11 +247,6 @@ T Read<T>::first() const {
 template <typename T>
 T Read<T>::last() const {
   return get(size() - 1);
-}
-
-template <typename T>
-bool Read<T>::exists() const {
-  return write_.exists();
 }
 
 template <class T>
