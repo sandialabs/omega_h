@@ -218,6 +218,16 @@ Read<I8> filter_coarsen_momentum_velocity(
       EDGE, Read<I8>(out), cands2edges, I8(DONT_COLLAPSE), 1);
 }
 
+Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
+  auto edges2elems = mesh->ask_up(EDGE, mesh->dim());
+  auto cands2elems = unmap_graph(cands2edges, edges2elems);
+  auto cands2verts = get_closure_verts(mesh, cands2elems);
+  auto verts_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+  auto dont_keep = graph_reduce(cands2verts, verts_are_fixed, 1,
+      OMEGA_H_MIN);
+  return invert_marks(dont_keep);
+}
+
 template <Int dim>
 class MomentumVelocity {
   Graph keys2target_verts;
@@ -285,6 +295,7 @@ class MomentumVelocity {
       auto vert = keys2target_verts.ab2b[ktv];
       if (!verts_are_fixed.exists() || !verts_are_fixed[vert]) ++ntarget_verts;
     }
+    CHECK(ntarget_verts > 0);
     auto momentum_factor = (dim + 1) * momentum_diff / ntarget_verts;
     for (auto ktv = begin; ktv < end; ++ktv) {
       auto vert = keys2target_verts.ab2b[ktv];
