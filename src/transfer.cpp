@@ -7,9 +7,9 @@
 #include "metric.hpp"
 #include "quality.hpp"
 #include "size.hpp"
+#include "space.hpp"
 #include "tag.hpp"
 #include "transfer_conserve.hpp"
-#include "space.hpp"
 
 namespace Omega_h {
 
@@ -399,7 +399,7 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
       }
       for (Int comp = 0; comp < ncomps; ++comp) {
         prod_data_w[prod * ncomps + comp] =
-          old_data[best_old_elem * ncomps + comp];
+            old_data[best_old_elem * ncomps + comp];
       }
     }
   };

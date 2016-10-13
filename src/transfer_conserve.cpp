@@ -1,6 +1,7 @@
 #include "transfer_conserve.hpp"
 
 #include "Omega_h_r3d.hpp"
+#include "collapse.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
 #include "map.hpp"
@@ -8,7 +9,6 @@
 #include "size.hpp"
 #include "tag.hpp"
 #include "transfer.hpp"
-#include "collapse.hpp"
 
 namespace Omega_h {
 
@@ -174,19 +174,18 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
-void fix_momentum_velocity_verts(Mesh* mesh,
-    std::vector<Int> class_dims, std::vector<I32> class_ids) {
+void fix_momentum_velocity_verts(
+    Mesh* mesh, std::vector<Int> class_dims, std::vector<I32> class_ids) {
   for (Int dim = 0; dim <= mesh->dim(); ++dim) {
-    auto marks = mark_class_closures(mesh, dim,
-        class_dims, class_ids);
-    mesh->add_tag(dim, "momentum_velocity_fixed", 1,
-        OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, marks);
+    auto marks = mark_class_closures(mesh, dim, class_dims, class_ids);
+    mesh->add_tag(dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
+        OMEGA_H_DO_OUTPUT, marks);
   }
 }
 
 bool has_fixed_momentum_velocity(Mesh* mesh) {
   return has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY) &&
-    mesh->has_tag(VERT, "momentum_velocity_fixed");
+         mesh->has_tag(VERT, "momentum_velocity_fixed");
 }
 
 Read<I8> filter_coarsen_momentum_velocity(
@@ -203,7 +202,7 @@ Read<I8> filter_coarsen_momentum_velocity(
       if (!collapses(code, eev_col)) continue;
       auto v_col = ev2v[e * 2 + eev_col];
       bool ok = false;
-      for (auto ve= v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
+      for (auto ve = v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
         auto e2 = v2e.ab2b[ve];
         auto e2_code = v2e.codes[ve];
         auto eev_in = code_which_down(e2_code);
@@ -228,11 +227,9 @@ Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
   auto cands2elems = unmap_graph(cands2edges, edges2elems);
   auto cands2verts = get_closure_verts(mesh, cands2elems);
   auto verts_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
-  auto dont_keep = graph_reduce(cands2verts, verts_are_fixed, 1,
-      OMEGA_H_MIN);
+  auto dont_keep = graph_reduce(cands2verts, verts_are_fixed, 1, OMEGA_H_MIN);
   auto keep = invert_marks(dont_keep);
-  return mesh->sync_subset_array(
-      EDGE, keep, cands2edges, I8(0), 1);
+  return mesh->sync_subset_array(EDGE, keep, cands2edges, I8(0), 1);
 }
 
 template <Int dim>
@@ -267,7 +264,8 @@ class MomentumVelocity {
     this->target_verts2elems = target_mesh->ask_up(VERT, dim);
     this->donor_verts2elems = donor_mesh->ask_up(VERT, dim);
     if (target_mesh->has_tag(VERT, "momentum_velocity_fixed")) {
-      verts_are_fixed = target_mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+      verts_are_fixed =
+          target_mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
     }
   }
 

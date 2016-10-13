@@ -65,8 +65,8 @@ static bool coarsen_ghosted(
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   /* non-fixed velocity DOF check */
   if (has_fixed_momentum_velocity(mesh)) {
-    cand_edge_codes = filter_coarsen_momentum_velocity(
-        mesh, cands2edges, cand_edge_codes);
+    cand_edge_codes =
+        filter_coarsen_momentum_velocity(mesh, cands2edges, cand_edge_codes);
     filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   }
   /* edge length overshoot check */

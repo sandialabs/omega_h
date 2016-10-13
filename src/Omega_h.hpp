@@ -572,8 +572,8 @@ Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids);
-void fix_momentum_velocity_verts(Mesh* mesh,
-    std::vector<Int> class_dims, std::vector<I32> class_ids);
+void fix_momentum_velocity_verts(
+    Mesh* mesh, std::vector<Int> class_dims, std::vector<I32> class_ids);
 
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);

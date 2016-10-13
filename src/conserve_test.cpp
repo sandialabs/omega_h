@@ -4,15 +4,15 @@
 #include "array.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
+#include "map.hpp"
 #include "size.hpp"
 #include "space.hpp"
 #include "timer.hpp"
-#include "map.hpp"
 
 using namespace Omega_h;
 
 constexpr Int nobjs = 2;
-constexpr Int obj_ids[nobjs] = {34,72};
+constexpr Int obj_ids[nobjs] = {34, 72};
 
 static void postprocess_conserve(Mesh* mesh) {
   auto volume = measure_elements_real(mesh);
@@ -63,7 +63,8 @@ int main(int argc, char** argv) {
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
       OMEGA_H_DO_OUTPUT, Reals(velocity));
-  fix_momentum_velocity_verts(&mesh, std::vector<Int>({2}), std::vector<I32>({33}));
+  fix_momentum_velocity_verts(
+      &mesh, std::vector<Int>({2}), std::vector<I32>({33}));
   auto momentum_before = get_total_momentum(&mesh);
   Real masses_before[nobjs];
   for (Int obj = 0; obj < nobjs; ++obj) {
@@ -73,16 +74,15 @@ int main(int argc, char** argv) {
   postprocess_conserve(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
     auto mass_after = get_total_mass(&mesh, obj);
-    std::cout << "model region " << obj_ids[obj]
-      << " mass before " << masses_before[obj] << ", after " << mass_after << '\n';
+    std::cout << "model region " << obj_ids[obj] << " mass before "
+              << masses_before[obj] << ", after " << mass_after << '\n';
     CHECK(are_close(mass_after, masses_before[obj]));
   }
   auto momentum_after = get_total_momentum(&mesh);
   std::cout << "momentum before" << ' ' << momentum_before[0] << ' '
-            << momentum_before[1] << ' '
-            << momentum_before[2] << '\n';
-  std::cout << "momentum after" << ' ' << momentum_after[0] << ' ' << momentum_after[1]
-            << ' ' << momentum_after[2] << '\n';
+            << momentum_before[1] << ' ' << momentum_before[2] << '\n';
+  std::cout << "momentum after" << ' ' << momentum_after[0] << ' '
+            << momentum_after[1] << ' ' << momentum_after[2] << '\n';
   CHECK(are_close(momentum_before, momentum_after));
   bool ok = check_regression("gold_conserve", &mesh, 0.0, 0.0);
   if (!ok) return 2;
