@@ -173,6 +173,16 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
+void fix_momentum_velocity_verts(Mesh* mesh,
+    std::vector<Int> class_dims, std::vector<I32> class_ids) {
+  for (Int dim = 0; dim <= mesh->dim(); ++dim) {
+    auto marks = mark_class_closures(mesh, dim,
+        class_dims, class_ids);
+    mesh->add_tag(dim, "momentum_velocity_fixed", 1,
+        OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, marks);
+  }
+}
+
 template <Int dim>
 class MomentumVelocity {
   Graph keys2target_verts;
@@ -183,6 +193,7 @@ class MomentumVelocity {
   Reals donor_masses;
   Reals donor_velocities;
   Write<Real> target_velocities;
+  Read<I8> verts_are_fixed;
 
  public:
   MomentumVelocity(Mesh* donor_mesh, Mesh* target_mesh, Int key_dim,
@@ -203,6 +214,9 @@ class MomentumVelocity {
     this->keys2donor_verts = get_closure_verts(donor_mesh, keys2donor_interior);
     this->target_verts2elems = target_mesh->ask_up(VERT, dim);
     this->donor_verts2elems = donor_mesh->ask_up(VERT, dim);
+    if (target_mesh->has_tag(VERT, "momentum_velocity_fixed")) {
+      verts_are_fixed = target_mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+    }
   }
 
   template <typename Arr>
@@ -231,10 +245,15 @@ class MomentumVelocity {
     auto momentum_diff = (donor_momentum - target_momentum);
     auto begin = keys2target_verts.a2ab[key];
     auto end = keys2target_verts.a2ab[key + 1];
-    auto ntarget_verts = end - begin;
+    Int ntarget_verts = 0;
+    for (auto ktv = begin; ktv < end; ++ktv) {
+      auto vert = keys2target_verts.ab2b[ktv];
+      if (!verts_are_fixed.exists() || !verts_are_fixed[vert]) ++ntarget_verts;
+    }
     auto momentum_factor = (dim + 1) * momentum_diff / ntarget_verts;
     for (auto ktv = begin; ktv < end; ++ktv) {
       auto vert = keys2target_verts.ab2b[ktv];
+      if (verts_are_fixed.exists() && verts_are_fixed[vert]) continue;
       Real mass_sum = 0;
       for (auto ve = target_verts2elems.a2ab[vert];
            ve < target_verts2elems.a2ab[vert + 1]; ++ve) {
