@@ -1,5 +1,3 @@
-#include "adapt.hpp"
-
 #include <iomanip>
 #include <iostream>
 
@@ -72,7 +70,7 @@ static void adapt_summary(Mesh* mesh, AdaptOpts const& opts, Real minqual,
       opts.max_length_desired, minlen, maxlen);
 }
 
-bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
+static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   Real minqual, maxqual;
   get_minmax(mesh, mesh->ask_qualities(), &minqual, &maxqual);
   Real minlen, maxlen;
