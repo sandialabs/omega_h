@@ -16,6 +16,10 @@ static bool swap3d_ghosted(Mesh* mesh) {
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
+  if (has_fixed_momentum_velocity(mesh)) {
+    auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
+    filter_swap(keep_cands, &cands2edges);
+  }
   auto cand_quals = Reals();
   auto cand_configs = Read<I8>();
   swap3d_qualities(mesh, cands2edges, &cand_quals, &cand_configs);

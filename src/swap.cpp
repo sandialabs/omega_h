@@ -30,7 +30,7 @@ bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
 void filter_swap(Read<I8> keep_cands, LOs* cands2edges, Reals* cand_quals) {
   auto kept2old = collect_marked(keep_cands);
   *cands2edges = unmap(kept2old, *cands2edges, 1);
-  *cand_quals = unmap(kept2old, *cand_quals, 1);
+  if (cand_quals) *cand_quals = unmap(kept2old, *cand_quals, 1);
 }
 
 Read<I8> filter_swap_improve(Mesh* mesh, LOs cands2edges, Reals cand_quals) {

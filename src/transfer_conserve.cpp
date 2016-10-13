@@ -230,7 +230,9 @@ Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
   auto verts_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
   auto dont_keep = graph_reduce(cands2verts, verts_are_fixed, 1,
       OMEGA_H_MIN);
-  return invert_marks(dont_keep);
+  auto keep = invert_marks(dont_keep);
+  return mesh->sync_subset_array(
+      EDGE, keep, cands2edges, I8(0), 1);
 }
 
 template <Int dim>
