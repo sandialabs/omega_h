@@ -21,7 +21,7 @@ struct EquilateralSize<3> {
 };
 
 template <Int dim>
-constexpr Real equilateral_size() {
+INLINE constexpr Real equilateral_size() {
   return EquilateralSize<dim>::value;
 }
 

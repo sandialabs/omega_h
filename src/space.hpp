@@ -107,12 +107,12 @@ struct Affine {
 };
 
 template <Int dim>
-Vector<dim> operator*(Affine<dim> a, Vector<dim> v) {
+INLINE Vector<dim> operator*(Affine<dim> a, Vector<dim> v) {
   return (a.r * v) + a.t;
 }
 
 template <Int dim>
-Affine<dim> invert(Affine<dim> a) {
+INLINE Affine<dim> invert(Affine<dim> a) {
   Affine<dim> ai;
   ai.r = invert(a.r);
   ai.t = -(ai.r * a.t);
@@ -127,7 +127,7 @@ INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
 }
 
 template <Int dim>
-Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
+INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
   Affine<dim> a;
   a.r = simplex_basis<dim, dim>(p);
   a.t = p[0];
@@ -135,7 +135,7 @@ Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
 }
 
 template <Int dim>
-Vector<dim + 1> form_barycentric(Vector<dim> c) {
+INLINE Vector<dim + 1> form_barycentric(Vector<dim> c) {
   Vector<dim + 1> bc;
   bc[dim] = 1.0;
   for (Int i = 0; i < dim; ++i) {

@@ -336,26 +336,6 @@ static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
   }
 }
 
-DEVICE static void transfer_average_cavity(LO key, LOs const& keys2kds,
-    LOs const& kds2kd_elems, LOs const& kd_elems2elems, LOs const& keys2prods,
-    Int ncomps, Reals const& old_data, Write<Real> const& prod_data_w) {
-  auto kd = keys2kds[key];
-  for (Int comp = 0; comp < ncomps; ++comp) {
-    Real sum = 0.0;
-    Int n = 0;
-    for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];
-         ++kd_elem) {
-      auto old_elem = kd_elems2elems[kd_elem];
-      sum += old_data[old_elem * ncomps + comp];
-      ++n;
-    }
-    auto avg = sum / n;
-    for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
-      prod_data_w[prod * ncomps + comp] = avg;
-    }
-  }
-}
-
 template <Int dim>
 static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_elems2old_elems,
