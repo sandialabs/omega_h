@@ -16,8 +16,13 @@ static bool swap2d_ghosted(Mesh* mesh) {
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
+  if (has_fixed_momentum_velocity(mesh)) {
+    auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
+    filter_swap(keep_cands, &cands2edges);
+  }
   auto cand_quals = swap2d_qualities(mesh, cands2edges);
-  filter_swap_improve(mesh, &cands2edges, &cand_quals);
+  auto keep_cands = filter_swap_improve(mesh, cands2edges, cand_quals);
+  filter_swap(keep_cands, &cands2edges, &cand_quals);
   /* cavity quality checks */
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   edges_are_cands = mark_image(cands2edges, mesh->nedges());

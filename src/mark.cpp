@@ -78,8 +78,10 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
   CHECK(class_dims.size() == class_ids.size());
   auto marks = Read<I8>(mesh->nents(ent_dim), 0);
   for (std::size_t i = 0; i < class_dims.size(); ++i) {
-    marks = lor_each(
-        marks, mark_class_closure(mesh, ent_dim, class_dims[i], class_ids[i]));
+    if (ent_dim <= class_dims[i]) {
+      marks = lor_each(
+          marks, mark_class_closure(mesh, ent_dim, class_dims[i], class_ids[i]));
+    }
   }
   return marks;
 }

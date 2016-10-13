@@ -41,12 +41,12 @@ static bool coarsen_element_based1(Mesh* mesh) {
 }
 
 static void filter_coarsen_candidates(
-    LOs& cands2edges, Read<I8>& cand_codes, Reals& cand_quals) {
-  auto keep = each_neq_to(cand_codes, I8(DONT_COLLAPSE));
+    LOs* cands2edges, Read<I8>* cand_codes, Reals* cand_quals = nullptr) {
+  auto keep = each_neq_to(*cand_codes, I8(DONT_COLLAPSE));
   auto new2old = collect_marked(keep);
-  cands2edges = unmap(new2old, cands2edges, 1);
-  cand_codes = unmap(new2old, cand_codes, 1);
-  if (cand_quals.exists()) cand_quals = unmap(new2old, cand_quals, 2);
+  *cands2edges = unmap(new2old, *cands2edges, 1);
+  *cand_codes = unmap(new2old, *cand_codes, 1);
+  if (cand_quals) *cand_quals = unmap(new2old, *cand_quals, 2);
 }
 
 enum Overshoot { DONT_OVERSHOOT, ALLOW_OVERSHOOT };
@@ -60,26 +60,31 @@ static bool coarsen_ghosted(
   auto edges_are_cands = each_neq_to(edge_cand_codes, I8(DONT_COLLAPSE));
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_edge_codes = unmap(cands2edges, edge_cand_codes, 1);
-  auto cand_edge_quals = Reals();
   /* surface exposure (classification) checks */
   cand_edge_codes = check_collapse_exposure(mesh, cands2edges, cand_edge_codes);
-  filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
+  filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
+  /* non-fixed velocity DOF check */
+  if (has_fixed_momentum_velocity(mesh)) {
+    cand_edge_codes = filter_coarsen_momentum_velocity(
+        mesh, cands2edges, cand_edge_codes);
+    filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
+  }
   /* edge length overshoot check */
   if (overshoot == DONT_OVERSHOOT) {
     cand_edge_codes =
         prevent_overshoot(mesh, opts, cands2edges, cand_edge_codes);
-    filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
+    filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   }
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   /* cavity quality checks */
-  cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
+  auto cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
   cand_edge_codes = filter_coarsen_min_qual(
       cand_edge_codes, cand_edge_quals, opts.min_quality_allowed);
   if (improve == IMPROVE_LOCALLY) {
     cand_edge_codes = filter_coarsen_improve(
         mesh, cands2edges, cand_edge_codes, cand_edge_quals);
   }
-  filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
+  filter_coarsen_candidates(&cands2edges, &cand_edge_codes, &cand_edge_quals);
   /* finished cavity quality checks */
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   auto verts_are_cands = Read<I8>();

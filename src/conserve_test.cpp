@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
   Mesh mesh(&lib);
   gmsh::read("ball_in_cube.msh", &mesh);
   auto size = find_implied_size(&mesh);
-  size = multiply_each_by(1.1, size);
+  size = multiply_each_by(1.2, size);
   mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
       measure_elements_real(&mesh));
@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
       OMEGA_H_DO_OUTPUT, Reals(velocity));
+  fix_momentum_velocity_verts(&mesh, std::vector<Int>({2}), std::vector<I32>({33}));
   auto momentum_before = get_total_momentum(&mesh);
   Real masses_before[nobjs];
   for (Int obj = 0; obj < nobjs; ++obj) {
