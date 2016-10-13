@@ -168,21 +168,4 @@ Graph get_closure_verts(Mesh* mesh, Graph keys2elems) {
   return get_graph(spec);
 }
 
-Graph get_donor_interior_elems(Mesh* mesh, Int key_dim, LOs keys2kds) {
-  auto kds2elems = mesh->ask_up(key_dim, mesh->dim());
-  return unmap_graph(keys2kds, kds2elems);
-}
-
-Graph get_target_buffer_elems(
-    Graph keys2donor_elems, LOs donor_elems2target_elems) {
-  auto nedges = keys2donor_elems.nedges();
-  Write<I8> keep_w(nedges);
-  auto f = LAMBDA(LO edge) {
-    keep_w[edge] = (donor_elems2target_elems[keys2donor_elems.ab2b[edge]] >= 0);
-  };
-  parallel_for(nedges, f);
-  auto keep = Read<I8>(keep_w);
-  return filter_graph(keys2donor_elems, keep);
-}
-
 }  // end namespace Omega_h
