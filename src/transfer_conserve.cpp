@@ -184,6 +184,11 @@ void fix_momentum_velocity_verts(Mesh* mesh,
   }
 }
 
+bool has_fixed_momentum_velocity(Mesh* mesh) {
+  return has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY) &&
+    mesh->has_tag(VERT, "momentum_velocity_fixed");
+}
+
 Read<I8> filter_coarsen_momentum_velocity(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   auto verts_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");

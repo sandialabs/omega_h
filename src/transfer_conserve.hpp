@@ -26,6 +26,7 @@ Read<I8> find_buffered_indset(
 
 Graph get_closure_verts(Mesh* mesh, Graph keys2elems);
 
+bool has_fixed_momentum_velocity(Mesh* mesh);
 Read<I8> filter_coarsen_momentum_velocity(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
 Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges);
