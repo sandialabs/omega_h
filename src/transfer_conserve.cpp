@@ -183,6 +183,40 @@ void fix_momentum_velocity_verts(Mesh* mesh,
   }
 }
 
+Read<I8> filter_coarsen_momentum_velocity(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
+  auto verts_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+  auto v2e = mesh->ask_up(VERT, EDGE);
+  auto ev2v = mesh->ask_verts_of(EDGE);
+  auto ncands = cands2edges.size();
+  auto out = Write<I8>(ncands);
+  auto f = LAMBDA(LO cand) {
+    auto e = cands2edges[cand];
+    auto code = cand_codes[cand];
+    for (Int eev_col = 0; eev_col < 2; ++eev_col) {
+      if (!collapses(code, eev_col)) continue;
+      auto v_col = ev2v[e * 2 + eev_col];
+      bool ok = false;
+      for (auto ve= v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
+        auto e2 = v2e.ab2b[ve];
+        auto e2_code = v2e.codes[ve];
+        auto eev_in = code_which_down(e2_code);
+        auto eev_out = 1 - eev_in;
+        auto ov = ev2v[e2 * 2 + eev_out];
+        if (!verts_are_fixed[ov]) {
+          ok = true;
+          break;
+        }
+      }
+      if (!ok) code = dont_collapse(code, eev_col);
+    }
+    out[cand] = code;
+  };
+  parallel_for(ncands, f);
+  return mesh->sync_subset_array(
+      EDGE, Read<I8>(out), cands2edges, I8(DONT_COLLAPSE), 1);
+}
+
 template <Int dim>
 class MomentumVelocity {
   Graph keys2target_verts;
