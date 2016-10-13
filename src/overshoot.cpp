@@ -27,11 +27,13 @@ static Read<I8> prevent_overshoot_tmpl(
       for (auto ve = v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
         auto e2 = v2e.ab2b[ve];
         if (e2 == e) continue;
-        Few<LO, 2> eev2v = gather_verts<2>(ev2v, e2);
-        for (Int i = 0; i < 2; ++i) {
-          if (eev2v[i] == v_col) eev2v[i] = v_onto;
-        }
-        auto length = measurer.measure(eev2v);
+        auto e2_code = v2e.codes[ve];
+        auto eev_in = code_which_down(e2_code);
+        auto eev_out = 1 - eev_in;
+        Few<LO, 2> new_edge;
+        new_edge[eev_in] = v_onto;
+        new_edge[eev_out] = ev2v[e2 * 2 + eev_out];
+        auto length = measurer.measure(new_edge);
         if (length >= maxlength) {
           code = dont_collapse(code, eev_col);
           break;
