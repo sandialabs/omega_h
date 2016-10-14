@@ -76,14 +76,11 @@ If this is `ON`, set `CMAKE_CXX_COMPILER` to your copy of
 [nvcc_wrapper][7].
 
 #### Omega_h_ONE_FILE
-Default: `ON`
+Default: `OFF`
 
-Omega_h includes all other sources in `omega_h.cpp` for a (up to 4X)
-faster compile time from scratch.
-Reasons to set this to `OFF` include:
-* You have many cores on the compiling machine (at least 8), then
-  you can get a faster compile time with `make -j`.
-* You are a developer who would prefer faster incremental rebuilds.
+Omega_h can include all other sources in a single `omega_h.cpp` for a (up to 4X)
+faster compile time from scratch, especially if compiling in serial
+or if using the CUDA compiler which has a high per-file overhead.
 
 ## Contributing
 
