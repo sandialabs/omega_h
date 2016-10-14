@@ -173,7 +173,7 @@ struct TwinRotor : public Case {
 
 TwinRotor::~TwinRotor() {}
 
-static void run_case(Library const& lib, Case const& c, Int niters) {
+static void run_case(Library* lib, Case const& c, Int niters) {
   if (niters == -1) {
     niters = c.time_steps();
   } else {
@@ -184,19 +184,18 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
                 << '\n';
     }
   }
-  auto world = lib.world();
-  Mesh mesh;
+  auto world = lib->world();
+  Mesh mesh(lib);
   if (world->rank() == 0) {
-    gmsh::read(c.file_name(), lib, &mesh);
+    gmsh::read(c.file_name(), &mesh);
   }
   mesh.set_comm(world);
   mesh.balance();
   mesh.reorder();
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
-    auto size = find_identity_size(&mesh);
-    mesh.add_tag(
-        VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
+    auto size = find_implied_size(&mesh);
+    mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   }
   vtk::Writer writer(&mesh, "out", mesh.dim());
   writer.write();
@@ -216,18 +215,19 @@ static void run_case(Library const& lib, Case const& c, Int niters) {
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP,
         OMEGA_H_DO_OUTPUT, motion);
-    {
-      auto size = mesh.get_array<Real>(VERT, "size");
-      size = solve_laplacian(&mesh, size, 1, 1e-2);
-      mesh.set_tag(VERT, "size", size);
-    }
+    auto size = mesh.get_array<Real>(VERT, "size");
+    size = solve_laplacian(&mesh, size, 1, 1e-2);
+    mesh.set_tag(VERT, "size", size);
+    auto opts = AdaptOpts(&mesh);
+    opts.min_length_desired = 0.5;
+    opts.max_length_desired = 1.5;
     int warp_step = 0;
-    while (warp_to_limit(&mesh, 0.20)) {
+    while (warp_to_limit(&mesh, opts)) {
       if (world->rank() == 0) {
         std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step
                   << '\n';
       }
-      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 2);
+      adapt(&mesh, opts);
       ++warp_step;
     }
     writer.write();
@@ -253,15 +253,15 @@ int main(int argc, char** argv) {
     }
   }
   if (name == "translate_ball")
-    run_case(lib, TranslateBall(), niters);
+    run_case(&lib, TranslateBall(), niters);
   else if (name == "rotate_ball")
-    run_case(lib, RotateBall(), niters);
+    run_case(&lib, RotateBall(), niters);
   else if (name == "collide_balls")
-    run_case(lib, CollideBalls(), niters);
+    run_case(&lib, CollideBalls(), niters);
   else if (name == "cylinder_thru_tube")
-    run_case(lib, CylinderTube(), niters);
+    run_case(&lib, CylinderTube(), niters);
   else if (name == "twin_rotor")
-    run_case(lib, TwinRotor(), niters);
+    run_case(&lib, TwinRotor(), niters);
   else
     Omega_h_fail("unknown case \"%s\"", argv[1]);
 }

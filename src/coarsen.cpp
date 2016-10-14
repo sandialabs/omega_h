@@ -27,18 +27,6 @@ static void put_edge_codes(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
       OMEGA_H_DONT_OUTPUT, edge_codes);
 }
 
-static Reals get_edge_quals(Mesh* mesh) {
-  auto edge_cand_quals = mesh->get_array<Real>(EDGE, "collapse_qualities");
-  mesh->remove_tag(EDGE, "collapse_qualities");
-  return edge_cand_quals;
-}
-
-static void put_edge_quals(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
-  auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 2);
-  mesh->add_tag(EDGE, "collapse_qualities", 2, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, edge_quals);
-}
-
 static bool coarsen_element_based1(Mesh* mesh) {
   auto comm = mesh->comm();
   auto edge_cand_codes = get_edge_codes(mesh);
@@ -53,39 +41,57 @@ static bool coarsen_element_based1(Mesh* mesh) {
 }
 
 static void filter_coarsen_candidates(
-    LOs& cands2edges, Read<I8>& cand_codes, Reals& cand_quals) {
-  auto keep = each_neq_to(cand_codes, I8(DONT_COLLAPSE));
+    LOs* cands2edges, Read<I8>* cand_codes, Reals* cand_quals = nullptr) {
+  auto keep = each_neq_to(*cand_codes, I8(DONT_COLLAPSE));
   auto new2old = collect_marked(keep);
-  cands2edges = unmap(new2old, cands2edges, 1);
-  cand_codes = unmap(new2old, cand_codes, 1);
-  if (cand_quals.exists()) cand_quals = unmap(new2old, cand_quals, 2);
+  *cands2edges = unmap(new2old, *cands2edges, 1);
+  *cand_codes = unmap(new2old, *cand_codes, 1);
+  if (cand_quals) *cand_quals = unmap(new2old, *cand_quals, 2);
 }
 
-static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
+enum Overshoot { DONT_OVERSHOOT, ALLOW_OVERSHOOT };
+
+enum Improve { DONT_IMPROVE, IMPROVE_LOCALLY };
+
+static bool coarsen_ghosted(
+    Mesh* mesh, AdaptOpts const& opts, Overshoot overshoot, Improve improve) {
   auto comm = mesh->comm();
   auto edge_cand_codes = get_edge_codes(mesh);
   auto edges_are_cands = each_neq_to(edge_cand_codes, I8(DONT_COLLAPSE));
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_edge_codes = unmap(cands2edges, edge_cand_codes, 1);
-  auto cand_edge_quals = Reals();
-  cand_edge_codes = check_collapse_exposure(mesh, cands2edges, cand_edge_codes);
-  filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
   /* surface exposure (classification) checks */
+  cand_edge_codes = check_collapse_exposure(mesh, cands2edges, cand_edge_codes);
+  filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
+  /* non-fixed velocity DOF check */
+  if (has_fixed_momentum_velocity(mesh)) {
+    cand_edge_codes =
+        filter_coarsen_momentum_velocity(mesh, cands2edges, cand_edge_codes);
+    filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
+  }
+  /* edge length overshoot check */
+  if (overshoot == DONT_OVERSHOOT) {
+    cand_edge_codes =
+        prevent_overshoot(mesh, opts, cands2edges, cand_edge_codes);
+    filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
+  }
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
-  cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
-  cand_edge_codes =
-      filter_coarsen_min_qual(cand_edge_codes, cand_edge_quals, min_qual);
-  if (improve) {
+  /* cavity quality checks */
+  auto cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
+  cand_edge_codes = filter_coarsen_min_qual(
+      cand_edge_codes, cand_edge_quals, opts.min_quality_allowed);
+  if (improve == IMPROVE_LOCALLY) {
     cand_edge_codes = filter_coarsen_improve(
         mesh, cands2edges, cand_edge_codes, cand_edge_quals);
   }
-  filter_coarsen_candidates(cands2edges, cand_edge_codes, cand_edge_quals);
-  /* cavity quality checks */
+  filter_coarsen_candidates(&cands2edges, &cand_edge_codes, &cand_edge_quals);
+  /* finished cavity quality checks */
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   auto verts_are_cands = Read<I8>();
   auto vert_quals = Reals();
-  choose_vertex_collapses(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
-      verts_are_cands, vert_quals);
+  auto vert_rails = Read<GO>();
+  choose_rails(mesh, cands2edges, cand_edge_codes, cand_edge_quals,
+      &verts_are_cands, &vert_quals, &vert_rails);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
   Graph verts2cav_elems;
   if (needs_buffer_layers(mesh)) {
@@ -101,22 +107,22 @@ static bool coarsen_ghosted(Mesh* mesh, Real min_qual, bool improve) {
       verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, vert_quals);
-  put_edge_codes(mesh, cands2edges, cand_edge_codes);
-  put_edge_quals(mesh, cands2edges, cand_edge_quals);
+  mesh->add_tag(VERT, "collapse_rail", 1, OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DONT_OUTPUT, vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
 }
 
-static void coarsen_element_based2(Mesh* mesh, bool verbose) {
+static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto verts_are_keys = mesh->get_array<I8>(VERT, "key");
   auto vert_quals = mesh->get_array<Real>(VERT, "collapse_quality");
-  auto edge_codes = get_edge_codes(mesh);
-  auto edge_quals = get_edge_quals(mesh);
+  auto vert_rails = mesh->get_array<GO>(VERT, "collapse_rail");
+  mesh->remove_tag(VERT, "collapse_rail");
   auto keys2verts = collect_marked(verts_are_keys);
   auto nkeys = keys2verts.size();
-  if (verbose) {
+  if (opts.verbosity >= EACH_REBUILD) {
     auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
     if (comm->rank() == 0) {
       std::cout << "coarsening " << ntotal_keys << " vertices\n";
@@ -124,8 +130,7 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
   }
   auto rails2edges = LOs();
   auto rail_col_dirs = Read<I8>();
-  find_rails(mesh, keys2verts, vert_quals, edge_codes, edge_quals, rails2edges,
-      rail_col_dirs);
+  find_rails(mesh, keys2verts, vert_rails, &rails2edges, &rail_col_dirs);
   auto dead_ents = mark_dead_ents(mesh, rails2edges, rail_col_dirs);
   auto keys2verts_onto = get_verts_onto(mesh, rails2edges, rail_col_dirs);
   auto new_mesh = mesh->copy_meta();
@@ -168,18 +173,21 @@ static void coarsen_element_based2(Mesh* mesh, bool verbose) {
   *mesh = new_mesh;
 }
 
-bool coarsen(Mesh* mesh, Real min_qual, bool improve, bool verbose) {
+static bool coarsen(
+    Mesh* mesh, AdaptOpts const& opts, Overshoot overshoot, Improve improve) {
   if (!coarsen_element_based1(mesh)) return false;
   Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
   mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, false);
-  if (!coarsen_ghosted(mesh, min_qual, improve)) return false;
+  if (!coarsen_ghosted(mesh, opts, overshoot, improve)) {
+    return false;
+  }
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
-  coarsen_element_based2(mesh, verbose);
+  coarsen_element_based2(mesh, opts);
   return true;
 }
 
-bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks, Real min_qual, bool improve,
-    bool verbose) {
+static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
+    Read<I8> vert_marks, Overshoot overshoot, Improve improve) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   Write<I8> edge_codes_w(mesh->nedges(), DONT_COLLAPSE);
   auto f = LAMBDA(LO e) {
@@ -194,29 +202,32 @@ bool coarsen_verts(Mesh* mesh, Read<I8> vert_marks, Real min_qual, bool improve,
   parallel_for(mesh->nedges(), f);
   mesh->add_tag(EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, Read<I8>(edge_codes_w));
-  return coarsen(mesh, min_qual, improve, verbose);
+  return coarsen(mesh, opts, overshoot, improve);
 }
 
-bool coarsen_ents(Mesh* mesh, Int ent_dim, Read<I8> marks, Real min_qual,
-    bool improve, bool verbose) {
+static bool coarsen_ents(Mesh* mesh, AdaptOpts const& opts, Int ent_dim,
+    Read<I8> marks, Overshoot overshoot, Improve improve) {
   auto vert_marks = mark_down(mesh, ent_dim, VERT, marks);
-  return coarsen_verts(mesh, vert_marks, min_qual, improve, verbose);
+  return coarsen_verts(mesh, opts, vert_marks, overshoot, improve);
 }
 
-bool coarsen_by_size(Mesh* mesh, Real min_len, Real min_qual, bool verbose) {
+bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
-  auto edge_is_cand = each_lt(lengths, min_len);
+  auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
   if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
-  return coarsen_ents(mesh, EDGE, edge_is_cand, min_qual, false, verbose);
+  return coarsen_ents(
+      mesh, opts, EDGE, edge_is_cand, DONT_OVERSHOOT, DONT_IMPROVE);
 }
 
-bool coarsen_slivers(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
+bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
-  auto elems_are_cands = mark_sliver_layers(mesh, qual_ceil, nlayers);
+  auto elems_are_cands =
+      mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
   CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);
-  return coarsen_ents(mesh, mesh->dim(), elems_are_cands, 0.0, true, verbose);
+  return coarsen_ents(mesh, opts, mesh->dim(), elems_are_cands, ALLOW_OVERSHOOT,
+      IMPROVE_LOCALLY);
 }
 
 }  // end namespace Omega_h

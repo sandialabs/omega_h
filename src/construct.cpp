@@ -61,20 +61,18 @@ void build_from_elems2verts(
   add_ents2verts(mesh, edim, ev2v, vert_globals);
 }
 
-void build_from_elems2verts(
-    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, LO nverts) {
-  build_from_elems2verts(mesh, lib.self(), edim, ev2v, Read<GO>(nverts, 0, 1));
+void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
+  build_from_elems2verts(
+      mesh, mesh->library()->self(), edim, ev2v, Read<GO>(nverts, 0, 1));
 }
 
-void build_from_elems_and_coords(
-    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, Reals coords) {
+void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
   auto nverts = coords.size() / edim;
-  build_from_elems2verts(mesh, lib, edim, ev2v, nverts);
+  build_from_elems2verts(mesh, edim, ev2v, nverts);
   mesh->add_coords(coords);
 }
 
-void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
-    LO ny, LO nz) {
+void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
   CHECK(nx > 0);
   CHECK(ny > 0);
   CHECK(nz >= 0);
@@ -83,13 +81,13 @@ void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
     Reals coords;
     make_2d_box(x, y, nx, ny, &qv2v, &coords);
     auto tv2v = simplify::tris_from_quads(qv2v);
-    build_from_elems_and_coords(mesh, lib, TRI, tv2v, coords);
+    build_from_elems_and_coords(mesh, TRI, tv2v, coords);
   } else {
     LOs hv2v;
     Reals coords;
     make_3d_box(x, y, z, nx, ny, nz, &hv2v, &coords);
     auto tv2v = simplify::tets_from_hexes(hv2v);
-    build_from_elems_and_coords(mesh, lib, TET, tv2v, coords);
+    build_from_elems_and_coords(mesh, TET, tv2v, coords);
   }
 }
 

@@ -171,7 +171,7 @@ static void test_resolve_derived(CommPtr comm) {
   }
 }
 
-static void test_construct(CommPtr comm) {
+static void test_construct(Library* lib, CommPtr comm) {
   auto verts2globs = Read<GO>();
   if (comm->rank() == 0) {
     verts2globs = Read<GO>({0, 1, 3});
@@ -179,7 +179,7 @@ static void test_construct(CommPtr comm) {
     verts2globs = Read<GO>({1, 2, 3});
   }
   auto tv2v = LOs({0, 1, 2});
-  Mesh mesh;
+  Mesh mesh(lib);
   build_from_elems2verts(&mesh, comm, 2, tv2v, verts2globs);
   auto ev2v = mesh.ask_verts_of(EDGE);
   auto owners = mesh.ask_owners(EDGE);
@@ -193,27 +193,27 @@ static void test_construct(CommPtr comm) {
   }
 }
 
-static void test_read_vtu(Library const& lib, CommPtr comm) {
-  Mesh mesh0;
+static void test_read_vtu(Library* lib, CommPtr comm) {
+  Mesh mesh0(lib);
   if (comm->rank() == 0) {
-    build_box(&mesh0, lib, 1, 1, 0, 1, 1, 0);
+    build_box(&mesh0, 1, 1, 0, 1, 1, 0);
   }
   mesh0.set_comm(comm);
   mesh0.balance();
   std::stringstream stream;
   vtk::write_vtu(stream, &mesh0, mesh0.dim());
-  Mesh mesh1;
+  Mesh mesh1(lib);
   vtk::read_vtu(stream, comm, &mesh1);
   CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, false));
 }
 
-static void test_two_ranks(Library const& lib, CommPtr comm) {
+static void test_two_ranks(Library* lib, CommPtr comm) {
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
   test_two_ranks_bipart(comm);
   test_two_ranks_exch_sum(comm);
   test_resolve_derived(comm);
-  test_construct(comm);
+  test_construct(lib, comm);
   test_read_vtu(lib, comm);
 }
 
@@ -261,7 +261,7 @@ int main(int argc, char** argv) {
   if (world->size() >= 2) {
     auto two = world->split(world->rank() / 2, world->rank() % 2);
     if (world->rank() / 2 == 0) {
-      test_two_ranks(lib, two);
+      test_two_ranks(&lib, two);
     }
   }
   test_rib(world);

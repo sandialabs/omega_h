@@ -14,10 +14,50 @@ INLINE Real cube(Real x) { return x * x * x; }
 
 INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
-INLINE Real raise(Real x, Int p) {
-  Real out = 1.;
-  for (Int i = 0; i < p; ++i) out *= x;
+template <Int p>
+INLINE Real raise(Real x) {
+  Real out = x;
+  for (Int i = 1; i < p; ++i) out *= x;
   return out;
+}
+
+template <Int dp>
+struct Root;
+
+template <>
+struct Root<0> {
+  static INLINE Real eval(Real) { return 1.0; }
+};
+
+template <>
+struct Root<1> {
+  static INLINE Real eval(Real x) { return x; }
+};
+
+template <>
+struct Root<2> {
+  static INLINE Real eval(Real x) { return sqrt(x); }
+};
+
+template <>
+struct Root<3> {
+  static INLINE Real eval(Real x) { return cbrt(x); }
+};
+
+template <Int np, Int dp>
+struct Power {
+  static INLINE Real eval(Real x) { return Root<dp>::eval(raise<np>(x)); }
+  static_assert(np != dp, "equal case should be specialized");
+};
+
+template <Int p>
+struct Power<p, p> {
+  static INLINE Real eval(Real x) { return x; }
+};
+
+template <Int np, Int dp>
+INLINE Real power(Real x) {
+  return Power<np, dp>::eval(x);
 }
 
 INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
@@ -32,12 +72,18 @@ INLINE bool are_close(
   return rel_diff_with_floor(a, b, floor) <= tol;
 }
 
-template <Int n>
-INLINE Real average(Few<Real, n> x) {
-  Real avg = 0;
-  for (Int i = 0; i < n; ++i) avg += x[i];
-  avg /= n;
-  return avg;
+template <Int n, typename T>
+INLINE T average(Few<T, n> x) {
+  auto avg = x[0];
+  for (Int i = 1; i < n; ++i) avg = avg + x[i];
+  return avg / n;
+}
+
+template <Int n, typename T>
+INLINE T minimum(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = min2(out, x[i]);
+  return out;
 }
 
 template <Int n>
@@ -60,14 +106,6 @@ INLINE Vector<n> zero_vector() {
   Vector<n> v;
   for (Int i = 0; i < n; ++i) v[i] = 0.0;
   return v;
-}
-
-template <Int m, Int n>
-INLINE Vector<m> average(Few<Vector<m>, n> x) {
-  Vector<m> avg = zero_vector<m>();
-  for (Int i = 0; i < n; ++i) avg = avg + x[i];
-  avg = avg / n;
-  return avg;
 }
 
 /* Moore-Penrose pseudo-inverse of a vector */
@@ -184,6 +222,7 @@ INLINE Vector<n> positivize(Vector<n> v) {
 }
 
 Reals normalize_vectors(Reals vs, Int dim);
+Reals interpolate_between(Reals a, Reals b, Real t);
 
 }  // end namespace Omega_h
 

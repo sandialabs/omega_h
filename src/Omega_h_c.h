@@ -3,17 +3,8 @@
 
 #include <assert.h>
 
-#include "Omega_h_config.h"
-
-#define OMEGA_H_PRAGMA(x) _Pragma(#x)
-
-#if defined(__clang__)
-#define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(clang system_header)
-#elif defined(__GNUC__)
-#define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(GCC system_header)
-#endif
-
-#include "Omega_h_mpi.h"
+#include <Omega_h_macros.h>
+#include <Omega_h_mpi.h>
 
 enum Omega_h_Type {
   OMEGA_H_I8 = 0,
@@ -29,20 +20,19 @@ enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_TET = 3 };
 enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
 enum Omega_h_Xfer {
-  OMEGA_H_DONT_TRANSFER,
-  OMEGA_H_INHERIT,
-  OMEGA_H_LINEAR_INTERP,
-  OMEGA_H_POINTWISE,
-  OMEGA_H_CONSERVE,
-  OMEGA_H_GLOBAL,
-  OMEGA_H_LENGTH,
-  OMEGA_H_QUALITY,
-  OMEGA_H_METRIC,
-  OMEGA_H_CONSERVE_R3D,
-  OMEGA_H_MOMENTUM_VELOCITY
+  OMEGA_H_DONT_TRANSFER      = 0,
+  OMEGA_H_INHERIT            = 1,
+  OMEGA_H_LINEAR_INTERP      = 2,
+  OMEGA_H_POINTWISE          = 3,
+  OMEGA_H_CONSERVE           = 4,
+  OMEGA_H_GLOBAL             = 5,
+  OMEGA_H_LENGTH             = 6,
+  OMEGA_H_QUALITY            = 7,
+  OMEGA_H_METRIC             = 8,
+/*OMEGA_H_CONSERVE_R3D       = 9,*/
+  OMEGA_H_MOMENTUM_VELOCITY  =10,
+  OMEGA_H_SIZE               =11
 };
-
-enum { OMEGA_H_XFERS = OMEGA_H_CONSERVE_R3D + 1 };
 
 enum Omega_h_Parting {
   OMEGA_H_ELEM_BASED,
@@ -54,9 +44,9 @@ enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
 
 enum Omega_h_Outflags {
   OMEGA_H_DONT_OUTPUT = 0x0,
-  OMEGA_H_DO_SAVE     = 0x1,
-  OMEGA_H_DO_VIZ      = 0x2,
-  OMEGA_H_DO_OUTPUT   = OMEGA_H_DO_SAVE | OMEGA_H_DO_VIZ
+  OMEGA_H_DO_SAVE = 0x1,
+  OMEGA_H_DO_VIZ = 0x2,
+  OMEGA_H_DO_OUTPUT = OMEGA_H_DO_SAVE | OMEGA_H_DO_VIZ
 };
 
 #ifdef __cplusplus
@@ -64,7 +54,7 @@ extern "C" {
 #endif
 
 void Omega_h_fail(char const* format, ...)
-  __attribute__((noreturn,format(printf,1,2)));
+    __attribute__((noreturn, format(printf, 1, 2)));
 
 void Omega_h_init_internal(int* argc, char*** argv, char const* head_desc);
 
@@ -83,7 +73,7 @@ void Omega_h_finalize(void);
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
   ((cond) ? ((void)0) : Omega_h_fail("assertion %s failed at %s +%d\n", #cond, \
-                                 __FILE__, __LINE__))
+                            __FILE__, __LINE__))
 #endif
 
 #endif

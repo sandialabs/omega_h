@@ -27,7 +27,6 @@
 #include "vtk.hpp"
 #include "xml.hpp"
 
-#include <iostream>  //REMOVE NOW
 #include <sstream>
 
 using namespace Omega_h;
@@ -397,25 +396,25 @@ static void test_bbox() {
           Reals({0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, -3, 0, 0, 3}))));
 }
 
-static void test_build_from_elems2verts(Library const& lib) {
+static void test_build_from_elems2verts(Library* lib) {
   {
-    Mesh mesh;
-    build_from_elems2verts(&mesh, lib, 2, LOs({0, 1, 2}), 3);
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     CHECK(mesh.ask_down(2, 0).ab2b == LOs({0, 1, 2}));
     CHECK(mesh.ask_down(2, 1).ab2b == LOs({0, 2, 1}));
     CHECK(mesh.ask_down(1, 0).ab2b == LOs({0, 1, 2, 0, 1, 2}));
   }
   {
-    Mesh mesh;
-    build_from_elems2verts(&mesh, lib, 3, LOs({0, 1, 2, 3}), 4);
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     CHECK(mesh.ask_down(3, 0).ab2b == LOs({0, 1, 2, 3}));
   }
 }
 
-static void test_star(Library const& lib) {
+static void test_star(Library* lib) {
   {
-    Mesh mesh;
-    build_from_elems2verts(&mesh, lib, 2, LOs({0, 1, 2}), 3);
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     Adj v2v = mesh.ask_star(VERT);
     CHECK(v2v.a2ab == LOs(4, 0, 2));
     CHECK(v2v.ab2b == LOs({1, 2, 0, 2, 0, 1}));
@@ -424,8 +423,8 @@ static void test_star(Library const& lib) {
     CHECK(e2e.ab2b == LOs({2, 1, 0, 2, 1, 0}));
   }
   {
-    Mesh mesh;
-    build_from_elems2verts(&mesh, lib, 3, LOs({0, 1, 2, 3}), 4);
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     Adj v2v = mesh.ask_star(VERT);
     CHECK(v2v.a2ab == LOs(5, 0, 3));
     CHECK(v2v.ab2b == LOs({1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2}));
@@ -442,9 +441,9 @@ static void test_injective_map() {
   CHECK(ints2primes == LOs({-1, -1, 0, 1, -1, 2, -1, 3}));
 }
 
-static void test_dual(Library const& lib) {
-  Mesh mesh;
-  build_from_elems2verts(&mesh, lib, 2, LOs({0, 1, 2, 2, 3, 0}), 4);
+static void test_dual(Library* lib) {
+  Mesh mesh(lib);
+  build_from_elems2verts(&mesh, 2, LOs({0, 1, 2, 2, 3, 0}), 4);
   auto t2t = mesh.ask_dual();
   auto t2tt = t2t.a2ab;
   auto tt2t = t2t.ab2b;
@@ -584,9 +583,9 @@ static void test_inertial_bisect() {
   CHECK(marked == Read<I8>({1, 0, 1, 0}));
 }
 
-static void test_average_field(Library const& lib) {
-  Mesh mesh;
-  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
+static void test_average_field(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 0, 1, 1, 0);
   Reals v2x({2, 1, 3, 2});
   auto e2x = average_field(&mesh, 2, LOs({0, 1}), 1, v2x);
   CHECK(are_close(e2x, Reals({5. / 3., 7. / 3.})));
@@ -606,9 +605,15 @@ static void test_positivize() {
   test_positivize(vector_2(1, 1));
 }
 
-static void test_refine_qualities(Library const& lib) {
-  Mesh mesh;
-  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
+static void test_edge_length() {
+  CHECK(are_close(1., edge_length(1., 1.)));
+  CHECK(edge_length(1., 2.) > 1.);
+  CHECK(edge_length(1., 2.) < 1.5);
+}
+
+static void test_refine_qualities(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 0, 1, 1, 0);
   LOs candidates(mesh.nedges(), 0, 1);
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(
@@ -619,17 +624,17 @@ static void test_refine_qualities(Library const& lib) {
   CHECK(are_close(quals2, quals));
 }
 
-static void test_mark_up_down(Library const& lib) {
-  Mesh mesh;
-  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
+static void test_mark_up_down(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 0, 1, 1, 0);
   CHECK(
       mark_down(&mesh, TRI, VERT, Read<I8>({1, 0})) == Read<I8>({1, 1, 0, 1}));
   CHECK(mark_up(&mesh, VERT, TRI, Read<I8>({0, 1, 0, 0})) == Read<I8>({1, 0}));
 }
 
-static void test_compare_meshes(Library const& lib) {
-  Mesh a;
-  build_box(&a, lib, 1, 1, 0, 4, 4, 0);
+static void test_compare_meshes(Library* lib) {
+  Mesh a(lib);
+  build_box(&a, 1, 1, 0, 4, 4, 0);
   CHECK(a == a);
   Mesh b = a;
   b.reorder();
@@ -639,9 +644,9 @@ static void test_compare_meshes(Library const& lib) {
   CHECK(!(a == b));
 }
 
-static void test_swap2d_topology(Library const& lib) {
-  Mesh mesh;
-  build_box(&mesh, lib, 1, 1, 0, 1, 1, 0);
+static void test_swap2d_topology(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 0, 1, 1, 0);
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   auto keys2edges = LOs({2});
@@ -652,9 +657,9 @@ static void test_swap2d_topology(Library const& lib) {
   CHECK(keys2prods[TRI] == offset_scan(LOs({2})));
 }
 
-static void test_swap3d_loop(Library const& lib) {
-  Mesh mesh;
-  build_box(&mesh, lib, 1, 1, 1, 1, 1, 1);
+static void test_swap3d_loop(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 1, 1, 1, 1);
   auto edges2tets = mesh.ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -679,30 +684,30 @@ static void test_swap3d_loop(Library const& lib) {
   parallel_for(LO(1), f);
 }
 
-static void build_empty_mesh(Mesh* mesh, Library const& lib, Int dim) {
-  build_from_elems_and_coords(mesh, lib, dim, LOs({}), Reals({}));
+static void build_empty_mesh(Mesh* mesh, Int dim) {
+  build_from_elems_and_coords(mesh, dim, LOs({}), Reals({}));
 }
 
-static void test_file(Library const& lib, Mesh* mesh0) {
+static void test_file(Library* lib, Mesh* mesh0) {
   std::stringstream stream;
   binary::write(stream, mesh0);
-  Mesh mesh1;
+  Mesh mesh1(lib);
   mesh1.set_comm(Comm::self());
   binary::read(stream, &mesh1);
-  mesh1.set_comm(lib.world());
+  mesh1.set_comm(lib->world());
   compare_meshes(mesh0, &mesh1, 0, 0, true, true);
   CHECK(*mesh0 == mesh1);
 }
 
-static void test_file(Library const& lib) {
+static void test_file(Library* lib) {
   {
-    Mesh mesh0;
-    build_box(&mesh0, lib, 1, 1, 1, 1, 1, 1);
+    Mesh mesh0(lib);
+    build_box(&mesh0, 1, 1, 1, 1, 1, 1);
     test_file(lib, &mesh0);
   }
   {
-    Mesh mesh0;
-    build_empty_mesh(&mesh0, lib, 3);
+    Mesh mesh0(lib);
+    build_empty_mesh(&mesh0, 3);
     test_file(lib, &mesh0);
   }
 }
@@ -729,14 +734,14 @@ static void test_xml() {
 static void test_read_vtu(Mesh* mesh0) {
   std::stringstream stream;
   vtk::write_vtu(stream, mesh0, mesh0->dim());
-  Mesh mesh1;
+  Mesh mesh1(mesh0->library());
   vtk::read_vtu(stream, mesh0->comm(), &mesh1);
   CHECK(OMEGA_H_SAME == compare_meshes(mesh0, &mesh1, 0.0, 0.0, true, false));
 }
 
-static void test_read_vtu(Library const& lib) {
-  Mesh mesh0;
-  build_box(&mesh0, lib, 1, 1, 1, 1, 1, 1);
+static void test_read_vtu(Library* lib) {
+  Mesh mesh0(lib);
+  build_box(&mesh0, 1, 1, 1, 1, 1, 1);
   test_read_vtu(&mesh0);
 }
 
@@ -745,33 +750,33 @@ static void test_interpolate_metrics() {
       4, compose_metric(identity_matrix<2, 2>(), vector_2(1.0 / 100.0, 1.0)));
   auto b = repeat_symm(
       4, compose_metric(identity_matrix<2, 2>(), vector_2(1.0, 1.0)));
-  auto c = interpolate_metrics(2, a, b, 0.0);
+  auto c = interpolate_between_metrics(2, a, b, 0.0);
   CHECK(are_close(a, c));
-  c = interpolate_metrics(2, a, b, 1.0);
+  c = interpolate_between_metrics(2, a, b, 1.0);
   CHECK(are_close(b, c));
 }
 
-static void test_element_identity_metric() {
+static void test_element_implied_metric() {
   /* perfect tri with edge lengths = 2 */
   Few<Vector<2>, 3> perfect_tri(
       {vector_2(1, 0), vector_2(0, sqrt(3.0)), vector_2(-1, 0)});
-  auto afm = element_identity_metric(perfect_tri);
+  auto afm = element_implied_metric(perfect_tri);
   auto bfm = compose_metric(identity_matrix<2, 2>(), vector_2(2, 2));
   CHECK(are_close(afm, bfm));
   /* perfect tet with edge lengths = 2 */
   Few<Vector<3>, 4> perfect_tet(
       {vector_3(1, 0, -1.0 / sqrt(2.0)), vector_3(-1, 0, -1.0 / sqrt(2.0)),
           vector_3(0, -1, 1.0 / sqrt(2.0)), vector_3(0, 1, 1.0 / sqrt(2.0))});
-  auto arm = element_identity_metric(perfect_tet);
+  auto arm = element_implied_metric(perfect_tet);
   auto brm = compose_metric(identity_matrix<3, 3>(), vector_3(2, 2, 2));
   CHECK(are_close(arm, brm));
 }
 
 template <Int dim>
-static void test_recover_hessians_dim(Library const& lib) {
-  Mesh mesh;
+static void test_recover_hessians_dim(Library* lib) {
+  Mesh mesh(lib);
   Int one_if_3d = ((dim == 3) ? 1 : 0);
-  build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
+  build_box(&mesh, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
@@ -794,38 +799,38 @@ static void test_recover_hessians_dim(Library const& lib) {
   CHECK(are_close(hess, expected_hess));
 }
 
-static void test_recover_hessians(Library const& lib) {
+static void test_recover_hessians(Library* lib) {
   test_recover_hessians_dim<2>(lib);
   test_recover_hessians_dim<3>(lib);
 }
 
 template <Int dim>
-static void test_sf_scale_dim(Library const& lib) {
-  Mesh mesh;
+static void test_sf_scale_dim(Library* lib) {
+  Mesh mesh(lib);
   Int one_if_3d = ((dim == 3) ? 1 : 0);
-  build_box(&mesh, lib, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
+  build_box(&mesh, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   {
-    auto size = Omega_h::find_identity_size(&mesh);
+    auto size = Omega_h::find_implied_size(&mesh);
     auto size_scal = size_scalar_for_nelems(&mesh, size, target_nelems);
     CHECK(are_close(size_scal, 1.));
   }
   {
-    auto metric = Omega_h::find_identity_metric(&mesh);
+    auto metric = Omega_h::find_implied_metric(&mesh);
     auto metric_scal = metric_scalar_for_nelems(&mesh, metric, target_nelems);
-    CHECK(are_close(metric_scal, 1., 1e-3));
+    if (dim != 3) CHECK(are_close(metric_scal, 1.));
   }
 }
 
-static void test_sf_scale(Library const& lib) {
+static void test_sf_scale(Library* lib) {
   test_sf_scale_dim<2>(lib);
   test_sf_scale_dim<3>(lib);
 }
 
-static void test_buffered_conflict(Library const& lib) {
-  Mesh mesh;
-  build_box(&mesh, lib, 1, 1, 0, 3, 3, 0);
+static void test_buffered_conflict(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 0, 3, 3, 0);
   classify_by_angles(&mesh, PI / 4);
   auto class_dim = mesh.get_array<I8>(VERT, "class_dim");
   auto indset = each_eq_to(class_dim, I8(0));
@@ -855,6 +860,7 @@ static void test_categorize_graph() {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  test_edge_length();
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();
@@ -875,29 +881,29 @@ int main(int argc, char** argv) {
   test_find_unique();
   test_hilbert();
   test_bbox();
-  test_build_from_elems2verts(lib);
-  test_star(lib);
+  test_build_from_elems2verts(&lib);
+  test_star(&lib);
   test_injective_map();
-  test_dual(lib);
+  test_dual(&lib);
   test_quality();
   test_file_components();
   test_linpart();
   test_expand();
   test_inertial_bisect();
-  test_average_field(lib);
+  test_average_field(&lib);
   test_positivize();
-  test_refine_qualities(lib);
-  test_mark_up_down(lib);
-  test_compare_meshes(lib);
-  test_swap2d_topology(lib);
-  test_swap3d_loop(lib);
-  test_file(lib);
+  test_refine_qualities(&lib);
+  test_mark_up_down(&lib);
+  test_compare_meshes(&lib);
+  test_swap2d_topology(&lib);
+  test_swap3d_loop(&lib);
+  test_file(&lib);
   test_xml();
-  test_read_vtu(lib);
+  test_read_vtu(&lib);
   test_interpolate_metrics();
-  test_element_identity_metric();
-  test_recover_hessians(lib);
-  test_sf_scale(lib);
-  test_buffered_conflict(lib);
+  test_element_implied_metric();
+  test_recover_hessians(&lib);
+  test_sf_scale(&lib);
+  test_buffered_conflict(&lib);
   test_categorize_graph();
 }

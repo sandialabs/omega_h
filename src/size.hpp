@@ -9,13 +9,6 @@
 
 namespace Omega_h {
 
-template <Int sdim, Int edim>
-INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
-  Matrix<sdim, edim> b;
-  for (Int i = 0; i < edim; ++i) b[i] = p[i + 1] - p[0];
-  return b;
-}
-
 INLINE Real triangle_area(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
 }
@@ -32,28 +25,52 @@ INLINE Real tet_volume(Few<Vector<3>, 3> b) {
 
 INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
 
+/* Loseille, Adrien, and Rainald Lohner.
+ * "On 3D anisotropic local remeshing for surface, volume and boundary layers."
+ * Proceedings of the 18th International Meshing Roundtable.
+ * Springer Berlin Heidelberg, 2009. 611-630.
+ *
+ * Loseille's edge length integral assumes an interpolation $h(t) =
+ * h_0^{1-t}h_1^t$,
+ * which is consistent with the Log-Euclidean metric interpolation we now use.
+ */
+
+INLINE Real edge_length(Real l_a, Real l_b) {
+  if (::fabs(l_a - l_b) > 1e-3) {
+    return (l_a - l_b) / (::log(l_a / l_b));
+  }
+  return (l_a + l_b) / 2.;
+}
+
 template <Int dim>
-INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Real iso) {
-  return norm(p[1] - p[0]) / iso;
+INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Few<Real, 2> hs) {
+  auto real_l = norm(p[1] - p[0]);
+  auto l_a = real_l / hs[0];
+  auto l_b = real_l / hs[0];
+  return edge_length(l_a, l_b);
 }
 
 template <Int dim>
 DEVICE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
   auto p = gather_vectors<2, dim>(coords, v);
-  auto iso = average(gather_scalars<2>(isos, v));
-  return iso_edge_length(p, iso);
+  auto hs = gather_scalars<2>(isos, v);
+  return iso_edge_length(p, hs);
 }
 
 template <Int dim>
-INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Matrix<dim, dim> metric) {
-  return metric_length(metric, p[1] - p[0]);
+INLINE Real metric_edge_length(
+    Few<Vector<dim>, 2> p, Few<Matrix<dim, dim>, 2> ms) {
+  auto v = p[1] - p[0];
+  auto l_a = metric_length(ms[0], v);
+  auto l_b = metric_length(ms[1], v);
+  return edge_length(l_a, l_b);
 }
 
 template <Int dim>
 DEVICE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
   auto p = gather_vectors<2, dim>(coords, v);
-  auto metric = average_metrics(gather_symms<2, dim>(metrics, v));
-  return metric_edge_length(p, metric);
+  auto ms = gather_symms<2, dim>(metrics, v);
+  return metric_edge_length(p, ms);
 }
 
 template <Int dim>
@@ -133,25 +150,41 @@ INLINE Few<Vector<3>, 6> element_edge_vectors(
   return ev;
 }
 
-template <typename EdgeVectors>
-INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
+template <Int dim>
+INLINE Real squared_metric_length(Vector<dim> v, DummyIsoMetric) {
+  return norm_squared(v);
+}
+
+template <Int dim>
+INLINE Real squared_metric_length(Vector<dim> v, Matrix<dim, dim> m) {
+  return metric_product(m, v);
+}
+
+template <typename EdgeVectors, typename Metric>
+INLINE Real mean_squared_metric_length(
+    EdgeVectors edge_vectors, Metric metric) {
   auto nedges = EdgeVectors::size;
   Real msl = 0;
   for (Int i = 0; i < nedges; ++i) {
-    msl += norm_squared(edge_vectors[i]);
+    msl += squared_metric_length(edge_vectors[i], metric);
   }
   return msl / nedges;
 }
 
+template <typename EdgeVectors>
+INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
+  return mean_squared_metric_length(edge_vectors, DummyIsoMetric());
+}
+
 template <Int dim>
-INLINE Real element_identity_size(Few<Vector<dim>, dim + 1> p) {
+INLINE Real element_implied_size(Few<Vector<dim>, dim + 1> p) {
   auto b = simplex_basis<dim, dim>(p);
   auto ev = element_edge_vectors(p, b);
   auto h = sqrt(mean_squared_real_length(ev));
   return h;
 }
 
-INLINE Matrix<2, 2> element_identity_metric(Few<Vector<2>, 3> p) {
+INLINE Matrix<2, 2> element_implied_metric(Few<Vector<2>, 3> p) {
   auto b = simplex_basis<2, 2>(p);
   auto ev = element_edge_vectors(p, b);
   Matrix<3, 3> a;
@@ -167,7 +200,7 @@ INLINE Matrix<2, 2> element_identity_metric(Few<Vector<2>, 3> p) {
   return vector2symm(x);
 }
 
-INLINE Matrix<3, 3> element_identity_metric(Few<Vector<3>, 4> p) {
+INLINE Matrix<3, 3> element_implied_metric(Few<Vector<3>, 4> p) {
   auto b = simplex_basis<3, 3>(p);
   auto ev = element_edge_vectors(p, b);
   Matrix<6, 6> a;
@@ -198,6 +231,12 @@ template <>
 struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
+
+Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs entities, Reals v2h);
+Reals interpolate_between_isos(Reals a, Reals b, Real t);
+Reals linearize_isos(Reals isos);
+Reals delinearize_isos(Reals log_isos);
+Reals project_isos(Mesh* mesh, Reals e2h);
 
 }  // end namespace Omega_h
 

@@ -25,4 +25,13 @@ Reals normalize_vectors(Reals vs, Int dim) {
   }
   NORETURN(Reals());
 }
+
+Reals interpolate_between(Reals a, Reals b, Real t) {
+  CHECK(a.size() == b.size());
+  auto n = a.size();
+  auto out = Write<Real>(n);
+  auto f = LAMBDA(LO i) { out[i] = a[i] * (1.0 - t) + b[i] * t; };
+  parallel_for(n, f);
+  return out;
+}
 }

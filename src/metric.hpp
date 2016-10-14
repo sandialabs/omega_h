@@ -117,41 +117,72 @@ that can be safely linearly interpolated.
 
 template <Int dim>
 INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
-  return invert(m);
+  return log(m);
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> m) {
-  return invert(m);
+INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
+  return exp(log_m);
 }
 
-template <Int dim>
-INLINE Matrix<dim, dim> interpolate_metrics(
-    Matrix<dim, dim> a, Matrix<dim, dim> b, Real t) {
-  return delinearize_metric(
-      (linearize_metric(a) * (1.0 - t)) + (linearize_metric(b) * t));
+INLINE Real linearize_metric(Real h) { return ::log(h); }
+
+INLINE Real delinearize_metric(Real log_h) { return ::exp(log_h); }
+
+template <Int n, typename T>
+INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
+  Few<T, n> log_ms;
+  for (Int i = 0; i < n; ++i) log_ms[i] = linearize_metric(ms[i]);
+  return log_ms;
 }
 
-/* same as above, but for the barycenter of an entity */
+/* the "proper" way to interpolate the metric tensor to
+ * the center of a simplex; does several eigendecompositions
+ */
+template <Int n, typename T>
+INLINE T average_metric(Few<T, n> ms) {
+  return delinearize_metric(average(linearize_metrics(ms)));
+}
+
+/* a cheap hackish variant of interpolation for getting a metric
+ * tensor to use to measure an element's quality.
+ * basically, choose the one that is asking for the smallest real-space volume
+ * (big determinant means large metric volume which triggers refinement)
+ * the reason we use a cheap hack is because the Log-Euclidean interpolation
+ * we use is rather expensive, and we'd like to avoid calling it for every
+ * potential element (we do a lot of cavity pre-evaluation).
+ */
 template <Int dim, Int n>
-INLINE Matrix<dim, dim> average_metrics(Few<Matrix<dim, dim>, n> ms) {
-  auto am = zero_matrix<dim, dim>();
-  for (Int i = 0; i < n; ++i) {
-    am = am + linearize_metric(ms[i]);
+INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
+  auto m = ms[0];
+  auto maxdet = determinant(m);
+  for (Int i = 1; i < n; ++i) {
+    auto det = determinant(ms[i]);
+    if (det > maxdet) {
+      m = ms[i];
+      maxdet = det;
+    }
   }
-  am = am / double(n);
-  return delinearize_metric(am);
+  return m;
 }
 
-Reals average_metric(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
-Reals interpolate_metrics(Int dim, Reals a, Reals b, Real t);
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
+Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
 Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);
+Reals project_metrics(Mesh* mesh, Reals e2m);
 
 Reals metric_from_hessians(
     Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
 Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
     Real tolerance, Reals hessians, Real hmin, Real hmax);
+
+/* used to achieve templated versions of code that either
+ * accepts a metric tensor or nothing (nothing being the case
+ * of isotropic quality, where the actual isotropic value doesn't
+ * matter because our shape measure is scale-invariant)
+ */
+struct DummyIsoMetric {};
 
 }  // end namespace Omega_h
 

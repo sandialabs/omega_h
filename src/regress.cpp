@@ -28,7 +28,7 @@ bool check_regression(
       return false;
     }
   }
-  Mesh gold_mesh;
+  Mesh gold_mesh(mesh->library());
   binary::read(goldpath, comm, &gold_mesh);
   auto res = compare_meshes(&gold_mesh, mesh, tol, floor, true);
   if (res == OMEGA_H_SAME) {

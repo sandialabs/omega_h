@@ -31,7 +31,7 @@ class FindDistance2Elems {
     indset = unbuffered_indset;
   }
   LO count() const { return keys2elems.nnodes(); }
-  enum { stack_max = 256 };
+  enum { stack_max = 512 };
   DEVICE Int run(LO key, LO* stack, Int stack_max) const {
     if (!indset[key]) return 0;
     Int n = 0;
@@ -73,7 +73,7 @@ class FindDistance3Keys {
     indset = unbuffered_indset;
   }
   LO count() const { return keys2buf_elems.nnodes(); }
-  enum { stack_max = 32 };
+  enum { stack_max = 64 };
   DEVICE Int run(LO key, LO* stack, Int stack_max) const {
     if (!indset[key]) return 0;
     Int n = 0;
@@ -166,23 +166,6 @@ Graph get_buffered_conflicts(
 Graph get_closure_verts(Mesh* mesh, Graph keys2elems) {
   FindClosureVerts spec(mesh, keys2elems);
   return get_graph(spec);
-}
-
-Graph get_donor_interior_elems(Mesh* mesh, Int key_dim, LOs keys2kds) {
-  auto kds2elems = mesh->ask_up(key_dim, mesh->dim());
-  return unmap_graph(keys2kds, kds2elems);
-}
-
-Graph get_target_buffer_elems(
-    Graph keys2donor_elems, LOs donor_elems2target_elems) {
-  auto nedges = keys2donor_elems.nedges();
-  Write<I8> keep_w(nedges);
-  auto f = LAMBDA(LO edge) {
-    keep_w[edge] = (donor_elems2target_elems[keys2donor_elems.ab2b[edge]] >= 0);
-  };
-  parallel_for(nedges, f);
-  auto keep = Read<I8>(keep_w);
-  return filter_graph(keys2donor_elems, keep);
 }
 
 }  // end namespace Omega_h

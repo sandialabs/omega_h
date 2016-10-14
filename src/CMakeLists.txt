@@ -76,6 +76,8 @@ set(Omega_h_SOURCES
   derive.cpp
   project.cpp
   buffered_graphs.cpp
+  overshoot.cpp
+  collapse_rail.cpp
   )
 
 if(Omega_h_ONE_FILE)
@@ -84,11 +86,11 @@ if(Omega_h_ONE_FILE)
   endforeach()
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/omega_h.cpp "${ONE_FILE_CONTENTS}")
   add_library(omega_h omega_h.cpp)
-  target_include_directories(omega_h
-      PRIVATE  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
+target_include_directories(omega_h
+    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 #for users to find all our headers after we're installed:
 target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
 #find our generated omega_h_config.h, during build only
@@ -212,8 +214,11 @@ if(BUILD_TESTING)
     test_func(warp_test_parallel 2 ./warp_test)
   endif()
   osh_add_exe(conserve_test)
-  set(TEST_EXES ${TEST_EXES} conserve_test)
-  test_func(run_conserve_test 1 ./conserve_test)
+  if(Omega_h_USE_Gmodel AND GMSH)
+    set(TEST_EXES ${TEST_EXES} conserve_test)
+    test_func(run_conserve_test 1 ./conserve_test)
+    set(TEST_MSHS ${TEST_MSHS} ball_in_cube.msh)
+  endif()
   osh_add_exe(perf_tests)
   osh_add_exe(ring_test)
   if(Omega_h_USE_Gmodel AND GMSH)
@@ -228,6 +233,7 @@ if(BUILD_TESTING)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
   osh_add_exe(test_degree)
+  osh_add_exe(ugawg)
 endif()
 
 set(SCOREC_REQUIRED_VERSION 2.0.0)
@@ -263,6 +269,7 @@ configure_file(
 
 set(Omega_h_HEADERS
   "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h"
+  Omega_h_macros.h
   Omega_h_mpi.h
   Omega_h_c.h
   Omega_h_kokkos.hpp
@@ -273,5 +280,13 @@ set(Omega_h_HEADERS
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
+
+set(Meshb_REQUIRED_VERSION 7.12)
+set(Omega_h_USE_Meshb_DEFAULT OFF)
+bob_private_dep(Meshb)
+if(Omega_h_USE_Meshb)
+  osh_add_util(meshb2osh)
+  target_link_libraries(meshb2osh PRIVATE Meshb::meshb)
+endif()
 
 bob_end_subdir()

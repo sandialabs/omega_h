@@ -16,16 +16,17 @@ static bool swap3d_ghosted(Mesh* mesh) {
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
+  if (has_fixed_momentum_velocity(mesh)) {
+    auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
+    filter_swap(keep_cands, &cands2edges);
+  }
   auto cand_quals = Reals();
   auto cand_configs = Read<I8>();
   swap3d_qualities(mesh, cands2edges, &cand_quals, &cand_configs);
   auto edge_configs =
       map_onto(cand_configs, cands2edges, mesh->nedges(), I8(-1), 1);
-  /* swap3d_qualities sets the quality to -1.0 when no configuration
-     is found, so *assuming that the input mesh has no negative elements*
-     it is sufficient to simply filter by quality improvement. */
-  filter_swap_improve(mesh, &cands2edges, &cand_quals);
-  /* cavity quality checks */
+  auto keep_cands = filter_swap_improve(mesh, cands2edges, cand_quals);
+  filter_swap(keep_cands, &cands2edges, &cand_quals);
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   edges_are_cands = mark_image(cands2edges, mesh->nedges());
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 1);
@@ -49,14 +50,14 @@ static bool swap3d_ghosted(Mesh* mesh) {
   return true;
 }
 
-static void swap3d_element_based(Mesh* mesh, bool verbose) {
+static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   mesh->remove_tag(EDGE, "key");
   auto edges_configs = mesh->get_array<I8>(EDGE, "config");
   mesh->remove_tag(EDGE, "config");
   auto keys2edges = collect_marked(edges_are_keys);
-  if (verbose) {
+  if (opts.verbosity >= EACH_REBUILD) {
     auto nkeys = keys2edges.size();
     auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
     if (comm->rank() == 0) {
@@ -89,11 +90,11 @@ static void swap3d_element_based(Mesh* mesh, bool verbose) {
   *mesh = new_mesh;
 }
 
-bool run_swap3d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
-  if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
+bool swap_edges_3d(Mesh* mesh, AdaptOpts const& opts) {
+  if (!swap_part1(mesh, opts)) return false;
   if (!swap3d_ghosted(mesh)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
-  swap3d_element_based(mesh, verbose);
+  swap3d_element_based(mesh, opts);
   return true;
 }
 

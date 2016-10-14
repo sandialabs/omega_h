@@ -72,9 +72,9 @@ int main(int argc, char** argv) {
     std::cout << "    -superset (Allow result to have more arrays than gold)\n";
     return -1;
   }
-  Omega_h::Mesh a;
+  Omega_h::Mesh a(&lib);
   Omega_h::binary::read(filea, lib.world(), &a);
-  Omega_h::Mesh b;
+  Omega_h::Mesh b(&lib);
   Omega_h::binary::read(fileb, lib.world(), &b);
   auto res = compare_meshes(&a, &b, tol, floor, true);
   if (res == OMEGA_H_SAME) return 0;

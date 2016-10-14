@@ -16,8 +16,13 @@ static bool swap2d_ghosted(Mesh* mesh) {
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
+  if (has_fixed_momentum_velocity(mesh)) {
+    auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
+    filter_swap(keep_cands, &cands2edges);
+  }
   auto cand_quals = swap2d_qualities(mesh, cands2edges);
-  filter_swap_improve(mesh, &cands2edges, &cand_quals);
+  auto keep_cands = filter_swap_improve(mesh, cands2edges, cand_quals);
+  filter_swap(keep_cands, &cands2edges, &cand_quals);
   /* cavity quality checks */
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   edges_are_cands = mark_image(cands2edges, mesh->nedges());
@@ -40,12 +45,12 @@ static bool swap2d_ghosted(Mesh* mesh) {
   return true;
 }
 
-static void swap2d_element_based(Mesh* mesh, bool verbose) {
+static void swap2d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto edges_are_keys = mesh->get_array<I8>(EDGE, "key");
   mesh->remove_tag(EDGE, "key");
   auto keys2edges = collect_marked(edges_are_keys);
-  if (verbose) {
+  if (opts.verbosity >= EACH_REBUILD) {
     auto nkeys = keys2edges.size();
     auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
     if (comm->rank() == 0) {
@@ -78,11 +83,11 @@ static void swap2d_element_based(Mesh* mesh, bool verbose) {
   *mesh = new_mesh;
 }
 
-bool swap2d(Mesh* mesh, Real qual_ceil, Int nlayers, bool verbose) {
-  if (!swap_part1(mesh, qual_ceil, nlayers)) return false;
+bool swap_edges_2d(Mesh* mesh, AdaptOpts const& opts) {
+  if (!swap_part1(mesh, opts)) return false;
   if (!swap2d_ghosted(mesh)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  swap2d_element_based(mesh, verbose);
+  swap2d_element_based(mesh, opts);
   return true;
 }
 

@@ -9,8 +9,8 @@
 #include <string>
 #include <vector>
 
-#include "Omega_h_c.h"
-#include "Omega_h_kokkos.hpp"
+#include <Omega_h_c.h>
+#include <Omega_h_kokkos.hpp>
 
 namespace Omega_h {
 
@@ -67,7 +67,7 @@ class Write {
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
-  bool exists() const;
+  OMEGA_H_INLINE bool exists() const { return exists_; }
 };
 
 template <typename T>
@@ -102,7 +102,7 @@ class Read {
   T get(LO i) const;
   T first() const;
   T last() const;
-  bool exists() const;
+  OMEGA_H_INLINE bool exists() const { return write_.exists(); }
 };
 
 class LOs : public Read<LO> {
@@ -373,7 +373,8 @@ struct Rib;
 
 class Mesh {
  public:
-  Mesh();
+  Mesh(Library* library);
+  Library* library() const;
   void set_comm(CommPtr const& comm);
   void set_dim(Int dim);
   void set_verts(LO nverts);
@@ -448,6 +449,7 @@ class Mesh {
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;
   bool keeps_canonical_globals_;
+  Library* library_;
 
  public:
   void add_coords(Reals array);
@@ -488,8 +490,8 @@ class Mesh {
 };
 
 namespace gmsh {
-void read(std::istream& stream, Library const& lib, Mesh* mesh);
-void read(std::string const& filename, Library const& lib, Mesh* mesh);
+void read(std::istream& stream, Mesh* mesh);
+void read(std::string const& filename, Mesh* mesh);
 }
 
 namespace vtk {
@@ -522,9 +524,20 @@ class FullWriter {
 };
 }  // end namespace vtk
 
-/* returns true if the mesh was modified. */
-bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, Int nlayers, Int verbosity);
+enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
+
+struct AdaptOpts {
+  AdaptOpts(Mesh* mesh);  // sets defaults
+  Real min_length_desired;
+  Real max_length_desired;
+  Real min_quality_allowed;
+  Real min_quality_desired;
+  Int nsliver_layers;
+  Verbosity verbosity;
+};
+
+/* returns false if the mesh was not modified. */
+bool adapt(Mesh* mesh, AdaptOpts const& opts);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
@@ -538,12 +551,9 @@ bool check_regression(
 
 void build_from_elems2verts(
     Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
-void build_from_elems2verts(
-    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, LO nverts);
-void build_from_elems_and_coords(
-    Mesh* mesh, Library const& lib, Int edim, LOs ev2v, Reals coords);
-void build_box(Mesh* mesh, Library const& lib, Real x, Real y, Real z, LO nx,
-    LO ny, LO nz);
+void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts);
+void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords);
+void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
 
@@ -562,23 +572,27 @@ Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids);
+void fix_momentum_velocity_verts(
+    Mesh* mesh, std::vector<Int> class_dims, std::vector<I32> class_ids);
 
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
 LOs collect_marked(Read<I8> marks);
 
-bool warp_to_limit(Mesh* mesh, Real min_qual);
-bool approach_metric(Mesh* mesh, Real min_qual);
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
+bool approach_size_field(Mesh* mesh, AdaptOpts const& opts);
 
-Reals find_identity_size(Mesh* mesh);
-Reals find_identity_metric(Mesh* mesh);
+Reals find_implied_size(Mesh* mesh);
+Reals find_implied_metric(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
-Reals limit_metrics_by_adj(Mesh* mesh, Reals metrics, Real max_rate);
+Reals limit_metric_gradation(Mesh* mesh, Reals metrics, Real max_rate);
 Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h);
 Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m);
 Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
 Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
+Reals smooth_metric_once(Mesh* mesh, Reals v2m);
+Reals smooth_isos_once(Mesh* mesh, Reals v2h);
 
 template <typename T, Int n>
 class Few {

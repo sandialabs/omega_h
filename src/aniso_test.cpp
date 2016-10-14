@@ -9,15 +9,15 @@ using namespace Omega_h;
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  Mesh mesh;
+  Mesh mesh(&lib);
   if (world->rank() == 0) {
-    build_box(&mesh, lib, 1, 1, .5, 8, 8, 4);
+    build_box(&mesh, 1, 1, .5, 8, 8, 4);
     classify_by_angles(&mesh, PI / 4);
   }
   mesh.set_comm(world);
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto metrics = find_identity_metric(&mesh);
+  auto metrics = find_implied_metric(&mesh);
   mesh.add_tag(VERT, "metric", symm_dofs(mesh.dim()), OMEGA_H_METRIC,
       OMEGA_H_DO_OUTPUT, metrics);
   auto target_metric = compose_metric(
@@ -27,10 +27,9 @@ int main(int argc, char** argv) {
       OMEGA_H_DO_OUTPUT, target_metrics);
   mesh.ask_lengths();
   mesh.ask_qualities();
+  auto opts = AdaptOpts(&mesh);
   Now t0 = now();
-  while (approach_metric(&mesh, 0.20)) {
-    adapt(&mesh, 0.20, 0.30, 2.0 / 3.0, 4.0 / 3.0, 4, 0);
-  }
+  while (approach_size_field(&mesh, opts)) adapt(&mesh, opts);
   Now t1 = now();
   std::cout << "anisotropic approach took " << (t1 - t0) << " seconds\n";
   bool ok = check_regression("gold_aniso", &mesh, 0.0, 0.0);

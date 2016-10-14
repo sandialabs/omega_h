@@ -69,10 +69,10 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
   constexpr Int dim = 3;
-  Mesh mesh;
+  Mesh mesh(&lib);
   if (world->rank() == 0) {
     auto nx = 10;
-    build_box(&mesh, lib, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
+    build_box(&mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
     classify_by_angles(&mesh, PI / 4);
     mesh.reorder();
     mesh.reset_globals();
@@ -80,16 +80,13 @@ int main(int argc, char** argv) {
   mesh.set_comm(world);
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto size = find_identity_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, size);
+  auto size = find_implied_size(&mesh);
+  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   add_dye(&mesh);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
       measure_elements_real(&mesh));
-  mesh.add_tag(mesh.dim(), "density_r3d", 1, OMEGA_H_CONSERVE_R3D,
-      OMEGA_H_DO_OUTPUT, Reals(mesh.nelems(), 1.0));
-  // mesh.add_tag(VERT, "velocity", 3, OMEGA_H_MOMENTUM_VELOCITY,
-  //   OMEGA_H_DO_OUTPUT, Reals(mesh.nverts() * 3, 0));
   add_pointwise(&mesh);
+  auto opts = AdaptOpts(&mesh);
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
@@ -120,9 +117,7 @@ int main(int argc, char** argv) {
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT,
         Reals(warp_w));
-    while (warp_to_limit(&mesh, 0.20)) {
-      adapt(&mesh, 0.30, 0.30, 1.0 / 2.0, 3.0 / 2.0, 4, 0);
-    }
+    while (warp_to_limit(&mesh, opts)) adapt(&mesh, opts);
   }
   Now t1 = now();
   mesh.set_parting(OMEGA_H_ELEM_BASED);

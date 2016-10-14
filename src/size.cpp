@@ -85,59 +85,59 @@ Reals measure_elements_real(Mesh* mesh) {
 }
 
 template <Int dim>
-static Reals element_identity_sizes_dim(Mesh* mesh) {
+static Reals element_implied_sizes_dim(Mesh* mesh) {
   auto coords = mesh->coords();
   auto ev2v = mesh->ask_elem_verts();
   auto out = Write<Real>(mesh->nelems());
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto h = element_identity_size(p);
+    auto h = element_implied_size(p);
     out[e] = h;
   };
   parallel_for(mesh->nelems(), f);
   return out;
 }
 
-static Reals element_identity_sizes(Mesh* mesh) {
-  if (mesh->dim() == 3) return element_identity_sizes_dim<3>(mesh);
-  if (mesh->dim() == 2) return element_identity_sizes_dim<2>(mesh);
+static Reals element_implied_sizes(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_implied_sizes_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_sizes_dim<2>(mesh);
   NORETURN(Reals());
 }
 
-Reals find_identity_size(Mesh* mesh) {
-  auto e_h = element_identity_sizes(mesh);
-  auto v_h = project_by_average(mesh, e_h);
-  return v_h;
+Reals project_isos(Mesh* mesh, Reals e2h) {
+  auto e_linear = linearize_isos(e2h);
+  auto v_linear = project_by_average(mesh, e_linear);
+  return delinearize_isos(v_linear);
+}
+
+Reals find_implied_size(Mesh* mesh) {
+  return project_isos(mesh, element_implied_sizes(mesh));
 }
 
 template <Int dim>
-static Reals element_identity_metrics_dim(Mesh* mesh) {
+static Reals element_implied_metrics_dim(Mesh* mesh) {
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nelems() * symm_dofs(dim));
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto m = element_identity_metric(p);
+    auto m = element_implied_metric(p);
     set_symm(out, e, m);
   };
   parallel_for(mesh->nelems(), f);
   return out;
 }
 
-static Reals element_identity_metrics(Mesh* mesh) {
-  if (mesh->dim() == 3) return element_identity_metrics_dim<3>(mesh);
-  if (mesh->dim() == 2) return element_identity_metrics_dim<2>(mesh);
+static Reals element_implied_metrics(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_implied_metrics_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_metrics_dim<2>(mesh);
   NORETURN(Reals());
 }
 
-Reals find_identity_metric(Mesh* mesh) {
-  auto e_metric = element_identity_metrics(mesh);
-  auto e_linear = linearize_metrics(mesh->dim(), e_metric);
-  auto v_linear = project_by_average(mesh, e_linear);
-  auto v_metric = delinearize_metrics(mesh->dim(), v_linear);
-  return v_metric;
+Reals find_implied_metric(Mesh* mesh) {
+  return project_metrics(mesh, element_implied_metrics(mesh));
 }
 
 /* The algorithms below are for scaling a size field such that
@@ -184,26 +184,17 @@ Reals find_identity_metric(Mesh* mesh) {
  * (a metric tensor eigenvalue is $(1/h^2)$, where $h$ is desired length).
 */
 
-template <typename EdgeVectors>
-INLINE Real mean_squared_iso_length(EdgeVectors edge_vectors, Real h) {
-  auto nedges = EdgeVectors::size;
-  Real msl = 0;
-  for (Int i = 0; i < nedges; ++i) {
-    msl += norm_squared(edge_vectors[i]) / square(h);
-  }
-  return msl / nedges;
-}
-
 struct MeanSquaredIsoLength {
   Reals e2h;
   MeanSquaredIsoLength(Mesh* mesh, Reals v2h) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
-    e2h = average_field(mesh, mesh->dim(), e2e, 1, v2h);
+    e2h = get_mident_isos(mesh, mesh->dim(), e2e, v2h);
   }
   template <Int dim, typename EdgeVectors>
   DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
     auto h = e2h[e];
-    return mean_squared_iso_length(edge_vectors, h);
+    return mean_squared_metric_length(edge_vectors, DummyIsoMetric()) /
+           square(h);
   }
 };
 
@@ -211,7 +202,7 @@ struct MeanSquaredMetricLength {
   Reals e2m;
   MeanSquaredMetricLength(Mesh* mesh, Reals v2m) {
     auto e2e = LOs(mesh->nelems(), 0, 1);
-    e2m = average_metric(mesh, mesh->dim(), e2e, v2m);
+    e2m = get_mident_metrics(mesh, mesh->dim(), e2e, v2m);
   }
   template <Int dim, typename EdgeVectors>
   DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
@@ -232,7 +223,7 @@ static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2sf) {
     auto basis = simplex_basis<dim, dim>(eev2x);
     auto edge_vectors = element_edge_vectors(eev2x, basis);
     auto msl = msl_obj.template get<dim>(e, edge_vectors);
-    out_w[e] = raise(sqrt(msl), dim);
+    out_w[e] = power<dim, 2>(msl);
   };
   parallel_for(mesh->nelems(), f);
   return Reals(out_w);
@@ -276,6 +267,57 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   if (mesh->dim() == 3) m_scal = cbrt(square(size_scal));
   if (mesh->dim() == 2) m_scal = size_scal;
   return m_scal;
+}
+
+template <Int edim>
+Reals get_mident_isos_tmpl(Mesh* mesh, LOs a2e, Reals v2h) {
+  auto na = a2e.size();
+  Write<Real> out(na);
+  auto ev2v = mesh->ask_verts_of(edim);
+  auto f = LAMBDA(LO a) {
+    auto e = a2e[a];
+    auto v = gather_verts<edim + 1>(ev2v, e);
+    auto hs = gather_scalars<edim + 1>(v2h, v);
+    auto h = average_metric(hs);
+    out[a] = h;
+  };
+  parallel_for(na, f);
+  return out;
+}
+
+Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs a2e, Reals v2h) {
+  if (ent_dim == 3) return get_mident_isos_tmpl<3>(mesh, a2e, v2h);
+  if (ent_dim == 2) return get_mident_isos_tmpl<2>(mesh, a2e, v2h);
+  if (ent_dim == 1) return get_mident_isos_tmpl<1>(mesh, a2e, v2h);
+  NORETURN(Reals());
+}
+
+Reals interpolate_between_isos(Reals a, Reals b, Real t) {
+  auto log_a = linearize_isos(a);
+  auto log_b = linearize_isos(b);
+  auto log_c = interpolate_between(a, b, t);
+  return delinearize_isos(log_c);
+}
+
+Reals linearize_isos(Reals isos) {
+  auto n = isos.size();
+  auto out = Write<Real>(n);
+  auto f = LAMBDA(LO i) { out[i] = linearize_metric(isos[i]); };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals delinearize_isos(Reals log_isos) {
+  auto n = log_isos.size();
+  auto out = Write<Real>(n);
+  auto f = LAMBDA(LO i) { out[i] = delinearize_metric(log_isos[i]); };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals smooth_isos_once(Mesh* mesh, Reals v2h) {
+  auto e2e = LOs(mesh->nelems(), 0, 1);
+  return project_isos(mesh, get_mident_isos(mesh, mesh->dim(), e2e, v2h));
 }
 
 }  // end namespace Omega_h

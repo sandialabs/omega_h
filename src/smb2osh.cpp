@@ -140,7 +140,7 @@ int main(int argc, char** argv) {
   {
     auto lib = Omega_h::Library(&argc, &argv);
     auto world = lib.world();
-    Omega_h::Mesh om;
+    Omega_h::Mesh om(&lib);
     apf2osh(am, &om);
     am->destroyNative();
     apf::destroyMesh(am);

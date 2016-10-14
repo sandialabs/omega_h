@@ -3,8 +3,8 @@
 # Omega_h
 > Reliable mesh adaptation
 
-Omega_h is a C++11 library that implements tet and triangle mesh adaptativity,
-with a focus on scalable HPC performance using MPI and OpenMP or CUDA.
+Omega_h is a C++11 library that implements tetrahedron and triangle mesh adaptativity,
+with a focus on scalable HPC performance using (optionally) MPI, OpenMP, or CUDA.
 It is intended to provided adaptive functionality to existing simulation codes.
 Mesh adaptivity allows one to minimize both discretization error and number
 of degrees of freedom live during the simulation, as well as enabling moving
@@ -15,12 +15,12 @@ portable across many different architectures.
 ## Installing / Getting started
 
 For a bare minimum setup with no parallelism, you just need [CMake][0],
-a C++11 compiler, and [ZLib][6] installed.
+a C++11 compiler, and preferably [ZLib][6] installed.
 
 ```shell
 git clone git@github.com:ibaned/omega_h2.git
 cd omega_h2
-cmake . -DCMAKE_INSTALL_PREFIX=/your/choice -DOmega_h_USE_MPI=OFF
+cmake . -DCMAKE_INSTALL_PREFIX=/your/choice
 make install
 ```
 
@@ -51,7 +51,7 @@ Omega_h provides at least the following:
 Below we document some key CMake configuration options:
 
 #### Omega_h_USE_MPI
-Default: `ON`
+Default: `OFF`
 
 Whether to enable MPI parallelism.
 We recommend using [MPICH][3] or another MPI 3.0 implementation,
@@ -76,14 +76,11 @@ If this is `ON`, set `CMAKE_CXX_COMPILER` to your copy of
 [nvcc_wrapper][7].
 
 #### Omega_h_ONE_FILE
-Default: `ON`
+Default: `OFF`
 
-Omega_h includes all other sources in `omega_h.cpp` for a (up to 4X)
-faster compile time from scratch.
-Reasons to set this to `OFF` include:
-* You have many cores on the compiling machine (at least 8), then
-  you can get a faster compile time with `make -j`.
-* You are a developer who would prefer faster incremental rebuilds.
+Omega_h can include all other sources in a single `omega_h.cpp` for a (up to 4X)
+faster compile time from scratch, especially if compiling in serial
+or if using the CUDA compiler which has a high per-file overhead.
 
 ## Contributing
 

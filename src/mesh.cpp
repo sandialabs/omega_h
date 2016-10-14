@@ -20,12 +20,16 @@
 
 namespace Omega_h {
 
-Mesh::Mesh() : dim_(-1) {
+Mesh::Mesh(Library* library) : dim_(-1) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = OMEGA_H_ELEM_BASED;
   nghost_layers_ = 0;
   keeps_canonical_globals_ = true;
+  CHECK(library != nullptr);
+  library_ = library;
 }
+
+Library* Mesh::library() const { return library_; }
 
 void Mesh::set_comm(CommPtr const& new_comm) {
   auto rank_had_comm = bool(comm_);
@@ -609,7 +613,7 @@ bool Mesh::owners_have_all_upward(Int ent_dim) const {
 }
 
 Mesh Mesh::copy_meta() const {
-  Mesh m;
+  Mesh m(library_);
   m.dim_ = this->dim_;
   m.comm_ = this->comm_;
   m.parting_ = this->parting_;

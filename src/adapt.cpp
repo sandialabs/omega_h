@@ -1,5 +1,3 @@
-#include "adapt.hpp"
-
 #include <iomanip>
 #include <iostream>
 
@@ -13,6 +11,21 @@
 #include "timer.hpp"
 
 namespace Omega_h {
+
+AdaptOpts::AdaptOpts(Mesh* mesh) {
+  min_length_desired = 1.0 / sqrt(2.0);
+  max_length_desired = sqrt(2.0);
+  if (mesh->dim() == 3) {
+    min_quality_allowed = 0.20;
+    min_quality_desired = 0.30;
+  }
+  if (mesh->dim() == 2) {
+    min_quality_allowed = 0.30;
+    min_quality_desired = 0.40;
+  }
+  nsliver_layers = 4;
+  verbosity = EACH_REBUILD;
+}
 
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     Real floor, Real ceil, Real minval, Real maxval) {
@@ -49,31 +62,29 @@ static void get_minmax(
   *p_maxval = mesh->comm()->allreduce(max(values), OMEGA_H_MAX);
 }
 
-static void adapt_summary(Mesh* mesh, Real qual_floor, Real qual_ceil,
-    Real len_floor, Real len_ceil, Real minqual, Real maxqual, Real minlen,
-    Real maxlen) {
-  goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(), qual_floor,
-      qual_ceil, minqual, maxqual);
-  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(), len_floor, len_ceil,
-      minlen, maxlen);
+static void adapt_summary(Mesh* mesh, AdaptOpts const& opts, Real minqual,
+    Real maxqual, Real minlen, Real maxlen) {
+  goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
+      opts.min_quality_allowed, opts.min_quality_desired, minqual, maxqual);
+  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(), opts.min_length_desired,
+      opts.max_length_desired, minlen, maxlen);
 }
 
-bool adapt_check(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, bool verbose) {
+static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   Real minqual, maxqual;
   get_minmax(mesh, mesh->ask_qualities(), &minqual, &maxqual);
   Real minlen, maxlen;
   get_minmax(mesh, mesh->ask_lengths(), &minlen, &maxlen);
-  if (qual_ceil <= minqual && len_floor <= minlen && maxlen <= len_ceil) {
-    if (verbose && mesh->comm()->rank() == 0) {
+  if (minqual >= opts.min_quality_desired &&
+      minlen >= opts.min_length_desired && maxlen <= opts.max_length_desired) {
+    if (opts.verbosity > SILENT && mesh->comm()->rank() == 0) {
       std::cout << "mesh is good: quality [" << minqual << "," << maxqual
                 << "], length [" << minlen << "," << maxlen << "]\n";
     }
     return true;
   }
-  if (verbose) {
-    adapt_summary(mesh, qual_floor, qual_ceil, len_floor, len_ceil, minqual,
-        maxqual, minlen, maxlen);
+  if (opts.verbosity > SILENT) {
+    adapt_summary(mesh, opts, minqual, maxqual, minlen, maxlen);
   }
   return false;
 }
@@ -83,82 +94,97 @@ static void do_histogram(Mesh* mesh) {
   if (mesh->comm()->rank() == 0) print_quality_histogram(histogram);
 }
 
-bool adapt(Mesh* mesh, Real qual_floor, Real qual_ceil, Real len_floor,
-    Real len_ceil, Int nlayers, Int verbosity) {
-  Now t0 = now();
-  auto comm = mesh->comm();
-  CHECK(0.0 <= qual_floor);
-  CHECK(qual_floor <= qual_ceil);
-  CHECK(qual_ceil <= 1.0);
-  CHECK(0.0 < len_floor);
-  CHECK(2.0 * len_floor <= len_ceil);
-  if (verbosity >= 1 && comm->rank() == 0) {
+static void validate(Mesh* mesh, AdaptOpts const& opts) {
+  CHECK(0.0 <= opts.min_quality_allowed);
+  CHECK(opts.min_quality_allowed <= opts.min_quality_desired);
+  CHECK(opts.min_quality_desired <= 1.0);
+  CHECK(opts.nsliver_layers >= 0);
+  CHECK(opts.nsliver_layers < 100);
+  CHECK(mesh->min_quality() >= opts.min_quality_allowed);
+}
+
+static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
+  validate(mesh, opts);
+  if (opts.verbosity >= EACH_ADAPT && !mesh->comm()->rank()) {
     std::cout << "before adapting:\n";
   }
-  if (adapt_check(
-          mesh, qual_floor, qual_ceil, len_floor, len_ceil, (verbosity >= 1))) {
-    return false;
-  }
-  if (verbosity >= 3) do_histogram(mesh);
-  auto input_qual = mesh->min_quality();
-  CHECK(input_qual > 0.0);
-  auto allow_qual = min2(qual_floor, input_qual);
-  Now t1 = now();
-  if ((verbosity >= 2) && comm->rank() == 0) {
+  if (adapt_check(mesh, opts)) return false;
+  if (opts.verbosity >= EXTRA_STATS) do_histogram(mesh);
+  if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths\n";
   }
-  while (refine_by_size(mesh, len_ceil, allow_qual, (verbosity >= 2))) {
-    if (verbosity >= 2) {
-      adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
+  return true;
+}
+
+static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
+  if (opts.verbosity >= EACH_REBUILD) adapt_check(mesh, opts);
+}
+
+static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
+  bool did_anything;
+  do {
+    did_anything = false;
+    if (refine_by_size(mesh, opts)) {
+      post_rebuild(mesh, opts);
+      did_anything = true;
     }
+    if (coarsen_by_size(mesh, opts)) {
+      post_rebuild(mesh, opts);
+      did_anything = true;
+    }
+  } while (did_anything);
+}
+
+static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
+  if (mesh->min_quality() >= opts.min_quality_desired) return;
+  if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
+    std::cout << "addressing element qualities\n";
   }
-  while (coarsen_by_size(mesh, len_floor, allow_qual, (verbosity >= 2))) {
-    if (verbosity >= 2) {
-      adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
-    }
-  }
-  Now t2 = now();
-  bool first = true;
-  while (mesh->min_quality() < qual_ceil) {
-    if ((verbosity >= 2) && first && comm->rank() == 0) {
-      std::cout << "addressing element qualities\n";
-    }
-    if (first) first = false;
-    if (swap_edges(mesh, qual_ceil, nlayers, (verbosity >= 2))) {
-      if (verbosity >= 2) {
-        adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
-      }
+  do {
+    if (swap_edges(mesh, opts)) {
+      post_rebuild(mesh, opts);
       continue;
     }
-    if (coarsen_slivers(mesh, qual_ceil, nlayers, (verbosity >= 2))) {
-      if (verbosity >= 2) {
-        adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
-      }
+    if (coarsen_slivers(mesh, opts)) {
+      post_rebuild(mesh, opts);
       continue;
     }
-    if ((verbosity >= 1) && comm->rank() == 0) {
+    if ((opts.verbosity > SILENT) && !mesh->comm()->rank()) {
       std::cout << "adapt() could not satisfy quality\n";
     }
     break;
+  } while (mesh->min_quality() < opts.min_quality_desired);
+}
+
+static void post_adapt(
+    Mesh* mesh, AdaptOpts const& opts, Now t0, Now t1, Now t2, Now t3) {
+  if (opts.verbosity == EACH_ADAPT) {
+    if (!mesh->comm()->rank()) std::cout << "after adapting:\n";
+    adapt_check(mesh, opts);
   }
-  if (verbosity == 1) {
-    if (comm->rank() == 0) {
-      std::cout << "after adapting:\n";
-    }
-    adapt_check(mesh, qual_floor, qual_ceil, len_floor, len_ceil);
-  }
-  Now t3 = now();
-  if (verbosity >= 3) do_histogram(mesh);
-  if (verbosity >= 1 && comm->rank() == 0) {
+  if (opts.verbosity >= EXTRA_STATS) do_histogram(mesh);
+  if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
   }
-  if (!first && verbosity >= 1 && comm->rank() == 0) {
+  if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "addressing element qualities took " << (t3 - t2)
               << " seconds\n";
   }
-  if (verbosity >= 1 && comm->rank() == 0) {
-    std::cout << "adapting took " << (t3 - t0) << " seconds\n\n";
+  Now t4 = now();
+  if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
+    std::cout << "adapting took " << (t4 - t0) << " seconds\n\n";
   }
+}
+
+bool adapt(Mesh* mesh, AdaptOpts const& opts) {
+  Now t0 = now();
+  if (!pre_adapt(mesh, opts)) return false;
+  Now t1 = now();
+  satisfy_lengths(mesh, opts);
+  Now t2 = now();
+  satisfy_quality(mesh, opts);
+  Now t3 = now();
+  post_adapt(mesh, opts, t0, t1, t2, t3);
   return true;
 }
 

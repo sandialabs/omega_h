@@ -11,12 +11,6 @@ void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
 void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
-void transfer_conserve_r3d(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
-    LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents);
-void transfer_conserve_r3d_refine(Mesh* old_mesh, Mesh* new_mesh,
-    LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents);
 void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_verts2old_verts,
     LOs same_verts2new_verts);
@@ -31,9 +25,11 @@ Read<I8> find_buffered_indset(
     Mesh* mesh, Int key_dim, Reals qualities, Read<I8> unbuffered_indset);
 
 Graph get_closure_verts(Mesh* mesh, Graph keys2elems);
-Graph get_donor_interior_elems(Mesh* mesh, Int key_dim, LOs keys2kds);
-Graph get_target_buffer_elems(
-    Graph keys2donor_elems, LOs donor_elems2target_elems);
+
+bool has_fixed_momentum_velocity(Mesh* mesh);
+Read<I8> filter_coarsen_momentum_velocity(
+    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
+Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges);
 }
 
 #endif
