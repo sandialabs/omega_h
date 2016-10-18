@@ -2,13 +2,6 @@
 #define OMEGA_H_HPP
 
 #include <cassert>
-/* C++98 requires that __STDC_LIMIT_MACROS be defined
- * in order to trigger the definition of INT8_MAX
- * and friends in stdint.h.
- * C++11 technically does not require it, but
- * the `curie` machine at Sandia does...
- */
-#define __STDC_LIMIT_MACROS
 #include <cstdint>
 #include <initializer_list>
 #include <iosfwd>
