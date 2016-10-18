@@ -27,4 +27,12 @@
 #define EPSILON 1e-10
 #define MANTISSA_BITS 52
 
+/* The environment on Sandia's `curie` machine won't
+ * give us this through <cstdint> even though we're
+ * in C++11 mode.
+ */
+#ifndef INT8_MAX
+#define INT8_MAX 0x7f
+#endif
+
 #endif
