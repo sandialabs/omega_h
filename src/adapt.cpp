@@ -9,6 +9,7 @@
 #include "simplices.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
+#include "histogram.hpp"
 
 namespace Omega_h {
 
@@ -89,9 +90,11 @@ static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   return false;
 }
 
-static void do_histogram(Mesh* mesh) {
-  auto histogram = get_quality_histogram(mesh);
-  if (mesh->comm()->rank() == 0) print_quality_histogram(histogram);
+static void do_histograms(Mesh* mesh) {
+  auto qh = get_histogram<10>(mesh, mesh->dim(), mesh->ask_qualities(), 0.0, 1.0);
+  print_histogram(mesh, qh, "quality");
+  auto lh = get_histogram<10>(mesh, VERT, mesh->ask_lengths(), 0.0, 4.0);
+  print_histogram(mesh, lh, "length");
 }
 
 static void validate(Mesh* mesh, AdaptOpts const& opts) {
@@ -109,7 +112,7 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
     std::cout << "before adapting:\n";
   }
   if (adapt_check(mesh, opts)) return false;
-  if (opts.verbosity >= EXTRA_STATS) do_histogram(mesh);
+  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh);
   if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths\n";
   }
@@ -162,7 +165,7 @@ static void post_adapt(
     if (!mesh->comm()->rank()) std::cout << "after adapting:\n";
     adapt_check(mesh, opts);
   }
-  if (opts.verbosity >= EXTRA_STATS) do_histogram(mesh);
+  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh);
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
   }
