@@ -1,12 +1,13 @@
 #include "histogram.hpp"
-#include "array.hpp"
-#include <iostream>
 #include <iomanip>
+#include <iostream>
+#include "array.hpp"
 
 namespace Omega_h {
 
 template <Int n>
-Histogram<n> get_histogram(Mesh* mesh, Int dim, Reals values, Real min_value, Real max_value) {
+Histogram<n> get_histogram(
+    Mesh* mesh, Int dim, Reals values, Real min_value, Real max_value) {
   auto owned_values = mesh->owned_array(dim, values, 1);
   auto interval = Real(max_value - min_value) / n;
   Histogram<n> histogram;
@@ -25,7 +26,8 @@ Histogram<n> get_histogram(Mesh* mesh, Int dim, Reals values, Real min_value, Re
 }
 
 template <Int n>
-void print_histogram(Mesh* mesh, Histogram<n> histogram, std::string const& name) {
+void print_histogram(
+    Mesh* mesh, Histogram<n> histogram, std::string const& name) {
   if (mesh->comm()->rank()) return;
   auto precision_before = std::cout.precision();
   std::ios::fmtflags stream_state(std::cout.flags());
@@ -41,12 +43,11 @@ void print_histogram(Mesh* mesh, Histogram<n> histogram, std::string const& name
   std::cout.precision(precision_before);
 }
 
-#define INST(n) \
-template \
-Histogram<n> get_histogram<n>(Mesh* mesh, Int dim, Reals values, Real min_value, Real max_value); \
-template \
-void print_histogram<n>(Mesh* mesh, Histogram<n> histogram, std::string const& name);
+#define INST(n)                                                                \
+  template Histogram<n> get_histogram<n>(                                      \
+      Mesh * mesh, Int dim, Reals values, Real min_value, Real max_value);     \
+  template void print_histogram<n>(                                            \
+      Mesh * mesh, Histogram<n> histogram, std::string const& name);
 INST(10)
 #undef INST
-
 }

@@ -1,5 +1,5 @@
-#include "coarsen.hpp"
 #include "collapse.hpp"
+#include "coarsen.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 

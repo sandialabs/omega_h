@@ -668,7 +668,8 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   extern template void Mesh::set_tag(                                          \
       Int dim, std::string const& name, Read<T> array);                        \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
-  extern template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width); \
+  extern template Read<T> Mesh::owned_array(                                   \
+      Int ent_dim, Read<T> a, Int width);                                      \
   extern template Read<T> Mesh::sync_subset_array(                             \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   extern template Read<T> Mesh::reduce_array(                                  \

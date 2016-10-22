@@ -3,13 +3,13 @@
 
 #include "array.hpp"
 #include "coarsen.hpp"
+#include "histogram.hpp"
 #include "mark.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
 #include "simplices.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
-#include "histogram.hpp"
 
 namespace Omega_h {
 
@@ -91,7 +91,8 @@ static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void do_histograms(Mesh* mesh) {
-  auto qh = get_histogram<10>(mesh, mesh->dim(), mesh->ask_qualities(), 0.0, 1.0);
+  auto qh =
+      get_histogram<10>(mesh, mesh->dim(), mesh->ask_qualities(), 0.0, 1.0);
   print_histogram(mesh, qh, "quality");
   auto lh = get_histogram<10>(mesh, VERT, mesh->ask_lengths(), 0.0, 4.0);
   print_histogram(mesh, lh, "length");
