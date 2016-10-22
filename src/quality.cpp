@@ -46,15 +46,7 @@ Reals measure_qualities(Mesh* mesh) {
 }
 
 QualityHistogram get_quality_histogram(Mesh* mesh) {
-  Reals owned_qualities;
-  if (mesh->could_be_shared(mesh->dim())) {
-    auto overlap_qualities = mesh->ask_qualities();
-    auto owned = mesh->owned(mesh->dim());
-    auto owned2overlap = collect_marked(owned);
-    owned_qualities = unmap(owned2overlap, overlap_qualities, 1);
-  } else {
-    owned_qualities = mesh->ask_qualities();
-  }
+  auto owned_qualities = mesh->owned_array(mesh->dim(), mesh->ask_qualities(), 1);
   QualityHistogram histogram;
   auto interval = Real(1.0) / nquality_histogram_buckets;
   for (Int i = 0; i < nquality_histogram_buckets; ++i) {
