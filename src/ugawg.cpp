@@ -40,6 +40,7 @@ void run_case(Mesh* mesh) {
   writer.write();
   auto opts = AdaptOpts(mesh);
   opts.verbosity = EXTRA_STATS;
+  opts.length_histogram_max = 2.0;
   Now t0 = now();
   while (approach_size_field(mesh, opts)) {
     adapt(mesh, opts);

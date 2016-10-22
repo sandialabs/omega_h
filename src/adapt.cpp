@@ -26,6 +26,8 @@ AdaptOpts::AdaptOpts(Mesh* mesh) {
   }
   nsliver_layers = 4;
   verbosity = EACH_REBUILD;
+  length_histogram_min = 0.0;
+  length_histogram_max = 3.0;
 }
 
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
@@ -90,11 +92,12 @@ static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   return false;
 }
 
-static void do_histograms(Mesh* mesh) {
+static void do_histograms(Mesh* mesh, AdaptOpts const& opts) {
   auto qh =
       get_histogram<10>(mesh, mesh->dim(), mesh->ask_qualities(), 0.0, 1.0);
   print_histogram(mesh, qh, "quality");
-  auto lh = get_histogram<10>(mesh, VERT, mesh->ask_lengths(), 0.0, 4.0);
+  auto lh = get_histogram<10>(mesh, VERT, mesh->ask_lengths(),
+      opts.length_histogram_min, opts.length_histogram_max);
   print_histogram(mesh, lh, "length");
 }
 
@@ -113,7 +116,7 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
     std::cout << "before adapting:\n";
   }
   if (adapt_check(mesh, opts)) return false;
-  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh);
+  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh, opts);
   if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths\n";
   }
@@ -166,7 +169,7 @@ static void post_adapt(
     if (!mesh->comm()->rank()) std::cout << "after adapting:\n";
     adapt_check(mesh, opts);
   }
-  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh);
+  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh, opts);
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
   }

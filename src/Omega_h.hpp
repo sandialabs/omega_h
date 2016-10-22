@@ -536,6 +536,8 @@ struct AdaptOpts {
   Real min_quality_desired;
   Int nsliver_layers;
   Verbosity verbosity;
+  Real length_histogram_min;
+  Real length_histogram_max;
 };
 
 /* returns false if the mesh was not modified. */
