@@ -78,6 +78,7 @@ set(Omega_h_SOURCES
   buffered_graphs.cpp
   overshoot.cpp
   collapse_rail.cpp
+  histogram.cpp
   )
 
 if(Omega_h_ONE_FILE)

@@ -538,6 +538,14 @@ Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, Omega_h_Op op) {
   return ask_dist(ent_dim).exch_reduce(a, width, op);
 }
 
+template <typename T>
+Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width) {
+  if (!could_be_shared(ent_dim)) return a;
+  auto o = owned(ent_dim);
+  auto o2e = collect_marked(o);
+  return unmap(o2e, a, width);
+}
+
 void Mesh::sync_tag(Int dim, std::string const& name) {
   auto tagbase = get_tagbase(dim, name);
   switch (tagbase->type()) {
@@ -638,6 +646,7 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array);                        \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
+  template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \
   template Read<T> Mesh::sync_subset_array(                                    \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   template Read<T> Mesh::reduce_array(                                         \

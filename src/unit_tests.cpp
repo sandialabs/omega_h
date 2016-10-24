@@ -392,8 +392,8 @@ static void test_bbox() {
   CHECK(are_close(BBox<2>(vector_2(-3, -3), vector_2(3, 3)),
       find_bounding_box<2>(Reals({0, -3, 3, 0, 0, 3, -3, 0}))));
   CHECK(are_close(BBox<3>(vector_3(-3, -3, -3), vector_3(3, 3, 3)),
-      find_bounding_box<3>(
-          Reals({0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, -3, 0, 0, 3}))));
+      find_bounding_box<3>(Reals(
+          {0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, -3, 0, 0, 3}))));
 }
 
 static void test_build_from_elems2verts(Library* lib) {

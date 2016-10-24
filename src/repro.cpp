@@ -85,12 +85,7 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
 }
 
 Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
-  if (mesh->could_be_shared(dim)) {
-    auto owned = mesh->owned(dim);
-    auto o2e = collect_marked(owned);
-    a = unmap(o2e, a, 1);
-  }
-  return repro_sum(mesh->comm(), a);
+  return repro_sum(mesh->comm(), mesh->owned_array(dim, a, 1));
 }
 
 }  // end namespace Omega_h
