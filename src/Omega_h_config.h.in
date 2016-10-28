@@ -10,6 +10,7 @@
 #cmakedefine OMEGA_H_USE_OPENMP
 #cmakedefine OMEGA_H_USE_CUDA
 #cmakedefine OMEGA_H_USE_ZLIB
+#cmakedefine OMEGA_H_USE_MESHB
 #cmakedefine OMEGA_H_CHECK_BOUNDS
 #cmakedefine OMEGA_H_PROTECT
 

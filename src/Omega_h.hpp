@@ -491,6 +491,12 @@ class Mesh {
   void set_rib_hints(RibPtr hints);
 };
 
+#ifdef OMEGA_H_USE_MESHB
+namespace meshb {
+void read(Mesh* mesh, const char* filepath);
+}
+#endif
+
 namespace gmsh {
 void read(std::istream& stream, Mesh* mesh);
 void read(std::string const& filename, Mesh* mesh);

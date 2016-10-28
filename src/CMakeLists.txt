@@ -81,6 +81,13 @@ set(Omega_h_SOURCES
   histogram.cpp
   )
 
+set(Meshb_REQUIRED_VERSION 7.12)
+set(Omega_h_USE_Meshb_DEFAULT OFF)
+bob_public_dep(Meshb)
+if(Omega_h_USE_Meshb)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} meshb.cpp)
+endif()
+
 if(Omega_h_ONE_FILE)
   foreach(source IN LISTS Omega_h_SOURCES)
     set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
@@ -90,6 +97,11 @@ if(Omega_h_ONE_FILE)
 else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
+
+if(Omega_h_USE_Meshb)
+  target_link_libraries(omega_h PUBLIC Meshb::meshb)
+endif()
+
 target_include_directories(omega_h
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 #for users to find all our headers after we're installed:
@@ -140,6 +152,9 @@ osh_add_util(osh2vtk)
 osh_add_util(oshdiff)
 osh_add_util(vtkdiff)
 osh_add_util(osh_box)
+if(Omega_h_USE_MESHB)
+  osh_add_util(meshb2osh)
+endif()
 
 set(Gmodel_REQUIRED_VERSION 1.2.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
@@ -281,13 +296,5 @@ set(Omega_h_HEADERS
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
-
-set(Meshb_REQUIRED_VERSION 7.12)
-set(Omega_h_USE_Meshb_DEFAULT OFF)
-bob_private_dep(Meshb)
-if(Omega_h_USE_Meshb)
-  osh_add_util(meshb2osh)
-  target_link_libraries(meshb2osh PRIVATE Meshb::meshb)
-endif()
 
 bob_end_subdir()
