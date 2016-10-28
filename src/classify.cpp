@@ -139,7 +139,7 @@ static void project_classification(Mesh* mesh, Int d,
 void finalize_classification(Mesh* mesh) {
   bool had_ids = has_any_ids(mesh);
   for (Int d = mesh->dim(); d >= VERT; --d) {
-    Write<I8> class_dim = deep_copy_or_default<I8>(mesh, d, "class_dim", I8(mesh->dim() + 1));
+    Write<I8> class_dim = deep_copy_or_default<I8>(mesh, d, "class_dim", I8(mesh->dim()));
     Write<LO> class_id = deep_copy_or_default<LO>(mesh, d, "class_id", -1);
     if (d < mesh->dim()) project_classification(mesh, d, class_dim, class_id);
     mesh->add_tag<I8>(d, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
