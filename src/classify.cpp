@@ -148,4 +148,29 @@ void finalize_classification(Mesh* mesh) {
   if (!had_ids) remove_all_ids(mesh);
 }
 
+void classify_equal_order(Mesh* mesh, Int ent_dim, LOs eqv2v,
+    Read<LO> eq_class_ids) {
+  LOs eq2e;
+  if (ent_dim == mesh->dim()) {
+    /* assuming elements were constructed in the same order ! */
+    eq2e = LOs(mesh->nelems(), 0, 1);
+  } else if (ent_dim == VERT) {
+    eq2e = eqv2v;
+  } else {
+    Read<I8> codes;
+    auto ev2v = mesh->ask_verts_of(ent_dim);
+    auto v2e = mesh->ask_up(VERT, ent_dim);
+    find_matches(ent_dim, eqv2v, ev2v, v2e, &eq2e, &codes);
+  }
+  auto neq = eqv2v.size() / (ent_dim + 1);
+  auto eq_class_dim = Read<I8>(neq, I8(ent_dim));
+  auto class_dim =
+    map_onto(eq_class_dim, eq2e, mesh->nents(ent_dim), I8(mesh->dim()), 1);
+  auto class_id = map_onto(eq_class_ids, eq2e, mesh->nents(ent_dim), -1, 1);
+  mesh->add_tag<I8>(
+      ent_dim, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
+  mesh->add_tag<LO>(
+      ent_dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_id);
+}
+
 }  // end namespace Omega_h

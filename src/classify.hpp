@@ -17,6 +17,18 @@ void classify_elements(Mesh* mesh);
  */
 void finalize_classification(Mesh* mesh);
 
+/* given a set of equal-order entities
+ * (entities with the same dimension as the
+ *  model entity they are classified on)
+ * defined by their vertices, this function
+ * will set the classification dimensions and IDs
+ * for all entities of that dimension.
+ * this function is typically called prior
+ * to using finalize_classification()
+ */
+void classify_equal_order(Mesh* mesh, Int ent_dim, LOs eqv2v,
+    Read<LO> eq_class_ids);
+
 }  // end namespace Omega_h
 
 #endif

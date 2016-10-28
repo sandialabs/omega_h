@@ -130,26 +130,7 @@ void read(std::istream& stream, Mesh* mesh) {
     if (ent_dim == max_dim) {
       build_from_elems_and_coords(mesh, max_dim, eqv2v, host_coords.write());
     }
-    auto eq_class_id = Read<LO>(host_class_id.write());
-    LOs eq2e;
-    if (ent_dim == max_dim) {
-      eq2e = LOs(ndim_ents, 0, 1);
-    } else if (ent_dim == VERT) {
-      eq2e = eqv2v;
-    } else {
-      Read<I8> codes;
-      auto ev2v = mesh->ask_verts_of(ent_dim);
-      auto v2e = mesh->ask_up(VERT, ent_dim);
-      find_matches(ent_dim, eqv2v, ev2v, v2e, &eq2e, &codes);
-    }
-    auto eq_class_dim = Read<I8>(ndim_ents, I8(ent_dim));
-    auto class_dim =
-        map_onto(eq_class_dim, eq2e, mesh->nents(ent_dim), I8(mesh->dim()), 1);
-    auto class_id = map_onto(eq_class_id, eq2e, mesh->nents(ent_dim), -1, 1);
-    mesh->add_tag<I8>(
-        ent_dim, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
-    mesh->add_tag<LO>(
-        ent_dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_id);
+    classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
   }
   finalize_classification(mesh);
 }
