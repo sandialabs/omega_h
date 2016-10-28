@@ -1,3 +1,4 @@
+#include <iostream>
 #include <Omega_h.hpp>
 
 int main(int argc, char** argv) {

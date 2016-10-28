@@ -1,5 +1,6 @@
 #include <Omega_h.hpp>
 #include <libmeshb7.h>
+#include "classify.hpp"
 
 namespace Omega_h {
 
@@ -90,10 +91,12 @@ static void read_meshb_version(
     OMEGA_H_CHECK(ref == i + 1);
     for (int j = 0; j <= dim; ++j) elems2verts[i * (dim + 1) + j] = tmp[j] - 1;
   }
+  GmfCloseMesh(file);
   build_from_elems2verts(mesh, dim, LOs(elems2verts.write()), nverts);
   mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals(coords.write()));
-  GmfCloseMesh(file);
+  classify_equal_order(mesh, dim - 1, sides2verts.write(), sides2class_id.write());
+  finalize_classification(mesh);
 }
 
 void read(Mesh* mesh, const char* filepath) {

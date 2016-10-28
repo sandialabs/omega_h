@@ -152,7 +152,7 @@ osh_add_util(osh2vtk)
 osh_add_util(oshdiff)
 osh_add_util(vtkdiff)
 osh_add_util(osh_box)
-if(Omega_h_USE_MESHB)
+if(Omega_h_USE_Meshb)
   osh_add_util(meshb2osh)
 endif()
 
@@ -272,6 +272,7 @@ set(DEF_VARS
     USE_OpenMP
     USE_CUDA
     USE_ZLIB
+    USE_Meshb
     CHECK_BOUNDS
     PROTECT
     )
