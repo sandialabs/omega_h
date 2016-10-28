@@ -83,14 +83,16 @@ template <typename T>
 static Write<T> deep_copy_or_default(Mesh* mesh, Int dim,
     std::string const& name, T def_val) {
   if (mesh->has_tag(dim, name)) {
-    return deep_copy(mesh->get_array<T>(dim, name));
+    auto a = deep_copy(mesh->get_array<T>(dim, name));
+    mesh->remove_tag(dim, name);
+    return a;
   } else {
     return Write<T>(mesh->nents(dim), def_val);
   }
 }
 
 static void project_classification(Mesh* mesh, Int d,
-    Write<I8> class_dim, Write<LO> class_dim) {
+    Write<I8> class_dim, Write<LO> class_id) {
   auto l2h = mesh->ask_up(d, d + 1);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
@@ -112,6 +114,7 @@ static void project_classification(Mesh* mesh, Int d,
         if (high_id != best_id) {
           if (best_id == -1) {
             best_id = high_id;
+            ++nadj;
           } else {
             --best_dim;
             best_id = -1;
@@ -122,7 +125,8 @@ static void project_classification(Mesh* mesh, Int d,
         }
       }
     }
-    if (nadj != 2 && best_dim != d) {
+    if ((nadj != 2 && best_dim == d + 1) ||
+        (nadj < 2 && best_dim > d + 1)) {
       best_dim = d;
       best_id = -1;
     }
@@ -138,10 +142,10 @@ void finalize_classification(Mesh* mesh) {
     Write<I8> class_dim = deep_copy_or_default<I8>(mesh, d, "class_dim", I8(mesh->dim() + 1));
     Write<LO> class_id = deep_copy_or_default<LO>(mesh, d, "class_id", -1);
     if (d < mesh->dim()) project_classification(mesh, d, class_dim, class_id);
-    mesh->set_tag<I8>(d, "class_dim", class_dim);
-    mesh->set_tag<LO>(d, "class_id", class_id);
+    mesh->add_tag<I8>(d, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_dim);
+    mesh->add_tag<LO>(d, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, class_id);
   }
-  if (had_ids) remove_all_ids(mesh);
+  if (!had_ids) remove_all_ids(mesh);
 }
 
 }  // end namespace Omega_h
