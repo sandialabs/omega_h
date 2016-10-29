@@ -527,6 +527,7 @@ class FullWriter {
   std::vector<Writer> writers_;
 
  public:
+  FullWriter();
   FullWriter(Mesh* mesh, std::string const& root_path);
   ~FullWriter();
   void write(Real time);

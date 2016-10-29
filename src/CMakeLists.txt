@@ -250,7 +250,9 @@ if(BUILD_TESTING)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
   osh_add_exe(test_degree)
-  osh_add_exe(ugawg)
+  if(Omega_h_USE_Meshb)
+    osh_add_exe(ugawg)
+  endif()
 endif()
 
 set(SCOREC_REQUIRED_VERSION 2.0.0)

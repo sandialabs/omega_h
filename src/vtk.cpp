@@ -726,6 +726,9 @@ void Writer::write(Real time) {
 
 void Writer::write() { this->write(Real(step_)); }
 
+FullWriter::FullWriter() {
+}
+
 FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
   auto comm = mesh->comm();
   auto rank = comm->rank();
