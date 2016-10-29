@@ -495,6 +495,7 @@ class Mesh {
 #ifdef OMEGA_H_USE_MESHB
 namespace meshb {
 void read(Mesh* mesh, const char* filepath);
+void write(Mesh* mesh, const char* filepath, int version);
 }
 #endif
 
