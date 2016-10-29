@@ -5,14 +5,18 @@
 
 namespace Omega_h {
 
+static bool okay(Mesh* mesh, AdaptOpts const& opts) {
+  return mesh->min_quality() >= opts.min_quality_allowed &&
+         mesh->max_length() <= opts.max_length_allowed;
+}
+
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
-  auto min_qual = opts.min_quality_allowed;
   if (!mesh->has_tag(VERT, "warp")) return false;
-  CHECK(mesh->min_quality() >= min_qual);
+  CHECK(okay(mesh, opts));
   auto coords = mesh->coords();
   auto warp = mesh->get_array<Real>(VERT, "warp");
   mesh->set_coords(add_each(coords, warp));
-  if (mesh->min_quality() >= min_qual) {
+  if (okay(mesh, opts)) {
     mesh->remove_tag(VERT, "warp");
     return true;
   }
@@ -22,14 +26,9 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
     warp = half_warp;
     remainder = add_each(remainder, half_warp);
     mesh->set_coords(add_each(coords, warp));
-  } while (mesh->min_quality() < min_qual);
+  } while (!okay(mesh, opts));
   mesh->set_tag(VERT, "warp", remainder);
   return true;
-}
-
-static bool okay(Mesh* mesh, AdaptOpts const& opts) {
-  return mesh->min_quality() >= opts.min_quality_allowed &&
-         mesh->max_length() <= opts.max_length_desired * 2.0;
 }
 
 static bool approach_either(Mesh* mesh, AdaptOpts const& opts, std::string const& name,

@@ -539,6 +539,7 @@ struct AdaptOpts {
   AdaptOpts(Mesh* mesh);  // sets defaults
   Real min_length_desired;
   Real max_length_desired;
+  Real max_length_allowed;
   Real min_quality_allowed;
   Real min_quality_desired;
   Int nsliver_layers;
