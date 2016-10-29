@@ -154,6 +154,7 @@ osh_add_util(vtkdiff)
 osh_add_util(osh_box)
 if(Omega_h_USE_Meshb)
   osh_add_util(meshb2osh)
+  osh_add_util(osh2meshb)
 endif()
 
 set(Gmodel_REQUIRED_VERSION 1.2.0)

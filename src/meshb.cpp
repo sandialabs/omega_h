@@ -134,17 +134,18 @@ static void write_meshb_version(
   for (GmfLine i = 0; i < nsides; ++i) {
     GmfIndex ref = sides2class_id[i];
     Few<GmfIndex, 3> tmp;
-    for (int j = 0; j < dim; ++j) tmp[j] = sides2verts[i * dim + j];
+    for (int j = 0; j < dim; ++j) tmp[j] = sides2verts[i * dim + j] + 1;
     if (dim == 2) GmfSetLin(file, side_kwd, tmp[0], tmp[1], ref);
     if (dim == 3) GmfSetLin(file, side_kwd, tmp[0], tmp[1], tmp[2], ref);
   }
   auto elem_kwd = simplex_kwds[dim];
   GmfLine nelems = mesh->nelems();
+  auto elems2verts = mesh->ask_elem_verts();
   GmfSetKwd(file, elem_kwd, nelems);
   for (GmfLine i = 0; i < nelems; ++i) {
     GmfIndex ref = i + 1;
     Few<GmfIndex, 4> tmp;
-    for (int j = 0; j < dim + 1; ++j) tmp[j] = sides2verts[i * (dim + 1) + j];
+    for (int j = 0; j < dim + 1; ++j) tmp[j] = elems2verts[i * (dim + 1) + j] + 1;
     if (dim == 2) GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], ref);
     if (dim == 3) GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], tmp[3], ref);
   }
