@@ -571,6 +571,11 @@ void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
 
+Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
+
+Remotes owners_from_globals(
+    CommPtr comm, Read<GO> globals, Read<I32> own_ranks);
+
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
