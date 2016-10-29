@@ -483,6 +483,7 @@ class Mesh {
   void reduce_tag(Int dim, std::string const& name, Omega_h_Op op);
   bool operator==(Mesh& other);
   Real min_quality();
+  Real max_length();
   bool could_be_shared(Int ent_dim) const;
   bool owners_have_all_upward(Int ent_dim) const;
   Mesh copy_meta() const;

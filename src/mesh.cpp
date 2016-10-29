@@ -610,6 +610,10 @@ Real Mesh::min_quality() {
   return comm_->allreduce(min(ask_qualities()), OMEGA_H_MIN);
 }
 
+Real Mesh::max_length() {
+  return comm_->allreduce(max(ask_lengths()), OMEGA_H_MAX);
+}
+
 bool Mesh::could_be_shared(Int ent_dim) const {
   return !((comm_->size() == 1) ||
            (parting_ == OMEGA_H_ELEM_BASED && ent_dim == dim()));
