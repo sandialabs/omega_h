@@ -26,8 +26,8 @@ void finalize_classification(Mesh* mesh);
  * this function is typically called prior
  * to using finalize_classification()
  */
-void classify_equal_order(Mesh* mesh, Int ent_dim, LOs eqv2v,
-    Read<LO> eq_class_ids);
+void classify_equal_order(
+    Mesh* mesh, Int ent_dim, LOs eqv2v, Read<LO> eq_class_ids);
 
 }  // end namespace Omega_h
 

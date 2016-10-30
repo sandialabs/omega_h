@@ -109,11 +109,9 @@ static void validate(Mesh* mesh, AdaptOpts const& opts) {
   CHECK(opts.nsliver_layers >= 0);
   CHECK(opts.nsliver_layers < 100);
   auto mq = mesh->min_quality();
-  if (mq < opts.min_quality_allowed &&
-      !mesh->comm()->rank()) {
-    std::cout << "WARNING: worst input element has quality "
-      << mq << " but minimum allowed is " << opts.min_quality_allowed
-      << "\n";
+  if (mq < opts.min_quality_allowed && !mesh->comm()->rank()) {
+    std::cout << "WARNING: worst input element has quality " << mq
+              << " but minimum allowed is " << opts.min_quality_allowed << "\n";
   }
 }
 

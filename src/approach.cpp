@@ -31,7 +31,8 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
   return true;
 }
 
-static bool approach_either(Mesh* mesh, AdaptOpts const& opts, std::string const& name,
+static bool approach_either(Mesh* mesh, AdaptOpts const& opts,
+    std::string const& name,
     Reals (*interpolator)(Int dim, Reals orig, Reals target, Real t)) {
   auto target_name = std::string("target_") + name;
   if (!mesh->has_tag(VERT, target_name)) return false;
@@ -61,8 +62,7 @@ bool approach_size_field(Mesh* mesh, AdaptOpts const& opts) {
     return approach_either(mesh, opts, "size", &isos_wrapper);
   }
   if (mesh->has_tag(VERT, "metric")) {
-    return approach_either(
-        mesh, opts, "metric", &interpolate_between_metrics);
+    return approach_either(mesh, opts, "metric", &interpolate_between_metrics);
   }
   NORETURN(true);
 }

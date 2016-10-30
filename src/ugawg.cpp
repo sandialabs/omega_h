@@ -80,8 +80,10 @@ int main(int argc, char** argv) {
   }
   if (!in_path || !out_path) should_help = true;
   if (should_help) {
-    std::cout << "usage: " << argv[0] << " [options] input.mesh[b] output.mesh[b]\n";
-    std::cout << "options: -a vtk_path                debug output for adaptivity\n";
+    std::cout << "usage: " << argv[0]
+              << " [options] input.mesh[b] output.mesh[b]\n";
+    std::cout
+        << "options: -a vtk_path                debug output for adaptivity\n";
     return -1;
   }
   Mesh mesh(&lib);

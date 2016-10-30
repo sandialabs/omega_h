@@ -1,5 +1,5 @@
-#include <iostream>
 #include <Omega_h.hpp>
+#include <iostream>
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
@@ -12,4 +12,3 @@ int main(int argc, char** argv) {
   Omega_h::meshb::write(&mesh, argv[2], 2);
   return 0;
 }
-

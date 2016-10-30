@@ -1,5 +1,5 @@
-#include <Omega_h.hpp>
 #include <libmeshb7.h>
+#include <Omega_h.hpp>
 #include "classify.hpp"
 #include "map.hpp"
 
@@ -54,8 +54,7 @@ static GmfKwdCod const simplex_kwds[4] = {
     GmfVertices, GmfEdges, GmfTriangles, GmfTetrahedra};
 
 template <int version>
-static void read_meshb_version(
-    Mesh* mesh, GmfFile file, int dim) {
+static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   using GmfIndex = typename VersionTypes<version>::Index;
   using GmfReal = typename VersionTypes<version>::RealIn;
   LO nverts = LO(GmfStatKwd(file, GmfVertices));
@@ -64,8 +63,10 @@ static void read_meshb_version(
   for (LO i = 0; i < nverts; ++i) {
     GmfIndex ref;
     Few<GmfReal, 3> tmp;
-    if (dim == 2) GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &ref);
-    else GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &tmp[2], &ref);
+    if (dim == 2)
+      GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &ref);
+    else
+      GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &tmp[2], &ref);
     OMEGA_H_CHECK(ref == GmfIndex(i + 1));
     for (int j = 0; j < dim; ++j) coords[i * dim + j] = Real(tmp[j]);
   }
@@ -77,8 +78,10 @@ static void read_meshb_version(
   for (LO i = 0; i < nsides; ++i) {
     GmfIndex class_id;
     Few<GmfIndex, 3> tmp;
-    if (dim == 2) GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &class_id);
-    else GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &tmp[2], &class_id);
+    if (dim == 2)
+      GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &class_id);
+    else
+      GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &tmp[2], &class_id);
     for (int j = 0; j < dim; ++j) {
       sides2verts[i * dim + j] = LO(tmp[j] - 1);
     }
@@ -91,8 +94,10 @@ static void read_meshb_version(
   for (LO i = 0; i < nelems; ++i) {
     GmfIndex ref;
     Few<GmfIndex, 4> tmp;
-    if (dim == 2) GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &ref);
-    else GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &ref);
+    if (dim == 2)
+      GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &ref);
+    else
+      GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &ref);
     OMEGA_H_CHECK(ref == GmfIndex(i + 1));
     for (int j = 0; j <= dim; ++j) {
       elems2verts[i * (dim + 1) + j] = LO(tmp[j] - 1);
@@ -102,13 +107,13 @@ static void read_meshb_version(
   build_from_elems2verts(mesh, dim, LOs(elems2verts.write()), LO(nverts));
   mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals(coords.write()));
-  classify_equal_order(mesh, dim - 1, sides2verts.write(), sides2class_id.write());
+  classify_equal_order(
+      mesh, dim - 1, sides2verts.write(), sides2class_id.write());
   finalize_classification(mesh);
 }
 
 template <int version>
-static void write_meshb_version(
-    Mesh* mesh, GmfFile file, int dim) {
+static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   using GmfIndex = typename VersionTypes<version>::Index;
   using GmfReal = typename VersionTypes<version>::RealOut;
   auto nverts = mesh->nverts();
@@ -118,8 +123,10 @@ static void write_meshb_version(
     Few<GmfReal, 3> tmp;
     for (int j = 0; j < dim; ++j) tmp[j] = GmfReal(coords[i * dim + j]);
     auto ref = GmfIndex(i + 1);
-    if (dim == 2) GmfSetLin(file, GmfVertices, tmp[0], tmp[1], ref);
-    else GmfSetLin(file, GmfVertices, tmp[0], tmp[1], tmp[2], ref);
+    if (dim == 2)
+      GmfSetLin(file, GmfVertices, tmp[0], tmp[1], ref);
+    else
+      GmfSetLin(file, GmfVertices, tmp[0], tmp[1], tmp[2], ref);
   }
   auto side_kwd = simplex_kwds[dim - 1];
   auto sds2class_dim = mesh->get_array<I8>(dim - 1, "class_dim");
@@ -135,8 +142,10 @@ static void write_meshb_version(
     GmfIndex ref = sides2class_id[i];
     Few<GmfIndex, 3> tmp;
     for (int j = 0; j < dim; ++j) tmp[j] = sides2verts[i * dim + j] + 1;
-    if (dim == 2) GmfSetLin(file, side_kwd, tmp[0], tmp[1], ref);
-    else GmfSetLin(file, side_kwd, tmp[0], tmp[1], tmp[2], ref);
+    if (dim == 2)
+      GmfSetLin(file, side_kwd, tmp[0], tmp[1], ref);
+    else
+      GmfSetLin(file, side_kwd, tmp[0], tmp[1], tmp[2], ref);
   }
   auto elem_kwd = simplex_kwds[dim];
   auto nelems = mesh->nelems();
@@ -148,8 +157,10 @@ static void write_meshb_version(
     for (int j = 0; j < dim + 1; ++j) {
       tmp[j] = GmfIndex(elems2verts[i * (dim + 1) + j] + 1);
     }
-    if (dim == 2) GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], ref);
-    else GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], tmp[3], ref);
+    if (dim == 2)
+      GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], ref);
+    else
+      GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], tmp[3], ref);
   }
   GmfCloseMesh(file);
 }
@@ -200,7 +211,5 @@ void write(Mesh* mesh, const char* filepath, int version) {
   }
   Omega_h_fail("unknown libMeshb version %d when writing\n", version);
 }
-
 }
-
 }
