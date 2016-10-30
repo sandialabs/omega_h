@@ -149,7 +149,7 @@ static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   }
   auto elem_kwd = simplex_kwds[dim];
   auto nelems = mesh->nelems();
-  auto elems2verts = mesh->ask_elem_verts();
+  auto elems2verts = HostRead<LO>(mesh->ask_elem_verts());
   GmfSetKwd(file, elem_kwd, GmfLine(nelems));
   for (LO i = 0; i < nelems; ++i) {
     auto ref = GmfIndex(i + 1);
