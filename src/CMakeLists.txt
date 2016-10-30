@@ -260,17 +260,6 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-set(SCOREC_REQUIRED_VERSION 2.0.0)
-set(Omega_h_USE_SCOREC_DEFAULT OFF)
-bob_private_dep(SCOREC)
-if(Omega_h_USE_SCOREC)
-  if(NOT Omega_h_USE_MPI)
-    message(FATAL_ERROR "Building smb2osh requires enabling MPI")
-  endif()
-  osh_add_util(smb2osh)
-  target_link_libraries(smb2osh PRIVATE SCOREC::core)
-endif()
-
 set(DEF_VARS
     VERSION_MAJOR
     VERSION_MINOR
