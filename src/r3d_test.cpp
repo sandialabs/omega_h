@@ -34,6 +34,10 @@ static void test_3d() {
   volume =
       Omega_h::r3d::measure(Omega_h::r3d::intersect_simplices(verts, verts2));
   OMEGA_H_CHECK(Omega_h::are_close(volume, (1. / 3.) * (1. / 4.) * (1. / 2.)));
+  Omega_h::Few<Omega_h::Vector<3>, 4> far_verts = {
+      {0, 0, 4}, {1, 0, 4}, {0, 1, 4}, {0, 0, 5}};
+  auto null_intersection = Omega_h::r3d::intersect_simplices(verts, far_verts);
+  OMEGA_H_CHECK(null_intersection.nverts == 0);
 }
 
 static void test_2d() {
@@ -63,6 +67,9 @@ static void test_2d() {
   area =
       Omega_h::r3d::measure(Omega_h::r3d::intersect_simplices(verts, verts2));
   OMEGA_H_CHECK(Omega_h::are_close(area, 1. / 4.));
+  Omega_h::Few<Omega_h::Vector<2>, 3> far_verts = {{0, 4}, {1, 4}, {0, 5}};
+  auto null_intersection = Omega_h::r3d::intersect_simplices(verts, far_verts);
+  OMEGA_H_CHECK(null_intersection.nverts == 0);
 }
 
 int main() {
