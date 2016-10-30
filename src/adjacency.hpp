@@ -41,8 +41,6 @@ template <typename T>
 void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out);
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
-
 /* for testing only, internally computes upward
    adjacency */
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim);

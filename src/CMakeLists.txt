@@ -81,6 +81,13 @@ set(Omega_h_SOURCES
   histogram.cpp
   )
 
+set(Meshb_REQUIRED_VERSION 7.12)
+set(Omega_h_USE_Meshb_DEFAULT OFF)
+bob_public_dep(Meshb)
+if(Omega_h_USE_Meshb)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} meshb.cpp)
+endif()
+
 if(Omega_h_ONE_FILE)
   foreach(source IN LISTS Omega_h_SOURCES)
     set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
@@ -90,6 +97,11 @@ if(Omega_h_ONE_FILE)
 else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
+
+if(Omega_h_USE_Meshb)
+  target_link_libraries(omega_h PUBLIC Meshb::meshb)
+endif()
+
 target_include_directories(omega_h
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 #for users to find all our headers after we're installed:
@@ -140,6 +152,10 @@ osh_add_util(osh2vtk)
 osh_add_util(oshdiff)
 osh_add_util(vtkdiff)
 osh_add_util(osh_box)
+if(Omega_h_USE_Meshb)
+  osh_add_util(meshb2osh)
+  osh_add_util(osh2meshb)
+endif()
 
 set(Gmodel_REQUIRED_VERSION 1.2.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
@@ -148,7 +164,12 @@ bob_private_dep(Gmodel)
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
     get_filename_component(COMPILER_DIR ${CMAKE_CXX_COMPILER} PATH)
-    find_program(MPIRUN mpirun PATHS ${COMPILER_DIR})
+    if(NOT MPIRUN)
+      find_program(MPIRUN mpirun PATHS ${COMPILER_DIR})
+    endif()
+    if(NOT MPIRUN)
+      message(FATAL_ERROR "Omega_h_USE_MPI=${Omega_h_USE_MPI} but MPIRUN not found!")
+    endif()
   endif()
   find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
 
@@ -234,18 +255,9 @@ if(BUILD_TESTING)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
   osh_add_exe(test_degree)
-  osh_add_exe(ugawg)
-endif()
-
-set(SCOREC_REQUIRED_VERSION 2.0.0)
-set(Omega_h_USE_SCOREC_DEFAULT OFF)
-bob_private_dep(SCOREC)
-if(Omega_h_USE_SCOREC)
-  if(NOT Omega_h_USE_MPI)
-    message(FATAL_ERROR "Building smb2osh requires enabling MPI")
+  if(Omega_h_USE_Meshb)
+    osh_add_exe(ugawg)
   endif()
-  osh_add_util(smb2osh)
-  target_link_libraries(smb2osh PRIVATE SCOREC::core)
 endif()
 
 set(DEF_VARS
@@ -257,6 +269,7 @@ set(DEF_VARS
     USE_OpenMP
     USE_CUDA
     USE_ZLIB
+    USE_Meshb
     CHECK_BOUNDS
     PROTECT
     )
@@ -281,13 +294,5 @@ set(Omega_h_HEADERS
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
-
-set(Meshb_REQUIRED_VERSION 7.12)
-set(Omega_h_USE_Meshb_DEFAULT OFF)
-bob_private_dep(Meshb)
-if(Omega_h_USE_Meshb)
-  osh_add_util(meshb2osh)
-  target_link_libraries(meshb2osh PRIVATE Meshb::meshb)
-endif()
 
 bob_end_subdir()

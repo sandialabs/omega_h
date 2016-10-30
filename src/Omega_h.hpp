@@ -483,6 +483,7 @@ class Mesh {
   void reduce_tag(Int dim, std::string const& name, Omega_h_Op op);
   bool operator==(Mesh& other);
   Real min_quality();
+  Real max_length();
   bool could_be_shared(Int ent_dim) const;
   bool owners_have_all_upward(Int ent_dim) const;
   Mesh copy_meta() const;
@@ -490,6 +491,13 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
 };
+
+#ifdef OMEGA_H_USE_MESHB
+namespace meshb {
+void read(Mesh* mesh, const char* filepath);
+void write(Mesh* mesh, const char* filepath, int version);
+}
+#endif
 
 namespace gmsh {
 void read(std::istream& stream, Mesh* mesh);
@@ -509,9 +517,10 @@ class Writer {
 
  public:
   Writer();
+  Writer(Writer const& other) = default;
+  Writer& operator=(Writer const& other) = default;
+  ~Writer() = default;
   Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
-  Writer(Writer const& other);
-  ~Writer();
   void write(Real time);
   void write();
 };
@@ -519,8 +528,11 @@ class FullWriter {
   std::vector<Writer> writers_;
 
  public:
+  FullWriter() = default;
+  FullWriter(FullWriter const& other) = default;
+  FullWriter& operator=(FullWriter const& other) = default;
+  ~FullWriter() = default;
   FullWriter(Mesh* mesh, std::string const& root_path);
-  ~FullWriter();
   void write(Real time);
   void write();
 };
@@ -532,6 +544,7 @@ struct AdaptOpts {
   AdaptOpts(Mesh* mesh);  // sets defaults
   Real min_length_desired;
   Real max_length_desired;
+  Real max_length_allowed;
   Real min_quality_allowed;
   Real min_quality_desired;
   Int nsliver_layers;
@@ -560,6 +573,11 @@ void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords);
 void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
+
+Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
+
+Remotes owners_from_globals(
+    CommPtr comm, Read<GO> globals, Read<I32> own_ranks);
 
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
@@ -640,6 +658,8 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   a = b;
   b = c;
 }
+
+bool ends_with(std::string const& s, std::string const& suffix);
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \

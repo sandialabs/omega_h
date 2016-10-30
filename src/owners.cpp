@@ -68,6 +68,12 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
   return Remotes(copies2own_ranks, copies2own_idxs);
 }
 
+/* uses update_ownership() with a linear partitioning of
+   global numbers as the old partitioning.
+   if global numbers obey good linear arrangement properties,
+   the old partition should be decent and so this is an
+   effective fallback if only globals are available */
+
 Remotes owners_from_globals(
     CommPtr comm, Read<GO> globals, Read<I32> own_ranks) {
   auto copies2lins_dist = copies_to_linear_owners(comm, globals);
