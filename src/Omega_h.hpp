@@ -558,7 +558,9 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
-void read(std::string const& path, CommPtr comm, Mesh* mesh);
+Int read(std::string const& path, CommPtr comm, Mesh* mesh);
+I32 read_nparts(std::string const& path);
+void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
 Omega_h_Comparison compare_meshes(
