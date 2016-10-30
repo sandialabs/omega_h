@@ -517,9 +517,10 @@ class Writer {
 
  public:
   Writer();
+  Writer(Writer const& other) = default;
+  Writer& operator=(Writer const& other) = default;
+  ~Writer() = default;
   Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
-  Writer(Writer const& other);
-  ~Writer();
   void write(Real time);
   void write();
 };
@@ -527,9 +528,11 @@ class FullWriter {
   std::vector<Writer> writers_;
 
  public:
-  FullWriter();
+  FullWriter() = default;
+  FullWriter(FullWriter const& other) = default;
+  FullWriter& operator=(FullWriter const& other) = default;
+  ~FullWriter() = default;
   FullWriter(Mesh* mesh, std::string const& root_path);
-  ~FullWriter();
   void write(Real time);
   void write();
 };
@@ -655,6 +658,8 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   a = b;
   b = c;
 }
+
+bool ends_with(std::string const& s, std::string const& suffix);
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \

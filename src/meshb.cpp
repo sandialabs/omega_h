@@ -58,48 +58,48 @@ static void read_meshb_version(
     Mesh* mesh, GmfFile file, int dim) {
   using GmfIndex = typename VersionTypes<version>::Index;
   using GmfReal = typename VersionTypes<version>::RealIn;
-  auto nverts = GmfStatKwd(file, GmfVertices);
+  LO nverts = LO(GmfStatKwd(file, GmfVertices));
   safe_goto(file, GmfVertices);
-  auto coords = HostWrite<Real>(nverts * dim);
-  for (GmfLine i = 0; i < nverts; ++i) {
+  auto coords = HostWrite<Real>(LO(nverts) * dim);
+  for (LO i = 0; i < nverts; ++i) {
     GmfIndex ref;
     Few<GmfReal, 3> tmp;
     if (dim == 2) GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &ref);
-    if (dim == 3) GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &tmp[2], &ref);
-    OMEGA_H_CHECK(ref == i + 1);
-    for (int j = 0; j < dim; ++j) coords[i * dim + j] = tmp[j];
+    else GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &tmp[2], &ref);
+    OMEGA_H_CHECK(ref == GmfIndex(i + 1));
+    for (int j = 0; j < dim; ++j) coords[i * dim + j] = Real(tmp[j]);
   }
   auto side_kwd = simplex_kwds[dim - 1];
-  auto nsides = GmfStatKwd(file, side_kwd);
-  auto sides2verts = HostWrite<LO>(nsides * dim);
-  auto sides2class_id = HostWrite<I32>(nsides);
-  if (nsides) {
-    safe_goto(file, side_kwd);
-    for (GmfLine i = 0; i < nsides; ++i) {
-      GmfIndex class_id;
-      Few<GmfIndex, 3> tmp;
-      if (dim == 2) GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &class_id);
-      if (dim == 3)
-        GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &tmp[2], &class_id);
-      for (int j = 0; j < dim; ++j) sides2verts[i * dim + j] = tmp[j] - 1;
-      sides2class_id[i] = class_id;
+  LO nsides = LO(GmfStatKwd(file, side_kwd));
+  auto sides2verts = HostWrite<LO>(LO(nsides) * dim);
+  auto sides2class_id = HostWrite<I32>(LO(nsides));
+  safe_goto(file, side_kwd);
+  for (LO i = 0; i < nsides; ++i) {
+    GmfIndex class_id;
+    Few<GmfIndex, 3> tmp;
+    if (dim == 2) GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &class_id);
+    else GmfGetLin(file, side_kwd, &tmp[0], &tmp[1], &tmp[2], &class_id);
+    for (int j = 0; j < dim; ++j) {
+      sides2verts[i * dim + j] = LO(tmp[j] - 1);
     }
+    sides2class_id[i] = LO(class_id);
   }
   auto elem_kwd = simplex_kwds[dim];
-  auto nelems = GmfStatKwd(file, elem_kwd);
+  LO nelems = LO(GmfStatKwd(file, elem_kwd));
   safe_goto(file, elem_kwd);
-  auto elems2verts = HostWrite<LO>(nelems * (dim + 1));
-  for (GmfLine i = 0; i < nelems; ++i) {
+  auto elems2verts = HostWrite<LO>(LO(nelems) * (dim + 1));
+  for (LO i = 0; i < nelems; ++i) {
     GmfIndex ref;
     Few<GmfIndex, 4> tmp;
     if (dim == 2) GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &ref);
-    if (dim == 3)
-      GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &ref);
-    OMEGA_H_CHECK(ref == i + 1);
-    for (int j = 0; j <= dim; ++j) elems2verts[i * (dim + 1) + j] = tmp[j] - 1;
+    else GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &ref);
+    OMEGA_H_CHECK(ref == GmfIndex(i + 1));
+    for (int j = 0; j <= dim; ++j) {
+      elems2verts[i * (dim + 1) + j] = LO(tmp[j] - 1);
+    }
   }
   GmfCloseMesh(file);
-  build_from_elems2verts(mesh, dim, LOs(elems2verts.write()), nverts);
+  build_from_elems2verts(mesh, dim, LOs(elems2verts.write()), LO(nverts));
   mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals(coords.write()));
   classify_equal_order(mesh, dim - 1, sides2verts.write(), sides2class_id.write());
@@ -111,43 +111,45 @@ static void write_meshb_version(
     Mesh* mesh, GmfFile file, int dim) {
   using GmfIndex = typename VersionTypes<version>::Index;
   using GmfReal = typename VersionTypes<version>::RealOut;
-  GmfLine nverts = mesh->nverts();
-  GmfSetKwd(file, GmfVertices, nverts);
+  auto nverts = mesh->nverts();
+  GmfSetKwd(file, GmfVertices, GmfLine(nverts));
   auto coords = HostRead<Real>(mesh->coords());
-  for (GmfLine i = 0; i < nverts; ++i) {
+  for (LO i = 0; i < nverts; ++i) {
     Few<GmfReal, 3> tmp;
-    for (int j = 0; j < dim; ++j) tmp[j] = coords[i * dim + j];
-    GmfIndex ref = i + 1;
+    for (int j = 0; j < dim; ++j) tmp[j] = GmfReal(coords[i * dim + j]);
+    auto ref = GmfIndex(i + 1);
     if (dim == 2) GmfSetLin(file, GmfVertices, tmp[0], tmp[1], ref);
-    if (dim == 3) GmfSetLin(file, GmfVertices, tmp[0], tmp[1], tmp[2], ref);
+    else GmfSetLin(file, GmfVertices, tmp[0], tmp[1], tmp[2], ref);
   }
   auto side_kwd = simplex_kwds[dim - 1];
   auto sds2class_dim = mesh->get_array<I8>(dim - 1, "class_dim");
   auto sds_are_sides = each_eq_to(sds2class_dim, I8(dim - 1));
   auto sides2sds = collect_marked(sds_are_sides);
-  GmfLine nsides = sides2sds.size();
+  auto nsides = sides2sds.size();
   auto sds2verts = mesh->ask_verts_of(dim - 1);
   auto sds2class_id = mesh->get_array<LO>(dim - 1, "class_id");
   auto sides2verts = HostRead<LO>(unmap(sides2sds, sds2verts, dim));
   auto sides2class_id = HostRead<LO>(unmap(sides2sds, sds2class_id, 1));
-  GmfSetKwd(file, side_kwd, nsides);
-  for (GmfLine i = 0; i < nsides; ++i) {
+  GmfSetKwd(file, side_kwd, GmfLine(nsides));
+  for (LO i = 0; i < nsides; ++i) {
     GmfIndex ref = sides2class_id[i];
     Few<GmfIndex, 3> tmp;
     for (int j = 0; j < dim; ++j) tmp[j] = sides2verts[i * dim + j] + 1;
     if (dim == 2) GmfSetLin(file, side_kwd, tmp[0], tmp[1], ref);
-    if (dim == 3) GmfSetLin(file, side_kwd, tmp[0], tmp[1], tmp[2], ref);
+    else GmfSetLin(file, side_kwd, tmp[0], tmp[1], tmp[2], ref);
   }
   auto elem_kwd = simplex_kwds[dim];
-  GmfLine nelems = mesh->nelems();
+  auto nelems = mesh->nelems();
   auto elems2verts = mesh->ask_elem_verts();
-  GmfSetKwd(file, elem_kwd, nelems);
-  for (GmfLine i = 0; i < nelems; ++i) {
-    GmfIndex ref = i + 1;
+  GmfSetKwd(file, elem_kwd, GmfLine(nelems));
+  for (LO i = 0; i < nelems; ++i) {
+    auto ref = GmfIndex(i + 1);
     Few<GmfIndex, 4> tmp;
-    for (int j = 0; j < dim + 1; ++j) tmp[j] = elems2verts[i * (dim + 1) + j] + 1;
+    for (int j = 0; j < dim + 1; ++j) {
+      tmp[j] = GmfIndex(elems2verts[i * (dim + 1) + j] + 1);
+    }
     if (dim == 2) GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], ref);
-    if (dim == 3) GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], tmp[3], ref);
+    else GmfSetLin(file, elem_kwd, tmp[0], tmp[1], tmp[2], tmp[3], ref);
   }
   GmfCloseMesh(file);
 }

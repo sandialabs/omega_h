@@ -17,6 +17,11 @@
 
 namespace Omega_h {
 
+bool ends_with(std::string const& s, std::string const& suffix) {
+  if (s.length() < suffix.length()) return false;
+  return s.substr(s.length() - suffix.length(), suffix.length()) == suffix;
+}
+
 bool is_little_endian_cpu() {
   static std::uint16_t const endian_canary = 0x1;
   std::uint8_t const* p = reinterpret_cast<std::uint8_t const*>(&endian_canary);
@@ -438,11 +443,6 @@ static I32 read_nparts(std::string const& path) {
   I32 nparts;
   file >> nparts;
   return nparts;
-}
-
-static bool ends_with(std::string const& path, std::string const& ext) {
-  if (path.length() < ext.length()) return false;
-  return path.substr(path.length() - ext.length(), ext.length()) == ext;
 }
 
 void write(std::string const& path, Mesh* mesh) {

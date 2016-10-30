@@ -712,10 +712,6 @@ Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim)
   }
 }
 
-Writer::Writer(Writer const&) = default;
-
-Writer::~Writer() = default;
-
 void Writer::write(Real time) {
   write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_);
   if (mesh_->comm()->rank() == 0) {
@@ -726,9 +722,6 @@ void Writer::write(Real time) {
 
 void Writer::write() { this->write(Real(step_)); }
 
-FullWriter::FullWriter() {
-}
-
 FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
   auto comm = mesh->comm();
   auto rank = comm->rank();
@@ -737,8 +730,6 @@ FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
   for (Int i = EDGE; i <= mesh->dim(); ++i)
     writers_.push_back(Writer(mesh, root_path + "/" + plural_names[i], i));
 }
-
-FullWriter::~FullWriter() = default;
 
 void FullWriter::write(Real time) {
   for (auto& writer : writers_) writer.write(time);
