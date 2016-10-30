@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
   auto nparts_total = world->size();
   auto path_in = argv[1];
   auto nparts_out = atoi(argv[2]);
-  auto path_in = argv[3];
+  auto path_out = argv[3];
   if (nparts_out < 1) {
     if (!world->rank()) {
       std::cout << "error: invalid output part count " << nparts_out << '\n';
@@ -36,9 +36,9 @@ int main(int argc, char** argv) {
     return -1;
   }
   auto is_in = (world->rank() < nparts_in);
-  auto comm_in = world->split(I32(is_in), 0);
+  auto comm_in = world->split(int(is_in), 0);
   auto is_out = (world->rank() < nparts_out);
-  auto comm_out = world->split(I32(is_out), 0);
+  auto comm_out = world->split(int(is_out), 0);
   auto mesh = Omega_h::Mesh(&lib);
   if (is_in) {
     Omega_h::binary::read_in_comm(path_in, comm_in, &mesh);
@@ -51,5 +51,5 @@ int main(int argc, char** argv) {
     if (nparts_out != nparts_in) mesh.balance();
     Omega_h::binary::write(path_out, &mesh);
   }
-  world.barrier();
+  world->barrier();
 }
