@@ -517,8 +517,8 @@ class Writer {
 
  public:
   Writer();
-  Writer(Writer const& other) = default;
-  Writer& operator=(Writer const& other) = default;
+  Writer(Writer const&) = default;
+  Writer& operator=(Writer const&) = default;
   ~Writer() = default;
   Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
   void write(Real time);
@@ -529,8 +529,8 @@ class FullWriter {
 
  public:
   FullWriter() = default;
-  FullWriter(FullWriter const& other) = default;
-  FullWriter& operator=(FullWriter const& other) = default;
+  FullWriter(FullWriter const&) = default;
+  FullWriter& operator=(FullWriter const&) = default;
   ~FullWriter() = default;
   FullWriter(Mesh* mesh, std::string const& root_path);
   void write(Real time);
