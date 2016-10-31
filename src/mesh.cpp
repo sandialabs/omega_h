@@ -132,29 +132,25 @@ void Mesh::add_tag(
 
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
-    Int outflags, Read<T> array) {
+    Int outflags, Read<T> array, bool internal) {
   add_tag<T>(dim, name, ncomps, xfer, outflags);
-  set_tag<T>(dim, name, array);
+  set_tag<T>(dim, name, array, internal);
 }
 
 template <typename T>
-void Mesh::set_tag(Int dim, std::string const& name, Read<T> array) {
+void Mesh::set_tag(Int dim, std::string const& name, Read<T> array,
+    bool internal) {
   if (!has_tag(dim, name)) {
     Omega_h_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
         plural_names[dim], name.c_str());
   }
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
-  /* don't do cache invalidation if this is the first
-     time we are setting the value for this tag
-     (i.e. we just created it).
-     creation typically happens during migration/adaptation,
+  /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
      etc. without updating dependent fields */
-  if (tag->array().exists()) {
-    react_to_set_tag(dim, name);
-  }
+  if (!internal) react_to_set_tag(dim, name);
   tag->set_array(array);
 }
 
@@ -162,10 +158,16 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   /* hardcoded cache invalidations */
   if ((dim == VERT) &&
       ((name == "coordinates") || (name == "size") || (name == "metric"))) {
-    if (has_tag(EDGE, "length")) remove_tag(EDGE, "length");
+    if (has_tag(EDGE, "length")) {
+      std::cout << "invalidating length\n";
+      remove_tag(EDGE, "length");
+    }
   }
   if ((dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
-    if (has_tag(this->dim(), "quality")) remove_tag(this->dim(), "quality");
+    if (has_tag(this->dim(), "quality")) {
+      std::cout << "invalidating quality\n";
+      remove_tag(this->dim(), "quality");
+    }
   }
 }
 
@@ -646,9 +648,9 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
   template void Mesh::add_tag<T>(                                              \
       Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
   template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-      Int xfer, Int outflags, Read<T> array);                                  \
+      Int xfer, Int outflags, Read<T> array, bool internal);                                  \
   template void Mesh::set_tag(                                                 \
-      Int dim, std::string const& name, Read<T> array);                        \
+      Int dim, std::string const& name, Read<T> array, bool internal);                        \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
   template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \
   template Read<T> Mesh::sync_subset_array(                                    \

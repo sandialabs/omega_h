@@ -26,7 +26,8 @@ void transfer_common3(
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
   auto outflags = tagbase->outflags();
-  new_mesh->add_tag(ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data));
+  new_mesh->add_tag(ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data),
+      true);
 }
 
 template <typename T>
@@ -446,7 +447,7 @@ static void transfer_copy_tmpl(
   auto xfer = old_tag->xfer();
   auto outflags = old_tag->outflags();
   auto old_data = old_tag->array();
-  new_mesh->add_tag(prod_dim, name, ncomps, xfer, outflags, old_data);
+  new_mesh->add_tag(prod_dim, name, ncomps, xfer, outflags, old_data, true);
 }
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {

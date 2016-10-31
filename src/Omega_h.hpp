@@ -398,9 +398,10 @@ class Mesh {
       Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);
   template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
-      Int outflags, Read<T> array);
+      Int outflags, Read<T> array, bool internal = false);
   template <typename T>
-  void set_tag(Int dim, std::string const& name, Read<T> array);
+  void set_tag(Int dim, std::string const& name, Read<T> array,
+      bool internal = false);
   TagBase const* get_tagbase(Int dim, std::string const& name) const;
   template <typename T>
   Tag<T> const* get_tag(Int dim, std::string const& name) const;
@@ -691,9 +692,9 @@ bool ends_with(std::string const& s, std::string const& suffix);
   extern template void Mesh::add_tag<T>(                                       \
       Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-      Int ncomps, Int xfer, Int outflags, Read<T> array);                      \
+      Int ncomps, Int xfer, Int outflags, Read<T> array, bool internal);                      \
   extern template void Mesh::set_tag(                                          \
-      Int dim, std::string const& name, Read<T> array);                        \
+      Int dim, std::string const& name, Read<T> array, bool internal);                        \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
   extern template Read<T> Mesh::owned_array(                                   \
       Int ent_dim, Read<T> a, Int width);                                      \

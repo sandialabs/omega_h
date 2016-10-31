@@ -333,19 +333,19 @@ static void read_tag(
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else {
     Omega_h_fail("unexpected tag type in binary read\n");
   }
