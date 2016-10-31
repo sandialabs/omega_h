@@ -1,4 +1,5 @@
 #include "Omega_h.hpp"
+#include "timer.hpp"
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -14,6 +15,7 @@ int main(int argc, char** argv) {
   auto path_in = argv[1];
   auto nparts_out = atoi(argv[2]);
   auto path_out = argv[3];
+  auto t0 = Omega_h::now();
   if (nparts_out < 1) {
     if (!world->rank()) {
       std::cout << "error: invalid output part count " << nparts_out << '\n';
@@ -52,4 +54,8 @@ int main(int argc, char** argv) {
     Omega_h::binary::write(path_out, &mesh);
   }
   world->barrier();
+  auto t1 = Omega_h::now();
+  if (!world->rank()) {
+    std::cout << "repartitioning took " << (t1-t0) << " seconds\n";
+  }
 }
