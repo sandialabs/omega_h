@@ -159,13 +159,11 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   if ((dim == VERT) &&
       ((name == "coordinates") || (name == "size") || (name == "metric"))) {
     if (has_tag(EDGE, "length")) {
-      std::cout << "invalidating length\n";
       remove_tag(EDGE, "length");
     }
   }
   if ((dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
     if (has_tag(this->dim(), "quality")) {
-      std::cout << "invalidating quality\n";
       remove_tag(this->dim(), "quality");
     }
   }
