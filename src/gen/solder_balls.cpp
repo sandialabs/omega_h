@@ -1,4 +1,6 @@
 #include <gmodel.hpp>
+#include <cstdlib>
+#include <sstream>
 
 static gmod::ObjPtr new_solder_ball(gmod::Vector center,
     double radius, double height,
@@ -56,12 +58,13 @@ static gmod::ObjPtr solder_ball_top(gmod::ObjPtr solder_ball) {
   return solder_ball->used[0].obj->used[1].obj;
 }
 
-int main() {
-  double length_unit = 1.0;
-  double block_height = 1.5;
-  double ball_height = 0.8;
-  double ball_diameter = 1.0;
+int main(int argc, char** argv) {
   int balls_per_side = 1;
+  if (argc == 2) balls_per_side = atoi(argv[1]);
+  double length_unit = 1.0;
+  double block_height = 1.2;
+  double ball_height = 0.6;
+  double ball_diameter = 0.8;
   double block_length = length_unit * balls_per_side;
   double outer_res = length_unit;
   double inner_res = length_unit / 6.0;
@@ -102,6 +105,10 @@ int main() {
         top_face, solder_ball_top(sb));
     gmod::add_to_group(model, sb);
   }
-  gmod::write_closure_to_geo(model, "solder_balls.geo");
+  std::stringstream stream;
+  stream << "solder_balls_" << balls_per_side
+    << "x" << balls_per_side << ".geo";
+  auto s = stream.str();
+  gmod::write_closure_to_geo(model, s.c_str());
 }
 
