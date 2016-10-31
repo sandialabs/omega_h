@@ -601,6 +601,8 @@ void fix_momentum_velocity_verts(
 
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
+template <typename T>
+Read<T> multiply_each_by(T factor, Read<T> a);
 LOs collect_marked(Read<I8> marks);
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
@@ -670,6 +672,7 @@ bool ends_with(std::string const& s, std::string const& suffix);
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
   extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
+  extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
   extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \
