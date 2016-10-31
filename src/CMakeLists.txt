@@ -212,6 +212,7 @@ if(BUILD_TESTING)
     gen_func(cylinder_thru_tube 3)
     gen_func(ball 3)
     gen_func(twin_rotor 3)
+    gen_func(solder_balls 3)
   endif()
 
   osh_add_exe(unit_tests)
