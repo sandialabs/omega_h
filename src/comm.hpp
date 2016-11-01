@@ -43,6 +43,16 @@ template <>
 struct MpiTraits<double> {
   static MPI_Datatype datatype() { return MPI_DOUBLE; }
 };
+
+template <>
+struct MpiTraits<unsigned> {
+  static MPI_Datatype datatype() { return MPI_UNSIGNED; }
+};
+
+template <>
+struct MpiTraits<unsigned long> {
+  static MPI_Datatype datatype() { return MPI_UNSIGNED_LONG; }
+};
 #endif  // OMEGA_H_USE_MPI
 
 static_assert(sizeof(int) == 4, "Comm assumes 32-bit int");

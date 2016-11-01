@@ -49,6 +49,9 @@ class Write {
   Write(LO size, T value);
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
+#ifndef OMEGA_H_USE_KOKKOS
+  ~Write();
+#endif
   LO size() const;
   OMEGA_H_DEVICE T& operator[](LO i) const {
 #ifdef OMEGA_H_CHECK_BOUNDS
@@ -69,6 +72,11 @@ class Write {
   T get(LO i) const;
   OMEGA_H_INLINE bool exists() const { return exists_; }
 };
+
+#ifndef OMEGA_H_USE_KOKKOS
+std::size_t get_current_bytes();
+std::size_t get_max_bytes();
+#endif
 
 template <typename T>
 OMEGA_H_INLINE Write<T>::Write()

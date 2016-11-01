@@ -1,5 +1,6 @@
 #include "internal.hpp"
 #include "protect.hpp"
+#include "comm.hpp"
 
 #include <cstdarg>
 #include <sstream>
@@ -53,6 +54,22 @@ extern "C" void Omega_h_finalize(void) {
     Kokkos::finalize();
     we_called_kokkos_init = false;
   }
+#endif
+#ifndef OMEGA_H_USE_KOKKOS
+  std::size_t mem_used = Omega_h::get_max_bytes();
+  std::size_t max_mem_used = mem_used;
+#ifdef OMEGA_H_USE_MPI
+  MPI_Reduce(&mem_used, &max_mem_used, 1,
+      Omega_h::MpiTraits<std::size_t>::datatype(),
+      MPI_MAX, 0, MPI_COMM_WORLD);
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  if (rank == 0) {
+#endif
+    printf("maximum Omega_h memory usage: %zu bytes\n", mem_used);
+#ifdef OMEGA_H_USE_MPI
+  }
+#endif
 #endif
 #ifdef OMEGA_H_USE_MPI
   if (we_called_mpi_init) {
