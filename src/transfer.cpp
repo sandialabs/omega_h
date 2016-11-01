@@ -26,8 +26,8 @@ void transfer_common3(
   auto ncomps = tagbase->ncomps();
   auto xfer = tagbase->xfer();
   auto outflags = tagbase->outflags();
-  new_mesh->add_tag(ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data),
-      true);
+  new_mesh->add_tag(
+      ent_dim, name, ncomps, xfer, outflags, Read<T>(new_data), true);
 }
 
 template <typename T>

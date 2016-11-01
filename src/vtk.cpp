@@ -231,21 +231,21 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   auto size = mesh->nents(ent_dim) * ncomps;
   if (type == OMEGA_H_I8) {
     auto array = read_array<I8>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array, true);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   } else if (type == OMEGA_H_I32) {
     auto array = read_array<I32>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array, true);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   } else if (type == OMEGA_H_I64) {
     auto array = read_array<I64>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array, true);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   } else {
     auto array =
         read_array<Real>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array, true);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   }
   auto et = xml::read_tag(stream);
   CHECK(et.elem_name == "DataArray");

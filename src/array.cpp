@@ -8,15 +8,11 @@ namespace Omega_h {
 #ifndef OMEGA_H_USE_KOKKOS
 static std::size_t current_array_bytes = 0;
 
-std::size_t get_current_bytes() {
-  return current_array_bytes;
-}
+std::size_t get_current_bytes() { return current_array_bytes; }
 
 static std::size_t max_array_bytes = 0;
 
-std::size_t get_max_bytes() {
-  return max_array_bytes;
-}
+std::size_t get_max_bytes() { return max_array_bytes; }
 #endif
 
 #ifdef OMEGA_H_USE_KOKKOS

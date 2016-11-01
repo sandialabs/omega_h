@@ -138,8 +138,8 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
 }
 
 template <typename T>
-void Mesh::set_tag(Int dim, std::string const& name, Read<T> array,
-    bool internal) {
+void Mesh::set_tag(
+    Int dim, std::string const& name, Read<T> array, bool internal) {
   if (!has_tag(dim, name)) {
     Omega_h_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
         plural_names[dim], name.c_str());
@@ -646,9 +646,9 @@ void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
   template void Mesh::add_tag<T>(                                              \
       Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
   template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-      Int xfer, Int outflags, Read<T> array, bool internal);                                  \
+      Int xfer, Int outflags, Read<T> array, bool internal);                   \
   template void Mesh::set_tag(                                                 \
-      Int dim, std::string const& name, Read<T> array, bool internal);                        \
+      Int dim, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
   template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \
   template Read<T> Mesh::sync_subset_array(                                    \

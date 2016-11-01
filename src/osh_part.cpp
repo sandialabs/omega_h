@@ -1,6 +1,6 @@
+#include <iostream>
 #include "Omega_h.hpp"
 #include "timer.hpp"
-#include <iostream>
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   if (nparts_out > nparts_total) {
     if (!world->rank()) {
       std::cout << "error: output part count " << nparts_out
-        << " greater than MPI job size " << nparts_total << '\n';
+                << " greater than MPI job size " << nparts_total << '\n';
     }
     return -1;
   }
@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
   if (nparts_in > nparts_total) {
     if (!world->rank()) {
       std::cout << "error: input part count " << nparts_in
-        << " greater than MPI job size " << nparts_total << '\n';
+                << " greater than MPI job size " << nparts_total << '\n';
     }
     return -1;
   }
@@ -45,7 +45,8 @@ int main(int argc, char** argv) {
   if (is_in) {
     Omega_h::binary::read_in_comm(path_in, comm_in, &mesh);
     if (nparts_out < nparts_in) {
-      Omega_h_fail("partitioning to a smaller part count not yet implemented\n");
+      Omega_h_fail(
+          "partitioning to a smaller part count not yet implemented\n");
     }
   }
   if (is_in || is_out) mesh.set_comm(comm_out);
@@ -56,6 +57,6 @@ int main(int argc, char** argv) {
   world->barrier();
   auto t1 = Omega_h::now();
   if (!world->rank()) {
-    std::cout << "repartitioning took " << (t1-t0) << " seconds\n";
+    std::cout << "repartitioning took " << (t1 - t0) << " seconds\n";
   }
 }
