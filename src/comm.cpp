@@ -125,10 +125,6 @@ CommPtr Comm::graph(Read<I32> dsts) const {
   int sources[1] = {rank()};
   int degrees[1] = {dsts.size()};
   HostRead<I32> destinations(dsts);
-  for (int i = 0; i < destinations.size(); ++i) {
-    OMEGA_H_CHECK(destinations[i] >= 0);
-    OMEGA_H_CHECK(destinations[i] < size());
-  }
   int reorder = 0;
   CALL(MPI_Dist_graph_create(impl_, n, sources, degrees, destinations.data(),
       OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder, &impl2));
@@ -142,15 +138,7 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
   HostRead<I32> sources(srcs);
-  for (int i = 0; i < sources.size(); ++i) {
-    OMEGA_H_CHECK(sources[i] >= 0);
-    OMEGA_H_CHECK(sources[i] < size());
-  }
   HostRead<I32> destinations(dsts);
-  for (int i = 0; i < destinations.size(); ++i) {
-    OMEGA_H_CHECK(destinations[i] >= 0);
-    OMEGA_H_CHECK(destinations[i] < size());
-  }
   int reorder = 0;
   CALL(MPI_Dist_graph_create_adjacent(impl_, sources.size(), sources.data(),
       OMEGA_H_MPI_UNWEIGHTED, destinations.size(), destinations.data(),

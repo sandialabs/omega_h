@@ -48,9 +48,6 @@ Dist find_unique_use_owners(Dist uses2old_owners) {
   auto old_owners2uniq_serv_uses = offset_scan(LOs(degrees));
   Dist old_owners2uniq_uses;
   old_owners2uniq_uses.set_parent_comm(uses2old_owners.parent_comm());
-  auto check = LAMBDA(LO i) {
-    CHECK(uniq_serv_uses2ranks[i] >= 0);
-  };
   old_owners2uniq_uses.set_dest_ranks(uniq_serv_uses2ranks);
   old_owners2uniq_uses.set_roots2items(old_owners2uniq_serv_uses);
   return old_owners2uniq_uses.invert();

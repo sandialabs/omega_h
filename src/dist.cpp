@@ -26,10 +26,6 @@ Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
 void Dist::set_parent_comm(CommPtr parent_comm) { parent_comm_ = parent_comm; }
 
 void Dist::set_dest_ranks(Read<I32> items2ranks) {
-  auto check_i2r = LAMBDA(LO i) {
-    CHECK(items2ranks[i] >= 0);
-  };
-  parallel_for(items2ranks.size(), check_i2r);
   auto content2items = sort_by_keys(items2ranks);
   auto content2ranks = unmap(content2items, items2ranks, 1);
   Write<I8> jumps(content2ranks.size());
@@ -42,7 +38,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   }
   auto content2msgs = offset_scan(Read<I8>(jumps));
   auto nmsgs = content2msgs.last();
-  Write<I32> msgs2ranks(nmsgs, -1);
+  Write<I32> msgs2ranks(nmsgs);
   auto log_ranks = LAMBDA(LO i) {
     if (jumps[i]) {
       msgs2ranks[content2msgs[i]] = content2ranks[i];
