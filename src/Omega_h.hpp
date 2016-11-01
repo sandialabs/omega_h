@@ -50,6 +50,8 @@ class Write {
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
 #ifndef OMEGA_H_USE_KOKKOS
+  Write(Write<T> const&) = default;
+  Write<T>& operator=(Write<T> const&) = default;
   ~Write();
 #endif
   LO size() const;

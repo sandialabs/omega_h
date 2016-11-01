@@ -22,14 +22,14 @@ static gmod::ObjPtr new_solder_ball(gmod::Vector center,
   auto mid_pts = gmod::loop_points(mid_circ);
   auto center_pt = gmod::new_point2(center);
   gmod::ObjPtr verticals[2][4];
-  for (int i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < 4; ++i) {
     verticals[0][i] = gmod::new_arc2(bot_pts[i], center_pt, mid_pts[i]);
     verticals[1][i] = gmod::new_arc2(mid_pts[i], center_pt, top_pts[i]);
   }
   auto shell = gmod::new_shell();
   gmod::add_use(shell, gmod::REVERSE, bot_disk);
   gmod::add_use(shell, gmod::FORWARD, top_disk);
-  for (int i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < 4; ++i) {
     auto loop = gmod::new_loop();
     gmod::add_use(loop, gmod::FORWARD, bot_loop->used[i].obj);
     gmod::add_use(loop, gmod::FORWARD, verticals[0][(i + 1) % 4]);
@@ -38,7 +38,7 @@ static gmod::ObjPtr new_solder_ball(gmod::Vector center,
     auto side = gmod::new_ruled2(loop);
     gmod::add_use(shell, gmod::FORWARD, side);
   }
-  for (int i = 0; i < 4; ++i) {
+  for (size_t i = 0; i < 4; ++i) {
     auto loop = gmod::new_loop();
     gmod::add_use(loop, gmod::FORWARD, mid_circ->used[i].obj);
     gmod::add_use(loop, gmod::FORWARD, verticals[1][(i + 1) % 4]);
