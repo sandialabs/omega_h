@@ -14,13 +14,18 @@ Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
   Write<LO> idxs(globals.size());
   auto f = LAMBDA(LO i) {
     if (globals[i] < split) {
-      ranks[i] = static_cast<I32>(globals[i] / (quot + 1));
+      GO tmp = globals[i] / (quot + 1);
+      CHECK(tmp >= 0);
+      ranks[i] = static_cast<I32>(tmp);
       idxs[i] = static_cast<LO>(globals[i] % (quot + 1));
     } else {
       auto g = globals[i] - split;
-      ranks[i] = static_cast<I32>(g / quot + rem);
+      GO tmp = g / quot + rem;
+      CHECK(tmp >= 0);
+      ranks[i] = static_cast<I32>(tmp);
       idxs[i] = static_cast<LO>(g % quot);
     }
+    CHECK(ranks[i] >= 0);
   };
   parallel_for(globals.size(), f);
   return Remotes(ranks, idxs);
@@ -30,10 +35,13 @@ LO linear_partition_size(GO total, I32 comm_size, I32 comm_rank) {
   auto comm_size_gt = GO(comm_size);
   auto quot = total / comm_size_gt;
   auto rem = total % comm_size_gt;
+  LO tmp;
   if (comm_rank < static_cast<I32>(rem))
-    return static_cast<LO>(quot + 1);
+    tmp = static_cast<LO>(quot + 1);
   else
-    return static_cast<LO>(quot);
+    tmp = static_cast<LO>(quot);
+  CHECK(tmp >= 0);
+  return tmp;
 }
 
 Remotes globals_to_linear_owners(CommPtr comm, Read<GO> globals, GO total) {
@@ -45,7 +53,7 @@ LO linear_partition_size(CommPtr comm, GO total) {
 }
 
 GO find_total_globals(CommPtr comm, Read<GO> globals) {
-  auto a = comm->allreduce(max(globals), OMEGA_H_MAX);
+  auto a = comm->allreduce<GO>(max<GO>(globals), OMEGA_H_MAX);
   if (a < 0) return 0;
   return a + 1;
 }
