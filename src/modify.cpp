@@ -239,6 +239,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
       auto edge = keys2kds[key];
       auto prod = key;
       prods2new_offsets_w[prod] = offset + edge2rep_order[edge];
+      CHECK(prods2new_offsets_w[prod] >= 0);
     };
     parallel_for(nkeys, write_prod_offsets);
   } else {
@@ -246,6 +247,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
       auto offset = keys2new_offsets[key];
       for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
         prods2new_offsets_w[prod] = offset;
+      CHECK(prods2new_offsets_w[prod] >= 0);
         ++offset;
       }
     };
@@ -275,7 +277,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   CHECK(lin_rep_counts.size() == nlins);
   auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
-  auto lin_global_offset = comm->exscan(lin_global_count, OMEGA_H_SUM);
+  GO lin_global_offset = comm->exscan<GO>(GO(lin_global_count), OMEGA_H_SUM);
   Write<GO> lin_globals(nlins);
   auto write_lin_globals = LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
@@ -296,6 +298,10 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
+  auto check = LAMBDA(LO i) {
+    CHECK(new_globals[i] >= 0);
+  };
+  parallel_for(new_globals.size(), check);
   new_mesh->add_tag(ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT,
       Read<GO>(new_globals));
 }
