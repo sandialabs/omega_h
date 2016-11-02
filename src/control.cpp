@@ -55,7 +55,6 @@ extern "C" void Omega_h_finalize(void) {
     we_called_kokkos_init = false;
   }
 #endif
-#ifndef OMEGA_H_USE_KOKKOS
   std::size_t mem_used = Omega_h::get_max_bytes();
   std::size_t max_mem_used = mem_used;
 #ifdef OMEGA_H_USE_MPI
@@ -68,7 +67,6 @@ extern "C" void Omega_h_finalize(void) {
     printf("maximum Omega_h memory usage: %zu bytes\n", mem_used);
 #ifdef OMEGA_H_USE_MPI
   }
-#endif
 #endif
 #ifdef OMEGA_H_USE_MPI
   if (we_called_mpi_init) {

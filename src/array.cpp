@@ -5,7 +5,6 @@
 
 namespace Omega_h {
 
-#ifndef OMEGA_H_USE_KOKKOS
 static std::size_t current_array_bytes = 0;
 
 std::size_t get_current_bytes() { return current_array_bytes; }
@@ -13,7 +12,6 @@ std::size_t get_current_bytes() { return current_array_bytes; }
 static std::size_t max_array_bytes = 0;
 
 std::size_t get_max_bytes() { return max_array_bytes; }
-#endif
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
@@ -32,22 +30,29 @@ Write<T>::Write(LO size)
 #endif
       ,
       exists_(true) {
-#ifndef OMEGA_H_USE_KOKKOS
-  current_array_bytes += static_cast<std::size_t>(size);
+#ifdef OMEGA_H_USE_KOKKOS
+  current_array_bytes += view_.span() * sizeof(T);
+#else
+  current_array_bytes += static_cast<std::size_t>(size) * sizeof(T);
+#endif
   if (current_array_bytes > max_array_bytes) {
     max_array_bytes = current_array_bytes;
   }
-#endif
 }
 
-#ifndef OMEGA_H_USE_KOKKOS
 template <typename T>
 Write<T>::~Write() {
-  if (ptr_.unique()) {
-    current_array_bytes -= static_cast<std::size_t>(size_);
+#ifdef OMEGA_H_USE_KOKKOS
+  if (view_.use_count() == 1) {
+    CHECK(view_.span() == view_.size());
+    current_array_bytes -= view_.span() * sizeof(T);
   }
-}
+#else
+  if (ptr_.unique()) {
+    current_array_bytes -= static_cast<std::size_t>(size_) * sizeof(T);
+  }
 #endif
+}
 
 template <typename T>
 static void fill(Write<T> a, T val) {
