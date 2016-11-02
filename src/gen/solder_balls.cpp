@@ -1,5 +1,6 @@
 #include <gmodel.hpp>
 #include <cstdlib>
+#include <cstring>
 #include <sstream>
 
 static gmod::ObjPtr new_solder_ball(gmod::Vector center,
@@ -60,7 +61,6 @@ static gmod::ObjPtr solder_ball_top(gmod::ObjPtr solder_ball) {
 
 int main(int argc, char** argv) {
   int balls_per_side = 1;
-  if (argc == 2) balls_per_side = atoi(argv[1]);
   double length_unit = 1.0;
   double block_height = 1.2;
   double ball_height = 0.6;
@@ -70,6 +70,19 @@ int main(int argc, char** argv) {
   double inner_res = length_unit / 6.0;
   double edge_res = 0.06;
   double mid_res = 0.12;
+  const char* out_path = nullptr;
+  for (int i = 1; i < argc; ++i) {
+    if (!strcmp("-n", argv[i])) {
+      balls_per_side = atoi(argv[++i]);
+    } else
+    if (!strcmp("-u", argv[i])) {
+      inner_res = outer_res = edge_res = mid_res = atof(argv[++i]);
+      block_height = ball_height;
+    } else
+    if (!strcmp("-o", argv[i])) {
+      out_path = argv[++i];
+    }
+  }
   gmod::default_size = outer_res;
   auto bot_block = gmod::new_cube(
       gmod::Vector{0, 0, 0},
@@ -106,8 +119,12 @@ int main(int argc, char** argv) {
     gmod::add_to_group(model, sb);
   }
   std::stringstream stream;
-  stream << "solder_balls_" << balls_per_side
-    << "x" << balls_per_side << ".geo";
+  if (out_path) {
+    stream << out_path;
+  } else {
+    stream << "solder_balls_" << balls_per_side
+      << "x" << balls_per_side << ".geo";
+  }
   auto s = stream.str();
   gmod::write_closure_to_geo(model, s.c_str());
 }
