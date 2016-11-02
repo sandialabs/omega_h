@@ -65,7 +65,6 @@ int main(int argc, char** argv) {
   double block_height = 1.2;
   double ball_height = 0.6;
   double ball_diameter = 0.8;
-  double block_length = length_unit * balls_per_side;
   double outer_res = length_unit;
   double inner_res = length_unit / 6.0;
   double edge_res = 0.06;
@@ -83,6 +82,7 @@ int main(int argc, char** argv) {
       out_path = argv[++i];
     }
   }
+  double block_length = length_unit * balls_per_side;
   gmod::default_size = outer_res;
   auto bot_block = gmod::new_cube(
       gmod::Vector{0, 0, 0},
