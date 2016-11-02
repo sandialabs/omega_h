@@ -487,7 +487,7 @@ void Mesh::migrate(Remotes new_elems2old_owners, bool verbose) {
 
 void Mesh::reorder() { reorder_by_hilbert(this); }
 
-void Mesh::balance() {
+void Mesh::balance(bool predictive) {
   if (comm_->size() == 1) return;
   set_parting(OMEGA_H_ELEM_BASED);
   inertia::Rib hints;
@@ -495,7 +495,22 @@ void Mesh::balance() {
   auto ecoords =
       average_field(this, dim(), LOs(nelems(), 0, 1), dim(), coords());
   if (dim() == 2) ecoords = vectors_2d_to_3d(ecoords);
-  auto masses = Reals(nelems(), 1);
+  Reals masses;
+  if (predictive) {
+    if (has_tag(VERT, "size")) {
+      masses = expected_elems_per_elem_iso(this,
+          get_array<Real>(VERT, "size"));
+    } else if (has_tag(VERT, "metric")) {
+      masses = expected_elems_per_elem_metric(this,
+          get_array<Real>(VERT, "metric"));
+    }
+    /* average between input mesh weight (1.0)
+       and predicted output mesh weight */
+    masses = add_to_each(masses, 1.);
+    masses = multiply_each_by(1. / 2., masses);
+  } else {
+    masses = Reals(nelems(), 1);
+  }
   auto owners = ask_owners(dim());
   auto total = comm_->allreduce(GO(nelems()), OMEGA_H_SUM);
   auto avg = Real(total) / Real(comm_->size());
