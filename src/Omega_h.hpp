@@ -49,8 +49,8 @@ class Write {
   Write(LO size, T value);
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
-  Write(Write<T> const&) = default;
-  Write<T>& operator=(Write<T> const&) = default;
+  Write(Write<T> const& other);
+  Write<T>& operator=(Write<T> const&);
   ~Write();
   LO size() const;
   OMEGA_H_DEVICE T& operator[](LO i) const {
@@ -529,9 +529,9 @@ class Writer {
 
  public:
   Writer();
-  Writer(Writer const&) = default;
-  Writer& operator=(Writer const&) = default;
-  ~Writer() = default;
+  Writer(Writer const&);
+  Writer& operator=(Writer const&);
+  ~Writer();
   Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
   void write(Real time);
   void write();
@@ -540,10 +540,10 @@ class FullWriter {
   std::vector<Writer> writers_;
 
  public:
-  FullWriter() = default;
-  FullWriter(FullWriter const&) = default;
-  FullWriter& operator=(FullWriter const&) = default;
-  ~FullWriter() = default;
+  FullWriter();
+  FullWriter(FullWriter const&);
+  FullWriter& operator=(FullWriter const&);
+  ~FullWriter();
   FullWriter(Mesh* mesh, std::string const& root_path);
   void write(Real time);
   void write();

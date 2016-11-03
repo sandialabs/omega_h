@@ -55,6 +55,30 @@ Write<T>::~Write() {
 }
 
 template <typename T>
+Write<T>::Write(Write<T> const& other):
+#ifdef OMEGA_H_USE_KOKKOS
+  view_(other.view_),
+#else
+  ptr_(other.ptr_),
+  size_(other.size_),
+#endif
+  exists_(other.exists_)
+{
+}
+
+template <typename T>
+Write<T>& Write<T>::operator=(Write<T> const& other) {
+#ifdef OMEGA_H_USE_KOKKOS
+  view_ = other.view_;
+#else
+  ptr_ = other.ptr_;
+  size_ = other.size_;
+#endif
+  exists_ = other.exists_;
+  return *this;
+}
+
+template <typename T>
 static void fill(Write<T> a, T val) {
   auto f = LAMBDA(LO i) { a[i] = val; };
   parallel_for(a.size(), f);

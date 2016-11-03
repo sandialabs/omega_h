@@ -694,6 +694,26 @@ Writer::Writer()
       step_(-1),
       pvd_pos_(0) {}
 
+Writer::Writer(Writer const& other):
+  mesh_(other.mesh_),
+  root_path_(other.root_path_),
+  cell_dim_(other.cell_dim_),
+  step_(other.step_),
+  pvd_pos_(other.pvd_pos_) {
+}
+
+Writer& Writer::operator=(Writer const& other) {
+  mesh_ = other.mesh_;
+  root_path_ = other.root_path_;
+  cell_dim_ = other.cell_dim_;
+  step_ = other.step_;
+  pvd_pos_ = other.pvd_pos_;
+  return *this;
+}
+
+Writer::~Writer() {
+}
+
 Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim)
     : mesh_(mesh),
       root_path_(root_path),
@@ -721,6 +741,21 @@ void Writer::write(Real time) {
 }
 
 void Writer::write() { this->write(Real(step_)); }
+
+FullWriter::FullWriter() {
+}
+
+FullWriter::FullWriter(FullWriter const& other):
+  writers_(other.writers_) {
+}
+
+FullWriter& FullWriter::operator=(FullWriter const& other) {
+  writers_ = other.writers_;
+  return *this;
+}
+
+FullWriter::~FullWriter() {
+}
 
 FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
   auto comm = mesh->comm();
