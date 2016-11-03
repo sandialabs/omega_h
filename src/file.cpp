@@ -333,19 +333,19 @@ static void read_tag(
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array);
+    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
   } else {
     Omega_h_fail("unexpected tag type in binary read\n");
   }
@@ -434,7 +434,7 @@ static void write_nparts(std::string const& path, Mesh* mesh) {
   file << mesh->comm()->size() << '\n';
 }
 
-static I32 read_nparts(std::string const& path) {
+I32 read_nparts(std::string const& path) {
   auto filepath = path + "/nparts";
   std::ifstream file(filepath.c_str());
   if (!file.is_open()) {
@@ -460,7 +460,7 @@ void write(std::string const& path, Mesh* mesh) {
   write_nparts(path, mesh);
 }
 
-static void read2(std::string const& path, CommPtr comm, Mesh* mesh) {
+void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
   auto filepath = path + "/" + to_string(mesh->comm()->rank());
   std::ifstream file(filepath.c_str());
@@ -468,19 +468,20 @@ static void read2(std::string const& path, CommPtr comm, Mesh* mesh) {
   read(file, mesh);
 }
 
-void read(std::string const& path, CommPtr comm, Mesh* mesh) {
+Int read(std::string const& path, CommPtr comm, Mesh* mesh) {
   auto nparts = read_nparts(path);
   if (nparts > comm->size()) {
     Omega_h_fail(
         "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
         path.c_str(), nparts, comm->size());
   }
-  bool in_subcomm = (comm->rank() < nparts);
+  auto in_subcomm = (comm->rank() < nparts);
   auto subcomm = comm->split(I32(!in_subcomm), 0);
   if (in_subcomm) {
-    read2(path, subcomm, mesh);
+    read_in_comm(path, subcomm, mesh);
   }
   mesh->set_comm(comm);
+  return nparts;
 }
 
 #define INST(T)                                                                \

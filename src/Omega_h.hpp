@@ -49,6 +49,22 @@ class Write {
   Write(LO size, T value);
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
+  OMEGA_H_INLINE Write(Write<T> const& other)
+      :
+#ifdef OMEGA_H_USE_KOKKOS
+        view_(other.view_),
+#else
+        ptr_(other.ptr_),
+        size_(other.size_),
+#endif
+        exists_(other.exists_) {
+  }
+  Write<T>& operator=(Write<T> const&);
+  OMEGA_H_INLINE ~Write() {
+#ifndef __CUDA_ARCH__
+    dtor();
+#endif
+  }
   LO size() const;
   OMEGA_H_DEVICE T& operator[](LO i) const {
 #ifdef OMEGA_H_CHECK_BOUNDS
@@ -67,8 +83,19 @@ class Write {
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
-  OMEGA_H_INLINE bool exists() const { return exists_; }
+  OMEGA_H_INLINE bool exists() const {
+#ifdef OMEGA_H_USE_KOKKOS
+    OMEGA_H_CHECK((view_.use_count() != 0) == exists_);
+#endif
+    return exists_;
+  }
+
+ private:
+  void dtor();
 };
+
+std::size_t get_current_bytes();
+std::size_t get_max_bytes();
 
 template <typename T>
 OMEGA_H_INLINE Write<T>::Write()
@@ -398,9 +425,10 @@ class Mesh {
       Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);
   template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
-      Int outflags, Read<T> array);
+      Int outflags, Read<T> array, bool internal = false);
   template <typename T>
-  void set_tag(Int dim, std::string const& name, Read<T> array);
+  void set_tag(
+      Int dim, std::string const& name, Read<T> array, bool internal = false);
   TagBase const* get_tagbase(Int dim, std::string const& name) const;
   template <typename T>
   Tag<T> const* get_tag(Int dim, std::string const& name) const;
@@ -468,7 +496,7 @@ class Mesh {
   void set_parting(Omega_h_Parting parting, bool verbose = false);
   void migrate(Remotes new_elems2old_owners, bool verbose = false);
   void reorder();
-  void balance();
+  void balance(bool predictive = false);
   Graph ask_graph(Int from, Int to);
   template <typename T>
   Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
@@ -517,9 +545,9 @@ class Writer {
 
  public:
   Writer();
-  Writer(Writer const& other) = default;
-  Writer& operator=(Writer const& other) = default;
-  ~Writer() = default;
+  Writer(Writer const&);
+  Writer& operator=(Writer const&);
+  ~Writer();
   Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
   void write(Real time);
   void write();
@@ -528,10 +556,10 @@ class FullWriter {
   std::vector<Writer> writers_;
 
  public:
-  FullWriter() = default;
-  FullWriter(FullWriter const& other) = default;
-  FullWriter& operator=(FullWriter const& other) = default;
-  ~FullWriter() = default;
+  FullWriter();
+  FullWriter(FullWriter const&);
+  FullWriter& operator=(FullWriter const&);
+  ~FullWriter();
   FullWriter(Mesh* mesh, std::string const& root_path);
   void write(Real time);
   void write();
@@ -558,7 +586,9 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
-void read(std::string const& path, CommPtr comm, Mesh* mesh);
+Int read(std::string const& path, CommPtr comm, Mesh* mesh);
+I32 read_nparts(std::string const& path);
+void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
 Omega_h_Comparison compare_meshes(
@@ -599,6 +629,8 @@ void fix_momentum_velocity_verts(
 
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
+template <typename T>
+Read<T> multiply_each_by(T factor, Read<T> a);
 LOs collect_marked(Read<I8> marks);
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
@@ -668,6 +700,7 @@ bool ends_with(std::string const& s, std::string const& suffix);
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
   extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
+  extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
   extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \
@@ -686,9 +719,9 @@ bool ends_with(std::string const& s, std::string const& suffix);
   extern template void Mesh::add_tag<T>(                                       \
       Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-      Int ncomps, Int xfer, Int outflags, Read<T> array);                      \
+      Int ncomps, Int xfer, Int outflags, Read<T> array, bool internal);       \
   extern template void Mesh::set_tag(                                          \
-      Int dim, std::string const& name, Read<T> array);                        \
+      Int dim, std::string const& name, Read<T> array, bool internal);         \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
   extern template Read<T> Mesh::owned_array(                                   \
       Int ent_dim, Read<T> a, Int width);                                      \

@@ -275,7 +275,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   CHECK(lin_rep_counts.size() == nlins);
   auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
-  auto lin_global_offset = comm->exscan(lin_global_count, OMEGA_H_SUM);
+  GO lin_global_offset = comm->exscan<GO>(GO(lin_global_count), OMEGA_H_SUM);
   Write<GO> lin_globals(nlins);
   auto write_lin_globals = LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;

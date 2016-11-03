@@ -231,21 +231,21 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   auto size = mesh->nents(ent_dim) * ncomps;
   if (type == OMEGA_H_I8) {
     auto array = read_array<I8>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   } else if (type == OMEGA_H_I32) {
     auto array = read_array<I32>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   } else if (type == OMEGA_H_I64) {
     auto array = read_array<I64>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   } else {
     auto array =
         read_array<Real>(stream, size, is_little_endian, is_compressed);
-    mesh->add_tag(
-        ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, array);
+    mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, array, true);
   }
   auto et = xml::read_tag(stream);
   CHECK(et.elem_name == "DataArray");
@@ -502,7 +502,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   }
   build_from_elems2verts(mesh, comm, dim, ev2v, vert_globals);
   mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, coords);
+      OMEGA_H_DO_OUTPUT, coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
     ;
   CHECK(xml::read_tag(stream).elem_name == "CellData");
@@ -694,6 +694,24 @@ Writer::Writer()
       step_(-1),
       pvd_pos_(0) {}
 
+Writer::Writer(Writer const& other)
+    : mesh_(other.mesh_),
+      root_path_(other.root_path_),
+      cell_dim_(other.cell_dim_),
+      step_(other.step_),
+      pvd_pos_(other.pvd_pos_) {}
+
+Writer& Writer::operator=(Writer const& other) {
+  mesh_ = other.mesh_;
+  root_path_ = other.root_path_;
+  cell_dim_ = other.cell_dim_;
+  step_ = other.step_;
+  pvd_pos_ = other.pvd_pos_;
+  return *this;
+}
+
+Writer::~Writer() {}
+
 Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim)
     : mesh_(mesh),
       root_path_(root_path),
@@ -721,6 +739,17 @@ void Writer::write(Real time) {
 }
 
 void Writer::write() { this->write(Real(step_)); }
+
+FullWriter::FullWriter() {}
+
+FullWriter::FullWriter(FullWriter const& other) : writers_(other.writers_) {}
+
+FullWriter& FullWriter::operator=(FullWriter const& other) {
+  writers_ = other.writers_;
+  return *this;
+}
+
+FullWriter::~FullWriter() {}
 
 FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
   auto comm = mesh->comm();

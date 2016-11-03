@@ -1,5 +1,6 @@
 #include "transfer_conserve.hpp"
 
+#include "Omega_h_math.hpp"
 #include "Omega_h_r3d.hpp"
 #include "collapse.hpp"
 #include "graph.hpp"
@@ -73,7 +74,7 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
   auto new_coords = new_mesh->coords();
   auto measure = RealElementSizes(new_mesh);
   auto nkeys = keys2old_mat_elems.nnodes();
-  constexpr auto max_targets = AvgDegree<dim, 0, dim>::value * 2;
+  enum { max_targets = AvgDegree<dim, 0, dim>::value * 2 };
   auto f = LAMBDA(LO key) {
     auto kte_begin = keys2new_mat_elems.a2ab[key];
     auto kte_end = keys2new_mat_elems.a2ab[key + 1];

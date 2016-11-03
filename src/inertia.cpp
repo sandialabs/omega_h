@@ -131,7 +131,12 @@ Read<I8> mark_bisection_internal(CommPtr comm, Reals coords, Reals masses,
       return marked;
     }
   }
-  std::cerr << "omega_h warning: no good inertial bisection\n";
+  // even perturbation of the axis could not find a good
+  // cutting plane. warn the user of this failure, but continue
+  // with the axis that we have, because the cutting plane
+  // is still the best we could find.
+  // (to date I have not seen this happen, even with > 1 billion elements)
+  std::cerr << "Omega_h WARNING: no good inertial bisection\n";
   return marked;
 }
 

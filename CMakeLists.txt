@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 5.1.0 LANGUAGES CXX)
+project(Omega_h VERSION 5.2.0 LANGUAGES CXX)
 
 include(cmake/bob.cmake)
 
@@ -16,7 +16,6 @@ option(Omega_h_PROTECT "Catch OS signals and print stack" OFF)
 set(Gmsh_PREFIX "" CACHE PATH "Gmsh installation directory")
 option(Omega_h_ONE_FILE "Compile omega_h as a single file" OFF)
 message(STATUS "Omega_h_ONE_FILE: ${Omega_h_ONE_FILE}")
-set(MPIRUN "" CACHE FILEPATH "Location of mpirun")
 
 bob_begin_cxx_flags()
 bob_cxx11_flags()
@@ -31,7 +30,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   elseif(Omega_h_USE_OpenMP)
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
     set(FLAGS "${FLAGS} -fopenmp")
-  elseif(Omega_h_USE_PTHREAD)
+  elseif(Omega_h_USE_PTHREADS)
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
     set(FLAGS "${FLAGS} -pthread")
   else()
