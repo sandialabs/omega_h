@@ -55,15 +55,15 @@ Write<T>::~Write() {
 }
 
 template <typename T>
-Write<T>::Write(Write<T> const& other):
+Write<T>::Write(Write<T> const& other)
+    :
 #ifdef OMEGA_H_USE_KOKKOS
-  view_(other.view_),
+      view_(other.view_),
 #else
-  ptr_(other.ptr_),
-  size_(other.size_),
+      ptr_(other.ptr_),
+      size_(other.size_),
 #endif
-  exists_(other.exists_)
-{
+      exists_(other.exists_) {
 }
 
 template <typename T>
