@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "host_few.hpp"
 #include "access.hpp"
 #include "array.hpp"
 #include "loop.hpp"
@@ -86,17 +87,17 @@ Reals delinearize_metrics(Int dim, Reals linear_metrics) {
 }
 
 template <Int dim>
-static Few<Reals, dim> axes_from_metrics_dim(Reals metrics) {
+static HostFew<Reals, dim> axes_from_metrics_dim(Reals metrics) {
   CHECK(metrics.size() % symm_dofs(dim) == 0);
   auto n = metrics.size() / symm_dofs(dim);
-  Few<Write<Real>, dim> w;
+  HostFew<Write<Real>, dim> w;
   for (Int i = 0; i < dim; ++i) w[i] = Write<Real>(n * dim);
   auto f = LAMBDA(LO i) {
     auto md = decompose_metric(get_symm<dim>(metrics, i));
     for (Int j = 0; j < dim; ++j) set_vector(w[j], i, md.q[j] * md.l[j]);
   };
   parallel_for(n, f);
-  Few<Reals, dim> r;
+  HostFew<Reals, dim> r;
   for (Int i = 0; i < dim; ++i) r[i] = Reals(w[i]);
   return r;
 }

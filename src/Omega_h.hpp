@@ -49,9 +49,21 @@ class Write {
   Write(LO size, T value);
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
-  Write(Write<T> const& other);
+  OMEGA_H_INLINE Write(Write<T> const& other):
+#ifdef OMEGA_H_USE_KOKKOS
+      view_(other.view_),
+#else
+      ptr_(other.ptr_),
+      size_(other.size_),
+#endif
+      exists_(other.exists_) {
+  }
   Write<T>& operator=(Write<T> const&);
-  ~Write();
+  OMEGA_H_INLINE ~Write() {
+#ifndef __CUDA_ARCH__
+    dtor();
+#endif
+  }
   LO size() const;
   OMEGA_H_DEVICE T& operator[](LO i) const {
 #ifdef OMEGA_H_CHECK_BOUNDS
@@ -76,6 +88,8 @@ class Write {
 #endif
     return exists_;
   }
+ private:
+  void dtor();
 };
 
 std::size_t get_current_bytes();

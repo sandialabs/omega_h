@@ -41,7 +41,7 @@ Write<T>::Write(LO size)
 }
 
 template <typename T>
-Write<T>::~Write() {
+void Write<T>::dtor() {
 #ifdef OMEGA_H_USE_KOKKOS
   if (view_.use_count() == 1) {
     CHECK(view_.span() == view_.size());
@@ -52,18 +52,6 @@ Write<T>::~Write() {
     current_array_bytes -= static_cast<std::size_t>(size_) * sizeof(T);
   }
 #endif
-}
-
-template <typename T>
-Write<T>::Write(Write<T> const& other)
-    :
-#ifdef OMEGA_H_USE_KOKKOS
-      view_(other.view_),
-#else
-      ptr_(other.ptr_),
-      size_(other.size_),
-#endif
-      exists_(other.exists_) {
 }
 
 template <typename T>
