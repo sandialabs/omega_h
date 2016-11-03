@@ -49,14 +49,15 @@ class Write {
   Write(LO size, T value);
   Write(LO size, T offset, T stride);
   Write(HostWrite<T> host_write);
-  OMEGA_H_INLINE Write(Write<T> const& other):
+  OMEGA_H_INLINE Write(Write<T> const& other)
+      :
 #ifdef OMEGA_H_USE_KOKKOS
-      view_(other.view_),
+        view_(other.view_),
 #else
-      ptr_(other.ptr_),
-      size_(other.size_),
+        ptr_(other.ptr_),
+        size_(other.size_),
 #endif
-      exists_(other.exists_) {
+        exists_(other.exists_) {
   }
   Write<T>& operator=(Write<T> const&);
   OMEGA_H_INLINE ~Write() {
@@ -88,6 +89,7 @@ class Write {
 #endif
     return exists_;
   }
+
  private:
   void dtor();
 };

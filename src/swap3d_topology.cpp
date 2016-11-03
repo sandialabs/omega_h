@@ -37,8 +37,8 @@ HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
   return keys2prods;
 }
 
-HostFew<LOs, 4> swap3d_topology(
-    Mesh* mesh, LOs keys2edges, Read<I8> edge_configs, HostFew<LOs, 4> keys2prods) {
+HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
+    Read<I8> edge_configs, HostFew<LOs, 4> keys2prods) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;

@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-#include "host_few.hpp"
 #include "access.hpp"
 #include "array.hpp"
+#include "host_few.hpp"
 #include "loop.hpp"
 #include "project.hpp"
 #include "size.hpp"
