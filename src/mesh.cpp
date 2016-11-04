@@ -496,6 +496,7 @@ void Mesh::balance(bool predictive) {
       average_field(this, dim(), LOs(nelems(), 0, 1), dim(), coords());
   if (dim() == 2) ecoords = vectors_2d_to_3d(ecoords);
   Reals masses;
+  Real abs_tol;
   if (predictive) {
     if (has_tag(VERT, "size")) {
       masses = expected_elems_per_elem_iso(this, get_array<Real>(VERT, "size"));
@@ -507,13 +508,14 @@ void Mesh::balance(bool predictive) {
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);
     masses = multiply_each_by(1. / 2., masses);
+    abs_tol = comm_->allreduce(max2(0.0, max(masses)), OMEGA_H_MAX);
   } else {
     masses = Reals(nelems(), 1);
+    abs_tol = 1.0;
   }
+  abs_tol *= 2.0; // fudge factor ?
   auto owners = ask_owners(dim());
-  auto total = comm_->allreduce(GO(nelems()), OMEGA_H_SUM);
-  auto avg = Real(total) / Real(comm_->size());
-  hints = recursively_bisect(comm(), ecoords, masses, owners, 2.0 / avg, hints);
+  recursively_bisect(comm(), abs_tol, &ecoords, &masses, &owners, &hints);
   rib_hints_ = std::make_shared<inertia::Rib>(hints);
   migrate(owners);
 }

@@ -99,7 +99,7 @@ bool mark_axis_bisection(CommPtr comm, Reals distances, Reals masses,
   for (Int i = 0; i < MANTISSA_BITS; ++i) {
     marked = mark_half(distances, distance);
     auto half_weight = get_half_weight(comm, masses, marked);
-    if (are_close(half_weight, total_mass / 2., tolerance, 0.)) {
+    if (fabs(half_weight - (total_mass / 2.)) <= tolerance) {
       return true;
     }
     if (half_weight > total_mass / 2.) {
@@ -161,10 +161,14 @@ Read<I8> mark_bisection_given_axis(
       comm, coords, masses, tolerance, axis, center, total_mass);
 }
 
-Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
-    Remotes& owners, Real tolerance, Rib hints) {
+void recursively_bisect(CommPtr comm, Real tolerance, Reals* p_coords,
+    Reals* p_masses, Remotes* p_owners, Rib* p_hints) {
+  auto& coords = *p_coords;
+  auto& masses = *p_masses;
+  auto& owners = *p_owners;
+  auto& hints = *p_hints;
   if (comm->size() == 1) {
-    return Rib();
+    return;
   }
   CHECK(comm->size() % 2 == 0);
   Vector<3> axis;
@@ -183,9 +187,8 @@ Rib recursively_bisect(CommPtr comm, Reals& coords, Reals& masses,
   owners = dist.exch(owners, 1);
   auto halfsize = comm->size() / 2;
   comm = comm->split(comm->rank() / halfsize, comm->rank() % halfsize);
-  auto out = recursively_bisect(comm, coords, masses, owners, tolerance, hints);
-  out.axes.insert(out.axes.begin(), axis);
-  return out;
+  recursively_bisect(comm, tolerance, p_coords, p_masses, p_owners, p_hints);
+  hints.axes.insert(hints.axes.begin(), axis);
 }
 
 }  // end namespace inertia
