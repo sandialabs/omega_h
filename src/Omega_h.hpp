@@ -518,6 +518,7 @@ class Mesh {
   bool keeps_canonical_globals() const;
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
+  Real imbalance(Int ent_dim = -1) const;
 };
 
 #ifdef OMEGA_H_USE_MESHB

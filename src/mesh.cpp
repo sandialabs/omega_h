@@ -653,6 +653,17 @@ Mesh::RibPtr Mesh::rib_hints() const { return rib_hints_; }
 
 void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
 
+Real Mesh::imbalance(Int ent_dim) const {
+  if (ent_dim == -1) ent_dim = this->dim();
+  auto local = Real(this->nents(ent_dim));
+  auto s = comm_->allreduce(local, OMEGA_H_SUM);
+  if (!s) return 1.0;
+  auto m = comm_->allreduce(local, OMEGA_H_MAX);
+  auto n = comm_->size();
+  auto a = s / n;
+  return m / a;
+}
+
 #define INST_T(T)                                                              \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \
