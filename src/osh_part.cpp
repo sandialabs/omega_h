@@ -56,7 +56,9 @@ int main(int argc, char** argv) {
   }
   world->barrier();
   auto t1 = Omega_h::now();
+  auto imb = mesh.imbalance();
   if (!world->rank()) {
     std::cout << "repartitioning took " << (t1 - t0) << " seconds\n";
+    std::cout << "imbalance is " << imb << "\n";
   }
 }
