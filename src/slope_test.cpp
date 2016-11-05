@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
   char const* path_out = nullptr;
   char const* vtk_path = nullptr;
   bool usage = false;
-  for (int i = 0; i < argc; ++i) {
+  for (int i = 1; i < argc; ++i) {
     if (!strcmp("-g", argv[i])) {
       if (i == argc - 1) {
         std::cout << " -g takes an argument\n";
