@@ -45,20 +45,22 @@ int main(int argc, char** argv) {
     auto minz = bb.min[dim - 1];
     auto maxz = bb.max[dim - 1];
     auto z_norm = (z * 2.0 / (maxz - minz)) - 1.0;
-    auto bot_h = -z_norm + 1.0;
-    auto top_h = z_norm + 1.0;
+    auto bot_h = -2.0 * z_norm + 1.0;
+    auto top_h = 2.0 * z_norm + 1.0;
     auto h = Omega_h::max2(bot_h, top_h);
     analytic_size_w[v] = h;
   };
   Omega_h::parallel_for(mesh.nverts(), f);
   auto analytic_size = Omega_h::Reals(analytic_size_w);
+  Omega_h::vtk::Writer writer;
+  if (vtk_path) writer = Omega_h::vtk::Writer(&mesh, vtk_path, dim);
+  mesh.add_tag(
+      Omega_h::VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, analytic_size);
+  if (vtk_path) writer.write();
   auto scalar =
       Omega_h::size_scalar_for_nelems(&mesh, analytic_size, target_nelems);
   auto scaled_size = Omega_h::multiply_each_by(scalar, analytic_size);
-  mesh.add_tag(
-      Omega_h::VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, scaled_size);
-  Omega_h::vtk::Writer writer;
-  if (vtk_path) writer = Omega_h::vtk::Writer(&mesh, vtk_path, dim);
+  mesh.set_tag(Omega_h::VERT, "size", scaled_size);
   if (!mesh.comm()->rank()) std::cout << "imbalance on input " << mesh.imbalance() << '\n';
   if (vtk_path) writer.write();
   mesh.balance(true);
