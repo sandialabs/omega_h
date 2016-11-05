@@ -260,6 +260,7 @@ if(BUILD_TESTING)
   if(Omega_h_USE_Meshb)
     osh_add_exe(ugawg)
   endif()
+  osh_add_exe(slope_test)
 endif()
 
 set(DEF_VARS
