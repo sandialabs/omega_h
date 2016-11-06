@@ -262,14 +262,17 @@ static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
   I32 comm_rank;
   read_value(stream, comm_rank);
   CHECK(mesh->comm()->rank() == comm_rank);
-  I8 parting;
-  read_value(stream, parting);
+  I8 parting_i8;
+  read_value(stream, parting_i8);
+  CHECK(parting_i8 == I8(OMEGA_H_ELEM_BASED) ||
+        parting_i8 == I8(OMEGA_H_GHOSTED) ||
+        parting_i8 == I8(OMEGA_H_VERT_BASED));
   if (version >= 3) {
     I32 nghost_layers;
     read_value(stream, nghost_layers);
-    mesh->set_parting(Omega_h_Parting(parting), nghost_layers, false);
+    mesh->set_parting(Omega_h_Parting(parting_i8), nghost_layers, false);
   } else {
-    mesh->set_parting(Omega_h_Parting(parting));
+    mesh->set_parting(Omega_h_Parting(parting_i8));
   }
   I8 have_hints;
   read_value(stream, have_hints);
