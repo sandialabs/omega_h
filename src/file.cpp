@@ -445,6 +445,9 @@ I32 read_nparts(std::string const& path) {
   }
   I32 nparts;
   file >> nparts;
+  if (!file) {
+    Omega_h_fail("could not read file \"%s\"\n", filepath.c_str());
+  }
   return nparts;
 }
 
@@ -461,6 +464,7 @@ void write(std::string const& path, Mesh* mesh) {
   CHECK(file.is_open());
   write(file, mesh);
   write_nparts(path, mesh);
+  mesh->comm()->barrier();
 }
 
 void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh) {
