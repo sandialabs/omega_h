@@ -207,6 +207,25 @@ static void test_read_vtu(Library* lib, CommPtr comm) {
   CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, false));
 }
 
+static void test_binary_io(Library* lib, CommPtr comm) {
+  Mesh mesh0(lib);
+  if (comm->rank() == 0) {
+    build_box(&mesh0, 1, 1, 0, 4, 4, 0);
+  }
+  mesh0.set_comm(comm);
+  mesh0.balance();
+  mesh0.set_parting(OMEGA_H_ELEM_BASED);
+  binary::write("mpi_test_elem_based.osh", &mesh0);
+  Mesh mesh1(lib);
+  binary::read("mpi_test_elem_based.osh", comm, &mesh1);
+  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, true));
+  mesh0.set_parting(OMEGA_H_GHOSTED);
+  binary::write("mpi_test_ghosted.osh", &mesh0);
+  Mesh mesh2(lib);
+  binary::read("mpi_test_ghosted.osh", comm, &mesh2);
+  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh2, 0.0, 0.0, true, true));
+}
+
 static void test_two_ranks(Library* lib, CommPtr comm) {
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
@@ -215,6 +234,7 @@ static void test_two_ranks(Library* lib, CommPtr comm) {
   test_resolve_derived(comm);
   test_construct(lib, comm);
   test_read_vtu(lib, comm);
+  test_binary_io(lib, comm);
 }
 
 static void test_rib(CommPtr comm) {
