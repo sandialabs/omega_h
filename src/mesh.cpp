@@ -20,10 +20,11 @@
 
 namespace Omega_h {
 
-Mesh::Mesh(Library* library) : dim_(-1) {
+Mesh::Mesh(Library* library) {
+  dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
-  parting_ = OMEGA_H_ELEM_BASED;
-  nghost_layers_ = 0;
+  parting_ = -1;
+  nghost_layers_ = -1;
   keeps_canonical_globals_ = true;
   CHECK(library != nullptr);
   library_ = library;
