@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
   auto opts = Omega_h::AdaptOpts(&mesh);
   opts.verbosity = Omega_h::EXTRA_STATS;
   Omega_h::adapt(&mesh, opts);
+  mesh.set_parting(OMEGA_H_ELEM_BASED);
   mesh.remove_tag(Omega_h::VERT, "size");
   Omega_h::binary::write(path_out, &mesh);
 }
