@@ -1,7 +1,8 @@
 #include "protect.hpp"
 
 #include <csignal>
-#include <cstdio>
+#include <iostream>
+#include <sstream>
 
 #include "stacktrace.hpp"
 
@@ -28,10 +29,13 @@ void osh_signal_handler(int s) {
   static volatile sig_atomic_t already_dying = 0;
   if (already_dying) return;
   already_dying = 1;
+  std::stringstream ss;
   for (int i = 0; i < NSIGS; ++i)
     if (s == known_signals[i].code)
-      fprintf(stderr, "omega_h caught %s\n", known_signals[i].name);
-  print_stacktrace();
+      ss << "Omega_h caught " << known_signals[i].name << "\n";
+  print_stacktrace(ss, 64);
+  auto str = ss.str();
+  std::cerr << str;
   signal(s, SIG_DFL);
   ::raise(s);
 }

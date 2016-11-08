@@ -79,6 +79,7 @@ set(Omega_h_SOURCES
   overshoot.cpp
   collapse_rail.cpp
   histogram.cpp
+  stacktrace.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)
