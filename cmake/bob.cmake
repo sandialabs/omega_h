@@ -23,7 +23,7 @@ macro(bob_begin_package)
     message(STATUS "${PROJECT_NAME}_VERSION: ${${PROJECT_NAME}_VERSION}")
   endif()
   #try to force BUILD_TESTING to be OFF by default
-  set(BUILD_TESTING OFF CACHE STRING "Build and run tests")
+  set(BUILD_TESTING OFF BOOL STRING "Build and run tests")
   include(CTest)
   enable_testing()
   option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
