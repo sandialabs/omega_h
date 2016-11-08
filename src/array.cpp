@@ -15,7 +15,7 @@ std::size_t get_max_bytes() { return max_array_bytes; }
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {}
+Write<T>::Write(Kokkos::View<T*> view) : view_(view) {}
 #endif
 
 template <typename T>
@@ -28,8 +28,7 @@ Write<T>::Write(LO size)
       ptr_(new T[size], std::default_delete<T[]>()),
       size_(size)
 #endif
-      ,
-      exists_(true) {
+      {
 #ifdef OMEGA_H_USE_KOKKOS
   current_array_bytes += view_.span() * sizeof(T);
 #else
@@ -62,7 +61,6 @@ Write<T>& Write<T>::operator=(Write<T> const& other) {
   ptr_ = other.ptr_;
   size_ = other.size_;
 #endif
-  exists_ = other.exists_;
   return *this;
 }
 

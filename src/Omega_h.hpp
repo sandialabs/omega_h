@@ -36,9 +36,6 @@ class Write {
   std::shared_ptr<T> ptr_;
   LO size_;
 #endif
-  /* separate boolean instead of data()==nullptr,
-     see Kokkos issue #244 */
-  bool exists_;
 
  public:
   OMEGA_H_INLINE Write();
@@ -52,12 +49,12 @@ class Write {
   OMEGA_H_INLINE Write(Write<T> const& other)
       :
 #ifdef OMEGA_H_USE_KOKKOS
-        view_(other.view_),
+        view_(other.view_)
 #else
         ptr_(other.ptr_),
-        size_(other.size_),
+        size_(other.size_)
 #endif
-        exists_(other.exists_) {
+  {
   }
   Write<T>& operator=(Write<T> const&);
   OMEGA_H_INLINE ~Write() {
@@ -85,9 +82,10 @@ class Write {
   T get(LO i) const;
   OMEGA_H_INLINE bool exists() const {
 #ifdef OMEGA_H_USE_KOKKOS
-    OMEGA_H_CHECK((view_.use_count() != 0) == exists_);
+    return view_.use_count() != 0;
+#else
+    return ptr_.use_count() != 0;
 #endif
-    return exists_;
   }
 
  private:
@@ -106,8 +104,7 @@ OMEGA_H_INLINE Write<T>::Write()
       ptr_(),
       size_(0)
 #endif
-      ,
-      exists_(false) {
+{
 }
 
 template <typename T>
