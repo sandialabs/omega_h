@@ -660,7 +660,7 @@ Real Mesh::imbalance(Int ent_dim) const {
   if (ent_dim == -1) ent_dim = this->dim();
   auto local = Real(this->nents(ent_dim));
   auto s = comm_->allreduce(local, OMEGA_H_SUM);
-  if (!s) return 1.0;
+  if (s == 0.0) return 1.0;
   auto m = comm_->allreduce(local, OMEGA_H_MAX);
   auto n = comm_->size();
   auto a = s / n;
