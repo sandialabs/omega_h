@@ -64,7 +64,7 @@ extern "C" void Omega_h_finalize(void) {
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   if (rank == 0) {
 #endif
-    printf("maximum Omega_h memory usage: %zu bytes\n", mem_used);
+    printf("maximum Omega_h memory usage: %zu bytes\n", max_mem_used);
 #ifdef OMEGA_H_USE_MPI
   }
 #endif
