@@ -29,11 +29,7 @@ Write<T>::Write(LO size)
       size_(size)
 #endif
       {
-#ifdef OMEGA_H_USE_KOKKOS
-  current_array_bytes += view_.span() * sizeof(T);
-#else
-  current_array_bytes += static_cast<std::size_t>(size) * sizeof(T);
-#endif
+  current_array_bytes += bytes();
   if (current_array_bytes > max_array_bytes) {
     max_array_bytes = current_array_bytes;
   }
@@ -41,16 +37,9 @@ Write<T>::Write(LO size)
 
 template <typename T>
 void Write<T>::dtor() {
-#ifdef OMEGA_H_USE_KOKKOS
-  if (view_.use_count() == 1) {
-    CHECK(view_.span() == view_.size());
-    current_array_bytes -= view_.span() * sizeof(T);
+  if (use_count() == 1) {
+    current_array_bytes -= bytes();
   }
-#else
-  if (ptr_.unique()) {
-    current_array_bytes -= static_cast<std::size_t>(size_) * sizeof(T);
-  }
-#endif
 }
 
 template <typename T>
@@ -97,6 +86,11 @@ LO Write<T>::size() const {
 #else
   return size_;
 #endif
+}
+
+template <typename T>
+std::size_t Write<T>::bytes() const {
+  return static_cast<std::size_t>(size()) * sizeof(T);
 }
 
 /* Several C libraries including ZLib and

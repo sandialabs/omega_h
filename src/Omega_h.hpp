@@ -80,13 +80,17 @@ class Write {
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
-  OMEGA_H_INLINE bool exists() const {
+  OMEGA_H_INLINE long use_count() const {
 #ifdef OMEGA_H_USE_KOKKOS
-    return view_.use_count() != 0;
+    return view_.use_count();
 #else
-    return ptr_.use_count() != 0;
+    return ptr_.use_count();
 #endif
   }
+  OMEGA_H_INLINE bool exists() const {
+    return use_count() != 0;
+  }
+  std::size_t bytes() const;
 
  private:
   void dtor();
