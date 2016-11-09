@@ -14,6 +14,8 @@ static bool we_called_mpi_init = false;
 static bool we_called_kokkos_init = false;
 #endif
 
+}
+
 extern "C" void Omega_h_init_internal(
     int* argc, char*** argv, char const* head_desc) {
   std::string lib_desc = OMEGA_H_VERSION;
@@ -30,7 +32,7 @@ extern "C" void Omega_h_init_internal(
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
   if (!mpi_is_init) {
     CHECK(MPI_SUCCESS == MPI_Init(argc, argv));
-    we_called_mpi_init = true;
+    Omega_h::we_called_mpi_init = true;
   }
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
@@ -38,7 +40,7 @@ extern "C" void Omega_h_init_internal(
     CHECK(argc != nullptr);
     CHECK(argv != nullptr);
     Kokkos::initialize(*argc, *argv);
-    we_called_kokkos_init = true;
+    Omega_h::we_called_kokkos_init = true;
   }
 #endif
   (void)argc;
@@ -52,7 +54,7 @@ extern "C" void Omega_h_finalize(void) {
 #ifdef OMEGA_H_USE_KOKKOS
   if (we_called_kokkos_init) {
     Kokkos::finalize();
-    we_called_kokkos_init = false;
+    Omega_h::we_called_kokkos_init = false;
   }
 #endif
   std::size_t mem_used = Omega_h::get_max_bytes();
@@ -69,9 +71,9 @@ extern "C" void Omega_h_finalize(void) {
   }
 #endif
 #ifdef OMEGA_H_USE_MPI
-  if (we_called_mpi_init) {
+  if (Omega_h::we_called_mpi_init) {
     CHECK(MPI_SUCCESS == MPI_Finalize());
-    we_called_mpi_init = false;
+    Omega_h::we_called_mpi_init = false;
   }
 #endif
 }
@@ -92,6 +94,8 @@ extern "C" void Omega_h_fail(char const* format, ...) {
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
+
+namespace Omega_h {
 
 Library::~Library() { Omega_h_finalize(); }
 
