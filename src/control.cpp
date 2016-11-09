@@ -9,6 +9,7 @@
 
 namespace Omega_h {
 bool should_log_memory = false;
+char* max_memory_stacktrace = nullptr;
 }
 
 namespace {
@@ -93,6 +94,7 @@ extern "C" void Omega_h_finalize(void) {
     Omega_h::we_called_mpi_init = false;
   }
 #endif
+  delete [] Omega_h::max_memory_stacktrace;
 }
 
 #ifdef __clang__

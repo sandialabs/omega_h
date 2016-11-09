@@ -1,7 +1,12 @@
 #include "array.hpp"
 
+#include <cstring>
+#include <sstream>
+
 #include "algebra.hpp"
+#include "control.hpp"
 #include "loop.hpp"
+#include "stacktrace.hpp"
 
 namespace Omega_h {
 
@@ -32,6 +37,15 @@ Write<T>::Write(LO size)
   current_array_bytes += bytes();
   if (current_array_bytes > max_array_bytes) {
     max_array_bytes = current_array_bytes;
+    if (should_log_memory) {
+      delete [] max_memory_stacktrace;
+      max_memory_stacktrace = nullptr;
+      std::stringstream ss;
+      print_stacktrace(ss, 64);
+      auto s = ss.str();
+      max_memory_stacktrace = new char[s.length() + 1];
+      strcpy(max_memory_stacktrace, s.c_str());
+    }
   }
 }
 
