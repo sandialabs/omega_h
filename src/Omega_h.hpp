@@ -279,8 +279,6 @@ class Comm {
   Comm(bool is_graph, bool sends_to_self);
 #endif
   ~Comm();
-  static CommPtr world();
-  static CommPtr self();
   I32 rank() const;
   I32 size() const;
   CommPtr dup() const;
@@ -388,11 +386,35 @@ void find_matches(
 
 class Library {
  public:
-  Library(Library const&) {}
-  inline Library(int* argc, char*** argv) { Omega_h_init(argc, argv); }
+  Library(Library const&);
+  inline Library(int* argc, char*** argv
+#ifdef OMEGA_H_USE_MPI
+      , MPI_Comm comm_mpi = MPI_COMM_WORLD
+#endif
+      ) {
+    initialize(OMEGA_H_VERSION, argc, argv
+#ifdef OMEGA_H_USE_MPI
+        , comm_mpi
+#endif
+        );
+  }
   ~Library();
   CommPtr world() const;
   CommPtr self() const;
+ private:
+  void initialize(char const* head_desc, int* argc, char*** argv
+#ifdef OMEGA_H_USE_MPI
+      , MPI_Comm comm_mpi
+#endif
+      );
+  CommPtr world_;
+  CommPtr self_;
+#ifdef OMEGA_H_USE_MPI
+  bool we_called_mpi_init = false;
+#endif
+#ifdef OMEGA_H_USE_KOKKOS
+  bool we_called_kokkos_init = false;
+#endif
 };
 
 namespace inertia {

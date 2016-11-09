@@ -570,10 +570,10 @@ static void test_expand() {
   CHECK(expand(data, fan, 1) == Reals({2.2, 2.2, 3.14, 42.0, 42.0, 42.0}));
 }
 
-static void test_inertial_bisect() {
+static void test_inertial_bisect(Library const* lib) {
   Reals coords({2, 1, 0, 2, -1, 0, -2, 1, 0, -2, -1, 0});
   Reals masses(4, 1);
-  auto self = Comm::self();
+  auto self = lib->self();
   Real tolerance = 0.0;
   Vector<3> axis;
   auto marked = inertia::mark_bisection(self, coords, masses, tolerance, axis);
@@ -692,7 +692,7 @@ static void test_file(Library* lib, Mesh* mesh0) {
   std::stringstream stream;
   binary::write(stream, mesh0);
   Mesh mesh1(lib);
-  mesh1.set_comm(Comm::self());
+  mesh1.set_comm(lib->self());
   binary::read(stream, &mesh1);
   mesh1.set_comm(lib->world());
   compare_meshes(mesh0, &mesh1, 0, 0, true, true);
@@ -889,7 +889,7 @@ int main(int argc, char** argv) {
   test_file_components();
   test_linpart();
   test_expand();
-  test_inertial_bisect();
+  test_inertial_bisect(&lib);
   test_average_field(&lib);
   test_positivize();
   test_refine_qualities(&lib);

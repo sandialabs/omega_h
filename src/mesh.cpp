@@ -39,7 +39,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
     // partitioning out from small sub-communicator to larger one
     if (!rank_had_comm) {
       // temporarily set the uninit ranks to Comm::self()
-      comm_ = Comm::self();
+      comm_ = library_->self();
     } else {
       /* forget RIB hints. this prevents some ranks from
          having hints while the new ranks do not, which would
