@@ -2,6 +2,7 @@
 
 #include <cstdarg>
 #include <sstream>
+#include <iostream>
 
 #include "comm.hpp"
 #include "internal.hpp"
@@ -109,7 +110,8 @@ Library::~Library() {
       world_->rank() : world_->size();
     max_mem_rank = world_->allreduce(max_mem_rank, OMEGA_H_MIN);
     if (world_->rank() == max_mem_rank) {
-      printf("maximum Omega_h memory usage: %zu bytes\n", max_mem_used);
+      std::cout << "maximum Omega_h memory usage: " << mem_used << '\n';
+      std::cout << Omega_h::max_memory_stacktrace;
     }
   }
 #ifdef OMEGA_H_USE_MPI
