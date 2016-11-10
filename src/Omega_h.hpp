@@ -59,7 +59,7 @@ class Write {
   Write<T>& operator=(Write<T> const&);
   OMEGA_H_INLINE ~Write() {
 #ifndef __CUDA_ARCH__
-    dtor();
+    check_release();
 #endif
   }
   LO size() const;
@@ -93,7 +93,7 @@ class Write {
   std::size_t bytes() const;
 
  private:
-  void dtor();
+  void check_release() const;
 };
 
 std::size_t get_current_bytes();

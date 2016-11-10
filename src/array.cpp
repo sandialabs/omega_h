@@ -50,7 +50,7 @@ Write<T>::Write(LO size)
 }
 
 template <typename T>
-void Write<T>::dtor() {
+void Write<T>::check_release() const {
   if (use_count() == 1) {
     current_array_bytes -= bytes();
   }
@@ -58,6 +58,7 @@ void Write<T>::dtor() {
 
 template <typename T>
 Write<T>& Write<T>::operator=(Write<T> const& other) {
+  check_release();
 #ifdef OMEGA_H_USE_KOKKOS
   view_ = other.view_;
 #else
