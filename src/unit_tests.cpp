@@ -906,4 +906,5 @@ int main(int argc, char** argv) {
   test_sf_scale(&lib);
   test_buffered_conflict(&lib);
   test_categorize_graph();
+  CHECK(get_current_bytes() == 0);
 }
