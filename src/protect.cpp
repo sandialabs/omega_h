@@ -8,19 +8,28 @@
 
 namespace Omega_h {
 
-#define NSIGS 6
-
 void osh_signal_handler(int s);
 
 static struct {
   int code;
   const char* name;
-} const known_signals[NSIGS] = {{SIGTERM, "termination"}, {SIGABRT, "abort"},
-    {SIGSEGV, "segmentation fault"}, {SIGINT, "interrupt"},
-    {SIGILL, "illegal instruction"}, {SIGFPE, "floating point exception"}};
+} const known_signals[] = {
+  {SIGSYS, "bad system call"},
+  {SIGTSTP, "terminal stop"},
+  {SIGQUIT, "quit"},
+  {SIGHUP, "hangup"},
+  {SIGABRT, "abort"},
+  {SIGTERM, "termination"},
+  {SIGSEGV, "segmentation fault"},
+  {SIGINT, "interrupt"},
+  {SIGILL, "illegal instruction"},
+  {SIGFPE, "floating point exception"}
+};
+
+#define NSIGS (sizeof(known_signals)/sizeof(known_signals[0]))
 
 void protect() {
-  for (int i = 0; i < NSIGS; ++i) {
+  for (size_t i = 0; i < NSIGS; ++i) {
     signal(known_signals[i].code, osh_signal_handler);
   }
 }
@@ -30,9 +39,9 @@ void osh_signal_handler(int s) {
   if (already_dying) return;
   already_dying = 1;
   std::stringstream ss;
-  for (int i = 0; i < NSIGS; ++i)
+  for (size_t i = 0; i < NSIGS; ++i)
     if (s == known_signals[i].code)
-      ss << "Omega_h caught " << known_signals[i].name << "\n";
+      ss << "Omega_h caught signal: " << known_signals[i].name << "\n";
   print_stacktrace(ss, 64);
   auto str = ss.str();
   std::cerr << str;
