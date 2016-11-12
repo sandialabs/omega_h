@@ -56,6 +56,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     Omega_h_fail("%s\n", msg_str.c_str());
   }
   Omega_h::should_log_memory = remove_flag(argc, argv, "--osh-log-mem");
+  bool should_protect = remove_flag(argc, argv, "--osh-protect");
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
@@ -78,9 +79,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_kokkos_init = true;
   }
 #endif
-#ifdef OMEGA_H_PROTECT
-  protect();
-#endif
+  if (should_protect) protect();
 }
 
 Library::Library(Library const& other):
@@ -132,7 +131,7 @@ CommPtr Library::self() {
 #ifdef OMEGA_H_USE_MPI
   if (!self_) {
     MPI_Comm self_dup;
-    MPI_Comm_dup(MPI_COMM_WORLD, &self_dup);
+    MPI_Comm_dup(MPI_COMM_SELF, &self_dup);
     self_ = CommPtr(new Comm(self_dup));
   }
 #endif
