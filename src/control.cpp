@@ -64,7 +64,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_mpi_init = true;
   }
   MPI_Comm world_dup;
-  MPI_Comm_dup(MPI_COMM_WORLD, &world_dup);
+  MPI_Comm_dup(comm_mpi, &world_dup);
   world_ = CommPtr(new Comm(world_dup));
 #else
   world_ = CommPtr(new Comm());
@@ -114,6 +114,9 @@ Library::~Library() {
       std::cout << Omega_h::max_memory_stacktrace;
     }
   }
+  // need to destroy all Comm objects prior to MPI_Finalize()
+  world_ = CommPtr();
+  self_ = CommPtr();
 #ifdef OMEGA_H_USE_MPI
   if (we_called_mpi_init) {
     CHECK(MPI_SUCCESS == MPI_Finalize());
@@ -123,9 +126,9 @@ Library::~Library() {
   delete [] Omega_h::max_memory_stacktrace;
 }
 
-CommPtr Library::world() const { return world_; }
+CommPtr Library::world() { return world_; }
 
-CommPtr Library::self() const {
+CommPtr Library::self() {
 #ifdef OMEGA_H_USE_MPI
   if (!self_) {
     MPI_Comm self_dup;

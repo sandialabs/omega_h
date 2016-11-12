@@ -570,7 +570,7 @@ static void test_expand() {
   CHECK(expand(data, fan, 1) == Reals({2.2, 2.2, 3.14, 42.0, 42.0, 42.0}));
 }
 
-static void test_inertial_bisect(Library const* lib) {
+static void test_inertial_bisect(Library* lib) {
   Reals coords({2, 1, 0, 2, -1, 0, -2, 1, 0, -2, -1, 0});
   Reals masses(4, 1);
   auto self = lib->self();

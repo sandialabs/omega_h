@@ -399,8 +399,8 @@ class Library {
         );
   }
   ~Library();
-  CommPtr world() const;
-  CommPtr self() const;
+  CommPtr world();
+  CommPtr self();
  private:
   void initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
