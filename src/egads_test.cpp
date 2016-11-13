@@ -57,8 +57,9 @@ int main(int argc, char** argv) {
   EG_free(edges);
   int nverts;
   ego* verts;
-  CALL(EG_getBodyTopos(body, nullptr, EDGE, &nverts, &verts));
+  CALL(EG_getBodyTopos(body, nullptr, NODE, &nverts, &verts));
   printf("first body has %d verts\n", nverts);
   EG_free(verts);
+  CALL(EG_deleteObject(model));
   CALL(EG_close(context));
 }
