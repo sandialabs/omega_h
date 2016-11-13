@@ -16,6 +16,8 @@ option(Omega_h_PROTECT "Catch OS signals and print stack" OFF)
 set(Gmsh_PREFIX "" CACHE PATH "Gmsh installation directory")
 option(Omega_h_ONE_FILE "Compile omega_h as a single file" OFF)
 message(STATUS "Omega_h_ONE_FILE: ${Omega_h_ONE_FILE}")
+option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
+set(EGADS_PREFIX "" CACHE PATH "EGADS (or ESP) installation directory")
 
 bob_begin_cxx_flags()
 bob_cxx11_flags()

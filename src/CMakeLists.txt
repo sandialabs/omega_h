@@ -99,10 +99,6 @@ else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
 
-if(Omega_h_USE_Meshb)
-  target_link_libraries(omega_h PUBLIC Meshb::meshb)
-endif()
-
 target_include_directories(omega_h
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 #for users to find all our headers after we're installed:
@@ -110,6 +106,38 @@ target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
 #find our generated omega_h_config.h, during build only
 target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
+if(Omega_h_USE_Meshb)
+  target_link_libraries(omega_h PUBLIC Meshb::meshb)
+endif()
+
+if(Omega_h_USE_EGADS)
+  message(STATUS "Omega_h_USE_EGADS: ${Omega_h_USE_EGADS}")
+  if(NOT EGADS_PREFIX)
+    message(FATAL_ERROR "Omega_h_USE_EGADS=${Omega_h_USE_EGADS} but EGADS_PREFIX not set!")
+  endif()
+  find_path(EGADS_INCLUDE_DIR NAMES egads.h
+      PATHS
+      "${EGADS_PREFIX}/EngSketchPad/include"
+      "${EGADS_PREFIX}/include"
+      NO_DEFAULT_PATH)
+  if(NOT EGADS_INCLUDE_DIR)
+    message(FATAL_ERROR "could not find path to \"egads.h\"")
+  endif()
+  find_library(EGADS_LIBRARY NAMES egads
+      PATHS
+#      "${EGADS_PREFIX}/OpenCASCADE-6.6.0/i686/lib"
+      "${EGADS_PREFIX}/EngSketchPad/lib"
+      NO_DEFAULT_PATH)
+  if(NOT EGADS_LIBRARY)
+    message(FATAL_ERROR "could not find EGADS_LIBRARY")
+  endif()
+  message(STATUS "EGADS_INCLUDE_DIR: ${EGADS_INCLUDE_DIR}")
+  message(STATUS "EGADS_LIBRARY: ${EGADS_LIBRARY}")
+  target_include_directories(omega_h PRIVATE "${EGADS_INCLUDE_DIR}")
+  target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
+endif()
+
 bob_export_target(omega_h)
 
 set(Omega_h_USE_Kokkos_DEFAULT OFF)
