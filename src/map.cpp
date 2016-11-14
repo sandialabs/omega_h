@@ -232,6 +232,8 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
       return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
     case OMEGA_H_SUM:
       return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
+    case OMEGA_H_BIT_OR:
+      return fan_reduce_tmpl<BitOrFunctor<T>>(a2b, b_data, width);
   }
   NORETURN(Read<T>());
 }

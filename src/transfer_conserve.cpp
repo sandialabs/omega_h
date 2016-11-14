@@ -175,12 +175,19 @@ bool needs_buffer_layers(Mesh* mesh) {
   return false;
 }
 
-void fix_momentum_velocity_verts(
-    Mesh* mesh, std::vector<Int> class_dims, std::vector<I32> class_ids) {
-  for (Int dim = 0; dim <= mesh->dim(); ++dim) {
-    auto marks = mark_class_closures(mesh, dim, class_dims, class_ids);
-    mesh->add_tag(dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
-        OMEGA_H_DO_OUTPUT, marks);
+void fix_momentum_velocity_verts(Mesh* mesh, Int class_dim, I32 class_id,
+    Int comp) {
+  for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
+    auto ent_marks = mark_class_closure(mesh, ent_dim, class_dim, class_id);
+    auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
+    if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
+      auto old_marks = mesh->get_array<I8>(ent_dim, "momentum_velocity_fixed");
+      auto new_marks = bit_or_each(old_marks, comp_marks);
+      mesh->set_tag(ent_dim, "momentum_velocity_fixed", new_marks);
+    } else {
+      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
+          OMEGA_H_DO_OUTPUT, comp_marks);
+    }
   }
 }
 
@@ -191,10 +198,12 @@ bool has_fixed_momentum_velocity(Mesh* mesh) {
 
 Read<I8> filter_coarsen_momentum_velocity(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
-  auto verts_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+  auto comps_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto ncands = cands2edges.size();
+  auto dim = mesh->dim();
+  auto all_comps = I8((1 << dim) - 1);
   auto out = Write<I8>(ncands);
   auto f = LAMBDA(LO cand) {
     auto e = cands2edges[cand];
@@ -202,19 +211,18 @@ Read<I8> filter_coarsen_momentum_velocity(
     for (Int eev_col = 0; eev_col < 2; ++eev_col) {
       if (!collapses(code, eev_col)) continue;
       auto v_col = ev2v[e * 2 + eev_col];
-      bool ok = false;
+      I8 free_comps = 0;
       for (auto ve = v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
         auto e2 = v2e.ab2b[ve];
         auto e2_code = v2e.codes[ve];
         auto eev_in = code_which_down(e2_code);
         auto eev_out = 1 - eev_in;
         auto ov = ev2v[e2 * 2 + eev_out];
-        if (!verts_are_fixed[ov]) {
-          ok = true;
-          break;
-        }
+        free_comps |= ~(comps_are_fixed[ov]);
       }
-      if (!ok) code = dont_collapse(code, eev_col);
+      if (free_comps & all_comps != all_comps) {
+        code = dont_collapse(code, eev_col);
+      }
     }
     out[cand] = code;
   };
@@ -227,9 +235,11 @@ Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
   auto edges2elems = mesh->ask_up(EDGE, mesh->dim());
   auto cands2elems = unmap_graph(cands2edges, edges2elems);
   auto cands2verts = get_closure_verts(mesh, cands2elems);
-  auto verts_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
-  auto dont_keep = graph_reduce(cands2verts, verts_are_fixed, 1, OMEGA_H_MIN);
-  auto keep = invert_marks(dont_keep);
+  auto vert_comps_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+  auto vert_comps_are_free = bit_neg_each(vert_comps_are_fixed);
+  auto cand_comps_are_free = graph_reduce(cands2verts, vert_comps_are_fixed, 1,
+      OMEGA_H_BIT_OR);
+  auto keep = each_eq_to(cand_comps_are_free, ~I8(0));
   return mesh->sync_subset_array(EDGE, keep, cands2edges, I8(0), 1);
 }
 
@@ -350,6 +360,48 @@ void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
       }
       CHECK(new_mesh->has_tag(VERT, tagbase->name()));
     }
+  }
+}
+
+static Reals get_vertex_masses(Mesh* mesh) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto dim = donor_mesh->dim();
+  auto verts2elems = donor_mesh->ask_up(VERT, dim);
+  auto elems2mass = donor_mesh->get_array<Real>(dim, "mass");
+  auto verts2mass = graph_reduce(verts2elems, elems2mass, 1, OMEGA_H_SUM);
+  verts2mass = multiply_each_by(1.0 / Real(dim), verts2mass);
+  return mesh->sync_array(VERT, verts2mass, 1);
+}
+
+void do_momentum_velocity_ghosted_donor(Mesh* donor_mesh) {
+  if (!has_xfer(donor_mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
+  auto dim = donor_mesh->dim();
+  auto masses = get_vertex_masses(donor_mesh);
+  for (Int i = 0; i < donor_mesh->ntags(VERT); ++i) {
+    auto tagbase = donor_mesh->get_tag(VERT, i);
+    if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
+    auto tag = to<Real>(tagbase);
+    auto velocities = tag->array();
+    auto momenta = multiply_each(velocities, masses);
+    auto name = tagbase->name() + "_momentum";
+    donor_mesh->add_tag(VERT, name, dim, OMEGA_H_LINEAR_INTERP,
+        tagbase->outflag(), momenta);
+  }
+}
+
+void do_momentum_velocity_elem_target(Mesh* donor_mesh) {
+  if (!has_xfer(donor_mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
+  auto dim = donor_mesh->dim();
+  auto masses = get_vertex_masses(donor_mesh);
+  for (Int i = 0; i < donor_mesh->ntags(VERT); ++i) {
+    auto tagbase = donor_mesh->get_tag(VERT, i);
+    if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
+    auto tag = to<Real>(tagbase);
+    auto velocities = tag->array();
+    auto momenta = multiply_each(velocities, masses);
+    auto name = tagbase->name() + "_momentum";
+    donor_mesh->add_tag(VERT, name, dim, OMEGA_H_LINEAR_INTERP,
+        tagbase->outflag(), momenta);
   }
 }
 

@@ -562,6 +562,21 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b) {
   return c;
 }
 
+Read<I8> bit_or_each(Read<I8> a, Read<I8> b) {
+  CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+Read<I8> bit_neg_each(Read<I8> a) {
+  Write<I8> b(a.size());
+  auto f = LAMBDA(LO i) { b[i] = ~(a[i]); };
+  parallel_for(a.size(), f);
+  return b;
+}
+
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   CHECK(a.size() % ncomps == 0);
