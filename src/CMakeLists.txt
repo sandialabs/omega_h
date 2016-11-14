@@ -203,6 +203,7 @@ if(BUILD_TESTING)
     endif()
   endif()
   find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
+  message(STATUS "GMSH: ${GMSH}")
 
   function(test_func TEST_NAME NUM_PROCS)
     if(MPIRUN)
