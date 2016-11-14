@@ -11,7 +11,7 @@
 
 
 #include <cassert>
-#include <map>
+#include <array>
 
 #define CALL(f) assert(EGADS_SUCCESS == (f))
 
@@ -26,6 +26,19 @@ static char const* get_oclass_name(int oclass) {
     case MODEL: return "model";
   };
   return nullptr;
+}
+
+static std::array<double, 3> get_point(ego vert) {
+  ego ref;
+  int oclass;
+  int mtype;
+  std::array<double, 3> data;
+  int nchild;
+  ego* children;
+  int* senses;
+  CALL(EG_getTopology(vert, &ref, &oclass, &mtype,
+        data.data(), &nchild, &children, &senses));
+  return data;
 }
 
 int main(int argc, char** argv) {
@@ -59,6 +72,10 @@ int main(int argc, char** argv) {
   ego* verts;
   CALL(EG_getBodyTopos(body, nullptr, NODE, &nverts, &verts));
   printf("first body has %d verts\n", nverts);
+  for (int i = 0; i < nverts; ++i) {
+    auto pt = get_point(verts[i]);
+    printf("point %d at %f %f %f\n", i, pt[0], pt[1], pt[2]);
+  }
   EG_free(verts);
   CALL(EG_deleteObject(model));
   CALL(EG_close(context));
