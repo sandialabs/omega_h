@@ -147,7 +147,23 @@ bool operator==(Graph a, Graph b) {
   return a.a2ab == b.a2ab && a.ab2b == b.ab2b;
 }
 
-#define INST(T) template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);
+template <typename T>
+void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width) {
+  auto ab_data = expand(a_data, a2b.a2ab, width);
+  map_into(ab_data, a2b.ab2b, b_data, width);
+}
+
+template <typename T>
+Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T init_val, Int width) {
+  auto out = Write<T>(nb * width, init_val);
+  map_into(a_data, a2b, out, width);
+  return out;
+}
+
+#define INST(T) \
+  template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op); \
+  template void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width); \
+  template Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T, Int width);
 INST(I8)
 INST(I32)
 INST(Real)
