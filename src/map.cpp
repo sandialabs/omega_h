@@ -232,10 +232,24 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
       return fan_reduce_tmpl<MaxFunctor<T>>(a2b, b_data, width);
     case OMEGA_H_SUM:
       return fan_reduce_tmpl<SumFunctor<T>>(a2b, b_data, width);
-    case OMEGA_H_BIT_OR:
-      return fan_reduce_tmpl<BitOrFunctor<T>>(a2b, b_data, width);
   }
   NORETURN(Read<T>());
+}
+
+struct BitAndFunctor {
+  typedef typename StandinTraits<I8>::type value_type;
+  typedef I8 input_type;
+  OMEGA_H_INLINE void init(value_type& update) const {
+    update = ArithTraits<I8>::min();
+  }
+  OMEGA_H_INLINE void join(
+      volatile value_type& update, const volatile value_type& input) const {
+    update = update & input;
+  }
+};
+
+Read<I8> fan_reduce_bit_and(LOs a2b, Read<I8> b_data, Int width) {
+  return fan_reduce_tmpl<BitAndFunctor>(a2b, b_data, width);
 }
 
 #define INST_T(T)                                                              \

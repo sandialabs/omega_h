@@ -71,17 +71,6 @@ struct SumFunctor {
   }
 };
 
-template <typename T>
-struct BitOrFunctor {
-  typedef typename StandinTraits<T>::type value_type;
-  typedef T input_type;
-  OMEGA_H_INLINE void init(value_type& update) const { update = 0; }
-  OMEGA_H_INLINE void join(
-      volatile value_type& update, const volatile value_type& input) const {
-    update = update | input;
-  }
-};
-
 }  // end namespace Omega_h
 
 #endif

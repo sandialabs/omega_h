@@ -203,8 +203,6 @@ Read<I8> filter_coarsen_momentum_velocity(
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto ncands = cands2edges.size();
-  auto dim = mesh->dim();
-  auto all_comps = I8((1 << dim) - 1);
   auto out = Write<I8>(ncands);
   auto f = LAMBDA(LO cand) {
     auto e = cands2edges[cand];
@@ -212,18 +210,16 @@ Read<I8> filter_coarsen_momentum_velocity(
     for (Int eev_col = 0; eev_col < 2; ++eev_col) {
       if (!collapses(code, eev_col)) continue;
       auto v_col = ev2v[e * 2 + eev_col];
-      I8 free_comps = 0;
+      I8 fixed_comps = 7;
       for (auto ve = v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
         auto e2 = v2e.ab2b[ve];
         auto e2_code = v2e.codes[ve];
         auto eev_in = code_which_down(e2_code);
         auto eev_out = 1 - eev_in;
         auto ov = ev2v[e2 * 2 + eev_out];
-        free_comps |= ~(comps_are_fixed[ov]);
+        fixed_comps &= comps_are_fixed[ov];
       }
-      if (free_comps & all_comps != all_comps) {
-        code = dont_collapse(code, eev_col);
-      }
+      if (fixed_comps) code = dont_collapse(code, eev_col);
     }
     out[cand] = code;
   };
@@ -237,10 +233,10 @@ Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
   auto cands2elems = unmap_graph(cands2edges, edges2elems);
   auto cands2verts = get_closure_verts(mesh, cands2elems);
   auto vert_comps_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
-  auto vert_comps_are_free = bit_neg_each(vert_comps_are_fixed);
-  auto cand_comps_are_free = graph_reduce(cands2verts, vert_comps_are_fixed, 1,
-      OMEGA_H_BIT_OR);
-  auto keep = each_eq_to(cand_comps_are_free, ~I8(0));
+  auto cand_vert_comps_are_fixed = unmap(cands2verts.ab2b, vert_comps_are_fixed, 1);
+  auto cand_comps_are_fixed = fan_reduce_bit_and(cands2verts.a2ab,
+      cand_vert_comps_are_fixed, 1);
+  auto keep = each_eq_to(cand_comps_are_fixed, I8(0));
   return mesh->sync_subset_array(EDGE, keep, cands2edges, I8(0), 1);
 }
 
@@ -366,44 +362,30 @@ void transfer_momentum_velocity(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 
 static Reals get_vertex_masses(Mesh* mesh) {
   CHECK(mesh->owners_have_all_upward(VERT));
-  auto dim = donor_mesh->dim();
-  auto verts2elems = donor_mesh->ask_up(VERT, dim);
-  auto elems2mass = donor_mesh->get_array<Real>(dim, "mass");
+  auto dim = mesh->dim();
+  auto verts2elems = mesh->ask_up(VERT, dim);
+  auto elems2mass = mesh->get_array<Real>(dim, "mass");
   auto verts2mass = graph_reduce(verts2elems, elems2mass, 1, OMEGA_H_SUM);
   verts2mass = multiply_each_by(1.0 / Real(dim), verts2mass);
   return mesh->sync_array(VERT, verts2mass, 1);
-}
-
-void do_momentum_velocity_ghosted_donor(Mesh* donor_mesh) {
-  if (!has_xfer(donor_mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
-  auto dim = donor_mesh->dim();
-  auto vert_masses = get_vertex_masses(donor_mesh);
-  for (Int i = 0; i < donor_mesh->ntags(VERT); ++i) {
-    auto tagbase = donor_mesh->get_tag(VERT, i);
-    if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
-    auto tag = to<Real>(tagbase);
-    auto vert_velocities = tag->array();
-    auto vert_momenta = multiply_each(vert_velocities, vert_masses);
-    auto name = tagbase->name() + "_momentum";
-    donor_mesh->add_tag(VERT, name, dim, OMEGA_H_LINEAR_INTERP,
-        tagbase->outflag(), vert_momenta);
-  }
 }
 
 static Reals get_cavity_momenta(Mesh* mesh, Int key_dim, LOs keys2kds,
     Graph keys2elems, Reals vert_velocities) {
   auto dim = mesh->dim();
   auto elem_masses = mesh->get_array<Real>(dim, "mass");
+  auto cavity_elem_masses = unmap(keys2elems.ab2b, elem_masses, 1);
   auto cavity_elem_velocities = average_field(mesh, dim, keys2elems.ab2b, dim,
       vert_velocities);
-  auto cavity_elem_momenta = multiply_each(elem_velocities, elem_masses);
+  auto cavity_elem_momenta = multiply_each(cavity_elem_velocities,
+      cavity_elem_masses);
   auto cavity_momenta = fan_reduce(keys2elems.a2ab, cavity_elem_momenta, dim,
       OMEGA_H_SUM);
   return mesh->sync_subset_array(key_dim, cavity_momenta,
       keys2kds, 0.0, dim);
 }
 
-static void label_cavity_elems(Mesh* mesh, Int key_dim, Graph keys2elems) {
+static void label_cavity_elems(Mesh* mesh, Graph keys2elems) {
   auto nlocal_keys = keys2elems.nnodes();
   auto offset = mesh->comm()->exscan(GO(nlocal_keys), OMEGA_H_SUM);
   auto key_globals = Read<GO>(nlocal_keys, offset, GO(1));
@@ -422,14 +404,14 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 }
 
 void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
-    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems,
-    LOs same_verts2old_verts, LOs same_verts2new_verts) {
+    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems) {
   if (!has_xfer(donor_mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
   auto dim = donor_mesh->dim();
   auto nkeys = keys2kds.size();
   auto keys2target_elems = Graph(keys2prods, prods2new_elems);
-  label_cavity_elems(target_mesh, key_dim, keys2target_elems);
-  auto keys2donor_elems = unmap_graph(keys2kds, kds2elems);
+  label_cavity_elems(target_mesh, keys2target_elems);
+  auto kds2donor_elems = donor_mesh->ask_up(key_dim, dim);
+  auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
   auto keys2target_verts = get_closure_verts(target_mesh, keys2target_elems);
   auto comps_are_fixed = get_comps_are_fixed(target_mesh);
   for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
@@ -478,12 +460,12 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
   if (!has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto dim = mesh->dim();
-  auto cavity_ids = mesh->get_array<Real>(dim, "cavity_id");
+  auto cavity_ids = mesh->get_array<GO>(dim, "cavity_id");
   auto v2e = mesh->ask_up(VERT, dim);
   auto comps_are_fixed = get_comps_are_fixed(mesh);
   auto vert_masses = get_vertex_masses(mesh);
-  for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
-    auto tagbase = donor_mesh->get_tag(VERT, tag_i);
+  for (Int tag_i = 0; tag_i < mesh->ntags(VERT); ++tag_i) {
+    auto tagbase = mesh->get_tag(VERT, tag_i);
     if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
     CHECK(tagbase->ncomps() == dim);
     auto tag = to<Real>(tagbase);
@@ -519,8 +501,10 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
     auto old_velocities = tag->array();
     auto velocity_corrections = divide_each(vert_corrections, vert_masses);
     auto new_velocities = add_each(old_velocities, velocity_corrections);
-    tag->set_array(new_velocities);
+    mesh->set_tag(VERT, tag->name(), new_velocities);
+    mesh->remove_tag(dim, corr_name);
   }
+  mesh->remove_tag(dim, "cavity_id");
 }
 
 }  // end namespace Omega_h

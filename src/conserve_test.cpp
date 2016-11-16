@@ -63,8 +63,8 @@ int main(int argc, char** argv) {
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
       OMEGA_H_DO_OUTPUT, Reals(velocity));
-  fix_momentum_velocity_verts(
-      &mesh, std::vector<Int>({2}), std::vector<I32>({33}));
+//fix_momentum_velocity_verts(
+//    &mesh, std::vector<Int>({2}), std::vector<I32>({33}));
   auto momentum_before = get_total_momentum(&mesh);
   Real masses_before[nobjs];
   for (Int obj = 0; obj < nobjs; ++obj) {
