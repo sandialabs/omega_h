@@ -308,6 +308,7 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     auto corrections_w = Write<Real>(target_mesh->nelems() * dim, 0.0);
     auto f = LAMBDA(LO key) {
       Few<Int, 3> nfree_verts;
+      for (Int comp = 0; comp < dim; ++comp) nfree_verts[comp] = 0;
       for (auto kv = keys2target_verts.a2ab[key];
            kv < keys2target_verts.a2ab[key + 1];
            ++kv) {
@@ -317,6 +318,7 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
           if (!((1 << comp) & code)) ++nfree_verts[comp];
         }
       }
+      std::cout << "free vertices: " << nfree_verts[0] << ", " << nfree_verts[1] << '\n';
       for (auto ke = keys2target_elems.a2ab[key];
            ke < keys2target_elems.a2ab[key + 1];
            ++ke) {
@@ -324,6 +326,8 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
         for (Int comp = 0; comp < dim; ++comp) {
           corrections_w[e * dim + comp] =
             cavity_momentum_losses[key * dim + comp] / nfree_verts[comp];
+          std::cout << "corrections comp " << comp << ": "
+            << corrections_w[e * dim + comp] << '\n';
         }
       }
     };
@@ -332,6 +336,7 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     target_mesh->add_tag(dim, name, dim, OMEGA_H_DONT_TRANSFER,
         OMEGA_H_DO_OUTPUT, Reals(corrections_w));
   }
+  vtk::write_vtu("debug.vtu", target_mesh, target_mesh->dim());
 }
 
 void do_momentum_velocity_ghosted_target(Mesh* mesh) {
