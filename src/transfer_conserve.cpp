@@ -235,16 +235,6 @@ Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
   return mesh->sync_subset_array(EDGE, keep, cands2edges, I8(0), 1);
 }
 
-static Reals get_vertex_masses(Mesh* mesh) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  auto dim = mesh->dim();
-  auto verts2elems = mesh->ask_up(VERT, dim);
-  auto elems2mass = mesh->get_array<Real>(dim, "mass");
-  auto verts2mass = graph_reduce(verts2elems, elems2mass, 1, OMEGA_H_SUM);
-  verts2mass = multiply_each_by(1.0 / Real(dim + 1), verts2mass);
-  return mesh->sync_array(VERT, verts2mass, 1);
-}
-
 static Reals get_cavity_momenta(Mesh* mesh, Int key_dim, LOs keys2kds,
     Graph keys2elems, Reals vert_velocities) {
   auto dim = mesh->dim();
@@ -302,9 +292,9 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
         keys2kds, keys2target_elems, target_vert_velocities);
     auto cavity_momentum_losses = subtract_each(donor_cavity_momenta,
         target_cavity_momenta);
-    CHECK(cavity_momentum_losses.size() == 2);
-    std::cout << "cavity momentum loss: " << cavity_momentum_losses.get(0)
-      << ", " << cavity_momentum_losses.get(1) << '\n';
+  //CHECK(cavity_momentum_losses.size() == 2);
+  //std::cout << "cavity momentum loss: " << cavity_momentum_losses.get(0)
+  //  << ", " << cavity_momentum_losses.get(1) << '\n';
     auto corrections_w = Write<Real>(target_mesh->nelems() * dim, 0.0);
     auto f = LAMBDA(LO key) {
       Few<Int, 3> nfree_verts;
@@ -318,7 +308,7 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
           if (!((1 << comp) & code)) ++nfree_verts[comp];
         }
       }
-      std::cout << "free vertices: " << nfree_verts[0] << ", " << nfree_verts[1] << '\n';
+    //std::cout << "free vertices: " << nfree_verts[0] << ", " << nfree_verts[1] << '\n';
       for (auto ke = keys2target_elems.a2ab[key];
            ke < keys2target_elems.a2ab[key + 1];
            ++ke) {
@@ -326,8 +316,8 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
         for (Int comp = 0; comp < dim; ++comp) {
           corrections_w[e * dim + comp] =
             cavity_momentum_losses[key * dim + comp] / nfree_verts[comp];
-          std::cout << "corrections comp " << comp << ": "
-            << corrections_w[e * dim + comp] << '\n';
+        //std::cout << "corrections comp " << comp << ": "
+        //  << corrections_w[e * dim + comp] << '\n';
         }
       }
     };
@@ -336,7 +326,17 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     target_mesh->add_tag(dim, name, dim, OMEGA_H_DONT_TRANSFER,
         OMEGA_H_DO_OUTPUT, Reals(corrections_w));
   }
-  vtk::write_vtu("debug.vtu", target_mesh, target_mesh->dim());
+  vtk::write_vtu("momentum_elem.vtu", target_mesh, target_mesh->dim());
+}
+
+static Reals get_vertex_masses(Mesh* mesh) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto dim = mesh->dim();
+  auto verts2elems = mesh->ask_up(VERT, dim);
+  auto elems2mass = mesh->get_array<Real>(dim, "mass");
+  auto verts2mass = graph_reduce(verts2elems, elems2mass, 1, OMEGA_H_SUM);
+  verts2mass = multiply_each_by(1.0 / Real(dim + 1), verts2mass);
+  return mesh->sync_array(VERT, verts2mass, 1);
 }
 
 void do_momentum_velocity_ghosted_target(Mesh* mesh) {
@@ -375,23 +375,23 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
       for (Int comp = 0; comp < dim; ++comp) {
         if (!comps_are_fixed[v * dim + comp]) {
           vert_corrections_w[v * dim + comp] = correction[comp];
-          if (vert_corrections_w[v * dim + comp] != 0.0) {
-            std::cout << "vert_corrections_w[" << v << " * 2 + "
-              << comp << "] = " << vert_corrections_w[v * dim + comp] << '\n';
-          }
+        //if (vert_corrections_w[v * dim + comp] != 0.0) {
+        //  std::cout << "vert_corrections_w[" << v << " * 2 + "
+        //    << comp << "] = " << vert_corrections_w[v * dim + comp] << '\n';
+        //}
         }
       }
     };
     parallel_for(mesh->nverts(), f);
     auto vert_corrections = Reals(vert_corrections_w);
-  //vert_corrections = mesh->sync_array(dim, vert_corrections, dim);
+    vert_corrections = mesh->sync_array(dim, vert_corrections, dim);
     auto old_velocities = tag->array();
     auto velocity_corrections = divide_each(vert_corrections, vert_masses);
-    for (int i = 0; i < mesh->nverts(); ++i)
-      for (int j = 0; j < 2; ++j)
-        if (velocity_corrections[i * 2 + j] != 0.0)
-          std::cout << "velocity_corrections[" << i << " * 2 + " << j
-            << "] = " << velocity_corrections[i * 2 + j] << '\n';
+  //for (int i = 0; i < mesh->nverts(); ++i)
+  //  for (int j = 0; j < 2; ++j)
+  //    if (velocity_corrections[i * 2 + j] != 0.0)
+  //      std::cout << "velocity_corrections[" << i << " * 2 + " << j
+  //        << "] = " << velocity_corrections[i * 2 + j] << '\n';
     auto new_velocities = add_each(old_velocities, velocity_corrections);
     mesh->set_tag(VERT, tag->name(), new_velocities);
     mesh->remove_tag(dim, corr_name);

@@ -95,14 +95,15 @@ static bool coarsen_ghosted(
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
   Graph verts2cav_elems;
   verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
-  mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
+  mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
       verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, vert_quals);
+      OMEGA_H_DO_OUTPUT, vert_quals);
   mesh->add_tag(VERT, "collapse_rail", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, vert_rails);
+      OMEGA_H_DO_OUTPUT, vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
+  vtk::write_vtu("coarsen_ghosted.vtu", mesh, mesh->dim());
   return true;
 }
 
@@ -199,13 +200,13 @@ bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
   if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
-  auto cands2 = deep_copy(edge_is_cand);
-  bool first = false;
-  for (int i = 0; i < cands2.size(); ++i) {
-    if (first) cands2[i] = 0;
-    else if (cands2[i]) first = true;
-  }
-  edge_is_cand = cands2;
+//auto cands2 = deep_copy(edge_is_cand);
+//int j = 0;
+//for (int i = 0; i < cands2.size(); ++i) {
+//  if (j > 4) cands2[i] = 0;
+//  else if (cands2[i]) ++j;
+//}
+//edge_is_cand = cands2;
   return coarsen_ents(
       mesh, opts, EDGE, edge_is_cand, DONT_OVERSHOOT, DONT_IMPROVE);
 }
