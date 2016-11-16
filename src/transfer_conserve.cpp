@@ -169,13 +169,6 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   }
 }
 
-bool needs_buffer_layers(Mesh* mesh) {
-  for (Int i = 0; i < mesh->ntags(VERT); ++i)
-    if (mesh->get_tag(VERT, i)->xfer() == OMEGA_H_MOMENTUM_VELOCITY)
-      return true;
-  return false;
-}
-
 void fix_momentum_velocity_verts(Mesh* mesh, Int class_dim, I32 class_id,
     Int comp) {
   for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
