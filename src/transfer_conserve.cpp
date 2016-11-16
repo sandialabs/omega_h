@@ -12,6 +12,8 @@
 #include "tag.hpp"
 #include "transfer.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,

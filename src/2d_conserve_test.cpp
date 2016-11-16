@@ -7,6 +7,7 @@
 #include "size.hpp"
 #include "space.hpp"
 #include "timer.hpp"
+#include "coarsen.hpp"
 
 using namespace Omega_h;
 
@@ -55,7 +56,8 @@ int main(int argc, char** argv) {
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
       OMEGA_H_DO_OUTPUT, Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
-  adapt(&mesh, AdaptOpts(&mesh));
+//adapt(&mesh, AdaptOpts(&mesh));
+  coarsen_by_size(&mesh, AdaptOpts(&mesh));
   postprocess_conserve(&mesh);
   auto momentum_after = get_total_momentum(&mesh);
   std::cout << "before" << ' ' << momentum_before[0] << ' '

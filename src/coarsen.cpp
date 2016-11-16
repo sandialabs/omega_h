@@ -199,6 +199,13 @@ bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
   if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
+  auto cands2 = deep_copy(edge_is_cand);
+  bool first = false;
+  for (int i = 0; i < cands2.size(); ++i) {
+    if (first) cands2[i] = 0;
+    else if (cands2[i]) first = true;
+  }
+  edge_is_cand = cands2;
   return coarsen_ents(
       mesh, opts, EDGE, edge_is_cand, DONT_OVERSHOOT, DONT_IMPROVE);
 }
