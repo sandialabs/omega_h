@@ -94,15 +94,7 @@ static bool coarsen_ghosted(
       &verts_are_cands, &vert_quals, &vert_rails);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
   Graph verts2cav_elems;
-  if (needs_buffer_layers(mesh)) {
-    verts2cav_elems = get_buffered_elems(mesh, VERT, verts_are_keys);
-    auto buf_conflicts =
-        get_buffered_conflicts(mesh, VERT, verts2cav_elems, verts_are_keys);
-    verts_are_keys =
-        find_indset(mesh, VERT, buf_conflicts, vert_quals, verts_are_keys);
-  } else {
-    verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
-  }
+  verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
   mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
       verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
@@ -176,13 +168,13 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
 static bool coarsen(
     Mesh* mesh, AdaptOpts const& opts, Overshoot overshoot, Improve improve) {
   if (!coarsen_element_based1(mesh)) return false;
-  Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
-  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, false);
+  mesh->set_parting(OMEGA_H_GHOSTED);
   if (!coarsen_ghosted(mesh, opts, overshoot, improve)) {
     return false;
   }
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   coarsen_element_based2(mesh, opts);
+  do_momentum_velocity_ghosted_target(mesh);
   return true;
 }
 

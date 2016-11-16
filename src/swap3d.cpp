@@ -32,15 +32,7 @@ static bool swap3d_ghosted(Mesh* mesh) {
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
   Graph edges2cav_elems;
-  if (needs_buffer_layers(mesh)) {
-    edges2cav_elems = get_buffered_elems(mesh, EDGE, edges_are_keys);
-    auto buf_conflicts =
-        get_buffered_conflicts(mesh, EDGE, edges2cav_elems, edges_are_keys);
-    edges_are_keys =
-        find_indset(mesh, EDGE, buf_conflicts, edge_quals, edges_are_keys);
-  } else {
-    edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
-  }
+  edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
   mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
       edges_are_keys);
   mesh->add_tag(EDGE, "config", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
@@ -95,6 +87,7 @@ bool swap_edges_3d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap3d_ghosted(mesh)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   swap3d_element_based(mesh, opts);
+  do_momentum_velocity_ghosted_target(mesh);
   return true;
 }
 
