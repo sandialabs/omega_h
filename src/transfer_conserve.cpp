@@ -373,7 +373,7 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
         }
       }
       for (Int comp = 0; comp < dim; ++comp) {
-        if (!comps_are_fixed[v * dim + comp]) {
+        if (!((1 << comp) & comps_are_fixed[v])) {
           vert_corrections_w[v * dim + comp] = correction[comp];
         //if (vert_corrections_w[v * dim + comp] != 0.0) {
         //  std::cout << "vert_corrections_w[" << v << " * 2 + "
