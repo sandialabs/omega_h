@@ -354,19 +354,19 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
     auto tag = to<Real>(tagbase);
     auto corr_name = tag->name() + "_correction";
     auto elem_corrections = mesh->get_array<Real>(dim, corr_name);
-    auto marks = Write<I8>(mesh->nelems(), I8(0));
+    auto marks = Write<I8>(v2e.ab2b.size(), I8(0));
     auto vert_corrections_w = Write<Real>(mesh->nverts() * dim, 0.0);
     auto f = LAMBDA(LO v) {
       Vector<3> correction = vector_3(0.0, 0.0, 0.0);
       for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
         auto e = v2e.ab2b[ve];
-        if (marks[e]) continue;
+        if (marks[ve]) continue;
         auto e_cav = cavity_ids[e];
-        marks[e] = 1;
+        marks[ve] = 1;
         for (auto ven = ve + 1; ven < v2e.a2ab[v + 1]; ++ven) {
           auto en = v2e.ab2b[ven];
           auto en_cav = cavity_ids[en];
-          if (e_cav == en_cav) marks[en] = 1;
+          if (e_cav == en_cav) marks[ven] = 1;
         }
         for (Int comp = 0; comp < dim; ++comp) {
           correction[comp] += elem_corrections[e * dim + comp];
@@ -375,6 +375,10 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
       for (Int comp = 0; comp < dim; ++comp) {
         if (!comps_are_fixed[v * dim + comp]) {
           vert_corrections_w[v * dim + comp] = correction[comp];
+          if (vert_corrections_w[v * dim + comp] != 0.0) {
+            std::cout << "vert_corrections_w[" << v << " * 2 + "
+              << comp << "] = " << vert_corrections_w[v * dim + comp] << '\n';
+          }
         }
       }
     };
