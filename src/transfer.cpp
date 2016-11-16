@@ -314,6 +314,7 @@ static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     if ((tagbase->xfer() == OMEGA_H_INHERIT) ||
         (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) ||
         (tagbase->xfer() == OMEGA_H_METRIC) ||
+        (tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY) ||
         (tagbase->xfer() == OMEGA_H_SIZE)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
@@ -412,8 +413,7 @@ static void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 
 void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, LOs same_verts2old_verts,
-    LOs same_verts2new_verts) {
+    LOs same_ents2new_ents) {
   if (prod_dim == VERT) {
     transfer_no_products(
         old_mesh, new_mesh, prod_dim, same_ents2old_ents, same_ents2new_ents);
@@ -432,9 +432,8 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_momentum_velocity(old_mesh, new_mesh, VERT, keys2verts,
-        keys2doms.a2ab, prods2new_ents, same_verts2old_verts,
-        same_verts2new_verts);
+    do_momentum_velocity_elem_target(old_mesh, new_mesh, VERT,
+        keys2verts, keys2doms.a2ab, prods2new_ents);
   }
 }
 
@@ -453,8 +452,7 @@ static void transfer_copy_tmpl(
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() != OMEGA_H_DONT_TRANSFER &&
-        tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) {
+    if (tagbase->xfer() != OMEGA_H_DONT_TRANSFER) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_copy_tmpl<I8>(new_mesh, prod_dim, tagbase);
@@ -521,8 +519,7 @@ static void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
 
 void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, LOs same_verts2old_verts,
-    LOs same_verts2new_verts) {
+    LOs same_ents2new_ents) {
   CHECK(prod_dim != VERT);
   transfer_inherit_swap(old_mesh, new_mesh, prod_dim, keys2edges, keys2prods,
       prods2new_ents, same_ents2old_ents, same_ents2new_ents);
@@ -537,8 +534,8 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_momentum_velocity(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
-        prods2new_ents, same_verts2old_verts, same_verts2new_verts);
+    do_momentum_velocity_elem_target(old_mesh, new_mesh, EDGE, keys2edges,
+        keys2prods, prods2new_ents);
   }
 }
 

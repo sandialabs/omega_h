@@ -63,9 +63,7 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto keys2prods = swap3d_keys_to_prods(mesh, keys2edges);
   auto prod_verts2verts =
       swap3d_topology(mesh, keys2edges, edges_configs, keys2prods);
-  auto same_verts2old_verts = LOs(mesh->nverts(), 0, 1);
-  auto same_verts2new_verts = same_verts2old_verts;
-  auto old_lows2new_lows = same_verts2old_verts;
+  auto old_lows2new_lows = LOs(mesh->nverts(), 0, 1);
   for (Int ent_dim = EDGE; ent_dim <= mesh->dim(); ++ent_dim) {
     auto prods2new_ents = LOs();
     auto same_ents2old_ents = LOs();
@@ -75,8 +73,7 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
         prod_verts2verts[ent_dim], old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     transfer_swap(mesh, &new_mesh, ent_dim, keys2edges, keys2prods[ent_dim],
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-        same_verts2old_verts, same_verts2new_verts);
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;

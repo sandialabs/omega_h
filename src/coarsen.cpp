@@ -126,8 +126,6 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
   auto dead_ents = mark_dead_ents(mesh, rails2edges, rail_col_dirs);
   auto keys2verts_onto = get_verts_onto(mesh, rails2edges, rail_col_dirs);
   auto new_mesh = mesh->copy_meta();
-  auto same_verts2old_verts = LOs();
-  auto same_verts2new_verts = LOs();
   auto old_verts2new_verts = LOs();
   auto old_lows2new_lows = LOs();
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
@@ -150,16 +148,9 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
     modify_ents(mesh, &new_mesh, ent_dim, VERT, keys2verts, keys2prods,
         prod_verts2verts, old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
-    if (ent_dim == VERT) {
-      old_verts2new_verts = old_ents2new_ents;
-      if (has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) {
-        same_verts2new_verts = same_ents2new_ents;
-        same_verts2old_verts = same_ents2old_ents;
-      }
-    }
+    if (ent_dim == VERT) old_verts2new_verts = old_ents2new_ents;
     transfer_coarsen(mesh, &new_mesh, keys2verts, keys2doms, ent_dim,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-        same_verts2old_verts, same_verts2new_verts);
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
