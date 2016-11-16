@@ -298,10 +298,13 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     auto donor_cavity_momenta = get_cavity_momenta(donor_mesh, key_dim,
         keys2kds, keys2donor_elems, donor_vert_velocities);
     auto target_vert_velocities = target_mesh->get_array<Real>(VERT, tag->name());
-    auto target_cavity_momenta = get_cavity_momenta(donor_mesh, key_dim,
-        keys2kds, keys2donor_elems, donor_vert_velocities);
+    auto target_cavity_momenta = get_cavity_momenta(target_mesh, key_dim,
+        keys2kds, keys2target_elems, target_vert_velocities);
     auto cavity_momentum_losses = subtract_each(donor_cavity_momenta,
         target_cavity_momenta);
+    CHECK(cavity_momentum_losses.size() == 2);
+    std::cout << "cavity momentum loss: " << cavity_momentum_losses.get(0)
+      << ", " << cavity_momentum_losses.get(1) << '\n';
     auto corrections_w = Write<Real>(target_mesh->nelems() * dim, 0.0);
     auto f = LAMBDA(LO key) {
       Few<Int, 3> nfree_verts;
