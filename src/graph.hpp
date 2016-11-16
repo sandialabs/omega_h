@@ -33,6 +33,7 @@ Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T init_val, Int width);
       Read<T> a_data, Graph a2b, LO nb, T, Int width);
 INST_DECL(I8)
 INST_DECL(I32)
+INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 

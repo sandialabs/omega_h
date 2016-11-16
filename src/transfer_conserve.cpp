@@ -407,6 +407,18 @@ static void label_cavity_elems(Mesh* mesh, Int key_dim, Graph keys2elems) {
   auto nlocal_keys = keys2elems.nnodes();
   auto offset = mesh->comm()->exscan(GO(nlocal_keys), OMEGA_H_SUM);
   auto key_globals = Read<GO>(nlocal_keys, offset, GO(1));
+  auto elem_cavity_globals = map_onto(key_globals, keys2elems, mesh->nelems(),
+      GO(-1), 1);
+  mesh->add_tag(mesh->dim(), "cavity_id", 1, OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DO_OUTPUT, elem_cavity_globals);
+}
+
+static Read<I8> get_comps_are_fixed(Mesh* mesh) {
+  if (mesh->has_tag(VERT, "momentum_velocity_fixed")) {
+    return mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+  } else {
+    return Read<I8>(mesh->nverts(), I8(0));
+  }
 }
 
 void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
@@ -414,11 +426,16 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     LOs same_verts2old_verts, LOs same_verts2new_verts) {
   if (!has_xfer(donor_mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
   auto dim = donor_mesh->dim();
+  auto nkeys = keys2kds.size();
   auto keys2target_elems = Graph(keys2prods, prods2new_elems);
+  label_cavity_elems(target_mesh, key_dim, keys2target_elems);
   auto keys2donor_elems = unmap_graph(keys2kds, kds2elems);
+  auto keys2target_verts = get_closure_verts(target_mesh, keys2target_elems);
+  auto comps_are_fixed = get_comps_are_fixed(target_mesh);
   for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
     auto tagbase = donor_mesh->get_tag(VERT, tag_i);
     if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
+    CHECK(tagbase->ncomps() == dim);
     auto tag = to<Real>(tagbase);
     auto donor_vert_velocities = tag->array();
     auto donor_cavity_momenta = get_cavity_momenta(donor_mesh, key_dim,
@@ -426,8 +443,83 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     auto target_vert_velocities = target_mesh->get_array<Real>(VERT, tag->name());
     auto target_cavity_momenta = get_cavity_momenta(donor_mesh, key_dim,
         keys2kds, keys2donor_elems, donor_vert_velocities);
-    auto cavity_momentum_diffs = subtract_each(target_cavity_momenta,
-        donor_cavity_momenta);
+    auto cavity_momentum_losses = subtract_each(donor_cavity_momenta,
+        target_cavity_momenta);
+    auto corrections_w = Write<Real>(target_mesh->nelems() * dim, 0.0);
+    auto f = LAMBDA(LO key) {
+      Few<Int, 3> nfree_verts;
+      for (auto kv = keys2target_verts.a2ab[key];
+           kv < keys2target_verts.a2ab[key + 1];
+           ++kv) {
+        auto v = keys2target_verts.ab2b[kv];
+        auto code = Int(comps_are_fixed[v]);
+        for (Int comp = 0; comp < dim; ++comp) {
+          if (!((1 << comp) & code)) ++nfree_verts[comp];
+        }
+      }
+      for (auto ke = keys2target_elems.a2ab[key];
+           ke < keys2target_elems.a2ab[key + 1];
+           ++ke) {
+        auto e = keys2target_elems.ab2b[ke];
+        for (Int comp = 0; comp < dim; ++comp) {
+          corrections_w[e * dim + comp] =
+            cavity_momentum_losses[key * dim + comp] / nfree_verts[comp];
+        }
+      }
+    };
+    parallel_for(nkeys, f);
+    auto name = tag->name() + "_correction";
+    target_mesh->add_tag(dim, name, dim, OMEGA_H_DONT_TRANSFER,
+        OMEGA_H_DO_OUTPUT, Reals(corrections_w));
+  }
+}
+
+void do_momentum_velocity_ghosted_target(Mesh* mesh) {
+  if (!has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
+  mesh->set_parting(OMEGA_H_GHOSTED);
+  auto dim = mesh->dim();
+  auto cavity_ids = mesh->get_array<Real>(dim, "cavity_id");
+  auto v2e = mesh->ask_up(VERT, dim);
+  auto comps_are_fixed = get_comps_are_fixed(mesh);
+  auto vert_masses = get_vertex_masses(mesh);
+  for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
+    auto tagbase = donor_mesh->get_tag(VERT, tag_i);
+    if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
+    CHECK(tagbase->ncomps() == dim);
+    auto tag = to<Real>(tagbase);
+    auto corr_name = tag->name() + "_correction";
+    auto elem_corrections = mesh->get_array<Real>(dim, corr_name);
+    auto marks = Write<I8>(mesh->nelems(), I8(0));
+    auto vert_corrections_w = Write<Real>(mesh->nverts() * dim, 0.0);
+    auto f = LAMBDA(LO v) {
+      Vector<3> correction = vector_3(0.0, 0.0, 0.0);
+      for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
+        auto e = v2e.ab2b[ve];
+        if (marks[e]) continue;
+        auto e_cav = cavity_ids[e];
+        marks[e] = 1;
+        for (auto ven = ve + 1; ven < v2e.a2ab[v + 1]; ++ven) {
+          auto en = v2e.ab2b[ven];
+          auto en_cav = cavity_ids[en];
+          if (e_cav == en_cav) marks[en] = 1;
+        }
+        for (Int comp = 0; comp < dim; ++comp) {
+          correction[comp] += elem_corrections[e * dim + comp];
+        }
+      }
+      for (Int comp = 0; comp < dim; ++comp) {
+        if (!comps_are_fixed[v * dim + comp]) {
+          vert_corrections_w[v * dim + comp] = correction[comp];
+        }
+      }
+    };
+    parallel_for(mesh->nverts(), f);
+    auto vert_corrections = Reals(vert_corrections_w);
+    vert_corrections = mesh->sync_array(dim, vert_corrections, dim);
+    auto old_velocities = tag->array();
+    auto velocity_corrections = divide_each(vert_corrections, vert_masses);
+    auto new_velocities = add_each(old_velocities, velocity_corrections);
+    tag->set_array(new_velocities);
   }
 }
 

@@ -166,6 +166,7 @@ Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T init_val, Int width) {
   template Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T, Int width);
 INST(I8)
 INST(I32)
+INST(I64)
 INST(Real)
 #undef INST
 
