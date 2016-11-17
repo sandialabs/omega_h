@@ -80,7 +80,6 @@ int main(int argc, char** argv) {
     masses_before[obj] = get_total_mass(&mesh, obj);
   }
   adapt(&mesh, AdaptOpts(&mesh));
-  mesh.set_parting(OMEGA_H_ELEM_BASED);
   postprocess_conserve(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
     auto mass_after = get_total_mass(&mesh, obj);

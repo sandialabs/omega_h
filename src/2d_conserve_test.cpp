@@ -65,7 +65,6 @@ int main(int argc, char** argv) {
       OMEGA_H_DO_OUTPUT, Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
   adapt(&mesh, AdaptOpts(&mesh));
-  mesh.set_parting(OMEGA_H_ELEM_BASED);
   postprocess_conserve(&mesh);
   auto momentum_after = get_total_momentum(&mesh);
   if (world->rank() == 0) {
