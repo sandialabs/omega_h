@@ -372,7 +372,7 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
     };
     parallel_for(mesh->nverts(), f);
     auto vert_corrections = Reals(vert_corrections_w);
-    vert_corrections = mesh->sync_array(dim, vert_corrections, dim);
+    vert_corrections = mesh->sync_array(VERT, vert_corrections, dim);
     auto old_velocities = tag->array();
     auto velocity_corrections = divide_each(vert_corrections, vert_masses);
     auto new_velocities = add_each(old_velocities, velocity_corrections);
