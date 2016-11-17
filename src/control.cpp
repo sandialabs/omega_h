@@ -31,6 +31,7 @@ bool should_log_memory = false;
 char* max_memory_stacktrace = nullptr;
 
 static bool remove_flag(int* argc, char*** argv, std::string const& flag) {
+  if (!argc || !argv) return false;
   for (int i = 0; i < *argc; ++i) {
     if (flag == (*argv)[i]) {
       --(*argc);
