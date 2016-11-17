@@ -53,6 +53,7 @@ struct CompareArrays<Real> {
                 << ", comp " << comp << ", values " << ah[max_i] << " vs "
                 << bh[max_i] << '\n';
     }
+    comm->barrier();
     return false;
   }
 };
@@ -149,6 +150,7 @@ Omega_h_Comparison compare_meshes(
           std::cout << singular_names[dim] << " tag \"" << name
                     << "\" values are different\n";
         }
+        comm->barrier();
         result = OMEGA_H_DIFF;
       }
     }
