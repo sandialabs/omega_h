@@ -103,7 +103,6 @@ static bool coarsen_ghosted(
       OMEGA_H_DO_OUTPUT, vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
-  vtk::write_vtu("coarsen_ghosted.vtu", mesh, mesh->dim());
   return true;
 }
 

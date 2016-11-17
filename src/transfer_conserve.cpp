@@ -318,7 +318,6 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     target_mesh->add_tag(dim, name, dim, OMEGA_H_DONT_TRANSFER,
         OMEGA_H_DO_OUTPUT, Reals(corrections_w));
   }
-  vtk::write_vtu("momentum_elem.vtu", target_mesh, target_mesh->dim());
 }
 
 static Reals get_vertex_masses(Mesh* mesh) {

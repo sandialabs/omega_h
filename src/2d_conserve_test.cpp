@@ -65,6 +65,7 @@ int main(int argc, char** argv) {
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
       OMEGA_H_DO_OUTPUT, Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
+  CHECK(check_regression("gold_2d_conserve_preadapt", &mesh, 0.0, 0.0));
   adapt(&mesh, AdaptOpts(&mesh));
   mesh.set_parting(OMEGA_H_ELEM_BASED);
   postprocess_conserve(&mesh);
