@@ -47,7 +47,6 @@ static Vector<3> get_total_momentum(Mesh* mesh) {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  CHECK(world->size() == 1);
   Mesh mesh(&lib);
   if (world->rank() == 0) {
     gmsh::read("ball_in_cube.msh", &mesh);
@@ -69,7 +68,7 @@ int main(int argc, char** argv) {
   auto coords = mesh.coords();
   auto f = LAMBDA(LO vert) {
     auto x = get_vector<3>(coords, vert);
-    set_vector(velocity, vert, vector_3(0, 0, 1) * sqrt(fabs(x[0])));
+    set_vector(velocity, vert, vector_3(0, 0, 1) * sqrt(fabs(x[2])));
   };
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
@@ -85,15 +84,19 @@ int main(int argc, char** argv) {
   postprocess_conserve(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
     auto mass_after = get_total_mass(&mesh, obj);
-    std::cout << "model region " << obj_ids[obj] << " mass before "
-              << masses_before[obj] << ", after " << mass_after << '\n';
+    if (world->rank() == 0) {
+      std::cout << "model region " << obj_ids[obj] << " mass before "
+                << masses_before[obj] << ", after " << mass_after << '\n';
+    }
     CHECK(are_close(mass_after, masses_before[obj]));
   }
   auto momentum_after = get_total_momentum(&mesh);
-  std::cout << "momentum before" << ' ' << momentum_before[0] << ' '
-            << momentum_before[1] << ' ' << momentum_before[2] << '\n';
-  std::cout << "momentum after" << ' ' << momentum_after[0] << ' '
-            << momentum_after[1] << ' ' << momentum_after[2] << '\n';
+  if (world->rank() == 0) {
+    std::cout << "momentum before" << ' ' << momentum_before[0] << ' '
+              << momentum_before[1] << ' ' << momentum_before[2] << '\n';
+    std::cout << "momentum after" << ' ' << momentum_after[0] << ' '
+              << momentum_after[1] << ' ' << momentum_after[2] << '\n';
+  }
   CHECK(are_close(momentum_before, momentum_after));
   bool ok = check_regression("gold_3d_conserve", &mesh, 0.0, 0.0);
   if (!ok) return 2;
