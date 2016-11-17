@@ -47,10 +47,12 @@ int main(int argc, char** argv) {
   mesh.set_comm(world);
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto size = find_implied_size(&mesh);
+  {
+    auto size = find_implied_size(&mesh);
+    size = multiply_each_by(1.3, size);
+    mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
+  }
   mesh.set_parting(OMEGA_H_ELEM_BASED);
-  size = multiply_each_by(1.3, size);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
       measure_elements_real(&mesh));
   auto velocity = Write<Real>(mesh.nverts() * mesh.dim());
