@@ -12,8 +12,6 @@
 #include "tag.hpp"
 #include "transfer.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
@@ -292,9 +290,6 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
         keys2kds, keys2target_elems, target_vert_velocities);
     auto cavity_momentum_losses = subtract_each(donor_cavity_momenta,
         target_cavity_momenta);
-  //CHECK(cavity_momentum_losses.size() == 2);
-  //std::cout << "cavity momentum loss: " << cavity_momentum_losses.get(0)
-  //  << ", " << cavity_momentum_losses.get(1) << '\n';
     auto corrections_w = Write<Real>(target_mesh->nelems() * dim, 0.0);
     auto f = LAMBDA(LO key) {
       Few<Int, 3> nfree_verts;
@@ -308,7 +303,6 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
           if (!((1 << comp) & code)) ++nfree_verts[comp];
         }
       }
-    //std::cout << "free vertices: " << nfree_verts[0] << ", " << nfree_verts[1] << '\n';
       for (auto ke = keys2target_elems.a2ab[key];
            ke < keys2target_elems.a2ab[key + 1];
            ++ke) {
@@ -316,8 +310,6 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
         for (Int comp = 0; comp < dim; ++comp) {
           corrections_w[e * dim + comp] =
             cavity_momentum_losses[key * dim + comp] / nfree_verts[comp];
-        //std::cout << "corrections comp " << comp << ": "
-        //  << corrections_w[e * dim + comp] << '\n';
         }
       }
     };
@@ -375,10 +367,6 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
       for (Int comp = 0; comp < dim; ++comp) {
         if (!((1 << comp) & comps_are_fixed[v])) {
           vert_corrections_w[v * dim + comp] = correction[comp];
-        //if (vert_corrections_w[v * dim + comp] != 0.0) {
-        //  std::cout << "vert_corrections_w[" << v << " * 2 + "
-        //    << comp << "] = " << vert_corrections_w[v * dim + comp] << '\n';
-        //}
         }
       }
     };
@@ -387,11 +375,6 @@ void do_momentum_velocity_ghosted_target(Mesh* mesh) {
     vert_corrections = mesh->sync_array(dim, vert_corrections, dim);
     auto old_velocities = tag->array();
     auto velocity_corrections = divide_each(vert_corrections, vert_masses);
-  //for (int i = 0; i < mesh->nverts(); ++i)
-  //  for (int j = 0; j < 2; ++j)
-  //    if (velocity_corrections[i * 2 + j] != 0.0)
-  //      std::cout << "velocity_corrections[" << i << " * 2 + " << j
-  //        << "] = " << velocity_corrections[i * 2 + j] << '\n';
     auto new_velocities = add_each(old_velocities, velocity_corrections);
     mesh->set_tag(VERT, tag->name(), new_velocities);
     mesh->remove_tag(dim, corr_name);
