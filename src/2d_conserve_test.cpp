@@ -7,7 +7,6 @@
 #include "size.hpp"
 #include "space.hpp"
 #include "timer.hpp"
-#include "coarsen.hpp"
 
 using namespace Omega_h;
 
@@ -65,15 +64,16 @@ int main(int argc, char** argv) {
   mesh.add_tag(VERT, "velocity", mesh.dim(), OMEGA_H_MOMENTUM_VELOCITY,
       OMEGA_H_DO_OUTPUT, Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
-  CHECK(check_regression("gold_2d_conserve_preadapt", &mesh, 0.0, 0.0));
   adapt(&mesh, AdaptOpts(&mesh));
   mesh.set_parting(OMEGA_H_ELEM_BASED);
   postprocess_conserve(&mesh);
   auto momentum_after = get_total_momentum(&mesh);
-  std::cout << "before" << ' ' << momentum_before[0] << ' '
-            << momentum_before[1] << '\n';
-  std::cout << "after" << ' ' << momentum_after[0] << ' ' << momentum_after[1]
-            << '\n';
+  if (world->rank() == 0) {
+    std::cout << "before" << ' ' << momentum_before[0] << ' '
+              << momentum_before[1] << '\n';
+    std::cout << "after" << ' ' << momentum_after[0] << ' ' << momentum_after[1]
+              << '\n';
+  }
   CHECK(are_close(momentum_before, momentum_after));
   bool ok = check_regression("gold_2d_conserve", &mesh, 0.0, 0.0);
   if (!ok) return 2;
