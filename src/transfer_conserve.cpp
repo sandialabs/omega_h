@@ -171,7 +171,7 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 
 void fix_momentum_velocity_verts(Mesh* mesh, Int class_dim, I32 class_id,
     Int comp) {
-  for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
+  for (Int ent_dim = VERT; ent_dim <= class_dim; ++ent_dim) {
     auto ent_marks = mark_class_closure(mesh, ent_dim, class_dim, class_id);
     auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
     if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
@@ -181,6 +181,12 @@ void fix_momentum_velocity_verts(Mesh* mesh, Int class_dim, I32 class_id,
     } else {
       mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
           OMEGA_H_DO_OUTPUT, comp_marks);
+    }
+  }
+  for (Int ent_dim = class_dim + 1; ent_dim <= mesh->dim(); ++ent_dim) {
+    if (!mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
+      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
+          OMEGA_H_DO_OUTPUT, Read<I8>(mesh->nents(ent_dim), I8(0)));
     }
   }
 }
