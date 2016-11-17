@@ -20,10 +20,20 @@ Graph filter_graph(Graph g, Read<I8> keep_edge);
 std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories);
 bool operator==(Graph a, Graph b);
 
+template <typename T>
+void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width);
+template <typename T>
+Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T init_val, Int width);
+
 #define INST_DECL(T)                                                           \
-  extern template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);
+  extern template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);       \
+  extern template void map_into(                                               \
+      Read<T> a_data, Graph a2b, Write<T> b_data, Int width);                  \
+  extern template Read<T> map_onto(                                            \
+      Read<T> a_data, Graph a2b, LO nb, T, Int width);
 INST_DECL(I8)
 INST_DECL(I32)
+INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 

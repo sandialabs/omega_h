@@ -436,6 +436,10 @@ Read<T> multiply_each_by(T factor, Read<T> a) {
 
 template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b) {
+  if (b.size() == 0) {
+    CHECK(a.size() == 0);
+    return a;
+  }
   CHECK(a.size() % b.size() == 0);
   auto width = a.size() / b.size();
   Write<T> c(a.size());
@@ -450,6 +454,10 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
 
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b) {
+  if (b.size() == 0) {
+    CHECK(a.size() == 0);
+    return a;
+  }
   CHECK(a.size() % b.size() == 0);
   auto width = a.size() / b.size();
   Write<T> c(a.size());
@@ -560,6 +568,21 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b) {
   auto f = LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
   parallel_for(c.size(), f);
   return c;
+}
+
+Read<I8> bit_or_each(Read<I8> a, Read<I8> b) {
+  CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+Read<I8> bit_neg_each(Read<I8> a) {
+  Write<I8> b(a.size());
+  auto f = LAMBDA(LO i) { b[i] = ~(a[i]); };
+  parallel_for(a.size(), f);
+  return b;
 }
 
 template <typename T>

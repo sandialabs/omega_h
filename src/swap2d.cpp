@@ -29,15 +29,7 @@ static bool swap2d_ghosted(Mesh* mesh) {
   auto edge_quals = map_onto(cand_quals, cands2edges, mesh->nedges(), -1.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
   Graph edges2cav_elems;
-  if (needs_buffer_layers(mesh)) {
-    edges2cav_elems = get_buffered_elems(mesh, EDGE, edges_are_keys);
-    auto buf_conflicts =
-        get_buffered_conflicts(mesh, EDGE, edges2cav_elems, edges_are_keys);
-    edges_are_keys =
-        find_indset(mesh, EDGE, buf_conflicts, edge_quals, edges_are_keys);
-  } else {
-    edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
-  }
+  edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
   mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
       edges_are_keys);
   auto keys2edges = collect_marked(edges_are_keys);
@@ -64,9 +56,7 @@ static void swap2d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   swap2d_topology(mesh, keys2edges, &keys2prods, &prod_verts2verts);
-  auto same_verts2old_verts = LOs(mesh->nverts(), 0, 1);
-  auto same_verts2new_verts = same_verts2old_verts;
-  auto old_lows2new_lows = same_verts2old_verts;
+  auto old_lows2new_lows = LOs(mesh->nverts(), 0, 1);
   for (Int ent_dim = EDGE; ent_dim <= 2; ++ent_dim) {
     auto prods2new_ents = LOs();
     auto same_ents2old_ents = LOs();
@@ -76,8 +66,7 @@ static void swap2d_element_based(Mesh* mesh, AdaptOpts const& opts) {
         prod_verts2verts[ent_dim], old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     transfer_swap(mesh, &new_mesh, ent_dim, keys2edges, keys2prods[ent_dim],
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-        same_verts2old_verts, same_verts2new_verts);
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
@@ -88,6 +77,7 @@ bool swap_edges_2d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap2d_ghosted(mesh)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   swap2d_element_based(mesh, opts);
+  do_momentum_velocity_ghosted_target(mesh);
   return true;
 }
 
