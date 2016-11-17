@@ -233,8 +233,8 @@ Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
   return mesh->sync_subset_array(EDGE, keep, cands2edges, I8(0), 1);
 }
 
-static Reals get_cavity_momenta(Mesh* mesh, Int key_dim, LOs keys2kds,
-    Graph keys2elems, Reals vert_velocities) {
+static Reals get_cavity_momenta(Mesh* old_mesh, Int key_dim, LOs keys2kds,
+    Mesh* mesh, Graph keys2elems, Reals vert_velocities) {
   auto dim = mesh->dim();
   auto elem_masses = mesh->get_array<Real>(dim, "mass");
   auto cavity_elem_masses = unmap(keys2elems.ab2b, elem_masses, 1);
@@ -244,7 +244,7 @@ static Reals get_cavity_momenta(Mesh* mesh, Int key_dim, LOs keys2kds,
       cavity_elem_masses);
   auto cavity_momenta = fan_reduce(keys2elems.a2ab, cavity_elem_momenta, dim,
       OMEGA_H_SUM);
-  return mesh->sync_subset_array(key_dim, cavity_momenta,
+  return old_mesh->sync_subset_array(key_dim, cavity_momenta,
       keys2kds, 0.0, dim);
 }
 
@@ -284,10 +284,10 @@ void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
     auto tag = to<Real>(tagbase);
     auto donor_vert_velocities = tag->array();
     auto donor_cavity_momenta = get_cavity_momenta(donor_mesh, key_dim,
-        keys2kds, keys2donor_elems, donor_vert_velocities);
+        keys2kds, donor_mesh, keys2donor_elems, donor_vert_velocities);
     auto target_vert_velocities = target_mesh->get_array<Real>(VERT, tag->name());
-    auto target_cavity_momenta = get_cavity_momenta(target_mesh, key_dim,
-        keys2kds, keys2target_elems, target_vert_velocities);
+    auto target_cavity_momenta = get_cavity_momenta(donor_mesh, key_dim,
+        keys2kds, target_mesh, keys2target_elems, target_vert_velocities);
     auto cavity_momentum_losses = subtract_each(donor_cavity_momenta,
         target_cavity_momenta);
     auto corrections_w = Write<Real>(target_mesh->nelems() * dim, 0.0);
