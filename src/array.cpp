@@ -436,6 +436,10 @@ Read<T> multiply_each_by(T factor, Read<T> a) {
 
 template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b) {
+  if (b.size() == 0) {
+    CHECK(a.size() == 0);
+    return a;
+  }
   CHECK(a.size() % b.size() == 0);
   auto width = a.size() / b.size();
   Write<T> c(a.size());
@@ -450,6 +454,10 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
 
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b) {
+  if (b.size() == 0) {
+    CHECK(a.size() == 0);
+    return a;
+  }
   CHECK(a.size() % b.size() == 0);
   auto width = a.size() / b.size();
   Write<T> c(a.size());
