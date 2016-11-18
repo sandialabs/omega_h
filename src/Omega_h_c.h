@@ -56,14 +56,6 @@ extern "C" {
 void Omega_h_fail(char const* format, ...)
     __attribute__((noreturn, format(printf, 1, 2)));
 
-void Omega_h_init_internal(int* argc, char*** argv, char const* head_desc);
-
-inline static void Omega_h_init(int* argc, char*** argv) {
-  Omega_h_init_internal(argc, argv, OMEGA_H_VERSION);
-}
-
-void Omega_h_finalize(void);
-
 #ifdef __cplusplus
 }  // end of extern "C" block
 #endif

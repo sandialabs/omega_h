@@ -11,8 +11,7 @@
 namespace Omega_h {
 
 bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
-  Int nghost_layers = needs_buffer_layers(mesh) ? 3 : 1;
-  mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, false);
+  mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);

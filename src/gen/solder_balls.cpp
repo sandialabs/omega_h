@@ -76,7 +76,9 @@ int main(int argc, char** argv) {
     } else
     if (!strcmp("-u", argv[i])) {
       inner_res = outer_res = edge_res = mid_res = atof(argv[++i]);
-      block_height = ball_height;
+    } else
+    if (!strcmp("-h", argv[i])) {
+      block_height = atof(argv[++i]);
     } else
     if (!strcmp("-o", argv[i])) {
       out_path = argv[++i];

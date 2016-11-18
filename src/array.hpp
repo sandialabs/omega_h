@@ -28,6 +28,7 @@ T max(CommPtr comm, Read<T> a);
 
 bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
 
+/* "a" may be larger than "b" by some integer factor */
 template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b);
 template <typename T>
@@ -50,6 +51,8 @@ template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b);
 Read<I8> land_each(Read<I8> a, Read<I8> b);
 Read<I8> lor_each(Read<I8> a, Read<I8> b);
+Read<I8> bit_or_each(Read<I8> a, Read<I8> b);
+Read<I8> bit_neg_each(Read<I8> a);
 
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp);
@@ -77,7 +80,6 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp);
   extern template Read<I8> each_gt(Read<T> a, T b);                            \
   extern template Read<I8> each_lt(Read<T> a, T b);                            \
   extern template Read<I8> each_neq_to(Read<T> a, T b);                        \
-  extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 

@@ -189,13 +189,14 @@ static void post_adapt(
 }
 
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
-  Now t0 = now();
+  auto t0 = now();
   if (!pre_adapt(mesh, opts)) return false;
-  Now t1 = now();
+  auto t1 = now();
   satisfy_lengths(mesh, opts);
-  Now t2 = now();
+  auto t2 = now();
   satisfy_quality(mesh, opts);
-  Now t3 = now();
+  auto t3 = now();
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3);
   return true;
 }

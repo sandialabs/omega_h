@@ -36,9 +36,6 @@ class Write {
   std::shared_ptr<T> ptr_;
   LO size_;
 #endif
-  /* separate boolean instead of data()==nullptr,
-     see Kokkos issue #244 */
-  bool exists_;
 
  public:
   OMEGA_H_INLINE Write();
@@ -52,17 +49,17 @@ class Write {
   OMEGA_H_INLINE Write(Write<T> const& other)
       :
 #ifdef OMEGA_H_USE_KOKKOS
-        view_(other.view_),
+        view_(other.view_)
 #else
         ptr_(other.ptr_),
-        size_(other.size_),
+        size_(other.size_)
 #endif
-        exists_(other.exists_) {
+  {
   }
   Write<T>& operator=(Write<T> const&);
   OMEGA_H_INLINE ~Write() {
 #ifndef __CUDA_ARCH__
-    dtor();
+    check_release();
 #endif
   }
   LO size() const;
@@ -83,15 +80,20 @@ class Write {
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
-  OMEGA_H_INLINE bool exists() const {
+  OMEGA_H_INLINE long use_count() const {
 #ifdef OMEGA_H_USE_KOKKOS
-    OMEGA_H_CHECK((view_.use_count() != 0) == exists_);
+    return view_.use_count();
+#else
+    return ptr_.use_count();
 #endif
-    return exists_;
   }
+  OMEGA_H_INLINE bool exists() const {
+    return use_count() != 0;
+  }
+  std::size_t bytes() const;
 
  private:
-  void dtor();
+  void check_release() const;
 };
 
 std::size_t get_current_bytes();
@@ -106,8 +108,7 @@ OMEGA_H_INLINE Write<T>::Write()
       ptr_(),
       size_(0)
 #endif
-      ,
-      exists_(false) {
+{
 }
 
 template <typename T>
@@ -278,8 +279,6 @@ class Comm {
   Comm(bool is_graph, bool sends_to_self);
 #endif
   ~Comm();
-  static CommPtr world();
-  static CommPtr self();
   I32 rank() const;
   I32 size() const;
   CommPtr dup() const;
@@ -387,11 +386,35 @@ void find_matches(
 
 class Library {
  public:
-  Library(Library const&) {}
-  inline Library(int* argc, char*** argv) { Omega_h_init(argc, argv); }
+  Library(Library const&);
+  inline Library(int* argc, char*** argv
+#ifdef OMEGA_H_USE_MPI
+      , MPI_Comm comm_mpi = MPI_COMM_WORLD
+#endif
+      ) {
+    initialize(OMEGA_H_VERSION, argc, argv
+#ifdef OMEGA_H_USE_MPI
+        , comm_mpi
+#endif
+        );
+  }
   ~Library();
-  CommPtr world() const;
-  CommPtr self() const;
+  CommPtr world();
+  CommPtr self();
+ private:
+  void initialize(char const* head_desc, int* argc, char*** argv
+#ifdef OMEGA_H_USE_MPI
+      , MPI_Comm comm_mpi
+#endif
+      );
+  CommPtr world_;
+  CommPtr self_;
+#ifdef OMEGA_H_USE_MPI
+  bool we_called_mpi_init = false;
+#endif
+#ifdef OMEGA_H_USE_KOKKOS
+  bool we_called_kokkos_init = false;
+#endif
 };
 
 namespace inertia {
@@ -518,6 +541,7 @@ class Mesh {
   bool keeps_canonical_globals() const;
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
+  Real imbalance(Int ent_dim = -1) const;
 };
 
 #ifdef OMEGA_H_USE_MESHB
@@ -624,8 +648,8 @@ Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids);
-void fix_momentum_velocity_verts(
-    Mesh* mesh, std::vector<Int> class_dims, std::vector<I32> class_ids);
+void fix_momentum_velocity_verts(Mesh* mesh, Int class_dim, I32 class_id,
+    Int comp);
 
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);

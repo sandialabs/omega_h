@@ -56,26 +56,6 @@ Comm::~Comm() {
 #endif
 }
 
-CommPtr Comm::world() {
-#ifdef OMEGA_H_USE_MPI
-  MPI_Comm impl;
-  CALL(MPI_Comm_dup(MPI_COMM_WORLD, &impl));
-  return CommPtr(new Comm(impl));
-#else
-  return CommPtr(new Comm());
-#endif
-}
-
-CommPtr Comm::self() {
-#ifdef OMEGA_H_USE_MPI
-  MPI_Comm impl;
-  CALL(MPI_Comm_dup(MPI_COMM_SELF, &impl));
-  return CommPtr(new Comm(impl));
-#else
-  return CommPtr(new Comm());
-#endif
-}
-
 I32 Comm::rank() const {
 #ifdef OMEGA_H_USE_MPI
   I32 r;

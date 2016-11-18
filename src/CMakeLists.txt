@@ -79,6 +79,7 @@ set(Omega_h_SOURCES
   overshoot.cpp
   collapse_rail.cpp
   histogram.cpp
+  stacktrace.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)
@@ -98,10 +99,6 @@ else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
 
-if(Omega_h_USE_Meshb)
-  target_link_libraries(omega_h PUBLIC Meshb::meshb)
-endif()
-
 target_include_directories(omega_h
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 #for users to find all our headers after we're installed:
@@ -109,6 +106,39 @@ target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
 #find our generated omega_h_config.h, during build only
 target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
+if(Omega_h_USE_Meshb)
+  target_link_libraries(omega_h PUBLIC Meshb::meshb)
+endif()
+
+if(Omega_h_USE_EGADS)
+  message(STATUS "Omega_h_USE_EGADS: ${Omega_h_USE_EGADS}")
+  if(NOT EGADS_PREFIX)
+    message(FATAL_ERROR "Omega_h_USE_EGADS=${Omega_h_USE_EGADS} but EGADS_PREFIX not set!")
+  endif()
+  find_path(EGADS_INCLUDE_DIR NAMES egads.h
+      PATHS
+      "${EGADS_PREFIX}/EngSketchPad/include"
+      "${EGADS_PREFIX}/include"
+      NO_DEFAULT_PATH)
+  if(NOT EGADS_INCLUDE_DIR)
+    message(FATAL_ERROR "could not find path to \"egads.h\"")
+  endif()
+  find_library(EGADS_LIBRARY NAMES egads
+      PATHS
+#      "${EGADS_PREFIX}/OpenCASCADE-6.6.0/i686/lib"
+      "${EGADS_PREFIX}/EngSketchPad/lib"
+      NO_DEFAULT_PATH)
+  if(NOT EGADS_LIBRARY)
+    message(FATAL_ERROR "could not find EGADS_LIBRARY")
+  endif()
+  message(STATUS "EGADS_INCLUDE_DIR: ${EGADS_INCLUDE_DIR}")
+  message(STATUS "EGADS_LIBRARY: ${EGADS_LIBRARY}")
+  add_executable(egads_test egads_test.cpp)
+  target_include_directories(egads_test PRIVATE "${EGADS_INCLUDE_DIR}")
+  target_link_libraries(egads_test PUBLIC "${EGADS_LIBRARY}")
+endif()
+
 bob_export_target(omega_h)
 
 set(Omega_h_USE_Kokkos_DEFAULT OFF)
@@ -169,17 +199,19 @@ if(BUILD_TESTING)
     find_program(MPIRUN mpirun PATHS ${COMPILER_DIR}
         DOC "Location of the mpirun program")
     if(NOT MPIRUN)
-      message(FATAL_ERROR "Omega_h_USE_MPI=${Omega_h_USE_MPI} but MPIRUN not found!")
+      message(STATUS "USE_MPI and BUILD_TESTING but MPIRUN not found!")
     endif()
   endif()
   find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
+  message(STATUS "GMSH: ${GMSH}")
 
   function(test_func TEST_NAME NUM_PROCS)
     if(MPIRUN)
       set(TEST_STR ${MPIRUN} -np ${NUM_PROCS} ${ARGN})
     else()
       if(NOT (${NUM_PROCS} EQUAL "1"))
-        message(FATAL_ERROR "test_func with ${NUM_PROCS} procs but MPI disabled")
+        message(STATUS "test ${TEST_NAME} ignored because MPIRUN not found!")
+        return()
       endif()
       set(TEST_STR ${ARGN})
     endif()
@@ -237,11 +269,19 @@ if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
     test_func(warp_test_parallel 2 ./warp_test)
   endif()
-  osh_add_exe(conserve_test)
+  osh_add_exe(2d_conserve_test)
+  test_func(serial_2d_conserve 1 ./2d_conserve_test)
+  if(Omega_h_USE_MPI)
+    test_func(parallel_2d_conserve 2 ./2d_conserve_test)
+  endif()
+  osh_add_exe(3d_conserve_test)
   if(Omega_h_USE_Gmodel AND GMSH)
-    set(TEST_EXES ${TEST_EXES} conserve_test)
-    test_func(run_conserve_test 1 ./conserve_test)
+    set(TEST_EXES ${TEST_EXES} 3d_conserve_test)
+    test_func(serial_3d_conserve 1 ./3d_conserve_test)
     set(TEST_MSHS ${TEST_MSHS} ball_in_cube.msh)
+    if(Omega_h_USE_MPI)
+      test_func(parallel_3d_conserve 2 ./3d_conserve_test)
+    endif()
   endif()
   osh_add_exe(perf_tests)
   osh_add_exe(ring_test)
@@ -260,6 +300,7 @@ if(BUILD_TESTING)
   if(Omega_h_USE_Meshb)
     osh_add_exe(ugawg)
   endif()
+  osh_add_exe(slope_test)
 endif()
 
 set(DEF_VARS

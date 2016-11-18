@@ -20,10 +20,11 @@
 
 namespace Omega_h {
 
-Mesh::Mesh(Library* library) : dim_(-1) {
+Mesh::Mesh(Library* library) {
+  dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
-  parting_ = OMEGA_H_ELEM_BASED;
-  nghost_layers_ = 0;
+  parting_ = -1;
+  nghost_layers_ = -1;
   keeps_canonical_globals_ = true;
   CHECK(library != nullptr);
   library_ = library;
@@ -38,7 +39,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
     // partitioning out from small sub-communicator to larger one
     if (!rank_had_comm) {
       // temporarily set the uninit ranks to Comm::self()
-      comm_ = Comm::self();
+      comm_ = library_->self();
     } else {
       /* forget RIB hints. this prevents some ranks from
          having hints while the new ranks do not, which would
@@ -496,6 +497,7 @@ void Mesh::balance(bool predictive) {
       average_field(this, dim(), LOs(nelems(), 0, 1), dim(), coords());
   if (dim() == 2) ecoords = vectors_2d_to_3d(ecoords);
   Reals masses;
+  Real abs_tol;
   if (predictive) {
     if (has_tag(VERT, "size")) {
       masses = expected_elems_per_elem_iso(this, get_array<Real>(VERT, "size"));
@@ -507,13 +509,14 @@ void Mesh::balance(bool predictive) {
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);
     masses = multiply_each_by(1. / 2., masses);
+    abs_tol = comm_->allreduce(max2(0.0, max(masses)), OMEGA_H_MAX);
   } else {
     masses = Reals(nelems(), 1);
+    abs_tol = 1.0;
   }
+  abs_tol *= 2.0; // fudge factor ?
   auto owners = ask_owners(dim());
-  auto total = comm_->allreduce(GO(nelems()), OMEGA_H_SUM);
-  auto avg = Real(total) / Real(comm_->size());
-  hints = recursively_bisect(comm(), ecoords, masses, owners, 2.0 / avg, hints);
+  recursively_bisect(comm(), abs_tol, &ecoords, &masses, &owners, &hints);
   rib_hints_ = std::make_shared<inertia::Rib>(hints);
   migrate(owners);
 }
@@ -652,6 +655,17 @@ Mesh Mesh::copy_meta() const {
 Mesh::RibPtr Mesh::rib_hints() const { return rib_hints_; }
 
 void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
+
+Real Mesh::imbalance(Int ent_dim) const {
+  if (ent_dim == -1) ent_dim = this->dim();
+  auto local = Real(this->nents(ent_dim));
+  auto s = comm_->allreduce(local, OMEGA_H_SUM);
+  if (s == 0.0) return 1.0;
+  auto m = comm_->allreduce(local, OMEGA_H_MAX);
+  auto n = comm_->size();
+  auto a = s / n;
+  return m / a;
+}
 
 #define INST_T(T)                                                              \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \

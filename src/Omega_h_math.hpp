@@ -329,6 +329,28 @@ Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
 
+template <Int dim>
+struct BBox {
+  OMEGA_H_INLINE BBox() {}
+  OMEGA_H_INLINE BBox(Vector<dim> x) : min(x), max(x) {}
+  OMEGA_H_INLINE BBox(Vector<dim> min_, Vector<dim> max_) : min(min_), max(max_) {}
+  Vector<dim> min;
+  Vector<dim> max;
+  /* playing the volatile game again (see int128.hpp) */
+  OMEGA_H_INLINE void operator=(BBox<dim> const& rhs) volatile {
+    min = rhs.min;
+    max = rhs.max;
+  }
+  OMEGA_H_INLINE BBox(BBox<dim> const& rhs) : min(rhs.min), max(rhs.max) {}
+  OMEGA_H_INLINE BBox(const volatile BBox<dim>& rhs) : min(rhs.min), max(rhs.max) {}
+};
+
+template <Int dim>
+BBox<dim> get_bounding_box(Mesh* mesh);
+
+extern template BBox<2> get_bounding_box<2>(Mesh* mesh);
+extern template BBox<3> get_bounding_box<3>(Mesh* mesh);
+
 }  // end namespace Omega_h
 
 #endif

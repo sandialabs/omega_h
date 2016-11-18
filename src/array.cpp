@@ -1,7 +1,12 @@
 #include "array.hpp"
 
+#include <cstring>
+#include <sstream>
+
 #include "algebra.hpp"
+#include "control.hpp"
 #include "loop.hpp"
+#include "stacktrace.hpp"
 
 namespace Omega_h {
 
@@ -15,7 +20,7 @@ std::size_t get_max_bytes() { return max_array_bytes; }
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view) : view_(view), exists_(true) {}
+Write<T>::Write(Kokkos::View<T*> view) : view_(view) {}
 #endif
 
 template <typename T>
@@ -28,41 +33,38 @@ Write<T>::Write(LO size)
       ptr_(new T[size], std::default_delete<T[]>()),
       size_(size)
 #endif
-      ,
-      exists_(true) {
-#ifdef OMEGA_H_USE_KOKKOS
-  current_array_bytes += view_.span() * sizeof(T);
-#else
-  current_array_bytes += static_cast<std::size_t>(size) * sizeof(T);
-#endif
+      {
+  current_array_bytes += bytes();
   if (current_array_bytes > max_array_bytes) {
     max_array_bytes = current_array_bytes;
+    if (should_log_memory) {
+      delete [] max_memory_stacktrace;
+      max_memory_stacktrace = nullptr;
+      std::stringstream ss;
+      print_stacktrace(ss, 64);
+      auto s = ss.str();
+      max_memory_stacktrace = new char[s.length() + 1];
+      strcpy(max_memory_stacktrace, s.c_str());
+    }
   }
 }
 
 template <typename T>
-void Write<T>::dtor() {
-#ifdef OMEGA_H_USE_KOKKOS
-  if (view_.use_count() == 1) {
-    CHECK(view_.span() == view_.size());
-    current_array_bytes -= view_.span() * sizeof(T);
+void Write<T>::check_release() const {
+  if (use_count() == 1) {
+    current_array_bytes -= bytes();
   }
-#else
-  if (ptr_.unique()) {
-    current_array_bytes -= static_cast<std::size_t>(size_) * sizeof(T);
-  }
-#endif
 }
 
 template <typename T>
 Write<T>& Write<T>::operator=(Write<T> const& other) {
+  check_release();
 #ifdef OMEGA_H_USE_KOKKOS
   view_ = other.view_;
 #else
   ptr_ = other.ptr_;
   size_ = other.size_;
 #endif
-  exists_ = other.exists_;
   return *this;
 }
 
@@ -99,6 +101,11 @@ LO Write<T>::size() const {
 #else
   return size_;
 #endif
+}
+
+template <typename T>
+std::size_t Write<T>::bytes() const {
+  return static_cast<std::size_t>(size()) * sizeof(T);
 }
 
 /* Several C libraries including ZLib and
@@ -429,6 +436,10 @@ Read<T> multiply_each_by(T factor, Read<T> a) {
 
 template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b) {
+  if (b.size() == 0) {
+    CHECK(a.size() == 0);
+    return a;
+  }
   CHECK(a.size() % b.size() == 0);
   auto width = a.size() / b.size();
   Write<T> c(a.size());
@@ -443,6 +454,10 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
 
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b) {
+  if (b.size() == 0) {
+    CHECK(a.size() == 0);
+    return a;
+  }
   CHECK(a.size() % b.size() == 0);
   auto width = a.size() / b.size();
   Write<T> c(a.size());
@@ -553,6 +568,21 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b) {
   auto f = LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
   parallel_for(c.size(), f);
   return c;
+}
+
+Read<I8> bit_or_each(Read<I8> a, Read<I8> b) {
+  CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+Read<I8> bit_neg_each(Read<I8> a) {
+  Write<I8> b(a.size());
+  auto f = LAMBDA(LO i) { b[i] = ~(a[i]); };
+  parallel_for(a.size(), f);
+  return b;
 }
 
 template <typename T>

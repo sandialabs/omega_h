@@ -570,10 +570,10 @@ static void test_expand() {
   CHECK(expand(data, fan, 1) == Reals({2.2, 2.2, 3.14, 42.0, 42.0, 42.0}));
 }
 
-static void test_inertial_bisect() {
+static void test_inertial_bisect(Library* lib) {
   Reals coords({2, 1, 0, 2, -1, 0, -2, 1, 0, -2, -1, 0});
   Reals masses(4, 1);
-  auto self = Comm::self();
+  auto self = lib->self();
   Real tolerance = 0.0;
   Vector<3> axis;
   auto marked = inertia::mark_bisection(self, coords, masses, tolerance, axis);
@@ -692,7 +692,7 @@ static void test_file(Library* lib, Mesh* mesh0) {
   std::stringstream stream;
   binary::write(stream, mesh0);
   Mesh mesh1(lib);
-  mesh1.set_comm(Comm::self());
+  mesh1.set_comm(lib->self());
   binary::read(stream, &mesh1);
   mesh1.set_comm(lib->world());
   compare_meshes(mesh0, &mesh1, 0, 0, true, true);
@@ -828,24 +828,6 @@ static void test_sf_scale(Library* lib) {
   test_sf_scale_dim<3>(lib);
 }
 
-static void test_buffered_conflict(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 0, 3, 3, 0);
-  classify_by_angles(&mesh, PI / 4);
-  auto class_dim = mesh.get_array<I8>(VERT, "class_dim");
-  auto indset = each_eq_to(class_dim, I8(0));
-  auto kds2buf_elems = get_buffered_elems(&mesh, VERT, indset);
-  auto bg = get_buffered_conflicts(&mesh, VERT, kds2buf_elems, indset);
-  auto known_degrees_w = Write<LO>(bg.nnodes(), 0);
-  known_degrees_w.set(0, 3);
-  known_degrees_w.set(3, 2);
-  known_degrees_w.set(12, 2);
-  known_degrees_w.set(15, 3);
-  auto offsets = offset_scan(LOs(known_degrees_w));
-  CHECK(bg.a2ab == offsets);
-  CHECK(bg.ab2b == LOs({3, 15, 12, 0, 15, 15, 0, 0, 3, 12}));
-}
-
 static void test_categorize_graph() {
   auto g = Graph(LOs({0, 4, 8}), LOs({0, 1, 2, 3, 4, 5, 6, 7}));
   auto b_categories = Read<I32>({8, 8, 42, 8, 42, 42, 42, 42});
@@ -889,7 +871,7 @@ int main(int argc, char** argv) {
   test_file_components();
   test_linpart();
   test_expand();
-  test_inertial_bisect();
+  test_inertial_bisect(&lib);
   test_average_field(&lib);
   test_positivize();
   test_refine_qualities(&lib);
@@ -904,6 +886,6 @@ int main(int argc, char** argv) {
   test_element_implied_metric();
   test_recover_hessians(&lib);
   test_sf_scale(&lib);
-  test_buffered_conflict(&lib);
   test_categorize_graph();
+  CHECK(get_current_bytes() == 0);
 }
