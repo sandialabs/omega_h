@@ -6,7 +6,9 @@
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   Omega_h::Mesh mesh(&lib);
+  CHECK(argc == 3 || argc == 4);
   Omega_h::gmsh::read(argv[1], &mesh);
+  if (mesh.dim() == 3) CHECK(argc == 4);
   auto sdim = mesh.dim() - 1;
   auto sides_are_surf = Omega_h::mark_by_class_dim(&mesh, sdim, sdim);
   auto verts_are_surf = Omega_h::mark_by_class_dim(&mesh, Omega_h::VERT, sdim);
