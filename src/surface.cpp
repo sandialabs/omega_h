@@ -244,6 +244,55 @@ Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
   return normalize_vectors(curv_vert_tangents, 3);
 }
 
+/* Rusinkiewicz, Szymon.
+ * "Estimating curvatures and their derivatives on triangle meshes."
+ * 3D Data Processing, Visualization and Transmission, 2004.
+ * 3DPVT 2004. Proceedings. 2nd International Symposium on. IEEE, 2004.
+ */
+
+Reals get_triangle_curvatures(Mesh* mesh, LOs surf_tris2tri,
+    Reals surf_tri_normals, LOs surf_verts2vert, Reals surf_vert_normals) {
+  auto verts2surf_vert = invert_injective_map(surf_verts2vert, mesh->nverts());
+  auto tris2verts = mesh->ask_verts_of(TRI);
+  auto coords = mesh->coords();
+  auto nsurf_tris = surf_tris2tri.size();
+  auto surf_tris2II_w = Write<Real>(nsurf_tris * symm_dofs(2));
+  auto f = LAMBDA(LO surf_tri) {
+    auto tri = surf_tris2tri[surf_tri];
+    auto tn = get_vector<3>(surf_tri_normals, surf_tri);
+    auto nuv = form_ortho_basis(tn);
+    auto u = nuv[1];
+    auto v = nuv[2];
+    auto ttv = gather_verts<3>(tris2verts, tri);
+    auto p = gather_vectors<3, 3>(coords, ttv);
+    Few<Vector<3>, 3> n;
+    for (Int i = 0; i < 3; ++i) {
+      auto vert = ttv[i];
+      auto surf_vert = verts2surf_vert[vert];
+      if (surf_vert >= 0) n[i] = get_vector<3>(surf_vert_normals, surf_vert);
+      else n[i] = tn;
+    }
+    Few<Vector<3>, 3> e;
+    for (Int i = 0; i < 3; ++i) e[i] = p[(i + 2) % 3] - p[(i + 1) % 3];
+    Few<Vector<3>, 3> dn;
+    for (Int i = 0; i < 3; ++i) dn[i] = n[(i + 2) % 3] - n[(i + 1) % 3];
+    Matrix<6,3> A;
+    Vector<6> rhs;
+    for (Int i = 0; i < 3; ++i) {
+      A[2][i * 2 + 1] = A[0][i * 2 + 0] = e[i] * u;
+      A[1][i * 2 + 1] = A[2][i * 2 + 0] = e[i] * v;
+      A[1][i * 2 + 0] = A[0][i * 2 + 1] = 0;
+      rhs[i * 2 + 0] = dn[i] * u;
+      rhs[i * 2 + 1] = dn[i] * v;
+    }
+    auto II_comps = solve_using_qr(A, rhs);
+    auto II = vector2symm(II_comps);
+    set_symm(surf_tris2II_w, surf_tri, II);
+  };
+  parallel_for(nsurf_tris, f);
+  return surf_tris2II_w;
+}
+
 }  // end namespace surf
 
 }  // end namespace Omega_h
