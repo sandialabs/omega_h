@@ -256,7 +256,7 @@ Reals get_triangle_curvatures(Mesh* mesh, LOs surf_tris2tri,
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto coords = mesh->coords();
   auto nsurf_tris = surf_tris2tri.size();
-  auto surf_tris2II_w = Write<Real>(nsurf_tris * symm_dofs(2));
+  auto surf_tri_IIs_w = Write<Real>(nsurf_tris * symm_dofs(2));
   auto f = LAMBDA(LO surf_tri) {
     auto tri = surf_tris2tri[surf_tri];
     auto tn = get_vector<3>(surf_tri_normals, surf_tri);
@@ -287,10 +287,104 @@ Reals get_triangle_curvatures(Mesh* mesh, LOs surf_tris2tri,
     }
     auto II_comps = solve_using_qr(A, rhs);
     auto II = vector2symm(II_comps);
-    set_symm(surf_tris2II_w, surf_tri, II);
+    set_symm(surf_tri_IIs_w, surf_tri, II);
   };
   parallel_for(nsurf_tris, f);
-  return surf_tris2II_w;
+  return surf_tri_IIs_w;
+}
+
+/* Meyer, Mark, et al.
+ * "Discrete differential-geometry operators for triangulated 2-manifolds."
+ * Visualization and mathematics III. Springer Berlin Heidelberg, 2003. 35-57.
+ */
+
+static Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
+  Few<Vector<3>, 3> e;
+  for (Int i = 0; i < 3; ++i) e[i] = p[(i + 1) % 3] - p[i];
+  Int ttv_obtuse = -1;
+  for (Int i = 0; i < 3; ++i) {
+    if (e[i] * e[(i + 2) % 3] > 0.0) {
+      ttv_obtuse = i;
+      break;
+    }
+  }
+  Few<Vector<3>, 2> basis;
+  basis[0] = e[ttv];
+  basis[1] = -e[(ttv + 2) % 3];
+  if (ttv_obtuse >= 0) {
+    auto area = triangle_area(basis);
+    if (ttv == ttv_obtuse) return area / 2.0;
+    else return area / 4.0;
+  } else {
+    auto ao = get_circumcenter_vector(basis);
+    Few<Vector<3>, 2> halfbasis;
+    halfbasis[0] = basis[0] / 2.0;
+    halfbasis[1] = ao;
+    auto area = triangle_area(halfbasis);
+    halfbasis[0] = ao;
+    halfbasis[1] = basis[1] / 2.0;
+    area += triangle_area(halfbasis);
+    return area;
+  }
+}
+
+static Matrix<3,3> rotate_to_plane(Vector<3> n, Matrix<3,3> tnuv) {
+  auto tn = tnuv[0];
+  auto cp = cross(tn, n);
+  auto cpl = norm(cp);
+  if (cpl < EPSILON) return tnuv;
+  auto axis = cp / cpl;
+  auto angle = asin(cpl);
+  auto r = rotate(angle, axis);
+  return r * tnuv;
+}
+
+Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
+    Reals surf_tri_normals, Reals surf_tri_IIs,
+    LOs surf_verts2vert, Reals surf_vert_normals) {
+  auto nsurf_verts = surf_verts2vert.size();
+  auto verts2tris = mesh->ask_up(VERT, TRI);
+  auto tris2surf_tri = invert_injective_map(surf_tris2tri, mesh->ntris());
+  auto coords = mesh->coords();
+  auto tris2verts = mesh->ask_verts_of(TRI);
+  auto surf_vert_IIs_w = Write<Real>(nsurf_verts * 3);
+  auto f = LAMBDA(LO surf_vert) {
+    auto vert = surf_verts2vert[surf_vert];
+    auto n = get_vector<3>(surf_vert_normals, surf_vert);
+    auto nuv = form_ortho_basis(n);
+    Real ws = 0.0;
+    Vector<3> comps = vector_3(0.0, 0.0, 0.0);
+    for (auto vt = verts2tris.a2ab[vert]; vt < verts2tris.a2ab[vert + 1]; ++vt) {
+      auto tri =verts2tris.ab2b[vt];
+      auto surf_tri = tris2surf_tri[tri];
+      if (surf_tri < 0) continue;
+      auto tn = get_vector<3>(surf_tri_normals, surf_tri);
+      auto fnuv = form_ortho_basis(tn);
+      fnuv = rotate_to_plane(n, fnuv);
+      Matrix<2,2> jac;
+      for (Int i = 0; i < 2; ++i) {
+        for (Int j = 0; j < 2; ++j) {
+          jac[j][i] = nuv[j + 1] * fnuv[i + 1];
+        }
+      }
+      auto tri_II = get_symm<2>(surf_tri_IIs, surf_tri);
+      Vector<3> tri_comps;
+      tri_comps[0] = jac[0] * (tri_II * jac[0]);
+      tri_comps[1] = jac[1] * (tri_II * jac[1]);
+      tri_comps[2] = jac[0] * (tri_II * jac[1]);
+      auto code = verts2tris.codes[vt];
+      auto ttv = code_which_down(code);
+      auto ttv2v = gather_verts<3>(tris2verts, tri);
+      auto p = gather_vectors<3, 3>(coords, ttv2v);
+      auto w = get_mixed_area(p, ttv);
+      comps = comps + (tri_comps * w);
+      ws += w;
+    }
+    comps = comps / ws;
+    set_vector(surf_vert_IIs_w, surf_vert, comps);
+  };
+  parallel_for(nsurf_verts, f);
+  return surf_vert_IIs_w;
 }
 
 }  // end namespace surf
