@@ -145,6 +145,35 @@ INLINE Vector<dim + 1> form_barycentric(Vector<dim> c) {
   return bc;
 }
 
+/* This code is copied from the tricircumcenter3d() function
+ * by Shewchuk:
+ * http://www.ics.uci.edu/~eppstein/junkyard/circumcenter.html
+ * To:             compgeom-discuss@research.bell-labs.com
+ * Subject:        Re: circumsphere
+ * Date:           Wed, 1 Apr 98 0:34:28 EST
+ * From:           Jonathan R Shewchuk <jrs+@cs.cmu.edu>
+ *
+ * given the basis vectors of a triangle in 3D,
+ * this function returns the vector from the first vertex
+ * to the triangle's circumcenter
+ */
+
+INLINE Vector<3> get_circumcenter_vector(Few<Vector<3>, 2> basis) {
+  auto ba = basis[0];
+  auto ca = basis[1];
+  auto balength = norm_squared(ba);
+  auto calength = norm_squared(ca);
+  auto crossbc = cross(ba, ca);
+  auto factor = 0.5 / norm_squared(crossbc);
+  auto xcirca = ((balength * ca[1] - calength * ba[1]) * crossbc[2] -
+                 (balength * ca[2] - calength * ba[2]) * crossbc[1]) * factor;
+  auto ycirca = ((balength * ca[2] - calength * ba[2]) * crossbc[0] -
+                 (balength * ca[0] - calength * ba[0]) * crossbc[2]) * factor;
+  auto zcirca = ((balength * ca[0] - calength * ba[0]) * crossbc[1] -
+                 (balength * ca[1] - calength * ba[1]) * crossbc[0]) * factor;
+  return vector_3(xcirca, ycirca, zcirca);
+}
+
 }  // end namespace Omega_h
 
 #endif
