@@ -6,6 +6,7 @@
 #include "loop.hpp"
 #include "map.hpp"
 #include "size.hpp"
+#include "mark.hpp"
 
 namespace Omega_h {
 
@@ -347,6 +348,12 @@ Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
   auto tris2surf_tri = invert_injective_map(surf_tris2tri, mesh->ntris());
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(TRI);
+  auto verts_not_surf = map_onto(Read<I8>(nsurf_verts, I8(0)),
+      surf_verts2vert, mesh->nverts(), I8(1), 1);
+  auto tris_touch_bdry = mark_up(mesh, VERT, TRI, verts_not_surf);
+  // REMOVE THIS NOW !!!
+  mesh->add_tag(TRI, "touch", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
+      tris_touch_bdry);
   auto surf_vert_IIs_w = Write<Real>(nsurf_verts * 3);
   auto f = LAMBDA(LO surf_vert) {
     auto vert = surf_verts2vert[surf_vert];
@@ -354,10 +361,18 @@ Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
     auto nuv = form_ortho_basis(n);
     Real ws = 0.0;
     Vector<3> comps = vector_3(0.0, 0.0, 0.0);
+    Int nadj_int_tris = 0;
     for (auto vt = verts2tris.a2ab[vert]; vt < verts2tris.a2ab[vert + 1]; ++vt) {
       auto tri =verts2tris.ab2b[vt];
       auto surf_tri = tris2surf_tri[tri];
       if (surf_tri < 0) continue;
+      if (!tris_touch_bdry[tri]) ++nadj_int_tris;
+    }
+    for (auto vt = verts2tris.a2ab[vert]; vt < verts2tris.a2ab[vert + 1]; ++vt) {
+      auto tri =verts2tris.ab2b[vt];
+      auto surf_tri = tris2surf_tri[tri];
+      if (surf_tri < 0) continue;
+      if (nadj_int_tris && tris_touch_bdry[tri]) continue;
       auto tn = get_vector<3>(surf_tri_normals, surf_tri);
       auto fnuv = form_ortho_basis(tn);
       fnuv = rotate_to_plane(n, fnuv);
@@ -384,7 +399,9 @@ Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
     set_vector(surf_vert_IIs_w, surf_vert, comps);
   };
   parallel_for(nsurf_verts, f);
-  return surf_vert_IIs_w;
+  auto surf_vert_IIs = Reals(surf_vert_IIs_w);
+  return mesh->sync_subset_array(VERT, surf_vert_IIs,
+      surf_verts2vert, 0.0, 3);
 }
 
 }  // end namespace surf
