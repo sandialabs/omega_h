@@ -351,9 +351,6 @@ Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
   auto verts_not_surf = map_onto(Read<I8>(nsurf_verts, I8(0)),
       surf_verts2vert, mesh->nverts(), I8(1), 1);
   auto tris_touch_bdry = mark_up(mesh, VERT, TRI, verts_not_surf);
-  // REMOVE THIS NOW !!!
-  mesh->add_tag(TRI, "touch", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
-      tris_touch_bdry);
   auto surf_vert_IIs_w = Write<Real>(nsurf_verts * 3);
   auto f = LAMBDA(LO surf_vert) {
     auto vert = surf_verts2vert[surf_vert];
