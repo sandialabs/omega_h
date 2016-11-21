@@ -293,7 +293,7 @@ if(BUILD_TESTING)
   osh_add_exe(aniso_test)
   test_func(run_aniso_test 1 ./aniso_test)
   osh_add_exe(imr_cases)
-  osh_add_exe(test_normals)
+  osh_add_exe(test_curvature)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
   osh_add_exe(test_degree)
