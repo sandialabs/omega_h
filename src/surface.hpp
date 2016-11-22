@@ -13,9 +13,9 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
     LOs surf_vert2vert);
 Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
     Reals curv_edge_tangents, LOs curv_vert2vert);
-Reals get_triangle_curvatures(Mesh* mesh, LOs surf_tris2tri,
+Reals get_triangle_IIs(Mesh* mesh, LOs surf_tris2tri,
     Reals surf_tri_normals, LOs surf_verts2vert, Reals surf_vert_normals);
-Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
+Reals get_vert_IIs(Mesh* mesh, LOs surf_tris2tri,
     Reals surf_tri_normals, Reals surf_tri_IIs,
     LOs surf_verts2vert, Reals surf_vert_normals);
 

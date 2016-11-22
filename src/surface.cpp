@@ -249,7 +249,7 @@ Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
  * 3DPVT 2004. Proceedings. 2nd International Symposium on. IEEE, 2004.
  */
 
-Reals get_triangle_curvatures(Mesh* mesh, LOs surf_tris2tri,
+Reals get_triangle_IIs(Mesh* mesh, LOs surf_tris2tri,
     Reals surf_tri_normals, LOs surf_verts2vert, Reals surf_vert_normals) {
   auto verts2surf_vert = invert_injective_map(surf_verts2vert, mesh->nverts());
   auto tris2verts = mesh->ask_verts_of(TRI);
@@ -338,7 +338,7 @@ static Matrix<3,3> rotate_to_plane(Vector<3> n, Matrix<3,3> tnuv) {
   return r * tnuv;
 }
 
-Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
+Reals get_vert_IIs(Mesh* mesh, LOs surf_tris2tri,
     Reals surf_tri_normals, Reals surf_tri_IIs,
     LOs surf_verts2vert, Reals surf_vert_normals) {
   auto nsurf_verts = surf_verts2vert.size();

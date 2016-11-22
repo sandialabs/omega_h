@@ -77,13 +77,13 @@ int main(int argc, char** argv) {
         OMEGA_H_DO_OUTPUT, vert_tangents);
     attach_basis_vectors(&mesh, VERT, surf_vert2vert, surf_vert_normals);
     attach_basis_vectors(&mesh, TRI, surf_side2side, surf_side_normals);
-    auto surf_tri_IIs = get_triangle_curvatures(&mesh, surf_side2side,
+    auto surf_tri_IIs = get_triangle_IIs(&mesh, surf_side2side,
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto tri_IIs = map_onto(surf_tri_IIs, surf_side2side, mesh.ntris(),
         0.0, 3);
     mesh.add_tag(TRI, "II", 3, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
         tri_IIs);
-    auto surf_vert_IIs = get_vert_curvatures(&mesh, surf_side2side,
+    auto surf_vert_IIs = get_vert_IIs(&mesh, surf_side2side,
         surf_side_normals, surf_tri_IIs, surf_vert2vert, surf_vert_normals);
     auto vert_IIs = map_onto(surf_vert_IIs, surf_vert2vert, mesh.nverts(),
         0.0, 3);
