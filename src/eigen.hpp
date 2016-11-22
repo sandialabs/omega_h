@@ -24,6 +24,12 @@ INLINE Few<Real, 2> characteristic_polynomial(Matrix<2, 2> A) {
   return coeffs;
 }
 
+template <Int n>
+INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
+  auto poly = characteristic_polynomial(A);
+  return find_polynomial_roots(poly);
+}
+
 /* the null space of the matrix (s = m - l*I)
    is the space spanned by the eigenvectors.
    the multiplicity of this root is the dimensionality
@@ -87,8 +93,7 @@ struct Decomposition {
 };
 
 INLINE Decomposition<3> decompose_eigen_dim(Matrix<3, 3> m) {
-  auto poly = characteristic_polynomial(m);
-  auto roots_obj = find_polynomial_roots(poly);
+  auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
   auto mults = roots_obj.mults;
@@ -123,8 +128,7 @@ INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l) {
 }
 
 INLINE Decomposition<2> decompose_eigen_dim(Matrix<2, 2> m) {
-  auto poly = characteristic_polynomial(m);
-  auto roots_obj = find_polynomial_roots(poly);
+  auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
   auto mults = roots_obj.mults;
