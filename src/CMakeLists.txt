@@ -80,6 +80,7 @@ set(Omega_h_SOURCES
   collapse_rail.cpp
   histogram.cpp
   stacktrace.cpp
+  eigen.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)

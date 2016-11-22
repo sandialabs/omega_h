@@ -204,6 +204,8 @@ INLINE Matrix<dim, dim> exp(Matrix<dim, dim> m) {
   return compose_ortho(decomp.q, decomp.l);
 }
 
+Reals get_max_eigenvalues(Int dim, Reals symms);
+
 }  // end namespace Omega_h
 
 #endif
