@@ -45,12 +45,12 @@ int main(int argc, char** argv) {
   auto surf_side2side = collect_marked(sides_are_surf);
   auto surf_vert2vert = collect_marked(verts_are_surf);
   auto surf_side_normals =
-      surf::get_side_normals(&mesh, surf_side2side);
+      get_side_normals(&mesh, surf_side2side);
   auto side_normals = map_onto(
       surf_side_normals, surf_side2side, mesh.nents(sdim), 0.0, mesh.dim());
   mesh.add_tag(sdim, "normal", mesh.dim(), OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DO_OUTPUT, side_normals);
-  auto surf_vert_normals = surf::get_vert_normals(
+  auto surf_vert_normals = get_vert_normals(
       &mesh, surf_side2side, surf_side_normals, surf_vert2vert);
   auto vert_normals = map_onto(
       surf_vert_normals, surf_vert2vert, mesh.nverts(), 0.0, mesh.dim());
@@ -64,12 +64,12 @@ int main(int argc, char** argv) {
     auto curv_edge2edge = collect_marked(edges_are_curv);
     auto curv_vert2vert = collect_marked(verts_are_curv);
     auto curv_edge_tangents =
-        surf::get_edge_tangents(&mesh, curv_edge2edge);
+        get_edge_tangents(&mesh, curv_edge2edge);
     auto edge_tangents = map_onto(
         curv_edge_tangents, curv_edge2edge, mesh.nedges(), 0.0, mesh.dim());
     mesh.add_tag(EDGE, "tangent", mesh.dim(), OMEGA_H_DONT_TRANSFER,
         OMEGA_H_DO_OUTPUT, edge_tangents);
-    auto curv_vert_tangents = surf::get_vert_tangents(
+    auto curv_vert_tangents = get_vert_tangents(
         &mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
     auto vert_tangents = map_onto(
         curv_vert_tangents, curv_vert2vert, mesh.nverts(), 0.0, mesh.dim());
@@ -77,13 +77,13 @@ int main(int argc, char** argv) {
         OMEGA_H_DO_OUTPUT, vert_tangents);
     attach_basis_vectors(&mesh, VERT, surf_vert2vert, surf_vert_normals);
     attach_basis_vectors(&mesh, TRI, surf_side2side, surf_side_normals);
-    auto surf_tri_IIs = surf::get_triangle_curvatures(&mesh, surf_side2side,
+    auto surf_tri_IIs = get_triangle_curvatures(&mesh, surf_side2side,
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto tri_IIs = map_onto(surf_tri_IIs, surf_side2side, mesh.ntris(),
         0.0, 3);
     mesh.add_tag(TRI, "II", 3, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
         tri_IIs);
-    auto surf_vert_IIs = surf::get_vert_curvatures(&mesh, surf_side2side,
+    auto surf_vert_IIs = get_vert_curvatures(&mesh, surf_side2side,
         surf_side_normals, surf_tri_IIs, surf_vert2vert, surf_vert_normals);
     auto vert_IIs = map_onto(surf_vert_IIs, surf_vert2vert, mesh.nverts(),
         0.0, 3);

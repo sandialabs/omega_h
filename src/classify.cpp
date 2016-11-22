@@ -47,12 +47,12 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
   classify_sides_by_exposure(mesh, side_is_exposed);
   auto hinge_is_exposed = mark_down(mesh, dim - 1, dim - 2, side_is_exposed);
   auto surf_side2side = collect_marked(side_is_exposed);
-  auto surf_side_normals = surf::get_side_normals(mesh, surf_side2side);
+  auto surf_side_normals = get_side_normals(mesh, surf_side2side);
   auto surf_hinge2hinge = collect_marked(hinge_is_exposed);
   auto nsurf_hinges = surf_hinge2hinge.size();
   auto nsides = mesh->nents(dim - 1);
   auto side2surf_side = invert_injective_map(surf_side2side, nsides);
-  auto surf_hinge_angles = surf::get_hinge_angles(
+  auto surf_hinge_angles = get_hinge_angles(
       mesh, surf_side_normals, surf_hinge2hinge, side2surf_side);
   auto nhinges = mesh->nents(dim - 2);
   Write<I8> hinge_is_sharp(nhinges, 0);

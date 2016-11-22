@@ -10,8 +10,6 @@
 
 namespace Omega_h {
 
-namespace surf {
-
 namespace {
 
 Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
@@ -400,7 +398,5 @@ Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
   return mesh->sync_subset_array(VERT, surf_vert_IIs,
       surf_verts2vert, 0.0, 3);
 }
-
-}  // end namespace surf
 
 }  // end namespace Omega_h

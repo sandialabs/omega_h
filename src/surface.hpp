@@ -5,8 +5,6 @@
 
 namespace Omega_h {
 
-namespace surf {
-
 Reals get_side_normals(Mesh* mesh, LOs surf_side2side);
 Reals get_edge_tangents(Mesh* mesh, LOs crease_edge2edge);
 Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
@@ -20,8 +18,6 @@ Reals get_triangle_curvatures(Mesh* mesh, LOs surf_tris2tri,
 Reals get_vert_curvatures(Mesh* mesh, LOs surf_tris2tri,
     Reals surf_tri_normals, Reals surf_tri_IIs,
     LOs surf_verts2vert, Reals surf_vert_normals);
-
-}  // end namespace surf
 
 }  // end namespace Omega_h
 
