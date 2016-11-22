@@ -7,18 +7,21 @@
 namespace Omega_h {
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
-INLINE void characteristic_cubic(Matrix<3, 3> A, Real& a, Real& b, Real& c) {
-  Real tA = trace(A);
-  Real c2 = (1. / 2.) * ((tA * tA) - trace(A * A));
-  a = -tA;
-  b = c2;
-  c = -determinant(A);
+INLINE Few<Real, 3> characteristic_polynomial(Matrix<3, 3> A) {
+  auto tA = trace(A);
+  Few<Real, 3> coeffs;
+  coeffs[2] = -tA;
+  coeffs[1] = (1. / 2.) * ((tA * tA) - trace(A * A));
+  coeffs[0] = -determinant(A);
+  return coeffs;
 }
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
-INLINE void characteristic_quadratic(Matrix<2, 2> A, Real& a, Real& b) {
-  a = -trace(A);
-  b = determinant(A);
+INLINE Few<Real, 2> characteristic_polynomial(Matrix<2, 2> A) {
+  Few<Real, 2> coeffs;
+  coeffs[1] = -trace(A);
+  coeffs[0] = determinant(A);
+  return coeffs;
 }
 
 /* the null space of the matrix (s = m - l*I)
@@ -84,11 +87,11 @@ struct Decomposition {
 };
 
 INLINE Decomposition<3> decompose_eigen_dim(Matrix<3, 3> m) {
-  Real a, b, c;
-  characteristic_cubic(m, a, b, c);
-  Few<Real, 3> roots;
-  Few<Int, 3> mults;
-  Int nroots = solve_cubic(a, b, c, roots, mults);
+  auto poly = characteristic_polynomial(m);
+  auto roots_obj = find_polynomial_roots(poly);
+  auto nroots = roots_obj.n;
+  auto roots = roots_obj.values;
+  auto mults = roots_obj.mults;
   /* there are only a few output cases, see solve_cubic() */
   Matrix<3, 3> q;
   Vector<3> l;
@@ -120,11 +123,11 @@ INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l) {
 }
 
 INLINE Decomposition<2> decompose_eigen_dim(Matrix<2, 2> m) {
-  Real a, b;
-  characteristic_quadratic(m, a, b);
-  Few<Real, 2> roots;
-  Few<Int, 2> mults;
-  Int nroots = solve_quadratic(a, b, roots, mults);
+  auto poly = characteristic_polynomial(m);
+  auto roots_obj = find_polynomial_roots(poly);
+  auto nroots = roots_obj.n;
+  auto roots = roots_obj.values;
+  auto mults = roots_obj.mults;
   /* there are only a few output cases, see solve_quadratic() */
   Matrix<2, 2> q;
   Vector<2> l;
