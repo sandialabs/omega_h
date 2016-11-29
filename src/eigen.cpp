@@ -1,4 +1,5 @@
 #include "eigen.hpp"
+#include "loop.hpp"
 
 namespace Omega_h {
 
@@ -17,6 +18,7 @@ Reals get_max_eigenvalues_dim(Reals symms) {
     }
     out[i] = best_ew;
   };
+  parallel_for(n, f);
   return out;
 }
 
