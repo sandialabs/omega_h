@@ -86,22 +86,29 @@ Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
   NORETURN(Reals());
 }
 
-Reals get_edge_tangents(Mesh* mesh, LOs curv_edge2edge) {
-  CHECK(mesh->dim() == 3);
+template <Int dim>
+Reals get_edge_tangents_dim(Mesh* mesh, LOs curv_edge2edge) {
+  CHECK(mesh->dim() == dim);
   auto ncurv_edges = curv_edge2edge.size();
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto coords = mesh->coords();
-  Write<Real> normals(ncurv_edges * 3);
+  Write<Real> normals(ncurv_edges * dim);
   auto lambda = LAMBDA(LO curv_edge) {
     auto e = curv_edge2edge[curv_edge];
     auto v = gather_verts<2>(ev2v, e);
-    auto x = gather_vectors<2, 3>(coords, v);
-    auto b = simplex_basis<3, 1>(x);
+    auto x = gather_vectors<2, dim>(coords, v);
+    auto b = simplex_basis<dim, 1>(x);
     auto n = normalize(b[0]);
     set_vector(normals, curv_edge, n);
   };
   parallel_for(ncurv_edges, lambda);
   return normals;
+}
+
+Reals get_edge_tangents(Mesh* mesh, LOs curv_edge2edge) {
+  if (mesh->dim() == 3) return get_edge_tangents_dim<3>(mesh, curv_edge2edge);
+  if (mesh->dim() == 2) return get_edge_tangents_dim<2>(mesh, curv_edge2edge);
+  NORETURN(Reals());
 }
 
 Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
@@ -281,7 +288,7 @@ Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
         mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
   }
   if (mesh->dim() == 2) {
-    return get_vert_tangents_dim<3>(
+    return get_vert_tangents_dim<2>(
         mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
   }
   NORETURN(Reals());
