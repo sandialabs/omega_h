@@ -37,8 +37,16 @@ static void attach_basis_vectors(Mesh* mesh, Int ent_dim, LOs surf_ents2ents,
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  CHECK(argc == 2);
+  std::string name = argv[1];
   Mesh mesh(&lib);
-  gmsh::read(argv[1], &mesh);
+  auto world = lib.world();
+  if (world->rank() == 0) {
+    gmsh::read(name + ".msh", &mesh);
+  }
+  mesh.set_comm(world);
+  mesh.balance();
+  mesh.set_parting(OMEGA_H_GHOSTED);
   auto sdim = mesh.dim() - 1;
   auto sides_are_surf = mark_by_class_dim(&mesh, sdim, sdim);
   auto verts_are_surf = mark_by_class_dim(&mesh, VERT, sdim);
@@ -110,6 +118,7 @@ int main(int argc, char** argv) {
   auto vert_curvatures = get_corner_vert_curvatures(&mesh, vert_curvatures_w);
   mesh.add_tag(VERT, "curvature", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DO_OUTPUT, vert_curvatures);
-  vtk::write_vtu("edges.vtu", &mesh, 1);
-  vtk::write_vtu("faces.vtu", &mesh, 2);
+  bool ok = check_regression(std::string("gold_curv_") + name, &mesh, 0.0, 0.0);
+  if (!ok) return 2;
+  return 0;
 }
