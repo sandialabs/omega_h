@@ -550,4 +550,25 @@ Reals get_curv_vert_curvatures(Mesh* mesh, LOs curv_edges2edge,
   NORETURN(Reals());
 }
 
+Reals get_corner_vert_curvatures(Mesh* mesh, Write<Real> vert_curvatures_w) {
+  auto v2v = mesh->ask_star(VERT);
+  auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
+  auto mesh_dim = mesh->dim();
+  auto f = LAMBDA(LO v) {
+    if (class_dim[v] != 0) return;
+    Int n = 0;
+    Real curvature = 0.0;
+    for (auto vv = v2v.a2ab[v]; vv < v2v.a2ab[v + 1]; ++vv) {
+      auto ov = v2v.ab2b[vv];
+      if (class_dim[ov] == mesh_dim) continue;
+      curvature += vert_curvatures_w[ov];
+      ++n;
+    }
+    curvature /= n;
+    vert_curvatures_w[v] = curvature;
+  };
+  parallel_for(mesh->nverts(), f);
+  return mesh->sync_array(VERT, Reals(vert_curvatures_w), 1);
+}
+
 }  // end namespace Omega_h

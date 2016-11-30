@@ -107,8 +107,9 @@ int main(int argc, char** argv) {
   auto curv_vert_curvatures = get_curv_vert_curvatures(&mesh, curv_edge2edge,
       curv_edge_curvatures, curv_vert2vert);
   map_into(curv_vert_curvatures, curv_vert2vert, vert_curvatures_w, 1);
+  auto vert_curvatures = get_corner_vert_curvatures(&mesh, vert_curvatures_w);
   mesh.add_tag(VERT, "curvature", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DO_OUTPUT, Reals(vert_curvatures_w));
+      OMEGA_H_DO_OUTPUT, vert_curvatures);
   vtk::write_vtu("edges.vtu", &mesh, 1);
   vtk::write_vtu("faces.vtu", &mesh, 2);
 }

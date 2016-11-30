@@ -22,6 +22,7 @@ Reals get_edge_curvatures(Mesh* mesh, LOs curv_edges2edge,
     Reals curv_edge_tangents, LOs curv_verts2vert, Reals curv_vert_tangents);
 Reals get_curv_vert_curvatures(Mesh* mesh, LOs curv_edges2edge,
     Reals curv_edge_curvatures, LOs curv_verts2vert);
+Reals get_corner_vert_curvatures(Mesh* mesh, Write<Real> vert_curvatures_w);
 
 }  // end namespace Omega_h
 
