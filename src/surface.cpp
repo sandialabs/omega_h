@@ -486,7 +486,9 @@ Reals get_edge_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
     curv_edges2curvature_w[curv_edge] = curvature;
   };
   parallel_for(ncurv_edges, f);
-  return curv_edges2curvature_w;
+  auto curv_edges2curvature = Reals(curv_edges2curvature_w);
+  return mesh->sync_subset_array(EDGE, curv_edges2curvature,
+      curv_edges2edge, 0.0, 1);
 }
 
 Reals get_edge_curvatures(Mesh* mesh, LOs curv_edges2edge,
