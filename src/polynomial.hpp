@@ -90,6 +90,7 @@ INLINE Roots<2> find_polynomial_roots(Few<Real, 2> coeffs, Real eps = 1e-6) {
   if (fabs(disc) < eps) {
     mults[0] = 2;
     roots[0] = -a / 2.;
+    roots[1] = roots[0];
     return {1, roots, mults};
   }
   if (disc > 0.0) {
