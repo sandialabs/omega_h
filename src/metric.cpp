@@ -223,7 +223,7 @@ class IsoGradation {
   static DEVICE void set(Write<Real> const& a, LO i, Value v) {
     a[i] = v;
   }
-  enum { ndofs = dim };
+  enum { ndofs = 1 };
 };
 
 template <Int dim>
