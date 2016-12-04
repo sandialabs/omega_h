@@ -14,7 +14,7 @@ using namespace Omega_h;
 static void attach_basis_vectors(Mesh* mesh, Int ent_dim, LOs surf_ents2ents,
     Reals surf_ent_normals) {
   auto nsurf_ents = surf_ents2ents.size();
-  Write<Real> surf_ent_axes[2];
+  Few<Write<Real>, 2> surf_ent_axes;
   for (Int i = 0; i < 2; ++i) {
     surf_ent_axes[i] = Write<Real>(nsurf_ents * 3);
   }

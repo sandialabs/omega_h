@@ -689,7 +689,7 @@ class Few {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
   OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
+    for (Int i = 0; i < n; ++i) new (array_ + i) T (rhs.array_[i]);
   }
   OMEGA_H_INLINE Few(const volatile Few<T, n>& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
