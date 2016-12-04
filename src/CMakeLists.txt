@@ -190,7 +190,7 @@ if(Omega_h_USE_Meshb)
   osh_add_util(osh2meshb)
 endif()
 
-set(Gmodel_REQUIRED_VERSION 1.2.0)
+set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
 bob_private_dep(Gmodel)
 
