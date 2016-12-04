@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto orig_coords = mesh.coords();
-  auto bend_radius = 10.0;
+  auto bend_radius = orig_height / PI;
   auto full_angle = orig_height / bend_radius;
   auto new_coords_w = Write<Real>(mesh.nverts() * 3);
   auto f = LAMBDA(LO v) {
@@ -41,5 +41,9 @@ int main(int argc, char** argv) {
   };
   parallel_for(mesh.nverts(), f);
   mesh.set_coords(Reals(new_coords_w));
+  auto max_size = 1.0 / Real(orig_resolution);
+  auto segment_angle = PI / 32.0;
+  auto isos = get_curvature_isos(&mesh, segment_angle, max_size);
+  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, isos);
   vtk::write_vtu("debug.vtu", &mesh, mesh.dim());
 }
