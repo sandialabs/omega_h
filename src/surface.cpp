@@ -348,7 +348,7 @@ Reals get_triangle_IIs(Mesh* mesh, LOs surf_tris2tri,
  * Visualization and mathematics III. Springer Berlin Heidelberg, 2003. 35-57.
  */
 
-static Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
+INLINE Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
   Few<Vector<3>, 3> e;
   for (Int i = 0; i < 3; ++i) e[i] = p[(i + 1) % 3] - p[i];
   Int ttv_obtuse = -1;
@@ -378,7 +378,7 @@ static Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
   }
 }
 
-static Matrix<3,3> rotate_to_plane(Vector<3> n, Matrix<3,3> tnuv) {
+INLINE Matrix<3,3> rotate_to_plane(Vector<3> n, Matrix<3,3> tnuv) {
   auto tn = tnuv[0];
   auto cp = cross(tn, n);
   auto cpl = norm(cp);
