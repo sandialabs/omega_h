@@ -672,6 +672,7 @@ Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
 Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
 
 template <typename T, Int n>
 class Few {
@@ -690,7 +691,7 @@ class Few {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
   OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
+    for (Int i = 0; i < n; ++i) new (array_ + i) T (rhs.array_[i]);
   }
   OMEGA_H_INLINE Few(const volatile Few<T, n>& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
