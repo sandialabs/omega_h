@@ -305,6 +305,7 @@ if(BUILD_TESTING)
       test_func(parallel_ball_curvature 2 ./curvature_test ball)
     endif()
   endif()
+  osh_add_exe(bend_test)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
   osh_add_exe(test_degree)
