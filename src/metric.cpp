@@ -204,67 +204,126 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
 /* gradation limiting code: */
 
 template <Int dim>
-static INLINE Matrix<dim, dim> form_limiting_metric(
-    Matrix<dim, dim> m, Real real_dist, Real log_rate) {
-  auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) {
-    decomp.l[i] /= square(1 + decomp.l[i] * real_dist * log_rate);
+class IsoGradation {
+ public:
+  using Value = Real;
+  static INLINE Value form_limiter(
+      Value h, Real real_dist, Real log_rate) {
+    auto l = 1.0 / square(h);
+    l /= square(1 + l * real_dist * log_rate);
+    return 1.0 / sqrt(l);
   }
-  return compose_ortho(decomp.q, decomp.l);
-}
+  static INLINE Value intersect(
+      Value a, Value b) {
+    return min2(a, b);
+  }
+  static DEVICE Value get(Reals const& a, LO i) {
+    return a[i];
+  }
+  static DEVICE void set(Write<Real> const& a, LO i, Value v) {
+    a[i] = v;
+  }
+  enum { ndofs = dim };
+};
 
 template <Int dim>
-static INLINE Matrix<dim, dim> limit_metric_by_adj(Matrix<dim, dim> m,
-    Vector<dim> x, Matrix<dim, dim> am, Vector<dim> ax, Real log_rate) {
-  auto limit_m = form_limiting_metric(am, norm(ax - x), log_rate);
-  return intersect_metrics(m, limit_m);
+class AnisoGradation {
+ public:
+  using Value = Matrix<dim, dim>;
+  static INLINE Value form_limiter(
+      Value m, Real real_dist, Real log_rate) {
+    auto decomp = decompose_eigen(m);
+    for (Int i = 0; i < dim; ++i) {
+      decomp.l[i] /= square(1 + decomp.l[i] * real_dist * log_rate);
+    }
+    return compose_ortho(decomp.q, decomp.l);
+  }
+  static INLINE Value intersect(
+      Value a, Value b) {
+    return intersect_metrics(a, b);
+  }
+  static DEVICE Value get(Reals const& a, LO i) {
+    return get_symm<dim>(a, i);
+  }
+  static DEVICE void set(Write<Real> const& a, LO i, Value v) {
+    set_symm(a, i, v);
+  }
+  enum { ndofs = symm_dofs(dim) };
+};
+
+template <Int dim, template<Int> class Gradation>
+static INLINE
+typename Gradation<dim>::Value
+limit_size_value_by_adj(
+    typename Gradation<dim>::Value m,
+    Vector<dim> x,
+    typename Gradation<dim>::Value am,
+    Vector<dim> ax,
+    Real log_rate) {
+  auto limit_m = Gradation<dim>::form_limiter(am, norm(ax - x), log_rate);
+  return Gradation<dim>::intersect(m, limit_m);
 }
 
-template <Int dim>
-static Reals limit_metrics_once_by_adj_dim(
-    Mesh* mesh, Reals metrics, Real max_rate) {
+template <Int dim, template<Int> class Gradation>
+static Reals limit_size_field_once_by_adj_tmpl(
+    Mesh* mesh, Reals values, Real max_rate) {
+  using G = Gradation<dim>;
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * G::ndofs);
   auto log_rate = ::log(max_rate);
   auto f = LAMBDA(LO v) {
-    auto m = get_symm<dim>(metrics, v);
+    auto m = G::get(values, v);
     auto x = get_vector<dim>(coords, v);
     for (auto vv = v2v.a2ab[v]; vv < v2v.a2ab[v + 1]; ++vv) {
       auto av = v2v.ab2b[vv];
-      auto am = get_symm<dim>(metrics, av);
+      auto am = G::get(values, av);
       auto ax = get_vector<dim>(coords, av);
-      m = limit_metric_by_adj(m, x, am, ax, log_rate);
+      m = limit_size_value_by_adj<dim, Gradation>(m, x, am, ax, log_rate);
     }
-    set_symm(out, v, m);
+    G::set(out, v, m);
   };
   parallel_for(mesh->nverts(), f);
-  metrics = Reals(out);
-  metrics = mesh->sync_array(mesh->dim(), metrics, symm_dofs(dim));
-  return metrics;
+  values = Reals(out);
+  values = mesh->sync_array(mesh->dim(), values, G::ndofs);
+  return values;
 }
 
-static Reals limit_metrics_once_by_adj(
-    Mesh* mesh, Reals metrics, Real max_rate) {
+static Reals limit_size_field_once_by_adj(
+    Mesh* mesh, Reals values, Real max_rate) {
   if (mesh->dim() == 3) {
-    return limit_metrics_once_by_adj_dim<3>(mesh, metrics, max_rate);
+    if (values.size() == symm_dofs(3) * mesh->nverts()) {
+      return limit_size_field_once_by_adj_tmpl<3, AnisoGradation>(mesh, values, max_rate);
+    }
+    if (values.size() == mesh->nverts()) {
+      return limit_size_field_once_by_adj_tmpl<3, IsoGradation>(mesh, values, max_rate);
+    }
   }
   if (mesh->dim() == 2) {
-    return limit_metrics_once_by_adj_dim<2>(mesh, metrics, max_rate);
+    if (values.size() == symm_dofs(2) * mesh->nverts()) {
+      return limit_size_field_once_by_adj_tmpl<2, AnisoGradation>(mesh, values, max_rate);
+    }
+    if (values.size() == mesh->nverts()) {
+      return limit_size_field_once_by_adj_tmpl<2, IsoGradation>(mesh, values, max_rate);
+    }
   }
   NORETURN(Reals());
 }
 
-Reals limit_metric_gradation(Mesh* mesh, Reals metrics, Real max_rate) {
+Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(max_rate >= 1.0);
   auto comm = mesh->comm();
-  Reals metrics2 = metrics;
+  Reals values2 = values;
   do {
-    metrics = metrics2;
-    metrics2 = limit_metrics_once_by_adj(mesh, metrics, max_rate);
-  } while (!comm->reduce_and(are_close(metrics, metrics2)));
-  return metrics2;
+    values = values2;
+    values2 = limit_size_field_once_by_adj(mesh, values, max_rate);
+  } while (!comm->reduce_and(are_close(values, values2)));
+  return values2;
+}
+
+Reals limit_metric_gradation(Mesh* mesh, Reals metrics, Real max_rate) {
+  return limit_size_field_gradation(mesh, metrics, max_rate);
 }
 
 Reals project_metrics(Mesh* mesh, Reals e2m) {
