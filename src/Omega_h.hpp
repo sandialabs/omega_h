@@ -671,6 +671,7 @@ Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
 Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
 
 template <typename T, Int n>
 class Few {

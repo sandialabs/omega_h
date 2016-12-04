@@ -580,4 +580,60 @@ Reals get_corner_vert_curvatures(Mesh* mesh, Write<Real> vert_curvatures_w) {
   return mesh->sync_array(VERT, Reals(vert_curvatures_w), 1);
 }
 
+Reals get_vert_curvatures(Mesh* mesh) {
+  auto sdim = mesh->dim() - 1;
+  auto sides_are_surf = mark_by_class_dim(mesh, sdim, sdim);
+  auto verts_are_surf = mark_by_class_dim(mesh, VERT, sdim);
+  auto surf_side2side = collect_marked(sides_are_surf);
+  auto surf_vert2vert = collect_marked(verts_are_surf);
+  auto vert_curvatures_w = Write<Real>(mesh->nverts(), 0.0);
+  LOs curv_edge2edge;
+  LOs curv_vert2vert;
+  if (mesh->dim() == 3) {
+    auto surf_side_normals =
+        get_side_normals(mesh, surf_side2side);
+    auto side_normals = map_onto(
+        surf_side_normals, surf_side2side, mesh->nents(sdim), 0.0, mesh->dim());
+    auto surf_vert_normals = get_vert_normals(
+        mesh, surf_side2side, surf_side_normals, surf_vert2vert);
+    auto vert_normals = map_onto(
+        surf_vert_normals, surf_vert2vert, mesh->nverts(), 0.0, mesh->dim());
+    auto edges_are_curv =
+        mark_by_class_dim(mesh, EDGE, EDGE);
+    auto verts_are_curv =
+        mark_by_class_dim(mesh, VERT, EDGE);
+    curv_edge2edge = collect_marked(edges_are_curv);
+    curv_vert2vert = collect_marked(verts_are_curv);
+    auto surf_tri_IIs = get_triangle_IIs(mesh, surf_side2side,
+        surf_side_normals, surf_vert2vert, surf_vert_normals);
+    auto tri_IIs = map_onto(surf_tri_IIs, surf_side2side, mesh->ntris(),
+        0.0, 3);
+    auto surf_vert_IIs = get_vert_IIs(mesh, surf_side2side,
+        surf_side_normals, surf_tri_IIs, surf_vert2vert, surf_vert_normals);
+    auto vert_IIs = map_onto(surf_vert_IIs, surf_vert2vert, mesh->nverts(),
+        0.0, 3);
+    auto surf_vert_curvatures = get_max_eigenvalues(2, surf_vert_IIs);
+    map_into(surf_vert_curvatures, surf_vert2vert, vert_curvatures_w, 1);
+  } else {
+    curv_edge2edge = surf_side2side;
+    curv_vert2vert = surf_vert2vert;
+  }
+  auto curv_edge_tangents =
+      get_edge_tangents(mesh, curv_edge2edge);
+  auto edge_tangents = map_onto(
+      curv_edge_tangents, curv_edge2edge, mesh->nedges(), 0.0, mesh->dim());
+  auto curv_vert_tangents = get_vert_tangents(
+      mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
+  auto vert_tangents = map_onto(
+      curv_vert_tangents, curv_vert2vert, mesh->nverts(), 0.0, mesh->dim());
+  auto curv_edge_curvatures = get_edge_curvatures(mesh, curv_edge2edge,
+      curv_edge_tangents, curv_vert2vert, curv_vert_tangents);
+  auto edge_curvatures = map_onto(curv_edge_curvatures, curv_edge2edge,
+      mesh->nedges(), 0.0, 1);
+  auto curv_vert_curvatures = get_curv_vert_curvatures(mesh, curv_edge2edge,
+      curv_edge_curvatures, curv_vert2vert);
+  map_into(curv_vert_curvatures, curv_vert2vert, vert_curvatures_w, 1);
+  return get_corner_vert_curvatures(mesh, vert_curvatures_w);
+}
+
 }  // end namespace Omega_h
