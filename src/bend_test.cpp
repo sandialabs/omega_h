@@ -25,9 +25,8 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  auto orig_coords = mesh.coords();
   mesh.add_tag(VERT, "orig_coords", mesh.dim(), OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, orig_coords);
+      OMEGA_H_DO_OUTPUT, mesh.coords());
   mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT);
   vtk::Writer writer(&mesh, "bend", mesh.dim());
   auto first_bend_radius = 5.0;
