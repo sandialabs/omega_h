@@ -16,11 +16,11 @@
 
 using namespace Omega_h;
 
-static Int const nelems = 1000 * 1000;
+static Int const nelems = 500 * 1000;
 
 /* Intel compiler version 16 doesn't seem to have
  * std::uniform_real_distribution and std::uniform_int_distribution */
-#ifndef __INTEL_COMPILER
+//#ifndef __INTEL_COMPILER
 
 static Reals random_reals(Int n, Real from, Real to) {
   std::random_device rd;
@@ -170,7 +170,7 @@ static void test_sort() {
   test_sort_n(3);
 }
 
-#endif
+//#endif
 
 static void test_invert_adj(LOs tets2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
@@ -236,10 +236,10 @@ static void test_adjs(Library* lib) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-#ifndef __INTEL_COMPILER
+//#ifndef __INTEL_COMPILER
   test_metric_math();
   test_repro_sum();
   test_sort();
-#endif
+//#endif
   test_adjs(&lib);
 }
