@@ -89,8 +89,8 @@ struct ClipHelper;
 
 template <>
 struct ClipHelper<3> {
-  OMEGA_H_INLINE static Polytope<3> relink(
-      Int onv, Polytope<3> poly) {
+  OMEGA_H_INLINE static void relink(
+      Int onv, Polytope<3>& poly) {
     for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
       auto vcur = vstart;
       auto vnext = poly.verts[vcur].pnbrs[0];
@@ -105,20 +105,18 @@ struct ClipHelper<3> {
       poly.verts[vstart].pnbrs[2] = vcur;
       poly.verts[vcur].pnbrs[1] = vstart;
     }
-    return poly;
   }
-  OMEGA_H_INLINE static Polytope<3> links_at_nverts(
-      Polytope<3> poly, Int vcur, Int np) {
+  OMEGA_H_INLINE static void links_at_nverts(
+      Polytope<3>& poly, Int vcur, Int np) {
     (void)np;
     poly.verts[poly.nverts].pnbrs[0] = vcur;
-    return poly;
   }
 };
 
 template <>
 struct ClipHelper<2> {
-  OMEGA_H_INLINE static Polytope<2> relink(
-      Int onv, Polytope<2> poly) {
+  OMEGA_H_INLINE static void relink(
+      Int onv, Polytope<2>& poly) {
     for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
       if (poly.verts[vstart].pnbrs[1] >= 0) continue;
       auto vcur = poly.verts[vstart].pnbrs[0];
@@ -128,13 +126,11 @@ struct ClipHelper<2> {
       poly.verts[vstart].pnbrs[1] = vcur;
       poly.verts[vcur].pnbrs[0] = vstart;
     }
-    return poly;
   }
-  OMEGA_H_INLINE static Polytope<2> links_at_nverts(
-      Polytope<2> poly, Int vcur, Int np) {
+  OMEGA_H_INLINE static void links_at_nverts(
+      Polytope<2>& poly, Int vcur, Int np) {
     poly.verts[poly.nverts].pnbrs[1 - np] = vcur;
     poly.verts[poly.nverts].pnbrs[np] = -1;
-    return poly;
   }
 };
 
@@ -190,7 +186,7 @@ OMEGA_H_INLINE Polytope<dim> clip(
       for (np = 0; np < dim; ++np) {
         vnext = poly.verts[vcur].pnbrs[np];
         if (!clipped[vnext]) continue;
-        poly = ClipHelper<dim>::links_at_nverts(poly, vcur, np);
+        ClipHelper<dim>::links_at_nverts(poly, vcur, np);
         poly.verts[vcur].pnbrs[np] = poly.nverts;
         poly.verts[poly.nverts].pos = wav(poly.verts[vcur].pos, -sdists[vnext],
             poly.verts[vnext].pos, sdists[vcur]);
@@ -200,7 +196,7 @@ OMEGA_H_INLINE Polytope<dim> clip(
 
     // for each new vert, search around the poly for its new neighbors
     // and doubly-link everything
-    poly = ClipHelper<dim>::relink(onv, poly);
+    ClipHelper<dim>::relink(onv, poly);
 
     // go through and compress the vertex list, removing clipped verts
     // and re-indexing accordingly (reusing `clipped` to re-index everything)
