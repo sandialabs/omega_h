@@ -72,8 +72,8 @@ void print_stacktrace(std::ostream& out, int max_frames) {
       symbol = demangled;
     }
     free(demangled);
-    out << line.substr(0, start) << symbol
-        << line.substr(plus, line.size()) << '\n';
+    out << line.substr(0, start) << symbol << line.substr(plus, line.size())
+        << '\n';
 #else
     out << symbollist[i] << '\n';
     fprintf(out, "%s\n", symbollist[i]);

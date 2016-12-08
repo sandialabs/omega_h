@@ -841,11 +841,11 @@ static void test_categorize_graph() {
 static void test_circumcenter() {
   Few<Vector<3>, 3> right_tri(
       {vector_3(0, 0, 0), vector_3(1, 0, 0), vector_3(0, 1, 0)});
-  auto v0 = get_circumcenter_vector(simplex_basis<3,2>(right_tri));
+  auto v0 = get_circumcenter_vector(simplex_basis<3, 2>(right_tri));
   CHECK(are_close(v0, vector_3(0.5, 0.5, 0)));
   Few<Vector<3>, 3> equal_tri(
       {vector_3(0, sqrt(3), 0), vector_3(-1, 0, 0), vector_3(1, 0, 0)});
-  auto v1 = get_circumcenter_vector(simplex_basis<3,2>(equal_tri));
+  auto v1 = get_circumcenter_vector(simplex_basis<3, 2>(equal_tri));
   CHECK(are_close(v1, vector_3(0, -sqrt(3) * 2.0 / 3.0, 0)));
 }
 

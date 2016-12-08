@@ -207,22 +207,14 @@ template <Int dim>
 class IsoGradation {
  public:
   using Value = Real;
-  static INLINE Value form_limiter(
-      Value h, Real real_dist, Real log_rate) {
+  static INLINE Value form_limiter(Value h, Real real_dist, Real log_rate) {
     auto l = 1.0 / square(h);
     l /= square(1 + l * real_dist * log_rate);
     return 1.0 / sqrt(l);
   }
-  static INLINE Value intersect(
-      Value a, Value b) {
-    return min2(a, b);
-  }
-  static DEVICE Value get(Reals const& a, LO i) {
-    return a[i];
-  }
-  static DEVICE void set(Write<Real> const& a, LO i, Value v) {
-    a[i] = v;
-  }
+  static INLINE Value intersect(Value a, Value b) { return min2(a, b); }
+  static DEVICE Value get(Reals const& a, LO i) { return a[i]; }
+  static DEVICE void set(Write<Real> const& a, LO i, Value v) { a[i] = v; }
   enum { ndofs = 1 };
 };
 
@@ -230,41 +222,32 @@ template <Int dim>
 class AnisoGradation {
  public:
   using Value = Matrix<dim, dim>;
-  static INLINE Value form_limiter(
-      Value m, Real real_dist, Real log_rate) {
+  static INLINE Value form_limiter(Value m, Real real_dist, Real log_rate) {
     auto decomp = decompose_eigen(m);
     for (Int i = 0; i < dim; ++i) {
       decomp.l[i] /= square(1 + decomp.l[i] * real_dist * log_rate);
     }
     return compose_ortho(decomp.q, decomp.l);
   }
-  static INLINE Value intersect(
-      Value a, Value b) {
+  static INLINE Value intersect(Value a, Value b) {
     return intersect_metrics(a, b);
   }
-  static DEVICE Value get(Reals const& a, LO i) {
-    return get_symm<dim>(a, i);
-  }
+  static DEVICE Value get(Reals const& a, LO i) { return get_symm<dim>(a, i); }
   static DEVICE void set(Write<Real> const& a, LO i, Value v) {
     set_symm(a, i, v);
   }
   enum { ndofs = symm_dofs(dim) };
 };
 
-template <Int dim, template<Int> class Gradation>
-static INLINE
-typename Gradation<dim>::Value
-limit_size_value_by_adj(
-    typename Gradation<dim>::Value m,
-    Vector<dim> x,
-    typename Gradation<dim>::Value am,
-    Vector<dim> ax,
-    Real log_rate) {
+template <Int dim, template <Int> class Gradation>
+static INLINE typename Gradation<dim>::Value limit_size_value_by_adj(
+    typename Gradation<dim>::Value m, Vector<dim> x,
+    typename Gradation<dim>::Value am, Vector<dim> ax, Real log_rate) {
   auto limit_m = Gradation<dim>::form_limiter(am, norm(ax - x), log_rate);
   return Gradation<dim>::intersect(m, limit_m);
 }
 
-template <Int dim, template<Int> class Gradation>
+template <Int dim, template <Int> class Gradation>
 static Reals limit_size_field_once_by_adj_tmpl(
     Mesh* mesh, Reals values, Real max_rate) {
   using G = Gradation<dim>;
@@ -293,18 +276,22 @@ static Reals limit_size_field_once_by_adj(
     Mesh* mesh, Reals values, Real max_rate) {
   if (mesh->dim() == 3) {
     if (values.size() == symm_dofs(3) * mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<3, AnisoGradation>(mesh, values, max_rate);
+      return limit_size_field_once_by_adj_tmpl<3, AnisoGradation>(
+          mesh, values, max_rate);
     }
     if (values.size() == mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<3, IsoGradation>(mesh, values, max_rate);
+      return limit_size_field_once_by_adj_tmpl<3, IsoGradation>(
+          mesh, values, max_rate);
     }
   }
   if (mesh->dim() == 2) {
     if (values.size() == symm_dofs(2) * mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<2, AnisoGradation>(mesh, values, max_rate);
+      return limit_size_field_once_by_adj_tmpl<2, AnisoGradation>(
+          mesh, values, max_rate);
     }
     if (values.size() == mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<2, IsoGradation>(mesh, values, max_rate);
+      return limit_size_field_once_by_adj_tmpl<2, IsoGradation>(
+          mesh, values, max_rate);
     }
   }
   NORETURN(Reals());

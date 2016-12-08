@@ -20,12 +20,14 @@ static void test_3d() {
   Omega_h::r3d::init(a, verts);
   OMEGA_H_CHECK(a.nverts == 4);
   auto b = a;
-  Omega_h::r3d::clip(b, Omega_h::Few<Omega_h::r3d::Plane<3>, 1>({{{1, 0, 0}, -0.5}}));
+  Omega_h::r3d::clip(
+      b, Omega_h::Few<Omega_h::r3d::Plane<3>, 1>({{{1, 0, 0}, -0.5}}));
   OMEGA_H_CHECK(b.nverts == 4);
   auto volume = Omega_h::r3d::measure(b);
   OMEGA_H_CHECK(Omega_h::are_close(volume, Omega_h::cube(0.5) / 6.0));
   auto c = a;
-  Omega_h::r3d::clip(c, Omega_h::Few<Omega_h::r3d::Plane<3>, 1>({{{-1, 0, 0}, 0.5}}));
+  Omega_h::r3d::clip(
+      c, Omega_h::Few<Omega_h::r3d::Plane<3>, 1>({{{-1, 0, 0}, 0.5}}));
   OMEGA_H_CHECK(c.nverts == 6);
   volume = Omega_h::r3d::measure(c);
   OMEGA_H_CHECK(
@@ -57,12 +59,14 @@ static void test_2d() {
   Omega_h::r3d::init(a, verts);
   OMEGA_H_CHECK(a.nverts == 3);
   auto b = a;
-  Omega_h::r3d::clip(b, Omega_h::Few<Omega_h::r3d::Plane<2>, 1>({{{1, 0}, -0.5}}));
+  Omega_h::r3d::clip(
+      b, Omega_h::Few<Omega_h::r3d::Plane<2>, 1>({{{1, 0}, -0.5}}));
   OMEGA_H_CHECK(b.nverts == 3);
   auto area = Omega_h::r3d::measure(b);
   OMEGA_H_CHECK(Omega_h::are_close(area, Omega_h::square(0.5) / 2.0));
   auto c = a;
-  Omega_h::r3d::clip(c, Omega_h::Few<Omega_h::r3d::Plane<2>, 1>({{{-1, 0}, 0.5}}));
+  Omega_h::r3d::clip(
+      c, Omega_h::Few<Omega_h::r3d::Plane<2>, 1>({{{-1, 0}, 0.5}}));
   OMEGA_H_CHECK(c.nverts == 4);
   area = Omega_h::r3d::measure(c);
   OMEGA_H_CHECK(

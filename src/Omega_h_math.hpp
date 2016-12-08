@@ -333,7 +333,8 @@ template <Int dim>
 struct BBox {
   OMEGA_H_INLINE BBox() {}
   OMEGA_H_INLINE BBox(Vector<dim> x) : min(x), max(x) {}
-  OMEGA_H_INLINE BBox(Vector<dim> min_, Vector<dim> max_) : min(min_), max(max_) {}
+  OMEGA_H_INLINE BBox(Vector<dim> min_, Vector<dim> max_)
+      : min(min_), max(max_) {}
   Vector<dim> min;
   Vector<dim> max;
   /* playing the volatile game again (see int128.hpp) */
@@ -342,7 +343,8 @@ struct BBox {
     max = rhs.max;
   }
   OMEGA_H_INLINE BBox(BBox<dim> const& rhs) : min(rhs.min), max(rhs.max) {}
-  OMEGA_H_INLINE BBox(const volatile BBox<dim>& rhs) : min(rhs.min), max(rhs.max) {}
+  OMEGA_H_INLINE BBox(const volatile BBox<dim>& rhs)
+      : min(rhs.min), max(rhs.max) {}
 };
 
 template <Int dim>

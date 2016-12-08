@@ -87,9 +87,7 @@ class Write {
     return ptr_.use_count();
 #endif
   }
-  OMEGA_H_INLINE bool exists() const {
-    return use_count() != 0;
-  }
+  OMEGA_H_INLINE bool exists() const { return use_count() != 0; }
   std::size_t bytes() const;
 
  private:
@@ -389,22 +387,26 @@ class Library {
   Library(Library const&);
   inline Library(int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
-      , MPI_Comm comm_mpi = MPI_COMM_WORLD
+      ,
+      MPI_Comm comm_mpi = MPI_COMM_WORLD
 #endif
       ) {
     initialize(OMEGA_H_VERSION, argc, argv
 #ifdef OMEGA_H_USE_MPI
-        , comm_mpi
+        ,
+        comm_mpi
 #endif
         );
   }
   ~Library();
   CommPtr world();
   CommPtr self();
+
  private:
   void initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
-      , MPI_Comm comm_mpi
+      ,
+      MPI_Comm comm_mpi
 #endif
       );
   CommPtr world_;
@@ -648,8 +650,8 @@ Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids);
-void fix_momentum_velocity_verts(Mesh* mesh, Int class_dim, I32 class_id,
-    Int comp);
+void fix_momentum_velocity_verts(
+    Mesh* mesh, Int class_dim, I32 class_id, Int comp);
 
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
@@ -691,7 +693,7 @@ class Few {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
   OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) new (array_ + i) T (rhs.array_[i]);
+    for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs.array_[i]);
   }
   OMEGA_H_INLINE Few(const volatile Few<T, n>& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];

@@ -12,12 +12,8 @@ int main(int argc, char** argv) {
   auto orig_width = 1;
   auto orig_resolution = 3;
   if (world->rank() == 0) {
-    build_box(&mesh,
-        orig_width,
-        orig_width,
-        orig_height,
-        orig_width * orig_resolution,
-        orig_width * orig_resolution,
+    build_box(&mesh, orig_width, orig_width, orig_height,
+        orig_width * orig_resolution, orig_width * orig_resolution,
         orig_height * orig_resolution);
     classify_by_angles(&mesh, PI / 4);
     mesh.reorder();

@@ -89,8 +89,7 @@ struct ClipHelper;
 
 template <>
 struct ClipHelper<3> {
-  OMEGA_H_INLINE static void relink(
-      Int onv, Polytope<3>& poly) {
+  OMEGA_H_INLINE static void relink(Int onv, Polytope<3>& poly) {
     for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
       auto vcur = vstart;
       auto vnext = poly.verts[vcur].pnbrs[0];
@@ -115,8 +114,7 @@ struct ClipHelper<3> {
 
 template <>
 struct ClipHelper<2> {
-  OMEGA_H_INLINE static void relink(
-      Int onv, Polytope<2>& poly) {
+  OMEGA_H_INLINE static void relink(Int onv, Polytope<2>& poly) {
     for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
       if (poly.verts[vstart].pnbrs[1] >= 0) continue;
       auto vcur = poly.verts[vstart].pnbrs[0];
@@ -146,8 +144,7 @@ struct ClipHelper<2> {
  *
  */
 template <Int dim, Int nplanes>
-OMEGA_H_INLINE void clip(
-    Polytope<dim>& poly, Few<Plane<dim>, nplanes> planes) {
+OMEGA_H_INLINE void clip(Polytope<dim>& poly, Few<Plane<dim>, nplanes> planes) {
   if (poly.nverts <= 0) return;
 
   // variable declarations
@@ -609,8 +606,8 @@ OMEGA_H_INLINE Real measure(Polytope<dim> const& polytope) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE void intersect_simplices(
-    Polytope<dim>& poly, Few<Vector<dim>, dim + 1> verts0, Few<Vector<dim>, dim + 1> verts1) {
+OMEGA_H_INLINE void intersect_simplices(Polytope<dim>& poly,
+    Few<Vector<dim>, dim + 1> verts0, Few<Vector<dim>, dim + 1> verts1) {
   init(poly, verts0);
   auto faces1 = faces_from_verts(verts1);
   clip(poly, faces1);

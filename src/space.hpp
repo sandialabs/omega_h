@@ -166,11 +166,14 @@ INLINE Vector<3> get_circumcenter_vector(Few<Vector<3>, 2> basis) {
   auto crossbc = cross(ba, ca);
   auto factor = 0.5 / norm_squared(crossbc);
   auto xcirca = ((balength * ca[1] - calength * ba[1]) * crossbc[2] -
-                 (balength * ca[2] - calength * ba[2]) * crossbc[1]) * factor;
+                    (balength * ca[2] - calength * ba[2]) * crossbc[1]) *
+                factor;
   auto ycirca = ((balength * ca[2] - calength * ba[2]) * crossbc[0] -
-                 (balength * ca[0] - calength * ba[0]) * crossbc[2]) * factor;
+                    (balength * ca[0] - calength * ba[0]) * crossbc[2]) *
+                factor;
   auto zcirca = ((balength * ca[0] - calength * ba[0]) * crossbc[1] -
-                 (balength * ca[1] - calength * ba[1]) * crossbc[0]) * factor;
+                    (balength * ca[1] - calength * ba[1]) * crossbc[0]) *
+                factor;
   return vector_3(xcirca, ycirca, zcirca);
 }
 

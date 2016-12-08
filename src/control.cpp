@@ -1,8 +1,8 @@
 #include "control.hpp"
 
 #include <cstdarg>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 #include "comm.hpp"
 #include "internal.hpp"
@@ -44,9 +44,10 @@ static bool remove_flag(int* argc, char*** argv, std::string const& flag) {
 
 void Library::initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
-      , MPI_Comm comm_mpi
+    ,
+    MPI_Comm comm_mpi
 #endif
-      ) {
+    ) {
   std::string lib_desc = OMEGA_H_VERSION;
   if (lib_desc != head_desc) {
     std::stringstream msg;
@@ -83,14 +84,16 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (should_protect) protect();
 }
 
-Library::Library(Library const& other):
-  world_(other.world_),
-  self_(other.self_)
+Library::Library(Library const& other)
+    : world_(other.world_),
+      self_(other.self_)
 #ifdef OMEGA_H_USE_MPI
-  ,we_called_mpi_init(other.we_called_mpi_init)
+      ,
+      we_called_mpi_init(other.we_called_mpi_init)
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
-  ,we_called_kokkos_init(other.we_called_kokkos_init)
+      ,
+      we_called_kokkos_init(other.we_called_kokkos_init)
 #endif
 {
 }
@@ -104,10 +107,10 @@ Library::~Library() {
 #endif
   if (Omega_h::should_log_memory) {
     auto mem_used = get_max_bytes();
-    auto max_mem_used = std::size_t(
-        world_->allreduce(I64(mem_used), OMEGA_H_MAX));
-    auto max_mem_rank = (mem_used == max_mem_used) ?
-      world_->rank() : world_->size();
+    auto max_mem_used =
+        std::size_t(world_->allreduce(I64(mem_used), OMEGA_H_MAX));
+    auto max_mem_rank =
+        (mem_used == max_mem_used) ? world_->rank() : world_->size();
     max_mem_rank = world_->allreduce(max_mem_rank, OMEGA_H_MIN);
     if (world_->rank() == max_mem_rank) {
       std::cout << "maximum Omega_h memory usage: " << mem_used << '\n';
@@ -123,7 +126,7 @@ Library::~Library() {
     we_called_mpi_init = false;
   }
 #endif
-  delete [] Omega_h::max_memory_stacktrace;
+  delete[] Omega_h::max_memory_stacktrace;
 }
 
 CommPtr Library::world() { return world_; }

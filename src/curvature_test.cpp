@@ -1,18 +1,18 @@
 #include "Omega_h.hpp"
+#include "access.hpp"
+#include "eigen.hpp"
+#include "loop.hpp"
 #include "map.hpp"
 #include "mark.hpp"
-#include "surface.hpp"
-#include "access.hpp"
 #include "space.hpp"
-#include "loop.hpp"
-#include "eigen.hpp"
+#include "surface.hpp"
 
 #include <sstream>
 
 using namespace Omega_h;
 
-static void attach_basis_vectors(Mesh* mesh, Int ent_dim, LOs surf_ents2ents,
-    Reals surf_ent_normals) {
+static void attach_basis_vectors(
+    Mesh* mesh, Int ent_dim, LOs surf_ents2ents, Reals surf_ent_normals) {
   auto nsurf_ents = surf_ents2ents.size();
   Few<Write<Real>, 2> surf_ent_axes;
   for (Int i = 0; i < 2; ++i) {
@@ -56,8 +56,7 @@ int main(int argc, char** argv) {
   LOs curv_edge2edge;
   LOs curv_vert2vert;
   if (mesh.dim() == 3) {
-    auto surf_side_normals =
-        get_side_normals(&mesh, surf_side2side);
+    auto surf_side_normals = get_side_normals(&mesh, surf_side2side);
     auto side_normals = map_onto(
         surf_side_normals, surf_side2side, mesh.nents(sdim), 0.0, mesh.dim());
     mesh.add_tag(sdim, "normal", mesh.dim(), OMEGA_H_DONT_TRANSFER,
@@ -68,34 +67,30 @@ int main(int argc, char** argv) {
         surf_vert_normals, surf_vert2vert, mesh.nverts(), 0.0, mesh.dim());
     mesh.add_tag(VERT, "normal", mesh.dim(), OMEGA_H_DONT_TRANSFER,
         OMEGA_H_DO_OUTPUT, vert_normals);
-    auto edges_are_curv =
-        mark_by_class_dim(&mesh, EDGE, EDGE);
-    auto verts_are_curv =
-        mark_by_class_dim(&mesh, VERT, EDGE);
+    auto edges_are_curv = mark_by_class_dim(&mesh, EDGE, EDGE);
+    auto verts_are_curv = mark_by_class_dim(&mesh, VERT, EDGE);
     curv_edge2edge = collect_marked(edges_are_curv);
     curv_vert2vert = collect_marked(verts_are_curv);
     attach_basis_vectors(&mesh, VERT, surf_vert2vert, surf_vert_normals);
     attach_basis_vectors(&mesh, TRI, surf_side2side, surf_side_normals);
     auto surf_tri_IIs = get_triangle_IIs(&mesh, surf_side2side,
         surf_side_normals, surf_vert2vert, surf_vert_normals);
-    auto tri_IIs = map_onto(surf_tri_IIs, surf_side2side, mesh.ntris(),
-        0.0, 3);
-    mesh.add_tag(TRI, "II", 3, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
-        tri_IIs);
-    auto surf_vert_IIs = get_vert_IIs(&mesh, surf_side2side,
-        surf_side_normals, surf_tri_IIs, surf_vert2vert, surf_vert_normals);
-    auto vert_IIs = map_onto(surf_vert_IIs, surf_vert2vert, mesh.nverts(),
-        0.0, 3);
-    mesh.add_tag(VERT, "II", 3, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
-        vert_IIs);
+    auto tri_IIs = map_onto(surf_tri_IIs, surf_side2side, mesh.ntris(), 0.0, 3);
+    mesh.add_tag(
+        TRI, "II", 3, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, tri_IIs);
+    auto surf_vert_IIs = get_vert_IIs(&mesh, surf_side2side, surf_side_normals,
+        surf_tri_IIs, surf_vert2vert, surf_vert_normals);
+    auto vert_IIs =
+        map_onto(surf_vert_IIs, surf_vert2vert, mesh.nverts(), 0.0, 3);
+    mesh.add_tag(
+        VERT, "II", 3, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, vert_IIs);
     auto surf_vert_curvatures = get_max_eigenvalues(2, surf_vert_IIs);
     map_into(surf_vert_curvatures, surf_vert2vert, vert_curvatures_w, 1);
   } else {
     curv_edge2edge = surf_side2side;
     curv_vert2vert = surf_vert2vert;
   }
-  auto curv_edge_tangents =
-      get_edge_tangents(&mesh, curv_edge2edge);
+  auto curv_edge_tangents = get_edge_tangents(&mesh, curv_edge2edge);
   auto edge_tangents = map_onto(
       curv_edge_tangents, curv_edge2edge, mesh.nedges(), 0.0, mesh.dim());
   mesh.add_tag(EDGE, "tangent", mesh.dim(), OMEGA_H_DONT_TRANSFER,
@@ -108,16 +103,16 @@ int main(int argc, char** argv) {
       OMEGA_H_DO_OUTPUT, vert_tangents);
   auto curv_edge_curvatures = get_edge_curvatures(&mesh, curv_edge2edge,
       curv_edge_tangents, curv_vert2vert, curv_vert_tangents);
-  auto edge_curvatures = map_onto(curv_edge_curvatures, curv_edge2edge,
-      mesh.nedges(), 0.0, 1);
-  mesh.add_tag(EDGE, "curvature", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DO_OUTPUT, edge_curvatures);
-  auto curv_vert_curvatures = get_curv_vert_curvatures(&mesh, curv_edge2edge,
-      curv_edge_curvatures, curv_vert2vert);
+  auto edge_curvatures =
+      map_onto(curv_edge_curvatures, curv_edge2edge, mesh.nedges(), 0.0, 1);
+  mesh.add_tag(EDGE, "curvature", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
+      edge_curvatures);
+  auto curv_vert_curvatures = get_curv_vert_curvatures(
+      &mesh, curv_edge2edge, curv_edge_curvatures, curv_vert2vert);
   map_into(curv_vert_curvatures, curv_vert2vert, vert_curvatures_w, 1);
   auto vert_curvatures = get_corner_vert_curvatures(&mesh, vert_curvatures_w);
-  mesh.add_tag(VERT, "curvature", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DO_OUTPUT, vert_curvatures);
+  mesh.add_tag(VERT, "curvature", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
+      vert_curvatures);
   bool ok = check_regression(std::string("gold_curv_") + name, &mesh, 0.0, 0.0);
   if (!ok) return 2;
   return 0;

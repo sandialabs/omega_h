@@ -7,9 +7,9 @@ namespace Omega_h {
 
 template <Int degree>
 struct Roots {
-  Int n; //number of unique roots
+  Int n;  // number of unique roots
   Few<Real, degree> values;
-  Few<Int, degree> mults; //multiplicities
+  Few<Int, degree> mults;  // multiplicities
 };
 
 // solve cubic equation x^3 + a_2 * x^2 + a_1 * x + a_0 = 0
