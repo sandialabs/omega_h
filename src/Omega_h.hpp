@@ -87,9 +87,7 @@ class Write {
     return ptr_.use_count();
 #endif
   }
-  OMEGA_H_INLINE bool exists() const {
-    return use_count() != 0;
-  }
+  OMEGA_H_INLINE bool exists() const { return use_count() != 0; }
   std::size_t bytes() const;
 
  private:
@@ -389,22 +387,26 @@ class Library {
   Library(Library const&);
   inline Library(int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
-      , MPI_Comm comm_mpi = MPI_COMM_WORLD
+      ,
+      MPI_Comm comm_mpi = MPI_COMM_WORLD
 #endif
       ) {
     initialize(OMEGA_H_VERSION, argc, argv
 #ifdef OMEGA_H_USE_MPI
-        , comm_mpi
+        ,
+        comm_mpi
 #endif
         );
   }
   ~Library();
   CommPtr world();
   CommPtr self();
+
  private:
   void initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
-      , MPI_Comm comm_mpi
+      ,
+      MPI_Comm comm_mpi
 #endif
       );
   CommPtr world_;
@@ -648,8 +650,8 @@ Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<Int> class_dims, std::vector<I32> class_ids);
-void fix_momentum_velocity_verts(Mesh* mesh, Int class_dim, I32 class_id,
-    Int comp);
+void fix_momentum_velocity_verts(
+    Mesh* mesh, Int class_dim, I32 class_id, Int comp);
 
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
@@ -665,12 +667,14 @@ Reals find_implied_metric(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
 Reals limit_metric_gradation(Mesh* mesh, Reals metrics, Real max_rate);
+Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate);
 Reals expected_elems_per_elem_iso(Mesh* mesh, Reals v2h);
 Reals expected_elems_per_elem_metric(Mesh* mesh, Reals v2m);
 Real size_scalar_for_nelems(Mesh* mesh, Reals v2h, Real target_nelems);
 Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
 
 template <typename T, Int n>
 class Few {
@@ -689,7 +693,7 @@ class Few {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
   }
   OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];
+    for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs.array_[i]);
   }
   OMEGA_H_INLINE Few(const volatile Few<T, n>& rhs) {
     for (Int i = 0; i < n; ++i) array_[i] = rhs.array_[i];

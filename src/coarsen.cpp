@@ -95,8 +95,8 @@ static bool coarsen_ghosted(
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
   Graph verts2cav_elems;
   verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
-  mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
-      verts_are_keys);
+  mesh->add_tag(
+      VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DO_OUTPUT, vert_quals);
   mesh->add_tag(VERT, "collapse_rail", 1, OMEGA_H_DONT_TRANSFER,

@@ -8,6 +8,7 @@
 #include "loop.hpp"
 #include "project.hpp"
 #include "quality.hpp"
+#include "surface.hpp"
 
 namespace Omega_h {
 
@@ -318,6 +319,26 @@ Reals delinearize_isos(Reals log_isos) {
 Reals smooth_isos_once(Mesh* mesh, Reals v2h) {
   auto e2e = LOs(mesh->nelems(), 0, 1);
   return project_isos(mesh, get_mident_isos(mesh, mesh->dim(), e2e, v2h));
+}
+
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size) {
+  auto vert_curvatures = get_vert_curvatures(mesh);
+  auto max_radius = max_size / segment_angle;
+  auto min_curvature = 1.0 / max_radius;
+  auto out = Write<Real>(mesh->nverts());
+  auto f = LAMBDA(LO v) {
+    auto curvature = vert_curvatures[v];
+    Real size;
+    if (curvature < min_curvature) {
+      size = max_size;
+    } else {
+      auto radius = 1.0 / curvature;
+      size = segment_angle * radius;
+    }
+    out[v] = size;
+  };
+  parallel_for(mesh->nverts(), f);
+  return out;
 }
 
 }  // end namespace Omega_h

@@ -19,27 +19,26 @@ int main(int argc, char** argv) {
         usage = true;
       }
       vtk_path = argv[++i];
-    }
-    else if (!path_in) path_in = argv[i];
-    else if (!path_out) path_out = argv[i];
+    } else if (!path_in)
+      path_in = argv[i];
+    else if (!path_out)
+      path_out = argv[i];
   }
   if (!path_in || !path_out) usage = true;
   if (usage) {
-    std::cout << "usage: " << argv[0]
-              << " [options] input.osh output.osh\n";
+    std::cout << "usage: " << argv[0] << " [options] input.osh output.osh\n";
     std::cout << "  -g <out_vtk>\n";
     return -1;
   }
   Omega_h::Mesh mesh(&lib);
   Omega_h::binary::read(path_in, lib.world(), &mesh);
-  auto target_nelems = mesh.comm()->allreduce<Omega_h::Real>(
-      mesh.nelems(), OMEGA_H_SUM);
+  auto target_nelems =
+      mesh.comm()->allreduce<Omega_h::Real>(mesh.nelems(), OMEGA_H_SUM);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto dim = mesh.dim();
   auto coords = mesh.coords();
   auto bb = Omega_h::get_bounding_box<3>(&mesh);
-  auto analytic_size_w = Omega_h::Write<Omega_h::Real>(
-      mesh.nverts());
+  auto analytic_size_w = Omega_h::Write<Omega_h::Real>(mesh.nverts());
   auto f = LAMBDA(Omega_h::LO v) {
     auto z = coords[v * dim + (dim - 1)];
     auto minz = bb.min[dim - 1];
@@ -66,19 +65,21 @@ int main(int argc, char** argv) {
   if (vtk_path) writer.write();
   mesh.balance(true);
   imb = mesh.imbalance();
-  if (!mesh.comm()->rank()) std::cout << "imbalance after predictive " << imb << '\n';
+  if (!mesh.comm()->rank())
+    std::cout << "imbalance after predictive " << imb << '\n';
   if (vtk_path) writer.write();
   auto opts = Omega_h::AdaptOpts(&mesh);
   opts.verbosity = Omega_h::EXTRA_STATS;
   Omega_h::adapt(&mesh, opts);
   imb = mesh.imbalance();
-  if (!mesh.comm()->rank()) std::cout << "imbalance after adapt " << imb << '\n';
+  if (!mesh.comm()->rank())
+    std::cout << "imbalance after adapt " << imb << '\n';
   if (vtk_path) writer.write();
   mesh.balance();
   imb = mesh.imbalance();
-  if (!mesh.comm()->rank()) std::cout << "imbalance after post-balance " << imb << '\n';
+  if (!mesh.comm()->rank())
+    std::cout << "imbalance after post-balance " << imb << '\n';
   if (vtk_path) writer.write();
   mesh.remove_tag(Omega_h::VERT, "size");
   Omega_h::binary::write(path_out, &mesh);
 }
-

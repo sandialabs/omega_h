@@ -5,14 +5,25 @@
 
 namespace Omega_h {
 
+template <Int degree>
+struct Roots {
+  Int n;  // number of unique roots
+  Few<Real, degree> values;
+  Few<Int, degree> mults;  // multiplicities
+};
+
 // solve cubic equation x^3 + a_2 * x^2 + a_1 * x + a_0 = 0
 // this code assumes that the solution does not have complex roots !
 // the return value is the number of distinct roots,
 // the two output arrays contain root values and multiplicities.
 // roots within an *absolute* distance of (eps) are considered
 // the same.
-INLINE Int solve_cubic(Real a_2, Real a_1, Real a_0, Few<Real, 3>& roots,
-    Few<Int, 3>& mults, Real eps = 1e-6) {
+INLINE Roots<3> find_polynomial_roots(Few<Real, 3> coeffs, Real eps = 1e-6) {
+  auto a_0 = coeffs[0];
+  auto a_1 = coeffs[1];
+  auto a_2 = coeffs[2];
+  Few<Real, 3> roots;
+  Few<Int, 3> mults;
   // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
   Real q = (9. * a_1 * a_2 - 27. * a_0 - 2. * cube(a_2)) / 27.;
@@ -54,7 +65,7 @@ INLINE Int solve_cubic(Real a_2, Real a_1, Real a_0, Few<Real, 3>& roots,
     // no need to swap, they're already there
   } else {
     // no pairs were close, all three roots are distinct
-    return 3;
+    return {3, roots, mults};
   }
   // if we're here, two close roots are in [1] and [2]
   roots[1] = average(roots[1], roots[2]);
@@ -64,28 +75,33 @@ INLINE Int solve_cubic(Real a_2, Real a_1, Real a_0, Few<Real, 3>& roots,
     // roots[1] is already an average, weight it properly
     roots[0] = (1. / 3.) * roots[0] + (2. / 3.) * roots[1];
     mults[0] = 3;
-    return 1;
+    return {1, roots, mults};
   }
-  return 2;
+  return {2, roots, mults};
 }
 
 // solve quadratic equation x^2 + a * x + b = 0
-INLINE Int solve_quadratic(
-    Real a, Real b, Few<Real, 2>& roots, Few<Int, 2>& mults) {
+INLINE Roots<2> find_polynomial_roots(Few<Real, 2> coeffs, Real eps = 1e-6) {
+  auto a = coeffs[1];
+  auto b = coeffs[0];
+  Few<Real, 2> roots;
+  Few<Int, 2> mults;
   Real disc = square(a) - 4. * b;
-  if (fabs(disc) < 1e-6) {
+  if (fabs(disc) < eps) {
     mults[0] = 2;
     roots[0] = -a / 2.;
-    return 1;
+    roots[1] = roots[0];
+    mults[1] = mults[0];
+    return {1, roots, mults};
   }
   if (disc > 0.0) {
     mults[0] = 1;
     mults[1] = 1;
     roots[0] = (-a + sqrt(disc)) / 2.;
     roots[1] = (-a - sqrt(disc)) / 2.;
-    return 2;
+    return {2, roots, mults};
   }
-  return 0;
+  return {0, roots, mults};
 }
 
 }  // end namespace Omega_h

@@ -80,6 +80,7 @@ set(Omega_h_SOURCES
   collapse_rail.cpp
   histogram.cpp
   stacktrace.cpp
+  eigen.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)
@@ -189,7 +190,7 @@ if(Omega_h_USE_Meshb)
   osh_add_util(osh2meshb)
 endif()
 
-set(Gmodel_REQUIRED_VERSION 1.2.0)
+set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
 bob_private_dep(Gmodel)
 
@@ -293,7 +294,18 @@ if(BUILD_TESTING)
   osh_add_exe(aniso_test)
   test_func(run_aniso_test 1 ./aniso_test)
   osh_add_exe(imr_cases)
-  osh_add_exe(test_normals)
+  if(Omega_h_USE_Gmodel AND GMSH)
+    osh_add_exe(curvature_test)
+    set(TEST_EXES ${TEST_EXES} curvature_test)
+    test_func(ring_curvature 1 ./curvature_test ring)
+    set(TEST_MSHS ${TEST_MSHS} ball.msh)
+    test_func(ball_curvature 1 ./curvature_test ball)
+    if(Omega_h_USE_MPI)
+      test_func(parallel_ring_curvature 2 ./curvature_test ring)
+      test_func(parallel_ball_curvature 2 ./curvature_test ball)
+    endif()
+  endif()
+  osh_add_exe(bend_test)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES} ${TEST_MSHS})
   osh_add_exe(test_degree)

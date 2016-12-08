@@ -33,12 +33,12 @@ Write<T>::Write(LO size)
       ptr_(new T[size], std::default_delete<T[]>()),
       size_(size)
 #endif
-      {
+{
   current_array_bytes += bytes();
   if (current_array_bytes > max_array_bytes) {
     max_array_bytes = current_array_bytes;
     if (should_log_memory) {
-      delete [] max_memory_stacktrace;
+      delete[] max_memory_stacktrace;
       max_memory_stacktrace = nullptr;
       std::stringstream ss;
       print_stacktrace(ss, 64);

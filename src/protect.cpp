@@ -13,20 +13,13 @@ void osh_signal_handler(int s);
 static struct {
   int code;
   const char* name;
-} const known_signals[] = {
-  {SIGSYS, "bad system call"},
-  {SIGTSTP, "terminal stop"},
-  {SIGQUIT, "quit"},
-  {SIGHUP, "hangup"},
-  {SIGABRT, "abort"},
-  {SIGTERM, "termination"},
-  {SIGSEGV, "segmentation fault"},
-  {SIGINT, "interrupt"},
-  {SIGILL, "illegal instruction"},
-  {SIGFPE, "floating point exception"}
-};
+} const known_signals[] = {{SIGSYS, "bad system call"},
+    {SIGTSTP, "terminal stop"}, {SIGQUIT, "quit"}, {SIGHUP, "hangup"},
+    {SIGABRT, "abort"}, {SIGTERM, "termination"},
+    {SIGSEGV, "segmentation fault"}, {SIGINT, "interrupt"},
+    {SIGILL, "illegal instruction"}, {SIGFPE, "floating point exception"}};
 
-#define NSIGS (sizeof(known_signals)/sizeof(known_signals[0]))
+#define NSIGS (sizeof(known_signals) / sizeof(known_signals[0]))
 
 void protect() {
   for (size_t i = 0; i < NSIGS; ++i) {

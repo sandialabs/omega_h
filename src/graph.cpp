@@ -160,9 +160,10 @@ Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T init_val, Int width) {
   return out;
 }
 
-#define INST(T) \
-  template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op); \
-  template void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width); \
+#define INST(T)                                                                \
+  template Read<T> graph_reduce(Graph, Read<T>, Int, Omega_h_Op);              \
+  template void map_into(                                                      \
+      Read<T> a_data, Graph a2b, Write<T> b_data, Int width);                  \
   template Read<T> map_onto(Read<T> a_data, Graph a2b, LO nb, T, Int width);
 INST(I8)
 INST(I32)

@@ -514,7 +514,7 @@ void Mesh::balance(bool predictive) {
     masses = Reals(nelems(), 1);
     abs_tol = 1.0;
   }
-  abs_tol *= 2.0; // fudge factor ?
+  abs_tol *= 2.0;  // fudge factor ?
   auto owners = ask_owners(dim());
   recursively_bisect(comm(), abs_tol, &ecoords, &masses, &owners, &hints);
   rib_hints_ = std::make_shared<inertia::Rib>(hints);

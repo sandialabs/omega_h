@@ -250,8 +250,7 @@ static void test_rib(CommPtr comm) {
   Reals masses(n, 1);
   auto owners = Remotes(Read<I32>(n, rank), LOs(n, 0, 1));
   auto hints = inertia::Rib();
-  inertia::recursively_bisect(
-      comm, 1.1, &coords, &masses, &owners, &hints);
+  inertia::recursively_bisect(comm, 1.1, &coords, &masses, &owners, &hints);
   I32 size2 = 1;
   for (auto axis : hints.axes) {
     CHECK(are_close(axis, vector_3(1, 0, 0)));

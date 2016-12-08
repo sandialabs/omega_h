@@ -76,24 +76,22 @@ static void test_repro_sum() {
   CHECK(sum == std::exp2(20) + std::exp2(int(-20)));
 }
 
-static void test_cubic(Real a, Real b, Real c, Int nroots_wanted,
+static void test_cubic(Few<Real, 3> coeffs, Int nroots_wanted,
     Few<Real, 3> roots_wanted, Few<Int, 3> mults_wanted) {
-  Few<Real, 3> roots;
-  Few<Int, 3> mults;
-  Int nroots = solve_cubic(a, b, c, roots, mults);
-  CHECK(nroots == nroots_wanted);
-  for (Int i = 0; i < nroots; ++i) {
-    CHECK(mults[i] == mults_wanted[i]);
-    CHECK(are_close(roots[i], roots_wanted[i]));
+  auto roots = find_polynomial_roots(coeffs);
+  CHECK(roots.n == nroots_wanted);
+  for (Int i = 0; i < roots.n; ++i) {
+    CHECK(roots.mults[i] == mults_wanted[i]);
+    CHECK(are_close(roots.values[i], roots_wanted[i]));
   }
 }
 
 static void test_cubic() {
-  test_cubic(0, 0, 0, 1, Few<Real, 3>({0}), Few<Int, 3>({3}));
-  test_cubic(-3. / 2., -3. / 2., 1., 3, Few<Real, 3>({2, -1, .5}),
+  test_cubic({0, 0, 0}, 1, Few<Real, 3>({0}), Few<Int, 3>({3}));
+  test_cubic({1., -3. / 2., -3. / 2.}, 3, Few<Real, 3>({2, -1, .5}),
       Few<Int, 3>({1, 1, 1}));
-  test_cubic(0, -3., 2., 2, Few<Real, 3>({-2, 1}), Few<Int, 3>({1, 2}));
-  test_cubic(3, -6, -8, 3, Few<Real, 3>({2, -4, -1}), Few<Int, 3>({1, 1, 1}));
+  test_cubic({2., -3., 0}, 2, Few<Real, 3>({-2, 1}), Few<Int, 3>({1, 2}));
+  test_cubic({-8, -6, 3}, 3, Few<Real, 3>({2, -4, -1}), Few<Int, 3>({1, 1, 1}));
 }
 
 static void test_eigen_cubic(
@@ -840,6 +838,17 @@ static void test_categorize_graph() {
   CHECK(result[42] == g42);
 }
 
+static void test_circumcenter() {
+  Few<Vector<3>, 3> right_tri(
+      {vector_3(0, 0, 0), vector_3(1, 0, 0), vector_3(0, 1, 0)});
+  auto v0 = get_circumcenter_vector(simplex_basis<3, 2>(right_tri));
+  CHECK(are_close(v0, vector_3(0.5, 0.5, 0)));
+  Few<Vector<3>, 3> equal_tri(
+      {vector_3(0, sqrt(3), 0), vector_3(-1, 0, 0), vector_3(1, 0, 0)});
+  auto v1 = get_circumcenter_vector(simplex_basis<3, 2>(equal_tri));
+  CHECK(are_close(v1, vector_3(0, -sqrt(3) * 2.0 / 3.0, 0)));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_edge_length();
@@ -887,5 +896,6 @@ int main(int argc, char** argv) {
   test_recover_hessians(&lib);
   test_sf_scale(&lib);
   test_categorize_graph();
+  test_circumcenter();
   CHECK(get_current_bytes() == 0);
 }

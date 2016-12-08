@@ -89,48 +89,46 @@ struct ClipHelper;
 
 template <>
 struct ClipHelper<3> {
-  OMEGA_H_INLINE static void relink(
-      Int onv, Int* nverts, Vertex<3>* vertbuffer) {
-    for (auto vstart = onv; vstart < *nverts; ++vstart) {
+  OMEGA_H_INLINE static void relink(Int onv, Polytope<3>& poly) {
+    for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
       auto vcur = vstart;
-      auto vnext = vertbuffer[vcur].pnbrs[0];
+      auto vnext = poly.verts[vcur].pnbrs[0];
       do {
         Int np;
         for (np = 0; np < 3; ++np)
-          if (vertbuffer[vnext].pnbrs[np] == vcur) break;
+          if (poly.verts[vnext].pnbrs[np] == vcur) break;
         vcur = vnext;
         auto pnext = (np + 1) % 3;
-        vnext = vertbuffer[vcur].pnbrs[pnext];
+        vnext = poly.verts[vcur].pnbrs[pnext];
       } while (vcur < onv);
-      vertbuffer[vstart].pnbrs[2] = vcur;
-      vertbuffer[vcur].pnbrs[1] = vstart;
+      poly.verts[vstart].pnbrs[2] = vcur;
+      poly.verts[vcur].pnbrs[1] = vstart;
     }
   }
   OMEGA_H_INLINE static void links_at_nverts(
-      Int* nverts, Vertex<3>* vertbuffer, Int vcur, Int np) {
+      Polytope<3>& poly, Int vcur, Int np) {
     (void)np;
-    vertbuffer[*nverts].pnbrs[0] = vcur;
+    poly.verts[poly.nverts].pnbrs[0] = vcur;
   }
 };
 
 template <>
 struct ClipHelper<2> {
-  OMEGA_H_INLINE static void relink(
-      Int onv, Int* nverts, Vertex<2>* vertbuffer) {
-    for (auto vstart = onv; vstart < *nverts; ++vstart) {
-      if (vertbuffer[vstart].pnbrs[1] >= 0) continue;
-      auto vcur = vertbuffer[vstart].pnbrs[0];
+  OMEGA_H_INLINE static void relink(Int onv, Polytope<2>& poly) {
+    for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
+      if (poly.verts[vstart].pnbrs[1] >= 0) continue;
+      auto vcur = poly.verts[vstart].pnbrs[0];
       do {
-        vcur = vertbuffer[vcur].pnbrs[0];
+        vcur = poly.verts[vcur].pnbrs[0];
       } while (vcur < onv);
-      vertbuffer[vstart].pnbrs[1] = vcur;
-      vertbuffer[vcur].pnbrs[0] = vstart;
+      poly.verts[vstart].pnbrs[1] = vcur;
+      poly.verts[vcur].pnbrs[0] = vstart;
     }
   }
   OMEGA_H_INLINE static void links_at_nverts(
-      Int* nverts, Vertex<2>* vertbuffer, Int vcur, Int np) {
-    vertbuffer[*nverts].pnbrs[1 - np] = vcur;
-    vertbuffer[*nverts].pnbrs[np] = -1;
+      Polytope<2>& poly, Int vcur, Int np) {
+    poly.verts[poly.nverts].pnbrs[1 - np] = vcur;
+    poly.verts[poly.nverts].pnbrs[np] = -1;
   }
 };
 
@@ -144,17 +142,10 @@ struct ClipHelper<2> {
  * \param [in] planes
  * An array of planes against which to clip this polygon.
  *
- * \param[in] nplanes
- * The number of planes in the input array.
- *
  */
-template <Int dim>
-OMEGA_H_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
-  Int* nverts = &poly->nverts;
-  if (*nverts <= 0) return;
-
-  // direct access to vertex buffer
-  Vertex<dim>* vertbuffer = poly->verts;
+template <Int dim, Int nplanes>
+OMEGA_H_INLINE void clip(Polytope<dim>& poly, Few<Plane<dim>, nplanes> planes) {
+  if (poly.nverts <= 0) return;
 
   // variable declarations
   Int v, p, np, onv, vcur, vnext, numunclipped;
@@ -166,14 +157,14 @@ OMEGA_H_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
   // loop over each clip plane
   for (p = 0; p < nplanes; ++p) {
     // calculate signed distances to the clip plane
-    onv = *nverts;
+    onv = poly.nverts;
     smin = ArithTraits<Real>::max();
     smax = ArithTraits<Real>::min();
 
     // for marking clipped vertices
     Int clipped[MaxVerts<dim>::value] = {};  // all initialized to zero
     for (v = 0; v < onv; ++v) {
-      sdists[v] = planes[p].d + (vertbuffer[v].pos * planes[p].n);
+      sdists[v] = planes[p].d + (poly.verts[v].pos * planes[p].n);
       if (sdists[v] < smin) smin = sdists[v];
       if (sdists[v] > smax) smax = sdists[v];
       if (sdists[v] < 0.0) clipped[v] = 1;
@@ -182,7 +173,7 @@ OMEGA_H_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
     // skip this face if the poly lies entirely on one side of it
     if (smin >= 0.0) continue;
     if (smax <= 0.0) {
-      *nverts = 0;
+      poly.nverts = 0;
       return;
     }
 
@@ -190,105 +181,79 @@ OMEGA_H_INLINE void clip(Polytope<dim>* poly, Plane<dim>* planes, Int nplanes) {
     for (vcur = 0; vcur < onv; ++vcur) {
       if (clipped[vcur]) continue;
       for (np = 0; np < dim; ++np) {
-        vnext = vertbuffer[vcur].pnbrs[np];
+        vnext = poly.verts[vcur].pnbrs[np];
         if (!clipped[vnext]) continue;
-        ClipHelper<dim>::links_at_nverts(nverts, vertbuffer, vcur, np);
-        vertbuffer[vcur].pnbrs[np] = *nverts;
-        vertbuffer[*nverts].pos = wav(vertbuffer[vcur].pos, -sdists[vnext],
-            vertbuffer[vnext].pos, sdists[vcur]);
-        (*nverts)++;
+        ClipHelper<dim>::links_at_nverts(poly, vcur, np);
+        poly.verts[vcur].pnbrs[np] = poly.nverts;
+        poly.verts[poly.nverts].pos = wav(poly.verts[vcur].pos, -sdists[vnext],
+            poly.verts[vnext].pos, sdists[vcur]);
+        ++(poly.nverts);
       }
     }
 
     // for each new vert, search around the poly for its new neighbors
     // and doubly-link everything
-    ClipHelper<dim>::relink(onv, nverts, vertbuffer);
+    ClipHelper<dim>::relink(onv, poly);
 
     // go through and compress the vertex list, removing clipped verts
     // and re-indexing accordingly (reusing `clipped` to re-index everything)
     numunclipped = 0;
-    for (v = 0; v < *nverts; ++v) {
+    for (v = 0; v < poly.nverts; ++v) {
       if (!clipped[v]) {
-        vertbuffer[numunclipped] = vertbuffer[v];
+        poly.verts[numunclipped] = poly.verts[v];
         clipped[v] = numunclipped++;
       }
     }
-    *nverts = numunclipped;
-    for (v = 0; v < *nverts; ++v)
+    poly.nverts = numunclipped;
+    for (v = 0; v < poly.nverts; ++v)
       for (np = 0; np < dim; ++np)
-        vertbuffer[v].pnbrs[np] = clipped[vertbuffer[v].pnbrs[np]];
+        poly.verts[v].pnbrs[np] = clipped[poly.verts[v].pnbrs[np]];
   }
-}
-
-template <Int dim, Int nplanes>
-OMEGA_H_INLINE Polytope<dim> clip(
-    Polytope<dim> poly, Few<Plane<dim>, nplanes> planes) {
-  clip(&poly, planes.data(), nplanes);
-  return poly;
 }
 
 /**
  * \brief Initialize a polyhedron as a tetrahedron.
  *
- * \returns
- * The initialized polyhedron.
- *
  * \param [in] verts
  * An array of four vectors, giving the vertices of the tetrahedron.
  *
  */
-OMEGA_H_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
-  Polytope<3> poly;
-  // direct access to vertex buffer
-  Vertex<3>* vertbuffer = poly.verts;
-  Int* nverts = &poly.nverts;
-
+OMEGA_H_INLINE void init(Polytope<3>& poly, Few<Vector<3>, 4> verts) {
   // initialize graph connectivity
-  *nverts = 4;
-  vertbuffer[0].pnbrs[0] = 1;
-  vertbuffer[0].pnbrs[1] = 3;
-  vertbuffer[0].pnbrs[2] = 2;
-  vertbuffer[1].pnbrs[0] = 2;
-  vertbuffer[1].pnbrs[1] = 3;
-  vertbuffer[1].pnbrs[2] = 0;
-  vertbuffer[2].pnbrs[0] = 0;
-  vertbuffer[2].pnbrs[1] = 3;
-  vertbuffer[2].pnbrs[2] = 1;
-  vertbuffer[3].pnbrs[0] = 1;
-  vertbuffer[3].pnbrs[1] = 2;
-  vertbuffer[3].pnbrs[2] = 0;
+  poly.nverts = 4;
+  poly.verts[0].pnbrs[0] = 1;
+  poly.verts[0].pnbrs[1] = 3;
+  poly.verts[0].pnbrs[2] = 2;
+  poly.verts[1].pnbrs[0] = 2;
+  poly.verts[1].pnbrs[1] = 3;
+  poly.verts[1].pnbrs[2] = 0;
+  poly.verts[2].pnbrs[0] = 0;
+  poly.verts[2].pnbrs[1] = 3;
+  poly.verts[2].pnbrs[2] = 1;
+  poly.verts[3].pnbrs[0] = 1;
+  poly.verts[3].pnbrs[1] = 2;
+  poly.verts[3].pnbrs[2] = 0;
 
   // copy vertex coordinates
-  for (Int v = 0; v < 4; ++v) vertbuffer[v].pos = verts[v];
-
-  return poly;
+  for (Int v = 0; v < 4; ++v) poly.verts[v].pos = verts[v];
 }
 
 /**
  * \brief Initialize a triangle from a list of vertices.
  *
- * \returns
- * The initialized polygon.
- *
- * \param [in] vertices
  * Array of length `numverts` giving the vertices of the input polygon, in
  * counterclockwise order.
  *
  */
-OMEGA_H_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
+OMEGA_H_INLINE void init(Polytope<2>& poly, Few<Vector<2>, 3> vertices) {
   constexpr Int numverts = 3;
-  Polytope<2> poly;
-  // direct access to vertex buffer
-  Vertex<2>* vertbuffer = poly.verts;
-  Int* nverts = &poly.nverts;
   // init the poly
-  *nverts = numverts;
-  for (Int v = 0; v < *nverts; ++v) {
-    vertbuffer[v].pos = vertices[v];
-    vertbuffer[v].pnbrs[0] = (v + 1) % (numverts);
-    vertbuffer[v].pnbrs[1] = (numverts + v - 1) % (numverts);
+  poly.nverts = numverts;
+  for (Int v = 0; v < poly.nverts; ++v) {
+    poly.verts[v].pos = vertices[v];
+    poly.verts[v].pnbrs[0] = (v + 1) % (numverts);
+    poly.verts[v].pnbrs[1] = (numverts + v - 1) % (numverts);
   }
-  return poly;
 }
 
 template <Int dim>
@@ -400,18 +365,14 @@ struct NumMoments<2, order> {
  */
 
 template <Int polyorder>
-OMEGA_H_INLINE void reduce(Polytope<3>* poly, Real* moments) {
-  Int* nverts = &poly->nverts;
-  if (*nverts <= 0) return;
+OMEGA_H_INLINE void reduce(Polytope<3> const& poly, Real* moments) {
+  if (poly.nverts <= 0) return;
 
   // var declarations
   Real sixv;
   Int np, m, i, j, k, corder;
   Int vstart, pstart, vcur, vnext, pnext;
   Vector<3> v0, v1, v2;
-
-  // direct access to vertex buffer
-  Vertex<3>* vertbuffer = poly->verts;
 
   // zero the moments
   for (m = 0; m < num_moments_3d(polyorder); ++m) moments[m] = 0.0;
@@ -429,7 +390,7 @@ OMEGA_H_INLINE void reduce(Polytope<3>* poly, Real* moments) {
   Real C[polyorder + 1][polyorder + 1][2];
 
   // loop over all vertices to find the starting point for each face
-  for (vstart = 0; vstart < *nverts; ++vstart)
+  for (vstart = 0; vstart < poly.nverts; ++vstart)
     for (pstart = 0; pstart < 3; ++pstart) {
       // skip this face if we have marked it
       if (emarks[vstart][pstart]) continue;
@@ -438,22 +399,22 @@ OMEGA_H_INLINE void reduce(Polytope<3>* poly, Real* moments) {
       pnext = pstart;
       vcur = vstart;
       emarks[vcur][pnext] = 1;
-      vnext = vertbuffer[vcur].pnbrs[pnext];
-      v0 = vertbuffer[vcur].pos;
+      vnext = poly.verts[vcur].pnbrs[pnext];
+      v0 = poly.verts[vcur].pos;
 
       // move to the second edge
       for (np = 0; np < 3; ++np)
-        if (vertbuffer[vnext].pnbrs[np] == vcur) break;
+        if (poly.verts[vnext].pnbrs[np] == vcur) break;
       vcur = vnext;
       pnext = (np + 1) % 3;
       emarks[vcur][pnext] = 1;
-      vnext = vertbuffer[vcur].pnbrs[pnext];
+      vnext = poly.verts[vcur].pnbrs[pnext];
 
       // make a triangle fan using edges
       // and first vertex
       while (vnext != vstart) {
-        v2 = vertbuffer[vcur].pos;
-        v1 = vertbuffer[vnext].pos;
+        v2 = poly.verts[vcur].pos;
+        v1 = poly.verts[vnext].pos;
 
         sixv = (-v2[0] * v1[1] * v0[2] + v1[0] * v2[1] * v0[2] +
                 v2[0] * v0[1] * v1[2] - v0[0] * v2[1] * v1[2] -
@@ -502,11 +463,11 @@ OMEGA_H_INLINE void reduce(Polytope<3>* poly, Real* moments) {
 
         // move to the next edge
         for (np = 0; np < 3; ++np)
-          if (vertbuffer[vnext].pnbrs[np] == vcur) break;
+          if (poly.verts[vnext].pnbrs[np] == vcur) break;
         vcur = vnext;
         pnext = (np + 1) % 3;
         emarks[vcur][pnext] = 1;
-        vnext = vertbuffer[vcur].pnbrs[pnext];
+        vnext = poly.verts[vcur].pnbrs[pnext];
       }
     }
 
@@ -551,17 +512,13 @@ OMEGA_H_INLINE void reduce(Polytope<3>* poly, Real* moments) {
  *
  */
 template <Int polyorder>
-OMEGA_H_INLINE void reduce(Polytope<2>* poly, Real* moments) {
-  Int* nverts = &poly->nverts;
-  if (*nverts <= 0) return;
+OMEGA_H_INLINE void reduce(Polytope<2> const& poly, Real* moments) {
+  if (poly.nverts <= 0) return;
 
   // var declarations
   Int vcur, vnext, m, i, j, corder;
   Real twoa;
   Vector<2> v0, v1;
-
-  // direct access to vertex buffer
-  Vertex<2>* vertbuffer = poly->verts;
 
   // zero the moments
   for (m = 0; m < num_moments_2d(polyorder); ++m) moments[m] = 0.0;
@@ -574,10 +531,10 @@ OMEGA_H_INLINE void reduce(Polytope<2>* poly, Real* moments) {
   Real C[polyorder + 1][2];
 
   // iterate over edges and compute a sum over simplices
-  for (vcur = 0; vcur < *nverts; ++vcur) {
-    vnext = vertbuffer[vcur].pnbrs[0];
-    v0 = vertbuffer[vcur].pos;
-    v1 = vertbuffer[vnext].pos;
+  for (vcur = 0; vcur < poly.nverts; ++vcur) {
+    vnext = poly.verts[vcur].pnbrs[0];
+    v0 = poly.verts[vcur].pos;
+    v1 = poly.verts[vnext].pos;
     twoa = (v0[0] * v1[1] - v0[1] * v1[0]);
 
     // calculate the moments
@@ -634,9 +591,9 @@ struct Polynomial {
 
 template <Int dim, Int order>
 OMEGA_H_INLINE Real integrate(
-    Polytope<dim> polytope, Polynomial<dim, order> polynomial) {
+    Polytope<dim> const& polytope, Polynomial<dim, order> polynomial) {
   Real moments[decltype(polynomial)::nterms] = {};
-  reduce<order>(&polytope, moments);
+  reduce<order>(polytope, moments);
   Real result = 0;
   for (Int i = 0; i < decltype(polynomial)::nterms; ++i)
     result += moments[i] * polynomial.coeffs[i];
@@ -644,16 +601,16 @@ OMEGA_H_INLINE Real integrate(
 }
 
 template <Int dim>
-OMEGA_H_INLINE Real measure(Polytope<dim> polytope) {
+OMEGA_H_INLINE Real measure(Polytope<dim> const& polytope) {
   return integrate(polytope, Polynomial<dim, 0>{{1}});
 }
 
 template <Int dim>
-OMEGA_H_INLINE Polytope<dim> intersect_simplices(
+OMEGA_H_INLINE void intersect_simplices(Polytope<dim>& poly,
     Few<Vector<dim>, dim + 1> verts0, Few<Vector<dim>, dim + 1> verts1) {
-  auto poly0 = init(verts0);
+  init(poly, verts0);
   auto faces1 = faces_from_verts(verts1);
-  return clip(poly0, faces1);
+  clip(poly, faces1);
 }
 
 /* multiply two linear polynomials into a second-order one.
