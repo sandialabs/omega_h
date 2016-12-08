@@ -234,6 +234,8 @@ OMEGA_H_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
 
   // initialize graph connectivity
   poly.nverts = 4;
+  poly.verts[0].pnbrs[0] = 1;
+  poly.verts[0].pnbrs[1] = 3;
   poly.verts[0].pnbrs[2] = 2;
   poly.verts[1].pnbrs[0] = 2;
   poly.verts[1].pnbrs[1] = 3;

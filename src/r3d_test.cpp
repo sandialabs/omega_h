@@ -73,6 +73,6 @@ static void test_2d() {
 }
 
 int main() {
-  test_3d();
   test_2d();
+  test_3d();
 }
