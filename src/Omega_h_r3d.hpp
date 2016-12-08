@@ -144,9 +144,6 @@ struct ClipHelper<2> {
  * \param [in] planes
  * An array of planes against which to clip this polygon.
  *
- * \param[in] nplanes
- * The number of planes in the input array.
- *
  */
 template <Int dim, Int nplanes>
 OMEGA_H_INLINE Polytope<dim> clip(
@@ -154,7 +151,7 @@ OMEGA_H_INLINE Polytope<dim> clip(
   if (poly.nverts <= 0) return poly;
 
   // direct access to vertex buffer
-  Vertex<dim>* vertbuffer = poly->verts;
+  Vertex<dim>* vertbuffer = poly.verts;
 
   // variable declarations
   Int v, p, np, onv, vcur, vnext, numunclipped;
@@ -626,7 +623,7 @@ template <Int dim, Int order>
 OMEGA_H_INLINE Real integrate(
     Polytope<dim> polytope, Polynomial<dim, order> polynomial) {
   Real moments[decltype(polynomial)::nterms] = {};
-  reduce<order>(&polytope, moments);
+  reduce<order>(polytope, moments);
   Real result = 0;
   for (Int i = 0; i < decltype(polynomial)::nterms; ++i)
     result += moments[i] * polynomial.coeffs[i];
