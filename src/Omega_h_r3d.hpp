@@ -382,7 +382,7 @@ struct NumMoments<2, order> {
  */
 
 template <Int polyorder>
-OMEGA_H_INLINE void reduce(Polytope<3> poly, Real* moments) {
+OMEGA_H_INLINE void reduce(Polytope<3> const& poly, Real* moments) {
   if (poly.nverts <= 0) return;
 
   // var declarations
@@ -529,7 +529,7 @@ OMEGA_H_INLINE void reduce(Polytope<3> poly, Real* moments) {
  *
  */
 template <Int polyorder>
-OMEGA_H_INLINE void reduce(Polytope<2> poly, Real* moments) {
+OMEGA_H_INLINE void reduce(Polytope<2> const& poly, Real* moments) {
   if (poly.nverts <= 0) return;
 
   // var declarations
@@ -608,7 +608,7 @@ struct Polynomial {
 
 template <Int dim, Int order>
 OMEGA_H_INLINE Real integrate(
-    Polytope<dim> polytope, Polynomial<dim, order> polynomial) {
+    Polytope<dim> const& polytope, Polynomial<dim, order> polynomial) {
   Real moments[decltype(polynomial)::nterms] = {};
   reduce<order>(polytope, moments);
   Real result = 0;
@@ -618,7 +618,7 @@ OMEGA_H_INLINE Real integrate(
 }
 
 template <Int dim>
-OMEGA_H_INLINE Real measure(Polytope<dim> polytope) {
+OMEGA_H_INLINE Real measure(Polytope<dim> const& polytope) {
   return integrate(polytope, Polynomial<dim, 0>{{1}});
 }
 
