@@ -146,9 +146,9 @@ struct ClipHelper<2> {
  *
  */
 template <Int dim, Int nplanes>
-OMEGA_H_INLINE Polytope<dim> clip(
-    Polytope<dim> poly, Few<Plane<dim>, nplanes> planes) {
-  if (poly.nverts <= 0) return poly;
+OMEGA_H_INLINE void clip(
+    Polytope<dim>& poly, Few<Plane<dim>, nplanes> planes) {
+  if (poly.nverts <= 0) return;
 
   // variable declarations
   Int v, p, np, onv, vcur, vnext, numunclipped;
@@ -177,7 +177,7 @@ OMEGA_H_INLINE Polytope<dim> clip(
     if (smin >= 0.0) continue;
     if (smax <= 0.0) {
       poly.nverts = 0;
-      return poly;
+      return;
     }
 
     // check all edges and insert new vertices on the bisected edges
@@ -212,22 +212,16 @@ OMEGA_H_INLINE Polytope<dim> clip(
       for (np = 0; np < dim; ++np)
         poly.verts[v].pnbrs[np] = clipped[poly.verts[v].pnbrs[np]];
   }
-  return poly;
 }
 
 /**
  * \brief Initialize a polyhedron as a tetrahedron.
  *
- * \returns
- * The initialized polyhedron.
- *
  * \param [in] verts
  * An array of four vectors, giving the vertices of the tetrahedron.
  *
  */
-OMEGA_H_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
-  Polytope<3> poly;
-
+OMEGA_H_INLINE void init(Polytope<3>& poly, Few<Vector<3>, 4> verts) {
   // initialize graph connectivity
   poly.nverts = 4;
   poly.verts[0].pnbrs[0] = 1;
@@ -245,24 +239,17 @@ OMEGA_H_INLINE Polytope<3> init(Few<Vector<3>, 4> verts) {
 
   // copy vertex coordinates
   for (Int v = 0; v < 4; ++v) poly.verts[v].pos = verts[v];
-
-  return poly;
 }
 
 /**
  * \brief Initialize a triangle from a list of vertices.
  *
- * \returns
- * The initialized polygon.
- *
- * \param [in] vertices
  * Array of length `numverts` giving the vertices of the input polygon, in
  * counterclockwise order.
  *
  */
-OMEGA_H_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
+OMEGA_H_INLINE void init(Polytope<2>& poly, Few<Vector<2>, 3> vertices) {
   constexpr Int numverts = 3;
-  Polytope<2> poly;
   // init the poly
   poly.nverts = numverts;
   for (Int v = 0; v < poly.nverts; ++v) {
@@ -270,7 +257,6 @@ OMEGA_H_INLINE Polytope<2> init(Few<Vector<2>, 3> vertices) {
     poly.verts[v].pnbrs[0] = (v + 1) % (numverts);
     poly.verts[v].pnbrs[1] = (numverts + v - 1) % (numverts);
   }
-  return poly;
 }
 
 template <Int dim>
@@ -623,11 +609,11 @@ OMEGA_H_INLINE Real measure(Polytope<dim> const& polytope) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Polytope<dim> intersect_simplices(
-    Few<Vector<dim>, dim + 1> verts0, Few<Vector<dim>, dim + 1> verts1) {
-  auto poly0 = init(verts0);
+OMEGA_H_INLINE void intersect_simplices(
+    Polytope<dim>& poly, Few<Vector<dim>, dim + 1> verts0, Few<Vector<dim>, dim + 1> verts1) {
+  init(poly, verts0);
   auto faces1 = faces_from_verts(verts1);
-  return clip(poly0, faces1);
+  clip(poly, faces1);
 }
 
 /* multiply two linear polynomials into a second-order one.
