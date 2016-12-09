@@ -29,7 +29,8 @@ namespace Omega_h {
 
 bool should_log_memory = false;
 char* max_memory_stacktrace = nullptr;
-Library* the_library = nullptr;
+
+static Library* the_library = nullptr;
 
 static bool remove_flag(int* argc, char*** argv, std::string const& flag) {
   if (!argc || !argv) return false;
