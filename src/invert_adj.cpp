@@ -3,6 +3,8 @@
 #include "align.hpp"
 #include "loop.hpp"
 #include "map.hpp"
+#include "timer.hpp"
+#include "control.hpp"
 
 namespace Omega_h {
 
@@ -30,6 +32,7 @@ static void order_by_globals(
 }
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
+  auto t0 = now();
   auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
@@ -60,6 +63,8 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
     parallel_for(nlh, f);
   }
   order_by_globals(l2lh, lh2h, codes, high_globals);
+  auto t1 = now();
+  add_to_global_timer("inverting", t1 - t0);
   return Adj(l2lh, lh2h, codes);
 }
 

@@ -10,6 +10,8 @@
 #include "space.hpp"
 #include "tag.hpp"
 #include "transfer_conserve.hpp"
+#include "timer.hpp"
+#include "control.hpp"
 
 namespace Omega_h {
 
@@ -228,6 +230,7 @@ static void transfer_quality(Mesh* old_mesh, Mesh* new_mesh,
 void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, Int prod_dim, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  auto t0 = now();
   transfer_inherit_refine(old_mesh, new_mesh, keys2edges, prod_dim, keys2prods,
       prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == VERT) {
@@ -248,6 +251,8 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     transfer_pointwise_refine(old_mesh, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
+  auto t1 = now();
+  add_to_global_timer("transferring", t1 - t0);
 }
 
 template <typename T>
@@ -414,6 +419,7 @@ static void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
 void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
+  auto t0 = now();
   if (prod_dim == VERT) {
     transfer_no_products(
         old_mesh, new_mesh, prod_dim, same_ents2old_ents, same_ents2new_ents);
@@ -435,6 +441,8 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
     do_momentum_velocity_elem_target(
         old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab, prods2new_ents);
   }
+  auto t1 = now();
+  add_to_global_timer("transferring", t1 - t0);
 }
 
 template <typename T>
@@ -520,6 +528,7 @@ static void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
 void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
+  auto t0 = now();
   CHECK(prod_dim != VERT);
   transfer_inherit_swap(old_mesh, new_mesh, prod_dim, keys2edges, keys2prods,
       prods2new_ents, same_ents2old_ents, same_ents2new_ents);
@@ -537,6 +546,8 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     do_momentum_velocity_elem_target(
         old_mesh, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
   }
+  auto t1 = now();
+  add_to_global_timer("transferring", t1 - t0);
 }
 
 #define INST(T)                                                                \

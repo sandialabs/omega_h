@@ -10,6 +10,7 @@
 #include "simplices.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
+#include "control.hpp"
 
 namespace Omega_h {
 
@@ -185,6 +186,7 @@ static void post_adapt(
   Now t4 = now();
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "adapting took " << (t4 - t0) << " seconds\n\n";
+    add_to_global_timer("adapting", t4 - t0);
   }
 }
 
