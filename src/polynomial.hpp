@@ -43,7 +43,8 @@ INLINE Roots<3> find_polynomial_roots(Few<Real, 3> coeffs, Real eps = 1e-6) {
     roots[1] = roots[2] = z_23_real;
   } else {
     // D < 0 implies Q < 0, since R^2 must be positive
-    Real theta = acos(R / sqrt(-cube(Q)));
+    auto cos_theta = R / sqrt(-cube(Q));
+    Real theta = acos(clamp(cos_theta, 1.0, -1.0));
     Real radius = 2. * sqrt(-Q);
     Real z_1 = radius * cos((theta) / 3.) + shift;
     Real z_2 = radius * cos((theta + 2. * PI) / 3.) + shift;

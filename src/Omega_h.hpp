@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <iosfwd>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -401,6 +402,7 @@ class Library {
   ~Library();
   CommPtr world();
   CommPtr self();
+  void add_to_timer(std::string const& name, double nsecs);
 
  private:
   void initialize(char const* head_desc, int* argc, char*** argv
@@ -417,6 +419,8 @@ class Library {
 #ifdef OMEGA_H_USE_KOKKOS
   bool we_called_kokkos_init = false;
 #endif
+  bool should_time_;
+  std::map<std::string, double> timers;
 };
 
 namespace inertia {

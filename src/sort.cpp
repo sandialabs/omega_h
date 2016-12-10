@@ -1,4 +1,6 @@
 #include "sort.hpp"
+#include "control.hpp"
+#include "timer.hpp"
 
 #include <algorithm>
 
@@ -23,6 +25,7 @@ namespace Omega_h {
 
 template <typename T, typename Comp>
 void parallel_sort(T* b, T* e, Comp c) {
+  auto t0 = now();
 #if defined(OMEGA_H_USE_CUDA)
   auto bptr = thrust::device_ptr<T>(b);
   auto eptr = thrust::device_ptr<T>(e);
@@ -32,6 +35,8 @@ void parallel_sort(T* b, T* e, Comp c) {
 #else
   std::stable_sort(b, e, c);
 #endif
+  auto t1 = now();
+  add_to_global_timer("sorting", t1 - t0);
 }
 
 template <typename T, Int N>

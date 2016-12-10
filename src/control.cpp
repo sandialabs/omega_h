@@ -30,6 +30,8 @@ namespace Omega_h {
 bool should_log_memory = false;
 char* max_memory_stacktrace = nullptr;
 
+static Library* the_library = nullptr;
+
 static bool remove_flag(int* argc, char*** argv, std::string const& flag) {
   if (!argc || !argv) return false;
   for (int i = 0; i < *argc; ++i) {
@@ -57,8 +59,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     std::string msg_str = msg.str();
     Omega_h_fail("%s\n", msg_str.c_str());
   }
-  Omega_h::should_log_memory = remove_flag(argc, argv, "--osh-log-mem");
-  bool should_protect = remove_flag(argc, argv, "--osh-protect");
+  Omega_h::should_log_memory = remove_flag(argc, argv, "--osh-memory");
+  bool should_protect = remove_flag(argc, argv, "--osh-signal");
+  should_time_ = remove_flag(argc, argv, "--osh-time");
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
@@ -82,6 +85,8 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
 #endif
   if (should_protect) protect();
+  CHECK(the_library == nullptr);
+  the_library = this;
 }
 
 Library::Library(Library const& other)
@@ -127,6 +132,11 @@ Library::~Library() {
   }
 #endif
   delete[] Omega_h::max_memory_stacktrace;
+  for (auto pair : timers) {
+    std::cout << "total time spent " << pair.first << ": " << pair.second
+              << " seconds\n";
+  }
+  the_library = nullptr;
 }
 
 CommPtr Library::world() { return world_; }
@@ -140,6 +150,15 @@ CommPtr Library::self() {
   }
 #endif
   return self_;
+}
+
+void Library::add_to_timer(std::string const& name, double nsecs) {
+  if (!should_time_) return;
+  timers[name] += nsecs;
+}
+
+void add_to_global_timer(std::string const& name, double nsecs) {
+  the_library->add_to_timer(name, nsecs);
 }
 
 }  // end namespace Omega_h

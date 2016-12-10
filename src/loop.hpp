@@ -5,41 +5,49 @@
 
 namespace Omega_h {
 
-template <typename T>
-void parallel_for(Int n, T const& f) {
 #ifdef OMEGA_H_USE_KOKKOS
-  if (n > 0) Kokkos::parallel_for(static_cast<std::size_t>(n), f);
+using ExecSpace = Kokkos::DefaultExecutionSpace;
+using StaticSched = Kokkos::Schedule<Kokkos::Static>;
+using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched>;
+
+inline Policy policy(LO n) { return Policy(0, static_cast<std::size_t>(n)); }
+#endif
+
+template <typename T>
+void parallel_for(LO n, T const& f) {
+#ifdef OMEGA_H_USE_KOKKOS
+  if (n > 0) Kokkos::parallel_for(policy(n), f);
 #else
-  for (Int i = 0; i < n; ++i) f(i);
+  for (LO i = 0; i < n; ++i) f(i);
 #endif
 }
 
 template <typename T>
-typename T::value_type parallel_reduce(Int n, T f) {
+typename T::value_type parallel_reduce(LO n, T f) {
   typedef typename T::value_type VT;
   static_assert(sizeof(VT) >= sizeof(void*),
       "reduction value types need to be at least word-sized");
   VT result;
   f.init(result);
 #ifdef OMEGA_H_USE_KOKKOS
-  if (n > 0) Kokkos::parallel_reduce(static_cast<std::size_t>(n), f, result);
+  if (n > 0) Kokkos::parallel_reduce(policy(n), f, result);
 #else
-  for (Int i = 0; i < n; ++i) f(i, result);
+  for (LO i = 0; i < n; ++i) f(i, result);
 #endif
   return result;
 }
 
 template <typename T>
-void parallel_scan(Int n, T f) {
+void parallel_scan(LO n, T f) {
   typedef typename T::value_type VT;
   static_assert(sizeof(VT) >= sizeof(void*),
       "reduction value types need to be at least word-sized");
 #ifdef OMEGA_H_USE_KOKKOS
-  if (n > 0) Kokkos::parallel_scan(static_cast<std::size_t>(n), f);
+  if (n > 0) Kokkos::parallel_scan(policy(n), f);
 #else
   VT update;
   f.init(update);
-  for (Int i = 0; i < n; ++i) f(i, update, true);
+  for (LO i = 0; i < n; ++i) f(i, update, true);
 #endif
 }
 

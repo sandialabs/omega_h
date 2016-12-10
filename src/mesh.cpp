@@ -6,6 +6,7 @@
 #include "adjacency.hpp"
 #include "array.hpp"
 #include "bcast.hpp"
+#include "control.hpp"
 #include "ghost.hpp"
 #include "graph.hpp"
 #include "inertia.hpp"
@@ -17,6 +18,7 @@
 #include "simplices.hpp"
 #include "size.hpp"
 #include "tag.hpp"
+#include "timer.hpp"
 
 namespace Omega_h {
 
@@ -346,7 +348,10 @@ Adj Mesh::ask_adj(Int from, Int to) {
   if (has_adj(from, to)) {
     return get_adj(from, to);
   }
+  auto t0 = now();
   Adj derived = derive_adj(from, to);
+  auto t1 = now();
+  add_to_global_timer("deriving adjacencies", t1 - t0);
   adjs_[from][to] = std::make_shared<Adj>(derived);
   return derived;
 }

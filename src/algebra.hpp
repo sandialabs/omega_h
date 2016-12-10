@@ -14,6 +14,10 @@ INLINE Real cube(Real x) { return x * x * x; }
 
 INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
+INLINE Real clamp(Real x, Real high, Real low) {
+  return min2(max2(x, low), high);
+}
+
 template <Int p>
 INLINE Real raise(Real x) {
   Real out = x;

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 6.1.0 LANGUAGES CXX)
+project(Omega_h VERSION 6.2.0 LANGUAGES CXX)
 
 include(cmake/bob.cmake)
 
@@ -39,6 +39,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
   endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
+  set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
   if(Omega_h_USE_OpenMP)
     set(FLAGS "${FLAGS} -qopenmp")
   endif()

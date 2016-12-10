@@ -3,6 +3,7 @@
 
 #include "array.hpp"
 #include "coarsen.hpp"
+#include "control.hpp"
 #include "histogram.hpp"
 #include "mark.hpp"
 #include "quality.hpp"
@@ -185,6 +186,7 @@ static void post_adapt(
   Now t4 = now();
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "adapting took " << (t4 - t0) << " seconds\n\n";
+    add_to_global_timer("adapting", t4 - t0);
   }
 }
 
