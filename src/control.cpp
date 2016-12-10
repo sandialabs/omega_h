@@ -61,6 +61,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
   Omega_h::should_log_memory = remove_flag(argc, argv, "--osh-log-mem");
   bool should_protect = remove_flag(argc, argv, "--osh-protect");
+  should_time_ = remove_flag(argc, argv, "--osh-timers");
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
@@ -152,6 +153,7 @@ CommPtr Library::self() {
 }
 
 void Library::add_to_timer(std::string const& name, double nsecs) {
+  if (!should_time_) return;
   timers[name] += nsecs;
 }
 

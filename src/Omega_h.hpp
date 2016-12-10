@@ -419,6 +419,7 @@ class Library {
 #ifdef OMEGA_H_USE_KOKKOS
   bool we_called_kokkos_init = false;
 #endif
+  bool should_time_;
   std::map<std::string, double> timers;
 };
 
