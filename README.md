@@ -18,8 +18,8 @@ For a bare minimum setup with no parallelism, you just need [CMake][0],
 a C++11 compiler, and preferably [ZLib][6] installed.
 
 ```shell
-git clone git@github.com:ibaned/omega_h2.git
-cd omega_h2
+git clone git@github.com:ibaned/omega_h.git
+cd omega_h
 cmake . -DCMAKE_INSTALL_PREFIX=/your/choice
 make install
 ```
@@ -94,11 +94,11 @@ branch. Pull requests are welcome.
 This library is released under the FreeBSD license.
 
 [0]: https://cmake.org
-[1]: https://raw.githubusercontent.com/ibaned/omega_h2/master/aux/omega_h.png
+[1]: https://raw.githubusercontent.com/ibaned/omega_h/master/aux/omega_h.png
 [2]: https://github.com/kokkos/kokkos
 [3]: http://www.mpich.org
 [4]: https://github.com/trilinos/Trilinos
 [5]: http://clang.llvm.org/docs/ClangFormat.html
 [6]: http://zlib.net
 [7]: http://github.com/kokkos/nvcc_wrapper
-[8]: https://github.com/ibaned/omega_h2/blob/master/aux/do-config-trilinos-kokkos.sh
+[8]: https://github.com/ibaned/omega_h/blob/master/aux/do-config-trilinos-kokkos.sh
