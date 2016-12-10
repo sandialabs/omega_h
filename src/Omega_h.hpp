@@ -5,10 +5,10 @@
 #include <cstdint>
 #include <initializer_list>
 #include <iosfwd>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include <Omega_h_c.h>
 #include <Omega_h_kokkos.hpp>

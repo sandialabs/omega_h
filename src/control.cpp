@@ -133,8 +133,8 @@ Library::~Library() {
 #endif
   delete[] Omega_h::max_memory_stacktrace;
   for (auto pair : timers) {
-    std::cout << "total time spent " << pair.first << ": "
-      << pair.second << " seconds\n";
+    std::cout << "total time spent " << pair.first << ": " << pair.second
+              << " seconds\n";
   }
   the_library = nullptr;
 }

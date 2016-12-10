@@ -3,6 +3,7 @@
 
 #include "array.hpp"
 #include "coarsen.hpp"
+#include "control.hpp"
 #include "histogram.hpp"
 #include "mark.hpp"
 #include "quality.hpp"
@@ -10,7 +11,6 @@
 #include "simplices.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
-#include "control.hpp"
 
 namespace Omega_h {
 

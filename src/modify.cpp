@@ -3,6 +3,7 @@
 #include "adjacency.hpp"
 #include "array.hpp"
 #include "atomics.hpp"
+#include "control.hpp"
 #include "linpart.hpp"
 #include "loop.hpp"
 #include "map.hpp"
@@ -10,10 +11,9 @@
 #include "owners.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
+#include "timer.hpp"
 #include "transfer_conserve.hpp"
 #include "unmap_mesh.hpp"
-#include "timer.hpp"
-#include "control.hpp"
 
 namespace Omega_h {
 

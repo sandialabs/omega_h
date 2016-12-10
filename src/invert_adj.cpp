@@ -1,10 +1,10 @@
 #include "adjacency.hpp"
 
 #include "align.hpp"
+#include "control.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 #include "timer.hpp"
-#include "control.hpp"
 
 namespace Omega_h {
 

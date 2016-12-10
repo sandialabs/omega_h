@@ -236,10 +236,10 @@ static void test_adjs(Library* lib) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-//#ifndef __INTEL_COMPILER
+  //#ifndef __INTEL_COMPILER
   test_metric_math();
   test_repro_sum();
   test_sort();
-//#endif
+  //#endif
   test_adjs(&lib);
 }

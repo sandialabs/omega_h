@@ -10,9 +10,7 @@ using ExecSpace = Kokkos::DefaultExecutionSpace;
 using StaticSched = Kokkos::Schedule<Kokkos::Static>;
 using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched>;
 
-inline Policy policy(LO n) {
-  return Policy(0,static_cast<std::size_t>(n));
-}
+inline Policy policy(LO n) { return Policy(0, static_cast<std::size_t>(n)); }
 #endif
 
 template <typename T>

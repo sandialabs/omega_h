@@ -1,6 +1,6 @@
 #include "sort.hpp"
-#include "timer.hpp"
 #include "control.hpp"
+#include "timer.hpp"
 
 #include <algorithm>
 
