@@ -46,10 +46,11 @@ static Vector<3> get_total_momentum(Mesh* mesh) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  CHECK(argc == 2);
   auto world = lib.world();
   Mesh mesh(&lib);
   if (world->rank() == 0) {
-    gmsh::read("ball_in_cube.msh", &mesh);
+    gmsh::read(argv[1], &mesh);
     mesh.reorder();
     mesh.reset_globals();
   }

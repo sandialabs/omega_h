@@ -120,14 +120,9 @@ int main(int argc, char** argv) {
         top_face, solder_ball_top(sb));
     gmod::add_to_group(model, sb);
   }
-  std::stringstream stream;
-  if (out_path) {
-    stream << out_path;
-  } else {
-    stream << "solder_balls_" << balls_per_side
-      << "x" << balls_per_side << ".geo";
-  }
-  auto s = stream.str();
-  gmod::write_closure_to_geo(model, s.c_str());
+  if (out_path)
+    gmod::write_closure_to_geo(model, out_path);
+  else
+    gmod::write_closure_to_geo(model, "solder_balls.geo");
 }
 

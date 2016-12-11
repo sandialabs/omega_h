@@ -18,6 +18,7 @@ option(Omega_h_ONE_FILE "Compile omega_h as a single file" OFF)
 message(STATUS "Omega_h_ONE_FILE: ${Omega_h_ONE_FILE}")
 option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
 set(EGADS_PREFIX "" CACHE PATH "EGADS (or ESP) installation directory")
+set(Omega_h_DATA "" CACHE PATH "Path to omega_h-data test files")
 
 bob_begin_cxx_flags()
 bob_cxx11_flags()
