@@ -52,6 +52,7 @@ Write<T>::Write(LO size)
 template <typename T>
 void Write<T>::check_release() const {
   if (use_count() == 1) {
+    CHECK(current_array_bytes > bytes());
     current_array_bytes -= bytes();
   }
 }

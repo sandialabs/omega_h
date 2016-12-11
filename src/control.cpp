@@ -112,6 +112,7 @@ Library::~Library() {
 #endif
   if (Omega_h::should_log_memory) {
     auto mem_used = get_max_bytes();
+    std::cerr << "mem_used " << mem_used << '\n';
     auto max_mem_used =
         std::size_t(world_->allreduce(I64(mem_used), OMEGA_H_MAX));
     auto max_mem_rank =
@@ -119,7 +120,9 @@ Library::~Library() {
     max_mem_rank = world_->allreduce(max_mem_rank, OMEGA_H_MIN);
     if (world_->rank() == max_mem_rank) {
       std::cout << "maximum Omega_h memory usage: " << mem_used << '\n';
-      std::cout << Omega_h::max_memory_stacktrace;
+      if (Omega_h::max_memory_stacktrace) {
+        std::cout << Omega_h::max_memory_stacktrace;
+      }
     }
   }
   // need to destroy all Comm objects prior to MPI_Finalize()
