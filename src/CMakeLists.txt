@@ -324,6 +324,7 @@ set(DEF_VARS
     USE_CUDA
     USE_ZLIB
     USE_Meshb
+    USE_EGADS
     CHECK_BOUNDS
     PROTECT
     )
