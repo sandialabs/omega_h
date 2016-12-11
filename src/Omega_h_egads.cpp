@@ -190,7 +190,7 @@ void egads_reclassify(Mesh* mesh, Egads* eg) {
     class_dims = Read<I8>(host_class_dims.write());
     class_ids = Read<LO>(host_class_ids.write());
     mesh->set_tag(dim, "class_id", class_ids);
-    mesh->set_tag(dim, "class_dims", class_dims);
+    mesh->set_tag(dim, "class_dim", class_dims);
   }
 }
 
