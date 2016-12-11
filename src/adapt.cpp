@@ -12,6 +12,10 @@
 #include "swap.hpp"
 #include "timer.hpp"
 
+#ifdef OMEGA_H_USE_EGADS
+#include "Omega_h_egads.hpp"
+#endif
+
 namespace Omega_h {
 
 AdaptOpts::AdaptOpts(Mesh* mesh) {
@@ -30,6 +34,9 @@ AdaptOpts::AdaptOpts(Mesh* mesh) {
   verbosity = EACH_REBUILD;
   length_histogram_min = 0.0;
   length_histogram_max = 3.0;
+#ifdef OMEGA_H_USE_EGADS
+  egads_model = nullptr;
+#endif
 }
 
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
@@ -169,6 +176,16 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   } while (mesh->min_quality() < opts.min_quality_desired);
 }
 
+static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
+#ifdef OMEGA_H_USE_EGADS
+  if (opts.egads_model) {
+    egads_set_snap_warp(mesh, opts.egads_model);
+    while (warp_to_limit(mesh, opts)) satisfy_quality(mesh, opts);
+  } else
+#endif
+  satisfy_quality(mesh, opts);
+}
+
 static void post_adapt(
     Mesh* mesh, AdaptOpts const& opts, Now t0, Now t1, Now t2, Now t3) {
   if (opts.verbosity == EACH_ADAPT) {
@@ -180,8 +197,11 @@ static void post_adapt(
     std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
   }
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
-    std::cout << "addressing element qualities took " << (t3 - t2)
-              << " seconds\n";
+#ifdef OMEGA_H_USE_EGADS
+    if (opts.egads_model) std::cout << "snapping while ";
+#endif
+    std::cout << "addressing element qualities took " << (t3 - t2);
+    std::cout << " seconds\n";
   }
   Now t4 = now();
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
@@ -196,7 +216,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t1 = now();
   satisfy_lengths(mesh, opts);
   auto t2 = now();
-  satisfy_quality(mesh, opts);
+  snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3);

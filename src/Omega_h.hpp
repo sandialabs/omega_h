@@ -599,6 +599,10 @@ class FullWriter {
 
 enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
 
+#ifdef OMEGA_H_USE_EGADS
+struct Egads;
+#endif
+
 struct AdaptOpts {
   AdaptOpts(Mesh* mesh);  // sets defaults
   Real min_length_desired;
@@ -610,6 +614,9 @@ struct AdaptOpts {
   Verbosity verbosity;
   Real length_histogram_min;
   Real length_histogram_max;
+#ifdef OMEGA_H_USE_EGADS
+  Egads* egads_model;
+#endif
 };
 
 /* returns false if the mesh was not modified. */
