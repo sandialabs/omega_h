@@ -1,5 +1,8 @@
 #include "Omega_h_egads.hpp"
 #include "internal.hpp"
+#include "map.hpp"
+#include "array.hpp"
+#include "graph.hpp"
 
 #include <cassert>
 #include <vector>
@@ -13,6 +16,51 @@
 
 #include <egads.h>
 
+/* EGADS pollutes the global namespace with
+ * macros like EDGE and FACE.
+ * This is really bad.
+ * I found a workaround for integer-valued macros,
+ * but I hope EGADS stops doing this.
+ */
+
+enum EgadsObjectClass {
+  EGADS_CONTXT = CONTXT,
+  EGADS_TRANSFORM = TRANSFORM,
+  EGADS_TESSELATION = TESSELLATION,
+  EGADS_NIL = NIL,
+/*EGADS_EMPTY = EMPTY, not doing this one
+ * because an EGADS error exists by the same name
+ */
+  EGADS_REFERENCE = REFERENCE,
+  EGADS_PCURVE = PCURVE,
+  EGADS_CURVE = CURVE,
+  EGADS_SURFACE = SURFACE,
+  EGADS_NODE = NODE,
+  EGADS_EDGE = EDGE,
+  EGADS_LOOP = LOOP,
+  EGADS_FACE = FACE,
+  EGADS_SHELL = SHELL,
+  EGADS_BODY = BODY,
+  EGADS_MODEL = MODEL
+};
+
+#undef CONTXT
+#undef TRANSFORM
+#undef TESSELLATION
+#undef NIL
+#undef EMPTY
+#undef REFERENCE
+#undef PCURVE
+#undef CURVE
+#undef SURFACE
+#undef NODE
+#undef EDGE
+#undef LOOP
+#undef FACE
+#undef SHELL
+#undef BODY
+#undef MODEL
+
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
@@ -22,10 +70,10 @@
 namespace Omega_h {
 
 static int const dims2oclass[4] = {
-  NODE,
-  EDGE,
-  FACE,
-  BODY
+  EGADS_NODE,
+  EGADS_EDGE,
+  EGADS_FACE,
+  EGADS_BODY
 };
 
 struct Egads {
@@ -99,9 +147,12 @@ void egads_classify(Egads* eg, int nadj_faces, int const adj_face_ids[],
     auto adj_face = eg->entities[2][adj_face_ids[i] - 1];
     uniq_adj_faces.insert(adj_face);
   }
-  auto ent = eg->classifier[uniq_adj_faces];
-  *class_dim = get_dim(ent);
-  *class_id = EG_indexBodyTopo(eg->body, ent);
+  auto it = eg->classifier.find(uniq_adj_faces);
+  if (it != eg->classifier.end()) {
+    auto ent = it->second;
+    *class_dim = get_dim(ent);
+    *class_id = EG_indexBodyTopo(eg->body, ent);
+  }
 }
 
 void egads_free(Egads* eg) {
@@ -109,6 +160,38 @@ void egads_free(Egads* eg) {
     EG_free(eg->entities[i]);
   }
   delete eg;
+}
+
+void egads_reclassify(Mesh* mesh, Egads* eg) {
+  auto face_class_dims = mesh->get_array<I8>(TRI, "class_dim");
+  auto face_class_ids = mesh->get_array<LO>(TRI, "class_id");
+  for (Int dim = 0; dim < 2; ++dim) {
+    auto ents2faces = mesh->ask_up(dim, TRI);
+    auto adj_class_dims = unmap(ents2faces.ab2b, face_class_dims, 1);
+    auto keep_edges = each_eq_to(adj_class_dims, I8(2));
+    auto ents2eq_faces = filter_graph(ents2faces, keep_edges);
+    auto adj_eq_face_ids = unmap(ents2eq_faces.ab2b, face_class_ids, 1);
+    auto host_a2ab = HostRead<LO>(ents2eq_faces.a2ab);
+    auto host_face_ids = HostRead<LO>(adj_eq_face_ids);
+    auto class_dims = mesh->get_array<I8>(dim, "class_dim");
+    auto class_ids = mesh->get_array<LO>(dim, "class_id");
+    auto host_class_dims = HostWrite<I8>(deep_copy(class_dims));
+    auto host_class_ids = HostWrite<LO>(deep_copy(class_ids));
+    for (LO i = 0; i < mesh->nents(dim); ++i) {
+      auto b = host_a2ab[i];
+      auto e = host_a2ab[i + 1];
+      Int class_dim = host_class_dims[i];
+      LO class_id = host_class_ids[i];
+      egads_classify(eg, e - b, host_face_ids.data() + b,
+          &class_dim, &class_id);
+      host_class_dims[i] = I8(class_dim);
+      host_class_ids[i] = class_id;
+    }
+    class_dims = Read<I8>(host_class_dims.write());
+    class_ids = Read<LO>(host_class_ids.write());
+    mesh->set_tag(dim, "class_id", class_ids);
+    mesh->set_tag(dim, "class_dims", class_dims);
+  }
 }
 
 }
