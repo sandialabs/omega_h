@@ -163,6 +163,7 @@ void egads_free(Egads* eg) {
 }
 
 void egads_reclassify(Mesh* mesh, Egads* eg) {
+  CHECK(mesh->dim() == 3);
   auto face_class_dims = mesh->get_array<I8>(TRI, "class_dim");
   auto face_class_ids = mesh->get_array<LO>(TRI, "class_id");
   for (Int dim = 0; dim < 2; ++dim) {
@@ -192,6 +193,36 @@ void egads_reclassify(Mesh* mesh, Egads* eg) {
     mesh->set_tag(dim, "class_id", class_ids);
     mesh->set_tag(dim, "class_dim", class_dims);
   }
+}
+
+static Vector<3> get_closest_point(ego g, Vector<3> in) {
+  double ignored[2];
+  Vector<3> out;
+  CALL(EG_invEvaluateGuess(g, in.data(), ignored, out.data()));
+  return out;
+}
+
+void egads_set_snap_warp(Mesh* mesh, Egads* eg) {
+  CHECK(mesh->dim() == 3);
+  auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
+  auto class_ids = mesh->get_array<LO>(VERT, "class_id");
+  auto coords = mesh->coords();
+  auto host_class_dims = HostRead<I8>(class_dims);
+  auto host_class_ids = HostRead<LO>(class_ids);
+  auto host_coords = HostRead<Real>(coords);
+  auto host_warp = HostWrite<Real>(mesh->nverts() * 3);
+  for (LO i = 0; i < mesh->nverts(); ++i) {
+    auto a = get_vector<3>(host_coords, i);
+    auto class_dim = host_class_dims[i];
+    auto class_id = host_class_ids[i];
+    auto g = eg->entities[class_dim][class_id - 1];
+    auto b = get_closest_point(g, a);
+    auto d = b - a;
+    set_vector(host_warp, i, d);
+  }
+  auto warp = Reals(host_warp.write());
+  mesh->add_tag(VERT, "warp", 3, OMEGA_H_LINEAR_INTERP,
+      OMEGA_H_DO_OUTPUT, warp);
 }
 
 }
