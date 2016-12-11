@@ -112,7 +112,6 @@ Library::~Library() {
 #endif
   if (Omega_h::should_log_memory) {
     auto mem_used = get_max_bytes();
-    std::cerr << "mem_used " << mem_used << '\n';
     auto max_mem_used =
         std::size_t(world_->allreduce(I64(mem_used), OMEGA_H_MAX));
     auto max_mem_rank =

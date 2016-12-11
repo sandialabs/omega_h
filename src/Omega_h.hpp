@@ -92,6 +92,7 @@ class Write {
   std::size_t bytes() const;
 
  private:
+  void log_allocation() const;
   void check_release() const;
 };
 

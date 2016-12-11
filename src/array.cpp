@@ -18,9 +18,27 @@ static std::size_t max_array_bytes = 0;
 
 std::size_t get_max_bytes() { return max_array_bytes; }
 
+template <typename T>
+void Write<T>::log_allocation() const {
+  if (!should_log_memory) return;
+  current_array_bytes += bytes();
+  if (current_array_bytes > max_array_bytes) {
+    max_array_bytes = current_array_bytes;
+    delete[] max_memory_stacktrace;
+    max_memory_stacktrace = nullptr;
+    std::stringstream ss;
+    print_stacktrace(ss, 64);
+    auto s = ss.str();
+    max_memory_stacktrace = new char[s.length() + 1];
+    strcpy(max_memory_stacktrace, s.c_str());
+  }
+}
+
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view) : view_(view) {}
+Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
+  log_allocation();
+}
 #endif
 
 template <typename T>
@@ -34,25 +52,12 @@ Write<T>::Write(LO size)
       size_(size)
 #endif
 {
-  current_array_bytes += bytes();
-  if (current_array_bytes > max_array_bytes) {
-    max_array_bytes = current_array_bytes;
-    if (should_log_memory) {
-      delete[] max_memory_stacktrace;
-      max_memory_stacktrace = nullptr;
-      std::stringstream ss;
-      print_stacktrace(ss, 64);
-      auto s = ss.str();
-      max_memory_stacktrace = new char[s.length() + 1];
-      strcpy(max_memory_stacktrace, s.c_str());
-    }
-  }
+  log_allocation();
 }
 
 template <typename T>
 void Write<T>::check_release() const {
   if (use_count() == 1) {
-    CHECK(current_array_bytes > bytes());
     current_array_bytes -= bytes();
   }
 }
