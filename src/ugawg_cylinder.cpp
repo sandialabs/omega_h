@@ -29,7 +29,8 @@ static Reals get_first_metric(Mesh* mesh) {
 static Reals get_second_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
-  constexpr Real h0 = 0.001;
+//constexpr Real h0 = 0.001;
+  constexpr Real h0 = 0.004;
   auto f = LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
