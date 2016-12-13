@@ -165,6 +165,7 @@ void egads_free(Egads* eg) {
   for (int i = 0; i < 3; ++i) {
     EG_free(eg->entities[i]);
   }
+  CALL(EG_deleteObject(eg->model));
   CALL(EG_close(eg->context));
   delete eg;
 }
