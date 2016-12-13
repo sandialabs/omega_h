@@ -37,7 +37,7 @@ static Reals get_second_metric(Mesh* mesh) {
     auto xy = vector_2(x, y);
     auto radius = norm(xy);
     auto t = atan2(y, x);
-    auto h = vector_3(0.1, 0.1, h0 + 2 * (0.1 - h0) * fabs(radius - 0.5));
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), 0.1, 0.1);
     auto rotation = rotate(t, vector_3(0,0,1));
     auto m = compose_metric(rotation, h);
     set_symm(out, v, m);
