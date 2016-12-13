@@ -209,7 +209,7 @@ static Vector<3> get_closest_point(ego g, Vector<3> in) {
   return out;
 }
 
-void egads_set_snap_warp(Mesh* mesh, Egads* eg) {
+Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
   CHECK(mesh->dim() == 3);
   auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
   auto class_ids = mesh->get_array<LO>(VERT, "class_id");
@@ -237,8 +237,7 @@ void egads_set_snap_warp(Mesh* mesh, Egads* eg) {
     set_vector(host_warp, i, d);
   }
   auto warp = Reals(host_warp.write());
-  mesh->add_tag(VERT, "warp", 3, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, warp);
+  return warp;
 }
 
 }

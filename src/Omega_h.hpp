@@ -616,6 +616,8 @@ struct AdaptOpts {
   Real length_histogram_max;
 #ifdef OMEGA_H_USE_EGADS
   Egads* egads_model;
+  bool should_smooth_snap;
+  Real snap_smooth_tolerance;
 #endif
 };
 
