@@ -754,6 +754,21 @@ static void test_interpolate_metrics() {
   CHECK(are_close(b, c));
 }
 
+static void test_interpolate_isos() {
+  auto a = Reals({0.1, 0.2, 0.3});
+  auto b = Reals({0.2, 0.4, 0.6});
+  auto c = interpolate_between_isos(a, b, 0.0);
+  CHECK(are_close(a, c));
+  c = interpolate_between_isos(a, b, 1.0);
+  CHECK(are_close(b, c));
+  c = interpolate_between_isos(a, b, 0.5);
+  auto f = LAMBDA(LO i) {
+    CHECK(a[i] <= c[i]);
+    CHECK(c[i] <= b[i]);
+  };
+  parallel_for(c.size(), f);
+}
+
 static void test_element_implied_metric() {
   /* perfect tri with edge lengths = 2 */
   Few<Vector<2>, 3> perfect_tri(
@@ -891,6 +906,7 @@ int main(int argc, char** argv) {
   test_file(&lib);
   test_xml();
   test_read_vtu(&lib);
+  test_interpolate_isos();
   test_interpolate_metrics();
   test_element_implied_metric();
   test_recover_hessians(&lib);
