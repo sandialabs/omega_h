@@ -46,18 +46,21 @@ static Reals get_second_metric(Mesh* mesh) {
   return out;
 }
 
+static void set_target_metric(Mesh* mesh, int which_metric) {
+  auto target_metrics = (which_metric == 1) ? get_first_metric(mesh) :
+                                              get_second_metric(mesh);
+  mesh->set_tag(VERT, "target_metric", target_metrics);
+}
+
 static void run_case(Mesh* mesh, Egads* eg, int which_metric, char const* vtk_path) {
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = find_implied_metric(mesh);
   mesh->add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
       OMEGA_H_DO_OUTPUT, implied_metrics);
-  auto target_metrics = (which_metric == 1) ? get_first_metric(mesh) :
-                                              get_second_metric(mesh);
-  mesh->add_tag<Real>(
-      VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT,
-      target_metrics);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->add_tag<Real>(VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT);
+  set_target_metric(mesh, which_metric);
   mesh->ask_lengths();
   mesh->ask_qualities();
   vtk::FullWriter writer;
@@ -73,6 +76,9 @@ static void run_case(Mesh* mesh, Egads* eg, int which_metric, char const* vtk_pa
   Now t0 = now();
   while (approach_size_field(mesh, opts)) {
     adapt(mesh, opts);
+    if (mesh->has_tag(VERT, "target_metric")) {
+      set_target_metric(mesh, which_metric);
+    }
     if (vtk_path) writer.write();
   }
   Now t1 = now();
