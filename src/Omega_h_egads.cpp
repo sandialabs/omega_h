@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <iostream>
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -65,9 +66,14 @@ enum EgadsObjectClass {
 #pragma clang diagnostic pop
 #endif
 
-#define CALL(f) assert(EGADS_SUCCESS == (f))
-
 namespace Omega_h {
+
+static void call_egads(int result, char const* code, char const* file, int line) {
+  if (EGADS_SUCCESS == result) return;
+  Omega_h_fail("EGADS call %s returned %d at %s +%d\n", code, result, file, line);
+}
+
+#define CALL(f) call_egads((f), #f, __FILE__, __LINE__)
 
 static int const dims2oclass[4] = {
   EGADS_NODE,
@@ -159,6 +165,8 @@ void egads_free(Egads* eg) {
   for (int i = 0; i < 3; ++i) {
     EG_free(eg->entities[i]);
   }
+  CALL(EG_deleteObject(eg->model));
+  CALL(EG_close(eg->context));
   delete eg;
 }
 
@@ -196,13 +204,13 @@ void egads_reclassify(Mesh* mesh, Egads* eg) {
 }
 
 static Vector<3> get_closest_point(ego g, Vector<3> in) {
-  double ignored[2];
-  Vector<3> out;
-  CALL(EG_invEvaluateGuess(g, in.data(), ignored, out.data()));
+  double ignored[2] = {};
+  Vector<3> out = in;
+  CALL(EG_invEvaluate(g, in.data(), ignored, out.data()));
   return out;
 }
 
-void egads_set_snap_warp(Mesh* mesh, Egads* eg) {
+Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
   CHECK(mesh->dim() == 3);
   auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
   auto class_ids = mesh->get_array<LO>(VERT, "class_id");
@@ -213,16 +221,24 @@ void egads_set_snap_warp(Mesh* mesh, Egads* eg) {
   auto host_warp = HostWrite<Real>(mesh->nverts() * 3);
   for (LO i = 0; i < mesh->nverts(); ++i) {
     auto a = get_vector<3>(host_coords, i);
-    auto class_dim = host_class_dims[i];
-    auto class_id = host_class_ids[i];
-    auto g = eg->entities[class_dim][class_id - 1];
-    auto b = get_closest_point(g, a);
-    auto d = b - a;
+    Int class_dim = host_class_dims[i];
+    CHECK(class_dim >= 0);
+    CHECK(class_dim <= 3);
+    auto d = vector_3(0,0,0);
+    if (0 < class_dim && class_dim < 3) {
+      auto index = host_class_ids[i] - 1;
+      CHECK(index >= 0);
+      CHECK(index < eg->counts[class_dim]);
+      auto g = eg->entities[class_dim][index];
+      auto index2 = EG_indexBodyTopo(eg->body, g);
+      CHECK(index2 == index + 1);
+      auto b = get_closest_point(g, a);
+      d = b - a;
+    }
     set_vector(host_warp, i, d);
   }
   auto warp = Reals(host_warp.write());
-  mesh->add_tag(VERT, "warp", 3, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, warp);
+  return warp;
 }
 
 }

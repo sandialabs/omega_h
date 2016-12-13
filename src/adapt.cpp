@@ -11,6 +11,7 @@
 #include "simplices.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
+#include "laplace.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -36,6 +37,8 @@ AdaptOpts::AdaptOpts(Mesh* mesh) {
   length_histogram_max = 3.0;
 #ifdef OMEGA_H_USE_EGADS
   egads_model = nullptr;
+  should_smooth_snap = true;
+  snap_smooth_tolerance = 1e-2;
 #endif
 }
 
@@ -179,7 +182,13 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 #ifdef OMEGA_H_USE_EGADS
   if (opts.egads_model) {
-    egads_set_snap_warp(mesh, opts.egads_model);
+    mesh->set_parting(OMEGA_H_GHOSTED);
+    auto warp = egads_get_snap_warp(mesh, opts.egads_model);
+    if (opts.should_smooth_snap) {
+      warp = solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
+    }
+    mesh->add_tag(VERT, "warp", mesh->dim(), OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, warp);
     while (warp_to_limit(mesh, opts)) satisfy_quality(mesh, opts);
   } else
 #endif

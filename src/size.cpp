@@ -296,8 +296,9 @@ Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs a2e, Reals v2h) {
 Reals interpolate_between_isos(Reals a, Reals b, Real t) {
   auto log_a = linearize_isos(a);
   auto log_b = linearize_isos(b);
-  auto log_c = interpolate_between(a, b, t);
-  return delinearize_isos(log_c);
+  auto log_c = interpolate_between(log_a, log_b, t);
+  auto c = delinearize_isos(log_c);
+  return c;
 }
 
 Reals linearize_isos(Reals isos) {

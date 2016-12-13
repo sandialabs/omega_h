@@ -20,7 +20,7 @@ Read<I8> filter_coarsen_improve(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Reals cand_quals);
 
 Read<I8> prevent_overshoot(
-    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges, Read<I8> cand_codes);
+    Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes);
 
 void choose_rails(Mesh* mesh, LOs cands2edges, Read<I8> cand_edge_codes,
     Reals cand_edge_quals, Read<I8>* verts_are_cands, Reals* vert_quals,
