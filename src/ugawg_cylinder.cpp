@@ -34,12 +34,9 @@ void run_case(Mesh* mesh, Egads* eg, char const* vtk_path) {
   opts.max_length_allowed = opts.max_length_desired * 2.0;
   opts.egads_model = eg;
   Now t0 = now();
-  if (vtk_path) writer.write();
   while (approach_size_field(mesh, opts)) {
-    if (vtk_path) writer.write();
     adapt(mesh, opts);
     if (vtk_path) writer.write();
-    break;
   }
   Now t1 = now();
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
