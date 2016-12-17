@@ -190,7 +190,7 @@ osh_add_util(osh_scale)
 if(Omega_h_USE_Meshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
-  osh_add_exe(ugawg_stats)
+  osh_add_util(ugawg_stats)
 endif()
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
