@@ -45,7 +45,7 @@ LO linear_partition_size(CommPtr comm, GO total) {
 }
 
 GO find_total_globals(CommPtr comm, Read<GO> globals) {
-  auto a = comm->allreduce<GO>(max<GO>(globals), OMEGA_H_MAX);
+  auto a = get_max(comm, globals);
   if (a < 0) return 0;
   return a + 1;
 }

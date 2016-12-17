@@ -1,6 +1,7 @@
 #ifndef HISTOGRAM_HPP
 #define HISTOGRAM_HPP
 
+#include "array.hpp"
 #include "host_few.hpp"
 
 namespace Omega_h {
@@ -20,6 +21,9 @@ Histogram<n> get_histogram(
 template <Int n>
 void print_histogram(
     Mesh* mesh, Histogram<n> histogram, std::string const& name);
+
+void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
+    MinMax<Real> desired, MinMax<Real> actual);
 
 #define INST_DECL(n)                                                           \
   extern template Histogram<n> get_histogram<n>(                               \

@@ -90,6 +90,31 @@ if(Omega_h_USE_Meshb)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} meshb.cpp)
 endif()
 
+if(Omega_h_USE_EGADS)
+  message(STATUS "Omega_h_USE_EGADS: ${Omega_h_USE_EGADS}")
+  if(NOT EGADS_PREFIX)
+    message(FATAL_ERROR "Omega_h_USE_EGADS=${Omega_h_USE_EGADS} but EGADS_PREFIX not set!")
+  endif()
+  find_path(EGADS_INCLUDE_DIR NAMES egads.h
+      PATHS
+      "${EGADS_PREFIX}/EngSketchPad/include"
+      "${EGADS_PREFIX}/include"
+      NO_DEFAULT_PATH)
+  if(NOT EGADS_INCLUDE_DIR)
+    message(FATAL_ERROR "could not find path to \"egads.h\"")
+  endif()
+  find_library(EGADS_LIBRARY NAMES egads
+      PATHS
+      "${EGADS_PREFIX}/EngSketchPad/lib"
+      NO_DEFAULT_PATH)
+  if(NOT EGADS_LIBRARY)
+    message(FATAL_ERROR "could not find EGADS_LIBRARY")
+  endif()
+  message(STATUS "EGADS_INCLUDE_DIR: ${EGADS_INCLUDE_DIR}")
+  message(STATUS "EGADS_LIBRARY: ${EGADS_LIBRARY}")
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
+endif()
+
 if(Omega_h_ONE_FILE)
   foreach(source IN LISTS Omega_h_SOURCES)
     set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
@@ -113,31 +138,8 @@ if(Omega_h_USE_Meshb)
 endif()
 
 if(Omega_h_USE_EGADS)
-  message(STATUS "Omega_h_USE_EGADS: ${Omega_h_USE_EGADS}")
-  if(NOT EGADS_PREFIX)
-    message(FATAL_ERROR "Omega_h_USE_EGADS=${Omega_h_USE_EGADS} but EGADS_PREFIX not set!")
-  endif()
-  find_path(EGADS_INCLUDE_DIR NAMES egads.h
-      PATHS
-      "${EGADS_PREFIX}/EngSketchPad/include"
-      "${EGADS_PREFIX}/include"
-      NO_DEFAULT_PATH)
-  if(NOT EGADS_INCLUDE_DIR)
-    message(FATAL_ERROR "could not find path to \"egads.h\"")
-  endif()
-  find_library(EGADS_LIBRARY NAMES egads
-      PATHS
-#      "${EGADS_PREFIX}/OpenCASCADE-6.6.0/i686/lib"
-      "${EGADS_PREFIX}/EngSketchPad/lib"
-      NO_DEFAULT_PATH)
-  if(NOT EGADS_LIBRARY)
-    message(FATAL_ERROR "could not find EGADS_LIBRARY")
-  endif()
-  message(STATUS "EGADS_INCLUDE_DIR: ${EGADS_INCLUDE_DIR}")
-  message(STATUS "EGADS_LIBRARY: ${EGADS_LIBRARY}")
-  add_executable(egads_test egads_test.cpp)
-  target_include_directories(egads_test PRIVATE "${EGADS_INCLUDE_DIR}")
-  target_link_libraries(egads_test PUBLIC "${EGADS_LIBRARY}")
+  target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
+  target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
 endif()
 
 bob_export_target(omega_h)
@@ -188,6 +190,7 @@ osh_add_util(osh_scale)
 if(Omega_h_USE_Meshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
+  osh_add_util(ugawg_stats)
 endif()
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
@@ -203,8 +206,6 @@ if(BUILD_TESTING)
       message(STATUS "USE_MPI and BUILD_TESTING but MPIRUN not found!")
     endif()
   endif()
-  find_program(GMSH gmsh PATHS ${Gmsh_PREFIX})
-  message(STATUS "GMSH: ${GMSH}")
 
   function(test_func TEST_NAME NUM_PROCS)
     if(MPIRUN)
@@ -220,32 +221,25 @@ if(BUILD_TESTING)
   endfunction(test_func)
 
   if(Omega_h_USE_Gmodel)
-    function(gen_func MODEL_NAME MODEL_DIM)
+    function(gen_func MODEL_NAME)
       add_executable(gen_${MODEL_NAME} gen/${MODEL_NAME}.cpp)
       target_link_libraries(gen_${MODEL_NAME} PRIVATE gmodel)
-      add_custom_command(OUTPUT ${MODEL_NAME}.geo
-                         COMMAND ./gen_${MODEL_NAME}
-                         DEPENDS gen_${MODEL_NAME}
-                         COMMENT "generating ${MODEL_NAME}.geo")
-      if(GMSH)
-        if("${MODEL_DIM}" EQUAL "2")
-          set(GMSH_CMD ${GMSH} -2 -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
-        else()
-          set(GMSH_CMD ${GMSH} -3 -optimize_netgen -o ${MODEL_NAME}.msh ${MODEL_NAME}.geo)
-        endif()
-        add_custom_command(OUTPUT ${MODEL_NAME}.msh
-                           COMMAND ${GMSH_CMD}
-                           DEPENDS ${MODEL_NAME}.geo
-                           COMMENT "generating ${MODEL_NAME}.msh")
+      if(Omega_h_DATA)
+        set(TEST_EXES ${TEST_EXES} gen_${MODEL_NAME})
+        add_test(NAME run_gen_${MODEL_NAME} COMMAND ./gen_${MODEL_NAME})
+        add_test(NAME gold_gen_${MODEL_NAME}
+                 COMMAND diff
+                 ./${MODEL_NAME}.geo
+                 ${Omega_h_DATA}/${MODEL_NAME}.geo)
       endif()
     endfunction(gen_func)
-    gen_func(ring 2)
-    gen_func(ball_in_cube 3)
-    gen_func(balls_in_box 3)
-    gen_func(cylinder_thru_tube 3)
-    gen_func(ball 3)
-    gen_func(twin_rotor 3)
-    gen_func(solder_balls 3)
+    gen_func(ring)
+    gen_func(ball_in_cube)
+    gen_func(balls_in_box)
+    gen_func(cylinder_thru_tube)
+    gen_func(ball)
+    gen_func(twin_rotor)
+    gen_func(solder_balls)
   endif()
 
   osh_add_exe(unit_tests)
@@ -276,43 +270,52 @@ if(BUILD_TESTING)
     test_func(parallel_2d_conserve 2 ./2d_conserve_test)
   endif()
   osh_add_exe(3d_conserve_test)
-  if(Omega_h_USE_Gmodel AND GMSH)
+  if(Omega_h_DATA)
     set(TEST_EXES ${TEST_EXES} 3d_conserve_test)
-    test_func(serial_3d_conserve 1 ./3d_conserve_test)
-    set(TEST_MSHS ${TEST_MSHS} ball_in_cube.msh)
+    test_func(serial_3d_conserve 1 ./3d_conserve_test
+              ${Omega_h_DATA}/ball_in_cube.msh)
     if(Omega_h_USE_MPI)
-      test_func(parallel_3d_conserve 2 ./3d_conserve_test)
+      test_func(parallel_3d_conserve 2 ./3d_conserve_test
+                ${Omega_h_DATA}/ball_in_cube.msh)
     endif()
   endif()
   osh_add_exe(perf_tests)
   osh_add_exe(ring_test)
-  if(Omega_h_USE_Gmodel AND GMSH)
+  if(Omega_h_DATA)
     set(TEST_EXES ${TEST_EXES} ring_test)
-    test_func(run_ring_test 1 ./ring_test)
-    set(TEST_MSHS ${TEST_MSHS} ring.msh)
+    test_func(run_ring_test 1 ./ring_test ${Omega_h_DATA}/ring.msh)
   endif()
   osh_add_exe(aniso_test)
   test_func(run_aniso_test 1 ./aniso_test)
   osh_add_exe(imr_cases)
-  if(Omega_h_USE_Gmodel AND GMSH)
+  if(Omega_h_DATA)
     osh_add_exe(curvature_test)
     set(TEST_EXES ${TEST_EXES} curvature_test)
-    test_func(ring_curvature 1 ./curvature_test ring)
-    set(TEST_MSHS ${TEST_MSHS} ball.msh)
-    test_func(ball_curvature 1 ./curvature_test ball)
+    test_func(ring_curvature 1 ./curvature_test
+              ${Omega_h_DATA} ring)
+    test_func(ball_curvature 1 ./curvature_test
+              ${Omega_h_DATA} ball)
     if(Omega_h_USE_MPI)
-      test_func(parallel_ring_curvature 2 ./curvature_test ring)
-      test_func(parallel_ball_curvature 2 ./curvature_test ball)
+      test_func(parallel_ring_curvature 2 ./curvature_test
+                ${Omega_h_DATA} ring)
+      test_func(parallel_ball_curvature 2 ./curvature_test
+                ${Omega_h_DATA} ball)
     endif()
   endif()
   osh_add_exe(bend_test)
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-      DEPENDS ${TEST_EXES} ${TEST_MSHS})
+      DEPENDS ${TEST_EXES})
   osh_add_exe(test_degree)
   if(Omega_h_USE_Meshb)
-    osh_add_exe(ugawg)
+    osh_add_exe(ugawg_linear)
+    if(Omega_h_USE_EGADS)
+      osh_add_exe(ugawg_cylinder)
+    endif()
   endif()
   osh_add_exe(slope_test)
+  if(Omega_h_USE_EGADS)
+    osh_add_exe(egads_test)
+  endif()
 endif()
 
 set(DEF_VARS
@@ -325,6 +328,7 @@ set(DEF_VARS
     USE_CUDA
     USE_ZLIB
     USE_Meshb
+    USE_EGADS
     CHECK_BOUNDS
     PROTECT
     )

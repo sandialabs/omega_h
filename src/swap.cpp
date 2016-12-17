@@ -15,12 +15,12 @@ bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
-  CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);
+  CHECK(get_max(comm, elems_are_cands) == 1);
   auto edges_are_cands = mark_down(mesh, mesh->dim(), EDGE, elems_are_cands);
   /* only swap interior edges */
   auto edges_are_inter = mark_by_class_dim(mesh, EDGE, mesh->dim());
   edges_are_cands = land_each(edges_are_cands, edges_are_inter);
-  if (comm->reduce_and(max(edges_are_cands) <= 0)) return false;
+  if (get_max(comm, edges_are_cands) <= 0) return false;
   mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, edges_are_cands);
   return true;

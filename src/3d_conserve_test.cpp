@@ -18,7 +18,7 @@ static void postprocess_conserve(Mesh* mesh) {
   auto volume = measure_elements_real(mesh);
   auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
   auto owned_mass = mesh->owned_array(mesh->dim(), mass, 1);
-  CHECK(are_close(1.0, sum(mesh->comm(), owned_mass)));
+  CHECK(are_close(1.0, get_sum(mesh->comm(), owned_mass)));
   auto density = divide_each(mass, volume);
   mesh->add_tag(mesh->dim(), "density", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DO_OUTPUT, density);
@@ -46,10 +46,11 @@ static Vector<3> get_total_momentum(Mesh* mesh) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  CHECK(argc == 2);
   auto world = lib.world();
   Mesh mesh(&lib);
   if (world->rank() == 0) {
-    gmsh::read("ball_in_cube.msh", &mesh);
+    gmsh::read(argv[1], &mesh);
     mesh.reorder();
     mesh.reset_globals();
   }

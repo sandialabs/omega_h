@@ -3,33 +3,65 @@
 
 namespace Omega_h {
 
-template <class T>
+template <bool Enable>
+struct Atomics;
+
+#ifdef OMEGA_H_USE_KOKKOS
+template <>
+struct Atomics<true> {
+  template <typename T>
+  static INLINE void increment(volatile T* const dest) {
+    Kokkos::atomic_increment(dest);
+  }
+  template <typename T>
+  static INLINE void add(volatile T* const dest, const T val) {
+    Kokkos::atomic_add(dest, val);
+  }
+  template <typename T>
+  static INLINE T fetch_add(volatile T* const dest, const T val) {
+    return Kokkos::atomic_fetch_add(dest, val);
+  }
+};
+#endif
+
+template <>
+struct Atomics<false> {
+  template <typename T>
+  static INLINE void increment(volatile T* const dest) {
+    ++(*dest);
+  }
+  template <typename T>
+  static INLINE void add(volatile T* const dest, const T val) {
+    *dest += val;
+  }
+  template <typename T>
+  static INLINE T fetch_add(volatile T* const dest, const T val) {
+    T tmp = *dest;
+    *dest += val;
+    return tmp;
+  }
+};
+
+#ifdef OMEGA_H_USE_KOKKOS
+constexpr bool enable_atomics =
+    !std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Serial>::value;
+#else
+constexpr bool enable_atomics = false;
+#endif
+
+template <typename T>
 INLINE void atomic_increment(volatile T* const dest) {
-#ifdef OMEGA_H_USE_KOKKOS
-  return Kokkos::atomic_increment(dest);
-#else
-  ++(*dest);
-#endif
+  Atomics<enable_atomics>::increment<T>(dest);
 }
 
-template <class T>
+template <typename T>
 INLINE void atomic_add(volatile T* const dest, const T val) {
-#ifdef OMEGA_H_USE_KOKKOS
-  return Kokkos::atomic_add(dest, val);
-#else
-  *dest += val;
-#endif
+  Atomics<enable_atomics>::add<T>(dest, val);
 }
 
-template <class T>
+template <typename T>
 INLINE T atomic_fetch_add(volatile T* const dest, const T val) {
-#ifdef OMEGA_H_USE_KOKKOS
-  return Kokkos::atomic_fetch_add(dest, val);
-#else
-  T tmp = *dest;
-  *dest += val;
-  return tmp;
-#endif
+  return Atomics<enable_atomics>::fetch_add<T>(dest, val);
 }
 
 }  // end namespace Omega_h

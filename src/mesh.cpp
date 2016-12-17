@@ -113,7 +113,7 @@ GO Mesh::nglobal_ents(Int dim) {
   if (!could_be_shared(dim)) {
     return comm_->allreduce(GO(nents(dim)), OMEGA_H_SUM);
   }
-  auto nowned = sum(this->owned(dim));
+  auto nowned = get_sum(this->owned(dim));
   return comm_->allreduce(GO(nowned), OMEGA_H_SUM);
 }
 
@@ -514,7 +514,7 @@ void Mesh::balance(bool predictive) {
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);
     masses = multiply_each_by(1. / 2., masses);
-    abs_tol = comm_->allreduce(max2(0.0, max(masses)), OMEGA_H_MAX);
+    abs_tol = max2(0.0, get_max(comm_, masses));
   } else {
     masses = Reals(nelems(), 1);
     abs_tol = 1.0;
@@ -628,13 +628,9 @@ bool Mesh::operator==(Mesh& other) {
   return OMEGA_H_SAME == compare_meshes(this, &other, 0.0, 0.0, false);
 }
 
-Real Mesh::min_quality() {
-  return comm_->allreduce(min(ask_qualities()), OMEGA_H_MIN);
-}
+Real Mesh::min_quality() { return get_min(comm_, ask_qualities()); }
 
-Real Mesh::max_length() {
-  return comm_->allreduce(max(ask_lengths()), OMEGA_H_MAX);
-}
+Real Mesh::max_length() { return get_max(comm_, ask_lengths()); }
 
 bool Mesh::could_be_shared(Int ent_dim) const {
   return !((comm_->size() == 1) ||

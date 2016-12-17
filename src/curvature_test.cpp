@@ -37,12 +37,13 @@ static void attach_basis_vectors(
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-  CHECK(argc == 2);
-  std::string name = argv[1];
+  CHECK(argc == 3);
+  std::string path = argv[1];
+  std::string name = argv[2];
   Mesh mesh(&lib);
   auto world = lib.world();
   if (world->rank() == 0) {
-    gmsh::read(name + ".msh", &mesh);
+    gmsh::read(path + "/" + name + ".msh", &mesh);
   }
   mesh.set_comm(world);
   mesh.balance();

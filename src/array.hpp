@@ -13,18 +13,27 @@ template <class T>
 Write<T> deep_copy(Read<T> a);
 
 template <typename T>
-typename StandinTraits<T>::type sum(Read<T> a);
+typename StandinTraits<T>::type get_sum(Read<T> a);
 template <typename T>
-T min(Read<T> a);
+T get_min(Read<T> a);
 template <typename T>
-T max(Read<T> a);
+T get_max(Read<T> a);
 
 template <typename T>
-typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a);
+typename StandinTraits<T>::type get_sum(CommPtr comm, Read<T> a);
 template <typename T>
-T min(CommPtr comm, Read<T> a);
+T get_min(CommPtr comm, Read<T> a);
 template <typename T>
-T max(CommPtr comm, Read<T> a);
+T get_max(CommPtr comm, Read<T> a);
+
+template <typename T>
+struct MinMax {
+  T min;
+  T max;
+};
+
+template <typename T>
+MinMax<T> get_minmax(CommPtr comm, Read<T> a);
 
 bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
 
@@ -63,13 +72,14 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp);
   extern template class HostWrite<T>;                                          \
   extern template class HostRead<T>;                                           \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
-  extern template typename StandinTraits<T>::type sum(Read<T> a);              \
-  extern template T min(Read<T> a);                                            \
-  extern template T max(Read<T> a);                                            \
-  extern template typename StandinTraits<T>::type sum(                         \
+  extern template typename StandinTraits<T>::type get_sum(Read<T> a);          \
+  extern template T get_min(Read<T> a);                                        \
+  extern template T get_max(Read<T> a);                                        \
+  extern template typename StandinTraits<T>::type get_sum(                     \
       CommPtr comm, Read<T> a);                                                \
-  extern template T min(CommPtr comm, Read<T> a);                              \
-  extern template T max(CommPtr comm, Read<T> a);                              \
+  extern template T get_min(CommPtr comm, Read<T> a);                          \
+  extern template T get_max(CommPtr comm, Read<T> a);                          \
+  extern template MinMax<T> get_minmax(CommPtr comm, Read<T> a);               \
   extern template Write<T> deep_copy(Read<T> a);                               \
   extern template Read<T> multiply_each(Read<T> a, Read<T> b);                 \
   extern template Read<T> divide_each(Read<T> a, Read<T> b);                   \

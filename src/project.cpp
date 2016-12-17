@@ -126,7 +126,7 @@ bool has_interior_verts(Mesh* mesh) {
   auto dim = mesh->dim();
   auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto interior = each_eq_to(class_dim, I8(dim));
-  auto have_local_interior = (max(interior) == 1);
+  auto have_local_interior = (get_max(interior) == 1);
   auto comm = mesh->comm();
   return comm->reduce_or(have_local_interior);
 }
@@ -140,7 +140,7 @@ Reals project_by_fit(Mesh* mesh, Reals e_data) {
   auto v_coeffs = get_interior_coeffs(mesh, e_data, ncomps);
   auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto visited = each_eq_to(class_dim, I8(dim));
-  while (mesh->comm()->reduce_or(min(visited) == 0)) {
+  while (mesh->comm()->reduce_or(get_min(visited) == 0)) {
     diffuse_to_exterior(mesh, &v_coeffs, ncomps * (dim + 1), &visited);
   }
   return evaluate_coeffs(mesh, v_coeffs, ncomps);

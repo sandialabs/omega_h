@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 6.2.1 LANGUAGES CXX)
+project(Omega_h VERSION 6.3.0 LANGUAGES CXX)
 
 include(cmake/bob.cmake)
 
 bob_begin_package()
 
 option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
+message(STATUS "Omega_h_USE_MPI: ${Omega_h_USE_MPI}")
 option(Omega_h_USE_OpenMP "Use Kokkos+OpenMP for on-node parallelism" OFF)
 option(Omega_h_USE_PTHREADS "Use Kokkos+Pthread for on-node parallelism" OFF)
 option(Omega_h_USE_CUDA "Use Kokkos+CUDA for on-node parallelism" OFF)
@@ -18,6 +19,7 @@ option(Omega_h_ONE_FILE "Compile omega_h as a single file" OFF)
 message(STATUS "Omega_h_ONE_FILE: ${Omega_h_ONE_FILE}")
 option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
 set(EGADS_PREFIX "" CACHE PATH "EGADS (or ESP) installation directory")
+set(Omega_h_DATA "" CACHE PATH "Path to omega_h-data test files")
 
 bob_begin_cxx_flags()
 bob_cxx11_flags()

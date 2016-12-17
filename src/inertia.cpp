@@ -91,9 +91,8 @@ bool mark_axis_bisection(CommPtr comm, Reals distances, Reals masses,
     Real total_mass, Real tolerance, Read<I8>& marked) {
   auto n = distances.size();
   CHECK(n == masses.size());
-  auto max_dist = comm->allreduce(max(distances), OMEGA_H_MAX);
-  auto min_dist = comm->allreduce(min(distances), OMEGA_H_MIN);
-  auto range = max2(fabs(min_dist), fabs(max_dist));
+  auto minmax_dist = get_minmax(comm, distances);
+  auto range = max2(fabs(minmax_dist.min), fabs(minmax_dist.max));
   auto step = range / 2.;
   Real distance = 0.;
   for (Int i = 0; i < MANTISSA_BITS; ++i) {

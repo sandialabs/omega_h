@@ -4,7 +4,7 @@
 namespace Omega_h {
 
 /* Trefethen, Lloyd N., and David Bau III.
-   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Numerical linear algebra. Vol. 50. SIAM, 1997.
    Algorithm 10.1. Householder QR Factorization
 
    for k=1 to n
@@ -68,7 +68,7 @@ INLINE QRFactorization<max_m, max_n> factorize_qr_householder(
 }
 
 /* Trefethen, Lloyd N., and David Bau III.
-   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Numerical linear algebra. Vol. 50. SIAM, 1997.
    Algorithm 10.2. Implicit Calculation of a Product $Q^*b$
 
    for k=1 to n
@@ -87,7 +87,7 @@ INLINE Vector<max_n> implicit_q_trans_b(
 }
 
 /* Trefethen, Lloyd N., and David Bau III.
-   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Numerical linear algebra. Vol. 50. SIAM, 1997.
    Algorithm 10.2. Implicit Calculation of a Product $Qx$
 
    for k=n downto 1
@@ -126,7 +126,7 @@ INLINE Vector<max_m> solve_upper_triangular(
 }
 
 /* Trefethen, Lloyd N., and David Bau III.
-   Numerical linear algebra. Vol. 50. Siam, 1997.
+   Numerical linear algebra. Vol. 50. SIAM, 1997.
    Algorithm 11.2 Least Squares via QR factorization
 
    1. Compute the reduced QR factorization A = \hat{Q}\hat{R}
