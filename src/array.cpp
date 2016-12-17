@@ -223,7 +223,7 @@ T min(CommPtr comm, Read<T> a) {
 
 template <typename T>
 T max(CommPtr comm, Read<T> a) {
-  return comm->allreduce(min(a), OMEGA_H_MAX);
+  return comm->allreduce(max(a), OMEGA_H_MAX);
 }
 
 Reals::Reals() : Read<Real>() {}
