@@ -100,7 +100,7 @@ GO count_owned_marks(Mesh* mesh, Int ent_dim, Read<I8> marks) {
   if (mesh->could_be_shared(ent_dim)) {
     marks = land_each(marks, mesh->owned(ent_dim));
   }
-  return mesh->comm()->allreduce(GO(sum(marks)), OMEGA_H_SUM);
+  return get_sum(mesh->comm(), marks);
 }
 
 Read<I8> mark_sliver_layers(Mesh* mesh, Real qual_ceil, Int nlayers) {

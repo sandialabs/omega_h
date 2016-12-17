@@ -35,7 +35,7 @@ static bool coarsen_element_based1(Mesh* mesh) {
   auto cand_codes = unmap(cands2edges, edge_cand_codes, 1);
   cand_codes = check_collapse_class(mesh, cands2edges, cand_codes);
   /* edge and endpoints classification check */
-  if (comm->reduce_and(max(cand_codes) <= DONT_COLLAPSE)) return false;
+  if (get_max(comm, cand_codes) <= DONT_COLLAPSE) return false;
   put_edge_codes(mesh, cands2edges, cand_codes);
   return true;
 }
@@ -201,7 +201,7 @@ bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
-  if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
+  if (get_max(comm, edge_is_cand) != 1) return false;
   return coarsen_ents(
       mesh, opts, EDGE, edge_is_cand, DESIRED, DONT_IMPROVE);
 }
@@ -211,7 +211,7 @@ bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
-  CHECK(comm->allreduce(max(elems_are_cands), OMEGA_H_MAX) == 1);
+  CHECK(get_max(comm, elems_are_cands) == 1);
   return coarsen_ents(mesh, opts, mesh->dim(), elems_are_cands, ALLOWED,
       IMPROVE_LOCALLY);
 }

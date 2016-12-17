@@ -121,7 +121,7 @@ static void test_repro_sum() {
   }
   {
     Now t0 = now();
-    for (Int i = 0; i < niters; ++i) s = sum(inputs);
+    for (Int i = 0; i < niters; ++i) s = get_sum(inputs);
     Now t1 = now();
     std::cout << "adding " << nelems << " reals " << niters << " times "
               << "takes " << (t1 - t0) << " seconds\n";
@@ -133,7 +133,7 @@ static void test_repro_sum() {
   parallel_for(nelems, f);
   Reals shuffled(write_shuffled);
   Real rs2 = repro_sum(shuffled);
-  Real s2 = sum(shuffled);
+  Real s2 = get_sum(shuffled);
   CHECK(are_close(s2, rs2));
   CHECK(rs == rs2); /* bitwise reproducibility ! */
   if (s == s2) std::cerr << "warning: the naive sum gave the same answer\n";

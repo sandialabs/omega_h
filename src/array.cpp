@@ -175,7 +175,7 @@ struct Sum : public SumFunctor<T> {
 };
 
 template <typename T>
-typename StandinTraits<T>::type sum(Read<T> a) {
+typename StandinTraits<T>::type get_sum(Read<T> a) {
   return parallel_reduce(a.size(), Sum<T>(a));
 }
 
@@ -190,7 +190,7 @@ struct Min : public MinFunctor<T> {
 };
 
 template <typename T>
-T min(Read<T> a) {
+T get_min(Read<T> a) {
   auto r = parallel_reduce(a.size(), Min<T>(a));
   return static_cast<T>(r);  // see StandinTraits
 }
@@ -206,24 +206,29 @@ struct Max : public MaxFunctor<T> {
 };
 
 template <typename T>
-T max(Read<T> a) {
+T get_max(Read<T> a) {
   auto r = parallel_reduce(a.size(), Max<T>(a));
   return static_cast<T>(r);  // see StandinTraits
 }
 
 template <typename T>
-typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a) {
-  return comm->allreduce(sum(a), OMEGA_H_SUM);
+typename StandinTraits<T>::type get_sum(CommPtr comm, Read<T> a) {
+  return comm->allreduce(get_sum(a), OMEGA_H_SUM);
 }
 
 template <typename T>
-T min(CommPtr comm, Read<T> a) {
-  return comm->allreduce(min(a), OMEGA_H_MIN);
+T get_min(CommPtr comm, Read<T> a) {
+  return comm->allreduce(get_min(a), OMEGA_H_MIN);
 }
 
 template <typename T>
-T max(CommPtr comm, Read<T> a) {
-  return comm->allreduce(max(a), OMEGA_H_MAX);
+T get_max(CommPtr comm, Read<T> a) {
+  return comm->allreduce(get_max(a), OMEGA_H_MAX);
+}
+
+template <typename T>
+MinMax<T> get_minmax(CommPtr comm, Read<T> a) {
+  return {get_min(comm, a), get_max(comm, a)};
 }
 
 Reals::Reals() : Read<Real>() {}
@@ -607,12 +612,13 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   template class HostWrite<T>;                                                 \
   template class HostRead<T>;                                                  \
   template bool operator==(Read<T> a, Read<T> b);                              \
-  template typename StandinTraits<T>::type sum(Read<T> a);                     \
-  template T min(Read<T> a);                                                   \
-  template T max(Read<T> a);                                                   \
-  template typename StandinTraits<T>::type sum(CommPtr comm, Read<T> a);       \
-  template T min(CommPtr comm, Read<T> a);                                     \
-  template T max(CommPtr comm, Read<T> a);                                     \
+  template typename StandinTraits<T>::type get_sum(Read<T> a);                     \
+  template T get_min(Read<T> a);                                                   \
+  template T get_max(Read<T> a);                                                   \
+  template typename StandinTraits<T>::type get_sum(CommPtr comm, Read<T> a);       \
+  template T get_min(CommPtr comm, Read<T> a);                                     \
+  template T get_max(CommPtr comm, Read<T> a);                                     \
+  template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                                     \
   template Write<T> deep_copy(Read<T> a);                                      \
   template Read<T> multiply_each_by(T factor, Read<T> x);                      \
   template Read<T> multiply_each(Read<T> a, Read<T> b);                        \

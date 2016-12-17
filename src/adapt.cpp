@@ -43,9 +43,9 @@ AdaptOpts::AdaptOpts(Mesh* mesh) {
 }
 
 static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
-    Real floor, Real ceil, Real minval, Real maxval) {
-  auto low_marks = each_lt(values, floor);
-  auto high_marks = each_gt(values, ceil);
+    MinMax<Real> desired, MinMax<Real> actual) {
+  auto low_marks = each_lt(values, desired.min);
+  auto high_marks = each_gt(values, desired.max);
   auto nlow = count_owned_marks(mesh, ent_dim, low_marks);
   auto nhigh = count_owned_marks(mesh, ent_dim, high_marks);
   auto ntotal = mesh->nglobal_ents(ent_dim);
@@ -55,15 +55,15 @@ static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     std::ios::fmtflags stream_state(std::cout.flags());
     std::cout << std::fixed << std::setprecision(2);
     std::cout << ntotal << " " << plural_names[ent_dim];
-    std::cout << ", " << name << " [" << minval << "," << maxval << "]";
+    std::cout << ", " << name << " [" << actual.min << "," << actual.max << "]";
     if (nlow) {
-      std::cout << ", " << nlow << " <" << floor;
+      std::cout << ", " << nlow << " <" << desired.min;
     }
     if (nmid) {
-      std::cout << ", " << nmid << " in [" << floor << "," << ceil << "]";
+      std::cout << ", " << nmid << " in [" << desired.min << "," << desired.max << "]";
     }
     if (nhigh) {
-      std::cout << ", " << nhigh << " >" << ceil;
+      std::cout << ", " << nhigh << " >" << desired.max;
     }
     std::cout << '\n';
     std::cout.flags(stream_state);
@@ -71,35 +71,28 @@ static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
   }
 }
 
-static void get_minmax(
-    Mesh* mesh, Reals values, Real* p_minval, Real* p_maxval) {
-  *p_minval = mesh->comm()->allreduce(min(values), OMEGA_H_MIN);
-  *p_maxval = mesh->comm()->allreduce(max(values), OMEGA_H_MAX);
-}
-
-static void adapt_summary(Mesh* mesh, AdaptOpts const& opts, Real minqual,
-    Real maxqual, Real minlen, Real maxlen) {
+static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
+    MinMax<Real> qualstats, MinMax<Real> lenstats) {
   goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
-      opts.min_quality_allowed, opts.min_quality_desired, minqual, maxqual);
-  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(), opts.min_length_desired,
-      opts.max_length_desired, minlen, maxlen);
+      {opts.min_quality_allowed, opts.min_quality_desired}, qualstats);
+  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
+      {opts.min_length_desired, opts.max_length_desired}, lenstats);
 }
 
 static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
-  Real minqual, maxqual;
-  get_minmax(mesh, mesh->ask_qualities(), &minqual, &maxqual);
-  Real minlen, maxlen;
-  get_minmax(mesh, mesh->ask_lengths(), &minlen, &maxlen);
-  if (minqual >= opts.min_quality_desired &&
-      minlen >= opts.min_length_desired && maxlen <= opts.max_length_desired) {
+  auto qualstats = get_minmax(mesh->comm(), mesh->ask_qualities());
+  auto lenstats = get_minmax(mesh->comm(), mesh->ask_lengths());
+  if (qualstats.min >= opts.min_quality_desired &&
+      lenstats.min >= opts.min_length_desired &&
+      lenstats.max <= opts.max_length_desired) {
     if (opts.verbosity > SILENT && mesh->comm()->rank() == 0) {
-      std::cout << "mesh is good: quality [" << minqual << "," << maxqual
-                << "], length [" << minlen << "," << maxlen << "]\n";
+      std::cout << "mesh is good: quality [" << qualstats.min << "," << qualstats.max
+                << "], length [" << lenstats.min << "," << lenstats.max << "]\n";
     }
     return true;
   }
   if (opts.verbosity > SILENT) {
-    adapt_summary(mesh, opts, minqual, maxqual, minlen, maxlen);
+    adapt_summary(mesh, opts, qualstats, lenstats);
   }
   return false;
 }

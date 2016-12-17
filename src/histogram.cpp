@@ -18,9 +18,7 @@ Histogram<n> get_histogram(
     auto ceil = interval * (i + 1) + min_value;
     auto marked = land_each(
         each_geq_to(owned_values, floor), each_lt(owned_values, ceil));
-    auto nlocal_marked = sum(marked);
-    auto nglobal_marked = mesh->comm()->allreduce(nlocal_marked, OMEGA_H_SUM);
-    histogram.counts[i] = nglobal_marked;
+    histogram.counts[i] = get_sum(mesh->comm(), marked);
   }
   return histogram;
 }

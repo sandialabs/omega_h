@@ -19,7 +19,7 @@ static bool refine_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto cands2edges = collect_marked(edges_are_cands);
   auto cand_quals = refine_qualities(mesh, cands2edges);
   auto cands_are_good = each_geq_to(cand_quals, opts.min_quality_allowed);
-  if (comm->allreduce(max(cands_are_good), OMEGA_H_MAX) != 1) return false;
+  if (get_max(comm, cands_are_good) != 1) return false;
   auto nedges = mesh->nedges();
   auto edges_are_initial =
       map_onto(cands_are_good, cands2edges, nedges, I8(0), 1);
@@ -88,7 +88,7 @@ bool refine_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_gt(lengths, opts.max_length_desired);
-  if (comm->allreduce(max(edge_is_cand), OMEGA_H_MAX) != 1) return false;
+  if (get_max(comm, edge_is_cand) != 1) return false;
   mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER,
       OMEGA_H_DONT_OUTPUT, edge_is_cand);
   return refine(mesh, opts);
