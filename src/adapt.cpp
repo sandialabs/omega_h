@@ -5,11 +5,11 @@
 #include "coarsen.hpp"
 #include "control.hpp"
 #include "histogram.hpp"
+#include "laplace.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
-#include "laplace.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -40,9 +40,7 @@ AdaptOpts::AdaptOpts(Int dim) {
 #endif
 }
 
-AdaptOpts::AdaptOpts(Mesh* mesh):
-  AdaptOpts(mesh->dim()) {
-}
+AdaptOpts::AdaptOpts(Mesh* mesh) : AdaptOpts(mesh->dim()) {}
 
 static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
     MinMax<Real> qualstats, MinMax<Real> lenstats) {
@@ -59,8 +57,9 @@ bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts) {
       lenstats.min >= opts.min_length_desired &&
       lenstats.max <= opts.max_length_desired) {
     if (opts.verbosity > SILENT && mesh->comm()->rank() == 0) {
-      std::cout << "mesh is good: quality [" << qualstats.min << "," << qualstats.max
-                << "], length [" << lenstats.min << "," << lenstats.max << "]\n";
+      std::cout << "mesh is good: quality [" << qualstats.min << ","
+                << qualstats.max << "], length [" << lenstats.min << ","
+                << lenstats.max << "]\n";
     }
     return true;
   }
@@ -151,14 +150,15 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
     mesh->set_parting(OMEGA_H_GHOSTED);
     auto warp = egads_get_snap_warp(mesh, opts.egads_model);
     if (opts.should_smooth_snap) {
-      warp = solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
+      warp =
+          solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
     }
     mesh->add_tag(VERT, "warp", mesh->dim(), OMEGA_H_LINEAR_INTERP,
         OMEGA_H_DO_OUTPUT, warp);
     while (warp_to_limit(mesh, opts)) satisfy_quality(mesh, opts);
   } else
 #endif
-  satisfy_quality(mesh, opts);
+    satisfy_quality(mesh, opts);
 }
 
 static void post_adapt(

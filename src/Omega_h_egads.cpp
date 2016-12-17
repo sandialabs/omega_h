@@ -1,14 +1,14 @@
 #include "Omega_h_egads.hpp"
-#include "internal.hpp"
-#include "map.hpp"
 #include "array.hpp"
 #include "graph.hpp"
+#include "internal.hpp"
+#include "map.hpp"
 
 #include <cassert>
-#include <vector>
+#include <iostream>
 #include <map>
 #include <set>
-#include <iostream>
+#include <vector>
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -29,9 +29,9 @@ enum EgadsObjectClass {
   EGADS_TRANSFORM = TRANSFORM,
   EGADS_TESSELATION = TESSELLATION,
   EGADS_NIL = NIL,
-/*EGADS_EMPTY = EMPTY, not doing this one
- * because an EGADS error exists by the same name
- */
+  /*EGADS_EMPTY = EMPTY, not doing this one
+   * because an EGADS error exists by the same name
+   */
   EGADS_REFERENCE = REFERENCE,
   EGADS_PCURVE = PCURVE,
   EGADS_CURVE = CURVE,
@@ -68,19 +68,17 @@ enum EgadsObjectClass {
 
 namespace Omega_h {
 
-static void call_egads(int result, char const* code, char const* file, int line) {
+static void call_egads(
+    int result, char const* code, char const* file, int line) {
   if (EGADS_SUCCESS == result) return;
-  Omega_h_fail("EGADS call %s returned %d at %s +%d\n", code, result, file, line);
+  Omega_h_fail(
+      "EGADS call %s returned %d at %s +%d\n", code, result, file, line);
 }
 
 #define CALL(f) call_egads((f), #f, __FILE__, __LINE__)
 
 static int const dims2oclass[4] = {
-  EGADS_NODE,
-  EGADS_EDGE,
-  EGADS_FACE,
-  EGADS_BODY
-};
+    EGADS_NODE, EGADS_EDGE, EGADS_FACE, EGADS_BODY};
 
 struct Egads {
   ego context;
@@ -101,13 +99,13 @@ Egads* egads_load(std::string const& filename) {
   int nbodies;
   ego* bodies;
   int* body_senses;
-  CALL(EG_getTopology(eg->model, &model_geom, &model_oclass, &model_mtype, nullptr,
-      &nbodies, &bodies, &body_senses));
+  CALL(EG_getTopology(eg->model, &model_geom, &model_oclass, &model_mtype,
+      nullptr, &nbodies, &bodies, &body_senses));
   assert(nbodies == 1);
   eg->body = bodies[0];
   for (int i = 0; i < 3; ++i) {
-    CALL(EG_getBodyTopos(eg->body, nullptr, dims2oclass[i],
-         &eg->counts[i], &eg->entities[i]));
+    CALL(EG_getBodyTopos(
+        eg->body, nullptr, dims2oclass[i], &eg->counts[i], &eg->entities[i]));
   }
   for (int i = 0; i < 2; ++i) {
     std::vector<std::set<ego>> idxs2adj_faces(eg->counts[i]);
@@ -115,8 +113,8 @@ Egads* egads_load(std::string const& filename) {
       auto face = eg->entities[2][j];
       int nadj_ents;
       ego* adj_ents;
-      CALL(EG_getBodyTopos(eg->body, face, dims2oclass[i],
-            &nadj_ents, &adj_ents));
+      CALL(EG_getBodyTopos(
+          eg->body, face, dims2oclass[i], &nadj_ents, &adj_ents));
       for (int k = 0; k < nadj_ents; ++k) {
         auto adj_ent = adj_ents[k];
         auto idx = EG_indexBodyTopo(eg->body, adj_ent) - 1;
@@ -141,8 +139,7 @@ static int get_dim(ego e) {
   CALL(EG_getTopology(
       e, &ref, &oclass, &mtype, nullptr, &nchild, &children, &senses));
   for (int i = 0; i <= 3; ++i)
-    if (dims2oclass[i] == oclass)
-      return i;
+    if (dims2oclass[i] == oclass) return i;
   return -1;
 }
 
@@ -191,8 +188,8 @@ void egads_reclassify(Mesh* mesh, Egads* eg) {
       auto e = host_a2ab[i + 1];
       Int class_dim = host_class_dims[i];
       LO class_id = host_class_ids[i];
-      egads_classify(eg, e - b, host_face_ids.data() + b,
-          &class_dim, &class_id);
+      egads_classify(
+          eg, e - b, host_face_ids.data() + b, &class_dim, &class_id);
       host_class_dims[i] = I8(class_dim);
       host_class_ids[i] = class_id;
     }
@@ -224,7 +221,7 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
     Int class_dim = host_class_dims[i];
     CHECK(class_dim >= 0);
     CHECK(class_dim <= 3);
-    auto d = vector_3(0,0,0);
+    auto d = vector_3(0, 0, 0);
     if (0 < class_dim && class_dim < 3) {
       auto index = host_class_ids[i] - 1;
       CHECK(index >= 0);
@@ -240,5 +237,4 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
   auto warp = Reals(host_warp.write());
   return warp;
 }
-
 }

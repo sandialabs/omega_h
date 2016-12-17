@@ -72,14 +72,14 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp);
   extern template class HostWrite<T>;                                          \
   extern template class HostRead<T>;                                           \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
-  extern template typename StandinTraits<T>::type get_sum(Read<T> a);              \
-  extern template T get_min(Read<T> a);                                            \
-  extern template T get_max(Read<T> a);                                            \
-  extern template typename StandinTraits<T>::type get_sum(                         \
+  extern template typename StandinTraits<T>::type get_sum(Read<T> a);          \
+  extern template T get_min(Read<T> a);                                        \
+  extern template T get_max(Read<T> a);                                        \
+  extern template typename StandinTraits<T>::type get_sum(                     \
       CommPtr comm, Read<T> a);                                                \
-  extern template T get_min(CommPtr comm, Read<T> a);                              \
-  extern template T get_max(CommPtr comm, Read<T> a);                              \
-  extern template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                              \
+  extern template T get_min(CommPtr comm, Read<T> a);                          \
+  extern template T get_max(CommPtr comm, Read<T> a);                          \
+  extern template MinMax<T> get_minmax(CommPtr comm, Read<T> a);               \
   extern template Write<T> deep_copy(Read<T> a);                               \
   extern template Read<T> multiply_each(Read<T> a, Read<T> b);                 \
   extern template Read<T> divide_each(Read<T> a, Read<T> b);                   \

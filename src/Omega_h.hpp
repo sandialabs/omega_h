@@ -604,7 +604,7 @@ struct Egads;
 #endif
 
 struct AdaptOpts {
-  AdaptOpts(Int dim);  // sets defaults
+  AdaptOpts(Int dim);     // sets defaults
   AdaptOpts(Mesh* mesh);  // calls above
   Real min_length_desired;
   Real max_length_desired;

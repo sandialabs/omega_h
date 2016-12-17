@@ -61,7 +61,8 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
       std::cout << ", " << nlow << " <" << desired.min;
     }
     if (nmid) {
-      std::cout << ", " << nmid << " in [" << desired.min << "," << desired.max << "]";
+      std::cout << ", " << nmid << " in [" << desired.min << "," << desired.max
+                << "]";
     }
     if (nhigh) {
       std::cout << ", " << nhigh << " >" << desired.max;

@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   }
   auto t1 = now();
   std::cout << "total time " << t1 - t0 << '\n';
-  //paraview workaround
+  // paraview workaround
   writer.write();
   writer.write();
 }

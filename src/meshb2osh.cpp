@@ -8,7 +8,8 @@ int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
 #ifdef OMEGA_H_USE_EGADS
   if (!(argc == 3 || argc == 4)) {
-    std::cout << "usage: " << argv[0] << " input.mesh[b] [input.egads] output.osh\n";
+    std::cout << "usage: " << argv[0]
+              << " input.mesh[b] [input.egads] output.osh\n";
 #else
   if (argc != 3) {
     std::cout << "usage: " << argv[0] << " input.mesh[b] output.osh\n";

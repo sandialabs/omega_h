@@ -1,7 +1,7 @@
 #include "Omega_h.hpp"
 #include "Omega_h_math.hpp"
-#include "simplices.hpp"
 #include "loop.hpp"
+#include "simplices.hpp"
 #include "space.hpp"
 
 #include <iostream>
@@ -52,7 +52,7 @@ static Reals get_cube_cylinder_layer_metric(Mesh* mesh) {
     auto radius = norm(xy);
     auto t = atan2(y, x);
     auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), 0.1, 0.1);
-    auto rotation = rotate(t, vector_3(0,0,1));
+    auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
     set_symm(out, v, m);
   };

@@ -3,7 +3,8 @@
 
 namespace Omega_h {
 
-template <bool Enable> struct Atomics;
+template <bool Enable>
+struct Atomics;
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <>
@@ -42,8 +43,8 @@ struct Atomics<false> {
 };
 
 #ifdef OMEGA_H_USE_KOKKOS
-constexpr bool enable_atomics = !std::is_same<
-  Kokkos::DefaultExecutionSpace, Kokkos::Serial>::value;
+constexpr bool enable_atomics =
+    !std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Serial>::value;
 #else
 constexpr bool enable_atomics = false;
 #endif
