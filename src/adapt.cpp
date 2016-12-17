@@ -17,15 +17,15 @@
 
 namespace Omega_h {
 
-AdaptOpts::AdaptOpts(Mesh* mesh) {
+AdaptOpts::AdaptOpts(Int dim) {
   min_length_desired = 1.0 / sqrt(2.0);
   max_length_desired = sqrt(2.0);
   max_length_allowed = ArithTraits<Real>::max();
-  if (mesh->dim() == 3) {
+  if (dim == 3) {
     min_quality_allowed = 0.20;
     min_quality_desired = 0.30;
   }
-  if (mesh->dim() == 2) {
+  if (dim == 2) {
     min_quality_allowed = 0.30;
     min_quality_desired = 0.40;
   }
@@ -40,6 +40,10 @@ AdaptOpts::AdaptOpts(Mesh* mesh) {
 #endif
 }
 
+AdaptOpts::AdaptOpts(Mesh* mesh):
+  AdaptOpts(mesh->dim()) {
+}
+
 static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
     MinMax<Real> qualstats, MinMax<Real> lenstats) {
   print_goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
@@ -48,7 +52,7 @@ static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
       {opts.min_length_desired, opts.max_length_desired}, lenstats);
 }
 
-static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
+bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts) {
   auto qualstats = get_minmax(mesh->comm(), mesh->ask_qualities());
   auto lenstats = get_minmax(mesh->comm(), mesh->ask_lengths());
   if (qualstats.min >= opts.min_quality_desired &&
@@ -66,7 +70,7 @@ static bool adapt_check(Mesh* mesh, AdaptOpts const& opts) {
   return false;
 }
 
-static void do_histograms(Mesh* mesh, AdaptOpts const& opts) {
+void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
   auto qh =
       get_histogram<10>(mesh, mesh->dim(), mesh->ask_qualities(), 0.0, 1.0);
   print_histogram(mesh, qh, "quality");
@@ -93,8 +97,8 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.verbosity >= EACH_ADAPT && !mesh->comm()->rank()) {
     std::cout << "before adapting:\n";
   }
-  if (adapt_check(mesh, opts)) return false;
-  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh, opts);
+  if (print_adapt_status(mesh, opts)) return false;
+  if (opts.verbosity >= EXTRA_STATS) print_adapt_histograms(mesh, opts);
   if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths\n";
   }
@@ -102,7 +106,7 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
-  if (opts.verbosity >= EACH_REBUILD) adapt_check(mesh, opts);
+  if (opts.verbosity >= EACH_REBUILD) print_adapt_status(mesh, opts);
 }
 
 static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
@@ -161,9 +165,9 @@ static void post_adapt(
     Mesh* mesh, AdaptOpts const& opts, Now t0, Now t1, Now t2, Now t3) {
   if (opts.verbosity == EACH_ADAPT) {
     if (!mesh->comm()->rank()) std::cout << "after adapting:\n";
-    adapt_check(mesh, opts);
+    print_adapt_status(mesh, opts);
   }
-  if (opts.verbosity >= EXTRA_STATS) do_histograms(mesh, opts);
+  if (opts.verbosity >= EXTRA_STATS) print_adapt_histograms(mesh, opts);
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths took " << (t2 - t1) << " seconds\n";
   }

@@ -604,7 +604,8 @@ struct Egads;
 #endif
 
 struct AdaptOpts {
-  AdaptOpts(Mesh* mesh);  // sets defaults
+  AdaptOpts(Int dim);  // sets defaults
+  AdaptOpts(Mesh* mesh);  // calls above
   Real min_length_desired;
   Real max_length_desired;
   Real max_length_allowed;
@@ -623,6 +624,9 @@ struct AdaptOpts {
 
 /* returns false if the mesh was not modified. */
 bool adapt(Mesh* mesh, AdaptOpts const& opts);
+
+bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts);
+void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts);
 
 namespace binary {
 void write(std::string const& path, Mesh* mesh);
