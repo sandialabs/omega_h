@@ -5,10 +5,8 @@
 #include "coarsen.hpp"
 #include "control.hpp"
 #include "histogram.hpp"
-#include "mark.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
-#include "simplices.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
 #include "laplace.hpp"
@@ -42,40 +40,11 @@ AdaptOpts::AdaptOpts(Mesh* mesh) {
 #endif
 }
 
-static void goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
-    MinMax<Real> desired, MinMax<Real> actual) {
-  auto low_marks = each_lt(values, desired.min);
-  auto high_marks = each_gt(values, desired.max);
-  auto nlow = count_owned_marks(mesh, ent_dim, low_marks);
-  auto nhigh = count_owned_marks(mesh, ent_dim, high_marks);
-  auto ntotal = mesh->nglobal_ents(ent_dim);
-  auto nmid = ntotal - nlow - nhigh;
-  if (mesh->comm()->rank() == 0) {
-    auto precision_before = std::cout.precision();
-    std::ios::fmtflags stream_state(std::cout.flags());
-    std::cout << std::fixed << std::setprecision(2);
-    std::cout << ntotal << " " << plural_names[ent_dim];
-    std::cout << ", " << name << " [" << actual.min << "," << actual.max << "]";
-    if (nlow) {
-      std::cout << ", " << nlow << " <" << desired.min;
-    }
-    if (nmid) {
-      std::cout << ", " << nmid << " in [" << desired.min << "," << desired.max << "]";
-    }
-    if (nhigh) {
-      std::cout << ", " << nhigh << " >" << desired.max;
-    }
-    std::cout << '\n';
-    std::cout.flags(stream_state);
-    std::cout.precision(precision_before);
-  }
-}
-
 static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
     MinMax<Real> qualstats, MinMax<Real> lenstats) {
-  goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
+  print_goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
       {opts.min_quality_allowed, opts.min_quality_desired}, qualstats);
-  goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
+  print_goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
       {opts.min_length_desired, opts.max_length_desired}, lenstats);
 }
 

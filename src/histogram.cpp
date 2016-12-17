@@ -2,6 +2,8 @@
 #include <iomanip>
 #include <iostream>
 #include "array.hpp"
+#include "mark.hpp"
+#include "simplices.hpp"
 
 namespace Omega_h {
 
@@ -39,6 +41,35 @@ void print_histogram(
   }
   std::cout.flags(stream_state);
   std::cout.precision(precision_before);
+}
+
+void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
+    MinMax<Real> desired, MinMax<Real> actual) {
+  auto low_marks = each_lt(values, desired.min);
+  auto high_marks = each_gt(values, desired.max);
+  auto nlow = count_owned_marks(mesh, ent_dim, low_marks);
+  auto nhigh = count_owned_marks(mesh, ent_dim, high_marks);
+  auto ntotal = mesh->nglobal_ents(ent_dim);
+  auto nmid = ntotal - nlow - nhigh;
+  if (mesh->comm()->rank() == 0) {
+    auto precision_before = std::cout.precision();
+    std::ios::fmtflags stream_state(std::cout.flags());
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << ntotal << " " << plural_names[ent_dim];
+    std::cout << ", " << name << " [" << actual.min << "," << actual.max << "]";
+    if (nlow) {
+      std::cout << ", " << nlow << " <" << desired.min;
+    }
+    if (nmid) {
+      std::cout << ", " << nmid << " in [" << desired.min << "," << desired.max << "]";
+    }
+    if (nhigh) {
+      std::cout << ", " << nhigh << " >" << desired.max;
+    }
+    std::cout << '\n';
+    std::cout.flags(stream_state);
+    std::cout.precision(precision_before);
+  }
 }
 
 #define INST(n)                                                                \
