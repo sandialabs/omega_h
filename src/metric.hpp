@@ -117,12 +117,12 @@ that can be safely linearly interpolated.
 
 template <Int dim>
 INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
-  return log(m);
+  return log_symm(m);
 }
 
 template <Int dim>
 INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
-  return exp(log_m);
+  return exp_symm(log_m);
 }
 
 INLINE Real linearize_metric(Real h) { return ::log(h); }

@@ -191,14 +191,14 @@ INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> log(Matrix<dim, dim> m) {
+INLINE Matrix<dim, dim> log_symm(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = ::log(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> exp(Matrix<dim, dim> m) {
+INLINE Matrix<dim, dim> exp_symm(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = ::exp(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
