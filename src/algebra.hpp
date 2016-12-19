@@ -186,6 +186,8 @@ INLINE Matrix<m, n> tensor_product(Vector<m> a, Vector<n> b) {
 }
 
 template <Int m>
+INLINE Real trace(Matrix<m, m> a) __attribute__((pure));
+template <Int m>
 INLINE Real trace(Matrix<m, m> a) {
   Real t = a[0][0];
   for (Int i = 1; i < m; ++i) t += a[i][i];

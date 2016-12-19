@@ -189,21 +189,6 @@ template <Int dim>
 INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
-
-template <Int dim>
-INLINE Matrix<dim, dim> log_symm(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = ::log(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-template <Int dim>
-INLINE Matrix<dim, dim> exp_symm(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = ::exp(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
 Reals get_max_eigenvalues(Int dim, Reals symms);
 
 }  // end namespace Omega_h
