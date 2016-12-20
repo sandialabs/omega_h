@@ -719,11 +719,17 @@ class Few {
   OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
     for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
   }
+  OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) {
+    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
+  }
+  OMEGA_H_INLINE void operator=(Few<T, n> const volatile& rhs) {
+    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
+  }
   OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
     for (Int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
-  OMEGA_H_INLINE Few(const volatile Few<T, n>& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
+  OMEGA_H_INLINE Few(Few<T, n> const volatile& rhs) {
+    for (Int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
   OMEGA_H_INLINE T* data() { return reinterpret_cast<T*>(array_); }
   OMEGA_H_INLINE T const* data() const { return reinterpret_cast<T const*>(array_); }
