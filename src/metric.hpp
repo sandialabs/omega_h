@@ -29,7 +29,7 @@ INLINE Vector<dim> metric_lengths(Vector<dim> l) {
 }
 
 template <Int dim>
-INLINE Decomposition<dim> decompose_metric(Matrix<dim, dim> m) {
+INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto ed = decompose_eigen(m);
   auto h = metric_lengths(ed.l);
   return {ed.q, h};
