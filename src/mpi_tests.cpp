@@ -284,5 +284,6 @@ int main(int argc, char** argv) {
       test_two_ranks(&lib, two);
     }
   }
+  world->barrier();
   test_rib(world);
 }
