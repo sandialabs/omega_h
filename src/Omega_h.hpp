@@ -703,7 +703,9 @@ class Few {
   OMEGA_H_INLINE T& operator[](Int i) { return data()[i]; }
   OMEGA_H_INLINE T const& operator[](Int i) const { return data()[i]; }
   OMEGA_H_INLINE T volatile& operator[](Int i) volatile { return data()[i]; }
-  OMEGA_H_INLINE T const volatile& operator[](Int i) const volatile { return data()[i]; }
+  OMEGA_H_INLINE T const volatile& operator[](Int i) const volatile {
+    return data()[i];
+  }
   Few(std::initializer_list<T> l) {
     Int i = 0;
     for (auto it = l.begin(); it != l.end(); ++it) {
@@ -732,9 +734,15 @@ class Few {
     for (Int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
   OMEGA_H_INLINE T* data() { return reinterpret_cast<T*>(array_); }
-  OMEGA_H_INLINE T const* data() const { return reinterpret_cast<T const*>(array_); }
-  OMEGA_H_INLINE T volatile* data() volatile { return reinterpret_cast<T volatile*>(array_); }
-  OMEGA_H_INLINE T const volatile* data() const volatile { return reinterpret_cast<T const volatile*>(array_); }
+  OMEGA_H_INLINE T const* data() const {
+    return reinterpret_cast<T const*>(array_);
+  }
+  OMEGA_H_INLINE T volatile* data() volatile {
+    return reinterpret_cast<T volatile*>(array_);
+  }
+  OMEGA_H_INLINE T const volatile* data() const volatile {
+    return reinterpret_cast<T const volatile*>(array_);
+  }
 };
 
 template <typename T>

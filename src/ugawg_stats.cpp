@@ -1,9 +1,9 @@
 #include "Omega_h.hpp"
+#include "Omega_h_cmdline.hpp"
 #include "Omega_h_math.hpp"
 #include "loop.hpp"
 #include "simplices.hpp"
 #include "space.hpp"
-#include "Omega_h_cmdline.hpp"
 
 #include <iostream>
 
@@ -78,7 +78,9 @@ int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   Omega_h::CmdLine cmdline;
   cmdline.add_arg<std::string>("input.mesh[b]");
-  auto& mflag = cmdline.add_flag("-m", "REQUIRED!\n    one of cube-linear,cube-cylinder-shock,cube-cylinder-layer");
+  auto& mflag = cmdline.add_flag("-m",
+      "REQUIRED!\n    one of "
+      "cube-linear,cube-cylinder-shock,cube-cylinder-layer");
   mflag.add_arg<std::string>("metric");
   auto& hflag = cmdline.add_flag("-h", "domain of length histogram");
   hflag.add_arg<double>("length-histogram-min");
@@ -110,8 +112,10 @@ int main(int argc, char** argv) {
   Omega_h::meshb::read(&mesh, filename.c_str());
   auto opts = AdaptOpts(&mesh);
   if (cmdline.parsed("-h")) {
-    opts.length_histogram_min = cmdline.get<double>("-h", "length-histogram-min");
-    opts.length_histogram_max = cmdline.get<double>("-h", "length-histogram-max");
+    opts.length_histogram_min =
+        cmdline.get<double>("-h", "length-histogram-min");
+    opts.length_histogram_max =
+        cmdline.get<double>("-h", "length-histogram-max");
   }
   if (cmdline.parsed("-l")) {
     opts.min_length_desired = cmdline.get<double>("-l", "min-desired-length");

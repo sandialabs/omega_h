@@ -45,11 +45,13 @@ static bool parse_arg(char const* arg, double* p_value) {
 
 CmdLineItem::~CmdLineItem() {}
 
-CmdLineItem::CmdLineItem(std::string const& name):name_(name),parsed_(false) {}
+CmdLineItem::CmdLineItem(std::string const& name)
+    : name_(name), parsed_(false) {}
 
 bool CmdLineItem::parse(CommPtr comm, int* p_argc, char** argv, int i) {
   if (parsed_) {
-    if (!comm->rank()) std::cout << "argument <" << name() << " being parsed twice!\n";
+    if (!comm->rank())
+      std::cout << "argument <" << name() << " being parsed twice!\n";
     return false;
   }
   auto ok = parse_impl(comm, p_argc, argv, i);
@@ -62,9 +64,8 @@ std::string const& CmdLineItem::name() const { return name_; }
 bool CmdLineItem::parsed() const { return parsed_; }
 
 template <typename T>
-CmdLineArg<T>::CmdLineArg(std::string const& name, T const& defval):
-  CmdLineItem(name),value_(defval) {
-}
+CmdLineArg<T>::CmdLineArg(std::string const& name, T const& defval)
+    : CmdLineItem(name), value_(defval) {}
 
 template <typename T>
 CmdLineArg<T>::~CmdLineArg() {}
@@ -73,8 +74,8 @@ template <typename T>
 bool CmdLineArg<T>::parse_impl(CommPtr comm, int* p_argc, char** argv, int i) {
   if (!parse_arg(argv[i], &value_)) {
     if (!comm->rank()) {
-      std::cout << "could not parse \"" << argv[i] << "\" as type " <<
-        ItemTraits<T>::name() << '\n';
+      std::cout << "could not parse \"" << argv[i] << "\" as type "
+                << ItemTraits<T>::name() << '\n';
     }
     return false;
   }
@@ -83,25 +84,26 @@ bool CmdLineArg<T>::parse_impl(CommPtr comm, int* p_argc, char** argv, int i) {
 }
 
 template <typename T>
-T CmdLineArg<T>::get() const { return value_; }
-
-CmdLineFlag::CmdLineFlag(std::string const& name, std::string const& desc):
-  CmdLineItem(name),
-  desc_(desc) {
+T CmdLineArg<T>::get() const {
+  return value_;
 }
+
+CmdLineFlag::CmdLineFlag(std::string const& name, std::string const& desc)
+    : CmdLineItem(name), desc_(desc) {}
 
 bool CmdLineFlag::parse_impl(CommPtr comm, int* p_argc, char** argv, int i) {
   shift(p_argc, argv, i);
   if (((*p_argc) - i) < int(args_.size())) {
     if (!comm->rank()) {
-      std::cout << "flag " << name() << " takes " << args_.size() << " arguments\n";
+      std::cout << "flag " << name() << " takes " << args_.size()
+                << " arguments\n";
     }
   }
   for (auto const& arg : args_) {
     if (!arg->parse(comm, p_argc, argv, i)) {
       if (!comm->rank()) {
         std::cout << "could not parse argument <" << arg->name() << "> of flag "
-          << name() << '\n';
+                  << name() << '\n';
       }
       return false;
     }
@@ -111,25 +113,23 @@ bool CmdLineFlag::parse_impl(CommPtr comm, int* p_argc, char** argv, int i) {
 
 template <typename T>
 void CmdLineFlag::add_arg(std::string const& name, T const& defval) {
-  args_.push_back(std::unique_ptr<CmdLineArg<T>>(new CmdLineArg<T>(name, defval)));
+  args_.push_back(
+      std::unique_ptr<CmdLineArg<T>>(new CmdLineArg<T>(name, defval)));
 }
 
 std::string const& CmdLineFlag::desc() const { return desc_; }
 
-CmdLineItem* CmdLineFlag::arg(std::size_t i) {
-  return args_.at(i).get();
-}
+CmdLineItem* CmdLineFlag::arg(std::size_t i) { return args_.at(i).get(); }
 
 CmdLineItem* CmdLineFlag::arg(std::string const& arg_name) {
   for (auto const& arg : args_)
-    if (arg->name() == arg_name)
-      return arg.get();
+    if (arg->name() == arg_name) return arg.get();
   NORETURN(nullptr);
 }
 
 std::size_t CmdLineFlag::nargs() const { return args_.size(); }
 
-CmdLine::CmdLine():nargs_parsed_(0) {}
+CmdLine::CmdLine() : nargs_parsed_(0) {}
 
 bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
   for (int i = 1; i < *p_argc;) {
@@ -160,8 +160,7 @@ bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
   if (nargs_parsed_ < args_.size()) {
     if (!comm->rank()) {
       for (std::size_t i = nargs_parsed_; i < args_.size(); ++i) {
-        std::cout << "missing required argument <" << args_[i]->name()
-          << ">\n";
+        std::cout << "missing required argument <" << args_[i]->name() << ">\n";
       }
     }
     return false;
@@ -169,20 +168,21 @@ bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
   return true;
 }
 
-CmdLineFlag& CmdLine::add_flag(std::string const& name, std::string const& desc) {
+CmdLineFlag& CmdLine::add_flag(
+    std::string const& name, std::string const& desc) {
   flags_.push_back(std::unique_ptr<CmdLineFlag>(new CmdLineFlag(name, desc)));
   return *(flags_.back());
 }
 
 template <typename T>
 void CmdLine::add_arg(std::string const& name, T const& defval) {
-  args_.push_back(std::unique_ptr<CmdLineArg<T>>(new CmdLineArg<T>(name, defval)));
+  args_.push_back(
+      std::unique_ptr<CmdLineArg<T>>(new CmdLineArg<T>(name, defval)));
 }
 
 bool CmdLine::parsed(std::string const& flag_name) {
   for (auto const& flag : flags_)
-    if (flag->name() == flag_name)
-      return flag->parsed();
+    if (flag->name() == flag_name) return flag->parsed();
   return false;
 }
 
@@ -196,29 +196,24 @@ static T get(CmdLineItem* p) {
 template <typename T>
 T CmdLine::get(std::string const& flag_name, std::string const& arg_name) {
   for (auto const& flag : flags_)
-    if (flag->name() == flag_name)
-      return Omega_h::get<T>(flag->arg(arg_name));
+    if (flag->name() == flag_name) return Omega_h::get<T>(flag->arg(arg_name));
   NORETURN(T());
 }
 
 bool CmdLine::parsed(std::string const& flag_name, std::size_t i) {
   for (auto const& flag : flags_)
-    if (flag->name() == flag_name)
-      return flag->arg(i)->parsed();
+    if (flag->name() == flag_name) return flag->arg(i)->parsed();
   return false;
 }
 
 template <typename T>
 T CmdLine::get(std::string const& arg_name) {
   for (auto const& arg : args_)
-    if (arg->name() == arg_name)
-      return Omega_h::get<T>(arg.get());
+    if (arg->name() == arg_name) return Omega_h::get<T>(arg.get());
   NORETURN(T());
 }
 
-bool CmdLine::parsed(std::size_t i) {
-  return args_.at(i)->parsed();
-}
+bool CmdLine::parsed(std::size_t i) { return args_.at(i)->parsed(); }
 
 bool CmdLine::check_empty(CommPtr comm, int argc, char** argv) {
   if (argc == 1) return true;
@@ -249,18 +244,15 @@ void CmdLine::show_help(CommPtr comm, char** argv) {
   }
 }
 
-#define OMEGA_H_EXPL_INST(T)                                              \
-  template class CmdLineArg<T>;                                         \
-  template \
-  void CmdLineFlag::add_arg<T>(std::string const& name, T const& defval); \
-  template \
-  void CmdLine::add_arg<T>(std::string const& name, T const& defval); \
-  template \
-  T CmdLine::get<T>(std::string const& flag_name, std::string const& arg_name); \
-  template \
-  T CmdLine::get<T>(std::string const& arg_name);
+#define OMEGA_H_EXPL_INST(T)                                                   \
+  template class CmdLineArg<T>;                                                \
+  template void CmdLineFlag::add_arg<T>(                                       \
+      std::string const& name, T const& defval);                               \
+  template void CmdLine::add_arg<T>(std::string const& name, T const& defval); \
+  template T CmdLine::get<T>(                                                  \
+      std::string const& flag_name, std::string const& arg_name);              \
+  template T CmdLine::get<T>(std::string const& arg_name);
 OMEGA_H_EXPL_INST(int)
 OMEGA_H_EXPL_INST(double)
 OMEGA_H_EXPL_INST(std::string)
-
 }
