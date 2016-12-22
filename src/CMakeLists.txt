@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   histogram.cpp
   stacktrace.cpp
   eigen.cpp
+  Omega_h_cmdline.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)
