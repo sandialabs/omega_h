@@ -3,6 +3,7 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 #include "space.hpp"
+#include "Omega_h_cmdline.hpp"
 
 #include <iostream>
 
@@ -75,60 +76,50 @@ static Reals get_metric(Mesh* mesh, std::string const& name) {
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
-  auto opts = AdaptOpts(dim);
-  std::string filename;
-  std::string metric_name;
-  bool should_help = false;
-  for (Int i = 1; i < argc; ++i) {
-    if (std::string("-m") == argv[i]) {
-      if (i == argc - 1) {
-        std::cout << "-m needs an argument\n";
-        should_help = true;
-        break;
-      }
-      metric_name = argv[++i];
-    } else if (std::string("-h") == argv[i]) {
-      if (i >= argc - 2) {
-        std::cout << "-h needs two arguments\n";
-        should_help = true;
-        break;
-      }
-      opts.length_histogram_min = atof(argv[++i]);
-      opts.length_histogram_max = atof(argv[++i]);
-    } else if (std::string("-l") == argv[i]) {
-      if (i >= argc - 2) {
-        std::cout << "-l needs two arguments\n";
-        should_help = true;
-        break;
-      }
-      opts.min_length_desired = atof(argv[++i]);
-      opts.max_length_desired = atof(argv[++i]);
-    } else if (std::string("-q") == argv[i]) {
-      if (i >= argc - 1) {
-        std::cout << "-q needs two arguments\n";
-        should_help = true;
-        break;
-      }
-      opts.min_quality_desired = atof(argv[++i]);
-    } else {
-      filename = argv[i];
-    }
-  }
-  if (metric_name.empty() || filename.empty()) should_help = true;
-  if (should_help) {
-    std::cout << "usage: " << argv[0] << " [options] input.mesh[b]\n";
-    std::cout << "options:\n";
-    std::cout << "  -m <metric-name>       (REQUIRED) one of:\n";
-    std::cout << "                            cube-linear\n";
-    std::cout << "                            cube-cylinder-shock\n";
-    std::cout << "                            cube-cylinder-layer\n";
-    std::cout << "  -h <length-histogram-min> <length-histogram-min>\n";
-    std::cout << "  -l <min-desired-length> <max-desired-length>\n";
-    std::cout << "  -q <min-desired-quality>\n";
+  Omega_h::CmdLine cmdline;
+  cmdline.add_arg<std::string>("input.mesh[b]");
+  auto& mflag = cmdline.add_flag("-m", "REQUIRED!\n    one of cube-linear,cube-cylinder-shock,cube-cylinder-layer");
+  mflag.add_arg<std::string>("metric");
+  auto& hflag = cmdline.add_flag("-h", "domain of length histogram");
+  hflag.add_arg<double>("length-histogram-min");
+  hflag.add_arg<double>("length-histogram-max");
+  auto& lflag = cmdline.add_flag("-l", "range of desired lengths");
+  lflag.add_arg<double>("min-desired-length");
+  lflag.add_arg<double>("max-desired-length");
+  auto& qflag = cmdline.add_flag("-q", "quality target");
+  qflag.add_arg<double>("min-desired-quality");
+  auto world = lib.world();
+  if (!cmdline.parse(world, &argc, argv)) {
+    std::cout << "parse failed\n";
+    cmdline.show_help(world, argv);
     return -1;
   }
+  if (!cmdline.check_empty(world, argc, argv)) {
+    std::cout << "leftover args\n";
+    cmdline.show_help(world, argv);
+    return -1;
+  }
+  if (!cmdline.parsed("-m")) {
+    std::cout << "-m wasn't parsed\n";
+    cmdline.show_help(world, argv);
+    return -1;
+  }
+  std::string filename = cmdline.get<std::string>("input.mesh[b]");
+  std::string metric_name = cmdline.get<std::string>("-m", "metric");
   Omega_h::Mesh mesh(&lib);
   Omega_h::meshb::read(&mesh, filename.c_str());
+  auto opts = AdaptOpts(&mesh);
+  if (cmdline.parsed("-h")) {
+    opts.length_histogram_min = cmdline.get<double>("-h", "length-histogram-min");
+    opts.length_histogram_max = cmdline.get<double>("-h", "length-histogram-max");
+  }
+  if (cmdline.parsed("-l")) {
+    opts.min_length_desired = cmdline.get<double>("-l", "min-desired-length");
+    opts.max_length_desired = cmdline.get<double>("-l", "max-desired-length");
+  }
+  if (cmdline.parsed("-q")) {
+    opts.min_quality_desired = cmdline.get<double>("-q", "min-desired-quality");
+  }
   for (Int i = 0; i <= dim; ++i) {
     std::cout << "mesh has " << mesh.nents(i) << ' ' << plural_names[i] << '\n';
   }
