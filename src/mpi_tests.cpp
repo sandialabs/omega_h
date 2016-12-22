@@ -8,6 +8,7 @@
 #include "loop.hpp"
 #include "owners.hpp"
 #include "vtk.hpp"
+#include "Omega_h_compare.hpp"
 
 #include <sstream>
 

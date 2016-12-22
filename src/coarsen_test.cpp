@@ -1,5 +1,6 @@
 #include "coarsen.hpp"
 #include "Omega_h.hpp"
+#include "Omega_h_compare.hpp"
 
 #include <cmath>
 

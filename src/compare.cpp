@@ -1,3 +1,4 @@
+#include "Omega_h_compare.hpp"
 #include "internal.hpp"
 
 #include <iostream>

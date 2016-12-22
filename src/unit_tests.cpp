@@ -26,6 +26,7 @@
 #include "transfer_conserve.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
+#include "Omega_h_compare.hpp"
 
 #include <sstream>
 

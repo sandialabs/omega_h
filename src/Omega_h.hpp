@@ -635,8 +635,6 @@ I32 read_nparts(std::string const& path);
 void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
-Omega_h_Comparison compare_meshes(
-    Mesh* a, Mesh* b, Real tol, Real floor, bool verbose, bool full = true);
 bool check_regression(
     std::string const& prefix, Mesh* mesh, Real tol, Real floor);
 

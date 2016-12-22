@@ -19,6 +19,7 @@
 #include "size.hpp"
 #include "tag.hpp"
 #include "timer.hpp"
+#include "Omega_h_compare.hpp"
 
 namespace Omega_h {
 
