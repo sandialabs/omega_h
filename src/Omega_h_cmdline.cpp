@@ -1,6 +1,8 @@
 #include "Omega_h_cmdline.hpp"
 #include "internal.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 template <typename T>
@@ -118,7 +120,16 @@ CmdLineItem* CmdLineFlag::arg(std::size_t i) {
   return args_.at(i).get();
 }
 
+CmdLineItem* CmdLineFlag::arg(std::string const& arg_name) {
+  for (auto const& arg : args_)
+    if (arg->name() == arg_name)
+      return arg.get();
+  NORETURN(nullptr);
+}
+
 std::size_t CmdLineFlag::nargs() const { return args_.size(); }
+
+CmdLine::CmdLine():nargs_parsed_(0) {}
 
 bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
   for (int i = 1; i < *p_argc;) {
@@ -183,10 +194,10 @@ static T get(CmdLineItem* p) {
 }
 
 template <typename T>
-T CmdLine::get(std::string const& flag_name, std::size_t i) {
+T CmdLine::get(std::string const& flag_name, std::string const& arg_name) {
   for (auto const& flag : flags_)
     if (flag->name() == flag_name)
-      return Omega_h::get<T>(flag->arg(i));
+      return Omega_h::get<T>(flag->arg(arg_name));
   NORETURN(T());
 }
 
@@ -198,8 +209,11 @@ bool CmdLine::parsed(std::string const& flag_name, std::size_t i) {
 }
 
 template <typename T>
-T CmdLine::get(std::size_t i) {
-  return Omega_h::get<T>(args_.at(i).get());
+T CmdLine::get(std::string const& arg_name) {
+  for (auto const& arg : args_)
+    if (arg->name() == arg_name)
+      return Omega_h::get<T>(arg.get());
+  NORETURN(T());
 }
 
 bool CmdLine::parsed(std::size_t i) {
@@ -220,16 +234,17 @@ void CmdLine::show_help(CommPtr comm, char** argv) {
   if (comm->rank()) return;
   std::cout << "usage: " << argv[0];
   if (!flags_.empty()) std::cout << " [options]";
-  for (auto const& arg : args_) std::cout << " <" << arg->name() << '>';
+  for (auto const& arg : args_) std::cout << " " << arg->name();
+  std::cout << '\n';
   if (!flags_.empty()) {
     std::cout << "options:\n";
     for (auto const& flag : flags_) {
       std::cout << "  " << flag->name();
       for (std::size_t i = 0; i < flag->nargs(); ++i) {
-        std::cout << " <" << flag->arg(i)->name() << '>';
+        std::cout << " " << flag->arg(i)->name();
       }
       std::cout << '\n';
-      std::cout << "    " << flag->desc();
+      std::cout << "    " << flag->desc() << '\n';
     }
   }
 }
@@ -241,9 +256,9 @@ void CmdLine::show_help(CommPtr comm, char** argv) {
   template \
   void CmdLine::add_arg<T>(std::string const& name, T const& defval); \
   template \
-  T CmdLine::get<T>(std::string const& flag_name, std::size_t i); \
+  T CmdLine::get<T>(std::string const& flag_name, std::string const& arg_name); \
   template \
-  T CmdLine::get<T>(std::size_t i);
+  T CmdLine::get<T>(std::string const& arg_name);
 OMEGA_H_EXPL_INST(int)
 OMEGA_H_EXPL_INST(double)
 OMEGA_H_EXPL_INST(std::string)
