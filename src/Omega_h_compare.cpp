@@ -369,7 +369,7 @@ void accept_diff_program_cmdline(CmdLine const& cmdline,
     Mesh const* mesh,
     MeshCompareOpts* p_opts,
     Omega_h_Comparison* p_max_result) {
-  VarCompareOpts all_defaults;
+  auto all_defaults = VarCompareOpts::defaults();
   if (cmdline.parsed("-tolerance")) {
     all_defaults.tolerance =
       cmdline.get<double>("-tolerance", "value");
