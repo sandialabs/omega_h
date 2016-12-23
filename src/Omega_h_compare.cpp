@@ -4,6 +4,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <sstream>
 
 #include "algebra.hpp"
 #include "array.hpp"
@@ -291,7 +292,7 @@ static Int parse_dim_token(std::string const& token, Int mesh_dim) {
   return -1;
 }
 
-void parse_exodiff_cmd_file(Mesh const* mesh, std::string const& path,
+static void parse_exodiff_cmd_file(Mesh const* mesh, std::string const& path,
     MeshCompareOpts* p_opts, VarCompareOpts all_defaults) {
   std::ifstream file(path.c_str());
   if (!file.is_open()) {

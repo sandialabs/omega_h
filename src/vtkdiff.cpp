@@ -24,7 +24,7 @@ int main(int argc, char** argv) {
   auto patha = cmdline.get<std::string>("gold_dir");
   auto pathb = cmdline.get<std::string>("result_dir");
   MeshCompareOpts opts;
-  Omega_h_Comparison max_result;
+  Omega_h_Comparison max_result = OMEGA_H_SAME;
   auto one_step = cmdline.parsed("-onestep");
   if (one_step) {
     auto pvtupatha = vtk::get_pvtu_path(patha);
