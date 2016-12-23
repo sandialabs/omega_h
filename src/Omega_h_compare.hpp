@@ -41,6 +41,7 @@ void get_diff_program_cmdline(
     CmdLine* p_cmdline);
 
 void accept_diff_program_cmdline(CmdLine const& cmdline,
+    Mesh const* mesh,
     MeshCompareOpts* p_opts,
     Omega_h_Comparison* p_max_result);
 

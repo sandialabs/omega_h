@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 #include "algebra.hpp"
 #include "array.hpp"
@@ -43,18 +44,6 @@ MeshCompareOpts MeshCompareOpts::init(Mesh const* mesh, VarCompareOpts var_opts)
     }
   }
   opts.time_step_opts = var_opts;
-  return opts;
-}
-
-MeshCompareOpts MeshCompareOpts::zero_tolerance(Mesh const* mesh) {
-  MeshCompareOpts opts;
-  for (Int dim = 0; dim < mesh->dim(); ++dim) {
-    for (Int i = 0; i < mesh->ntags(dim); ++i) {
-      auto tagbase = mesh->get_tag(dim, i);
-      opts.tags2opts[dim][tagbase->name()] = VarCompareOpts::zero_tolerance();
-    }
-  }
-  opts.time_step_opts = VarCompareOpts::zero_tolerance();
   return opts;
 }
 
@@ -199,7 +188,7 @@ Omega_h_Comparison compare_meshes(
         continue;
       }
       auto ncomps = tag->ncomps();
-      auto tag_opts = get_tag_opts(opts, dim, name);
+      auto tag_opts = opts.tag_opts(dim, name);
       bool ok = false;
       switch (tag->type()) {
         case OMEGA_H_I8:
@@ -256,7 +245,7 @@ void get_diff_program_cmdline(
   auto& floorflag = p_cmdline->add_flag("-Floor",
       "Overrides the default floor tolerance of 0.0");
   floorflag.add_arg<double>("value");
-  auto& superflag = p_cmdline->add_flag("-superset", std::string("Allow ")
+  p_cmdline->add_flag("-superset", std::string("Allow ")
       + b_name + " to have more variables than" + a_name);
   auto& fileflag = p_cmdline->add_flag("-f",
       "Read exodiff command file");
@@ -268,7 +257,7 @@ static VarCompareOpts parse_compare_opts(
     std::size_t start,
     VarCompareOpts default_opts,
     std::string const& path,
-    std::size_t linenum) {
+    Int linenum) {
   auto opts = default_opts;
   if (start == tokens.size()) return opts;
   if (tokens[start] == "relative") {
@@ -302,14 +291,14 @@ static Int parse_dim_token(std::string const& token, Int mesh_dim) {
   return -1;
 }
 
-void parse_exodiff_cmd_file(Mesh* mesh, std::string const& path,
-    MeshCompareOpts* p_opts) {
+void parse_exodiff_cmd_file(Mesh const* mesh, std::string const& path,
+    MeshCompareOpts* p_opts, VarCompareOpts all_defaults) {
   std::ifstream file(path.c_str());
   if (!file.is_open()) {
     Omega_h_fail("Could not open exodiff file \"%s\"\n", path.c_str());
   }
-  auto mesh_dim = mesh.dim();
-  std::size_t linenum = 1;
+  auto mesh_dim = mesh->dim();
+  Int linenum = 1;
   Int variables_dim = -1;
   VarCompareOpts variables_opts;
   for (std::string line; std::getline(file, line);) {
@@ -330,7 +319,8 @@ void parse_exodiff_cmd_file(Mesh* mesh, std::string const& path,
         auto it = p_opts->tags2opts[variables_dim].find(name);
         if (it == p_opts->tags2opts[variables_dim].end()) {
           Omega_h_fail("directive \"%s\" but %s not included (%s +%d)\n"
-                       "make sure \"(all)\" is added to the variables line\n");
+                       "make sure \"(all)\" is added to the variables line\n",
+                       tokens[0].c_str(), name.c_str(), path.c_str(), linenum);
         }
         p_opts->tags2opts[variables_dim].erase(it);
       } else {
@@ -344,7 +334,7 @@ void parse_exodiff_cmd_file(Mesh* mesh, std::string const& path,
       }
     } else if (tokens[0] == "COORDINATES") {
       auto opts = parse_compare_opts(tokens, 1,
-          p_opts->default_tag_opts[VERT], path, linenum);
+          all_defaults, path, linenum);
       p_opts->tags2opts[VERT]["coordinates"] = opts;
     } else if (tokens[0] == "TIME" && tokens.size() > 1 && tokens[1] == "STEPS") {
       auto opts = parse_compare_opts(tokens, 2,
@@ -363,8 +353,7 @@ void parse_exodiff_cmd_file(Mesh* mesh, std::string const& path,
         ++start;
       }
       variables_opts = parse_compare_opts(tokens, start,
-          p_opts->default_tag_opts[variables_dim], path, linenum);
-      p_opts->default_tag_opts[variables_dim] = opts;
+          all_defaults, path, linenum);
       if (do_all) {
         for (Int i = 0; i < mesh->ntags(variables_dim); ++i) {
           auto tagbase = mesh->get_tag(variables_dim, i);
@@ -380,13 +369,13 @@ void accept_diff_program_cmdline(CmdLine const& cmdline,
     Mesh const* mesh,
     MeshCompareOpts* p_opts,
     Omega_h_Comparison* p_max_result) {
-  VarCompareOpts var_defaults;
+  VarCompareOpts all_defaults;
   if (cmdline.parsed("-tolerance")) {
-    var_defaults.tolerance =
+    all_defaults.tolerance =
       cmdline.get<double>("-tolerance", "value");
   }
   if (cmdline.parsed("-Floor")) {
-    var_defaults.floor =
+    all_defaults.floor =
       cmdline.get<double>("-Floor", "value");
   }
   if (cmdline.parsed("-superset")) {
@@ -396,9 +385,9 @@ void accept_diff_program_cmdline(CmdLine const& cmdline,
   }
   if (cmdline.parsed("-f")) {
     parse_exodiff_cmd_file(
-        mesh, cmdline.get<std::string>("-f", "cmd_file"), p_opts);
+        mesh, cmdline.get<std::string>("-f", "cmd_file"), p_opts, all_defaults);
   } else {
-    *p_opts = MeshCompareOpts::init(mesh, var_defaults);
+    *p_opts = MeshCompareOpts::init(mesh, all_defaults);
   }
 }
 

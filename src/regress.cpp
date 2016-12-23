@@ -31,7 +31,7 @@ bool check_regression(
   }
   Mesh gold_mesh(mesh->library());
   binary::read(goldpath, comm, &gold_mesh);
-  auto opts = get_zero_tolerance();
+  auto opts = MeshCompareOpts::init(mesh, VarCompareOpts::zero_tolerance());
   auto res = compare_meshes(&gold_mesh, mesh, opts, true);
   if (res == OMEGA_H_SAME) {
     if (comm->rank() == 0) {

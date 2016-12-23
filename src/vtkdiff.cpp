@@ -25,13 +25,13 @@ int main(int argc, char** argv) {
   auto pathb = cmdline.get<std::string>("result_dir");
   MeshCompareOpts opts;
   Omega_h_Comparison max_result;
-  accept_diff_program_cmdline(cmdline, &opts, &max_result);
   auto one_step = cmdline.parsed("-onestep");
   if (one_step) {
     auto pvtupatha = vtk::get_pvtu_path(patha);
     auto pvtupathb = vtk::get_pvtu_path(pathb);
     Mesh mesha(&lib);
     vtk::read_parallel(pvtupatha, lib.world(), &mesha);
+    accept_diff_program_cmdline(cmdline, &mesha, &opts, &max_result);
     Mesh meshb(&lib);
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, opts, true, false);
@@ -52,6 +52,11 @@ int main(int argc, char** argv) {
     return 2;
   }
   for (std::size_t step = 0; step < timesa.size(); ++step) {
+    auto pvtupatha = pvtupathsa[step];
+    auto pvtupathb = pvtupathsb[step];
+    Mesh mesha(&lib);
+    vtk::read_parallel(pvtupatha, lib.world(), &mesha);
+    if (step == 0) accept_diff_program_cmdline(cmdline, &mesha, &opts, &max_result);
     auto timea = timesa[step];
     auto timeb = timesb[step];
     if (!compare_real(timea, timeb, opts.time_step_opts)) {
@@ -59,10 +64,6 @@ int main(int argc, char** argv) {
                 << timeb << ")\n";
       return 2;
     }
-    auto pvtupatha = pvtupathsa[step];
-    auto pvtupathb = pvtupathsb[step];
-    Mesh mesha(&lib);
-    vtk::read_parallel(pvtupatha, lib.world(), &mesha);
     Mesh meshb(&lib);
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
     auto res = compare_meshes(&mesha, &meshb, opts, true, false);

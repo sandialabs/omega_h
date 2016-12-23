@@ -626,7 +626,7 @@ void Mesh::reduce_tag(Int dim, std::string const& name, Omega_h_Op op) {
 }
 
 bool Mesh::operator==(Mesh& other) {
-  auto opts = get_zero_tolerance();
+  auto opts = MeshCompareOpts::init(this, VarCompareOpts::zero_tolerance());
   return OMEGA_H_SAME == compare_meshes(this, &other, opts, false);
 }
 

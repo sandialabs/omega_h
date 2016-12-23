@@ -55,15 +55,15 @@ class CmdLine {
   CmdLineFlag& add_flag(std::string const& name, std::string const& desc);
   template <typename T>
   void add_arg(std::string const& name, T const& defval = T());
-  bool parsed(std::string const& flag_name);
+  bool parsed(std::string const& flag_name) const;
   template <typename T>
-  T get(std::string const& flag_name, std::string const& arg_name);
-  bool parsed(std::string const& flag_name, std::size_t i);
+  T get(std::string const& flag_name, std::string const& arg_name) const;
+  bool parsed(std::string const& flag_name, std::size_t i) const;
   template <typename T>
-  T get(std::string const& arg_name);
-  bool parsed(std::size_t i);
+  T get(std::string const& arg_name) const;
+  bool parsed(std::size_t i) const;
   static bool check_empty(CommPtr comm, int argc, char** argv);
-  void show_help(CommPtr comm, char** argv);
+  void show_help(CommPtr comm, char** argv) const;
 
  private:
   std::vector<std::unique_ptr<CmdLineItem>> args_;
@@ -78,8 +78,8 @@ class CmdLine {
   extern template void CmdLine::add_arg<T>(                                    \
       std::string const& name, T const& defval);                               \
   extern template T CmdLine::get<T>(                                           \
-      std::string const& flag_name, std::string const& arg_name);              \
-  extern template T CmdLine::get<T>(std::string const& arg_name);
+      std::string const& flag_name, std::string const& arg_name) const;              \
+  extern template T CmdLine::get<T>(std::string const& arg_name) const;
 OMEGA_H_EXPL_INST_DECL(int)
 OMEGA_H_EXPL_INST_DECL(double)
 OMEGA_H_EXPL_INST_DECL(std::string)
