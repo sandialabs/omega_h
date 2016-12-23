@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
   for (std::size_t step = 0; step < timesa.size(); ++step) {
     auto timea = timesa[step];
     auto timeb = timesb[step];
-    if (!are_close(timea, timeb, tol, floor)) {
+    if (!compare_real(timea, timeb, opts.time_step_opts)) {
       std::cout << "time for step " << step << " differs (" << timea << " vs "
                 << timeb << ")\n";
       return 2;

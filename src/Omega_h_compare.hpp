@@ -6,23 +6,25 @@
 
 namespace Omega_h {
 
-struct ArrayCompareOpts {
-  enum { RELATIVE, ABSOLUTE } kind;
+struct VarCompareOpts {
+  enum { NONE, RELATIVE, ABSOLUTE } kind;
   Real tolerance;
   Real floor;
+  static VarCompareOpts zero_tolerance();
+  static VarCompareOpts defaults();
+  static VarCompareOpts none();
 };
 
 struct MeshCompareOpts {
-  std::map<std::string, ArrayCompareOpts> tags2opts[4];
-  ArrayCompareOpts default_tag_opts;
+  std::map<std::string, VarCompareOpts> tags2opts[4];
+  VarCompareOpts time_step_opts;
+  VarCompareOpts tag_opts(int dim, std::string const& name) const;
+  static MeshCompareOpts init(Mesh const* mesh, VarCompareOpts var_opts);
 };
 
-ArrayCompareOpts get_tag_opts(MeshCompareOpts const& opts,
-    int dim, std::string const& name);
 
-MeshCompareOpts get_exodiff_defaults();
-MeshCompareOpts get_zero_tolerance();
-
+Real get_real_diff(Real a, Real b, VarCompareOpts opts);
+bool compare_real(Real a, Real b, VarCompareOpts opts);
 
 Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, MeshCompareOpts const& opts,
