@@ -26,6 +26,7 @@
 #include "transfer_conserve.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
+#include "lie.hpp"
 
 #include <sstream>
 
@@ -864,6 +865,13 @@ static void test_circumcenter() {
   CHECK(are_close(v1, vector_3(0, -sqrt(3) * 2.0 / 3.0, 0)));
 }
 
+static void test_lie() {
+  auto a = identity_matrix<3,3>();
+  auto log_a = log_glp(a);
+  auto a2 = exp_glp(log_a);
+  CHECK(are_close(a2, a));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_edge_length();
@@ -913,5 +921,6 @@ int main(int argc, char** argv) {
   test_sf_scale(&lib);
   test_categorize_graph();
   test_circumcenter();
+  test_lie();
   CHECK(get_current_bytes() == 0);
 }

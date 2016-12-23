@@ -88,7 +88,7 @@ struct LogDecomp<3> {
 };
 
 OMEGA_H_INLINE constexpr Int polar_dofs(Int dim) {
-  return matrix_dofs(sim);
+  return matrix_dofs(dim);
 }
 
 template <Int dim>
@@ -103,7 +103,7 @@ INLINE LogDecomp<dim> log_glp(Matrix<dim, dim> a) {
   auto u = a * invert(p);
   auto log_u = log_so(u);
   Vector<dim> log_p_l;
-  for (Int i = 0; i < dim; ++i) log_p_l[i] = ::log(p_l);
+  for (Int i = 0; i < dim; ++i) log_p_l[i] = ::log(p_l[i]);
   auto log_p = compose_ortho(aa_dc.q, log_p_l);
   return {log_u, log_p};
 }
