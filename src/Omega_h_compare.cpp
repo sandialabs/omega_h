@@ -10,6 +10,7 @@
 #include "map.hpp"
 #include "owners.hpp"
 #include "simplices.hpp"
+#include "Omega_h_cmdline.hpp"
 
 namespace Omega_h {
 
@@ -213,6 +214,42 @@ Omega_h_Comparison compare_meshes(
     }
   }
   return result;
+}
+
+void get_diff_program_cmdline(
+    std::string const& a_name,
+    std::string const& b_name,
+    CmdLine* p_cmdline) {
+  cmdline.add_arg<std::string>(a_name);
+  cmdline.add_arg<std::string>(b_name);
+  auto tolflag = cmdline.add_flag("-tolerance",
+      "Overrides the default tolerance of 1.0E-6");
+  tolflag.add_arg<double>("value");
+  auto floorflag = cmdline.add_flag("-Floor",
+      "Overrides the default floor tolerance of 0.0");
+  floorflag.add_arg<double>("value");
+  auto superflag = cmdline.add_flag("-superset", "Allow "
+      + b_name + " to have more variables than" + a_name);
+}
+
+void accept_diff_program_cmdline(CmdLine const& cmdline,
+    MeshCompareOpts* p_opts,
+    Omega_h_Comparison* p_max_result) {
+  p_opts->default_tag_opts =
+    ArrayCompareOpts{ArrayCompareOpts::RELATIVE,1e-6,0.0};
+  if (cmdline.parsed("-tolerance")) {
+    p_opts->default_tag_opts.tolerance =
+      cmdline.get<double>("-tolerance", "value");
+  }
+  if (cmdline.parsed("-Floor")) {
+    p_opts->default_tag_opts.floor =
+      cmdline.get<double>("-Floor", "value");
+  }
+  if (cmdline.parsed("-superset")) {
+    *p_max_result = OMEGA_H_MORE;
+  } else {
+    *p_max_result = OMEGA_H_SAME;
+  }
 }
 
 }  // end namespace Omega_h

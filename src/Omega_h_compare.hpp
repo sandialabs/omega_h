@@ -2,6 +2,7 @@
 #define OMEGA_H_COMPARE_HPP
 
 #include "Omega_h.hpp"
+#include "Omega_h_cmdline.hpp"
 
 namespace Omega_h {
 
@@ -27,8 +28,19 @@ Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, MeshCompareOpts const& opts,
     bool verbose, bool full = true);
 
+bool check_same(Mesh* a, Mesh* b);
+
 bool check_regression(
     std::string const& prefix, Mesh* mesh);
+
+void get_diff_program_cmdline(
+    std::string const& a_name,
+    std::string const& b_name,
+    CmdLine* p_cmdline);
+
+void accept_diff_program_cmdline(CmdLine const& cmdline,
+    MeshCompareOpts* p_opts,
+    Omega_h_Comparison* p_max_result);
 
 }
 

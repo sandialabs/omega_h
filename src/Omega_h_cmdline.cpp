@@ -147,6 +147,8 @@ bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
     }
     if (parsed_by_flag) {
       continue;
+    } else if (std::string("-help") == argv[i]) {
+      return false;
     } else if (std::string("--help") == argv[i]) {
       return false;
     } else if (args_.size() > nargs_parsed_) {
