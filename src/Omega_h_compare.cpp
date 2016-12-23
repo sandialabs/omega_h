@@ -37,7 +37,7 @@ VarCompareOpts MeshCompareOpts::tag_opts(Int dim, std::string const& name) const
 
 MeshCompareOpts MeshCompareOpts::init(Mesh const* mesh, VarCompareOpts var_opts) {
   MeshCompareOpts opts;
-  for (Int dim = 0; dim < 4; ++dim) {
+  for (Int dim = 0; dim <= mesh->dim(); ++dim) {
     for (Int i = 0; i < mesh->ntags(dim); ++i) {
       auto tagbase = mesh->get_tag(dim, i);
       opts.tags2opts[dim][tagbase->name()] = var_opts;
