@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 #include "algebra.hpp"
 #include "array.hpp"
@@ -10,49 +11,69 @@
 #include "map.hpp"
 #include "owners.hpp"
 #include "simplices.hpp"
+#include "Omega_h_cmdline.hpp"
 
 namespace Omega_h {
 
-ArrayCompareOpts get_tag_opts(MeshCompareOpts const& mc_opts,
-    int dim, std::string const& name) {
-  auto it = mc_opts.tags2opts[dim].find(name);
-  if (it == mc_opts.tags2opts[dim].end()) {
-    return mc_opts.default_tag_opts;
+VarCompareOpts VarCompareOpts::zero_tolerance() {
+  return VarCompareOpts{VarCompareOpts::ABSOLUTE,0.0,0.0};
+}
+
+VarCompareOpts VarCompareOpts::defaults() {
+  return VarCompareOpts{VarCompareOpts::RELATIVE,1e-6,0.0};
+}
+
+VarCompareOpts VarCompareOpts::none() {
+  return VarCompareOpts{VarCompareOpts::NONE,0.0,0.0};
+}
+
+VarCompareOpts MeshCompareOpts::tag_opts(Int dim, std::string const& name) const {
+  auto it = tags2opts[dim].find(name);
+  if (it == tags2opts[dim].end()) {
+    return VarCompareOpts::none();
   }
   return it->second;
 }
 
-MeshCompareOpts get_exodiff_defaults() {
+MeshCompareOpts MeshCompareOpts::init(Mesh const* mesh, VarCompareOpts var_opts) {
   MeshCompareOpts opts;
-  opts.tags2opts[VERT]["coordinates"] =
-    ArrayCompareOpts{ArrayCompareOpts::ABSOLUTE,1e-6,0.0};
-  opts.default_tag_opts =
-    ArrayCompareOpts{ArrayCompareOpts::RELATIVE,1e-6,0.0};
-  return opts;
-}
-
-MeshCompareOpts get_zero_tolerance() {
-  MeshCompareOpts opts;
-  opts.default_tag_opts =
-    ArrayCompareOpts{ArrayCompareOpts::ABSOLUTE,0.0,0.0};
+  for (Int dim = 0; dim <= mesh->dim(); ++dim) {
+    for (Int i = 0; i < mesh->ntags(dim); ++i) {
+      auto tagbase = mesh->get_tag(dim, i);
+      opts.tags2opts[dim][tagbase->name()] = var_opts;
+    }
+  }
+  opts.time_step_opts = var_opts;
   return opts;
 }
 
 template <typename T>
 struct CompareArrays {
   static bool compare(
-      CommPtr comm, Read<T> a, Read<T> b, ArrayCompareOpts, Int, Int) {
+      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts, Int, Int) {
     return comm->reduce_and(a == b);
   }
 };
 
+Real get_real_diff(Real a, Real b, VarCompareOpts opts) {
+  if (opts.kind == VarCompareOpts::RELATIVE) {
+    return rel_diff_with_floor(a, b, opts.floor);
+  } else {
+    return fabs(a - b);
+  }
+}
+
+bool compare_real(Real a, Real b, VarCompareOpts opts) {
+  return get_real_diff(a, b, opts) <= opts.tolerance;
+}
+
 template <>
 struct CompareArrays<Real> {
   static bool compare(CommPtr comm, Read<Real> a, Read<Real> b,
-      ArrayCompareOpts opts, Int ncomps, Int dim) {
+      VarCompareOpts opts, Int ncomps, Int dim) {
     auto tol = opts.tolerance;
     auto floor = opts.floor;
-    if (opts.kind == ArrayCompareOpts::RELATIVE) {
+    if (opts.kind == VarCompareOpts::RELATIVE) {
       if (comm->reduce_and(are_close(a, b, tol, floor))) return true;
     } else {
       if (comm->reduce_and(are_close_abs(a, b, tol))) return true;
@@ -67,12 +88,7 @@ struct CompareArrays<Real> {
     LO max_i = -1;
     Real max_diff = 0.0;
     for (LO i = 0; i < ah.size(); ++i) {
-      Real diff;
-      if (opts.kind == ArrayCompareOpts::RELATIVE) {
-        diff = rel_diff_with_floor(ah[i], bh[i], floor);
-      } else {
-        diff = fabs(ah[i] - bh[i]);
-      }
+      auto diff = get_real_diff(ah[i], bh[i], opts);
       if (diff > max_diff) {
         max_i = i;
         max_diff = diff;
@@ -103,7 +119,8 @@ struct CompareArrays<Real> {
 
 template <typename T>
 static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
-    Read<T> b_data, Dist b_dist, Int ncomps, ArrayCompareOpts opts) {
+    Read<T> b_data, Dist b_dist, Int ncomps, VarCompareOpts opts) {
+  if (opts.kind == VarCompareOpts::NONE) return true;
   auto a_lin_data = reduce_data_to_owners(a_data, a_dist, ncomps);
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
@@ -149,7 +166,8 @@ Omega_h_Comparison compare_meshes(
       auto a_conn = get_local_conn(a, dim, full);
       auto b_conn = get_local_conn(b, dim, full);
       auto ok = compare_copy_data(
-          dim, a_conn, a_dist, b_conn, b_dist, dim + 1, opts.default_tag_opts);
+          dim, a_conn, a_dist, b_conn, b_dist, dim + 1,
+          VarCompareOpts::zero_tolerance());
       if (!ok) {
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
@@ -170,7 +188,7 @@ Omega_h_Comparison compare_meshes(
         continue;
       }
       auto ncomps = tag->ncomps();
-      auto tag_opts = get_tag_opts(opts, dim, name);
+      auto tag_opts = opts.tag_opts(dim, name);
       bool ok = false;
       switch (tag->type()) {
         case OMEGA_H_I8:
@@ -213,6 +231,177 @@ Omega_h_Comparison compare_meshes(
     }
   }
   return result;
+}
+
+void get_diff_program_cmdline(
+    std::string const& a_name,
+    std::string const& b_name,
+    CmdLine* p_cmdline) {
+  p_cmdline->add_arg<std::string>(a_name);
+  p_cmdline->add_arg<std::string>(b_name);
+  auto& tolflag = p_cmdline->add_flag("-tolerance",
+      "Overrides the default tolerance of 1.0E-6");
+  tolflag.add_arg<double>("value");
+  auto& floorflag = p_cmdline->add_flag("-Floor",
+      "Overrides the default floor tolerance of 0.0");
+  floorflag.add_arg<double>("value");
+  p_cmdline->add_flag("-superset", std::string("Allow ")
+      + b_name + " to have more variables than" + a_name);
+  auto& fileflag = p_cmdline->add_flag("-f",
+      "Read exodiff command file");
+  fileflag.add_arg<std::string>("cmd_file");
+}
+
+static VarCompareOpts parse_compare_opts(
+    std::vector<std::string> const& tokens,
+    std::size_t start,
+    VarCompareOpts default_opts,
+    std::string const& path,
+    Int linenum) {
+  auto opts = default_opts;
+  if (start == tokens.size()) return opts;
+  if (tokens[start] == "relative") {
+    opts.kind = VarCompareOpts::RELATIVE;
+    if (start + 1 == tokens.size()) {
+      Omega_h_fail("\"relative\" with no value at %s +%d\n",
+          path.c_str(), linenum);
+    }
+    opts.tolerance = atof(tokens[start + 1].c_str());
+    if (start + 2 < tokens.size() && tokens[start + 2] == "floor") {
+      if (start + 3 == tokens.size()) {
+        Omega_h_fail("\"floor\" with no value at %s +%d\n",
+            path.c_str(), linenum);
+      }
+      opts.floor = atof(tokens[start + 3].c_str());
+    }
+  } else if (tokens[start] == "absolute") {
+    opts.kind = VarCompareOpts::ABSOLUTE;
+    if (start + 1 == tokens.size()) {
+      Omega_h_fail("\"absolute\" with no value at %s +%d\n",
+          path.c_str(), linenum);
+    }
+    opts.tolerance = atof(tokens[start + 1].c_str());
+  }
+  return opts;
+}
+
+static Int parse_dim_token(std::string const& token, Int mesh_dim) {
+  if (token == "NODAL") return 0;
+  if (token == "ELEMENT") return mesh_dim;
+  return -1;
+}
+
+void parse_exodiff_cmd_file(Mesh const* mesh, std::string const& path,
+    MeshCompareOpts* p_opts, VarCompareOpts all_defaults) {
+  std::ifstream file(path.c_str());
+  if (!file.is_open()) {
+    Omega_h_fail("Could not open exodiff file \"%s\"\n", path.c_str());
+  }
+  auto mesh_dim = mesh->dim();
+  Int linenum = 1;
+  Int variables_dim = -1;
+  VarCompareOpts variables_opts;
+  for (std::string line; std::getline(file, line);) {
+    std::stringstream line_stream(line);
+    if (line.empty()) continue;
+    std::vector<std::string> tokens;
+    for (std::string token; line_stream >> token;) tokens.push_back(token);
+    if (tokens.empty()) continue;
+    if (tokens[0][0] == '#') continue;
+    if (variables_dim != -1 && line[0] == '\t') {
+      auto name = tokens[0];
+      if (name[0] == '!') {
+        name = name.substr(1, std::string::npos);
+        if (!mesh->has_tag(variables_dim, name)) {
+          Omega_h_fail("variable \"%s\" not in mesh (%s +%d)\n",
+              name.c_str(), path.c_str(), linenum);
+        }
+        auto it = p_opts->tags2opts[variables_dim].find(name);
+        if (it == p_opts->tags2opts[variables_dim].end()) {
+          Omega_h_fail("directive \"%s\" but %s not included (%s +%d)\n"
+                       "make sure \"(all)\" is added to the variables line\n",
+                       tokens[0].c_str(), name.c_str(), path.c_str(), linenum);
+        }
+        p_opts->tags2opts[variables_dim].erase(it);
+      } else {
+        if (!mesh->has_tag(variables_dim, name)) {
+          Omega_h_fail("variable \"%s\" not in mesh (%s +%d)\n",
+              name.c_str(), path.c_str(), linenum);
+        }
+        auto variable_opts = parse_compare_opts(tokens, 1,
+            variables_opts, path, linenum);
+        p_opts->tags2opts[variables_dim][name] = variable_opts;
+      }
+    } else if (variables_dim != -1 && line[0] != '\t' &&
+        p_opts->tags2opts[variables_dim].empty()) {
+      for (Int i = 0; i < mesh->ntags(variables_dim); ++i) {
+        auto tagbase = mesh->get_tag(variables_dim, i);
+        p_opts->tags2opts[variables_dim][tagbase->name()] = variables_opts;
+      }
+      variables_dim = -1;
+    } else if (tokens[0] == "COORDINATES") {
+      auto opts = parse_compare_opts(tokens, 1,
+          all_defaults, path, linenum);
+      p_opts->tags2opts[VERT]["coordinates"] = opts;
+    } else if (tokens[0] == "TIME" && tokens.size() > 1 && tokens[1] == "STEPS") {
+      auto opts = parse_compare_opts(tokens, 2,
+          p_opts->time_step_opts, path, linenum);
+      p_opts->time_step_opts = opts;
+    } else if (variables_dim == -1 && parse_dim_token(tokens[0], mesh_dim) != -1) {
+      variables_dim = parse_dim_token(tokens[0], mesh_dim);
+      if (!(tokens.size() > 1 && tokens[1] == "VARIABLES")) {
+        Omega_h_fail("bad variables header at %s +%d\n",
+            path.c_str(), linenum);
+      }
+      std::size_t start = 2;
+      bool do_all = false;
+      if (tokens.size() > 2 && tokens[2] == "(all)") {
+        do_all = true;
+        ++start;
+      }
+      variables_opts = parse_compare_opts(tokens, start,
+          all_defaults, path, linenum);
+      if (do_all) {
+        for (Int i = 0; i < mesh->ntags(variables_dim); ++i) {
+          auto tagbase = mesh->get_tag(variables_dim, i);
+          p_opts->tags2opts[variables_dim][tagbase->name()] = variables_opts;
+        }
+      }
+    }
+    ++linenum;
+  }
+  if (variables_dim != -1 && p_opts->tags2opts[variables_dim].empty()) {
+    for (Int i = 0; i < mesh->ntags(variables_dim); ++i) {
+      auto tagbase = mesh->get_tag(variables_dim, i);
+      p_opts->tags2opts[variables_dim][tagbase->name()] = variables_opts;
+    }
+  }
+}
+
+void accept_diff_program_cmdline(CmdLine const& cmdline,
+    Mesh const* mesh,
+    MeshCompareOpts* p_opts,
+    Omega_h_Comparison* p_max_result) {
+  auto all_defaults = VarCompareOpts::defaults();
+  if (cmdline.parsed("-tolerance")) {
+    all_defaults.tolerance =
+      cmdline.get<double>("-tolerance", "value");
+  }
+  if (cmdline.parsed("-Floor")) {
+    all_defaults.floor =
+      cmdline.get<double>("-Floor", "value");
+  }
+  if (cmdline.parsed("-superset")) {
+    *p_max_result = OMEGA_H_MORE;
+  } else {
+    *p_max_result = OMEGA_H_SAME;
+  }
+  if (cmdline.parsed("-f")) {
+    parse_exodiff_cmd_file(
+        mesh, cmdline.get<std::string>("-f", "cmd_file"), p_opts, all_defaults);
+  } else {
+    *p_opts = MeshCompareOpts::init(mesh, all_defaults);
+  }
 }
 
 }  // end namespace Omega_h

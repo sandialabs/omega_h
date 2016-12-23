@@ -694,7 +694,7 @@ static void test_file(Library* lib, Mesh* mesh0) {
   mesh1.set_comm(lib->self());
   binary::read(stream, &mesh1);
   mesh1.set_comm(lib->world());
-  auto opts = get_zero_tolerance();
+  auto opts = MeshCompareOpts::init(mesh0, VarCompareOpts::zero_tolerance());
   compare_meshes(mesh0, &mesh1, opts, true, true);
   CHECK(*mesh0 == mesh1);
 }
@@ -736,7 +736,7 @@ static void test_read_vtu(Mesh* mesh0) {
   vtk::write_vtu(stream, mesh0, mesh0->dim());
   Mesh mesh1(mesh0->library());
   vtk::read_vtu(stream, mesh0->comm(), &mesh1);
-  auto opts = get_zero_tolerance();
+  auto opts = MeshCompareOpts::init(mesh0, VarCompareOpts::zero_tolerance());
   CHECK(OMEGA_H_SAME == compare_meshes(mesh0, &mesh1, opts, true, false));
 }
 
