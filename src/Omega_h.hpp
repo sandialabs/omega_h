@@ -635,9 +635,6 @@ I32 read_nparts(std::string const& path);
 void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh);
 }
 
-bool check_regression(
-    std::string const& prefix, Mesh* mesh, Real tol, Real floor);
-
 void build_from_elems2verts(
     Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
 void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts);

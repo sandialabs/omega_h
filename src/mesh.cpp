@@ -626,7 +626,8 @@ void Mesh::reduce_tag(Int dim, std::string const& name, Omega_h_Op op) {
 }
 
 bool Mesh::operator==(Mesh& other) {
-  return OMEGA_H_SAME == compare_meshes(this, &other, 0.0, 0.0, false);
+  auto opts = get_zero_tolerance();
+  return OMEGA_H_SAME == compare_meshes(this, &other, opts, false);
 }
 
 Real Mesh::min_quality() { return get_min(comm_, ask_qualities()); }

@@ -8,6 +8,7 @@
 #include "size.hpp"
 #include "space.hpp"
 #include "timer.hpp"
+#include "Omega_h_compare.hpp"
 
 using namespace Omega_h;
 
@@ -98,7 +99,7 @@ int main(int argc, char** argv) {
               << momentum_after[1] << ' ' << momentum_after[2] << '\n';
   }
   CHECK(are_close(momentum_before, momentum_after));
-  bool ok = check_regression("gold_3d_conserve", &mesh, 0.0, 0.0);
+  bool ok = check_regression("gold_3d_conserve", &mesh);
   if (!ok) return 2;
   return 0;
 }

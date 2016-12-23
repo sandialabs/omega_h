@@ -1,4 +1,5 @@
 #include "Omega_h.hpp"
+#include "Omega_h_compare.hpp"
 #include "access.hpp"
 #include "eigen.hpp"
 #include "loop.hpp"
@@ -114,7 +115,7 @@ int main(int argc, char** argv) {
   auto vert_curvatures = get_corner_vert_curvatures(&mesh, vert_curvatures_w);
   mesh.add_tag(VERT, "curvature", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
       vert_curvatures);
-  bool ok = check_regression(std::string("gold_curv_") + name, &mesh, 0.0, 0.0);
+  bool ok = check_regression(std::string("gold_curv_") + name, &mesh);
   if (!ok) return 2;
   return 0;
 }

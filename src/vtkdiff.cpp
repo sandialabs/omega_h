@@ -83,6 +83,8 @@ int main(int argc, char** argv) {
     std::cout << "    -onestep (Expect only a .pvtu for a single time step)\n";
     return -1;
   }
+  auto opts = MeshCompareOpts();
+  opts.default_tag_opts = ArrayCompareOpts{ArrayCompareOpts::RELATIVE,tol,floor};
   if (one_step) {
     auto pvtupatha = vtk::get_pvtu_path(patha);
     auto pvtupathb = vtk::get_pvtu_path(pathb);
@@ -90,7 +92,7 @@ int main(int argc, char** argv) {
     vtk::read_parallel(pvtupatha, lib.world(), &mesha);
     Mesh meshb(&lib);
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
-    auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
+    auto res = compare_meshes(&mesha, &meshb, opts, true, false);
     if (res == OMEGA_H_SAME) return 0;
     if (allow_superset && res == OMEGA_H_MORE) return 0;
     return 2;
@@ -122,7 +124,7 @@ int main(int argc, char** argv) {
     vtk::read_parallel(pvtupatha, lib.world(), &mesha);
     Mesh meshb(&lib);
     vtk::read_parallel(pvtupathb, lib.world(), &meshb);
-    auto res = compare_meshes(&mesha, &meshb, tol, floor, true, false);
+    auto res = compare_meshes(&mesha, &meshb, opts, true, false);
     if (res == OMEGA_H_DIFF) {
       std::cout << "step " << step << " differs.\n";
       return 2;

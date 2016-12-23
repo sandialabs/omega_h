@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "Omega_h_compare.hpp"
 #include "access.hpp"
 #include "array.hpp"
 #include "internal.hpp"
@@ -74,7 +75,7 @@ int main(int argc, char** argv) {
               << '\n';
   }
   CHECK(are_close(momentum_before, momentum_after));
-  bool ok = check_regression("gold_2d_conserve", &mesh, 0.0, 0.0);
+  bool ok = check_regression("gold_2d_conserve", &mesh);
   if (!ok) return 2;
   return 0;
 }
