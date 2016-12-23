@@ -332,6 +332,13 @@ void parse_exodiff_cmd_file(Mesh const* mesh, std::string const& path,
             variables_opts, path, linenum);
         p_opts->tags2opts[variables_dim][name] = variable_opts;
       }
+    } else if (variables_dim != -1 && line[0] != '\t' &&
+        p_opts->tags2opts[variables_dim].empty()) {
+      for (Int i = 0; i < mesh->ntags(variables_dim); ++i) {
+        auto tagbase = mesh->get_tag(variables_dim, i);
+        p_opts->tags2opts[variables_dim][tagbase->name()] = variables_opts;
+      }
+      variables_dim = -1;
     } else if (tokens[0] == "COORDINATES") {
       auto opts = parse_compare_opts(tokens, 1,
           all_defaults, path, linenum);
@@ -362,6 +369,12 @@ void parse_exodiff_cmd_file(Mesh const* mesh, std::string const& path,
       }
     }
     ++linenum;
+  }
+  if (variables_dim != -1 && p_opts->tags2opts[variables_dim].empty()) {
+    for (Int i = 0; i < mesh->ntags(variables_dim); ++i) {
+      auto tagbase = mesh->get_tag(variables_dim, i);
+      p_opts->tags2opts[variables_dim][tagbase->name()] = variables_opts;
+    }
   }
 }
 
