@@ -1,6 +1,8 @@
 #ifndef SWAP3D_TABLES_HPP
 #define SWAP3D_TABLES_HPP
 
+#include "internal.hpp"
+
 namespace Omega_h {
 
 namespace swap3d {
