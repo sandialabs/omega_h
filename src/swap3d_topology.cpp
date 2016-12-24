@@ -21,7 +21,7 @@ HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
     auto edge = keys2edges[key];
     auto loop_size = edges2ntets[edge];
     auto nplane_tris = swap3d::swap_mesh_sizes[loop_size];
-    auto nplane_edges = swap3d::swap_nint_edges[loop_size];
+    auto nplane_edges = swap3d::nedges[loop_size];
     auto nprod_edges = nplane_edges;
     auto nprod_tris = nplane_tris + 2 * nplane_edges;
     auto nprod_tets = 2 * nplane_tris;
@@ -57,12 +57,12 @@ HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
     auto loop = swap3d::find_loop(edges2edge_tets, edge_tets2tets,
         edge_tet_codes, edge_verts2verts, tet_verts2verts, edge);
     auto nplane_tris = swap3d::swap_mesh_sizes[loop.size];
-    auto nplane_edges = swap3d::swap_nint_edges[loop.size];
+    auto nplane_edges = swap3d::nedges[loop.size];
     for (Int plane_edge = 0; plane_edge < nplane_edges; ++plane_edge) {
+      auto unique_edge = swap3d::edges2unique[loop.size][config][plane_edge];
       Few<LO, 2> plane_edge_verts;
       for (Int pev = 0; pev < 2; ++pev) {
-        auto loop_vert =
-            swap3d::swap_int_edges[loop.size][config][plane_edge * 2 + pev];
+        auto loop_vert = swap3d::unique_edges[loop.size][unique_edge][pev];
         auto vert = loop.loop_verts2verts[loop_vert];
         plane_edge_verts[pev] = vert;
       }
