@@ -19,7 +19,6 @@ DEVICE Choice choose(Loop loop,
     Real max_length_allowed) {
   auto nmeshes = swap_mesh_counts[loop.size];
   auto nmesh_tris = swap_mesh_sizes[loop.size];
-  auto nmesh_int_edges = swap_int_edges[loop.size];
   auto uniq_tris2loop_verts = swap_triangles[loop.size];
   bool uniq_tris_cached[MAX_UNIQUE_TRIS] = {false};
   Real uniq_tri_quals[MAX_UNIQUE_TRIS] = {0};
@@ -81,7 +80,7 @@ DEVICE Choice choose(Loop loop,
           for (Int edge_vert = 0; edge_vert < 2; ++edge_vert) {
             auto loop_vert = unique_edges[loop.size][uniq_edge][edge_vert];
             auto vert = loop.loop_verts2verts[loop_vert];
-            auto edge_verts2verts[edge_vert] = vert;
+            edge_verts2verts[edge_vert] = vert;
           }
           auto edge_length = length_measure.measure(edge_verts2verts);
           uniq_edg_lens[uniq_edge] = edge_length;

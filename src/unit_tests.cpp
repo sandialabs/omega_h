@@ -665,7 +665,6 @@ static void test_swap3d_loop(Library* lib) {
   auto edge_tet_codes = edges2tets.codes;
   auto edge_verts2verts = mesh.ask_verts_of(EDGE);
   auto tet_verts2verts = mesh.ask_verts_of(TET);
-  RealElementQualities measure(&mesh);
   auto f = LAMBDA(LO foo) {
     (void)foo;
     LO edge = 6;
@@ -677,8 +676,6 @@ static void test_swap3d_loop(Library* lib) {
     LO const expect[6] = {2, 3, 1, 5, 4, 6};
     for (Int i = 0; i < loop.size; ++i)
       CHECK(loop.loop_verts2verts[i] == expect[i]);
-    auto choice = swap3d::choose(loop, measure);
-    CHECK(are_close(0.0, choice.quality));
   };
   parallel_for(LO(1), f);
 }

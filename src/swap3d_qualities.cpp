@@ -9,7 +9,8 @@ namespace Omega_h {
 
 template <typename QualityMeasure, typename LengthMeasure>
 static void swap3d_qualities_tmpl(
-    Mesh* mesh, LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
+    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
+    Reals* cand_quals, Read<I8>* cand_configs) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -73,10 +74,10 @@ void swap3d_qualities(
   } else {
     using REQ = RealElementQualities;
     if (mesh->dim() == 3) {
-      swap3d_qualities_tmpl<REQ,MEL3>(
+      swap3d_qualities_tmpl<REQ,IEL3>(
           mesh, opts, cands2edges, cand_quals, cand_configs);
     } else if (mesh->dim() == 2) {
-      swap3d_qualities_tmpl<REQ,MEL2>(
+      swap3d_qualities_tmpl<REQ,IEL2>(
           mesh, opts, cands2edges, cand_quals, cand_configs);
     }
   }
