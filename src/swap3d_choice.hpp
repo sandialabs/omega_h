@@ -15,13 +15,16 @@ struct Choice {
 template <typename QualityMeasure, typename LengthMeasure>
 DEVICE Choice choose(Loop loop,
     QualityMeasure const& quality_measure,
-    LengthMeasure const& lenght_measure) {
+    LengthMeasure const& length_measure,
+    Real max_length_allowed) {
   auto nmeshes = swap_mesh_counts[loop.size];
   auto nmesh_tris = swap_mesh_sizes[loop.size];
   auto nmesh_int_edges = swap_int_edges[loop.size];
   auto uniq_tris2loop_verts = swap_triangles[loop.size];
   bool uniq_tris_cached[MAX_UNIQUE_TRIS] = {false};
   Real uniq_tri_quals[MAX_UNIQUE_TRIS] = {0};
+  bool uniq_edgs_cached[MAX_UNIQUE_EDGES] = {false};
+  Real uniq_edg_lens[MAX_UNIQUE_EDGES] = {0};
   Choice choice;
   choice.mesh = -1;
   choice.quality = 0.0;
@@ -70,10 +73,30 @@ DEVICE Choice choose(Loop loop,
          edge length overshooting.
          the idea is to minimize the cost of this check.
          We'll use the same caching as we did for triangles above. */
-    //for (Int edge = 0; edge < nmesh_int_edges; ++edge) {
-    //}
-      choice.mesh = mesh;
-      choice.quality = mesh_minqual;
+      bool does_overshoot = false;
+      for (Int mesh_edge = 0; mesh_edge < nedges[loop.size]; ++mesh_edge) {
+        auto uniq_edge = edges2unique[loop.size][mesh][mesh_edge];
+        if (!uniq_edgs_cached[uniq_edge]) {
+          Few<LO, 2> edge_verts2verts;
+          for (Int edge_vert = 0; edge_vert < 2; ++edge_vert) {
+            auto loop_vert = unique_edges[loop.size][uniq_edge][edge_vert];
+            auto vert = loop.loop_verts2verts[loop_vert];
+            auto edge_verts2verts[edge_vert] = vert;
+          }
+          auto edge_length = length_measure.measure(edge_verts2verts);
+          uniq_edg_lens[uniq_edge] = edge_length;
+          uniq_edgs_cached[uniq_edge] = true;
+        }
+        auto edge_length = uniq_edg_lens[uniq_edge];
+        if (edge_length > max_length_allowed) {
+          does_overshoot = true;
+          break;
+        }
+      }
+      if (!does_overshoot) {
+        choice.mesh = mesh;
+        choice.quality = mesh_minqual;
+      }
     }
   }
   return choice;
