@@ -12,10 +12,13 @@ struct Choice {
   Real quality;
 };
 
-template <typename Measure>
-DEVICE Choice choose(Loop loop, Measure const& measure) {
+template <typename QualityMeasure, typename LengthMeasure>
+DEVICE Choice choose(Loop loop,
+    QualityMeasure const& quality_measure,
+    LengthMeasure const& lenght_measure) {
   auto nmeshes = swap_mesh_counts[loop.size];
   auto nmesh_tris = swap_mesh_sizes[loop.size];
+  auto nmesh_int_edges = swap_int_edges[loop.size];
   auto uniq_tris2loop_verts = swap_triangles[loop.size];
   bool uniq_tris_cached[MAX_UNIQUE_TRIS] = {false};
   Real uniq_tri_quals[MAX_UNIQUE_TRIS] = {0};
@@ -48,7 +51,7 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
         Real tri_minqual = 1.0;
         for (Int tri_tet = 0; tri_tet < 2; ++tri_tet) {
           tet_verts2verts[3] = loop.eev2v[1 - tri_tet];
-          auto tet_qual = measure.measure(tet_verts2verts);
+          auto tet_qual = quality_measure.measure(tet_verts2verts);
           tri_minqual = min2(tri_minqual, tet_qual);
           swap2(tet_verts2verts[1], tet_verts2verts[2]);
         }
@@ -62,6 +65,13 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
       if (mesh_minqual < 0.0) break;
     }
     if (mesh_minqual > choice.quality) {
+      /* now that we have a configuration which is a candidate
+         for being the new best, we will go ahead and check for
+         edge length overshooting.
+         the idea is to minimize the cost of this check.
+         We'll use the same caching as we did for triangles above. */
+    //for (Int edge = 0; edge < nmesh_int_edges; ++edge) {
+    //}
       choice.mesh = mesh;
       choice.quality = mesh_minqual;
     }
