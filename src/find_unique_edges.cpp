@@ -36,8 +36,9 @@ int main() {
       }
     }
   }
+  std::cout << "typedef int IntPair[2];\n";
   for (std::size_t loop_size = 4; loop_size <= MAX_EDGE_SWAP; ++loop_size) {
-    std::cout << "CONSTANT static Int const unique_edges_" << loop_size
+    std::cout << "CONSTANT static IntPair const unique_edges_" << loop_size
       << "[" << unique_edges[loop_size].size() << "][2] = {\n";
     for (std::size_t edge = 0; edge < unique_edges[loop_size].size(); ++edge) {
       if (edge != 0) std::cout << ", ";
@@ -46,7 +47,7 @@ int main() {
     }
     std::cout << "};\n\n";
   }
-  std::cout << "CONSTANT static Int const* const unique_edges["
+  std::cout << "CONSTANT static IntPair const* const unique_edges["
     << "MAX_EDGE_SWAP + 1] = {\n";
   for (int loop_size = 0; loop_size < 4; ++loop_size) {
     if (loop_size != 0) std::cout << ", ";
@@ -56,7 +57,7 @@ int main() {
     std::cout << ", ";
     std::cout << "unique_edges_" << loop_size << '\n';
   }
-  std::cout << "}\n\n";
+  std::cout << "};\n\n";
   for (std::size_t loop_size = 4; loop_size <= MAX_EDGE_SWAP; ++loop_size) {
     auto nedges = std::size_t(swap_nint_edges[loop_size]);
     auto nmeshes = std::size_t(swap_mesh_counts[loop_size]);
@@ -67,7 +68,7 @@ int main() {
         if (edge == 0) std::cout << ", ";
         std::cout << edges2unique_edges[loop_size][mesh][edge] << '\n';
       }
-      std::cout << "}\n\n";
+      std::cout << "};\n\n";
     }
   }
   for (int loop_size = 4; loop_size <= MAX_EDGE_SWAP; ++loop_size) {
@@ -78,7 +79,7 @@ int main() {
       if (mesh == 0) std::cout << ", ";
       std::cout << "edges2unique_" << loop_size << "_" << mesh << "\n";
     }
-    std::cout << "}\n\n";
+    std::cout << "};\n\n";
   }
   std::cout << "CONSTANT static Int const* const* const edges2uniqe["
     << "MAX_EDGE_SWAP + 1] = {\n";
@@ -90,5 +91,5 @@ int main() {
     std::cout << ", ";
     std::cout << "edges2unique_" << loop_size << '\n';
   }
-  std::cout << "}\n\n";
+  std::cout << "};\n\n";
 }
