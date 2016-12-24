@@ -670,7 +670,7 @@ edges2unique_7_0
 , edges2unique_7_41
 };
 
-CONSTANT static Int const* const* const edges2uniqe[MAX_EDGE_SWAP + 1] = {
+CONSTANT static Int const* const* const edges2unique[MAX_EDGE_SWAP + 1] = {
 0
 , 0
 , 0
@@ -681,7 +681,7 @@ CONSTANT static Int const* const* const edges2uniqe[MAX_EDGE_SWAP + 1] = {
 , edges2unique_7
 };
 
-CONSTANT static Int const swap_nint_edges[MAX_EDGE_SWAP + 1] = {
+CONSTANT static Int const nedges[MAX_EDGE_SWAP + 1] = {
     0, 0, 0, 0, 1, 2, 3, 4};
 
 }  // end namespace swap3d

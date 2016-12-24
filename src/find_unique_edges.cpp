@@ -36,7 +36,7 @@ int main() {
       }
     }
   }
-  std::cout << "typedef int IntPair[2];\n";
+  std::cout << "typedef int IntPair[2];\n\n";
   for (std::size_t loop_size = 4; loop_size <= MAX_EDGE_SWAP; ++loop_size) {
     std::cout << "CONSTANT static IntPair const unique_edges_" << loop_size
       << "[" << unique_edges[loop_size].size() << "] = {\n";
@@ -81,7 +81,7 @@ int main() {
     }
     std::cout << "};\n\n";
   }
-  std::cout << "CONSTANT static Int const* const* const edges2uniqe["
+  std::cout << "CONSTANT static Int const* const* const edges2unique["
     << "MAX_EDGE_SWAP + 1] = {\n";
   for (int loop_size = 0; loop_size < 4; ++loop_size) {
     if (loop_size != 0) std::cout << ", ";
