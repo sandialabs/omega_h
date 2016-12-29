@@ -177,7 +177,7 @@ TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
     Omega_h_fail(
-        "get_tagbase(%s,%s): doesn't exist\n", plural_names[dim], name.c_str());
+        "get_tagbase(%s, %s): doesn't exist\n", plural_names[dim], name.c_str());
   }
   return tag_iter(dim, name)->get();
 }
