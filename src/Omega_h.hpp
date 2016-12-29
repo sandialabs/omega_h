@@ -691,9 +691,9 @@ Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
 
 Reals recover_hessians(Mesh* mesh, Reals vert_values);
 Reals metric_from_hessians(
-    Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
+    Int dim, Reals hessians, Real eps, Real hmax);
 Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
-    Real tolerance, Reals hessians, Real hmin, Real hmax);
+    Real tolerance, Reals hessians, Real hmax);
 
 template <typename T, Int n>
 class Few {
