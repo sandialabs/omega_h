@@ -16,6 +16,10 @@ INLINE Real cross(Vector<2> a, Vector<2> b) {
   return (a[0] * b[1] - a[1] * b[0]);
 }
 
+INLINE Vector<3> uncross(Matrix<3, 3> c) {
+  return vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]) / 2.;
+}
+
 /* Rodrigues' Rotation Formula */
 INLINE Matrix<3, 3> rotate(Real angle, Vector<3> axis) {
   return cos(angle) * identity_matrix<3, 3>() + sin(angle) * cross(axis) +
@@ -24,6 +28,15 @@ INLINE Matrix<3, 3> rotate(Real angle, Vector<3> axis) {
 
 INLINE Matrix<2, 2> rotate(Real angle) {
   return matrix_2x2(cos(angle), -sin(angle), sin(angle), cos(angle));
+}
+
+INLINE Real rotation_angle(Matrix<2, 2> r) {
+  return acos(r[0][0]);
+}
+
+INLINE Real rotation_angle(Matrix<3, 3> r) __attribute__((pure));
+INLINE Real rotation_angle(Matrix<3, 3> r) {
+  return acos((trace(r) - 1.0) / 2.0);
 }
 
 INLINE Vector<2> perp(Vector<2> v) { return vector_2(-v[1], v[0]); }

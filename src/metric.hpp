@@ -3,6 +3,7 @@
 
 #include "eigen.hpp"
 #include "space.hpp"
+#include "lie.hpp"
 
 namespace Omega_h {
 
@@ -29,7 +30,7 @@ INLINE Vector<dim> metric_lengths(Vector<dim> l) {
 }
 
 template <Int dim>
-INLINE Decomposition<dim> decompose_metric(Matrix<dim, dim> m) {
+INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto ed = decompose_eigen(m);
   auto h = metric_lengths(ed.l);
   return {ed.q, h};
@@ -117,12 +118,12 @@ that can be safely linearly interpolated.
 
 template <Int dim>
 INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
-  return log_symm(m);
+  return log_spd(m);
 }
 
 template <Int dim>
 INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
-  return exp_symm(log_m);
+  return exp_spd(log_m);
 }
 
 INLINE Real linearize_metric(Real h) { return ::log(h); }
