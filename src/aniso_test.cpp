@@ -1,5 +1,6 @@
 #include "Omega_h.hpp"
 #include "Omega_h_math.hpp"
+#include "Omega_h_compare.hpp"
 #include "timer.hpp"
 
 #include <iostream>
@@ -32,7 +33,7 @@ int main(int argc, char** argv) {
   while (approach_size_field(&mesh, opts)) adapt(&mesh, opts);
   Now t1 = now();
   std::cout << "anisotropic approach took " << (t1 - t0) << " seconds\n";
-  bool ok = check_regression("gold_aniso", &mesh, 0.0, 0.0);
+  bool ok = check_regression("gold_aniso", &mesh);
   if (!ok) return 2;
   return 0;
 }

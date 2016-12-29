@@ -8,6 +8,7 @@
 #include "loop.hpp"
 #include "owners.hpp"
 #include "vtk.hpp"
+#include "Omega_h_compare.hpp"
 
 #include <sstream>
 
@@ -204,7 +205,8 @@ static void test_read_vtu(Library* lib, CommPtr comm) {
   vtk::write_vtu(stream, &mesh0, mesh0.dim());
   Mesh mesh1(lib);
   vtk::read_vtu(stream, comm, &mesh1);
-  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, false));
+  auto opts = MeshCompareOpts::init(&mesh0, VarCompareOpts::zero_tolerance());
+  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, opts, true, false));
 }
 
 static void test_binary_io(Library* lib, CommPtr comm) {
@@ -218,12 +220,13 @@ static void test_binary_io(Library* lib, CommPtr comm) {
   binary::write("mpi_test_elem_based.osh", &mesh0);
   Mesh mesh1(lib);
   binary::read("mpi_test_elem_based.osh", comm, &mesh1);
-  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, 0.0, 0.0, true, true));
+  auto opts = MeshCompareOpts::init(&mesh0, VarCompareOpts::zero_tolerance());
+  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh1, opts, true, true));
   mesh0.set_parting(OMEGA_H_GHOSTED);
   binary::write("mpi_test_ghosted.osh", &mesh0);
   Mesh mesh2(lib);
   binary::read("mpi_test_ghosted.osh", comm, &mesh2);
-  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh2, 0.0, 0.0, true, true));
+  CHECK(OMEGA_H_SAME == compare_meshes(&mesh0, &mesh2, opts, true, true));
 }
 
 static void test_two_ranks(Library* lib, CommPtr comm) {
@@ -284,5 +287,6 @@ int main(int argc, char** argv) {
       test_two_ranks(&lib, two);
     }
   }
+  world->barrier();
   test_rib(world);
 }

@@ -1,5 +1,6 @@
 #include "coarsen.hpp"
 #include "Omega_h.hpp"
+#include "Omega_h_compare.hpp"
 
 #include <cmath>
 
@@ -21,7 +22,7 @@ int main(int argc, char** argv) {
   opts.min_quality_allowed = 0.47;
   while (coarsen_by_size(&mesh, opts))
     ;
-  bool ok = check_regression("gold_coarsen", &mesh, 0.0, 0.0);
+  bool ok = check_regression("gold_coarsen", &mesh);
   if (!ok) return 2;
   return 0;
 }

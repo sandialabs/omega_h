@@ -12,13 +12,18 @@ struct Choice {
   Real quality;
 };
 
-template <typename Measure>
-DEVICE Choice choose(Loop loop, Measure const& measure) {
+template <typename QualityMeasure, typename LengthMeasure>
+DEVICE Choice choose(Loop loop,
+    QualityMeasure const& quality_measure,
+    LengthMeasure const& length_measure,
+    Real max_length_allowed) {
   auto nmeshes = swap_mesh_counts[loop.size];
   auto nmesh_tris = swap_mesh_sizes[loop.size];
   auto uniq_tris2loop_verts = swap_triangles[loop.size];
   bool uniq_tris_cached[MAX_UNIQUE_TRIS] = {false};
   Real uniq_tri_quals[MAX_UNIQUE_TRIS] = {0};
+  bool uniq_edgs_cached[MAX_UNIQUE_EDGES] = {false};
+  Real uniq_edg_lens[MAX_UNIQUE_EDGES] = {0};
   Choice choice;
   choice.mesh = -1;
   choice.quality = 0.0;
@@ -48,7 +53,7 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
         Real tri_minqual = 1.0;
         for (Int tri_tet = 0; tri_tet < 2; ++tri_tet) {
           tet_verts2verts[3] = loop.eev2v[1 - tri_tet];
-          auto tet_qual = measure.measure(tet_verts2verts);
+          auto tet_qual = quality_measure.measure(tet_verts2verts);
           tri_minqual = min2(tri_minqual, tet_qual);
           swap2(tet_verts2verts[1], tet_verts2verts[2]);
         }
@@ -62,8 +67,35 @@ DEVICE Choice choose(Loop loop, Measure const& measure) {
       if (mesh_minqual < 0.0) break;
     }
     if (mesh_minqual > choice.quality) {
-      choice.mesh = mesh;
-      choice.quality = mesh_minqual;
+      /* now that we have a configuration which is a candidate
+         for being the new best, we will go ahead and check for
+         edge length overshooting.
+         the idea is to minimize the cost of this check.
+         We'll use the same caching as we did for triangles above. */
+      bool does_overshoot = false;
+      for (Int mesh_edge = 0; mesh_edge < nedges[loop.size]; ++mesh_edge) {
+        auto uniq_edge = edges2unique[loop.size][mesh][mesh_edge];
+        if (!uniq_edgs_cached[uniq_edge]) {
+          Few<LO, 2> edge_verts2verts;
+          for (Int edge_vert = 0; edge_vert < 2; ++edge_vert) {
+            auto loop_vert = unique_edges[loop.size][uniq_edge][edge_vert];
+            auto vert = loop.loop_verts2verts[loop_vert];
+            edge_verts2verts[edge_vert] = vert;
+          }
+          auto edge_length = length_measure.measure(edge_verts2verts);
+          uniq_edg_lens[uniq_edge] = edge_length;
+          uniq_edgs_cached[uniq_edge] = true;
+        }
+        auto edge_length = uniq_edg_lens[uniq_edge];
+        if (edge_length > max_length_allowed) {
+          does_overshoot = true;
+          break;
+        }
+      }
+      if (!does_overshoot) {
+        choice.mesh = mesh;
+        choice.quality = mesh_minqual;
+      }
     }
   }
   return choice;

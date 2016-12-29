@@ -54,7 +54,7 @@ set(Omega_h_SOURCES
   refine.cpp
   transfer.cpp
   transfer_conserve.cpp
-  compare.cpp
+  Omega_h_compare.cpp
   check_collapse.cpp
   coarsen_qualities.cpp
   coarsen_topology.cpp
@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   histogram.cpp
   stacktrace.cpp
   eigen.cpp
+  Omega_h_cmdline.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)

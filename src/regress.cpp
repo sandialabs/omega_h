@@ -3,11 +3,12 @@
 #include <iostream>
 
 #include "file.hpp"
+#include "Omega_h_compare.hpp"
 
 namespace Omega_h {
 
 bool check_regression(
-    std::string const& prefix, Mesh* mesh, Real tol, Real floor) {
+    std::string const& prefix, Mesh* mesh) {
   auto comm = mesh->comm();
   auto goldpath = prefix + ".osh";
   if (!directory_exists(goldpath.c_str())) {
@@ -30,7 +31,8 @@ bool check_regression(
   }
   Mesh gold_mesh(mesh->library());
   binary::read(goldpath, comm, &gold_mesh);
-  auto res = compare_meshes(&gold_mesh, mesh, tol, floor, true);
+  auto opts = MeshCompareOpts::init(mesh, VarCompareOpts::zero_tolerance());
+  auto res = compare_meshes(&gold_mesh, mesh, opts, true);
   if (res == OMEGA_H_SAME) {
     if (comm->rank() == 0) {
       std::cout << "This run matches gold \"" << goldpath << "\"\n";

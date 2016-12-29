@@ -11,7 +11,7 @@
 
 namespace Omega_h {
 
-static bool swap3d_ghosted(Mesh* mesh) {
+static bool swap3d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
@@ -22,7 +22,7 @@ static bool swap3d_ghosted(Mesh* mesh) {
   }
   auto cand_quals = Reals();
   auto cand_configs = Read<I8>();
-  swap3d_qualities(mesh, cands2edges, &cand_quals, &cand_configs);
+  swap3d_qualities(mesh, opts, cands2edges, &cand_quals, &cand_configs);
   auto edge_configs =
       map_onto(cand_configs, cands2edges, mesh->nedges(), I8(-1), 1);
   auto keep_cands = filter_swap_improve(mesh, cands2edges, cand_quals);
@@ -81,7 +81,7 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
 
 bool swap_edges_3d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap_part1(mesh, opts)) return false;
-  if (!swap3d_ghosted(mesh)) return false;
+  if (!swap3d_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   swap3d_element_based(mesh, opts);
   do_momentum_velocity_ghosted_target(mesh);

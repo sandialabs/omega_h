@@ -26,6 +26,8 @@
 #include "transfer_conserve.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
+#include "Omega_h_compare.hpp"
+#include "lie.hpp"
 
 #include <sstream>
 
@@ -664,7 +666,6 @@ static void test_swap3d_loop(Library* lib) {
   auto edge_tet_codes = edges2tets.codes;
   auto edge_verts2verts = mesh.ask_verts_of(EDGE);
   auto tet_verts2verts = mesh.ask_verts_of(TET);
-  RealElementQualities measure(&mesh);
   auto f = LAMBDA(LO foo) {
     (void)foo;
     LO edge = 6;
@@ -676,8 +677,6 @@ static void test_swap3d_loop(Library* lib) {
     LO const expect[6] = {2, 3, 1, 5, 4, 6};
     for (Int i = 0; i < loop.size; ++i)
       CHECK(loop.loop_verts2verts[i] == expect[i]);
-    auto choice = swap3d::choose(loop, measure);
-    CHECK(are_close(0.0, choice.quality));
   };
   parallel_for(LO(1), f);
 }
@@ -693,7 +692,8 @@ static void test_file(Library* lib, Mesh* mesh0) {
   mesh1.set_comm(lib->self());
   binary::read(stream, &mesh1);
   mesh1.set_comm(lib->world());
-  compare_meshes(mesh0, &mesh1, 0, 0, true, true);
+  auto opts = MeshCompareOpts::init(mesh0, VarCompareOpts::zero_tolerance());
+  compare_meshes(mesh0, &mesh1, opts, true, true);
   CHECK(*mesh0 == mesh1);
 }
 
@@ -734,7 +734,8 @@ static void test_read_vtu(Mesh* mesh0) {
   vtk::write_vtu(stream, mesh0, mesh0->dim());
   Mesh mesh1(mesh0->library());
   vtk::read_vtu(stream, mesh0->comm(), &mesh1);
-  CHECK(OMEGA_H_SAME == compare_meshes(mesh0, &mesh1, 0.0, 0.0, true, false));
+  auto opts = MeshCompareOpts::init(mesh0, VarCompareOpts::zero_tolerance());
+  CHECK(OMEGA_H_SAME == compare_meshes(mesh0, &mesh1, opts, true, false));
 }
 
 static void test_read_vtu(Library* lib) {
@@ -864,6 +865,13 @@ static void test_circumcenter() {
   CHECK(are_close(v1, vector_3(0, -sqrt(3) * 2.0 / 3.0, 0)));
 }
 
+static void test_lie() {
+  auto a = identity_matrix<3,3>();
+  auto log_a = log_glp(a);
+  auto a2 = exp_glp(log_a);
+  CHECK(are_close(a2, a));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_edge_length();
@@ -913,5 +921,6 @@ int main(int argc, char** argv) {
   test_sf_scale(&lib);
   test_categorize_graph();
   test_circumcenter();
+  test_lie();
   CHECK(get_current_bytes() == 0);
 }

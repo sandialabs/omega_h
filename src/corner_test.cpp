@@ -2,6 +2,7 @@
 #include "internal.hpp"
 #include "loop.hpp"
 #include "refine.hpp"
+#include "Omega_h_compare.hpp"
 
 using namespace Omega_h;
 
@@ -35,7 +36,7 @@ int main(int argc, char** argv) {
     mesh.ask_lengths();
     mesh.ask_qualities();
   } while (refine_by_size(&mesh, opts));
-  bool ok = check_regression("gold_corner", &mesh, 0.0, 0.0);
+  bool ok = check_regression("gold_corner", &mesh);
   if (!ok) return 2;
   return 0;
 }

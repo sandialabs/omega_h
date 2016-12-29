@@ -3,6 +3,7 @@
 
 #include "eigen.hpp"
 #include "space.hpp"
+#include "lie.hpp"
 
 namespace Omega_h {
 
@@ -29,7 +30,7 @@ INLINE Vector<dim> metric_lengths(Vector<dim> l) {
 }
 
 template <Int dim>
-INLINE Decomposition<dim> decompose_metric(Matrix<dim, dim> m) {
+INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto ed = decompose_eigen(m);
   auto h = metric_lengths(ed.l);
   return {ed.q, h};
@@ -117,12 +118,12 @@ that can be safely linearly interpolated.
 
 template <Int dim>
 INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
-  return log(m);
+  return log_spd(m);
 }
 
 template <Int dim>
 INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
-  return exp(log_m);
+  return exp_spd(log_m);
 }
 
 INLINE Real linearize_metric(Real h) { return ::log(h); }
@@ -172,13 +173,8 @@ Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);
 Reals project_metrics(Mesh* mesh, Reals e2m);
 
-Reals metric_from_hessians(
-    Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
-Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
-    Real tolerance, Reals hessians, Real hmin, Real hmax);
-
 /* used to achieve templated versions of code that either
- * accepts a metric tensor or nothing (nothing being the case
+ * accept a metric tensor or nothing (nothing being the case
  * of isotropic quality, where the actual isotropic value doesn't
  * matter because our shape measure is scale-invariant)
  */

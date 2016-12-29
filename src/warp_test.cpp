@@ -7,6 +7,7 @@
 #include "size.hpp"
 #include "space.hpp"
 #include "timer.hpp"
+#include "Omega_h_compare.hpp"
 
 using namespace Omega_h;
 
@@ -126,7 +127,7 @@ int main(int argc, char** argv) {
   }
   postprocess_conserve(&mesh);
   postprocess_pointwise(&mesh);
-  bool ok = check_regression("gold_warp", &mesh, 0.0, 0.0);
+  bool ok = check_regression("gold_warp", &mesh);
   if (!ok) return 2;
   return 0;
 }

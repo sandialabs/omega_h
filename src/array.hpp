@@ -36,6 +36,7 @@ template <typename T>
 MinMax<T> get_minmax(CommPtr comm, Read<T> a);
 
 bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
+bool are_close_abs(Reals a, Reals b, Real tol = EPSILON);
 
 /* "a" may be larger than "b" by some integer factor */
 template <typename T>

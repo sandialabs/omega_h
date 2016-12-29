@@ -19,6 +19,7 @@
 #include "size.hpp"
 #include "tag.hpp"
 #include "timer.hpp"
+#include "Omega_h_compare.hpp"
 
 namespace Omega_h {
 
@@ -176,7 +177,7 @@ TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
     Omega_h_fail(
-        "get_tagbase(%s,%s): doesn't exist\n", plural_names[dim], name.c_str());
+        "get_tagbase(%s, %s): doesn't exist\n", plural_names[dim], name.c_str());
   }
   return tag_iter(dim, name)->get();
 }
@@ -625,7 +626,8 @@ void Mesh::reduce_tag(Int dim, std::string const& name, Omega_h_Op op) {
 }
 
 bool Mesh::operator==(Mesh& other) {
-  return OMEGA_H_SAME == compare_meshes(this, &other, 0.0, 0.0, false);
+  auto opts = MeshCompareOpts::init(this, VarCompareOpts::zero_tolerance());
+  return OMEGA_H_SAME == compare_meshes(this, &other, opts, false);
 }
 
 Real Mesh::min_quality() { return get_min(comm_, ask_qualities()); }
