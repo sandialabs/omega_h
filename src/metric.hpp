@@ -172,13 +172,8 @@ Reals linearize_metrics(Int dim, Reals metrics);
 Reals delinearize_metrics(Int dim, Reals linear_metrics);
 Reals project_metrics(Mesh* mesh, Reals e2m);
 
-Reals metric_from_hessians(
-    Int dim, Reals hessians, Real eps, Real hmin, Real hmax);
-Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
-    Real tolerance, Reals hessians, Real hmin, Real hmax);
-
 /* used to achieve templated versions of code that either
- * accepts a metric tensor or nothing (nothing being the case
+ * accept a metric tensor or nothing (nothing being the case
  * of isotropic quality, where the actual isotropic value doesn't
  * matter because our shape measure is scale-invariant)
  */

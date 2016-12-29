@@ -137,7 +137,7 @@ void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
 
 template <Int dim>
 static INLINE Matrix<dim, dim> metric_from_hessian(
-    Matrix<dim, dim> hessian, Real eps, Real hmin, Real hmax) {
+    Matrix<dim, dim> hessian, Real eps, Real hmax) {
   auto ed = decompose_eigen(hessian);
   auto r = ed.q;
   auto l = ed.l;
@@ -146,21 +146,21 @@ static INLINE Matrix<dim, dim> metric_from_hessian(
   decltype(l) tilde_l;
   for (Int i = 0; i < dim; ++i) {
     auto val = (c_num * fabs(l[i])) / (c_denom * eps);
-    tilde_l[i] = min2(max2(val, 1. / square(hmax)), 1. / square(hmin));
+    tilde_l[i] = max2(val, 1. / square(hmax));
   }
   return compose_eigen(r, tilde_l);
 }
 
 template <Int dim>
 static Reals metric_from_hessians_dim(
-    Reals hessians, Real eps, Real hmin, Real hmax) {
+    Reals hessians, Real eps, Real hmax) {
   auto ncomps = symm_dofs(dim);
   CHECK(hessians.size() % ncomps == 0);
   auto n = hessians.size() / ncomps;
   auto out = Write<Real>(n * ncomps);
   auto f = LAMBDA(LO i) {
     auto hess = get_symm<dim>(hessians, i);
-    auto m = metric_from_hessian(hess, eps, hmin, hmax);
+    auto m = metric_from_hessian(hess, eps, hmax);
     set_symm(out, i, m);
   };
   parallel_for(n, f);
@@ -168,18 +168,16 @@ static Reals metric_from_hessians_dim(
 }
 
 Reals metric_from_hessians(
-    Int dim, Reals hessians, Real eps, Real hmin, Real hmax) {
-  CHECK(hmin > 0);
-  CHECK(hmax > 0);
-  CHECK(hmin <= hmax);
-  CHECK(eps > 0);
-  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps, hmin, hmax);
-  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps, hmin, hmax);
+    Int dim, Reals hessians, Real eps, Real hmax) {
+  CHECK(hmax > 0.0);
+  CHECK(eps > 0.0);
+  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps, hmax);
+  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps, hmax);
   NORETURN(Reals());
 }
 
 Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
-    Real tolerance, Reals hessians, Real hmin, Real hmax) {
+    Real tolerance, Reals hessians, Real hmax) {
   CHECK(tolerance > 0);
   CHECK(target_nelems > 0);
   auto dim = mesh->dim();
@@ -188,7 +186,7 @@ Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
   Real eps = 1.0;
   Int niters = 0;
   do {
-    metric = metric_from_hessians(dim, hessians, eps, hmin, hmax);
+    metric = metric_from_hessians(dim, hessians, eps, hmax);
     scalar = metric_scalar_for_nelems(mesh, metric, target_nelems);
     eps /= scalar;
     ++niters;
