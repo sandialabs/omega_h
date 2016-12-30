@@ -43,7 +43,7 @@ INLINE Real edge_length(Real l_a, Real l_b) {
 }
 
 template <Int dim>
-INLINE Real iso_edge_length(Few<Vector<dim>, 2> p, Few<Real, 2> hs) {
+INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Few<Real, 2> hs) {
   auto real_l = norm(p[1] - p[0]);
   auto l_a = real_l / hs[0];
   auto l_b = real_l / hs[0];
@@ -54,7 +54,7 @@ template <Int dim>
 DEVICE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
   auto p = gather_vectors<2, dim>(coords, v);
   auto hs = gather_scalars<2>(isos, v);
-  return iso_edge_length(p, hs);
+  return metric_edge_length(p, hs);
 }
 
 template <Int dim>
