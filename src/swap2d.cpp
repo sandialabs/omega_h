@@ -11,7 +11,7 @@
 
 namespace Omega_h {
 
-static bool swap2d_ghosted(Mesh* mesh) {
+static bool swap2d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
@@ -20,7 +20,7 @@ static bool swap2d_ghosted(Mesh* mesh) {
     auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
     filter_swap(keep_cands, &cands2edges);
   }
-  auto cand_quals = swap2d_qualities(mesh, cands2edges);
+  auto cand_quals = swap2d_qualities(mesh, opts, cands2edges);
   auto keep_cands = filter_swap_improve(mesh, cands2edges, cand_quals);
   filter_swap(keep_cands, &cands2edges, &cand_quals);
   /* cavity quality checks */
@@ -74,7 +74,7 @@ static void swap2d_element_based(Mesh* mesh, AdaptOpts const& opts) {
 
 bool swap_edges_2d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap_part1(mesh, opts)) return false;
-  if (!swap2d_ghosted(mesh)) return false;
+  if (!swap2d_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   swap2d_element_based(mesh, opts);
   do_momentum_velocity_ghosted_target(mesh);
