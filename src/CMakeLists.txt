@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   stacktrace.cpp
   eigen.cpp
   Omega_h_cmdline.cpp
+  Omega_h_motion_choices.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)
