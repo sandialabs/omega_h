@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
+#include "Omega_h_compare.hpp"
 #include "adjacency.hpp"
 #include "array.hpp"
 #include "bcast.hpp"
@@ -19,7 +20,6 @@
 #include "size.hpp"
 #include "tag.hpp"
 #include "timer.hpp"
-#include "Omega_h_compare.hpp"
 
 namespace Omega_h {
 
@@ -176,8 +176,8 @@ void Mesh::react_to_set_tag(Int dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
   check_dim2(dim);
   if (!has_tag(dim, name)) {
-    Omega_h_fail(
-        "get_tagbase(%s, %s): doesn't exist\n", plural_names[dim], name.c_str());
+    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n", plural_names[dim],
+        name.c_str());
   }
   return tag_iter(dim, name)->get();
 }

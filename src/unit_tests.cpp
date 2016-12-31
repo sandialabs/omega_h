@@ -1,3 +1,4 @@
+#include "Omega_h_compare.hpp"
 #include "Omega_h_math.hpp"
 #include "adjacency.hpp"
 #include "align.hpp"
@@ -11,6 +12,7 @@
 #include "inertia.hpp"
 #include "int128.hpp"
 #include "internal.hpp"
+#include "lie.hpp"
 #include "linpart.hpp"
 #include "loop.hpp"
 #include "map.hpp"
@@ -26,9 +28,9 @@
 #include "transfer_conserve.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
-#include "Omega_h_compare.hpp"
-#include "lie.hpp"
 
+#include <iomanip>   //remove this now !
+#include <iostream>  //remove this now !
 #include <sstream>
 
 using namespace Omega_h;
@@ -96,8 +98,9 @@ static void test_cubic() {
   test_cubic({-8, -6, 3}, 3, Few<Real, 3>({2, -4, -1}), Few<Int, 3>({1, 1, 1}));
 }
 
-static void test_eigen_cubic(
-    Matrix<3, 3> m, Matrix<3, 3> q_expect, Vector<3> l_expect) {
+template <Int dim>
+static void test_eigen(
+    Matrix<dim, dim> m, Matrix<dim, dim> q_expect, Vector<dim> l_expect) {
   auto ed = decompose_eigen(m);
   auto q = ed.q;
   auto l = ed.l;
@@ -105,7 +108,8 @@ static void test_eigen_cubic(
   CHECK(are_close(l, l_expect));
 }
 
-static void test_eigen_cubic(Matrix<3, 3> m, Vector<3> l_expect) {
+template <Int dim>
+static void test_eigen(Matrix<dim, dim> m, Vector<dim> l_expect) {
   auto ed = decompose_eigen(m);
   auto q = ed.q;
   auto l = ed.l;
@@ -131,13 +135,20 @@ static void test_eigen_metric(Vector<3> h) {
   test_eigen_cubic_ortho(a, l);
 }
 
+static void test_eigen_quadratic() {
+  test_eigen(identity_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(1, 1));
+  test_eigen(zero_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(0, 0));
+  test_eigen(matrix_2x2(8.67958, -14.0234, -1.04985, 2.25873),
+      matrix_2x2(9.9192948778227130e-01, 8.6289280817702185e-01,
+                 -1.2679073810022995e-01, 5.0538698202107812e-01),
+      vector_2(1.0472083659357935e+01, 4.6622634064206342e-01));
+}
+
 static void test_eigen_cubic() {
-  test_eigen_cubic(
+  test_eigen(
       identity_matrix<3, 3>(), identity_matrix<3, 3>(), vector_3(1, 1, 1));
-  test_eigen_cubic(matrix_3x3(0, 0, 0, 0, 0, 0, 0, 0, 0),
-      identity_matrix<3, 3>(), vector_3(0, 0, 0));
-  test_eigen_cubic(
-      matrix_3x3(-1, 3, -1, -3, 5, -1, -3, 3, 1), vector_3(1, 2, 2));
+  test_eigen(zero_matrix<3, 3>(), identity_matrix<3, 3>(), vector_3(0, 0, 0));
+  test_eigen(matrix_3x3(-1, 3, -1, -3, 5, -1, -3, 3, 1), vector_3(1, 2, 2));
   /* the lengths have to be ordered so that
      if two of them are the same they should
      appear at the end */
@@ -866,7 +877,7 @@ static void test_circumcenter() {
 }
 
 static void test_lie() {
-  auto a = identity_matrix<3,3>();
+  auto a = identity_matrix<3, 3>();
   auto log_a = log_glp(a);
   auto a2 = exp_glp(log_a);
   CHECK(are_close(a2, a));
@@ -878,6 +889,7 @@ int main(int argc, char** argv) {
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();
+  test_eigen_quadratic();
   test_eigen_cubic();
   test_least_squares();
   test_int128();

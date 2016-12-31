@@ -261,8 +261,7 @@ struct AreCloseAbs : public AndFunctor {
   Reals a_;
   Reals b_;
   Real tol_;
-  AreCloseAbs(Reals a, Reals b, Real tol)
-      : a_(a), b_(b), tol_(tol) {}
+  AreCloseAbs(Reals a, Reals b, Real tol) : a_(a), b_(b), tol_(tol) {}
   DEVICE void operator()(LO i, value_type& update) const {
     update = update && (fabs(a_[i] - b_[i]) <= tol_);
   }
@@ -270,8 +269,7 @@ struct AreCloseAbs : public AndFunctor {
 
 bool are_close_abs(Reals a, Reals b, Real tol) {
   CHECK(a.size() == b.size());
-  return static_cast<bool>(
-      parallel_reduce(a.size(), AreCloseAbs(a, b, tol)));
+  return static_cast<bool>(parallel_reduce(a.size(), AreCloseAbs(a, b, tol)));
 }
 
 LOs::LOs(Write<LO> write) : Read<LO>(write) {}

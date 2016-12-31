@@ -8,9 +8,8 @@
 namespace Omega_h {
 
 template <typename QualityMeasure, typename LengthMeasure>
-static void swap3d_qualities_tmpl(
-    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
-    Reals* cand_quals, Read<I8>* cand_configs) {
+static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
+    LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
   auto edges2tets = mesh->ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -53,8 +52,7 @@ static void swap3d_qualities_tmpl(
   *cand_configs = cand_configs_w;
 }
 
-void swap3d_qualities(
-    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
+void swap3d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
     Reals* cand_quals, Read<I8>* cand_configs) {
   CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   CHECK(mesh->dim() == 3);
@@ -65,19 +63,19 @@ void swap3d_qualities(
   if (mesh->has_tag(VERT, "metric")) {
     using MEQ = MetricElementQualities;
     if (mesh->dim() == 3) {
-      swap3d_qualities_tmpl<MEQ,MEL3>(
+      swap3d_qualities_tmpl<MEQ, MEL3>(
           mesh, opts, cands2edges, cand_quals, cand_configs);
     } else if (mesh->dim() == 2) {
-      swap3d_qualities_tmpl<MEQ,MEL2>(
+      swap3d_qualities_tmpl<MEQ, MEL2>(
           mesh, opts, cands2edges, cand_quals, cand_configs);
     }
   } else {
     using REQ = RealElementQualities;
     if (mesh->dim() == 3) {
-      swap3d_qualities_tmpl<REQ,IEL3>(
+      swap3d_qualities_tmpl<REQ, IEL3>(
           mesh, opts, cands2edges, cand_quals, cand_configs);
     } else if (mesh->dim() == 2) {
-      swap3d_qualities_tmpl<REQ,IEL2>(
+      swap3d_qualities_tmpl<REQ, IEL2>(
           mesh, opts, cands2edges, cand_quals, cand_configs);
     }
   }
