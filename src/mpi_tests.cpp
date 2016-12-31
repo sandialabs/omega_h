@@ -1,4 +1,5 @@
 #include "Omega_h.hpp"
+#include "Omega_h_compare.hpp"
 #include "Omega_h_math.hpp"
 #include "array.hpp"
 #include "bipart.hpp"
@@ -8,7 +9,6 @@
 #include "loop.hpp"
 #include "owners.hpp"
 #include "vtk.hpp"
-#include "Omega_h_compare.hpp"
 
 #include <sstream>
 

@@ -46,7 +46,7 @@ static Read<I8> prevent_overshoot_tmpl(
       EDGE, Read<I8>(out), cands2edges, I8(DONT_COLLAPSE), 1);
 }
 
-Read<I8> prevent_overshoot(
+Read<I8> prevent_coarsen_overshoot(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
   if (mesh->has_tag(VERT, "size") && mesh->dim() == 3) {
     return prevent_overshoot_tmpl<IsoEdgeLengths<3>, 3>(

@@ -22,29 +22,21 @@ struct MeshCompareOpts {
   static MeshCompareOpts init(Mesh const* mesh, VarCompareOpts var_opts);
 };
 
-
 Real get_real_diff(Real a, Real b, VarCompareOpts opts);
 bool compare_real(Real a, Real b, VarCompareOpts opts);
 
-Omega_h_Comparison compare_meshes(
-    Mesh* a, Mesh* b, MeshCompareOpts const& opts,
+Omega_h_Comparison compare_meshes(Mesh* a, Mesh* b, MeshCompareOpts const& opts,
     bool verbose, bool full = true);
 
 bool check_same(Mesh* a, Mesh* b);
 
-bool check_regression(
-    std::string const& prefix, Mesh* mesh);
+bool check_regression(std::string const& prefix, Mesh* mesh);
 
 void get_diff_program_cmdline(
-    std::string const& a_name,
-    std::string const& b_name,
-    CmdLine* p_cmdline);
+    std::string const& a_name, std::string const& b_name, CmdLine* p_cmdline);
 
-void accept_diff_program_cmdline(CmdLine const& cmdline,
-    Mesh const* mesh,
-    MeshCompareOpts* p_opts,
-    Omega_h_Comparison* p_max_result);
-
+void accept_diff_program_cmdline(CmdLine const& cmdline, Mesh const* mesh,
+    MeshCompareOpts* p_opts, Omega_h_Comparison* p_max_result);
 }
 
 #endif

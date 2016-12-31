@@ -209,8 +209,9 @@ INLINE Matrix<m, n> zero_matrix() {
 }
 
 template <Int m>
-INLINE void subtract_from_diag(Matrix<m, m>& a, Real mu) {
+INLINE Matrix<m, m> subtract_from_diag(Matrix<m, m> a, Real mu) {
   for (Int i = 0; i < m; ++i) a[i][i] -= mu;
+  return a;
 }
 
 /* a function to disambiguate a unit vector

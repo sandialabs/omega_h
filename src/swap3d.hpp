@@ -6,8 +6,7 @@
 
 namespace Omega_h {
 
-void swap3d_qualities(
-    Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
+void swap3d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
     Reals* cand_quals, Read<I8>* cand_configs);
 
 HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges);

@@ -196,7 +196,8 @@ static T get(CmdLineItem const* p) {
 }
 
 template <typename T>
-T CmdLine::get(std::string const& flag_name, std::string const& arg_name) const {
+T CmdLine::get(
+    std::string const& flag_name, std::string const& arg_name) const {
   for (auto const& flag : flags_)
     if (flag->name() == flag_name) return Omega_h::get<T>(flag->arg(arg_name));
   NORETURN(T());
@@ -252,7 +253,7 @@ void CmdLine::show_help(CommPtr comm, char** argv) const {
       std::string const& name, T const& defval);                               \
   template void CmdLine::add_arg<T>(std::string const& name, T const& defval); \
   template T CmdLine::get<T>(                                                  \
-      std::string const& flag_name, std::string const& arg_name) const;              \
+      std::string const& flag_name, std::string const& arg_name) const;        \
   template T CmdLine::get<T>(std::string const& arg_name) const;
 OMEGA_H_EXPL_INST(int)
 OMEGA_H_EXPL_INST(double)

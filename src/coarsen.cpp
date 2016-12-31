@@ -73,7 +73,7 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   auto max_length = (overshoot == DESIRED) ? opts.max_length_desired
                                            : opts.max_length_allowed;
   cand_edge_codes =
-      prevent_overshoot(mesh, max_length, cands2edges, cand_edge_codes);
+      prevent_coarsen_overshoot(mesh, max_length, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   /* cavity quality checks */
