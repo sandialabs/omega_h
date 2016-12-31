@@ -36,9 +36,7 @@ DEVICE Few<Matrix<dim, dim>, neev> gather_symms(
   return x;
 }
 
-OMEGA_H_INLINE constexpr Int matrix_dofs(Int dim) {
-  return dim * dim;
-}
+OMEGA_H_INLINE constexpr Int matrix_dofs(Int dim) { return dim * dim; }
 
 template <Int dim>
 OMEGA_H_INLINE Vector<matrix_dofs(dim)> matrix2vector(Matrix<dim, dim> m) {

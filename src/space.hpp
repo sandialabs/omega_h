@@ -5,13 +5,6 @@
 
 namespace Omega_h {
 
-INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
-  Matrix<2, 2> o;
-  o[0] = vector_2(a, c);
-  o[1] = vector_2(b, d);
-  return o;
-}
-
 INLINE Real cross(Vector<2> a, Vector<2> b) {
   return (a[0] * b[1] - a[1] * b[0]);
 }
@@ -30,9 +23,7 @@ INLINE Matrix<2, 2> rotate(Real angle) {
   return matrix_2x2(cos(angle), -sin(angle), sin(angle), cos(angle));
 }
 
-INLINE Real rotation_angle(Matrix<2, 2> r) {
-  return acos(r[0][0]);
-}
+INLINE Real rotation_angle(Matrix<2, 2> r) { return acos(r[0][0]); }
 
 INLINE Real rotation_angle(Matrix<3, 3> r) __attribute__((pure));
 INLINE Real rotation_angle(Matrix<3, 3> r) {

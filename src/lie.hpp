@@ -5,8 +5,8 @@
  * not as in the opposite of truth.
  */
 
-#include "eigen.hpp"
 #include "access.hpp"
+#include "eigen.hpp"
 
 namespace Omega_h {
 
@@ -58,19 +58,15 @@ INLINE Vector<3> log_so(Matrix<3, 3> r) {
 // exponential of axis-angle, resulting in an SO(3) tensor
 INLINE Matrix<3, 3> exp_so(Vector<3> axis_angle) {
   auto a = norm(axis_angle);
-  if (fabs(a) < EPSILON) return identity_matrix<3,3>();
+  if (fabs(a) < EPSILON) return identity_matrix<3, 3>();
   return rotate(a, axis_angle / a);
 }
 
 // logarithm of a tensor in Special Orthogonal Group(2), as angle
-INLINE Real log_so(Matrix<2, 2> r) {
-  return rotation_angle(r);
-}
+INLINE Real log_so(Matrix<2, 2> r) { return rotation_angle(r); }
 
 // exponential of angle, resulting in an SO(2) tensor
-INLINE Matrix<2, 2> exp_so(Real angle) {
-  return rotate(angle);
-}
+INLINE Matrix<2, 2> exp_so(Real angle) { return rotate(angle); }
 
 template <Int dim>
 struct LogDecomp;
@@ -78,18 +74,16 @@ struct LogDecomp;
 template <>
 struct LogDecomp<2> {
   Real log_u;
-  Matrix<2,2> log_p;
+  Matrix<2, 2> log_p;
 };
 
 template <>
 struct LogDecomp<3> {
   Vector<3> log_u;
-  Matrix<3,3> log_p;
+  Matrix<3, 3> log_p;
 };
 
-OMEGA_H_INLINE constexpr Int polar_dofs(Int dim) {
-  return matrix_dofs(dim);
-}
+OMEGA_H_INLINE constexpr Int polar_dofs(Int dim) { return matrix_dofs(dim); }
 
 template <Int dim>
 struct LogGLP;
@@ -114,7 +108,6 @@ INLINE Matrix<dim, dim> exp_glp(LogDecomp<dim> log_a) {
   auto u = exp_so(log_a.log_u);
   return u * p;
 }
-
 }
 
 #endif

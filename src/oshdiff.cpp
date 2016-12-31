@@ -77,7 +77,8 @@ int main(int argc, char** argv) {
   Omega_h::binary::read(filea, lib.world(), &a);
   Omega_h::Mesh b(&lib);
   Omega_h::binary::read(fileb, lib.world(), &b);
-  auto opts = MeshCompareOpts::init(&a, VarCompareOpts{VarCompareOpts::RELATIVE,tol,floor});
+  auto opts = MeshCompareOpts::init(
+      &a, VarCompareOpts{VarCompareOpts::RELATIVE, tol, floor});
   auto res = compare_meshes(&a, &b, opts, true);
   if (res == OMEGA_H_SAME) return 0;
   if (allow_superset && res == OMEGA_H_MORE) return 0;

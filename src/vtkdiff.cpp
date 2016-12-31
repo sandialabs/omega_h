@@ -14,8 +14,7 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CmdLine cmdline;
   get_diff_program_cmdline("gold_dir", "result_dir", &cmdline);
-  cmdline.add_flag("-onestep",
-      "Each directory is one time step");
+  cmdline.add_flag("-onestep", "Each directory is one time step");
   if (!cmdline.parse(lib.world(), &argc, argv) ||
       !CmdLine::check_empty(lib.world(), argc, argv)) {
     cmdline.show_help(lib.world(), argv);
@@ -56,7 +55,8 @@ int main(int argc, char** argv) {
     auto pvtupathb = pvtupathsb[step];
     Mesh mesha(&lib);
     vtk::read_parallel(pvtupatha, lib.world(), &mesha);
-    if (step == 0) accept_diff_program_cmdline(cmdline, &mesha, &opts, &max_result);
+    if (step == 0)
+      accept_diff_program_cmdline(cmdline, &mesha, &opts, &max_result);
     auto timea = timesa[step];
     auto timeb = timesb[step];
     if (!compare_real(timea, timeb, opts.time_step_opts)) {

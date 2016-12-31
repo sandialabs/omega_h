@@ -2,13 +2,12 @@
 
 #include <iostream>
 
-#include "file.hpp"
 #include "Omega_h_compare.hpp"
+#include "file.hpp"
 
 namespace Omega_h {
 
-bool check_regression(
-    std::string const& prefix, Mesh* mesh) {
+bool check_regression(std::string const& prefix, Mesh* mesh) {
   auto comm = mesh->comm();
   auto goldpath = prefix + ".osh";
   if (!directory_exists(goldpath.c_str())) {
