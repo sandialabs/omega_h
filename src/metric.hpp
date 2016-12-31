@@ -74,13 +74,12 @@ INLINE Matrix<dim, dim> intersect_metrics(
   auto p = n_decomp.q;
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
-    Real u = metric_product(m1, p[i]);
-    Real v = metric_product(m2, p[i]);
+    auto u = metric_product(m1, p[i]);
+    auto v = metric_product(m2, p[i]);
     w[i] = max2(u, v);
   }
   auto ip = invert(p);
-  auto m = transpose(ip) * diagonal(w) * ip;
-  return m;
+  return transpose(ip) * diagonal(w) * ip;
 }
 
 /* Alauzet details four different ways to interpolate
@@ -102,10 +101,6 @@ Both (1) and (2) require an eigendecomposition to get M_i^{-1/2},
 which is relatively expensive.
 Both (2) and (3) can be generalized to multiple input
 tensors, for interpolation in a triangle or tet.
-That leaves (3) as being the best choice for these three reasons:
- - It has decent output in anisotropic cases
- - It can be used in triangles and tets
- - It does not require an eigendecomposition
 
 Looking a (1), (2) and (3) suggests that their only
 difference is an operation we will call "linearization",
@@ -114,6 +109,13 @@ that can be safely linearly interpolated.
 (1) M^{-1/2}
 (2) M^{-1}
 (3) M
+
+There is a fifth (fourth ?) option advocated by Loseille,
+Michal, and Krakos which is to use the matrix logarithm
+of M as the "linearized" quantity.
+This is also consistent with work by Mota on using Lie
+algebras to interpolate tensor quantities.
+That is the mechanism we use here:
 */
 
 template <Int dim>
