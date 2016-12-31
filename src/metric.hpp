@@ -5,6 +5,8 @@
 #include "space.hpp"
 #include "lie.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 template <Int dim>
@@ -60,9 +62,25 @@ https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
 
 template <Int dim>
 INLINE Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
+    Matrix<dim, dim> m1, Matrix<dim, dim> m2,
+    bool verbose = false) {
   auto n = invert(m1) * m2;
-  auto n_decomp = decompose_eigen(n);
+  auto n_decomp = decompose_eigen(n, verbose);
+  if (verbose) {
+    std::cout << "N:\n";
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j)
+        std::cout << ' ' << n[j][i];
+      std::cout << "\n";
+    }
+    std::cout << "decomp of N:\n";
+    for (Int i = 0; i < dim; ++i) {
+      std::cout << n_decomp.l[i] << " * (";
+      for (Int j = 0; j < dim; ++j)
+        std::cout << ' ' << n_decomp.q[i][j];
+      std::cout << ")\n";
+    }
+  }
   bool all_above_one = true;
   bool all_below_one = true;
   for (Int i = 0; i < dim; ++i) {
@@ -72,14 +90,46 @@ INLINE Matrix<dim, dim> intersect_metrics(
   if (all_below_one) return m1;
   if (all_above_one) return m2;
   auto p = n_decomp.q;
+  Vector<dim> u;
+  Vector<dim> v;
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
-    Real u = metric_product(m1, p[i]);
-    Real v = metric_product(m2, p[i]);
-    w[i] = max2(u, v);
+    u[i] = metric_product(m1, p[i]);
+    v[i] = metric_product(m2, p[i]);
+    w[i] = max2(u[i], v[i]);
+    if (verbose) std::cout << "u " << u[i] << " v " << v[i] << " w " << w[i] << '\n';
   }
   auto ip = invert(p);
-  auto m = transpose(ip) * diagonal(w) * ip;
+  auto tip = transpose(ip);
+  if (verbose) {
+    auto m1_again = tip * diagonal(u) * ip;
+    auto m2_again = tip * diagonal(v) * ip;
+    std::cout << "M1:\n";
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j)
+        std::cout << ' ' << m1[j][i];
+      std::cout << "\n";
+    }
+    std::cout << "reconstructed M1:\n";
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j)
+        std::cout << ' ' << m1_again[j][i];
+      std::cout << "\n";
+    }
+    std::cout << "M2:\n";
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j)
+        std::cout << ' ' << m2[j][i];
+      std::cout << "\n";
+    }
+    std::cout << "reconstructed M2:\n";
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j)
+        std::cout << ' ' << m2_again[j][i];
+      std::cout << "\n";
+    }
+  }
+  auto m = tip * diagonal(w) * ip;
   return m;
 }
 
