@@ -335,7 +335,7 @@ static Reals limit_size_field_once_by_adj(
 
 Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate) {
   CHECK(mesh->owners_have_all_upward(VERT));
-  CHECK(max_rate >= 1.0);
+  CHECK(max_rate > 0.0);
   auto comm = mesh->comm();
   Reals values2 = values;
   do {
