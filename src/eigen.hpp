@@ -87,7 +87,10 @@ INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
   auto s = subtract_from_diag(m, l);
   auto n = get_1d_row_space(s);
   auto b = form_ortho_basis(n);
-  return {{ b[1], b[2] }};
+  Few<Vector<3>, 2> o;
+  o[0] = b[1];
+  o[1] = b[2];
+  return o;
 }
 
 template <Int dim>
