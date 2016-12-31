@@ -4,8 +4,6 @@
 #include "polynomial.hpp"
 #include "space.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
@@ -85,19 +83,9 @@ INLINE Vector<m> get_1d_row_space(Matrix<m, m> a) {
 
 /* in the case that the null space is 2D and space is 3D,
    find two vectors that are orthogonal to the 1D row space */
-INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l,
-    bool verbose) {
+INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
   auto s = subtract_from_diag(m, l);
-  if (verbose) {
-    std::cerr << "M - (" << l << ") I =\n";
-    std::cerr << s[0][0] << ' ' << s[1][0] << ' ' << s[2][0] << '\n';
-    std::cerr << s[0][1] << ' ' << s[1][1] << ' ' << s[2][1] << '\n';
-    std::cerr << s[0][2] << ' ' << s[1][2] << ' ' << s[2][2] << '\n';
-  }
   auto n = get_1d_row_space(s);
-  if (verbose) {
-    std::cerr << "row space " << n[0] << ' ' << n[1] << ' ' << n[2] << '\n';
-  }
   auto b = form_ortho_basis(n);
   return {{ b[1], b[2] }};
 }
@@ -108,7 +96,7 @@ struct DiagDecomp {
   Vector<dim> l;
 };
 
-INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m, bool verbose) {
+INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m) {
   auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
@@ -124,7 +112,7 @@ INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m, bool verbose) {
   } else if (nroots == 2 && mults[1] == 2) {
     q[0] = single_eigenvector(m, roots[0]);
     l[0] = roots[0];
-    auto dev = double_eigenvector(m, roots[1], verbose);
+    auto dev = double_eigenvector(m, roots[1]);
     q[1] = dev[0];
     q[2] = dev[1];
     l[1] = l[2] = roots[1];
@@ -138,21 +126,11 @@ INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m, bool verbose) {
 
 /* in the case that the null space is 1D and space is 2D,
    find the basis vector for the 1D row space and rotate it 90 deg */
-INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l,
-    bool verbose) {
-  auto s = subtract_from_diag(m, l);
-  if (verbose) {
-    std::cout << "M - (" << l << ") I =\n";
-    for (Int i = 0; i < 2; ++i) {
-      for (Int j = 0; j < 2; ++j)
-        std::cout << ' ' << s[j][i];
-      std::cout << '\n';
-    }
-  }
-  return perp(get_1d_row_space(s));
+INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l) {
+  return perp(get_1d_row_space(subtract_from_diag(m, l)));
 }
 
-INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m, bool verbose) {
+INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m) {
   auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
@@ -160,19 +138,9 @@ INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m, bool verbose) {
   /* there are only a few output cases, see solve_quadratic() */
   Matrix<2, 2> q;
   Vector<2> l;
-  if (verbose) std::cout << "nroots " << nroots << '\n';
   if (nroots == 2) {
-    if (verbose) {
-      std::cout << "M:\n";
-      std::cout << m[0][0] << ' ' << m[1][0] << '\n';
-      std::cout << m[0][1] << ' ' << m[1][1] << '\n';
-    }
     for (Int i = 0; i < 2; ++i) {
-      q[i] = single_eigenvector(m, roots[i], verbose);
-      if (verbose) {
-        std::cout << "single_eigenvector(m, " << roots[i] << ") -> "
-          << q[i][0] << ' ' << q[i][1] << '\n';
-      }
+      q[i] = single_eigenvector(m, roots[i]);
       l[i] = roots[i];
     }
   } else {
@@ -195,8 +163,7 @@ INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m, bool verbose) {
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
 template <Int dim>
-INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m,
-    bool verbose = false) {
+INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m) {
   /* the cubic solver is especially sensitive to dynamic
      range. what we can do is to normalize the input matrix
      and then re-apply that norm to the resulting roots */
@@ -206,8 +173,7 @@ INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m,
     return {identity_matrix<dim, dim>(), zero_vector<dim>()};
   }
   m = m / nm;
-  if (verbose) std::cout << "matrix norm " << nm << '\n';
-  auto decomp = decompose_eigen_dim(m, verbose);
+  auto decomp = decompose_eigen_dim(m);
   return {decomp.q, decomp.l * nm};
 }
 

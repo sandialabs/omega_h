@@ -5,8 +5,6 @@
 #include "space.hpp"
 #include "lie.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 template <Int dim>
@@ -62,25 +60,9 @@ https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
 
 template <Int dim>
 INLINE Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> m1, Matrix<dim, dim> m2,
-    bool verbose = false) {
+    Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
   auto n = invert(m1) * m2;
-  auto n_decomp = decompose_eigen(n, verbose);
-  if (verbose) {
-    std::cout << "N:\n";
-    for (Int i = 0; i < dim; ++i) {
-      for (Int j = 0; j < dim; ++j)
-        std::cout << ' ' << n[j][i];
-      std::cout << "\n";
-    }
-    std::cout << "decomp of N:\n";
-    for (Int i = 0; i < dim; ++i) {
-      std::cout << n_decomp.l[i] << " * (";
-      for (Int j = 0; j < dim; ++j)
-        std::cout << ' ' << n_decomp.q[i][j];
-      std::cout << ")\n";
-    }
-  }
+  auto n_decomp = decompose_eigen(n);
   bool all_above_one = true;
   bool all_below_one = true;
   for (Int i = 0; i < dim; ++i) {
@@ -90,47 +72,14 @@ INLINE Matrix<dim, dim> intersect_metrics(
   if (all_below_one) return m1;
   if (all_above_one) return m2;
   auto p = n_decomp.q;
-  Vector<dim> u;
-  Vector<dim> v;
   Vector<dim> w;
   for (Int i = 0; i < dim; ++i) {
-    u[i] = metric_product(m1, p[i]);
-    v[i] = metric_product(m2, p[i]);
-    w[i] = max2(u[i], v[i]);
-    if (verbose) std::cout << "u " << u[i] << " v " << v[i] << " w " << w[i] << '\n';
+    auto u = metric_product(m1, p[i]);
+    auto v = metric_product(m2, p[i]);
+    w[i] = max2(u, v);
   }
   auto ip = invert(p);
-  auto tip = transpose(ip);
-  if (verbose) {
-    auto m1_again = tip * diagonal(u) * ip;
-    auto m2_again = tip * diagonal(v) * ip;
-    std::cout << "M1:\n";
-    for (Int i = 0; i < dim; ++i) {
-      for (Int j = 0; j < dim; ++j)
-        std::cout << ' ' << m1[j][i];
-      std::cout << "\n";
-    }
-    std::cout << "reconstructed M1:\n";
-    for (Int i = 0; i < dim; ++i) {
-      for (Int j = 0; j < dim; ++j)
-        std::cout << ' ' << m1_again[j][i];
-      std::cout << "\n";
-    }
-    std::cout << "M2:\n";
-    for (Int i = 0; i < dim; ++i) {
-      for (Int j = 0; j < dim; ++j)
-        std::cout << ' ' << m2[j][i];
-      std::cout << "\n";
-    }
-    std::cout << "reconstructed M2:\n";
-    for (Int i = 0; i < dim; ++i) {
-      for (Int j = 0; j < dim; ++j)
-        std::cout << ' ' << m2_again[j][i];
-      std::cout << "\n";
-    }
-  }
-  auto m = tip * diagonal(w) * ip;
-  return m;
+  return transpose(ip) * diagonal(w) * ip;
 }
 
 /* Alauzet details four different ways to interpolate
@@ -152,10 +101,6 @@ Both (1) and (2) require an eigendecomposition to get M_i^{-1/2},
 which is relatively expensive.
 Both (2) and (3) can be generalized to multiple input
 tensors, for interpolation in a triangle or tet.
-That leaves (3) as being the best choice for these three reasons:
- - It has decent output in anisotropic cases
- - It can be used in triangles and tets
- - It does not require an eigendecomposition
 
 Looking a (1), (2) and (3) suggests that their only
 difference is an operation we will call "linearization",
@@ -164,6 +109,13 @@ that can be safely linearly interpolated.
 (1) M^{-1/2}
 (2) M^{-1}
 (3) M
+
+There is a fifth (fourth ?) option advocated by Loseille,
+Michal, and Krakos which is to use the matrix logarithm
+of M as the "linearized" quantity.
+This is also consistent with work by Mota on using Lie
+algebras to interpolate tensor quantities.
+That is the mechanism we use here:
 */
 
 template <Int dim>

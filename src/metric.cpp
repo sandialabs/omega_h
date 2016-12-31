@@ -205,12 +205,12 @@ template <Int dim>
 class IsoGradation {
  public:
   using Value = Real;
-  static INLINE Value form_limiter(Value h, Vector<dim> v, Real rate, bool) {
+  static INLINE Value form_limiter(Value h, Vector<dim> v, Real rate) {
     auto real_dist = norm(v);
     auto metric_dist = real_dist / h;
     return h * (1.0 + metric_dist * rate);
   }
-  static INLINE Value intersect(Value a, Value b, bool) { return min2(a, b); }
+  static INLINE Value intersect(Value a, Value b) { return min2(a, b); }
   static DEVICE Value get(Reals const& a, LO i) { return a[i]; }
   static DEVICE void set(Write<Real> const& a, LO i, Value v) { a[i] = v; }
   enum { ndofs = 1 };
@@ -220,16 +220,14 @@ template <Int dim>
 class AnisoGradation {
  public:
   using Value = Matrix<dim, dim>;
-  static INLINE Value form_limiter(Value m, Vector<dim> v, Real rate,
-      bool verbose) {
+  static INLINE Value form_limiter(Value m, Vector<dim> v, Real rate) {
     auto metric_dist = metric_length(m, v);
     auto decomp = decompose_metric(m);
-    if (verbose) std::cout << "metric dist " << metric_dist << '\n';
     decomp.l = decomp.l * (1.0 + metric_dist * rate);
     return compose_metric(decomp.q, decomp.l);
   }
-  static INLINE Value intersect(Value a, Value b, bool verbose) {
-    return intersect_metrics(a, b, verbose);
+  static INLINE Value intersect(Value a, Value b) {
+    return intersect_metrics(a, b);
   }
   static DEVICE Value get(Reals const& a, LO i) { return get_symm<dim>(a, i); }
   static DEVICE void set(Write<Real> const& a, LO i, Value v) {
@@ -238,43 +236,12 @@ class AnisoGradation {
   enum { ndofs = symm_dofs(dim) };
 };
 
-template <typename Value>
-struct Print {
-  DEVICE static void go(Value) {}
-};
-
-template <Int dim>
-struct Print<Matrix<dim, dim>> {
-  DEVICE static void go(Matrix<dim, dim> m) {
-    auto decomp = decompose_metric(m);
-    for (Int i = 0; i < dim; ++i) {
-      std::cout << decomp.l[i] << " * (";
-      for (Int j = 0; j < dim; ++j)
-        std::cout << ' ' << decomp.q[i][j];
-      std::cout << ")\n";
-    }
-  }
-};
-
 template <Int dim, template <Int> class Gradation>
 static INLINE typename Gradation<dim>::Value limit_size_value_by_adj(
     typename Gradation<dim>::Value m, Vector<dim> x,
-    typename Gradation<dim>::Value am, Vector<dim> ax, Real rate,
-    bool verbose) {
-  if (verbose) {
-    std::cout << "adj metric\n";
-    Print<decltype(am)>::go(am);
-  }
-  auto limiter = Gradation<dim>::form_limiter(am, ax - x, rate, verbose);
-  if (verbose) {
-    std::cout << "limiter\n";
-    Print<decltype(limiter)>::go(limiter);
-  }
-  auto limited = Gradation<dim>::intersect(m, limiter, verbose);
-  if (verbose) {
-    std::cout << "limited\n";
-    Print<decltype(limited)>::go(limited);
-  }
+    typename Gradation<dim>::Value am, Vector<dim> ax, Real rate) {
+  auto limiter = Gradation<dim>::form_limiter(am, ax - x, rate);
+  auto limited = Gradation<dim>::intersect(m, limiter);
   return limited;
 }
 
@@ -288,17 +255,11 @@ static Reals limit_size_field_once_by_adj_tmpl(
   auto f = LAMBDA(LO v) {
     auto m = G::get(values, v);
     auto x = get_vector<dim>(coords, v);
-    auto verbose = (v == 962);
-    if (verbose) {
-      std::cout << "before limiting\n";
-      Print<decltype(m)>::go(m);
-    }
     for (auto vv = v2v.a2ab[v]; vv < v2v.a2ab[v + 1]; ++vv) {
       auto av = v2v.ab2b[vv];
-      if (verbose) std::cout << "adj vert " << av << '\n';
       auto am = G::get(values, av);
       auto ax = get_vector<dim>(coords, av);
-      m = limit_size_value_by_adj<dim, Gradation>(m, x, am, ax, max_rate, verbose);
+      m = limit_size_value_by_adj<dim, Gradation>(m, x, am, ax, max_rate);
     }
     G::set(out, v, m);
   };
@@ -341,7 +302,6 @@ Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate) {
   do {
     values = values2;
     values2 = limit_size_field_once_by_adj(mesh, values, max_rate);
-    if ((1)) break;
   } while (!comm->reduce_and(are_close(values, values2)));
   return values2;
 }
