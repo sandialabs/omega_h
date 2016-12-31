@@ -110,6 +110,20 @@ static void test_eigen_cubic(Matrix<3, 3> m, Vector<3> l_expect) {
   auto q = ed.q;
   auto l = ed.l;
   CHECK(are_close(l, l_expect, 1e-8, 1e-8));
+  if (!are_close(m, compose_eigen(q, l))) {
+    ed = decompose_eigen(m, true);
+    std::cout.flush();
+    std::cerr << "M\n";
+    std::cerr << m[0][0] << ' ' << m[1][0] << ' ' << m[2][0] << '\n';
+    std::cerr << m[0][1] << ' ' << m[1][1] << ' ' << m[2][1] << '\n';
+    std::cerr << m[0][2] << ' ' << m[1][2] << ' ' << m[2][2] << '\n';
+    std::cerr << "Q\n";
+    std::cerr << q[0][0] << ' ' << q[1][0] << ' ' << q[2][0] << '\n';
+    std::cerr << q[0][1] << ' ' << q[1][1] << ' ' << q[2][1] << '\n';
+    std::cerr << q[0][2] << ' ' << q[1][2] << ' ' << q[2][2] << '\n';
+    std::cerr << "L\n";
+    std::cerr << l[0] << ' ' << l[1] << ' ' << l[2] << '\n';
+  }
   CHECK(are_close(m, compose_eigen(q, l)));
 }
 

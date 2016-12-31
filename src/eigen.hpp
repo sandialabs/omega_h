@@ -35,21 +35,25 @@ INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
 /* the null space of the matrix (s = m - l*I)
    is the space spanned by the eigenvectors.
    the multiplicity of this root is the dimensionality
-   of that space, i.e. the number of eigenvectors. */
+   of that space, i.e. the number of eigenvectors.
+   since the null space is the orthogonal component of
+   the row span, we essentially first find the row space */
 
 /* in the case that the null space is 1D and space is 3D,
-   take the largest cross product of any pair of columns */
+   then the row space is 2D (a plane in 3D)
+   take the largest cross product of any pair of rows,
+   that should give a vector in the null space */
 INLINE Vector<3> single_eigenvector(Matrix<3, 3> m, Real l) {
-  subtract_from_diag(m, l);
-  auto v = cross(m[0], m[1]);
-  Real v_norm = norm(v);
-  Vector<3> c = cross(m[1], m[2]);
-  Real c_norm = norm(c);
+  auto s = transpose(subtract_from_diag(m, l));
+  auto v = cross(s[0], s[1]);
+  auto v_norm = norm(v);
+  auto c = cross(s[1], s[2]);
+  auto c_norm = norm(c);
   if (c_norm > v_norm) {
     v = c;
     v_norm = c_norm;
   }
-  c = cross(m[0], m[2]);
+  c = cross(s[0], s[2]);
   c_norm = norm(c);
   if (c_norm > v_norm) {
     v = c;
@@ -60,34 +64,42 @@ INLINE Vector<3> single_eigenvector(Matrix<3, 3> m, Real l) {
   return v;
 }
 
+/* in the case that all rows of (a) are linearly dependent,
+   this function will return the unit vector of the row
+   that had the highest norm, which is a basis for the row space */
 template <Int m>
-INLINE Vector<m> get_1d_column_space(Matrix<m, m> a,
-    bool verbose = false) {
-  Vector<m> v = zero_vector<m>();
-  Real v_norm = 0;
-  for (Int j = 0; j < m; ++j) {
-    Real c_norm = norm(a[j]);
-    if (verbose) std::cout << "norm[" << j << "] = " << c_norm << '\n';
-    if (c_norm > v_norm) {
-      v = a[j];
-      v_norm = c_norm;
+INLINE Vector<m> get_1d_row_space(Matrix<m, m> a) {
+  auto ta = transpose(a);
+  auto best_row = 0;
+  auto best_norm = norm(ta[best_row]);
+  for (Int i = 1; i < m; ++i) {
+    auto row_norm = norm(ta[i]);
+    if (row_norm > best_norm) {
+      best_row = i;
+      best_norm = row_norm;
     }
   }
-  CHECK(v_norm > EPSILON);
-  return v / v_norm;
+  CHECK(best_norm > EPSILON);
+  return ta[best_row] / best_norm;
 }
 
-/* in the case that the null space is 2D, find the
-   largest-norm column and get a couple vectors
-   orthogonal to that */
-INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
-  subtract_from_diag(m, l);
-  Vector<3> n = get_1d_column_space(m);
-  Matrix<3, 3> b = form_ortho_basis(n);
-  Few<Vector<3>, 2> out;
-  out[0] = b[1];
-  out[1] = b[2];
-  return out;
+/* in the case that the null space is 2D and space is 3D,
+   find two vectors that are orthogonal to the 1D row space */
+INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l,
+    bool verbose) {
+  auto s = subtract_from_diag(m, l);
+  if (verbose) {
+    std::cerr << "M - (" << l << ") I =\n";
+    std::cerr << s[0][0] << ' ' << s[1][0] << ' ' << s[2][0] << '\n';
+    std::cerr << s[0][1] << ' ' << s[1][1] << ' ' << s[2][1] << '\n';
+    std::cerr << s[0][2] << ' ' << s[1][2] << ' ' << s[2][2] << '\n';
+  }
+  auto n = get_1d_row_space(s);
+  if (verbose) {
+    std::cerr << "row space " << n[0] << ' ' << n[1] << ' ' << n[2] << '\n';
+  }
+  auto b = form_ortho_basis(n);
+  return {{ b[1], b[2] }};
 }
 
 template <Int dim>
@@ -96,7 +108,7 @@ struct DiagDecomp {
   Vector<dim> l;
 };
 
-INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m, bool) {
+INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m, bool verbose) {
   auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
@@ -112,7 +124,7 @@ INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m, bool) {
   } else if (nroots == 2 && mults[1] == 2) {
     q[0] = single_eigenvector(m, roots[0]);
     l[0] = roots[0];
-    auto dev = double_eigenvector(m, roots[1]);
+    auto dev = double_eigenvector(m, roots[1], verbose);
     q[1] = dev[0];
     q[2] = dev[1];
     l[1] = l[2] = roots[1];
@@ -125,10 +137,10 @@ INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m, bool) {
 }
 
 /* in the case that the null space is 1D and space is 2D,
-   get the largest column and rotate it 90 deg */
+   find the basis vector for the 1D row space and rotate it 90 deg */
 INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l,
     bool verbose) {
-  Matrix<2, 2> s = (m - (l * identity_matrix<2, 2>()));
+  auto s = subtract_from_diag(m, l);
   if (verbose) {
     std::cout << "M - (" << l << ") I =\n";
     for (Int i = 0; i < 2; ++i) {
@@ -137,7 +149,7 @@ INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l,
       std::cout << '\n';
     }
   }
-  return perp(get_1d_column_space(s, verbose));
+  return perp(get_1d_row_space(s));
 }
 
 INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m, bool verbose) {
@@ -200,16 +212,14 @@ INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m,
 }
 
 /* Q, again, being the matrix whose columns
-   are the right eigenvectors, *not* the
-   change of basis matrix */
+   are the right eigenvectors, but not necessarily unitary */
 template <Int dim>
 INLINE Matrix<dim, dim> compose_eigen(Matrix<dim, dim> q, Vector<dim> l) {
-  return transpose(q * diagonal(l) * invert(q));
+  return q * diagonal(l) * invert(q);
 }
 
-/* like the above, but knowing Q is orthonormal,
-   meaning in this case it *is* the change of basis
-   matrix */
+/* like the above, but knowing Q is unitary,
+   so the transpose is the inverse */
 template <Int dim>
 INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
