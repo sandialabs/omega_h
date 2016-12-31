@@ -70,13 +70,12 @@ set(Omega_h_SOURCES
   swap3d_topology.cpp
   swap3d.cpp
   regress.cpp
-  consistent.cpp
   align.cpp
   xml.cpp
   derive.cpp
   project.cpp
   buffered_graphs.cpp
-  overshoot.cpp
+  Omega_h_coarsen_overshoot.cpp
   collapse_rail.cpp
   histogram.cpp
   stacktrace.cpp
