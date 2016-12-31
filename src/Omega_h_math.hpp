@@ -215,6 +215,14 @@ OMEGA_H_INLINE Matrix<max_m, max_n> identity_matrix() {
   return identity_matrix<max_m, max_n>(max_m, max_n);
 }
 
+OMEGA_H_INLINE Matrix<2, 2> matrix_2x2(
+    Real a, Real b, Real c, Real d) {
+  Matrix<2, 2> o;
+  o[0] = vector_2(a, c);
+  o[1] = vector_2(b, d);
+  return o;
+}
+
 OMEGA_H_INLINE Matrix<3, 3> matrix_3x3(
     Real a, Real b, Real c, Real d, Real e, Real f, Real g, Real h, Real i) {
   Matrix<3, 3> o;
