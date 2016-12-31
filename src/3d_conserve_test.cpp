@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "Omega_h_compare.hpp"
 #include "access.hpp"
 #include "array.hpp"
 #include "internal.hpp"
@@ -8,7 +9,6 @@
 #include "size.hpp"
 #include "space.hpp"
 #include "timer.hpp"
-#include "Omega_h_compare.hpp"
 
 using namespace Omega_h;
 

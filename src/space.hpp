@@ -23,9 +23,7 @@ INLINE Matrix<2, 2> rotate(Real angle) {
   return matrix_2x2(cos(angle), -sin(angle), sin(angle), cos(angle));
 }
 
-INLINE Real rotation_angle(Matrix<2, 2> r) {
-  return acos(r[0][0]);
-}
+INLINE Real rotation_angle(Matrix<2, 2> r) { return acos(r[0][0]); }
 
 INLINE Real rotation_angle(Matrix<3, 3> r) __attribute__((pure));
 INLINE Real rotation_angle(Matrix<3, 3> r) {

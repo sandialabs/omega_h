@@ -2,8 +2,8 @@
 #define METRIC_HPP
 
 #include "eigen.hpp"
-#include "space.hpp"
 #include "lie.hpp"
+#include "space.hpp"
 
 namespace Omega_h {
 

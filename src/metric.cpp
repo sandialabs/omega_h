@@ -152,8 +152,7 @@ static INLINE Matrix<dim, dim> metric_from_hessian(
 }
 
 template <Int dim>
-static Reals metric_from_hessians_dim(
-    Reals hessians, Real eps, Real hmax) {
+static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmax) {
   auto ncomps = symm_dofs(dim);
   CHECK(hessians.size() % ncomps == 0);
   auto n = hessians.size() / ncomps;
@@ -167,8 +166,7 @@ static Reals metric_from_hessians_dim(
   return out;
 }
 
-Reals metric_from_hessians(
-    Int dim, Reals hessians, Real eps, Real hmax) {
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax) {
   CHECK(hmax > 0.0);
   CHECK(eps > 0.0);
   if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps, hmax);
@@ -176,8 +174,8 @@ Reals metric_from_hessians(
   NORETURN(Reals());
 }
 
-Reals metric_for_nelems_from_hessians(Mesh* mesh, Real target_nelems,
-    Real tolerance, Reals hessians, Real hmax) {
+Reals metric_for_nelems_from_hessians(
+    Mesh* mesh, Real target_nelems, Real tolerance, Reals hessians, Real hmax) {
   CHECK(tolerance > 0);
   CHECK(target_nelems > 0);
   auto dim = mesh->dim();

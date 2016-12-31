@@ -78,7 +78,7 @@ class CmdLine {
   extern template void CmdLine::add_arg<T>(                                    \
       std::string const& name, T const& defval);                               \
   extern template T CmdLine::get<T>(                                           \
-      std::string const& flag_name, std::string const& arg_name) const;              \
+      std::string const& flag_name, std::string const& arg_name) const;        \
   extern template T CmdLine::get<T>(std::string const& arg_name) const;
 OMEGA_H_EXPL_INST_DECL(int)
 OMEGA_H_EXPL_INST_DECL(double)
