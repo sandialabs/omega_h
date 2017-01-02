@@ -6,6 +6,8 @@
 #include "quality.hpp"
 #include "loop.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 template <Int dim>
@@ -35,6 +37,8 @@ class IsoMotion {
     return mesh->get_array<Real>(VERT, "size");
   }
   DEVICE static Metric get_metric(Reals metrics, LO v) {
+    CHECK(v >= 0);
+    CHECK(v < metrics.size());
     return metrics[v];
   }
   /* metric is unused by shape quality measure, so don't bother
@@ -76,11 +80,13 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
   auto qualities_w = Write<Real>(ncands);
   auto f = LAMBDA(LO cand) {
     auto v = cands2verts[cand];
+    std::cerr << "cand " << cand << " v " << v << '\n';
     auto cm = Helper<dim>::get_metric(metrics, v);
     auto lcm = linearize_metric(cm);
     auto cx = get_vector<dim>(coords, v);
     auto old_qual = cands2old_qual[cand];
     auto last_qual = old_qual;
+    std::cerr << "old qual " << old_qual << '\n';
     for (Int step = 0; step < max_steps; ++step) {
       auto best_qual = last_qual;
       bool found_step = false;
@@ -88,14 +94,17 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
       auto best_m = cm;
       for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
         auto e = v2e.ab2b[ve];
-        auto evv_c = v2e.codes[ve];
+        auto ve_code = v2e.codes[ve];
+        auto evv_c = code_which_down(ve_code);
         auto evv_o = 1 - evv_c;
         auto evv2v = gather_verts<2>(ev2v, e);
         auto ov = evv2v[evv_o];
+        std::cerr << "ov " << ov << '\n';
         auto ox = get_vector<dim>(coords, ov);
         auto d = ox - cx;
         auto s = d * step_size;
         auto nx = cx + s;
+        std::cerr << "nx " << nx[0] << ' ' << nx[1] << '\n';
         auto om = Helper<dim>::get_metric(metrics, ov);
         auto lom = linearize_metric(om); // could cache these
         auto lnm = lcm * (1.0 - step_size) + lom * step_size;
@@ -111,15 +120,18 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
         Real new_qual = 1.0;
         for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
           auto k = v2k.ab2b[vk];
-          auto kvv_c = v2k.codes[vk];
+          auto vk_code = v2k.codes[vk];
+          auto kvv_c = code_which_down(vk_code);
           auto kvv2v = gather_verts<dim + 1>(kv2v, k);
           auto kvv2nx = gather_vectors<dim + 1, dim>(coords, kvv2v);
           kvv2nx[kvv_c] = nx;
           auto km = Helper<dim>::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
           auto k_qual = metric_element_quality(kvv2nx, km);
+          std::cerr << "k_qual " << k_qual << '\n';
           new_qual = min2(new_qual, k_qual);
           if (new_qual <= best_qual) break;
         } // end loop over elements for quality
+        std::cerr << "new_qual " << new_qual << '\n';
         if (new_qual <= best_qual) continue;
         found_step = true;
         best_qual = new_qual;
