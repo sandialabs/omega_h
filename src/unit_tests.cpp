@@ -29,8 +29,6 @@
 #include "vtk.hpp"
 #include "xml.hpp"
 
-#include <iomanip>   //remove this now !
-#include <iostream>  //remove this now !
 #include <sstream>
 
 using namespace Omega_h;
