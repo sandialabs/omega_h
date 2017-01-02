@@ -1,5 +1,6 @@
 #include "Omega_h_compare.hpp"
 #include "Omega_h_math.hpp"
+#include "Omega_h_motion.hpp"
 #include "adjacency.hpp"
 #include "align.hpp"
 #include "array.hpp"
@@ -881,6 +882,18 @@ static void test_lie() {
   CHECK(are_close(a2, a));
 }
 
+static void test_motion(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 0, 2, 2, 0);
+  vtk::Writer writer(&mesh, "motion", mesh.dim());
+  writer.write();
+  auto coords_w = deep_copy(mesh.coords());
+  coords_w.set(4 * 2 + 0, 0.25);
+  coords_w.set(4 * 2 + 1, 0.25);
+  mesh.set_coords(coords_w);
+  writer.write();
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_edge_length();
@@ -932,5 +945,6 @@ int main(int argc, char** argv) {
   test_categorize_graph();
   test_circumcenter();
   test_lie();
+  test_motion(&lib);
   CHECK(get_current_bytes() == 0);
 }

@@ -6,6 +6,7 @@
 namespace Omega_h {
 
 struct MotionChoices {
+  Read<I8> cands_did_move;
   Reals qualities;
   Reals coordinates;
 };
