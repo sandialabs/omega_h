@@ -30,7 +30,6 @@
 #include "vtk.hpp"
 #include "xml.hpp"
 
-#include <iostream>
 #include <sstream>
 
 using namespace Omega_h;
@@ -889,23 +888,20 @@ static void test_motion(Library* lib) {
   auto sizes = find_implied_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE,
       OMEGA_H_DO_OUTPUT, sizes);
-  vtk::Writer writer(&mesh, "motion", mesh.dim());
-  writer.write();
   auto coords_w = deep_copy(mesh.coords());
-  coords_w.set(4 * 2 + 0, 0.25);
-  coords_w.set(4 * 2 + 1, 0.25);
+  coords_w.set(4 * 2 + 0, 0.74);
+  coords_w.set(4 * 2 + 1, 0.26);
   mesh.set_coords(coords_w);
-  writer.write();
+  CHECK(mesh.min_quality() < 0.5);
   AdaptOpts opts(&mesh);
   auto cands2verts = LOs({4});
   auto choices = get_motion_choices(&mesh, opts, cands2verts);
   CHECK(choices.cands_did_move.get(0));
-  std::cout << "quality " << choices.qualities.get(0) << '\n';
   coords_w = deep_copy(mesh.coords());
   coords_w.set(4 * 2 + 0, choices.coordinates.get(0));
   coords_w.set(4 * 2 + 1, choices.coordinates.get(1));
   mesh.set_coords(coords_w);
-  writer.write();
+  CHECK(mesh.min_quality() > 0.8);
 }
 
 int main(int argc, char** argv) {
