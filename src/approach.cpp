@@ -47,6 +47,11 @@ static bool approach_either(Mesh* mesh, AdaptOpts const& opts,
   Real t = 1.0;
   do {
     t /= 2.0;
+    if (t < EPSILON) {
+      Omega_h_fail("size field approach step = %f < %f.\n"
+                   "Omega_h is probably unable to satisfy this size field\n",
+                   t, EPSILON);
+    }
     auto current = (*interpolator)(mesh->dim(), orig, target, t);
     mesh->set_tag(VERT, name, current);
   } while (!okay(mesh, opts));
