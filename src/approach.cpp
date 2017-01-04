@@ -45,8 +45,14 @@ static bool approach_either(Mesh* mesh, AdaptOpts const& opts,
     return true;
   }
   Real t = 1.0;
+  constexpr Real min_t = 1e-4;
   do {
     t /= 2.0;
+    if (t < min_t) {
+      Omega_h_fail("size field approach step = %f < %f.\n"
+                   "Omega_h is probably unable to satisfy this size field\n",
+                   t, min_t);
+    }
     auto current = (*interpolator)(mesh->dim(), orig, target, t);
     mesh->set_tag(VERT, name, current);
   } while (!okay(mesh, opts));
