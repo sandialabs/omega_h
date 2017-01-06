@@ -672,6 +672,8 @@ template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b);
 template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a);
+template <typename T>
+Read<T> min_each(Read<T> a, Read<T> b);
 LOs collect_marked(Read<I8> marks);
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
@@ -775,6 +777,7 @@ bool ends_with(std::string const& s, std::string const& suffix);
   extern template class HostWrite<T>;                                          \
   extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
   extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
+  extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
   extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \
