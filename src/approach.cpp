@@ -5,6 +5,19 @@
 
 namespace Omega_h {
 
+static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
+  auto minq = mesh->min_quality();
+  if (minq < opts.min_quality_allowed) {
+    Omega_h_fail("minimum element quality %f < minimum allowed quality %f\n",
+        minq, opts.min_quality_allowed);
+  }
+  auto maxl = mesh->max_length();
+  if (maxl > opts.max_length_allowed) {
+    Omega_h_fail("maximum edge length %f > maximum allowed length %f\n",
+        maxl, opts.max_length_allowed);
+  }
+}
+
 static bool okay(Mesh* mesh, AdaptOpts const& opts) {
   return mesh->min_quality() >= opts.min_quality_allowed &&
          mesh->max_length() <= opts.max_length_allowed;
@@ -12,7 +25,7 @@ static bool okay(Mesh* mesh, AdaptOpts const& opts) {
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
   if (!mesh->has_tag(VERT, "warp")) return false;
-  CHECK(okay(mesh, opts));
+  check_okay(mesh, opts);
   auto coords = mesh->coords();
   auto warp = mesh->get_array<Real>(VERT, "warp");
   mesh->set_coords(add_each(coords, warp));
@@ -36,7 +49,7 @@ static bool approach_either(Mesh* mesh, AdaptOpts const& opts,
     Reals (*interpolator)(Int dim, Reals orig, Reals target, Real t)) {
   auto target_name = std::string("target_") + name;
   if (!mesh->has_tag(VERT, target_name)) return false;
-  CHECK(okay(mesh, opts));
+  check_okay(mesh, opts);
   auto orig = mesh->get_array<Real>(VERT, name);
   auto target = mesh->get_array<Real>(VERT, target_name);
   mesh->set_tag(VERT, name, target);
