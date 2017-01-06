@@ -176,7 +176,7 @@ static Reals get_recip_length_weights(Mesh* mesh, Adj surf_verts2edges, LOs surf
   auto edge2weight_w = Write<Real>(nedges);
   auto f = LAMBDA(LO edge) {
     if (surf_edge2edge[edge] == -1) edge2weight_w[edge] = 0.0;
-    else edge2weight_w[edge] = 1.0 / edge2len[se];
+    else edge2weight_w[edge] = 1.0 / edge2len[edge];
   };
   parallel_for(nedges, f);
   auto edge2weight = Reals(edge2weight_w);
@@ -189,7 +189,7 @@ static Reals side_vert_normal_weights(Mesh* mesh, Adj surf_verts2sides,
     return tri_vert_normal_weights(mesh, surf_verts2sides, surf_side2side);
   }
   if (mesh->dim() == 2) {
-    return get_recip_length_weights(mesh, surf_verts2sides, surf_edge2edge);
+    return get_recip_length_weights(mesh, surf_verts2sides, surf_side2side);
   }
   NORETURN(Reals());
 }
@@ -218,8 +218,7 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
  * In order to handle this case, we locally negate vectors as
  * necessary to get a correct tangent vector at each vertex
  */
-static Read<I8> get_curv_vert_edge_flips(
-    Mesh* mesh, Adj curv_verts2edges, LOs edges2curv_edge) {
+static Read<I8> get_curv_vert_edge_flips(Adj curv_verts2edges, LOs edges2curv_edge) {
   auto out = Write<I8>(curv_verts2edges.nedges());
   auto ncurv_verts = curv_verts2edges.nnodes();
   auto f = LAMBDA(LO curv_vert) {
@@ -242,9 +241,9 @@ static Read<I8> get_curv_vert_edge_flips(
 
 static Read<I8> get_curv_edge_vert_flips(
     Mesh* mesh, Adj curv_verts2edges, LOs edges2curv_edge) {
-  auto in = get_curv_vert_edge_flips(mesh, curv_verts2edges, edges2curv_edge);
+  auto in = get_curv_vert_edge_flips(curv_verts2edges, edges2curv_edge);
   auto out = Write<I8>(mesh->nedges() * 2, I8(0));
-  auto ncurv_verts = curv_verts2vert.size();
+  auto ncurv_verts = curv_verts2edges.nnodes();
   auto f = LAMBDA(LO curv_vert) {
     for (auto ve = curv_verts2edges.a2ab[curv_vert];
          ve < curv_verts2edges.a2ab[curv_vert + 1];
@@ -261,46 +260,46 @@ static Read<I8> get_curv_edge_vert_flips(
 
 template <Int dim>
 static Reals get_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
-    Reals curv_edge_tangents, LOs curv_vert2vert) {
+    Reals curv_edge_tangents, LOs curv_verts2vert) {
   CHECK(mesh->dim() == dim);
   CHECK(mesh->owners_have_all_upward(VERT));
   auto verts2edges = mesh->ask_up(VERT, EDGE);
-  auto curv_verts2edges = unmap_adjacency(curv_vert2vert, verts2edges);
+  auto curv_verts2edges = unmap_adjacency(curv_verts2vert, verts2edges);
   auto narcs = curv_verts2edges.nedges();
   auto edge2curv_edge = invert_injective_map(curv_edge2edge, mesh->nedges());
   auto arcs2tangents_w = Write<Real>(narcs * dim);
-  auto arcs2flip = get_curv_vert_edge_flips(mesh, curv_verts2edges, edge2curv_edge);
+  auto arcs2flip = get_curv_vert_edge_flips(curv_verts2edges, edge2curv_edge);
   auto f = LAMBDA(LO arc) {
     auto e = curv_verts2edges.ab2b[arc];
     auto ce = edge2curv_edge[e];
     if (-1 == ce)
-      set_vector(graph_tangents_w, ve, zero_vector<dim>());
+      set_vector(arcs2tangents_w, arc, zero_vector<dim>());
     else {
       auto tangent = get_vector<dim>(curv_edge_tangents, ce);
       if (arcs2flip[arc]) tangent = -tangent;
-      set_vector(graph_tangents_w, ve, tangent);
+      set_vector(arcs2tangents_w, arc, tangent);
     }
   };
   parallel_for(narcs, f);
   auto arcs2tangents = Reals(arcs2tangents_w);
-  auto weights = get_recip_length_weights(curv_verts2edges, curv_edge2edge);
+  auto weights = get_recip_length_weights(mesh, curv_verts2edges, curv_edge2edge);
   auto curv_vert_tangents =
       graph_weighted_average_arc_data(
           curv_verts2edges, weights, arcs2tangents, dim);
   curv_vert_tangents = mesh->sync_subset_array(
-      VERT, curv_vert_tangents, curv_vert2vert, 0.0, dim);
+      VERT, curv_vert_tangents, curv_verts2vert, 0.0, dim);
   return normalize_vectors(curv_vert_tangents, dim);
 }
 
 Reals get_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
-    Reals curv_edge_tangents, LOs curv_vert2vert) {
+    Reals curv_edge_tangents, LOs curv_verts2vert) {
   if (mesh->dim() == 3) {
     return get_vert_tangents_dim<3>(
-        mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
+        mesh, curv_edge2edge, curv_edge_tangents, curv_verts2vert);
   }
   if (mesh->dim() == 2) {
     return get_vert_tangents_dim<2>(
-        mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
+        mesh, curv_edge2edge, curv_edge_tangents, curv_verts2vert);
   }
   NORETURN(Reals());
 }
@@ -473,8 +472,10 @@ Reals get_edge_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto ncurv_edges = curv_edges2edge.size();
   auto curv_edges2curvature_w = Write<Real>(ncurv_edges);
+  auto verts2edges = mesh->ask_up(VERT, EDGE);
+  auto curv_verts2edges = unmap_adjacency(curv_verts2vert, verts2edges);
   auto ev_flips =
-      get_curv_edge_vert_flips(mesh, curv_verts2vert, edges2curv_edge);
+      get_curv_edge_vert_flips(mesh, curv_verts2edges, edges2curv_edge);
   auto coords = mesh->coords();
   auto f = LAMBDA(LO curv_edge) {
     auto edge = curv_edges2edge[curv_edge];
@@ -606,7 +607,7 @@ Reals get_vert_curvatures(Mesh* mesh) {
   auto surf_vert2vert = collect_marked(verts_are_surf);
   auto vert_curvatures_w = Write<Real>(mesh->nverts(), 0.0);
   LOs curv_edge2edge;
-  LOs curv_vert2vert;
+  LOs curv_verts2vert;
   if (mesh->dim() == 3) {
     auto surf_side_normals = get_side_normals(mesh, surf_side2side);
     auto side_normals = map_onto(
@@ -618,7 +619,7 @@ Reals get_vert_curvatures(Mesh* mesh) {
     auto edges_are_curv = mark_by_class_dim(mesh, EDGE, EDGE);
     auto verts_are_curv = mark_by_class_dim(mesh, VERT, EDGE);
     curv_edge2edge = collect_marked(edges_are_curv);
-    curv_vert2vert = collect_marked(verts_are_curv);
+    curv_verts2vert = collect_marked(verts_are_curv);
     auto surf_tri_IIs = get_triangle_IIs(mesh, surf_side2side,
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto tri_IIs =
@@ -631,22 +632,22 @@ Reals get_vert_curvatures(Mesh* mesh) {
     map_into(surf_vert_curvatures, surf_vert2vert, vert_curvatures_w, 1);
   } else {
     curv_edge2edge = surf_side2side;
-    curv_vert2vert = surf_vert2vert;
+    curv_verts2vert = surf_vert2vert;
   }
   auto curv_edge_tangents = get_edge_tangents(mesh, curv_edge2edge);
   auto edge_tangents = map_onto(
       curv_edge_tangents, curv_edge2edge, mesh->nedges(), 0.0, mesh->dim());
   auto curv_vert_tangents = get_vert_tangents(
-      mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
+      mesh, curv_edge2edge, curv_edge_tangents, curv_verts2vert);
   auto vert_tangents = map_onto(
-      curv_vert_tangents, curv_vert2vert, mesh->nverts(), 0.0, mesh->dim());
+      curv_vert_tangents, curv_verts2vert, mesh->nverts(), 0.0, mesh->dim());
   auto curv_edge_curvatures = get_edge_curvatures(mesh, curv_edge2edge,
-      curv_edge_tangents, curv_vert2vert, curv_vert_tangents);
+      curv_edge_tangents, curv_verts2vert, curv_vert_tangents);
   auto edge_curvatures =
       map_onto(curv_edge_curvatures, curv_edge2edge, mesh->nedges(), 0.0, 1);
   auto curv_vert_curvatures = get_curv_vert_curvatures(
-      mesh, curv_edge2edge, curv_edge_curvatures, curv_vert2vert);
-  map_into(curv_vert_curvatures, curv_vert2vert, vert_curvatures_w, 1);
+      mesh, curv_edge2edge, curv_edge_curvatures, curv_verts2vert);
+  map_into(curv_vert_curvatures, curv_verts2vert, vert_curvatures_w, 1);
   return get_corner_vert_curvatures(mesh, vert_curvatures_w);
 }
 
