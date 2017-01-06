@@ -131,9 +131,7 @@ Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
  */
 
 static Reals tri_vert_normal_weights(Mesh* mesh,
-    Adj surf_verts2tris, LOs surf_tri2tri) {
-  auto ntris = mesh->ntris();
-  auto tri2surf_tri = invert_injective_map(surf_tri2tri, ntris);
+    Adj surf_verts2tris, LOs tri2surf_tri) {
   auto nsurf_verts = surf_verts2tris.nnodes();
   auto fv2v = mesh->ask_verts_of(TRI);
   auto coords = mesh->coords();
@@ -170,12 +168,12 @@ static Reals tri_vert_normal_weights(Mesh* mesh,
  * one over the length of the edge.
  */
 
-static Reals get_recip_length_weights(Mesh* mesh, Adj surf_verts2edges, LOs surf_edge2edge) {
+static Reals get_recip_length_weights(Mesh* mesh, Adj surf_verts2edges, LOs edge2surf_edge) {
   auto edge2len = measure_edges_real(mesh);
   auto nedges = mesh->nedges();
   auto edge2weight_w = Write<Real>(nedges);
   auto f = LAMBDA(LO edge) {
-    if (surf_edge2edge[edge] == -1) edge2weight_w[edge] = 0.0;
+    if (edge2surf_edge[edge] == -1) edge2weight_w[edge] = 0.0;
     else edge2weight_w[edge] = 1.0 / edge2len[edge];
   };
   parallel_for(nedges, f);
@@ -184,12 +182,12 @@ static Reals get_recip_length_weights(Mesh* mesh, Adj surf_verts2edges, LOs surf
 }
 
 static Reals side_vert_normal_weights(Mesh* mesh, Adj surf_verts2sides,
-    LOs surf_side2side) {
+    LOs side2surf_side) {
   if (mesh->dim() == 3) {
-    return tri_vert_normal_weights(mesh, surf_verts2sides, surf_side2side);
+    return tri_vert_normal_weights(mesh, surf_verts2sides, side2surf_side);
   }
   if (mesh->dim() == 2) {
-    return get_recip_length_weights(mesh, surf_verts2sides, surf_side2side);
+    return get_recip_length_weights(mesh, surf_verts2sides, side2surf_side);
   }
   NORETURN(Reals());
 }
@@ -200,8 +198,9 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
   auto dim = mesh->dim();
   auto verts2sides = mesh->ask_up(VERT, dim - 1);
   auto surf_verts2sides = unmap_adjacency(surf_vert2vert, verts2sides);
-  auto weights = side_vert_normal_weights(mesh, surf_verts2sides, surf_side2side);
   auto nsides = mesh->nents(dim - 1);
+  auto side2surf_side = invert_injective_map(surf_side2side, nsides);
+  auto weights = side_vert_normal_weights(mesh, surf_verts2sides, side2surf_side);
   auto side_normals =
       map_onto(surf_side_normals, surf_side2side, nsides, 0.0, dim);
   auto surf_vert_normals = graph_weighted_average(
@@ -282,7 +281,7 @@ static Reals get_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
   };
   parallel_for(narcs, f);
   auto arcs2tangents = Reals(arcs2tangents_w);
-  auto weights = get_recip_length_weights(mesh, curv_verts2edges, curv_edge2edge);
+  auto weights = get_recip_length_weights(mesh, curv_verts2edges, edge2curv_edge);
   auto curv_vert_tangents =
       graph_weighted_average_arc_data(
           curv_verts2edges, weights, arcs2tangents, dim);
