@@ -130,8 +130,8 @@ Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
  * Journal of Graphics Tools 4.2 (1999): 1-6.
  */
 
-static Reals tri_vert_normal_weights(Mesh* mesh,
-    Adj surf_verts2tris, LOs tri2surf_tri) {
+static Reals tri_vert_normal_weights(
+    Mesh* mesh, Adj surf_verts2tris, LOs tri2surf_tri) {
   auto nsurf_verts = surf_verts2tris.nnodes();
   auto fv2v = mesh->ask_verts_of(TRI);
   auto coords = mesh->coords();
@@ -139,8 +139,7 @@ static Reals tri_vert_normal_weights(Mesh* mesh,
   auto weights = Write<Real>(nweights);
   auto func = LAMBDA(LO surf_vert) {
     for (auto vf = surf_verts2tris.a2ab[surf_vert];
-         vf < surf_verts2tris.a2ab[surf_vert + 1];
-         ++vf) {
+         vf < surf_verts2tris.a2ab[surf_vert + 1]; ++vf) {
       auto f = surf_verts2tris.ab2b[vf];
       if (tri2surf_tri[f] < 0) {
         weights[vf] = 0.0;
@@ -168,21 +167,24 @@ static Reals tri_vert_normal_weights(Mesh* mesh,
  * one over the length of the edge.
  */
 
-static Reals get_recip_length_weights(Mesh* mesh, Adj surf_verts2edges, LOs edge2surf_edge) {
+static Reals get_recip_length_weights(
+    Mesh* mesh, Adj surf_verts2edges, LOs edge2surf_edge) {
   auto edge2len = measure_edges_real(mesh);
   auto nedges = mesh->nedges();
   auto edge2weight_w = Write<Real>(nedges);
   auto f = LAMBDA(LO edge) {
-    if (edge2surf_edge[edge] == -1) edge2weight_w[edge] = 0.0;
-    else edge2weight_w[edge] = 1.0 / edge2len[edge];
+    if (edge2surf_edge[edge] == -1)
+      edge2weight_w[edge] = 0.0;
+    else
+      edge2weight_w[edge] = 1.0 / edge2len[edge];
   };
   parallel_for(nedges, f);
   auto edge2weight = Reals(edge2weight_w);
   return unmap(surf_verts2edges.ab2b, edge2weight, 1);
 }
 
-static Reals side_vert_normal_weights(Mesh* mesh, Adj surf_verts2sides,
-    LOs side2surf_side) {
+static Reals side_vert_normal_weights(
+    Mesh* mesh, Adj surf_verts2sides, LOs side2surf_side) {
   if (mesh->dim() == 3) {
     return tri_vert_normal_weights(mesh, surf_verts2sides, side2surf_side);
   }
@@ -200,11 +202,12 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
   auto surf_verts2sides = unmap_adjacency(surf_vert2vert, verts2sides);
   auto nsides = mesh->nents(dim - 1);
   auto side2surf_side = invert_injective_map(surf_side2side, nsides);
-  auto weights = side_vert_normal_weights(mesh, surf_verts2sides, side2surf_side);
+  auto weights =
+      side_vert_normal_weights(mesh, surf_verts2sides, side2surf_side);
   auto side_normals =
       map_onto(surf_side_normals, surf_side2side, nsides, 0.0, dim);
-  auto surf_vert_normals = graph_weighted_average(
-      surf_verts2sides, weights, side_normals, dim);
+  auto surf_vert_normals =
+      graph_weighted_average(surf_verts2sides, weights, side_normals, dim);
   surf_vert_normals = mesh->sync_subset_array(
       VERT, surf_vert_normals, surf_vert2vert, 0.0, dim);
   return normalize_vectors(surf_vert_normals, dim);
@@ -217,14 +220,14 @@ Reals get_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
  * In order to handle this case, we locally negate vectors as
  * necessary to get a correct tangent vector at each vertex
  */
-static Read<I8> get_curv_vert_edge_flips(Adj curv_verts2edges, LOs edges2curv_edge) {
+static Read<I8> get_curv_vert_edge_flips(
+    Adj curv_verts2edges, LOs edges2curv_edge) {
   auto out = Write<I8>(curv_verts2edges.nedges());
   auto ncurv_verts = curv_verts2edges.nnodes();
   auto f = LAMBDA(LO curv_vert) {
     Int lc = 0;
     for (auto ve = curv_verts2edges.a2ab[curv_vert];
-         ve < curv_verts2edges.a2ab[curv_vert + 1];
-         ++ve) {
+         ve < curv_verts2edges.a2ab[curv_vert + 1]; ++ve) {
       auto e = curv_verts2edges.ab2b[ve];
       auto ce = edges2curv_edge[e];
       if (-1 == ce) continue;
@@ -245,8 +248,7 @@ static Read<I8> get_curv_edge_vert_flips(
   auto ncurv_verts = curv_verts2edges.nnodes();
   auto f = LAMBDA(LO curv_vert) {
     for (auto ve = curv_verts2edges.a2ab[curv_vert];
-         ve < curv_verts2edges.a2ab[curv_vert + 1];
-         ++ve) {
+         ve < curv_verts2edges.a2ab[curv_vert + 1]; ++ve) {
       auto e = curv_verts2edges.ab2b[ve];
       auto code = curv_verts2edges.codes[ve];
       auto eev = code_which_down(code);
@@ -281,10 +283,10 @@ static Reals get_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
   };
   parallel_for(narcs, f);
   auto arcs2tangents = Reals(arcs2tangents_w);
-  auto weights = get_recip_length_weights(mesh, curv_verts2edges, edge2curv_edge);
-  auto curv_vert_tangents =
-      graph_weighted_average_arc_data(
-          curv_verts2edges, weights, arcs2tangents, dim);
+  auto weights =
+      get_recip_length_weights(mesh, curv_verts2edges, edge2curv_edge);
+  auto curv_vert_tangents = graph_weighted_average_arc_data(
+      curv_verts2edges, weights, arcs2tangents, dim);
   curv_vert_tangents = mesh->sync_subset_array(
       VERT, curv_vert_tangents, curv_verts2vert, 0.0, dim);
   return normalize_vectors(curv_vert_tangents, dim);

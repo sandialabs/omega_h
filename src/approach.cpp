@@ -13,8 +13,8 @@ static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
   }
   auto maxl = mesh->max_length();
   if (maxl > opts.max_length_allowed) {
-    Omega_h_fail("maximum edge length %f > maximum allowed length %f\n",
-        maxl, opts.max_length_allowed);
+    Omega_h_fail("maximum edge length %f > maximum allowed length %f\n", maxl,
+        opts.max_length_allowed);
   }
 }
 
