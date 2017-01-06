@@ -565,6 +565,15 @@ Read<I8> geq_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
+Read<T> min_each(Read<T> a, Read<T> b) {
+  CHECK(a.size() == b.size());
+  Write<T> c(a.size());
+  auto f = LAMBDA(LO i) { c[i] = min2(a[i], b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = LAMBDA(LO i) { c[i] = (a[i] != b); };
@@ -640,6 +649,7 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   template Read<T> divide_each(Read<T> a, Read<T> b);                          \
   template Read<T> add_each(Read<T> a, Read<T> b);                             \
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
+  template Read<T> min_each(Read<T> a, Read<T> b);               \
   template Read<T> add_to_each(Read<T> a, T b);                                \
   template Read<I8> each_geq_to(Read<T> a, T b);                               \
   template Read<I8> each_gt(Read<T> a, T b);                                   \
