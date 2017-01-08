@@ -698,7 +698,7 @@ Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax);
 Reals metric_for_nelems_from_hessians(
     Mesh* mesh, Real target_nelems, Real tolerance, Reals hessians, Real hmax);
 
-template <typename T, int n>
+template <typename T, Int n>
 class Few {
   using UninitT = typename std::aligned_storage<sizeof(T), alignof(T)>::type;
   UninitT array_[n];
@@ -715,38 +715,38 @@ class Few {
   OMEGA_H_INLINE T const volatile* data() const volatile {
     return reinterpret_cast<T const volatile*>(array_);
   }
-  OMEGA_H_INLINE T& operator[](int i) { return data()[i]; }
-  OMEGA_H_INLINE T const& operator[](int i) const { return data()[i]; }
-  OMEGA_H_INLINE T volatile& operator[](int i) volatile { return data()[i]; }
-  OMEGA_H_INLINE T const volatile& operator[](int i) const volatile {
+  OMEGA_H_INLINE T& operator[](Int i) { return data()[i]; }
+  OMEGA_H_INLINE T const& operator[](Int i) const { return data()[i]; }
+  OMEGA_H_INLINE T volatile& operator[](Int i) volatile { return data()[i]; }
+  OMEGA_H_INLINE T const volatile& operator[](Int i) const volatile {
     return data()[i];
   }
   Few(std::initializer_list<T> l) {
-    int i = 0;
+    Int i = 0;
     for (auto it = l.begin(); it != l.end(); ++it) {
       new (data() + (i++)) T(*it);
     }
   }
   OMEGA_H_INLINE Few() {
-    for (int i = 0; i < n; ++i) new (data() + i) T();
+    for (Int i = 0; i < n; ++i) new (data() + i) T();
   }
   OMEGA_H_INLINE ~Few() {
-    for (int i = 0; i < n; ++i) (data()[i]).~T();
+    for (Int i = 0; i < n; ++i) (data()[i]).~T();
   }
   OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
-    for (int i = 0; i < n; ++i) data()[i] = rhs[i];
+    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
   }
   OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) {
-    for (int i = 0; i < n; ++i) data()[i] = rhs[i];
+    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
   }
   OMEGA_H_INLINE void operator=(Few<T, n> const volatile& rhs) {
-    for (int i = 0; i < n; ++i) data()[i] = rhs[i];
+    for (Int i = 0; i < n; ++i) data()[i] = rhs[i];
   }
   OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
-    for (int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
+    for (Int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
   OMEGA_H_INLINE Few(Few<T, n> const volatile& rhs) {
-    for (int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
+    for (Int i = 0; i < n; ++i) new (data() + i) T(rhs[i]);
   }
 };
 
