@@ -613,21 +613,6 @@ OMEGA_H_INLINE void intersect_simplices(Polytope<dim>& poly,
   clip(poly, faces1);
 }
 
-/* multiply two linear polynomials into a second-order one.
- * not confident this algorithm works for higher orders.
- */
-template <Int dim>
-Polynomial<dim, 2> operator*(Polynomial<dim, 1> a, Polynomial<dim, 1> b) {
-  Polynomial<dim, 2> c;
-  Int k = 0;
-  for (Int i = 0; i <= dim; ++i) {
-    c.coeffs[k++] = a.coeffs[i] * b.coeffs[i];
-    for (Int j = i + 1; j <= dim; ++j)
-      c.coeffs[k++] = a.coeffs[i] * b.coeffs[j] + a.coeffs[j] * b.coeffs[i];
-  }
-  return c;
-}
-
 }  // end namespace r3d
 
 }  // end namespace Omega_h
