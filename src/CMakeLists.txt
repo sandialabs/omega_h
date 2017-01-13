@@ -80,6 +80,7 @@ set(Omega_h_SOURCES
   histogram.cpp
   eigen.cpp
   Omega_h_cmdline.cpp
+  Omega_h_confined.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)

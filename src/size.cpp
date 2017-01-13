@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "Omega_h_confined.hpp"
 #include "array.hpp"
 #include "eigen.hpp"
 #include "graph.hpp"
@@ -374,19 +375,11 @@ static Reals get_pad_isos(Mesh* mesh, Real factor,
 Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(mesh->owners_have_all_upward(EDGE));
-  auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
-  auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto edges_are_bridges_w = Write<I8>(mesh->nedges());
-  auto edges2verts = mesh->ask_verts_of(EDGE);
-  auto find_bridges = LAMBDA(LO edge) {
-    auto evv2v = gather_verts<2>(edges2verts, edge);
-    auto edim = edges2class_dim[edge];
-    edges_are_bridges_w[edge] = ((edim != verts2class_dim[evv2v[0]]) &&
-                                 (edim != verts2class_dim[evv2v[1]]));
-  };
-  parallel_for(mesh->nedges(), find_bridges);
-  auto edges_are_bridges = Read<I8>(edges_are_bridges_w);
+  auto edges_are_bridges = find_bridge_edges(mesh);
   auto elems_are_pads = mark_up(mesh, EDGE, mesh->dim(), edges_are_bridges);
+  auto elems_are_angle = find_angle_elems(mesh);
+  auto elems_not_angle = invert_marks(elems_are_angle);
+  elems_are_pads = land_each(elems_are_pads, elems_not_angle);
   auto pads2elems = collect_marked(elems_are_pads);
   auto pads2h = get_pad_isos(mesh, factor, pads2elems);
   auto elems2pads = invert_injective_map(pads2elems, mesh->nelems());
