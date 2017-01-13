@@ -9,6 +9,8 @@
 #include "project.hpp"
 #include "quality.hpp"
 #include "surface.hpp"
+#include "mark.hpp"
+#include "map.hpp"
 
 namespace Omega_h {
 
@@ -340,6 +342,71 @@ Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size) {
   };
   parallel_for(mesh->nverts(), f);
   return out;
+}
+
+template <Int dim>
+static Reals get_pad_isos_dim(Mesh* mesh, Real factor,
+    LOs pads2elems) {
+  auto elems2verts = mesh->ask_verts_of(dim);
+  auto coords = mesh->coords();
+  auto npads = pads2elems.size();
+  auto pads2h = Write<Real>(npads);
+  auto f = LAMBDA(LO pad) {
+    auto elem = pads2elems[pad];
+    auto evv2v = gather_verts<dim + 1>(elems2verts, elem);
+    auto p = gather_vectors<dim + 1, dim>(coords, evv2v);
+    auto m = element_implied_metric(p);
+    auto md = decompose_metric(m);
+    auto h = minimum(md.l);
+    pads2h[pad] = h * factor;
+  };
+  parallel_for(npads, f);
+  return pads2h;
+}
+
+static Reals get_pad_isos(Mesh* mesh, Real factor,
+    LOs pads2elems) {
+  if (mesh->dim() == 3) return get_pad_isos_dim<3>(mesh, factor, pads2elems);
+  if (mesh->dim() == 2) return get_pad_isos_dim<2>(mesh, factor, pads2elems);
+  NORETURN(Reals());
+}
+
+Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  CHECK(mesh->owners_have_all_upward(EDGE));
+  auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
+  auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
+  auto edges_are_bridges_w = Write<I8>(mesh->nedges());
+  auto edges2verts = mesh->ask_verts_of(EDGE);
+  auto find_bridges = LAMBDA(LO edge) {
+    auto evv2v = gather_verts<2>(edges2verts, edge);
+    auto edim = edges2class_dim[edge];
+    edges_are_bridges_w[edge] = ((edim != verts2class_dim[evv2v[0]]) &&
+                                 (edim != verts2class_dim[evv2v[1]]));
+  };
+  parallel_for(mesh->nedges(), find_bridges);
+  auto edges_are_bridges = Read<I8>(edges_are_bridges_w);
+  auto elems_are_pads = mark_up(mesh, EDGE, mesh->dim(), edges_are_bridges);
+  auto pads2elems = collect_marked(elems_are_pads);
+  auto pads2h = get_pad_isos(mesh, factor, pads2elems);
+  auto elems2pads = invert_injective_map(pads2elems, mesh->nelems());
+  auto verts2elems = mesh->ask_up(VERT, mesh->dim());
+  auto vert_isos_w = Write<Real>(mesh->nverts());
+  auto get_vert_values = LAMBDA(LO vert) {
+    auto h = max_size;
+    for (auto ve = verts2elems.a2ab[vert];
+         ve < verts2elems.a2ab[vert + 1]; ++ve) {
+      auto elem = verts2elems.ab2b[ve];
+      auto pad = elems2pads[elem];
+      if (pad < 0) continue;
+      auto eh = pads2h[pad];
+      h = min2(h, eh);
+    }
+    vert_isos_w[vert] = h;
+  };
+  parallel_for(mesh->nverts(), get_vert_values);
+  auto vert_isos = Reals(vert_isos_w);
+  return mesh->sync_array(VERT, vert_isos, 1);
 }
 
 }  // end namespace Omega_h
