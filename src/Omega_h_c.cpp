@@ -1,14 +1,29 @@
-#include "protect.hpp"
-
+#include <cstdarg>
 #include <csignal>
-#include <iostream>
 #include <sstream>
+#include <iostream>
 
-#include "stacktrace.hpp"
+#include "Omega_h_c.h"
+#include "control.hpp"
 
-namespace Omega_h {
+extern "C" {
 
-void osh_signal_handler(int s);
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
+
+void Omega_h_fail(char const* format, ...) {
+  va_list ap;
+  va_start(ap, format);
+  vfprintf(stderr, format, ap);
+  va_end(ap);
+  abort();
+}
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 static struct {
   int code;
@@ -18,16 +33,9 @@ static struct {
     {SIGABRT, "abort"}, {SIGTERM, "termination"},
     {SIGSEGV, "segmentation fault"}, {SIGINT, "interrupt"},
     {SIGILL, "illegal instruction"}, {SIGFPE, "floating point exception"}};
+constexpr auto NSIGS = (sizeof(known_signals) / sizeof(known_signals[0]));
 
-#define NSIGS (sizeof(known_signals) / sizeof(known_signals[0]))
-
-void protect() {
-  for (size_t i = 0; i < NSIGS; ++i) {
-    signal(known_signals[i].code, osh_signal_handler);
-  }
-}
-
-void osh_signal_handler(int s) {
+void Omega_h_signal_handler(int s) {
   static volatile sig_atomic_t already_dying = 0;
   if (already_dying) return;
   already_dying = 1;
@@ -35,13 +43,18 @@ void osh_signal_handler(int s) {
   for (size_t i = 0; i < NSIGS; ++i)
     if (s == known_signals[i].code)
       ss << "Omega_h caught signal: " << known_signals[i].name << "\n";
-  print_stacktrace(ss, 64);
+  Omega_h::print_stacktrace(ss, 64);
   auto str = ss.str();
   std::cerr << str;
   signal(s, SIG_DFL);
   ::raise(s);
 }
 
-#undef NSIGS
+void Omega_h_protect() {
+  for (size_t i = 0; i < NSIGS; ++i) {
+    signal(known_signals[i].code, Omega_h_signal_handler);
+  }
+}
 
-}  // end namespace Omega_h
+} //  extern "C"
+

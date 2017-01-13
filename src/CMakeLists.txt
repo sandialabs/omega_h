@@ -1,7 +1,7 @@
 set(Omega_h_SOURCES
+  Omega_h_c.cpp
   algebra.cpp
-  control.cpp
-  protect.cpp
+  Omega_h_control.cpp
   timer.cpp
   array.cpp
   int128.cpp
@@ -78,7 +78,6 @@ set(Omega_h_SOURCES
   Omega_h_coarsen_overshoot.cpp
   collapse_rail.cpp
   histogram.cpp
-  stacktrace.cpp
   eigen.cpp
   Omega_h_cmdline.cpp
   )
