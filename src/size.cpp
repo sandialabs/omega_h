@@ -7,11 +7,11 @@
 #include "eigen.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
 #include "project.hpp"
 #include "quality.hpp"
 #include "surface.hpp"
-#include "mark.hpp"
-#include "map.hpp"
 
 namespace Omega_h {
 
@@ -346,8 +346,7 @@ Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size) {
 }
 
 template <Int dim>
-static Reals get_pad_isos_dim(Mesh* mesh, Real factor,
-    LOs pads2elems) {
+static Reals get_pad_isos_dim(Mesh* mesh, Real factor, LOs pads2elems) {
   auto elems2verts = mesh->ask_verts_of(dim);
   auto coords = mesh->coords();
   auto npads = pads2elems.size();
@@ -365,8 +364,7 @@ static Reals get_pad_isos_dim(Mesh* mesh, Real factor,
   return pads2h;
 }
 
-static Reals get_pad_isos(Mesh* mesh, Real factor,
-    LOs pads2elems) {
+static Reals get_pad_isos(Mesh* mesh, Real factor, LOs pads2elems) {
   if (mesh->dim() == 3) return get_pad_isos_dim<3>(mesh, factor, pads2elems);
   if (mesh->dim() == 2) return get_pad_isos_dim<2>(mesh, factor, pads2elems);
   NORETURN(Reals());
@@ -387,8 +385,8 @@ Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
   auto vert_isos_w = Write<Real>(mesh->nverts());
   auto get_vert_values = LAMBDA(LO vert) {
     auto h = max_size;
-    for (auto ve = verts2elems.a2ab[vert];
-         ve < verts2elems.a2ab[vert + 1]; ++ve) {
+    for (auto ve = verts2elems.a2ab[vert]; ve < verts2elems.a2ab[vert + 1];
+         ++ve) {
       auto elem = verts2elems.ab2b[ve];
       auto pad = elems2pads[elem];
       if (pad < 0) continue;

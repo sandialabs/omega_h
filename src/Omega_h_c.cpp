@@ -1,7 +1,7 @@
-#include <cstdarg>
 #include <csignal>
-#include <sstream>
+#include <cstdarg>
 #include <iostream>
+#include <sstream>
 
 #include "Omega_h_c.h"
 #include "control.hpp"
@@ -56,5 +56,4 @@ void Omega_h_protect() {
   }
 }
 
-} //  extern "C"
-
+}  //  extern "C"
