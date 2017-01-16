@@ -58,32 +58,48 @@ struct DownTemplate<2, 1> {
   DEVICE static Int get(Int a, Int b) { return fev_[a][b]; }
 };
 
-struct UpTemplate {
+struct TemplateUp {
   Int up;
   Int which_down;
   bool is_flipped;
 };
-CONSTANT static UpTemplate const fve0[] = {{0, 0, 0}, {2, 1, 0}};
-CONSTANT static UpTemplate const fve1[] = {{1, 0, 0}, {0, 1, 0}};
-CONSTANT static UpTemplate const fve2[] = {{2, 0, 0}, {1, 1, 0}};
-CONSTANT static UpTemplate const* const fve_[] = {fve0, fve1, fve2};
-CONSTANT static UpTemplate const* const* const f_u_[] = {fve_};
-CONSTANT static UpTemplate const rve0[] = {{0, 0, 0}, {2, 1, 0}, {3, 0, 0}};
-CONSTANT static UpTemplate const rve1[] = {{1, 0, 0}, {0, 1, 0}, {4, 0, 0}};
-CONSTANT static UpTemplate const rve2[] = {{2, 0, 0}, {1, 1, 0}, {5, 0, 0}};
-CONSTANT static UpTemplate const rve3[] = {{3, 1, 0}, {4, 1, 0}, {5, 1, 0}};
-CONSTANT static UpTemplate const* const rve_[] = {rve0, rve1, rve2, rve3};
-CONSTANT static UpTemplate const ref0[] = {{0, 2, 1}, {1, 0, 0}};
-CONSTANT static UpTemplate const ref1[] = {{0, 1, 1}, {2, 0, 0}};
-CONSTANT static UpTemplate const ref2[] = {{0, 0, 1}, {3, 0, 0}};
-CONSTANT static UpTemplate const ref3[] = {{1, 2, 1}, {3, 1, 0}};
-CONSTANT static UpTemplate const ref4[] = {{2, 2, 1}, {1, 1, 0}};
-CONSTANT static UpTemplate const ref5[] = {{3, 2, 1}, {2, 1, 0}};
-CONSTANT static UpTemplate const* const ref_[] = {
+CONSTANT static TemplateUp const fve0[] = {{0, 0, 0}, {2, 1, 0}};
+CONSTANT static TemplateUp const fve1[] = {{1, 0, 0}, {0, 1, 0}};
+CONSTANT static TemplateUp const fve2[] = {{2, 0, 0}, {1, 1, 0}};
+CONSTANT static TemplateUp const* const fve_[] = {fve0, fve1, fve2};
+CONSTANT static TemplateUp const* const* const f_u_[] = {fve_};
+CONSTANT static TemplateUp const rve0[] = {{0, 0, 0}, {2, 1, 0}, {3, 0, 0}};
+CONSTANT static TemplateUp const rve1[] = {{1, 0, 0}, {0, 1, 0}, {4, 0, 0}};
+CONSTANT static TemplateUp const rve2[] = {{2, 0, 0}, {1, 1, 0}, {5, 0, 0}};
+CONSTANT static TemplateUp const rve3[] = {{5, 1, 0}, {4, 1, 0}, {3, 1, 0}};
+CONSTANT static TemplateUp const* const rve_[] = {rve0, rve1, rve2, rve3};
+CONSTANT static TemplateUp const ref0[] = {{0, 2, 1}, {1, 0, 0}};
+CONSTANT static TemplateUp const ref1[] = {{0, 1, 1}, {2, 0, 0}};
+CONSTANT static TemplateUp const ref2[] = {{0, 0, 1}, {3, 0, 0}};
+CONSTANT static TemplateUp const ref3[] = {{1, 2, 1}, {3, 1, 0}};
+CONSTANT static TemplateUp const ref4[] = {{2, 2, 1}, {1, 1, 0}};
+CONSTANT static TemplateUp const ref5[] = {{3, 2, 1}, {2, 1, 0}};
+CONSTANT static TemplateUp const* const ref_[] = {
     ref0, ref1, ref2, ref3, ref4, ref5};
-CONSTANT static UpTemplate const* const* const r_u_[] = {rve_, ref_};
-CONSTANT static UpTemplate const* const* const* const up_templates[] = {
+CONSTANT static TemplateUp const* const* const r_u_[] = {rve_, ref_};
+CONSTANT static TemplateUp const* const* const* const up_templates[] = {
     0, 0, f_u_, r_u_};
+
+/* workaround a compiler bug in CUDA, see DownTemplate<> */
+template <Int hdim, Int ldim>
+struct UpTemplate;
+template <>
+struct UpTemplate<3, 1> {
+  DEVICE static Int get(Int a, Int b) { return ref_[a][b]; }
+};
+template <>
+struct UpTemplate<3, 0> {
+  DEVICE static Int get(Int a, Int b) { return rve_[a][b]; }
+};
+template <>
+struct UpTemplate<2, 0> {
+  DEVICE static Int get(Int a, Int b) { return fve_[a][b]; }
+};
 
 CONSTANT static Int const feov[] = {1, 2, 0};
 CONSTANT static Int const fvoe[] = {2, 0, 1};
