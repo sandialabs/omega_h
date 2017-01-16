@@ -81,6 +81,7 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
         auto ab = b - a;
         auto cd = d - c;
         auto n = normalize(cross(ab, cd));
+        auto l = (a - c) * n;
         // project onto the normal plane
         a = a - (n * (n * a));
         b = b - (n * (n * b));
@@ -90,7 +91,6 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
               (get_triangle_normal(c, d, a) * get_triangle_normal(c, d, b)) < 0)) {
           break;
         }
-        auto l = (a - c) * n;
         out[tet] = min2(l, max_size);
         return; // edge-edge implies no plane-vertex
       }
