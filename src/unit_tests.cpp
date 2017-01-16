@@ -915,6 +915,28 @@ static void test_proximity(Library* lib) {
   auto isos = get_pad_isos(&mesh, 3, 42.0, Read<I8>({1,1,0,0,0,0}));
   CHECK(are_close(isos, Reals({42.0})));
   }
+  { // tet with three bridges, off-center
+  Mesh mesh(lib);
+  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
+  mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
+      OMEGA_H_DO_OUTPUT, Reals({0,0,0,
+                                1,-1,1,
+                                1, 1,1,
+                                1,0,2}));
+  auto isos = get_pad_isos(&mesh, 3, 42.0, Read<I8>({1,1,1,0,0,0}));
+  CHECK(are_close(isos, Reals({42.0})));
+  }
+  { // tet with three bridges, expected
+  Mesh mesh(lib);
+  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
+  mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
+      OMEGA_H_DO_OUTPUT, Reals({0,0,0,
+                                1,-1,-1,
+                                1, 1,-1,
+                                1,0,2}));
+  auto isos = get_pad_isos(&mesh, 3, 42.0, Read<I8>({1,1,1,0,0,0}));
+  CHECK(are_close(isos, Reals({1.0})));
+  }
 }
 
 int main(int argc, char** argv) {
