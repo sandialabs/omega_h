@@ -5,6 +5,9 @@
 #include "access.hpp"
 #include "space.hpp"
 #include "loop.hpp"
+#include "mark.hpp"
+#include "graph.hpp"
+#include "map.hpp"
 
 namespace Omega_h {
 
@@ -148,6 +151,24 @@ Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor, Real max_size, Read<I8>
     return get_tet_pad_isos(mesh, factor, max_size, edges_are_bridges);
   }
   NORETURN(Reals());
+}
+
+Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
+  CHECK(mesh->owners_have_all_upward(VERT));
+  auto edges_are_bridges = find_bridge_edges(mesh);
+  auto verts_are_bridged = mark_down(mesh, EDGE, VERT, edges_are_bridges);
+  auto bridged_verts = collect_marked(verts_are_bridged);
+  auto nbv = bridged_verts.size();
+  auto bv2h = Reals(nbv, max_size);
+  for (Int pad_dim = EDGE; pad_dim <= mesh->dim(); ++pad_dim) {
+    auto v2p = mesh->ask_graph(VERT, pad_dim);
+    auto bv2p = unmap_graph(bridged_verts, v2p);
+    auto p2h = get_pad_isos(mesh, pad_dim, factor, max_size, edges_are_bridges);
+    auto bv2h_tmp = graph_reduce(bv2p, p2h, 1, OMEGA_H_MIN);
+    bv2h = min_each(bv2h, bv2h_tmp);
+  }
+  auto v2h = map_onto(bv2h, bridged_verts, mesh->nverts(), max_size, 1);
+  return mesh->sync_array(VERT, v2h, 1);
 }
 
 }
