@@ -35,8 +35,8 @@ static DEVICE bool is_angle_triangle(
     Few<I8, 3> vert_dims, Few<I8, 3> edge_dims, I8 tri_dim) {
   for (Int i = 0; i < 3; ++i) {
     if (vert_dims[i] > (tri_dim - 2)) continue;
-    if (edge_dims[i + 0 % 3] > (tri_dim - 1)) continue;
-    if (edge_dims[i + 2 % 3] > (tri_dim - 1)) continue;
+    if (edge_dims[(i + 0) % 3] > (tri_dim - 1)) continue;
+    if (edge_dims[(i + 2) % 3] > (tri_dim - 1)) continue;
     return true;
   }
   return false;
