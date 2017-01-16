@@ -1,5 +1,8 @@
 #include "Omega_h_confined.hpp"
 #include "Omega_h_math.hpp"
+#include "simplices.hpp"
+
+namespace Omega_h {
 
 template <Int dim>
 static Reals get_edge_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_bridges) {
@@ -61,6 +64,37 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
     auto tte2e = gather_down<6>(tets2edges, tet);
     auto tte2b = gather_scalars<6>(edges_are_bridges, tte2e);
+    auto nb = sum(tte2b);
+    if (nb == 4) {
+      for (Int tte = 0; tte < 3; ++tte) {
+        if (tte2b[tte]) continue;
+        auto opp = OppositeTemplate<TET, EDGE>(tte);
+        if (tte2b[opp]) continue;
+        // at this point we have edge-edge nearness
+        auto a = ttv2x[DownTemplate<TET, EDGE>(tte, 0)];
+        auto b = ttv2x[DownTemplate<TET, EDGE>(tte, 1)];
+        auto c = ttv2x[DownTemplate<TET, EDGE>(opp, 0)];
+        auto d = ttv2x[DownTemplate<TET, EDGE>(opp, 1)];
+        auto ab = b - a;
+        auto cd = d - c;
+        auto n = normalize(cross(ab, cd));
+        // project onto the normal plane
+        a = a - (n * (n * a));
+        b = b - (n * (n * b));
+        c = c - (n * (n * c));
+        d = d - (n * (n * d));
+        if (!((get_triangle_normal(a, b, c) * get_triangle_normal(a, b, d)) < 0 &&
+              (get_triangle_normal(c, d, a) * get_triangle_normal(c, d, b)) < 0)) {
+          break;
+        }
+        auto l = (a - c) * n;
+        l = min2(l, max_size);
+        for (Int ttv = 0; ttv < 4; ++ttv) {
+          out[tet * 4 + ttv] = l;
+        }
+        return; // edge-edge implies no plane-vertex
+      }
+    }
     for (Int ttv = 0; ttv < 4; ++ttv) {
       Few<Int, 3> vve2tte;
       Few<Int, 3> vve2wd;
@@ -70,7 +104,8 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       }
       Few<I8, 3> vve2b;
       for (Int vve = 0; vve < 3; ++vve) vve2b[vve] = tte2b[vve2tte[vve]];
-      if (minimum(vve2b) == 0) continue;
+      if (sum(vve2b) != 3) continue;
+      // at this point, we have vertex-plane nearness
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
@@ -138,4 +173,4 @@ Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
   return mesh->sync_array(VERT, vert_isos, 1);
 }
 
-
+}
