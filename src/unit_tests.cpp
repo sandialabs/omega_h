@@ -889,7 +889,7 @@ static void test_proximity(Library* lib) {
   mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals({0,0,1,0,0,1}));
   auto isos = get_pad_isos(&mesh, 2, 42.0, Read<I8>({0,1,0}));
-  CHECK(isos == Reals({42.0,42.0,42.0}));
+  CHECK(isos == Reals({42.0}));
   }
   { // triangle off-center
   Mesh mesh(lib);
@@ -897,7 +897,7 @@ static void test_proximity(Library* lib) {
   mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals({0,0,1,1,1,2}));
   auto isos = get_pad_isos(&mesh, 2, 42.0, Read<I8>({1,1,0}));
-  CHECK(isos == Reals({42.0,42.0,42.0}));
+  CHECK(isos == Reals({42.0}));
   }
   { // triangle expected
   Mesh mesh(lib);
@@ -905,7 +905,7 @@ static void test_proximity(Library* lib) {
   mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals({0,0,1,-1,1,1}));
   auto isos = get_pad_isos(&mesh, 2, 42.0, Read<I8>({1,1,0}));
-  CHECK(are_close(isos, Reals({1.0,42.0,42.0})));
+  CHECK(are_close(isos, Reals({1.0})));
   }
   { // tet with two bridges
   Mesh mesh(lib);
@@ -913,7 +913,7 @@ static void test_proximity(Library* lib) {
   mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals(3*4, 0.0));
   auto isos = get_pad_isos(&mesh, 3, 42.0, Read<I8>({1,1,0,0,0,0}));
-  CHECK(are_close(isos, Reals(4, 42.0)));
+  CHECK(are_close(isos, Reals({42.0})));
   }
 }
 

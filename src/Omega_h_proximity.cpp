@@ -12,15 +12,14 @@ template <Int dim>
 static Reals get_edge_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto edges2verts = mesh->ask_verts_of(EDGE);
-  auto out = Write<Real>(mesh->nedges() * 2, max_size);
+  auto out = Write<Real>(mesh->nedges(), max_size);
   auto f = LAMBDA(LO edge) {
     if (!edges_are_bridges[edge]) return;
     auto eev2v = gather_verts<2>(edges2verts, edge);
     auto eev2x = gather_vectors<2, dim>(coords, eev2v);
     auto l = norm(eev2x[1] - eev2x[0]);
     l = min2(l, max_size);
-    out[edge * 2 + 0] = l;
-    out[edge * 2 + 1] = l;
+    out[edge] = min2(l, max_size);
   };
   parallel_for(mesh->nedges(), f);
   return out;
@@ -31,7 +30,7 @@ static Reals get_tri_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
-  auto out = Write<Real>(mesh->ntris() * 3, max_size);
+  auto out = Write<Real>(mesh->ntris(), max_size);
   auto f = LAMBDA(LO tri) {
     auto ttv2v = gather_verts<3>(tris2verts, tri);
     auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
@@ -50,8 +49,7 @@ static Reals get_tri_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       auto lambda = ((ab * d) - (ab * oa)) / nabsq;
       if (!((0 <= lambda) && (lambda <= 1.0))) continue;
       auto h = norm(d);
-      h = min2(h, max_size);
-      out[tri * 3 + ttv] = h;
+      out[tri] = min2(h, max_size);
     }
   };
   parallel_for(mesh->ntris(), f);
@@ -62,13 +60,14 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
   auto coords = mesh->coords();
   auto tets2verts = mesh->ask_verts_of(TET);
   auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
-  auto out = Write<Real>(mesh->ntets() * 4, max_size);
+  auto out = Write<Real>(mesh->ntets(), max_size);
   auto f = LAMBDA(LO tet) {
     auto ttv2v = gather_verts<4>(tets2verts, tet);
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
     auto tte2e = gather_down<6>(tets2edges, tet);
     auto tte2b = gather_scalars<6>(edges_are_bridges, tte2e);
     auto nb = sum(tte2b);
+    if (nb == 0) return;
     if (nb == 4) {
       for (Int tte = 0; tte < 3; ++tte) {
         if (tte2b[tte]) continue;
@@ -92,13 +91,11 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
           break;
         }
         auto l = (a - c) * n;
-        l = min2(l, max_size);
-        for (Int ttv = 0; ttv < 4; ++ttv) {
-          out[tet * 4 + ttv] = l;
-        }
+        out[tet] = min2(l, max_size);
         return; // edge-edge implies no plane-vertex
       }
     }
+    auto l = max_size; // multiple vertex-planes may occur
     for (Int ttv = 0; ttv < 4; ++ttv) {
       Few<Int, 3> vve2tte;
       Few<Int, 3> vve2wd;
@@ -132,10 +129,9 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       auto ad = od - oa;
       auto xi = form_barycentric(inv_basis * ad);
       if (!is_barycentric_inside(xi)) continue;
-      auto l = norm(od);
-      l = min2(l, max_size);
-      out[tet * 4 + ttv] = l;
+      l = min2(l, norm(od));
     }
+    out[tet] = l;
   };
   parallel_for(mesh->ntets(), f);
   return out;
