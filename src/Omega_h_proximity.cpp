@@ -9,7 +9,7 @@
 namespace Omega_h {
 
 template <Int dim>
-static Reals get_edge_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_bridges) {
+static Reals get_edge_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto out = Write<Real>(mesh->nedges(), max_size);
@@ -17,7 +17,7 @@ static Reals get_edge_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_bri
     if (!edges_are_bridges[edge]) return;
     auto eev2v = gather_verts<2>(edges2verts, edge);
     auto eev2x = gather_vectors<2, dim>(coords, eev2v);
-    auto l = norm(eev2x[1] - eev2x[0]);
+    auto l = norm(eev2x[1] - eev2x[0]) * factor;
     l = min2(l, max_size);
     out[edge] = min2(l, max_size);
   };
@@ -26,7 +26,7 @@ static Reals get_edge_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_bri
 }
 
 template <Int dim>
-static Reals get_tri_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_bridges) {
+static Reals get_tri_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
@@ -48,15 +48,15 @@ static Reals get_tri_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       auto d = oa - proj;
       auto lambda = ((ab * d) - (ab * oa)) / nabsq;
       if (!((0 <= lambda) && (lambda <= 1.0))) continue;
-      auto h = norm(d);
-      out[tri] = min2(h, max_size);
+      auto l = norm(d) * factor;
+      out[tri] = min2(l, max_size);
     }
   };
   parallel_for(mesh->ntris(), f);
   return out;
 }
 
-static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_bridges) {
+static Reals get_tet_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tets2verts = mesh->ask_verts_of(TET);
   auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
@@ -129,7 +129,7 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       auto ad = od - oa;
       auto xi = form_barycentric(inv_basis * ad);
       if (!is_barycentric_inside(xi)) continue;
-      l = min2(l, norm(od));
+      l = min2(l, norm(od) * factor);
     }
     out[tet] = l;
   };
@@ -137,15 +137,15 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
   return out;
 }
 
-Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real max_size, Read<I8> edges_are_bridges) {
+Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor, Real max_size, Read<I8> edges_are_bridges) {
   if (pad_dim == EDGE) {
-    if (mesh->dim() == 3) return get_edge_pad_isos<3>(mesh, max_size, edges_are_bridges);
-    if (mesh->dim() == 2) return get_edge_pad_isos<2>(mesh, max_size, edges_are_bridges);
+    if (mesh->dim() == 3) return get_edge_pad_isos<3>(mesh, factor, max_size, edges_are_bridges);
+    if (mesh->dim() == 2) return get_edge_pad_isos<2>(mesh, factor, max_size, edges_are_bridges);
   } else if (pad_dim == TRI) {
-    if (mesh->dim() == 3) return get_tri_pad_isos<3>(mesh, max_size, edges_are_bridges);
-    if (mesh->dim() == 2) return get_tri_pad_isos<2>(mesh, max_size, edges_are_bridges);
+    if (mesh->dim() == 3) return get_tri_pad_isos<3>(mesh, factor, max_size, edges_are_bridges);
+    if (mesh->dim() == 2) return get_tri_pad_isos<2>(mesh, factor, max_size, edges_are_bridges);
   } else if (pad_dim == TET) {
-    return get_tet_pad_isos(mesh, max_size, edges_are_bridges);
+    return get_tet_pad_isos(mesh, factor, max_size, edges_are_bridges);
   }
   NORETURN(Reals());
 }
