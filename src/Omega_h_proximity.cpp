@@ -1,6 +1,10 @@
+#include "Omega_h_proximity.hpp"
 #include "Omega_h_confined.hpp"
 #include "Omega_h_math.hpp"
 #include "simplices.hpp"
+#include "access.hpp"
+#include "space.hpp"
+#include "loop.hpp"
 
 namespace Omega_h {
 
@@ -50,7 +54,7 @@ static Reals get_tri_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       out[tri * 3 + ttv] = h;
     }
   };
-  parallel_for(mesh->nedges(), f);
+  parallel_for(mesh->ntris(), f);
   return out;
 }
 
@@ -68,13 +72,13 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
     if (nb == 4) {
       for (Int tte = 0; tte < 3; ++tte) {
         if (tte2b[tte]) continue;
-        auto opp = OppositeTemplate<TET, EDGE>(tte);
+        auto opp = OppositeTemplate<TET, EDGE>::get(tte);
         if (tte2b[opp]) continue;
         // at this point we have edge-edge nearness
-        auto a = ttv2x[DownTemplate<TET, EDGE>(tte, 0)];
-        auto b = ttv2x[DownTemplate<TET, EDGE>(tte, 1)];
-        auto c = ttv2x[DownTemplate<TET, EDGE>(opp, 0)];
-        auto d = ttv2x[DownTemplate<TET, EDGE>(opp, 1)];
+        auto a = ttv2x[DownTemplate<TET, EDGE>::get(tte, 0)];
+        auto b = ttv2x[DownTemplate<TET, EDGE>::get(tte, 1)];
+        auto c = ttv2x[DownTemplate<TET, EDGE>::get(opp, 0)];
+        auto d = ttv2x[DownTemplate<TET, EDGE>::get(opp, 1)];
         auto ab = b - a;
         auto cd = d - c;
         auto n = normalize(cross(ab, cd));
@@ -109,7 +113,7 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2ttv[vve] = DownTemplate<TET, EDGE>(vve2tte[vve], 1 - vve2wd[vve]);
+        vve2ttv[vve] = DownTemplate<TET, EDGE>::get(vve2tte[vve], 1 - vve2wd[vve]);
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];
@@ -118,7 +122,7 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       auto c = vve2x[2];
       auto ab = b - a;
       auto ac = c - a;
-      auto n = normalize(ab, ac);
+      auto n = normalize(cross(ab, ac));
       auto oa = a - o;
       auto od = n * (n * oa);
       Matrix<3,2> basis;
@@ -133,44 +137,21 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       out[tet * 4 + ttv] = l;
     }
   };
-  parallel_for(mesh->nedges(), f);
+  parallel_for(mesh->ntets(), f);
   return out;
 }
 
-static Reals get_pad_isos(Mesh* mesh, Real factor, LOs pads2elems) {
-  if (mesh->dim() == 3) return get_pad_isos_dim<3>(mesh, factor, pads2elems);
-  if (mesh->dim() == 2) return get_pad_isos_dim<2>(mesh, factor, pads2elems);
+Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real max_size, Read<I8> edges_are_bridges) {
+  if (pad_dim == EDGE) {
+    if (mesh->dim() == 3) return get_edge_pad_isos<3>(mesh, max_size, edges_are_bridges);
+    if (mesh->dim() == 2) return get_edge_pad_isos<2>(mesh, max_size, edges_are_bridges);
+  } else if (pad_dim == TRI) {
+    if (mesh->dim() == 3) return get_tri_pad_isos<3>(mesh, max_size, edges_are_bridges);
+    if (mesh->dim() == 2) return get_tri_pad_isos<2>(mesh, max_size, edges_are_bridges);
+  } else if (pad_dim == TET) {
+    return get_tet_pad_isos(mesh, max_size, edges_are_bridges);
+  }
   NORETURN(Reals());
-}
-
-Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  CHECK(mesh->owners_have_all_upward(EDGE));
-  auto edges_are_bridges = find_bridge_edges(mesh);
-  auto elems_are_pads = mark_up(mesh, EDGE, mesh->dim(), edges_are_bridges);
-  auto elems_are_angle = find_angle_elems(mesh);
-  auto elems_not_angle = invert_marks(elems_are_angle);
-  elems_are_pads = land_each(elems_are_pads, elems_not_angle);
-  auto pads2elems = collect_marked(elems_are_pads);
-  auto pads2h = get_pad_isos(mesh, factor, pads2elems);
-  auto elems2pads = invert_injective_map(pads2elems, mesh->nelems());
-  auto verts2elems = mesh->ask_up(VERT, mesh->dim());
-  auto vert_isos_w = Write<Real>(mesh->nverts());
-  auto get_vert_values = LAMBDA(LO vert) {
-    auto h = max_size;
-    for (auto ve = verts2elems.a2ab[vert]; ve < verts2elems.a2ab[vert + 1];
-         ++ve) {
-      auto elem = verts2elems.ab2b[ve];
-      auto pad = elems2pads[elem];
-      if (pad < 0) continue;
-      auto eh = pads2h[pad];
-      h = min2(h, eh);
-    }
-    vert_isos_w[vert] = h;
-  };
-  parallel_for(mesh->nverts(), get_vert_values);
-  auto vert_isos = Reals(vert_isos_w);
-  return mesh->sync_array(VERT, vert_isos, 1);
 }
 
 }

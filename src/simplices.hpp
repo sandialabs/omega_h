@@ -90,15 +90,15 @@ template <Int hdim, Int ldim>
 struct UpTemplate;
 template <>
 struct UpTemplate<3, 1> {
-  DEVICE static Int get(Int a, Int b) { return ref_[a][b]; }
+  DEVICE static TemplateUp get(Int a, Int b) { return ref_[a][b]; }
 };
 template <>
 struct UpTemplate<3, 0> {
-  DEVICE static Int get(Int a, Int b) { return rve_[a][b]; }
+  DEVICE static TemplateUp get(Int a, Int b) { return rve_[a][b]; }
 };
 template <>
 struct UpTemplate<2, 0> {
-  DEVICE static Int get(Int a, Int b) { return fve_[a][b]; }
+  DEVICE static TemplateUp get(Int a, Int b) { return fve_[a][b]; }
 };
 
 CONSTANT static Int const feov[] = {1, 2, 0};

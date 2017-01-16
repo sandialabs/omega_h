@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
+  Omega_h_proximity.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)

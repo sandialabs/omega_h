@@ -187,8 +187,8 @@ INLINE Vector<3> get_circumcenter_vector(Few<Vector<3>, 2> basis) {
 }
 
 template <Int dim>
-INLINE Vector<dim> get_triangle_normal(Few<Vector<dim>, 3> p) {
-  return cross(p[1] - p[0], p[2] - p[0]);
+INLINE Vector<dim> get_triangle_normal(Vector<dim> a, Vector<dim> b, Vector<dim> c) {
+  return cross(b - a, c - a);
 }
 
 }  // end namespace Omega_h
