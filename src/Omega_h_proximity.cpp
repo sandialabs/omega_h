@@ -56,10 +56,10 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
   auto tets2verts = mesh->ask_verts_of(TET);
   auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
   auto out = Write<Real>(mesh->ntets() * 4, max_size);
-  auto f = LAMBDA(LO tri) {
-    auto ttv2v = gather_verts<4>(tris2verts, tri);
+  auto f = LAMBDA(LO tet) {
+    auto ttv2v = gather_verts<4>(tets2verts, tet);
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
-    auto tte2e = gather_down<6>(tris2edges, tri);
+    auto tte2e = gather_down<6>(tets2edges, tet);
     auto tte2b = gather_scalars<6>(edges_are_bridges, tte2e);
     for (Int ttv = 0; ttv < 4; ++ttv) {
       Few<Int, 3> vve2tte;
@@ -78,9 +78,24 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real max_size, Read<I8> edges_are_brid
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];
-      auto n = normalize(cross(vve2x[1] - vve2x[0], vve2x[2] - vve2x[0]));
-      auto oa = vve2x[0] - o;
-      auto d = n * (n * oa);
+      auto a = vve2x[0];
+      auto b = vve2x[1];
+      auto c = vve2x[2];
+      auto ab = b - a;
+      auto ac = c - a;
+      auto n = normalize(ab, ac);
+      auto oa = a - o;
+      auto od = n * (n * oa);
+      Matrix<3,2> basis;
+      basis[0] = ab;
+      basis[1] = ac;
+      auto inv_basis = pseudo_invert(basis);
+      auto ad = od - oa;
+      auto xi = form_barycentric(inv_basis * ad);
+      if (!is_barycentric_inside(xi)) continue;
+      auto l = norm(od);
+      l = min2(l, max_size);
+      out[tet * 4 + ttv] = l;
     }
   };
   parallel_for(mesh->nedges(), f);
