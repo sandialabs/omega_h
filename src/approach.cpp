@@ -3,6 +3,9 @@
 #include "metric.hpp"
 #include "size.hpp"
 
+#include <cstdio>
+#include <iostream>
+
 namespace Omega_h {
 
 static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
@@ -16,14 +19,18 @@ static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
     Omega_h_fail("maximum edge length %f > maximum allowed length %f\n", maxl,
         opts.max_length_allowed);
   }
+  fprintf(stderr, "check_okay() minqual %.2e maxlen %.2e\n", minq, maxl);
 }
 
 static bool okay(Mesh* mesh, AdaptOpts const& opts) {
-  return mesh->min_quality() >= opts.min_quality_allowed &&
-         mesh->max_length() <= opts.max_length_allowed;
+  auto minq = mesh->min_quality();
+  auto maxl = mesh->max_length();
+  fprintf(stderr, "okay() minqual %.2e maxlen %.2e\n", minq, maxl);
+  return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
 }
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
+  std::cerr << "warp_to_limit()\n";
   if (!mesh->has_tag(VERT, "warp")) return false;
   check_okay(mesh, opts);
   auto coords = mesh->coords();
@@ -34,7 +41,18 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
     return true;
   }
   auto remainder = Reals(warp.size(), 0.0);
+  Int i = 0;
+  constexpr Int max_i = 40;
   do {
+    ++i;
+    if (i == max_i) {
+      vtk::write_vtu("warp_fail.vtu", mesh, mesh->dim());
+      vtk::write_vtu("warp_fail_edges.vtu", mesh, EDGE);
+      Omega_h_fail("warp step %d : Omega_h is probably unable to satisfy"
+                   " this warp under this size field\n"
+                   "min quality %.2e max length %.2e\n",
+                   i, mesh->min_quality(), mesh->max_length());
+    }
     auto half_warp = multiply_each_by(1.0 / 2.0, warp);
     warp = half_warp;
     remainder = add_each(remainder, half_warp);

@@ -198,8 +198,7 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     auto size = find_implied_size(&mesh);
     mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   }
-  vtk::Writer writer(&mesh, "out", mesh.dim());
-  writer.write();
+  vtk::FullWriter writer(&mesh, "out");
   Now t0 = now();
   for (Int step = 0; step < niters; ++step) {
     mesh.set_parting(OMEGA_H_GHOSTED);
@@ -216,25 +215,33 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP,
         OMEGA_H_DO_OUTPUT, motion);
-    auto size = mesh.get_array<Real>(VERT, "size");
-    size = solve_laplacian(&mesh, size, 1, 1e-2);
-    auto proxim_size = get_proximity_isos(&mesh, 1.0, 10.0);
-    size = min_each(size, proxim_size);
-    size = limit_size_field_gradation(&mesh, size, 0.6);
-    mesh.set_tag(VERT, "size", size);
     auto opts = AdaptOpts(&mesh);
-  //opts.min_length_desired = 0.5;
-  //opts.max_length_desired = 1.5;
+    opts.max_length_allowed = opts.max_length_desired * 2;
+    mesh.set_tag(VERT, "size", find_implied_size(&mesh));
+    writer.write();
     int warp_step = 0;
     while (warp_to_limit(&mesh, opts)) {
-      if (world->rank() == 0) {
-        std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step
-                  << '\n';
+      mesh.set_parting(OMEGA_H_GHOSTED);
+      auto size = mesh.get_array<Real>(VERT, "size");
+      size = solve_laplacian(&mesh, size, 1, 1e-2);
+      auto proxim_size = get_proximity_isos(&mesh, 1.05, 10.0);
+      size = min_each(size, proxim_size);
+      size = limit_size_field_gradation(&mesh, size, 0.2);
+      mesh.add_tag(VERT, "target_size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT,
+          size);
+      mesh.set_tag(VERT, "size", find_implied_size(&mesh));
+      int size_step = 0;
+      while (approach_size_field(&mesh, opts)) {
+        if (world->rank() == 0) {
+          std::cout << "APPROACH " << size_step
+            << " WARP " << warp_step << " TIME " << step << '\n';
+        }
+        adapt(&mesh, opts);
+        writer.write();
+        ++size_step;
       }
-      adapt(&mesh, opts);
       ++warp_step;
     }
-    writer.write();
   }
   Now t1 = now();
   if (world->rank() == 0) {
