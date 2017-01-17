@@ -5,6 +5,7 @@
 #include "map.hpp"
 #include "space.hpp"
 #include "timer.hpp"
+#include "Omega_h_proximity.hpp"
 
 #include <iostream>
 #include <set>
@@ -82,19 +83,19 @@ struct CollideBalls : public Case {
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72, 110});
   }
-  virtual Int time_steps() const override { return 12; }
+  virtual Int time_steps() const override { return 29; }
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)m;
-    (void)step;
-    return static_motion(object, ov2v);
+    return static_motion(object, ov2v, step);
   }
-  static Reals static_motion(I32 object, LOs ov2v) {
+  static Reals static_motion(I32 object, LOs ov2v, Int step) {
     auto out = Write<Real>(ov2v.size() * 3);
+    auto dist = 0.3 / exp2(step + 1);
     auto f = LAMBDA(LO ov) {
       if (object == 72) {
-        set_vector<3>(out, ov, vector_3(0, 0, 0.02));
+        set_vector<3>(out, ov, vector_3(0, 0, dist));
       } else {
-        set_vector<3>(out, ov, vector_3(0, 0, -0.02));
+        set_vector<3>(out, ov, vector_3(0, 0, -dist));
       }
     };
     parallel_for(ov2v.size(), f);
@@ -217,10 +218,13 @@ static void run_case(Library* lib, Case const& c, Int niters) {
         OMEGA_H_DO_OUTPUT, motion);
     auto size = mesh.get_array<Real>(VERT, "size");
     size = solve_laplacian(&mesh, size, 1, 1e-2);
+    auto proxim_size = get_proximity_isos(&mesh, 1.0, 10.0);
+    size = min_each(size, proxim_size);
+    size = limit_size_field_gradation(&mesh, size, 0.6);
     mesh.set_tag(VERT, "size", size);
     auto opts = AdaptOpts(&mesh);
-    opts.min_length_desired = 0.5;
-    opts.max_length_desired = 1.5;
+  //opts.min_length_desired = 0.5;
+  //opts.max_length_desired = 1.5;
     int warp_step = 0;
     while (warp_to_limit(&mesh, opts)) {
       if (world->rank() == 0) {
