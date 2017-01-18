@@ -140,13 +140,18 @@ INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
 
 template <Int dim>
 INLINE Vector<dim + 1> form_barycentric(Vector<dim> c) {
-  Vector<dim + 1> bc;
-  bc[dim] = 1.0;
+  Vector<dim + 1> xi;
+  xi[dim] = 1.0;
   for (Int i = 0; i < dim; ++i) {
-    bc[i] = c[i];
-    bc[dim] -= c[i];
+    xi[i] = c[i];
+    xi[dim] -= c[i];
   }
-  return bc;
+  return xi;
+}
+
+template <Int n>
+INLINE bool is_barycentric_inside(Vector<n> xi) {
+  return 0.0 <= minimum(xi) && maximum(xi) <= 1.0;
 }
 
 /* This code is copied from the tricircumcenter3d() function
@@ -179,6 +184,11 @@ INLINE Vector<3> get_circumcenter_vector(Few<Vector<3>, 2> basis) {
                     (balength * ca[1] - calength * ba[1]) * crossbc[0]) *
                 factor;
   return vector_3(xcirca, ycirca, zcirca);
+}
+
+template <Int dim>
+INLINE Vector<dim> get_triangle_normal(Vector<dim> a, Vector<dim> b, Vector<dim> c) {
+  return cross(b - a, c - a);
 }
 
 }  // end namespace Omega_h

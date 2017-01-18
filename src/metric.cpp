@@ -297,10 +297,15 @@ Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate) {
   CHECK(max_rate > 0.0);
   auto comm = mesh->comm();
   Reals values2 = values;
+  Int i = 0;
   do {
     values = values2;
     values2 = limit_size_field_once_by_adj(mesh, values, max_rate);
+    ++i;
   } while (!comm->reduce_and(are_close(values, values2)));
+  if (mesh->comm()->rank() == 0) {
+    std::cout << "limited gradation in " << i << " steps\n";
+  }
   return values2;
 }
 

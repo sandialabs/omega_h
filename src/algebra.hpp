@@ -90,6 +90,20 @@ INLINE T minimum(Few<T, n> x) {
   return out;
 }
 
+template <Int n, typename T>
+INLINE T maximum(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = max2(out, x[i]);
+  return out;
+}
+
+template <Int n, typename T>
+INLINE T sum(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = out + x[i];
+  return out;
+}
+
 template <Int n>
 INLINE Vector<n> operator-(Vector<n> a) {
   Vector<n> c;
@@ -118,6 +132,20 @@ INLINE Vector<n> pseudo_invert(Vector<n> a) {
   auto nsq = a * a;
   if (nsq < EPSILON) return zero_vector<n>();
   return a / nsq;
+}
+
+template <Int m, Int n>
+INLINE typename std::enable_if<(n < m), Matrix<n, m>>::type
+pseudo_invert(Matrix<m, n> a) {
+  auto at = transpose(a);
+  return invert(at * a) * at;
+}
+
+template <Int m, Int n>
+INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type
+pseudo_invert(Matrix<m, n> a) {
+  auto at = transpose(a);
+  return at * invert(a * at);
 }
 
 template <Int m, Int n>
