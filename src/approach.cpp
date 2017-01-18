@@ -3,9 +3,6 @@
 #include "metric.hpp"
 #include "size.hpp"
 
-#include <cstdio>
-#include <iostream>
-
 namespace Omega_h {
 
 static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
@@ -19,13 +16,11 @@ static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
     Omega_h_fail("maximum edge length %f > maximum allowed length %f\n", maxl,
         opts.max_length_allowed);
   }
-  fprintf(stderr, "check_okay() minqual %.2e maxlen %.2e\n", minq, maxl);
 }
 
 static bool okay(Mesh* mesh, AdaptOpts const& opts) {
   auto minq = mesh->min_quality();
   auto maxl = mesh->max_length();
-  fprintf(stderr, "okay() minqual %.2e maxlen %.2e\n", minq, maxl);
   return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
 }
 
@@ -46,8 +41,6 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
   do {
     ++i;
     if (i == max_i) {
-      vtk::write_vtu("warp_fail.vtu", mesh, mesh->dim());
-      vtk::write_vtu("warp_fail_edges.vtu", mesh, EDGE);
       Omega_h_fail("warp step %d : Omega_h is probably unable to satisfy"
                    " this warp under this size field\n"
                    "min quality %.2e max length %.2e\n",
