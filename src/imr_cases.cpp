@@ -5,7 +5,6 @@
 #include "map.hpp"
 #include "space.hpp"
 #include "timer.hpp"
-#include "Omega_h_proximity.hpp"
 
 #include <iostream>
 #include <set>
@@ -83,19 +82,19 @@ struct CollideBalls : public Case {
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72, 110});
   }
-  virtual Int time_steps() const override { return 29; }
+  virtual Int time_steps() const override { return 12; }
   virtual Reals motion(Mesh* m, Int step, I32 object, LOs ov2v) const override {
     (void)m;
-    return static_motion(object, ov2v, step);
+    (void)step;
+    return static_motion(object, ov2v);
   }
-  static Reals static_motion(I32 object, LOs ov2v, Int step) {
+  static Reals static_motion(I32 object, LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto dist = 0.3 / exp2(step + 1);
     auto f = LAMBDA(LO ov) {
       if (object == 72) {
-        set_vector<3>(out, ov, vector_3(0, 0, dist));
+        set_vector<3>(out, ov, vector_3(0, 0, 0.02));
       } else {
-        set_vector<3>(out, ov, vector_3(0, 0, -dist));
+        set_vector<3>(out, ov, vector_3(0, 0, -0.02));
       }
     };
     parallel_for(ov2v.size(), f);
@@ -198,7 +197,8 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     auto size = find_implied_size(&mesh);
     mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
   }
-  vtk::FullWriter writer(&mesh, "out");
+  vtk::Writer writer(&mesh, "out", mesh.dim());
+  writer.write();
   Now t0 = now();
   for (Int step = 0; step < niters; ++step) {
     mesh.set_parting(OMEGA_H_GHOSTED);
@@ -215,33 +215,22 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP,
         OMEGA_H_DO_OUTPUT, motion);
+    auto size = mesh.get_array<Real>(VERT, "size");
+    size = solve_laplacian(&mesh, size, 1, 1e-2);
+    mesh.set_tag(VERT, "size", size);
     auto opts = AdaptOpts(&mesh);
-    opts.max_length_allowed = opts.max_length_desired * 2;
-    mesh.set_tag(VERT, "size", find_implied_size(&mesh));
-    writer.write();
+    opts.min_length_desired = 0.5;
+    opts.max_length_desired = 1.5;
     int warp_step = 0;
     while (warp_to_limit(&mesh, opts)) {
-      mesh.set_parting(OMEGA_H_GHOSTED);
-      auto size = mesh.get_array<Real>(VERT, "size");
-      size = solve_laplacian(&mesh, size, 1, 1e-2);
-      auto proxim_size = get_proximity_isos(&mesh, 1.05, 10.0);
-      size = min_each(size, proxim_size);
-      size = limit_size_field_gradation(&mesh, size, 0.2);
-      mesh.add_tag(VERT, "target_size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT,
-          size);
-      mesh.set_tag(VERT, "size", find_implied_size(&mesh));
-      int size_step = 0;
-      while (approach_size_field(&mesh, opts)) {
-        if (world->rank() == 0) {
-          std::cout << "APPROACH " << size_step
-            << " WARP " << warp_step << " TIME " << step << '\n';
-        }
-        adapt(&mesh, opts);
-        writer.write();
-        ++size_step;
+      if (world->rank() == 0) {
+        std::cout << "WARP STEP " << warp_step << " OF TIME STEP " << step
+                  << '\n';
       }
+      adapt(&mesh, opts);
       ++warp_step;
     }
+    writer.write();
   }
   Now t1 = now();
   if (world->rank() == 0) {
