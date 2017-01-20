@@ -431,6 +431,11 @@ struct AdaptOpts {
 #endif
   Int max_motion_steps;
   Real motion_step_size;
+  bool should_refine;
+  bool should_coarsen;
+  bool should_swap;
+  bool should_coarsen_slivers;
+  bool should_move_for_quality;
 };
 
 /* returns false if the mesh was not modified. */

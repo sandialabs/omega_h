@@ -10,6 +10,7 @@
 #include "refine.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
+#include "Omega_h_motion.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -40,6 +41,11 @@ AdaptOpts::AdaptOpts(Int dim) {
 #endif
   max_motion_steps = 100;
   motion_step_size = 0.1;
+  should_refine = true;
+  should_coarsen = true;
+  should_swap = true;
+  should_coarsen_slivers = true;
+  should_move_for_quality = false;
 }
 
 AdaptOpts::AdaptOpts(Mesh* mesh) : AdaptOpts(mesh->dim()) {}
@@ -114,11 +120,11 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
   bool did_anything;
   do {
     did_anything = false;
-    if (refine_by_size(mesh, opts)) {
+    if (opts.should_refine && refine_by_size(mesh, opts)) {
       post_rebuild(mesh, opts);
       did_anything = true;
     }
-    if (coarsen_by_size(mesh, opts)) {
+    if (opts.should_coarsen && coarsen_by_size(mesh, opts)) {
       post_rebuild(mesh, opts);
       did_anything = true;
     }
@@ -131,11 +137,15 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
     std::cout << "addressing element qualities\n";
   }
   do {
-    if (swap_edges(mesh, opts)) {
+    if (opts.should_swap && swap_edges(mesh, opts)) {
       post_rebuild(mesh, opts);
       continue;
     }
-    if (coarsen_slivers(mesh, opts)) {
+    if (opts.should_coarsen_slivers && coarsen_slivers(mesh, opts)) {
+      post_rebuild(mesh, opts);
+      continue;
+    }
+    if (opts.should_move_for_quality && move_verts_for_quality(mesh, opts)) {
       post_rebuild(mesh, opts);
       continue;
     }

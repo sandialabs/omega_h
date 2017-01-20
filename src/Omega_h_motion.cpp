@@ -4,6 +4,7 @@
 #include "array.hpp"
 #include "indset.hpp"
 #include "modify.hpp"
+#include "transfer.hpp"
 
 namespace Omega_h {
 
@@ -50,6 +51,9 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 bool move_verts_for_quality(Mesh* mesh, AdaptOpts const& opts) {
+  if (has_xfer(mesh, VERT, OMEGA_H_CONSERVE)) {
+    Omega_h_fail("vertex motion can't conserve fields yet\n");
+  }
   if (!move_verts_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   move_verts_elem_based(mesh, opts);
