@@ -25,7 +25,6 @@ static bool okay(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
-  std::cerr << "warp_to_limit()\n";
   if (!mesh->has_tag(VERT, "warp")) return false;
   check_okay(mesh, opts);
   auto coords = mesh->coords();
