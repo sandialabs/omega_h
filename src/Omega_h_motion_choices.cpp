@@ -62,6 +62,8 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto v2k = mesh->ask_up(VERT, dim);
   auto kv2v = mesh->ask_verts_of(dim);
+  auto verts2dim = mesh->get_array<I8>(VERT, "class_dim");
+  auto edges2dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto cands2elems = unmap_graph(cands2verts, v2k);
   auto elems2old_qual = mesh->ask_qualities();
   auto cands2old_qual = graph_reduce(cands2elems, elems2old_qual, 1, OMEGA_H_MIN);
@@ -76,6 +78,7 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
   auto qualities_w = Write<Real>(ncands);
   auto f = LAMBDA(LO cand) {
     auto v = cands2verts[cand];
+    auto v_dim = verts2dim[v];
     auto cm = Helper<dim>::get_metric(metrics, v);
     auto lcm = linearize_metric(cm);
     auto cx = get_vector<dim>(coords, v);
@@ -88,6 +91,8 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
       auto best_m = cm;
       for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
         auto e = v2e.ab2b[ve];
+        auto e_dim = edges2dim[e];
+        if (e_dim != v_dim) continue;
         auto ve_code = v2e.codes[ve];
         auto evv_c = code_which_down(ve_code);
         auto evv_o = 1 - evv_c;

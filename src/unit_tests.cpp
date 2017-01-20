@@ -885,6 +885,7 @@ static void test_lie() {
 static void test_motion(Library* lib) {
   Mesh mesh(lib);
   build_box(&mesh, 1, 1, 0, 2, 2, 0);
+  classify_by_angles(&mesh, Omega_h::PI / 4);
   auto sizes = find_implied_size(&mesh);
   mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE,
       OMEGA_H_DO_OUTPUT, sizes);
