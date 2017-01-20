@@ -5,6 +5,7 @@
 #include "size.hpp"
 #include "quality.hpp"
 #include "loop.hpp"
+#include "array.hpp"
 
 namespace Omega_h {
 
@@ -17,10 +18,9 @@ struct LinearPack {
 
 template <Int dim, typename Arr>
 DEVICE Vector<dim> get_coords(Arr const& data, Int ncomps, Int offset, Int v) {
-  Vector<dim> v;
-  for (Int i = 0; i < dim; ++i)
-    v[i] = data[v * ncomps + offset + i];
-  return v;
+  Vector<dim> out;
+  for (Int i = 0; i < dim; ++i) out[i] = data[v * ncomps + offset + i];
+  return out;
 }
 
 static LinearPack pack_linearized_fields(Mesh* mesh) {
@@ -44,7 +44,7 @@ static LinearPack pack_linearized_fields(Mesh* mesh) {
           tb->xfer() == OMEGA_H_SIZE)) {
       continue;
     }
-    auto t = dynamic_cast<Tag<Real>*>(tb);
+    auto t = dynamic_cast<Tag<Real> const*>(tb);
     auto in = t->array();
     if (tb->xfer() == OMEGA_H_METRIC) in = linearize_metrics(mesh->dim(), in);
     else if (tb->xfer() == OMEGA_H_SIZE) in = linearize_isos(in);
@@ -53,7 +53,7 @@ static LinearPack pack_linearized_fields(Mesh* mesh) {
       for (Int i = 0; i < ncomps_in; ++i) {
         out_w[v * ncomps + offset + i] = in[v * ncomps_in + i];
       }
-    }
+    };
     parallel_for(mesh->nverts(), f);
     if (tb->name() == "metric" || tb->name() == "size") metric_offset = offset;
     if (tb->name() == "coordinates") coords_offset = offset;
@@ -63,6 +63,8 @@ static LinearPack pack_linearized_fields(Mesh* mesh) {
 }
 
 void unpack_linearized_fields(Mesh* old_mesh, Mesh* new_mesh, Reals data) {
+  CHECK(data.size() % new_mesh->nverts() == 0);
+  auto ncomps = data.size() / new_mesh->nverts();
   Int offset = 0;
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tb = old_mesh->get_tag(VERT, i);
@@ -71,29 +73,33 @@ void unpack_linearized_fields(Mesh* old_mesh, Mesh* new_mesh, Reals data) {
           tb->xfer() == OMEGA_H_SIZE)) {
       continue;
     }
-    auto t = dynamic_cast<Tag<Real>*>(tb);
     auto ncomps_out = tb->ncomps();
-    auto out_w = Write<Real>(mesh->nverts() * ncomps_out);
+    auto out_w = Write<Real>(new_mesh->nverts() * ncomps_out);
     auto f = LAMBDA(LO v) {
       for (Int i = 0; i < ncomps_out; ++i) {
         out_w[v * ncomps_out + i] = data[v * ncomps + offset + i];
       }
-    }
-    parallel_for(mesh->nverts(), f);
+    };
+    parallel_for(new_mesh->nverts(), f);
     auto out = Reals(out_w);
-    if (tb->xfer() == OMEGA_H_METRIC) out = delinearize_metrics(mesh->dim(), out);
+    if (tb->xfer() == OMEGA_H_METRIC) out = delinearize_metrics(old_mesh->dim(), out);
     else if (tb->xfer() == OMEGA_H_SIZE) out = delinearize_isos(out);
-    new_mesh->add_tag(
-        VERT, tb->name(), ncomps_out, tb->xfer(), tb->outflags(), out);
-    offset += ncomps_in;
+    if (new_mesh->has_tag(VERT, tb->name())) {
+      new_mesh->set_tag(VERT, tb->name(), out);
+    } else {
+      new_mesh->add_tag(
+          VERT, tb->name(), ncomps_out, tb->xfer(), tb->outflags(), out);
+    }
+    offset += ncomps_out;
   }
+  CHECK(offset == ncomps);
 }
 
 template <Int dim>
 class MetricMotion {
  public:
   using Metric = Matrix<dim, dim>;
-  constexpr Int ncomps = symm_dofs(dim);
+  static constexpr Int ncomps = symm_dofs(dim);
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "metric");
   }
@@ -103,11 +109,11 @@ class MetricMotion {
   template <typename Arr>
   DEVICE static Metric get_linear_metric(
       Arr const& data, Int ncomps, Int offset, LO v) {
-    Vector<symm_dofs(dim)> v;
+    Vector<symm_dofs(dim)> vec;
     for (Int i = 0; i < symm_dofs(dim); ++i) {
-      v[i] = data[v * ncomps + offset + i];
+      vec[i] = data[v * ncomps + offset + i];
     }
-    return vector2symm(v);
+    return vector2symm(vec);
   }
   DEVICE static Metric gather_maxdet_metric(Reals metrics,
       Few<LO, dim + 1> kvv2v,
@@ -122,7 +128,7 @@ template <Int dim>
 class IsoMotion {
  public:
   using Metric = Real;
-  constexpr Int ncomps = 1;
+  static constexpr Int ncomps = 1;
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "size");
   }
@@ -180,8 +186,6 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
     auto v = cands2verts[cand];
     auto v_dim = verts2dim[v];
     auto cm = Helper<dim>::get_metric(metrics, v);
-    auto lcm = Helper<dim>::get_linear_metric(
-        pack.data, pack.ncomps, pack.metric_offset, v);
     auto cx = get_vector<dim>(coords, v);
     auto old_qual = cands2old_qual[cand];
     auto last_qual = old_qual;
@@ -205,7 +209,7 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
             (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
             step_size * pack.data[ov * pack.ncomps + i];
         }
-        auto nx = get_coords(new_sol_w, pack.ncomps, pack.coords_offset, v);
+        auto nx = get_coords<dim>(new_sol_w, pack.ncomps, pack.coords_offset, v);
         auto om = Helper<dim>::get_metric(metrics, ov);
         auto lnm = Helper<dim>::get_linear_metric(new_sol_w, pack.ncomps,
             pack.metric_offset, v);
@@ -241,7 +245,6 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
       last_qual = best_qual;
       cx = best_x;
       cm = best_m;
-      lcm = linearize_metric(cm);
     } // end loop over motion steps
     qualities_w[cand] = last_qual;
     did_move_w[cand] = last_qual > old_qual;

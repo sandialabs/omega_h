@@ -978,10 +978,8 @@ static void test_motion(Library* lib) {
   auto cands2verts = LOs({4});
   auto choices = get_motion_choices(&mesh, opts, cands2verts);
   CHECK(choices.cands_did_move.get(0));
-  coords_w = deep_copy(mesh.coords());
-  coords_w.set(4 * 2 + 0, choices.coordinates.get(0));
-  coords_w.set(4 * 2 + 1, choices.coordinates.get(1));
-  mesh.set_coords(coords_w);
+  CHECK(choices.quals.get(0) > 0.8);
+  unpack_linearized_fields(&mesh, &mesh, choices.new_sol);
   CHECK(mesh.min_quality() > 0.8);
 }
 
