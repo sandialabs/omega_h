@@ -8,15 +8,106 @@
 
 namespace Omega_h {
 
+struct LinearPack {
+  Reals data;
+  Int ncomps;
+  Int metric_offset;
+  Int coords_offset;
+};
+
+template <Int dim, typename Arr>
+DEVICE Vector<dim> get_coords(Arr const& data, Int ncomps, Int offset, Int v) {
+  Vector<dim> v;
+  for (Int i = 0; i < dim; ++i)
+    v[i] = data[v * ncomps + offset + i];
+  return v;
+}
+
+static LinearPack pack_linearized_fields(Mesh* mesh) {
+  Int ncomps = 0;
+  for (Int i = 0; i < mesh->ntags(VERT); ++i) {
+    auto tb = mesh->get_tag(VERT, i);
+    if (tb->xfer() == OMEGA_H_LINEAR_INTERP ||
+        tb->xfer() == OMEGA_H_METRIC ||
+        tb->xfer() == OMEGA_H_SIZE) {
+      ncomps += tb->ncomps();
+    }
+  }
+  auto out_w = Write<Real>(mesh->nverts() * ncomps);
+  Int offset = 0;
+  Int metric_offset = -1;
+  Int coords_offset = -1;
+  for (Int i = 0; i < mesh->ntags(VERT); ++i) {
+    auto tb = mesh->get_tag(VERT, i);
+    if (!(tb->xfer() == OMEGA_H_LINEAR_INTERP ||
+          tb->xfer() == OMEGA_H_METRIC ||
+          tb->xfer() == OMEGA_H_SIZE)) {
+      continue;
+    }
+    auto t = dynamic_cast<Tag<Real>*>(tb);
+    auto in = t->array();
+    if (tb->xfer() == OMEGA_H_METRIC) in = linearize_metrics(mesh->dim(), in);
+    else if (tb->xfer() == OMEGA_H_SIZE) in = linearize_isos(in);
+    auto ncomps_in = tb->ncomps();
+    auto f = LAMBDA(LO v) {
+      for (Int i = 0; i < ncomps_in; ++i) {
+        out_w[v * ncomps + offset + i] = in[v * ncomps_in + i];
+      }
+    }
+    parallel_for(mesh->nverts(), f);
+    if (tb->name() == "metric" || tb->name() == "size") metric_offset = offset;
+    if (tb->name() == "coordinates") coords_offset = offset;
+    offset += ncomps_in;
+  }
+  return { out_w, ncomps, metric_offset, coords_offset };
+}
+
+void unpack_linearized_fields(Mesh* old_mesh, Mesh* new_mesh, Reals data) {
+  Int offset = 0;
+  for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
+    auto tb = old_mesh->get_tag(VERT, i);
+    if (!(tb->xfer() == OMEGA_H_LINEAR_INTERP ||
+          tb->xfer() == OMEGA_H_METRIC ||
+          tb->xfer() == OMEGA_H_SIZE)) {
+      continue;
+    }
+    auto t = dynamic_cast<Tag<Real>*>(tb);
+    auto ncomps_out = tb->ncomps();
+    auto out_w = Write<Real>(mesh->nverts() * ncomps_out);
+    auto f = LAMBDA(LO v) {
+      for (Int i = 0; i < ncomps_out; ++i) {
+        out_w[v * ncomps_out + i] = data[v * ncomps + offset + i];
+      }
+    }
+    parallel_for(mesh->nverts(), f);
+    auto out = Reals(out_w);
+    if (tb->xfer() == OMEGA_H_METRIC) out = delinearize_metrics(mesh->dim(), out);
+    else if (tb->xfer() == OMEGA_H_SIZE) out = delinearize_isos(out);
+    new_mesh->add_tag(
+        VERT, tb->name(), ncomps_out, tb->xfer(), tb->outflags(), out);
+    offset += ncomps_in;
+  }
+}
+
 template <Int dim>
 class MetricMotion {
  public:
   using Metric = Matrix<dim, dim>;
+  constexpr Int ncomps = symm_dofs(dim);
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "metric");
   }
   DEVICE static Metric get_metric(Reals metrics, LO v) {
     return get_symm<dim>(metrics, v);
+  }
+  template <typename Arr>
+  DEVICE static Metric get_linear_metric(
+      Arr const& data, Int ncomps, Int offset, LO v) {
+    Vector<symm_dofs(dim)> v;
+    for (Int i = 0; i < symm_dofs(dim); ++i) {
+      v[i] = data[v * ncomps + offset + i];
+    }
+    return vector2symm(v);
   }
   DEVICE static Metric gather_maxdet_metric(Reals metrics,
       Few<LO, dim + 1> kvv2v,
@@ -31,11 +122,17 @@ template <Int dim>
 class IsoMotion {
  public:
   using Metric = Real;
+  constexpr Int ncomps = 1;
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "size");
   }
   DEVICE static Metric get_metric(Reals metrics, LO v) {
     return metrics[v];
+  }
+  template <typename Arr>
+  DEVICE static Metric get_linear_metric(
+      Arr const& data, Int ncomps, Int offset, LO v) {
+    return data[v * ncomps + offset];
   }
   /* metric is unused by shape quality measure, so don't bother
      gathering the other ones and actually computing some maximum */
@@ -55,6 +152,8 @@ template <template <Int> class Helper, Int dim>
 MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
     LOs cands2verts) {
   using Metric = typename Helper<dim>::Metric;
+  auto pack = pack_linearized_fields(mesh);
+  auto new_sol_w = deep_copy(pack.data);
   auto coords = mesh->coords();
   auto metrics = Helper<dim>::get_metrics_array(mesh);
   auto ncands = cands2verts.size();
@@ -75,12 +174,14 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
   CHECK(step_size < 1.0);
   auto did_move_w = Write<I8>(ncands);
   auto coordinates_w = Write<Real>(ncands * dim);
+  auto metrics_w = Write<Real>(ncands * Helper<dim>::ncomps);
   auto qualities_w = Write<Real>(ncands);
   auto f = LAMBDA(LO cand) {
     auto v = cands2verts[cand];
     auto v_dim = verts2dim[v];
     auto cm = Helper<dim>::get_metric(metrics, v);
-    auto lcm = linearize_metric(cm);
+    auto lcm = Helper<dim>::get_linear_metric(
+        pack.data, pack.ncomps, pack.metric_offset, v);
     auto cx = get_vector<dim>(coords, v);
     auto old_qual = cands2old_qual[cand];
     auto last_qual = old_qual;
@@ -99,12 +200,15 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
         auto evv2v = gather_verts<2>(ev2v, e);
         auto ov = evv2v[evv_o];
         auto ox = get_vector<dim>(coords, ov);
-        auto d = ox - cx;
-        auto s = d * step_size;
-        auto nx = cx + s;
+        for (Int i = 0; i < pack.ncomps; ++i) {
+          new_sol_w[v * pack.ncomps + i] =
+            (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
+            step_size * pack.data[ov * pack.ncomps + i];
+        }
+        auto nx = get_coords(new_sol_w, pack.ncomps, pack.coords_offset, v);
         auto om = Helper<dim>::get_metric(metrics, ov);
-        auto lom = linearize_metric(om); // could cache these
-        auto lnm = lcm * (1.0 - step_size) + lom * step_size;
+        auto lnm = Helper<dim>::get_linear_metric(new_sol_w, pack.ncomps,
+            pack.metric_offset, v);
         auto nm = delinearize_metric(lnm);
         Few<Vector<dim>, 2> evv2nx;
         Few<Metric, 2> evv2nm;
@@ -139,12 +243,11 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
       cm = best_m;
       lcm = linearize_metric(cm);
     } // end loop over motion steps
-    set_vector(coordinates_w, cand, cx);
     qualities_w[cand] = last_qual;
     did_move_w[cand] = last_qual > old_qual;
   };
   parallel_for(ncands, f);
-  return { Read<I8>(did_move_w), Reals(qualities_w), Reals(coordinates_w) };
+  return { Read<I8>(did_move_w), Reals(qualities_w), Reals(new_sol_w) };
 }
 
 MotionChoices get_motion_choices(Mesh* mesh, AdaptOpts const& opts,
