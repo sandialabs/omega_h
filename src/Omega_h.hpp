@@ -622,6 +622,8 @@ struct AdaptOpts {
   bool should_smooth_snap;
   Real snap_smooth_tolerance;
 #endif
+  Int max_motion_steps;
+  Real motion_step_size;
 };
 
 /* returns false if the mesh was not modified. */

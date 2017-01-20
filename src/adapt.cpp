@@ -38,6 +38,8 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_smooth_snap = true;
   snap_smooth_tolerance = 1e-2;
 #endif
+  max_motion_steps = 100;
+  motion_step_size = 0.1;
 }
 
 AdaptOpts::AdaptOpts(Mesh* mesh) : AdaptOpts(mesh->dim()) {}
