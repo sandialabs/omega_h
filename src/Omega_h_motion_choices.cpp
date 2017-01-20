@@ -22,10 +22,10 @@ class MetricMotion {
   }
   template <typename Arr>
   DEVICE static Metric get_linear_metric(
-      Arr const& data, Int ncomps, Int offset, LO v) {
+      Arr const& tmp, Int offset) {
     Vector<symm_dofs(dim)> vec;
     for (Int i = 0; i < symm_dofs(dim); ++i) {
-      vec[i] = data[v * ncomps + offset + i];
+      vec[i] = tmp[offset + i];
     }
     return vector2symm(vec);
   }
@@ -51,8 +51,8 @@ class IsoMotion {
   }
   template <typename Arr>
   DEVICE static Metric get_linear_metric(
-      Arr const& data, Int ncomps, Int offset, LO v) {
-    return data[v * ncomps + offset];
+      Arr const& tmp, Int offset) {
+    return tmp[offset];
   }
   /* metric is unused by shape quality measure, so don't bother
      gathering the other ones and actually computing some maximum */
@@ -69,9 +69,9 @@ INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Real) {
 }
 
 template <Int dim, typename Arr>
-static DEVICE Vector<dim> get_coords(Arr const& data, Int ncomps, Int offset, Int v) {
+static DEVICE Vector<dim> get_coords(Arr const& tmp, Int offset) {
   Vector<dim> out;
-  for (Int i = 0; i < dim; ++i) out[i] = data[v * ncomps + offset + i];
+  for (Int i = 0; i < dim; ++i) out[i] = tmp[offset + i];
   return out;
 }
 
@@ -80,6 +80,8 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
     LOs cands2verts) {
   using Metric = typename Helper<dim>::Metric;
   auto pack = pack_linearized_fields(mesh);
+  constexpr Int maxcomps = 30;
+  CHECK(pack.ncomps <= maxcomps);
   auto new_sol_w = deep_copy(pack.data);
   auto coords = mesh->coords();
   auto metrics = Helper<dim>::get_metrics_array(mesh);
@@ -106,15 +108,14 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
   auto f = LAMBDA(LO cand) {
     auto v = cands2verts[cand];
     auto v_dim = verts2dim[v];
-    auto cm = Helper<dim>::get_metric(metrics, v);
-    auto cx = get_vector<dim>(coords, v);
     auto old_qual = cands2old_qual[cand];
     auto last_qual = old_qual;
+    Vector<maxcomps> tmp;
+    for (Int i = 0; i < pack.ncomps; ++i) {
+      tmp[i] = pack.data[v * pack.ncomps + i];
+    }
     for (Int step = 0; step < max_steps; ++step) {
-      auto best_qual = last_qual;
       bool found_step = false;
-      auto best_x = cx;
-      auto best_m = cm;
       for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
         auto e = v2e.ab2b[ve];
         auto e_dim = edges2dim[e];
@@ -126,14 +127,12 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
         auto ov = evv2v[evv_o];
         auto ox = get_vector<dim>(coords, ov);
         for (Int i = 0; i < pack.ncomps; ++i) {
-          new_sol_w[v * pack.ncomps + i] =
-            (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
+          tmp[i] = (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
             step_size * pack.data[ov * pack.ncomps + i];
         }
-        auto nx = get_coords<dim>(new_sol_w, pack.ncomps, pack.coords_offset, v);
+        auto nx = get_coords<dim>(tmp, pack.coords_offset);
         auto om = Helper<dim>::get_metric(metrics, ov);
-        auto lnm = Helper<dim>::get_linear_metric(new_sol_w, pack.ncomps,
-            pack.metric_offset, v);
+        auto lnm = Helper<dim>::get_linear_metric(tmp, pack.metric_offset);
         auto nm = delinearize_metric(lnm);
         Few<Vector<dim>, 2> evv2nx;
         Few<Metric, 2> evv2nm;
@@ -154,23 +153,25 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
           auto km = Helper<dim>::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
           auto k_qual = metric_element_quality(kvv2nx, km);
           new_qual = min2(new_qual, k_qual);
-          if (new_qual <= best_qual) break;
+          if (new_qual <= last_qual) break;
         } // end loop over elements for quality
-        if (new_qual <= best_qual) continue;
+        if (new_qual <= last_qual) continue;
         found_step = true;
-        best_qual = new_qual;
-        best_x = nx;
-        best_m = nm;
+        last_qual = new_qual;
+        for (Int i = 0; i < pack.ncomps; ++i) {
+          new_sol_w[v * pack.ncomps + i] = tmp[i];
+        }
       } // end loop over edges for possible steps
       if (!found_step) break;
-      last_qual = best_qual;
-      cx = best_x;
-      cm = best_m;
     } // end loop over motion steps
+    auto did_move = last_qual > old_qual;
     qualities_w[cand] = last_qual;
-    did_move_w[cand] = last_qual > old_qual;
+    did_move_w[cand] = did_move;
+    if (did_move) CHECK(last_qual >= 0.0);
   };
   parallel_for(ncands, f);
+  auto qualities = Reals(qualities_w);
+  auto new_sol = Reals(new_sol_w);
   return { Read<I8>(did_move_w), Reals(qualities_w), Reals(new_sol_w) };
 }
 
