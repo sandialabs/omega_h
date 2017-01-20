@@ -979,7 +979,8 @@ static void test_motion(Library* lib) {
   auto choices = get_motion_choices(&mesh, opts, cands2verts);
   CHECK(choices.cands_did_move.get(0));
   CHECK(choices.quals.get(0) > 0.8);
-  unpack_linearized_fields(&mesh, &mesh, choices.new_sol);
+  auto verts_are_keys = Read<I8>({0,0,0,0,1,0,0,0,0});
+  unpack_linearized_fields(&mesh, &mesh, choices.new_sol, verts_are_keys);
   CHECK(mesh.min_quality() > 0.8);
 }
 

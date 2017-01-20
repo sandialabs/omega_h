@@ -2,7 +2,7 @@
 
 namespace Omega_h {
 
-static bool motion_ghosted(Mesh* mesh, AdaptOpts const& opts) {
+static bool move_verts_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands =
@@ -11,28 +11,42 @@ static bool motion_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto verts_are_cands = mark_down(mesh, mesh->dim(), VERT, elems_are_cands);
   auto cands2verts = collect_marked(edges_are_cands);
   auto choices = get_motion_choices(mesh, opts, cands2verts);
-  verts_are_cands = choices.cands_did_move;
+  verts_are_cands = map_onto(choices.cands_did_move, cands2verts, mesh->nverts(),
+      I8(0), 1);
   if (sum(comm, verts_are_cands) == 0) return false;
   auto vert_quals = map_onto(choices.quals, cands2verts, mesh->nverts(), -1.0, 1);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
-  auto new_coords_w = deep_copy(mesh->coords());
-  map_into(choices.coords, cands2verts, new_coords_w, mesh->dim());
-  mesh->add_tag(VERT, "motion_coords", mesh->dim(), OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, Reals(new_coords_w));
-  auto new_metrics_w = deep_copy(mesh->coords());
-  map_into(choices.coords, cands2verts, new_coords_w, mesh->dim());
-  mesh->add_tag(VERT, "motion_coords", mesh->dim(), OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, Reals(new_coords_w));
-  Graph edges2cav_elems;
-  edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
-  mesh->add_tag(EDGE, "config", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
-      edge_configs);
-  auto keys2edges = collect_marked(edges_are_keys);
-  set_owners_by_indset(mesh, EDGE, keys2edges, edges2cav_elems);
+  mesh->add_tag(VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
+      verts_are_keys);
+  auto ncomps = choices.new_sol.size() / mesh->nverts();
+  mesh->add_tag(VERT, "motion_solution", ncomps, OMEGA_H_DONT_TRANSFER,
+      OMEGA_H_DONT_OUTPUT, choices.new_sol);
+  auto keys2verts = collect_marked(verts_are_keys);
+  auto verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
+  set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
 }
 
-bool move_vertices_for_quality(Mesh* mesh, AdaptOpts const& opts) {
+static void move_verts_element_based(Mesh* mesh, AdaptOpts const& opts) {
+  auto comm = mesh->comm();
+  auto verts_are_keys = mesh->get_array<I8>(VERT, "key");
+  mesh->remove_tag(VERT, "key");
+  auto new_sol = mesh->get_array<I8>(VERT, "motion_solution");
+  mesh->remove_tag(VERT, "motion_solution");
+  auto keys2verts = collect_marked(verts_are_keys);
+  if (opts.verbosity >= EACH_REBUILD) {
+    auto nkeys = keys2verts.size();
+    auto ntotal_keys = comm->allreduce(GO(nkeys), OMEGA_H_SUM);
+    if (comm->rank() == 0) {
+      std::cout << "moving " << ntotal_keys << " vertices\n";
+    }
+  }
+}
+
+bool move_verts_for_quality(Mesh* mesh, AdaptOpts const& opts) {
+  if (!move_verts_ghosted(mesh, opts)) return false;
+  mesh->set_parting(OMEGA_H_ELEM_BASED, false);
+  move_verts_elem_based(mesh, opts);
 }
 
 } // end namespace Omega_h
