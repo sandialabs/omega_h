@@ -3,7 +3,7 @@ set(Omega_h_SOURCES
   algebra.cpp
   Omega_h_control.cpp
   timer.cpp
-  array.cpp
+  Omega_h_array.cpp
   int128.cpp
   repro.cpp
   sort.cpp
@@ -348,6 +348,8 @@ set(Omega_h_HEADERS
   Omega_h_mpi.h
   Omega_h_c.h
   Omega_h_kokkos.hpp
+  Omega_h_defines.hpp
+  Omega_h_array.hpp
   Omega_h.hpp
   Omega_h_math.hpp
   Omega_h_functors.hpp
