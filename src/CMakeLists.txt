@@ -84,6 +84,7 @@ set(Omega_h_SOURCES
   Omega_h_proximity.cpp
   Omega_h_motion_choices.cpp
   Omega_h_motion_transfer.cpp
+  Omega_h_motion.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)
