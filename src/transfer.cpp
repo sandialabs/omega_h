@@ -202,7 +202,7 @@ static void transfer_pointwise_refine(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
+void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
@@ -214,7 +214,7 @@ static void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void transfer_quality(Mesh* old_mesh, Mesh* new_mesh,
+void transfer_quality(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
@@ -396,7 +396,7 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
       same_elems2new_elems, prods2new_elems, old_tag, prod_data);
 }
 
-static void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
@@ -457,10 +457,11 @@ static void transfer_copy_tmpl(
   new_mesh->add_tag(prod_dim, name, ncomps, xfer, outflags, old_data, true);
 }
 
-void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {
+void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
+    std::function<bool(TagBase const*)> filter) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() != OMEGA_H_DONT_TRANSFER) {
+    if (filter(tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_copy_tmpl<I8>(new_mesh, prod_dim, tagbase);
@@ -477,6 +478,18 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {
       }
     }
   }
+}
+
+void transfer_copy_swap(Mesh* old_mesh, Mesh* new_mesh) {
+  transfer_copy(old_mesh, new_mesh, VERT, [](TagBase const* tb) -> bool {
+      return tb->xfer() != OMEGA_H_DONT_TRANSFER;
+    });
+}
+
+void transfer_copy_motion(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {
+  transfer_copy(old_mesh, new_mesh, prod_dim, [](TagBase const* tb) -> bool {
+      return tb->xfer() == OMEGA_H_INHERIT || tb->xfer() == OMEGA_H_GLOBAL;
+    });
 }
 
 template <typename T>

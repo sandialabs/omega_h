@@ -7,13 +7,16 @@
 
 namespace Omega_h {
 
+static bool should_transfer(TagBase const* tb) {
+  return (tb->xfer() == OMEGA_H_LINEAR_INTERP && tb->name() != "warp") ||
+    tb->xfer() == OMEGA_H_METRIC || tb->xfer() == OMEGA_H_SIZE;
+}
+
 LinearPack pack_linearized_fields(Mesh* mesh) {
   Int ncomps = 0;
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tb = mesh->get_tag(VERT, i);
-    if (tb->xfer() == OMEGA_H_LINEAR_INTERP ||
-        tb->xfer() == OMEGA_H_METRIC ||
-        tb->xfer() == OMEGA_H_SIZE) {
+    if (should_transfer(tb)) {
       ncomps += tb->ncomps();
     }
   }
@@ -23,11 +26,7 @@ LinearPack pack_linearized_fields(Mesh* mesh) {
   Int coords_offset = -1;
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tb = mesh->get_tag(VERT, i);
-    if (!(tb->xfer() == OMEGA_H_LINEAR_INTERP ||
-          tb->xfer() == OMEGA_H_METRIC ||
-          tb->xfer() == OMEGA_H_SIZE)) {
-      continue;
-    }
+    if (!should_transfer(tb)) continue;
     auto t = dynamic_cast<Tag<Real> const*>(tb);
     auto in = t->array();
     if (tb->xfer() == OMEGA_H_METRIC) in = linearize_metrics(mesh->dim(), in);
@@ -53,11 +52,7 @@ void unpack_linearized_fields(Mesh* old_mesh, Mesh* new_mesh, Reals data,
   Int offset = 0;
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tb = old_mesh->get_tag(VERT, i);
-    if (!(tb->xfer() == OMEGA_H_LINEAR_INTERP ||
-          tb->xfer() == OMEGA_H_METRIC ||
-          tb->xfer() == OMEGA_H_SIZE)) {
-      continue;
-    }
+    if (!should_transfer(tb)) continue;
     auto ncomps_out = tb->ncomps();
     auto out_w = Write<Real>(new_mesh->nverts() * ncomps_out);
     auto f = LAMBDA(LO v) {

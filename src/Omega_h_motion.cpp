@@ -5,6 +5,7 @@
 #include "indset.hpp"
 #include "modify.hpp"
 #include "transfer.hpp"
+#include "graph.hpp"
 
 namespace Omega_h {
 
@@ -47,12 +48,52 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
       std::cout << "moving " << ntotal_keys << " vertices\n";
     }
   }
-  unpack_linearized_fields(mesh, mesh, new_sol, verts_are_keys);
+  auto new_mesh = mesh->copy_meta();
+  for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
+    if (ent_dim == VERT) new_mesh.set_verts(mesh->nverts());
+    else new_mesh.set_ents(ent_dim, mesh->ask_down(ent_dim, ent_dim - 1));
+    new_mesh.set_owners(ent_dim, mesh->ask_owners(ent_dim));
+    if (ent_dim == VERT) {
+      unpack_linearized_fields(mesh, &new_mesh, new_sol, verts_are_keys);
+      if (mesh->has_tag(VERT, "warp")) {
+        auto tb = mesh->get_tagbase(VERT, "warp");
+        auto old_warp = mesh->get_array<Real>(VERT, "warp");
+        auto old_coords = mesh->coords();
+        auto new_coords = new_mesh.coords();
+        auto motion = subtract_each(new_coords, old_coords);
+        auto new_warp = subtract_each(old_warp, motion);
+        new_mesh.add_tag(VERT, "warp", tb->ncomps(), tb->xfer(), tb->outflags(),
+            new_warp);
+      }
+    } else if (ent_dim == EDGE) {
+      auto edges_did_move = mark_up(&new_mesh, VERT, EDGE, verts_are_keys);
+      auto new_edges2edges = collect_marked(edges_did_move);
+      auto edges_didnt_move = invert_marks(edges_did_move);
+      auto same_edges2edges = collect_marked(edges_didnt_move);
+      transfer_length(mesh, &new_mesh, same_edges2edges, same_edges2edges,
+          new_edges2edges);
+    } else if (ent_dim == mesh->dim()) {
+      auto elems_did_move = mark_up(&new_mesh, VERT, mesh->dim(), verts_are_keys);
+      auto new_elems2elems = collect_marked(elems_did_move);
+      auto elems_didnt_move = invert_marks(elems_did_move);
+      auto same_elems2elems = collect_marked(elems_didnt_move);
+      transfer_quality(mesh, &new_mesh, same_elems2elems, same_elems2elems,
+          new_elems2elems);
+      auto verts2elems = mesh->ask_graph(VERT, mesh->dim());
+      auto keys2elems = unmap_graph(keys2verts, verts2elems);
+      transfer_pointwise(mesh, &new_mesh, VERT, keys2verts, keys2elems.a2ab,
+          keys2elems.ab2b, same_elems2elems, same_elems2elems);
+    }
+  }
+  *mesh = new_mesh;
 }
 
 bool move_verts_for_quality(Mesh* mesh, AdaptOpts const& opts) {
   if (has_xfer(mesh, VERT, OMEGA_H_CONSERVE)) {
-    Omega_h_fail("vertex motion can't conserve fields yet\n");
+    Omega_h_fail("vertex motion can't conserve cell values yet\n");
+  }
+  if (has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) {
+    Omega_h_fail("vertex motion can't conserve momentum yet\n");
   }
   if (!move_verts_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
