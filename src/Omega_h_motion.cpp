@@ -53,6 +53,7 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
     if (ent_dim == VERT) new_mesh.set_verts(mesh->nverts());
     else new_mesh.set_ents(ent_dim, mesh->ask_down(ent_dim, ent_dim - 1));
     new_mesh.set_owners(ent_dim, mesh->ask_owners(ent_dim));
+    transfer_copy_motion(mesh, &new_mesh, ent_dim);
     if (ent_dim == VERT) {
       unpack_linearized_fields(mesh, &new_mesh, new_sol, verts_are_keys);
       if (mesh->has_tag(VERT, "warp")) {

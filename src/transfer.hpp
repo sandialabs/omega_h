@@ -20,6 +20,7 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     std::function<bool(TagBase const*)> filter);
 void transfer_copy_swap(Mesh* old_mesh, Mesh* new_mesh);
+void transfer_copy_motion(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim);
 
 bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer);
 
