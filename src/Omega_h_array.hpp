@@ -1,10 +1,10 @@
 #ifndef OMEGA_H_ARRAY_HPP
 #define OMEGA_H_ARRAY_HPP
 
+#include <Omega_h_defines.hpp>
+#include <Omega_h_kokkos.hpp>
 #include <initializer_list>
 #include <memory>
-#include <Omega_h_kokkos.hpp>
-#include <Omega_h_defines.hpp>
 
 namespace Omega_h {
 

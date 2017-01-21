@@ -40,10 +40,10 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, std::string const& name);
 
-void transfer_length(Mesh* old_mesh, Mesh* new_mesh,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents);
-void transfer_quality(Mesh* old_mesh, Mesh* new_mesh,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents);
+void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, LOs prods2new_ents);
+void transfer_quality(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, LOs prods2new_ents);
 void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);

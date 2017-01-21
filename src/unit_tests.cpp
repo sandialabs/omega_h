@@ -1,6 +1,7 @@
 #include "Omega_h_compare.hpp"
 #include "Omega_h_math.hpp"
 #include "Omega_h_motion.hpp"
+#include "Omega_h_proximity.hpp"
 #include "adjacency.hpp"
 #include "align.hpp"
 #include "array.hpp"
@@ -29,7 +30,6 @@
 #include "transfer_conserve.hpp"
 #include "vtk.hpp"
 #include "xml.hpp"
-#include "Omega_h_proximity.hpp"
 
 #include <sstream>
 
@@ -884,81 +884,69 @@ static void test_lie() {
 }
 
 static void test_proximity(Library* lib) {
-  { // triangle with one bridge
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 2, LOs({0,1,2}), 3);
-  mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals({0,0,1,0,0,1}));
-  auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({0,1,0}));
-  CHECK(isos == Reals({42.0}));
+  {  // triangle with one bridge
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
+    mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals({0, 0, 1, 0, 0, 1}));
+    auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({0, 1, 0}));
+    CHECK(isos == Reals({42.0}));
   }
-  { // triangle off-center
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 2, LOs({0,1,2}), 3);
-  mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals({0,0,1,1,1,2}));
-  auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1,1,0}));
-  CHECK(isos == Reals({42.0}));
+  {  // triangle off-center
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
+    mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals({0, 0, 1, 1, 1, 2}));
+    auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1, 1, 0}));
+    CHECK(isos == Reals({42.0}));
   }
-  { // triangle expected
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 2, LOs({0,1,2}), 3);
-  mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals({0,0,1,-1,1,1}));
-  auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1,1,0}));
-  CHECK(are_close(isos, Reals({1.0})));
+  {  // triangle expected
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
+    mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals({0, 0, 1, -1, 1, 1}));
+    auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1, 1, 0}));
+    CHECK(are_close(isos, Reals({1.0})));
   }
-  { // tet with two bridges
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
-  mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals(3*4, 0.0));
-  auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1,1,0,0,0,0}));
-  CHECK(are_close(isos, Reals({42.0})));
+  {  // tet with two bridges
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
+    mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals(3 * 4, 0.0));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 0, 0, 0, 0}));
+    CHECK(are_close(isos, Reals({42.0})));
   }
-  { // tet with three bridges, off-center
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
-  mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals({0,0,0,
-                                1,-1,1,
-                                1, 1,1,
-                                1,0,2}));
-  auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1,1,1,0,0,0}));
-  CHECK(are_close(isos, Reals({42.0})));
+  {  // tet with three bridges, off-center
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
+    mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 1, -1, 1, 1, 1, 1, 1, 0, 2}));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 1, 0, 0, 0}));
+    CHECK(are_close(isos, Reals({42.0})));
   }
-  { // tet with three bridges, expected
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
-  mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals({0,0,0,
-                                1,-1,-1,
-                                1, 1,-1,
-                                1,0,2}));
-  auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1,1,1,0,0,0}));
-  CHECK(are_close(isos, Reals({1.0})));
+  {  // tet with three bridges, expected
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
+    mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 1, -1, -1, 1, 1, -1, 1, 0, 2}));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 1, 0, 0, 0}));
+    CHECK(are_close(isos, Reals({1.0})));
   }
-  { // edge-edge tet, off center
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
-  mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals({0,0,0,
-                                1,0,0,
-                                -1,1,0,
-                                -1,1,1}));
-  auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0,1,1,1,1,0}));
-  CHECK(are_close(isos, Reals({42.0})));
+  {  // edge-edge tet, off center
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
+    mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 1, 0, 0, -1, 1, 0, -1, 1, 1}));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0, 1, 1, 1, 1, 0}));
+    CHECK(are_close(isos, Reals({42.0})));
   }
-  { // edge-edge tet, expected
-  Mesh mesh(lib);
-  build_from_elems2verts(&mesh, 3, LOs({0,1,2,3}), 4);
-  mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, Reals({0,0,0,
-                                2,0,0,
-                                1,1,-1,
-                                1,1, 1}));
-  auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0,1,1,1,1,0}));
-  CHECK(are_close(isos, Reals({1.0})));
+  {  // edge-edge tet, expected
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
+    mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
+        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 2, 0, 0, 1, 1, -1, 1, 1, 1}));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0, 1, 1, 1, 1, 0}));
+    CHECK(are_close(isos, Reals({1.0})));
   }
 }
 
@@ -967,8 +955,7 @@ static void test_motion(Library* lib) {
   build_box(&mesh, 1, 1, 0, 2, 2, 0);
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto sizes = find_implied_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE,
-      OMEGA_H_DO_OUTPUT, sizes);
+  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, sizes);
   auto coords_w = deep_copy(mesh.coords());
   coords_w.set(4 * 2 + 0, 0.74);
   coords_w.set(4 * 2 + 1, 0.26);
@@ -979,7 +966,7 @@ static void test_motion(Library* lib) {
   auto choices = get_motion_choices(&mesh, opts, cands2verts);
   CHECK(choices.cands_did_move.get(0));
   CHECK(choices.quals.get(0) > 0.85);
-  auto verts_are_keys = Read<I8>({0,0,0,0,1,0,0,0,0});
+  auto verts_are_keys = Read<I8>({0, 0, 0, 0, 1, 0, 0, 0, 0});
   unpack_linearized_fields(&mesh, &mesh, choices.new_sol, verts_are_keys);
   CHECK(mesh.min_quality() == choices.quals.get(0));
 }

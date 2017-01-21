@@ -40,10 +40,11 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
   do {
     ++i;
     if (i == max_i) {
-      Omega_h_fail("warp step %d : Omega_h is probably unable to satisfy"
-                   " this warp under this size field\n"
-                   "min quality %.2e max length %.2e\n",
-                   i, mesh->min_quality(), mesh->max_length());
+      Omega_h_fail(
+          "warp step %d : Omega_h is probably unable to satisfy"
+          " this warp under this size field\n"
+          "min quality %.2e max length %.2e\n",
+          i, mesh->min_quality(), mesh->max_length());
     }
     auto half_warp = multiply_each_by(1.0 / 2.0, warp);
     warp = half_warp;

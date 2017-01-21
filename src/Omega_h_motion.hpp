@@ -13,8 +13,8 @@ struct LinearPack {
 };
 
 LinearPack pack_linearized_fields(Mesh* mesh);
-void unpack_linearized_fields(Mesh* old_mesh, Mesh* new_mesh, Reals data,
-    Read<I8> verts_are_keys);
+void unpack_linearized_fields(
+    Mesh* old_mesh, Mesh* new_mesh, Reals data, Read<I8> verts_are_keys);
 
 struct MotionChoices {
   Read<I8> cands_did_move;
@@ -22,11 +22,10 @@ struct MotionChoices {
   Reals new_sol;
 };
 
-MotionChoices get_motion_choices(Mesh* mesh, AdaptOpts const& opts,
-    LOs cands2verts);
+MotionChoices get_motion_choices(
+    Mesh* mesh, AdaptOpts const& opts, LOs cands2verts);
 
 bool move_verts_for_quality(Mesh* mesh, AdaptOpts const& opts);
-
 }
 
 #endif

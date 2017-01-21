@@ -1,6 +1,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "Omega_h_motion.hpp"
 #include "array.hpp"
 #include "coarsen.hpp"
 #include "control.hpp"
@@ -10,7 +11,6 @@
 #include "refine.hpp"
 #include "swap.hpp"
 #include "timer.hpp"
-#include "Omega_h_motion.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"

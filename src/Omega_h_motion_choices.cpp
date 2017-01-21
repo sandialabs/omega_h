@@ -1,11 +1,11 @@
 #include "Omega_h_motion.hpp"
-#include "metric.hpp"
 #include "access.hpp"
-#include "graph.hpp"
-#include "size.hpp"
-#include "quality.hpp"
-#include "loop.hpp"
 #include "array.hpp"
+#include "graph.hpp"
+#include "loop.hpp"
+#include "metric.hpp"
+#include "quality.hpp"
+#include "size.hpp"
 
 namespace Omega_h {
 
@@ -21,17 +21,15 @@ class MetricMotion {
     return get_symm<dim>(metrics, v);
   }
   template <typename Arr>
-  DEVICE static Metric get_linear_metric(
-      Arr const& tmp, Int offset) {
+  DEVICE static Metric get_linear_metric(Arr const& tmp, Int offset) {
     Vector<symm_dofs(dim)> vec;
     for (Int i = 0; i < symm_dofs(dim); ++i) {
       vec[i] = tmp[offset + i];
     }
     return vector2symm(vec);
   }
-  DEVICE static Metric gather_maxdet_metric(Reals metrics,
-      Few<LO, dim + 1> kvv2v,
-      Int kvv_c, Metric nm) {
+  DEVICE static Metric gather_maxdet_metric(
+      Reals metrics, Few<LO, dim + 1> kvv2v, Int kvv_c, Metric nm) {
     auto kvv2m = gather_symms<dim + 1, dim>(metrics, kvv2v);
     kvv2m[kvv_c] = nm;
     return maxdet_metric(kvv2m);
@@ -46,19 +44,15 @@ class IsoMotion {
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "size");
   }
-  DEVICE static Metric get_metric(Reals metrics, LO v) {
-    return metrics[v];
-  }
+  DEVICE static Metric get_metric(Reals metrics, LO v) { return metrics[v]; }
   template <typename Arr>
-  DEVICE static Metric get_linear_metric(
-      Arr const& tmp, Int offset) {
+  DEVICE static Metric get_linear_metric(Arr const& tmp, Int offset) {
     return tmp[offset];
   }
   /* metric is unused by shape quality measure, so don't bother
      gathering the other ones and actually computing some maximum */
-  DEVICE static Metric gather_maxdet_metric(Reals,
-      Few<LO, dim + 1>,
-      Int, Metric nm) {
+  DEVICE static Metric gather_maxdet_metric(
+      Reals, Few<LO, dim + 1>, Int, Metric nm) {
     return nm;
   }
 };
@@ -76,8 +70,8 @@ static DEVICE Vector<dim> get_coords(Arr const& tmp, Int offset) {
 }
 
 template <template <Int> class Helper, Int dim>
-MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
-    LOs cands2verts) {
+MotionChoices motion_choices_tmpl(
+    Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
   using Metric = typename Helper<dim>::Metric;
   auto pack = pack_linearized_fields(mesh);
   constexpr Int maxcomps = 30;
@@ -94,7 +88,8 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
   auto edges2dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto cands2elems = unmap_graph(cands2verts, v2k);
   auto elems2old_qual = mesh->ask_qualities();
-  auto cands2old_qual = graph_reduce(cands2elems, elems2old_qual, 1, OMEGA_H_MIN);
+  auto cands2old_qual =
+      graph_reduce(cands2elems, elems2old_qual, 1, OMEGA_H_MIN);
   auto max_steps = opts.max_motion_steps;
   CHECK(max_steps >= 0);
   auto step_size = opts.motion_step_size;
@@ -128,7 +123,7 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
         auto ox = get_vector<dim>(coords, ov);
         for (Int i = 0; i < pack.ncomps; ++i) {
           tmp[i] = (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
-            step_size * pack.data[ov * pack.ncomps + i];
+                   step_size * pack.data[ov * pack.ncomps + i];
         }
         auto nx = get_coords<dim>(tmp, pack.coords_offset);
         auto om = Helper<dim>::get_metric(metrics, ov);
@@ -150,20 +145,21 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
           auto kvv2v = gather_verts<dim + 1>(kv2v, k);
           auto kvv2nx = gather_vectors<dim + 1, dim>(coords, kvv2v);
           kvv2nx[kvv_c] = nx;
-          auto km = Helper<dim>::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
+          auto km =
+              Helper<dim>::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
           auto k_qual = metric_element_quality(kvv2nx, km);
           new_qual = min2(new_qual, k_qual);
           if (new_qual <= last_qual) break;
-        } // end loop over elements for quality
+        }  // end loop over elements for quality
         if (new_qual <= last_qual) continue;
         found_step = true;
         last_qual = new_qual;
         for (Int i = 0; i < pack.ncomps; ++i) {
           new_sol_w[v * pack.ncomps + i] = tmp[i];
         }
-      } // end loop over edges for possible steps
+      }  // end loop over edges for possible steps
       if (!found_step) break;
-    } // end loop over motion steps
+    }  // end loop over motion steps
     auto did_move = last_qual > old_qual;
     qualities_w[cand] = last_qual;
     did_move_w[cand] = did_move;
@@ -172,11 +168,11 @@ MotionChoices motion_choices_tmpl(Mesh* mesh, AdaptOpts const& opts,
   parallel_for(ncands, f);
   auto qualities = Reals(qualities_w);
   auto new_sol = Reals(new_sol_w);
-  return { Read<I8>(did_move_w), Reals(qualities_w), Reals(new_sol_w) };
+  return {Read<I8>(did_move_w), Reals(qualities_w), Reals(new_sol_w)};
 }
 
-MotionChoices get_motion_choices(Mesh* mesh, AdaptOpts const& opts,
-    LOs cands2verts) {
+MotionChoices get_motion_choices(
+    Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
   if (mesh->dim() == 3) {
     if (mesh->has_tag(VERT, "metric")) {
       return motion_choices_tmpl<MetricMotion, 3>(mesh, opts, cands2verts);
@@ -195,4 +191,4 @@ MotionChoices get_motion_choices(Mesh* mesh, AdaptOpts const& opts,
   }
 }
 
-} // end namespace Omega_h
+}  // end namespace Omega_h

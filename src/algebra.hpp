@@ -135,15 +135,15 @@ INLINE Vector<n> pseudo_invert(Vector<n> a) {
 }
 
 template <Int m, Int n>
-INLINE typename std::enable_if<(n < m), Matrix<n, m>>::type
-pseudo_invert(Matrix<m, n> a) {
+INLINE typename std::enable_if<(n < m), Matrix<n, m>>::type pseudo_invert(
+    Matrix<m, n> a) {
   auto at = transpose(a);
   return invert(at * a) * at;
 }
 
 template <Int m, Int n>
-INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type
-pseudo_invert(Matrix<m, n> a) {
+INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type pseudo_invert(
+    Matrix<m, n> a) {
   auto at = transpose(a);
   return at * invert(a * at);
 }

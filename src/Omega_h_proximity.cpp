@@ -1,18 +1,19 @@
 #include "Omega_h_proximity.hpp"
 #include "Omega_h_confined.hpp"
 #include "Omega_h_math.hpp"
-#include "simplices.hpp"
 #include "access.hpp"
-#include "space.hpp"
-#include "loop.hpp"
-#include "mark.hpp"
 #include "graph.hpp"
+#include "loop.hpp"
 #include "map.hpp"
+#include "mark.hpp"
+#include "simplices.hpp"
+#include "space.hpp"
 
 namespace Omega_h {
 
 template <Int dim>
-static Reals get_edge_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
+static Reals get_edge_pad_isos(
+    Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto out = Write<Real>(mesh->nedges(), max_size);
@@ -29,7 +30,8 @@ static Reals get_edge_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> 
 }
 
 template <Int dim>
-static Reals get_tri_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
+static Reals get_tri_pad_isos(
+    Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
@@ -59,7 +61,8 @@ static Reals get_tri_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> e
   return out;
 }
 
-static Reals get_tet_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
+static Reals get_tet_pad_isos(
+    Mesh* mesh, Real factor, Real max_size, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tets2verts = mesh->ask_verts_of(TET);
   auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
@@ -90,15 +93,17 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> e
         b = b - (n * (n * b));
         c = c - (n * (n * c));
         d = d - (n * (n * d));
-        if (!((get_triangle_normal(a, b, c) * get_triangle_normal(a, b, d)) < 0 &&
-              (get_triangle_normal(c, d, a) * get_triangle_normal(c, d, b)) < 0)) {
+        if (!((get_triangle_normal(a, b, c) * get_triangle_normal(a, b, d)) <
+                    0 &&
+                (get_triangle_normal(c, d, a) * get_triangle_normal(c, d, b)) <
+                    0)) {
           break;
         }
         out[tet] = min2(l, max_size);
-        return; // edge-edge implies no plane-vertex
+        return;  // edge-edge implies no plane-vertex
       }
     }
-    auto l = max_size; // multiple vertex-planes may occur
+    auto l = max_size;  // multiple vertex-planes may occur
     for (Int ttv = 0; ttv < 4; ++ttv) {
       Few<Int, 3> vve2tte;
       Few<Int, 3> vve2wd;
@@ -113,7 +118,8 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> e
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2ttv[vve] = DownTemplate<TET, EDGE>::get(vve2tte[vve], 1 - vve2wd[vve]);
+        vve2ttv[vve] =
+            DownTemplate<TET, EDGE>::get(vve2tte[vve], 1 - vve2wd[vve]);
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];
@@ -125,7 +131,7 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> e
       auto n = normalize(cross(ab, ac));
       auto oa = a - o;
       auto od = n * (n * oa);
-      Matrix<3,2> basis;
+      Matrix<3, 2> basis;
       basis[0] = ab;
       basis[1] = ac;
       auto inv_basis = pseudo_invert(basis);
@@ -140,13 +146,18 @@ static Reals get_tet_pad_isos(Mesh* mesh, Real factor, Real max_size, Read<I8> e
   return out;
 }
 
-Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor, Real max_size, Read<I8> edges_are_bridges) {
+Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor, Real max_size,
+    Read<I8> edges_are_bridges) {
   if (pad_dim == EDGE) {
-    if (mesh->dim() == 3) return get_edge_pad_isos<3>(mesh, factor, max_size, edges_are_bridges);
-    if (mesh->dim() == 2) return get_edge_pad_isos<2>(mesh, factor, max_size, edges_are_bridges);
+    if (mesh->dim() == 3)
+      return get_edge_pad_isos<3>(mesh, factor, max_size, edges_are_bridges);
+    if (mesh->dim() == 2)
+      return get_edge_pad_isos<2>(mesh, factor, max_size, edges_are_bridges);
   } else if (pad_dim == TRI) {
-    if (mesh->dim() == 3) return get_tri_pad_isos<3>(mesh, factor, max_size, edges_are_bridges);
-    if (mesh->dim() == 2) return get_tri_pad_isos<2>(mesh, factor, max_size, edges_are_bridges);
+    if (mesh->dim() == 3)
+      return get_tri_pad_isos<3>(mesh, factor, max_size, edges_are_bridges);
+    if (mesh->dim() == 2)
+      return get_tri_pad_isos<2>(mesh, factor, max_size, edges_are_bridges);
   } else if (pad_dim == TET) {
     return get_tet_pad_isos(mesh, factor, max_size, edges_are_bridges);
   }
@@ -170,5 +181,4 @@ Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
   auto v2h = map_onto(bv2h, bridged_verts, mesh->nverts(), max_size, 1);
   return mesh->sync_array(VERT, v2h, 1);
 }
-
 }

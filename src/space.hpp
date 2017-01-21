@@ -187,7 +187,8 @@ INLINE Vector<3> get_circumcenter_vector(Few<Vector<3>, 2> basis) {
 }
 
 template <Int dim>
-INLINE Vector<dim> get_triangle_normal(Vector<dim> a, Vector<dim> b, Vector<dim> c) {
+INLINE Vector<dim> get_triangle_normal(
+    Vector<dim> a, Vector<dim> b, Vector<dim> c) {
   return cross(b - a, c - a);
 }
 
