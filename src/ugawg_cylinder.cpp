@@ -30,7 +30,6 @@ static Reals get_second_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
   constexpr Real h0 = 0.001;
-  // constexpr Real h0 = 0.004;
   auto f = LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
@@ -47,9 +46,12 @@ static Reals get_second_metric(Mesh* mesh) {
   return out;
 }
 
-static void set_target_metric(Mesh* mesh, int which_metric) {
+static void set_target_metric(Mesh* mesh, int which_metric, bool should_limit) {
   auto target_metrics =
       (which_metric == 1) ? get_first_metric(mesh) : get_second_metric(mesh);
+  if (should_limit) {
+    target_metrics = limit_size_field_gradation(mesh, target_metrics, 1.0);
+  }
   mesh->set_tag(VERT, "target_metric", target_metrics);
 }
 
@@ -63,7 +65,8 @@ static void run_case(
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->add_tag<Real>(
       VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT);
-  set_target_metric(mesh, which_metric);
+  bool should_limit = (which_metric == 2);
+  set_target_metric(mesh, which_metric, should_limit);
   mesh->ask_lengths();
   mesh->ask_qualities();
   vtk::FullWriter writer;
@@ -75,19 +78,12 @@ static void run_case(
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
   opts.egads_model = eg;
-  if (which_metric == 2) {
-    opts.should_move_for_quality = true;
-    opts.max_length_allowed = opts.max_length_desired * 2.0;
-    opts.min_quality_desired = 0.25;
-    opts.min_quality_allowed = 0.20;
-  } else {
-    opts.max_length_allowed = opts.max_length_desired * 2.0;
-  }
+  opts.max_length_allowed = opts.max_length_desired * 2.0;
   Now t0 = now();
   while (approach_size_field(mesh, opts)) {
     adapt(mesh, opts);
     if (mesh->has_tag(VERT, "target_metric")) {
-      set_target_metric(mesh, which_metric);
+      set_target_metric(mesh, which_metric, should_limit);
     }
     if (vtk_path) writer.write();
   }
