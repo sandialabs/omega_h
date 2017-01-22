@@ -188,11 +188,11 @@ static void test_intersect_metrics() {
   test_intersect_ortho_metrics(
       vector_3(0.5, 1, 1), vector_3(1, 0.5, 1), vector_3(0.5, 0.5, 1));
   test_intersect_ortho_metrics(
-      vector_3(1e-3, 1, 1), vector_3(1, 1, 1e-3), vector_3(1e-3, 1, 1e-3));
-  test_intersect_ortho_metrics(vector_3(1e-3, 1e-3, 1), vector_3(1, 1, 1e-3),
-      vector_3(1e-3, 1e-3, 1e-3));
-  test_intersect_ortho_metrics(vector_3(1e-6, 1e-3, 1e-3),
-      vector_3(1e-3, 1e-3, 1e-6), vector_3(1e-6, 1e-3, 1e-6));
+      vector_3(1e-2, 1, 1), vector_3(1, 1, 1e-2), vector_3(1e-2, 1, 1e-2));
+  test_intersect_ortho_metrics(vector_3(1e-2, 1e-2, 1), vector_3(1, 1, 1e-2),
+      vector_3(1e-2, 1e-2, 1e-2));
+  test_intersect_ortho_metrics(vector_3(1e-5, 1e-3, 1e-3),
+      vector_3(1e-3, 1e-3, 1e-5), vector_3(1e-5, 1e-3, 1e-5));
   test_intersect_subset_metrics();
 }
 
