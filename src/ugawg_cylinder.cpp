@@ -29,8 +29,8 @@ static Reals get_first_metric(Mesh* mesh) {
 static Reals get_second_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
-  // constexpr Real h0 = 0.001;
-  constexpr Real h0 = 0.004;
+  constexpr Real h0 = 0.001;
+  // constexpr Real h0 = 0.004;
   auto f = LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
@@ -74,8 +74,15 @@ static void run_case(
   auto opts = AdaptOpts(mesh);
   opts.verbosity = EXTRA_STATS;
   opts.length_histogram_max = 2.0;
-  opts.max_length_allowed = opts.max_length_desired * 2.0;
   opts.egads_model = eg;
+  if (which_metric == 2) {
+    opts.should_move_for_quality = true;
+    opts.max_length_allowed = opts.max_length_desired * 2.0;
+    opts.min_quality_desired = 0.25;
+    opts.min_quality_allowed = 0.20;
+  } else {
+    opts.max_length_allowed = opts.max_length_desired * 2.0;
+  }
   Now t0 = now();
   while (approach_size_field(mesh, opts)) {
     adapt(mesh, opts);
@@ -132,6 +139,8 @@ int main(int argc, char** argv) {
               << " [options] input.mesh[b] [input.egads] output.mesh[b]\n";
     std::cout
         << "options: -a vtk_path                debug output for adaptivity\n";
+    std::cout
+        << "options: -m (1|2)                   1 for shock, 2 for BL\n";
     return -1;
   }
   Mesh mesh(&lib);
