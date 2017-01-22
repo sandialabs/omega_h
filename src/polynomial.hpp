@@ -18,7 +18,7 @@ struct Roots {
 // the two output arrays contain root values and multiplicities.
 // roots within an *absolute* distance of (eps) are considered
 // the same.
-INLINE Roots<3> find_polynomial_roots(Few<Real, 3> coeffs, Real eps = 1e-6) {
+INLINE Roots<3> find_polynomial_roots(Few<Real, 3> coeffs, Real eps = 1e-4) {
   auto a_0 = coeffs[0];
   auto a_1 = coeffs[1];
   auto a_2 = coeffs[2];
@@ -82,7 +82,7 @@ INLINE Roots<3> find_polynomial_roots(Few<Real, 3> coeffs, Real eps = 1e-6) {
 }
 
 // solve quadratic equation x^2 + a * x + b = 0
-INLINE Roots<2> find_polynomial_roots(Few<Real, 2> coeffs, Real eps = 1e-6) {
+INLINE Roots<2> find_polynomial_roots(Few<Real, 2> coeffs, Real eps = 1e-4) {
   auto a = coeffs[1];
   auto b = coeffs[0];
   Few<Real, 2> roots;
