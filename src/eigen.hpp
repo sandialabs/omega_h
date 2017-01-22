@@ -57,7 +57,7 @@ INLINE Vector<3> single_eigenvector(Matrix<3, 3> m, Real l) {
     v = c;
     v_norm = c_norm;
   }
-  CHECK(v_norm > EPSILON);
+  CHECK(v_norm > 1e-12);
   v = v / v_norm;
   return v;
 }
