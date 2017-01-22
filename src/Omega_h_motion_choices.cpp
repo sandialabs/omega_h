@@ -120,23 +120,35 @@ MotionChoices motion_choices_tmpl(
         auto evv_o = 1 - evv_c;
         auto evv2v = gather_verts<2>(ev2v, e);
         auto ov = evv2v[evv_o];
-        auto ox = get_vector<dim>(coords, ov);
         for (Int i = 0; i < pack.ncomps; ++i) {
           tmp[i] = (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
                    step_size * pack.data[ov * pack.ncomps + i];
         }
         auto nx = get_coords<dim>(tmp, pack.coords_offset);
-        auto om = Helper<dim>::get_metric(metrics, ov);
         auto lnm = Helper<dim>::get_linear_metric(tmp, pack.metric_offset);
         auto nm = delinearize_metric(lnm);
-        Few<Vector<dim>, 2> evv2nx;
-        Few<Metric, 2> evv2nm;
-        evv2nx[evv_c] = nx;
-        evv2nx[evv_o] = ox;
-        evv2nm[evv_c] = nm;
-        evv2nm[evv_o] = om;
-        auto nl = metric_edge_length(evv2nx, evv2nm);
-        if (nl > max_length) continue;
+        auto overshoots = false;
+        for (auto ve_l = v2e.a2ab[v]; ve_l < v2e.a2ab[v + 1]; ++ve_l) {
+          auto e_l = v2e.ab2b[ve_l];
+          auto ve_code_l = v2e.codes[ve_l];
+          auto evv_c_l = code_which_down(ve_code_l);
+          auto evv_o_l = 1 - evv_c_l;
+          auto ov_l = ev2v[e_l * 2 + evv_o_l];
+          auto om = Helper<dim>::get_metric(metrics, ov_l);
+          auto ox = get_vector<dim>(coords, ov_l);
+          Few<Vector<dim>, 2> evv2nx;
+          Few<Metric, 2> evv2nm;
+          evv2nx[evv_c_l] = nx;
+          evv2nx[evv_o_l] = ox;
+          evv2nm[evv_c_l] = nm;
+          evv2nm[evv_o_l] = om;
+          auto nl = metric_edge_length(evv2nx, evv2nm);
+          if (nl > max_length) {
+            overshoots = true;
+            break;
+          }
+        } // end loop over edges again for overshooting
+        if (overshoots) continue;
         Real new_qual = 1.0;
         for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
           auto k = v2k.ab2b[vk];
