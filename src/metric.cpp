@@ -292,7 +292,8 @@ static Reals limit_size_field_once_by_adj(
   NORETURN(Reals());
 }
 
-Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate) {
+Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate,
+    Real tol) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(max_rate > 0.0);
   auto comm = mesh->comm();
@@ -302,15 +303,14 @@ Reals limit_size_field_gradation(Mesh* mesh, Reals values, Real max_rate) {
     values = values2;
     values2 = limit_size_field_once_by_adj(mesh, values, max_rate);
     ++i;
-  } while (!comm->reduce_and(are_close(values, values2)));
+    if (i > 40) {
+      std::cout << "warning: gradation limiting is up to step " << i << '\n';
+    }
+  } while (!comm->reduce_and(are_close(values, values2, tol)));
   if (mesh->comm()->rank() == 0) {
     std::cout << "limited gradation in " << i << " steps\n";
   }
   return values2;
-}
-
-Reals limit_metric_gradation(Mesh* mesh, Reals metrics, Real max_rate) {
-  return limit_size_field_gradation(mesh, metrics, max_rate);
 }
 
 Reals project_metrics(Mesh* mesh, Reals e2m) {
