@@ -263,7 +263,7 @@ static Reals limit_size_field_once_by_adj_tmpl(
   };
   parallel_for(mesh->nverts(), f);
   values = Reals(out);
-  values = mesh->sync_array(mesh->dim(), values, G::ndofs);
+  values = mesh->sync_array(VERT, values, G::ndofs);
   return values;
 }
 
