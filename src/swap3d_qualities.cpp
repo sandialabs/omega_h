@@ -17,9 +17,9 @@ static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto tet_verts2verts = mesh->ask_verts_of(TET);
   auto edges_are_owned = mesh->owned(EDGE);
-  QualityMeasure qual_measure(mesh);
-  LengthMeasure len_measure(mesh);
-  auto maxlen = opts.max_length_allowed;
+  auto quality_measure = QualityMeasure(mesh);
+  auto length_measure = LengthMeasure(mesh);
+  auto max_length = opts.max_length_allowed;
   auto ncands = cands2edges.size();
   auto cand_quals_w = Write<Real>(ncands);
   auto cand_configs_w = Write<I8>(ncands);
@@ -41,7 +41,7 @@ static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
       cand_quals_w[cand] = -1.0;
       return;
     }
-    auto choice = swap3d::choose(loop, qual_measure, len_measure, maxlen);
+    auto choice = swap3d::choose(loop, quality_measure, length_measure, max_length);
     static_assert(swap3d::MAX_CONFIGS <= INT8_MAX,
         "int8_t must be able to represent all swap configurations");
     cand_configs_w[cand] = static_cast<I8>(choice.mesh);

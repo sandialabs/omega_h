@@ -15,37 +15,46 @@ namespace Omega_h {
 template <typename QualityMeasure, typename LengthMeasure>
 static Reals swap2d_qualities_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
-  auto ev2v = mesh->ask_verts_of(EDGE);
-  auto tv2v = mesh->ask_verts_of(TRI);
   auto e2t = mesh->ask_up(EDGE, TRI);
   auto e2et = e2t.a2ab;
   auto et2t = e2t.ab2b;
   auto et_codes = e2t.codes;
+  auto edge_verts2verts = mesh->ask_verts_of(EDGE);
+  auto tri_verts2verts = mesh->ask_verts_of(TRI);
+  auto edges_are_owned = mesh->owned(EDGE);
   auto quality_measure = QualityMeasure(mesh);
   auto length_measure = LengthMeasure(mesh);
   auto max_length = opts.max_length_allowed;
   auto ncands = cands2edges.size();
-  auto quals_w = Write<Real>(ncands);
+  auto cand_quals_w = Write<Real>(ncands);
   auto f = LAMBDA(LO cand) {
-    auto e = cands2edges[cand];
-    CHECK(e2et[e + 1] == 2 + e2et[e]);
+    auto edge = cands2edges[cand];
+    /* non-owned edges will have incomplete cavities
+       and will run into the topological assertions
+       in find_loop(). don't bother; their results
+       will be overwritten by the owner's anyways */
+    if (!edges_are_owned[edge]) {
+      cand_quals_w[cand] = -1.0;
+      return;
+    }
+    CHECK(e2et[edge + 1] == 2 + e2et[edge]);
     LO t[2];
     Few<LO, 2> ov;
     for (Int i = 0; i < 2; ++i) {
-      auto et = e2et[e] + i;
+      auto et = e2et[edge] + i;
       auto code = et_codes[et];
       auto tte = code_which_down(code);
       auto rot = code_rotation(code);
       t[rot] = et2t[et];
       auto ttv = OppositeTemplate<TRI, EDGE>::get(tte);
-      ov[rot] = tv2v[t[rot] * 3 + ttv];
+      ov[rot] = tri_verts2verts[t[rot] * 3 + ttv];
     }
     auto l = length_measure.measure(ov);
     if (l > max_length) {
-      quals_w[cand] = -1.0;
+      cand_quals_w[cand] = -1.0;
       return;
     }
-    auto ev = gather_verts<2>(ev2v, e);
+    auto ev = gather_verts<2>(edge_verts2verts, edge);
     Real minqual = 1.0;
     for (Int i = 0; i < 2; ++i) {
       Few<LO, 3> ntv;
@@ -55,10 +64,10 @@ static Reals swap2d_qualities_tmpl(
       auto qual = quality_measure.measure(ntv);
       minqual = min2(minqual, qual);
     }
-    quals_w[cand] = minqual;
+    cand_quals_w[cand] = minqual;
   };
   parallel_for(ncands, f);
-  return quals_w;
+  return cand_quals_w;
 }
 
 Reals swap2d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
