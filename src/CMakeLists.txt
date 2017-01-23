@@ -70,6 +70,7 @@ set(Omega_h_SOURCES
   swap3d_topology.cpp
   swap3d.cpp
   regress.cpp
+  consistent.cpp
   align.cpp
   xml.cpp
   derive.cpp
