@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     }
     return -1;
   }
-  auto nparts_in = Omega_h::binary::read_nparts(path_in);
+  auto nparts_in = Omega_h::binary::read_nparts(path_in, world);
   if (nparts_in > nparts_total) {
     if (!world->rank()) {
       std::cout << "error: input part count " << nparts_in

@@ -431,23 +431,28 @@ void read(std::istream& stream, Mesh* mesh) {
 }
 
 static void write_nparts(std::string const& path, Mesh* mesh) {
-  auto filepath = path + "/nparts";
-  std::ofstream file(filepath.c_str());
-  CHECK(file.is_open());
-  file << mesh->comm()->size() << '\n';
+  if (mesh->comm()->rank() == 0) {
+    auto filepath = path + "/nparts";
+    std::ofstream file(filepath.c_str());
+    CHECK(file.is_open());
+    file << mesh->comm()->size() << '\n';
+  }
 }
 
-I32 read_nparts(std::string const& path) {
-  auto filepath = path + "/nparts";
-  std::ifstream file(filepath.c_str());
-  if (!file.is_open()) {
-    Omega_h_fail("could not open file \"%s\"\n", filepath.c_str());
-  }
+I32 read_nparts(std::string const& path, CommPtr comm) {
   I32 nparts;
-  file >> nparts;
-  if (!file) {
-    Omega_h_fail("could not read file \"%s\"\n", filepath.c_str());
+  if (comm->rank() == 0) {
+    auto filepath = path + "/nparts";
+    std::ifstream file(filepath.c_str());
+    if (!file.is_open()) {
+      Omega_h_fail("could not open file \"%s\"\n", filepath.c_str());
+    }
+    file >> nparts;
+    if (!file) {
+      Omega_h_fail("could not read file \"%s\"\n", filepath.c_str());
+    }
   }
+  comm->bcast(nparts);
   return nparts;
 }
 
@@ -476,7 +481,7 @@ void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh) {
 }
 
 Int read(std::string const& path, CommPtr comm, Mesh* mesh) {
-  auto nparts = read_nparts(path);
+  auto nparts = read_nparts(path, comm);
   if (nparts > comm->size()) {
     Omega_h_fail(
         "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
