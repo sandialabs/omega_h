@@ -7,16 +7,24 @@
 
 namespace Omega_h {
 
-template <Int neev>
-DEVICE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
-  Few<LO, neev> v;
-  for (Int i = 0; i < neev; ++i) v[i] = ev2v[e * neev + i];
-  return v;
+template <Int nhhl>
+DEVICE Few<LO, nhhl> gather_down(LOs const& hl2l, Int h) {
+  Few<LO, nhhl> hhl2l;
+  for (Int i = 0; i < nhhl; ++i) {
+    auto hl = h * nhhl + i;
+    hhl2l[i] = hl2l[hl];
+  }
+  return hhl2l;
 }
 
 template <Int neev>
-DEVICE Few<Real, neev> gather_scalars(Reals const& a, Few<LO, neev> v) {
-  Few<Real, neev> x;
+DEVICE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
+  return gather_down<neev>(ev2v, e);
+}
+
+template <Int neev, typename T>
+DEVICE Few<T, neev> gather_scalars(Read<T> const& a, Few<LO, neev> v) {
+  Few<T, neev> x;
   for (Int i = 0; i < neev; ++i) x[i] = a[v[i]];
   return x;
 }

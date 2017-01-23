@@ -6,7 +6,6 @@
 #include "algebra.hpp"
 #include "control.hpp"
 #include "loop.hpp"
-#include "stacktrace.hpp"
 
 namespace Omega_h {
 

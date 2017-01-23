@@ -53,6 +53,8 @@ enum Omega_h_Outflags {
 extern "C" {
 #endif
 
+void Omega_h_protect();
+void Omega_h_signal_handler(int s);
 void Omega_h_fail(char const* format, ...)
     __attribute__((noreturn, format(printf, 1, 2)));
 

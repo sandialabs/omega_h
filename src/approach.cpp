@@ -19,8 +19,9 @@ static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static bool okay(Mesh* mesh, AdaptOpts const& opts) {
-  return mesh->min_quality() >= opts.min_quality_allowed &&
-         mesh->max_length() <= opts.max_length_allowed;
+  auto minq = mesh->min_quality();
+  auto maxl = mesh->max_length();
+  return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
 }
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
@@ -34,7 +35,17 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
     return true;
   }
   auto remainder = Reals(warp.size(), 0.0);
+  Int i = 0;
+  constexpr Int max_i = 40;
   do {
+    ++i;
+    if (i == max_i) {
+      Omega_h_fail(
+          "warp step %d : Omega_h is probably unable to satisfy"
+          " this warp under this size field\n"
+          "min quality %.2e max length %.2e\n",
+          i, mesh->min_quality(), mesh->max_length());
+    }
     auto half_warp = multiply_each_by(1.0 / 2.0, warp);
     warp = half_warp;
     remainder = add_each(remainder, half_warp);

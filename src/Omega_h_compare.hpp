@@ -25,6 +25,10 @@ struct MeshCompareOpts {
 Real get_real_diff(Real a, Real b, VarCompareOpts opts);
 bool compare_real(Real a, Real b, VarCompareOpts opts);
 
+template <typename T>
+bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts,
+    Int ncomps, Int dim);
+
 Omega_h_Comparison compare_meshes(Mesh* a, Mesh* b, MeshCompareOpts const& opts,
     bool verbose, bool full = true);
 
@@ -37,6 +41,16 @@ void get_diff_program_cmdline(
 
 void accept_diff_program_cmdline(CmdLine const& cmdline, Mesh const* mesh,
     MeshCompareOpts* p_opts, Omega_h_Comparison* p_max_result);
-}
+
+#define OMEGA_H_EXPL_INST_DECL(T)                                              \
+  extern template bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b,      \
+      VarCompareOpts opts, Int ncomps, Int dim);
+OMEGA_H_EXPL_INST_DECL(I8)
+OMEGA_H_EXPL_INST_DECL(I32)
+OMEGA_H_EXPL_INST_DECL(I64)
+OMEGA_H_EXPL_INST_DECL(Real)
+#undef OMEGA_H_EXPL_INST_DECL
+
+}  // end namespace Omega_h
 
 #endif

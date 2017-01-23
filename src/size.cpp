@@ -6,6 +6,8 @@
 #include "eigen.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
 #include "project.hpp"
 #include "quality.hpp"
 #include "surface.hpp"

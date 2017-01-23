@@ -1,9 +1,9 @@
 set(Omega_h_SOURCES
+  Omega_h_c.cpp
   algebra.cpp
-  control.cpp
-  protect.cpp
+  Omega_h_control.cpp
   timer.cpp
-  array.cpp
+  Omega_h_array.cpp
   int128.cpp
   repro.cpp
   sort.cpp
@@ -78,9 +78,13 @@ set(Omega_h_SOURCES
   Omega_h_coarsen_overshoot.cpp
   collapse_rail.cpp
   histogram.cpp
-  stacktrace.cpp
   eigen.cpp
   Omega_h_cmdline.cpp
+  Omega_h_confined.cpp
+  Omega_h_proximity.cpp
+  Omega_h_motion_choices.cpp
+  Omega_h_motion_transfer.cpp
+  Omega_h_motion.cpp
   )
 
 set(Meshb_REQUIRED_VERSION 7.12)
@@ -346,6 +350,8 @@ set(Omega_h_HEADERS
   Omega_h_mpi.h
   Omega_h_c.h
   Omega_h_kokkos.hpp
+  Omega_h_defines.hpp
+  Omega_h_array.hpp
   Omega_h.hpp
   Omega_h_math.hpp
   Omega_h_functors.hpp

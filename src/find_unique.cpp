@@ -27,16 +27,16 @@ struct IsFlipped<2> {
 
 template <Int deg, typename T>
 static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
-  LO nev = ev2v.size();
-  LO ne = nev / deg;
+  auto nev = ev2v.size();
+  auto ne = nev / deg;
   Write<I8> codes(ne);
   auto f = LAMBDA(LO e) {
-    LO begin = e * deg;
+    auto begin = e * deg;
     /* find the smallest vertex */
     Int min_j = 0;
     auto min_v = ev2v[begin];
     for (Int j = 1; j < deg; ++j) {
-      LO ev = j + begin;
+      auto ev = j + begin;
       auto v = ev2v[ev];
       if (v < min_v) {
         min_j = j;
@@ -67,8 +67,8 @@ Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
 /* check whether adjacent lists of (deg) vertices
    are the same */
 DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
-  LO a = e0 * deg;
-  LO b = e1 * deg;
+  auto a = e0 * deg;
+  auto b = e1 * deg;
   for (LO j = 0; j < deg; ++j)
     if (canon[a + j] != canon[b + j]) return false;
   return true;

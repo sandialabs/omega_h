@@ -27,7 +27,7 @@ INLINE Few<Real, 2> characteristic_polynomial(Matrix<2, 2> A) {
 template <Int n>
 INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
   auto poly = characteristic_polynomial(A);
-  return find_polynomial_roots(poly);
+  return find_polynomial_roots(poly, 5e-5);
 }
 
 /* the null space of the matrix (s = m - l*I)

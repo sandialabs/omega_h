@@ -121,6 +121,12 @@ struct CompareArrays<Real> {
 };
 
 template <typename T>
+bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts,
+    Int ncomps, Int dim) {
+  return CompareArrays<T>::compare(comm, a, b, opts, ncomps, dim);
+}
+
+template <typename T>
 static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
     Read<T> b_data, Dist b_dist, Int ncomps, VarCompareOpts opts) {
   if (opts.kind == VarCompareOpts::NONE) return true;
@@ -128,8 +134,7 @@ static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
   auto comm = a_dist.parent_comm();
-  auto ret = CompareArrays<T>::compare(
-      comm, a_lin_data, b_lin_data, opts, ncomps, dim);
+  auto ret = compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim);
   return ret;
 }
 
@@ -395,5 +400,14 @@ void accept_diff_program_cmdline(CmdLine const& cmdline, Mesh const* mesh,
     *p_opts = MeshCompareOpts::init(mesh, all_defaults);
   }
 }
+
+#define EXPL_INST(T)                                                           \
+  template bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b,             \
+      VarCompareOpts opts, Int ncomps, Int dim);
+EXPL_INST(I8)
+EXPL_INST(I32)
+EXPL_INST(I64)
+EXPL_INST(Real)
+#undef EXPL_INST
 
 }  // end namespace Omega_h
