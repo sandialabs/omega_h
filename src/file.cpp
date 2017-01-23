@@ -119,7 +119,6 @@ INLINE void swap_bytes(T* ptr) {
 }
 
 unsigned char const magic[2] = {0xa1, 0x1a};
-I32 latest_version = 3;
 
 }  // end anonymous namespace
 
@@ -356,7 +355,7 @@ static void read_tag(
 
 void write(std::ostream& stream, Mesh* mesh) {
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
-  write_value(stream, latest_version);
+//write_value(stream, latest_version); moved to /version at version 4
 #ifdef OMEGA_H_USE_ZLIB
   I8 is_compressed = true;
 #else
@@ -389,13 +388,12 @@ void write(std::ostream& stream, Mesh* mesh) {
   }
 }
 
-void read(std::istream& stream, Mesh* mesh) {
+void read(std::istream& stream, Mesh* mesh, I32 version) {
   unsigned char magic_in[2];
   stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
   CHECK(magic_in[0] == magic[0]);
   CHECK(magic_in[1] == magic[1]);
-  I32 version;
-  read_value(stream, version);
+  if (version == -1) read_value(stream, version);
   CHECK(version >= 1);
   CHECK(version <= latest_version);
   I8 is_compressed;
@@ -430,13 +428,21 @@ void read(std::istream& stream, Mesh* mesh) {
   }
 }
 
-static void write_nparts(std::string const& path, Mesh* mesh) {
+static void write_int_file(std::string const& filepath, Mesh* mesh,
+    I32 value) {
   if (mesh->comm()->rank() == 0) {
-    auto filepath = path + "/nparts";
     std::ofstream file(filepath.c_str());
     CHECK(file.is_open());
-    file << mesh->comm()->size() << '\n';
+    file << value << '\n';
   }
+}
+
+static void write_nparts(std::string const& path, Mesh* mesh) {
+  write_int_file(path + "/nparts", mesh, mesh->comm()->size());
+}
+
+static void write_version(std::string const& path, Mesh* mesh) {
+  write_int_file(path + "/version", mesh, latest_version);
 }
 
 I32 read_nparts(std::string const& path, CommPtr comm) {
@@ -456,32 +462,53 @@ I32 read_nparts(std::string const& path, CommPtr comm) {
   return nparts;
 }
 
-void write(std::string const& path, Mesh* mesh) {
-  if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
-    std::cout
-        << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
-    std::cout << "instead of just \"" << path << "\"\n";
+I32 read_version(std::string const& path, CommPtr comm) {
+  I32 version;
+  if (comm->rank() == 0) {
+    auto filepath = path + "/version";
+    std::ifstream file(filepath.c_str());
+    if (!file.is_open()) {
+      version = -1;
+    } else {
+      file >> version;
+      if (!file) {
+        Omega_h_fail("could not read file \"%s\"\n", filepath.c_str());
+      }
+    }
   }
+  comm->bcast(version);
+  return version;
+}
+
+void write(std::string const& path, Mesh* mesh) {
+//if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
+//  std::cout
+//      << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
+//  std::cout << "instead of just \"" << path << "\"\n";
+//}
   safe_mkdir(path.c_str());
   mesh->comm()->barrier();
-  auto filepath = path + "/" + to_string(mesh->comm()->rank());
+  auto filepath = path + "/" + to_string(mesh->comm()->rank()) + ".osh";
   std::ofstream file(filepath.c_str());
   CHECK(file.is_open());
   write(file, mesh);
   write_nparts(path, mesh);
+  write_version(path, mesh);
   mesh->comm()->barrier();
 }
 
-void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh) {
+void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh, I32 version) {
   mesh->set_comm(comm);
   auto filepath = path + "/" + to_string(mesh->comm()->rank());
+  if (version != -1) filepath += ".osh";
   std::ifstream file(filepath.c_str());
   CHECK(file.is_open());
-  read(file, mesh);
+  read(file, mesh, version);
 }
 
-Int read(std::string const& path, CommPtr comm, Mesh* mesh) {
+I32 read(std::string const& path, CommPtr comm, Mesh* mesh) {
   auto nparts = read_nparts(path, comm);
+  auto version = read_version(path, comm);
   if (nparts > comm->size()) {
     Omega_h_fail(
         "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
@@ -490,7 +517,7 @@ Int read(std::string const& path, CommPtr comm, Mesh* mesh) {
   auto in_subcomm = (comm->rank() < nparts);
   auto subcomm = comm->split(I32(!in_subcomm), 0);
   if (in_subcomm) {
-    read_in_comm(path, subcomm, mesh);
+    read_in_comm(path, subcomm, mesh, version);
   }
   mesh->set_comm(comm);
   return nparts;

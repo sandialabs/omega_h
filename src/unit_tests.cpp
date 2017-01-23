@@ -701,7 +701,7 @@ static void test_file(Library* lib, Mesh* mesh0) {
   binary::write(stream, mesh0);
   Mesh mesh1(lib);
   mesh1.set_comm(lib->self());
-  binary::read(stream, &mesh1);
+  binary::read(stream, &mesh1, binary::latest_version);
   mesh1.set_comm(lib->world());
   auto opts = MeshCompareOpts::init(mesh0, VarCompareOpts::zero_tolerance());
   compare_meshes(mesh0, &mesh1, opts, true, true);

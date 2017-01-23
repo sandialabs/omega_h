@@ -42,8 +42,9 @@ int main(int argc, char** argv) {
   auto is_out = (world->rank() < nparts_out);
   auto comm_out = world->split(int(is_out), 0);
   auto mesh = Omega_h::Mesh(&lib);
+  auto version = Omega_h::binary::read_version(path_in, world);
   if (is_in) {
-    Omega_h::binary::read_in_comm(path_in, comm_in, &mesh);
+    Omega_h::binary::read_in_comm(path_in, comm_in, &mesh, version);
     if (nparts_out < nparts_in) {
       Omega_h_fail(
           "partitioning to a smaller part count not yet implemented\n");
