@@ -85,6 +85,6 @@ OMEGA_H_EXPL_INST_DECL(double)
 OMEGA_H_EXPL_INST_DECL(std::string)
 #undef OMEGA_H_EXPL_INST_DECL
 
-} // end namespace Omega_h
+}  // end namespace Omega_h
 
 #endif

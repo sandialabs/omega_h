@@ -135,8 +135,7 @@ int main(int argc, char** argv) {
               << " [options] input.mesh[b] [input.egads] output.mesh[b]\n";
     std::cout
         << "options: -a vtk_path                debug output for adaptivity\n";
-    std::cout
-        << "options: -m (1|2)                   1 for shock, 2 for BL\n";
+    std::cout << "options: -m (1|2)                   1 for shock, 2 for BL\n";
     return -1;
   }
   Mesh mesh(&lib);

@@ -147,7 +147,7 @@ MotionChoices motion_choices_tmpl(
             overshoots = true;
             break;
           }
-        } // end loop over edges again for overshooting
+        }  // end loop over edges again for overshooting
         if (overshoots) continue;
         Real new_qual = 1.0;
         for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
