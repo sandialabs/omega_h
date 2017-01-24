@@ -76,9 +76,11 @@ class Comm {
   MPI_Comm impl_;
 #endif
   Read<I32> srcs_;
-  HostRead<I32> host_srcs_;
   Read<I32> dsts_;
+  HostRead<I32> host_srcs_;
   HostRead<I32> host_dsts_;
+  LO self_src_;
+  LO self_dst_;
 
  public:
   Comm();
