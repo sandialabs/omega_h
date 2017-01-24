@@ -80,10 +80,10 @@ static Reals get_tet_pad_isos(
         auto opp = OppositeTemplate<TET, EDGE>::get(tte);
         if (tte2b[opp]) continue;
         // at this point we have edge-edge nearness
-        auto a = ttv2x[DownTemplate<TET, EDGE>::get(tte, 0)];
-        auto b = ttv2x[DownTemplate<TET, EDGE>::get(tte, 1)];
-        auto c = ttv2x[DownTemplate<TET, EDGE>::get(opp, 0)];
-        auto d = ttv2x[DownTemplate<TET, EDGE>::get(opp, 1)];
+        auto a = ttv2x[down_template(TET, EDGE, tte, 0)];
+        auto b = ttv2x[down_template(TET, EDGE, tte, 1)];
+        auto c = ttv2x[down_template(TET, EDGE, opp, 0)];
+        auto d = ttv2x[down_template(TET, EDGE, opp, 1)];
         auto ab = b - a;
         auto cd = d - c;
         auto n = normalize(cross(ab, cd));
@@ -119,7 +119,7 @@ static Reals get_tet_pad_isos(
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
         vve2ttv[vve] =
-            DownTemplate<TET, EDGE>::get(vve2tte[vve], 1 - vve2wd[vve]);
+            down_template(TET, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];

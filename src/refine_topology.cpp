@@ -82,11 +82,11 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
            its side that is opposite to one of the edge endpoints
            and connecting it to the midpoint to form the new cell */
         auto dev = eev ^ rot;
-        auto ddv = down_templates[dim][EDGE][dde][dev];
+        auto ddv = down_template(dim, EDGE, dde, dev);
         auto dds = opposite_templates[dim][VERT][ddv];
         auto ppv2v = &pair_verts2verts_w[pair * (dim + 1)];
         for (Int dsv = 0; dsv < dim; ++dsv) {
-          auto ddv2 = down_templates[dim][dim - 1][dds][dsv];
+          auto ddv2 = down_template(dim, dim - 1, dds, dsv);
           auto ov = ddv2v[ddv2];
           auto nv = old_verts2new_verts[ov];
           ppv2v[dsv] = nv;
@@ -137,7 +137,7 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
       auto ccv2v = &cut_verts2verts_w[cut * dim];
       auto ddt = opposite_templates[dim][EDGE][dde];
       for (Int dtv = 0; dtv < dim - 1; ++dtv) {
-        auto ddv2 = down_templates[dim][dim - 2][ddt][dtv];
+        auto ddv2 = down_template(dim, dim - 2, ddt, dtv);
         auto ov = ddv2v[ddv2];
         auto nv = old_verts2new_verts[ov];
         ccv2v[dtv] = nv;

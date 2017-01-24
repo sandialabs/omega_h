@@ -50,7 +50,7 @@ DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2tets,
          defined such that the opposite edge curls around
          the input edge. */
       auto rev = rot ^ eev;
-      auto rrv = DownTemplate<TET, EDGE>::get(rre_opp, rev);
+      auto rrv = down_template(TET, EDGE, rre_opp, rev);
       auto v = tet_verts2verts[tet * 4 + rrv];
       tmp_edges[edge_tet - begin_use][eev] = v;
     }
