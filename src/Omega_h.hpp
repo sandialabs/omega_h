@@ -449,7 +449,8 @@ void write(std::string const& path, Mesh* mesh);
 I32 read(std::string const& path, CommPtr comm, Mesh* mesh);
 I32 read_nparts(std::string const& path, CommPtr comm);
 I32 read_version(std::string const& path, CommPtr comm);
-void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
+void read_in_comm(
+    std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
 }
 
 void build_from_elems2verts(

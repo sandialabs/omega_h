@@ -5,91 +5,124 @@
 
 namespace Omega_h {
 
-INLINE Int down_template(Int elem_dim, Int bdry_dim, Int which_bdry, Int which_vert) {
+INLINE Int down_template(
+    Int elem_dim, Int bdry_dim, Int which_bdry, Int which_vert) {
   switch (elem_dim) {
     case 2:
       switch (bdry_dim) {
-        case 0: return which_bdry;
+        case 0:
+          return which_bdry;
         case 1:
           switch (which_bdry) {
             case 0:
               switch (which_vert) {
-                case 0: return 0;
-                case 1: return 1;
+                case 0:
+                  return 0;
+                case 1:
+                  return 1;
               }
             case 1:
               switch (which_vert) {
-                case 0: return 1;
-                case 1: return 2;
+                case 0:
+                  return 1;
+                case 1:
+                  return 2;
               }
             case 2:
               switch (which_vert) {
-                case 0: return 2;
-                case 1: return 0;
+                case 0:
+                  return 2;
+                case 1:
+                  return 0;
               }
           }
       }
     case 3:
       switch (bdry_dim) {
-        case 0: return which_bdry;
+        case 0:
+          return which_bdry;
         case 1:
           switch (which_bdry) {
             case 0:
               switch (which_vert) {
-                case 0: return 0;
-                case 1: return 1;
+                case 0:
+                  return 0;
+                case 1:
+                  return 1;
               }
             case 1:
               switch (which_vert) {
-                case 0: return 1;
-                case 1: return 2;
+                case 0:
+                  return 1;
+                case 1:
+                  return 2;
               }
             case 2:
               switch (which_vert) {
-                case 0: return 2;
-                case 1: return 0;
+                case 0:
+                  return 2;
+                case 1:
+                  return 0;
               }
             case 3:
               switch (which_vert) {
-                case 0: return 0;
-                case 1: return 3;
+                case 0:
+                  return 0;
+                case 1:
+                  return 3;
               }
             case 4:
               switch (which_vert) {
-                case 0: return 1;
-                case 1: return 3;
+                case 0:
+                  return 1;
+                case 1:
+                  return 3;
               }
             case 5:
               switch (which_vert) {
-                case 0: return 2;
-                case 1: return 3;
+                case 0:
+                  return 2;
+                case 1:
+                  return 3;
               }
           }
         case 2:
           switch (which_bdry) {
             case 0:
               switch (which_vert) {
-                case 0: return 0;
-                case 1: return 2;
-                case 2: return 1;
+                case 0:
+                  return 0;
+                case 1:
+                  return 2;
+                case 2:
+                  return 1;
               }
             case 1:
               switch (which_vert) {
-                case 0: return 0;
-                case 1: return 1;
-                case 2: return 3;
+                case 0:
+                  return 0;
+                case 1:
+                  return 1;
+                case 2:
+                  return 3;
               }
             case 2:
               switch (which_vert) {
-                case 0: return 1;
-                case 1: return 2;
-                case 2: return 3;
+                case 0:
+                  return 1;
+                case 1:
+                  return 2;
+                case 2:
+                  return 3;
               }
             case 3:
               switch (which_vert) {
-                case 0: return 2;
-                case 1: return 0;
-                case 2: return 3;
+                case 0:
+                  return 2;
+                case 1:
+                  return 0;
+                case 2:
+                  return 3;
               }
           }
       }
@@ -103,7 +136,8 @@ struct TemplateUp {
   bool is_flipped;
 };
 
-INLINE TemplateUp up_template(Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
+INLINE TemplateUp up_template(
+    Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
   switch (elem_dim) {
     case 3:
       switch (bdry_dim) {
@@ -111,60 +145,84 @@ INLINE TemplateUp up_template(Int elem_dim, Int bdry_dim, Int which_bdry, Int wh
           switch (which_bdry) {
             case 0:
               switch (which_up) {
-                case 0: return {0,0,0};
-                case 1: return {2,1,0};
-                case 2: return {3,0,0};
+                case 0:
+                  return {0, 0, 0};
+                case 1:
+                  return {2, 1, 0};
+                case 2:
+                  return {3, 0, 0};
               }
             case 1:
               switch (which_up) {
-                case 0: return {1,0,0};
-                case 1: return {0,1,0};
-                case 2: return {4,0,0};
+                case 0:
+                  return {1, 0, 0};
+                case 1:
+                  return {0, 1, 0};
+                case 2:
+                  return {4, 0, 0};
               }
             case 2:
               switch (which_up) {
-                case 0: return {2,0,0};
-                case 1: return {1,1,0};
-                case 2: return {5,0,0};
+                case 0:
+                  return {2, 0, 0};
+                case 1:
+                  return {1, 1, 0};
+                case 2:
+                  return {5, 0, 0};
               }
             case 3:
               switch (which_up) {
-                case 0: return {5,1,0};
-                case 1: return {4,1,0};
-                case 2: return {3,1,0};
+                case 0:
+                  return {5, 1, 0};
+                case 1:
+                  return {4, 1, 0};
+                case 2:
+                  return {3, 1, 0};
               }
           }
         case 1:
           switch (which_bdry) {
             case 0:
               switch (which_up) {
-                case 0: return {0,2,1};
-                case 1: return {1,0,0};
+                case 0:
+                  return {0, 2, 1};
+                case 1:
+                  return {1, 0, 0};
               }
             case 1:
               switch (which_up) {
-                case 0: return {0,1,1};
-                case 1: return {2,0,0};
+                case 0:
+                  return {0, 1, 1};
+                case 1:
+                  return {2, 0, 0};
               }
             case 2:
               switch (which_up) {
-                case 0: return {0,0,1};
-                case 1: return {3,0,0};
+                case 0:
+                  return {0, 0, 1};
+                case 1:
+                  return {3, 0, 0};
               }
             case 3:
               switch (which_up) {
-                case 0: return {1,2,1};
-                case 1: return {3,1,0};
+                case 0:
+                  return {1, 2, 1};
+                case 1:
+                  return {3, 1, 0};
               }
             case 4:
               switch (which_up) {
-                case 0: return {2,2,1};
-                case 1: return {1,1,0};
+                case 0:
+                  return {2, 2, 1};
+                case 1:
+                  return {1, 1, 0};
               }
             case 5:
               switch (which_up) {
-                case 0: return {3,2,1};
-                case 1: return {2,1,0};
+                case 0:
+                  return {3, 2, 1};
+                case 1:
+                  return {2, 1, 0};
               }
           }
       }
@@ -174,23 +232,29 @@ INLINE TemplateUp up_template(Int elem_dim, Int bdry_dim, Int which_bdry, Int wh
           switch (which_bdry) {
             case 0:
               switch (which_up) {
-                case 0: return {0,0,0};
-                case 1: return {2,1,0};
+                case 0:
+                  return {0, 0, 0};
+                case 1:
+                  return {2, 1, 0};
               }
             case 1:
               switch (which_up) {
-                case 0: return {1,0,0};
-                case 1: return {0,1,0};
+                case 0:
+                  return {1, 0, 0};
+                case 1:
+                  return {0, 1, 0};
               }
             case 2:
               switch (which_up) {
-                case 0: return {2,0,0};
-                case 1: return {1,1,0};
+                case 0:
+                  return {2, 0, 0};
+                case 1:
+                  return {1, 1, 0};
               }
           }
       }
   }
-  return {-1,-1,true};
+  return {-1, -1, true};
 };
 
 INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
@@ -199,41 +263,61 @@ INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
       switch (bdry_dim) {
         case 0:
           switch (which_bdry) {
-            case 0: return 2;
-            case 1: return 3;
-            case 2: return 1;
-            case 3: return 0;
+            case 0:
+              return 2;
+            case 1:
+              return 3;
+            case 2:
+              return 1;
+            case 3:
+              return 0;
           }
         case 1:
           switch (which_bdry) {
-            case 0: return 5;
-            case 1: return 3;
-            case 2: return 4;
-            case 3: return 1;
-            case 4: return 2;
-            case 5: return 0;
+            case 0:
+              return 5;
+            case 1:
+              return 3;
+            case 2:
+              return 4;
+            case 3:
+              return 1;
+            case 4:
+              return 2;
+            case 5:
+              return 0;
           }
         case 2:
           switch (which_bdry) {
-            case 0: return 3;
-            case 1: return 2;
-            case 2: return 0;
-            case 3: return 1;
+            case 0:
+              return 3;
+            case 1:
+              return 2;
+            case 2:
+              return 0;
+            case 3:
+              return 1;
           }
       }
     case 2:
       switch (bdry_dim) {
         case 0:
           switch (which_bdry) {
-            case 0: return 1;
-            case 1: return 2;
-            case 2: return 0;
+            case 0:
+              return 1;
+            case 1:
+              return 2;
+            case 2:
+              return 0;
           }
         case 1:
           switch (which_bdry) {
-            case 0: return 2;
-            case 1: return 0;
-            case 2: return 1;
+            case 0:
+              return 2;
+            case 1:
+              return 0;
+            case 2:
+              return 1;
           }
       }
   }

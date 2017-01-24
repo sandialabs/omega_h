@@ -355,7 +355,7 @@ static void read_tag(
 
 void write(std::ostream& stream, Mesh* mesh) {
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
-//write_value(stream, latest_version); moved to /version at version 4
+// write_value(stream, latest_version); moved to /version at version 4
 #ifdef OMEGA_H_USE_ZLIB
   I8 is_compressed = true;
 #else
@@ -428,8 +428,7 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
   }
 }
 
-static void write_int_file(std::string const& filepath, Mesh* mesh,
-    I32 value) {
+static void write_int_file(std::string const& filepath, Mesh* mesh, I32 value) {
   if (mesh->comm()->rank() == 0) {
     std::ofstream file(filepath.c_str());
     CHECK(file.is_open());
@@ -481,11 +480,11 @@ I32 read_version(std::string const& path, CommPtr comm) {
 }
 
 void write(std::string const& path, Mesh* mesh) {
-//if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
-//  std::cout
-//      << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
-//  std::cout << "instead of just \"" << path << "\"\n";
-//}
+  // if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
+  //  std::cout
+  //      << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
+  //  std::cout << "instead of just \"" << path << "\"\n";
+  //}
   safe_mkdir(path.c_str());
   mesh->comm()->barrier();
   auto filepath = path + "/" + to_string(mesh->comm()->rank()) + ".osh";
@@ -497,7 +496,8 @@ void write(std::string const& path, Mesh* mesh) {
   mesh->comm()->barrier();
 }
 
-void read_in_comm(std::string const& path, CommPtr comm, Mesh* mesh, I32 version) {
+void read_in_comm(
+    std::string const& path, CommPtr comm, Mesh* mesh, I32 version) {
   mesh->set_comm(comm);
   auto filepath = path + "/" + to_string(mesh->comm()->rank());
   if (version != -1) filepath += ".osh";

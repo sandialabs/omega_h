@@ -118,8 +118,7 @@ static Reals get_tet_pad_isos(
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2ttv[vve] =
-            down_template(TET, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
+        vve2ttv[vve] = down_template(TET, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];
