@@ -190,7 +190,7 @@ INLINE TemplateUp up_template(Int elem_dim, Int bdry_dim, Int which_bdry, Int wh
           }
       }
   }
-  return {-1,-1,-1};
+  return {-1,-1,true};
 };
 
 CONSTANT static Int const feov[] = {1, 2, 0};
