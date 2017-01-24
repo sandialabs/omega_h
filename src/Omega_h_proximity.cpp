@@ -108,8 +108,8 @@ static Reals get_tet_pad_isos(
       Few<Int, 3> vve2tte;
       Few<Int, 3> vve2wd;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2tte[vve] = UpTemplate<TET, VERT>::get(ttv, vve).up;
-        vve2wd[vve] = UpTemplate<TET, VERT>::get(ttv, vve).which_down;
+        vve2tte[vve] = up_template(TET, VERT, ttv, vve).up;
+        vve2wd[vve] = up_template(TET, VERT, ttv, vve).which_down;
       }
       Few<I8, 3> vve2b;
       for (Int vve = 0; vve < 3; ++vve) vve2b[vve] = tte2b[vve2tte[vve]];
