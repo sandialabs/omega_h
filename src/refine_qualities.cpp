@@ -71,7 +71,7 @@ static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
            (see refine_domain_interiors) */
         auto cev = eev ^ rot;
         auto ccv = down_template(dim, EDGE, cce, cev);
-        auto ccs = OppositeTemplate<dim, VERT>::get(ccv);
+        auto ccs = opposite_template(dim, VERT, ccv);
         Few<LO, dim> csv2v;
         Few<Vector<dim>, dim + 1> ncp;
         for (Int csv = 0; csv < dim; ++csv) {

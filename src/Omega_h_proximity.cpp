@@ -77,7 +77,7 @@ static Reals get_tet_pad_isos(
     if (nb == 4) {
       for (Int tte = 0; tte < 3; ++tte) {
         if (tte2b[tte]) continue;
-        auto opp = OppositeTemplate<TET, EDGE>::get(tte);
+        auto opp = opposite_template(TET, EDGE, tte);
         if (tte2b[opp]) continue;
         // at this point we have edge-edge nearness
         auto a = ttv2x[down_template(TET, EDGE, tte, 0)];

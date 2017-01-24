@@ -44,7 +44,7 @@ DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2tets,
     auto code = edge_tet_codes[edge_tet];
     auto rre = code_which_down(code);
     auto rot = code_rotation(code);
-    auto rre_opp = OppositeTemplate<TET, EDGE>::get(rre);
+    auto rre_opp = opposite_template(TET, EDGE, rre);
     for (Int eev = 0; eev < 2; ++eev) {
       /* we rely on the fact that tet-edge-vertices are
          defined such that the opposite edge curls around

@@ -90,7 +90,7 @@ static Read<I8> check_collapse_exposure(
         auto eev_onto = 1 - eev_col;
         auto cev_onto = rot ^ eev_onto;
         auto ccv_onto = down_template(cell_dim, EDGE, cce, cev_onto);
-        auto ccs_opp = opposite_templates[cell_dim][VERT][ccv_onto];
+        auto ccs_opp = opposite_template(cell_dim, VERT, ccv_onto);
         auto s_opp = cs2s[c * nccs + ccs_opp];
         if (s2dim[s_opp] != c_dim) {
           code = dont_collapse(code, eev_col);

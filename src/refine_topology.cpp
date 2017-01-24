@@ -83,7 +83,7 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
            and connecting it to the midpoint to form the new cell */
         auto dev = eev ^ rot;
         auto ddv = down_template(dim, EDGE, dde, dev);
-        auto dds = opposite_templates[dim][VERT][ddv];
+        auto dds = opposite_template(dim, VERT, ddv);
         auto ppv2v = &pair_verts2verts_w[pair * (dim + 1)];
         for (Int dsv = 0; dsv < dim; ++dsv) {
           auto ddv2 = down_template(dim, dim - 1, dds, dsv);
@@ -135,7 +135,7 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
          not adjacent to the key edge. for tet domains, the tip
          is the edge not adjacent to the key edge. */
       auto ccv2v = &cut_verts2verts_w[cut * dim];
-      auto ddt = opposite_templates[dim][EDGE][dde];
+      auto ddt = opposite_template(dim, EDGE, dde);
       for (Int dtv = 0; dtv < dim - 1; ++dtv) {
         auto ddv2 = down_template(dim, dim - 2, ddt, dtv);
         auto ov = ddv2v[ddv2];

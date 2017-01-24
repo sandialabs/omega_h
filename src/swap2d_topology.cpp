@@ -28,7 +28,7 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
       auto tte = code_which_down(code);
       auto rot = code_rotation(code);
       t[rot] = et2t[et];
-      auto ttv = OppositeTemplate<TRI, EDGE>::get(tte);
+      auto ttv = opposite_template(TRI, EDGE, tte);
       ov[rot] = tv2v[t[rot] * 3 + ttv];
     }
     auto ev = gather_verts<2>(ev2v, e);
