@@ -13,6 +13,8 @@ std::string path_leaf_name(std::string const& path);
 
 namespace binary {
 
+constexpr I32 latest_version = 4;
+
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian = true);
 template <typename T>
@@ -31,7 +33,7 @@ void write(std::ostream& stream, std::string const& val);
 void read(std::istream& stream, std::string& val);
 
 void write(std::ostream& stream, Mesh* mesh);
-void read(std::istream& stream, Mesh* mesh);
+void read(std::istream& stream, Mesh* mesh, I32 version);
 
 #define INST_DECL(T)                                                           \
   extern template void swap_if_needed(T& val, bool is_little_endian);          \

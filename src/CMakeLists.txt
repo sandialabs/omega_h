@@ -70,6 +70,7 @@ set(Omega_h_SOURCES
   swap3d_topology.cpp
   swap3d.cpp
   regress.cpp
+  consistent.cpp
   align.cpp
   xml.cpp
   derive.cpp
@@ -307,8 +308,6 @@ if(BUILD_TESTING)
     endif()
   endif()
   osh_add_exe(bend_test)
-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
-      DEPENDS ${TEST_EXES})
   osh_add_exe(test_degree)
   if(Omega_h_USE_Meshb)
     osh_add_exe(ugawg_linear)
@@ -320,6 +319,14 @@ if(BUILD_TESTING)
   if(Omega_h_USE_EGADS)
     osh_add_exe(egads_test)
   endif()
+  osh_add_exe(advect2d_test)
+  if(Omega_h_DATA)
+    set(TEST_EXES ${TEST_EXES} advect2d_test)
+    test_func(advect2d_serial 1 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
+    test_func(advect2d_parallel 2 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
+  endif()
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
+      DEPENDS ${TEST_EXES})
 endif()
 
 set(DEF_VARS
