@@ -46,7 +46,7 @@ static Reals swap2d_qualities_tmpl(
       auto tte = code_which_down(code);
       auto rot = code_rotation(code);
       t[rot] = et2t[et];
-      auto ttv = OppositeTemplate<TRI, EDGE>::get(tte);
+      auto ttv = opposite_template(TRI, EDGE, tte);
       ov[rot] = tri_verts2verts[t[rot] * 3 + ttv];
     }
     auto l = length_measure.measure(ov);

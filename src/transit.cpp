@@ -26,7 +26,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-      auto ut = up_templates[high_dim][low_dim][hl][0];
+      auto ut = up_template(high_dim, low_dim, hl, 0);
       auto hm = ut.up;
       auto hml = ut.which_down;
       auto m = hm2m[hm_begin + hm];

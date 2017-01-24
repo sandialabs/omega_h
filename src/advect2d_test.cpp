@@ -17,10 +17,9 @@ int main(int argc, char** argv) {
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto sol = mesh.get_array<Omega_h::Real>(Omega_h::VERT, "Solution");
   auto hessians = Omega_h::recover_hessians(&mesh, sol);
-  auto metrics = metric_from_hessians(mesh.dim(), hessians,
-      target_error, maximum_size);
-  metrics = Omega_h::limit_size_field_gradation(&mesh, metrics,
-      gradation_rate);
+  auto metrics =
+      metric_from_hessians(mesh.dim(), hessians, target_error, maximum_size);
+  metrics = Omega_h::limit_size_field_gradation(&mesh, metrics, gradation_rate);
   mesh.add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_dofs(mesh.dim()),
       OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT, metrics);
   auto implied_metrics = Omega_h::find_implied_metric(&mesh);

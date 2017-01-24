@@ -5,134 +5,324 @@
 
 namespace Omega_h {
 
-CONSTANT static Int const fvv0[] = {0};
-CONSTANT static Int const fvv1[] = {1};
-CONSTANT static Int const fvv2[] = {2};
-CONSTANT static Int const fev0[] = {0, 1};
-CONSTANT static Int const fev1[] = {1, 2};
-CONSTANT static Int const fev2[] = {2, 0};
-CONSTANT static Int const* const fvv_[] = {fvv0, fvv1, fvv2};
-CONSTANT static Int const* const fev_[] = {fev0, fev1, fev2};
-CONSTANT static Int const* const* const f_v_[] = {fvv_, fev_};
-CONSTANT static Int const rvv0[] = {0};
-CONSTANT static Int const rvv1[] = {1};
-CONSTANT static Int const rvv2[] = {2};
-CONSTANT static Int const rvv3[] = {3};
-CONSTANT static Int const* const rvv_[] = {rvv0, rvv1, rvv2, rvv3};
-CONSTANT static Int const rev0[] = {0, 1};
-CONSTANT static Int const rev1[] = {1, 2};
-CONSTANT static Int const rev2[] = {2, 0};
-CONSTANT static Int const rev3[] = {0, 3};
-CONSTANT static Int const rev4[] = {1, 3};
-CONSTANT static Int const rev5[] = {2, 3};
-CONSTANT static Int const* const rev_[] = {rev0, rev1, rev2, rev3, rev4, rev5};
-CONSTANT static Int const rfv0[] = {0, 2, 1};
-CONSTANT static Int const rfv1[] = {0, 1, 3};
-CONSTANT static Int const rfv2[] = {1, 2, 3};
-CONSTANT static Int const rfv3[] = {2, 0, 3};
-CONSTANT static Int const* const rfv_[] = {rfv0, rfv1, rfv2, rfv3};
-CONSTANT static Int const* const* const r_v_[] = {rvv_, rev_, rfv_};
-CONSTANT static Int const* const* const* const down_templates[] = {
-    0, 0, f_v_, r_v_};
-
-/* workaround a compiler bug in CUDA:
- * if it knows an index at compile time, it will
- * try to optimize the lookup out of the kernel
- * (which in theory is good) but will fail miserably
- * to do so correctly, resulting in
- * "LLVM ERROR: Cannot cast between two non-generic address spaces"
- * therefore, we re-implement array indexing here using
- * templated classes and the destination names. */
-template <Int hdim, Int ldim>
-struct DownTemplate;
-template <>
-struct DownTemplate<3, 2> {
-  DEVICE static Int get(Int a, Int b) { return rfv_[a][b]; }
-};
-template <>
-struct DownTemplate<3, 1> {
-  DEVICE static Int get(Int a, Int b) { return rev_[a][b]; }
-};
-template <>
-struct DownTemplate<2, 1> {
-  DEVICE static Int get(Int a, Int b) { return fev_[a][b]; }
-};
+INLINE Int down_template(
+    Int elem_dim, Int bdry_dim, Int which_bdry, Int which_vert) {
+  switch (elem_dim) {
+    case 2:
+      switch (bdry_dim) {
+        case 0:
+          return which_bdry;
+        case 1:
+          switch (which_bdry) {
+            case 0:
+              switch (which_vert) {
+                case 0:
+                  return 0;
+                case 1:
+                  return 1;
+              }
+            case 1:
+              switch (which_vert) {
+                case 0:
+                  return 1;
+                case 1:
+                  return 2;
+              }
+            case 2:
+              switch (which_vert) {
+                case 0:
+                  return 2;
+                case 1:
+                  return 0;
+              }
+          }
+      }
+    case 3:
+      switch (bdry_dim) {
+        case 0:
+          return which_bdry;
+        case 1:
+          switch (which_bdry) {
+            case 0:
+              switch (which_vert) {
+                case 0:
+                  return 0;
+                case 1:
+                  return 1;
+              }
+            case 1:
+              switch (which_vert) {
+                case 0:
+                  return 1;
+                case 1:
+                  return 2;
+              }
+            case 2:
+              switch (which_vert) {
+                case 0:
+                  return 2;
+                case 1:
+                  return 0;
+              }
+            case 3:
+              switch (which_vert) {
+                case 0:
+                  return 0;
+                case 1:
+                  return 3;
+              }
+            case 4:
+              switch (which_vert) {
+                case 0:
+                  return 1;
+                case 1:
+                  return 3;
+              }
+            case 5:
+              switch (which_vert) {
+                case 0:
+                  return 2;
+                case 1:
+                  return 3;
+              }
+          }
+        case 2:
+          switch (which_bdry) {
+            case 0:
+              switch (which_vert) {
+                case 0:
+                  return 0;
+                case 1:
+                  return 2;
+                case 2:
+                  return 1;
+              }
+            case 1:
+              switch (which_vert) {
+                case 0:
+                  return 0;
+                case 1:
+                  return 1;
+                case 2:
+                  return 3;
+              }
+            case 2:
+              switch (which_vert) {
+                case 0:
+                  return 1;
+                case 1:
+                  return 2;
+                case 2:
+                  return 3;
+              }
+            case 3:
+              switch (which_vert) {
+                case 0:
+                  return 2;
+                case 1:
+                  return 0;
+                case 2:
+                  return 3;
+              }
+          }
+      }
+  }
+  return -1;
+}
 
 struct TemplateUp {
   Int up;
   Int which_down;
   bool is_flipped;
 };
-CONSTANT static TemplateUp const fve0[] = {{0, 0, 0}, {2, 1, 0}};
-CONSTANT static TemplateUp const fve1[] = {{1, 0, 0}, {0, 1, 0}};
-CONSTANT static TemplateUp const fve2[] = {{2, 0, 0}, {1, 1, 0}};
-CONSTANT static TemplateUp const* const fve_[] = {fve0, fve1, fve2};
-CONSTANT static TemplateUp const* const* const f_u_[] = {fve_};
-CONSTANT static TemplateUp const rve0[] = {{0, 0, 0}, {2, 1, 0}, {3, 0, 0}};
-CONSTANT static TemplateUp const rve1[] = {{1, 0, 0}, {0, 1, 0}, {4, 0, 0}};
-CONSTANT static TemplateUp const rve2[] = {{2, 0, 0}, {1, 1, 0}, {5, 0, 0}};
-CONSTANT static TemplateUp const rve3[] = {{5, 1, 0}, {4, 1, 0}, {3, 1, 0}};
-CONSTANT static TemplateUp const* const rve_[] = {rve0, rve1, rve2, rve3};
-CONSTANT static TemplateUp const ref0[] = {{0, 2, 1}, {1, 0, 0}};
-CONSTANT static TemplateUp const ref1[] = {{0, 1, 1}, {2, 0, 0}};
-CONSTANT static TemplateUp const ref2[] = {{0, 0, 1}, {3, 0, 0}};
-CONSTANT static TemplateUp const ref3[] = {{1, 2, 1}, {3, 1, 0}};
-CONSTANT static TemplateUp const ref4[] = {{2, 2, 1}, {1, 1, 0}};
-CONSTANT static TemplateUp const ref5[] = {{3, 2, 1}, {2, 1, 0}};
-CONSTANT static TemplateUp const* const ref_[] = {
-    ref0, ref1, ref2, ref3, ref4, ref5};
-CONSTANT static TemplateUp const* const* const r_u_[] = {rve_, ref_};
-CONSTANT static TemplateUp const* const* const* const up_templates[] = {
-    0, 0, f_u_, r_u_};
 
-/* workaround a compiler bug in CUDA, see DownTemplate<> */
-template <Int hdim, Int ldim>
-struct UpTemplate;
-template <>
-struct UpTemplate<3, 1> {
-  DEVICE static TemplateUp get(Int a, Int b) { return ref_[a][b]; }
-};
-template <>
-struct UpTemplate<3, 0> {
-  DEVICE static TemplateUp get(Int a, Int b) { return rve_[a][b]; }
-};
-template <>
-struct UpTemplate<2, 0> {
-  DEVICE static TemplateUp get(Int a, Int b) { return fve_[a][b]; }
+INLINE TemplateUp up_template(
+    Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
+  switch (elem_dim) {
+    case 3:
+      switch (bdry_dim) {
+        case 0:
+          switch (which_bdry) {
+            case 0:
+              switch (which_up) {
+                case 0:
+                  return {0, 0, 0};
+                case 1:
+                  return {2, 1, 0};
+                case 2:
+                  return {3, 0, 0};
+              }
+            case 1:
+              switch (which_up) {
+                case 0:
+                  return {1, 0, 0};
+                case 1:
+                  return {0, 1, 0};
+                case 2:
+                  return {4, 0, 0};
+              }
+            case 2:
+              switch (which_up) {
+                case 0:
+                  return {2, 0, 0};
+                case 1:
+                  return {1, 1, 0};
+                case 2:
+                  return {5, 0, 0};
+              }
+            case 3:
+              switch (which_up) {
+                case 0:
+                  return {5, 1, 0};
+                case 1:
+                  return {4, 1, 0};
+                case 2:
+                  return {3, 1, 0};
+              }
+          }
+        case 1:
+          switch (which_bdry) {
+            case 0:
+              switch (which_up) {
+                case 0:
+                  return {0, 2, 1};
+                case 1:
+                  return {1, 0, 0};
+              }
+            case 1:
+              switch (which_up) {
+                case 0:
+                  return {0, 1, 1};
+                case 1:
+                  return {2, 0, 0};
+              }
+            case 2:
+              switch (which_up) {
+                case 0:
+                  return {0, 0, 1};
+                case 1:
+                  return {3, 0, 0};
+              }
+            case 3:
+              switch (which_up) {
+                case 0:
+                  return {1, 2, 1};
+                case 1:
+                  return {3, 1, 0};
+              }
+            case 4:
+              switch (which_up) {
+                case 0:
+                  return {2, 2, 1};
+                case 1:
+                  return {1, 1, 0};
+              }
+            case 5:
+              switch (which_up) {
+                case 0:
+                  return {3, 2, 1};
+                case 1:
+                  return {2, 1, 0};
+              }
+          }
+      }
+    case 2:
+      switch (bdry_dim) {
+        case 0:
+          switch (which_bdry) {
+            case 0:
+              switch (which_up) {
+                case 0:
+                  return {0, 0, 0};
+                case 1:
+                  return {2, 1, 0};
+              }
+            case 1:
+              switch (which_up) {
+                case 0:
+                  return {1, 0, 0};
+                case 1:
+                  return {0, 1, 0};
+              }
+            case 2:
+              switch (which_up) {
+                case 0:
+                  return {2, 0, 0};
+                case 1:
+                  return {1, 1, 0};
+              }
+          }
+      }
+  }
+  return {-1, -1, true};
 };
 
-CONSTANT static Int const feov[] = {1, 2, 0};
-CONSTANT static Int const fvoe[] = {2, 0, 1};
-CONSTANT static Int const* const fo_[] = {feov, fvoe};
-CONSTANT static Int const rfov[] = {2, 3, 1, 0};
-CONSTANT static Int const rvof[] = {3, 2, 0, 1};
-CONSTANT static Int const reoe[] = {5, 3, 4, 1, 2, 0};
-CONSTANT static Int const* const ro_[] = {rfov, reoe, rvof};
-CONSTANT static Int const* const* const opposite_templates[] = {0, 0, fo_, ro_};
-
-/* workaround a compiler bug in CUDA, see DownTemplate<> */
-template <Int hdim, Int ldim>
-struct OppositeTemplate;
-template <>
-struct OppositeTemplate<3, 2> {
-  DEVICE static Int get(Int a) { return rvof[a]; }
-};
-template <>
-struct OppositeTemplate<3, 1> {
-  DEVICE static Int get(Int a) { return reoe[a]; }
-};
-template <>
-struct OppositeTemplate<3, 0> {
-  DEVICE static Int get(Int a) { return rfov[a]; }
-};
-template <>
-struct OppositeTemplate<2, 1> {
-  DEVICE static Int get(Int a) { return fvoe[a]; }
-};
-template <>
-struct OppositeTemplate<2, 0> {
-  DEVICE static Int get(Int a) { return feov[a]; }
-};
+INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
+  switch (elem_dim) {
+    case 3:
+      switch (bdry_dim) {
+        case 0:
+          switch (which_bdry) {
+            case 0:
+              return 2;
+            case 1:
+              return 3;
+            case 2:
+              return 1;
+            case 3:
+              return 0;
+          }
+        case 1:
+          switch (which_bdry) {
+            case 0:
+              return 5;
+            case 1:
+              return 3;
+            case 2:
+              return 4;
+            case 3:
+              return 1;
+            case 4:
+              return 2;
+            case 5:
+              return 0;
+          }
+        case 2:
+          switch (which_bdry) {
+            case 0:
+              return 3;
+            case 1:
+              return 2;
+            case 2:
+              return 0;
+            case 3:
+              return 1;
+          }
+      }
+    case 2:
+      switch (bdry_dim) {
+        case 0:
+          switch (which_bdry) {
+            case 0:
+              return 1;
+            case 1:
+              return 2;
+            case 2:
+              return 0;
+          }
+        case 1:
+          switch (which_bdry) {
+            case 0:
+              return 2;
+            case 1:
+              return 0;
+            case 2:
+              return 1;
+          }
+      }
+  }
+  return -1;
+}
 
 extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];

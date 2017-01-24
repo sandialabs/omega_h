@@ -41,7 +41,8 @@ static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
       cand_quals_w[cand] = -1.0;
       return;
     }
-    auto choice = swap3d::choose(loop, quality_measure, length_measure, max_length);
+    auto choice =
+        swap3d::choose(loop, quality_measure, length_measure, max_length);
     static_assert(swap3d::MAX_CONFIGS <= INT8_MAX,
         "int8_t must be able to represent all swap configurations");
     cand_configs_w[cand] = static_cast<I8>(choice.mesh);

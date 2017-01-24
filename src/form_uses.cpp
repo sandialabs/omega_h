@@ -18,7 +18,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
       for (Int uv = 0; uv < nverts_per_low; ++uv) {
         uv2v[u_begin + uv] =
-            hv2v[h_begin + down_templates[high_dim][low_dim][u][uv]];
+            hv2v[h_begin + down_template(high_dim, low_dim, u, uv)];
       }
     }
   };
