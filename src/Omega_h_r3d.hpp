@@ -2,7 +2,7 @@
 #define OMEGA_H_R3D_HPP
 
 #include "Omega_h_kokkos.hpp"
-#include "Omega_h_defines.hpp"
+#include "Omega_h_math.hpp"
 
 #ifdef OMEGA_H_USE_CUDA
 #define R3D_USE_CUDA

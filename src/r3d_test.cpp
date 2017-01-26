@@ -8,12 +8,12 @@ static void test_3d() {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
   auto faces = r3d::faces_from_verts(verts);
   OMEGA_H_CHECK(Omega_h::are_close(
-      from_r3d(faces[0].n), -Omega_h::normalize(Omega_h::vector_3(1, 1, 1))));
+      Omega_h::from_r3d(faces[0].n), -Omega_h::normalize(Omega_h::vector_3(1, 1, 1))));
   OMEGA_H_CHECK(Omega_h::are_close(faces[0].d, -faces[0].n[0]));
   for (Omega_h::Int i = 0; i < 3; ++i) {
     auto v = Omega_h::vector_3(0, 0, 0);
     v[i] = 1;
-    OMEGA_H_CHECK(Omega_h::are_close(from_r3d(faces[i + 1].n), v));
+    OMEGA_H_CHECK(Omega_h::are_close(Omega_h::from_r3d(faces[i + 1].n), v));
     OMEGA_H_CHECK(Omega_h::are_close(faces[i + 1].d, 0));
   }
   r3d::Polytope<3> a;
@@ -48,12 +48,12 @@ static void test_3d() {
 static void test_2d() {
   r3d::Few<r3d::Vector<2>, 3> verts = {{0, 0}, {1, 0}, {0, 1}};
   auto faces = r3d::faces_from_verts(verts);
-  OMEGA_H_CHECK(Omega_h::are_close(from_r3d(faces[0].n), Omega_h::vector_2(0, 1)));
+  OMEGA_H_CHECK(Omega_h::are_close(Omega_h::from_r3d(faces[0].n), Omega_h::vector_2(0, 1)));
   OMEGA_H_CHECK(Omega_h::are_close(faces[0].d, 0));
   OMEGA_H_CHECK(Omega_h::are_close(
-      faces[1].n, -Omega_h::normalize(Omega_h::vector_2(1, 1))));
+      Omega_h::from_r3d(faces[1].n), -Omega_h::normalize(Omega_h::vector_2(1, 1))));
   OMEGA_H_CHECK(Omega_h::are_close(faces[1].d, -faces[1].n[0]));
-  OMEGA_H_CHECK(Omega_h::are_close(from_r3d(faces[2].n), Omega_h::vector_2(1, 0)));
+  OMEGA_H_CHECK(Omega_h::are_close(Omega_h::from_r3d(faces[2].n), Omega_h::vector_2(1, 0)));
   OMEGA_H_CHECK(Omega_h::are_close(faces[2].d, 0));
   r3d::Polytope<2> a;
   r3d::init(a, verts);
