@@ -392,10 +392,13 @@ Read<T> self_send_part1(
   if (self_count == sendbuf.size()) {
     self_data = sendbuf;
     sendbuf = Read<T>({});
+    CHECK(sendcounts.size() == 1);
     sendcounts = LOs({0});
-    recvcounts = LOs({0});
     sdispls = LOs({0,0});
-    rdispls = LOs({0,0});
+    auto recvcounts_w = deep_copy(recvcounts);
+    recvcounts_w.set(self_src, 0);
+    recvcounts = recvcounts_w;
+    rdispls = offset_scan(recvcounts);
   } else {
     auto self_data_w = Write<T>(end - begin);
     auto other_data_w = Write<T>(sendbuf.size() - self_count);
@@ -430,17 +433,21 @@ void self_send_part2(
     Read<T>* p_recvbuf, Read<LO> rdispls) {
   if (!self_data.exists()) return;
   auto recvbuf = *p_recvbuf;
-  auto begin = rdispls.get(self_src);
-  auto self_count = self_data.size();
-  auto end = begin + self_count;
-  auto recvbuf_w = Write<T>(recvbuf.size() + self_count);
-  auto f = LAMBDA(LO i) {
-    if (i < begin) recvbuf_w[i] = recvbuf[i];
-    else if (i < end) recvbuf_w[i] = self_data[i - begin];
-    else recvbuf_w[i] = recvbuf[i - self_count];
-  };
-  parallel_for(recvbuf_w.size(), f);
-  recvbuf = recvbuf_w;
+  if (recvbuf.size() == 0) {
+    recvbuf = self_data;
+  } else {
+    auto begin = rdispls.get(self_src);
+    auto self_count = self_data.size();
+    auto end = begin + self_count;
+    auto recvbuf_w = Write<T>(recvbuf.size() + self_count);
+    auto f = LAMBDA(LO i) {
+      if (i < begin) recvbuf_w[i] = recvbuf[i];
+      else if (i < end) recvbuf_w[i] = self_data[i - begin];
+      else recvbuf_w[i] = recvbuf[i - self_count];
+    };
+    parallel_for(recvbuf_w.size(), f);
+    recvbuf = recvbuf_w;
+  }
   *p_recvbuf = recvbuf;
 }
 

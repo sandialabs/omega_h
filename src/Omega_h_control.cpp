@@ -115,6 +115,8 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (!mpi_is_init) {
     CHECK(MPI_SUCCESS == MPI_Init(argc, argv));
     we_called_mpi_init = true;
+  } else {
+    we_called_mpi_init = false;
   }
   MPI_Comm world_dup;
   MPI_Comm_dup(comm_mpi, &world_dup);
@@ -143,6 +145,8 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     CHECK(argv != nullptr);
     Kokkos::initialize(*argc, *argv);
     we_called_kokkos_init = true;
+  } else {
+    we_called_kokkos_init = false;
   }
 #endif
   if (should_protect) Omega_h_protect();
