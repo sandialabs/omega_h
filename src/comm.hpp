@@ -71,6 +71,17 @@ inline MPI_Op mpi_op(Omega_h_Op op) {
 }
 #endif
 
+struct AllToAllVStats {
+  LO max_count;
+  LO max_self_count;
+  LO min_count;
+  LO min_self_count;
+  Real sum_count;
+  Real sum_self_count;
+  Int ncalls;
+};
+extern AllToAllVStats alltoallv_stats;
+
 }  // end namespace Omega_h
 
 #endif

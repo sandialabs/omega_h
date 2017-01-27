@@ -226,13 +226,14 @@ class Library {
   CommPtr world_;
   CommPtr self_;
 #ifdef OMEGA_H_USE_MPI
-  bool we_called_mpi_init = false;
+  bool we_called_mpi_init;
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
-  bool we_called_kokkos_init = false;
+  bool we_called_kokkos_init;
 #endif
   bool should_time_;
   std::map<std::string, double> timers;
+  LO self_send_threshold_;
 };
 
 namespace inertia {

@@ -7,6 +7,8 @@
 
 namespace Omega_h {
 
+AllToAllVStats alltoallv_stats = {INT_MIN, INT_MIN, INT_MAX, INT_MAX, 0.0, 0.0, 0};
+
 #ifdef OMEGA_H_USE_MPI
 #define CALL(f) CHECK(MPI_SUCCESS == (f))
 #endif
@@ -372,8 +374,10 @@ template <typename T>
 Read<T> self_send_part1(
     LO self_dst, LO self_src,
     Read<T>* p_sendbuf, Read<LO>* p_sendcounts,
-    Read<LO>* p_sdispls, Read<LO>* p_recvcounts, Read<LO>* p_rdispls) {
-  if (self_dst < 0) return Read<T>();
+    Read<LO>* p_sdispls, Read<LO>* p_recvcounts, Read<LO>* p_rdispls,
+    LO threshold) {
+  Read<T> self_data;
+  if (self_dst < 0) return self_data;
   CHECK(self_src >= 0);
   auto sendbuf = *p_sendbuf;
   auto sendcounts = *p_sendcounts;
@@ -383,29 +387,40 @@ Read<T> self_send_part1(
   auto begin = sdispls.get(self_dst);
   auto end = sdispls.get(self_dst + 1);
   auto self_count = end - begin;
-  auto self_data_w = Write<T>(end - begin);
-  auto other_data_w = Write<T>(sendbuf.size() - self_count);
-  auto f = LAMBDA(LO i) {
-    if (i < begin) other_data_w[i] = sendbuf[i];
-    else if (i < end) self_data_w[i - begin] = sendbuf[i];
-    else other_data_w[i - self_count] = sendbuf[i];
-  };
-  parallel_for(sendbuf.size(), f);
-  sendbuf = other_data_w;
-  auto sendcounts_w = deep_copy(sendcounts);
-  auto recvcounts_w = deep_copy(recvcounts);
-  sendcounts_w.set(self_dst, 0);
-  recvcounts_w.set(self_src, 0);
-  sendcounts = sendcounts_w;
-  recvcounts = recvcounts_w;
-  sdispls = offset_scan(sendcounts);
-  rdispls = offset_scan(recvcounts);
+  if (self_count < threshold) return self_data;
+  if (self_count == sendbuf.size()) {
+    self_data = sendbuf;
+    sendbuf = Read<T>();
+    sendcounts = LOs({0});
+    recvcounts = LOs({0});
+    sdispls = LOs({0,0});
+    rdispls = LOs({0,0});
+  } else {
+    auto self_data_w = Write<T>(end - begin);
+    auto other_data_w = Write<T>(sendbuf.size() - self_count);
+    auto f = LAMBDA(LO i) {
+      if (i < begin) other_data_w[i] = sendbuf[i];
+      else if (i < end) self_data_w[i - begin] = sendbuf[i];
+      else other_data_w[i - self_count] = sendbuf[i];
+    };
+    parallel_for(sendbuf.size(), f);
+    self_data = self_data_w;
+    sendbuf = other_data_w;
+    auto sendcounts_w = deep_copy(sendcounts);
+    auto recvcounts_w = deep_copy(recvcounts);
+    sendcounts_w.set(self_dst, 0);
+    recvcounts_w.set(self_src, 0);
+    sendcounts = sendcounts_w;
+    recvcounts = recvcounts_w;
+    sdispls = offset_scan(sendcounts);
+    rdispls = offset_scan(recvcounts);
+  }
   *p_sendbuf = sendbuf;
   *p_sendcounts = sendcounts;
   *p_sdispls = sdispls;
   *p_recvcounts = recvcounts;
   *p_rdispls = rdispls;
-  return self_data_w;
+  return self_data;
 }
 
 template <typename T>
@@ -432,9 +447,17 @@ template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
     Read<LO> sdispls_dev, Read<LO> recvcounts_dev, Read<LO> rdispls_dev) const {
 #ifdef OMEGA_H_USE_MPI
+  alltoallv_stats.max_count = max2(alltoallv_stats.max_count, sdispls_dev.last());
+  alltoallv_stats.min_count = min2(alltoallv_stats.min_count, sdispls_dev.last());
+  alltoallv_stats.sum_count += sdispls_dev.last();
   auto self_data = self_send_part1(self_dst_, self_src_,
       &sendbuf_dev, &sendcounts_dev, &sdispls_dev,
-      &recvcounts_dev, &rdispls_dev);
+      &recvcounts_dev, &rdispls_dev, library_->self_send_threshold_);
+  auto self_count = self_data.exists() ? self_data.size() : 0;
+  alltoallv_stats.max_self_count = max2(alltoallv_stats.max_count, self_count);
+  alltoallv_stats.min_self_count = min2(alltoallv_stats.min_count, self_count);
+  alltoallv_stats.sum_self_count += self_count;
+  ++(alltoallv_stats.ncalls);
   HostRead<T> sendbuf(sendbuf_dev);
   HostRead<LO> sendcounts(sendcounts_dev);
   HostRead<LO> recvcounts(recvcounts_dev);
