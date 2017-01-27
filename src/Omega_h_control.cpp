@@ -201,14 +201,14 @@ Library::~Library() {
   }
   the_library = nullptr;
   std::cout << "alltoallv stats:\n";
-  std::cout << "max count: " << alltoallv_stats.max_count << '\n';
-  std::cout << "min count: " << alltoallv_stats.min_count << '\n';
-  std::cout << "avg count: "
-    << alltoallv_stats.sum_count / alltoallv_stats.ncalls << '\n';
-  std::cout << "max self count: " << alltoallv_stats.max_self_count << '\n';
-  std::cout << "min self count: " << alltoallv_stats.min_self_count << '\n';
-  std::cout << "avg self count: "
-    << alltoallv_stats.sum_self_count / alltoallv_stats.ncalls << '\n';
+  std::cout << "max bytes: " << alltoallv_stats.max_bytes << '\n';
+  std::cout << "min bytes: " << alltoallv_stats.min_bytes << '\n';
+  std::cout << "avg bytes: "
+    << alltoallv_stats.sum_bytes / alltoallv_stats.ncalls << '\n';
+  std::cout << "max self bytes: " << alltoallv_stats.max_self_bytes << '\n';
+  std::cout << "min self bytes: " << alltoallv_stats.min_self_bytes << '\n';
+  std::cout << "avg self bytes: "
+    << alltoallv_stats.sum_self_bytes / alltoallv_stats.ncalls << '\n';
 }
 
 CommPtr Library::world() { return world_; }
@@ -227,6 +227,10 @@ CommPtr Library::self() {
 void Library::add_to_timer(std::string const& name, double nsecs) {
   if (!should_time_) return;
   timers[name] += nsecs;
+}
+
+LO Library::self_send_threshold() const {
+  return self_send_threshold_;
 }
 
 void add_to_global_timer(std::string const& name, double nsecs) {

@@ -217,6 +217,7 @@ class Library {
   CommPtr world();
   CommPtr self();
   void add_to_timer(std::string const& name, double nsecs);
+  LO self_send_threshold() const;
 
  private:
   void initialize(char const* head_desc, int* argc, char*** argv

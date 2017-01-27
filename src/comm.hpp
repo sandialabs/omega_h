@@ -72,12 +72,12 @@ inline MPI_Op mpi_op(Omega_h_Op op) {
 #endif
 
 struct AllToAllVStats {
-  LO max_count;
-  LO max_self_count;
-  LO min_count;
-  LO min_self_count;
-  Real sum_count;
-  Real sum_self_count;
+  size_t max_bytes;
+  size_t max_self_bytes;
+  size_t min_bytes;
+  size_t min_self_bytes;
+  Real sum_bytes;
+  Real sum_self_bytes;
   Int ncalls;
 };
 extern AllToAllVStats alltoallv_stats;
