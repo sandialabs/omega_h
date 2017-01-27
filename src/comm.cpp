@@ -17,10 +17,11 @@ Comm::Comm() {
 #ifdef OMEGA_H_USE_MPI
   impl_ = MPI_COMM_NULL;
 #endif
+  library_ = nullptr;
 }
 
 #ifdef OMEGA_H_USE_MPI
-Comm::Comm(MPI_Comm impl) : impl_(impl) {
+Comm::Comm(Library* library, MPI_Comm impl) : impl_(impl),library_(library) {
   int topo_type;
   CALL(MPI_Topo_test(impl, &topo_type));
   if (topo_type == MPI_DIST_GRAPH) {
@@ -40,7 +41,7 @@ Comm::Comm(MPI_Comm impl) : impl_(impl) {
   }
 }
 #else
-Comm::Comm(bool is_graph, bool sends_to_self) {
+Comm::Comm(Library* library, bool is_graph, bool sends_to_self) : library_(library) {
   if (is_graph) {
     if (sends_to_self) {
       srcs_ = Read<LO>({0});
@@ -88,9 +89,9 @@ CommPtr Comm::dup() const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
   CALL(MPI_Comm_dup(impl_, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
-  return CommPtr(new Comm(srcs_.exists(), srcs_.exists() && srcs_.size() == 1));
+  return CommPtr(new Comm(library_, srcs_.exists(), srcs_.exists() && srcs_.size() == 1));
 #endif
 }
 
@@ -98,11 +99,11 @@ CommPtr Comm::split(I32 color, I32 key) const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
   CALL(MPI_Comm_split(impl_, color, key, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
   (void)color;
   (void)key;
-  return CommPtr(new Comm());
+  return CommPtr(new Comm(library_, false, false));
 #endif
 }
 
@@ -116,9 +117,9 @@ CommPtr Comm::graph(Read<I32> dsts) const {
   int reorder = 0;
   CALL(MPI_Dist_graph_create(impl_, n, sources, degrees, destinations.data(),
       OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
-  return CommPtr(new Comm(true, dsts.size() == 1));
+  return CommPtr(new Comm(library_, true, dsts.size() == 1));
 #endif
 }
 
@@ -131,10 +132,10 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
   CALL(MPI_Dist_graph_create_adjacent(impl_, sources.size(), sources.data(),
       OMEGA_H_MPI_UNWEIGHTED, destinations.size(), destinations.data(),
       OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
   CHECK(srcs == dsts);
-  return CommPtr(new Comm(true, dsts.size() == 1));
+  return CommPtr(new Comm(library_, true, dsts.size() == 1));
 #endif
 }
 

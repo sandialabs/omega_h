@@ -118,10 +118,10 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
   MPI_Comm world_dup;
   MPI_Comm_dup(comm_mpi, &world_dup);
-  world_ = CommPtr(new Comm(world_dup));
+  world_ = CommPtr(new Comm(this, world_dup));
 #else
-  world_ = CommPtr(new Comm());
-  self_ = CommPtr(new Comm());
+  world_ = CommPtr(new Comm(this, false, false));
+  self_ = CommPtr(new Comm(this, false, false));
 #endif
   Omega_h::CmdLine cmdline;
   cmdline.add_flag("--osh-memory", "print amount and stacktrace of max memory use");
@@ -218,7 +218,7 @@ CommPtr Library::self() {
   if (!self_) {
     MPI_Comm self_dup;
     MPI_Comm_dup(MPI_COMM_SELF, &self_dup);
-    self_ = CommPtr(new Comm(self_dup));
+    self_ = CommPtr(new Comm(this, self_dup));
   }
 #endif
   return self_;
