@@ -67,6 +67,7 @@ struct Int128 {
   static OMEGA_H_INLINE Int128 from_double(double value, double unit);
 };
 
+class Library;
 class Comm;
 
 typedef std::shared_ptr<Comm> CommPtr;
@@ -75,6 +76,7 @@ class Comm {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl_;
 #endif
+  Library* library_;
   Read<I32> srcs_;
   HostRead<I32> host_srcs_;
   Read<I32> dsts_;
@@ -83,9 +85,9 @@ class Comm {
  public:
   Comm();
 #ifdef OMEGA_H_USE_MPI
-  Comm(MPI_Comm impl);
+  Comm(Library* library, MPI_Comm impl);
 #else
-  Comm(bool is_graph, bool sends_to_self);
+  Comm(Library* library, bool is_graph, bool sends_to_self);
 #endif
   ~Comm();
   I32 rank() const;
