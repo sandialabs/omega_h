@@ -391,7 +391,7 @@ Read<T> self_send_part1(
   if (self_count * sizeof(T) < size_t(threshold)) return self_data;
   if (self_count == sendbuf.size()) {
     self_data = sendbuf;
-    sendbuf = Read<T>();
+    sendbuf = Read<T>({});
     sendcounts = LOs({0});
     recvcounts = LOs({0});
     sdispls = LOs({0,0});
@@ -456,8 +456,8 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
       &sendbuf_dev, &sendcounts_dev, &sdispls_dev,
       &recvcounts_dev, &rdispls_dev, library_->self_send_threshold());
   auto self_bytes = sizeof(T) * (self_data.exists() ? self_data.size() : 0);
-  alltoallv_stats.max_self_bytes = max2(alltoallv_stats.max_bytes, self_bytes);
-  alltoallv_stats.min_self_bytes = min2(alltoallv_stats.min_bytes, self_bytes);
+  alltoallv_stats.max_self_bytes = max2(alltoallv_stats.max_self_bytes, self_bytes);
+  alltoallv_stats.min_self_bytes = min2(alltoallv_stats.min_self_bytes, self_bytes);
   alltoallv_stats.sum_self_bytes += self_bytes;
   ++(alltoallv_stats.ncalls);
   HostRead<T> sendbuf(sendbuf_dev);
