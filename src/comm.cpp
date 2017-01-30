@@ -19,7 +19,7 @@ Comm::Comm() {
 }
 
 #ifdef OMEGA_H_USE_MPI
-Comm::Comm(Library* library, MPI_Comm impl) : impl_(impl),library_(library) {
+Comm::Comm(Library* library, MPI_Comm impl) : impl_(impl), library_(library) {
   int topo_type;
   CALL(MPI_Topo_test(impl, &topo_type));
   if (topo_type == MPI_DIST_GRAPH) {
@@ -39,7 +39,8 @@ Comm::Comm(Library* library, MPI_Comm impl) : impl_(impl),library_(library) {
   }
 }
 #else
-Comm::Comm(Library* library, bool is_graph, bool sends_to_self) : library_(library) {
+Comm::Comm(Library* library, bool is_graph, bool sends_to_self)
+    : library_(library) {
   if (is_graph) {
     if (sends_to_self) {
       srcs_ = Read<LO>({0});
@@ -89,7 +90,8 @@ CommPtr Comm::dup() const {
   CALL(MPI_Comm_dup(impl_, &impl2));
   return CommPtr(new Comm(library_, impl2));
 #else
-  return CommPtr(new Comm(library_, srcs_.exists(), srcs_.exists() && srcs_.size() == 1));
+  return CommPtr(
+      new Comm(library_, srcs_.exists(), srcs_.exists() && srcs_.size() == 1));
 #endif
 }
 
@@ -372,11 +374,9 @@ Read<T> Comm::alltoall(Read<T> x) const {
 #ifdef OMEGA_H_USE_CUDA
 
 template <typename T>
-Read<T> self_send_part1(
-    LO self_dst, LO self_src,
-    Read<T>* p_sendbuf, Read<LO>* p_sendcounts,
-    Read<LO>* p_sdispls, Read<LO>* p_recvcounts, Read<LO>* p_rdispls,
-    LO threshold) {
+Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
+    Read<LO>* p_sendcounts, Read<LO>* p_sdispls, Read<LO>* p_recvcounts,
+    Read<LO>* p_rdispls, LO threshold) {
   Read<T> self_data;
   if (self_dst < 0) return self_data;
   CHECK(self_src >= 0);
@@ -393,7 +393,7 @@ Read<T> self_send_part1(
     sendbuf = Read<T>({});
     CHECK(sendcounts.size() == 1);
     sendcounts = LOs({0});
-    sdispls = LOs({0,0});
+    sdispls = LOs({0, 0});
     auto recvcounts_w = deep_copy(recvcounts);
     recvcounts_w.set(self_src, 0);
     recvcounts = recvcounts_w;
@@ -403,9 +403,12 @@ Read<T> self_send_part1(
     auto self_data_w = Write<T>(end - begin);
     auto other_data_w = Write<T>(sendbuf.size() - self_count);
     auto f = LAMBDA(LO i) {
-      if (i < begin) other_data_w[i] = sendbuf[i];
-      else if (i < end) self_data_w[i - begin] = sendbuf[i];
-      else other_data_w[i - self_count] = sendbuf[i];
+      if (i < begin)
+        other_data_w[i] = sendbuf[i];
+      else if (i < end)
+        self_data_w[i - begin] = sendbuf[i];
+      else
+        other_data_w[i - self_count] = sendbuf[i];
     };
     parallel_for(sendbuf.size(), f);
     self_data = self_data_w;
@@ -429,8 +432,7 @@ Read<T> self_send_part1(
 
 template <typename T>
 void self_send_part2(
-    Read<T> self_data, LO self_src,
-    Read<T>* p_recvbuf, Read<LO> rdispls) {
+    Read<T> self_data, LO self_src, Read<T>* p_recvbuf, Read<LO> rdispls) {
   if (!self_data.exists()) return;
   auto recvbuf = *p_recvbuf;
   if (recvbuf.size() == 0) {
@@ -441,9 +443,12 @@ void self_send_part2(
     auto end = begin + self_count;
     auto recvbuf_w = Write<T>(recvbuf.size() + self_count);
     auto f = LAMBDA(LO i) {
-      if (i < begin) recvbuf_w[i] = recvbuf[i];
-      else if (i < end) recvbuf_w[i] = self_data[i - begin];
-      else recvbuf_w[i] = recvbuf[i - self_count];
+      if (i < begin)
+        recvbuf_w[i] = recvbuf[i];
+      else if (i < end)
+        recvbuf_w[i] = self_data[i - begin];
+      else
+        recvbuf_w[i] = recvbuf[i - self_count];
     };
     parallel_for(recvbuf_w.size(), f);
     recvbuf = recvbuf_w;
@@ -458,9 +463,9 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
     Read<LO> sdispls_dev, Read<LO> recvcounts_dev, Read<LO> rdispls_dev) const {
 #ifdef OMEGA_H_USE_MPI
 #ifdef OMEGA_H_USE_CUDA
-  auto self_data = self_send_part1(self_dst_, self_src_,
-      &sendbuf_dev, &sendcounts_dev, &sdispls_dev,
-      &recvcounts_dev, &rdispls_dev, library_->self_send_threshold());
+  auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
+      &sendcounts_dev, &sdispls_dev, &recvcounts_dev, &rdispls_dev,
+      library_->self_send_threshold());
 #endif
   HostRead<T> sendbuf(sendbuf_dev);
   HostRead<LO> sendcounts(sendcounts_dev);

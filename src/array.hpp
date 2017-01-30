@@ -95,7 +95,7 @@ LO find_last(Read<T> array, T value);
   extern template Read<I8> each_lt(Read<T> a, T b);                            \
   extern template Read<I8> each_neq_to(Read<T> a, T b);                        \
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
-  extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp); \
+  extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
   extern template LO find_last(Read<T> array, T value);
 
 INST_DECL(I8)

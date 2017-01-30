@@ -9,9 +9,9 @@
 #include <sstream>
 #include <string>
 
+#include "Omega_h_cmdline.hpp"
 #include "comm.hpp"
 #include "internal.hpp"
-#include "Omega_h_cmdline.hpp"
 
 namespace Omega_h {
 
@@ -126,10 +126,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   self_ = CommPtr(new Comm(this, false, false));
 #endif
   Omega_h::CmdLine cmdline;
-  cmdline.add_flag("--osh-memory", "print amount and stacktrace of max memory use");
-  cmdline.add_flag("--osh-time", "print amount of time spend in certain functions");
+  cmdline.add_flag(
+      "--osh-memory", "print amount and stacktrace of max memory use");
+  cmdline.add_flag(
+      "--osh-time", "print amount of time spend in certain functions");
   cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
-  auto& self_send_flag = cmdline.add_flag("--osh-self-send", "control self send threshold");
+  auto& self_send_flag =
+      cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
   if (argc && argv) cmdline.parse(world_, argc, *argv);
   Omega_h::should_log_memory = cmdline.parsed("--osh-memory");
@@ -224,9 +227,7 @@ void Library::add_to_timer(std::string const& name, double nsecs) {
   timers[name] += nsecs;
 }
 
-LO Library::self_send_threshold() const {
-  return self_send_threshold_;
-}
+LO Library::self_send_threshold() const { return self_send_threshold_; }
 
 void add_to_global_timer(std::string const& name, double nsecs) {
   the_library->add_to_timer(name, nsecs);

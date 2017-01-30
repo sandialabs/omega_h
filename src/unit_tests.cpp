@@ -972,7 +972,7 @@ static void test_motion(Library* lib) {
 }
 
 static void test_find_last() {
-  auto a = LOs({0,3,55,12});
+  auto a = LOs({0, 3, 55, 12});
   CHECK(find_last(a, 98) < 0);
   CHECK(find_last(a, 12) == 3);
   CHECK(find_last(a, 55) == 2);

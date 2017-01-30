@@ -99,8 +99,8 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
         auto target_points =
             gather_vectors<dim + 1, dim>(new_coords, target_verts);
         r3d::Polytope<dim> intersection;
-        r3d::intersect_simplices(intersection, to_r3d(target_points),
-            to_r3d(donor_points));
+        r3d::intersect_simplices(
+            intersection, to_r3d(target_points), to_r3d(donor_points));
         auto intersection_size = r3d::measure(intersection);
         coeffs[i] = intersection_size;
         total_size += intersection_size;
