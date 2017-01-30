@@ -78,9 +78,11 @@ class Comm {
 #endif
   Library* library_;
   Read<I32> srcs_;
-  HostRead<I32> host_srcs_;
   Read<I32> dsts_;
+  HostRead<I32> host_srcs_;
   HostRead<I32> host_dsts_;
+  LO self_src_;
+  LO self_dst_;
 
  public:
   Comm();
@@ -215,6 +217,7 @@ class Library {
   CommPtr world();
   CommPtr self();
   void add_to_timer(std::string const& name, double nsecs);
+  LO self_send_threshold() const;
 
  private:
   void initialize(char const* head_desc, int* argc, char*** argv
@@ -226,13 +229,14 @@ class Library {
   CommPtr world_;
   CommPtr self_;
 #ifdef OMEGA_H_USE_MPI
-  bool we_called_mpi_init = false;
+  bool we_called_mpi_init;
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
-  bool we_called_kokkos_init = false;
+  bool we_called_kokkos_init;
 #endif
   bool should_time_;
   std::map<std::string, double> timers;
+  LO self_send_threshold_;
 };
 
 namespace inertia {

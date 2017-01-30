@@ -11,6 +11,7 @@
 
 #include "comm.hpp"
 #include "internal.hpp"
+#include "Omega_h_cmdline.hpp"
 
 namespace Omega_h {
 
@@ -93,18 +94,6 @@ void print_stacktrace(std::ostream& out, int max_frames) {
   free(symbollist);
 }
 
-static bool remove_flag(int* argc, char*** argv, std::string const& flag) {
-  if (!argc || !argv) return false;
-  for (int i = 0; i < *argc; ++i) {
-    if (flag == (*argv)[i]) {
-      --(*argc);
-      for (int j = i; j < *argc; ++j) (*argv)[j] = (*argv)[j + 1];
-      return true;
-    }
-  }
-  return false;
-}
-
 void Library::initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
     ,
@@ -120,15 +109,14 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     std::string msg_str = msg.str();
     Omega_h_fail("%s\n", msg_str.c_str());
   }
-  Omega_h::should_log_memory = remove_flag(argc, argv, "--osh-memory");
-  bool should_protect = remove_flag(argc, argv, "--osh-signal");
-  should_time_ = remove_flag(argc, argv, "--osh-time");
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
   CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
   if (!mpi_is_init) {
     CHECK(MPI_SUCCESS == MPI_Init(argc, argv));
     we_called_mpi_init = true;
+  } else {
+    we_called_mpi_init = false;
   }
   MPI_Comm world_dup;
   MPI_Comm_dup(comm_mpi, &world_dup);
@@ -137,12 +125,28 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   world_ = CommPtr(new Comm(this, false, false));
   self_ = CommPtr(new Comm(this, false, false));
 #endif
+  Omega_h::CmdLine cmdline;
+  cmdline.add_flag("--osh-memory", "print amount and stacktrace of max memory use");
+  cmdline.add_flag("--osh-time", "print amount of time spend in certain functions");
+  cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
+  auto& self_send_flag = cmdline.add_flag("--osh-self-send", "control self send threshold");
+  self_send_flag.add_arg<int>("value");
+  if (argc && argv) cmdline.parse(world_, argc, *argv);
+  Omega_h::should_log_memory = cmdline.parsed("--osh-memory");
+  should_time_ = cmdline.parsed("--osh-time");
+  bool should_protect = cmdline.parsed("--osh-signal");
+  self_send_threshold_ = 1000 * 1000;
+  if (cmdline.parsed("--osh-self-send")) {
+    self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
+  }
 #ifdef OMEGA_H_USE_KOKKOS
   if (!Kokkos::DefaultExecutionSpace::is_initialized()) {
     CHECK(argc != nullptr);
     CHECK(argv != nullptr);
     Kokkos::initialize(*argc, *argv);
     we_called_kokkos_init = true;
+  } else {
+    we_called_kokkos_init = false;
   }
 #endif
   if (should_protect) Omega_h_protect();
@@ -218,6 +222,10 @@ CommPtr Library::self() {
 void Library::add_to_timer(std::string const& name, double nsecs) {
   if (!should_time_) return;
   timers[name] += nsecs;
+}
+
+LO Library::self_send_threshold() const {
+  return self_send_threshold_;
 }
 
 void add_to_global_timer(std::string const& name, double nsecs) {
