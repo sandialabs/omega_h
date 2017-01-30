@@ -7,8 +7,6 @@
 
 namespace Omega_h {
 
-AllToAllVStats alltoallv_stats = {0, 0, ULONG_MAX, ULONG_MAX, 0.0, 0.0, 0};
-
 #ifdef OMEGA_H_USE_MPI
 #define CALL(f) CHECK(MPI_SUCCESS == (f))
 #endif
@@ -371,6 +369,8 @@ Read<T> Comm::alltoall(Read<T> x) const {
 #endif
 }
 
+#ifdef OMEGA_H_USE_CUDA
+
 template <typename T>
 Read<T> self_send_part1(
     LO self_dst, LO self_src,
@@ -388,7 +388,6 @@ Read<T> self_send_part1(
   auto begin = sdispls.get(self_dst);
   auto end = sdispls.get(self_dst + 1);
   auto self_count = end - begin;
-  if (self_count * sizeof(T) < size_t(threshold)) return self_data;
   if (self_count == sendbuf.size()) {
     self_data = sendbuf;
     sendbuf = Read<T>({});
@@ -400,6 +399,7 @@ Read<T> self_send_part1(
     recvcounts = recvcounts_w;
     rdispls = offset_scan(recvcounts);
   } else {
+    if (self_count * sizeof(T) < size_t(threshold)) return self_data;
     auto self_data_w = Write<T>(end - begin);
     auto other_data_w = Write<T>(sendbuf.size() - self_count);
     auto f = LAMBDA(LO i) {
@@ -451,22 +451,17 @@ void self_send_part2(
   *p_recvbuf = recvbuf;
 }
 
+#endif
+
 template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
     Read<LO> sdispls_dev, Read<LO> recvcounts_dev, Read<LO> rdispls_dev) const {
 #ifdef OMEGA_H_USE_MPI
-  auto total_bytes = sizeof(T) * sdispls_dev.last();
-  alltoallv_stats.max_bytes = max2(alltoallv_stats.max_bytes, total_bytes);
-  alltoallv_stats.min_bytes = min2(alltoallv_stats.min_bytes, total_bytes);
-  alltoallv_stats.sum_bytes += total_bytes;
+#ifdef OMEGA_H_USE_CUDA
   auto self_data = self_send_part1(self_dst_, self_src_,
       &sendbuf_dev, &sendcounts_dev, &sdispls_dev,
       &recvcounts_dev, &rdispls_dev, library_->self_send_threshold());
-  auto self_bytes = sizeof(T) * (self_data.exists() ? self_data.size() : 0);
-  alltoallv_stats.max_self_bytes = max2(alltoallv_stats.max_self_bytes, self_bytes);
-  alltoallv_stats.min_self_bytes = min2(alltoallv_stats.min_self_bytes, self_bytes);
-  alltoallv_stats.sum_self_bytes += self_bytes;
-  ++(alltoallv_stats.ncalls);
+#endif
   HostRead<T> sendbuf(sendbuf_dev);
   HostRead<LO> sendcounts(sendcounts_dev);
   HostRead<LO> recvcounts(recvcounts_dev);
@@ -484,7 +479,9 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
       recvbuf.data(), recvcounts.data(), rdispls.data(),
       MpiTraits<T>::datatype(), impl_));
   auto recvbuf_dev = Read<T>(recvbuf.write());
+#ifdef OMEGA_H_USE_CUDA
   self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev);
+#endif
   return recvbuf_dev;
 #else
   (void)sendcounts_dev;

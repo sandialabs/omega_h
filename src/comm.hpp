@@ -71,17 +71,6 @@ inline MPI_Op mpi_op(Omega_h_Op op) {
 }
 #endif
 
-struct AllToAllVStats {
-  size_t max_bytes;
-  size_t max_self_bytes;
-  size_t min_bytes;
-  size_t min_self_bytes;
-  Real sum_bytes;
-  Real sum_self_bytes;
-  Int ncalls;
-};
-extern AllToAllVStats alltoallv_stats;
-
 }  // end namespace Omega_h
 
 #endif
