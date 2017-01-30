@@ -971,6 +971,15 @@ static void test_motion(Library* lib) {
   CHECK(mesh.min_quality() == choices.quals.get(0));
 }
 
+static void test_find_last() {
+  auto a = LOs({0, 3, 55, 12});
+  CHECK(find_last(a, 98) < 0);
+  CHECK(find_last(a, 12) == 3);
+  CHECK(find_last(a, 55) == 2);
+  CHECK(find_last(a, 3) == 1);
+  CHECK(find_last(a, 0) == 0);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   test_edge_length();
@@ -1024,5 +1033,6 @@ int main(int argc, char** argv) {
   test_lie();
   test_proximity(&lib);
   test_motion(&lib);
+  test_find_last();
   CHECK(get_current_bytes() == 0);
 }

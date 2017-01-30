@@ -362,7 +362,6 @@ set(Omega_h_HEADERS
   Omega_h.hpp
   Omega_h_math.hpp
   Omega_h_functors.hpp
-  Omega_h_r3d.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

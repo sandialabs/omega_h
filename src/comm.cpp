@@ -2,6 +2,8 @@
 
 #include "array.hpp"
 #include "int128.hpp"
+#include "loop.hpp"
+#include "scan.hpp"
 
 namespace Omega_h {
 
@@ -13,10 +15,11 @@ Comm::Comm() {
 #ifdef OMEGA_H_USE_MPI
   impl_ = MPI_COMM_NULL;
 #endif
+  library_ = nullptr;
 }
 
 #ifdef OMEGA_H_USE_MPI
-Comm::Comm(MPI_Comm impl) : impl_(impl) {
+Comm::Comm(Library* library, MPI_Comm impl) : impl_(impl), library_(library) {
   int topo_type;
   CALL(MPI_Topo_test(impl, &topo_type));
   if (topo_type == MPI_DIST_GRAPH) {
@@ -29,17 +32,22 @@ Comm::Comm(MPI_Comm impl) : impl_(impl) {
         OMEGA_H_MPI_UNWEIGHTED));
     srcs_ = sources.write();
     dsts_ = destinations.write();
+    self_src_ = find_last(srcs_, rank());
+    self_dst_ = find_last(dsts_, rank());
     host_srcs_ = HostRead<I32>(srcs_);
     host_dsts_ = HostRead<I32>(dsts_);
   }
 }
 #else
-Comm::Comm(bool is_graph, bool sends_to_self) {
+Comm::Comm(Library* library, bool is_graph, bool sends_to_self)
+    : library_(library) {
   if (is_graph) {
     if (sends_to_self) {
       srcs_ = Read<LO>({0});
+      self_src_ = self_dst_ = 0;
     } else {
       srcs_ = Read<LO>({});
+      self_src_ = self_dst_ = -1;
     }
     dsts_ = srcs_;
     host_srcs_ = HostRead<I32>(srcs_);
@@ -80,9 +88,10 @@ CommPtr Comm::dup() const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
   CALL(MPI_Comm_dup(impl_, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
-  return CommPtr(new Comm(srcs_.exists(), srcs_.exists() && srcs_.size() == 1));
+  return CommPtr(
+      new Comm(library_, srcs_.exists(), srcs_.exists() && srcs_.size() == 1));
 #endif
 }
 
@@ -90,11 +99,11 @@ CommPtr Comm::split(I32 color, I32 key) const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
   CALL(MPI_Comm_split(impl_, color, key, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
   (void)color;
   (void)key;
-  return CommPtr(new Comm());
+  return CommPtr(new Comm(library_, false, false));
 #endif
 }
 
@@ -108,9 +117,9 @@ CommPtr Comm::graph(Read<I32> dsts) const {
   int reorder = 0;
   CALL(MPI_Dist_graph_create(impl_, n, sources, degrees, destinations.data(),
       OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
-  return CommPtr(new Comm(true, dsts.size() == 1));
+  return CommPtr(new Comm(library_, true, dsts.size() == 1));
 #endif
 }
 
@@ -123,10 +132,10 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
   CALL(MPI_Dist_graph_create_adjacent(impl_, sources.size(), sources.data(),
       OMEGA_H_MPI_UNWEIGHTED, destinations.size(), destinations.data(),
       OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder, &impl2));
-  return CommPtr(new Comm(impl2));
+  return CommPtr(new Comm(library_, impl2));
 #else
   CHECK(srcs == dsts);
-  return CommPtr(new Comm(true, dsts.size() == 1));
+  return CommPtr(new Comm(library_, true, dsts.size() == 1));
 #endif
 }
 
@@ -362,10 +371,102 @@ Read<T> Comm::alltoall(Read<T> x) const {
 #endif
 }
 
+#ifdef OMEGA_H_USE_CUDA
+
+template <typename T>
+Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
+    Read<LO>* p_sendcounts, Read<LO>* p_sdispls, Read<LO>* p_recvcounts,
+    Read<LO>* p_rdispls, LO threshold) {
+  Read<T> self_data;
+  if (self_dst < 0) return self_data;
+  CHECK(self_src >= 0);
+  auto sendbuf = *p_sendbuf;
+  auto sendcounts = *p_sendcounts;
+  auto sdispls = *p_sdispls;
+  auto recvcounts = *p_recvcounts;
+  auto rdispls = *p_rdispls;
+  auto begin = sdispls.get(self_dst);
+  auto end = sdispls.get(self_dst + 1);
+  auto self_count = end - begin;
+  if (self_count == sendbuf.size()) {
+    self_data = sendbuf;
+    sendbuf = Read<T>({});
+    CHECK(sendcounts.size() == 1);
+    sendcounts = LOs({0});
+    sdispls = LOs({0, 0});
+    auto recvcounts_w = deep_copy(recvcounts);
+    recvcounts_w.set(self_src, 0);
+    recvcounts = recvcounts_w;
+    rdispls = offset_scan(recvcounts);
+  } else {
+    if (self_count * sizeof(T) < size_t(threshold)) return self_data;
+    auto self_data_w = Write<T>(end - begin);
+    auto other_data_w = Write<T>(sendbuf.size() - self_count);
+    auto f = LAMBDA(LO i) {
+      if (i < begin)
+        other_data_w[i] = sendbuf[i];
+      else if (i < end)
+        self_data_w[i - begin] = sendbuf[i];
+      else
+        other_data_w[i - self_count] = sendbuf[i];
+    };
+    parallel_for(sendbuf.size(), f);
+    self_data = self_data_w;
+    sendbuf = other_data_w;
+    auto sendcounts_w = deep_copy(sendcounts);
+    auto recvcounts_w = deep_copy(recvcounts);
+    sendcounts_w.set(self_dst, 0);
+    recvcounts_w.set(self_src, 0);
+    sendcounts = sendcounts_w;
+    recvcounts = recvcounts_w;
+    sdispls = offset_scan(sendcounts);
+    rdispls = offset_scan(recvcounts);
+  }
+  *p_sendbuf = sendbuf;
+  *p_sendcounts = sendcounts;
+  *p_sdispls = sdispls;
+  *p_recvcounts = recvcounts;
+  *p_rdispls = rdispls;
+  return self_data;
+}
+
+template <typename T>
+void self_send_part2(
+    Read<T> self_data, LO self_src, Read<T>* p_recvbuf, Read<LO> rdispls) {
+  if (!self_data.exists()) return;
+  auto recvbuf = *p_recvbuf;
+  if (recvbuf.size() == 0) {
+    recvbuf = self_data;
+  } else {
+    auto begin = rdispls.get(self_src);
+    auto self_count = self_data.size();
+    auto end = begin + self_count;
+    auto recvbuf_w = Write<T>(recvbuf.size() + self_count);
+    auto f = LAMBDA(LO i) {
+      if (i < begin)
+        recvbuf_w[i] = recvbuf[i];
+      else if (i < end)
+        recvbuf_w[i] = self_data[i - begin];
+      else
+        recvbuf_w[i] = recvbuf[i - self_count];
+    };
+    parallel_for(recvbuf_w.size(), f);
+    recvbuf = recvbuf_w;
+  }
+  *p_recvbuf = recvbuf;
+}
+
+#endif
+
 template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
     Read<LO> sdispls_dev, Read<LO> recvcounts_dev, Read<LO> rdispls_dev) const {
 #ifdef OMEGA_H_USE_MPI
+#ifdef OMEGA_H_USE_CUDA
+  auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
+      &sendcounts_dev, &sdispls_dev, &recvcounts_dev, &rdispls_dev,
+      library_->self_send_threshold());
+#endif
   HostRead<T> sendbuf(sendbuf_dev);
   HostRead<LO> sendcounts(sendcounts_dev);
   HostRead<LO> recvcounts(recvcounts_dev);
@@ -382,7 +483,11 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
       sendcounts.data(), sdispls.data(), MpiTraits<T>::datatype(),
       recvbuf.data(), recvcounts.data(), rdispls.data(),
       MpiTraits<T>::datatype(), impl_));
-  return recvbuf.write();
+  auto recvbuf_dev = Read<T>(recvbuf.write());
+#ifdef OMEGA_H_USE_CUDA
+  self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev);
+#endif
+  return recvbuf_dev;
 #else
   (void)sendcounts_dev;
   (void)recvcounts_dev;

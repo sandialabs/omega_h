@@ -57,7 +57,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
   /* if some ranks already have mesh data, their
      parallel info needs updating, we'll do this
      by using the old Dist to set new owners */
-  if (0 < nnew_had_comm) {
+  if (0 < nnew_had_comm && library_->world()->size() > 1) {
     for (Int d = 0; d <= dim(); ++d) {
       /* in the case of serial to parallel, globals may not be
          here yet, so this call will make sure they get cached

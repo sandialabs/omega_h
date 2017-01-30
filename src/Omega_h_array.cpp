@@ -628,6 +628,25 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   return b;
 }
 
+template <typename T>
+struct FindLast : public MaxFunctor<LO> {
+  using typename MaxFunctor<LO>::value_type;
+  Read<T> array_;
+  T value_;
+  FindLast(Read<T> array, T value) : array_(array), value_(value) {}
+  DEVICE void operator()(LO i, value_type& update) const {
+    if (array_[i] == value_) {
+      update = max2<value_type>(update, i);
+    }
+  }
+};
+
+template <typename T>
+LO find_last(Read<T> array, T value) {
+  return static_cast<LO>(
+      parallel_reduce(array.size(), FindLast<T>(array, value)));
+}
+
 #define INST(T)                                                                \
   template class NonNullPtr<T>;                                                \
   template class Write<T>;                                                     \
@@ -656,7 +675,8 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   template Read<I8> each_neq_to(Read<T> a, T b);                               \
   template Read<I8> each_eq_to(Read<T> a, T b);                                \
   template Read<I8> gt_each(Read<T> a, Read<T> b);                             \
-  template Read<T> get_component(Read<T> a, Int ncomps, Int comp);
+  template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
+  template LO find_last(Read<T> array, T value);
 
 INST(I8)
 INST(I32)

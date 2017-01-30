@@ -67,6 +67,7 @@ struct Int128 {
   static OMEGA_H_INLINE Int128 from_double(double value, double unit);
 };
 
+class Library;
 class Comm;
 
 typedef std::shared_ptr<Comm> CommPtr;
@@ -75,17 +76,20 @@ class Comm {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl_;
 #endif
+  Library* library_;
   Read<I32> srcs_;
-  HostRead<I32> host_srcs_;
   Read<I32> dsts_;
+  HostRead<I32> host_srcs_;
   HostRead<I32> host_dsts_;
+  LO self_src_;
+  LO self_dst_;
 
  public:
   Comm();
 #ifdef OMEGA_H_USE_MPI
-  Comm(MPI_Comm impl);
+  Comm(Library* library, MPI_Comm impl);
 #else
-  Comm(bool is_graph, bool sends_to_self);
+  Comm(Library* library, bool is_graph, bool sends_to_self);
 #endif
   ~Comm();
   I32 rank() const;
@@ -213,6 +217,7 @@ class Library {
   CommPtr world();
   CommPtr self();
   void add_to_timer(std::string const& name, double nsecs);
+  LO self_send_threshold() const;
 
  private:
   void initialize(char const* head_desc, int* argc, char*** argv
@@ -224,13 +229,14 @@ class Library {
   CommPtr world_;
   CommPtr self_;
 #ifdef OMEGA_H_USE_MPI
-  bool we_called_mpi_init = false;
+  bool we_called_mpi_init;
 #endif
 #ifdef OMEGA_H_USE_KOKKOS
-  bool we_called_kokkos_init = false;
+  bool we_called_kokkos_init;
 #endif
   bool should_time_;
   std::map<std::string, double> timers;
+  LO self_send_threshold_;
 };
 
 namespace inertia {
