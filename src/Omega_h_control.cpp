@@ -135,7 +135,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   Omega_h::should_log_memory = cmdline.parsed("--osh-memory");
   should_time_ = cmdline.parsed("--osh-time");
   bool should_protect = cmdline.parsed("--osh-signal");
-  self_send_threshold_ = 150 * 1000;
+  self_send_threshold_ = 1000 * 1000;
   if (cmdline.parsed("--osh-self-send")) {
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
   }
@@ -204,15 +204,6 @@ Library::~Library() {
               << " seconds\n";
   }
   the_library = nullptr;
-  std::cout << "alltoallv stats:\n";
-  std::cout << "max bytes: " << alltoallv_stats.max_bytes << '\n';
-  std::cout << "min bytes: " << alltoallv_stats.min_bytes << '\n';
-  std::cout << "avg bytes: "
-    << alltoallv_stats.sum_bytes / alltoallv_stats.ncalls << '\n';
-  std::cout << "max self bytes: " << alltoallv_stats.max_self_bytes << '\n';
-  std::cout << "min self bytes: " << alltoallv_stats.min_self_bytes << '\n';
-  std::cout << "avg self bytes: "
-    << alltoallv_stats.sum_self_bytes / alltoallv_stats.ncalls << '\n';
 }
 
 CommPtr Library::world() { return world_; }
