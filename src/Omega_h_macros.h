@@ -21,7 +21,7 @@
           OMEGA_H_TOSTRING(defined(OMEGA_H_USE_OPENMP))                        \
               OMEGA_H_TOSTRING(defined(OMEGA_H_USE_CUDA))                      \
                   OMEGA_H_TOSTRING(defined(OMEGA_H_USE_ZLIB))                  \
-                  OMEGA_H_TOSTRING(defined(OMEGA_H_USE_MESHB))                  \
+                  OMEGA_H_TOSTRING(defined(OMEGA_H_USE_LIBMESHB))                  \
                   OMEGA_H_TOSTRING(defined(OMEGA_H_USE_EGADS))                  \
                       OMEGA_H_TOSTRING(defined(OMEGA_H_CHECK_BOUNDS))
 

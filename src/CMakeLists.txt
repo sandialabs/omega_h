@@ -88,10 +88,10 @@ set(Omega_h_SOURCES
   Omega_h_motion.cpp
   )
 
-set(Meshb_REQUIRED_VERSION 7.12)
-set(Omega_h_USE_Meshb_DEFAULT OFF)
-bob_public_dep(Meshb)
-if(Omega_h_USE_Meshb)
+set(libMeshb_REQUIRED_VERSION 7.24)
+set(Omega_h_USE_libMeshb_DEFAULT OFF)
+bob_public_dep(libMeshb)
+if(Omega_h_USE_libMeshb)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} meshb.cpp)
 endif()
 
@@ -138,8 +138,8 @@ target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
 target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
-if(Omega_h_USE_Meshb)
-  target_link_libraries(omega_h PUBLIC Meshb::meshb)
+if(Omega_h_USE_libMeshb)
+  target_link_libraries(omega_h PUBLIC libMeshb::Meshb.7)
 endif()
 
 if(Omega_h_USE_EGADS)
@@ -192,7 +192,7 @@ osh_add_util(vtkdiff)
 osh_add_util(osh_box)
 osh_add_util(osh_part)
 osh_add_util(osh_scale)
-if(Omega_h_USE_Meshb)
+if(Omega_h_USE_libMeshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
   osh_add_util(ugawg_stats)
@@ -309,7 +309,7 @@ if(BUILD_TESTING)
   endif()
   osh_add_exe(bend_test)
   osh_add_exe(test_degree)
-  if(Omega_h_USE_Meshb)
+  if(Omega_h_USE_libMeshb)
     osh_add_exe(ugawg_linear)
     if(Omega_h_USE_EGADS)
       osh_add_exe(ugawg_cylinder)
@@ -338,7 +338,7 @@ set(DEF_VARS
     USE_OpenMP
     USE_CUDA
     USE_ZLIB
-    USE_Meshb
+    USE_libMeshb
     USE_EGADS
     CHECK_BOUNDS
     PROTECT

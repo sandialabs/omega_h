@@ -366,7 +366,7 @@ class Mesh {
   Real imbalance(Int ent_dim = -1) const;
 };
 
-#ifdef OMEGA_H_USE_MESHB
+#ifdef OMEGA_H_USE_LIBMESHB
 namespace meshb {
 void read(Mesh* mesh, const char* filepath);
 void write(Mesh* mesh, const char* filepath, int version);
