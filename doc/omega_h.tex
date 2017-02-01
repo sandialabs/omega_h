@@ -1,0 +1,93 @@
+\documentclass{article}
+
+\usepackage{listings}
+
+\title{The Omega\_h Users Manual}
+\author{Dan Ibanez\\
+Sandia National Laboratories\\
+daibane@sandia.gov}
+
+\begin{document}
+
+\maketitle
+
+\section{Obtaining}
+
+Omega\_h is developed and distributed via GitHub,
+a popular software hosting platform based on the
+Git distributed version control system.
+
+The most common way to obtain Omega\_h is to
+use Git to clone the repository and automatically
+check out the \texttt{master} branch:
+
+\begin{lstlisting}[language=bash]
+git clone git@github.com:ibaned/omega_h.git
+\end{lstlisting}
+
+\section{Compiling}
+
+\subsection{Dependencies}
+
+All code dependencies of Omega\_h are optional,
+meaning that one can compile it and obtain a fairly
+functional code for mesh adaptation, although
+it will not have parallel features yet.
+Optional dependencies of Omega\_h are:
+
+\begin{enumerate}
+
+\item Zlib: This widely used and installed C library implements
+efficient data compression algorithms.
+Omega\_h uses it compress its own `.osh` file format, as well
+as to produce compressed `.vtu` files.
+
+\item MPI: The Message Passing Interface is a standard
+defining (at least) a C library that enables multi-process parallelism.
+This is required if you want to use multi-process parallelism
+in Omega\_h.
+The two good open-source implementations that Omega\_h is known
+to work with are MPICH and OpenMPI, and we strongly recommend
+MPICH for its support of the latest MPI standard and its
+proper handling of memory.
+
+\item Kokkos: This C++11 library implements shared-memory parallelism
+constructs and allows Omega\_h to (mostly) not worry about the details
+of OpenMP and CUDA.
+It is required if you want to use shared-memory parallelism in Omega\_h.
+Kokkos can be obtained as part of Trilinos, and Trilinos can be configured
+to compile and install only Kokkos.
+
+\item libMeshb: This C library implements the `.mesh` and `.meshb`
+file formats used by INRIA, NASA, and others.
+It is required to read and write `.meshb` files from Omega\_h.
+Note that currently Omega\_h follows a particular convention in what
+those files are expected to contain, namely elements, vertices,
+and sides on the boundary.
+
+\item EGADS: This C API wraps over OpenCASCADE in a human-manageable way.
+It is required if you want Omega\_h to snap new vertices to geometry.
+Note that classification in Omega\_h should match the numbering
+of geometric entities in EGADS.
+
+\end{enumerate}
+
+Each of these dependencies
+
+\subsection{Options}
+
+\subsection{Utility Programs}
+
+\section{Integration}
+
+\subsection{Header and Library}
+
+\subsection{Using CMake}
+
+\subsection{The Omega\_h Namespace}
+
+\section{Read and Write: The Array Classes}
+
+\section{The Mesh: A (Mostly) Immutable Cache}
+
+\end{document}
