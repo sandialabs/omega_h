@@ -514,6 +514,8 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
+Reals get_gradient_isos(Mesh* mesh, Real error_bound, Real max_size,
+    Reals scalar_field);
 
 Reals recover_hessians(Mesh* mesh, Reals vert_values);
 Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax);

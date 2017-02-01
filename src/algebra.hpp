@@ -256,6 +256,7 @@ INLINE Vector<n> positivize(Vector<n> v) {
   return v;
 }
 
+Reals get_vector_norms(Reals vs, Int dim);
 Reals normalize_vectors(Reals vs, Int dim);
 Reals interpolate_between(Reals a, Reals b, Real t);
 

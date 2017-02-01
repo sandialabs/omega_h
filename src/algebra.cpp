@@ -5,6 +5,28 @@
 namespace Omega_h {
 
 template <Int dim>
+static Reals get_vector_norms_tmpl(Reals vs) {
+  CHECK(vs.size() % dim == 0);
+  auto n = vs.size() / dim;
+  auto out = Write<Real>(n);
+  auto f = LAMBDA(LO i) {
+    out[i] = norm(get_vector<dim>(vs, i));
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals get_vector_norms(Reals vs, Int dim) {
+  switch (dim) {
+    case 3:
+      return get_vector_norms_tmpl<3>(vs);
+    case 2:
+      return get_vector_norms_tmpl<2>(vs);
+  }
+  NORETURN(Reals());
+}
+
+template <Int dim>
 static Reals normalize_vectors_tmpl(Reals vs) {
   CHECK(vs.size() % dim == 0);
   auto n = vs.size() / dim;
