@@ -438,7 +438,7 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    do_momentum_velocity_elem_target(
+    do_momentum_velocity_part1(
         old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab, prods2new_ents);
   }
   auto t1 = now();
@@ -556,7 +556,7 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    do_momentum_velocity_elem_target(
+    do_momentum_velocity_part1(
         old_mesh, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
   }
   auto t1 = now();

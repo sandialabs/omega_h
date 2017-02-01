@@ -19,9 +19,10 @@ Read<I8> filter_coarsen_momentum_velocity(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);
 Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges);
 
-void do_momentum_velocity_elem_target(Mesh* donor_mesh, Mesh* target_mesh,
+void do_momentum_velocity_part1(Mesh* donor_mesh, Mesh* target_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems);
-void do_momentum_velocity_ghosted_target(Mesh* mesh);
-}
+void do_momentum_velocity_part2(Mesh* mesh);
+
+} // end namespace Omega_h
 
 #endif

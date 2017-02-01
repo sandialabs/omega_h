@@ -263,7 +263,7 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 }
 
 template <Int dim>
-void momentum_velocity_elem_based_dim(Mesh* donor_mesh, Mesh* target_mesh,
+void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems) {
   if (!has_xfer(donor_mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
   auto nkeys = keys2kds.size();
@@ -271,7 +271,7 @@ void momentum_velocity_elem_based_dim(Mesh* donor_mesh, Mesh* target_mesh,
   auto kds2donor_elems = donor_mesh->ask_up(key_dim, dim);
   auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
   auto keys2target_verts = get_closure_verts(target_mesh, keys2target_elems);
-  auto target_elems2verts = target_mesh->ask_verts_of_elems();
+  auto target_elems2verts = target_mesh->ask_elem_verts();
   auto comps_are_fixed = get_comps_are_fixed(target_mesh);
   auto target_elem_masses = target_mesh->get_array<Real>(dim, "mass");
   for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
@@ -295,7 +295,7 @@ void momentum_velocity_elem_based_dim(Mesh* donor_mesh, Mesh* target_mesh,
       Few<Int, dim> nfree_uses;
       for (Int comp = 0; comp < dim; ++comp) {
         free_momentum[comp] = 0;
-        nfree_verts[comp] = 0;
+        nfree_uses[comp] = 0;
       }
       for (auto ke = keys2target_elems.a2ab[key];
            ke < keys2target_elems.a2ab[key + 1]; ++ke) {
@@ -309,7 +309,7 @@ void momentum_velocity_elem_based_dim(Mesh* donor_mesh, Mesh* target_mesh,
           for (Int comp = 0; comp < dim; ++comp) {
             if (!((1 << comp) & code)) {
               ++nfree_uses[comp];
-              free_momentum[comp] += eev_momemtum;
+              free_momentum[comp] += eev_momentum[comp];
             }
           }
         }
@@ -344,17 +344,17 @@ void momentum_velocity_elem_based_dim(Mesh* donor_mesh, Mesh* target_mesh,
   }
 }
 
-void do_momentum_velocity_elem_based(Mesh* donor_mesh, Mesh* target_mesh,
+void do_momentum_velocity_part1(Mesh* donor_mesh, Mesh* target_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems) {
   if (donor_mesh->dim() == 3) {
-    momentum_velocity_elem_based_dim<3>(donor_mesh, target_mesh, key_dim,
+    momentum_velocity_part1_dim<3>(donor_mesh, target_mesh, key_dim,
         keys2kds, keys2prods, prods2new_elems);
-  }
-  if (donor_mesh->dim() == 2) {
-    momentum_velocity_elem_based_dim<2>(donor_mesh, target_mesh, key_dim,
+  } else if (donor_mesh->dim() == 2) {
+    momentum_velocity_part1_dim<2>(donor_mesh, target_mesh, key_dim,
         keys2kds, keys2prods, prods2new_elems);
+  } else {
+    NORETURN();
   }
-  NORETURN();
 }
 
 static Reals get_vertex_masses(Mesh* mesh) {
@@ -368,7 +368,7 @@ static Reals get_vertex_masses(Mesh* mesh) {
 }
 
 template <Int dim>
-void momentum_velocity_ghosted_target_dim(Mesh* mesh) {
+void momentum_velocity_part2_dim(Mesh* mesh) {
   if (!has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto v2e = mesh->ask_up(VERT, dim);
@@ -405,10 +405,10 @@ void momentum_velocity_ghosted_target_dim(Mesh* mesh) {
   }
 }
 
-void do_momentum_velocity_ghosted_target(Mesh* mesh) {
-  if (mesh->dim() == 3) momentum_velocity_ghosted_target_dim<3>(mesh);
-  if (mesh->dim() == 2) momentum_velocity_ghosted_target_dim<2>(mesh);
-  NORETURN();
+void do_momentum_velocity_part2(Mesh* mesh) {
+  if (mesh->dim() == 3) momentum_velocity_part2_dim<3>(mesh);
+  else if (mesh->dim() == 2) momentum_velocity_part2_dim<2>(mesh);
+  else NORETURN();
 }
 
 }  // end namespace Omega_h

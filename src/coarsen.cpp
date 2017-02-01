@@ -165,7 +165,7 @@ static bool coarsen(Mesh* mesh, AdaptOpts const& opts, OvershootLimit overshoot,
   }
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   coarsen_element_based2(mesh, opts);
-  do_momentum_velocity_ghosted_target(mesh);
+  do_momentum_velocity_part2(mesh);
   return true;
 }
 
