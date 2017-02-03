@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "array.hpp"
+#include "derive.hpp"
 #include "eigen.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
@@ -339,6 +340,21 @@ Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size) {
       size = segment_angle * radius;
     }
     out[v] = size;
+  };
+  parallel_for(mesh->nverts(), f);
+  return out;
+}
+
+Reals get_gradient_isos(
+    Mesh* mesh, Real error_bound, Real max_size, Reals scalar_field) {
+  auto gradients = recover_gradients(mesh, scalar_field);
+  auto norms = get_vector_norms(gradients, mesh->dim());
+  auto out = Write<Real>(mesh->nverts());
+  auto f = LAMBDA(LO v) {
+    auto u_dot = norms[v];
+    auto h_inv = u_dot / error_bound;
+    h_inv = min2(h_inv, 1.0 / max_size);
+    out[v] = 1.0 / h_inv;
   };
   parallel_for(mesh->nverts(), f);
   return out;

@@ -64,8 +64,8 @@ struct MinFunctor {
 
 template <typename T>
 struct SumFunctor {
-  typedef typename StandinTraits<T>::type value_type;
-  typedef T input_type;
+  using value_type = typename StandinTraits<T>::type;
+  using input_type = T;
   OMEGA_H_INLINE void init(value_type& update) const { update = 0; }
   OMEGA_H_INLINE void join(
       volatile value_type& update, const volatile value_type& input) const {

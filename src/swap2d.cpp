@@ -77,7 +77,7 @@ bool swap_edges_2d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap2d_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   swap2d_element_based(mesh, opts);
-  do_momentum_velocity_ghosted_target(mesh);
+  do_momentum_velocity_part2(mesh);
   return true;
 }
 
