@@ -9,9 +9,7 @@ static Reals get_vector_norms_tmpl(Reals vs) {
   CHECK(vs.size() % dim == 0);
   auto n = vs.size() / dim;
   auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) {
-    out[i] = norm(get_vector<dim>(vs, i));
-  };
+  auto f = LAMBDA(LO i) { out[i] = norm(get_vector<dim>(vs, i)); };
   parallel_for(n, f);
   return out;
 }

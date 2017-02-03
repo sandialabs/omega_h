@@ -23,6 +23,6 @@ void do_momentum_velocity_part1(Mesh* donor_mesh, Mesh* target_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems);
 void do_momentum_velocity_part2(Mesh* mesh);
 
-} // end namespace Omega_h
+}  // end namespace Omega_h
 
 #endif

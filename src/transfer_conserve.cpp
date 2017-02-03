@@ -288,7 +288,8 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
         target_mesh, keys2target_elems, target_vert_velocities);
     auto cavity_momentum_losses =
         subtract_each(donor_cavity_momenta, target_cavity_momenta);
-    auto corrections_w = Write<Real>(target_mesh->nelems() * (dim + 1) * dim, 0.0);
+    auto corrections_w =
+        Write<Real>(target_mesh->nelems() * (dim + 1) * dim, 0.0);
     auto f = LAMBDA(LO key) {
       auto lost_momentum = get_vector<dim>(cavity_momentum_losses, key);
       Few<Real, dim> free_momentum;
@@ -327,9 +328,11 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
             if (!((1 << comp) & code)) {
               Real comp_corr;
               if (fabs(free_momentum[comp]) > EPSILON) {
-                comp_corr = lost_momentum[comp] * (eev_momentum[comp] / free_momentum[comp]);
-              } else  {
-                comp_corr = lost_momentum[comp] * (1.0 / Real(nfree_uses[comp]));
+                comp_corr = lost_momentum[comp] *
+                            (eev_momentum[comp] / free_momentum[comp]);
+              } else {
+                comp_corr =
+                    lost_momentum[comp] * (1.0 / Real(nfree_uses[comp]));
               }
               corrections_w[(e * (dim + 1) + eev) * dim + comp] = comp_corr;
             }
@@ -347,11 +350,11 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
 void do_momentum_velocity_part1(Mesh* donor_mesh, Mesh* target_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems) {
   if (donor_mesh->dim() == 3) {
-    momentum_velocity_part1_dim<3>(donor_mesh, target_mesh, key_dim,
-        keys2kds, keys2prods, prods2new_elems);
+    momentum_velocity_part1_dim<3>(donor_mesh, target_mesh, key_dim, keys2kds,
+        keys2prods, prods2new_elems);
   } else if (donor_mesh->dim() == 2) {
-    momentum_velocity_part1_dim<2>(donor_mesh, target_mesh, key_dim,
-        keys2kds, keys2prods, prods2new_elems);
+    momentum_velocity_part1_dim<2>(donor_mesh, target_mesh, key_dim, keys2kds,
+        keys2prods, prods2new_elems);
   } else {
     NORETURN();
   }
@@ -389,7 +392,8 @@ void momentum_velocity_part2_dim(Mesh* mesh) {
         auto code = v2e.codes[ve];
         auto eev = code_which_down(code);
         for (Int comp = 0; comp < dim; ++comp) {
-          correction[comp] += elem_corrections[(e * (dim + 1) + eev) * dim + comp];
+          correction[comp] +=
+              elem_corrections[(e * (dim + 1) + eev) * dim + comp];
         }
       }
       set_vector(vert_corrections_w, v, correction);
@@ -406,9 +410,12 @@ void momentum_velocity_part2_dim(Mesh* mesh) {
 }
 
 void do_momentum_velocity_part2(Mesh* mesh) {
-  if (mesh->dim() == 3) momentum_velocity_part2_dim<3>(mesh);
-  else if (mesh->dim() == 2) momentum_velocity_part2_dim<2>(mesh);
-  else NORETURN();
+  if (mesh->dim() == 3)
+    momentum_velocity_part2_dim<3>(mesh);
+  else if (mesh->dim() == 2)
+    momentum_velocity_part2_dim<2>(mesh);
+  else
+    NORETURN();
 }
 
 }  // end namespace Omega_h
