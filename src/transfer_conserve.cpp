@@ -310,7 +310,7 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
           for (Int comp = 0; comp < dim; ++comp) {
             if (!((1 << comp) & code)) {
               ++nfree_uses[comp];
-              free_momentum[comp] += eev_momentum[comp];
+              free_momentum[comp] += fabs(eev_momentum[comp]);
             }
           }
         }
@@ -327,9 +327,9 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
           for (Int comp = 0; comp < dim; ++comp) {
             if (!((1 << comp) & code)) {
               Real comp_corr;
-              if (fabs(free_momentum[comp]) > EPSILON) {
+              if (free_momentum[comp] > EPSILON) {
                 comp_corr = lost_momentum[comp] *
-                            (eev_momentum[comp] / free_momentum[comp]);
+                            (fabs(eev_momentum[comp]) / free_momentum[comp]);
               } else {
                 comp_corr =
                     lost_momentum[comp] * (1.0 / Real(nfree_uses[comp]));
