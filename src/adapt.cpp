@@ -51,7 +51,7 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_allow_pinching = false;
 }
 
-Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const& opts) {
+static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const& opts) {
   auto elem_quals = mesh->ask_qualities();
   if (!opts.should_allow_pinching) return elem_quals;
   auto elems_are_angle = find_angle_elems(mesh);
@@ -69,7 +69,8 @@ AdaptOpts::AdaptOpts(Mesh* mesh) : AdaptOpts(mesh->dim()) {}
 
 static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
     MinMax<Real> qualstats, MinMax<Real> lenstats) {
-  print_goal_stats(mesh, "quality", mesh->dim(), get_fixable_qualities(mesh, opts),
+  print_goal_stats(mesh, "quality", mesh->dim(),
+      get_fixable_qualities(mesh, opts),
       {opts.min_quality_allowed, opts.min_quality_desired}, qualstats);
   print_goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
       {opts.min_length_desired, opts.max_length_desired}, lenstats);
