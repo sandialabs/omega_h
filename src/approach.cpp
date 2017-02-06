@@ -6,7 +6,7 @@
 namespace Omega_h {
 
 static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
-  auto minq = mesh->min_quality();
+  auto minq = min_fixable_quality(mesh, opts);
   if (minq < opts.min_quality_allowed) {
     Omega_h_fail("minimum element quality %f < minimum allowed quality %f\n",
         minq, opts.min_quality_allowed);
@@ -19,7 +19,7 @@ static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static bool okay(Mesh* mesh, AdaptOpts const& opts) {
-  auto minq = mesh->min_quality();
+  auto minq = min_fixable_quality(mesh, opts);
   auto maxl = mesh->max_length();
   return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
 }
@@ -44,7 +44,7 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
           "warp step %d : Omega_h is probably unable to satisfy"
           " this warp under this size field\n"
           "min quality %.2e max length %.2e\n",
-          i, mesh->min_quality(), mesh->max_length());
+          i, min_fixable_quality(mesh, opts), mesh->max_length());
     }
     auto half_warp = multiply_each_by(1.0 / 2.0, warp);
     warp = half_warp;
