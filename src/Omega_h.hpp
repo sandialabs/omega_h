@@ -442,7 +442,10 @@ struct AdaptOpts {
   bool should_swap;
   bool should_coarsen_slivers;
   bool should_move_for_quality;
+  bool should_allow_pinching;
 };
+
+Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts);
 
 /* returns false if the mesh was not modified. */
 bool adapt(Mesh* mesh, AdaptOpts const& opts);

@@ -1,12 +1,14 @@
 #include <iomanip>
 #include <iostream>
 
+#include "Omega_h_confined.hpp"
 #include "Omega_h_motion.hpp"
 #include "array.hpp"
 #include "coarsen.hpp"
 #include "control.hpp"
 #include "histogram.hpp"
 #include "laplace.hpp"
+#include "map.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
 #include "swap.hpp"
@@ -46,20 +48,36 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_swap = true;
   should_coarsen_slivers = true;
   should_move_for_quality = false;
+  should_allow_pinching = false;
+}
+
+static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const& opts) {
+  auto elem_quals = mesh->ask_qualities();
+  if (!opts.should_allow_pinching) return elem_quals;
+  auto elems_are_angle = find_angle_elems(mesh);
+  auto elems_are_fixable = invert_marks(elems_are_angle);
+  auto fixable_elems_to_elems = collect_marked(elems_are_fixable);
+  auto fixable_elem_quals = unmap(fixable_elems_to_elems, elem_quals, 1);
+  return fixable_elem_quals;
+}
+
+Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts) {
+  return get_min(mesh->comm(), get_fixable_qualities(mesh, opts));
 }
 
 AdaptOpts::AdaptOpts(Mesh* mesh) : AdaptOpts(mesh->dim()) {}
 
 static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
     MinMax<Real> qualstats, MinMax<Real> lenstats) {
-  print_goal_stats(mesh, "quality", mesh->dim(), mesh->ask_qualities(),
+  print_goal_stats(mesh, "quality", mesh->dim(),
+      get_fixable_qualities(mesh, opts),
       {opts.min_quality_allowed, opts.min_quality_desired}, qualstats);
   print_goal_stats(mesh, "length", EDGE, mesh->ask_lengths(),
       {opts.min_length_desired, opts.max_length_desired}, lenstats);
 }
 
 bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts) {
-  auto qualstats = get_minmax(mesh->comm(), mesh->ask_qualities());
+  auto qualstats = get_minmax(mesh->comm(), get_fixable_qualities(mesh, opts));
   auto lenstats = get_minmax(mesh->comm(), mesh->ask_lengths());
   if (qualstats.min >= opts.min_quality_desired &&
       lenstats.min >= opts.min_length_desired &&
@@ -92,7 +110,7 @@ static void validate(Mesh* mesh, AdaptOpts const& opts) {
   CHECK(opts.min_quality_desired <= 1.0);
   CHECK(opts.nsliver_layers >= 0);
   CHECK(opts.nsliver_layers < 100);
-  auto mq = mesh->min_quality();
+  auto mq = min_fixable_quality(mesh, opts);
   if (mq < opts.min_quality_allowed && !mesh->comm()->rank()) {
     std::cout << "WARNING: worst input element has quality " << mq
               << " but minimum allowed is " << opts.min_quality_allowed << "\n";
@@ -132,7 +150,7 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
-  if (mesh->min_quality() >= opts.min_quality_desired) return;
+  if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return;
   if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing element qualities\n";
   }
@@ -153,7 +171,7 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       std::cout << "adapt() could not satisfy quality\n";
     }
     break;
-  } while (mesh->min_quality() < opts.min_quality_desired);
+  } while (min_fixable_quality(mesh, opts) < opts.min_quality_desired);
 }
 
 static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
