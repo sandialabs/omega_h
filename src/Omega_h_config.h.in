@@ -12,6 +12,7 @@
 #cmakedefine OMEGA_H_USE_ZLIB
 #cmakedefine OMEGA_H_USE_LIBMESHB
 #cmakedefine OMEGA_H_USE_EGADS
+#cmakedefine OMEGA_H_USE_SEACASEXODUS
 #cmakedefine OMEGA_H_CHECK_BOUNDS
 #cmakedefine OMEGA_H_PROTECT
 

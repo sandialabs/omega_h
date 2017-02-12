@@ -23,6 +23,7 @@
                   OMEGA_H_TOSTRING(defined(OMEGA_H_USE_ZLIB))                  \
                   OMEGA_H_TOSTRING(defined(OMEGA_H_USE_LIBMESHB))                  \
                   OMEGA_H_TOSTRING(defined(OMEGA_H_USE_EGADS))                  \
+                  OMEGA_H_TOSTRING(defined(OMEGA_H_USE_SEACASEXODUS))                  \
                       OMEGA_H_TOSTRING(defined(OMEGA_H_CHECK_BOUNDS))
 
 #define OMEGA_H_PRAGMA(x) _Pragma(#x)

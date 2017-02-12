@@ -120,6 +120,12 @@ if(Omega_h_USE_EGADS)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
 endif()
 
+set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
+bob_public_dep(SEACASExodus)
+if(Omega_h_USE_SEACASEXodus)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
+endif()
+
 if(Omega_h_ONE_FILE)
   foreach(source IN LISTS Omega_h_SOURCES)
     set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
@@ -145,6 +151,10 @@ endif()
 if(Omega_h_USE_EGADS)
   target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
+endif()
+
+if(Omega_h_USE_SEACASExodus)
+  target_link_libraries(omega_h PUBLIC exodus)
 endif()
 
 bob_export_target(omega_h)
@@ -340,6 +350,7 @@ set(DEF_VARS
     USE_ZLIB
     USE_libMeshb
     USE_EGADS
+    USE_SEACASExodus
     CHECK_BOUNDS
     PROTECT
     )
