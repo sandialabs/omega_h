@@ -5,13 +5,13 @@
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto comm = lib.world();
-  CmdLine cmdline;
+  Omega_h::CmdLine cmdline;
   cmdline.add_arg<std::string>("input.exo");
   cmdline.add_arg<std::string>("output.osh");
   cmdline.add_flag("-v", "verbose");
   if (!cmdline.parse(comm, &argc, argv) ||
-      !CmdLine::check_empty(comm, argc, argv)) {
-    cmdline.show_help(comm);
+      !Omega_h::CmdLine::check_empty(comm, argc, argv)) {
+    cmdline.show_help(comm, argv);
     return -1;
   }
   auto inpath = cmdline.get<std::string>("input.exo");
