@@ -12,8 +12,8 @@ namespace exodus {
 static char const* const elem_types[4] = {
   "",
   "",
-  "TRI3",
-  "TETRA4"
+  "tri3",
+  "tetra4"
 };
 
 void read(std::string const& path, Mesh* mesh, bool verbose) {
