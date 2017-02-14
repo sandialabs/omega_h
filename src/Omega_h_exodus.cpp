@@ -1,6 +1,7 @@
-#include "Omega_h.hpp"
-
 #include <exodusII.h>
+
+#include "Omega_h.hpp"
+#include "internal.hpp"
 
 namespace Omega_h {
 
@@ -38,40 +39,59 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     std::cout << " num_node_sets " << init_params.num_node_sets << '\n';
     std::cout << " num_side_sets " << init_params.num_side_sets << '\n';
   }
-  HostRead<Real> h_coord_blk[3];
-  for (Int i = 0; i < init_params.num_dim; ++i) {
-    h_coord_blk[i] = HostRead<Real>(init_params.num_nodes);
+  auto dim = init_params.num_dim;
+  HostWrite<Real> h_coord_blk[3];
+  for (Int i = 0; i < dim; ++i) {
+    h_coord_blk[i] = HostWrite<Real>(init_params.num_nodes);
   }
   CALL(ex_get_coord(file,
         h_coord_blk[0].data(),
         h_coord_blk[1].data(),
         h_coord_blk[2].data()));
+  HostWrite<Real> h_coords(init_params.num_nodes * dim);
+  for (LO i = 0; i < init_params.num_nodes; ++i) {
+    for (Int j = 0; j < dim; ++j) {
+      h_coords[i * dim + j] = h_coord_blk[j][i];
+    }
+  }
+  auto coords = Reals(h_coords.write());
   std::vector<int> block_ids(init_params.num_elem_blk);
-  std::vector<int> block_conns(init_params.num_elem_blk);
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
-  for (Int i = 0; i < block_ids.size(); ++i) {
+  HostWrite<LO> h_conn(init_params.num_elem * (dim + 1));
+  LO start = 0;
+  for (size_t i = 0; i < block_ids.size(); ++i) {
     char elem_type[MAX_STR_LENGTH+1];
     int nentries;
     int nnodes_per_entry;
     int nedges_per_entry;
     int nfaces_per_entry;
     int nattr_per_entry;
-    CALL(ex_get_block(file, EX_ELEM_BLOCK, block_ids[i],
-          elem_type, &nnodes_per_entry, &nedges_per_entry,
-          &nfaces_per_entry, &nattr_per_entry));
-    CHECK(std::string(elem_type) == elem_types[init_params.num_dim]);
-    CHECK(nnodes_per_entry == init_params.num_dim + 1);
-    block_conns[i].resize(nentries * nnodes_per_entry);
+    CALL(ex_get_block(file, EX_ELEM_BLOCK, block_ids[i], elem_type, &nentries,
+          &nnodes_per_entry, &nedges_per_entry, &nfaces_per_entry,
+          &nattr_per_entry));
+    if (verbose) {
+      std::cout << "block " << block_ids[i] << " has "
+        << nentries << " elements of type " << elem_type << '\n';
+    }
+    CHECK(std::string(elem_type) == elem_types[dim]);
+    CHECK(nnodes_per_entry == dim + 1);
     std::vector<int> edge_conn(nentries * nedges_per_entry);
     std::vector<int> face_conn(nentries * nfaces_per_entry);
     CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i],
-          block_conns[i].data(), edge_conn.data(), face_conn.data()));
+          h_conn.data() + start, edge_conn.data(), face_conn.data()));
+    start += nentries * nnodes_per_entry;
   }
-}
-
-void write(std::string const& path, Mesh* mesh) {
+  CHECK(start == init_params.num_elem * (dim + 1));
+  auto conn = LOs(h_conn.write());
+  build_from_elems_and_coords(mesh, dim, conn, coords);
+//if (init_params.num_node_maps) {
+//  std::vector<int> node_map_ids(init_params.num_node_maps);
+//  CALL(ex_get_ids(file, EX_NODE_MAP, node_map_ids.data()));
+//}
 }
 
 #undef CALL
+
+} // end namespace exodus
 
 } // end namespace Omega_h

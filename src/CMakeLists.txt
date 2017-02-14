@@ -122,7 +122,7 @@ endif()
 
 set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
 bob_public_dep(SEACASExodus)
-if(Omega_h_USE_SEACASEXodus)
+if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
 
@@ -155,6 +155,10 @@ endif()
 
 if(Omega_h_USE_SEACASExodus)
   target_link_libraries(omega_h PUBLIC exodus)
+  target_include_directories(omega_h
+      PRIVATE ${SEACASExodus_TPL_INCLUDE_DIRS})
+  target_link_libraries(omega_h
+      PUBLIC ${SEACASExodus_TPL_LIBRARIES})
 endif()
 
 bob_export_target(omega_h)
@@ -303,8 +307,8 @@ if(BUILD_TESTING)
   osh_add_exe(aniso_test)
   test_func(run_aniso_test 1 ./aniso_test)
   osh_add_exe(imr_cases)
+  osh_add_exe(curvature_test)
   if(Omega_h_DATA)
-    osh_add_exe(curvature_test)
     set(TEST_EXES ${TEST_EXES} curvature_test)
     test_func(ring_curvature 1 ./curvature_test
               ${Omega_h_DATA} ring)

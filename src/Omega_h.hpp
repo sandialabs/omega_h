@@ -373,6 +373,12 @@ void write(Mesh* mesh, const char* filepath, int version);
 }
 #endif
 
+#ifdef OMEGA_H_USE_SEACASEXODUS
+namespace exodus {
+void read(std::string const& path, Mesh* mesh, bool verbose = false);
+}
+#endif
+
 namespace gmsh {
 void read(std::istream& stream, Mesh* mesh);
 void read(std::string const& filename, Mesh* mesh);
