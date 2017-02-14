@@ -7,6 +7,7 @@
 #include "mark.hpp"
 #include "space.hpp"
 #include "surface.hpp"
+#include "host_few.hpp"
 
 #include <sstream>
 
@@ -15,7 +16,7 @@ using namespace Omega_h;
 static void attach_basis_vectors(
     Mesh* mesh, Int ent_dim, LOs surf_ents2ents, Reals surf_ent_normals) {
   auto nsurf_ents = surf_ents2ents.size();
-  Few<Write<Real>, 2> surf_ent_axes;
+  HostFew<Write<Real>, 2> surf_ent_axes;
   for (Int i = 0; i < 2; ++i) {
     surf_ent_axes[i] = Write<Real>(nsurf_ents * 3);
   }
