@@ -18,7 +18,7 @@ static char const* const elem_types[4] = {
 
 void read(std::string const& path, Mesh* mesh, bool verbose) {
   auto comp_ws = int(sizeof(Real));
-  int io_ws;
+  int io_ws = 0;
   float version;
   auto mode = EX_READ | EX_MAPS_INT64_API;
   auto file = ex_open(path.c_str(), mode, &comp_ws, &io_ws, &version);
