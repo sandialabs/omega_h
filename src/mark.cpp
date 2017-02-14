@@ -45,10 +45,26 @@ Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
   auto f = LAMBDA(LO h) {
     for (Int hhl = 0; hhl < deg; ++hhl) {
       auto l = hl2l[h * deg + hhl];
-      if (low_marked[l]) {
-        out[h] = 1;
-      }
+      if (low_marked[l]) out[h] = 1;
     }
+  };
+  parallel_for(nh, f);
+  return out;
+}
+
+Read<I8> mark_up_all(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
+  auto l2h = mesh->ask_down(high_dim, low_dim);
+  auto deg = simplex_degrees[high_dim][low_dim];
+  auto hl2l = l2h.ab2b;
+  auto nh = mesh->nents(high_dim);
+  Write<I8> out(nh, 0);
+  auto f = LAMBDA(LO h) {
+    bool all_marked = true;
+    for (Int hhl = 0; hhl < deg; ++hhl) {
+      auto l = hl2l[h * deg + hhl];
+      if (!low_marked[l]) all_marked = false;
+    }
+    out[h] = I8(all_marked);
   };
   parallel_for(nh, f);
   return out;
