@@ -75,7 +75,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
         << nentries << " elements of type " << elem_type << '\n';
     }
     if (std::string(elem_type) != elem_types[dim]) {
-      Omega_h_fail("type %s is not supported, only %d for %dD !\n",
+      Omega_h_fail("type %s is not supported, only %s for %dD !\n",
           elem_type, elem_types[dim], dim);
     }
     CHECK(nnodes_per_entry == dim + 1);
