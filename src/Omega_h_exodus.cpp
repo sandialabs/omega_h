@@ -2,6 +2,7 @@
 
 #include "Omega_h.hpp"
 #include "internal.hpp"
+#include "loop.hpp"
 
 namespace Omega_h {
 
@@ -82,7 +83,9 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     start += nentries * nnodes_per_entry;
   }
   CHECK(start == init_params.num_elem * (dim + 1));
-  auto conn = LOs(h_conn.write());
+  auto conn = h_conn.write();
+  auto f0 = LAMBDA(LO i) { --(conn[i]); };
+  parallel_for(conn.size(), f0);
   build_from_elems_and_coords(mesh, dim, conn, coords);
 //if (init_params.num_node_maps) {
 //  std::vector<int> node_map_ids(init_params.num_node_maps);
