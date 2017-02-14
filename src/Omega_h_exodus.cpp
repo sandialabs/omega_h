@@ -40,7 +40,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     std::cout << " num_node_sets " << init_params.num_node_sets << '\n';
     std::cout << " num_side_sets " << init_params.num_side_sets << '\n';
   }
-  auto dim = init_params.num_dim;
+  auto dim = int(init_params.num_dim);
   HostWrite<Real> h_coord_blk[3];
   for (Int i = 0; i < dim; ++i) {
     h_coord_blk[i] = HostWrite<Real>(init_params.num_nodes);
