@@ -91,6 +91,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
 //  std::vector<int> node_map_ids(init_params.num_node_maps);
 //  CALL(ex_get_ids(file, EX_NODE_MAP, node_map_ids.data()));
 //}
+  CALL(ex_close(file));
 }
 
 #undef CALL
