@@ -3,6 +3,8 @@
 #include "Omega_h.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
+#include "map.hpp"
+#include "mark.hpp"
 
 namespace Omega_h {
 
@@ -59,6 +61,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
   std::vector<int> block_ids(init_params.num_elem_blk);
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
   HostWrite<LO> h_conn(init_params.num_elem * (dim + 1));
+  Write<LO> elem_class_ids(init_params.num_elem);
   LO start = 0;
   for (size_t i = 0; i < block_ids.size(); ++i) {
     char elem_type[MAX_STR_LENGTH+1];
@@ -84,16 +87,62 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i],
           h_conn.data() + start, edge_conn.data(), face_conn.data()));
     start += nentries * nnodes_per_entry;
+    auto region_id = block_ids[i];
+    auto f0 = LAMBDA(LO entry) { elem_class_ids[start + entry] = region_id; };
+    parallel_for(nentries, f0);
   }
   CHECK(start == init_params.num_elem * (dim + 1));
   auto conn = h_conn.write();
-  auto f0 = LAMBDA(LO i) { --(conn[i]); };
-  parallel_for(conn.size(), f0);
+  auto f1 = LAMBDA(LO i) { --(conn[i]); };
+  parallel_for(conn.size(), f1);
   build_from_elems_and_coords(mesh, dim, conn, coords);
-//if (init_params.num_node_maps) {
-//  std::vector<int> node_map_ids(init_params.num_node_maps);
-//  CALL(ex_get_ids(file, EX_NODE_MAP, node_map_ids.data()));
-//}
+  std::vector<int> node_set_ids(init_params.num_node_sets);
+  Write<LO> side_class_ids(mesh.nents(dim - 1), -1);
+  CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
+  for (size_t i = 0; i < node_set_ids.size(); ++i) {
+    int nentries, ndist_factors;
+    CALL(ex_get_set_param(file, EX_NODE_SET, node_set_ids[i],
+          &nentries, &ndist_factors));
+    if (verbose) {
+      std::cout << "node set " << node_set_ids[i] << " has "
+        << nentries << " nodes\n";
+    }
+    if (ndist_factors) {
+      Omega_h_fail("Omega_h doesn't support distribution factors\n");
+    }
+    HostWrite<LO> h_set_nodes2nodes(nentries);
+    CALL(ex_get_set(file, EX_NODE_SET, node_set_ids[i],
+          h_set_nodes2nodes.data(), nullptr));
+    auto set_nodes2nodes = LOs(h_set_nodes2nodes.write());
+    auto nodes_are_in_set = mark_image(set_nodes2nodes, mesh.nverts());
+    auto sides_are_in_set = mark_up_all(mesh, VERT, dim - 1, nodes_are_in_set);
+    auto set_sides2sides = collect_marked(sides_are_in_set);
+    auto surface_id = node_set_ids[i] + init_params.num_side_sets;
+    if (verbose) {
+      std::cout << "node set " << node_set_ids[i]
+        << " will be surface " << surface_id << '\n';
+    }
+    map_into(LOs(set_sides2sides.size(), surface_id), set_sides2sides,
+        side_class_ids, 1);
+  }
+  std::vector<int> side_set_ids(init_params.num_side_sets);
+  CALL(ex_get_ids(file, EX_SIDE_SET, side_set_ids.data()));
+  for (size_t i = 0; i < side_set_ids.size(); ++i) {
+    int nentries, ndist_factors;
+    CALL(ex_get_set_param(file, EX_NODE_SET, node_set_ids[i],
+          &nentries, &ndist_factors));
+    if (verbose) {
+      std::cout << "side set " << side_set_ids[i] << " has "
+        << nentries << " nodes\n";
+    }
+    if (ndist_factors) {
+      Omega_h_fail("Omega_h doesn't support distribution factors\n");
+    }
+    HostWrite<LO> h_set_sides2elem(nentries);
+    HostWrite<LO> h_set_sides2local(nentries);
+    CALL(ex_get_set(file, EX_SIDE_SET, node_set_ids[i],
+          h_set_sides2elem.data(), h_set_sides2local.data()));
+  }
   CALL(ex_close(file));
 }
 
