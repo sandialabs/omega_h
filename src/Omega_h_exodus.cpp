@@ -74,7 +74,10 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
       std::cout << "block " << block_ids[i] << " has "
         << nentries << " elements of type " << elem_type << '\n';
     }
-    CHECK(std::string(elem_type) == elem_types[dim]);
+    if (std::string(elem_type) != elem_types[dim]) {
+      Omega_h_fail("type %s is not supported, only %d for %dD !\n",
+          elem_type, elem_types[dim], dim);
+    }
     CHECK(nnodes_per_entry == dim + 1);
     std::vector<int> edge_conn(nentries * nedges_per_entry);
     std::vector<int> face_conn(nentries * nfaces_per_entry);
