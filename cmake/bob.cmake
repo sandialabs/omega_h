@@ -29,11 +29,10 @@ macro(bob_begin_package)
   option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
   #If not building shared libs, then prefer static
   #dependency libs
-  if(BUILD_SHARED_LIBS)
-    bob_always_full_rpath()
-  else()
+  if(NOT BUILD_SHARED_LIBS)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
   endif()
+  bob_always_full_rpath()
   message(STATUS "BUILD_TESTING: ${BUILD_TESTING}")
   message(STATUS "BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
   message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
