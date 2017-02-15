@@ -1,10 +1,12 @@
 #include <exodusII.h>
 
 #include "Omega_h.hpp"
+#include "classify.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
 #include "map.hpp"
-#include "mark.hpp"
+#include "Gmark.hpp"
+#include "simplices.hpp"
 
 namespace Omega_h {
 
@@ -18,6 +20,27 @@ static char const* const elem_types[4] = {
   "tri3",
   "tetra4"
 };
+
+// subtracts one and maps from Exodus
+// side ordering to Omega_h
+static INLINE int side_exo2osh(int dim, int side) {
+  switch (dim) {
+    case 2:
+      switch (side) {
+        case 1: return 0;
+        case 2: return 1;
+        case 3: return 2;
+      }
+    case 2:
+      switch (side) {
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 3;
+        case 4: return 0;
+      }
+  }
+  return -1;
+}
 
 void read(std::string const& path, Mesh* mesh, bool verbose) {
   auto comp_ws = int(sizeof(Real));
@@ -61,7 +84,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
   std::vector<int> block_ids(init_params.num_elem_blk);
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
   HostWrite<LO> h_conn(init_params.num_elem * (dim + 1));
-  Write<LO> elem_class_ids(init_params.num_elem);
+  Write<LO> elem_class_ids_w(init_params.num_elem);
   LO start = 0;
   for (size_t i = 0; i < block_ids.size(); ++i) {
     char elem_type[MAX_STR_LENGTH+1];
@@ -88,7 +111,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
           h_conn.data() + start, edge_conn.data(), face_conn.data()));
     start += nentries * nnodes_per_entry;
     auto region_id = block_ids[i];
-    auto f0 = LAMBDA(LO entry) { elem_class_ids[start + entry] = region_id; };
+    auto f0 = LAMBDA(LO entry) { elem_class_ids_w[start + entry] = region_id; };
     parallel_for(nentries, f0);
   }
   CHECK(start == init_params.num_elem * (dim + 1));
@@ -97,7 +120,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
   parallel_for(conn.size(), f1);
   build_from_elems_and_coords(mesh, dim, conn, coords);
   std::vector<int> node_set_ids(init_params.num_node_sets);
-  Write<LO> side_class_ids(mesh.nents(dim - 1), -1);
+  Write<LO> side_class_ids_w(mesh.nents(dim - 1), -1);
   CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
   for (size_t i = 0; i < node_set_ids.size(); ++i) {
     int nentries, ndist_factors;
@@ -116,14 +139,14 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     auto set_nodes2nodes = LOs(h_set_nodes2nodes.write());
     auto nodes_are_in_set = mark_image(set_nodes2nodes, mesh.nverts());
     auto sides_are_in_set = mark_up_all(mesh, VERT, dim - 1, nodes_are_in_set);
-    auto set_sides2sides = collect_marked(sides_are_in_set);
+    auto set_sides2side = collect_marked(sides_are_in_set);
     auto surface_id = node_set_ids[i] + init_params.num_side_sets;
     if (verbose) {
       std::cout << "node set " << node_set_ids[i]
         << " will be surface " << surface_id << '\n';
     }
-    map_into(LOs(set_sides2sides.size(), surface_id), set_sides2sides,
-        side_class_ids, 1);
+    map_into(LOs(set_sides2sides.size(), surface_id), set_sides2side,
+        side_class_ids_w, 1);
   }
   std::vector<int> side_set_ids(init_params.num_side_sets);
   CALL(ex_get_ids(file, EX_SIDE_SET, side_set_ids.data()));
@@ -142,8 +165,31 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     HostWrite<LO> h_set_sides2local(nentries);
     CALL(ex_get_set(file, EX_SIDE_SET, node_set_ids[i],
           h_set_sides2elem.data(), h_set_sides2local.data()));
+    auto set_sides2elem = LOs(h_set_sides2elem.write());
+    auto set_sides2local = LOs(h_set_sides2local.write());
+    auto elems2sides = mesh->ask_down(dim, dim - 1).ab2b;
+    auto nsides_per_elem = simplex_degrees[dim][dim - 1];
+    auto set_sides2side_w = Write<LO>(nentries);
+    auto f2 = LAMBDA(LO set_side) {
+      auto elem = set_sides2elem[set_side] - 1;
+      auto local = side_exo2osh(set_sides2local[set_side]);
+      auto side = elems2sides[elem * nsides_per_elem + local];
+      set_sides2side_w[set_side] = side;
+    };
+    parallel_for(nentries, f2);
+    auto set_sides2side = LOs(set_sides2side_w);
+    auto surface_id = side_set_ids[i];
+    map_into(LOs(nentries, surface_id), set_sides2side,
+        side_class_ids_w, 1);
   }
   CALL(ex_close(file));
+  auto elem_class_ids = LOs(elem_class_ids_w);
+  auto side_class_ids = LOs(side_class_ids_w);
+  mesh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
+      elem_class_ids);
+  mesh->add_tag(dim - 1, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
+      side_class_ids);
+  finalize_classification(mesh);
 }
 
 #undef CALL
