@@ -5,7 +5,7 @@
 #include "internal.hpp"
 #include "loop.hpp"
 #include "map.hpp"
-#include "Gmark.hpp"
+#include "mark.hpp"
 #include "simplices.hpp"
 
 namespace Omega_h {
