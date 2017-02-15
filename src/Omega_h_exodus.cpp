@@ -120,6 +120,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
   build_from_elems_and_coords(mesh, dim, conn, coords);
   std::vector<int> node_set_ids(init_params.num_node_sets);
   Write<LO> side_class_ids_w(mesh->nents(dim - 1), -1);
+  Write<I8> side_class_dims_w(mesh->nents(dim - 1), I8(dim));
   CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
   for (size_t i = 0; i < node_set_ids.size(); ++i) {
     int nentries, ndist_factors;
@@ -146,6 +147,8 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     }
     map_into(LOs(set_sides2side.size(), surface_id), set_sides2side,
         side_class_ids_w, 1);
+    map_into(Read<I8>(set_sides2side.size(), I8(dim - 1)), set_sides2side,
+        side_class_dims_w, 1);
   }
   std::vector<int> side_set_ids(init_params.num_side_sets);
   CALL(ex_get_ids(file, EX_SIDE_SET, side_set_ids.data()));
@@ -180,16 +183,21 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
     auto surface_id = side_set_ids[i];
     map_into(LOs(nentries, surface_id), set_sides2side,
         side_class_ids_w, 1);
+    map_into(Read<I8>(nentries, I8(dim - 1)), set_sides2side,
+        side_class_dims_w, 1);
   }
   CALL(ex_close(file));
   auto elem_class_ids = LOs(elem_class_ids_w);
   auto side_class_ids = LOs(side_class_ids_w);
-//classify_elements(mesh);
+  auto side_class_dims = Read<I8>(side_class_dims_w);
+  classify_elements(mesh);
   mesh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
       elem_class_ids);
   mesh->add_tag(dim - 1, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
       side_class_ids);
-//finalize_classification(mesh);
+  mesh->add_tag(dim - 1, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
+      side_class_dims);
+  finalize_classification(mesh);
 }
 
 #undef CALL
