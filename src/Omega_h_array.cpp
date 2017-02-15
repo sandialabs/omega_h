@@ -522,6 +522,14 @@ Read<T> add_to_each(Read<T> a, T b) {
 }
 
 template <typename T>
+Read<T> subtract_from_each(Read<T> a, T b) {
+  Write<T> c(a.size());
+  auto f = LAMBDA(LO i) { c[i] = a[i] - b; };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Read<I8> each_geq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = LAMBDA(LO i) { c[i] = (a[i] >= b); };
@@ -669,6 +677,7 @@ LO find_last(Read<T> array, T value) {
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \
   template Read<T> add_to_each(Read<T> a, T b);                                \
+  template Read<T> subtract_from_each(Read<T> a, T b);                                \
   template Read<I8> each_geq_to(Read<T> a, T b);                               \
   template Read<I8> each_gt(Read<T> a, T b);                                   \
   template Read<I8> each_lt(Read<T> a, T b);                                   \
