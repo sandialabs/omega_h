@@ -15,12 +15,17 @@ namespace Omega_h {
 
 namespace exodus {
 
-static char const* const elem_types[4] = {
-  "",
-  "",
-  "tri3",
-  "tetra4"
-};
+static bool is_type_supported(int dim, std::string const& type) {
+  if (dim == 2) {
+    if (type == "tri3") return true;
+    if (type == "TRI") return true;
+  }
+  if (dim == 3) {
+    if (type == "tetra4") return true;
+    if (type == "TETRA") return true;
+  }
+  return false;
+}
 
 // subtracts one and maps from Exodus
 // side ordering to Omega_h
@@ -101,9 +106,9 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
       std::cout << "block " << block_ids[i] << " has "
         << nentries << " elements of type " << elem_type << '\n';
     }
-    if (std::string(elem_type) != elem_types[dim]) {
-      Omega_h_fail("type %s is not supported, only %s for %dD !\n",
-          elem_type, elem_types[dim], dim);
+    if (!is_type_supported(dim, elem_type)) {
+      Omega_h_fail("type %s is not supported for %dD !\n",
+          elem_type, dim);
     }
     CHECK(nnodes_per_entry == dim + 1);
     std::vector<int> edge_conn(nentries * nedges_per_entry);
