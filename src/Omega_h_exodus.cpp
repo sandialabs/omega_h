@@ -136,7 +136,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with) 
       side_class_ids_w, 1);
   if (classify_with & NODE_SETS) {
     int max_side_set_id = 0;
-    if (side_set_ids.size()) {
+    if ((classify_with & SIDE_SETS) && side_set_ids.size()) {
       max_side_set_id = *std::max_element(
           side_set_ids.begin(), side_set_ids.end());
     }
