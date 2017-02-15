@@ -375,7 +375,12 @@ void write(Mesh* mesh, const char* filepath, int version);
 
 #ifdef OMEGA_H_USE_SEACASEXODUS
 namespace exodus {
-void read(std::string const& path, Mesh* mesh, bool verbose = false);
+enum ClassifyWith {
+  NODE_SETS = 0x1,
+  SIDE_SETS = 0x2,
+};
+void read(std::string const& path, Mesh* mesh, bool verbose = false,
+    int classify_with = NODE_SETS | SIDE_SETS);
 }
 #endif
 

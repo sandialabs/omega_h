@@ -1,4 +1,5 @@
 #include <exodusII.h>
+#include <algorithm>
 
 #include "Omega_h.hpp"
 #include "array.hpp"
@@ -48,7 +49,7 @@ static INLINE int side_exo2osh(int dim, int side) {
   return -1;
 }
 
-void read(std::string const& path, Mesh* mesh, bool verbose) {
+void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
   auto comp_ws = int(sizeof(Real));
   int io_ws = 0;
   float version;
@@ -123,85 +124,98 @@ void read(std::string const& path, Mesh* mesh, bool verbose) {
   CHECK(start == init_params.num_elem * (dim + 1));
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
   build_from_elems_and_coords(mesh, dim, conn, coords);
-  std::vector<int> node_set_ids(init_params.num_node_sets);
-  Write<LO> side_class_ids_w(mesh->nents(dim - 1), -1);
-  Write<I8> side_class_dims_w(mesh->nents(dim - 1), I8(dim));
-  CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
-  for (size_t i = 0; i < node_set_ids.size(); ++i) {
-    int nentries, ndist_factors;
-    CALL(ex_get_set_param(file, EX_NODE_SET, node_set_ids[i],
-          &nentries, &ndist_factors));
-    if (verbose) {
-      std::cout << "node set " << node_set_ids[i] << " has "
-        << nentries << " nodes\n";
-    }
-    if (ndist_factors) {
-      std::cout << "Omega_h doesn't support distribution factors\n";
-    }
-    HostWrite<LO> h_set_nodes2nodes(nentries);
-    CALL(ex_get_set(file, EX_NODE_SET, node_set_ids[i],
-          h_set_nodes2nodes.data(), nullptr));
-    auto set_nodes2nodes = subtract_from_each(LOs(h_set_nodes2nodes.write()), 1);
-    auto nodes_are_in_set = mark_image(set_nodes2nodes, mesh->nverts());
-    auto sides_are_in_set = mark_up_all(mesh, VERT, dim - 1, nodes_are_in_set);
-    auto set_sides2side = collect_marked(sides_are_in_set);
-    auto surface_id = node_set_ids[i] + init_params.num_side_sets;
-    if (verbose) {
-      std::cout << "node set " << node_set_ids[i]
-        << " will be surface " << surface_id << '\n';
-    }
-    map_into(LOs(set_sides2side.size(), surface_id), set_sides2side,
-        side_class_ids_w, 1);
-    map_into(Read<I8>(set_sides2side.size(), I8(dim - 1)), set_sides2side,
-        side_class_dims_w, 1);
-  }
+  classify_elements(mesh);
   std::vector<int> side_set_ids(init_params.num_side_sets);
   CALL(ex_get_ids(file, EX_SIDE_SET, side_set_ids.data()));
-  for (size_t i = 0; i < side_set_ids.size(); ++i) {
-    int nentries, ndist_factors;
-    CALL(ex_get_set_param(file, EX_NODE_SET, node_set_ids[i],
-          &nentries, &ndist_factors));
-    if (verbose) {
-      std::cout << "side set " << side_set_ids[i] << " has "
-        << nentries << " nodes\n";
+  Write<LO> side_class_ids_w(mesh->nents(dim - 1), -1);
+  auto sides_are_exposed = mark_exposed_sides(mesh);
+  classify_sides_by_exposure(mesh, sides_are_exposed);
+  Write<I8> side_class_dims_w = deep_copy(mesh->get_array<I8>(dim - 1, "class_dim"));
+  auto exposed_sides2side = collect_marked(sides_are_exposed);
+  map_into(LOs(exposed_sides2side.size(), 0), exposed_sides2side,
+      side_class_ids_w, 1);
+  if (classify_with & NODE_SETS) {
+    int max_side_set_id = 0;
+    if (side_set_ids.size()) {
+      max_side_set_id = *std::max_element(
+          side_set_ids.begin(), side_set_ids.end());
     }
-    if (ndist_factors) {
-      std::cout << "Omega_h doesn't support distribution factors\n";
+    std::vector<int> node_set_ids(init_params.num_node_sets);
+    CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
+    for (size_t i = 0; i < node_set_ids.size(); ++i) {
+      int nentries, ndist_factors;
+      CALL(ex_get_set_param(file, EX_NODE_SET, node_set_ids[i],
+            &nentries, &ndist_factors));
+      if (verbose) {
+        std::cout << "node set " << node_set_ids[i] << " has "
+          << nentries << " nodes\n";
+      }
+      if (ndist_factors) {
+        std::cout << "Omega_h doesn't support distribution factors\n";
+      }
+      HostWrite<LO> h_set_nodes2nodes(nentries);
+      CALL(ex_get_set(file, EX_NODE_SET, node_set_ids[i],
+            h_set_nodes2nodes.data(), nullptr));
+      auto set_nodes2nodes = subtract_from_each(LOs(h_set_nodes2nodes.write()), 1);
+      auto nodes_are_in_set = mark_image(set_nodes2nodes, mesh->nverts());
+      auto sides_are_in_set = mark_up_all(mesh, VERT, dim - 1, nodes_are_in_set);
+      auto set_sides2side = collect_marked(sides_are_in_set);
+      auto surface_id = node_set_ids[i] + max_side_set_id;
+      if (verbose) {
+        std::cout << "node set " << node_set_ids[i]
+          << " will be surface " << surface_id << '\n';
+      }
+      map_into(LOs(set_sides2side.size(), surface_id), set_sides2side,
+          side_class_ids_w, 1);
+      map_into(Read<I8>(set_sides2side.size(), I8(dim - 1)), set_sides2side,
+          side_class_dims_w, 1);
     }
-    HostWrite<LO> h_set_sides2elem(nentries);
-    HostWrite<LO> h_set_sides2local(nentries);
-    CALL(ex_get_set(file, EX_SIDE_SET, node_set_ids[i],
-          h_set_sides2elem.data(), h_set_sides2local.data()));
-    auto set_sides2elem = subtract_from_each(LOs(h_set_sides2elem.write()), 1);
-    auto set_sides2local = LOs(h_set_sides2local.write());
-    auto elems2sides = mesh->ask_down(dim, dim - 1).ab2b;
-    auto nsides_per_elem = simplex_degrees[dim][dim - 1];
-    auto set_sides2side_w = Write<LO>(nentries);
-    auto f2 = LAMBDA(LO set_side) {
-      auto elem = set_sides2elem[set_side];
-      auto local = side_exo2osh(dim, set_sides2local[set_side]);
-      auto side = elems2sides[elem * nsides_per_elem + local];
-      set_sides2side_w[set_side] = side;
-    };
-    parallel_for(nentries, f2);
-    auto set_sides2side = LOs(set_sides2side_w);
-    auto surface_id = side_set_ids[i];
-    map_into(LOs(nentries, surface_id), set_sides2side,
-        side_class_ids_w, 1);
-    map_into(Read<I8>(nentries, I8(dim - 1)), set_sides2side,
-        side_class_dims_w, 1);
+  }
+  if (classify_with & SIDE_SETS) {
+    for (size_t i = 0; i < side_set_ids.size(); ++i) {
+      int nentries, ndist_factors;
+      CALL(ex_get_set_param(file, EX_SIDE_SET, side_set_ids[i],
+            &nentries, &ndist_factors));
+      if (verbose) {
+        std::cout << "side set " << side_set_ids[i] << " has "
+          << nentries << " sides\n";
+      }
+      if (ndist_factors && verbose) {
+        std::cout << "Omega_h doesn't support distribution factors\n";
+      }
+      HostWrite<LO> h_set_sides2elem(nentries);
+      HostWrite<LO> h_set_sides2local(nentries);
+      CALL(ex_get_set(file, EX_SIDE_SET, side_set_ids[i],
+            h_set_sides2elem.data(), h_set_sides2local.data()));
+      auto set_sides2elem = subtract_from_each(LOs(h_set_sides2elem.write()), 1);
+      auto set_sides2local = LOs(h_set_sides2local.write());
+      auto elems2sides = mesh->ask_down(dim, dim - 1).ab2b;
+      auto nsides_per_elem = simplex_degrees[dim][dim - 1];
+      auto set_sides2side_w = Write<LO>(nentries);
+      auto f2 = LAMBDA(LO set_side) {
+        auto elem = set_sides2elem[set_side];
+        auto local = side_exo2osh(dim, set_sides2local[set_side]);
+        auto side = elems2sides[elem * nsides_per_elem + local];
+        set_sides2side_w[set_side] = side;
+      };
+      parallel_for(nentries, f2);
+      auto set_sides2side = LOs(set_sides2side_w);
+      auto surface_id = side_set_ids[i];
+      map_into(LOs(nentries, surface_id), set_sides2side,
+          side_class_ids_w, 1);
+      map_into(Read<I8>(nentries, I8(dim - 1)), set_sides2side,
+          side_class_dims_w, 1);
+    }
   }
   CALL(ex_close(file));
   auto elem_class_ids = LOs(elem_class_ids_w);
   auto side_class_ids = LOs(side_class_ids_w);
   auto side_class_dims = Read<I8>(side_class_dims_w);
-  classify_elements(mesh);
   mesh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
       elem_class_ids);
   mesh->add_tag(dim - 1, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
       side_class_ids);
-  mesh->add_tag(dim - 1, "class_dim", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
-      side_class_dims);
+  mesh->set_tag(dim - 1, "class_dim", side_class_dims);
   finalize_classification(mesh);
 }
 
