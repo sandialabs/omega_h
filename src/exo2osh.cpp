@@ -9,7 +9,8 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("input.exo");
   cmdline.add_arg<std::string>("output.osh");
   cmdline.add_flag("-v", "verbose");
-  auto& cwflag = cmdline.add_flag("--classify-with", "comma separated \"node_sets,side_sets\"");
+  auto& cwflag = cmdline.add_flag(
+      "--classify-with", "comma separated \"node_sets,side_sets\"");
   cwflag.add_arg<std::string>("set-types");
   if (!cmdline.parse(comm, &argc, argv) ||
       !Omega_h::CmdLine::check_empty(comm, argc, argv)) {

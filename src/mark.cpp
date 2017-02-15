@@ -52,7 +52,8 @@ Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
   return out;
 }
 
-Read<I8> mark_up_all(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
+Read<I8> mark_up_all(
+    Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
   auto l2h = mesh->ask_down(high_dim, low_dim);
   auto deg = simplex_degrees[high_dim][low_dim];
   auto hl2l = l2h.ab2b;

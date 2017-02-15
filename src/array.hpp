@@ -92,7 +92,7 @@ LO find_last(Read<T> array, T value);
   extern template Read<T> add_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> subtract_each(Read<T> a, Read<T> b);                 \
   extern template Read<T> add_to_each(Read<T> a, T b);                         \
-  extern template Read<T> subtract_from_each(Read<T> a, T b);                         \
+  extern template Read<T> subtract_from_each(Read<T> a, T b);                  \
   extern template Read<I8> each_geq_to(Read<T> a, T b);                        \
   extern template Read<I8> each_gt(Read<T> a, T b);                            \
   extern template Read<I8> each_lt(Read<T> a, T b);                            \
