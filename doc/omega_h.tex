@@ -1,6 +1,14 @@
 \documentclass{article}
 
+\usepackage{hyperref}
 \usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  keepspaces=true,
+  numbers=left,
+  xleftmargin=2em
+}
 
 \title{The Omega\_h Users Manual}
 \author{Dan Ibanez\\
@@ -17,6 +25,8 @@ Omega\_h is developed and distributed via GitHub,
 a popular software hosting platform based on the
 Git distributed version control system.
 
+\url{https://github.com/ibaned/omega_h}
+
 The most common way to obtain Omega\_h is to
 use Git to clone the repository and automatically
 check out the \texttt{master} branch:
@@ -27,10 +37,42 @@ git clone git@github.com:ibaned/omega_h.git
 
 \section{Compiling}
 
+\subsection{Operating System}
+
+Omega\_h currently only supports POSIX-like operating systems.
+It has only been tested on Linux, Mac OS X, and certain POSIX-like
+supercomputer kernels.
+
+\subsection{CMake}
+
+Omega\_h's compilation process is controlled by the CMake
+build system.
+In order to build Omega\_h, one should install a recent
+version of CMake, with version 3.0.1 being the minimum
+acceptable version.
+CMake is available in most Linux package managers
+or from their website:
+
+\url{https://cmake.org/download/}
+
+It is also recommended that users adopt the CMake build
+system for their own project, in order to take advantage
+of the metadata that Omega\_h outputs when it compiles
+and installs, which is readable by other CMake projects.
+
+\subsection{Compiler}
+
+Omega\_h is written in the C++11 standard of C++,
+so a compiler with complete support for that standard
+is needed.
+Omega\_h's CMake files will accept the GCC, Clang,
+and Intel compilers, and support can be added
+fairly easily for other compilers upon request.
+
 \subsection{Dependencies}
 
-All code dependencies of Omega\_h are optional,
-meaning that one can compile it and obtain a fairly
+All dependencies of Omega\_h are optional,
+meaning that one can compile it by itself and obtain a fairly
 functional code for mesh adaptation, although
 it will not have parallel features yet.
 Optional dependencies of Omega\_h are:
@@ -39,17 +81,17 @@ Optional dependencies of Omega\_h are:
 
 \item Zlib: This widely used and installed C library implements
 efficient data compression algorithms.
-Omega\_h uses it compress its own `.osh` file format, as well
-as to produce compressed `.vtu` files.
+Omega\_h uses it compress its own `.osh` file format and
+VTK's `.vtu` files.
 
 \item MPI: The Message Passing Interface is a standard
 defining (at least) a C library that enables multi-process parallelism.
 This is required if you want to use multi-process parallelism
 in Omega\_h.
 The two good open-source implementations that Omega\_h is known
-to work with are MPICH and OpenMPI, and we strongly recommend
+to work with are MPICH and OpenMPI, and we recommend
 MPICH for its support of the latest MPI standard and its
-proper handling of memory.
+cleaner memory management.
 
 \item Kokkos: This C++11 library implements shared-memory parallelism
 constructs and allows Omega\_h to (mostly) not worry about the details
@@ -76,13 +118,25 @@ Each of these dependencies
 
 \subsection{Options}
 
+\section{Usage}
+
 \subsection{Utility Programs}
 
-\section{Integration}
+\begin{enumerate}
+\item texttt{msh2osh}
+\item texttt{osh2vtk}
+\item texttt{oshdiff}
+\item texttt{vtkdiff}
+\item texttt{osh\_box}
+\item texttt{osh\_part}
+\item texttt{osh\_scale}
+\item texttt{meshb2osh}
+\item texttt{osh2meshb}
+\end{enumerate}
 
 \subsection{Header and Library}
 
-\subsection{Using CMake}
+\subsection{Via CMake}
 
 \subsection{The Omega\_h Namespace}
 
