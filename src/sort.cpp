@@ -18,13 +18,12 @@
 #include <omp.h>
 #include "intel_sort/parallel_stable_sort.hpp"
 #include "intel_sort/pss_common.hpp"
-#else
 #endif
 
 namespace Omega_h {
 
 template <typename T, typename Comp>
-void parallel_sort(T* b, T* e, Comp c) {
+static void parallel_sort(T* b, T* e, Comp c) {
   auto t0 = now();
 #if defined(OMEGA_H_USE_CUDA)
   auto bptr = thrust::device_ptr<T>(b);
