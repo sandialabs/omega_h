@@ -58,6 +58,34 @@ static INLINE int side_exo2osh(int dim, int side) {
   return -1;
 }
 
+// from Omega_h
+// side ordering to Exodus and adds one
+static INLINE int side_osh2exo(int dim, int side) {
+  switch (dim) {
+    case 2:
+      switch (side) {
+        case 0:
+          return 1;
+        case 1:
+          return 2;
+        case 2:
+          return 3;
+      }
+    case 3:
+      switch (side) {
+        case 1:
+          return 1;
+        case 2:
+          return 2;
+        case 3:
+          return 3;
+        case 0:
+          return 4;
+      }
+  }
+  return -1;
+}
+
 void read(
     std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
   auto comp_ws = int(sizeof(Real));
@@ -235,7 +263,8 @@ void write(
     std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
   auto comp_ws = int(sizeof(Real));
   auto io_ws = comp_ws;
-  auto file = ex_create(path.c_str(), EX_CLOBBER, &comp_ws, &io_ws);
+  auto mode = EX_CLOBBER | EX_MAPS_INT64_API;
+  auto file = ex_create(path.c_str(), mode, &comp_ws, &io_ws);
   if (file < 0) Omega_h_fail("can't create Exodus file %s\n", path.c_str());
   auto title = "Omega_h " OMEGA_H_VERSION " Exodus Output";
   std::set<LO> region_set;
@@ -256,11 +285,8 @@ void write(
     }
   }
   auto nelem_blocks = int(region_set.size());
-//auto nside_sets = (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
-//auto nnode_sets = (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
-  (void)classify_with;
-  auto nside_sets = 0;
-  auto nnode_sets = 0;
+  auto nside_sets = (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
+  auto nnode_sets = (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
   if (verbose) {
     std::cout << "init params for " << path << ":\n";
     std::cout << " Exodus ID " << file << '\n';
@@ -304,6 +330,48 @@ void write(
     auto h_block_conn = HostRead<LO>(block_conn_ex);
     CALL(ex_put_conn(file, EX_ELEM_BLOCK, block_id,
           h_block_conn.data(), nullptr, nullptr));
+  }
+  if (classify_with) {
+    for (auto set_id : surface_set) {
+      auto sides_in_set = land_each(each_eq_to(side_class_ids, set_id),
+          each_eq_to(side_class_dims, I8(dim - 1)));
+      if (classify_with | exodus::SIDE_SETS) {
+        auto set_sides2side = collect_marked(sides_in_set);
+        auto nset_sides = set_sides2side.size();
+        std::cout << "side set " << set_id << " has " << nset_sides << " sides\n";
+        auto sides2elems = mesh->ask_up(dim - 1, dim);
+        Write<int> set_sides2elem(nset_sides);
+        Write<int> set_sides2local(nset_sides);
+        auto f1 = LAMBDA(LO set_side) {
+          auto side = set_sides2side[set_side];
+          auto se = sides2elems.a2ab[side];
+          auto elem = sides2elems.ab2b[se];
+          auto code = sides2elems.codes[se];
+          auto which_down = code_which_down(code);
+          set_sides2elem[set_side] = elem + 1;
+          set_sides2local[set_side] = side_osh2exo(dim, which_down);
+        };
+        parallel_for(nset_sides, f1);
+        auto h_set_sides2elem = HostRead<int>(set_sides2elem);
+        auto h_set_sides2local = HostRead<int>(set_sides2local);
+        CALL(ex_put_set_param(file, EX_SIDE_SET, set_id,
+              nset_sides, 0));
+        CALL(ex_put_set(file, EX_SIDE_SET, set_id,
+              h_set_sides2elem.data(), h_set_sides2local.data()));
+      }
+      if (classify_with | exodus::NODE_SETS) {
+        auto nodes_in_set = mark_down(mesh, dim - 1, VERT, sides_in_set);
+        auto set_nodes2node = collect_marked(nodes_in_set);
+        auto set_nodes2node_ex = add_to_each(set_nodes2node, 1);
+        auto nset_nodes = set_nodes2node.size();
+        std::cout << "node set " << set_id << " has " << nset_nodes << " nodes\n";
+        auto h_set_nodes2node = HostRead<LO>(set_nodes2node_ex);
+        CALL(ex_put_set_param(file, EX_NODE_SET, set_id,
+              nset_nodes, 0));
+        CALL(ex_put_set(file, EX_NODE_SET, set_id,
+              h_set_nodes2node.data(), nullptr));
+      }
+    }
   }
   CALL(ex_close(file));
 }
