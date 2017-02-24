@@ -381,6 +381,8 @@ enum ClassifyWith {
 };
 void read(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
+void write(std::string const& path, Mesh* mesh, bool verbose = false,
+    int classify_with = NODE_SETS | SIDE_SETS);
 }
 #endif
 
