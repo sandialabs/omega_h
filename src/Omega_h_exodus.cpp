@@ -256,8 +256,24 @@ void write(
     }
   }
   auto nelem_blocks = int(region_set.size());
-  auto nside_sets = (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
-  auto nnode_sets = (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
+//auto nside_sets = (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
+//auto nnode_sets = (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
+  (void)classify_with;
+  auto nside_sets = 0;
+  auto nnode_sets = 0;
+  if (verbose) {
+    std::cout << "init params for " << path << ":\n";
+    std::cout << " Exodus ID " << file << '\n';
+    std::cout << " comp_ws " << comp_ws << '\n';
+    std::cout << " io_ws " << io_ws << '\n';
+    std::cout << " Title " << title << '\n';
+    std::cout << " num_dim " << dim << '\n';
+    std::cout << " num_nodes " << mesh->nverts() << '\n';
+    std::cout << " num_elem " << mesh->nelems() << '\n';
+    std::cout << " num_elem_blk " << nelem_blocks << '\n';
+    std::cout << " num_node_sets " << nnode_sets << '\n';
+    std::cout << " num_side_sets " << nside_sets << '\n';
+  }
   CALL(ex_put_init(file, title, dim, mesh->nverts(),
         mesh->nelems(), nelem_blocks, nnode_sets, nside_sets));
   Write<Real> coord_blk[3];

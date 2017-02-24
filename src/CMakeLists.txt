@@ -213,6 +213,7 @@ if(Omega_h_USE_libMeshb)
 endif()
 if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
+  osh_add_util(osh2exo)
 endif()
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
