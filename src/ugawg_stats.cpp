@@ -45,6 +45,8 @@ static Reals get_cube_cylinder_layer_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
   constexpr Real h0 = 0.001;
+  constexpr Real h_z = 1.0 / 10.0;
+  constexpr Real h_t = 1.0 / 10.0;
   auto f = LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
@@ -52,7 +54,31 @@ static Reals get_cube_cylinder_layer_metric(Mesh* mesh) {
     auto xy = vector_2(x, y);
     auto radius = norm(xy);
     auto t = atan2(y, x);
-    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), 0.1, 0.1);
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
+    auto rotation = rotate(t, vector_3(0, 0, 1));
+    auto m = compose_metric(rotation, h);
+    set_symm(out, v, m);
+  };
+  parallel_for(mesh->nverts(), f);
+  return out;
+}
+
+static Reals get_cube_cylinder_quality_layer_metric(Mesh* mesh) {
+  auto coords = mesh->coords();
+  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  constexpr Real h0 = 0.001;
+  constexpr Real h_z = 1.0 / 10.0;
+  auto f = LAMBDA(LO v) {
+    auto p = get_vector<dim>(coords, v);
+    auto x = p[0];
+    auto y = p[1];
+    auto xy = vector_2(x, y);
+    auto radius = norm(xy);
+    auto t = atan2(y, x);
+    auto d = (0.6 - radius) * 10.0;
+    Real h_t = (d < 0.0) ? (1.0 / 10.0) :
+      (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
     set_symm(out, v, m);
@@ -70,6 +96,9 @@ static Reals get_metric(Mesh* mesh, std::string const& name) {
   }
   if (name == "cube-cylinder-layer") {
     return get_cube_cylinder_layer_metric(mesh);
+  }
+  if (name == "cube-cylinder-quality-layer") {
+    return get_cube_cylinder_quality_layer_metric(mesh);
   }
   Omega_h_fail("no UGAWG metric named %s\n", name.c_str());
 }

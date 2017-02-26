@@ -30,6 +30,8 @@ static Reals get_second_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
   constexpr Real h0 = 0.001;
+  constexpr Real h_z = 1.0 / 10.0;
+  constexpr Real h_t = 1.0 / 10.0;
   auto f = LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
@@ -37,7 +39,31 @@ static Reals get_second_metric(Mesh* mesh) {
     auto xy = vector_2(x, y);
     auto radius = norm(xy);
     auto t = atan2(y, x);
-    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), 0.1, 0.1);
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
+    auto rotation = rotate(t, vector_3(0, 0, 1));
+    auto m = compose_metric(rotation, h);
+    set_symm(out, v, m);
+  };
+  parallel_for(mesh->nverts(), f);
+  return out;
+}
+
+static Reals get_third_metric(Mesh* mesh) {
+  auto coords = mesh->coords();
+  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  constexpr Real h0 = 0.001;
+  constexpr Real h_z = 1.0 / 10.0;
+  auto f = LAMBDA(LO v) {
+    auto p = get_vector<dim>(coords, v);
+    auto x = p[0];
+    auto y = p[1];
+    auto xy = vector_2(x, y);
+    auto radius = norm(xy);
+    auto t = atan2(y, x);
+    auto d = (0.6 - radius) * 10.0;
+    Real h_t = (d < 0.0) ? (1.0 / 10.0) :
+      (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
     set_symm(out, v, m);
@@ -48,7 +74,9 @@ static Reals get_second_metric(Mesh* mesh) {
 
 static void set_target_metric(Mesh* mesh, int which_metric, bool should_limit) {
   auto target_metrics =
-      (which_metric == 1) ? get_first_metric(mesh) : get_second_metric(mesh);
+      ((which_metric == 1) ? get_first_metric(mesh) :
+       ((which_metric == 2) ? get_second_metric(mesh) :
+                              get_third_metric(mesh)));
   if (should_limit) {
     target_metrics = limit_size_field_gradation(mesh, target_metrics, 1.0);
   }
@@ -87,6 +115,10 @@ static void run_case(
     }
     if (vtk_path) writer.write();
   }
+  if (which_metric == 3) {
+    adapt(mesh, opts);
+    if (vtk_path) writer.write();
+  }
   Now t1 = now();
   std::cout << "total time: " << (t1 - t0) << " seconds\n";
 }
@@ -113,8 +145,8 @@ int main(int argc, char** argv) {
         should_help = true;
       } else {
         which_metric = atoi(argv[++i]);
-        if (!(which_metric == 1 || which_metric == 2)) {
-          std::cout << "-m takes only values 1 or 2\n";
+        if (!(which_metric >= 1 && which_metric <= 3)) {
+          std::cout << "-m takes only values 1, 2 or 3\n";
           should_help = true;
         }
       }
@@ -133,9 +165,8 @@ int main(int argc, char** argv) {
   if (should_help) {
     std::cout << "usage: " << argv[0]
               << " [options] input.mesh[b] [input.egads] output.mesh[b]\n";
-    std::cout
-        << "options: -a vtk_path                debug output for adaptivity\n";
-    std::cout << "options: -m (1|2)                   1 for shock, 2 for BL\n";
+    std::cout << "options: -a vtk_path      debug output for adaptivity\n";
+    std::cout << "options: -m (1|2|3)       1 for shock, 2 for BL, 3 for quality BL\n";
     return -1;
   }
   Mesh mesh(&lib);
