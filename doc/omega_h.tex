@@ -123,20 +123,63 @@ Each of these dependencies
 \subsection{Utility Programs}
 
 \begin{enumerate}
-\item texttt{msh2osh}
-\item texttt{osh2vtk}
-\item texttt{oshdiff}
-\item texttt{vtkdiff}
-\item texttt{osh\_box}
-\item texttt{osh\_part}
-\item texttt{osh\_scale}
-\item texttt{meshb2osh}
-\item texttt{osh2meshb}
+\item \texttt{msh2osh}
+\item \texttt{osh2vtk}
+\item \texttt{oshdiff}
+\item \texttt{vtkdiff}
+\item \texttt{osh\_box}
+\item \texttt{osh\_part}
+\item \texttt{osh\_scale}
+\item \texttt{meshb2osh}
+\item \texttt{osh2meshb}
 \end{enumerate}
 
 \subsection{Header and Library}
 
+In most cases, users should call the C++11 API of Omega\_h directly
+from their own C++ code.
+In terms of the build system, users need their code to include
+the \texttt{Omega\_h.hpp} header file and link their own code
+to the \texttt{libomega\_h.so} or \texttt{libomeg\_h.a} library.
+In the case of static linking (\texttt{libomega\_h.a}), it is
+also necessary to link to the final executable to all libraries
+that Omega\_h depends on.
+In the case of dynamic linking, \texttt{libomega\_h.so} is guaranteed
+to already be linked to its dependencies via the \texttt{RPATH}
+mechanism, so only \texttt{libomega\_h.so} needs to be linked
+to the user application.
+
 \subsection{Via CMake}
+
+The most convenient way to handle the header file inclusion
+and library linking to Omega\_h is to use the CMake build system
+for the user's project as well.
+Omega\_h uses CMake to export file
+
+\texttt{\$\{CMAKE\_INSTALL\_PREFIX\}/lib/cmake/Omega\_hConfig.cmake}
+
+which provides all the necessary include and link information
+to CMake when CMake is configuring the user's project.
+The way for the user's project to read that file is via
+CMake's \texttt{find\_package} command:
+
+\begin{lstlisting}
+find_package(Omega_h 8.2.0 PATHS ${OMEGA_H_PREFIX})
+\end{lstlisting}
+
+Only the first argument (``Omega\_h") is really necessary.
+The second argument specifies a minimum required version number.
+CMake will only accept an Omega\_h installation that has
+the same or higher version number, unless the major version number
+is higher, because that indicates a change that breaks backwards
+compatibility.
+The last two arguments can be used to indicate that Omega\_h
+is installed somewhere other than the standard system directories
+(e.g. \texttt{/usr/local}).
+If \texttt{find\_package} succeeds, subsequent CMake code has
+access to a target called \texttt{Omega\_h::omega\_h}, which
+represents all the information needed to link to Omega\_h,
+and is used via \texttt{target\_link\_libraries} with a user's
 
 \subsection{The Omega\_h Namespace}
 
