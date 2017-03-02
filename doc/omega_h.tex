@@ -305,7 +305,28 @@ namespace osh = Omega_h;
 and in subsequent code Omega\_h symbols would be available
 in the namespace \texttt{osh}.
 
-\section{Public Classes}
+\section{Public Symbols}
+
+\subsection{Scalar Types}
+\label{sec:scalars}
+
+Omega\_h builds all its data structures out of arrays
+of basic scalar types.
+Over time it seems that a set of four basic types
+is sufficient to form efficient data structures
+for all its needs: one floating-point type
+(\texttt{double}), and three integers types
+of varying width (\texttt{int8\_t}, 
+\texttt{int32\_t}, and \texttt{int64\_t}).
+Omega\_h names these types \texttt{Real},
+\texttt{I8}, \texttt{LO} (a.k.a. \texttt{I32}),
+and \texttt{GO} (a.k.a. \texttt{I64}).
+\texttt{LO} and \texttt{GO} stand for local
+and global ordinals, terms borrowed from
+the Trilinos project.
+There is also \texttt{Int}, which is meant for
+local small integer values, not as the entry
+type for a large array.
 
 \subsection{Read and Write: The Array Classes}
 \label{sec:rw}
@@ -330,8 +351,32 @@ may share the same coordinates array with confidence
 that if one mesh decides to change its coordinates,
 the other mesh will not be affected.
 
-\subsection{The Mesh: A (Mostly) Immutable Cache}
+Second, Omega\_h is designed for efficient use of
+GPUs, which have memory that is separate from
+the memory attached to the CPU.
+At the time of this writing, explicit control of where
+memory resides and when to transfer it from the GPU
+to the CPU is the most reliable way to get good
+performance on GPU-accelerated systems.
+In addition, due to the high cost of memory transfer,
+the best performance is achieved by keeping data as
+much as possible on the GPU and not moving it to the
+CPU unless absolutely necessary.
+Hence, each array type includes ``Host" classes,
+which represent a copy of the array on the CPU.
+These variants are the minority, most arrays in Omega\_h
+are in GPU memory when it is compiled with CUDA support.
 
-\section{Public Functions}
+In total, the four classes are \texttt{Read}, \texttt{Write},
+\texttt{HostRead}, and \texttt{HostWrite}.
+Each of these four classes, in turn, is templated on
+a scalar type, and explicitly instantiated for
+each of the four scalar types described in Section
+\ref{sec:scalars}, so for example \texttt{Read<Real>}.
+Finally, some convenience types are defined, for example
+\texttt{Reals} is an alias for \texttt{Read<Real>}.
+Likewise, \texttt{LOs} is an alias for \texttt{Read<LO>}.
+
+\subsection{The Mesh: A (Mostly) Immutable Cache}
 
 \end{document}
