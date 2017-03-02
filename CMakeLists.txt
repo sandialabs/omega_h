@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 8.2.0 LANGUAGES CXX)
+project(Omega_h VERSION 8.2.0 LANGUAGES NONE)
+
+set(USE_XSDK_DEFAULTS_DEFAULT OFF)
+
+include(cmake/XSDKDefaults.cmake)
+
+enable_language(CXX)
 
 include(cmake/bob.cmake)
 
