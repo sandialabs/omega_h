@@ -218,6 +218,9 @@ class Library {
   CommPtr self();
   void add_to_timer(std::string const& name, double nsecs);
   LO self_send_threshold() const;
+  bool should_time_;
+  LO self_send_threshold_;
+  bool silent_;
 
  private:
   void initialize(char const* head_desc, int* argc, char*** argv
@@ -234,9 +237,7 @@ class Library {
 #ifdef OMEGA_H_USE_KOKKOS
   bool we_called_kokkos_init;
 #endif
-  bool should_time_;
   std::map<std::string, double> timers;
-  LO self_send_threshold_;
 };
 
 namespace inertia {
@@ -365,6 +366,8 @@ class Mesh {
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
 };
+
+bool can_print(Mesh* mesh);
 
 #ifdef OMEGA_H_USE_LIBMESHB
 namespace meshb {

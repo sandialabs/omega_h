@@ -53,7 +53,7 @@ MeshCompareOpts MeshCompareOpts::init(
 template <typename T>
 struct CompareArrays {
   static bool compare(
-      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts, Int, Int) {
+      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts, Int, Int, bool) {
     return comm->reduce_and(a == b);
   }
 };
@@ -73,7 +73,7 @@ bool compare_real(Real a, Real b, VarCompareOpts opts) {
 template <>
 struct CompareArrays<Real> {
   static bool compare(CommPtr comm, Read<Real> a, Read<Real> b,
-      VarCompareOpts opts, Int ncomps, Int dim) {
+      VarCompareOpts opts, Int ncomps, Int dim, bool verbose) {
     auto tol = opts.tolerance;
     auto floor = opts.floor;
     if (opts.kind == VarCompareOpts::RELATIVE) {
@@ -81,6 +81,7 @@ struct CompareArrays<Real> {
     } else {
       if (comm->reduce_and(are_close_abs(a, b, tol))) return true;
     }
+    if (!verbose) return false;
     /* if floating point arrays are different, we find the value with the
        largest relative difference and print it out for users to determine
        whether this is actually a serious regression
@@ -122,19 +123,21 @@ struct CompareArrays<Real> {
 
 template <typename T>
 bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts,
-    Int ncomps, Int dim) {
-  return CompareArrays<T>::compare(comm, a, b, opts, ncomps, dim);
+    Int ncomps, Int dim, bool verbose) {
+  return CompareArrays<T>::compare(comm, a, b, opts, ncomps, dim, verbose);
 }
 
 template <typename T>
 static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
-    Read<T> b_data, Dist b_dist, Int ncomps, VarCompareOpts opts) {
+    Read<T> b_data, Dist b_dist, Int ncomps, VarCompareOpts opts,
+    bool verbose) {
   if (opts.kind == VarCompareOpts::NONE) return true;
   auto a_lin_data = reduce_data_to_owners(a_data, a_dist, ncomps);
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
   auto comm = a_dist.parent_comm();
-  auto ret = compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim);
+  auto ret = compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim,
+      verbose);
   return ret;
 }
 
@@ -173,7 +176,7 @@ Omega_h_Comparison compare_meshes(
       auto a_conn = get_local_conn(a, dim, full);
       auto b_conn = get_local_conn(b, dim, full);
       auto ok = compare_copy_data(dim, a_conn, a_dist, b_conn, b_dist, dim + 1,
-          VarCompareOpts::zero_tolerance());
+          VarCompareOpts::zero_tolerance(), verbose);
       if (!ok) {
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
@@ -199,19 +202,19 @@ Omega_h_Comparison compare_meshes(
       switch (tag->type()) {
         case OMEGA_H_I8:
           ok = compare_copy_data(dim, a->get_array<I8>(dim, name), a_dist,
-              b->get_array<I8>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<I8>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
         case OMEGA_H_I32:
           ok = compare_copy_data(dim, a->get_array<I32>(dim, name), a_dist,
-              b->get_array<I32>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<I32>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
         case OMEGA_H_I64:
           ok = compare_copy_data(dim, a->get_array<I64>(dim, name), a_dist,
-              b->get_array<I64>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<I64>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
         case OMEGA_H_F64:
           ok = compare_copy_data(dim, a->get_array<Real>(dim, name), a_dist,
-              b->get_array<Real>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<Real>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
       }
       if (!ok) {
@@ -403,7 +406,7 @@ void accept_diff_program_cmdline(CmdLine const& cmdline, Mesh const* mesh,
 
 #define EXPL_INST(T)                                                           \
   template bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b,             \
-      VarCompareOpts opts, Int ncomps, Int dim);
+      VarCompareOpts opts, Int ncomps, Int dim, bool verbose);
 EXPL_INST(I8)
 EXPL_INST(I32)
 EXPL_INST(I64)

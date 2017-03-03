@@ -480,11 +480,10 @@ I32 read_version(std::string const& path, CommPtr comm) {
 }
 
 void write(std::string const& path, Mesh* mesh) {
-  // if (!ends_with(path, ".osh") && mesh->comm()->rank() == 0) {
-  //  std::cout
-  //      << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
-  //  std::cout << "instead of just \"" << path << "\"\n";
-  //}
+  if (!ends_with(path, ".osh") && can_print(mesh)) {
+    std::cout << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
+    std::cout << "instead of just \"" << path << "\"\n";
+  }
   safe_mkdir(path.c_str());
   mesh->comm()->barrier();
   auto filepath = path + "/" + to_string(mesh->comm()->rank()) + ".osh";

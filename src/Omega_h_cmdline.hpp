@@ -9,8 +9,8 @@ class CmdLineItem {
  public:
   CmdLineItem(std::string const& name);
   virtual ~CmdLineItem();
-  bool parse(CommPtr comm, int* p_argc, char** argv, int i);
-  virtual bool parse_impl(CommPtr comm, int* p_argc, char** argv, int i) = 0;
+  bool parse(int* p_argc, char** argv, int i, bool should_print);
+  virtual bool parse_impl(int* p_argc, char** argv, int i, bool should_print) = 0;
   std::string const& name() const;
   bool parsed() const;
 
@@ -24,7 +24,7 @@ class CmdLineArg : public CmdLineItem {
  public:
   CmdLineArg(std::string const& name, T const& defval);
   virtual ~CmdLineArg();
-  virtual bool parse_impl(CommPtr comm, int* p_argc, char** argv, int i);
+  bool parse_impl(int* p_argc, char** argv, int i, bool should_print) override;
   T get() const;
 
  private:
@@ -34,7 +34,7 @@ class CmdLineArg : public CmdLineItem {
 class CmdLineFlag : public CmdLineItem {
  public:
   CmdLineFlag(std::string const& name, std::string const& desc);
-  virtual bool parse_impl(CommPtr comm, int* p_argc, char** argv, int i);
+  bool parse_impl(int* p_argc, char** argv, int i, bool should_print) override;
   template <typename T>
   void add_arg(std::string const& name, T const& defval = T());
   std::string const& desc() const;
@@ -52,6 +52,7 @@ class CmdLine {
  public:
   CmdLine();
   bool parse(CommPtr comm, int* p_argc, char** argv);
+  bool parse(int* p_argc, char** argv, bool should_print);
   CmdLineFlag& add_flag(std::string const& name, std::string const& desc);
   template <typename T>
   void add_arg(std::string const& name, T const& defval = T());
@@ -63,7 +64,9 @@ class CmdLine {
   T get(std::string const& arg_name) const;
   bool parsed(std::size_t i) const;
   static bool check_empty(CommPtr comm, int argc, char** argv);
+  static bool check_empty(int argc, char** argv, bool should_print);
   void show_help(CommPtr comm, char** argv) const;
+  void show_help(char** argv) const;
 
  private:
   std::vector<std::unique_ptr<CmdLineItem>> args_;

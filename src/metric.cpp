@@ -189,7 +189,7 @@ Reals metric_for_nelems_from_hessians(
     eps /= scalar;
     ++niters;
   } while (fabs(scalar - 1.0) > tolerance);
-  if (mesh->comm()->rank() == 0) {
+  if (can_print(mesh)) {
     std::cout << "after " << niters << " iterations,"
               << " metric targets " << target_nelems << "*" << scalar
               << " elements\n";
@@ -303,11 +303,11 @@ Reals limit_size_field_gradation(
     values = values2;
     values2 = limit_size_field_once_by_adj(mesh, values, max_rate);
     ++i;
-    if (i > 40) {
+    if (can_print(mesh) && i > 40) {
       std::cout << "warning: gradation limiting is up to step " << i << '\n';
     }
   } while (!comm->reduce_and(are_close(values, values2, tol)));
-  if (mesh->comm()->rank() == 0) {
+  if (can_print(mesh)) {
     std::cout << "limited gradation in " << i << " steps\n";
   }
   return values2;

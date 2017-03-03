@@ -48,13 +48,15 @@ CmdLineItem::~CmdLineItem() {}
 CmdLineItem::CmdLineItem(std::string const& name)
     : name_(name), parsed_(false) {}
 
-bool CmdLineItem::parse(CommPtr comm, int* p_argc, char** argv, int i) {
+bool CmdLineItem::parse(int* p_argc, char** argv, int i,
+    bool should_print) {
   if (parsed_) {
-    if (!comm->rank())
+    if (should_print) {
       std::cout << "argument <" << name() << " being parsed twice!\n";
+    }
     return false;
   }
-  auto ok = parse_impl(comm, p_argc, argv, i);
+  auto ok = parse_impl(p_argc, argv, i, should_print);
   if (ok) parsed_ = true;
   return ok;
 }
@@ -71,9 +73,10 @@ template <typename T>
 CmdLineArg<T>::~CmdLineArg() {}
 
 template <typename T>
-bool CmdLineArg<T>::parse_impl(CommPtr comm, int* p_argc, char** argv, int i) {
+bool CmdLineArg<T>::parse_impl(int* p_argc, char** argv, int i,
+    bool should_print) {
   if (!parse_arg(argv[i], &value_)) {
-    if (!comm->rank()) {
+    if (should_print) {
       std::cout << "could not parse \"" << argv[i] << "\" as type "
                 << ItemTraits<T>::name() << '\n';
     }
@@ -91,17 +94,17 @@ T CmdLineArg<T>::get() const {
 CmdLineFlag::CmdLineFlag(std::string const& name, std::string const& desc)
     : CmdLineItem(name), desc_(desc) {}
 
-bool CmdLineFlag::parse_impl(CommPtr comm, int* p_argc, char** argv, int i) {
+bool CmdLineFlag::parse_impl(int* p_argc, char** argv, int i, bool should_print) {
   shift(p_argc, argv, i);
   if (((*p_argc) - i) < int(args_.size())) {
-    if (!comm->rank()) {
+    if (should_print) {
       std::cout << "flag " << name() << " takes " << args_.size()
                 << " arguments\n";
     }
   }
   for (auto const& arg : args_) {
-    if (!arg->parse(comm, p_argc, argv, i)) {
-      if (!comm->rank()) {
+    if (!arg->parse(p_argc, argv, i, should_print)) {
+      if (should_print) {
         std::cout << "could not parse argument <" << arg->name() << "> of flag "
                   << name() << '\n';
       }
@@ -132,12 +135,16 @@ std::size_t CmdLineFlag::nargs() const { return args_.size(); }
 CmdLine::CmdLine() : nargs_parsed_(0) {}
 
 bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
+  return parse(p_argc, argv, comm->rank() == 0);
+}
+
+bool CmdLine::parse(int* p_argc, char** argv, bool should_print) {
   for (int i = 1; i < *p_argc;) {
     bool parsed_by_flag = false;
     for (auto const& flag : flags_) {
       if (flag->name() == argv[i]) {
-        if (!flag->parse(comm, p_argc, argv, i)) {
-          if (!comm->rank()) {
+        if (!flag->parse(p_argc, argv, i, should_print)) {
+          if (should_print) {
             std::cout << "failed to parse flag " << flag->name() << '\n';
           }
           return false;
@@ -152,7 +159,7 @@ bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
     } else if (std::string("--help") == argv[i]) {
       return false;
     } else if (args_.size() > nargs_parsed_) {
-      if (args_[nargs_parsed_]->parse(comm, p_argc, argv, i)) {
+      if (args_[nargs_parsed_]->parse(p_argc, argv, i, should_print)) {
         ++nargs_parsed_;
       }
     } else {
@@ -160,7 +167,7 @@ bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
     }
   }
   if (nargs_parsed_ < args_.size()) {
-    if (!comm->rank()) {
+    if (should_print) {
       for (std::size_t i = nargs_parsed_; i < args_.size(); ++i) {
         std::cout << "missing required argument <" << args_[i]->name() << ">\n";
       }
@@ -219,8 +226,12 @@ T CmdLine::get(std::string const& arg_name) const {
 bool CmdLine::parsed(std::size_t i) const { return args_.at(i)->parsed(); }
 
 bool CmdLine::check_empty(CommPtr comm, int argc, char** argv) {
+  return check_empty(argc, argv, comm->rank() == 0);
+}
+
+bool CmdLine::check_empty(int argc, char** argv, bool should_print) {
   if (argc == 1) return true;
-  if (!comm->rank()) {
+  if (should_print) {
     for (int i = 1; i < argc; ++i) {
       std::cout << "unknown argument \"" << argv[i] << "\"\n";
     }
@@ -230,6 +241,10 @@ bool CmdLine::check_empty(CommPtr comm, int argc, char** argv) {
 
 void CmdLine::show_help(CommPtr comm, char** argv) const {
   if (comm->rank()) return;
+  show_help(argv);
+}
+
+void CmdLine::show_help(char** argv) const {
   std::cout << "usage: " << argv[0];
   if (!flags_.empty()) std::cout << " [options]";
   for (auto const& arg : args_) std::cout << " " << arg->name();

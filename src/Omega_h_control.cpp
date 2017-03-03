@@ -131,6 +131,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   cmdline.add_flag(
       "--osh-time", "print amount of time spend in certain functions");
   cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
+  cmdline.add_flag("--osh-silent", "suppress all output");
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
@@ -142,6 +143,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (cmdline.parsed("--osh-self-send")) {
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
   }
+  silent_ = cmdline.parsed("--osh-silent");
 #ifdef OMEGA_H_USE_KOKKOS
   if (!Kokkos::DefaultExecutionSpace::is_initialized()) {
     CHECK(argc != nullptr);

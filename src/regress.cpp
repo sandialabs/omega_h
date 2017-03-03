@@ -13,13 +13,15 @@ bool check_regression(std::string const& prefix, Mesh* mesh) {
   if (!directory_exists(goldpath.c_str())) {
     if (comm->size() == 1) {
       binary::write(goldpath, mesh);
-      std::cout << "gold path \"" << goldpath << "\" did not exist yet,\n";
-      std::cout << "created it from this run.\n";
+      if (!mesh->library()->silent_) {
+        std::cout << "gold path \"" << goldpath << "\" did not exist yet,\n";
+        std::cout << "created it from this run.\n";
+      }
       return true;
     } else {
       auto tmppath = prefix + "_tmp.osh";
       binary::write(tmppath, mesh);
-      if (comm->rank() == 0) {
+      if (!mesh->library()->silent_ && comm->rank() == 0) {
         std::cout << "gold path \"" << goldpath;
         std::cout << "\" does not exist and this run is parallel.\n";
         std::cout << "If you really want to use this run as the gold, do:\n";
@@ -33,7 +35,7 @@ bool check_regression(std::string const& prefix, Mesh* mesh) {
   auto opts = MeshCompareOpts::init(mesh, VarCompareOpts::zero_tolerance());
   auto res = compare_meshes(&gold_mesh, mesh, opts, true);
   if (res == OMEGA_H_SAME) {
-    if (comm->rank() == 0) {
+    if (!mesh->library()->silent_ && comm->rank() == 0) {
       std::cout << "This run matches gold \"" << goldpath << "\"\n";
     }
     return true;
@@ -41,7 +43,7 @@ bool check_regression(std::string const& prefix, Mesh* mesh) {
   if (res == OMEGA_H_MORE) {
     auto newpath = prefix + "_new.osh";
     binary::write(newpath, mesh);
-    if (comm->rank() == 0) {
+    if (!mesh->library()->silent_ && comm->rank() == 0) {
       std::cout << "This run, stored at \"" << newpath << "\",\n";
       std::cout << "has more tags than \"" << goldpath << "\"\n";
       std::cout << "It should probably be made the new gold, like this:\n";
@@ -52,7 +54,7 @@ bool check_regression(std::string const& prefix, Mesh* mesh) {
   }
   auto badpath = prefix + "_bad.osh";
   binary::write(badpath, mesh);
-  if (comm->rank() == 0) {
+  if (!mesh->library()->silent_ && comm->rank() == 0) {
     std::cout << "This run, stored at \"" << badpath << "\",\n";
     std::cout << "does not match the gold at \"" << goldpath << "\"\n";
   }

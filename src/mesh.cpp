@@ -670,6 +670,10 @@ Real Mesh::imbalance(Int ent_dim) const {
   return m / a;
 }
 
+bool can_print(Mesh* mesh) {
+  return (!mesh->library()->silent_) && (mesh->comm()->rank() == 0);
+}
+
 #define INST_T(T)                                                              \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \
