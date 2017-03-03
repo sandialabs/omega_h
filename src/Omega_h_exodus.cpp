@@ -285,8 +285,10 @@ void write(
     }
   }
   auto nelem_blocks = int(region_set.size());
-  auto nside_sets = (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
-  auto nnode_sets = (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
+  auto nside_sets =
+      (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
+  auto nnode_sets =
+      (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
   if (verbose) {
     std::cout << "init params for " << path << ":\n";
     std::cout << " Exodus ID " << file << '\n';
@@ -300,8 +302,8 @@ void write(
     std::cout << " num_node_sets " << nnode_sets << '\n';
     std::cout << " num_side_sets " << nside_sets << '\n';
   }
-  CALL(ex_put_init(file, title, dim, mesh->nverts(),
-        mesh->nelems(), nelem_blocks, nnode_sets, nside_sets));
+  CALL(ex_put_init(file, title, dim, mesh->nverts(), mesh->nelems(),
+      nelem_blocks, nnode_sets, nside_sets));
   Write<Real> coord_blk[3];
   for (Int i = 0; i < dim; ++i) coord_blk[i] = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
@@ -312,7 +314,7 @@ void write(
   HostRead<Real> h_coord_blk[3];
   for (Int i = 0; i < dim; ++i) h_coord_blk[i] = HostRead<Real>(coord_blk[i]);
   CALL(ex_put_coord(file, h_coord_blk[0].data(), h_coord_blk[1].data(),
-        h_coord_blk[2].data()));
+      h_coord_blk[2].data()));
   auto all_conn = mesh->ask_elem_verts();
   for (auto block_id : region_set) {
     auto type_name = (dim == 3) ? "tetra4" : "tri3";
@@ -321,15 +323,15 @@ void write(
     auto nblock_elems = block_elems2elem.size();
     if (verbose) {
       std::cout << "element block " << block_id << " has " << nblock_elems
-        << " of type " << type_name << '\n';
+                << " of type " << type_name << '\n';
     }
-    CALL(ex_put_block(file, EX_ELEM_BLOCK, block_id,
-          type_name, nblock_elems, dim + 1, 0, 0, 0));
+    CALL(ex_put_block(file, EX_ELEM_BLOCK, block_id, type_name, nblock_elems,
+        dim + 1, 0, 0, 0));
     auto block_conn = unmap(block_elems2elem, all_conn, dim + 1);
     auto block_conn_ex = add_to_each(block_conn, 1);
     auto h_block_conn = HostRead<LO>(block_conn_ex);
-    CALL(ex_put_conn(file, EX_ELEM_BLOCK, block_id,
-          h_block_conn.data(), nullptr, nullptr));
+    CALL(ex_put_conn(
+        file, EX_ELEM_BLOCK, block_id, h_block_conn.data(), nullptr, nullptr));
   }
   if (classify_with) {
     for (auto set_id : surface_set) {
@@ -338,7 +340,8 @@ void write(
       if (classify_with | exodus::SIDE_SETS) {
         auto set_sides2side = collect_marked(sides_in_set);
         auto nset_sides = set_sides2side.size();
-        std::cout << "side set " << set_id << " has " << nset_sides << " sides\n";
+        std::cout << "side set " << set_id << " has " << nset_sides
+                  << " sides\n";
         auto sides2elems = mesh->ask_up(dim - 1, dim);
         Write<int> set_sides2elem(nset_sides);
         Write<int> set_sides2local(nset_sides);
@@ -354,22 +357,21 @@ void write(
         parallel_for(nset_sides, f1);
         auto h_set_sides2elem = HostRead<int>(set_sides2elem);
         auto h_set_sides2local = HostRead<int>(set_sides2local);
-        CALL(ex_put_set_param(file, EX_SIDE_SET, set_id,
-              nset_sides, 0));
-        CALL(ex_put_set(file, EX_SIDE_SET, set_id,
-              h_set_sides2elem.data(), h_set_sides2local.data()));
+        CALL(ex_put_set_param(file, EX_SIDE_SET, set_id, nset_sides, 0));
+        CALL(ex_put_set(file, EX_SIDE_SET, set_id, h_set_sides2elem.data(),
+            h_set_sides2local.data()));
       }
       if (classify_with | exodus::NODE_SETS) {
         auto nodes_in_set = mark_down(mesh, dim - 1, VERT, sides_in_set);
         auto set_nodes2node = collect_marked(nodes_in_set);
         auto set_nodes2node_ex = add_to_each(set_nodes2node, 1);
         auto nset_nodes = set_nodes2node.size();
-        std::cout << "node set " << set_id << " has " << nset_nodes << " nodes\n";
+        std::cout << "node set " << set_id << " has " << nset_nodes
+                  << " nodes\n";
         auto h_set_nodes2node = HostRead<LO>(set_nodes2node_ex);
-        CALL(ex_put_set_param(file, EX_NODE_SET, set_id,
-              nset_nodes, 0));
-        CALL(ex_put_set(file, EX_NODE_SET, set_id,
-              h_set_nodes2node.data(), nullptr));
+        CALL(ex_put_set_param(file, EX_NODE_SET, set_id, nset_nodes, 0));
+        CALL(ex_put_set(
+            file, EX_NODE_SET, set_id, h_set_nodes2node.data(), nullptr));
       }
     }
   }

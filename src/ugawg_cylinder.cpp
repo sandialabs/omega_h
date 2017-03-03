@@ -61,8 +61,8 @@ static Reals get_third_metric(Mesh* mesh) {
     auto radius = norm(xy);
     auto t = atan2(y, x);
     auto d = (0.6 - radius) * 10.0;
-    Real h_t = (d < 0.0) ? (1.0 / 10.0) :
-      (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
+    Real h_t = (d < 0.0) ? (1.0 / 10.0)
+                         : (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
     auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
@@ -74,9 +74,9 @@ static Reals get_third_metric(Mesh* mesh) {
 
 static void set_target_metric(Mesh* mesh, int which_metric, bool should_limit) {
   auto target_metrics =
-      ((which_metric == 1) ? get_first_metric(mesh) :
-       ((which_metric == 2) ? get_second_metric(mesh) :
-                              get_third_metric(mesh)));
+      ((which_metric == 1) ? get_first_metric(mesh)
+                           : ((which_metric == 2) ? get_second_metric(mesh)
+                                                  : get_third_metric(mesh)));
   if (should_limit) {
     target_metrics = limit_size_field_gradation(mesh, target_metrics, 1.0);
   }
@@ -166,7 +166,8 @@ int main(int argc, char** argv) {
     std::cout << "usage: " << argv[0]
               << " [options] input.mesh[b] [input.egads] output.mesh[b]\n";
     std::cout << "options: -a vtk_path      debug output for adaptivity\n";
-    std::cout << "options: -m (1|2|3)       1 for shock, 2 for BL, 3 for quality BL\n";
+    std::cout << "options: -m (1|2|3)       1 for shock, 2 for BL, 3 for "
+                 "quality BL\n";
     return -1;
   }
   Mesh mesh(&lib);

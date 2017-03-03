@@ -10,7 +10,8 @@ class CmdLineItem {
   CmdLineItem(std::string const& name);
   virtual ~CmdLineItem();
   bool parse(int* p_argc, char** argv, int i, bool should_print);
-  virtual bool parse_impl(int* p_argc, char** argv, int i, bool should_print) = 0;
+  virtual bool parse_impl(
+      int* p_argc, char** argv, int i, bool should_print) = 0;
   std::string const& name() const;
   bool parsed() const;
 

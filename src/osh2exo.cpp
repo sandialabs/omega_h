@@ -38,4 +38,3 @@ int main(int argc, char** argv) {
   Omega_h::exodus::write(outpath, &mesh, verbose, classify_with);
   return 0;
 }
-

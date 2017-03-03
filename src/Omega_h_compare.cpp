@@ -136,8 +136,8 @@ static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
   auto comm = a_dist.parent_comm();
-  auto ret = compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim,
-      verbose);
+  auto ret =
+      compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim, verbose);
   return ret;
 }
 
