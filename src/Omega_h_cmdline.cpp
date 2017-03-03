@@ -48,8 +48,7 @@ CmdLineItem::~CmdLineItem() {}
 CmdLineItem::CmdLineItem(std::string const& name)
     : name_(name), parsed_(false) {}
 
-bool CmdLineItem::parse(int* p_argc, char** argv, int i,
-    bool should_print) {
+bool CmdLineItem::parse(int* p_argc, char** argv, int i, bool should_print) {
   if (parsed_) {
     if (should_print) {
       std::cout << "argument <" << name() << " being parsed twice!\n";
@@ -73,8 +72,8 @@ template <typename T>
 CmdLineArg<T>::~CmdLineArg() {}
 
 template <typename T>
-bool CmdLineArg<T>::parse_impl(int* p_argc, char** argv, int i,
-    bool should_print) {
+bool CmdLineArg<T>::parse_impl(
+    int* p_argc, char** argv, int i, bool should_print) {
   if (!parse_arg(argv[i], &value_)) {
     if (should_print) {
       std::cout << "could not parse \"" << argv[i] << "\" as type "
@@ -94,7 +93,8 @@ T CmdLineArg<T>::get() const {
 CmdLineFlag::CmdLineFlag(std::string const& name, std::string const& desc)
     : CmdLineItem(name), desc_(desc) {}
 
-bool CmdLineFlag::parse_impl(int* p_argc, char** argv, int i, bool should_print) {
+bool CmdLineFlag::parse_impl(
+    int* p_argc, char** argv, int i, bool should_print) {
   shift(p_argc, argv, i);
   if (((*p_argc) - i) < int(args_.size())) {
     if (should_print) {

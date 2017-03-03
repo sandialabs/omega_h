@@ -76,8 +76,8 @@ static Reals get_cube_cylinder_quality_layer_metric(Mesh* mesh) {
     auto radius = norm(xy);
     auto t = atan2(y, x);
     auto d = (0.6 - radius) * 10.0;
-    Real h_t = (d < 0.0) ? (1.0 / 10.0) :
-      (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
+    Real h_t = (d < 0.0) ? (1.0 / 10.0)
+                         : (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
     auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
