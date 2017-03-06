@@ -459,4 +459,31 @@ for (LO tri = 0; tri < ntris; ++tri) {
 
 \subsection{The Mesh: A (Mostly) Immutable Cache}
 
+The Omega\_h \texttt{Mesh} structure represents a triangle or tetrahedral
+mesh of a 2D or 3D domain.
+The mesh is described in terms of adjacency arrays, which are implemented as
+\texttt{Graph} data structures.
+These adjacency arrays describe the relationships between simplices (
+vertices, edges, triangles, and tetrahedra) in the mesh.
+In Omega\_h, a mesh that contains an ``element" (e.g. a tetrahedron)
+must also contain all the simplices on its boundary
+(e.g. the four triangles, six edges, and four vertices of the tetrahedron).
+Elements usually share these boundary simplices, for example to ``adjacent"
+tetrahedra share a triangle, three edges, and three vertices.
+Although a mesh can be uniquely described by the adjacency from elements
+to vertices, storing a full topological representation is
+valuable for doing complex, robust mesh adaptation.
+
+In an \texttt{Omega\_h::Mesh} structure, the adjacency relationships
+cannot be changed once specified or derived.
+The mesh usually begins by specifying the element-to-vertex adjacency,
+and Omega\_h will proceed to derive all other relevant adjacencies as
+needed.
+The only way to change the adjacencies is to create a new \texttt{Mesh}
+object.
+
+For efficiency, all adjacency relationships are cached after being derived,
+since many of them are expensive to derive and are often requested repeatedly
+throughout mesh adaptation and simulation.
+
 \end{document}
