@@ -12,6 +12,7 @@ set(Omega_h_SOURCES
   indset.cpp
   map.cpp
   simplices.cpp
+  Omega_h_adjacency.cpp
   form_uses.cpp
   find_unique.cpp
   invert_adj.cpp
@@ -383,6 +384,7 @@ set(Omega_h_HEADERS
   Omega_h_math.hpp
   Omega_h_functors.hpp
   Omega_h_array_ops.hpp
+  Omega_h_graph.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

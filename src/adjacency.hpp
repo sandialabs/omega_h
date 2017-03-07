@@ -5,6 +5,8 @@
 
 namespace Omega_h {
 
+Adj unmap_adjacency(LOs a2b, Adj b2c);
+
 LOs order_by_globals(LOs a2ab, LOs ab2b, Read<GO> b_global);
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals);

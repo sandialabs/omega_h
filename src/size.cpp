@@ -5,7 +5,6 @@
 #include "Omega_h_array_ops.hpp"
 #include "derive.hpp"
 #include "eigen.hpp"
-#include "graph.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 #include "mark.hpp"

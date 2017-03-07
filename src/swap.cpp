@@ -1,7 +1,6 @@
 #include "swap.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "graph.hpp"
 #include "map.hpp"
 #include "mark.hpp"
 #include "swap2d.hpp"

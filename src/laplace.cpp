@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
-#include "graph.hpp"
 #include "map.hpp"
 #include "mark.hpp"
 

@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "access.hpp"
-#include "graph.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 #include "project.hpp"

@@ -1,15 +1,24 @@
-#ifndef GRAPH_HPP
-#define GRAPH_HPP
+#ifndef OMEGA_H_GRAPH_HPP
+#define OMEGA_H_GRAPH_HPP
 
 #include <map>
 
-#include "internal.hpp"
+#include "Omega_h_array.hpp"
 
 namespace Omega_h {
 
+struct Graph {
+  Graph() {}
+  explicit Graph(LOs ab2b_) : ab2b(ab2b_) {}
+  Graph(LOs a2ab_, LOs ab2b_) : a2ab(a2ab_), ab2b(ab2b_) {}
+  LOs a2ab;
+  LOs ab2b;
+  LO nnodes() const;
+  LO nedges() const;
+};
+
 Graph add_edges(Graph g1, Graph g2);
 Graph unmap_graph(LOs a2b, Graph b2c);
-Adj unmap_adjacency(LOs a2b, Adj b2c);
 template <typename T>
 Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, Omega_h_Op op);
 Reals graph_weighted_average_arc_data(

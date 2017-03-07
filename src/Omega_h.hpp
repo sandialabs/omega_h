@@ -11,6 +11,7 @@
 
 #include <Omega_h_c.h>
 #include <Omega_h_array.hpp>
+#include <Omega_h_graph.hpp>
 
 namespace Omega_h {
 
@@ -162,16 +163,6 @@ class Dist {
  private:
   void copy(Dist const& other);
   enum { F, R };
-};
-
-struct Graph {
-  Graph() {}
-  explicit Graph(LOs ab2b_) : ab2b(ab2b_) {}
-  Graph(LOs a2ab_, LOs ab2b_) : a2ab(a2ab_), ab2b(ab2b_) {}
-  LOs a2ab;
-  LOs ab2b;
-  LO nnodes() const;
-  LO nedges() const;
 };
 
 enum { DIMS = OMEGA_H_DIMS };

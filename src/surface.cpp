@@ -2,7 +2,7 @@
 
 #include "access.hpp"
 #include "align.hpp"
-#include "graph.hpp"
+#include "adjacency.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 #include "mark.hpp"

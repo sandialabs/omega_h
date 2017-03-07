@@ -9,7 +9,6 @@
 #include "bcast.hpp"
 #include "control.hpp"
 #include "ghost.hpp"
-#include "graph.hpp"
 #include "inertia.hpp"
 #include "map.hpp"
 #include "mark.hpp"

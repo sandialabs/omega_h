@@ -1,7 +1,6 @@
 #include "Omega_h_motion.hpp"
 #include "access.hpp"
 #include "Omega_h_array_ops.hpp"
-#include "graph.hpp"
 #include "loop.hpp"
 #include "metric.hpp"
 #include "quality.hpp"

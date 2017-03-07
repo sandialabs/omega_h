@@ -1,8 +1,8 @@
 #include "coarsen.hpp"
 
 #include "Omega_h_array_ops.hpp"
+#include "adjacency.hpp"
 #include "collapse.hpp"
-#include "graph.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 #include "simplices.hpp"

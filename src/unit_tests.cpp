@@ -9,7 +9,6 @@
 #include "derive.hpp"
 #include "eigen.hpp"
 #include "file.hpp"
-#include "graph.hpp"
 #include "hilbert.hpp"
 #include "inertia.hpp"
 #include "int128.hpp"
