@@ -2,7 +2,6 @@
 #define ARRAY_HPP
 
 #include "Omega_h_functors.hpp"
-#include "internal.hpp"
 
 namespace Omega_h {
 

@@ -14,7 +14,9 @@ typedef I32 LO;
 typedef I64 GO;
 typedef double Real;
 
-constexpr Real PI = 3.141592653589793;
+constexpr Real PI = OMEGA_H_PI;
+constexpr Real EPSILON = OMEGA_H_EPSILON;
+constexpr Int MANTISSA_BITS = OMEGA_H_MANTISSA_BITS;
 
 }  // end namespace Omega_h
 

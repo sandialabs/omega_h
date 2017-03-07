@@ -83,4 +83,8 @@
 #define OMEGA_H_SYSTEM_HEADER OMEGA_H_PRAGMA(GCC system_header)
 #endif
 
+#define OMEGA_H_PI 3.141592653589793
+#define OMEGA_H_EPSILON 1e-10
+#define OMEGA_H_MANTISSA_BITS 52
+
 #endif
