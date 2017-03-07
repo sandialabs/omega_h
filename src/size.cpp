@@ -360,4 +360,24 @@ Reals get_gradient_isos(
   return out;
 }
 
+Reals clamp_deforming_isos(
+    Mesh* mesh,
+    Reals isos,
+    Real min_size,
+    Real max_interior_size,
+    Real max_boundary_size) {
+  CHECK(min_size <= max_interior_size);
+  CHECK(max_boundary_size <= max_interior_size);
+  auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
+  auto dim = mesh->dim();
+  auto verts_are_boundary = invert_marks(each_eq_to(class_dims, I8(dim)));
+  auto bv2v = collect_marked(verts_are_boundary);
+  auto maxima_w = Write<Real>(mesh->nverts(), max_interior_size);
+  map_into(Reals(bv2v.size(), max_boundary_size), bv2v, maxima_w, 1);
+  auto maxima = Reals(maxima_w);
+  isos = min_each(isos, maxima);
+  isos = max_each_with(isos, min_size);
+  return isos;
+}
+
 }  // end namespace Omega_h

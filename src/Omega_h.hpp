@@ -515,6 +515,12 @@ template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a);
 template <typename T>
 Read<T> min_each(Read<T> a, Read<T> b);
+template <typename T>
+Read<T> max_each_with(Read<T> a, T b);
+template <typename T>
+Read<T> max_each_with(Read<T> a, Read<T> b);
+template <typename T>
+Read<T> clamp_each_to(Read<T> a, T min, T max);
 LOs collect_marked(Read<I8> marks);
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
@@ -535,6 +541,12 @@ Reals smooth_isos_once(Mesh* mesh, Reals v2h);
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
 Reals get_gradient_isos(
     Mesh* mesh, Real error_bound, Real max_size, Reals scalar_field);
+Reals clamp_deforming_isos(
+    Mesh* mesh,
+    Reals isos,
+    Real min_size,
+    Real max_interior_size,
+    Real max_boundary_size);
 
 Reals recover_hessians(Mesh* mesh, Reals vert_values);
 Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax);
@@ -618,6 +630,8 @@ bool ends_with(std::string const& s, std::string const& suffix);
   extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
   extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
   extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
+  extern template Read<T> max_each_with(Read<T> a, T b);                      \
+  extern template Read<T> clamp_each_to(Read<T> a, T min, T max); \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
   extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \
