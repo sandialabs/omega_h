@@ -24,7 +24,7 @@ template <typename T>
 class CmdLineArg : public CmdLineItem {
  public:
   CmdLineArg(std::string const& name, T const& defval);
-  virtual ~CmdLineArg();
+  ~CmdLineArg() override;
   bool parse_impl(int* p_argc, char** argv, int i, bool should_print) override;
   T get() const;
 
