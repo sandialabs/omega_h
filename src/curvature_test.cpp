@@ -4,7 +4,7 @@
 #include "eigen.hpp"
 #include "host_few.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "mark.hpp"
 #include "space.hpp"
 #include "surface.hpp"

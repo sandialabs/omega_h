@@ -5,7 +5,7 @@
 #include "Omega_h_math.hpp"
 #include "access.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "mark.hpp"
 #include "simplices.hpp"
 #include "space.hpp"

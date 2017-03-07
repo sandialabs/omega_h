@@ -2,7 +2,7 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "hilbert.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "unmap_mesh.hpp"
 
 namespace Omega_h {

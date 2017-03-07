@@ -1,7 +1,8 @@
-#ifndef MAP_HPP
-#define MAP_HPP
+#ifndef OMEGA_H_MAP_HPP
+#define OMEGA_H_MAP_HPP
 
-#include "internal.hpp"
+#include <Omega_h_array.hpp>
+#include <Omega_h_graph.hpp>
 
 namespace Omega_h {
 
@@ -17,6 +18,9 @@ Read<T> unmap(LOs a2b, Read<T> b_data, Int width);
 template <typename T>
 Read<T> expand(Read<T> a_data, LOs a2b, Int width);
 
+template <typename T>
+Read<T> permute(Read<T> a_data, LOs a2b, Int width);
+
 LOs multiply_fans(LOs a2b, LOs a2c);
 
 LOs compound_maps(LOs a2b, LOs b2c);
@@ -24,6 +28,8 @@ LOs compound_maps(LOs a2b, LOs b2c);
 LOs invert_permutation(LOs a2b);
 
 Read<I8> invert_marks(Read<I8> marks);
+
+LOs collect_marked(Read<I8> marks);
 
 Read<I8> mark_image(LOs a2b, LO nb);
 
@@ -50,6 +56,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 Read<I8> fan_reduce_bit_and(LOs a2b, Read<I8> b_data, Int width);
 
 #define INST_T(T)                                                              \
+  extern template Read<T> permute(Read<T> a_data, LOs a2b, Int width);         \
   extern template void map_into(                                               \
       Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                    \
   extern template Read<T> map_onto(                                            \

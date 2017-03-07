@@ -8,7 +8,7 @@
 #include "control.hpp"
 #include "histogram.hpp"
 #include "laplace.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
 #include "swap.hpp"

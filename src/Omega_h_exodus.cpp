@@ -8,7 +8,7 @@
 #include "classify.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "mark.hpp"
 #include "simplices.hpp"
 

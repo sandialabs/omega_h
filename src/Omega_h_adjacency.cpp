@@ -1,7 +1,7 @@
 #include "adjacency.hpp"
 
+#include "Omega_h_map.hpp"
 #include "internal.hpp"
-#include "map.hpp"
 #include "scan.hpp"
 #include "loop.hpp"
 

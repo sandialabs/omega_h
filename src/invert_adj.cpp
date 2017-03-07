@@ -3,7 +3,7 @@
 #include "align.hpp"
 #include "control.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "timer.hpp"
 
 namespace Omega_h {

@@ -10,7 +10,7 @@
 #include "algebra.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "linpart.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "owners.hpp"
 #include "simplices.hpp"
 

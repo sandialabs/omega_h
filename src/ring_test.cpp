@@ -1,6 +1,7 @@
 #include "Omega_h.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_math.hpp"
+#include "Omega_h_map.hpp"
 #include "internal.hpp"
 #include "laplace.hpp"
 #include "loop.hpp"

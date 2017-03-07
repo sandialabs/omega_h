@@ -10,7 +10,7 @@
 #include "control.hpp"
 #include "ghost.hpp"
 #include "inertia.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "mark.hpp"
 #include "migrate.hpp"
 #include "quality.hpp"

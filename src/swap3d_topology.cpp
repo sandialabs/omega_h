@@ -1,7 +1,7 @@
 #include "swap3d.hpp"
 
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "scan.hpp"
 #include "swap3d_loop.hpp"
 #include "swap3d_tables.hpp"

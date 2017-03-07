@@ -1,7 +1,7 @@
 #include "ghost.hpp"
 
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "migrate.hpp"
 #include "remotes.hpp"
 

@@ -2,7 +2,7 @@
 #include "internal.hpp"
 #include "laplace.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "space.hpp"
 #include "timer.hpp"
 

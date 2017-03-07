@@ -4,7 +4,7 @@
 
 #include "algebra.hpp"
 #include "classify.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 
 namespace Omega_h {
 

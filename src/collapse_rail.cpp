@@ -1,7 +1,7 @@
 #include "coarsen.hpp"
 #include "collapse.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 
 /* this file deals with the choice of which
  * edge collapse a vertex will participate in.

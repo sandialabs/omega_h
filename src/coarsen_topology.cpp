@@ -4,7 +4,7 @@
 #include "adjacency.hpp"
 #include "collapse.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "simplices.hpp"
 
 namespace Omega_h {

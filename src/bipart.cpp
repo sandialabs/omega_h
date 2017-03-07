@@ -3,7 +3,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "internal.hpp"
 #include "linpart.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 
 namespace Omega_h {
 

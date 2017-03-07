@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "owners.hpp"
 #include "remotes.hpp"
 #include "scan.hpp"

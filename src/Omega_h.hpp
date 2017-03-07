@@ -15,9 +15,6 @@
 
 namespace Omega_h {
 
-template <typename T>
-Read<T> permute(Read<T> a_data, LOs a2b, Int width);
-
 class TagBase {
  public:
   TagBase(std::string const& name, Int ncomps, Int xfer, Int outflags);
@@ -500,8 +497,6 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
 void fix_momentum_velocity_verts(
     Mesh* mesh, Int class_dim, I32 class_id, Int comp);
 
-LOs collect_marked(Read<I8> marks);
-
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
 bool approach_size_field(Mesh* mesh, AdaptOpts const& opts);
 
@@ -605,7 +600,6 @@ bool ends_with(std::string const& s, std::string const& suffix);
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
-  extern template Read<T> permute(Read<T> a_data, LOs a2b, Int width);         \
   extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
   extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
   extern template void Comm::bcast(T& x) const;                                \

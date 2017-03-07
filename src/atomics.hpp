@@ -1,6 +1,8 @@
 #ifndef ATOMICS_HPP
 #define ATOMICS_HPP
 
+#include "internal.hpp"
+
 namespace Omega_h {
 
 template <bool Enable>

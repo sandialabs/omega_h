@@ -1,8 +1,8 @@
 #include "adjacency.hpp"
 
+#include "Omega_h_map.hpp"
 #include "align.hpp"
 #include "loop.hpp"
-#include "map.hpp"
 #include "sort.hpp"
 
 namespace Omega_h {

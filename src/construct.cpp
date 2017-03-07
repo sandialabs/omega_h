@@ -5,7 +5,7 @@
 #include "align.hpp"
 #include "box.hpp"
 #include "linpart.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "owners.hpp"
 #include "remotes.hpp"
 #include "simplify.hpp"

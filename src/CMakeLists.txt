@@ -5,12 +5,12 @@ set(Omega_h_SOURCES
   timer.cpp
   Omega_h_array.cpp
   Omega_h_array_ops.cpp
+  Omega_h_map.cpp
+  scan.cpp
+  sort.cpp
   int128.cpp
   repro.cpp
-  sort.cpp
-  scan.cpp
   indset.cpp
-  map.cpp
   simplices.cpp
   Omega_h_adjacency.cpp
   form_uses.cpp
@@ -385,6 +385,7 @@ set(Omega_h_HEADERS
   Omega_h_functors.hpp
   Omega_h_array_ops.hpp
   Omega_h_graph.hpp
+  Omega_h_map.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

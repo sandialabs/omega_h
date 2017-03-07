@@ -6,7 +6,7 @@
 #include "collapse.hpp"
 #include "indset.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "mark.hpp"
 #include "modify.hpp"
 #include "transfer.hpp"

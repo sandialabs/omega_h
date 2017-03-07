@@ -4,7 +4,7 @@
 #include "align.hpp"
 #include "adjacency.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "mark.hpp"
 #include "size.hpp"
 

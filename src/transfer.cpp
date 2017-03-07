@@ -4,7 +4,7 @@
 #include "control.hpp"
 #include "fit.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "metric.hpp"
 #include "quality.hpp"
 #include "size.hpp"

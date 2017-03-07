@@ -2,7 +2,7 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "loop.hpp"
-#include "map.hpp"
+#include "Omega_h_map.hpp"
 #include "scan.hpp"
 #include "sort.hpp"
 
