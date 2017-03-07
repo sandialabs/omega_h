@@ -18,7 +18,7 @@ struct Tag {
 bool parse_tag(std::string const& line, xml::Tag* tag_out);
 
 xml::Tag read_tag(std::istream& stream);
-}
+}  // namespace xml
 
 }  // end namespace Omega_h
 

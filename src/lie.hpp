@@ -108,6 +108,6 @@ INLINE Matrix<dim, dim> exp_glp(LogDecomp<dim> log_a) {
   auto u = exp_so(log_a.log_u);
   return u * p;
 }
-}
+}  // namespace Omega_h
 
 #endif

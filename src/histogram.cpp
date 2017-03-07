@@ -80,4 +80,4 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
       Mesh * mesh, Histogram<n> histogram, std::string const& name);
 INST(10)
 #undef INST
-}
+}  // namespace Omega_h

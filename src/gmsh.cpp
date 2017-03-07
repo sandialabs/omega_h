@@ -142,6 +142,6 @@ void read(std::string const& filename, Mesh* mesh) {
   }
   read(file, mesh);
 }
-}
+}  // namespace gmsh
 
 }  // end namespace Omega_h

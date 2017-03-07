@@ -7,6 +7,6 @@ namespace Omega_h {
 Read<I8> find_bridge_edges(Mesh* mesh);
 Read<I8> find_angle_triangles(Mesh* mesh);
 Read<I8> find_angle_elems(Mesh* mesh);
-}
+}  // namespace Omega_h
 
 #endif

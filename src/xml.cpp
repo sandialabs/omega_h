@@ -105,6 +105,6 @@ xml::Tag read_tag(std::istream& stream) {
   CHECK(parse_tag(line, &st));
   return st;
 }
-}
+}  // namespace xml
 
 }  // end namespace Omega_h

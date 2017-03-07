@@ -110,7 +110,7 @@ DEVICE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
 DEVICE void hex_bur_rot_to_right(LO hhv2v[], Int new_right) {
   hex_bur_rot_ntimes(hhv2v, ((3 - new_right) % 3));
 }
-}
+}  // namespace
 
 LOs tris_from_quads(LOs qv2v) {
   CHECK(qv2v.size() % 4 == 0);

@@ -237,4 +237,4 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
   auto warp = Reals(host_warp.write());
   return warp;
 }
-}
+}  // namespace Omega_h

@@ -180,4 +180,4 @@ Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
   auto v2h = map_onto(bv2h, bridged_verts, mesh->nverts(), max_size, 1);
   return mesh->sync_array(VERT, v2h, 1);
 }
-}
+}  // namespace Omega_h

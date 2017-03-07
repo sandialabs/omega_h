@@ -54,4 +54,4 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   parallel_for(n, f);
   return out;
 }
-}
+}  // namespace Omega_h

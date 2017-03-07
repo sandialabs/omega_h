@@ -186,7 +186,7 @@ Reals find_implied_metric(Mesh* mesh) {
  * When we need to scale desired edge lengths, we
  * use the inverse of the square root of the $\beta$ factor.
  * (a metric tensor eigenvalue is $(1/h^2)$, where $h$ is desired length).
-*/
+ */
 
 struct MeanSquaredIsoLength {
   Reals e2h;

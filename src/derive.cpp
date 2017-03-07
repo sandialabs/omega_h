@@ -98,4 +98,4 @@ Reals recover_hessians(Mesh* mesh, Reals vert_values) {
   auto v_grad = recover_gradients(mesh, vert_values);
   return recover_hessians_from_gradients(mesh, v_grad);
 }
-}
+}  // namespace Omega_h

@@ -373,7 +373,7 @@ bool can_print(Mesh* mesh);
 namespace meshb {
 void read(Mesh* mesh, const char* filepath);
 void write(Mesh* mesh, const char* filepath, int version);
-}
+}  // namespace meshb
 #endif
 
 #ifdef OMEGA_H_USE_SEACASEXODUS
@@ -386,13 +386,13 @@ void read(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
 void write(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
-}
+}  // namespace exodus
 #endif
 
 namespace gmsh {
 void read(std::istream& stream, Mesh* mesh);
 void read(std::string const& filename, Mesh* mesh);
-}
+}  // namespace gmsh
 
 namespace vtk {
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim);
@@ -476,7 +476,7 @@ I32 read_nparts(std::string const& path, CommPtr comm);
 I32 read_version(std::string const& path, CommPtr comm);
 void read_in_comm(
     std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
-}
+}  // namespace binary
 
 void build_from_elems2verts(
     Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);

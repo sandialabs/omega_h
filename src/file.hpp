@@ -51,7 +51,7 @@ INST_DECL(Real)
 #undef INST_DECL
 // for VTK compression headers
 extern template void swap_if_needed(std::size_t& val, bool is_little_endian);
-}
+}  // namespace binary
 
 inline std::string to_string(I32 x) {
 #ifdef __INTEL_COMPILER

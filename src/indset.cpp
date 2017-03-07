@@ -71,7 +71,7 @@ static Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
   }
   return state;
 }
-}
+}  // namespace indset
 
 Read<I8> find_indset(
     Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates) {

@@ -36,7 +36,7 @@ void read_pvd(std::istream& stream, std::vector<Real>* times_out,
 
 void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
     std::vector<std::string>* pvtupaths_out);
-}
+}  // namespace vtk
 
 }  // end namespace Omega_h
 

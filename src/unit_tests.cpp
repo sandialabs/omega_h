@@ -140,7 +140,7 @@ static void test_eigen_quadratic() {
   test_eigen(zero_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(0, 0));
   test_eigen(matrix_2x2(8.67958, -14.0234, -1.04985, 2.25873),
       matrix_2x2(9.9192948778227130e-01, 8.6289280817702185e-01,
-                 -1.2679073810022995e-01, 5.0538698202107812e-01),
+          -1.2679073810022995e-01, 5.0538698202107812e-01),
       vector_2(1.0472083659357935e+01, 4.6622634064206342e-01));
 }
 
@@ -403,8 +403,8 @@ static void test_bbox() {
   CHECK(are_close(BBox<2>(vector_2(-3, -3), vector_2(3, 3)),
       find_bounding_box<2>(Reals({0, -3, 3, 0, 0, 3, -3, 0}))));
   CHECK(are_close(BBox<3>(vector_3(-3, -3, -3), vector_3(3, 3, 3)),
-      find_bounding_box<3>(Reals(
-          {0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, -3, 0, 0, 3}))));
+      find_bounding_box<3>(
+          Reals({0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, -3, 0, 0, 3}))));
 }
 
 static void test_build_from_elems2verts(Library* lib) {

@@ -211,5 +211,5 @@ void write(Mesh* mesh, const char* filepath, int version) {
   }
   Omega_h_fail("unknown libMeshb version %d when writing\n", version);
 }
-}
-}
+}  // namespace meshb
+}  // namespace Omega_h

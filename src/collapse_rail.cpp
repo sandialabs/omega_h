@@ -1,5 +1,5 @@
-#include "collapse.hpp"
 #include "coarsen.hpp"
+#include "collapse.hpp"
 #include "loop.hpp"
 #include "map.hpp"
 
@@ -102,4 +102,4 @@ void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
   *rails2edges = rails2edges_w;
   *rail_col_dirs = rail_col_dirs_w;
 }
-}
+}  // namespace Omega_h

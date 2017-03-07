@@ -66,4 +66,4 @@ Read<I8> prevent_coarsen_overshoot(
   }
   NORETURN(Read<I8>());
 }
-}
+}  // namespace Omega_h
