@@ -19,7 +19,7 @@ namespace Omega_h {
 
 bool ends_with(std::string const& s, std::string const& suffix) {
   if (s.length() < suffix.length()) return false;
-  return s.substr(s.length() - suffix.length(), suffix.length()) == suffix;
+  return 0 == s.compare(s.length() - suffix.length(), suffix.length(), suffix);
 }
 
 bool is_little_endian_cpu() {
