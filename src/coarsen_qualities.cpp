@@ -1,7 +1,7 @@
 #include "coarsen.hpp"
 
 #include "access.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "collapse.hpp"
 #include "graph.hpp"
 #include "loop.hpp"

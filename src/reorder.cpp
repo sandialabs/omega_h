@@ -1,6 +1,6 @@
 #include "reorder.hpp"
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "graph.hpp"
 #include "hilbert.hpp"
 #include "map.hpp"

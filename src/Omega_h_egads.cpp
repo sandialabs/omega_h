@@ -1,5 +1,5 @@
 #include "Omega_h_egads.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "graph.hpp"
 #include "internal.hpp"
 #include "map.hpp"

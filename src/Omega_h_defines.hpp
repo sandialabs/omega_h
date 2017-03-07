@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include <Omega_h_c.h>
+
 namespace Omega_h {
 
 typedef std::int8_t I8;

@@ -4,7 +4,7 @@
 #include "Omega_h_proximity.hpp"
 #include "adjacency.hpp"
 #include "align.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "bbox.hpp"
 #include "derive.hpp"
 #include "eigen.hpp"

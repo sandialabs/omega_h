@@ -1,7 +1,7 @@
 #ifndef HISTOGRAM_HPP
 #define HISTOGRAM_HPP
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "host_few.hpp"
 
 namespace Omega_h {

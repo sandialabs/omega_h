@@ -1,4 +1,5 @@
 #include "Omega_h.hpp"
+#include "Omega_h_array_ops.hpp"
 
 #include <cstdlib>
 #include <iostream>

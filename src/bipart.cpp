@@ -1,6 +1,6 @@
 #include "bipart.hpp"
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "internal.hpp"
 #include "linpart.hpp"
 #include "map.hpp"

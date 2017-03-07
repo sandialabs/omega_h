@@ -2,8 +2,8 @@
 
 #include <cmath>
 
+#include "Omega_h_array_ops.hpp"
 #include "Omega_h_functors.hpp"
-#include "array.hpp"
 #include "int128.hpp"
 #include "loop.hpp"
 #include "map.hpp"

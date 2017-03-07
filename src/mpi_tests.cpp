@@ -1,7 +1,7 @@
 #include "Omega_h.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_math.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "bipart.hpp"
 #include "construct.hpp"
 #include "inertia.hpp"

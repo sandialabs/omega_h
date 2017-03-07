@@ -4,6 +4,7 @@ set(Omega_h_SOURCES
   Omega_h_control.cpp
   timer.cpp
   Omega_h_array.cpp
+  Omega_h_array_ops.cpp
   int128.cpp
   repro.cpp
   sort.cpp
@@ -381,6 +382,7 @@ set(Omega_h_HEADERS
   Omega_h.hpp
   Omega_h_math.hpp
   Omega_h_functors.hpp
+  Omega_h_array_ops.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

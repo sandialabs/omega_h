@@ -1,6 +1,6 @@
 #include "mark.hpp"
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
 #include "simplices.hpp"

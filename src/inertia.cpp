@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "access.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "bipart.hpp"
 #include "eigen.hpp"
 #include "loop.hpp"

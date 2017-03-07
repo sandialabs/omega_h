@@ -1,7 +1,7 @@
 #include "adjacency.hpp"
 
+#include "Omega_h_array_ops.hpp"
 #include "align.hpp"
-#include "array.hpp"
 #include "loop.hpp"
 #include "simplices.hpp"
 

@@ -4,7 +4,7 @@
 #include <set>
 
 #include "Omega_h.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "classify.hpp"
 #include "internal.hpp"
 #include "loop.hpp"

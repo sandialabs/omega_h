@@ -1,5 +1,6 @@
 #include <libmeshb7.h>
-#include <Omega_h.hpp>
+#include "Omega_h.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "classify.hpp"
 #include "map.hpp"
 

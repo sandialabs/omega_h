@@ -20,7 +20,7 @@
  * 195.48 (2006): 6626-6645.
  */
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "fit.hpp"
 #include "graph.hpp"
 #include "loop.hpp"

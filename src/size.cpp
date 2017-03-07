@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "derive.hpp"
 #include "eigen.hpp"
 #include "graph.hpp"
@@ -376,7 +376,7 @@ Reals clamp_deforming_isos(
   map_into(Reals(bv2v.size(), max_boundary_size), bv2v, maxima_w, 1);
   auto maxima = Reals(maxima_w);
   isos = min_each(isos, maxima);
-  isos = max_each_with(isos, min_size);
+  isos = each_max_with(isos, min_size);
   return isos;
 }
 

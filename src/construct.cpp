@@ -1,8 +1,8 @@
 #include "construct.hpp"
 
+#include "Omega_h_array_ops.hpp"
 #include "adjacency.hpp"
 #include "align.hpp"
-#include "array.hpp"
 #include "box.hpp"
 #include "linpart.hpp"
 #include "map.hpp"

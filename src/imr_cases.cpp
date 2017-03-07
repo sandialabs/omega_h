@@ -22,7 +22,7 @@ struct Case {
 Case::~Case() {}
 
 struct TranslateBall : public Case {
-  ~TranslateBall();
+  ~TranslateBall() override;
   virtual const char* file_name() const override { return "ball_in_cube.msh"; }
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72});
@@ -45,7 +45,7 @@ struct TranslateBall : public Case {
 TranslateBall::~TranslateBall() {}
 
 struct RotateBall : public Case {
-  ~RotateBall();
+  ~RotateBall() override;
   virtual const char* file_name() const override { return "ball_in_cube.msh"; }
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72});
@@ -77,7 +77,7 @@ struct RotateBall : public Case {
 RotateBall::~RotateBall() {}
 
 struct CollideBalls : public Case {
-  ~CollideBalls();
+  ~CollideBalls() override;
   virtual const char* file_name() const override { return "balls_in_box.msh"; }
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72, 110});
@@ -105,7 +105,7 @@ struct CollideBalls : public Case {
 CollideBalls::~CollideBalls() {}
 
 struct CylinderTube : public Case {
-  ~CylinderTube();
+  ~CylinderTube() override;
   virtual const char* file_name() const override {
     return "cylinder_thru_tube.msh";
   }
@@ -133,7 +133,7 @@ struct TwinRotor : public Case {
   std::set<I32> assembly0;
   std::set<I32> assembly1;
   TwinRotor() : assembly0({66, 98, 126}), assembly1({254, 253, 252}) {}
-  ~TwinRotor();
+  ~TwinRotor() override;
   virtual const char* file_name() const override { return "twin_rotor.msh"; }
   virtual std::vector<I32> objects() const override {
     std::vector<I32> out;

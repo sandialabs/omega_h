@@ -1,6 +1,6 @@
 #include "map.hpp"
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "atomics.hpp"
 #include "loop.hpp"
 #include "scan.hpp"

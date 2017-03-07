@@ -1,6 +1,6 @@
 #include "comm.hpp"
 
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "int128.hpp"
 #include "loop.hpp"
 #include "scan.hpp"

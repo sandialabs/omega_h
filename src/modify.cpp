@@ -1,7 +1,7 @@
 #include "modify.hpp"
 
 #include "adjacency.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "atomics.hpp"
 #include "control.hpp"
 #include "linpart.hpp"

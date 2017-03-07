@@ -5,7 +5,7 @@
 
 #include "access.hpp"
 #include "adjacency.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "eigen.hpp"
 #include "internal.hpp"
 #include "loop.hpp"

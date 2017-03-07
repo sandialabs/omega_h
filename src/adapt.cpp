@@ -3,7 +3,7 @@
 
 #include "Omega_h_confined.hpp"
 #include "Omega_h_motion.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "coarsen.hpp"
 #include "control.hpp"
 #include "histogram.hpp"

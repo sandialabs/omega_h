@@ -8,7 +8,7 @@
 
 #include "Omega_h_cmdline.hpp"
 #include "algebra.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "linpart.hpp"
 #include "map.hpp"
 #include "owners.hpp"

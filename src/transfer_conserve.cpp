@@ -2,7 +2,7 @@
 
 #include "Omega_h_math.hpp"
 #include "Omega_h_r3d.hpp"
-#include "array.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "collapse.hpp"
 #include "graph.hpp"
 #include "loop.hpp"
