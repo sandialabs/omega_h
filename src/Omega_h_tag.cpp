@@ -1,4 +1,6 @@
-#include "tag.hpp"
+#include "Omega_h_tag.hpp"
+
+#include "internal.hpp"
 
 namespace Omega_h {
 

@@ -10,7 +10,6 @@
 #include "base64.hpp"
 #include "file.hpp"
 #include "simplices.hpp"
-#include "tag.hpp"
 #include "xml.hpp"
 
 namespace Omega_h {

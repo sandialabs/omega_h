@@ -9,7 +9,6 @@
 #include "quality.hpp"
 #include "size.hpp"
 #include "space.hpp"
-#include "tag.hpp"
 #include "timer.hpp"
 #include "transfer_conserve.hpp"
 

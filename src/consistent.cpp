@@ -4,7 +4,6 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "simplices.hpp"
-#include "tag.hpp"
 
 namespace Omega_h {
 

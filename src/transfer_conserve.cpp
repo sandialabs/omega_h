@@ -8,7 +8,6 @@
 #include "loop.hpp"
 #include "simplices.hpp"
 #include "size.hpp"
-#include "tag.hpp"
 #include "transfer.hpp"
 
 namespace Omega_h {

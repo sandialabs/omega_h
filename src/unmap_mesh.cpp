@@ -2,7 +2,6 @@
 
 #include "Omega_h_map.hpp"
 #include "simplices.hpp"
-#include "tag.hpp"
 
 namespace Omega_h {
 

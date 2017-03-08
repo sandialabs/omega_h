@@ -8,7 +8,6 @@
 #include "remotes.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
-#include "tag.hpp"
 
 namespace Omega_h {
 

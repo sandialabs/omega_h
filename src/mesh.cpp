@@ -17,7 +17,6 @@
 #include "reorder.hpp"
 #include "simplices.hpp"
 #include "size.hpp"
-#include "tag.hpp"
 #include "timer.hpp"
 
 namespace Omega_h {

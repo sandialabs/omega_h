@@ -18,7 +18,7 @@ set(Omega_h_SOURCES
   invert_adj.cpp
   reflect_down.cpp
   transit.cpp
-  tag.cpp
+  Omega_h_tag.cpp
   mesh.cpp
   bbox.cpp
   hilbert.cpp
@@ -386,6 +386,7 @@ set(Omega_h_HEADERS
   Omega_h_array_ops.hpp
   Omega_h_graph.hpp
   Omega_h_map.hpp
+  Omega_h_tag.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
