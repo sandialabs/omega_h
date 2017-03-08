@@ -2,7 +2,6 @@
 
 #include "Omega_h_map.hpp"
 #include "access.hpp"
-#include "adjacency.hpp"
 #include "align.hpp"
 #include "loop.hpp"
 #include "mark.hpp"

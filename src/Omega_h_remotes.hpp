@@ -17,6 +17,9 @@ Remotes expand(Remotes a2c, LOs a2b);
 Remotes unmap(LOs a2b, Remotes b2c);
 Remotes identity_remotes(CommPtr comm, LO n);
 
+Remotes owners_from_globals(
+    CommPtr comm, Read<GO> globals, Read<I32> own_ranks);
+
 }  // end namespace Omega_h
 
 #endif

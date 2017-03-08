@@ -1,7 +1,6 @@
 #ifndef OMEGA_H_HPP
 #define OMEGA_H_HPP
 
-#include <cassert>
 #include <iosfwd>
 #include <map>
 #include <new>
@@ -15,6 +14,7 @@
 #include <Omega_h_tag.hpp>
 #include <Omega_h_comm.hpp>
 #include <Omega_h_dist.hpp>
+#include <Omega_h_adj.hpp>
 
 namespace Omega_h {
 
@@ -26,20 +26,6 @@ enum {
   TRI = OMEGA_H_TRI,
   TET = OMEGA_H_TET
 };
-
-struct Adj : public Graph {
-  Adj() {}
-  explicit Adj(LOs ab2b_) : Graph(ab2b_) {}
-  Adj(LOs ab2b_, Read<I8> codes_) : Graph(ab2b_), codes(codes_) {}
-  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_)
-      : Graph(a2ab_, ab2b_), codes(codes_) {}
-  Adj(LOs a2ab_, LOs ab2b_) : Graph(a2ab_, ab2b_) {}
-  Adj(Graph g) : Graph(g) {}
-  Read<I8> codes;
-};
-
-void find_matches(
-    Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
 
 class Library {
  public:
@@ -329,11 +315,6 @@ void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords);
 void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
-
-Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
-
-Remotes owners_from_globals(
-    CommPtr comm, Read<GO> globals, Read<I32> own_ranks);
 
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);

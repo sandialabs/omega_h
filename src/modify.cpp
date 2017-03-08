@@ -2,7 +2,6 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
-#include "adjacency.hpp"
 #include "atomics.hpp"
 #include "control.hpp"
 #include "linpart.hpp"

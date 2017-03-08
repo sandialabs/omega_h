@@ -6,7 +6,6 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_map.hpp"
-#include "adjacency.hpp"
 #include "bcast.hpp"
 #include "control.hpp"
 #include "ghost.hpp"

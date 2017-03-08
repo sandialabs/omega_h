@@ -1,13 +1,27 @@
-#ifndef ADJACENCY_HPP
-#define ADJACENCY_HPP
+#ifndef OMEGA_H_ADJ_HPP
+#define OMEGA_H_ADJ_HPP
 
-#include "internal.hpp"
+#include "Omega_h_graph.hpp"
 
 namespace Omega_h {
 
-Adj unmap_adjacency(LOs a2b, Adj b2c);
+struct Adj : public Graph {
+  Adj() {}
+  explicit Adj(LOs ab2b_) : Graph(ab2b_) {}
+  Adj(LOs ab2b_, Read<I8> codes_) : Graph(ab2b_), codes(codes_) {}
+  Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_)
+      : Graph(a2ab_, ab2b_), codes(codes_) {}
+  Adj(LOs a2ab_, LOs ab2b_) : Graph(a2ab_, ab2b_) {}
+  Adj(Graph g) : Graph(g) {}
+  Read<I8> codes;
+};
 
-LOs order_by_globals(LOs a2ab, LOs ab2b, Read<GO> b_global);
+void find_matches(
+    Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
+
+Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
+
+Adj unmap_adjacency(LOs a2b, Adj b2c);
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals);
 
@@ -36,9 +50,6 @@ Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e);
    since typically data is being pulled into an element
    from its boundary
 */
-template <Int deg, typename T>
-void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out);
 template <typename T>
 void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out);

@@ -12,19 +12,13 @@ set(Omega_h_SOURCES
   repro.cpp
   indset.cpp
   simplices.cpp
-  Omega_h_adjacency.cpp
-  form_uses.cpp
-  find_unique.cpp
-  invert_adj.cpp
-  reflect_down.cpp
-  transit.cpp
+  Omega_h_adj.cpp
   Omega_h_tag.cpp
   mesh.cpp
   bbox.cpp
   hilbert.cpp
   construct.cpp
   graph.cpp
-  star.cpp
   file.cpp
   base64.cpp
   vtk.cpp
@@ -391,6 +385,7 @@ set(Omega_h_HEADERS
   Omega_h_comm.hpp
   Omega_h_remotes.hpp
   Omega_h_dist.hpp
+  Omega_h_adj.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
