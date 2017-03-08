@@ -341,7 +341,7 @@ Write<T> deep_copy(Read<T> a) {
   template class Write<T>;                                                     \
   template class Read<T>;                                                      \
   template class HostWrite<T>;                                                 \
-  template class HostRead<T>;                                      \
+  template class HostRead<T>;                                                  \
   template Write<T> deep_copy(Read<T> a);
 
 INST(I8)

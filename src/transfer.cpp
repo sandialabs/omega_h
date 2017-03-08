@@ -1,10 +1,10 @@
 #include "transfer.hpp"
 
+#include "Omega_h_map.hpp"
 #include "access.hpp"
 #include "control.hpp"
 #include "fit.hpp"
 #include "loop.hpp"
-#include "Omega_h_map.hpp"
 #include "metric.hpp"
 #include "quality.hpp"
 #include "size.hpp"

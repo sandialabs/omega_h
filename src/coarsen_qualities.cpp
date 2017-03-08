@@ -1,10 +1,10 @@
 #include "coarsen.hpp"
 
-#include "access.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_map.hpp"
+#include "access.hpp"
 #include "collapse.hpp"
 #include "loop.hpp"
-#include "Omega_h_map.hpp"
 #include "quality.hpp"
 
 namespace Omega_h {

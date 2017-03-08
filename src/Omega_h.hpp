@@ -515,12 +515,8 @@ Reals smooth_isos_once(Mesh* mesh, Reals v2h);
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
 Reals get_gradient_isos(
     Mesh* mesh, Real error_bound, Real max_size, Reals scalar_field);
-Reals clamp_deforming_isos(
-    Mesh* mesh,
-    Reals isos,
-    Real min_size,
-    Real max_interior_size,
-    Real max_boundary_size);
+Reals clamp_deforming_isos(Mesh* mesh, Reals isos, Real min_size,
+    Real max_interior_size, Real max_boundary_size);
 
 Reals recover_hessians(Mesh* mesh, Reals vert_values);
 Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax);
@@ -611,7 +607,7 @@ bool ends_with(std::string const& s, std::string const& suffix);
   extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
   extern template Read<T> Dist::exch_reduce<T>(                                \
       Read<T> data, Int width, Omega_h_Op op) const;                           \
-  extern template Read<T> Tag<T>::array() const;         \
+  extern template Read<T> Tag<T>::array() const;                               \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \
       Int dim, std::string const& name) const;                                 \
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \

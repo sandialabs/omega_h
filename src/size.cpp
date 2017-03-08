@@ -3,10 +3,10 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_map.hpp"
 #include "derive.hpp"
 #include "eigen.hpp"
 #include "loop.hpp"
-#include "Omega_h_map.hpp"
 #include "mark.hpp"
 #include "project.hpp"
 #include "quality.hpp"
@@ -359,12 +359,8 @@ Reals get_gradient_isos(
   return out;
 }
 
-Reals clamp_deforming_isos(
-    Mesh* mesh,
-    Reals isos,
-    Real min_size,
-    Real max_interior_size,
-    Real max_boundary_size) {
+Reals clamp_deforming_isos(Mesh* mesh, Reals isos, Real min_size,
+    Real max_interior_size, Real max_boundary_size) {
   CHECK(min_size <= max_interior_size);
   CHECK(max_boundary_size <= max_interior_size);
   auto class_dims = mesh->get_array<I8>(VERT, "class_dim");

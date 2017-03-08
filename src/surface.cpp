@@ -1,10 +1,10 @@
 #include "surface.hpp"
 
-#include "access.hpp"
-#include "align.hpp"
-#include "adjacency.hpp"
-#include "loop.hpp"
 #include "Omega_h_map.hpp"
+#include "access.hpp"
+#include "adjacency.hpp"
+#include "align.hpp"
+#include "loop.hpp"
 #include "mark.hpp"
 #include "size.hpp"
 

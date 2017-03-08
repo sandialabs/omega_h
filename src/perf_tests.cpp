@@ -3,9 +3,9 @@
 #include <iostream>
 #include <random>
 
+#include "Omega_h_array_ops.hpp"
 #include "access.hpp"
 #include "adjacency.hpp"
-#include "Omega_h_array_ops.hpp"
 #include "eigen.hpp"
 #include "internal.hpp"
 #include "loop.hpp"

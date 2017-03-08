@@ -2,8 +2,8 @@
 
 #include "Omega_h_map.hpp"
 #include "internal.hpp"
-#include "scan.hpp"
 #include "loop.hpp"
+#include "scan.hpp"
 
 namespace Omega_h {
 

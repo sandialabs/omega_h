@@ -1,8 +1,8 @@
 #include "internal.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "loop.hpp"
 #include "Omega_h_map.hpp"
+#include "loop.hpp"
 #include "scan.hpp"
 #include "sort.hpp"
 

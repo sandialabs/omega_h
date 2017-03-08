@@ -1,8 +1,8 @@
 #include "reorder.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "hilbert.hpp"
 #include "Omega_h_map.hpp"
+#include "hilbert.hpp"
 #include "unmap_mesh.hpp"
 
 namespace Omega_h {

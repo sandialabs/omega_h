@@ -195,7 +195,7 @@ Write<T> deep_copy(Read<T> a);
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
-  extern template class HostWrite<T>;                               \
+  extern template class HostWrite<T>;                                          \
   extern template Write<T> deep_copy(Read<T> a);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)

@@ -1,14 +1,14 @@
 #include <iomanip>
 #include <iostream>
 
-#include "Omega_h_confined.hpp"
-#include "Omega_h_motion.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_confined.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_motion.hpp"
 #include "coarsen.hpp"
 #include "control.hpp"
 #include "histogram.hpp"
 #include "laplace.hpp"
-#include "Omega_h_map.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
 #include "swap.hpp"

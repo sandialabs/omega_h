@@ -100,7 +100,7 @@ LO find_last(Read<T> array, T value);
   extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
   extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
   extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
-  extern template Read<T> each_max_with(Read<T> a, T b);                      \
+  extern template Read<T> each_max_with(Read<T> a, T b);                       \
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
   extern template LO find_last(Read<T> array, T value);

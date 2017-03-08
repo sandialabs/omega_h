@@ -1,11 +1,11 @@
 #include "transfer_conserve.hpp"
 
+#include "Omega_h_array_ops.hpp"
+#include "Omega_h_map.hpp"
 #include "Omega_h_math.hpp"
 #include "Omega_h_r3d.hpp"
-#include "Omega_h_array_ops.hpp"
 #include "collapse.hpp"
 #include "loop.hpp"
-#include "Omega_h_map.hpp"
 #include "simplices.hpp"
 #include "size.hpp"
 #include "tag.hpp"

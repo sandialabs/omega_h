@@ -349,7 +349,7 @@ LO find_last(Read<T> array, T value) {
   template Read<T> add_each(Read<T> a, Read<T> b);                             \
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \
-  template Read<T> each_max_with(Read<T> a, T b);                             \
+  template Read<T> each_max_with(Read<T> a, T b);                              \
   template Read<T> add_to_each(Read<T> a, T b);                                \
   template Read<T> subtract_from_each(Read<T> a, T b);                         \
   template Read<I8> each_geq_to(Read<T> a, T b);                               \
@@ -368,4 +368,3 @@ INST(Real)
 #undef INST
 
 }  // end namespace Omega_h
-

@@ -1,8 +1,8 @@
 #include "classify.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "loop.hpp"
 #include "Omega_h_map.hpp"
+#include "loop.hpp"
 #include "mark.hpp"
 #include "surface.hpp"
 

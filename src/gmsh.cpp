@@ -2,9 +2,9 @@
 
 #include <fstream>
 
+#include "Omega_h_map.hpp"
 #include "algebra.hpp"
 #include "classify.hpp"
-#include "Omega_h_map.hpp"
 
 namespace Omega_h {
 
