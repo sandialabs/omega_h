@@ -57,7 +57,7 @@ set(Omega_h_SOURCES
   coarsen.cpp
   approach.cpp
   laplace.cpp
-  adapt.cpp
+  Omega_h_adapt.cpp
   swap.cpp
   swap2d_qualities.cpp
   swap2d_topology.cpp
@@ -389,6 +389,7 @@ set(Omega_h_HEADERS
   Omega_h_library.hpp
   Omega_h_mesh.hpp
   Omega_h_file.hpp
+  Omega_h_adapt.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

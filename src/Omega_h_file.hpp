@@ -8,6 +8,7 @@
 #include <Omega_h_config.h>
 #include <Omega_h_defines.hpp>
 #include <Omega_h_array.hpp>
+#include <Omega_h_comm.hpp>
 
 namespace Omega_h {
 
@@ -79,6 +80,13 @@ std::string parent_path(std::string const& path);
 std::string path_leaf_name(std::string const& path);
 
 namespace binary {
+
+void write(std::string const& path, Mesh* mesh);
+I32 read(std::string const& path, CommPtr comm, Mesh* mesh);
+I32 read_nparts(std::string const& path, CommPtr comm);
+I32 read_version(std::string const& path, CommPtr comm);
+void read_in_comm(
+    std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
 
 constexpr I32 latest_version = 4;
 

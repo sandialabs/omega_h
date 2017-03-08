@@ -7,58 +7,9 @@
 
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_file.hpp>
+#include <Omega_h_adapt.hpp>
 
 namespace Omega_h {
-
-enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
-
-#ifdef OMEGA_H_USE_EGADS
-struct Egads;
-#endif
-
-struct AdaptOpts {
-  AdaptOpts(Int dim);     // sets defaults
-  AdaptOpts(Mesh* mesh);  // calls above
-  Real min_length_desired;
-  Real max_length_desired;
-  Real max_length_allowed;
-  Real min_quality_allowed;
-  Real min_quality_desired;
-  Int nsliver_layers;
-  Verbosity verbosity;
-  Real length_histogram_min;
-  Real length_histogram_max;
-#ifdef OMEGA_H_USE_EGADS
-  Egads* egads_model;
-  bool should_smooth_snap;
-  Real snap_smooth_tolerance;
-#endif
-  Int max_motion_steps;
-  Real motion_step_size;
-  bool should_refine;
-  bool should_coarsen;
-  bool should_swap;
-  bool should_coarsen_slivers;
-  bool should_move_for_quality;
-  bool should_allow_pinching;
-};
-
-Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts);
-
-/* returns false if the mesh was not modified. */
-bool adapt(Mesh* mesh, AdaptOpts const& opts);
-
-bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts);
-void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts);
-
-namespace binary {
-void write(std::string const& path, Mesh* mesh);
-I32 read(std::string const& path, CommPtr comm, Mesh* mesh);
-I32 read_nparts(std::string const& path, CommPtr comm);
-I32 read_version(std::string const& path, CommPtr comm);
-void read_in_comm(
-    std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
-}  // namespace binary
 
 void build_from_elems2verts(
     Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
