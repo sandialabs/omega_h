@@ -1,6 +1,8 @@
 #ifndef OMEGA_H_LIBRARY_HPP
 #define OMEGA_H_LIBRARY_HPP
 
+#include <map>
+
 #include <Omega_h_comm.hpp>
 
 namespace Omega_h {

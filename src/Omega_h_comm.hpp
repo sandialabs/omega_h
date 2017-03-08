@@ -129,6 +129,21 @@ inline MPI_Op mpi_op(Omega_h_Op op) {
 }
 #endif
 
+#define OMEGA_H_EXPL_INST_DECL(T)                                              \
+  extern template T Comm::allreduce(T x, Omega_h_Op op) const;                 \
+  extern template T Comm::exscan(T x, Omega_h_Op op) const;                    \
+  extern template void Comm::bcast(T& x) const;                                \
+  extern template Read<T> Comm::allgather(T x) const;                          \
+  extern template Read<T> Comm::alltoall(Read<T> x) const;                     \
+  extern template Read<T> Comm::alltoallv(Read<T> sendbuf,                     \
+      Read<LO> sendcounts, Read<LO> sdispls, Read<LO> recvcounts,              \
+      Read<LO> rdispls) const;
+OMEGA_H_EXPL_INST_DECL(I8)
+OMEGA_H_EXPL_INST_DECL(I32)
+OMEGA_H_EXPL_INST_DECL(I64)
+OMEGA_H_EXPL_INST_DECL(Real)
+#undef OMEGA_H_EXPL_INST_DECL
+
 }  // end namespace Omega_h
 
 #endif

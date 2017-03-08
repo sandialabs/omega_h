@@ -14,7 +14,7 @@ set(Omega_h_SOURCES
   simplices.cpp
   Omega_h_adj.cpp
   Omega_h_tag.cpp
-  mesh.cpp
+  Omega_h_mesh.cpp
   bbox.cpp
   hilbert.cpp
   construct.cpp
@@ -387,6 +387,7 @@ set(Omega_h_HEADERS
   Omega_h_dist.hpp
   Omega_h_adj.hpp
   Omega_h_library.hpp
+  Omega_h_mesh.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
