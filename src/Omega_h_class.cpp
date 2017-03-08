@@ -2,8 +2,8 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_mark.hpp"
 #include "loop.hpp"
-#include "mark.hpp"
 #include "surface.hpp"
 
 namespace Omega_h {

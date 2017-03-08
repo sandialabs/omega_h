@@ -1,4 +1,4 @@
-#include "mark.hpp"
+#include "Omega_h_mark.hpp"
 
 #include "Omega_h_array_ops.hpp"
 #include "loop.hpp"

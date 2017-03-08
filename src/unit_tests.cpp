@@ -14,7 +14,6 @@
 #include "lie.hpp"
 #include "linpart.hpp"
 #include "loop.hpp"
-#include "mark.hpp"
 #include "quality.hpp"
 #include "refine_qualities.hpp"
 #include "scan.hpp"

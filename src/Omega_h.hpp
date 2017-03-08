@@ -11,13 +11,10 @@
 #include <Omega_h_build.hpp>
 #include <Omega_h_class.hpp>
 #include <Omega_h_align.hpp>
+#include <Omega_h_mark.hpp>
 
 namespace Omega_h {
 
-Read<I8> mark_class_closure(
-    Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id);
-Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
-    std::vector<Int> class_dims, std::vector<I32> class_ids);
 void fix_momentum_velocity_verts(
     Mesh* mesh, Int class_dim, I32 class_id, Int comp);
 

@@ -24,7 +24,7 @@ set(Omega_h_SOURCES
   simplify.cpp
   box.cpp
   surface.cpp
-  mark.cpp
+  Omega_h_mark.cpp
   Omega_h_class.cpp
   reorder.cpp
   size.cpp
@@ -394,6 +394,7 @@ set(Omega_h_HEADERS
   Omega_h_scalar.hpp
   Omega_h_align.hpp
   Omega_h_few.hpp
+  Omega_h_mark.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

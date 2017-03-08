@@ -6,7 +6,6 @@
 #include "control.hpp"
 #include "linpart.hpp"
 #include "loop.hpp"
-#include "mark.hpp"
 #include "owners.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
