@@ -9,7 +9,6 @@ set(Omega_h_SOURCES
   scan.cpp
   sort.cpp
   Omega_h_int128.cpp
-  repro.cpp
   indset.cpp
   simplices.cpp
   Omega_h_adj.cpp

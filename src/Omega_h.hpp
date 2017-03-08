@@ -19,11 +19,6 @@ void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
 
-Real repro_sum(Reals a);
-Real repro_sum(CommPtr comm, Reals a);
-void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
-Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
-
 OMEGA_H_INLINE bool code_is_flipped(I8 code) { return code & 1; }
 
 OMEGA_H_INLINE Int code_rotation(I8 code) { return (code >> 1) & 3; }

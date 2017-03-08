@@ -77,6 +77,11 @@ Read<T> get_component(Read<T> a, Int ncomps, Int comp);
 template <typename T>
 LO find_last(Read<T> array, T value);
 
+Real repro_sum(Reals a);
+Real repro_sum(CommPtr comm, Reals a);
+void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
+Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
+
 #define INST_DECL(T)                                                           \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
   extern template typename StandinTraits<T>::type get_sum(Read<T> a);          \
