@@ -9,10 +9,9 @@
 #include <Omega_h_file.hpp>
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_build.hpp>
+#include <Omega_h_class.hpp>
 
 namespace Omega_h {
-
-void classify_by_angles(Mesh* mesh, Real sharp_angle);
 
 OMEGA_H_INLINE bool code_is_flipped(I8 code) { return code & 1; }
 

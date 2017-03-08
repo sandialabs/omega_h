@@ -1,9 +1,13 @@
-#ifndef CLASSIFY_HPP
-#define CLASSIFY_HPP
+#ifndef OMEGA_H_CLASSIFY_HPP
+#define OMEGA_H_CLASSIFY_HPP
 
-#include "internal.hpp"
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
+
+class Mesh;
+
+void classify_by_angles(Mesh* mesh, Real sharp_angle);
 
 void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed);
 void classify_hinges_by_sharpness(

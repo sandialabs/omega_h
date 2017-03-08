@@ -1,4 +1,4 @@
-#include "classify.hpp"
+#include "Omega_h_class.hpp"
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"

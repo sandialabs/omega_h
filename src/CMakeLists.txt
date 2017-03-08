@@ -25,7 +25,7 @@ set(Omega_h_SOURCES
   box.cpp
   surface.cpp
   mark.cpp
-  classify.cpp
+  Omega_h_class.cpp
   reorder.cpp
   size.cpp
   access.cpp
@@ -390,6 +390,7 @@ set(Omega_h_HEADERS
   Omega_h_file.hpp
   Omega_h_adapt.hpp
   Omega_h_build.hpp
+  Omega_h_classify.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
