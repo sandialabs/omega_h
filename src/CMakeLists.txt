@@ -386,6 +386,7 @@ set(Omega_h_HEADERS
   Omega_h_remotes.hpp
   Omega_h_dist.hpp
   Omega_h_adj.hpp
+  Omega_h_library.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
