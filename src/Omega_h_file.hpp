@@ -1,9 +1,76 @@
-#ifndef FILE_HPP
-#define FILE_HPP
+#ifndef OMEGA_H_FILE_HPP
+#define OMEGA_H_FILE_HPP
 
-#include "internal.hpp"
+#include <iosfwd>
+#include <string>
+#include <vector>
+
+#include <Omega_h_config.h>
+#include <Omega_h_defines.hpp>
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
+
+class Mesh;
+
+#ifdef OMEGA_H_USE_LIBMESHB
+namespace meshb {
+void read(Mesh* mesh, const char* filepath);
+void write(Mesh* mesh, const char* filepath, int version);
+}  // namespace meshb
+#endif
+
+#ifdef OMEGA_H_USE_SEACASEXODUS
+namespace exodus {
+enum ClassifyWith {
+  NODE_SETS = 0x1,
+  SIDE_SETS = 0x2,
+};
+void read(std::string const& path, Mesh* mesh, bool verbose = false,
+    int classify_with = NODE_SETS | SIDE_SETS);
+void write(std::string const& path, Mesh* mesh, bool verbose = false,
+    int classify_with = NODE_SETS | SIDE_SETS);
+}  // namespace exodus
+#endif
+
+namespace gmsh {
+void read(std::istream& stream, Mesh* mesh);
+void read(std::string const& filename, Mesh* mesh);
+}  // namespace gmsh
+
+namespace vtk {
+void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim);
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim);
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim);
+class Writer {
+  Mesh* mesh_;
+  std::string root_path_;
+  Int cell_dim_;
+  Int step_;
+  std::streampos pvd_pos_;
+
+ public:
+  Writer();
+  Writer(Writer const&);
+  Writer& operator=(Writer const&);
+  ~Writer();
+  Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
+  void write(Real time);
+  void write();
+};
+class FullWriter {
+  std::vector<Writer> writers_;
+
+ public:
+  FullWriter();
+  FullWriter(FullWriter const&);
+  FullWriter& operator=(FullWriter const&);
+  ~FullWriter();
+  FullWriter(Mesh* mesh, std::string const& root_path);
+  void write(Real time);
+  void write();
+};
+}  // end namespace vtk
 
 bool is_little_endian_cpu();
 void safe_mkdir(const char* path);
@@ -55,8 +122,8 @@ extern template void swap_if_needed(std::size_t& val, bool is_little_endian);
 
 inline std::string to_string(I32 x) {
 #ifdef __INTEL_COMPILER
-  /* Intel compiler doesn't seem to have 32-bit specializations
-   * for std::to_string, which makes it non-compliant with C++11
+  /* Intel compilers with low GCC compat. don't have 32-bit specializations
+   * for std::to_string, which makes them non-compliant with C++11
    */
   return std::to_string(static_cast<long long>(x));
 #else
@@ -64,6 +131,6 @@ inline std::string to_string(I32 x) {
 #endif
 }
 
-}  // end namespace Omega_h
+}
 
 #endif

@@ -8,7 +8,6 @@
 #include "bbox.hpp"
 #include "derive.hpp"
 #include "eigen.hpp"
-#include "file.hpp"
 #include "hilbert.hpp"
 #include "inertia.hpp"
 #include "internal.hpp"

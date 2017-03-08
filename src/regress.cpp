@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "Omega_h_compare.hpp"
-#include "file.hpp"
 
 namespace Omega_h {
 

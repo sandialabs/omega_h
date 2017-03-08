@@ -19,7 +19,7 @@ set(Omega_h_SOURCES
   hilbert.cpp
   construct.cpp
   graph.cpp
-  file.cpp
+  Omega_h_file.cpp
   base64.cpp
   vtk.cpp
   simplify.cpp
@@ -388,6 +388,7 @@ set(Omega_h_HEADERS
   Omega_h_adj.hpp
   Omega_h_library.hpp
   Omega_h_mesh.hpp
+  Omega_h_file.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
