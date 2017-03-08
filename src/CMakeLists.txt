@@ -38,7 +38,7 @@ set(Omega_h_SOURCES
   access.cpp
   quality.cpp
   gmsh.cpp
-  comm.cpp
+  Omega_h_comm.cpp
   remotes.cpp
   dist.cpp
   linpart.cpp
