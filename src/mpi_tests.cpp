@@ -3,7 +3,6 @@
 #include "Omega_h_compare.hpp"
 #include "Omega_h_math.hpp"
 #include "bipart.hpp"
-#include "construct.hpp"
 #include "inertia.hpp"
 #include "internal.hpp"
 #include "loop.hpp"

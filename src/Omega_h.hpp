@@ -8,14 +8,9 @@
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_adapt.hpp>
+#include <Omega_h_build.hpp>
 
 namespace Omega_h {
-
-void build_from_elems2verts(
-    Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
-void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts);
-void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords);
-void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle);
 

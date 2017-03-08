@@ -16,7 +16,7 @@ set(Omega_h_SOURCES
   Omega_h_mesh.cpp
   bbox.cpp
   hilbert.cpp
-  construct.cpp
+  Omega_h_build.cpp
   graph.cpp
   Omega_h_file.cpp
   base64.cpp
@@ -389,6 +389,7 @@ set(Omega_h_HEADERS
   Omega_h_mesh.hpp
   Omega_h_file.hpp
   Omega_h_adapt.hpp
+  Omega_h_build.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
