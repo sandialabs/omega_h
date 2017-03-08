@@ -48,6 +48,12 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts);
 bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts);
 void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts);
 
+void fix_momentum_velocity_verts(
+    Mesh* mesh, Int class_dim, I32 class_id, Int comp);
+
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
+bool approach_size_field(Mesh* mesh, AdaptOpts const& opts);
+
 }
 
 #endif

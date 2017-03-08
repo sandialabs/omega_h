@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <initializer_list>
+#include <new>
 
 #include <Omega_h_kokkos.hpp>
 
