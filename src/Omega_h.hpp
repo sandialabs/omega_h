@@ -13,6 +13,7 @@
 #include <Omega_h_array.hpp>
 #include <Omega_h_graph.hpp>
 #include <Omega_h_tag.hpp>
+#include <Omega_h_int128.hpp>
 
 namespace Omega_h {
 
@@ -21,20 +22,6 @@ struct Remotes {
   Remotes(Read<I32> ranks_, LOs idxs_) : ranks(ranks_), idxs(idxs_) {}
   Read<I32> ranks;
   LOs idxs;
-};
-
-struct Int128 {
-  std::int64_t high;
-  std::uint64_t low;
-  OMEGA_H_INLINE Int128();
-  OMEGA_H_INLINE Int128(std::int64_t h, std::uint64_t l);
-  OMEGA_H_INLINE Int128(std::int64_t value);
-  OMEGA_H_INLINE void operator=(Int128 const& rhs) volatile;
-  OMEGA_H_INLINE Int128(Int128 const& rhs);
-  OMEGA_H_INLINE Int128(const volatile Int128& rhs);
-  double to_double(double unit) const;
-  void print(std::ostream& o) const;
-  static OMEGA_H_INLINE Int128 from_double(double value, double unit);
 };
 
 class Library;

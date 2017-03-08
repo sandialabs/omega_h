@@ -8,7 +8,7 @@ set(Omega_h_SOURCES
   Omega_h_map.cpp
   scan.cpp
   sort.cpp
-  int128.cpp
+  Omega_h_int128.cpp
   repro.cpp
   indset.cpp
   simplices.cpp
@@ -387,6 +387,7 @@ set(Omega_h_HEADERS
   Omega_h_graph.hpp
   Omega_h_map.hpp
   Omega_h_tag.hpp
+  Omega_h_int128.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

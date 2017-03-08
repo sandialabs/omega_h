@@ -12,7 +12,6 @@
 #include "file.hpp"
 #include "hilbert.hpp"
 #include "inertia.hpp"
-#include "int128.hpp"
 #include "internal.hpp"
 #include "lie.hpp"
 #include "linpart.hpp"
