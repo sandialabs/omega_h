@@ -1,9 +1,13 @@
 #ifndef COARSEN_HPP
 #define COARSEN_HPP
 
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_adj.hpp>
 #include "host_few.hpp"
 
 namespace Omega_h {
+
+class Mesh;
 
 HostFew<Read<I8>, 4> mark_dead_ents(
     Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs);

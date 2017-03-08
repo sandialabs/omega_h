@@ -2,6 +2,7 @@
 #define OMEGA_H_ADAPT_HPP
 
 #include <Omega_h_config.h>
+#include <Omega_h_defines.hpp>
 
 namespace Omega_h {
 

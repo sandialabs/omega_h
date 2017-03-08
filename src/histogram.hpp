@@ -6,6 +6,8 @@
 
 namespace Omega_h {
 
+class Mesh;
+
 constexpr Int nhistogram_buckets = 10;
 
 template <Int n>
