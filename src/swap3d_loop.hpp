@@ -3,6 +3,8 @@
 
 #include "swap3d_tables.hpp"
 
+#include "Omega_h_align.hpp"
+#include "Omega_h_few.hpp"
 #include "simplices.hpp"
 
 namespace Omega_h {

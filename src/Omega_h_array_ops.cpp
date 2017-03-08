@@ -408,10 +408,6 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
   }
 }
 
-Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
-  return repro_sum(mesh->comm(), mesh->owned_array(dim, a, 1));
-}
-
 #define INST(T)                                                                \
   template bool operator==(Read<T> a, Read<T> b);                              \
   template typename StandinTraits<T>::type get_sum(Read<T> a);                 \

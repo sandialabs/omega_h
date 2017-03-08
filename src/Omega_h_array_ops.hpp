@@ -1,7 +1,8 @@
-#ifndef ARRAY_HPP
-#define ARRAY_HPP
+#ifndef OMEGA_H_ARRAY_OPS_HPP
+#define OMEGA_H_ARRAY_OPS_HPP
 
-#include "Omega_h_functors.hpp"
+#include <Omega_h_functors.hpp>
+#include <Omega_h_comm.hpp>
 
 namespace Omega_h {
 
@@ -80,9 +81,8 @@ LO find_last(Read<T> array, T value);
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
-Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
 
-#define INST_DECL(T)                                                           \
+#define OMEGA_H_EXPL_INST_DECL(T)                                                           \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
   extern template typename StandinTraits<T>::type get_sum(Read<T> a);          \
   extern template T get_min(Read<T> a);                                        \
@@ -109,11 +109,11 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
   extern template LO find_last(Read<T> array, T value);
-INST_DECL(I8)
-INST_DECL(I32)
-INST_DECL(I64)
-INST_DECL(Real)
-#undef INST_DECL
+OMEGA_H_EXPL_INST_DECL(I8)
+OMEGA_H_EXPL_INST_DECL(I32)
+OMEGA_H_EXPL_INST_DECL(I64)
+OMEGA_H_EXPL_INST_DECL(Real)
+#undef OMEGA_H_EXPL_INST_DECL
 
 }  // end namespace Omega_h
 

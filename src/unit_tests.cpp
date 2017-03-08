@@ -4,7 +4,7 @@
 #include "Omega_h_math.hpp"
 #include "Omega_h_motion.hpp"
 #include "Omega_h_proximity.hpp"
-#include "align.hpp"
+#include "Omega_h_align.hpp"
 #include "bbox.hpp"
 #include "derive.hpp"
 #include "eigen.hpp"

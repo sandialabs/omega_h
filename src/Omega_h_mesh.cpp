@@ -671,6 +671,10 @@ bool can_print(Mesh* mesh) {
   return (!mesh->library()->silent_) && (mesh->comm()->rank() == 0);
 }
 
+Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
+  return repro_sum(mesh->comm(), mesh->owned_array(dim, a, 1));
+}
+
 #define INST_T(T)                                                              \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \

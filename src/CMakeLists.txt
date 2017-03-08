@@ -66,7 +66,7 @@ set(Omega_h_SOURCES
   swap3d.cpp
   regress.cpp
   consistent.cpp
-  align.cpp
+  Omega_h_align.cpp
   xml.cpp
   derive.cpp
   project.cpp
@@ -391,6 +391,9 @@ set(Omega_h_HEADERS
   Omega_h_adapt.hpp
   Omega_h_build.hpp
   Omega_h_classify.hpp
+  Omega_h_scalar.hpp
+  Omega_h_align.hpp
+  Omega_h_few.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

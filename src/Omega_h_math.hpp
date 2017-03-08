@@ -5,71 +5,12 @@
 #include <climits>
 #include <cmath>
 
-#include "Omega_h.hpp"
+#include <Omega_h_scalar.hpp>
+#include <Omega_h_defines.hpp>
+#include <Omega_h_few.hpp>
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
-
-template <typename T>
-struct ArithTraits;
-
-template <>
-struct ArithTraits<unsigned char> {
-  static OMEGA_H_INLINE unsigned char max() { return UCHAR_MAX; }
-  static OMEGA_H_INLINE unsigned char min() { return 0; }
-};
-
-template <>
-struct ArithTraits<signed char> {
-  static OMEGA_H_INLINE signed char max() { return SCHAR_MAX; }
-  static OMEGA_H_INLINE signed char min() { return SCHAR_MIN; }
-};
-
-template <>
-struct ArithTraits<unsigned int> {
-  static OMEGA_H_INLINE unsigned int max() { return UINT_MAX; }
-  static OMEGA_H_INLINE unsigned int min() { return 0; }
-};
-
-template <>
-struct ArithTraits<int> {
-  static OMEGA_H_INLINE int max() { return INT_MAX; }
-  static OMEGA_H_INLINE int min() { return INT_MIN; }
-};
-
-template <>
-struct ArithTraits<unsigned long> {
-  static OMEGA_H_INLINE unsigned long max() { return ULONG_MAX; }
-  static OMEGA_H_INLINE unsigned long min() { return 0; }
-};
-
-template <>
-struct ArithTraits<signed long> {
-  static OMEGA_H_INLINE signed long max() { return LONG_MAX; }
-  static OMEGA_H_INLINE signed long min() { return LONG_MIN; }
-};
-
-template <>
-struct ArithTraits<unsigned long long> {
-  static OMEGA_H_INLINE unsigned long long max() { return ULLONG_MAX; }
-  static OMEGA_H_INLINE unsigned long long min() { return 0; }
-};
-
-template <>
-struct ArithTraits<signed long long> {
-  static OMEGA_H_INLINE signed long long max() { return LLONG_MAX; }
-  static OMEGA_H_INLINE signed long long min() { return LLONG_MIN; }
-};
-
-template <>
-struct ArithTraits<double> {
-  static OMEGA_H_INLINE double max() { return DBL_MAX; }
-  static OMEGA_H_INLINE double min() { return -DBL_MAX; }
-};
-
-template <typename T>
-constexpr OMEGA_H_INLINE T square(T x) {
-  return x * x;
-}
 
 template <Int n>
 class Vector : public Few<Real, n> {
@@ -335,30 +276,6 @@ template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
-
-template <Int dim>
-struct BBox {
-  OMEGA_H_INLINE BBox() {}
-  OMEGA_H_INLINE BBox(Vector<dim> x) : min(x), max(x) {}
-  OMEGA_H_INLINE BBox(Vector<dim> min_, Vector<dim> max_)
-      : min(min_), max(max_) {}
-  Vector<dim> min;
-  Vector<dim> max;
-  /* playing the volatile game again (see int128.hpp) */
-  OMEGA_H_INLINE void operator=(BBox<dim> const& rhs) volatile {
-    min = rhs.min;
-    max = rhs.max;
-  }
-  OMEGA_H_INLINE BBox(BBox<dim> const& rhs) : min(rhs.min), max(rhs.max) {}
-  OMEGA_H_INLINE BBox(const volatile BBox<dim>& rhs)
-      : min(rhs.min), max(rhs.max) {}
-};
-
-template <Int dim>
-BBox<dim> get_bounding_box(Mesh* mesh);
-
-extern template BBox<2> get_bounding_box<2>(Mesh* mesh);
-extern template BBox<3> get_bounding_box<3>(Mesh* mesh);
 
 }  // end namespace Omega_h
 

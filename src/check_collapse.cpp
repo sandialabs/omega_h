@@ -1,5 +1,6 @@
 #include "collapse.hpp"
 
+#include "Omega_h_align.hpp"
 #include "loop.hpp"
 #include "simplices.hpp"
 
