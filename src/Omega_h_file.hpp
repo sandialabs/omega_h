@@ -14,6 +14,8 @@ namespace Omega_h {
 
 class Mesh;
 
+bool ends_with(std::string const& s, std::string const& suffix);
+
 #ifdef OMEGA_H_USE_LIBMESHB
 namespace meshb {
 void read(Mesh* mesh, const char* filepath);

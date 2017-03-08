@@ -127,8 +127,6 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   b = c;
 }
 
-bool ends_with(std::string const& s, std::string const& suffix);
-
 }  // end namespace Omega_h
 
 #endif
