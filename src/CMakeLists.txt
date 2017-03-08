@@ -39,8 +39,8 @@ set(Omega_h_SOURCES
   quality.cpp
   gmsh.cpp
   Omega_h_comm.cpp
-  remotes.cpp
-  dist.cpp
+  Omega_h_remotes.cpp
+  Omega_h_dist.cpp
   linpart.cpp
   owners.cpp
   migrate.cpp
@@ -389,6 +389,8 @@ set(Omega_h_HEADERS
   Omega_h_tag.hpp
   Omega_h_int128.hpp
   Omega_h_comm.hpp
+  Omega_h_remotes.hpp
+  Omega_h_dist.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

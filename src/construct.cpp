@@ -7,7 +7,6 @@
 #include "box.hpp"
 #include "linpart.hpp"
 #include "owners.hpp"
-#include "remotes.hpp"
 #include "simplify.hpp"
 
 namespace Omega_h {

@@ -5,7 +5,6 @@
 #include "Omega_h_map.hpp"
 #include "loop.hpp"
 #include "owners.hpp"
-#include "remotes.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
 
