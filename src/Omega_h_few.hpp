@@ -3,6 +3,7 @@
 
 #include <type_traits>
 #include <initializer_list>
+#include <new>
 
 #include <Omega_h_kokkos.hpp>
 #include <Omega_h_defines.hpp>
@@ -18,6 +19,9 @@ class Few {
 
  public:
   enum { size = n };
+  OMEGA_H_INLINE T* data() {
+    return array_;
+  }
   OMEGA_H_INLINE T const* data() const {
     return array_;
   }
@@ -53,10 +57,10 @@ class Few {
     for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
   }
   OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
+    for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
   }
   OMEGA_H_INLINE Few(Few<T, n> const volatile& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
+    for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
   }
 };
 
