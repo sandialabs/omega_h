@@ -1,4 +1,4 @@
-#include "comm.hpp"
+#include "Omega_h_comm.hpp"
 
 #include "Omega_h_array_ops.hpp"
 #include "loop.hpp"

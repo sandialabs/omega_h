@@ -13,7 +13,7 @@
 #include <Omega_h_array.hpp>
 #include <Omega_h_graph.hpp>
 #include <Omega_h_tag.hpp>
-#include <Omega_h_int128.hpp>
+#include <Omega_h_comm.hpp>
 
 namespace Omega_h {
 
@@ -22,60 +22,6 @@ struct Remotes {
   Remotes(Read<I32> ranks_, LOs idxs_) : ranks(ranks_), idxs(idxs_) {}
   Read<I32> ranks;
   LOs idxs;
-};
-
-class Library;
-class Comm;
-
-typedef std::shared_ptr<Comm> CommPtr;
-
-class Comm {
-#ifdef OMEGA_H_USE_MPI
-  MPI_Comm impl_;
-#endif
-  Library* library_;
-  Read<I32> srcs_;
-  Read<I32> dsts_;
-  HostRead<I32> host_srcs_;
-  HostRead<I32> host_dsts_;
-  LO self_src_;
-  LO self_dst_;
-
- public:
-  Comm();
-#ifdef OMEGA_H_USE_MPI
-  Comm(Library* library, MPI_Comm impl);
-#else
-  Comm(Library* library, bool is_graph, bool sends_to_self);
-#endif
-  ~Comm();
-  I32 rank() const;
-  I32 size() const;
-  CommPtr dup() const;
-  CommPtr split(I32 color, I32 key) const;
-  CommPtr graph(Read<I32> dsts) const;
-  CommPtr graph_adjacent(Read<I32> srcs, Read<I32> dsts) const;
-  CommPtr graph_inverse() const;
-  Read<I32> sources() const;
-  Read<I32> destinations() const;
-  template <typename T>
-  T allreduce(T x, Omega_h_Op op) const;
-  bool reduce_or(bool x) const;
-  bool reduce_and(bool x) const;
-  Int128 add_int128(Int128 x) const;
-  template <typename T>
-  T exscan(T x, Omega_h_Op op) const;
-  template <typename T>
-  void bcast(T& x) const;
-  void bcast_string(std::string& s) const;
-  template <typename T>
-  Read<T> allgather(T x) const;
-  template <typename T>
-  Read<T> alltoall(Read<T> x) const;
-  template <typename T>
-  Read<T> alltoallv(Read<T> sendbuf, Read<LO> sendcounts, Read<LO> sdispls,
-      Read<LO> recvcounts, Read<LO> rdispls) const;
-  void barrier() const;
 };
 
 class Dist {

@@ -70,4 +70,14 @@ void Omega_h_fail(char const* format, ...)
                             __FILE__, __LINE__))
 #endif
 
+#ifdef __clang__
+#define OMEGA_H_NORETURN(x) assert(false)
+#else
+#define OMEGA_H_NORETURN(x)                                                            \
+  do {                                                                         \
+    assert(false);                                                             \
+    return x;                                                                  \
+  } while (false)
+#endif
+
 #endif

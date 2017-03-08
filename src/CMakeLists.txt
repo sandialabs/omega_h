@@ -388,6 +388,7 @@ set(Omega_h_HEADERS
   Omega_h_map.hpp
   Omega_h_tag.hpp
   Omega_h_int128.hpp
+  Omega_h_comm.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
