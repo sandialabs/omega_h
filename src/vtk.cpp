@@ -116,7 +116,7 @@ void write_array(
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-      reinterpret_cast<const Bytef*>(uncompressed.data()), source_bytes,
+      reinterpret_cast<const Bytef*>(uncompressed.nonnull_data()), source_bytes,
       Z_BEST_SPEED);
   CHECK(ret == Z_OK);
   std::string encoded = base64::encode(compressed, dest_bytes);
@@ -127,7 +127,7 @@ void write_array(
 #else
   std::string enc_header =
       base64::encode(&uncompressed_bytes, sizeof(std::size_t));
-  std::string encoded = base64::encode(uncompressed.data(), uncompressed_bytes);
+  std::string encoded = base64::encode(uncompressed.nonnull_data(), uncompressed_bytes);
 #endif
   stream << enc_header << encoded << '\n';
   stream << "</DataArray>\n";
@@ -171,7 +171,7 @@ Read<T> read_array(
     base64::decode(encoded, compressed, compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
-    Bytef* uncompressed_ptr = reinterpret_cast<Bytef*>(uncompressed.data());
+    Bytef* uncompressed_ptr = reinterpret_cast<Bytef*>(uncompressed.nonnull_data());
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     if (ret != Z_OK) {
@@ -183,7 +183,7 @@ Read<T> read_array(
   } else
 #endif
   {
-    base64::decode(encoded, uncompressed.data(), uncompressed_bytes);
+    base64::decode(encoded, uncompressed.nonnull_data(), uncompressed_bytes);
   }
   return binary::swap_if_needed(
       Read<T>(uncompressed.write()), is_little_endian);

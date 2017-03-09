@@ -21,7 +21,7 @@ std::size_t get_max_bytes() { return max_array_bytes; }
 template <typename T>
 void Write<T>::log_allocation() const {
   if (!should_log_memory) return;
-  current_array_bytes += this->bytes();
+  current_array_bytes += bytes();
   if (current_array_bytes > max_array_bytes) {
     max_array_bytes = current_array_bytes;
     delete[] max_memory_stacktrace;
@@ -36,93 +36,7 @@ void Write<T>::log_allocation() const {
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-View<T>::View(ViewKokkos view_in) : view_(view_in) {
-}
-#else
-template <typename T>
-View<T>::View(std::shared_ptr<T> ptr_in,
-    LO size_in) : ptr_(ptr_in), size_(size_in) {
-}
-#endif
-
-template <typename T>
-View<T>& View<T>::operator=(View<T> const& other) {
-  check_release();
-#ifdef OMEGA_H_USE_KOKKOS
-  view_ = other.view_;
-#else
-  ptr_ = other.ptr_;
-  size_ = other.size_;
-#endif
-  return *this;
-}
-
-template <typename T>
-LO View<T>::size() const {
-  CHECK(exists());
-#ifdef OMEGA_H_USE_KOKKOS
-  return static_cast<LO>(view_.size());
-#else
-  return size_;
-#endif
-}
-
-/* Several C libraries including ZLib and
-   OpenMPI will throw errors when input pointers
-   are NULL, even if they point to arrays of size zero. */
-template <typename T>
-class NonNullPtr {
-  static T scratch[1];
-
- public:
-  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
-  static T const* get(T const* p) { return (p == nullptr) ? scratch : p; }
-};
-template <typename T>
-T NonNullPtr<T>::scratch[1] = {0};
-
-template <typename T>
-T* View<T>::data() const {
-#ifdef OMEGA_H_USE_KOKKOS
-  return NonNullPtr<NonConstT>::get(view_.data());
-#else
-  return ptr_.get();
-#endif
-}
-
-#ifdef OMEGA_H_USE_KOKKOS
-template <typename T>
-typename View<T>::ViewKokkos View<T>::view() const {
-  return view_;
-}
-#endif
-
-template <typename T>
-typename View<T>::NonConstT View<T>::get(LO i) const {
-#ifdef OMEGA_H_USE_CUDA
-  NonConstT value;
-  cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
-  return value;
-#else
-  return operator[](i);
-#endif
-}
-
-template <typename T>
-std::size_t View<T>::bytes() const {
-  return static_cast<std::size_t>(size()) * sizeof(T);
-}
-
-template <typename T>
-void View<T>::check_release() const {
-  if (should_log_memory && use_count() == 1) {
-    current_array_bytes -= bytes();
-  }
-}
-
-#ifdef OMEGA_H_USE_KOKKOS
-template <typename T>
-Write<T>::Write(ViewKokkos view) : View<T>(view) {
+Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
   log_allocation();
 }
 #endif
@@ -131,13 +45,33 @@ template <typename T>
 Write<T>::Write(LO size)
     :
 #ifdef OMEGA_H_USE_KOKKOS
-      View<T>(ViewKokkos(Kokkos::ViewAllocateWithoutInitializing("omega_h"),
-          static_cast<std::size_t>(size)))
+      view_(Kokkos::ViewAllocateWithoutInitializing("omega_h"),
+          static_cast<std::size_t>(size))
 #else
-      View<T>(std::shared_ptr<T>(new T[size], std::default_delete<T[]>()), size)
+      ptr_(new T[size], std::default_delete<T[]>()),
+      size_(size)
 #endif
 {
   log_allocation();
+}
+
+template <typename T>
+void Write<T>::check_release() const {
+  if (should_log_memory && use_count() == 1) {
+    current_array_bytes -= bytes();
+  }
+}
+
+template <typename T>
+Write<T>& Write<T>::operator=(Write<T> const& other) {
+  check_release();
+#ifdef OMEGA_H_USE_KOKKOS
+  view_ = other.view_;
+#else
+  ptr_ = other.ptr_;
+  size_ = other.size_;
+#endif
+  return *this;
 }
 
 template <typename T>
@@ -166,11 +100,37 @@ template <typename T>
 Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
 template <typename T>
+LO Write<T>::size() const {
+  CHECK(exists());
+#ifdef OMEGA_H_USE_KOKKOS
+  return static_cast<LO>(view_.size());
+#else
+  return size_;
+#endif
+}
+
+template <typename T>
+std::size_t Write<T>::bytes() const {
+  return static_cast<std::size_t>(size()) * sizeof(T);
+}
+
+template <typename T>
 void Write<T>::set(LO i, T value) const {
 #ifdef OMEGA_H_USE_CUDA
-  cudaMemcpy(View<T>::data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
+  cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
-  View<T>::operator[](i) = value;
+  operator[](i) = value;
+#endif
+}
+
+template <typename T>
+T Write<T>::get(LO i) const {
+#ifdef OMEGA_H_USE_CUDA
+  T value;
+  cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
+  return value;
+#else
+  return operator[](i);
 #endif
 }
 
@@ -191,11 +151,9 @@ LOs::LOs(LO size, LO offset, LO stride) : Read<LO>(size, offset, stride) {}
 LOs::LOs(std::initializer_list<LO> l) : Read<LO>(l) {}
 
 template <typename T>
-Read<T>::Read(Write<T> write) :
+Read<T>::Read(Write<T> write) : write_(write)
 #ifdef OMEGA_H_USE_KOKKOS
-  View<const T>(write.view_)
-#else
-  View<const T>(write.ptr_, write.size_)
+  ,view_(write.view())
 #endif
 {}
 
@@ -209,13 +167,30 @@ template <typename T>
 Read<T>::Read(std::initializer_list<T> l) : Read<T>(HostWrite<T>(l).write()) {}
 
 template <typename T>
+LO Read<T>::size() const {
+  return write_.size();
+}
+
+#ifdef OMEGA_H_USE_KOKKOS
+template <typename T>
+Kokkos::View<const T*> Read<T>::view() const {
+  return Kokkos::View<const T*>(write_.view());
+}
+#endif
+
+template <typename T>
+T Read<T>::get(LO i) const {
+  return write_.get(i);
+}
+
+template <typename T>
 T Read<T>::first() const {
-  return View<const T>::get(0);
+  return get(0);
 }
 
 template <typename T>
 T Read<T>::last() const {
-  return View<const T>::get(View<const T>::size() - 1);
+  return get(size() - 1);
 }
 
 template <typename T>
@@ -272,10 +247,29 @@ LO HostWrite<T>::size() const {
 template <typename T>
 T* HostWrite<T>::data() const {
 #ifdef OMEGA_H_USE_KOKKOS
-  return NonNullPtr<T>::get(mirror_.data());
+  return mirror_.data();
 #else
   return write_.data();
 #endif
+}
+
+/* Several C libraries including ZLib and
+   OpenMPI will throw errors when input pointers
+   are NULL, even if they point to arrays of size zero. */
+template <typename T>
+class NonNullPtr {
+  static T scratch[1];
+
+ public:
+  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
+  static T const* get(T const* p) { return (p == nullptr) ? scratch : p; }
+};
+template <typename T>
+T NonNullPtr<T>::scratch[1] = {0};
+
+template <typename T>
+T* HostWrite<T>::nonnull_data() const {
+  return NonNullPtr<T>::get(data());
 }
 
 template <typename T>
@@ -304,13 +298,25 @@ LO HostRead<T>::size() const {
   return read_.size();
 }
 
+#ifdef OMEGA_H_USE_KOKKOS
+template <typename T>
+Kokkos::View<T*> Write<T>::view() const {
+  return view_;
+}
+#endif
+
 template <typename T>
 T const* HostRead<T>::data() const {
 #ifdef OMEGA_H_USE_KOKKOS
-  return NonNullPtr<T>::get(mirror_.data());
+  return mirror_.data();
 #else
   return read_.data();
 #endif
+}
+
+template <typename T>
+T const* HostRead<T>::nonnull_data() const {
+  return NonNullPtr<T>::get(data());
 }
 
 template <typename T>
@@ -331,8 +337,6 @@ Write<T> deep_copy(Read<T> a) {
 }
 
 #define INST(T)                                                                \
-  template class View<T>;                                                \
-  template class View<const T>;                                                \
   template class NonNullPtr<T>;                                                \
   template class Write<T>;                                                     \
   template class Read<T>;                                                      \

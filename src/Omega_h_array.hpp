@@ -4,7 +4,6 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <initializer_list>
-#include <type_traits>
 #include <memory>
 
 namespace Omega_h {
@@ -13,11 +12,8 @@ template <typename T>
 class HostWrite;
 
 template <typename T>
-class View {
- public:
-  using NonConstT = typename std::remove_const<T>::type;
+class Write {
 #ifdef OMEGA_H_USE_KOKKOS
-  using ViewKokkos = Kokkos::View<T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
   Kokkos::View<T*> view_;
 #else
   std::shared_ptr<T> ptr_;
@@ -25,22 +21,15 @@ class View {
 #endif
 
  public:
+  OMEGA_H_INLINE Write();
 #ifdef OMEGA_H_USE_KOKKOS
-  View(ViewKokkos view_in);
-#else
-  View(std::shared_ptr<T> ptr_in, LO size_in);
+  Write(Kokkos::View<T*> view);
 #endif
-  OMEGA_H_INLINE View()
-      :
-  #ifdef OMEGA_H_USE_KOKKOS
-        view_()
-  #else
-        ptr_(),
-        size_(0)
-  #endif
-  {
-  }
-  OMEGA_H_INLINE View(View<T> const& other)
+  Write(LO size);
+  Write(LO size, T value);
+  Write(LO size, T offset, T stride);
+  Write(HostWrite<T> host_write);
+  OMEGA_H_INLINE Write(Write<T> const& other)
       :
 #ifdef OMEGA_H_USE_KOKKOS
         view_(other.view_)
@@ -50,8 +39,8 @@ class View {
 #endif
   {
   }
-  View<T>& operator=(View<T> const&);
-  OMEGA_H_INLINE ~View() {
+  Write<T>& operator=(Write<T> const&);
+  OMEGA_H_INLINE ~Write() {
 #ifndef __CUDA_ARCH__
     check_release();
 #endif
@@ -68,11 +57,19 @@ class View {
     return ptr_.get()[i];
 #endif
   }
-  T* data() const;
+  OMEGA_H_INLINE T* data() const {
 #ifdef OMEGA_H_USE_KOKKOS
-  ViewKokkos view() const;
+    return view_.data();
+#else
+    return ptr_.get();
 #endif
-  NonConstT get(LO i) const;
+  }
+  T* nonnull_data();
+#ifdef OMEGA_H_USE_KOKKOS
+  Kokkos::View<T*> view() const;
+#endif
+  void set(LO i, T value) const;
+  T get(LO i) const;
   OMEGA_H_INLINE long use_count() const {
 #ifdef OMEGA_H_USE_KOKKOS
     return view_.use_count();
@@ -84,44 +81,54 @@ class View {
   std::size_t bytes() const;
 
  private:
-  void check_release() const;
-};
-
-template <typename T>
-class Write : public View<T> {
- private:
-#ifdef OMEGA_H_USE_KOKKOS
-  using ViewKokkos = typename View<T>::ViewKokkos;
-#endif
-
- public:
-  OMEGA_H_INLINE Write() {}
-#ifdef OMEGA_H_USE_KOKKOS
-  Write(ViewKokkos view);
-#endif
-  Write(LO size);
-  Write(LO size, T value);
-  Write(LO size, T offset, T stride);
-  Write(HostWrite<T> host_write);
-  void set(LO i, T value) const;
-
- private:
   void log_allocation() const;
+  void check_release() const;
 };
 
 std::size_t get_current_bytes();
 std::size_t get_max_bytes();
 
 template <typename T>
-class Read : public View<const T> {
+OMEGA_H_INLINE Write<T>::Write()
+    :
+#ifdef OMEGA_H_USE_KOKKOS
+      view_()
+#else
+      ptr_(),
+      size_(0)
+#endif
+{
+}
+
+template <typename T>
+class Read {
+  Write<T> write_;
+#ifdef OMEGA_H_USE_KOKKOS
+  Kokkos::View<const T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> view_;
+#endif
+
  public:
   OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value);
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
+  LO size() const;
+  OMEGA_H_DEVICE T const& operator[](LO i) const {
+#ifdef OMEGA_H_USE_KOKKOS
+    return view_(i);
+#else
+    return write_[i];
+#endif
+  }
+  OMEGA_H_INLINE T const* data() const { return write_.data(); }
+#ifdef OMEGA_H_USE_KOKKOS
+  Kokkos::View<const T*> view() const;
+#endif
+  T get(LO i) const;
   T first() const;
   T last() const;
+  OMEGA_H_INLINE bool exists() const { return write_.exists(); }
 };
 
 class LOs : public Read<LO> {
@@ -165,6 +172,7 @@ class HostRead {
 #endif
   }
   T const* data() const;
+  T const* nonnull_data() const;
   T last() const;
 };
 
@@ -194,6 +202,7 @@ class HostWrite {
 #endif
   }
   T* data() const;
+  T* nonnull_data() const;
 };
 
 template <class T>
@@ -201,8 +210,6 @@ Write<T> deep_copy(Read<T> a);
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
-  extern template class View<T>;                                               \
-  extern template class View<const T>;                                               \
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
@@ -213,6 +220,7 @@ OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)
 OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
+/* end explicit instantiation declarations */
 
 }  // end namespace Omega_h
 
