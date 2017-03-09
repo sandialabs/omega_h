@@ -10,7 +10,7 @@ static Read<T> align_ev2v_deg(Read<T> ev2v, Read<I8> codes) {
   auto ne = codes.size();
   Write<T> ev2v_w(ev2v.size());
   auto f = LAMBDA(LO e) {
-    align_adj<deg>(codes[e], &ev2v[e * deg], &ev2v_w[e * deg]);
+    align_adj<deg>(codes[e], ev2v, e * deg, ev2v_w, e * deg);
   };
   parallel_for(ne, f);
   return ev2v_w;
