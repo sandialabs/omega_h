@@ -43,9 +43,7 @@ class Few {
       new (array_ + (i++)) T(*it);
     }
   }
-  OMEGA_H_INLINE Few() {
-    for (Int i = 0; i < n; ++i) array_[i] = T();
-  }
+  OMEGA_H_INLINE Few() {}
   OMEGA_H_INLINE ~Few() {}
   OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
     for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
