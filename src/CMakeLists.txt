@@ -346,6 +346,7 @@ set(DEF_VARS
     VERSION_MAJOR
     VERSION_MINOR
     VERSION_PATCH
+    SEMVER
     USE_MPI
     USE_Kokkos
     USE_OpenMP
