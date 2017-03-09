@@ -93,6 +93,14 @@ void print_stacktrace(std::ostream& out, int max_frames) {
   free(symbollist);
 }
 
+char const* Library::static_version() {
+  return OMEGA_H_VERSION;
+}
+
+char const* Library::version() {
+  return static_version();
+}
+
 void Library::initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
     ,
