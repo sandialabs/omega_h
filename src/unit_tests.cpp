@@ -980,6 +980,7 @@ static void test_find_last() {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
   test_edge_length();
   test_cubic();
   test_form_ortho_basis();

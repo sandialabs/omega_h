@@ -24,6 +24,8 @@ class Library {
         );
   }
   ~Library();
+  static char const* static_version();
+  char const* version();
   CommPtr world();
   CommPtr self();
   void add_to_timer(std::string const& name, double nsecs);
