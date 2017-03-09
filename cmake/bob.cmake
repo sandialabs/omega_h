@@ -49,7 +49,8 @@ function(bob_form_semver)
       RESULT_VARIABLE NOT_TAG
       OUTPUT_VARIABLE TAG_NAME
       ERROR_VARIABLE TAG_ERROR
-      ERROR_QUIET)
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
   if(NOT_TAG)
     if(${PROJECT_NAME}_VERSION)
       set(SEMVER ${${PROJECT_NAME}_VERSION})
@@ -58,11 +59,12 @@ function(bob_form_semver)
           RESULT_VARIABLE NO_SHA1
           OUTPUT_VARIABLE SHORT_SHA1
           ERROR_VARIABLE SHA1_ERROR
-          ERROR_QUIET)
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+          )
       if(NO_SHA1)
         message(WARNING "bob_form_semver no Git hash !\n" ${SHA1_ERROR})
       else()
-        set(SEMVER "${SEMVER}+sha.${SHORT_SHA1}")
+        set(SEMVER "${SEMVER}-sha.${SHORT_SHA1}")
       endif()
     else()
       message(FATAL_ERROR "bob_form_semver needs either ${PROJECT_NAME}_VERSION or a Git tag\n" ${TAG_ERROR})

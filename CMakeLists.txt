@@ -59,4 +59,16 @@ bob_end_cxx_flags()
 
 add_subdirectory(src)
 
+bob_form_semver(CONFIG_OPTIONS
+    Omega_h_USE_MPI
+    Omega_h_USE_Kokkos
+    Omega_h_USE_OpenMP
+    Omega_h_USE_CUDA
+    Omega_h_USE_ZLIB
+    Omega_h_USE_libMeshb
+    Omega_h_USE_EGADS
+    Omega_h_CHECK_BOUNDS
+    Omega_h_PROTECT)
+message(STATUS "${PROJECT_NAME}_SEMVER = ${${PROJECT_NAME}_SEMVER}")
+
 bob_end_package()
