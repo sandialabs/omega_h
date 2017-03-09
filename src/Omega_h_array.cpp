@@ -153,7 +153,7 @@ LOs::LOs(std::initializer_list<LO> l) : Read<LO>(l) {}
 template <typename T>
 Read<T>::Read(Write<T> write) : write_(write)
 #ifdef OMEGA_H_USE_KOKKOS
-  ,view_(write.view())
+  ,access_view_(write.view())
 #endif
 {}
 

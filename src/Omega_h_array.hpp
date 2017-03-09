@@ -104,7 +104,7 @@ template <typename T>
 class Read {
   Write<T> write_;
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<const T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> view_;
+  Kokkos::View<const T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> access_view_;
 #endif
 
  public:
@@ -116,7 +116,7 @@ class Read {
   LO size() const;
   OMEGA_H_DEVICE T operator[](LO i) const {
 #ifdef OMEGA_H_USE_KOKKOS
-    return view_(i);
+    return access_view_(i);
 #else
     return write_[i];
 #endif
