@@ -36,7 +36,7 @@ void Write<T>::log_allocation() const {
 
 #ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
-View<T>::View(ViewKokkos view_in) : view_(view) {
+View<T>::View(ViewKokkos view_in) : view_(view_in) {
 }
 #else
 template <typename T>
@@ -98,9 +98,9 @@ typename View<T>::ViewKokkos View<T>::view() const {
 #endif
 
 template <typename T>
-T View<T>::get(LO i) const {
+typename View<T>::NonConstT View<T>::get(LO i) const {
 #ifdef OMEGA_H_USE_CUDA
-  T value;
+  NonConstT value;
   cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
   return value;
 #else
@@ -168,7 +168,7 @@ Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 template <typename T>
 void Write<T>::set(LO i, T value) const {
 #ifdef OMEGA_H_USE_CUDA
-  cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
+  cudaMemcpy(View<T>::data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
   View<T>::operator[](i) = value;
 #endif

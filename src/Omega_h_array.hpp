@@ -72,7 +72,7 @@ class View {
 #ifdef OMEGA_H_USE_KOKKOS
   ViewKokkos view() const;
 #endif
-  T get(LO i) const;
+  NonConstT get(LO i) const;
   OMEGA_H_INLINE long use_count() const {
 #ifdef OMEGA_H_USE_KOKKOS
     return view_.use_count();
@@ -89,11 +89,15 @@ class View {
 
 template <typename T>
 class Write : public View<T> {
+ private:
+#ifdef OMEGA_H_USE_KOKKOS
+  using ViewKokkos = typename View<T>::ViewKokkos;
+#endif
 
  public:
   OMEGA_H_INLINE Write() {}
 #ifdef OMEGA_H_USE_KOKKOS
-  Write(Kokkos::View<T*> view);
+  Write(ViewKokkos view);
 #endif
   Write(LO size);
   Write(LO size, T value);
