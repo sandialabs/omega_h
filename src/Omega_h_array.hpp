@@ -12,8 +12,10 @@ template <typename T>
 class HostWrite;
 
 template <typename T>
-class Write {
+class View {
+  using NonConstT = typename std::remove_const<T>::type;
 #ifdef OMEGA_H_USE_KOKKOS
+  using ViewKokkos = Kokkos::View<T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
   Kokkos::View<T*> view_;
 #else
   std::shared_ptr<T> ptr_;
@@ -21,15 +23,22 @@ class Write {
 #endif
 
  public:
-  OMEGA_H_INLINE Write();
 #ifdef OMEGA_H_USE_KOKKOS
-  Write(Kokkos::View<T*> view);
+  View(ViewKokkos view_in);
+#else
+  View(T* ptr_in, LO size_in);
 #endif
-  Write(LO size);
-  Write(LO size, T value);
-  Write(LO size, T offset, T stride);
-  Write(HostWrite<T> host_write);
-  OMEGA_H_INLINE Write(Write<T> const& other)
+  OMEGA_H_INLINE View()
+      :
+  #ifdef OMEGA_H_USE_KOKKOS
+        view_()
+  #else
+        ptr_(),
+        size_(0)
+  #endif
+  {
+  }
+  OMEGA_H_INLINE View(View<T> const& other)
       :
 #ifdef OMEGA_H_USE_KOKKOS
         view_(other.view_)
@@ -39,8 +48,20 @@ class Write {
 #endif
   {
   }
-  Write<T>& operator=(Write<T> const&);
-  OMEGA_H_INLINE ~Write() {
+  OMEGA_H_INLINE View(
+      typename std::enable_if<
+      !std::is_same<T, NonConstT>, View<NonConstT>>::type const& other)
+      :
+#ifdef OMEGA_H_USE_KOKKOS
+        view_(other.view_)
+#else
+        ptr_(other.ptr_),
+        size_(other.size_)
+#endif
+  {
+  }
+  View<T>& operator=(View<T> const&);
+  OMEGA_H_INLINE ~View() {
 #ifndef __CUDA_ARCH__
     check_release();
 #endif
@@ -59,9 +80,8 @@ class Write {
   }
   T* data() const;
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<T*> view() const;
+  ViewKokkos view() const;
 #endif
-  void set(LO i, T value) const;
   T get(LO i) const;
   OMEGA_H_INLINE long use_count() const {
 #ifdef OMEGA_H_USE_KOKKOS
@@ -74,45 +94,40 @@ class Write {
   std::size_t bytes() const;
 
  private:
-  void log_allocation() const;
   void check_release() const;
+};
+
+template <typename T>
+class Write : public View<T> {
+
+ public:
+  OMEGA_H_INLINE Write() {}
+#ifdef OMEGA_H_USE_KOKKOS
+  Write(Kokkos::View<T*> view);
+#endif
+  Write(LO size);
+  Write(LO size, T value);
+  Write(LO size, T offset, T stride);
+  Write(HostWrite<T> host_write);
+  void set(LO i, T value) const;
+
+ private:
+  void log_allocation() const;
 };
 
 std::size_t get_current_bytes();
 std::size_t get_max_bytes();
 
 template <typename T>
-OMEGA_H_INLINE Write<T>::Write()
-    :
-#ifdef OMEGA_H_USE_KOKKOS
-      view_()
-#else
-      ptr_(),
-      size_(0)
-#endif
-{
-}
-
-template <typename T>
-class Read {
-  Write<T> write_;
-
+class Read : public View<const T> {
  public:
   OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
   Read(LO size, T value);
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
-  LO size() const;
-  OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
-  T const* data() const;
-#ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<const T*> view() const;
-#endif
-  T get(LO i) const;
   T first() const;
   T last() const;
-  OMEGA_H_INLINE bool exists() const { return write_.exists(); }
 };
 
 class LOs : public Read<LO> {
