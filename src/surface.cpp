@@ -148,7 +148,7 @@ static Reals tri_vert_normal_weights(
       auto rot = rotation_to_first<3>(ffv);
       auto ffv2v_0 = gather_verts<3>(fv2v, f);
       Few<LO, 3> ffv2v;
-      rotate_adj<3>(rot, &ffv2v_0[0], &ffv2v[0]);
+      rotate_adj<3>(rot, ffv2v_0, 0, ffv2v, 0);
       auto ffv2p = gather_vectors<3, 3>(coords, ffv2v);
       auto b = simplex_basis<3, 2>(ffv2p);
       auto w =

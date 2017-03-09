@@ -57,7 +57,14 @@ class Write {
     return ptr_.get()[i];
 #endif
   }
-  T* data() const;
+  OMEGA_H_INLINE T* data() const {
+#ifdef OMEGA_H_USE_KOKKOS
+    return view_.data();
+#else
+    return ptr_.get();
+#endif
+  }
+  T* nonnull_data();
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<T*> view() const;
 #endif
@@ -96,6 +103,9 @@ OMEGA_H_INLINE Write<T>::Write()
 template <typename T>
 class Read {
   Write<T> write_;
+#ifdef OMEGA_H_USE_KOKKOS
+  Kokkos::View<const T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> access_view_;
+#endif
 
  public:
   OMEGA_H_INLINE Read() {}
@@ -104,8 +114,14 @@ class Read {
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
   LO size() const;
-  OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
-  T const* data() const;
+  OMEGA_H_DEVICE T operator[](LO i) const {
+#ifdef OMEGA_H_USE_KOKKOS
+    return access_view_(i);
+#else
+    return write_[i];
+#endif
+  }
+  OMEGA_H_INLINE T const* data() const { return write_.data(); }
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<const T*> view() const;
 #endif
@@ -144,7 +160,7 @@ class HostRead {
   HostRead();
   HostRead(Read<T> read);
   LO size() const;
-  inline T const& operator[](LO i) const {
+  inline T operator[](LO i) const {
 #ifdef OMEGA_H_USE_KOKKOS
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
@@ -156,6 +172,7 @@ class HostRead {
 #endif
   }
   T const* data() const;
+  T const* nonnull_data() const;
   T last() const;
 };
 
@@ -185,6 +202,7 @@ class HostWrite {
 #endif
   }
   T* data() const;
+  T* nonnull_data() const;
 };
 
 template <class T>

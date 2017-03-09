@@ -77,7 +77,7 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
     /* rotate to make it first */
     auto rotation = rotation_to_first<deg>(min_j);
     T tmp[deg];
-    rotate_adj<deg>(rotation, &ev2v[begin], tmp);
+    rotate_adj<deg>(rotation, ev2v, begin, tmp, 0);
     auto is_flipped = IsFlipped<deg>::is(tmp);
     codes[e] = make_code(is_flipped, rotation, 0);
   };

@@ -114,36 +114,6 @@ std::size_t Write<T>::bytes() const {
   return static_cast<std::size_t>(size()) * sizeof(T);
 }
 
-/* Several C libraries including ZLib and
-   OpenMPI will throw errors when input pointers
-   are NULL, even if they point to arrays of size zero. */
-template <typename T>
-class NonNullPtr {
-  static T scratch[1];
-
- public:
-  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
-  static T const* get(T const* p) { return (p == nullptr) ? scratch : p; }
-};
-template <typename T>
-T NonNullPtr<T>::scratch[1] = {0};
-
-template <typename T>
-T* Write<T>::data() const {
-#ifdef OMEGA_H_USE_KOKKOS
-  return NonNullPtr<T>::get(view_.data());
-#else
-  return ptr_.get();
-#endif
-}
-
-#ifdef OMEGA_H_USE_KOKKOS
-template <typename T>
-Kokkos::View<T*> Write<T>::view() const {
-  return view_;
-}
-#endif
-
 template <typename T>
 void Write<T>::set(LO i, T value) const {
 #ifdef OMEGA_H_USE_CUDA
@@ -181,13 +151,17 @@ LOs::LOs(LO size, LO offset, LO stride) : Read<LO>(size, offset, stride) {}
 LOs::LOs(std::initializer_list<LO> l) : Read<LO>(l) {}
 
 template <typename T>
-Read<T>::Read(Write<T> write) : write_(write) {}
+Read<T>::Read(Write<T> write) : write_(write)
+#ifdef OMEGA_H_USE_KOKKOS
+  ,access_view_(write.view())
+#endif
+{}
 
 template <typename T>
-Read<T>::Read(LO size, T value) : write_(size, value) {}
+Read<T>::Read(LO size, T value) : Read<T>(Write<T>(size, value)) {}
 
 template <typename T>
-Read<T>::Read(LO size, T offset, T stride) : write_(size, offset, stride) {}
+Read<T>::Read(LO size, T offset, T stride) : Read<T>(Write<T>(size, offset, stride)) {}
 
 template <typename T>
 Read<T>::Read(std::initializer_list<T> l) : Read<T>(HostWrite<T>(l).write()) {}
@@ -195,11 +169,6 @@ Read<T>::Read(std::initializer_list<T> l) : Read<T>(HostWrite<T>(l).write()) {}
 template <typename T>
 LO Read<T>::size() const {
   return write_.size();
-}
-
-template <typename T>
-T const* Read<T>::data() const {
-  return write_.data();
 }
 
 #ifdef OMEGA_H_USE_KOKKOS
@@ -278,10 +247,29 @@ LO HostWrite<T>::size() const {
 template <typename T>
 T* HostWrite<T>::data() const {
 #ifdef OMEGA_H_USE_KOKKOS
-  return NonNullPtr<T>::get(mirror_.data());
+  return mirror_.data();
 #else
   return write_.data();
 #endif
+}
+
+/* Several C libraries including ZLib and
+   OpenMPI will throw errors when input pointers
+   are NULL, even if they point to arrays of size zero. */
+template <typename T>
+class NonNullPtr {
+  static T scratch[1];
+
+ public:
+  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
+  static T const* get(T const* p) { return (p == nullptr) ? scratch : p; }
+};
+template <typename T>
+T NonNullPtr<T>::scratch[1] = {0};
+
+template <typename T>
+T* HostWrite<T>::nonnull_data() const {
+  return NonNullPtr<T>::get(data());
 }
 
 template <typename T>
@@ -310,13 +298,25 @@ LO HostRead<T>::size() const {
   return read_.size();
 }
 
+#ifdef OMEGA_H_USE_KOKKOS
+template <typename T>
+Kokkos::View<T*> Write<T>::view() const {
+  return view_;
+}
+#endif
+
 template <typename T>
 T const* HostRead<T>::data() const {
 #ifdef OMEGA_H_USE_KOKKOS
-  return NonNullPtr<T>::get(mirror_.data());
+  return mirror_.data();
 #else
   return read_.data();
 #endif
+}
+
+template <typename T>
+T const* HostRead<T>::nonnull_data() const {
+  return NonNullPtr<T>::get(data());
 }
 
 template <typename T>

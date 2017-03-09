@@ -6,10 +6,8 @@
 #include "Omega_h.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
-#include "classify.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
-#include "mark.hpp"
 #include "simplices.hpp"
 
 namespace Omega_h {

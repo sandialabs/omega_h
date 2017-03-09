@@ -77,7 +77,6 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
       auto code = edge_dom_codes[edge_dom];
       auto dde = code_which_down(code);
       auto rot = code_rotation(code);
-      auto ddv2v = &dom_verts2verts[dom * (dim + 1)];
       for (Int eev = 0; eev < 2; ++eev) {
         /* a new cell is formed from an old cell by finding
            its side that is opposite to one of the edge endpoints
@@ -88,7 +87,7 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
         auto ppv2v = &pair_verts2verts_w[pair * (dim + 1)];
         for (Int dsv = 0; dsv < dim; ++dsv) {
           auto ddv2 = down_template(dim, dim - 1, dds, dsv);
-          auto ov = ddv2v[ddv2];
+          auto ov = dom_verts2verts[dom * (dim + 1) + ddv2];
           auto nv = old_verts2new_verts[ov];
           ppv2v[dsv] = nv;
         }
@@ -129,7 +128,6 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
       auto dom = edge_doms2doms[edge_dom];
       auto code = edge_dom_codes[edge_dom];
       auto dde = code_which_down(code);
-      auto ddv2v = &dom_verts2verts[dom * (dim + 1)];
       /* a "cut" is formed by connecting its opposite
          "tip" (running out of words) to the new midpoint
          vertex. for triangle domains, the tip is the vertex
@@ -139,7 +137,7 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
       auto ddt = opposite_template(dim, EDGE, dde);
       for (Int dtv = 0; dtv < dim - 1; ++dtv) {
         auto ddv2 = down_template(dim, dim - 2, ddt, dtv);
-        auto ov = ddv2v[ddv2];
+        auto ov = dom_verts2verts[dom * (dim + 1) + ddv2];
         auto nv = old_verts2new_verts[ov];
         ccv2v[dtv] = nv;
       }
