@@ -38,6 +38,62 @@ macro(bob_begin_package)
   message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 endmacro(bob_begin_package)
 
+function(bob_form_semver)
+  cmake_parse_arguments(PARSED_ARGS
+      ""
+      ""
+      "CONFIG_OPTIONS"
+      ${ARGN})
+  execute_process(COMMAND git describe --exact-match HEAD
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE NOT_TAG
+      OUTPUT_VARIABLE TAG_NAME
+      ERROR_VARIABLE TAG_ERROR
+      ERROR_QUIET)
+  if(NOT_TAG)
+    if(${PROJECT_NAME}_VERSION)
+      set(SEMVER ${${PROJECT_NAME}_VERSION})
+      execute_process(COMMAND git log -1 --format=%h
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+          RESULT_VARIABLE NO_SHA1
+          OUTPUT_VARIABLE SHORT_SHA1
+          ERROR_VARIABLE SHA1_ERROR
+          ERROR_QUIET)
+      if(NO_SHA1)
+        message(WARNING "bob_form_semver no Git hash !\n" ${SHA1_ERROR})
+      else()
+        set(SEMVER "${SEMVER}+sha.${SHORT_SHA1}")
+      endif()
+    else()
+      message(FATAL_ERROR "bob_form_semver needs either ${PROJECT_NAME}_VERSION or a Git tag\n" ${TAG_ERROR})
+    endif()
+  else()
+    if(TAG_NAME MATCHES "^v[0-9]+\.[0-9]\.[0-9]$")
+      string(SUBSTRING "${TAG_NAME}" 1 -1 SEMVER)
+      if(${PROJECT_NAME}_VERSION AND (NOT (SEMVER VERSION_EQUAL ${PROJECT_NAME}_VERSION)))
+        message(FATAL_ERROR "bob_form_semver: tag is ${TAG_NAME} but ${PROJECT_NAME}_VERSION=${${PROJECT_NAME}_VERSION} !")
+      endif()
+    else()
+      if(${PROJECT_NAME}_VERSION)
+        set(SEMVER "${${PROJECT_NAME}_VERSION}-tag.${TAG_NAME}")
+      else()
+        message(FATAL_ERROR "bob_form_semver needs either ${PROJECT_NAME}_VERSION or a Git tag of the form v1.2.3")
+      endif()
+    endif()
+  endif()
+  if(PARSED_ARGS_CONFIG_OPTIONS)
+    set(SEMVER "${SEMVER}+")
+    foreach(CONFIG_OPTION IN LISTS PARSED_ARGS_CONFIG_OPTIONS)
+      if(${CONFIG_OPTION})
+        set(SEMVER "${SEMVER}1")
+      else()
+        set(SEMVER "${SEMVER}0")
+      endif()
+    endforeach()
+  endif()
+  set(${PROJECT_NAME}_SEMVER "${SEMVER}" PARENT_SCOPE)
+endfunction(bob_form_semver)
+
 function(bob_begin_cxx_flags)
   if(CMAKE_BUILD_TYPE)
     message(FATAL_ERROR "can't set CMAKE_BUILD_TYPE and use bob_*_cxx_flags")
