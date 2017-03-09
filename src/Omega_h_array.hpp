@@ -4,6 +4,7 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <initializer_list>
+#include <type_traits>
 #include <memory>
 
 namespace Omega_h {
@@ -13,6 +14,7 @@ class HostWrite;
 
 template <typename T>
 class View {
+ public:
   using NonConstT = typename std::remove_const<T>::type;
 #ifdef OMEGA_H_USE_KOKKOS
   using ViewKokkos = Kokkos::View<T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
@@ -26,7 +28,7 @@ class View {
 #ifdef OMEGA_H_USE_KOKKOS
   View(ViewKokkos view_in);
 #else
-  View(T* ptr_in, LO size_in);
+  View(std::shared_ptr<T> ptr_in, LO size_in);
 #endif
   OMEGA_H_INLINE View()
       :
@@ -39,18 +41,6 @@ class View {
   {
   }
   OMEGA_H_INLINE View(View<T> const& other)
-      :
-#ifdef OMEGA_H_USE_KOKKOS
-        view_(other.view_)
-#else
-        ptr_(other.ptr_),
-        size_(other.size_)
-#endif
-  {
-  }
-  OMEGA_H_INLINE View(
-      typename std::enable_if<
-      !std::is_same<T, NonConstT>, View<NonConstT>>::type const& other)
       :
 #ifdef OMEGA_H_USE_KOKKOS
         view_(other.view_)
@@ -207,6 +197,8 @@ Write<T> deep_copy(Read<T> a);
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
+  extern template class View<T>;                                               \
+  extern template class View<const T>;                                               \
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
@@ -217,7 +209,6 @@ OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)
 OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
-/* end explicit instantiation declarations */
 
 }  // end namespace Omega_h
 

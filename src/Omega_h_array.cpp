@@ -21,7 +21,7 @@ std::size_t get_max_bytes() { return max_array_bytes; }
 template <typename T>
 void Write<T>::log_allocation() const {
   if (!should_log_memory) return;
-  current_array_bytes += bytes();
+  current_array_bytes += this->bytes();
   if (current_array_bytes > max_array_bytes) {
     max_array_bytes = current_array_bytes;
     delete[] max_memory_stacktrace;
@@ -40,7 +40,8 @@ View<T>::View(ViewKokkos view_in) : view_(view) {
 }
 #else
 template <typename T>
-View<T>::View(T* ptr_in, LO size_in) : ptr_(ptr_in), size_(size_in) {
+View<T>::View(std::shared_ptr<T> ptr_in,
+    LO size_in) : ptr_(ptr_in), size_(size_in) {
 }
 #endif
 
@@ -108,7 +109,7 @@ T View<T>::get(LO i) const {
 }
 
 template <typename T>
-std::size_t Write<T>::bytes() const {
+std::size_t View<T>::bytes() const {
   return static_cast<std::size_t>(size()) * sizeof(T);
 }
 
@@ -133,7 +134,7 @@ Write<T>::Write(LO size)
       View<T>(ViewKokkos(Kokkos::ViewAllocateWithoutInitializing("omega_h"),
           static_cast<std::size_t>(size)))
 #else
-      View<T>(new T[size], std::default_delete<T[]>(), size)
+      View<T>(std::shared_ptr<T>(new T[size], std::default_delete<T[]>()), size)
 #endif
 {
   log_allocation();
@@ -169,7 +170,7 @@ void Write<T>::set(LO i, T value) const {
 #ifdef OMEGA_H_USE_CUDA
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
-  operator[](i) = value;
+  View<T>::operator[](i) = value;
 #endif
 }
 
@@ -190,25 +191,31 @@ LOs::LOs(LO size, LO offset, LO stride) : Read<LO>(size, offset, stride) {}
 LOs::LOs(std::initializer_list<LO> l) : Read<LO>(l) {}
 
 template <typename T>
-Read<T>::Read(Write<T> write) : View<const T>(write) {}
+Read<T>::Read(Write<T> write) :
+#ifdef OMEGA_H_USE_KOKKOS
+  View<const T>(write.view_)
+#else
+  View<const T>(write.ptr_, write.size_)
+#endif
+{}
 
 template <typename T>
-Read<T>::Read(LO size, T value) : View<const T>(Write<T>(size, value)) {}
+Read<T>::Read(LO size, T value) : Read<T>(Write<T>(size, value)) {}
 
 template <typename T>
-Read<T>::Read(LO size, T offset, T stride) : View<const T>(Write<T>(size, offset, stride)) {}
+Read<T>::Read(LO size, T offset, T stride) : Read<T>(Write<T>(size, offset, stride)) {}
 
 template <typename T>
 Read<T>::Read(std::initializer_list<T> l) : Read<T>(HostWrite<T>(l).write()) {}
 
 template <typename T>
 T Read<T>::first() const {
-  return get(0);
+  return View<const T>::get(0);
 }
 
 template <typename T>
 T Read<T>::last() const {
-  return get(size() - 1);
+  return View<const T>::get(View<const T>::size() - 1);
 }
 
 template <typename T>
@@ -324,6 +331,8 @@ Write<T> deep_copy(Read<T> a) {
 }
 
 #define INST(T)                                                                \
+  template class View<T>;                                                \
+  template class View<const T>;                                                \
   template class NonNullPtr<T>;                                                \
   template class Write<T>;                                                     \
   template class Read<T>;                                                      \
