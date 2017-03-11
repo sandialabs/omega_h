@@ -33,6 +33,8 @@ Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax);
 Reals metric_for_nelems_from_hessians(
     Mesh* mesh, Real target_nelems, Real tolerance, Reals hessians, Real hmax);
 
+Reals project_metrics(Mesh* mesh, Reals e2m);
+
 }
 
 #endif

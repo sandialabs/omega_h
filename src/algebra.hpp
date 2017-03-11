@@ -104,6 +104,13 @@ INLINE T sum(Few<T, n> x) {
   return out;
 }
 
+template <Int n, typename T>
+INLINE T product(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = out * x[i];
+  return out;
+}
+
 template <Int n>
 INLINE Vector<n> operator-(Vector<n> a) {
   Vector<n> c;
