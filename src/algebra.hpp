@@ -206,7 +206,7 @@ INLINE bool are_close(
 }
 
 template <Int m, Int n>
-INLINE Matrix<m, n> tensor_product(Vector<m> a, Vector<n> b) {
+INLINE Matrix<m, n> outer_product(Vector<m> a, Vector<n> b) {
   Matrix<m, n> c;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < m; ++i) c[j][i] = a[i] * b[j];

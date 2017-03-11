@@ -16,7 +16,7 @@ INLINE Vector<3> uncross(Matrix<3, 3> c) {
 /* Rodrigues' Rotation Formula */
 INLINE Matrix<3, 3> rotate(Real angle, Vector<3> axis) {
   return cos(angle) * identity_matrix<3, 3>() + sin(angle) * cross(axis) +
-         (1 - cos(angle)) * tensor_product(axis, axis);
+         (1 - cos(angle)) * outer_product(axis, axis);
 }
 
 INLINE Matrix<2, 2> rotate(Real angle) {
