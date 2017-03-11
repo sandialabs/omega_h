@@ -269,7 +269,6 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
   auto keys2target_elems = Graph(keys2prods, prods2new_elems);
   auto kds2donor_elems = donor_mesh->ask_up(key_dim, dim);
   auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
-  auto keys2target_verts = get_closure_verts(target_mesh, keys2target_elems);
   auto target_elems2verts = target_mesh->ask_elem_verts();
   auto comps_are_fixed = get_comps_are_fixed(target_mesh);
   auto target_elem_masses = target_mesh->get_array<Real>(dim, "mass");
