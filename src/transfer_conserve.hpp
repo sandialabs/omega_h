@@ -12,8 +12,6 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
 
-Graph get_closure_verts(Mesh* mesh, Graph keys2elems);
-
 bool has_fixed_momentum_velocity(Mesh* mesh);
 Read<I8> filter_coarsen_momentum_velocity(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes);

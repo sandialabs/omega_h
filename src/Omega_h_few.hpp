@@ -31,12 +31,22 @@ class Few {
   OMEGA_H_INLINE T const volatile* data() const volatile {
     return array_;
   }
-  OMEGA_H_INLINE T& operator[](Int i) { return array_[i]; }
-  OMEGA_H_INLINE T const& operator[](Int i) const { return array_[i]; }
-  OMEGA_H_INLINE T volatile& operator[](Int i) volatile { return array_[i]; }
+#ifdef OMEGA_H_CHECK_BOUNDS
+#define OMEGA_H_FEW_AT \
+  OMEGA_H_CHECK(0 <= i); \
+  OMEGA_H_CHECK(i < size); \
+  return array_[i]
+#else
+#define OMEGA_H_FEW_AT \
+  return array_[i]
+#endif
+  OMEGA_H_INLINE T& operator[](Int i) { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T const& operator[](Int i) const { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T volatile& operator[](Int i) volatile { OMEGA_H_FEW_AT; }
   OMEGA_H_INLINE T const volatile& operator[](Int i) const volatile {
-    return array_[i];
+    OMEGA_H_FEW_AT;
   }
+#undef OMEGA_H_FEW_AT
   Few(std::initializer_list<T> l) {
     Int i = 0;
     for (auto it = l.begin(); it != l.end(); ++it) {
@@ -61,6 +71,13 @@ class Few {
     for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
   }
 };
+
+template <Int capacity, typename T>
+OMEGA_H_INLINE void add_unique(Few<T, capacity>& stack, Int& n, T e) {
+  for (Int i = 0; i < n; ++i)
+    if (stack[i] == e) return;
+  stack[n++] = e;
+}
 
 }
 

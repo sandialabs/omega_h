@@ -70,7 +70,6 @@ set(Omega_h_SOURCES
   xml.cpp
   derive.cpp
   project.cpp
-  buffered_graphs.cpp
   Omega_h_coarsen_overshoot.cpp
   collapse_rail.cpp
   histogram.cpp

@@ -53,7 +53,6 @@ template <typename T>
 Read<T> fan_min(LOs a2b, Read<T> b_data);
 template <typename T>
 Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
-Read<I8> fan_reduce_bit_and(LOs a2b, Read<I8> b_data, Int width);
 
 #define INST_T(T)                                                              \
   extern template Read<T> permute(Read<T> a_data, LOs a2b, Int width);         \

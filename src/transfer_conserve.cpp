@@ -228,16 +228,37 @@ Read<I8> filter_coarsen_momentum_velocity(
 }
 
 Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
-  auto edges2elems = mesh->ask_up(EDGE, mesh->dim());
-  auto cands2elems = unmap_graph(cands2edges, edges2elems);
-  auto cands2verts = get_closure_verts(mesh, cands2elems);
   auto vert_comps_are_fixed =
       mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
-  auto cand_vert_comps_are_fixed =
-      unmap(cands2verts.ab2b, vert_comps_are_fixed, 1);
-  auto cand_comps_are_fixed =
-      fan_reduce_bit_and(cands2verts.a2ab, cand_vert_comps_are_fixed, 1);
-  auto keep = each_eq_to(cand_comps_are_fixed, I8(0));
+  auto edges2elems = mesh->ask_up(EDGE, mesh->dim());
+  auto cands2elems = unmap_graph(cands2edges, edges2elems);
+  auto elem_verts2vert = mesh->ask_elem_verts();
+  auto nverts_per_elem = simplex_degrees[mesh->dim()][VERT];
+  constexpr Int max_verts_per_cavity = (AvgDegree<3, 0, 3>::value + 1) * 2;
+  auto ncands = cands2elems.nnodes();
+  auto keep_w = Write<I8>(ncands);
+  auto f = LAMBDA(LO cand) {
+    Few<LO, max_verts_per_cavity> cavity_verts;
+    Int ncavity_verts = 0;
+    for (auto ce = cands2elems.a2ab[cand];
+         ce < cands2elems.a2ab[cand + 1]; ++ce) {
+      auto elem = cands2elems.ab2b[ce];
+      for (auto ev = elem * nverts_per_elem;
+           ev < (elem + 1) * nverts_per_elem; ++ev) {
+        auto vert = elem_verts2vert[ev];
+        add_unique(cavity_verts, ncavity_verts, vert);
+      }
+    }
+    Int cavity_bits = (1 << 3) - 1;
+    for (Int i = 0; i < ncavity_verts; ++i) {
+      auto vert = cavity_verts[i];
+      auto vert_bits = Int(vert_comps_are_fixed[vert]);
+      cavity_bits &= vert_bits;
+    }
+    keep_w[cand] = (cavity_bits == 0);
+  };
+  parallel_for(ncands, f);
+  auto keep = Read<I8>(keep_w);
   return mesh->sync_subset_array(EDGE, keep, cands2edges, I8(0), 1);
 }
 
