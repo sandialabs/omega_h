@@ -55,6 +55,6 @@ void fix_momentum_velocity_verts(
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
 bool approach_size_field(Mesh* mesh, AdaptOpts const& opts);
 
-}
+}  // namespace Omega_h
 
 #endif

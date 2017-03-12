@@ -1,9 +1,9 @@
 #ifndef OMEGA_H_SCALAR_HPP
 #define OMEGA_H_SCALAR_HPP
 
-#include <climits>
-#include <cfloat>
 #include <Omega_h_kokkos.hpp>
+#include <cfloat>
+#include <climits>
 
 namespace Omega_h {
 
@@ -86,6 +86,6 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   b = c;
 }
 
-}
+}  // namespace Omega_h
 
 #endif

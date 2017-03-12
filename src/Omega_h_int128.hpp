@@ -30,7 +30,8 @@ struct Int128 {
 
 OMEGA_H_INLINE Int128::Int128() {}
 
-OMEGA_H_INLINE Int128::Int128(std::int64_t h, std::uint64_t l) : high(h), low(l) {}
+OMEGA_H_INLINE Int128::Int128(std::int64_t h, std::uint64_t l)
+    : high(h), low(l) {}
 
 OMEGA_H_INLINE Int128::Int128(std::int64_t value)
     : Int128(std::int64_t(-1) * (value < 0), std::uint64_t(value)) {}
@@ -47,7 +48,8 @@ OMEGA_H_INLINE void Int128::operator=(Int128 const& rhs) volatile {
 
 /* which implies we have to declare a regular copy
    constructor */
-OMEGA_H_INLINE Int128::Int128(Int128 const& rhs) : high(rhs.high), low(rhs.low) {}
+OMEGA_H_INLINE Int128::Int128(Int128 const& rhs)
+    : high(rhs.high), low(rhs.low) {}
 
 /* and a volatile rhs one ? */
 OMEGA_H_INLINE Int128::Int128(const volatile Int128& rhs)

@@ -49,7 +49,9 @@ struct Root<3> {
 };
 
 template <Int p>
-Real root(Real x) { return Root<p>::eval(x); }
+Real root(Real x) {
+  return Root<p>::eval(x);
+}
 
 template <Int np, Int dp>
 struct Power {

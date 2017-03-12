@@ -3,13 +3,13 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
+#include "control.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
 #include "sort.hpp"
 #include "timer.hpp"
-#include "control.hpp"
 
 namespace Omega_h {
 
@@ -483,7 +483,8 @@ Graph elements_across_sides(
   return Graph(elem2elem_elems, elem_elem2elem);
 }
 
-#define INST(T) template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v); \
+#define INST(T)                                                                \
+  template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);             \
   template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, \
       Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
 INST(LO)

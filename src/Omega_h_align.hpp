@@ -1,9 +1,9 @@
 #ifndef OMEGA_H_ALIGN_HPP
 #define OMEGA_H_ALIGN_HPP
 
+#include <Omega_h_array.hpp>
 #include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
-#include <Omega_h_array.hpp>
 #include <Omega_h_scalar.hpp>
 
 namespace Omega_h {
@@ -93,7 +93,8 @@ OMEGA_H_INLINE Int align_edge_index(Int index, I8 code) {
   return index;
 }
 
-OMEGA_H_INLINE Int align_index(Int nverts_per_ent, Int index_dim, Int index, I8 code) {
+OMEGA_H_INLINE Int align_index(
+    Int nverts_per_ent, Int index_dim, Int index, I8 code) {
   if (nverts_per_ent == 3) {
     if (index_dim == 1) {
       return align_edge_index(index, code);
@@ -161,7 +162,8 @@ OMEGA_H_INLINE I8 compound_alignments(Int deg, I8 code1, I8 code2) {
 }
 
 template <Int nverts_per_ent, typename In, typename Out>
-OMEGA_H_DEVICE void rotate_adj(Int rotation, In const& in, LO in_offset, Out& out, LO out_offset) {
+OMEGA_H_DEVICE void rotate_adj(
+    Int rotation, In const& in, LO in_offset, Out& out, LO out_offset) {
   for (I8 j = 0; j < nverts_per_ent; ++j) {
     auto out_j = rotate_index<nverts_per_ent>(j, rotation);
     out[out_offset + out_j] = in[in_offset + j];
@@ -185,8 +187,7 @@ struct FlipAdj<3> {
 template <>
 struct FlipAdj<2> {
   template <typename InOut>
-  OMEGA_H_DEVICE static void flip(InOut&, LO) {
-  }
+  OMEGA_H_DEVICE static void flip(InOut&, LO) {}
 };
 template <Int deg, typename InOut>
 OMEGA_H_DEVICE void flip_adj(InOut& adj, LO offset) {
@@ -194,8 +195,10 @@ OMEGA_H_DEVICE void flip_adj(InOut& adj, LO offset) {
 }
 
 template <Int nverts_per_ent, typename In, typename Out>
-OMEGA_H_DEVICE void align_adj(I8 code, In const& in, LO in_offset, Out& out, LO out_offset) {
-  rotate_adj<nverts_per_ent>(code_rotation(code), in, in_offset, out, out_offset);
+OMEGA_H_DEVICE void align_adj(
+    I8 code, In const& in, LO in_offset, Out& out, LO out_offset) {
+  rotate_adj<nverts_per_ent>(
+      code_rotation(code), in, in_offset, out, out_offset);
   if (code_is_flipped(code)) flip_adj<nverts_per_ent>(out, out_offset);
 }
 

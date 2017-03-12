@@ -5,10 +5,10 @@
 #include <climits>
 #include <cmath>
 
-#include <Omega_h_scalar.hpp>
+#include <Omega_h_array.hpp>
 #include <Omega_h_defines.hpp>
 #include <Omega_h_few.hpp>
-#include <Omega_h_array.hpp>
+#include <Omega_h_scalar.hpp>
 
 namespace Omega_h {
 

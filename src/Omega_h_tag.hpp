@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_TAG_HPP
 #define OMEGA_H_TAG_HPP
 
-#include <string>
 #include <Omega_h_array.hpp>
+#include <string>
 
 namespace Omega_h {
 
@@ -44,7 +44,7 @@ template <typename T>
 Tag<T>* to(TagBase* t);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
-  extern template Read<T> Tag<T>::array() const; \
+  extern template Read<T> Tag<T>::array() const;                               \
   extern template bool is<T>(TagBase const* t);                                \
   extern template Tag<T> const* to<T>(TagBase const* t);                       \
   extern template Tag<T>* to<T>(TagBase * t);                                  \
@@ -55,6 +55,6 @@ OMEGA_H_EXPL_INST_DECL(I64)
 OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
 
-}
+}  // namespace Omega_h
 
 #endif

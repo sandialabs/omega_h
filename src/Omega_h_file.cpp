@@ -172,8 +172,8 @@ void write_array(std::ostream& stream, Read<T> array) {
   stream.write(reinterpret_cast<const char*>(compressed), compressed_bytes);
   delete[] compressed;
 #else
-  stream.write(
-      reinterpret_cast<const char*>(uncompressed.nonnull_data()), uncompressed_bytes);
+  stream.write(reinterpret_cast<const char*>(uncompressed.nonnull_data()),
+      uncompressed_bytes);
 #endif
 }
 
@@ -194,7 +194,8 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
     stream.read(reinterpret_cast<char*>(compressed), compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
-    Bytef* uncompressed_ptr = reinterpret_cast<Bytef*>(uncompressed.nonnull_data());
+    Bytef* uncompressed_ptr =
+        reinterpret_cast<Bytef*>(uncompressed.nonnull_data());
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     CHECK(ret == Z_OK);
@@ -205,8 +206,8 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   CHECK(is_compressed == false);
 #endif
   {
-    stream.read(
-        reinterpret_cast<char*>(uncompressed.nonnull_data()), uncompressed_bytes);
+    stream.read(reinterpret_cast<char*>(uncompressed.nonnull_data()),
+        uncompressed_bytes);
   }
   array = swap_if_needed(Read<T>(uncompressed.write()), true);
 }

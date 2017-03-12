@@ -59,6 +59,6 @@ OMEGA_H_EXPL_INST_DECL(I64)
 OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
 
-}
+}  // namespace Omega_h
 
 #endif

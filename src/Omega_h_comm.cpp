@@ -114,8 +114,9 @@ CommPtr Comm::graph(Read<I32> dsts) const {
   int degrees[1] = {dsts.size()};
   HostRead<I32> destinations(dsts);
   int reorder = 0;
-  CALL(MPI_Dist_graph_create(impl_, n, sources, degrees, destinations.nonnull_data(),
-      OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder, &impl2));
+  CALL(MPI_Dist_graph_create(impl_, n, sources, degrees,
+      destinations.nonnull_data(), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
+      reorder, &impl2));
   return CommPtr(new Comm(library_, impl2));
 #else
   return CommPtr(new Comm(library_, true, dsts.size() == 1));
@@ -128,9 +129,10 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
   HostRead<I32> sources(srcs);
   HostRead<I32> destinations(dsts);
   int reorder = 0;
-  CALL(MPI_Dist_graph_create_adjacent(impl_, sources.size(), sources.nonnull_data(),
-      OMEGA_H_MPI_UNWEIGHTED, destinations.size(), destinations.nonnull_data(),
-      OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL, reorder, &impl2));
+  CALL(MPI_Dist_graph_create_adjacent(impl_, sources.size(),
+      sources.nonnull_data(), OMEGA_H_MPI_UNWEIGHTED, destinations.size(),
+      destinations.nonnull_data(), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
+      reorder, &impl2));
   return CommPtr(new Comm(library_, impl2));
 #else
   CHECK(srcs == dsts);
@@ -347,8 +349,8 @@ Read<T> Comm::allgather(T x) const {
 #ifdef OMEGA_H_USE_MPI
   HostWrite<T> recvbuf(srcs_.size());
   CALL(Neighbor_allgather(host_srcs_, host_dsts_, &x, 1,
-      MpiTraits<T>::datatype(), recvbuf.nonnull_data(), 1, MpiTraits<T>::datatype(),
-      impl_));
+      MpiTraits<T>::datatype(), recvbuf.nonnull_data(), 1,
+      MpiTraits<T>::datatype(), impl_));
   return recvbuf.write();
 #else
   if (srcs_.size() == 1) return Read<T>({x});
@@ -362,8 +364,8 @@ Read<T> Comm::alltoall(Read<T> x) const {
   HostWrite<T> recvbuf(srcs_.size());
   HostRead<T> sendbuf(x);
   CALL(Neighbor_alltoall(host_srcs_, host_dsts_, sendbuf.nonnull_data(), 1,
-      MpiTraits<T>::datatype(), recvbuf.nonnull_data(), 1, MpiTraits<T>::datatype(),
-      impl_));
+      MpiTraits<T>::datatype(), recvbuf.nonnull_data(), 1,
+      MpiTraits<T>::datatype(), impl_));
   return recvbuf.write();
 #else
   return x;
@@ -479,8 +481,9 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
   CHECK(sdispls.size() == sendcounts.size() + 1);
   CHECK(sendbuf.size() == sdispls.last());
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, sendbuf.nonnull_data(),
-      sendcounts.nonnull_data(), sdispls.nonnull_data(), MpiTraits<T>::datatype(),
-      recvbuf.nonnull_data(), recvcounts.nonnull_data(), rdispls.nonnull_data(),
+      sendcounts.nonnull_data(), sdispls.nonnull_data(),
+      MpiTraits<T>::datatype(), recvbuf.nonnull_data(),
+      recvcounts.nonnull_data(), rdispls.nonnull_data(),
       MpiTraits<T>::datatype(), impl_));
   auto recvbuf_dev = Read<T>(recvbuf.write());
 #ifdef OMEGA_H_USE_CUDA

@@ -151,17 +151,21 @@ LOs::LOs(LO size, LO offset, LO stride) : Read<LO>(size, offset, stride) {}
 LOs::LOs(std::initializer_list<LO> l) : Read<LO>(l) {}
 
 template <typename T>
-Read<T>::Read(Write<T> write) : write_(write)
+Read<T>::Read(Write<T> write)
+    : write_(write)
 #ifdef OMEGA_H_USE_KOKKOS
-  ,access_view_(write.view())
+      ,
+      access_view_(write.view())
 #endif
-{}
+{
+}
 
 template <typename T>
 Read<T>::Read(LO size, T value) : Read<T>(Write<T>(size, value)) {}
 
 template <typename T>
-Read<T>::Read(LO size, T offset, T stride) : Read<T>(Write<T>(size, offset, stride)) {}
+Read<T>::Read(LO size, T offset, T stride)
+    : Read<T>(Write<T>(size, offset, stride)) {}
 
 template <typename T>
 Read<T>::Read(std::initializer_list<T> l) : Read<T>(HostWrite<T>(l).write()) {}

@@ -52,6 +52,6 @@ class Library {
   std::map<std::string, double> timers;
 };
 
-}
+}  // namespace Omega_h
 
 #endif

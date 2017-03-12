@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_ARRAY_OPS_HPP
 #define OMEGA_H_ARRAY_OPS_HPP
 
-#include <Omega_h_functors.hpp>
 #include <Omega_h_comm.hpp>
+#include <Omega_h_functors.hpp>
 
 namespace Omega_h {
 
@@ -82,7 +82,7 @@ Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
 
-#define OMEGA_H_EXPL_INST_DECL(T)                                                           \
+#define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
   extern template typename StandinTraits<T>::type get_sum(Read<T> a);          \
   extern template T get_min(Read<T> a);                                        \

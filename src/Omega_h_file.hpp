@@ -6,9 +6,9 @@
 #include <vector>
 
 #include <Omega_h_config.h>
-#include <Omega_h_defines.hpp>
 #include <Omega_h_array.hpp>
 #include <Omega_h_comm.hpp>
+#include <Omega_h_defines.hpp>
 
 namespace Omega_h {
 
@@ -141,6 +141,6 @@ inline std::string to_string(I32 x) {
 #endif
 }
 
-}
+}  // namespace Omega_h
 
 #endif

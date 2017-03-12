@@ -637,7 +637,7 @@ bool Mesh::could_be_shared(Int ent_dim) const {
 
 bool Mesh::owners_have_all_upward(Int ent_dim) const {
   return have_all_upward() ||
-          (parting_ == OMEGA_H_VERT_BASED && ent_dim == VERT);
+         (parting_ == OMEGA_H_VERT_BASED && ent_dim == VERT);
 }
 
 bool Mesh::have_all_upward() const {

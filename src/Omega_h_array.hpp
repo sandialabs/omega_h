@@ -104,7 +104,8 @@ template <typename T>
 class Read {
   Write<T> write_;
 #ifdef OMEGA_H_USE_KOKKOS
-  Kokkos::View<const T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>> access_view_;
+  Kokkos::View<const T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>>
+      access_view_;
 #endif
 
  public:

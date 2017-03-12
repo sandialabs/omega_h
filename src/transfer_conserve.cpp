@@ -240,11 +240,11 @@ Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
   auto f = LAMBDA(LO cand) {
     Few<LO, max_verts_per_cavity> cavity_verts;
     Int ncavity_verts = 0;
-    for (auto ce = cands2elems.a2ab[cand];
-         ce < cands2elems.a2ab[cand + 1]; ++ce) {
+    for (auto ce = cands2elems.a2ab[cand]; ce < cands2elems.a2ab[cand + 1];
+         ++ce) {
       auto elem = cands2elems.ab2b[ce];
-      for (auto ev = elem * nverts_per_elem;
-           ev < (elem + 1) * nverts_per_elem; ++ev) {
+      for (auto ev = elem * nverts_per_elem; ev < (elem + 1) * nverts_per_elem;
+           ++ev) {
         auto vert = elem_verts2vert[ev];
         add_unique(cavity_verts, ncavity_verts, vert);
       }

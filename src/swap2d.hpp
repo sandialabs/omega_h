@@ -1,8 +1,8 @@
 #ifndef SWAP2D_HPP
 #define SWAP2D_HPP
 
-#include <Omega_h_array.hpp>
 #include <Omega_h_adapt.hpp>
+#include <Omega_h_array.hpp>
 #include "host_few.hpp"
 
 namespace Omega_h {
