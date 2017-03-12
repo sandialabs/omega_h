@@ -979,17 +979,17 @@ static void test_find_last() {
 
 static void test_aniso_zz(Library* lib) {
   Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 0, 6, 6, 0);
+  build_box(&mesh, 1, 1, 1, 6, 6, 6);
   auto coords = mesh.coords();
   auto scalar_w = Write<Real>(mesh.nverts());
   auto f = LAMBDA(LO v) {
-    auto x = get_vector<2>(coords, v);
+    auto x = get_vector<3>(coords, v);
     scalar_w[v] = square(x[0] - 0.5);
   };
   parallel_for(mesh.nverts(), f);
   auto scalar = Reals(scalar_w);
   auto grad = derive_element_gradients(&mesh, scalar);
-  auto metrics = get_aniso_zz_metric(&mesh, grad, 0.1, 1.0);
+  auto metrics = get_aniso_zz_metric(&mesh, grad, 0.1, 0.42);
   mesh.add_tag(mesh.dim(), "metric", symm_dofs(mesh.dim()),
       OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, metrics);
   vtk::write_vtu("debug.vtu", &mesh, mesh.dim());

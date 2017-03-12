@@ -397,10 +397,10 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
     Matrix<dim, dim> r;
     for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
     auto b = root<dim>(a);
-    if (dim == 3) b *= pow(product(g), 1.0 / 18.0);
+//  if (dim == 3) b *= pow(product(g), 1.0 / 18.0);
     Vector<dim> h;
     for (Int i = 0; i < dim; ++i) {
-      h[i] = b / sqrt(g[dim - i - 1]);
+      h[i] = b / root<dim>(g[dim - i - 1]);
       std::cerr << "h[" << i << "] " << h[i] << '\n';
     }
     auto m = compose_metric(r, h);
