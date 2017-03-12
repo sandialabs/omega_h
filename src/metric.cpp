@@ -390,19 +390,11 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
     auto g = op_decomp.l;
     auto gv = op_decomp.q;
     auto g_min = a / raise<dim>(max_size);
-    for (Int i = 0; i < dim; ++i) {
-      std::cerr << "g[" << i << "] " << g[i] << " g_min " << g_min << '\n';
-      g[i] = max2(g[i], g_min);
-    }
+    for (Int i = 0; i < dim; ++i) g[i] = max2(g[i], g_min);
     Matrix<dim, dim> r;
     for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
-    auto b = root<dim>(a);
-//  if (dim == 3) b *= pow(product(g), 1.0 / 18.0);
     Vector<dim> h;
-    for (Int i = 0; i < dim; ++i) {
-      h[i] = b / root<dim>(g[dim - i - 1]);
-      std::cerr << "h[" << i << "] " << h[i] << '\n';
-    }
+    for (Int i = 0; i < dim; ++i) h[i] = root<dim>(a / g[dim - i - 1]);
     auto m = compose_metric(r, h);
     set_symm(out, elem, m);
   };
