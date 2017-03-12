@@ -6,7 +6,6 @@
 #include "Omega_h_proximity.hpp"
 #include "Omega_h_align.hpp"
 #include "bbox.hpp"
-#include "derive.hpp"
 #include "eigen.hpp"
 #include "hilbert.hpp"
 #include "inertia.hpp"
@@ -978,6 +977,24 @@ static void test_find_last() {
   CHECK(find_last(a, 0) == 0);
 }
 
+static void test_aniso_zz(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 1, 1, 6, 6, 6);
+  auto coords = mesh.coords();
+  auto scalar_w = Write<Real>(mesh.nverts());
+  auto f = LAMBDA(LO v) {
+    auto x = get_vector<3>(coords, v);
+    scalar_w[v] = square(x[0] - 0.5);
+  };
+  parallel_for(mesh.nverts(), f);
+  auto scalar = Reals(scalar_w);
+  auto grad = derive_element_gradients(&mesh, scalar);
+  auto metrics = get_aniso_zz_metric(&mesh, grad, 0.1, 0.42);
+  mesh.add_tag(mesh.dim(), "metric", symm_dofs(mesh.dim()),
+      OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, metrics);
+  vtk::write_vtu("debug.vtu", &mesh, mesh.dim());
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
@@ -1033,5 +1050,6 @@ int main(int argc, char** argv) {
   test_proximity(&lib);
   test_motion(&lib);
   test_find_last();
+  test_aniso_zz(&lib);
   CHECK(get_current_bytes() == 0);
 }

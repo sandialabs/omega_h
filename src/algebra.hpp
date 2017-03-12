@@ -48,6 +48,9 @@ struct Root<3> {
   static INLINE Real eval(Real x) { return cbrt(x); }
 };
 
+template <Int p>
+Real root(Real x) { return Root<p>::eval(x); }
+
 template <Int np, Int dp>
 struct Power {
   static INLINE Real eval(Real x) { return Root<dp>::eval(raise<np>(x)); }
@@ -101,6 +104,13 @@ template <Int n, typename T>
 INLINE T sum(Few<T, n> x) {
   auto out = x[0];
   for (Int i = 1; i < n; ++i) out = out + x[i];
+  return out;
+}
+
+template <Int n, typename T>
+INLINE T product(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = out * x[i];
   return out;
 }
 
@@ -206,7 +216,7 @@ INLINE bool are_close(
 }
 
 template <Int m, Int n>
-INLINE Matrix<m, n> tensor_product(Vector<m> a, Vector<n> b) {
+INLINE Matrix<m, n> outer_product(Vector<m> a, Vector<n> b) {
   Matrix<m, n> c;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < m; ++i) c[j][i] = a[i] * b[j];
