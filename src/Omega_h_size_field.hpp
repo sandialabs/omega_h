@@ -27,11 +27,18 @@ Reals get_gradient_isos(
     Mesh* mesh, Real error_bound, Real max_size, Reals scalar_field);
 Reals clamp_deforming_isos(Mesh* mesh, Reals isos, Real min_size,
     Real max_interior_size, Real max_boundary_size);
+Reals get_aniso_zz_metric(Mesh* mesh, Reals elem_gradients,
+    Real error_bound, Real max_size);
 
 Reals recover_hessians(Mesh* mesh, Reals vert_values);
 Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax);
 Reals metric_for_nelems_from_hessians(
     Mesh* mesh, Real target_nelems, Real tolerance, Reals hessians, Real hmax);
+
+Reals derive_element_gradients(Mesh* mesh, Reals vert_values);
+Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients);
+Reals recover_gradients(Mesh* mesh, Reals vert_values);
+Reals recover_hessians_from_gradients(Mesh* mesh, Reals vert_gradients);
 
 Reals project_metrics(Mesh* mesh, Reals e2m);
 

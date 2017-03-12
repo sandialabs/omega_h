@@ -340,7 +340,7 @@ Reals smooth_metric_once(Mesh* mesh, Reals v2m) {
 template <Int dim>
 Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
     Real error_bound, Real max_size) {
-  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
+  CHECK(mesh->have_all_upward());
   constexpr auto nverts_per_elem = dim + 1;
   auto elem_verts2vert = mesh->ask_elem_verts();
   auto verts2elems = mesh->ask_up(VERT, dim);
@@ -377,12 +377,12 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
       auto gradient = get_vector<dim>(elem_gradients, patch_elem);
       auto volume = elems2volume[patch_elem];
       auto grad_err = grad_avg - gradient;
-      auto op = outer_product(grad_err);
+      auto op = outer_product(grad_err, grad_err);
       op_sum = op_sum + (op * volume);
     }
     auto op_avg = op_sum / patch_volume;
     auto iso_volume = (dim == 3) ?
-      (8.0 * sqrt(3.0) / 9.0) : (3.0 * sqrt(3.0) / 4.0);
+      (1.0 / (6.0 * sqrt(2.0))) : (sqrt(3.0) / 4.0);
     auto volume_factor = elems2volume[elem] / iso_volume;
     auto pullback_volume = patch_volume / volume_factor;
     auto a = square(error_bound) / (Real(dim) * nglobal_elems * pullback_volume);
@@ -390,21 +390,35 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
     auto g = op_decomp.l;
     auto gv = op_decomp.q;
     auto g_min = a / raise<dim>(max_size);
-    for (Int i = 0; i < dim; ++i) g[i] = max2(g[i], g_min);
+    for (Int i = 0; i < dim; ++i) {
+      std::cerr << "g[" << i << "] " << g[i] << " g_min " << g_min << '\n';
+      g[i] = max2(g[i], g_min);
+    }
     Matrix<dim, dim> r;
     for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
-    auto b = Root<dim>(a);
-    if (dim == 3) b *= pow(product(g), 1.0 / 1.0 / 18.0);
+    auto b = root<dim>(a);
+    if (dim == 3) b *= pow(product(g), 1.0 / 18.0);
     Vector<dim> h;
-    for (Int i = 0; i < dim; ++i) h[i] = b * g[dim - i - 1];
+    for (Int i = 0; i < dim; ++i) {
+      h[i] = b / sqrt(g[dim - i - 1]);
+      std::cerr << "h[" << i << "] " << h[i] << '\n';
+    }
     auto m = compose_metric(r, h);
-    auto iso_edge_length = (dim == 3) ?
-      (2.0 * sqrt(2.0 / 3.0)) : (sqrt(3.0));
-    m = m / square(iso_edge_length);
     set_symm(out, elem, m);
   };
   parallel_for(mesh->nelems(), f);
   return out;
+}
+
+Reals get_aniso_zz_metric(Mesh* mesh, Reals elem_gradients,
+    Real error_bound, Real max_size) {
+  if (mesh->dim() == 3) {
+    return get_aniso_zz_metric_dim<3>(mesh, elem_gradients, error_bound, max_size);
+  } else if (mesh->dim() == 2) {
+    return get_aniso_zz_metric_dim<2>(mesh, elem_gradients, error_bound, max_size);
+  } else {
+    NORETURN(Reals());
+  }
 }
 
 }  // end namespace Omega_h

@@ -141,6 +141,7 @@ class Mesh {
   Real max_length();
   bool could_be_shared(Int ent_dim) const;
   bool owners_have_all_upward(Int ent_dim) const;
+  bool have_all_upward() const;
   Mesh copy_meta() const;
   bool keeps_canonical_globals() const;
   RibPtr rib_hints() const;
