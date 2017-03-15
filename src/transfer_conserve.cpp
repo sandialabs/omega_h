@@ -149,7 +149,7 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   if (old_mesh->has_tag(dim, "class_id")) {
     auto old_class_ids = old_mesh->get_array<I32>(dim, "class_id");
     auto new_class_ids = new_mesh->get_array<I32>(dim, "class_id");
-    auto cats_keys2elems = separate_cavities(
+    mats_keys2elems = separate_cavities(
         keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
   } else {
     mats_keys2elems.push_back({keys2old_elems, keys2new_elems});
