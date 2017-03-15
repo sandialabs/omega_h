@@ -117,18 +117,15 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
 }
 
 static void transfer_conserve_tag(Mesh* old_mesh, Mesh* new_mesh,
-    std::map<Int, Graph> keys2old_elems_cat,
-    std::map<Int, Graph> keys2new_elems_cat, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, TagBase const* tagbase) {
+    std::vector<std::pair<Graph, Graph>> mats_keys2elems,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase) {
   auto dim = old_mesh->dim();
   auto nnew_elems = new_mesh->nelems();
   auto ncomps = tagbase->ncomps();
   auto new_data_w = Write<Real>(nnew_elems * ncomps);
-  for (auto pair : keys2old_elems_cat) {
-    auto mat = pair.first;
-    auto keys2old_mat_elems = pair.second;
-    CHECK(keys2new_elems_cat.count(mat));
-    auto keys2new_mat_elems = keys2new_elems_cat[mat];
+  for (auto pair : mats_keys2elems) {
+    auto keys2old_mat_elems = pair.first;
+    auto keys2new_mat_elems = pair.second;
     if (dim == 3)
       transfer_conserve_dim<3>(old_mesh, new_mesh, tagbase, keys2old_mat_elems,
           keys2new_mat_elems, new_data_w);
@@ -148,22 +145,20 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
   auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
   auto keys2new_elems = Graph(keys2prods, prods2new_ents);
-  std::map<Int, Graph> keys2old_elems_cat;
-  std::map<Int, Graph> keys2new_elems_cat;
+  std::vector<std::pair<Graph, Graph>> mats_keys2elems;
   if (old_mesh->has_tag(dim, "class_id")) {
-    auto old_class_id = old_mesh->get_array<I32>(dim, "class_id");
-    auto new_class_id = new_mesh->get_array<I32>(dim, "class_id");
-    keys2old_elems_cat = categorize_graph(keys2old_elems, old_class_id);
-    keys2new_elems_cat = categorize_graph(keys2new_elems, new_class_id);
+    auto old_class_ids = old_mesh->get_array<I32>(dim, "class_id");
+    auto new_class_ids = new_mesh->get_array<I32>(dim, "class_id");
+    mats_keys2elems = separate_cavities(
+        keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
   } else {
-    keys2old_elems_cat[-1] = keys2old_elems;
-    keys2new_elems_cat[-1] = keys2new_elems;
+    mats_keys2elems.push_back({keys2old_elems, keys2new_elems});
   }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (tagbase->xfer() == OMEGA_H_CONSERVE) {
-      transfer_conserve_tag(old_mesh, new_mesh, keys2old_elems_cat,
-          keys2new_elems_cat, same_ents2old_ents, same_ents2new_ents, tagbase);
+      transfer_conserve_tag(old_mesh, new_mesh, mats_keys2elems,
+          same_ents2old_ents, same_ents2new_ents, tagbase);
     }
   }
 }

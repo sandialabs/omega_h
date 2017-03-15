@@ -849,18 +849,6 @@ static void test_sf_scale(Library* lib) {
   test_sf_scale_dim<3>(lib);
 }
 
-static void test_categorize_graph() {
-  auto g = Graph(LOs({0, 4, 8}), LOs({0, 1, 2, 3, 4, 5, 6, 7}));
-  auto b_categories = Read<I32>({8, 8, 42, 8, 42, 42, 42, 42});
-  auto g8 = Graph(LOs({0, 3, 3}), LOs({0, 1, 3}));
-  auto g42 = Graph(LOs({0, 1, 5}), LOs({2, 4, 5, 6, 7}));
-  auto result = categorize_graph(g, b_categories);
-  CHECK(result.size() == 2);
-  auto tmp = result[8];
-  CHECK(result[8] == g8);
-  CHECK(result[42] == g42);
-}
-
 static void test_circumcenter() {
   Few<Vector<3>, 3> right_tri(
       {vector_3(0, 0, 0), vector_3(1, 0, 0), vector_3(0, 1, 0)});
@@ -976,23 +964,18 @@ static void test_find_last() {
   CHECK(find_last(a, 0) == 0);
 }
 
-static void test_aniso_zz(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 1, 6, 6, 6);
-  auto coords = mesh.coords();
-  auto scalar_w = Write<Real>(mesh.nverts());
-  auto f = LAMBDA(LO v) {
-    auto x = get_vector<3>(coords, v);
-    scalar_w[v] = square(x[0] - 0.5);
-  };
-  parallel_for(mesh.nverts(), f);
-  auto scalar = Reals(scalar_w);
-  auto grad = derive_element_gradients(&mesh, scalar);
-  auto metrics = get_aniso_zz_metric(&mesh, grad, 0.1, 0.42);
-  mesh.add_tag(mesh.dim(), "metric", symm_dofs(mesh.dim()),
-      OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, metrics);
-  vtk::write_vtu("debug.vtu", &mesh, mesh.dim());
-}
+static void test_separate_cavities() {
+  Graph keys2old(LOs({0, 4, 8}), LOs({0, 1, 2, 3, 4, 5, 6, 7}));
+  Graph keys2new(LOs({0, 2, 4}), LOs({0, 1, 2, 3}));
+  LOs old_ids({4, 4, 5, 5, 6, 6, 7, 7});
+  LOs new_ids({4, 5, 6, 7});
+  auto out = separate_cavities(keys2old, old_ids, keys2new, new_ids);
+  CHECK(out.size() == 2);
+  CHECK(out[0].first == Graph(LOs({0,2,4}), LOs({0,1,4,5})));
+  CHECK(out[0].second == Graph(LOs({0,1,2}), LOs({0,2})));
+  CHECK(out[1].first == Graph(LOs({0,2,4}), LOs({2,3,6,7})));
+  CHECK(out[1].second == Graph(LOs({0,1,2}), LOs({1,3})));
+};
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
@@ -1043,12 +1026,11 @@ int main(int argc, char** argv) {
   test_element_implied_metric();
   test_recover_hessians(&lib);
   test_sf_scale(&lib);
-  test_categorize_graph();
   test_circumcenter();
   test_lie();
   test_proximity(&lib);
   test_motion(&lib);
   test_find_last();
-  test_aniso_zz(&lib);
+  test_separate_cavities();
   CHECK(get_current_bytes() == 0);
 }

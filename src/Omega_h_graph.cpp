@@ -101,25 +101,52 @@ Graph filter_graph(Graph g, Read<I8> keep_edge) {
   return filter_graph2(g, keep_edge).g;
 }
 
-std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories) {
-  std::map<Int, Graph> result;
-  auto remaining_graph = g;
-  auto remaining_categories = unmap(g.ab2b, b_categories, 1);
-  while (remaining_categories.size()) {
-    auto category = remaining_categories.first();
-    auto edge_is_in = each_eq_to(remaining_categories, category);
-    auto edge_not_in = invert_marks(edge_is_in);
-    auto category_graph = filter_graph(remaining_graph, edge_is_in);
-    result[category] = category_graph;
-    auto filtered = filter_graph2(remaining_graph, edge_not_in);
-    remaining_graph = filtered.g;
-    remaining_categories = unmap(filtered.kept2old, remaining_categories, 1);
-  }
-  return result;
-}
-
 bool operator==(Graph a, Graph b) {
   return a.a2ab == b.a2ab && a.ab2b == b.ab2b;
+}
+
+static std::pair<Graph, Graph> separate_cavities_once(
+    Graph* p_keys2old, LOs old_class_ids, Graph* p_keys2new, LOs new_class_ids) {
+  auto keys2old = *p_keys2old;
+  auto keys2new = *p_keys2new;
+  auto nkeys = keys2old.nnodes();
+  CHECK(keys2new.nnodes() == nkeys);
+  auto old_keep_w = Write<I8>(keys2old.nedges());
+  auto new_keep_w = Write<I8>(keys2new.nedges());
+  auto f = LAMBDA(LO key) {
+    auto ob = keys2old.a2ab[key];
+    auto oe = keys2old.a2ab[key + 1];
+    if (ob == oe) return;
+    auto old_first = keys2old.ab2b[ob];
+    auto id = old_class_ids[old_first];
+    for (auto ko = ob; ko < oe; ++ko) {
+      auto elem = keys2old.ab2b[ko];
+      old_keep_w[ko] = (old_class_ids[elem] == id);
+    }
+    auto nb = keys2new.a2ab[key];
+    auto ne = keys2new.a2ab[key + 1];
+    for (auto kn = nb; kn < ne; ++kn) {
+      auto elem = keys2new.ab2b[kn];
+      new_keep_w[kn] = (new_class_ids[elem] == id);
+    }
+  };
+  parallel_for(nkeys, f);
+  auto old_keep = Read<I8>(old_keep_w);
+  auto new_keep = Read<I8>(new_keep_w);
+  *p_keys2old = filter_graph(keys2old, invert_marks(old_keep));
+  *p_keys2new = filter_graph(keys2new, invert_marks(new_keep));
+  return { filter_graph(keys2old, old_keep), filter_graph(keys2new, new_keep) };
+}
+
+std::vector<std::pair<Graph, Graph>> separate_cavities(
+    Graph keys2old, LOs old_class_ids, Graph keys2new, LOs new_class_ids) {
+  std::vector<std::pair<Graph, Graph>> out;
+  while (keys2old.nedges()) {
+    out.push_back(separate_cavities_once(&keys2old, old_class_ids,
+          &keys2new, new_class_ids));
+  }
+  CHECK(!keys2new.nedges());
+  return out;
 }
 
 template <typename T>

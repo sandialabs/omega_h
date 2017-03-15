@@ -1,7 +1,8 @@
 #ifndef OMEGA_H_GRAPH_HPP
 #define OMEGA_H_GRAPH_HPP
 
-#include <map>
+#include <vector>
+#include <utility>
 
 #include "Omega_h_array.hpp"
 
@@ -26,7 +27,8 @@ Reals graph_weighted_average_arc_data(
 Reals graph_weighted_average(
     Graph a2b, Reals ab_weights, Reals b_data, Int width);
 Graph filter_graph(Graph g, Read<I8> keep_edge);
-std::map<Int, Graph> categorize_graph(Graph g, Read<I32> b_categories);
+std::vector<std::pair<Graph, Graph>> separate_cavities(
+    Graph keys2old, LOs old_class_ids, Graph keys2new, LOs new_class_ids);
 bool operator==(Graph a, Graph b);
 
 template <typename T>
