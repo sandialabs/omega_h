@@ -10,7 +10,7 @@
 #include "metric.hpp"
 #include "sort.hpp"
 #include "space.hpp"
-#include "timer.hpp"
+#include "Omega_h_timer.hpp"
 
 using namespace Omega_h;
 

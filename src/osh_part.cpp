@@ -1,6 +1,6 @@
 #include <iostream>
 #include "Omega_h.hpp"
-#include "timer.hpp"
+#include "Omega_h_timer.hpp"
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);

@@ -1,4 +1,4 @@
-#include "timer.hpp"
+#include "Omega_h_timer.hpp"
 
 namespace Omega_h {
 

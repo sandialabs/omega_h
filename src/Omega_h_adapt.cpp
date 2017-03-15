@@ -12,7 +12,7 @@
 #include "quality.hpp"
 #include "refine.hpp"
 #include "swap.hpp"
-#include "timer.hpp"
+#include "Omega_h_timer.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"

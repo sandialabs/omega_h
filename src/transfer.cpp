@@ -8,7 +8,7 @@
 #include "quality.hpp"
 #include "size.hpp"
 #include "space.hpp"
-#include "timer.hpp"
+#include "Omega_h_timer.hpp"
 #include "transfer_conserve.hpp"
 
 namespace Omega_h {

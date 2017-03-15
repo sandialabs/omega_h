@@ -1,9 +1,9 @@
-#ifndef TIMER_HPP
-#define TIMER_HPP
+#ifndef OMEGA_H_TIMER_HPP
+#define OMEGA_H_TIMER_HPP
 
 #include <chrono>
 
-#include "internal.hpp"
+#include <Omega_h_defines.hpp>
 
 namespace Omega_h {
 

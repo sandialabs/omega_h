@@ -8,7 +8,7 @@
 #include "owners.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
-#include "timer.hpp"
+#include "Omega_h_timer.hpp"
 #include "transfer_conserve.hpp"
 #include "unmap_mesh.hpp"
 

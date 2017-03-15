@@ -3,7 +3,7 @@
 #include "internal.hpp"
 #include "laplace.hpp"
 #include "space.hpp"
-#include "timer.hpp"
+#include "Omega_h_timer.hpp"
 
 #include <iostream>
 #include <set>
