@@ -17,7 +17,7 @@ set(Omega_h_SOURCES
   bbox.cpp
   hilbert.cpp
   Omega_h_build.cpp
-  graph.cpp
+  Omega_h_graph.cpp
   Omega_h_file.cpp
   base64.cpp
   vtk.cpp
