@@ -4,7 +4,6 @@
 #include "Omega_h_compare.hpp"
 #include "access.hpp"
 #include "internal.hpp"
-#include "loop.hpp"
 #include "size.hpp"
 #include "space.hpp"
 #include "timer.hpp"

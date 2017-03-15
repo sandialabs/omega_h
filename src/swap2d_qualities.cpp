@@ -1,7 +1,6 @@
 #include "swap2d.hpp"
 
 #include "access.hpp"
-#include "loop.hpp"
 #include "quality.hpp"
 #include "simplices.hpp"
 

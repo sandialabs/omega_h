@@ -408,6 +408,7 @@ set(Omega_h_HEADERS
   Omega_h_few.hpp
   Omega_h_mark.hpp
   Omega_h_size_field.hpp
+  Omega_h_loop.hpp
   )
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

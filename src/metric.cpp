@@ -5,7 +5,6 @@
 #include "Omega_h_array_ops.hpp"
 #include "access.hpp"
 #include "host_few.hpp"
-#include "loop.hpp"
 #include "project.hpp"
 #include "simplices.hpp"
 #include "size.hpp"

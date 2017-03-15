@@ -1,7 +1,6 @@
 #include "scan.hpp"
 
 #include "Omega_h_functors.hpp"
-#include "loop.hpp"
 
 namespace Omega_h {
 

@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "Omega_h_map.hpp"
-#include "loop.hpp"
 #include "owners.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"

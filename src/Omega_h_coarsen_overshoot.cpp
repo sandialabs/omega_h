@@ -1,6 +1,5 @@
 #include "coarsen.hpp"
 #include "collapse.hpp"
-#include "loop.hpp"
 #include "refine.hpp"
 #include "size.hpp"
 

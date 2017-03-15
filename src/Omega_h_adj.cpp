@@ -5,7 +5,6 @@
 #include "Omega_h_map.hpp"
 #include "control.hpp"
 #include "internal.hpp"
-#include "loop.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"
 #include "sort.hpp"

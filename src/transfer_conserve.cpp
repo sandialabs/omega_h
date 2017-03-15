@@ -6,7 +6,6 @@
 #include "Omega_h_math.hpp"
 #include "Omega_h_r3d.hpp"
 #include "collapse.hpp"
-#include "loop.hpp"
 #include "simplices.hpp"
 #include "size.hpp"
 #include "transfer.hpp"

@@ -6,7 +6,6 @@
 #include "access.hpp"
 #include "bipart.hpp"
 #include "eigen.hpp"
-#include "loop.hpp"
 #include "space.hpp"
 
 namespace Omega_h {

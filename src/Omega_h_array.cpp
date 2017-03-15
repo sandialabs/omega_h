@@ -6,7 +6,6 @@
 #include "Omega_h_functors.hpp"
 #include "control.hpp"
 #include "internal.hpp"
-#include "loop.hpp"
 
 namespace Omega_h {
 

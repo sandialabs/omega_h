@@ -2,7 +2,6 @@
 #include "access.hpp"
 #include "internal.hpp"
 #include "laplace.hpp"
-#include "loop.hpp"
 #include "space.hpp"
 #include "timer.hpp"
 

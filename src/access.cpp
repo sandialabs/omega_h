@@ -1,6 +1,5 @@
 #include "access.hpp"
 
-#include "loop.hpp"
 #include "simplices.hpp"
 
 namespace Omega_h {

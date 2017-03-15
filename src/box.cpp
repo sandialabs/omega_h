@@ -2,7 +2,6 @@
 
 #include "access.hpp"
 #include "algebra.hpp"
-#include "loop.hpp"
 
 namespace Omega_h {
 

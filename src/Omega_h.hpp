@@ -9,5 +9,6 @@
 #include <Omega_h_mark.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_size_field.hpp>
+#include <Omega_h_loop.hpp>
 
 #endif

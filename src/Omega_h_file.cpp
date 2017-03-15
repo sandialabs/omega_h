@@ -12,7 +12,6 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "inertia.hpp"
-#include "loop.hpp"
 
 namespace Omega_h {
 

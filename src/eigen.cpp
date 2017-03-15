@@ -1,5 +1,4 @@
 #include "eigen.hpp"
-#include "loop.hpp"
 
 namespace Omega_h {
 

@@ -4,7 +4,6 @@
 #include "Omega_h_math.hpp"
 #include "internal.hpp"
 #include "laplace.hpp"
-#include "loop.hpp"
 
 using namespace Omega_h;
 

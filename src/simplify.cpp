@@ -1,7 +1,6 @@
 #include "simplify.hpp"
 
 #include "Omega_h_scalar.hpp"
-#include "loop.hpp"
 #include "scan.hpp"
 
 namespace Omega_h {

@@ -1,7 +1,6 @@
 #include "hilbert.hpp"
 
 #include "bbox.hpp"
-#include "loop.hpp"
 #include "sort.hpp"
 
 namespace Omega_h {

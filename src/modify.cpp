@@ -5,7 +5,6 @@
 #include "atomics.hpp"
 #include "control.hpp"
 #include "linpart.hpp"
-#include "loop.hpp"
 #include "owners.hpp"
 #include "scan.hpp"
 #include "simplices.hpp"

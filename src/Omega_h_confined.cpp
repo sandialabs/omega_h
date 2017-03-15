@@ -2,7 +2,6 @@
 
 #include "access.hpp"
 #include "internal.hpp"
-#include "loop.hpp"
 
 /* Code to find classification-enforced constraints on
  * element size and shape.

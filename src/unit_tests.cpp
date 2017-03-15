@@ -12,7 +12,6 @@
 #include "internal.hpp"
 #include "lie.hpp"
 #include "linpart.hpp"
-#include "loop.hpp"
 #include "quality.hpp"
 #include "refine_qualities.hpp"
 #include "scan.hpp"

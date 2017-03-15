@@ -1,7 +1,6 @@
 #include "owners.hpp"
 
 #include "linpart.hpp"
-#include "loop.hpp"
 #include "scan.hpp"
 
 namespace Omega_h {

@@ -3,7 +3,6 @@
 #include "Omega_h_align.hpp"
 #include "access.hpp"
 #include "algebra.hpp"
-#include "loop.hpp"
 #include "metric.hpp"
 #include "quality.hpp"
 #include "refine_topology.hpp"

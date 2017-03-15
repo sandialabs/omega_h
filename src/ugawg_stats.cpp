@@ -1,7 +1,6 @@
 #include "Omega_h.hpp"
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_math.hpp"
-#include "loop.hpp"
 #include "simplices.hpp"
 #include "space.hpp"
 

@@ -4,7 +4,6 @@
 #include "access.hpp"
 #include "control.hpp"
 #include "fit.hpp"
-#include "loop.hpp"
 #include "metric.hpp"
 #include "quality.hpp"
 #include "size.hpp"

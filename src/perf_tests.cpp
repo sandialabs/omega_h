@@ -7,7 +7,6 @@
 #include "access.hpp"
 #include "eigen.hpp"
 #include "internal.hpp"
-#include "loop.hpp"
 #include "metric.hpp"
 #include "sort.hpp"
 #include "space.hpp"

@@ -5,7 +5,6 @@
 #include "bipart.hpp"
 #include "inertia.hpp"
 #include "internal.hpp"
-#include "loop.hpp"
 #include "owners.hpp"
 #include "vtk.hpp"
 
