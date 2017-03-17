@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_LOOP_HPP
 #define OMEGA_H_LOOP_HPP
 
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_defines.hpp>
+#include <Omega_h_kokkos.hpp>
 
 namespace Omega_h {
 

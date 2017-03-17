@@ -2,17 +2,17 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_coarsen.hpp"
 #include "Omega_h_confined.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_motion.hpp"
-#include "Omega_h_coarsen.hpp"
+#include "Omega_h_timer.hpp"
 #include "control.hpp"
 #include "histogram.hpp"
 #include "laplace.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
 #include "swap.hpp"
-#include "Omega_h_timer.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"

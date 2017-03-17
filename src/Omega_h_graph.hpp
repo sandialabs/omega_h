@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_GRAPH_HPP
 #define OMEGA_H_GRAPH_HPP
 
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "Omega_h_array.hpp"
 

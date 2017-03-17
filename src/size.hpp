@@ -5,8 +5,8 @@
 #include "algebra.hpp"
 #include "metric.hpp"
 #include "qr.hpp"
-#include "space.hpp"
 #include "simplices.hpp"
+#include "space.hpp"
 
 #include <iostream>
 
@@ -256,7 +256,7 @@ template <Int dim>
 INLINE Plane<dim> get_side_plane(Few<Vector<dim>, dim + 1> p, Int iside) {
   auto n = get_side_normal(p, iside);
   auto a = p[down_template(dim, dim - 1, iside, 0)];
-  return { n, n * a };
+  return {n, n * a};
 }
 
 template <Int dim>
@@ -274,12 +274,12 @@ INLINE Sphere<dim> get_insphere(Few<Vector<dim>, dim + 1> p) {
   }
   auto c = invert(transpose(a)) * b;
   auto r = -distance(planes[0], c) / norm(planes[0].n);
-  return { c, r };
+  return {c, r};
 }
 
 template <>
 INLINE Sphere<1> get_insphere(Few<Vector<1>, 2> p) {
-  return { average(p), fabs((p[1] - p[0])[0] / 2.0) };
+  return {average(p), fabs((p[1] - p[0])[0] / 2.0)};
 }
 
 template <Int dim>

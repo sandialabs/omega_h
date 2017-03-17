@@ -1,8 +1,8 @@
 #include "Omega_h.hpp"
 #include "Omega_h_egads.hpp"
 #include "Omega_h_math.hpp"
-#include "metric.hpp"
 #include "Omega_h_timer.hpp"
+#include "metric.hpp"
 
 #include <iostream>
 

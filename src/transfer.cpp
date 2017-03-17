@@ -1,6 +1,7 @@
 #include "transfer.hpp"
 
 #include "Omega_h_map.hpp"
+#include "Omega_h_timer.hpp"
 #include "access.hpp"
 #include "control.hpp"
 #include "fit.hpp"
@@ -8,7 +9,6 @@
 #include "quality.hpp"
 #include "size.hpp"
 #include "space.hpp"
-#include "Omega_h_timer.hpp"
 #include "transfer_conserve.hpp"
 
 namespace Omega_h {

@@ -1,5 +1,5 @@
-#include "Omega_h_map.hpp"
 #include "Omega_h_coarsen.hpp"
+#include "Omega_h_map.hpp"
 #include "collapse.hpp"
 
 /* this file deals with the choice of which

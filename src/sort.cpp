@@ -1,6 +1,6 @@
 #include "sort.hpp"
-#include "control.hpp"
 #include "Omega_h_timer.hpp"
+#include "control.hpp"
 
 #include <algorithm>
 

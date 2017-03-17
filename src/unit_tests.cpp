@@ -971,57 +971,58 @@ static void test_separate_cavities() {
   LOs new_ids({4, 5, 6, 7});
   auto out = separate_cavities(keys2old, old_ids, keys2new, new_ids);
   CHECK(out.size() == 2);
-  CHECK(out[0].first == Graph(LOs({0,2,4}), LOs({0,1,4,5})));
-  CHECK(out[0].second == Graph(LOs({0,1,2}), LOs({0,2})));
-  CHECK(out[1].first == Graph(LOs({0,2,4}), LOs({2,3,6,7})));
-  CHECK(out[1].second == Graph(LOs({0,1,2}), LOs({1,3})));
+  CHECK(out[0].first == Graph(LOs({0, 2, 4}), LOs({0, 1, 4, 5})));
+  CHECK(out[0].second == Graph(LOs({0, 1, 2}), LOs({0, 2})));
+  CHECK(out[1].first == Graph(LOs({0, 2, 4}), LOs({2, 3, 6, 7})));
+  CHECK(out[1].second == Graph(LOs({0, 1, 2}), LOs({1, 3})));
 };
 
 static void test_insphere() {
-  Few<Vector<1>, 2> regular_edge = {{-1.0},{1.0}};
+  Few<Vector<1>, 2> regular_edge = {{-1.0}, {1.0}};
   auto insphere1 = get_insphere(regular_edge);
   CHECK(are_close(insphere1.c, vector_1(0.0)));
   CHECK(are_close(insphere1.r, 1.0));
-  Few<Vector<2>, 3> regular_tri = {{-1.0,0.0},{1.0,0.0},{0.0,sqrt(3.0)/2.0}};
+  Few<Vector<2>, 3> regular_tri = {
+      {-1.0, 0.0}, {1.0, 0.0}, {0.0, sqrt(3.0) / 2.0}};
   auto insphere2 = get_insphere(regular_tri);
-  CHECK(are_close(insphere2.c, vector_2(0.0,sqrt(3.0)/6.0)));
-  CHECK(are_close(insphere2.r, sqrt(3.0)/6.0));
-  Few<Vector<3>, 4> regular_tet =
-      {{1, 0, -1.0 / sqrt(2.0)}, {-1, 0, -1.0 / sqrt(2.0)},
-        {0, -1, 1.0 / sqrt(2.0)}, {0, 1, 1.0 / sqrt(2.0)}};
+  CHECK(are_close(insphere2.c, vector_2(0.0, sqrt(3.0) / 6.0)));
+  CHECK(are_close(insphere2.r, sqrt(3.0) / 6.0));
+  Few<Vector<3>, 4> regular_tet = {{1, 0, -1.0 / sqrt(2.0)},
+      {-1, 0, -1.0 / sqrt(2.0)}, {0, -1, 1.0 / sqrt(2.0)},
+      {0, 1, 1.0 / sqrt(2.0)}};
   auto insphere3 = get_insphere(regular_tet);
-  CHECK(are_close(insphere3.c, vector_3(0.0,0.0,0.0)));
+  CHECK(are_close(insphere3.c, vector_3(0.0, 0.0, 0.0)));
   CHECK(are_close(insphere3.r, 2.0 / sqrt(24.0)));
 }
 
 static void test_volume_vert_gradients() {
   {
-    Few<Vector<1>, 2> parent_edge = {{0.0},{1.0}};
+    Few<Vector<1>, 2> parent_edge = {{0.0}, {1.0}};
     auto grad0 = get_volume_vert_gradient(parent_edge, 0);
     CHECK(are_close(grad0, vector_1(-1.0)));
     auto grad1 = get_volume_vert_gradient(parent_edge, 1);
     CHECK(are_close(grad1, vector_1(1.0)));
   }
   {
-    Few<Vector<2>, 3> parent_tri = {{0.0,0.0},{1.0,0.0},{0.0,1.0}};
+    Few<Vector<2>, 3> parent_tri = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}};
     auto grad0 = get_volume_vert_gradient(parent_tri, 0);
-    CHECK(are_close(grad0, vector_2(-0.5,-0.5)));
+    CHECK(are_close(grad0, vector_2(-0.5, -0.5)));
     auto grad1 = get_volume_vert_gradient(parent_tri, 1);
-    CHECK(are_close(grad1, vector_2(0.5,0.0)));
+    CHECK(are_close(grad1, vector_2(0.5, 0.0)));
     auto grad2 = get_volume_vert_gradient(parent_tri, 2);
-    CHECK(are_close(grad2, vector_2(0.0,0.5)));
+    CHECK(are_close(grad2, vector_2(0.0, 0.5)));
   }
   {
-    Few<Vector<3>, 4> parent_tet = {{0,0,0},{1,0,0},{0,1,0},{0,0,1}};
+    Few<Vector<3>, 4> parent_tet = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
     auto os = 1.0 / 6.0;
     auto grad0 = get_volume_vert_gradient(parent_tet, 0);
-    CHECK(are_close(grad0, vector_3(-os,-os,-os)));
+    CHECK(are_close(grad0, vector_3(-os, -os, -os)));
     auto grad1 = get_volume_vert_gradient(parent_tet, 1);
-    CHECK(are_close(grad1, vector_3(os,0,0)));
+    CHECK(are_close(grad1, vector_3(os, 0, 0)));
     auto grad2 = get_volume_vert_gradient(parent_tet, 2);
-    CHECK(are_close(grad2, vector_3(0,os,0)));
+    CHECK(are_close(grad2, vector_3(0, os, 0)));
     auto grad3 = get_volume_vert_gradient(parent_tet, 3);
-    CHECK(are_close(grad3, vector_3(0,0,os)));
+    CHECK(are_close(grad3, vector_3(0, 0, os)));
   }
 }
 

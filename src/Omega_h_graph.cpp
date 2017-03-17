@@ -105,8 +105,8 @@ bool operator==(Graph a, Graph b) {
   return a.a2ab == b.a2ab && a.ab2b == b.ab2b;
 }
 
-static std::pair<Graph, Graph> separate_cavities_once(
-    Graph* p_keys2old, LOs old_class_ids, Graph* p_keys2new, LOs new_class_ids) {
+static std::pair<Graph, Graph> separate_cavities_once(Graph* p_keys2old,
+    LOs old_class_ids, Graph* p_keys2new, LOs new_class_ids) {
   auto keys2old = *p_keys2old;
   auto keys2new = *p_keys2new;
   auto nkeys = keys2old.nnodes();
@@ -135,15 +135,15 @@ static std::pair<Graph, Graph> separate_cavities_once(
   auto new_keep = Read<I8>(new_keep_w);
   *p_keys2old = filter_graph(keys2old, invert_marks(old_keep));
   *p_keys2new = filter_graph(keys2new, invert_marks(new_keep));
-  return { filter_graph(keys2old, old_keep), filter_graph(keys2new, new_keep) };
+  return {filter_graph(keys2old, old_keep), filter_graph(keys2new, new_keep)};
 }
 
 std::vector<std::pair<Graph, Graph>> separate_cavities(
     Graph keys2old, LOs old_class_ids, Graph keys2new, LOs new_class_ids) {
   std::vector<std::pair<Graph, Graph>> out;
   while (keys2old.nedges()) {
-    out.push_back(separate_cavities_once(&keys2old, old_class_ids,
-          &keys2new, new_class_ids));
+    out.push_back(separate_cavities_once(
+        &keys2old, old_class_ids, &keys2new, new_class_ids));
   }
   CHECK(!keys2new.nedges());
   return out;

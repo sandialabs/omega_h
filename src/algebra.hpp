@@ -248,9 +248,7 @@ INLINE Real determinant(Matrix<3, 3> m) {
          (a * f * h);
 }
 
-INLINE Matrix<1, 1> invert(Matrix<1, 1> m) {
-  return matrix_1x1(1.0 / m[0][0]);
-}
+INLINE Matrix<1, 1> invert(Matrix<1, 1> m) { return matrix_1x1(1.0 / m[0][0]); }
 
 INLINE Matrix<2, 2> invert(Matrix<2, 2> m) {
   Real a = m[0][0];

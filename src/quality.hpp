@@ -30,9 +30,7 @@ INLINE Real mean_ratio(Real size, Real mean_squared_length) {
   return power<2, dim>(size / equilateral_size<dim>()) / mean_squared_length;
 }
 
-INLINE Real metric_size(Real real_size, DummyIsoMetric) {
-  return real_size;
-}
+INLINE Real metric_size(Real real_size, DummyIsoMetric) { return real_size; }
 
 /* This paper (and a few others):
  *
