@@ -1,4 +1,4 @@
-#include "coarsen.hpp"
+#include "Omega_h_coarsen.hpp"
 #include "collapse.hpp"
 #include "refine.hpp"
 #include "size.hpp"

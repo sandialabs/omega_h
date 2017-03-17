@@ -1,4 +1,4 @@
-#include "coarsen.hpp"
+#include "Omega_h_coarsen.hpp"
 
 #include <iostream>
 

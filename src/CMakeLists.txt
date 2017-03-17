@@ -53,7 +53,7 @@ set(Omega_h_SOURCES
   check_collapse.cpp
   coarsen_qualities.cpp
   coarsen_topology.cpp
-  coarsen.cpp
+  Omega_h_coarsen.cpp
   approach.cpp
   laplace.cpp
   Omega_h_adapt.cpp
