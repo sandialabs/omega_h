@@ -30,9 +30,8 @@ INLINE Real mean_ratio(Real size, Real mean_squared_length) {
   return power<2, dim>(size / equilateral_size<dim>()) / mean_squared_length;
 }
 
-template <Int dim>
-INLINE Real metric_size(Few<Vector<dim>, dim> basis, DummyIsoMetric) {
-  return element_size(basis);
+INLINE Real metric_size(Real real_size, DummyIsoMetric) {
+  return real_size;
 }
 
 /* This paper (and a few others):
@@ -45,8 +44,8 @@ INLINE Real metric_size(Few<Vector<dim>, dim> basis, DummyIsoMetric) {
  */
 
 template <Int dim>
-INLINE Real metric_size(Few<Vector<dim>, dim> basis, Matrix<dim, dim> metric) {
-  return element_size(basis) * sqrt(determinant(metric));
+INLINE Real metric_size(Real real_size, Matrix<dim, dim> metric) {
+  return real_size * sqrt(determinant(metric));
 }
 
 /* note that we will always use a constant metric tensor over the whole
@@ -64,7 +63,8 @@ INLINE Real metric_size(Few<Vector<dim>, dim> basis, Matrix<dim, dim> metric) {
 template <Int dim, typename Metric>
 INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Metric metric) {
   auto b = simplex_basis<dim, dim>(p);
-  auto s = metric_size(b, metric);
+  auto rs = element_size(b);
+  auto s = metric_size(rs, metric);
   if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);
   auto msl = mean_squared_metric_length(ev, metric);
