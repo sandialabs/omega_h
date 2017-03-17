@@ -49,7 +49,7 @@ struct Root<3> {
 };
 
 template <Int p>
-Real root(Real x) {
+INLINE Real root(Real x) {
   return Root<p>::eval(x);
 }
 
