@@ -8,6 +8,8 @@
 #include "space.hpp"
 #include "simplices.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 INLINE Real triangle_area(Few<Vector<2>, 2> b) {
@@ -233,10 +235,6 @@ struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
 
-INLINE Vector<1> get_side_normal(Few<Vector<1>, 2>, Int ivert) {
-  return vector_1((ivert == 0) ? -1.0 : 1.0);
-}
-
 INLINE Vector<2> get_side_normal(Few<Vector<2>, 3> p, Int iedge) {
   auto a = p[down_template(2, 1, iedge, 0)];
   auto b = p[down_template(2, 1, iedge, 1)];
@@ -267,12 +265,17 @@ INLINE Sphere<dim> get_insphere(Few<Vector<dim>, dim + 1> p) {
   Matrix<dim, dim> a;
   Vector<dim> b;
   for (Int i = 0; i < dim; ++i) {
-    a[i] = planes[i].n - planes[dim].n;
-    b[i] = planes[i].d - planes[dim].d;
+    a[i] = planes[dim].n - planes[i].n;
+    b[i] = planes[dim].d - planes[i].d;
   }
-  auto c = invert(a) * b;
-  auto r = distance(planes[0], c);
+  auto c = invert(transpose(a)) * b;
+  auto r = -distance(planes[0], c) / norm(planes[0].n);
   return { c, r };
+}
+
+template <>
+INLINE Sphere<1> get_insphere(Few<Vector<1>, 2> p) {
+  return { average(p), fabs((p[1] - p[0])[0] / 2.0) };
 }
 
 Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs entities, Reals v2h);
