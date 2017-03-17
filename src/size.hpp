@@ -6,6 +6,7 @@
 #include "metric.hpp"
 #include "qr.hpp"
 #include "space.hpp"
+#include "simplices.hpp"
 
 namespace Omega_h {
 
@@ -231,6 +232,48 @@ template <>
 struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
+
+INLINE Vector<1> get_side_normal(Few<Vector<1>, 2>, Int ivert) {
+  return vector_1((ivert == 0) ? -1.0 : 1.0);
+}
+
+INLINE Vector<2> get_side_normal(Few<Vector<2>, 3> p, Int iedge) {
+  auto a = p[down_template(2, 1, iedge, 0)];
+  auto b = p[down_template(2, 1, iedge, 1)];
+  return -perp(b - a);
+}
+
+INLINE Vector<3> get_side_normal(Few<Vector<3>, 4> p, Int iface) {
+  auto a = p[down_template(3, 2, iface, 0)];
+  auto b = p[down_template(3, 2, iface, 1)];
+  auto c = p[down_template(3, 2, iface, 2)];
+  return cross(b - a, c - a);
+}
+
+template <Int dim>
+INLINE Plane<dim> get_side_plane(Few<Vector<dim>, dim + 1> p, Int iside) {
+  auto n = get_side_normal(p, iside);
+  auto a = p[down_template(dim, dim - 1, iside, 0)];
+  return { n, n * a };
+}
+
+template <Int dim>
+INLINE Sphere<dim> get_insphere(Few<Vector<dim>, dim + 1> p) {
+  auto nsides = dim + 1;
+  Few<Plane<dim>, dim + 1> planes;
+  for (Int iside = 0; iside < nsides; ++iside) {
+    planes[iside] = get_side_plane(p, iside);
+  }
+  Matrix<dim, dim> a;
+  Vector<dim> b;
+  for (Int i = 0; i < dim; ++i) {
+    a[i] = planes[i].n - planes[dim].n;
+    b[i] = planes[i].d - planes[dim].d;
+  }
+  auto c = invert(a) * b;
+  auto r = distance(planes[0], c);
+  return { c, r };
+}
 
 Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs entities, Reals v2h);
 Reals interpolate_between_isos(Reals a, Reals b, Real t);

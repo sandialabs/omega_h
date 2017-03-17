@@ -5,9 +5,16 @@
 
 namespace Omega_h {
 
+/* TODO: make these constexpr, either with C++14 or lots of
+   ternary operators */
 INLINE Int down_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_vert) {
   switch (elem_dim) {
+    case 1:
+      switch (bdry_dim) {
+        case 0:
+          return which_bdry;
+      }
     case 2:
       switch (bdry_dim) {
         case 0:
@@ -324,6 +331,42 @@ INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
   return -1;
 }
 
+INLINE Int simplex_degree(Int from_dim, Int to_dim) {
+  switch (from_dim) {
+    case 0:
+      return 1;
+    case 1:
+      switch (to_dim) {
+        case 0:
+          return 2;
+        case 1:
+          return 1;
+      }
+    case 2:
+      switch (to_dim) {
+        case 0:
+          return 3;
+        case 1:
+          return 3;
+        case 2:
+          return 1;
+      }
+    case 3:
+      switch (to_dim) {
+        case 0:
+          return 4;
+        case 1:
+          return 6;
+        case 2:
+          return 4;
+        case 3:
+          return 1;
+      }
+  }
+  return -1;
+}
+
+/* TODO: replace simplex_degrees with simplex_degree() */
 extern Int const simplex_degrees[DIMS][DIMS];
 extern char const* const singular_names[DIMS];
 extern char const* const plural_names[DIMS];

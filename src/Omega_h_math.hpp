@@ -79,6 +79,12 @@ OMEGA_H_INLINE Vector<n> normalize(Vector<n> v) {
   return v / norm(v);
 }
 
+OMEGA_H_INLINE Vector<1> vector_1(Real x) {
+  Vector<1> v;
+  v[0] = x;
+  return v;
+}
+
 OMEGA_H_INLINE Vector<2> vector_2(Real x, Real y) {
   Vector<2> v;
   v[0] = x;
@@ -154,6 +160,12 @@ OMEGA_H_INLINE Matrix<max_m, max_n> identity_matrix(Int m, Int n) {
 template <Int max_m, Int max_n>
 OMEGA_H_INLINE Matrix<max_m, max_n> identity_matrix() {
   return identity_matrix<max_m, max_n>(max_m, max_n);
+}
+
+OMEGA_H_INLINE Matrix<1, 1> matrix_1x1(Real a) {
+  Matrix<1, 1> o;
+  o[0][0] = a;
+  return o;
 }
 
 OMEGA_H_INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
