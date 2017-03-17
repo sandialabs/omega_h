@@ -30,6 +30,12 @@ INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
   return find_polynomial_roots(poly, 5e-5);
 }
 
+template <Int m>
+INLINE Matrix<m, m> subtract_from_diag(Matrix<m, m> a, Real mu) {
+  for (Int i = 0; i < m; ++i) a[i][i] -= mu;
+  return a;
+}
+
 /* the null space of the matrix (s = m - l*I)
    is the space spanned by the eigenvectors.
    the multiplicity of this root is the dimensionality

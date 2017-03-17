@@ -290,12 +290,6 @@ INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type pseudo_invert(
   return at * invert(a * at);
 }
 
-template <Int m>
-INLINE Matrix<m, m> subtract_from_diag(Matrix<m, m> a, Real mu) {
-  for (Int i = 0; i < m; ++i) a[i][i] -= mu;
-  return a;
-}
-
 /* a function to disambiguate a unit vector
    from its negative. we treat the signs of
    the components as bits of an integer,
