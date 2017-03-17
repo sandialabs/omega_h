@@ -86,6 +86,10 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   b = c;
 }
 
+constexpr OMEGA_H_INLINE Int factorial(Int x) {
+  return (x > 1) ? (x * factorial(x - 1)) : 1;
+}
+
 }  // namespace Omega_h
 
 #endif

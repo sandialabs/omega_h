@@ -235,6 +235,10 @@ struct ParentElementSize<3> {
   static constexpr Real value = 1.0 / 6.0;
 };
 
+INLINE Vector<1> get_side_normal(Few<Vector<1>, 2>, Int ivert) {
+  return vector_1((ivert == 1) ? 1.0 : -1.0);
+}
+
 INLINE Vector<2> get_side_normal(Few<Vector<2>, 3> p, Int iedge) {
   auto a = p[down_template(2, 1, iedge, 0)];
   auto b = p[down_template(2, 1, iedge, 1)];
@@ -276,6 +280,13 @@ INLINE Sphere<dim> get_insphere(Few<Vector<dim>, dim + 1> p) {
 template <>
 INLINE Sphere<1> get_insphere(Few<Vector<1>, 2> p) {
   return { average(p), fabs((p[1] - p[0])[0] / 2.0) };
+}
+
+template <Int dim>
+Vector<dim> get_volume_vert_gradient(Few<Vector<dim>, dim + 1> p, Int ivert) {
+  auto iside = opposite_template(dim, VERT, ivert);
+  auto n = -get_side_normal(p, iside);
+  return n / Real(factorial(dim));
 }
 
 Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs entities, Reals v2h);

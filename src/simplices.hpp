@@ -327,6 +327,8 @@ INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
               return 1;
           }
       }
+    case 1:
+      return (1 - which_bdry);
   }
   return -1;
 }

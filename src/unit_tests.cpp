@@ -994,6 +994,37 @@ static void test_insphere() {
   CHECK(are_close(insphere3.r, 2.0 / sqrt(24.0)));
 }
 
+static void test_volume_vert_gradients() {
+  {
+    Few<Vector<1>, 2> parent_edge = {{0.0},{1.0}};
+    auto grad0 = get_volume_vert_gradient(parent_edge, 0);
+    CHECK(are_close(grad0, vector_1(-1.0)));
+    auto grad1 = get_volume_vert_gradient(parent_edge, 1);
+    CHECK(are_close(grad1, vector_1(1.0)));
+  }
+  {
+    Few<Vector<2>, 3> parent_tri = {{0.0,0.0},{1.0,0.0},{0.0,1.0}};
+    auto grad0 = get_volume_vert_gradient(parent_tri, 0);
+    CHECK(are_close(grad0, vector_2(-0.5,-0.5)));
+    auto grad1 = get_volume_vert_gradient(parent_tri, 1);
+    CHECK(are_close(grad1, vector_2(0.5,0.0)));
+    auto grad2 = get_volume_vert_gradient(parent_tri, 2);
+    CHECK(are_close(grad2, vector_2(0.0,0.5)));
+  }
+  {
+    Few<Vector<3>, 4> parent_tet = {{0,0,0},{1,0,0},{0,1,0},{0,0,1}};
+    auto os = 1.0 / 6.0;
+    auto grad0 = get_volume_vert_gradient(parent_tet, 0);
+    CHECK(are_close(grad0, vector_3(-os,-os,-os)));
+    auto grad1 = get_volume_vert_gradient(parent_tet, 1);
+    CHECK(are_close(grad1, vector_3(os,0,0)));
+    auto grad2 = get_volume_vert_gradient(parent_tet, 2);
+    CHECK(are_close(grad2, vector_3(0,os,0)));
+    auto grad3 = get_volume_vert_gradient(parent_tet, 3);
+    CHECK(are_close(grad3, vector_3(0,0,os)));
+  }
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
@@ -1050,5 +1081,6 @@ int main(int argc, char** argv) {
   test_find_last();
   test_separate_cavities();
   test_insphere();
+  test_volume_vert_gradients();
   CHECK(get_current_bytes() == 0);
 }
