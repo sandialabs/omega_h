@@ -94,12 +94,6 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 bool move_verts_for_quality(Mesh* mesh, AdaptOpts const& opts) {
-  if (has_xfer(mesh, VERT, OMEGA_H_CONSERVE)) {
-    Omega_h_fail("vertex motion can't conserve cell values yet\n");
-  }
-  if (has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) {
-    Omega_h_fail("vertex motion can't conserve momentum yet\n");
-  }
   if (!move_verts_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   move_verts_elem_based(mesh, opts);
