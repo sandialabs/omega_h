@@ -49,10 +49,10 @@ class Mesh {
   GO nglobal_ents(Int dim);
   template <typename T>
   void add_tag(
-      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);
+      Int dim, std::string const& name, Int ncomps, Int xfer);
   template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
-      Int outflags, Read<T> array, bool internal = false);
+      Read<T> array, bool internal = false);
   template <typename T>
   void set_tag(
       Int dim, std::string const& name, Read<T> array, bool internal = false);
@@ -159,9 +159,9 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
       const;                                                                   \
   extern template void Mesh::add_tag<T>(                                       \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
+      Int dim, std::string const& name, Int ncomps, Int xfer);   \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
-      Int ncomps, Int xfer, Int outflags, Read<T> array, bool internal);       \
+      Int ncomps, Int xfer, Read<T> array, bool internal);       \
   extern template void Mesh::set_tag(                                          \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \

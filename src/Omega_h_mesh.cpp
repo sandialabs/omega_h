@@ -116,7 +116,7 @@ GO Mesh::nglobal_ents(Int dim) {
 
 template <typename T>
 void Mesh::add_tag(
-    Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags) {
+    Int dim, std::string const& name, Int ncomps, Int xfer) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
     Omega_h_fail(
@@ -127,13 +127,13 @@ void Mesh::add_tag(
   CHECK(ncomps >= 0);
   CHECK(ncomps <= Int(INT8_MAX));
   CHECK(tags_[dim].size() < size_t(INT8_MAX));
-  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer, outflags)));
+  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps, xfer)));
 }
 
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Int xfer,
-    Int outflags, Read<T> array, bool internal) {
-  add_tag<T>(dim, name, ncomps, xfer, outflags);
+    Read<T> array, bool internal) {
+  add_tag<T>(dim, name, ncomps, xfer);
   set_tag<T>(dim, name, array, internal);
 }
 
@@ -683,9 +683,9 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
   template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps, Int xfer, Int outflags);   \
+      Int dim, std::string const& name, Int ncomps, Int xfer);   \
   template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-      Int xfer, Int outflags, Read<T> array, bool internal);                   \
+      Int xfer, Read<T> array, bool internal);                   \
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
