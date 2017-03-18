@@ -8,23 +8,21 @@ namespace Omega_h {
 
 class TagBase {
  public:
-  TagBase(std::string const& name, Int ncomps, Int xfer);
+  TagBase(std::string const& name, Int ncomps);
   virtual ~TagBase();
   std::string const& name() const;
   Int ncomps() const;
-  Int xfer() const;
   virtual Omega_h_Type type() const = 0;
 
  private:
   std::string name_;
   Int ncomps_;
-  Int xfer_;
 };
 
 template <typename T>
 class Tag : public TagBase {
  public:
-  Tag(std::string const& name, Int ncomps, Int xfer);
+  Tag(std::string const& name, Int ncomps);
   Read<T> array() const;
   void set_array(Read<T> array);
   virtual Omega_h_Type type() const override;
