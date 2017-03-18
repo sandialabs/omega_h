@@ -250,8 +250,8 @@ void read(
   auto side_class_ids = LOs(side_class_ids_w);
   auto side_class_dims = Read<I8>(side_class_dims_w);
   mesh->add_tag(
-      dim, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT, elem_class_ids);
-  mesh->add_tag(dim - 1, "class_id", 1, OMEGA_H_INHERIT, OMEGA_H_DO_OUTPUT,
+      dim, "class_id", 1, OMEGA_H_INHERIT, elem_class_ids);
+  mesh->add_tag(dim - 1, "class_id", 1, OMEGA_H_INHERIT,
       side_class_ids);
   mesh->set_tag(dim - 1, "class_dim", side_class_dims);
   finalize_classification(mesh);

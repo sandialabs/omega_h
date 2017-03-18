@@ -625,7 +625,7 @@ static void test_refine_qualities(Library* lib) {
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(
       quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));
-  mesh.add_tag(VERT, "metric", symm_dofs(2), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT,
+  mesh.add_tag(VERT, "metric", symm_dofs(2), OMEGA_H_METRIC,
       repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
   auto quals2 = refine_qualities(&mesh, candidates);
   CHECK(are_close(quals2, quals));
@@ -646,7 +646,7 @@ static void test_compare_meshes(Library* lib) {
   Mesh b = a;
   b.reorder();
   CHECK(a == b);
-  b.add_tag<I8>(VERT, "foo", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT,
+  b.add_tag<I8>(VERT, "foo", 1, OMEGA_H_DONT_TRANSFER,
       Read<I8>(b.nverts(), 1));
   CHECK(!(a == b));
 }
@@ -809,7 +809,7 @@ static void test_recover_hessians_dim(Library* lib) {
   parallel_for(mesh.nverts(), f);
   auto u = Omega_h::Reals(u_w);
   mesh.add_tag(
-      Omega_h::VERT, "u", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, u);
+      Omega_h::VERT, "u", 1, OMEGA_H_DONT_TRANSFER, u);
   auto hess = recover_hessians(&mesh, u);
   // its second derivative is exactly 2dx + 2dy,
   // and both recovery steps are linear so the current
@@ -872,7 +872,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals({0, 0, 1, 0, 0, 1}));
+        Reals({0, 0, 1, 0, 0, 1}));
     auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({0, 1, 0}));
     CHECK(isos == Reals({42.0}));
   }
@@ -880,7 +880,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals({0, 0, 1, 1, 1, 2}));
+        Reals({0, 0, 1, 1, 1, 2}));
     auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1, 1, 0}));
     CHECK(isos == Reals({42.0}));
   }
@@ -888,7 +888,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals({0, 0, 1, -1, 1, 1}));
+        Reals({0, 0, 1, -1, 1, 1}));
     auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1, 1, 0}));
     CHECK(are_close(isos, Reals({1.0})));
   }
@@ -896,7 +896,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals(3 * 4, 0.0));
+        Reals(3 * 4, 0.0));
     auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 0, 0, 0, 0}));
     CHECK(are_close(isos, Reals({42.0})));
   }
@@ -904,7 +904,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 1, -1, 1, 1, 1, 1, 1, 0, 2}));
+        Reals({0, 0, 0, 1, -1, 1, 1, 1, 1, 1, 0, 2}));
     auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 1, 0, 0, 0}));
     CHECK(are_close(isos, Reals({42.0})));
   }
@@ -912,7 +912,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 1, -1, -1, 1, 1, -1, 1, 0, 2}));
+        Reals({0, 0, 0, 1, -1, -1, 1, 1, -1, 1, 0, 2}));
     auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 1, 0, 0, 0}));
     CHECK(are_close(isos, Reals({1.0})));
   }
@@ -920,7 +920,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 1, 0, 0, -1, 1, 0, -1, 1, 1}));
+        Reals({0, 0, 0, 1, 0, 0, -1, 1, 0, -1, 1, 1}));
     auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0, 1, 1, 1, 1, 0}));
     CHECK(are_close(isos, Reals({42.0})));
   }
@@ -928,7 +928,7 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(VERT, "coordinates", 3, OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals({0, 0, 0, 2, 0, 0, 1, 1, -1, 1, 1, 1}));
+        Reals({0, 0, 0, 2, 0, 0, 1, 1, -1, 1, 1, 1}));
     auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0, 1, 1, 1, 1, 0}));
     CHECK(are_close(isos, Reals({1.0})));
   }
@@ -939,7 +939,7 @@ static void test_motion(Library* lib) {
   build_box(&mesh, 1, 1, 0, 2, 2, 0);
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto sizes = find_implied_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, sizes);
+  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, sizes);
   auto coords_w = deep_copy(mesh.coords());
   coords_w.set(4 * 2 + 0, 0.74);
   coords_w.set(4 * 2 + 1, 0.26);

@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
   mesh.set_comm(world);
   mesh.balance();
   mesh.add_tag(VERT, "orig_coords", mesh.dim(), OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, mesh.coords());
+      mesh.coords());
   mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT);
   vtk::Writer writer(&mesh, "bend", mesh.dim());
   auto first_bend_radius = 5.0;
@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     };
     parallel_for(mesh.nverts(), f);
     mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, Reals(warp_w));
+        Reals(warp_w));
     do {
       std::cout << "WARP STEP\n";
       auto isos = get_curvature_isos(&mesh, segment_angle, max_size);

@@ -21,10 +21,10 @@ int main(int argc, char** argv) {
       metric_from_hessians(mesh.dim(), hessians, target_error, maximum_size);
   metrics = Omega_h::limit_size_field_gradation(&mesh, metrics, gradation_rate);
   mesh.add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_dofs(mesh.dim()),
-      OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT, metrics);
+      OMEGA_H_METRIC, metrics);
   auto implied_metrics = Omega_h::find_implied_metric(&mesh);
   mesh.add_tag(Omega_h::VERT, "metric", Omega_h::symm_dofs(mesh.dim()),
-      OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT, implied_metrics);
+      OMEGA_H_METRIC, implied_metrics);
   Omega_h::AdaptOpts opts(&mesh);
   opts.max_length_allowed = max_metric_length;
   while (Omega_h::approach_size_field(&mesh, opts)) {

@@ -88,7 +88,7 @@ static void run_case(
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = find_implied_metric(mesh);
   mesh->add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
-      OMEGA_H_DO_OUTPUT, implied_metrics);
+      implied_metrics);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->add_tag<Real>(
       VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT);

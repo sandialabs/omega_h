@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
   Omega_h::vtk::Writer writer;
   if (vtk_path) writer = Omega_h::vtk::Writer(&mesh, vtk_path, dim);
   mesh.add_tag(
-      Omega_h::VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, analytic_size);
+      Omega_h::VERT, "size", 1, OMEGA_H_SIZE, analytic_size);
   if (vtk_path) writer.write();
   auto scalar =
       Omega_h::size_scalar_for_nelems(&mesh, analytic_size, target_nelems);

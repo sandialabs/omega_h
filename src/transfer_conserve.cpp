@@ -174,13 +174,13 @@ void fix_momentum_velocity_verts(
       mesh->set_tag(ent_dim, "momentum_velocity_fixed", new_marks);
     } else {
       mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
-          OMEGA_H_DO_OUTPUT, comp_marks);
+          comp_marks);
     }
   }
   for (Int ent_dim = class_dim + 1; ent_dim <= mesh->dim(); ++ent_dim) {
     if (!mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
       mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
-          OMEGA_H_DO_OUTPUT, Read<I8>(mesh->nents(ent_dim), I8(0)));
+          Read<I8>(mesh->nents(ent_dim), I8(0)));
     }
   }
 }
@@ -356,7 +356,7 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
     parallel_for(nkeys, f);
     auto name = tag->name() + "_correction";
     target_mesh->add_tag(dim, name, (dim + 1) * dim, OMEGA_H_DONT_TRANSFER,
-        OMEGA_H_DO_OUTPUT, Reals(corrections_w));
+        Reals(corrections_w));
   }
 }
 

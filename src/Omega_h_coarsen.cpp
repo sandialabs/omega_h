@@ -22,7 +22,7 @@ static void put_edge_codes(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   auto edge_codes =
       map_onto(cand_codes, cands2edges, mesh->nedges(), I8(DONT_COLLAPSE), 1);
   mesh->add_tag(EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, edge_codes);
+      edge_codes);
 }
 
 static bool coarsen_element_based1(Mesh* mesh) {
@@ -94,11 +94,11 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   Graph verts2cav_elems;
   verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
   mesh->add_tag(
-      VERT, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, verts_are_keys);
+      VERT, "key", 1, OMEGA_H_DONT_TRANSFER, verts_are_keys);
   mesh->add_tag(VERT, "collapse_quality", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DO_OUTPUT, vert_quals);
+      vert_quals);
   mesh->add_tag(VERT, "collapse_rail", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DO_OUTPUT, vert_rails);
+      vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
@@ -182,7 +182,7 @@ static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
   };
   parallel_for(mesh->nedges(), f);
   mesh->add_tag(EDGE, "collapse_code", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, Read<I8>(edge_codes_w));
+      Read<I8>(edge_codes_w));
   return coarsen(mesh, opts, overshoot, improve);
 }
 

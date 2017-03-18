@@ -30,7 +30,7 @@ static bool swap2d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
   Graph edges2cav_elems;
   edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
-  mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER, OMEGA_H_DONT_OUTPUT,
+  mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER,
       edges_are_keys);
   auto keys2edges = collect_marked(edges_are_keys);
   set_owners_by_indset(mesh, EDGE, keys2edges, edges2cav_elems);
