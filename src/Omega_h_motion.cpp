@@ -67,7 +67,7 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
         auto motion = subtract_each(new_coords, old_coords);
         auto new_warp = subtract_each(old_warp, motion);
         new_mesh.add_tag(
-            VERT, "warp", tb->ncomps(), tb->xfer(), tb->outflags(), new_warp);
+            VERT, "warp", tb->ncomps(), tb->xfer(), new_warp);
       }
     } else if (ent_dim == EDGE) {
       auto edges_did_move = mark_up(&new_mesh, VERT, EDGE, verts_are_keys);

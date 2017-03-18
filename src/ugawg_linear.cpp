@@ -30,7 +30,7 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   mesh->add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
       implied_metrics);
   mesh->add_tag<Real>(
-      VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT);
+      VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC);
   set_target_metric<dim>(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->ask_lengths();

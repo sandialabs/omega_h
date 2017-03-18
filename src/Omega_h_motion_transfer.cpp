@@ -82,7 +82,7 @@ void unpack_linearized_fields(
       new_mesh->set_tag(VERT, tb->name(), out);
     } else {
       new_mesh->add_tag(
-          VERT, tb->name(), ncomps_out, tb->xfer(), tb->outflags(), out);
+          VERT, tb->name(), ncomps_out, tb->xfer(), out);
     }
     offset += ncomps_out;
   }
