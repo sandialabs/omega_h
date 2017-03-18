@@ -104,7 +104,7 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
     auto start = new_mesh->comm()->exscan(GO(nnew_ents), OMEGA_H_SUM);
     auto globals = Read<GO>(nnew_ents, start, 1);
     new_mesh->add_tag(
-        ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, globals);
+        ent_dim, "global", 1, OMEGA_H_GLOBAL, globals);
     return;
   }
   auto new_owned = new_mesh->owned(ent_dim);
@@ -117,7 +117,7 @@ void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
   auto new_globals = Read<GO>(new_globals_w);
   new_globals = new_mesh->sync_array(ent_dim, new_globals, 1);
   new_mesh->add_tag(
-      ent_dim, "global", 1, OMEGA_H_GLOBAL, OMEGA_H_DO_OUTPUT, new_globals);
+      ent_dim, "global", 1, OMEGA_H_GLOBAL, new_globals);
 }
 
 #define INST(T)                                                                \

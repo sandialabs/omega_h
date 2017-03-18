@@ -192,7 +192,6 @@ Read<T> read_array(
 }
 
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
-  if (!(tag->outflags() & OMEGA_H_DO_VIZ)) return;
   if (is<I8>(tag)) {
     write_array(stream, tag->name(), tag->ncomps(), to<I8>(tag)->array());
   } else if (is<I32>(tag)) {
@@ -232,20 +231,20 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   if (type == OMEGA_H_I8) {
     auto array = read_array<I8>(stream, size, is_little_endian, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
-        OMEGA_H_DO_OUTPUT, array, true);
+        array, true);
   } else if (type == OMEGA_H_I32) {
     auto array = read_array<I32>(stream, size, is_little_endian, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
-        OMEGA_H_DO_OUTPUT, array, true);
+        array, true);
   } else if (type == OMEGA_H_I64) {
     auto array = read_array<I64>(stream, size, is_little_endian, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
-        OMEGA_H_DO_OUTPUT, array, true);
+        array, true);
   } else {
     auto array =
         read_array<Real>(stream, size, is_little_endian, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, OMEGA_H_DONT_TRANSFER,
-        OMEGA_H_DO_OUTPUT, array, true);
+        array, true);
   }
   auto et = xml::read_tag(stream);
   CHECK(et.elem_name == "DataArray");
@@ -412,7 +411,6 @@ void write_p_data_array2(std::ostream& stream, std::string const& name,
 }
 
 void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
-  if (!(tag->outflags() & OMEGA_H_DO_VIZ)) return;
   if (tag->type() == OMEGA_H_F64 && tag->ncomps() == space_dim)
     write_p_data_array2(stream, tag->name(), 3, OMEGA_H_F64);
   else
@@ -502,7 +500,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   }
   build_from_elems2verts(mesh, comm, dim, ev2v, vert_globals);
   mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
-      OMEGA_H_DO_OUTPUT, coords, true);
+      coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
     ;
   CHECK(xml::read_tag(stream).elem_name == "CellData");

@@ -109,7 +109,7 @@ static void axes_from_metric_field_dim(Mesh* mesh,
   auto axes = axes_from_metrics_dim<dim>(metrics);
   for (Int i = 0; i < dim; ++i) {
     mesh->add_tag(VERT, output_prefix + '_' + std::to_string(i), dim,
-        OMEGA_H_DONT_TRANSFER, OMEGA_H_DO_OUTPUT, axes[i]);
+        OMEGA_H_DONT_TRANSFER, axes[i]);
   }
 }
 

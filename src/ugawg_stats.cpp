@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
   }
   auto metrics = get_metric(&mesh, metric_name);
   mesh.add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
-      OMEGA_H_DO_OUTPUT, metrics);
+      metrics);
   print_adapt_status(&mesh, opts);
   print_adapt_histograms(&mesh, opts);
   return 0;

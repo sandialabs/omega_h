@@ -90,7 +90,7 @@ I32 read_version(std::string const& path, CommPtr comm);
 void read_in_comm(
     std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
 
-constexpr I32 latest_version = 4;
+constexpr I32 latest_version = 5;
 
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian = true);

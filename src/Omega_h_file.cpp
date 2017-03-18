@@ -291,7 +291,6 @@ static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
 }
 
 static void write_tag(std::ostream& stream, TagBase const* tag) {
-  if (!(tag->outflags() & OMEGA_H_DO_SAVE)) return;
   std::string name = tag->name();
   write(stream, name);
   auto ncomps = I8(tag->ncomps());
@@ -300,8 +299,6 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   write_value(stream, type);
   I8 xfer_i8 = static_cast<I8>(tag->xfer());
   write_value(stream, xfer_i8);
-  I8 outflags_i8 = static_cast<I8>(tag->outflags());
-  write_value(stream, outflags_i8);
   if (is<I8>(tag)) {
     write_array(stream, to<I8>(tag)->array());
   } else if (is<I32>(tag)) {
@@ -325,28 +322,27 @@ static void read_tag(
   read_value(stream, type);
   I8 xfer_i8;
   read_value(stream, xfer_i8);
-  I8 outflags_i8 = OMEGA_H_DO_OUTPUT;
-  if (version >= 2) {
+  if (2 <= version && version < 5) {
+    I8 outflags_i8;
     read_value(stream, outflags_i8);
   }
   Int xfer = static_cast<Int>(xfer_i8);
-  Int outflags = static_cast<Int>(outflags_i8);
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
+    mesh->add_tag(d, name, ncomps, xfer, array, true);
   } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
+    mesh->add_tag(d, name, ncomps, xfer, array, true);
   } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
+    mesh->add_tag(d, name, ncomps, xfer, array, true);
   } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, outflags, array, true);
+    mesh->add_tag(d, name, ncomps, xfer, array, true);
   } else {
     Omega_h_fail("unexpected tag type in binary read\n");
   }
@@ -372,9 +368,7 @@ void write(std::ostream& stream, Mesh* mesh) {
     }
   }
   for (Int d = 0; d <= mesh->dim(); ++d) {
-    Int nsaved_tags = 0;
-    for (Int i = 0; i < mesh->ntags(d); ++i)
-      if (mesh->get_tag(d, i)->outflags() & OMEGA_H_DO_SAVE) ++nsaved_tags;
+    auto nsaved_tags = mesh->ntags(d);
     write_value(stream, nsaved_tags);
     for (Int i = 0; i < mesh->ntags(d); ++i) {
       write_tag(stream, mesh->get_tag(d, i));

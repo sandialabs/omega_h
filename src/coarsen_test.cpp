@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   }
   mesh.set_comm(world);
   mesh.balance();
-  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT);
+  mesh.add_tag<Real>(VERT, "size", 1, OMEGA_H_SIZE);
   mesh.set_tag(VERT, "size", Reals(mesh.nverts(), 1.0));
   auto opts = AdaptOpts(&mesh);
   opts.min_quality_allowed = 0.47;

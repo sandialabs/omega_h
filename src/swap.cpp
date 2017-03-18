@@ -20,7 +20,7 @@ bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
   edges_are_cands = land_each(edges_are_cands, edges_are_inter);
   if (get_max(comm, edges_are_cands) <= 0) return false;
   mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DONT_OUTPUT, edges_are_cands);
+      edges_are_cands);
   return true;
 }
 

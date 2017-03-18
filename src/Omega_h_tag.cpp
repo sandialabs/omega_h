@@ -4,8 +4,8 @@
 
 namespace Omega_h {
 
-TagBase::TagBase(std::string const& name, Int ncomps, Int xfer, Int outflags)
-    : name_(name), ncomps_(ncomps), xfer_(xfer), outflags_(outflags) {}
+TagBase::TagBase(std::string const& name, Int ncomps, Int xfer)
+    : name_(name), ncomps_(ncomps), xfer_(xfer) {}
 
 TagBase::~TagBase() = default;
 
@@ -14,8 +14,6 @@ std::string const& TagBase::name() const { return name_; }
 Int TagBase::ncomps() const { return ncomps_; }
 
 Int TagBase::xfer() const { return xfer_; }
-
-Int TagBase::outflags() const { return outflags_; }
 
 template <typename T>
 bool is(TagBase const* t) {
@@ -35,8 +33,8 @@ Tag<T>* to(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, Int ncomps, Int xfer, Int outflags)
-    : TagBase(name, ncomps, xfer, outflags) {}
+Tag<T>::Tag(std::string const& name, Int ncomps, Int xfer)
+    : TagBase(name, ncomps, xfer) {}
 
 template <typename T>
 Read<T> Tag<T>::array() const {
