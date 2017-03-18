@@ -51,15 +51,15 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
             break;
           case OMEGA_H_I32:
             mesh->add_tag(
-                d, name, ncomps, tag_xfer, tag_outflags, Read<I32>({}));
+                d, name, ncomps, tag_xfer, Read<I32>({}));
             break;
           case OMEGA_H_I64:
             mesh->add_tag(
-                d, name, ncomps, tag_xfer, tag_outflags, Read<I64>({}));
+                d, name, ncomps, tag_xfer, Read<I64>({}));
             break;
           case OMEGA_H_F64:
             mesh->add_tag(
-                d, name, ncomps, tag_xfer, tag_outflags, Read<Real>({}));
+                d, name, ncomps, tag_xfer, Read<Real>({}));
             break;
         }
       }

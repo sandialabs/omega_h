@@ -299,8 +299,6 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   write_value(stream, type);
   I8 xfer_i8 = static_cast<I8>(tag->xfer());
   write_value(stream, xfer_i8);
-  I8 outflags_i8 = static_cast<I8>(tag->outflags());
-  write_value(stream, outflags_i8);
   if (is<I8>(tag)) {
     write_array(stream, to<I8>(tag)->array());
   } else if (is<I32>(tag)) {
