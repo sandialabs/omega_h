@@ -123,6 +123,10 @@ bool has_momentum_velocity(Mesh* mesh, XferOpts const& opts) {
   return false;
 }
 
+bool should_transfer_copy(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
+  return should_transfer_no_products(mesh, opts, dim, tag) || tag->name() == "global";
+}
+
 bool should_transfer_no_products(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   return should_inherit(mesh, opts, dim, tag) ||
     should_interpolate(mesh, opts, dim, tag) ||
@@ -586,7 +590,7 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
 
 void transfer_copy_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh) {
   transfer_copy(old_mesh, new_mesh, VERT, [=](TagBase const* tb) -> bool {
-    return should_transfer_no_products(old_mesh, opts, VERT, tb);
+    return should_transfer_copy(old_mesh, opts, VERT, tb);
   });
 }
 

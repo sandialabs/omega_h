@@ -289,7 +289,7 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, XferOpts const& opts, Mesh* t
   auto target_elem_masses = target_mesh->get_array<Real>(dim, "mass");
   for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
     auto tagbase = donor_mesh->get_tag(VERT, tag_i);
-    if (is_momentum_velocity(donor_mesh, opts, VERT, tagbase)) continue;
+    if (!is_momentum_velocity(donor_mesh, opts, VERT, tagbase)) continue;
     CHECK(tagbase->ncomps() == dim);
     auto tag = to<Real>(tagbase);
     auto donor_vert_velocities = tag->array();

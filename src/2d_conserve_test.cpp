@@ -66,7 +66,11 @@ int main(int argc, char** argv) {
   mesh.add_tag(VERT, "velocity", mesh.dim(),
       Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
-  adapt(&mesh, AdaptOpts(&mesh));
+  auto opts = AdaptOpts(&mesh);
+  opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
+  opts.xfer_opts.momentum_map["velocity"] = "mass";
+  adapt(&mesh, opts);
   postprocess_conserve(&mesh);
   auto momentum_after = get_total_momentum(&mesh);
   if (world->rank() == 0) {
