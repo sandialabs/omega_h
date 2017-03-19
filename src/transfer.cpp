@@ -13,21 +13,21 @@
 
 namespace Omega_h {
 
-bool is_transfer_ok(XferOpts const& xopts, std::string const& name,
+bool is_transfer_ok(XferOpts const& opts, std::string const& name,
     Omega_h_Xfer type) {
-  if (!xopts.type_map.count(name)) return true;
-  return xopts.type_map[name] == type;
+  if (!opts.type_map.count(name)) return true;
+  return opts.type_map[name] == type;
 }
 
-bool is_transfer_required(XferOpts const& xopts, std::string const& name,
+bool is_transfer_required(XferOpts const& opts, std::string const& name,
     Omega_h_Xfer type) {
-  if (!xopts.type_map.count(name)) return false;
-  return xopts.type_map[name] == type;
+  if (!opts.type_map.count(name)) return false;
+  return opts.type_map[name] == type;
 }
 
-bool should_inherit(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+bool should_inherit(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
-  if (!(is_transfer_required(xopts, name, OMEGA_H_INHERIT) ||
+  if (!(is_transfer_required(opts, name, OMEGA_H_INHERIT) ||
       name == "class_id" ||
       name == "class_dim" ||
       name == "momentum_velocity_fixed")) {
@@ -41,10 +41,10 @@ bool should_inherit(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* t
   return true;
 }
 
-bool should_interpolate(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+bool should_interpolate(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
-  if (!(is_transfer_required(xopts, name, OMEGA_H_LINEAR_INTERP) ||
-        is_transfer_required(xopts, name, OMEGA_H_MOMENTUM_VELOCITY) ||
+  if (!(is_transfer_required(opts, name, OMEGA_H_LINEAR_INTERP) ||
+        is_transfer_required(opts, name, OMEGA_H_MOMENTUM_VELOCITY) ||
       name == "coordinates" ||
       name == "warp")) {
     return false;
@@ -52,25 +52,25 @@ bool should_interpolate(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase cons
   return dim == VERT && tag->type() == OMEGA_H_REAL;
 }
 
-bool should_fit(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+bool should_fit(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
-  if (!is_transfer_required(xopts, name, OMEGA_H_POINTWISE)) {
+  if (!is_transfer_required(opts, name, OMEGA_H_POINTWISE)) {
     return false;
   }
   return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
 }
 
-bool should_conserve(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+bool should_conserve(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
-  if (!is_transfer_required(xopts, name, OMEGA_H_CONSERVE)) {
+  if (!is_transfer_required(opts, name, OMEGA_H_CONSERVE)) {
     return false;
   }
   return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
 }
 
-bool is_metric(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+bool is_metric(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
-  if (!(is_transfer_required(xopts, name, OMEGA_H_METRIC) ||
+  if (!(is_transfer_required(opts, name, OMEGA_H_METRIC) ||
       name == "metric" ||
       name == "target_metric")) {
     return false;
@@ -79,9 +79,9 @@ bool is_metric(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
     tag->type() == OMEGA_H_REAL && tag->ncomps() == symm_dofs(mesh->dim());
 }
 
-bool is_size(Mesh*, XferOpts const& xopts, Int dim, TagBase const* tag) {
+bool is_size(Mesh*, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
-  if (!(is_transfer_required(xopts, name, OMEGA_H_SIZE) ||
+  if (!(is_transfer_required(opts, name, OMEGA_H_SIZE) ||
       name == "size" ||
       name == "target_size")) {
     return false;
@@ -90,15 +90,27 @@ bool is_size(Mesh*, XferOpts const& xopts, Int dim, TagBase const* tag) {
     tag->type() == OMEGA_H_REAL && tag->ncomps() == 1;
 }
 
-bool is_momentum_velocity(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+bool is_momentum_velocity(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
-  if (!(is_transfer_required(xopts, name, OMEGA_H_SIZE) ||
-      name == "size" ||
-      name == "target_size")) {
+  if (!is_transfer_required(opts, name, OMEGA_H_MOMENTUM_VELOCITY)) {
     return false;
   }
+  if (!opts.momentum_map.count(name)) return false;
+  auto const& mass_name = opts.momentum_map[name];
+  if (!mesh->has_tag(mesh->dim(), mass_name)) return false;
+  auto mass = mesh->get_tag(mesh->dim(), mass_name);
+  if (!(mass->type() == OMEGA_H_REAL && mass->ncomps() == 1)) return false;
   return dim == VERT &&
-    tag->type() == OMEGA_H_REAL && tag->ncomps() == 1;
+    tag->type() == OMEGA_H_REAL && tag->ncomps() == mesh->dim();
+}
+
+bool should_transfer(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
+  return should_inherit(mesh, opts, dim, tag) ||
+    should_interpolate(mesh, opts, dim, tag) ||
+    is_metric(mesh, opts, dim, tag) ||
+    is_size(mesh, opts, dim, tag) ||
+    should_conserve(mesh, opts, dim, tag) ||
+    is_momentum_velocity(mesh, opts, dim, tag) ||
 }
 
 template <typename T>
@@ -106,9 +118,8 @@ void transfer_common3(
     Mesh* new_mesh, Int ent_dim, TagBase const* tagbase, Write<T> new_data) {
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
-  auto xfer = tagbase->xfer();
   new_mesh->add_tag(
-      ent_dim, name, ncomps, xfer, Read<T>(new_data), true);
+      ent_dim, name, ncomps, Read<T>(new_data), true);
 }
 
 template <typename T>
@@ -135,13 +146,12 @@ void transfer_common(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
       same_ents2new_ents, tagbase, new_data);
 }
 
-static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_linear_interp(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2midverts, LOs same_verts2old_verts,
     LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
-    if (tagbase->xfer() == OMEGA_H_LINEAR_INTERP ||
-        tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY) {
+    if (should_interpolate(old_mesh, opts, VERT, tagbase)) {
       auto ncomps = tagbase->ncomps();
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
       auto prod_data =
@@ -152,11 +162,11 @@ static void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+static void transfer_size(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, LOs same_verts2old_verts, LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
-    if (tagbase->xfer() == OMEGA_H_SIZE) {
+    if (is_size(old_mesh, opts, VERT, tagbase)) {
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
       auto prod_data = get_mident_isos(old_mesh, EDGE, keys2edges, old_data);
       transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
@@ -165,11 +175,11 @@ static void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
   }
 }
 
-static void transfer_metric(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+static void transfer_metric(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, LOs same_verts2old_verts, LOs same_verts2new_verts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
-    if (tagbase->xfer() == OMEGA_H_METRIC) {
+    if (is_metric(old_mesh, opts, VERT, tagbase)) {
       auto old_data = old_mesh->get_array<Real>(VERT, tagbase->name());
       auto prod_data = get_mident_metrics(old_mesh, EDGE, keys2edges, old_data);
       transfer_common(old_mesh, new_mesh, VERT, same_verts2old_verts,
@@ -235,12 +245,12 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
       same_ents2new_ents, prods2new_ents, old_tag, Read<T>(prod_data));
 }
 
-static void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_inherit_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, Int prod_dim, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() == OMEGA_H_INHERIT) {
+    if (should_inherit(old_mesh, opts, prod_dim, tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,
@@ -267,13 +277,13 @@ static void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void transfer_pointwise_refine(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_pointwise_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OMEGA_H_POINTWISE) {
+    if (should_fit(old_mesh, opts, dim, tagbase)) {
       transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges, dim,
           keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
           tagbase->name());
@@ -285,7 +295,8 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(EDGE); ++i) {
     auto tagbase = old_mesh->get_tag(EDGE, i);
-    if (tagbase->xfer() == OMEGA_H_LENGTH) {
+    if (tagbase->name() == "length" && tagbase->type() == OMEGA_H_REAL &&
+        tagbase->ncomps() == 1) {
       auto prod_data = measure_edges_metric(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, EDGE, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
@@ -298,7 +309,8 @@ void transfer_quality(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OMEGA_H_QUALITY) {
+    if (tagbase->name() == "quality" && tagbase->type() == OMEGA_H_REAL &&
+        tagbase->ncomps() == 1) {
       auto prod_data = measure_qualities(new_mesh, prods2new_ents);
       transfer_common(old_mesh, new_mesh, dim, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
@@ -348,12 +360,12 @@ static void transfer_inherit_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, prods2new_ents, old_tag, prod_data);
 }
 
-static void transfer_inherit_coarsen(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_inherit_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() == OMEGA_H_INHERIT) {
+    if (should_inherit(old_mesh, opts, prod_dim, tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_inherit_coarsen_tmpl<I8>(old_mesh, new_mesh, keys2doms,
@@ -391,15 +403,11 @@ static void transfer_no_products_tmpl(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, prods2new_ents, old_tag, prod_data);
 }
 
-static void transfer_no_products(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
+static void transfer_no_products(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int prod_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if ((tagbase->xfer() == OMEGA_H_INHERIT) ||
-        (tagbase->xfer() == OMEGA_H_LINEAR_INTERP) ||
-        (tagbase->xfer() == OMEGA_H_METRIC) ||
-        (tagbase->xfer() == OMEGA_H_MOMENTUM_VELOCITY) ||
-        (tagbase->xfer() == OMEGA_H_SIZE)) {
+    if (should_transfer(old_mesh, opts, prod_dim, tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_no_products_tmpl<I8>(old_mesh, new_mesh, prod_dim,
@@ -475,13 +483,13 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
       same_elems2new_elems, prods2new_elems, old_tag, prod_data);
 }
 
-void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+void transfer_pointwise(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OMEGA_H_POINTWISE) {
+    if (should_fit(old_mesh, opts, dim, tagbase)) {
       if (dim == 3) {
         transfer_pointwise_tmpl<3>(old_mesh, new_mesh, key_dim, keys2kds,
             keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
@@ -530,9 +538,8 @@ static void transfer_copy_tmpl(
   auto old_tag = to<T>(tagbase);
   auto const& name = old_tag->name();
   auto ncomps = old_tag->ncomps();
-  auto xfer = old_tag->xfer();
   auto old_data = old_tag->array();
-  new_mesh->add_tag(prod_dim, name, ncomps, xfer, old_data, true);
+  new_mesh->add_tag(prod_dim, name, ncomps, old_data, true);
 }
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
@@ -558,15 +565,15 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
   }
 }
 
-void transfer_copy_swap(Mesh* old_mesh, Mesh* new_mesh) {
-  transfer_copy(old_mesh, new_mesh, VERT, [](TagBase const* tb) -> bool {
-    return tb->xfer() != OMEGA_H_DONT_TRANSFER;
+void transfer_copy_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh) {
+  transfer_copy(old_mesh, new_mesh, VERT, [=](TagBase const* tb) -> bool {
+    return should_transfer(old_mesh, opts, VERT, tb);
   });
 }
 
-void transfer_copy_motion(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim) {
-  transfer_copy(old_mesh, new_mesh, prod_dim, [](TagBase const* tb) -> bool {
-    return tb->xfer() == OMEGA_H_INHERIT || tb->xfer() == OMEGA_H_GLOBAL;
+void transfer_copy_motion(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int prod_dim) {
+  transfer_copy(old_mesh, new_mesh, prod_dim, [=](TagBase const* tb) -> bool {
+    return should_inherit(old_mesh, opts, prod_dim, tb) || tg->name() == "global";
   });
 }
 
@@ -584,12 +591,12 @@ static void transfer_inherit_swap_tmpl(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, prods2new_ents, old_tag, prod_data);
 }
 
-static void transfer_inherit_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
+static void transfer_inherit_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int prod_dim,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (tagbase->xfer() == OMEGA_H_INHERIT) {
+    if (should_inherit(old_mesh, opts, prod_dim, tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_inherit_swap_tmpl<I8>(old_mesh, new_mesh, prod_dim,
