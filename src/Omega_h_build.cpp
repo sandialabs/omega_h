@@ -46,8 +46,7 @@ void build_from_elems2verts(
   mesh->set_dim(edim);
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
-  mesh->add_tag(
-      VERT, "global", 1, vert_globals);
+  mesh->add_tag(VERT, "global", 1, vert_globals);
   if (comm->size() > 1) {
     mesh->set_owners(
         VERT, owners_from_globals(comm, vert_globals, Read<I32>()));

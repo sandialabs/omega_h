@@ -31,8 +31,7 @@ Tag<T>* to(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, Int ncomps)
-    : TagBase(name, ncomps) {}
+Tag<T>::Tag(std::string const& name, Int ncomps) : TagBase(name, ncomps) {}
 
 template <typename T>
 Read<T> Tag<T>::array() const {

@@ -24,11 +24,9 @@ static bool move_verts_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto vert_quals =
       map_onto(choices.quals, cands2verts, mesh->nverts(), -1.0, 1);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
-  mesh->add_tag(VERT, "key", 1,
-      verts_are_keys);
+  mesh->add_tag(VERT, "key", 1, verts_are_keys);
   auto ncomps = choices.new_sol.size() / mesh->nverts();
-  mesh->add_tag(VERT, "motion_solution", ncomps,
-      choices.new_sol);
+  mesh->add_tag(VERT, "motion_solution", ncomps, choices.new_sol);
   auto keys2verts = collect_marked(verts_are_keys);
   auto verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
@@ -58,7 +56,8 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
     new_mesh.set_owners(ent_dim, mesh->ask_owners(ent_dim));
     transfer_copy_motion(mesh, opts.xfer_opts, &new_mesh, ent_dim);
     if (ent_dim == VERT) {
-      unpack_linearized_fields(mesh, opts.xfer_opts, &new_mesh, new_sol, verts_are_keys);
+      unpack_linearized_fields(
+          mesh, opts.xfer_opts, &new_mesh, new_sol, verts_are_keys);
       if (mesh->has_tag(VERT, "warp")) {
         auto tb = mesh->get_tagbase(VERT, "warp");
         auto old_warp = mesh->get_array<Real>(VERT, "warp");
@@ -66,8 +65,7 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
         auto new_coords = new_mesh.coords();
         auto motion = subtract_each(new_coords, old_coords);
         auto new_warp = subtract_each(old_warp, motion);
-        new_mesh.add_tag(
-            VERT, "warp", tb->ncomps(), new_warp);
+        new_mesh.add_tag(VERT, "warp", tb->ncomps(), new_warp);
       }
     } else if (ent_dim == EDGE) {
       auto edges_did_move = mark_up(&new_mesh, VERT, EDGE, verts_are_keys);
@@ -86,8 +84,8 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
           mesh, &new_mesh, same_elems2elems, same_elems2elems, new_elems2elems);
       auto verts2elems = mesh->ask_graph(VERT, mesh->dim());
       auto keys2elems = unmap_graph(keys2verts, verts2elems);
-      transfer_pointwise(mesh, opts.xfer_opts, &new_mesh, VERT, keys2verts, keys2elems.a2ab,
-          keys2elems.ab2b, same_elems2elems, same_elems2elems);
+      transfer_pointwise(mesh, opts.xfer_opts, &new_mesh, VERT, keys2verts,
+          keys2elems.a2ab, keys2elems.ab2b, same_elems2elems, same_elems2elems);
     }
   }
   *mesh = new_mesh;

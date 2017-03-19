@@ -33,10 +33,8 @@ static bool swap3d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
   Graph edges2cav_elems;
   edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
-  mesh->add_tag(EDGE, "key", 1,
-      edges_are_keys);
-  mesh->add_tag(EDGE, "config", 1,
-      edge_configs);
+  mesh->add_tag(EDGE, "key", 1, edges_are_keys);
+  mesh->add_tag(EDGE, "config", 1, edge_configs);
   auto keys2edges = collect_marked(edges_are_keys);
   set_owners_by_indset(mesh, EDGE, keys2edges, edges2cav_elems);
   return true;
@@ -72,8 +70,9 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
     modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods[ent_dim],
         prod_verts2verts[ent_dim], old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
-    transfer_swap(mesh, opts.xfer_opts, &new_mesh, ent_dim, keys2edges, keys2prods[ent_dim],
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_swap(mesh, opts.xfer_opts, &new_mesh, ent_dim, keys2edges,
+        keys2prods[ent_dim], prods2new_ents, same_ents2old_ents,
+        same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;

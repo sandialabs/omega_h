@@ -28,8 +28,7 @@ static void add_dye(Mesh* mesh) {
     }
   };
   parallel_for(mesh->nverts(), dye_fun);
-  mesh->add_tag(
-      VERT, "dye", 1, Reals(dye_w));
+  mesh->add_tag(VERT, "dye", 1, Reals(dye_w));
 }
 
 static Reals form_pointwise(Mesh* mesh) {
@@ -44,8 +43,7 @@ static Reals form_pointwise(Mesh* mesh) {
 
 static void add_pointwise(Mesh* mesh) {
   auto data = form_pointwise(mesh);
-  mesh->add_tag(
-      mesh->dim(), "pointwise", 1, data);
+  mesh->add_tag(mesh->dim(), "pointwise", 1, data);
 }
 
 static void postprocess_conserve(Mesh* mesh) {
@@ -53,16 +51,14 @@ static void postprocess_conserve(Mesh* mesh) {
   auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
   CHECK(are_close(1.0, get_sum(mesh->comm(), mass)));
   auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1,
-      density);
+  mesh->add_tag(mesh->dim(), "density", 1, density);
 }
 
 static void postprocess_pointwise(Mesh* mesh) {
   auto data = mesh->get_array<Real>(mesh->dim(), "pointwise");
   auto expected = form_pointwise(mesh);
   auto diff = subtract_each(data, expected);
-  mesh->add_tag(mesh->dim(), "pointwise_err", 1,
-      diff);
+  mesh->add_tag(mesh->dim(), "pointwise_err", 1, diff);
 }
 
 int main(int argc, char** argv) {
@@ -83,8 +79,7 @@ int main(int argc, char** argv) {
   auto size = find_implied_size(&mesh);
   mesh.add_tag(VERT, "size", 1, size);
   add_dye(&mesh);
-  mesh.add_tag(mesh.dim(), "mass", 1,
-      measure_elements_real(&mesh));
+  mesh.add_tag(mesh.dim(), "mass", 1, measure_elements_real(&mesh));
   add_pointwise(&mesh);
   auto opts = AdaptOpts(&mesh);
   opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
@@ -118,8 +113,7 @@ int main(int argc, char** argv) {
       set_vector<dim>(warp_w, vert, w);
     };
     parallel_for(mesh.nverts(), warp_fun);
-    mesh.add_tag(VERT, "warp", dim,
-        Reals(warp_w));
+    mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
     while (warp_to_limit(&mesh, opts)) adapt(&mesh, opts);
   }
   Now t1 = now();

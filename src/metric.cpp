@@ -108,8 +108,7 @@ static void axes_from_metric_field_dim(Mesh* mesh,
   auto metrics = mesh->get_array<Real>(VERT, metric_name);
   auto axes = axes_from_metrics_dim<dim>(metrics);
   for (Int i = 0; i < dim; ++i) {
-    mesh->add_tag(VERT, output_prefix + '_' + std::to_string(i), dim,
-        axes[i]);
+    mesh->add_tag(VERT, output_prefix + '_' + std::to_string(i), dim, axes[i]);
   }
 }
 

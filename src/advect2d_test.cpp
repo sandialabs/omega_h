@@ -20,11 +20,11 @@ int main(int argc, char** argv) {
   auto metrics =
       metric_from_hessians(mesh.dim(), hessians, target_error, maximum_size);
   metrics = Omega_h::limit_size_field_gradation(&mesh, metrics, gradation_rate);
-  mesh.add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_dofs(mesh.dim()),
-      metrics);
+  mesh.add_tag(
+      Omega_h::VERT, "target_metric", Omega_h::symm_dofs(mesh.dim()), metrics);
   auto implied_metrics = Omega_h::find_implied_metric(&mesh);
-  mesh.add_tag(Omega_h::VERT, "metric", Omega_h::symm_dofs(mesh.dim()),
-      implied_metrics);
+  mesh.add_tag(
+      Omega_h::VERT, "metric", Omega_h::symm_dofs(mesh.dim()), implied_metrics);
   Omega_h::AdaptOpts opts(&mesh);
   opts.xfer_opts.type_map["Solution"] = OMEGA_H_LINEAR_INTERP;
   opts.max_length_allowed = max_metric_length;

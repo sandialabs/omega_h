@@ -115,8 +115,7 @@ GO Mesh::nglobal_ents(Int dim) {
 }
 
 template <typename T>
-void Mesh::add_tag(
-    Int dim, std::string const& name, Int ncomps) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
   check_dim2(dim);
   if (has_tag(dim, name)) {
     Omega_h_fail(
@@ -131,8 +130,8 @@ void Mesh::add_tag(
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps,
-    Read<T> array, bool internal) {
+void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Read<T> array,
+    bool internal) {
   add_tag<T>(dim, name, ncomps);
   set_tag<T>(dim, name, array, internal);
 }
@@ -354,8 +353,7 @@ Adj Mesh::ask_adj(Int from, Int to) {
 }
 
 void Mesh::add_coords(Reals array) {
-  add_tag<Real>(
-      0, "coordinates", dim(), array);
+  add_tag<Real>(0, "coordinates", dim(), array);
 }
 
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
@@ -368,8 +366,7 @@ void Mesh::set_coords(Reals const& array) {
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
     CHECK(comm_->size() == 1);
-    add_tag(dim, "global", 1,
-        Read<GO>(nents(dim), 0, 1));
+    add_tag(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
   }
   return get_array<GO>(dim, "global");
 }
@@ -683,9 +680,9 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
   template void Mesh::add_tag<T>(                                              \
-      Int dim, std::string const& name, Int ncomps);   \
+      Int dim, std::string const& name, Int ncomps);                           \
   template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
-      Read<T> array, bool internal);                   \
+      Read<T> array, bool internal);                                           \
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \

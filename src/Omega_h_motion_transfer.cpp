@@ -7,10 +7,11 @@
 
 namespace Omega_h {
 
-static bool should_transfer_motion_linear(Mesh* mesh, XferOpts const& opts, TagBase const* tb) {
+static bool should_transfer_motion_linear(
+    Mesh* mesh, XferOpts const& opts, TagBase const* tb) {
   if (tb->name() == "warp") return false;
   return should_interpolate(mesh, opts, VERT, tb) ||
-    is_metric(mesh, opts, VERT, tb) || is_size(mesh, opts, VERT, tb);
+         is_metric(mesh, opts, VERT, tb) || is_size(mesh, opts, VERT, tb);
 }
 
 LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts) {
@@ -49,8 +50,8 @@ LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts) {
   return {out_w, ncomps, metric_offset, coords_offset};
 }
 
-void unpack_linearized_fields(
-    Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Reals data, Read<I8> verts_are_keys) {
+void unpack_linearized_fields(Mesh* old_mesh, XferOpts const& opts,
+    Mesh* new_mesh, Reals data, Read<I8> verts_are_keys) {
   CHECK(data.size() % new_mesh->nverts() == 0);
   auto ncomps = data.size() / new_mesh->nverts();
   Int offset = 0;
@@ -85,8 +86,7 @@ void unpack_linearized_fields(
     if (new_mesh->has_tag(VERT, tb->name())) {
       new_mesh->set_tag(VERT, tb->name(), out);
     } else {
-      new_mesh->add_tag(
-          VERT, tb->name(), ncomps_out, out);
+      new_mesh->add_tag(VERT, tb->name(), ncomps_out, out);
     }
     offset += ncomps_out;
   }

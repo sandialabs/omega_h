@@ -13,8 +13,8 @@ struct LinearPack {
 };
 
 LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts);
-void unpack_linearized_fields(
-    Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Reals data, Read<I8> verts_are_keys);
+void unpack_linearized_fields(Mesh* old_mesh, XferOpts const& opts,
+    Mesh* new_mesh, Reals data, Read<I8> verts_are_keys);
 
 struct MotionChoices {
   Read<I8> cands_did_move;

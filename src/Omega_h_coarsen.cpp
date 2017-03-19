@@ -21,8 +21,7 @@ static Read<I8> get_edge_codes(Mesh* mesh) {
 static void put_edge_codes(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   auto edge_codes =
       map_onto(cand_codes, cands2edges, mesh->nedges(), I8(DONT_COLLAPSE), 1);
-  mesh->add_tag(EDGE, "collapse_code", 1,
-      edge_codes);
+  mesh->add_tag(EDGE, "collapse_code", 1, edge_codes);
 }
 
 static bool coarsen_element_based1(Mesh* mesh) {
@@ -93,12 +92,9 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
   Graph verts2cav_elems;
   verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
-  mesh->add_tag(
-      VERT, "key", 1, verts_are_keys);
-  mesh->add_tag(VERT, "collapse_quality", 1,
-      vert_quals);
-  mesh->add_tag(VERT, "collapse_rail", 1,
-      vert_rails);
+  mesh->add_tag(VERT, "key", 1, verts_are_keys);
+  mesh->add_tag(VERT, "collapse_quality", 1, vert_quals);
+  mesh->add_tag(VERT, "collapse_rail", 1, vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
@@ -147,8 +143,8 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
         prod_verts2verts, old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     if (ent_dim == VERT) old_verts2new_verts = old_ents2new_ents;
-    transfer_coarsen(mesh, opts.xfer_opts, &new_mesh, keys2verts, keys2doms, ent_dim,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_coarsen(mesh, opts.xfer_opts, &new_mesh, keys2verts, keys2doms,
+        ent_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
@@ -181,8 +177,7 @@ static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
     edge_codes_w[e] = code;
   };
   parallel_for(mesh->nedges(), f);
-  mesh->add_tag(EDGE, "collapse_code", 1,
-      Read<I8>(edge_codes_w));
+  mesh->add_tag(EDGE, "collapse_code", 1, Read<I8>(edge_codes_w));
   return coarsen(mesh, opts, overshoot, improve);
 }
 

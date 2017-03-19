@@ -19,8 +19,7 @@ bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
   auto edges_are_inter = mark_by_class_dim(mesh, EDGE, mesh->dim());
   edges_are_cands = land_each(edges_are_cands, edges_are_inter);
   if (get_max(comm, edges_are_cands) <= 0) return false;
-  mesh->add_tag(EDGE, "candidate", 1,
-      edges_are_cands);
+  mesh->add_tag(EDGE, "candidate", 1, edges_are_cands);
   return true;
 }
 

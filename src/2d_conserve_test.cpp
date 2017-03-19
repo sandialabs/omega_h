@@ -16,8 +16,7 @@ static void postprocess_conserve(Mesh* mesh) {
   auto owned_mass = mesh->owned_array(mesh->dim(), mass, 1);
   CHECK(are_close(1.0, get_sum(mesh->comm(), owned_mass)));
   auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1,
-      density);
+  mesh->add_tag(mesh->dim(), "density", 1, density);
 }
 
 static Vector<2> get_total_momentum(Mesh* mesh) {
@@ -52,8 +51,7 @@ int main(int argc, char** argv) {
     mesh.add_tag(VERT, "size", 1, size);
   }
   mesh.set_parting(OMEGA_H_ELEM_BASED);
-  mesh.add_tag(mesh.dim(), "mass", 1,
-      measure_elements_real(&mesh));
+  mesh.add_tag(mesh.dim(), "mass", 1, measure_elements_real(&mesh));
   auto velocity = Write<Real>(mesh.nverts() * mesh.dim());
   auto coords = mesh.coords();
   auto f = LAMBDA(LO vert) {
@@ -63,8 +61,7 @@ int main(int argc, char** argv) {
     set_vector(velocity, vert, vector_2(1, 0) * w);
   };
   parallel_for(mesh.nverts(), f);
-  mesh.add_tag(VERT, "velocity", mesh.dim(),
-      Reals(velocity));
+  mesh.add_tag(VERT, "velocity", mesh.dim(), Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
   auto opts = AdaptOpts(&mesh);
   opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;

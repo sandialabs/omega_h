@@ -15,8 +15,7 @@ void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
     class_dim[s] = static_cast<I8>(dim - side_is_exposed[s]);
   };
   parallel_for(ns, f);
-  mesh->add_tag<I8>(
-      dim - 1, "class_dim", 1, class_dim);
+  mesh->add_tag<I8>(dim - 1, "class_dim", 1, class_dim);
 }
 
 void classify_hinges_by_sharpness(
@@ -29,13 +28,12 @@ void classify_hinges_by_sharpness(
         static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
   };
   parallel_for(nh, f);
-  mesh->add_tag<I8>(
-      dim - 2, "class_dim", 1, class_dim);
+  mesh->add_tag<I8>(dim - 2, "class_dim", 1, class_dim);
 }
 
 void classify_elements(Mesh* mesh) {
   mesh->add_tag<I8>(mesh->dim(), "class_dim", 1,
-     
+
       Read<I8>(mesh->nelems(), static_cast<I8>(mesh->dim())));
 }
 
@@ -141,10 +139,8 @@ void finalize_classification(Mesh* mesh) {
         deep_copy_or_default<I8>(mesh, d, "class_dim", I8(mesh->dim()));
     Write<LO> class_id = deep_copy_or_default<LO>(mesh, d, "class_id", -1);
     if (d < mesh->dim()) project_classification(mesh, d, class_dim, class_id);
-    mesh->add_tag<I8>(
-        d, "class_dim", 1, class_dim);
-    mesh->add_tag<LO>(
-        d, "class_id", 1, class_id);
+    mesh->add_tag<I8>(d, "class_dim", 1, class_dim);
+    mesh->add_tag<LO>(d, "class_id", 1, class_id);
   }
   if (!had_ids) remove_all_ids(mesh);
 }
@@ -168,10 +164,8 @@ void classify_equal_order(
   auto class_dim =
       map_onto(eq_class_dim, eq2e, mesh->nents(ent_dim), I8(mesh->dim()), 1);
   auto class_id = map_onto(eq_class_ids, eq2e, mesh->nents(ent_dim), -1, 1);
-  mesh->add_tag<I8>(
-      ent_dim, "class_dim", 1, class_dim);
-  mesh->add_tag<LO>(
-      ent_dim, "class_id", 1, class_id);
+  mesh->add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
+  mesh->add_tag<LO>(ent_dim, "class_id", 1, class_id);
 }
 
 }  // end namespace Omega_h

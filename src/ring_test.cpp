@@ -29,8 +29,7 @@ int main(int argc, char** argv) {
   parallel_for(bv2v.size(), f);
   auto initial = Reals(initial_w);
   auto solution = solve_laplacian(&mesh, initial, 1, 1e-2);
-  mesh.add_tag(
-      VERT, "solution", 1, solution);
+  mesh.add_tag(VERT, "solution", 1, solution);
   bool ok = check_regression("gold_ring", &mesh);
   if (!ok) return 2;
   return 0;
