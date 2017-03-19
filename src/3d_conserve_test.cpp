@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
   opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.momentum_map["velocity"] = "mass";
-  adapt(&mesh, AdaptOpts(&mesh));
+  adapt(&mesh, opts);
   postprocess_conserve(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
     auto mass_after = get_total_mass(&mesh, obj);
