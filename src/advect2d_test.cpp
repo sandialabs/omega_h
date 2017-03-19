@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
   mesh.add_tag(Omega_h::VERT, "metric", Omega_h::symm_dofs(mesh.dim()),
       implied_metrics);
   Omega_h::AdaptOpts opts(&mesh);
+  opts.xfer_opts.type_map["Solution"] = OMEGA_H_LINEAR_INTERP;
   opts.max_length_allowed = max_metric_length;
   while (Omega_h::approach_size_field(&mesh, opts)) {
     Omega_h::adapt(&mesh, opts);
