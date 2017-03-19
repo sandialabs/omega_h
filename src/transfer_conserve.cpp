@@ -8,7 +8,7 @@
 #include "collapse.hpp"
 #include "simplices.hpp"
 #include "size.hpp"
-#include "transfer.hpp"
+#include "Omega_h_transfer.hpp"
 
 namespace Omega_h {
 

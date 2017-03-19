@@ -8,7 +8,7 @@
 #include "modify.hpp"
 #include "refine_qualities.hpp"
 #include "refine_topology.hpp"
-#include "transfer.hpp"
+#include "Omega_h_transfer.hpp"
 
 namespace Omega_h {
 

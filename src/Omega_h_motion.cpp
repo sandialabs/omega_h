@@ -3,7 +3,7 @@
 #include "Omega_h_map.hpp"
 #include "indset.hpp"
 #include "modify.hpp"
-#include "transfer.hpp"
+#include "Omega_h_transfer.hpp"
 
 #include <iostream>
 
