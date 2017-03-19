@@ -123,17 +123,17 @@ bool has_momentum_velocity(Mesh* mesh, XferOpts const& opts) {
   return false;
 }
 
-bool should_transfer_copy(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
-  return should_transfer_no_products(mesh, opts, dim, tag) || tag->name() == "global";
-}
-
-bool should_transfer_no_products(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
+static bool should_transfer_no_products(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   return should_inherit(mesh, opts, dim, tag) ||
     should_interpolate(mesh, opts, dim, tag) ||
     is_metric(mesh, opts, dim, tag) ||
     is_size(mesh, opts, dim, tag) ||
     should_conserve(mesh, opts, dim, tag) ||
     is_momentum_velocity(mesh, opts, dim, tag);
+}
+
+static bool should_transfer_copy(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
+  return should_transfer_no_products(mesh, opts, dim, tag) || tag->name() == "global";
 }
 
 template <typename T>
