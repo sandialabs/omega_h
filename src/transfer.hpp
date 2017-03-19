@@ -14,9 +14,12 @@ bool should_inherit(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* t
 bool should_interpolate(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag);
 bool should_fit(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 bool should_conserve(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
+bool should_conserve_any(Mesh* mesh, XferOpts const& opts);
 bool is_metric(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 bool is_size(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 bool is_momentum_velocity(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
+bool has_momentum_velocity(Mesh* mesh, XferOpts const& opts);
+bool should_transfer_no_products(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 
 void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, Int prod_dim, LOs keys2prods, LOs prods2new_ents,

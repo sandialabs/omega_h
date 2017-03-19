@@ -11,6 +11,7 @@ enum Omega_h_Type {
   OMEGA_H_I32 = 2,
   OMEGA_H_I64 = 3,
   OMEGA_H_F64 = 5,
+  OMEGA_H_REAL = OMEGA_H_F64,
 };
 
 enum { OMEGA_H_DIMS = 4 };

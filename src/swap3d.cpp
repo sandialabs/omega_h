@@ -16,7 +16,7 @@ static bool swap3d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
-  if (has_fixed_momentum_velocity(mesh)) {
+  if (has_fixed_momentum_velocity(mesh, opts.transfer_opts)) {
     auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
     filter_swap(keep_cands, &cands2edges);
   }

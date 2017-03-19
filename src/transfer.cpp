@@ -25,7 +25,7 @@ bool is_transfer_required(XferOpts const& opts, std::string const& name,
   return opts.type_map.find(name)->second == type;
 }
 
-bool should_inherit(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
+bool should_inherit(Mesh* mesh, XferOpts const& opts, Int, TagBase const* tag) {
   auto& name = tag->name();
   if (!(is_transfer_required(opts, name, OMEGA_H_INHERIT) ||
       name == "class_id" ||
@@ -35,13 +35,13 @@ bool should_inherit(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* ta
   }
   for (Int i = 0; i <= mesh->dim(); ++i) {
     if (!mesh->has_tag(i, name)) return false;
-    if (mesh->get_tag(i, name)->type() != tag->type()) return false;
-    if (mesh->get_tag(i, name)->ncomps() != tag->ncomps()) return false;
+    if (mesh->get_tagbase(i, name)->type() != tag->type()) return false;
+    if (mesh->get_tagbase(i, name)->ncomps() != tag->ncomps()) return false;
   }
   return true;
 }
 
-bool should_interpolate(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
+bool should_interpolate(Mesh*, XferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
   if (!(is_transfer_required(opts, name, OMEGA_H_LINEAR_INTERP) ||
         is_transfer_required(opts, name, OMEGA_H_MOMENTUM_VELOCITY) ||
@@ -66,6 +66,16 @@ bool should_conserve(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* t
     return false;
   }
   return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
+}
+
+bool should_conserve_any(Mesh* mesh, XferOpts const& opts) {
+  auto dim = mesh->dim();
+  for (Int i = 0; i < mesh->ntags(dim); ++i) {
+    if (should_conserve(mesh, opts, dim, mesh->get_tag(dim, i))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool is_metric(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
@@ -96,21 +106,30 @@ bool is_momentum_velocity(Mesh* mesh, XferOpts const& opts, Int dim, TagBase con
     return false;
   }
   if (!opts.momentum_map.count(name)) return false;
-  auto const& mass_name = opts.momentum_map[name];
+  auto const& mass_name = opts.momentum_map.find(name)->second;
   if (!mesh->has_tag(mesh->dim(), mass_name)) return false;
-  auto mass = mesh->get_tag(mesh->dim(), mass_name);
+  auto mass = mesh->get_tagbase(mesh->dim(), mass_name);
   if (!(mass->type() == OMEGA_H_REAL && mass->ncomps() == 1)) return false;
   return dim == VERT &&
     tag->type() == OMEGA_H_REAL && tag->ncomps() == mesh->dim();
 }
 
-bool should_transfer(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
+bool has_momentum_velocity(Mesh* mesh, XferOpts const& opts) {
+  for (Int i = 0; i < mesh->ntags(VERT); ++i) {
+    if (is_momentum_velocity(mesh, opts, VERT, mesh->get_tag(VERT, i))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool should_transfer_no_products(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
   return should_inherit(mesh, opts, dim, tag) ||
     should_interpolate(mesh, opts, dim, tag) ||
     is_metric(mesh, opts, dim, tag) ||
     is_size(mesh, opts, dim, tag) ||
     should_conserve(mesh, opts, dim, tag) ||
-    is_momentum_velocity(mesh, opts, dim, tag) ||
+    is_momentum_velocity(mesh, opts, dim, tag);
 }
 
 template <typename T>
@@ -318,18 +337,18 @@ void transfer_quality(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
   }
 }
 
-void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+void transfer_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, Int prod_dim, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto t0 = now();
-  transfer_inherit_refine(old_mesh, new_mesh, keys2edges, prod_dim, keys2prods,
+  transfer_inherit_refine(old_mesh, opts, new_mesh, keys2edges, prod_dim, keys2prods,
       prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == VERT) {
-    transfer_linear_interp(old_mesh, new_mesh, keys2edges, keys2midverts,
+    transfer_linear_interp(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
-    transfer_size(old_mesh, new_mesh, keys2edges, keys2midverts,
+    transfer_size(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
-    transfer_metric(old_mesh, new_mesh, keys2edges, keys2midverts,
+    transfer_metric(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
   } else if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -337,9 +356,9 @@ void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
   } else if (prod_dim == old_mesh->dim()) {
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve_refine(old_mesh, new_mesh, keys2edges, keys2prods,
+    transfer_conserve_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_pointwise_refine(old_mesh, new_mesh, keys2edges, keys2prods,
+    transfer_pointwise_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
@@ -407,7 +426,7 @@ static void transfer_no_products(Mesh* old_mesh, XferOpts const& opts, Mesh* new
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (should_transfer(old_mesh, opts, prod_dim, tagbase)) {
+    if (should_transfer_no_products(old_mesh, opts, prod_dim, tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_no_products_tmpl<I8>(old_mesh, new_mesh, prod_dim,
@@ -567,7 +586,7 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
 
 void transfer_copy_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh) {
   transfer_copy(old_mesh, new_mesh, VERT, [=](TagBase const* tb) -> bool {
-    return should_transfer(old_mesh, opts, VERT, tb);
+    return should_transfer_no_products(old_mesh, opts, VERT, tb);
   });
 }
 

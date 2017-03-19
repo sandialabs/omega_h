@@ -137,11 +137,11 @@ static void transfer_conserve_tag(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, tagbase, new_data_w);
 }
 
-void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+void transfer_conserve(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
-  if (!has_xfer(old_mesh, dim, OMEGA_H_CONSERVE)) return;
+  if (!should_conserve_any(old_mesh, opts)) return;
   auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
   auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
   auto keys2new_elems = Graph(keys2prods, prods2new_ents);
@@ -156,7 +156,7 @@ void transfer_conserve(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OMEGA_H_CONSERVE) {
+    if (should_conserve(old_mesh, opts, dim, tagbase)) {
       transfer_conserve_tag(old_mesh, new_mesh, mats_keys2elems,
           same_ents2old_ents, same_ents2new_ents, tagbase);
     }
@@ -173,20 +173,20 @@ void fix_momentum_velocity_verts(
       auto new_marks = bit_or_each(old_marks, comp_marks);
       mesh->set_tag(ent_dim, "momentum_velocity_fixed", new_marks);
     } else {
-      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
+      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1,
           comp_marks);
     }
   }
   for (Int ent_dim = class_dim + 1; ent_dim <= mesh->dim(); ++ent_dim) {
     if (!mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
-      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, OMEGA_H_INHERIT,
+      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1,
           Read<I8>(mesh->nents(ent_dim), I8(0)));
     }
   }
 }
 
-bool has_fixed_momentum_velocity(Mesh* mesh) {
-  return has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY) &&
+bool has_fixed_momentum_velocity(Mesh* mesh, XferOpts const& opts) {
+  return has_momentum_velocity(mesh, opts) &&
          mesh->has_tag(VERT, "momentum_velocity_fixed");
 }
 
@@ -277,9 +277,9 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 }
 
 template <Int dim>
-void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
+void momentum_velocity_part1_dim(Mesh* donor_mesh, XferOpts const& opts, Mesh* target_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems) {
-  if (!has_xfer(donor_mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
+  if (!has_momentum_velocity(donor_mesh, opts)) return;
   auto nkeys = keys2kds.size();
   auto keys2target_elems = Graph(keys2prods, prods2new_elems);
   auto kds2donor_elems = donor_mesh->ask_up(key_dim, dim);
@@ -289,7 +289,7 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
   auto target_elem_masses = target_mesh->get_array<Real>(dim, "mass");
   for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
     auto tagbase = donor_mesh->get_tag(VERT, tag_i);
-    if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
+    if (is_momentum_velocity(donor_mesh, opts, VERT, tagbase)) continue;
     CHECK(tagbase->ncomps() == dim);
     auto tag = to<Real>(tagbase);
     auto donor_vert_velocities = tag->array();
@@ -355,18 +355,18 @@ void momentum_velocity_part1_dim(Mesh* donor_mesh, Mesh* target_mesh,
     };
     parallel_for(nkeys, f);
     auto name = tag->name() + "_correction";
-    target_mesh->add_tag(dim, name, (dim + 1) * dim, OMEGA_H_DONT_TRANSFER,
+    target_mesh->add_tag(dim, name, (dim + 1) * dim,
         Reals(corrections_w));
   }
 }
 
-void do_momentum_velocity_part1(Mesh* donor_mesh, Mesh* target_mesh,
+void do_momentum_velocity_part1(Mesh* donor_mesh, XferOpts const& opts, Mesh* target_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_elems) {
   if (donor_mesh->dim() == 3) {
-    momentum_velocity_part1_dim<3>(donor_mesh, target_mesh, key_dim, keys2kds,
+    momentum_velocity_part1_dim<3>(donor_mesh, opts, target_mesh, key_dim, keys2kds,
         keys2prods, prods2new_elems);
   } else if (donor_mesh->dim() == 2) {
-    momentum_velocity_part1_dim<2>(donor_mesh, target_mesh, key_dim, keys2kds,
+    momentum_velocity_part1_dim<2>(donor_mesh, opts, target_mesh, key_dim, keys2kds,
         keys2prods, prods2new_elems);
   } else {
     NORETURN();

@@ -62,7 +62,7 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   cand_edge_codes = check_collapse_exposure(mesh, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   /* non-fixed velocity DOF check */
-  if (has_fixed_momentum_velocity(mesh)) {
+  if (has_fixed_momentum_velocity(mesh, opts.transfer_opts)) {
     cand_edge_codes =
         filter_coarsen_momentum_velocity(mesh, cands2edges, cand_edge_codes);
     filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
