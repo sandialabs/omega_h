@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
     std::cout << "mesh has " << mesh.nents(i) << ' ' << plural_names[i] << '\n';
   }
   auto metrics = get_metric(&mesh, metric_name);
-  mesh.add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
+  mesh.add_tag(VERT, "metric", symm_dofs(dim),
       metrics);
   print_adapt_status(&mesh, opts);
   print_adapt_histograms(&mesh, opts);

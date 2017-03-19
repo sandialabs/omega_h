@@ -62,7 +62,7 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   cand_edge_codes = check_collapse_exposure(mesh, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   /* non-fixed velocity DOF check */
-  if (has_fixed_momentum_velocity(mesh, opts.transfer_opts)) {
+  if (has_fixed_momentum_velocity(mesh, opts.xfer_opts)) {
     cand_edge_codes =
         filter_coarsen_momentum_velocity(mesh, cands2edges, cand_edge_codes);
     filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
@@ -147,7 +147,7 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
         prod_verts2verts, old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     if (ent_dim == VERT) old_verts2new_verts = old_ents2new_ents;
-    transfer_coarsen(mesh, &new_mesh, keys2verts, keys2doms, ent_dim,
+    transfer_coarsen(mesh, opts.xfer_opts, &new_mesh, keys2verts, keys2doms, ent_dim,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
@@ -163,7 +163,7 @@ static bool coarsen(Mesh* mesh, AdaptOpts const& opts, OvershootLimit overshoot,
   }
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   coarsen_element_based2(mesh, opts);
-  do_momentum_velocity_part2(mesh);
+  do_momentum_velocity_part2(mesh, opts.xfer_opts);
   return true;
 }
 

@@ -384,15 +384,15 @@ static Reals get_vertex_masses(Mesh* mesh) {
 }
 
 template <Int dim>
-void momentum_velocity_part2_dim(Mesh* mesh) {
-  if (!has_xfer(mesh, VERT, OMEGA_H_MOMENTUM_VELOCITY)) return;
+void momentum_velocity_part2_dim(Mesh* mesh, XferOpts const& opts) {
+  if (!has_momentum_velocity(mesh, opts)) return;
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto v2e = mesh->ask_up(VERT, dim);
   auto comps_are_fixed = get_comps_are_fixed(mesh);
   auto vert_masses = get_vertex_masses(mesh);
   for (Int tag_i = 0; tag_i < mesh->ntags(VERT); ++tag_i) {
     auto tagbase = mesh->get_tag(VERT, tag_i);
-    if (tagbase->xfer() != OMEGA_H_MOMENTUM_VELOCITY) continue;
+    if (!is_momentum_velocity(mesh, opts, VERT, tagbase)) continue;
     CHECK(tagbase->ncomps() == dim);
     auto tag = to<Real>(tagbase);
     auto corr_name = tag->name() + "_correction";
@@ -422,11 +422,11 @@ void momentum_velocity_part2_dim(Mesh* mesh) {
   }
 }
 
-void do_momentum_velocity_part2(Mesh* mesh) {
+void do_momentum_velocity_part2(Mesh* mesh, XferOpts const& opts) {
   if (mesh->dim() == 3)
-    momentum_velocity_part2_dim<3>(mesh);
+    momentum_velocity_part2_dim<3>(mesh, opts);
   else if (mesh->dim() == 2)
-    momentum_velocity_part2_dim<2>(mesh);
+    momentum_velocity_part2_dim<2>(mesh, opts);
   else
     NORETURN();
 }

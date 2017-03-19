@@ -69,7 +69,7 @@ static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
       keys2midverts = prods2new_ents;
       old_verts2new_verts = old_ents2new_ents;
     }
-    transfer_refine(mesh, &new_mesh, keys2edges, keys2midverts, ent_dim,
+    transfer_refine(mesh, opts.xfer_opts, &new_mesh, keys2edges, keys2midverts, ent_dim,
         keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }

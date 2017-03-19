@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
       Omega_h::size_scalar_for_nelems(&mesh, implied_size, target_nelems);
   auto scaled_size = multiply_each_by(scalar, implied_size);
   mesh.add_tag(
-      Omega_h::VERT, "size", 1, OMEGA_H_SIZE, scaled_size);
+      Omega_h::VERT, "size", 1, scaled_size);
   auto opts = Omega_h::AdaptOpts(&mesh);
   opts.verbosity = Omega_h::EXTRA_STATS;
   Omega_h::adapt(&mesh, opts);

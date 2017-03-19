@@ -21,22 +21,22 @@ bool is_momentum_velocity(Mesh* mesh, XferOpts const& opts, Int dim, TagBase con
 bool has_momentum_velocity(Mesh* mesh, XferOpts const& opts);
 bool should_transfer_no_products(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 
-void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+void transfer_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, Int prod_dim, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents);
 
-void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
+void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, LOs keys2verts,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
 
-void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
+void transfer_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     std::function<bool(TagBase const*)> filter);
-void transfer_copy_swap(Mesh* old_mesh, Mesh* new_mesh);
-void transfer_copy_motion(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim);
+void transfer_copy_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh);
+void transfer_copy_motion(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int prod_dim);
 
 template <typename T>
 void transfer_common3(
@@ -58,7 +58,7 @@ void transfer_length(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents);
 void transfer_quality(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents);
-void transfer_pointwise(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+void transfer_pointwise(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents);
 

@@ -522,15 +522,15 @@ void transfer_pointwise(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, In
   }
 }
 
-void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
+void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, LOs keys2verts,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto t0 = now();
   if (prod_dim == VERT) {
     transfer_no_products(
-        old_mesh, new_mesh, prod_dim, same_ents2old_ents, same_ents2new_ents);
+        old_mesh, opts, new_mesh, prod_dim, same_ents2old_ents, same_ents2new_ents);
   } else {
-    transfer_inherit_coarsen(old_mesh, new_mesh, keys2doms, prod_dim,
+    transfer_inherit_coarsen(old_mesh, opts, new_mesh, keys2doms, prod_dim,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   if (prod_dim == EDGE) {
@@ -540,12 +540,12 @@ void transfer_coarsen(Mesh* old_mesh, Mesh* new_mesh, LOs keys2verts,
   if (prod_dim == old_mesh->dim()) {
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
+    transfer_conserve(old_mesh, opts, new_mesh, VERT, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_pointwise(old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab,
+    transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts, keys2doms.a2ab,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     do_momentum_velocity_part1(
-        old_mesh, new_mesh, VERT, keys2verts, keys2doms.a2ab, prods2new_ents);
+        old_mesh, opts, new_mesh, VERT, keys2verts, keys2doms.a2ab, prods2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);
@@ -592,7 +592,7 @@ void transfer_copy_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh) {
 
 void transfer_copy_motion(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int prod_dim) {
   transfer_copy(old_mesh, new_mesh, prod_dim, [=](TagBase const* tb) -> bool {
-    return should_inherit(old_mesh, opts, prod_dim, tb) || tg->name() == "global";
+    return should_inherit(old_mesh, opts, prod_dim, tb) || tb->name() == "global";
   });
 }
 
@@ -642,12 +642,12 @@ static void transfer_inherit_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* ne
   }
 }
 
-void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
+void transfer_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto t0 = now();
   CHECK(prod_dim != VERT);
-  transfer_inherit_swap(old_mesh, new_mesh, prod_dim, keys2edges, keys2prods,
+  transfer_inherit_swap(old_mesh, opts, new_mesh, prod_dim, keys2edges, keys2prods,
       prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -656,12 +656,12 @@ void transfer_swap(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim, LOs keys2edges,
   if (prod_dim == old_mesh->dim()) {
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
+    transfer_conserve(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_pointwise(old_mesh, new_mesh, EDGE, keys2edges, keys2prods,
+    transfer_pointwise(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     do_momentum_velocity_part1(
-        old_mesh, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
+        old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);

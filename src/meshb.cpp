@@ -108,13 +108,13 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   }
   GmfCloseMesh(file);
   build_from_elems2verts(mesh, dim, LOs(elems2verts.write()), LO(nverts));
-  mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
+  mesh->add_tag(VERT, "coordinates", dim,
       Reals(coords.write()));
   if (is_old_convention) {
-    mesh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT,
+    mesh->add_tag(dim, "class_id", 1,
         LOs(LO(nelems), 1));
   } else {
-    mesh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT,
+    mesh->add_tag(dim, "class_id", 1,
         LOs(elem_class_ids.write()));
   }
   classify_equal_order(

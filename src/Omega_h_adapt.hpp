@@ -46,7 +46,7 @@ struct AdaptOpts {
   bool should_coarsen_slivers;
   bool should_move_for_quality;
   bool should_allow_pinching;
-  XferOpts transfer_opts;
+  XferOpts xfer_opts;
 };
 
 Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts);
