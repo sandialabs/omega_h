@@ -183,7 +183,7 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       warp =
           solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
     }
-    mesh->add_tag(VERT, "warp", mesh->dim(), OMEGA_H_LINEAR_INTERP,
+    mesh->add_tag(VERT, "warp", mesh->dim(),
         warp);
     while (warp_to_limit(mesh, opts)) satisfy_quality(mesh, opts);
   } else

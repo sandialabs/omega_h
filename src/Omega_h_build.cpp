@@ -47,7 +47,7 @@ void build_from_elems2verts(
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
   mesh->add_tag(
-      VERT, "global", 1, OMEGA_H_GLOBAL, vert_globals);
+      VERT, "global", 1, vert_globals);
   if (comm->size() > 1) {
     mesh->set_owners(
         VERT, owners_from_globals(comm, vert_globals, Read<I32>()));

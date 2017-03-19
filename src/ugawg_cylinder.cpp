@@ -87,11 +87,11 @@ static void run_case(
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = find_implied_metric(mesh);
-  mesh->add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
+  mesh->add_tag(VERT, "metric", symm_dofs(dim),
       implied_metrics);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->add_tag<Real>(
-      VERT, "target_metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT);
+      VERT, "target_metric", symm_dofs(dim));
   bool should_limit = (which_metric == 2);
   set_target_metric(mesh, which_metric, should_limit);
   mesh->ask_lengths();

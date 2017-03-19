@@ -297,8 +297,6 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   write_value(stream, ncomps);
   I8 type = tag->type();
   write_value(stream, type);
-  I8 xfer_i8 = static_cast<I8>(tag->xfer());
-  write_value(stream, xfer_i8);
   if (is<I8>(tag)) {
     write_array(stream, to<I8>(tag)->array());
   } else if (is<I32>(tag)) {
@@ -320,29 +318,30 @@ static void read_tag(
   read_value(stream, ncomps);
   I8 type;
   read_value(stream, type);
-  I8 xfer_i8;
-  read_value(stream, xfer_i8);
-  if (2 <= version && version < 5) {
-    I8 outflags_i8;
-    read_value(stream, outflags_i8);
+  if (version < 5) {
+    I8 xfer_i8;
+    read_value(stream, xfer_i8);
+    if (2 <= version) {
+      I8 outflags_i8;
+      read_value(stream, outflags_i8);
+    }
   }
-  Int xfer = static_cast<Int>(xfer_i8);
   if (type == OMEGA_H_I8) {
     Read<I8> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array, true);
+    mesh->add_tag(d, name, ncomps, array, true);
   } else if (type == OMEGA_H_I32) {
     Read<I32> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array, true);
+    mesh->add_tag(d, name, ncomps, array, true);
   } else if (type == OMEGA_H_I64) {
     Read<I64> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array, true);
+    mesh->add_tag(d, name, ncomps, array, true);
   } else if (type == OMEGA_H_F64) {
     Read<Real> array;
     read_array(stream, array, is_compressed);
-    mesh->add_tag(d, name, ncomps, xfer, array, true);
+    mesh->add_tag(d, name, ncomps, array, true);
   } else {
     Omega_h_fail("unexpected tag type in binary read\n");
   }

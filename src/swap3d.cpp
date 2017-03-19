@@ -16,7 +16,7 @@ static bool swap3d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
-  if (has_fixed_momentum_velocity(mesh)) {
+  if (has_fixed_momentum_velocity(mesh, opts.xfer_opts)) {
     auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
     filter_swap(keep_cands, &cands2edges);
   }
@@ -33,9 +33,9 @@ static bool swap3d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_cands);
   Graph edges2cav_elems;
   edges2cav_elems = mesh->ask_up(EDGE, mesh->dim());
-  mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER,
+  mesh->add_tag(EDGE, "key", 1,
       edges_are_keys);
-  mesh->add_tag(EDGE, "config", 1, OMEGA_H_DONT_TRANSFER,
+  mesh->add_tag(EDGE, "config", 1,
       edge_configs);
   auto keys2edges = collect_marked(edges_are_keys);
   set_owners_by_indset(mesh, EDGE, keys2edges, edges2cav_elems);
@@ -59,7 +59,7 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto new_mesh = mesh->copy_meta();
   new_mesh.set_verts(mesh->nverts());
   new_mesh.set_owners(VERT, mesh->ask_owners(VERT));
-  transfer_copy_swap(mesh, &new_mesh);
+  transfer_copy_swap(mesh, opts.xfer_opts, &new_mesh);
   auto keys2prods = swap3d_keys_to_prods(mesh, keys2edges);
   auto prod_verts2verts =
       swap3d_topology(mesh, keys2edges, edges_configs, keys2prods);
@@ -72,7 +72,7 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
     modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods[ent_dim],
         prod_verts2verts[ent_dim], old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
-    transfer_swap(mesh, &new_mesh, ent_dim, keys2edges, keys2prods[ent_dim],
+    transfer_swap(mesh, opts.xfer_opts, &new_mesh, ent_dim, keys2edges, keys2prods[ent_dim],
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
@@ -84,7 +84,7 @@ bool swap_edges_3d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap3d_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   swap3d_element_based(mesh, opts);
-  do_momentum_velocity_part2(mesh);
+  do_momentum_velocity_part2(mesh, opts.xfer_opts);
   return true;
 }
 

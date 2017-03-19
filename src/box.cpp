@@ -120,7 +120,7 @@ void set_box_class_ids(
     if (mesh->dim() == 2)
       class_ids = box_centroids_class_ids<2>(centroids, nel, l);
     mesh->add_tag<I32>(
-        ent_dim, "class_id", 1, OMEGA_H_INHERIT, class_ids);
+        ent_dim, "class_id", 1, class_ids);
   }
 }
 

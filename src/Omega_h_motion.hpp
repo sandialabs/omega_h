@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_MOTION_CHOICES_HPP
-#define OMEGA_H_MOTION_CHOICES_HPP
+#ifndef OMEGA_H_MOTION_HPP
+#define OMEGA_H_MOTION_HPP
 
 #include "Omega_h.hpp"
 
@@ -12,9 +12,9 @@ struct LinearPack {
   Int coords_offset;
 };
 
-LinearPack pack_linearized_fields(Mesh* mesh);
+LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts);
 void unpack_linearized_fields(
-    Mesh* old_mesh, Mesh* new_mesh, Reals data, Read<I8> verts_are_keys);
+    Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, Reals data, Read<I8> verts_are_keys);
 
 struct MotionChoices {
   Read<I8> cands_did_move;

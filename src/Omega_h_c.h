@@ -11,6 +11,7 @@ enum Omega_h_Type {
   OMEGA_H_I32 = 2,
   OMEGA_H_I64 = 3,
   OMEGA_H_F64 = 5,
+  OMEGA_H_REAL = OMEGA_H_F64,
 };
 
 enum { OMEGA_H_DIMS = 4 };
@@ -20,18 +21,13 @@ enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_TET = 3 };
 enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
 enum Omega_h_Xfer {
-  OMEGA_H_DONT_TRANSFER      = 0,
-  OMEGA_H_INHERIT            = 1,
-  OMEGA_H_LINEAR_INTERP      = 2,
-  OMEGA_H_POINTWISE          = 3,
-  OMEGA_H_CONSERVE           = 4,
-  OMEGA_H_GLOBAL             = 5,
-  OMEGA_H_LENGTH             = 6,
-  OMEGA_H_QUALITY            = 7,
-  OMEGA_H_METRIC             = 8,
-/*OMEGA_H_CONSERVE_R3D       = 9,*/
-  OMEGA_H_MOMENTUM_VELOCITY  =10,
-  OMEGA_H_SIZE               =11
+  OMEGA_H_INHERIT,
+  OMEGA_H_LINEAR_INTERP,
+  OMEGA_H_SIZE,
+  OMEGA_H_METRIC,
+  OMEGA_H_CONSERVE,
+  OMEGA_H_MOMENTUM_VELOCITY,
+  OMEGA_H_POINTWISE,
 };
 
 enum Omega_h_Parting {

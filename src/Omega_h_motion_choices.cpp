@@ -71,7 +71,7 @@ template <template <Int> class Helper, Int dim>
 MotionChoices motion_choices_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
   using Metric = typename Helper<dim>::Metric;
-  auto pack = pack_linearized_fields(mesh);
+  auto pack = pack_linearized_fields(mesh, opts.xfer_opts);
   constexpr Int maxcomps = 30;
   CHECK(pack.ncomps <= maxcomps);
   auto new_sol_w = deep_copy(pack.data);

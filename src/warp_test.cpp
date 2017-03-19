@@ -29,7 +29,7 @@ static void add_dye(Mesh* mesh) {
   };
   parallel_for(mesh->nverts(), dye_fun);
   mesh->add_tag(
-      VERT, "dye", 1, OMEGA_H_LINEAR_INTERP, Reals(dye_w));
+      VERT, "dye", 1, Reals(dye_w));
 }
 
 static Reals form_pointwise(Mesh* mesh) {
@@ -45,7 +45,7 @@ static Reals form_pointwise(Mesh* mesh) {
 static void add_pointwise(Mesh* mesh) {
   auto data = form_pointwise(mesh);
   mesh->add_tag(
-      mesh->dim(), "pointwise", 1, OMEGA_H_POINTWISE, data);
+      mesh->dim(), "pointwise", 1, data);
 }
 
 static void postprocess_conserve(Mesh* mesh) {
@@ -53,7 +53,7 @@ static void postprocess_conserve(Mesh* mesh) {
   auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
   CHECK(are_close(1.0, get_sum(mesh->comm(), mass)));
   auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1, OMEGA_H_DONT_TRANSFER,
+  mesh->add_tag(mesh->dim(), "density", 1,
       density);
 }
 
@@ -61,7 +61,7 @@ static void postprocess_pointwise(Mesh* mesh) {
   auto data = mesh->get_array<Real>(mesh->dim(), "pointwise");
   auto expected = form_pointwise(mesh);
   auto diff = subtract_each(data, expected);
-  mesh->add_tag(mesh->dim(), "pointwise_err", 1, OMEGA_H_DONT_TRANSFER,
+  mesh->add_tag(mesh->dim(), "pointwise_err", 1,
       diff);
 }
 
@@ -81,12 +81,15 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto size = find_implied_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, size);
+  mesh.add_tag(VERT, "size", 1, size);
   add_dye(&mesh);
-  mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE,
+  mesh.add_tag(mesh.dim(), "mass", 1,
       measure_elements_real(&mesh));
   add_pointwise(&mesh);
   auto opts = AdaptOpts(&mesh);
+  opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
+  opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
@@ -115,7 +118,7 @@ int main(int argc, char** argv) {
       set_vector<dim>(warp_w, vert, w);
     };
     parallel_for(mesh.nverts(), warp_fun);
-    mesh.add_tag(VERT, "warp", dim, OMEGA_H_LINEAR_INTERP,
+    mesh.add_tag(VERT, "warp", dim,
         Reals(warp_w));
     while (warp_to_limit(&mesh, opts)) adapt(&mesh, opts);
   }
