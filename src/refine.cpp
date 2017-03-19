@@ -25,10 +25,10 @@ static bool refine_ghosted(Mesh* mesh, AdaptOpts const& opts) {
       map_onto(cands_are_good, cands2edges, nedges, I8(0), 1);
   auto edge_quals = map_onto(cand_quals, cands2edges, nedges, 0.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_initial);
-  mesh->add_tag(EDGE, "key", 1, OMEGA_H_DONT_TRANSFER,
+  mesh->add_tag(EDGE, "key", 1,
       edges_are_keys);
   if (mesh->keeps_canonical_globals()) {
-    mesh->add_tag(EDGE, "edge2rep_order", 1, OMEGA_H_DONT_TRANSFER,
+    mesh->add_tag(EDGE, "edge2rep_order", 1,
         get_edge2rep_order(mesh, edges_are_keys));
   }
   auto keys2edges = collect_marked(edges_are_keys);
@@ -89,7 +89,7 @@ bool refine_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_gt(lengths, opts.max_length_desired);
   if (get_max(comm, edge_is_cand) != 1) return false;
-  mesh->add_tag(EDGE, "candidate", 1, OMEGA_H_DONT_TRANSFER,
+  mesh->add_tag(EDGE, "candidate", 1,
       edge_is_cand);
   return refine(mesh, opts);
 }

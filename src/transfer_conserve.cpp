@@ -46,13 +46,13 @@ static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, prods2new_ents, old_tag, Read<Real>(prod_data));
 }
 
-void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh, LOs keys2edges,
     LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (tagbase->xfer() == OMEGA_H_CONSERVE) {
+    if (should_conserve(old_mesh, opts, dim, tagbase)) {
       transfer_conserve_refine(old_mesh, new_mesh, keys2edges, keys2prods,
           prods2new_ents, same_ents2old_ents, same_ents2new_ents,
           tagbase->name());

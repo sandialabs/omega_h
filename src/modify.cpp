@@ -299,7 +299,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
-  new_mesh->add_tag(ent_dim, "global", 1, OMEGA_H_GLOBAL,
+  new_mesh->add_tag(ent_dim, "global", 1,
       Read<GO>(new_globals));
   auto t1 = now();
   add_to_global_timer("modifying globals", t1 - t0);
