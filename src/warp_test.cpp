@@ -87,6 +87,9 @@ int main(int argc, char** argv) {
       measure_elements_real(&mesh));
   add_pointwise(&mesh);
   auto opts = AdaptOpts(&mesh);
+  opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
+  opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
