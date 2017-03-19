@@ -13,10 +13,92 @@
 
 namespace Omega_h {
 
-bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer) {
-  for (Int i = 0; i < mesh->ntags(dim); ++i)
-    if (mesh->get_tag(dim, i)->xfer() == xfer) return true;
-  return false;
+bool is_transfer_ok(XferOpts const& xopts, std::string const& name,
+    Omega_h_Xfer type) {
+  if (!xopts.type_map.count(name)) return true;
+  return xopts.type_map[name] == type;
+}
+
+bool is_transfer_required(XferOpts const& xopts, std::string const& name,
+    Omega_h_Xfer type) {
+  if (!xopts.type_map.count(name)) return false;
+  return xopts.type_map[name] == type;
+}
+
+bool should_inherit(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!(is_transfer_required(xopts, name, OMEGA_H_INHERIT) ||
+      name == "class_id" ||
+      name == "class_dim" ||
+      name == "momentum_velocity_fixed")) {
+    return false;
+  }
+  for (Int i = 0; i <= mesh->dim(); ++i) {
+    if (!mesh->has_tag(i, name)) return false;
+    if (mesh->get_tag(i, name)->type() != tag->type()) return false;
+    if (mesh->get_tag(i, name)->ncomps() != tag->ncomps()) return false;
+  }
+  return true;
+}
+
+bool should_interpolate(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!(is_transfer_required(xopts, name, OMEGA_H_LINEAR_INTERP) ||
+        is_transfer_required(xopts, name, OMEGA_H_MOMENTUM_VELOCITY) ||
+      name == "coordinates" ||
+      name == "warp")) {
+    return false;
+  }
+  return dim == VERT && tag->type() == OMEGA_H_REAL;
+}
+
+bool should_fit(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!is_transfer_required(xopts, name, OMEGA_H_POINTWISE)) {
+    return false;
+  }
+  return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
+}
+
+bool should_conserve(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!is_transfer_required(xopts, name, OMEGA_H_CONSERVE)) {
+    return false;
+  }
+  return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
+}
+
+bool is_metric(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!(is_transfer_required(xopts, name, OMEGA_H_METRIC) ||
+      name == "metric" ||
+      name == "target_metric")) {
+    return false;
+  }
+  return dim == VERT &&
+    tag->type() == OMEGA_H_REAL && tag->ncomps() == symm_dofs(mesh->dim());
+}
+
+bool is_size(Mesh*, XferOpts const& xopts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!(is_transfer_required(xopts, name, OMEGA_H_SIZE) ||
+      name == "size" ||
+      name == "target_size")) {
+    return false;
+  }
+  return dim == VERT &&
+    tag->type() == OMEGA_H_REAL && tag->ncomps() == 1;
+}
+
+bool is_momentum_velocity(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!(is_transfer_required(xopts, name, OMEGA_H_SIZE) ||
+      name == "size" ||
+      name == "target_size")) {
+    return false;
+  }
+  return dim == VERT &&
+    tag->type() == OMEGA_H_REAL && tag->ncomps() == 1;
 }
 
 template <typename T>

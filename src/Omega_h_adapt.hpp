@@ -1,12 +1,19 @@
 #ifndef OMEGA_H_ADAPT_HPP
 #define OMEGA_H_ADAPT_HPP
 
+#include <map>
+
 #include <Omega_h_config.h>
 #include <Omega_h_defines.hpp>
 
 namespace Omega_h {
 
 class Mesh;
+
+struct XferOpts {
+  std::map<std::string, Omega_h_Xfer> type_map;
+  std::map<std::string, std::string> momentum_map;
+};
 
 enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
 
@@ -39,6 +46,7 @@ struct AdaptOpts {
   bool should_coarsen_slivers;
   bool should_move_for_quality;
   bool should_allow_pinching;
+  XferOpts transfer_opts;
 };
 
 Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts);

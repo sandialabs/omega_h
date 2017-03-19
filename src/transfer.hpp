@@ -5,6 +5,19 @@
 
 namespace Omega_h {
 
+bool is_transfer_ok(XferOpts const& xopts, std::string const& name,
+    Omega_h_Xfer type);
+bool is_transfer_required(XferOpts const& xopts, std::string const& name,
+    Omega_h_Xfer type);
+
+bool should_inherit(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag);
+bool should_interpolate(Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag);
+bool should_fit(TagBase const* tag);
+bool should_conserve(TagBase const* tag);
+bool is_metric(TagBase const* tag);
+bool is_size(TagBase const* tag);
+bool is_momentum_velocity(TagBase const* tag);
+
 void transfer_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     LOs keys2midverts, Int prod_dim, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents);
@@ -21,8 +34,6 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     std::function<bool(TagBase const*)> filter);
 void transfer_copy_swap(Mesh* old_mesh, Mesh* new_mesh);
 void transfer_copy_motion(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim);
-
-bool has_xfer(Mesh* mesh, Int dim, Omega_h_Xfer xfer);
 
 template <typename T>
 void transfer_common3(
