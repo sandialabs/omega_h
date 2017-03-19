@@ -80,6 +80,10 @@ int main(int argc, char** argv) {
   for (Int obj = 0; obj < nobjs; ++obj) {
     masses_before[obj] = get_total_mass(&mesh, obj);
   }
+  auto opts = AdaptOpts(&mesh);
+  opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
+  opts.xfer_opts.momentum_map["velocity"] = "mass";
   adapt(&mesh, AdaptOpts(&mesh));
   postprocess_conserve(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
