@@ -8,112 +8,6 @@
 
 namespace Omega_h {
 
-INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
-
-INLINE Real cube(Real x) { return x * x * x; }
-
-INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
-
-INLINE Real clamp(Real x, Real high, Real low) {
-  return min2(max2(x, low), high);
-}
-
-template <Int p>
-INLINE Real raise(Real x) {
-  Real out = x;
-  for (Int i = 1; i < p; ++i) out *= x;
-  return out;
-}
-
-template <Int dp>
-struct Root;
-
-template <>
-struct Root<0> {
-  static INLINE Real eval(Real) { return 1.0; }
-};
-
-template <>
-struct Root<1> {
-  static INLINE Real eval(Real x) { return x; }
-};
-
-template <>
-struct Root<2> {
-  static INLINE Real eval(Real x) { return sqrt(x); }
-};
-
-template <>
-struct Root<3> {
-  static INLINE Real eval(Real x) { return cbrt(x); }
-};
-
-template <Int p>
-INLINE Real root(Real x) {
-  return Root<p>::eval(x);
-}
-
-template <Int np, Int dp>
-struct Power {
-  static INLINE Real eval(Real x) { return Root<dp>::eval(raise<np>(x)); }
-  static_assert(np != dp, "equal case should be specialized");
-};
-
-template <Int p>
-struct Power<p, p> {
-  static INLINE Real eval(Real x) { return x; }
-};
-
-template <Int np, Int dp>
-INLINE Real power(Real x) {
-  return Power<np, dp>::eval(x);
-}
-
-INLINE Real power(Real x, Int np, Int dp) {
-  switch (np) {
-    case 1:
-      switch (dp) {
-        case 1:
-          return power<1, 1>(x);
-        case 2:
-          return power<1, 2>(x);
-        case 3:
-          return power<1, 3>(x);
-      }
-    case 2:
-      switch (dp) {
-        case 1:
-          return power<2, 1>(x);
-        case 2:
-          return power<2, 2>(x);
-        case 3:
-          return power<2, 3>(x);
-      }
-    case 3:
-      switch (dp) {
-        case 1:
-          return power<3, 1>(x);
-        case 2:
-          return power<3, 2>(x);
-        case 3:
-          return power<3, 3>(x);
-      }
-  }
-  return -42.0;
-}
-
-INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
-  Real am = fabs(a);
-  Real bm = fabs(b);
-  if (am <= floor && bm <= floor) return 0.0;
-  return fabs(b - a) / max2(am, bm);
-}
-
-INLINE bool are_close(
-    Real a, Real b, Real tol = EPSILON, Real floor = EPSILON) {
-  return rel_diff_with_floor(a, b, floor) <= tol;
-}
-
 template <Int n, typename T>
 INLINE T average(Few<T, n> x) {
   auto avg = x[0];
@@ -257,6 +151,10 @@ INLINE Matrix<m, n> zero_matrix() {
   Matrix<m, n> a;
   for (Int j = 0; j < n; ++j) a[j] = zero_vector<m>();
   return a;
+}
+
+INLINE Real determinant(Matrix<1, 1> m) {
+  return m[0][0];
 }
 
 INLINE Real determinant(Matrix<2, 2> m) {

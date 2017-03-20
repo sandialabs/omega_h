@@ -30,7 +30,7 @@ INLINE Real mean_ratio(Real size, Real mean_squared_length) {
   return power<2, dim>(size / equilateral_size<dim>()) / mean_squared_length;
 }
 
-INLINE Real metric_size(Real real_size, DummyIsoMetric) { return real_size; }
+INLINE Real metric_size(Real real_size, NoMetric) { return real_size; }
 
 /* This paper (and a few others):
  *
@@ -39,11 +39,16 @@ INLINE Real metric_size(Real real_size, DummyIsoMetric) { return real_size; }
  * Procedia Engineering 124 (2015): 57-69.
  *
  * Mentions using $\sqrt{\det(M)}$ to compute volume in metric space.
+ *
+ * The call to power() allows us to pass in a 1x1 isotropic metric,
+ * and have its "determinant" raised to the right power before taking
+ * the square root, and even accepting its existing value in the case
+ * of space being 2D.
  */
 
-template <Int dim>
-INLINE Real metric_size(Real real_size, Matrix<dim, dim> metric) {
-  return real_size * sqrt(determinant(metric));
+template <Int space_dim, Int metric_dim>
+INLINE Real metric_size(Real real_size, Matrix<metric_dim, metric_dim> metric) {
+  return real_size * power<space_dim, 2 * metric_dim>(determinant(metric));
 }
 
 /* note that we will always use a constant metric tensor over the whole
