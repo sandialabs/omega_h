@@ -11,7 +11,7 @@ namespace Omega_h {
    vertices, edge length overshooting is also handled
    by the qualities function */
 
-template <typename QualityMeasure, typename LengthMeasure>
+template <Int metric_dim>
 static Reals swap2d_qualities_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
   auto e2t = mesh->ask_up(EDGE, TRI);
@@ -21,8 +21,8 @@ static Reals swap2d_qualities_tmpl(
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto tri_verts2verts = mesh->ask_verts_of(TRI);
   auto edges_are_owned = mesh->owned(EDGE);
-  auto quality_measure = QualityMeasure(mesh);
-  auto length_measure = LengthMeasure(mesh);
+  auto quality_measure = MetricElementQualities(mesh);
+  auto length_measure = MetricEdgeLengths(mesh);
   auto max_length = opts.max_length_allowed;
   auto ncands = cands2edges.size();
   auto cand_quals_w = Write<Real>(ncands);
@@ -48,7 +48,7 @@ static Reals swap2d_qualities_tmpl(
       auto ttv = opposite_template(TRI, EDGE, tte);
       ov[rot] = tri_verts2verts[t[rot] * 3 + ttv];
     }
-    auto l = length_measure.measure(ov);
+    auto l = length_measure.measure<2>(ov);
     if (l > max_length) {
       cand_quals_w[cand] = -1.0;
       return;
@@ -60,29 +60,27 @@ static Reals swap2d_qualities_tmpl(
       ntv[0] = ev[1 - i];
       ntv[1] = ov[i];
       ntv[2] = ov[1 - i];
-      auto qual = quality_measure.measure(ntv);
+      auto qual = quality_measure.measure<2, metric_dim>(ntv);
       minqual = min2(minqual, qual);
     }
     cand_quals_w[cand] = minqual;
   };
   parallel_for(ncands, f);
-  return cand_quals_w;
+  auto cand_quals = Reals(cand_quals_w);
+  return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);
 }
 
 Reals swap2d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
   CHECK(mesh->parting() == OMEGA_H_GHOSTED);
-  auto cand_quals = Reals();
-  if (mesh->has_tag(VERT, "metric")) {
-    using MEQ = MetricElementQualities;
-    using MEL = MetricEdgeLengths<2>;
-    cand_quals = swap2d_qualities_tmpl<MEQ, MEL>(mesh, opts, cands2edges);
-  } else {
-    CHECK(mesh->has_tag(VERT, "size"));
-    using REQ = RealElementQualities;
-    using REL = IsoEdgeLengths<2>;
-    cand_quals = swap2d_qualities_tmpl<REQ, REL>(mesh, opts, cands2edges);
+  auto metrics = mesh->get_array<Real>(VERT, "metric");
+  auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
+  if (metric_dim == 2) {
+    return swap2d_qualities_tmpl<2>(mesh, opts, cands2edges);
   }
-  return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);
+  if (metric_dim == 1) {
+    return swap2d_qualities_tmpl<1>(mesh, opts, cands2edges);
+  }
+  NORETURN(Reals());
 }
 
 }  // end namespace Omega_h

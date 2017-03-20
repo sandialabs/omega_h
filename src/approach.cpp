@@ -56,6 +56,7 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
+  auto name = "metric";
   auto target_name = "target_metric";
   if (!mesh->has_tag(VERT, target_name)) return false;
   check_okay(mesh, opts);
