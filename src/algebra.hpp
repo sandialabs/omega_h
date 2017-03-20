@@ -69,6 +69,39 @@ INLINE Real power(Real x) {
   return Power<np, dp>::eval(x);
 }
 
+INLINE Real power(Real x, Int np, Int dp) {
+  switch (np) {
+    case 1:
+      switch (dp) {
+        case 1:
+          return power<1, 1>(x);
+        case 2:
+          return power<1, 2>(x);
+        case 3:
+          return power<1, 3>(x);
+      }
+    case 2:
+      switch (dp) {
+        case 1:
+          return power<2, 1>(x);
+        case 2:
+          return power<2, 2>(x);
+        case 3:
+          return power<2, 3>(x);
+      }
+    case 3:
+      switch (dp) {
+        case 1:
+          return power<3, 1>(x);
+        case 2:
+          return power<3, 2>(x);
+        case 3:
+          return power<3, 3>(x);
+      }
+  }
+  return -42.0;
+}
+
 INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
   Real am = fabs(a);
   Real bm = fabs(b);

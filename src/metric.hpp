@@ -12,8 +12,14 @@ INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
   return v * (m * v);
 }
 
-template <Int dim>
-INLINE Real metric_length(Matrix<dim, dim> m, Vector<dim> v) {
+template <Int space_dim>
+INLINE typename std::enable_if<space_dim > 1, Real>::type
+metric_product(Matrix<1, 1> m, Vector<space_dim> v) {
+  return v * (m[0][0] * v);
+}
+
+template <Int metric_dim, Int space_dim>
+INLINE Real metric_length(Matrix<metric_dim, metric_dim> m, Vector<space_dim> v) {
   return sqrt(metric_product(m, v));
 }
 
@@ -173,17 +179,17 @@ INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   return m;
 }
 
+Int get_metrics_dim(LO nmetrics, Reals metrics);
+
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
-Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
+Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t);
 Reals linearize_metrics(LO nmetrics, Reals metrics);
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
 
 /* used to achieve templated versions of code that either
- * accept a metric tensor or nothing (nothing being the case
- * of isotropic quality, where the actual isotropic value doesn't
- * matter because our shape measure is scale-invariant)
+ * accept a metric tensor or nothing
  */
-struct DummyIsoMetric {};
+struct NoMetric {};
 
 }  // end namespace Omega_h
 

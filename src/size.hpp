@@ -45,35 +45,30 @@ INLINE Real edge_length(Real l_a, Real l_b) {
   return (l_a + l_b) / 2.;
 }
 
-template <Int dim>
-INLINE Real metric_edge_length(Few<Vector<dim>, 2> p, Few<Real, 2> hs) {
-  auto real_l = norm(p[1] - p[0]);
-  auto l_a = real_l / hs[0];
-  auto l_b = real_l / hs[0];
-  return edge_length(l_a, l_b);
+template <Int space_dim, Int metric_dim>
+INLINE Real squared_metric_length(Vector<space_dim> v, Matrix<metric_dim, metric_dim> m) {
+  return metric_product(m, v);
 }
 
-template <Int dim>
-DEVICE Real iso_edge_length(Few<LO, 2> v, Reals coords, Reals isos) {
-  auto p = gather_vectors<2, dim>(coords, v);
-  auto hs = gather_scalars<2>(isos, v);
-  return metric_edge_length(p, hs);
+template <Int space_dim>
+INLINE Real squared_metric_length(Vector<space_dim> v, NoMetric) {
+  return norm_squared(v);
 }
 
-template <Int dim>
+template <Int space_dim, Int metric_dim>
 INLINE Real metric_edge_length(
-    Few<Vector<dim>, 2> p, Few<Matrix<dim, dim>, 2> ms) {
+    Few<Vector<space_dim>, 2> p, Few<Matrix<metric_dim, metric_dim>, 2> ms) {
   auto v = p[1] - p[0];
   auto l_a = metric_length(ms[0], v);
   auto l_b = metric_length(ms[1], v);
   return edge_length(l_a, l_b);
 }
 
-template <Int dim>
+template <Int space_dim, Int metric_dim>
 DEVICE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
-  auto p = gather_vectors<2, dim>(coords, v);
-  auto ms = gather_symms<2, dim>(metrics, v);
-  return metric_edge_length(p, ms);
+  auto p = gather_vectors<2, space_dim>(coords, v);
+  auto ms = gather_symms<2, metric_dim>(metrics, v);
+  return metric_edge_length<space_dim, metric_dim>(p, ms);
 }
 
 template <Int dim>
@@ -86,18 +81,7 @@ struct RealEdgeLengths {
   }
 };
 
-template <Int dim>
-struct IsoEdgeLengths {
-  Reals coords;
-  Reals isos;
-  IsoEdgeLengths(Mesh const* mesh)
-      : coords(mesh->coords()), isos(mesh->get_array<Real>(VERT, "size")) {}
-  DEVICE Real measure(Few<LO, 2> v) const {
-    return iso_edge_length<dim>(v, coords, isos);
-  }
-};
-
-template <Int dim>
+template <Int space_dim, Int metric_dim>
 struct MetricEdgeLengths {
   Reals coords;
   Reals metrics;
@@ -105,7 +89,7 @@ struct MetricEdgeLengths {
       : coords(mesh->coords()),
         metrics(mesh->get_array<Real>(VERT, "metric")) {}
   DEVICE Real measure(Few<LO, 2> v) const {
-    return metric_edge_length<dim>(v, coords, metrics);
+    return metric_edge_length<space_dim, metric_dim>(v, coords, metrics);
   }
 };
 
@@ -153,16 +137,6 @@ INLINE Few<Vector<3>, 6> element_edge_vectors(
   return ev;
 }
 
-template <Int dim>
-INLINE Real squared_metric_length(Vector<dim> v, Matrix<dim, dim> m) {
-  return metric_product(m, v);
-}
-
-template <Int dim>
-INLINE Real squared_metric_length(Vector<dim> v, Matrix<1, 1> m) {
-  return m[0][0] * (v * v);
-}
-
 template <typename EdgeVectors, typename Metric>
 INLINE Real mean_squared_metric_length(
     EdgeVectors edge_vectors, Metric metric) {
@@ -176,11 +150,11 @@ INLINE Real mean_squared_metric_length(
 
 template <typename EdgeVectors>
 INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
-  return mean_squared_metric_length(edge_vectors, DummyIsoMetric());
+  return mean_squared_metric_length(edge_vectors, NoMetric());
 }
 
 template <Int dim>
-INLINE Real element_implied_size(Few<Vector<dim>, dim + 1> p) {
+INLINE Real element_implied_length(Few<Vector<dim>, dim + 1> p) {
   auto b = simplex_basis<dim, dim>(p);
   auto ev = element_edge_vectors(p, b);
   auto h = sqrt(mean_squared_real_length(ev));
@@ -288,12 +262,6 @@ Vector<dim> get_volume_vert_gradient(Few<Vector<dim>, dim + 1> p, Int ivert) {
   auto n = -get_side_normal(p, iside);
   return n / Real(factorial(dim));
 }
-
-Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs entities, Reals v2h);
-Reals interpolate_between_isos(Reals a, Reals b, Real t);
-Reals linearize_isos(Reals isos);
-Reals delinearize_isos(Reals log_isos);
-Reals project_isos(Mesh* mesh, Reals e2h);
 
 }  // end namespace Omega_h
 

@@ -92,7 +92,7 @@ static Reals element_implied_isos_dim(Mesh* mesh) {
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto h = element_implied_size(p);
+    auto h = element_implied_length(p);
     out[e] = metric_eigenvalue_from_length(h);
   };
   parallel_for(mesh->nelems(), f);
@@ -100,8 +100,8 @@ static Reals element_implied_isos_dim(Mesh* mesh) {
 }
 
 static Reals element_implied_isos(Mesh* mesh) {
-  if (mesh->dim() == 3) return element_implied_sizes_dim<3>(mesh);
-  if (mesh->dim() == 2) return element_implied_sizes_dim<2>(mesh);
+  if (mesh->dim() == 3) return element_implied_isos_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_isos_dim<2>(mesh);
   NORETURN(Reals());
 }
 
@@ -210,18 +210,17 @@ static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
 }
 
 Reals expected_elems_per_elem(Mesh* mesh, Reals v2m) {
-  CHECK(v2m.size() % mesh->nverts() == 0);
-  auto ndofs = v2m.size() / mesh->nverts();
-  if (mesh->dim() == 3 && ndofs == symm_dofs(3)) {
+  auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
+  if (mesh->dim() == 3 && metric_dim == 3) {
     return expected_elems_per_elem_tmpl<3, 3>(mesh, v2m);
   }
-  if (mesh->dim() == 2 && ndofs == symm_dofs(2)) {
+  if (mesh->dim() == 2 && metric_dim == 2) {
     return expected_elems_per_elem_tmpl<2, 2>(mesh, v2m);
   }
-  if (mesh->dim() == 3 && ndofs == symm_dofs(1)) {
+  if (mesh->dim() == 3 && metric_dim == 1) {
     return expected_elems_per_elem_tmpl<3, 1>(mesh, v2m);
   }
-  if (mesh->dim() == 2 && ndofs == symm_dofs(1)) {
+  if (mesh->dim() == 2 && metric_dim == 1) {
     return expected_elems_per_elem_tmpl<2, 1>(mesh, v2m);
   }
   NORETURN(Reals());
@@ -231,113 +230,36 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   auto elems_per_elem = expected_elems_per_elem(mesh, v2m);
   auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
   auto size_scal = target_nelems / elems;
-  Real m_scal = 0;
-  if (mesh->dim() == 3) m_scal = cbrt(square(size_scal));
-  if (mesh->dim() == 2) m_scal = size_scal;
-  return m_scal;
+  auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
+  auto metric_scal = power(size_scal, 2, metric_dim);
+  return metric_scal;
 }
 
-template <Int edim>
-Reals get_mident_isos_tmpl(Mesh* mesh, LOs a2e, Reals v2h) {
-  auto na = a2e.size();
-  Write<Real> out(na);
-  auto ev2v = mesh->ask_verts_of(edim);
-  auto f = LAMBDA(LO a) {
-    auto e = a2e[a];
-    auto v = gather_verts<edim + 1>(ev2v, e);
-    auto hs = gather_scalars<edim + 1>(v2h, v);
-    auto h = average_metric(hs);
-    out[a] = h;
-  };
-  parallel_for(na, f);
-  return out;
-}
-
-Reals get_mident_isos(Mesh* mesh, Int ent_dim, LOs a2e, Reals v2h) {
-  if (ent_dim == 3) return get_mident_isos_tmpl<3>(mesh, a2e, v2h);
-  if (ent_dim == 2) return get_mident_isos_tmpl<2>(mesh, a2e, v2h);
-  if (ent_dim == 1) return get_mident_isos_tmpl<1>(mesh, a2e, v2h);
-  NORETURN(Reals());
-}
-
-Reals interpolate_between_isos(Reals a, Reals b, Real t) {
-  auto log_a = linearize_isos(a);
-  auto log_b = linearize_isos(b);
-  auto log_c = interpolate_between(log_a, log_b, t);
-  auto c = delinearize_isos(log_c);
-  return c;
-}
-
-Reals linearize_isos(Reals isos) {
-  auto n = isos.size();
-  auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) { out[i] = linearize_metric(isos[i]); };
-  parallel_for(n, f);
-  return out;
-}
-
-Reals delinearize_isos(Reals log_isos) {
-  auto n = log_isos.size();
-  auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) { out[i] = delinearize_metric(log_isos[i]); };
-  parallel_for(n, f);
-  return out;
-}
-
-Reals smooth_isos_once(Mesh* mesh, Reals v2h) {
-  auto e2e = LOs(mesh->nelems(), 0, 1);
-  return project_isos(mesh, get_mident_isos(mesh, mesh->dim(), e2e, v2h));
-}
-
-Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size) {
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
   auto vert_curvatures = get_vert_curvatures(mesh);
   auto max_radius = max_size / segment_angle;
-  auto min_curvature = 1.0 / max_radius;
   auto out = Write<Real>(mesh->nverts());
   auto f = LAMBDA(LO v) {
     auto curvature = vert_curvatures[v];
-    Real size;
-    if (curvature < min_curvature) {
-      size = max_size;
-    } else {
-      auto radius = 1.0 / curvature;
-      size = segment_angle * radius;
-    }
-    out[v] = size;
+    auto l = square(curvature / segment_angle);
+    out[v] = l;
   };
   parallel_for(mesh->nverts(), f);
   return out;
 }
 
 Reals get_gradient_isos(
-    Mesh* mesh, Real error_bound, Real max_size, Reals scalar_field) {
+    Mesh* mesh, Real error_bound, Reals scalar_field) {
   auto gradients = recover_gradients(mesh, scalar_field);
   auto norms = get_vector_norms(gradients, mesh->dim());
   auto out = Write<Real>(mesh->nverts());
   auto f = LAMBDA(LO v) {
     auto u_dot = norms[v];
-    auto h_inv = u_dot / error_bound;
-    h_inv = min2(h_inv, 1.0 / max_size);
-    out[v] = 1.0 / h_inv;
+    auto l = square(u_dot / error_bound);
+    out[v] = l;
   };
   parallel_for(mesh->nverts(), f);
   return out;
-}
-
-Reals clamp_deforming_isos(Mesh* mesh, Reals isos, Real min_size,
-    Real max_interior_size, Real max_boundary_size) {
-  CHECK(min_size <= max_interior_size);
-  CHECK(max_boundary_size <= max_interior_size);
-  auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
-  auto dim = mesh->dim();
-  auto verts_are_boundary = invert_marks(each_eq_to(class_dims, I8(dim)));
-  auto bv2v = collect_marked(verts_are_boundary);
-  auto maxima_w = Write<Real>(mesh->nverts(), max_interior_size);
-  map_into(Reals(bv2v.size(), max_boundary_size), bv2v, maxima_w, 1);
-  auto maxima = Reals(maxima_w);
-  isos = min_each(isos, maxima);
-  isos = each_max_with(isos, min_size);
-  return isos;
 }
 
 }  // end namespace Omega_h

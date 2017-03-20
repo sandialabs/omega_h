@@ -11,6 +11,13 @@
 
 namespace Omega_h {
 
+Int get_metrics_dim(LO nmetrics, Reals metrics) {
+  CHECK(metrics.size() % nmetrics == 0);
+  auto ndofs = metrics.size() / nmetrics;
+  for (Int i = 1; i <= 3; ++i) if (ndofs == symm_dofs(i)) return i;
+  NORETURN(Int());
+}
+
 template <Int mdim, Int edim>
 static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
@@ -28,37 +35,36 @@ static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
 }
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
-  CHECK(v2m.size() % mesh->nverts() == 0);
-  auto ndofs = v2m.size() / mesh->nverts();
-  if (ndofs == symm_dofs(3) && ent_dim == 3) {
+  auto metrics_dim = get_metrics_dim(mesh->nverts(), v2m);
+  if (metrics_dim == 3 && ent_dim == 3) {
     return mident_metrics_tmpl<3, 3>(mesh, entities, v2m);
   }
-  if (ndofs == symm_dofs(3) && ent_dim == 1) {
+  if (metrics_dim == 3 && ent_dim == 1) {
     return mident_metrics_tmpl<3, 1>(mesh, entities, v2m);
   }
-  if (ndofs == symm_dofs(2) && ent_dim == 2) {
+  if (metrics_dim == 2 && ent_dim == 2) {
     return mident_metrics_tmpl<2, 2>(mesh, entities, v2m);
   }
-  if (ndofs == symm_dofs(2) && ent_dim == 1) {
+  if (metrics_dim == 2 && ent_dim == 1) {
     return mident_metrics_tmpl<2, 1>(mesh, entities, v2m);
   }
-  if (ndofs == symm_dofs(1) && ent_dim == 3) {
+  if (metrics_dim == 1 && ent_dim == 3) {
     return mident_metrics_tmpl<1, 3>(mesh, entities, v2m);
   }
-  if (ndofs == symm_dofs(1) && ent_dim == 2) {
+  if (metrics_dim == 1 && ent_dim == 2) {
     return mident_metrics_tmpl<1, 2>(mesh, entities, v2m);
   }
-  if (ndofs == symm_dofs(1) && ent_dim == 1) {
+  if (metrics_dim == 1 && ent_dim == 1) {
     return mident_metrics_tmpl<1, 1>(mesh, entities, v2m);
   }
   NORETURN(Reals());
 }
 
-Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t) {
-  auto log_a = linearize_metrics(dim, a);
-  auto log_b = linearize_metrics(dim, b);
+Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t) {
+  auto log_a = linearize_metrics(nmetrics, a);
+  auto log_b = linearize_metrics(nmetrics, b);
   auto log_c = interpolate_between(log_a, log_b, t);
-  return delinearize_metrics(dim, log_c);
+  return delinearize_metrics(nmetrics, log_c);
 }
 
 template <Int dim>
@@ -84,20 +90,18 @@ Reals delinearize_metrics_dim(Reals lms) {
 }
 
 Reals linearize_metrics(LO nmetrics, Reals metrics) {
-  CHECK(metrics.size() % nmetrics == 0);
-  auto ndofs = metrics.size() / nmetrics;
-  if (ndofs == symm_dofs(3)) return linearize_metrics_dim<3>(metrics);
-  if (ndofs == symm_dofs(2)) return linearize_metrics_dim<2>(metrics);
-  if (ndofs == symm_dofs(1)) return linearize_metrics_dim<1>(metrics);
+  auto dim = get_metrics_dim(nmetrics, metrics);
+  if (dim == 3) return linearize_metrics_dim<3>(metrics);
+  if (dim == 2) return linearize_metrics_dim<2>(metrics);
+  if (dim == 1) return linearize_metrics_dim<1>(metrics);
   NORETURN(Reals());
 }
 
 Reals delinearize_metrics(Int dim, Reals linear_metrics) {
-  CHECK(metrics.size() % nmetrics == 0);
-  auto ndofs = metrics.size() / nmetrics;
-  if (ndofs == symm_dofs(3)) return delinearize_metrics_dim<3>(linear_metrics);
-  if (ndofs == symm_dofs(2)) return delinearize_metrics_dim<2>(linear_metrics);
-  if (ndofs == symm_dofs(1)) return delinearize_metrics_dim<1>(linear_metrics);
+  auto dim = get_metrics_dim(nmetrics, metrics);
+  if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
+  if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);
+  if (dim == 1) return delinearize_metrics_dim<1>(linear_metrics);
   NORETURN(Reals());
 }
 
@@ -151,7 +155,7 @@ void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
 
 template <Int dim>
 static INLINE Matrix<dim, dim> metric_from_hessian(
-    Matrix<dim, dim> hessian, Real eps, Real hmax) {
+    Matrix<dim, dim> hessian, Real eps) {
   auto ed = decompose_eigen(hessian);
   auto r = ed.q;
   auto l = ed.l;
@@ -159,8 +163,7 @@ static INLINE Matrix<dim, dim> metric_from_hessian(
   constexpr auto c_denom = 2 * square(dim + 1);
   decltype(l) tilde_l;
   for (Int i = 0; i < dim; ++i) {
-    auto val = (c_num * fabs(l[i])) / (c_denom * eps);
-    tilde_l[i] = max2(val, 1. / square(hmax));
+    tilde_l[i] (c_num * fabs(l[i])) / (c_denom * eps);
   }
   return compose_eigen(r, tilde_l);
 }
@@ -188,45 +191,7 @@ Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax) {
   NORETURN(Reals());
 }
 
-Reals metric_for_nelems_from_hessians(
-    Mesh* mesh, Real target_nelems, Real tolerance, Reals hessians, Real hmax) {
-  CHECK(tolerance > 0);
-  CHECK(target_nelems > 0);
-  auto dim = mesh->dim();
-  Real scalar;
-  Reals metric;
-  Real eps = 1.0;
-  Int niters = 0;
-  do {
-    metric = metric_from_hessians(dim, hessians, eps, hmax);
-    scalar = metric_scalar_for_nelems(mesh, metric, target_nelems);
-    eps /= scalar;
-    ++niters;
-  } while (fabs(scalar - 1.0) > tolerance);
-  if (can_print(mesh)) {
-    std::cout << "after " << niters << " iterations,"
-              << " metric targets " << target_nelems << "*" << scalar
-              << " elements\n";
-  }
-  return metric;
-}
-
 /* gradation limiting code: */
-
-template <Int dim>
-class IsoGradation {
- public:
-  using Value = Real;
-  static INLINE Value form_limiter(Value h, Vector<dim> v, Real rate) {
-    auto real_dist = norm(v);
-    auto metric_dist = real_dist / h;
-    return h * (1.0 + metric_dist * rate);
-  }
-  static INLINE Value intersect(Value a, Value b) { return min2(a, b); }
-  static DEVICE Value get(Reals const& a, LO i) { return a[i]; }
-  static DEVICE void set(Write<Real> const& a, LO i, Value v) { a[i] = v; }
-  enum { ndofs = 1 };
-};
 
 template <Int dim>
 class AnisoGradation {
@@ -241,7 +206,6 @@ class AnisoGradation {
   static INLINE Value intersect(Value a, Value b) {
     return intersect_metrics(a, b);
   }
-  static DEVICE Value get(Reals const& a, LO i) { return get_symm<dim>(a, i); }
   static DEVICE void set(Write<Real> const& a, LO i, Value v) {
     set_symm(a, i, v);
   }
@@ -257,20 +221,21 @@ static INLINE typename Gradation<dim>::Value limit_size_value_by_adj(
   return limited;
 }
 
-template <Int dim, template <Int> class Gradation>
-static Reals limit_size_field_once_by_adj_tmpl(
+template <Int mesh_dim, Int metric_dim> 
+static Reals limit_metrics_once_by_adj_tmpl(
     Mesh* mesh, Reals values, Real max_rate) {
-  using G = Gradation<dim>;
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * G::ndofs);
+  auto out = Write<Real>(mesh->nverts() * symm_dofs(metric_dim));
   auto f = LAMBDA(LO v) {
-    auto m = G::get(values, v);
-    auto x = get_vector<dim>(coords, v);
+    auto m = get_symm<metric_dim>(values, v);
+    auto x = get_vector<mesh_dim>(coords, v);
     for (auto vv = v2v.a2ab[v]; vv < v2v.a2ab[v + 1]; ++vv) {
       auto av = v2v.ab2b[vv];
-      auto am = G::get(values, av);
-      auto ax = get_vector<dim>(coords, av);
+      auto am = get_symm<metric_dim>(values, av);
+      auto ax = get_vector<mesh_dim>(coords, av);
+      auto v = ax - x;
+      auto metric_dist = metric_length(m, v);
       m = limit_size_value_by_adj<dim, Gradation>(m, x, am, ax, max_rate);
     }
     G::set(out, v, m);
