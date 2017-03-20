@@ -13,7 +13,7 @@ INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
 }
 
 template <Int space_dim>
-INLINE typename std::enable_if<space_dim > 1, Real>::type
+INLINE typename std::enable_if<(space_dim > 1), Real>::type
 metric_product(Matrix<1, 1> m, Vector<space_dim> v) {
   return v * (m[0][0] * v);
 }

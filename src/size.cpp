@@ -36,23 +36,20 @@ Reals measure_edges_real(Mesh* mesh, LOs a2e) {
 }
 
 Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
-  if (mesh->dim() == 3) {
-    if (mesh->has_tag(VERT, "size")) {
-      return measure_edges_tmpl<IsoEdgeLengths<3>>(mesh, a2e);
-    }
-    if (mesh->has_tag(VERT, "metric")) {
-      return measure_edges_tmpl<MetricEdgeLengths<3>>(mesh, a2e);
-    }
-  } else {
-    CHECK(mesh->dim() == 2);
-    if (mesh->has_tag(VERT, "size")) {
-      return measure_edges_tmpl<IsoEdgeLengths<2>>(mesh, a2e);
-    }
-    if (mesh->has_tag(VERT, "metric")) {
-      return measure_edges_tmpl<MetricEdgeLengths<2>>(mesh, a2e);
-    }
+  auto metrics = mesh->get_array(VERT, "metric");
+  auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
+  if (mesh->dim() == 3 && metric_dim == 3) {
+    return measure_edges_tmpl<MetricEdgeLengths<3, 3>>(mesh, a2e);
   }
-  Omega_h_fail("measure_edges(): no size field exists!\n");
+  if (mesh->dim() == 2 && metric_dim == 2) {
+    return measure_edges_tmpl<MetricEdgeLengths<2, 2>>(mesh, a2e);
+  }
+  if (mesh->dim() == 3 && metric_dim == 1) {
+    return measure_edges_tmpl<MetricEdgeLengths<3, 1>>(mesh, a2e);
+  }
+  if (mesh->dim() == 2 && metric_dim == 1) {
+    return measure_edges_tmpl<MetricEdgeLengths<2, 1>>(mesh, a2e);
+  }
   NORETURN(Reals());
 }
 

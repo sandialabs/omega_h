@@ -76,7 +76,7 @@ INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Metric metric) {
 
 template <Int dim>
 INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
-  return metric_element_quality(p, DummyIsoMetric());
+  return metric_element_quality(p, NoMetric());
 }
 
 struct RealElementQualities {

@@ -509,12 +509,8 @@ void Mesh::balance(bool predictive) {
   Reals masses;
   Real abs_tol;
   if (predictive) {
-    if (has_tag(VERT, "size")) {
-      masses = expected_elems_per_elem_iso(this, get_array<Real>(VERT, "size"));
-    } else if (has_tag(VERT, "metric")) {
-      masses =
-          expected_elems_per_elem_metric(this, get_array<Real>(VERT, "metric"));
-    }
+    masses =
+        expected_elems_per_elem(this, get_array<Real>(VERT, "metric"));
     /* average between input mesh weight (1.0)
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);

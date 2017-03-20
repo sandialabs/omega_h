@@ -4,6 +4,7 @@
 #include <Omega_h_kokkos.hpp>
 #include <cfloat>
 #include <climits>
+#include <cmath>
 
 namespace Omega_h {
 
@@ -134,7 +135,7 @@ OMEGA_H_INLINE Real root(Real x) {
 
 /* compile-time-executable Greatest Common Denominator code */
 constexpr OMEGA_H_INLINE Int gcd(Int a, Int b) {
-  return (b == 0) ? (a) : (gdb(b, a % b));
+  return (b == 0) ? (a) : (gcd(b, a % b));
 }
 
 /* specialization system for raising a Real to a power
@@ -152,7 +153,7 @@ struct Power : public Power<np / cd, dp / cd> {
 
 template <Int np, Int dp>
 struct Power<np, dp, 1> {
-  static OMEGA_H_INLINE Real eval(Real x) { return root<dp>(raise<np>(x)); }
+  static OMEGA_H_INLINE Real eval(Real x) { return root<dp>(raise(x, np)); }
   static_assert(np != dp, "equal case should be specialized");
 };
 
