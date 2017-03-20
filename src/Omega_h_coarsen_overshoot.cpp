@@ -47,7 +47,7 @@ static Read<I8> prevent_overshoot_tmpl(
 
 Read<I8> prevent_coarsen_overshoot(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
-  auto metric_dim = get_metrics_dim(mesh);
+  auto metric_dim = get_metric_dim(mesh);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return prevent_overshoot_tmpl<3, 3>(
         mesh, max_length, cands2edges, cand_codes);

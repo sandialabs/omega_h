@@ -19,7 +19,7 @@ Int get_metric_dim(Int ncomps) {
 Int get_metrics_dim(LO nmetrics, Reals metrics) {
   CHECK(metrics.size() % nmetrics == 0);
   auto ncomps = metrics.size() / nmetrics;
-  return get_metrics_dim(ncomps);
+  return get_metric_dim(ncomps);
 }
 
 Int get_metric_dim(Mesh* mesh) {

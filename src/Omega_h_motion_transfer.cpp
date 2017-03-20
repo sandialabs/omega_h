@@ -11,7 +11,7 @@ static bool should_transfer_motion_linear(
     Mesh* mesh, XferOpts const& opts, TagBase const* tb) {
   if (tb->name() == "warp") return false;
   return should_interpolate(mesh, opts, VERT, tb) ||
-         is_metric(mesh, opts, VERT, tb) || is_size(mesh, opts, VERT, tb);
+         is_metric(mesh, opts, VERT, tb);
 }
 
 LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts) {
@@ -32,9 +32,7 @@ LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts) {
     auto t = dynamic_cast<Tag<Real> const*>(tb);
     auto in = t->array();
     if (is_metric(mesh, opts, VERT, tb)) {
-      in = linearize_metrics(mesh->dim(), in);
-    } else if (is_size(mesh, opts, VERT, tb)) {
-      in = linearize_isos(in);
+      in = linearize_metrics(mesh->nverts(), in);
     }
     auto ncomps_in = tb->ncomps();
     auto f = LAMBDA(LO v) {
@@ -68,9 +66,7 @@ void unpack_linearized_fields(Mesh* old_mesh, XferOpts const& opts,
     parallel_for(new_mesh->nverts(), f);
     auto out = Reals(out_w);
     if (is_metric(old_mesh, opts, VERT, tb)) {
-      out = delinearize_metrics(old_mesh->dim(), out);
-    } else if (is_size(old_mesh, opts, VERT, tb)) {
-      out = delinearize_isos(out);
+      out = delinearize_metrics(old_mesh->nverts(), out);
     }
     auto t = dynamic_cast<Tag<Real> const*>(tb);
     auto prev = t->array();

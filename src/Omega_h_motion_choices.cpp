@@ -7,58 +7,32 @@
 
 namespace Omega_h {
 
-template <Int dim>
+template <Int mesh_dim, Int metric_dim>
 class MetricMotion {
  public:
-  using Metric = Matrix<dim, dim>;
-  static constexpr Int ncomps = symm_dofs(dim);
+  using Metric = Matrix<metric_dim, metric_dim>;
+  static constexpr Int ncomps = symm_dofs(metric_dim);
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "metric");
   }
   DEVICE static Metric get_metric(Reals metrics, LO v) {
-    return get_symm<dim>(metrics, v);
+    return get_symm<metric_dim>(metrics, v);
   }
   template <typename Arr>
   DEVICE static Metric get_linear_metric(Arr const& tmp, Int offset) {
-    Vector<symm_dofs(dim)> vec;
-    for (Int i = 0; i < symm_dofs(dim); ++i) {
+    Vector<ncomps> vec;
+    for (Int i = 0; i < ncomps; ++i) {
       vec[i] = tmp[offset + i];
     }
     return vector2symm(vec);
   }
   DEVICE static Metric gather_maxdet_metric(
-      Reals metrics, Few<LO, dim + 1> kvv2v, Int kvv_c, Metric nm) {
-    auto kvv2m = gather_symms<dim + 1, dim>(metrics, kvv2v);
+      Reals metrics, Few<LO, mesh_dim + 1> kvv2v, Int kvv_c, Metric nm) {
+    auto kvv2m = gather_symms<mesh_dim + 1, metric_dim>(metrics, kvv2v);
     kvv2m[kvv_c] = nm;
     return maxdet_metric(kvv2m);
   }
 };
-
-template <Int dim>
-class IsoMotion {
- public:
-  using Metric = Real;
-  static constexpr Int ncomps = 1;
-  static Reals get_metrics_array(Mesh* mesh) {
-    return mesh->get_array<Real>(VERT, "size");
-  }
-  DEVICE static Metric get_metric(Reals metrics, LO v) { return metrics[v]; }
-  template <typename Arr>
-  DEVICE static Metric get_linear_metric(Arr const& tmp, Int offset) {
-    return tmp[offset];
-  }
-  /* metric is unused by shape quality measure, so don't bother
-     gathering the other ones and actually computing some maximum */
-  DEVICE static Metric gather_maxdet_metric(
-      Reals, Few<LO, dim + 1>, Int, Metric nm) {
-    return nm;
-  }
-};
-
-template <Int dim>
-INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Real) {
-  return metric_element_quality(p, DummyIsoMetric());
-}
 
 template <Int dim, typename Arr>
 static DEVICE Vector<dim> get_coords(Arr const& tmp, Int offset) {
@@ -67,21 +41,22 @@ static DEVICE Vector<dim> get_coords(Arr const& tmp, Int offset) {
   return out;
 }
 
-template <template <Int> class Helper, Int dim>
+template <Int mesh_dim, Int metric_dim>
 MotionChoices motion_choices_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
-  using Metric = typename Helper<dim>::Metric;
+  using Helper = MetricMotion<mesh_dim, metric_dim>;
+  using Metric = typename Helper::Metric;
   auto pack = pack_linearized_fields(mesh, opts.xfer_opts);
   constexpr Int maxcomps = 30;
   CHECK(pack.ncomps <= maxcomps);
   auto new_sol_w = deep_copy(pack.data);
   auto coords = mesh->coords();
-  auto metrics = Helper<dim>::get_metrics_array(mesh);
+  auto metrics = Helper::get_metrics_array(mesh);
   auto ncands = cands2verts.size();
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ev2v = mesh->ask_verts_of(EDGE);
-  auto v2k = mesh->ask_up(VERT, dim);
-  auto kv2v = mesh->ask_verts_of(dim);
+  auto v2k = mesh->ask_up(VERT, mesh_dim);
+  auto kv2v = mesh->ask_verts_of(mesh_dim);
   auto verts2dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto cands2elems = unmap_graph(cands2verts, v2k);
@@ -95,8 +70,8 @@ MotionChoices motion_choices_tmpl(
   CHECK(0.0 < step_size);
   CHECK(step_size < 1.0);
   auto did_move_w = Write<I8>(ncands);
-  auto coordinates_w = Write<Real>(ncands * dim);
-  auto metrics_w = Write<Real>(ncands * Helper<dim>::ncomps);
+  auto coordinates_w = Write<Real>(ncands * mesh_dim);
+  auto metrics_w = Write<Real>(ncands * Helper::ncomps);
   auto qualities_w = Write<Real>(ncands);
   auto f = LAMBDA(LO cand) {
     auto v = cands2verts[cand];
@@ -122,8 +97,8 @@ MotionChoices motion_choices_tmpl(
           tmp[i] = (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
                    step_size * pack.data[ov * pack.ncomps + i];
         }
-        auto nx = get_coords<dim>(tmp, pack.coords_offset);
-        auto lnm = Helper<dim>::get_linear_metric(tmp, pack.metric_offset);
+        auto nx = get_coords<mesh_dim>(tmp, pack.coords_offset);
+        auto lnm = Helper::get_linear_metric(tmp, pack.metric_offset);
         auto nm = delinearize_metric(lnm);
         auto overshoots = false;
         for (auto ve_l = v2e.a2ab[v]; ve_l < v2e.a2ab[v + 1]; ++ve_l) {
@@ -132,9 +107,9 @@ MotionChoices motion_choices_tmpl(
           auto evv_c_l = code_which_down(ve_code_l);
           auto evv_o_l = 1 - evv_c_l;
           auto ov_l = ev2v[e_l * 2 + evv_o_l];
-          auto om = Helper<dim>::get_metric(metrics, ov_l);
-          auto ox = get_vector<dim>(coords, ov_l);
-          Few<Vector<dim>, 2> evv2nx;
+          auto om = Helper::get_metric(metrics, ov_l);
+          auto ox = get_vector<mesh_dim>(coords, ov_l);
+          Few<Vector<mesh_dim>, 2> evv2nx;
           Few<Metric, 2> evv2nm;
           evv2nx[evv_c_l] = nx;
           evv2nx[evv_o_l] = ox;
@@ -152,11 +127,11 @@ MotionChoices motion_choices_tmpl(
           auto k = v2k.ab2b[vk];
           auto vk_code = v2k.codes[vk];
           auto kvv_c = code_which_down(vk_code);
-          auto kvv2v = gather_verts<dim + 1>(kv2v, k);
-          auto kvv2nx = gather_vectors<dim + 1, dim>(coords, kvv2v);
+          auto kvv2v = gather_verts<mesh_dim + 1>(kv2v, k);
+          auto kvv2nx = gather_vectors<mesh_dim + 1, mesh_dim>(coords, kvv2v);
           kvv2nx[kvv_c] = nx;
           auto km =
-              Helper<dim>::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
+              Helper::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
           auto k_qual = metric_element_quality(kvv2nx, km);
           new_qual = min2(new_qual, k_qual);
           if (new_qual <= last_qual) break;
@@ -183,22 +158,20 @@ MotionChoices motion_choices_tmpl(
 
 MotionChoices get_motion_choices(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
-  if (mesh->dim() == 3) {
-    if (mesh->has_tag(VERT, "metric")) {
-      return motion_choices_tmpl<MetricMotion, 3>(mesh, opts, cands2verts);
-    } else {
-      CHECK(mesh->has_tag(VERT, "size"));
-      return motion_choices_tmpl<IsoMotion, 3>(mesh, opts, cands2verts);
-    }
-  } else {
-    CHECK(mesh->dim() == 2);
-    if (mesh->has_tag(VERT, "metric")) {
-      return motion_choices_tmpl<MetricMotion, 2>(mesh, opts, cands2verts);
-    } else {
-      CHECK(mesh->has_tag(VERT, "size"));
-      return motion_choices_tmpl<IsoMotion, 2>(mesh, opts, cands2verts);
-    }
+  auto metric_dim = get_metric_dim(mesh);
+  if (mesh->dim() == 3 && metric_dim == 3) {
+    return motion_choices_tmpl<3, 3>(mesh, opts, cands2verts);
   }
+  if (mesh->dim() == 2 && metric_dim == 2) {
+    return motion_choices_tmpl<2, 2>(mesh, opts, cands2verts);
+  }
+  if (mesh->dim() == 3 && metric_dim == 1) {
+    return motion_choices_tmpl<3, 1>(mesh, opts, cands2verts);
+  }
+  if (mesh->dim() == 2 && metric_dim == 1) {
+    return motion_choices_tmpl<2, 1>(mesh, opts, cands2verts);
+  }
+  NORETURN(MotionChoices());
 }
 
 }  // end namespace Omega_h
