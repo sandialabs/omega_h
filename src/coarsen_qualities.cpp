@@ -12,7 +12,7 @@ template <Int mesh_dim, Int metric_dim>
 static Reals coarsen_qualities_tmpl(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   CHECK(mesh->dim() == mesh_dim);
-  MetricElementQualities measure(mesh);
+  MetricElementQualities<mesh_dim, metric_dim> measure(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto cv2v = mesh->ask_elem_verts();
   auto v2c = mesh->ask_up(VERT, mesh_dim);
@@ -45,7 +45,7 @@ static Reals coarsen_qualities_tmpl(
         if (will_die) continue;
         CHECK(0 <= ccv_col && ccv_col < mesh_dim + 1);
         ccv2v[ccv_col] = v_onto;  // vertices of new cell
-        auto qual = measure.template measure<mesh_dim, metric_dim>(ccv2v);
+        auto qual = measure.measure(ccv2v);
         minqual = min2(minqual, qual);
       }
       qualities[cand * 2 + eev_col] = minqual;

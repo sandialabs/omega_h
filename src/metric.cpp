@@ -11,11 +11,20 @@
 
 namespace Omega_h {
 
+Int get_metric_dim(Int ncomps) {
+  for (Int i = 1; i <= 3; ++i) if (ncomps == symm_dofs(i)) return i;
+  NORETURN(Int());
+}
+
 Int get_metrics_dim(LO nmetrics, Reals metrics) {
   CHECK(metrics.size() % nmetrics == 0);
-  auto ndofs = metrics.size() / nmetrics;
-  for (Int i = 1; i <= 3; ++i) if (ndofs == symm_dofs(i)) return i;
-  NORETURN(Int());
+  auto ncomps = metrics.size() / nmetrics;
+  return get_metrics_dim(ncomps);
+}
+
+Int get_metric_dim(Mesh* mesh) {
+  auto ncomps = mesh->get_tagbase(VERT, "metric")->ncomps();
+  return get_metric_dim(ncomps);
 }
 
 template <Int mdim, Int edim>
@@ -163,7 +172,7 @@ static INLINE Matrix<dim, dim> metric_from_hessian(
   constexpr auto c_denom = 2 * square(dim + 1);
   decltype(l) tilde_l;
   for (Int i = 0; i < dim; ++i) {
-    tilde_l[i] (c_num * fabs(l[i])) / (c_denom * eps);
+    tilde_l[i] = (c_num * fabs(l[i])) / (c_denom * eps);
   }
   return compose_eigen(r, tilde_l);
 }

@@ -80,23 +80,23 @@ INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
   return metric_element_quality(p, NoMetric());
 }
 
+template <Int space_dim>
 struct RealElementQualities {
   Reals coords;
   RealElementQualities(Mesh const* mesh) : coords(mesh->coords()) {}
-  template <Int space_dim>
   DEVICE Real measure(Few<LO, space_dim + 1> v) const {
     auto p = gather_vectors<space_dim + 1, space_dim>(coords, v);
     return real_element_quality(p);
   }
 };
 
+template <Int space_dim, Int metric_dim>
 struct MetricElementQualities {
   Reals coords;
   Reals metrics;
   MetricElementQualities(Mesh const* mesh)
       : coords(mesh->coords()),
         metrics(mesh->get_array<Real>(VERT, "metric")) {}
-  template <Int space_dim, Int metric_dim>
   DEVICE Real measure(Few<LO, space_dim + 1> v) const {
     auto p = gather_vectors<space_dim + 1, space_dim>(coords, v);
     auto ms = gather_symms<space_dim + 1, metric_dim>(metrics, v);

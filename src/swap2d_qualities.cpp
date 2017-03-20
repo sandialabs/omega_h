@@ -21,8 +21,8 @@ static Reals swap2d_qualities_tmpl(
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto tri_verts2verts = mesh->ask_verts_of(TRI);
   auto edges_are_owned = mesh->owned(EDGE);
-  auto quality_measure = MetricElementQualities(mesh);
-  auto length_measure = MetricEdgeLengths(mesh);
+  auto quality_measure = MetricElementQualities<2, metric_dim>(mesh);
+  auto length_measure = MetricEdgeLengths<2, metric_dim>(mesh);
   auto max_length = opts.max_length_allowed;
   auto ncands = cands2edges.size();
   auto cand_quals_w = Write<Real>(ncands);
@@ -48,7 +48,7 @@ static Reals swap2d_qualities_tmpl(
       auto ttv = opposite_template(TRI, EDGE, tte);
       ov[rot] = tri_verts2verts[t[rot] * 3 + ttv];
     }
-    auto l = length_measure.measure<2>(ov);
+    auto l = length_measure.measure(ov);
     if (l > max_length) {
       cand_quals_w[cand] = -1.0;
       return;
@@ -60,7 +60,7 @@ static Reals swap2d_qualities_tmpl(
       ntv[0] = ev[1 - i];
       ntv[1] = ov[i];
       ntv[2] = ov[1 - i];
-      auto qual = quality_measure.measure<2, metric_dim>(ntv);
+      auto qual = quality_measure.measure(ntv);
       minqual = min2(minqual, qual);
     }
     cand_quals_w[cand] = minqual;

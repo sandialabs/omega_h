@@ -4,14 +4,14 @@ namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
 Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
-  MetricElementQualities measurer(mesh);
+  MetricElementQualities<mesh_dim, metric_dim> measurer(mesh);
   auto ev2v = mesh->ask_verts_of(mesh_dim);
   auto na = a2e.size();
   Write<Real> qualities(na);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
     auto v = gather_verts<mesh_dim + 1>(ev2v, e);
-    qualities[a] = measurer.measure<mesh_dim, metric_dim>(v);
+    qualities[a] = measurer.measure(v);
   };
   parallel_for(na, f);
   return qualities;

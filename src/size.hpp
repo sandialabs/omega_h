@@ -69,23 +69,23 @@ DEVICE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
   return metric_edge_length<space_dim, metric_dim>(p, ms);
 }
 
+template <Int space_dim>
 struct RealEdgeLengths {
   Reals coords;
   RealEdgeLengths(Mesh const* mesh) : coords(mesh->coords()) {}
-  template <Int space_dim>
   DEVICE Real measure(Few<LO, 2> v) const {
     auto p = gather_vectors<2, space_dim>(coords, v);
     return norm(p[1] - p[0]);
   }
 };
 
+template <Int space_dim, Int metric_dim>
 struct MetricEdgeLengths {
   Reals coords;
   Reals metrics;
   MetricEdgeLengths(Mesh const* mesh)
       : coords(mesh->coords()),
         metrics(mesh->get_array<Real>(VERT, "metric")) {}
-  template <Int space_dim, Int metric_dim>
   DEVICE Real measure(Few<LO, 2> v) const {
     return metric_edge_length<space_dim, metric_dim>(v, coords, metrics);
   }

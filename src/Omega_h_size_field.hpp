@@ -27,9 +27,7 @@ Reals get_aniso_zz_metric(
     Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size);
 
 Reals recover_hessians(Mesh* mesh, Reals vert_values);
-Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax);
-Reals metric_for_nelems_from_hessians(
-    Mesh* mesh, Real target_nelems, Real tolerance, Reals hessians, Real hmax);
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps);
 
 Reals derive_element_gradients(Mesh* mesh, Reals vert_values);
 Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients);

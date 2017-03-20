@@ -179,7 +179,9 @@ INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   return m;
 }
 
+Int get_metric_dim(Int ncomps);
 Int get_metrics_dim(LO nmetrics, Reals metrics);
+Int get_metric_dim(Mesh* mesh);
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
 Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t);
