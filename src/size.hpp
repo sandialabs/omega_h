@@ -154,13 +154,13 @@ INLINE Few<Vector<3>, 6> element_edge_vectors(
 }
 
 template <Int dim>
-INLINE Real squared_metric_length(Vector<dim> v, DummyIsoMetric) {
-  return norm_squared(v);
+INLINE Real squared_metric_length(Vector<dim> v, Matrix<dim, dim> m) {
+  return metric_product(m, v);
 }
 
 template <Int dim>
-INLINE Real squared_metric_length(Vector<dim> v, Matrix<dim, dim> m) {
-  return metric_product(m, v);
+INLINE Real squared_metric_length(Vector<dim> v, Matrix<1, 1> m) {
+  return m[0][0] * (v * v);
 }
 
 template <typename EdgeVectors, typename Metric>

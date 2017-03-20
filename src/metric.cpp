@@ -11,15 +11,15 @@
 
 namespace Omega_h {
 
-template <Int sdim, Int edim>
+template <Int mdim, Int edim>
 static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
-  Write<Real> out(na * symm_dofs(sdim));
+  Write<Real> out(na * symm_dofs(mdim));
   auto ev2v = mesh->ask_verts_of(edim);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
     auto v = gather_verts<edim + 1>(ev2v, e);
-    auto ms = gather_symms<edim + 1, sdim>(v2m, v);
+    auto ms = gather_symms<edim + 1, mdim>(v2m, v);
     auto m = average_metric(ms);
     set_symm(out, a, m);
   };
@@ -28,17 +28,28 @@ static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
 }
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
-  if (mesh->dim() == 3 && ent_dim == 3) {
+  CHECK(v2m.size() % mesh->nverts() == 0);
+  auto ndofs = v2m.size() / mesh->nverts();
+  if (ndofs == symm_dofs(3) && ent_dim == 3) {
     return mident_metrics_tmpl<3, 3>(mesh, entities, v2m);
   }
-  if (mesh->dim() == 3 && ent_dim == 1) {
+  if (ndofs == symm_dofs(3) && ent_dim == 1) {
     return mident_metrics_tmpl<3, 1>(mesh, entities, v2m);
   }
-  if (mesh->dim() == 2 && ent_dim == 2) {
+  if (ndofs == symm_dofs(2) && ent_dim == 2) {
     return mident_metrics_tmpl<2, 2>(mesh, entities, v2m);
   }
-  if (mesh->dim() == 2 && ent_dim == 1) {
+  if (ndofs == symm_dofs(2) && ent_dim == 1) {
     return mident_metrics_tmpl<2, 1>(mesh, entities, v2m);
+  }
+  if (ndofs == symm_dofs(1) && ent_dim == 3) {
+    return mident_metrics_tmpl<1, 3>(mesh, entities, v2m);
+  }
+  if (ndofs == symm_dofs(1) && ent_dim == 2) {
+    return mident_metrics_tmpl<1, 2>(mesh, entities, v2m);
+  }
+  if (ndofs == symm_dofs(1) && ent_dim == 1) {
+    return mident_metrics_tmpl<1, 1>(mesh, entities, v2m);
   }
   NORETURN(Reals());
 }
@@ -72,17 +83,21 @@ Reals delinearize_metrics_dim(Reals lms) {
   return out;
 }
 
-Reals linearize_metrics(Int dim, Reals metrics) {
-  CHECK(metrics.size() % symm_dofs(dim) == 0);
-  if (dim == 3) return linearize_metrics_dim<3>(metrics);
-  if (dim == 2) return linearize_metrics_dim<2>(metrics);
+Reals linearize_metrics(LO nmetrics, Reals metrics) {
+  CHECK(metrics.size() % nmetrics == 0);
+  auto ndofs = metrics.size() / nmetrics;
+  if (ndofs == symm_dofs(3)) return linearize_metrics_dim<3>(metrics);
+  if (ndofs == symm_dofs(2)) return linearize_metrics_dim<2>(metrics);
+  if (ndofs == symm_dofs(1)) return linearize_metrics_dim<1>(metrics);
   NORETURN(Reals());
 }
 
 Reals delinearize_metrics(Int dim, Reals linear_metrics) {
-  CHECK(linear_metrics.size() % symm_dofs(dim) == 0);
-  if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
-  if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);
+  CHECK(metrics.size() % nmetrics == 0);
+  auto ndofs = metrics.size() / nmetrics;
+  if (ndofs == symm_dofs(3)) return delinearize_metrics_dim<3>(linear_metrics);
+  if (ndofs == symm_dofs(2)) return delinearize_metrics_dim<2>(linear_metrics);
+  if (ndofs == symm_dofs(1)) return delinearize_metrics_dim<1>(linear_metrics);
   NORETURN(Reals());
 }
 
@@ -313,9 +328,9 @@ Reals limit_size_field_gradation(
 }
 
 Reals project_metrics(Mesh* mesh, Reals e2m) {
-  auto e_linear = linearize_metrics(mesh->dim(), e2m);
+  auto e_linear = linearize_metrics(mesh->nelems(), e2m);
   auto v_linear = project_by_average(mesh, e_linear);
-  return delinearize_metrics(mesh->dim(), v_linear);
+  return delinearize_metrics(mesh->nverts(), v_linear);
 }
 
 Reals smooth_metric_once(Mesh* mesh, Reals v2m) {

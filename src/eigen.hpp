@@ -186,6 +186,10 @@ INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m) {
   return {decomp.q, decomp.l * nm};
 }
 
+INLINE DiagDecomp<1> decompose_eigen(Matrix<1, 1> m) {
+  return {matrix_1x1(1.0), vector_1(m[0][0])};
+}
+
 /* Q, again, being the matrix whose columns
    are the right eigenvectors, but not necessarily unitary */
 template <Int dim>

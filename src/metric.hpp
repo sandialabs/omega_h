@@ -22,17 +22,25 @@ INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
+INLINE Real metric_eigenvalue_from_length(Real h) {
+  return 1.0 / square(h);
+}
+
+INLINE Real metric_length_from_eigenvalue(Real l) {
+  return 1.0 / sqrt(l);
+}
+
 template <Int dim>
-INLINE Vector<dim> metric_lengths(Vector<dim> l) {
+INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> l) {
   Vector<dim> h;
-  for (Int i = 0; i < dim; ++i) h[i] = 1.0 / sqrt(l[i]);
+  for (Int i = 0; i < dim; ++i) h[i] = metric_length_from_eigenvalue(l[i]);
   return h;
 }
 
 template <Int dim>
 INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto ed = decompose_eigen(m);
-  auto h = metric_lengths(ed.l);
+  auto h = metric_lengths_from_eigenvalues(ed.l);
   return {ed.q, h};
 }
 
@@ -128,10 +136,6 @@ INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
   return exp_spd(log_m);
 }
 
-INLINE Real linearize_metric(Real h) { return ::log(h); }
-
-INLINE Real delinearize_metric(Real log_h) { return ::exp(log_h); }
-
 template <Int n, typename T>
 INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
   Few<T, n> log_ms;
@@ -171,8 +175,8 @@ INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
 Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
-Reals linearize_metrics(Int dim, Reals metrics);
-Reals delinearize_metrics(Int dim, Reals linear_metrics);
+Reals linearize_metrics(LO nmetrics, Reals metrics);
+Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
 
 /* used to achieve templated versions of code that either
  * accept a metric tensor or nothing (nothing being the case
