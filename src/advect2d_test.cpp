@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
   Omega_h::AdaptOpts opts(&mesh);
   opts.xfer_opts.type_map["Solution"] = OMEGA_H_LINEAR_INTERP;
   opts.max_length_allowed = max_metric_length;
-  while (Omega_h::approach_size_field(&mesh, opts)) {
+  while (Omega_h::approach_metric(&mesh, opts)) {
     Omega_h::adapt(&mesh, opts);
   }
   bool ok = check_regression("gold_advect2d", &mesh);

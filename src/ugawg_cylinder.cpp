@@ -105,7 +105,7 @@ static void run_case(
   opts.egads_model = eg;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
   Now t0 = now();
-  while (approach_size_field(mesh, opts)) {
+  while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
     if (mesh->has_tag(VERT, "target_metric")) {
       set_target_metric(mesh, which_metric, should_limit);

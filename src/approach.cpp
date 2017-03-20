@@ -55,10 +55,8 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
   return true;
 }
 
-static bool approach_either(Mesh* mesh, AdaptOpts const& opts,
-    std::string const& name,
-    Reals (*interpolator)(Int dim, Reals orig, Reals target, Real t)) {
-  auto target_name = std::string("target_") + name;
+bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
+  auto target_name = "target_metric";
   if (!mesh->has_tag(VERT, target_name)) return false;
   check_okay(mesh, opts);
   auto orig = mesh->get_array<Real>(VERT, name);
@@ -78,24 +76,10 @@ static bool approach_either(Mesh* mesh, AdaptOpts const& opts,
           "Omega_h is probably unable to satisfy this size field\n",
           t, min_t);
     }
-    auto current = (*interpolator)(mesh->dim(), orig, target, t);
+    auto current = interpolate_between_metrics(mesh->dim(), orig, target, t);
     mesh->set_tag(VERT, name, current);
   } while (!okay(mesh, opts));
   return true;
-}
-
-static Reals isos_wrapper(Int, Reals orig, Reals target, Real t) {
-  return interpolate_between_isos(orig, target, t);
-}
-
-bool approach_size_field(Mesh* mesh, AdaptOpts const& opts) {
-  if (mesh->has_tag(VERT, "size")) {
-    return approach_either(mesh, opts, "size", &isos_wrapper);
-  }
-  if (mesh->has_tag(VERT, "metric")) {
-    return approach_either(mesh, opts, "metric", &interpolate_between_metrics);
-  }
-  NORETURN(true);
 }
 
 }  // end namespace Omega_h
