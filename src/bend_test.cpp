@@ -59,9 +59,10 @@ int main(int argc, char** argv) {
     mesh.add_tag(VERT, "warp", mesh.dim(), Reals(warp_w));
     do {
       std::cout << "WARP STEP\n";
-      auto isos = get_curvature_isos(&mesh, segment_angle, max_size);
-      isos = limit_size_field_gradation(&mesh, isos, 1.015);
-      mesh.set_tag(VERT, "size", isos);
+      auto metric = get_curvature_isos(&mesh, segment_angle);
+      metric = clamp_metrics(mesh.nverts(), metric, 0.0, max_size);
+      metric = limit_metric_gradation(&mesh, metric, 1.015);
+      mesh.set_tag(VERT, "metric", metric);
       adapt(&mesh, opts);
       writer.write();
     } while (warp_to_limit(&mesh, opts));

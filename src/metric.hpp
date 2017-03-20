@@ -28,10 +28,6 @@ INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
-INLINE Real metric_eigenvalue_from_length(Real h) {
-  return 1.0 / square(h);
-}
-
 INLINE Real metric_length_from_eigenvalue(Real l) {
   return 1.0 / sqrt(l);
 }

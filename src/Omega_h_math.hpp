@@ -297,6 +297,10 @@ Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
 
+OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {
+  return 1.0 / square(h);
+}
+
 }  // end namespace Omega_h
 
 #endif
