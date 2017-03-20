@@ -82,9 +82,9 @@ INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
 struct RealElementQualities {
   Reals coords;
   RealElementQualities(Mesh const* mesh) : coords(mesh->coords()) {}
-  template <Int neev>
-  DEVICE Real measure(Few<LO, neev> v) const {
-    auto p = gather_vectors<neev, neev - 1>(coords, v);
+  template <Int space_dim>
+  DEVICE Real measure(Few<LO, space_dim + 1> v) const {
+    auto p = gather_vectors<space_dim + 1, space_dim>(coords, v);
     return real_element_quality(p);
   }
 };
@@ -95,10 +95,10 @@ struct MetricElementQualities {
   MetricElementQualities(Mesh const* mesh)
       : coords(mesh->coords()),
         metrics(mesh->get_array<Real>(VERT, "metric")) {}
-  template <Int neev>
-  DEVICE Real measure(Few<LO, neev> v) const {
-    auto p = gather_vectors<neev, neev - 1>(coords, v);
-    auto ms = gather_symms<neev, neev - 1>(metrics, v);
+  template <Int space_dim, Int metric_dim>
+  DEVICE Real measure(Few<LO, space_dim + 1> v) const {
+    auto p = gather_vectors<space_dim + 1, space_dim>(coords, v);
+    auto ms = gather_symms<space_dim + 1, metric_dim>(metrics, v);
     auto m = maxdet_metric(ms);
     return metric_element_quality(p, m);
   }
