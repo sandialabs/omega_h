@@ -30,6 +30,7 @@ INLINE Real mean_ratio(Real size, Real mean_squared_length) {
   return power<2, dim>(size / equilateral_size<dim>()) / mean_squared_length;
 }
 
+template <Int space_dim>
 INLINE Real metric_size(Real real_size, NoMetric) { return real_size; }
 
 /* This paper (and a few others):
@@ -67,7 +68,7 @@ template <Int dim, typename Metric>
 INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Metric metric) {
   auto b = simplex_basis<dim, dim>(p);
   auto rs = element_size(b);
-  auto s = metric_size(rs, metric);
+  auto s = metric_size<dim>(rs, metric);
   if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);
   auto msl = mean_squared_metric_length(ev, metric);

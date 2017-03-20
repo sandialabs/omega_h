@@ -20,9 +20,9 @@ Reals expected_elems_per_elem(Mesh* mesh, Reals v2m);
 Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
-Reals get_curvature_isos(Mesh* mesh, Real segment_angle, Real max_size);
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle);
 Reals get_gradient_isos(
-    Mesh* mesh, Real error_bound, Real max_size, Reals scalar_field);
+    Mesh* mesh, Real error_bound, Reals scalar_field);
 Reals get_aniso_zz_metric(
     Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size);
 

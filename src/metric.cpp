@@ -97,7 +97,7 @@ Reals linearize_metrics(LO nmetrics, Reals metrics) {
   NORETURN(Reals());
 }
 
-Reals delinearize_metrics(Int dim, Reals linear_metrics) {
+Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
   auto dim = get_metrics_dim(nmetrics, metrics);
   if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
   if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);

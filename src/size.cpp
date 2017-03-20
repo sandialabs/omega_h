@@ -36,7 +36,7 @@ Reals measure_edges_real(Mesh* mesh, LOs a2e) {
 }
 
 Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
-  auto metrics = mesh->get_array(VERT, "metric");
+  auto metrics = mesh->get_array<Real>(VERT, "metric");
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return measure_edges_tmpl<MetricEdgeLengths<3, 3>>(mesh, a2e);
@@ -190,7 +190,7 @@ struct MeanSquaredMetricLength {
 
 template <Int mesh_dim, Int metric_dim>
 static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
-  auto msl_obj = MeanSquaredLength(mesh, v2m);
+  auto msl_obj = MeanSquaredMetricLength(mesh, v2m);
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
@@ -200,7 +200,7 @@ static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
     auto basis = simplex_basis<mesh_dim, mesh_dim>(eev2x);
     auto edge_vectors = element_edge_vectors(eev2x, basis);
     auto msl = msl_obj.template get<metric_dim>(e, edge_vectors);
-    out_w[e] = power<dim, 2>(msl);
+    out_w[e] = power<mesh_dim, 2>(msl);
   };
   parallel_for(mesh->nelems(), f);
   return Reals(out_w);
@@ -234,7 +234,6 @@ Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
 
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
   auto vert_curvatures = get_vert_curvatures(mesh);
-  auto max_radius = max_size / segment_angle;
   auto out = Write<Real>(mesh->nverts());
   auto f = LAMBDA(LO v) {
     auto curvature = vert_curvatures[v];
