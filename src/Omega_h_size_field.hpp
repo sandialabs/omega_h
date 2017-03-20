@@ -14,7 +14,7 @@ Reals find_implied_isos(Mesh* mesh);
 Reals find_implied_metric(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
-Reals limit_size_field_gradation(
+Reals limit_metric_gradation(
     Mesh* mesh, Reals values, Real max_rate, Real tol = 1e-3);
 Reals expected_elems_per_elem(Mesh* mesh, Reals v2m);
 Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
