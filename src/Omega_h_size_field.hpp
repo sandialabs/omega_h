@@ -10,6 +10,7 @@ namespace Omega_h {
 
 class Mesh;
 
+Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max);
 Reals find_implied_isos(Mesh* mesh);
 Reals find_implied_metric(Mesh* mesh);
 void axes_from_metric_field(

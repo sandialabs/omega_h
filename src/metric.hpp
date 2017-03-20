@@ -150,11 +150,18 @@ INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
 }
 
 /* the "proper" way to interpolate the metric tensor to
- * the center of a simplex; does several eigendecompositions
+ * the barycenter of a simplex; does several eigendecompositions
  */
 template <Int n, typename T>
 INLINE T average_metric(Few<T, n> ms) {
   return delinearize_metric(average(linearize_metrics(ms)));
+}
+
+template <Int dim>
+INLINE Matrix<dim, dim> clamp_metric(Matrix<dim, dim> m, Real h_min, Real h_max) {
+  auto dc = decompose_metric(m);
+  for (Int i = 0; i < dim; ++i) dc.l[i] = clamp(dc.l[i], h_min, h_max);
+  return compose_metric(dc.q, dc.l);
 }
 
 /* a cheap hackish variant of interpolation for getting a metric

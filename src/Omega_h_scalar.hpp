@@ -101,7 +101,7 @@ OMEGA_H_INLINE Real cube(T x) { return raise(x, 3); }
 
 OMEGA_H_INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
-OMEGA_H_INLINE Real clamp(Real x, Real high, Real low) {
+OMEGA_H_INLINE Real clamp(Real x, Real low, Real high) {
   return min2(max2(x, low), high);
 }
 

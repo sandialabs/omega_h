@@ -27,6 +27,26 @@ Int get_metric_dim(Mesh* mesh) {
   return get_metric_dim(ncomps);
 }
 
+template <Int dim>
+static Reals clamp_metrics_dim(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
+  auto out = Write<Real>(nmetrics * symm_dofs(dim));
+  auto f = LAMBDA(LO i) {
+    auto m = get_symm<dim>(metrics, i);
+    m = clamp_metric(m, h_min, h_max);
+    set_symm(out, i, m);
+  };
+  parallel_for(nmetrics, f);
+  return out;
+}
+
+Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
+  auto dim = get_metrics_dim(nmetrics, metrics);
+  if (dim == 3) return clamp_metrics_dim<3>(nmetrics, metrics, h_min, h_max);
+  if (dim == 2) return clamp_metrics_dim<2>(nmetrics, metrics, h_min, h_max);
+  if (dim == 1) return clamp_metrics_dim<1>(nmetrics, metrics, h_min, h_max);
+  NORETURN(Reals());
+}
+
 template <Int mdim, Int edim>
 static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
