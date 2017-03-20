@@ -8,8 +8,6 @@
 #include "simplices.hpp"
 #include "space.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 INLINE Real triangle_area(Few<Vector<2>, 2> b) {
