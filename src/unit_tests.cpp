@@ -73,6 +73,19 @@ static void test_repro_sum() {
   CHECK(sum == std::exp2(20) + std::exp2(int(-20)));
 }
 
+static void test_power() {
+  auto x = 3.14159;
+  CHECK(x == power(x, 1, 1));
+  CHECK(x == power(x, 2, 2));
+  CHECK(x == power(x, 3, 3));
+  CHECK(are_close(x * x, power(x, 2, 1)));
+  CHECK(are_close(x * x * x, power(x, 3, 1)));
+  CHECK(are_close(sqrt(x), power(x, 1, 2)));
+  CHECK(are_close(cbrt(x), power(x, 1, 3)));
+  CHECK(are_close(sqrt(x * x * x), power(x, 3, 2)));
+  CHECK(are_close(cbrt(x * x), power(x, 2, 3)));
+}
+
 static void test_cubic(Few<Real, 3> coeffs, Int nroots_wanted,
     Few<Real, 3> roots_wanted, Few<Int, 3> mults_wanted) {
   auto roots = find_polynomial_roots(coeffs);
@@ -1010,6 +1023,7 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
   test_edge_length();
+  test_power();
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();
