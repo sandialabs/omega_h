@@ -19,7 +19,6 @@ bool should_conserve(
     Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 bool should_conserve_any(Mesh* mesh, XferOpts const& opts);
 bool is_metric(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
-bool is_size(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 bool is_momentum_velocity(
     Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag);
 bool has_momentum_velocity(Mesh* mesh, XferOpts const& opts);

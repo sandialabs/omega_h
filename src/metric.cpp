@@ -98,7 +98,7 @@ Reals linearize_metrics(LO nmetrics, Reals metrics) {
 }
 
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
-  auto dim = get_metrics_dim(nmetrics, metrics);
+  auto dim = get_metrics_dim(nmetrics, linear_metrics);
   if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
   if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);
   if (dim == 1) return delinearize_metrics_dim<1>(linear_metrics);
@@ -234,8 +234,8 @@ static Reals limit_metrics_once_by_adj_tmpl(
       auto av = v2v.ab2b[vv];
       auto am = get_symm<metric_dim>(values, av);
       auto ax = get_vector<mesh_dim>(coords, av);
-      auto v = ax - x;
-      auto metric_dist = metric_length(m, v);
+      auto vec = ax - x;
+      auto metric_dist = metric_length(m, vec);
       m = limit_size_value_by_adj<dim, Gradation>(m, x, am, ax, max_rate);
     }
     G::set(out, v, m);
