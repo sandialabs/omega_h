@@ -635,13 +635,11 @@ static void test_refine_qualities(Library* lib) {
   Mesh mesh(lib);
   build_box(&mesh, 1, 1, 0, 1, 1, 0);
   LOs candidates(mesh.nedges(), 0, 1);
+  mesh.add_tag(VERT, "metric", symm_dofs(2),
+      repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(
       quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));
-  mesh.add_tag(VERT, "metric", symm_dofs(2),
-      repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
-  auto quals2 = refine_qualities(&mesh, candidates);
-  CHECK(are_close(quals2, quals));
 }
 
 static void test_mark_up_down(Library* lib) {
