@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <cctype>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
@@ -114,12 +115,22 @@ GO Mesh::nglobal_ents(Int dim) {
   return comm_->allreduce(GO(nowned), OMEGA_H_SUM);
 }
 
+static void check_name_format(std::string const& name) {
+  for (auto c : name) {
+    if (!(std::isalnum(c) || c == '_')) {
+      Omega_h_fail("tag name \"%s\" is not alphanumeric+underscores\n",
+          name.c_str());
+    }
+  }
+}
+
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
   check_dim2(dim);
+  check_name_format(name);
   if (has_tag(dim, name)) {
     Omega_h_fail(
-        "omega_h: add_tag(): \"%s\" already exists. use set_tag or "
+        "add_tag(): \"%s\" already exists. use set_tag or "
         "remove_tag\n",
         name.c_str());
   }
@@ -140,7 +151,7 @@ template <typename T>
 void Mesh::set_tag(
     Int dim, std::string const& name, Read<T> array, bool internal) {
   if (!has_tag(dim, name)) {
-    Omega_h_fail("set_tag(%s,%s): tag doesn't exist (use add_tag first)\n",
+    Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
         plural_names[dim], name.c_str());
   }
   Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
