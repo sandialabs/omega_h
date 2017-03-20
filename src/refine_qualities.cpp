@@ -21,13 +21,12 @@ struct MetricRefineQualities {
          */
         midpt_metrics(get_mident_metrics(
             mesh, EDGE, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
-  template <Int dim>
   DEVICE Real measure(
       Int cand, Few<Vector<mesh_dim>, mesh_dim + 1> p, Few<LO, mesh_dim> csv2v) const {
     Few<Matrix<metric_dim, metric_dim>, mesh_dim + 1> ms;
     for (Int csv = 0; csv < mesh_dim; ++csv)
       ms[csv] = get_symm<metric_dim>(vert_metrics, csv2v[csv]);
-    ms[dim] = get_symm<metric_dim>(midpt_metrics, cand);
+    ms[mesh_dim] = get_symm<metric_dim>(midpt_metrics, cand);
     auto m = maxdet_metric(ms);
     return metric_element_quality(p, m);
   }
@@ -89,7 +88,7 @@ static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
 
 Reals refine_qualities(Mesh* mesh, LOs candidates) {
   auto mesh_dim = mesh->dim();
-  auto metric_dim = get_metrics_dim(mesh);
+  auto metric_dim = get_metric_dim(mesh);
   if (mesh_dim == 3 && metric_dim == 3) {
     return refine_qualities_tmpl<3, 3>(mesh, candidates);
   }
