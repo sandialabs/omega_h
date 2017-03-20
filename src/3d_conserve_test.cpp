@@ -57,9 +57,10 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
-    auto size = find_implied_size(&mesh);
-    size = multiply_each_by(1.2, size);
-    mesh.add_tag(VERT, "size", 1, size);
+    auto metrics = find_implied_isos(&mesh);
+    auto scalar = metric_eigenvalue_from_length(1.2);
+    metrics = multiply_each_by(scalar, metrics);
+    mesh.add_tag(VERT, "metric", 1, metrics);
   }
   mesh.set_parting(OMEGA_H_ELEM_BASED);
   mesh.add_tag(mesh.dim(), "mass", 1, measure_elements_real(&mesh));

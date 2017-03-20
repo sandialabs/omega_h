@@ -17,14 +17,14 @@ int main(int argc, char** argv) {
   Omega_h::Mesh mesh(&lib);
   Omega_h::binary::read(path_in, lib.world(), &mesh);
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto implied_size = Omega_h::find_implied_size(&mesh);
+  auto metrics = Omega_h::find_implied_isos(&mesh);
   auto scalar =
-      Omega_h::size_scalar_for_nelems(&mesh, implied_size, target_nelems);
-  auto scaled_size = multiply_each_by(scalar, implied_size);
-  mesh.add_tag(Omega_h::VERT, "size", 1, scaled_size);
+      Omega_h::metric_scalar_for_nelems(&mesh, metrics, target_nelems);
+  metrics = multiply_each_by(scalar, metrics);
+  mesh.add_tag(Omega_h::VERT, "metric", 1, metrics);
   auto opts = Omega_h::AdaptOpts(&mesh);
   opts.verbosity = Omega_h::EXTRA_STATS;
   Omega_h::adapt(&mesh, opts);
-  mesh.remove_tag(Omega_h::VERT, "size");
+  mesh.remove_tag(Omega_h::VERT, "metric");
   Omega_h::binary::write(path_out, &mesh);
 }
