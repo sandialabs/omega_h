@@ -222,7 +222,7 @@ OMEGA_H_INLINE Vector<1> symm2vector(Matrix<1, 1> symm) {
   return vector_1(symm[0][0]);
 }
 
-OMEGA_H_INLINE Matrix<1,1> vector2symm(Vector<1> v) {
+OMEGA_H_INLINE Matrix<1, 1> vector2symm(Vector<1> v) {
   return matrix_1x1(v[0]);
 }
 

@@ -44,7 +44,8 @@ INLINE Real edge_length(Real l_a, Real l_b) {
 }
 
 template <Int space_dim, Int metric_dim>
-INLINE Real squared_metric_length(Vector<space_dim> v, Matrix<metric_dim, metric_dim> m) {
+INLINE Real squared_metric_length(
+    Vector<space_dim> v, Matrix<metric_dim, metric_dim> m) {
   return metric_product(m, v);
 }
 

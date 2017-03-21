@@ -130,8 +130,7 @@ MotionChoices motion_choices_tmpl(
           auto kvv2v = gather_verts<mesh_dim + 1>(kv2v, k);
           auto kvv2nx = gather_vectors<mesh_dim + 1, mesh_dim>(coords, kvv2v);
           kvv2nx[kvv_c] = nx;
-          auto km =
-              Helper::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
+          auto km = Helper::gather_maxdet_metric(metrics, kvv2v, kvv_c, nm);
           auto k_qual = metric_element_quality(kvv2nx, km);
           new_qual = min2(new_qual, k_qual);
           if (new_qual <= last_qual) break;

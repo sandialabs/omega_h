@@ -63,13 +63,11 @@ void swap3d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
   auto metrics = mesh->get_array<Real>(VERT, "metric");
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (metric_dim == 3) {
-    swap3d_qualities_tmpl<3>(
-        mesh, opts, cands2edges, cand_quals, cand_configs);
+    swap3d_qualities_tmpl<3>(mesh, opts, cands2edges, cand_quals, cand_configs);
     return;
   }
   if (metric_dim == 1) {
-    swap3d_qualities_tmpl<1>(
-        mesh, opts, cands2edges, cand_quals, cand_configs);
+    swap3d_qualities_tmpl<1>(mesh, opts, cands2edges, cand_quals, cand_configs);
     return;
   }
   NORETURN();

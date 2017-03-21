@@ -1,8 +1,8 @@
 #include "internal.hpp"
 
 #include <algorithm>
-#include <iostream>
 #include <cctype>
+#include <iostream>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
@@ -118,8 +118,8 @@ GO Mesh::nglobal_ents(Int dim) {
 static void check_name_format(std::string const& name) {
   for (auto c : name) {
     if (!(std::isalnum(c) || c == '_')) {
-      Omega_h_fail("tag name \"%s\" is not alphanumeric+underscores\n",
-          name.c_str());
+      Omega_h_fail(
+          "tag name \"%s\" is not alphanumeric+underscores\n", name.c_str());
     }
   }
 }
@@ -509,8 +509,7 @@ void Mesh::balance(bool predictive) {
   Reals masses;
   Real abs_tol;
   if (predictive) {
-    masses =
-        expected_elems_per_elem(this, get_array<Real>(VERT, "metric"));
+    masses = expected_elems_per_elem(this, get_array<Real>(VERT, "metric"));
     /* average between input mesh weight (1.0)
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);

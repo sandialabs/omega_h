@@ -1,9 +1,9 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_motion.hpp"
+#include "Omega_h_transfer.hpp"
 #include "access.hpp"
 #include "metric.hpp"
 #include "size.hpp"
-#include "Omega_h_transfer.hpp"
 
 namespace Omega_h {
 

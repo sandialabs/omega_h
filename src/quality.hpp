@@ -31,7 +31,9 @@ INLINE Real mean_ratio(Real size, Real mean_squared_length) {
 }
 
 template <Int space_dim>
-INLINE Real metric_size(Real real_size, NoMetric) { return real_size; }
+INLINE Real metric_size(Real real_size, NoMetric) {
+  return real_size;
+}
 
 /* This paper (and a few others):
  *

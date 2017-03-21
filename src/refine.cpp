@@ -4,11 +4,11 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_transfer.hpp"
 #include "indset.hpp"
 #include "modify.hpp"
 #include "refine_qualities.hpp"
 #include "refine_topology.hpp"
-#include "Omega_h_transfer.hpp"
 
 namespace Omega_h {
 

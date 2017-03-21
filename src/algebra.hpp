@@ -153,9 +153,7 @@ INLINE Matrix<m, n> zero_matrix() {
   return a;
 }
 
-INLINE Real determinant(Matrix<1, 1> m) {
-  return m[0][0];
-}
+INLINE Real determinant(Matrix<1, 1> m) { return m[0][0]; }
 
 INLINE Real determinant(Matrix<2, 2> m) {
   Real a = m[0][0];

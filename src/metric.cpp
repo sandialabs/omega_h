@@ -12,7 +12,8 @@
 namespace Omega_h {
 
 Int get_metric_dim(Int ncomps) {
-  for (Int i = 1; i <= 3; ++i) if (ncomps == symm_dofs(i)) return i;
+  for (Int i = 1; i <= 3; ++i)
+    if (ncomps == symm_dofs(i)) return i;
   NORETURN(Int());
 }
 
@@ -28,7 +29,8 @@ Int get_metric_dim(Mesh* mesh) {
 }
 
 template <Int dim>
-static Reals clamp_metrics_dim(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
+static Reals clamp_metrics_dim(
+    LO nmetrics, Reals metrics, Real h_min, Real h_max) {
   auto out = Write<Real>(nmetrics * symm_dofs(dim));
   auto f = LAMBDA(LO i) {
     auto m = get_symm<dim>(metrics, i);
@@ -221,7 +223,7 @@ Reals metric_from_hessians(Int dim, Reals hessians, Real eps) {
 
 /* gradation limiting code: */
 
-template <Int mesh_dim, Int metric_dim> 
+template <Int mesh_dim, Int metric_dim>
 static Reals limit_gradation_once_tmpl(
     Mesh* mesh, Reals values, Real max_rate) {
   auto v2v = mesh->ask_star(VERT);
@@ -250,8 +252,7 @@ static Reals limit_gradation_once_tmpl(
   return values;
 }
 
-static Reals limit_gradation_once(
-    Mesh* mesh, Reals values, Real max_rate) {
+static Reals limit_gradation_once(Mesh* mesh, Reals values, Real max_rate) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), values);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return limit_gradation_once_tmpl<3, 3>(mesh, values, max_rate);

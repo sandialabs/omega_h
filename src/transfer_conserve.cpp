@@ -5,10 +5,10 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_math.hpp"
 #include "Omega_h_r3d.hpp"
+#include "Omega_h_transfer.hpp"
 #include "collapse.hpp"
 #include "simplices.hpp"
 #include "size.hpp"
-#include "Omega_h_transfer.hpp"
 
 namespace Omega_h {
 

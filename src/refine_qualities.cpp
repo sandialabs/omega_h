@@ -21,8 +21,8 @@ struct MetricRefineQualities {
          */
         midpt_metrics(get_mident_metrics(
             mesh, EDGE, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
-  DEVICE Real measure(
-      Int cand, Few<Vector<mesh_dim>, mesh_dim + 1> p, Few<LO, mesh_dim> csv2v) const {
+  DEVICE Real measure(Int cand, Few<Vector<mesh_dim>, mesh_dim + 1> p,
+      Few<LO, mesh_dim> csv2v) const {
     Few<Matrix<metric_dim, metric_dim>, mesh_dim + 1> ms;
     for (Int csv = 0; csv < mesh_dim; ++csv)
       ms[csv] = get_symm<metric_dim>(vert_metrics, csv2v[csv]);

@@ -13,13 +13,14 @@ INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
 }
 
 template <Int space_dim>
-INLINE typename std::enable_if<(space_dim > 1), Real>::type
-metric_product(Matrix<1, 1> m, Vector<space_dim> v) {
+INLINE typename std::enable_if<(space_dim > 1), Real>::type metric_product(
+    Matrix<1, 1> m, Vector<space_dim> v) {
   return v * (m[0][0] * v);
 }
 
 template <Int metric_dim, Int space_dim>
-INLINE Real metric_length(Matrix<metric_dim, metric_dim> m, Vector<space_dim> v) {
+INLINE Real metric_length(
+    Matrix<metric_dim, metric_dim> m, Vector<space_dim> v) {
   return sqrt(metric_product(m, v));
 }
 
@@ -28,9 +29,7 @@ INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
-INLINE Real metric_length_from_eigenvalue(Real l) {
-  return 1.0 / sqrt(l);
-}
+INLINE Real metric_length_from_eigenvalue(Real l) { return 1.0 / sqrt(l); }
 
 template <Int dim>
 INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> l) {
@@ -154,7 +153,8 @@ INLINE T average_metric(Few<T, n> ms) {
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> clamp_metric(Matrix<dim, dim> m, Real h_min, Real h_max) {
+INLINE Matrix<dim, dim> clamp_metric(
+    Matrix<dim, dim> m, Real h_min, Real h_max) {
   auto dc = decompose_metric(m);
   for (Int i = 0; i < dim; ++i) dc.l[i] = clamp(dc.l[i], h_min, h_max);
   return compose_metric(dc.q, dc.l);

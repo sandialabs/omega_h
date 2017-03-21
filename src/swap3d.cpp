@@ -3,10 +3,10 @@
 #include <iostream>
 
 #include "Omega_h_map.hpp"
+#include "Omega_h_transfer.hpp"
 #include "indset.hpp"
 #include "modify.hpp"
 #include "swap.hpp"
-#include "Omega_h_transfer.hpp"
 #include "transfer_conserve.hpp"
 
 namespace Omega_h {

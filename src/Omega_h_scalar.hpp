@@ -94,10 +94,14 @@ constexpr OMEGA_H_INLINE T raise(T x, Int p) {
 }
 
 template <typename T>
-constexpr OMEGA_H_INLINE T square(T x) { return raise(x, 2); }
+constexpr OMEGA_H_INLINE T square(T x) {
+  return raise(x, 2);
+}
 
 template <typename T>
-OMEGA_H_INLINE Real cube(T x) { return raise(x, 3); }
+OMEGA_H_INLINE Real cube(T x) {
+  return raise(x, 3);
+}
 
 OMEGA_H_INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
 
@@ -144,8 +148,7 @@ constexpr OMEGA_H_INLINE Int gcd(Int a, Int b) {
  * the fraction via gdc(), and returning the original value
  * if the fraction is unity.
  */
-template <Int np, Int dp,
-          Int cd = gcd(np, dp)>
+template <Int np, Int dp, Int cd = gcd(np, dp)>
 struct Power : public Power<np / cd, dp / cd> {
   using Power<np / cd, dp / cd>::eval;
   static_assert(cd != 1, "reduced case should be specialized");

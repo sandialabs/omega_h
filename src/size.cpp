@@ -244,8 +244,7 @@ Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
   return out;
 }
 
-Reals get_gradient_isos(
-    Mesh* mesh, Real error_bound, Reals scalar_field) {
+Reals get_gradient_isos(Mesh* mesh, Real error_bound, Reals scalar_field) {
   auto gradients = recover_gradients(mesh, scalar_field);
   auto norms = get_vector_norms(gradients, mesh->dim());
   auto out = Write<Real>(mesh->nverts());
