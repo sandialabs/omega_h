@@ -7,6 +7,7 @@
 
 #include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_scalar.hpp>
 
 namespace Omega_h {
 
@@ -68,6 +69,41 @@ OMEGA_H_INLINE void add_unique(Few<T, capacity>& stack, Int& n, T e) {
   for (Int i = 0; i < n; ++i)
     if (stack[i] == e) return;
   stack[n++] = e;
+}
+
+template <Int n, typename T>
+OMEGA_H_INLINE T average(Few<T, n> x) {
+  auto avg = x[0];
+  for (Int i = 1; i < n; ++i) avg = avg + x[i];
+  return avg / n;
+}
+
+template <Int n, typename T>
+OMEGA_H_INLINE T minimum(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = min2(out, x[i]);
+  return out;
+}
+
+template <Int n, typename T>
+OMEGA_H_INLINE T maximum(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = max2(out, x[i]);
+  return out;
+}
+
+template <Int n, typename T>
+OMEGA_H_INLINE T sum(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = out + x[i];
+  return out;
+}
+
+template <Int n, typename T>
+OMEGA_H_INLINE T product(Few<T, n> x) {
+  auto out = x[0];
+  for (Int i = 1; i < n; ++i) out = out * x[i];
+  return out;
 }
 
 }  // namespace Omega_h
