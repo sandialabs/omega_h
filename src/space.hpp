@@ -1,5 +1,5 @@
-#ifndef SPACE_HPP
-#define SPACE_HPP
+#ifndef OMEGA_H_SPACE_HPP
+#define OMEGA_H_SPACE_HPP
 
 #include "algebra.hpp"
 #include "internal.hpp"
