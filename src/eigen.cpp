@@ -1,13 +1,15 @@
 #include "eigen.hpp"
 
+#include "Omega_h_loop.hpp"
+
 namespace Omega_h {
 
 template <Int dim>
 Reals get_max_eigenvalues_dim(Reals symms) {
-  CHECK(symms.size() % symm_dofs(dim) == 0);
+  OMEGA_H_CHECK(symms.size() % symm_dofs(dim) == 0);
   auto n = symms.size() / symm_dofs(dim);
   auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     auto a = get_symm<dim>(symms, i);
     auto ews = get_eigenvalues(a);
     auto best_ew = fabs(ews.values[0]);
@@ -24,7 +26,7 @@ Reals get_max_eigenvalues_dim(Reals symms) {
 Reals get_max_eigenvalues(Int dim, Reals symms) {
   if (dim == 3) return get_max_eigenvalues_dim<3>(symms);
   if (dim == 2) return get_max_eigenvalues_dim<2>(symms);
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 }  // end namespace Omega_h

@@ -7,38 +7,38 @@
 namespace Omega_h {
 
 template <Int dim>
-INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
+OMEGA_H_INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
   return v * (m * v);
 }
 
 template <Int space_dim>
-INLINE typename std::enable_if<(space_dim > 1), Real>::type metric_product(
+OMEGA_H_INLINE typename std::enable_if<(space_dim > 1), Real>::type metric_product(
     Matrix<1, 1> m, Vector<space_dim> v) {
   return v * (m[0][0] * v);
 }
 
 template <Int metric_dim, Int space_dim>
-INLINE Real metric_length(
+OMEGA_H_INLINE Real metric_length(
     Matrix<metric_dim, metric_dim> m, Vector<space_dim> v) {
   return sqrt(metric_product(m, v));
 }
 
 template <Int dim>
-INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
+OMEGA_H_INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
-INLINE Real metric_length_from_eigenvalue(Real l) { return 1.0 / sqrt(l); }
+OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) { return 1.0 / sqrt(l); }
 
 template <Int dim>
-INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> l) {
+OMEGA_H_INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> l) {
   Vector<dim> h;
   for (Int i = 0; i < dim; ++i) h[i] = metric_length_from_eigenvalue(l[i]);
   return h;
 }
 
 template <Int dim>
-INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
+OMEGA_H_INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto ed = decompose_eigen(m);
   auto h = metric_lengths_from_eigenvalues(ed.l);
   return {ed.q, h};
@@ -67,7 +67,7 @@ https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
 */
 
 template <Int dim>
-INLINE Matrix<dim, dim> intersect_metrics(
+OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
     Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
   auto n = invert(m1) * m2;
   auto n_decomp = decompose_eigen(n);
@@ -127,17 +127,17 @@ That is the mechanism we use here:
 */
 
 template <Int dim>
-INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
+OMEGA_H_INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
   return log_spd(m);
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
+OMEGA_H_INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
   return exp_spd(log_m);
 }
 
 template <Int n, typename T>
-INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
+OMEGA_H_INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
   Few<T, n> log_ms;
   for (Int i = 0; i < n; ++i) log_ms[i] = linearize_metric(ms[i]);
   return log_ms;
@@ -147,12 +147,12 @@ INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
  * the barycenter of a simplex; does several eigendecompositions
  */
 template <Int n, typename T>
-INLINE T average_metric(Few<T, n> ms) {
+OMEGA_H_INLINE T average_metric(Few<T, n> ms) {
   return delinearize_metric(average(linearize_metrics(ms)));
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> clamp_metric(
+OMEGA_H_INLINE Matrix<dim, dim> clamp_metric(
     Matrix<dim, dim> m, Real h_min, Real h_max) {
   auto dc = decompose_metric(m);
   for (Int i = 0; i < dim; ++i) dc.l[i] = clamp(dc.l[i], h_min, h_max);
@@ -168,7 +168,7 @@ INLINE Matrix<dim, dim> clamp_metric(
  * potential element (we do a lot of cavity pre-evaluation).
  */
 template <Int dim, Int n>
-INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
+OMEGA_H_INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   auto m = ms[0];
   auto maxdet = determinant(m);
   for (Int i = 1; i < n; ++i) {
@@ -180,6 +180,8 @@ INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   }
   return m;
 }
+
+class Mesh;
 
 Int get_metric_dim(Int ncomps);
 Int get_metrics_dim(LO nmetrics, Reals metrics);

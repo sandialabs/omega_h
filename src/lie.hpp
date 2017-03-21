@@ -11,7 +11,7 @@ namespace Omega_h {
 
 // logarithm of a symmetric positive definite tensor
 template <Int dim>
-INLINE Matrix<dim, dim> log_spd(Matrix<dim, dim> m) {
+OMEGA_H_INLINE Matrix<dim, dim> log_spd(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = ::log(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -19,7 +19,7 @@ INLINE Matrix<dim, dim> log_spd(Matrix<dim, dim> m) {
 
 // exponential resulting in a symmetric positive definite tensor
 template <Int dim>
-INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
+OMEGA_H_INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = ::exp(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -27,14 +27,14 @@ INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
 
 // square root of a symmetric positive definite tensor
 template <Int dim>
-INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
+OMEGA_H_INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = ::sqrt(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
 }
 
 // logarithm of a tensor in Special Orthogonal Group(3), as axis times angle
-INLINE Vector<3> log_so(Matrix<3, 3> r) {
+OMEGA_H_INLINE Vector<3> log_so(Matrix<3, 3> r) {
   auto a = rotation_angle(r);
   if (fabs(a) < EPSILON) return zero_vector<3>();
   if (fabs(a - PI) < EPSILON) {
@@ -55,17 +55,17 @@ INLINE Vector<3> log_so(Matrix<3, 3> r) {
 }
 
 // exponential of axis-angle, resulting in an SO(3) tensor
-INLINE Matrix<3, 3> exp_so(Vector<3> axis_angle) {
+OMEGA_H_INLINE Matrix<3, 3> exp_so(Vector<3> axis_angle) {
   auto a = norm(axis_angle);
   if (fabs(a) < EPSILON) return identity_matrix<3, 3>();
   return rotate(a, axis_angle / a);
 }
 
 // logarithm of a tensor in Special Orthogonal Group(2), as angle
-INLINE Real log_so(Matrix<2, 2> r) { return rotation_angle(r); }
+OMEGA_H_INLINE Real log_so(Matrix<2, 2> r) { return rotation_angle(r); }
 
 // exponential of angle, resulting in an SO(2) tensor
-INLINE Matrix<2, 2> exp_so(Real angle) { return rotate(angle); }
+OMEGA_H_INLINE Matrix<2, 2> exp_so(Real angle) { return rotate(angle); }
 
 template <Int dim>
 struct LogDecomp;
@@ -85,10 +85,7 @@ struct LogDecomp<3> {
 OMEGA_H_INLINE constexpr Int polar_dofs(Int dim) { return matrix_dofs(dim); }
 
 template <Int dim>
-struct LogGLP;
-
-template <Int dim>
-INLINE LogDecomp<dim> log_glp(Matrix<dim, dim> a) {
+OMEGA_H_INLINE LogDecomp<dim> log_glp(Matrix<dim, dim> a) {
   auto aa_dc = decompose_eigen(transpose(a) * a);
   Vector<dim> p_l;
   for (Int i = 0; i < dim; ++i) p_l[i] = ::sqrt(aa_dc.l[i]);
@@ -102,7 +99,7 @@ INLINE LogDecomp<dim> log_glp(Matrix<dim, dim> a) {
 }
 
 template <Int dim>
-INLINE Matrix<dim, dim> exp_glp(LogDecomp<dim> log_a) {
+OMEGA_H_INLINE Matrix<dim, dim> exp_glp(LogDecomp<dim> log_a) {
   auto p = exp_spd(log_a.log_p);
   auto u = exp_so(log_a.log_u);
   return u * p;
