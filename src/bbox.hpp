@@ -1,7 +1,7 @@
 #ifndef BBOX_HPP
 #define BBOX_HPP
 
-#include "algebra.hpp"
+#include <Omega_h_vector.hpp>
 
 namespace Omega_h {
 
@@ -26,7 +26,7 @@ struct BBox {
 };
 
 template <Int dim>
-INLINE BBox<dim> unite(BBox<dim> a, BBox<dim> b) {
+OMEGA_H_INLINE BBox<dim> unite(BBox<dim> a, BBox<dim> b) {
   BBox<dim> c;
   for (Int i = 0; i < dim; ++i) {
     c.min[i] = min2(a.min[i], b.min[i]);
@@ -36,7 +36,7 @@ INLINE BBox<dim> unite(BBox<dim> a, BBox<dim> b) {
 }
 
 template <Int dim>
-INLINE bool are_close(BBox<dim> a, BBox<dim> b) {
+OMEGA_H_INLINE bool are_close(BBox<dim> a, BBox<dim> b) {
   return are_close(a.min, b.min) && are_close(a.max, b.max);
 }
 

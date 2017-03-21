@@ -1,6 +1,6 @@
 #include "Omega_h.hpp"
 #include "Omega_h_timer.hpp"
-#include "access.hpp"
+#include "internal.hpp"
 
 #include <iostream>
 

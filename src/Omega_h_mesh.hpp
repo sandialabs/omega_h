@@ -152,6 +152,8 @@ bool can_print(Mesh* mesh);
 
 Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
 
+Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x);
+
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \
       Int dim, std::string const& name) const;                                 \

@@ -1,7 +1,6 @@
 #include "Omega_h.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_map.hpp"
-#include "access.hpp"
 #include "eigen.hpp"
 #include "host_few.hpp"
 #include "space.hpp"

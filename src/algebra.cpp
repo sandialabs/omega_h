@@ -1,5 +1,5 @@
 #include "algebra.hpp"
-#include "access.hpp"
+#include "internal.hpp"
 
 namespace Omega_h {
 

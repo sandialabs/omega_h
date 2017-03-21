@@ -1,6 +1,5 @@
 #include "Omega_h_confined.hpp"
 
-#include "access.hpp"
 #include "internal.hpp"
 
 /* Code to find classification-enforced constraints on

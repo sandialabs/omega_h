@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
-#include "access.hpp"
 #include "bipart.hpp"
 #include "eigen.hpp"
 #include "space.hpp"

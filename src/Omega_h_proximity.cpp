@@ -4,7 +4,6 @@
 #include "Omega_h_confined.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_math.hpp"
-#include "access.hpp"
 #include "simplices.hpp"
 #include "space.hpp"
 

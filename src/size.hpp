@@ -1,7 +1,6 @@
 #ifndef SIZE_HPP
 #define SIZE_HPP
 
-#include "access.hpp"
 #include "algebra.hpp"
 #include "metric.hpp"
 #include "qr.hpp"

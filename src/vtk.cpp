@@ -6,7 +6,6 @@
 #include <zlib.h>
 #endif
 
-#include "access.hpp"
 #include "base64.hpp"
 #include "simplices.hpp"
 #include "xml.hpp"

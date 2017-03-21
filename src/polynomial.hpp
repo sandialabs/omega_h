@@ -2,6 +2,7 @@
 #define POLYNOMIAL_HPP
 
 #include "algebra.hpp"
+#include "internal.hpp"
 
 namespace Omega_h {
 

@@ -3,7 +3,6 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
-#include "access.hpp"
 #include "host_few.hpp"
 #include "project.hpp"
 #include "simplices.hpp"

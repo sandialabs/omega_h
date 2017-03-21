@@ -1,6 +1,8 @@
 #ifndef QR_HPP
 #define QR_HPP
 
+#include "internal.hpp"
+
 namespace Omega_h {
 
 /* Trefethen, Lloyd N., and David Bau III.

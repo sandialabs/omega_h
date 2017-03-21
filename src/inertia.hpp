@@ -1,6 +1,10 @@
 #ifndef INERTIA_HPP
 #define INERTIA_HPP
 
+#include <vector>
+
+#include "Omega_h_vector.hpp"
+#include "Omega_h_remotes.hpp"
 #include "algebra.hpp"
 
 namespace Omega_h {

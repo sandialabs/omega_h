@@ -1,7 +1,7 @@
 #include "bbox.hpp"
 
 #include "Omega_h_math.hpp"
-#include "access.hpp"
+#include "internal.hpp"
 
 namespace Omega_h {
 

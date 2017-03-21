@@ -152,6 +152,8 @@ OMEGA_H_DEVICE Vector<n> get_vector(Arr const& a, Int i) {
 
 Reals get_vector_norms(Reals vs, Int dim);
 Reals normalize_vectors(Reals vs, Int dim);
+Reals vectors_2d_to_3d(Reals vecs2);
+Reals vectors_3d_to_2d(Reals vecs2);
 
 }
 

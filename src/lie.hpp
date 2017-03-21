@@ -5,7 +5,6 @@
  * not as in the opposite of truth.
  */
 
-#include "access.hpp"
 #include "eigen.hpp"
 
 namespace Omega_h {

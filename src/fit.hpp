@@ -14,7 +14,6 @@
  * number of elements adjacent to a vertex.
  */
 
-#include "access.hpp"
 #include "qr.hpp"
 #include "simplices.hpp"
 

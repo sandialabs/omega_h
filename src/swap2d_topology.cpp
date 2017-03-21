@@ -1,7 +1,6 @@
 #include "swap2d.hpp"
 
 #include "Omega_h_align.hpp"
-#include "access.hpp"
 #include "simplices.hpp"
 
 namespace Omega_h {
