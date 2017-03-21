@@ -77,7 +77,7 @@ static void set_target_metric(Mesh* mesh, int which_metric, bool should_limit) {
                            : ((which_metric == 2) ? get_second_metric(mesh)
                                                   : get_third_metric(mesh)));
   if (should_limit) {
-    target_metrics = limit_size_field_gradation(mesh, target_metrics, 1.0);
+    target_metrics = limit_metric_gradation(mesh, target_metrics, 1.0);
   }
   mesh->set_tag(VERT, "target_metric", target_metrics);
 }
