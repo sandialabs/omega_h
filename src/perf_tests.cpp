@@ -9,7 +9,6 @@
 #include "internal.hpp"
 #include "metric.hpp"
 #include "sort.hpp"
-#include "space.hpp"
 
 using namespace Omega_h;
 

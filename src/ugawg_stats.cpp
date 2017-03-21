@@ -2,7 +2,6 @@
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_math.hpp"
 #include "simplices.hpp"
-#include "space.hpp"
 
 #include <iostream>
 

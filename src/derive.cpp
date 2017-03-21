@@ -1,10 +1,8 @@
 #include "Omega_h_size_field.hpp"
 
-#include <iostream>
-
 #include "Omega_h_map.hpp"
 #include "project.hpp"
-#include "space.hpp"
+#include "internal.hpp"
 
 namespace Omega_h {
 

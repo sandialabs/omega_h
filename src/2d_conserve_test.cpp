@@ -5,7 +5,6 @@
 #include "Omega_h_timer.hpp"
 #include "internal.hpp"
 #include "size.hpp"
-#include "space.hpp"
 
 using namespace Omega_h;
 

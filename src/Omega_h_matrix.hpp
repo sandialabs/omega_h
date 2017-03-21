@@ -206,9 +206,8 @@ OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> a) {
   return matrix_3x3(0, -a[2], a[1], a[2], 0, -a[0], -a[1], a[0], 0);
 }
 
-OMEGA_H_INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
-  return vector_3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
-      a[0] * b[1] - a[1] * b[0]);
+OMEGA_H_INLINE Vector<3> uncross(Matrix<3, 3> c) {
+  return vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]) / 2.;
 }
 
 OMEGA_H_INLINE Matrix<1, 1> invert(Matrix<1, 1> m) { return matrix_1x1(1.0 / m[0][0]); }
@@ -348,6 +347,57 @@ OMEGA_H_DEVICE void set_matrix(Write<Real> const& a, Int i, Matrix<dim, dim> m) 
 template <Int dim>
 OMEGA_H_DEVICE Matrix<dim, dim> get_matrix(Reals const& a, Int i) {
   return vector2symm(get_vector<matrix_dofs(dim)>(a, i));
+}
+
+/* Rodrigues' Rotation Formula */
+OMEGA_H_INLINE Matrix<3, 3> rotate(Real angle, Vector<3> axis) {
+  return cos(angle) * identity_matrix<3, 3>() + sin(angle) * cross(axis) +
+         (1 - cos(angle)) * outer_product(axis, axis);
+}
+
+OMEGA_H_INLINE Matrix<2, 2> rotate(Real angle) {
+  return matrix_2x2(cos(angle), -sin(angle), sin(angle), cos(angle));
+}
+
+OMEGA_H_INLINE Real rotation_angle(Matrix<2, 2> r) { return acos(r[0][0]); }
+
+OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) __attribute__((pure));
+OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) {
+  return acos((trace(r) - 1.0) / 2.0);
+}
+
+OMEGA_H_INLINE Matrix<2, 2> form_ortho_basis(Vector<2> v) {
+  Matrix<2, 2> A;
+  A[0] = normalize(v);
+  A[1] = perp(A[0]);
+  return A;
+}
+
+OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
+  Matrix<3, 3> A;
+  A[0] = v;
+  /* tiny custom code to sort components by absolute value */
+  struct {
+    Int i;
+    Real m;
+  } s[3] = {{0, fabs(v[0])}, {1, fabs(v[1])}, {2, fabs(v[2])}};
+  if (s[2].m > s[1].m) swap2(s[1], s[2]);
+  if (s[1].m > s[0].m) swap2(s[0], s[1]);
+  if (s[2].m > s[1].m) swap2(s[1], s[2]);
+  /* done, components sorted by increasing magnitude */
+  Int lc = s[0].i;
+  Int mc = s[1].i;
+  Int sc = s[2].i;
+  /* use the 2D rotation on the largest components
+     (rotate v around the smallest axis) */
+  A[1][lc] = -v[mc];
+  A[1][mc] = v[lc];
+  /* and make the last component zero so that A[0] * A[1] == 0 */
+  A[1][sc] = 0;
+  A[1] = normalize(A[1]);
+  /* now we have 2 orthogonal unit vectors, cross product gives the third */
+  A[2] = cross(A[0], A[1]);
+  return A;
 }
 
 template <Int dim>

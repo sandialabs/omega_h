@@ -5,7 +5,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_math.hpp"
 #include "simplices.hpp"
-#include "space.hpp"
+#include "size.hpp"
 
 namespace Omega_h {
 

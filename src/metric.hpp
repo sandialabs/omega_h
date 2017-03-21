@@ -3,7 +3,6 @@
 
 #include "eigen.hpp"
 #include "lie.hpp"
-#include "space.hpp"
 
 namespace Omega_h {
 

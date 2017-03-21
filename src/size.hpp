@@ -1,13 +1,79 @@
-#ifndef SIZE_HPP
-#define SIZE_HPP
+#ifndef OMEGA_H_SIZE_HPP
+#define OMEGA_H_SIZE_HPP
 
 #include "algebra.hpp"
 #include "metric.hpp"
 #include "qr.hpp"
 #include "simplices.hpp"
-#include "space.hpp"
 
 namespace Omega_h {
+
+template <Int sdim, Int edim>
+INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
+  Matrix<sdim, edim> b;
+  for (Int i = 0; i < edim; ++i) b[i] = p[i + 1] - p[0];
+  return b;
+}
+
+template <Int dim>
+struct Affine {
+  Matrix<dim, dim> r;
+  Vector<dim> t;
+};
+
+template <Int dim>
+INLINE Vector<dim> operator*(Affine<dim> a, Vector<dim> v) {
+  return (a.r * v) + a.t;
+}
+
+template <Int dim>
+INLINE Affine<dim> invert(Affine<dim> a) {
+  Affine<dim> ai;
+  ai.r = invert(a.r);
+  ai.t = -(ai.r * a.t);
+  return ai;
+}
+
+template <Int dim>
+INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
+  Affine<dim> a;
+  a.r = simplex_basis<dim, dim>(p);
+  a.t = p[0];
+  return a;
+}
+
+template <Int dim>
+struct Sphere {
+  Vector<dim> c;
+  Real r;
+};
+
+template <Int dim>
+struct Plane {
+  Vector<dim> n; /*!< Unit-length normal vector. */
+  Real d;        /*!< Signed perpendicular distance to the origin. */
+};
+
+template <Int dim>
+INLINE Real distance(Plane<dim> plane, Vector<dim> point) {
+  return (plane.n * point) - plane.d;
+}
+
+template <Int dim>
+INLINE Vector<dim + 1> form_barycentric(Vector<dim> c) {
+  Vector<dim + 1> xi;
+  xi[dim] = 1.0;
+  for (Int i = 0; i < dim; ++i) {
+    xi[i] = c[i];
+    xi[dim] -= c[i];
+  }
+  return xi;
+}
+
+template <Int n>
+INLINE bool is_barycentric_inside(Vector<n> xi) {
+  return 0.0 <= minimum(xi) && maximum(xi) <= 1.0;
+}
 
 INLINE Real triangle_area(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
@@ -259,6 +325,44 @@ Vector<dim> get_volume_vert_gradient(Few<Vector<dim>, dim + 1> p, Int ivert) {
   auto iside = opposite_template(dim, VERT, ivert);
   auto n = -get_side_normal(p, iside);
   return n / Real(factorial(dim));
+}
+
+/* This code is copied from the tricircumcenter3d() function
+ * by Shewchuk:
+ * http://www.ics.uci.edu/~eppstein/junkyard/circumcenter.html
+ * To:             compgeom-discuss@research.bell-labs.com
+ * Subject:        Re: circumsphere
+ * Date:           Wed, 1 Apr 98 0:34:28 EST
+ * From:           Jonathan R Shewchuk <jrs+@cs.cmu.edu>
+ *
+ * given the basis vectors of a triangle in 3D,
+ * this function returns the vector from the first vertex
+ * to the triangle's circumcenter
+ */
+
+INLINE Vector<3> get_circumcenter_vector(Few<Vector<3>, 2> basis) {
+  auto ba = basis[0];
+  auto ca = basis[1];
+  auto balength = norm_squared(ba);
+  auto calength = norm_squared(ca);
+  auto crossbc = cross(ba, ca);
+  auto factor = 0.5 / norm_squared(crossbc);
+  auto xcirca = ((balength * ca[1] - calength * ba[1]) * crossbc[2] -
+                    (balength * ca[2] - calength * ba[2]) * crossbc[1]) *
+                factor;
+  auto ycirca = ((balength * ca[2] - calength * ba[2]) * crossbc[0] -
+                    (balength * ca[0] - calength * ba[0]) * crossbc[2]) *
+                factor;
+  auto zcirca = ((balength * ca[0] - calength * ba[0]) * crossbc[1] -
+                    (balength * ca[1] - calength * ba[1]) * crossbc[0]) *
+                factor;
+  return vector_3(xcirca, ycirca, zcirca);
+}
+
+template <Int dim>
+INLINE Vector<dim> get_triangle_normal(
+    Vector<dim> a, Vector<dim> b, Vector<dim> c) {
+  return cross(b - a, c - a);
 }
 
 }  // end namespace Omega_h

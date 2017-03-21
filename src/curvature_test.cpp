@@ -3,7 +3,6 @@
 #include "Omega_h_map.hpp"
 #include "eigen.hpp"
 #include "host_few.hpp"
-#include "space.hpp"
 #include "surface.hpp"
 
 #include <sstream>

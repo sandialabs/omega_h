@@ -7,7 +7,6 @@
 #include "metric.hpp"
 #include "quality.hpp"
 #include "size.hpp"
-#include "space.hpp"
 #include "transfer_conserve.hpp"
 
 namespace Omega_h {

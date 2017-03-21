@@ -2,7 +2,6 @@
 #define EIGEN_HPP
 
 #include "polynomial.hpp"
-#include "space.hpp"
 
 namespace Omega_h {
 

@@ -138,6 +138,17 @@ OMEGA_H_INLINE Vector<n> positivize(Vector<n> v) {
   return v;
 }
 
+OMEGA_H_INLINE Real cross(Vector<2> a, Vector<2> b) {
+  return (a[0] * b[1] - a[1] * b[0]);
+}
+
+OMEGA_H_INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
+  return vector_3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
+      a[0] * b[1] - a[1] * b[0]);
+}
+
+OMEGA_H_INLINE Vector<2> perp(Vector<2> v) { return vector_2(-v[1], v[0]); }
+
 template <Int n>
 OMEGA_H_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
   for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
