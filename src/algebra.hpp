@@ -8,28 +8,6 @@
 
 namespace Omega_h {
 
-template <Int n>
-INLINE Vector<n> operator-(Vector<n> a) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = -a[i];
-  return c;
-}
-
-template <Int n>
-INLINE bool are_close(
-    Vector<n> a, Vector<n> b, Real tol = EPSILON, Real floor = EPSILON) {
-  for (Int i = 0; i < n; ++i)
-    if (!are_close(a[i], b[i], tol, floor)) return false;
-  return true;
-}
-
-template <Int n>
-INLINE Vector<n> zero_vector() {
-  Vector<n> v;
-  for (Int i = 0; i < n; ++i) v[i] = 0.0;
-  return v;
-}
-
 template <Int m, Int n>
 INLINE Matrix<m, n> operator*(Matrix<m, n> a, Real b) {
   Matrix<m, n> c;
@@ -160,14 +138,6 @@ INLINE Matrix<3, 3> invert(Matrix<3, 3> a) {
   return transpose(b) / determinant(a);
 }
 
-/* Moore-Penrose pseudo-inverse of a vector */
-template <Int n>
-INLINE Vector<n> pseudo_invert(Vector<n> a) {
-  auto nsq = a * a;
-  if (nsq < EPSILON) return zero_vector<n>();
-  return a / nsq;
-}
-
 template <Int m, Int n>
 INLINE typename std::enable_if<(n < m), Matrix<n, m>>::type pseudo_invert(
     Matrix<m, n> a) {
@@ -182,22 +152,6 @@ INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type pseudo_invert(
   return at * invert(a * at);
 }
 
-/* a function to disambiguate a unit vector
-   from its negative. we treat the signs of
-   the components as bits of an integer,
-   and negate the components if the resulting
-   bit pattern makes a larger integer */
-template <Int n>
-INLINE Vector<n> positivize(Vector<n> v) {
-  std::uint32_t bits = 0;
-  for (Int i = 0; i < n; ++i) bits |= (std::uint32_t(v[i] >= 0.0) << i);
-  std::uint32_t neg_bits = (~bits) & ((std::uint32_t(1) << n) - 1);
-  if (neg_bits > bits) return v * -1.0;
-  return v;
-}
-
-Reals get_vector_norms(Reals vs, Int dim);
-Reals normalize_vectors(Reals vs, Int dim);
 Reals interpolate_between(Reals a, Reals b, Real t);
 
 }  // end namespace Omega_h

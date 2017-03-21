@@ -9,96 +9,9 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_few.hpp>
 #include <Omega_h_scalar.hpp>
+#include <Omega_h_vector.hpp>
 
 namespace Omega_h {
-
-template <Int n>
-class Vector : public Few<Real, n> {
- public:
-  OMEGA_H_INLINE Vector() {}
-  inline Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
-  OMEGA_H_INLINE void operator=(Vector<n> const& rhs) volatile {
-    Few<Real, n>::operator=(rhs);
-  }
-  OMEGA_H_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
-  OMEGA_H_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
-};
-
-template <Int n>
-OMEGA_H_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] + b[i];
-  return c;
-}
-
-template <Int n>
-OMEGA_H_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] - b[i];
-  return c;
-}
-
-template <Int n>
-OMEGA_H_INLINE Vector<n> operator*(Vector<n> a, Real b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] * b;
-  return c;
-}
-
-template <Int n>
-OMEGA_H_INLINE Vector<n> operator*(Real a, Vector<n> b) {
-  return b * a;
-}
-
-template <Int n>
-OMEGA_H_INLINE Vector<n> operator/(Vector<n> a, Real b) {
-  Vector<n> c;
-  for (Int i = 0; i < n; ++i) c[i] = a[i] / b;
-  return c;
-}
-
-template <Int n>
-OMEGA_H_INLINE Real operator*(Vector<n> a, Vector<n> b) {
-  Real c = a[0] * b[0];
-  for (Int i = 1; i < n; ++i) c += a[i] * b[i];
-  return c;
-}
-
-template <Int n>
-OMEGA_H_INLINE Real norm_squared(Vector<n> v) {
-  return v * v;
-}
-
-template <Int n>
-OMEGA_H_INLINE Real norm(Vector<n> v) {
-  return sqrt(norm_squared(v));
-}
-
-template <Int n>
-OMEGA_H_INLINE Vector<n> normalize(Vector<n> v) {
-  return v / norm(v);
-}
-
-OMEGA_H_INLINE Vector<1> vector_1(Real x) {
-  Vector<1> v;
-  v[0] = x;
-  return v;
-}
-
-OMEGA_H_INLINE Vector<2> vector_2(Real x, Real y) {
-  Vector<2> v;
-  v[0] = x;
-  v[1] = y;
-  return v;
-}
-
-OMEGA_H_INLINE Vector<3> vector_3(Real x, Real y, Real z) {
-  Vector<3> v;
-  v[0] = x;
-  v[1] = y;
-  v[2] = z;
-  return v;
-}
 
 /* column-first storage and indexing !!! */
 template <Int m, Int n>
