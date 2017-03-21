@@ -1,22 +1,16 @@
 #include "quality.hpp"
 
-#include <iomanip>
-#include <iostream>
-
-#include "Omega_h_array_ops.hpp"
-#include "Omega_h_map.hpp"
-
 namespace Omega_h {
 
-template <typename ElementQualities, Int dim>
+template <Int mesh_dim, Int metric_dim>
 Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
-  ElementQualities measurer(mesh);
-  auto ev2v = mesh->ask_verts_of(mesh->dim());
+  MetricElementQualities<mesh_dim, metric_dim> measurer(mesh);
+  auto ev2v = mesh->ask_verts_of(mesh_dim);
   auto na = a2e.size();
   Write<Real> qualities(na);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
-    auto v = gather_verts<dim + 1>(ev2v, e);
+    auto v = gather_verts<mesh_dim + 1>(ev2v, e);
     qualities[a] = measurer.measure(v);
   };
   parallel_for(na, f);
@@ -24,20 +18,21 @@ Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
 }
 
 Reals measure_qualities(Mesh* mesh, LOs a2e) {
-  if (mesh->dim() == 3) {
-    if (mesh->has_tag(VERT, "metric")) {
-      return measure_qualities_tmpl<MetricElementQualities, 3>(mesh, a2e);
-    } else {
-      return measure_qualities_tmpl<RealElementQualities, 3>(mesh, a2e);
-    }
-  } else {
-    CHECK(mesh->dim() == 2);
-    if (mesh->has_tag(VERT, "metric")) {
-      return measure_qualities_tmpl<MetricElementQualities, 2>(mesh, a2e);
-    } else {
-      return measure_qualities_tmpl<RealElementQualities, 2>(mesh, a2e);
-    }
+  auto metrics = mesh->get_array<Real>(VERT, "metric");
+  auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
+  if (mesh->dim() == 3 && metric_dim == 3) {
+    return measure_qualities_tmpl<3, 3>(mesh, a2e);
   }
+  if (mesh->dim() == 2 && metric_dim == 2) {
+    return measure_qualities_tmpl<2, 2>(mesh, a2e);
+  }
+  if (mesh->dim() == 3 && metric_dim == 1) {
+    return measure_qualities_tmpl<3, 1>(mesh, a2e);
+  }
+  if (mesh->dim() == 2 && metric_dim == 1) {
+    return measure_qualities_tmpl<2, 1>(mesh, a2e);
+  }
+  NORETURN(Reals());
 }
 
 Reals measure_qualities(Mesh* mesh) {

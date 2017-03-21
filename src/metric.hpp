@@ -12,8 +12,14 @@ INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
   return v * (m * v);
 }
 
-template <Int dim>
-INLINE Real metric_length(Matrix<dim, dim> m, Vector<dim> v) {
+template <Int space_dim>
+INLINE typename std::enable_if<(space_dim > 1), Real>::type
+metric_product(Matrix<1, 1> m, Vector<space_dim> v) {
+  return v * (m[0][0] * v);
+}
+
+template <Int metric_dim, Int space_dim>
+INLINE Real metric_length(Matrix<metric_dim, metric_dim> m, Vector<space_dim> v) {
   return sqrt(metric_product(m, v));
 }
 
@@ -22,17 +28,21 @@ INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
+INLINE Real metric_length_from_eigenvalue(Real l) {
+  return 1.0 / sqrt(l);
+}
+
 template <Int dim>
-INLINE Vector<dim> metric_lengths(Vector<dim> l) {
+INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> l) {
   Vector<dim> h;
-  for (Int i = 0; i < dim; ++i) h[i] = 1.0 / sqrt(l[i]);
+  for (Int i = 0; i < dim; ++i) h[i] = metric_length_from_eigenvalue(l[i]);
   return h;
 }
 
 template <Int dim>
 INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto ed = decompose_eigen(m);
-  auto h = metric_lengths(ed.l);
+  auto h = metric_lengths_from_eigenvalues(ed.l);
   return {ed.q, h};
 }
 
@@ -128,10 +138,6 @@ INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
   return exp_spd(log_m);
 }
 
-INLINE Real linearize_metric(Real h) { return ::log(h); }
-
-INLINE Real delinearize_metric(Real log_h) { return ::exp(log_h); }
-
 template <Int n, typename T>
 INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
   Few<T, n> log_ms;
@@ -140,11 +146,18 @@ INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
 }
 
 /* the "proper" way to interpolate the metric tensor to
- * the center of a simplex; does several eigendecompositions
+ * the barycenter of a simplex; does several eigendecompositions
  */
 template <Int n, typename T>
 INLINE T average_metric(Few<T, n> ms) {
   return delinearize_metric(average(linearize_metrics(ms)));
+}
+
+template <Int dim>
+INLINE Matrix<dim, dim> clamp_metric(Matrix<dim, dim> m, Real h_min, Real h_max) {
+  auto dc = decompose_metric(m);
+  for (Int i = 0; i < dim; ++i) dc.l[i] = clamp(dc.l[i], h_min, h_max);
+  return compose_metric(dc.q, dc.l);
 }
 
 /* a cheap hackish variant of interpolation for getting a metric
@@ -169,17 +182,19 @@ INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   return m;
 }
 
+Int get_metric_dim(Int ncomps);
+Int get_metrics_dim(LO nmetrics, Reals metrics);
+Int get_metric_dim(Mesh* mesh);
+
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
-Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t);
-Reals linearize_metrics(Int dim, Reals metrics);
-Reals delinearize_metrics(Int dim, Reals linear_metrics);
+Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t);
+Reals linearize_metrics(LO nmetrics, Reals metrics);
+Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
 
 /* used to achieve templated versions of code that either
- * accept a metric tensor or nothing (nothing being the case
- * of isotropic quality, where the actual isotropic value doesn't
- * matter because our shape measure is scale-invariant)
+ * accept a metric tensor or nothing
  */
-struct DummyIsoMetric {};
+struct NoMetric {};
 
 }  // end namespace Omega_h
 

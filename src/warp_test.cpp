@@ -76,8 +76,8 @@ int main(int argc, char** argv) {
   mesh.set_comm(world);
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto size = find_implied_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, size);
+  auto metrics = find_implied_isos(&mesh);
+  mesh.add_tag(VERT, "metric", 1, metrics);
   add_dye(&mesh);
   mesh.add_tag(mesh.dim(), "mass", 1, measure_elements_real(&mesh));
   add_pointwise(&mesh);

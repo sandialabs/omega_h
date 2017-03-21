@@ -11,15 +11,51 @@
 
 namespace Omega_h {
 
-template <Int sdim, Int edim>
+Int get_metric_dim(Int ncomps) {
+  for (Int i = 1; i <= 3; ++i) if (ncomps == symm_dofs(i)) return i;
+  NORETURN(Int());
+}
+
+Int get_metrics_dim(LO nmetrics, Reals metrics) {
+  CHECK(metrics.size() % nmetrics == 0);
+  auto ncomps = metrics.size() / nmetrics;
+  return get_metric_dim(ncomps);
+}
+
+Int get_metric_dim(Mesh* mesh) {
+  auto ncomps = mesh->get_tagbase(VERT, "metric")->ncomps();
+  return get_metric_dim(ncomps);
+}
+
+template <Int dim>
+static Reals clamp_metrics_dim(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
+  auto out = Write<Real>(nmetrics * symm_dofs(dim));
+  auto f = LAMBDA(LO i) {
+    auto m = get_symm<dim>(metrics, i);
+    m = clamp_metric(m, h_min, h_max);
+    set_symm(out, i, m);
+  };
+  parallel_for(nmetrics, f);
+  return out;
+}
+
+Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
+  auto dim = get_metrics_dim(nmetrics, metrics);
+  if (dim == 3) return clamp_metrics_dim<3>(nmetrics, metrics, h_min, h_max);
+  if (dim == 2) return clamp_metrics_dim<2>(nmetrics, metrics, h_min, h_max);
+  if (dim == 1) return clamp_metrics_dim<1>(nmetrics, metrics, h_min, h_max);
+  NORETURN(Reals());
+}
+
+template <Int mdim, Int edim>
 static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
-  Write<Real> out(na * symm_dofs(sdim));
+  Write<Real> out(na * symm_dofs(mdim));
   auto ev2v = mesh->ask_verts_of(edim);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
     auto v = gather_verts<edim + 1>(ev2v, e);
-    auto ms = gather_symms<edim + 1, sdim>(v2m, v);
+    auto ms = gather_symms<edim + 1, mdim>(v2m, v);
     auto m = average_metric(ms);
     set_symm(out, a, m);
   };
@@ -28,26 +64,36 @@ static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
 }
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
-  if (mesh->dim() == 3 && ent_dim == 3) {
+  auto metrics_dim = get_metrics_dim(mesh->nverts(), v2m);
+  if (metrics_dim == 3 && ent_dim == 3) {
     return mident_metrics_tmpl<3, 3>(mesh, entities, v2m);
   }
-  if (mesh->dim() == 3 && ent_dim == 1) {
+  if (metrics_dim == 3 && ent_dim == 1) {
     return mident_metrics_tmpl<3, 1>(mesh, entities, v2m);
   }
-  if (mesh->dim() == 2 && ent_dim == 2) {
+  if (metrics_dim == 2 && ent_dim == 2) {
     return mident_metrics_tmpl<2, 2>(mesh, entities, v2m);
   }
-  if (mesh->dim() == 2 && ent_dim == 1) {
+  if (metrics_dim == 2 && ent_dim == 1) {
     return mident_metrics_tmpl<2, 1>(mesh, entities, v2m);
+  }
+  if (metrics_dim == 1 && ent_dim == 3) {
+    return mident_metrics_tmpl<1, 3>(mesh, entities, v2m);
+  }
+  if (metrics_dim == 1 && ent_dim == 2) {
+    return mident_metrics_tmpl<1, 2>(mesh, entities, v2m);
+  }
+  if (metrics_dim == 1 && ent_dim == 1) {
+    return mident_metrics_tmpl<1, 1>(mesh, entities, v2m);
   }
   NORETURN(Reals());
 }
 
-Reals interpolate_between_metrics(Int dim, Reals a, Reals b, Real t) {
-  auto log_a = linearize_metrics(dim, a);
-  auto log_b = linearize_metrics(dim, b);
+Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t) {
+  auto log_a = linearize_metrics(nmetrics, a);
+  auto log_b = linearize_metrics(nmetrics, b);
   auto log_c = interpolate_between(log_a, log_b, t);
-  return delinearize_metrics(dim, log_c);
+  return delinearize_metrics(nmetrics, log_c);
 }
 
 template <Int dim>
@@ -72,17 +118,19 @@ Reals delinearize_metrics_dim(Reals lms) {
   return out;
 }
 
-Reals linearize_metrics(Int dim, Reals metrics) {
-  CHECK(metrics.size() % symm_dofs(dim) == 0);
+Reals linearize_metrics(LO nmetrics, Reals metrics) {
+  auto dim = get_metrics_dim(nmetrics, metrics);
   if (dim == 3) return linearize_metrics_dim<3>(metrics);
   if (dim == 2) return linearize_metrics_dim<2>(metrics);
+  if (dim == 1) return linearize_metrics_dim<1>(metrics);
   NORETURN(Reals());
 }
 
-Reals delinearize_metrics(Int dim, Reals linear_metrics) {
-  CHECK(linear_metrics.size() % symm_dofs(dim) == 0);
+Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
+  auto dim = get_metrics_dim(nmetrics, linear_metrics);
   if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
   if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);
+  if (dim == 1) return delinearize_metrics_dim<1>(linear_metrics);
   NORETURN(Reals());
 }
 
@@ -136,7 +184,7 @@ void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
 
 template <Int dim>
 static INLINE Matrix<dim, dim> metric_from_hessian(
-    Matrix<dim, dim> hessian, Real eps, Real hmax) {
+    Matrix<dim, dim> hessian, Real eps) {
   auto ed = decompose_eigen(hessian);
   auto r = ed.q;
   auto l = ed.l;
@@ -144,154 +192,83 @@ static INLINE Matrix<dim, dim> metric_from_hessian(
   constexpr auto c_denom = 2 * square(dim + 1);
   decltype(l) tilde_l;
   for (Int i = 0; i < dim; ++i) {
-    auto val = (c_num * fabs(l[i])) / (c_denom * eps);
-    tilde_l[i] = max2(val, 1. / square(hmax));
+    tilde_l[i] = (c_num * fabs(l[i])) / (c_denom * eps);
   }
   return compose_eigen(r, tilde_l);
 }
 
 template <Int dim>
-static Reals metric_from_hessians_dim(Reals hessians, Real eps, Real hmax) {
+static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
   auto ncomps = symm_dofs(dim);
   CHECK(hessians.size() % ncomps == 0);
   auto n = hessians.size() / ncomps;
   auto out = Write<Real>(n * ncomps);
   auto f = LAMBDA(LO i) {
     auto hess = get_symm<dim>(hessians, i);
-    auto m = metric_from_hessian(hess, eps, hmax);
+    auto m = metric_from_hessian(hess, eps);
     set_symm(out, i, m);
   };
   parallel_for(n, f);
   return out;
 }
 
-Reals metric_from_hessians(Int dim, Reals hessians, Real eps, Real hmax) {
-  CHECK(hmax > 0.0);
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps) {
   CHECK(eps > 0.0);
-  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps, hmax);
-  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps, hmax);
+  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps);
+  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps);
   NORETURN(Reals());
-}
-
-Reals metric_for_nelems_from_hessians(
-    Mesh* mesh, Real target_nelems, Real tolerance, Reals hessians, Real hmax) {
-  CHECK(tolerance > 0);
-  CHECK(target_nelems > 0);
-  auto dim = mesh->dim();
-  Real scalar;
-  Reals metric;
-  Real eps = 1.0;
-  Int niters = 0;
-  do {
-    metric = metric_from_hessians(dim, hessians, eps, hmax);
-    scalar = metric_scalar_for_nelems(mesh, metric, target_nelems);
-    eps /= scalar;
-    ++niters;
-  } while (fabs(scalar - 1.0) > tolerance);
-  if (can_print(mesh)) {
-    std::cout << "after " << niters << " iterations,"
-              << " metric targets " << target_nelems << "*" << scalar
-              << " elements\n";
-  }
-  return metric;
 }
 
 /* gradation limiting code: */
 
-template <Int dim>
-class IsoGradation {
- public:
-  using Value = Real;
-  static INLINE Value form_limiter(Value h, Vector<dim> v, Real rate) {
-    auto real_dist = norm(v);
-    auto metric_dist = real_dist / h;
-    return h * (1.0 + metric_dist * rate);
-  }
-  static INLINE Value intersect(Value a, Value b) { return min2(a, b); }
-  static DEVICE Value get(Reals const& a, LO i) { return a[i]; }
-  static DEVICE void set(Write<Real> const& a, LO i, Value v) { a[i] = v; }
-  enum { ndofs = 1 };
-};
-
-template <Int dim>
-class AnisoGradation {
- public:
-  using Value = Matrix<dim, dim>;
-  static INLINE Value form_limiter(Value m, Vector<dim> v, Real rate) {
-    auto metric_dist = metric_length(m, v);
-    auto decomp = decompose_metric(m);
-    decomp.l = decomp.l * (1.0 + metric_dist * rate);
-    return compose_metric(decomp.q, decomp.l);
-  }
-  static INLINE Value intersect(Value a, Value b) {
-    return intersect_metrics(a, b);
-  }
-  static DEVICE Value get(Reals const& a, LO i) { return get_symm<dim>(a, i); }
-  static DEVICE void set(Write<Real> const& a, LO i, Value v) {
-    set_symm(a, i, v);
-  }
-  enum { ndofs = symm_dofs(dim) };
-};
-
-template <Int dim, template <Int> class Gradation>
-static INLINE typename Gradation<dim>::Value limit_size_value_by_adj(
-    typename Gradation<dim>::Value m, Vector<dim> x,
-    typename Gradation<dim>::Value am, Vector<dim> ax, Real rate) {
-  auto limiter = Gradation<dim>::form_limiter(am, ax - x, rate);
-  auto limited = Gradation<dim>::intersect(m, limiter);
-  return limited;
-}
-
-template <Int dim, template <Int> class Gradation>
-static Reals limit_size_field_once_by_adj_tmpl(
+template <Int mesh_dim, Int metric_dim> 
+static Reals limit_gradation_once_tmpl(
     Mesh* mesh, Reals values, Real max_rate) {
-  using G = Gradation<dim>;
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * G::ndofs);
+  auto out = Write<Real>(mesh->nverts() * symm_dofs(metric_dim));
   auto f = LAMBDA(LO v) {
-    auto m = G::get(values, v);
-    auto x = get_vector<dim>(coords, v);
+    auto m = get_symm<metric_dim>(values, v);
+    auto x = get_vector<mesh_dim>(coords, v);
     for (auto vv = v2v.a2ab[v]; vv < v2v.a2ab[v + 1]; ++vv) {
       auto av = v2v.ab2b[vv];
-      auto am = G::get(values, av);
-      auto ax = get_vector<dim>(coords, av);
-      m = limit_size_value_by_adj<dim, Gradation>(m, x, am, ax, max_rate);
+      auto am = get_symm<metric_dim>(values, av);
+      auto ax = get_vector<mesh_dim>(coords, av);
+      auto vec = ax - x;
+      auto metric_dist = metric_length(m, vec);
+      auto decomp = decompose_metric(m);
+      decomp.l = decomp.l * (1.0 + metric_dist * max_rate);
+      auto limiter = compose_metric(decomp.q, decomp.l);
+      auto limited = intersect_metrics(m, limiter);
+      m = limited;
     }
-    G::set(out, v, m);
+    set_symm(out, v, m);
   };
   parallel_for(mesh->nverts(), f);
   values = Reals(out);
-  values = mesh->sync_array(VERT, values, G::ndofs);
+  values = mesh->sync_array(VERT, values, symm_dofs(metric_dim));
   return values;
 }
 
-static Reals limit_size_field_once_by_adj(
+static Reals limit_gradation_once(
     Mesh* mesh, Reals values, Real max_rate) {
-  if (mesh->dim() == 3) {
-    if (values.size() == symm_dofs(3) * mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<3, AnisoGradation>(
-          mesh, values, max_rate);
-    }
-    if (values.size() == mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<3, IsoGradation>(
-          mesh, values, max_rate);
-    }
+  auto metric_dim = get_metrics_dim(mesh->nverts(), values);
+  if (mesh->dim() == 3 && metric_dim == 3) {
+    return limit_gradation_once_tmpl<3, 3>(mesh, values, max_rate);
   }
-  if (mesh->dim() == 2) {
-    if (values.size() == symm_dofs(2) * mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<2, AnisoGradation>(
-          mesh, values, max_rate);
-    }
-    if (values.size() == mesh->nverts()) {
-      return limit_size_field_once_by_adj_tmpl<2, IsoGradation>(
-          mesh, values, max_rate);
-    }
+  if (mesh->dim() == 2 && metric_dim == 2) {
+    return limit_gradation_once_tmpl<2, 2>(mesh, values, max_rate);
+  }
+  if (mesh->dim() == 3 && metric_dim == 1) {
+    return limit_gradation_once_tmpl<3, 1>(mesh, values, max_rate);
+  }
+  if (mesh->dim() == 2 && metric_dim == 1) {
+    return limit_gradation_once_tmpl<2, 1>(mesh, values, max_rate);
   }
   NORETURN(Reals());
 }
 
-Reals limit_size_field_gradation(
+Reals limit_metric_gradation(
     Mesh* mesh, Reals values, Real max_rate, Real tol) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(max_rate > 0.0);
@@ -300,7 +277,7 @@ Reals limit_size_field_gradation(
   Int i = 0;
   do {
     values = values2;
-    values2 = limit_size_field_once_by_adj(mesh, values, max_rate);
+    values2 = limit_gradation_once(mesh, values, max_rate);
     ++i;
     if (can_print(mesh) && i > 40) {
       std::cout << "warning: gradation limiting is up to step " << i << '\n';
@@ -313,9 +290,9 @@ Reals limit_size_field_gradation(
 }
 
 Reals project_metrics(Mesh* mesh, Reals e2m) {
-  auto e_linear = linearize_metrics(mesh->dim(), e2m);
+  auto e_linear = linearize_metrics(mesh->nelems(), e2m);
   auto v_linear = project_by_average(mesh, e_linear);
-  return delinearize_metrics(mesh->dim(), v_linear);
+  return delinearize_metrics(mesh->nverts(), v_linear);
 }
 
 Reals smooth_metric_once(Mesh* mesh, Reals v2m) {

@@ -77,7 +77,7 @@ static void set_target_metric(Mesh* mesh, int which_metric, bool should_limit) {
                            : ((which_metric == 2) ? get_second_metric(mesh)
                                                   : get_third_metric(mesh)));
   if (should_limit) {
-    target_metrics = limit_size_field_gradation(mesh, target_metrics, 1.0);
+    target_metrics = limit_metric_gradation(mesh, target_metrics, 1.0);
   }
   mesh->set_tag(VERT, "target_metric", target_metrics);
 }
@@ -105,7 +105,7 @@ static void run_case(
   opts.egads_model = eg;
   opts.max_length_allowed = opts.max_length_desired * 2.0;
   Now t0 = now();
-  while (approach_size_field(mesh, opts)) {
+  while (approach_metric(mesh, opts)) {
     adapt(mesh, opts);
     if (mesh->has_tag(VERT, "target_metric")) {
       set_target_metric(mesh, which_metric, should_limit);

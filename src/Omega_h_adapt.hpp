@@ -61,7 +61,7 @@ void fix_momentum_velocity_verts(
     Mesh* mesh, Int class_dim, I32 class_id, Int comp);
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
-bool approach_size_field(Mesh* mesh, AdaptOpts const& opts);
+bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
 
 }  // namespace Omega_h
 

@@ -8,14 +8,14 @@
 
 namespace Omega_h {
 
-template <typename Measure, Int dim>
+template <Int mesh_dim, Int metric_dim>
 static Reals coarsen_qualities_tmpl(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
-  CHECK(mesh->dim() == dim);
-  Measure measure(mesh);
+  CHECK(mesh->dim() == mesh_dim);
+  MetricElementQualities<mesh_dim, metric_dim> measure(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto cv2v = mesh->ask_elem_verts();
-  auto v2c = mesh->ask_up(VERT, dim);
+  auto v2c = mesh->ask_up(VERT, mesh_dim);
   auto v2vc = v2c.a2ab;
   auto vc2c = v2c.ab2b;
   auto vc_codes = v2c.codes;
@@ -34,16 +34,16 @@ static Reals coarsen_qualities_tmpl(
         auto c = vc2c[vc];
         auto vc_code = vc_codes[vc];
         auto ccv_col = code_which_down(vc_code);
-        auto ccv2v = gather_verts<dim + 1>(cv2v, c);
+        auto ccv2v = gather_verts<mesh_dim + 1>(cv2v, c);
         bool will_die = false;
-        for (auto ccv = 0; ccv < (dim + 1); ++ccv) {
+        for (auto ccv = 0; ccv < (mesh_dim + 1); ++ccv) {
           if ((ccv != ccv_col) && (ccv2v[ccv] == v_onto)) {
             will_die = true;
             break;
           }
         }
         if (will_die) continue;
-        CHECK(0 <= ccv_col && ccv_col < dim + 1);
+        CHECK(0 <= ccv_col && ccv_col < mesh_dim + 1);
         ccv2v[ccv_col] = v_onto;  // vertices of new cell
         auto qual = measure.measure(ccv2v);
         minqual = min2(minqual, qual);
@@ -52,31 +52,28 @@ static Reals coarsen_qualities_tmpl(
     }
   };
   parallel_for(ncands, f);
-  return qualities;
+  auto out = Reals(qualities);
+  return mesh->sync_subset_array(EDGE, out, cands2edges, -1.0, 2);
 }
 
 Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   CHECK(mesh->parting() == OMEGA_H_GHOSTED);
+  auto metrics = mesh->get_array<Real>(VERT, "metric");
+  auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   auto cand_quals = Reals();
-  if (mesh->dim() == 3) {
-    if (mesh->has_tag(VERT, "metric")) {
-      cand_quals = coarsen_qualities_tmpl<MetricElementQualities, 3>(
-          mesh, cands2edges, cand_codes);
-    } else {
-      cand_quals = coarsen_qualities_tmpl<RealElementQualities, 3>(
-          mesh, cands2edges, cand_codes);
-    }
-  } else {
-    CHECK(mesh->dim() == 2);
-    if (mesh->has_tag(VERT, "metric")) {
-      cand_quals = coarsen_qualities_tmpl<MetricElementQualities, 2>(
-          mesh, cands2edges, cand_codes);
-    } else {
-      cand_quals = coarsen_qualities_tmpl<RealElementQualities, 2>(
-          mesh, cands2edges, cand_codes);
-    }
+  if (mesh->dim() == 3 && metric_dim == 3) {
+    return coarsen_qualities_tmpl<3, 3>(mesh, cands2edges, cand_codes);
   }
-  return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 2);
+  if (mesh->dim() == 2 && metric_dim == 2) {
+    return coarsen_qualities_tmpl<2, 2>(mesh, cands2edges, cand_codes);
+  }
+  if (mesh->dim() == 3 && metric_dim == 1) {
+    return coarsen_qualities_tmpl<3, 1>(mesh, cands2edges, cand_codes);
+  }
+  if (mesh->dim() == 2 && metric_dim == 1) {
+    return coarsen_qualities_tmpl<2, 1>(mesh, cands2edges, cand_codes);
+  }
+  NORETURN(Reals());
 }
 
 static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {

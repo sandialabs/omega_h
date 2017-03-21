@@ -218,6 +218,14 @@ OMEGA_H_INLINE constexpr Int symm_dofs(Int dim) {
   return ((dim + 1) * dim) / 2;
 }
 
+OMEGA_H_INLINE Vector<1> symm2vector(Matrix<1, 1> symm) {
+  return vector_1(symm[0][0]);
+}
+
+OMEGA_H_INLINE Matrix<1,1> vector2symm(Vector<1> v) {
+  return matrix_1x1(v[0]);
+}
+
 OMEGA_H_INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
   Vector<3> v;
   v[0] = symm[0][0];
@@ -288,6 +296,10 @@ template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
+
+OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {
+  return 1.0 / square(h);
+}
 
 }  // end namespace Omega_h
 

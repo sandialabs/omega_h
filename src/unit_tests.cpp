@@ -73,6 +73,19 @@ static void test_repro_sum() {
   CHECK(sum == std::exp2(20) + std::exp2(int(-20)));
 }
 
+static void test_power() {
+  auto x = 3.14159;
+  CHECK(x == power(x, 1, 1));
+  CHECK(x == power(x, 2, 2));
+  CHECK(x == power(x, 3, 3));
+  CHECK(are_close(x * x, power(x, 2, 1)));
+  CHECK(are_close(x * x * x, power(x, 3, 1)));
+  CHECK(are_close(sqrt(x), power(x, 1, 2)));
+  CHECK(are_close(cbrt(x), power(x, 1, 3)));
+  CHECK(are_close(sqrt(x * x * x), power(x, 3, 2)));
+  CHECK(are_close(cbrt(x * x), power(x, 2, 3)));
+}
+
 static void test_cubic(Few<Real, 3> coeffs, Int nroots_wanted,
     Few<Real, 3> roots_wanted, Few<Int, 3> mults_wanted) {
   auto roots = find_polynomial_roots(coeffs);
@@ -622,13 +635,11 @@ static void test_refine_qualities(Library* lib) {
   Mesh mesh(lib);
   build_box(&mesh, 1, 1, 0, 1, 1, 0);
   LOs candidates(mesh.nedges(), 0, 1);
+  mesh.add_tag(VERT, "metric", symm_dofs(2),
+      repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(
       quals, Reals({0.494872, 0.494872, 0.866025, 0.494872, 0.494872}), 1e-4));
-  mesh.add_tag(VERT, "metric", symm_dofs(2),
-      repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
-  auto quals2 = refine_qualities(&mesh, candidates);
-  CHECK(are_close(quals2, quals));
 }
 
 static void test_mark_up_down(Library* lib) {
@@ -755,25 +766,10 @@ static void test_interpolate_metrics() {
       4, compose_metric(identity_matrix<2, 2>(), vector_2(1.0 / 100.0, 1.0)));
   auto b = repeat_symm(
       4, compose_metric(identity_matrix<2, 2>(), vector_2(1.0, 1.0)));
-  auto c = interpolate_between_metrics(2, a, b, 0.0);
+  auto c = interpolate_between_metrics(4, a, b, 0.0);
   CHECK(are_close(a, c));
-  c = interpolate_between_metrics(2, a, b, 1.0);
+  c = interpolate_between_metrics(4, a, b, 1.0);
   CHECK(are_close(b, c));
-}
-
-static void test_interpolate_isos() {
-  auto a = Reals({0.1, 0.2, 0.3});
-  auto b = Reals({0.2, 0.4, 0.6});
-  auto c = interpolate_between_isos(a, b, 0.0);
-  CHECK(are_close(a, c));
-  c = interpolate_between_isos(a, b, 1.0);
-  CHECK(are_close(b, c));
-  c = interpolate_between_isos(a, b, 0.5);
-  auto f = LAMBDA(LO i) {
-    CHECK(a[i] <= c[i]);
-    CHECK(c[i] <= b[i]);
-  };
-  parallel_for(c.size(), f);
 }
 
 static void test_element_implied_metric() {
@@ -831,9 +827,9 @@ static void test_sf_scale_dim(Library* lib) {
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   {
-    auto size = Omega_h::find_implied_size(&mesh);
-    auto size_scal = size_scalar_for_nelems(&mesh, size, target_nelems);
-    CHECK(are_close(size_scal, 1.));
+    auto metrics = Omega_h::find_implied_isos(&mesh);
+    auto iso_scal = metric_scalar_for_nelems(&mesh, metrics, target_nelems);
+    CHECK(are_close(iso_scal, 1.));
   }
   {
     auto metric = Omega_h::find_implied_metric(&mesh);
@@ -932,8 +928,8 @@ static void test_motion(Library* lib) {
   Mesh mesh(lib);
   build_box(&mesh, 1, 1, 0, 2, 2, 0);
   classify_by_angles(&mesh, Omega_h::PI / 4);
-  auto sizes = find_implied_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, sizes);
+  auto metrics = find_implied_isos(&mesh);
+  mesh.add_tag(VERT, "metric", 1, metrics);
   auto coords_w = deep_copy(mesh.coords());
   coords_w.set(4 * 2 + 0, 0.74);
   coords_w.set(4 * 2 + 1, 0.26);
@@ -1025,6 +1021,7 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
   test_edge_length();
+  test_power();
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();
@@ -1065,7 +1062,6 @@ int main(int argc, char** argv) {
   test_file(&lib);
   test_xml();
   test_read_vtu(&lib);
-  test_interpolate_isos();
   test_interpolate_metrics();
   test_element_implied_metric();
   test_recover_hessians(&lib);

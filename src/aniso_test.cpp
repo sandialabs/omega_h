@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
   mesh.ask_qualities();
   auto opts = AdaptOpts(&mesh);
   Now t0 = now();
-  while (approach_size_field(&mesh, opts)) adapt(&mesh, opts);
+  while (approach_metric(&mesh, opts)) adapt(&mesh, opts);
   Now t1 = now();
   std::cout << "anisotropic approach took " << (t1 - t0) << " seconds\n";
   bool ok = check_regression("gold_aniso", &mesh);

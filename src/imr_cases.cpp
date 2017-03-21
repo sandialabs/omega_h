@@ -193,8 +193,8 @@ static void run_case(Library* lib, Case const& c, Int niters) {
   mesh.reorder();
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
-    auto size = find_implied_size(&mesh);
-    mesh.add_tag(VERT, "size", 1, size);
+    auto metrics = find_implied_isos(&mesh);
+    mesh.add_tag(VERT, "metric", 1, metrics);
   }
   vtk::Writer writer(&mesh, "out", mesh.dim());
   writer.write();
@@ -213,9 +213,9 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     auto motion = Reals(motion_w);
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), motion);
-    auto size = mesh.get_array<Real>(VERT, "size");
-    size = solve_laplacian(&mesh, size, 1, 1e-2);
-    mesh.set_tag(VERT, "size", size);
+    auto metrics = mesh.get_array<Real>(VERT, "metric");
+    metrics = solve_laplacian(&mesh, metrics, 1, 1e-2);
+    mesh.set_tag(VERT, "metric", metrics);
     auto opts = AdaptOpts(&mesh);
     opts.min_length_desired = 0.5;
     opts.max_length_desired = 1.5;
