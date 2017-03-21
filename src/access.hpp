@@ -44,30 +44,6 @@ DEVICE Few<Matrix<dim, dim>, neev> gather_symms(
   return x;
 }
 
-OMEGA_H_INLINE constexpr Int matrix_dofs(Int dim) { return dim * dim; }
-
-template <Int dim>
-OMEGA_H_INLINE Vector<matrix_dofs(dim)> matrix2vector(Matrix<dim, dim> m) {
-  Vector<matrix_dofs(dim)> v;
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      v[i * dim + j] = m[i][j];
-    }
-  }
-  return v;
-}
-
-template <Int dim>
-DEVICE Matrix<dim, dim> vector2matrix(Vector<matrix_dofs(dim)> v) {
-  Matrix<dim, dim> m;
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      m[i][j] = v[i * dim + j];
-    }
-  }
-  return m;
-}
-
 template <Int dim>
 DEVICE void set_matrix(Write<Real> const& a, Int i, Matrix<dim, dim> m) {
   set_vector(a, i, matrix2vector(m));
