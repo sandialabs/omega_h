@@ -14,28 +14,6 @@
 
 namespace Omega_h {
 
-template <Int n>
-OMEGA_H_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {
-  for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
-}
-
-template <Int n, class Arr>
-OMEGA_H_DEVICE Vector<n> get_vector(Arr const& a, Int i) {
-  Vector<n> v;
-  for (Int j = 0; j < n; ++j) v[j] = a[i * n + j];
-  return v;
-}
-
-template <Int n>
-OMEGA_H_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
-  set_vector(a, i, symm2vector(symm));
-}
-
-template <Int n, typename Arr>
-OMEGA_H_DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
-  return vector2symm(get_vector<symm_dofs(n)>(a, i));
-}
-
 template <Int dim>
 OMEGA_H_INLINE Vector<dim> metric_eigenvalues(Vector<dim> h) {
   Vector<dim> l;

@@ -2,6 +2,7 @@
 #define OMEGA_H_MATRIX_HPP
 
 #include <Omega_h_vector.hpp>
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
 
@@ -183,6 +184,16 @@ OMEGA_H_INLINE Matrix<dim, dim> vector2matrix(Vector<matrix_dofs(dim)> v) {
     }
   }
   return m;
+}
+
+template <Int n>
+OMEGA_H_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
+  set_vector(a, i, symm2vector(symm));
+}
+
+template <Int n, typename Arr>
+OMEGA_H_DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
+  return vector2symm(get_vector<symm_dofs(n)>(a, i));
 }
 
 template <Int dim>

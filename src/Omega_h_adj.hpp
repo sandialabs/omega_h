@@ -1,7 +1,10 @@
 #ifndef OMEGA_H_ADJ_HPP
 #define OMEGA_H_ADJ_HPP
 
-#include "Omega_h_graph.hpp"
+#include <Omega_h_graph.hpp>
+#include <Omega_h_few.hpp>
+#include <Omega_h_vector.hpp>
+#include <Omega_h_matrix.hpp>
 
 namespace Omega_h {
 
@@ -65,6 +68,43 @@ Graph edges_across_tris(Adj f2e, Adj e2f);
 Graph edges_across_tets(Adj r2e, Adj e2r);
 Graph elements_across_sides(
     Int dim, Adj elems2sides, Adj sides2elems, Read<I8> side_is_exposed);
+
+template <Int nhhl>
+OMEGA_H_DEVICE Few<LO, nhhl> gather_down(LOs const& hl2l, Int h) {
+  Few<LO, nhhl> hhl2l;
+  for (Int i = 0; i < nhhl; ++i) {
+    auto hl = h * nhhl + i;
+    hhl2l[i] = hl2l[hl];
+  }
+  return hhl2l;
+}
+
+template <Int neev>
+OMEGA_H_DEVICE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
+  return gather_down<neev>(ev2v, e);
+}
+
+template <Int neev, typename T>
+OMEGA_H_DEVICE Few<T, neev> gather_scalars(Read<T> const& a, Few<LO, neev> v) {
+  Few<T, neev> x;
+  for (Int i = 0; i < neev; ++i) x[i] = a[v[i]];
+  return x;
+}
+
+template <Int neev, Int dim>
+OMEGA_H_DEVICE Few<Vector<dim>, neev> gather_vectors(Reals const& a, Few<LO, neev> v) {
+  Few<Vector<dim>, neev> x;
+  for (Int i = 0; i < neev; ++i) x[i] = get_vector<dim>(a, v[i]);
+  return x;
+}
+
+template <Int neev, Int dim>
+OMEGA_H_DEVICE Few<Matrix<dim, dim>, neev> gather_symms(
+    Reals const& a, Few<LO, neev> v) {
+  Few<Matrix<dim, dim>, neev> x;
+  for (Int i = 0; i < neev; ++i) x[i] = get_symm<dim>(a, v[i]);
+  return x;
+}
 
 #define INST_DECL(T)                                                           \
   extern template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);      \
