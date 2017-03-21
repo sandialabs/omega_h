@@ -77,7 +77,7 @@ bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
           "Omega_h is probably unable to satisfy this size field\n",
           t, min_t);
     }
-    auto current = interpolate_between_metrics(mesh->dim(), orig, target, t);
+    auto current = interpolate_between_metrics(mesh->nverts(), orig, target, t);
     mesh->set_tag(VERT, name, current);
   } while (!okay(mesh, opts));
   return true;
