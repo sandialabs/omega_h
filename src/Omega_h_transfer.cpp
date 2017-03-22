@@ -317,6 +317,20 @@ void transfer_quality(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
   }
 }
 
+void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, LOs prods2new_ents) {
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (tagbase->name() == "size" && tagbase->type() == OMEGA_H_REAL &&
+        tagbase->ncomps() == 1) {
+      auto prod_data = measure_elements_real(new_mesh, prods2new_ents);
+      transfer_common(old_mesh, new_mesh, dim, same_ents2old_ents,
+          same_ents2new_ents, prods2new_ents, tagbase, prod_data);
+    }
+  }
+}
+
 void transfer_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2midverts, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
@@ -332,6 +346,8 @@ void transfer_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   } else if (prod_dim == old_mesh->dim()) {
+    transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
+        prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
     transfer_conserve_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
@@ -517,6 +533,8 @@ void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
   }
   if (prod_dim == old_mesh->dim()) {
+    transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
+        prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
     transfer_conserve(old_mesh, opts, new_mesh, VERT, keys2verts,
@@ -635,6 +653,8 @@ void transfer_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
   }
   if (prod_dim == old_mesh->dim()) {
+    transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
+        prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
     transfer_conserve(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,

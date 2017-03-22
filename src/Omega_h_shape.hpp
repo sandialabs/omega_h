@@ -76,6 +76,12 @@ OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi) {
   return 0.0 <= minimum(xi) && maximum(xi) <= 1.0;
 }
 
+OMEGA_H_INLINE Real edge_length(Few<Vector<1>, 1> b) {
+  return fabs(b[1][0] - b[0][0]);
+}
+
+OMEGA_H_INLINE Real element_size(Few<Vector<1>, 1> b) { return edge_length(b); }
+
 OMEGA_H_INLINE Real triangle_area(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
 }
@@ -168,6 +174,7 @@ struct RealElementSizes {
   }
 };
 
+Reals measure_elements_real(Mesh* mesh, LOs a2e);
 Reals measure_elements_real(Mesh* mesh);
 
 OMEGA_H_INLINE Few<Vector<2>, 3> element_edge_vectors(

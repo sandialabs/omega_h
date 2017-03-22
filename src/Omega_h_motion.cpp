@@ -80,6 +80,8 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
       auto new_elems2elems = collect_marked(elems_did_move);
       auto elems_didnt_move = invert_marks(elems_did_move);
       auto same_elems2elems = collect_marked(elems_didnt_move);
+      transfer_size(
+          mesh, &new_mesh, same_elems2elems, same_elems2elems, new_elems2elems);
       transfer_quality(
           mesh, &new_mesh, same_elems2elems, same_elems2elems, new_elems2elems);
       auto verts2elems = mesh->ask_graph(VERT, mesh->dim());

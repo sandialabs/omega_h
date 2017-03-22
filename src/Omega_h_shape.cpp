@@ -55,23 +55,29 @@ Reals measure_edges_metric(Mesh* mesh) {
 }
 
 template <Int dim>
-static Reals measure_elements_real_tmpl(Mesh* mesh) {
+static Reals measure_elements_real_tmpl(Mesh* mesh, LOs a2e) {
   RealElementSizes measurer(mesh);
   auto ev2v = mesh->ask_elem_verts();
-  auto ne = mesh->nelems();
-  Write<Real> sizes(ne);
-  auto f = OMEGA_H_LAMBDA(LO e) {
+  auto na = a2e.size();
+  Write<Real> sizes(na);
+  auto f = OMEGA_H_LAMBDA(LO a) {
+    auto e = a2e[a];
     auto v = gather_verts<dim + 1>(ev2v, e);
     sizes[e] = measurer.measure(v);
   };
-  parallel_for(ne, f);
+  parallel_for(na, f);
   return sizes;
 }
 
-Reals measure_elements_real(Mesh* mesh) {
-  if (mesh->dim() == 3) return measure_elements_real_tmpl<3>(mesh);
-  if (mesh->dim() == 2) return measure_elements_real_tmpl<2>(mesh);
+Reals measure_elements_real(Mesh* mesh, LOs a2e) {
+  if (mesh->dim() == 3) return measure_elements_real_tmpl<3>(mesh, a2e);
+  if (mesh->dim() == 2) return measure_elements_real_tmpl<2>(mesh, a2e);
+  if (mesh->dim() == 1) return measure_elements_real_tmpl<1>(mesh, a2e);
   OMEGA_H_NORETURN(Reals());
+}
+
+Reals measure_elements_real(Mesh* mesh) {
+  return measure_elements_real(mesh, LOs(mesh->nelems(), 0, 1));
 }
 
 }  // end namespace Omega_h

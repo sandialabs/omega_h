@@ -104,6 +104,7 @@ class Mesh {
   void reset_globals();
   Reals ask_lengths();
   Reals ask_qualities();
+  Reals ask_sizes();
   void set_owners(Int dim, Remotes owners);
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);

@@ -409,6 +409,14 @@ Reals Mesh::ask_qualities() {
   return get_array<Real>(dim(), "quality");
 }
 
+Reals Mesh::ask_sizes() {
+  if (!has_tag(dim(), "size")) {
+    auto sizes = measure_elements_real(this);
+    add_tag(dim(), "size", 1, sizes);
+  }
+  return get_array<Real>(dim(), "size");
+}
+
 void Mesh::set_owners(Int dim, Remotes owners) {
   check_dim2(dim);
   CHECK(nents(dim) == owners.ranks.size());
