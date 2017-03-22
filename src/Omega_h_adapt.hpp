@@ -11,8 +11,9 @@ namespace Omega_h {
 class Mesh;
 
 struct XferOpts {
-  std::map<std::string, Omega_h_Xfer> type_map;
-  std::map<std::string, std::string> momentum_map;
+  std::map<std::string, Omega_h_Xfer> type_map; // "density" -> CONSERVE
+  std::map<std::string, std::string> integral_map; // "density" -> "mass"
+  std::map<std::string, std::string> momentum_map; // "velocity" -> "density"
 };
 
 enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
