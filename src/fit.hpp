@@ -14,7 +14,7 @@
  * number of elements adjacent to a vertex.
  */
 
-#include "qr.hpp"
+#include "Omega_h_qr.hpp"
 #include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
@@ -31,7 +31,7 @@ struct MaxFitPoints {
  */
 
 template <Int dim>
-DEVICE QRFactorization<MaxFitPoints<dim>::value, dim + 1>
+OMEGA_H_DEVICE QRFactorization<MaxFitPoints<dim>::value, dim + 1>
 get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
     LOs const& ev2v, Reals const& coords) {
   constexpr auto max_fit_pts = MaxFitPoints<dim>::value;
@@ -39,8 +39,8 @@ get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
   auto begin = k2ke[k];
   auto end = k2ke[k + 1];
   auto nfit_pts = end - begin;
-  CHECK(nfit_pts >= dim + 1);
-  CHECK(nfit_pts <= max_fit_pts);
+  OMEGA_H_CHECK(nfit_pts >= dim + 1);
+  OMEGA_H_CHECK(nfit_pts <= max_fit_pts);
   for (auto i = 0; i < nfit_pts; ++i) {
     auto ke = begin + i;
     auto e = ke2e[ke];
@@ -66,7 +66,7 @@ get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
  */
 
 template <Int dim>
-DEVICE Vector<dim + 1> fit_cavity_polynomial(
+OMEGA_H_DEVICE Vector<dim + 1> fit_cavity_polynomial(
     QRFactorization<MaxFitPoints<dim>::value, dim + 1> qr, LO k,
     LOs const& k2ke, LOs const& ke2e, Reals const& e_data, Int comp,
     Int ncomps) {
@@ -86,7 +86,7 @@ DEVICE Vector<dim + 1> fit_cavity_polynomial(
 }
 
 template <Int dim>
-DEVICE Real eval_polynomial(Vector<dim + 1> coeffs, Vector<dim> x) {
+OMEGA_H_DEVICE Real eval_polynomial(Vector<dim + 1> coeffs, Vector<dim> x) {
   auto val = coeffs[0];
   for (Int j = 0; j < dim; ++j) val += coeffs[1 + j] * x[j];
   return val;

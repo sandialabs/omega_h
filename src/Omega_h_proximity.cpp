@@ -14,7 +14,7 @@ static Reals get_edge_pad_isos(
   auto coords = mesh->coords();
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto out = Write<Real>(mesh->nedges(), max_size);
-  auto f = LAMBDA(LO edge) {
+  auto f = OMEGA_H_LAMBDA(LO edge) {
     if (!edges_are_bridges[edge]) return;
     auto eev2v = gather_verts<2>(edges2verts, edge);
     auto eev2x = gather_vectors<2, dim>(coords, eev2v);
@@ -33,7 +33,7 @@ static Reals get_tri_pad_isos(
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
   auto out = Write<Real>(mesh->ntris(), max_size);
-  auto f = LAMBDA(LO tri) {
+  auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_verts<3>(tris2verts, tri);
     auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
     auto tte2e = gather_down<3>(tris2edges, tri);
@@ -64,7 +64,7 @@ static Reals get_tet_pad_isos(
   auto tets2verts = mesh->ask_verts_of(TET);
   auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
   auto out = Write<Real>(mesh->ntets(), max_size);
-  auto f = LAMBDA(LO tet) {
+  auto f = OMEGA_H_LAMBDA(LO tet) {
     auto ttv2v = gather_verts<4>(tets2verts, tet);
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
     auto tte2e = gather_down<6>(tets2edges, tet);
@@ -157,11 +157,11 @@ Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor, Real max_size,
   } else if (pad_dim == TET) {
     return get_tet_pad_isos(mesh, factor, max_size, edges_are_bridges);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size) {
-  CHECK(mesh->owners_have_all_upward(VERT));
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   auto edges_are_bridges = find_bridge_edges(mesh);
   auto verts_are_bridged = mark_down(mesh, EDGE, VERT, edges_are_bridges);
   auto bridged_verts = collect_marked(verts_are_bridged);

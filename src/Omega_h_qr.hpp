@@ -1,7 +1,7 @@
-#ifndef QR_HPP
-#define QR_HPP
+#ifndef OMEGA_H_QR_HPP
+#define OMEGA_H_QR_HPP
 
-#include "internal.hpp"
+#include <Omega_h_matrix.hpp>
 
 namespace Omega_h {
 
@@ -16,7 +16,7 @@ namespace Omega_h {
      A_{k:m,k:n} = A_{k:m,k:n} - 2 v_k (v_k^* A_{k:m,k:n}) */
 
 template <Int max_m, Int max_n>
-INLINE Vector<max_m> householder_vector(
+OMEGA_H_INLINE Vector<max_m> householder_vector(
     Int m, Matrix<max_m, max_n> a, Real anorm, Int k) {
   Real norm_x = 0;
   for (Int i = k; i < m; ++i) norm_x += square(a[k][i]);
@@ -29,7 +29,7 @@ INLINE Vector<max_m> householder_vector(
    * to be full-rank, so we can save a bunch of bookkeeping up
    * the stack if we simply assert this here.
    */
-  CHECK(norm_x > EPSILON * anorm);
+  OMEGA_H_CHECK(norm_x > EPSILON * anorm);
   Vector<max_m> v_k;
   for (Int i = k; i < m; ++i) v_k[i] = a[k][i];
   v_k[k] += sign(a[k][k]) * norm_x;
@@ -41,7 +41,7 @@ INLINE Vector<max_m> householder_vector(
 }
 
 template <Int max_m, Int max_n>
-INLINE void reflect_columns(
+OMEGA_H_INLINE void reflect_columns(
     Int m, Int n, Matrix<max_m, max_n>& a, Vector<max_m> v_k, Int k) {
   for (Int j = k; j < n; ++j) {
     Real dot = 0;
@@ -57,7 +57,7 @@ struct QRFactorization {
 };
 
 template <Int max_m, Int max_n>
-INLINE QRFactorization<max_m, max_n> factorize_qr_householder(
+OMEGA_H_INLINE QRFactorization<max_m, max_n> factorize_qr_householder(
     Int m, Int n, Matrix<max_m, max_n> a) {
   Few<Vector<max_m>, max_n> v;
   Real anorm = frobenius_norm(m, n, a);
@@ -76,7 +76,7 @@ INLINE QRFactorization<max_m, max_n> factorize_qr_householder(
    for k=1 to n
      b_{k:m} = b_{k:m} - 2 v_k (v_k^* b_{k:m}) */
 template <Int max_m, Int max_n>
-INLINE Vector<max_n> implicit_q_trans_b(
+OMEGA_H_INLINE Vector<max_n> implicit_q_trans_b(
     Int m, Int n, Few<Vector<max_m>, max_n> v, Vector<max_m> b) {
   for (Int k = 0; k < n; ++k) {
     Real dot = 0;
@@ -95,7 +95,7 @@ INLINE Vector<max_n> implicit_q_trans_b(
    for k=n downto 1
      x_{k:m} = x_{k:m} - 2 v_k (v_k^* b_{k:m}) */
 template <Int max_m, Int max_n>
-INLINE void implicit_q_x(
+OMEGA_H_INLINE void implicit_q_x(
     Int m, Int n, Vector<max_m>& x, Few<Vector<max_m>, max_n> v) {
   for (Int k2 = 0; k2 < n; ++k2) {
     Int k = n - k2 - 1;
@@ -106,7 +106,7 @@ INLINE void implicit_q_x(
 }
 
 template <Int max_m, Int max_n>
-INLINE Matrix<max_n, max_n> reduced_r_from_full(
+OMEGA_H_INLINE Matrix<max_n, max_n> reduced_r_from_full(
     Int n, Matrix<max_m, max_n> fr) {
   Matrix<max_n, max_n> rr;
   for (Int j = 0; j < n; ++j)
@@ -115,7 +115,7 @@ INLINE Matrix<max_n, max_n> reduced_r_from_full(
 }
 
 template <Int max_m>
-INLINE Vector<max_m> solve_upper_triangular(
+OMEGA_H_INLINE Vector<max_m> solve_upper_triangular(
     Int m, Matrix<max_m, max_m> a, Vector<max_m> b) {
   Vector<max_m> x;
   for (Int ii = 0; ii < m; ++ii) {
@@ -135,7 +135,7 @@ INLINE Vector<max_m> solve_upper_triangular(
    2. Compute the vector \hat{Q}^* b
    3. Solve the upper-triangular system \hat{R} x = \hat{Q}^* b for x  */
 template <Int max_m, Int max_n>
-INLINE Vector<max_n> solve_using_qr(
+OMEGA_H_INLINE Vector<max_n> solve_using_qr(
     Int m, Int n, Matrix<max_m, max_n> a, Vector<max_m> b) {
   auto qr = factorize_qr_householder(m, n, a);
   auto qtb = implicit_q_trans_b(m, n, qr.v, b);
@@ -143,7 +143,7 @@ INLINE Vector<max_n> solve_using_qr(
   return x;
 }
 template <Int max_m, Int max_n>
-INLINE Vector<max_n> solve_using_qr(Matrix<max_m, max_n> a, Vector<max_m> b) {
+OMEGA_H_INLINE Vector<max_n> solve_using_qr(Matrix<max_m, max_n> a, Vector<max_m> b) {
   return solve_using_qr(max_m, max_n, a, b);
 }
 

@@ -35,7 +35,7 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
   auto owned = mesh->owned(VERT);
   auto class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto out = Write<Real>(mesh->nverts() * ncomps * (dim + 1));
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     if (!owned[v] || (class_dim[v] != dim)) return;
     auto qr = get_cavity_qr_factorization<dim>(v, v2ve, ve2e, ev2v, coords);
     for (Int comp = 0; comp < ncomps; ++comp) {
@@ -55,7 +55,7 @@ static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps) {
   if (mesh->dim() == 2) {
     return get_interior_coeffs_dim<2>(mesh, e_data, ncomps);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 static void diffuse_to_exterior(
@@ -67,7 +67,7 @@ static void diffuse_to_exterior(
   auto v2v = mesh->ask_star(VERT);
   auto v2vv = v2v.a2ab;
   auto vv2v = v2v.ab2b;
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     if (visited[v]) return;
     Int nadj = 0;
     for (auto vv = v2vv[v]; vv < v2vv[v + 1]; ++vv) {
@@ -98,7 +98,7 @@ template <Int dim>
 static Reals evaluate_coeffs_dim(Mesh* mesh, Reals v_coeffs, Int ncomps) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * ncomps);
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto x = get_vector<dim>(coords, v);
     for (Int comp = 0; comp < ncomps; ++comp) {
       auto coeffs = get_vector<dim + 1>(v_coeffs, v * ncomps + comp);
@@ -117,7 +117,7 @@ static Reals evaluate_coeffs(Mesh* mesh, Reals v_coeffs, Int ncomps) {
   if (mesh->dim() == 2) {
     return evaluate_coeffs_dim<2>(mesh, v_coeffs, ncomps);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 bool has_interior_verts(Mesh* mesh) {
@@ -130,9 +130,9 @@ bool has_interior_verts(Mesh* mesh) {
 }
 
 Reals project_by_fit(Mesh* mesh, Reals e_data) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  CHECK(e_data.size() % mesh->nelems() == 0);
-  CHECK(has_interior_verts(mesh));
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
+  OMEGA_H_CHECK(e_data.size() % mesh->nelems() == 0);
+  OMEGA_H_CHECK(has_interior_verts(mesh));
   auto ncomps = e_data.size() / mesh->nelems();
   auto dim = mesh->dim();
   auto v_coeffs = get_interior_coeffs(mesh, e_data, ncomps);
@@ -145,8 +145,8 @@ Reals project_by_fit(Mesh* mesh, Reals e_data) {
 }
 
 Reals project_by_average(Mesh* mesh, Reals e_data) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  CHECK(e_data.size() % mesh->nelems() == 0);
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
+  OMEGA_H_CHECK(e_data.size() % mesh->nelems() == 0);
   auto ncomps = e_data.size() / mesh->nelems();
   auto verts2elems = mesh->ask_up(VERT, mesh->dim());
   auto weights = Reals(verts2elems.ab2b.size(), 1.0);
