@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto tri_IIs = map_onto(surf_tri_IIs, surf_side2side, mesh.ntris(), 0.0, 3);
     mesh.add_tag(TRI, "II", 3, tri_IIs);
-    auto surf_vert_IIs = get_vert_IIs(&mesh, surf_side2side, surf_side_normals,
+    auto surf_vert_IIs = get_surf_vert_IIs(&mesh, surf_side2side, surf_side_normals,
         surf_tri_IIs, surf_vert2vert, surf_vert_normals);
     auto vert_IIs =
         map_onto(surf_vert_IIs, surf_vert2vert, mesh.nverts(), 0.0, 3);
