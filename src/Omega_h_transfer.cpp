@@ -244,34 +244,42 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
       same_ents2new_ents, prods2new_ents, old_tag, Read<T>(prod_data));
 }
 
+void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+    Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, TagBase const& tagbase) {
+  switch (tagbase->type()) {
+    case OMEGA_H_I8:
+      transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+    case OMEGA_H_I32:
+      transfer_inherit_refine<I32>(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+    case OMEGA_H_I64:
+      transfer_inherit_refine<I64>(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+    case OMEGA_H_F64:
+      transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges,
+          prod_dim, keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+  }
+}
+
 static void transfer_inherit_refine(Mesh* old_mesh, XferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if (should_inherit(old_mesh, opts, prod_dim, tagbase)) {
-      switch (tagbase->type()) {
-        case OMEGA_H_I8:
-          transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,
-              keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-        case OMEGA_H_I32:
-          transfer_inherit_refine<I32>(old_mesh, new_mesh, keys2edges, prod_dim,
-              keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-        case OMEGA_H_I64:
-          transfer_inherit_refine<I64>(old_mesh, new_mesh, keys2edges, prod_dim,
-              keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-        case OMEGA_H_F64:
-          transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges,
-              prod_dim, keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-      }
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase);
     }
   }
 }

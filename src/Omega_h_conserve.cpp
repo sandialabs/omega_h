@@ -1,49 +1,6 @@
 #include "transfer_conserve.hpp"
 
-#include "Omega_h_align.hpp"
-#include "Omega_h_array_ops.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_r3d.hpp"
-#include "Omega_h_transfer.hpp"
-#include "collapse.hpp"
-#include "Omega_h_simplex.hpp"
-#include "Omega_h_shape.hpp"
-
 namespace Omega_h {
-
-static void transfer_conserve_refine(Mesh* old_mesh, Mesh* new_mesh,
-    LOs keys2edges, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, std::string const& name) {
-  auto prod_dim = old_mesh->dim();
-  auto old_tag = old_mesh->get_tag<Real>(prod_dim, name);
-  auto ncomps = old_tag->ncomps();
-  auto nprods = keys2prods.last();
-  auto prod_data = Write<Real>(nprods * ncomps);
-  auto nkeys = keys2edges.size();
-  /* transfer pairs */
-  auto dom_dim = prod_dim;
-  auto dom_data = old_mesh->get_array<Real>(dom_dim, name);
-  auto edges2doms = old_mesh->ask_graph(EDGE, dom_dim);
-  auto edges2edge_doms = edges2doms.a2ab;
-  auto edge_doms2doms = edges2doms.ab2b;
-  auto f = LAMBDA(LO key) {
-    auto edge = keys2edges[key];
-    auto prod = keys2prods[key];
-    for (auto edge_dom = edges2edge_doms[edge];
-         edge_dom < edges2edge_doms[edge + 1]; ++edge_dom) {
-      auto dom = edge_doms2doms[edge_dom];
-      for (Int pair = 0; pair < 2; ++pair) {
-        for (Int comp = 0; comp < ncomps; ++comp) {
-          prod_data[prod * ncomps + comp] = dom_data[dom * ncomps + comp] / 2.0;
-        }
-        ++prod;
-      }
-    }
-  };
-  parallel_for(nkeys, f);
-  transfer_common(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
-      same_ents2new_ents, prods2new_ents, old_tag, Read<Real>(prod_data));
-}
 
 void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
@@ -52,9 +9,9 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      transfer_conserve_refine(old_mesh, new_mesh, keys2edges, keys2prods,
-          prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-          tagbase->name());
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, old_mesh->dim(),
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase);
     }
   }
 }
@@ -66,49 +23,9 @@ static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
   auto ncomps = tagbase->ncomps();
   auto old_tag = to<Real>(tagbase);
   auto old_data = old_tag->array();
+  auto new_data = new_mesh->get_array<Real>(dim, tagbase->name());
   auto old_sizes = old_mesh->ask_sizes();
   auto new_sizes = new_mesh->ask_sizes();
-  auto nkeys = keys2old_mat_elems.nnodes();
-  auto f = LAMBDA(LO key) {
-    auto ke_begin = keys2new_mat_elems.a2ab[key];
-    auto ke_end = keys2new_mat_elems.a2ab[key + 1];
-    auto ntargets = kte_end - kte_begin;
-    for (Int i = 0; i < ntargets; ++i) {
-      auto target_elem = keys2new_mat_elems.ab2b[kte_begin + i];
-      for (Int comp = 0; comp < ncomps; ++comp) {
-        new_data_w[target_elem * ncomps + comp] = 0;
-      }
-    }
-    for (auto kde = keys2old_mat_elems.a2ab[key];
-         kde < keys2old_mat_elems.a2ab[key + 1]; ++kde) {
-      auto donor_elem = keys2old_mat_elems.ab2b[kde];
-      auto donor_verts = gather_verts<dim + 1>(old_ev2v, donor_elem);
-      auto donor_points = gather_vectors<dim + 1, dim>(old_coords, donor_verts);
-      Vector<max_targets> coeffs;
-      Real total_size = 0.0;
-      for (Int i = 0; i < ntargets; ++i) {
-        auto target_elem = keys2new_mat_elems.ab2b[kte_begin + i];
-        auto target_verts = gather_verts<dim + 1>(new_ev2v, target_elem);
-        auto target_points =
-            gather_vectors<dim + 1, dim>(new_coords, target_verts);
-        r3d::Polytope<dim> intersection;
-        r3d::intersect_simplices(
-            intersection, to_r3d(target_points), to_r3d(donor_points));
-        auto intersection_size = r3d::measure(intersection);
-        coeffs[i] = intersection_size;
-        total_size += intersection_size;
-      }
-      for (Int i = 0; i < ntargets; ++i) coeffs[i] /= total_size;
-      for (Int i = 0; i < ntargets; ++i) {
-        auto target_elem = keys2new_mat_elems.ab2b[kte_begin + i];
-        for (Int comp = 0; comp < ncomps; ++comp) {
-          new_data_w[target_elem * ncomps + comp] +=
-              coeffs[i] * old_data[donor_elem * ncomps + comp];
-        }
-      }
-    }
-  };
-  parallel_for(nkeys, f);
 }
 
 static void transfer_conserve_tag(Mesh* old_mesh, Mesh* new_mesh,
