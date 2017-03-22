@@ -291,9 +291,9 @@ static void transfer_pointwise_refine(Mesh* old_mesh, XferOpts const& opts,
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_fit(old_mesh, opts, dim, tagbase)) {
-      transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges, dim,
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, dim,
           keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-          tagbase->name());
+          tagbase);
     }
   }
 }

@@ -84,6 +84,9 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
 
 Reals interpolate_between(Reals a, Reals b, Real t);
 
+template <typename Tout, typename Tin>
+Read<Tout> array_cast(Read<Tin> in);
+
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
   extern template typename StandinTraits<T>::type get_sum(Read<T> a);          \
@@ -116,6 +119,8 @@ OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)
 OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
+
+extern template Read<Real> array_cast(Read<I32>);
 
 }  // end namespace Omega_h
 

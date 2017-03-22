@@ -18,14 +18,22 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
 
 template <Int dim>
 static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
-    TagBase const* tagbase, Graph keys2old_mat_elems, Graph keys2new_mat_elems,
+    TagBase const* tagbase, Graph keys2old_elems, Graph keys2new_elems,
     Write<Real> new_data_w) {
   auto ncomps = tagbase->ncomps();
   auto old_tag = to<Real>(tagbase);
-  auto old_data = old_tag->array();
-  auto new_data = new_mesh->get_array<Real>(dim, tagbase->name());
+  auto old_densities = old_tag->array();
+  auto new_densities = new_mesh->get_array<Real>(dim, tagbase->name());
   auto old_sizes = old_mesh->ask_sizes();
   auto new_sizes = new_mesh->ask_sizes();
+  auto old_elem_integrals = multiply_each(old_densities, old_sizes);
+  auto new_elem_integrals = multiply_each(new_densities, new_sizes);
+  auto old_cavity_masses = graph_reduce(
+      keys2old_elems, old_elem_masses, ncomps, OMEGA_H_SUM);
+  auto new_cavity_masses = graph_reduce(
+      keys2new_elems, new_elem_masses, ncomps, OMEGA_H_SUM);
+  auto cavity_mass_errors = subtract_each(new_cavity_masses, old_cavity_masses);
+  auto new_cavity_sizes = graph_reduce(
 }
 
 static void transfer_conserve_tag(Mesh* old_mesh, Mesh* new_mesh,

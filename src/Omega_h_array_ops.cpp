@@ -415,6 +415,14 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   return out;
 }
 
+template <typename Tout, typename Tin>
+Read<Tout> array_cast(Read<Tin> in) {
+  auto out = Write<Tout>(in.size());
+  auto f = LAMBDA(LO i) { out[i] = static_cast<Tout>(in[i]); }
+  parallel_for(in.size(), f);
+  return out;
+}
+
 #define INST(T)                                                                \
   template bool operator==(Read<T> a, Read<T> b);                              \
   template typename StandinTraits<T>::type get_sum(Read<T> a);                 \
@@ -447,5 +455,7 @@ INST(I32)
 INST(I64)
 INST(Real)
 #undef INST
+
+template Read<Real> array_cast(Read<I32>);
 
 }  // end namespace Omega_h
