@@ -1,7 +1,7 @@
 #include "swap2d.hpp"
 
 #include "quality.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

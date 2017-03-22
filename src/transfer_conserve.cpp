@@ -6,7 +6,7 @@
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_transfer.hpp"
 #include "collapse.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 #include "size.hpp"
 
 namespace Omega_h {

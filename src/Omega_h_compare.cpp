@@ -11,7 +11,7 @@
 #include "Omega_h_map.hpp"
 #include "linpart.hpp"
 #include "owners.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

@@ -3,7 +3,7 @@
 
 #include "Omega_h_metric.hpp"
 #include "qr.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

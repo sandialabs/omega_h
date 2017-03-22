@@ -12,15 +12,6 @@
 
 namespace Omega_h {
 
-enum { DIMS = OMEGA_H_DIMS };
-
-enum {
-  VERT = OMEGA_H_VERT,
-  EDGE = OMEGA_H_EDGE,
-  TRI = OMEGA_H_TRI,
-  TET = OMEGA_H_TET
-};
-
 namespace inertia {
 struct Rib;
 }

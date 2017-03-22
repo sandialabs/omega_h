@@ -1,7 +1,7 @@
 #include "unmap_mesh.hpp"
 
 #include "Omega_h_map.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

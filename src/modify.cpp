@@ -8,7 +8,7 @@
 #include "linpart.hpp"
 #include "owners.hpp"
 #include "scan.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 #include "transfer_conserve.hpp"
 #include "unmap_mesh.hpp"
 

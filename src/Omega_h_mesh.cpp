@@ -15,7 +15,7 @@
 #include "migrate.hpp"
 #include "quality.hpp"
 #include "reorder.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 #include "size.hpp"
 
 namespace Omega_h {

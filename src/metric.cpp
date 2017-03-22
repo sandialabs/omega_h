@@ -5,7 +5,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "host_few.hpp"
 #include "project.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 #include "size.hpp"
 
 namespace Omega_h {

@@ -8,7 +8,7 @@
 #include "Omega_h_map.hpp"
 #include "internal.hpp"
 #include "loop.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

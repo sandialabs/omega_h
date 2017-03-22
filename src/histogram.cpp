@@ -2,7 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include "Omega_h_array_ops.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

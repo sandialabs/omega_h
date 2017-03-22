@@ -5,7 +5,7 @@
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_few.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

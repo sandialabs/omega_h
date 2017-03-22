@@ -7,7 +7,7 @@
 #include "control.hpp"
 #include "internal.hpp"
 #include "scan.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 #include "sort.hpp"
 
 namespace Omega_h {

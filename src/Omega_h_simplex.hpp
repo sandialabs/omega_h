@@ -1,13 +1,14 @@
-#ifndef SIMPLICES_HPP
-#define SIMPLICES_HPP
+#ifndef OMEGA_H_SIMPLEX_HPP
+#define OMEGA_H_SIMPLEX_HPP
 
-#include "internal.hpp"
+#include <Omega_h_defines.hpp>
+#include <Omega_h_kokkos.hpp>
 
 namespace Omega_h {
 
 /* TODO: make these constexpr, either with C++14 or lots of
    ternary operators */
-INLINE Int down_template(
+OMEGA_H_INLINE Int down_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_vert) {
   switch (elem_dim) {
     case 1:
@@ -143,7 +144,7 @@ struct TemplateUp {
   bool is_flipped;
 };
 
-INLINE TemplateUp up_template(
+OMEGA_H_INLINE TemplateUp up_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
   switch (elem_dim) {
     case 3:
@@ -264,7 +265,7 @@ INLINE TemplateUp up_template(
   return {-1, -1, true};
 };
 
-INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
+OMEGA_H_INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
   switch (elem_dim) {
     case 3:
       switch (bdry_dim) {
@@ -333,7 +334,7 @@ INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
   return -1;
 }
 
-INLINE Int simplex_degree(Int from_dim, Int to_dim) {
+OMEGA_H_INLINE Int simplex_degree(Int from_dim, Int to_dim) {
   switch (from_dim) {
     case 0:
       return 1;

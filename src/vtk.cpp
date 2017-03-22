@@ -7,7 +7,7 @@
 #endif
 
 #include "base64.hpp"
-#include "simplices.hpp"
+#include "Omega_h_simplex.hpp"
 #include "xml.hpp"
 
 namespace Omega_h {
