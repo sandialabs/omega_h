@@ -1018,7 +1018,7 @@ static void test_volume_vert_gradients() {
 
 static void test_1d_box(Library* lib) {
   Mesh mesh(lib);
-  build_box(&mesh, 1, 0, 0, 1, 0, 0);
+  build_box(&mesh, 1, 0, 0, 4, 0, 0);
 }
 
 int main(int argc, char** argv) {

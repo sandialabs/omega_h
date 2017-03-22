@@ -1,7 +1,6 @@
 #ifndef OMEGA_H_SIZE_HPP
 #define OMEGA_H_SIZE_HPP
 
-#include "algebra.hpp"
 #include "Omega_h_metric.hpp"
 #include "qr.hpp"
 #include "simplices.hpp"

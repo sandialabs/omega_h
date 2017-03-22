@@ -1,6 +1,5 @@
 #include "box.hpp"
 
-#include "algebra.hpp"
 
 namespace Omega_h {
 

@@ -1,7 +1,6 @@
 #ifndef QUALITY_HPP
 #define QUALITY_HPP
 
-#include "algebra.hpp"
 #include "host_few.hpp"
 #include "size.hpp"
 

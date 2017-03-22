@@ -199,13 +199,13 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
     write_array(stream, tag->name(), tag->ncomps(), to<I64>(tag)->array());
   } else if (is<Real>(tag)) {
     Reals array = to<Real>(tag)->array();
-    if (space_dim == 2 && tag->ncomps() == space_dim) {
+    if (space_dim < 3 && tag->ncomps() == space_dim) {
       // VTK / Paraview expect vector fields to have 3 components
       // regardless of whether this is a 2D mesh or not.
       // this filter adds a 3rd zero component to any
       // fields with 2 components for 2D meshes
       CHECK(array.exists());
-      write_array(stream, tag->name(), 3, vectors_2d_to_3d(array));
+      write_array(stream, tag->name(), 3, resize_vectors(array, space_dim, 3));
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array);
     }
@@ -482,7 +482,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   CHECK(xml::read_tag(stream).elem_name == "Points");
   auto coords = read_known_array<Real>(
       stream, "coordinates", nverts, 3, is_little_endian, is_compressed);
-  if (dim == 2) coords = vectors_3d_to_2d(coords);
+  if (dim < 3) coords = resize_vectors(coords, 3, dim);
   CHECK(xml::read_tag(stream).elem_name == "Points");
   CHECK(xml::read_tag(stream).elem_name == "PointData");
   read_locals_and_owners(stream, comm, nverts, is_little_endian, is_compressed);

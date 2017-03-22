@@ -505,7 +505,7 @@ void Mesh::balance(bool predictive) {
   if (rib_hints_) hints = *rib_hints_;
   auto ecoords =
       average_field(this, dim(), LOs(nelems(), 0, 1), dim(), coords());
-  if (dim() == 2) ecoords = vectors_2d_to_3d(ecoords);
+  if (dim() < 3) ecoords = resize_vectors(ecoords, dim(), 3);
   Reals masses;
   Real abs_tol;
   if (predictive) {
@@ -679,6 +679,28 @@ bool can_print(Mesh* mesh) {
 
 Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
   return repro_sum(mesh->comm(), mesh->owned_array(dim, a, 1));
+}
+
+Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
+  auto ev2v = mesh->ask_verts_of(dim);
+  auto degree = simplex_degrees[dim][VERT];
+  CHECK(v2x.size() % ncomps == 0);
+  auto na = a2e.size();
+  Write<Real> out(na * ncomps);
+  auto f = LAMBDA(LO a) {
+    auto e = a2e[a];
+    for (Int j = 0; j < ncomps; ++j) {
+      Real comp = 0;
+      for (Int k = 0; k < degree; ++k) {
+        auto v = ev2v[e * degree + k];
+        comp += v2x[v * ncomps + j];
+      }
+      comp /= degree;
+      out[a * ncomps + j] = comp;
+    }
+  };
+  parallel_for(na, f);
+  return out;
 }
 
 #define INST_T(T)                                                              \
