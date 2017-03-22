@@ -1,6 +1,5 @@
 #include "Omega_h.hpp"
 #include "Omega_h_compare.hpp"
-#include "Omega_h_math.hpp"
 #include "Omega_h_timer.hpp"
 
 #include <iostream>

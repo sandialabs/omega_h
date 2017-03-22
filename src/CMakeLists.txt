@@ -386,7 +386,6 @@ set(Omega_h_HEADERS
   Omega_h_defines.hpp
   Omega_h_array.hpp
   Omega_h.hpp
-  Omega_h_math.hpp
   Omega_h_vector.hpp
   Omega_h_matrix.hpp
   Omega_h_functors.hpp

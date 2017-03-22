@@ -1,5 +1,4 @@
 #include "Omega_h.hpp"
-#include "Omega_h_math.hpp"
 #include "Omega_h_timer.hpp"
 
 #include <iostream>
@@ -15,7 +14,7 @@ static void set_target_metric(Mesh* mesh) {
     auto h = Vector<dim>();
     for (Int i = 0; i < dim - 1; ++i) h[i] = 0.1;
     h[dim - 1] = 0.001 + 0.198 * fabs(z - 0.5);
-    auto m = diagonal(metric_eigenvalues(h));
+    auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(target_metrics_w, v, m);
   };
   parallel_for(mesh->nverts(), f);

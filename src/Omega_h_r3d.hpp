@@ -1,14 +1,14 @@
 #ifndef OMEGA_H_R3D_HPP
 #define OMEGA_H_R3D_HPP
 
-#include "Omega_h_kokkos.hpp"
-#include "Omega_h_math.hpp"
+#include <Omega_h_kokkos.hpp>
+#include <Omega_h_vector.hpp>
 
 #ifdef OMEGA_H_USE_CUDA
 #define R3D_USE_CUDA
 #endif
 
-#include "r3d.hpp"
+#include <r3d.hpp>
 
 namespace Omega_h {
 

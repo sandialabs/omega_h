@@ -2,7 +2,6 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_math.hpp"
 #include "Omega_h_motion.hpp"
 #include "Omega_h_proximity.hpp"
 #include "bbox.hpp"
@@ -136,7 +135,7 @@ static void test_eigen_metric(Vector<3> h) {
   auto q =
       rotate(PI / 4., vector_3(0, 0, 1)) * rotate(PI / 4., vector_3(0, 1, 0));
   CHECK(are_close(transpose(q) * q, identity_matrix<3, 3>()));
-  auto l = metric_eigenvalues(h);
+  auto l = metric_eigenvalues_from_lengths(h);
   auto a = compose_ortho(q, l);
   test_eigen_cubic_ortho(a, l);
 }

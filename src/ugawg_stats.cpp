@@ -1,6 +1,5 @@
 #include "Omega_h.hpp"
 #include "Omega_h_cmdline.hpp"
-#include "Omega_h_math.hpp"
 #include "simplices.hpp"
 
 #include <iostream>
@@ -17,7 +16,7 @@ static Reals get_cube_linear_metric(Mesh* mesh) {
     auto h = Vector<dim>();
     for (Int i = 0; i < dim - 1; ++i) h[i] = 0.1;
     h[dim - 1] = 0.001 + 0.198 * fabs(z - 0.5);
-    auto m = diagonal(metric_eigenvalues(h));
+    auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(out, v, m);
   };
   parallel_for(mesh->nverts(), f);
@@ -32,7 +31,7 @@ static Reals get_cube_cylinder_shock_metric(Mesh* mesh) {
     auto p = get_vector<dim>(coords, v);
     auto z = p[2];
     auto h = vector_3(0.1, 0.1, h0 + 2 * (0.1 - h0) * fabs(z - 0.5));
-    auto m = diagonal(metric_eigenvalues(h));
+    auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(out, v, m);
   };
   parallel_for(mesh->nverts(), f);

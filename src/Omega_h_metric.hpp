@@ -29,11 +29,29 @@ OMEGA_H_INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
 
 OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) { return 1.0 / sqrt(l); }
 
+OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {
+  return 1.0 / square(h);
+}
+
 template <Int dim>
 OMEGA_H_INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> l) {
   Vector<dim> h;
   for (Int i = 0; i < dim; ++i) h[i] = metric_length_from_eigenvalue(l[i]);
   return h;
+}
+
+template <Int dim>
+OMEGA_H_INLINE Vector<dim> metric_eigenvalues_from_lengths(Vector<dim> h) {
+  Vector<dim> l;
+  for (Int i = 0; i < dim; ++i) l[i] = metric_eigenvalue_from_length(h[i]);
+  return l;
+}
+
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> compose_metric(
+    Matrix<dim, dim> r, Vector<dim> h) {
+  auto l = metric_eigenvalues_from_lengths(h);
+  return compose_ortho(r, l);
 }
 
 template <Int dim>

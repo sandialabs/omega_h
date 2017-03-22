@@ -3,7 +3,6 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_math.hpp"
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_transfer.hpp"
 #include "collapse.hpp"
