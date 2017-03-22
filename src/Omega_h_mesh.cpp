@@ -70,7 +70,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
 
 void Mesh::set_dim(Int dim) {
   CHECK(dim_ == -1);
-  CHECK(dim >= 2);
+  CHECK(dim >= 1);
   CHECK(dim <= 3);
   dim_ = dim;
 }

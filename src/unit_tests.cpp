@@ -1016,6 +1016,11 @@ static void test_volume_vert_gradients() {
   }
 }
 
+static void test_1d_box(Library* lib) {
+  Mesh mesh(lib);
+  build_box(&mesh, 1, 0, 0, 1, 0, 0);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
@@ -1073,5 +1078,6 @@ int main(int argc, char** argv) {
   test_separate_cavities();
   test_insphere();
   test_volume_vert_gradients();
+  test_1d_box(&lib);
   CHECK(get_current_bytes() == 0);
 }

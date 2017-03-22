@@ -71,9 +71,14 @@ void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
 
 void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
   CHECK(nx > 0);
-  CHECK(ny > 0);
+  CHECK(ny >= 0);
   CHECK(nz >= 0);
-  if (nz == 0) {
+  if (ny == 0) {
+    LOs ev2v;
+    Reals coords;
+    make_1d_box(x, nx, &ev2v, &coords);
+    build_from_elems_and_coords(mesh, EDGE, ev2v, coords);
+  } else if (nz == 0) {
     LOs qv2v;
     Reals coords;
     make_2d_box(x, y, nx, ny, &qv2v, &coords);

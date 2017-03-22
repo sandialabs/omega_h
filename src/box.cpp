@@ -4,6 +4,28 @@
 
 namespace Omega_h {
 
+void make_1d_box(
+    Real x, LO nx, LOs* ev2v_out, Reals* coords_out) {
+  LO ne = nx;
+  LO nv = nx + 1;
+  Real dx = x / nx;
+  Write<Real> coords(nv);
+  auto fill_coords = LAMBDA(LO v) {
+    LO i = v % nv;
+    coords[v] = i * dx;
+  };
+  parallel_for(nv, fill_coords);
+  Write<LO> ev2v(ne * 2);
+  auto fill_conn = LAMBDA(LO q) {
+    LO i = q % ne;
+    ev2v[q * 2 + 0] = i + 0;
+    ev2v[q * 2 + 1] = i + 1;
+  };
+  parallel_for(ne, fill_conn);
+  *ev2v_out = ev2v;
+  *coords_out = coords;
+}
+
 void make_2d_box(
     Real x, Real y, LO nx, LO ny, LOs* qv2v_out, Reals* coords_out) {
   LO nq = nx * ny;
