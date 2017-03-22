@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
     auto side_normals = map_onto(
         surf_side_normals, surf_side2side, mesh.nents(sdim), 0.0, mesh.dim());
     mesh.add_tag(sdim, "normal", mesh.dim(), side_normals);
-    auto surf_vert_normals = get_vert_normals(
+    auto surf_vert_normals = get_side_vert_normals(
         &mesh, surf_side2side, surf_side_normals, surf_vert2vert);
     auto vert_normals = map_onto(
         surf_vert_normals, surf_vert2vert, mesh.nverts(), 0.0, mesh.dim());
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     curv_vert2vert = collect_marked(verts_are_curv);
     attach_basis_vectors(&mesh, VERT, surf_vert2vert, surf_vert_normals);
     attach_basis_vectors(&mesh, TRI, surf_side2side, surf_side_normals);
-    auto surf_tri_IIs = get_triangle_IIs(&mesh, surf_side2side,
+    auto surf_tri_IIs = get_surf_tri_IIs(&mesh, surf_side2side,
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto tri_IIs = map_onto(surf_tri_IIs, surf_side2side, mesh.ntris(), 0.0, 3);
     mesh.add_tag(TRI, "II", 3, tri_IIs);
@@ -85,16 +85,16 @@ int main(int argc, char** argv) {
     curv_edge2edge = surf_side2side;
     curv_vert2vert = surf_vert2vert;
   }
-  auto curv_edge_tangents = get_edge_tangents(&mesh, curv_edge2edge);
+  auto curv_edge_tangents = get_curv_edge_tangents(&mesh, curv_edge2edge);
   auto edge_tangents = map_onto(
       curv_edge_tangents, curv_edge2edge, mesh.nedges(), 0.0, mesh.dim());
   mesh.add_tag(EDGE, "tangent", mesh.dim(), edge_tangents);
-  auto curv_vert_tangents = get_vert_tangents(
+  auto curv_vert_tangents = get_curv_vert_tangents(
       &mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
   auto vert_tangents = map_onto(
       curv_vert_tangents, curv_vert2vert, mesh.nverts(), 0.0, mesh.dim());
   mesh.add_tag(VERT, "tangent", mesh.dim(), vert_tangents);
-  auto curv_edge_curvatures = get_edge_curvatures(&mesh, curv_edge2edge,
+  auto curv_edge_curvatures = get_curv_edge_curvatures(&mesh, curv_edge2edge,
       curv_edge_tangents, curv_vert2vert, curv_vert_tangents);
   auto edge_curvatures =
       map_onto(curv_edge_curvatures, curv_edge2edge, mesh.nedges(), 0.0, 1);
