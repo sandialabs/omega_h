@@ -167,14 +167,17 @@ void Mesh::set_tag(
 void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   /* hardcoded cache invalidations */
   if ((dim == VERT) &&
-      ((name == "coordinates") || (name == "size") || (name == "metric"))) {
+      ((name == "coordinates") || (name == "metric"))) {
     if (has_tag(EDGE, "length")) {
       remove_tag(EDGE, "length");
     }
-  }
-  if ((dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
     if (has_tag(this->dim(), "quality")) {
       remove_tag(this->dim(), "quality");
+    }
+  }
+  if ((dim == VERT) && (name == "coordinates")) {
+    if (has_tag(this->dim(), "size")) {
+      remove_tag(this->dim(), "size");
     }
   }
 }

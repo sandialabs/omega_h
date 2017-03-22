@@ -40,7 +40,7 @@ LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts) {
       }
     };
     parallel_for(mesh->nverts(), f);
-    if (tb->name() == "metric" || tb->name() == "size") metric_offset = offset;
+    if (tb->name() == "metric") metric_offset = offset;
     if (tb->name() == "coordinates") coords_offset = offset;
     offset += ncomps_in;
   }
