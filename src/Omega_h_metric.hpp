@@ -1,8 +1,7 @@
-#ifndef METRIC_HPP
-#define METRIC_HPP
+#ifndef OMEGA_H_METRIC_HPP
+#define OMEGA_H_METRIC_HPP
 
-#include "eigen.hpp"
-#include "lie.hpp"
+#include <Omega_h_lie.hpp>
 
 namespace Omega_h {
 

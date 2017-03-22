@@ -4,7 +4,7 @@
 #include "Omega_h_timer.hpp"
 #include "control.hpp"
 #include "fit.hpp"
-#include "metric.hpp"
+#include "Omega_h_metric.hpp"
 #include "quality.hpp"
 #include "size.hpp"
 #include "transfer_conserve.hpp"

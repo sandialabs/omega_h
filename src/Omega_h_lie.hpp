@@ -1,11 +1,11 @@
-#ifndef LIE_HPP
-#define LIE_HPP
+#ifndef OMEGA_H_LIE_HPP
+#define OMEGA_H_LIE_HPP
 
 /* Lie as in Lie groups and Lie algebras,
  * not as in the opposite of truth.
  */
 
-#include "eigen.hpp"
+#include <Omega_h_eigen.hpp>
 
 namespace Omega_h {
 

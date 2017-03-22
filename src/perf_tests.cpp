@@ -5,9 +5,9 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_timer.hpp"
-#include "eigen.hpp"
+#include "Omega_h_eigen.hpp"
 #include "internal.hpp"
-#include "metric.hpp"
+#include "Omega_h_metric.hpp"
 #include "sort.hpp"
 
 using namespace Omega_h;

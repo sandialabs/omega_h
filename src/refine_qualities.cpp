@@ -2,7 +2,7 @@
 
 #include "Omega_h_align.hpp"
 #include "algebra.hpp"
-#include "metric.hpp"
+#include "Omega_h_metric.hpp"
 #include "quality.hpp"
 #include "refine_topology.hpp"
 #include "simplices.hpp"

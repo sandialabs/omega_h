@@ -4,7 +4,7 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "bipart.hpp"
-#include "eigen.hpp"
+#include "Omega_h_eigen.hpp"
 
 namespace Omega_h {
 

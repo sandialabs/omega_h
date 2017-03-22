@@ -1,4 +1,4 @@
-#include "eigen.hpp"
+#include "Omega_h_eigen.hpp"
 
 #include "Omega_h_loop.hpp"
 
