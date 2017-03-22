@@ -16,7 +16,7 @@
 #include "quality.hpp"
 #include "reorder.hpp"
 #include "Omega_h_simplex.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 

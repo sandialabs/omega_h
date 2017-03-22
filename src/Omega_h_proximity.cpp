@@ -4,7 +4,7 @@
 #include "Omega_h_confined.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_simplex.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 

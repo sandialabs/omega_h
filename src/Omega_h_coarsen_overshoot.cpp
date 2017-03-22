@@ -1,7 +1,7 @@
 #include "Omega_h_coarsen.hpp"
 #include "collapse.hpp"
 #include "refine.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 

@@ -2,7 +2,7 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_motion.hpp"
 #include "Omega_h_transfer.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 

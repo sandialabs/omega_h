@@ -28,7 +28,7 @@ set(Omega_h_SOURCES
   Omega_h_mark.cpp
   Omega_h_class.cpp
   reorder.cpp
-  size.cpp
+  Omega_h_shape.cpp
   quality.cpp
   gmsh.cpp
   Omega_h_comm.cpp
@@ -42,7 +42,7 @@ set(Omega_h_SOURCES
   ghost.cpp
   inertia.cpp
   bipart.cpp
-  metric.cpp
+  Omega_h_metric.cpp
   refine_qualities.cpp
   refine_topology.cpp
   modify.cpp
@@ -68,8 +68,7 @@ set(Omega_h_SOURCES
   consistent.cpp
   Omega_h_align.cpp
   xml.cpp
-  derive.cpp
-  project.cpp
+  Omega_h_recover.cpp
   Omega_h_coarsen_overshoot.cpp
   collapse_rail.cpp
   histogram.cpp
@@ -408,11 +407,11 @@ set(Omega_h_HEADERS
   Omega_h_align.hpp
   Omega_h_few.hpp
   Omega_h_mark.hpp
-  Omega_h_size_field.hpp
   Omega_h_loop.hpp
   Omega_h_timer.hpp
   Omega_h_eigen.hpp
   Omega_h_lie.hpp
+  Omega_h_recover.hpp
   Omega_h_metric.hpp
   )
 

@@ -6,7 +6,7 @@
 #include "control.hpp"
 #include "fit.hpp"
 #include "quality.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 #include "transfer_conserve.hpp"
 
 namespace Omega_h {

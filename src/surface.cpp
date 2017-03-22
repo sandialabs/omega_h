@@ -2,7 +2,7 @@
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_map.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 

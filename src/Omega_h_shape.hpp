@@ -1,11 +1,11 @@
 #ifndef OMEGA_H_SIZE_HPP
 #define OMEGA_H_SIZE_HPP
 
-#include "Omega_h_metric.hpp"
-#include "Omega_h_qr.hpp"
-#include "Omega_h_simplex.hpp"
-#include "Omega_h_adj.hpp"
-#include "Omega_h_mesh.hpp"
+#include <Omega_h_metric.hpp>
+#include <Omega_h_qr.hpp>
+#include <Omega_h_simplex.hpp>
+#include <Omega_h_adj.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
 
@@ -110,17 +110,6 @@ OMEGA_H_INLINE Real edge_length(Real l_a, Real l_b) {
 }
 
 template <Int space_dim, Int metric_dim>
-OMEGA_H_INLINE Real squared_metric_length(
-    Vector<space_dim> v, Matrix<metric_dim, metric_dim> m) {
-  return metric_product(m, v);
-}
-
-template <Int space_dim>
-OMEGA_H_INLINE Real squared_metric_length(Vector<space_dim> v, NoMetric) {
-  return norm_squared(v);
-}
-
-template <Int space_dim, Int metric_dim>
 OMEGA_H_INLINE Real metric_edge_length(
     Few<Vector<space_dim>, 2> p, Few<Matrix<metric_dim, metric_dim>, 2> ms) {
   auto v = p[1] - p[0];
@@ -202,6 +191,12 @@ OMEGA_H_INLINE Few<Vector<3>, 6> element_edge_vectors(
   return ev;
 }
 
+template <Int space_dim, Int metric_dim>
+OMEGA_H_INLINE Real squared_metric_length(
+    Vector<space_dim> v, Matrix<metric_dim, metric_dim> m) {
+  return metric_product(m, v);
+}
+
 template <typename EdgeVectors, typename Metric>
 OMEGA_H_INLINE Real mean_squared_metric_length(
     EdgeVectors edge_vectors, Metric metric) {
@@ -215,7 +210,7 @@ OMEGA_H_INLINE Real mean_squared_metric_length(
 
 template <typename EdgeVectors>
 OMEGA_H_INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
-  return mean_squared_metric_length(edge_vectors, NoMetric());
+  return mean_squared_metric_length(edge_vectors, matrix_1x1(1.0));
 }
 
 template <Int dim>

@@ -211,10 +211,21 @@ Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t);
 Reals linearize_metrics(LO nmetrics, Reals metrics);
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
 
-/* used to achieve templated versions of code that either
- * accept a metric tensor or nothing
- */
-struct NoMetric {};
+Reals project_metrics(Mesh* mesh, Reals e2m);
+
+Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max);
+Reals find_implied_isos(Mesh* mesh);
+Reals find_implied_metric(Mesh* mesh);
+void axes_from_metric_field(
+    Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
+Reals limit_metric_gradation(
+    Mesh* mesh, Reals values, Real max_rate, Real tol = 1e-3);
+Reals expected_elems_per_elem(Mesh* mesh, Reals v2m);
+Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
+Reals smooth_metric_once(Mesh* mesh, Reals v2m);
+Reals smooth_isos_once(Mesh* mesh, Reals v2h);
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle);
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps);
 
 }  // end namespace Omega_h
 

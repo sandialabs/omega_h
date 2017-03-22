@@ -4,9 +4,10 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "host_few.hpp"
-#include "project.hpp"
+#include "Omega_h_recover.hpp"
 #include "Omega_h_simplex.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
+#include "surface.hpp"
 
 namespace Omega_h {
 
@@ -174,52 +175,6 @@ void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
   NORETURN();
 }
 
-/* A Hessian-based anisotropic size field, from
- * Alauzet's tech report:
- *
- * F. Alauzet, P.J. Frey, Estimateur d'erreur geometrique
- * et metriques anisotropes pour l'adaptation de maillage.
- * Partie I: aspects theoriques,
- * RR-4759, INRIA Rocquencourt, 2003.
- */
-
-template <Int dim>
-static INLINE Matrix<dim, dim> metric_from_hessian(
-    Matrix<dim, dim> hessian, Real eps) {
-  auto ed = decompose_eigen(hessian);
-  auto r = ed.q;
-  auto l = ed.l;
-  constexpr auto c_num = square(dim);
-  constexpr auto c_denom = 2 * square(dim + 1);
-  decltype(l) tilde_l;
-  for (Int i = 0; i < dim; ++i) {
-    tilde_l[i] = (c_num * fabs(l[i])) / (c_denom * eps);
-  }
-  return compose_eigen(r, tilde_l);
-}
-
-template <Int dim>
-static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
-  auto ncomps = symm_ncomps(dim);
-  CHECK(hessians.size() % ncomps == 0);
-  auto n = hessians.size() / ncomps;
-  auto out = Write<Real>(n * ncomps);
-  auto f = LAMBDA(LO i) {
-    auto hess = get_symm<dim>(hessians, i);
-    auto m = metric_from_hessian(hess, eps);
-    set_symm(out, i, m);
-  };
-  parallel_for(n, f);
-  return out;
-}
-
-Reals metric_from_hessians(Int dim, Reals hessians, Real eps) {
-  CHECK(eps > 0.0);
-  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps);
-  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps);
-  NORETURN(Reals());
-}
-
 /* gradation limiting code: */
 
 template <Int mesh_dim, Int metric_dim>
@@ -300,96 +255,213 @@ Reals smooth_metric_once(Mesh* mesh, Reals v2m) {
   return project_metrics(mesh, get_mident_metrics(mesh, mesh->dim(), e2e, v2m));
 }
 
-/* Micheletti, S., and S. Perotto.
- * "Anisotropic adaptation via a Zienkiewicz–Zhu error estimator
- *  for 2D elliptic problems."
- * Numerical Mathematics and Advanced Applications 2009.
- * Springer Berlin Heidelberg, 2010. 645-653.
- *
- * Farrell, P. E., S. Micheletti, and S. Perotto.
- * "An anisotropic Zienkiewicz–Zhu‐type error estimator for 3D applications."
- * International journal for numerical methods in engineering
- * 85.6 (2011): 671-692.
- */
-
 template <Int dim>
-Reals get_aniso_zz_metric_dim(
-    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size) {
-  CHECK(mesh->have_all_upward());
-  constexpr auto nverts_per_elem = dim + 1;
-  auto elem_verts2vert = mesh->ask_elem_verts();
-  auto verts2elems = mesh->ask_up(VERT, dim);
-  constexpr auto max_elems_per_patch =
-      AvgDegree<dim, 0, dim>::value * nverts_per_elem;
-  auto elems2volume = measure_elements_real(mesh);
-  auto nglobal_elems = get_sum(mesh->comm(), mesh->owned(dim));
-  auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
-  auto f = LAMBDA(LO elem) {
-    Few<LO, max_elems_per_patch> patch_elems;
-    Int npatch_elems = 0;
-    for (auto ev = elem * nverts_per_elem; ev < ((elem + 1) * nverts_per_elem);
-         ++ev) {
-      auto vert = elem_verts2vert[ev];
-      for (auto ve = verts2elems.a2ab[vert]; ve < verts2elems.a2ab[vert + 1];
-           ++ve) {
-        auto patch_elem = verts2elems.ab2b[ve];
-        add_unique(patch_elems, npatch_elems, patch_elem);
-      }
-    }
-    Real patch_volume = 0;
-    auto grad_sum = zero_vector<dim>();
-    for (Int i = 0; i < npatch_elems; ++i) {
-      auto patch_elem = patch_elems[i];
-      auto gradient = get_vector<dim>(elem_gradients, patch_elem);
-      auto volume = elems2volume[patch_elem];
-      patch_volume += volume;
-      grad_sum = grad_sum + (gradient * volume);
-    }
-    auto grad_avg = grad_sum / patch_volume;
-    auto op_sum = zero_matrix<dim, dim>();
-    for (Int i = 0; i < npatch_elems; ++i) {
-      auto patch_elem = patch_elems[i];
-      auto gradient = get_vector<dim>(elem_gradients, patch_elem);
-      auto volume = elems2volume[patch_elem];
-      auto grad_err = grad_avg - gradient;
-      auto op = outer_product(grad_err, grad_err);
-      op_sum = op_sum + (op * volume);
-    }
-    auto op_avg = op_sum / patch_volume;
-    auto iso_volume =
-        (dim == 3) ? (1.0 / (6.0 * sqrt(2.0))) : (sqrt(3.0) / 4.0);
-    auto volume_factor = elems2volume[elem] / iso_volume;
-    auto pullback_volume = patch_volume / volume_factor;
-    auto a =
-        square(error_bound) / (Real(dim) * nglobal_elems * pullback_volume);
-    auto op_decomp = decompose_eigen(op_avg);
-    auto g = op_decomp.l;
-    auto gv = op_decomp.q;
-    auto b = root<dim>(a);
-    auto g_min = square(b / max_size);
-    for (Int i = 0; i < dim; ++i) g[i] = max2(g[i], g_min);
-    Matrix<dim, dim> r;
-    for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
-    Vector<dim> h;
-    for (Int i = 0; i < dim; ++i) h[i] = b / sqrt(g[dim - i - 1]);
-    auto m = compose_metric(r, h);
-    set_symm(out, elem, m);
+static Reals element_implied_isos_dim(Mesh* mesh) {
+  auto coords = mesh->coords();
+  auto ev2v = mesh->ask_elem_verts();
+  auto out = Write<Real>(mesh->nelems());
+  auto f = LAMBDA(LO e) {
+    auto v = gather_verts<dim + 1>(ev2v, e);
+    auto p = gather_vectors<dim + 1, dim>(coords, v);
+    auto h = element_implied_length(p);
+    out[e] = metric_eigenvalue_from_length(h);
   };
   parallel_for(mesh->nelems(), f);
   return out;
 }
 
-Reals get_aniso_zz_metric(
-    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size) {
-  if (mesh->dim() == 3) {
-    return get_aniso_zz_metric_dim<3>(
-        mesh, elem_gradients, error_bound, max_size);
-  } else if (mesh->dim() == 2) {
-    return get_aniso_zz_metric_dim<2>(
-        mesh, elem_gradients, error_bound, max_size);
-  } else {
-    NORETURN(Reals());
+static Reals element_implied_isos(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_implied_isos_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_isos_dim<2>(mesh);
+  NORETURN(Reals());
+}
+
+Reals find_implied_isos(Mesh* mesh) {
+  return project_metrics(mesh, element_implied_isos(mesh));
+}
+
+template <Int dim>
+static Reals element_implied_metrics_dim(Mesh* mesh) {
+  auto ev2v = mesh->ask_elem_verts();
+  auto coords = mesh->coords();
+  auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
+  auto f = LAMBDA(LO e) {
+    auto v = gather_verts<dim + 1>(ev2v, e);
+    auto p = gather_vectors<dim + 1, dim>(coords, v);
+    auto m = element_implied_metric(p);
+    set_symm(out, e, m);
+  };
+  parallel_for(mesh->nelems(), f);
+  return out;
+}
+
+static Reals element_implied_metrics(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_implied_metrics_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_metrics_dim<2>(mesh);
+  NORETURN(Reals());
+}
+
+Reals find_implied_metric(Mesh* mesh) {
+  return project_metrics(mesh, element_implied_metrics(mesh));
+}
+
+/* A Hessian-based anisotropic size field, from
+ * Alauzet's tech report:
+ *
+ * F. Alauzet, P.J. Frey, Estimateur d'erreur geometrique
+ * et metriques anisotropes pour l'adaptation de maillage.
+ * Partie I: aspects theoriques,
+ * RR-4759, INRIA Rocquencourt, 2003.
+ */
+
+template <Int dim>
+static INLINE Matrix<dim, dim> metric_from_hessian(
+    Matrix<dim, dim> hessian, Real eps) {
+  auto ed = decompose_eigen(hessian);
+  auto r = ed.q;
+  auto l = ed.l;
+  constexpr auto c_num = square(dim);
+  constexpr auto c_denom = 2 * square(dim + 1);
+  decltype(l) tilde_l;
+  for (Int i = 0; i < dim; ++i) {
+    tilde_l[i] = (c_num * fabs(l[i])) / (c_denom * eps);
   }
+  return compose_eigen(r, tilde_l);
+}
+
+template <Int dim>
+static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
+  auto ncomps = symm_ncomps(dim);
+  CHECK(hessians.size() % ncomps == 0);
+  auto n = hessians.size() / ncomps;
+  auto out = Write<Real>(n * ncomps);
+  auto f = LAMBDA(LO i) {
+    auto hess = get_symm<dim>(hessians, i);
+    auto m = metric_from_hessian(hess, eps);
+    set_symm(out, i, m);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals metric_from_hessians(Int dim, Reals hessians, Real eps) {
+  CHECK(eps > 0.0);
+  if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps);
+  if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps);
+  NORETURN(Reals());
+}
+
+Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
+  auto vert_curvatures = get_vert_curvatures(mesh);
+  auto out = Write<Real>(mesh->nverts());
+  auto f = LAMBDA(LO v) {
+    auto curvature = vert_curvatures[v];
+    auto l = square(curvature / segment_angle);
+    out[v] = l;
+  };
+  parallel_for(mesh->nverts(), f);
+  return out;
+}
+
+/* The algorithms below are for scaling a size field such that
+ * adapting based on that size field will result in a certain specified
+ * number of elements.
+ * The formulas are based on Section 2.7 of:
+ * Pain, C. C., et al.
+ * "Tetrahedral mesh optimisation and adaptivity for
+ *  steady-state and transient finite element calculations."
+ * Computer Methods in Applied Mechanics and Engineering
+ * 190.29 (2001): 3771-3796.
+ *
+ * We suspect that Pain et al.'s $\theta$ correction factor is needed
+ * because the tetrahedra in a real mesh are not equilateral, and they
+ * do use equilateral volume in their formula.
+ * To correct for this, we will use information available in our
+ * mean ratio shape measure.
+ * In particular, the following should hold:
+ *
+ * $\eta^\frac{3}{2} = \frac{1}{V_{eq}} \frac{V_e}{l_{RMS}^3}$
+ *
+ * Where $\eta$ is the mean ratio (see quality.hpp),
+ * $V_{eq}$ is the volume of an equilateral tetrahedron with unit
+ * edge lengths, $V_e$ is the volume of the element being measured,
+ * and $l_{RMS}$ is its root-mean-squared edge length.
+ * Loosely speaking, the mean ratio to some power is the volume
+ * that this tetrahedron would have if we scaled it until its
+ * root mean squared edge length was one.
+ * This happens to be exactly the correction factor we need in this case.
+ * In fact, if we use such a correction factor, most terms cancel
+ * out and we are left with the following weights for existing elements:
+ *
+ * isotropic case: $\frac{l_{RMS}^3}{h^3}$
+ * anisotropic case: $\frac{l_{M,RMS}^3}$
+ *
+ * Where $l_{M,RMS}$ is the root mean squared value of $v_i^T \mathcal{M} v_i$,
+ * for edge vector $v_i$, i.e. the root mean squared metric edge length.
+ * In both cases, the (more accurate) scaling factor is simply
+ * the root mean squared edge length in metric space
+ * to the power of the element dimension.
+ *
+ * When we need to scale desired edge lengths, we
+ * use the inverse of the square root of the $\beta$ factor.
+ * (a metric tensor eigenvalue is $(1/h^2)$, where $h$ is desired length).
+ */
+
+struct MeanSquaredMetricLength {
+  Reals e2m;
+  MeanSquaredMetricLength(Mesh* mesh, Reals v2m) {
+    auto e2e = LOs(mesh->nelems(), 0, 1);
+    e2m = get_mident_metrics(mesh, mesh->dim(), e2e, v2m);
+  }
+  template <Int metric_dim, typename EdgeVectors>
+  DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
+    auto m = get_symm<metric_dim>(e2m, e);
+    return mean_squared_metric_length(edge_vectors, m);
+  }
+};
+
+template <Int mesh_dim, Int metric_dim>
+static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
+  auto msl_obj = MeanSquaredMetricLength(mesh, v2m);
+  auto ev2v = mesh->ask_elem_verts();
+  auto coords = mesh->coords();
+  auto out_w = Write<Real>(mesh->nelems());
+  auto f = LAMBDA(LO e) {
+    auto eev2v = gather_verts<mesh_dim + 1>(ev2v, e);
+    auto eev2x = gather_vectors<mesh_dim + 1, mesh_dim>(coords, eev2v);
+    auto basis = simplex_basis<mesh_dim, mesh_dim>(eev2x);
+    auto edge_vectors = element_edge_vectors(eev2x, basis);
+    auto msl = msl_obj.template get<metric_dim>(e, edge_vectors);
+    out_w[e] = power<mesh_dim, 2>(msl);
+  };
+  parallel_for(mesh->nelems(), f);
+  return Reals(out_w);
+}
+
+Reals expected_elems_per_elem(Mesh* mesh, Reals v2m) {
+  auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
+  if (mesh->dim() == 3 && metric_dim == 3) {
+    return expected_elems_per_elem_tmpl<3, 3>(mesh, v2m);
+  }
+  if (mesh->dim() == 2 && metric_dim == 2) {
+    return expected_elems_per_elem_tmpl<2, 2>(mesh, v2m);
+  }
+  if (mesh->dim() == 3 && metric_dim == 1) {
+    return expected_elems_per_elem_tmpl<3, 1>(mesh, v2m);
+  }
+  if (mesh->dim() == 2 && metric_dim == 1) {
+    return expected_elems_per_elem_tmpl<2, 1>(mesh, v2m);
+  }
+  NORETURN(Reals());
+}
+
+Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
+  auto elems_per_elem = expected_elems_per_elem(mesh, v2m);
+  auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
+  auto size_scal = target_nelems / elems;
+  auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
+  auto metric_scal = power(size_scal, 2, metric_dim);
+  return metric_scal;
 }
 
 }  // end namespace Omega_h

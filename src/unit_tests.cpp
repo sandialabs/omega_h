@@ -14,7 +14,7 @@
 #include "quality.hpp"
 #include "refine_qualities.hpp"
 #include "scan.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 #include "sort.hpp"
 #include "swap2d.hpp"
 #include "swap3d_choice.hpp"
@@ -500,12 +500,6 @@ static void test_quality() {
     x_tet[i] = perfect_tet[i];
     x_tet[i][2] /= 2;
   }
-  CHECK(are_close(real_element_quality(perfect_tri), 1.0));
-  CHECK(are_close(real_element_quality(perfect_tet), 1.0));
-  CHECK(are_close(real_element_quality(flat_tri), 0.0));
-  CHECK(are_close(real_element_quality(flat_tet), 0.0));
-  CHECK(real_element_quality(inv_tri) < 0.0);
-  CHECK(real_element_quality(inv_tet) < 0.0);
   CHECK(are_close(metric_element_quality(perfect_tri, id_metric_2), 1.0));
   CHECK(are_close(metric_element_quality(perfect_tet, id_metric_3), 1.0));
   CHECK(are_close(metric_element_quality(flat_tri, id_metric_2), 0.0));

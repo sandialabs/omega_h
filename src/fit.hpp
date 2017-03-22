@@ -16,6 +16,7 @@
 
 #include "Omega_h_qr.hpp"
 #include "Omega_h_simplex.hpp"
+#include "Omega_h_adj.hpp"
 
 namespace Omega_h {
 

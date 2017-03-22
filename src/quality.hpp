@@ -2,7 +2,7 @@
 #define QUALITY_HPP
 
 #include "host_few.hpp"
-#include "size.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 
@@ -27,11 +27,6 @@ INLINE constexpr Real equilateral_size() {
 template <Int dim>
 INLINE Real mean_ratio(Real size, Real mean_squared_length) {
   return power<2, dim>(size / equilateral_size<dim>()) / mean_squared_length;
-}
-
-template <Int space_dim>
-INLINE Real metric_size(Real real_size, NoMetric) {
-  return real_size;
 }
 
 /* This paper (and a few others):
@@ -75,21 +70,6 @@ INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Metric metric) {
   auto msl = mean_squared_metric_length(ev, metric);
   return mean_ratio<dim>(s, msl);
 }
-
-template <Int dim>
-INLINE Real real_element_quality(Few<Vector<dim>, dim + 1> p) {
-  return metric_element_quality(p, NoMetric());
-}
-
-template <Int space_dim>
-struct RealElementQualities {
-  Reals coords;
-  RealElementQualities(Mesh const* mesh) : coords(mesh->coords()) {}
-  DEVICE Real measure(Few<LO, space_dim + 1> v) const {
-    auto p = gather_vectors<space_dim + 1, space_dim>(coords, v);
-    return real_element_quality(p);
-  }
-};
 
 template <Int space_dim, Int metric_dim>
 struct MetricElementQualities {
