@@ -400,7 +400,7 @@ INLINE Matrix<3, 3> rotate_to_plane(Vector<3> n, Matrix<3, 3> tnuv) {
   return r * tnuv;
 }
 
-Reals get_vert_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
+Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
     Reals surf_tri_IIs, LOs surf_verts2vert, Reals surf_vert_normals) {
   auto nsurf_verts = surf_verts2vert.size();
   auto verts2tris = mesh->ask_up(VERT, TRI);
@@ -621,7 +621,7 @@ Reals get_vert_curvatures(Mesh* mesh) {
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto tri_IIs =
         map_onto(surf_tri_IIs, surf_side2side, mesh->ntris(), 0.0, 3);
-    auto surf_vert_IIs = get_vert_IIs(mesh, surf_side2side, surf_side_normals,
+    auto surf_vert_IIs = get_surf_vert_IIs(mesh, surf_side2side, surf_side_normals,
         surf_tri_IIs, surf_vert2vert, surf_vert_normals);
     auto vert_IIs =
         map_onto(surf_vert_IIs, surf_vert2vert, mesh->nverts(), 0.0, 3);
@@ -640,8 +640,6 @@ Reals get_vert_curvatures(Mesh* mesh) {
       curv_vert_tangents, curv_verts2vert, mesh->nverts(), 0.0, mesh->dim());
   auto curv_edge_curvatures = get_edge_curvatures(mesh, curv_edge2edge,
       curv_edge_tangents, curv_verts2vert, curv_vert_tangents);
-  auto edge_curvatures =
-      map_onto(curv_edge_curvatures, curv_edge2edge, mesh->nedges(), 0.0, 1);
   auto curv_vert_curvatures = get_curv_vert_curvatures(
       mesh, curv_edge2edge, curv_edge_curvatures, curv_verts2vert);
   map_into(curv_vert_curvatures, curv_verts2vert, vert_curvatures_w, 1);
