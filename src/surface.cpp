@@ -313,7 +313,7 @@ Reals get_triangle_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto coords = mesh->coords();
   auto nsurf_tris = surf_tris2tri.size();
-  auto surf_tri_IIs_w = Write<Real>(nsurf_tris * symm_dofs(2));
+  auto surf_tri_IIs_w = Write<Real>(nsurf_tris * symm_ncomps(2));
   auto f = LAMBDA(LO surf_tri) {
     auto tri = surf_tris2tri[surf_tri];
     auto tn = get_vector<3>(surf_tri_normals, surf_tri);

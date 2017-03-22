@@ -10,7 +10,7 @@ template <Int mesh_dim, Int metric_dim>
 class MetricMotion {
  public:
   using Metric = Matrix<metric_dim, metric_dim>;
-  static constexpr Int ncomps = symm_dofs(metric_dim);
+  static constexpr Int ncomps = symm_ncomps(metric_dim);
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "metric");
   }

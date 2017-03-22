@@ -251,7 +251,7 @@ OMEGA_H_INLINE Matrix<m, m> diagonal(Vector<m> v) {
   return a;
 }
 
-OMEGA_H_INLINE constexpr Int symm_dofs(Int dim) {
+OMEGA_H_INLINE constexpr Int symm_ncomps(Int dim) {
   return ((dim + 1) * dim) / 2;
 }
 
@@ -305,11 +305,11 @@ OMEGA_H_INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
   return symm;
 }
 
-OMEGA_H_INLINE constexpr Int matrix_dofs(Int dim) { return dim * dim; }
+OMEGA_H_INLINE constexpr Int matrix_ncomps(Int dim) { return dim * dim; }
 
 template <Int dim>
-OMEGA_H_INLINE Vector<matrix_dofs(dim)> matrix2vector(Matrix<dim, dim> m) {
-  Vector<matrix_dofs(dim)> v;
+OMEGA_H_INLINE Vector<matrix_ncomps(dim)> matrix2vector(Matrix<dim, dim> m) {
+  Vector<matrix_ncomps(dim)> v;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
       v[i * dim + j] = m[i][j];
@@ -319,7 +319,7 @@ OMEGA_H_INLINE Vector<matrix_dofs(dim)> matrix2vector(Matrix<dim, dim> m) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> vector2matrix(Vector<matrix_dofs(dim)> v) {
+OMEGA_H_INLINE Matrix<dim, dim> vector2matrix(Vector<matrix_ncomps(dim)> v) {
   Matrix<dim, dim> m;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
@@ -336,7 +336,7 @@ OMEGA_H_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
 
 template <Int n, typename Arr>
 OMEGA_H_DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
-  return vector2symm(get_vector<symm_dofs(n)>(a, i));
+  return vector2symm(get_vector<symm_ncomps(n)>(a, i));
 }
 
 template <Int dim>
@@ -346,7 +346,7 @@ OMEGA_H_DEVICE void set_matrix(Write<Real> const& a, Int i, Matrix<dim, dim> m) 
 
 template <Int dim>
 OMEGA_H_DEVICE Matrix<dim, dim> get_matrix(Reals const& a, Int i) {
-  return vector2symm(get_vector<matrix_dofs(dim)>(a, i));
+  return vector2symm(get_vector<matrix_ncomps(dim)>(a, i));
 }
 
 /* Rodrigues' Rotation Formula */

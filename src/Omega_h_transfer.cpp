@@ -83,7 +83,7 @@ bool is_metric(Mesh* mesh, XferOpts const& opts, Int dim, TagBase const* tag) {
     return false;
   }
   return dim == VERT && tag->type() == OMEGA_H_REAL &&
-         (tag->ncomps() == symm_dofs(mesh->dim()) || tag->ncomps() == 1);
+         (tag->ncomps() == symm_ncomps(mesh->dim()) || tag->ncomps() == 1);
 }
 
 bool is_momentum_velocity(

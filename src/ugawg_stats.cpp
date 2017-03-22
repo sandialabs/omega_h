@@ -10,7 +10,7 @@ constexpr Int dim = 3;
 
 static Reals get_cube_linear_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO v) {
     auto z = coords[v * dim + (dim - 1)];
     auto h = Vector<dim>();
@@ -25,7 +25,7 @@ static Reals get_cube_linear_metric(Mesh* mesh) {
 
 static Reals get_cube_cylinder_shock_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
   auto f = LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
@@ -40,7 +40,7 @@ static Reals get_cube_cylinder_shock_metric(Mesh* mesh) {
 
 static Reals get_cube_cylinder_layer_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
   constexpr Real h_z = 1.0 / 10.0;
   constexpr Real h_t = 1.0 / 10.0;
@@ -62,7 +62,7 @@ static Reals get_cube_cylinder_layer_metric(Mesh* mesh) {
 
 static Reals get_cube_cylinder_quality_layer_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
   constexpr Real h_z = 1.0 / 10.0;
   auto f = LAMBDA(LO v) {
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
     std::cout << "mesh has " << mesh.nents(i) << ' ' << plural_names[i] << '\n';
   }
   auto metrics = get_metric(&mesh, metric_name);
-  mesh.add_tag(VERT, "metric", symm_dofs(dim), metrics);
+  mesh.add_tag(VERT, "metric", symm_ncomps(dim), metrics);
   print_adapt_status(&mesh, opts);
   print_adapt_histograms(&mesh, opts);
   return 0;

@@ -110,7 +110,7 @@ template <Int dim>
 static Reals element_implied_metrics_dim(Mesh* mesh) {
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nelems() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);

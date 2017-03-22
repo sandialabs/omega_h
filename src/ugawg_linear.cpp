@@ -8,7 +8,7 @@ using namespace Omega_h;
 template <Int dim>
 static void set_target_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto target_metrics_w = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto target_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO v) {
     auto z = coords[v * dim + (dim - 1)];
     auto h = Vector<dim>();
@@ -26,8 +26,8 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = find_implied_metric(mesh);
-  mesh->add_tag(VERT, "metric", symm_dofs(dim), implied_metrics);
-  mesh->add_tag<Real>(VERT, "target_metric", symm_dofs(dim));
+  mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
+  mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
   set_target_metric<dim>(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->ask_lengths();

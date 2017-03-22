@@ -634,7 +634,7 @@ static void test_refine_qualities(Library* lib) {
   Mesh mesh(lib);
   build_box(&mesh, 1, 1, 0, 1, 1, 0);
   LOs candidates(mesh.nedges(), 0, 1);
-  mesh.add_tag(VERT, "metric", symm_dofs(2),
+  mesh.add_tag(VERT, "metric", symm_ncomps(2),
       repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
   auto quals = refine_qualities(&mesh, candidates);
   CHECK(are_close(

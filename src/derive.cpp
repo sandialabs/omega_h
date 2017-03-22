@@ -41,7 +41,7 @@ template <Int dim>
 static Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
   auto coords = mesh->coords();
   auto ev2v = mesh->ask_elem_verts();
-  auto out = Write<Real>(mesh->nelems() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
   auto f = LAMBDA(LO e) {
     auto evv2v = gather_verts<dim + 1>(ev2v, e);
     auto evv2u = gather_vectors<dim + 1, dim>(vert_gradients, evv2v);

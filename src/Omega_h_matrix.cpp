@@ -5,7 +5,7 @@ namespace Omega_h {
 
 template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm) {
-  Write<Real> symms(n * symm_dofs(dim));
+  Write<Real> symms(n * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO i) { set_symm(symms, i, symm); };
   parallel_for(n, f);
   return symms;

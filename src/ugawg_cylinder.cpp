@@ -11,7 +11,7 @@ constexpr Int dim = 3;
 
 static Reals get_first_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
   auto f = LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
@@ -26,7 +26,7 @@ static Reals get_first_metric(Mesh* mesh) {
 
 static Reals get_second_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
   constexpr Real h_z = 1.0 / 10.0;
   constexpr Real h_t = 1.0 / 10.0;
@@ -48,7 +48,7 @@ static Reals get_second_metric(Mesh* mesh) {
 
 static Reals get_third_metric(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
   constexpr Real h_z = 1.0 / 10.0;
   auto f = LAMBDA(LO v) {
@@ -86,9 +86,9 @@ static void run_case(
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto implied_metrics = find_implied_metric(mesh);
-  mesh->add_tag(VERT, "metric", symm_dofs(dim), implied_metrics);
+  mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  mesh->add_tag<Real>(VERT, "target_metric", symm_dofs(dim));
+  mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
   bool should_limit = (which_metric == 2);
   set_target_metric(mesh, which_metric, should_limit);
   mesh->ask_lengths();

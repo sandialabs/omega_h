@@ -12,7 +12,7 @@ namespace Omega_h {
 
 Int get_metric_dim(Int ncomps) {
   for (Int i = 1; i <= 3; ++i)
-    if (ncomps == symm_dofs(i)) return i;
+    if (ncomps == symm_ncomps(i)) return i;
   NORETURN(Int());
 }
 
@@ -30,7 +30,7 @@ Int get_metric_dim(Mesh* mesh) {
 template <Int dim>
 static Reals clamp_metrics_dim(
     LO nmetrics, Reals metrics, Real h_min, Real h_max) {
-  auto out = Write<Real>(nmetrics * symm_dofs(dim));
+  auto out = Write<Real>(nmetrics * symm_ncomps(dim));
   auto f = LAMBDA(LO i) {
     auto m = get_symm<dim>(metrics, i);
     m = clamp_metric(m, h_min, h_max);
@@ -51,7 +51,7 @@ Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
 template <Int mdim, Int edim>
 static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
-  Write<Real> out(na * symm_dofs(mdim));
+  Write<Real> out(na * symm_ncomps(mdim));
   auto ev2v = mesh->ask_verts_of(edim);
   auto f = LAMBDA(LO a) {
     auto e = a2e[a];
@@ -99,8 +99,8 @@ Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t) {
 
 template <Int dim>
 Reals linearize_metrics_dim(Reals metrics) {
-  auto n = metrics.size() / symm_dofs(dim);
-  auto out = Write<Real>(n * symm_dofs(dim));
+  auto n = metrics.size() / symm_ncomps(dim);
+  auto out = Write<Real>(n * symm_ncomps(dim));
   auto f = LAMBDA(LO i) {
     set_symm(out, i, linearize_metric(get_symm<dim>(metrics, i)));
   };
@@ -110,8 +110,8 @@ Reals linearize_metrics_dim(Reals metrics) {
 
 template <Int dim>
 Reals delinearize_metrics_dim(Reals lms) {
-  auto n = lms.size() / symm_dofs(dim);
-  auto out = Write<Real>(n * symm_dofs(dim));
+  auto n = lms.size() / symm_ncomps(dim);
+  auto out = Write<Real>(n * symm_ncomps(dim));
   auto f = LAMBDA(LO i) {
     set_symm(out, i, delinearize_metric(get_symm<dim>(lms, i)));
   };
@@ -137,8 +137,8 @@ Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
 
 template <Int dim>
 static HostFew<Reals, dim> axes_from_metrics_dim(Reals metrics) {
-  CHECK(metrics.size() % symm_dofs(dim) == 0);
-  auto n = metrics.size() / symm_dofs(dim);
+  CHECK(metrics.size() % symm_ncomps(dim) == 0);
+  auto n = metrics.size() / symm_ncomps(dim);
   HostFew<Write<Real>, dim> w;
   for (Int i = 0; i < dim; ++i) w[i] = Write<Real>(n * dim);
   auto f = LAMBDA(LO i) {
@@ -200,7 +200,7 @@ static INLINE Matrix<dim, dim> metric_from_hessian(
 
 template <Int dim>
 static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
-  auto ncomps = symm_dofs(dim);
+  auto ncomps = symm_ncomps(dim);
   CHECK(hessians.size() % ncomps == 0);
   auto n = hessians.size() / ncomps;
   auto out = Write<Real>(n * ncomps);
@@ -227,7 +227,7 @@ static Reals limit_gradation_once_tmpl(
     Mesh* mesh, Reals values, Real max_rate) {
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * symm_dofs(metric_dim));
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(metric_dim));
   auto f = LAMBDA(LO v) {
     auto m = get_symm<metric_dim>(values, v);
     auto x = get_vector<mesh_dim>(coords, v);
@@ -247,7 +247,7 @@ static Reals limit_gradation_once_tmpl(
   };
   parallel_for(mesh->nverts(), f);
   values = Reals(out);
-  values = mesh->sync_array(VERT, values, symm_dofs(metric_dim));
+  values = mesh->sync_array(VERT, values, symm_ncomps(metric_dim));
   return values;
 }
 
@@ -323,7 +323,7 @@ Reals get_aniso_zz_metric_dim(
       AvgDegree<dim, 0, dim>::value * nverts_per_elem;
   auto elems2volume = measure_elements_real(mesh);
   auto nglobal_elems = get_sum(mesh->comm(), mesh->owned(dim));
-  auto out = Write<Real>(mesh->nelems() * symm_dofs(dim));
+  auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
   auto f = LAMBDA(LO elem) {
     Few<LO, max_elems_per_patch> patch_elems;
     Int npatch_elems = 0;

@@ -82,8 +82,6 @@ struct LogDecomp<3> {
   Matrix<3, 3> log_p;
 };
 
-OMEGA_H_INLINE constexpr Int polar_dofs(Int dim) { return matrix_dofs(dim); }
-
 template <Int dim>
 OMEGA_H_INLINE LogDecomp<dim> log_glp(Matrix<dim, dim> a) {
   auto aa_dc = decompose_eigen(transpose(a) * a);

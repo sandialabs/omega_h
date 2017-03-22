@@ -31,7 +31,7 @@ Vector<3> get_center(
 Matrix<3, 3> get_matrix(
     CommPtr comm, Reals coords, Reals masses, Vector<3> center) {
   auto n = masses.size();
-  Write<Real> weighted_contrib(n * symm_dofs(3));
+  Write<Real> weighted_contrib(n * symm_ncomps(3));
   auto f = LAMBDA(LO i) {
     auto x = get_vector<3>(coords, i);
     auto dxc = cross(x - center);
