@@ -1,10 +1,8 @@
 #include "box.hpp"
 
-
 namespace Omega_h {
 
-void make_1d_box(
-    Real x, LO nx, LOs* ev2v_out, Reals* coords_out) {
+void make_1d_box(Real x, LO nx, LOs* ev2v_out, Reals* coords_out) {
   LO ne = nx;
   LO nv = nx + 1;
   Real dx = x / nx;

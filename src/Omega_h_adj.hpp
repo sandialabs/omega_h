@@ -1,10 +1,10 @@
 #ifndef OMEGA_H_ADJ_HPP
 #define OMEGA_H_ADJ_HPP
 
-#include <Omega_h_graph.hpp>
 #include <Omega_h_few.hpp>
-#include <Omega_h_vector.hpp>
+#include <Omega_h_graph.hpp>
 #include <Omega_h_matrix.hpp>
+#include <Omega_h_vector.hpp>
 
 namespace Omega_h {
 
@@ -92,7 +92,8 @@ OMEGA_H_DEVICE Few<T, neev> gather_scalars(Read<T> const& a, Few<LO, neev> v) {
 }
 
 template <Int neev, Int dim>
-OMEGA_H_DEVICE Few<Vector<dim>, neev> gather_vectors(Reals const& a, Few<LO, neev> v) {
+OMEGA_H_DEVICE Few<Vector<dim>, neev> gather_vectors(
+    Reals const& a, Few<LO, neev> v) {
   Few<Vector<dim>, neev> x;
   for (Int i = 0; i < neev; ++i) x[i] = get_vector<dim>(a, v[i]);
   return x;

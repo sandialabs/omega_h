@@ -18,7 +18,8 @@ struct Roots {
 // the two output arrays contain root values and multiplicities.
 // roots within an *absolute* distance of (eps) are considered
 // the same.
-OMEGA_H_INLINE Roots<3> find_polynomial_roots(Few<Real, 3> coeffs, Real eps = 1e-6) {
+OMEGA_H_INLINE Roots<3> find_polynomial_roots(
+    Few<Real, 3> coeffs, Real eps = 1e-6) {
   auto a_0 = coeffs[0];
   auto a_1 = coeffs[1];
   auto a_2 = coeffs[2];
@@ -82,7 +83,8 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(Few<Real, 3> coeffs, Real eps = 1e
 }
 
 // solve quadratic equation x^2 + a * x + b = 0
-OMEGA_H_INLINE Roots<2> find_polynomial_roots(Few<Real, 2> coeffs, Real eps = 1e-6) {
+OMEGA_H_INLINE Roots<2> find_polynomial_roots(
+    Few<Real, 2> coeffs, Real eps = 1e-6) {
   auto a = coeffs[1];
   auto b = coeffs[0];
   Few<Real, 2> roots;
@@ -292,14 +294,16 @@ OMEGA_H_INLINE DiagDecomp<1> decompose_eigen(Matrix<1, 1> m) {
 /* Q, again, being the matrix whose columns
    are the right eigenvectors, but not necessarily unitary */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> compose_eigen(Matrix<dim, dim> q, Vector<dim> l) {
+OMEGA_H_INLINE Matrix<dim, dim> compose_eigen(
+    Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * invert(q);
 }
 
 /* like the above, but knowing Q is unitary,
    so the transpose is the inverse */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> compose_ortho(Matrix<dim, dim> q, Vector<dim> l) {
+OMEGA_H_INLINE Matrix<dim, dim> compose_ortho(
+    Matrix<dim, dim> q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
 

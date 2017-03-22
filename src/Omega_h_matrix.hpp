@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_MATRIX_HPP
 #define OMEGA_H_MATRIX_HPP
 
-#include <Omega_h_vector.hpp>
 #include <Omega_h_array.hpp>
+#include <Omega_h_vector.hpp>
 
 namespace Omega_h {
 
@@ -210,7 +210,9 @@ OMEGA_H_INLINE Vector<3> uncross(Matrix<3, 3> c) {
   return vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]) / 2.;
 }
 
-OMEGA_H_INLINE Matrix<1, 1> invert(Matrix<1, 1> m) { return matrix_1x1(1.0 / m[0][0]); }
+OMEGA_H_INLINE Matrix<1, 1> invert(Matrix<1, 1> m) {
+  return matrix_1x1(1.0 / m[0][0]);
+}
 
 OMEGA_H_INLINE Matrix<2, 2> invert(Matrix<2, 2> m) {
   Real a = m[0][0];
@@ -229,15 +231,15 @@ OMEGA_H_INLINE Matrix<3, 3> invert(Matrix<3, 3> a) {
 }
 
 template <Int m, Int n>
-OMEGA_H_INLINE typename std::enable_if<(n < m), Matrix<n, m>>::type pseudo_invert(
-    Matrix<m, n> a) {
+OMEGA_H_INLINE typename std::enable_if<(n < m), Matrix<n, m>>::type
+pseudo_invert(Matrix<m, n> a) {
   auto at = transpose(a);
   return invert(at * a) * at;
 }
 
 template <Int m, Int n>
-OMEGA_H_INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type pseudo_invert(
-    Matrix<m, n> a) {
+OMEGA_H_INLINE typename std::enable_if<(n > m), Matrix<n, m>>::type
+pseudo_invert(Matrix<m, n> a) {
   auto at = transpose(a);
   return at * invert(a * at);
 }
@@ -340,7 +342,8 @@ OMEGA_H_DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
 }
 
 template <Int dim>
-OMEGA_H_DEVICE void set_matrix(Write<Real> const& a, Int i, Matrix<dim, dim> m) {
+OMEGA_H_DEVICE void set_matrix(
+    Write<Real> const& a, Int i, Matrix<dim, dim> m) {
   set_vector(a, i, matrix2vector(m));
 }
 

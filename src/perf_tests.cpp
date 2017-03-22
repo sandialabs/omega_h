@@ -4,10 +4,10 @@
 #include <random>
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_timer.hpp"
 #include "Omega_h_eigen.hpp"
-#include "internal.hpp"
 #include "Omega_h_metric.hpp"
+#include "Omega_h_timer.hpp"
+#include "internal.hpp"
 #include "sort.hpp"
 
 using namespace Omega_h;

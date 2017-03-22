@@ -621,8 +621,8 @@ Reals get_vert_curvatures(Mesh* mesh) {
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto tri_IIs =
         map_onto(surf_tri_IIs, surf_side2side, mesh->ntris(), 0.0, 3);
-    auto surf_vert_IIs = get_surf_vert_IIs(mesh, surf_side2side, surf_side_normals,
-        surf_tri_IIs, surf_vert2vert, surf_vert_normals);
+    auto surf_vert_IIs = get_surf_vert_IIs(mesh, surf_side2side,
+        surf_side_normals, surf_tri_IIs, surf_vert2vert, surf_vert_normals);
     auto vert_IIs =
         map_onto(surf_vert_IIs, surf_vert2vert, mesh->nverts(), 0.0, 3);
     auto surf_vert_curvatures = get_max_eigenvalues(2, surf_vert_IIs);

@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_VECTOR_HPP
 #define OMEGA_H_VECTOR_HPP
 
-#include <Omega_h_few.hpp>
 #include <Omega_h_array.hpp>
+#include <Omega_h_few.hpp>
 
 namespace Omega_h {
 
@@ -166,6 +166,6 @@ Reals normalize_vectors(Reals vs, Int dim);
 
 Reals resize_vectors(Reals vectors, Int old_dim, Int new_dim);
 
-}
+}  // namespace Omega_h
 
 #endif

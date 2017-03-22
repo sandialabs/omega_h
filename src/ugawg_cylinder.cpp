@@ -1,7 +1,7 @@
 #include "Omega_h.hpp"
 #include "Omega_h_egads.hpp"
-#include "Omega_h_timer.hpp"
 #include "Omega_h_metric.hpp"
+#include "Omega_h_timer.hpp"
 
 #include <iostream>
 
