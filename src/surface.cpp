@@ -632,8 +632,6 @@ Reals get_vert_curvatures(Mesh* mesh) {
     curv_verts2vert = surf_vert2vert;
   }
   auto curv_edge_tangents = get_edge_tangents(mesh, curv_edge2edge);
-  auto edge_tangents = map_onto(
-      curv_edge_tangents, curv_edge2edge, mesh->nedges(), 0.0, mesh->dim());
   auto curv_vert_tangents = get_vert_tangents(
       mesh, curv_edge2edge, curv_edge_tangents, curv_verts2vert);
   auto vert_tangents = map_onto(
