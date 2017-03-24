@@ -1,5 +1,7 @@
 #include "Omega_h_conserve.hpp"
 
+#include "Omega_h_adj.hpp"
+#include "Omega_h_graph.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_r3d.hpp"
 
@@ -273,12 +275,13 @@ static void transfer_cavs_density(Mesh* old_mesh, Mesh* new_mesh,
   for (auto pair : mats_keys2elems) {
     auto keys2old_elems = pair.first;
     auto keys2new_elems = pair.second;
-    if (dim == 3)
+    if (dim == 3) {
       transfer_conserve_dim<3>(old_mesh, new_mesh, tagbase, keys2old_elems,
           keys2new_elems, new_data_w);
-    if (dim == 2)
+    } else if (dim == 2) {
       transfer_conserve_dim<2>(old_mesh, new_mesh, tagbase, keys2old_elems,
           keys2new_elems, new_data_w);
+    }
   }
   transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
       same_ents2new_ents, tagbase, new_data_w);
@@ -326,6 +329,70 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
       conserves_size, conserves_mass, conserves_momentum);
 }
 
+/* conservative diffusion:
+   1) diffusion is not allowed across classification boundaries.
+      this preserves conservation on a per-object basis
+   2) we are careful with the mathematics of the diffusion algorithm,
+      such that it should preserve the total error, and hence
+      conservation
+ */
+static Graph get_elem_diffusion_graph(Mesh* mesh) {
+  auto dim = mesh->dim();
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(dim - 1));
+  auto side_class_dims = mesh->get_array<I8>(dim - 1, "class_dim");
+  auto sides_are_int = each_eq_to(side_class_dims, I8(dim));
+  auto sides_are_bdry = invert_marks(sides_are_int);
+  auto elems2sides = mesh->ask_down(dim, dim - 1);
+  auto sides2elems = mesh->ask_up(dim - 1, dim);
+  return elements_across_sides(dim, elems2sides, sides2elems, sides_are_bdry);
+}
+
+static Reals diffuse_elem_error_once(Mesh* mesh, Graph g, Reals x, Int ncomps) {
+  auto out = deep_copy(x);
+  auto max_deg = mesh->dim() + 1;
+  auto f = OMEGA_H_LAMBDA(LO e) {
+    for (auto ee = g.a2ab[e]; ee < g.a2ab[e + 1]; ++ee) {
+      auto oe = g.ab2b[ee];
+      for (Int c = 0; c < ncomps; ++c) {
+        out[e * ncomps + c] += (x[oe * ncomps + c] - x[e * ncomps + c]) / max_deg;
+      }
+    }
+  };
+  parallel_for(mesh->nelems(), f);
+  return mesh->sync_array(mesh->dim(), out, ncomps);
+}
+
+static void diffuse_elem_error_tag_once(Mesh* mesh, Graph g, std::string const& error_name) {
+  auto array = mesh->get_array<Real>(dim, error_name);
+  auto ncomps = tagbase->ncomps();
+  array = diffuse_elem_error_once(mesh, g, array, ncomps);
+  mesh->set_tag<Real>(dim, error_name, array);
+}
+
+static void diffuse_all_errors(Mesh* mesh, XferOpts const& opts) {
+  auto g = get_elem_diffusion_graph(mesh);
+  auto dim = mesh->dim();
+  auto niters = 8;
+  for (Int iter = 0; iter < niters; ++iter) {
+    for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
+      auto tagbase = mesh->get_tag(dim, tagi);
+      if (should_conserve(mesh, opts, dim, tagbase)) {
+        auto integral_name = opts.integral_map.find(tagbase->name()).second;
+        auto error_name = integral_name + "_error";
+        diffuse_elem_error_tag_once(mesh, g, error_name);
+      }
+    }
+    for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
+      auto tagbase = mesh->get_tag(VERT, tagi);
+      if (should_conserve(mesh, opts, VERT, tagbase)) {
+        auto integral_name = opts.integral_map.find(tagbase->name()).second;
+        auto error_name = integral_name + "_error";
+        diffuse_elem_error_tag_once(mesh, g, error_name);
+      }
+    }
+  }
+}
+
 void fix_momentum_velocity_verts(
     Mesh* mesh, Int class_dim, I32 class_id, Int comp) {
   for (Int ent_dim = VERT; ent_dim <= class_dim; ++ent_dim) {
@@ -362,56 +429,6 @@ static Reals get_vertex_masses(Mesh* mesh, Reals elems2mass) {
   auto verts2mass = graph_reduce(verts2elems, elems2mass, 1, OMEGA_H_SUM);
   verts2mass = multiply_each_by(1.0 / Real(dim + 1), verts2mass);
   return mesh->sync_array(VERT, verts2mass, 1);
-}
-
-template <Int dim>
-void momentum_velocity_part2_dim(Mesh* mesh, XferOpts const& opts) {
-  if (!has_momentum_velocity(mesh, opts)) return;
-  mesh->set_parting(OMEGA_H_GHOSTED);
-  auto v2e = mesh->ask_up(VERT, dim);
-  auto comps_are_fixed = get_comps_are_fixed(mesh);
-  for (Int tag_i = 0; tag_i < mesh->ntags(VERT); ++tag_i) {
-    auto tagbase = mesh->get_tag(VERT, tag_i);
-    if (!is_momentum_velocity(mesh, opts, VERT, tagbase)) continue;
-    CHECK(tagbase->ncomps() == dim);
-    auto tag = to<Real>(tagbase);
-    auto corr_name = tag->name() + "_correction";
-    auto mass_name = opts.momentum_map.find(tag->name())->second;
-    auto elem_masses = mesh->get_array<Real>(dim, mass_name);
-    auto vert_masses = get_vertex_masses(mesh, elem_masses);
-    auto elem_corrections = mesh->get_array<Real>(dim, corr_name);
-    auto vert_corrections_w = Write<Real>(mesh->nverts() * dim, 0.0);
-    auto f = LAMBDA(LO v) {
-      Vector<dim> correction = zero_vector<dim>();
-      for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
-        auto e = v2e.ab2b[ve];
-        auto code = v2e.codes[ve];
-        auto eev = code_which_down(code);
-        for (Int comp = 0; comp < dim; ++comp) {
-          correction[comp] +=
-              elem_corrections[(e * (dim + 1) + eev) * dim + comp];
-        }
-      }
-      set_vector(vert_corrections_w, v, correction);
-    };
-    parallel_for(mesh->nverts(), f);
-    auto vert_corrections = Reals(vert_corrections_w);
-    vert_corrections = mesh->sync_array(VERT, vert_corrections, dim);
-    auto old_velocities = tag->array();
-    auto velocity_corrections = divide_each(vert_corrections, vert_masses);
-    auto new_velocities = add_each(old_velocities, velocity_corrections);
-    mesh->set_tag(VERT, tag->name(), new_velocities);
-    mesh->remove_tag(dim, corr_name);
-  }
-}
-
-void do_momentum_velocity_part2(Mesh* mesh, XferOpts const& opts) {
-  if (mesh->dim() == 3)
-    momentum_velocity_part2_dim<3>(mesh, opts);
-  else if (mesh->dim() == 2)
-    momentum_velocity_part2_dim<2>(mesh, opts);
-  else
-    NORETURN();
 }
 
 }  // end namespace Omega_h
