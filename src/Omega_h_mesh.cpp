@@ -714,6 +714,11 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   return out;
 }
 
+Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x) {
+  auto a2d = LOs(mesh->nents(dim), 0, 1);
+  return average_field(mesh, dim, a2e, ncomps, v2x);
+}
+
 #define INST_T(T)                                                              \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \

@@ -84,10 +84,7 @@ static void track_cavs_density_error(
     LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_density) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
-  auto integral_name = tagbase->name();
-  if (opts.integral_map.count(tagbase->name())) {
-    integral_name = opts.integral_map.find(tagbase->name()).
-  }
+  auto integral_name = opts.integral_map.find(tagbase->name()).second;
   auto error_name = integral_name + "_error";
   auto old_tag = to<Real>(tagbase);
   auto old_elem_densities = old_tag->array();
@@ -106,6 +103,28 @@ static void track_cavs_size_error(Mesh* old_mesh, Mesh* new_mesh,
   auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
   track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
       old_elem_densities, new_elem_densities, error_name, conserves_size);
+}
+
+static void track_cavs_momentum_error(
+    Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+    std::vector<std::pair<Graph, Graph>> mats_keys2elems, TagBase const* tagbase,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_density) {
+  auto dim = old_mesh->dim();
+  auto ncomps = tagbase->ncomps();
+  auto velocity_name = tagbase->name();
+  auto momentum_name = opts.velocity_momentum_map.find(velocity_name).second
+  auto density_name = opts.velocity_density_map.find(velocity_name).second
+  auto error_name = momentum_name + "_error";
+  auto old_elem_densities = old_mesh->get_array<Real>(dim, density_name);
+  auto new_elem_densities = new_mesh->get_array<Real>(dim, density_name);
+  auto old_vert_velocities = old_mesh->get_array<Real>(VERT, velocity_name);
+  auto new_vert_velocities = new_mesh->get_array<Real>(VERT, velocity_name);
+  auto old_elem_velocities = average_field(old_mesh, dim, ncomps, old_vert_velocities);
+  auto new_elem_velocities = average_field(new_mesh, dim, ncomps, new_vert_velocities);
+  auto old_elem_momenta = multiply_each(old_elem_velocities, old_elem_densities);
+  auto new_elem_momenta = multiply_each(new_elem_velocities, new_elem_densities);
+  track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
+      old_elem_momenta, new_elem_momenta, error_name, conserves_density);
 }
 
 /* we separate sub-cavities even further than by material: we also separate
@@ -149,6 +168,10 @@ void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
   auto new_class_ids = negate_boundary_elem_class_ids(new_mesh);
   mats_keys2elems = separate_cavities(
       keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
+  if (opts.should_conserve_size) {
+    track_cavs_size_error(old_mesh, new_mesh, mats_keys2elems,
+        same_ents2old_ents, same_ents2new_ents, can_create_errors);
+  }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
@@ -157,9 +180,13 @@ void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
           same_ents2old_ents, same_ents2new_ents, can_create_errors);
     }
   }
-  if (opts.should_conserve_size) {
-    track_cavs_size_error(old_mesh, new_mesh, mats_keys2elems,
-        same_ents2old_ents, same_ents2new_ents, can_create_errors);
+  for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
+    auto tagbase = old_mesh->get_tag(VERT, i);
+    if (is_momentum_velocity(old_mesh, opts, VERT, tagbase)) {
+      track_cavs_momentum_error(old_mesh, opts, new_mesh,
+          mats_keys2elems, tagbase,
+          same_ents2old_ents, same_ents2new_ents, can_create_errors);
+    }
   }
 }
 
