@@ -67,6 +67,7 @@ bool should_conserve(
 }
 
 bool should_conserve_any(Mesh* mesh, XferOpts const& opts) {
+  if (opts.should_conserve_size) return true;
   auto dim = mesh->dim();
   for (Int i = 0; i < mesh->ntags(dim); ++i) {
     if (should_conserve(mesh, opts, dim, mesh->get_tag(dim, i))) {

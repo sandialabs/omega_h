@@ -1,87 +1,46 @@
-#include "transfer_conserve.hpp"
+#include "Omega_h_conserve.hpp"
+
+#include "Omega_h_map.hpp"
 
 namespace Omega_h {
 
-void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
-    Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  auto dim = old_mesh->dim();
-  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
-    auto tagbase = old_mesh->get_tag(dim, i);
-    if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, old_mesh->dim(),
-          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-          tagbase);
-    }
-  }
-}
-
-static void track_cav_error_field(Mesh* old_mesh, Mesh* new_mesh,
-    Graph keys2old_elems, Graph keys2new_elems,
-    Reals cav_errors, std::string const& error_name,
-    Write<Real> new_elem_errors_w) {
-  auto dim = old_mesh->dim();
-  auto ncavs = keys2old_elems.nnodes();
-  OMEGA_H_CHECK(ncavs == keys2new_elems.nnodes());
-  auto ncomps = divide_no_remainder(cav_errors.size() , ncavs);
-  auto old_elem_sizes = old_mesh->ask_sizes();
-  auto new_elem_sizes = new_mesh->ask_sizes();
-  auto old_cav_elem_densities = unmap(keys2old_elems.ab2b, old_elem_densities, ncomps);
-  auto new_cav_elem_densities = unmap(keys2new_elems.ab2b, old_elem_densities, ncomps);
-  auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
-  auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, old_elem_sizes, 1);
-  auto old_cav_elem_integrals = multiply_each(
-      old_cav_elem_densities, old_cav_elem_sizes);
-  auto new_cav_elem_integrals = multiply_each(
-      new_cav_elem_densities, new_cav_elem_sizes);
-  auto old_cav_integrals = fan_reduce(
-      keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
-  auto new_cav_integrals = fan_reduce(
-      keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
-  auto cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
-  if (old_mesh->has_tag(dim, error_name)) {
-    auto old_elem_errors = old_mesh->get_array<Real>(dim, error_name);
-    auto old_cav_errors = graph_reduce(
-        keys2old_elems, old_elem_errors, ncomps, OMEGA_H_SUM);
-    cav_errors = add_each(cav_errors, old_cav_errors);
-  }
-  auto new_cav_sizes = fan_reduce(
-      keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
-  auto new_cav_error_densities = divide_each(cav_errors, new_cav_sizes);
-  auto new_cav_elem_error_densities = expand(new_cav_error_densities,
-      keys2new_elems, ncomps);
-  auto new_cav_elem_errors = multiply_each(
-      new_cav_elem_error_densities, new_cav_elem_sizes);
-  map_into(new_cav_elem_errors, keys2new_elems.ab2b, new_elem_errors_w, ncomps);
-}
-
-static void track_cav_integral_error(Mesh* old_mesh, Mesh* new_mesh,
+/* computes the error in the integral over a cavity, given the old
+   and new densities at elements.
+   also factors in any previous recorded error on old elements */
+static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
     Graph keys2old_elems, Graph keys2new_elems,
     Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
-    Write<Real> new_elem_errors_w) {
-  auto dim = old_mesh->dim();
-  auto ncomps = old_elem_densities.size() / old_mesh->nelems();
-  auto old_elem_sizes = old_mesh->ask_sizes();
-  auto new_elem_sizes = new_mesh->ask_sizes();
-  auto old_cav_elem_densities = unmap(keys2old_elems.ab2b, old_elem_densities, ncomps);
-  auto new_cav_elem_densities = unmap(keys2new_elems.ab2b, old_elem_densities, ncomps);
-  auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
-  auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, old_elem_sizes, 1);
-  auto old_cav_elem_integrals = multiply_each(
-      old_cav_elem_densities, old_cav_elem_sizes);
-  auto new_cav_elem_integrals = multiply_each(
-      new_cav_elem_densities, new_cav_elem_sizes);
-  auto old_cav_integrals = fan_reduce(
-      keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
-  auto new_cav_integrals = fan_reduce(
-      keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
-  auto cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
+    Write<Real>* new_elem_errors_w, bool conserves_integrals) {
+  Reals cav_errors;
+  if (!conserves_integrals) {
+    auto dim = old_mesh->dim();
+    auto ncomps = old_elem_densities.size() / old_mesh->nelems();
+    auto old_elem_sizes = old_mesh->ask_sizes();
+    auto new_elem_sizes = new_mesh->ask_sizes();
+    auto old_cav_elem_densities = unmap(
+        keys2old_elems.ab2b, old_elem_densities, ncomps);
+    auto new_cav_elem_densities = unmap(
+        keys2new_elems.ab2b, old_elem_densities, ncomps);
+    auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
+    auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, old_elem_sizes, 1);
+    auto old_cav_elem_integrals = multiply_each(
+        old_cav_elem_densities, old_cav_elem_sizes);
+    auto new_cav_elem_integrals = multiply_each(
+        new_cav_elem_densities, new_cav_elem_sizes);
+    auto old_cav_integrals = fan_reduce(
+        keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+    auto new_cav_integrals = fan_reduce(
+        keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+    cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
+  }
   if (old_mesh->has_tag(dim, error_name)) {
     auto old_elem_errors = old_mesh->get_array<Real>(dim, error_name);
     auto old_cav_errors = graph_reduce(
         keys2old_elems, old_elem_errors, ncomps, OMEGA_H_SUM);
-    cav_errors = add_each(cav_errors, old_cav_errors);
+    if (!conserves_integrals) cav_errors = add_each(cav_errors, old_cav_errors);
+    else cav_errors = old_cav_errors;
   }
+  if (!cav_errors.exists()) return;
   auto new_cav_sizes = fan_reduce(
       keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
   auto new_cav_error_densities = divide_each(cav_errors, new_cav_sizes);
@@ -89,12 +48,40 @@ static void track_cav_integral_error(Mesh* old_mesh, Mesh* new_mesh,
       keys2new_elems, ncomps);
   auto new_cav_elem_errors = multiply_each(
       new_cav_elem_error_densities, new_cav_elem_sizes);
-  map_into(new_cav_elem_errors, keys2new_elems.ab2b, new_elem_errors_w, ncomps);
+  if (!new_elem_errors_w.exists()) {
+    *new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
+  }
+  map_into(new_cav_elem_errors, keys2new_elems.ab2b, *new_elem_errors_w, ncomps);
 }
 
-static void track_cav_integral_error_tag(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
+    std::vector<std::pair<Graph, Graph>> mats_keys2elems,
+    Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
+    LOS same_ents2old_ents, LOS same_ents2new_ents,
+    bool conserves_integrals) {
+  Write<Real> new_elem_errors_w;
+  if (old_mesh->has_tag(dim, error_name)) {
+    auto old_tag = mesh->get_tag<Real>(dim, error_name);
+    auto ncomps = old_tag->ncomps;
+    new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps);
+    auto old_elem_errors = old_tag->array();
+    auto same_errors = unmap(same_ents2old_ents, old_elem_errors);
+    map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
+  }
+  for (auto pair : mats_keys2elems) {
+    track_subcavs_integral_error(old_mesh, new_mesh, pair.first, pair.second,
+        old_elem_densities, new_elem_densities, error_name, &new_elem_errors_w,
+        conserves_integrals);
+  }
+  if (new_elem_errors_w.exists()) {
+    new_mesh->add_tag(dim, error_name, 1, new_elem_errors_w);
+  }
+}
+
+static void track_cavs_density_error(
+    Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     std::vector<std::pair<Graph, Graph>> mats_keys2elems, TagBase const* tagbase,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_density) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto integral_name = tagbase->name();
@@ -105,63 +92,96 @@ static void track_cav_integral_error_tag(Mesh* old_mesh, XferOpts const& opts, M
   auto old_tag = to<Real>(tagbase);
   auto old_elem_densities = old_tag->array();
   auto new_elem_densities = new_mesh->get_array<Real>(dim, tagbase->name());
-  auto new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps);
-  for (auto pair : mats_keys2elems) {
-    track_integral_error(old_mesh, new_mesh, pair.first, pair.second,
-        old_elem_densities, new_elem_densities, error_name, new_elem_errors_w);
-  }
-  new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors_w);
+  track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
+      old_elem_densities, new_elem_densities, error_name, conserves_density);
 }
 
-static void track_cav_size_error(Mesh* old_mesh, Mesh* new_mesh,
+static void track_cavs_size_error(Mesh* old_mesh, Mesh* new_mesh,
     std::vector<std::pair<Graph, Graph>> mats_keys2elems,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_size) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto error_name = "size_error";
   auto old_elem_densities = Reals(old_mesh->nelems(), 1.0);
   auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
-  auto new_elem_errors_w = Write<Real>(new_mesh->nelems() * 1);
-  for (auto pair : mats_keys2elems) {
-    track_integral_error(old_mesh, new_mesh, pair.first, pair.second,
-        old_elem_densities, new_elem_densities, error_name, new_elem_errors_w);
-  }
-  new_mesh->add_tag(dim, error_name, 1, new_elem_errors_w);
+  track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
+      old_elem_densities, new_elem_densities, error_name, conserves_size);
 }
 
-static LOs negate_boundary_elem_class_ids(Mesh* mesh, LOs class_ids) {
+/* we separate sub-cavities even further than by material: we also separate
+   the elements touching the boundary from those that don't.
+   this ensures that size error, which can only be created and repaired at
+   the boundary, remains at the boundary.
+   it should also be beneficial to do this for density errors, because
+   a boundary collapse creates a correspondingly large integral error
+   for each size error, and so those integral errors will be corrected
+   in the same elements in which the size errors are corrected.
+ */
+static LOs negate_boundary_elem_class_ids(Mesh* mesh) {
   auto vert_class_dims = mesh->get_array<I8>(VERT, "class_dim");
   auto verts_are_int = each_eq_to(vert_class_dims, I8(mesh->dim()));
+  auto verts_are_bdry = invert_marks(verts_are_int);
+  auto elems_are_bdry = mark_up(mesh, VERT, mesh->dim(), verts_are_bdry);
+  LOs elem_class_ids;
+  if (mesh->has_tag<LO>(mesh->dim(), "class_id")) {
+    elem_class_ids = mesh->get_tag<LO>(mesh->dim(), "class_id");
+  } else {
+    elem_class_ids = LOs(mesh->nelems(), 1);
+  }
+  auto out = deep_copy(elem_class_ids);
+  auto f = LAMBDA(LO e) {
+    out[e] = (elems_are_bdry[e]) ? (-elem_class_ids[e]) : (elem_class_ids[e]);
+  };
+  parallel_for(mesh->nelems(), f);
+  return out;
 }
 
-void transfer_conserve_cav(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    bool conserves_size, bool conserves_mass, bool conserves_momentum) {
   auto dim = new_mesh->dim();
-  if (!should_conserve_any(old_mesh, opts)) return;
   auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
   auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
   auto keys2new_elems = Graph(keys2prods, prods2new_ents);
   std::vector<std::pair<Graph, Graph>> mats_keys2elems;
-  if (old_mesh->has_tag(dim, "class_id")) {
-    auto old_class_ids = old_mesh->get_array<I32>(dim, "class_id");
-    auto new_class_ids = new_mesh->get_array<I32>(dim, "class_id");
-    mats_keys2elems = separate_cavities(
-        keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
-  } else {
-    mats_keys2elems.push_back({keys2old_elems, keys2new_elems});
-  }
+  auto old_class_ids = negate_boundary_elem_class_ids(old_mesh);
+  auto new_class_ids = negate_boundary_elem_class_ids(new_mesh);
+  mats_keys2elems = separate_cavities(
+      keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      transfer_conserve_tag(old_mesh, new_mesh, mats_keys2elems,
-          same_ents2old_ents, same_ents2new_ents, tagbase);
+      track_cavs_density_error(old_mesh, opts, new_mesh,
+          mats_keys2elems, tagbase,
+          same_ents2old_ents, same_ents2new_ents, can_create_errors);
     }
   }
   if (opts.should_conserve_size) {
-    track_cav_size_error(old_mesh, new_mesh, mats_keys2elems,
-        same_ents2old_ents, same_ents2new_ents);
+    track_cavs_size_error(old_mesh, new_mesh, mats_keys2elems,
+        same_ents2old_ents, same_ents2new_ents, can_create_errors);
   }
+}
+
+void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
+    Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  if (!should_conserve_any(old_mesh, opts)) return;
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (should_conserve(old_mesh, opts, dim, tagbase)) {
+      /* just inherit the density field */
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, old_mesh->dim(),
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase);
+    }
+  }
+  auto conserves_mass = true;
+  auto conserves_mass = true;
+  track_cavs_all_errors(old_mesh, opts, new_mesh,
+      EDGE, keys2edges, keys2prods, prods2new_ents,
+      same_ents2old_ents, same_ents2new_ents, can_create_errors);
 }
 
 void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
@@ -220,72 +240,6 @@ bool has_fixed_momentum_velocity(Mesh* mesh, XferOpts const& opts) {
          mesh->has_tag(VERT, "momentum_velocity_fixed");
 }
 
-Read<I8> filter_coarsen_momentum_velocity(
-    Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
-  auto comps_are_fixed = mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
-  auto v2e = mesh->ask_up(VERT, EDGE);
-  auto ev2v = mesh->ask_verts_of(EDGE);
-  auto ncands = cands2edges.size();
-  auto out = Write<I8>(ncands);
-  auto f = LAMBDA(LO cand) {
-    auto e = cands2edges[cand];
-    auto code = cand_codes[cand];
-    for (Int eev_col = 0; eev_col < 2; ++eev_col) {
-      if (!collapses(code, eev_col)) continue;
-      auto v_col = ev2v[e * 2 + eev_col];
-      I8 fixed_comps = 7;
-      for (auto ve = v2e.a2ab[v_col]; ve < v2e.a2ab[v_col + 1]; ++ve) {
-        auto e2 = v2e.ab2b[ve];
-        auto e2_code = v2e.codes[ve];
-        auto eev_in = code_which_down(e2_code);
-        auto eev_out = 1 - eev_in;
-        auto ov = ev2v[e2 * 2 + eev_out];
-        fixed_comps &= comps_are_fixed[ov];
-      }
-      if (fixed_comps) code = dont_collapse(code, eev_col);
-    }
-    out[cand] = code;
-  };
-  parallel_for(ncands, f);
-  return mesh->sync_subset_array(
-      EDGE, Read<I8>(out), cands2edges, I8(DONT_COLLAPSE), 1);
-}
-
-Read<I8> filter_swap_momentum_velocity(Mesh* mesh, LOs cands2edges) {
-  auto vert_comps_are_fixed =
-      mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
-  auto edges2elems = mesh->ask_up(EDGE, mesh->dim());
-  auto cands2elems = unmap_graph(cands2edges, edges2elems);
-  auto elem_verts2vert = mesh->ask_elem_verts();
-  auto nverts_per_elem = simplex_degrees[mesh->dim()][VERT];
-  constexpr Int max_verts_per_cavity = (AvgDegree<3, 0, 3>::value + 1) * 2;
-  auto ncands = cands2elems.nnodes();
-  auto keep_w = Write<I8>(ncands);
-  auto f = LAMBDA(LO cand) {
-    Few<LO, max_verts_per_cavity> cavity_verts;
-    Int ncavity_verts = 0;
-    for (auto ce = cands2elems.a2ab[cand]; ce < cands2elems.a2ab[cand + 1];
-         ++ce) {
-      auto elem = cands2elems.ab2b[ce];
-      for (auto ev = elem * nverts_per_elem; ev < (elem + 1) * nverts_per_elem;
-           ++ev) {
-        auto vert = elem_verts2vert[ev];
-        add_unique(cavity_verts, ncavity_verts, vert);
-      }
-    }
-    Int cavity_bits = (1 << 3) - 1;
-    for (Int i = 0; i < ncavity_verts; ++i) {
-      auto vert = cavity_verts[i];
-      auto vert_bits = Int(vert_comps_are_fixed[vert]);
-      cavity_bits &= vert_bits;
-    }
-    keep_w[cand] = (cavity_bits == 0);
-  };
-  parallel_for(ncands, f);
-  auto keep = Read<I8>(keep_w);
-  return mesh->sync_subset_array(EDGE, keep, cands2edges, I8(0), 1);
-}
-
 static Reals get_cavity_momenta(
     Mesh* mesh, Graph keys2elems, Reals vert_velocities, Reals elem_masses) {
   auto dim = mesh->dim();
@@ -302,106 +256,6 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
     return mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
   } else {
     return Read<I8>(mesh->nverts(), I8(0));
-  }
-}
-
-template <Int dim>
-void momentum_velocity_part1_dim(Mesh* donor_mesh, XferOpts const& opts,
-    Mesh* target_mesh, Int key_dim, LOs keys2kds, LOs keys2prods,
-    LOs prods2new_elems) {
-  if (!has_momentum_velocity(donor_mesh, opts)) return;
-  auto nkeys = keys2kds.size();
-  auto keys2target_elems = Graph(keys2prods, prods2new_elems);
-  auto kds2donor_elems = donor_mesh->ask_up(key_dim, dim);
-  auto keys2donor_elems = unmap_graph(keys2kds, kds2donor_elems);
-  auto target_elems2verts = target_mesh->ask_elem_verts();
-  auto comps_are_fixed = get_comps_are_fixed(target_mesh);
-  for (Int tag_i = 0; tag_i < donor_mesh->ntags(VERT); ++tag_i) {
-    auto tagbase = donor_mesh->get_tag(VERT, tag_i);
-    if (!is_momentum_velocity(donor_mesh, opts, VERT, tagbase)) continue;
-    CHECK(tagbase->ncomps() == dim);
-    auto tag = to<Real>(tagbase);
-    auto donor_vert_velocities = tag->array();
-    auto mass_name = opts.momentum_map.find(tag->name())->second;
-    auto donor_elem_masses = donor_mesh->get_array<Real>(dim, mass_name);
-    auto target_elem_masses = target_mesh->get_array<Real>(dim, mass_name);
-    auto donor_cavity_momenta = get_cavity_momenta(
-        donor_mesh, keys2donor_elems, donor_vert_velocities, donor_elem_masses);
-    auto target_vert_velocities =
-        target_mesh->get_array<Real>(VERT, tag->name());
-    auto target_cavity_momenta = get_cavity_momenta(target_mesh,
-        keys2target_elems, target_vert_velocities, target_elem_masses);
-    auto cavity_momentum_losses =
-        subtract_each(donor_cavity_momenta, target_cavity_momenta);
-    auto corrections_w =
-        Write<Real>(target_mesh->nelems() * (dim + 1) * dim, 0.0);
-    auto f = LAMBDA(LO key) {
-      auto lost_momentum = get_vector<dim>(cavity_momentum_losses, key);
-      Few<Real, dim> free_momentum;
-      Few<Int, dim> nfree_uses;
-      for (Int comp = 0; comp < dim; ++comp) {
-        free_momentum[comp] = 0;
-        nfree_uses[comp] = 0;
-      }
-      for (auto ke = keys2target_elems.a2ab[key];
-           ke < keys2target_elems.a2ab[key + 1]; ++ke) {
-        auto e = keys2target_elems.ab2b[ke];
-        auto e_mass = target_elem_masses[e];
-        for (auto eev = 0; eev < dim + 1; ++eev) {
-          auto v = target_elems2verts[e * (dim + 1) + eev];
-          auto v_vel = get_vector<dim>(target_vert_velocities, v);
-          auto eev_momentum = v_vel * (e_mass / (dim + 1));
-          auto code = Int(comps_are_fixed[v]);
-          for (Int comp = 0; comp < dim; ++comp) {
-            if (!((1 << comp) & code)) {
-              ++nfree_uses[comp];
-              free_momentum[comp] += fabs(eev_momentum[comp]);
-            }
-          }
-        }
-      }
-      for (auto ke = keys2target_elems.a2ab[key];
-           ke < keys2target_elems.a2ab[key + 1]; ++ke) {
-        auto e = keys2target_elems.ab2b[ke];
-        auto e_mass = target_elem_masses[e];
-        for (auto eev = 0; eev < dim + 1; ++eev) {
-          auto v = target_elems2verts[e * (dim + 1) + eev];
-          auto v_vel = get_vector<dim>(target_vert_velocities, v);
-          auto eev_momentum = v_vel * (e_mass / (dim + 1));
-          auto code = Int(comps_are_fixed[v]);
-          for (Int comp = 0; comp < dim; ++comp) {
-            if (!((1 << comp) & code)) {
-              Real comp_corr;
-              if (free_momentum[comp] > EPSILON) {
-                comp_corr = lost_momentum[comp] *
-                            (fabs(eev_momentum[comp]) / free_momentum[comp]);
-              } else {
-                comp_corr =
-                    lost_momentum[comp] * (1.0 / Real(nfree_uses[comp]));
-              }
-              corrections_w[(e * (dim + 1) + eev) * dim + comp] = comp_corr;
-            }
-          }
-        }
-      }
-    };
-    parallel_for(nkeys, f);
-    auto name = tag->name() + "_correction";
-    target_mesh->add_tag(dim, name, (dim + 1) * dim, Reals(corrections_w));
-  }
-}
-
-void do_momentum_velocity_part1(Mesh* donor_mesh, XferOpts const& opts,
-    Mesh* target_mesh, Int key_dim, LOs keys2kds, LOs keys2prods,
-    LOs prods2new_elems) {
-  if (donor_mesh->dim() == 3) {
-    momentum_velocity_part1_dim<3>(donor_mesh, opts, target_mesh, key_dim,
-        keys2kds, keys2prods, prods2new_elems);
-  } else if (donor_mesh->dim() == 2) {
-    momentum_velocity_part1_dim<2>(donor_mesh, opts, target_mesh, key_dim,
-        keys2kds, keys2prods, prods2new_elems);
-  } else {
-    NORETURN();
   }
 }
 
