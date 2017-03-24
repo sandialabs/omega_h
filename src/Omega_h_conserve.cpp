@@ -1,6 +1,7 @@
 #include "Omega_h_conserve.hpp"
 
 #include "Omega_h_map.hpp"
+#include "Omega_h_r3d.hpp"
 
 namespace Omega_h {
 
@@ -204,41 +205,125 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
           tagbase);
     }
   }
-  auto conserves_mass = true;
-  auto conserves_mass = true;
-  track_cavs_all_errors(old_mesh, opts, new_mesh,
-      EDGE, keys2edges, keys2prods, prods2new_ents,
-      same_ents2old_ents, same_ents2new_ents, can_create_errors);
+  bool conserves_size = true;
+  bool conserves_mass = true;
+  bool conserves_momentum = false;
+  track_cavs_all_errors(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
+      prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+      conserves_size, conserves_mass, conserves_momentum);
 }
 
-void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+/* intersection-based transfer of density fields.
+   note that this exactly conserves integrals on the interior,
+   but we purposefully omit the modifications that would
+   ensure conservation for boundary collapses that change the
+   domain. instead, those errors will be tracked by the code above. */
+template <Int dim>
+static void transfer_subcavs_density_dim(Mesh* old_mesh, Mesh* new_mesh,
+    TagBase const* tagbase, Graph keys2old_elems, Graph keys2new_elems,
+    Write<Real> new_data_w) {
+  auto ncomps = tagbase->ncomps();
+  auto old_tag = to<Real>(tagbase);
+  auto old_data = old_tag->array();
+  auto old_ev2v = old_mesh->ask_elem_verts();
+  auto old_coords = old_mesh->coords();
+  auto new_ev2v = new_mesh->ask_elem_verts();
+  auto new_coords = new_mesh->coords();
+  auto new_sizes = new_mesh->ask_sizes();
+  auto nkeys = keys2old_elems.nnodes();
+  auto f = LAMBDA(LO key) {
+    for (auto kne = keys2new_elems.a2ab[key];
+         kne < keys2new_elems.a2ab[key + 1]; ++kne) {
+      auto new_elem = keys2new_elems.ab2b[kne];
+      for (Int comp = 0; comp < ncomps; ++comp) {
+        new_data_w[new_elem * ncomps + comp] = 0;
+      }
+      auto new_verts = gather_verts<dim + 1>(new_ev2v, new_elem);
+      auto new_points =
+          gather_vectors<dim + 1, dim>(new_coords, new_verts);
+      for (auto koe = keys2old_elems.a2ab[key];
+           koe < keys2old_elems.a2ab[key + 1]; ++koe) {
+        auto old_elem = keys2old_elems.ab2b[koe];
+        auto old_verts = gather_verts<dim + 1>(old_ev2v, old_elem);
+        auto old_points = gather_vectors<dim + 1, dim>(old_coords, old_verts);
+        r3d::Polytope<dim> intersection;
+        r3d::intersect_simplices(
+            intersection, to_r3d(target_points), to_r3d(donor_points));
+        auto intersection_size = r3d::measure(intersection);
+        for (Int comp = 0; comp < ncomps; ++comp) {
+          new_data_w[new_elem * ncomps + comp] +=
+            intersection_size * old_data[donor_elem * ncomps + comp];
+        }
+      }
+      for (Int comp = 0; comp < ncomps; ++comp) {
+        new_data_w[new_elems * ncomps + comp] /= new_sizes[new_elem]
+      }
+    }
+  };
+  parallel_for(nkeys, f);
+}
+
+static void transfer_cavs_density(Mesh* old_mesh, Mesh* new_mesh,
+    std::vector<std::pair<Graph, Graph>> mats_keys2elems,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase) {
+  auto dim = old_mesh->dim();
+  auto nnew_elems = new_mesh->nelems();
+  auto ncomps = tagbase->ncomps();
+  auto new_data_w = Write<Real>(nnew_elems * ncomps);
+  for (auto pair : mats_keys2elems) {
+    auto keys2old_elems = pair.first;
+    auto keys2new_elems = pair.second;
+    if (dim == 3)
+      transfer_conserve_dim<3>(old_mesh, new_mesh, tagbase, keys2old_elems,
+          keys2new_elems, new_data_w);
+    if (dim == 2)
+      transfer_conserve_dim<2>(old_mesh, new_mesh, tagbase, keys2old_elems,
+          keys2new_elems, new_data_w);
+  }
+  transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
+      same_ents2new_ents, tagbase, new_data_w);
+}
+
+void transfer_cavs_all_densities(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
-  if (!should_conserve_any(old_mesh, opts)) return;
+  /* TODO: consolidate this graph creation code with the one in
+     track_cavs_all_errors() */
   auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
   auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
   auto keys2new_elems = Graph(keys2prods, prods2new_ents);
   std::vector<std::pair<Graph, Graph>> mats_keys2elems;
-  if (old_mesh->has_tag(dim, "class_id")) {
-    auto old_class_ids = old_mesh->get_array<I32>(dim, "class_id");
-    auto new_class_ids = new_mesh->get_array<I32>(dim, "class_id");
+  if (old_mesh->has_tag(VERT, "class_id")) {
+    auto old_class_ids = old_mesh->get_array<LO>(VERT, "class_id");
+    auto new_class_ids = new_mesh->get_array<LO>(VERT, "class_id");
     mats_keys2elems = separate_cavities(
         keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
   } else {
-    mats_keys2elems.push_back({keys2old_elems, keys2new_elems});
+    mats_keys2elems = {{keys2old_elems, keys2new_elems}};
   }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      transfer_conserve_tag(old_mesh, new_mesh, mats_keys2elems,
+      transfer_cavs_density(old_mesh, new_mesh,
+          mats_keys2elems,
           same_ents2old_ents, same_ents2new_ents, tagbase);
     }
   }
-  if (opts.should_conserve_size) {
-    track_cav_size_error(old_mesh, new_mesh, mats_keys2elems,
-        same_ents2old_ents, same_ents2new_ents);
-  }
+}
+
+void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+    LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  transfer_cavs_all_densities(old_mesh, opts, new_mesh, key_dim,
+      keys2kds, keys2prods, prods2new_ents,
+      same_ents2old_ents, same_ents2new_ents);
+  bool conserves_size = true;
+  bool conserves_mass = true;
+  bool conserves_momentum = false;
+  track_cavs_all_errors(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
+      prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+      conserves_size, conserves_mass, conserves_momentum);
 }
 
 void fix_momentum_velocity_verts(
@@ -260,22 +345,6 @@ void fix_momentum_velocity_verts(
           Read<I8>(mesh->nents(ent_dim), I8(0)));
     }
   }
-}
-
-bool has_fixed_momentum_velocity(Mesh* mesh, XferOpts const& opts) {
-  return has_momentum_velocity(mesh, opts) &&
-         mesh->has_tag(VERT, "momentum_velocity_fixed");
-}
-
-static Reals get_cavity_momenta(
-    Mesh* mesh, Graph keys2elems, Reals vert_velocities, Reals elem_masses) {
-  auto dim = mesh->dim();
-  auto cavity_elem_masses = unmap(keys2elems.ab2b, elem_masses, 1);
-  auto cavity_elem_velocities =
-      average_field(mesh, dim, keys2elems.ab2b, dim, vert_velocities);
-  auto cavity_elem_momenta =
-      multiply_each(cavity_elem_velocities, cavity_elem_masses);
-  return fan_reduce(keys2elems.a2ab, cavity_elem_momenta, dim, OMEGA_H_SUM);
 }
 
 static Read<I8> get_comps_are_fixed(Mesh* mesh) {
