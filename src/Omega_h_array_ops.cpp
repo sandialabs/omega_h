@@ -134,8 +134,7 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
     CHECK(a.size() == 0);
     return a;
   }
-  CHECK(a.size() % b.size() == 0);
-  auto width = a.size() / b.size();
+  auto width = divide_no_remainder(a.size(), b.size());
   Write<T> c(a.size());
   auto f = LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
@@ -152,8 +151,7 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
     CHECK(a.size() == 0);
     return a;
   }
-  CHECK(a.size() % b.size() == 0);
-  auto width = a.size() / b.size();
+  auto width = divide_no_remainder(a.size(), b.size());
   Write<T> c(a.size());
   auto f = LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
@@ -306,8 +304,7 @@ Read<I8> bit_neg_each(Read<I8> a) {
 
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
-  CHECK(a.size() % ncomps == 0);
-  Write<T> b(a.size() / ncomps);
+  Write<T> b(divide_no_remainder(a.size(), ncomps));
   auto f = LAMBDA(LO i) { b[i] = a[i * ncomps + comp]; };
   parallel_for(b.size(), f);
   return b;

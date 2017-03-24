@@ -113,8 +113,7 @@ DEVICE void hex_bur_rot_to_right(LO hhv2v[], Int new_right) {
 }  // namespace
 
 LOs tris_from_quads(LOs qv2v) {
-  CHECK(qv2v.size() % 4 == 0);
-  LO nq = qv2v.size() / 4;
+  LO nq = divide_no_remainder(qv2v.size(), 4);
   LO nt = nq * 2;
   Write<LO> tv2v(nt * 3);
   auto f = LAMBDA(LO q) {
@@ -175,8 +174,7 @@ DEVICE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h, LO const hhv2v[],
 }
 
 LOs tets_from_hexes(LOs hv2v) {
-  CHECK(hv2v.size() % 8 == 0);
-  LO nh = hv2v.size() / 8;
+  LO nh = divide_no_remainder(hv2v.size(), 8);
   Write<LO> degrees(nh);
   auto count = LAMBDA(LO h) {
     LO hhv2v[8];

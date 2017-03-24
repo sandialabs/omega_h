@@ -28,6 +28,7 @@ enum Omega_h_Xfer {
   OMEGA_H_CONSERVE,
   OMEGA_H_MOMENTUM_VELOCITY,
   OMEGA_H_POINTWISE,
+  OMEGA_H_WARP,
 };
 
 enum Omega_h_Parting {

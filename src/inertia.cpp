@@ -58,8 +58,7 @@ Vector<3> get_axis(CommPtr comm, Reals coords, Reals masses, Vector<3> center) {
 }
 
 Reals get_distances(Reals coords, Vector<3> center, Vector<3> axis) {
-  CHECK(coords.size() % 3 == 0);
-  auto n = coords.size() / 3;
+  auto n = divide_no_remainder(coords.size(), 3);
   Write<Real> distances(n);
   auto f = LAMBDA(LO i) {
     distances[i] = (get_vector<3>(coords, i) - center) * axis;
@@ -166,7 +165,7 @@ void recursively_bisect(CommPtr comm, Real tolerance, Reals* p_coords,
   if (comm->size() == 1) {
     return;
   }
-  CHECK(comm->size() % 2 == 0);
+  auto halfsize = divide_no_remainder(comm->size(), 2);
   Vector<3> axis;
   Read<I8> marks;
   if (hints.axes.empty()) {
@@ -181,7 +180,6 @@ void recursively_bisect(CommPtr comm, Real tolerance, Reals* p_coords,
   coords = dist.exch(coords, 3);
   masses = dist.exch(masses, 1);
   owners = dist.exch(owners, 1);
-  auto halfsize = comm->size() / 2;
   comm = comm->split(comm->rank() / halfsize, comm->rank() % halfsize);
   recursively_bisect(comm, tolerance, p_coords, p_masses, p_owners, p_hints);
   hints.axes.insert(hints.axes.begin(), axis);

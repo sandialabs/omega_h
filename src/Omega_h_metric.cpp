@@ -18,8 +18,7 @@ Int get_metric_dim(Int ncomps) {
 }
 
 Int get_metrics_dim(LO nmetrics, Reals metrics) {
-  CHECK(metrics.size() % nmetrics == 0);
-  auto ncomps = metrics.size() / nmetrics;
+  auto ncomps = divide_no_remainder(metrics.size(), nmetrics);
   return get_metric_dim(ncomps);
 }
 
@@ -138,8 +137,7 @@ Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
 
 template <Int dim>
 static HostFew<Reals, dim> axes_from_metrics_dim(Reals metrics) {
-  CHECK(metrics.size() % symm_ncomps(dim) == 0);
-  auto n = metrics.size() / symm_ncomps(dim);
+  auto n = divide_no_remainder(metrics.size(), symm_ncomps(dim));
   HostFew<Write<Real>, dim> w;
   for (Int i = 0; i < dim; ++i) w[i] = Write<Real>(n * dim);
   auto f = LAMBDA(LO i) {
@@ -332,8 +330,7 @@ static INLINE Matrix<dim, dim> metric_from_hessian(
 template <Int dim>
 static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
   auto ncomps = symm_ncomps(dim);
-  CHECK(hessians.size() % ncomps == 0);
-  auto n = hessians.size() / ncomps;
+  auto n = divide_no_remainder(hessians.size(), ncomps);
   auto out = Write<Real>(n * ncomps);
   auto f = LAMBDA(LO i) {
     auto hess = get_symm<dim>(hessians, i);

@@ -16,48 +16,125 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
   }
 }
 
-template <Int dim>
-static void transfer_conserve_dim(Mesh* old_mesh, Mesh* new_mesh,
-    TagBase const* tagbase, Graph keys2old_elems, Graph keys2new_elems,
-    Write<Real> new_data_w) {
-  auto ncomps = tagbase->ncomps();
-  auto old_tag = to<Real>(tagbase);
-  auto old_densities = old_tag->array();
-  auto new_densities = new_mesh->get_array<Real>(dim, tagbase->name());
-  auto old_sizes = old_mesh->ask_sizes();
-  auto new_sizes = new_mesh->ask_sizes();
-  auto old_elem_integrals = multiply_each(old_densities, old_sizes);
-  auto new_elem_integrals = multiply_each(new_densities, new_sizes);
-  auto old_cavity_masses = graph_reduce(
-      keys2old_elems, old_elem_masses, ncomps, OMEGA_H_SUM);
-  auto new_cavity_masses = graph_reduce(
-      keys2new_elems, new_elem_masses, ncomps, OMEGA_H_SUM);
-  auto cavity_mass_errors = subtract_each(new_cavity_masses, old_cavity_masses);
-  auto new_cavity_sizes = graph_reduce(
-}
-
-static void transfer_conserve_tag(Mesh* old_mesh, Mesh* new_mesh,
-    std::vector<std::pair<Graph, Graph>> mats_keys2elems,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase) {
+static void track_cav_error_field(Mesh* old_mesh, Mesh* new_mesh,
+    Graph keys2old_elems, Graph keys2new_elems,
+    Reals cav_errors, std::string const& error_name,
+    Write<Real> new_elem_errors_w) {
   auto dim = old_mesh->dim();
-  auto nnew_elems = new_mesh->nelems();
-  auto ncomps = tagbase->ncomps();
-  auto new_data_w = Write<Real>(nnew_elems * ncomps);
-  for (auto pair : mats_keys2elems) {
-    auto keys2old_mat_elems = pair.first;
-    auto keys2new_mat_elems = pair.second;
-    if (dim == 3)
-      transfer_conserve_dim<3>(old_mesh, new_mesh, tagbase, keys2old_mat_elems,
-          keys2new_mat_elems, new_data_w);
-    if (dim == 2)
-      transfer_conserve_dim<2>(old_mesh, new_mesh, tagbase, keys2old_mat_elems,
-          keys2new_mat_elems, new_data_w);
+  auto ncavs = keys2old_elems.nnodes();
+  OMEGA_H_CHECK(ncavs == keys2new_elems.nnodes());
+  auto ncomps = divide_no_remainder(cav_errors.size() , ncavs);
+  auto old_elem_sizes = old_mesh->ask_sizes();
+  auto new_elem_sizes = new_mesh->ask_sizes();
+  auto old_cav_elem_densities = unmap(keys2old_elems.ab2b, old_elem_densities, ncomps);
+  auto new_cav_elem_densities = unmap(keys2new_elems.ab2b, old_elem_densities, ncomps);
+  auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
+  auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, old_elem_sizes, 1);
+  auto old_cav_elem_integrals = multiply_each(
+      old_cav_elem_densities, old_cav_elem_sizes);
+  auto new_cav_elem_integrals = multiply_each(
+      new_cav_elem_densities, new_cav_elem_sizes);
+  auto old_cav_integrals = fan_reduce(
+      keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+  auto new_cav_integrals = fan_reduce(
+      keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+  auto cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
+  if (old_mesh->has_tag(dim, error_name)) {
+    auto old_elem_errors = old_mesh->get_array<Real>(dim, error_name);
+    auto old_cav_errors = graph_reduce(
+        keys2old_elems, old_elem_errors, ncomps, OMEGA_H_SUM);
+    cav_errors = add_each(cav_errors, old_cav_errors);
   }
-  transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
-      same_ents2new_ents, tagbase, new_data_w);
+  auto new_cav_sizes = fan_reduce(
+      keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
+  auto new_cav_error_densities = divide_each(cav_errors, new_cav_sizes);
+  auto new_cav_elem_error_densities = expand(new_cav_error_densities,
+      keys2new_elems, ncomps);
+  auto new_cav_elem_errors = multiply_each(
+      new_cav_elem_error_densities, new_cav_elem_sizes);
+  map_into(new_cav_elem_errors, keys2new_elems.ab2b, new_elem_errors_w, ncomps);
 }
 
-void transfer_conserve(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+static void track_cav_integral_error(Mesh* old_mesh, Mesh* new_mesh,
+    Graph keys2old_elems, Graph keys2new_elems,
+    Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
+    Write<Real> new_elem_errors_w) {
+  auto dim = old_mesh->dim();
+  auto ncomps = old_elem_densities.size() / old_mesh->nelems();
+  auto old_elem_sizes = old_mesh->ask_sizes();
+  auto new_elem_sizes = new_mesh->ask_sizes();
+  auto old_cav_elem_densities = unmap(keys2old_elems.ab2b, old_elem_densities, ncomps);
+  auto new_cav_elem_densities = unmap(keys2new_elems.ab2b, old_elem_densities, ncomps);
+  auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
+  auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, old_elem_sizes, 1);
+  auto old_cav_elem_integrals = multiply_each(
+      old_cav_elem_densities, old_cav_elem_sizes);
+  auto new_cav_elem_integrals = multiply_each(
+      new_cav_elem_densities, new_cav_elem_sizes);
+  auto old_cav_integrals = fan_reduce(
+      keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+  auto new_cav_integrals = fan_reduce(
+      keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+  auto cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
+  if (old_mesh->has_tag(dim, error_name)) {
+    auto old_elem_errors = old_mesh->get_array<Real>(dim, error_name);
+    auto old_cav_errors = graph_reduce(
+        keys2old_elems, old_elem_errors, ncomps, OMEGA_H_SUM);
+    cav_errors = add_each(cav_errors, old_cav_errors);
+  }
+  auto new_cav_sizes = fan_reduce(
+      keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
+  auto new_cav_error_densities = divide_each(cav_errors, new_cav_sizes);
+  auto new_cav_elem_error_densities = expand(new_cav_error_densities,
+      keys2new_elems, ncomps);
+  auto new_cav_elem_errors = multiply_each(
+      new_cav_elem_error_densities, new_cav_elem_sizes);
+  map_into(new_cav_elem_errors, keys2new_elems.ab2b, new_elem_errors_w, ncomps);
+}
+
+static void track_cav_integral_error_tag(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+    std::vector<std::pair<Graph, Graph>> mats_keys2elems, TagBase const* tagbase,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  auto dim = old_mesh->dim();
+  auto ncomps = tagbase->ncomps();
+  auto integral_name = tagbase->name();
+  if (opts.integral_map.count(tagbase->name())) {
+    integral_name = opts.integral_map.find(tagbase->name()).
+  }
+  auto error_name = integral_name + "_error";
+  auto old_tag = to<Real>(tagbase);
+  auto old_elem_densities = old_tag->array();
+  auto new_elem_densities = new_mesh->get_array<Real>(dim, tagbase->name());
+  auto new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps);
+  for (auto pair : mats_keys2elems) {
+    track_integral_error(old_mesh, new_mesh, pair.first, pair.second,
+        old_elem_densities, new_elem_densities, error_name, new_elem_errors_w);
+  }
+  new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors_w);
+}
+
+static void track_cav_size_error(Mesh* old_mesh, Mesh* new_mesh,
+    std::vector<std::pair<Graph, Graph>> mats_keys2elems,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  auto dim = old_mesh->dim();
+  auto ncomps = tagbase->ncomps();
+  auto error_name = "size_error";
+  auto old_elem_densities = Reals(old_mesh->nelems(), 1.0);
+  auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
+  auto new_elem_errors_w = Write<Real>(new_mesh->nelems() * 1);
+  for (auto pair : mats_keys2elems) {
+    track_integral_error(old_mesh, new_mesh, pair.first, pair.second,
+        old_elem_densities, new_elem_densities, error_name, new_elem_errors_w);
+  }
+  new_mesh->add_tag(dim, error_name, 1, new_elem_errors_w);
+}
+
+static LOs negate_boundary_elem_class_ids(Mesh* mesh, LOs class_ids) {
+  auto vert_class_dims = mesh->get_array<I8>(VERT, "class_dim");
+  auto verts_are_int = each_eq_to(vert_class_dims, I8(mesh->dim()));
+}
+
+void transfer_conserve_cav(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
@@ -80,6 +157,40 @@ void transfer_conserve(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
       transfer_conserve_tag(old_mesh, new_mesh, mats_keys2elems,
           same_ents2old_ents, same_ents2new_ents, tagbase);
     }
+  }
+  if (opts.should_conserve_size) {
+    track_cav_size_error(old_mesh, new_mesh, mats_keys2elems,
+        same_ents2old_ents, same_ents2new_ents);
+  }
+}
+
+void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  auto dim = new_mesh->dim();
+  if (!should_conserve_any(old_mesh, opts)) return;
+  auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
+  auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
+  auto keys2new_elems = Graph(keys2prods, prods2new_ents);
+  std::vector<std::pair<Graph, Graph>> mats_keys2elems;
+  if (old_mesh->has_tag(dim, "class_id")) {
+    auto old_class_ids = old_mesh->get_array<I32>(dim, "class_id");
+    auto new_class_ids = new_mesh->get_array<I32>(dim, "class_id");
+    mats_keys2elems = separate_cavities(
+        keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
+  } else {
+    mats_keys2elems.push_back({keys2old_elems, keys2new_elems});
+  }
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (should_conserve(old_mesh, opts, dim, tagbase)) {
+      transfer_conserve_tag(old_mesh, new_mesh, mats_keys2elems,
+          same_ents2old_ents, same_ents2new_ents, tagbase);
+    }
+  }
+  if (opts.should_conserve_size) {
+    track_cav_size_error(old_mesh, new_mesh, mats_keys2elems,
+        same_ents2old_ents, same_ents2new_ents);
   }
 }
 

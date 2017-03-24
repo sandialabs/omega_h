@@ -49,6 +49,7 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_coarsen_slivers = true;
   should_move_for_quality = false;
   should_allow_pinching = false;
+  xfer_opts.should_conserve_size = false;
 }
 
 static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const& opts) {
