@@ -393,34 +393,6 @@ static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
   }
 }
 
-static void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
-  diffuse_integral_errors(mesh, opts);
-  auto dim = mesh->dim();
-  for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
-    auto tagbase = mesh->get_tag(dim, tagi);
-    if (should_conserve(mesh, opts, dim, tagbase)) {
-      auto density_name = tagbase->name();
-      auto integral_name = opts.integral_map.find(density_name).second;
-      auto error_name = integral_name + "_error";
-      auto errors = mesh->get_array<Real>(dim, error_name);
-      auto densities = mesh->get_array<Real>(dim, density_name);
-      auto sizes = mesh->ask_sizes();
-      auto corrections = divide_each(errors, sizes);
-      densities = add_each(densities, corrections);
-      mesh->set_tag(dim, density_name, densities);
-      mesh->remove_tag(dim, error_name);
-    }
-  }
-  for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
-    auto tagbase = mesh->get_tag(VERT, tagi);
-    if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
-      auto momentum_name = opts.velocity_momentum_map.find(tagbase->name()).second;
-      auto error_name = momentum_name + "_error";
-      diffuse_elem_error_tag_once(mesh, g, error_name);
-    }
-  }
-}
-
 void fix_momentum_velocity_verts(
     Mesh* mesh, Int class_dim, I32 class_id, Int comp) {
   for (Int ent_dim = VERT; ent_dim <= class_dim; ++ent_dim) {
@@ -450,13 +422,69 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
   }
 }
 
-static Reals get_vertex_masses(Mesh* mesh, Reals elems2mass) {
-  CHECK(mesh->owners_have_all_upward(VERT));
+void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
+  diffuse_integral_errors(mesh, opts);
   auto dim = mesh->dim();
-  auto verts2elems = mesh->ask_up(VERT, dim);
-  auto verts2mass = graph_reduce(verts2elems, elems2mass, 1, OMEGA_H_SUM);
-  verts2mass = multiply_each_by(1.0 / Real(dim + 1), verts2mass);
-  return mesh->sync_array(VERT, verts2mass, 1);
+  for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
+    auto tagbase = mesh->get_tag(dim, tagi);
+    if (should_conserve(mesh, opts, dim, tagbase)) {
+      auto density_name = tagbase->name();
+      auto integral_name = opts.integral_map.find(density_name).second;
+      auto error_name = integral_name + "_error";
+      auto errors = mesh->get_array<Real>(dim, error_name);
+      auto densities = mesh->get_array<Real>(dim, density_name);
+      auto sizes = mesh->ask_sizes();
+      auto corrections = divide_each(errors, sizes);
+      densities = add_each(densities, corrections);
+      mesh->set_tag(dim, density_name, densities);
+      mesh->remove_tag(dim, error_name);
+    }
+  }
+  for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
+    auto tagbase = mesh->get_tag(VERT, tagi);
+    if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
+      auto velocity_name = tagbase->name();
+      auto momentum_name = opts.velocity_momentum_map.find(velocity_name).second
+      auto density_name = opts.velocity_density_map.find(velocity_name).second
+      auto error_name = momentum_name + "_error";
+      auto elem_sizes = mesh->ask_sizes();
+      auto elem_densities = mesh->get_array<Real>(dim, density_name);
+      auto elem_masses = multiply_each(elem_densities, elem_sizes);
+      auto verts2elems = mesh->ask_up(VERT, dim);
+      auto vert_masses = graph_reduce(verts2elems, elem_masses, 1, OMEGA_H_SUM);
+      vert_masses = divide_each_by(Real(dim + 1), vert_masses);
+      auto elems2verts = mesh->ask_down(dim, VERT);
+      auto all_flags = get_comps_are_fixed(mesh);
+      auto elem_errors = mesh->get_array<Real>(dim, error_name);
+      auto ncomps = tagbase->ncomps();
+      auto out = deep_copy(mesh->get_array<Real>(VERT, velocity_name));
+      auto f = LAMBDA(LO v) {
+        auto v_flags = all_flags[v];
+        auto v_mass = vert_masses[v];
+        for (auto ve = verts2elems.a2ab[v];
+             ve < verts2elems.a2ab[v + 1]; ++ve) {
+          auto e = verts2elems.ab2b[ve];
+          auto nfree_verts = zero_vector<3>();
+          for (auto ev = e * (dim + 1); ev < (e + 1) * (dim + 1); ++ev) {
+            auto v2 = elems2verts.ab2b[ev];
+            auto v2_flags = all_flags[v2];
+            for (Int comp = 0; comp < ncomps; ++comp) {
+              if (!(v2_flags & (1 << comp))) nfree_verts[comp] += 1.0;
+            }
+          }
+          for (Int comp = 0; comp < ncomps; ++comp) {
+            out[v * ncomps + comp] +=
+              elem_errors[e * ncomps + comp] / v_mass;
+          }
+        }
+      };
+      parallel_for(mesh->nverts(), f);
+      auto new_velocities = Reals(out);
+      new_velocities = mesh->sync_array(VERT, new_velocities, ncomps);
+      mesh->set_tag(VERT, velocity_name, new_velocities);
+      mesh->remove_tag(dim, error_name);
+    }
+  }
 }
 
 }  // end namespace Omega_h

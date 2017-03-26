@@ -46,6 +46,8 @@ Read<T> multiply_each_by(T factor, Read<T> a);
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b);
 template <typename T>
+Read<T> divide_each_by(Read<T> a, Read<T> b);
+template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b);
 template <typename T>
 Read<T> subtract_each(Read<T> a, Read<T> b);
@@ -109,6 +111,7 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<I8> each_neq_to(Read<T> a, T b);                        \
   extern template Read<I8> each_eq_to(Read<T> a, T b);                         \
   extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
+  extern template Read<T> divide_each_by(T factor, Read<T> x);               \
   extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> each_max_with(Read<T> a, T b);                       \
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
