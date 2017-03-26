@@ -369,10 +369,10 @@ static void diffuse_elem_error_tag_once(Mesh* mesh, Graph g, std::string const& 
   mesh->set_tag<Real>(dim, error_name, array);
 }
 
-static void diffuse_all_errors(Mesh* mesh, XferOpts const& opts) {
+static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
   auto g = get_elem_diffusion_graph(mesh);
   auto dim = mesh->dim();
-  auto niters = 8;
+  auto niters = opts.niters_integral_error_diffusion;
   for (Int iter = 0; iter < niters; ++iter) {
     for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
       auto tagbase = mesh->get_tag(dim, tagi);
@@ -384,11 +384,39 @@ static void diffuse_all_errors(Mesh* mesh, XferOpts const& opts) {
     }
     for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
       auto tagbase = mesh->get_tag(VERT, tagi);
-      if (should_conserve(mesh, opts, VERT, tagbase)) {
-        auto integral_name = opts.integral_map.find(tagbase->name()).second;
-        auto error_name = integral_name + "_error";
+      if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
+        auto momentum_name = opts.velocity_momentum_map.find(tagbase->name()).second;
+        auto error_name = momentum_name + "_error";
         diffuse_elem_error_tag_once(mesh, g, error_name);
       }
+    }
+  }
+}
+
+static void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
+  diffuse_integral_errors(mesh, opts);
+  auto dim = mesh->dim();
+  for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
+    auto tagbase = mesh->get_tag(dim, tagi);
+    if (should_conserve(mesh, opts, dim, tagbase)) {
+      auto density_name = tagbase->name();
+      auto integral_name = opts.integral_map.find(density_name).second;
+      auto error_name = integral_name + "_error";
+      auto errors = mesh->get_array<Real>(dim, error_name);
+      auto densities = mesh->get_array<Real>(dim, density_name);
+      auto sizes = mesh->ask_sizes();
+      auto corrections = divide_each(errors, sizes);
+      densities = add_each(densities, corrections);
+      mesh->set_tag(dim, density_name, densities);
+      mesh->remove_tag(dim, error_name);
+    }
+  }
+  for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
+    auto tagbase = mesh->get_tag(VERT, tagi);
+    if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
+      auto momentum_name = opts.velocity_momentum_map.find(tagbase->name()).second;
+      auto error_name = momentum_name + "_error";
+      diffuse_elem_error_tag_once(mesh, g, error_name);
     }
   }
 }

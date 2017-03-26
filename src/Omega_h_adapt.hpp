@@ -16,6 +16,7 @@ struct XferOpts {
   std::map<std::string, std::string> velocity_density_map; // "velocity" -> "density"
   std::map<std::string, std::string> velocity_momentum_map; // "velocity" -> "momentum"
   bool should_conserve_size;
+  Int niters_integral_error_diffusion;
 };
 
 enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
