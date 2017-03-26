@@ -4,6 +4,7 @@
 #include "Omega_h_graph.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_r3d.hpp"
+#include "Omega_h_compare.hpp"
 
 namespace Omega_h {
 
@@ -362,10 +363,24 @@ static Reals diffuse_elem_error_once(Mesh* mesh, Graph g, Reals x, Int ncomps) {
   return mesh->sync_array(mesh->dim(), out, ncomps);
 }
 
-static void diffuse_elem_error_tag_once(Mesh* mesh, Graph g, std::string const& error_name) {
+static Reals diffuse_elem_error(Mesh* mesh, Graph g, Reals x, Int ncomps,
+    VarCompareOpts opts) {
+  if (opts.kind == NONE) return x;
+  while (1) {
+    auto new_x = diffuse_elem_error_once(mesh, g, x, ncomps);
+    auto verbose = false;
+    if (compare_arrays(
+          mesh->comm(), new_x, x, opts, ncomps, mesh->dim(), verbose)) {
+      return new_x;
+    }
+  }
+}
+
+static void diffuse_elem_error_tag(Mesh* mesh, Graph g,
+    std::string const& error_name, VarCompareOpts opts) {
   auto array = mesh->get_array<Real>(dim, error_name);
   auto ncomps = tagbase->ncomps();
-  array = diffuse_elem_error_once(mesh, g, array, ncomps);
+  array = diffuse_elem_error(mesh, g, array, ncomps, opts);
   mesh->set_tag<Real>(dim, error_name, array);
 }
 
@@ -373,22 +388,22 @@ static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
   auto g = get_elem_diffusion_graph(mesh);
   auto dim = mesh->dim();
   auto niters = opts.niters_integral_error_diffusion;
-  for (Int iter = 0; iter < niters; ++iter) {
-    for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
-      auto tagbase = mesh->get_tag(dim, tagi);
-      if (should_conserve(mesh, opts, dim, tagbase)) {
-        auto integral_name = opts.integral_map.find(tagbase->name()).second;
-        auto error_name = integral_name + "_error";
-        diffuse_elem_error_tag_once(mesh, g, error_name);
-      }
+  for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
+    auto tagbase = mesh->get_tag(dim, tagi);
+    if (should_conserve(mesh, opts, dim, tagbase)) {
+      auto integral_name = opts.integral_map.find(tagbase->name()).second;
+      auto error_name = integral_name + "_error";
+      auto tol = opts.integral_diffuse_map.find(error_name)->second;
+      diffuse_elem_error_tag(mesh, g, error_name, tol);
     }
-    for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
-      auto tagbase = mesh->get_tag(VERT, tagi);
-      if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
-        auto momentum_name = opts.velocity_momentum_map.find(tagbase->name()).second;
-        auto error_name = momentum_name + "_error";
-        diffuse_elem_error_tag_once(mesh, g, error_name);
-      }
+  }
+  for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
+    auto tagbase = mesh->get_tag(VERT, tagi);
+    if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
+      auto momentum_name = opts.velocity_momentum_map.find(tagbase->name()).second;
+      auto error_name = momentum_name + "_error";
+      auto tol = opts.integral_diffuse_map.find(error_name)->second;
+      diffuse_elem_error_tag(mesh, g, error_name);
     }
   }
 }

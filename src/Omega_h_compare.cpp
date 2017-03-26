@@ -52,7 +52,8 @@ MeshCompareOpts MeshCompareOpts::init(
 template <typename T>
 struct CompareArrays {
   static bool compare(
-      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts, Int, Int, bool) {
+      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts, Int, Int, bool) {
+    if (opts.kind == NONE) return true;
     return comm->reduce_and(a == b);
   }
 };
@@ -73,6 +74,7 @@ template <>
 struct CompareArrays<Real> {
   static bool compare(CommPtr comm, Read<Real> a, Read<Real> b,
       VarCompareOpts opts, Int ncomps, Int dim, bool verbose) {
+    if (opts.kind == NONE) return true;
     auto tol = opts.tolerance;
     auto floor = opts.floor;
     if (opts.kind == VarCompareOpts::RELATIVE) {

@@ -5,6 +5,7 @@
 
 #include <Omega_h_config.h>
 #include <Omega_h_defines.hpp>
+#include <Omega_h_compare.hpp>
 
 namespace Omega_h {
 
@@ -15,8 +16,8 @@ struct XferOpts {
   std::map<std::string, std::string> integral_map; // "density" -> "mass"
   std::map<std::string, std::string> velocity_density_map; // "velocity" -> "density"
   std::map<std::string, std::string> velocity_momentum_map; // "velocity" -> "momentum"
+  std::map<std::string, VarCompareOpts> integral_diffuse_map;
   bool should_conserve_size;
-  Int niters_integral_error_diffusion;
 };
 
 enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };
