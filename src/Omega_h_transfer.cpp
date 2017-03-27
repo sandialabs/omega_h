@@ -544,7 +544,7 @@ void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_coarsen(old_mesh, opts, new_mesh, VERT, keys2verts,
+    transfer_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
@@ -662,7 +662,7 @@ void transfer_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_coarsen(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
+    transfer_conserve_swap(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
