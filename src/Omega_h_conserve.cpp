@@ -409,6 +409,7 @@ static Reals diffuse_elem_error(Mesh* mesh, Graph g, Reals x, Int ncomps,
 static void diffuse_elem_error_tag(Mesh* mesh, Graph g,
     std::string const& error_name, VarCompareOpts opts) {
   auto dim = mesh->dim();
+  if (!mesh->has_tag(dim, error_name)) return;
   auto tag = mesh->get_tag<Real>(dim, error_name);
   auto array = tag->array();
   auto ncomps = tag->ncomps();
@@ -422,9 +423,14 @@ static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, opts, dim, tagbase)) {
-      auto integral_name = opts.integral_map.find(tagbase->name())->second;
+      auto density_name = tagbase->name();
+      auto integral_name = opts.integral_map.find(density_name)->second;
       auto error_name = integral_name + "_error";
-      auto tol = opts.integral_diffuse_map.find(error_name)->second;
+      if (!opts.integral_diffuse_map.count(integral_name)) {
+        Omega_h_fail("integral_diffuse_map[\"%s\"] doesn't exist!\n",
+            integral_name.c_str());
+      }
+      auto tol = opts.integral_diffuse_map.find(integral_name)->second;
       diffuse_elem_error_tag(mesh, g, error_name, tol);
     }
   }
@@ -433,6 +439,10 @@ static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
     if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
       auto momentum_name = opts.velocity_momentum_map.find(tagbase->name())->second;
       auto error_name = momentum_name + "_error";
+      if (!opts.integral_diffuse_map.count(error_name)) {
+        Omega_h_fail("integral_diffuse_map[\"%s\"] doesn't exist!\n",
+            error_name.c_str());
+      }
       auto tol = opts.integral_diffuse_map.find(error_name)->second;
       diffuse_elem_error_tag(mesh, g, error_name, tol);
     }
@@ -479,6 +489,7 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
       auto density_name = tagbase->name();
       auto integral_name = opts.integral_map.find(density_name)->second;
       auto error_name = integral_name + "_error";
+      if (!mesh->has_tag(dim, error_name)) continue;
       auto errors = mesh->get_array<Real>(dim, error_name);
       auto densities = mesh->get_array<Real>(dim, density_name);
       auto sizes = mesh->ask_sizes();
@@ -495,6 +506,7 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
       auto momentum_name = opts.velocity_momentum_map.find(velocity_name)->second;
       auto density_name = opts.velocity_density_map.find(velocity_name)->second;
       auto error_name = momentum_name + "_error";
+      if (!mesh->has_tag(dim, error_name)) continue;
       auto elem_sizes = mesh->ask_sizes();
       auto elem_densities = mesh->get_array<Real>(dim, density_name);
       auto elem_masses = multiply_each(elem_densities, elem_sizes);
