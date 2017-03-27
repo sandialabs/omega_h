@@ -1,5 +1,7 @@
 #include "Omega_h_conserve.hpp"
 
+#include <iostream>
+
 #include "Omega_h_adj.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_graph.hpp"
@@ -512,6 +514,7 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 
 void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
   if (!should_conserve_any(mesh, opts)) return;
+  vtk::write_vtu("before_correct.vtu", mesh, mesh->dim());
   mesh->set_parting(OMEGA_H_GHOSTED);
   diffuse_integral_errors(mesh, opts);
   auto dim = mesh->dim();
@@ -549,6 +552,8 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
       auto all_flags = get_comps_are_fixed(mesh);
       auto elem_errors = mesh->get_array<Real>(dim, error_name);
       auto ncomps = tagbase->ncomps();
+      auto total_error = repro_sum(get_component(elem_errors, ncomps, 0));
+      std::cerr << "total X error " << total_error << '\n';
       auto out = deep_copy(mesh->get_array<Real>(VERT, velocity_name));
       auto f = LAMBDA(LO v) {
         auto v_flags = all_flags[v];
@@ -565,8 +570,9 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
             }
           }
           for (Int comp = 0; comp < ncomps; ++comp) {
+            CHECK(are_close(nfree_verts[comp], Real(dim + 1)));
             if (!(v_flags & (1 << comp))) {
-              out[v * ncomps + comp] +=
+              out[v * ncomps + comp] -=
                 elem_errors[e * ncomps + comp] / (nfree_verts[comp] * v_mass);
             }
           }
@@ -579,6 +585,7 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
       mesh->remove_tag(dim, error_name);
     }
   }
+  vtk::write_vtu("after_correct.vtu", mesh, mesh->dim());
 }
 
 }  // end namespace Omega_h
