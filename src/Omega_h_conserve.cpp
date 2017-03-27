@@ -10,58 +10,55 @@
 
 namespace Omega_h {
 
-/* computes the error in the integral over a cavity, given the old
-   and new densities at elements.
-   also factors in any previous recorded error on old elements */
+/* given the density of newly introduced error, this function
+   adds in any existing error that was present in a sub-cavity
+   and distributes the total to the new sub-cavity */
 static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
     Graph keys2old_elems, Graph keys2new_elems,
-    Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
+    Reals subcav_error_densities, std::string const& error_name,
     Write<Real>* new_elem_errors_w, bool conserves_integrals) {
   auto dim = old_mesh->dim();
-  if (conserves_integrals && (!old_mesh->has_tag(dim, error_name))) return;
-  Reals cav_errors;
-  auto ncomps = old_elem_densities.size() / old_mesh->nelems();
-  Reals new_cav_elem_errors;
+  if (!subcav_error_densities.exists() && (!old_mesh->has_tag(dim, error_name))) return;
   auto new_elem_sizes = new_mesh->ask_sizes();
-  auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, new_elem_sizes, 1);
-  if (!conserves_integrals) {
-    auto old_elem_sizes = old_mesh->ask_sizes();
-    auto old_cav_elem_densities = unmap(
-        keys2old_elems.ab2b, old_elem_densities, ncomps);
-    auto new_cav_elem_densities = unmap(
-        keys2new_elems.ab2b, new_elem_densities, ncomps);
-    auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
-    auto old_cav_elem_integrals = multiply_each(
-        old_cav_elem_densities, old_cav_elem_sizes);
-    auto new_cav_elem_integrals = multiply_each(
-        new_cav_elem_densities, new_cav_elem_sizes);
-    auto old_cav_integrals = fan_reduce(
-        keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
-    auto new_cav_integrals = fan_reduce(
-        keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
-    cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
-  }
+  auto new_subcav_elem_sizes = unmap(keys2new_elems.ab2b, new_elem_sizes, 1);
   if (old_mesh->has_tag(dim, error_name)) {
-    auto old_elem_errors = old_mesh->get_array<Real>(dim, error_name);
-    auto old_cav_errors = graph_reduce(
+    auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
+    auto ncomps = old_tag->ncomps();
+    auto old_elem_errors = old_tag->array();
+    auto old_subcav_errors = graph_reduce(
         keys2old_elems, old_elem_errors, ncomps, OMEGA_H_SUM);
-    if (!conserves_integrals) cav_errors = add_each(cav_errors, old_cav_errors);
-    else cav_errors = old_cav_errors;
+    auto new_subcav_sizes = fan_reduce(
+        keys2new_elems.a2ab, new_subcav_elem_sizes, 1, OMEGA_H_SUM);
+    auto new_subcav_error_densities = divide_each(
+        old_subcav_errors, new_subcav_sizes);
+    if (subcav_error_densities.exists()) {
+      subcav_error_densities = add_each(subcav_error_densities,
+          new_subcav_error_densities);
+    } else {
+      subcav_error_densities = new_subcav_error_densities;
+    }
   }
-  auto new_cav_sizes = fan_reduce(
-      keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
-  auto new_cav_error_densities = divide_each(cav_errors, new_cav_sizes);
-  auto new_cav_elem_error_densities = expand(new_cav_error_densities,
+  auto ncavs = keys2new_elems.nnodes();
+  OMEGA_H_CHECK(keys2old_elems.nnodes() == ncavs);
+  auto ncomps = divide_no_remainder(
+      subcav_error_densities.size(), old_mesh->nelems());
+  auto subcav_elem_error_densities = expand(subcav_error_densities,
       keys2new_elems.a2ab, ncomps);
-  new_cav_elem_errors = multiply_each(
-      new_cav_elem_error_densities, new_cav_elem_sizes);
+  auto subcav_elem_errors = multiply_each(
+      subcav_elem_error_densities, new_subcav_elem_sizes);
   if (!new_elem_errors_w->exists()) {
     *new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
   }
-  map_into(new_cav_elem_errors, keys2new_elems.ab2b, *new_elem_errors_w, ncomps);
+  map_into(subcav_elem_errors, keys2new_elems.ab2b, *new_elem_errors_w, ncomps);
 }
 
+/* tracks both existing and newly introduced error in a set of
+   cavities. since newly introduced error is computed over the
+   cavity as a whole and not per sub-cavity, this function needs
+   the graphs describing the whole cavities as well as the
+   sub-cavity graphs */
 static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
+    Graph keys2old_elems, Graph keys2new_elems,
     std::vector<std::pair<Graph, Graph>> const& mats_keys2elems,
     Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
@@ -76,9 +73,33 @@ static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
     auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
     map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
   }
+  Reals cav_error_densities;
+  if (!conserves_integrals) {
+    auto ncomps = divide_no_remainder(old_elem_densities.size(), old_mesh->nelems());
+    auto old_elem_sizes = old_mesh->ask_sizes();
+    auto new_elem_sizes = new_mesh->ask_sizes();
+    auto old_cav_elem_densities = unmap(
+        keys2old_elems.ab2b, old_elem_densities, ncomps);
+    auto new_cav_elem_densities = unmap(
+        keys2new_elems.ab2b, new_elem_densities, ncomps);
+    auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
+    auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, new_elem_sizes, 1);
+    auto old_cav_elem_integrals = multiply_each(
+        old_cav_elem_densities, old_cav_elem_sizes);
+    auto new_cav_elem_integrals = multiply_each(
+        new_cav_elem_densities, new_cav_elem_sizes);
+    auto old_cav_integrals = fan_reduce(
+        keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+    auto new_cav_integrals = fan_reduce(
+        keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
+    auto cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
+    auto new_cav_sizes = fan_reduce(
+        keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
+    cav_error_densities = divide_each(cav_errors, new_cav_sizes);
+  }
   for (auto pair : mats_keys2elems) {
     track_subcavs_integral_error(old_mesh, new_mesh, pair.first, pair.second,
-        old_elem_densities, new_elem_densities, error_name, &new_elem_errors_w,
+        cav_error_densities, error_name, &new_elem_errors_w,
         conserves_integrals);
   }
   if (new_elem_errors_w.exists()) {
@@ -477,8 +498,17 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
   }
 }
 
+static void check_total_mass(Mesh* mesh) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
+  auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
+  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
+}
+
 void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
   if (!should_conserve_any(mesh, opts)) return;
+  vtk::write_vtu("before_correction.vtu", mesh, mesh->dim());
   mesh->set_parting(OMEGA_H_GHOSTED);
   diffuse_integral_errors(mesh, opts);
   auto dim = mesh->dim();
@@ -546,6 +576,8 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
       mesh->remove_tag(dim, error_name);
     }
   }
+  vtk::write_vtu("after_correction.vtu", mesh, mesh->dim());
+  check_total_mass(mesh);
 }
 
 }  // end namespace Omega_h
