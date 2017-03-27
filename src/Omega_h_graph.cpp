@@ -94,6 +94,7 @@ struct FilteredGraph {
 static FilteredGraph filter_graph2(Graph g, Read<I8> keep_edge) {
   auto degrees = fan_reduce(g.a2ab, keep_edge, 1, OMEGA_H_SUM);
   auto offsets = offset_scan(degrees);
+  CHECK(get_min(keep_edge) > I8(-1));
   auto kept2old = collect_marked(keep_edge);
   auto edges = unmap(kept2old, g.ab2b, 1);
   return {Graph(offsets, edges), kept2old};
@@ -114,7 +115,7 @@ static std::pair<Graph, Graph> separate_cavities_once(Graph* p_keys2old,
   auto nkeys = keys2old.nnodes();
   CHECK(keys2new.nnodes() == nkeys);
   auto old_keep_w = Write<I8>(keys2old.nedges());
-  auto new_keep_w = Write<I8>(keys2new.nedges());
+  auto new_keep_w = Write<I8>(keys2new.nedges(), I8(1));
   auto f = LAMBDA(LO key) {
     auto ob = keys2old.a2ab[key];
     auto oe = keys2old.a2ab[key + 1];
@@ -135,19 +136,20 @@ static std::pair<Graph, Graph> separate_cavities_once(Graph* p_keys2old,
   parallel_for(nkeys, f);
   auto old_keep = Read<I8>(old_keep_w);
   auto new_keep = Read<I8>(new_keep_w);
+  auto subgraph_old = filter_graph(keys2old, old_keep);
+  auto subgraph_new = filter_graph(keys2new, new_keep);
   *p_keys2old = filter_graph(keys2old, invert_marks(old_keep));
   *p_keys2new = filter_graph(keys2new, invert_marks(new_keep));
-  return {filter_graph(keys2old, old_keep), filter_graph(keys2new, new_keep)};
+  return {subgraph_old, subgraph_new};
 }
 
 std::vector<std::pair<Graph, Graph>> separate_cavities(
     Graph keys2old, LOs old_class_ids, Graph keys2new, LOs new_class_ids) {
   std::vector<std::pair<Graph, Graph>> out;
-  while (keys2old.nedges()) {
+  while (keys2old.nedges() || keys2new.nedges()) {
     out.push_back(separate_cavities_once(
         &keys2old, old_class_ids, &keys2new, new_class_ids));
   }
-  if (keys2new.nedges()) out.push_back({keys2old, keys2new});
   return out;
 }
 

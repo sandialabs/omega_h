@@ -16,7 +16,7 @@ struct XferOpts {
   std::map<std::string, std::string> integral_map; // "density" -> "mass"
   std::map<std::string, std::string> velocity_density_map; // "velocity" -> "density"
   std::map<std::string, std::string> velocity_momentum_map; // "velocity" -> "momentum"
-  std::map<std::string, VarCompareOpts> integral_diffuse_map;
+  std::map<std::string, VarCompareOpts> integral_diffuse_map; // "mass" -> tolerance
   bool should_conserve_size;
 };
 

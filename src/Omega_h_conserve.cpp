@@ -17,7 +17,6 @@ static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
     Graph keys2old_elems, Graph keys2new_elems,
     Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
     Write<Real>* new_elem_errors_w, bool conserves_integrals) {
-  if (!keys2old_elems.nedges()) return;
   auto dim = old_mesh->dim();
   if (conserves_integrals && (!old_mesh->has_tag(dim, error_name))) return;
   Reals cav_errors;
@@ -72,7 +71,7 @@ static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
   if (old_mesh->has_tag(dim, error_name)) {
     auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
     auto ncomps = old_tag->ncomps();
-    new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
+    new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps);
     auto old_elem_errors = old_tag->array();
     auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
     map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
