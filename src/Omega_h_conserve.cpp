@@ -41,7 +41,7 @@ static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
   auto ncavs = keys2new_subcav_elems.nnodes();
   OMEGA_H_CHECK(keys2old_subcav_elems.nnodes() == ncavs);
   auto ncomps = divide_no_remainder(
-      subcav_error_densities.size(), old_mesh->nelems());
+      subcav_error_densities.size(), ncavs);
   auto subcav_elem_error_densities = expand(subcav_error_densities,
       keys2new_subcav_elems.a2ab, ncomps);
   auto subcav_elem_errors = multiply_each(
@@ -510,17 +510,8 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
   }
 }
 
-static void check_total_mass(Mesh* mesh) {
-  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
-  auto sizes = mesh->ask_sizes();
-  auto masses = multiply_each(densities, sizes);
-  auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
-  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
-}
-
 void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
   if (!should_conserve_any(mesh, opts)) return;
-  vtk::write_vtu("before_correction.vtu", mesh, mesh->dim());
   mesh->set_parting(OMEGA_H_GHOSTED);
   diffuse_integral_errors(mesh, opts);
   auto dim = mesh->dim();
@@ -588,8 +579,6 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
       mesh->remove_tag(dim, error_name);
     }
   }
-  vtk::write_vtu("after_correction.vtu", mesh, mesh->dim());
-  check_total_mass(mesh);
 }
 
 }  // end namespace Omega_h
