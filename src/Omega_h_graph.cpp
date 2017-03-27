@@ -94,7 +94,6 @@ struct FilteredGraph {
 static FilteredGraph filter_graph2(Graph g, Read<I8> keep_edge) {
   auto degrees = fan_reduce(g.a2ab, keep_edge, 1, OMEGA_H_SUM);
   auto offsets = offset_scan(degrees);
-  CHECK(get_min(keep_edge) > I8(-1));
   auto kept2old = collect_marked(keep_edge);
   auto edges = unmap(kept2old, g.ab2b, 1);
   return {Graph(offsets, edges), kept2old};
