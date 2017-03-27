@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
-  opts.xfer_opts.integral_diffuse_map["density"] = VarCompareOpts::none();
+  opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
   opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
   adapt(&mesh, opts);
   check_total_mass(&mesh);
