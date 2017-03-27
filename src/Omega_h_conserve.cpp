@@ -17,9 +17,12 @@ static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
     Graph keys2old_elems, Graph keys2new_elems,
     Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
     Write<Real>* new_elem_errors_w, bool conserves_integrals) {
-  Reals cav_errors;
+  if (!keys2old_elems.nedges()) return;
   auto dim = old_mesh->dim();
+  if (conserves_integrals && (!old_mesh->has_tag(dim, error_name))) return;
+  Reals cav_errors;
   auto ncomps = old_elem_densities.size() / old_mesh->nelems();
+  Reals new_cav_elem_errors;
   auto new_elem_sizes = new_mesh->ask_sizes();
   auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, new_elem_sizes, 1);
   if (!conserves_integrals) {
@@ -46,13 +49,12 @@ static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
     if (!conserves_integrals) cav_errors = add_each(cav_errors, old_cav_errors);
     else cav_errors = old_cav_errors;
   }
-  if (!cav_errors.exists()) return;
   auto new_cav_sizes = fan_reduce(
       keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
   auto new_cav_error_densities = divide_each(cav_errors, new_cav_sizes);
   auto new_cav_elem_error_densities = expand(new_cav_error_densities,
       keys2new_elems.a2ab, ncomps);
-  auto new_cav_elem_errors = multiply_each(
+  new_cav_elem_errors = multiply_each(
       new_cav_elem_error_densities, new_cav_elem_sizes);
   if (!new_elem_errors_w->exists()) {
     *new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
@@ -70,7 +72,7 @@ static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
   if (old_mesh->has_tag(dim, error_name)) {
     auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
     auto ncomps = old_tag->ncomps();
-    new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps);
+    new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
     auto old_elem_errors = old_tag->array();
     auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
     map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
@@ -92,7 +94,11 @@ static void track_cavs_density_error(
     std::vector<std::pair<Graph, Graph>> const& mats_keys2elems, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_mass) {
   auto dim = old_mesh->dim();
-  auto integral_name = opts.integral_map.find(tagbase->name())->second;
+  auto density_name = tagbase->name();
+  if (!opts.integral_map.count(density_name)) {
+    Omega_h_fail("integral_map[\"%s\"] undefined\n", density_name.c_str());
+  }
+  auto integral_name = opts.integral_map.find(density_name)->second;
   auto error_name = integral_name + "_error";
   auto old_tag = to<Real>(tagbase);
   auto old_elem_densities = old_tag->array();

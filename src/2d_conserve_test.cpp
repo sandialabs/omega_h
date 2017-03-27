@@ -65,6 +65,7 @@ int main(int argc, char** argv) {
   auto momentum_before = get_total_momentum(&mesh);
   auto opts = AdaptOpts(&mesh);
   opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.integral_map["density"] = "mass";
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";

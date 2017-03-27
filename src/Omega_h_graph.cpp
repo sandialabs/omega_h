@@ -1,5 +1,7 @@
 #include "Omega_h_graph.hpp"
 
+#include <iostream>
+
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
 #include "scan.hpp"
@@ -145,7 +147,7 @@ std::vector<std::pair<Graph, Graph>> separate_cavities(
     out.push_back(separate_cavities_once(
         &keys2old, old_class_ids, &keys2new, new_class_ids));
   }
-  CHECK(!keys2new.nedges());
+  if (keys2new.nedges()) out.push_back({keys2old, keys2new});
   return out;
 }
 
