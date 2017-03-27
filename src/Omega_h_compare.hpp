@@ -1,10 +1,14 @@
 #ifndef OMEGA_H_COMPARE_HPP
 #define OMEGA_H_COMPARE_HPP
 
-#include "Omega_h.hpp"
+#include <map>
+
 #include "Omega_h_cmdline.hpp"
+#include "Omega_h_comm.hpp"
 
 namespace Omega_h {
+
+class Mesh;
 
 struct VarCompareOpts {
   enum { NONE, RELATIVE, ABSOLUTE } kind;

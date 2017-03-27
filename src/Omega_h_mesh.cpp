@@ -715,7 +715,7 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
 }
 
 Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x) {
-  auto a2d = LOs(mesh->nents(dim), 0, 1);
+  auto a2e = LOs(mesh->nents(dim), 0, 1);
   return average_field(mesh, dim, a2e, ncomps, v2x);
 }
 

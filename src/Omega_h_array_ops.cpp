@@ -163,7 +163,7 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
-Read<T> multiply_each_by(T factor, Read<T> a) {
+Read<T> divide_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
   auto f = LAMBDA(LO i) { b[i] = a[i] / factor; };
   parallel_for(a.size(), f);
@@ -423,7 +423,7 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
 template <typename Tout, typename Tin>
 Read<Tout> array_cast(Read<Tin> in) {
   auto out = Write<Tout>(in.size());
-  auto f = LAMBDA(LO i) { out[i] = static_cast<Tout>(in[i]); }
+  auto f = LAMBDA(LO i) { out[i] = static_cast<Tout>(in[i]); };
   parallel_for(in.size(), f);
   return out;
 }

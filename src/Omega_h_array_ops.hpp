@@ -46,7 +46,7 @@ Read<T> multiply_each_by(T factor, Read<T> a);
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b);
 template <typename T>
-Read<T> divide_each_by(Read<T> a, Read<T> b);
+Read<T> divide_each_by(T a, Read<T> b);
 template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b);
 template <typename T>

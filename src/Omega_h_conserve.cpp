@@ -1,6 +1,7 @@
 #include "Omega_h_conserve.hpp"
 
 #include "Omega_h_adj.hpp"
+#include "Omega_h_array_ops.hpp"
 #include "Omega_h_graph.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_r3d.hpp"
@@ -16,17 +17,17 @@ static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
     Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
     Write<Real>* new_elem_errors_w, bool conserves_integrals) {
   Reals cav_errors;
+  auto dim = old_mesh->dim();
+  auto ncomps = old_elem_densities.size() / old_mesh->nelems();
+  auto new_elem_sizes = new_mesh->ask_sizes();
+  auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, new_elem_sizes, 1);
   if (!conserves_integrals) {
-    auto dim = old_mesh->dim();
-    auto ncomps = old_elem_densities.size() / old_mesh->nelems();
     auto old_elem_sizes = old_mesh->ask_sizes();
-    auto new_elem_sizes = new_mesh->ask_sizes();
     auto old_cav_elem_densities = unmap(
         keys2old_elems.ab2b, old_elem_densities, ncomps);
     auto new_cav_elem_densities = unmap(
         keys2new_elems.ab2b, old_elem_densities, ncomps);
     auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
-    auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, old_elem_sizes, 1);
     auto old_cav_elem_integrals = multiply_each(
         old_cav_elem_densities, old_cav_elem_sizes);
     auto new_cav_elem_integrals = multiply_each(
@@ -49,10 +50,10 @@ static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
       keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
   auto new_cav_error_densities = divide_each(cav_errors, new_cav_sizes);
   auto new_cav_elem_error_densities = expand(new_cav_error_densities,
-      keys2new_elems, ncomps);
+      keys2new_elems.a2ab, ncomps);
   auto new_cav_elem_errors = multiply_each(
       new_cav_elem_error_densities, new_cav_elem_sizes);
-  if (!new_elem_errors_w.exists()) {
+  if (!new_elem_errors_w->exists()) {
     *new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
   }
   map_into(new_cav_elem_errors, keys2new_elems.ab2b, *new_elem_errors_w, ncomps);

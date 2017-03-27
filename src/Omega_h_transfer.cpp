@@ -7,7 +7,7 @@
 #include "fit.hpp"
 #include "quality.hpp"
 #include "Omega_h_shape.hpp"
-#include "transfer_conserve.hpp"
+#include "Omega_h_conserve.hpp"
 
 namespace Omega_h {
 
@@ -87,11 +87,13 @@ bool is_momentum_velocity(
   if (!is_transfer_required(opts, name, OMEGA_H_MOMENTUM_VELOCITY)) {
     return false;
   }
-  if (!opts.momentum_map.count(name)) return false;
-  auto const& mass_name = opts.momentum_map.find(name)->second;
-  if (!mesh->has_tag(mesh->dim(), mass_name)) return false;
-  auto mass = mesh->get_tagbase(mesh->dim(), mass_name);
-  if (!(mass->type() == OMEGA_H_REAL && mass->ncomps() == 1)) return false;
+  /* TODO: move this code to some kind of verification at the start of adapt() */
+  if (!opts.velocity_momentum_map.count(name)) return false;
+  if (!opts.velocity_density_map.count(name)) return false;
+  auto const& density_name = opts.velocity_density_map.find(name)->second;
+  if (!mesh->has_tag(mesh->dim(), density_name)) return false;
+  auto density = mesh->get_tagbase(mesh->dim(), density_name);
+  if (!(density->type() == OMEGA_H_REAL && density->ncomps() == 1)) return false;
   return dim == VERT && tag->type() == OMEGA_H_REAL &&
          tag->ncomps() == mesh->dim();
 }
@@ -241,7 +243,7 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
 
 void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, TagBase const& tagbase) {
+    LOs same_ents2new_ents, TagBase const* tagbase) {
   switch (tagbase->type()) {
     case OMEGA_H_I8:
       transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,

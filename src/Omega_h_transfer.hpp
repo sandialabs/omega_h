@@ -27,7 +27,7 @@ void transfer_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
 
 void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, TagBase const& tagbase);
+    LOs same_ents2new_ents, TagBase const* tagbase);
 
 void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2verts, Adj keys2doms, Int prod_dim, LOs prods2new_ents,
