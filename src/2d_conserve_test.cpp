@@ -8,20 +8,21 @@
 
 using namespace Omega_h;
 
-static void postprocess_conserve(Mesh* mesh) {
-  auto volume = measure_elements_real(mesh);
-  auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
-  auto owned_mass = mesh->owned_array(mesh->dim(), mass, 1);
-  CHECK(are_close(1.0, get_sum(mesh->comm(), owned_mass)));
-  auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1, density);
+static void check_total_mass(Mesh* mesh) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
+  auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
+  CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
 }
 
 static Vector<2> get_total_momentum(Mesh* mesh) {
   auto vert_velocities = mesh->get_array<Real>(VERT, "velocity");
   auto elem_velocities = average_field(mesh, mesh->dim(),
       LOs(mesh->nelems(), 0, 1), mesh->dim(), vert_velocities);
-  auto masses = mesh->get_array<Real>(mesh->dim(), "mass");
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
   auto momenta = multiply_each(elem_velocities, masses);
   auto owned_momenta = mesh->owned_array(mesh->dim(), momenta, mesh->dim());
   Vector<2> total;
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
     mesh.add_tag(VERT, "metric", 1, metrics);
   }
   mesh.set_parting(OMEGA_H_ELEM_BASED);
-  mesh.add_tag(mesh.dim(), "mass", 1, measure_elements_real(&mesh));
+  mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
   auto velocity = Write<Real>(mesh.nverts() * mesh.dim());
   auto coords = mesh.coords();
   auto f = LAMBDA(LO vert) {
@@ -63,11 +64,14 @@ int main(int argc, char** argv) {
   mesh.add_tag(VERT, "velocity", mesh.dim(), Reals(velocity));
   auto momentum_before = get_total_momentum(&mesh);
   auto opts = AdaptOpts(&mesh);
-  opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
-  opts.xfer_opts.momentum_map["velocity"] = "mass";
+  opts.xfer_opts.velocity_density_map["velocity"] = "density";
+  opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
+  opts.xfer_opts.integral_diffuse_map["density"] = VarCompareOpts::none();
+  opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
   adapt(&mesh, opts);
-  postprocess_conserve(&mesh);
+  check_total_mass(&mesh);
   auto momentum_after = get_total_momentum(&mesh);
   if (world->rank() == 0) {
     std::cout << "before" << ' ' << momentum_before[0] << ' '

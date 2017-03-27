@@ -12,17 +12,18 @@ using namespace Omega_h;
 constexpr Int nobjs = 2;
 constexpr Int obj_ids[nobjs] = {34, 72};
 
-static void postprocess_conserve(Mesh* mesh) {
-  auto volume = measure_elements_real(mesh);
-  auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
-  auto owned_mass = mesh->owned_array(mesh->dim(), mass, 1);
-  CHECK(are_close(1.0, get_sum(mesh->comm(), owned_mass)));
-  auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1, density);
+static void check_total_mass(Mesh* mesh) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
+  auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
+  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
 }
 
-static Real get_total_mass(Mesh* mesh, Int obj) {
-  auto masses = mesh->get_array<Real>(mesh->dim(), "mass");
+static Real get_object_mass(Mesh* mesh, Int obj) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
   auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
   auto elem_in_obj = each_eq_to(class_ids, obj_ids[obj]);
   auto obj_elems = collect_marked(elem_in_obj);
@@ -32,9 +33,11 @@ static Real get_total_mass(Mesh* mesh, Int obj) {
 
 static Vector<3> get_total_momentum(Mesh* mesh) {
   auto vert_velocities = mesh->get_array<Real>(VERT, "velocity");
-  auto elem_velocities = average_field(mesh, mesh->dim(),
-      LOs(mesh->nelems(), 0, 1), mesh->dim(), vert_velocities);
-  auto masses = mesh->get_array<Real>(mesh->dim(), "mass");
+  auto elem_velocities = average_field(
+      mesh, mesh->dim(), mesh->dim(), vert_velocities);
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
   auto momenta = multiply_each(elem_velocities, masses);
   Vector<3> total;
   repro_sum(mesh->comm(), momenta, mesh->dim(), &total[0]);
@@ -61,7 +64,7 @@ int main(int argc, char** argv) {
     mesh.add_tag(VERT, "metric", 1, metrics);
   }
   mesh.set_parting(OMEGA_H_ELEM_BASED);
-  mesh.add_tag(mesh.dim(), "mass", 1, measure_elements_real(&mesh));
+  mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
   auto velocity = Write<Real>(mesh.nverts() * mesh.dim());
   auto coords = mesh.coords();
   auto f = LAMBDA(LO vert) {
@@ -74,16 +77,19 @@ int main(int argc, char** argv) {
   auto momentum_before = get_total_momentum(&mesh);
   Real masses_before[nobjs];
   for (Int obj = 0; obj < nobjs; ++obj) {
-    masses_before[obj] = get_total_mass(&mesh, obj);
+    masses_before[obj] = get_object_mass(&mesh, obj);
   }
   auto opts = AdaptOpts(&mesh);
-  opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
-  opts.xfer_opts.momentum_map["velocity"] = "mass";
+  opts.xfer_opts.velocity_density_map["velocity"] = "density";
+  opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
+  opts.xfer_opts.integral_diffuse_map["density"] = VarCompareOpts::none();
+  opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
   adapt(&mesh, opts);
-  postprocess_conserve(&mesh);
+  check_total_mass(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
-    auto mass_after = get_total_mass(&mesh, obj);
+    auto mass_after = get_object_mass(&mesh, obj);
     if (world->rank() == 0) {
       std::cout << "model region " << obj_ids[obj] << " mass before "
                 << masses_before[obj] << ", after " << mass_after << '\n';
