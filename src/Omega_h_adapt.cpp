@@ -4,9 +4,11 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_coarsen.hpp"
 #include "Omega_h_confined.hpp"
+#include "Omega_h_conserve.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_motion.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_transfer.hpp"
 #include "control.hpp"
 #include "histogram.hpp"
 #include "laplace.hpp"
@@ -228,7 +230,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
-  correct_integral_errors(mesh, opts);
+  correct_integral_errors(mesh, opts.xfer_opts);
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);

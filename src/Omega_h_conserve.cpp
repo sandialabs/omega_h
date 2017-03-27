@@ -6,6 +6,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_compare.hpp"
+#include "Omega_h_transfer.hpp"
 
 namespace Omega_h {
 
@@ -60,7 +61,7 @@ static void track_subcavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
 }
 
 static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
-    std::vector<std::pair<Graph, Graph>> mats_keys2elems,
+    std::vector<std::pair<Graph, Graph>> const& mats_keys2elems,
     Reals old_elem_densities, Reals new_elem_densities, std::string const& error_name,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     bool conserves_integrals) {
@@ -88,40 +89,41 @@ static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
 
 static void track_cavs_density_error(
     Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    std::vector<std::pair<Graph, Graph>> mats_keys2elems, TagBase const* tagbase,
+    std::vector<std::pair<Graph, Graph>> const& mats_keys2elems, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_mass) {
   auto dim = old_mesh->dim();
-  auto ncomps = tagbase->ncomps();
   auto integral_name = opts.integral_map.find(tagbase->name())->second;
   auto error_name = integral_name + "_error";
   auto old_tag = to<Real>(tagbase);
   auto old_elem_densities = old_tag->array();
   auto new_elem_densities = new_mesh->get_array<Real>(dim, tagbase->name());
   track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
-      old_elem_densities, new_elem_densities, error_name, conserves_mass);
+      old_elem_densities, new_elem_densities, error_name,
+      same_ents2old_ents, same_ents2new_ents,
+      conserves_mass);
 }
 
 static void track_cavs_size_error(Mesh* old_mesh, Mesh* new_mesh,
-    std::vector<std::pair<Graph, Graph>> mats_keys2elems,
+    std::vector<std::pair<Graph, Graph>> const& mats_keys2elems,
     LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_size) {
-  auto dim = old_mesh->dim();
-  auto ncomps = tagbase->ncomps();
   auto error_name = "size_error";
   auto old_elem_densities = Reals(old_mesh->nelems(), 1.0);
   auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
   track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
-      old_elem_densities, new_elem_densities, error_name, conserves_size);
+      old_elem_densities, new_elem_densities, error_name,
+      same_ents2old_ents, same_ents2new_ents,
+      conserves_size);
 }
 
 static void track_cavs_momentum_error(
     Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    std::vector<std::pair<Graph, Graph>> mats_keys2elems, TagBase const* tagbase,
+    std::vector<std::pair<Graph, Graph>> const& mats_keys2elems, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_momentum) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto velocity_name = tagbase->name();
-  auto momentum_name = opts.velocity_momentum_map.find(velocity_name).second
-  auto density_name = opts.velocity_density_map.find(velocity_name).second
+  auto momentum_name = opts.velocity_momentum_map.find(velocity_name)->second;
+  auto density_name = opts.velocity_density_map.find(velocity_name)->second;
   auto error_name = momentum_name + "_error";
   auto old_elem_densities = old_mesh->get_array<Real>(dim, density_name);
   auto new_elem_densities = new_mesh->get_array<Real>(dim, density_name);
@@ -132,7 +134,9 @@ static void track_cavs_momentum_error(
   auto old_elem_momenta = multiply_each(old_elem_velocities, old_elem_densities);
   auto new_elem_momenta = multiply_each(new_elem_velocities, new_elem_densities);
   track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
-      old_elem_momenta, new_elem_momenta, error_name, conserves_momentum);
+      old_elem_momenta, new_elem_momenta, error_name,
+      same_ents2old_ents, same_ents2new_ents,
+      conserves_momentum);
 }
 
 /* we separate sub-cavities even further than by material: we also separate
@@ -150,13 +154,13 @@ static LOs negate_boundary_elem_class_ids(Mesh* mesh) {
   auto verts_are_bdry = invert_marks(verts_are_int);
   auto elems_are_bdry = mark_up(mesh, VERT, mesh->dim(), verts_are_bdry);
   LOs elem_class_ids;
-  if (mesh->has_tag<LO>(mesh->dim(), "class_id")) {
-    elem_class_ids = mesh->get_tag<LO>(mesh->dim(), "class_id");
+  if (mesh->has_tag(mesh->dim(), "class_id")) {
+    elem_class_ids = mesh->get_array<LO>(mesh->dim(), "class_id");
   } else {
     elem_class_ids = LOs(mesh->nelems(), 1);
   }
-  auto out = deep_copy(elem_class_ids);
-  auto f = LAMBDA(LO e) {
+  auto out = Write<LO>(elem_class_ids.size());
+  auto f = OMEGA_H_LAMBDA(LO e) {
     out[e] = (elems_are_bdry[e]) ? (-elem_class_ids[e]) : (elem_class_ids[e]);
   };
   parallel_for(mesh->nelems(), f);
@@ -255,15 +259,15 @@ static void transfer_subcavs_density_dim(Mesh* old_mesh, Mesh* new_mesh,
         auto old_points = gather_vectors<dim + 1, dim>(old_coords, old_verts);
         r3d::Polytope<dim> intersection;
         r3d::intersect_simplices(
-            intersection, to_r3d(target_points), to_r3d(donor_points));
+            intersection, to_r3d(new_points), to_r3d(old_points));
         auto intersection_size = r3d::measure(intersection);
         for (Int comp = 0; comp < ncomps; ++comp) {
           new_data_w[new_elem * ncomps + comp] +=
-            intersection_size * old_data[donor_elem * ncomps + comp];
+            intersection_size * old_data[old_elem * ncomps + comp];
         }
       }
       for (Int comp = 0; comp < ncomps; ++comp) {
-        new_data_w[new_elems * ncomps + comp] /= new_sizes[new_elem]
+        new_data_w[new_elem * ncomps + comp] /= new_sizes[new_elem];
       }
     }
   };
@@ -281,10 +285,10 @@ static void transfer_cavs_density(Mesh* old_mesh, Mesh* new_mesh,
     auto keys2old_elems = pair.first;
     auto keys2new_elems = pair.second;
     if (dim == 3) {
-      transfer_conserve_dim<3>(old_mesh, new_mesh, tagbase, keys2old_elems,
+      transfer_subcavs_density_dim<3>(old_mesh, new_mesh, tagbase, keys2old_elems,
           keys2new_elems, new_data_w);
     } else if (dim == 2) {
-      transfer_conserve_dim<2>(old_mesh, new_mesh, tagbase, keys2old_elems,
+      transfer_subcavs_density_dim<2>(old_mesh, new_mesh, tagbase, keys2old_elems,
           keys2new_elems, new_data_w);
     }
   }
@@ -292,7 +296,7 @@ static void transfer_cavs_density(Mesh* old_mesh, Mesh* new_mesh,
       same_ents2new_ents, tagbase, new_data_w);
 }
 
-void transfer_cavs_all_densities(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+static void transfer_cavs_all_densities(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
@@ -323,8 +327,8 @@ void transfer_cavs_all_densities(Mesh* old_mesh, XferOpts const& opts, Mesh* new
 void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  transfer_cavs_all_densities(old_mesh, opts, new_mesh, key_dim,
-      keys2kds, keys2prods, prods2new_ents,
+  transfer_cavs_all_densities(old_mesh, opts, new_mesh, EDGE,
+      keys2edges, keys2prods, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents);
   bool conserves_size = true;
   bool conserves_mass = true;
@@ -337,8 +341,8 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
 void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2verts, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  transfer_cavs_all_densities(old_mesh, opts, new_mesh, key_dim,
-      keys2kds, keys2prods, prods2new_ents,
+  transfer_cavs_all_densities(old_mesh, opts, new_mesh, VERT,
+      keys2verts, keys2prods, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents);
   bool conserves_size = false;
   bool conserves_mass = false;
@@ -378,12 +382,12 @@ static Reals diffuse_elem_error_once(Mesh* mesh, Graph g, Reals x, Int ncomps) {
     }
   };
   parallel_for(mesh->nelems(), f);
-  return mesh->sync_array(mesh->dim(), out, ncomps);
+  return mesh->sync_array(mesh->dim(), Reals(out), ncomps);
 }
 
 static Reals diffuse_elem_error(Mesh* mesh, Graph g, Reals x, Int ncomps,
     VarCompareOpts opts) {
-  if (opts.kind == NONE) return x;
+  if (opts.kind == VarCompareOpts::NONE) return x;
   while (1) {
     auto new_x = diffuse_elem_error_once(mesh, g, x, ncomps);
     auto verbose = false;
@@ -396,8 +400,10 @@ static Reals diffuse_elem_error(Mesh* mesh, Graph g, Reals x, Int ncomps,
 
 static void diffuse_elem_error_tag(Mesh* mesh, Graph g,
     std::string const& error_name, VarCompareOpts opts) {
-  auto array = mesh->get_array<Real>(dim, error_name);
-  auto ncomps = tagbase->ncomps();
+  auto dim = mesh->dim();
+  auto tag = mesh->get_tag<Real>(dim, error_name);
+  auto array = tag->array();
+  auto ncomps = tag->ncomps();
   array = diffuse_elem_error(mesh, g, array, ncomps, opts);
   mesh->set_tag<Real>(dim, error_name, array);
 }
@@ -405,23 +411,22 @@ static void diffuse_elem_error_tag(Mesh* mesh, Graph g,
 static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
   auto g = get_elem_diffusion_graph(mesh);
   auto dim = mesh->dim();
-  auto niters = opts.niters_integral_error_diffusion;
-  for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
+  for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, opts, dim, tagbase)) {
-      auto integral_name = opts.integral_map.find(tagbase->name()).second;
+      auto integral_name = opts.integral_map.find(tagbase->name())->second;
       auto error_name = integral_name + "_error";
       auto tol = opts.integral_diffuse_map.find(error_name)->second;
       diffuse_elem_error_tag(mesh, g, error_name, tol);
     }
   }
-  for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
+  for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
     if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
-      auto momentum_name = opts.velocity_momentum_map.find(tagbase->name()).second;
+      auto momentum_name = opts.velocity_momentum_map.find(tagbase->name())->second;
       auto error_name = momentum_name + "_error";
       auto tol = opts.integral_diffuse_map.find(error_name)->second;
-      diffuse_elem_error_tag(mesh, g, error_name);
+      diffuse_elem_error_tag(mesh, g, error_name, tol);
     }
   }
 }
@@ -460,11 +465,11 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   diffuse_integral_errors(mesh, opts);
   auto dim = mesh->dim();
-  for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
+  for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, opts, dim, tagbase)) {
       auto density_name = tagbase->name();
-      auto integral_name = opts.integral_map.find(density_name).second;
+      auto integral_name = opts.integral_map.find(density_name)->second;
       auto error_name = integral_name + "_error";
       auto errors = mesh->get_array<Real>(dim, error_name);
       auto densities = mesh->get_array<Real>(dim, density_name);
@@ -475,12 +480,12 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
       mesh->remove_tag(dim, error_name);
     }
   }
-  for (Int tagi = 0; tagi < old_mesh->ntags(VERT); ++tagi) {
+  for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
     if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
       auto velocity_name = tagbase->name();
-      auto momentum_name = opts.velocity_momentum_map.find(velocity_name).second
-      auto density_name = opts.velocity_density_map.find(velocity_name).second
+      auto momentum_name = opts.velocity_momentum_map.find(velocity_name)->second;
+      auto density_name = opts.velocity_density_map.find(velocity_name)->second;
       auto error_name = momentum_name + "_error";
       auto elem_sizes = mesh->ask_sizes();
       auto elem_densities = mesh->get_array<Real>(dim, density_name);
@@ -508,8 +513,10 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
             }
           }
           for (Int comp = 0; comp < ncomps; ++comp) {
-            out[v * ncomps + comp] +=
-              elem_errors[e * ncomps + comp] / (nfree_verts[comp] * v_mass);
+            if (!(v_flags & (1 << comp))) {
+              out[v * ncomps + comp] +=
+                elem_errors[e * ncomps + comp] / (nfree_verts[comp] * v_mass);
+            }
           }
         }
       };
