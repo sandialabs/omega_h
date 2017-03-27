@@ -327,6 +327,7 @@ static void transfer_cavs_all_densities(Mesh* old_mesh, XferOpts const& opts, Me
 void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  if (!should_conserve_any(old_mesh, opts)) return;
   transfer_cavs_all_densities(old_mesh, opts, new_mesh, EDGE,
       keys2edges, keys2prods, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents);
@@ -341,6 +342,7 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
 void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2verts, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  if (!should_conserve_any(old_mesh, opts)) return;
   transfer_cavs_all_densities(old_mesh, opts, new_mesh, VERT,
       keys2verts, keys2prods, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents);
