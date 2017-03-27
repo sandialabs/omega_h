@@ -471,11 +471,11 @@ static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
     if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
       auto momentum_name = opts.velocity_momentum_map.find(tagbase->name())->second;
       auto error_name = momentum_name + "_error";
-      if (!opts.integral_diffuse_map.count(error_name)) {
+      if (!opts.integral_diffuse_map.count(momentum_name)) {
         Omega_h_fail("integral_diffuse_map[\"%s\"] doesn't exist!\n",
-            error_name.c_str());
+            momentum_name.c_str());
       }
-      auto tol = opts.integral_diffuse_map.find(error_name)->second;
+      auto tol = opts.integral_diffuse_map.find(momentum_name)->second;
       diffuse_elem_error_tag(mesh, g, error_name, tol);
     }
   }
