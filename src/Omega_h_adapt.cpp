@@ -192,7 +192,7 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void post_adapt(
-    Mesh* mesh, AdaptOpts const& opts, Now t0, Now t1, Now t2, Now t3) {
+    Mesh* mesh, AdaptOpts const& opts, Now t0, Now t1, Now t2, Now t3, Now t4) {
   if (opts.verbosity == EACH_ADAPT) {
     if (!mesh->comm()->rank()) std::cout << "after adapting:\n";
     print_adapt_status(mesh, opts);
@@ -208,10 +208,15 @@ static void post_adapt(
     std::cout << "addressing element qualities took " << (t3 - t2);
     std::cout << " seconds\n";
   }
-  Now t4 = now();
+  if (opts.verbosity > SILENT && should_conserve_any(mesh, opts.xfer_opts) &&
+      !mesh->comm()->rank()) {
+    std::cout << "correcting integral errors took " << (t4 - t3)
+      << " seconds\n";
+  }
+  Now t5 = now();
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
-    std::cout << "adapting took " << (t4 - t0) << " seconds\n\n";
-    add_to_global_timer("adapting", t4 - t0);
+    std::cout << "adapting took " << (t5 - t0) << " seconds\n\n";
+    add_to_global_timer("adapting", t5 - t0);
   }
 }
 
@@ -223,8 +228,10 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
+  correct_integral_errors(mesh, opts);
+  auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  post_adapt(mesh, opts, t0, t1, t2, t3);
+  post_adapt(mesh, opts, t0, t1, t2, t3, t4);
   return true;
 }
 

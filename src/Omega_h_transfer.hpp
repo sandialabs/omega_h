@@ -5,8 +5,6 @@
 
 namespace Omega_h {
 
-bool is_transfer_ok(
-    XferOpts const& xopts, std::string const& name, Omega_h_Xfer type);
 bool is_transfer_required(
     XferOpts const& xopts, std::string const& name, Omega_h_Xfer type);
 

@@ -85,7 +85,7 @@ static void track_cavs_integral_error(Mesh* old_mesh, Mesh* new_mesh,
 static void track_cavs_density_error(
     Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     std::vector<std::pair<Graph, Graph>> mats_keys2elems, TagBase const* tagbase,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_density) {
+    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_mass) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto integral_name = opts.integral_map.find(tagbase->name()).second;
@@ -94,7 +94,7 @@ static void track_cavs_density_error(
   auto old_elem_densities = old_tag->array();
   auto new_elem_densities = new_mesh->get_array<Real>(dim, tagbase->name());
   track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
-      old_elem_densities, new_elem_densities, error_name, conserves_density);
+      old_elem_densities, new_elem_densities, error_name, conserves_mass);
 }
 
 static void track_cavs_size_error(Mesh* old_mesh, Mesh* new_mesh,
@@ -112,7 +112,7 @@ static void track_cavs_size_error(Mesh* old_mesh, Mesh* new_mesh,
 static void track_cavs_momentum_error(
     Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     std::vector<std::pair<Graph, Graph>> mats_keys2elems, TagBase const* tagbase,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_density) {
+    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_momentum) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto velocity_name = tagbase->name();
@@ -128,7 +128,7 @@ static void track_cavs_momentum_error(
   auto old_elem_momenta = multiply_each(old_elem_velocities, old_elem_densities);
   auto new_elem_momenta = multiply_each(new_elem_velocities, new_elem_densities);
   track_cavs_integral_error(old_mesh, new_mesh, mats_keys2elems,
-      old_elem_momenta, new_elem_momenta, error_name, conserves_density);
+      old_elem_momenta, new_elem_momenta, error_name, conserves_momentum);
 }
 
 /* we separate sub-cavities even further than by material: we also separate
@@ -159,7 +159,7 @@ static LOs negate_boundary_elem_class_ids(Mesh* mesh) {
   return out;
 }
 
-void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+static void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     bool conserves_size, bool conserves_mass, bool conserves_momentum) {
@@ -174,14 +174,14 @@ void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
       keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
   if (opts.should_conserve_size) {
     track_cavs_size_error(old_mesh, new_mesh, mats_keys2elems,
-        same_ents2old_ents, same_ents2new_ents, can_create_errors);
+        same_ents2old_ents, same_ents2new_ents, conserves_size);
   }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
       track_cavs_density_error(old_mesh, opts, new_mesh,
           mats_keys2elems, tagbase,
-          same_ents2old_ents, same_ents2new_ents, can_create_errors);
+          same_ents2old_ents, same_ents2new_ents, conserves_mass);
     }
   }
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
@@ -189,7 +189,7 @@ void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     if (is_momentum_velocity(old_mesh, opts, VERT, tagbase)) {
       track_cavs_momentum_error(old_mesh, opts, new_mesh,
           mats_keys2elems, tagbase,
-          same_ents2old_ents, same_ents2new_ents, can_create_errors);
+          same_ents2old_ents, same_ents2new_ents, conserves_momentum);
     }
   }
 }
@@ -330,6 +330,20 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
       conserves_size, conserves_mass, conserves_momentum);
 }
 
+void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+    LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  transfer_cavs_all_densities(old_mesh, opts, new_mesh, key_dim,
+      keys2kds, keys2prods, prods2new_ents,
+      same_ents2old_ents, same_ents2new_ents);
+  bool conserves_size = false;
+  bool conserves_mass = false;
+  bool conserves_momentum = false;
+  track_cavs_all_errors(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
+      prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+      conserves_size, conserves_mass, conserves_momentum);
+}
+
 /* conservative diffusion:
    1) diffusion is not allowed across classification boundaries.
       this preserves conservation on a per-object basis
@@ -438,6 +452,8 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 }
 
 void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
+  if (!should_conserve_any(mesh, opts)) return;
+  mesh->set_parting(OMEGA_H_GHOSTED);
   diffuse_integral_errors(mesh, opts);
   auto dim = mesh->dim();
   for (Int tagi = 0; tagi < old_mesh->ntags(dim); ++tagi) {
@@ -489,7 +505,7 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
           }
           for (Int comp = 0; comp < ncomps; ++comp) {
             out[v * ncomps + comp] +=
-              elem_errors[e * ncomps + comp] / v_mass;
+              elem_errors[e * ncomps + comp] / (nfree_verts[comp] * v_mass);
           }
         }
       };

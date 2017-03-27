@@ -11,12 +11,6 @@
 
 namespace Omega_h {
 
-bool is_transfer_ok(
-    XferOpts const& opts, std::string const& name, Omega_h_Xfer type) {
-  if (!opts.type_map.count(name)) return true;
-  return opts.type_map.find(name)->second == type;
-}
-
 bool is_transfer_required(
     XferOpts const& opts, std::string const& name, Omega_h_Xfer type) {
   if (!opts.type_map.count(name)) return false;
@@ -546,12 +540,10 @@ void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve(old_mesh, opts, new_mesh, VERT, keys2verts,
-        keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    do_momentum_velocity_part1(old_mesh, opts, new_mesh, VERT, keys2verts,
-        keys2doms.a2ab, prods2new_ents);
+    transfer_conserve_coarsen(old_mesh, opts, new_mesh, VERT, keys2verts,
+        keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);
@@ -666,12 +658,10 @@ void transfer_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    do_momentum_velocity_part1(
-        old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
+    transfer_conserve_coarsen(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);
