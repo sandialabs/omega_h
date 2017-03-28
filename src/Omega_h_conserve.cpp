@@ -346,9 +346,9 @@ static void transfer_cavs_all_densities(Mesh* old_mesh, XferOpts const& opts, Me
   auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
   auto keys2new_elems = Graph(keys2prods, prods2new_ents);
   std::vector<std::pair<Graph, Graph>> keys2subcav_elems;
-  if (old_mesh->has_tag(VERT, "class_id")) {
-    auto old_class_ids = old_mesh->get_array<LO>(VERT, "class_id");
-    auto new_class_ids = new_mesh->get_array<LO>(VERT, "class_id");
+  if (old_mesh->has_tag(dim, "class_id")) {
+    auto old_class_ids = old_mesh->get_array<LO>(dim, "class_id");
+    auto new_class_ids = new_mesh->get_array<LO>(dim, "class_id");
     keys2subcav_elems = separate_cavities(
         keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
   } else {
