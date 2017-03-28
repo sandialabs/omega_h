@@ -581,7 +581,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
             }
           }
           for (Int comp = 0; comp < ncomps; ++comp) {
-            CHECK(are_close(nfree_verts[comp], Real(dim + 1)));
             if (!(v_flags & (1 << comp))) {
               out[v * ncomps + comp] -=
                 elem_errors[e * ncomps + comp] / (nfree_verts[comp] * v_mass);
