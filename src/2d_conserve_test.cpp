@@ -70,7 +70,8 @@ int main(int argc, char** argv) {
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
   opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
-  opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
+  auto momentum_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE,0.1,1e-10};
+  opts.xfer_opts.integral_diffuse_map["momentum"] = momentum_diffuse;
   adapt(&mesh, opts);
   check_total_mass(&mesh);
   auto momentum_after = get_total_momentum(&mesh);
