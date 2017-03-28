@@ -230,7 +230,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
-  correct_integral_errors(mesh, opts.xfer_opts);
+  correct_integral_errors(mesh, opts);
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);

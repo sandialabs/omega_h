@@ -428,57 +428,66 @@ static Reals diffuse_elem_error_once(Mesh* mesh, Graph g, Reals x, Int ncomps) {
 }
 
 static Reals diffuse_elem_error(Mesh* mesh, Graph g, Reals x, Int ncomps,
-    VarCompareOpts opts) {
+    VarCompareOpts opts, std::string const& name, bool verbose) {
   if (opts.kind == VarCompareOpts::NONE) return x;
+  Int niters = 0;
   while (1) {
     auto new_x = diffuse_elem_error_once(mesh, g, x, ncomps);
-    auto verbose = false;
-    if (compare_arrays(
-          mesh->comm(), new_x, x, opts, ncomps, mesh->dim(), verbose)) {
-      return new_x;
-    }
+    ++niters;
+    auto comparison_verbose = false;
+    auto done = compare_arrays(
+          mesh->comm(), new_x, x, opts, ncomps, mesh->dim(), comparison_verbose);
+    x = new_x;
+    if (done) break;
   }
+  if (verbose && !mesh->comm()->rank()) {
+    std::cout << "diffused " << name << " in " << niters << " iterations\n";
+  }
+  return x;
 }
 
 static void diffuse_elem_error_tag(Mesh* mesh, Graph g,
-    std::string const& error_name, VarCompareOpts opts) {
+    std::string const& error_name, VarCompareOpts opts,
+    bool verbose) {
   auto dim = mesh->dim();
   if (!mesh->has_tag(dim, error_name)) return;
   auto tag = mesh->get_tag<Real>(dim, error_name);
   auto array = tag->array();
   auto ncomps = tag->ncomps();
-  array = diffuse_elem_error(mesh, g, array, ncomps, opts);
+  array = diffuse_elem_error(mesh, g, array, ncomps, opts, error_name, verbose);
   mesh->set_tag<Real>(dim, error_name, array);
 }
 
-static void diffuse_integral_errors(Mesh* mesh, XferOpts const& opts) {
+static void diffuse_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto g = get_elem_diffusion_graph(mesh);
+  auto verbose = opts.verbosity > SILENT;
+  auto xfer_opts = opts.xfer_opts;
   auto dim = mesh->dim();
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
-    if (should_conserve(mesh, opts, dim, tagbase)) {
+    if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
       auto density_name = tagbase->name();
-      auto integral_name = opts.integral_map.find(density_name)->second;
+      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
       auto error_name = integral_name + "_error";
-      if (!opts.integral_diffuse_map.count(integral_name)) {
+      if (!xfer_opts.integral_diffuse_map.count(integral_name)) {
         Omega_h_fail("integral_diffuse_map[\"%s\"] doesn't exist!\n",
             integral_name.c_str());
       }
-      auto tol = opts.integral_diffuse_map.find(integral_name)->second;
-      diffuse_elem_error_tag(mesh, g, error_name, tol);
+      auto tol = xfer_opts.integral_diffuse_map.find(integral_name)->second;
+      diffuse_elem_error_tag(mesh, g, error_name, tol, verbose);
     }
   }
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
-    if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
-      auto momentum_name = opts.velocity_momentum_map.find(tagbase->name())->second;
+    if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
+      auto momentum_name = xfer_opts.velocity_momentum_map.find(tagbase->name())->second;
       auto error_name = momentum_name + "_error";
-      if (!opts.integral_diffuse_map.count(momentum_name)) {
+      if (!xfer_opts.integral_diffuse_map.count(momentum_name)) {
         Omega_h_fail("integral_diffuse_map[\"%s\"] doesn't exist!\n",
             momentum_name.c_str());
       }
-      auto tol = opts.integral_diffuse_map.find(momentum_name)->second;
-      diffuse_elem_error_tag(mesh, g, error_name, tol);
+      auto tol = xfer_opts.integral_diffuse_map.find(momentum_name)->second;
+      diffuse_elem_error_tag(mesh, g, error_name, tol, verbose);
     }
   }
 }
@@ -512,17 +521,19 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
   }
 }
 
-void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
-  if (!should_conserve_any(mesh, opts)) return;
+void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
+  auto xfer_opts = opts.xfer_opts;
+  if (!should_conserve_any(mesh, xfer_opts)) return;
   vtk::write_vtu("before_correct.vtu", mesh, mesh->dim());
   mesh->set_parting(OMEGA_H_GHOSTED);
   diffuse_integral_errors(mesh, opts);
+  vtk::write_vtu("after_diffuse.vtu", mesh, mesh->dim());
   auto dim = mesh->dim();
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
-    if (should_conserve(mesh, opts, dim, tagbase)) {
+    if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
       auto density_name = tagbase->name();
-      auto integral_name = opts.integral_map.find(density_name)->second;
+      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
       auto error_name = integral_name + "_error";
       if (!mesh->has_tag(dim, error_name)) continue;
       auto errors = mesh->get_array<Real>(dim, error_name);
@@ -536,10 +547,10 @@ void correct_integral_errors(Mesh* mesh, XferOpts const& opts) {
   }
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
-    if (is_momentum_velocity(mesh, opts, VERT, tagbase)) {
+    if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
       auto velocity_name = tagbase->name();
-      auto momentum_name = opts.velocity_momentum_map.find(velocity_name)->second;
-      auto density_name = opts.velocity_density_map.find(velocity_name)->second;
+      auto momentum_name = xfer_opts.velocity_momentum_map.find(velocity_name)->second;
+      auto density_name = xfer_opts.velocity_density_map.find(velocity_name)->second;
       auto error_name = momentum_name + "_error";
       if (!mesh->has_tag(dim, error_name)) continue;
       auto elem_sizes = mesh->ask_sizes();
