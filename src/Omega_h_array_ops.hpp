@@ -124,6 +124,7 @@ OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
 
 extern template Read<Real> array_cast(Read<I32>);
+extern template Read<I32> array_cast(Read<I8>);
 
 }  // end namespace Omega_h
 

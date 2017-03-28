@@ -91,65 +91,16 @@ struct FilteredGraph {
   LOs kept2old;
 };
 
-static FilteredGraph filter_graph2(Graph g, Read<I8> keep_edge) {
+Graph filter_graph(Graph g, Read<I8> keep_edge) {
   auto degrees = fan_reduce(g.a2ab, keep_edge, 1, OMEGA_H_SUM);
   auto offsets = offset_scan(degrees);
   auto kept2old = collect_marked(keep_edge);
   auto edges = unmap(kept2old, g.ab2b, 1);
-  return {Graph(offsets, edges), kept2old};
-}
-
-Graph filter_graph(Graph g, Read<I8> keep_edge) {
-  return filter_graph2(g, keep_edge).g;
+  return Graph(offsets, edges);
 }
 
 bool operator==(Graph a, Graph b) {
   return a.a2ab == b.a2ab && a.ab2b == b.ab2b;
-}
-
-static std::pair<Graph, Graph> separate_cavities_once(Graph* p_keys2old,
-    LOs old_class_ids, Graph* p_keys2new, LOs new_class_ids) {
-  auto keys2old = *p_keys2old;
-  auto keys2new = *p_keys2new;
-  auto nkeys = keys2old.nnodes();
-  CHECK(keys2new.nnodes() == nkeys);
-  auto old_keep_w = Write<I8>(keys2old.nedges());
-  auto new_keep_w = Write<I8>(keys2new.nedges(), I8(1));
-  auto f = LAMBDA(LO key) {
-    auto ob = keys2old.a2ab[key];
-    auto oe = keys2old.a2ab[key + 1];
-    if (ob == oe) return;
-    auto old_first = keys2old.ab2b[ob];
-    auto id = old_class_ids[old_first];
-    for (auto ko = ob; ko < oe; ++ko) {
-      auto elem = keys2old.ab2b[ko];
-      old_keep_w[ko] = (old_class_ids[elem] == id);
-    }
-    auto nb = keys2new.a2ab[key];
-    auto ne = keys2new.a2ab[key + 1];
-    for (auto kn = nb; kn < ne; ++kn) {
-      auto elem = keys2new.ab2b[kn];
-      new_keep_w[kn] = (new_class_ids[elem] == id);
-    }
-  };
-  parallel_for(nkeys, f);
-  auto old_keep = Read<I8>(old_keep_w);
-  auto new_keep = Read<I8>(new_keep_w);
-  auto subgraph_old = filter_graph(keys2old, old_keep);
-  auto subgraph_new = filter_graph(keys2new, new_keep);
-  *p_keys2old = filter_graph(keys2old, invert_marks(old_keep));
-  *p_keys2new = filter_graph(keys2new, invert_marks(new_keep));
-  return {subgraph_old, subgraph_new};
-}
-
-std::vector<std::pair<Graph, Graph>> separate_cavities(
-    Graph keys2old, LOs old_class_ids, Graph keys2new, LOs new_class_ids) {
-  std::vector<std::pair<Graph, Graph>> out;
-  while (keys2old.nedges() || keys2new.nedges()) {
-    out.push_back(separate_cavities_once(
-        &keys2old, old_class_ids, &keys2new, new_class_ids));
-  }
-  return out;
 }
 
 template <typename T>

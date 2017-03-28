@@ -463,5 +463,6 @@ INST(Real)
 #undef INST
 
 template Read<Real> array_cast(Read<I32>);
+template Read<I32> array_cast(Read<I8>);
 
 }  // end namespace Omega_h
