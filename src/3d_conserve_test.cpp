@@ -88,8 +88,6 @@ int main(int argc, char** argv) {
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
   opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
   opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
-  std::cout << std::scientific << std::setprecision(10);
-  std::cerr << std::scientific << std::setprecision(10);
   adapt(&mesh, opts);
   check_total_mass(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
@@ -107,8 +105,8 @@ int main(int argc, char** argv) {
     std::cout << "momentum after" << ' ' << momentum_after[0] << ' '
               << momentum_after[1] << ' ' << momentum_after[2] << '\n';
   }
-//CHECK(are_close(momentum_before, momentum_after));
-//bool ok = check_regression("gold_3d_conserve", &mesh);
-//if (!ok) return 2;
+  CHECK(are_close(momentum_before, momentum_after));
+  bool ok = check_regression("gold_3d_conserve", &mesh);
+  if (!ok) return 2;
   return 0;
 }

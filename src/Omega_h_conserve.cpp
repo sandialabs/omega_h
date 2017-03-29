@@ -258,21 +258,14 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   for (Int i = 0; i < 3; ++i) {
     if (!conserved_bools.this_time[i]) {
       Int j = 0;
-      CavsByColor cavs_by_color;
-      if (error_name == "momentum_error")
-        cavs_by_color = cavs[i][NO_COLOR];
-      else
-        cavs_by_color = cavs[i][CLASS_COLOR];
-      for (auto class_cavs : cavs_by_color) {
-        std::cerr << "introducing error in [" << i << "][CLASS_COLOR]\n";
+      for (auto class_cavs : cavs[i][CLASS_COLOR]) {
         introduce_class_integ_error(old_mesh, new_mesh,
             class_cavs, old_elem_densities, new_elem_densities,
             new_elem_errors_w);
         ++j;
       }
     }
-  //if (!conserved_bools.always[i]) {
-    if ((0)) {
+    if (!conserved_bools.always[i]) {
       for (auto bdry_cavs : cavs[i][CLASS_BDRY_COLOR]) {
         carry_class_bdry_integ_error(old_mesh, new_mesh,
             bdry_cavs, error_name,
@@ -665,7 +658,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto verbose = opts.verbosity > SILENT;
   auto diffusion_graph = get_elem_diffusion_graph(mesh);
-  vtk::write_vtu("after_diffuse.vtu", mesh, mesh->dim());
   auto dim = mesh->dim();
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
@@ -689,6 +681,7 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       mesh->remove_tag(dim, error_name);
     }
   }
+  vtk::write_vtu("after_density_correct.vtu", mesh, mesh->dim());
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
     if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
