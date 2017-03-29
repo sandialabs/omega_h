@@ -239,28 +239,47 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   add_into(cav_elem_errors, keys2new.ab2b, new_elem_errors_w, ncomps);
 }
 
-??? {
-  Write<Real> new_elem_errors_w;
-  if (old_mesh->has_tag(dim, error_name)) {
-    auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
-    auto ncomps = old_tag->ncomps();
-    new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps);
-    auto old_elem_errors = old_tag->array();
-    auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
-    map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
+struct ConservedBools {
+  std::array<bool, 3> this_time;
+  std::array<bool, 3> always;
+};
+
+static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
+    CavsByBdryStatus const& cavs, Reals old_elem_densities, Reals new_elem_densities,
+    std::string const& error_name,
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    ConservedBools conserved_bools) {
+  auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
+  auto ncomps = old_tag->ncomps();
+  auto old_elem_errors = old_tag->array();
+  auto new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
+  auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
+  map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
+  for (Int i = 0; i < 3; ++i) {
+    if (!conserved_bools.this_time[i]) {
+      for (auto class_cavs : cavs[i][CLASS_COLOR]) {
+        introduce_class_integ_error(old_mesh, new_mesh,
+            class_cavs, old_elem_densities, new_elem_densities,
+            new_elem_errors_w);
+      }
+    }
+    if (!conserved_bools.always[i]) {
+      for (auto bdry_cavs : cavs[i][CLASS_BDRY_COLOR]) {
+        carry_class_bdry_integ_error(old_mesh, new_mesh,
+            bdry_cavs, error_name, old_elem_densities, new_elem_densities,
+            new_elem_errors_w);
+      }
+    }
   }
-  if (new_elem_errors_w.exists()) {
-    auto new_elem_errors = Reals(new_elem_errors_w);
-    auto ncomps = divide_no_remainder(new_elem_errors.size(), new_mesh->nelems());
-    new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors);
-  }
+  auto new_elem_errors = Reals(new_elem_errors_w);
+  new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors);
 }
 
-static void track_cavs_density_error(
+static void transfer_density_error(
     Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    Graph keys2old_elems, Graph keys2new_elems,
-    std::vector<std::pair<Graph, Graph>> const& keys2subcav_elems, TagBase const* tagbase,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_mass) {
+    CavsByBdryStatus const& cavs, TagBase const* tagbase,
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    ConservedBools conserved_bools) {
   auto dim = old_mesh->dim();
   auto density_name = tagbase->name();
   if (!opts.integral_map.count(density_name)) {
@@ -271,34 +290,18 @@ static void track_cavs_density_error(
   auto old_tag = to<Real>(tagbase);
   auto old_elem_densities = old_tag->array();
   auto new_elem_densities = new_mesh->get_array<Real>(dim, tagbase->name());
-  track_cavs_integral_error(old_mesh, new_mesh,
-      keys2old_elems, keys2new_elems,
-      keys2subcav_elems,
+  transfer_integ_error(old_mesh, new_mesh, cavs,
       old_elem_densities, new_elem_densities, error_name,
       same_ents2old_ents, same_ents2new_ents,
-      conserves_mass);
+      conserved_bools);
 }
 
-static void track_cavs_size_error(Mesh* old_mesh, Mesh* new_mesh,
-    Graph keys2new_elems, Graph keys2old_elems,
-    std::vector<std::pair<Graph, Graph>> const& keys2subcav_elems,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_size) {
-  auto error_name = "size_error";
-  auto old_elem_densities = Reals(old_mesh->nelems(), 1.0);
-  auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
-  track_cavs_integral_error(old_mesh, new_mesh,
-      keys2new_elems, keys2old_elems,
-      keys2subcav_elems,
-      old_elem_densities, new_elem_densities, error_name,
-      same_ents2old_ents, same_ents2new_ents,
-      conserves_size);
-}
-
-static void track_cavs_momentum_error(
+static void transfer_momentum_error(
     Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    Graph keys2old_elems, Graph keys2new_elems,
-    std::vector<std::pair<Graph, Graph>> const& keys2subcav_elems, TagBase const* tagbase,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, bool conserves_momentum) {
+    CavsByBdryStatus const& cavs, TagBase const* tagbase,
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    std::array<bool, 3> conserved_this_time,
+    std::array<bool, 3> conserved_always) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto velocity_name = tagbase->name();
@@ -313,79 +316,55 @@ static void track_cavs_momentum_error(
   auto new_elem_velocities = average_field(new_mesh, dim, ncomps, new_vert_velocities);
   auto old_elem_momenta = multiply_each(old_elem_velocities, old_elem_densities);
   auto new_elem_momenta = multiply_each(new_elem_velocities, new_elem_densities);
-  track_cavs_integral_error(old_mesh, new_mesh,
-      keys2old_elems, keys2new_elems,
-      keys2subcav_elems,
+  transfer_integ_error(old_mesh, new_mesh, cavs,
       old_elem_momenta, new_elem_momenta, error_name,
       same_ents2old_ents, same_ents2new_ents,
-      conserves_momentum);
+      conserved_this_time, conserved_always);
 }
 
-/* we separate sub-cavities even further than by material: we also separate
-   the elements touching the boundary from those that don't.
-   this ensures that size error, which can only be created and repaired at
-   the boundary, remains at the boundary.
-   it should also be beneficial to do this for density errors, because
-   a boundary collapse creates a correspondingly large integral error
-   for each size error, and so those integral errors will be corrected
-   in the same elements in which the size errors are corrected.
- */
-static LOs negate_boundary_elem_class_ids(Mesh* mesh) {
-  auto vert_class_dims = mesh->get_array<I8>(VERT, "class_dim");
-  auto verts_are_int = each_eq_to(vert_class_dims, I8(mesh->dim()));
-  auto verts_are_bdry = invert_marks(verts_are_int);
-  auto elems_are_bdry = mark_up(mesh, VERT, mesh->dim(), verts_are_bdry);
-  LOs elem_class_ids;
-  if (mesh->has_tag(mesh->dim(), "class_id")) {
-    elem_class_ids = mesh->get_array<LO>(mesh->dim(), "class_id");
-  } else {
-    elem_class_ids = LOs(mesh->nelems(), 1);
-  }
-  auto out = Write<LO>(elem_class_ids.size());
-  auto f = OMEGA_H_LAMBDA(LO e) {
-    out[e] = (elems_are_bdry[e]) ? (-elem_class_ids[e]) : (elem_class_ids[e]);
+struct OpConservation {
+  OpConservation() {
+    density.always[NOT_BDRY] = true;
+    density.always[TOUCH_BDRY] = false;
+    density.always[KEY_BDRY] = false;
+    momentum_name.always[NOT_BDRY] = false;
+    momentum_name.always[TOUCH_BDRY] = false;
+    momentum_name.always[KEY_BDRY] = false;
   };
-  parallel_for(mesh->nelems(), f);
-  return out;
-}
+  ConservedBools density;
+  ConservedBools momentum;
+};
 
-static void track_cavs_all_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
+static void transfer_conservation_errors(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+    CavsByBdryStatus const& cavs,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
-    bool conserves_size, bool conserves_mass, bool conserves_momentum) {
+    OpConservation op_conservation) {
   auto dim = new_mesh->dim();
-  auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
-  auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
-  auto keys2new_elems = Graph(keys2prods, prods2new_ents);
-  std::vector<std::pair<Graph, Graph>> keys2subcav_elems;
-  auto old_class_ids = negate_boundary_elem_class_ids(old_mesh);
-  auto new_class_ids = negate_boundary_elem_class_ids(new_mesh);
-  keys2subcav_elems = separate_cavities(
-      keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
-  if (opts.should_conserve_size) {
-    track_cavs_size_error(old_mesh, new_mesh,
-        keys2old_elems, keys2new_elems,
-        keys2subcav_elems,
-        same_ents2old_ents, same_ents2new_ents, conserves_size);
-  }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      track_cavs_density_error(old_mesh, opts, new_mesh,
-          keys2old_elems, keys2new_elems,
-          keys2subcav_elems, tagbase,
-          same_ents2old_ents, same_ents2new_ents, conserves_mass);
+      transfer_density_error(old_mesh, opts, new_mesh,
+          cavs, tagbase,
+          same_ents2old_ents, same_ents2new_ents, op_conservation.density);
     }
   }
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
     auto tagbase = old_mesh->get_tag(VERT, i);
     if (is_momentum_velocity(old_mesh, opts, VERT, tagbase)) {
-      track_cavs_momentum_error(old_mesh, opts, new_mesh,
-          keys2old_elems, keys2new_elems,
-          keys2subcav_elems, tagbase,
-          same_ents2old_ents, same_ents2new_ents, conserves_momentum);
+      transfer_momentum_error(old_mesh, opts, new_mesh,
+          cavs, tagbase,
+          same_ents2old_ents, same_ents2new_ents, op_conservation.momentum);
     }
   }
+}
+
+static Cavs form_initial_cavs(Mesh* old_mesh, Mesh* new_mesh,
+   Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents) {
+  auto dim = new_mesh->dim();
+  auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
+  auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
+  auto keys2new_elems = Graph(keys2prods, prods2new_ents);
+  return {keys2old_elems, keys2new_elems};
 }
 
 void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
@@ -402,21 +381,26 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
           tagbase);
     }
   }
-  bool conserves_size = true;
-  bool conserves_mass = true;
-  bool conserves_momentum = false;
-  track_cavs_all_errors(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
-      prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+  auto init_cavs = form_initial_cavs(old_mesh, new_mesh, EDGE, keys2kds,
+      keys2prods, prods2new_ents);
+  auto cavs = separate_cavities(old_mesh, new_mesh, cavs, key_dim, keys2kds);
+  OpConservation op_conservation;
+  op_conservation.density.this_time[NOT_BDRY] = true;
+  op_conservation.density.this_time[TOUCH_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = true;
+  op_conservation.momentum.this_time[NOT_BDRY] = true;
+  op_conservation.momentum.this_time[TOUCH_BDRY] = true;
+  op_conservation.momentum.this_time[KEY_BDRY] = true;
+  transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
+      same_ents2old_ents, same_ents2new_ents,
       conserves_size, conserves_mass, conserves_momentum);
 }
 
 /* intersection-based transfer of density fields.
-   note that this exactly conserves integrals on the interior,
-   but we purposefully omit the modifications that would
-   ensure conservation for boundary collapses that change the
-   domain. instead, those errors will be tracked by the code above. */
+   note that this is only used in single-material cavities,
+   and so it should exactly conserve mass in those cases. */
 template <Int dim>
-static void transfer_subcavs_density_dim(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
     TagBase const* tagbase, Graph keys2old_elems, Graph keys2new_elems,
     Write<Real> new_data_w) {
   auto ncomps = tagbase->ncomps();
