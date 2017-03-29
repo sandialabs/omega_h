@@ -249,6 +249,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
 }
 
 #define INST_T(T)                                                              \
+  template void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
   template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \

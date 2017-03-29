@@ -27,8 +27,6 @@ Reals graph_weighted_average_arc_data(
 Reals graph_weighted_average(
     Graph a2b, Reals ab_weights, Reals b_data, Int width);
 Graph filter_graph(Graph g, Read<I8> keep_edge);
-std::vector<std::pair<Graph, Graph>> separate_cavities(
-    Graph keys2old, LOs old_class_ids, Graph keys2new, LOs new_class_ids);
 bool operator==(Graph a, Graph b);
 
 template <typename T>

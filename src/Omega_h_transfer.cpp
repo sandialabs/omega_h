@@ -545,7 +545,7 @@ void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts,
-        keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+        keys2doms, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);

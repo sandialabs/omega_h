@@ -947,19 +947,6 @@ static void test_find_last() {
   CHECK(find_last(a, 0) == 0);
 }
 
-static void test_separate_cavities() {
-  Graph keys2old(LOs({0, 4, 8}), LOs({0, 1, 2, 3, 4, 5, 6, 7}));
-  Graph keys2new(LOs({0, 2, 4}), LOs({0, 1, 2, 3}));
-  LOs old_ids({4, 4, 5, 5, 6, 6, 7, 7});
-  LOs new_ids({4, 5, 6, 7});
-  auto out = separate_cavities(keys2old, old_ids, keys2new, new_ids);
-  CHECK(out.size() == 2);
-  CHECK(out[0].first == Graph(LOs({0, 2, 4}), LOs({0, 1, 4, 5})));
-  CHECK(out[0].second == Graph(LOs({0, 1, 2}), LOs({0, 2})));
-  CHECK(out[1].first == Graph(LOs({0, 2, 4}), LOs({2, 3, 6, 7})));
-  CHECK(out[1].second == Graph(LOs({0, 1, 2}), LOs({1, 3})));
-};
-
 static void test_insphere() {
   Few<Vector<1>, 2> regular_edge = {{-1.0}, {1.0}};
   auto insphere1 = get_insphere(regular_edge);
@@ -1068,7 +1055,6 @@ int main(int argc, char** argv) {
   test_proximity(&lib);
   test_motion(&lib);
   test_find_last();
-  test_separate_cavities();
   test_insphere();
   test_volume_vert_gradients();
   test_1d_box(&lib);

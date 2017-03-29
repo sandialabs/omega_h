@@ -9,6 +9,7 @@
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_transfer.hpp"
+#include "host_few.hpp"
 
 namespace Omega_h {
 
@@ -41,7 +42,7 @@ struct Cavs {
     auto n = keys2old_elems.nnodes();
     CHECK(n == keys2new_elems.nnodes());
     return n;
-  };
+  }
 };
 
 struct SeparationResult {
@@ -92,13 +93,14 @@ static SeparationResult separate_by_color_once(Cavs cavs,
 }
 
 using CavsByColor = std::vector<Cavs>;
-using CavsByColorMethod = std::array<CavsByColor, 3>;
-using CavsByBdryStatus = std::array<CavsByColorMethod, 3>;
+using CavsByColorMethod = HostFew<CavsByColor, 3>;
+using CavsByBdryStatus = HostFew<CavsByColorMethod, 3>;
 
-CavsByColor separate_by_color(
+static CavsByColor separate_by_color(
     Cavs cavs, LOs old_elem_colors, LOs new_elem_colors) {
   CavsByColor cavs_by_color;
-  while (keys2old.nedges() || keys2new.nedges()) {
+  while (cavs.keys2old_elems.nedges() ||
+         cavs.keys2new_elems.nedges()) {
     auto res = separate_by_color_once(cavs, old_elem_colors, new_elem_colors);
     cavs_by_color.push_back(res.separated);
     cavs = res.remainder;
@@ -114,7 +116,7 @@ static LOs get_elem_class_ids(Mesh* mesh) {
   }
 }
 
-static Read<I8> get_elems_are_bdry(Mesh* mesh, LOs elem_class_ids) {
+static Read<I8> get_elems_are_bdry(Mesh* mesh) {
   auto vert_class_dims = mesh->get_array<I8>(VERT, "class_dim");
   auto verts_are_int = each_eq_to(vert_class_dims, I8(mesh->dim()));
   auto verts_are_bdry = invert_marks(verts_are_int);
@@ -122,24 +124,15 @@ static Read<I8> get_elems_are_bdry(Mesh* mesh, LOs elem_class_ids) {
   return elems_are_bdry;
 }
 
-static LOs negate_boundary_elem_class_ids(LOs elem_class_ids,
-    Read<I8> elems_are_bdry) {
-  auto out = Write<LO>(elem_class_ids.size());
-  auto f = OMEGA_H_LAMBDA(LO e) {
-    out[e] = (elems_are_bdry[e]) ? (-elem_class_ids[e]) : (elem_class_ids[e]);
-  };
-  parallel_for(elem_class_ids.size(), f);
-  return out;
-}
-
 static Cavs unmap_cavs(LOs a2b, Cavs c) {
-  return {unmap_graph(a2b, c), unmap_graph(a2b, c)};
+  return {unmap_graph(a2b, c.keys2old_elems), unmap_graph(a2b, c.keys2new_elems)};
 }
 
 static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
     Cavs cavs, Int key_dim, LOs keys2kds, Graph* keys2doms = nullptr) {
   CavsByBdryStatus out;
-  auto old_elems_are_bdry = get_elems_are_bdry(old_mesh);
+  auto old_elems_are_bdry_i8 = get_elems_are_bdry(old_mesh);
+  auto old_elems_are_bdry = array_cast<LO>(old_elems_are_bdry_i8);
   auto cavs2nbdry_elems = graph_reduce(cavs.keys2old_elems, 
       old_elems_are_bdry, 1, OMEGA_H_SUM);
   auto cavs_are_bdry = each_gt(cavs2nbdry_elems, 0);
@@ -147,7 +140,7 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto int_cavs2cavs = collect_marked(cavs_arent_bdry);
   out[NOT_BDRY][NO_COLOR].push_back(unmap_cavs(int_cavs2cavs, cavs));
   auto kd_class_dims = old_mesh->get_array<I8>(key_dim, "class_dim");
-  auto keys_class_dims = unmap(keys2kds, kd_class_dims);
+  auto keys_class_dims = unmap(keys2kds, kd_class_dims, 1);
   auto keys_are_bdry = each_lt(keys_class_dims, I8(old_mesh->dim()));
   auto key_cavs2cavs = collect_marked(keys_are_bdry);
   out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(key_cavs2cavs, cavs));
@@ -158,18 +151,19 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   out[TOUCH_BDRY][NO_COLOR].push_back(unmap_cavs(touch_cavs2cavs, cavs));
   out[NOT_BDRY][CLASS_COLOR].push_back(out[NOT_BDRY][NO_COLOR][0]);
   out[TOUCH_BDRY][CLASS_COLOR].push_back(out[TOUCH_BDRY][NO_COLOR][0]);
+  auto old_elem_class_ids = get_elem_class_ids(old_mesh);
+  auto new_elem_class_ids = get_elem_class_ids(new_mesh);
   out[KEY_BDRY][CLASS_COLOR] = separate_by_color(out[KEY_BDRY][NO_COLOR][0],
       old_elem_class_ids, new_elem_class_ids);
   out[NOT_BDRY][CLASS_BDRY_COLOR].push_back(out[NOT_BDRY][NO_COLOR][0]);
-  auto old_bdry_colors = array_cast<LO>(old_elems_are_bdry);
+  auto old_bdry_colors = old_elems_are_bdry;
   auto new_elems_are_bdry = get_elems_are_bdry(new_mesh);
   auto new_bdry_colors = array_cast<LO>(new_elems_are_bdry);
   out[TOUCH_BDRY][CLASS_BDRY_COLOR] = separate_by_color(
-      out[TOUCH_BDRY][NO_COLOR][0], old_class_bdry_colors, new_class_bdry_colors);
-  auto old_elem_class_ids = get_elem_class_ids(old_mesh);
-  auto new_elem_class_ids = get_elem_class_ids(new_mesh);
+      out[TOUCH_BDRY][NO_COLOR][0], old_bdry_colors, new_bdry_colors);
   out[KEY_BDRY][CLASS_BDRY_COLOR] = separate_by_color(
       out[KEY_BDRY][NO_COLOR][0], old_elem_class_ids, new_elem_class_ids);
+  return out;
 }
 
 /* this function acts on CLASS_BDRY_COLOR cavities,
@@ -193,8 +187,6 @@ static void carry_class_bdry_integ_error(Mesh* old_mesh, Mesh* new_mesh,
       keys2new.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
   auto cav_error_densities = divide_each(
       old_cav_errors, new_cav_sizes);
-  auto ncavs = class_bdry_cavs.size();
-  auto ncomps = divide_no_remainder(cav_error_densities.size(), ncavs);
   auto cav_elem_error_densities = expand(cav_error_densities,
       keys2new.a2ab, ncomps);
   auto cav_elem_errors = multiply_each(
@@ -209,7 +201,6 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
     Cavs class_cavs,
     Reals old_elem_densities, Reals new_elem_densities,
     Write<Real> new_elem_errors_w) {
-  auto dim = old_mesh->dim();
   auto ncomps = divide_no_remainder(old_elem_densities.size(), old_mesh->nelems());
   auto keys2new_elems = class_cavs.keys2new_elems;
   auto keys2old_elems = class_cavs.keys2old_elems;
@@ -234,15 +225,15 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
       keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
   auto cav_error_densities = divide_each(cav_errors, new_cav_sizes);
   auto cav_elem_error_densities = expand(cav_error_densities,
-      keys2new.a2ab, ncomps);
+      keys2new_elems.a2ab, ncomps);
   auto cav_elem_errors = multiply_each(
       cav_elem_error_densities, new_cav_elem_sizes);
-  add_into(cav_elem_errors, keys2new.ab2b, new_elem_errors_w, ncomps);
+  add_into(cav_elem_errors, keys2new_elems.ab2b, new_elem_errors_w, ncomps);
 }
 
 struct ConservedBools {
-  std::array<bool, 3> this_time;
-  std::array<bool, 3> always;
+  HostFew<bool, 3> this_time;
+  HostFew<bool, 3> always;
 };
 
 static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
@@ -250,6 +241,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
     std::string const& error_name,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     ConservedBools conserved_bools) {
+  auto dim = old_mesh->dim();
   auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
   auto ncomps = old_tag->ncomps();
   auto old_elem_errors = old_tag->array();
@@ -267,7 +259,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
     if (!conserved_bools.always[i]) {
       for (auto bdry_cavs : cavs[i][CLASS_BDRY_COLOR]) {
         carry_class_bdry_integ_error(old_mesh, new_mesh,
-            bdry_cavs, error_name, old_elem_densities, new_elem_densities,
+            bdry_cavs, error_name,
             new_elem_errors_w);
       }
     }
@@ -301,8 +293,7 @@ static void transfer_momentum_error(
     Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     CavsByBdryStatus const& cavs, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
-    std::array<bool, 3> conserved_this_time,
-    std::array<bool, 3> conserved_always) {
+    ConservedBools conserved_bools) {
   auto dim = old_mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto velocity_name = tagbase->name();
@@ -320,7 +311,7 @@ static void transfer_momentum_error(
   transfer_integ_error(old_mesh, new_mesh, cavs,
       old_elem_momenta, new_elem_momenta, error_name,
       same_ents2old_ents, same_ents2new_ents,
-      conserved_this_time, conserved_always);
+      conserved_bools);
 }
 
 struct OpConservation {
@@ -328,10 +319,10 @@ struct OpConservation {
     density.always[NOT_BDRY] = true;
     density.always[TOUCH_BDRY] = false;
     density.always[KEY_BDRY] = false;
-    momentum_name.always[NOT_BDRY] = false;
-    momentum_name.always[TOUCH_BDRY] = false;
-    momentum_name.always[KEY_BDRY] = false;
-  };
+    momentum.always[NOT_BDRY] = false;
+    momentum.always[TOUCH_BDRY] = false;
+    momentum.always[KEY_BDRY] = false;
+  }
   ConservedBools density;
   ConservedBools momentum;
 };
@@ -382,9 +373,9 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
           tagbase);
     }
   }
-  auto init_cavs = form_initial_cavs(old_mesh, new_mesh, EDGE, keys2kds,
+  auto init_cavs = form_initial_cavs(old_mesh, new_mesh, EDGE, keys2edges,
       keys2prods, prods2new_ents);
-  auto cavs = separate_cavities(old_mesh, new_mesh, cavs, key_dim, keys2kds);
+  auto cavs = separate_cavities(old_mesh, new_mesh, init_cavs, EDGE, keys2edges);
   OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;
@@ -394,7 +385,7 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
   op_conservation.momentum.this_time[KEY_BDRY] = true;
   transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
       same_ents2old_ents, same_ents2new_ents,
-      conserves_size, conserves_mass, conserves_momentum);
+      op_conservation);
 }
 
 /* intersection-based transfer of density fields.
@@ -447,26 +438,6 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
   parallel_for(nkeys, f);
 }
 
-static void transfer_densities_by_intersection(
-    Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    Cavs cavs,
-    LOs same_ents2old_ents, LOs same_ents2new_ents,
-    Write<Real> new_elem_densities_w) {
-  auto dim = new_mesh->dim();
-  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
-    auto tagbase = old_mesh->get_tag(dim, i);
-    if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      if (dim == 3) {
-        transfer_by_intersection_dim<3>(old_mesh, new_mesh, tagbase, cavs,
-            new_elem_densities_w);
-      } else if (dim == 2) {
-        transfer_by_intersection_dim<2>(old_mesh, new_mesh, tagbase, cavs,
-            new_elem_densities_w);
-      }
-    }
-  }
-}
-
 static void transfer_by_intersection(
     Mesh* old_mesh, Mesh* new_mesh,
     TagBase const* tagbase,
@@ -500,6 +471,7 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
           same_ents2new_ents, tagbase, new_elem_densities_w);
     }
   }
+  OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;
   op_conservation.density.this_time[KEY_BDRY] = true;
@@ -509,17 +481,18 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
   auto cavs = separate_cavities(old_mesh, new_mesh, init_cavs, EDGE, keys2edges);
   transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
       same_ents2old_ents, same_ents2new_ents,
-      conserves_size, conserves_mass, conserves_momentum);
+      op_conservation);
 }
 
 void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2verts, Adj keys2doms, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
+  auto keys2prods = keys2doms.a2ab;
   auto init_cavs = form_initial_cavs(old_mesh, new_mesh,
-      EDGE, keys2edges, keys2prods, prods2new_ents);
+      VERT, keys2verts, keys2prods, prods2new_ents);
   auto bdry_keys2doms = keys2doms;
-  auto cavs = separate_cavities(old_mesh, new_mesh, init_cavs, EDGE, keys2edges,
+  auto cavs = separate_cavities(old_mesh, new_mesh, init_cavs, VERT, keys2verts,
       &bdry_keys2doms);
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
@@ -534,14 +507,15 @@ void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_m
           cavs[TOUCH_BDRY][NO_COLOR][0],
           new_elem_densities_w);
       /* these three statements are basically transfer_inherit_coarsen */
-      auto old_data = as<Real>(tagbase)->array();
+      auto old_data = to<Real>(tagbase)->array();
       auto bdry_dom_data = unmap(bdry_keys2doms.ab2b, old_data, ncomps);
-      map_into(dom_data, cavs[KEY_BDRY][NO_COLOR][0].keys2new_elems.ab2b,
+      map_into(bdry_dom_data, cavs[KEY_BDRY][NO_COLOR][0].keys2new_elems.ab2b,
           new_elem_densities_w, ncomps);
       transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
           same_ents2new_ents, tagbase, new_elem_densities_w);
     }
   }
+  OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;
   op_conservation.density.this_time[KEY_BDRY] = true;
@@ -550,7 +524,7 @@ void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_m
   op_conservation.momentum.this_time[KEY_BDRY] = false;
   transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
       same_ents2old_ents, same_ents2new_ents,
-      conserves_size, conserves_mass, conserves_momentum);
+      op_conservation);
 }
 
 /* conservative diffusion:
@@ -680,15 +654,6 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
   }
 }
 
-static Real get_object_error(Mesh* mesh, Int obj) {
-  auto errors = mesh->get_array<Real>(mesh->dim(), "mass_error");
-  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
-  auto elem_in_obj = each_eq_to(class_ids, obj);
-  auto obj_elems = collect_marked(elem_in_obj);
-  auto obj_errors = unmap(obj_elems, errors, 1);
-  return repro_sum(mesh->comm(), obj_errors);
-}
-
 void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   auto dim = mesh->dim();
@@ -714,6 +679,17 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
   }
 }
 
+#if 0
+static Real get_object_error(Mesh* mesh, Int obj) {
+  auto errors = mesh->get_array<Real>(mesh->dim(), "mass_error");
+  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
+  auto elem_in_obj = each_eq_to(class_ids, obj);
+  auto obj_elems = collect_marked(elem_in_obj);
+  auto obj_errors = unmap(obj_elems, errors, 1);
+  return repro_sum(mesh->comm(), obj_errors);
+}
+#endif
+
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   if (!should_conserve_any(mesh, xfer_opts)) return;
@@ -730,8 +706,10 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto error_name = integral_name + "_error";
       if (!mesh->has_tag(dim, error_name)) continue;
       auto errors = mesh->get_array<Real>(dim, error_name);
+#if 0
       std::cerr << "obj 72 mass_error " << get_object_error(mesh, 72) << '\n';
       std::cerr << "obj 34 mass_error " << get_object_error(mesh, 34) << '\n';
+#endif
       auto densities = mesh->get_array<Real>(dim, density_name);
       auto sizes = mesh->ask_sizes();
       auto corrections = divide_each(errors, sizes);
