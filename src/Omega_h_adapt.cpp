@@ -141,10 +141,10 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
 //bool did_anything;
 //do {
 //  did_anything = false;
-//  if (opts.should_refine && refine_by_size(mesh, opts)) {
-//    post_rebuild(mesh, opts);
-//    did_anything = true;
-//  }
+  //if (opts.should_refine && refine_by_size(mesh, opts)) {
+  //  post_rebuild(mesh, opts);
+  //  did_anything = true;
+  //}
     if (opts.should_coarsen && coarsen_by_size(mesh, opts)) {
       post_rebuild(mesh, opts);
 //    did_anything = true;

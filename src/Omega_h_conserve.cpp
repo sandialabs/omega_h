@@ -144,10 +144,6 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   out[NOT_BDRY][NO_COLOR].push_back(unmap_cavs(int_cavs2cavs, cavs));
   auto kd_class_dims = old_mesh->get_array<I8>(key_dim, "class_dim");
   auto key_class_dims = unmap(keys2kds, kd_class_dims, 1);
-  for (LO i = 0; i < key_class_dims.size(); ++i) {
-    std::cerr << ' ' << Int(key_class_dims[i]);
-  }
-  std::cerr << '\n';
   auto keys_are_bdry = each_lt(key_class_dims, I8(old_mesh->dim()));
   auto key_cavs2cavs = collect_marked(keys_are_bdry);
   std::cerr << "and " << key_cavs2cavs.size() << " KEY_BDRY cavities\n";
@@ -251,7 +247,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
     std::string const& error_name,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     ConservedBools conserved_bools) {
-  std::cerr << "transferring " << error_name << "!\n";
+  std::cerr << "transferring " << error_name << '\n';
   auto dim = old_mesh->dim();
   auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
   auto ncomps = old_tag->ncomps();
@@ -262,15 +258,21 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   for (Int i = 0; i < 3; ++i) {
     if (!conserved_bools.this_time[i]) {
       Int j = 0;
-      for (auto class_cavs : cavs[i][CLASS_COLOR]) {
-        std::cerr << "introducing integral error for entry " << j << " in " << i << "/CLASS_COLOR\n";
+      CavsByColor cavs_by_color;
+      if (error_name == "momentum_error")
+        cavs_by_color = cavs[i][NO_COLOR];
+      else
+        cavs_by_color = cavs[i][CLASS_COLOR];
+      for (auto class_cavs : cavs_by_color) {
+        std::cerr << "introducing error in [" << i << "][CLASS_COLOR]\n";
         introduce_class_integ_error(old_mesh, new_mesh,
             class_cavs, old_elem_densities, new_elem_densities,
             new_elem_errors_w);
         ++j;
       }
     }
-    if (!conserved_bools.always[i]) {
+  //if (!conserved_bools.always[i]) {
+    if ((0)) {
       for (auto bdry_cavs : cavs[i][CLASS_BDRY_COLOR]) {
         carry_class_bdry_integ_error(old_mesh, new_mesh,
             bdry_cavs, error_name,
@@ -597,7 +599,6 @@ static void diffuse_elem_error_tag(Mesh* mesh, Graph g,
     std::string const& error_name, VarCompareOpts opts,
     bool verbose) {
   auto dim = mesh->dim();
-  if (!mesh->has_tag(dim, error_name)) return;
   auto tag = mesh->get_tag<Real>(dim, error_name);
   auto array = tag->array();
   auto ncomps = tag->ncomps();
@@ -716,39 +717,51 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto density_name = tagbase->name();
       auto integral_name = xfer_opts.integral_map.find(density_name)->second;
       auto error_name = integral_name + "_error";
-      if (!mesh->has_tag(dim, error_name)) continue;
+      auto ncomps = tagbase->ncomps();
       auto errors = mesh->get_array<Real>(dim, error_name);
       std::cerr << "obj 72 mass_error " << get_object_error(mesh, 72) << '\n';
       std::cerr << "obj 34 mass_error " << get_object_error(mesh, 34) << '\n';
-      auto densities = mesh->get_array<Real>(dim, density_name);
+      auto old_densities = mesh->get_array<Real>(dim, density_name);
+      mesh->add_tag(dim, std::string("old_") + density_name, ncomps, old_densities);
       auto sizes = mesh->ask_sizes();
       auto corrections = divide_each(errors, sizes);
-      densities = subtract_each(densities, corrections);
-      mesh->set_tag(dim, density_name, densities);
+      auto new_densities = subtract_each(old_densities, corrections);
+      mesh->set_tag(dim, density_name, new_densities);
       mesh->remove_tag(dim, error_name);
     }
   }
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
     if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
+      auto ncomps = tagbase->ncomps();
       auto velocity_name = tagbase->name();
       auto momentum_name = xfer_opts.velocity_momentum_map.find(velocity_name)->second;
       auto density_name = xfer_opts.velocity_density_map.find(velocity_name)->second;
       auto error_name = momentum_name + "_error";
-      if (!mesh->has_tag(dim, error_name)) continue;
       auto elem_sizes = mesh->ask_sizes();
       auto elem_densities = mesh->get_array<Real>(dim, density_name);
       auto elem_masses = multiply_each(elem_densities, elem_sizes);
+      auto vert_velocities = mesh->get_array<Real>(VERT, velocity_name);
+      /* we have to account for the latest changes to density above */
+      Reals elem_errors_from_density;
+      {
+      auto old_elem_densities = mesh->get_array<Real>(dim, std::string("old_") + density_name);
+      auto old_elem_masses = multiply_each(old_elem_densities, elem_sizes);
+      auto elem_velocities = average_field(mesh, dim, ncomps, vert_velocities);
+      auto old_elem_momenta = multiply_each(elem_velocities, old_elem_masses);
+      auto new_elem_momenta = multiply_each(elem_velocities, elem_masses);
+      elem_errors_from_density = subtract_each(new_elem_momenta, old_elem_momenta);
+      }
       auto verts2elems = mesh->ask_up(VERT, dim);
       auto vert_masses = graph_reduce(verts2elems, elem_masses, 1, OMEGA_H_SUM);
       vert_masses = divide_each_by(Real(dim + 1), vert_masses);
       auto elems2verts = mesh->ask_down(dim, VERT);
       auto all_flags = get_comps_are_fixed(mesh);
       auto elem_errors = mesh->get_array<Real>(dim, error_name);
-      auto ncomps = tagbase->ncomps();
-      auto total_error = repro_sum(get_component(elem_errors, ncomps, 0));
-      std::cerr << "total X error " << total_error << '\n';
-      auto out = deep_copy(mesh->get_array<Real>(VERT, velocity_name));
+      elem_errors = add_each(elem_errors, elem_errors_from_density);
+      auto total_error = repro_sum(get_component(elem_errors, ncomps, 2));
+      std::cerr << "total Z error " << total_error << '\n';
+      auto out = deep_copy(vert_velocities);
       auto f = LAMBDA(LO v) {
         auto v_flags = all_flags[v];
         auto v_mass = vert_masses[v];
@@ -776,6 +789,13 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       new_velocities = mesh->sync_array(VERT, new_velocities, ncomps);
       mesh->set_tag(VERT, velocity_name, new_velocities);
       mesh->remove_tag(dim, error_name);
+    }
+  }
+  for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
+    auto tagbase = mesh->get_tag(dim, tagi);
+    if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
+      auto density_name = tagbase->name();
+      mesh->remove_tag(dim, std::string("old_") + density_name);
     }
   }
   vtk::write_vtu("after_correct.vtu", mesh, mesh->dim());

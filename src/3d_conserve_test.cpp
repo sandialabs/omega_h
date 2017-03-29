@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
@@ -17,7 +18,7 @@ static void check_total_mass(Mesh* mesh) {
   auto sizes = mesh->ask_sizes();
   auto masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
-//OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
+  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
 }
 
 static Real get_object_mass(Mesh* mesh, Int obj) {
@@ -87,6 +88,8 @@ int main(int argc, char** argv) {
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
   opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
   opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
+  std::cout << std::scientific << std::setprecision(10);
+  std::cerr << std::scientific << std::setprecision(10);
   adapt(&mesh, opts);
   check_total_mass(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
@@ -95,7 +98,7 @@ int main(int argc, char** argv) {
       std::cout << "model region " << obj_ids[obj] << " mass before "
                 << masses_before[obj] << ", after " << mass_after << '\n';
     }
-  //CHECK(are_close(mass_after, masses_before[obj]));
+    CHECK(are_close(mass_after, masses_before[obj]));
   }
   auto momentum_after = get_total_momentum(&mesh);
   if (world->rank() == 0) {
