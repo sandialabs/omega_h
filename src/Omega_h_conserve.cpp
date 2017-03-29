@@ -543,6 +543,69 @@ void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_m
       op_conservation);
 }
 
+void fix_momentum_velocity_verts(
+    Mesh* mesh, Int class_dim, I32 class_id, Int comp) {
+  for (Int ent_dim = VERT; ent_dim <= class_dim; ++ent_dim) {
+    auto ent_marks = mark_class_closure(mesh, ent_dim, class_dim, class_id);
+    auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
+    if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
+      auto old_marks = mesh->get_array<I8>(ent_dim, "momentum_velocity_fixed");
+      auto new_marks = bit_or_each(old_marks, comp_marks);
+      mesh->set_tag(ent_dim, "momentum_velocity_fixed", new_marks);
+    } else {
+      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, comp_marks);
+    }
+  }
+  for (Int ent_dim = class_dim + 1; ent_dim <= mesh->dim(); ++ent_dim) {
+    if (!mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
+      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1,
+          Read<I8>(mesh->nents(ent_dim), I8(0)));
+    }
+  }
+}
+
+static Read<I8> get_comps_are_fixed(Mesh* mesh) {
+  if (mesh->has_tag(VERT, "momentum_velocity_fixed")) {
+    return mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
+  } else {
+    return Read<I8>(mesh->nverts(), I8(0));
+  }
+}
+
+void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
+  auto xfer_opts = opts.xfer_opts;
+  auto dim = mesh->dim();
+  for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
+    auto tagbase = mesh->get_tag(dim, tagi);
+    if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
+      auto density_name = tagbase->name();
+      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
+      auto error_name = integral_name + "_error";
+      auto ncomps = tagbase->ncomps();
+      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems() * ncomps, 0.0));
+    }
+  }
+  for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
+    auto tagbase = mesh->get_tag(VERT, tagi);
+    if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
+      auto velocity_name = tagbase->name();
+      auto momentum_name = xfer_opts.velocity_momentum_map.find(velocity_name)->second;
+      auto error_name = momentum_name + "_error";
+      auto ncomps = tagbase->ncomps();
+      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems() * ncomps, 0.0));
+    }
+  }
+}
+
+static Real get_object_error(Mesh* mesh, Int obj) {
+  auto errors = mesh->get_array<Real>(mesh->dim(), "mass_error");
+  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
+  auto elem_in_obj = each_eq_to(class_ids, obj);
+  auto obj_elems = collect_marked(elem_in_obj);
+  auto obj_errors = unmap(obj_elems, errors, 1);
+  return repro_sum(mesh->comm(), obj_errors);
+}
+
 /* conservative diffusion:
    1) diffusion is not allowed across classification boundaries.
       this preserves conservation on a per-object basis
@@ -638,69 +701,6 @@ static void diffuse_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       diffuse_elem_error_tag(mesh, g, error_name, tol, verbose);
     }
   }
-}
-
-void fix_momentum_velocity_verts(
-    Mesh* mesh, Int class_dim, I32 class_id, Int comp) {
-  for (Int ent_dim = VERT; ent_dim <= class_dim; ++ent_dim) {
-    auto ent_marks = mark_class_closure(mesh, ent_dim, class_dim, class_id);
-    auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
-    if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
-      auto old_marks = mesh->get_array<I8>(ent_dim, "momentum_velocity_fixed");
-      auto new_marks = bit_or_each(old_marks, comp_marks);
-      mesh->set_tag(ent_dim, "momentum_velocity_fixed", new_marks);
-    } else {
-      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, comp_marks);
-    }
-  }
-  for (Int ent_dim = class_dim + 1; ent_dim <= mesh->dim(); ++ent_dim) {
-    if (!mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
-      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1,
-          Read<I8>(mesh->nents(ent_dim), I8(0)));
-    }
-  }
-}
-
-static Read<I8> get_comps_are_fixed(Mesh* mesh) {
-  if (mesh->has_tag(VERT, "momentum_velocity_fixed")) {
-    return mesh->get_array<I8>(VERT, "momentum_velocity_fixed");
-  } else {
-    return Read<I8>(mesh->nverts(), I8(0));
-  }
-}
-
-void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
-  auto xfer_opts = opts.xfer_opts;
-  auto dim = mesh->dim();
-  for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
-    auto tagbase = mesh->get_tag(dim, tagi);
-    if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
-      auto density_name = tagbase->name();
-      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
-      auto error_name = integral_name + "_error";
-      auto ncomps = tagbase->ncomps();
-      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems() * ncomps, 0.0));
-    }
-  }
-  for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
-    auto tagbase = mesh->get_tag(VERT, tagi);
-    if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
-      auto velocity_name = tagbase->name();
-      auto momentum_name = xfer_opts.velocity_momentum_map.find(velocity_name)->second;
-      auto error_name = momentum_name + "_error";
-      auto ncomps = tagbase->ncomps();
-      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems() * ncomps, 0.0));
-    }
-  }
-}
-
-static Real get_object_error(Mesh* mesh, Int obj) {
-  auto errors = mesh->get_array<Real>(mesh->dim(), "mass_error");
-  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
-  auto elem_in_obj = each_eq_to(class_ids, obj);
-  auto obj_elems = collect_marked(elem_in_obj);
-  auto obj_errors = unmap(obj_elems, errors, 1);
-  return repro_sum(mesh->comm(), obj_errors);
 }
 
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
