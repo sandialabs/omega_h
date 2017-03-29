@@ -583,15 +583,6 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
   }
 }
 
-static Real get_object_error(Mesh* mesh, Int obj) {
-  auto errors = mesh->get_array<Real>(mesh->dim(), "mass_error");
-  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
-  auto elem_in_obj = each_eq_to(class_ids, obj);
-  auto obj_elems = collect_marked(elem_in_obj);
-  auto obj_errors = unmap(obj_elems, errors, 1);
-  return repro_sum(mesh->comm(), obj_errors);
-}
-
 /* conservative diffusion:
    1) diffusion is not allowed across classification boundaries.
       this preserves conservation on a per-object basis
@@ -663,8 +654,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto diffuse_tol = xfer_opts.integral_diffuse_map.find(integral_name)->second;
       errors = diffuse_elem_error(mesh, diffusion_graph, errors, ncomps, diffuse_tol,
           error_name, verbose);
-      std::cerr << "obj 72 mass_error " << get_object_error(mesh, 72) << '\n';
-      std::cerr << "obj 34 mass_error " << get_object_error(mesh, 34) << '\n';
       auto old_densities = mesh->get_array<Real>(dim, density_name);
       mesh->add_tag(dim, std::string("old_") + density_name, ncomps, old_densities);
       auto sizes = mesh->ask_sizes();
@@ -708,7 +697,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       elem_errors = diffuse_elem_error(mesh, diffusion_graph, elem_errors, ncomps,
           diffuse_tol, error_name, verbose);
       auto total_error = repro_sum(get_component(elem_errors, ncomps, 2));
-      std::cerr << "total Z error " << total_error << '\n';
       auto out = deep_copy(vert_velocities);
       auto f = LAMBDA(LO v) {
         auto v_flags = all_flags[v];
@@ -746,7 +734,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       mesh->remove_tag(dim, std::string("old_") + density_name);
     }
   }
-  vtk::write_vtu("after_correct.vtu", mesh, mesh->dim());
 }
 
 }  // end namespace Omega_h
