@@ -137,7 +137,7 @@ static Cavs unmap_cavs(LOs a2b, Cavs c) {
 }
 
 static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
-    Cavs cavs, Int key_dim, LOs keys2kds) {
+    Cavs cavs, Int key_dim, LOs keys2kds, Graph* keys2doms = nullptr) {
   CavsByBdryStatus out;
   auto old_elems_are_bdry = get_elems_are_bdry(old_mesh);
   auto cavs2nbdry_elems = graph_reduce(cavs.keys2old_elems, 
@@ -151,6 +151,7 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto keys_are_bdry = each_lt(keys_class_dims, I8(old_mesh->dim()));
   auto key_cavs2cavs = collect_marked(keys_are_bdry);
   out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(key_cavs2cavs, cavs));
+  if (keys2doms) *keys2doms = unmap_graph(key_cavs2cavs, *keys2doms);
   auto keys_arent_bdry = invert_marks(keys_are_bdry);
   auto cavs_touch_bdry = land_each(cavs_are_bdry, keys_arent_bdry);
   auto touch_cavs2cavs = collect_marked(cavs_touch_bdry);
@@ -401,8 +402,10 @@ void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
    and so it should exactly conserve mass in those cases. */
 template <Int dim>
 static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
-    TagBase const* tagbase, Graph keys2old_elems, Graph keys2new_elems,
+    TagBase const* tagbase, Cavs cavs,
     Write<Real> new_data_w) {
+  auto keys2old_elems = cavs.keys2old_elems;
+  auto keys2new_elems = cavs.keys2new_elems;
   auto ncomps = tagbase->ncomps();
   auto old_tag = to<Real>(tagbase);
   auto old_data = old_tag->array();
@@ -411,7 +414,7 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
   auto new_ev2v = new_mesh->ask_elem_verts();
   auto new_coords = new_mesh->coords();
   auto new_sizes = new_mesh->ask_sizes();
-  auto nkeys = keys2old_elems.nnodes();
+  auto nkeys = cavs.size();
   auto f = LAMBDA(LO key) {
     for (auto kne = keys2new_elems.a2ab[key];
          kne < keys2new_elems.a2ab[key + 1]; ++kne) {
@@ -444,53 +447,38 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
   parallel_for(nkeys, f);
 }
 
-static void transfer_cavs_density(Mesh* old_mesh, Mesh* new_mesh,
-    std::vector<std::pair<Graph, Graph>> const& keys2subcav_elems,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase) {
-  auto dim = old_mesh->dim();
-  auto nnew_elems = new_mesh->nelems();
-  auto ncomps = tagbase->ncomps();
-  auto new_data_w = Write<Real>(nnew_elems * ncomps);
-  for (auto pair : keys2subcav_elems) {
-    auto keys2old_elems = pair.first;
-    auto keys2new_elems = pair.second;
-    if (dim == 3) {
-      transfer_subcavs_density_dim<3>(old_mesh, new_mesh, tagbase, keys2old_elems,
-          keys2new_elems, new_data_w);
-    } else if (dim == 2) {
-      transfer_subcavs_density_dim<2>(old_mesh, new_mesh, tagbase, keys2old_elems,
-          keys2new_elems, new_data_w);
-    }
-  }
-  transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
-      same_ents2new_ents, tagbase, new_data_w);
-}
-
-static void transfer_cavs_all_densities(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+static void transfer_densities_by_intersection(
+    Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
+    Cavs cavs,
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    Write<Real> new_elem_densities_w) {
   auto dim = new_mesh->dim();
-  /* TODO: consolidate this graph creation code with the one in
-     track_cavs_all_errors() */
-  auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
-  auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
-  auto keys2new_elems = Graph(keys2prods, prods2new_ents);
-  std::vector<std::pair<Graph, Graph>> keys2subcav_elems;
-  if (old_mesh->has_tag(dim, "class_id")) {
-    auto old_class_ids = old_mesh->get_array<LO>(dim, "class_id");
-    auto new_class_ids = new_mesh->get_array<LO>(dim, "class_id");
-    keys2subcav_elems = separate_cavities(
-        keys2old_elems, old_class_ids, keys2new_elems, new_class_ids);
-  } else {
-    keys2subcav_elems = {{keys2old_elems, keys2new_elems}};
-  }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      transfer_cavs_density(old_mesh, new_mesh,
-          keys2subcav_elems,
-          same_ents2old_ents, same_ents2new_ents, tagbase);
+      if (dim == 3) {
+        transfer_by_intersection_dim<3>(old_mesh, new_mesh, tagbase, cavs,
+            new_elem_densities_w);
+      } else if (dim == 2) {
+        transfer_by_intersection_dim<2>(old_mesh, new_mesh, tagbase, cavs,
+            new_elem_densities_w);
+      }
     }
+  }
+}
+
+static void transfer_by_intersection(
+    Mesh* old_mesh, Mesh* new_mesh,
+    TagBase const* tagbase,
+    Cavs cavs,
+    Write<Real> new_elem_densities_w) {
+  auto dim = old_mesh->dim();
+  if (dim == 3) {
+    transfer_by_intersection_dim<3>(old_mesh, new_mesh, tagbase, cavs,
+        new_elem_densities_w);
+  } else if (dim == 2) {
+    transfer_by_intersection_dim<2>(old_mesh, new_mesh, tagbase, cavs,
+        new_elem_densities_w);
   }
 }
 
@@ -498,29 +486,70 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
     LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
-  transfer_cavs_all_densities(old_mesh, opts, new_mesh, EDGE,
-      keys2edges, keys2prods, prods2new_ents,
-      same_ents2old_ents, same_ents2new_ents);
-  bool conserves_size = true;
-  bool conserves_mass = true;
-  bool conserves_momentum = false;
-  track_cavs_all_errors(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
-      prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+  auto init_cavs = form_initial_cavs(old_mesh, new_mesh,
+      EDGE, keys2edges, keys2prods, prods2new_ents);
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (should_conserve(old_mesh, opts, dim, tagbase)) {
+      auto ncomps = tagbase->ncomps();
+      auto new_elem_densities_w = Write<Real>(new_mesh->nelems() * ncomps);
+      transfer_by_intersection(old_mesh, new_mesh, tagbase, init_cavs,
+          new_elem_densities_w);
+      transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
+          same_ents2new_ents, tagbase, new_elem_densities_w);
+    }
+  }
+  op_conservation.density.this_time[NOT_BDRY] = true;
+  op_conservation.density.this_time[TOUCH_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = true;
+  op_conservation.momentum.this_time[NOT_BDRY] = false;
+  op_conservation.momentum.this_time[TOUCH_BDRY] = false;
+  op_conservation.momentum.this_time[KEY_BDRY] = false;
+  auto cavs = separate_cavities(old_mesh, new_mesh, init_cavs, EDGE, keys2edges);
+  transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
+      same_ents2old_ents, same_ents2new_ents,
       conserves_size, conserves_mass, conserves_momentum);
 }
 
 void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
-    LOs keys2verts, LOs keys2prods, LOs prods2new_ents,
+    LOs keys2verts, Adj keys2doms, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
-  transfer_cavs_all_densities(old_mesh, opts, new_mesh, VERT,
-      keys2verts, keys2prods, prods2new_ents,
-      same_ents2old_ents, same_ents2new_ents);
-  bool conserves_size = false;
-  bool conserves_mass = false;
-  bool conserves_momentum = false;
-  track_cavs_all_errors(old_mesh, opts, new_mesh, VERT, keys2verts, keys2prods,
-      prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+  auto init_cavs = form_initial_cavs(old_mesh, new_mesh,
+      EDGE, keys2edges, keys2prods, prods2new_ents);
+  auto bdry_keys2doms = keys2doms;
+  auto cavs = separate_cavities(old_mesh, new_mesh, init_cavs, EDGE, keys2edges,
+      &bdry_keys2doms);
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (should_conserve(old_mesh, opts, dim, tagbase)) {
+      auto ncomps = tagbase->ncomps();
+      auto new_elem_densities_w = Write<Real>(new_mesh->nelems() * ncomps);
+      transfer_by_intersection(old_mesh, new_mesh, tagbase,
+          cavs[NOT_BDRY][NO_COLOR][0],
+          new_elem_densities_w);
+      transfer_by_intersection(old_mesh, new_mesh, tagbase,
+          cavs[TOUCH_BDRY][NO_COLOR][0],
+          new_elem_densities_w);
+      /* these three statements are basically transfer_inherit_coarsen */
+      auto old_data = as<Real>(tagbase)->array();
+      auto bdry_dom_data = unmap(bdry_keys2doms.ab2b, old_data, ncomps);
+      map_into(dom_data, cavs[KEY_BDRY][NO_COLOR][0].keys2new_elems.ab2b,
+          new_elem_densities_w, ncomps);
+      transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
+          same_ents2new_ents, tagbase, new_elem_densities_w);
+    }
+  }
+  op_conservation.density.this_time[NOT_BDRY] = true;
+  op_conservation.density.this_time[TOUCH_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = true;
+  op_conservation.momentum.this_time[NOT_BDRY] = false;
+  op_conservation.momentum.this_time[TOUCH_BDRY] = false;
+  op_conservation.momentum.this_time[KEY_BDRY] = false;
+  transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
+      same_ents2old_ents, same_ents2new_ents,
       conserves_size, conserves_mass, conserves_momentum);
 }
 
