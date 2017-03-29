@@ -133,8 +133,6 @@ static Cavs unmap_cavs(LOs a2b, Cavs c) {
 static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
     Cavs cavs, Int key_dim, LOs keys2kds, Graph* keys2doms = nullptr) {
   CavsByBdryStatus out;
-  std::cerr << "key_dim is " << key_dim << '\n';
-  std::cerr << "of " << cavs.size() << " total cavities\n";
   auto old_elems_are_bdry_i8 = get_elems_are_bdry(old_mesh);
   auto old_elems_are_bdry = array_cast<LO>(old_elems_are_bdry_i8);
   auto cavs2nbdry_elems = graph_reduce(cavs.keys2old_elems, 
@@ -142,19 +140,16 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto cavs_are_bdry = each_gt(cavs2nbdry_elems, 0);
   auto cavs_arent_bdry = invert_marks(cavs_are_bdry);
   auto int_cavs2cavs = collect_marked(cavs_arent_bdry);
-  std::cerr << "there are " << int_cavs2cavs.size() << " NOT_BDRY cavities\n";
   out[NOT_BDRY][NO_COLOR].push_back(unmap_cavs(int_cavs2cavs, cavs));
   auto kd_class_dims = old_mesh->get_array<I8>(key_dim, "class_dim");
   auto key_class_dims = unmap(keys2kds, kd_class_dims, 1);
   auto keys_are_bdry = each_lt(key_class_dims, I8(old_mesh->dim()));
   auto key_cavs2cavs = collect_marked(keys_are_bdry);
-  std::cerr << "and " << key_cavs2cavs.size() << " KEY_BDRY cavities\n";
   out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(key_cavs2cavs, cavs));
   if (keys2doms) *keys2doms = unmap_graph(key_cavs2cavs, *keys2doms);
   auto keys_arent_bdry = invert_marks(keys_are_bdry);
   auto cavs_touch_bdry = land_each(cavs_are_bdry, keys_arent_bdry);
   auto touch_cavs2cavs = collect_marked(cavs_touch_bdry);
-  std::cerr << "and " << touch_cavs2cavs.size() << " TOUCH_BDRY cavities\n";
   out[TOUCH_BDRY][NO_COLOR].push_back(unmap_cavs(touch_cavs2cavs, cavs));
   out[NOT_BDRY][CLASS_COLOR].push_back(out[NOT_BDRY][NO_COLOR][0]);
   out[TOUCH_BDRY][CLASS_COLOR].push_back(out[TOUCH_BDRY][NO_COLOR][0]);
@@ -162,7 +157,6 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto new_elem_class_ids = get_elem_class_ids(new_mesh);
   out[KEY_BDRY][CLASS_COLOR] = separate_by_color(out[KEY_BDRY][NO_COLOR][0],
       old_elem_class_ids, new_elem_class_ids);
-  std::cerr << "KEY_BDRY/CLASS_COLOR has " << out[KEY_BDRY][CLASS_COLOR].size() << " graph pairs\n";
   out[NOT_BDRY][CLASS_BDRY_COLOR].push_back(out[NOT_BDRY][NO_COLOR][0]);
   auto old_bdry_colors = old_elems_are_bdry;
   auto new_elems_are_bdry = get_elems_are_bdry(new_mesh);
@@ -191,9 +185,6 @@ static void carry_class_bdry_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto old_elem_errors = old_tag->array();
   auto old_cav_errors = graph_reduce(
       keys2old, old_elem_errors, ncomps, OMEGA_H_SUM);
-  std::cerr << "# old cav elems " << old_cav_errors.size() << '\n';
-  auto pickup_error = repro_sum(old_cav_errors);
-  std::cerr << "picked up error " << pickup_error << '\n';
   auto new_cav_sizes = fan_reduce(
       keys2new.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
   auto cav_error_densities = divide_each(
@@ -202,17 +193,7 @@ static void carry_class_bdry_integ_error(Mesh* old_mesh, Mesh* new_mesh,
       keys2new.a2ab, ncomps);
   auto cav_elem_errors = multiply_each(
       cav_elem_error_densities, new_cav_elem_sizes);
-  std::cerr << "# new cav elems " << cav_elem_errors.size() << '\n';
-  auto carried_error = repro_sum(cav_elem_errors);
-  std::cerr << "carried error " << carried_error << '\n';
-  auto output_before = Reals(new_elem_errors_w);
-  auto sum_before = repro_sum(output_before);
   add_into(cav_elem_errors, keys2new.ab2b, new_elem_errors_w, ncomps);
-  auto output_after = Reals(new_elem_errors_w);
-  auto sum_after = repro_sum(output_after);
-  std::cerr << "sum before: " << sum_before << '\n';
-  std::cerr << "sum after: " << sum_after << '\n';
-  std::cerr << "change in new_elem_errors_w sum: " << (sum_after - sum_before) << '\n';
 }
 
 /* given CLASS_COLOR cavities in which we expect the possibility
@@ -262,7 +243,6 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
     std::string const& error_name,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     ConservedBools conserved_bools) {
-  std::cerr << "transferring " << error_name << '\n';
   auto dim = old_mesh->dim();
   auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
   auto ncomps = old_tag->ncomps();
@@ -271,24 +251,18 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
   map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
   for (Int i = 0; i < 3; ++i) {
-    std::cerr << "bdry status " << i << '\n';
     if (!conserved_bools.this_time[i]) {
-      Int j = 0;
       for (auto class_cavs : cavs[i][CLASS_COLOR]) {
         introduce_class_integ_error(old_mesh, new_mesh,
             class_cavs, old_elem_densities, new_elem_densities,
             new_elem_errors_w);
-        ++j;
       }
     }
     if (!conserved_bools.always[i]) {
-      Int j = 0;
       for (auto bdry_cavs : cavs[i][CLASS_COLOR]) {
-        std::cerr << "carrying graph pair " << j << '\n';
         carry_class_bdry_integ_error(old_mesh, new_mesh,
             bdry_cavs, error_name,
             new_elem_errors_w);
-        ++j;
       }
     }
   }
@@ -722,7 +696,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto old_elem_momenta = multiply_each(elem_velocities, old_elem_masses);
       auto new_elem_momenta = multiply_each(elem_velocities, elem_masses);
       elem_errors_from_density = subtract_each(new_elem_momenta, old_elem_momenta);
-    //CHECK(are_close(elem_errors_from_density, Reals(elem_errors_from_density.size(), 0.0)));
       }
       auto verts2elems = mesh->ask_up(VERT, dim);
       auto vert_masses = graph_reduce(verts2elems, elem_masses, 1, OMEGA_H_SUM);
