@@ -13,11 +13,11 @@ static Reals get_first_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto z = p[2];
     auto h = vector_3(0.1, 0.1, h0 + 2 * (0.1 - h0) * fabs(z - 0.5));
-    auto m = diagonal(metric_eigenvalues(h));
+    auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(out, v, m);
   };
   parallel_for(mesh->nverts(), f);
@@ -30,7 +30,7 @@ static Reals get_second_metric(Mesh* mesh) {
   constexpr Real h0 = 0.001;
   constexpr Real h_z = 1.0 / 10.0;
   constexpr Real h_t = 1.0 / 10.0;
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
     auto y = p[1];
@@ -51,7 +51,7 @@ static Reals get_third_metric(Mesh* mesh) {
   auto out = Write<Real>(mesh->nverts() * symm_ncomps(dim));
   constexpr Real h0 = 0.001;
   constexpr Real h_z = 1.0 / 10.0;
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
     auto y = p[1];
