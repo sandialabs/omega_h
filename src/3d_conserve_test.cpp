@@ -18,8 +18,9 @@ static void check_total_mass(Mesh* mesh) {
   auto sizes = mesh->ask_sizes();
   auto masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
-  std::cerr << "TOTAL MASS " <<  get_sum(mesh->comm(), owned_masses) << '\n';
-  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
+  auto total_mass = get_sum(mesh->comm(), owned_masses);
+  std::cerr << "total mass " << total_mass  << '\n';
+  OMEGA_H_CHECK(are_close(1.0, total_mass));
 }
 
 static Real get_object_mass(Mesh* mesh, Int obj) {
@@ -87,7 +88,8 @@ int main(int argc, char** argv) {
   opts.xfer_opts.integral_map["density"] = "mass";
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
-  opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+  auto mass_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE,0.1,1e-10};
+  opts.xfer_opts.integral_diffuse_map["mass"] = mass_diffuse;
   opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
   std::cout << std::scientific << std::setprecision(17);
   std::cerr << std::scientific << std::setprecision(17);
