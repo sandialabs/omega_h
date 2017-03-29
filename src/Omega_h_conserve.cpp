@@ -689,6 +689,31 @@ static Real get_object_error(Mesh* mesh, Int obj) {
   return repro_sum(mesh->comm(), obj_errors);
 }
 
+void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
+  auto xfer_opts = opts.xfer_opts;
+  auto dim = mesh->dim();
+  for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
+    auto tagbase = mesh->get_tag(dim, tagi);
+    if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
+      auto density_name = tagbase->name();
+      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
+      auto error_name = integral_name + "_error";
+      auto ncomps = tagbase->ncomps();
+      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems(), 0.0));
+    }
+  }
+  for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
+    auto tagbase = mesh->get_tag(VERT, tagi);
+    if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
+      auto velocity_name = tagbase->name();
+      auto momentum_name = xfer_opts.velocity_momentum_map.find(velocity_name)->second;
+      auto error_name = momentum_name + "_error";
+      auto ncomps = tagbase->ncomps();
+      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems(), 0.0));
+    }
+  }
+}
+
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   if (!should_conserve_any(mesh, xfer_opts)) return;
