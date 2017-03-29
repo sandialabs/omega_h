@@ -91,8 +91,6 @@ int main(int argc, char** argv) {
   auto mass_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE,0.1,1e-10};
   opts.xfer_opts.integral_diffuse_map["mass"] = mass_diffuse;
   opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
-  std::cout << std::scientific << std::setprecision(17);
-  std::cerr << std::scientific << std::setprecision(17);
   adapt(&mesh, opts);
   check_total_mass(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {

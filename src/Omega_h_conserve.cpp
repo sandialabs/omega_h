@@ -696,7 +696,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto diffuse_tol = xfer_opts.integral_diffuse_map.find(momentum_name)->second;
       elem_errors = diffuse_elem_error(mesh, diffusion_graph, elem_errors, ncomps,
           diffuse_tol, error_name, verbose);
-      auto total_error = repro_sum(get_component(elem_errors, ncomps, 2));
       auto out = deep_copy(vert_velocities);
       auto f = LAMBDA(LO v) {
         auto v_flags = all_flags[v];
