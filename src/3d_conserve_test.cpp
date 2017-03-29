@@ -18,6 +18,7 @@ static void check_total_mass(Mesh* mesh) {
   auto sizes = mesh->ask_sizes();
   auto masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
+  std::cerr << "TOTAL MASS " <<  get_sum(mesh->comm(), owned_masses) << '\n';
   OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
 }
 
@@ -88,6 +89,8 @@ int main(int argc, char** argv) {
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
   opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
   opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
+  std::cout << std::scientific << std::setprecision(17);
+  std::cerr << std::scientific << std::setprecision(17);
   adapt(&mesh, opts);
   check_total_mass(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
