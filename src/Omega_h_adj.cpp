@@ -456,7 +456,10 @@ Graph elements_across_sides(
     Int n = 0;
     for (auto elem_side = begin; elem_side < end; ++elem_side) {
       auto side = elem_side2side[elem_side];
-      n += !side_is_exposed[side];
+      if (!side_is_exposed[side]) {
+        CHECK(side2side_elems[side + 1] - side2side_elems[side] == 2);
+        ++n;
+      }
     }
     degrees[elem] = n;
   };

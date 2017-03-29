@@ -594,21 +594,39 @@ static Graph get_elem_diffusion_graph(Mesh* mesh) {
   auto dim = mesh->dim();
   OMEGA_H_CHECK(mesh->owners_have_all_upward(dim - 1));
   auto side_class_dims = mesh->get_array<I8>(dim - 1, "class_dim");
-  auto sides_are_int = each_eq_to(side_class_dims, I8(dim));
-  auto sides_are_bdry = invert_marks(sides_are_int);
+  auto sides_are_bdry = each_lt(side_class_dims, I8(dim));
+  if (mesh->comm()->size() > 1) {
+    /* in a parallel mesh we need to mark the mesh sides on partition
+       boundaries as stopping points as well, otherwise graph construction
+       will try to reach across them.
+       ghosted elements will make redudant, erroneous computations
+       that will be overwritten by their owned copy */
+    sides_are_bdry = lor_each(sides_are_bdry, mark_exposed_sides(mesh));
+  }
   auto elems2sides = mesh->ask_down(dim, dim - 1);
   auto sides2elems = mesh->ask_up(dim - 1, dim);
   return elements_across_sides(dim, elems2sides, sides2elems, sides_are_bdry);
 }
 
-static Reals diffuse_elem_error_once(Mesh* mesh, Graph g, Reals x, Int ncomps) {
-  auto out = deep_copy(x);
+static Reals diffuse_densities_once(Mesh* mesh, Graph g, Reals densities, Int ncomps) {
+  auto out = deep_copy(densities);
   auto max_deg = mesh->dim() + 1;
+  auto sizes = mesh->ask_sizes();
   auto f = OMEGA_H_LAMBDA(LO e) {
+    auto s = sizes[e];
     for (auto ee = g.a2ab[e]; ee < g.a2ab[e + 1]; ++ee) {
       auto oe = g.ab2b[ee];
+      auto os = sizes[oe];
+      auto mins = min2(s, os);
+      /* get difference in densities, multiply by (mins / max_deg)
+         to get a mass value that is below the stable limit,
+         then divide that mass value by (s) to get the density
+         delta to add to this density */
+      auto factor = mins / (s * max_deg);
       for (Int c = 0; c < ncomps; ++c) {
-        out[e * ncomps + c] += (x[oe * ncomps + c] - x[e * ncomps + c]) / max_deg;
+        auto x = densities[e * ncomps + c];
+        auto ox = densities[oe * ncomps + c];
+        out[e * ncomps + c] += (ox - x) * factor;
       }
     }
   };
@@ -616,32 +634,32 @@ static Reals diffuse_elem_error_once(Mesh* mesh, Graph g, Reals x, Int ncomps) {
   return mesh->sync_array(mesh->dim(), Reals(out), ncomps);
 }
 
-static Reals diffuse_elem_error(Mesh* mesh, Graph g, Reals x, Int ncomps,
+static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities, Int ncomps,
     VarCompareOpts opts, std::string const& name, bool verbose) {
-  if (opts.kind == VarCompareOpts::NONE) return x;
+  if (opts.kind == VarCompareOpts::NONE) return densities;
   Int niters = 0;
   while (1) {
-    auto new_x = diffuse_elem_error_once(mesh, g, x, ncomps);
+    auto new_densities = diffuse_densities_once(mesh, g, densities, ncomps);
     ++niters;
     auto comparison_verbose = false;
-    auto done = compare_arrays(
-          mesh->comm(), new_x, x, opts, ncomps, mesh->dim(), comparison_verbose);
-    x = new_x;
+    auto done = compare_arrays(mesh->comm(), new_densities, densities, opts,
+        ncomps, mesh->dim(), comparison_verbose);
+    densities = new_densities;
     if (done) break;
   }
   if (verbose && !mesh->comm()->rank()) {
     std::cout << "diffused " << name << " in " << niters << " iterations\n";
   }
-  return x;
+  return densities;
 }
 
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   if (!should_conserve_any(mesh, xfer_opts)) return;
-  vtk::write_vtu("before_correct.vtu", mesh, mesh->dim());
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto verbose = opts.verbosity > SILENT;
   auto diffusion_graph = get_elem_diffusion_graph(mesh);
+  auto elem_sizes = mesh->ask_sizes();
   auto dim = mesh->dim();
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
@@ -651,19 +669,17 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto error_name = integral_name + "_error";
       auto ncomps = tagbase->ncomps();
       auto errors = mesh->get_array<Real>(dim, error_name);
+      auto error_densities = divide_each(errors, elem_sizes);
       auto diffuse_tol = xfer_opts.integral_diffuse_map.find(integral_name)->second;
-      errors = diffuse_elem_error(mesh, diffusion_graph, errors, ncomps, diffuse_tol,
-          error_name, verbose);
+      error_densities = diffuse_densities(mesh, diffusion_graph, error_densities,
+          ncomps, diffuse_tol, error_name, verbose);
       auto old_densities = mesh->get_array<Real>(dim, density_name);
       mesh->add_tag(dim, std::string("old_") + density_name, ncomps, old_densities);
-      auto sizes = mesh->ask_sizes();
-      auto corrections = divide_each(errors, sizes);
-      auto new_densities = subtract_each(old_densities, corrections);
+      auto new_densities = subtract_each(old_densities, error_densities);
       mesh->set_tag(dim, density_name, new_densities);
       mesh->remove_tag(dim, error_name);
     }
   }
-  vtk::write_vtu("after_density_correct.vtu", mesh, mesh->dim());
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
     if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
@@ -672,7 +688,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto momentum_name = xfer_opts.velocity_momentum_map.find(velocity_name)->second;
       auto density_name = xfer_opts.velocity_density_map.find(velocity_name)->second;
       auto error_name = momentum_name + "_error";
-      auto elem_sizes = mesh->ask_sizes();
       auto elem_densities = mesh->get_array<Real>(dim, density_name);
       auto elem_masses = multiply_each(elem_densities, elem_sizes);
       auto vert_velocities = mesh->get_array<Real>(VERT, velocity_name);
@@ -693,9 +708,11 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto all_flags = get_comps_are_fixed(mesh);
       auto elem_errors = mesh->get_array<Real>(dim, error_name);
       elem_errors = add_each(elem_errors, elem_errors_from_density);
+      auto error_densities = divide_each(elem_errors, elem_sizes);
       auto diffuse_tol = xfer_opts.integral_diffuse_map.find(momentum_name)->second;
-      elem_errors = diffuse_elem_error(mesh, diffusion_graph, elem_errors, ncomps,
+      error_densities = diffuse_densities(mesh, diffusion_graph, error_densities, ncomps,
           diffuse_tol, error_name, verbose);
+      elem_errors = multiply_each(error_densities, elem_sizes);
       auto out = deep_copy(vert_velocities);
       auto f = LAMBDA(LO v) {
         auto v_flags = all_flags[v];
