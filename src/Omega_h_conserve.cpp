@@ -664,7 +664,7 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
       auto integral_name = xfer_opts.integral_map.find(density_name)->second;
       auto error_name = integral_name + "_error";
       auto ncomps = tagbase->ncomps();
-      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems(), 0.0));
+      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems() * ncomps, 0.0));
     }
   }
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
@@ -674,7 +674,7 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
       auto momentum_name = xfer_opts.velocity_momentum_map.find(velocity_name)->second;
       auto error_name = momentum_name + "_error";
       auto ncomps = tagbase->ncomps();
-      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems(), 0.0));
+      mesh->add_tag(dim, error_name, ncomps, Reals(mesh->nelems() * ncomps, 0.0));
     }
   }
 }
