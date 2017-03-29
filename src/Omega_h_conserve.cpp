@@ -131,6 +131,8 @@ static Cavs unmap_cavs(LOs a2b, Cavs c) {
 static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
     Cavs cavs, Int key_dim, LOs keys2kds, Graph* keys2doms = nullptr) {
   CavsByBdryStatus out;
+  std::cerr << "key_dim is " << key_dim << '\n';
+  std::cerr << "of " << cavs.size() << " total cavities\n";
   auto old_elems_are_bdry_i8 = get_elems_are_bdry(old_mesh);
   auto old_elems_are_bdry = array_cast<LO>(old_elems_are_bdry_i8);
   auto cavs2nbdry_elems = graph_reduce(cavs.keys2old_elems, 
@@ -138,16 +140,23 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto cavs_are_bdry = each_gt(cavs2nbdry_elems, 0);
   auto cavs_arent_bdry = invert_marks(cavs_are_bdry);
   auto int_cavs2cavs = collect_marked(cavs_arent_bdry);
+  std::cerr << "there are " << int_cavs2cavs.size() << " NOT_BDRY cavities\n";
   out[NOT_BDRY][NO_COLOR].push_back(unmap_cavs(int_cavs2cavs, cavs));
   auto kd_class_dims = old_mesh->get_array<I8>(key_dim, "class_dim");
-  auto keys_class_dims = unmap(keys2kds, kd_class_dims, 1);
-  auto keys_are_bdry = each_lt(keys_class_dims, I8(old_mesh->dim()));
+  auto key_class_dims = unmap(keys2kds, kd_class_dims, 1);
+  for (LO i = 0; i < key_class_dims.size(); ++i) {
+    std::cerr << ' ' << Int(key_class_dims[i]);
+  }
+  std::cerr << '\n';
+  auto keys_are_bdry = each_lt(key_class_dims, I8(old_mesh->dim()));
   auto key_cavs2cavs = collect_marked(keys_are_bdry);
+  std::cerr << "and " << key_cavs2cavs.size() << " KEY_BDRY cavities\n";
   out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(key_cavs2cavs, cavs));
   if (keys2doms) *keys2doms = unmap_graph(key_cavs2cavs, *keys2doms);
   auto keys_arent_bdry = invert_marks(keys_are_bdry);
   auto cavs_touch_bdry = land_each(cavs_are_bdry, keys_arent_bdry);
   auto touch_cavs2cavs = collect_marked(cavs_touch_bdry);
+  std::cerr << "and " << touch_cavs2cavs.size() << " TOUCH_BDRY cavities\n";
   out[TOUCH_BDRY][NO_COLOR].push_back(unmap_cavs(touch_cavs2cavs, cavs));
   out[NOT_BDRY][CLASS_COLOR].push_back(out[NOT_BDRY][NO_COLOR][0]);
   out[TOUCH_BDRY][CLASS_COLOR].push_back(out[TOUCH_BDRY][NO_COLOR][0]);
@@ -155,6 +164,7 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto new_elem_class_ids = get_elem_class_ids(new_mesh);
   out[KEY_BDRY][CLASS_COLOR] = separate_by_color(out[KEY_BDRY][NO_COLOR][0],
       old_elem_class_ids, new_elem_class_ids);
+  std::cerr << "KEY_BDRY/CLASS_COLOR has " << out[KEY_BDRY][CLASS_COLOR].size() << " graph pairs\n";
   out[NOT_BDRY][CLASS_BDRY_COLOR].push_back(out[NOT_BDRY][NO_COLOR][0]);
   auto old_bdry_colors = old_elems_are_bdry;
   auto new_elems_are_bdry = get_elems_are_bdry(new_mesh);
@@ -241,6 +251,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
     std::string const& error_name,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     ConservedBools conserved_bools) {
+  std::cerr << "transferring " << error_name << "!\n";
   auto dim = old_mesh->dim();
   auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
   auto ncomps = old_tag->ncomps();
@@ -250,10 +261,13 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
   for (Int i = 0; i < 3; ++i) {
     if (!conserved_bools.this_time[i]) {
+      Int j = 0;
       for (auto class_cavs : cavs[i][CLASS_COLOR]) {
+        std::cerr << "introducing integral error for entry " << j << " in " << i << "/CLASS_COLOR\n";
         introduce_class_integ_error(old_mesh, new_mesh,
             class_cavs, old_elem_densities, new_elem_densities,
             new_elem_errors_w);
+        ++j;
       }
     }
     if (!conserved_bools.always[i]) {
@@ -474,7 +488,7 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh
   OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;
-  op_conservation.density.this_time[KEY_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = false;
   op_conservation.momentum.this_time[NOT_BDRY] = false;
   op_conservation.momentum.this_time[TOUCH_BDRY] = false;
   op_conservation.momentum.this_time[KEY_BDRY] = false;
@@ -518,7 +532,7 @@ void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_m
   OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;
-  op_conservation.density.this_time[KEY_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = false;
   op_conservation.momentum.this_time[NOT_BDRY] = false;
   op_conservation.momentum.this_time[TOUCH_BDRY] = false;
   op_conservation.momentum.this_time[KEY_BDRY] = false;
@@ -679,7 +693,6 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
   }
 }
 
-#if 0
 static Real get_object_error(Mesh* mesh, Int obj) {
   auto errors = mesh->get_array<Real>(mesh->dim(), "mass_error");
   auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
@@ -688,7 +701,6 @@ static Real get_object_error(Mesh* mesh, Int obj) {
   auto obj_errors = unmap(obj_elems, errors, 1);
   return repro_sum(mesh->comm(), obj_errors);
 }
-#endif
 
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
@@ -706,14 +718,12 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto error_name = integral_name + "_error";
       if (!mesh->has_tag(dim, error_name)) continue;
       auto errors = mesh->get_array<Real>(dim, error_name);
-#if 0
       std::cerr << "obj 72 mass_error " << get_object_error(mesh, 72) << '\n';
       std::cerr << "obj 34 mass_error " << get_object_error(mesh, 34) << '\n';
-#endif
       auto densities = mesh->get_array<Real>(dim, density_name);
       auto sizes = mesh->ask_sizes();
       auto corrections = divide_each(errors, sizes);
-      densities = add_each(densities, corrections);
+      densities = subtract_each(densities, corrections);
       mesh->set_tag(dim, density_name, densities);
       mesh->remove_tag(dim, error_name);
     }

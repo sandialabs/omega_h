@@ -138,20 +138,21 @@ static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
-  bool did_anything;
-  do {
-    did_anything = false;
-    if (opts.should_refine && refine_by_size(mesh, opts)) {
-      post_rebuild(mesh, opts);
-      did_anything = true;
-    }
+//bool did_anything;
+//do {
+//  did_anything = false;
+//  if (opts.should_refine && refine_by_size(mesh, opts)) {
+//    post_rebuild(mesh, opts);
+//    did_anything = true;
+//  }
     if (opts.should_coarsen && coarsen_by_size(mesh, opts)) {
       post_rebuild(mesh, opts);
-      did_anything = true;
+//    did_anything = true;
     }
-  } while (did_anything);
+//} while (did_anything);
 }
 
+#if 0
 static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return;
   if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
@@ -192,6 +193,7 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 #endif
     satisfy_quality(mesh, opts);
 }
+#endif
 
 static void post_adapt(
     Mesh* mesh, AdaptOpts const& opts, Now t0, Now t1, Now t2, Now t3, Now t4) {
@@ -229,7 +231,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t1 = now();
   satisfy_lengths(mesh, opts);
   auto t2 = now();
-  snap_and_satisfy_quality(mesh, opts);
+//snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
   correct_integral_errors(mesh, opts);
   auto t4 = now();
