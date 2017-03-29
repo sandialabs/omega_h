@@ -658,57 +658,13 @@ static Reals diffuse_elem_error(Mesh* mesh, Graph g, Reals x, Int ncomps,
   return x;
 }
 
-static void diffuse_elem_error_tag(Mesh* mesh, Graph g,
-    std::string const& error_name, VarCompareOpts opts,
-    bool verbose) {
-  auto dim = mesh->dim();
-  auto tag = mesh->get_tag<Real>(dim, error_name);
-  auto array = tag->array();
-  auto ncomps = tag->ncomps();
-  array = diffuse_elem_error(mesh, g, array, ncomps, opts, error_name, verbose);
-  mesh->set_tag<Real>(dim, error_name, array);
-}
-
-static void diffuse_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
-  auto g = get_elem_diffusion_graph(mesh);
-  auto verbose = opts.verbosity > SILENT;
-  auto xfer_opts = opts.xfer_opts;
-  auto dim = mesh->dim();
-  for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
-    auto tagbase = mesh->get_tag(dim, tagi);
-    if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
-      auto density_name = tagbase->name();
-      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
-      auto error_name = integral_name + "_error";
-      if (!xfer_opts.integral_diffuse_map.count(integral_name)) {
-        Omega_h_fail("integral_diffuse_map[\"%s\"] doesn't exist!\n",
-            integral_name.c_str());
-      }
-      auto tol = xfer_opts.integral_diffuse_map.find(integral_name)->second;
-      diffuse_elem_error_tag(mesh, g, error_name, tol, verbose);
-    }
-  }
-  for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
-    auto tagbase = mesh->get_tag(VERT, tagi);
-    if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
-      auto momentum_name = xfer_opts.velocity_momentum_map.find(tagbase->name())->second;
-      auto error_name = momentum_name + "_error";
-      if (!xfer_opts.integral_diffuse_map.count(momentum_name)) {
-        Omega_h_fail("integral_diffuse_map[\"%s\"] doesn't exist!\n",
-            momentum_name.c_str());
-      }
-      auto tol = xfer_opts.integral_diffuse_map.find(momentum_name)->second;
-      diffuse_elem_error_tag(mesh, g, error_name, tol, verbose);
-    }
-  }
-}
-
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   if (!should_conserve_any(mesh, xfer_opts)) return;
   vtk::write_vtu("before_correct.vtu", mesh, mesh->dim());
   mesh->set_parting(OMEGA_H_GHOSTED);
-  diffuse_integral_errors(mesh, opts);
+  auto verbose = opts.verbosity > SILENT;
+  auto diffusion_graph = get_elem_diffusion_graph(mesh);
   vtk::write_vtu("after_diffuse.vtu", mesh, mesh->dim());
   auto dim = mesh->dim();
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
@@ -719,6 +675,9 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto error_name = integral_name + "_error";
       auto ncomps = tagbase->ncomps();
       auto errors = mesh->get_array<Real>(dim, error_name);
+      auto diffuse_tol = xfer_opts.integral_diffuse_map.find(integral_name)->second;
+      errors = diffuse_elem_error(mesh, diffusion_graph, errors, ncomps, diffuse_tol,
+          error_name, verbose);
       std::cerr << "obj 72 mass_error " << get_object_error(mesh, 72) << '\n';
       std::cerr << "obj 34 mass_error " << get_object_error(mesh, 34) << '\n';
       auto old_densities = mesh->get_array<Real>(dim, density_name);
@@ -759,6 +718,9 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       auto all_flags = get_comps_are_fixed(mesh);
       auto elem_errors = mesh->get_array<Real>(dim, error_name);
       elem_errors = add_each(elem_errors, elem_errors_from_density);
+      auto diffuse_tol = xfer_opts.integral_diffuse_map.find(momentum_name)->second;
+      elem_errors = diffuse_elem_error(mesh, diffusion_graph, elem_errors, ncomps,
+          diffuse_tol, error_name, verbose);
       auto total_error = repro_sum(get_component(elem_errors, ncomps, 2));
       std::cerr << "total Z error " << total_error << '\n';
       auto out = deep_copy(vert_velocities);
