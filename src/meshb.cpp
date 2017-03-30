@@ -90,6 +90,8 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   LO nelems = LO(GmfStatKwd(file, elem_kwd));
   safe_goto(file, elem_kwd);
   auto elems2verts = HostWrite<LO>(LO(nelems) * (dim + 1));
+  auto elem_class_ids = HostWrite<LO>(LO(nelems));
+  auto is_old_convention = true;
   for (LO i = 0; i < nelems; ++i) {
     GmfIndex ref;
     Few<GmfIndex, 4> tmp;
@@ -97,7 +99,8 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
       GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &ref);
     else
       GmfGetLin(file, elem_kwd, &tmp[0], &tmp[1], &tmp[2], &tmp[3], &ref);
-    OMEGA_H_CHECK(ref == GmfIndex(i + 1));
+    if (ref != GmfIndex(i + 1)) is_old_convention = false;
+    elem_class_ids[i] = LO(ref);
     for (int j = 0; j <= dim; ++j) {
       elems2verts[i * (dim + 1) + j] = LO(tmp[j] - 1);
     }
@@ -106,6 +109,13 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   build_from_elems2verts(mesh, dim, LOs(elems2verts.write()), LO(nverts));
   mesh->add_tag(VERT, "coordinates", dim, OMEGA_H_LINEAR_INTERP,
       OMEGA_H_DO_OUTPUT, Reals(coords.write()));
+  if (is_old_convention) {
+    mesh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT,
+      OMEGA_H_DO_OUTPUT, LOs(LO(nelems), 1));
+  } else {
+    mesh->add_tag(dim, "class_id", 1, OMEGA_H_INHERIT,
+      OMEGA_H_DO_OUTPUT, LOs(elem_class_ids.write()));
+  }
   classify_equal_order(
       mesh, dim - 1, sides2verts.write(), sides2class_id.write());
   finalize_classification(mesh);
@@ -156,9 +166,10 @@ static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   auto elem_kwd = simplex_kwds[dim];
   auto nelems = mesh->nelems();
   auto elems2verts = HostRead<LO>(mesh->ask_elem_verts());
+  auto elem_class_ids = HostRead<LO>(mesh->get_array<LO>(dim, "class_id"));
   GmfSetKwd(file, elem_kwd, GmfLine(nelems));
   for (LO i = 0; i < nelems; ++i) {
-    auto ref = GmfIndex(i + 1);
+    auto ref = GmfIndex(elem_class_ids[i]);
     Few<GmfIndex, 4> tmp;
     for (int j = 0; j < dim + 1; ++j) {
       tmp[j] = GmfIndex(elems2verts[i * (dim + 1) + j] + 1);
@@ -217,5 +228,5 @@ void write(Mesh* mesh, const char* filepath, int version) {
   }
   Omega_h_fail("unknown libMeshb version %d when writing\n", version);
 }
-}
-}
+}  // namespace meshb
+}  // namespace Omega_h
