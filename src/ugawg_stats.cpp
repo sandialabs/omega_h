@@ -30,7 +30,7 @@ static Reals get_cube_cylinder_shock_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
   constexpr Real h0 = 0.001;
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto z = p[2];
     auto h = vector_3(0.1, 0.1, h0 + 2 * (0.1 - h0) * fabs(z - 0.5));
@@ -45,14 +45,40 @@ static Reals get_cube_cylinder_layer_metric(Mesh* mesh) {
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
   constexpr Real h0 = 0.001;
-  auto f = LAMBDA(LO v) {
+  constexpr Real h_z = 1.0 / 10.0;
+  constexpr Real h_t = 1.0 / 10.0;
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto x = p[0];
     auto y = p[1];
     auto xy = vector_2(x, y);
     auto radius = norm(xy);
     auto t = atan2(y, x);
-    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), 0.1, 0.1);
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
+    auto rotation = rotate(t, vector_3(0, 0, 1));
+    auto m = compose_metric(rotation, h);
+    set_symm(out, v, m);
+  };
+  parallel_for(mesh->nverts(), f);
+  return out;
+}
+
+static Reals get_cube_cylinder_quality_layer_metric(Mesh* mesh) {
+  auto coords = mesh->coords();
+  auto out = Write<Real>(mesh->nverts() * symm_dofs(dim));
+  constexpr Real h0 = 0.001;
+  constexpr Real h_z = 1.0 / 10.0;
+  auto f = OMEGA_H_LAMBDA(LO v) {
+    auto p = get_vector<dim>(coords, v);
+    auto x = p[0];
+    auto y = p[1];
+    auto xy = vector_2(x, y);
+    auto radius = norm(xy);
+    auto t = atan2(y, x);
+    auto d = (0.6 - radius) * 10.0;
+    Real h_t = (d < 0.0) ? (1.0 / 10.0)
+                         : (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
     set_symm(out, v, m);
@@ -65,11 +91,14 @@ static Reals get_metric(Mesh* mesh, std::string const& name) {
   if (name == "cube-linear") {
     return get_cube_linear_metric(mesh);
   }
-  if (name == "cube-cylinder-shock") {
+  if (name == "cube-cylinder-linear") {
     return get_cube_cylinder_shock_metric(mesh);
   }
-  if (name == "cube-cylinder-layer") {
+  if (name == "cube-cylinder-polar-1") {
     return get_cube_cylinder_layer_metric(mesh);
+  }
+  if (name == "cube-cylinder-polar-2") {
+    return get_cube_cylinder_quality_layer_metric(mesh);
   }
   Omega_h_fail("no UGAWG metric named %s\n", name.c_str());
 }
@@ -80,7 +109,7 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("input.mesh[b]");
   auto& mflag = cmdline.add_flag("-m",
       "REQUIRED!\n    one of "
-      "cube-linear,cube-cylinder-shock,cube-cylinder-layer");
+      "cube-linear,cube-cylinder-linear,cube-cylinder-polar-1,cube-cylinder-polar-2");
   mflag.add_arg<std::string>("metric");
   auto& hflag = cmdline.add_flag("-h", "domain of length histogram");
   hflag.add_arg<double>("length-histogram-min");
@@ -128,8 +157,7 @@ int main(int argc, char** argv) {
     std::cout << "mesh has " << mesh.nents(i) << ' ' << plural_names[i] << '\n';
   }
   auto metrics = get_metric(&mesh, metric_name);
-  mesh.add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC,
-      OMEGA_H_DO_OUTPUT, metrics);
+  mesh.add_tag(VERT, "metric", symm_dofs(dim), OMEGA_H_METRIC, OMEGA_H_DO_OUTPUT, metrics);
   print_adapt_status(&mesh, opts);
   print_adapt_histograms(&mesh, opts);
   return 0;
