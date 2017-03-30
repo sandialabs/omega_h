@@ -1,7 +1,11 @@
 #ifndef OMEGA_H_CMDLINE_HPP
 #define OMEGA_H_CMDLINE_HPP
 
-#include "Omega_h.hpp"
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <Omega_h_comm.hpp>
 
 namespace Omega_h {
 

@@ -7,7 +7,6 @@
 #include "indset.hpp"
 #include "modify.hpp"
 #include "swap.hpp"
-#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
@@ -16,10 +15,6 @@ static bool swap3d_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto edges_are_cands = mesh->get_array<I8>(EDGE, "candidate");
   mesh->remove_tag(EDGE, "candidate");
   auto cands2edges = collect_marked(edges_are_cands);
-  if (has_fixed_momentum_velocity(mesh, opts.xfer_opts)) {
-    auto keep_cands = filter_swap_momentum_velocity(mesh, cands2edges);
-    filter_swap(keep_cands, &cands2edges);
-  }
   auto cand_quals = Reals();
   auto cand_configs = Read<I8>();
   swap3d_qualities(mesh, opts, cands2edges, &cand_quals, &cand_configs);
@@ -83,7 +78,6 @@ bool swap_edges_3d(Mesh* mesh, AdaptOpts const& opts) {
   if (!swap3d_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   swap3d_element_based(mesh, opts);
-  do_momentum_velocity_part2(mesh, opts.xfer_opts);
   return true;
 }
 

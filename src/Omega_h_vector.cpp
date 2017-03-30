@@ -5,8 +5,7 @@ namespace Omega_h {
 
 template <Int dim>
 static Reals get_vector_norms_tmpl(Reals vs) {
-  OMEGA_H_CHECK(vs.size() % dim == 0);
-  auto n = vs.size() / dim;
+  auto n = divide_no_remainder(vs.size(), dim);
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) { out[i] = norm(get_vector<dim>(vs, i)); };
   parallel_for(n, f);
@@ -25,8 +24,7 @@ Reals get_vector_norms(Reals vs, Int dim) {
 
 template <Int dim>
 static Reals normalize_vectors_tmpl(Reals vs) {
-  OMEGA_H_CHECK(vs.size() % dim == 0);
-  auto n = vs.size() / dim;
+  auto n = divide_no_remainder(vs.size(), dim);
   auto out = Write<Real>(vs.size());
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_vector<dim>(out, i, normalize(get_vector<dim>(vs, i)));
@@ -46,8 +44,7 @@ Reals normalize_vectors(Reals vs, Int dim) {
 }
 
 Reals resize_vectors(Reals old_vectors, Int old_dim, Int new_dim) {
-  OMEGA_H_CHECK(old_vectors.size() % old_dim == 0);
-  auto nv = old_vectors.size() / old_dim;
+  auto nv = divide_no_remainder(old_vectors.size(), old_dim);
   Write<Real> new_vectors(nv * new_dim);
   auto min_dim = min2(old_dim, new_dim);
   auto f = OMEGA_H_LAMBDA(Int i) {

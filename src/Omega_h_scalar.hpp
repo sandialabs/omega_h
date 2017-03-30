@@ -215,6 +215,12 @@ OMEGA_H_INLINE bool are_close(
   return rel_diff_with_floor(a, b, floor) <= tol;
 }
 
+template <typename T>
+T divide_no_remainder(T a, T b) {
+  OMEGA_H_CHECK(a % b == 0);
+  return a / b;
+}
+
 }  // namespace Omega_h
 
 #endif

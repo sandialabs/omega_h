@@ -48,7 +48,7 @@ set(Omega_h_SOURCES
   modify.cpp
   refine.cpp
   Omega_h_transfer.cpp
-  transfer_conserve.cpp
+  Omega_h_conserve.cpp
   Omega_h_compare.cpp
   check_collapse.cpp
   coarsen_qualities.cpp

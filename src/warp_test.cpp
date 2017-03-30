@@ -44,12 +44,12 @@ static void add_pointwise(Mesh* mesh) {
   mesh->add_tag(mesh->dim(), "pointwise", 1, data);
 }
 
-static void postprocess_conserve(Mesh* mesh) {
-  auto volume = measure_elements_real(mesh);
-  auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
-  CHECK(are_close(1.0, get_sum(mesh->comm(), mass)));
-  auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1, density);
+static void check_total_mass(Mesh* mesh) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
+  auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
+  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
 }
 
 static void postprocess_pointwise(Mesh* mesh) {
@@ -77,12 +77,14 @@ int main(int argc, char** argv) {
   auto metrics = find_implied_isos(&mesh);
   mesh.add_tag(VERT, "metric", 1, metrics);
   add_dye(&mesh);
-  mesh.add_tag(mesh.dim(), "mass", 1, measure_elements_real(&mesh));
+  mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
   add_pointwise(&mesh);
   auto opts = AdaptOpts(&mesh);
-  opts.xfer_opts.type_map["mass"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.integral_map["density"] = "mass";
   opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
   opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
+  opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
@@ -119,7 +121,7 @@ int main(int argc, char** argv) {
   if (mesh.comm()->rank() == 0) {
     std::cout << "test took " << (t1 - t0) << " seconds\n";
   }
-  postprocess_conserve(&mesh);
+  check_total_mass(&mesh);
   postprocess_pointwise(&mesh);
   bool ok = check_regression("gold_warp", &mesh);
   if (!ok) return 2;

@@ -7,15 +7,9 @@
 #include "fit.hpp"
 #include "quality.hpp"
 #include "Omega_h_shape.hpp"
-#include "transfer_conserve.hpp"
+#include "Omega_h_conserve.hpp"
 
 namespace Omega_h {
-
-bool is_transfer_ok(
-    XferOpts const& opts, std::string const& name, Omega_h_Xfer type) {
-  if (!opts.type_map.count(name)) return true;
-  return opts.type_map.find(name)->second == type;
-}
 
 bool is_transfer_required(
     XferOpts const& opts, std::string const& name, Omega_h_Xfer type) {
@@ -67,6 +61,7 @@ bool should_conserve(
 }
 
 bool should_conserve_any(Mesh* mesh, XferOpts const& opts) {
+  if (opts.should_conserve_size) return true;
   auto dim = mesh->dim();
   for (Int i = 0; i < mesh->ntags(dim); ++i) {
     if (should_conserve(mesh, opts, dim, mesh->get_tag(dim, i))) {
@@ -92,11 +87,13 @@ bool is_momentum_velocity(
   if (!is_transfer_required(opts, name, OMEGA_H_MOMENTUM_VELOCITY)) {
     return false;
   }
-  if (!opts.momentum_map.count(name)) return false;
-  auto const& mass_name = opts.momentum_map.find(name)->second;
-  if (!mesh->has_tag(mesh->dim(), mass_name)) return false;
-  auto mass = mesh->get_tagbase(mesh->dim(), mass_name);
-  if (!(mass->type() == OMEGA_H_REAL && mass->ncomps() == 1)) return false;
+  /* TODO: move this code to some kind of verification at the start of adapt() */
+  if (!opts.velocity_momentum_map.count(name)) return false;
+  if (!opts.velocity_density_map.count(name)) return false;
+  auto const& density_name = opts.velocity_density_map.find(name)->second;
+  if (!mesh->has_tag(mesh->dim(), density_name)) return false;
+  auto density = mesh->get_tagbase(mesh->dim(), density_name);
+  if (!(density->type() == OMEGA_H_REAL && density->ncomps() == 1)) return false;
   return dim == VERT && tag->type() == OMEGA_H_REAL &&
          tag->ncomps() == mesh->dim();
 }
@@ -244,34 +241,42 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
       same_ents2new_ents, prods2new_ents, old_tag, Read<T>(prod_data));
 }
 
+void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+    Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, TagBase const* tagbase) {
+  switch (tagbase->type()) {
+    case OMEGA_H_I8:
+      transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+    case OMEGA_H_I32:
+      transfer_inherit_refine<I32>(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+    case OMEGA_H_I64:
+      transfer_inherit_refine<I64>(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+    case OMEGA_H_F64:
+      transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges,
+          prod_dim, keys2prods, prods2new_ents, same_ents2old_ents,
+          same_ents2new_ents, tagbase->name());
+      break;
+  }
+}
+
 static void transfer_inherit_refine(Mesh* old_mesh, XferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if (should_inherit(old_mesh, opts, prod_dim, tagbase)) {
-      switch (tagbase->type()) {
-        case OMEGA_H_I8:
-          transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,
-              keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-        case OMEGA_H_I32:
-          transfer_inherit_refine<I32>(old_mesh, new_mesh, keys2edges, prod_dim,
-              keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-        case OMEGA_H_I64:
-          transfer_inherit_refine<I64>(old_mesh, new_mesh, keys2edges, prod_dim,
-              keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-        case OMEGA_H_F64:
-          transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges,
-              prod_dim, keys2prods, prods2new_ents, same_ents2old_ents,
-              same_ents2new_ents, tagbase->name());
-          break;
-      }
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase);
     }
   }
 }
@@ -283,9 +288,9 @@ static void transfer_pointwise_refine(Mesh* old_mesh, XferOpts const& opts,
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_fit(old_mesh, opts, dim, tagbase)) {
-      transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges, dim,
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, dim,
           keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-          tagbase->name());
+          tagbase);
     }
   }
 }
@@ -537,12 +542,10 @@ void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve(old_mesh, opts, new_mesh, VERT, keys2verts,
-        keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    do_momentum_velocity_part1(old_mesh, opts, new_mesh, VERT, keys2verts,
-        keys2doms.a2ab, prods2new_ents);
+    transfer_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts,
+        keys2doms, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);
@@ -657,12 +660,10 @@ void transfer_swap(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    do_momentum_velocity_part1(
-        old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
+    transfer_conserve_swap(old_mesh, opts, new_mesh, keys2edges, keys2prods,
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);

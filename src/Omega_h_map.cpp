@@ -8,6 +8,19 @@
 namespace Omega_h {
 
 template <typename T>
+void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
+  auto na = a2b.size();
+  CHECK(a_data.size() == na * width);
+  auto f = LAMBDA(LO a) {
+    auto b = a2b[a];
+    for (Int j = 0; j < width; ++j) {
+      b_data[b * width + j] += a_data[a * width + j];
+    }
+  };
+  parallel_for(na, f);
+}
+
+template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   auto na = a2b.size();
   CHECK(a_data.size() == na * width);
@@ -236,6 +249,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
 }
 
 #define INST_T(T)                                                              \
+  template void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
   template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \

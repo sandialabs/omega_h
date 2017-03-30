@@ -134,8 +134,7 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
     CHECK(a.size() == 0);
     return a;
   }
-  CHECK(a.size() % b.size() == 0);
-  auto width = a.size() / b.size();
+  auto width = divide_no_remainder(a.size(), b.size());
   Write<T> c(a.size());
   auto f = LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
@@ -152,8 +151,7 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
     CHECK(a.size() == 0);
     return a;
   }
-  CHECK(a.size() % b.size() == 0);
-  auto width = a.size() / b.size();
+  auto width = divide_no_remainder(a.size(), b.size());
   Write<T> c(a.size());
   auto f = LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
@@ -162,6 +160,14 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
   };
   parallel_for(b.size(), f);
   return c;
+}
+
+template <typename T>
+Read<T> divide_each_by(T factor, Read<T> a) {
+  Write<T> b(a.size());
+  auto f = LAMBDA(LO i) { b[i] = a[i] / factor; };
+  parallel_for(a.size(), f);
+  return b;
 }
 
 template <typename T>
@@ -306,8 +312,7 @@ Read<I8> bit_neg_each(Read<I8> a) {
 
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
-  CHECK(a.size() % ncomps == 0);
-  Write<T> b(a.size() / ncomps);
+  Write<T> b(divide_no_remainder(a.size(), ncomps));
   auto f = LAMBDA(LO i) { b[i] = a[i * ncomps + comp]; };
   parallel_for(b.size(), f);
   return b;
@@ -415,6 +420,14 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   return out;
 }
 
+template <typename Tout, typename Tin>
+Read<Tout> array_cast(Read<Tin> in) {
+  auto out = Write<Tout>(in.size());
+  auto f = LAMBDA(LO i) { out[i] = static_cast<Tout>(in[i]); };
+  parallel_for(in.size(), f);
+  return out;
+}
+
 #define INST(T)                                                                \
   template bool operator==(Read<T> a, Read<T> b);                              \
   template typename StandinTraits<T>::type get_sum(Read<T> a);                 \
@@ -425,6 +438,7 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   template T get_max(CommPtr comm, Read<T> a);                                 \
   template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                      \
   template Read<T> multiply_each_by(T factor, Read<T> x);                      \
+  template Read<T> divide_each_by(T factor, Read<T> x);               \
   template Read<T> multiply_each(Read<T> a, Read<T> b);                        \
   template Read<T> divide_each(Read<T> a, Read<T> b);                          \
   template Read<T> add_each(Read<T> a, Read<T> b);                             \
@@ -447,5 +461,8 @@ INST(I32)
 INST(I64)
 INST(Real)
 #undef INST
+
+template Read<Real> array_cast(Read<I32>);
+template Read<I32> array_cast(Read<I8>);
 
 }  // end namespace Omega_h

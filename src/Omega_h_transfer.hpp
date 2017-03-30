@@ -5,8 +5,6 @@
 
 namespace Omega_h {
 
-bool is_transfer_ok(
-    XferOpts const& xopts, std::string const& name, Omega_h_Xfer type);
 bool is_transfer_required(
     XferOpts const& xopts, std::string const& name, Omega_h_Xfer type);
 
@@ -26,6 +24,10 @@ bool has_momentum_velocity(Mesh* mesh, XferOpts const& opts);
 void transfer_refine(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2midverts, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents);
+
+void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
+    Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, TagBase const* tagbase);
 
 void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
     LOs keys2verts, Adj keys2doms, Int prod_dim, LOs prods2new_ents,

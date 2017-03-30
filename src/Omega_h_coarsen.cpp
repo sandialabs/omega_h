@@ -8,7 +8,6 @@
 #include "collapse.hpp"
 #include "indset.hpp"
 #include "modify.hpp"
-#include "transfer_conserve.hpp"
 
 namespace Omega_h {
 
@@ -60,12 +59,6 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   /* surface exposure (classification) checks */
   cand_edge_codes = check_collapse_exposure(mesh, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
-  /* non-fixed velocity DOF check */
-  if (has_fixed_momentum_velocity(mesh, opts.xfer_opts)) {
-    cand_edge_codes =
-        filter_coarsen_momentum_velocity(mesh, cands2edges, cand_edge_codes);
-    filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
-  }
   /* edge length overshoot check */
   auto max_length = (overshoot == DESIRED) ? opts.max_length_desired
                                            : opts.max_length_allowed;
@@ -159,7 +152,6 @@ static bool coarsen(Mesh* mesh, AdaptOpts const& opts, OvershootLimit overshoot,
   }
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   coarsen_element_based2(mesh, opts);
-  do_momentum_velocity_part2(mesh, opts.xfer_opts);
   return true;
 }
 

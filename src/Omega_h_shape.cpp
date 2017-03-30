@@ -63,7 +63,7 @@ static Reals measure_elements_real_tmpl(Mesh* mesh, LOs a2e) {
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto e = a2e[a];
     auto v = gather_verts<dim + 1>(ev2v, e);
-    sizes[e] = measurer.measure(v);
+    sizes[a] = measurer.measure(v);
   };
   parallel_for(na, f);
   return sizes;
