@@ -265,7 +265,8 @@ OMEGA_H_INLINE TemplateUp up_template(
   return {-1, -1, true};
 };
 
-OMEGA_H_INLINE Int opposite_template(Int elem_dim, Int bdry_dim, Int which_bdry) {
+OMEGA_H_INLINE Int opposite_template(
+    Int elem_dim, Int bdry_dim, Int which_bdry) {
   switch (elem_dim) {
     case 3:
       switch (bdry_dim) {

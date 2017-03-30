@@ -9,8 +9,8 @@ Reals get_side_normals(Mesh* mesh, LOs surf_side2side);
 Reals get_curv_edge_tangents(Mesh* mesh, LOs curv_edge2edge);
 Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
     LOs surf_hinge2hinge, LOs side2surf_side);
-Reals get_side_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
-    LOs surf_vert2vert);
+Reals get_side_vert_normals(Mesh* mesh, LOs surf_side2side,
+    Reals surf_side_normals, LOs surf_vert2vert);
 Reals get_curv_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
     Reals curv_edge_tangents, LOs curv_vert2vert);
 Reals get_surf_tri_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,

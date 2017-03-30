@@ -1,13 +1,13 @@
 #include "Omega_h_transfer.hpp"
 
+#include "Omega_h_conserve.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_metric.hpp"
+#include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
 #include "control.hpp"
 #include "fit.hpp"
 #include "quality.hpp"
-#include "Omega_h_shape.hpp"
-#include "Omega_h_conserve.hpp"
 
 namespace Omega_h {
 
@@ -87,13 +87,15 @@ bool is_momentum_velocity(
   if (!is_transfer_required(opts, name, OMEGA_H_MOMENTUM_VELOCITY)) {
     return false;
   }
-  /* TODO: move this code to some kind of verification at the start of adapt() */
+  /* TODO: move this code to some kind of verification at the start of adapt()
+   */
   if (!opts.velocity_momentum_map.count(name)) return false;
   if (!opts.velocity_density_map.count(name)) return false;
   auto const& density_name = opts.velocity_density_map.find(name)->second;
   if (!mesh->has_tag(mesh->dim(), density_name)) return false;
   auto density = mesh->get_tagbase(mesh->dim(), density_name);
-  if (!(density->type() == OMEGA_H_REAL && density->ncomps() == 1)) return false;
+  if (!(density->type() == OMEGA_H_REAL && density->ncomps() == 1))
+    return false;
   return dim == VERT && tag->type() == OMEGA_H_REAL &&
          tag->ncomps() == mesh->dim();
 }
@@ -247,23 +249,23 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
   switch (tagbase->type()) {
     case OMEGA_H_I8:
       transfer_inherit_refine<I8>(old_mesh, new_mesh, keys2edges, prod_dim,
-          keys2prods, prods2new_ents, same_ents2old_ents,
-          same_ents2new_ents, tagbase->name());
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase->name());
       break;
     case OMEGA_H_I32:
       transfer_inherit_refine<I32>(old_mesh, new_mesh, keys2edges, prod_dim,
-          keys2prods, prods2new_ents, same_ents2old_ents,
-          same_ents2new_ents, tagbase->name());
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase->name());
       break;
     case OMEGA_H_I64:
       transfer_inherit_refine<I64>(old_mesh, new_mesh, keys2edges, prod_dim,
-          keys2prods, prods2new_ents, same_ents2old_ents,
-          same_ents2new_ents, tagbase->name());
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase->name());
       break;
     case OMEGA_H_F64:
-      transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges,
-          prod_dim, keys2prods, prods2new_ents, same_ents2old_ents,
-          same_ents2new_ents, tagbase->name());
+      transfer_inherit_refine<Real>(old_mesh, new_mesh, keys2edges, prod_dim,
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase->name());
       break;
   }
 }
@@ -288,9 +290,8 @@ static void transfer_pointwise_refine(Mesh* old_mesh, XferOpts const& opts,
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_fit(old_mesh, opts, dim, tagbase)) {
-      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, dim,
-          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-          tagbase);
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, dim, keys2prods,
+          prods2new_ents, same_ents2old_ents, same_ents2new_ents, tagbase);
     }
   }
 }
@@ -544,8 +545,8 @@ void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts,
-        keys2doms, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts, keys2doms,
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);

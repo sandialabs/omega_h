@@ -1,11 +1,11 @@
 #ifndef OMEGA_H_SIZE_HPP
 #define OMEGA_H_SIZE_HPP
 
+#include <Omega_h_adj.hpp>
+#include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
 #include <Omega_h_qr.hpp>
 #include <Omega_h_simplex.hpp>
-#include <Omega_h_adj.hpp>
-#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
 
@@ -86,7 +86,9 @@ OMEGA_H_INLINE Real triangle_area(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
 }
 
-OMEGA_H_INLINE Real element_size(Few<Vector<2>, 2> b) { return triangle_area(b); }
+OMEGA_H_INLINE Real element_size(Few<Vector<2>, 2> b) {
+  return triangle_area(b);
+}
 
 OMEGA_H_INLINE Real triangle_area(Few<Vector<3>, 2> b) {
   return norm(cross(b[0], b[1])) / 2.0;
@@ -125,7 +127,8 @@ OMEGA_H_INLINE Real metric_edge_length(
 }
 
 template <Int space_dim, Int metric_dim>
-OMEGA_H_INLINE Real metric_edge_length(Few<LO, 2> v, Reals coords, Reals metrics) {
+OMEGA_H_INLINE Real metric_edge_length(
+    Few<LO, 2> v, Reals coords, Reals metrics) {
   auto p = gather_vectors<2, space_dim>(coords, v);
   auto ms = gather_symms<2, metric_dim>(metrics, v);
   return metric_edge_length<space_dim, metric_dim>(p, ms);
@@ -294,7 +297,8 @@ OMEGA_H_INLINE Vector<3> get_side_normal(Few<Vector<3>, 4> p, Int iface) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Plane<dim> get_side_plane(Few<Vector<dim>, dim + 1> p, Int iside) {
+OMEGA_H_INLINE Plane<dim> get_side_plane(
+    Few<Vector<dim>, dim + 1> p, Int iside) {
   auto n = get_side_normal(p, iside);
   auto a = p[down_template(dim, dim - 1, iside, 0)];
   return {n, n * a};

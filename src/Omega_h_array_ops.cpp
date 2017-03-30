@@ -438,7 +438,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template T get_max(CommPtr comm, Read<T> a);                                 \
   template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                      \
   template Read<T> multiply_each_by(T factor, Read<T> x);                      \
-  template Read<T> divide_each_by(T factor, Read<T> x);               \
+  template Read<T> divide_each_by(T factor, Read<T> x);                        \
   template Read<T> multiply_each(Read<T> a, Read<T> b);                        \
   template Read<T> divide_each(Read<T> a, Read<T> b);                          \
   template Read<T> add_each(Read<T> a, Read<T> b);                             \

@@ -1,12 +1,12 @@
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
 #include "internal.hpp"
-#include "Omega_h_shape.hpp"
 
 using namespace Omega_h;
 
@@ -19,7 +19,7 @@ static void check_total_mass(Mesh* mesh) {
   auto masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
   auto total_mass = get_sum(mesh->comm(), owned_masses);
-  std::cerr << "total mass " << total_mass  << '\n';
+  std::cerr << "total mass " << total_mass << '\n';
   OMEGA_H_CHECK(are_close(1.0, total_mass));
 }
 
@@ -36,8 +36,8 @@ static Real get_object_mass(Mesh* mesh, Int obj) {
 
 static Vector<3> get_total_momentum(Mesh* mesh) {
   auto vert_velocities = mesh->get_array<Real>(VERT, "velocity");
-  auto elem_velocities = average_field(
-      mesh, mesh->dim(), mesh->dim(), vert_velocities);
+  auto elem_velocities =
+      average_field(mesh, mesh->dim(), mesh->dim(), vert_velocities);
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
   auto masses = multiply_each(densities, sizes);
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   opts.xfer_opts.integral_map["density"] = "mass";
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
-  auto mass_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE,0.1,1e-10};
+  auto mass_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE, 0.1, 1e-10};
   opts.xfer_opts.integral_diffuse_map["mass"] = mass_diffuse;
   opts.xfer_opts.integral_diffuse_map["momentum"] = VarCompareOpts::none();
   adapt(&mesh, opts);

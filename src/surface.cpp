@@ -102,8 +102,10 @@ Reals get_curv_edge_tangents_dim(Mesh* mesh, LOs curv_edge2edge) {
 }
 
 Reals get_curv_edge_tangents(Mesh* mesh, LOs curv_edge2edge) {
-  if (mesh->dim() == 3) return get_curv_edge_tangents_dim<3>(mesh, curv_edge2edge);
-  if (mesh->dim() == 2) return get_curv_edge_tangents_dim<2>(mesh, curv_edge2edge);
+  if (mesh->dim() == 3)
+    return get_curv_edge_tangents_dim<3>(mesh, curv_edge2edge);
+  if (mesh->dim() == 2)
+    return get_curv_edge_tangents_dim<2>(mesh, curv_edge2edge);
   NORETURN(Reals());
 }
 
@@ -190,8 +192,8 @@ static Reals side_vert_normal_weights(
   NORETURN(Reals());
 }
 
-Reals get_side_vert_normals(Mesh* mesh, LOs surf_side2side, Reals surf_side_normals,
-    LOs surf_vert2vert) {
+Reals get_side_vert_normals(Mesh* mesh, LOs surf_side2side,
+    Reals surf_side_normals, LOs surf_vert2vert) {
   CHECK(mesh->owners_have_all_upward(VERT));
   auto dim = mesh->dim();
   auto verts2sides = mesh->ask_up(VERT, dim - 1);
@@ -508,12 +510,12 @@ Reals get_curv_edge_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
 Reals get_curv_edge_curvatures(Mesh* mesh, LOs curv_edges2edge,
     Reals curv_edge_tangents, LOs curv_verts2vert, Reals curv_vert_tangents) {
   if (mesh->dim() == 3) {
-    return get_curv_edge_curvatures_dim<3>(mesh, curv_edges2edge, curv_edge_tangents,
-        curv_verts2vert, curv_vert_tangents);
+    return get_curv_edge_curvatures_dim<3>(mesh, curv_edges2edge,
+        curv_edge_tangents, curv_verts2vert, curv_vert_tangents);
   }
   if (mesh->dim() == 2) {
-    return get_curv_edge_curvatures_dim<2>(mesh, curv_edges2edge, curv_edge_tangents,
-        curv_verts2vert, curv_vert_tangents);
+    return get_curv_edge_curvatures_dim<2>(mesh, curv_edges2edge,
+        curv_edge_tangents, curv_verts2vert, curv_vert_tangents);
   }
   NORETURN(Reals());
 }

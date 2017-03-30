@@ -7,6 +7,8 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_shape.hpp"
+#include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
 #include "bcast.hpp"
 #include "control.hpp"
@@ -15,8 +17,6 @@
 #include "migrate.hpp"
 #include "quality.hpp"
 #include "reorder.hpp"
-#include "Omega_h_simplex.hpp"
-#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 
@@ -166,8 +166,7 @@ void Mesh::set_tag(
 
 void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   /* hardcoded cache invalidations */
-  if ((dim == VERT) &&
-      ((name == "coordinates") || (name == "metric"))) {
+  if ((dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
     if (has_tag(EDGE, "length")) {
       remove_tag(EDGE, "length");
     }

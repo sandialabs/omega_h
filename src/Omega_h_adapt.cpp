@@ -213,7 +213,7 @@ static void post_adapt(
   if (opts.verbosity > SILENT && should_conserve_any(mesh, opts.xfer_opts) &&
       !mesh->comm()->rank()) {
     std::cout << "correcting integral errors took " << (t4 - t3)
-      << " seconds\n";
+              << " seconds\n";
   }
   Now t5 = now();
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {

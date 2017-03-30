@@ -143,7 +143,8 @@ OMEGA_H_INLINE Vector<max_n> solve_using_qr(
   return x;
 }
 template <Int max_m, Int max_n>
-OMEGA_H_INLINE Vector<max_n> solve_using_qr(Matrix<max_m, max_n> a, Vector<max_m> b) {
+OMEGA_H_INLINE Vector<max_n> solve_using_qr(
+    Matrix<max_m, max_n> a, Vector<max_m> b) {
   return solve_using_qr(max_m, max_n, a, b);
 }
 

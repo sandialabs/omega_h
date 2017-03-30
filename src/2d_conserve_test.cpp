@@ -2,9 +2,9 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
+#include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
 #include "internal.hpp"
-#include "Omega_h_shape.hpp"
 
 using namespace Omega_h;
 
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
   opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
-  auto momentum_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE,0.1,1e-10};
+  auto momentum_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE, 0.1, 1e-10};
   opts.xfer_opts.integral_diffuse_map["momentum"] = momentum_diffuse;
   adapt(&mesh, opts);
   check_total_mass(&mesh);

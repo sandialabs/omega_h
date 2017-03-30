@@ -6,8 +6,8 @@
 #include <zlib.h>
 #endif
 
-#include "base64.hpp"
 #include "Omega_h_simplex.hpp"
+#include "base64.hpp"
 #include "xml.hpp"
 
 namespace Omega_h {

@@ -21,8 +21,8 @@
  */
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_mesh.hpp"
 #include "Omega_h_loop.hpp"
+#include "Omega_h_mesh.hpp"
 #include "fit.hpp"
 
 namespace Omega_h {
@@ -157,7 +157,8 @@ Reals project_by_average(Mesh* mesh, Reals e_data) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> get_simplex_jacobian(Few<Vector<dim>, dim + 1> evv2x) {
+OMEGA_H_INLINE Matrix<dim, dim> get_simplex_jacobian(
+    Few<Vector<dim>, dim + 1> evv2x) {
   Matrix<dim, dim> dx_dxi;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
