@@ -67,7 +67,6 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
       GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &ref);
     else
       GmfGetLin(file, GmfVertices, &tmp[0], &tmp[1], &tmp[2], &ref);
-    OMEGA_H_CHECK(ref == GmfIndex(i + 1));
     for (int j = 0; j < dim; ++j) coords[i * dim + j] = Real(tmp[j]);
   }
   auto side_kwd = simplex_kwds[dim - 1];
@@ -126,10 +125,17 @@ static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   auto nverts = mesh->nverts();
   GmfSetKwd(file, GmfVertices, GmfLine(nverts));
   auto coords = HostRead<Real>(mesh->coords());
+  LOs vert_refs;
+  if (mesh->has_tag(VERT, "class_id")) {
+    vert_refs = mesh->get_array<LO>(VERT, "class_id");
+  } else {
+    vert_refs = LOs(mesh->nverts(), 1);
+  }
+  auto h_vert_refs = HostRead<LO>(vert_refs);
   for (LO i = 0; i < nverts; ++i) {
     Few<GmfReal, 3> tmp;
     for (int j = 0; j < dim; ++j) tmp[j] = GmfReal(coords[i * dim + j]);
-    auto ref = GmfIndex(i + 1);
+    auto ref = GmfIndex(h_vert_refs[i]);
     if (dim == 2)
       GmfSetLin(file, GmfVertices, tmp[0], tmp[1], ref);
     else
