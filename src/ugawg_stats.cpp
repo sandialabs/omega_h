@@ -115,6 +115,9 @@ int main(int argc, char** argv) {
   auto& nflag = cmdline.add_flag("-n", "numbers of histogram bins");
   nflag.add_arg<int>("quality-histogram-bins");
   nflag.add_arg<int>("length-histogram-bins");
+  auto& fflag = cmdline.add_flag("-f", "filenames for histograms");
+  fflag.add_arg<std::string>("quality-histogram-file");
+  fflag.add_arg<std::string>("length-histogram-file");
   auto& lflag = cmdline.add_flag("-l", "range of desired lengths");
   lflag.add_arg<double>("min-desired-length");
   lflag.add_arg<double>("max-desired-length");
@@ -169,9 +172,18 @@ int main(int argc, char** argv) {
   auto qh =
     get_histogram(&mesh, mesh.dim(), opts.nquality_histogram_bins,
         0.0, 1.0, mesh.ask_qualities());
-  print_histogram(&mesh, qh, "quality");
   auto lh = get_histogram(&mesh, VERT, opts.nlength_histogram_bins,
       opts.length_histogram_min, opts.length_histogram_max, mesh.ask_lengths());
-  print_histogram(&mesh, lh, "length");
+  if (cmdline.parsed("-f")) {
+    auto qf =
+      cmdline.get<std::string>("-f", "quality-histogram-file");
+    auto lf =
+      cmdline.get<std::string>("-f", "length-histogram-file");
+    render_histogram_matplotlib(qh, qf, "elements", "quality");
+    render_histogram_matplotlib(lh, lf, "edges", "length");
+  } else {
+    print_histogram(qh, "quality");
+    print_histogram(lh, "length");
+  }
   return 0;
 }

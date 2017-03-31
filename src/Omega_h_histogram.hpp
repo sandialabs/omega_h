@@ -20,10 +20,14 @@ Histogram get_histogram(
     Mesh* mesh, Int dim, Int nbins, Real min_value, Real max_value, Reals values);
 
 void print_histogram(
-    Mesh* mesh, Histogram const& histogram, std::string const& name);
+    Histogram const& histogram, std::string const& name);
 
 void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     MinMax<Real> desired, MinMax<Real> actual);
+
+void render_histogram_matplotlib(Histogram const& histogram,
+    std::string const& filepath, std::string const& ents_name,
+    std::string const& var_name);
 
 }  // namespace Omega_h
 

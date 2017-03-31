@@ -96,10 +96,12 @@ void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
   auto qh =
       get_histogram(mesh, mesh->dim(), opts.nquality_histogram_bins,
            0.0, 1.0, mesh->ask_qualities());
-  print_histogram(mesh, qh, "quality");
   auto lh = get_histogram(mesh, VERT, opts.nlength_histogram_bins,
       opts.length_histogram_min, opts.length_histogram_max, mesh->ask_lengths());
-  print_histogram(mesh, lh, "length");
+  if (mesh->comm()->rank() == 0) {
+    print_histogram(qh, "quality");
+    print_histogram(lh, "length");
+  }
 }
 
 static void validate(Mesh* mesh, AdaptOpts const& opts) {

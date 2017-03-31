@@ -2,6 +2,8 @@
 
 #include <iomanip>
 #include <iostream>
+#include <fstream>
+#include <cstdlib>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_simplex.hpp"
@@ -27,8 +29,7 @@ Histogram get_histogram(
 }
 
 void print_histogram(
-    Mesh* mesh, Histogram const& histogram, std::string const& name) {
-  if (mesh->comm()->rank()) return;
+    Histogram const& histogram, std::string const& name) {
   std::ios saved_state(0);
   saved_state.copyfmt(std::cout);
   std::cout << std::fixed << std::setprecision(2);
@@ -72,6 +73,41 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     std::cout.flags(stream_state);
     std::cout.precision(precision_before);
   }
+}
+
+void render_histogram_matplotlib(Histogram const& histogram,
+    std::string const& filepath, std::string const& ents_name,
+    std::string const& var_name) {
+  std::ofstream script("Omega_h_histogram.py");
+  script << "#!/usr/bin/python\n";
+  script << "import matplotlib\n";
+  script << "# Force matplotlib to not use any Xwindows backend.\n";
+  script << "matplotlib.use('Agg')\n";
+  script << "import matplotlib.pyplot as plt\n";
+  auto nbins = Int(histogram.bins.size());
+  auto interval = (histogram.max - histogram.min) / Real(nbins);
+  script << "a = [";
+  for (Int i = 0; i < nbins; ++i) {
+    auto mid = (interval * i) + histogram.min + (interval / 2.0);
+    script << mid;
+    if (i + 1 < nbins) script << ", ";
+  }
+  script << "]\n";
+  script << "b = [";
+  for (Int i = 0; i < nbins; ++i) {
+    script << histogram.bins[std::size_t(i)];
+    if (i + 1 < nbins) script << ", ";
+  }
+  script << "]\n";
+  script << "plt.hist(a, " << nbins << ", weights=b";
+  script << ", range=(" << histogram.min << ", " << histogram.max << ")";
+  script << ")\n";
+  script << "plt.title('Histogram of " << ents_name << " by " << var_name
+         << "')\n";
+  script << "plt.savefig('" << filepath << "', bbox_inches='tight')\n";
+  script.close();
+  int ret = ::system("python Omega_h_histogram.py");
+  OMEGA_H_CHECK(ret == 0);
 }
 
 }  // namespace Omega_h
