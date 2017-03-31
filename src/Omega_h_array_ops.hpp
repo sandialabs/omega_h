@@ -68,6 +68,8 @@ Read<I8> each_neq_to(Read<T> a, T b);
 template <typename T>
 Read<T> min_each(Read<T> a, Read<T> b);
 template <typename T>
+Read<T> max_each(Read<T> a, Read<T> b);
+template <typename T>
 Read<T> each_max_with(Read<T> a, T b);
 Read<I8> land_each(Read<I8> a, Read<I8> b);
 Read<I8> lor_each(Read<I8> a, Read<I8> b);
@@ -113,6 +115,7 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
   extern template Read<T> divide_each_by(T factor, Read<T> x);                 \
   extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
+  extern template Read<T> max_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> each_max_with(Read<T> a, T b);                       \
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \

@@ -256,6 +256,15 @@ Read<T> min_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
+Read<T> max_each(Read<T> a, Read<T> b) {
+  CHECK(a.size() == b.size());
+  Write<T> c(a.size());
+  auto f = LAMBDA(LO i) { c[i] = max2(a[i], b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Read<T> each_max_with(Read<T> a, T b) {
   Write<T> c(a.size());
   auto f = LAMBDA(LO i) { c[i] = max2(a[i], b); };
@@ -444,6 +453,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<T> add_each(Read<T> a, Read<T> b);                             \
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \
+  template Read<T> max_each(Read<T> a, Read<T> b);                             \
   template Read<T> each_max_with(Read<T> a, T b);                              \
   template Read<T> add_to_each(Read<T> a, T b);                                \
   template Read<T> subtract_from_each(Read<T> a, T b);                         \
