@@ -858,44 +858,44 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, Reals({0, 0, 1, 0, 0, 1}));
-    auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({0, 1, 0}));
-    CHECK(isos == Reals({42.0}));
+    auto isos = get_pad_isos(&mesh, 2, 1.0, Read<I8>({0, 1, 0}));
+    CHECK(isos == Reals({0.0}));
   }
   {  // triangle off-center
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, Reals({0, 0, 1, 1, 1, 2}));
-    auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1, 1, 0}));
-    CHECK(isos == Reals({42.0}));
+    auto isos = get_pad_isos(&mesh, 2, 1.0, Read<I8>({1, 1, 0}));
+    CHECK(isos == Reals({0.0}));
   }
   {  // triangle expected
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, Reals({0, 0, 1, -1, 1, 1}));
-    auto isos = get_pad_isos(&mesh, 2, 1.0, 42.0, Read<I8>({1, 1, 0}));
+    auto isos = get_pad_isos(&mesh, 2, 1.0, Read<I8>({1, 1, 0}));
     CHECK(are_close(isos, Reals({1.0})));
   }
   {  // tet with two bridges
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(VERT, "coordinates", 3, Reals(3 * 4, 0.0));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 0, 0, 0, 0}));
-    CHECK(are_close(isos, Reals({42.0})));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({1, 1, 0, 0, 0, 0}));
+    CHECK(are_close(isos, Reals({0.0})));
   }
   {  // tet with three bridges, off-center
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 1, -1, 1, 1, 1, 1, 1, 0, 2}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 1, 0, 0, 0}));
-    CHECK(are_close(isos, Reals({42.0})));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({1, 1, 1, 0, 0, 0}));
+    CHECK(are_close(isos, Reals({0.0})));
   }
   {  // tet with three bridges, expected
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 1, -1, -1, 1, 1, -1, 1, 0, 2}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({1, 1, 1, 0, 0, 0}));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({1, 1, 1, 0, 0, 0}));
     CHECK(are_close(isos, Reals({1.0})));
   }
   {  // edge-edge tet, off center
@@ -903,15 +903,15 @@ static void test_proximity(Library* lib) {
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 1, 0, 0, -1, 1, 0, -1, 1, 1}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0, 1, 1, 1, 1, 0}));
-    CHECK(are_close(isos, Reals({42.0})));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({0, 1, 1, 1, 1, 0}));
+    CHECK(are_close(isos, Reals({0.0})));
   }
   {  // edge-edge tet, expected
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 2, 0, 0, 1, 1, -1, 1, 1, 1}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, 42.0, Read<I8>({0, 1, 1, 1, 1, 0}));
+    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({0, 1, 1, 1, 1, 0}));
     CHECK(are_close(isos, Reals({1.0})));
   }
 }

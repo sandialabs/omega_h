@@ -5,9 +5,8 @@
 
 namespace Omega_h {
 
-Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor, Real max_size,
+Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor,
     Read<I8> edges_are_bridges);
-Reals get_proximity_isos(Mesh* mesh, Real factor, Real max_size);
 }  // namespace Omega_h
 
 #endif

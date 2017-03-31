@@ -226,6 +226,7 @@ Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle);
 Reals metric_from_hessians(Int dim, Reals hessians, Real eps);
+Reals get_proximity_isos(Mesh* mesh, Real factor);
 
 }  // end namespace Omega_h
 
