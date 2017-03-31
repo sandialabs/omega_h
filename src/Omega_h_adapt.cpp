@@ -10,7 +10,7 @@
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
 #include "control.hpp"
-#include "histogram.hpp"
+#include "Omega_h_histogram.hpp"
 #include "laplace.hpp"
 #include "quality.hpp"
 #include "refine.hpp"
@@ -38,6 +38,8 @@ AdaptOpts::AdaptOpts(Int dim) {
   verbosity = EACH_REBUILD;
   length_histogram_min = 0.0;
   length_histogram_max = 3.0;
+  nlength_histogram_bins = 10;
+  nquality_histogram_bins = 10;
 #ifdef OMEGA_H_USE_EGADS
   egads_model = nullptr;
   should_smooth_snap = true;
@@ -82,28 +84,21 @@ static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
 bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts) {
   auto qualstats = get_minmax(mesh->comm(), get_fixable_qualities(mesh, opts));
   auto lenstats = get_minmax(mesh->comm(), mesh->ask_lengths());
-  if (qualstats.min >= opts.min_quality_desired &&
-      lenstats.min >= opts.min_length_desired &&
-      lenstats.max <= opts.max_length_desired) {
-    if (opts.verbosity > SILENT && mesh->comm()->rank() == 0) {
-      std::cout << "mesh is good: quality [" << qualstats.min << ","
-                << qualstats.max << "], length [" << lenstats.min << ","
-                << lenstats.max << "]\n";
-    }
-    return true;
-  }
   if (opts.verbosity > SILENT) {
     adapt_summary(mesh, opts, qualstats, lenstats);
   }
-  return false;
+  return (qualstats.min >= opts.min_quality_desired &&
+      lenstats.min >= opts.min_length_desired &&
+      lenstats.max <= opts.max_length_desired);
 }
 
 void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
   auto qh =
-      get_histogram<10>(mesh, mesh->dim(), mesh->ask_qualities(), 0.0, 1.0);
+      get_histogram(mesh, mesh->dim(), opts.nquality_histogram_bins,
+           0.0, 1.0, mesh->ask_qualities());
   print_histogram(mesh, qh, "quality");
-  auto lh = get_histogram<10>(mesh, VERT, mesh->ask_lengths(),
-      opts.length_histogram_min, opts.length_histogram_max);
+  auto lh = get_histogram(mesh, VERT, opts.nlength_histogram_bins,
+      opts.length_histogram_min, opts.length_histogram_max, mesh->ask_lengths());
   print_histogram(mesh, lh, "length");
 }
 

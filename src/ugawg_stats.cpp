@@ -1,5 +1,6 @@
 #include "Omega_h.hpp"
 #include "Omega_h_cmdline.hpp"
+#include "Omega_h_histogram.hpp"
 #include "Omega_h_simplex.hpp"
 
 #include <iostream>
@@ -88,13 +89,13 @@ static Reals get_metric(Mesh* mesh, std::string const& name) {
   if (name == "cube-linear") {
     return get_cube_linear_metric(mesh);
   }
-  if (name == "cube-cylinder-shock") {
+  if (name == "cube-cylinder-linear") {
     return get_cube_cylinder_shock_metric(mesh);
   }
-  if (name == "cube-cylinder-layer") {
+  if (name == "cube-cylinder-polar-1") {
     return get_cube_cylinder_layer_metric(mesh);
   }
-  if (name == "cube-cylinder-quality-layer") {
+  if (name == "cube-cylinder-polar-2") {
     return get_cube_cylinder_quality_layer_metric(mesh);
   }
   Omega_h_fail("no UGAWG metric named %s\n", name.c_str());
@@ -106,11 +107,14 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("input.mesh[b]");
   auto& mflag = cmdline.add_flag("-m",
       "REQUIRED!\n    one of "
-      "cube-linear,cube-cylinder-shock,cube-cylinder-layer");
+      "cube-linear,cube-cylinder-linear,cube-cylinder-polar-1,cube-cylinder-polar-2");
   mflag.add_arg<std::string>("metric");
   auto& hflag = cmdline.add_flag("-h", "domain of length histogram");
   hflag.add_arg<double>("length-histogram-min");
   hflag.add_arg<double>("length-histogram-max");
+  auto& nflag = cmdline.add_flag("-n", "numbers of histogram bins");
+  nflag.add_arg<int>("quality-histogram-bins");
+  nflag.add_arg<int>("length-histogram-bins");
   auto& lflag = cmdline.add_flag("-l", "range of desired lengths");
   lflag.add_arg<double>("min-desired-length");
   lflag.add_arg<double>("max-desired-length");
@@ -139,9 +143,15 @@ int main(int argc, char** argv) {
   auto opts = AdaptOpts(&mesh);
   if (cmdline.parsed("-h")) {
     opts.length_histogram_min =
-        cmdline.get<double>("-h", "length-histogram-min");
+      cmdline.get<double>("-h", "length-histogram-min");
     opts.length_histogram_max =
-        cmdline.get<double>("-h", "length-histogram-max");
+      cmdline.get<double>("-h", "length-histogram-max");
+  }
+  if (cmdline.parsed("-n")) {
+    opts.nquality_histogram_bins =
+      cmdline.get<int>("-n", "quality-histogram-bins");
+    opts.nlength_histogram_bins =
+      cmdline.get<int>("-n", "length-histogram-bins");
   }
   if (cmdline.parsed("-l")) {
     opts.min_length_desired = cmdline.get<double>("-l", "min-desired-length");
@@ -156,6 +166,12 @@ int main(int argc, char** argv) {
   auto metrics = get_metric(&mesh, metric_name);
   mesh.add_tag(VERT, "metric", symm_ncomps(dim), metrics);
   print_adapt_status(&mesh, opts);
-  print_adapt_histograms(&mesh, opts);
+  auto qh =
+    get_histogram(&mesh, mesh.dim(), opts.nquality_histogram_bins,
+        0.0, 1.0, mesh.ask_qualities());
+  print_histogram(&mesh, qh, "quality");
+  auto lh = get_histogram(&mesh, VERT, opts.nlength_histogram_bins,
+      opts.length_histogram_min, opts.length_histogram_max, mesh.ask_lengths());
+  print_histogram(&mesh, lh, "length");
   return 0;
 }

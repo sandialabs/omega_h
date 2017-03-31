@@ -71,7 +71,7 @@ set(Omega_h_SOURCES
   Omega_h_recover.cpp
   Omega_h_coarsen_overshoot.cpp
   collapse_rail.cpp
-  histogram.cpp
+  Omega_h_histogram.cpp
   eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp

@@ -41,6 +41,8 @@ struct AdaptOpts {
   Verbosity verbosity;
   Real length_histogram_min;
   Real length_histogram_max;
+  Int nlength_histogram_bins;
+  Int nquality_histogram_bins;
 #ifdef OMEGA_H_USE_EGADS
   Egads* egads_model;
   bool should_smooth_snap;

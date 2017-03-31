@@ -1,45 +1,47 @@
-#include "histogram.hpp"
+#include "Omega_h_histogram.hpp"
+
 #include <iomanip>
 #include <iostream>
+
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 
-template <Int n>
-Histogram<n> get_histogram(
-    Mesh* mesh, Int dim, Reals values, Real min_value, Real max_value) {
+Histogram get_histogram(
+    Mesh* mesh, Int dim, Int nbins, Real min_value, Real max_value, Reals values) {
   auto owned_values = mesh->owned_array(dim, values, 1);
-  auto interval = Real(max_value - min_value) / n;
-  Histogram<n> histogram;
+  auto interval = (max_value - min_value) / Real(nbins);
+  Histogram histogram;
   histogram.min = min_value;
   histogram.max = max_value;
-  for (Int i = 0; i < n; ++i) {
+  histogram.bins.resize(std::size_t(nbins));
+  for (Int i = 0; i < nbins; ++i) {
     auto floor = interval * i + min_value;
     auto ceil = interval * (i + 1) + min_value;
     auto marked = land_each(
         each_geq_to(owned_values, floor), each_lt(owned_values, ceil));
-    histogram.counts[i] = get_sum(mesh->comm(), marked);
+    histogram.bins[std::size_t(i)] = get_sum(mesh->comm(), marked);
   }
   return histogram;
 }
 
-template <Int n>
 void print_histogram(
-    Mesh* mesh, Histogram<n> histogram, std::string const& name) {
+    Mesh* mesh, Histogram const& histogram, std::string const& name) {
   if (mesh->comm()->rank()) return;
-  auto precision_before = std::cout.precision();
-  std::ios::fmtflags stream_state(std::cout.flags());
+  std::ios saved_state(0);
+  saved_state.copyfmt(std::cout);
   std::cout << std::fixed << std::setprecision(2);
   std::cout << name << " histogram:\n";
-  auto interval = (histogram.max - histogram.min) / n;
-  for (Int i = 0; i < n; ++i) {
+  auto nbins = Int(histogram.bins.size());
+  auto interval = (histogram.max - histogram.min) / Real(nbins);
+  for (Int i = 0; i < nbins; ++i) {
     auto floor = interval * i + histogram.min;
     auto ceil = interval * (i + 1) + histogram.min;
-    std::cout << floor << '-' << ceil << ": " << histogram.counts[i] << '\n';
+    std::cout << floor << '-' << ceil << ": "
+      << histogram.bins[std::size_t(i)] << '\n';
   }
-  std::cout.flags(stream_state);
-  std::cout.precision(precision_before);
+  std::cout.copyfmt(saved_state);
 }
 
 void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
@@ -72,11 +74,4 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
   }
 }
 
-#define INST(n)                                                                \
-  template Histogram<n> get_histogram<n>(                                      \
-      Mesh * mesh, Int dim, Reals values, Real min_value, Real max_value);     \
-  template void print_histogram<n>(                                            \
-      Mesh * mesh, Histogram<n> histogram, std::string const& name);
-INST(10)
-#undef INST
 }  // namespace Omega_h
