@@ -73,6 +73,28 @@ void fix_momentum_velocity_verts(
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
 bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
 
+struct MetricSource {
+  Omega_h_Source kind;
+  Omega_h_Scales scales;
+  std::string tag_name;
+  Real knob;
+};
+
+struct MetricInput {
+  MetricInput();
+  std::vector<MetricSource> sources;
+  bool should_limit_lengths;
+  Real max_length;
+  Real min_length;
+  bool should_limit_gradation;
+  Real max_gradation_rate;
+  bool should_limit_element_count;
+  Real max_element_count;
+  Real min_element_count;
+};
+
+Reals generate_metric(Mesh* mesh, MetricInput const& input);
+
 }  // namespace Omega_h
 
 #endif

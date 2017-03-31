@@ -20,6 +20,8 @@ enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_TET = 3 };
 
 enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
+enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
+
 enum Omega_h_Xfer {
   OMEGA_H_INHERIT,
   OMEGA_H_LINEAR_INTERP,
@@ -28,7 +30,6 @@ enum Omega_h_Xfer {
   OMEGA_H_CONSERVE,
   OMEGA_H_MOMENTUM_VELOCITY,
   OMEGA_H_POINTWISE,
-  OMEGA_H_WARP,
 };
 
 enum Omega_h_Parting {
@@ -37,7 +38,17 @@ enum Omega_h_Parting {
   OMEGA_H_VERT_BASED,
 };
 
-enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
+enum Omega_h_Source {
+  OMEGA_H_HESSIAN,
+  OMEGA_H_GIVEN,
+  OMEGA_H_PROXIMITY,
+  OMEGA_H_CURVATURE,
+};
+
+enum Omega_h_Scales {
+  OMEGA_H_ABSOLUTE,
+  OMEGA_H_SCALES,
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,14 +67,15 @@ void Omega_h_fail(char const* format, ...)
 #define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
-  ((cond) ? ((void)0) : Omega_h_fail("assertion %s failed at %s +%d\n", #cond, \
-                            __FILE__, __LINE__))
+  ((cond) ? ((void)0)                                                          \
+          : Omega_h_fail(                                                      \
+                "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
 
 #ifdef __clang__
 #define OMEGA_H_NORETURN(x) assert(false)
 #else
-#define OMEGA_H_NORETURN(x)                                                            \
+#define OMEGA_H_NORETURN(x)                                                    \
   do {                                                                         \
     assert(false);                                                             \
     return x;                                                                  \
