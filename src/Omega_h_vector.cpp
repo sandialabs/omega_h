@@ -44,6 +44,7 @@ Reals normalize_vectors(Reals vs, Int dim) {
 }
 
 Reals resize_vectors(Reals old_vectors, Int old_dim, Int new_dim) {
+  if (old_dim == new_dim) return old_vectors;
   auto nv = divide_no_remainder(old_vectors.size(), old_dim);
   Write<Real> new_vectors(nv * new_dim);
   auto min_dim = min2(old_dim, new_dim);

@@ -199,13 +199,18 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
     write_array(stream, tag->name(), tag->ncomps(), as<I64>(tag)->array());
   } else if (is<Real>(tag)) {
     Reals array = as<Real>(tag)->array();
-    if (space_dim < 3 && tag->ncomps() == space_dim) {
-      // VTK / Paraview expect vector fields to have 3 components
-      // regardless of whether this is a 2D mesh or not.
-      // this filter adds a 3rd zero component to any
-      // fields with 2 components for 2D meshes
-      CHECK(array.exists());
-      write_array(stream, tag->name(), 3, resize_vectors(array, space_dim, 3));
+    if (1 < space_dim && space_dim < 3) {
+      if (tag->ncomps() == space_dim) {
+        // VTK / ParaView expect vector fields to have 3 components
+        // regardless of whether this is a 2D mesh or not.
+        // this filter adds a 3rd zero component to any
+        // fields with 2 components for 2D meshes
+        write_array(stream, tag->name(), 3, resize_vectors(array, space_dim, 3));
+      } else if (tag->ncomps() == symm_ncomps(space_dim)) {
+        // Likewise, ParaView has component names specially set up for
+        // 3D symmetric tensors
+        write_array(stream, tag->name(), symm_ncomps(3), resize_symms(array, space_dim, 3));
+      }
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array);
     }
@@ -239,6 +244,16 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   } else {
     auto array =
         read_array<Real>(stream, size, is_little_endian, is_compressed);
+    // undo the resizes done in write_tag()
+    if (1 < mesh->dim() && mesh->dim() < 3) {
+      if (ncomps == 3) {
+        array = resize_vectors(array, 3, mesh->dim());
+        ncomps = mesh->dim();
+      } else if (ncomps == symm_ncomps(3)) {
+        array = resize_symms(array, 3, mesh->dim());
+        ncomps = symm_ncomps(mesh->dim());
+      }
+    }
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   }
   auto et = xml::read_tag(stream);
@@ -440,7 +455,8 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   write_connectivity(stream, mesh, cell_dim);
   stream << "</Cells>\n";
   stream << "<Points>\n";
-  write_tag(stream, mesh->get_tag<Real>(VERT, "coordinates"), mesh->dim());
+  auto coords = mesh->coords();
+  write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3));
   stream << "</Points>\n";
   stream << "<PointData>\n";
   write_locals_and_owners(stream, mesh, VERT);
