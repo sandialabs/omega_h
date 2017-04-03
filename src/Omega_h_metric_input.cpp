@@ -1,6 +1,7 @@
 #include "Omega_h_adapt.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_metric.hpp"
+#include "Omega_h_array_ops.hpp"
 
 namespace Omega_h {
 
@@ -59,7 +60,19 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
 }
 
 Reals generate_metric(Mesh* mesh, MetricInput const& input) {
-  std::vector<Reals> original_metrics(input.sources.size());
+  if (input.should_limit_lengths) {
+    OMEGA_H_CHECK(input.min_length <= input.max_length);
+  }
+  auto n = mesh->nverts();
+  if (!input.sources.size()) {
+    if (input.should_limit_lengths) {
+      return Reals(n, input.max_length);
+    } else {
+      Omega_h_fail("generate_metric: no sources or limits given!\n");
+    }
+  }
+  std::vector<Reals> original_metrics;
+  Int metric_dim = 1;
   for (auto& source : input.sources) {
     Reals metrics;
     switch (source.kind) {
@@ -75,6 +88,27 @@ Reals generate_metric(Mesh* mesh, MetricInput const& input) {
       case OMEGA_H_CURVATURE:
         metrics = get_curvature_isos(mesh, source.knob);
         break;
+    }
+    if ((metric_dim == 1) && (get_metrics_dim(n, metrics) > 1)) {
+      metric_dim = mesh->dim();
+    }
+    original_metrics.push_back(metrics);
+  }
+  Real scalar = 1.0;
+  while (1) {
+    Reals metrics;
+    for (; i < original_metrics.size(); ++i) {
+      auto in_metrics = original_metrics[i];
+      in_metrics = resize_symms(in_metrics, get_metrics_dim(n, in_metrics), metric_dim);
+      in_metrics = multiply_each_by(scalar, in_metrics);
+      if (in.should_limit_lengths) {
+        in_metrics = clamp_metrics(n, in_metrics, in.min_length, in.max_length);
+      }
+      if (i) {
+        metrics = intersect_metrics(metrics, in_metrics);
+      } else {
+        metrics = in_metrics;
+      }
     }
   }
 }

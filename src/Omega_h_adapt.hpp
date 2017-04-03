@@ -89,8 +89,8 @@ struct MetricInput {
   bool should_limit_gradation;
   Real max_gradation_rate;
   bool should_limit_element_count;
-  Real max_element_count;
-  Real min_element_count;
+  GO max_element_count;
+  GO min_element_count;
 };
 
 Reals generate_metric(Mesh* mesh, MetricInput const& input);

@@ -435,7 +435,7 @@ static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   return Reals(out_w);
 }
 
-Reals expected_elems_per_elem(Mesh* mesh, Reals v2m) {
+Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return expected_elems_per_elem_tmpl<3, 3>(mesh, v2m);
@@ -452,13 +452,46 @@ Reals expected_elems_per_elem(Mesh* mesh, Reals v2m) {
   NORETURN(Reals());
 }
 
-Real metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
-  auto elems_per_elem = expected_elems_per_elem(mesh, v2m);
-  auto elems = repro_sum_owned(mesh, mesh->dim(), elems_per_elem);
-  auto size_scal = target_nelems / elems;
+Real get_expected_nelems(Mesh* mesh, Reals v2m) {
+  auto nelems_per_elem = get_expected_nelems_per_elem(mesh, v2m);
+  auto nelems = repro_sum_owned(mesh, mesh->dim(), nelems_per_elem);
+  return nelems;
+}
+
+Real get_metric_scalar_for_nelems(Int elem_dim, Real expected_nelems, Real target_nelems) {
+  auto size_scal = target_nelems / expected_nelems;
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
-  auto metric_scal = power(size_scal, 2, metric_dim);
+  auto metric_scal = power(size_scal, 2, elem_dim);
   return metric_scal;
+}
+
+Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
+  auto nelems = get_expected_nelems(mesh, v2m);
+  auto metric_scal = get_metric_scalar_for_nelems(mesh->dim(), nelems, target_nelems);
+  return metric_scal;
+}
+
+template <Int dim>
+Reals intersect_metrics_dim(Reals a, Reals b) {
+  auto n = divide_no_remainder(a.size(), symm_ncomps(dim));
+  OMEGA_H_CHECK(a.size() == b.size());
+  auto c = Write<Real>(n * symm_ncomps(dim));
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto am = get_symm<dim>(a, i);
+    auto bm = get_symm<dim>(b, i);
+    auto cm = intersect_metrics(am, bm);
+    set_symm(c, i, cm);
+  };
+  parallel_for(n, f);
+  return c;
+}
+
+Reals intersect_metrics(LO nmetrics, Reals a, Reals b) {
+  auto dim = get_metrics_dim(nmetrics, a);
+  if (dim == 1) return intersect_metrics_dim<1>(a, b);
+  if (dim == 2) return intersect_metrics_dim<2>(a, b);
+  if (dim == 3) return intersect_metrics_dim<3>(a, b);
+  OMEGA_H_NORETURN(Reals());
 }
 
 }  // end namespace Omega_h
