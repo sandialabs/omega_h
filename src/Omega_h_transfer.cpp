@@ -12,7 +12,7 @@
 namespace Omega_h {
 
 bool is_transfer_required(
-    XferOpts const& opts, std::string const& name, Omega_h_Xfer type) {
+    XferOpts const& opts, std::string const& name, Omega_h_Transfer type) {
   if (!opts.type_map.count(name)) return false;
   return opts.type_map.find(name)->second == type;
 }

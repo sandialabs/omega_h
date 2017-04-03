@@ -6,7 +6,7 @@
 namespace Omega_h {
 
 bool is_transfer_required(
-    XferOpts const& xopts, std::string const& name, Omega_h_Xfer type);
+    XferOpts const& xopts, std::string const& name, Omega_h_Transfer type);
 
 bool should_inherit(
     Mesh* mesh, XferOpts const& xopts, Int dim, TagBase const* tag);
