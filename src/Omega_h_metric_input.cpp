@@ -5,6 +5,18 @@
 
 namespace Omega_h {
 
+MetricInput::MetricInput() {
+  should_limit_lengths = false;
+  max_length = 0.0;
+  min_length = 0.0;
+  should_limit_gradation = false;
+  max_gradation_rate = 1.0;
+  should_limit_element_count = false;
+  max_element_count = 1e6;
+  min_element_count = 0.0;
+  element_count_over_relaxation = 1.1;
+}
+
 Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
   enum {
     INVALID,
@@ -63,6 +75,9 @@ Reals generate_metric(Mesh* mesh, MetricInput const& input) {
   if (input.should_limit_lengths) {
     OMEGA_H_CHECK(input.min_length <= input.max_length);
   }
+  if (input.should_limit_element_count) {
+    OMEGA_H_CHECK(input.min_length <= input.max_length);
+  }
   auto n = mesh->nverts();
   if (!input.sources.size()) {
     if (input.should_limit_lengths) {
@@ -97,10 +112,12 @@ Reals generate_metric(Mesh* mesh, MetricInput const& input) {
   Real scalar = 1.0;
   while (1) {
     Reals metrics;
-    for (; i < original_metrics.size(); ++i) {
+    for (; i < input.sources.size(); ++i) {
       auto in_metrics = original_metrics[i];
       in_metrics = resize_symms(in_metrics, get_metrics_dim(n, in_metrics), metric_dim);
-      in_metrics = multiply_each_by(scalar, in_metrics);
+      if (input.sources[i].scales == OMEGA_H_SCALES) {
+        in_metrics = multiply_each_by(scalar, in_metrics);
+      }
       if (in.should_limit_lengths) {
         in_metrics = clamp_metrics(n, in_metrics, in.min_length, in.max_length);
       }
@@ -108,6 +125,25 @@ Reals generate_metric(Mesh* mesh, MetricInput const& input) {
         metrics = intersect_metrics(metrics, in_metrics);
       } else {
         metrics = in_metrics;
+      }
+    }
+    if (input.should_limit_gradation) {
+      metrics = limit_metric_gradation(mesh, metrics, input.max_gradation_rate);
+    }
+    if (!input.should_limit_element_count) {
+      return metrics;
+    } else {
+      auto nelems = get_expected_nelems(mesh, metrics);
+      if (nelems > input.max_element_count) {
+        scalar *= get_metric_scalar_for_nelems(
+            mesh->dim(), nelems, input.max_element_count);
+        scalar /= input.element_count_over_relaxation;
+      } else if (nelems < input.min_element_count) {
+        scalar *= get_metric_scalar_for_nelems(
+            mesh->dim(), nelems, input.min_element_count);
+        scalar *= input.element_count_over_relaxation;
+      } else {
+        return metrics;
       }
     }
   }

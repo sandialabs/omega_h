@@ -221,6 +221,9 @@ void axes_from_metric_field(
 Reals limit_metric_gradation(
     Mesh* mesh, Reals values, Real max_rate, Real tol = 1e-3);
 Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m);
+Real get_expected_nelems(Mesh* mesh, Reals v2m);
+Real get_metric_scalar_for_nelems(
+    Int elem_dim, Real expected_nelems, Real target_nelems);
 Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
