@@ -1,7 +1,7 @@
 #include "Omega_h_comm.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "scan.hpp"
+#include "Omega_h_scan.hpp"
 
 namespace Omega_h {
 

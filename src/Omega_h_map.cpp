@@ -2,8 +2,8 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "atomics.hpp"
-#include "scan.hpp"
-#include "sort.hpp"
+#include "Omega_h_scan.hpp"
+#include "Omega_h_sort.hpp"
 
 namespace Omega_h {
 

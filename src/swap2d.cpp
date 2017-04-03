@@ -4,7 +4,7 @@
 
 #include "Omega_h_map.hpp"
 #include "Omega_h_transfer.hpp"
-#include "indset.hpp"
+#include "Omega_h_indset.hpp"
 #include "modify.hpp"
 #include "swap.hpp"
 

@@ -5,7 +5,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_simplex.hpp"
 #include "owners.hpp"
-#include "scan.hpp"
+#include "Omega_h_scan.hpp"
 
 namespace Omega_h {
 

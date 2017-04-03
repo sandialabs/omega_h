@@ -7,8 +7,8 @@
 #include "Omega_h_timer.hpp"
 #include "control.hpp"
 #include "internal.hpp"
-#include "scan.hpp"
-#include "sort.hpp"
+#include "Omega_h_scan.hpp"
+#include "Omega_h_sort.hpp"
 
 namespace Omega_h {
 

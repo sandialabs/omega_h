@@ -8,7 +8,7 @@
 #include "control.hpp"
 #include "linpart.hpp"
 #include "owners.hpp"
-#include "scan.hpp"
+#include "Omega_h_scan.hpp"
 #include "unmap_mesh.hpp"
 
 namespace Omega_h {

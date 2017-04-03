@@ -1,4 +1,4 @@
-#include "sort.hpp"
+#include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
 #include "control.hpp"
 
@@ -16,7 +16,7 @@
 #endif
 #elif defined(OMEGA_H_USE_OPENMP)
 #include <omp.h>
-#include "intel_sort/parallel_stable_sort.hpp"
+#include "intel_sort/parallel_stable_Omega_h_sort.hpp"
 #include "intel_sort/pss_common.hpp"
 #endif
 

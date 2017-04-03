@@ -1,4 +1,4 @@
-#include "scan.hpp"
+#include "Omega_h_scan.hpp"
 
 #include "Omega_h_functors.hpp"
 

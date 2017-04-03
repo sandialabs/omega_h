@@ -8,7 +8,7 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_timer.hpp"
 #include "internal.hpp"
-#include "sort.hpp"
+#include "Omega_h_sort.hpp"
 
 using namespace Omega_h;
 

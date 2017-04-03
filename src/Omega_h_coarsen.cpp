@@ -6,7 +6,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_transfer.hpp"
 #include "collapse.hpp"
-#include "indset.hpp"
+#include "Omega_h_indset.hpp"
 #include "modify.hpp"
 
 namespace Omega_h {
