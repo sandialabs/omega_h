@@ -20,7 +20,7 @@ set(Omega_h_SOURCES
   Omega_h_build.cpp
   Omega_h_graph.cpp
   Omega_h_file.cpp
-  base64.cpp
+  Omega_h_base64.cpp
   vtk.cpp
   simplify.cpp
   box.cpp
@@ -67,7 +67,7 @@ set(Omega_h_SOURCES
   regress.cpp
   consistent.cpp
   Omega_h_align.cpp
-  xml.cpp
+  Omega_h_xml.cpp
   Omega_h_recover.cpp
   Omega_h_coarsen_overshoot.cpp
   collapse_rail.cpp

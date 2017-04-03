@@ -1,4 +1,4 @@
-#include "xml.hpp"
+#include "Omega_h_xml.hpp"
 
 #include <iostream>
 
