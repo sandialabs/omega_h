@@ -22,7 +22,7 @@ enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
 enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
 
-enum Omega_h_Xfer {
+enum Omega_h_Transfer {
   OMEGA_H_INHERIT,
   OMEGA_H_LINEAR_INTERP,
   OMEGA_H_SIZE,
