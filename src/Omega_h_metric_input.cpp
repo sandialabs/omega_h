@@ -65,16 +65,16 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
           name.c_str());
     case NODAL_SCALAR:
       data = derive_element_gradients(mesh, data);
-      [[clang::fallthrough]];
+      OMEGA_H_FALLTHROUGH;
     case ELEM_GRADIENT:
       data = project_by_fit(mesh, data);
-      [[clang::fallthrough]];
+      OMEGA_H_FALLTHROUGH;
     case NODAL_GRADIENT:
       data = derive_element_hessians(mesh, data);
-      [[clang::fallthrough]];
+      OMEGA_H_FALLTHROUGH;
     case ELEM_HESSIAN:
       data = project_by_fit(mesh, data);
-      [[clang::fallthrough]];
+      OMEGA_H_FALLTHROUGH;
     case NODAL_HESSIAN:
       ;
   }

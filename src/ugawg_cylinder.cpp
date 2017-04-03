@@ -85,8 +85,7 @@ static void run_case(
     Mesh* mesh, Egads* eg, int which_metric, char const* vtk_path) {
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
-  auto implied_metrics = find_implied_metric(mesh);
-  mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
+  add_implied_metric_tag(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
   bool should_limit = (which_metric == 2);

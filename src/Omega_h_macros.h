@@ -19,4 +19,10 @@
 #define OMEGA_H_EPSILON 1e-10
 #define OMEGA_H_MANTISSA_BITS 52
 
+#if defined(__clang__)
+#define OMEGA_H_FALLTHROUGH [[clang::fallthrough]]
+#else
+#define OMEGA_H_FALLTHROUGH ((void)0)
+#endif
+
 #endif
