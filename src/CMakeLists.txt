@@ -79,6 +79,7 @@ set(Omega_h_SOURCES
   Omega_h_motion_choices.cpp
   Omega_h_motion_transfer.cpp
   Omega_h_motion.cpp
+  Omega_h_metric_input.cpp
   )
 
 set(libMeshb_REQUIRED_VERSION 7.24)

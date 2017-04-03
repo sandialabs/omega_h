@@ -82,18 +82,21 @@ struct MetricSource {
 
 struct MetricInput {
   MetricInput();
+  bool verbose;
   std::vector<MetricSource> sources;
   bool should_limit_lengths;
   Real max_length;
   Real min_length;
   bool should_limit_gradation;
   Real max_gradation_rate;
+  Real gradation_convergence_tolerance;
   bool should_limit_element_count;
   Real max_element_count;
   Real min_element_count;
+  Real element_count_over_relaxation;
 };
 
-Reals generate_metric(Mesh* mesh, MetricInput const& input);
+Reals generate_metrics(Mesh* mesh, MetricInput const& input);
 
 }  // namespace Omega_h
 
