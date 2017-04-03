@@ -108,8 +108,8 @@ void write_array(
   describe_array<T>(stream, name, ncomps);
   stream << ">\n";
   HostRead<T> uncompressed(array);
-  std::size_t uncompressed_bytes =
-      sizeof(T) * static_cast<std::size_t>(array.size());
+  std::uint64_t uncompressed_bytes =
+      sizeof(T) * static_cast<uint64_t>(array.size());
 #ifdef OMEGA_H_USE_ZLIB
   uLong source_bytes = uncompressed_bytes;
   uLong dest_bytes = ::compressBound(source_bytes);
@@ -120,12 +120,12 @@ void write_array(
   CHECK(ret == Z_OK);
   std::string encoded = base64::encode(compressed, dest_bytes);
   delete[] compressed;
-  std::size_t header[4] = {
+  std::uint64_t header[4] = {
       1, uncompressed_bytes, uncompressed_bytes, dest_bytes};
   std::string enc_header = base64::encode(header, sizeof(header));
 #else
   std::string enc_header =
-      base64::encode(&uncompressed_bytes, sizeof(std::size_t));
+      base64::encode(&uncompressed_bytes, sizeof(std::uint64_t));
   std::string encoded =
       base64::encode(uncompressed.nonnull_data(), uncompressed_bytes);
 #endif
@@ -137,15 +137,15 @@ template <typename T>
 Read<T> read_array(
     std::istream& stream, LO size, bool is_little_endian, bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
-  std::size_t uncompressed_bytes, compressed_bytes;
+  std::uint64_t uncompressed_bytes, compressed_bytes;
   std::string encoded;
 #ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
-    std::size_t header[4];
+    std::uint64_t header[4];
     auto nheader_chars = base64::encoded_size(sizeof(header));
     auto enc_header = enc_both.substr(0, nheader_chars);
     base64::decode(enc_header, header, sizeof(header));
-    for (std::size_t i = 0; i < 4; ++i) {
+    for (std::uint64_t i = 0; i < 4; ++i) {
       binary::swap_if_needed(header[i], is_little_endian);
     }
     encoded = enc_both.substr(nheader_chars);
@@ -156,14 +156,14 @@ Read<T> read_array(
   CHECK(is_compressed == false);
 #endif
   {
-    auto nheader_chars = base64::encoded_size(sizeof(std::size_t));
+    auto nheader_chars = base64::encoded_size(sizeof(std::uint64_t));
     auto enc_header = enc_both.substr(0, nheader_chars);
     base64::decode(enc_header, &uncompressed_bytes, sizeof(uncompressed_bytes));
     binary::swap_if_needed(uncompressed_bytes, is_little_endian);
     compressed_bytes = uncompressed_bytes;
     encoded = enc_both.substr(nheader_chars);
   }
-  CHECK(uncompressed_bytes == std::size_t(size) * sizeof(T));
+  CHECK(uncompressed_bytes == std::uint64_t(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
 #ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
@@ -291,9 +291,7 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
   else
     stream << "BigEndian";
   stream << "\" header_type=\"";
-  static_assert(sizeof(std::size_t) == 8,
-      "UInt32 Traits was removed to silence warnings");
-  stream << Traits<std::size_t>::name();
+  stream << Traits<std::uint64_t>::name();
   stream << "\"";
 #ifdef OMEGA_H_USE_ZLIB
   stream << " compressor=\"vtkZLibDataCompressor\"";
@@ -305,7 +303,7 @@ static void read_vtkfile_vtu_start_tag(
     std::istream& stream, bool* is_little_endian_out, bool* is_compressed_out) {
   auto st = xml::read_tag(stream);
   CHECK(st.elem_name == "VTKFile");
-  CHECK(st.attribs["header_type"] == Traits<std::size_t>::name());
+  CHECK(st.attribs["header_type"] == Traits<std::uint64_t>::name());
   auto is_little_endian = (st.attribs["byte_order"] == "LittleEndian");
   *is_little_endian_out = is_little_endian;
   auto is_compressed = (st.attribs.count("compressor") == 1);
