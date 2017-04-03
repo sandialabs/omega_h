@@ -1,5 +1,6 @@
 #include "Omega_h_conserve.hpp"
 
+#include <array>
 #include <iostream>
 
 #include "Omega_h_adj.hpp"
@@ -96,8 +97,8 @@ static SeparationResult separate_by_color_once(
 }
 
 using CavsByColor = std::vector<Cavs>;
-using CavsByColorMethod = HostFew<CavsByColor, 3>;
-using CavsByBdryStatus = HostFew<CavsByColorMethod, 3>;
+using CavsByColorMethod = std::array<CavsByColor, 3>;
+using CavsByBdryStatus = std::array<CavsByColorMethod, 3>;
 
 static CavsByColor separate_by_color(
     Cavs cavs, LOs old_elem_colors, LOs new_elem_colors) {

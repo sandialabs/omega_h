@@ -127,7 +127,7 @@ OMEGA_H_INLINE Real metric_edge_length(
 }
 
 template <Int space_dim, Int metric_dim>
-OMEGA_H_INLINE Real metric_edge_length(
+OMEGA_H_DEVICE Real metric_edge_length(
     Few<LO, 2> v, Reals coords, Reals metrics) {
   auto p = gather_vectors<2, space_dim>(coords, v);
   auto ms = gather_symms<2, metric_dim>(metrics, v);
