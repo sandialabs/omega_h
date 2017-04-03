@@ -66,12 +66,12 @@ struct ArithTraits<double> {
 };
 
 template <typename T>
-OMEGA_H_INLINE T max2(T a, T b) {
+constexpr OMEGA_H_INLINE T max2(T a, T b) {
   return (b > a) ? (b) : (a);
 }
 
 template <typename T>
-OMEGA_H_INLINE T min2(T a, T b) {
+constexpr OMEGA_H_INLINE T min2(T a, T b) {
   return (b < a) ? (b) : (a);
 }
 

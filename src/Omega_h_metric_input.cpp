@@ -2,15 +2,22 @@
 #include "Omega_h_recover.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_timer.hpp"
+#include "control.hpp"
+
+#include <iostream>
 
 namespace Omega_h {
 
 MetricInput::MetricInput() {
+  verbose = true;
   should_limit_lengths = false;
   max_length = 0.0;
   min_length = 0.0;
   should_limit_gradation = false;
   max_gradation_rate = 1.0;
+  gradation_convergence_tolerance = 1e-3;
   should_limit_element_count = false;
   max_element_count = 1e6;
   min_element_count = 0.0;
@@ -27,6 +34,7 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
     NODAL_HESSIAN,
   } state = INVALID;
   auto dim = mesh->dim();
+  Reals data;
   if (mesh->has_tag(VERT, name)) {
     auto tagbase = mesh->get_tagbase(VERT, name);
     if (tagbase->type() == OMEGA_H_REAL) {
@@ -37,7 +45,7 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
       } else if (tagbase->ncomps() == symm_ncomps(dim)) {
         state = NODAL_HESSIAN;
       }
-      Reals data = to<Real>(tagbase)->array();
+      data = to<Real>(tagbase)->array();
     }
   } else if (mesh->has_tag(dim, name)) {
     auto tagbase = mesh->get_tagbase(VERT, name);
@@ -47,31 +55,34 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
       } else if (tagbase->ncomps() == symm_ncomps(dim)) {
         state = ELEM_HESSIAN;
       }
-      Reals data = to<Real>(tagbase)->array();
+      data = to<Real>(tagbase)->array();
     }
-  }
-  if (state == INVALID) {
-    Omega_h_fail("Couldn't figure out how to turn \"%s\" into a Hessian\n",
-        name.c_str());
   }
   /* finally a use for switch fallthrough */
   switch (state) {
+    case INVALID:
+      Omega_h_fail("Couldn't figure out how to turn \"%s\" into a Hessian\n",
+          name.c_str());
     case NODAL_SCALAR:
       data = derive_element_gradients(mesh, data);
+      [[clang::fallthrough]];
     case ELEM_GRADIENT:
       data = project_by_fit(mesh, data);
+      [[clang::fallthrough]];
     case NODAL_GRADIENT:
       data = derive_element_hessians(mesh, data);
-    case NODAL_GRADIENT:
-      data = derive_element_hessians(mesh, data);
+      [[clang::fallthrough]];
     case ELEM_HESSIAN:
       data = project_by_fit(mesh, data);
+      [[clang::fallthrough]];
     case NODAL_HESSIAN:
+      ;
   }
   return metric_from_hessians(dim, data, knob);
 }
 
-Reals generate_metric(Mesh* mesh, MetricInput const& input) {
+Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
+  auto t0 = now();
   if (input.should_limit_lengths) {
     OMEGA_H_CHECK(input.min_length <= input.max_length);
   }
@@ -110,28 +121,31 @@ Reals generate_metric(Mesh* mesh, MetricInput const& input) {
     original_metrics.push_back(metrics);
   }
   Real scalar = 1.0;
-  while (1) {
-    Reals metrics;
-    for (; i < input.sources.size(); ++i) {
+  Reals metrics;
+  Int niters = 0;
+  while (true) {
+    metrics = Reals();
+    for (size_t i = 0; i < input.sources.size(); ++i) {
       auto in_metrics = original_metrics[i];
       in_metrics = resize_symms(in_metrics, get_metrics_dim(n, in_metrics), metric_dim);
       if (input.sources[i].scales == OMEGA_H_SCALES) {
         in_metrics = multiply_each_by(scalar, in_metrics);
       }
-      if (in.should_limit_lengths) {
-        in_metrics = clamp_metrics(n, in_metrics, in.min_length, in.max_length);
+      if (input.should_limit_lengths) {
+        in_metrics = clamp_metrics(n, in_metrics, input.min_length, input.max_length);
       }
       if (i) {
-        metrics = intersect_metrics(metrics, in_metrics);
+        metrics = intersect_metrics(n, metrics, in_metrics);
       } else {
         metrics = in_metrics;
       }
     }
     if (input.should_limit_gradation) {
-      metrics = limit_metric_gradation(mesh, metrics, input.max_gradation_rate);
+      metrics = limit_metric_gradation(mesh, metrics, input.max_gradation_rate,
+          input.gradation_convergence_tolerance, input.verbose);
     }
     if (!input.should_limit_element_count) {
-      return metrics;
+      break;
     } else {
       auto nelems = get_expected_nelems(mesh, metrics);
       if (nelems > input.max_element_count) {
@@ -143,10 +157,18 @@ Reals generate_metric(Mesh* mesh, MetricInput const& input) {
             mesh->dim(), nelems, input.min_element_count);
         scalar *= input.element_count_over_relaxation;
       } else {
-        return metrics;
+        break;
       }
     }
+    ++niters;
   }
+  auto t1 = now();
+  add_to_global_timer("generating metrics", t1 - t0);
+  if (input.verbose) {
+    std::cout << "generated metrics in " << niters << " iterations and "
+       << (t1 - t0) << " seconds";
+  }
+  return metrics;
 }
 
 }

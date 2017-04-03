@@ -219,7 +219,8 @@ Reals find_implied_metric(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
 Reals limit_metric_gradation(
-    Mesh* mesh, Reals values, Real max_rate, Real tol = 1e-3);
+    Mesh* mesh, Reals values, Real max_rate, Real tol = 1e-3,
+    bool verbose = true);
 Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m);
 Real get_expected_nelems(Mesh* mesh, Reals v2m);
 Real get_metric_scalar_for_nelems(
@@ -229,8 +230,9 @@ Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals smooth_isos_once(Mesh* mesh, Reals v2h);
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle);
 Reals metric_from_hessians(Int dim, Reals hessians, Real eps);
+Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob);
 Reals get_proximity_isos(Mesh* mesh, Real factor);
-Reals intersect_metrics(Reals a, Reals b);
+Reals intersect_metrics(LO nmetrics, Reals a, Reals b);
 
 }  // end namespace Omega_h
 

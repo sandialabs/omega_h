@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto metrics = Omega_h::find_implied_isos(&mesh);
   auto scalar =
-      Omega_h::metric_scalar_for_nelems(&mesh, metrics, target_nelems);
+      Omega_h::get_metric_scalar_for_nelems(&mesh, metrics, target_nelems);
   metrics = multiply_each_by(scalar, metrics);
   mesh.add_tag(Omega_h::VERT, "metric", 1, metrics);
   auto opts = Omega_h::AdaptOpts(&mesh);

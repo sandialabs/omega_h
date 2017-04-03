@@ -820,12 +820,12 @@ static void test_sf_scale_dim(Library* lib) {
   auto target_nelems = mesh.nelems();
   {
     auto metrics = Omega_h::find_implied_isos(&mesh);
-    auto iso_scal = metric_scalar_for_nelems(&mesh, metrics, target_nelems);
+    auto iso_scal = get_metric_scalar_for_nelems(&mesh, metrics, target_nelems);
     CHECK(are_close(iso_scal, 1.));
   }
   {
     auto metric = Omega_h::find_implied_metric(&mesh);
-    auto metric_scal = metric_scalar_for_nelems(&mesh, metric, target_nelems);
+    auto metric_scal = get_metric_scalar_for_nelems(&mesh, metric, target_nelems);
     if (dim != 3) CHECK(are_close(metric_scal, 1.));
   }
 }

@@ -222,7 +222,7 @@ static Reals limit_gradation_once(Mesh* mesh, Reals values, Real max_rate) {
 }
 
 Reals limit_metric_gradation(
-    Mesh* mesh, Reals values, Real max_rate, Real tol) {
+    Mesh* mesh, Reals values, Real max_rate, Real tol, bool verbose) {
   CHECK(mesh->owners_have_all_upward(VERT));
   CHECK(max_rate > 0.0);
   auto comm = mesh->comm();
@@ -232,11 +232,11 @@ Reals limit_metric_gradation(
     values = values2;
     values2 = limit_gradation_once(mesh, values, max_rate);
     ++i;
-    if (can_print(mesh) && i > 40) {
+    if (verbose && can_print(mesh) && i > 40) {
       std::cout << "warning: gradation limiting is up to step " << i << '\n';
     }
   } while (!comm->reduce_and(are_close(values, values2, tol)));
-  if (can_print(mesh)) {
+  if (verbose && can_print(mesh)) {
     std::cout << "limited gradation in " << i << " steps\n";
   }
   return values2;
@@ -460,7 +460,6 @@ Real get_expected_nelems(Mesh* mesh, Reals v2m) {
 
 Real get_metric_scalar_for_nelems(Int elem_dim, Real expected_nelems, Real target_nelems) {
   auto size_scal = target_nelems / expected_nelems;
-  auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   auto metric_scal = power(size_scal, 2, elem_dim);
   return metric_scal;
 }
