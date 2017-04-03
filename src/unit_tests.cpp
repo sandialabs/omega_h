@@ -819,12 +819,12 @@ static void test_sf_scale_dim(Library* lib) {
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   {
-    auto metrics = Omega_h::find_implied_isos(&mesh);
+    auto metrics = Omega_h::get_implied_isos(&mesh);
     auto iso_scal = get_metric_scalar_for_nelems(&mesh, metrics, target_nelems);
     CHECK(are_close(iso_scal, 1.));
   }
   {
-    auto metric = Omega_h::find_implied_metric(&mesh);
+    auto metric = Omega_h::get_implied_metrics(&mesh);
     auto metric_scal = get_metric_scalar_for_nelems(&mesh, metric, target_nelems);
     if (dim != 3) CHECK(are_close(metric_scal, 1.));
   }
@@ -920,7 +920,7 @@ static void test_motion(Library* lib) {
   Mesh mesh(lib);
   build_box(&mesh, 1, 1, 0, 2, 2, 0);
   classify_by_angles(&mesh, Omega_h::PI / 4);
-  auto metrics = find_implied_isos(&mesh);
+  auto metrics = get_implied_isos(&mesh);
   mesh.add_tag(VERT, "metric", 1, metrics);
   auto coords_w = deep_copy(mesh.coords());
   coords_w.set(4 * 2 + 0, 0.74);

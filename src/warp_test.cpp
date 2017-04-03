@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
   mesh.set_comm(world);
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto metrics = find_implied_isos(&mesh);
+  auto metrics = get_implied_isos(&mesh);
   mesh.add_tag(VERT, "metric", 1, metrics);
   add_dye(&mesh);
   mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));

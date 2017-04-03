@@ -41,6 +41,7 @@ enum Omega_h_Parting {
 enum Omega_h_Source {
   OMEGA_H_HESSIAN,
   OMEGA_H_GIVEN,
+  OMEGA_H_IMPLIED,
   OMEGA_H_PROXIMITY,
   OMEGA_H_CURVATURE,
 };

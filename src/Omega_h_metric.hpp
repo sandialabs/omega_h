@@ -214,8 +214,8 @@ Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
 Reals project_metrics(Mesh* mesh, Reals e2m);
 
 Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max);
-Reals find_implied_isos(Mesh* mesh);
-Reals find_implied_metric(Mesh* mesh);
+Reals get_implied_isos(Mesh* mesh);
+Reals get_implied_metrics(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
 Reals limit_metric_gradation(

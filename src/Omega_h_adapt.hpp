@@ -97,6 +97,10 @@ struct MetricInput {
 };
 
 Reals generate_metrics(Mesh* mesh, MetricInput const& input);
+void add_metric_tag(Mesh* mesh, Reals metrics, std::string const& name = "metric");
+void generate_metric_tag(Mesh* mesh, MetricInput const& input);
+void generate_target_metric_tag(Mesh* mesh, MetricInput const& input);
+void add_implied_metric_tag(Mesh* mesh);
 
 }  // namespace Omega_h
 

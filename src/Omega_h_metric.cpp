@@ -274,7 +274,7 @@ static Reals element_implied_isos(Mesh* mesh) {
   NORETURN(Reals());
 }
 
-Reals find_implied_isos(Mesh* mesh) {
+Reals get_implied_isos(Mesh* mesh) {
   return project_metrics(mesh, element_implied_isos(mesh));
 }
 
@@ -299,7 +299,7 @@ static Reals element_implied_metrics(Mesh* mesh) {
   NORETURN(Reals());
 }
 
-Reals find_implied_metric(Mesh* mesh) {
+Reals get_implied_metrics(Mesh* mesh) {
   return project_metrics(mesh, element_implied_metrics(mesh));
 }
 

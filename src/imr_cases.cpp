@@ -191,7 +191,7 @@ static void run_case(Library* lib, Case const& c, Int niters) {
   mesh.reorder();
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
-    auto metrics = find_implied_isos(&mesh);
+    auto metrics = get_implied_isos(&mesh);
     mesh.add_tag(VERT, "metric", 1, metrics);
   }
   vtk::Writer writer(&mesh, "out", mesh.dim());

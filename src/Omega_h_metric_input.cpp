@@ -108,6 +108,9 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
       case OMEGA_H_GIVEN:
         metrics = mesh->get_array<Real>(VERT, source.tag_name);
         break;
+      case OMEGA_H_IMPLIED:
+        metrics = get_implied_metrics(mesh);
+        break;
       case OMEGA_H_PROXIMITY:
         metrics = get_proximity_isos(mesh, source.knob);
         break;
@@ -169,6 +172,26 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
        << (t1 - t0) << " seconds";
   }
   return metrics;
+}
+
+void add_metric_tag(Mesh* mesh, Reals metrics, std::string const& name) {
+  auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
+  mesh->add_tag(VERT, name, symm_ncomps(metric_dim), metrics);
+}
+
+void generate_metric_tag(Mesh* mesh, MetricInput const& input) {
+  auto metrics = generate_metrics(mesh, input);
+  add_metric_tag(mesh, metrics, "metric");
+}
+
+void generate_target_metric_tag(Mesh* mesh, MetricInput const& input) {
+  auto metrics = generate_metrics(mesh, input);
+  add_metric_tag(mesh, metrics, "target_metric");
+}
+
+void add_implied_metric_tag(Mesh* mesh) {
+  auto metrics = get_implied_metrics(mesh);
+  add_metric_tag(mesh, metrics, "metric");
 }
 
 }

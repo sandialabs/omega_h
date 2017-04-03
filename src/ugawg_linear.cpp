@@ -25,7 +25,7 @@ template <Int dim>
 void run_case(Mesh* mesh, char const* vtk_path) {
   auto world = mesh->comm();
   mesh->set_parting(OMEGA_H_GHOSTED);
-  auto implied_metrics = find_implied_metric(mesh);
+  auto implied_metrics = get_implied_metrics(mesh);
   mesh->add_tag(VERT, "metric", symm_ncomps(dim), implied_metrics);
   mesh->add_tag<Real>(VERT, "target_metric", symm_ncomps(dim));
   set_target_metric<dim>(mesh);

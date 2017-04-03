@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
   Omega_h::Mesh mesh(&lib);
   Omega_h::binary::read(path_in, lib.world(), &mesh);
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto metrics = Omega_h::find_implied_isos(&mesh);
+  auto metrics = Omega_h::get_implied_isos(&mesh);
   auto scalar =
       Omega_h::get_metric_scalar_for_nelems(&mesh, metrics, target_nelems);
   metrics = multiply_each_by(scalar, metrics);

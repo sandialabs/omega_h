@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
-    auto metrics = find_implied_isos(&mesh);
+    auto metrics = get_implied_isos(&mesh);
     auto scalar = metric_eigenvalue_from_length(1.3);
     metrics = multiply_each_by(scalar, metrics);
     mesh.add_tag(VERT, "metric", 1, metrics);
