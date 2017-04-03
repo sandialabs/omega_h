@@ -45,7 +45,7 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
       } else if (tagbase->ncomps() == symm_ncomps(dim)) {
         state = NODAL_HESSIAN;
       }
-      data = to<Real>(tagbase)->array();
+      data = as<Real>(tagbase)->array();
     }
   } else if (mesh->has_tag(dim, name)) {
     auto tagbase = mesh->get_tagbase(VERT, name);
@@ -55,7 +55,7 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
       } else if (tagbase->ncomps() == symm_ncomps(dim)) {
         state = ELEM_HESSIAN;
       }
-      data = to<Real>(tagbase)->array();
+      data = as<Real>(tagbase)->array();
     }
   }
   /* finally a use for switch fallthrough */

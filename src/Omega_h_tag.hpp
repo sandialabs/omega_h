@@ -35,15 +35,15 @@ template <typename T>
 bool is(TagBase const* t);
 
 template <typename T>
-Tag<T> const* to(TagBase const* t);
+Tag<T> const* as(TagBase const* t);
 template <typename T>
-Tag<T>* to(TagBase* t);
+Tag<T>* as(TagBase* t);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Read<T> Tag<T>::array() const;                               \
   extern template bool is<T>(TagBase const* t);                                \
-  extern template Tag<T> const* to<T>(TagBase const* t);                       \
-  extern template Tag<T>* to<T>(TagBase * t);                                  \
+  extern template Tag<T> const* as<T>(TagBase const* t);                       \
+  extern template Tag<T>* as<T>(TagBase * t);                                  \
   extern template class Tag<T>;
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)

@@ -192,13 +192,13 @@ Read<T> read_array(
 
 void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
   if (is<I8>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), to<I8>(tag)->array());
+    write_array(stream, tag->name(), tag->ncomps(), as<I8>(tag)->array());
   } else if (is<I32>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), to<I32>(tag)->array());
+    write_array(stream, tag->name(), tag->ncomps(), as<I32>(tag)->array());
   } else if (is<I64>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), to<I64>(tag)->array());
+    write_array(stream, tag->name(), tag->ncomps(), as<I64>(tag)->array());
   } else if (is<Real>(tag)) {
-    Reals array = to<Real>(tag)->array();
+    Reals array = as<Real>(tag)->array();
     if (space_dim < 3 && tag->ncomps() == space_dim) {
       // VTK / Paraview expect vector fields to have 3 components
       // regardless of whether this is a 2D mesh or not.

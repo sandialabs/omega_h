@@ -279,7 +279,7 @@ static void transfer_density_error(Mesh* old_mesh, XferOpts const& opts,
   }
   auto integral_name = opts.integral_map.find(density_name)->second;
   auto error_name = integral_name + "_error";
-  auto old_tag = to<Real>(tagbase);
+  auto old_tag = as<Real>(tagbase);
   auto old_elem_densities = old_tag->array();
   auto new_elem_densities = new_mesh->get_array<Real>(dim, tagbase->name());
   transfer_integ_error(old_mesh, new_mesh, cavs, old_elem_densities,
@@ -394,7 +394,7 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
   auto keys2old_elems = cavs.keys2old_elems;
   auto keys2new_elems = cavs.keys2new_elems;
   auto ncomps = tagbase->ncomps();
-  auto old_tag = to<Real>(tagbase);
+  auto old_tag = as<Real>(tagbase);
   auto old_data = old_tag->array();
   auto old_ev2v = old_mesh->ask_elem_verts();
   auto old_coords = old_mesh->coords();
@@ -497,7 +497,7 @@ void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts,
       transfer_by_intersection(old_mesh, new_mesh, tagbase,
           cavs[TOUCH_BDRY][NO_COLOR][0], new_elem_densities_w);
       /* these three statements are basically transfer_inherit_coarsen */
-      auto old_data = to<Real>(tagbase)->array();
+      auto old_data = as<Real>(tagbase)->array();
       auto bdry_dom_data = unmap(bdry_keys2doms.ab2b, old_data, ncomps);
       map_into(bdry_dom_data, cavs[KEY_BDRY][NO_COLOR][0].keys2new_elems.ab2b,
           new_elem_densities_w, ncomps);

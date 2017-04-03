@@ -17,7 +17,7 @@ static bool is_consistent(Mesh* mesh, Int dim, Read<T> copy_data, Int ncomps) {
 
 template <typename T>
 static bool is_consistent(Mesh* mesh, Int dim, TagBase const* tagbase) {
-  auto tag = to<T>(tagbase);
+  auto tag = as<T>(tagbase);
   return is_consistent(mesh, dim, tag->array(), tagbase->ncomps());
 }
 

@@ -299,13 +299,13 @@ static void write_tag(std::ostream& stream, TagBase const* tag) {
   I8 type = tag->type();
   write_value(stream, type);
   if (is<I8>(tag)) {
-    write_array(stream, to<I8>(tag)->array());
+    write_array(stream, as<I8>(tag)->array());
   } else if (is<I32>(tag)) {
-    write_array(stream, to<I32>(tag)->array());
+    write_array(stream, as<I32>(tag)->array());
   } else if (is<I64>(tag)) {
-    write_array(stream, to<I64>(tag)->array());
+    write_array(stream, as<I64>(tag)->array());
   } else if (is<Real>(tag)) {
-    write_array(stream, to<Real>(tag)->array());
+    write_array(stream, as<Real>(tag)->array());
   } else {
     Omega_h_fail("unexpected tag type in binary write\n");
   }

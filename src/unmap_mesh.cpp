@@ -11,16 +11,16 @@ void unmap_tags(
     auto tag = old_mesh->get_tag(ent_dim, i);
     if (is<I8>(tag)) {
       new_mesh->add_tag<I8>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<I8>(tag)->array(), tag->ncomps()));
+          unmap(new_ents2old_ents, as<I8>(tag)->array(), tag->ncomps()));
     } else if (is<I32>(tag)) {
       new_mesh->add_tag<I32>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<I32>(tag)->array(), tag->ncomps()));
+          unmap(new_ents2old_ents, as<I32>(tag)->array(), tag->ncomps()));
     } else if (is<I64>(tag)) {
       new_mesh->add_tag<I64>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<I64>(tag)->array(), tag->ncomps()));
+          unmap(new_ents2old_ents, as<I64>(tag)->array(), tag->ncomps()));
     } else if (is<Real>(tag)) {
       new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(),
-          unmap(new_ents2old_ents, to<Real>(tag)->array(), tag->ncomps()));
+          unmap(new_ents2old_ents, as<Real>(tag)->array(), tag->ncomps()));
     }
   }
 }

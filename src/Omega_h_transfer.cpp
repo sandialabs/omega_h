@@ -370,7 +370,7 @@ static void transfer_inherit_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, TagBase const* tagbase) {
   auto name = tagbase->name();
-  auto old_tag = to<T>(tagbase);
+  auto old_tag = as<T>(tagbase);
   auto ncomps = old_tag->ncomps();
   auto dom_data = old_tag->array();
   auto key_doms2doms = keys2doms.ab2b;
@@ -415,7 +415,7 @@ template <typename T>
 static void transfer_no_products_tmpl(Mesh* old_mesh, Mesh* new_mesh,
     Int prod_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,
     TagBase const* tagbase) {
-  auto old_tag = to<T>(tagbase);
+  auto old_tag = as<T>(tagbase);
   auto prods2new_ents = LOs({});
   auto prod_data = Read<T>({});
   transfer_common(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
@@ -455,7 +455,7 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_elems2old_elems,
     LOs same_elems2new_elems, TagBase const* tagbase) {
   auto name = tagbase->name();
-  auto old_tag = to<Real>(tagbase);
+  auto old_tag = as<Real>(tagbase);
   auto ncomps = old_tag->ncomps();
   auto old_data = old_tag->array();
   auto kds2elems = old_mesh->ask_up(key_dim, dim);
@@ -555,7 +555,7 @@ void transfer_coarsen(Mesh* old_mesh, XferOpts const& opts, Mesh* new_mesh,
 template <typename T>
 static void transfer_copy_tmpl(
     Mesh* new_mesh, Int prod_dim, TagBase const* tagbase) {
-  auto old_tag = to<T>(tagbase);
+  auto old_tag = as<T>(tagbase);
   auto const& name = old_tag->name();
   auto ncomps = old_tag->ncomps();
   auto old_data = old_tag->array();

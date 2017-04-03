@@ -154,7 +154,7 @@ void Mesh::set_tag(
     Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
         plural_names[dim], name.c_str());
   }
-  Tag<T>* tag = to<T>(tag_iter(dim, name)->get());
+  Tag<T>* tag = as<T>(tag_iter(dim, name)->get());
   CHECK(array.size() == nents(dim) * tag->ncomps());
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
@@ -192,7 +192,7 @@ TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
 
 template <typename T>
 Tag<T> const* Mesh::get_tag(Int dim, std::string const& name) const {
-  return to<T>(get_tagbase(dim, name));
+  return as<T>(get_tagbase(dim, name));
 }
 
 template <typename T>
@@ -582,22 +582,22 @@ void Mesh::sync_tag(Int dim, std::string const& name) {
   auto tagbase = get_tagbase(dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
-      auto out = sync_array(dim, to<I8>(tagbase)->array(), tagbase->ncomps());
+      auto out = sync_array(dim, as<I8>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
     }
     case OMEGA_H_I32: {
-      auto out = sync_array(dim, to<I32>(tagbase)->array(), tagbase->ncomps());
+      auto out = sync_array(dim, as<I32>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
     }
     case OMEGA_H_I64: {
-      auto out = sync_array(dim, to<I64>(tagbase)->array(), tagbase->ncomps());
+      auto out = sync_array(dim, as<I64>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
     }
     case OMEGA_H_F64: {
-      auto out = sync_array(dim, to<Real>(tagbase)->array(), tagbase->ncomps());
+      auto out = sync_array(dim, as<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(dim, name, out);
       break;
     }
@@ -609,25 +609,25 @@ void Mesh::reduce_tag(Int dim, std::string const& name, Omega_h_Op op) {
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
       auto out =
-          reduce_array(dim, to<I8>(tagbase)->array(), tagbase->ncomps(), op);
+          reduce_array(dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
       break;
     }
     case OMEGA_H_I32: {
       auto out =
-          reduce_array(dim, to<I32>(tagbase)->array(), tagbase->ncomps(), op);
+          reduce_array(dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
       break;
     }
     case OMEGA_H_I64: {
       auto out =
-          reduce_array(dim, to<I64>(tagbase)->array(), tagbase->ncomps(), op);
+          reduce_array(dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
       break;
     }
     case OMEGA_H_F64: {
       auto out =
-          reduce_array(dim, to<Real>(tagbase)->array(), tagbase->ncomps(), op);
+          reduce_array(dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(dim, name, out);
       break;
     }

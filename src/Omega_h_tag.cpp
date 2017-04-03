@@ -19,13 +19,13 @@ bool is(TagBase const* t) {
 }
 
 template <typename T>
-Tag<T> const* to(TagBase const* t) {
+Tag<T> const* as(TagBase const* t) {
   CHECK(is<T>(t));
   return dynamic_cast<Tag<T> const*>(t);
 }
 
 template <typename T>
-Tag<T>* to(TagBase* t) {
+Tag<T>* as(TagBase* t) {
   CHECK(is<T>(t));
   return dynamic_cast<Tag<T>*>(t);
 }
@@ -73,8 +73,8 @@ Omega_h_Type Tag<T>::type() const {
 
 #define INST(T)                                                                \
   template bool is<T>(TagBase const* t);                                       \
-  template Tag<T> const* to<T>(TagBase const* t);                              \
-  template Tag<T>* to<T>(TagBase * t);                                         \
+  template Tag<T> const* as<T>(TagBase const* t);                              \
+  template Tag<T>* as<T>(TagBase * t);                                         \
   template class Tag<T>;
 INST(I8)
 INST(I32)
