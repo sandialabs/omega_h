@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_SIZE_HPP
-#define OMEGA_H_SIZE_HPP
+#ifndef OMEGA_H_SHAPE_HPP
+#define OMEGA_H_SHAPE_HPP
 
 #include <Omega_h_adj.hpp>
 #include <Omega_h_mesh.hpp>
