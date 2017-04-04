@@ -75,7 +75,7 @@ bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
 
 struct MetricSource {
   Omega_h_Source kind;
-  Omega_h_Scales scales;
+  bool should_scale;
   std::string tag_name;
   Real knob;
 };

@@ -14,6 +14,8 @@ void set_if_given(T* var, Teuchos::ParameterList const& pl, std::string const& n
 void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const& pl);
 void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList const& pl);
 void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl);
+MetricSource get_metric_source(Teuchos::ParameterList const& pl);
+void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl);
 
 }
 

@@ -3,8 +3,8 @@
 namespace Omega_h {
 
 void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const& pl) {
-  if (pl.isType<std::string>("Kind")) {
-    auto type_name = pl.get<std::string>("Kind");
+  if (pl.isType<std::string>("Type")) {
+    auto type_name = pl.get<std::string>("Type");
     if (type_name == "None") {
       opts->kind = VarCompareOpts::NONE;
     } else if (type_name == "Relative") {
@@ -65,6 +65,8 @@ void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList const& pl) 
           }
           opts->integral_diffuse_map[momentum_name] = convergence;
         }
+      } else {
+        Omega_h_fail("expected \"%s\" to be a sublist\n", field_name.c_str());
       }
     }
   }
@@ -105,6 +107,56 @@ void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
   if (pl.isSublist("Transfer")) {
     update_transfer_opts(&opts->xfer_opts, pl.sublist("Transfer"));
   }
+}
+
+MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
+  MetricSource source;
+  auto type_name = pl.get<std::string>("Type");
+  if (type_name == "Hessian") {
+    source.kind = OMEGA_H_HESSIAN;
+  } else if (type_name == "Given") {
+    source.kind = OMEGA_H_GIVEN;
+  } else if (type_name == "Implied") {
+    source.kind = OMEGA_H_IMPLIED;
+  } else if (type_name == "Proximity") {
+    source.kind = OMEGA_H_PROXIMITY;
+  } else if (type_name == "Curvature") {
+    source.kind = OMEGA_H_CURVATURE;
+  } else {
+    Omega_h_fail("unknown metric source type \"%s\"\n", type_name.c_str());
+  }
+  source.should_scale = true;
+  set_if_given(&source.should_scale, pl, "Scale");
+  set_if_given(&source.tag_name, pl, "Tag Name");
+  source.knob = -42.0;
+  set_if_given(&source.knob, pl, "Knob");
+  return source;
+}
+
+void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl) {
+  if (pl.isSublist("Sources")) {
+    auto& sources_pl = pl.sublist("Sources");
+    for (auto it = sources_pl.begin(), end = sources_pl.end(); it != end; ++it) {
+      auto source_name = sources_pl.name(it);
+      if (sources_pl.isSublist(source_name)) {
+        input->sources.push_back(get_metric_source(sources_pl.sublist(source_name)));
+      } else {
+        Omega_h_fail("expected \"%s\" to be a sublist\n", source_name.c_str());
+      }
+    }
+  }
+  set_if_given(&input->should_limit_lengths, pl, "Limit Lengths");
+  set_if_given(&input->max_length, pl, "Max Length");
+  set_if_given(&input->min_length, pl, "Min Length");
+  set_if_given(&input->should_limit_gradation, pl, "Limit Gradation");
+  set_if_given(&input->max_gradation_rate, pl, "Max Gradation Rate");
+  set_if_given(&input->gradation_convergence_tolerance, pl,
+      "Gradation Convergence Tolerance");
+  set_if_given(&input->should_limit_element_count, pl, "Limit Element Count");
+  set_if_given(&input->max_element_count, pl, "Max Element Count");
+  set_if_given(&input->min_element_count, pl, "Min Element Count");
+  set_if_given(&input->element_count_over_relaxation, pl,
+      "Element Count Over-Relaxation");
 }
 
 }

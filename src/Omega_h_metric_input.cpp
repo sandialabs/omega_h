@@ -131,7 +131,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
       auto in_metrics = original_metrics[i];
       in_metrics =
           resize_symms(in_metrics, get_metrics_dim(n, in_metrics), metric_dim);
-      if (input.sources[i].scales == OMEGA_H_SCALES) {
+      if (input.sources[i].should_scale) {
         in_metrics = multiply_each_by(scalar, in_metrics);
       }
       if (input.should_limit_lengths) {
