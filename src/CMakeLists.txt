@@ -124,9 +124,9 @@ endif()
 set(Omega_h_USE_TeuchosParameterList_DEFAULT OFF)
 set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_public_dep(TeuchosParameterList)
-# if(Omega_h_USE_TeuchosParameterList)
-#   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
-# endif()
+if(Omega_h_USE_TeuchosParameterList)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
+endif()
 
 if(Omega_h_ONE_FILE)
   foreach(source IN LISTS Omega_h_SOURCES)
@@ -161,6 +161,14 @@ if(Omega_h_USE_SEACASExodus)
       PRIVATE ${SEACASExodus_TPL_INCLUDE_DIRS})
   target_link_libraries(omega_h
       PUBLIC ${SEACASExodus_TPL_LIBRARIES})
+endif()
+
+if(Omega_h_USE_TeuchosParameterList)
+  target_link_libraries(omega_h PUBLIC teuchosparameterlist)
+  target_include_directories(omega_h
+      PUBLIC ${TeuchosParameterList_TPL_INCLUDE_DIRS})
+  target_link_libraries(omega_h
+      PUBLIC ${TeuchosParameterList_TPL_LIBRARIES})
 endif()
 
 bob_export_target(omega_h)
@@ -424,6 +432,10 @@ set(Omega_h_HEADERS
   Omega_h_recover.hpp
   Omega_h_metric.hpp
   )
+
+if(Omega_h_USE_TeuchosParameterList)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_teuchos.hpp)
+endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
 
