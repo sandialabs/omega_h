@@ -1,9 +1,9 @@
 #include "Omega_h.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
-#include "bipart.hpp"
-#include "inertia.hpp"
-#include "internal.hpp"
+#include "Omega_h_bipart.hpp"
+#include "Omega_h_inertia.hpp"
+#include "Omega_h_internal.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_vtk.hpp"
 

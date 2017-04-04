@@ -1,7 +1,7 @@
 #include "Omega_h_map.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "atomics.hpp"
+#include "Omega_h_atomics.hpp"
 #include "Omega_h_scan.hpp"
 #include "Omega_h_sort.hpp"
 

@@ -2,7 +2,7 @@
 #define QUALITY_HPP
 
 #include "Omega_h_shape.hpp"
-#include "host_few.hpp"
+#include "Omega_h_host_few.hpp"
 
 namespace Omega_h {
 

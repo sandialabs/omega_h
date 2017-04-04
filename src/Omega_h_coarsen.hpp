@@ -3,7 +3,7 @@
 
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_adj.hpp>
-#include "host_few.hpp"
+#include "Omega_h_host_few.hpp"
 
 namespace Omega_h {
 

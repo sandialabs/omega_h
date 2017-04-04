@@ -11,8 +11,8 @@
 #endif
 
 #include "Omega_h_array_ops.hpp"
-#include "inertia.hpp"
-#include "internal.hpp"
+#include "Omega_h_inertia.hpp"
+#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

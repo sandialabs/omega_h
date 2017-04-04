@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

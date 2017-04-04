@@ -1,4 +1,4 @@
-#include "control.hpp"
+#include "Omega_h_control.hpp"
 
 #include <cxxabi.h>
 #include <execinfo.h>
@@ -10,7 +10,7 @@
 #include <string>
 
 #include "Omega_h_cmdline.hpp"
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

@@ -1,6 +1,6 @@
 #include "Omega_h_compare.hpp"
-#include "internal.hpp"
-#include "refine.hpp"
+#include "Omega_h_internal.hpp"
+#include "Omega_h_refine.hpp"
 
 using namespace Omega_h;
 

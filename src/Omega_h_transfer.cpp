@@ -5,8 +5,8 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
-#include "control.hpp"
-#include "fit.hpp"
+#include "Omega_h_control.hpp"
+#include "Omega_h_fit.hpp"
 #include "Omega_h_quality.hpp"
 
 namespace Omega_h {

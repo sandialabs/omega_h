@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Omega_h_array_ops.hpp"
-#include "host_few.hpp"
+#include "Omega_h_host_few.hpp"
 
 namespace Omega_h {
 

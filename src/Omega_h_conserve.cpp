@@ -10,7 +10,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_transfer.hpp"
-#include "host_few.hpp"
+#include "Omega_h_host_few.hpp"
 
 namespace Omega_h {
 

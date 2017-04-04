@@ -37,42 +37,42 @@ set(Omega_h_SOURCES
   Omega_h_linpart.cpp
   Omega_h_owners.cpp
   Omega_h_migrate.cpp
-  bcast.cpp
-  unmap_mesh.cpp
-  ghost.cpp
-  inertia.cpp
-  bipart.cpp
+  Omega_h_bcast.cpp
+  Omega_h_unmap_mesh.cpp
+  Omega_h_ghost.cpp
+  Omega_h_inertia.cpp
+  Omega_h_bipart.cpp
   Omega_h_metric.cpp
-  refine_qualities.cpp
-  refine_topology.cpp
-  modify.cpp
-  refine.cpp
+  Omega_h_refine_qualities.cpp
+  Omega_h_refine_topology.cpp
+  Omega_h_modify.cpp
+  Omega_h_refine.cpp
   Omega_h_transfer.cpp
   Omega_h_conserve.cpp
   Omega_h_compare.cpp
-  check_collapse.cpp
-  coarsen_qualities.cpp
-  coarsen_topology.cpp
+  Omega_h_check_collapse.cpp
+  Omega_h_coarsen_qualities.cpp
+  Omega_h_coarsen_topology.cpp
   Omega_h_coarsen.cpp
-  approach.cpp
-  laplace.cpp
+  Omega_h_approach.cpp
+  Omega_h_laplace.cpp
   Omega_h_adapt.cpp
-  swap.cpp
-  swap2d_qualities.cpp
-  swap2d_topology.cpp
-  swap2d.cpp
-  swap3d_qualities.cpp
-  swap3d_topology.cpp
-  swap3d.cpp
-  regress.cpp
-  consistent.cpp
+  Omega_h_swap.cpp
+  Omega_h_swap2d_qualities.cpp
+  Omega_h_swap2d_topology.cpp
+  Omega_h_swap2d.cpp
+  Omega_h_swap3d_qualities.cpp
+  Omega_h_swap3d_topology.cpp
+  Omega_h_swap3d.cpp
+  Omega_h_regress.cpp
+  Omega_h_consistent.cpp
   Omega_h_align.cpp
   Omega_h_xml.cpp
   Omega_h_recover.cpp
   Omega_h_coarsen_overshoot.cpp
-  collapse_rail.cpp
+  Omega_h_collapse_rail.cpp
   Omega_h_histogram.cpp
-  eigen.cpp
+  Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
   Omega_h_proximity.cpp

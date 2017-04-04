@@ -6,7 +6,7 @@
 #include "Omega_h_recover.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
-#include "host_few.hpp"
+#include "Omega_h_host_few.hpp"
 #include "Omega_h_surface.hpp"
 
 namespace Omega_h {

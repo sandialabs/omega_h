@@ -1,6 +1,6 @@
 #include "Omega_h_confined.hpp"
 
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 /* Code to find classification-enforced constraints on
  * element size and shape.

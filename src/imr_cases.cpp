@@ -1,7 +1,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_timer.hpp"
-#include "internal.hpp"
-#include "laplace.hpp"
+#include "Omega_h_internal.hpp"
+#include "Omega_h_laplace.hpp"
 
 #include <iostream>
 #include <set>

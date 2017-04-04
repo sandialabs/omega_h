@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "Omega_h_c.h"
-#include "control.hpp"
+#include "Omega_h_control.hpp"
 
 extern "C" {
 

@@ -1,7 +1,7 @@
 #ifndef BOX_HPP
 #define BOX_HPP
 
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

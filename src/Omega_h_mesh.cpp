@@ -1,4 +1,4 @@
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -10,10 +10,10 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
-#include "bcast.hpp"
-#include "control.hpp"
-#include "ghost.hpp"
-#include "inertia.hpp"
+#include "Omega_h_bcast.hpp"
+#include "Omega_h_control.hpp"
+#include "Omega_h_ghost.hpp"
+#include "Omega_h_inertia.hpp"
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_reorder.hpp"

@@ -1,7 +1,7 @@
 #ifndef SORT_HPP
 #define SORT_HPP
 
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

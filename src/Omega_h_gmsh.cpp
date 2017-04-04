@@ -1,4 +1,4 @@
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 #include <fstream>
 

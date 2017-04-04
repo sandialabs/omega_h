@@ -1,5 +1,5 @@
 #include "Omega_h_cmdline.hpp"
-#include "internal.hpp"
+#include "Omega_h_internal.hpp"
 
 #include <iostream>
 

@@ -4,8 +4,8 @@
 #include <sstream>
 
 #include "Omega_h_functors.hpp"
-#include "control.hpp"
-#include "internal.hpp"
+#include "Omega_h_control.hpp"
+#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

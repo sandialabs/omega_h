@@ -2,7 +2,7 @@
 #include "Omega_h_compare.hpp"
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_map.hpp"
-#include "host_few.hpp"
+#include "Omega_h_host_few.hpp"
 #include "Omega_h_surface.hpp"
 
 #include <sstream>
