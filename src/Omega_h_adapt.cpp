@@ -5,16 +5,16 @@
 #include "Omega_h_coarsen.hpp"
 #include "Omega_h_confined.hpp"
 #include "Omega_h_conserve.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_motion.hpp"
-#include "Omega_h_timer.hpp"
-#include "Omega_h_transfer.hpp"
 #include "Omega_h_control.hpp"
 #include "Omega_h_histogram.hpp"
 #include "Omega_h_laplace.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_motion.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine.hpp"
 #include "Omega_h_swap.hpp"
+#include "Omega_h_timer.hpp"
+#include "Omega_h_transfer.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -88,16 +88,16 @@ bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts) {
     adapt_summary(mesh, opts, qualstats, lenstats);
   }
   return (qualstats.min >= opts.min_quality_desired &&
-      lenstats.min >= opts.min_length_desired &&
-      lenstats.max <= opts.max_length_desired);
+          lenstats.min >= opts.min_length_desired &&
+          lenstats.max <= opts.max_length_desired);
 }
 
 void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
-  auto qh =
-      get_histogram(mesh, mesh->dim(), opts.nquality_histogram_bins,
-           0.0, 1.0, mesh->ask_qualities());
+  auto qh = get_histogram(mesh, mesh->dim(), opts.nquality_histogram_bins, 0.0,
+      1.0, mesh->ask_qualities());
   auto lh = get_histogram(mesh, VERT, opts.nlength_histogram_bins,
-      opts.length_histogram_min, opts.length_histogram_max, mesh->ask_lengths());
+      opts.length_histogram_min, opts.length_histogram_max,
+      mesh->ask_lengths());
   if (mesh->comm()->rank() == 0) {
     print_histogram(qh, "quality");
     print_histogram(lh, "length");

@@ -8,10 +8,10 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_cmdline.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_simplex.hpp"
 #include "Omega_h_linpart.hpp"
+#include "Omega_h_map.hpp"
 #include "Omega_h_owners.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 

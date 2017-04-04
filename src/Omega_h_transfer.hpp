@@ -12,11 +12,13 @@ bool should_inherit(
     Mesh* mesh, TransferOpts const& xopts, Int dim, TagBase const* tag);
 bool should_interpolate(
     Mesh* mesh, TransferOpts const& xopts, Int dim, TagBase const* tag);
-bool should_fit(Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
+bool should_fit(
+    Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
 bool should_conserve(
     Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
 bool should_conserve_any(Mesh* mesh, TransferOpts const& opts);
-bool is_metric(Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
+bool is_metric(
+    Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
 bool is_momentum_velocity(
     Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
 bool has_momentum_velocity(Mesh* mesh, TransferOpts const& opts);
@@ -39,7 +41,8 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
 
 void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     std::function<bool(TagBase const*)> filter);
-void transfer_copy_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh);
+void transfer_copy_swap(
+    Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh);
 void transfer_copy_motion(
     Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh, Int prod_dim);
 
@@ -65,9 +68,9 @@ void transfer_quality(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents);
 void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs prods2new_ents);
-void transfer_pointwise(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
-    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents);
+void transfer_pointwise(Mesh* old_mesh, TransferOpts const& opts,
+    Mesh* new_mesh, Int key_dim, LOs keys2kds, LOs keys2prods,
+    LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents);
 
 #define INST_DECL(T)                                                           \
   extern template void transfer_common3(                                       \

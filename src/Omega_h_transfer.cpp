@@ -1,13 +1,13 @@
 #include "Omega_h_transfer.hpp"
 
 #include "Omega_h_conserve.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_metric.hpp"
-#include "Omega_h_shape.hpp"
-#include "Omega_h_timer.hpp"
 #include "Omega_h_control.hpp"
 #include "Omega_h_fit.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"
+#include "Omega_h_shape.hpp"
+#include "Omega_h_timer.hpp"
 
 namespace Omega_h {
 
@@ -17,7 +17,8 @@ bool is_transfer_required(
   return opts.type_map.find(name)->second == type;
 }
 
-bool should_inherit(Mesh* mesh, TransferOpts const& opts, Int, TagBase const* tag) {
+bool should_inherit(
+    Mesh* mesh, TransferOpts const& opts, Int, TagBase const* tag) {
   auto& name = tag->name();
   if (!(is_transfer_required(opts, name, OMEGA_H_INHERIT) ||
           name == "class_id" || name == "class_dim" ||
@@ -43,7 +44,8 @@ bool should_interpolate(
   return dim == VERT && tag->type() == OMEGA_H_REAL;
 }
 
-bool should_fit(Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
+bool should_fit(
+    Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
   if (!is_transfer_required(opts, name, OMEGA_H_POINTWISE)) {
     return false;
@@ -71,7 +73,8 @@ bool should_conserve_any(Mesh* mesh, TransferOpts const& opts) {
   return false;
 }
 
-bool is_metric(Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
+bool is_metric(
+    Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
   if (!(is_transfer_required(opts, name, OMEGA_H_METRIC) || name == "metric" ||
           name == "target_metric")) {
@@ -503,9 +506,9 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
       same_elems2new_elems, prods2new_elems, old_tag, prod_data);
 }
 
-void transfer_pointwise(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
-    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+void transfer_pointwise(Mesh* old_mesh, TransferOpts const& opts,
+    Mesh* new_mesh, Int key_dim, LOs keys2kds, LOs keys2prods,
+    LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
@@ -585,7 +588,8 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
   }
 }
 
-void transfer_copy_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh) {
+void transfer_copy_swap(
+    Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh) {
   transfer_copy(old_mesh, new_mesh, VERT, [=](TagBase const* tb) -> bool {
     return should_transfer_copy(old_mesh, opts, VERT, tb);
   });

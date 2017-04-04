@@ -1,8 +1,8 @@
 #ifndef QUALITY_HPP
 #define QUALITY_HPP
 
-#include "Omega_h_shape.hpp"
 #include "Omega_h_host_few.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 

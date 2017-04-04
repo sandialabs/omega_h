@@ -12,8 +12,8 @@ namespace Omega_h {
 class Mesh;
 
 struct TransferOpts {
-  std::map<std::string, Omega_h_Transfer> type_map;     // "density" -> CONSERVE
-  std::map<std::string, std::string> integral_map;  // "density" -> "mass"
+  std::map<std::string, Omega_h_Transfer> type_map;  // "density" -> CONSERVE
+  std::map<std::string, std::string> integral_map;   // "density" -> "mass"
   std::map<std::string, std::string>
       velocity_density_map;  // "velocity" -> "density"
   std::map<std::string, std::string>
@@ -97,7 +97,8 @@ struct MetricInput {
 };
 
 Reals generate_metrics(Mesh* mesh, MetricInput const& input);
-void add_metric_tag(Mesh* mesh, Reals metrics, std::string const& name = "metric");
+void add_metric_tag(
+    Mesh* mesh, Reals metrics, std::string const& name = "metric");
 void generate_metric_tag(Mesh* mesh, MetricInput const& input);
 void generate_target_metric_tag(Mesh* mesh, MetricInput const& input);
 void add_implied_metric_tag(Mesh* mesh);

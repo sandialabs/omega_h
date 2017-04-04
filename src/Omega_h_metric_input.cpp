@@ -1,10 +1,10 @@
 #include "Omega_h_adapt.hpp"
-#include "Omega_h_recover.hpp"
-#include "Omega_h_metric.hpp"
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_mesh.hpp"
-#include "Omega_h_timer.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_metric.hpp"
+#include "Omega_h_recover.hpp"
+#include "Omega_h_timer.hpp"
 
 #include <iostream>
 
@@ -75,8 +75,7 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
     case ELEM_HESSIAN:
       data = project_by_fit(mesh, data);
       OMEGA_H_FALLTHROUGH;
-    case NODAL_HESSIAN:
-      ;
+    case NODAL_HESSIAN:;
   }
   return metric_from_hessians(dim, data, knob);
 }
@@ -130,12 +129,14 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
     metrics = Reals();
     for (size_t i = 0; i < input.sources.size(); ++i) {
       auto in_metrics = original_metrics[i];
-      in_metrics = resize_symms(in_metrics, get_metrics_dim(n, in_metrics), metric_dim);
+      in_metrics =
+          resize_symms(in_metrics, get_metrics_dim(n, in_metrics), metric_dim);
       if (input.sources[i].scales == OMEGA_H_SCALES) {
         in_metrics = multiply_each_by(scalar, in_metrics);
       }
       if (input.should_limit_lengths) {
-        in_metrics = clamp_metrics(n, in_metrics, input.min_length, input.max_length);
+        in_metrics =
+            clamp_metrics(n, in_metrics, input.min_length, input.max_length);
       }
       if (i) {
         metrics = intersect_metrics(n, metrics, in_metrics);
@@ -169,7 +170,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
   add_to_global_timer("generating metrics", t1 - t0);
   if (input.verbose) {
     std::cout << "generated metrics in " << niters << " iterations and "
-       << (t1 - t0) << " seconds";
+              << (t1 - t0) << " seconds";
   }
   return metrics;
 }
@@ -194,4 +195,4 @@ void add_implied_metric_tag(Mesh* mesh) {
   add_metric_tag(mesh, metrics, "metric");
 }
 
-}
+}  // namespace Omega_h

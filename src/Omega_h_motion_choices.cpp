@@ -1,8 +1,8 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_motion.hpp"
-#include "Omega_h_shape.hpp"
 #include "Omega_h_quality.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 

@@ -7,10 +7,10 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_graph.hpp"
+#include "Omega_h_host_few.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_host_few.hpp"
 
 namespace Omega_h {
 
@@ -328,9 +328,10 @@ struct OpConservation {
   ConservedBools momentum;
 };
 
-static void transfer_conservation_errors(Mesh* old_mesh, TransferOpts const& opts,
-    Mesh* new_mesh, CavsByBdryStatus const& cavs, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, OpConservation op_conservation) {
+static void transfer_conservation_errors(Mesh* old_mesh,
+    TransferOpts const& opts, Mesh* new_mesh, CavsByBdryStatus const& cavs,
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    OpConservation op_conservation) {
   auto dim = new_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);

@@ -6,8 +6,8 @@
 #include <zlib.h>
 #endif
 
-#include "Omega_h_simplex.hpp"
 #include "Omega_h_base64.hpp"
+#include "Omega_h_simplex.hpp"
 #include "Omega_h_xml.hpp"
 
 namespace Omega_h {
@@ -205,11 +205,13 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
         // regardless of whether this is a 2D mesh or not.
         // this filter adds a 3rd zero component to any
         // fields with 2 components for 2D meshes
-        write_array(stream, tag->name(), 3, resize_vectors(array, space_dim, 3));
+        write_array(
+            stream, tag->name(), 3, resize_vectors(array, space_dim, 3));
       } else if (tag->ncomps() == symm_ncomps(space_dim)) {
         // Likewise, ParaView has component names specially set up for
         // 3D symmetric tensors
-        write_array(stream, tag->name(), symm_ncomps(3), resize_symms(array, space_dim, 3));
+        write_array(stream, tag->name(), symm_ncomps(3),
+            resize_symms(array, space_dim, 3));
       }
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array);

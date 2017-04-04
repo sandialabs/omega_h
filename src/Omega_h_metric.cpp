@@ -3,10 +3,10 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_host_few.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
-#include "Omega_h_host_few.hpp"
 #include "Omega_h_surface.hpp"
 
 namespace Omega_h {
@@ -458,7 +458,8 @@ Real get_expected_nelems(Mesh* mesh, Reals v2m) {
   return nelems;
 }
 
-Real get_metric_scalar_for_nelems(Int elem_dim, Real expected_nelems, Real target_nelems) {
+Real get_metric_scalar_for_nelems(
+    Int elem_dim, Real expected_nelems, Real target_nelems) {
   auto size_scal = target_nelems / expected_nelems;
   auto metric_scal = power(size_scal, 2, elem_dim);
   return metric_scal;
@@ -466,7 +467,8 @@ Real get_metric_scalar_for_nelems(Int elem_dim, Real expected_nelems, Real targe
 
 Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   auto nelems = get_expected_nelems(mesh, v2m);
-  auto metric_scal = get_metric_scalar_for_nelems(mesh->dim(), nelems, target_nelems);
+  auto metric_scal =
+      get_metric_scalar_for_nelems(mesh->dim(), nelems, target_nelems);
   return metric_scal;
 }
 

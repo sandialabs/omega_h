@@ -1,20 +1,20 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_bbox.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_eigen.hpp"
-#include "Omega_h_lie.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_motion.hpp"
-#include "Omega_h_proximity.hpp"
-#include "Omega_h_shape.hpp"
-#include "Omega_h_bbox.hpp"
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_internal.hpp"
+#include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_motion.hpp"
+#include "Omega_h_proximity.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_scan.hpp"
+#include "Omega_h_shape.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_swap2d.hpp"
 #include "Omega_h_swap3d_choice.hpp"
@@ -825,7 +825,8 @@ static void test_sf_scale_dim(Library* lib) {
   }
   {
     auto metric = Omega_h::get_implied_metrics(&mesh);
-    auto metric_scal = get_metric_scalar_for_nelems(&mesh, metric, target_nelems);
+    auto metric_scal =
+        get_metric_scalar_for_nelems(&mesh, metric, target_nelems);
     if (dim != 3) CHECK(are_close(metric_scal, 1.));
   }
 }

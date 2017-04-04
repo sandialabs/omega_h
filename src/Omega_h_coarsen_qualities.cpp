@@ -1,8 +1,8 @@
 #include "Omega_h_coarsen.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_map.hpp"
 #include "Omega_h_collapse.hpp"
+#include "Omega_h_map.hpp"
 #include "Omega_h_quality.hpp"
 
 namespace Omega_h {

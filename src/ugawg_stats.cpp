@@ -107,7 +107,8 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("input.mesh[b]");
   auto& mflag = cmdline.add_flag("-m",
       "REQUIRED!\n    one of "
-      "cube-linear,cube-cylinder-linear,cube-cylinder-polar-1,cube-cylinder-polar-2");
+      "cube-linear,cube-cylinder-linear,cube-cylinder-polar-1,cube-cylinder-"
+      "polar-2");
   mflag.add_arg<std::string>("metric");
   auto& hflag = cmdline.add_flag("-h", "domain of length histogram");
   hflag.add_arg<double>("length-histogram-min");
@@ -146,15 +147,15 @@ int main(int argc, char** argv) {
   auto opts = AdaptOpts(&mesh);
   if (cmdline.parsed("-h")) {
     opts.length_histogram_min =
-      cmdline.get<double>("-h", "length-histogram-min");
+        cmdline.get<double>("-h", "length-histogram-min");
     opts.length_histogram_max =
-      cmdline.get<double>("-h", "length-histogram-max");
+        cmdline.get<double>("-h", "length-histogram-max");
   }
   if (cmdline.parsed("-n")) {
     opts.nquality_histogram_bins =
-      cmdline.get<int>("-n", "quality-histogram-bins");
+        cmdline.get<int>("-n", "quality-histogram-bins");
     opts.nlength_histogram_bins =
-      cmdline.get<int>("-n", "length-histogram-bins");
+        cmdline.get<int>("-n", "length-histogram-bins");
   }
   if (cmdline.parsed("-l")) {
     opts.min_length_desired = cmdline.get<double>("-l", "min-desired-length");
@@ -169,16 +170,13 @@ int main(int argc, char** argv) {
   auto metrics = get_metric(&mesh, metric_name);
   mesh.add_tag(VERT, "metric", symm_ncomps(dim), metrics);
   print_adapt_status(&mesh, opts);
-  auto qh =
-    get_histogram(&mesh, mesh.dim(), opts.nquality_histogram_bins,
-        0.0, 1.0, mesh.ask_qualities());
+  auto qh = get_histogram(&mesh, mesh.dim(), opts.nquality_histogram_bins, 0.0,
+      1.0, mesh.ask_qualities());
   auto lh = get_histogram(&mesh, VERT, opts.nlength_histogram_bins,
       opts.length_histogram_min, opts.length_histogram_max, mesh.ask_lengths());
   if (cmdline.parsed("-f")) {
-    auto qf =
-      cmdline.get<std::string>("-f", "quality-histogram-file");
-    auto lf =
-      cmdline.get<std::string>("-f", "length-histogram-file");
+    auto qf = cmdline.get<std::string>("-f", "quality-histogram-file");
+    auto lf = cmdline.get<std::string>("-f", "length-histogram-file");
     render_histogram_matplotlib(qh, qf, "elements", "quality");
     render_histogram_matplotlib(lh, lf, "edges", "length");
   } else {

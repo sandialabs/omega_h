@@ -1,17 +1,17 @@
 #include "Omega_h_histogram.hpp"
 
+#include <cstdlib>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <fstream>
-#include <cstdlib>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 
-Histogram get_histogram(
-    Mesh* mesh, Int dim, Int nbins, Real min_value, Real max_value, Reals values) {
+Histogram get_histogram(Mesh* mesh, Int dim, Int nbins, Real min_value,
+    Real max_value, Reals values) {
   auto owned_values = mesh->owned_array(dim, values, 1);
   auto interval = (max_value - min_value) / Real(nbins);
   Histogram histogram;
@@ -28,8 +28,7 @@ Histogram get_histogram(
   return histogram;
 }
 
-void print_histogram(
-    Histogram const& histogram, std::string const& name) {
+void print_histogram(Histogram const& histogram, std::string const& name) {
   std::ios saved_state(0);
   saved_state.copyfmt(std::cout);
   std::cout << std::fixed << std::setprecision(2);
@@ -39,8 +38,8 @@ void print_histogram(
   for (Int i = 0; i < nbins; ++i) {
     auto floor = interval * i + histogram.min;
     auto ceil = interval * (i + 1) + histogram.min;
-    std::cout << floor << '-' << ceil << ": "
-      << histogram.bins[std::size_t(i)] << '\n';
+    std::cout << floor << '-' << ceil << ": " << histogram.bins[std::size_t(i)]
+              << '\n';
   }
   std::cout.copyfmt(saved_state);
 }

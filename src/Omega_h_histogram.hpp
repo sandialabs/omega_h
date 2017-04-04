@@ -16,11 +16,10 @@ struct Histogram {
   std::vector<GO> bins;
 };
 
-Histogram get_histogram(
-    Mesh* mesh, Int dim, Int nbins, Real min_value, Real max_value, Reals values);
+Histogram get_histogram(Mesh* mesh, Int dim, Int nbins, Real min_value,
+    Real max_value, Reals values);
 
-void print_histogram(
-    Histogram const& histogram, std::string const& name);
+void print_histogram(Histogram const& histogram, std::string const& name);
 
 void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     MinMax<Real> desired, MinMax<Real> actual);

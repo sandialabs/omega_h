@@ -3,9 +3,9 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_confined.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_metric.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
-#include "Omega_h_metric.hpp"
 
 namespace Omega_h {
 
@@ -143,8 +143,8 @@ static Reals get_tet_pad_isos(
   return out;
 }
 
-Reals get_pad_isos(Mesh* mesh, Int pad_dim, Real factor,
-    Read<I8> edges_are_bridges) {
+Reals get_pad_isos(
+    Mesh* mesh, Int pad_dim, Real factor, Read<I8> edges_are_bridges) {
   if (pad_dim == EDGE) {
     if (mesh->dim() == 3)
       return get_edge_pad_isos<3>(mesh, factor, edges_are_bridges);

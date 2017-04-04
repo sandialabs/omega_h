@@ -218,9 +218,8 @@ Reals get_implied_isos(Mesh* mesh);
 Reals get_implied_metrics(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
-Reals limit_metric_gradation(
-    Mesh* mesh, Reals values, Real max_rate, Real tol = 1e-3,
-    bool verbose = true);
+Reals limit_metric_gradation(Mesh* mesh, Reals values, Real max_rate,
+    Real tol = 1e-3, bool verbose = true);
 Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m);
 Real get_expected_nelems(Mesh* mesh, Reals v2m);
 Real get_metric_scalar_for_nelems(

@@ -5,18 +5,18 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_compare.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_shape.hpp"
-#include "Omega_h_simplex.hpp"
-#include "Omega_h_timer.hpp"
 #include "Omega_h_bcast.hpp"
+#include "Omega_h_compare.hpp"
 #include "Omega_h_control.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"
+#include "Omega_h_map.hpp"
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_reorder.hpp"
+#include "Omega_h_shape.hpp"
+#include "Omega_h_simplex.hpp"
+#include "Omega_h_timer.hpp"
 
 namespace Omega_h {
 
@@ -519,7 +519,8 @@ void Mesh::balance(bool predictive) {
   Reals masses;
   Real abs_tol;
   if (predictive) {
-    masses = get_expected_nelems_per_elem(this, get_array<Real>(VERT, "metric"));
+    masses =
+        get_expected_nelems_per_elem(this, get_array<Real>(VERT, "metric"));
     /* average between input mesh weight (1.0)
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);

@@ -1,8 +1,8 @@
 #include "Omega_h.hpp"
 #include "Omega_h_compare.hpp"
-#include "Omega_h_map.hpp"
 #include "Omega_h_internal.hpp"
 #include "Omega_h_laplace.hpp"
+#include "Omega_h_map.hpp"
 
 using namespace Omega_h;
 

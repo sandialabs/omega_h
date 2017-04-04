@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
   if (vtk_path) writer = Omega_h::vtk::Writer(&mesh, vtk_path, dim);
   mesh.add_tag(Omega_h::VERT, "metric", 1, analytic_metric);
   if (vtk_path) writer.write();
-  auto scalar =
-      Omega_h::get_metric_scalar_for_nelems(&mesh, analytic_metric, target_nelems);
+  auto scalar = Omega_h::get_metric_scalar_for_nelems(
+      &mesh, analytic_metric, target_nelems);
   auto scaled_metric = Omega_h::multiply_each_by(scalar, analytic_metric);
   mesh.set_tag(Omega_h::VERT, "metric", scaled_metric);
   auto imb = mesh.imbalance();

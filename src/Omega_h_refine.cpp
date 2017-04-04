@@ -3,12 +3,12 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_transfer.hpp"
 #include "Omega_h_indset.hpp"
+#include "Omega_h_map.hpp"
 #include "Omega_h_modify.hpp"
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_refine_topology.hpp"
+#include "Omega_h_transfer.hpp"
 
 namespace Omega_h {
 
