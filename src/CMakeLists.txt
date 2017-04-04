@@ -15,8 +15,8 @@ set(Omega_h_SOURCES
   Omega_h_adj.cpp
   Omega_h_tag.cpp
   Omega_h_mesh.cpp
-  bbox.cpp
-  hilbert.cpp
+  Omega_h_bbox.cpp
+  Omega_h_hilbert.cpp
   Omega_h_build.cpp
   Omega_h_graph.cpp
   Omega_h_file.cpp

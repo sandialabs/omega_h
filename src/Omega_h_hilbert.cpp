@@ -1,6 +1,6 @@
-#include "hilbert.hpp"
+#include "Omega_h_hilbert.hpp"
 
-#include "bbox.hpp"
+#include "Omega_h_bbox.hpp"
 #include "Omega_h_sort.hpp"
 
 namespace Omega_h {

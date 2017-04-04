@@ -1,6 +1,6 @@
 #include "Omega_h.hpp"
 #include "Omega_h_array_ops.hpp"
-#include "bbox.hpp"
+#include "Omega_h_bbox.hpp"
 #include "internal.hpp"
 
 #include <cstdlib>

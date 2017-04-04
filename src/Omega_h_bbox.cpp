@@ -1,4 +1,4 @@
-#include "bbox.hpp"
+#include "Omega_h_bbox.hpp"
 
 #include "internal.hpp"
 
