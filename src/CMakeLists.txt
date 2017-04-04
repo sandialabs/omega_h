@@ -22,8 +22,8 @@ set(Omega_h_SOURCES
   Omega_h_file.cpp
   Omega_h_base64.cpp
   Omega_h_vtk.cpp
-  simplify.cpp
-  box.cpp
+  Omega_h_simplify.cpp
+  Omega_h_box.cpp
   surface.cpp
   Omega_h_mark.cpp
   Omega_h_class.cpp

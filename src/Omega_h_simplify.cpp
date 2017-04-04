@@ -1,4 +1,4 @@
-#include "simplify.hpp"
+#include "Omega_h_simplify.hpp"
 
 #include "Omega_h_scalar.hpp"
 #include "Omega_h_scan.hpp"

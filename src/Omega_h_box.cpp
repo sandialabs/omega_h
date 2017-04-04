@@ -1,4 +1,4 @@
-#include "box.hpp"
+#include "Omega_h_box.hpp"
 
 namespace Omega_h {
 

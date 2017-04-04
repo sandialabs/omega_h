@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include "Omega_h.hpp"
-#include "box.hpp"
+#include "Omega_h_box.hpp"
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
