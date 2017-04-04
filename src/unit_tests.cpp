@@ -19,7 +19,7 @@
 #include "swap2d.hpp"
 #include "swap3d_choice.hpp"
 #include "swap3d_loop.hpp"
-#include "vtk.hpp"
+#include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
 
 #include <sstream>

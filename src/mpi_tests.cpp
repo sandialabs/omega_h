@@ -5,7 +5,7 @@
 #include "inertia.hpp"
 #include "internal.hpp"
 #include "owners.hpp"
-#include "vtk.hpp"
+#include "Omega_h_vtk.hpp"
 
 #include <sstream>
 

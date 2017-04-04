@@ -21,7 +21,7 @@ set(Omega_h_SOURCES
   Omega_h_graph.cpp
   Omega_h_file.cpp
   Omega_h_base64.cpp
-  vtk.cpp
+  Omega_h_vtk.cpp
   simplify.cpp
   box.cpp
   surface.cpp

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iostream>
 
-#include "vtk.hpp"
+#include "Omega_h_vtk.hpp"
 
 using namespace Omega_h;
 

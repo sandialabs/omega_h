@@ -1,4 +1,4 @@
-#include "vtk.hpp"
+#include "Omega_h_vtk.hpp"
 
 #include <fstream>
 
