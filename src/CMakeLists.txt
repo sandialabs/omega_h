@@ -86,7 +86,7 @@ set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
 bob_public_dep(libMeshb)
 if(Omega_h_USE_libMeshb)
-  set(Omega_h_SOURCES ${Omega_h_SOURCES} meshb.cpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshb.cpp)
 endif()
 
 if(Omega_h_USE_EGADS)
