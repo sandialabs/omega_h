@@ -235,8 +235,8 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
 }
 
 struct ConservedBools {
-  HostFew<bool, 3> this_time;
-  HostFew<bool, 3> always;
+  std::array<bool, 3> this_time;
+  std::array<bool, 3> always;
 };
 
 static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
@@ -251,7 +251,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
   auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
   map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
-  for (Int i = 0; i < 3; ++i) {
+  for (std::size_t i = 0; i < 3; ++i) {
     if (!conserved_bools.this_time[i]) {
       for (auto class_cavs : cavs[i][CLASS_COLOR]) {
         introduce_class_integ_error(old_mesh, new_mesh, class_cavs,
