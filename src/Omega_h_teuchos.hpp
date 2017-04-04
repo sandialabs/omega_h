@@ -7,8 +7,8 @@
 namespace Omega_h {
 
 template <typename T>
-void set_if_given(T* var, Teuchos_ParameterList const& pl, std::string const& name) {
-  if (pl.isType<T>(pl, name)) *var = pl.get<T>(name);
+void set_if_given(T* var, Teuchos::ParameterList const& pl, std::string const& name) {
+  if (pl.isType<T>(name)) *var = pl.get<T>(name);
 }
 
 void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const& pl);

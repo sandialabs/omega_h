@@ -1,4 +1,4 @@
-#include "Omega_h_Teuchos.hpp"
+#include "Omega_h_teuchos.hpp"
 
 namespace Omega_h {
 
@@ -22,8 +22,8 @@ void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const&
 void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList const& pl) {
   if (pl.isSublist("Fields")) {
     auto& fields_pl = pl.sublist("Fields");
-    for (auto it = fields_pl.begin(), end = fields_pl.end(); it != end; ++i) {
-      auto field_name = fields.name(it);
+    for (auto it = fields_pl.begin(), end = fields_pl.end(); it != end; ++it) {
+      auto field_name = fields_pl.name(it);
       if (fields_pl.isSublist(field_name)) {
         auto& field_pl = fields_pl.sublist(field_name);
         auto type_name = fields_pl.get<std::string>("Type");
