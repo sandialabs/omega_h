@@ -12,8 +12,8 @@ struct LinearPack {
   Int coords_offset;
 };
 
-LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts);
-void unpack_linearized_fields(Mesh* old_mesh, XferOpts const& opts,
+LinearPack pack_linearized_fields(Mesh* mesh, TransferOpts const& opts);
+void unpack_linearized_fields(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, Reals data, Read<I8> verts_are_keys);
 
 struct MotionChoices {

@@ -11,7 +11,7 @@ namespace Omega_h {
 
 class Mesh;
 
-struct XferOpts {
+struct TransferOpts {
   std::map<std::string, Omega_h_Transfer> type_map;     // "density" -> CONSERVE
   std::map<std::string, std::string> integral_map;  // "density" -> "mass"
   std::map<std::string, std::string>
@@ -56,7 +56,7 @@ struct AdaptOpts {
   bool should_coarsen_slivers;
   bool should_move_for_quality;
   bool should_allow_pinching;
-  XferOpts xfer_opts;
+  TransferOpts xfer_opts;
 };
 
 Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts);

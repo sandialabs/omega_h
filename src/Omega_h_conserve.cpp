@@ -269,7 +269,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors);
 }
 
-static void transfer_density_error(Mesh* old_mesh, XferOpts const& opts,
+static void transfer_density_error(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, CavsByBdryStatus const& cavs, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     ConservedBools conserved_bools) {
@@ -288,7 +288,7 @@ static void transfer_density_error(Mesh* old_mesh, XferOpts const& opts,
       conserved_bools);
 }
 
-static void transfer_momentum_error(Mesh* old_mesh, XferOpts const& opts,
+static void transfer_momentum_error(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, CavsByBdryStatus const& cavs, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     ConservedBools conserved_bools) {
@@ -328,7 +328,7 @@ struct OpConservation {
   ConservedBools momentum;
 };
 
-static void transfer_conservation_errors(Mesh* old_mesh, XferOpts const& opts,
+static void transfer_conservation_errors(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, CavsByBdryStatus const& cavs, LOs same_ents2old_ents,
     LOs same_ents2new_ents, OpConservation op_conservation) {
   auto dim = new_mesh->dim();
@@ -357,7 +357,7 @@ static Cavs form_initial_cavs(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   return {keys2old_elems, keys2new_elems};
 }
 
-void transfer_conserve_refine(Mesh* old_mesh, XferOpts const& opts,
+void transfer_conserve_refine(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
@@ -446,7 +446,7 @@ static void transfer_by_intersection(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts,
+void transfer_conserve_swap(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
@@ -477,7 +477,7 @@ void transfer_conserve_swap(Mesh* old_mesh, XferOpts const& opts,
       same_ents2old_ents, same_ents2new_ents, op_conservation);
 }
 
-void transfer_conserve_coarsen(Mesh* old_mesh, XferOpts const& opts,
+void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2verts, Adj keys2doms, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;

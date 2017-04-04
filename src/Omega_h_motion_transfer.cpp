@@ -7,13 +7,13 @@
 namespace Omega_h {
 
 static bool should_transfer_motion_linear(
-    Mesh* mesh, XferOpts const& opts, TagBase const* tb) {
+    Mesh* mesh, TransferOpts const& opts, TagBase const* tb) {
   if (tb->name() == "warp") return false;
   return should_interpolate(mesh, opts, VERT, tb) ||
          is_metric(mesh, opts, VERT, tb);
 }
 
-LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts) {
+LinearPack pack_linearized_fields(Mesh* mesh, TransferOpts const& opts) {
   Int ncomps = 0;
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tb = mesh->get_tag(VERT, i);
@@ -47,7 +47,7 @@ LinearPack pack_linearized_fields(Mesh* mesh, XferOpts const& opts) {
   return {out_w, ncomps, metric_offset, coords_offset};
 }
 
-void unpack_linearized_fields(Mesh* old_mesh, XferOpts const& opts,
+void unpack_linearized_fields(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, Reals data, Read<I8> verts_are_keys) {
   CHECK(data.size() % new_mesh->nverts() == 0);
   auto ncomps = data.size() / new_mesh->nverts();
