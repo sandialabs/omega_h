@@ -24,19 +24,19 @@ set(Omega_h_SOURCES
   Omega_h_vtk.cpp
   Omega_h_simplify.cpp
   Omega_h_box.cpp
-  surface.cpp
+  Omega_h_surface.cpp
   Omega_h_mark.cpp
   Omega_h_class.cpp
-  reorder.cpp
+  Omega_h_reorder.cpp
   Omega_h_shape.cpp
-  quality.cpp
-  gmsh.cpp
+  Omega_h_quality.cpp
+  Omega_h_gmsh.cpp
   Omega_h_comm.cpp
   Omega_h_remotes.cpp
   Omega_h_dist.cpp
-  linpart.cpp
-  owners.cpp
-  migrate.cpp
+  Omega_h_linpart.cpp
+  Omega_h_owners.cpp
+  Omega_h_migrate.cpp
   bcast.cpp
   unmap_mesh.cpp
   ghost.cpp

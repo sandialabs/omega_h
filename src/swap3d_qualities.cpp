@@ -1,6 +1,6 @@
 #include "swap3d.hpp"
 
-#include "quality.hpp"
+#include "Omega_h_quality.hpp"
 #include "swap3d_choice.hpp"
 #include "swap3d_loop.hpp"
 

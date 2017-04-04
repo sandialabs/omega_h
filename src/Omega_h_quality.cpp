@@ -1,4 +1,4 @@
-#include "quality.hpp"
+#include "Omega_h_quality.hpp"
 
 namespace Omega_h {
 

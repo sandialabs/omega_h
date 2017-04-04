@@ -1,6 +1,6 @@
-#include "owners.hpp"
+#include "Omega_h_owners.hpp"
 
-#include "linpart.hpp"
+#include "Omega_h_linpart.hpp"
 #include "Omega_h_scan.hpp"
 
 namespace Omega_h {

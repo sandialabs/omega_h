@@ -14,9 +14,9 @@
 #include "control.hpp"
 #include "ghost.hpp"
 #include "inertia.hpp"
-#include "migrate.hpp"
-#include "quality.hpp"
-#include "reorder.hpp"
+#include "Omega_h_migrate.hpp"
+#include "Omega_h_quality.hpp"
+#include "Omega_h_reorder.hpp"
 
 namespace Omega_h {
 

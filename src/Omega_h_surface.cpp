@@ -1,4 +1,4 @@
-#include "surface.hpp"
+#include "Omega_h_surface.hpp"
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_map.hpp"

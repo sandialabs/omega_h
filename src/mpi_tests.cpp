@@ -4,7 +4,7 @@
 #include "bipart.hpp"
 #include "inertia.hpp"
 #include "internal.hpp"
-#include "owners.hpp"
+#include "Omega_h_owners.hpp"
 #include "Omega_h_vtk.hpp"
 
 #include <sstream>

@@ -7,7 +7,7 @@
 #include "Omega_h_timer.hpp"
 #include "control.hpp"
 #include "fit.hpp"
-#include "quality.hpp"
+#include "Omega_h_quality.hpp"
 
 namespace Omega_h {
 

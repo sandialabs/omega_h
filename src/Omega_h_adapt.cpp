@@ -12,7 +12,7 @@
 #include "control.hpp"
 #include "Omega_h_histogram.hpp"
 #include "laplace.hpp"
-#include "quality.hpp"
+#include "Omega_h_quality.hpp"
 #include "refine.hpp"
 #include "swap.hpp"
 

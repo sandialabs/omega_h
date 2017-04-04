@@ -1,10 +1,10 @@
-#include "migrate.hpp"
+#include "Omega_h_migrate.hpp"
 
 #include <iostream>
 
 #include "Omega_h_map.hpp"
 #include "Omega_h_simplex.hpp"
-#include "owners.hpp"
+#include "Omega_h_owners.hpp"
 #include "Omega_h_scan.hpp"
 
 namespace Omega_h {

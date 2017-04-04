@@ -1,7 +1,7 @@
 #include "ghost.hpp"
 
 #include "Omega_h_map.hpp"
-#include "migrate.hpp"
+#include "Omega_h_migrate.hpp"
 
 namespace Omega_h {
 

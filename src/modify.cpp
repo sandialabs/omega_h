@@ -6,8 +6,8 @@
 #include "Omega_h_timer.hpp"
 #include "atomics.hpp"
 #include "control.hpp"
-#include "linpart.hpp"
-#include "owners.hpp"
+#include "Omega_h_linpart.hpp"
+#include "Omega_h_owners.hpp"
 #include "Omega_h_scan.hpp"
 #include "unmap_mesh.hpp"
 
