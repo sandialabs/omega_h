@@ -33,6 +33,7 @@ class Comm {
   Comm();
 #ifdef OMEGA_H_USE_MPI
   Comm(Library* library, MPI_Comm impl);
+  MPI_Comm get_impl() const { return impl_; }
 #else
   Comm(Library* library, bool is_graph, bool sends_to_self);
 #endif

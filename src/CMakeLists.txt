@@ -124,8 +124,16 @@ endif()
 set(Omega_h_USE_TeuchosParameterList_DEFAULT OFF)
 set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_public_dep(TeuchosParameterList)
-if(Omega_h_USE_TeuchosParameterList)
+set(Omega_h_USE_TeuchosComm_DEFAULT OFF)
+set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
+bob_public_dep(TeuchosComm)
+if(Omega_h_USE_TeuchosParameterList AND Omega_h_USE_TeuchosComm)
+  message(STATUS "Using Teuchos")
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
+elseif(Omega_h_USE_TeuchosParameterList OR Omega_h_USE_TeuchosComm)
+  message(FATAL_ERROR "Must use both TeuchosParameterList and TeuchosComm or neither")
+else()
+  message(STATUS "Not using Teuchos")
 endif()
 
 if(Omega_h_ONE_FILE)
@@ -169,6 +177,14 @@ if(Omega_h_USE_TeuchosParameterList)
       PUBLIC ${TeuchosParameterList_TPL_INCLUDE_DIRS})
   target_link_libraries(omega_h
       PUBLIC ${TeuchosParameterList_TPL_LIBRARIES})
+endif()
+
+if(Omega_h_USE_TeuchosComm)
+  target_link_libraries(omega_h PUBLIC teuchoscomm)
+  target_include_directories(omega_h
+      PUBLIC ${TeuchosComm_TPL_INCLUDE_DIRS})
+  target_link_libraries(omega_h
+      PUBLIC ${TeuchosComm_TPL_LIBRARIES})
 endif()
 
 bob_export_target(omega_h)
@@ -433,7 +449,7 @@ set(Omega_h_HEADERS
   Omega_h_metric.hpp
   )
 
-if(Omega_h_USE_TeuchosParameterList)
+if(Omega_h_USE_TeuchosParameterList AND Omega_h_USE_TeuchosComm)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_teuchos.hpp)
 endif()
 

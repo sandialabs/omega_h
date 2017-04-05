@@ -1,5 +1,20 @@
 #include "Omega_h_teuchos.hpp"
 
+#include "Omega_h_file.hpp"
+
+#include <TeuchosCore_config.h>
+
+#include <Teuchos_XMLParameterListHelpers.hpp>
+#if defined(HAVE_TEUCHOSCORE_YAML_CPP) && HAVE_TEUCHOSCORE_YAML_CPP
+#include <Teuchos_YamlParameterListHelpers.hpp>
+#endif
+
+#ifdef OMEGA_H_USE_MPI
+#include <Teuchos_DefaultMpiComm.hpp>
+#else
+#include <Teuchos_DefaultSerialComm.hpp>
+#endif
+
 namespace Omega_h {
 
 void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const& pl) {
@@ -157,6 +172,33 @@ void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl) {
   set_if_given(&input->min_element_count, pl, "Min Element Count");
   set_if_given(&input->element_count_over_relaxation, pl,
       "Element Count Over-Relaxation");
+}
+
+Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh) {
+#ifdef OMEGA_H_USE_MPI
+  return Teuchos::RCP<Teuchos::Comm<int>>( new Teuchos::MpiComm<int>(comm_osh->get_impl()) );
+#else
+  (void) comm_osh;
+  return Teuchos::RCP<Teuchos::Comm<int>>( new Teuchos::SerialComm<int>() );
+#endif
+}
+
+void update_parameters_from_file(
+    std::string const& filepath, Teuchos::RCP<Teuchos::ParameterList> pl, CommPtr comm) {
+  auto comm_teuchos = make_teuchos_comm(comm);
+  if (ends_with(filepath, ".xml")) {
+    Teuchos::updateParametersFromXmlFileAndBroadcast(
+        filepath, pl.ptr(), *comm_teuchos);
+  }
+#if defined(HAVE_TEUCHOSCORE_YAML_CPP) && HAVE_TEUCHOSCORE_YAML_CPP
+  else if (ends_with(filepath, ".yaml")) {
+    Teuchos::updateParametersFromYamlFileAndBroadcast(
+        filepath, pl.ptr(), *comm_teuchos);
+  }
+#endif
+  else {
+    Omega_h_fail("\"%s\" is not a known parameter list format\n", filepath.c_str());
+  }
 }
 
 }
