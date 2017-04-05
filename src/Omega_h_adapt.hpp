@@ -12,6 +12,7 @@ namespace Omega_h {
 class Mesh;
 
 struct TransferOpts {
+  TransferOpts();
   std::map<std::string, Omega_h_Transfer> type_map;  // "density" -> CONSERVE
   std::map<std::string, std::string> integral_map;   // "density" -> "mass"
   std::map<std::string, std::string>
@@ -21,6 +22,7 @@ struct TransferOpts {
   std::map<std::string, VarCompareOpts>
       integral_diffuse_map;  // "mass" -> tolerance
   bool should_conserve_size;
+  void validate(Mesh* mesh) const;
 };
 
 enum Verbosity { SILENT, EACH_ADAPT, EACH_REBUILD, EXTRA_STATS };

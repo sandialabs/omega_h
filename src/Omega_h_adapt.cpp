@@ -22,6 +22,25 @@
 
 namespace Omega_h {
 
+TransferOpts::TransferOpts() {
+  should_conserve_size = false;
+}
+
+void TransferOpts::validate(Mesh* mesh) const {
+  for (auto pair : type_map) {
+    if (pair.second == OMEGA_H_MOMENTUM_VELOCITY) {
+      auto velocity_name = pair.first;
+      OMEGA_H_CHECK(velocity_momentum_map.count(velocity_name));
+      OMEGA_H_CHECK(velocity_density_map.count(velocity_name));
+      auto density_name = velocity_density_map.find(velocity_name)->second;
+      OMEGA_H_CHECK(mesh->has_tag(mesh->dim(), density_name));
+      auto density = mesh->get_tagbase(mesh->dim(), density_name);
+      OMEGA_H_CHECK(density->type() == OMEGA_H_REAL);
+      OMEGA_H_CHECK(density->ncomps() == 1);
+    }
+  }
+}
+
 AdaptOpts::AdaptOpts(Int dim) {
   min_length_desired = 1.0 / sqrt(2.0);
   max_length_desired = sqrt(2.0);
@@ -119,6 +138,7 @@ static void validate(Mesh* mesh, AdaptOpts const& opts) {
 
 static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
   validate(mesh, opts);
+  opts.xfer_opts.validate(mesh);
   if (opts.verbosity >= EACH_ADAPT && !mesh->comm()->rank()) {
     std::cout << "before adapting:\n";
   }
