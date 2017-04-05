@@ -100,7 +100,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
   Int metric_dim = 1;
   for (auto& source : input.sources) {
     Reals metrics;
-    switch (source.kind) {
+    switch (source.type) {
       case OMEGA_H_HESSIAN:
         metrics = automagic_hessian(mesh, source.tag_name, source.knob);
         break;

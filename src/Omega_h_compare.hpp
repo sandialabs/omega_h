@@ -11,7 +11,7 @@ namespace Omega_h {
 class Mesh;
 
 struct VarCompareOpts {
-  enum { NONE, RELATIVE, ABSOLUTE } kind;
+  enum { NONE, RELATIVE, ABSOLUTE } type;
   Real tolerance;
   Real floor;
   static VarCompareOpts zero_tolerance();

@@ -53,13 +53,13 @@ template <typename T>
 struct CompareArrays {
   static bool compare(
       CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts, Int, Int, bool) {
-    if (opts.kind == VarCompareOpts::NONE) return true;
+    if (opts.type == VarCompareOpts::NONE) return true;
     return comm->reduce_and(a == b);
   }
 };
 
 Real get_real_diff(Real a, Real b, VarCompareOpts opts) {
-  if (opts.kind == VarCompareOpts::RELATIVE) {
+  if (opts.type == VarCompareOpts::RELATIVE) {
     return rel_diff_with_floor(a, b, opts.floor);
   } else {
     return fabs(a - b);
@@ -74,10 +74,10 @@ template <>
 struct CompareArrays<Real> {
   static bool compare(CommPtr comm, Read<Real> a, Read<Real> b,
       VarCompareOpts opts, Int ncomps, Int dim, bool verbose) {
-    if (opts.kind == VarCompareOpts::NONE) return true;
+    if (opts.type == VarCompareOpts::NONE) return true;
     auto tol = opts.tolerance;
     auto floor = opts.floor;
-    if (opts.kind == VarCompareOpts::RELATIVE) {
+    if (opts.type == VarCompareOpts::RELATIVE) {
       if (comm->reduce_and(are_close(a, b, tol, floor))) return true;
     } else {
       if (comm->reduce_and(are_close_abs(a, b, tol))) return true;
@@ -132,7 +132,7 @@ template <typename T>
 static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
     Read<T> b_data, Dist b_dist, Int ncomps, VarCompareOpts opts,
     bool verbose) {
-  if (opts.kind == VarCompareOpts::NONE) return true;
+  if (opts.type == VarCompareOpts::NONE) return true;
   auto a_lin_data = reduce_data_to_owners(a_data, a_dist, ncomps);
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
   CHECK(a_lin_data.size() == b_lin_data.size());
@@ -265,7 +265,7 @@ static VarCompareOpts parse_compare_opts(std::vector<std::string> const& tokens,
   auto opts = default_opts;
   if (start == tokens.size()) return opts;
   if (tokens[start] == "relative") {
-    opts.kind = VarCompareOpts::RELATIVE;
+    opts.type = VarCompareOpts::RELATIVE;
     if (start + 1 == tokens.size()) {
       Omega_h_fail(
           "\"relative\" with no value at %s +%d\n", path.c_str(), linenum);
@@ -279,7 +279,7 @@ static VarCompareOpts parse_compare_opts(std::vector<std::string> const& tokens,
       opts.floor = atof(tokens[start + 3].c_str());
     }
   } else if (tokens[start] == "absolute") {
-    opts.kind = VarCompareOpts::ABSOLUTE;
+    opts.type = VarCompareOpts::ABSOLUTE;
     if (start + 1 == tokens.size()) {
       Omega_h_fail(
           "\"absolute\" with no value at %s +%d\n", path.c_str(), linenum);

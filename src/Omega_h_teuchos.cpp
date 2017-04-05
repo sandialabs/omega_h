@@ -23,13 +23,13 @@ void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const&
   if (pl.isType<std::string>("Type")) {
     auto type_name = pl.get<std::string>("Type");
     if (type_name == "None") {
-      opts->kind = VarCompareOpts::NONE;
+      opts->type = VarCompareOpts::NONE;
     } else if (type_name == "Relative") {
-      opts->kind = VarCompareOpts::RELATIVE;
+      opts->type = VarCompareOpts::RELATIVE;
     } else if (type_name == "Absolute") {
-      opts->kind = VarCompareOpts::ABSOLUTE;
+      opts->type = VarCompareOpts::ABSOLUTE;
     } else {
-      Omega_h_fail("unknown variable comparison kind \"%s\"\n", type_name.c_str());
+      Omega_h_fail("unknown variable comparison type \"%s\"\n", type_name.c_str());
     }
   }
   set_if_given(&opts->tolerance, pl, "Tolerance");
@@ -130,15 +130,15 @@ MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
   MetricSource source;
   auto type_name = pl.get<std::string>("Type");
   if (type_name == "Hessian") {
-    source.kind = OMEGA_H_HESSIAN;
+    source.type = OMEGA_H_HESSIAN;
   } else if (type_name == "Given") {
-    source.kind = OMEGA_H_GIVEN;
+    source.type = OMEGA_H_GIVEN;
   } else if (type_name == "Implied") {
-    source.kind = OMEGA_H_IMPLIED;
+    source.type = OMEGA_H_IMPLIED;
   } else if (type_name == "Proximity") {
-    source.kind = OMEGA_H_PROXIMITY;
+    source.type = OMEGA_H_PROXIMITY;
   } else if (type_name == "Curvature") {
-    source.kind = OMEGA_H_CURVATURE;
+    source.type = OMEGA_H_CURVATURE;
   } else {
     Omega_h_fail("unknown metric source type \"%s\"\n", type_name.c_str());
   }

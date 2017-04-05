@@ -629,7 +629,7 @@ static Reals diffuse_densities_once(
 
 static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities, Int ncomps,
     VarCompareOpts opts, std::string const& name, bool verbose) {
-  if (opts.kind == VarCompareOpts::NONE) return densities;
+  if (opts.type == VarCompareOpts::NONE) return densities;
   Int niters = 0;
   while (1) {
     auto new_densities = diffuse_densities_once(mesh, g, densities, ncomps);

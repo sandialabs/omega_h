@@ -76,7 +76,7 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
 bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
 
 struct MetricSource {
-  Omega_h_Source kind;
+  Omega_h_Source type;
   bool should_scale;
   std::string tag_name;
   Real knob;
