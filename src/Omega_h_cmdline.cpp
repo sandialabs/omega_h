@@ -134,6 +134,14 @@ std::size_t CmdLineFlag::nargs() const { return args_.size(); }
 
 CmdLine::CmdLine() : nargs_parsed_(0) {}
 
+bool CmdLine::parse_all_or_help(CommPtr comm, int* p_argc, char** argv) {
+  if (!parse(comm, p_argc, argv) || !check_empty(comm, *p_argc, argv)) {
+    show_help(comm, argv);
+    return false;
+  }
+  return true;
+}
+
 bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
   return parse(p_argc, argv, comm->rank() == 0);
 }

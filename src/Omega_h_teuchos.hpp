@@ -4,6 +4,9 @@
 #include <Omega_h_adapt.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_Comm.hpp>
+#if defined(HAVE_TEUCHOSCORE_YAML_CPP) && HAVE_TEUCHOSCORE_YAML_CPP
+#define OMEGA_H_USE_YAML
+#endif
 
 namespace Omega_h {
 
@@ -21,6 +24,9 @@ void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl);
 Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh);
 void update_parameters_from_file(
     std::string const& filepath, Teuchos::RCP<Teuchos::ParameterList> pl, CommPtr comm);
+
+void write_parameters(
+    std::string const& filepath, Teuchos::ParameterList const& pl);
 
 }
 

@@ -2,10 +2,12 @@
 
 #include "Omega_h_file.hpp"
 
+#include <fstream>
+
 #include <TeuchosCore_config.h>
 
 #include <Teuchos_XMLParameterListHelpers.hpp>
-#if defined(HAVE_TEUCHOSCORE_YAML_CPP) && HAVE_TEUCHOSCORE_YAML_CPP
+#ifdef OMEGA_H_USE_YAML
 #include <Teuchos_YamlParameterListHelpers.hpp>
 #endif
 
@@ -190,10 +192,30 @@ void update_parameters_from_file(
     Teuchos::updateParametersFromXmlFileAndBroadcast(
         filepath, pl.ptr(), *comm_teuchos);
   }
-#if defined(HAVE_TEUCHOSCORE_YAML_CPP) && HAVE_TEUCHOSCORE_YAML_CPP
+#ifdef OMEGA_H_USE_YAML
   else if (ends_with(filepath, ".yaml")) {
     Teuchos::updateParametersFromYamlFileAndBroadcast(
         filepath, pl.ptr(), *comm_teuchos);
+  }
+#endif
+  else {
+    Omega_h_fail("\"%s\" is not a known parameter list format\n", filepath.c_str());
+  }
+}
+
+void write_parameters(
+    std::string const& filepath, Teuchos::ParameterList const& pl) {
+  std::ofstream stream(filepath.c_str());
+  if (!stream.is_open()) {
+    Omega_h_fail("couldn't open \"%s\" to write\n", filepath.c_str());
+  }
+  stream << std::scientific << std::setprecision(17);
+  if (ends_with(filepath, ".xml")) {
+    Teuchos::writeParameterListToXmlOStream(pl, stream);
+  }
+#ifdef OMEGA_H_USE_YAML
+  else if (ends_with(filepath, ".yaml")) {
+    Teuchos::writeParameterListToYamlOStream(pl, stream);
   }
 #endif
   else {

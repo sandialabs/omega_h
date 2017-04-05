@@ -129,11 +129,16 @@ set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_public_dep(TeuchosComm)
 if(Omega_h_USE_TeuchosParameterList AND Omega_h_USE_TeuchosComm)
   message(STATUS "Using Teuchos")
-  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
+  set(USE_TEUCHOS ON)
 elseif(Omega_h_USE_TeuchosParameterList OR Omega_h_USE_TeuchosComm)
   message(FATAL_ERROR "Must use both TeuchosParameterList and TeuchosComm or neither")
 else()
   message(STATUS "Not using Teuchos")
+  set(USE_TEUCHOS OFF)
+endif()
+
+if(USE_TEUCHOS)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
 endif()
 
 if(Omega_h_ONE_FILE)
@@ -241,6 +246,9 @@ endif()
 if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
   osh_add_util(osh2exo)
+endif()
+if(USE_TEUCHOS)
+  osh_add_util(osh_adapt)
 endif()
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
@@ -449,7 +457,7 @@ set(Omega_h_HEADERS
   Omega_h_metric.hpp
   )
 
-if(Omega_h_USE_TeuchosParameterList AND Omega_h_USE_TeuchosComm)
+if(USE_TEUCHOS)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_teuchos.hpp)
 endif()
 

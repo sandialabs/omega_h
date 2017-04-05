@@ -57,6 +57,7 @@ class CmdLine {
  public:
   CmdLine();
   bool parse(CommPtr comm, int* p_argc, char** argv);
+  bool parse_all_or_help(CommPtr comm, int* p_argc, char** argv);
   bool parse(int* p_argc, char** argv, bool should_print);
   CmdLineFlag& add_flag(std::string const& name, std::string const& desc);
   template <typename T>
