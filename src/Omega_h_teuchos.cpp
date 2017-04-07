@@ -10,6 +10,7 @@
 #ifdef OMEGA_H_USE_YAML
 #include <Teuchos_YamlParameterListHelpers.hpp>
 #endif
+#include <Teuchos_TwoDArray.hpp>
 
 #ifdef OMEGA_H_USE_MPI
 #include <Teuchos_DefaultMpiComm.hpp>
