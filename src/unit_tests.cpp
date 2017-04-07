@@ -21,6 +21,7 @@
 #include "Omega_h_swap3d_loop.hpp"
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
+#include "Omega_h_assoc.hpp"
 
 #include <sstream>
 
@@ -1002,6 +1003,23 @@ static void test_1d_box(Library* lib) {
   build_box(&mesh, 1, 0, 0, 4, 0, 0);
 }
 
+static void test_binary_search(LOs a, LO val, LO expect) {
+  auto size = a.size();
+  auto f = OMEGA_H_LAMBDA(LO) {
+    auto res = binary_search(a, val, size);
+    OMEGA_H_CHECK(res == expect);
+  };
+  parallel_for(1, f);
+}
+
+static void test_binary_search() {
+  auto a = LOs({20, 30, 40, 50, 90, 100});
+  for (LO i = 0; i < a.size(); ++i) test_binary_search(a, a.get(i), i);
+  test_binary_search(a, 44, -1);
+  test_binary_search(a, 15, -1);
+  test_binary_search(a, 10000, -1);
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
@@ -1059,5 +1077,6 @@ int main(int argc, char** argv) {
   test_insphere();
   test_volume_vert_gradients();
   test_1d_box(&lib);
+  test_binary_search();
   CHECK(get_current_bytes() == 0);
 }

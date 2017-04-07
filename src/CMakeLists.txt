@@ -455,6 +455,7 @@ set(Omega_h_HEADERS
   Omega_h_lie.hpp
   Omega_h_recover.hpp
   Omega_h_metric.hpp
+  Omega_h_assoc.hpp
   )
 
 if(USE_TEUCHOS)
