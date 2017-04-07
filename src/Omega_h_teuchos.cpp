@@ -225,7 +225,7 @@ void write_parameters(
 }
 
 static char const* const assoc_param_names[NSET_TYPES] = {
-  "Element Blocks",
+  "Element Sets",
   "Side Sets",
   "Node Sets"
 };

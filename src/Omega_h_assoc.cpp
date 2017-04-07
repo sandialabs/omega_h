@@ -8,7 +8,7 @@
 namespace Omega_h {
 
 static char const* const assoc_file_names[NSET_TYPES] = {
-  "element block",
+  "element set",
   "side set",
   "node set"
 };
