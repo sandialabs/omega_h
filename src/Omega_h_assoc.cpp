@@ -2,9 +2,18 @@
 #include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
 
+#include <fstream>
+#include <sstream>
+
 namespace Omega_h {
 
-static Int set_ent_dim(size_t set_type, Int mesh_dim) {
+static char const* const assoc_file_names[NSET_TYPES] = {
+  "element block",
+  "side set",
+  "node set"
+};
+
+Int get_assoc_dim(size_t set_type, Int mesh_dim) {
   switch (set_type) {
     case ELEM_SET: return mesh_dim;
     case SIDE_SET: return mesh_dim - 1;
@@ -13,10 +22,10 @@ static Int set_ent_dim(size_t set_type, Int mesh_dim) {
   return -1;
 }
 
-MeshSets invert(Mesh* mesh, GeomSets const& geom_sets) {
+MeshSets invert(Mesh* mesh, Assoc const& geom_sets) {
   MeshSets mesh_sets;
   for (size_t set_type = 0; set_type < NSET_TYPES; ++set_type) {
-    auto ent_dim = set_ent_dim(set_type, mesh->dim());
+    auto ent_dim = get_assoc_dim(set_type, mesh->dim());
     for (auto& name_pairs : geom_sets[set_type]) {
       auto& name = name_pairs.first;
       auto& pairs = name_pairs.second;
@@ -26,6 +35,60 @@ MeshSets invert(Mesh* mesh, GeomSets const& geom_sets) {
     }
   }
   return mesh_sets;
+}
+
+void update_from_file(Assoc* p_assoc, std::string const& filepath)
+{
+  Assoc& assoc = *p_assoc;
+  std::ifstream f(filepath.c_str());
+  if (!f.is_open()) {
+    Omega_h_fail("Could not open associations file \"%s\"\n", filepath.c_str());
+  }
+  std::string sline;
+  LO lc = 0;
+  while (std::getline(f, sline)) {
+    if (sline.empty()) break;
+    ++lc;
+    std::string rest;
+    size_t set_type;
+    for (set_type = 0; set_type < NSET_TYPES; ++set_type) {
+      std::string set_name = assoc_file_names[set_type];
+      if (sline.compare(0, set_name.length(), set_name) == 0) {
+        rest = sline.substr(set_name.length());
+        break;
+      }
+    }
+    if (set_type >= NSET_TYPES) {
+      Omega_h_fail("Unknown set type \"%s\" at %s +%d\n",
+          sline.c_str(), filepath.c_str(), lc);
+    }
+    std::stringstream rest_stream(rest);
+    std::string set_name;
+    rest_stream >> set_name;
+    LO set_size;
+    rest_stream >> set_size;
+    if (!rest_stream) {
+      Omega_h_fail("Couldn't parse set name and size at %s +%d\n",
+          filepath.c_str(), lc);
+    }
+    for (LO i = 0; i < set_size; ++i) {
+      std::string eline;
+      std::getline(f, eline);
+      if (!f || eline.empty()) {
+        Omega_h_fail("Expected more pairs after %s +%d\n", filepath.c_str(), lc);
+      }
+      ++lc;
+      std::stringstream pair_stream(eline);
+      Int class_dim;
+      LO class_id;
+      pair_stream >> class_dim >> class_id;
+      if (!pair_stream) {
+        Omega_h_fail("Couldn't parse pair \"%s\" at %s +%d\n",
+            eline.c_str(), filepath.c_str(), lc);
+      }
+      assoc[set_type][set_name].push_back({class_dim, class_id});
+    }
+  }
 }
 
 }

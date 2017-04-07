@@ -2,6 +2,8 @@
 #define OMEGA_H_TEUCHOS_HPP
 
 #include <Omega_h_adapt.hpp>
+#include <Omega_h_assoc.hpp>
+
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_Comm.hpp>
 #if defined(HAVE_TEUCHOSCORE_YAML_CPP) && HAVE_TEUCHOSCORE_YAML_CPP
@@ -28,6 +30,8 @@ void update_parameters_from_file(
 
 void write_parameters(
     std::string const& filepath, Teuchos::ParameterList const& pl);
+
+void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl);
 
 }
 

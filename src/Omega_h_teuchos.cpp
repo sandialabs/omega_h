@@ -223,4 +223,37 @@ void write_parameters(
   }
 }
 
+static char const* const assoc_param_names[NSET_TYPES] = {
+  "Element Blocks",
+  "Side Sets",
+  "Node Sets"
+};
+
+void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
+  if (pl.isType<std::string>("File")) {
+    auto filepath = pl.get<std::string>("File");
+    update_from_file(p_assoc, filepath);
+  }
+  Assoc& assoc = *p_assoc;
+  for (Int set_type = 0; set_type < NSET_TYPES; ++set_type) {
+    if (pl.isSublist(assoc_param_names[set_type])) {
+      auto& set_type_pl = pl.sublist(assoc_param_names[set_type]);
+      for (auto it = set_type_pl.begin(), end = set_type_pl.end(); it != end; ++it) {
+        auto set_name = set_type_pl.name(it);
+        auto pairs = set_type_pl.get<Teuchos::TwoDArray<int>>(set_name);
+        if (pairs.getNumCols() != 2) {
+          Omega_h_fail("Expected \"%s\" to be an array of int pairs\n",
+              set_name.c_str());
+        }
+        auto npairs = pairs.getNumRows();
+        for (decltype(npairs) i = 0; i < npairs; ++i) {
+          auto class_dim = Int(pairs(i, 0));
+          auto class_id = LO(pairs(i, 1));
+          assoc[set_type][set_name].push_back({class_dim, class_id});
+        }
+      }
+    }
+  }
+}
+
 }

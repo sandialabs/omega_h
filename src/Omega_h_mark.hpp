@@ -28,8 +28,8 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     Int class_dim, std::vector<LO> const& class_ids);
 
 struct ClassPair {
-  LO id;
   Int dim;
+  LO id;
 };
 
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
