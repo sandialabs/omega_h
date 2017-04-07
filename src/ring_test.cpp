@@ -13,9 +13,9 @@ int main(int argc, char** argv) {
   auto self = lib.self();
   Mesh mesh(&lib);
   gmsh::read(argv[1], &mesh);
-  auto ids = std::vector<I32>({6, 7, 8, 9});
+  auto ids = std::vector<LO>({6, 7, 8, 9});
   auto verts_are_bdry =
-      mark_class_closures(&mesh, VERT, std::vector<Int>(ids.size(), 1), ids);
+      mark_class_closures(&mesh, VERT, 1, ids);
   auto bv2v = collect_marked(verts_are_bdry);
   auto initial_w = Write<Real>(mesh.nverts(), 0.0);
   auto coords = mesh.coords();

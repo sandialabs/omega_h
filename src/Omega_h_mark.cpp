@@ -91,14 +91,41 @@ Read<I8> mark_class_closure(
 }
 
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
-    std::vector<Int> class_dims, std::vector<I32> class_ids) {
-  OMEGA_H_CHECK(class_dims.size() == class_ids.size());
-  auto marks = Read<I8>(mesh->nents(ent_dim), 0);
-  for (std::size_t i = 0; i < class_dims.size(); ++i) {
-    if (ent_dim <= class_dims[i]) {
-      marks = lor_each(marks,
-          mark_class_closure(mesh, ent_dim, class_dims[i], class_ids[i]));
+    Int class_dim, std::vector<LO> const& class_ids) {
+  HostWrite<LO> h_class_ids(LO(class_ids.size()));
+  for (size_t i = 0; i < class_ids.size(); ++i) {
+    h_class_ids[LO(i)] = class_ids[i];
+  }
+  auto d_class_ids = LOs(h_class_ids.write());
+  auto nclass_ids = d_class_ids.size();
+  auto eq_class_dims = mesh->get_array<I8>(class_dim, "class_dim");
+  auto eq_class_ids = mesh->get_array<LO>(class_dim, "class_id");
+  auto neq = mesh->nents(class_dim);
+  Write<I8> eq_marks_w(neq);
+  auto f = OMEGA_H_LAMBDA(LO eq) {
+    eq_marks_w[eq] = I8((eq_class_dims[eq] == I8(class_dim)) &&
+      (-1 != binary_search(d_class_ids, eq_class_ids[eq], nclass_ids)));
+  };
+  parallel_for(neq, f);
+  auto eq_marks = Read<I8>(eq_marks_w);
+  auto marks = mark_down(mesh, class_dim, ent_dim, eq_marks);
+  return marks;
+}
+
+Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
+    std::vector<ClassPair> const& class_pairs) {
+  auto marks = Read<I8>(mesh->nents(ent_dim), I8(0));
+  for (Int class_dim = 0; class_dim <= ent_dim; ++class_dim) {
+    std::vector<LO> dim_class_ids;
+    for (size_t i = 0; i < class_pairs.size(); ++i) {
+      if (class_pairs[i].dim == class_dim) {
+        dim_class_ids.push_back(class_pairs[i].id);
+      }
     }
+    if (dim_class_ids.empty()) continue;
+    auto class_dim_marks = mark_class_closures(mesh, ent_dim,
+        class_dim, dim_class_ids);
+    marks = lor_each(marks, class_dim_marks);
   }
   return marks;
 }
