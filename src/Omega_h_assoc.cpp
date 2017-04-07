@@ -15,7 +15,7 @@ static char const* const assoc_file_names[NSET_TYPES] = {
 
 Int get_assoc_dim(size_t set_type, Int mesh_dim) {
   switch (set_type) {
-    case ELEM_BLOCK: return mesh_dim;
+    case ELEM_SET: return mesh_dim;
     case SIDE_SET: return mesh_dim - 1;
     case NODE_SET: return VERT;
   }
