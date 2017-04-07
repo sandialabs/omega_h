@@ -6,6 +6,7 @@
 #include <Omega_h_config.h>
 #include <Omega_h_compare.hpp>
 #include <Omega_h_defines.hpp>
+#include <Omega_h_mark.hpp>
 
 namespace Omega_h {
 
@@ -70,7 +71,7 @@ bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts);
 void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts);
 
 void fix_momentum_velocity_verts(
-    Mesh* mesh, Int class_dim, I32 class_id, Int comp);
+    Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp);
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
 bool approach_metric(Mesh* mesh, AdaptOpts const& opts);

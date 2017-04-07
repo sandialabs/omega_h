@@ -18,6 +18,8 @@ Read<I8> mark_exposed_sides(Mesh* mesh) {
 
 Read<I8> mark_down(
     Mesh* mesh, Int high_dim, Int low_dim, Read<I8> high_marked) {
+  OMEGA_H_CHECK(high_dim >= low_dim);
+  if (high_dim == low_dim) return high_marked;
   auto l2h = mesh->ask_up(low_dim, high_dim);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
@@ -92,6 +94,7 @@ Read<I8> mark_class_closure(
 
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     Int class_dim, std::vector<LO> const& class_ids) {
+  OMEGA_H_CHECK(class_dim >= ent_dim);
   HostWrite<LO> h_class_ids(LO(class_ids.size()));
   for (size_t i = 0; i < class_ids.size(); ++i) {
     h_class_ids[LO(i)] = class_ids[i];
@@ -115,7 +118,7 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
     std::vector<ClassPair> const& class_pairs) {
   auto marks = Read<I8>(mesh->nents(ent_dim), I8(0));
-  for (Int class_dim = 0; class_dim <= ent_dim; ++class_dim) {
+  for (Int class_dim = ent_dim; class_dim <= mesh->dim(); ++class_dim) {
     std::vector<LO> dim_class_ids;
     for (size_t i = 0; i < class_pairs.size(); ++i) {
       if (class_pairs[i].dim == class_dim) {

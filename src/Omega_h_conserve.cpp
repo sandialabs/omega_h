@@ -519,9 +519,9 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
 }
 
 void fix_momentum_velocity_verts(
-    Mesh* mesh, Int class_dim, I32 class_id, Int comp) {
-  for (Int ent_dim = VERT; ent_dim <= class_dim; ++ent_dim) {
-    auto ent_marks = mark_class_closure(mesh, ent_dim, class_dim, class_id);
+    Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp) {
+  for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
+    auto ent_marks = mark_class_closures(mesh, ent_dim, class_pairs);
     auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
     if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
       auto old_marks = mesh->get_array<I8>(ent_dim, "momentum_velocity_fixed");
@@ -529,12 +529,6 @@ void fix_momentum_velocity_verts(
       mesh->set_tag(ent_dim, "momentum_velocity_fixed", new_marks);
     } else {
       mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1, comp_marks);
-    }
-  }
-  for (Int ent_dim = class_dim + 1; ent_dim <= mesh->dim(); ++ent_dim) {
-    if (!mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
-      mesh->add_tag(ent_dim, "momentum_velocity_fixed", 1,
-          Read<I8>(mesh->nents(ent_dim), I8(0)));
     }
   }
 }

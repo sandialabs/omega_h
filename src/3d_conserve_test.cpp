@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
   };
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), Reals(velocity));
-  fix_momentum_velocity_verts(&mesh, 2, 10, 2);
+  fix_momentum_velocity_verts(&mesh, {{2, 10}}, 2);
   auto momentum_before = get_total_momentum(&mesh);
   Real masses_before[nobjs];
   for (Int obj = 0; obj < nobjs; ++obj) {
