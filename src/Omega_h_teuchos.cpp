@@ -189,16 +189,16 @@ Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh) {
 }
 
 void update_parameters_from_file(
-    std::string const& filepath, Teuchos::RCP<Teuchos::ParameterList> pl,
+    std::string const& filepath, Teuchos::ParameterList* pl,
     Teuchos::RCP<Teuchos::Comm<int>> comm) {
   if (ends_with(filepath, ".xml")) {
     Teuchos::updateParametersFromXmlFileAndBroadcast(
-        filepath, pl.ptr(), *comm);
+        filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), *comm);
   }
 #ifdef OMEGA_H_USE_YAML
   else if (ends_with(filepath, ".yaml")) {
     Teuchos::updateParametersFromYamlFileAndBroadcast(
-        filepath, pl.ptr(), *comm);
+        filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), *comm);
   }
 #endif
   else {

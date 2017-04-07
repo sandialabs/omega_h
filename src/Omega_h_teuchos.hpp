@@ -25,7 +25,7 @@ void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl);
 
 Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh);
 void update_parameters_from_file(
-    std::string const& filepath, Teuchos::RCP<Teuchos::ParameterList> pl,
+    std::string const& filepath, Teuchos::ParameterList* pl,
     Teuchos::RCP<Teuchos::Comm<int>> comm);
 
 void write_parameters(
