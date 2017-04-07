@@ -12,7 +12,7 @@
 namespace Omega_h {
 
 enum {
-  ELEM_SET,
+  ELEM_BLOCK,
   SIDE_SET,
   NODE_SET,
 };
