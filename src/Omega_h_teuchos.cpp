@@ -190,7 +190,7 @@ Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh) {
 
 void update_parameters_from_file(
     std::string const& filepath, Teuchos::ParameterList* pl,
-    Teuchos::RCP<Teuchos::Comm<int>> comm) {
+    Teuchos::RCP<const Teuchos::Comm<int>> comm) {
   if (ends_with(filepath, ".xml")) {
     Teuchos::updateParametersFromXmlFileAndBroadcast(
         filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), *comm);
