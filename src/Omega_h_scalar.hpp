@@ -88,19 +88,28 @@ constexpr OMEGA_H_INLINE Int factorial(Int x) {
 
 OMEGA_H_INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
 
+template <Int p, typename T>
+struct Raise {
+    static constexpr OMEGA_H_INLINE T eval(T x) { return x * Raise<p - 1, T>::eval(x); }
+};
 template <typename T>
-constexpr OMEGA_H_INLINE T raise(T x, Int p) {
-  return (p > 1) ? (x * raise(x, p - 1)) : x;
+struct Raise<1, T> {
+    static constexpr OMEGA_H_INLINE T eval(T x) { return x; }
+};
+
+template <Int p, typename T>
+constexpr OMEGA_H_INLINE T raise(T x) {
+    return Raise<p, T>::eval(x);
 }
 
 template <typename T>
 constexpr OMEGA_H_INLINE T square(T x) {
-  return raise(x, 2);
+    return raise<2, T>(x);
 }
 
 template <typename T>
-OMEGA_H_INLINE Real cube(T x) {
-  return raise(x, 3);
+OMEGA_H_INLINE T cube(T x) {
+    return raise<3, T>(x);
 }
 
 OMEGA_H_INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
@@ -156,7 +165,7 @@ struct Power : public Power<np / cd, dp / cd> {
 
 template <Int np, Int dp>
 struct Power<np, dp, 1> {
-  static OMEGA_H_INLINE Real eval(Real x) { return root<dp>(raise(x, np)); }
+  static OMEGA_H_INLINE Real eval(Real x) { return root<dp>(raise<np>(x)); }
   static_assert(np != dp, "equal case should be specialized");
 };
 
