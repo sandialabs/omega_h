@@ -495,4 +495,22 @@ Reals intersect_metrics(LO nmetrics, Reals a, Reals b) {
   OMEGA_H_NORETURN(Reals());
 }
 
+template <Int new_dim>
+Reals metrics_from_isos_dim(Reals isos) {
+  auto n = isos.size();
+  Write<Real> new_symms(n * symm_ncomps(new_dim));
+  auto f = OMEGA_H_LAMBDA(Int i) {
+    set_symm(new_symms, i, diagonal(fill_vector<new_dim>(isos[i])));
+  };
+  parallel_for(n, f);
+  return new_symms;
+}
+
+Reals metrics_from_isos(Int new_dim, Reals isos) {
+  if (new_dim == 1) return isos;
+  if (new_dim == 2) return metrics_from_isos_dim<2>(isos);
+  if (new_dim == 3) return metrics_from_isos_dim<3>(isos);
+  OMEGA_H_NORETURN(Reals());
+}
+
 }  // end namespace Omega_h

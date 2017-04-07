@@ -232,6 +232,7 @@ Reals metric_from_hessians(Int dim, Reals hessians, Real eps);
 Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob);
 Reals get_proximity_isos(Mesh* mesh, Real factor);
 Reals intersect_metrics(LO nmetrics, Reals a, Reals b);
+Reals metrics_from_isos(Int new_dim, Reals isos);
 
 }  // end namespace Omega_h
 

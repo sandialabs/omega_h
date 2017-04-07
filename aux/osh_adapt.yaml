@@ -4,7 +4,9 @@ Omega_h:
   Input File: box.osh 
   Output File: adapted.osh
   Metric:
-    Limit Lengths: true
-    Max Length: 0.5
+    Sources:
+      Constant:
+        Type: Constant
+        Knob: 0.5
   Adapt:
     Verbosity: 'Extra Stats'

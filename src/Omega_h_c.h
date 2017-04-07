@@ -38,6 +38,7 @@ enum Omega_h_Parting {
 };
 
 enum Omega_h_Source {
+  OMEGA_H_CONSTANT,
   OMEGA_H_HESSIAN,
   OMEGA_H_GIVEN,
   OMEGA_H_IMPLIED,

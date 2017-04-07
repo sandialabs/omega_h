@@ -90,17 +90,16 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
   }
   auto n = mesh->nverts();
   if (!input.sources.size()) {
-    if (input.should_limit_lengths) {
-      return Reals(n, input.max_length);
-    } else {
-      Omega_h_fail("generate_metric: no sources or limits given!\n");
-    }
+    Omega_h_fail("generate_metrics: no sources given!\n");
   }
   std::vector<Reals> original_metrics;
   Int metric_dim = 1;
   for (auto& source : input.sources) {
     Reals metrics;
     switch (source.type) {
+      case OMEGA_H_CONSTANT:
+        metrics = Reals(mesh->nverts(), metric_eigenvalue_from_length(source.knob));
+        break;
       case OMEGA_H_HESSIAN:
         metrics = automagic_hessian(mesh, source.tag_name, source.knob);
         break;
@@ -117,7 +116,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         metrics = get_curvature_isos(mesh, source.knob);
         break;
     }
-    if ((metric_dim == 1) && (get_metrics_dim(n, metrics) > 1)) {
+    if ((metric_dim == 1) && (get_metrics_dim(n, metrics) == mesh->dim())) {
       metric_dim = mesh->dim();
     }
     original_metrics.push_back(metrics);
@@ -129,8 +128,9 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
     metrics = Reals();
     for (size_t i = 0; i < input.sources.size(); ++i) {
       auto in_metrics = original_metrics[i];
-      in_metrics =
-          resize_symms(in_metrics, get_metrics_dim(n, in_metrics), metric_dim);
+      if (get_metrics_dim(n, in_metrics) == 1) {
+        in_metrics = metrics_from_isos(metric_dim, in_metrics);
+      }
       if (input.sources[i].should_scale) {
         in_metrics = multiply_each_by(scalar, in_metrics);
       }
@@ -170,7 +170,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
   add_to_global_timer("generating metrics", t1 - t0);
   if (input.verbose) {
     std::cout << "generated metrics in " << niters << " iterations and "
-              << (t1 - t0) << " seconds";
+              << (t1 - t0) << " seconds\n";
   }
   return metrics;
 }

@@ -130,7 +130,9 @@ void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
 MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
   MetricSource source;
   auto type_name = pl.get<std::string>("Type");
-  if (type_name == "Hessian") {
+  if (type_name == "Constant") {
+    source.type = OMEGA_H_CONSTANT;
+  } else if (type_name == "Hessian") {
     source.type = OMEGA_H_HESSIAN;
   } else if (type_name == "Given") {
     source.type = OMEGA_H_GIVEN;

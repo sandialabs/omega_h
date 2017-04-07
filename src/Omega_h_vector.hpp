@@ -110,10 +110,15 @@ OMEGA_H_INLINE bool are_close(
 }
 
 template <Int n>
-OMEGA_H_INLINE Vector<n> zero_vector() {
+OMEGA_H_INLINE Vector<n> fill_vector(Real value) {
   Vector<n> v;
-  for (Int i = 0; i < n; ++i) v[i] = 0.0;
+  for (Int i = 0; i < n; ++i) v[i] = value;
   return v;
+}
+
+template <Int n>
+OMEGA_H_INLINE Vector<n> zero_vector() {
+  return fill_vector<n>(0.0);
 }
 
 /* Moore-Penrose pseudo-inverse of a vector */
