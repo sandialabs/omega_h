@@ -20,7 +20,8 @@ int main(int argc, char** argv) {
   }
   auto configpath = cmdline.get<std::string>(configpath_placeholder);
   auto pl_rcp = Teuchos::createParameterList("Omega_h");
-  update_parameters_from_file(configpath, pl_rcp, comm);
+  auto comm_teuchos = make_teuchos_comm(comm);
+  update_parameters_from_file(configpath, pl_rcp, comm_teuchos);
   auto inputpath = pl_rcp->get<std::string>("Input File");
   auto outputpath = pl_rcp->get<std::string>("Output File");
   auto mesh = Mesh(&lib);
