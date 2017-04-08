@@ -1,5 +1,6 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_assoc.hpp"
 #include "Omega_h_bbox.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_eigen.hpp"
@@ -21,7 +22,6 @@
 #include "Omega_h_swap3d_loop.hpp"
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
-#include "Omega_h_assoc.hpp"
 
 #include <sstream>
 

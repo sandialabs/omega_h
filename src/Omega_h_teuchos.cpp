@@ -20,7 +20,8 @@
 
 namespace Omega_h {
 
-void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const& pl) {
+void update_var_compare_opts(
+    VarCompareOpts* opts, Teuchos::ParameterList const& pl) {
   if (pl.isType<std::string>("Type")) {
     auto type_name = pl.get<std::string>("Type");
     if (type_name == "None") {
@@ -30,14 +31,16 @@ void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList const&
     } else if (type_name == "Absolute") {
       opts->type = VarCompareOpts::ABSOLUTE;
     } else {
-      Omega_h_fail("unknown variable comparison type \"%s\"\n", type_name.c_str());
+      Omega_h_fail(
+          "unknown variable comparison type \"%s\"\n", type_name.c_str());
     }
   }
   set_if_given(&opts->tolerance, pl, "Tolerance");
   set_if_given(&opts->floor, pl, "Floor");
 }
 
-void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList const& pl) {
+void update_transfer_opts(
+    TransferOpts* opts, Teuchos::ParameterList const& pl) {
   if (pl.isSublist("Fields")) {
     auto& fields_pl = pl.sublist("Fields");
     for (auto it = fields_pl.begin(), end = fields_pl.end(); it != end; ++it) {
@@ -65,8 +68,8 @@ void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList const& pl) 
           opts->integral_map[field_name] = integral_name;
           auto convergence = VarCompareOpts::none();
           if (field_pl.isSublist("Diffusion Convergence")) {
-            update_var_compare_opts(&convergence,
-                field_pl.sublist("Diffusion Convergence"));
+            update_var_compare_opts(
+                &convergence, field_pl.sublist("Diffusion Convergence"));
           }
           opts->integral_diffuse_map[integral_name] = convergence;
         }
@@ -78,8 +81,8 @@ void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList const& pl) 
           opts->velocity_momentum_map[field_name] = momentum_name;
           auto convergence = VarCompareOpts::none();
           if (field_pl.isSublist("Diffusion Convergence")) {
-            update_var_compare_opts(&convergence,
-                field_pl.sublist("Diffusion Convergence"));
+            update_var_compare_opts(
+                &convergence, field_pl.sublist("Diffusion Convergence"));
           }
           opts->integral_diffuse_map[momentum_name] = convergence;
         }
@@ -100,16 +103,22 @@ void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
   set_if_given(&opts->nsliver_layers, pl, "Sliver Layer Count");
   if (pl.isType<std::string>("Verbosity")) {
     auto verbosity_name = pl.get<std::string>("Verbosity");
-    if (verbosity_name == "Silent") opts->verbosity = SILENT;
-    else if (verbosity_name == "Each Adapt") opts->verbosity = EACH_ADAPT;
-    else if (verbosity_name == "Each Rebuild") opts->verbosity = EACH_REBUILD;
-    else if (verbosity_name == "Extra Stats") opts->verbosity = EXTRA_STATS;
-    else Omega_h_fail("unknown verbosity level \"%s\"\n", verbosity_name.c_str());
+    if (verbosity_name == "Silent")
+      opts->verbosity = SILENT;
+    else if (verbosity_name == "Each Adapt")
+      opts->verbosity = EACH_ADAPT;
+    else if (verbosity_name == "Each Rebuild")
+      opts->verbosity = EACH_REBUILD;
+    else if (verbosity_name == "Extra Stats")
+      opts->verbosity = EXTRA_STATS;
+    else
+      Omega_h_fail("unknown verbosity level \"%s\"\n", verbosity_name.c_str());
   }
   set_if_given(&opts->length_histogram_min, pl, "Length Histogram Min");
   set_if_given(&opts->length_histogram_max, pl, "Length Histogram Max");
   set_if_given(&opts->nlength_histogram_bins, pl, "Length Histogram Bin Count");
-  set_if_given(&opts->nquality_histogram_bins, pl, "Quality Histogram Bin Count");
+  set_if_given(
+      &opts->nquality_histogram_bins, pl, "Quality Histogram Bin Count");
 #ifdef OMEGA_H_USE_EGADS
   set_if_given(&opts->should_smooth_snap, pl, "Smooth Snap");
   set_if_given(&opts->snap_smooth_tolerance, pl, "Snap Smooth Tolerance");
@@ -156,10 +165,12 @@ MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
 void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl) {
   if (pl.isSublist("Sources")) {
     auto& sources_pl = pl.sublist("Sources");
-    for (auto it = sources_pl.begin(), end = sources_pl.end(); it != end; ++it) {
+    for (auto it = sources_pl.begin(), end = sources_pl.end(); it != end;
+         ++it) {
       auto source_name = sources_pl.name(it);
       if (sources_pl.isSublist(source_name)) {
-        input->sources.push_back(get_metric_source(sources_pl.sublist(source_name)));
+        input->sources.push_back(
+            get_metric_source(sources_pl.sublist(source_name)));
       } else {
         Omega_h_fail("expected \"%s\" to be a sublist\n", source_name.c_str());
       }
@@ -181,16 +192,16 @@ void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl) {
 
 Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh) {
 #ifdef OMEGA_H_USE_MPI
-  return Teuchos::RCP<Teuchos::Comm<int>>( new Teuchos::MpiComm<int>(comm_osh->get_impl()) );
+  return Teuchos::RCP<Teuchos::Comm<int>>(
+      new Teuchos::MpiComm<int>(comm_osh->get_impl()));
 #else
-  (void) comm_osh;
-  return Teuchos::RCP<Teuchos::Comm<int>>( new Teuchos::SerialComm<int>() );
+  (void)comm_osh;
+  return Teuchos::RCP<Teuchos::Comm<int>>(new Teuchos::SerialComm<int>());
 #endif
 }
 
-void update_parameters_from_file(
-    std::string const& filepath, Teuchos::ParameterList* pl,
-    Teuchos::Comm<int> const& comm) {
+void update_parameters_from_file(std::string const& filepath,
+    Teuchos::ParameterList* pl, Teuchos::Comm<int> const& comm) {
   if (ends_with(filepath, ".xml")) {
     Teuchos::updateParametersFromXmlFileAndBroadcast(
         filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
@@ -202,7 +213,8 @@ void update_parameters_from_file(
   }
 #endif
   else {
-    Omega_h_fail("\"%s\" is not a known parameter list format\n", filepath.c_str());
+    Omega_h_fail(
+        "\"%s\" is not a known parameter list format\n", filepath.c_str());
   }
 }
 
@@ -222,15 +234,13 @@ void write_parameters(
   }
 #endif
   else {
-    Omega_h_fail("\"%s\" is not a known parameter list format\n", filepath.c_str());
+    Omega_h_fail(
+        "\"%s\" is not a known parameter list format\n", filepath.c_str());
   }
 }
 
 static char const* const assoc_param_names[NSET_TYPES] = {
-  "Element Sets",
-  "Side Sets",
-  "Node Sets"
-};
+    "Element Sets", "Side Sets", "Node Sets"};
 
 void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
   if (pl.isType<std::string>("File")) {
@@ -241,7 +251,8 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
   for (Int set_type = 0; set_type < NSET_TYPES; ++set_type) {
     if (pl.isSublist(assoc_param_names[set_type])) {
       auto& set_type_pl = pl.sublist(assoc_param_names[set_type]);
-      for (auto it = set_type_pl.begin(), end = set_type_pl.end(); it != end; ++it) {
+      for (auto it = set_type_pl.begin(), end = set_type_pl.end(); it != end;
+           ++it) {
         auto set_name = set_type_pl.name(it);
         auto pairs = set_type_pl.get<Teuchos::TwoDArray<int>>(set_name);
         if (pairs.getNumCols() != 2) {
@@ -259,4 +270,4 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
   }
 }
 
-}
+}  // namespace Omega_h

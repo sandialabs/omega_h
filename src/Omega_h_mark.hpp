@@ -24,16 +24,16 @@ Read<I8> mark_exposed_sides(Mesh* mesh);
 Read<I8> mark_class_closure(
     Mesh* mesh, Int ent_dim, Int class_dim, LO class_id);
 
-Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
-    Int class_dim, std::vector<LO> const& class_ids);
+Read<I8> mark_class_closures(
+    Mesh* mesh, Int ent_dim, Int class_dim, std::vector<LO> const& class_ids);
 
 struct ClassPair {
   Int dim;
   LO id;
 };
 
-Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim,
-    std::vector<ClassPair> const& class_pairs);
+Read<I8> mark_class_closures(
+    Mesh* mesh, Int ent_dim, std::vector<ClassPair> const& class_pairs);
 
 template <typename T>
 OMEGA_H_DEVICE Int binary_search(Read<T> const& a, T v, LO n) {

@@ -98,7 +98,8 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
     Reals metrics;
     switch (source.type) {
       case OMEGA_H_CONSTANT:
-        metrics = Reals(mesh->nverts(), metric_eigenvalue_from_length(source.knob));
+        metrics =
+            Reals(mesh->nverts(), metric_eigenvalue_from_length(source.knob));
         break;
       case OMEGA_H_HESSIAN:
         metrics = automagic_hessian(mesh, source.tag_name, source.knob);

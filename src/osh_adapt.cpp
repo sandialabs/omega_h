@@ -1,7 +1,7 @@
-#include "Omega_h_teuchos.hpp"
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
+#include "Omega_h_teuchos.hpp"
 
 using namespace Omega_h;
 
@@ -41,6 +41,8 @@ int main(int argc, char** argv) {
     auto& adapt_pl = pl_rcp->sublist("Adapt");
     update_adapt_opts(&adapt_opts, adapt_pl);
   }
-  do { adapt(&mesh, adapt_opts); } while (approach_metric(&mesh, adapt_opts));
+  do {
+    adapt(&mesh, adapt_opts);
+  } while (approach_metric(&mesh, adapt_opts));
   binary::write(outputpath, &mesh);
 }

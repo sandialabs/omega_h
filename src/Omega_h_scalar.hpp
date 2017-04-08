@@ -90,26 +90,28 @@ OMEGA_H_INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
 
 template <Int p, typename T>
 struct Raise {
-    static constexpr OMEGA_H_INLINE T eval(T x) { return x * Raise<p - 1, T>::eval(x); }
+  static constexpr OMEGA_H_INLINE T eval(T x) {
+    return x * Raise<p - 1, T>::eval(x);
+  }
 };
 template <typename T>
 struct Raise<1, T> {
-    static constexpr OMEGA_H_INLINE T eval(T x) { return x; }
+  static constexpr OMEGA_H_INLINE T eval(T x) { return x; }
 };
 
 template <Int p, typename T>
 constexpr OMEGA_H_INLINE T raise(T x) {
-    return Raise<p, T>::eval(x);
+  return Raise<p, T>::eval(x);
 }
 
 template <typename T>
 constexpr OMEGA_H_INLINE T square(T x) {
-    return raise<2, T>(x);
+  return raise<2, T>(x);
 }
 
 template <typename T>
 OMEGA_H_INLINE T cube(T x) {
-    return raise<3, T>(x);
+  return raise<3, T>(x);
 }
 
 OMEGA_H_INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }

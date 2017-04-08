@@ -22,9 +22,7 @@
 
 namespace Omega_h {
 
-TransferOpts::TransferOpts() {
-  should_conserve_size = false;
-}
+TransferOpts::TransferOpts() { should_conserve_size = false; }
 
 void TransferOpts::validate(Mesh* mesh) const {
   for (auto pair : type_map) {
