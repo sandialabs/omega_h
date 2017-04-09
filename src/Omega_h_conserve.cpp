@@ -444,6 +444,11 @@ static void transfer_by_intersection(Mesh* old_mesh, Mesh* new_mesh,
   } else if (dim == 2) {
     transfer_by_intersection_dim<2>(
         old_mesh, new_mesh, tagbase, cavs, new_elem_densities_w);
+  } else if (dim == 1) {
+    transfer_by_intersection_dim<1>(
+        old_mesh, new_mesh, tagbase, cavs, new_elem_densities_w);
+  } else {
+    Omega_h_fail("unsupported dim %d\n", dim);
   }
 }
 

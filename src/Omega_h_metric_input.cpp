@@ -124,8 +124,11 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
   }
   Real scalar = 1.0;
   Reals metrics;
-  Int niters = 0;
-  while (true) {
+  Int niters;
+  for (niters = 0; true; ++niters) {
+    if (niters == 100) {
+      Omega_h_fail("Too many element count limiting iterations\n");
+    }
     metrics = Reals();
     for (size_t i = 0; i < input.sources.size(); ++i) {
       auto in_metrics = original_metrics[i];
@@ -165,7 +168,6 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         break;
       }
     }
-    ++niters;
   }
   auto t1 = now();
   add_to_global_timer("generating metrics", t1 - t0);
