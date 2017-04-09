@@ -35,10 +35,8 @@ Reals resize_symms_tmpl(Reals old_symms) {
 
 Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim) {
   if (old_dim == new_dim) return old_symms;
-  if (old_dim == 1 && new_dim == 2) return resize_symms_tmpl<1, 2>(old_symms);
-  if (old_dim == 1 && new_dim == 3) return resize_symms_tmpl<1, 3>(old_symms);
-  if (old_dim == 3 && new_dim == 1) return resize_symms_tmpl<3, 1>(old_symms);
-  if (old_dim == 2 && new_dim == 1) return resize_symms_tmpl<2, 1>(old_symms);
+  if (old_dim == 2 && new_dim == 3) return resize_symms_tmpl<2, 3>(old_symms);
+  if (old_dim == 3 && new_dim == 2) return resize_symms_tmpl<3, 2>(old_symms);
   OMEGA_H_NORETURN(Reals());
 }
 
