@@ -20,7 +20,7 @@ MetricInput::MetricInput() {
   gradation_convergence_tolerance = 1e-3;
   should_limit_element_count = false;
   max_element_count = 1e6;
-  min_element_count = 0.0;
+  min_element_count = 1.0;
   element_count_over_relaxation = 1.1;
 }
 
