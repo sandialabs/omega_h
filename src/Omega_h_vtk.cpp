@@ -104,6 +104,7 @@ void write_array(
   if (!(array.exists())) {
     Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
+  std::cerr << "writing array " << name << " ncomps " << ncomps << " size " << array.size() << '\n';
   stream << "<DataArray ";
   describe_array<T>(stream, name, ncomps);
   stream << ">\n";
@@ -198,8 +199,11 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
   } else if (is<I64>(tag)) {
     write_array(stream, tag->name(), tag->ncomps(), as<I64>(tag)->array());
   } else if (is<Real>(tag)) {
+    std::cerr << "writing tag " << tag->name() << " ncomps " << tag->ncomps() << '\n';
+    std::cerr << "space_dim " << space_dim << '\n';
     Reals array = as<Real>(tag)->array();
     if (1 < space_dim && space_dim < 3) {
+      std::cerr << "space_dim between 1 and 3\n";
       if (tag->ncomps() == space_dim) {
         // VTK / ParaView expect vector fields to have 3 components
         // regardless of whether this is a 2D mesh or not.
@@ -421,10 +425,19 @@ void write_p_data_array2(std::ostream& stream, std::string const& name,
 }
 
 void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
-  if (tag->type() == OMEGA_H_F64 && tag->ncomps() == space_dim)
-    write_p_data_array2(stream, tag->name(), 3, OMEGA_H_F64);
-  else
+  if (tag->type() == OMEGA_H_REAL) {
+    if (1 < space_dim && space_dim < 3) {
+      if (tag->ncomps() == space_dim) {
+        write_p_data_array2(stream, tag->name(), 3, OMEGA_H_REAL);
+      } else if (tag->ncomps() == symm_ncomps(space_dim)) {
+        write_p_data_array2(stream, tag->name(), symm_ncomps(3), OMEGA_H_REAL);
+      }
+    } else {
+      write_p_data_array2(stream, tag->name(), tag->ncomps(), OMEGA_H_REAL);
+    }
+  } else {
     write_p_data_array2(stream, tag->name(), tag->ncomps(), tag->type());
+  }
 }
 
 std::string piece_filename(std::string const& piecepath, I32 rank) {
