@@ -64,6 +64,10 @@ Read<I8> prevent_coarsen_overshoot(
     return prevent_overshoot_tmpl<2, 1>(
         mesh, max_length, cands2edges, cand_codes);
   }
+  if (mesh->dim() == 1 && metric_dim == 1) {
+    return prevent_overshoot_tmpl<1, 1>(
+        mesh, max_length, cands2edges, cand_codes);
+  }
   NORETURN(Read<I8>());
 }
 }  // namespace Omega_h

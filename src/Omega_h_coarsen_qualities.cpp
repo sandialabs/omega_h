@@ -72,6 +72,11 @@ Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   if (mesh->dim() == 2 && metric_dim == 1) {
     return coarsen_qualities_tmpl<2, 1>(mesh, cands2edges, cand_codes);
   }
+  if (mesh->dim() == 1) {
+    auto edges2verts = mesh->ask_verts_of(EDGE);
+    auto cands2verts = unmap(cands2edges, edges2verts, 2);
+    return get_1d_cavity_qualities(mesh, VERT, cands2verts);
+  }
   NORETURN(Reals());
 }
 
