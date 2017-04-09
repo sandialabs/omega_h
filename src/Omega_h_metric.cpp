@@ -189,8 +189,8 @@ static Reals limit_gradation_once_tmpl(
       auto am = get_symm<metric_dim>(values, av);
       auto ax = get_vector<mesh_dim>(coords, av);
       auto vec = ax - x;
-      auto metric_dist = metric_length(m, vec);
-      auto decomp = decompose_metric(m);
+      auto metric_dist = metric_length(am, vec);
+      auto decomp = decompose_metric(am);
       decomp.l = decomp.l * (1.0 + metric_dist * max_rate);
       auto limiter = compose_metric(decomp.q, decomp.l);
       auto limited = intersect_metrics(m, limiter);
@@ -208,15 +208,14 @@ static Reals limit_gradation_once(Mesh* mesh, Reals values, Real max_rate) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), values);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return limit_gradation_once_tmpl<3, 3>(mesh, values, max_rate);
-  }
-  if (mesh->dim() == 2 && metric_dim == 2) {
+  } else if (mesh->dim() == 2 && metric_dim == 2) {
     return limit_gradation_once_tmpl<2, 2>(mesh, values, max_rate);
-  }
-  if (mesh->dim() == 3 && metric_dim == 1) {
+  } else if (mesh->dim() == 3 && metric_dim == 1) {
     return limit_gradation_once_tmpl<3, 1>(mesh, values, max_rate);
-  }
-  if (mesh->dim() == 2 && metric_dim == 1) {
+  } else if (mesh->dim() == 2 && metric_dim == 1) {
     return limit_gradation_once_tmpl<2, 1>(mesh, values, max_rate);
+  } else if (mesh->dim() == 1) {
+    return limit_gradation_once_tmpl<1, 1>(mesh, values, max_rate);
   }
   NORETURN(Reals());
 }
