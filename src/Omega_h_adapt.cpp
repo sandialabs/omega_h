@@ -46,10 +46,14 @@ AdaptOpts::AdaptOpts(Int dim) {
   if (dim == 3) {
     min_quality_allowed = 0.20;
     min_quality_desired = 0.30;
-  }
-  if (dim == 2) {
+  } else if (dim == 2) {
     min_quality_allowed = 0.30;
     min_quality_desired = 0.40;
+  } else if (dim == 1) {
+    min_quality_allowed = 1.0;
+    min_quality_desired = 1.0;
+  } else {
+    Omega_h_fail("unexpected dim %d\n", dim);
   }
   nsliver_layers = 4;
   verbosity = EACH_REBUILD;

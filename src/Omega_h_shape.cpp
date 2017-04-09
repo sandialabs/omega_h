@@ -43,6 +43,9 @@ Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
   if (mesh->dim() == 2 && metric_dim == 1) {
     return measure_edges_tmpl<MetricEdgeLengths<2, 1>>(mesh, a2e);
   }
+  if (mesh->dim() == 1 && metric_dim == 1) {
+    return measure_edges_tmpl<MetricEdgeLengths<1, 1>>(mesh, a2e);
+  }
   OMEGA_H_NORETURN(Reals());
 }
 

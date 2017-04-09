@@ -213,6 +213,14 @@ Read<I8> each_geq_to(Read<T> a, T b) {
 }
 
 template <typename T>
+Read<I8> each_leq_to(Read<T> a, T b) {
+  Write<I8> c(a.size());
+  auto f = LAMBDA(LO i) { c[i] = (a[i] <= b); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Read<I8> each_gt(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = LAMBDA(LO i) { c[i] = (a[i] > b); };
@@ -458,6 +466,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<T> add_to_each(Read<T> a, T b);                                \
   template Read<T> subtract_from_each(Read<T> a, T b);                         \
   template Read<I8> each_geq_to(Read<T> a, T b);                               \
+  template Read<I8> each_leq_to(Read<T> a, T b);                               \
   template Read<I8> each_gt(Read<T> a, T b);                                   \
   template Read<I8> each_lt(Read<T> a, T b);                                   \
   template Read<I8> each_neq_to(Read<T> a, T b);                               \

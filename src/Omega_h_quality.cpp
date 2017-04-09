@@ -32,6 +32,9 @@ Reals measure_qualities(Mesh* mesh, LOs a2e) {
   if (mesh->dim() == 2 && metric_dim == 1) {
     return measure_qualities_tmpl<2, 1>(mesh, a2e);
   }
+  if (mesh->dim() == 1) {
+    return Reals(a2e.size(), 1.0);
+  }
   NORETURN(Reals());
 }
 

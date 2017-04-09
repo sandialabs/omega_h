@@ -58,6 +58,8 @@ Read<T> subtract_from_each(Read<T> a, T b);
 template <typename T>
 Read<I8> each_geq_to(Read<T> a, T b);
 template <typename T>
+Read<I8> each_leq_to(Read<T> a, T b);
+template <typename T>
 Read<I8> each_gt(Read<T> a, T b);
 template <typename T>
 Read<I8> each_lt(Read<T> a, T b);
@@ -108,6 +110,7 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<T> add_to_each(Read<T> a, T b);                         \
   extern template Read<T> subtract_from_each(Read<T> a, T b);                  \
   extern template Read<I8> each_geq_to(Read<T> a, T b);                        \
+  extern template Read<I8> each_leq_to(Read<T> a, T b);                        \
   extern template Read<I8> each_gt(Read<T> a, T b);                            \
   extern template Read<I8> each_lt(Read<T> a, T b);                            \
   extern template Read<I8> each_neq_to(Read<T> a, T b);                        \
