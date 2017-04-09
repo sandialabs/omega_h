@@ -18,7 +18,9 @@ Read<I8> mark_exposed_sides(Mesh* mesh) {
 
 Read<I8> mark_down(
     Mesh* mesh, Int high_dim, Int low_dim, Read<I8> high_marked) {
-  OMEGA_H_CHECK(high_dim >= low_dim);
+  OMEGA_H_CHECK(0 <= low_dim);
+  OMEGA_H_CHECK(low_dim <= high_dim);
+  OMEGA_H_CHECK(high_dim <= 3);
   if (high_dim == low_dim) return high_marked;
   auto l2h = mesh->ask_up(low_dim, high_dim);
   auto l2lh = l2h.a2ab;

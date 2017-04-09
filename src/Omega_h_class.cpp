@@ -42,6 +42,7 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
   classify_elements(mesh);
   auto side_is_exposed = mark_exposed_sides(mesh);
   classify_sides_by_exposure(mesh, side_is_exposed);
+  if (dim == 1) return;
   auto hinge_is_exposed = mark_down(mesh, dim - 1, dim - 2, side_is_exposed);
   auto surf_side2side = collect_marked(side_is_exposed);
   auto surf_side_normals = get_side_normals(mesh, surf_side2side);
