@@ -103,6 +103,10 @@ bool operator==(Graph a, Graph b) {
   return a.a2ab == b.a2ab && a.ab2b == b.ab2b;
 }
 
+Graph identity_graph(LO nnodes) {
+  return { LOs(nnodes + 1, 0, 1), LOs(nnodes, 0, 1) };
+}
+
 template <typename T>
 void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width) {
   auto ab_data = expand(a_data, a2b.a2ab, width);

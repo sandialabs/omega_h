@@ -28,6 +28,7 @@ Reals graph_weighted_average(
     Graph a2b, Reals ab_weights, Reals b_data, Int width);
 Graph filter_graph(Graph g, Read<I8> keep_edge);
 bool operator==(Graph a, Graph b);
+Graph identity_graph(LO nnodes);
 
 template <typename T>
 void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width);

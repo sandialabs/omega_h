@@ -99,6 +99,9 @@ Reals refine_qualities(Mesh* mesh, LOs candidates) {
   if (mesh_dim == 2 && metric_dim == 1) {
     return refine_qualities_tmpl<2, 1>(mesh, candidates);
   }
+  if (mesh_dim == 1) {
+    return get_1d_cavity_qualities(mesh, EDGE, candidates);
+  }
   NORETURN(Reals());
 }
 

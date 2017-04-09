@@ -50,8 +50,8 @@ AdaptOpts::AdaptOpts(Int dim) {
     min_quality_allowed = 0.30;
     min_quality_desired = 0.40;
   } else if (dim == 1) {
-    min_quality_allowed = 1.0;
-    min_quality_desired = 1.0;
+    min_quality_allowed = 0.0;
+    min_quality_desired = 0.0;
   } else {
     Omega_h_fail("unexpected dim %d\n", dim);
   }
