@@ -381,6 +381,7 @@ if(BUILD_TESTING)
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES})
+  osh_add_exe(1d_test)
 endif()
 
 bob_form_semver(CONFIG_OPTIONS

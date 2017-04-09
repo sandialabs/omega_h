@@ -56,6 +56,7 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
 static Read<I64> dists_from_coords(Reals coords, Int dim) {
   if (dim == 3) return dists_from_coords_dim<3>(coords);
   if (dim == 2) return dists_from_coords_dim<2>(coords);
+  if (dim == 1) return dists_from_coords_dim<1>(coords);
   NORETURN(Read<I64>());
 }
 

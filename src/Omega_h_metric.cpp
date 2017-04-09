@@ -271,6 +271,7 @@ static Reals element_implied_isos_dim(Mesh* mesh) {
 static Reals element_implied_isos(Mesh* mesh) {
   if (mesh->dim() == 3) return element_implied_isos_dim<3>(mesh);
   if (mesh->dim() == 2) return element_implied_isos_dim<2>(mesh);
+  if (mesh->dim() == 1) return element_implied_isos_dim<1>(mesh);
   NORETURN(Reals());
 }
 
@@ -345,6 +346,7 @@ Reals metric_from_hessians(Int dim, Reals hessians, Real eps) {
   CHECK(eps > 0.0);
   if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps);
   if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps);
+  if (dim == 1) return metric_from_hessians_dim<1>(hessians, eps);
   NORETURN(Reals());
 }
 
@@ -439,15 +441,14 @@ Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return expected_elems_per_elem_tmpl<3, 3>(mesh, v2m);
-  }
-  if (mesh->dim() == 2 && metric_dim == 2) {
+  } else if (mesh->dim() == 2 && metric_dim == 2) {
     return expected_elems_per_elem_tmpl<2, 2>(mesh, v2m);
-  }
-  if (mesh->dim() == 3 && metric_dim == 1) {
+  } else if (mesh->dim() == 3 && metric_dim == 1) {
     return expected_elems_per_elem_tmpl<3, 1>(mesh, v2m);
-  }
-  if (mesh->dim() == 2 && metric_dim == 1) {
+  } else if (mesh->dim() == 2 && metric_dim == 1) {
     return expected_elems_per_elem_tmpl<2, 1>(mesh, v2m);
+  } else if (mesh->dim() == 1) {
+    return expected_elems_per_elem_tmpl<1, 1>(mesh, v2m);
   }
   NORETURN(Reals());
 }

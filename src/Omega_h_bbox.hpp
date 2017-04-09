@@ -46,9 +46,11 @@ BBox<dim> find_bounding_box(Reals coords);
 template <Int dim>
 BBox<dim> get_bounding_box(Mesh* mesh);
 
+extern template BBox<1> find_bounding_box<1>(Reals coords);
 extern template BBox<2> find_bounding_box<2>(Reals coords);
 extern template BBox<3> find_bounding_box<3>(Reals coords);
 
+extern template BBox<1> get_bounding_box<1>(Mesh* mesh);
 extern template BBox<2> get_bounding_box<2>(Mesh* mesh);
 extern template BBox<3> get_bounding_box<3>(Mesh* mesh);
 

@@ -180,6 +180,11 @@ struct RealElementSizes {
 Reals measure_elements_real(Mesh* mesh, LOs a2e);
 Reals measure_elements_real(Mesh* mesh);
 
+OMEGA_H_INLINE Few<Vector<1>, 1> element_edge_vectors(
+    Few<Vector<1>, 2>, Few<Vector<1>, 1> b) {
+  return b;
+}
+
 OMEGA_H_INLINE Few<Vector<2>, 3> element_edge_vectors(
     Few<Vector<2>, 3> p, Few<Vector<2>, 2> b) {
   Few<Vector<2>, 3> ev;

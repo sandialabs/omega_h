@@ -30,6 +30,7 @@ BBox<dim> find_bounding_box(Reals coords) {
   return parallel_reduce(npts, BBoxFunctor<dim>(coords));
 }
 
+template BBox<1> find_bounding_box<1>(Reals coords);
 template BBox<2> find_bounding_box<2>(Reals coords);
 template BBox<3> find_bounding_box<3>(Reals coords);
 
@@ -43,6 +44,7 @@ BBox<dim> get_bounding_box(Mesh* mesh) {
   return bb;
 }
 
+template BBox<1> get_bounding_box<1>(Mesh* mesh);
 template BBox<2> get_bounding_box<2>(Mesh* mesh);
 template BBox<3> get_bounding_box<3>(Mesh* mesh);
 

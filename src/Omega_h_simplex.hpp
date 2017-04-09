@@ -379,6 +379,11 @@ template <Int dim, Int low, Int high>
 struct AvgDegree;
 
 template <>
+struct AvgDegree<1, 0, 1> {
+  static constexpr Int value = 2;
+};
+
+template <>
 struct AvgDegree<2, 0, 1> {
   static constexpr Int value = 6;
 };

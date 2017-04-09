@@ -53,9 +53,10 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
 static Reals get_interior_coeffs(Mesh* mesh, Reals e_data, Int ncomps) {
   if (mesh->dim() == 3) {
     return get_interior_coeffs_dim<3>(mesh, e_data, ncomps);
-  }
-  if (mesh->dim() == 2) {
+  } else if (mesh->dim() == 2) {
     return get_interior_coeffs_dim<2>(mesh, e_data, ncomps);
+  } else if (mesh->dim() == 1) {
+    return get_interior_coeffs_dim<1>(mesh, e_data, ncomps);
   }
   OMEGA_H_NORETURN(Reals());
 }
@@ -115,9 +116,10 @@ static Reals evaluate_coeffs_dim(Mesh* mesh, Reals v_coeffs, Int ncomps) {
 static Reals evaluate_coeffs(Mesh* mesh, Reals v_coeffs, Int ncomps) {
   if (mesh->dim() == 3) {
     return evaluate_coeffs_dim<3>(mesh, v_coeffs, ncomps);
-  }
-  if (mesh->dim() == 2) {
+  } else if (mesh->dim() == 2) {
     return evaluate_coeffs_dim<2>(mesh, v_coeffs, ncomps);
+  } else if (mesh->dim() == 1) {
+    return evaluate_coeffs_dim<1>(mesh, v_coeffs, ncomps);
   }
   OMEGA_H_NORETURN(Reals());
 }
@@ -214,19 +216,25 @@ static Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
 
 Reals derive_element_gradients(Mesh* mesh, Reals vert_values) {
   OMEGA_H_CHECK(vert_values.size() == mesh->nverts());
-  if (mesh->dim() == 3)
+  if (mesh->dim() == 3) {
     return derive_element_gradients_dim<3>(mesh, vert_values);
-  if (mesh->dim() == 2)
+  } else if (mesh->dim() == 2) {
     return derive_element_gradients_dim<2>(mesh, vert_values);
+  } else if (mesh->dim() == 1) {
+    return derive_element_gradients_dim<1>(mesh, vert_values);
+  }
   OMEGA_H_NORETURN(Reals());
 }
 
 Reals derive_element_hessians(Mesh* mesh, Reals vert_gradients) {
   OMEGA_H_CHECK(vert_gradients.size() == mesh->nverts() * mesh->dim());
-  if (mesh->dim() == 3)
+  if (mesh->dim() == 3) {
     return derive_element_hessians_dim<3>(mesh, vert_gradients);
-  if (mesh->dim() == 2)
+  } else if (mesh->dim() == 2) {
     return derive_element_hessians_dim<2>(mesh, vert_gradients);
+  } else if (mesh->dim() == 1) {
+    return derive_element_hessians_dim<1>(mesh, vert_gradients);
+  }
   OMEGA_H_NORETURN(Reals());
 }
 
