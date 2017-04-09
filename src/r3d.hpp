@@ -158,10 +158,22 @@ R3D_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
 }
 
 template <Int n>
+R3D_INLINE Vector<n>& operator+=(Vector<n>& a, Vector<n> b) {
+  a = a + b;
+  return a;
+}
+
+template <Int n>
 R3D_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] - b[i];
   return c;
+}
+
+template <Int n>
+R3D_INLINE Vector<n>& operator-=(Vector<n>& a, Vector<n> b) {
+  a = a - b;
+  return a;
 }
 
 template <Int n>
@@ -179,6 +191,12 @@ R3D_INLINE Vector<n> operator*(Vector<n> a, Real b) {
 }
 
 template <Int n>
+R3D_INLINE Vector<n>& operator*=(Vector<n>& a, Real b) {
+  a = a * b;
+  return a;
+}
+
+template <Int n>
 R3D_INLINE Vector<n> operator*(Real a, Vector<n> b) {
   return b * a;
 }
@@ -188,6 +206,12 @@ R3D_INLINE Vector<n> operator/(Vector<n> a, Real b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] / b;
   return c;
+}
+
+template <Int n>
+R3D_INLINE Vector<n>& operator/=(Vector<n>& a, Real b) {
+  a = a / b;
+  return a;
 }
 
 template <Int n>
