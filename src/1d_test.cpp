@@ -19,15 +19,18 @@ static Reals logistic_function(Reals x, Real x0, Real L, Real k) {
 
 static void add_solution(Mesh* mesh) {
   auto coords = mesh->coords();
-  auto sol = logistic_function(coords, 0.5, 1.0, 2.0);
+  auto sol = logistic_function(coords, 0.5, 1.0, 20.0);
   mesh->add_tag(VERT, "solution", 1, sol);
 }
 
 static void add_target_metric(Mesh* mesh) {
   MetricInput input;
   input.sources.push_back({OMEGA_H_HESSIAN, true, "solution", 1.0});
+  input.should_limit_gradation = true;
+  input.max_gradation_rate = 1.0;
   input.should_limit_element_count = true;
   input.max_element_count = 100;
+  input.min_element_count = 30;
   generate_target_metric_tag(mesh, input);
 }
 
