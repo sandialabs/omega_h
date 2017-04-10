@@ -25,6 +25,7 @@ static Reals get_max_eigenvalues_dim(Reals symms) {
 Reals get_max_eigenvalues(Int dim, Reals symms) {
   if (dim == 3) return get_max_eigenvalues_dim<3>(symms);
   if (dim == 2) return get_max_eigenvalues_dim<2>(symms);
+  if (dim == 1) return symms;
   OMEGA_H_NORETURN(Reals());
 }
 
