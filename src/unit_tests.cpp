@@ -821,7 +821,7 @@ static void test_sf_scale_dim(Library* lib) {
   Int one_if_3d = ((dim >= 3) ? 1 : 0);
   build_box(&mesh, 1, one_if_2d, one_if_3d, nl, nl * one_if_2d, nl * one_if_3d);
   classify_by_angles(&mesh, Omega_h::PI / 4);
-  auto target_nelems = mesh.nelems() * 2;
+  auto target_nelems = mesh.nelems();
   auto metrics = Omega_h::get_implied_metrics(&mesh);
   {
     auto isos = apply_isotropy(mesh.nverts(), metrics, OMEGA_H_ISO_SIZE);

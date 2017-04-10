@@ -402,7 +402,6 @@ Real get_metric_scalar_for_nelems(
 
 Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   auto nelems = get_expected_nelems(mesh, v2m);
-  std::cerr << "expected nelems " << nelems << '\n';
   auto metric_scal =
       get_metric_scalar_for_nelems(mesh->dim(), nelems, target_nelems);
   return metric_scal;
