@@ -256,11 +256,21 @@ template <Int dim>
 static Reals element_implied_metrics_dim(Mesh* mesh) {
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
+  auto sizes = mesh->ask_sizes();
   auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
     auto m = element_implied_metric(p);
+    auto b = simplex_basis<dim, dim>(p);
+    auto ev = element_edge_vectors(p, b);
+    auto msrl = mean_squared_real_length(ev);
+    auto len_scal = power<dim, 2>(msrl);
+    auto eq_size = len_scal * EquilateralSize<dim>::value;
+    auto size_corr = sizes[e] / eq_size;
+    std::cerr << "size correction " << size_corr << '\n';
+    auto metric_corr = power<2, dim>(size_corr);
+    m = m * metric_corr;
     set_symm(out, e, m);
   };
   parallel_for(mesh->nelems(), f);
@@ -356,15 +366,28 @@ template <Int mesh_dim, Int metric_dim>
 static Reals expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   auto elems2verts = mesh->ask_elem_verts();
   auto sizes = mesh->ask_sizes();
+  auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<mesh_dim + 1>(elems2verts, e);
+    // start l_RMS
+    auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
+    auto b = simplex_basis<mesh_dim, mesh_dim>(p);
+    auto ev = element_edge_vectors(p, b);
+    auto msrl = mean_squared_real_length(ev);
+    auto lr = power<mesh_dim, 2>(msrl);
+  //std::cerr << "length ratio " << lr;
+    // end l_RMS
     auto eev2m = gather_symms<mesh_dim + 1, metric_dim>(v2m, v);
     auto m = average_metric(eev2m);
-    auto rs = sizes[e];
-    auto rsr = rs / PerfectSimplexSize<mesh_dim>::value;
+  //auto rs = sizes[e];
+  //auto rsr = rs / EquilateralSize<mesh_dim>::value;
+  //std::cerr << " real size ratio " << rsr;
     auto mr = power<mesh_dim, 2 * metric_dim>(determinant(m));
-    auto r = rsr * mr;
+  //std::cerr << " metric ratio " << mr;
+    auto r = lr * mr;
+  //std::cerr << " total ratio " << r << '\n';
+  //std::cerr << "length ratio / real size ratio " << lr/rsr << '\n';
     out_w[e] = r;
   };
   parallel_for(mesh->nelems(), f);

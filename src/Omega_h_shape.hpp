@@ -382,21 +382,21 @@ OMEGA_H_INLINE Real metric_size(Real real_size, Matrix<metric_dim, metric_dim> m
 }
 
 template <Int dim>
-struct PerfectSimplexSize;
+struct EquilateralSize;
 
 template <>
-struct PerfectSimplexSize<1> {
-  static constexpr Real value = 1.0;
+struct EquilateralSize<1> {
+  static constexpr Real value = 1.0;  // sqrt(3)/4
 };
 
 template <>
-struct PerfectSimplexSize<2> {
-  static constexpr Real value = 0.4330127018922193; //sqrt(3) / 4
+struct EquilateralSize<2> {
+  static constexpr Real value = 0.4330127018922193;  // sqrt(3)/4
 };
 
 template <>
-struct PerfectSimplexSize<3> {
-  static constexpr Real value = 0.11785113019775793; //sqrt(2)/12
+struct EquilateralSize<3> {
+  static constexpr Real value = 0.1178511301977579;  // 1/sqrt(72)
 };
 
 }  // end namespace Omega_h

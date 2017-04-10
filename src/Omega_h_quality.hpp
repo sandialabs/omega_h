@@ -7,19 +7,6 @@
 namespace Omega_h {
 
 template <Int dim>
-struct EquilateralSize;
-
-template <>
-struct EquilateralSize<2> {
-  static constexpr Real value = 0.4330127018922193;  // sqrt(3)/4
-};
-
-template <>
-struct EquilateralSize<3> {
-  static constexpr Real value = 0.1178511301977579;  // 1/sqrt(72)
-};
-
-template <Int dim>
 INLINE constexpr Real equilateral_size() {
   return EquilateralSize<dim>::value;
 }
