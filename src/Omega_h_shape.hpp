@@ -77,7 +77,7 @@ OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi) {
 }
 
 OMEGA_H_INLINE Real edge_length(Few<Vector<1>, 1> b) {
-  return fabs(b[1][0] - b[0][0]);
+  return fabs(b[0][0]);
 }
 
 OMEGA_H_INLINE Real element_size(Few<Vector<1>, 1> b) { return edge_length(b); }
