@@ -513,4 +513,35 @@ Reals metrics_from_isos(Int new_dim, Reals isos) {
   OMEGA_H_NORETURN(Reals());
 }
 
+template <Int dim>
+static Reals get_size_isos_dim(Reals metrics) {
+  auto n = divide_no_remainder(metrics.size(), symm_ncomps(dim));
+  auto out = Write<Real>(n);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto m = get_symm<dim>(metrics, i);
+    out[i] = root<dim>(determinant(m));;
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+static Reals get_size_isos(Int dim, Reals metrics) {
+  switch (dim) {
+    case 3: return get_size_isos_dim<3>(metrics);
+    case 2: return get_size_isos_dim<2>(metrics);
+    case 1: return get_size_isos_dim<1>(metrics);
+  }
+  OMEGA_H_NORETURN(Reals());
+}
+
+Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy) {
+  auto dim = get_metrics_dim(nmetrics, metrics);
+  switch (isotropy) {
+    case OMEGA_H_ANISOTROPIC: return metrics;
+    case OMEGA_H_ISO_LENGTH: return get_max_eigenvalues(dim, metrics);
+    case OMEGA_H_ISO_SIZE: return get_size_isos(dim, metrics);
+  }
+  OMEGA_H_NORETURN(Reals());
+}
+
 }  // end namespace Omega_h

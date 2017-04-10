@@ -46,6 +46,16 @@ enum Omega_h_Source {
   OMEGA_H_CURVATURE,
 };
 
+// controls the conversion of anisotropic metrics to isotropic ones
+enum Omega_h_Isotropy {
+  OMEGA_H_ANISOTROPIC, // keep anisotropy
+  OMEGA_H_ISO_LENGTH,  // use smallest length
+  OMEGA_H_ISO_SIZE,    // use equivalent volume
+};
+
+/* determines whether a metric is allowed to be scaled
+ * to satisfy an element count constraint
+ */
 enum Omega_h_Scales {
   OMEGA_H_ABSOLUTE,
   OMEGA_H_SCALES,

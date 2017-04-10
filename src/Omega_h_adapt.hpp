@@ -79,12 +79,13 @@ bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
 struct MetricSource {
   Omega_h_Source type;
   Real knob;
-  bool should_make_isotropic;
   std::string tag_name;
-  bool should_scale;
+  Omega_h_Isotropy isotropy;
+  Omega_h_Scales scales;
   MetricSource(Omega_h_Source type_, Real knob_ = 1.0,
-      bool should_make_isotropic_ = true, std::string const& tag_name_ = "",
-      bool should_scale_ = true);
+      std::string const& tag_name_ = "",
+      Omega_h_Isotropy isotropy_ = OMEGA_H_ANISOTROPIC,
+      Omega_h_Scales scales_ = OMEGA_H_SCALES);
 };
 
 struct MetricInput {

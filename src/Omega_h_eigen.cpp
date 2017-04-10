@@ -5,7 +5,7 @@
 namespace Omega_h {
 
 template <Int dim>
-Reals get_max_eigenvalues_dim(Reals symms) {
+static Reals get_max_eigenvalues_dim(Reals symms) {
   auto n = divide_no_remainder(symms.size(), symm_ncomps(dim));
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) {

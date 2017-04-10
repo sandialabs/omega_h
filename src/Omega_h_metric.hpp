@@ -234,6 +234,8 @@ Reals get_proximity_isos(Mesh* mesh, Real factor);
 Reals intersect_metrics(LO nmetrics, Reals a, Reals b);
 Reals metrics_from_isos(Int new_dim, Reals isos);
 
+Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy);
+
 }  // end namespace Omega_h
 
 #endif

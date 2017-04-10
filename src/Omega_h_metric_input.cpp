@@ -11,13 +11,14 @@
 namespace Omega_h {
 
 MetricSource::MetricSource(Omega_h_Source type_, Real knob_,
-    bool should_make_isotropic_, std::string const& tag_name_,
-    bool should_scale_):
+      std::string const& tag_name_,
+      Omega_h_Isotropy isotropy_,
+      Omega_h_Scales scales_):
   type(type_),
   knob(knob_),
-  should_make_isotropic(should_make_isotropic_),
   tag_name(tag_name_),
-  should_scale(should_scale_) {
+  isotropy(isotropy_),
+  scales(scales_) {
 }
 
 MetricInput::MetricInput() {
@@ -127,13 +128,10 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         metrics = get_curvature_isos(mesh, source.knob);
         break;
     }
+    metrics = apply_isotropy(n, metrics, source.isotropy);
     auto source_dim = get_metrics_dim(n, metrics);
     if (mesh->dim() > 1 && source_dim == mesh->dim()) {
-      if (source.should_make_isotropic) {
-        metrics = get_max_eigenvalues(mesh->dim(), metrics);
-      } else {
-        metric_dim = mesh->dim();
-      }
+      metric_dim = mesh->dim();
     }
     original_metrics.push_back(metrics);
   }
@@ -150,7 +148,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
       if (get_metrics_dim(n, in_metrics) == 1) {
         in_metrics = metrics_from_isos(metric_dim, in_metrics);
       }
-      if (input.sources[i].should_scale) {
+      if (input.sources[i].scales == OMEGA_H_SCALES) {
         in_metrics = multiply_each_by(scalar, in_metrics);
       }
       if (input.should_limit_lengths) {

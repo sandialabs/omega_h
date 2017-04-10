@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto genopts = Omega_h::MetricInput();
   genopts.sources.push_back(
-      Omega_h::MetricSource{OMEGA_H_HESSIAN, target_error, false, "Solution"});
+      Omega_h::MetricSource{OMEGA_H_HESSIAN, target_error, "Solution"});
   genopts.should_limit_lengths = true;
   genopts.min_length = 0.0;
   genopts.max_length = maximum_size;
