@@ -253,32 +253,6 @@ Reals smooth_metric_once(Mesh* mesh, Reals v2m) {
 }
 
 template <Int dim>
-static Reals element_implied_isos_dim(Mesh* mesh) {
-  auto coords = mesh->coords();
-  auto ev2v = mesh->ask_elem_verts();
-  auto out = Write<Real>(mesh->nelems());
-  auto f = LAMBDA(LO e) {
-    auto v = gather_verts<dim + 1>(ev2v, e);
-    auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto h = element_implied_length(p);
-    out[e] = metric_eigenvalue_from_length(h);
-  };
-  parallel_for(mesh->nelems(), f);
-  return out;
-}
-
-static Reals element_implied_isos(Mesh* mesh) {
-  if (mesh->dim() == 3) return element_implied_isos_dim<3>(mesh);
-  if (mesh->dim() == 2) return element_implied_isos_dim<2>(mesh);
-  if (mesh->dim() == 1) return element_implied_isos_dim<1>(mesh);
-  NORETURN(Reals());
-}
-
-Reals get_implied_isos(Mesh* mesh) {
-  return project_metrics(mesh, element_implied_isos(mesh));
-}
-
-template <Int dim>
 static Reals element_implied_metrics_dim(Mesh* mesh) {
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
@@ -296,11 +270,16 @@ static Reals element_implied_metrics_dim(Mesh* mesh) {
 static Reals element_implied_metrics(Mesh* mesh) {
   if (mesh->dim() == 3) return element_implied_metrics_dim<3>(mesh);
   if (mesh->dim() == 2) return element_implied_metrics_dim<2>(mesh);
+  if (mesh->dim() == 1) return element_implied_metrics_dim<1>(mesh);
   NORETURN(Reals());
 }
 
 Reals get_implied_metrics(Mesh* mesh) {
   return project_metrics(mesh, element_implied_metrics(mesh));
+}
+
+Reals get_implied_isos(Mesh* mesh) {
+  return apply_isotropy(mesh->nverts(), get_implied_metrics(mesh), OMEGA_H_ISO_SIZE);
 }
 
 /* A Hessian-based anisotropic size field, from
@@ -364,73 +343,29 @@ Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
 /* The algorithms below are for scaling a size field such that
  * adapting based on that size field will result in a certain specified
  * number of elements.
- * The formulas are based on Section 2.7 of:
+ *
+ * Much of the inspiration came from Section 2.7 of:
  * Pain, C. C., et al.
  * "Tetrahedral mesh optimisation and adaptivity for
  *  steady-state and transient finite element calculations."
  * Computer Methods in Applied Mechanics and Engineering
  * 190.29 (2001): 3771-3796.
- *
- * We suspect that Pain et al.'s $\theta$ correction factor is needed
- * because the tetrahedra in a real mesh are not equilateral, and they
- * do use equilateral volume in their formula.
- * To correct for this, we will use information available in our
- * mean ratio shape measure.
- * In particular, the following should hold:
- *
- * $\eta^\frac{3}{2} = \frac{1}{V_{eq}} \frac{V_e}{l_{RMS}^3}$
- *
- * Where $\eta$ is the mean ratio (see quality.hpp),
- * $V_{eq}$ is the volume of an equilateral tetrahedron with unit
- * edge lengths, $V_e$ is the volume of the element being measured,
- * and $l_{RMS}$ is its root-mean-squared edge length.
- * Loosely speaking, the mean ratio to some power is the volume
- * that this tetrahedron would have if we scaled it until its
- * root mean squared edge length was one.
- * This happens to be exactly the correction factor we need in this case.
- * In fact, if we use such a correction factor, most terms cancel
- * out and we are left with the following weights for existing elements:
- *
- * isotropic case: $\frac{l_{RMS}^3}{h^3}$
- * anisotropic case: $\frac{l_{M,RMS}^3}$
- *
- * Where $l_{M,RMS}$ is the root mean squared value of $v_i^T \mathcal{M} v_i$,
- * for edge vector $v_i$, i.e. the root mean squared metric edge length.
- * In both cases, the (more accurate) scaling factor is simply
- * the root mean squared edge length in metric space
- * to the power of the element dimension.
- *
- * When we need to scale desired edge lengths, we
- * use the inverse of the square root of the $\beta$ factor.
- * (a metric tensor eigenvalue is $(1/h^2)$, where $h$ is desired length).
  */
 
-struct MeanSquaredMetricLength {
-  Reals e2m;
-  MeanSquaredMetricLength(Mesh* mesh, Reals v2m) {
-    auto e2e = LOs(mesh->nelems(), 0, 1);
-    e2m = get_mident_metrics(mesh, mesh->dim(), e2e, v2m);
-  }
-  template <Int metric_dim, typename EdgeVectors>
-  DEVICE Real get(LO e, EdgeVectors edge_vectors) const {
-    auto m = get_symm<metric_dim>(e2m, e);
-    return mean_squared_metric_length(edge_vectors, m);
-  }
-};
-
 template <Int mesh_dim, Int metric_dim>
-static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
-  auto msl_obj = MeanSquaredMetricLength(mesh, v2m);
-  auto ev2v = mesh->ask_elem_verts();
-  auto coords = mesh->coords();
+static Reals expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
+  auto elems2verts = mesh->ask_elem_verts();
+  auto sizes = mesh->ask_sizes();
   auto out_w = Write<Real>(mesh->nelems());
   auto f = LAMBDA(LO e) {
-    auto eev2v = gather_verts<mesh_dim + 1>(ev2v, e);
-    auto eev2x = gather_vectors<mesh_dim + 1, mesh_dim>(coords, eev2v);
-    auto basis = simplex_basis<mesh_dim, mesh_dim>(eev2x);
-    auto edge_vectors = element_edge_vectors(eev2x, basis);
-    auto msl = msl_obj.template get<metric_dim>(e, edge_vectors);
-    out_w[e] = power<mesh_dim, 2>(msl);
+    auto v = gather_verts<mesh_dim + 1>(elems2verts, e);
+    auto eev2m = gather_symms<mesh_dim + 1, metric_dim>(v2m, v);
+    auto m = average_metric(eev2m);
+    auto rs = sizes[e];
+    auto rsr = rs / PerfectSimplexSize<mesh_dim>::value;
+    auto mr = power<mesh_dim, 2 * metric_dim>(determinant(m));
+    auto r = rsr * mr;
+    out_w[e] = r;
   };
   parallel_for(mesh->nelems(), f);
   return Reals(out_w);
@@ -439,15 +374,15 @@ static Reals expected_elems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
 Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (mesh->dim() == 3 && metric_dim == 3) {
-    return expected_elems_per_elem_tmpl<3, 3>(mesh, v2m);
+    return expected_nelems_per_elem_tmpl<3, 3>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 2) {
-    return expected_elems_per_elem_tmpl<2, 2>(mesh, v2m);
+    return expected_nelems_per_elem_tmpl<2, 2>(mesh, v2m);
   } else if (mesh->dim() == 3 && metric_dim == 1) {
-    return expected_elems_per_elem_tmpl<3, 1>(mesh, v2m);
+    return expected_nelems_per_elem_tmpl<3, 1>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 1) {
-    return expected_elems_per_elem_tmpl<2, 1>(mesh, v2m);
+    return expected_nelems_per_elem_tmpl<2, 1>(mesh, v2m);
   } else if (mesh->dim() == 1) {
-    return expected_elems_per_elem_tmpl<1, 1>(mesh, v2m);
+    return expected_nelems_per_elem_tmpl<1, 1>(mesh, v2m);
   }
   NORETURN(Reals());
 }
@@ -467,6 +402,7 @@ Real get_metric_scalar_for_nelems(
 
 Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems) {
   auto nelems = get_expected_nelems(mesh, v2m);
+  std::cerr << "expected nelems " << nelems << '\n';
   auto metric_scal =
       get_metric_scalar_for_nelems(mesh->dim(), nelems, target_nelems);
   return metric_scal;

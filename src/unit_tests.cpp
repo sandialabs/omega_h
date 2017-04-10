@@ -23,6 +23,7 @@
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
 
+#include <iostream>
 #include <sstream>
 
 using namespace Omega_h;
@@ -815,24 +816,27 @@ static void test_recover_hessians(Library* lib) {
 template <Int dim>
 static void test_sf_scale_dim(Library* lib) {
   Mesh mesh(lib);
-  Int one_if_3d = ((dim == 3) ? 1 : 0);
-  build_box(&mesh, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
+  auto nl = 2;
+  Int one_if_2d = ((dim >= 2) ? 1 : 0);
+  Int one_if_3d = ((dim >= 3) ? 1 : 0);
+  build_box(&mesh, 1, one_if_2d, one_if_3d, nl, nl * one_if_2d, nl * one_if_3d);
   classify_by_angles(&mesh, Omega_h::PI / 4);
-  auto target_nelems = mesh.nelems();
+  auto target_nelems = mesh.nelems() * 2;
+  auto metrics = Omega_h::get_implied_metrics(&mesh);
   {
-    auto metrics = Omega_h::get_implied_isos(&mesh);
-    auto iso_scal = get_metric_scalar_for_nelems(&mesh, metrics, target_nelems);
-    CHECK(are_close(iso_scal, 1.));
+    auto isos = apply_isotropy(mesh.nverts(), metrics, OMEGA_H_ISO_SIZE);
+    auto iso_scal = get_metric_scalar_for_nelems(&mesh, isos, target_nelems);
+    OMEGA_H_CHECK(are_close(iso_scal, 1.0));
   }
   {
-    auto metric = Omega_h::get_implied_metrics(&mesh);
-    auto metric_scal =
-        get_metric_scalar_for_nelems(&mesh, metric, target_nelems);
-    if (dim != 3) CHECK(are_close(metric_scal, 1.));
+    auto aniso_scal =
+        get_metric_scalar_for_nelems(&mesh, metrics, target_nelems);
+    OMEGA_H_CHECK(are_close(aniso_scal, 1.0));
   }
 }
 
 static void test_sf_scale(Library* lib) {
+  test_sf_scale_dim<1>(lib);
   test_sf_scale_dim<2>(lib);
   test_sf_scale_dim<3>(lib);
 }

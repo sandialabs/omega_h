@@ -29,25 +29,6 @@ INLINE Real mean_ratio(Real size, Real mean_squared_length) {
   return power<2, dim>(size / equilateral_size<dim>()) / mean_squared_length;
 }
 
-/* This paper (and a few others):
- *
- * Loseille, Adrien, Victorien Menier, and Frederic Alauzet.
- * "Parallel Generation of Large-size Adapted Meshes."
- * Procedia Engineering 124 (2015): 57-69.
- *
- * Mentions using $\sqrt{\det(M)}$ to compute volume in metric space.
- *
- * The call to power() allows us to pass in a 1x1 isotropic metric,
- * and have its "determinant" raised to the right power before taking
- * the square root, and even accepting its existing value in the case
- * of space being 2D.
- */
-
-template <Int space_dim, Int metric_dim>
-INLINE Real metric_size(Real real_size, Matrix<metric_dim, metric_dim> metric) {
-  return real_size * power<space_dim, 2 * metric_dim>(determinant(metric));
-}
-
 /* note that we will always use a constant metric tensor over the whole
  * element to compute its quality, because that way we are computing
  * the quality of the element after a single linear transformation which
