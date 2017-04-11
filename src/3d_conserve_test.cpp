@@ -19,7 +19,9 @@ static void check_total_mass(Mesh* mesh) {
   auto masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
   auto total_mass = get_sum(mesh->comm(), owned_masses);
-  std::cerr << "total mass " << total_mass << '\n';
+  if (mesh->comm()->rank() == 0) {
+    std::cerr << "total mass " << total_mass << '\n';
+  }
   OMEGA_H_CHECK(are_close(1.0, total_mass));
 }
 
