@@ -90,6 +90,11 @@ Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
   NORETURN(Reals());
 }
 
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m) {
+  LOs e2e(mesh->nents(ent_dim), 0, 1);
+  return get_mident_metrics(mesh, ent_dim, e2e, v2m);
+}
+
 Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t) {
   auto log_a = linearize_metrics(nmetrics, a);
   auto log_b = linearize_metrics(nmetrics, b);
@@ -248,12 +253,11 @@ Reals project_metrics(Mesh* mesh, Reals e2m) {
 }
 
 Reals smooth_metric_once(Mesh* mesh, Reals v2m) {
-  auto e2e = LOs(mesh->nelems(), 0, 1);
-  return project_metrics(mesh, get_mident_metrics(mesh, mesh->dim(), e2e, v2m));
+  return project_metrics(mesh, get_mident_metrics(mesh, mesh->dim(), v2m));
 }
 
 template <Int dim>
-static Reals element_implied_metrics_dim(Mesh* mesh) {
+static Reals element_implied_length_metrics_dim(Mesh* mesh) {
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto sizes = mesh->ask_sizes();
@@ -262,34 +266,71 @@ static Reals element_implied_metrics_dim(Mesh* mesh) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
     auto m = element_implied_metric(p);
-    auto b = simplex_basis<dim, dim>(p);
-    auto ev = element_edge_vectors(p, b);
-    auto msrl = mean_squared_real_length(ev);
-    auto len_scal = power<dim, 2>(msrl);
-    auto eq_size = len_scal * EquilateralSize<dim>::value;
-    auto size_corr = sizes[e] / eq_size;
-    std::cerr << "size correction " << size_corr << '\n';
-    auto metric_corr = power<2, dim>(size_corr);
-    m = m * metric_corr;
     set_symm(out, e, m);
   };
   parallel_for(mesh->nelems(), f);
   return out;
 }
 
-static Reals element_implied_metrics(Mesh* mesh) {
-  if (mesh->dim() == 3) return element_implied_metrics_dim<3>(mesh);
-  if (mesh->dim() == 2) return element_implied_metrics_dim<2>(mesh);
-  if (mesh->dim() == 1) return element_implied_metrics_dim<1>(mesh);
+static Reals get_element_implied_length_metrics(Mesh* mesh) {
+  if (mesh->dim() == 3) return element_implied_length_metrics_dim<3>(mesh);
+  if (mesh->dim() == 2) return element_implied_length_metrics_dim<2>(mesh);
+  if (mesh->dim() == 1) return element_implied_length_metrics_dim<1>(mesh);
   NORETURN(Reals());
 }
 
+Reals get_pure_implied_metrics(Mesh* mesh) {
+  return project_metrics(mesh, get_element_implied_length_metrics(mesh));
+}
+
+template <Int dim>
+static Reals metric_quality_corrections_dim(Mesh* mesh) {
+  auto ev2v = mesh->ask_elem_verts();
+  auto coords = mesh->coords();
+  auto sizes = mesh->ask_sizes();
+  auto out = Write<Real>(mesh->nelems());
+  auto f = LAMBDA(LO e) {
+    auto v = gather_verts<dim + 1>(ev2v, e);
+    auto p = gather_vectors<dim + 1, dim>(coords, v);
+    auto b = simplex_basis<dim, dim>(p);
+    auto ev = element_edge_vectors(p, b);
+    auto msrl = mean_squared_real_length(ev);
+    auto len_scal = power<dim, 2>(msrl);
+    auto len_size = len_scal * EquilateralSize<dim>::value;
+    auto real_size = sizes[e];
+    auto size_corr = real_size / len_size;
+    auto metric_corr = power<2, dim>(size_corr);
+    out[e] = metric_corr;
+  };
+  parallel_for(mesh->nelems(), f);
+  return out;
+}
+
+static Reals get_metric_quality_corrections(Mesh* mesh) {
+  if (mesh->dim() == 3) return metric_quality_corrections_dim<3>(mesh);
+  if (mesh->dim() == 2) return metric_quality_corrections_dim<2>(mesh);
+  if (mesh->dim() == 1) return metric_quality_corrections_dim<1>(mesh);
+  NORETURN(Reals());
+}
+
+static Reals get_element_implied_size_metrics(Mesh* mesh) {
+  auto length_metrics = get_element_implied_length_metrics(mesh);
+  auto corrections = get_metric_quality_corrections(mesh);
+  return multiply_each(length_metrics, corrections);
+}
+
 Reals get_implied_metrics(Mesh* mesh) {
-  return project_metrics(mesh, element_implied_metrics(mesh));
+  return project_metrics(mesh, get_element_implied_size_metrics(mesh));
+}
+
+Reals get_pure_implied_isos(Mesh* mesh) {
+  auto metrics = get_pure_implied_metrics(mesh);
+  return apply_isotropy(mesh->nverts(), metrics, OMEGA_H_ISO_SIZE);
 }
 
 Reals get_implied_isos(Mesh* mesh) {
-  return apply_isotropy(mesh->nverts(), get_implied_metrics(mesh), OMEGA_H_ISO_SIZE);
+  auto metrics = get_implied_metrics(mesh);
+  return apply_isotropy(mesh->nverts(), metrics, OMEGA_H_ISO_SIZE);
 }
 
 /* A Hessian-based anisotropic size field, from
@@ -365,29 +406,19 @@ Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
 template <Int mesh_dim, Int metric_dim>
 static Reals expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   auto elems2verts = mesh->ask_elem_verts();
-  auto sizes = mesh->ask_sizes();
   auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
+  auto elem_metrics = get_mident_metrics(mesh, mesh->dim(), v2m);
   auto f = LAMBDA(LO e) {
     auto v = gather_verts<mesh_dim + 1>(elems2verts, e);
-    // start l_RMS
     auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
     auto b = simplex_basis<mesh_dim, mesh_dim>(p);
     auto ev = element_edge_vectors(p, b);
     auto msrl = mean_squared_real_length(ev);
     auto lr = power<mesh_dim, 2>(msrl);
-  //std::cerr << "length ratio " << lr;
-    // end l_RMS
-    auto eev2m = gather_symms<mesh_dim + 1, metric_dim>(v2m, v);
-    auto m = average_metric(eev2m);
-  //auto rs = sizes[e];
-  //auto rsr = rs / EquilateralSize<mesh_dim>::value;
-  //std::cerr << " real size ratio " << rsr;
+    auto m = get_symm<metric_dim>(elem_metrics, e);
     auto mr = power<mesh_dim, 2 * metric_dim>(determinant(m));
-  //std::cerr << " metric ratio " << mr;
     auto r = lr * mr;
-  //std::cerr << " total ratio " << r << '\n';
-  //std::cerr << "length ratio / real size ratio " << lr/rsr << '\n';
     out_w[e] = r;
   };
   parallel_for(mesh->nelems(), f);
