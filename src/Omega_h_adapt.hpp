@@ -82,6 +82,7 @@ struct MetricSource {
   std::string tag_name;
   Omega_h_Isotropy isotropy;
   Omega_h_Scales scales;
+  MetricSource() = default;
   MetricSource(Omega_h_Source type_, Real knob_ = 1.0,
       std::string const& tag_name_ = "",
       Omega_h_Isotropy isotropy_ = OMEGA_H_ANISOTROPIC,

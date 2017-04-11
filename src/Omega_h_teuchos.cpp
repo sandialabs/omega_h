@@ -154,11 +154,25 @@ MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
   } else {
     Omega_h_fail("unknown metric source type \"%s\"\n", type_name.c_str());
   }
-  source.should_scale = true;
-  set_if_given(&source.should_scale, pl, "Scale");
+  bool should_scale = true;
+  set_if_given(&should_scale, pl, "Scale");
+  source.scales = should_scale ? OMEGA_H_SCALES : OMEGA_H_ABSOLUTE;
   set_if_given(&source.tag_name, pl, "Tag Name");
-  source.knob = -42.0;
+  source.knob = 1.0;
   set_if_given(&source.knob, pl, "Knob");
+  source.isotropy = OMEGA_H_ANISOTROPIC;
+  if (pl.isType<std::string>("Isotropy")) {
+    auto isotropy_name = pl.get<std::string>("Isotropy");
+    if (isotropy_name == "Anisotropic") {
+      source.isotropy = OMEGA_H_ANISOTROPIC;
+    } else if (isotropy_name == "Length Preserving") {
+      source.isotropy = OMEGA_H_ISO_LENGTH;
+    } else if (isotropy_name == "Size Preserving") {
+      source.isotropy = OMEGA_H_ISO_SIZE;
+    } else {
+      Omega_h_fail("unknown isotropy type \"%s\"\n", isotropy_name.c_str());
+    }
+  }
   return source;
 }
 
