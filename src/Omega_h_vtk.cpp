@@ -212,6 +212,8 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
         // 3D symmetric tensors
         write_array(stream, tag->name(), symm_ncomps(3),
             resize_symms(array, space_dim, 3));
+      } else {
+        write_array(stream, tag->name(), tag->ncomps(), array);
       }
     } else {
       write_array(stream, tag->name(), tag->ncomps(), array);
@@ -427,6 +429,8 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
         write_p_data_array2(stream, tag->name(), 3, OMEGA_H_REAL);
       } else if (tag->ncomps() == symm_ncomps(space_dim)) {
         write_p_data_array2(stream, tag->name(), symm_ncomps(3), OMEGA_H_REAL);
+      } else {
+        write_p_data_array2(stream, tag->name(), tag->ncomps(), OMEGA_H_REAL);
       }
     } else {
       write_p_data_array2(stream, tag->name(), tag->ncomps(), OMEGA_H_REAL);

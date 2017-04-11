@@ -228,12 +228,10 @@ OMEGA_H_INLINE Real mean_squared_real_length(EdgeVectors edge_vectors) {
   return mean_squared_metric_length(edge_vectors, matrix_1x1(1.0));
 }
 
-template <Int dim>
-OMEGA_H_INLINE Real element_implied_length(Few<Vector<dim>, dim + 1> p) {
-  auto b = simplex_basis<dim, dim>(p);
-  auto ev = element_edge_vectors(p, b);
-  auto h = sqrt(mean_squared_real_length(ev));
-  return h;
+OMEGA_H_INLINE Matrix<1, 1> element_implied_metric(Few<Vector<1>, 2> p) {
+  auto h = p[1][0] - p[0][0];
+  auto l = metric_eigenvalue_from_length(h);
+  return matrix_1x1(l);
 }
 
 OMEGA_H_INLINE Matrix<2, 2> element_implied_metric(Few<Vector<2>, 3> p) {
@@ -270,19 +268,6 @@ OMEGA_H_INLINE Matrix<3, 3> element_implied_metric(Few<Vector<3>, 4> p) {
   auto x = solve_using_qr(a, rhs);
   return vector2symm(x);
 }
-
-template <Int dim>
-struct ParentElementSize;
-
-template <>
-struct ParentElementSize<2> {
-  static constexpr Real value = 1.0 / 2.0;
-};
-
-template <>
-struct ParentElementSize<3> {
-  static constexpr Real value = 1.0 / 6.0;
-};
 
 OMEGA_H_INLINE Vector<1> get_side_normal(Few<Vector<1>, 2>, Int ivert) {
   return vector_1((ivert == 1) ? 1.0 : -1.0);
@@ -376,6 +361,43 @@ OMEGA_H_INLINE Vector<dim> get_triangle_normal(
     Vector<dim> a, Vector<dim> b, Vector<dim> c) {
   return cross(b - a, c - a);
 }
+
+/* This paper (and a few others):
+ *
+ * Loseille, Adrien, Victorien Menier, and Frederic Alauzet.
+ * "Parallel Generation of Large-size Adapted Meshes."
+ * Procedia Engineering 124 (2015): 57-69.
+ *
+ * Mentions using $\sqrt{\det(M)}$ to compute volume in metric space.
+ *
+ * The call to power() allows us to pass in a 1x1 isotropic metric,
+ * and have its "determinant" raised to the right power before taking
+ * the square root, and even accepting its existing value in the case
+ * of space being 2D.
+ */
+
+template <Int space_dim, Int metric_dim>
+OMEGA_H_INLINE Real metric_size(Real real_size, Matrix<metric_dim, metric_dim> metric) {
+  return real_size * power<space_dim, 2 * metric_dim>(determinant(metric));
+}
+
+template <Int dim>
+struct EquilateralSize;
+
+template <>
+struct EquilateralSize<1> {
+  static constexpr Real value = 1.0;  // sqrt(3)/4
+};
+
+template <>
+struct EquilateralSize<2> {
+  static constexpr Real value = 0.4330127018922193;  // sqrt(3)/4
+};
+
+template <>
+struct EquilateralSize<3> {
+  static constexpr Real value = 0.1178511301977579;  // 1/sqrt(72)
+};
 
 }  // end namespace Omega_h
 

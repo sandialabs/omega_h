@@ -207,6 +207,7 @@ Int get_metrics_dim(LO nmetrics, Reals metrics);
 Int get_metric_dim(Mesh* mesh);
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m);
 Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t);
 Reals linearize_metrics(LO nmetrics, Reals metrics);
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
@@ -214,7 +215,9 @@ Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
 Reals project_metrics(Mesh* mesh, Reals e2m);
 
 Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max);
+Reals get_pure_implied_isos(Mesh* mesh);
 Reals get_implied_isos(Mesh* mesh);
+Reals get_pure_implied_metrics(Mesh* mesh);
 Reals get_implied_metrics(Mesh* mesh);
 void axes_from_metric_field(
     Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
@@ -233,7 +236,6 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob);
 Reals get_proximity_isos(Mesh* mesh, Real factor);
 Reals intersect_metrics(LO nmetrics, Reals a, Reals b);
 Reals metrics_from_isos(Int new_dim, Reals isos);
-
 Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy);
 
 }  // end namespace Omega_h
