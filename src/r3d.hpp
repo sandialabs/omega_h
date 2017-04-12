@@ -268,7 +268,7 @@ struct MaxVerts;
 
 template <>
 struct MaxVerts<1> {
-  enum { value = 2 };
+  enum { value = R1D_MAX_VERTS };
 };
 
 template <>
