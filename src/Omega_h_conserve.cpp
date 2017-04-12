@@ -352,7 +352,7 @@ static void transfer_conservation_errors(Mesh* old_mesh,
 static Cavs form_initial_cavs(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_ents) {
   auto dim = new_mesh->dim();
-  auto kds2old_elems = old_mesh->ask_up(key_dim, dim);
+  auto kds2old_elems = old_mesh->ask_graph(key_dim, dim);
   auto keys2old_elems = unmap_graph(keys2kds, kds2old_elems);
   auto keys2new_elems = Graph(keys2prods, prods2new_ents);
   return {keys2old_elems, keys2new_elems};
@@ -427,10 +427,11 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
               intersection_size * old_data[old_elem * ncomps + comp];
         }
       }
+      auto new_size = new_sizes[new_elem];
       for (Int comp = 0; comp < ncomps; ++comp) {
-        new_data_w[new_elem * ncomps + comp] /= new_sizes[new_elem];
+        new_data_w[new_elem * ncomps + comp] /= new_size;
       }
-    }
+    } // end loop over new elements
   };
   parallel_for(nkeys, f);
 }

@@ -547,7 +547,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
     return Graph(a2ab, down.ab2b);
   }
   CHECK(from == to);
-  return Graph(LOs(nents(to) + 1, 0, 1), LOs(nents(to), 0, 1));
+  return identity_graph(nents(from));
 }
 
 template <typename T>

@@ -342,10 +342,12 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         same_ents2old_ents, same_ents2new_ents);
     transfer_metric(old_mesh, opts, new_mesh, keys2edges, keys2midverts,
         same_ents2old_ents, same_ents2new_ents);
-  } else if (prod_dim == EDGE) {
+  }
+  if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-  } else if (prod_dim == old_mesh->dim()) {
+  }
+  if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
