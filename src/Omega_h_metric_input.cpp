@@ -184,7 +184,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
   }
   auto t1 = now();
   add_to_global_timer("generating metrics", t1 - t0);
-  if (input.verbose) {
+  if (input.verbose && mesh->comm()->rank() == 0) {
     if (input.should_limit_element_count) {
       std::cout << "generated metrics in " << niters << " iterations and "
                 << (t1 - t0) << " seconds\n";

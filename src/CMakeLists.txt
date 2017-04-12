@@ -377,11 +377,17 @@ if(BUILD_TESTING)
   if(Omega_h_DATA)
     set(TEST_EXES ${TEST_EXES} advect2d_test)
     test_func(advect2d_serial 1 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
-    test_func(advect2d_parallel 2 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
+    if(Omega_h_USE_MPI)
+      test_func(advect2d_parallel 2 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
+    endif()
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES})
   osh_add_exe(1d_test)
+  test_func(serial_1d_test 1 ./1d_test)
+  if(Omega_h_USE_MPI)
+    test_func(parallel_1d_test 2 ./1d_test)
+  endif()
 endif()
 
 bob_form_semver(CONFIG_OPTIONS

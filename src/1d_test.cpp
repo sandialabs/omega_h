@@ -61,11 +61,18 @@ int main(int argc, char** argv) {
   add_metric(&mesh);
   while (1) {
     adapt(&mesh, opts);
+    mesh.set_parting(OMEGA_H_GHOSTED);
     add_solution(&mesh);
     mesh.remove_tag(VERT, "metric");
     add_metric(&mesh);
     if (mesh.max_length() < 2.0) break;
   }
   Now t1 = now();
-  std::cout << "total time: " << (t1 - t0) << " seconds\n";
+  mesh.set_parting(OMEGA_H_ELEM_BASED);
+  if (world->rank() == 0) {
+    std::cout << "total time: " << (t1 - t0) << " seconds\n";
+  }
+  bool ok = check_regression("gold_1d", &mesh);
+  if (!ok) return 2;
+  return 0;
 }
