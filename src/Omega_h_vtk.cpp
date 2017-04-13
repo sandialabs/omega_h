@@ -234,7 +234,7 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   /* tags like "global" are set by the construction mechanism,
      and it is somewhat complex to anticipate when they exist
      so we can just remove them if they are going to be reset. */
-  if (mesh->has_tag(ent_dim, name)) mesh->remove_tag(ent_dim, name);
+  mesh->remove_tag(ent_dim, name);
   auto size = mesh->nents(ent_dim) * ncomps;
   if (type == OMEGA_H_I8) {
     auto array = read_array<I8>(stream, size, is_little_endian, is_compressed);

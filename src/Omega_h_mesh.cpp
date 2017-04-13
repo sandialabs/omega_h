@@ -167,17 +167,11 @@ void Mesh::set_tag(
 void Mesh::react_to_set_tag(Int dim, std::string const& name) {
   /* hardcoded cache invalidations */
   if ((dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
-    if (has_tag(EDGE, "length")) {
-      remove_tag(EDGE, "length");
-    }
-    if (has_tag(this->dim(), "quality")) {
-      remove_tag(this->dim(), "quality");
-    }
+    remove_tag(EDGE, "length");
+    remove_tag(this->dim(), "quality");
   }
   if ((dim == VERT) && (name == "coordinates")) {
-    if (has_tag(this->dim(), "size")) {
-      remove_tag(this->dim(), "size");
-    }
+    remove_tag(this->dim(), "size");
   }
 }
 
@@ -201,6 +195,7 @@ Read<T> Mesh::get_array(Int dim, std::string const& name) const {
 }
 
 void Mesh::remove_tag(Int dim, std::string const& name) {
+  if (!has_tag(dim, name)) return;
   check_dim2(dim);
   CHECK(has_tag(dim, name));
   tags_[dim].erase(tag_iter(dim, name));
@@ -387,7 +382,7 @@ Read<GO> Mesh::ask_globals(Int dim) {
 void Mesh::reset_globals() {
   CHECK(comm_->size() == 1);
   for (Int d = 0; d <= dim(); ++d) {
-    if (has_tag(d, "global")) remove_tag(d, "global");
+    remove_tag(d, "global");
     ask_globals(d);
   }
 }
