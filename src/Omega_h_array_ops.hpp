@@ -77,9 +77,13 @@ Read<I8> land_each(Read<I8> a, Read<I8> b);
 Read<I8> lor_each(Read<I8> a, Read<I8> b);
 Read<I8> bit_or_each(Read<I8> a, Read<I8> b);
 Read<I8> bit_neg_each(Read<I8> a);
+Read<Real> fabs_each(Read<Real> a);
 
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp);
+
+template <typename T>
+void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);
 
 template <typename T>
 LO find_last(Read<T> array, T value);
@@ -122,6 +126,7 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<T> each_max_with(Read<T> a, T b);                       \
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
+  extern template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);             \
   extern template LO find_last(Read<T> array, T value);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
