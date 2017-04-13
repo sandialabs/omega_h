@@ -674,7 +674,8 @@ static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
 
 static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
     Graph diffusion_graph,
-    TagBase const* tagbase) {
+    TagBase const* tagbase, bool verbose) {
+  auto dim = mesh->dim();
   auto density_name = tagbase->name();
   auto integral_name = xfer_opts.integral_map.find(density_name)->second;
   auto error_name = integral_name + "_error";
@@ -697,7 +698,8 @@ static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
 
 static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
     Graph diffusion_graph,
-    TagBase const* tagbase) {
+    TagBase const* tagbase, bool verbose) {
+  auto dim = mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto velocity_name = tagbase->name();
   auto momentum_name =
@@ -706,6 +708,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       xfer_opts.velocity_density_map.find(velocity_name)->second;
   auto error_name = momentum_name + "_error";
   auto elem_densities = mesh->get_array<Real>(dim, density_name);
+  auto elem_sizes = mesh->ask_sizes();
   auto elem_masses = multiply_each(elem_densities, elem_sizes);
   auto vert_velocities = mesh->get_array<Real>(VERT, velocity_name);
   auto old_elem_densities =
@@ -715,7 +718,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       average_field(mesh, dim, ncomps, vert_velocities);
   auto old_elem_momenta = multiply_each(elem_velocities, old_elem_masses);
   auto new_elem_momenta = multiply_each(elem_velocities, elem_masses);
-  elem_errors_from_density =
+  auto elem_errors_from_density =
       subtract_each(new_elem_momenta, old_elem_momenta);
   auto verts2elems = mesh->ask_up(VERT, dim);
   auto vert_masses = graph_reduce(verts2elems, elem_masses, 1, OMEGA_H_SUM);
@@ -769,13 +772,13 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
-      correct_density_error(mesh, xfer_opts, diffusion_graph, tagbase);
+      correct_density_error(mesh, xfer_opts, diffusion_graph, tagbase, verbose);
     }
   }
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
     if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
-      correct_momentum_error(mesh, xfer_opts, diffusion_graph, tagbase);
+      correct_momentum_error(mesh, xfer_opts, diffusion_graph, tagbase, verbose);
     }
   }
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {

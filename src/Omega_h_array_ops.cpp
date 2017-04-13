@@ -328,7 +328,7 @@ Read<I8> bit_neg_each(Read<I8> a) {
 }
 
 Read<Real> fabs_each(Read<Real> a) {
-  Write<I8> b(a.size());
+  Write<Real> b(a.size());
   auto f = LAMBDA(LO i) { b[i] = fabs(a[i]); };
   parallel_for(a.size(), f);
   return b;
