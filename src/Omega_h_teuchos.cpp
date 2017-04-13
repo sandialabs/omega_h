@@ -47,7 +47,7 @@ void update_transfer_opts(
       auto field_name = fields_pl.name(it);
       if (fields_pl.isSublist(field_name)) {
         auto& field_pl = fields_pl.sublist(field_name);
-        auto type_name = fields_pl.get<std::string>("Type");
+        auto type_name = field_pl.get<std::string>("Type");
         if (type_name == "Inherit") {
           opts->type_map[field_name] = OMEGA_H_INHERIT;
         } else if (type_name == "Linear Interp") {
@@ -75,10 +75,12 @@ void update_transfer_opts(
         }
         if (opts->type_map[field_name] == OMEGA_H_MOMENTUM_VELOCITY) {
           std::string momentum_name = "momentum";
-          if (fields_pl.isType<std::string>("Momentum")) {
+          if (field_pl.isType<std::string>("Momentum")) {
             momentum_name = field_pl.get<std::string>("Momentum");
           }
           opts->velocity_momentum_map[field_name] = momentum_name;
+          auto density_name = field_pl.get<std::string>("Density");
+          opts->velocity_density_map[field_name] = density_name;
           auto convergence = VarCompareOpts::none();
           if (field_pl.isSublist("Diffusion Convergence")) {
             update_var_compare_opts(
