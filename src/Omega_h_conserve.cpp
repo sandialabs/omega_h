@@ -643,7 +643,6 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
     VarCompareOpts opts, std::string const& name, bool verbose) {
   auto comm = mesh->comm();
   Int niters = 0;
-  (void)opts;
   auto bounds = multiply_each_by(opts.tolerance, invert_each(mesh->ask_sizes()));
   mesh->add_tag(mesh->dim(), name + "_WD", 1, densities);
   mesh->add_tag<Real>(mesh->dim(), name + "_WDD", 1);
@@ -685,7 +684,7 @@ static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
   }
   auto unweighted_sizes = mesh->ask_sizes();
   weights = fabs_each(weights);
-  weights = each_max_with(weights, EPSILON);
+  weights = each_max_with(weights, opts.floor);
   auto weighted_sizes = multiply_each(unweighted_sizes, weights);
   auto weighted_densities = divide_each(integrals, weighted_sizes);
   weighted_densities = diffuse_densities(mesh, g, weighted_densities,
@@ -755,6 +754,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
   elem_errors = diffuse_integrals_weighted(mesh, diffusion_graph,
       elem_errors, new_elem_momenta, diffuse_tol, error_name, verbose);
   mesh->set_tag(dim, error_name, elem_errors);
+  mesh->add_tag(0, "old_velocity", ncomps, vert_velocities);
   auto out = deep_copy(vert_velocities);
   auto f = LAMBDA(LO v) {
     auto v_flags = all_flags[v];
@@ -805,6 +805,7 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       correct_momentum_error(mesh, xfer_opts, diffusion_graph, tagbase, verbose);
     }
   }
+  vtk::write_vtu("corrected.vtu", mesh, mesh->dim());
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
