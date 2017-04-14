@@ -692,10 +692,11 @@ static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
       xfer_opts.integral_diffuse_map.find(integral_name)->second;
   errors = diffuse_integrals_weighted(mesh, diffusion_graph,
       errors, old_integrals, diffuse_tol, error_name, verbose);
+  mesh->set_tag(dim, error_name, errors);
   auto new_integrals = subtract_each(old_integrals, errors);
   auto new_densities = divide_each(new_integrals, sizes);
   mesh->set_tag(dim, density_name, new_densities);
-  mesh->remove_tag(dim, error_name);
+//mesh->remove_tag(dim, error_name);
 }
 
 static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
@@ -733,6 +734,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       xfer_opts.integral_diffuse_map.find(momentum_name)->second;
   elem_errors = diffuse_integrals_weighted(mesh, diffusion_graph,
       elem_errors, new_elem_momenta, diffuse_tol, error_name, verbose);
+  mesh->set_tag(dim, error_name, elem_errors);
   auto out = deep_copy(vert_velocities);
   auto f = LAMBDA(LO v) {
     auto v_flags = all_flags[v];
@@ -760,7 +762,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
   auto new_velocities = Reals(out);
   new_velocities = mesh->sync_array(VERT, new_velocities, ncomps);
   mesh->set_tag(VERT, velocity_name, new_velocities);
-  mesh->remove_tag(dim, error_name);
+//mesh->remove_tag(dim, error_name);
 }
 
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
