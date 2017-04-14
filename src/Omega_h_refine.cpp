@@ -32,8 +32,10 @@ static bool refine_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   }
   auto keys2edges = collect_marked(edges_are_keys);
   Graph edges2elems;
-  if (mesh->dim() == 1) edges2elems = identity_graph(mesh->nedges());
-  else edges2elems = mesh->ask_up(EDGE, mesh->dim());
+  if (mesh->dim() == 1)
+    edges2elems = identity_graph(mesh->nedges());
+  else
+    edges2elems = mesh->ask_up(EDGE, mesh->dim());
   set_owners_by_indset(mesh, EDGE, keys2edges, edges2elems);
   return true;
 }

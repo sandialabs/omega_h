@@ -10,9 +10,7 @@ using namespace Omega_h;
 
 static Reals logistic_function(Reals x, Real x0, Real L, Real k) {
   Write<Real> out(x.size());
-  auto f = OMEGA_H_LAMBDA(LO i) {
-    out[i] = L / (1 + exp(-k * (x[i] - x0)));
-  };
+  auto f = OMEGA_H_LAMBDA(LO i) { out[i] = L / (1 + exp(-k * (x[i] - x0))); };
   parallel_for(x.size(), f);
   return out;
 }
@@ -25,8 +23,7 @@ static void add_solution(Mesh* mesh) {
 
 static void add_metric(Mesh* mesh) {
   MetricInput input;
-  input.sources.push_back(
-      MetricSource{OMEGA_H_HESSIAN, 1.0, "solution"});
+  input.sources.push_back(MetricSource{OMEGA_H_HESSIAN, 1.0, "solution"});
   input.should_limit_gradation = true;
   input.max_gradation_rate = 1.0;
   input.should_limit_element_count = true;

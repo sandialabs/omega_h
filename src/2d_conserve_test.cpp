@@ -10,7 +10,8 @@ using namespace Omega_h;
 
 static void add_density_tag(Mesh* mesh) {
   auto density = Write<Real>(mesh->nelems());
-  auto elem_coords = average_field(mesh, mesh->dim(), mesh->dim(), mesh->coords());
+  auto elem_coords =
+      average_field(mesh, mesh->dim(), mesh->dim(), mesh->coords());
   auto f = OMEGA_H_LAMBDA(LO e) {
     if (elem_coords[e * 2 + 1] > 0.5) {
       density[e] = 1e-4;

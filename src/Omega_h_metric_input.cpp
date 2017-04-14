@@ -11,15 +11,13 @@
 namespace Omega_h {
 
 MetricSource::MetricSource(Omega_h_Source type_, Real knob_,
-      std::string const& tag_name_,
-      Omega_h_Isotropy isotropy_,
-      Omega_h_Scales scales_):
-  type(type_),
-  knob(knob_),
-  tag_name(tag_name_),
-  isotropy(isotropy_),
-  scales(scales_) {
-}
+    std::string const& tag_name_, Omega_h_Isotropy isotropy_,
+    Omega_h_Scales scales_)
+    : type(type_),
+      knob(knob_),
+      tag_name(tag_name_),
+      isotropy(isotropy_),
+      scales(scales_) {}
 
 MetricInput::MetricInput() {
   verbose = true;

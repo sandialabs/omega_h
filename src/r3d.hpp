@@ -323,7 +323,8 @@ struct ClipHelper<3> {
       poly.verts[vcur].pnbrs[1] = vstart;
     }
   }
-  R3D_INLINE static void init_new_vert_link(Polytope<3>& poly, Int vcur, Int np) {
+  R3D_INLINE static void init_new_vert_link(
+      Polytope<3>& poly, Int vcur, Int np) {
     (void)np;
     poly.verts[poly.nverts].pnbrs[0] = vcur;
   }
@@ -342,7 +343,8 @@ struct ClipHelper<2> {
       poly.verts[vcur].pnbrs[0] = vstart;
     }
   }
-  R3D_INLINE static void init_new_vert_link(Polytope<2>& poly, Int vcur, Int np) {
+  R3D_INLINE static void init_new_vert_link(
+      Polytope<2>& poly, Int vcur, Int np) {
     poly.verts[poly.nverts].pnbrs[1 - np] = vcur;
     poly.verts[poly.nverts].pnbrs[np] = -1;
   }
@@ -350,9 +352,9 @@ struct ClipHelper<2> {
 
 template <>
 struct ClipHelper<1> {
-  R3D_INLINE static void finalize_links(Int, Polytope<1>&) {
-  }
-  R3D_INLINE static void init_new_vert_link(Polytope<1>& poly, Int vcur, Int np) {
+  R3D_INLINE static void finalize_links(Int, Polytope<1>&) {}
+  R3D_INLINE static void init_new_vert_link(
+      Polytope<1>& poly, Int vcur, Int np) {
     poly.verts[poly.nverts].pnbrs[np] = vcur;
   }
 };

@@ -127,7 +127,8 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<T> each_max_with(Read<T> a, T b);                       \
   extern template Read<I8> gt_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
-  extern template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);             \
+  extern template void set_component(                                          \
+      Write<T> out, Read<T> a, Int ncomps, Int comp);                          \
   extern template LO find_last(Read<T> array, T value);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)

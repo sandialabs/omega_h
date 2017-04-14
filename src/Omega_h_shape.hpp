@@ -76,9 +76,7 @@ OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi) {
   return 0.0 <= minimum(xi) && maximum(xi) <= 1.0;
 }
 
-OMEGA_H_INLINE Real edge_length(Few<Vector<1>, 1> b) {
-  return fabs(b[0][0]);
-}
+OMEGA_H_INLINE Real edge_length(Few<Vector<1>, 1> b) { return fabs(b[0][0]); }
 
 OMEGA_H_INLINE Real element_size(Few<Vector<1>, 1> b) { return edge_length(b); }
 
@@ -377,7 +375,8 @@ OMEGA_H_INLINE Vector<dim> get_triangle_normal(
  */
 
 template <Int space_dim, Int metric_dim>
-OMEGA_H_INLINE Real metric_size(Real real_size, Matrix<metric_dim, metric_dim> metric) {
+OMEGA_H_INLINE Real metric_size(
+    Real real_size, Matrix<metric_dim, metric_dim> metric) {
   return real_size * power<space_dim, 2 * metric_dim>(determinant(metric));
 }
 

@@ -431,7 +431,7 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
       for (Int comp = 0; comp < ncomps; ++comp) {
         new_data_w[new_elem * ncomps + comp] /= total_intersected_size;
       }
-    } // end loop over new elements
+    }  // end loop over new elements
   };
   parallel_for(nkeys, f);
 }
@@ -505,8 +505,8 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
       transfer_by_intersection(old_mesh, new_mesh, tagbase,
           cavs[TOUCH_BDRY][NO_COLOR][0], new_elem_densities_w);
       for (auto color_cavs : cavs[KEY_BDRY][CLASS_COLOR]) {
-        transfer_by_intersection(old_mesh, new_mesh, tagbase,
-            color_cavs, new_elem_densities_w);
+        transfer_by_intersection(
+            old_mesh, new_mesh, tagbase, color_cavs, new_elem_densities_w);
       }
       transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
           same_ents2new_ents, tagbase, new_elem_densities_w);
@@ -599,8 +599,8 @@ static Graph get_elem_diffusion_graph(Mesh* mesh) {
   return elements_across_sides(dim, elems2sides, sides2elems, sides_are_bdry);
 }
 
-static Reals diffuse_densities_once(Mesh* mesh,
-    Graph g, Reals densities, Reals cell_sizes) {
+static Reals diffuse_densities_once(
+    Mesh* mesh, Graph g, Reals densities, Reals cell_sizes) {
   auto out = deep_copy(densities);
   auto max_deg = mesh->dim() + 1;
   auto f = OMEGA_H_LAMBDA(LO e) {
@@ -608,7 +608,7 @@ static Reals diffuse_densities_once(Mesh* mesh,
     for (auto ee = g.a2ab[e]; ee < g.a2ab[e + 1]; ++ee) {
       auto oe = g.ab2b[ee];
       auto os = cell_sizes[oe];
-      auto mins = min2(s, os); // minimum of this and other cell size
+      auto mins = min2(s, os);  // minimum of this and other cell size
       /* get difference in densities, multiply by (mins / max_deg)
          to get a mass value that is below the stable limit,
          then divide that mass value by (s) to get the density
@@ -626,8 +626,7 @@ static Reals diffuse_densities_once(Mesh* mesh,
 struct AllBounded : public AndFunctor {
   Reals a;
   Reals b;
-  AllBounded(Reals a_, Reals b_)
-      : a(a_), b(b_) {}
+  AllBounded(Reals a_, Reals b_) : a(a_), b(b_) {}
   DEVICE void operator()(LO i, value_type& update) const {
     update = update && (fabs(a[i]) <= b[i]);
   }
@@ -639,11 +638,12 @@ static bool all_bounded(CommPtr comm, Reals a, Reals b) {
 }
 
 static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
-    Reals cell_sizes,
-    VarCompareOpts opts, std::string const& name, bool verbose) {
+    Reals cell_sizes, VarCompareOpts opts, std::string const& name,
+    bool verbose) {
   auto comm = mesh->comm();
   Int niters = 0;
-  auto bounds = multiply_each_by(opts.tolerance, invert_each(mesh->ask_sizes()));
+  auto bounds =
+      multiply_each_by(opts.tolerance, invert_each(mesh->ask_sizes()));
   for (niters = 0; !all_bounded(comm, densities, bounds); ++niters) {
     densities = diffuse_densities_once(mesh, g, densities, cell_sizes);
   }
@@ -653,12 +653,8 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
   return densities;
 }
 
-static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
-    Reals integrals,
-    Reals weights,
-    VarCompareOpts opts,
-    std::string const& name,
-    bool verbose) {
+static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g, Reals integrals,
+    Reals weights, VarCompareOpts opts, std::string const& name, bool verbose) {
   if (opts.type == VarCompareOpts::NONE) return integrals;
   auto ncomps = divide_no_remainder(integrals.size(), g.nnodes());
   if (ncomps > 1) {
@@ -667,8 +663,8 @@ static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
       auto comp_integrals = get_component(integrals, ncomps, c);
       auto comp_weights = get_component(weights, ncomps, c);
       auto comp_name = name + "_" + to_string(c);
-      comp_integrals = diffuse_integrals_weighted(mesh, g, comp_integrals,
-          comp_weights, opts, comp_name, verbose);
+      comp_integrals = diffuse_integrals_weighted(
+          mesh, g, comp_integrals, comp_weights, opts, comp_name, verbose);
       set_component(out, comp_integrals, ncomps, c);
     }
     return out;
@@ -678,30 +674,27 @@ static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
   weights = each_max_with(weights, opts.floor);
   auto weighted_sizes = multiply_each(unweighted_sizes, weights);
   auto weighted_densities = divide_each(integrals, weighted_sizes);
-  weighted_densities = diffuse_densities(mesh, g, weighted_densities,
-      weighted_sizes, opts, name, verbose);
+  weighted_densities = diffuse_densities(
+      mesh, g, weighted_densities, weighted_sizes, opts, name, verbose);
   integrals = multiply_each(weighted_densities, weighted_sizes);
   return integrals;
 }
 
 static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
-    Graph diffusion_graph,
-    TagBase const* tagbase, bool verbose) {
+    Graph diffusion_graph, TagBase const* tagbase, bool verbose) {
   auto dim = mesh->dim();
   auto density_name = tagbase->name();
   auto integral_name = xfer_opts.integral_map.find(density_name)->second;
   auto error_name = integral_name + "_error";
   auto ncomps = tagbase->ncomps();
   auto old_densities = mesh->get_array<Real>(dim, density_name);
-  mesh->add_tag(
-      dim, std::string("old_") + density_name, ncomps, old_densities);
+  mesh->add_tag(dim, std::string("old_") + density_name, ncomps, old_densities);
   auto sizes = mesh->ask_sizes();
   auto old_integrals = multiply_each(old_densities, sizes);
   auto errors = mesh->get_array<Real>(dim, error_name);
-  auto diffuse_tol =
-      xfer_opts.integral_diffuse_map.find(integral_name)->second;
-  errors = diffuse_integrals_weighted(mesh, diffusion_graph,
-      errors, old_integrals, diffuse_tol, error_name, verbose);
+  auto diffuse_tol = xfer_opts.integral_diffuse_map.find(integral_name)->second;
+  errors = diffuse_integrals_weighted(mesh, diffusion_graph, errors,
+      old_integrals, diffuse_tol, error_name, verbose);
   mesh->set_tag(dim, error_name, errors);
   auto new_integrals = subtract_each(old_integrals, errors);
   auto new_densities = divide_each(new_integrals, sizes);
@@ -710,8 +703,7 @@ static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
 }
 
 static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
-    Graph diffusion_graph,
-    TagBase const* tagbase, bool verbose) {
+    Graph diffusion_graph, TagBase const* tagbase, bool verbose) {
   auto dim = mesh->dim();
   auto ncomps = tagbase->ncomps();
   auto velocity_name = tagbase->name();
@@ -727,8 +719,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
   auto old_elem_densities =
       mesh->get_array<Real>(dim, std::string("old_") + density_name);
   auto old_elem_masses = multiply_each(old_elem_densities, elem_sizes);
-  auto elem_velocities =
-      average_field(mesh, dim, ncomps, vert_velocities);
+  auto elem_velocities = average_field(mesh, dim, ncomps, vert_velocities);
   auto old_elem_momenta = multiply_each(elem_velocities, old_elem_masses);
   auto new_elem_momenta = multiply_each(elem_velocities, elem_masses);
   auto elem_errors_from_density =
@@ -740,17 +731,15 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
   auto all_flags = get_comps_are_fixed(mesh);
   auto elem_errors = mesh->get_array<Real>(dim, error_name);
   elem_errors = add_each(elem_errors, elem_errors_from_density);
-  auto diffuse_tol =
-      xfer_opts.integral_diffuse_map.find(momentum_name)->second;
-  elem_errors = diffuse_integrals_weighted(mesh, diffusion_graph,
-      elem_errors, new_elem_momenta, diffuse_tol, error_name, verbose);
+  auto diffuse_tol = xfer_opts.integral_diffuse_map.find(momentum_name)->second;
+  elem_errors = diffuse_integrals_weighted(mesh, diffusion_graph, elem_errors,
+      new_elem_momenta, diffuse_tol, error_name, verbose);
   mesh->set_tag(dim, error_name, elem_errors);
   auto out = deep_copy(vert_velocities);
   auto f = LAMBDA(LO v) {
     auto v_flags = all_flags[v];
     auto v_mass = vert_masses[v];
-    for (auto ve = verts2elems.a2ab[v]; ve < verts2elems.a2ab[v + 1];
-         ++ve) {
+    for (auto ve = verts2elems.a2ab[v]; ve < verts2elems.a2ab[v + 1]; ++ve) {
       auto e = verts2elems.ab2b[ve];
       auto nfree_verts = zero_vector<3>();
       for (auto ev = e * (dim + 1); ev < (e + 1) * (dim + 1); ++ev) {
@@ -792,7 +781,8 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   for (Int tagi = 0; tagi < mesh->ntags(VERT); ++tagi) {
     auto tagbase = mesh->get_tag(VERT, tagi);
     if (is_momentum_velocity(mesh, xfer_opts, VERT, tagbase)) {
-      correct_momentum_error(mesh, xfer_opts, diffusion_graph, tagbase, verbose);
+      correct_momentum_error(
+          mesh, xfer_opts, diffusion_graph, tagbase, verbose);
     }
   }
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {

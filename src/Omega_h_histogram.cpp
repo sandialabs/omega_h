@@ -25,8 +25,10 @@ Histogram get_histogram(Mesh* mesh, Int dim, Int nbins, Real min_value,
     if (i == nbins - 1) ceil = max_value;
     auto floor_marks = each_geq_to(owned_values, floor);
     Read<I8> ceil_marks;
-    if (i == nbins - 1) ceil_marks = each_leq_to(owned_values, ceil);
-    else ceil_marks = each_lt(owned_values, ceil);
+    if (i == nbins - 1)
+      ceil_marks = each_leq_to(owned_values, ceil);
+    else
+      ceil_marks = each_lt(owned_values, ceil);
     auto marked = land_each(floor_marks, ceil_marks);
     histogram.bins[std::size_t(i)] = get_sum(mesh->comm(), marked);
   }

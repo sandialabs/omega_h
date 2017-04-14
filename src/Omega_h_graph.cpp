@@ -104,7 +104,7 @@ bool operator==(Graph a, Graph b) {
 }
 
 Graph identity_graph(LO nnodes) {
-  return { LOs(nnodes + 1, 0, 1), LOs(nnodes, 0, 1) };
+  return {LOs(nnodes + 1, 0, 1), LOs(nnodes, 0, 1)};
 }
 
 template <typename T>
