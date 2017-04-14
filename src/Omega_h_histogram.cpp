@@ -12,6 +12,7 @@ namespace Omega_h {
 
 Histogram get_histogram(Mesh* mesh, Int dim, Int nbins, Real min_value,
     Real max_value, Reals values) {
+  OMEGA_H_CHECK(values.size() == mesh->nents(dim));
   auto owned_values = mesh->owned_array(dim, values, 1);
   auto interval = (max_value - min_value) / Real(nbins);
   Histogram histogram;

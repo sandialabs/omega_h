@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
   print_adapt_status(&mesh, opts);
   auto qh = get_histogram(&mesh, mesh.dim(), opts.nquality_histogram_bins, 0.0,
       1.0, mesh.ask_qualities());
-  auto lh = get_histogram(&mesh, VERT, opts.nlength_histogram_bins,
+  auto lh = get_histogram(&mesh, EDGE, opts.nlength_histogram_bins,
       opts.length_histogram_min, opts.length_histogram_max, mesh.ask_lengths());
   if (cmdline.parsed("-f")) {
     auto qf = cmdline.get<std::string>("-f", "quality-histogram-file");

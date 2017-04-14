@@ -116,7 +116,7 @@ bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts) {
 void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
   auto qh = get_histogram(mesh, mesh->dim(), opts.nquality_histogram_bins, 0.0,
       1.0, mesh->ask_qualities());
-  auto lh = get_histogram(mesh, VERT, opts.nlength_histogram_bins,
+  auto lh = get_histogram(mesh, EDGE, opts.nlength_histogram_bins,
       opts.length_histogram_min, opts.length_histogram_max,
       mesh->ask_lengths());
   if (mesh->comm()->rank() == 0) {

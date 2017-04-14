@@ -568,6 +568,7 @@ Read<T> Mesh::reduce_array(Int ent_dim, Read<T> a, Int width, Omega_h_Op op) {
 
 template <typename T>
 Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width) {
+  OMEGA_H_CHECK(a.size() == width * nents(ent_dim));
   if (!could_be_shared(ent_dim)) return a;
   auto o = owned(ent_dim);
   auto o2e = collect_marked(o);

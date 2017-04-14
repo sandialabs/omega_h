@@ -85,6 +85,7 @@ int main(int argc, char** argv) {
   opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
   opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
   opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+  opts.verbosity = EXTRA_STATS;
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
