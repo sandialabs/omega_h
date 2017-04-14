@@ -627,18 +627,6 @@ static Reals diffuse_densities_once(Mesh* mesh,
 static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
     Reals cell_sizes,
     VarCompareOpts opts, std::string const& name, bool verbose) {
-  auto ncomps = divide_no_remainder(densities.size(), g.nnodes());
-  if (ncomps > 1) {
-    Write<Real> out(densities.size());
-    for (Int c = 0; c < ncomps; ++c) {
-      auto comp_densities = get_component(densities, ncomps, c);
-      auto comp_name = name + "_" + to_string(c);
-      comp_densities = diffuse_densities(mesh, g, comp_densities,
-          cell_sizes, opts, comp_name, verbose);
-      set_component(out, comp_densities, ncomps, c);
-    }
-    return out;
-  }
   Int niters = 0;
   while (true) {
     auto new_densities = diffuse_densities_once(mesh, g, densities, cell_sizes);
@@ -661,6 +649,20 @@ static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
     VarCompareOpts opts,
     std::string const& name,
     bool verbose) {
+  if (opts.type == VarCompareOpts::NONE) return integrals;
+  auto ncomps = divide_no_remainder(integrals.size(), g.nnodes());
+  if (ncomps > 1) {
+    Write<Real> out(integrals.size());
+    for (Int c = 0; c < ncomps; ++c) {
+      auto comp_integrals = get_component(integrals, ncomps, c);
+      auto comp_weights = get_component(weights, ncomps, c);
+      auto comp_name = name + "_" + to_string(c);
+      comp_integrals = diffuse_integrals_weighted(mesh, g, comp_integrals,
+          comp_weights, opts, comp_name, verbose);
+      set_component(out, comp_integrals, ncomps, c);
+    }
+    return out;
+  }
   auto unweighted_sizes = mesh->ask_sizes();
   weights = fabs_each(weights);
   weights = each_max_with(weights, EPSILON);
