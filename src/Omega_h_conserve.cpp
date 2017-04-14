@@ -402,7 +402,6 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
   auto old_coords = old_mesh->coords();
   auto new_ev2v = new_mesh->ask_elem_verts();
   auto new_coords = new_mesh->coords();
-  auto new_sizes = new_mesh->ask_sizes();
   auto nkeys = cavs.size();
   auto f = LAMBDA(LO key) {
     for (auto kne = keys2new_elems.a2ab[key];
@@ -413,6 +412,7 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
       }
       auto new_verts = gather_verts<dim + 1>(new_ev2v, new_elem);
       auto new_points = gather_vectors<dim + 1, dim>(new_coords, new_verts);
+      Real total_intersected_size = 0.0;
       for (auto koe = keys2old_elems.a2ab[key];
            koe < keys2old_elems.a2ab[key + 1]; ++koe) {
         auto old_elem = keys2old_elems.ab2b[koe];
@@ -426,10 +426,10 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
           new_data_w[new_elem * ncomps + comp] +=
               intersection_size * old_data[old_elem * ncomps + comp];
         }
+        total_intersected_size += intersection_size;
       }
-      auto new_size = new_sizes[new_elem];
       for (Int comp = 0; comp < ncomps; ++comp) {
-        new_data_w[new_elem * ncomps + comp] /= new_size;
+        new_data_w[new_elem * ncomps + comp] /= total_intersected_size;
       }
     } // end loop over new elements
   };
@@ -504,11 +504,10 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
           cavs[NOT_BDRY][NO_COLOR][0], new_elem_densities_w);
       transfer_by_intersection(old_mesh, new_mesh, tagbase,
           cavs[TOUCH_BDRY][NO_COLOR][0], new_elem_densities_w);
-      /* these three statements are basically transfer_inherit_coarsen */
-      auto old_data = as<Real>(tagbase)->array();
-      auto bdry_dom_data = unmap(bdry_keys2doms.ab2b, old_data, ncomps);
-      map_into(bdry_dom_data, cavs[KEY_BDRY][NO_COLOR][0].keys2new_elems.ab2b,
-          new_elem_densities_w, ncomps);
+      for (auto color_cavs : cavs[KEY_BDRY][CLASS_COLOR]) {
+        transfer_by_intersection(old_mesh, new_mesh, tagbase,
+            color_cavs, new_elem_densities_w);
+      }
       transfer_common2(old_mesh, new_mesh, dim, same_ents2old_ents,
           same_ents2new_ents, tagbase, new_elem_densities_w);
     }
