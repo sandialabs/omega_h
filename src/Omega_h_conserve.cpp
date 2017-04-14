@@ -644,18 +644,9 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
   auto comm = mesh->comm();
   Int niters = 0;
   auto bounds = multiply_each_by(opts.tolerance, invert_each(mesh->ask_sizes()));
-  mesh->add_tag(mesh->dim(), name + "_WD", 1, densities);
-  mesh->add_tag<Real>(mesh->dim(), name + "_WDD", 1);
-  vtk::Writer writer(mesh, name + "WDD", mesh->dim());
   for (niters = 0; !all_bounded(comm, densities, bounds); ++niters) {
     densities = diffuse_densities_once(mesh, g, densities, cell_sizes);
-    if (niters % 50 == 0) {
-      mesh->set_tag(mesh->dim(), name + "_WDD", densities);
-      writer.write();
-    }
   }
-  mesh->set_tag(mesh->dim(), name + "_WDD", densities);
-  writer.write();
   if (verbose && !comm->rank()) {
     std::cout << "diffused " << name << " in " << niters << " iterations\n";
   }
@@ -715,7 +706,7 @@ static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
   auto new_integrals = subtract_each(old_integrals, errors);
   auto new_densities = divide_each(new_integrals, sizes);
   mesh->set_tag(dim, density_name, new_densities);
-//mesh->remove_tag(dim, error_name);
+  mesh->remove_tag(dim, error_name);
 }
 
 static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
@@ -754,7 +745,6 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
   elem_errors = diffuse_integrals_weighted(mesh, diffusion_graph,
       elem_errors, new_elem_momenta, diffuse_tol, error_name, verbose);
   mesh->set_tag(dim, error_name, elem_errors);
-  mesh->add_tag(0, "old_velocity", ncomps, vert_velocities);
   auto out = deep_copy(vert_velocities);
   auto f = LAMBDA(LO v) {
     auto v_flags = all_flags[v];
@@ -782,7 +772,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
   auto new_velocities = Reals(out);
   new_velocities = mesh->sync_array(VERT, new_velocities, ncomps);
   mesh->set_tag(VERT, velocity_name, new_velocities);
-//mesh->remove_tag(dim, error_name);
+  mesh->remove_tag(dim, error_name);
 }
 
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
@@ -805,7 +795,6 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       correct_momentum_error(mesh, xfer_opts, diffusion_graph, tagbase, verbose);
     }
   }
-  vtk::write_vtu("corrected.vtu", mesh, mesh->dim());
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
