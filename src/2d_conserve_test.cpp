@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
-  auto diffuse_tol = VarCompareOpts{VarCompareOpts::RELATIVE, 1e-3, 1e-10};
+  auto diffuse_tol = VarCompareOpts{VarCompareOpts::RELATIVE, 0.9, 1e-10};
   opts.xfer_opts.integral_diffuse_map["momentum"] = diffuse_tol;
   opts.xfer_opts.integral_diffuse_map["mass"] = diffuse_tol;
   adapt(&mesh, opts);

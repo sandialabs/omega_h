@@ -609,7 +609,7 @@ static Reals diffuse_densities_once(Mesh* mesh,
     for (auto ee = g.a2ab[e]; ee < g.a2ab[e + 1]; ++ee) {
       auto oe = g.ab2b[ee];
       auto os = cell_sizes[oe];
-      auto mins = min2(s, os);
+      auto mins = min2(s, os); // minimum of this and other cell size
       /* get difference in densities, multiply by (mins / max_deg)
          to get a mass value that is below the stable limit,
          then divide that mass value by (s) to get the density
@@ -624,20 +624,41 @@ static Reals diffuse_densities_once(Mesh* mesh,
   return mesh->sync_array(mesh->dim(), Reals(out), 1);
 }
 
+struct AllBounded : public AndFunctor {
+  Reals a;
+  Reals b;
+  AllBounded(Reals a_, Reals b_)
+      : a(a_), b(b_) {}
+  DEVICE void operator()(LO i, value_type& update) const {
+    update = update && (fabs(a[i]) <= b[i]);
+  }
+};
+
+static bool all_bounded(CommPtr comm, Reals a, Reals b) {
+  auto out = bool(parallel_reduce(a.size(), AllBounded(a, b)));
+  return comm->reduce_and(out);
+}
+
 static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
     Reals cell_sizes,
     VarCompareOpts opts, std::string const& name, bool verbose) {
+  auto comm = mesh->comm();
   Int niters = 0;
-  while (true) {
-    auto new_densities = diffuse_densities_once(mesh, g, densities, cell_sizes);
-    ++niters;
-    auto comparison_verbose = false;
-    auto done = compare_arrays(mesh->comm(), new_densities, densities, opts,
-        1, mesh->dim(), comparison_verbose);
-    densities = new_densities;
-    if (done) break;
+  (void)opts;
+  auto bounds = multiply_each_by(opts.tolerance, invert_each(mesh->ask_sizes()));
+  mesh->add_tag(mesh->dim(), name + "_WD", 1, densities);
+  mesh->add_tag<Real>(mesh->dim(), name + "_WDD", 1);
+  vtk::Writer writer(mesh, name + "WDD", mesh->dim());
+  for (niters = 0; !all_bounded(comm, densities, bounds); ++niters) {
+    densities = diffuse_densities_once(mesh, g, densities, cell_sizes);
+    if (niters % 50 == 0) {
+      mesh->set_tag(mesh->dim(), name + "_WDD", densities);
+      writer.write();
+    }
   }
-  if (verbose && !mesh->comm()->rank()) {
+  mesh->set_tag(mesh->dim(), name + "_WDD", densities);
+  writer.write();
+  if (verbose && !comm->rank()) {
     std::cout << "diffused " << name << " in " << niters << " iterations\n";
   }
   return densities;

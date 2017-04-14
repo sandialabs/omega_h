@@ -450,6 +450,13 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   return out;
 }
 
+Reals invert_each(Reals a) {
+  auto out = Write<Real>(a.size());
+  auto f = LAMBDA(LO i) { out[i] = 1.0 / a[i]; };
+  parallel_for(a.size(), f);
+  return out;
+}
+
 template <typename Tout, typename Tin>
 Read<Tout> array_cast(Read<Tin> in) {
   auto out = Write<Tout>(in.size());

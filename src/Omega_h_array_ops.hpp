@@ -93,6 +93,7 @@ Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
 
 Reals interpolate_between(Reals a, Reals b, Real t);
+Reals invert_each(Reals a);
 
 template <typename Tout, typename Tin>
 Read<Tout> array_cast(Read<Tin> in);
