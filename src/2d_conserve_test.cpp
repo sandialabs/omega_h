@@ -8,12 +8,31 @@
 
 using namespace Omega_h;
 
+static void add_density_tag(Mesh* mesh) {
+  auto density = Write<Real>(mesh->nelems());
+  auto elem_coords = average_field(mesh, mesh->dim(), mesh->dim(), mesh->coords());
+  auto f = OMEGA_H_LAMBDA(LO e) {
+    if (elem_coords[e * 2 + 1] > 0.5) {
+      density[e] = 1e-4;
+    } else {
+      density[e] = 1.0;
+    }
+  };
+  parallel_for(mesh->nelems(), f);
+  mesh->add_tag(mesh->dim(), "density", 1, Reals(density));
+}
+
 static void check_total_mass(Mesh* mesh) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
   auto masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
-  CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
+  auto expected_mass = 1.0 * 0.5 + 1e-4 * 0.5;
+  auto mass = get_sum(mesh->comm(), owned_masses);
+  if (!mesh->comm()->rank()) {
+    std::cout << "mass " << mass << " expected " << expected_mass << '\n';
+  }
+  CHECK(are_close(mass, expected_mass));
 }
 
 static Vector<2> get_total_momentum(Mesh* mesh) {
@@ -51,7 +70,7 @@ int main(int argc, char** argv) {
     mesh.add_tag(VERT, "metric", 1, metrics);
   }
   mesh.set_parting(OMEGA_H_ELEM_BASED);
-  mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
+  add_density_tag(&mesh);
   auto velocity = Write<Real>(mesh.nverts() * mesh.dim());
   auto coords = mesh.coords();
   auto f = LAMBDA(LO vert) {
@@ -69,9 +88,10 @@ int main(int argc, char** argv) {
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
-  opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
-  auto momentum_diffuse = VarCompareOpts{VarCompareOpts::RELATIVE, 0.1, 1e-10};
-  opts.xfer_opts.integral_diffuse_map["momentum"] = momentum_diffuse;
+  opts.xfer_opts.integral_diffuse_map["mass"] =
+      VarCompareOpts{VarCompareOpts::RELATIVE, 0.9, 0.0};
+  opts.xfer_opts.integral_diffuse_map["momentum"] =
+      VarCompareOpts{VarCompareOpts::RELATIVE, 0.02, 1e-6};
   adapt(&mesh, opts);
   check_total_mass(&mesh);
   auto momentum_after = get_total_momentum(&mesh);

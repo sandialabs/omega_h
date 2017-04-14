@@ -327,12 +327,25 @@ Read<I8> bit_neg_each(Read<I8> a) {
   return b;
 }
 
+Read<Real> fabs_each(Read<Real> a) {
+  Write<Real> b(a.size());
+  auto f = LAMBDA(LO i) { b[i] = fabs(a[i]); };
+  parallel_for(a.size(), f);
+  return b;
+}
+
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   Write<T> b(divide_no_remainder(a.size(), ncomps));
   auto f = LAMBDA(LO i) { b[i] = a[i * ncomps + comp]; };
   parallel_for(b.size(), f);
   return b;
+}
+
+template <typename T>
+void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp) {
+  auto f = LAMBDA(LO i) { out[i * ncomps + comp] = a[i]; };
+  parallel_for(a.size(), f);
 }
 
 template <typename T>
@@ -437,6 +450,13 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   return out;
 }
 
+Reals invert_each(Reals a) {
+  auto out = Write<Real>(a.size());
+  auto f = LAMBDA(LO i) { out[i] = 1.0 / a[i]; };
+  parallel_for(a.size(), f);
+  return out;
+}
+
 template <typename Tout, typename Tin>
 Read<Tout> array_cast(Read<Tin> in) {
   auto out = Write<Tout>(in.size());
@@ -473,6 +493,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<I8> each_eq_to(Read<T> a, T b);                                \
   template Read<I8> gt_each(Read<T> a, Read<T> b);                             \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
+  template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);             \
   template LO find_last(Read<T> array, T value);
 
 INST(I8)
