@@ -32,7 +32,7 @@ static void check_total_mass(Mesh* mesh) {
   if (!mesh->comm()->rank()) {
     std::cout << "mass " << mass << " expected " << expected_mass << '\n';
   }
-//CHECK(are_close(mass, expected_mass));
+  CHECK(are_close(mass, expected_mass));
 }
 
 static Vector<2> get_total_momentum(Mesh* mesh) {
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.velocity_density_map["velocity"] = "density";
   opts.xfer_opts.velocity_momentum_map["velocity"] = "momentum";
-  opts.xfer_opts.integral_diffuse_map["mass"] = 
+  opts.xfer_opts.integral_diffuse_map["mass"] =
       VarCompareOpts{VarCompareOpts::RELATIVE, 0.9, 0.0};
   opts.xfer_opts.integral_diffuse_map["momentum"] =
       VarCompareOpts{VarCompareOpts::RELATIVE, 0.02, 1e-6};
