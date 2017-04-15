@@ -371,7 +371,7 @@ struct ClipHelper<1> {
  *
  */
 template <Int dim>
-R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim>* planes, Int nplanes) {
+R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim> const* planes, Int nplanes) {
   if (poly.nverts <= 0) return;
 
   // variable declarations
@@ -436,6 +436,11 @@ R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim>* planes, Int nplanes) {
       for (np = 0; np < dim; ++np)
         poly.verts[v].pnbrs[np] = clipped[poly.verts[v].pnbrs[np]];
   }
+}
+
+template <Int dim>
+R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim> const& plane) {
+  clip(poly, &plane, 1);
 }
 
 template <Int dim, Int nplanes>
