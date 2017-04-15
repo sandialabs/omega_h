@@ -194,7 +194,7 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     auto metrics = get_implied_isos(&mesh);
     mesh.add_tag(VERT, "metric", 1, metrics);
   }
-  vtk::Writer writer(&mesh, "out", mesh.dim());
+  vtk::Writer writer("out", &mesh);
   writer.write();
   Now t0 = now();
   for (Int step = 0; step < niters; ++step) {

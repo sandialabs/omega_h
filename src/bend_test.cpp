@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
   mesh.balance();
   mesh.add_tag(VERT, "orig_coords", mesh.dim(), mesh.coords());
   mesh.add_tag<Real>(VERT, "metric", 1);
-  vtk::Writer writer(&mesh, "bend", mesh.dim());
+  vtk::Writer writer("bend", &mesh, mesh.dim());
   auto first_bend_radius = 5.0;
   auto final_bend_radius = orig_height / PI;
   auto nsteps = 20;

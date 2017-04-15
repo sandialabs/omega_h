@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
   Omega_h::parallel_for(mesh.nverts(), f);
   auto analytic_metric = Omega_h::Reals(analytic_metric_w);
   Omega_h::vtk::Writer writer;
-  if (vtk_path) writer = Omega_h::vtk::Writer(&mesh, vtk_path, dim);
+  if (vtk_path) writer = Omega_h::vtk::Writer(vtk_path, &mesh);
   mesh.add_tag(Omega_h::VERT, "metric", 1, analytic_metric);
   if (vtk_path) writer.write();
   auto scalar = Omega_h::get_metric_scalar_for_nelems(

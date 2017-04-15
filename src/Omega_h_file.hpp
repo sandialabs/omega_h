@@ -42,9 +42,9 @@ void read(std::string const& filename, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
-void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim);
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim);
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim);
+void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim = -1);
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim = -1);
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim = -1);
 class Writer {
   Mesh* mesh_;
   std::string root_path_;
@@ -57,7 +57,7 @@ class Writer {
   Writer(Writer const&);
   Writer& operator=(Writer const&);
   ~Writer();
-  Writer(Mesh* mesh, std::string const& root_path, Int cell_dim);
+  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1);
   void write(Real time);
   void write();
 };
@@ -69,7 +69,7 @@ class FullWriter {
   FullWriter(FullWriter const&);
   FullWriter& operator=(FullWriter const&);
   ~FullWriter();
-  FullWriter(Mesh* mesh, std::string const& root_path);
+  FullWriter(std::string const& root_path, Mesh* mesh);
   void write(Real time);
   void write();
 };

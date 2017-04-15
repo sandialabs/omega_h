@@ -462,7 +462,12 @@ std::string get_pvd_path(std::string const& root_path) {
   return root_path + "/steps.pvd";
 }
 
+static void default_dim(Mesh* mesh, Int* cell_dim) {
+  if (*cell_dim == -1) *cell_dim = mesh->dim();
+}
+
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
+  default_dim(mesh, &cell_dim);
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
@@ -536,6 +541,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
+  default_dim(mesh, &cell_dim);
   std::ofstream file(filename.c_str());
   CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim);
@@ -620,6 +626,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
 }
 
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
+  default_dim(mesh, &cell_dim);
   auto rank = mesh->comm()->rank();
   if (rank == 0) {
     safe_mkdir(path.c_str());
@@ -733,12 +740,13 @@ Writer& Writer::operator=(Writer const& other) {
 
 Writer::~Writer() {}
 
-Writer::Writer(Mesh* mesh, std::string const& root_path, Int cell_dim)
+Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
     : mesh_(mesh),
       root_path_(root_path),
       cell_dim_(cell_dim),
       step_(0),
       pvd_pos_(0) {
+  default_dim(mesh_, &cell_dim_);
   auto comm = mesh->comm();
   auto rank = comm->rank();
   if (rank == 0) safe_mkdir(root_path_.c_str());
@@ -772,13 +780,13 @@ FullWriter& FullWriter::operator=(FullWriter const& other) {
 
 FullWriter::~FullWriter() {}
 
-FullWriter::FullWriter(Mesh* mesh, std::string const& root_path) {
+FullWriter::FullWriter(std::string const& root_path, Mesh* mesh) {
   auto comm = mesh->comm();
   auto rank = comm->rank();
   if (rank == 0) safe_mkdir(root_path.c_str());
   comm->barrier();
   for (Int i = EDGE; i <= mesh->dim(); ++i)
-    writers_.push_back(Writer(mesh, root_path + "/" + plural_names[i], i));
+    writers_.push_back(Writer(root_path + "/" + plural_names[i], mesh, i));
 }
 
 void FullWriter::write(Real time) {

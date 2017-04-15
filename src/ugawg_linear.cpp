@@ -34,7 +34,7 @@ void run_case(Mesh* mesh, char const* vtk_path) {
   mesh->ask_qualities();
   vtk::FullWriter writer;
   if (vtk_path) {
-    writer = vtk::FullWriter(mesh, vtk_path);
+    writer = vtk::FullWriter(vtk_path, mesh);
     writer.write();
   }
   auto opts = AdaptOpts(mesh);
