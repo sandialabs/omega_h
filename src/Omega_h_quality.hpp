@@ -1,18 +1,18 @@
-#ifndef QUALITY_HPP
-#define QUALITY_HPP
+#ifndef OMEGA_H_QUALITY_HPP
+#define OMEGA_H_QUALITY_HPP
 
-#include "Omega_h_host_few.hpp"
-#include "Omega_h_shape.hpp"
+#include <Omega_h_host_few.hpp>
+#include <Omega_h_shape.hpp>
 
 namespace Omega_h {
 
 template <Int dim>
-INLINE constexpr Real equilateral_size() {
+OMEGA_H_INLINE constexpr Real equilateral_size() {
   return EquilateralSize<dim>::value;
 }
 
 template <Int dim>
-INLINE Real mean_ratio(Real size, Real mean_squared_length) {
+OMEGA_H_INLINE Real mean_ratio(Real size, Real mean_squared_length) {
   return power<2, dim>(size / equilateral_size<dim>()) / mean_squared_length;
 }
 
@@ -29,7 +29,7 @@ INLINE Real mean_ratio(Real size, Real mean_squared_length) {
  */
 
 template <Int dim, typename Metric>
-INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Metric metric) {
+OMEGA_H_INLINE Real metric_element_quality(Few<Vector<dim>, dim + 1> p, Metric metric) {
   auto b = simplex_basis<dim, dim>(p);
   auto rs = element_size(b);
   auto s = metric_size<dim>(rs, metric);
