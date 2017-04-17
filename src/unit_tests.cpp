@@ -958,22 +958,22 @@ static void test_find_last() {
   CHECK(find_last(a, 0) == 0);
 }
 
-static void test_insphere() {
+static void test_inball() {
   Few<Vector<1>, 2> regular_edge = {{-1.0}, {1.0}};
-  auto insphere1 = get_insphere(regular_edge);
-  CHECK(are_close(insphere1.c, vector_1(0.0)));
-  CHECK(are_close(insphere1.r, 1.0));
+  auto inball1 = get_inball(regular_edge);
+  CHECK(are_close(inball1.c, vector_1(0.0)));
+  CHECK(are_close(inball1.r, 1.0));
   Few<Vector<2>, 3> regular_tri = {
       {-1.0, 0.0}, {1.0, 0.0}, {0.0, sqrt(3.0) / 2.0}};
-  auto insphere2 = get_insphere(regular_tri);
-  CHECK(are_close(insphere2.c, vector_2(0.0, sqrt(3.0) / 6.0)));
-  CHECK(are_close(insphere2.r, sqrt(3.0) / 6.0));
+  auto inball2 = get_inball(regular_tri);
+  CHECK(are_close(inball2.c, vector_2(0.0, sqrt(3.0) / 6.0)));
+  CHECK(are_close(inball2.r, sqrt(3.0) / 6.0));
   Few<Vector<3>, 4> regular_tet = {{1, 0, -1.0 / sqrt(2.0)},
       {-1, 0, -1.0 / sqrt(2.0)}, {0, -1, 1.0 / sqrt(2.0)},
       {0, 1, 1.0 / sqrt(2.0)}};
-  auto insphere3 = get_insphere(regular_tet);
-  CHECK(are_close(insphere3.c, vector_3(0.0, 0.0, 0.0)));
-  CHECK(are_close(insphere3.r, 2.0 / sqrt(24.0)));
+  auto inball3 = get_inball(regular_tet);
+  CHECK(are_close(inball3.c, vector_3(0.0, 0.0, 0.0)));
+  CHECK(are_close(inball3.r, 2.0 / sqrt(24.0)));
 }
 
 static void test_volume_vert_gradients() {
@@ -1083,7 +1083,7 @@ int main(int argc, char** argv) {
   test_proximity(&lib);
   test_motion(&lib);
   test_find_last();
-  test_insphere();
+  test_inball();
   test_volume_vert_gradients();
   test_1d_box(&lib);
   test_binary_search();

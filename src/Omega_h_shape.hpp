@@ -293,7 +293,7 @@ OMEGA_H_INLINE Plane<dim> get_side_plane(
 }
 
 template <Int dim>
-OMEGA_H_INLINE Sphere<dim> get_insphere(Few<Vector<dim>, dim + 1> p) {
+OMEGA_H_INLINE Sphere<dim> get_inball(Few<Vector<dim>, dim + 1> p) {
   auto nsides = dim + 1;
   Few<Plane<dim>, dim + 1> planes;
   for (Int iside = 0; iside < nsides; ++iside) {
@@ -311,7 +311,7 @@ OMEGA_H_INLINE Sphere<dim> get_insphere(Few<Vector<dim>, dim + 1> p) {
 }
 
 template <>
-OMEGA_H_INLINE Sphere<1> get_insphere(Few<Vector<1>, 2> p) {
+OMEGA_H_INLINE Sphere<1> get_inball(Few<Vector<1>, 2> p) {
   return {average(p), fabs((p[1] - p[0])[0] / 2.0)};
 }
 
