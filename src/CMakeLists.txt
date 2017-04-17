@@ -466,6 +466,9 @@ set(Omega_h_HEADERS
   Omega_h_assoc.hpp
   Omega_h_cmdline.hpp
   Omega_h_compare.hpp
+  Omega_h_simplex.hpp
+  Omega_h_qr.hpp
+  Omega_h_shape.hpp
   )
 
 if(USE_TEUCHOS)
