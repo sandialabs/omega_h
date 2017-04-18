@@ -1,9 +1,16 @@
-#ifndef VTK_HPP
-#define VTK_HPP
+#ifndef OMEGA_H_VTK_HPP
+#define OMEGA_H_VTK_HPP
 
-#include "Omega_h_internal.hpp"
+#include <string>
+#include <iosfwd>
+#include <vector>
+
+#include <Omega_h_defines.hpp>
+#include <Omega_h_comm.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 namespace vtk {
 

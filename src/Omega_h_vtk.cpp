@@ -7,7 +7,11 @@
 #endif
 
 #include "Omega_h_base64.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_file.hpp"
+#include "Omega_h_mesh.hpp"
 #include "Omega_h_simplex.hpp"
+#include "Omega_h_tag.hpp"
 #include "Omega_h_xml.hpp"
 
 namespace Omega_h {
@@ -80,7 +84,7 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     std::string* name_out, Int* ncomps_out) {
   auto st = xml::read_tag(stream);
   if (st.elem_name != "DataArray" || st.type != xml::Tag::START) {
-    CHECK(st.type == xml::Tag::END);
+    OMEGA_H_CHECK(st.type == xml::Tag::END);
     return false;
   }
   auto type_name = st.attribs["type"];
@@ -94,7 +98,7 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     *type_out = OMEGA_H_F64;
   *name_out = st.attribs["Name"];
   *ncomps_out = std::stoi(st.attribs["NumberOfComponents"]);
-  CHECK(st.attribs["format"] == "binary");
+  OMEGA_H_CHECK(st.attribs["format"] == "binary");
   return true;
 }
 
@@ -117,7 +121,7 @@ void write_array(
   int ret = ::compress2(compressed, &dest_bytes,
       reinterpret_cast<const Bytef*>(uncompressed.nonnull_data()), source_bytes,
       Z_BEST_SPEED);
-  CHECK(ret == Z_OK);
+  OMEGA_H_CHECK(ret == Z_OK);
   std::string encoded = base64::encode(compressed, dest_bytes);
   delete[] compressed;
   std::uint64_t header[4] = {
@@ -153,7 +157,7 @@ Read<T> read_array(
     compressed_bytes = header[3];
   } else
 #else
-  CHECK(is_compressed == false);
+  OMEGA_H_CHECK(is_compressed == false);
 #endif
   {
     auto nheader_chars = base64::encoded_size(sizeof(std::uint64_t));
@@ -163,7 +167,7 @@ Read<T> read_array(
     compressed_bytes = uncompressed_bytes;
     encoded = enc_both.substr(nheader_chars);
   }
-  CHECK(uncompressed_bytes == std::uint64_t(size) * sizeof(T));
+  OMEGA_H_CHECK(uncompressed_bytes == std::uint64_t(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
 #ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
@@ -179,7 +183,7 @@ Read<T> read_array(
       Omega_h_fail(
           "code %d: couln't decompress \"%s\"\n", ret, encoded.c_str());
     }
-    CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
+    OMEGA_H_CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete[] compressed;
   } else
 #endif
@@ -261,8 +265,8 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   }
   auto et = xml::read_tag(stream);
-  CHECK(et.elem_name == "DataArray");
-  CHECK(et.type == xml::Tag::END);
+  OMEGA_H_CHECK(et.elem_name == "DataArray");
+  OMEGA_H_CHECK(et.type == xml::Tag::END);
   return true;
 }
 
@@ -270,16 +274,16 @@ template <typename T>
 Read<T> read_known_array(std::istream& stream, std::string const& name,
     LO nents, Int ncomps, bool is_little_endian, bool is_compressed) {
   auto st = xml::read_tag(stream);
-  CHECK(st.elem_name == "DataArray");
-  CHECK(st.type == xml::Tag::START);
-  CHECK(st.attribs["Name"] == name);
-  CHECK(st.attribs["type"] == Traits<T>::name());
-  CHECK(st.attribs["NumberOfComponents"] == Omega_h::to_string(ncomps));
+  OMEGA_H_CHECK(st.elem_name == "DataArray");
+  OMEGA_H_CHECK(st.type == xml::Tag::START);
+  OMEGA_H_CHECK(st.attribs["Name"] == name);
+  OMEGA_H_CHECK(st.attribs["type"] == Traits<T>::name());
+  OMEGA_H_CHECK(st.attribs["NumberOfComponents"] == Omega_h::to_string(ncomps));
   auto array =
       read_array<T>(stream, nents * ncomps, is_little_endian, is_compressed);
   auto et = xml::read_tag(stream);
-  CHECK(et.elem_name == "DataArray");
-  CHECK(et.type == xml::Tag::END);
+  OMEGA_H_CHECK(et.elem_name == "DataArray");
+  OMEGA_H_CHECK(et.type == xml::Tag::END);
   return array;
 }
 
@@ -321,8 +325,8 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
 static void read_vtkfile_vtu_start_tag(
     std::istream& stream, bool* is_little_endian_out, bool* is_compressed_out) {
   auto st = xml::read_tag(stream);
-  CHECK(st.elem_name == "VTKFile");
-  CHECK(st.attribs["header_type"] == Traits<std::uint64_t>::name());
+  OMEGA_H_CHECK(st.elem_name == "VTKFile");
+  OMEGA_H_CHECK(st.attribs["header_type"] == Traits<std::uint64_t>::name());
   auto is_little_endian = (st.attribs["byte_order"] == "LittleEndian");
   *is_little_endian_out = is_little_endian;
   auto is_compressed = (st.attribs.count("compressor") == 1);
@@ -338,7 +342,7 @@ void write_piece_start_tag(
 void read_piece_start_tag(
     std::istream& stream, LO* nverts_out, LO* ncells_out) {
   auto st = xml::read_tag(stream);
-  CHECK(st.elem_name == "Piece");
+  OMEGA_H_CHECK(st.elem_name == "Piece");
   *nverts_out = std::stoi(st.attribs["NumberOfPoints"]);
   *ncells_out = std::stoi(st.attribs["NumberOfCells"]);
 }
@@ -364,7 +368,7 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
     if (type == VTK_TETRA) dim = 3;
   }
   dim = comm->allreduce(dim, OMEGA_H_MAX);
-  CHECK(dim == 2 || dim == 3);
+  OMEGA_H_CHECK(dim == 2 || dim == 3);
   *dim_out = dim;
   auto ev2v = read_known_array<LO>(stream, "connectivity", ncells * (dim + 1),
       1, is_little_endian, is_compressed);
@@ -504,21 +508,21 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   bool is_little_endian, is_compressed;
   read_vtkfile_vtu_start_tag(stream, &is_little_endian, &is_compressed);
-  CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
   LO nverts, ncells;
   read_piece_start_tag(stream, &nverts, &ncells);
-  CHECK(xml::read_tag(stream).elem_name == "Cells");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");
   Int dim;
   LOs ev2v;
   read_connectivity(
       stream, comm, ncells, is_little_endian, is_compressed, &dim, &ev2v);
-  CHECK(xml::read_tag(stream).elem_name == "Cells");
-  CHECK(xml::read_tag(stream).elem_name == "Points");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
   auto coords = read_known_array<Real>(
       stream, "coordinates", nverts, 3, is_little_endian, is_compressed);
   if (dim < 3) coords = resize_vectors(coords, 3, dim);
-  CHECK(xml::read_tag(stream).elem_name == "Points");
-  CHECK(xml::read_tag(stream).elem_name == "PointData");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "PointData");
   read_locals_and_owners(stream, comm, nverts, is_little_endian, is_compressed);
   Read<GO> vert_globals;
   if (comm->size() > 1) {
@@ -531,19 +535,19 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   mesh->add_tag(VERT, "coordinates", dim, coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
     ;
-  CHECK(xml::read_tag(stream).elem_name == "CellData");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "CellData");
   read_locals_and_owners(stream, comm, ncells, is_little_endian, is_compressed);
   while (read_tag(stream, mesh, dim, is_little_endian, is_compressed))
     ;
-  CHECK(xml::read_tag(stream).elem_name == "Piece");
-  CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
-  CHECK(xml::read_tag(stream).elem_name == "VTKFile");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Piece");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
+  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "VTKFile");
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
   default_dim(mesh, &cell_dim);
   std::ofstream file(filename.c_str());
-  CHECK(file.is_open());
+  OMEGA_H_CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim);
 }
 
@@ -587,7 +591,7 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     std::string const& piecepath) {
   std::ofstream file(filename.c_str());
-  CHECK(file.is_open());
+  OMEGA_H_CHECK(file.is_open());
   write_pvtu(file, mesh, cell_dim, piecepath);
 }
 
@@ -604,8 +608,8 @@ void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
     }
     ++npieces;
   }
-  CHECK(npieces >= 1);
-  CHECK(npieces <= comm->size());
+  OMEGA_H_CHECK(npieces >= 1);
+  OMEGA_H_CHECK(npieces <= comm->size());
   *npieces_out = npieces;
   *vtupath_out = vtupath;
 }
@@ -653,7 +657,7 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   auto subcomm = comm->split(I32(!in_subcomm), 0);
   if (in_subcomm) {
     std::ifstream vtustream(vtupath.c_str());
-    CHECK(vtustream.is_open());
+    OMEGA_H_CHECK(vtustream.is_open());
     read_vtu(vtustream, subcomm, mesh);
   }
   mesh->set_comm(comm);
@@ -662,7 +666,7 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
 std::streampos write_initial_pvd(std::string const& root_path) {
   std::string pvdpath = get_pvd_path(root_path);
   std::ofstream file(pvdpath.c_str());
-  CHECK(file.is_open());
+  OMEGA_H_CHECK(file.is_open());
   file << "<VTKFile type=\"Collection\" version=\"0.1\">\n";
   file << "<Collection>\n";
   auto pos = file.tellp();
@@ -676,7 +680,7 @@ void update_pvd(std::string const& root_path, std::streampos* pos_inout,
   std::string pvdpath = get_pvd_path(root_path);
   std::fstream file;
   file.open(pvdpath.c_str(), std::ios::out | std::ios::in);
-  CHECK(file.is_open());
+  OMEGA_H_CHECK(file.is_open());
   file.seekp(*pos_inout);
   file << "<DataSet timestep=\"" << time << "\" part=\"0\" ";
   auto relstep = get_rel_step_path(step);
@@ -707,7 +711,7 @@ void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
   std::vector<Real> times;
   std::vector<std::string> pvtupaths;
   std::ifstream pvdstream(pvdpath.c_str());
-  CHECK(pvdstream.is_open());
+  OMEGA_H_CHECK(pvdstream.is_open());
   read_pvd(pvdstream, &times, &pvtupaths);
   auto parentpath = parent_path(pvdpath);
   for (auto& pvtupath : pvtupaths) pvtupath = parentpath + "/" + pvtupath;
