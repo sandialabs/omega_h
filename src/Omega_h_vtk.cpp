@@ -407,15 +407,6 @@ void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
   }
 }
 
-void read_locals_and_owners(std::istream& stream, CommPtr comm, LO nents,
-    bool is_little_endian, bool is_compressed) {
-  read_known_array<LO>(
-      stream, "local", nents, 1, is_little_endian, is_compressed);
-  if (comm->size() == 1) return;
-  read_known_array<I32>(
-      stream, "owner", nents, 1, is_little_endian, is_compressed);
-}
-
 template <typename T>
 void write_p_data_array(
     std::ostream& stream, std::string const& name, Int ncomps) {
@@ -552,7 +543,6 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   } else {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
-  read_locals_and_owners(stream, comm, nverts, is_little_endian, is_compressed);
   build_from_elems2verts(mesh, comm, dim, ev2v, vert_globals);
   mesh->add_tag(VERT, "coordinates", dim, coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
@@ -572,7 +562,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, FileTags const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
-  write_vtu(file, mesh, cell_dim);
+  write_vtu(file, mesh, cell_dim, tags);
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
@@ -630,10 +620,10 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 }
 
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath) {
+    std::string const& piecepath, FileTags const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
-  write_pvtu(file, mesh, cell_dim, piecepath);
+  write_pvtu(file, mesh, cell_dim, piecepath, tags);
 }
 
 void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,

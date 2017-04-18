@@ -199,7 +199,7 @@ static void test_read_vtu(Library* lib, CommPtr comm) {
   mesh0.set_comm(comm);
   mesh0.balance();
   std::stringstream stream;
-  vtk::write_vtu(stream, &mesh0);
+  vtk::write_vtu(stream, &mesh0, mesh0.dim(), vtk::get_all_vtk_tags(&mesh0));
   Mesh mesh1(lib);
   vtk::read_vtu(stream, comm, &mesh1);
   auto opts = MeshCompareOpts::init(&mesh0, VarCompareOpts::zero_tolerance());
