@@ -3,6 +3,7 @@
 
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_assoc.hpp>
+#include <Omega_h_file.hpp>
 
 #include <Teuchos_Comm.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -33,6 +34,8 @@ void write_parameters(
     std::string const& filepath, Teuchos::ParameterList const& pl);
 
 void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl);
+
+void update_file_tags(FileTags* p_tags, Int dim, Teuchos::ParameterList const& pl);
 
 }  // namespace Omega_h
 

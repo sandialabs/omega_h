@@ -286,4 +286,23 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
   }
 }
 
+void update_file_tags(FileTags* p_tags, Int elem_dim, Teuchos::ParameterList const& pl) {
+  FileTags& tags = *p_tags;
+  std::map<std::string, Int> names2dims;
+  names2dims["Element"] = elem_dim;
+  names2dims["Side"] = elem_dim - 1;
+  names2dims["Edge"] = 1;
+  names2dims["Vertex"] = 0;
+  names2dims["Node"] = 0;
+  for (auto pair : names2dims) {
+    auto name = pair.first;
+    auto dim = pair.second;
+    Teuchos::Array<std::string> tag_names;
+    Omega_h::set_if_given(&tag_names, pl, name);
+    for (auto& tag_name : tag_names) {
+      tags[size_t(dim)].insert(tag_name);
+    }
+  }
+}
+
 }  // namespace Omega_h

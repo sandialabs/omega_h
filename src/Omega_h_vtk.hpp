@@ -7,6 +7,7 @@
 
 #include <Omega_h_defines.hpp>
 #include <Omega_h_comm.hpp>
+#include <Omega_h_file.hpp>
 
 namespace Omega_h {
 
@@ -19,10 +20,10 @@ std::string get_pvtu_path(std::string const& step_path);
 std::string get_pvd_path(std::string const& root_path);
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath);
+    std::string const& piecepath, FileTags const& tags);
 
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath);
+    std::string const& piecepath, FileTags const& tags);
 
 std::streampos write_initial_pvd(std::string const& root_path);
 void update_pvd(std::string const& root_path, std::streampos* pos_inout,
