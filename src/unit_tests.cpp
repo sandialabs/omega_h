@@ -821,22 +821,18 @@ static void test_sf_scale_dim(Library* lib) {
   Int one_if_3d = ((dim >= 3) ? 1 : 0);
   build_box(&mesh, 1, one_if_2d, one_if_3d, nl, nl * one_if_2d, nl * one_if_3d);
   classify_by_angles(&mesh, Omega_h::PI / 4);
-  std::cerr << "dim " << dim << '\n';
   auto target_nelems = mesh.nelems();
-  std::cerr << "nelems " << target_nelems << '\n';
   auto metrics = Omega_h::get_implied_metrics(&mesh);
   {
     // auto isos = apply_isotropy(mesh.nverts(), metrics, OMEGA_H_ISO_SIZE);
     auto isos = Omega_h::get_implied_isos(&mesh);
     auto iso_scal = get_metric_scalar_for_nelems(&mesh, isos, target_nelems);
-    std::cerr << "iso_scal " << iso_scal << '\n';
-    // OMEGA_H_CHECK(are_close(iso_scal, 1.0));
+    OMEGA_H_CHECK(are_close(iso_scal, 1.0));
   }
   {
     auto aniso_scal =
         get_metric_scalar_for_nelems(&mesh, metrics, target_nelems);
-    std::cerr << "aniso_scal " << aniso_scal << '\n';
-    // OMEGA_H_CHECK(are_close(aniso_scal, 1.0));
+    OMEGA_H_CHECK(are_close(aniso_scal, 1.0));
   }
 }
 
