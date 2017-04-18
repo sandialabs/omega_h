@@ -18,6 +18,17 @@ namespace Omega_h {
 
 namespace vtk {
 
+FileTags get_all_vtk_tags(Mesh* mesh) {
+  auto out = get_all_file_tags(mesh);
+  for (Int i = 0; i < mesh->dim(); ++i) {
+    out[size_t(i)].insert("local");
+    if (mesh->comm()->size() > 1) {
+      out[size_t(i)].insert("owner");
+    }
+  }
+  return out;
+}
+
 namespace {
 
 /* start of C++ ritual dance to print a string based on
@@ -386,9 +397,14 @@ void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
   write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks);
 }
 
-void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
-  write_locals(stream, mesh, ent_dim);
-  write_owners(stream, mesh, ent_dim);
+void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
+    FileTags const& tags) {
+  if (tags[size_t(ent_dim)].count("local")) {
+    write_locals(stream, mesh, ent_dim);
+  }
+  if (tags[size_t(ent_dim)].count("owner")) {
+    write_owners(stream, mesh, ent_dim);
+  }
 }
 
 void read_locals_and_owners(std::istream& stream, CommPtr comm, LO nents,
@@ -470,7 +486,8 @@ static void default_dim(Mesh* mesh, Int* cell_dim) {
   if (*cell_dim == -1) *cell_dim = mesh->dim();
 }
 
-void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
+void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
+    FileTags const& tags) {
   default_dim(mesh, &cell_dim);
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
@@ -483,21 +500,26 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3));
   stream << "</Points>\n";
   stream << "<PointData>\n";
-  write_locals_and_owners(stream, mesh, VERT);
-  if (mesh->has_tag(VERT, "global")) {
+  /* globals go first so read_vtu() knows where to find them */
+  if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
     write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim());
   }
+  write_locals_and_owners(stream, mesh, VERT, tags);
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tag = mesh->get_tag(VERT, i);
-    if (tag->name() != "coordinates" && tag->name() != "global") {
+    if (tag->name() != "coordinates" && tag->name() != "global" &&
+        tags[VERT].count(tag->name())) {
       write_tag(stream, tag, mesh->dim());
     }
   }
   stream << "</PointData>\n";
   stream << "<CellData>\n";
-  write_locals_and_owners(stream, mesh, cell_dim);
+  write_locals_and_owners(stream, mesh, cell_dim, tags);
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
-    write_tag(stream, mesh->get_tag(cell_dim, i), mesh->dim());
+    auto tag = mesh->get_tag(cell_dim, i);
+    if (tags[size_t(cell_dim)].count(tag->name())) {
+      write_tag(stream, tag, mesh->dim());
+    }
   }
   stream << "</CellData>\n";
   stream << "</Piece>\n";
@@ -523,7 +545,6 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   if (dim < 3) coords = resize_vectors(coords, 3, dim);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "PointData");
-  read_locals_and_owners(stream, comm, nverts, is_little_endian, is_compressed);
   Read<GO> vert_globals;
   if (comm->size() > 1) {
     vert_globals = read_known_array<GO>(
@@ -531,54 +552,74 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   } else {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
+  read_locals_and_owners(stream, comm, nverts, is_little_endian, is_compressed);
   build_from_elems2verts(mesh, comm, dim, ev2v, vert_globals);
   mesh->add_tag(VERT, "coordinates", dim, coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
     ;
+  mesh->remove_tag(VERT, "local");
+  mesh->remove_tag(VERT, "owner");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "CellData");
-  read_locals_and_owners(stream, comm, ncells, is_little_endian, is_compressed);
   while (read_tag(stream, mesh, dim, is_little_endian, is_compressed))
     ;
+  mesh->remove_tag(dim, "local");
+  mesh->remove_tag(dim, "owner");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Piece");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "VTKFile");
 }
 
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
-  default_dim(mesh, &cell_dim);
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, FileTags const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim);
 }
 
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
+  write_vtu(filename, mesh, cell_dim, get_all_vtk_tags(mesh));
+}
+
+void write_vtu(std::string const& filename, Mesh* mesh) {
+  write_vtu(filename, mesh, mesh->dim());
+}
+
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath) {
+    std::string const& piecepath, FileTags const& tags) {
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
   stream << "<PPoints>\n";
   write_p_data_array<Real>(stream, "coordinates", 3);
   stream << "</PPoints>\n";
   stream << "<PPointData>\n";
-  write_p_data_array2(stream, "local", 1, OMEGA_H_I32);
-  if (mesh->comm()->size() > 1) {
-    write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
+  if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
+    write_p_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim());
   }
-  if (mesh->has_tag(VERT, "global")) {
-    write_p_data_array2(stream, "global", 1, OMEGA_H_I64);
+  if (tags[0].count("local")) {
+    write_p_data_array2(stream, "local", 1, OMEGA_H_I32);
+  }
+  if (mesh->comm()->size() > 1 && tags[0].count("owner")) {
+    write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
   }
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tag = mesh->get_tag(VERT, i);
-    if (tag->name() != "coordinates" && tag->name() != "global") {
+    if (tag->name() != "coordinates" && tag->name() != "global" &&
+        tags[VERT].count(tag->name())) {
       write_p_tag(stream, tag, mesh->dim());
     }
   }
   stream << "</PPointData>\n";
   stream << "<PCellData>\n";
-  write_p_data_array2(stream, "local", 1, OMEGA_H_I32);
-  if (mesh->comm()->size() > 1)
+  if (tags[size_t(cell_dim)].count("local")) {
+    write_p_data_array2(stream, "local", 1, OMEGA_H_I32);
+  }
+  if (mesh->comm()->size() > 1 && tags[size_t(cell_dim)].count("owner")) {
     write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
+  }
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
-    write_p_tag(stream, mesh->get_tag(cell_dim, i), mesh->dim());
+    auto tag = mesh->get_tag(cell_dim, i);
+    if (tags[size_t(cell_dim)].count(tag->name())) {
+      write_p_tag(stream, tag, mesh->dim());
+    }
   }
   stream << "</PCellData>\n";
   for (I32 i = 0; i < mesh->comm()->size(); ++i) {
@@ -629,7 +670,8 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
   *vtupath_out = vtupath;
 }
 
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
+    FileTags const& tags) {
   default_dim(mesh, &cell_dim);
   auto rank = mesh->comm()->rank();
   if (rank == 0) {
@@ -644,9 +686,13 @@ void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
   auto piecepath = piecesdir + "/piece";
   auto pvtuname = get_pvtu_path(path);
   if (rank == 0) {
-    write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece");
+    write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece", tags);
   }
-  write_vtu(piece_filename(piecepath, rank), mesh, cell_dim);
+  write_vtu(piece_filename(piecepath, rank), mesh, cell_dim, tags);
+}
+
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
+  write_parallel(path, mesh, cell_dim, get_all_vtk_tags(mesh));
 }
 
 void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
@@ -763,12 +809,16 @@ Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
   }
 }
 
-void Writer::write(Real time) {
-  write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_);
+void Writer::write(Real time, FileTags const& tags) {
+  write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags);
   if (mesh_->comm()->rank() == 0) {
     update_pvd(root_path_, &pvd_pos_, step_, time);
   }
   ++step_;
+}
+
+void Writer::write(Real time) {
+  this->write(time, get_all_vtk_tags(mesh_));
 }
 
 void Writer::write() { this->write(Real(step_)); }
