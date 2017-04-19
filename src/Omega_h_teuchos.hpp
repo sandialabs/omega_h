@@ -35,7 +35,7 @@ void write_parameters(
 
 void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl);
 
-void update_file_tags(FileTags* p_tags, Int dim, Teuchos::ParameterList const& pl);
+void update_tag_set(TagSet* p_tags, Int dim, Teuchos::ParameterList const& pl);
 
 }  // namespace Omega_h
 

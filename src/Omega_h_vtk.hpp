@@ -20,10 +20,10 @@ std::string get_pvtu_path(std::string const& step_path);
 std::string get_pvd_path(std::string const& root_path);
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath, FileTags const& tags);
+    std::string const& piecepath, TagSet const& tags);
 
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath, FileTags const& tags);
+    std::string const& piecepath, TagSet const& tags);
 
 std::streampos write_initial_pvd(std::string const& root_path);
 void update_pvd(std::string const& root_path, std::streampos* pos_inout,

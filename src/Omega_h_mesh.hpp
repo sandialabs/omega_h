@@ -148,6 +148,8 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x);
 
 Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x);
 
+TagSet get_all_mesh_tags(Mesh* mesh);
+
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \
       Int dim, std::string const& name) const;                                 \

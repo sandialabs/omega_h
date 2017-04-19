@@ -716,6 +716,17 @@ Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x) {
   return average_field(mesh, dim, a2e, ncomps, v2x);
 }
 
+TagSet get_all_mesh_tags(Mesh* mesh) {
+  TagSet out;
+  for (Int i = 0; i <= mesh->dim(); ++i) {
+    for (Int j = 0; j < mesh->ntags(i); ++j) {
+      auto tagbase = mesh->get_tag(i, j);
+      out[size_t(i)].insert(tagbase->name());
+    }
+  }
+  return out;
+}
+
 #define INST_T(T)                                                              \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \

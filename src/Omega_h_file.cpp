@@ -56,17 +56,6 @@ std::string path_leaf_name(std::string const& path) {
   return path.substr(pos + 1, std::string::npos);
 }
 
-FileTags get_all_file_tags(Mesh* mesh) {
-  FileTags out;
-  for (Int i = 0; i <= mesh->dim(); ++i) {
-    for (Int j = 0; j < mesh->ntags(i); ++j) {
-      auto tagbase = mesh->get_tag(i, j);
-      out[size_t(i)].insert(tagbase->name());
-    }
-  }
-  return out;
-}
-
 namespace binary {
 
 namespace {

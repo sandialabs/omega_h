@@ -2,15 +2,13 @@
 #define OMEGA_H_FILE_HPP
 
 #include <iosfwd>
-#include <string>
 #include <vector>
-#include <array>
-#include <set>
 
 #include <Omega_h_config.h>
 #include <Omega_h_array.hpp>
 #include <Omega_h_comm.hpp>
 #include <Omega_h_defines.hpp>
+#include <Omega_h_tag.hpp>
 
 namespace Omega_h {
 
@@ -22,10 +20,6 @@ void safe_mkdir(const char* path);
 bool directory_exists(const char* path);
 std::string parent_path(std::string const& path);
 std::string path_leaf_name(std::string const& path);
-
-using FileTags = std::array<std::set<std::string>,DIMS>;
-
-FileTags get_all_file_tags(Mesh* mesh);
 
 #ifdef OMEGA_H_USE_LIBMESHB
 namespace meshb {
@@ -53,13 +47,13 @@ void read(std::string const& filename, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
-FileTags get_all_vtk_tags(Mesh* mesh);
-void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim, FileTags const& tags);
+TagSet get_all_vtk_tags(Mesh* mesh);
+void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    FileTags const& tags);
+    TagSet const& tags);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim);
 void write_vtu(std::string const& filename, Mesh* mesh);
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim, FileTags const& tags);
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim);
 void write_parallel(std::string const& path, Mesh* mesh);
 class Writer {
@@ -77,7 +71,7 @@ class Writer {
   Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1);
   void write(Real time);
   void write();
-  void write(Real time, FileTags const& tags);
+  void write(Real time, TagSet const& tags);
 };
 class FullWriter {
   std::vector<Writer> writers_;

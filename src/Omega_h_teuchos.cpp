@@ -286,8 +286,8 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
   }
 }
 
-void update_file_tags(FileTags* p_tags, Int elem_dim, Teuchos::ParameterList const& pl) {
-  FileTags& tags = *p_tags;
+void update_tag_set(TagSet* p_tags, Int elem_dim, Teuchos::ParameterList const& pl) {
+  TagSet& tags = *p_tags;
   std::map<std::string, Int> names2dims;
   names2dims["Element"] = elem_dim;
   names2dims["Side"] = elem_dim - 1;

@@ -18,8 +18,8 @@ namespace Omega_h {
 
 namespace vtk {
 
-FileTags get_all_vtk_tags(Mesh* mesh) {
-  auto out = get_all_file_tags(mesh);
+TagSet get_all_vtk_tags(Mesh* mesh) {
+  auto out = get_all_mesh_tags(mesh);
   for (Int i = 0; i < mesh->dim(); ++i) {
     out[size_t(i)].insert("local");
     if (mesh->comm()->size() > 1) {
@@ -398,7 +398,7 @@ void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
 }
 
 void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
-    FileTags const& tags) {
+    TagSet const& tags) {
   if (tags[size_t(ent_dim)].count("local")) {
     write_locals(stream, mesh, ent_dim);
   }
@@ -478,7 +478,7 @@ static void default_dim(Mesh* mesh, Int* cell_dim) {
 }
 
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    FileTags const& tags) {
+    TagSet const& tags) {
   default_dim(mesh, &cell_dim);
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
@@ -559,7 +559,7 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "VTKFile");
 }
 
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, FileTags const& tags) {
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim, tags);
@@ -574,7 +574,7 @@ void write_vtu(std::string const& filename, Mesh* mesh) {
 }
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath, FileTags const& tags) {
+    std::string const& piecepath, TagSet const& tags) {
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
   stream << "<PPoints>\n";
@@ -620,7 +620,7 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 }
 
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath, FileTags const& tags) {
+    std::string const& piecepath, TagSet const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
   write_pvtu(file, mesh, cell_dim, piecepath, tags);
@@ -661,7 +661,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
 }
 
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
-    FileTags const& tags) {
+    TagSet const& tags) {
   default_dim(mesh, &cell_dim);
   auto rank = mesh->comm()->rank();
   if (rank == 0) {
@@ -799,7 +799,7 @@ Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
   }
 }
 
-void Writer::write(Real time, FileTags const& tags) {
+void Writer::write(Real time, TagSet const& tags) {
   write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags);
   if (mesh_->comm()->rank() == 0) {
     update_pvd(root_path_, &pvd_pos_, step_, time);
