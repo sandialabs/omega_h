@@ -250,6 +250,7 @@ if(Omega_h_USE_SEACASExodus)
 endif()
 if(USE_TEUCHOS)
   osh_add_util(osh_adapt)
+  osh_add_util(osh_copy_params)
 endif()
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
