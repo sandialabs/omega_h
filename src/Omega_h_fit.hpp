@@ -22,7 +22,7 @@ namespace Omega_h {
 
 template <Int dim>
 struct MaxFitPoints {
-  enum { value = AvgDegree<dim, 0, dim>::value * 2 };
+  enum { value = AvgDegree<dim, 0, dim>::value * 3 };
 };
 
 /* Computes the QR decomposition for the Vandermonde
@@ -41,6 +41,7 @@ get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
   auto end = k2ke[k + 1];
   auto nfit_pts = end - begin;
   OMEGA_H_CHECK(nfit_pts >= dim + 1);
+  if (nfit_pts > max_fit_pts) std::cerr << "nfit_pts " << nfit_pts << " max_fit_pts " << max_fit_pts << '\n';
   OMEGA_H_CHECK(nfit_pts <= max_fit_pts);
   for (auto i = 0; i < nfit_pts; ++i) {
     auto ke = begin + i;

@@ -56,6 +56,8 @@ static Reals get_variation_metrics(Mesh* mesh, Real knob,
     }
   } else if (dim == mesh->dim()) {
     auto vert_data = project_by_fit(mesh, data);
+    mesh->remove_tag(VERT, "projected_density");
+    mesh->add_tag(VERT, "projected_density", 1, vert_data);
     return get_variation_metrics(mesh, knob, VERT, name, ncomps, vert_data);
   }
   OMEGA_H_NORETURN(Reals());
