@@ -33,7 +33,50 @@ MetricInput::MetricInput() {
   element_count_over_relaxation = 1.1;
 }
 
-Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
+static Reals get_variation_metrics(Mesh* mesh, Real knob,
+    Int dim, std::string const& name, Int ncomps, Reals data) {
+  OMEGA_H_CHECK(data.size() == mesh->nents(dim) * ncomps);
+  if (dim == VERT) {
+    if (ncomps == 1) {
+      auto hessians = recover_hessians(mesh, data);
+      return get_hessian_metrics(mesh->dim(), hessians, knob);
+    } else {
+      Reals metrics;
+      for (Int comp = 0; comp < ncomps; ++comp) {
+        auto comp_data = get_component(data, ncomps, comp);
+        auto comp_metrics =
+            get_variation_metrics(mesh, knob, VERT, name, 1, comp_data);
+        if (comp) {
+          metrics = intersect_metrics(mesh->nverts(), metrics, comp_metrics);
+        } else {
+          metrics = comp_metrics;
+        }
+      }
+      return metrics;
+    }
+  } else if (dim == mesh->dim()) {
+    auto vert_data = project_by_fit(mesh, data);
+    return get_variation_metrics(mesh, knob, VERT, name, ncomps, vert_data);
+  }
+  OMEGA_H_NORETURN(Reals());
+}
+
+Reals get_variation_metrics(Mesh* mesh, std::string const& name, Real knob) {
+  Int dim = -1;
+  if (mesh->has_tag(VERT, name)) {
+    dim = VERT;
+  } else if (mesh->has_tag(mesh->dim(), name)) {
+    dim = mesh->dim();
+  } else {
+    Omega_h_fail("tag \"%s\" neither on elements nor nodes\n", name.c_str());
+  }
+  auto tag = mesh->get_tag<Real>(dim, name);
+  auto ncomps = tag->ncomps();
+  auto data = tag->array();
+  return get_variation_metrics(mesh, knob, dim, name, ncomps, data);
+}
+
+Reals get_derivative_metrics(Mesh* mesh, std::string const& name, Real knob) {
   enum {
     INVALID,
     NODAL_SCALAR,
@@ -86,7 +129,7 @@ Reals automagic_hessian(Mesh* mesh, std::string const& name, Real knob) {
       OMEGA_H_FALLTHROUGH;
     case NODAL_HESSIAN:;
   }
-  return metric_from_hessians(dim, data, knob);
+  return get_hessian_metrics(dim, data, knob);
 }
 
 Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
@@ -110,14 +153,25 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         metrics =
             Reals(mesh->nverts(), metric_eigenvalue_from_length(source.knob));
         break;
-      case OMEGA_H_HESSIAN:
-        metrics = automagic_hessian(mesh, source.tag_name, source.knob);
+      case OMEGA_H_VARIATION:
+        metrics = get_variation_metrics(mesh, source.tag_name, source.knob);
+        break;
+      case OMEGA_H_DERIVATIVE:
+        metrics = get_derivative_metrics(mesh, source.tag_name, source.knob);
         break;
       case OMEGA_H_GIVEN:
         metrics = mesh->get_array<Real>(VERT, source.tag_name);
+        if (source.knob != 1.0) {
+          metrics = multiply_each_by(
+              metric_eigenvalue_from_length(source.knob), metrics);
+        }
         break;
       case OMEGA_H_IMPLIED:
         metrics = get_implied_metrics(mesh);
+        if (source.knob != 1.0) {
+          metrics = multiply_each_by(
+              metric_eigenvalue_from_length(source.knob), metrics);
+        }
         break;
       case OMEGA_H_PROXIMITY:
         metrics = get_proximity_isos(mesh, source.knob);

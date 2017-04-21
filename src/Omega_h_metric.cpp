@@ -371,7 +371,7 @@ static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
   return out;
 }
 
-Reals metric_from_hessians(Int dim, Reals hessians, Real eps) {
+Reals get_hessian_metrics(Int dim, Reals hessians, Real eps) {
   CHECK(eps > 0.0);
   if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps);
   if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps);

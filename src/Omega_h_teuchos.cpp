@@ -143,8 +143,10 @@ MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
   auto type_name = pl.get<std::string>("Type");
   if (type_name == "Constant") {
     source.type = OMEGA_H_CONSTANT;
-  } else if (type_name == "Hessian") {
-    source.type = OMEGA_H_HESSIAN;
+  } else if (type_name == "Variation") {
+    source.type = OMEGA_H_VARIATION;
+  } else if (type_name == "Derivative") {
+    source.type = OMEGA_H_DERIVATIVE;
   } else if (type_name == "Given") {
     source.type = OMEGA_H_GIVEN;
   } else if (type_name == "Implied") {
