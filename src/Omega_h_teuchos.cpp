@@ -172,9 +172,9 @@ MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
     auto isotropy_name = pl.get<std::string>("Isotropy");
     if (isotropy_name == "Anisotropic") {
       source.isotropy = OMEGA_H_ANISOTROPIC;
-    } else if (isotropy_name == "Length Preserving") {
+    } else if (isotropy_name == "Preserve Length") {
       source.isotropy = OMEGA_H_ISO_LENGTH;
-    } else if (isotropy_name == "Size Preserving") {
+    } else if (isotropy_name == "Preserve Size") {
       source.isotropy = OMEGA_H_ISO_SIZE;
     } else {
       Omega_h_fail("unknown isotropy type \"%s\"\n", isotropy_name.c_str());
