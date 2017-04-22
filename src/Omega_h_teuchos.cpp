@@ -161,7 +161,10 @@ MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
   bool should_scale = true;
   set_if_given(&should_scale, pl, "Scale");
   source.scales = should_scale ? OMEGA_H_SCALES : OMEGA_H_ABSOLUTE;
-  set_if_given(&source.tag_name, pl, "Tag Name");
+  if (pl.isType<std::string>("Tag Name")) {
+    source.tag_name = pl.get<std::string>("Tag Name");
+    check_tag_name(source.tag_name);
+  }
   source.knob = 1.0;
   set_if_given(&source.knob, pl, "Knob");
   source.isotropy = OMEGA_H_ANISOTROPIC;

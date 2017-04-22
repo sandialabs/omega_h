@@ -11,6 +11,8 @@ namespace Omega_h {
 
 using TagSet = std::array<std::set<std::string>,DIMS>;
 
+void check_tag_name(std::string const& name);
+
 class TagBase {
  public:
   TagBase(std::string const& name, Int ncomps);

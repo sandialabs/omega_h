@@ -115,19 +115,10 @@ GO Mesh::nglobal_ents(Int dim) {
   return comm_->allreduce(GO(nowned), OMEGA_H_SUM);
 }
 
-static void check_name_format(std::string const& name) {
-  for (auto c : name) {
-    if (!(std::isalnum(c) || c == '_')) {
-      Omega_h_fail(
-          "tag name \"%s\" is not alphanumeric+underscores\n", name.c_str());
-    }
-  }
-}
-
 template <typename T>
 void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
   check_dim2(dim);
-  check_name_format(name);
+  check_tag_name(name);
   if (has_tag(dim, name)) {
     Omega_h_fail(
         "add_tag(%s, %s): already exists. use set_tag or "
