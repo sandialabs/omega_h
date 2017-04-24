@@ -17,8 +17,7 @@ Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
   return qualities;
 }
 
-Reals measure_qualities(Mesh* mesh, LOs a2e) {
-  auto metrics = mesh->get_array<Real>(VERT, "metric");
+Reals measure_qualities(Mesh* mesh, LOs a2e, Reals metrics) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return measure_qualities_tmpl<3, 3>(mesh, a2e);
@@ -38,8 +37,16 @@ Reals measure_qualities(Mesh* mesh, LOs a2e) {
   NORETURN(Reals());
 }
 
+Reals measure_qualities(Mesh* mesh, LOs a2e) {
+  return measure_qualities(mesh, a2e, mesh->get_array<Real>(VERT, "metric"));
+}
+
 Reals measure_qualities(Mesh* mesh) {
   return measure_qualities(mesh, LOs(mesh->nelems(), 0, 1));
+}
+
+Reals measure_qualities(Mesh* mesh, Reals metrics) {
+  return measure_qualities(mesh, LOs(mesh->nelems(), 0, 1), metrics);
 }
 
 /* Cavity qualities are used for several things:

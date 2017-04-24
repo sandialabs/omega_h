@@ -103,6 +103,7 @@ struct MetricInput {
   Real max_element_count;
   Real min_element_count;
   Real element_count_over_relaxation;
+  Int nsmoothing_steps;
 };
 
 Reals generate_metrics(Mesh* mesh, MetricInput const& input);
@@ -111,6 +112,8 @@ void add_metric_tag(
 void generate_metric_tag(Mesh* mesh, MetricInput const& input);
 void generate_target_metric_tag(Mesh* mesh, MetricInput const& input);
 void add_implied_metric_tag(Mesh* mesh);
+void add_implied_isos_tag(Mesh* mesh);
+void add_implied_metric_based_on_target(Mesh* mesh);
 
 }  // namespace Omega_h
 

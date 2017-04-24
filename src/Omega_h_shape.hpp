@@ -155,9 +155,11 @@ struct MetricEdgeLengths {
 };
 
 Reals measure_edges_real(Mesh* mesh, LOs a2e);
+Reals measure_edges_metric(Mesh* mesh, LOs a2e, Reals metrics);
 Reals measure_edges_metric(Mesh* mesh, LOs a2e);
 Reals measure_edges_real(Mesh* mesh);
 Reals measure_edges_metric(Mesh* mesh);
+Reals measure_edges_metric(Mesh* mesh, Reals metrics);
 
 template <Int dim>
 OMEGA_H_INLINE Real real_element_size(Few<Vector<dim>, dim + 1> p) {

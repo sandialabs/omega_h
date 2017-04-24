@@ -209,6 +209,9 @@ void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl) {
   set_if_given(&input->min_element_count, pl, "Min Element Count");
   set_if_given(&input->element_count_over_relaxation, pl,
       "Element Count Over-Relaxation");
+  input->nsmoothing_steps = 0;
+  set_if_given(&input->nsmoothing_steps, pl,
+      "Smoothing Step Count");
 }
 
 Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh) {

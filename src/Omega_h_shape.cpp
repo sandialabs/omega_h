@@ -28,8 +28,7 @@ Reals measure_edges_real(Mesh* mesh, LOs a2e) {
   }
 }
 
-Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
-  auto metrics = mesh->get_array<Real>(VERT, "metric");
+Reals measure_edges_metric(Mesh* mesh, LOs a2e, Reals metrics) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return measure_edges_tmpl<MetricEdgeLengths<3, 3>>(mesh, a2e);
@@ -49,12 +48,16 @@ Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
   OMEGA_H_NORETURN(Reals());
 }
 
+Reals measure_edges_metric(Mesh* mesh, LOs a2e) {
+  return measure_edges_metric(mesh, a2d, mesh->get_array<Real>(VERT, "metric"));
+}
+
 Reals measure_edges_real(Mesh* mesh) {
   return measure_edges_real(mesh, LOs(mesh->nedges(), 0, 1));
 }
 
-Reals measure_edges_metric(Mesh* mesh) {
-  return measure_edges_metric(mesh, LOs(mesh->nedges(), 0, 1));
+Reals measure_edges_metric(Mesh* mesh, Reals metrics) {
+  return measure_edges_metric(mesh, LOs(mesh->nedges(), 0, 1), metrics);
 }
 
 template <Int dim>

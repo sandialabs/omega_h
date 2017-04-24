@@ -54,8 +54,10 @@ struct MetricElementQualities {
   }
 };
 
+Reals measure_qualities(Mesh* mesh, LOs a2e, Reals metrics);
 Reals measure_qualities(Mesh* mesh, LOs a2e);
 Reals measure_qualities(Mesh* mesh);
+Reals measure_qualities(Mesh* mesh, Reals metrics);
 Reals get_1d_cavity_qualities(Mesh* mesh, Int key_dim, LOs keys2kds);
 
 }  // end namespace Omega_h

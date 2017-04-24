@@ -215,6 +215,9 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         metrics = in_metrics;
       }
     }
+    for (Int i = 0; i < input.nsmoothing_steps; ++i) {
+      metrics = smooth_metric_once(mesh, metrics);
+    }
     if (input.should_limit_gradation) {
       metrics = limit_metric_gradation(mesh, metrics, input.max_gradation_rate,
           input.gradation_convergence_tolerance, input.verbose);
@@ -267,6 +270,20 @@ void generate_target_metric_tag(Mesh* mesh, MetricInput const& input) {
 void add_implied_metric_tag(Mesh* mesh) {
   auto metrics = get_implied_metrics(mesh);
   add_metric_tag(mesh, metrics, "metric");
+}
+
+void add_implied_isos_tag(Mesh* mesh) {
+  auto metrics = get_implied_isos(mesh);
+  add_metric_tag(mesh, metrics, "metric");
+}
+
+void add_implied_metric_based_on_target(Mesh* mesh) {
+  auto target_tagbase = mesh->get_tagbase(VERT, "target_metric");
+  if (mesh->dim() > 1 && target_tagbase->ncomps() == 1) {
+    add_implied_isos_tag(mesh);
+  } else {
+    add_implied_metric_tag(mesh);
+  }
 }
 
 }  // namespace Omega_h
