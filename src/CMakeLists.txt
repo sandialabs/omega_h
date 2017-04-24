@@ -470,6 +470,7 @@ set(Omega_h_HEADERS
   Omega_h_simplex.hpp
   Omega_h_qr.hpp
   Omega_h_shape.hpp
+  Omega_h_quality.hpp
   )
 
 if(USE_TEUCHOS)

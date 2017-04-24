@@ -14,18 +14,18 @@ class MetricMotion {
   static Reals get_metrics_array(Mesh* mesh) {
     return mesh->get_array<Real>(VERT, "metric");
   }
-  DEVICE static Metric get_metric(Reals metrics, LO v) {
+  OMEGA_H_DEVICE static Metric get_metric(Reals metrics, LO v) {
     return get_symm<metric_dim>(metrics, v);
   }
   template <typename Arr>
-  DEVICE static Metric get_linear_metric(Arr const& tmp, Int offset) {
+  OMEGA_H_DEVICE static Metric get_linear_metric(Arr const& tmp, Int offset) {
     Vector<ncomps> vec;
     for (Int i = 0; i < ncomps; ++i) {
       vec[i] = tmp[offset + i];
     }
     return vector2symm(vec);
   }
-  DEVICE static Metric gather_maxdet_metric(
+  OMEGA_H_DEVICE static Metric gather_maxdet_metric(
       Reals metrics, Few<LO, mesh_dim + 1> kvv2v, Int kvv_c, Metric nm) {
     auto kvv2m = gather_symms<mesh_dim + 1, metric_dim>(metrics, kvv2v);
     kvv2m[kvv_c] = nm;
@@ -34,7 +34,7 @@ class MetricMotion {
 };
 
 template <Int dim, typename Arr>
-static DEVICE Vector<dim> get_coords(Arr const& tmp, Int offset) {
+static OMEGA_H_DEVICE Vector<dim> get_coords(Arr const& tmp, Int offset) {
   Vector<dim> out;
   for (Int i = 0; i < dim; ++i) out[i] = tmp[offset + i];
   return out;
@@ -47,7 +47,7 @@ MotionChoices motion_choices_tmpl(
   using Metric = typename Helper::Metric;
   auto pack = pack_linearized_fields(mesh, opts.xfer_opts);
   constexpr Int maxcomps = 30;
-  CHECK(pack.ncomps <= maxcomps);
+  OMEGA_H_CHECK(pack.ncomps <= maxcomps);
   auto new_sol_w = deep_copy(pack.data);
   auto coords = mesh->coords();
   auto metrics = Helper::get_metrics_array(mesh);
@@ -63,16 +63,16 @@ MotionChoices motion_choices_tmpl(
   auto cands2old_qual =
       graph_reduce(cands2elems, elems2old_qual, 1, OMEGA_H_MIN);
   auto max_steps = opts.max_motion_steps;
-  CHECK(max_steps >= 0);
+  OMEGA_H_CHECK(max_steps >= 0);
   auto step_size = opts.motion_step_size;
   auto max_length = opts.max_length_allowed;
-  CHECK(0.0 < step_size);
-  CHECK(step_size < 1.0);
+  OMEGA_H_CHECK(0.0 < step_size);
+  OMEGA_H_CHECK(step_size < 1.0);
   auto did_move_w = Write<I8>(ncands);
   auto coordinates_w = Write<Real>(ncands * mesh_dim);
   auto metrics_w = Write<Real>(ncands * Helper::ncomps);
   auto qualities_w = Write<Real>(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto v = cands2verts[cand];
     auto v_dim = verts2dim[v];
     auto old_qual = cands2old_qual[cand];
@@ -146,7 +146,7 @@ MotionChoices motion_choices_tmpl(
     auto did_move = last_qual > old_qual;
     qualities_w[cand] = last_qual;
     did_move_w[cand] = did_move;
-    if (did_move) CHECK(last_qual >= 0.0);
+    if (did_move) OMEGA_H_CHECK(last_qual >= 0.0);
   };
   parallel_for(ncands, f);
   auto qualities = Reals(qualities_w);
@@ -169,7 +169,7 @@ MotionChoices get_motion_choices(
   if (mesh->dim() == 2 && metric_dim == 1) {
     return motion_choices_tmpl<2, 1>(mesh, opts, cands2verts);
   }
-  NORETURN(MotionChoices());
+  OMEGA_H_NORETURN(MotionChoices());
 }
 
 }  // end namespace Omega_h

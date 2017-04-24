@@ -1,7 +1,6 @@
 #ifndef OMEGA_H_QUALITY_HPP
 #define OMEGA_H_QUALITY_HPP
 
-#include <Omega_h_host_few.hpp>
 #include <Omega_h_shape.hpp>
 
 namespace Omega_h {
@@ -48,7 +47,7 @@ struct MetricElementQualities {
         metrics(metrics_in) {}
   MetricElementQualities(Mesh const* mesh):
     MetricElementQualities(mesh, mesh->get_array<Real>(VERT, "metric")) {}
-  DEVICE Real measure(Few<LO, space_dim + 1> v) const {
+  OMEGA_H_DEVICE Real measure(Few<LO, space_dim + 1> v) const {
     auto p = gather_vectors<space_dim + 1, space_dim>(coords, v);
     auto ms = gather_symms<space_dim + 1, metric_dim>(metrics, v);
     auto m = maxdet_metric(ms);

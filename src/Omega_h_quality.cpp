@@ -1,5 +1,7 @@
 #include "Omega_h_quality.hpp"
 
+#include "Omega_h_loop.hpp"
+
 namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
@@ -34,7 +36,7 @@ Reals measure_qualities(Mesh* mesh, LOs a2e, Reals metrics) {
   if (mesh->dim() == 1) {
     return Reals(a2e.size(), 1.0);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Reals measure_qualities(Mesh* mesh, LOs a2e) {
