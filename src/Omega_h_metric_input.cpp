@@ -31,6 +31,7 @@ MetricInput::MetricInput() {
   max_element_count = 1e6;
   min_element_count = 1.0;
   element_count_over_relaxation = 1.1;
+  nsmoothing_steps = 0;
 }
 
 static Reals get_variation_metrics(Mesh* mesh, Real knob,

@@ -3,8 +3,8 @@
 namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
-Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
-  MetricElementQualities<mesh_dim, metric_dim> measurer(mesh);
+Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e, Reals metrics) {
+  MetricElementQualities<mesh_dim, metric_dim> measurer(mesh, metrics);
   auto ev2v = mesh->ask_verts_of(mesh_dim);
   auto na = a2e.size();
   Write<Real> qualities(na);
@@ -20,16 +20,16 @@ Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e) {
 Reals measure_qualities(Mesh* mesh, LOs a2e, Reals metrics) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (mesh->dim() == 3 && metric_dim == 3) {
-    return measure_qualities_tmpl<3, 3>(mesh, a2e);
+    return measure_qualities_tmpl<3, 3>(mesh, a2e, metrics);
   }
   if (mesh->dim() == 2 && metric_dim == 2) {
-    return measure_qualities_tmpl<2, 2>(mesh, a2e);
+    return measure_qualities_tmpl<2, 2>(mesh, a2e, metrics);
   }
   if (mesh->dim() == 3 && metric_dim == 1) {
-    return measure_qualities_tmpl<3, 1>(mesh, a2e);
+    return measure_qualities_tmpl<3, 1>(mesh, a2e, metrics);
   }
   if (mesh->dim() == 2 && metric_dim == 1) {
-    return measure_qualities_tmpl<2, 1>(mesh, a2e);
+    return measure_qualities_tmpl<2, 1>(mesh, a2e, metrics);
   }
   if (mesh->dim() == 1) {
     return Reals(a2e.size(), 1.0);

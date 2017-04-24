@@ -43,9 +43,11 @@ template <Int space_dim, Int metric_dim>
 struct MetricElementQualities {
   Reals coords;
   Reals metrics;
-  MetricElementQualities(Mesh const* mesh)
+  MetricElementQualities(Mesh const* mesh, Reals metrics_in)
       : coords(mesh->coords()),
-        metrics(mesh->get_array<Real>(VERT, "metric")) {}
+        metrics(metrics_in) {}
+  MetricElementQualities(Mesh const* mesh):
+    MetricElementQualities(mesh, mesh->get_array<Real>(VERT, "metric")) {}
   DEVICE Real measure(Few<LO, space_dim + 1> v) const {
     auto p = gather_vectors<space_dim + 1, space_dim>(coords, v);
     auto ms = gather_symms<space_dim + 1, metric_dim>(metrics, v);
