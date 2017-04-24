@@ -1,7 +1,10 @@
-#ifndef HOST_FEW_HPP
-#define HOST_FEW_HPP
+#ifndef OMEGA_H_HOST_FEW_HPP
+#define OMEGA_H_HOST_FEW_HPP
 
-#include "Omega_h_internal.hpp"
+#include <initializer_list>
+
+#include <Omega_h_defines.hpp>
+#include <Omega_h_kokkos.hpp>
 
 namespace Omega_h {
 
@@ -15,9 +18,9 @@ class HostFew {
 
  public:
   enum { size = n };
-  INLINE T& operator[](Int i) { return array_[i]; }
-  INLINE T const& operator[](Int i) const { return array_[i]; }
-  INLINE HostFew() {}
+  OMEGA_H_INLINE T& operator[](Int i) { return array_[i]; }
+  OMEGA_H_INLINE T const& operator[](Int i) const { return array_[i]; }
+  OMEGA_H_INLINE HostFew() {}
   HostFew(std::initializer_list<T> l) {
     Int i = 0;
     for (auto v : l) array_[i++] = v;

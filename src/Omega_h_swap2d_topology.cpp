@@ -2,6 +2,8 @@
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_simplex.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
@@ -16,9 +18,9 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
   auto nkeys = keys2edges.size();
   auto tri_verts2verts_w = Write<LO>(nkeys * 2 * 3);
   auto edge_verts2verts_w = Write<LO>(nkeys * 1 * 2);
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto e = keys2edges[key];
-    CHECK(e2et[e + 1] == 2 + e2et[e]);
+    OMEGA_H_CHECK(e2et[e + 1] == 2 + e2et[e]);
     LO t[2];
     auto ov = &edge_verts2verts_w[key * 2];
     for (Int i = 0; i < 2; ++i) {

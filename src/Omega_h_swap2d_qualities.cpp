@@ -2,6 +2,8 @@
 
 #include "Omega_h_quality.hpp"
 #include "Omega_h_simplex.hpp"
+#include "Omega_h_align.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
@@ -25,7 +27,7 @@ static Reals swap2d_qualities_tmpl(
   auto max_length = opts.max_length_allowed;
   auto ncands = cands2edges.size();
   auto cand_quals_w = Write<Real>(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto edge = cands2edges[cand];
     /* non-owned edges will have incomplete cavities
        and will run into the topological assertions
@@ -35,7 +37,7 @@ static Reals swap2d_qualities_tmpl(
       cand_quals_w[cand] = -1.0;
       return;
     }
-    CHECK(e2et[edge + 1] == 2 + e2et[edge]);
+    OMEGA_H_CHECK(e2et[edge + 1] == 2 + e2et[edge]);
     LO t[2];
     Few<LO, 2> ov;
     for (Int i = 0; i < 2; ++i) {
@@ -70,7 +72,7 @@ static Reals swap2d_qualities_tmpl(
 }
 
 Reals swap2d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
-  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
+  OMEGA_H_CHECK(mesh->parting() == OMEGA_H_GHOSTED);
   auto metrics = mesh->get_array<Real>(VERT, "metric");
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (metric_dim == 2) {
@@ -79,7 +81,7 @@ Reals swap2d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
   if (metric_dim == 1) {
     return swap2d_qualities_tmpl<1>(mesh, opts, cands2edges);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 }  // end namespace Omega_h
