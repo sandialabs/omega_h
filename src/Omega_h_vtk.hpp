@@ -1,12 +1,12 @@
 #ifndef OMEGA_H_VTK_HPP
 #define OMEGA_H_VTK_HPP
 
-#include <string>
 #include <iosfwd>
+#include <string>
 #include <vector>
 
-#include <Omega_h_defines.hpp>
 #include <Omega_h_comm.hpp>
+#include <Omega_h_defines.hpp>
 #include <Omega_h_file.hpp>
 
 namespace Omega_h {

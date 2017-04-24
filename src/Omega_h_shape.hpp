@@ -147,10 +147,9 @@ struct MetricEdgeLengths {
   Reals coords;
   Reals metrics;
   MetricEdgeLengths(Mesh const* mesh, Reals metrics_in)
-      : coords(mesh->coords()),
-        metrics(metrics_in) {}
-  MetricEdgeLengths(Mesh const* mesh):
-    MetricEdgeLengths(mesh, mesh->get_array<Real>(VERT, "metric")) {}
+      : coords(mesh->coords()), metrics(metrics_in) {}
+  MetricEdgeLengths(Mesh const* mesh)
+      : MetricEdgeLengths(mesh, mesh->get_array<Real>(VERT, "metric")) {}
   OMEGA_H_DEVICE Real measure(Few<LO, 2> v) const {
     return metric_edge_length<space_dim, metric_dim>(v, coords, metrics);
   }

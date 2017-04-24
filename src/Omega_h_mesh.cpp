@@ -123,8 +123,7 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
     Omega_h_fail(
         "add_tag(%s, %s): already exists. use set_tag or "
         "remove_tag\n",
-        plural_names[dim],
-        name.c_str());
+        plural_names[dim], name.c_str());
   }
   CHECK(ncomps >= 0);
   CHECK(ncomps <= Int(INT8_MAX));

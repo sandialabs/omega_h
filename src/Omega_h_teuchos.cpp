@@ -210,8 +210,7 @@ void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl) {
   set_if_given(&input->element_count_over_relaxation, pl,
       "Element Count Over-Relaxation");
   input->nsmoothing_steps = 0;
-  set_if_given(&input->nsmoothing_steps, pl,
-      "Smoothing Step Count");
+  set_if_given(&input->nsmoothing_steps, pl, "Smoothing Step Count");
 }
 
 Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh) {
@@ -294,7 +293,8 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
   }
 }
 
-void update_tag_set(TagSet* p_tags, Int elem_dim, Teuchos::ParameterList const& pl) {
+void update_tag_set(
+    TagSet* p_tags, Int elem_dim, Teuchos::ParameterList const& pl) {
   TagSet& tags = *p_tags;
   std::map<std::string, Int> names2dims;
   names2dims["Element"] = elem_dim;

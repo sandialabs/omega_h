@@ -34,8 +34,8 @@ MetricInput::MetricInput() {
   nsmoothing_steps = 0;
 }
 
-static Reals get_variation_metrics(Mesh* mesh, Real knob,
-    Int dim, std::string const& name, Int ncomps, Reals data) {
+static Reals get_variation_metrics(Mesh* mesh, Real knob, Int dim,
+    std::string const& name, Int ncomps, Reals data) {
   OMEGA_H_CHECK(data.size() == mesh->nents(dim) * ncomps);
   if (dim == VERT) {
     if (ncomps == 1) {

@@ -397,8 +397,8 @@ void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
   write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks);
 }
 
-void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
-    TagSet const& tags) {
+void write_locals_and_owners(
+    std::ostream& stream, Mesh* mesh, Int ent_dim, TagSet const& tags) {
   if (tags[size_t(ent_dim)].count("local")) {
     write_locals(stream, mesh, ent_dim);
   }
@@ -477,8 +477,8 @@ static void default_dim(Mesh* mesh, Int* cell_dim) {
   if (*cell_dim == -1) *cell_dim = mesh->dim();
 }
 
-void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    TagSet const& tags) {
+void write_vtu(
+    std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags) {
   default_dim(mesh, &cell_dim);
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
@@ -559,7 +559,8 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "VTKFile");
 }
 
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags) {
+void write_vtu(
+    std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
   write_vtu(file, mesh, cell_dim, tags);
@@ -660,8 +661,8 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
   *vtupath_out = vtupath;
 }
 
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
-    TagSet const& tags) {
+void write_parallel(
+    std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags) {
   default_dim(mesh, &cell_dim);
   auto rank = mesh->comm()->rank();
   if (rank == 0) {
@@ -807,9 +808,7 @@ void Writer::write(Real time, TagSet const& tags) {
   ++step_;
 }
 
-void Writer::write(Real time) {
-  this->write(time, get_all_vtk_tags(mesh_));
-}
+void Writer::write(Real time) { this->write(time, get_all_vtk_tags(mesh_)); }
 
 void Writer::write() { this->write(Real(step_)); }
 

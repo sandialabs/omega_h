@@ -11,7 +11,8 @@ void check_tag_name(std::string const& name) {
   auto id_regex_def = "[_a-zA-Z][_a-zA-Z0-9]*";
   auto id_regex = std::regex(id_regex_def);
   if (!std::regex_match(name, id_regex)) {
-    Omega_h_fail("\"%s\" is not a valid tag name.\n"
+    Omega_h_fail(
+        "\"%s\" is not a valid tag name.\n"
         "tags must match this regex: %s\n",
         name.c_str(), id_regex_def);
   }

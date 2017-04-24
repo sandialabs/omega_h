@@ -48,12 +48,14 @@ void read(std::string const& filename, Mesh* mesh);
 
 namespace vtk {
 TagSet get_all_vtk_tags(Mesh* mesh);
-void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags);
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    TagSet const& tags);
+void write_vtu(
+    std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags);
+void write_vtu(
+    std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim);
 void write_vtu(std::string const& filename, Mesh* mesh);
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags);
+void write_parallel(
+    std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim);
 void write_parallel(std::string const& path, Mesh* mesh);
 class Writer {

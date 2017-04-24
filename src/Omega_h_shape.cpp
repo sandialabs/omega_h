@@ -34,19 +34,24 @@ Reals measure_edges_real(Mesh* mesh, LOs a2e) {
 Reals measure_edges_metric(Mesh* mesh, LOs a2e, Reals metrics) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (mesh->dim() == 3 && metric_dim == 3) {
-    return measure_edges_tmpl(mesh, a2e, MetricEdgeLengths<3, 3>(mesh, metrics));
+    return measure_edges_tmpl(
+        mesh, a2e, MetricEdgeLengths<3, 3>(mesh, metrics));
   }
   if (mesh->dim() == 2 && metric_dim == 2) {
-    return measure_edges_tmpl(mesh, a2e, MetricEdgeLengths<2, 2>(mesh, metrics));
+    return measure_edges_tmpl(
+        mesh, a2e, MetricEdgeLengths<2, 2>(mesh, metrics));
   }
   if (mesh->dim() == 3 && metric_dim == 1) {
-    return measure_edges_tmpl(mesh, a2e, MetricEdgeLengths<3, 1>(mesh, metrics));
+    return measure_edges_tmpl(
+        mesh, a2e, MetricEdgeLengths<3, 1>(mesh, metrics));
   }
   if (mesh->dim() == 2 && metric_dim == 1) {
-    return measure_edges_tmpl(mesh, a2e, MetricEdgeLengths<2, 1>(mesh, metrics));
+    return measure_edges_tmpl(
+        mesh, a2e, MetricEdgeLengths<2, 1>(mesh, metrics));
   }
   if (mesh->dim() == 1 && metric_dim == 1) {
-    return measure_edges_tmpl(mesh, a2e, MetricEdgeLengths<1, 1>(mesh, metrics));
+    return measure_edges_tmpl(
+        mesh, a2e, MetricEdgeLengths<1, 1>(mesh, metrics));
   }
   OMEGA_H_NORETURN(Reals());
 }
