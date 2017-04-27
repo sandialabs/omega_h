@@ -60,7 +60,7 @@ template <Int max_m, Int max_n>
 OMEGA_H_INLINE QRFactorization<max_m, max_n> factorize_qr_householder(
     Int m, Int n, Matrix<max_m, max_n> a) {
   Few<Vector<max_m>, max_n> v;
-  Real anorm = frobenius_norm(m, n, a);
+  Real anorm = norm(m, n, a);
   for (Int k = 0; k < n; ++k) {
     v[k] = householder_vector(m, a, anorm, k);
     reflect_columns(m, n, a, v[k], k);
