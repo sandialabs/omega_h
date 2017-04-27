@@ -26,10 +26,22 @@ OMEGA_H_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
 }
 
 template <Int n>
+OMEGA_H_INLINE Vector<n>& operator+=(Vector<n>& a, Vector<n> b) {
+  a = a + b;
+  return a;
+}
+
+template <Int n>
 OMEGA_H_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] - b[i];
   return c;
+}
+
+template <Int n>
+OMEGA_H_INLINE Vector<n>& operator-=(Vector<n>& a, Vector<n> b) {
+  a = a - b;
+  return a;
 }
 
 template <Int n>
