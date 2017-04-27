@@ -98,6 +98,12 @@ OMEGA_H_INLINE Matrix<m, n> operator*(Matrix<m, n> a, Real b) {
 }
 
 template <Int m, Int n>
+OMEGA_H_INLINE Matrix<m, n>& operator*=(Matrix<m, n>& a, Real b) {
+  a = a * b;
+  return a;
+}
+
+template <Int m, Int n>
 OMEGA_H_INLINE Matrix<m, n> operator*(Real a, Matrix<m, n> b) {
   return b * a;
 }
@@ -107,6 +113,12 @@ OMEGA_H_INLINE Matrix<m, n> operator/(Matrix<m, n> a, Real b) {
   Matrix<m, n> c;
   for (Int j = 0; j < n; ++j) c[j] = a[j] / b;
   return c;
+}
+
+template <Int m, Int n>
+OMEGA_H_INLINE Matrix<m, n>& operator/=(Matrix<m, n>& a, Real b) {
+  a = a / b;
+  return a;
 }
 
 template <Int m, Int n>
