@@ -47,6 +47,12 @@ OMEGA_H_INLINE Vector<n> operator*(Vector<n> a, Real b) {
 }
 
 template <Int n>
+OMEGA_H_INLINE Vector<n>& operator*=(Vector<n>& a, Real b) {
+  a = a * b;
+  return a;
+}
+
+template <Int n>
 OMEGA_H_INLINE Vector<n> operator*(Real a, Vector<n> b) {
   return b * a;
 }
@@ -56,6 +62,12 @@ OMEGA_H_INLINE Vector<n> operator/(Vector<n> a, Real b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] / b;
   return c;
+}
+
+template <Int n>
+OMEGA_H_INLINE Vector<n>& operator/=(Vector<n>& a, Real b) {
+  a = a / b;
+  return a;
 }
 
 template <Int n>
