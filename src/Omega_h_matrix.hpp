@@ -141,10 +141,22 @@ OMEGA_H_INLINE Matrix<m, n> operator+(Matrix<m, n> a, Matrix<m, n> b) {
 }
 
 template <Int m, Int n>
+OMEGA_H_INLINE Matrix<m, n>& operator+=(Matrix<m, n>& a, Matrix<m, n> b) {
+  a = a + b;
+  return a;
+}
+
+template <Int m, Int n>
 OMEGA_H_INLINE Matrix<m, n> operator-(Matrix<m, n> a, Matrix<m, n> b) {
   Matrix<m, n> c;
   for (Int j = 0; j < n; ++j) c[j] = a[j] - b[j];
   return c;
+}
+
+template <Int m, Int n>
+OMEGA_H_INLINE Matrix<m, n>& operator-=(Matrix<m, n>& a, Matrix<m, n> b) {
+  a = a - b;
+  return a;
 }
 
 template <Int m, Int n>
