@@ -214,6 +214,22 @@ OMEGA_H_INLINE Real determinant(Matrix<3, 3> m) {
          (a * f * h);
 }
 
+template <Int m, Int n>
+OMEGA_H_INLINE Real inner_product(Matrix<m, n> a) {
+  Real out = 0.0;
+  for (Int j = 0; j < n; ++j) {
+    for (Int i = 0; i < m; ++i) {
+      out += square(a[j][i]);
+    }
+  }
+  return out;
+}
+
+template <Int m, Int n>
+OMEGA_H_INLINE Real norm(Matrix<m, n> a) {
+  return sqrt(inner_product(a));
+}
+
 OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> a) {
   return matrix_3x3(0, -a[2], a[1], a[2], 0, -a[0], -a[1], a[0], 0);
 }
