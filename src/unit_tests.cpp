@@ -1025,6 +1025,19 @@ static void test_binary_search() {
   test_binary_search(a, 10000, -1);
 }
 
+static void test_scalar_ptr() {
+  Vector<2> v;
+  OMEGA_H_CHECK(scalar_ptr(v) == &v[0]);
+  auto const& v2 = v;
+  OMEGA_H_CHECK(scalar_ptr(v2) == &v2[0]);
+  OMEGA_H_CHECK(scalar_ptr(v2) == &v2(0));
+  Matrix<5, 4> m;
+  OMEGA_H_CHECK(scalar_ptr(m) == &m[0][0]);
+  auto const& m2 = m;
+  OMEGA_H_CHECK(scalar_ptr(m2) == &m2[0][0]);
+  OMEGA_H_CHECK(scalar_ptr(m2) == &m2(0, 0));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
@@ -1083,5 +1096,6 @@ int main(int argc, char** argv) {
   test_volume_vert_gradients();
   test_1d_box(&lib);
   test_binary_search();
+  test_scalar_ptr();
   CHECK(get_current_bytes() == 0);
 }

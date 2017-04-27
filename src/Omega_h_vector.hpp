@@ -16,7 +16,21 @@ class Vector : public Few<Real, n> {
   }
   OMEGA_H_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
   OMEGA_H_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
+#define OMEGA_H_VECTOR_AT \
+  return Few<Real, n>::operator[](i)
+  OMEGA_H_INLINE Real& operator()(Int i) { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real const& operator()(Int i) const { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real volatile& operator()(Int i) volatile { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real const volatile& operator()(Int i) const volatile {
+    OMEGA_H_VECTOR_AT;
+  }
+#undef OMEGA_H_VECTOR_AT
 };
+
+template <Int n>
+OMEGA_H_INLINE Real* scalar_ptr(Vector<n>& v) { return &v[0]; }
+template <Int n>
+OMEGA_H_INLINE Real const* scalar_ptr(Vector<n> const& v) { return &v[0]; }
 
 template <Int n>
 OMEGA_H_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
@@ -171,7 +185,7 @@ OMEGA_H_INLINE Real cross(Vector<2> a, Vector<2> b) {
   return (a[0] * b[1] - a[1] * b[0]);
 }
 
-OMEGA_H_INLINE Vector<3> cross(Vector<3> a, Vector<3> b) {
+OMEGA_H_INLINE Vector<3> cross(Omega_h::Vector<3> a, Omega_h::Vector<3> b) {
   return vector_3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
       a[0] * b[1] - a[1] * b[0]);
 }

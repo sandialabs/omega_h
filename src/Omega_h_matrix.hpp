@@ -37,6 +37,11 @@ class Matrix : public Few<Vector<m>, n> {
 };
 
 template <Int m, Int n>
+OMEGA_H_INLINE Real* scalar_ptr(Matrix<m, n>& a) { return &a[0][0]; }
+template <Int m, Int n>
+OMEGA_H_INLINE Real const* scalar_ptr(Matrix<m, n> const& a) { return &a[0][0]; }
+
+template <Int m, Int n>
 inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
   Int k = 0;
   for (Real v : l) {
