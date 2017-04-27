@@ -22,30 +22,18 @@ class Matrix : public Few<Vector<m>, n> {
   OMEGA_H_INLINE Matrix(Matrix<m, n> const& rhs) : Few<Vector<m>, n>(rhs) {}
   OMEGA_H_INLINE Matrix(const volatile Matrix<m, n>& rhs)
       : Few<Vector<m>, n>(rhs) {}
-#ifdef OMEGA_H_CHECK_BOUNDS
-#define OMEGA_H_MATRIX_AT                                                      \
-  OMEGA_H_CHECK(0 <= i);                                                       \
-  OMEGA_H_CHECK(i < m);                                                        \
-  OMEGA_H_CHECK(0 <= j);                                                       \
-  OMEGA_H_CHECK(j < n);                                                        \
-  return Few<Vector<m>, n>::operator[](j)[i]
-#else
-#define OMEGA_H_MATRIX_AT \
-  return Few<Vector<m>, n>::operator[](j)[i]
-#endif
   OMEGA_H_INLINE Real& operator()(Int i, Int j) {
-    OMEGA_H_MATRIX_AT;
+    return Few<Vector<m>, n>::operator[](j)[i];
   }
   OMEGA_H_INLINE Real const& operator()(Int i, Int j) const {
-    OMEGA_H_MATRIX_AT;
+    return Few<Vector<m>, n>::operator[](j)[i];
   }
   OMEGA_H_INLINE Real volatile& operator()(Int i, Int j) volatile {
-    OMEGA_H_MATRIX_AT;
+    return Few<Vector<m>, n>::operator[](j)[i];
   }
   OMEGA_H_INLINE Real const volatile& operator()(Int i, Int j) const volatile {
-    OMEGA_H_MATRIX_AT;
+    return Few<Vector<m>, n>::operator[](j)[i];
   }
-#undef OMEGA_H_MATRIX_AT
 };
 
 template <Int m, Int n>
