@@ -153,7 +153,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
-static void order_by_globals(
+static void sort_by_globals(
     LOs l2lh, Write<LO> lh2h, Write<I8> codes, Read<GO> hg) {
   LO nl = l2lh.size() - 1;
   auto f = LAMBDA(LO l) {
@@ -207,7 +207,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
     };
     parallel_for(nlh, f);
   }
-  order_by_globals(l2lh, lh2h, codes, high_globals);
+  sort_by_globals(l2lh, lh2h, codes, high_globals);
   auto t1 = now();
   add_to_global_timer("inverting", t1 - t0);
   return Adj(l2lh, lh2h, codes);

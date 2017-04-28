@@ -1,6 +1,8 @@
 #ifndef OMEGA_H_EIGEN_HPP
 #define OMEGA_H_EIGEN_HPP
 
+#include <iostream>
+
 #include <Omega_h_matrix.hpp>
 
 namespace Omega_h {
@@ -407,22 +409,51 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(Matrix<dim, dim> a,
   auto tol = eps * norm(a);
   Int iter = 0;
   while (norm_off_diag(a) > tol) {
+  //std::cerr << "A\n";
+  //for (Int i = 0; i < dim; ++i) {
+  //  for (Int j = 0; j < dim; ++j)
+  //    std::cerr << ' ' << a(i,j);
+  //  std::cerr << '\n';
+  //}
+  //std::cerr << "off " << norm_off_diag(a) << '\n';
     OMEGA_H_CHECK(iter < max_iter);
     auto pq = arg_max_off_diag(a);
     auto p = pq[0];
     auto q = pq[1];
+  //std::cerr << "p " << p << " q " << q << '\n';
     auto f = a(p,p);
     auto g = a(p,q);
     auto h = a(q,q);
+  //std::cerr << "f " << f << " g " << g << " h " << h << '\n';
     auto cs = schur_sym(f, g, h);
     auto c = cs[0];
     auto s = cs[1];
+  //std::cerr << "c " << c << " s " << s << '\n';
     a = givens_left(c, s, p, q, a);
     a = givens_right(c, s, p, q, a);
     v = givens_right(c, s, p, q, v);
     ++iter;
   }
   return {v, diagonal(a)};
+}
+
+template <Int dim>
+OMEGA_H_INLINE DiagDecomp<dim> sort_by_magnitude(DiagDecomp<dim> dd) {
+  Few<Int, dim> perm;
+  for (Int i = 0; i < dim; ++i) perm[i] = i;
+  for (Int i = 0; i < dim; ++i) {
+    auto max_j = i;
+    auto max_m = fabs(dd.l[perm[max_j]]);
+    for (Int j = i + 1; j < dim; ++j) {
+      auto m = fabs(dd.l[perm[j]]);
+      if (m > max_m) max_j = j;
+    }
+    swap2(perm[i], perm[max_j]);
+  }
+  DiagDecomp<dim> out;
+  for (Int i = 0; i < dim; ++i) out.l[i] = dd.l[perm[i]];
+  for (Int i = 0; i < dim; ++i) out.q[i] = dd.q[perm[i]];
+  return out;
 }
 
 Reals get_max_eigenvalues(Int dim, Reals symms);

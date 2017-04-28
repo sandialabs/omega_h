@@ -165,6 +165,39 @@ static void test_eigen_cubic() {
   test_eigen_metric(vector_3(1e-6, 1e-3, 1e-3));
 }
 
+template <Int dim>
+static void test_eigen_jacobi(Matrix<dim, dim> a,
+    Matrix<dim, dim> expect_q, Vector<dim> expect_l) {
+  auto ed = decompose_eigen_jacobi(a);
+  ed = sort_by_magnitude(ed);
+  std::cerr << std::scientific;
+  std::cerr << "A\n";
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j)
+      std::cerr << ' ' << a(i,j);
+    std::cerr << '\n';
+  }
+  std::cerr << "eigenvectors\n";
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j)
+      std::cerr << ' ' << ed.q(i,j);
+    std::cerr << '\n';
+  }
+  std::cerr << "eigenvalues\n";
+  for (Int i = 0; i < dim; ++i) {
+    std::cerr << ' ' << ed.l(i);
+    std::cerr << '\n';
+  }
+  OMEGA_H_CHECK(are_close(ed.q, expect_q));
+  OMEGA_H_CHECK(are_close(ed.l, expect_l));
+}
+
+static void test_eigen_jacobi() {
+//test_eigen_jacobi(identity_matrix<2, 2>());
+//test_eigen_jacobi(identity_matrix<3, 3>());
+  test_eigen_jacobi(matrix_2x2(2, 1, 1, 2), matrix_2x2(1, 1, 1, -1)/sqrt(2), vector_2(3, 1));
+}
+
 static void test_intersect_ortho_metrics(
     Vector<3> h1, Vector<3> h2, Vector<3> hi_expect) {
   auto q =
@@ -1048,6 +1081,7 @@ int main(int argc, char** argv) {
   test_qr_decomps();
   test_eigen_quadratic();
   test_eigen_cubic();
+  test_eigen_jacobi();
   test_least_squares();
   test_int128();
   test_repro_sum();
