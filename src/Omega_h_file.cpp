@@ -12,7 +12,8 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_internal.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
@@ -40,13 +41,13 @@ void safe_mkdir(const char* path) {
 bool directory_exists(const char* path) {
   struct stat info;
   if (stat(path, &info) != 0) return false;
-  CHECK(info.st_mode & S_IFDIR);
+  OMEGA_H_CHECK(info.st_mode & S_IFDIR);
   return true;
 }
 
 std::string parent_path(std::string const& path) {
   auto pos = path.find_last_of('/');
-  CHECK(pos != std::string::npos);
+  OMEGA_H_CHECK(pos != std::string::npos);
   return path.substr(0, pos);
 }
 
@@ -65,7 +66,7 @@ static_assert(sizeof(LO) == 4, "osh format assumes 32 bit LO");
 static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
-INLINE std::uint32_t bswap32(std::uint32_t a) {
+OMEGA_H_INLINE std::uint32_t bswap32(std::uint32_t a) {
 #ifdef OMEGA_H_USE_CUDA
   a = ((a & 0x000000FF) << 24) | ((a & 0x0000FF00) << 8) |
       ((a & 0x00FF0000) >> 8) | ((a & 0xFF000000) >> 24);
@@ -75,7 +76,7 @@ INLINE std::uint32_t bswap32(std::uint32_t a) {
   return a;
 }
 
-INLINE std::uint64_t bswap64(std::uint64_t a) {
+OMEGA_H_INLINE std::uint64_t bswap64(std::uint64_t a) {
 #ifdef OMEGA_H_USE_CUDA
   a = ((a & 0x00000000000000FFULL) << 56) |
       ((a & 0x000000000000FF00ULL) << 40) |
@@ -93,12 +94,12 @@ struct SwapBytes;
 
 template <typename T>
 struct SwapBytes<T, 1> {
-  INLINE static void swap(T*) {}
+  OMEGA_H_INLINE static void swap(T*) {}
 };
 
 template <typename T>
 struct SwapBytes<T, 4> {
-  INLINE static void swap(T* ptr) {
+  OMEGA_H_INLINE static void swap(T* ptr) {
     std::uint32_t* p2 = reinterpret_cast<std::uint32_t*>(ptr);
     *p2 = bswap32(*p2);
   }
@@ -106,14 +107,14 @@ struct SwapBytes<T, 4> {
 
 template <typename T>
 struct SwapBytes<T, 8> {
-  INLINE static void swap(T* ptr) {
+  OMEGA_H_INLINE static void swap(T* ptr) {
     std::uint64_t* p2 = reinterpret_cast<std::uint64_t*>(ptr);
     *p2 = bswap64(*p2);
   }
 };
 
 template <typename T>
-INLINE void swap_bytes(T* ptr) {
+OMEGA_H_INLINE void swap_bytes(T* ptr) {
   SwapBytes<T>::swap(ptr);
 }
 
@@ -134,7 +135,7 @@ Read<T> swap_if_needed(Read<T> array, bool is_little_endian) {
     return array;
   }
   Write<T> out = deep_copy(array);
-  auto f = LAMBDA(LO i) { swap_bytes(&out[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { swap_bytes(&out[i]); };
   parallel_for(out.size(), f);
   return out;
 }
@@ -166,7 +167,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   int ret = ::compress2(compressed, &dest_bytes,
       reinterpret_cast<const Bytef*>(uncompressed.nonnull_data()), source_bytes,
       Z_BEST_SPEED);
-  CHECK(ret == Z_OK);
+  OMEGA_H_CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
   write_value(stream, compressed_bytes);
   stream.write(reinterpret_cast<const char*>(compressed), compressed_bytes);
@@ -181,7 +182,7 @@ template <typename T>
 void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   LO size;
   read_value(stream, size);
-  CHECK(size >= 0);
+  OMEGA_H_CHECK(size >= 0);
   I64 uncompressed_bytes =
       static_cast<I64>(static_cast<std::size_t>(size) * sizeof(T));
   HostWrite<T> uncompressed(size);
@@ -189,7 +190,7 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   if (is_compressed) {
     I64 compressed_bytes;
     read_value(stream, compressed_bytes);
-    CHECK(compressed_bytes >= 0);
+    OMEGA_H_CHECK(compressed_bytes >= 0);
     auto compressed = new Bytef[compressed_bytes];
     stream.read(reinterpret_cast<char*>(compressed), compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
@@ -198,12 +199,12 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
         reinterpret_cast<Bytef*>(uncompressed.nonnull_data());
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
-    CHECK(ret == Z_OK);
-    CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
+    OMEGA_H_CHECK(ret == Z_OK);
+    OMEGA_H_CHECK(dest_bytes == static_cast<uLong>(uncompressed_bytes));
     delete[] compressed;
   } else
 #else
-  CHECK(is_compressed == false);
+  OMEGA_H_CHECK(is_compressed == false);
 #endif
   {
     stream.read(reinterpret_cast<char*>(uncompressed.nonnull_data()),
@@ -221,7 +222,7 @@ void write(std::ostream& stream, std::string const& val) {
 void read(std::istream& stream, std::string& val) {
   I32 len;
   read_value(stream, len);
-  CHECK(len >= 0);
+  OMEGA_H_CHECK(len >= 0);
   val.resize(static_cast<std::size_t>(len));
   stream.read(&val[0], len);
 }
@@ -257,13 +258,13 @@ static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
   mesh->set_dim(Int(dim));
   I32 comm_size;
   read_value(stream, comm_size);
-  CHECK(mesh->comm()->size() == comm_size);
+  OMEGA_H_CHECK(mesh->comm()->size() == comm_size);
   I32 comm_rank;
   read_value(stream, comm_rank);
-  CHECK(mesh->comm()->rank() == comm_rank);
+  OMEGA_H_CHECK(mesh->comm()->rank() == comm_rank);
   I8 parting_i8;
   read_value(stream, parting_i8);
-  CHECK(parting_i8 == I8(OMEGA_H_ELEM_BASED) ||
+  OMEGA_H_CHECK(parting_i8 == I8(OMEGA_H_ELEM_BASED) ||
         parting_i8 == I8(OMEGA_H_GHOSTED) ||
         parting_i8 == I8(OMEGA_H_VERT_BASED));
   if (version >= 3) {
@@ -384,15 +385,15 @@ void write(std::ostream& stream, Mesh* mesh) {
 void read(std::istream& stream, Mesh* mesh, I32 version) {
   unsigned char magic_in[2];
   stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
-  CHECK(magic_in[0] == magic[0]);
-  CHECK(magic_in[1] == magic[1]);
+  OMEGA_H_CHECK(magic_in[0] == magic[0]);
+  OMEGA_H_CHECK(magic_in[1] == magic[1]);
   if (version == -1) read_value(stream, version);
-  CHECK(version >= 1);
-  CHECK(version <= latest_version);
+  OMEGA_H_CHECK(version >= 1);
+  OMEGA_H_CHECK(version <= latest_version);
   I8 is_compressed;
   read_value(stream, is_compressed);
 #ifndef OMEGA_H_USE_ZLIB
-  CHECK(!is_compressed);
+  OMEGA_H_CHECK(!is_compressed);
 #endif
   read_meta(stream, mesh, version);
   LO nverts;
@@ -424,7 +425,7 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
 static void write_int_file(std::string const& filepath, Mesh* mesh, I32 value) {
   if (mesh->comm()->rank() == 0) {
     std::ofstream file(filepath.c_str());
-    CHECK(file.is_open());
+    OMEGA_H_CHECK(file.is_open());
     file << value << '\n';
   }
 }
@@ -482,7 +483,7 @@ void write(std::string const& path, Mesh* mesh) {
   mesh->comm()->barrier();
   auto filepath = path + "/" + to_string(mesh->comm()->rank()) + ".osh";
   std::ofstream file(filepath.c_str());
-  CHECK(file.is_open());
+  OMEGA_H_CHECK(file.is_open());
   write(file, mesh);
   write_nparts(path, mesh);
   write_version(path, mesh);
@@ -495,7 +496,7 @@ void read_in_comm(
   auto filepath = path + "/" + to_string(mesh->comm()->rank());
   if (version != -1) filepath += ".osh";
   std::ifstream file(filepath.c_str());
-  CHECK(file.is_open());
+  OMEGA_H_CHECK(file.is_open());
   read(file, mesh, version);
 }
 
@@ -516,7 +517,7 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh) {
   return nparts;
 }
 
-#define INST(T)                                                                \
+#define OMEGA_H_INST(T)                                                                \
   template void swap_if_needed(T& val, bool is_little_endian);                 \
   template Read<T> swap_if_needed(Read<T> array, bool is_little_endian);       \
   template void write_value(std::ostream& stream, T val);                      \
@@ -524,11 +525,11 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh) {
   template void write_array(std::ostream& stream, Read<T> array);              \
   template void read_array(                                                    \
       std::istream& stream, Read<T>& array, bool is_compressed);
-INST(I8)
-INST(I32)
-INST(I64)
-INST(Real)
-#undef INST
+OMEGA_H_INST(I8)
+OMEGA_H_INST(I32)
+OMEGA_H_INST(I64)
+OMEGA_H_INST(Real)
+#undef OMEGA_H_INST
 
 // for VTK compression headers
 template void swap_if_needed(std::size_t& val, bool is_little_endian);
