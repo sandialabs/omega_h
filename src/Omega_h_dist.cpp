@@ -1,4 +1,4 @@
-#include "Omega_h_internal.hpp"
+#include "Omega_h_dist.hpp"
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
@@ -28,7 +28,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   auto content2items = sort_by_keys(items2ranks);
   auto content2ranks = unmap(content2items, items2ranks, 1);
   Write<I8> jumps(content2ranks.size());
-  auto mark_jumps = LAMBDA(LO i) {
+  auto mark_jumps = OMEGA_H_LAMBDA(LO i) {
     jumps[i] = (content2ranks[i] != content2ranks[i + 1]);
   };
   parallel_for(jumps.size() - 1, mark_jumps);
@@ -38,7 +38,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   auto content2msgs = offset_scan(Read<I8>(jumps));
   auto nmsgs = content2msgs.last();
   Write<I32> msgs2ranks(nmsgs);
-  auto log_ranks = LAMBDA(LO i) {
+  auto log_ranks = OMEGA_H_LAMBDA(LO i) {
     if (jumps[i]) {
       msgs2ranks[content2msgs[i]] = content2ranks[i];
     }
@@ -46,7 +46,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   parallel_for(jumps.size(), log_ranks);
   Write<LO> msgs2content(nmsgs + 1);
   msgs2content.set(0, 0);
-  auto log_ends = LAMBDA(LO i) {
+  auto log_ends = OMEGA_H_LAMBDA(LO i) {
     if (jumps[i]) {
       msgs2content[content2msgs[i] + 1] = i + 1;
     }
