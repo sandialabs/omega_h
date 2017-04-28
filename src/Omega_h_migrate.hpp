@@ -1,9 +1,12 @@
-#ifndef MIGRATE_HPP
-#define MIGRATE_HPP
+#ifndef OMEGA_H_MIGRATE_HPP
+#define OMEGA_H_MIGRATE_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_dist.hpp>
+#include <Omega_h_adj.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 /* create arrays mapping uses of (low_dim) entities by
    (high_dim) entities to their (low_dim) owners */
