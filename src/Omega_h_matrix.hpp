@@ -37,9 +37,13 @@ class Matrix : public Few<Vector<m>, n> {
 };
 
 template <Int m, Int n>
-OMEGA_H_INLINE Real* scalar_ptr(Matrix<m, n>& a) { return &a[0][0]; }
+OMEGA_H_INLINE Real* scalar_ptr(Matrix<m, n>& a) {
+  return &a[0][0];
+}
 template <Int m, Int n>
-OMEGA_H_INLINE Real const* scalar_ptr(Matrix<m, n> const& a) { return &a[0][0]; }
+OMEGA_H_INLINE Real const* scalar_ptr(Matrix<m, n> const& a) {
+  return &a[0][0];
+}
 
 template <Int m, Int n>
 inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
@@ -464,7 +468,7 @@ OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> deviator(Matrix<dim, dim> a) {
-  return (a - ((1.0/dim) * trace(a) * identity_matrix<dim, dim>()));
+  return (a - ((1.0 / dim) * trace(a) * identity_matrix<dim, dim>()));
 }
 
 template <Int dim>

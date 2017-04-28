@@ -319,7 +319,7 @@ OMEGA_H_INLINE Real norm_off_diag(Matrix<dim, dim> a) {
   for (Int j = 0; j < dim; ++j) {
     for (Int i = 0; i < dim; ++i) {
       if (i != j) {
-        s += square(a(i,j));
+        s += square(a(i, j));
       }
     }
   }
@@ -334,10 +334,10 @@ template <Int dim>
 OMEGA_H_INLINE Few<Int, 2> arg_max_off_diag(Matrix<dim, dim> a) {
   Int p = 0;
   Int q = 1;
-  auto s = fabs(a(p,q));
+  auto s = fabs(a(p, q));
   for (Int j = 0; j < dim; ++j) {
     for (Int i = 0; i < dim; ++i) {
-      auto s2 = fabs(a(i,j));
+      auto s2 = fabs(a(i, j));
       if (i != j && s2 > s) {
         p = i;
         q = j;
@@ -372,26 +372,26 @@ OMEGA_H_INLINE Vector<2> schur_sym(Real f, Real g, Real h) {
 
 /* Apply Givens-Jacobi rotation on the left */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> givens_left(Real c, Real s, Int i, Int k,
-    Matrix<dim, dim> a) {
+OMEGA_H_INLINE Matrix<dim, dim> givens_left(
+    Real c, Real s, Int i, Int k, Matrix<dim, dim> a) {
   for (Int j = 0; j < dim; ++j) {
-    auto t1 = a(i,j);
-    auto t2 = a(k,j);
-    a(i,j) = c * t1 - s * t2;
-    a(k,j) = s * t1 + c * t2;
+    auto t1 = a(i, j);
+    auto t2 = a(k, j);
+    a(i, j) = c * t1 - s * t2;
+    a(k, j) = s * t1 + c * t2;
   }
   return a;
 }
 
 /* Apply Givens-Jacobi rotation on the right */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> givens_right(Real c, Real s, Int i, Int k,
-    Matrix<dim, dim> a) {
+OMEGA_H_INLINE Matrix<dim, dim> givens_right(
+    Real c, Real s, Int i, Int k, Matrix<dim, dim> a) {
   for (Int j = 0; j < dim; ++j) {
-    auto t1 = a(j,i);
-    auto t2 = a(j,k);
-    a(j,i) = c * t1 - s * t2;
-    a(j,k) = s * t1 + c * t2;
+    auto t1 = a(j, i);
+    auto t2 = a(j, k);
+    a(j, i) = c * t1 - s * t2;
+    a(j, k) = s * t1 + c * t2;
   }
   return a;
 }
@@ -400,8 +400,8 @@ OMEGA_H_INLINE Matrix<dim, dim> givens_right(Real c, Real s, Int i, Int k,
    from the MiniTensor package, which in turn is based on
    algorithm 8.4.2 in Matrix Computations, Golub & Van Loan 1996 */
 template <Int dim>
-OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(Matrix<dim, dim> a,
-    Real eps = DBL_EPSILON, Int max_iter = -1) {
+OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(
+    Matrix<dim, dim> a, Real eps = DBL_EPSILON, Int max_iter = -1) {
   // Estimate based on random generation and linear regression.
   // Golub & Van Loan p 429 expect ~ dimension * log(dimension)
   if (max_iter == -1) max_iter = (5 * dim * dim) / 2;
@@ -413,9 +413,9 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(Matrix<dim, dim> a,
     auto pq = arg_max_off_diag(a);
     auto p = pq[0];
     auto q = pq[1];
-    auto f = a(p,p);
-    auto g = a(p,q);
-    auto h = a(q,q);
+    auto f = a(p, p);
+    auto g = a(p, q);
+    auto h = a(q, q);
     auto cs = schur_sym(f, g, h);
     auto c = cs[0];
     auto s = cs[1];

@@ -166,8 +166,8 @@ static void test_eigen_cubic() {
 }
 
 template <Int dim>
-static void test_eigen_jacobi(Matrix<dim, dim> a,
-    Matrix<dim, dim> expect_q, Vector<dim> expect_l) {
+static void test_eigen_jacobi(
+    Matrix<dim, dim> a, Matrix<dim, dim> expect_q, Vector<dim> expect_l) {
   auto ed = decompose_eigen_jacobi(a);
   ed = sort_by_magnitude(ed);
   OMEGA_H_CHECK(are_close(ed.q, expect_q));
@@ -175,13 +175,15 @@ static void test_eigen_jacobi(Matrix<dim, dim> a,
 }
 
 static void test_eigen_jacobi() {
-  test_eigen_jacobi(identity_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(1, 1));
-  test_eigen_jacobi(identity_matrix<3, 3>(), identity_matrix<3, 3>(), vector_3(1, 1, 1));
-  test_eigen_jacobi(matrix_2x2(2, 1, 1, 2), matrix_2x2(1, 1, 1, -1)/sqrt(2), vector_2(3, 1));
+  test_eigen_jacobi(
+      identity_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(1, 1));
+  test_eigen_jacobi(
+      identity_matrix<3, 3>(), identity_matrix<3, 3>(), vector_3(1, 1, 1));
+  test_eigen_jacobi(matrix_2x2(2, 1, 1, 2), matrix_2x2(1, 1, 1, -1) / sqrt(2),
+      vector_2(3, 1));
   test_eigen_jacobi(matrix_3x3(2, 0, 0, 0, 3, 4, 0, 4, 9),
-      Matrix<3,3>({normalize(vector_3(0, 1, 2)),
-                   normalize(vector_3(1, 0, 0)),
-                   normalize(vector_3(0, 2, -1))}),
+      Matrix<3, 3>({normalize(vector_3(0, 1, 2)), normalize(vector_3(1, 0, 0)),
+          normalize(vector_3(0, 2, -1))}),
       vector_3(11, 2, 1));
 }
 

@@ -16,11 +16,12 @@ class Vector : public Few<Real, n> {
   }
   OMEGA_H_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
   OMEGA_H_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
-#define OMEGA_H_VECTOR_AT \
-  return Few<Real, n>::operator[](i)
+#define OMEGA_H_VECTOR_AT return Few<Real, n>::operator[](i)
   OMEGA_H_INLINE Real& operator()(Int i) { OMEGA_H_VECTOR_AT; }
   OMEGA_H_INLINE Real const& operator()(Int i) const { OMEGA_H_VECTOR_AT; }
-  OMEGA_H_INLINE Real volatile& operator()(Int i) volatile { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real volatile& operator()(Int i) volatile {
+    OMEGA_H_VECTOR_AT;
+  }
   OMEGA_H_INLINE Real const volatile& operator()(Int i) const volatile {
     OMEGA_H_VECTOR_AT;
   }
@@ -28,9 +29,13 @@ class Vector : public Few<Real, n> {
 };
 
 template <Int n>
-OMEGA_H_INLINE Real* scalar_ptr(Vector<n>& v) { return &v[0]; }
+OMEGA_H_INLINE Real* scalar_ptr(Vector<n>& v) {
+  return &v[0];
+}
 template <Int n>
-OMEGA_H_INLINE Real const* scalar_ptr(Vector<n> const& v) { return &v[0]; }
+OMEGA_H_INLINE Real const* scalar_ptr(Vector<n> const& v) {
+  return &v[0];
+}
 
 template <Int n>
 OMEGA_H_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
