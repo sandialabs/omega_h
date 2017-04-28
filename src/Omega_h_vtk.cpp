@@ -563,6 +563,7 @@ void write_vtu(
     std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
+  ask_for_mesh_tags(mesh, tags);
   write_vtu(file, mesh, cell_dim, tags);
 }
 
@@ -576,6 +577,7 @@ void write_vtu(std::string const& filename, Mesh* mesh) {
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     std::string const& piecepath, TagSet const& tags) {
+  ask_for_mesh_tags(mesh, tags);
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
   stream << "<PPoints>\n";
@@ -664,6 +666,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
 void write_parallel(
     std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags) {
   default_dim(mesh, &cell_dim);
+  ask_for_mesh_tags(mesh, tags);
   auto rank = mesh->comm()->rank();
   if (rank == 0) {
     safe_mkdir(path.c_str());

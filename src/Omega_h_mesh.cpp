@@ -717,7 +717,15 @@ TagSet get_all_mesh_tags(Mesh* mesh) {
   return out;
 }
 
-#define INST_T(T)                                                              \
+void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags) {
+  if (tags[EDGE].count("length")) mesh->ask_lengths();
+  if (tags[size_t(mesh->dim())].count("quality")) mesh->ask_qualities();
+  for (Int i = 0; i <= mesh->dim(); ++i) {
+    if (tags[size_t(i)].count("global")) mesh->ask_globals(i);
+  }
+}
+
+#define OMEGA_H_INST(T)                                                              \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
@@ -733,10 +741,10 @@ TagSet get_all_mesh_tags(Mesh* mesh) {
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \
   template Read<T> Mesh::reduce_array(                                         \
       Int ent_dim, Read<T> a, Int width, Omega_h_Op op);
-INST_T(I8)
-INST_T(I32)
-INST_T(I64)
-INST_T(Real)
-#undef INST_T
+OMEGA_H_INST(I8)
+OMEGA_H_INST(I32)
+OMEGA_H_INST(I64)
+OMEGA_H_INST(Real)
+#undef OMEGA_H_INST
 
 }  // end namespace Omega_h
