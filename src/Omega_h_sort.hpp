@@ -1,17 +1,17 @@
-#ifndef SORT_HPP
-#define SORT_HPP
+#ifndef OMEGA_H_SORT_HPP
+#define OMEGA_H_SORT_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
 
 template <typename T>
 LOs sort_by_keys(Read<T> keys, Int width = 1);
 
-#define INST_DECL(T) extern template LOs sort_by_keys(Read<T> keys, Int width);
-INST_DECL(LO)
-INST_DECL(GO)
-#undef INST_DECL
+#define OMEGA_H_INST_DECL(T) extern template LOs sort_by_keys(Read<T> keys, Int width);
+OMEGA_H_INST_DECL(LO)
+OMEGA_H_INST_DECL(GO)
+#undef OMEGA_H_INST_DECL
 
 }  // end namespace Omega_h
 

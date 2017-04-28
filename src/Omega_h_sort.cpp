@@ -42,7 +42,7 @@ template <typename T, Int N>
 struct CompareKeySets {
   T const* keys_;
   CompareKeySets(T const* keys) : keys_(keys) {}
-  INLINE bool operator()(const LO& a, const LO& b) const {
+  OMEGA_H_INLINE bool operator()(const LO& a, const LO& b) const {
     for (Int i = 0; i < N; ++i) {
       T x = keys_[a * N + i];
       T y = keys_[b * N + i];
@@ -54,7 +54,7 @@ struct CompareKeySets {
 
 template <Int N, typename T>
 static LOs sort_by_keys_tmpl(Read<T> keys) {
-  CHECK(keys.size() % N == 0);
+  OMEGA_H_CHECK(keys.size() % N == 0);
   Write<LO> perm(keys.size() / N, 0, 1);
   LO* begin = perm.data();
   LO* end = perm.data() + perm.size();
@@ -74,7 +74,7 @@ LOs sort_by_keys(Read<T> keys, Int width) {
     case 3:
       return sort_by_keys_tmpl<3>(keys);
   }
-  NORETURN(LOs());
+  OMEGA_H_NORETURN(LOs());
 }
 
 #define INST(T) template LOs sort_by_keys(Read<T> keys, Int width);

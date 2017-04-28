@@ -8,6 +8,9 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_build.hpp"
 
 using namespace Omega_h;
 
@@ -59,7 +62,7 @@ static void test_metric_decompose(Reals metrics) {
   Now t1 = now();
   std::cout << "eigendecomposition of " << nelems << " metric tensors "
             << niters << " times takes " << (t1 - t0) << " seconds\n";
-  CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
+  OMEGA_H_CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
 }
 
 static void test_metric_invert(Reals metrics) {
@@ -121,7 +124,7 @@ static void test_repro_sum() {
     std::cout << "adding " << nelems << " reals " << niters << " times "
               << "takes " << (t1 - t0) << " seconds\n";
   }
-  CHECK(are_close(s, rs));
+  OMEGA_H_CHECK(are_close(s, rs));
   Read<Int> p = random_perm(nelems);
   Write<Real> write_shuffled(nelems);
   auto f = OMEGA_H_LAMBDA(Int i) { write_shuffled[i] = inputs[p[i]]; };
@@ -129,8 +132,8 @@ static void test_repro_sum() {
   Reals shuffled(write_shuffled);
   Real rs2 = repro_sum(shuffled);
   Real s2 = get_sum(shuffled);
-  CHECK(are_close(s2, rs2));
-  CHECK(rs == rs2); /* bitwise reproducibility ! */
+  OMEGA_H_CHECK(are_close(s2, rs2));
+  OMEGA_H_CHECK(rs == rs2); /* bitwise reproducibility ! */
   if (s == s2) std::cerr << "warning: the naive sum gave the same answer\n";
 }
 
