@@ -1,5 +1,4 @@
 #include "Omega_h_cmdline.hpp"
-#include "Omega_h_internal.hpp"
 
 #include <iostream>
 
@@ -127,7 +126,7 @@ CmdLineItem* CmdLineFlag::arg(std::size_t i) { return args_.at(i).get(); }
 CmdLineItem* CmdLineFlag::arg(std::string const& arg_name) {
   for (auto const& arg : args_)
     if (arg->name() == arg_name) return arg.get();
-  NORETURN(nullptr);
+  OMEGA_H_NORETURN(nullptr);
 }
 
 std::size_t CmdLineFlag::nargs() const { return args_.size(); }
@@ -206,7 +205,7 @@ bool CmdLine::parsed(std::string const& flag_name) const {
 template <typename T>
 static T get(CmdLineItem const* p) {
   auto p2 = dynamic_cast<CmdLineArg<T> const*>(p);
-  CHECK(p2);
+  OMEGA_H_CHECK(p2);
   return p2->get();
 }
 
@@ -215,7 +214,7 @@ T CmdLine::get(
     std::string const& flag_name, std::string const& arg_name) const {
   for (auto const& flag : flags_)
     if (flag->name() == flag_name) return Omega_h::get<T>(flag->arg(arg_name));
-  NORETURN(T());
+  OMEGA_H_NORETURN(T());
 }
 
 bool CmdLine::parsed(std::string const& flag_name, std::size_t i) const {
@@ -228,7 +227,7 @@ template <typename T>
 T CmdLine::get(std::string const& arg_name) const {
   for (auto const& arg : args_)
     if (arg->name() == arg_name) return Omega_h::get<T>(arg.get());
-  NORETURN(T());
+  OMEGA_H_NORETURN(T());
 }
 
 bool CmdLine::parsed(std::size_t i) const { return args_.at(i)->parsed(); }
