@@ -1,7 +1,6 @@
 #ifndef CONSISTENT_HPP
 #define CONSISTENT_HPP
 
-#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

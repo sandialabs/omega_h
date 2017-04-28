@@ -1,9 +1,11 @@
 #ifndef OMEGA_H_SURFACE_HPP
 #define OMEGA_H_SURFACE_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 Reals get_side_normals(Mesh* mesh, LOs surf_side2side);
 Reals get_curv_edge_tangents(Mesh* mesh, LOs curv_edge2edge);

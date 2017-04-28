@@ -1,7 +1,7 @@
-#ifndef BIPART_HPP
-#define BIPART_HPP
+#ifndef OMEGA_H_BIPART_HPP
+#define OMEGA_H_BIPART_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_dist.hpp>
 
 namespace Omega_h {
 

@@ -1,9 +1,12 @@
-#ifndef REFINE_TOPOLOGY_HPP
-#define REFINE_TOPOLOGY_HPP
+#ifndef OMEGA_H_REFINE_TOPOLOGY_HPP
+#define OMEGA_H_REFINE_TOPOLOGY_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_array.hpp>
+#include <Omega_h_scalar.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
     LOs keys2midverts, LOs old_verts2new_verts, LOs& keys2pairs,

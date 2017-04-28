@@ -1,7 +1,6 @@
 #ifndef SWAP_HPP
 #define SWAP_HPP
 
-#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

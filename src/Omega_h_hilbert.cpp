@@ -2,6 +2,7 @@
 
 #include "Omega_h_bbox.hpp"
 #include "Omega_h_sort.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

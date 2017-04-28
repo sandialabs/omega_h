@@ -1,9 +1,12 @@
-#ifndef MODIFY_HPP
-#define MODIFY_HPP
+#ifndef OMEGA_H_MODIFY_HPP
+#define OMEGA_H_MODIFY_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_array.hpp>
+#include <Omega_h_graph.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys);
 

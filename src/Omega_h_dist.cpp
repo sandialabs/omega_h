@@ -4,6 +4,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_scan.hpp"
 #include "Omega_h_sort.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

@@ -1,6 +1,5 @@
 #include <Omega_h_align.hpp>
 
-#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

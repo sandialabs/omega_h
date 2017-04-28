@@ -1,9 +1,12 @@
-#ifndef OWNERS_HPP
-#define OWNERS_HPP
+#ifndef OMEGA_H_OWNERS_HPP
+#define OMEGA_H_OWNERS_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_remotes.hpp>
+#include <Omega_h_dist.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 /* compute owners for copies of a new partitioning,
    based on a mapping (Dist) from new copies to
@@ -33,14 +36,14 @@ Read<T> reduce_data_to_owners(
 
 void globals_from_owners(Mesh* new_mesh, Int ent_dim);
 
-#define INST_DECL(T)                                                           \
+#define OMEGA_H_INST_DECL(T)                                                           \
   extern template Read<T> reduce_data_to_owners(                               \
       Read<T> copy_data, Dist copies2owners, Int ncomps);
-INST_DECL(I8)
-INST_DECL(I32)
-INST_DECL(I64)
-INST_DECL(Real)
-#undef INST_DECL
+OMEGA_H_INST_DECL(I8)
+OMEGA_H_INST_DECL(I32)
+OMEGA_H_INST_DECL(I64)
+OMEGA_H_INST_DECL(Real)
+#undef OMEGA_H_INST_DECL
 
 }  // end namespace Omega_h
 

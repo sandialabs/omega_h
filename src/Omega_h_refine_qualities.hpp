@@ -1,9 +1,11 @@
-#ifndef REFINE_QUALITIES_HPP
-#define REFINE_QUALITIES_HPP
+#ifndef OMEGA_H_REFINE_QUALITIES_HPP
+#define OMEGA_H_REFINE_QUALITIES_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 Reals refine_qualities(Mesh* mesh, LOs candidates);
 

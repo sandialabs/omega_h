@@ -1,9 +1,11 @@
-#ifndef GHOST_HPP
-#define GHOST_HPP
+#ifndef OMEGA_H_GHOST_HPP
+#define OMEGA_H_GHOST_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_dist.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 /* a graph from local items to global items.
  * locals2edges is an offset map from local items to edges

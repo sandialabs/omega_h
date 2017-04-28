@@ -1,5 +1,4 @@
 #include "Omega_h_compare.hpp"
-#include "Omega_h_internal.hpp"
 
 #include <fstream>
 #include <iomanip>

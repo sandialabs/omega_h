@@ -1,7 +1,6 @@
 #ifndef LAPLACE_HPP
 #define LAPLACE_HPP
 
-#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

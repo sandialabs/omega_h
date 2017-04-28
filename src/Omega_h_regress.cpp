@@ -1,4 +1,3 @@
-#include "Omega_h_internal.hpp"
 
 #include <iostream>
 

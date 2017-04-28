@@ -1,7 +1,6 @@
 #ifndef COLLAPSE_HPP
 #define COLLAPSE_HPP
 
-#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

@@ -5,7 +5,7 @@
 
 #include "Omega_h_control.hpp"
 #include "Omega_h_functors.hpp"
-#include "Omega_h_internal.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

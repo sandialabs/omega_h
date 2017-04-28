@@ -1,5 +1,7 @@
 #include "Omega_h_bcast.hpp"
 
+#include "Omega_h_mesh.hpp"
+
 namespace Omega_h {
 
 void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {

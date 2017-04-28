@@ -2,7 +2,6 @@
 #define SWAP3D_HPP
 
 #include "Omega_h_host_few.hpp"
-#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 

@@ -1,7 +1,7 @@
-#ifndef SCAN_HPP
-#define SCAN_HPP
+#ifndef OMEGA_H_SCAN_HPP
+#define OMEGA_H_SCAN_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
 

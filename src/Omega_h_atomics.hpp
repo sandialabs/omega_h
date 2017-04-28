@@ -1,7 +1,6 @@
 #ifndef ATOMICS_HPP
 #define ATOMICS_HPP
 
-#include "Omega_h_internal.hpp"
 
 namespace Omega_h {
 
