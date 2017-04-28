@@ -196,7 +196,7 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     auto edges2doms = old_mesh->ask_graph(EDGE, dom_dim);
     auto edges2edge_doms = edges2doms.a2ab;
     auto edge_doms2doms = edges2doms.ab2b;
-    auto f = LAMBDA(LO key) {
+    auto f = OMEGA_H_LAMBDA(LO key) {
       auto edge = keys2edges[key];
       auto prod = keys2prods[key];
       for (auto edge_dom = edges2edge_doms[edge];
@@ -218,7 +218,7 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     auto edges2doms = old_mesh->ask_graph(EDGE, dom_dim);
     auto edges2edge_doms = edges2doms.a2ab;
     auto edge_doms2doms = edges2doms.ab2b;
-    auto f = LAMBDA(LO key) {
+    auto f = OMEGA_H_LAMBDA(LO key) {
       auto edge = keys2edges[key];
       auto ndoms = edges2edge_doms[edge + 1] - edges2edge_doms[edge];
       auto prod = keys2prods[key + 1] - ndoms;
@@ -464,7 +464,7 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
   auto nkeys = keys2kds.size();
   auto nprods = keys2prods.last();
   auto prod_data_w = Write<Real>(nprods * ncomps);
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto kd = keys2kds[key];
     for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
       auto new_elem = prods2new_elems[prod];
@@ -646,7 +646,7 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     Int prod_dim, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   auto t0 = now();
-  CHECK(prod_dim != VERT);
+  OMEGA_H_CHECK(prod_dim != VERT);
   transfer_inherit_swap(old_mesh, opts, new_mesh, prod_dim, keys2edges,
       keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == EDGE) {

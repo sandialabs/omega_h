@@ -42,7 +42,7 @@ struct Cavs {
   Graph keys2new_elems;
   LO size() {
     auto n = keys2old_elems.nnodes();
-    CHECK(n == keys2new_elems.nnodes());
+    OMEGA_H_CHECK(n == keys2new_elems.nnodes());
     return n;
   }
 };
@@ -65,7 +65,7 @@ static SeparationResult separate_by_color_once(
   auto nkeys = cavs.size();
   auto old_keep_w = Write<I8>(keys2old.nedges());
   auto new_keep_w = Write<I8>(keys2new.nedges(), I8(1));
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto ob = keys2old.a2ab[key];
     auto oe = keys2old.a2ab[key + 1];
     if (ob == oe) return;
@@ -89,8 +89,8 @@ static SeparationResult separate_by_color_once(
   auto separated_new = filter_graph(keys2new, new_keep);
   auto remainder_old = filter_graph(keys2old, invert_marks(old_keep));
   auto remainder_new = filter_graph(keys2new, invert_marks(new_keep));
-  CHECK(remainder_old.nedges() + separated_old.nedges() == keys2old.nedges());
-  CHECK(remainder_new.nedges() + separated_new.nedges() == keys2new.nedges());
+  OMEGA_H_CHECK(remainder_old.nedges() + separated_old.nedges() == keys2old.nedges());
+  OMEGA_H_CHECK(remainder_new.nedges() + separated_new.nedges() == keys2new.nedges());
   auto separated = Cavs{separated_old, separated_new};
   auto remainder = Cavs{remainder_old, remainder_new};
   return {separated, remainder};
@@ -403,7 +403,7 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
   auto new_ev2v = new_mesh->ask_elem_verts();
   auto new_coords = new_mesh->coords();
   auto nkeys = cavs.size();
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     for (auto kne = keys2new_elems.a2ab[key];
          kne < keys2new_elems.a2ab[key + 1]; ++kne) {
       auto new_elem = keys2new_elems.ab2b[kne];
@@ -627,7 +627,7 @@ struct AllBounded : public AndFunctor {
   Reals a;
   Reals b;
   AllBounded(Reals a_, Reals b_) : a(a_), b(b_) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     update = update && (fabs(a[i]) <= b[i]);
   }
 };
@@ -736,7 +736,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       new_elem_momenta, diffuse_tol, error_name, verbose);
   mesh->set_tag(dim, error_name, elem_errors);
   auto out = deep_copy(vert_velocities);
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto v_flags = all_flags[v];
     auto v_mass = vert_masses[v];
     for (auto ve = verts2elems.a2ab[v]; ve < verts2elems.a2ab[v + 1]; ++ve) {

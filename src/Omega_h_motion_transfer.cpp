@@ -34,7 +34,7 @@ LinearPack pack_linearized_fields(Mesh* mesh, TransferOpts const& opts) {
       in = linearize_metrics(mesh->nverts(), in);
     }
     auto ncomps_in = tb->ncomps();
-    auto f = LAMBDA(LO v) {
+    auto f = OMEGA_H_LAMBDA(LO v) {
       for (Int c = 0; c < ncomps_in; ++c) {
         out_w[v * ncomps + offset + c] = in[v * ncomps_in + c];
       }
@@ -49,7 +49,7 @@ LinearPack pack_linearized_fields(Mesh* mesh, TransferOpts const& opts) {
 
 void unpack_linearized_fields(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, Reals data, Read<I8> verts_are_keys) {
-  CHECK(data.size() % new_mesh->nverts() == 0);
+  OMEGA_H_CHECK(data.size() % new_mesh->nverts() == 0);
   auto ncomps = data.size() / new_mesh->nverts();
   Int offset = 0;
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
@@ -57,7 +57,7 @@ void unpack_linearized_fields(Mesh* old_mesh, TransferOpts const& opts,
     if (!should_transfer_motion_linear(old_mesh, opts, tb)) continue;
     auto ncomps_out = tb->ncomps();
     auto out_w = Write<Real>(new_mesh->nverts() * ncomps_out);
-    auto f = LAMBDA(LO v) {
+    auto f = OMEGA_H_LAMBDA(LO v) {
       for (Int c = 0; c < ncomps_out; ++c) {
         out_w[v * ncomps_out + c] = data[v * ncomps + offset + c];
       }
@@ -70,7 +70,7 @@ void unpack_linearized_fields(Mesh* old_mesh, TransferOpts const& opts,
     auto t = dynamic_cast<Tag<Real> const*>(tb);
     auto prev = t->array();
     out_w = deep_copy(prev);
-    auto f2 = LAMBDA(LO v) {
+    auto f2 = OMEGA_H_LAMBDA(LO v) {
       if (!verts_are_keys[v]) return;
       for (Int c = 0; c < ncomps_out; ++c) {
         out_w[v * ncomps_out + c] = out[v * ncomps_out + c];
@@ -85,7 +85,7 @@ void unpack_linearized_fields(Mesh* old_mesh, TransferOpts const& opts,
     }
     offset += ncomps_out;
   }
-  CHECK(offset == ncomps);
+  OMEGA_H_CHECK(offset == ncomps);
 }
 
 }  // end namespace Omega_h

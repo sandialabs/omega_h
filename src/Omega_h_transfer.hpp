@@ -1,8 +1,10 @@
-#ifndef TRANSFER_HPP
-#define TRANSFER_HPP
+#ifndef OMEGA_H_TRANSFER_HPP
+#define OMEGA_H_TRANSFER_HPP
 
-#include "Omega_h_internal.hpp"
-
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_tag.hpp>
+#include <Omega_h_adj.hpp>
+                 
 namespace Omega_h {
 
 bool is_transfer_required(
