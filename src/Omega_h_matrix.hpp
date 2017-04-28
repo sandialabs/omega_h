@@ -463,6 +463,11 @@ OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
 }
 
 template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> deviator(Matrix<dim, dim> a) {
+  return (a - ((1.0/dim) * trace(a) * identity_matrix<dim, dim>()));
+}
+
+template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
