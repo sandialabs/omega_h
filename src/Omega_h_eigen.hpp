@@ -307,6 +307,124 @@ OMEGA_H_INLINE Matrix<dim, dim> compose_ortho(
   return q * diagonal(l) * transpose(q);
 }
 
+// R^N off-diagonal norm. Useful for SVD and other algorithms
+// that rely on Jacobi-type procedures.
+// \param a
+// \return \f$ \sqrt(\sum_i \sum_{j, j\neq i} a_{ij}^2) \f$
+template <Int dim>
+OMEGA_H_INLINE Real norm_off_diag(Matrix<dim, dim> a) {
+  Real s = 0.0;
+  for (Int j = 0; j < dim; ++j) {
+    for (Int i = 0; i < dim; ++i) {
+      if (i != j) {
+        s += square(a(i,j));
+      }
+    }
+  }
+  return sqrt(s);
+}
+
+// R^N arg max off-diagonal. Useful for SVD and other algorithms
+// that rely on Jacobi-type procedures.
+// \param a
+// \return \f$ (p,q) = arg max_{i \neq j} |a_{ij}| \f$
+template <Int dim>
+OMEGA_H_INLINE Few<Int, 2> arg_max_off_diag(Matrix<dim, dim> a) {
+  Int p = 0;
+  Int q = 1;
+  auto s = fabs(a(p,q));
+  for (Int j = 0; j < dim; ++j) {
+    for (Int i = 0; i < dim; ++i) {
+      auto s2 = fabs(a(i,j));
+      if (i != j && s2 > s) {
+        p = i;
+        q = j;
+        s = s2;
+      }
+    }
+  }
+  Few<Int, 2> out;
+  out[0] = min2(p, q);
+  out[1] = max2(p, q);
+  return out;
+}
+
+// Symmetric Schur algorithm for R^2.
+// \param \f$ A = [f, g; g, h] \in S(2) \f$
+// \return \f$ c, s \rightarrow [c, -s; s, c]\f diagonalizes A$
+OMEGA_H_INLINE Vector<2> schur_sym(Real f, Real g, Real h) {
+  Real c = 1.0;
+  Real s = 0.0;
+  if (g != 0.0) {
+    Real t = (h - f) / (2.0 * g);
+    if (t >= 0.0) {
+      t = 1.0 / (sqrt(1.0 + square(t)) + t);
+    } else {
+      t = -1.0 / (sqrt(1.0 + square(t)) + t);
+    }
+    c = 1.0 / sqrt(1.0 + square(t));
+    s = t * c;
+  }
+  return vector_2(c, s);
+}
+
+/* Apply Givens-Jacobi rotation on the left */
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> givens_left(Real c, Real s, Int i, Int k,
+    Matrix<dim, dim> a) {
+  for (Int j = 0; j < dim; ++j) {
+    auto t1 = a(i,j);
+    auto t2 = a(k,j);
+    a(i,j) = c * t1 - s * t2;
+    a(k,j) = s * t1 + c * t2;
+  }
+  return a;
+}
+
+/* Apply Givens-Jacobi rotation on the right */
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> givens_right(Real c, Real s, Int i, Int k,
+    Matrix<dim, dim> a) {
+  for (Int j = 0; j < dim; ++j) {
+    auto t1 = a(j,i);
+    auto t2 = a(j,k);
+    a(j,i) = c * t1 - s * t2;
+    a(j,k) = s * t1 + c * t2;
+  }
+  return a;
+}
+
+/* the following is the Classic Jacobi algorithm, copied
+   from the MiniTensor package, which in turn is based on
+   algorithm 8.4.2 in Matrix Computations, Golub & Van Loan 1996 */
+template <Int dim>
+OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(Matrix<dim, dim> a,
+    Real eps = DBL_EPSILON, Int max_iter = -1) {
+  // Estimate based on random generation and linear regression.
+  // Golub & Van Loan p 429 expect ~ dimension * log(dimension)
+  if (max_iter == -1) max_iter = (5 * dim * dim) / 2;
+  auto v = identity_matrix<dim, dim>();
+  auto tol = eps * norm(a);
+  Int iter = 0;
+  while (norm_off_diag(a) > tol) {
+    OMEGA_H_CHECK(iter < max_iter);
+    auto pq = arg_max_off_diag(a);
+    auto p = pq[0];
+    auto q = pq[1];
+    auto f = a(p,p);
+    auto g = a(p,q);
+    auto h = a(q,q);
+    auto cs = schur_sym(f, g, h);
+    auto c = cs[0];
+    auto s = cs[1];
+    a = givens_left(c, s, p, q, a);
+    a = givens_right(c, s, p, q, a);
+    v = givens_right(c, s, p, q, v);
+    ++iter;
+  }
+  return {v, diagonal(a)};
+}
+
 Reals get_max_eigenvalues(Int dim, Reals symms);
 
 }  // end namespace Omega_h
