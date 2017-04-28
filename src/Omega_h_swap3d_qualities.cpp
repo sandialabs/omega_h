@@ -58,8 +58,8 @@ static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
 
 void swap3d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
     Reals* cand_quals, Read<I8>* cand_configs) {
-  CHECK(mesh->parting() == OMEGA_H_GHOSTED);
-  CHECK(mesh->dim() == 3);
+  OMEGA_H_CHECK(mesh->parting() == OMEGA_H_GHOSTED);
+  OMEGA_H_CHECK(mesh->dim() == 3);
   auto metrics = mesh->get_array<Real>(VERT, "metric");
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (metric_dim == 3) {

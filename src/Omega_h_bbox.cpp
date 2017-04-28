@@ -9,13 +9,13 @@ struct BBoxFunctor {
   using value_type = BBox<dim>;
   Reals coords_;
   BBoxFunctor(Reals coords) : coords_(coords) {}
-  INLINE void init(value_type& update) const {
+  OMEGA_H_INLINE void init(value_type& update) const {
     for (Int i = 0; i < dim; ++i) {
       update.min[i] = ArithTraits<Real>::max();
       update.max[i] = ArithTraits<Real>::min();
     }
   }
-  INLINE void join(
+  OMEGA_H_INLINE void join(
       volatile value_type& update, const volatile value_type& input) const {
     update = unite(update, input);
   }

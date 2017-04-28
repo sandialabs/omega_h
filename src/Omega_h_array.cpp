@@ -100,7 +100,7 @@ Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
 template <typename T>
 LO Write<T>::size() const {
-  CHECK(exists());
+  OMEGA_H_CHECK(exists());
 #ifdef OMEGA_H_USE_KOKKOS
   return static_cast<LO>(view_.size());
 #else

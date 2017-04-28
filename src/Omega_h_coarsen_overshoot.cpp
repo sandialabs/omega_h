@@ -8,7 +8,7 @@ namespace Omega_h {
 template <Int mesh_dim, Int metric_dim>
 static Read<I8> prevent_overshoot_tmpl(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
-  CHECK(mesh->dim() == mesh_dim);
+  OMEGA_H_CHECK(mesh->dim() == mesh_dim);
   MetricEdgeLengths<mesh_dim, metric_dim> measurer(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto v2e = mesh->ask_up(VERT, EDGE);

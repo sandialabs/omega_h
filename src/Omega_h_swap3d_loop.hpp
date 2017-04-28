@@ -29,7 +29,7 @@ OMEGA_H_DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2t
   auto end_use = edges2edge_tets[edge + 1];
   loop.size = end_use - begin_use;
   if (loop.size > MAX_EDGE_SWAP) return loop;
-  CHECK(loop.size >= 3);
+  OMEGA_H_CHECK(loop.size >= 3);
   for (Int eev = 0; eev < 2; ++eev) {
     loop.eev2v[eev] = edge_verts2verts[edge * 2 + eev];
   }
@@ -68,7 +68,7 @@ OMEGA_H_DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2t
     for (j = i + 1; j < loop.size; ++j) {
       if (tmp_edges[j][0] == tmp_edges[i][1]) break;
     }
-    CHECK(j < loop.size);
+    OMEGA_H_CHECK(j < loop.size);
     swap2(tmp_edges[i + 1], tmp_edges[j]);
   }
   for (Int lv = 0; lv < loop.size; ++lv) {

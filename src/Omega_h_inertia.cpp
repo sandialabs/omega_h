@@ -86,7 +86,7 @@ Read<I8> mark_half(Reals distances, Real distance) {
 bool mark_axis_bisection(CommPtr comm, Reals distances, Reals masses,
     Real total_mass, Real tolerance, Read<I8>& marked) {
   auto n = distances.size();
-  CHECK(n == masses.size());
+  OMEGA_H_CHECK(n == masses.size());
   auto minmax_dist = get_minmax(comm, distances);
   auto range = max2(fabs(minmax_dist.min), fabs(minmax_dist.max));
   auto step = range / 2.;
@@ -139,7 +139,7 @@ Read<I8> mark_bisection_internal(CommPtr comm, Reals coords, Reals masses,
 
 Read<I8> mark_bisection(
     CommPtr comm, Reals coords, Reals masses, Real tolerance, Vector<3>& axis) {
-  CHECK(coords.size() == masses.size() * 3);
+  OMEGA_H_CHECK(coords.size() == masses.size() * 3);
   auto total_mass = repro_sum(comm, masses);
   auto center = get_center(comm, coords, masses, total_mass);
   axis = get_axis(comm, coords, masses, center);
@@ -149,7 +149,7 @@ Read<I8> mark_bisection(
 
 Read<I8> mark_bisection_given_axis(
     CommPtr comm, Reals coords, Reals masses, Real tolerance, Vector<3> axis) {
-  CHECK(coords.size() == masses.size() * 3);
+  OMEGA_H_CHECK(coords.size() == masses.size() * 3);
   auto total_mass = repro_sum(comm, masses);
   auto center = get_center(comm, coords, masses, total_mass);
   return mark_bisection_internal(

@@ -135,7 +135,7 @@ static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
   if (opts.type == VarCompareOpts::NONE) return true;
   auto a_lin_data = reduce_data_to_owners(a_data, a_dist, ncomps);
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
-  CHECK(a_lin_data.size() == b_lin_data.size());
+  OMEGA_H_CHECK(a_lin_data.size() == b_lin_data.size());
   auto comm = a_dist.parent_comm();
   auto ret =
       compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim, verbose);
@@ -152,8 +152,8 @@ static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
 
 Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, MeshCompareOpts const& opts, bool verbose, bool full) {
-  CHECK(a->comm()->size() == b->comm()->size());
-  CHECK(a->comm()->rank() == b->comm()->rank());
+  OMEGA_H_CHECK(a->comm()->size() == b->comm()->size());
+  OMEGA_H_CHECK(a->comm()->rank() == b->comm()->rank());
   auto comm = a->comm();
   auto should_print = verbose && (comm->rank() == 0);
   if (a->dim() != b->dim()) {

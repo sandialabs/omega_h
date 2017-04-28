@@ -36,13 +36,13 @@ bool is(TagBase const* t) {
 
 template <typename T>
 Tag<T> const* as(TagBase const* t) {
-  CHECK(is<T>(t));
+  OMEGA_H_CHECK(is<T>(t));
   return dynamic_cast<Tag<T> const*>(t);
 }
 
 template <typename T>
 Tag<T>* as(TagBase* t) {
-  CHECK(is<T>(t));
+  OMEGA_H_CHECK(is<T>(t));
   return dynamic_cast<Tag<T>*>(t);
 }
 

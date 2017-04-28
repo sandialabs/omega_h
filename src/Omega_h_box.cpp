@@ -99,7 +99,7 @@ void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
 template <Int dim>
 static Read<I32> box_centroids_class_ids(
     Reals centroids, Few<LO, 3> nel, Vector<3> l) {
-  CHECK(centroids.size() % dim == 0);
+  OMEGA_H_CHECK(centroids.size() % dim == 0);
   auto npts = centroids.size() / dim;
   Vector<dim> dists;
   for (Int i = 0; i < dim; ++i) dists[i] = l[i] / (nel[i] * 8);

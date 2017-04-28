@@ -12,7 +12,7 @@ bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
-  CHECK(get_max(comm, elems_are_cands) == 1);
+  OMEGA_H_CHECK(get_max(comm, elems_are_cands) == 1);
   auto edges_are_cands = mark_down(mesh, mesh->dim(), EDGE, elems_are_cands);
   /* only swap interior edges */
   auto edges_are_inter = mark_by_class_dim(mesh, EDGE, mesh->dim());
@@ -29,7 +29,7 @@ void filter_swap(Read<I8> keep_cands, LOs* cands2edges, Reals* cand_quals) {
 }
 
 Read<I8> filter_swap_improve(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
-  CHECK(mesh->owners_have_all_upward(EDGE));
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(EDGE));
   auto elem_quals = mesh->ask_qualities();
   auto edges2elems = mesh->ask_up(EDGE, mesh->dim());
   auto edge_old_quals = graph_reduce(edges2elems, elem_quals, 1, OMEGA_H_MIN);

@@ -47,7 +47,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   if (low_dim > VERT) {
     new_ent_low_codes = Write<I8>(nnew_ents * down_degree);
     auto old_ent_low_codes = old_ents2old_lows.codes;
-    CHECK(same_ents2old_ents.size() == same_ents2new_ents.size());
+    OMEGA_H_CHECK(same_ents2old_ents.size() == same_ents2new_ents.size());
     auto same_ent_low_codes =
         unmap(same_ents2old_ents, old_ent_low_codes, down_degree);
     map_into(
@@ -95,7 +95,7 @@ static LOs collect_same(Mesh* mesh, Int ent_dim, Int key_dim, LOs keys2kds) {
   if (ent_dim == key_dim) {
     ents_are_adj = kds_are_keys;
   } else {
-    CHECK(ent_dim > key_dim);
+    OMEGA_H_CHECK(ent_dim > key_dim);
     ents_are_adj = mark_up(mesh, key_dim, ent_dim, kds_are_keys);
   }
   auto ents_not_adj = invert_marks(ents_are_adj);
@@ -104,9 +104,9 @@ static LOs collect_same(Mesh* mesh, Int ent_dim, Int key_dim, LOs keys2kds) {
 
 static LOs get_keys2reps(
     Mesh* mesh, Int ent_dim, Int key_dim, LOs keys2kds, LOs keys2nprods) {
-  CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
+  OMEGA_H_CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
   auto nkeys = keys2kds.size();
-  CHECK(nkeys == keys2nprods.size());
+  OMEGA_H_CHECK(nkeys == keys2nprods.size());
   LOs keys2reps;
   if (key_dim == ent_dim) {
     keys2reps = keys2kds;
@@ -130,7 +130,7 @@ static LOs get_keys2reps(
     parallel_for(nkeys, setup_reps);
     keys2reps = keys2reps_w;
   } else {
-    CHECK(ent_dim == VERT && key_dim == EDGE);
+    OMEGA_H_CHECK(ent_dim == VERT && key_dim == EDGE);
     /* in the case of finding new globals for vertices after
        refining, we will use an endpoint vertex of the edge
        as the "representative" entity.
@@ -157,14 +157,14 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
     LOs keys2nprods, LOs same_ents2ents, bool are_global) {
   auto nkeys = keys2reps.size();
   auto nents = mesh->nents(ent_dim);
-  CHECK(nkeys == keys2nprods.size());
+  OMEGA_H_CHECK(nkeys == keys2nprods.size());
   auto nsame_ents = same_ents2ents.size();
   auto owned = mesh->owned(ent_dim);
-  CHECK(owned.size() == nents);
+  OMEGA_H_CHECK(owned.size() == nents);
   Write<LO> rep_counts(nents, 0);
   auto mark_same = OMEGA_H_LAMBDA(LO same_ent) {
     auto ent = same_ents2ents[same_ent];
-    CHECK(ent < nents);
+    OMEGA_H_CHECK(ent < nents);
     if ((!are_global) || owned[ent]) rep_counts[ent] = 1;
   };
   parallel_for(nsame_ents, mark_same);
@@ -226,9 +226,9 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
   auto nprods = keys2prods.last();
   Write<T> prods2new_offsets_w(nprods);
   auto nkeys = keys2reps.size();
-  CHECK(nkeys == keys2prods.size() - 1);
+  OMEGA_H_CHECK(nkeys == keys2prods.size() - 1);
   if (edge2rep_order.exists()) {
-    CHECK(keys2kds.exists());
+    OMEGA_H_CHECK(keys2kds.exists());
     auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
       // plus one because the representatives
       // exist in the new mesh, so they will get
@@ -260,13 +260,13 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs keys2reps,
     LOs global_rep_counts) {
   auto t0 = now();
-  CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
+  OMEGA_H_CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
   auto nsame_ents = same_ents2old_ents.size();
-  CHECK(nsame_ents == same_ents2new_ents.size());
+  OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
   auto nkeys = keys2kds.size();
-  CHECK(nkeys + 1 == keys2prods.size());
+  OMEGA_H_CHECK(nkeys + 1 == keys2prods.size());
   auto nprods = prods2new_ents.size();
-  CHECK(nprods == keys2prods.last());
+  OMEGA_H_CHECK(nprods == keys2prods.last());
   auto old_globals = old_mesh->ask_globals(ent_dim);
   auto comm = old_mesh->comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
@@ -274,7 +274,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nlins = lins2old_ents.nroots();
   auto lin_rep_counts =
       old_ents2lins.exch_reduce(global_rep_counts, 1, OMEGA_H_SUM);
-  CHECK(lin_rep_counts.size() == nlins);
+  OMEGA_H_CHECK(lin_rep_counts.size() == nlins);
   auto lin_local_offsets = offset_scan(lin_rep_counts);
   auto lin_global_count = lin_local_offsets.last();
   GO lin_global_offset = comm->exscan<GO>(GO(lin_global_count), OMEGA_H_SUM);
@@ -294,7 +294,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
       keys2reps, keys2prods, edge2rep_order, &same_ents2new_globals,
       &prods2new_globals);
   auto nnew_ents = new_mesh->nents(ent_dim);
-  CHECK(nnew_ents == nsame_ents + nprods);
+  OMEGA_H_CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
@@ -310,7 +310,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   auto t0 = now();
   *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim, keys2kds);
   auto nkeys = keys2kds.size();
-  CHECK(nkeys == keys2prods.size() - 1);
+  OMEGA_H_CHECK(nkeys == keys2prods.size() - 1);
   auto keys2nprods = get_degrees(keys2prods);
   auto keys2reps =
       get_keys2reps(old_mesh, ent_dim, key_dim, keys2kds, keys2nprods);

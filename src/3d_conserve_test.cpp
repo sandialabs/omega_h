@@ -51,7 +51,7 @@ static Vector<3> get_total_momentum(Mesh* mesh) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-  CHECK(argc == 2);
+  OMEGA_H_CHECK(argc == 2);
   auto world = lib.world();
   Mesh mesh(&lib);
   if (world->rank() == 0) {
@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
       std::cout << "model region " << obj_ids[obj] << " mass before "
                 << masses_before[obj] << ", after " << mass_after << '\n';
     }
-    CHECK(are_close(mass_after, masses_before[obj]));
+    OMEGA_H_CHECK(are_close(mass_after, masses_before[obj]));
   }
   auto momentum_after = get_total_momentum(&mesh);
   if (world->rank() == 0) {
@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
     std::cout << "momentum after" << ' ' << momentum_after[0] << ' '
               << momentum_after[1] << ' ' << momentum_after[2] << '\n';
   }
-  CHECK(are_close(momentum_before, momentum_after));
+  OMEGA_H_CHECK(are_close(momentum_before, momentum_after));
   bool ok = check_regression("gold_3d_conserve", &mesh);
   if (!ok) return 2;
   return 0;

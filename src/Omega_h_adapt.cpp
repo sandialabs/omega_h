@@ -126,11 +126,11 @@ void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void validate(Mesh* mesh, AdaptOpts const& opts) {
-  CHECK(0.0 <= opts.min_quality_allowed);
-  CHECK(opts.min_quality_allowed <= opts.min_quality_desired);
-  CHECK(opts.min_quality_desired <= 1.0);
-  CHECK(opts.nsliver_layers >= 0);
-  CHECK(opts.nsliver_layers < 100);
+  OMEGA_H_CHECK(0.0 <= opts.min_quality_allowed);
+  OMEGA_H_CHECK(opts.min_quality_allowed <= opts.min_quality_desired);
+  OMEGA_H_CHECK(opts.min_quality_desired <= 1.0);
+  OMEGA_H_CHECK(opts.nsliver_layers >= 0);
+  OMEGA_H_CHECK(opts.nsliver_layers < 100);
   auto mq = min_fixable_quality(mesh, opts);
   if (mq < opts.min_quality_allowed && !mesh->comm()->rank()) {
     std::cout << "WARNING: worst input element has quality " << mq

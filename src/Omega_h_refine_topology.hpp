@@ -34,23 +34,23 @@ struct FlipNewElem;
 template <>
 struct FlipNewElem<2> {
   template <typename T>
-  INLINE static void flip(T ev[]) {
+  OMEGA_H_INLINE static void flip(T ev[]) {
     (void)ev;
   }
 };
 template <>
 struct FlipNewElem<3> {
   template <typename T>
-  INLINE static void flip(T ev[]) {
+  OMEGA_H_INLINE static void flip(T ev[]) {
     swap2(ev[1], ev[2]);
   }
 };
 template <Int dim, typename T>
-INLINE void flip_new_elem(T ev[]) {
+OMEGA_H_INLINE void flip_new_elem(T ev[]) {
   FlipNewElem<dim>::flip(ev);
 }
 template <typename T>
-INLINE void flip_new_elem(Int dim, T ev[]) {
+OMEGA_H_INLINE void flip_new_elem(Int dim, T ev[]) {
   if (dim == 3) swap2(ev[1], ev[2]);
 }
 

@@ -12,7 +12,7 @@
 
 namespace Omega_h {
 
-#define CALL(f) CHECK((f) >= 0)
+#define CALL(f) OMEGA_H_CHECK((f) >= 0)
 
 namespace exodus {
 
@@ -30,7 +30,7 @@ static bool is_type_supported(int dim, std::string const& type) {
 
 // subtracts one and maps from Exodus
 // side ordering to Omega_h
-static INLINE int side_exo2osh(int dim, int side) {
+static OMEGA_H_INLINE int side_exo2osh(int dim, int side) {
   switch (dim) {
     case 2:
       switch (side) {
@@ -58,7 +58,7 @@ static INLINE int side_exo2osh(int dim, int side) {
 
 // from Omega_h
 // side ordering to Exodus and adds one
-static INLINE int side_osh2exo(int dim, int side) {
+static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
   switch (dim) {
     case 2:
       switch (side) {
@@ -144,7 +144,7 @@ void read(
     if (!is_type_supported(dim, elem_type)) {
       Omega_h_fail("type %s is not supported for %dD !\n", elem_type, dim);
     }
-    CHECK(nnodes_per_entry == dim + 1);
+    OMEGA_H_CHECK(nnodes_per_entry == dim + 1);
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     std::vector<int> edge_conn(nentries * nedges_per_entry);
@@ -156,7 +156,7 @@ void read(
     parallel_for(nentries, f0);
     start += nentries * nnodes_per_entry;
   }
-  CHECK(start == init_params.num_elem * (dim + 1));
+  OMEGA_H_CHECK(start == init_params.num_elem * (dim + 1));
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
   build_from_elems_and_coords(mesh, dim, conn, coords);
   classify_elements(mesh);

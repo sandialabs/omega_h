@@ -33,7 +33,7 @@ Graph add_edges(Graph g1, Graph g2) {
     auto k = begin;
     for (auto j = begin1; j < end1; ++j) e2v[k++] = e2v1[j];
     for (auto j = begin2; j < end2; ++j) e2v[k++] = e2v2[j];
-    CHECK(k == end);
+    OMEGA_H_CHECK(k == end);
   };
   parallel_for(nv, f);
   return Graph(v2e, e2v);
@@ -71,8 +71,8 @@ Reals graph_weighted_average_arc_data(
   auto a2ab = a2b.a2ab;
   auto ab2b = a2b.ab2b;
   auto nab = a2ab.last();
-  CHECK(ab_weights.size() == nab);
-  CHECK(ab_data.size() % width == 0);
+  OMEGA_H_CHECK(ab_weights.size() == nab);
+  OMEGA_H_CHECK(ab_data.size() % width == 0);
   auto total_weights = fan_reduce(a2ab, ab_weights, 1, OMEGA_H_SUM);
   auto weighted_ab_data = multiply_each(ab_data, ab_weights);
   auto weighted_sums = fan_reduce(a2ab, weighted_ab_data, width, OMEGA_H_SUM);

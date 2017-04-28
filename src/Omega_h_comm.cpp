@@ -6,7 +6,7 @@
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
-#define CALL(f) CHECK(MPI_SUCCESS == (f))
+#define CALL(f) OMEGA_H_CHECK(MPI_SUCCESS == (f))
 #endif
 
 Comm::Comm() {
@@ -51,7 +51,7 @@ Comm::Comm(Library* library, bool is_graph, bool sends_to_self)
     host_srcs_ = HostRead<I32>(srcs_);
     host_dsts_ = HostRead<I32>(dsts_);
   } else {
-    CHECK(!sends_to_self);
+    OMEGA_H_CHECK(!sends_to_self);
   }
 }
 #endif
@@ -134,7 +134,7 @@ CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
       reorder, &impl2));
   return CommPtr(new Comm(library_, impl2));
 #else
-  CHECK(srcs == dsts);
+  OMEGA_H_CHECK(srcs == dsts);
   return CommPtr(new Comm(library_, true, dsts.size() == 1));
 #endif
 }
@@ -379,7 +379,7 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
     Read<LO>* p_rdispls, LO threshold) {
   Read<T> self_data;
   if (self_dst < 0) return self_data;
-  CHECK(self_src >= 0);
+  OMEGA_H_CHECK(self_src >= 0);
   auto sendbuf = *p_sendbuf;
   auto sendcounts = *p_sendcounts;
   auto sdispls = *p_sdispls;
@@ -391,7 +391,7 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
   if (self_count == sendbuf.size()) {
     self_data = sendbuf;
     sendbuf = Read<T>({});
-    CHECK(sendcounts.size() == 1);
+    OMEGA_H_CHECK(sendcounts.size() == 1);
     sendcounts = LOs({0});
     sdispls = LOs({0, 0});
     auto recvcounts_w = deep_copy(recvcounts);
@@ -472,13 +472,13 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
   HostRead<LO> recvcounts(recvcounts_dev);
   HostRead<LO> sdispls(sdispls_dev);
   HostRead<LO> rdispls(rdispls_dev);
-  CHECK(rdispls.size() == recvcounts.size() + 1);
+  OMEGA_H_CHECK(rdispls.size() == recvcounts.size() + 1);
   int nrecvd = rdispls.last();
   HostWrite<T> recvbuf(nrecvd);
-  CHECK(sendcounts.size() == host_dsts_.size());
-  CHECK(recvcounts.size() == host_srcs_.size());
-  CHECK(sdispls.size() == sendcounts.size() + 1);
-  CHECK(sendbuf.size() == sdispls.last());
+  OMEGA_H_CHECK(sendcounts.size() == host_dsts_.size());
+  OMEGA_H_CHECK(recvcounts.size() == host_srcs_.size());
+  OMEGA_H_CHECK(sdispls.size() == sendcounts.size() + 1);
+  OMEGA_H_CHECK(sendbuf.size() == sdispls.last());
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, sendbuf.nonnull_data(),
       sendcounts.nonnull_data(), sdispls.nonnull_data(),
       MpiTraits<T>::datatype(), recvbuf.nonnull_data(),

@@ -16,7 +16,7 @@ namespace simplify {
 
 namespace {
 
-INLINE Int find_min(LO const v[], Int n) {
+OMEGA_H_INLINE Int find_min(LO const v[], Int n) {
   Int min_i = 0;
   LO min_v = v[0];
   for (Int i = 1; i < n; ++i) {
@@ -28,21 +28,21 @@ INLINE Int find_min(LO const v[], Int n) {
   return min_i;
 }
 
-INLINE bool lt(Int v_i, Int v_j, Int v_k, Int v_l) {
+OMEGA_H_INLINE bool lt(Int v_i, Int v_j, Int v_k, Int v_l) {
   return min2(v_i, v_j) < min2(v_k, v_l);
 }
 
-INLINE void rot(LO v[], Int n) {
+OMEGA_H_INLINE void rot(LO v[], Int n) {
   LO tmp = v[n - 1];
   for (Int i = 0; i < n - 1; ++i) v[i + 1] = v[i];
   v[0] = tmp;
 }
 
-INLINE void rot_ntimes(LO v[], Int nv, Int ntimes) {
+OMEGA_H_INLINE void rot_ntimes(LO v[], Int nv, Int ntimes) {
   for (Int i = 0; i < ntimes; ++i) rot(v, nv);
 }
 
-INLINE void rot_to_first(LO v[], Int nv, Int first) {
+OMEGA_H_INLINE void rot_to_first(LO v[], Int nv, Int first) {
   rot_ntimes(v, nv, ((nv - first) % nv));
 }
 

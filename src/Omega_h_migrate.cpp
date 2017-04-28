@@ -106,7 +106,7 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
 
 void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist old_owners2new_ents) {
-  CHECK(old_owners2new_ents.nroots() == old_mesh->nents(ent_dim));
+  OMEGA_H_CHECK(old_owners2new_ents.nroots() == old_mesh->nents(ent_dim));
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
     if (is<I8>(tag)) {

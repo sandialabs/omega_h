@@ -40,7 +40,7 @@ struct IsFlipped;
 template <>
 struct IsFlipped<3> {
   template <typename T>
-  INLINE static bool is(T adj[]) {
+  OMEGA_H_INLINE static bool is(T adj[]) {
     return adj[2] < adj[1];
   }
 };
@@ -48,7 +48,7 @@ struct IsFlipped<3> {
 template <>
 struct IsFlipped<2> {
   template <typename T>
-  INLINE static bool is(T adj[]) {
+  OMEGA_H_INLINE static bool is(T adj[]) {
     (void)adj;
     return false;
   }
@@ -88,7 +88,7 @@ Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
   if (deg == 3) {
     return get_codes_to_canonical_deg<3>(ev2v);
   } else {
-    CHECK(deg == 2);
+    OMEGA_H_CHECK(deg == 2);
     return get_codes_to_canonical_deg<2>(ev2v);
   }
 }
@@ -251,7 +251,7 @@ template <Int deg, typename T>
 static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out) {
   LO na = a2fv.size();
-  CHECK(na * deg == av2v.size());
+  OMEGA_H_CHECK(na * deg == av2v.size());
   LOs v2vb = v2b.a2ab;
   LOs vb2b = v2b.ab2b;
   Read<I8> vb_codes = v2b.codes;
@@ -316,10 +316,10 @@ Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
 }
 
 Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
-  CHECK(3 >= high_dim);
+  OMEGA_H_CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
-  CHECK(high_dim > mid_dim);
-  CHECK(low_dim == 1 || low_dim == 0);
+  OMEGA_H_CHECK(high_dim > mid_dim);
+  OMEGA_H_CHECK(low_dim == 1 || low_dim == 0);
   auto hm2m = h2m.ab2b;
   auto m2hm_codes = h2m.codes;
   auto ml2l = m2l.ab2b;
@@ -346,7 +346,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       auto l = ml2l[ml_begin + ml];
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)
-      for (Int hhl2 = 0; hhl2 < hl; ++hhl2) CHECK(l != hl2l[hl_begin + hhl2]);
+      for (Int hhl2 = 0; hhl2 < hl; ++hhl2) OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
         auto tet_tri_code = hm2m_code;
@@ -456,7 +456,7 @@ Graph elements_across_sides(
     for (auto elem_side = begin; elem_side < end; ++elem_side) {
       auto side = elem_side2side[elem_side];
       if (!side_is_exposed[side]) {
-        CHECK(side2side_elems[side + 1] - side2side_elems[side] == 2);
+        OMEGA_H_CHECK(side2side_elems[side + 1] - side2side_elems[side] == 2);
         ++n;
       }
     }

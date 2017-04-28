@@ -12,13 +12,13 @@ enum {
   COLLAPSE_BOTH = 0x3
 };
 
-INLINE I8 collapses(I8 code, Int col_v) { return (code & (1 << col_v)) != 0; }
+OMEGA_H_INLINE I8 collapses(I8 code, Int col_v) { return (code & (1 << col_v)) != 0; }
 
-INLINE I8 do_collapse(I8 code, Int col_v) {
+OMEGA_H_INLINE I8 do_collapse(I8 code, Int col_v) {
   return static_cast<I8>(code | (1 << col_v));
 }
 
-INLINE I8 dont_collapse(I8 code, Int col_v) {
+OMEGA_H_INLINE I8 dont_collapse(I8 code, Int col_v) {
   return static_cast<I8>(code & ~(1 << col_v));
 }
 

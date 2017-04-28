@@ -192,7 +192,7 @@ bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
-  CHECK(get_max(comm, elems_are_cands) == 1);
+  OMEGA_H_CHECK(get_max(comm, elems_are_cands) == 1);
   return coarsen_ents(
       mesh, opts, mesh->dim(), elems_are_cands, ALLOWED, IMPROVE_LOCALLY);
 }

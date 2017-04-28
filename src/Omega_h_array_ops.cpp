@@ -16,7 +16,7 @@ struct SameContent : public AndFunctor {
 
 template <class T>
 bool operator==(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   return parallel_reduce(a.size(), SameContent<T>(a, b));
 }
 
@@ -100,7 +100,7 @@ struct AreClose : public AndFunctor {
 };
 
 bool are_close(Reals a, Reals b, Real tol, Real floor) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   return static_cast<bool>(
       parallel_reduce(a.size(), AreClose(a, b, tol, floor)));
 }
@@ -116,7 +116,7 @@ struct AreCloseAbs : public AndFunctor {
 };
 
 bool are_close_abs(Reals a, Reals b, Real tol) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   return static_cast<bool>(parallel_reduce(a.size(), AreCloseAbs(a, b, tol)));
 }
 
@@ -131,7 +131,7 @@ Read<T> multiply_each_by(T factor, Read<T> a) {
 template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b) {
   if (b.size() == 0) {
-    CHECK(a.size() == 0);
+    OMEGA_H_CHECK(a.size() == 0);
     return a;
   }
   auto width = divide_no_remainder(a.size(), b.size());
@@ -148,7 +148,7 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b) {
   if (b.size() == 0) {
-    CHECK(a.size() == 0);
+    OMEGA_H_CHECK(a.size() == 0);
     return a;
   }
   auto width = divide_no_remainder(a.size(), b.size());
@@ -172,7 +172,7 @@ Read<T> divide_each_by(T factor, Read<T> a) {
 
 template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] + b[i]; };
   parallel_for(c.size(), f);
@@ -181,7 +181,7 @@ Read<T> add_each(Read<T> a, Read<T> b) {
 
 template <typename T>
 Read<T> subtract_each(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] - b[i]; };
   parallel_for(c.size(), f);
@@ -238,7 +238,7 @@ Read<I8> each_lt(Read<T> a, T b) {
 
 template <typename T>
 Read<I8> gt_each(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] > b[i]); };
   parallel_for(c.size(), f);
@@ -247,7 +247,7 @@ Read<I8> gt_each(Read<T> a, Read<T> b) {
 
 template <typename T>
 Read<I8> geq_each(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] >= b[i]); };
   parallel_for(c.size(), f);
@@ -256,7 +256,7 @@ Read<I8> geq_each(Read<T> a, Read<T> b) {
 
 template <typename T>
 Read<T> min_each(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = min2(a[i], b[i]); };
   parallel_for(c.size(), f);
@@ -265,7 +265,7 @@ Read<T> min_each(Read<T> a, Read<T> b) {
 
 template <typename T>
 Read<T> max_each(Read<T> a, Read<T> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = max2(a[i], b[i]); };
   parallel_for(c.size(), f);
@@ -297,7 +297,7 @@ Read<I8> each_eq_to(Read<T> a, T b) {
 }
 
 Read<I8> land_each(Read<I8> a, Read<I8> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] && b[i]); };
   parallel_for(c.size(), f);
@@ -305,7 +305,7 @@ Read<I8> land_each(Read<I8> a, Read<I8> b) {
 }
 
 Read<I8> lor_each(Read<I8> a, Read<I8> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
   parallel_for(c.size(), f);
@@ -313,7 +313,7 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b) {
 }
 
 Read<I8> bit_or_each(Read<I8> a, Read<I8> b) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
   parallel_for(c.size(), f);
@@ -442,7 +442,7 @@ void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]) {
 }
 
 Reals interpolate_between(Reals a, Reals b, Real t) {
-  CHECK(a.size() == b.size());
+  OMEGA_H_CHECK(a.size() == b.size());
   auto n = a.size();
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) { out[i] = a[i] * (1.0 - t) + b[i] * t; };

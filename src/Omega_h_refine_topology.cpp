@@ -46,7 +46,7 @@ static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
 void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
     LOs keys2midverts, LOs old_verts2new_verts, LOs& keys2pairs,
     LOs& pair_verts2verts) {
-  CHECK(dim > VERT);
+  OMEGA_H_CHECK(dim > VERT);
   if (dim == EDGE) {
     refine_edges_to_pairs(mesh, keys2edges, keys2midverts, old_verts2new_verts,
         keys2pairs, pair_verts2verts);
@@ -103,7 +103,7 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
 void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
     LOs keys2midverts, LOs old_verts2new_verts, LOs& keys2cuts,
     LOs& cut_verts2verts) {
-  CHECK(dim > EDGE);
+  OMEGA_H_CHECK(dim > EDGE);
   auto nkeys = keys2edges.size();
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto dom_verts2verts = mesh->ask_verts_of(dim);
@@ -152,7 +152,7 @@ void combine_pairs_and_cuts(Int ent_dim, LOs keys2cuts, LOs keys2pairs,
     LOs cut_verts2verts, LOs pair_verts2verts, LOs& keys2prods,
     LOs& prod_verts2verts) {
   auto nkeys = keys2cuts.size() - 1;
-  CHECK(nkeys == keys2pairs.size() - 1);
+  OMEGA_H_CHECK(nkeys == keys2pairs.size() - 1);
   auto keys2ncuts = get_degrees(keys2cuts);
   auto keys2npairs = get_degrees(keys2pairs);
   auto keys2nprods = add_each(keys2ncuts, keys2npairs);

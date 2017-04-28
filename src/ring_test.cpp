@@ -8,7 +8,7 @@ using namespace Omega_h;
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-  CHECK(argc == 2);
+  OMEGA_H_CHECK(argc == 2);
   auto world = lib.world();
   auto self = lib.self();
   Mesh mesh(&lib);

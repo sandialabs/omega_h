@@ -9,7 +9,7 @@ namespace Omega_h {
 namespace {
 
 Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
-  CHECK(mesh->dim() == 3);
+  OMEGA_H_CHECK(mesh->dim() == 3);
   auto nsurf_tris = surf_tri2tri.size();
   auto fv2v = mesh->ask_verts_of(TRI);
   auto coords = mesh->coords();
@@ -27,7 +27,7 @@ Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
 }
 
 Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
-  CHECK(mesh->dim() == 2);
+  OMEGA_H_CHECK(mesh->dim() == 2);
   auto nsurf_edges = surf_edge2edge.size();
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto coords = mesh->coords();
@@ -84,7 +84,7 @@ Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
 
 template <Int dim>
 Reals get_curv_edge_tangents_dim(Mesh* mesh, LOs curv_edge2edge) {
-  CHECK(mesh->dim() == dim);
+  OMEGA_H_CHECK(mesh->dim() == dim);
   auto ncurv_edges = curv_edge2edge.size();
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto coords = mesh->coords();
@@ -194,7 +194,7 @@ static Reals side_vert_normal_weights(
 
 Reals get_side_vert_normals(Mesh* mesh, LOs surf_side2side,
     Reals surf_side_normals, LOs surf_vert2vert) {
-  CHECK(mesh->owners_have_all_upward(VERT));
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   auto dim = mesh->dim();
   auto verts2sides = mesh->ask_up(VERT, dim - 1);
   auto surf_verts2sides = unmap_adjacency(surf_vert2vert, verts2sides);
@@ -260,8 +260,8 @@ static Read<I8> get_curv_edge_vert_flips(
 template <Int dim>
 static Reals get_curv_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
     Reals curv_edge_tangents, LOs curv_verts2vert) {
-  CHECK(mesh->dim() == dim);
-  CHECK(mesh->owners_have_all_upward(VERT));
+  OMEGA_H_CHECK(mesh->dim() == dim);
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   auto verts2edges = mesh->ask_up(VERT, EDGE);
   auto curv_verts2edges = unmap_adjacency(curv_verts2vert, verts2edges);
   auto narcs = curv_verts2edges.nedges();
@@ -359,7 +359,7 @@ Reals get_surf_tri_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
  * Visualization and mathematics III. Springer Berlin Heidelberg, 2003. 35-57.
  */
 
-INLINE Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
+OMEGA_H_INLINE Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
   Few<Vector<3>, 3> e;
   for (Int i = 0; i < 3; ++i) e[i] = p[(i + 1) % 3] - p[i];
   Int ttv_obtuse = -1;
@@ -391,7 +391,7 @@ INLINE Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
   }
 }
 
-INLINE Matrix<3, 3> rotate_to_plane(Vector<3> n, Matrix<3, 3> tnuv) {
+OMEGA_H_INLINE Matrix<3, 3> rotate_to_plane(Vector<3> n, Matrix<3, 3> tnuv) {
   auto tn = tnuv[0];
   auto cp = cross(tn, n);
   auto cpl = norm(cp);

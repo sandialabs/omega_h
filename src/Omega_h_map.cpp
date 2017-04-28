@@ -10,7 +10,7 @@ namespace Omega_h {
 template <typename T>
 void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   auto na = a2b.size();
-  CHECK(a_data.size() == na * width);
+  OMEGA_H_CHECK(a_data.size() == na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
     for (Int j = 0; j < width; ++j) {
@@ -23,7 +23,7 @@ void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
 template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   auto na = a2b.size();
-  CHECK(a_data.size() == na * width);
+  OMEGA_H_CHECK(a_data.size() == na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
     for (Int j = 0; j < width; ++j) {
@@ -58,7 +58,7 @@ template <typename T>
 Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
   auto na = a2b.size() - 1;
   auto nb = a2b.last();
-  CHECK(a_data.size() == na * width);
+  OMEGA_H_CHECK(a_data.size() == na * width);
   Write<T> b_data(nb * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
@@ -216,7 +216,7 @@ static Read<typename Functor::input_type> fan_reduce_tmpl(
     LOs a2b, Read<typename Functor::input_type> b_data, Int width) {
   using T = typename Functor::input_type;
   using VT = typename Functor::value_type;
-  CHECK(a2b.last() * width == b_data.size());
+  OMEGA_H_CHECK(a2b.last() * width == b_data.size());
   auto na = a2b.size() - 1;
   Write<T> a_data(na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {

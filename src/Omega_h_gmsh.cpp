@@ -33,14 +33,14 @@ Int type_dim(Int type) {
 }
 
 void seek_line(std::istream& stream, std::string const& want) {
-  CHECK(stream);
+  OMEGA_H_CHECK(stream);
   std::string line;
   while (std::getline(stream, line)) {
     if (line == want) {
       break;
     }
   }
-  CHECK(stream);
+  OMEGA_H_CHECK(stream);
 }
 
 }  // end anonymous namespace
@@ -51,12 +51,12 @@ void read(std::istream& stream, Mesh* mesh) {
   Int file_type;
   Int data_size;
   stream >> format >> file_type >> data_size;
-  CHECK(file_type == 0);
-  CHECK(data_size == sizeof(Real));
+  OMEGA_H_CHECK(file_type == 0);
+  OMEGA_H_CHECK(data_size == sizeof(Real));
   seek_line(stream, "$Nodes");
   LO nnodes;
   stream >> nnodes;
-  CHECK(nnodes >= 0);
+  OMEGA_H_CHECK(nnodes >= 0);
   std::vector<Vector<3>> node_coords;
   for (LO i = 0; i < nnodes; ++i) {
     LO number;
@@ -64,7 +64,7 @@ void read(std::istream& stream, Mesh* mesh) {
     // the documentation says numbers don't have to be linear,
     // but so far they have been and assuming they are saves
     // me a big lookup structure (e.g. std::map)
-    CHECK(number == i + 1);
+    OMEGA_H_CHECK(number == i + 1);
     Vector<3> coords;
     stream >> coords[0] >> coords[1] >> coords[2];
     node_coords.push_back(coords);
@@ -72,19 +72,19 @@ void read(std::istream& stream, Mesh* mesh) {
   seek_line(stream, "$Elements");
   LO nents;
   stream >> nents;
-  CHECK(nents >= 0);
+  OMEGA_H_CHECK(nents >= 0);
   std::vector<LO> ent_class_ids[4];
   std::vector<LO> ent_nodes[4];
   for (LO i = 0; i < nents; ++i) {
     LO number;
     stream >> number;
-    CHECK(number > 0);
+    OMEGA_H_CHECK(number > 0);
     Int type;
     stream >> type;
     Int dim = type_dim(type);
     Int ntags;
     stream >> ntags;
-    CHECK(ntags >= 2);
+    OMEGA_H_CHECK(ntags >= 2);
     Int physical;
     Int elementary;
     stream >> physical >> elementary;
@@ -100,7 +100,7 @@ void read(std::istream& stream, Mesh* mesh) {
       ent_nodes[dim].push_back(node_number - 1);
     }
   }
-  CHECK(ent_nodes[2].size());
+  OMEGA_H_CHECK(ent_nodes[2].size());
   Int max_dim = 2;
   if (ent_nodes[3].size()) {
     max_dim = 3;

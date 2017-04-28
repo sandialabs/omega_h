@@ -32,7 +32,7 @@ namespace hilbert {
 /* original code had unsigned int here, we are going to 64 bits */
 typedef std::uint64_t coord_t;  // char,short,int for up to 8,16,32 bits per
                                 // word
-INLINE
+OMEGA_H_INLINE
 void TransposetoAxes(coord_t* X, int b, int n)  // position, #bits, dimension
 {
   coord_t N = coord_t(2) << (b - 1), P, Q, t;
@@ -57,7 +57,7 @@ void TransposetoAxes(coord_t* X, int b, int n)  // position, #bits, dimension
       }
   }  // exchange
 }
-INLINE
+OMEGA_H_INLINE
 void AxestoTranspose(coord_t* X, int b, int n)  // position, #bits, dimension
 {
   coord_t M = coord_t(1) << (b - 1), P, Q, t;
@@ -92,7 +92,7 @@ void AxestoTranspose(coord_t* X, int b, int n)  // position, #bits, dimension
 //                 out[0] = A B C D E
 //                 out[1] = F G H I J
 //                 out[2] = K L M N O
-INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
+OMEGA_H_INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
   for (int i = 0; i < n; ++i) out[i] = 0;
   for (int i = 0; i < (b * n); ++i)
     out[i / b] |= (((in[i % n] >> (b - 1 - (i / n))) & 1) << (b - 1 - (i % b)));

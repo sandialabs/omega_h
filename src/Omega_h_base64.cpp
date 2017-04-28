@@ -72,7 +72,7 @@ void decode_4(char const* in, unsigned char* out, std::size_t nout = 3) {
   unsigned char val[4];
   for (unsigned i = 0; i < 4; ++i) {
     val[i] = char_to_value[U(in[i])];
-    CHECK(val[i] < 64);
+    OMEGA_H_CHECK(val[i] < 64);
   }
   /* cast it all !
    * (technically this should all be run as

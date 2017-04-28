@@ -6,7 +6,7 @@ namespace Omega_h {
 
 template <Int deg, typename T>
 static Read<T> align_ev2v_deg(Read<T> ev2v, Read<I8> codes) {
-  CHECK(ev2v.size() == codes.size() * deg);
+  OMEGA_H_CHECK(ev2v.size() == codes.size() * deg);
   auto ne = codes.size();
   Write<T> ev2v_w(ev2v.size());
   auto f = OMEGA_H_LAMBDA(LO e) {
@@ -21,7 +21,7 @@ Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes) {
   if (deg == 3) {
     return align_ev2v_deg<3>(ev2v, codes);
   } else {
-    CHECK(deg == 2);
+    OMEGA_H_CHECK(deg == 2);
     return align_ev2v_deg<2>(ev2v, codes);
   }
 }

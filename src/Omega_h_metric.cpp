@@ -227,8 +227,8 @@ static Reals limit_gradation_once(Mesh* mesh, Reals values, Real max_rate) {
 
 Reals limit_metric_gradation(
     Mesh* mesh, Reals values, Real max_rate, Real tol, bool verbose) {
-  CHECK(mesh->owners_have_all_upward(VERT));
-  CHECK(max_rate > 0.0);
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
+  OMEGA_H_CHECK(max_rate > 0.0);
   auto comm = mesh->comm();
   Reals values2 = values;
   Int i = 0;
@@ -343,7 +343,7 @@ Reals get_implied_isos(Mesh* mesh) {
  */
 
 template <Int dim>
-static INLINE Matrix<dim, dim> metric_from_hessian(
+static OMEGA_H_INLINE Matrix<dim, dim> metric_from_hessian(
     Matrix<dim, dim> hessian, Real eps) {
   auto ed = decompose_eigen(hessian);
   auto r = ed.q;
@@ -372,7 +372,7 @@ static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
 }
 
 Reals get_hessian_metrics(Int dim, Reals hessians, Real eps) {
-  CHECK(eps > 0.0);
+  OMEGA_H_CHECK(eps > 0.0);
   if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps);
   if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps);
   if (dim == 1) return metric_from_hessians_dim<1>(hessians, eps);

@@ -4,7 +4,7 @@ namespace Omega_h {
 
 void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   if (new_comm->rank() == 0) {
-    CHECK(is_source);
+    OMEGA_H_CHECK(is_source);
   }
   I32 dim;
   if (is_source) dim = mesh->dim();

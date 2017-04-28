@@ -26,7 +26,7 @@ Mesh::Mesh(Library* library) {
   parting_ = -1;
   nghost_layers_ = -1;
   keeps_canonical_globals_ = true;
-  CHECK(library != nullptr);
+  OMEGA_H_CHECK(library != nullptr);
   library_ = library;
 }
 
@@ -69,9 +69,9 @@ void Mesh::set_comm(CommPtr const& new_comm) {
 }
 
 void Mesh::set_dim(Int dim) {
-  CHECK(dim_ == -1);
-  CHECK(dim >= 1);
-  CHECK(dim <= 3);
+  OMEGA_H_CHECK(dim_ == -1);
+  OMEGA_H_CHECK(dim >= 1);
+  OMEGA_H_CHECK(dim <= 3);
   dim_ = dim;
 }
 
@@ -79,9 +79,9 @@ void Mesh::set_verts(LO nverts) { nents_[VERT] = nverts; }
 
 void Mesh::set_ents(Int dim, Adj down) {
   check_dim(dim);
-  CHECK(!has_ents(dim));
+  OMEGA_H_CHECK(!has_ents(dim));
   LOs hl2l = down.ab2b;
-  CHECK(hl2l.size() % simplex_degrees[dim][dim - 1] == 0);
+  OMEGA_H_CHECK(hl2l.size() % simplex_degrees[dim][dim - 1] == 0);
   nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
 }
@@ -125,9 +125,9 @@ void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
         "remove_tag\n",
         plural_names[dim], name.c_str());
   }
-  CHECK(ncomps >= 0);
-  CHECK(ncomps <= Int(INT8_MAX));
-  CHECK(tags_[dim].size() < size_t(INT8_MAX));
+  OMEGA_H_CHECK(ncomps >= 0);
+  OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
+  OMEGA_H_CHECK(tags_[dim].size() < size_t(INT8_MAX));
   tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps)));
 }
 
@@ -146,7 +146,7 @@ void Mesh::set_tag(
         plural_names[dim], name.c_str());
   }
   Tag<T>* tag = as<T>(tag_iter(dim, name)->get());
-  CHECK(array.size() == nents(dim) * tag->ncomps());
+  OMEGA_H_CHECK(array.size() == nents(dim) * tag->ncomps());
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
@@ -188,7 +188,7 @@ Read<T> Mesh::get_array(Int dim, std::string const& name) const {
 void Mesh::remove_tag(Int dim, std::string const& name) {
   if (!has_tag(dim, name)) return;
   check_dim2(dim);
-  CHECK(has_tag(dim, name));
+  OMEGA_H_CHECK(has_tag(dim, name));
   tags_[dim].erase(tag_iter(dim, name));
 }
 
@@ -205,8 +205,8 @@ Int Mesh::ntags(Int dim) const {
 
 TagBase const* Mesh::get_tag(Int dim, Int i) const {
   check_dim2(dim);
-  CHECK(0 <= i);
-  CHECK(i <= ntags(dim));
+  OMEGA_H_CHECK(0 <= i);
+  OMEGA_H_CHECK(i <= ntags(dim));
   return tags_[dim][static_cast<std::size_t>(i)].get();
 }
 
@@ -224,12 +224,12 @@ bool Mesh::has_adj(Int from, Int to) const {
 Adj Mesh::get_adj(Int from, Int to) const {
   check_dim2(from);
   check_dim2(to);
-  CHECK(has_adj(from, to));
+  OMEGA_H_CHECK(has_adj(from, to));
   return *(adjs_[from][to]);
 }
 
 Adj Mesh::ask_down(Int from, Int to) {
-  CHECK(to < from);
+  OMEGA_H_CHECK(to < from);
   return ask_adj(from, to);
 }
 
@@ -238,12 +238,12 @@ LOs Mesh::ask_verts_of(Int dim) { return ask_adj(dim, VERT).ab2b; }
 LOs Mesh::ask_elem_verts() { return ask_verts_of(dim()); }
 
 Adj Mesh::ask_up(Int from, Int to) {
-  CHECK(from < to);
+  OMEGA_H_CHECK(from < to);
   return ask_adj(from, to);
 }
 
 Graph Mesh::ask_star(Int dim) {
-  CHECK(dim < this->dim());
+  OMEGA_H_CHECK(dim < this->dim());
   return ask_adj(dim, dim);
 }
 
@@ -266,34 +266,34 @@ Mesh::TagCIter Mesh::tag_iter(Int dim, std::string const& name) const {
 }
 
 void Mesh::check_dim(Int dim) const {
-  CHECK(0 <= dim);
-  CHECK(dim <= this->dim());
+  OMEGA_H_CHECK(0 <= dim);
+  OMEGA_H_CHECK(dim <= this->dim());
 }
 
 void Mesh::check_dim2(Int dim) const {
   check_dim(dim);
-  CHECK(has_ents(dim));
+  OMEGA_H_CHECK(has_ents(dim));
 }
 
 void Mesh::add_adj(Int from, Int to, Adj adj) {
   check_dim2(from);
   check_dim(to);
-  CHECK(adj.ab2b.exists());
+  OMEGA_H_CHECK(adj.ab2b.exists());
   if (to < from) {
-    CHECK(!adj.a2ab.exists());
+    OMEGA_H_CHECK(!adj.a2ab.exists());
     if (to == VERT) {
-      CHECK(!adj.codes.exists());
+      OMEGA_H_CHECK(!adj.codes.exists());
     } else {
-      CHECK(adj.codes.exists());
+      OMEGA_H_CHECK(adj.codes.exists());
     }
-    CHECK(adj.ab2b.size() == nents(from) * simplex_degrees[from][to]);
+    OMEGA_H_CHECK(adj.ab2b.size() == nents(from) * simplex_degrees[from][to]);
   } else {
     if (from < to) {
-      CHECK(adj.a2ab.exists());
-      CHECK(adj.codes.exists());
-      CHECK(adj.ab2b.size() == nents(to) * simplex_degrees[to][from]);
+      OMEGA_H_CHECK(adj.a2ab.exists());
+      OMEGA_H_CHECK(adj.codes.exists());
+      OMEGA_H_CHECK(adj.ab2b.size() == nents(to) * simplex_degrees[to][from]);
     }
-    CHECK(adj.a2ab.size() == nents(from) + 1);
+    OMEGA_H_CHECK(adj.a2ab.size() == nents(from) + 1);
   }
   adjs_[from][to] = std::make_shared<Adj>(adj);
 }
@@ -309,7 +309,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     Adj up = invert_adj(down, nlows_per_high, nlows, high_globals);
     return up;
   } else if (to < from) {
-    CHECK(to + 1 < from);
+    OMEGA_H_CHECK(to + 1 < from);
     Adj h2m = ask_adj(from, to + 1);
     Adj m2l = ask_adj(to + 1, to);
     Adj h2l = transit(h2m, m2l, from, to);
@@ -323,7 +323,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
       return verts_across_edges(ask_adj(EDGE, VERT), ask_adj(VERT, EDGE));
     }
     if (from == EDGE && to == EDGE) {
-      CHECK(dim() >= 2);
+      OMEGA_H_CHECK(dim() >= 2);
       Graph g = edges_across_tris(ask_adj(TRI, EDGE), ask_adj(EDGE, TRI));
       if (dim() == 3) {
         g = add_edges(
@@ -358,20 +358,20 @@ void Mesh::add_coords(Reals array) {
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
 
 void Mesh::set_coords(Reals const& array) {
-  CHECK(array.size() == nverts() * dim());
+  OMEGA_H_CHECK(array.size() == nverts() * dim());
   set_tag<Real>(VERT, "coordinates", array);
 }
 
 Read<GO> Mesh::ask_globals(Int dim) {
   if (!has_tag(dim, "global")) {
-    CHECK(comm_->size() == 1);
+    OMEGA_H_CHECK(comm_->size() == 1);
     add_tag(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
   }
   return get_array<GO>(dim, "global");
 }
 
 void Mesh::reset_globals() {
-  CHECK(comm_->size() == 1);
+  OMEGA_H_CHECK(comm_->size() == 1);
   for (Int d = 0; d <= dim(); ++d) {
     remove_tag(d, "global");
     ask_globals(d);
@@ -404,15 +404,15 @@ Reals Mesh::ask_sizes() {
 
 void Mesh::set_owners(Int dim, Remotes owners) {
   check_dim2(dim);
-  CHECK(nents(dim) == owners.ranks.size());
-  CHECK(nents(dim) == owners.idxs.size());
+  OMEGA_H_CHECK(nents(dim) == owners.ranks.size());
+  OMEGA_H_CHECK(nents(dim) == owners.idxs.size());
   owners_[dim] = owners;
   dists_[dim] = DistPtr();
 }
 
 Remotes Mesh::ask_owners(Int dim) {
   if (!owners_[dim].ranks.exists() || !owners_[dim].idxs.exists()) {
-    CHECK(comm_->size() == 1);
+    OMEGA_H_CHECK(comm_->size() == 1);
     owners_[dim] =
         Remotes(Read<I32>(nents(dim), comm_->rank()), LOs(nents(dim), 0, 1));
   }
@@ -427,15 +427,15 @@ Read<I8> Mesh::owned(Int dim) {
 Dist Mesh::ask_dist(Int dim) {
   if (!dists_[dim]) {
     auto owners = ask_owners(dim);
-    CHECK(owners.ranks.exists());
-    CHECK(owners.idxs.exists());
+    OMEGA_H_CHECK(owners.ranks.exists());
+    OMEGA_H_CHECK(owners.idxs.exists());
     dists_[dim] = std::make_shared<Dist>(comm_, owners, nents(dim));
   }
   return *(dists_[dim]);
 }
 
 Omega_h_Parting Mesh::parting() const {
-  CHECK(parting_ != -1);
+  OMEGA_H_CHECK(parting_ != -1);
   return Omega_h_Parting(parting_);
 }
 
@@ -466,7 +466,7 @@ void Mesh::set_parting(Omega_h_Parting parting, Int nlayers, bool verbose) {
     return;
   }
   if (parting == OMEGA_H_ELEM_BASED) {
-    CHECK(nlayers == 0);
+    OMEGA_H_CHECK(nlayers == 0);
     if (comm_->size() > 1) partition_by_elems(this, verbose);
   } else if (parting == OMEGA_H_GHOSTED) {
     if (parting_ != OMEGA_H_GHOSTED || nlayers < nghost_layers_) {
@@ -474,7 +474,7 @@ void Mesh::set_parting(Omega_h_Parting parting, Int nlayers, bool verbose) {
     }
     if (comm_->size() > 1) ghost_mesh(this, nlayers, verbose);
   } else if (parting == OMEGA_H_VERT_BASED) {
-    CHECK(nlayers == 1);
+    OMEGA_H_CHECK(nlayers == 1);
     if (comm_->size() > 1) partition_by_verts(this, verbose);
   }
   parting_ = parting;
@@ -532,7 +532,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
     auto a2ab = LOs(nents(from) + 1, 0, simplex_degrees[from][to]);
     return Graph(a2ab, down.ab2b);
   }
-  CHECK(from == to);
+  OMEGA_H_CHECK(from == to);
   return identity_graph(nents(from));
 }
 
@@ -682,7 +682,7 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
 Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   auto ev2v = mesh->ask_verts_of(dim);
   auto degree = simplex_degrees[dim][VERT];
-  CHECK(v2x.size() % ncomps == 0);
+  OMEGA_H_CHECK(v2x.size() % ncomps == 0);
   auto na = a2e.size();
   Write<Real> out(na * ncomps);
   auto f = OMEGA_H_LAMBDA(LO a) {

@@ -14,7 +14,7 @@ static bool move_verts_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
-  CHECK(get_max(comm, elems_are_cands) == 1);
+  OMEGA_H_CHECK(get_max(comm, elems_are_cands) == 1);
   auto verts_are_cands = mark_down(mesh, mesh->dim(), VERT, elems_are_cands);
   auto cands2verts = collect_marked(verts_are_cands);
   auto choices = get_motion_choices(mesh, opts, cands2verts);

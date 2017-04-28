@@ -102,7 +102,7 @@ xml::Tag read_tag(std::istream& stream) {
   std::string line;
   std::getline(stream, line);
   xml::Tag st;
-  CHECK(parse_tag(line, &st));
+  OMEGA_H_CHECK(parse_tag(line, &st));
   return st;
 }
 }  // namespace xml

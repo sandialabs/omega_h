@@ -12,15 +12,15 @@ struct Atomics;
 template <>
 struct Atomics<true> {
   template <typename T>
-  static INLINE void increment(volatile T* const dest) {
+  static OMEGA_H_INLINE void increment(volatile T* const dest) {
     Kokkos::atomic_increment(dest);
   }
   template <typename T>
-  static INLINE void add(volatile T* const dest, const T val) {
+  static OMEGA_H_INLINE void add(volatile T* const dest, const T val) {
     Kokkos::atomic_add(dest, val);
   }
   template <typename T>
-  static INLINE T fetch_add(volatile T* const dest, const T val) {
+  static OMEGA_H_INLINE T fetch_add(volatile T* const dest, const T val) {
     return Kokkos::atomic_fetch_add(dest, val);
   }
 };
@@ -29,15 +29,15 @@ struct Atomics<true> {
 template <>
 struct Atomics<false> {
   template <typename T>
-  static INLINE void increment(volatile T* const dest) {
+  static OMEGA_H_INLINE void increment(volatile T* const dest) {
     ++(*dest);
   }
   template <typename T>
-  static INLINE void add(volatile T* const dest, const T val) {
+  static OMEGA_H_INLINE void add(volatile T* const dest, const T val) {
     *dest += val;
   }
   template <typename T>
-  static INLINE T fetch_add(volatile T* const dest, const T val) {
+  static OMEGA_H_INLINE T fetch_add(volatile T* const dest, const T val) {
     T tmp = *dest;
     *dest += val;
     return tmp;
@@ -52,17 +52,17 @@ constexpr bool enable_atomics = false;
 #endif
 
 template <typename T>
-INLINE void atomic_increment(volatile T* const dest) {
+OMEGA_H_INLINE void atomic_increment(volatile T* const dest) {
   Atomics<enable_atomics>::increment<T>(dest);
 }
 
 template <typename T>
-INLINE void atomic_add(volatile T* const dest, const T val) {
+OMEGA_H_INLINE void atomic_add(volatile T* const dest, const T val) {
   Atomics<enable_atomics>::add<T>(dest, val);
 }
 
 template <typename T>
-INLINE T atomic_fetch_add(volatile T* const dest, const T val) {
+OMEGA_H_INLINE T atomic_fetch_add(volatile T* const dest, const T val) {
   return Atomics<enable_atomics>::fetch_add<T>(dest, val);
 }
 
