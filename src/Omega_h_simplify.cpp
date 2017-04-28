@@ -47,7 +47,7 @@ OMEGA_H_INLINE void rot_to_first(LO v[], Int nv, Int first) {
 }
 
 /* quad to tri template */
-CONSTANT Int const qtv2qqv[2][3] = {{0, 1, 2}, {2, 3, 0}};
+OMEGA_H_CONSTANT_DATA Int const qtv2qqv[2][3] = {{0, 1, 2}, {2, 3, 0}};
 
 /* below are the hex-to-tet templates for the
    four unique cases identified by Dompierre et al.
@@ -56,24 +56,24 @@ CONSTANT Int const qtv2qqv[2][3] = {{0, 1, 2}, {2, 3, 0}};
 
 /* tets from a hex with no diagonals
    into the back-upper-right corner */
-CONSTANT Int const htv2hhv_0[5][4] = {
+OMEGA_H_CONSTANT_DATA Int const htv2hhv_0[5][4] = {
     {0, 1, 2, 5}, {0, 2, 7, 5}, {0, 2, 3, 7}, {0, 5, 7, 4}, {2, 7, 5, 6}};
 /* tets from a hex with 1 diagonal
    into the back-upper-right corner,
    on the right face */
-CONSTANT Int const htv2hhv_1[6][4] = {{0, 5, 7, 4}, {0, 1, 7, 5}, {1, 6, 7, 5},
+OMEGA_H_CONSTANT_DATA Int const htv2hhv_1[6][4] = {{0, 5, 7, 4}, {0, 1, 7, 5}, {1, 6, 7, 5},
     {0, 7, 2, 3}, {0, 7, 1, 2}, {1, 7, 6, 2}};
 /* tets from a hex with 2 diagonals
    into the back-upper-right corner,
    none on the right face */
-CONSTANT Int const htv2hhv_2[6][4] = {{0, 4, 5, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
+OMEGA_H_CONSTANT_DATA Int const htv2hhv_2[6][4] = {{0, 4, 5, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
     {0, 1, 2, 5}, {0, 3, 6, 2}, {0, 6, 5, 2}};
 /* tets from a hex with 3 diagonals
    into the back-upper-right corner */
-CONSTANT Int const htv2hhv_3[6][4] = {{0, 2, 3, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
+OMEGA_H_CONSTANT_DATA Int const htv2hhv_3[6][4] = {{0, 2, 3, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
     {0, 5, 6, 4}, {1, 5, 6, 0}, {1, 6, 2, 0}};
 
-CONSTANT Int const hex_flip_pairs[4][2] = {{0, 4}, {3, 5}, {1, 7}, {2, 6}};
+OMEGA_H_CONSTANT_DATA Int const hex_flip_pairs[4][2] = {{0, 4}, {3, 5}, {1, 7}, {2, 6}};
 
 OMEGA_H_DEVICE void flip_hex(LO hhv2v[]) {
   for (Int i = 0; i < 4; ++i)
@@ -84,14 +84,14 @@ OMEGA_H_DEVICE void flip_hex(LO hhv2v[]) {
    corner, starting with the right face
    and curling around the centroidal XYZ axis.
    also, numbered with the corner vertex first */
-CONSTANT Int const hex_bur_faces[3][4] = {
+OMEGA_H_CONSTANT_DATA Int const hex_bur_faces[3][4] = {
     {6, 5, 1, 2}, {6, 2, 3, 7}, {6, 7, 4, 5}};
 
 /* the vertices that rotate amonst one another
    when a hex is rotated around its centroidal
    XYZ axis (the line between the front-lower-left
    corner and the back-upper-right corner). */
-CONSTANT Int const hex_bur_ring[6] = {1, 2, 3, 7, 5, 4};
+OMEGA_H_CONSTANT_DATA Int const hex_bur_ring[6] = {1, 2, 3, 7, 5, 4};
 
 OMEGA_H_DEVICE void hex_bur_rot_ntimes(LO hhv2v[], Int ntimes) {
   LO tmp[6];
