@@ -34,4 +34,10 @@ OMEGA_H_SYSTEM_HEADER
 #define OMEGA_H_LAMBDA [=]
 #endif  // OMEGA_H_USE_CUDA
 
+#ifdef OMEGA_H_USE_CUDA
+#define OMEGA_H_CONSTANT_DATA __constant__
+#else
+#define OMEGA_H_CONSTANT_DATA
+#endif
+
 #endif

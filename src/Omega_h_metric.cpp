@@ -14,7 +14,7 @@ namespace Omega_h {
 Int get_metric_dim(Int ncomps) {
   for (Int i = 1; i <= 3; ++i)
     if (ncomps == symm_ncomps(i)) return i;
-  NORETURN(Int());
+  OMEGA_H_NORETURN(Int());
 }
 
 Int get_metrics_dim(LO nmetrics, Reals metrics) {
@@ -31,7 +31,7 @@ template <Int dim>
 static Reals clamp_metrics_dim(
     LO nmetrics, Reals metrics, Real h_min, Real h_max) {
   auto out = Write<Real>(nmetrics * symm_ncomps(dim));
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     auto m = get_symm<dim>(metrics, i);
     m = clamp_metric(m, h_min, h_max);
     set_symm(out, i, m);
@@ -45,7 +45,7 @@ Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
   if (dim == 3) return clamp_metrics_dim<3>(nmetrics, metrics, h_min, h_max);
   if (dim == 2) return clamp_metrics_dim<2>(nmetrics, metrics, h_min, h_max);
   if (dim == 1) return clamp_metrics_dim<1>(nmetrics, metrics, h_min, h_max);
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 template <Int mdim, Int edim>
@@ -53,7 +53,7 @@ static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
   Write<Real> out(na * symm_ncomps(mdim));
   auto ev2v = mesh->ask_verts_of(edim);
-  auto f = LAMBDA(LO a) {
+  auto f = OMEGA_H_LAMBDA(LO a) {
     auto e = a2e[a];
     auto v = gather_verts<edim + 1>(ev2v, e);
     auto ms = gather_symms<edim + 1, mdim>(v2m, v);
@@ -87,7 +87,7 @@ Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
   if (metrics_dim == 1 && ent_dim == 1) {
     return mident_metrics_tmpl<1, 1>(mesh, entities, v2m);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m) {
@@ -106,7 +106,7 @@ template <Int dim>
 Reals linearize_metrics_dim(Reals metrics) {
   auto n = metrics.size() / symm_ncomps(dim);
   auto out = Write<Real>(n * symm_ncomps(dim));
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     set_symm(out, i, linearize_metric(get_symm<dim>(metrics, i)));
   };
   parallel_for(n, f);
@@ -117,7 +117,7 @@ template <Int dim>
 Reals delinearize_metrics_dim(Reals lms) {
   auto n = lms.size() / symm_ncomps(dim);
   auto out = Write<Real>(n * symm_ncomps(dim));
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     set_symm(out, i, delinearize_metric(get_symm<dim>(lms, i)));
   };
   parallel_for(n, f);
@@ -129,7 +129,7 @@ Reals linearize_metrics(LO nmetrics, Reals metrics) {
   if (dim == 3) return linearize_metrics_dim<3>(metrics);
   if (dim == 2) return linearize_metrics_dim<2>(metrics);
   if (dim == 1) return linearize_metrics_dim<1>(metrics);
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
@@ -137,7 +137,7 @@ Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
   if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
   if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);
   if (dim == 1) return delinearize_metrics_dim<1>(linear_metrics);
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 template <Int dim>
@@ -145,7 +145,7 @@ static HostFew<Reals, dim> axes_from_metrics_dim(Reals metrics) {
   auto n = divide_no_remainder(metrics.size(), symm_ncomps(dim));
   HostFew<Write<Real>, dim> w;
   for (Int i = 0; i < dim; ++i) w[i] = Write<Real>(n * dim);
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     auto md = decompose_metric(get_symm<dim>(metrics, i));
     for (Int j = 0; j < dim; ++j) set_vector(w[j], i, md.q[j] * md.l[j]);
   };
@@ -175,7 +175,7 @@ void axes_from_metric_field(Mesh* mesh, std::string const& metric_name,
     axes_from_metric_field_dim<2>(mesh, metric_name, axis_prefix);
     return;
   }
-  NORETURN();
+  OMEGA_H_NORETURN();
 }
 
 /* gradation limiting code: */
@@ -186,7 +186,7 @@ static Reals limit_gradation_once_tmpl(
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
   auto out = Write<Real>(mesh->nverts() * symm_ncomps(metric_dim));
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto m = get_symm<metric_dim>(values, v);
     auto x = get_vector<mesh_dim>(coords, v);
     for (auto vv = v2v.a2ab[v]; vv < v2v.a2ab[v + 1]; ++vv) {
@@ -222,7 +222,7 @@ static Reals limit_gradation_once(Mesh* mesh, Reals values, Real max_rate) {
   } else if (mesh->dim() == 1) {
     return limit_gradation_once_tmpl<1, 1>(mesh, values, max_rate);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Reals limit_metric_gradation(
@@ -262,7 +262,7 @@ static Reals element_implied_length_metrics_dim(Mesh* mesh) {
   auto coords = mesh->coords();
   auto sizes = mesh->ask_sizes();
   auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
-  auto f = LAMBDA(LO e) {
+  auto f = OMEGA_H_LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
     auto m = element_implied_metric(p);
@@ -276,7 +276,7 @@ static Reals get_element_implied_length_metrics(Mesh* mesh) {
   if (mesh->dim() == 3) return element_implied_length_metrics_dim<3>(mesh);
   if (mesh->dim() == 2) return element_implied_length_metrics_dim<2>(mesh);
   if (mesh->dim() == 1) return element_implied_length_metrics_dim<1>(mesh);
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Reals get_pure_implied_metrics(Mesh* mesh) {
@@ -289,7 +289,7 @@ static Reals metric_quality_corrections_dim(Mesh* mesh) {
   auto coords = mesh->coords();
   auto sizes = mesh->ask_sizes();
   auto out = Write<Real>(mesh->nelems());
-  auto f = LAMBDA(LO e) {
+  auto f = OMEGA_H_LAMBDA(LO e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     auto p = gather_vectors<dim + 1, dim>(coords, v);
     auto b = simplex_basis<dim, dim>(p);
@@ -310,7 +310,7 @@ static Reals get_metric_quality_corrections(Mesh* mesh) {
   if (mesh->dim() == 3) return metric_quality_corrections_dim<3>(mesh);
   if (mesh->dim() == 2) return metric_quality_corrections_dim<2>(mesh);
   if (mesh->dim() == 1) return metric_quality_corrections_dim<1>(mesh);
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 static Reals get_element_implied_size_metrics(Mesh* mesh) {
@@ -362,7 +362,7 @@ static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
   auto ncomps = symm_ncomps(dim);
   auto n = divide_no_remainder(hessians.size(), ncomps);
   auto out = Write<Real>(n * ncomps);
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     auto hess = get_symm<dim>(hessians, i);
     auto m = metric_from_hessian(hess, eps);
     set_symm(out, i, m);
@@ -376,13 +376,13 @@ Reals get_hessian_metrics(Int dim, Reals hessians, Real eps) {
   if (dim == 3) return metric_from_hessians_dim<3>(hessians, eps);
   if (dim == 2) return metric_from_hessians_dim<2>(hessians, eps);
   if (dim == 1) return metric_from_hessians_dim<1>(hessians, eps);
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
   auto vert_curvatures = get_vert_curvatures(mesh);
   auto out = Write<Real>(mesh->nverts());
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto curvature = vert_curvatures[v];
     auto l = square(curvature / segment_angle);
     out[v] = l;
@@ -409,7 +409,7 @@ static Reals expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
   auto elem_metrics = get_mident_metrics(mesh, mesh->dim(), v2m);
-  auto f = LAMBDA(LO e) {
+  auto f = OMEGA_H_LAMBDA(LO e) {
     auto v = gather_verts<mesh_dim + 1>(elems2verts, e);
     auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
     auto b = simplex_basis<mesh_dim, mesh_dim>(p);
@@ -438,7 +438,7 @@ Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
   } else if (mesh->dim() == 1) {
     return expected_nelems_per_elem_tmpl<1, 1>(mesh, v2m);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 Real get_expected_nelems(Mesh* mesh, Reals v2m) {

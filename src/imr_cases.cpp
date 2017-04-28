@@ -33,7 +33,7 @@ struct TranslateBall : public Case {
   }
   static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0.02, 0, 0)); };
+    auto f = OMEGA_H_LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0.02, 0, 0)); };
     parallel_for(ov2v.size(), f);
     return out;
   }
@@ -57,7 +57,7 @@ struct RotateBall : public Case {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
     auto rot = rotate(PI / 16, vector_3(0, 0, 1));
-    auto f = LAMBDA(LO ov) {
+    auto f = OMEGA_H_LAMBDA(LO ov) {
       auto v = ov2v[ov];
       auto x = get_vector<3>(coords, v);
       auto mid = vector_3(.5, .5, 0);
@@ -87,7 +87,7 @@ struct CollideBalls : public Case {
   }
   static Reals static_motion(I32 object, LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = LAMBDA(LO ov) {
+    auto f = OMEGA_H_LAMBDA(LO ov) {
       if (object == 72) {
         set_vector<3>(out, ov, vector_3(0, 0, 0.02));
       } else {
@@ -118,7 +118,7 @@ struct CylinderTube : public Case {
   }
   static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0, 0, 0.02)); };
+    auto f = OMEGA_H_LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0, 0, 0.02)); };
     parallel_for(ov2v.size(), f);
     return out;
   }
@@ -158,7 +158,7 @@ struct TwinRotor : public Case {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
     auto rm = rotate(dir * PI / 32, vector_3(0, 0, 1));
-    auto f = LAMBDA(LO ov) {
+    auto f = OMEGA_H_LAMBDA(LO ov) {
       auto v = ov2v[ov];
       auto x = get_vector<3>(coords, v);
       set_vector(out, ov, ((rm * (x - center)) + center) - x);

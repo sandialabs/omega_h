@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     auto orig_coords = mesh.get_array<Real>(VERT, "orig_coords");
     auto coords = mesh.coords();
     auto warp_w = Write<Real>(mesh.nverts() * dim);
-    auto f = LAMBDA(LO v) {
+    auto f = OMEGA_H_LAMBDA(LO v) {
       auto op = get_vector<dim>(orig_coords, v);
       auto angle = full_angle * (op[2] / orig_height);
       auto radius = bend_radius - op[1];

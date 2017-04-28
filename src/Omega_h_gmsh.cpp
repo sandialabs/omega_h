@@ -29,7 +29,7 @@ Int type_dim(Int type) {
       return 3;
   }
   Omega_h_fail("omega_h can only accept linear simplices from Gmsh");
-  NORETURN(-1);
+  OMEGA_H_NORETURN(-1);
 }
 
 void seek_line(std::istream& stream, std::string const& want) {

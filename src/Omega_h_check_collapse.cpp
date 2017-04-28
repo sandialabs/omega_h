@@ -12,7 +12,7 @@ Read<I8> check_collapse_class(
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
   auto cand_codes_w = Write<I8>(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto code = cand_codes[cand];
     auto edge = cands2edges[cand];
     LO eev2v[2];
@@ -76,7 +76,7 @@ static Read<I8> check_collapse_exposure(
   auto s2dim = mesh->get_array<I8>(cell_dim - 1, "class_dim");
   auto ncands = cands2edges.size();
   auto cand_codes_w = Write<I8>(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto code = cand_codes[cand];
     auto e = cands2edges[cand];
     for (auto ec = e2ec[e]; ec < e2ec[e + 1]; ++ec) {

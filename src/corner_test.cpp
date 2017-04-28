@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
   do {
     Write<Real> metrics_w(mesh.nverts());
     auto coords = mesh.coords();
-    auto f = LAMBDA(LO v) {
+    auto f = OMEGA_H_LAMBDA(LO v) {
       auto x = get_vector<3>(coords, v);
       auto coarse = 0.4;
       auto fine = 0.04;

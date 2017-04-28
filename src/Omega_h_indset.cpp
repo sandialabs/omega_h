@@ -12,7 +12,7 @@ static Read<I8> local_iteration(
     LOs xadj, LOs adj, Reals quality, Read<GO> global, Read<I8> old_state) {
   auto n = global.size();
   Write<I8> new_state = deep_copy(old_state);
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     if (old_state[v] != UNKNOWN) return;
     auto begin = xadj[v];
     auto end = xadj[v + 1];
@@ -56,7 +56,7 @@ static Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
   CHECK(quality.size() == n);
   CHECK(candidates.size() == n);
   auto initial_state = Write<I8>(n);
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     if (candidates[i])
       initial_state[i] = UNKNOWN;
     else

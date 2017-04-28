@@ -26,7 +26,7 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
   for (Int i = 0; i < dim; ++i) maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
   LO npts = coords.size() / dim;
   Write<I64> out(npts * dim);
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     hilbert::coord_t X[dim];
     Int nbits = MANTISSA_BITS;
     for (Int j = 0; j < dim; ++j) {
@@ -57,7 +57,7 @@ static Read<I64> dists_from_coords(Reals coords, Int dim) {
   if (dim == 3) return dists_from_coords_dim<3>(coords);
   if (dim == 2) return dists_from_coords_dim<2>(coords);
   if (dim == 1) return dists_from_coords_dim<1>(coords);
-  NORETURN(Read<I64>());
+  OMEGA_H_NORETURN(Read<I64>());
 }
 
 LOs sort_coords(Reals coords, Int dim) {

@@ -15,7 +15,7 @@ static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
   auto ndoms = nkeys;
   auto npairs = ndoms * 2;
   Write<LO> pair_verts2verts_w(npairs * 2);
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     pair_verts2verts_w[key * 4 + 0] =
@@ -66,7 +66,7 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
   auto npairs = ndoms * 2;
   keys2pairs = multiply_each_by(2, keys2key_doms);
   Write<LO> pair_verts2verts_w(npairs * (dim + 1));
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     auto pair = keys2pairs[key];
@@ -118,7 +118,7 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
   auto ncuts = ndoms;
   keys2cuts = keys2key_doms;
   Write<LO> cut_verts2verts_w(ncuts * (dim));
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto edge = keys2edges[key];
     auto midvert = keys2midverts[key];
     auto cut = keys2cuts[key];
@@ -160,7 +160,7 @@ void combine_pairs_and_cuts(Int ent_dim, LOs keys2cuts, LOs keys2pairs,
   auto nprods = keys2prods.last();
   auto nppv = simplex_degrees[ent_dim][VERT];
   auto prod_verts2verts_w = Write<LO>(nprods * nppv);
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto prod = keys2prods[key];
     for (auto pair = keys2pairs[key]; pair < keys2pairs[key + 1]; ++pair) {
       for (Int ppv = 0; ppv < nppv; ++ppv) {

@@ -19,7 +19,7 @@ struct BBoxFunctor {
       volatile value_type& update, const volatile value_type& input) const {
     update = unite(update, input);
   }
-  DEVICE void operator()(Int i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
     update = unite(update, BBox<dim>(get_vector<dim>(coords_, i)));
   }
 };

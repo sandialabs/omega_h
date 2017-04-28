@@ -7,13 +7,13 @@ void make_1d_box(Real x, LO nx, LOs* ev2v_out, Reals* coords_out) {
   LO nv = nx + 1;
   Real dx = x / nx;
   Write<Real> coords(nv);
-  auto fill_coords = LAMBDA(LO v) {
+  auto fill_coords = OMEGA_H_LAMBDA(LO v) {
     LO i = v % nv;
     coords[v] = i * dx;
   };
   parallel_for(nv, fill_coords);
   Write<LO> ev2v(ne * 2);
-  auto fill_conn = LAMBDA(LO q) {
+  auto fill_conn = OMEGA_H_LAMBDA(LO q) {
     LO i = q % ne;
     ev2v[q * 2 + 0] = i + 0;
     ev2v[q * 2 + 1] = i + 1;
@@ -32,7 +32,7 @@ void make_2d_box(
   Real dx = x / nx;
   Real dy = y / ny;
   Write<Real> coords(nv * 2);
-  auto fill_coords = LAMBDA(LO v) {
+  auto fill_coords = OMEGA_H_LAMBDA(LO v) {
     LO i = v % nvx;
     LO j = v / nvx;
     coords[v * 2 + 0] = i * dx;
@@ -40,7 +40,7 @@ void make_2d_box(
   };
   parallel_for(nv, fill_coords);
   Write<LO> qv2v(nq * 4);
-  auto fill_conn = LAMBDA(LO q) {
+  auto fill_conn = OMEGA_H_LAMBDA(LO q) {
     LO i = q % nx;
     LO j = q / nx;
     qv2v[q * 4 + 0] = (j + 0) * nvx + (i + 0);
@@ -66,7 +66,7 @@ void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
   Real dy = y / ny;
   Real dz = z / nz;
   Write<Real> coords(nv * 3);
-  auto fill_coords = LAMBDA(LO v) {
+  auto fill_coords = OMEGA_H_LAMBDA(LO v) {
     LO ij = v % nvxy;
     LO k = v / nvxy;
     LO i = ij % nvx;
@@ -77,7 +77,7 @@ void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
   };
   parallel_for(nv, fill_coords);
   Write<LO> hv2v(nh * 8);
-  auto fill_conn = LAMBDA(LO h) {
+  auto fill_conn = OMEGA_H_LAMBDA(LO h) {
     LO ij = h % nxy;
     LO k = h / nxy;
     LO i = ij % nx;
@@ -104,7 +104,7 @@ static Read<I32> box_centroids_class_ids(
   Vector<dim> dists;
   for (Int i = 0; i < dim; ++i) dists[i] = l[i] / (nel[i] * 8);
   auto class_ids = Write<I32>(npts);
-  auto f = LAMBDA(Int i) {
+  auto f = OMEGA_H_LAMBDA(Int i) {
     auto x = get_vector<dim>(centroids, i);
     Int id = 0;
     for (Int j = dim - 1; j >= 0; --j) {

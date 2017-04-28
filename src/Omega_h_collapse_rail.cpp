@@ -23,7 +23,7 @@ void choose_rails(Mesh* mesh, LOs cands2edges, Read<I8> cand_edge_codes,
   auto verts_are_cands_w = Write<I8>(mesh->nverts());
   auto vert_quals_w = Write<Real>(mesh->nverts());
   auto vert_rails_w = Write<GO>(mesh->nverts());
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     bool vert_is_cand = false;
     GO best_global = -1;
     Real best_length = -1;
@@ -81,7 +81,7 @@ void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
   auto rails2edges_w = Write<LO>(nkeys, -1);
   auto rail_col_dirs_w = Write<I8>(nkeys, -1);
   auto edge_globals = mesh->ask_globals(EDGE);
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto v = keys2verts[key];
     auto rail_global = verts2rail[v];
     for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
@@ -95,7 +95,7 @@ void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
         return;
       }
     }
-    NORETURN();
+    OMEGA_H_NORETURN();
   };
   parallel_for(nkeys, f);
   *rails2edges = rails2edges_w;

@@ -402,7 +402,7 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
     if (self_count * sizeof(T) < size_t(threshold)) return self_data;
     auto self_data_w = Write<T>(end - begin);
     auto other_data_w = Write<T>(sendbuf.size() - self_count);
-    auto f = LAMBDA(LO i) {
+    auto f = OMEGA_H_LAMBDA(LO i) {
       if (i < begin)
         other_data_w[i] = sendbuf[i];
       else if (i < end)
@@ -442,7 +442,7 @@ void self_send_part2(
     auto self_count = self_data.size();
     auto end = begin + self_count;
     auto recvbuf_w = Write<T>(recvbuf.size() + self_count);
-    auto f = LAMBDA(LO i) {
+    auto f = OMEGA_H_LAMBDA(LO i) {
       if (i < begin)
         recvbuf_w[i] = recvbuf[i];
       else if (i < end)

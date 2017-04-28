@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
   auto bv2v = collect_marked(verts_are_bdry);
   auto initial_w = Write<Real>(mesh.nverts(), 0.0);
   auto coords = mesh.coords();
-  auto f = LAMBDA(LO bv) {
+  auto f = OMEGA_H_LAMBDA(LO bv) {
     auto v = bv2v[bv];
     auto x = get_vector<2>(coords, v);
     auto theta = atan2(x[1], x[0]);

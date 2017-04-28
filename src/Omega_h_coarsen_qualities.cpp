@@ -20,7 +20,7 @@ static Reals coarsen_qualities_tmpl(
   auto vc_codes = v2c.codes;
   auto ncands = cands2edges.size();
   auto qualities = Write<Real>(ncands * 2, -1.0);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto e = cands2edges[cand];
     auto code = cand_codes[cand];
     for (Int eev_col = 0; eev_col < 2; ++eev_col) {
@@ -77,12 +77,12 @@ Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
     auto cands2verts = unmap(cands2edges, edges2verts, 2);
     return get_1d_cavity_qualities(mesh, VERT, cands2verts);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
   auto codes_w = Write<I8>(codes.size());
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto code = codes[cand];
     for (Int dir = 0; dir < 2; ++dir) {
       if (!keep_dirs[cand * 2 + dir]) {

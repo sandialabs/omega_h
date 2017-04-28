@@ -159,7 +159,7 @@ static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
     Read<I8> vert_marks, OvershootLimit overshoot, Improve improve) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   Write<I8> edge_codes_w(mesh->nedges(), DONT_COLLAPSE);
-  auto f = LAMBDA(LO e) {
+  auto f = OMEGA_H_LAMBDA(LO e) {
     I8 code = DONT_COLLAPSE;
     for (Int eev = 0; eev < 2; ++eev) {
       if (vert_marks[ev2v[e * 2 + eev]]) {

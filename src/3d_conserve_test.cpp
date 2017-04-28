@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
   auto velocity = Write<Real>(mesh.nverts() * mesh.dim());
   auto coords = mesh.coords();
-  auto f = LAMBDA(LO vert) {
+  auto f = OMEGA_H_LAMBDA(LO vert) {
     auto x = get_vector<3>(coords, vert);
     set_vector(velocity, vert, vector_3(0, 0, 1) * sqrt(fabs(x[2])));
   };

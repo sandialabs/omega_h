@@ -22,7 +22,7 @@ static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
   auto ncands = cands2edges.size();
   auto cand_quals_w = Write<Real>(ncands);
   auto cand_configs_w = Write<I8>(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto edge = cands2edges[cand];
     /* non-owned edges will have incomplete cavities
        and will run into the topological assertions
@@ -70,7 +70,7 @@ void swap3d_qualities(Mesh* mesh, AdaptOpts const& opts, LOs cands2edges,
     swap3d_qualities_tmpl<1>(mesh, opts, cands2edges, cand_quals, cand_configs);
     return;
   }
-  NORETURN();
+  OMEGA_H_NORETURN();
 }
 
 }  // end namespace Omega_h

@@ -51,7 +51,7 @@ Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
   Write<LO> elem_idxs(nitems);
   Write<I32> vert_ranks(nitems);
   Write<LO> vert_idxs(nitems);
-  auto f = LAMBDA(LO ov) {
+  auto f = OMEGA_H_LAMBDA(LO ov) {
     auto item = own_verts2items[ov];
     for (auto sv = own_verts2serv_verts[ov]; sv < own_verts2serv_verts[ov + 1];
          ++sv) {

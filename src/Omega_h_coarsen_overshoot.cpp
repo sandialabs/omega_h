@@ -14,7 +14,7 @@ static Read<I8> prevent_overshoot_tmpl(
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ncands = cands2edges.size();
   auto out = Write<I8>(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto e = cands2edges[cand];
     auto code = cand_codes[cand];
     for (Int eev_col = 0; eev_col < 2; ++eev_col) {
@@ -68,6 +68,6 @@ Read<I8> prevent_coarsen_overshoot(
     return prevent_overshoot_tmpl<1, 1>(
         mesh, max_length, cands2edges, cand_codes);
   }
-  NORETURN(Read<I8>());
+  OMEGA_H_NORETURN(Read<I8>());
 }
 }  // namespace Omega_h

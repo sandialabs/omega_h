@@ -11,7 +11,7 @@ LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
   auto nkeys = rails2edges.size();
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto keys2verts_onto_w = Write<LO>(nkeys, -1);
-  auto set_key_onto = LAMBDA(LO key) {
+  auto set_key_onto = OMEGA_H_LAMBDA(LO key) {
     auto e = rails2edges[key];
     auto eev = rail_col_dirs[key];
     keys2verts_onto_w[key] = ev2v[e * 2 + (1 - eev)];
@@ -29,7 +29,7 @@ static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
   auto cs2s = mesh->ask_down(cell_dim, cell_dim - 1).ab2b;
   auto nccs = simplex_degrees[cell_dim][cell_dim - 1];
   auto nrails = rails2edges.size();
-  auto f = LAMBDA(LO rail) {
+  auto f = OMEGA_H_LAMBDA(LO rail) {
     auto e = rails2edges[rail];
     auto eev_col = rail_col_dirs[rail];
     auto eev_onto = 1 - eev_col;
@@ -93,7 +93,7 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
   auto nprods = ndoms;
   auto prod_verts2verts = Write<LO>(nprods * nccv);
   auto nkeys = keys2verts_onto.size();
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto v_onto = keys2verts_onto[key];
     for (auto kc = k2kc[key]; kc < k2kc[key + 1]; ++kc) {
       auto prod = kc;

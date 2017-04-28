@@ -319,7 +319,7 @@ static OMEGA_H_DEVICE bool same_adj(Int a[], Int b[]) {
 }
 
 static void test_tri_align() {
-  auto f = LAMBDA(LO) {
+  auto f = OMEGA_H_LAMBDA(LO) {
     Int ident[3] = {0, 1, 2};
     Int out[3];
     Int out2[3];
@@ -699,7 +699,7 @@ static void test_swap3d_loop(Library* lib) {
   auto edge_tet_codes = edges2tets.codes;
   auto edge_verts2verts = mesh.ask_verts_of(EDGE);
   auto tet_verts2verts = mesh.ask_verts_of(TET);
-  auto f = LAMBDA(LO foo) {
+  auto f = OMEGA_H_LAMBDA(LO foo) {
     (void)foo;
     LO edge = 6;
     auto loop = swap3d::find_loop(edges2edge_tets, edge_tets2tets,
@@ -813,7 +813,7 @@ static void test_recover_hessians_dim(Library* lib) {
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
   // attach a field = x^2 + y^2 (+ z^2)
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     auto x = get_vector<dim>(coords, v);
     u_w[v] = norm_squared(x);
   };

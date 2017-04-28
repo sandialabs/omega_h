@@ -22,7 +22,7 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
   auto nac = a2ac.last();
   Write<LO> ac2c(nac);
   auto ac_codes = Write<I8>(nac);
-  auto f = LAMBDA(LO a) {
+  auto f = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
     auto bc = b2bc[b];
     for (auto ac = a2ac[a]; ac < a2ac[a + 1]; ++ac) {
@@ -59,7 +59,7 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
   auto nev = ev2v.size();
   auto ne = nev / deg;
   Write<I8> codes(ne);
-  auto f = LAMBDA(LO e) {
+  auto f = OMEGA_H_LAMBDA(LO e) {
     auto begin = e * deg;
     /* find the smallest vertex */
     Int min_j = 0;
@@ -95,7 +95,7 @@ Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
 
 /* check whether adjacent lists of (deg) vertices
    are the same */
-DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
+OMEGA_H_DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
   auto a = e0 * deg;
   auto b = e1 * deg;
   for (LO j = 0; j < deg; ++j)
@@ -106,7 +106,7 @@ DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
 Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e) {
   auto ne = e_sorted2e.size();
   Write<I8> jumps(ne, 0);
-  auto f = LAMBDA(LO e_sorted) {
+  auto f = OMEGA_H_LAMBDA(LO e_sorted) {
     auto e0 = e_sorted2e[e_sorted];
     auto e1 = e_sorted2e[e_sorted + 1];
     if (!are_equal(deg, canon, e0, e1)) jumps[e_sorted] = 1;
@@ -138,7 +138,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   LO nhigh = hv2v.size() / nverts_per_high;
   LO nuses = nhigh * nlows_per_high;
   Write<LO> uv2v(nuses * nverts_per_low);
-  auto f = LAMBDA(LO h) {
+  auto f = OMEGA_H_LAMBDA(LO h) {
     LO h_begin = h * nverts_per_high;
     for (Int u = 0; u < nlows_per_high; ++u) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
@@ -155,7 +155,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
 static void sort_by_globals(
     LOs l2lh, Write<LO> lh2h, Write<I8> codes, Read<GO> hg) {
   LO nl = l2lh.size() - 1;
-  auto f = LAMBDA(LO l) {
+  auto f = OMEGA_H_LAMBDA(LO l) {
     LO begin = l2lh[l];
     LO end = l2lh[l + 1];
     for (LO j = begin; j < end; ++j) {
@@ -185,7 +185,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
   Write<LO> lh2h(nlh);
   Write<I8> codes(nlh);
   if (down_codes.exists()) {
-    auto f = LAMBDA(LO lh) {
+    auto f = OMEGA_H_LAMBDA(LO lh) {
       LO hl = lh2hl[lh];
       LO h = hl / nlows_per_high;
       lh2h[lh] = h;
@@ -197,7 +197,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
     };
     parallel_for(nlh, f);
   } else {
-    auto f = LAMBDA(LO lh) {
+    auto f = OMEGA_H_LAMBDA(LO lh) {
       LO hl = lh2hl[lh];
       LO h = hl / nlows_per_high;
       lh2h[lh] = h;
@@ -218,7 +218,7 @@ struct IsMatch;
 template <>
 struct IsMatch<2> {
   template <typename T>
-  DEVICE static bool eval(Read<T> const& av2v, LO a_begin, Read<T> const& bv2v,
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin, Read<T> const& bv2v,
       LO b_begin, Int which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + (1 - which_down)]) {
       *match_code = make_code(false, which_down, 0);
@@ -231,7 +231,7 @@ struct IsMatch<2> {
 template <>
 struct IsMatch<3> {
   template <typename T>
-  DEVICE static bool eval(Read<T> const& av2v, LO a_begin, Read<T> const& bv2v,
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin, Read<T> const& bv2v,
       LO b_begin, Int which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
@@ -257,7 +257,7 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
   Read<I8> vb_codes = v2b.codes;
   Write<LO> a2b(na);
   Write<I8> codes(na);
-  auto f = LAMBDA(LO a) {
+  auto f = OMEGA_H_LAMBDA(LO a) {
     auto fv = a2fv[a];
     auto a_begin = a * deg;
     auto vb_begin = v2vb[fv];
@@ -275,7 +275,7 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
         return;
       }
     }
-    NORETURN();
+    OMEGA_H_NORETURN();
   };
   parallel_for(na, f);
   *a2b_out = a2b;
@@ -331,7 +331,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;
   if (low_dim == 1) codes = Write<I8>(hl2l.size());
-  auto f = LAMBDA(LO h) {
+  auto f = OMEGA_H_LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
@@ -372,7 +372,7 @@ Graph verts_across_edges(Adj e2v, Adj v2e) {
   auto v2ve_codes = v2e.codes;
   auto& v2vv = v2ve;
   Write<LO> vv2v(ve2e.size());
-  auto f = LAMBDA(LO ve) {
+  auto f = OMEGA_H_LAMBDA(LO ve) {
     auto vv = ve;
     auto e = ve2e[ve];
     auto v2ve_code = v2ve_codes[ve];
@@ -395,7 +395,7 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
   auto e2ee = offset_scan(e2ee_degrees);
   auto nee = e2ee.last();
   Write<LO> ee2e(nee);
-  auto lambda = LAMBDA(LO e) {
+  auto lambda = OMEGA_H_LAMBDA(LO e) {
     auto ef_begin = e2ef[e];
     auto ef_end = e2ef[e + 1];
     auto neef = ef_end - ef_begin;
@@ -423,7 +423,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   auto ne = e2er.size() - 1;
   auto& e2ee = e2er;
   Write<LO> ee2e(er2r.size());
-  auto f = LAMBDA(LO e) {
+  auto f = OMEGA_H_LAMBDA(LO e) {
     auto er_begin = e2er[e];
     auto er_end = e2er[e + 1];
     for (auto er = er_begin; er < er_end; ++er) {
@@ -449,7 +449,7 @@ Graph elements_across_sides(
   Int nsides_per_elem = dim + 1;
   auto nelems = elem_side2side.size() / nsides_per_elem;
   Write<LO> degrees(nelems);
-  auto count = LAMBDA(LO elem) {
+  auto count = OMEGA_H_LAMBDA(LO elem) {
     auto begin = elem * nsides_per_elem;
     auto end = begin + nsides_per_elem;
     Int n = 0;
@@ -466,7 +466,7 @@ Graph elements_across_sides(
   auto elem2elem_elems = offset_scan(LOs(degrees));
   auto nelem_elems = elem2elem_elems.last();
   Write<LO> elem_elem2elem(nelem_elems);
-  auto fill = LAMBDA(LO elem) {
+  auto fill = OMEGA_H_LAMBDA(LO elem) {
     auto begin = elem * nsides_per_elem;
     auto end = begin + nsides_per_elem;
     LO elem_elem = elem2elem_elems[elem];

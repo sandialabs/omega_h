@@ -115,7 +115,7 @@ static LOs get_keys2reps(
     auto kds2kd_ents = kds2ents.a2ab;
     auto kd_ents2ents = kds2ents.ab2b;
     Write<LO> keys2reps_w(nkeys);
-    auto setup_reps = LAMBDA(LO key) {
+    auto setup_reps = OMEGA_H_LAMBDA(LO key) {
       /* the first upward adjacent entity will represent
          this cavity during the updating of global numbers.
          upward ordering should be sorted by old globals
@@ -143,7 +143,7 @@ static LOs get_keys2reps(
        which is independent of partitioning and ordering */
     auto edge_verts2verts = mesh->ask_verts_of(EDGE);
     Write<LO> keys2reps_w(nkeys);
-    auto setup_reps = LAMBDA(LO key) {
+    auto setup_reps = OMEGA_H_LAMBDA(LO key) {
       auto edge = keys2kds[key];
       keys2reps_w[key] = edge_verts2verts[edge * 2 + 0];
     };
@@ -162,13 +162,13 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
   auto owned = mesh->owned(ent_dim);
   CHECK(owned.size() == nents);
   Write<LO> rep_counts(nents, 0);
-  auto mark_same = LAMBDA(LO same_ent) {
+  auto mark_same = OMEGA_H_LAMBDA(LO same_ent) {
     auto ent = same_ents2ents[same_ent];
     CHECK(ent < nents);
     if ((!are_global) || owned[ent]) rep_counts[ent] = 1;
   };
   parallel_for(nsame_ents, mark_same);
-  auto mark_reps = LAMBDA(LO key) {
+  auto mark_reps = OMEGA_H_LAMBDA(LO key) {
     auto rep = keys2reps[key];
     auto nkey_prods = keys2nprods[key];
     atomic_add(&rep_counts[rep], nkey_prods);
@@ -201,7 +201,7 @@ LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
   auto v2ve = verts2edges.a2ab;
   auto ve2e = verts2edges.ab2b;
   auto ve_codes = verts2edges.codes;
-  auto f = LAMBDA(LO v) {
+  auto f = OMEGA_H_LAMBDA(LO v) {
     LO i = 0;
     for (auto ve = v2ve[v]; ve < v2ve[v + 1]; ++ve) {
       auto e = ve2e[ve];
@@ -229,7 +229,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
   CHECK(nkeys == keys2prods.size() - 1);
   if (edge2rep_order.exists()) {
     CHECK(keys2kds.exists());
-    auto write_prod_offsets = LAMBDA(LO key) {
+    auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
       // plus one because the representatives
       // exist in the new mesh, so they will get
       // the global number of that vertex in the new mesh,
@@ -243,7 +243,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
     };
     parallel_for(nkeys, write_prod_offsets);
   } else {
-    auto write_prod_offsets = LAMBDA(LO key) {
+    auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
       auto offset = keys2new_offsets[key];
       for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
         prods2new_offsets_w[prod] = offset;
@@ -279,7 +279,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto lin_global_count = lin_local_offsets.last();
   GO lin_global_offset = comm->exscan<GO>(GO(lin_global_count), OMEGA_H_SUM);
   Write<GO> lin_globals(nlins);
-  auto write_lin_globals = LAMBDA(LO lin) {
+  auto write_lin_globals = OMEGA_H_LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
   };
   parallel_for(nlins, write_lin_globals);
@@ -365,7 +365,7 @@ void set_owners_by_indset(
   auto elem_owners = mesh->ask_owners(elem_dim);
   auto elems2owners = mesh->ask_dist(elem_dim);
   auto new_elem_ranks = deep_copy(elem_owners.ranks);
-  auto f = LAMBDA(LO key) {
+  auto f = OMEGA_H_LAMBDA(LO key) {
     auto kd = keys2kds[key];
     auto kd_rank = kd_owners.ranks[kd];
     for (auto kd_elem = kds2kd_elems[kd]; kd_elem < kds2kd_elems[kd + 1];

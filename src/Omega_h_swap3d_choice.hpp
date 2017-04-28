@@ -13,7 +13,7 @@ struct Choice {
 };
 
 template <typename QualityMeasure, typename LengthMeasure>
-DEVICE Choice choose(Loop loop, QualityMeasure const& quality_measure,
+OMEGA_H_DEVICE Choice choose(Loop loop, QualityMeasure const& quality_measure,
     LengthMeasure const& length_measure, Real max_length_allowed) {
   auto nmeshes = swap_mesh_counts[loop.size];
   auto nmesh_tris = swap_mesh_sizes[loop.size];

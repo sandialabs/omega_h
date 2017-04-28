@@ -152,7 +152,7 @@ void read(
     CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i], h_conn.data() + start,
         edge_conn.data(), face_conn.data()));
     auto region_id = block_ids[i];
-    auto f0 = LAMBDA(LO entry) { elem_class_ids_w[start + entry] = region_id; };
+    auto f0 = OMEGA_H_LAMBDA(LO entry) { elem_class_ids_w[start + entry] = region_id; };
     parallel_for(nentries, f0);
     start += nentries * nnodes_per_entry;
   }
@@ -231,7 +231,7 @@ void read(
       auto elems2sides = mesh->ask_down(dim, dim - 1).ab2b;
       auto nsides_per_elem = simplex_degrees[dim][dim - 1];
       auto set_sides2side_w = Write<LO>(nentries);
-      auto f2 = LAMBDA(LO set_side) {
+      auto f2 = OMEGA_H_LAMBDA(LO set_side) {
         auto elem = set_sides2elem[set_side];
         auto local = side_exo2osh(dim, set_sides2local[set_side]);
         auto side = elems2sides[elem * nsides_per_elem + local];
@@ -303,7 +303,7 @@ void write(
   Write<Real> coord_blk[3];
   for (Int i = 0; i < dim; ++i) coord_blk[i] = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
-  auto f0 = LAMBDA(LO i) {
+  auto f0 = OMEGA_H_LAMBDA(LO i) {
     for (Int j = 0; j < dim; ++j) coord_blk[j][i] = coords[i * dim + j];
   };
   parallel_for(mesh->nverts(), f0);
@@ -341,7 +341,7 @@ void write(
         auto sides2elems = mesh->ask_up(dim - 1, dim);
         Write<int> set_sides2elem(nset_sides);
         Write<int> set_sides2local(nset_sides);
-        auto f1 = LAMBDA(LO set_side) {
+        auto f1 = OMEGA_H_LAMBDA(LO set_side) {
           auto side = set_sides2side[set_side];
           auto se = sides2elems.a2ab[side];
           auto elem = sides2elems.ab2b[se];

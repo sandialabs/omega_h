@@ -334,7 +334,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
   }
   Omega_h_fail("can't derive adjacency from %s to %s\n", plural_names[from],
       plural_names[to]);
-  NORETURN(Adj());
+  OMEGA_H_NORETURN(Adj());
 }
 
 Adj Mesh::ask_adj(Int from, Int to) {
@@ -685,7 +685,7 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   CHECK(v2x.size() % ncomps == 0);
   auto na = a2e.size();
   Write<Real> out(na * ncomps);
-  auto f = LAMBDA(LO a) {
+  auto f = OMEGA_H_LAMBDA(LO a) {
     auto e = a2e[a];
     for (Int j = 0; j < ncomps; ++j) {
       Real comp = 0;

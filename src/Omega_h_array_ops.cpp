@@ -9,7 +9,7 @@ struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
   SameContent(Read<T> a, Read<T> b) : a_(a), b_(b) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     update = update && (a_[i] == b_[i]);
   }
 };
@@ -25,7 +25,7 @@ struct Sum : public SumFunctor<T> {
   using typename SumFunctor<T>::value_type;
   Read<T> a_;
   Sum(Read<T> a) : a_(a) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     update = update + a_[i];
   }
 };
@@ -45,7 +45,7 @@ struct Min : public MinFunctor<T> {
   using typename MinFunctor<T>::value_type;
   Read<T> a_;
   Min(Read<T> a) : a_(a) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     update = min2<value_type>(update, a_[i]);
   }
 };
@@ -61,7 +61,7 @@ struct Max : public MaxFunctor<T> {
   using typename MaxFunctor<T>::value_type;
   Read<T> a_;
   Max(Read<T> a) : a_(a) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     update = max2<value_type>(update, a_[i]);
   }
 };
@@ -94,7 +94,7 @@ struct AreClose : public AndFunctor {
   Real floor_;
   AreClose(Reals a, Reals b, Real tol, Real floor)
       : a_(a), b_(b), tol_(tol), floor_(floor) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     update = update && are_close(a_[i], b_[i], tol_, floor_);
   }
 };
@@ -110,7 +110,7 @@ struct AreCloseAbs : public AndFunctor {
   Reals b_;
   Real tol_;
   AreCloseAbs(Reals a, Reals b, Real tol) : a_(a), b_(b), tol_(tol) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     update = update && (fabs(a_[i] - b_[i]) <= tol_);
   }
 };
@@ -123,7 +123,7 @@ bool are_close_abs(Reals a, Reals b, Real tol) {
 template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
-  auto f = LAMBDA(LO i) { b[i] = a[i] * factor; };
+  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i] * factor; };
   parallel_for(a.size(), f);
   return b;
 }
@@ -136,7 +136,7 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
   }
   auto width = divide_no_remainder(a.size(), b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
       c[i * width + j] = a[i * width + j] * b[i];
     }
@@ -153,7 +153,7 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
   }
   auto width = divide_no_remainder(a.size(), b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
       c[i * width + j] = a[i * width + j] / b[i];
     }
@@ -165,7 +165,7 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<T> divide_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
-  auto f = LAMBDA(LO i) { b[i] = a[i] / factor; };
+  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i] / factor; };
   parallel_for(a.size(), f);
   return b;
 }
@@ -174,7 +174,7 @@ template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = a[i] + b[i]; };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] + b[i]; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -183,7 +183,7 @@ template <typename T>
 Read<T> subtract_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = a[i] - b[i]; };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] - b[i]; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -191,7 +191,7 @@ Read<T> subtract_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<T> add_to_each(Read<T> a, T b) {
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = a[i] + b; };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] + b; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -199,7 +199,7 @@ Read<T> add_to_each(Read<T> a, T b) {
 template <typename T>
 Read<T> subtract_from_each(Read<T> a, T b) {
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = a[i] - b; };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] - b; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -207,7 +207,7 @@ Read<T> subtract_from_each(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_geq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] >= b); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] >= b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -215,7 +215,7 @@ Read<I8> each_geq_to(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_leq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] <= b); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] <= b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -223,7 +223,7 @@ Read<I8> each_leq_to(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_gt(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] > b); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] > b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -231,7 +231,7 @@ Read<I8> each_gt(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_lt(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] < b); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] < b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -240,7 +240,7 @@ template <typename T>
 Read<I8> gt_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] > b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] > b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -249,7 +249,7 @@ template <typename T>
 Read<I8> geq_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] >= b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] >= b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -258,7 +258,7 @@ template <typename T>
 Read<T> min_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = min2(a[i], b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = min2(a[i], b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -267,7 +267,7 @@ template <typename T>
 Read<T> max_each(Read<T> a, Read<T> b) {
   CHECK(a.size() == b.size());
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = max2(a[i], b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = max2(a[i], b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -275,7 +275,7 @@ Read<T> max_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<T> each_max_with(Read<T> a, T b) {
   Write<T> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = max2(a[i], b); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = max2(a[i], b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -283,7 +283,7 @@ Read<T> each_max_with(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_neq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] != b); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] != b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -291,7 +291,7 @@ Read<I8> each_neq_to(Read<T> a, T b) {
 template <typename T>
 Read<I8> each_eq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] == b); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -299,7 +299,7 @@ Read<I8> each_eq_to(Read<T> a, T b) {
 Read<I8> land_each(Read<I8> a, Read<I8> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] && b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] && b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -307,7 +307,7 @@ Read<I8> land_each(Read<I8> a, Read<I8> b) {
 Read<I8> lor_each(Read<I8> a, Read<I8> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
@@ -315,21 +315,21 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b) {
 Read<I8> bit_or_each(Read<I8> a, Read<I8> b) {
   CHECK(a.size() == b.size());
   Write<I8> c(a.size());
-  auto f = LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
   parallel_for(c.size(), f);
   return c;
 }
 
 Read<I8> bit_neg_each(Read<I8> a) {
   Write<I8> b(a.size());
-  auto f = LAMBDA(LO i) { b[i] = ~(a[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = ~(a[i]); };
   parallel_for(a.size(), f);
   return b;
 }
 
 Read<Real> fabs_each(Read<Real> a) {
   Write<Real> b(a.size());
-  auto f = LAMBDA(LO i) { b[i] = fabs(a[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = fabs(a[i]); };
   parallel_for(a.size(), f);
   return b;
 }
@@ -337,14 +337,14 @@ Read<Real> fabs_each(Read<Real> a) {
 template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   Write<T> b(divide_no_remainder(a.size(), ncomps));
-  auto f = LAMBDA(LO i) { b[i] = a[i * ncomps + comp]; };
+  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i * ncomps + comp]; };
   parallel_for(b.size(), f);
   return b;
 }
 
 template <typename T>
 void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp) {
-  auto f = LAMBDA(LO i) { out[i * ncomps + comp] = a[i]; };
+  auto f = OMEGA_H_LAMBDA(LO i) { out[i * ncomps + comp] = a[i]; };
   parallel_for(a.size(), f);
 }
 
@@ -354,7 +354,7 @@ struct FindLast : public MaxFunctor<LO> {
   Read<T> array_;
   T value_;
   FindLast(Read<T> array, T value) : array_(array), value_(value) {}
-  DEVICE void operator()(LO i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
     if (array_[i] == value_) {
       update = max2<value_type>(update, i);
     }
@@ -400,7 +400,7 @@ LO find_last(Read<T> array, T value) {
 struct MaxExponent : public MaxFunctor<int> {
   Reals a_;
   MaxExponent(Reals a) : a_(a) {}
-  DEVICE void operator()(Int i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
     int expo;
     frexp(a_[i], &expo);
     if (expo > update) update = expo;
@@ -415,7 +415,7 @@ struct ReproSum : public SumFunctor<Int128> {
   Reals a_;
   double unit_;
   ReproSum(Reals a, double unit) : a_(a), unit_(unit) {}
-  DEVICE void operator()(Int i, value_type& update) const {
+  OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
     update = update + Int128::from_double(a_[i], unit_);
   }
 };
@@ -445,14 +445,14 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   CHECK(a.size() == b.size());
   auto n = a.size();
   auto out = Write<Real>(n);
-  auto f = LAMBDA(LO i) { out[i] = a[i] * (1.0 - t) + b[i] * t; };
+  auto f = OMEGA_H_LAMBDA(LO i) { out[i] = a[i] * (1.0 - t) + b[i] * t; };
   parallel_for(n, f);
   return out;
 }
 
 Reals invert_each(Reals a) {
   auto out = Write<Real>(a.size());
-  auto f = LAMBDA(LO i) { out[i] = 1.0 / a[i]; };
+  auto f = OMEGA_H_LAMBDA(LO i) { out[i] = 1.0 / a[i]; };
   parallel_for(a.size(), f);
   return out;
 }
@@ -460,7 +460,7 @@ Reals invert_each(Reals a) {
 template <typename Tout, typename Tin>
 Read<Tout> array_cast(Read<Tin> in) {
   auto out = Write<Tout>(in.size());
-  auto f = LAMBDA(LO i) { out[i] = static_cast<Tout>(in[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { out[i] = static_cast<Tout>(in[i]); };
   parallel_for(in.size(), f);
   return out;
 }

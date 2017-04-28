@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
   auto coords = mesh.coords();
   auto bb = Omega_h::get_bounding_box<3>(&mesh);
   auto analytic_metric_w = Omega_h::Write<Omega_h::Real>(mesh.nverts());
-  auto f = LAMBDA(Omega_h::LO v) {
+  auto f = OMEGA_H_LAMBDA(Omega_h::LO v) {
     auto z = coords[v * dim + (dim - 1)];
     auto minz = bb.min[dim - 1];
     auto maxz = bb.max[dim - 1];

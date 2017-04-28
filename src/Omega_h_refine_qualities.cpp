@@ -19,7 +19,7 @@ struct MetricRefineQualities {
          */
         midpt_metrics(get_mident_metrics(
             mesh, EDGE, candidates, mesh->get_array<Real>(VERT, "metric"))) {}
-  DEVICE Real measure(Int cand, Few<Vector<mesh_dim>, mesh_dim + 1> p,
+  OMEGA_H_DEVICE Real measure(Int cand, Few<Vector<mesh_dim>, mesh_dim + 1> p,
       Few<LO, mesh_dim> csv2v) const {
     Few<Matrix<metric_dim, metric_dim>, mesh_dim + 1> ms;
     for (Int csv = 0; csv < mesh_dim; ++csv)
@@ -42,7 +42,7 @@ static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
   auto ncands = candidates.size();
   auto measure = MetricRefineQualities<mesh_dim, metric_dim>(mesh, candidates);
   Write<Real> quals_w(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto e = candidates[cand];
     auto eev2v = gather_verts<2>(ev2v, e);
     auto ep = gather_vectors<2, mesh_dim>(coords, eev2v);
@@ -102,7 +102,7 @@ Reals refine_qualities(Mesh* mesh, LOs candidates) {
   if (mesh_dim == 1) {
     return get_1d_cavity_qualities(mesh, EDGE, candidates);
   }
-  NORETURN(Reals());
+  OMEGA_H_NORETURN(Reals());
 }
 
 }  // end namespace Omega_h

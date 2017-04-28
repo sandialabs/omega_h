@@ -16,7 +16,7 @@ static void attach_basis_vectors(
   for (Int i = 0; i < 2; ++i) {
     surf_ent_axes[i] = Write<Real>(nsurf_ents * 3);
   }
-  auto f = LAMBDA(LO surf_ent) {
+  auto f = OMEGA_H_LAMBDA(LO surf_ent) {
     auto n = get_vector<3>(surf_ent_normals, surf_ent);
     auto nuv = form_ortho_basis(n);
     set_vector(surf_ent_axes[0], surf_ent, nuv[1]);
