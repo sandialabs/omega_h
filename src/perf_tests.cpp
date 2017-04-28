@@ -5,7 +5,6 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_eigen.hpp"
-#include "Omega_h_internal.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
@@ -34,7 +33,7 @@ static Reals random_metrics() {
   Reals alphas = random_reals(nelems, 0, PI / 2);
   Reals betas = random_reals(nelems, 0, PI / 2);
   Write<Real> write_metrics(nelems * 6);
-  auto f0 = LAMBDA(Int i) {
+  auto f0 = OMEGA_H_LAMBDA(Int i) {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
              rotate(betas[i], vector_3(0, 1, 0));
     auto m = compose_metric(r, vector_3(1., 1., 1.0 / anisotropy));
@@ -48,7 +47,7 @@ static void test_metric_decompose(Reals metrics) {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_eigenvs(nelems);
-  auto f1 = LAMBDA(Int i) {
+  auto f1 = OMEGA_H_LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
     auto l = decompose_eigen(m).l;
     auto eigenv = max2(max2(l[0], l[1]), l[2]);
@@ -67,7 +66,7 @@ static void test_metric_invert(Reals metrics) {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_vals(nelems);
-  auto f1 = LAMBDA(Int i) {
+  auto f1 = OMEGA_H_LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
     auto inv = invert(m);
     write_vals[i] = max_norm(inv);
@@ -125,7 +124,7 @@ static void test_repro_sum() {
   CHECK(are_close(s, rs));
   Read<Int> p = random_perm(nelems);
   Write<Real> write_shuffled(nelems);
-  auto f = LAMBDA(Int i) { write_shuffled[i] = inputs[p[i]]; };
+  auto f = OMEGA_H_LAMBDA(Int i) { write_shuffled[i] = inputs[p[i]]; };
   parallel_for(nelems, f);
   Reals shuffled(write_shuffled);
   Real rs2 = repro_sum(shuffled);
