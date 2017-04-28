@@ -1,6 +1,7 @@
 #include "Omega_h_linpart.hpp"
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
@@ -11,7 +12,7 @@ Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
   auto split = ((quot + 1) * rem);
   Write<I32> ranks(globals.size());
   Write<LO> idxs(globals.size());
-  auto f = LAMBDA(LO i) {
+  auto f = OMEGA_H_LAMBDA(LO i) {
     if (globals[i] < split) {
       ranks[i] = static_cast<I32>(globals[i] / (quot + 1));
       idxs[i] = static_cast<LO>(globals[i] % (quot + 1));

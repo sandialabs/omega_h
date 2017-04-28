@@ -1,7 +1,7 @@
-#ifndef LINPART_HPP
-#define LINPART_HPP
+#ifndef OMEGA_H_LINPART_HPP
+#define OMEGA_H_LINPART_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_dist.hpp>
 
 namespace Omega_h {
 
