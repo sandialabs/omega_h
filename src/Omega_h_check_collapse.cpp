@@ -2,6 +2,8 @@
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_simplex.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

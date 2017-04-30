@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "Omega_h_defines.hpp"
 
 namespace Omega_h {
 

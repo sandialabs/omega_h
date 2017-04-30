@@ -8,6 +8,8 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_modify.hpp"
 #include "Omega_h_transfer.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

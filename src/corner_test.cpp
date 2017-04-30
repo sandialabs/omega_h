@@ -1,5 +1,11 @@
 #include "Omega_h_compare.hpp"
 #include "Omega_h_refine.hpp"
+#include "Omega_h_library.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_class.hpp"
+#include "Omega_h_metric.hpp"
+#include "Omega_h_loop.hpp"
 
 using namespace Omega_h;
 

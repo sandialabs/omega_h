@@ -7,6 +7,7 @@
 #include "Omega_h_modify.hpp"
 #include "Omega_h_swap.hpp"
 #include "Omega_h_transfer.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 

@@ -1,7 +1,9 @@
+#include "Omega_h_compare.hpp"
 
 #include <iostream>
 
-#include "Omega_h_compare.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_file.hpp"
 
 namespace Omega_h {
 

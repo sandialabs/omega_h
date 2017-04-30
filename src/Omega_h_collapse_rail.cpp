@@ -1,6 +1,10 @@
 #include "Omega_h_coarsen.hpp"
+
 #include "Omega_h_collapse.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_align.hpp"
+#include "Omega_h_loop.hpp"
 
 /* this file deals with the choice of which
  * edge collapse a vertex will participate in.
