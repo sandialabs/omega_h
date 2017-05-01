@@ -1,7 +1,10 @@
 #include "Omega_h_coarsen.hpp"
+
 #include "Omega_h_collapse.hpp"
 #include "Omega_h_refine.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_align.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

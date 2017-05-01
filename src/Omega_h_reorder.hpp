@@ -1,9 +1,11 @@
-#ifndef REORDER_HPP
-#define REORDER_HPP
+#ifndef OMEGA_H_REORDER_HPP
+#define OMEGA_H_REORDER_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_graph.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim);
 LOs ent_order_from_vert_order(Mesh* mesh, Int ent_dim, LOs new_vert2old_vert);

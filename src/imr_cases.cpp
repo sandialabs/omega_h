@@ -1,7 +1,12 @@
-#include "Omega_h_internal.hpp"
 #include "Omega_h_laplace.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_vector.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_file.hpp"
+#include "Omega_h_metric.hpp"
+#include "Omega_h_adapt.hpp"
 
 #include <iostream>
 #include <set>

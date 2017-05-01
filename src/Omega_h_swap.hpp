@@ -1,7 +1,7 @@
-#ifndef SWAP_HPP
-#define SWAP_HPP
+#ifndef OMEGA_H_SWAP_HPP
+#define OMEGA_H_SWAP_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_adapt.hpp>
 
 namespace Omega_h {
 

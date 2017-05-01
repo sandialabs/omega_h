@@ -1,9 +1,9 @@
-#ifndef CONSISTENT_HPP
-#define CONSISTENT_HPP
-
-#include "Omega_h_internal.hpp"
+#ifndef OMEGA_H_CONSISTENT_HPP
+#define OMEGA_H_CONSISTENT_HPP
 
 namespace Omega_h {
+
+class Mesh;
 
 bool tags_are_consistent(Mesh* mesh);
 

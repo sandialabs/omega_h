@@ -1,6 +1,7 @@
 #include "Omega_h_bbox.hpp"
 
-#include "Omega_h_internal.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

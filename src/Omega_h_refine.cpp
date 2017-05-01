@@ -9,6 +9,7 @@
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_refine_topology.hpp"
 #include "Omega_h_transfer.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 

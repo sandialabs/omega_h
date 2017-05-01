@@ -2,9 +2,12 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
-#include "Omega_h_internal.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_adapt.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_class.hpp"
 
 using namespace Omega_h;
 

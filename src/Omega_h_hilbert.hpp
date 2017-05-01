@@ -1,7 +1,10 @@
-#ifndef HILBERT_HPP
-#define HILBERT_HPP
+#ifndef OMEGA_H_HILBERT_HPP
+#define OMEGA_H_HILBERT_HPP
 
-#include "Omega_h_internal.hpp"
+#include <cstdint>
+
+#include <Omega_h_kokkos.hpp>
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
 

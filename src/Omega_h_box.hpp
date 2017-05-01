@@ -1,9 +1,12 @@
-#ifndef BOX_HPP
-#define BOX_HPP
+#ifndef OMEGA_H_BOX_HPP
+#define OMEGA_H_BOX_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_defines.hpp>
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 void make_1d_box(Real x, LO nx, LOs* ev2v_out, Reals* coords_out);
 void make_2d_box(

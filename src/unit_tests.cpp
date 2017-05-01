@@ -6,7 +6,6 @@
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_internal.hpp"
 #include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"

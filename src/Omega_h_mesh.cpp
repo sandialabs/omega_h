@@ -1,4 +1,4 @@
-#include "Omega_h_internal.hpp"
+#include "Omega_h_mesh.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -17,6 +17,8 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_mark.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

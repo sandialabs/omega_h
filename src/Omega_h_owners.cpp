@@ -2,6 +2,8 @@
 
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_scan.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 

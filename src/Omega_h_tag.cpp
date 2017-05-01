@@ -1,6 +1,5 @@
 #include "Omega_h_tag.hpp"
 
-#include "Omega_h_internal.hpp"
 
 #include <regex>
 

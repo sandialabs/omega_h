@@ -4,6 +4,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_swap2d.hpp"
 #include "Omega_h_swap3d.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 

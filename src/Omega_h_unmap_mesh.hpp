@@ -1,9 +1,11 @@
-#ifndef UNMAP_MESH_HPP
-#define UNMAP_MESH_HPP
+#ifndef OMEGA_H_UNMAP_MESH_HPP
+#define OMEGA_H_UNMAP_MESH_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_remotes.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 void unmap_tags(
     Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, LOs new_ents2old_ents);

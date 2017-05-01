@@ -10,7 +10,7 @@
 #include <string>
 
 #include "Omega_h_cmdline.hpp"
-#include "Omega_h_internal.hpp"
+#include "Omega_h_library.hpp"
 
 namespace Omega_h {
 

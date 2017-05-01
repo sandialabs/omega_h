@@ -4,6 +4,8 @@
 #include "Omega_h_collapse.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_quality.hpp"
+#include "Omega_h_align.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

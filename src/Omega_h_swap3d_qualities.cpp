@@ -3,6 +3,7 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_swap3d_choice.hpp"
 #include "Omega_h_swap3d_loop.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

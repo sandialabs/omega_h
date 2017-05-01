@@ -4,6 +4,8 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_surface.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

@@ -1,7 +1,7 @@
-#ifndef SIMPLIFY_HPP
-#define SIMPLIFY_HPP
+#ifndef OMEGA_H_SIMPLIFY_HPP
+#define OMEGA_H_SIMPLIFY_HPP
 
-#include "Omega_h_internal.hpp"
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
 

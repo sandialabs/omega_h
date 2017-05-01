@@ -1,5 +1,4 @@
 #include "Omega_h_compare.hpp"
-#include "Omega_h_internal.hpp"
 
 #include <fstream>
 #include <iomanip>
@@ -12,6 +11,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_simplex.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 

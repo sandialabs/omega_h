@@ -3,6 +3,8 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_mark.hpp"
 
 namespace Omega_h {
 

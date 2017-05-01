@@ -8,6 +8,7 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_surface.hpp"
+#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
