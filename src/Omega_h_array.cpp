@@ -86,7 +86,9 @@ Write<T>::Write(LO size, T value) : Write<T>(size) {
 
 template <typename T>
 void fill_linear(Write<T> a, T offset, T stride) {
-  auto f = OMEGA_H_LAMBDA(LO i) { a[i] = offset + (stride * static_cast<T>(i)); };
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    a[i] = offset + (stride * static_cast<T>(i));
+  };
   parallel_for(a.size(), f);
 }
 

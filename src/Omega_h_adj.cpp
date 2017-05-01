@@ -3,12 +3,12 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_scan.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
-#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
@@ -219,8 +219,8 @@ struct IsMatch;
 template <>
 struct IsMatch<2> {
   template <typename T>
-  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin, Read<T> const& bv2v,
-      LO b_begin, Int which_down, I8* match_code) {
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
+      Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + (1 - which_down)]) {
       *match_code = make_code(false, which_down, 0);
       return true;
@@ -232,8 +232,8 @@ struct IsMatch<2> {
 template <>
 struct IsMatch<3> {
   template <typename T>
-  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin, Read<T> const& bv2v,
-      LO b_begin, Int which_down, I8* match_code) {
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
+      Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
       *match_code = make_code(false, rotation_to_first<3>(which_down), 0);
@@ -347,7 +347,8 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       auto l = ml2l[ml_begin + ml];
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)
-      for (Int hhl2 = 0; hhl2 < hl; ++hhl2) OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
+      for (Int hhl2 = 0; hhl2 < hl; ++hhl2)
+        OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
         auto tet_tri_code = hm2m_code;

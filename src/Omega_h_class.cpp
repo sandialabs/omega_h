@@ -1,11 +1,11 @@
 #include "Omega_h_class.hpp"
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
-#include "Omega_h_surface.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_surface.hpp"
 
 namespace Omega_h {
 

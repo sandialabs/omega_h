@@ -2,9 +2,9 @@
 #define OMEGA_H_TRANSFER_HPP
 
 #include <Omega_h_adapt.hpp>
-#include <Omega_h_tag.hpp>
 #include <Omega_h_adj.hpp>
-                 
+#include <Omega_h_tag.hpp>
+
 namespace Omega_h {
 
 bool is_transfer_required(

@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_MIGRATE_HPP
 #define OMEGA_H_MIGRATE_HPP
 
-#include <Omega_h_dist.hpp>
 #include <Omega_h_adj.hpp>
+#include <Omega_h_dist.hpp>
 
 namespace Omega_h {
 

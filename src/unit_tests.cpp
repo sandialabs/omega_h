@@ -126,7 +126,8 @@ static void test_eigen_cubic_ortho(Matrix<3, 3> m, Vector<3> l_expect) {
   auto ed = decompose_eigen(m);
   auto q = ed.q;
   auto l = ed.l;
-  OMEGA_H_CHECK(are_close(transpose(q) * q, identity_matrix<3, 3>(), 1e-8, 1e-8));
+  OMEGA_H_CHECK(
+      are_close(transpose(q) * q, identity_matrix<3, 3>(), 1e-8, 1e-8));
   OMEGA_H_CHECK(are_close(l, l_expect, 1e-8, 1e-8));
   OMEGA_H_CHECK(are_close(m, compose_ortho(q, l), 1e-8, 1e-8));
 }
@@ -196,7 +197,8 @@ static void test_intersect_ortho_metrics(
   /* if we decompose it, the eigenvectors may
      get re-ordered. */
   for (Int i = 0; i < 3; ++i) {
-    OMEGA_H_CHECK(are_close(metric_desired_length(mi, q[i]), hi_expect[i], 1e-3));
+    OMEGA_H_CHECK(
+        are_close(metric_desired_length(mi, q[i]), hi_expect[i], 1e-3));
   }
 }
 
@@ -306,9 +308,10 @@ static void test_invert_adj() {
   Adj verts2tris = invert_adj(tris2verts, 3, 4, tri_globals);
   OMEGA_H_CHECK(verts2tris.a2ab == offset_scan(LOs({2, 1, 2, 1})));
   OMEGA_H_CHECK(verts2tris.ab2b == LOs({0, 1, 0, 0, 1, 1}));
-  OMEGA_H_CHECK(verts2tris.codes ==
-        Read<I8>({make_code(0, 0, 0), make_code(0, 0, 2), make_code(0, 0, 1),
-            make_code(0, 0, 2), make_code(0, 0, 0), make_code(0, 0, 1)}));
+  OMEGA_H_CHECK(
+      verts2tris.codes ==
+      Read<I8>({make_code(0, 0, 0), make_code(0, 0, 2), make_code(0, 0, 1),
+          make_code(0, 0, 2), make_code(0, 0, 0), make_code(0, 0, 1)}));
 }
 
 static OMEGA_H_DEVICE bool same_adj(Int a[], Int b[]) {
@@ -359,9 +362,9 @@ static void test_tri_align() {
 static void test_form_uses() {
   OMEGA_H_CHECK(form_uses(LOs({0, 1, 2}), 2, 1) == LOs({0, 1, 1, 2, 2, 0}));
   OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3}), 3, 1) ==
-        LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}));
+                LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}));
   OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3}), 3, 2) ==
-        LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}));
+                LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}));
 }
 
 static void test_reflect_down() {
@@ -400,7 +403,7 @@ static void test_find_unique() {
   OMEGA_H_CHECK(find_unique(LOs({}), 3, 1) == LOs({}));
   OMEGA_H_CHECK(find_unique(LOs({}), 3, 2) == LOs({}));
   OMEGA_H_CHECK(find_unique(LOs({0, 1, 2, 2, 3, 0}), 2, 1) ==
-        LOs({0, 1, 0, 2, 3, 0, 1, 2, 2, 3}));
+                LOs({0, 1, 0, 2, 3, 0, 1, 2, 2, 3}));
 }
 
 static void test_hilbert() {
@@ -471,8 +474,9 @@ static void test_star(Library* lib) {
     OMEGA_H_CHECK(v2v.ab2b == LOs({1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2}));
     Adj e2e = mesh.ask_star(EDGE);
     OMEGA_H_CHECK(e2e.a2ab == LOs(7, 0, 5));
-    OMEGA_H_CHECK(e2e.ab2b == LOs({1, 3, 4, 2, 5, 3, 0, 2, 5, 4, 0, 4, 5, 1, 3, 0, 1, 5,
-                          4, 2, 2, 0, 3, 5, 1, 1, 2, 4, 3, 0}));
+    OMEGA_H_CHECK(
+        e2e.ab2b == LOs({1, 3, 4, 2, 5, 3, 0, 2, 5, 4, 0, 4, 5, 1, 3, 0, 1, 5,
+                        4, 2, 2, 0, 3, 5, 1, 1, 2, 4, 3, 0}));
   }
 }
 
@@ -522,8 +526,10 @@ static void test_quality() {
     x_tet[i] = perfect_tet[i];
     x_tet[i][2] /= 2;
   }
-  OMEGA_H_CHECK(are_close(metric_element_quality(perfect_tri, id_metric_2), 1.0));
-  OMEGA_H_CHECK(are_close(metric_element_quality(perfect_tet, id_metric_3), 1.0));
+  OMEGA_H_CHECK(
+      are_close(metric_element_quality(perfect_tri, id_metric_2), 1.0));
+  OMEGA_H_CHECK(
+      are_close(metric_element_quality(perfect_tet, id_metric_3), 1.0));
   OMEGA_H_CHECK(are_close(metric_element_quality(flat_tri, id_metric_2), 0.0));
   OMEGA_H_CHECK(are_close(metric_element_quality(flat_tet, id_metric_3), 0.0));
   OMEGA_H_CHECK(metric_element_quality(inv_tri, id_metric_2) < 0.0);
@@ -602,7 +608,8 @@ static void test_linpart() {
 static void test_expand() {
   auto fan = offset_scan(LOs({2, 1, 3}));
   Reals data({2.2, 3.14, 42.0});
-  OMEGA_H_CHECK(expand(data, fan, 1) == Reals({2.2, 2.2, 3.14, 42.0, 42.0, 42.0}));
+  OMEGA_H_CHECK(
+      expand(data, fan, 1) == Reals({2.2, 2.2, 3.14, 42.0, 42.0, 42.0}));
 }
 
 static void test_inertial_bisect(Library* lib) {
@@ -662,7 +669,8 @@ static void test_mark_up_down(Library* lib) {
   build_box(&mesh, 1, 1, 0, 1, 1, 0);
   OMEGA_H_CHECK(
       mark_down(&mesh, TRI, VERT, Read<I8>({1, 0})) == Read<I8>({1, 1, 0, 1}));
-  OMEGA_H_CHECK(mark_up(&mesh, VERT, TRI, Read<I8>({0, 1, 0, 0})) == Read<I8>({1, 0}));
+  OMEGA_H_CHECK(
+      mark_up(&mesh, VERT, TRI, Read<I8>({0, 1, 0, 0})) == Read<I8>({1, 0}));
 }
 
 static void test_compare_meshes(Library* lib) {
@@ -767,7 +775,8 @@ static void test_read_vtu(Mesh* mesh0) {
   Mesh mesh1(mesh0->library());
   vtk::read_vtu(stream, mesh0->comm(), &mesh1);
   auto opts = MeshCompareOpts::init(mesh0, VarCompareOpts::zero_tolerance());
-  OMEGA_H_CHECK(OMEGA_H_SAME == compare_meshes(mesh0, &mesh1, opts, true, false));
+  OMEGA_H_CHECK(
+      OMEGA_H_SAME == compare_meshes(mesh0, &mesh1, opts, true, false));
 }
 
 static void test_read_vtu(Library* lib) {

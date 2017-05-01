@@ -89,8 +89,10 @@ static SeparationResult separate_by_color_once(
   auto separated_new = filter_graph(keys2new, new_keep);
   auto remainder_old = filter_graph(keys2old, invert_marks(old_keep));
   auto remainder_new = filter_graph(keys2new, invert_marks(new_keep));
-  OMEGA_H_CHECK(remainder_old.nedges() + separated_old.nedges() == keys2old.nedges());
-  OMEGA_H_CHECK(remainder_new.nedges() + separated_new.nedges() == keys2new.nedges());
+  OMEGA_H_CHECK(
+      remainder_old.nedges() + separated_old.nedges() == keys2old.nedges());
+  OMEGA_H_CHECK(
+      remainder_new.nedges() + separated_new.nedges() == keys2new.nedges());
   auto separated = Cavs{separated_old, separated_new};
   auto remainder = Cavs{remainder_old, remainder_new};
   return {separated, remainder};

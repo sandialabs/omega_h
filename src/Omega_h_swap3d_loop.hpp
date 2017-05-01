@@ -21,9 +21,9 @@ struct Loop {
   Few<LO, MAX_EDGE_SWAP> loop_verts2verts;
 };
 
-OMEGA_H_DEVICE Loop find_loop(LOs const& edges2edge_tets, LOs const& edge_tets2tets,
-    Read<I8> const& edge_tet_codes, LOs const& edge_verts2verts,
-    LOs const& tet_verts2verts, LO edge) {
+OMEGA_H_DEVICE Loop find_loop(LOs const& edges2edge_tets,
+    LOs const& edge_tets2tets, Read<I8> const& edge_tet_codes,
+    LOs const& edge_verts2verts, LOs const& tet_verts2verts, LO edge) {
   Loop loop;
   auto begin_use = edges2edge_tets[edge];
   auto end_use = edges2edge_tets[edge + 1];

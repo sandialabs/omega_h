@@ -1,8 +1,8 @@
 #include "Omega_h_simplify.hpp"
 
+#include "Omega_h_loop.hpp"
 #include "Omega_h_scalar.hpp"
 #include "Omega_h_scan.hpp"
-#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
@@ -62,19 +62,20 @@ OMEGA_H_CONSTANT_DATA Int const htv2hhv_0[5][4] = {
 /* tets from a hex with 1 diagonal
    into the back-upper-right corner,
    on the right face */
-OMEGA_H_CONSTANT_DATA Int const htv2hhv_1[6][4] = {{0, 5, 7, 4}, {0, 1, 7, 5}, {1, 6, 7, 5},
-    {0, 7, 2, 3}, {0, 7, 1, 2}, {1, 7, 6, 2}};
+OMEGA_H_CONSTANT_DATA Int const htv2hhv_1[6][4] = {{0, 5, 7, 4}, {0, 1, 7, 5},
+    {1, 6, 7, 5}, {0, 7, 2, 3}, {0, 7, 1, 2}, {1, 7, 6, 2}};
 /* tets from a hex with 2 diagonals
    into the back-upper-right corner,
    none on the right face */
-OMEGA_H_CONSTANT_DATA Int const htv2hhv_2[6][4] = {{0, 4, 5, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
-    {0, 1, 2, 5}, {0, 3, 6, 2}, {0, 6, 5, 2}};
+OMEGA_H_CONSTANT_DATA Int const htv2hhv_2[6][4] = {{0, 4, 5, 6}, {0, 3, 7, 6},
+    {0, 7, 4, 6}, {0, 1, 2, 5}, {0, 3, 6, 2}, {0, 6, 5, 2}};
 /* tets from a hex with 3 diagonals
    into the back-upper-right corner */
-OMEGA_H_CONSTANT_DATA Int const htv2hhv_3[6][4] = {{0, 2, 3, 6}, {0, 3, 7, 6}, {0, 7, 4, 6},
-    {0, 5, 6, 4}, {1, 5, 6, 0}, {1, 6, 2, 0}};
+OMEGA_H_CONSTANT_DATA Int const htv2hhv_3[6][4] = {{0, 2, 3, 6}, {0, 3, 7, 6},
+    {0, 7, 4, 6}, {0, 5, 6, 4}, {1, 5, 6, 0}, {1, 6, 2, 0}};
 
-OMEGA_H_CONSTANT_DATA Int const hex_flip_pairs[4][2] = {{0, 4}, {3, 5}, {1, 7}, {2, 6}};
+OMEGA_H_CONSTANT_DATA Int const hex_flip_pairs[4][2] = {
+    {0, 4}, {3, 5}, {1, 7}, {2, 6}};
 
 OMEGA_H_DEVICE void flip_hex(LO hhv2v[]) {
   for (Int i = 0; i < 4; ++i)
@@ -163,8 +164,8 @@ OMEGA_H_DEVICE void tets_from_hex_1(
   ndiags_into = diags_into[0] + diags_into[1] + diags_into[2];
 }
 
-OMEGA_H_DEVICE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h, LO const hhv2v[],
-    Int const case_template[][4], Int nhht) {
+OMEGA_H_DEVICE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
+    LO const hhv2v[], Int const case_template[][4], Int nhht) {
   LO t = h2ht[h];
   for (Int i = 0; i < nhht; ++i) {
     for (Int j = 0; j < 4; ++j) {

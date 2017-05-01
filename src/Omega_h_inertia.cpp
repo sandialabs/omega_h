@@ -71,7 +71,9 @@ Reals get_distances(Reals coords, Vector<3> center, Vector<3> axis) {
 Real get_half_weight(CommPtr comm, Reals masses, Read<I8> marked) {
   auto n = masses.size();
   Write<Real> weighted(n);
-  auto f = OMEGA_H_LAMBDA(LO i) { weighted[i] = (Real(marked[i]) * masses[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    weighted[i] = (Real(marked[i]) * masses[i]);
+  };
   parallel_for(n, f);
   return repro_sum(comm, Reals(weighted));
 }

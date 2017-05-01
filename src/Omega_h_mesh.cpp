@@ -10,15 +10,15 @@
 #include "Omega_h_control.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_mark.hpp"
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_reorder.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
-#include "Omega_h_mark.hpp"
-#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 
@@ -727,7 +727,7 @@ void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags) {
   }
 }
 
-#define OMEGA_H_INST(T)                                                              \
+#define OMEGA_H_INST(T)                                                        \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \

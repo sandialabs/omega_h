@@ -1,8 +1,8 @@
 #include "Omega_h_hilbert.hpp"
 
 #include "Omega_h_bbox.hpp"
-#include "Omega_h_sort.hpp"
 #include "Omega_h_loop.hpp"
+#include "Omega_h_sort.hpp"
 
 namespace Omega_h {
 

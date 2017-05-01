@@ -1,11 +1,11 @@
 #include "Omega_h_refine_qualities.hpp"
 
 #include "Omega_h_align.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine_topology.hpp"
 #include "Omega_h_simplex.hpp"
-#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

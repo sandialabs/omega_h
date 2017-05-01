@@ -5,9 +5,9 @@
 #include "Omega_h_box.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_simplify.hpp"
-#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 

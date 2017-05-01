@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_SWAP3D_HPP
 #define OMEGA_H_SWAP3D_HPP
 
-#include <Omega_h_host_few.hpp>
 #include <Omega_h_adapt.hpp>
+#include <Omega_h_host_few.hpp>
 
 namespace Omega_h {
 

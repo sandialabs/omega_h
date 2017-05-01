@@ -12,8 +12,8 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_mesh.hpp"
 #include "Omega_h_loop.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 
@@ -265,8 +265,8 @@ static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
   I8 parting_i8;
   read_value(stream, parting_i8);
   OMEGA_H_CHECK(parting_i8 == I8(OMEGA_H_ELEM_BASED) ||
-        parting_i8 == I8(OMEGA_H_GHOSTED) ||
-        parting_i8 == I8(OMEGA_H_VERT_BASED));
+                parting_i8 == I8(OMEGA_H_GHOSTED) ||
+                parting_i8 == I8(OMEGA_H_VERT_BASED));
   if (version >= 3) {
     I32 nghost_layers;
     read_value(stream, nghost_layers);
@@ -517,7 +517,7 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh) {
   return nparts;
 }
 
-#define OMEGA_H_INST(T)                                                                \
+#define OMEGA_H_INST(T)                                                        \
   template void swap_if_needed(T& val, bool is_little_endian);                 \
   template Read<T> swap_if_needed(Read<T> array, bool is_little_endian);       \
   template void write_value(std::ostream& stream, T val);                      \

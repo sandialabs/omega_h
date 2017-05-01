@@ -1,9 +1,9 @@
 #ifndef OMEGA_H_COLLAPSE_HPP
 #define OMEGA_H_COLLAPSE_HPP
 
+#include <Omega_h_array.hpp>
 #include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
-#include <Omega_h_array.hpp>
 
 namespace Omega_h {
 
@@ -16,7 +16,9 @@ enum {
   COLLAPSE_BOTH = 0x3
 };
 
-OMEGA_H_INLINE I8 collapses(I8 code, Int col_v) { return (code & (1 << col_v)) != 0; }
+OMEGA_H_INLINE I8 collapses(I8 code, Int col_v) {
+  return (code & (1 << col_v)) != 0;
+}
 
 OMEGA_H_INLINE I8 do_collapse(I8 code, Int col_v) {
   return static_cast<I8>(code | (1 << col_v));

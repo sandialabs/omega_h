@@ -2,10 +2,10 @@
 
 #include <fstream>
 
-#include "Omega_h_map.hpp"
-#include "Omega_h_vector.hpp"
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_vector.hpp"
 
 namespace Omega_h {
 

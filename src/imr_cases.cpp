@@ -1,12 +1,12 @@
+#include "Omega_h_adapt.hpp"
+#include "Omega_h_file.hpp"
 #include "Omega_h_laplace.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_metric.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_vector.hpp"
-#include "Omega_h_loop.hpp"
-#include "Omega_h_mesh.hpp"
-#include "Omega_h_file.hpp"
-#include "Omega_h_metric.hpp"
-#include "Omega_h_adapt.hpp"
 
 #include <iostream>
 #include <set>
@@ -38,7 +38,9 @@ struct TranslateBall : public Case {
   }
   static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = OMEGA_H_LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0.02, 0, 0)); };
+    auto f = OMEGA_H_LAMBDA(LO ov) {
+      set_vector<3>(out, ov, vector_3(0.02, 0, 0));
+    };
     parallel_for(ov2v.size(), f);
     return out;
   }
@@ -123,7 +125,9 @@ struct CylinderTube : public Case {
   }
   static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = OMEGA_H_LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0, 0, 0.02)); };
+    auto f = OMEGA_H_LAMBDA(LO ov) {
+      set_vector<3>(out, ov, vector_3(0, 0, 0.02));
+    };
     parallel_for(ov2v.size(), f);
     return out;
   }

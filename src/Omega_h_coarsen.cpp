@@ -5,11 +5,11 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_collapse.hpp"
 #include "Omega_h_indset.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
 #include "Omega_h_modify.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_mesh.hpp"
-#include "Omega_h_loop.hpp"
 
 namespace Omega_h {
 

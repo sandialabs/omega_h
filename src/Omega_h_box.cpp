@@ -1,9 +1,9 @@
 #include "Omega_h_box.hpp"
 
-#include "Omega_h_loop.hpp"
 #include "Omega_h_few.hpp"
-#include "Omega_h_vector.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
+#include "Omega_h_vector.hpp"
 
 namespace Omega_h {
 

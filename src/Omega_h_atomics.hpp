@@ -1,7 +1,6 @@
 #ifndef ATOMICS_HPP
 #define ATOMICS_HPP
 
-
 namespace Omega_h {
 
 template <bool Enable>

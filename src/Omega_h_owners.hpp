@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_OWNERS_HPP
 #define OMEGA_H_OWNERS_HPP
 
-#include <Omega_h_remotes.hpp>
 #include <Omega_h_dist.hpp>
+#include <Omega_h_remotes.hpp>
 
 namespace Omega_h {
 
@@ -36,7 +36,7 @@ Read<T> reduce_data_to_owners(
 
 void globals_from_owners(Mesh* new_mesh, Int ent_dim);
 
-#define OMEGA_H_INST_DECL(T)                                                           \
+#define OMEGA_H_INST_DECL(T)                                                   \
   extern template Read<T> reduce_data_to_owners(                               \
       Read<T> copy_data, Dist copies2owners, Int ncomps);
 OMEGA_H_INST_DECL(I8)

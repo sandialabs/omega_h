@@ -3,8 +3,8 @@
 
 #include <cstdint>
 
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_array.hpp>
+#include <Omega_h_kokkos.hpp>
 
 namespace Omega_h {
 
@@ -95,7 +95,8 @@ void AxestoTranspose(coord_t* X, int b, int n)  // position, #bits, dimension
 //                 out[0] = A B C D E
 //                 out[1] = F G H I J
 //                 out[2] = K L M N O
-OMEGA_H_INLINE void untranspose(coord_t const in[], coord_t out[], int b, int n) {
+OMEGA_H_INLINE void untranspose(
+    coord_t const in[], coord_t out[], int b, int n) {
   for (int i = 0; i < n; ++i) out[i] = 0;
   for (int i = 0; i < (b * n); ++i)
     out[i / b] |= (((in[i % n] >> (b - 1 - (i / n))) & 1) << (b - 1 - (i % b)));

@@ -1,7 +1,6 @@
 #ifndef SWAP3D_TABLES_HPP
 #define SWAP3D_TABLES_HPP
 
-
 namespace Omega_h {
 
 namespace swap3d {
@@ -70,45 +69,46 @@ OMEGA_H_CONSTANT_DATA static Int const triangles_4[4][3] = {
 
 OMEGA_H_CONSTANT_DATA static Int const meshes_4[2 * 2] = {0, 1, 2, 3};
 
-OMEGA_H_CONSTANT_DATA static Int const triangles_5[10][3] = {{0, 1, 2}, {0, 2, 3}, {0, 3, 4},
-    {0, 1, 4}, {1, 3, 4}, {1, 2, 3}, {2, 3, 4}, {0, 2, 4}, {0, 1, 3},
-    {1, 2, 4}};
+OMEGA_H_CONSTANT_DATA static Int const triangles_5[10][3] = {{0, 1, 2},
+    {0, 2, 3}, {0, 3, 4}, {0, 1, 4}, {1, 3, 4}, {1, 2, 3}, {2, 3, 4}, {0, 2, 4},
+    {0, 1, 3}, {1, 2, 4}};
 
 OMEGA_H_CONSTANT_DATA static Int const meshes_5[5 * 3] = {
     0, 1, 2, 3, 4, 5, 0, 6, 7, 2, 5, 8, 3, 6, 9};
 
-OMEGA_H_CONSTANT_DATA static Int const triangles_6[20][3] = {{0, 1, 2}, {0, 2, 3}, {0, 3, 4},
-    {0, 4, 5}, {0, 2, 5}, {2, 4, 5}, {2, 3, 4}, {0, 3, 5}, {3, 4, 5}, {0, 2, 4},
-    {2, 3, 5}, {1, 2, 3}, {0, 1, 3}, {0, 1, 5}, {1, 4, 5}, {1, 3, 4}, {0, 1, 4},
-    {1, 3, 5}, {1, 2, 4}, {1, 2, 5}};
+OMEGA_H_CONSTANT_DATA static Int const triangles_6[20][3] = {{0, 1, 2},
+    {0, 2, 3}, {0, 3, 4}, {0, 4, 5}, {0, 2, 5}, {2, 4, 5}, {2, 3, 4}, {0, 3, 5},
+    {3, 4, 5}, {0, 2, 4}, {2, 3, 5}, {1, 2, 3}, {0, 1, 3}, {0, 1, 5}, {1, 4, 5},
+    {1, 3, 4}, {0, 1, 4}, {1, 3, 5}, {1, 2, 4}, {1, 2, 5}};
 
-OMEGA_H_CONSTANT_DATA static Int const meshes_6[14 * 4] = {0, 1, 2, 3, 0, 4, 5, 6, 0, 1, 7,
-    8, 0, 3, 6, 9, 0, 4, 8, 10, 2, 3, 11, 12, 11, 13, 14, 15, 7, 8, 11, 12, 3,
-    11, 15, 16, 8, 11, 13, 17, 6, 13, 14, 18, 3, 6, 16, 18, 5, 6, 13, 19, 8, 10,
-    13, 19};
+OMEGA_H_CONSTANT_DATA static Int const meshes_6[14 * 4] = {0, 1, 2, 3, 0, 4, 5,
+    6, 0, 1, 7, 8, 0, 3, 6, 9, 0, 4, 8, 10, 2, 3, 11, 12, 11, 13, 14, 15, 7, 8,
+    11, 12, 3, 11, 15, 16, 8, 11, 13, 17, 6, 13, 14, 18, 3, 6, 16, 18, 5, 6, 13,
+    19, 8, 10, 13, 19};
 
-OMEGA_H_CONSTANT_DATA static Int const triangles_7[35][3] = {{0, 1, 2}, {0, 2, 3}, {0, 3, 4},
-    {0, 4, 5}, {0, 5, 6}, {0, 3, 6}, {3, 5, 6}, {3, 4, 5}, {0, 4, 6}, {4, 5, 6},
-    {0, 3, 5}, {3, 4, 6}, {0, 2, 4}, {2, 3, 4}, {0, 2, 6}, {2, 5, 6}, {2, 4, 5},
-    {0, 2, 5}, {2, 4, 6}, {2, 3, 5}, {2, 3, 6}, {0, 1, 3}, {1, 2, 3}, {0, 1, 4},
-    {1, 3, 4}, {0, 1, 6}, {1, 5, 6}, {1, 4, 5}, {0, 1, 5}, {1, 4, 6}, {1, 3, 5},
-    {1, 3, 6}, {1, 2, 4}, {1, 2, 5}, {1, 2, 6}};
+OMEGA_H_CONSTANT_DATA static Int const triangles_7[35][3] = {{0, 1, 2},
+    {0, 2, 3}, {0, 3, 4}, {0, 4, 5}, {0, 5, 6}, {0, 3, 6}, {3, 5, 6}, {3, 4, 5},
+    {0, 4, 6}, {4, 5, 6}, {0, 3, 5}, {3, 4, 6}, {0, 2, 4}, {2, 3, 4}, {0, 2, 6},
+    {2, 5, 6}, {2, 4, 5}, {0, 2, 5}, {2, 4, 6}, {2, 3, 5}, {2, 3, 6}, {0, 1, 3},
+    {1, 2, 3}, {0, 1, 4}, {1, 3, 4}, {0, 1, 6}, {1, 5, 6}, {1, 4, 5}, {0, 1, 5},
+    {1, 4, 6}, {1, 3, 5}, {1, 3, 6}, {1, 2, 4}, {1, 2, 5}, {1, 2, 6}};
 
-OMEGA_H_CONSTANT_DATA static Int const meshes_7[42 * 5] = {0, 1, 2, 3, 4, 0, 1, 5, 6, 7, 0,
-    1, 2, 8, 9, 0, 1, 4, 7, 10, 0, 1, 5, 9, 11, 0, 3, 4, 12, 13, 0, 13, 14, 15,
-    16, 0, 8, 9, 12, 13, 0, 4, 13, 16, 17, 0, 9, 13, 14, 18, 0, 7, 14, 15, 19,
-    0, 4, 7, 17, 19, 0, 6, 7, 14, 20, 0, 9, 11, 14, 20, 2, 3, 4, 21, 22, 5, 6,
-    7, 21, 22, 2, 8, 9, 21, 22, 4, 7, 10, 21, 22, 5, 9, 11, 21, 22, 3, 4, 22,
-    23, 24, 22, 24, 25, 26, 27, 8, 9, 22, 23, 24, 4, 22, 24, 27, 28, 9, 22, 24,
-    25, 29, 7, 22, 25, 26, 30, 4, 7, 22, 28, 30, 6, 7, 22, 25, 31, 9, 11, 22,
-    25, 31, 3, 4, 13, 23, 32, 13, 25, 26, 27, 32, 8, 9, 13, 23, 32, 4, 13, 27,
-    28, 32, 9, 13, 25, 29, 32, 13, 16, 25, 26, 33, 4, 13, 16, 28, 33, 13, 15,
-    16, 25, 34, 9, 13, 18, 25, 34, 7, 19, 25, 26, 33, 4, 7, 19, 28, 33, 7, 15,
-    19, 25, 34, 6, 7, 20, 25, 34, 9, 11, 20, 25, 34};
+OMEGA_H_CONSTANT_DATA static Int const meshes_7[42 * 5] = {0, 1, 2, 3, 4, 0, 1,
+    5, 6, 7, 0, 1, 2, 8, 9, 0, 1, 4, 7, 10, 0, 1, 5, 9, 11, 0, 3, 4, 12, 13, 0,
+    13, 14, 15, 16, 0, 8, 9, 12, 13, 0, 4, 13, 16, 17, 0, 9, 13, 14, 18, 0, 7,
+    14, 15, 19, 0, 4, 7, 17, 19, 0, 6, 7, 14, 20, 0, 9, 11, 14, 20, 2, 3, 4, 21,
+    22, 5, 6, 7, 21, 22, 2, 8, 9, 21, 22, 4, 7, 10, 21, 22, 5, 9, 11, 21, 22, 3,
+    4, 22, 23, 24, 22, 24, 25, 26, 27, 8, 9, 22, 23, 24, 4, 22, 24, 27, 28, 9,
+    22, 24, 25, 29, 7, 22, 25, 26, 30, 4, 7, 22, 28, 30, 6, 7, 22, 25, 31, 9,
+    11, 22, 25, 31, 3, 4, 13, 23, 32, 13, 25, 26, 27, 32, 8, 9, 13, 23, 32, 4,
+    13, 27, 28, 32, 9, 13, 25, 29, 32, 13, 16, 25, 26, 33, 4, 13, 16, 28, 33,
+    13, 15, 16, 25, 34, 9, 13, 18, 25, 34, 7, 19, 25, 26, 33, 4, 7, 19, 28, 33,
+    7, 15, 19, 25, 34, 6, 7, 20, 25, 34, 9, 11, 20, 25, 34};
 
 /* array [8] of pointer to array [3] of Int const */
-OMEGA_H_CONSTANT_DATA static swap_tri_t const* const swap_triangles[MAX_EDGE_SWAP + 1] = {
-    0, 0, 0, triangles_3, triangles_4, triangles_5, triangles_6, triangles_7};
+OMEGA_H_CONSTANT_DATA static swap_tri_t const* const
+    swap_triangles[MAX_EDGE_SWAP + 1] = {0, 0, 0, triangles_3, triangles_4,
+        triangles_5, triangles_6, triangles_7};
 
 OMEGA_H_CONSTANT_DATA static Int const* const swap_meshes[MAX_EDGE_SWAP + 1] = {
     0, 0, 0, meshes_3, meshes_4, meshes_5, meshes_6, meshes_7};
@@ -120,17 +120,18 @@ OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_4[2] = {{2, 0}, {1, 3}};
 OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_5[7] = {
     {2, 0}, {3, 0}, {1, 4}, {1, 3}, {4, 2}, {0, 3}, {3, 1}};
 
-OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_6[15] = {{2, 0}, {3, 0}, {4, 0},
-    {2, 5}, {2, 4}, {3, 5}, {0, 4}, {4, 2}, {5, 3}, {0, 3}, {3, 1}, {1, 5},
-    {1, 4}, {4, 1}, {5, 2}};
+OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_6[15] = {{2, 0}, {3, 0},
+    {4, 0}, {2, 5}, {2, 4}, {3, 5}, {0, 4}, {4, 2}, {5, 3}, {0, 3}, {3, 1},
+    {1, 5}, {1, 4}, {4, 1}, {5, 2}};
 
-OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_7[26] = {{2, 0}, {3, 0}, {4, 0},
-    {5, 0}, {3, 6}, {3, 5}, {4, 6}, {0, 5}, {5, 3}, {6, 4}, {0, 4}, {2, 4},
-    {4, 2}, {2, 6}, {2, 5}, {5, 2}, {6, 3}, {0, 3}, {1, 3}, {3, 1}, {1, 4},
-    {4, 1}, {1, 6}, {1, 5}, {5, 1}, {6, 2}};
+OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_7[26] = {{2, 0}, {3, 0},
+    {4, 0}, {5, 0}, {3, 6}, {3, 5}, {4, 6}, {0, 5}, {5, 3}, {6, 4}, {0, 4},
+    {2, 4}, {4, 2}, {2, 6}, {2, 5}, {5, 2}, {6, 3}, {0, 3}, {1, 3}, {3, 1},
+    {1, 4}, {4, 1}, {1, 6}, {1, 5}, {5, 1}, {6, 2}};
 
-OMEGA_H_CONSTANT_DATA static IntPair const* const unique_edges[MAX_EDGE_SWAP + 1] = {
-    0, 0, 0, 0, unique_edges_4, unique_edges_5, unique_edges_6, unique_edges_7};
+OMEGA_H_CONSTANT_DATA static IntPair const* const
+    unique_edges[MAX_EDGE_SWAP + 1] = {0, 0, 0, 0, unique_edges_4,
+        unique_edges_5, unique_edges_6, unique_edges_7};
 
 OMEGA_H_CONSTANT_DATA static Int const edges2unique_4_0[1] = {0};
 
@@ -261,32 +262,35 @@ OMEGA_H_CONSTANT_DATA static Int const edges2unique_7_41[4] = {9, 16, 25, 22};
 OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_4[2] = {
     edges2unique_4_0, edges2unique_4_1};
 
-OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_5[5] = {edges2unique_5_0,
-    edges2unique_5_1, edges2unique_5_2, edges2unique_5_3, edges2unique_5_4};
+OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_5[5] = {
+    edges2unique_5_0, edges2unique_5_1, edges2unique_5_2, edges2unique_5_3,
+    edges2unique_5_4};
 
-OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_6[14] = {edges2unique_6_0,
-    edges2unique_6_1, edges2unique_6_2, edges2unique_6_3, edges2unique_6_4,
-    edges2unique_6_5, edges2unique_6_6, edges2unique_6_7, edges2unique_6_8,
-    edges2unique_6_9, edges2unique_6_10, edges2unique_6_11, edges2unique_6_12,
-    edges2unique_6_13};
+OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_6[14] = {
+    edges2unique_6_0, edges2unique_6_1, edges2unique_6_2, edges2unique_6_3,
+    edges2unique_6_4, edges2unique_6_5, edges2unique_6_6, edges2unique_6_7,
+    edges2unique_6_8, edges2unique_6_9, edges2unique_6_10, edges2unique_6_11,
+    edges2unique_6_12, edges2unique_6_13};
 
-OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_7[42] = {edges2unique_7_0,
-    edges2unique_7_1, edges2unique_7_2, edges2unique_7_3, edges2unique_7_4,
-    edges2unique_7_5, edges2unique_7_6, edges2unique_7_7, edges2unique_7_8,
-    edges2unique_7_9, edges2unique_7_10, edges2unique_7_11, edges2unique_7_12,
-    edges2unique_7_13, edges2unique_7_14, edges2unique_7_15, edges2unique_7_16,
-    edges2unique_7_17, edges2unique_7_18, edges2unique_7_19, edges2unique_7_20,
-    edges2unique_7_21, edges2unique_7_22, edges2unique_7_23, edges2unique_7_24,
-    edges2unique_7_25, edges2unique_7_26, edges2unique_7_27, edges2unique_7_28,
-    edges2unique_7_29, edges2unique_7_30, edges2unique_7_31, edges2unique_7_32,
-    edges2unique_7_33, edges2unique_7_34, edges2unique_7_35, edges2unique_7_36,
-    edges2unique_7_37, edges2unique_7_38, edges2unique_7_39, edges2unique_7_40,
-    edges2unique_7_41};
+OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_7[42] = {
+    edges2unique_7_0, edges2unique_7_1, edges2unique_7_2, edges2unique_7_3,
+    edges2unique_7_4, edges2unique_7_5, edges2unique_7_6, edges2unique_7_7,
+    edges2unique_7_8, edges2unique_7_9, edges2unique_7_10, edges2unique_7_11,
+    edges2unique_7_12, edges2unique_7_13, edges2unique_7_14, edges2unique_7_15,
+    edges2unique_7_16, edges2unique_7_17, edges2unique_7_18, edges2unique_7_19,
+    edges2unique_7_20, edges2unique_7_21, edges2unique_7_22, edges2unique_7_23,
+    edges2unique_7_24, edges2unique_7_25, edges2unique_7_26, edges2unique_7_27,
+    edges2unique_7_28, edges2unique_7_29, edges2unique_7_30, edges2unique_7_31,
+    edges2unique_7_32, edges2unique_7_33, edges2unique_7_34, edges2unique_7_35,
+    edges2unique_7_36, edges2unique_7_37, edges2unique_7_38, edges2unique_7_39,
+    edges2unique_7_40, edges2unique_7_41};
 
-OMEGA_H_CONSTANT_DATA static Int const* const* const edges2unique[MAX_EDGE_SWAP + 1] = {
-    0, 0, 0, 0, edges2unique_4, edges2unique_5, edges2unique_6, edges2unique_7};
+OMEGA_H_CONSTANT_DATA static Int const* const* const
+    edges2unique[MAX_EDGE_SWAP + 1] = {0, 0, 0, 0, edges2unique_4,
+        edges2unique_5, edges2unique_6, edges2unique_7};
 
-OMEGA_H_CONSTANT_DATA static Int const nedges[MAX_EDGE_SWAP + 1] = {0, 0, 0, 0, 1, 2, 3, 4};
+OMEGA_H_CONSTANT_DATA static Int const nedges[MAX_EDGE_SWAP + 1] = {
+    0, 0, 0, 0, 1, 2, 3, 4};
 
 }  // end namespace swap3d
 

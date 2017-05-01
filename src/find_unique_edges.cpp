@@ -39,8 +39,9 @@ int main() {
   }
   std::cout << "typedef int IntPair[2];\n\n";
   for (std::size_t loop_size = 4; loop_size <= MAX_EDGE_SWAP; ++loop_size) {
-    std::cout << "OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_" << loop_size
-              << "[" << unique_edges[loop_size].size() << "] = {\n";
+    std::cout << "OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_"
+              << loop_size << "[" << unique_edges[loop_size].size()
+              << "] = {\n";
     for (std::size_t edge = 0; edge < unique_edges[loop_size].size(); ++edge) {
       if (edge != 0) std::cout << ", ";
       std::cout << "{" << unique_edges[loop_size][edge].first << ", ";
@@ -63,8 +64,8 @@ int main() {
     auto nedges = std::size_t(swap_nint_edges[loop_size]);
     auto nmeshes = std::size_t(swap_mesh_counts[loop_size]);
     for (std::size_t mesh = 0; mesh < nmeshes; ++mesh) {
-      std::cout << "OMEGA_H_CONSTANT_DATA static Int const edges2unique_" << loop_size << "_"
-                << mesh << "[" << nedges << "] = {\n";
+      std::cout << "OMEGA_H_CONSTANT_DATA static Int const edges2unique_"
+                << loop_size << "_" << mesh << "[" << nedges << "] = {\n";
       for (std::size_t edge = 0; edge < nedges; ++edge) {
         if (edge != 0) std::cout << ", ";
         std::cout << edges2unique_edges[loop_size][mesh][edge] << '\n';
@@ -74,16 +75,17 @@ int main() {
   }
   for (int loop_size = 4; loop_size <= MAX_EDGE_SWAP; ++loop_size) {
     auto nmeshes = swap_mesh_counts[loop_size];
-    std::cout << "OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_" << loop_size
-              << "[" << nmeshes << "] = {\n";
+    std::cout << "OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_"
+              << loop_size << "[" << nmeshes << "] = {\n";
     for (int mesh = 0; mesh < nmeshes; ++mesh) {
       if (mesh != 0) std::cout << ", ";
       std::cout << "edges2unique_" << loop_size << "_" << mesh << "\n";
     }
     std::cout << "};\n\n";
   }
-  std::cout << "OMEGA_H_CONSTANT_DATA static Int const* const* const edges2unique["
-            << "MAX_EDGE_SWAP + 1] = {\n";
+  std::cout
+      << "OMEGA_H_CONSTANT_DATA static Int const* const* const edges2unique["
+      << "MAX_EDGE_SWAP + 1] = {\n";
   for (int loop_size = 0; loop_size < 4; ++loop_size) {
     if (loop_size != 0) std::cout << ", ";
     std::cout << "0" << '\n';

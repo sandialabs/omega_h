@@ -151,7 +151,9 @@ void read(
     CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i], h_conn.data() + start,
         edge_conn.data(), face_conn.data()));
     auto region_id = block_ids[i];
-    auto f0 = OMEGA_H_LAMBDA(LO entry) { elem_class_ids_w[start + entry] = region_id; };
+    auto f0 = OMEGA_H_LAMBDA(LO entry) {
+      elem_class_ids_w[start + entry] = region_id;
+    };
     parallel_for(nentries, f0);
     start += nentries * nnodes_per_entry;
   }

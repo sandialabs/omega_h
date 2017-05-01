@@ -4,13 +4,13 @@
 #include <random>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_build.hpp"
 #include "Omega_h_eigen.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_mesh.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
-#include "Omega_h_mesh.hpp"
-#include "Omega_h_loop.hpp"
-#include "Omega_h_build.hpp"
 
 using namespace Omega_h;
 
@@ -62,7 +62,8 @@ static void test_metric_decompose(Reals metrics) {
   Now t1 = now();
   std::cout << "eigendecomposition of " << nelems << " metric tensors "
             << niters << " times takes " << (t1 - t0) << " seconds\n";
-  OMEGA_H_CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
+  OMEGA_H_CHECK(
+      are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
 }
 
 static void test_metric_invert(Reals metrics) {
