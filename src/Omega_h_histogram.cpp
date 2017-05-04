@@ -104,7 +104,7 @@ void render_histogram_matplotlib(Histogram const& histogram,
   }
   script << "]\n";
   script << "b = [";
-  Real max_percent;
+  Real max_percent = 0.0;
   for (Int i = 0; i < nbins; ++i) {
     auto percent = (Real(histogram.bins[std::size_t(i)]) / Real(total)) * 100.0;
     max_percent = max2(percent, max_percent);
