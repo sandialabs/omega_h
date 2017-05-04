@@ -84,8 +84,8 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
 }
 
 void render_histogram_matplotlib(Histogram const& histogram,
-    std::string const& filepath, std::string const& ents_name,
-    std::string const& var_name) {
+    std::string const& filepath, std::string const&,
+    std::string const&) {
   std::ofstream script("Omega_h_histogram.py");
   script << "#!/usr/bin/python\n";
   script << "import matplotlib\n";
@@ -95,30 +95,34 @@ void render_histogram_matplotlib(Histogram const& histogram,
   auto nbins = Int(histogram.bins.size());
   auto interval = (histogram.max - histogram.min) / Real(nbins);
   script << "a = [";
-  GO binmax = 0;
+  GO total = 0;
   for (Int i = 0; i < nbins; ++i) {
     auto mid = (interval * i) + histogram.min + (interval / 2.0);
     script << mid;
     if (i + 1 < nbins) script << ", ";
-    binmax = max2(binmax, histogram.bins[std::size_t(i)]);
+    total += histogram.bins[std::size_t(i)];
   }
   script << "]\n";
   script << "b = [";
+  Real max_percent;
   for (Int i = 0; i < nbins; ++i) {
-    script << histogram.bins[std::size_t(i)];
+    auto percent = (Real(histogram.bins[std::size_t(i)]) / Real(total)) * 100.0;
+    max_percent = max2(percent, max_percent);
+    script << percent;
     if (i + 1 < nbins) script << ", ";
   }
   script << "]\n";
-  script << "ax = plt.gca()\n";
+  script << "fig = plt.figure(figsize=(3,2))\n";
+  script << "ax = fig.add_subplot(111)\n";
   script << "ax.set_autoscale_on(False)\n";
-  script << "plt.hist(a, " << nbins << ", weights=b";
+  script << "ax.hist(a, " << nbins << ", weights=b";
   script << ", range=(" << histogram.min << ", " << histogram.max << ")";
   script << ")\n";
-  script << "plt.title('Histogram of " << ents_name << " by " << var_name
-         << "')\n";
-  script << "plt.axis([" << histogram.min << ", " << histogram.max << ", ";
-  script << "0, " << binmax << "])\n";
-  script << "plt.savefig('" << filepath << "', bbox_inches='tight')\n";
+//script << "plt.title('Histogram of " << ents_name << " by " << var_name
+//       << "')\n";
+  script << "ax.axis([" << histogram.min << ", " << histogram.max << ", ";
+  script << "0, " << max_percent << "])\n";
+  script << "fig.savefig('" << filepath << "', bbox_inches='tight')\n";
   script.close();
   int ret = ::system("python Omega_h_histogram.py");
   OMEGA_H_CHECK(ret == 0);
