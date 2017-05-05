@@ -1070,7 +1070,7 @@ static void test_scalar_ptr() {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-  OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_VERSION);
+  OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
   test_edge_length();
   test_power();
   test_cubic();

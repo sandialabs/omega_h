@@ -16,7 +16,7 @@ class Library {
       MPI_Comm comm_mpi = MPI_COMM_WORLD
 #endif
       ) {
-    initialize(OMEGA_H_VERSION, argc, argv
+    initialize(OMEGA_H_SEMVER, argc, argv
 #ifdef OMEGA_H_USE_MPI
         ,
         comm_mpi

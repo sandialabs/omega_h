@@ -39,11 +39,6 @@ macro(bob_begin_package)
 endmacro(bob_begin_package)
 
 function(bob_form_semver)
-  cmake_parse_arguments(PARSED_ARGS
-      ""
-      ""
-      "CONFIG_OPTIONS"
-      ${ARGN})
   execute_process(COMMAND git describe --exact-match HEAD
       WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
       RESULT_VARIABLE NOT_TAG
@@ -83,10 +78,10 @@ function(bob_form_semver)
       endif()
     endif()
   endif()
-  if(PARSED_ARGS_CONFIG_OPTIONS)
+  if(${PROJECT_NAME}_KEY_BOOLS)
     set(SEMVER "${SEMVER}+")
-    foreach(CONFIG_OPTION IN LISTS PARSED_ARGS_CONFIG_OPTIONS)
-      if(${CONFIG_OPTION})
+    foreach(KEY_BOOL IN LISTS ${PROJECT_NAME}_KEY_BOOLS)
+      if(${KEY_BOOL})
         set(SEMVER "${SEMVER}1")
       else()
         set(SEMVER "${SEMVER}0")
@@ -94,6 +89,7 @@ function(bob_form_semver)
     endforeach()
   endif()
   set(${PROJECT_NAME}_SEMVER "${SEMVER}" PARENT_SCOPE)
+  message(STATUS "${PROJECT_NAME}_SEMVER = ${${PROJECT_NAME}_SEMVER}")
 endfunction(bob_form_semver)
 
 function(bob_begin_cxx_flags)
@@ -146,7 +142,7 @@ function(bob_end_cxx_flags)
   set(${PROJECT_NAME}_EXTRA_CXX_FLAGS "" CACHE STRING "Extra C++ compiler flags")
   set(FLAGS "${CMAKE_CXX_FLAGS}")
   if(${PROJECT_NAME}_CXX_FLAGS)
-    set(FLAGS ${${PROJECT_NAME}_CXX_FLAGS})
+    set(FLAGS "${${PROJECT_NAME}_CXX_FLAGS}")
   else()
     set(FLAGS "${FLAGS} ${${PROJECT_NAME}_EXTRA_CXX_FLAGS}")
   endif()
@@ -208,12 +204,54 @@ macro(bob_end_subdir)
   set(${PROJECT_NAME}_DEP_PREFIXES ${${PROJECT_NAME}_DEP_PREFIXES} PARENT_SCOPE)
 endmacro(bob_end_subdir)
 
+function(bob_config_header HEADER_PATH)
+  get_filename_component(HEADER_NAME "${HEADER_PATH}" NAME)
+  string(REPLACE "." "_" INCLUDE_GUARD "${HEADER_NAME}")
+  string(TOUPPER "${INCLUDE_GUARD}" INCLUDE_GUARD)
+  set(HEADER_CONTENT
+"#ifndef ${INCLUDE_GUARD}
+#define ${INCLUDE_GUARD}
+")
+  if (${PROJECT_NAME}_KEY_BOOLS)
+    foreach(KEY_BOOL IN LISTS ${PROJECT_NAME}_KEY_BOOLS)
+      if (${KEY_BOOL})
+        string(TOUPPER "${KEY_BOOL}" MACRO_NAME)
+        set(HEADER_CONTENT
+"${HEADER_CONTENT}
+#define ${MACRO_NAME}")
+      endif()
+    endforeach()
+  endif()
+  if (${PROJECT_NAME}_KEY_INTS)
+    foreach(KEY_INT IN LISTS ${PROJECT_NAME}_KEY_INTS)
+      string(TOUPPER "${KEY_INT}" MACRO_NAME)
+      set(HEADER_CONTENT
+"${HEADER_CONTENT}
+#define ${MACRO_NAME} ${${KEY_INT}}")
+    endforeach()
+  endif()
+  if (${PROJECT_NAME}_KEY_STRINGS)
+    foreach(KEY_STRING IN LISTS ${PROJECT_NAME}_KEY_STRINGS)
+      string(TOUPPER "${KEY_STRING}" MACRO_NAME)
+      set(HEADER_CONTENT
+"${HEADER_CONTENT}
+#define ${MACRO_NAME} \"${${KEY_STRING}}\"")
+    endforeach()
+  endif()
+  set(HEADER_CONTENT
+"${HEADER_CONTENT}
+
+#endif
+")
+  file(WRITE "${HEADER_PATH}" "${HEADER_CONTENT}")
+endfunction()
+
 function(bob_end_package)
   include(CMakePackageConfigHelpers)
   set(INCLUDE_INSTALL_DIR include)
   set(LIB_INSTALL_DIR lib)
-  set(CONFIG_CONTENT "
-set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION})
+  set(CONFIG_CONTENT
+"set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION})
 include(CMakeFindDependencyMacro)
 # we will use find_dependency, but we don't want to force
 # our users to have to specify where all of our dependencies
@@ -235,7 +273,18 @@ foreach(tgt IN LISTS ${PROJECT_NAME}_EXPORTED_TARGETS)
   include(\${CMAKE_CURRENT_LIST_DIR}/\${tgt}-target.cmake)
 endforeach()
 set(${PROJECT_NAME}_COMPILER \"${CMAKE_CXX_COMPILER}\")
-set(${PROJECT_NAME}_CXX_FLAGS \"${CMAKE_CXX_FLAGS}\")
+set(${PROJECT_NAME}_CXX_FLAGS \"${CMAKE_CXX_FLAGS}\")")
+  foreach(TYPE IN ITEMS "BOOL" "INT" "STRING")
+    if (${PROJECT_NAME}_KEY_${TYPE}S)
+      foreach(KEY_${TYPE} IN LISTS ${PROJECT_NAME}_KEY_${TYPE}S)
+        set(CONFIG_CONTENT
+"${CONFIG_CONTENT}
+set(${KEY_${TYPE}} \"${${KEY_${TYPE}}}\")")
+      endforeach()
+    endif()
+  endforeach()
+  set(CONFIG_CONTENT
+"${CONFIG_CONTENT}
 ")
   install(FILES
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"

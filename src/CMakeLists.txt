@@ -83,9 +83,6 @@ set(Omega_h_SOURCES
   Omega_h_assoc.cpp
   )
 
-set(libMeshb_REQUIRED_VERSION 7.24)
-set(Omega_h_USE_libMeshb_DEFAULT OFF)
-bob_public_dep(libMeshb)
 if(Omega_h_USE_libMeshb)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshb.cpp)
 endif()
@@ -115,27 +112,8 @@ if(Omega_h_USE_EGADS)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
 endif()
 
-set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
-set(SEACASExodus_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(SEACASExodus)
 if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
-endif()
-
-set(Omega_h_USE_TeuchosParameterList_DEFAULT OFF)
-set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosParameterList)
-set(Omega_h_USE_TeuchosComm_DEFAULT OFF)
-set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosComm)
-if(Omega_h_USE_TeuchosParameterList AND Omega_h_USE_TeuchosComm)
-  message(STATUS "Using Teuchos")
-  set(USE_TEUCHOS ON)
-elseif(Omega_h_USE_TeuchosParameterList OR Omega_h_USE_TeuchosComm)
-  message(FATAL_ERROR "Must use both TeuchosParameterList and TeuchosComm or neither")
-else()
-  message(STATUS "Not using Teuchos")
-  set(USE_TEUCHOS OFF)
 endif()
 
 if(USE_TEUCHOS)
@@ -195,22 +173,6 @@ endif()
 
 bob_export_target(omega_h)
 
-set(Omega_h_USE_Kokkos_DEFAULT OFF)
-set(Kokkos_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(Kokkos)
-if(Omega_h_USE_Kokkos)
-  get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
-  message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
-  get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
-  if(kokkoscore_LINK)
-    message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
-  endif()
-  target_link_libraries(omega_h PUBLIC kokkoscore)
-  target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
-endif()
-
-set(Omega_h_USE_ZLIB_DEFAULT ON)
-bob_public_dep(ZLIB)
 if(Omega_h_USE_ZLIB)
   message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
   # The ZLIB::ZLIB imported target is not present in CMake 3.0.0
@@ -252,10 +214,6 @@ if(USE_TEUCHOS)
   osh_add_util(osh_adapt)
   osh_add_util(osh_copy_params)
 endif()
-
-set(Gmodel_REQUIRED_VERSION 2.1.0)
-set(Omega_h_USE_Gmodel_DEFAULT OFF)
-bob_private_dep(Gmodel)
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
@@ -391,42 +349,7 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-bob_form_semver(CONFIG_OPTIONS
-    Omega_h_USE_MPI
-    Omega_h_USE_Kokkos
-    Omega_h_USE_OpenMP
-    Omega_h_USE_CUDA
-    Omega_h_USE_ZLIB
-    Omega_h_USE_libMeshb
-    Omega_h_USE_EGADS
-    Omega_h_CHECK_BOUNDS
-    Omega_h_PROTECT)
-message(STATUS "${PROJECT_NAME}_SEMVER = ${${PROJECT_NAME}_SEMVER}")
-
-set(DEF_VARS
-    VERSION_MAJOR
-    VERSION_MINOR
-    VERSION_PATCH
-    SEMVER
-    USE_MPI
-    USE_Kokkos
-    USE_OpenMP
-    USE_CUDA
-    USE_ZLIB
-    USE_libMeshb
-    USE_EGADS
-    USE_SEACASExodus
-    CHECK_BOUNDS
-    PROTECT
-    )
-foreach(def_var IN LISTS DEF_VARS)
-  string(TOUPPER "Omega_h_${def_var}" uppercase_var)
-  set(${uppercase_var} ${Omega_h_${def_var}})
-endforeach()
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/Omega_h_config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
-
+bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
 set(Omega_h_HEADERS
   "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h"
   Omega_h_macros.h

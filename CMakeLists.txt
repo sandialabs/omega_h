@@ -59,6 +59,79 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 bob_end_cxx_flags()
 
+set(Omega_h_USE_ZLIB_DEFAULT ON)
+bob_public_dep(ZLIB)
+
+set(Omega_h_USE_Kokkos_DEFAULT OFF)
+set(Kokkos_PREFIX_DEFAULT ${Trilinos_PREFIX})
+bob_public_dep(Kokkos)
+
+if(Omega_h_USE_Kokkos)
+  get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
+  message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
+  get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
+  if(kokkoscore_LINK)
+    message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
+  endif()
+  target_link_libraries(omega_h PUBLIC kokkoscore)
+  target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
+endif()
+
+set(libMeshb_REQUIRED_VERSION 7.24)
+set(Omega_h_USE_libMeshb_DEFAULT OFF)
+bob_public_dep(libMeshb)
+
+set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
+set(SEACASExodus_PREFIX_DEFAULT ${Trilinos_PREFIX})
+bob_public_dep(SEACASExodus)
+
+set(Omega_h_USE_TeuchosParameterList_DEFAULT OFF)
+set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
+bob_public_dep(TeuchosParameterList)
+
+set(Omega_h_USE_TeuchosComm_DEFAULT OFF)
+set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
+bob_public_dep(TeuchosComm)
+
+if(Omega_h_USE_TeuchosParameterList AND Omega_h_USE_TeuchosComm)
+  message(STATUS "Using Teuchos")
+  set(USE_TEUCHOS ON)
+elseif(Omega_h_USE_TeuchosParameterList OR Omega_h_USE_TeuchosComm)
+  message(FATAL_ERROR "Must use both TeuchosParameterList and TeuchosComm or neither")
+else()
+  message(STATUS "Not using Teuchos")
+  set(USE_TEUCHOS OFF)
+endif()
+
+set(Gmodel_REQUIRED_VERSION 2.1.0)
+set(Omega_h_USE_Gmodel_DEFAULT OFF)
+bob_private_dep(Gmodel)
+
+set(Omega_h_KEY_BOOLS
+    Omega_h_USE_MPI
+    Omega_h_USE_Kokkos
+    Omega_h_USE_OpenMP
+    Omega_h_USE_CUDA
+    Omega_h_USE_ZLIB
+    Omega_h_USE_libMeshb
+    Omega_h_USE_EGADS
+    Omega_h_USE_SEACASExodus
+    Omega_h_CHECK_BOUNDS
+    Omega_h_PROTECT
+   )
+
+set(Omega_h_KEY_INTS
+    Omega_h_VERSION_MAJOR
+    Omega_h_VERSION_MINOR
+    Omega_h_VERSION_PATCH
+   )
+
+set(Omega_h_KEY_STRINGS
+    Omega_h_SEMVER
+   )
+
+bob_form_semver()
+
 add_subdirectory(src)
 
 bob_end_package()

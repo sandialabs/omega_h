@@ -263,7 +263,7 @@ void write(
   auto mode = EX_CLOBBER | EX_MAPS_INT64_API;
   auto file = ex_create(path.c_str(), mode, &comp_ws, &io_ws);
   if (file < 0) Omega_h_fail("can't create Exodus file %s\n", path.c_str());
-  auto title = "Omega_h " OMEGA_H_VERSION " Exodus Output";
+  auto title = "Omega_h " OMEGA_H_SEMVER " Exodus Output";
   std::set<LO> region_set;
   auto dim = mesh->dim();
   auto elem_class_ids = mesh->get_array<LO>(dim, "class_id");
