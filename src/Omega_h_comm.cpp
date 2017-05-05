@@ -2,6 +2,10 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_scan.hpp"
+#ifdef OMEGA_H_USE_CUDA
+#include "Omega_h_library.hpp"
+#include "Omega_h_loop.hpp"
+#endif
 
 namespace Omega_h {
 

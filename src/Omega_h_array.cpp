@@ -75,7 +75,7 @@ Write<T>& Write<T>::operator=(Write<T> const& other) {
 
 template <typename T>
 static void fill(Write<T> a, T val) {
-  auto f = OMEGA_H_LAMBDA(LO i) { a[i] = val; };
+  auto f = [=] __device__ (LO i) { a[i] = val; };
   parallel_for(a.size(), f);
 }
 
