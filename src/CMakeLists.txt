@@ -138,6 +138,11 @@ target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
 target_include_directories(omega_h
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
+if(Omega_h_USE_Kokkos)
+  target_link_libraries(omega_h PUBLIC kokkoscore)
+  target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
+endif()
+
 if(Omega_h_USE_libMeshb)
   target_link_libraries(omega_h PUBLIC libMeshb::Meshb.7)
 endif()
