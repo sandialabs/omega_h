@@ -130,13 +130,7 @@ else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
 
-target_include_directories(omega_h
-    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-#for users to find all our headers after we're installed:
-target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
-#find our generated omega_h_config.h, during build only
-target_include_directories(omega_h
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+bob_library_includes(omega_h)
 
 if(Omega_h_USE_Kokkos)
   target_link_libraries(omega_h PUBLIC kokkoscore)

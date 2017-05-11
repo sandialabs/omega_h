@@ -176,7 +176,7 @@ macro(bob_private_dep pkg_name)
 endmacro(bob_private_dep)
 
 macro(bob_public_dep pkg_name)
-  bob_private_dep(${pkg_name} "${version}" ${on_default})
+  bob_private_dep(${pkg_name} "${version}")
   if(${PROJECT_NAME}_USE_${pkg_name})
     if (${pkg_name}_PREFIX)
       set(${PROJECT_NAME}_DEP_PREFIXES ${${PROJECT_NAME}_DEP_PREFIXES}
@@ -185,6 +185,21 @@ macro(bob_public_dep pkg_name)
     set(${PROJECT_NAME}_DEPS ${${PROJECT_NAME}_DEPS} ${pkg_name})
   endif()
 endmacro(bob_public_dep)
+
+function(bob_target_includes lib_name)
+  #find local headers even with #include <>
+  target_include_directories(${lib_name}
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+  #find generated configuration headers
+  target_include_directories(${lib_name}
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+endfunction(bob_target_includes)
+
+function(bob_library_includes lib_name)
+  bob_target_includes("${lib_name}")
+  #ensure downstream users include installed headers
+  target_include_directories(${lib_name} INTERFACE $<INSTALL_INTERFACE:include>)
+endfunction(bob_library_includes)
 
 function(bob_export_target tgt_name)
   install(TARGETS ${tgt_name} EXPORT ${tgt_name}-target
@@ -271,9 +286,7 @@ set(CMAKE_PREFIX_PATH \"\${${PROJECT_NAME}_BACKUP_PREFIX_PATH}\")
 set(${PROJECT_NAME}_EXPORTED_TARGETS \"${${PROJECT_NAME}_EXPORTED_TARGETS}\")
 foreach(tgt IN LISTS ${PROJECT_NAME}_EXPORTED_TARGETS)
   include(\${CMAKE_CURRENT_LIST_DIR}/\${tgt}-target.cmake)
-endforeach()
-set(${PROJECT_NAME}_COMPILER \"${CMAKE_CXX_COMPILER}\")
-set(${PROJECT_NAME}_CXX_FLAGS \"${CMAKE_CXX_FLAGS}\")")
+endforeach()")
   foreach(TYPE IN ITEMS "BOOL" "INT" "STRING")
     if (${PROJECT_NAME}_KEY_${TYPE}S)
       foreach(KEY_${TYPE} IN LISTS ${PROJECT_NAME}_KEY_${TYPE}S)
