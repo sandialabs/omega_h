@@ -7,9 +7,6 @@
 
 #include <Teuchos_Comm.hpp>
 #include <Teuchos_ParameterList.hpp>
-#if defined(HAVE_TEUCHOSCORE_YAML_CPP) && HAVE_TEUCHOSCORE_YAML_CPP
-#define OMEGA_H_USE_YAML
-#endif
 
 namespace Omega_h {
 

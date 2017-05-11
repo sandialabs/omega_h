@@ -3,7 +3,7 @@
 
 #include <Omega_h_c.h>
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 
 OMEGA_H_SYSTEM_HEADER
 
@@ -22,13 +22,13 @@ OMEGA_H_SYSTEM_HEADER
 #error "Kokkos has CUDA, please reconfigure with Omega_h_USE_CUDA=ON"
 #endif
 
-#endif  // OMEGA_H_USE_KOKKOS
+#endif  // OMEGA_H_USE_KOKKOSCORE
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 #define OMEGA_H_INLINE KOKKOS_INLINE_FUNCTION
 #else
 #define OMEGA_H_INLINE inline
-#endif  // OMEGA_H_USE_KOKKOS
+#endif  // OMEGA_H_USE_KOKKOSCORE
 
 #ifdef OMEGA_H_USE_CUDA
 #define OMEGA_H_DEVICE __device__ inline

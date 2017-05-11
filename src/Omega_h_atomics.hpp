@@ -6,7 +6,7 @@ namespace Omega_h {
 template <bool Enable>
 struct Atomics;
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 template <>
 struct Atomics<true> {
   template <typename T>
@@ -42,7 +42,7 @@ struct Atomics<false> {
   }
 };
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 constexpr bool enable_atomics =
     !std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Serial>::value;
 #else

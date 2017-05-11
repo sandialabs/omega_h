@@ -89,7 +89,7 @@ function(bob_form_semver)
     endforeach()
   endif()
   set(${PROJECT_NAME}_SEMVER "${SEMVER}" PARENT_SCOPE)
-  message(STATUS "${PROJECT_NAME}_SEMVER = ${${PROJECT_NAME}_SEMVER}")
+  message(STATUS "${PROJECT_NAME}_SEMVER = ${SEMVER}")
 endfunction(bob_form_semver)
 
 function(bob_begin_cxx_flags)
