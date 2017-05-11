@@ -62,9 +62,9 @@ bob_end_cxx_flags()
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_public_dep(ZLIB)
 
-set(Omega_h_USE_Kokkos_DEFAULT OFF)
-set(Kokkos_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(Kokkos)
+set(Omega_h_USE_KokkosCore_DEFAULT OFF)
+set(KokkosCore_PREFIX_DEFAULT ${Trilinos_PREFIX})
+bob_public_dep(KokkosCore)
 
 if(Omega_h_USE_Kokkos)
   get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)

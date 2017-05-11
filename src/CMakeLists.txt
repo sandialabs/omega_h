@@ -132,7 +132,7 @@ endif()
 
 bob_library_includes(omega_h)
 
-if(Omega_h_USE_Kokkos)
+if(Omega_h_USE_KokkosCore)
   target_link_libraries(omega_h PUBLIC kokkoscore)
   target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
 endif()
