@@ -170,6 +170,19 @@ static LOs get_keys2reps(
   return keys2reps;
 }
 
+/* return an array which maps an old entity (e)
+   of dimension (ent_dim) to the number of new
+   entities that (e) represents.
+   This number is 1 for same entities, 0 for entities
+   inside a cavity (that were thus removed), and
+   N for representatives of a cavity, where N is
+   the number of entities of dimension (ent_dim)
+   that were created in the cavity (actually,
+   N is the sum of such values over all cavities
+   represented by (e)).
+   If (are_global) is true, non-owned entities that
+   stay the same get a value of 0 to prevent counting
+   them twice in the case of computing global counts. */
 static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
     LOs keys2nprods, LOs same_ents2ents, bool are_global) {
   auto nkeys = keys2reps.size();
@@ -355,8 +368,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   auto nnew_ents = local_offsets.last();
   auto edge2rep_order = LOs();
   if (ent_dim == VERT && key_dim == EDGE) {
-    /* recompute this because the local version differs
-       from the global one */
+    /* recompute this because the local version differs from the global one */
     auto edges_are_keys = mark_image(keys2kds, old_mesh->nedges());
     edge2rep_order = get_edge2rep_order(old_mesh, edges_are_keys);
   }
