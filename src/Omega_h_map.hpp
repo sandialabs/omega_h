@@ -36,6 +36,11 @@ LOs collect_marked(Read<I8> marks);
 
 Read<I8> mark_image(LOs a2b, LO nb);
 
+/* The map (a2b) is injective iff each value of a maps to (a) unique value of (b).
+   Let b2a = invert_injective_map(a2b, nb);
+   Then b2a[a2b[a]] == a for all a in [0, a2b.size() - 1]
+   For values of (b) that don't have an inverse, b2a[b] == -1
+ */
 LOs invert_injective_map(LOs a2b, LO nb);
 
 LOs invert_funnel(LOs ab2a, LO na);
