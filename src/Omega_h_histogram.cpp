@@ -83,8 +83,7 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
   }
 }
 
-void render_histogram_matplotlib(Histogram const& histogram,
-    std::string const& filepath, std::string const&, std::string const&) {
+void render_histogram_matplotlib(Histogram const& histogram, std::string const& filepath) {
   std::ofstream script("Omega_h_histogram.py");
   script << "#!/usr/bin/python\n";
   script << "import matplotlib\n";
@@ -117,8 +116,6 @@ void render_histogram_matplotlib(Histogram const& histogram,
   script << "ax.hist(a, " << nbins << ", weights=b";
   script << ", range=(" << histogram.min << ", " << histogram.max << ")";
   script << ")\n";
-  // script << "plt.title('Histogram of " << ents_name << " by " << var_name
-  //       << "')\n";
   script << "ax.axis([" << histogram.min << ", " << histogram.max << ", ";
   script << "0, " << max_percent << "])\n";
   script << "fig.savefig('" << filepath << "', bbox_inches='tight')\n";
