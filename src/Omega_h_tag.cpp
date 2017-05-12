@@ -29,7 +29,7 @@ void check_tag_name(std::string const& name) {
         name.c_str(), id_regex_def);
   }
 #else
-  (void) name;
+  (void)name;
 #endif
 }
 

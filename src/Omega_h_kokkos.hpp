@@ -18,7 +18,7 @@ OMEGA_H_SYSTEM_HEADER
 #pragma GCC diagnostic pop
 #endif
 
-#if defined( KOKKOS_HAVE_CUDA) && !defined( OMEGA_H_USE_CUDA )
+#if defined(KOKKOS_HAVE_CUDA) && !defined(OMEGA_H_USE_CUDA)
 #error "Kokkos has CUDA, please reconfigure with Omega_h_USE_CUDA=ON"
 #endif
 
