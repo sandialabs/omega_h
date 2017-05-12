@@ -345,15 +345,11 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     modify_owners(old_mesh, new_mesh, ent_dim, *p_prods2new_ents,
         *p_same_ents2old_ents, *p_same_ents2new_ents, *p_old_ents2new_ents);
   }
-  if (old_mesh->keeps_canonical_globals()) {
-    auto global_rep_counts = get_rep_counts(
-        old_mesh, ent_dim, keys2reps, keys2nprods, *p_same_ents2old_ents, true);
-    modify_globals(old_mesh, new_mesh, ent_dim, key_dim, keys2kds, keys2prods,
-        *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
-        keys2reps, global_rep_counts);
-  } else {
-    globals_from_owners(new_mesh, ent_dim);
-  }
+  auto global_rep_counts = get_rep_counts(
+      old_mesh, ent_dim, keys2reps, keys2nprods, *p_same_ents2old_ents, true);
+  modify_globals(old_mesh, new_mesh, ent_dim, key_dim, keys2kds, keys2prods,
+      *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
+      keys2reps, global_rep_counts);
   auto t1 = now();
   add_to_global_timer("modifying mesh", t1 - t0);
 }

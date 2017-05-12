@@ -24,7 +24,6 @@ class Mesh {
   void set_dim(Int dim);
   void set_verts(LO nverts);
   void set_ents(Int dim, Adj down);
-  void keep_canonical_globals(bool yn);
   CommPtr comm() const;
   Omega_h_Parting parting() const;
   inline Int dim() const {
@@ -93,7 +92,6 @@ class Mesh {
   Remotes owners_[DIMS];
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;
-  bool keeps_canonical_globals_;
   Library* library_;
 
  public:
@@ -134,7 +132,6 @@ class Mesh {
   bool owners_have_all_upward(Int ent_dim) const;
   bool have_all_upward() const;
   Mesh copy_meta() const;
-  bool keeps_canonical_globals() const;
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;

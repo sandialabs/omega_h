@@ -27,7 +27,6 @@ Mesh::Mesh(Library* library) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = -1;
   nghost_layers_ = -1;
-  keeps_canonical_globals_ = true;
   OMEGA_H_CHECK(library != nullptr);
   library_ = library;
 }
@@ -87,10 +86,6 @@ void Mesh::set_ents(Int dim, Adj down) {
   nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
 }
-
-void Mesh::keep_canonical_globals(bool yn) { keeps_canonical_globals_ = yn; }
-
-bool Mesh::keeps_canonical_globals() const { return keeps_canonical_globals_; }
 
 CommPtr Mesh::comm() const { return comm_; }
 
@@ -654,7 +649,6 @@ Mesh Mesh::copy_meta() const {
   m.parting_ = this->parting_;
   m.nghost_layers_ = this->nghost_layers_;
   m.rib_hints_ = this->rib_hints_;
-  m.keeps_canonical_globals_ = this->keeps_canonical_globals_;
   return m;
 }
 

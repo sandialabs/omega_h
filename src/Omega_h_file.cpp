@@ -248,8 +248,6 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
       for (Int i = 0; i < 3; ++i) write_value(stream, axis[i]);
     }
   }
-  I8 keeps_canon = mesh->keeps_canonical_globals();
-  write_value(stream, keeps_canon);
 }
 
 static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
@@ -287,9 +285,10 @@ static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
     }
     mesh->set_rib_hints(hints);
   }
-  I8 keeps_canon;
-  read_value(stream, keeps_canon);
-  mesh->keep_canonical_globals(bool(keeps_canon));
+  if (version < 6) {
+    I8 keeps_canon;
+    read_value(stream, keeps_canon);
+  }
 }
 
 static void write_tag(std::ostream& stream, TagBase const* tag) {
