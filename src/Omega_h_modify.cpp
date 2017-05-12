@@ -66,6 +66,11 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   add_to_global_timer("modifying connectivity", t1 - t0);
 }
 
+/* set the owners of the mesh after an adaptive rebuild pass.
+   the entities that stay the same retain the same conceptual
+   ownership, just updated by unmap_owners() to reflect new indices.
+   all entities produced by this MPI rank exist only on this
+   MPI rank, so they are their own owners */
 static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
     LOs old_ents2new_ents) {
@@ -106,6 +111,14 @@ static LOs collect_same(Mesh* mesh, Int ent_dim, Int key_dim, LOs keys2kds) {
   return collect_marked(ents_not_adj);
 }
 
+/* To determine the ordering (both global and local) of
+   new entities of a certain dimension (ent_dim), each key entity will
+   be associated with a "representative entity" of dimension (ent_dim)
+   in the old mesh.
+   Conceptually, we will pretend that that representative entity
+   "becomes" the newly produced entities of dimension (ent_dim) in the
+   cavity associated with the key.
+   This function computes the mapping from keys to representatives. */
 static LOs get_keys2reps(
     Mesh* mesh, Int ent_dim, Int key_dim, LOs keys2kds, LOs keys2nprods) {
   OMEGA_H_CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
@@ -181,21 +194,31 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
   return rep_counts;
 }
 
-/* one more thing we need to for the pathological
+/* One more thing we need to for the pathological
    case of new vertices is to resolve the situation
    where multiple cavities share the same representative
-   vertex of the old mesh->
-   that vertex represents the sum of all adjacent cavities
-   and has a single global number from which the new globals
-   of all new cavity vertices are computed.
-   we just need to determine an order in which to assign
+   vertex of the old mesh.
+   That vertex represents the sum of all adjacent cavities
+   and has a single global number from which the globals
+   of the new vertices of all adjacent cavities will be derived.
+   We just need to determine an order in which to assign
    adjacent globals from the representative.
-   the most intuitive order is the upward adjacent ordering
+   The most intuitive order is the upward adjacent ordering
    from vertices to edges (guaranteed to be sorted by globals).
-   however, this is only available in full in OMEGA_H_GHOSTED mode.
-   so, this function writes down that ordering while in OMEGA_H_GHOSTED
-   mode so it can be used later by find_new_offsets, which
-   runs in OMEGA_H_ELEM_BASED mode */
+   The ordering is stored as a tag on edges.
+   Each representative vertex assigns a value to each
+   adjacent key edge for which it is the 0th adjacent vertex.
+   The global version of this is only available in OMEGA_H_GHOSTED mode,
+   so, this function is called to save that ordering while in OMEGA_H_GHOSTED
+   mode so it can be used later by find_new_offsets(), which
+   runs in OMEGA_H_ELEM_BASED mode.
+   This function is also called to determine the local version
+   of this ordering, i.e. only for key edges on the same
+   MPI rank in OMEGA_H_ELEM_BASED mode.
+   The local version is used to deterime new *local* numbers
+   for vertices created by refinement, and is also the reason
+   why this function doesn't check for ghosting.
+ */
 
 LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
   auto nedges = mesh->nedges();
@@ -220,6 +243,13 @@ LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
   return order_w;
 }
 
+/* Assigns a new numbering to all entities in the new mesh,
+   given the results of the scan of annotated old entities (old_ents2new_offsets).
+   Because the construction of the new mesh depends on these numbers,
+   we are still dealing with things separated into entities that stay the same,
+   and newly produced entities.
+   This function is mainly responsible for numbering newly produced entities based
+   on the number that their representative entity got from the scan. */
 template <typename T>
 static void find_new_offsets(Read<T> old_ents2new_offsets,
     LOs same_ents2old_ents, LOs keys2kds, LOs keys2reps, LOs keys2prods,
@@ -234,15 +264,16 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
   if (edge2rep_order.exists()) {
     OMEGA_H_CHECK(keys2kds.exists());
     auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
-      // plus one because the representatives
-      // exist in the new mesh, so they will get
-      // the global number of that vertex in the new mesh,
-      // which gets saved to same_ents2new_offsets above
-      // the globals for new vertices start after that one,
-      // and are ordered by edge2rep_order
+      /* edge2rep_order will only be passed in for the case of
+         new vertex numbers after edge refinement.
+         in this case, the representative entity of the key edge
+         is a vertex *which stays the same*, hence the "+ 1" here: */
       auto offset = keys2new_offsets[key] + 1;
       auto edge = keys2kds[key];
       auto prod = key;
+      /* in addition, since multiple key edges may share a representative
+         vertex, we assign numbers to new vertices based on this
+         edge2rep_order array (see get_edge2rep_order()) */
       prods2new_offsets_w[prod] = offset + edge2rep_order[edge];
     };
     parallel_for(nkeys, write_prod_offsets);
