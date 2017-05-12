@@ -531,7 +531,7 @@ OMEGA_H_INST(Real)
 #undef OMEGA_H_INST
 
 // for VTK compression headers
-template void swap_if_needed(std::size_t& val, bool is_little_endian);
+template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
 
 }  // end namespace binary
 
