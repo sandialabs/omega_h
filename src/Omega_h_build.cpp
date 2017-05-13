@@ -13,13 +13,13 @@ namespace Omega_h {
 
 void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   auto comm = mesh->comm();
+  auto deg = edim + 1;
+  auto ne = divide_no_remainder(ev2v.size(), deg);
   Remotes owners;
   if (comm->size() > 1) {
-    auto deg = edim + 1;
     if (edim < mesh->dim()) {
       resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
     } else {
-      auto ne = ev2v.size() / deg;
       owners = identity_remotes(comm, ne);
     }
   }
@@ -35,6 +35,7 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   if (comm->size() > 1) {
     mesh->set_owners(edim, owners);
   }
+  mesh->add_tag(edim, "global", 1, Read<GO>(ne, 0, 1));
 }
 
 void build_from_elems2verts(
@@ -57,8 +58,8 @@ void build_from_elems2verts(
 }
 
 void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
-  build_from_elems2verts(
-      mesh, mesh->library()->self(), edim, ev2v, Read<GO>(nverts, 0, 1));
+  auto vert_globals = Read<GO>(nverts, 0, 1);
+  build_from_elems2verts(mesh, mesh->library()->self(), edim, ev2v, vert_globals);
 }
 
 void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
