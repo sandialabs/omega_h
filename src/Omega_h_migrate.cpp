@@ -185,41 +185,31 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
   }
 }
 
-void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
+void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
     Omega_h_Parting mode, bool verbose) {
-  auto comm = old_mesh->comm();
-  auto dim = old_mesh->dim();
+  auto new_mesh = mesh->copy_meta();
+  auto comm = mesh->comm();
+  auto dim = mesh->dim();
   if (verbose) print_migrate_stats(comm, new_elems2old_owners);
   Dist new_ents2old_owners = new_elems2old_owners;
   auto old_owners2new_ents = new_ents2old_owners.invert();
   for (Int d = dim; d > VERT; --d) {
     Adj high2low;
     Dist old_low_owners2new_lows;
-    push_down(old_mesh, d, d - 1, old_owners2new_ents, high2low,
+    push_down(mesh, d, d - 1, old_owners2new_ents, high2low,
         old_low_owners2new_lows);
-    new_mesh->set_ents(d, high2low);
+    new_mesh.set_ents(d, high2low);
     new_ents2old_owners = old_owners2new_ents.invert();
     push_ents(
-        old_mesh, new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
+        mesh, &new_mesh, d, new_ents2old_owners, old_owners2new_ents, mode);
     old_owners2new_ents = old_low_owners2new_lows;
   }
   auto new_verts2old_owners = old_owners2new_ents.invert();
   auto nnew_verts = new_verts2old_owners.nitems();
-  new_mesh->set_verts(nnew_verts);
-  push_ents(old_mesh, new_mesh, VERT, new_verts2old_owners, old_owners2new_ents,
+  new_mesh.set_verts(nnew_verts);
+  push_ents(mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents,
       mode);
-}
-
-void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose) {
-  auto new_mesh = mesh->copy_meta();
-  migrate_mesh(
-      mesh, &new_mesh, new_elems2old_owners, OMEGA_H_ELEM_BASED, verbose);
   *mesh = new_mesh;
-}
-
-void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose) {
-  migrate_mesh(
-      mesh, Dist(mesh->comm(), new_elems2old_owners, mesh->nelems()), verbose);
 }
 
 }  // end namespace Omega_h

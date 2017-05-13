@@ -468,12 +468,10 @@ void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
     set_parting(parting, 1, verbose);
 }
 
-void Mesh::migrate(Remotes new_elems2old_owners, bool verbose) {
-  migrate_mesh(this, new_elems2old_owners, verbose);
-}
-
 void Mesh::reorder() { reorder_by_hilbert(this); }
 
+/* this is a member function mainly because it
+   modifies the RIB hints */
 void Mesh::balance(bool predictive) {
   if (comm_->size() == 1) return;
   set_parting(OMEGA_H_ELEM_BASED);
@@ -500,7 +498,12 @@ void Mesh::balance(bool predictive) {
   auto owners = ask_owners(dim());
   recursively_bisect(comm(), abs_tol, &ecoords, &masses, &owners, &hints);
   rib_hints_ = std::make_shared<inertia::Rib>(hints);
-  migrate(owners);
+  auto unsorted_new2owners = Dist(comm_, owners, nelems());
+  auto owners2new = unsorted_new2owners.invert();
+  auto owner_globals = this->globals(dim());
+  owners2new.set_dest_globals(owner_globals);
+  auto sorted_new2owners = owners2new.invert();
+  migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
 }
 
 Graph Mesh::ask_graph(Int from, Int to) {

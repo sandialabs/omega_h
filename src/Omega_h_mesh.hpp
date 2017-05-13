@@ -109,7 +109,6 @@ class Mesh {
   Int nghost_layers() const;
   void set_parting(Omega_h_Parting parting, Int nlayers, bool verbose);
   void set_parting(Omega_h_Parting parting, bool verbose = false);
-  void migrate(Remotes new_elems2old_owners, bool verbose = false);
   void reorder();
   void balance(bool predictive = false);
   Graph ask_graph(Int from, Int to);
