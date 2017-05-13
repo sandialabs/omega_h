@@ -15,7 +15,6 @@
 #include "Omega_h_mark.hpp"
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
-#include "Omega_h_reorder.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
@@ -467,8 +466,6 @@ void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
   else
     set_parting(parting, 1, verbose);
 }
-
-void Mesh::reorder() { reorder_by_hilbert(this); }
 
 /* this is a member function mainly because it
    modifies the RIB hints */

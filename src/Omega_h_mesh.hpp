@@ -109,7 +109,6 @@ class Mesh {
   Int nghost_layers() const;
   void set_parting(Omega_h_Parting parting, Int nlayers, bool verbose);
   void set_parting(Omega_h_Parting parting, bool verbose = false);
-  void reorder();
   void balance(bool predictive = false);
   Graph ask_graph(Int from, Int to);
   template <typename T>
@@ -144,6 +143,9 @@ Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x);
 
 TagSet get_all_mesh_tags(Mesh* mesh);
 void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags);
+
+void reorder_by_hilbert(Mesh* mesh);
+void reorder_by_globals(Mesh* mesh);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \

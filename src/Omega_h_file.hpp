@@ -9,10 +9,9 @@
 #include <Omega_h_comm.hpp>
 #include <Omega_h_defines.hpp>
 #include <Omega_h_tag.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
-
-class Mesh;
 
 bool ends_with(std::string const& s, std::string const& suffix);
 bool is_little_endian_cpu();
@@ -42,8 +41,8 @@ void write(std::string const& path, Mesh* mesh, bool verbose = false,
 #endif
 
 namespace gmsh {
-void read(std::istream& stream, Mesh* mesh);
-void read(std::string const& filename, Mesh* mesh);
+Mesh read(std::istream& stream, CommPtr comm);
+Mesh read(std::string const& filename, CommPtr comm);
 }  // namespace gmsh
 
 namespace vtk {

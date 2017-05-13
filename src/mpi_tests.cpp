@@ -191,12 +191,7 @@ static void test_construct(Library* lib, CommPtr comm) {
 }
 
 static void test_read_vtu(Library* lib, CommPtr comm) {
-  Mesh mesh0(lib);
-  if (comm->rank() == 0) {
-    build_box(&mesh0, 1, 1, 0, 1, 1, 0);
-  }
-  mesh0.set_comm(comm);
-  mesh0.balance();
+  auto mesh0 = build_box(comm, 1., 1., 0., 1, 1, 0);
   std::stringstream stream;
   vtk::write_vtu(stream, &mesh0, mesh0.dim(), vtk::get_all_vtk_tags(&mesh0));
   Mesh mesh1(lib);
@@ -207,12 +202,7 @@ static void test_read_vtu(Library* lib, CommPtr comm) {
 }
 
 static void test_binary_io(Library* lib, CommPtr comm) {
-  Mesh mesh0(lib);
-  if (comm->rank() == 0) {
-    build_box(&mesh0, 1, 1, 0, 4, 4, 0);
-  }
-  mesh0.set_comm(comm);
-  mesh0.balance();
+  auto mesh0 = build_box(comm, 1., 1., 0., 4, 4, 0);
   mesh0.set_parting(OMEGA_H_ELEM_BASED);
   binary::write("mpi_test_elem_based.osh", &mesh0);
   Mesh mesh1(lib);

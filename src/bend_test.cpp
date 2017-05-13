@@ -10,21 +10,14 @@ constexpr Int dim = 3;
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  Mesh mesh(&lib);
   auto orig_height = 4;
   auto orig_width = 1;
   auto orig_resolution = 3;
   auto max_size = 1.0 / Real(orig_resolution);
   auto segment_angle = PI / 32.0;
-  if (world->rank() == 0) {
-    build_box(&mesh, orig_width, orig_width, orig_height,
+  auto mesh = build_box(world, orig_width, orig_width, orig_height,
         orig_width * orig_resolution, orig_width * orig_resolution,
         orig_height * orig_resolution);
-    classify_by_angles(&mesh, PI / 4);
-    mesh.reorder();
-  }
-  mesh.set_comm(world);
-  mesh.balance();
   mesh.add_tag(VERT, "orig_coords", mesh.dim(), mesh.coords());
   mesh.add_tag<Real>(VERT, "metric", 1);
   vtk::Writer writer("bend", &mesh, mesh.dim());

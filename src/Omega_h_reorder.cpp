@@ -1,10 +1,9 @@
-#include "Omega_h_reorder.hpp"
-
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_unmap_mesh.hpp"
+#include "Omega_h_sort.hpp"
 
 namespace Omega_h {
 
@@ -39,7 +38,7 @@ static LOs ent_order_from_vert_order(
   return new_ents2old_ents;
 }
 
-static void reorder_mesh(Mesh* mesh, LOs new_verts2old_verts) {
+static void reorder_mesh_by_verts(Mesh* mesh, LOs new_verts2old_verts) {
   LOs new_ents2old_ents[4];
   new_ents2old_ents[VERT] = new_verts2old_verts;
   for (Int ent_dim = 1; ent_dim <= mesh->dim(); ++ent_dim) {
@@ -50,9 +49,22 @@ static void reorder_mesh(Mesh* mesh, LOs new_verts2old_verts) {
 }
 
 void reorder_by_hilbert(Mesh* mesh) {
+  OMEGA_H_CHECK(mesh->comm()->size() == 1);
   auto coords = mesh->coords();
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh->dim());
-  reorder_mesh(mesh, new_verts2old_verts);
+  reorder_mesh_by_verts(mesh, new_verts2old_verts);
+  for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
+    mesh->remove_tag(ent_dim, "global");
+    mesh->add_tag(ent_dim, "global", 1, GOs(mesh->nents(ent_dim), 0, 1));
+  }
+}
+
+void reorder_by_globals(Mesh* mesh) {
+  LOs new_ents2old_ents[4];
+  for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
+    new_ents2old_ents[ent_dim] = sort_by_keys(mesh->globals(ent_dim));
+  }
+  unmap_mesh(mesh, new_ents2old_ents);
 }
 
 }  // end namespace Omega_h

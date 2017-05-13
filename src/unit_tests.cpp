@@ -623,8 +623,7 @@ static void test_inertial_bisect(Library* lib) {
 }
 
 static void test_average_field(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  auto mesh = build_box(lib->world(), 1, 1, 0, 1, 1, 0);
   Reals v2x({2, 1, 3, 2});
   auto e2x = average_field(&mesh, 2, LOs({0, 1}), 1, v2x);
   OMEGA_H_CHECK(are_close(e2x, Reals({5. / 3., 7. / 3.})));
@@ -651,8 +650,7 @@ static void test_edge_length() {
 }
 
 static void test_refine_qualities(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  auto mesh = build_box(lib->world(), 1., 1., 0., 1, 1, 0);
   LOs candidates(mesh.nedges(), 0, 1);
   mesh.add_tag(VERT, "metric", symm_ncomps(2),
       repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
@@ -662,8 +660,7 @@ static void test_refine_qualities(Library* lib) {
 }
 
 static void test_mark_up_down(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  auto mesh = build_box(lib->world(), 1., 1., 0., 1, 1, 0);
   OMEGA_H_CHECK(
       mark_down(&mesh, TRI, VERT, Read<I8>({1, 0})) == Read<I8>({1, 1, 0, 1}));
   OMEGA_H_CHECK(
@@ -671,19 +668,16 @@ static void test_mark_up_down(Library* lib) {
 }
 
 static void test_compare_meshes(Library* lib) {
-  Mesh a(lib);
-  build_box(&a, 1, 1, 0, 4, 4, 0);
+  auto a = build_box(lib->world(), 1., 1., 0., 4, 4, 0);
   OMEGA_H_CHECK(a == a);
   Mesh b = a;
-  b.reorder();
   OMEGA_H_CHECK(a == b);
   b.add_tag<I8>(VERT, "foo", 1, Read<I8>(b.nverts(), 1));
   OMEGA_H_CHECK(!(a == b));
 }
 
 static void test_swap2d_topology(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 0, 1, 1, 0);
+  auto mesh = build_box(lib->world(), 1., 1., 0., 1, 1, 0);
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   auto keys2edges = LOs({2});
@@ -695,8 +689,7 @@ static void test_swap2d_topology(Library* lib) {
 }
 
 static void test_swap3d_loop(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 1, 1, 1, 1);
+  auto mesh = build_box(lib->world(), 1, 1, 1, 1, 1, 1);
   auto edges2tets = mesh.ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -736,8 +729,7 @@ static void test_file(Library* lib, Mesh* mesh0) {
 
 static void test_file(Library* lib) {
   {
-    Mesh mesh0(lib);
-    build_box(&mesh0, 1, 1, 1, 1, 1, 1);
+    auto mesh0 = build_box(lib->world(), 1., 1., 1., 1, 1, 1);
     test_file(lib, &mesh0);
   }
   {
@@ -777,8 +769,7 @@ static void test_read_vtu(Mesh* mesh0) {
 }
 
 static void test_read_vtu(Library* lib) {
-  Mesh mesh0(lib);
-  build_box(&mesh0, 1, 1, 1, 1, 1, 1);
+  auto mesh0 = build_box(lib->world(), 1., 1., 1., 1, 1, 1);
   test_read_vtu(&mesh0);
 }
 
@@ -811,9 +802,8 @@ static void test_element_implied_metric() {
 
 template <Int dim>
 static void test_recover_hessians_dim(Library* lib) {
-  Mesh mesh(lib);
-  Int one_if_3d = ((dim == 3) ? 1 : 0);
-  build_box(&mesh, 1, 1, one_if_3d, 4, 4, 4 * one_if_3d);
+  auto one_if_3d = ((dim == 3) ? 1 : 0);
+  auto mesh = build_box(lib->world(), 1., 1., one_if_3d, 4, 4, 4 * one_if_3d);
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
@@ -842,11 +832,10 @@ static void test_recover_hessians(Library* lib) {
 
 template <Int dim>
 static void test_sf_scale_dim(Library* lib) {
-  Mesh mesh(lib);
   auto nl = 2;
   Int one_if_2d = ((dim >= 2) ? 1 : 0);
   Int one_if_3d = ((dim >= 3) ? 1 : 0);
-  build_box(&mesh, 1, one_if_2d, one_if_3d, nl, nl * one_if_2d, nl * one_if_3d);
+  auto mesh = build_box(lib->world(), 1, one_if_2d, one_if_3d, nl, nl * one_if_2d, nl * one_if_3d);
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   auto metrics = Omega_h::get_implied_metrics(&mesh);
@@ -952,7 +941,7 @@ static void test_proximity(Library* lib) {
 
 static void test_motion(Library* lib) {
   Mesh mesh(lib);
-  build_box(&mesh, 1, 1, 0, 2, 2, 0);
+  build_box_internal(&mesh, 1, 1, 0, 2, 2, 0);
   classify_by_angles(&mesh, Omega_h::PI / 4);
   auto metrics = get_implied_isos(&mesh);
   mesh.add_tag(VERT, "metric", 1, metrics);
@@ -1031,8 +1020,7 @@ static void test_volume_vert_gradients() {
 }
 
 static void test_1d_box(Library* lib) {
-  Mesh mesh(lib);
-  build_box(&mesh, 1, 0, 0, 4, 0, 0);
+  auto mesh = build_box(lib->world(), 1, 0, 0, 4, 0, 0);
 }
 
 static void test_binary_search(LOs a, LO val, LO expect) {

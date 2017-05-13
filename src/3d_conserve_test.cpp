@@ -56,13 +56,7 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(argc == 2);
   auto world = lib.world();
-  Mesh mesh(&lib);
-  if (world->rank() == 0) {
-    gmsh::read(argv[1], &mesh);
-    mesh.reorder();
-  }
-  mesh.set_comm(world);
-  mesh.balance();
+  auto mesh = gmsh::read(argv[1], world);
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
     auto metrics = get_implied_isos(&mesh);

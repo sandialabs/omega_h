@@ -8,6 +8,7 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_simplify.hpp"
+#include "Omega_h_class.hpp"
 
 namespace Omega_h {
 
@@ -34,10 +35,8 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   }
   if (comm->size() > 1) {
     mesh->set_owners(edim, owners);
-    globals_from_owners(mesh, edim);
-  } else {
-    mesh->add_tag(edim, "global", 1, Read<GO>(ne, 0, 1));
   }
+  globals_from_owners(mesh, edim);
 }
 
 void build_from_elems2verts(
@@ -57,6 +56,9 @@ void build_from_elems2verts(
     add_ents2verts(mesh, mdim, mv2v, vert_globals);
   }
   add_ents2verts(mesh, edim, ev2v, vert_globals);
+  if (!comm->reduce_and(is_sorted(vert_globals))) {
+    reorder_by_globals(mesh);
+  }
 }
 
 void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
@@ -70,7 +72,7 @@ void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
   mesh->add_coords(coords);
 }
 
-void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
+void build_box_internal(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
   OMEGA_H_CHECK(nx > 0);
   OMEGA_H_CHECK(ny >= 0);
   OMEGA_H_CHECK(nz >= 0);
@@ -92,6 +94,20 @@ void build_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
     auto tv2v = simplify::tets_from_hexes(hv2v);
     build_from_elems_and_coords(mesh, TET, tv2v, coords);
   }
+}
+
+Mesh build_box(CommPtr comm, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
+  auto lib = comm->library();
+  auto mesh = Mesh(lib);
+  if (comm->rank() == 0) {
+    build_box_internal(&mesh, x, y, z, nx, ny, nz);
+    reorder_by_hilbert(&mesh);
+    classify_by_angles(&mesh, PI / 4);
+    set_box_class_ids(&mesh, x, y, z, nx, ny, nz);
+  }
+  mesh.set_comm(comm);
+  mesh.balance();
+  return mesh;
 }
 
 /* When we try to build a mesh from _partitioned_
