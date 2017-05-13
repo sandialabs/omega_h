@@ -623,7 +623,8 @@ static void test_inertial_bisect(Library* lib) {
 }
 
 static void test_average_field(Library* lib) {
-  auto mesh = build_box(lib->world(), 1, 1, 0, 1, 1, 0);
+  auto mesh = Mesh(lib);
+  build_box_internal(&mesh, 1, 1, 0, 1, 1, 0);
   Reals v2x({2, 1, 3, 2});
   auto e2x = average_field(&mesh, 2, LOs({0, 1}), 1, v2x);
   OMEGA_H_CHECK(are_close(e2x, Reals({5. / 3., 7. / 3.})));
@@ -650,7 +651,8 @@ static void test_edge_length() {
 }
 
 static void test_refine_qualities(Library* lib) {
-  auto mesh = build_box(lib->world(), 1., 1., 0., 1, 1, 0);
+  auto mesh = Mesh(lib);
+  build_box_internal(&mesh, 1., 1., 0., 1, 1, 0);
   LOs candidates(mesh.nedges(), 0, 1);
   mesh.add_tag(VERT, "metric", symm_ncomps(2),
       repeat_symm(mesh.nverts(), identity_matrix<2, 2>()));
@@ -660,7 +662,8 @@ static void test_refine_qualities(Library* lib) {
 }
 
 static void test_mark_up_down(Library* lib) {
-  auto mesh = build_box(lib->world(), 1., 1., 0., 1, 1, 0);
+  auto mesh = Mesh(lib);
+  build_box_internal(&mesh, 1., 1., 0., 1, 1, 0);
   OMEGA_H_CHECK(
       mark_down(&mesh, TRI, VERT, Read<I8>({1, 0})) == Read<I8>({1, 1, 0, 1}));
   OMEGA_H_CHECK(
@@ -677,7 +680,8 @@ static void test_compare_meshes(Library* lib) {
 }
 
 static void test_swap2d_topology(Library* lib) {
-  auto mesh = build_box(lib->world(), 1., 1., 0., 1, 1, 0);
+  auto mesh = Mesh(lib);
+  build_box_internal(&mesh, 1., 1., 0., 1, 1, 0);
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   auto keys2edges = LOs({2});
@@ -689,7 +693,8 @@ static void test_swap2d_topology(Library* lib) {
 }
 
 static void test_swap3d_loop(Library* lib) {
-  auto mesh = build_box(lib->world(), 1, 1, 1, 1, 1, 1);
+  auto mesh = Mesh(lib);
+  build_box_internal(&mesh, 1, 1, 1, 1, 1, 1);
   auto edges2tets = mesh.ask_up(EDGE, TET);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
@@ -804,7 +809,6 @@ template <Int dim>
 static void test_recover_hessians_dim(Library* lib) {
   auto one_if_3d = ((dim == 3) ? 1 : 0);
   auto mesh = build_box(lib->world(), 1., 1., one_if_3d, 4, 4, 4 * one_if_3d);
-  classify_by_angles(&mesh, Omega_h::PI / 4);
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
   // attach a field = x^2 + y^2 (+ z^2)
@@ -836,7 +840,6 @@ static void test_sf_scale_dim(Library* lib) {
   Int one_if_2d = ((dim >= 2) ? 1 : 0);
   Int one_if_3d = ((dim >= 3) ? 1 : 0);
   auto mesh = build_box(lib->world(), 1, one_if_2d, one_if_3d, nl, nl * one_if_2d, nl * one_if_3d);
-  classify_by_angles(&mesh, Omega_h::PI / 4);
   auto target_nelems = mesh.nelems();
   auto metrics = Omega_h::get_implied_metrics(&mesh);
   {
