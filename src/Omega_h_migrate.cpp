@@ -17,19 +17,7 @@ Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim) {
   return unmap(uses2lows, lows2owners);
 }
 
-/* Given a parallel map (Dist) from
-   (new local copies of uses of low entities by high entities)
-   to (old owner copies of low entities), this function finds
-   use copies that reside on the same MPI rank and have the same
-   (old owner copy of low entity), ignoring what their (high entity) is.
-   It then removes such duplicates, and what remains is
-   a set of uses that are uniquely defined by (old low owner)
-   and MPI rank, meaning they are exactly the set of new (low entity)
-   copies.
-   It then returns a parallel map (Dist) from the (old low owner copies)
-   to the (new low copies), i.e. the unique uses.
- */
-Dist find_unique_use_owners(Dist uses2old_owners) {
+static Dist find_unique_use_owners2(Dist uses2old_owners) {
   auto old_owners2uses = uses2old_owners.invert();
   auto nold_owners = old_owners2uses.nroots();
   auto nserv_uses = old_owners2uses.nitems();
@@ -64,6 +52,14 @@ Dist find_unique_use_owners(Dist uses2old_owners) {
   old_owners2uniq_uses.set_dest_ranks(uniq_serv_uses2ranks);
   old_owners2uniq_uses.set_roots2items(old_owners2uniq_serv_uses);
   return old_owners2uniq_uses.invert();
+}
+
+Dist find_unique_use_owners(Dist uses2old_owners, GOs old_owner_globals) {
+  auto old_owners2uniq_uses = find_unique_use_owners2(uses2old_owners);
+  auto old_owners2items = old_owners2uniq_uses.roots2items();
+  auto items2globals = expand(old_owner_globals, old_owners2items, 1);
+  old_owners2uniq_uses.set_dest_globals(items2globals);
+  return old_owners2uniq_uses;
 }
 
 LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
@@ -109,7 +105,9 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
       old_owners2new_ents.exch(old_use_owners, nlows_per_high);
   Dist low_uses2old_owners(
       old_mesh->comm(), new_use_owners, old_mesh->nents(low_dim));
-  auto new_lows2old_owners = find_unique_use_owners(low_uses2old_owners);
+  auto old_owner_globals = old_mesh->globals(low_dim);
+  auto new_lows2old_owners =
+      find_unique_use_owners(low_uses2old_owners, old_owner_globals);
   old_low_owners2new_lows = new_lows2old_owners.invert();
   auto old_low_owners2new_uses = low_uses2old_owners.invert();
   auto new_conn = form_new_conn(new_lows2old_owners, old_low_owners2new_uses);
