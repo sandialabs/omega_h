@@ -17,34 +17,48 @@ Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim) {
   return unmap(uses2lows, lows2owners);
 }
 
+/* Given a parallel map (Dist) from
+   (new local copies of uses of low entities by high entities)
+   to (old owner copies of low entities), this function finds
+   use copies that reside on the same MPI rank and have the same
+   (old owner copy of low entity), ignoring what their (high entity) is.
+   It then removes such duplicates, and what remains is
+   a set of uses that are uniquely defined by (old low owner)
+   and MPI rank, meaning they are exactly the set of new (low entity)
+   copies.
+   It then returns a parallel map (Dist) from the (old low owner copies)
+   to the (new low copies), i.e. the unique uses.
+ */
 Dist find_unique_use_owners(Dist uses2old_owners) {
   auto old_owners2uses = uses2old_owners.invert();
   auto nold_owners = old_owners2uses.nroots();
   auto nserv_uses = old_owners2uses.nitems();
   auto serv_uses2ranks = old_owners2uses.items2ranks();
   auto old_owners2serv_uses = old_owners2uses.roots2items();
-  Write<I8> keep(nserv_uses, 1);
-  Write<LO> degrees(nold_owners);
+  Write<I8> keep_w(nserv_uses, 1);
+  Write<LO> degrees_w(nold_owners);
   auto f = OMEGA_H_LAMBDA(LO old_owner) {
     LO degree = 0;
     auto begin = old_owners2serv_uses[old_owner];
     auto end = old_owners2serv_uses[old_owner + 1];
     for (LO serv_use = begin; serv_use < end; ++serv_use) {
-      if (!keep[serv_use]) continue;
+      if (!keep_w[serv_use]) continue;
       ++degree;
       auto rank = serv_uses2ranks[serv_use];
       for (LO serv_use2 = serv_use + 1; serv_use2 < end; ++serv_use2) {
         if (serv_uses2ranks[serv_use2] == rank) {
-          keep[serv_use2] = 0;
+          keep_w[serv_use2] = 0;
         }
       }
     }
-    degrees[old_owner] = degree;
+    degrees_w[old_owner] = degree;
   };
   parallel_for(nold_owners, f);
-  auto uniq_serv_uses = collect_marked(Read<I8>(keep));
-  auto uniq_serv_uses2ranks = unmap(uniq_serv_uses, serv_uses2ranks, 1);
-  auto old_owners2uniq_serv_uses = offset_scan(LOs(degrees));
+  auto degrees = LOs(degrees_w);
+  auto keep = Read<I8>(keep_w);
+  auto uniq_serv_uses2serv_uses = collect_marked(keep);
+  auto uniq_serv_uses2ranks = unmap(uniq_serv_uses2serv_uses, serv_uses2ranks, 1);
+  auto old_owners2uniq_serv_uses = offset_scan(degrees);
   Dist old_owners2uniq_uses;
   old_owners2uniq_uses.set_parent_comm(uses2old_owners.parent_comm());
   old_owners2uniq_uses.set_dest_ranks(uniq_serv_uses2ranks);
@@ -68,8 +82,8 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
     auto eend = old_owners2serv_ents[old_owner + 1];
     auto ubegin = old_owners2serv_uses[old_owner];
     auto uend = old_owners2serv_uses[old_owner + 1];
-    for (auto u = ubegin; u < uend; ++u) {
-      auto rank = serv_uses2ranks[u];
+    for (auto serv_use = ubegin; serv_use < uend; ++serv_use) {
+      auto rank = serv_uses2ranks[serv_use];
       LO idx = -1;
       for (auto e = ebegin; e < eend; ++e) {
         if (serv_ents2ranks[e] == rank) {
@@ -77,7 +91,7 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
           break;
         }
       }
-      serv_uses2new_idxs[u] = idx;
+      serv_uses2new_idxs[serv_use] = idx;
     }
   };
   parallel_for(nold_owners, f);
