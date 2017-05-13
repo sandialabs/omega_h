@@ -61,21 +61,23 @@ void unmap_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->set_owners(ent_dim, owners);
 }
 
-void unmap_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_ents2old_ents[]) {
-  new_mesh->set_verts(old_mesh->nverts());
+void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
+  auto new_mesh = mesh->copy_meta();
+  new_mesh.set_verts(mesh->nverts());
   LOs old_lows2new_lows;
-  for (Int ent_dim = 0; ent_dim <= old_mesh->dim(); ++ent_dim) {
+  for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
     if (ent_dim > VERT) {
-      unmap_down(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim],
+      unmap_down(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim],
           old_lows2new_lows);
     }
-    unmap_tags(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
+    unmap_tags(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
     auto old_ents2new_ents = invert_injective_map(
-        new_ents2old_ents[ent_dim], old_mesh->nents(ent_dim));
-    unmap_owners(old_mesh, new_mesh, ent_dim, new_ents2old_ents[ent_dim],
+        new_ents2old_ents[ent_dim], mesh->nents(ent_dim));
+    unmap_owners(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim],
         old_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
+  *mesh = new_mesh;
 }
 
 }  // end namespace Omega_h

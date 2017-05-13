@@ -15,14 +15,14 @@ namespace Omega_h {
    The point of this is just to establish,
    for each entity, a single vertex that is
    "responsible for" that entity */
-Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim) {
+static Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim) {
   auto ev2v = mesh->ask_verts_of(ent_dim);
   auto e2fv = get_component(ev2v, ent_dim + 1, 0);
   auto fv2e = invert_map(e2fv, mesh->nverts());
   return fv2e;
 }
 
-LOs ent_order_from_vert_order(
+static LOs ent_order_from_vert_order(
     Mesh* mesh, Int ent_dim, LOs new_verts2old_verts) {
   OMEGA_H_CHECK(new_verts2old_verts.size() == mesh->nverts());
   auto old_verts2old_ents = find_entities_of_first_vertices(mesh, ent_dim);
@@ -39,20 +39,14 @@ LOs ent_order_from_vert_order(
   return new_ents2old_ents;
 }
 
-void reorder_mesh(Mesh* old_mesh, Mesh* new_mesh, LOs new_verts2old_verts) {
+static void reorder_mesh(Mesh* mesh, LOs new_verts2old_verts) {
   LOs new_ents2old_ents[4];
   new_ents2old_ents[VERT] = new_verts2old_verts;
-  for (Int ent_dim = 1; ent_dim <= old_mesh->dim(); ++ent_dim) {
+  for (Int ent_dim = 1; ent_dim <= mesh->dim(); ++ent_dim) {
     new_ents2old_ents[ent_dim] =
-        ent_order_from_vert_order(old_mesh, ent_dim, new_verts2old_verts);
+        ent_order_from_vert_order(mesh, ent_dim, new_verts2old_verts);
   }
-  unmap_mesh(old_mesh, new_mesh, new_ents2old_ents);
-}
-
-void reorder_mesh(Mesh* mesh, LOs new_verts2old_verts) {
-  auto new_mesh = mesh->copy_meta();
-  reorder_mesh(mesh, &new_mesh, new_verts2old_verts);
-  *mesh = new_mesh;
+  unmap_mesh(mesh, new_ents2old_ents);
 }
 
 void reorder_by_hilbert(Mesh* mesh) {
