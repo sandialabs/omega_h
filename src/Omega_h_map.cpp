@@ -164,32 +164,12 @@ LOs invert_funnel(LOs ab2a, LO na) {
   return a2ab;
 }
 
-Graph invert_map_by_sorting(LOs a2b, LO nb) {
+Graph invert_map(LOs a2b, LO nb) {
   auto& ab2b = a2b;
   auto ba2ab = sort_by_keys(ab2b);
   auto ba2b = unmap(ba2ab, ab2b, 1);
   auto b2ba = invert_funnel(ba2b, nb);
   auto& ba2a = ba2ab;
-  return Graph(b2ba, ba2a);
-}
-
-Graph invert_map_by_atomics(LOs a2b, LO nb) {
-  auto na = a2b.size();
-  Write<LO> degrees(nb, 0);
-  auto count = OMEGA_H_LAMBDA(LO a) { atomic_increment(&degrees[a2b[a]]); };
-  parallel_for(na, count);
-  auto b2ba = offset_scan(Read<LO>(degrees));
-  auto nba = b2ba.get(nb);
-  Write<LO> write_ba2a(nba);
-  auto positions = Write<LO>(nb, 0);
-  auto fill = OMEGA_H_LAMBDA(LO a) {
-    auto b = a2b[a];
-    auto first = b2ba[b];
-    auto j = atomic_fetch_add<LO>(&positions[a2b[a]], 1);
-    write_ba2a[first + j] = a;
-  };
-  parallel_for(na, fill);
-  auto ba2a = LOs(write_ba2a);
   return Graph(b2ba, ba2a);
 }
 

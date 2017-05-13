@@ -155,7 +155,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
   auto t0 = now();
-  auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
+  auto l2hl = invert_map(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
   LO nlh = lh2hl.size();

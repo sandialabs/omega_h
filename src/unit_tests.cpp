@@ -279,27 +279,25 @@ static void test_permute() {
   OMEGA_H_CHECK(back == data);
 }
 
-// these tests can have degree at most 1
-// because map::invert doesn't have to be
-// deterministic in local ordering
-static void test_invert_map(Graph (*invert_funcptr)(LOs a2b, LO nb)) {
+static void test_invert_map() {
   {
     LOs hl2l({});
-    auto l2hl = invert_funcptr(hl2l, 4);
+    auto l2hl = invert_map(hl2l, 4);
     OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0));
     OMEGA_H_CHECK(l2hl.ab2b == LOs({}));
   }
   {
     LOs hl2l({0, 1, 2, 3});
-    auto l2hl = invert_funcptr(hl2l, 4);
+    auto l2hl = invert_map(hl2l, 4);
     OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0, 1));
     OMEGA_H_CHECK(l2hl.ab2b == LOs(4, 0, 1));
   }
-}
-
-static void test_invert_map() {
-  test_invert_map(invert_map_by_sorting);
-  test_invert_map(invert_map_by_atomics);
+  {
+    LOs hl2l({1, 0, 1, 0});
+    auto l2hl = invert_map(hl2l, 2);
+    OMEGA_H_CHECK(l2hl.a2ab == LOs({0, 2, 4}));
+    OMEGA_H_CHECK(l2hl.ab2b == LOs({1, 3, 0, 2}));
+  }
 }
 
 static void test_invert_adj() {
