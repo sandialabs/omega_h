@@ -113,6 +113,15 @@ class Dist {
      if not specified, forward roots and items will be assumed
      to be the same. */
   void set_roots2items(LOs froots2fitems);
+  /* optionally specify the _global_ numbers of the destination
+     graph nodes of each forward item.
+     this will define the reverse items (items2content) by
+     insisting that these items be sorted in ascending order
+     of their global number.
+     reverse roots are not specified by this function, they
+     are assumed to be the same as reverse items.
+     one may only call this API or set_dest_idxs(), not both */
+  void set_dest_globals(GOs fitems2ritem_globals);
   Dist invert() const;
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;

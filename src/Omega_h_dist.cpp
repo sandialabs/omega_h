@@ -69,6 +69,12 @@ void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
   items2content_[R] = rroots2rcontent.ab2b;
 }
 
+void Dist::set_dest_globals(GOs fitems2ritem_globals) {
+  OMEGA_H_CHECK(!items2content_[R].exists());
+  auto rcontent2ritem_globals = exch(fitems2ritem_globals, 1);
+  items2content_[R] = sort_by_keys(rcontent2ritem_globals);
+}
+
 void Dist::set_roots2items(LOs froots2fitems) {
   roots2items_[F] = froots2fitems;
 }
