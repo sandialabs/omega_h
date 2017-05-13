@@ -21,12 +21,12 @@ Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim);
    a set of uses that are uniquely defined by (old low owner)
    and MPI rank, meaning they are exactly the set of new (low entity)
    copies.
-   It then returns a parallel map (Dist) from the (old low owner copies)
-   to the (new low copies), i.e. the unique uses.
+   It then returns a parallel map (Dist) from the (new low copies),
+   i.e. the unique uses, to the (old low owner copies).
    This function is the one responsible for the ordering
    of new entities (that are not elements).
    It will index them in order of ascending global number. */
-Dist find_unique_use_owners(Dist uses2old_owners, GOs old_owner_globals);
+Dist get_new_copies2old_owners(Dist uses2old_owners, GOs old_owner_globals);
 
 /* given a Dist mapping from new entity copies to old owners,
    and one from old owners to new entity uses,

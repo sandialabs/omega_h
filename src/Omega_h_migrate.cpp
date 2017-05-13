@@ -17,7 +17,7 @@ Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim) {
   return unmap(uses2lows, lows2owners);
 }
 
-static Dist find_unique_use_owners2(Dist uses2old_owners) {
+static Dist get_old_owners2uniq_uses(Dist uses2old_owners) {
   auto old_owners2uses = uses2old_owners.invert();
   auto nold_owners = old_owners2uses.nroots();
   auto nserv_uses = old_owners2uses.nitems();
@@ -51,15 +51,15 @@ static Dist find_unique_use_owners2(Dist uses2old_owners) {
   old_owners2uniq_uses.set_parent_comm(uses2old_owners.parent_comm());
   old_owners2uniq_uses.set_dest_ranks(uniq_serv_uses2ranks);
   old_owners2uniq_uses.set_roots2items(old_owners2uniq_serv_uses);
-  return old_owners2uniq_uses.invert();
+  return old_owners2uniq_uses;
 }
 
-Dist find_unique_use_owners(Dist uses2old_owners, GOs old_owner_globals) {
-  auto old_owners2uniq_uses = find_unique_use_owners2(uses2old_owners);
+Dist get_new_copies2old_owners(Dist uses2old_owners, GOs old_owner_globals) {
+  auto old_owners2uniq_uses = get_old_owners2uniq_uses(uses2old_owners);
   auto old_owners2items = old_owners2uniq_uses.roots2items();
-  auto items2globals = expand(old_owner_globals, old_owners2items, 1);
-  old_owners2uniq_uses.set_dest_globals(items2globals);
-  return old_owners2uniq_uses;
+  old_owners2uniq_uses.set_dest_globals(old_owner_globals);
+  auto uniq_uses2old_owners = old_owners2uniq_uses.invert();
+  return uniq_uses2old_owners;
 }
 
 LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
@@ -107,7 +107,7 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
       old_mesh->comm(), new_use_owners, old_mesh->nents(low_dim));
   auto old_owner_globals = old_mesh->globals(low_dim);
   auto new_lows2old_owners =
-      find_unique_use_owners(low_uses2old_owners, old_owner_globals);
+      get_new_copies2old_owners(low_uses2old_owners, old_owner_globals);
   old_low_owners2new_lows = new_lows2old_owners.invert();
   auto old_low_owners2new_uses = low_uses2old_owners.invert();
   auto new_conn = form_new_conn(new_lows2old_owners, old_low_owners2new_uses);
@@ -187,6 +187,10 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 
 void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
     Omega_h_Parting mode, bool verbose) {
+  for (Int d = 0; d <= mesh->dim(); ++d) {
+    OMEGA_H_CHECK(mesh->has_tag(d, "global"));
+    OMEGA_H_CHECK(mesh->get_array<GO>(d, "global").exists());
+  }
   auto new_mesh = mesh->copy_meta();
   auto comm = mesh->comm();
   auto dim = mesh->dim();

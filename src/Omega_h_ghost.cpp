@@ -38,7 +38,7 @@ static RemoteGraph get_own_verts2own_elems(Mesh* mesh) {
  * and a description of which ranks will obtain copies of which vertices,
  * determine the list of all element uses by each rank, which is essentially
  * the list of elements that will have copies on that rank but with
- * duplicates that need to be filtered out by find_unique_use_owners().
+ * duplicates that need to be filtered out by get_new_copies2old_owners().
  */
 Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
   auto own_verts2serv_uses = own_verts2own_elems.locals2edges;
@@ -83,7 +83,7 @@ static Dist close_up(
   auto elem_uses = push_elem_uses(own_verts2own_elems, own_verts2verts);
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
   auto old_owner_globals = mesh->globals(mesh->dim());
-  auto elems2owners = find_unique_use_owners(uses2old_owners, old_owner_globals);
+  auto elems2owners = get_new_copies2old_owners(uses2old_owners, old_owner_globals);
   return elems2owners;
 }
 
@@ -93,7 +93,7 @@ static Dist close_down(Mesh* mesh, Remotes old_use_owners, Dist elems2owners) {
   auto new_use_owners = owners2elems.exch(old_use_owners, nverts_per_elem);
   Dist uses2old_owners(mesh->comm(), new_use_owners, mesh->nents(VERT));
   auto old_owner_globals = mesh->globals(VERT);
-  auto verts2owners = find_unique_use_owners(uses2old_owners, old_owner_globals);
+  auto verts2owners = get_new_copies2old_owners(uses2old_owners, old_owner_globals);
   return verts2owners;
 }
 
@@ -123,7 +123,7 @@ void partition_by_verts(Mesh* mesh, bool verbose) {
   auto elem_uses = get_own_verts2own_elems(mesh).edges2remotes;
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
   auto old_owner_globals = mesh->globals(mesh->dim());
-  auto elems2owners = find_unique_use_owners(uses2old_owners, old_owner_globals);
+  auto elems2owners = get_new_copies2old_owners(uses2old_owners, old_owner_globals);
   migrate_mesh(mesh, elems2owners, OMEGA_H_VERT_BASED, verbose);
 }
 
