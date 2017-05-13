@@ -62,7 +62,6 @@ int main(int argc, char** argv) {
     build_box(&mesh, 1, 1, 0, nx, nx, 0);
     classify_by_angles(&mesh, PI / 4);
     mesh.reorder();
-    mesh.reset_globals();
   }
   mesh.set_comm(world);
   mesh.balance();

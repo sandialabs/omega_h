@@ -22,7 +22,6 @@ int main(int argc, char** argv) {
         orig_height * orig_resolution);
     classify_by_angles(&mesh, PI / 4);
     mesh.reorder();
-    mesh.reset_globals();
   }
   mesh.set_comm(world);
   mesh.balance();

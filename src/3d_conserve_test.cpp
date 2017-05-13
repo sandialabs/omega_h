@@ -60,7 +60,6 @@ int main(int argc, char** argv) {
   if (world->rank() == 0) {
     gmsh::read(argv[1], &mesh);
     mesh.reorder();
-    mesh.reset_globals();
   }
   mesh.set_comm(world);
   mesh.balance();

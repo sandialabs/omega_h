@@ -26,7 +26,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
 
 Adj unmap_adjacency(LOs a2b, Adj b2c);
 
-Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals);
+Adj invert_adj(Adj down, Int nlows_per_high, LO nlows);
 
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low

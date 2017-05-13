@@ -304,8 +304,7 @@ static void test_invert_map() {
 
 static void test_invert_adj() {
   Adj tris2verts(LOs({0, 1, 2, 2, 3, 0}));
-  Read<GO> tri_globals({0, 1});
-  Adj verts2tris = invert_adj(tris2verts, 3, 4, tri_globals);
+  Adj verts2tris = invert_adj(tris2verts, 3, 4);
   OMEGA_H_CHECK(verts2tris.a2ab == offset_scan(LOs({2, 1, 2, 1})));
   OMEGA_H_CHECK(verts2tris.ab2b == LOs({0, 1, 0, 0, 1, 1}));
   OMEGA_H_CHECK(
