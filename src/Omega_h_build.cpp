@@ -34,8 +34,9 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   }
   if (comm->size() > 1) {
     mesh->set_owners(edim, owners);
+  } else {
+    mesh->add_tag(edim, "global", 1, Read<GO>(ne, 0, 1));
   }
-  mesh->add_tag(edim, "global", 1, Read<GO>(ne, 0, 1));
 }
 
 void build_from_elems2verts(
