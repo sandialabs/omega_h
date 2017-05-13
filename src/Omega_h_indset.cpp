@@ -78,7 +78,7 @@ Read<I8> find_indset(
     Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates) {
   auto xadj = graph.a2ab;
   auto adj = graph.ab2b;
-  auto globals = mesh->ask_globals(ent_dim);
+  auto globals = mesh->globals(ent_dim);
   return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
 }
 

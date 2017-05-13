@@ -57,10 +57,6 @@ void Mesh::set_comm(CommPtr const& new_comm) {
      by using the old Dist to set new owners */
   if (0 < nnew_had_comm && library_->world()->size() > 1) {
     for (Int d = 0; d <= dim(); ++d) {
-      /* in the case of serial to parallel, globals may not be
-         here yet, so this call will make sure they get cached
-         and subsequently migrated */
-      ask_globals(d);
       auto dist = ask_dist(d);
       dist.change_comm(new_comm);
       owners_[d].ranks = dist.items2ranks();
@@ -302,8 +298,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     Adj down = ask_adj(to, from);
     Int nlows_per_high = simplex_degrees[to][from];
     LO nlows = nents(from);
-    Read<GO> high_globals = ask_globals(to);
-    Adj up = invert_adj(down, nlows_per_high, nlows, high_globals);
+    Adj up = invert_adj(down, nlows_per_high, nlows);
     return up;
   } else if (to < from) {
     OMEGA_H_CHECK(to + 1 < from);
@@ -359,20 +354,8 @@ void Mesh::set_coords(Reals const& array) {
   set_tag<Real>(VERT, "coordinates", array);
 }
 
-Read<GO> Mesh::ask_globals(Int dim) {
-  if (!has_tag(dim, "global")) {
-    OMEGA_H_CHECK(comm_->size() == 1);
-    add_tag(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
-  }
+Read<GO> Mesh::globals(Int dim) const {
   return get_array<GO>(dim, "global");
-}
-
-void Mesh::reset_globals() {
-  OMEGA_H_CHECK(comm_->size() == 1);
-  for (Int d = 0; d <= dim(); ++d) {
-    remove_tag(d, "global");
-    ask_globals(d);
-  }
 }
 
 Reals Mesh::ask_lengths() {
@@ -716,9 +699,6 @@ TagSet get_all_mesh_tags(Mesh* mesh) {
 void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags) {
   if (tags[EDGE].count("length")) mesh->ask_lengths();
   if (tags[size_t(mesh->dim())].count("quality")) mesh->ask_qualities();
-  for (Int i = 0; i <= mesh->dim(); ++i) {
-    if (tags[size_t(i)].count("global")) mesh->ask_globals(i);
-  }
 }
 
 #define OMEGA_H_INST(T)                                                        \

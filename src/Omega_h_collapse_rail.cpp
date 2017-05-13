@@ -23,7 +23,7 @@ void choose_rails(Mesh* mesh, LOs cands2edges, Read<I8> cand_edge_codes,
   auto ve_codes = v2e.codes;
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto lengths = mesh->ask_lengths();
-  auto globals = mesh->ask_globals(EDGE);
+  auto globals = mesh->globals(EDGE);
   auto verts_are_cands_w = Write<I8>(mesh->nverts());
   auto vert_quals_w = Write<Real>(mesh->nverts());
   auto vert_rails_w = Write<GO>(mesh->nverts());
@@ -84,7 +84,7 @@ void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
   auto ve_codes = v2e.codes;
   auto rails2edges_w = Write<LO>(nkeys, -1);
   auto rail_col_dirs_w = Write<I8>(nkeys, -1);
-  auto edge_globals = mesh->ask_globals(EDGE);
+  auto edge_globals = mesh->globals(EDGE);
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto v = keys2verts[key];
     auto rail_global = verts2rail[v];

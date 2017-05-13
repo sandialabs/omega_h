@@ -145,7 +145,7 @@ static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
 static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
   auto low_dim = ((full) ? (dim - 1) : (VERT));
   auto h2l = mesh->ask_down(dim, low_dim);
-  auto l_globals = mesh->ask_globals(low_dim);
+  auto l_globals = mesh->globals(low_dim);
   auto hl2l_globals = unmap(h2l.ab2b, l_globals, 1);
   return hl2l_globals;
 }
@@ -169,8 +169,8 @@ Omega_h_Comparison compare_meshes(
       return OMEGA_H_DIFF;
     }
     if (!full && (0 < dim) && (dim < a->dim())) continue;
-    auto a_globals = a->ask_globals(dim);
-    auto b_globals = b->ask_globals(dim);
+    auto a_globals = a->globals(dim);
+    auto b_globals = b->globals(dim);
     auto a_dist = copies_to_linear_owners(comm, a_globals);
     auto b_dist = copies_to_linear_owners(comm, b_globals);
     if (dim > 0) {

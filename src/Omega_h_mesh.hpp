@@ -98,8 +98,7 @@ class Mesh {
   void add_coords(Reals array);
   Reals coords() const;
   void set_coords(Reals const& array);
-  Read<GO> ask_globals(Int dim);
-  void reset_globals();
+  Read<GO> globals(Int dim) const;
   Reals ask_lengths();
   Reals ask_qualities();
   Reals ask_sizes();

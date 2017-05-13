@@ -73,7 +73,7 @@ Reals measure_qualities(Mesh* mesh, Reals metrics) {
  */
 
 Reals get_1d_cavity_qualities(Mesh* mesh, Int key_dim, LOs keys2kds) {
-  auto kd_globals = mesh->ask_globals(key_dim);
+  auto kd_globals = mesh->globals(key_dim);
   auto nkeys = keys2kds.size();
   Write<Real> out(nkeys);
   auto f = OMEGA_H_LAMBDA(LO key) {

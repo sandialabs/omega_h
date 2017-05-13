@@ -315,7 +315,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   OMEGA_H_CHECK(nkeys + 1 == keys2prods.size());
   auto nprods = prods2new_ents.size();
   OMEGA_H_CHECK(nprods == keys2prods.last());
-  auto old_globals = old_mesh->ask_globals(ent_dim);
+  auto old_globals = old_mesh->globals(ent_dim);
   auto comm = old_mesh->comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
