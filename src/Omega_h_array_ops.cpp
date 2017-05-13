@@ -4,7 +4,7 @@
 
 namespace Omega_h {
 
-template <class T>
+template <typename T>
 struct SameContent : public AndFunctor {
   Read<T> a_;
   Read<T> b_;
@@ -14,7 +14,7 @@ struct SameContent : public AndFunctor {
   }
 };
 
-template <class T>
+template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   return parallel_reduce(a.size(), SameContent<T>(a, b));
@@ -367,6 +367,21 @@ LO find_last(Read<T> array, T value) {
       parallel_reduce(array.size(), FindLast<T>(array, value)));
 }
 
+template <typename T>
+struct IsSorted : public AndFunctor {
+  Read<T> a_;
+  IsSorted(Read<T> a) : a_(a) {}
+  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
+    update = update && (a_[i] <= a_[i + 1]);
+  }
+};
+
+template <typename T>
+bool is_sorted(Read<T> a) {
+  if (a.size() < 2) return true;
+  return parallel_reduce(a.size() - 1, IsSorted<T>(a));
+}
+
 /* A reproducible sum of floating-point values.
    this operation is one of the key places where
    a program's output begins to depend on parallel
@@ -494,7 +509,8 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<I8> gt_each(Read<T> a, Read<T> b);                             \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
-  template LO find_last(Read<T> array, T value);
+  template LO find_last(Read<T> array, T value);                               \
+  template bool is_sorted(Read<T> a);
 
 INST(I8)
 INST(I32)

@@ -14,6 +14,9 @@ namespace Omega_h {
    The sorting algorithm used is stable, so if two keys
    are equal then their relative order after permutation
    will be the same as before the permutation.
+   Tuples (keys) are sorted into lexical order, so they
+   will be sorted by the first integer first, second
+   integer second, etc.
  */
 template <typename T>
 LOs sort_by_keys(Read<T> keys, Int width = 1);

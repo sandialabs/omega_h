@@ -1068,6 +1068,14 @@ static void test_scalar_ptr() {
   OMEGA_H_CHECK(scalar_ptr(m2) == &m2(0, 0));
 }
 
+static void test_is_sorted() {
+  OMEGA_H_CHECK(is_sorted(LOs({})));
+  OMEGA_H_CHECK(is_sorted(Reals({42.0})));
+  OMEGA_H_CHECK(is_sorted(LOs({0,1,2})));
+  OMEGA_H_CHECK(!is_sorted(Reals({0.2,0.1,0.3,0.4})));
+  OMEGA_H_CHECK(is_sorted(Reals({0.1,0.1,0.1,0.1})));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1128,5 +1136,6 @@ int main(int argc, char** argv) {
   test_1d_box(&lib);
   test_binary_search();
   test_scalar_ptr();
+  test_is_sorted();
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }
