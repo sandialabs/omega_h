@@ -190,7 +190,6 @@ void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
     Omega_h_Parting mode, bool verbose) {
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
-    OMEGA_H_CHECK(mesh->get_array<GO>(d, "global").exists());
   }
   auto new_mesh = mesh->copy_meta();
   auto comm = mesh->comm();
@@ -217,7 +216,6 @@ void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
   *mesh = new_mesh;
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
-    OMEGA_H_CHECK(is_sorted(mesh->get_array<GO>(d, "global")));
   }
 }
 
