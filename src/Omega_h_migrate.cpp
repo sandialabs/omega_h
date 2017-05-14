@@ -8,6 +8,7 @@
 #include "Omega_h_owners.hpp"
 #include "Omega_h_scan.hpp"
 #include "Omega_h_simplex.hpp"
+#include "Omega_h_array_ops.hpp"
 
 namespace Omega_h {
 
@@ -214,6 +215,10 @@ void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
   push_ents(mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents,
       mode);
   *mesh = new_mesh;
+  for (Int d = 0; d <= mesh->dim(); ++d) {
+    OMEGA_H_CHECK(mesh->has_tag(d, "global"));
+    OMEGA_H_CHECK(is_sorted(mesh->get_array<GO>(d, "global")));
+  }
 }
 
 }  // end namespace Omega_h
