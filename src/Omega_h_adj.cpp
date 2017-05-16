@@ -153,9 +153,32 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
+static void sort_by_high_index(
+    LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
+  LO nl = l2lh.size() - 1;
+  auto f = OMEGA_H_LAMBDA(LO l) {
+    LO begin = l2lh[l];
+    LO end = l2lh[l + 1];
+    for (LO j = begin; j < end; ++j) {
+      LO k_min = j;
+      GO min_h = lh2h[j];
+      for (LO k = j + 1; k < end; ++k) {
+        GO h = lh2h[k];
+        if (h < min_h) {
+          k_min = k;
+          min_h = h;
+        }
+      }
+      swap2(lh2h[j], lh2h[k_min]);
+      swap2(codes[j], codes[k_min]);
+    }
+  };
+  parallel_for(nl, f);
+}
+
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
   auto t0 = now();
-  auto l2hl = invert_map(down.ab2b, nlows);
+  auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
   LO nlh = lh2hl.size();
@@ -184,6 +207,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
     };
     parallel_for(nlh, f);
   }
+  sort_by_high_index(l2lh, lh2h, codes);
   auto t1 = now();
   add_to_global_timer("inverting", t1 - t0);
   return Adj(l2lh, lh2h, codes);

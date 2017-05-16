@@ -36,27 +36,13 @@ LOs collect_marked(Read<I8> marks);
 
 Read<I8> mark_image(LOs a2b, LO nb);
 
-/* The map (a2b) is injective iff each value of a maps to (a) unique value of (b).
-   Let b2a = invert_injective_map(a2b, nb);
-   Then b2a[a2b[a]] == a for all a in [0, a2b.size() - 1]
-   For values of (b) that don't have an inverse, b2a[b] == -1
- */
 LOs invert_injective_map(LOs a2b, LO nb);
 
 LOs invert_funnel(LOs ab2a, LO na);
 
-/* Inverts a map which is not necessarily injective.
-   Since multiple (a)s may map to the same (b), the
-   result is a "graph" structure.
-   Note that the map (a2b) is essentially a graph where
-   all nodes in the A set have exactly one outgoing edge.
-   The inversion is done by sorting these "edges"
-   (the entries of (a2b)) by their destination node (b).
-   Because we use a stable sort, in the resulting graph
-   the edges leaving a single (b) are sorted by their
-   source node (a), because that was their relative
-   order in (a2b) */
-Graph invert_map(LOs a2b, LO nb);
+Graph invert_map_by_sorting(LOs a2b, LO nb);
+
+Graph invert_map_by_atomics(LOs a2b, LO nb);
 
 LOs get_degrees(LOs offsets);
 

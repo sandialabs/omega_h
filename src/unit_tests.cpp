@@ -282,19 +282,31 @@ static void test_permute() {
 static void test_invert_map() {
   {
     LOs hl2l({});
-    auto l2hl = invert_map(hl2l, 4);
+    auto l2hl = invert_map_by_atomics(hl2l, 4);
     OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0));
     OMEGA_H_CHECK(l2hl.ab2b == LOs({}));
   }
   {
     LOs hl2l({0, 1, 2, 3});
-    auto l2hl = invert_map(hl2l, 4);
+    auto l2hl = invert_map_by_atomics(hl2l, 4);
+    OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0, 1));
+    OMEGA_H_CHECK(l2hl.ab2b == LOs(4, 0, 1));
+  }
+  {
+    LOs hl2l({});
+    auto l2hl = invert_map_by_sorting(hl2l, 4);
+    OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0));
+    OMEGA_H_CHECK(l2hl.ab2b == LOs({}));
+  }
+  {
+    LOs hl2l({0, 1, 2, 3});
+    auto l2hl = invert_map_by_sorting(hl2l, 4);
     OMEGA_H_CHECK(l2hl.a2ab == LOs(5, 0, 1));
     OMEGA_H_CHECK(l2hl.ab2b == LOs(4, 0, 1));
   }
   {
     LOs hl2l({1, 0, 1, 0});
-    auto l2hl = invert_map(hl2l, 2);
+    auto l2hl = invert_map_by_sorting(hl2l, 2);
     OMEGA_H_CHECK(l2hl.a2ab == LOs({0, 2, 4}));
     OMEGA_H_CHECK(l2hl.ab2b == LOs({1, 3, 0, 2}));
   }
