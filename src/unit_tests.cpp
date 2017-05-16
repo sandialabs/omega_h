@@ -851,7 +851,8 @@ static void test_sf_scale_dim(Library* lib) {
   auto nl = 2;
   Int one_if_2d = ((dim >= 2) ? 1 : 0);
   Int one_if_3d = ((dim >= 3) ? 1 : 0);
-  auto mesh = build_box(lib->world(), 1, one_if_2d, one_if_3d, nl, nl * one_if_2d, nl * one_if_3d);
+  auto mesh = build_box(lib->world(), 1, one_if_2d, one_if_3d, nl,
+      nl * one_if_2d, nl * one_if_3d);
   auto target_nelems = mesh.nelems();
   auto metrics = Omega_h::get_implied_metrics(&mesh);
   {
@@ -1071,9 +1072,9 @@ static void test_scalar_ptr() {
 static void test_is_sorted() {
   OMEGA_H_CHECK(is_sorted(LOs({})));
   OMEGA_H_CHECK(is_sorted(Reals({42.0})));
-  OMEGA_H_CHECK(is_sorted(LOs({0,1,2})));
-  OMEGA_H_CHECK(!is_sorted(Reals({0.2,0.1,0.3,0.4})));
-  OMEGA_H_CHECK(is_sorted(Reals({0.1,0.1,0.1,0.1})));
+  OMEGA_H_CHECK(is_sorted(LOs({0, 1, 2})));
+  OMEGA_H_CHECK(!is_sorted(Reals({0.2, 0.1, 0.3, 0.4})));
+  OMEGA_H_CHECK(is_sorted(Reals({0.1, 0.1, 0.1, 0.1})));
 }
 
 int main(int argc, char** argv) {

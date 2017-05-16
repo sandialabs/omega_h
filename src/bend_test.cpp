@@ -16,8 +16,8 @@ int main(int argc, char** argv) {
   auto max_size = 1.0 / Real(orig_resolution);
   auto segment_angle = PI / 32.0;
   auto mesh = build_box(world, orig_width, orig_width, orig_height,
-        orig_width * orig_resolution, orig_width * orig_resolution,
-        orig_height * orig_resolution);
+      orig_width * orig_resolution, orig_width * orig_resolution,
+      orig_height * orig_resolution);
   mesh.add_tag(VERT, "orig_coords", mesh.dim(), mesh.coords());
   mesh.add_tag<Real>(VERT, "metric", 1);
   vtk::Writer writer("bend", &mesh, mesh.dim());

@@ -12,12 +12,18 @@ int main(int argc, char** argv) {
   auto mesh = build_box(world, 1., 1., 1., 4, 4, 4);
   auto opts = AdaptOpts(&mesh);
   mesh.add_tag<Real>(VERT, "metric", 1);
-  mesh.set_tag(VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(0.3)));
-  while (coarsen_by_size(&mesh, opts));
-  mesh.set_tag(VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(0.6)));
-  while (coarsen_by_size(&mesh, opts));
-  mesh.set_tag(VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(1.0)));
-  while (coarsen_by_size(&mesh, opts));
+  mesh.set_tag(
+      VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(0.3)));
+  while (coarsen_by_size(&mesh, opts))
+    ;
+  mesh.set_tag(
+      VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(0.6)));
+  while (coarsen_by_size(&mesh, opts))
+    ;
+  mesh.set_tag(
+      VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(1.0)));
+  while (coarsen_by_size(&mesh, opts))
+    ;
   mesh.ask_qualities();
   bool ok = check_regression("gold_coarsen", &mesh);
   if (!ok) return 2;

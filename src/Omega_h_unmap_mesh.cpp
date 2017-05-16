@@ -71,8 +71,8 @@ void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
           old_lows2new_lows);
     }
     unmap_tags(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
-    auto old_ents2new_ents = invert_injective_map(
-        new_ents2old_ents[ent_dim], mesh->nents(ent_dim));
+    auto old_ents2new_ents =
+        invert_injective_map(new_ents2old_ents[ent_dim], mesh->nents(ent_dim));
     unmap_owners(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim],
         old_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;

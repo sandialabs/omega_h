@@ -130,8 +130,8 @@ void write_array(
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new ::Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-      reinterpret_cast<const ::Bytef*>(uncompressed.nonnull_data()), source_bytes,
-      Z_BEST_SPEED);
+      reinterpret_cast<const ::Bytef*>(uncompressed.nonnull_data()),
+      source_bytes, Z_BEST_SPEED);
   OMEGA_H_CHECK(ret == Z_OK);
   std::string encoded = base64::encode(compressed, dest_bytes);
   delete[] compressed;

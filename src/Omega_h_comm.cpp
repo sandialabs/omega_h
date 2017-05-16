@@ -68,9 +68,7 @@ Comm::~Comm() {
 #endif
 }
 
-Library* Comm::library() const {
-  return library_;
-}
+Library* Comm::library() const { return library_; }
 
 I32 Comm::rank() const {
 #ifdef OMEGA_H_USE_MPI

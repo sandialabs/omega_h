@@ -3,12 +3,12 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_box.hpp"
+#include "Omega_h_class.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_simplify.hpp"
-#include "Omega_h_class.hpp"
 
 namespace Omega_h {
 
@@ -63,7 +63,8 @@ void build_from_elems2verts(
 
 void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
   auto vert_globals = Read<GO>(nverts, 0, 1);
-  build_from_elems2verts(mesh, mesh->library()->self(), edim, ev2v, vert_globals);
+  build_from_elems2verts(
+      mesh, mesh->library()->self(), edim, ev2v, vert_globals);
 }
 
 void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
@@ -72,7 +73,8 @@ void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
   mesh->add_coords(coords);
 }
 
-void build_box_internal(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
+void build_box_internal(
+    Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
   OMEGA_H_CHECK(nx > 0);
   OMEGA_H_CHECK(ny >= 0);
   OMEGA_H_CHECK(nz >= 0);

@@ -353,9 +353,7 @@ void Mesh::set_coords(Reals const& array) {
   set_tag<Real>(VERT, "coordinates", array);
 }
 
-Read<GO> Mesh::globals(Int dim) const {
-  return get_array<GO>(dim, "global");
-}
+Read<GO> Mesh::globals(Int dim) const { return get_array<GO>(dim, "global"); }
 
 Reals Mesh::ask_lengths() {
   if (!has_tag(EDGE, "length")) {

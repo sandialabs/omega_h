@@ -257,12 +257,12 @@ LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
 }
 
 /* Assigns a new numbering to all entities in the new mesh,
-   given the results of the scan of annotated old entities (old_ents2new_offsets).
-   Because the construction of the new mesh depends on these numbers,
-   we are still dealing with things separated into entities that stay the same,
-   and newly produced entities.
-   This function is mainly responsible for numbering newly produced entities based
-   on the number that their representative entity got from the scan. */
+   given the results of the scan of annotated old entities
+   (old_ents2new_offsets). Because the construction of the new mesh depends on
+   these numbers, we are still dealing with things separated into entities that
+   stay the same, and newly produced entities. This function is mainly
+   responsible for numbering newly produced entities based on the number that
+   their representative entity got from the scan. */
 template <typename T>
 static void find_new_offsets(Read<T> old_ents2new_offsets,
     LOs same_ents2old_ents, LOs keys2kds, LOs keys2reps, LOs keys2prods,

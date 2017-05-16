@@ -8,8 +8,8 @@
 #include <Omega_h_array.hpp>
 #include <Omega_h_comm.hpp>
 #include <Omega_h_defines.hpp>
-#include <Omega_h_tag.hpp>
 #include <Omega_h_mesh.hpp>
+#include <Omega_h_tag.hpp>
 
 namespace Omega_h {
 

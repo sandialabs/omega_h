@@ -83,7 +83,8 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
   }
 }
 
-void render_histogram_matplotlib(Histogram const& histogram, std::string const& filepath) {
+void render_histogram_matplotlib(
+    Histogram const& histogram, std::string const& filepath) {
   std::ofstream script("Omega_h_histogram.py");
   script << "#!/usr/bin/python\n";
   script << "import matplotlib\n";

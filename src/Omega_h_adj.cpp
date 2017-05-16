@@ -153,8 +153,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
-static void sort_by_high_index(
-    LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
+static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
   LO nl = l2lh.size() - 1;
   auto f = OMEGA_H_LAMBDA(LO l) {
     LO begin = l2lh[l];

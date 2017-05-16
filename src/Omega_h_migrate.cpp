@@ -2,13 +2,13 @@
 
 #include <iostream>
 
+#include "Omega_h_array_ops.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_scan.hpp"
 #include "Omega_h_simplex.hpp"
-#include "Omega_h_array_ops.hpp"
 
 namespace Omega_h {
 
@@ -46,7 +46,8 @@ static Dist get_old_owners2uniq_uses(Dist uses2old_owners) {
   auto degrees = LOs(degrees_w);
   auto keep = Read<I8>(keep_w);
   auto uniq_serv_uses2serv_uses = collect_marked(keep);
-  auto uniq_serv_uses2ranks = unmap(uniq_serv_uses2serv_uses, serv_uses2ranks, 1);
+  auto uniq_serv_uses2ranks =
+      unmap(uniq_serv_uses2serv_uses, serv_uses2ranks, 1);
   auto old_owners2uniq_serv_uses = offset_scan(degrees);
   Dist old_owners2uniq_uses;
   old_owners2uniq_uses.set_parent_comm(uses2old_owners.parent_comm());
@@ -186,8 +187,8 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
   }
 }
 
-void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
-    Omega_h_Parting mode, bool verbose) {
+void migrate_mesh(
+    Mesh* mesh, Dist new_elems2old_owners, Omega_h_Parting mode, bool verbose) {
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
   }
@@ -200,8 +201,8 @@ void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
   for (Int d = dim; d > VERT; --d) {
     Adj high2low;
     Dist old_low_owners2new_lows;
-    push_down(mesh, d, d - 1, old_owners2new_ents, high2low,
-        old_low_owners2new_lows);
+    push_down(
+        mesh, d, d - 1, old_owners2new_ents, high2low, old_low_owners2new_lows);
     new_mesh.set_ents(d, high2low);
     new_ents2old_owners = old_owners2new_ents.invert();
     push_ents(
@@ -211,8 +212,8 @@ void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
   auto new_verts2old_owners = old_owners2new_ents.invert();
   auto nnew_verts = new_verts2old_owners.nitems();
   new_mesh.set_verts(nnew_verts);
-  push_ents(mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents,
-      mode);
+  push_ents(
+      mesh, &new_mesh, VERT, new_verts2old_owners, old_owners2new_ents, mode);
   *mesh = new_mesh;
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
