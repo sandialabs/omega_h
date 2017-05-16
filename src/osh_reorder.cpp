@@ -11,6 +11,7 @@ int main(int argc, char** argv) {
   if (!cmdline.parse_all_or_help(world, &argc, argv)) return -1;
   auto inpath = cmdline.get<std::string>("input.osh");
   auto outpath = cmdline.get<std::string>("output.osh");
+  Omega_h::Mesh mesh(&lib);
   Omega_h::binary::read(inpath, world, &mesh);
   Omega_h::reorder_by_hilbert(&mesh);
   Omega_h::binary::write(outpath, &mesh);
