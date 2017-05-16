@@ -100,24 +100,24 @@ Read<T> reduce_data_to_owners(
   return owner_data_w;
 }
 
-void globals_from_owners(Mesh* new_mesh, Int ent_dim) {
-  auto nnew_ents = new_mesh->nents(ent_dim);
-  if (!new_mesh->could_be_shared(ent_dim)) {
-    auto start = new_mesh->comm()->exscan(GO(nnew_ents), OMEGA_H_SUM);
+void globals_from_owners(Mesh* mesh, Int ent_dim) {
+  auto nnew_ents = mesh->nents(ent_dim);
+  if (!mesh->could_be_shared(ent_dim)) {
+    auto start = mesh->comm()->exscan(GO(nnew_ents), OMEGA_H_SUM);
     auto globals = Read<GO>(nnew_ents, start, 1);
-    new_mesh->add_tag(ent_dim, "global", 1, globals);
+    mesh->add_tag(ent_dim, "global", 1, globals);
     return;
   }
-  auto new_owned = new_mesh->owned(ent_dim);
+  auto new_owned = mesh->owned(ent_dim);
   auto local_offsets = offset_scan(new_owned);
   auto nnew_owned = local_offsets.last();
-  auto start = new_mesh->comm()->exscan(GO(nnew_owned), OMEGA_H_SUM);
+  auto start = mesh->comm()->exscan(GO(nnew_owned), OMEGA_H_SUM);
   auto new_globals_w = Write<GO>(nnew_ents);
   parallel_for(nnew_ents,
       OMEGA_H_LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; });
   auto new_globals = Read<GO>(new_globals_w);
-  new_globals = new_mesh->sync_array(ent_dim, new_globals, 1);
-  new_mesh->add_tag(ent_dim, "global", 1, new_globals);
+  new_globals = mesh->sync_array(ent_dim, new_globals, 1);
+  mesh->add_tag(ent_dim, "global", 1, new_globals);
 }
 
 #define INST(T)                                                                \

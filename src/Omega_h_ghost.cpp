@@ -38,7 +38,7 @@ static RemoteGraph get_own_verts2own_elems(Mesh* mesh) {
  * and a description of which ranks will obtain copies of which vertices,
  * determine the list of all element uses by each rank, which is essentially
  * the list of elements that will have copies on that rank but with
- * duplicates that need to be filtered out by find_unique_use_owners().
+ * duplicates that need to be filtered out by get_new_copies2old_owners().
  */
 Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
   auto own_verts2serv_uses = own_verts2own_elems.locals2edges;
@@ -82,7 +82,8 @@ static Dist close_up(
   auto own_verts2verts = verts2owners.invert();
   auto elem_uses = push_elem_uses(own_verts2own_elems, own_verts2verts);
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
-  auto elems2owners = find_unique_use_owners(uses2old_owners);
+  auto old_owner_globals = mesh->globals(mesh->dim());
+  auto elems2owners = get_new_copies2old_owners(uses2old_owners, old_owner_globals);
   return elems2owners;
 }
 
@@ -91,7 +92,8 @@ static Dist close_down(Mesh* mesh, Remotes old_use_owners, Dist elems2owners) {
   auto owners2elems = elems2owners.invert();
   auto new_use_owners = owners2elems.exch(old_use_owners, nverts_per_elem);
   Dist uses2old_owners(mesh->comm(), new_use_owners, mesh->nents(VERT));
-  auto verts2owners = find_unique_use_owners(uses2old_owners);
+  auto old_owner_globals = mesh->globals(VERT);
+  auto verts2owners = get_new_copies2old_owners(uses2old_owners, old_owner_globals);
   return verts2owners;
 }
 
@@ -110,9 +112,7 @@ void ghost_mesh(Mesh* mesh, Int nlayers, bool verbose) {
     verts2owners = close_down(mesh, vert_use_owners, elems2owners);
     elems2owners = close_up(mesh, own_verts2own_elems, verts2owners);
   }
-  auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_GHOSTED, verbose);
-  *mesh = new_mesh;
+  migrate_mesh(mesh, elems2owners, OMEGA_H_GHOSTED, verbose);
 }
 
 void partition_by_verts(Mesh* mesh, bool verbose) {
@@ -122,10 +122,9 @@ void partition_by_verts(Mesh* mesh, bool verbose) {
    */
   auto elem_uses = get_own_verts2own_elems(mesh).edges2remotes;
   auto uses2old_owners = Dist(mesh->comm(), elem_uses, mesh->nelems());
-  auto elems2owners = find_unique_use_owners(uses2old_owners);
-  auto new_mesh = mesh->copy_meta();
-  migrate_mesh(mesh, &new_mesh, elems2owners, OMEGA_H_VERT_BASED, verbose);
-  *mesh = new_mesh;
+  auto old_owner_globals = mesh->globals(mesh->dim());
+  auto elems2owners = get_new_copies2old_owners(uses2old_owners, old_owner_globals);
+  migrate_mesh(mesh, elems2owners, OMEGA_H_VERT_BASED, verbose);
 }
 
 void partition_by_elems(Mesh* mesh, bool verbose) {
@@ -134,7 +133,8 @@ void partition_by_elems(Mesh* mesh, bool verbose) {
   auto marked_owned = mesh->owned(dim);
   auto owned2all = collect_marked(marked_owned);
   auto owned2owners = unmap(owned2all, all2owners);
-  migrate_mesh(mesh, owned2owners, verbose);
+  auto dist = Dist(mesh->comm(), owned2owners, mesh->nelems());
+  migrate_mesh(mesh, dist, OMEGA_H_ELEM_BASED, verbose);
 }
 
 }  // end namespace Omega_h

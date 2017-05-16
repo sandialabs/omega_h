@@ -12,10 +12,21 @@ class Mesh;
    (high_dim) entities to their (low_dim) owners */
 Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim);
 
-/* given a Dist mapping new entity uses to their old owners,
-   filter out duplicate uses of the same old owner by the
-   same rank, and create a Dist mapping unique uses to their old owners. */
-Dist find_unique_use_owners(Dist uses2old_owners);
+/* Given a parallel map (Dist) from
+   (new local copies of uses of low entities by high entities)
+   to (old owner copies of low entities), this function finds
+   use copies that reside on the same MPI rank and have the same
+   (old owner copy of low entity), ignoring what their (high entity) is.
+   It then removes such duplicates, and what remains is
+   a set of uses that are uniquely defined by (old low owner)
+   and MPI rank, meaning they are exactly the set of new (low entity)
+   copies.
+   It then returns a parallel map (Dist) from the (new low copies),
+   i.e. the unique uses, to the (old low owner copies).
+   This function is the one responsible for the ordering
+   of new entities (that are not elements).
+   It will index them in order of ascending global number. */
+Dist get_new_copies2old_owners(Dist uses2old_owners, GOs old_owner_globals);
 
 /* given a Dist mapping from new entity copies to old owners,
    and one from old owners to new entity uses,
@@ -37,10 +48,8 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist new_ents2old_owners, Dist old_owners2new_ents, Omega_h_Parting mode);
 
-void migrate_mesh(Mesh* old_mesh, Mesh* new_mesh, Dist new_elems2old_owners,
+void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners,
     Omega_h_Parting mode, bool verbose);
-void migrate_mesh(Mesh* mesh, Dist new_elems2old_owners, bool verbose);
-void migrate_mesh(Mesh* mesh, Remotes new_elems2old_owners, bool verbose);
 
 }  // end namespace Omega_h
 

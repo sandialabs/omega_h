@@ -9,9 +9,7 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(argc == 2);
   auto world = lib.world();
-  auto self = lib.self();
-  Mesh mesh(&lib);
-  gmsh::read(argv[1], &mesh);
+  auto mesh = gmsh::read(argv[1], world);
   auto ids = std::vector<LO>({6, 7, 8, 9});
   auto verts_are_bdry = mark_class_closures(&mesh, VERT, 1, ids);
   auto bv2v = collect_marked(verts_are_bdry);

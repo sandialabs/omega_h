@@ -56,16 +56,8 @@ static Vector<2> get_total_momentum(Mesh* mesh) {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  Mesh mesh(&lib);
-  if (world->rank() == 0) {
-    auto nx = 10;
-    build_box(&mesh, 1, 1, 0, nx, nx, 0);
-    classify_by_angles(&mesh, PI / 4);
-    mesh.reorder();
-    mesh.reset_globals();
-  }
-  mesh.set_comm(world);
-  mesh.balance();
+  auto nx = 10;
+  auto mesh = build_box(world, 1, 1, 0, nx, nx, 0);
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
     auto metrics = get_implied_isos(&mesh);

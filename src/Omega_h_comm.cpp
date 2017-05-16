@@ -1,5 +1,7 @@
 #include "Omega_h_comm.hpp"
 
+#include <string>
+
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_scan.hpp"
 #ifdef OMEGA_H_USE_CUDA
@@ -64,6 +66,10 @@ Comm::~Comm() {
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Comm_free(&impl_));
 #endif
+}
+
+Library* Comm::library() const {
+  return library_;
 }
 
 I32 Comm::rank() const {

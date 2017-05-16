@@ -66,16 +66,8 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
   constexpr Int dim = 3;
-  Mesh mesh(&lib);
-  if (world->rank() == 0) {
-    auto nx = 10;
-    build_box(&mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
-    classify_by_angles(&mesh, PI / 4);
-    mesh.reorder();
-    mesh.reset_globals();
-  }
-  mesh.set_comm(world);
-  mesh.balance();
+  auto nx = 10;
+  auto mesh = build_box(world, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto metrics = get_implied_isos(&mesh);
   mesh.add_tag(VERT, "metric", 1, metrics);

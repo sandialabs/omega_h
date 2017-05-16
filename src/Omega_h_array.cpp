@@ -135,13 +135,11 @@ T Write<T>::get(LO i) const {
 #endif
 }
 
-Reals::Reals() : Read<Real>() {}
+Bytes::Bytes(Write<Byte> write) : Read<Byte>(write) {}
 
-Reals::Reals(Write<Real> write) : Read<Real>(write) {}
+Bytes::Bytes(LO size, Byte value) : Read<Byte>(size, value) {}
 
-Reals::Reals(LO size, Real value) : Read<Real>(size, value) {}
-
-Reals::Reals(std::initializer_list<Real> l) : Read<Real>(l) {}
+Bytes::Bytes(std::initializer_list<Byte> l) : Read<Byte>(l) {}
 
 LOs::LOs(Write<LO> write) : Read<LO>(write) {}
 
@@ -150,6 +148,20 @@ LOs::LOs(LO size, LO value) : Read<LO>(size, value) {}
 LOs::LOs(LO size, LO offset, LO stride) : Read<LO>(size, offset, stride) {}
 
 LOs::LOs(std::initializer_list<LO> l) : Read<LO>(l) {}
+
+GOs::GOs(Write<GO> write) : Read<GO>(write) {}
+
+GOs::GOs(LO size, GO value) : Read<GO>(size, value) {}
+
+GOs::GOs(LO size, GO offset, GO stride) : Read<GO>(size, offset, stride) {}
+
+GOs::GOs(std::initializer_list<GO> l) : Read<GO>(l) {}
+
+Reals::Reals(Write<Real> write) : Read<Real>(write) {}
+
+Reals::Reals(LO size, Real value) : Read<Real>(size, value) {}
+
+Reals::Reals(std::initializer_list<Real> l) : Read<Real>(l) {}
 
 template <typename T>
 Read<T>::Read(Write<T> write)

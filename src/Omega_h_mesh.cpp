@@ -15,7 +15,6 @@
 #include "Omega_h_mark.hpp"
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
-#include "Omega_h_reorder.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
@@ -27,7 +26,6 @@ Mesh::Mesh(Library* library) {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = -1;
   nghost_layers_ = -1;
-  keeps_canonical_globals_ = true;
   OMEGA_H_CHECK(library != nullptr);
   library_ = library;
 }
@@ -58,10 +56,6 @@ void Mesh::set_comm(CommPtr const& new_comm) {
      by using the old Dist to set new owners */
   if (0 < nnew_had_comm && library_->world()->size() > 1) {
     for (Int d = 0; d <= dim(); ++d) {
-      /* in the case of serial to parallel, globals may not be
-         here yet, so this call will make sure they get cached
-         and subsequently migrated */
-      ask_globals(d);
       auto dist = ask_dist(d);
       dist.change_comm(new_comm);
       owners_[d].ranks = dist.items2ranks();
@@ -87,10 +81,6 @@ void Mesh::set_ents(Int dim, Adj down) {
   nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
   add_adj(dim, dim - 1, down);
 }
-
-void Mesh::keep_canonical_globals(bool yn) { keeps_canonical_globals_ = yn; }
-
-bool Mesh::keeps_canonical_globals() const { return keeps_canonical_globals_; }
 
 CommPtr Mesh::comm() const { return comm_; }
 
@@ -307,8 +297,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     Adj down = ask_adj(to, from);
     Int nlows_per_high = simplex_degrees[to][from];
     LO nlows = nents(from);
-    Read<GO> high_globals = ask_globals(to);
-    Adj up = invert_adj(down, nlows_per_high, nlows, high_globals);
+    Adj up = invert_adj(down, nlows_per_high, nlows);
     return up;
   } else if (to < from) {
     OMEGA_H_CHECK(to + 1 < from);
@@ -364,20 +353,8 @@ void Mesh::set_coords(Reals const& array) {
   set_tag<Real>(VERT, "coordinates", array);
 }
 
-Read<GO> Mesh::ask_globals(Int dim) {
-  if (!has_tag(dim, "global")) {
-    OMEGA_H_CHECK(comm_->size() == 1);
-    add_tag(dim, "global", 1, Read<GO>(nents(dim), 0, 1));
-  }
+Read<GO> Mesh::globals(Int dim) const {
   return get_array<GO>(dim, "global");
-}
-
-void Mesh::reset_globals() {
-  OMEGA_H_CHECK(comm_->size() == 1);
-  for (Int d = 0; d <= dim(); ++d) {
-    remove_tag(d, "global");
-    ask_globals(d);
-  }
 }
 
 Reals Mesh::ask_lengths() {
@@ -490,12 +467,8 @@ void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
     set_parting(parting, 1, verbose);
 }
 
-void Mesh::migrate(Remotes new_elems2old_owners, bool verbose) {
-  migrate_mesh(this, new_elems2old_owners, verbose);
-}
-
-void Mesh::reorder() { reorder_by_hilbert(this); }
-
+/* this is a member function mainly because it
+   modifies the RIB hints */
 void Mesh::balance(bool predictive) {
   if (comm_->size() == 1) return;
   set_parting(OMEGA_H_ELEM_BASED);
@@ -522,7 +495,12 @@ void Mesh::balance(bool predictive) {
   auto owners = ask_owners(dim());
   recursively_bisect(comm(), abs_tol, &ecoords, &masses, &owners, &hints);
   rib_hints_ = std::make_shared<inertia::Rib>(hints);
-  migrate(owners);
+  auto unsorted_new2owners = Dist(comm_, owners, nelems());
+  auto owners2new = unsorted_new2owners.invert();
+  auto owner_globals = this->globals(dim());
+  owners2new.set_dest_globals(owner_globals);
+  auto sorted_new2owners = owners2new.invert();
+  migrate_mesh(this, sorted_new2owners, OMEGA_H_ELEM_BASED, false);
 }
 
 Graph Mesh::ask_graph(Int from, Int to) {
@@ -654,7 +632,6 @@ Mesh Mesh::copy_meta() const {
   m.parting_ = this->parting_;
   m.nghost_layers_ = this->nghost_layers_;
   m.rib_hints_ = this->rib_hints_;
-  m.keeps_canonical_globals_ = this->keeps_canonical_globals_;
   return m;
 }
 
@@ -722,9 +699,6 @@ TagSet get_all_mesh_tags(Mesh* mesh) {
 void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags) {
   if (tags[EDGE].count("length")) mesh->ask_lengths();
   if (tags[size_t(mesh->dim())].count("quality")) mesh->ask_qualities();
-  for (Int i = 0; i <= mesh->dim(); ++i) {
-    if (tags[size_t(i)].count("global")) mesh->ask_globals(i);
-  }
 }
 
 #define OMEGA_H_INST(T)                                                        \

@@ -132,6 +132,15 @@ class Read {
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
 };
 
+class Bytes : public Read<Byte> {
+ public:
+  OMEGA_H_INLINE Bytes() {}
+  OMEGA_H_INLINE Bytes(Read<Byte> base) : Read<Byte>(base) {}
+  Bytes(Write<Byte> write);
+  Bytes(LO size, Byte value);
+  Bytes(std::initializer_list<Byte> l);
+};
+
 class LOs : public Read<LO> {
  public:
   OMEGA_H_INLINE LOs() {}
@@ -142,9 +151,19 @@ class LOs : public Read<LO> {
   LOs(std::initializer_list<LO> l);
 };
 
+class GOs : public Read<GO> {
+ public:
+  OMEGA_H_INLINE GOs() {}
+  OMEGA_H_INLINE GOs(Read<GO> base) : Read<GO>(base) {}
+  GOs(Write<GO> write);
+  GOs(LO size, GO value);
+  GOs(LO size, GO offset, GO stride);
+  GOs(std::initializer_list<GO> l);
+};
+
 class Reals : public Read<Real> {
  public:
-  Reals();
+  OMEGA_H_INLINE Reals() {}
   OMEGA_H_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
   Reals(Write<Real> write);
   Reals(LO size, Real value);

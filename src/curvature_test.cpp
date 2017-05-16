@@ -38,13 +38,8 @@ int main(int argc, char** argv) {
   OMEGA_H_CHECK(argc == 3);
   std::string path = argv[1];
   std::string name = argv[2];
-  Mesh mesh(&lib);
   auto world = lib.world();
-  if (world->rank() == 0) {
-    gmsh::read(path + "/" + name + ".msh", &mesh);
-  }
-  mesh.set_comm(world);
-  mesh.balance();
+  auto mesh = gmsh::read(path + "/" + name + ".msh", world);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto sdim = mesh.dim() - 1;
   auto sides_are_surf = mark_by_class_dim(&mesh, sdim, sdim);

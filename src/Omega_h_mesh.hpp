@@ -24,7 +24,6 @@ class Mesh {
   void set_dim(Int dim);
   void set_verts(LO nverts);
   void set_ents(Int dim, Adj down);
-  void keep_canonical_globals(bool yn);
   CommPtr comm() const;
   Omega_h_Parting parting() const;
   inline Int dim() const {
@@ -93,15 +92,13 @@ class Mesh {
   Remotes owners_[DIMS];
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;
-  bool keeps_canonical_globals_;
   Library* library_;
 
  public:
   void add_coords(Reals array);
   Reals coords() const;
   void set_coords(Reals const& array);
-  Read<GO> ask_globals(Int dim);
-  void reset_globals();
+  Read<GO> globals(Int dim) const;
   Reals ask_lengths();
   Reals ask_qualities();
   Reals ask_sizes();
@@ -112,8 +109,6 @@ class Mesh {
   Int nghost_layers() const;
   void set_parting(Omega_h_Parting parting, Int nlayers, bool verbose);
   void set_parting(Omega_h_Parting parting, bool verbose = false);
-  void migrate(Remotes new_elems2old_owners, bool verbose = false);
-  void reorder();
   void balance(bool predictive = false);
   Graph ask_graph(Int from, Int to);
   template <typename T>
@@ -134,7 +129,6 @@ class Mesh {
   bool owners_have_all_upward(Int ent_dim) const;
   bool have_all_upward() const;
   Mesh copy_meta() const;
-  bool keeps_canonical_globals() const;
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
@@ -149,6 +143,9 @@ Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x);
 
 TagSet get_all_mesh_tags(Mesh* mesh);
 void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags);
+
+void reorder_by_hilbert(Mesh* mesh);
+void reorder_by_globals(Mesh* mesh);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \

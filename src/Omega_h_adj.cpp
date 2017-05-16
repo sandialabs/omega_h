@@ -153,20 +153,20 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
-static void sort_by_globals(
-    LOs l2lh, Write<LO> lh2h, Write<I8> codes, Read<GO> hg) {
+static void sort_by_high_index(
+    LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
   LO nl = l2lh.size() - 1;
   auto f = OMEGA_H_LAMBDA(LO l) {
     LO begin = l2lh[l];
     LO end = l2lh[l + 1];
     for (LO j = begin; j < end; ++j) {
       LO k_min = j;
-      GO min_g = hg[lh2h[j]];
+      GO min_h = lh2h[j];
       for (LO k = j + 1; k < end; ++k) {
-        GO g = hg[lh2h[k]];
-        if (g < min_g) {
+        GO h = lh2h[k];
+        if (h < min_h) {
           k_min = k;
-          min_g = g;
+          min_h = h;
         }
       }
       swap2(lh2h[j], lh2h[k_min]);
@@ -176,7 +176,7 @@ static void sort_by_globals(
   parallel_for(nl, f);
 }
 
-Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
+Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
   auto t0 = now();
   auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
@@ -207,7 +207,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Read<GO> high_globals) {
     };
     parallel_for(nlh, f);
   }
-  sort_by_globals(l2lh, lh2h, codes, high_globals);
+  sort_by_high_index(l2lh, lh2h, codes);
   auto t1 = now();
   add_to_global_timer("inverting", t1 - t0);
   return Adj(l2lh, lh2h, codes);
@@ -310,9 +310,8 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim) {
 
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
   Int nverts_per_low = simplex_degrees[low_dim][0];
-  LO nl = lv2v.size() / nverts_per_low;
   auto l2v = Adj(lv2v);
-  Adj v2l = invert_adj(l2v, nverts_per_low, nv, Read<GO>(nl, 0, 1));
+  Adj v2l = invert_adj(l2v, nverts_per_low, nv);
   return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);
 }
 

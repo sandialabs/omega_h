@@ -163,9 +163,9 @@ void write_array(std::ostream& stream, Read<T> array) {
 #ifdef OMEGA_H_USE_ZLIB
   uLong source_bytes = static_cast<uLong>(uncompressed_bytes);
   uLong dest_bytes = ::compressBound(source_bytes);
-  auto compressed = new Bytef[dest_bytes];
+  auto compressed = new ::Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-      reinterpret_cast<const Bytef*>(uncompressed.nonnull_data()), source_bytes,
+      reinterpret_cast<const ::Bytef*>(uncompressed.nonnull_data()), source_bytes,
       Z_BEST_SPEED);
   OMEGA_H_CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
@@ -191,12 +191,12 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
     I64 compressed_bytes;
     read_value(stream, compressed_bytes);
     OMEGA_H_CHECK(compressed_bytes >= 0);
-    auto compressed = new Bytef[compressed_bytes];
+    auto compressed = new ::Bytef[compressed_bytes];
     stream.read(reinterpret_cast<char*>(compressed), compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
-    Bytef* uncompressed_ptr =
-        reinterpret_cast<Bytef*>(uncompressed.nonnull_data());
+    ::Bytef* uncompressed_ptr =
+        reinterpret_cast<::Bytef*>(uncompressed.nonnull_data());
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     OMEGA_H_CHECK(ret == Z_OK);
@@ -248,8 +248,6 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
       for (Int i = 0; i < 3; ++i) write_value(stream, axis[i]);
     }
   }
-  I8 keeps_canon = mesh->keeps_canonical_globals();
-  write_value(stream, keeps_canon);
 }
 
 static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
@@ -287,9 +285,10 @@ static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
     }
     mesh->set_rib_hints(hints);
   }
-  I8 keeps_canon;
-  read_value(stream, keeps_canon);
-  mesh->keep_canonical_globals(bool(keeps_canon));
+  if (version < 6) {
+    I8 keeps_canon;
+    read_value(stream, keeps_canon);
+  }
 }
 
 static void write_tag(std::ostream& stream, TagBase const* tag) {
@@ -532,7 +531,7 @@ OMEGA_H_INST(Real)
 #undef OMEGA_H_INST
 
 // for VTK compression headers
-template void swap_if_needed(std::size_t& val, bool is_little_endian);
+template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
 
 }  // end namespace binary
 

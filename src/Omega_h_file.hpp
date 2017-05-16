@@ -9,10 +9,9 @@
 #include <Omega_h_comm.hpp>
 #include <Omega_h_defines.hpp>
 #include <Omega_h_tag.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
-
-class Mesh;
 
 bool ends_with(std::string const& s, std::string const& suffix);
 bool is_little_endian_cpu();
@@ -42,8 +41,8 @@ void write(std::string const& path, Mesh* mesh, bool verbose = false,
 #endif
 
 namespace gmsh {
-void read(std::istream& stream, Mesh* mesh);
-void read(std::string const& filename, Mesh* mesh);
+Mesh read(std::istream& stream, CommPtr comm);
+Mesh read(std::string const& filename, CommPtr comm);
 }  // namespace gmsh
 
 namespace vtk {
@@ -98,7 +97,7 @@ I32 read_version(std::string const& path, CommPtr comm);
 void read_in_comm(
     std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
 
-constexpr I32 latest_version = 5;
+constexpr I32 latest_version = 6;
 
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian = true);
@@ -135,7 +134,7 @@ INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
 // for VTK compression headers
-extern template void swap_if_needed(std::size_t& val, bool is_little_endian);
+extern template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
 }  // namespace binary
 
 inline std::string to_string(I32 x) {

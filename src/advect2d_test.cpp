@@ -12,7 +12,6 @@ int main(int argc, char** argv) {
   auto max_metric_length = Omega_h::Real(2.8);
   Omega_h::binary::read(inpath, lib.world(), &mesh);
   mesh.balance();
-  mesh.reorder();
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto genopts = Omega_h::MetricInput();
   genopts.sources.push_back(

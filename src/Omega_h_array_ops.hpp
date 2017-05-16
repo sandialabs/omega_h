@@ -88,6 +88,9 @@ void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);
 template <typename T>
 LO find_last(Read<T> array, T value);
 
+template <typename T>
+bool is_sorted(Read<T> array);
+
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
@@ -129,7 +132,8 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
   extern template void set_component(                                          \
       Write<T> out, Read<T> a, Int ncomps, Int comp);                          \
-  extern template LO find_last(Read<T> array, T value);
+  extern template LO find_last(Read<T> array, T value);                        \
+  extern template bool is_sorted(Read<T> array);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)

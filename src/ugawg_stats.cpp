@@ -177,8 +177,8 @@ int main(int argc, char** argv) {
   if (cmdline.parsed("-f")) {
     auto qf = cmdline.get<std::string>("-f", "quality-histogram-file");
     auto lf = cmdline.get<std::string>("-f", "length-histogram-file");
-    render_histogram_matplotlib(qh, qf, "elements", "quality");
-    render_histogram_matplotlib(lh, lf, "edges", "length");
+    render_histogram_matplotlib(qh, qf);
+    render_histogram_matplotlib(lh, lf);
   } else {
     print_histogram(qh, "quality");
     print_histogram(lh, "length");

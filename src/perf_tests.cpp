@@ -169,23 +169,20 @@ static void test_sort() {
 
 static void test_invert_adj(LOs tets2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
-  Read<GO> tet_globals(ntets, 0, 1);
   Adj inv;
   Int niters = 5;
   Now t0 = now();
   for (Int i = 0; i < niters; ++i)
-    inv = invert_adj(Adj(tets2verts), 4, nverts, tet_globals);
+    inv = invert_adj(Adj(tets2verts), 4, nverts);
   Now t1 = now();
   std::cout << "inverting " << ntets << " tets -> verts " << niters
             << " times takes " << (t1 - t0) << " seconds\n";
 }
 
 static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
-  LO ntets = tets2verts.size() / 4;
-  LO ntris = tris2verts.size() / 3;
+  LO ntets = divide_no_remainder(tets2verts.size(), 4);
   Int niters = 2;
-  Adj verts2tris =
-      invert_adj(Adj(tris2verts), 3, nverts, Read<GO>(ntris, 0, 1));
+  Adj verts2tris = invert_adj(Adj(tris2verts), 3, nverts);
   {
     Now t0 = now();
     for (Int i = 0; i < niters; ++i)
@@ -202,14 +199,14 @@ static void test_adjs(Library* lib) {
   {
     Now t0 = now();
     auto nx = 42;
-    build_box(&mesh, 1, 1, 1, nx, nx, nx);
+    build_box_internal(&mesh, 1, 1, 1, nx, nx, nx);
     Now t1 = now();
     std::cout << "building a " << nx << 'x' << nx << 'x' << nx << " box took "
               << (t1 - t0) << " seconds\n";
   }
   {
     Now t0 = now();
-    mesh.reorder();
+    reorder_by_hilbert(&mesh);
     Now t1 = now();
     std::cout << "reordering a " << mesh.nelems() << " tet mesh took "
               << (t1 - t0) << " seconds\n";

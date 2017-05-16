@@ -46,9 +46,7 @@ void seek_line(std::istream& stream, std::string const& want) {
   OMEGA_H_CHECK(stream);
 }
 
-}  // end anonymous namespace
-
-void read(std::istream& stream, Mesh* mesh) {
+void read_internal(std::istream& stream, Mesh* mesh) {
   seek_line(stream, "$MeshFormat");
   Real format;
   Int file_type;
@@ -136,13 +134,26 @@ void read(std::istream& stream, Mesh* mesh) {
   finalize_classification(mesh);
 }
 
-void read(std::string const& filename, Mesh* mesh) {
+}  // end anonymous namespace
+
+Mesh read(std::istream& stream, CommPtr comm) {
+  auto mesh = Mesh(comm->library());
+  if (comm->rank() == 0) {
+    read_internal(stream, &mesh);
+  }
+  mesh.set_comm(comm);
+  mesh.balance();
+  return mesh;
+}
+
+Mesh read(std::string const& filename, CommPtr comm) {
   std::ifstream file(filename.c_str());
   if (!file.is_open()) {
     Omega_h_fail("couldn't open \"%s\"\n", filename.c_str());
   }
-  read(file, mesh);
+  return read(file, comm);
 }
+
 }  // namespace gmsh
 
 }  // end namespace Omega_h

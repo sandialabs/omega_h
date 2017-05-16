@@ -128,9 +128,9 @@ void write_array(
 #ifdef OMEGA_H_USE_ZLIB
   uLong source_bytes = uncompressed_bytes;
   uLong dest_bytes = ::compressBound(source_bytes);
-  auto compressed = new Bytef[dest_bytes];
+  auto compressed = new ::Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-      reinterpret_cast<const Bytef*>(uncompressed.nonnull_data()), source_bytes,
+      reinterpret_cast<const ::Bytef*>(uncompressed.nonnull_data()), source_bytes,
       Z_BEST_SPEED);
   OMEGA_H_CHECK(ret == Z_OK);
   std::string encoded = base64::encode(compressed, dest_bytes);
@@ -182,12 +182,12 @@ Read<T> read_array(
   HostWrite<T> uncompressed(size);
 #ifdef OMEGA_H_USE_ZLIB
   if (is_compressed) {
-    auto compressed = new Bytef[compressed_bytes];
+    auto compressed = new ::Bytef[compressed_bytes];
     base64::decode(encoded, compressed, compressed_bytes);
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
-    Bytef* uncompressed_ptr =
-        reinterpret_cast<Bytef*>(uncompressed.nonnull_data());
+    ::Bytef* uncompressed_ptr =
+        reinterpret_cast<::Bytef*>(uncompressed.nonnull_data());
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     if (ret != Z_OK) {

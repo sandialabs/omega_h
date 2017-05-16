@@ -24,9 +24,7 @@ void print_histogram(Histogram const& histogram, std::string const& name);
 void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     MinMax<Real> desired, MinMax<Real> actual);
 
-void render_histogram_matplotlib(Histogram const& histogram,
-    std::string const& filepath, std::string const& ents_name,
-    std::string const& var_name);
+void render_histogram_matplotlib(Histogram const& histogram, std::string const& filepath);
 
 }  // namespace Omega_h
 

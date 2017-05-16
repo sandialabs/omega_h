@@ -38,6 +38,7 @@ class Comm {
   Comm(Library* library, bool is_graph, bool sends_to_self);
 #endif
   ~Comm();
+  Library* library() const;
   I32 rank() const;
   I32 size() const;
   CommPtr dup() const;
