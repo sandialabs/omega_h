@@ -187,7 +187,7 @@ Read<T> read_array(
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
     ::Bytef* uncompressed_ptr =
-        reinterpret_cast<::Bytef*>(uncompressed.nonnull_data());
+        reinterpret_cast< ::Bytef*>(uncompressed.nonnull_data());
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     if (ret != Z_OK) {

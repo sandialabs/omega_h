@@ -196,7 +196,7 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
     ::Bytef* uncompressed_ptr =
-        reinterpret_cast<::Bytef*>(uncompressed.nonnull_data());
+        reinterpret_cast< ::Bytef*>(uncompressed.nonnull_data());
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     OMEGA_H_CHECK(ret == Z_OK);
