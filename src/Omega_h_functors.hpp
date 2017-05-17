@@ -19,12 +19,12 @@ struct StandinTraits {
 
 template <>
 struct StandinTraits<I8> {
-  typedef I64 type;
+  typedef I32 type;
 };
 
 template <>
 struct StandinTraits<I32> {
-  typedef I64 type;
+  typedef I32 type;
 };
 
 struct AndFunctor {

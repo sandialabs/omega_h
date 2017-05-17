@@ -26,8 +26,6 @@ void parallel_for(LO n, T const& f) {
 template <typename T>
 typename T::value_type parallel_reduce(LO n, T f) {
   typedef typename T::value_type VT;
-  static_assert(sizeof(VT) >= sizeof(void*),
-      "reduction value types need to be at least word-sized");
   VT result;
   f.init(result);
 #ifdef OMEGA_H_USE_KOKKOSCORE
@@ -41,8 +39,6 @@ typename T::value_type parallel_reduce(LO n, T f) {
 template <typename T>
 void parallel_scan(LO n, T f) {
   typedef typename T::value_type VT;
-  static_assert(sizeof(VT) >= sizeof(void*),
-      "reduction value types need to be at least word-sized");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (n > 0) Kokkos::parallel_scan(policy(n), f);
 #else
