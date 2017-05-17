@@ -20,6 +20,7 @@ set(Omega_h_DATA "" CACHE PATH "Path to omega_h-data test files")
 option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
 set(EGADS_PREFIX "" CACHE PATH "EGADS (or ESP) installation directory")
 option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
+message(STATUS "Omega_h_USE_Trilinos: ${Omega_h_USE_Trilinos}")
 set(Trilinos_PREFIX "" CACHE PATH "Path to Trilinos install")
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
