@@ -1,0 +1,12 @@
+%YAML 1.1
+---
+Omega_h:
+  Input File: box.osh 
+  Output File: adapted.osh
+  Metric:
+    Sources:
+      Constant:
+        Type: Constant
+        Knob: 0.5
+  Adapt:
+    Verbosity: 'Extra Stats'

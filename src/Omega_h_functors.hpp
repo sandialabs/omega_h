@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_FUNCTORS_HPP
 #define OMEGA_H_FUNCTORS_HPP
 
-#include "Omega_h_math.hpp"
+#include <Omega_h_scalar.hpp>
 
 namespace Omega_h {
 
@@ -19,12 +19,12 @@ struct StandinTraits {
 
 template <>
 struct StandinTraits<I8> {
-  typedef I64 type;
+  typedef I32 type;
 };
 
 template <>
 struct StandinTraits<I32> {
-  typedef I64 type;
+  typedef I32 type;
 };
 
 struct AndFunctor {

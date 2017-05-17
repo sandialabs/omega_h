@@ -1,0 +1,25 @@
+#ifndef XML_HPP
+#define XML_HPP
+
+#include <iosfwd>
+#include <map>
+#include <string>
+
+namespace Omega_h {
+
+namespace xml {
+
+struct Tag {
+  std::string elem_name;
+  enum { START, END, SELF_CLOSING } type;
+  std::map<std::string, std::string> attribs;
+};
+
+bool parse_tag(std::string const& line, xml::Tag* tag_out);
+
+xml::Tag read_tag(std::istream& stream);
+}  // namespace xml
+
+}  // end namespace Omega_h
+
+#endif

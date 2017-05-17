@@ -1,6 +1,6 @@
 #include "Omega_h.hpp"
-#include "Omega_h_math.hpp"
-#include "loop.hpp"
+#include "Omega_h_array_ops.hpp"
+#include "Omega_h_bbox.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
   auto dim = mesh.dim();
   auto coords = mesh.coords();
   auto bb = Omega_h::get_bounding_box<3>(&mesh);
-  auto analytic_size_w = Omega_h::Write<Omega_h::Real>(mesh.nverts());
-  auto f = LAMBDA(Omega_h::LO v) {
+  auto analytic_metric_w = Omega_h::Write<Omega_h::Real>(mesh.nverts());
+  auto f = OMEGA_H_LAMBDA(Omega_h::LO v) {
     auto z = coords[v * dim + (dim - 1)];
     auto minz = bb.min[dim - 1];
     auto maxz = bb.max[dim - 1];
@@ -47,19 +47,18 @@ int main(int argc, char** argv) {
     auto bot_h = -2.0 * z_norm + 1.0;
     auto top_h = 2.0 * z_norm + 1.0;
     auto h = Omega_h::max2(bot_h, top_h);
-    analytic_size_w[v] = h;
+    analytic_metric_w[v] = Omega_h::metric_eigenvalue_from_length(h);
   };
   Omega_h::parallel_for(mesh.nverts(), f);
-  auto analytic_size = Omega_h::Reals(analytic_size_w);
+  auto analytic_metric = Omega_h::Reals(analytic_metric_w);
   Omega_h::vtk::Writer writer;
-  if (vtk_path) writer = Omega_h::vtk::Writer(&mesh, vtk_path, dim);
-  mesh.add_tag(
-      Omega_h::VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, analytic_size);
+  if (vtk_path) writer = Omega_h::vtk::Writer(vtk_path, &mesh);
+  mesh.add_tag(Omega_h::VERT, "metric", 1, analytic_metric);
   if (vtk_path) writer.write();
-  auto scalar =
-      Omega_h::size_scalar_for_nelems(&mesh, analytic_size, target_nelems);
-  auto scaled_size = Omega_h::multiply_each_by(scalar, analytic_size);
-  mesh.set_tag(Omega_h::VERT, "size", scaled_size);
+  auto scalar = Omega_h::get_metric_scalar_for_nelems(
+      &mesh, analytic_metric, target_nelems);
+  auto scaled_metric = Omega_h::multiply_each_by(scalar, analytic_metric);
+  mesh.set_tag(Omega_h::VERT, "metric", scaled_metric);
   auto imb = mesh.imbalance();
   if (!mesh.comm()->rank()) std::cout << "imbalance on input " << imb << '\n';
   if (vtk_path) writer.write();
@@ -80,6 +79,6 @@ int main(int argc, char** argv) {
   if (!mesh.comm()->rank())
     std::cout << "imbalance after post-balance " << imb << '\n';
   if (vtk_path) writer.write();
-  mesh.remove_tag(Omega_h::VERT, "size");
+  mesh.remove_tag(Omega_h::VERT, "metric");
   Omega_h::binary::write(path_out, &mesh);
 }

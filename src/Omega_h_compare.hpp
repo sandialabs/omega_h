@@ -1,13 +1,17 @@
 #ifndef OMEGA_H_COMPARE_HPP
 #define OMEGA_H_COMPARE_HPP
 
-#include "Omega_h.hpp"
+#include <map>
+
 #include "Omega_h_cmdline.hpp"
+#include "Omega_h_comm.hpp"
 
 namespace Omega_h {
 
+class Mesh;
+
 struct VarCompareOpts {
-  enum { NONE, RELATIVE, ABSOLUTE } kind;
+  enum { NONE, RELATIVE, ABSOLUTE } type;
   Real tolerance;
   Real floor;
   static VarCompareOpts zero_tolerance();
@@ -27,7 +31,7 @@ bool compare_real(Real a, Real b, VarCompareOpts opts);
 
 template <typename T>
 bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts,
-    Int ncomps, Int dim);
+    Int ncomps, Int dim, bool verbose = true);
 
 Omega_h_Comparison compare_meshes(Mesh* a, Mesh* b, MeshCompareOpts const& opts,
     bool verbose, bool full = true);
@@ -44,7 +48,7 @@ void accept_diff_program_cmdline(CmdLine const& cmdline, Mesh const* mesh,
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b,      \
-      VarCompareOpts opts, Int ncomps, Int dim);
+      VarCompareOpts opts, Int ncomps, Int dim, bool verbose);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)

@@ -3,16 +3,14 @@
 #include <iostream>
 #include <random>
 
-#include "access.hpp"
-#include "adjacency.hpp"
-#include "array.hpp"
-#include "eigen.hpp"
-#include "internal.hpp"
-#include "loop.hpp"
-#include "metric.hpp"
-#include "sort.hpp"
-#include "space.hpp"
-#include "timer.hpp"
+#include "Omega_h_array_ops.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_eigen.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_metric.hpp"
+#include "Omega_h_sort.hpp"
+#include "Omega_h_timer.hpp"
 
 using namespace Omega_h;
 
@@ -38,7 +36,7 @@ static Reals random_metrics() {
   Reals alphas = random_reals(nelems, 0, PI / 2);
   Reals betas = random_reals(nelems, 0, PI / 2);
   Write<Real> write_metrics(nelems * 6);
-  auto f0 = LAMBDA(Int i) {
+  auto f0 = OMEGA_H_LAMBDA(Int i) {
     auto r = rotate(alphas[i], vector_3(0, 0, 1)) *
              rotate(betas[i], vector_3(0, 1, 0));
     auto m = compose_metric(r, vector_3(1., 1., 1.0 / anisotropy));
@@ -52,7 +50,7 @@ static void test_metric_decompose(Reals metrics) {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_eigenvs(nelems);
-  auto f1 = LAMBDA(Int i) {
+  auto f1 = OMEGA_H_LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
     auto l = decompose_eigen(m).l;
     auto eigenv = max2(max2(l[0], l[1]), l[2]);
@@ -64,14 +62,15 @@ static void test_metric_decompose(Reals metrics) {
   Now t1 = now();
   std::cout << "eigendecomposition of " << nelems << " metric tensors "
             << niters << " times takes " << (t1 - t0) << " seconds\n";
-  CHECK(are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
+  OMEGA_H_CHECK(
+      are_close(Reals(write_eigenvs), Reals(nelems, square(anisotropy))));
 }
 
 static void test_metric_invert(Reals metrics) {
   /* now, decompose the metrics and get the largest
      eigenvalue of each */
   Write<Real> write_vals(nelems);
-  auto f1 = LAMBDA(Int i) {
+  auto f1 = OMEGA_H_LAMBDA(Int i) {
     auto m = get_symm<3>(metrics, i);
     auto inv = invert(m);
     write_vals[i] = max_norm(inv);
@@ -126,16 +125,16 @@ static void test_repro_sum() {
     std::cout << "adding " << nelems << " reals " << niters << " times "
               << "takes " << (t1 - t0) << " seconds\n";
   }
-  CHECK(are_close(s, rs));
+  OMEGA_H_CHECK(are_close(s, rs));
   Read<Int> p = random_perm(nelems);
   Write<Real> write_shuffled(nelems);
-  auto f = LAMBDA(Int i) { write_shuffled[i] = inputs[p[i]]; };
+  auto f = OMEGA_H_LAMBDA(Int i) { write_shuffled[i] = inputs[p[i]]; };
   parallel_for(nelems, f);
   Reals shuffled(write_shuffled);
   Real rs2 = repro_sum(shuffled);
   Real s2 = get_sum(shuffled);
-  CHECK(are_close(s2, rs2));
-  CHECK(rs == rs2); /* bitwise reproducibility ! */
+  OMEGA_H_CHECK(are_close(s2, rs2));
+  OMEGA_H_CHECK(rs == rs2); /* bitwise reproducibility ! */
   if (s == s2) std::cerr << "warning: the naive sum gave the same answer\n";
 }
 
@@ -170,23 +169,19 @@ static void test_sort() {
 
 static void test_invert_adj(LOs tets2verts, LO nverts) {
   LO ntets = tets2verts.size() / 4;
-  Read<GO> tet_globals(ntets, 0, 1);
   Adj inv;
   Int niters = 5;
   Now t0 = now();
-  for (Int i = 0; i < niters; ++i)
-    inv = invert_adj(Adj(tets2verts), 4, nverts, tet_globals);
+  for (Int i = 0; i < niters; ++i) inv = invert_adj(Adj(tets2verts), 4, nverts);
   Now t1 = now();
   std::cout << "inverting " << ntets << " tets -> verts " << niters
             << " times takes " << (t1 - t0) << " seconds\n";
 }
 
 static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
-  LO ntets = tets2verts.size() / 4;
-  LO ntris = tris2verts.size() / 3;
+  LO ntets = divide_no_remainder(tets2verts.size(), 4);
   Int niters = 2;
-  Adj verts2tris =
-      invert_adj(Adj(tris2verts), 3, nverts, Read<GO>(ntris, 0, 1));
+  Adj verts2tris = invert_adj(Adj(tris2verts), 3, nverts);
   {
     Now t0 = now();
     for (Int i = 0; i < niters; ++i)
@@ -203,14 +198,14 @@ static void test_adjs(Library* lib) {
   {
     Now t0 = now();
     auto nx = 42;
-    build_box(&mesh, 1, 1, 1, nx, nx, nx);
+    build_box_internal(&mesh, 1, 1, 1, nx, nx, nx);
     Now t1 = now();
     std::cout << "building a " << nx << 'x' << nx << 'x' << nx << " box took "
               << (t1 - t0) << " seconds\n";
   }
   {
     Now t0 = now();
-    mesh.reorder();
+    reorder_by_hilbert(&mesh);
     Now t1 = now();
     std::cout << "reordering a " << mesh.nelems() << " tet mesh took "
               << (t1 - t0) << " seconds\n";

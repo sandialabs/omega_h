@@ -1,98 +1,90 @@
 set(Omega_h_SOURCES
   Omega_h_c.cpp
-  algebra.cpp
   Omega_h_control.cpp
-  timer.cpp
+  Omega_h_timer.cpp
   Omega_h_array.cpp
-  int128.cpp
-  repro.cpp
-  sort.cpp
-  scan.cpp
-  indset.cpp
-  map.cpp
-  simplices.cpp
-  form_uses.cpp
-  find_unique.cpp
-  invert_adj.cpp
-  reflect_down.cpp
-  transit.cpp
-  tag.cpp
-  mesh.cpp
-  bbox.cpp
-  hilbert.cpp
-  construct.cpp
-  graph.cpp
-  star.cpp
-  file.cpp
-  base64.cpp
-  vtk.cpp
-  simplify.cpp
-  box.cpp
-  surface.cpp
-  mark.cpp
-  classify.cpp
-  reorder.cpp
-  size.cpp
-  access.cpp
-  quality.cpp
-  gmsh.cpp
-  comm.cpp
-  remotes.cpp
-  dist.cpp
-  linpart.cpp
-  owners.cpp
-  migrate.cpp
-  bcast.cpp
-  unmap_mesh.cpp
-  ghost.cpp
-  inertia.cpp
-  bipart.cpp
-  metric.cpp
-  refine_qualities.cpp
-  refine_topology.cpp
-  modify.cpp
-  refine.cpp
-  transfer.cpp
-  transfer_conserve.cpp
+  Omega_h_array_ops.cpp
+  Omega_h_vector.cpp
+  Omega_h_matrix.cpp
+  Omega_h_map.cpp
+  Omega_h_scan.cpp
+  Omega_h_sort.cpp
+  Omega_h_int128.cpp
+  Omega_h_indset.cpp
+  Omega_h_simplex.cpp
+  Omega_h_adj.cpp
+  Omega_h_tag.cpp
+  Omega_h_mesh.cpp
+  Omega_h_bbox.cpp
+  Omega_h_hilbert.cpp
+  Omega_h_build.cpp
+  Omega_h_graph.cpp
+  Omega_h_file.cpp
+  Omega_h_base64.cpp
+  Omega_h_vtk.cpp
+  Omega_h_simplify.cpp
+  Omega_h_box.cpp
+  Omega_h_surface.cpp
+  Omega_h_mark.cpp
+  Omega_h_class.cpp
+  Omega_h_reorder.cpp
+  Omega_h_shape.cpp
+  Omega_h_quality.cpp
+  Omega_h_gmsh.cpp
+  Omega_h_comm.cpp
+  Omega_h_remotes.cpp
+  Omega_h_dist.cpp
+  Omega_h_linpart.cpp
+  Omega_h_owners.cpp
+  Omega_h_migrate.cpp
+  Omega_h_bcast.cpp
+  Omega_h_unmap_mesh.cpp
+  Omega_h_ghost.cpp
+  Omega_h_inertia.cpp
+  Omega_h_bipart.cpp
+  Omega_h_metric.cpp
+  Omega_h_refine_qualities.cpp
+  Omega_h_refine_topology.cpp
+  Omega_h_modify.cpp
+  Omega_h_refine.cpp
+  Omega_h_transfer.cpp
+  Omega_h_conserve.cpp
   Omega_h_compare.cpp
-  check_collapse.cpp
-  coarsen_qualities.cpp
-  coarsen_topology.cpp
-  coarsen.cpp
-  approach.cpp
-  laplace.cpp
-  adapt.cpp
-  swap.cpp
-  swap2d_qualities.cpp
-  swap2d_topology.cpp
-  swap2d.cpp
-  swap3d_qualities.cpp
-  swap3d_topology.cpp
-  swap3d.cpp
-  regress.cpp
-  consistent.cpp
-  align.cpp
-  xml.cpp
-  derive.cpp
-  project.cpp
-  buffered_graphs.cpp
+  Omega_h_check_collapse.cpp
+  Omega_h_coarsen_qualities.cpp
+  Omega_h_coarsen_topology.cpp
+  Omega_h_coarsen.cpp
+  Omega_h_approach.cpp
+  Omega_h_laplace.cpp
+  Omega_h_adapt.cpp
+  Omega_h_swap.cpp
+  Omega_h_swap2d_qualities.cpp
+  Omega_h_swap2d_topology.cpp
+  Omega_h_swap2d.cpp
+  Omega_h_swap3d_qualities.cpp
+  Omega_h_swap3d_topology.cpp
+  Omega_h_swap3d.cpp
+  Omega_h_regress.cpp
+  Omega_h_consistent.cpp
+  Omega_h_align.cpp
+  Omega_h_xml.cpp
+  Omega_h_recover.cpp
   Omega_h_coarsen_overshoot.cpp
-  collapse_rail.cpp
-  histogram.cpp
-  eigen.cpp
+  Omega_h_collapse_rail.cpp
+  Omega_h_histogram.cpp
+  Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
   Omega_h_proximity.cpp
   Omega_h_motion_choices.cpp
   Omega_h_motion_transfer.cpp
   Omega_h_motion.cpp
+  Omega_h_metric_input.cpp
+  Omega_h_assoc.cpp
   )
 
-set(libMeshb_REQUIRED_VERSION 7.24)
-set(Omega_h_USE_libMeshb_DEFAULT OFF)
-bob_public_dep(libMeshb)
 if(Omega_h_USE_libMeshb)
-  set(Omega_h_SOURCES ${Omega_h_SOURCES} meshb.cpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshb.cpp)
 endif()
 
 if(Omega_h_USE_EGADS)
@@ -120,6 +112,14 @@ if(Omega_h_USE_EGADS)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
 endif()
 
+if(Omega_h_USE_SEACASExodus)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
+endif()
+
+if(USE_TEUCHOS)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
+endif()
+
 if(Omega_h_ONE_FILE)
   foreach(source IN LISTS Omega_h_SOURCES)
     set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
@@ -130,13 +130,12 @@ else()
   add_library(omega_h ${Omega_h_SOURCES})
 endif()
 
-target_include_directories(omega_h
-    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-#for users to find all our headers after we're installed:
-target_include_directories(omega_h INTERFACE $<INSTALL_INTERFACE:include>)
-#find our generated omega_h_config.h, during build only
-target_include_directories(omega_h
-    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+bob_library_includes(omega_h)
+
+if(Omega_h_USE_KokkosCore)
+  target_link_libraries(omega_h PUBLIC kokkoscore)
+  target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
+endif()
 
 if(Omega_h_USE_libMeshb)
   target_link_libraries(omega_h PUBLIC libMeshb::Meshb.7)
@@ -147,23 +146,32 @@ if(Omega_h_USE_EGADS)
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
 endif()
 
-bob_export_target(omega_h)
-
-set(Omega_h_USE_Kokkos_DEFAULT OFF)
-bob_public_dep(Kokkos)
-if(Omega_h_USE_Kokkos)
-  get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
-  message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
-  get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
-  if(kokkoscore_LINK)
-    message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
-  endif()
-  target_link_libraries(omega_h PUBLIC kokkoscore)
-  target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
+if(Omega_h_USE_SEACASExodus)
+  target_link_libraries(omega_h PUBLIC exodus)
+  target_include_directories(omega_h
+      PRIVATE ${SEACASExodus_TPL_INCLUDE_DIRS})
+  target_link_libraries(omega_h
+      PUBLIC ${SEACASExodus_TPL_LIBRARIES})
 endif()
 
-set(Omega_h_USE_ZLIB_DEFAULT ON)
-bob_public_dep(ZLIB)
+if(Omega_h_USE_TeuchosParameterList)
+  target_link_libraries(omega_h PUBLIC teuchosparameterlist)
+  target_include_directories(omega_h
+      PUBLIC ${TeuchosParameterList_TPL_INCLUDE_DIRS})
+  target_link_libraries(omega_h
+      PUBLIC ${TeuchosParameterList_TPL_LIBRARIES})
+endif()
+
+if(Omega_h_USE_TeuchosComm)
+  target_link_libraries(omega_h PUBLIC teuchoscomm)
+  target_include_directories(omega_h
+      PUBLIC ${TeuchosComm_TPL_INCLUDE_DIRS})
+  target_link_libraries(omega_h
+      PUBLIC ${TeuchosComm_TPL_LIBRARIES})
+endif()
+
+bob_export_target(omega_h)
+
 if(Omega_h_USE_ZLIB)
   message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
   # The ZLIB::ZLIB imported target is not present in CMake 3.0.0
@@ -192,15 +200,20 @@ osh_add_util(vtkdiff)
 osh_add_util(osh_box)
 osh_add_util(osh_part)
 osh_add_util(osh_scale)
+osh_add_util(osh_reorder)
 if(Omega_h_USE_libMeshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
   osh_add_util(ugawg_stats)
 endif()
-
-set(Gmodel_REQUIRED_VERSION 2.1.0)
-set(Omega_h_USE_Gmodel_DEFAULT OFF)
-bob_private_dep(Gmodel)
+if(Omega_h_USE_SEACASExodus)
+  osh_add_util(exo2osh)
+  osh_add_util(osh2exo)
+endif()
+if(USE_TEUCHOS)
+  osh_add_util(osh_adapt)
+  osh_add_util(osh_copy_params)
+endif()
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
@@ -293,8 +306,8 @@ if(BUILD_TESTING)
   osh_add_exe(aniso_test)
   test_func(run_aniso_test 1 ./aniso_test)
   osh_add_exe(imr_cases)
+  osh_add_exe(curvature_test)
   if(Omega_h_DATA)
-    osh_add_exe(curvature_test)
     set(TEST_EXES ${TEST_EXES} curvature_test)
     test_func(ring_curvature 1 ./curvature_test
               ${Omega_h_DATA} ring)
@@ -323,34 +336,20 @@ if(BUILD_TESTING)
   if(Omega_h_DATA)
     set(TEST_EXES ${TEST_EXES} advect2d_test)
     test_func(advect2d_serial 1 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
-    test_func(advect2d_parallel 2 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
+    if(Omega_h_USE_MPI)
+      test_func(advect2d_parallel 2 ./advect2d_test ${Omega_h_DATA}/advect2d.osh)
+    endif()
   endif()
   add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
       DEPENDS ${TEST_EXES})
+  osh_add_exe(1d_test)
+  test_func(serial_1d_test 1 ./1d_test)
+  if(Omega_h_USE_MPI)
+    test_func(parallel_1d_test 2 ./1d_test)
+  endif()
 endif()
 
-set(DEF_VARS
-    VERSION_MAJOR
-    VERSION_MINOR
-    VERSION_PATCH
-    USE_MPI
-    USE_Kokkos
-    USE_OpenMP
-    USE_CUDA
-    USE_ZLIB
-    USE_libMeshb
-    USE_EGADS
-    CHECK_BOUNDS
-    PROTECT
-    )
-foreach(def_var IN LISTS DEF_VARS)
-  string(TOUPPER "Omega_h_${def_var}" uppercase_var)
-  set(${uppercase_var} ${Omega_h_${def_var}})
-endforeach()
-configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/Omega_h_config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
-
+bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
 set(Omega_h_HEADERS
   "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h"
   Omega_h_macros.h
@@ -360,9 +359,46 @@ set(Omega_h_HEADERS
   Omega_h_defines.hpp
   Omega_h_array.hpp
   Omega_h.hpp
-  Omega_h_math.hpp
+  Omega_h_vector.hpp
+  Omega_h_matrix.hpp
   Omega_h_functors.hpp
+  Omega_h_array_ops.hpp
+  Omega_h_graph.hpp
+  Omega_h_map.hpp
+  Omega_h_tag.hpp
+  Omega_h_int128.hpp
+  Omega_h_comm.hpp
+  Omega_h_remotes.hpp
+  Omega_h_dist.hpp
+  Omega_h_adj.hpp
+  Omega_h_library.hpp
+  Omega_h_mesh.hpp
+  Omega_h_file.hpp
+  Omega_h_adapt.hpp
+  Omega_h_build.hpp
+  Omega_h_class.hpp
+  Omega_h_scalar.hpp
+  Omega_h_align.hpp
+  Omega_h_few.hpp
+  Omega_h_mark.hpp
+  Omega_h_loop.hpp
+  Omega_h_timer.hpp
+  Omega_h_eigen.hpp
+  Omega_h_lie.hpp
+  Omega_h_recover.hpp
+  Omega_h_metric.hpp
+  Omega_h_assoc.hpp
+  Omega_h_cmdline.hpp
+  Omega_h_compare.hpp
+  Omega_h_simplex.hpp
+  Omega_h_qr.hpp
+  Omega_h_shape.hpp
+  Omega_h_quality.hpp
   )
+
+if(USE_TEUCHOS)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_teuchos.hpp)
+endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
 

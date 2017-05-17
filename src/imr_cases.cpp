@@ -1,10 +1,12 @@
-#include "access.hpp"
-#include "internal.hpp"
-#include "laplace.hpp"
-#include "loop.hpp"
-#include "map.hpp"
-#include "space.hpp"
-#include "timer.hpp"
+#include "Omega_h_adapt.hpp"
+#include "Omega_h_file.hpp"
+#include "Omega_h_laplace.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_metric.hpp"
+#include "Omega_h_timer.hpp"
+#include "Omega_h_vector.hpp"
 
 #include <iostream>
 #include <set>
@@ -22,7 +24,7 @@ struct Case {
 Case::~Case() {}
 
 struct TranslateBall : public Case {
-  ~TranslateBall();
+  ~TranslateBall() override;
   virtual const char* file_name() const override { return "ball_in_cube.msh"; }
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72});
@@ -36,7 +38,9 @@ struct TranslateBall : public Case {
   }
   static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0.02, 0, 0)); };
+    auto f = OMEGA_H_LAMBDA(LO ov) {
+      set_vector<3>(out, ov, vector_3(0.02, 0, 0));
+    };
     parallel_for(ov2v.size(), f);
     return out;
   }
@@ -45,7 +49,7 @@ struct TranslateBall : public Case {
 TranslateBall::~TranslateBall() {}
 
 struct RotateBall : public Case {
-  ~RotateBall();
+  ~RotateBall() override;
   virtual const char* file_name() const override { return "ball_in_cube.msh"; }
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72});
@@ -60,7 +64,7 @@ struct RotateBall : public Case {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
     auto rot = rotate(PI / 16, vector_3(0, 0, 1));
-    auto f = LAMBDA(LO ov) {
+    auto f = OMEGA_H_LAMBDA(LO ov) {
       auto v = ov2v[ov];
       auto x = get_vector<3>(coords, v);
       auto mid = vector_3(.5, .5, 0);
@@ -77,7 +81,7 @@ struct RotateBall : public Case {
 RotateBall::~RotateBall() {}
 
 struct CollideBalls : public Case {
-  ~CollideBalls();
+  ~CollideBalls() override;
   virtual const char* file_name() const override { return "balls_in_box.msh"; }
   virtual std::vector<I32> objects() const override {
     return std::vector<I32>({72, 110});
@@ -90,7 +94,7 @@ struct CollideBalls : public Case {
   }
   static Reals static_motion(I32 object, LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = LAMBDA(LO ov) {
+    auto f = OMEGA_H_LAMBDA(LO ov) {
       if (object == 72) {
         set_vector<3>(out, ov, vector_3(0, 0, 0.02));
       } else {
@@ -105,7 +109,7 @@ struct CollideBalls : public Case {
 CollideBalls::~CollideBalls() {}
 
 struct CylinderTube : public Case {
-  ~CylinderTube();
+  ~CylinderTube() override;
   virtual const char* file_name() const override {
     return "cylinder_thru_tube.msh";
   }
@@ -121,7 +125,9 @@ struct CylinderTube : public Case {
   }
   static Reals static_motion(LOs ov2v) {
     auto out = Write<Real>(ov2v.size() * 3);
-    auto f = LAMBDA(LO ov) { set_vector<3>(out, ov, vector_3(0, 0, 0.02)); };
+    auto f = OMEGA_H_LAMBDA(LO ov) {
+      set_vector<3>(out, ov, vector_3(0, 0, 0.02));
+    };
     parallel_for(ov2v.size(), f);
     return out;
   }
@@ -133,7 +139,7 @@ struct TwinRotor : public Case {
   std::set<I32> assembly0;
   std::set<I32> assembly1;
   TwinRotor() : assembly0({66, 98, 126}), assembly1({254, 253, 252}) {}
-  ~TwinRotor();
+  ~TwinRotor() override;
   virtual const char* file_name() const override { return "twin_rotor.msh"; }
   virtual std::vector<I32> objects() const override {
     std::vector<I32> out;
@@ -161,7 +167,7 @@ struct TwinRotor : public Case {
     auto coords = m->coords();
     auto out = Write<Real>(ov2v.size() * 3);
     auto rm = rotate(dir * PI / 32, vector_3(0, 0, 1));
-    auto f = LAMBDA(LO ov) {
+    auto f = OMEGA_H_LAMBDA(LO ov) {
       auto v = ov2v[ov];
       auto x = get_vector<3>(coords, v);
       set_vector(out, ov, ((rm * (x - center)) + center) - x);
@@ -177,7 +183,7 @@ static void run_case(Library* lib, Case const& c, Int niters) {
   if (niters == -1) {
     niters = c.time_steps();
   } else {
-    CHECK(niters >= 0);
+    OMEGA_H_CHECK(niters >= 0);
     if (niters > c.time_steps()) {
       std::cerr << "warning: requesting " << niters
                 << " time steps but the case is designed for " << c.time_steps()
@@ -185,19 +191,13 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     }
   }
   auto world = lib->world();
-  Mesh mesh(lib);
-  if (world->rank() == 0) {
-    gmsh::read(c.file_name(), &mesh);
-  }
-  mesh.set_comm(world);
-  mesh.balance();
-  mesh.reorder();
+  auto mesh = gmsh::read(c.file_name(), world);
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
-    auto size = find_implied_size(&mesh);
-    mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
+    auto metrics = get_implied_isos(&mesh);
+    mesh.add_tag(VERT, "metric", 1, metrics);
   }
-  vtk::Writer writer(&mesh, "out", mesh.dim());
+  vtk::Writer writer("out", &mesh);
   writer.write();
   Now t0 = now();
   for (Int step = 0; step < niters; ++step) {
@@ -213,11 +213,10 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     }
     auto motion = Reals(motion_w);
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
-    mesh.add_tag(VERT, "warp", mesh.dim(), OMEGA_H_LINEAR_INTERP,
-        OMEGA_H_DO_OUTPUT, motion);
-    auto size = mesh.get_array<Real>(VERT, "size");
-    size = solve_laplacian(&mesh, size, 1, 1e-2);
-    mesh.set_tag(VERT, "size", size);
+    mesh.add_tag(VERT, "warp", mesh.dim(), motion);
+    auto metrics = mesh.get_array<Real>(VERT, "metric");
+    metrics = solve_laplacian(&mesh, metrics, 1, 1e-2);
+    mesh.set_tag(VERT, "metric", metrics);
     auto opts = AdaptOpts(&mesh);
     opts.min_length_desired = 0.5;
     opts.max_length_desired = 1.5;

@@ -3,7 +3,7 @@
 
 #include <Omega_h_c.h>
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 
 OMEGA_H_SYSTEM_HEADER
 
@@ -18,13 +18,17 @@ OMEGA_H_SYSTEM_HEADER
 #pragma GCC diagnostic pop
 #endif
 
-#endif  // OMEGA_H_USE_KOKKOS
+#if defined(KOKKOS_HAVE_CUDA) && !defined(OMEGA_H_USE_CUDA)
+#error "Kokkos has CUDA, please reconfigure with Omega_h_USE_CUDA=ON"
+#endif
 
-#ifdef OMEGA_H_USE_KOKKOS
+#endif  // OMEGA_H_USE_KOKKOSCORE
+
+#ifdef OMEGA_H_USE_KOKKOSCORE
 #define OMEGA_H_INLINE KOKKOS_INLINE_FUNCTION
 #else
 #define OMEGA_H_INLINE inline
-#endif  // OMEGA_H_USE_KOKKOS
+#endif  // OMEGA_H_USE_KOKKOSCORE
 
 #ifdef OMEGA_H_USE_CUDA
 #define OMEGA_H_DEVICE __device__ inline
@@ -33,5 +37,11 @@ OMEGA_H_SYSTEM_HEADER
 #define OMEGA_H_DEVICE inline
 #define OMEGA_H_LAMBDA [=]
 #endif  // OMEGA_H_USE_CUDA
+
+#ifdef OMEGA_H_USE_CUDA
+#define OMEGA_H_CONSTANT_DATA __constant__
+#else
+#define OMEGA_H_CONSTANT_DATA
+#endif
 
 #endif

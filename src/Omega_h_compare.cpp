@@ -1,18 +1,17 @@
 #include "Omega_h_compare.hpp"
-#include "internal.hpp"
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
+#include "Omega_h_array_ops.hpp"
 #include "Omega_h_cmdline.hpp"
-#include "algebra.hpp"
-#include "array.hpp"
-#include "linpart.hpp"
-#include "map.hpp"
-#include "owners.hpp"
-#include "simplices.hpp"
+#include "Omega_h_linpart.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_owners.hpp"
+#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 
@@ -53,13 +52,14 @@ MeshCompareOpts MeshCompareOpts::init(
 template <typename T>
 struct CompareArrays {
   static bool compare(
-      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts, Int, Int) {
+      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts, Int, Int, bool) {
+    if (opts.type == VarCompareOpts::NONE) return true;
     return comm->reduce_and(a == b);
   }
 };
 
 Real get_real_diff(Real a, Real b, VarCompareOpts opts) {
-  if (opts.kind == VarCompareOpts::RELATIVE) {
+  if (opts.type == VarCompareOpts::RELATIVE) {
     return rel_diff_with_floor(a, b, opts.floor);
   } else {
     return fabs(a - b);
@@ -73,14 +73,16 @@ bool compare_real(Real a, Real b, VarCompareOpts opts) {
 template <>
 struct CompareArrays<Real> {
   static bool compare(CommPtr comm, Read<Real> a, Read<Real> b,
-      VarCompareOpts opts, Int ncomps, Int dim) {
+      VarCompareOpts opts, Int ncomps, Int dim, bool verbose) {
+    if (opts.type == VarCompareOpts::NONE) return true;
     auto tol = opts.tolerance;
     auto floor = opts.floor;
-    if (opts.kind == VarCompareOpts::RELATIVE) {
+    if (opts.type == VarCompareOpts::RELATIVE) {
       if (comm->reduce_and(are_close(a, b, tol, floor))) return true;
     } else {
       if (comm->reduce_and(are_close_abs(a, b, tol))) return true;
     }
+    if (!verbose) return false;
     /* if floating point arrays are different, we find the value with the
        largest relative difference and print it out for users to determine
        whether this is actually a serious regression
@@ -122,34 +124,36 @@ struct CompareArrays<Real> {
 
 template <typename T>
 bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts,
-    Int ncomps, Int dim) {
-  return CompareArrays<T>::compare(comm, a, b, opts, ncomps, dim);
+    Int ncomps, Int dim, bool verbose) {
+  return CompareArrays<T>::compare(comm, a, b, opts, ncomps, dim, verbose);
 }
 
 template <typename T>
 static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
-    Read<T> b_data, Dist b_dist, Int ncomps, VarCompareOpts opts) {
-  if (opts.kind == VarCompareOpts::NONE) return true;
+    Read<T> b_data, Dist b_dist, Int ncomps, VarCompareOpts opts,
+    bool verbose) {
+  if (opts.type == VarCompareOpts::NONE) return true;
   auto a_lin_data = reduce_data_to_owners(a_data, a_dist, ncomps);
   auto b_lin_data = reduce_data_to_owners(b_data, b_dist, ncomps);
-  CHECK(a_lin_data.size() == b_lin_data.size());
+  OMEGA_H_CHECK(a_lin_data.size() == b_lin_data.size());
   auto comm = a_dist.parent_comm();
-  auto ret = compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim);
+  auto ret =
+      compare_arrays(comm, a_lin_data, b_lin_data, opts, ncomps, dim, verbose);
   return ret;
 }
 
 static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
   auto low_dim = ((full) ? (dim - 1) : (VERT));
   auto h2l = mesh->ask_down(dim, low_dim);
-  auto l_globals = mesh->ask_globals(low_dim);
+  auto l_globals = mesh->globals(low_dim);
   auto hl2l_globals = unmap(h2l.ab2b, l_globals, 1);
   return hl2l_globals;
 }
 
 Omega_h_Comparison compare_meshes(
     Mesh* a, Mesh* b, MeshCompareOpts const& opts, bool verbose, bool full) {
-  CHECK(a->comm()->size() == b->comm()->size());
-  CHECK(a->comm()->rank() == b->comm()->rank());
+  OMEGA_H_CHECK(a->comm()->size() == b->comm()->size());
+  OMEGA_H_CHECK(a->comm()->rank() == b->comm()->rank());
   auto comm = a->comm();
   auto should_print = verbose && (comm->rank() == 0);
   if (a->dim() != b->dim()) {
@@ -165,15 +169,15 @@ Omega_h_Comparison compare_meshes(
       return OMEGA_H_DIFF;
     }
     if (!full && (0 < dim) && (dim < a->dim())) continue;
-    auto a_globals = a->ask_globals(dim);
-    auto b_globals = b->ask_globals(dim);
+    auto a_globals = a->globals(dim);
+    auto b_globals = b->globals(dim);
     auto a_dist = copies_to_linear_owners(comm, a_globals);
     auto b_dist = copies_to_linear_owners(comm, b_globals);
     if (dim > 0) {
       auto a_conn = get_local_conn(a, dim, full);
       auto b_conn = get_local_conn(b, dim, full);
       auto ok = compare_copy_data(dim, a_conn, a_dist, b_conn, b_dist, dim + 1,
-          VarCompareOpts::zero_tolerance());
+          VarCompareOpts::zero_tolerance(), verbose);
       if (!ok) {
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
@@ -199,19 +203,19 @@ Omega_h_Comparison compare_meshes(
       switch (tag->type()) {
         case OMEGA_H_I8:
           ok = compare_copy_data(dim, a->get_array<I8>(dim, name), a_dist,
-              b->get_array<I8>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<I8>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
         case OMEGA_H_I32:
           ok = compare_copy_data(dim, a->get_array<I32>(dim, name), a_dist,
-              b->get_array<I32>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<I32>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
         case OMEGA_H_I64:
           ok = compare_copy_data(dim, a->get_array<I64>(dim, name), a_dist,
-              b->get_array<I64>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<I64>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
         case OMEGA_H_F64:
           ok = compare_copy_data(dim, a->get_array<Real>(dim, name), a_dist,
-              b->get_array<Real>(dim, name), b_dist, ncomps, tag_opts);
+              b->get_array<Real>(dim, name), b_dist, ncomps, tag_opts, verbose);
           break;
       }
       if (!ok) {
@@ -261,7 +265,7 @@ static VarCompareOpts parse_compare_opts(std::vector<std::string> const& tokens,
   auto opts = default_opts;
   if (start == tokens.size()) return opts;
   if (tokens[start] == "relative") {
-    opts.kind = VarCompareOpts::RELATIVE;
+    opts.type = VarCompareOpts::RELATIVE;
     if (start + 1 == tokens.size()) {
       Omega_h_fail(
           "\"relative\" with no value at %s +%d\n", path.c_str(), linenum);
@@ -275,7 +279,7 @@ static VarCompareOpts parse_compare_opts(std::vector<std::string> const& tokens,
       opts.floor = atof(tokens[start + 3].c_str());
     }
   } else if (tokens[start] == "absolute") {
-    opts.kind = VarCompareOpts::ABSOLUTE;
+    opts.type = VarCompareOpts::ABSOLUTE;
     if (start + 1 == tokens.size()) {
       Omega_h_fail(
           "\"absolute\" with no value at %s +%d\n", path.c_str(), linenum);
@@ -403,7 +407,7 @@ void accept_diff_program_cmdline(CmdLine const& cmdline, Mesh const* mesh,
 
 #define EXPL_INST(T)                                                           \
   template bool compare_arrays(CommPtr comm, Read<T> a, Read<T> b,             \
-      VarCompareOpts opts, Int ncomps, Int dim);
+      VarCompareOpts opts, Int ncomps, Int dim, bool verbose);
 EXPL_INST(I8)
 EXPL_INST(I32)
 EXPL_INST(I64)

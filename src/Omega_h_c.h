@@ -11,6 +11,7 @@ enum Omega_h_Type {
   OMEGA_H_I32 = 2,
   OMEGA_H_I64 = 3,
   OMEGA_H_F64 = 5,
+  OMEGA_H_REAL = OMEGA_H_F64,
 };
 
 enum { OMEGA_H_DIMS = 4 };
@@ -19,19 +20,15 @@ enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_TET = 3 };
 
 enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
-enum Omega_h_Xfer {
-  OMEGA_H_DONT_TRANSFER      = 0,
-  OMEGA_H_INHERIT            = 1,
-  OMEGA_H_LINEAR_INTERP      = 2,
-  OMEGA_H_POINTWISE          = 3,
-  OMEGA_H_CONSERVE           = 4,
-  OMEGA_H_GLOBAL             = 5,
-  OMEGA_H_LENGTH             = 6,
-  OMEGA_H_QUALITY            = 7,
-  OMEGA_H_METRIC             = 8,
-/*OMEGA_H_CONSERVE_R3D       = 9,*/
-  OMEGA_H_MOMENTUM_VELOCITY  =10,
-  OMEGA_H_SIZE               =11
+enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
+
+enum Omega_h_Transfer {
+  OMEGA_H_INHERIT,
+  OMEGA_H_LINEAR_INTERP,
+  OMEGA_H_METRIC,
+  OMEGA_H_CONSERVE,
+  OMEGA_H_MOMENTUM_VELOCITY,
+  OMEGA_H_POINTWISE,
 };
 
 enum Omega_h_Parting {
@@ -40,13 +37,29 @@ enum Omega_h_Parting {
   OMEGA_H_VERT_BASED,
 };
 
-enum Omega_h_Comparison { OMEGA_H_SAME, OMEGA_H_MORE, OMEGA_H_DIFF };
+enum Omega_h_Source {
+  OMEGA_H_CONSTANT,
+  OMEGA_H_VARIATION,
+  OMEGA_H_DERIVATIVE,
+  OMEGA_H_GIVEN,
+  OMEGA_H_IMPLIED,
+  OMEGA_H_PROXIMITY,
+  OMEGA_H_CURVATURE,
+};
 
-enum Omega_h_Outflags {
-  OMEGA_H_DONT_OUTPUT = 0x0,
-  OMEGA_H_DO_SAVE = 0x1,
-  OMEGA_H_DO_VIZ = 0x2,
-  OMEGA_H_DO_OUTPUT = OMEGA_H_DO_SAVE | OMEGA_H_DO_VIZ
+// controls the conversion of anisotropic metrics to isotropic ones
+enum Omega_h_Isotropy {
+  OMEGA_H_ANISOTROPIC, // keep anisotropy
+  OMEGA_H_ISO_LENGTH,  // use smallest length
+  OMEGA_H_ISO_SIZE,    // use equivalent volume
+};
+
+/* determines whether a metric is allowed to be scaled
+ * to satisfy an element count constraint
+ */
+enum Omega_h_Scales {
+  OMEGA_H_ABSOLUTE,
+  OMEGA_H_SCALES,
 };
 
 #ifdef __cplusplus
@@ -66,8 +79,19 @@ void Omega_h_fail(char const* format, ...)
 #define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
-  ((cond) ? ((void)0) : Omega_h_fail("assertion %s failed at %s +%d\n", #cond, \
-                            __FILE__, __LINE__))
+  ((cond) ? ((void)0)                                                          \
+          : Omega_h_fail(                                                      \
+                "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
+#endif
+
+#ifdef __clang__
+#define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
+#else
+#define OMEGA_H_NORETURN(x)                                                    \
+  do {                                                                         \
+    OMEGA_H_CHECK(false);                                                             \
+    return x;                                                                  \
+  } while (false)
 #endif
 
 #endif

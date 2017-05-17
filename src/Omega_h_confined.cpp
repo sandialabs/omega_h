@@ -1,10 +1,5 @@
 #include "Omega_h_confined.hpp"
 
-#include "access.hpp"
-#include "internal.hpp"
-#include "loop.hpp"
-#include "mark.hpp"
-
 /* Code to find classification-enforced constraints on
  * element size and shape.
  * For example, two geometric boundaries may be so close
@@ -20,7 +15,7 @@ Read<I8> find_bridge_edges(Mesh* mesh) {
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto edges_are_bridges_w = Write<I8>(mesh->nedges());
   auto edges2verts = mesh->ask_verts_of(EDGE);
-  auto f = LAMBDA(LO edge) {
+  auto f = OMEGA_H_LAMBDA(LO edge) {
     auto eev2v = gather_verts<2>(edges2verts, edge);
     auto eev2dim = gather_scalars(edges2class_dim, eev2v);
     auto edim = edges2class_dim[edge];
@@ -31,7 +26,7 @@ Read<I8> find_bridge_edges(Mesh* mesh) {
   return edges_are_bridges_w;
 }
 
-static DEVICE bool is_angle_triangle(
+static OMEGA_H_DEVICE bool is_angle_triangle(
     Few<I8, 3> vert_dims, Few<I8, 3> edge_dims, I8 tri_dim) {
   for (Int i = 0; i < 3; ++i) {
     if (vert_dims[i] > (tri_dim - 2)) continue;
@@ -49,7 +44,7 @@ Read<I8> find_angle_triangles(Mesh* mesh) {
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
   auto tris2verts = mesh->ask_down(TRI, VERT).ab2b;
   auto tris_are_angle = Write<I8>(mesh->ntris());
-  auto f = LAMBDA(LO tri) {
+  auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_down<3>(tris2verts, tri);
     auto tte2e = gather_down<3>(tris2edges, tri);
     auto ttv2dim = gather_scalars(verts2class_dim, ttv2v);
@@ -65,7 +60,7 @@ Read<I8> find_angle_elems(Mesh* mesh) {
   auto tris_are_angle = find_angle_triangles(mesh);
   if (mesh->dim() == 2) return tris_are_angle;
   if (mesh->dim() == 3) return mark_up(mesh, TRI, TET, tris_are_angle);
-  NORETURN(Read<I8>());
+  OMEGA_H_NORETURN(Read<I8>());
 }
 
 }  // end namespace Omega_h

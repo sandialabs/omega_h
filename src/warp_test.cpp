@@ -1,20 +1,20 @@
 #include <iostream>
 
+#include "Omega_h_adapt.hpp"
+#include "Omega_h_array_ops.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_class.hpp"
 #include "Omega_h_compare.hpp"
-#include "access.hpp"
-#include "array.hpp"
-#include "internal.hpp"
-#include "loop.hpp"
-#include "size.hpp"
-#include "space.hpp"
-#include "timer.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_shape.hpp"
+#include "Omega_h_timer.hpp"
 
 using namespace Omega_h;
 
 static void add_dye(Mesh* mesh) {
   auto dye_w = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
-  auto dye_fun = LAMBDA(LO vert) {
+  auto dye_fun = OMEGA_H_LAMBDA(LO vert) {
     auto x = get_vector<3>(coords, vert);
     auto left_cen = vector_3(.25, .5, .5);
     auto right_cen = vector_3(.75, .5, .5);
@@ -29,8 +29,7 @@ static void add_dye(Mesh* mesh) {
     }
   };
   parallel_for(mesh->nverts(), dye_fun);
-  mesh->add_tag(
-      VERT, "dye", 1, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT, Reals(dye_w));
+  mesh->add_tag(VERT, "dye", 1, Reals(dye_w));
 }
 
 static Reals form_pointwise(Mesh* mesh) {
@@ -38,63 +37,57 @@ static Reals form_pointwise(Mesh* mesh) {
   auto ecoords =
       average_field(mesh, dim, LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
   auto pw_w = Write<Real>(mesh->nelems());
-  auto pw_fun = LAMBDA(LO elem) { pw_w[elem] = ecoords[elem * dim]; };
+  auto pw_fun = OMEGA_H_LAMBDA(LO elem) { pw_w[elem] = ecoords[elem * dim]; };
   parallel_for(mesh->nelems(), pw_fun);
   return pw_w;
 }
 
 static void add_pointwise(Mesh* mesh) {
   auto data = form_pointwise(mesh);
-  mesh->add_tag(
-      mesh->dim(), "pointwise", 1, OMEGA_H_POINTWISE, OMEGA_H_DO_OUTPUT, data);
+  mesh->add_tag(mesh->dim(), "pointwise", 1, data);
 }
 
-static void postprocess_conserve(Mesh* mesh) {
-  auto volume = measure_elements_real(mesh);
-  auto mass = mesh->get_array<Real>(mesh->dim(), "mass");
-  CHECK(are_close(1.0, get_sum(mesh->comm(), mass)));
-  auto density = divide_each(mass, volume);
-  mesh->add_tag(mesh->dim(), "density", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DO_OUTPUT, density);
+static void check_total_mass(Mesh* mesh) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
+  auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
+  OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
 }
 
 static void postprocess_pointwise(Mesh* mesh) {
   auto data = mesh->get_array<Real>(mesh->dim(), "pointwise");
   auto expected = form_pointwise(mesh);
   auto diff = subtract_each(data, expected);
-  mesh->add_tag(mesh->dim(), "pointwise_err", 1, OMEGA_H_DONT_TRANSFER,
-      OMEGA_H_DO_OUTPUT, diff);
+  mesh->add_tag(mesh->dim(), "pointwise_err", 1, diff);
 }
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
   constexpr Int dim = 3;
-  Mesh mesh(&lib);
-  if (world->rank() == 0) {
-    auto nx = 10;
-    build_box(&mesh, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
-    classify_by_angles(&mesh, PI / 4);
-    mesh.reorder();
-    mesh.reset_globals();
-  }
-  mesh.set_comm(world);
-  mesh.balance();
+  auto nx = 10;
+  auto mesh = build_box(world, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   mesh.set_parting(OMEGA_H_GHOSTED);
-  auto size = find_implied_size(&mesh);
-  mesh.add_tag(VERT, "size", 1, OMEGA_H_SIZE, OMEGA_H_DO_OUTPUT, size);
+  auto metrics = get_implied_isos(&mesh);
+  mesh.add_tag(VERT, "metric", 1, metrics);
   add_dye(&mesh);
-  mesh.add_tag(mesh.dim(), "mass", 1, OMEGA_H_CONSERVE, OMEGA_H_DO_OUTPUT,
-      measure_elements_real(&mesh));
+  mesh.add_tag(mesh.dim(), "density", 1, Reals(mesh.nelems(), 1.0));
   add_pointwise(&mesh);
   auto opts = AdaptOpts(&mesh);
+  opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
+  opts.xfer_opts.integral_map["density"] = "mass";
+  opts.xfer_opts.type_map["pointwise"] = OMEGA_H_POINTWISE;
+  opts.xfer_opts.type_map["dye"] = OMEGA_H_LINEAR_INTERP;
+  opts.xfer_opts.integral_diffuse_map["mass"] = VarCompareOpts::none();
+  opts.verbosity = EXTRA_STATS;
   auto mid = zero_vector<dim>();
   mid[0] = mid[1] = .5;
   Now t0 = now();
   for (Int i = 0; i < 8; ++i) {
     auto coords = mesh.coords();
     Write<Real> warp_w(mesh.nverts() * dim);
-    auto warp_fun = LAMBDA(LO vert) {
+    auto warp_fun = OMEGA_H_LAMBDA(LO vert) {
       auto x0 = get_vector<dim>(coords, vert);
       auto x1 = zero_vector<dim>();
       x1[0] = x0[0];
@@ -116,8 +109,7 @@ int main(int argc, char** argv) {
       set_vector<dim>(warp_w, vert, w);
     };
     parallel_for(mesh.nverts(), warp_fun);
-    mesh.add_tag(VERT, "warp", dim, OMEGA_H_LINEAR_INTERP, OMEGA_H_DO_OUTPUT,
-        Reals(warp_w));
+    mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
     while (warp_to_limit(&mesh, opts)) adapt(&mesh, opts);
   }
   Now t1 = now();
@@ -125,7 +117,7 @@ int main(int argc, char** argv) {
   if (mesh.comm()->rank() == 0) {
     std::cout << "test took " << (t1 - t0) << " seconds\n";
   }
-  postprocess_conserve(&mesh);
+  check_total_mass(&mesh);
   postprocess_pointwise(&mesh);
   bool ok = check_regression("gold_warp", &mesh);
   if (!ok) return 2;

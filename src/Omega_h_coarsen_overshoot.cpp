@@ -1,21 +1,23 @@
-#include "coarsen.hpp"
-#include "collapse.hpp"
-#include "loop.hpp"
-#include "refine.hpp"
-#include "size.hpp"
+#include "Omega_h_coarsen.hpp"
+
+#include "Omega_h_align.hpp"
+#include "Omega_h_collapse.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_refine.hpp"
+#include "Omega_h_shape.hpp"
 
 namespace Omega_h {
 
-template <typename EdgeLengths, Int dim>
+template <Int mesh_dim, Int metric_dim>
 static Read<I8> prevent_overshoot_tmpl(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
-  CHECK(mesh->dim() == dim);
-  EdgeLengths measurer(mesh);
+  OMEGA_H_CHECK(mesh->dim() == mesh_dim);
+  MetricEdgeLengths<mesh_dim, metric_dim> measurer(mesh);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ncands = cands2edges.size();
   auto out = Write<I8>(ncands);
-  auto f = LAMBDA(LO cand) {
+  auto f = OMEGA_H_LAMBDA(LO cand) {
     auto e = cands2edges[cand];
     auto code = cand_codes[cand];
     for (Int eev_col = 0; eev_col < 2; ++eev_col) {
@@ -48,22 +50,27 @@ static Read<I8> prevent_overshoot_tmpl(
 
 Read<I8> prevent_coarsen_overshoot(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
-  if (mesh->has_tag(VERT, "size") && mesh->dim() == 3) {
-    return prevent_overshoot_tmpl<IsoEdgeLengths<3>, 3>(
+  auto metric_dim = get_metric_dim(mesh);
+  if (mesh->dim() == 3 && metric_dim == 3) {
+    return prevent_overshoot_tmpl<3, 3>(
         mesh, max_length, cands2edges, cand_codes);
   }
-  if (mesh->has_tag(VERT, "metric") && mesh->dim() == 3) {
-    return prevent_overshoot_tmpl<MetricEdgeLengths<3>, 3>(
+  if (mesh->dim() == 2 && metric_dim == 2) {
+    return prevent_overshoot_tmpl<2, 2>(
         mesh, max_length, cands2edges, cand_codes);
   }
-  if (mesh->has_tag(VERT, "size") && mesh->dim() == 2) {
-    return prevent_overshoot_tmpl<IsoEdgeLengths<2>, 2>(
+  if (mesh->dim() == 3 && metric_dim == 1) {
+    return prevent_overshoot_tmpl<3, 1>(
         mesh, max_length, cands2edges, cand_codes);
   }
-  if (mesh->has_tag(VERT, "metric") && mesh->dim() == 2) {
-    return prevent_overshoot_tmpl<MetricEdgeLengths<2>, 2>(
+  if (mesh->dim() == 2 && metric_dim == 1) {
+    return prevent_overshoot_tmpl<2, 1>(
         mesh, max_length, cands2edges, cand_codes);
   }
-  NORETURN(Read<I8>());
+  if (mesh->dim() == 1 && metric_dim == 1) {
+    return prevent_overshoot_tmpl<1, 1>(
+        mesh, max_length, cands2edges, cand_codes);
+  }
+  OMEGA_H_NORETURN(Read<I8>());
 }
-}
+}  // namespace Omega_h

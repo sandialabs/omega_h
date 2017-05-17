@@ -1,4 +1,4 @@
-#include "control.hpp"
+#include "Omega_h_control.hpp"
 
 #include <cxxabi.h>
 #include <execinfo.h>
@@ -10,8 +10,7 @@
 #include <string>
 
 #include "Omega_h_cmdline.hpp"
-#include "comm.hpp"
-#include "internal.hpp"
+#include "Omega_h_library.hpp"
 
 namespace Omega_h {
 
@@ -94,13 +93,17 @@ void print_stacktrace(std::ostream& out, int max_frames) {
   free(symbollist);
 }
 
+char const* Library::static_version() { return OMEGA_H_SEMVER; }
+
+char const* Library::version() { return static_version(); }
+
 void Library::initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
     ,
     MPI_Comm comm_mpi
 #endif
     ) {
-  std::string lib_desc = OMEGA_H_VERSION;
+  std::string lib_desc = OMEGA_H_SEMVER;
   if (lib_desc != head_desc) {
     std::stringstream msg;
     msg << "omega_h description string mismatch.\n";
@@ -111,9 +114,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
-  CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
+  OMEGA_H_CHECK(MPI_SUCCESS == MPI_Initialized(&mpi_is_init));
   if (!mpi_is_init) {
-    CHECK(MPI_SUCCESS == MPI_Init(argc, argv));
+    OMEGA_H_CHECK(MPI_SUCCESS == MPI_Init(argc, argv));
     we_called_mpi_init = true;
   } else {
     we_called_mpi_init = false;
@@ -131,6 +134,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   cmdline.add_flag(
       "--osh-time", "print amount of time spend in certain functions");
   cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
+  cmdline.add_flag("--osh-silent", "suppress all output");
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
@@ -142,10 +146,11 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (cmdline.parsed("--osh-self-send")) {
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
   }
-#ifdef OMEGA_H_USE_KOKKOS
+  silent_ = cmdline.parsed("--osh-silent");
+#ifdef OMEGA_H_USE_KOKKOSCORE
   if (!Kokkos::DefaultExecutionSpace::is_initialized()) {
-    CHECK(argc != nullptr);
-    CHECK(argv != nullptr);
+    OMEGA_H_CHECK(argc != nullptr);
+    OMEGA_H_CHECK(argv != nullptr);
     Kokkos::initialize(*argc, *argv);
     we_called_kokkos_init = true;
   } else {
@@ -153,7 +158,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
 #endif
   if (should_protect) Omega_h_protect();
-  CHECK(the_library == nullptr);
+  OMEGA_H_CHECK(the_library == nullptr);
   the_library = this;
 }
 
@@ -164,7 +169,7 @@ Library::Library(Library const& other)
       ,
       we_called_mpi_init(other.we_called_mpi_init)
 #endif
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
       ,
       we_called_kokkos_init(other.we_called_kokkos_init)
 #endif
@@ -172,7 +177,7 @@ Library::Library(Library const& other)
 }
 
 Library::~Library() {
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
   if (we_called_kokkos_init) {
     Kokkos::finalize();
     we_called_kokkos_init = false;
@@ -197,7 +202,7 @@ Library::~Library() {
   self_ = CommPtr();
 #ifdef OMEGA_H_USE_MPI
   if (we_called_mpi_init) {
-    CHECK(MPI_SUCCESS == MPI_Finalize());
+    OMEGA_H_CHECK(MPI_SUCCESS == MPI_Finalize());
     we_called_mpi_init = false;
   }
 #endif

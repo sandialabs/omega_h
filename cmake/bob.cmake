@@ -29,23 +29,79 @@ macro(bob_begin_package)
   option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
   #If not building shared libs, then prefer static
   #dependency libs
-  if(BUILD_SHARED_LIBS)
-    bob_always_full_rpath()
-  else()
+  if(NOT BUILD_SHARED_LIBS)
     set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so" ".dylib")
   endif()
+  bob_always_full_rpath()
   message(STATUS "BUILD_TESTING: ${BUILD_TESTING}")
   message(STATUS "BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}")
   message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
 endmacro(bob_begin_package)
 
+function(bob_form_semver)
+  execute_process(COMMAND git describe --exact-match HEAD
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+      RESULT_VARIABLE NOT_TAG
+      OUTPUT_VARIABLE TAG_NAME
+      ERROR_VARIABLE TAG_ERROR
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      )
+  if(NOT_TAG)
+    if(${PROJECT_NAME}_VERSION)
+      set(SEMVER ${${PROJECT_NAME}_VERSION})
+      execute_process(COMMAND git log -1 --format=%h
+          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+          RESULT_VARIABLE NO_SHA1
+          OUTPUT_VARIABLE SHORT_SHA1
+          ERROR_VARIABLE SHA1_ERROR
+          OUTPUT_STRIP_TRAILING_WHITESPACE
+          )
+      if(NO_SHA1)
+        message(WARNING "bob_form_semver no Git hash !\n" ${SHA1_ERROR})
+      else()
+        set(SEMVER "${SEMVER}-sha.${SHORT_SHA1}")
+      endif()
+    else()
+      message(FATAL_ERROR "bob_form_semver needs either ${PROJECT_NAME}_VERSION or a Git tag\n" ${TAG_ERROR})
+    endif()
+  else()
+    if(TAG_NAME MATCHES "^v([0-9]+[.])?([0-9]+[.])?([0-9]+)$")
+      string(SUBSTRING "${TAG_NAME}" 1 -1 SEMVER)
+      if(${PROJECT_NAME}_VERSION AND (NOT (SEMVER VERSION_EQUAL ${PROJECT_NAME}_VERSION)))
+        message(FATAL_ERROR "bob_form_semver: tag is ${TAG_NAME} but ${PROJECT_NAME}_VERSION=${${PROJECT_NAME}_VERSION} !")
+      endif()
+    else()
+      if(${PROJECT_NAME}_VERSION)
+        set(SEMVER "${${PROJECT_NAME}_VERSION}-tag.${TAG_NAME}")
+      else()
+        message(FATAL_ERROR "bob_form_semver needs either ${PROJECT_NAME}_VERSION or a Git tag of the form v1.2.3")
+      endif()
+    endif()
+  endif()
+  if(${PROJECT_NAME}_KEY_BOOLS)
+    set(SEMVER "${SEMVER}+")
+    foreach(KEY_BOOL IN LISTS ${PROJECT_NAME}_KEY_BOOLS)
+      if(${KEY_BOOL})
+        set(SEMVER "${SEMVER}1")
+      else()
+        set(SEMVER "${SEMVER}0")
+      endif()
+    endforeach()
+  endif()
+  set(${PROJECT_NAME}_SEMVER "${SEMVER}" PARENT_SCOPE)
+  message(STATUS "${PROJECT_NAME}_SEMVER = ${SEMVER}")
+endfunction(bob_form_semver)
+
 function(bob_begin_cxx_flags)
+  if(CMAKE_BUILD_TYPE)
+    message(FATAL_ERROR "can't set CMAKE_BUILD_TYPE and use bob_*_cxx_flags")
+  endif()
   option(${PROJECT_NAME}_CXX_OPTIMIZE "Compile C++ with optimization" ON)
   option(${PROJECT_NAME}_CXX_SYMBOLS "Compile C++ with debug symbols" ON)
   option(${PROJECT_NAME}_CXX_WARNINGS "Compile C++ with warnings" ON)
   set(FLAGS "")
   if(${PROJECT_NAME}_CXX_OPTIMIZE)
-    set(FLAGS "${FLAGS} -O2")
+    set(FLAGS "${FLAGS} -O3")
   else()
     set(FLAGS "${FLAGS} -O0")
   endif()
@@ -86,7 +142,7 @@ function(bob_end_cxx_flags)
   set(${PROJECT_NAME}_EXTRA_CXX_FLAGS "" CACHE STRING "Extra C++ compiler flags")
   set(FLAGS "${CMAKE_CXX_FLAGS}")
   if(${PROJECT_NAME}_CXX_FLAGS)
-    set(FLAGS "${PROJECT_NAME}_CXX_FLAGS")
+    set(FLAGS "${${PROJECT_NAME}_CXX_FLAGS}")
   else()
     set(FLAGS "${FLAGS} ${${PROJECT_NAME}_EXTRA_CXX_FLAGS}")
   endif()
@@ -120,7 +176,7 @@ macro(bob_private_dep pkg_name)
 endmacro(bob_private_dep)
 
 macro(bob_public_dep pkg_name)
-  bob_private_dep(${pkg_name} "${version}" ${on_default})
+  bob_private_dep(${pkg_name} "${version}")
   if(${PROJECT_NAME}_USE_${pkg_name})
     if (${pkg_name}_PREFIX)
       set(${PROJECT_NAME}_DEP_PREFIXES ${${PROJECT_NAME}_DEP_PREFIXES}
@@ -129,6 +185,21 @@ macro(bob_public_dep pkg_name)
     set(${PROJECT_NAME}_DEPS ${${PROJECT_NAME}_DEPS} ${pkg_name})
   endif()
 endmacro(bob_public_dep)
+
+function(bob_target_includes lib_name)
+  #find local headers even with #include <>
+  target_include_directories(${lib_name}
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+  #find generated configuration headers
+  target_include_directories(${lib_name}
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+endfunction(bob_target_includes)
+
+function(bob_library_includes lib_name)
+  bob_target_includes("${lib_name}")
+  #ensure downstream users include installed headers
+  target_include_directories(${lib_name} INTERFACE $<INSTALL_INTERFACE:include>)
+endfunction(bob_library_includes)
 
 function(bob_export_target tgt_name)
   install(TARGETS ${tgt_name} EXPORT ${tgt_name}-target
@@ -148,12 +219,54 @@ macro(bob_end_subdir)
   set(${PROJECT_NAME}_DEP_PREFIXES ${${PROJECT_NAME}_DEP_PREFIXES} PARENT_SCOPE)
 endmacro(bob_end_subdir)
 
+function(bob_config_header HEADER_PATH)
+  get_filename_component(HEADER_NAME "${HEADER_PATH}" NAME)
+  string(REPLACE "." "_" INCLUDE_GUARD "${HEADER_NAME}")
+  string(TOUPPER "${INCLUDE_GUARD}" INCLUDE_GUARD)
+  set(HEADER_CONTENT
+"#ifndef ${INCLUDE_GUARD}
+#define ${INCLUDE_GUARD}
+")
+  if (${PROJECT_NAME}_KEY_BOOLS)
+    foreach(KEY_BOOL IN LISTS ${PROJECT_NAME}_KEY_BOOLS)
+      if (${KEY_BOOL})
+        string(TOUPPER "${KEY_BOOL}" MACRO_NAME)
+        set(HEADER_CONTENT
+"${HEADER_CONTENT}
+#define ${MACRO_NAME}")
+      endif()
+    endforeach()
+  endif()
+  if (${PROJECT_NAME}_KEY_INTS)
+    foreach(KEY_INT IN LISTS ${PROJECT_NAME}_KEY_INTS)
+      string(TOUPPER "${KEY_INT}" MACRO_NAME)
+      set(HEADER_CONTENT
+"${HEADER_CONTENT}
+#define ${MACRO_NAME} ${${KEY_INT}}")
+    endforeach()
+  endif()
+  if (${PROJECT_NAME}_KEY_STRINGS)
+    foreach(KEY_STRING IN LISTS ${PROJECT_NAME}_KEY_STRINGS)
+      string(TOUPPER "${KEY_STRING}" MACRO_NAME)
+      set(HEADER_CONTENT
+"${HEADER_CONTENT}
+#define ${MACRO_NAME} \"${${KEY_STRING}}\"")
+    endforeach()
+  endif()
+  set(HEADER_CONTENT
+"${HEADER_CONTENT}
+
+#endif
+")
+  file(WRITE "${HEADER_PATH}" "${HEADER_CONTENT}")
+endfunction()
+
 function(bob_end_package)
   include(CMakePackageConfigHelpers)
   set(INCLUDE_INSTALL_DIR include)
   set(LIB_INSTALL_DIR lib)
-  set(CONFIG_CONTENT "
-set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION})
+  set(CONFIG_CONTENT
+"set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION})
 include(CMakeFindDependencyMacro)
 # we will use find_dependency, but we don't want to force
 # our users to have to specify where all of our dependencies
@@ -173,9 +286,18 @@ set(CMAKE_PREFIX_PATH \"\${${PROJECT_NAME}_BACKUP_PREFIX_PATH}\")
 set(${PROJECT_NAME}_EXPORTED_TARGETS \"${${PROJECT_NAME}_EXPORTED_TARGETS}\")
 foreach(tgt IN LISTS ${PROJECT_NAME}_EXPORTED_TARGETS)
   include(\${CMAKE_CURRENT_LIST_DIR}/\${tgt}-target.cmake)
-endforeach()
-set(${PROJECT_NAME}_COMPILER \"${CMAKE_CXX_COMPILER}\")
-set(${PROJECT_NAME}_CXX_FLAGS \"${CMAKE_CXX_FLAGS}\")
+endforeach()")
+  foreach(TYPE IN ITEMS "BOOL" "INT" "STRING")
+    if (${PROJECT_NAME}_KEY_${TYPE}S)
+      foreach(KEY_${TYPE} IN LISTS ${PROJECT_NAME}_KEY_${TYPE}S)
+        set(CONFIG_CONTENT
+"${CONFIG_CONTENT}
+set(${KEY_${TYPE}} \"${${KEY_${TYPE}}}\")")
+      endforeach()
+    endif()
+  endforeach()
+  set(CONFIG_CONTENT
+"${CONFIG_CONTENT}
 ")
   install(FILES
     "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"

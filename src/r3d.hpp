@@ -40,6 +40,16 @@
 #define R3D_INLINE inline
 #endif
 
+/* The MAX_VERTS constants are more than just the maximum number
+   of vertices of a representable polytope: the clip() code actually
+   adds new vertices prior to removing old ones, so this actually
+   needs to be the maximum number of representable vertices
+   plus the maximum number of representable edges intersected by a plane */
+
+#ifndef R1D_MAX_VERTS
+#define R1D_MAX_VERTS 4
+#endif
+
 #ifndef R2D_MAX_VERTS
 #define R2D_MAX_VERTS 64
 #endif
@@ -158,10 +168,22 @@ R3D_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) {
 }
 
 template <Int n>
+R3D_INLINE Vector<n>& operator+=(Vector<n>& a, Vector<n> b) {
+  a = a + b;
+  return a;
+}
+
+template <Int n>
 R3D_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] - b[i];
   return c;
+}
+
+template <Int n>
+R3D_INLINE Vector<n>& operator-=(Vector<n>& a, Vector<n> b) {
+  a = a - b;
+  return a;
 }
 
 template <Int n>
@@ -179,6 +201,12 @@ R3D_INLINE Vector<n> operator*(Vector<n> a, Real b) {
 }
 
 template <Int n>
+R3D_INLINE Vector<n>& operator*=(Vector<n>& a, Real b) {
+  a = a * b;
+  return a;
+}
+
+template <Int n>
 R3D_INLINE Vector<n> operator*(Real a, Vector<n> b) {
   return b * a;
 }
@@ -188,6 +216,12 @@ R3D_INLINE Vector<n> operator/(Vector<n> a, Real b) {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] / b;
   return c;
+}
+
+template <Int n>
+R3D_INLINE Vector<n>& operator/=(Vector<n>& a, Real b) {
+  a = a / b;
+  return a;
 }
 
 template <Int n>
@@ -233,6 +267,11 @@ template <Int dim>
 struct MaxVerts;
 
 template <>
+struct MaxVerts<1> {
+  enum { value = R1D_MAX_VERTS };
+};
+
+template <>
 struct MaxVerts<2> {
   enum { value = R2D_MAX_VERTS };
 };
@@ -268,7 +307,7 @@ struct ClipHelper;
 
 template <>
 struct ClipHelper<3> {
-  R3D_INLINE static void relink(Int onv, Polytope<3>& poly) {
+  R3D_INLINE static void finalize_links(Int onv, Polytope<3>& poly) {
     for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
       auto vcur = vstart;
       auto vnext = poly.verts[vcur].pnbrs[0];
@@ -284,7 +323,8 @@ struct ClipHelper<3> {
       poly.verts[vcur].pnbrs[1] = vstart;
     }
   }
-  R3D_INLINE static void links_at_nverts(Polytope<3>& poly, Int vcur, Int np) {
+  R3D_INLINE static void init_new_vert_link(
+      Polytope<3>& poly, Int vcur, Int np) {
     (void)np;
     poly.verts[poly.nverts].pnbrs[0] = vcur;
   }
@@ -292,7 +332,7 @@ struct ClipHelper<3> {
 
 template <>
 struct ClipHelper<2> {
-  R3D_INLINE static void relink(Int onv, Polytope<2>& poly) {
+  R3D_INLINE static void finalize_links(Int onv, Polytope<2>& poly) {
     for (auto vstart = onv; vstart < poly.nverts; ++vstart) {
       if (poly.verts[vstart].pnbrs[1] >= 0) continue;
       auto vcur = poly.verts[vstart].pnbrs[0];
@@ -303,9 +343,19 @@ struct ClipHelper<2> {
       poly.verts[vcur].pnbrs[0] = vstart;
     }
   }
-  R3D_INLINE static void links_at_nverts(Polytope<2>& poly, Int vcur, Int np) {
+  R3D_INLINE static void init_new_vert_link(
+      Polytope<2>& poly, Int vcur, Int np) {
     poly.verts[poly.nverts].pnbrs[1 - np] = vcur;
     poly.verts[poly.nverts].pnbrs[np] = -1;
+  }
+};
+
+template <>
+struct ClipHelper<1> {
+  R3D_INLINE static void finalize_links(Int, Polytope<1>&) {}
+  R3D_INLINE static void init_new_vert_link(
+      Polytope<1>& poly, Int vcur, Int np) {
+    poly.verts[poly.nverts].pnbrs[np] = vcur;
   }
 };
 
@@ -321,7 +371,8 @@ struct ClipHelper<2> {
  *
  */
 template <Int dim>
-R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim>* planes, Int nplanes) {
+R3D_INLINE void clip(
+    Polytope<dim>& poly, Plane<dim> const* planes, Int nplanes) {
   if (poly.nverts <= 0) return;
 
   // variable declarations
@@ -360,7 +411,7 @@ R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim>* planes, Int nplanes) {
       for (np = 0; np < dim; ++np) {
         vnext = poly.verts[vcur].pnbrs[np];
         if (!clipped[vnext]) continue;
-        ClipHelper<dim>::links_at_nverts(poly, vcur, np);
+        ClipHelper<dim>::init_new_vert_link(poly, vcur, np);
         poly.verts[vcur].pnbrs[np] = poly.nverts;
         poly.verts[poly.nverts].pos = wav(poly.verts[vcur].pos, -sdists[vnext],
             poly.verts[vnext].pos, sdists[vcur]);
@@ -370,7 +421,7 @@ R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim>* planes, Int nplanes) {
 
     // for each new vert, search around the poly for its new neighbors
     // and doubly-link everything
-    ClipHelper<dim>::relink(onv, poly);
+    ClipHelper<dim>::finalize_links(onv, poly);
 
     // go through and compress the vertex list, removing clipped verts
     // and re-indexing accordingly (reusing `clipped` to re-index everything)
@@ -386,6 +437,11 @@ R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim>* planes, Int nplanes) {
       for (np = 0; np < dim; ++np)
         poly.verts[v].pnbrs[np] = clipped[poly.verts[v].pnbrs[np]];
   }
+}
+
+template <Int dim>
+R3D_INLINE void clip(Polytope<dim>& poly, Plane<dim> const& plane) {
+  clip(poly, &plane, 1);
 }
 
 template <Int dim, Int nplanes>
@@ -435,6 +491,19 @@ R3D_INLINE void init(Polytope<2>& poly, Few<Vector<2>, 3> vertices) {
     poly.verts[v].pos = vertices[v];
     poly.verts[v].pnbrs[0] = (v + 1) % (numverts);
     poly.verts[v].pnbrs[1] = (numverts + v - 1) % (numverts);
+  }
+}
+
+/**
+ * \brief Initialize an edge from a list of vertices.
+ */
+R3D_INLINE void init(Polytope<1>& poly, Few<Vector<1>, 2> vertices) {
+  constexpr Int numverts = 2;
+  // init the poly
+  poly.nverts = numverts;
+  for (Int v = 0; v < poly.nverts; ++v) {
+    poly.verts[v].pos = vertices[v];
+    poly.verts[v].pnbrs[0] = 1 - v;
   }
 }
 
@@ -493,6 +562,23 @@ R3D_INLINE Few<Plane<2>, 3> faces_from_verts(Few<Vector<2>, 3> vertices) {
     faces[f].n = normalize(faces[f].n);
     faces[f].d = -(faces[f].n * p0);
   }
+  return faces;
+}
+
+/**
+ * \brief Get all faces (unit normals and distances to the origin)
+ * from an edge
+ *
+ * \param [in] vertices
+ * Array giving the vertices of the input edge
+ *
+ */
+R3D_INLINE Few<Plane<1>, 2> faces_from_verts(Few<Vector<1>, 2> vertices) {
+  Few<Plane<1>, 2> faces;
+  faces[0].n = normalize(vertices[1] - vertices[0]);
+  faces[1].n = normalize(vertices[0] - vertices[1]);
+  faces[0].d = -(faces[0].n * vertices[0]);
+  faces[1].d = -(faces[1].n * vertices[1]);
   return faces;
 }
 
@@ -776,9 +862,19 @@ R3D_INLINE Real integrate(
   return result;
 }
 
-template <Int dim>
-R3D_INLINE Real measure(Polytope<dim> const& polytope) {
-  return integrate(polytope, Polynomial<dim, 0>{{1}});
+/* Cop-out: instead of figuring out how to implement
+   integrate() for 1D edges, just hardcode the
+   length measurement */
+R3D_INLINE Real measure(Polytope<1> const& polytope) {
+  return fabs(polytope.verts[1].pos[0] - polytope.verts[0].pos[0]);
+}
+
+R3D_INLINE Real measure(Polytope<2> const& polytope) {
+  return integrate(polytope, Polynomial<2, 0>{{1}});
+}
+
+R3D_INLINE Real measure(Polytope<3> const& polytope) {
+  return integrate(polytope, Polynomial<3, 0>{{1}});
 }
 
 template <Int dim>

@@ -1,8 +1,6 @@
 #include "Omega_h_egads.hpp"
-#include "array.hpp"
-#include "graph.hpp"
-#include "internal.hpp"
-#include "map.hpp"
+#include "Omega_h_array_ops.hpp"
+#include "Omega_h_map.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -168,7 +166,7 @@ void egads_free(Egads* eg) {
 }
 
 void egads_reclassify(Mesh* mesh, Egads* eg) {
-  CHECK(mesh->dim() == 3);
+  OMEGA_H_CHECK(mesh->dim() == 3);
   auto face_class_dims = mesh->get_array<I8>(TRI, "class_dim");
   auto face_class_ids = mesh->get_array<LO>(TRI, "class_id");
   for (Int dim = 0; dim < 2; ++dim) {
@@ -208,7 +206,7 @@ static Vector<3> get_closest_point(ego g, Vector<3> in) {
 }
 
 Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
-  CHECK(mesh->dim() == 3);
+  OMEGA_H_CHECK(mesh->dim() == 3);
   auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
   auto class_ids = mesh->get_array<LO>(VERT, "class_id");
   auto coords = mesh->coords();
@@ -219,16 +217,16 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
   for (LO i = 0; i < mesh->nverts(); ++i) {
     auto a = get_vector<3>(host_coords, i);
     Int class_dim = host_class_dims[i];
-    CHECK(class_dim >= 0);
-    CHECK(class_dim <= 3);
+    OMEGA_H_CHECK(class_dim >= 0);
+    OMEGA_H_CHECK(class_dim <= 3);
     auto d = vector_3(0, 0, 0);
     if (0 < class_dim && class_dim < 3) {
       auto index = host_class_ids[i] - 1;
-      CHECK(index >= 0);
-      CHECK(index < eg->counts[class_dim]);
+      OMEGA_H_CHECK(index >= 0);
+      OMEGA_H_CHECK(index < eg->counts[class_dim]);
       auto g = eg->entities[class_dim][index];
       auto index2 = EG_indexBodyTopo(eg->body, g);
-      CHECK(index2 == index + 1);
+      OMEGA_H_CHECK(index2 == index + 1);
       auto b = get_closest_point(g, a);
       d = b - a;
     }
@@ -237,4 +235,4 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
   auto warp = Reals(host_warp.write());
   return warp;
 }
-}
+}  // namespace Omega_h
