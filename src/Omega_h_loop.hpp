@@ -38,10 +38,10 @@ typename T::value_type parallel_reduce(LO n, T f) {
 
 template <typename T>
 void parallel_scan(LO n, T f) {
-  typedef typename T::value_type VT;
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (n > 0) Kokkos::parallel_scan(policy(n), f);
 #else
+  typedef typename T::value_type VT;
   VT update;
   f.init(update);
   for (LO i = 0; i < n; ++i) f(i, update, true);
