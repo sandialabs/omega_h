@@ -377,7 +377,7 @@ OMEGA_H_INLINE Vector<matrix_ncomps(dim)> matrix2vector(Matrix<dim, dim> m) {
   Vector<matrix_ncomps(dim)> v;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
-      v[i * dim + j] = m[i][j];
+      v[j * dim + i] = m[i][j];
     }
   }
   return v;
@@ -388,7 +388,7 @@ OMEGA_H_INLINE Matrix<dim, dim> vector2matrix(Vector<matrix_ncomps(dim)> v) {
   Matrix<dim, dim> m;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
-      m[i][j] = v[i * dim + j];
+      m[i][j] = v[j * dim + i];
     }
   }
   return m;
