@@ -228,7 +228,7 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
   auto new_cav_sizes =
       fan_reduce(keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
-  auto cav_error_densities = divide_each(cav_errors, new_cav_sizes);
+  auto cav_error_densities = divide_each_maybe_zero(cav_errors, new_cav_sizes);
   auto cav_elem_error_densities =
       expand(cav_error_densities, keys2new_elems.a2ab, ncomps);
   auto cav_elem_errors =
