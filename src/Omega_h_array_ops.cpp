@@ -162,6 +162,29 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
   return c;
 }
 
+Reals divide_each_maybe_zero(Reals a, Reals b) {
+  if (b.size() == 0) {
+    OMEGA_H_CHECK(a.size() == 0);
+    return a;
+  }
+  auto width = divide_no_remainder(a.size(), b.size());
+  Write<Real> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    if (b[i] != 0.0) {
+      for (Int j = 0; j < width; ++j) {
+        c[i * width + j] = a[i * width + j] / b[i];
+      }
+    } else {
+      for (Int j = 0; j < width; ++j) {
+        OMEGA_H_CHECK(a[i * width + j] == 0.0);
+        c[i * width + j] = 0.0;
+      }
+    }
+  };
+  parallel_for(b.size(), f);
+  return c;
+}
+
 template <typename T>
 Read<T> divide_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());

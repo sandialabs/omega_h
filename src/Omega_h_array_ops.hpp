@@ -45,6 +45,7 @@ template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a);
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b);
+Reals divide_each_maybe_zero(Reals a, Reals b);
 template <typename T>
 Read<T> divide_each_by(T a, Read<T> b);
 template <typename T>
