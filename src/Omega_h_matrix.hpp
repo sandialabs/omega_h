@@ -240,24 +240,24 @@ OMEGA_H_INLINE Real determinant(Matrix<3, 3> m) {
 }
 
 template <Int max_m, Int max_n>
-OMEGA_H_INLINE Real inner_product(Int m, Int n, Matrix<max_m, max_n> a) {
+OMEGA_H_INLINE Real inner_product(Int m, Int n, Matrix<max_m, max_n> a, Matrix<max_m, max_n> b) {
   Real out = 0.0;
   for (Int j = 0; j < n; ++j) {
     for (Int i = 0; i < m; ++i) {
-      out += square(a[j][i]);
+      out += a[j][i] * b[j][i];
     }
   }
   return out;
 }
 
 template <Int m, Int n>
-OMEGA_H_INLINE Real inner_product(Matrix<m, n> a) {
-  return inner_product(m, n, a);
+OMEGA_H_INLINE Real inner_product(Matrix<m, n> a, Matrix<m, n> b) {
+  return inner_product(m, n, a, b);
 }
 
 template <Int max_m, Int max_n>
 OMEGA_H_INLINE Real norm(Int m, Int n, Matrix<max_m, max_n> a) {
-  return sqrt(inner_product(m, n, a));
+  return sqrt(inner_product(m, n, a, a));
 }
 
 template <Int m, Int n>
@@ -377,7 +377,7 @@ OMEGA_H_INLINE Vector<matrix_ncomps(dim)> matrix2vector(Matrix<dim, dim> m) {
   Vector<matrix_ncomps(dim)> v;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
-      v[i * dim + j] = m[i][j];
+      v[j * dim + i] = m[i][j];
     }
   }
   return v;
@@ -388,7 +388,7 @@ OMEGA_H_INLINE Matrix<dim, dim> vector2matrix(Vector<matrix_ncomps(dim)> v) {
   Matrix<dim, dim> m;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
-      m[i][j] = v[i * dim + j];
+      m[i][j] = v[j * dim + i];
     }
   }
   return m;

@@ -58,14 +58,15 @@ We recommend using [MPICH][3] or another MPI 3.0 implementation,
 but we also support MPI version 2.1.
 If this is `ON`, set `CMAKE_CXX_COMPILER` to your MPI compiler wrapper.
 
-#### Omega_h_USE_KokkosCore
+#### Omega_h_USE_Trilinos
 Default: `OFF`
 
-Whether to use [KokkosCore][2] for on-node parallelism.
-If this is `ON`, set `Trilinos_PREFIX` or `KokkosCore_PREFIX` to your Trilinos installation.
-You must install Kokkos as part of [Trilinos][4].
-Please see [this file][8] for an example of how to configure
-Trilinos to install only the Kokkos package.
+Whether to use the Kokkos and Teuchos Trilinos packages.
+If this is `ON`, set `Trilinos_PREFIX` to your Trilinos installation.
+Kokkos provides on-node parallelism, and Omeg\_h will use the same
+default execution space that Kokkos was built with.
+Teuchos provides parameter lists and file I/O for them,
+which are usable through `Omega_h_teuchos.hpp`.
 
 #### Omega_h_ONE_FILE
 Default: `OFF`
