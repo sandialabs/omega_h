@@ -103,10 +103,6 @@ OMEGA_H_INLINE Write<T>::Write()
 template <typename T>
 class Read {
   Write<T> write_;
-#ifdef OMEGA_H_USE_KOKKOSCORE
-  Kokkos::View<const T*, Kokkos::MemoryTraits<Kokkos::RandomAccess>>
-      access_view_;
-#endif
 
  public:
   OMEGA_H_INLINE Read() {}
@@ -116,11 +112,7 @@ class Read {
   Read(std::initializer_list<T> l);
   LO size() const;
   OMEGA_H_DEVICE T operator[](LO i) const {
-#ifdef OMEGA_H_USE_KOKKOSCORE
-    return access_view_(i);
-#else
     return write_[i];
-#endif
   }
   OMEGA_H_INLINE T const* data() const { return write_.data(); }
 #ifdef OMEGA_H_USE_KOKKOSCORE
