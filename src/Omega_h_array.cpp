@@ -166,10 +166,6 @@ Reals::Reals(std::initializer_list<Real> l) : Read<Real>(l) {}
 template <typename T>
 Read<T>::Read(Write<T> write)
     : write_(write)
-#ifdef OMEGA_H_USE_KOKKOSCORE
-      ,
-      access_view_(write.view())
-#endif
 {
 }
 
