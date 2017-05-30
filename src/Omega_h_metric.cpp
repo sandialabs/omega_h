@@ -380,6 +380,40 @@ Reals get_hessian_metrics(Int dim, Reals hessians, Real eps) {
   OMEGA_H_NORETURN(Reals());
 }
 
+template <Int dim>
+static OMEGA_H_INLINE Matrix<dim, dim> metric_from_gradient(
+    Vector<dim> grad, Real eps) {
+  auto grad_norm_sq = norm_squared(grad);
+  auto grad_norm = sqrt(grad_norm_sq);
+  auto dir = grad / grad_norm;
+  auto r = form_ortho_basis(dir);
+  auto l = zero_vector<dim>();
+  /* TODO: come up with dimensional constant like what Hessian has ! */
+  l[0] = grad_norm_sq / square(eps);
+  return compose_eigen(r, l);
+}
+
+template <Int dim>
+static Reals metric_from_gradients_dim(Reals gradients, Real eps) {
+  auto n = divide_no_remainder(gradients.size(), dim);
+  auto out = Write<Real>(n * symm_ncomps(dim));
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto grad = get_vector<dim>(gradients, i);
+    auto m = metric_from_gradient(grad, eps);
+    set_symm(out, i, m);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals get_gradient_metrics(Int dim, Reals gradients, Real eps) {
+  OMEGA_H_CHECK(eps > 0.0);
+  if (dim == 3) return metric_from_gradients_dim<3>(gradients, eps);
+  if (dim == 2) return metric_from_gradients_dim<2>(gradients, eps);
+  if (dim == 1) return metric_from_gradients_dim<1>(gradients, eps);
+  OMEGA_H_NORETURN(Reals());
+}
+
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
   auto vert_curvatures = get_vert_curvatures(mesh);
   auto out = Write<Real>(mesh->nverts());
