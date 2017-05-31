@@ -209,12 +209,69 @@ T Read<T>::last() const {
 template <typename T>
 HostWrite<T>::HostWrite() = default;
 
+#ifdef OMEGA_H_USE_KOKKOSCORE
+template< class T , class ... P >
+inline
+typename Kokkos::View<T,P...>::HostMirror
+create_uninit_mirror( const Kokkos::View<T,P...> & src )
+{
+  typedef Kokkos::View<T,P...> src_type ;
+  typedef typename src_type::HostMirror  dst_type ;
+  return dst_type( Kokkos::ViewAllocateWithoutInitializing(
+        std::string("host_") + src.label())
+                 , src.dimension_0()
+                 , src.dimension_1()
+                 , src.dimension_2()
+                 , src.dimension_3()
+                 , src.dimension_4()
+                 , src.dimension_5()
+                 , src.dimension_6()
+                 , src.dimension_7() );
+}
+
+template< class T , class ... P >
+inline
+typename Kokkos::View<T,P...>::HostMirror
+create_uninit_mirror_view( const Kokkos::View<T,P...> & src
+                  , typename std::enable_if<(
+                      std::is_same< typename Kokkos::View<T,P...>::memory_space
+                                  , typename Kokkos::View<T,P...>::HostMirror::memory_space
+                                  >::value
+                      &&
+                      std::is_same< typename Kokkos::View<T,P...>::data_type
+                                  , typename Kokkos::View<T,P...>::HostMirror::data_type
+                                  >::value
+                    )>::type * = 0
+                  )
+{
+  return src ;
+}
+
+template< class T , class ... P >
+inline
+typename Kokkos::View<T,P...>::HostMirror
+create_uninit_mirror_view( const Kokkos::View<T,P...> & src
+                  , typename std::enable_if< ! (
+                      std::is_same< typename Kokkos::View<T,P...>::memory_space
+                                  , typename Kokkos::View<T,P...>::HostMirror::memory_space
+                                  >::value
+                      &&
+                      std::is_same< typename Kokkos::View<T,P...>::data_type
+                                  , typename Kokkos::View<T,P...>::HostMirror::data_type
+                                  >::value
+                    )>::type * = 0
+                  )
+{
+  return create_uninit_mirror( src );
+}
+#endif
+
 template <typename T>
 HostWrite<T>::HostWrite(LO size)
     : write_(size)
 #ifdef OMEGA_H_USE_KOKKOSCORE
       ,
-      mirror_(Kokkos::create_mirror_view(write_.view()))
+      mirror_(create_uninit_mirror_view(write_.view()))
 #endif
 {
 }
@@ -228,7 +285,7 @@ HostWrite<T>::HostWrite(Write<T> write)
     : write_(write)
 #ifdef OMEGA_H_USE_KOKKOSCORE
       ,
-      mirror_(Kokkos::create_mirror_view(write_.view()))
+      mirror_(create_uninit_mirror_view(write_.view()))
 #endif
 {
 #ifdef OMEGA_H_USE_KOKKOSCORE

@@ -432,9 +432,13 @@ OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) {
   return acos((trace(r) - 1.0) / 2.0);
 }
 
+OMEGA_H_INLINE Matrix<1, 1> form_ortho_basis(Vector<1> v) {
+  return matrix_1x1(v[0]);
+}
+
 OMEGA_H_INLINE Matrix<2, 2> form_ortho_basis(Vector<2> v) {
   Matrix<2, 2> A;
-  A[0] = normalize(v);
+  A[0] = v;
   A[1] = perp(A[0]);
   return A;
 }

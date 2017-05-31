@@ -231,6 +231,7 @@ Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
 Reals get_curvature_isos(Mesh* mesh, Real segment_angle);
 Reals get_hessian_metrics(Int dim, Reals hessians, Real eps);
+Reals get_gradient_metrics(Int dim, Reals gradients, Real eps);
 Reals get_derivative_metrics(Mesh* mesh, std::string const& name, Real knob);
 Reals get_variation_metrics(Mesh* mesh, std::string const& name, Real knob);
 Reals get_proximity_isos(Mesh* mesh, Real factor);
