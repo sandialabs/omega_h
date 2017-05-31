@@ -386,11 +386,10 @@ static OMEGA_H_INLINE Matrix<dim, dim> metric_from_gradient(
   auto grad_norm_sq = norm_squared(grad);
   auto grad_norm = sqrt(grad_norm_sq);
   auto dir = grad / grad_norm;
-  auto r = form_ortho_basis(dir);
-  auto l = zero_vector<dim>();
-  /* TODO: come up with dimensional constant like what Hessian has ! */
-  l[0] = grad_norm_sq / square(eps);
-  return compose_eigen(r, l);
+  constexpr auto c_num = square(dim);
+  constexpr auto c_denom = square(2 * (dim + 1));
+  auto l = (c_num * grad_norm_sq) / (c_denom * square(eps));
+  return outer_product(dir, dir) * l;
 }
 
 template <Int dim>

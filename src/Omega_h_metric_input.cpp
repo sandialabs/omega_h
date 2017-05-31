@@ -34,32 +34,30 @@ MetricInput::MetricInput() {
   nsmoothing_steps = 0;
 }
 
-static Reals get_variation_metrics(Mesh* mesh, Real knob, Int dim,
-    std::string const& name, Int ncomps, Reals data) {
+static Reals get_variation_metrics(Mesh* mesh, Real knob, Int dim, Int ncomps, Reals data) {
   OMEGA_H_CHECK(data.size() == mesh->nents(dim) * ncomps);
-  if (dim == VERT) {
-    if (ncomps == 1) {
+  if (ncomps == 1) {
+    if (dim == VERT) {
       auto hessians = recover_hessians(mesh, data);
       return get_hessian_metrics(mesh->dim(), hessians, knob);
-    } else {
-      Reals metrics;
-      for (Int comp = 0; comp < ncomps; ++comp) {
-        auto comp_data = get_component(data, ncomps, comp);
-        auto comp_metrics =
-            get_variation_metrics(mesh, knob, VERT, name, 1, comp_data);
-        if (comp) {
-          metrics = intersect_metrics(mesh->nverts(), metrics, comp_metrics);
-        } else {
-          metrics = comp_metrics;
-        }
-      }
-      return metrics;
+    } else if (dim == mesh->dim()) {
+      auto vert_data = project_by_fit(mesh, data);
+      auto vert_grads = recover_gradients(mesh, vert_data);
+      return get_gradient_metrics(mesh->dim(), vert_grads, knob);
     }
-  } else if (dim == mesh->dim()) {
-    auto vert_data = project_by_fit(mesh, data);
-    mesh->remove_tag(VERT, "projected_density");
-    mesh->add_tag(VERT, "projected_density", 1, vert_data);
-    return get_variation_metrics(mesh, knob, VERT, name, ncomps, vert_data);
+  } else {
+    Reals metrics;
+    for (Int comp = 0; comp < ncomps; ++comp) {
+      auto comp_data = get_component(data, ncomps, comp);
+      auto comp_metrics =
+          get_variation_metrics(mesh, knob, dim, 1, comp_data);
+      if (comp) {
+        metrics = intersect_metrics(mesh->nverts(), metrics, comp_metrics);
+      } else {
+        metrics = comp_metrics;
+      }
+    }
+    return metrics;
   }
   OMEGA_H_NORETURN(Reals());
 }
@@ -76,7 +74,7 @@ Reals get_variation_metrics(Mesh* mesh, std::string const& name, Real knob) {
   auto tag = mesh->get_tag<Real>(dim, name);
   auto ncomps = tag->ncomps();
   auto data = tag->array();
-  return get_variation_metrics(mesh, knob, dim, name, ncomps, data);
+  return get_variation_metrics(mesh, knob, dim, ncomps, data);
 }
 
 Reals get_derivative_metrics(Mesh* mesh, std::string const& name, Real knob) {
