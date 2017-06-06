@@ -27,12 +27,14 @@ OMEGA_H_INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
-OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) __attribute__((const));
+OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l)
+    __attribute__((const));
 OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) {
   return 1.0 / sqrt(l);
 }
 
-OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) __attribute__((const));
+OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h)
+    __attribute__((const));
 OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {
   return 1.0 / square(h);
 }

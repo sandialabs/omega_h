@@ -240,7 +240,8 @@ OMEGA_H_INLINE Real determinant(Matrix<3, 3> m) {
 }
 
 template <Int max_m, Int max_n>
-OMEGA_H_INLINE Real inner_product(Int m, Int n, Matrix<max_m, max_n> a, Matrix<max_m, max_n> b) {
+OMEGA_H_INLINE Real inner_product(
+    Int m, Int n, Matrix<max_m, max_n> a, Matrix<max_m, max_n> b) {
   Real out = 0.0;
   for (Int j = 0; j < n; ++j) {
     for (Int i = 0; i < m; ++i) {
