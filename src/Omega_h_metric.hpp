@@ -27,10 +27,12 @@ OMEGA_H_INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
+OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) __attribute__((const));
 OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) {
   return 1.0 / sqrt(l);
 }
 
+OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) __attribute__((const));
 OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {
   return 1.0 / square(h);
 }
@@ -173,9 +175,11 @@ OMEGA_H_INLINE T average_metric(Few<T, n> ms) {
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> clamp_metric(
     Matrix<dim, dim> m, Real h_min, Real h_max) {
-  auto dc = decompose_metric(m);
-  for (Int i = 0; i < dim; ++i) dc.l[i] = clamp(dc.l[i], h_min, h_max);
-  return compose_metric(dc.q, dc.l);
+  auto ed = decompose_eigen(m);
+  auto l_max = metric_eigenvalue_from_length(h_min);
+  auto l_min = metric_eigenvalue_from_length(h_max);
+  for (Int i = 0; i < dim; ++i) ed.l[i] = clamp(ed.l[i], l_min, l_max);
+  return compose_ortho(ed.q, ed.l);
 }
 
 /* a cheap hackish variant of interpolation for getting a metric
