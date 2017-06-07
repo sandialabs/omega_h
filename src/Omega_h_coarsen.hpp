@@ -1,5 +1,5 @@
-#ifndef COARSEN_HPP
-#define COARSEN_HPP
+#ifndef OMEGA_H_COARSEN_HPP
+#define OMEGA_H_COARSEN_HPP
 
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_adj.hpp>
