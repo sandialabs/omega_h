@@ -99,14 +99,14 @@ void promote(LO size, Int dim, Teuchos::any& x) {
 
 template <Int dim>
 Teuchos::any add(Teuchos::any& lhs, Teuchos::any& rhs) {
-  if (rhs.at(0).type() == typeid(Real)) {
-    result = any_cast<Real>(rhs.at(0)) + any_cast<Real>(rhs.at(3));
-  } else if (rhs.at(0).type() == typeid(Vector<dim>)) {
-    result = any_cast<Vector<dim>>(rhs.at(0)) + any_cast<Vector<dim>>(rhs.at(3));
-  } else if (rhs.at(0).type() == typeid(Matrix<dim,dim>)) {
-    result = any_cast<Matrix<dim,dim>>(rhs.at(0)) + any_cast<Matrix<dim,dim>>(rhs.at(3));
-  } else if (rhs.at(0).type() == typeid(Reals)) {
-    result = add_each(any_cast<Reals>(rhs.at(0)), any_cast<Reals>(rhs.at(3)));
+  if (lhs.type() == typeid(Real)) {
+    result = any_cast<Real>(lhs) + any_cast<Real>(rhs);
+  } else if (lhs.type() == typeid(Vector<dim>)) {
+    result = any_cast<Vector<dim>>(lhs) + any_cast<Vector<dim>>(rhs);
+  } else if (lhs.type() == typeid(Matrix<dim,dim>)) {
+    result = any_cast<Matrix<dim,dim>>(lhs) + any_cast<Matrix<dim,dim>>(rhs);
+  } else if (lhs.type() == typeid(Reals)) {
+    result = Reals(add_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else {
     throw Teuchos::ParserFail("Invalid operand types to + operator");
   }
@@ -121,14 +121,14 @@ Teuchos::any add(Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
 
 template <Int dim>
 Teuchos::any sub(Teuchos::any& lhs, Teuchos::any& rhs) {
-  if (rhs.at(0).type() == typeid(Real)) {
-    result = any_cast<Real>(rhs.at(0)) - any_cast<Real>(rhs.at(3));
-  } else if (rhs.at(0).type() == typeid(Vector<dim>)) {
-    result = any_cast<Vector<dim>>(rhs.at(0)) - any_cast<Vector<dim>>(rhs.at(3));
-  } else if (rhs.at(0).type() == typeid(Matrix<dim,dim>)) {
-    result = any_cast<Matrix<dim,dim>>(rhs.at(0)) - any_cast<Matrix<dim,dim>>(rhs.at(3));
-  } else if (rhs.at(0).type() == typeid(Reals)) {
-    result = subtract_each(any_cast<Reals>(rhs.at(0)), any_cast<Reals>(rhs.at(3)));
+  if (lhs.type() == typeid(Real)) {
+    result = any_cast<Real>(lhs) - any_cast<Real>(rhs);
+  } else if (lhs.type() == typeid(Vector<dim>)) {
+    result = any_cast<Vector<dim>>(lhs) - any_cast<Vector<dim>>(rhs);
+  } else if (lhs.type() == typeid(Matrix<dim,dim>)) {
+    result = any_cast<Matrix<dim,dim>>(lhs) - any_cast<Matrix<dim,dim>>(rhs);
+  } else if (lhs.type() == typeid(Reals)) {
+    result = Reals(subtract_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else {
     throw Teuchos::ParserFail("Invalid operand types to + operator");
   }
@@ -139,6 +139,30 @@ Teuchos::any sub(Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
   if (dim == 2) return sub<2>(lhs, rhs);
   if (dim == 1) return sub<1>(lhs, rhs);
   OMEGA_H_NORETURN(Teuchos::any);
+}
+
+template <Int dim>
+Teuchos::any mul(Teuchos::any& lhs, Teuchos::any& rhs) {
+  if (lhs.type() == typeid(Real) && rhs.type() == typeid(Real)) {
+    result = any_cast<Real>(lhs) * any_cast<Real>(rhs);
+  /* begin multiply non-scalar by scalar (commutative) */
+  } else if (lhs.type() == typeid(Vector<dim>) && rhs.type() == typeid(Real)) {
+    result = any_cast<Vector<dim>>(lhs) * any_cast<Real>(rhs);
+  } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Vector<dim>)) {
+    result = any_cast<Real>(lhs) * any_cast<Vector<dim>>(rhs);
+  } else if (lhs.type() == typeid(Matrix<dim,dim>) && rhs.type() == typeid(Real)) {
+    result = any_cast<Matrix<dim,dim>>(lhs) * any_cast<Real>(rhs);
+  } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Matrix<dim,dim>)) {
+    result = any_cast<Real>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
+  /* dot product */
+  } else if (lhs.type() == typeid(Vector<dim>) && rhs.type() == typeid(Vector<dim>)) {
+    result = any_cast<Vector<dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+  /* matrix * vector (non-commutative) */
+  } else if (lhs.type() == typeid(Matrix<dim,dim>) && rhs.type() == typeid(Vector<dim>)) {
+    result = any_cast<Matrix<dim,dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+  } else {
+    throw Teuchos::ParserFail("Invalid operand types to * operator");
+  }
 }
 
 }  // end anonymous namespace
@@ -198,9 +222,9 @@ void ExprReader::at_reduce(Teuchos::any& result, int token, std::string& text) o
       } else if (rhs.at(0).type() == typeid(Bytes)) {
         promote(size, dim, rhs.at(3));
         promote(size, dim, rhs.at(6));
-        result = ternary_each(any_cast<Bytes>(rhs.at(0)),
+        result = Reals(ternary_each(any_cast<Bytes>(rhs.at(0)),
                    any_cast<Reals>(rhs.at(3)),
-                   any_cast<Reals>(rhs.at(6)));
+                   any_cast<Reals>(rhs.at(6))));
       } else {
         throw Teuchos::ParserFail("Invalid condition value type in ternary operator");
       }
