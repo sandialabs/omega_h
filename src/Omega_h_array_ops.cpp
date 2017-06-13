@@ -269,6 +269,24 @@ Bytes gt_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
+Bytes lt_each(Read<T> a, Read<T> b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] < b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
+Bytes eq_each(Read<T> a, Read<T> b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Bytes geq_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
@@ -298,8 +316,9 @@ Read<T> max_each(Read<T> a, Read<T> b) {
 template <typename T>
 Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
+  auto width = divide_no_remainder(a.size(), cond.size());
   Write<T> c(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = cond[i] ? a[i] : b[i]; };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = cond[i / width] ? a[i] : b[i]; };
   parallel_for(c.size(), f);
   return c;
 }
@@ -540,6 +559,8 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Bytes each_neq_to(Read<T> a, T b);                               \
   template Bytes each_eq_to(Read<T> a, T b);                                \
   template Bytes gt_each(Read<T> a, Read<T> b);                             \
+  template Bytes lt_each(Read<T> a, Read<T> b);                             \
+  template Bytes eq_each(Read<T> a, Read<T> b);                             \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \

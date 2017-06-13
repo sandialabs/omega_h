@@ -67,6 +67,10 @@ Bytes each_lt(Read<T> a, T b);
 template <typename T>
 Bytes gt_each(Read<T> a, Read<T> b);
 template <typename T>
+Bytes lt_each(Read<T> a, Read<T> b);
+template <typename T>
+Bytes eq_each(Read<T> a, Read<T> b);
+template <typename T>
 Bytes each_neq_to(Read<T> a, T b);
 template <typename T>
 Read<T> min_each(Read<T> a, Read<T> b);
@@ -134,6 +138,8 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);                      \
   extern template Read<T> each_max_with(Read<T> a, T b);                       \
   extern template Bytes gt_each(Read<T> a, Read<T> b);                      \
+  extern template Bytes lt_each(Read<T> a, Read<T> b);                      \
+  extern template Bytes eq_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
   extern template void set_component(                                          \
       Write<T> out, Read<T> a, Int ncomps, Int comp);                          \
