@@ -60,4 +60,19 @@ Reals resize_vectors(Reals old_vectors, Int old_dim, Int new_dim) {
   return new_vectors;
 }
 
+template <Int dim>
+Reals repeat_vector(LO n, Vector<dim> v) {
+  Write<Real> vs(n * dim);
+  auto f = OMEGA_H_LAMBDA(LO i) { set_vector(vs, i, v); };
+  parallel_for(n, f);
+  return vs;
+}
+
+template Reals repeat_vector(LO n, Vector<1> v);
+template Reals repeat_vector(LO n, Vector<2> v);
+template Reals repeat_vector(LO n, Vector<3> v);
+template Reals repeat_vector(LO n, Vector<4> v);
+template Reals repeat_vector(LO n, Vector<6> v);
+template Reals repeat_vector(LO n, Vector<9> v);
+
 }  // end namespace Omega_h

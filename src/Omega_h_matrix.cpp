@@ -5,10 +5,7 @@ namespace Omega_h {
 
 template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm) {
-  Write<Real> symms(n * symm_ncomps(dim));
-  auto f = OMEGA_H_LAMBDA(LO i) { set_symm(symms, i, symm); };
-  parallel_for(n, f);
-  return symms;
+  return repeat_vector(n, symm2vector(symm));
 }
 
 template Reals repeat_symm(LO n, Matrix<3, 3> symm);
@@ -39,5 +36,14 @@ Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim) {
   if (old_dim == 3 && new_dim == 2) return resize_symms_tmpl<3, 2>(old_symms);
   OMEGA_H_NORETURN(Reals());
 }
+
+template <Int dim>
+Reals repeat_matrix(LO n, Matrix<dim, dim> m) {
+  return repeat_vector(n, matrix2vector(m));
+}
+
+template Reals repeat_matrix(LO n, Matrix<3, 3> m);
+template Reals repeat_matrix(LO n, Matrix<2, 2> m);
+template Reals repeat_matrix(LO n, Matrix<1, 1> m);
 
 }  // end namespace Omega_h

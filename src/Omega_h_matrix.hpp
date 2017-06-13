@@ -483,6 +483,13 @@ extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
 
 Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim);
 
+template <Int dim>
+Reals repeat_matrix(LO n, Matrix<dim, dim> m);
+
+extern template Reals repeat_matrix(LO n, Matrix<3, 3> m);
+extern template Reals repeat_matrix(LO n, Matrix<2, 2> m);
+extern template Reals repeat_matrix(LO n, Matrix<1, 1> m);
+
 }  // end namespace Omega_h
 
 #endif
