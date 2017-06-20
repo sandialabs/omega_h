@@ -117,7 +117,10 @@ if(Omega_h_USE_SEACASExodus)
 endif()
 
 if(USE_TEUCHOS)
-  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES}
+      Omega_h_teuchos.cpp
+      Omega_h_expr.cpp
+      )
 endif()
 
 if(Omega_h_ONE_FILE)

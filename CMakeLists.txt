@@ -59,11 +59,21 @@ set(Omega_h_USE_TeuchosComm_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_public_dep(TeuchosComm)
 
-if(Omega_h_USE_TeuchosParameterList AND Omega_h_USE_TeuchosComm)
+set(Omega_h_USE_TeuchosParser_DEFAULT ${Omega_h_USE_Trilinos})
+set(TeuchosParser_PREFIX_DEFAULT ${Trilinos_PREFIX})
+bob_public_dep(TeuchosParser)
+
+if  ( Omega_h_USE_TeuchosParameterList
+  AND Omega_h_USE_TeuchosComm
+  AND Omega_h_USE_TeuchosParser
+  )
   message(STATUS "Using Teuchos")
   set(USE_TEUCHOS ON)
-elseif(Omega_h_USE_TeuchosParameterList OR Omega_h_USE_TeuchosComm)
-  message(FATAL_ERROR "Must use both TeuchosParameterList and TeuchosComm or neither")
+elseif  ( Omega_h_USE_TeuchosParameterList 
+       OR Omega_h_USE_TeuchosComm
+       OR Omega_h_USE_TeuchosParser
+       )
+  message(FATAL_ERROR "Must use TeuchosParameterList, TeuchosComm, and TeuchosParser or none")
 else()
   message(STATUS "Not using Teuchos")
   set(USE_TEUCHOS OFF)
@@ -124,6 +134,8 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_EGADS
     Omega_h_USE_SEACASExodus
     Omega_h_USE_TeuchosParameterList
+    Omega_h_USE_TeuchosComm
+    Omega_h_USE_TeuchosParser
     Omega_h_USE_YAML
     Omega_h_CHECK_BOUNDS
    )

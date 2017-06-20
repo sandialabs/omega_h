@@ -8,6 +8,10 @@
 #include <Omega_h_array.hpp>
 #include <Teuchos_Reader.hpp>
 
+#ifndef OMEGA_H_USE_TEUCHOSPARSER
+#error "Can't user Omega_h_expr.hpp without Omega_h_USE_TeuchosParser=ON"
+#endif
+
 namespace Omega_h {
 
 
@@ -27,7 +31,7 @@ class ExprReader : public Teuchos::Reader {
   void register_function(std::string const& name, Function const& value);
  protected:
   void at_shift(Teuchos::any& result, int token, std::string& text) override final;
-  void at_reduce(Teuchos::any& result, int token, std::string& text) override final;
+  void at_reduce(Teuchos::any& result, int token, std::vector<Teuchos::any>& rhs) override final;
 };
 
 }  // end namespace Omega_h

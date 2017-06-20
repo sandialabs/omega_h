@@ -1,3 +1,5 @@
+#include <Omega_h_expr.hpp>
+
 #include <Teuchos_Language.hpp>
 #include <Teuchos_MathExpr.hpp>
 
@@ -9,6 +11,35 @@ namespace Omega_h {
 
 using Teuchos::any;
 using Teuchos::any_cast;
+
+/* appease the non-standard crap in Teuchos::any */
+template <Int dim>
+bool operator==(Vector<dim> const&, Vector<dim> const&) {
+  return false;
+}
+
+template <Int dim>
+bool operator==(Matrix<dim,dim> const&, Matrix<dim,dim> const&) {
+  return false;
+}
+
+bool operator==(Reals const&, Reals const&) {
+  return false;
+}
+
+template <Int dim>
+std::ostream& operator<<(std::ostream& os, Vector<dim> const&) {
+  return os;
+}
+
+template <Int dim>
+std::ostream& operator<<(std::ostream& os, Matrix<dim,dim> const&) {
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, Reals const&) {
+  return os;
+}
 
 namespace {
 
@@ -101,52 +132,52 @@ void promote(LO size, Int dim, any& x) {
   OMEGA_H_NORETURN();
 }
 
-any ternary(LO size, Int dim, any& cond,
+void ternary(LO size, Int dim, any& result, any& cond,
     any& true_val, any& false_val) {
   if (cond.type() == typeid(bool)) {
     if (true_val.type() == typeid(Real)) {
-      return any_cast<bool>(cond) ?
-             any_cast<Real>(true_val) :
-             any_cast<Real>(false_val);
+      result = any_cast<bool>(cond) ?
+               any_cast<Real>(true_val) :
+               any_cast<Real>(false_val);
     } else if (true_val.type() == typeid(Reals)) {
-      return any_cast<bool>(cond) ?
-             any_cast<Reals>(true_val) :
-             any_cast<Reals>(false_val);
+      result = any_cast<bool>(cond) ?
+               any_cast<Reals>(true_val) :
+               any_cast<Reals>(false_val);
     } else {
       throw Teuchos::ParserFail("Invalid true value type in ternary operator");
     }
   } else if (cond.type() == typeid(Bytes)) {
     promote(size, dim, true_val);
     promote(size, dim, false_val);
-    return Reals(ternary_each(any_cast<Bytes>(cond),
-               any_cast<Reals>(true_val),
-               any_cast<Reals>(false_val)));
+    result = ternary_each(any_cast<Bytes>(cond),
+                          any_cast<Reals>(true_val),
+                          any_cast<Reals>(false_val));
   } else {
     throw Teuchos::ParserFail("Invalid condition value type in ternary operator");
   }
 }
 
-any eval_or(any& lhs, any& rhs) {
+void eval_or(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(bool)) {
-    return any_cast<bool>(lhs) || any_cast<bool>(rhs);
+    result = any_cast<bool>(lhs) || any_cast<bool>(rhs);
   } else if (lhs.type() == typeid(Bytes)) {
-    return lor_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+    result = lor_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
   } else {
     throw Teuchos::ParserFail("Invalid operand types to || operator");
   }
 }
 
-any eval_and(any& lhs, any& rhs) {
+void eval_and(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(bool)) {
-    return any_cast<bool>(lhs) && any_cast<bool>(rhs);
+    result = any_cast<bool>(lhs) && any_cast<bool>(rhs);
   } else if (lhs.type() == typeid(Bytes)) {
-    return land_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+    result = land_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
   } else {
     throw Teuchos::ParserFail("Invalid operand types to && operator");
   }
 }
 
-any gt(any& lhs, any& rhs) {
+void gt(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) > any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
@@ -156,7 +187,7 @@ any gt(any& lhs, any& rhs) {
   }
 }
 
-any lt(any& lhs, any& rhs) {
+void lt(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) < any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
@@ -166,7 +197,7 @@ any lt(any& lhs, any& rhs) {
   }
 }
 
-any eq(any& lhs, any& rhs) {
+void eq(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) == any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
@@ -177,7 +208,7 @@ any eq(any& lhs, any& rhs) {
 }
 
 template <Int dim>
-any add(any& lhs, any& rhs) {
+void add(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) + any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Vector<dim>)) {
@@ -191,15 +222,14 @@ any add(any& lhs, any& rhs) {
   }
 }
 
-any add(Int dim, any& lhs, any& rhs) {
-  if (dim == 3) return add<3>(lhs, rhs);
-  if (dim == 2) return add<2>(lhs, rhs);
-  if (dim == 1) return add<1>(lhs, rhs);
-  OMEGA_H_NORETURN(any);
+void add(Int dim, any& result, any& lhs, any& rhs) {
+  if (dim == 3) return add<3>(result, lhs, rhs);
+  if (dim == 2) return add<2>(result, lhs, rhs);
+  if (dim == 1) return add<1>(result, lhs, rhs);
 }
 
 template <Int dim>
-any sub(any& lhs, any& rhs) {
+void sub(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) - any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Vector<dim>)) {
@@ -213,52 +243,51 @@ any sub(any& lhs, any& rhs) {
   }
 }
 
-any sub(Int dim, any& lhs, any& rhs) {
-  if (dim == 3) return sub<3>(lhs, rhs);
-  if (dim == 2) return sub<2>(lhs, rhs);
-  if (dim == 1) return sub<1>(lhs, rhs);
-  OMEGA_H_NORETURN(any);
+void sub(Int dim, any& result, any& lhs, any& rhs) {
+  if (dim == 3) return sub<3>(result, lhs, rhs);
+  if (dim == 2) return sub<2>(result, lhs, rhs);
+  if (dim == 1) return sub<1>(result, lhs, rhs);
 }
 
 template <Int dim>
-any mul(LO size, any& lhs, any& rhs) {
+void mul(LO size, any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real) && rhs.type() == typeid(Real)) {
-    return any_cast<Real>(lhs) * any_cast<Real>(rhs);
+    result = any_cast<Real>(lhs) * any_cast<Real>(rhs);
   /* begin multiply non-scalar by scalar (commutative) */
   } else if (lhs.type() == typeid(Vector<dim>) && rhs.type() == typeid(Real)) {
-    return any_cast<Vector<dim>>(lhs) * any_cast<Real>(rhs);
+    result = any_cast<Vector<dim>>(lhs) * any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Vector<dim>)) {
-    return any_cast<Real>(lhs) * any_cast<Vector<dim>>(rhs);
+    result = any_cast<Real>(lhs) * any_cast<Vector<dim>>(rhs);
   } else if (lhs.type() == typeid(Matrix<dim,dim>) && rhs.type() == typeid(Real)) {
-    return any_cast<Matrix<dim,dim>>(lhs) * any_cast<Real>(rhs);
+    result = any_cast<Matrix<dim,dim>>(lhs) * any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Matrix<dim,dim>)) {
-    return any_cast<Real>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
+    result = any_cast<Real>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
   /* dot product */
   } else if (lhs.type() == typeid(Vector<dim>) && rhs.type() == typeid(Vector<dim>)) {
-    return any_cast<Vector<dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+    result = any_cast<Vector<dim>>(lhs) * any_cast<Vector<dim>>(rhs);
   /* matrix * vector (non-commutative) */
   } else if (lhs.type() == typeid(Matrix<dim,dim>) && rhs.type() == typeid(Vector<dim>)) {
-    return any_cast<Matrix<dim,dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+    result = any_cast<Matrix<dim,dim>>(lhs) * any_cast<Vector<dim>>(rhs);
   /* matrix * matrix (non-commutative) */
   } else if (lhs.type() == typeid(Matrix<dim,dim>) &&
       rhs.type() == typeid(Matrix<dim,dim>)) {
-    return any_cast<Matrix<dim,dim>>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
+    result = any_cast<Matrix<dim,dim>>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
   } else if (lhs.type() == typeid(Reals) && rhs.type() == typeid(Reals)) {
     auto& lhs_vals = any_cast<Reals>(lhs);
     auto& rhs_vals = any_cast<Reals>(rhs);
     if (rhs_vals.size() == size) { // RHS is scalars
-      return Reals(multiply_each(lhs_vals, rhs_vals));
+      result = Reals(multiply_each(lhs_vals, rhs_vals));
     } else if (lhs_vals.size() == size) { // LHS is scalars
-      return Reals(multiply_each(lhs_vals, rhs_vals));
+      result = Reals(multiply_each(lhs_vals, rhs_vals));
     } else if (lhs_vals.size() == size * dim &&
         rhs_vals.size() == size * dim) { // dot products
-      return dot_vectors(lhs_vals, rhs_vals);
+      result = dot_vectors(lhs_vals, rhs_vals, dim);
     } else if (lhs_vals.size() == size * matrix_ncomps(dim) &&
         rhs_vals.size() == size * dim) { // matrices * vectors
-      return matrices_times_vectors(lhs_vals, rhs_vals, dim);
+      result = matrices_times_vectors(lhs_vals, rhs_vals, dim);
     } else if (lhs_vals.size() == size * matrix_ncomps(dim) &&
         rhs_vals.size() == size * matrix_ncomps(dim)) {
-      return matrices_times_matrices(lhs_vals, rhs_vals, dim);
+      result = matrices_times_matrices(lhs_vals, rhs_vals, dim);
     } else {
       throw Teuchos::ParserFail("Unexpected array size in * operator");
     }
@@ -267,24 +296,23 @@ any mul(LO size, any& lhs, any& rhs) {
   }
 }
 
-any mul(LO size, Int dim, any& lhs, any& rhs) {
-  if (dim == 3) return mul<3>(size, lhs, rhs);
-  if (dim == 2) return mul<2>(size, lhs, rhs);
-  if (dim == 1) return mul<1>(size, lhs, rhs);
-  OMEGA_H_NORETURN(any());
+void mul(LO size, Int dim, any& result, any& lhs, any& rhs) {
+  if (dim == 3) mul<3>(size, result, lhs, rhs);
+  if (dim == 2) mul<2>(size, result, lhs, rhs);
+  if (dim == 1) mul<1>(size, result, lhs, rhs);
 }
 
 template <Int dim>
-any div(LO size, any& lhs, any& rhs) {
+void div(LO size, any& result, any& lhs, any& rhs) {
   if (rhs.type() == typeid(Reals)) {
-    return Reals(divide_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
+    result = Reals(divide_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else if (rhs.type() == typeid(Real)) {
     if (lhs.type() == typeid(Real)) {
-      return any_cast<Real>(lhs) / any_cast<Real>(rhs);
+      result = any_cast<Real>(lhs) / any_cast<Real>(rhs);
     } else if (lhs.type() == typeid(Vector<dim>)) {
-      return any_cast<Vector<dim>>(lhs) / any_cast<Real>(rhs);
+      result = any_cast<Vector<dim>>(lhs) / any_cast<Real>(rhs);
     } else if (lhs.type() == typeid(Matrix<dim,dim>)) {
-      return any_cast<Matrix<dim,dim>>(lhs) / any_cast<Real>(rhs);
+      result = any_cast<Matrix<dim,dim>>(lhs) / any_cast<Real>(rhs);
     } else {
       throw Teuchos::ParserFail("Invalid left operand type in / operator");
     }
@@ -293,67 +321,64 @@ any div(LO size, any& lhs, any& rhs) {
   }
 }
 
-any div(LO size, Int dim, any& lhs, any& rhs) {
-  if (dim == 3) return div<3>(size, lhs, rhs);
-  if (dim == 2) return div<2>(size, lhs, rhs);
-  if (dim == 1) return div<1>(size, lhs, rhs);
-  OMEGA_H_NORETURN(any());
+void div(LO size, Int dim, any& result, any& lhs, any& rhs) {
+  if (dim == 3) div<3>(size, result, lhs, rhs);
+  if (dim == 2) div<2>(size, result, lhs, rhs);
+  if (dim == 1) div<1>(size, result, lhs, rhs);
 }
 
 template <Int dim>
-any eval_pow(LO size, any& lhs, any& rhs) {
+void eval_pow(LO size, any& result, any& lhs, any& rhs) {
   if (rhs.type() == typeid(Reals)) {
-    return Reals(pow_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
+    result = Reals(pow_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else if (rhs.type() == typeid(Real)) {
-    return std::pow(any_cast<Real>(lhs), any_cast<Real>(rhs));
+    result = std::pow(any_cast<Real>(lhs), any_cast<Real>(rhs));
   } else {
     throw Teuchos::ParserFail("Invalid right operand type in ^ operator");
   }
 }
 
-any eval_pow(LO size, Int dim, any& lhs, any& rhs) {
-  if (dim == 3) return eval_pow<3>(size, lhs, rhs);
-  if (dim == 2) return eval_pow<2>(size, lhs, rhs);
-  if (dim == 1) return eval_pow<1>(size, lhs, rhs);
-  OMEGA_H_NORETURN(any());
+void eval_pow(LO size, Int dim, any& result, any& lhs, any& rhs) {
+  if (dim == 3) eval_pow<3>(size, result, lhs, rhs);
+  if (dim == 2) eval_pow<2>(size, result, lhs, rhs);
+  if (dim == 1) eval_pow<1>(size, result, lhs, rhs);
 }
 
 template <Int dim>
-any neg(any& val) {
+void neg(any& result, any& val) {
   if (val.type() == typeid(Real)) {
-    return - any_cast<Real>(val);
+    result = - any_cast<Real>(val);
   } else if (val.type() == typeid(Vector<dim>)) {
-    return - any_cast<Vector<dim>>(val);
+    result = - any_cast<Vector<dim>>(val);
   } else if (val.type() == typeid(Matrix<dim,dim>)) {
-    return - any_cast<Matrix<dim,dim>>(val);
+    result = - any_cast<Matrix<dim,dim>>(val);
   } else if (val.type() == typeid(Reals)) {
-    return Reals(multiply_each_by(-1.0, any_cast<Reals>(val)));
+    result = Reals(multiply_each_by(-1.0, any_cast<Reals>(val)));
   } else {
     throw Teuchos::ParserFail("Invalid operand type to negation operator");
   }
 }
 
-any neg(Int dim, any& val) {
-  if (dim == 3) return neg<3>(val);
-  if (dim == 2) return neg<2>(val);
-  if (dim == 1) return neg<1>(val);
-  OMEGA_H_NORETURN(any());
+void neg(Int dim, any& result, any& val) {
+  if (dim == 3) neg<3>(result, val);
+  if (dim == 2) neg<2>(result, val);
+  if (dim == 1) neg<1>(result, val);
 }
 
 template <Int dim>
-any access(LO size, any& var, Args& args) {
+void access(LO size, any& result, any& var, ExprReader::Args& args) {
   auto i = static_cast<Int>(any_cast<Real>(args.at(0)));
   auto j = args.size() > 1 ? static_cast<Int>(any_cast<Real>(args.at(0))) : Int(-1);
   if (var.type() == typeid(Vector<dim>)) {
-    return (any_cast<Vector<dim>>(var))(i);
+    result = (any_cast<Vector<dim>>(var))(i);
   } else if (var.type() == typeid(Matrix<dim, dim>)) {
-    return (any_cast<Matrix<dim,dim>>(var))(i,j);
+    result = (any_cast<Matrix<dim,dim>>(var))(i,j);
   } else if (var.type() == typeid(Reals)) {
     auto array = any_cast<Reals>(var);
     if (array.size() == size * dim) {
-      return Reals(get_component(array, dim, i));
+      result = Reals(get_component(array, dim, i));
     } else if (array.size() == size * matrix_ncomps(dim)) {
-      return Reals(get_component(array, matrix_ncomps(dim), j * dim + i));
+      result = Reals(get_component(array, matrix_ncomps(dim), j * dim + i));
     } else {
       throw Teuchos::ParserFail("Unexpected array size in access operator\n");
     }
@@ -362,11 +387,10 @@ any access(LO size, any& var, Args& args) {
   }
 }
 
-any access(LO size, Int dim, any& var, Args& args) {
-  if (dim == 3) return access<3>(size, var, args);
-  if (dim == 2) return access<2>(size, var, args);
-  if (dim == 1) return access<1>(size, var, args);
-  OMEGA_H_NORETURN(any());
+void access(LO size, Int dim, any& result, any& var, ExprReader::Args& args) {
+  if (dim == 3) access<3>(size, result, var, args);
+  if (dim == 2) access<2>(size, result, var, args);
+  if (dim == 1) access<1>(size, result, var, args);
 }
 
 }  // end anonymous namespace
@@ -381,21 +405,21 @@ ExprReader::ExprReader(LO count_in, Int dim_in):
 ExprReader::~ExprReader() {
 }
 
-void ExprReader::at_shift(any& result_any, int token, std::string& text) override final {
+void ExprReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
   switch (token) {
-    case Teuchos::MathExpr::TOK_NAME {
+    case Teuchos::MathExpr::TOK_NAME: {
       auto& result = Teuchos::make_any_ref<std::string>(result_any); 
       swap(result, text);
       break;
     }
-    case Teuchos::MathExpr::TOK_CONST {
+    case Teuchos::MathExpr::TOK_CONST: {
       result_any = std::atof(text.c_str());
     }
   }
 }
 
-void ExprReader::at_reduce(any& result, int token, std::string& text) override final {
+void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
   using std::swap;
   switch (prod) {
     case Teuchos::MathExpr::PROD_EXPR:
@@ -412,23 +436,23 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       break;
     case Teuchos::MathExpr::PROD_TERNARY:
       promote(size, dim, rhs.at(3), rhs.at(6));
-      result = ternary(size, dim, rhs.at(0), rhs.at(3), rhs.at(6));
+      ternary(size, dim, result, rhs.at(0), rhs.at(3), rhs.at(6));
       break;
     case Teuchos::MathExpr::PROD_OR:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = eval_or(rhs.at(0), rhs.at(3));
+      eval_or(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_AND:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = eval_and(rhs.at(0), rhs.at(3));
+      eval_and(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_GT:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = gt(rhs.at(0), rhs.at(3));
+      gt(rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_LT:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = lt(rhs.at(0), rhs.at(3));
+      lt(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_GEQ:
     case Teuchos::MathExpr::PROD_LEQ:
@@ -436,15 +460,15 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       break;
     case Teuchos::MathExpr::PROD_EQ:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = eq(rhs.at(0), rhs.at(3));
+      eq(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_ADD:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = add(dim, rhs.at(0), rhs.at(3));
+      add(dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_SUB:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = sub(dim, rhs.at(0), rhs.at(3));
+      sub(dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_MUL:
       promote(size, dim, rhs.at(0), rhs.at(3));
@@ -452,11 +476,11 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       break;
     case Teuchos::MathExpr::PROD_DIV:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = div(size, dim, rhs.at(0), rhs.at(3));
+      div(size, dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_POW:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = eval_pow(size, dim, rhs.at(0), rhs.at(3));
+      eval_pow(size, dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_CALL: {
       auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
@@ -471,7 +495,7 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       } else {
         /* access operator for vector/matrix */
         auto& val = vit->second;
-        result = access(size, dim, val, args);
+        access(size, dim, result, val, args);
       }
       break;
     }
@@ -493,7 +517,7 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       break;
     }
     case Teuchos::MathExpr::PROD_NEG:
-      result = neg(dim, rhs.at(2));
+      neg(dim, result, rhs.at(2));
       break;
     case Teuchos::MathExpr::PROD_PARENS:
       result = rhs.at(2);
