@@ -46,4 +46,42 @@ template Reals repeat_matrix(LO n, Matrix<3, 3> m);
 template Reals repeat_matrix(LO n, Matrix<2, 2> m);
 template Reals repeat_matrix(LO n, Matrix<1, 1> m);
 
+template <Int dim>
+Reals matrices_times_vectors_dim(Reals ms, Reals vs) {
+  auto n = divide_no_remainder(vs.size(), dim);
+  OMEGA_H_CHECK(ms.size() == n * matrix_ncomps(dim));
+  auto out = Write<Real>(n * dim);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    set_vector(out, i, get_matrix<dim>(ms, i) * get_vector<dim>(vs, i));
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals matrices_times_vectors(Reals ms, Reals vs, Int dim) {
+  if (dim == 3) return matrices_times_vectors_dim<3>(ms, vs);
+  if (dim == 2) return matrices_times_vectors_dim<2>(ms, vs);
+  if (dim == 1) return matrices_times_vectors_dim<1>(ms, vs);
+  OMEGA_H_NORETURN(Reals());
+}
+
+template <Int dim>
+Reals matrices_times_matrices_dim(Reals a, Reals b) {
+  auto n = divide_no_remainder(a.size(), matrix_ncomps(dim));
+  OMEGA_H_CHECK(b.size() == n * matrix_ncomps(dim));
+  auto out = Write<Real>(n * matrix_ncomps(dim));
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    set_matrix(out, i, get_matrix<dim>(a, i) * get_matrix<dim>(b, i));
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals matrices_times_matrices(Reals a, Reals b, Int dim) {
+  if (dim == 3) return matrices_times_matrices_dim<3>(a, b);
+  if (dim == 2) return matrices_times_matrices_dim<2>(a, b);
+  if (dim == 1) return matrices_times_matrices_dim<1>(a, b);
+  OMEGA_H_NORETURN(Reals());
+}
+
 }  // end namespace Omega_h

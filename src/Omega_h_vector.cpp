@@ -43,6 +43,25 @@ Reals normalize_vectors(Reals vs, Int dim) {
   OMEGA_H_NORETURN(Reals());
 }
 
+template <Int dim>
+Reals dot_vectors_dim(Reals a, Reals b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  auto n = divide_no_remainder(a.size(), dim);
+  auto out = Write<Real>(n);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    out[i] = get_vector<dim>(a, i) * get_vector<dim>(b, i);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals dot_vectors(Reals a, Reals b, Int dim) {
+  if (dim == 3) return dot_vectors_dim<3>(a, b);
+  if (dim == 2) return dot_vectors_dim<2>(a, b);
+  if (dim == 1) return dot_vectors_dim<1>(a, b);
+  OMEGA_H_NORETURN(Reals());
+}
+
 Reals resize_vectors(Reals old_vectors, Int old_dim, Int new_dim) {
   if (old_dim == new_dim) return old_vectors;
   auto nv = divide_no_remainder(old_vectors.size(), old_dim);

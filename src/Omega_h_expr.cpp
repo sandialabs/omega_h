@@ -1,6 +1,10 @@
 #include <Teuchos_Language.hpp>
 #include <Teuchos_MathExpr.hpp>
 
+#include <Omega_h_array_ops.hpp>
+#include <Omega_h_matrix.hpp>
+#include <Omega_h_vector.hpp>
+
 namespace Omega_h {
 
 using Teuchos::any;
@@ -142,24 +146,47 @@ Teuchos::any sub(Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
 }
 
 template <Int dim>
-Teuchos::any mul(Teuchos::any& lhs, Teuchos::any& rhs) {
+Teuchos::any mul(LO size, Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
   if (lhs.type() == typeid(Real) && rhs.type() == typeid(Real)) {
-    result = any_cast<Real>(lhs) * any_cast<Real>(rhs);
+    return any_cast<Real>(lhs) * any_cast<Real>(rhs);
   /* begin multiply non-scalar by scalar (commutative) */
   } else if (lhs.type() == typeid(Vector<dim>) && rhs.type() == typeid(Real)) {
-    result = any_cast<Vector<dim>>(lhs) * any_cast<Real>(rhs);
+    return any_cast<Vector<dim>>(lhs) * any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Vector<dim>)) {
-    result = any_cast<Real>(lhs) * any_cast<Vector<dim>>(rhs);
+    return any_cast<Real>(lhs) * any_cast<Vector<dim>>(rhs);
   } else if (lhs.type() == typeid(Matrix<dim,dim>) && rhs.type() == typeid(Real)) {
-    result = any_cast<Matrix<dim,dim>>(lhs) * any_cast<Real>(rhs);
+    return any_cast<Matrix<dim,dim>>(lhs) * any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Matrix<dim,dim>)) {
-    result = any_cast<Real>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
+    return any_cast<Real>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
   /* dot product */
   } else if (lhs.type() == typeid(Vector<dim>) && rhs.type() == typeid(Vector<dim>)) {
-    result = any_cast<Vector<dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+    return any_cast<Vector<dim>>(lhs) * any_cast<Vector<dim>>(rhs);
   /* matrix * vector (non-commutative) */
   } else if (lhs.type() == typeid(Matrix<dim,dim>) && rhs.type() == typeid(Vector<dim>)) {
-    result = any_cast<Matrix<dim,dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+    return any_cast<Matrix<dim,dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+  /* matrix * matrix (non-commutative) */
+  } else if (lhs.type() == typeid(Matrix<dim,dim>) &&
+      rhs.type() == typeid(Matrix<dim,dim>)) {
+    return any_cast<Matrix<dim,dim>>(lhs) * any_cast<Matrix<dim,dim>>(rhs);
+  } else if (lhs.type() == typeid(Reals) && rhs.type() == typeid(Reals)) {
+    auto& lhs_vals = any_cast<Reals>(lhs);
+    auto& rhs_vals = any_cast<Reals>(rhs);
+    if (rhs_vals.size() == size) { // RHS is scalars
+      return Reals(multiply_each(lhs_vals, rhs_vals));
+    } else if (lhs_vals.size() == size) { // LHS is scalars
+      return Reals(multiply_each(lhs_vals, rhs_vals));
+    } else if (lhs_vals.size() == size * dim &&
+        rhs_vals.size() == size * dim) { // dot products
+      return dot_vectors(lhs_vals, rhs_vals);
+    } else if (lhs_vals.size() == size * matrix_ncomps(dim) &&
+        rhs_vals.size() == size * dim) { // matrices * vectors
+      return matrices_times_vectors(lhs_vals, rhs_vals, dim);
+    } else if (lhs_vals.size() == size * matrix_ncomps(dim) &&
+        rhs_vals.size() == size * matrix_ncomps(dim)) {
+      return matrices_times_matrices(lhs_vals, rhs_vals, dim);
+    } else {
+      throw Teuchos::ParserFail("Unexpected array size in * operator");
+    }
   } else {
     throw Teuchos::ParserFail("Invalid operand types to * operator");
   }
@@ -292,7 +319,8 @@ void ExprReader::at_reduce(Teuchos::any& result, int token, std::string& text) o
       sub(dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_MUL:
-      result = any_cast<double>(rhs.at(0)) * any_cast<double>(rhs.at(3));
+      promote(size, dim, rhs.at(0), rhs.at(3));
+      result = mul(size, dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_DIV:
       result = any_cast<double>(rhs.at(0)) / any_cast<double>(rhs.at(3));
