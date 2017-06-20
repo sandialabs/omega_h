@@ -185,6 +185,16 @@ Reals divide_each_maybe_zero(Reals a, Reals b) {
   return c;
 }
 
+Reals pow_each(Reals a, Reals b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<Real> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    c[i] = pow(a[i], b[i]);
+  };
+  parallel_for(a.size(), f);
+  return c;
+}
+
 template <typename T>
 Read<T> divide_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());

@@ -12,11 +12,11 @@ using Teuchos::any_cast;
 
 namespace {
 
-void promote_bool(LO size, Teuchos::any& x) {
+void promote_bool(LO size, any& x) {
   x = Bytes(size, Byte(any_cast<bool>(x)));
 }
 
-void promote_bools(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
+void promote_bools(LO size, any& lhs, any& rhs) {
   if (lhs.type() == typeid(bool) && rhs.type() == typeid(Bytes)) {
     TEUCHOS_ASSERT(any_cast<Bytes>(rhs).size() == size);
     promote_bool(size, lhs);
@@ -27,11 +27,11 @@ void promote_bools(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
   }
 }
 
-void promote_scalar(LO size, Teuchos::any& x) {
+void promote_scalar(LO size, any& x) {
   x = Reals(size, any_cast<Real>(x));
 }
 
-void promote_scalars(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
+void promote_scalars(LO size, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real) && rhs.type() == typeid(Reals)) {
     promote_scalar(size, lhs);
   }
@@ -41,12 +41,12 @@ void promote_scalars(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
 }
 
 template <Int dim>
-void promote_vector(LO size, Teuchos::any& x) {
+void promote_vector(LO size, any& x) {
   x = repeat_vector(size, any_cast<Vector<dim>>(x));
 }
 
 template <Int dim>
-void promote_vectors(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
+void promote_vectors(LO size, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Vector<dim>) && rhs.type() == typeid(Reals)) {
     promote_vector<dim>(size, lhs);
   }
@@ -56,12 +56,12 @@ void promote_vectors(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
 }
 
 template <Int dim>
-void promote_matrix(LO size, Teuchos::any& x) {
+void promote_matrix(LO size, any& x) {
   x = repeat_matrix(size, any_cast<Matrix<dim,dim>>(x));
 }
 
 template <Int dim>
-void promote_matrices(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
+void promote_matrices(LO size, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Matrix<dim, dim>) && rhs.type() == typeid(Reals)) {
     promote_matrix<dim>(size, lhs);
   }
@@ -71,7 +71,7 @@ void promote_matrices(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
 }
 
 template <Int dim>
-void promote(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
+void promote(LO size, any& lhs, any& rhs) {
   if (lhs.type() == rhs.type()) return;
   promote_bools(size, lhs, rhs);
   promote_scalars(size, lhs, rhs);
@@ -79,7 +79,7 @@ void promote(LO size, Teuchos::any& lhs, Teuchos::any& rhs) {
   promote_matrices<dim>(size, lhs, rhs);
 }
 
-void promote(LO size, Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
+void promote(LO size, Int dim, any& lhs, any& rhs) {
   if (dim == 3) promote<3>(size, lhs, rhs);
   else if (dim == 2) promote<2>(size, lhs, rhs);
   else if (dim == 1) promote<1>(size, lhs, rhs);
@@ -87,22 +87,97 @@ void promote(LO size, Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
 }
 
 template <Int dim>
-void promote(LO size, Teuchos::any& x) {
+void promote(LO size, any& x) {
   promote_bool(size, x);
   promote_scalar(size, x);
   promote_vector<dim>(size, x);
   promote_matrix<dim>(size, x);
 }
 
-void promote(LO size, Int dim, Teuchos::any& x) {
+void promote(LO size, Int dim, any& x) {
   if (dim == 3) promote<3>(size, x);
   else if (dim == 2) promote<2>(size, x);
   else if (dim == 1) promote<1>(size, x);
   OMEGA_H_NORETURN();
 }
 
+any ternary(LO size, Int dim, any& cond,
+    any& true_val, any& false_val) {
+  if (cond.type() == typeid(bool)) {
+    if (true_val.type() == typeid(Real)) {
+      return any_cast<bool>(cond) ?
+             any_cast<Real>(true_val) :
+             any_cast<Real>(false_val);
+    } else if (true_val.type() == typeid(Reals)) {
+      return any_cast<bool>(cond) ?
+             any_cast<Reals>(true_val) :
+             any_cast<Reals>(false_val);
+    } else {
+      throw Teuchos::ParserFail("Invalid true value type in ternary operator");
+    }
+  } else if (cond.type() == typeid(Bytes)) {
+    promote(size, dim, true_val);
+    promote(size, dim, false_val);
+    return Reals(ternary_each(any_cast<Bytes>(cond),
+               any_cast<Reals>(true_val),
+               any_cast<Reals>(false_val)));
+  } else {
+    throw Teuchos::ParserFail("Invalid condition value type in ternary operator");
+  }
+}
+
+any eval_or(any& lhs, any& rhs) {
+  if (lhs.type() == typeid(bool)) {
+    return any_cast<bool>(lhs) || any_cast<bool>(rhs);
+  } else if (lhs.type() == typeid(Bytes)) {
+    return lor_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+  } else {
+    throw Teuchos::ParserFail("Invalid operand types to || operator");
+  }
+}
+
+any eval_and(any& lhs, any& rhs) {
+  if (lhs.type() == typeid(bool)) {
+    return any_cast<bool>(lhs) && any_cast<bool>(rhs);
+  } else if (lhs.type() == typeid(Bytes)) {
+    return land_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+  } else {
+    throw Teuchos::ParserFail("Invalid operand types to && operator");
+  }
+}
+
+any gt(any& lhs, any& rhs) {
+  if (lhs.type() == typeid(Real)) {
+    result = any_cast<Real>(lhs) > any_cast<Real>(rhs);
+  } else if (lhs.type() == typeid(Reals)) {
+    result = gt_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+  } else {
+    throw Teuchos::ParserFail("Invalid operand types to > operator");
+  }
+}
+
+any lt(any& lhs, any& rhs) {
+  if (lhs.type() == typeid(Real)) {
+    result = any_cast<Real>(lhs) < any_cast<Real>(rhs);
+  } else if (lhs.type() == typeid(Reals)) {
+    result = lt_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+  } else {
+    throw Teuchos::ParserFail("Invalid operand types to > operator");
+  }
+}
+
+any eq(any& lhs, any& rhs) {
+  if (lhs.type() == typeid(Real)) {
+    result = any_cast<Real>(lhs) == any_cast<Real>(rhs);
+  } else if (lhs.type() == typeid(Reals)) {
+    result = eq_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+  } else {
+    throw Teuchos::ParserFail("Invalid operand types to == operator");
+  }
+}
+
 template <Int dim>
-Teuchos::any add(Teuchos::any& lhs, Teuchos::any& rhs) {
+any add(any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) + any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Vector<dim>)) {
@@ -116,15 +191,15 @@ Teuchos::any add(Teuchos::any& lhs, Teuchos::any& rhs) {
   }
 }
 
-Teuchos::any add(Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
+any add(Int dim, any& lhs, any& rhs) {
   if (dim == 3) return add<3>(lhs, rhs);
   if (dim == 2) return add<2>(lhs, rhs);
   if (dim == 1) return add<1>(lhs, rhs);
-  OMEGA_H_NORETURN(Teuchos::any);
+  OMEGA_H_NORETURN(any);
 }
 
 template <Int dim>
-Teuchos::any sub(Teuchos::any& lhs, Teuchos::any& rhs) {
+any sub(any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) - any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Vector<dim>)) {
@@ -138,15 +213,15 @@ Teuchos::any sub(Teuchos::any& lhs, Teuchos::any& rhs) {
   }
 }
 
-Teuchos::any sub(Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
+any sub(Int dim, any& lhs, any& rhs) {
   if (dim == 3) return sub<3>(lhs, rhs);
   if (dim == 2) return sub<2>(lhs, rhs);
   if (dim == 1) return sub<1>(lhs, rhs);
-  OMEGA_H_NORETURN(Teuchos::any);
+  OMEGA_H_NORETURN(any);
 }
 
 template <Int dim>
-Teuchos::any mul(LO size, Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
+any mul(LO size, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real) && rhs.type() == typeid(Real)) {
     return any_cast<Real>(lhs) * any_cast<Real>(rhs);
   /* begin multiply non-scalar by scalar (commutative) */
@@ -192,6 +267,57 @@ Teuchos::any mul(LO size, Int dim, Teuchos::any& lhs, Teuchos::any& rhs) {
   }
 }
 
+any mul(LO size, Int dim, any& lhs, any& rhs) {
+  if (dim == 3) return mul<3>(size, lhs, rhs);
+  if (dim == 2) return mul<2>(size, lhs, rhs);
+  if (dim == 1) return mul<1>(size, lhs, rhs);
+  OMEGA_H_NORETURN(any());
+}
+
+template <Int dim>
+any div(LO size, any& lhs, any& rhs) {
+  if (rhs.type() == typeid(Reals)) {
+    return Reals(divide_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
+  } else if (rhs.type() == typeid(Real)) {
+    if (lhs.type() == typeid(Real)) {
+      return any_cast<Real>(lhs) / any_cast<Real>(rhs);
+    } else if (lhs.type() == typeid(Vector<dim>)) {
+      return any_cast<Vector<dim>>(lhs) / any_cast<Real>(rhs);
+    } else if (lhs.type() == typeid(Matrix<dim,dim>)) {
+      return any_cast<Matrix<dim,dim>>(lhs) / any_cast<Real>(rhs);
+    } else {
+      throw Teuchos::ParserFail("Invalid left operand type in / operator");
+    }
+  } else {
+    throw Teuchos::ParserFail("Invalid right operand type in / operator");
+  }
+}
+
+any div(LO size, Int dim, any& lhs, any& rhs) {
+  if (dim == 3) return div<3>(size, lhs, rhs);
+  if (dim == 2) return div<2>(size, lhs, rhs);
+  if (dim == 1) return div<1>(size, lhs, rhs);
+  OMEGA_H_NORETURN(any());
+}
+
+template <Int dim>
+any eval_pow(LO size, any& lhs, any& rhs) {
+  if (rhs.type() == typeid(Reals)) {
+    return Reals(pow_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
+  } else if (rhs.type() == typeid(Real)) {
+    return std::pow(any_cast<Real>(lhs), any_cast<Real>(rhs));
+  } else {
+    throw Teuchos::ParserFail("Invalid right operand type in ^ operator");
+  }
+}
+
+any eval_pow(LO size, Int dim, any& lhs, any& rhs) {
+  if (dim == 3) return eval_pow<3>(size, lhs, rhs);
+  if (dim == 2) return eval_pow<2>(size, lhs, rhs);
+  if (dim == 1) return eval_pow<1>(size, lhs, rhs);
+  OMEGA_H_NORETURN(any());
+}
+
 }  // end anonymous namespace
 
 ExprReader::ExprReader(LO count_in, Int dim_in):
@@ -204,7 +330,7 @@ ExprReader::ExprReader(LO count_in, Int dim_in):
 ExprReader::~ExprReader() {
 }
 
-void ExprReader::at_shift(Teuchos::any& result_any, int token, std::string& text) override final {
+void ExprReader::at_shift(any& result_any, int token, std::string& text) override final {
   using std::swap;
   switch (token) {
     case Teuchos::MathExpr::TOK_NAME {
@@ -218,7 +344,7 @@ void ExprReader::at_shift(Teuchos::any& result_any, int token, std::string& text
   }
 }
 
-void ExprReader::at_reduce(Teuchos::any& result, int token, std::string& text) override final {
+void ExprReader::at_reduce(any& result, int token, std::string& text) override final {
   using std::swap;
   switch (prod) {
     case Teuchos::MathExpr::PROD_EXPR:
@@ -234,67 +360,23 @@ void ExprReader::at_reduce(Teuchos::any& result, int token, std::string& text) o
       break;
     case Teuchos::MathExpr::PROD_TERNARY:
       promote(size, dim, rhs.at(3), rhs.at(6));
-      if (rhs.at(0).type() == typeid(bool)) {
-        if (rhs.at(3).type() == typeid(Real)) {
-          result = any_cast<bool>(rhs.at(0)) ?
-                   any_cast<Real>(rhs.at(3)) :
-                   any_cast<Real>(rhs.at(6));
-        } else if (rhs.at(3).type() == typeid(Reals)) {
-          result = any_cast<bool>(rhs.at(0)) ?
-                   any_cast<Reals>(rhs.at(3)) :
-                   any_cast<Reals>(rhs.at(6));
-        } else {
-          throw Teuchos::ParserFail("Invalid true value type in ternary operator");
-        }
-      } else if (rhs.at(0).type() == typeid(Bytes)) {
-        promote(size, dim, rhs.at(3));
-        promote(size, dim, rhs.at(6));
-        result = Reals(ternary_each(any_cast<Bytes>(rhs.at(0)),
-                   any_cast<Reals>(rhs.at(3)),
-                   any_cast<Reals>(rhs.at(6))));
-      } else {
-        throw Teuchos::ParserFail("Invalid condition value type in ternary operator");
-      }
+      result = ternary(size, dim, rhs.at(0), rhs.at(3), rhs.at(6));
       break;
     case Teuchos::MathExpr::PROD_OR:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      if (rhs.at(0).type() == typeid(bool)) {
-        result = any_cast<bool>(rhs.at(0)) || any_cast<bool>(rhs.at(3));
-      } else if (rhs.at(0).type() == typeid(Bytes)) {
-        result = lor_each(any_cast<Bytes>(rhs.at(0)), any_cast<Bytes>(rhs.at(3)));
-      } else {
-        throw Teuchos::ParserFail("Invalid operand types to || operator");
-      }
+      result = eval_or(rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_AND:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      if (rhs.at(0).type() == typeid(bool)) {
-        result = any_cast<bool>(rhs.at(0)) && any_cast<bool>(rhs.at(3));
-      } else if (rhs.at(0).type() == typeid(Bytes)) {
-        result = land_each(any_cast<Bytes>(rhs.at(0)), any_cast<Bytes>(rhs.at(3)));
-      } else {
-        throw Teuchos::ParserFail("Invalid operand types to && operator");
-      }
+      result = eval_and(rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_GT:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      if (rhs.at(0).type() == typeid(Real)) {
-        result = any_cast<Real>(rhs.at(0)) > any_cast<Real>(rhs.at(3));
-      } else if (rhs.at(0).type() == typeid(Reals)) {
-        result = gt_each(any_cast<Bytes>(rhs.at(0)), any_cast<Bytes>(rhs.at(3)));
-      } else {
-        throw Teuchos::ParserFail("Invalid operand types to > operator");
-      }
+      result = gt(rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_LT:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      if (rhs.at(0).type() == typeid(Real)) {
-        result = any_cast<Real>(rhs.at(0)) < any_cast<Real>(rhs.at(3));
-      } else if (rhs.at(0).type() == typeid(Reals)) {
-        result = lt_each(any_cast<Bytes>(rhs.at(0)), any_cast<Bytes>(rhs.at(3)));
-      } else {
-        throw Teuchos::ParserFail("Invalid operand types to > operator");
-      }
+      result = lt(rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_GEQ:
     case Teuchos::MathExpr::PROD_LEQ:
@@ -302,31 +384,27 @@ void ExprReader::at_reduce(Teuchos::any& result, int token, std::string& text) o
       break;
     case Teuchos::MathExpr::PROD_EQ:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      if (rhs.at(0).type() == typeid(Real)) {
-        result = any_cast<Real>(rhs.at(0)) == any_cast<Real>(rhs.at(3));
-      } else if (rhs.at(0).type() == typeid(Reals)) {
-        result = eq_each(any_cast<Bytes>(rhs.at(0)), any_cast<Bytes>(rhs.at(3)));
-      } else {
-        throw Teuchos::ParserFail("Invalid operand types to == operator");
-      }
+      result = eq(rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_ADD:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      add(dim, rhs.at(0), rhs.at(3));
+      result = add(dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_SUB:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      sub(dim, rhs.at(0), rhs.at(3));
+      result = sub(dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_MUL:
       promote(size, dim, rhs.at(0), rhs.at(3));
       result = mul(size, dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_DIV:
-      result = any_cast<double>(rhs.at(0)) / any_cast<double>(rhs.at(3));
+      promote(size, dim, rhs.at(0), rhs.at(3));
+      result = div(size, dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_POW:
-      result = std::pow(any_cast<double>(rhs.at(0)), any_cast<double>(rhs.at(3)));
+      promote(size, dim, rhs.at(0), rhs.at(3));
+      result = eval_pow(size, dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_CALL: {
       std::string& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
