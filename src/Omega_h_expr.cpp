@@ -318,6 +318,28 @@ any eval_pow(LO size, Int dim, any& lhs, any& rhs) {
   OMEGA_H_NORETURN(any());
 }
 
+template <Int dim>
+any neg(any& val) {
+  if (val.type() == typeid(Real)) {
+    return - any_cast<Real>(val);
+  } else if (val.type() == typeid(Vector<dim>)) {
+    return - any_cast<Vector<dim>>(val);
+  } else if (val.type() == typeid(Matrix<dim,dim>)) {
+    return - any_cast<Matrix<dim,dim>>(val);
+  } else if (val.type() == typeid(Reals)) {
+    return Reals(multiply_each_by(-1.0, any_cast<Reals>(val)));
+  } else {
+    throw Teuchos::ParserFail("Invalid operand type to negation operator");
+  }
+}
+
+any neg(Int dim, any& val) {
+  if (dim == 3) return neg<3>(val);
+  if (dim == 2) return neg<2>(val);
+  if (dim == 1) return neg<1>(val);
+  OMEGA_H_NORETURN(any());
+}
+
 }  // end anonymous namespace
 
 ExprReader::ExprReader(LO count_in, Int dim_in):
@@ -356,6 +378,7 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
     case Teuchos::MathExpr::PROD_POW_DECAY:
     case Teuchos::MathExpr::PROD_NEG_DECAY:
     case Teuchos::MathExpr::PROD_SOME_ARGS:
+    case Teuchos::MathExpr::PROD_CONST:
       swap(result, rhs.at(0));
       break;
     case Teuchos::MathExpr::PROD_TERNARY:
@@ -443,13 +466,10 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       break;
     }
     case Teuchos::MathExpr::PROD_NEG:
-      result = - any_cast<double>(rhs.at(2));
+      result = neg(dim, rhs.at(2));
       break;
     case Teuchos::MathExpr::PROD_PARENS:
-      result = any_cast<double>(rhs.at(2));
-      break;
-    case Teuchos::MathExpr::PROD_CONST:
-      result = any_cast<double>(rhs.at(0));
+      result = rhs.at(2);
       break;
     case Teuchos::MathExpr::PROD_VAR:
       throw Teuchos::ParserFail("Variables not supported!\n");
