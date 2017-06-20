@@ -169,6 +169,13 @@ OMEGA_H_INLINE Matrix<m, n>& operator-=(Matrix<m, n>& a, Matrix<m, n> b) {
 }
 
 template <Int m, Int n>
+OMEGA_H_INLINE Matrix<m, n> operator-(Matrix<m, n> a) {
+  Matrix<m, n> c;
+  for (Int j = 0; j < n; ++j) c[j] = -a[j];
+  return c;
+}
+
+template <Int m, Int n>
 OMEGA_H_INLINE Real max_norm(Matrix<m, n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)

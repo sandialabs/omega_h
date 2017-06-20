@@ -1,3 +1,5 @@
+#include <Teuchos_any.hpp>
+
 #include <Omega_h_expr.hpp>
 
 #include <Teuchos_Language.hpp>
@@ -7,39 +9,60 @@
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
 
+/* appease the non-standard crap in Teuchos::any */
+namespace Teuchos {
+
+template <Omega_h::Int dim>
+bool operator==(Omega_h::Vector<dim> const&, Omega_h::Vector<dim> const&) {
+  return false;
+}
+
+template <Omega_h::Int dim>
+bool operator==(Omega_h::Matrix<dim,dim> const&, Omega_h::Matrix<dim,dim> const&) {
+  return false;
+}
+
+bool operator==(Omega_h::Reals const&, Omega_h::Reals const&) {
+  return false;
+}
+
+bool operator==(Omega_h::Bytes const&, Omega_h::Bytes const&) {
+  return false;
+}
+
+bool operator==(std::vector<Teuchos::any> const&, std::vector<Teuchos::any> const&) {
+  return false;
+}
+
+template <Omega_h::Int dim>
+std::ostream& operator<<(std::ostream& os, Omega_h::Vector<dim> const&) {
+  return os;
+}
+
+template <Omega_h::Int dim>
+std::ostream& operator<<(std::ostream& os, Omega_h::Matrix<dim,dim> const&) {
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, Omega_h::Reals const&) {
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, Omega_h::Bytes const&) {
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, std::vector<Teuchos::any> const&) {
+  return os;
+}
+
+}
+/* done appeasing the non-standard crap in Teuchos::any */
+
 namespace Omega_h {
 
 using Teuchos::any;
 using Teuchos::any_cast;
-
-/* appease the non-standard crap in Teuchos::any */
-template <Int dim>
-bool operator==(Vector<dim> const&, Vector<dim> const&) {
-  return false;
-}
-
-template <Int dim>
-bool operator==(Matrix<dim,dim> const&, Matrix<dim,dim> const&) {
-  return false;
-}
-
-bool operator==(Reals const&, Reals const&) {
-  return false;
-}
-
-template <Int dim>
-std::ostream& operator<<(std::ostream& os, Vector<dim> const&) {
-  return os;
-}
-
-template <Int dim>
-std::ostream& operator<<(std::ostream& os, Matrix<dim,dim> const&) {
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, Reals const&) {
-  return os;
-}
 
 namespace {
 
@@ -303,7 +326,7 @@ void mul(LO size, Int dim, any& result, any& lhs, any& rhs) {
 }
 
 template <Int dim>
-void div(LO size, any& result, any& lhs, any& rhs) {
+void div(any& result, any& lhs, any& rhs) {
   if (rhs.type() == typeid(Reals)) {
     result = Reals(divide_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else if (rhs.type() == typeid(Real)) {
@@ -321,14 +344,14 @@ void div(LO size, any& result, any& lhs, any& rhs) {
   }
 }
 
-void div(LO size, Int dim, any& result, any& lhs, any& rhs) {
-  if (dim == 3) div<3>(size, result, lhs, rhs);
-  if (dim == 2) div<2>(size, result, lhs, rhs);
-  if (dim == 1) div<1>(size, result, lhs, rhs);
+void div(Int dim, any& result, any& lhs, any& rhs) {
+  if (dim == 3) div<3>(result, lhs, rhs);
+  if (dim == 2) div<2>(result, lhs, rhs);
+  if (dim == 1) div<1>(result, lhs, rhs);
 }
 
 template <Int dim>
-void eval_pow(LO size, any& result, any& lhs, any& rhs) {
+void eval_pow(any& result, any& lhs, any& rhs) {
   if (rhs.type() == typeid(Reals)) {
     result = Reals(pow_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else if (rhs.type() == typeid(Real)) {
@@ -338,10 +361,10 @@ void eval_pow(LO size, any& result, any& lhs, any& rhs) {
   }
 }
 
-void eval_pow(LO size, Int dim, any& result, any& lhs, any& rhs) {
-  if (dim == 3) eval_pow<3>(size, result, lhs, rhs);
-  if (dim == 2) eval_pow<2>(size, result, lhs, rhs);
-  if (dim == 1) eval_pow<1>(size, result, lhs, rhs);
+void eval_pow(Int dim, any& result, any& lhs, any& rhs) {
+  if (dim == 3) eval_pow<3>(result, lhs, rhs);
+  if (dim == 2) eval_pow<2>(result, lhs, rhs);
+  if (dim == 1) eval_pow<1>(result, lhs, rhs);
 }
 
 template <Int dim>
@@ -395,9 +418,9 @@ void access(LO size, Int dim, any& result, any& var, ExprReader::Args& args) {
 
 }  // end anonymous namespace
 
-ExprReader::ExprReader(LO count_in, Int dim_in):
+ExprReader::ExprReader(LO size_in, Int dim_in):
   Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()),
-  count(count_in),
+  size(size_in),
   dim(dim_in)
 {
 }
@@ -448,7 +471,7 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       break;
     case Teuchos::MathExpr::PROD_GT:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      gt(rhs.at(0), rhs.at(3));
+      gt(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_LT:
       promote(size, dim, rhs.at(0), rhs.at(3));
@@ -472,15 +495,15 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       break;
     case Teuchos::MathExpr::PROD_MUL:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      result = mul(size, dim, rhs.at(0), rhs.at(3));
+      mul(size, dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_DIV:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      div(size, dim, result, rhs.at(0), rhs.at(3));
+      div(dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_POW:
       promote(size, dim, rhs.at(0), rhs.at(3));
-      eval_pow(size, dim, result, rhs.at(0), rhs.at(3));
+      eval_pow(dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_CALL: {
       auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
@@ -519,8 +542,9 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
     case Teuchos::MathExpr::PROD_NEG:
       neg(dim, result, rhs.at(2));
       break;
-    case Teuchos::MathExpr::PROD_PARENS:
-      result = rhs.at(2);
+    case Teuchos::MathExpr::PROD_VAL_PARENS:
+    case Teuchos::MathExpr::PROD_BOOL_PARENS:
+      swap(result, rhs.at(2));
       break;
     case Teuchos::MathExpr::PROD_VAR:
       auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));

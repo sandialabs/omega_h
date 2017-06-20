@@ -173,6 +173,10 @@ if(Omega_h_USE_TeuchosComm)
       PUBLIC ${TeuchosComm_TPL_LIBRARIES})
 endif()
 
+if(Omega_h_USE_TeuchosParser)
+  target_link_libraries(omega_h PUBLIC teuchosparser)
+endif()
+
 bob_export_target(omega_h)
 
 if(Omega_h_USE_ZLIB)

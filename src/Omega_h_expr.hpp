@@ -20,12 +20,12 @@ class ExprReader : public Teuchos::Reader {
   using Args = std::vector<Teuchos::any>;
   using Function = std::function<void(Teuchos::any&, Args&)>;
  private:
-  LO count;
+  LO size;
   Int dim;
   std::map<std::string, Teuchos::any> vars;
   std::map<std::string, Function> functions;
  public:
-  ExprReader(LO count_in, Int dim_in);
+  ExprReader(LO size_in, Int dim_in);
   virtual ~ExprReader() override final;
   void register_variable(std::string const& name, Teuchos::any& value);
   void register_function(std::string const& name, Function const& value);
