@@ -13,7 +13,8 @@ namespace Omega_h {
 
 class ExprReader : public Teuchos::Reader {
  public:
-  using Function = std::function<void(Teuchos::any&, std::vector<Teuchos::any>&)>;
+  using Args = std::vector<Teuchos::any>;
+  using Function = std::function<void(Teuchos::any&, Args&)>;
  private:
   LO count;
   Int dim;

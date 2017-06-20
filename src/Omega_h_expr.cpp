@@ -340,6 +340,35 @@ any neg(Int dim, any& val) {
   OMEGA_H_NORETURN(any());
 }
 
+template <Int dim>
+any access(LO size, any& var, Args& args) {
+  auto i = static_cast<Int>(any_cast<Real>(args.at(0)));
+  auto j = args.size() > 1 ? static_cast<Int>(any_cast<Real>(args.at(0))) : Int(-1);
+  if (var.type() == typeid(Vector<dim>)) {
+    return (any_cast<Vector<dim>>(var))(i);
+  } else if (var.type() == typeid(Matrix<dim, dim>)) {
+    return (any_cast<Matrix<dim,dim>>(var))(i,j);
+  } else if (var.type() == typeid(Reals)) {
+    auto array = any_cast<Reals>(var);
+    if (array.size() == size * dim) {
+      return Reals(get_component(array, dim, i));
+    } else if (array.size() == size * matrix_ncomps(dim)) {
+      return Reals(get_component(array, matrix_ncomps(dim), j * dim + i));
+    } else {
+      throw Teuchos::ParserFail("Unexpected array size in access operator\n");
+    }
+  } else {
+    throw Teuchos::ParserFail("Unexpected variable type in access operator\n");
+  }
+}
+
+any access(LO size, Int dim, any& var, Args& args) {
+  if (dim == 3) return access<3>(size, var, args);
+  if (dim == 2) return access<2>(size, var, args);
+  if (dim == 1) return access<1>(size, var, args);
+  OMEGA_H_NORETURN(any());
+}
+
 }  // end anonymous namespace
 
 ExprReader::ExprReader(LO count_in, Int dim_in):
@@ -430,38 +459,36 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       result = eval_pow(size, dim, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_CALL: {
-      std::string& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
-      CallArgs& args = Teuchos::any_ref_cast<CallArgs>(rhs.at(4));
-      TEUCHOS_TEST_FOR_EXCEPTION(args.n < 1 || args.n > 2, Teuchos::ParserFail,
-          "Only unary and binary functions supported!\n");
-      if (args.n == 1) {
-        TEUCHOS_TEST_FOR_EXCEPTION(!unary_map.count(name), Teuchos::ParserFail,
-            "Unknown unary function name \"" << name << "\"\n");
-        Unary fptr = unary_map[name];
-        result = (*fptr)(args.a0);
+      auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
+      auto& args = Teuchos::any_ref_cast<Args>(rhs.at(4));
+      auto vit = vars.find(name);
+      if (vit == vars.end()) {
+        /* function call */
+        auto fit = functions.find(name);
+        TEUCHOS_TEST_FOR_EXCEPTION(fit == functions.end(), Teuchos::ParserFail,
+            "\"" << name << "\" is neither a variable nor a function name\n");
+        fit->second(result, args);
       } else {
-        TEUCHOS_TEST_FOR_EXCEPTION(!binary_map.count(name), Teuchos::ParserFail,
-            "Unknown binary function name \"" << name << "\"\n");
-        Binary fptr = binary_map[name];
-        result = (*fptr)(args.a0, args.a1);
+        /* access operator for vector/matrix */
+        auto& val = vit->second;
+        result = access(size, dim, val, args);
       }
       break;
     }
     case Teuchos::MathExpr::PROD_NO_ARGS: {
-      CallArgs& args = Teuchos::make_any_ref<CallArgs>(result);
-      args.n = 0;
+      result = Args{};
       break;
     }
     case Teuchos::MathExpr::PROD_FIRST_ARG: {
-      CallArgs& args = Teuchos::make_any_ref<CallArgs>(result);
-      args.a0 = any_cast<double>(rhs.at(0));
-      args.n = 1;
+      auto& args = Teuchos::make_any_ref<Args>(result);
+      args.push_back(any());
+      swap(args.back(), rhs.at(0));
       break;
     }
     case Teuchos::MathExpr::PROD_NEXT_ARG: {
-      CallArgs& args = Teuchos::any_ref_cast<CallArgs>(rhs.at(0));
-      args.a1 = any_cast<double>(rhs.at(3));
-      args.n = 2;
+      auto& args = Teuchos::any_ref_cast<Args>(rhs.at(0));
+      args.push_back(any());
+      swap(args.back(), rhs.at(3));
       swap(result, rhs.at(0));
       break;
     }
@@ -472,7 +499,11 @@ void ExprReader::at_reduce(any& result, int token, std::string& text) override f
       result = rhs.at(2);
       break;
     case Teuchos::MathExpr::PROD_VAR:
-      throw Teuchos::ParserFail("Variables not supported!\n");
+      auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
+      auto it = vars.find(name);
+      TEUCHOS_TEST_FOR_EXCEPTION(it == vars.end(), Teuchos::ParserFail,
+          "unknown variable name \"" << name << "\"\n");
+      result = it->second;
       break;
   }
 }
