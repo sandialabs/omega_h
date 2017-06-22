@@ -9,56 +9,6 @@
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
 
-/* appease the non-standard crap in Teuchos::any */
-namespace Teuchos {
-
-template <Omega_h::Int dim>
-bool operator==(Omega_h::Vector<dim> const&, Omega_h::Vector<dim> const&) {
-  return false;
-}
-
-template <Omega_h::Int dim>
-bool operator==(Omega_h::Matrix<dim,dim> const&, Omega_h::Matrix<dim,dim> const&) {
-  return false;
-}
-
-bool operator==(Omega_h::Reals const&, Omega_h::Reals const&) {
-  return false;
-}
-
-bool operator==(Omega_h::Bytes const&, Omega_h::Bytes const&) {
-  return false;
-}
-
-bool operator==(std::vector<Teuchos::any> const&, std::vector<Teuchos::any> const&) {
-  return false;
-}
-
-template <Omega_h::Int dim>
-std::ostream& operator<<(std::ostream& os, Omega_h::Vector<dim> const&) {
-  return os;
-}
-
-template <Omega_h::Int dim>
-std::ostream& operator<<(std::ostream& os, Omega_h::Matrix<dim,dim> const&) {
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, Omega_h::Reals const&) {
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, Omega_h::Bytes const&) {
-  return os;
-}
-
-std::ostream& operator<<(std::ostream& os, std::vector<Teuchos::any> const&) {
-  return os;
-}
-
-}
-/* done appeasing the non-standard crap in Teuchos::any */
-
 namespace Omega_h {
 
 using Teuchos::any;
@@ -137,7 +87,9 @@ void promote(LO size, Int dim, any& lhs, any& rhs) {
   if (dim == 3) promote<3>(size, lhs, rhs);
   else if (dim == 2) promote<2>(size, lhs, rhs);
   else if (dim == 1) promote<1>(size, lhs, rhs);
-  OMEGA_H_NORETURN();
+  else {
+    OMEGA_H_NORETURN();
+  }
 }
 
 template <Int dim>

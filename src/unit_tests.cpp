@@ -22,6 +22,10 @@
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
 
+#ifdef OMEGA_H_USE_TEUCHOSPARSER
+#include "Omega_h_expr.hpp"
+#endif
+
 #include <iostream>
 #include <sstream>
 
@@ -1077,6 +1081,21 @@ static void test_is_sorted() {
   OMEGA_H_CHECK(is_sorted(Reals({0.1, 0.1, 0.1, 0.1})));
 }
 
+static void test_expr() {
+#ifdef OMEGA_H_USE_TEUCHOSPARSER
+  using Teuchos::any;
+  using Teuchos::any_cast;
+  ExprReader reader(1, 3);
+  any result;
+  reader.read_string(result, "1.0", "test0");
+  OMEGA_H_CHECK(result.type() == typeid(Real));
+  OMEGA_H_CHECK(any_cast<Real>(result) == 1.0);
+  reader.read_string(result, "1 + 1", "test1");
+  OMEGA_H_CHECK(result.type() == typeid(Real));
+  OMEGA_H_CHECK(any_cast<Real>(result) == 2.0);
+#endif
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1138,5 +1157,6 @@ int main(int argc, char** argv) {
   test_binary_search();
   test_scalar_ptr();
   test_is_sorted();
+  test_expr();
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }
