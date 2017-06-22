@@ -82,12 +82,12 @@ class ExprReader : public Teuchos::Reader {
  private:
   LO size;
   Int dim;
-  std::map<std::string, Teuchos::any> vars;
+  std::map<std::string, Teuchos::any> variables;
   std::map<std::string, Function> functions;
  public:
   ExprReader(LO size_in, Int dim_in);
   virtual ~ExprReader() override final;
-  void register_variable(std::string const& name, Teuchos::any& value);
+  void register_variable(std::string const& name, Teuchos::any const& value);
   void register_function(std::string const& name, Function const& value);
  protected:
   void at_shift(Teuchos::any& result, int token, std::string& text) override final;

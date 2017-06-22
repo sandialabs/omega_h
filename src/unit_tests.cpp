@@ -1093,6 +1093,10 @@ static void test_expr() {
   reader.read_string(result, "1 + 1", "test1");
   OMEGA_H_CHECK(result.type() == typeid(Real));
   OMEGA_H_CHECK(any_cast<Real>(result) == 2.0);
+  reader.register_variable("pi", any(Real(3.14159)));
+  reader.read_string(result, "pi", "test2");
+  OMEGA_H_CHECK(result.type() == typeid(Real));
+  OMEGA_H_CHECK(any_cast<Real>(result) == 3.14159);
 #endif
 }
 

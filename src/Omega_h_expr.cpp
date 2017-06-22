@@ -380,6 +380,18 @@ ExprReader::ExprReader(LO size_in, Int dim_in):
 ExprReader::~ExprReader() {
 }
 
+void ExprReader::register_variable(std::string const& name, Teuchos::any const& value) {
+  OMEGA_H_CHECK(variables.find(name) == variables.end());
+  OMEGA_H_CHECK(functions.find(name) == functions.end());
+  variables[name] = value;
+}
+
+void ExprReader::register_function(std::string const& name, Function const& value) {
+  OMEGA_H_CHECK(variables.find(name) == variables.end());
+  OMEGA_H_CHECK(functions.find(name) == functions.end());
+  functions[name] = value;
+}
+
 void ExprReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
   switch (token) {
@@ -460,8 +472,8 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
     case Teuchos::MathExpr::PROD_CALL: {
       auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
       auto& args = Teuchos::any_ref_cast<Args>(rhs.at(4));
-      auto vit = vars.find(name);
-      if (vit == vars.end()) {
+      auto vit = variables.find(name);
+      if (vit == variables.end()) {
         /* function call */
         auto fit = functions.find(name);
         TEUCHOS_TEST_FOR_EXCEPTION(fit == functions.end(), Teuchos::ParserFail,
@@ -500,8 +512,8 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       break;
     case Teuchos::MathExpr::PROD_VAR:
       auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
-      auto it = vars.find(name);
-      TEUCHOS_TEST_FOR_EXCEPTION(it == vars.end(), Teuchos::ParserFail,
+      auto it = variables.find(name);
+      TEUCHOS_TEST_FOR_EXCEPTION(it == variables.end(), Teuchos::ParserFail,
           "unknown variable name \"" << name << "\"\n");
       result = it->second;
       break;
