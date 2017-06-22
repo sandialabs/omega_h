@@ -368,6 +368,35 @@ void access(LO size, Int dim, any& result, any& var, ExprReader::Args& args) {
   if (dim == 1) access<1>(size, result, var, args);
 }
 
+template <Int dim>
+void make_vector(any& result, ExprReader::Args& args) {
+  Vector<dim> v;
+  for (Int i = 0; i < dim; ++i) {
+    auto& arg = args[std::size_t(i)];
+    v[i] = any_cast<Real>(arg);
+  }
+  result = v;
+}
+
+void make_vector(LO size, Int dim, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != std::size_t(dim), Teuchos::ParserFail,
+      "Wrong number of arguments to vector()\n");
+  bool has_arrays = false;
+  for (auto& arg : args) if (arg.type() == typeid(Reals)) has_arrays = true;
+  if (has_arrays) {
+    std::vector<Read<Real>> arrays;
+    for (auto& arg : args) {
+      promote(size, dim, arg);
+      arrays.push_back(any_cast<Reals>(arg));
+    }
+    result = Reals(interleave(arrays));
+  } else {
+    if (dim == 3) make_vector<3>(result, args);
+    if (dim == 2) make_vector<2>(result, args);
+    if (dim == 1) make_vector<1>(result, args);
+  }
+}
+
 }  // end anonymous namespace
 
 ExprReader::ExprReader(LO size_in, Int dim_in):
@@ -375,6 +404,12 @@ ExprReader::ExprReader(LO size_in, Int dim_in):
   size(size_in),
   dim(dim_in)
 {
+  auto local_size = size;
+  auto local_dim = dim;
+  auto vector = [=](any& result, Args& args) {
+    make_vector(local_size, local_dim, result, args);
+  };
+  register_function("vector", vector);
 }
 
 ExprReader::~ExprReader() {
