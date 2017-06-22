@@ -1085,7 +1085,7 @@ static void test_expr() {
 #ifdef OMEGA_H_USE_TEUCHOSPARSER
   using Teuchos::any;
   using Teuchos::any_cast;
-  auto reader = ExprReader{1, 3};
+  auto reader = ExprReader{4, 3};
   any result;
   reader.read_string(result, "1.0", "test0");
   OMEGA_H_CHECK(result.type() == typeid(Real));
@@ -1101,6 +1101,10 @@ static void test_expr() {
   reader.read_string(result, "pi * j", "test3");
   OMEGA_H_CHECK(result.type() == typeid(Vector<3>));
   OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(result), vector_3(0,3.14159,0)));
+  reader.register_variable("x", any(Reals({0, 1, 2, 3})));
+  reader.read_string(result, "x^2", "test4");
+  OMEGA_H_CHECK(result.type() == typeid(Reals));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 4, 9})));
 #endif
 }
 
