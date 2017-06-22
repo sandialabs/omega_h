@@ -443,6 +443,24 @@ bool is_sorted(Read<T> a) {
   return parallel_reduce(a.size() - 1, IsSorted<T>(a));
 }
 
+template <typename T>
+Read<T> interleave(std::vector<Read<T>> arrays) {
+  if (arrays.empty()) return Read<T>();
+  auto narrays = LO(arrays.size());
+  auto array_size = arrays.front().size();
+  for (auto& array : arrays) OMEGA_H_CHECK(array.size() == array_size);
+  auto out_size = narrays * array_size;
+  auto out = Write<T>(out_size);
+  for (LO i = 0; i < narrays; ++i) {
+    auto array = arrays[std::size_t(i)];
+    auto f = OMEGA_H_LAMBDA(LO j) {
+      out[j * narrays + i] = array[j];
+    };
+    parallel_for(array_size, f);
+  }
+  return out;
+}
+
 /* A reproducible sum of floating-point values.
    this operation is one of the key places where
    a program's output begins to depend on parallel
@@ -574,7 +592,8 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \
-  template bool is_sorted(Read<T> a);
+  template bool is_sorted(Read<T> a); \
+  template Read<T> interleave(std::vector<Read<T>> arrays);
 
 INST(I8)
 INST(I32)
