@@ -1088,23 +1088,22 @@ static void test_expr() {
   auto reader = ExprReader{4, 3};
   any result;
   reader.read_string(result, "1.0", "test0");
-  OMEGA_H_CHECK(result.type() == typeid(Real));
   OMEGA_H_CHECK(any_cast<Real>(result) == 1.0);
   reader.read_string(result, "1 + 1", "test1");
-  OMEGA_H_CHECK(result.type() == typeid(Real));
   OMEGA_H_CHECK(any_cast<Real>(result) == 2.0);
   reader.register_variable("pi", any(Real(3.14159)));
   reader.read_string(result, "pi", "test2");
-  OMEGA_H_CHECK(result.type() == typeid(Real));
   OMEGA_H_CHECK(any_cast<Real>(result) == 3.14159);
   reader.register_variable("j", any(vector_3(0,1,0)));
   reader.read_string(result, "pi * j", "test3");
-  OMEGA_H_CHECK(result.type() == typeid(Vector<3>));
   OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(result), vector_3(0,3.14159,0)));
   reader.register_variable("x", any(Reals({0, 1, 2, 3})));
   reader.read_string(result, "x^2", "test4");
-  OMEGA_H_CHECK(result.type() == typeid(Reals));
   OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 4, 9})));
+  reader.register_variable("v", any(Reals(
+          {0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
+  reader.read_string(result, "v(1)", "test5");
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 2, 3})));
 #endif
 }
 
