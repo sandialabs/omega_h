@@ -94,17 +94,26 @@ void promote(LO size, Int dim, any& lhs, any& rhs) {
 
 template <Int dim>
 void promote(LO size, any& x) {
-  promote_bool(size, x);
-  promote_scalar(size, x);
-  promote_vector<dim>(size, x);
-  promote_matrix<dim>(size, x);
+  if (x.type() == typeid(bool)) {
+    promote_bool(size, x);
+  } else if (x.type() == typeid(Real)) {
+    promote_scalar(size, x);
+  } else if (x.type() == typeid(Vector<dim>)) {
+    promote_vector<dim>(size, x);
+  } else if (x.type() == typeid(Matrix<dim,dim>)) {
+    promote_matrix<dim>(size, x);
+  } else if (x.type() == typeid(Reals)) {
+    return;
+  } else {
+    throw Teuchos::ParserFail("Unexpected type being promoted");
+  }
 }
 
 void promote(LO size, Int dim, any& x) {
   if (dim == 3) promote<3>(size, x);
   else if (dim == 2) promote<2>(size, x);
   else if (dim == 1) promote<1>(size, x);
-  OMEGA_H_NORETURN();
+  else OMEGA_H_NORETURN();
 }
 
 void ternary(LO size, Int dim, any& result, any& cond,

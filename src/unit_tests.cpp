@@ -1112,6 +1112,12 @@ static void test_expr() {
           0,  1.5, 0})));
   reader.read_string(result, "vector(0, 1, 2)", "test7");
   OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(result), vector_3(0,1,2)));
+  reader.read_string(result, "vector(x, 0, 0)", "test8");
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({
+          0, 0, 0,
+          1, 0, 0,
+          2, 0, 0,
+          3, 0, 0})));
 #endif
 }
 
