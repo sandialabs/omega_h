@@ -1104,6 +1104,12 @@ static void test_expr() {
           {0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
   reader.read_string(result, "v(1)", "test5");
   OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 2, 3})));
+  reader.read_string(result, "v - 1.5 * j", "test6");
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({
+          0, -1.5, 0,
+          0, -0.5, 0,
+          0,  0.5, 0,
+          0,  1.5, 0})));
 #endif
 }
 
