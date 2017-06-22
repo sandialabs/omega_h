@@ -22,11 +22,6 @@ struct StandinTraits<I8> {
   typedef I32 type;
 };
 
-template <>
-struct StandinTraits<I32> {
-  typedef I32 type;
-};
-
 struct AndFunctor {
   typedef I64 value_type;
   OMEGA_H_INLINE void init(value_type& update) const { update = 1; }

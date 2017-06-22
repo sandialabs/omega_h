@@ -7,7 +7,6 @@ namespace Omega_h {
 
 template <typename T>
 struct ExclScan : public SumFunctor<I64> {
-  using value_type = I64;
   Read<T> in_;
   Write<LO> out_;
   ExclScan(Read<T> in, Write<LO> out) : in_(in), out_(out) {}

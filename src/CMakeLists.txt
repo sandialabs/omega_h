@@ -117,7 +117,10 @@ if(Omega_h_USE_SEACASExodus)
 endif()
 
 if(USE_TEUCHOS)
-  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_teuchos.cpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES}
+      Omega_h_teuchos.cpp
+      Omega_h_expr.cpp
+      )
 endif()
 
 if(Omega_h_ONE_FILE)
@@ -168,6 +171,10 @@ if(Omega_h_USE_TeuchosComm)
       PUBLIC ${TeuchosComm_TPL_INCLUDE_DIRS})
   target_link_libraries(omega_h
       PUBLIC ${TeuchosComm_TPL_LIBRARIES})
+endif()
+
+if(Omega_h_USE_TeuchosParser)
+  target_link_libraries(omega_h PUBLIC teuchosparser)
 endif()
 
 bob_export_target(omega_h)

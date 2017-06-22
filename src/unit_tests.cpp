@@ -22,6 +22,10 @@
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
 
+#ifdef OMEGA_H_USE_TEUCHOSPARSER
+#include "Omega_h_expr.hpp"
+#endif
+
 #include <iostream>
 #include <sstream>
 
@@ -1077,6 +1081,38 @@ static void test_is_sorted() {
   OMEGA_H_CHECK(is_sorted(Reals({0.1, 0.1, 0.1, 0.1})));
 }
 
+static void test_expr() {
+#ifdef OMEGA_H_USE_TEUCHOSPARSER
+  using Teuchos::any;
+  using Teuchos::any_cast;
+  auto reader = ExprReader{4, 3};
+  any result;
+  reader.read_string(result, "1.0", "test0");
+  OMEGA_H_CHECK(any_cast<Real>(result) == 1.0);
+  reader.read_string(result, "1 + 1", "test1");
+  OMEGA_H_CHECK(any_cast<Real>(result) == 2.0);
+  reader.register_variable("pi", any(Real(3.14159)));
+  reader.read_string(result, "pi", "test2");
+  OMEGA_H_CHECK(any_cast<Real>(result) == 3.14159);
+  reader.register_variable("j", any(vector_3(0,1,0)));
+  reader.read_string(result, "pi * j", "test3");
+  OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(result), vector_3(0,3.14159,0)));
+  reader.register_variable("x", any(Reals({0, 1, 2, 3})));
+  reader.read_string(result, "x^2", "test4");
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 4, 9})));
+  reader.register_variable("v", any(Reals(
+          {0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
+  reader.read_string(result, "v(1)", "test5");
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 2, 3})));
+  reader.read_string(result, "v - 1.5 * j", "test6");
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({
+          0, -1.5, 0,
+          0, -0.5, 0,
+          0,  0.5, 0,
+          0,  1.5, 0})));
+#endif
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1138,5 +1174,6 @@ int main(int argc, char** argv) {
   test_binary_search();
   test_scalar_ptr();
   test_is_sorted();
+  test_expr();
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }
