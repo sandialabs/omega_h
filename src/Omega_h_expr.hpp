@@ -9,11 +9,10 @@
 #include <Teuchos_Reader.hpp>
 
 #ifndef OMEGA_H_USE_TEUCHOSPARSER
-#error "Can't user Omega_h_expr.hpp without Omega_h_USE_TeuchosParser=ON"
+#error "Can't use Omega_h_expr.hpp without Omega_h_USE_TeuchosParser=ON"
 #endif
 
 namespace Omega_h {
-
 
 class ExprReader : public Teuchos::Reader {
  public:
