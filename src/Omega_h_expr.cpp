@@ -436,6 +436,10 @@ void ExprReader::register_function(std::string const& name, Function const& valu
   functions[name] = value;
 }
 
+void ExprReader::repeat(Teuchos::any& x) {
+  promote(size, dim, x);
+}
+
 void ExprReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
   switch (token) {
