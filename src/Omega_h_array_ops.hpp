@@ -131,26 +131,26 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Read<T> subtract_each(Read<T> a, Read<T> b);                 \
   extern template Read<T> add_to_each(Read<T> a, T b);                         \
   extern template Read<T> subtract_from_each(Read<T> a, T b);                  \
-  extern template Bytes each_geq_to(Read<T> a, T b);                        \
-  extern template Bytes each_leq_to(Read<T> a, T b);                        \
-  extern template Bytes each_gt(Read<T> a, T b);                            \
-  extern template Bytes each_lt(Read<T> a, T b);                            \
-  extern template Bytes each_neq_to(Read<T> a, T b);                        \
-  extern template Bytes each_eq_to(Read<T> a, T b);                         \
+  extern template Bytes each_geq_to(Read<T> a, T b);                           \
+  extern template Bytes each_leq_to(Read<T> a, T b);                           \
+  extern template Bytes each_gt(Read<T> a, T b);                               \
+  extern template Bytes each_lt(Read<T> a, T b);                               \
+  extern template Bytes each_neq_to(Read<T> a, T b);                           \
+  extern template Bytes each_eq_to(Read<T> a, T b);                            \
   extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
   extern template Read<T> divide_each_by(T factor, Read<T> x);                 \
   extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> max_each(Read<T> a, Read<T> b);                      \
-  extern template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);                      \
+  extern template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);      \
   extern template Read<T> each_max_with(Read<T> a, T b);                       \
-  extern template Bytes gt_each(Read<T> a, Read<T> b);                      \
-  extern template Bytes lt_each(Read<T> a, Read<T> b);                      \
-  extern template Bytes eq_each(Read<T> a, Read<T> b);                      \
+  extern template Bytes gt_each(Read<T> a, Read<T> b);                         \
+  extern template Bytes lt_each(Read<T> a, Read<T> b);                         \
+  extern template Bytes eq_each(Read<T> a, Read<T> b);                         \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
   extern template void set_component(                                          \
       Write<T> out, Read<T> a, Int ncomps, Int comp);                          \
   extern template LO find_last(Read<T> array, T value);                        \
-  extern template bool is_sorted(Read<T> array); \
+  extern template bool is_sorted(Read<T> array);                               \
   extern template Read<T> interleave(std::vector<Read<T>> arrays);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
