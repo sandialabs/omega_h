@@ -8,6 +8,7 @@
 #include <Omega_h_array_ops.hpp>
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
+#include <Omega_h_loop.hpp>
 
 namespace Omega_h {
 
@@ -406,6 +407,48 @@ void make_vector(LO size, Int dim, any& result, ExprReader::Args& args) {
   }
 }
 
+void eval_exp(LO size, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 1, Teuchos::ParserFail,
+      "exp() takes exactly one argument, given " << args.size());
+  auto& in_any = args.at(0);
+  if (in_any.type() == typeid(Real)) {
+    result = std::exp(any_cast<Real>(in_any));
+  } else if (in_any.type() == typeid(Reals)) {
+    auto a = Teuchos::any_cast<Reals>(in_any);
+    TEUCHOS_TEST_FOR_EXCEPTION(a.size() != size, Teuchos::ParserFail,
+        "exp() given array that wasn't scalars");
+    auto out = Write<Real>(a.size());
+    auto f = OMEGA_H_LAMBDA(LO i) {
+      out[i] = std::exp(a[i]);
+    };
+    parallel_for(a.size(), f);
+    result = Reals(out);
+  } else {
+    throw Teuchos::ParserFail("unexpected argument type to exp()");
+  }
+}
+
+void eval_sqrt(LO size, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 1, Teuchos::ParserFail,
+      "sqrt() takes exactly one argument, given " << args.size());
+  auto& in_any = args.at(0);
+  if (in_any.type() == typeid(Real)) {
+    result = std::sqrt(any_cast<Real>(in_any));
+  } else if (in_any.type() == typeid(Reals)) {
+    auto a = Teuchos::any_cast<Reals>(in_any);
+    TEUCHOS_TEST_FOR_EXCEPTION(a.size() != size, Teuchos::ParserFail,
+        "sqrt() given array that wasn't scalars");
+    auto out = Write<Real>(a.size());
+    auto f = OMEGA_H_LAMBDA(LO i) {
+      out[i] = std::sqrt(a[i]);
+    };
+    parallel_for(a.size(), f);
+    result = Reals(out);
+  } else {
+    throw Teuchos::ParserFail("unexpected argument type to pow()");
+  }
+}
+
 }  // end anonymous namespace
 
 ExprReader::ExprReader(LO size_in, Int dim_in):
@@ -419,6 +462,10 @@ ExprReader::ExprReader(LO size_in, Int dim_in):
     make_vector(local_size, local_dim, result, args);
   };
   register_function("vector", vector);
+  register_function("exp",
+      [=](any& result, Args& args) { eval_exp(local_size, result, args); });
+  register_function("sqrt",
+      [=](any& result, Args& args) { eval_sqrt(local_size, result, args); });
 }
 
 ExprReader::~ExprReader() {
@@ -440,7 +487,7 @@ void ExprReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
   switch (token) {
     case Teuchos::MathExpr::TOK_NAME: {
-      auto& result = Teuchos::make_any_ref<std::string>(result_any); 
+      auto& result = Teuchos::make_any_ref<std::string>(result_any);
       swap(result, text);
       break;
     }
@@ -488,7 +535,6 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
     case Teuchos::MathExpr::PROD_GEQ:
     case Teuchos::MathExpr::PROD_LEQ:
       throw Teuchos::ParserFail("Operators <= and >= not supported yet");
-      break;
     case Teuchos::MathExpr::PROD_EQ:
       promote(size, dim, rhs.at(0), rhs.at(3));
       eq(result, rhs.at(0), rhs.at(3));
