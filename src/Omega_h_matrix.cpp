@@ -5,10 +5,7 @@ namespace Omega_h {
 
 template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm) {
-  Write<Real> symms(n * symm_ncomps(dim));
-  auto f = OMEGA_H_LAMBDA(LO i) { set_symm(symms, i, symm); };
-  parallel_for(n, f);
-  return symms;
+  return repeat_vector(n, symm2vector(symm));
 }
 
 template Reals repeat_symm(LO n, Matrix<3, 3> symm);
@@ -37,6 +34,53 @@ Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim) {
   if (old_dim == new_dim) return old_symms;
   if (old_dim == 2 && new_dim == 3) return resize_symms_tmpl<2, 3>(old_symms);
   if (old_dim == 3 && new_dim == 2) return resize_symms_tmpl<3, 2>(old_symms);
+  OMEGA_H_NORETURN(Reals());
+}
+
+template <Int dim>
+Reals repeat_matrix(LO n, Matrix<dim, dim> m) {
+  return repeat_vector(n, matrix2vector(m));
+}
+
+template Reals repeat_matrix(LO n, Matrix<3, 3> m);
+template Reals repeat_matrix(LO n, Matrix<2, 2> m);
+template Reals repeat_matrix(LO n, Matrix<1, 1> m);
+
+template <Int dim>
+Reals matrices_times_vectors_dim(Reals ms, Reals vs) {
+  auto n = divide_no_remainder(vs.size(), dim);
+  OMEGA_H_CHECK(ms.size() == n * matrix_ncomps(dim));
+  auto out = Write<Real>(n * dim);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    set_vector(out, i, get_matrix<dim>(ms, i) * get_vector<dim>(vs, i));
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals matrices_times_vectors(Reals ms, Reals vs, Int dim) {
+  if (dim == 3) return matrices_times_vectors_dim<3>(ms, vs);
+  if (dim == 2) return matrices_times_vectors_dim<2>(ms, vs);
+  if (dim == 1) return matrices_times_vectors_dim<1>(ms, vs);
+  OMEGA_H_NORETURN(Reals());
+}
+
+template <Int dim>
+Reals matrices_times_matrices_dim(Reals a, Reals b) {
+  auto n = divide_no_remainder(a.size(), matrix_ncomps(dim));
+  OMEGA_H_CHECK(b.size() == n * matrix_ncomps(dim));
+  auto out = Write<Real>(n * matrix_ncomps(dim));
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    set_matrix(out, i, get_matrix<dim>(a, i) * get_matrix<dim>(b, i));
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals matrices_times_matrices(Reals a, Reals b, Int dim) {
+  if (dim == 3) return matrices_times_matrices_dim<3>(a, b);
+  if (dim == 2) return matrices_times_matrices_dim<2>(a, b);
+  if (dim == 1) return matrices_times_matrices_dim<1>(a, b);
   OMEGA_H_NORETURN(Reals());
 }
 

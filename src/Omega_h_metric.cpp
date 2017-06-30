@@ -387,7 +387,7 @@ static OMEGA_H_INLINE Matrix<dim, dim> metric_from_gradient(
   constexpr auto c_num = square(dim);
   constexpr auto c_denom = square(2 * (dim + 1));
   auto l = (c_num * grad_norm_sq) / (c_denom * square(eps));
-  if (l < EPSILON) return zero_matrix<dim,dim>();
+  if (l < EPSILON) return zero_matrix<dim, dim>();
   auto grad_norm = sqrt(grad_norm_sq);
   auto dir = grad / grad_norm;
   return outer_product(dir, dir) * l;

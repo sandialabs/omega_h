@@ -34,7 +34,8 @@ MetricInput::MetricInput() {
   nsmoothing_steps = 0;
 }
 
-static Reals get_variation_metrics(Mesh* mesh, Real knob, Int dim, Int ncomps, Reals data) {
+static Reals get_variation_metrics(
+    Mesh* mesh, Real knob, Int dim, Int ncomps, Reals data) {
   OMEGA_H_CHECK(data.size() == mesh->nents(dim) * ncomps);
   if (ncomps == 1) {
     if (dim == VERT) {
@@ -49,8 +50,7 @@ static Reals get_variation_metrics(Mesh* mesh, Real knob, Int dim, Int ncomps, R
     Reals metrics;
     for (Int comp = 0; comp < ncomps; ++comp) {
       auto comp_data = get_component(data, ncomps, comp);
-      auto comp_metrics =
-          get_variation_metrics(mesh, knob, dim, 1, comp_data);
+      auto comp_metrics = get_variation_metrics(mesh, knob, dim, 1, comp_data);
       if (comp) {
         metrics = intersect_metrics(mesh->nverts(), metrics, comp_metrics);
       } else {

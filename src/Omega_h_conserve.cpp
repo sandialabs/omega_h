@@ -191,7 +191,8 @@ static void carry_class_bdry_integ_error(Mesh* old_mesh, Mesh* new_mesh,
       graph_reduce(keys2old, old_elem_errors, ncomps, OMEGA_H_SUM);
   auto new_cav_sizes =
       fan_reduce(keys2new.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
-  auto cav_error_densities = divide_each_maybe_zero(old_cav_errors, new_cav_sizes);
+  auto cav_error_densities =
+      divide_each_maybe_zero(old_cav_errors, new_cav_sizes);
   auto cav_elem_error_densities =
       expand(cav_error_densities, keys2new.a2ab, ncomps);
   auto cav_elem_errors =

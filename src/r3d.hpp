@@ -992,7 +992,9 @@ R3D_INLINE void init_poly(Polytope<3>& poly, Vector<3>* vertices, Int numverts,
           vprev = faceinds[f][v];
           vcur = faceinds[f][(v + 1) % numvertsperface[f]];
           vnext = faceinds[f][(v + 2) % numvertsperface[f]];
-          vcur = vstart[vcur] + util[vcur]++;
+          auto vcur_old = vcur;
+          vcur = vstart[vcur] + util[vcur];
+          util[vcur_old]++;
           vbtmp[vcur].pnbrs[1] = vnext;
           vbtmp[vcur].pnbrs[2] = vprev;
         }

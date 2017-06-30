@@ -185,6 +185,14 @@ Reals divide_each_maybe_zero(Reals a, Reals b) {
   return c;
 }
 
+Reals pow_each(Reals a, Reals b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<Real> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = pow(a[i], b[i]); };
+  parallel_for(a.size(), f);
+  return c;
+}
+
 template <typename T>
 Read<T> divide_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
@@ -228,7 +236,7 @@ Read<T> subtract_from_each(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<I8> each_geq_to(Read<T> a, T b) {
+Bytes each_geq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] >= b); };
   parallel_for(c.size(), f);
@@ -236,7 +244,7 @@ Read<I8> each_geq_to(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<I8> each_leq_to(Read<T> a, T b) {
+Bytes each_leq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] <= b); };
   parallel_for(c.size(), f);
@@ -244,7 +252,7 @@ Read<I8> each_leq_to(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<I8> each_gt(Read<T> a, T b) {
+Bytes each_gt(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] > b); };
   parallel_for(c.size(), f);
@@ -252,7 +260,7 @@ Read<I8> each_gt(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<I8> each_lt(Read<T> a, T b) {
+Bytes each_lt(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] < b); };
   parallel_for(c.size(), f);
@@ -260,7 +268,7 @@ Read<I8> each_lt(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<I8> gt_each(Read<T> a, Read<T> b) {
+Bytes gt_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] > b[i]); };
@@ -269,7 +277,25 @@ Read<I8> gt_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
-Read<I8> geq_each(Read<T> a, Read<T> b) {
+Bytes lt_each(Read<T> a, Read<T> b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] < b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
+Bytes eq_each(Read<T> a, Read<T> b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
+Bytes geq_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] >= b[i]); };
@@ -296,6 +322,16 @@ Read<T> max_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
+Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  auto width = divide_no_remainder(a.size(), cond.size());
+  Write<T> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = cond[i / width] ? a[i] : b[i]; };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Read<T> each_max_with(Read<T> a, T b) {
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = max2(a[i], b); };
@@ -304,7 +340,7 @@ Read<T> each_max_with(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<I8> each_neq_to(Read<T> a, T b) {
+Bytes each_neq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] != b); };
   parallel_for(c.size(), f);
@@ -312,14 +348,14 @@ Read<I8> each_neq_to(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<I8> each_eq_to(Read<T> a, T b) {
+Bytes each_eq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b); };
   parallel_for(c.size(), f);
   return c;
 }
 
-Read<I8> land_each(Read<I8> a, Read<I8> b) {
+Bytes land_each(Bytes a, Bytes b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] && b[i]); };
@@ -327,7 +363,7 @@ Read<I8> land_each(Read<I8> a, Read<I8> b) {
   return c;
 }
 
-Read<I8> lor_each(Read<I8> a, Read<I8> b) {
+Bytes lor_each(Bytes a, Bytes b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
@@ -335,7 +371,7 @@ Read<I8> lor_each(Read<I8> a, Read<I8> b) {
   return c;
 }
 
-Read<I8> bit_or_each(Read<I8> a, Read<I8> b) {
+Bytes bit_or_each(Bytes a, Bytes b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
@@ -343,7 +379,7 @@ Read<I8> bit_or_each(Read<I8> a, Read<I8> b) {
   return c;
 }
 
-Read<I8> bit_neg_each(Read<I8> a) {
+Bytes bit_neg_each(Bytes a) {
   Write<I8> b(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = ~(a[i]); };
   parallel_for(a.size(), f);
@@ -403,6 +439,22 @@ template <typename T>
 bool is_sorted(Read<T> a) {
   if (a.size() < 2) return true;
   return parallel_reduce(a.size() - 1, IsSorted<T>(a));
+}
+
+template <typename T>
+Read<T> interleave(std::vector<Read<T>> arrays) {
+  if (arrays.empty()) return Read<T>();
+  auto narrays = LO(arrays.size());
+  auto array_size = arrays.front().size();
+  for (auto& array : arrays) OMEGA_H_CHECK(array.size() == array_size);
+  auto out_size = narrays * array_size;
+  auto out = Write<T>(out_size);
+  for (LO i = 0; i < narrays; ++i) {
+    auto array = arrays[std::size_t(i)];
+    auto f = OMEGA_H_LAMBDA(LO j) { out[j * narrays + i] = array[j]; };
+    parallel_for(array_size, f);
+  }
+  return out;
 }
 
 /* A reproducible sum of floating-point values.
@@ -520,20 +572,24 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \
   template Read<T> max_each(Read<T> a, Read<T> b);                             \
+  template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);             \
   template Read<T> each_max_with(Read<T> a, T b);                              \
   template Read<T> add_to_each(Read<T> a, T b);                                \
   template Read<T> subtract_from_each(Read<T> a, T b);                         \
-  template Read<I8> each_geq_to(Read<T> a, T b);                               \
-  template Read<I8> each_leq_to(Read<T> a, T b);                               \
-  template Read<I8> each_gt(Read<T> a, T b);                                   \
-  template Read<I8> each_lt(Read<T> a, T b);                                   \
-  template Read<I8> each_neq_to(Read<T> a, T b);                               \
-  template Read<I8> each_eq_to(Read<T> a, T b);                                \
-  template Read<I8> gt_each(Read<T> a, Read<T> b);                             \
+  template Bytes each_geq_to(Read<T> a, T b);                                  \
+  template Bytes each_leq_to(Read<T> a, T b);                                  \
+  template Bytes each_gt(Read<T> a, T b);                                      \
+  template Bytes each_lt(Read<T> a, T b);                                      \
+  template Bytes each_neq_to(Read<T> a, T b);                                  \
+  template Bytes each_eq_to(Read<T> a, T b);                                   \
+  template Bytes gt_each(Read<T> a, Read<T> b);                                \
+  template Bytes lt_each(Read<T> a, Read<T> b);                                \
+  template Bytes eq_each(Read<T> a, Read<T> b);                                \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \
-  template bool is_sorted(Read<T> a);
+  template bool is_sorted(Read<T> a);                                          \
+  template Read<T> interleave(std::vector<Read<T>> arrays);
 
 INST(I8)
 INST(I32)

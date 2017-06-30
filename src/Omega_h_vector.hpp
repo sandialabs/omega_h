@@ -211,8 +211,19 @@ OMEGA_H_DEVICE Vector<n> get_vector(Arr const& a, Int i) {
 
 Reals get_vector_norms(Reals vs, Int dim);
 Reals normalize_vectors(Reals vs, Int dim);
+Reals dot_vectors(Reals a, Reals b, Int dim);
 
 Reals resize_vectors(Reals vectors, Int old_dim, Int new_dim);
+
+template <Int dim>
+Reals repeat_vector(LO n, Vector<dim> v);
+
+extern template Reals repeat_vector(LO n, Vector<1> v);
+extern template Reals repeat_vector(LO n, Vector<2> v);
+extern template Reals repeat_vector(LO n, Vector<3> v);
+extern template Reals repeat_vector(LO n, Vector<4> v);
+extern template Reals repeat_vector(LO n, Vector<6> v);
+extern template Reals repeat_vector(LO n, Vector<9> v);
 
 }  // namespace Omega_h
 

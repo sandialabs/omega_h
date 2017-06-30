@@ -169,6 +169,13 @@ OMEGA_H_INLINE Matrix<m, n>& operator-=(Matrix<m, n>& a, Matrix<m, n> b) {
 }
 
 template <Int m, Int n>
+OMEGA_H_INLINE Matrix<m, n> operator-(Matrix<m, n> a) {
+  Matrix<m, n> c;
+  for (Int j = 0; j < n; ++j) c[j] = -a[j];
+  return c;
+}
+
+template <Int m, Int n>
 OMEGA_H_INLINE Real max_norm(Matrix<m, n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)
@@ -240,7 +247,8 @@ OMEGA_H_INLINE Real determinant(Matrix<3, 3> m) {
 }
 
 template <Int max_m, Int max_n>
-OMEGA_H_INLINE Real inner_product(Int m, Int n, Matrix<max_m, max_n> a, Matrix<max_m, max_n> b) {
+OMEGA_H_INLINE Real inner_product(
+    Int m, Int n, Matrix<max_m, max_n> a, Matrix<max_m, max_n> b) {
   Real out = 0.0;
   for (Int j = 0; j < n; ++j) {
     for (Int i = 0; i < m; ++i) {
@@ -412,7 +420,7 @@ OMEGA_H_DEVICE void set_matrix(
 
 template <Int dim>
 OMEGA_H_DEVICE Matrix<dim, dim> get_matrix(Reals const& a, Int i) {
-  return vector2symm(get_vector<matrix_ncomps(dim)>(a, i));
+  return vector2matrix<dim>(get_vector<matrix_ncomps(dim)>(a, i));
 }
 
 /* Rodrigues' Rotation Formula */
@@ -481,6 +489,16 @@ extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
 
 Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim);
+
+template <Int dim>
+Reals repeat_matrix(LO n, Matrix<dim, dim> m);
+
+extern template Reals repeat_matrix(LO n, Matrix<3, 3> m);
+extern template Reals repeat_matrix(LO n, Matrix<2, 2> m);
+extern template Reals repeat_matrix(LO n, Matrix<1, 1> m);
+
+Reals matrices_times_vectors(Reals ms, Reals vs, Int dim);
+Reals matrices_times_matrices(Reals ms, Reals vs, Int dim);
 
 }  // end namespace Omega_h
 
