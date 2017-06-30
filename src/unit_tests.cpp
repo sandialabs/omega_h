@@ -1118,6 +1118,11 @@ static void test_expr() {
           1, 0, 0,
           2, 0, 0,
           3, 0, 0})));
+  reader.read_string(result, "exp(0)", "test9");
+  OMEGA_H_CHECK(are_close(any_cast<Real>(result), 1.0));
+  reader.read_string(result, "exp(x)", "test10");
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({
+          1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
 #endif
 }
 
