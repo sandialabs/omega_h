@@ -23,8 +23,9 @@ extern char const* const assoc_names[NSET_TYPES];
 // (set_type, set_name) -> class_pairs
 using Assoc =
     std::array<std::map<std::string, std::vector<ClassPair>>, NSET_TYPES>;
+using MeshDimSets = std::map<std::string, LOs>;
 // (set_type, set_name) -> mesh_ents
-using MeshSets = std::array<std::map<std::string, LOs>, NSET_TYPES>;
+using MeshSets = std::array<MeshDimSets, NSET_TYPES>;
 
 Int get_assoc_dim(size_t set_type, Int mesh_dim);
 
