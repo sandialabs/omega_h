@@ -18,60 +18,55 @@
 namespace Teuchos {
 
 template <Omega_h::Int dim>
-inline
-bool operator==(Omega_h::Vector<dim> const&, Omega_h::Vector<dim> const&) {
+inline bool operator==(
+    Omega_h::Vector<dim> const&, Omega_h::Vector<dim> const&) {
   return false;
 }
 
 template <Omega_h::Int dim>
-inline
-bool operator==(Omega_h::Matrix<dim,dim> const&, Omega_h::Matrix<dim,dim> const&) {
+inline bool operator==(
+    Omega_h::Matrix<dim, dim> const&, Omega_h::Matrix<dim, dim> const&) {
   return false;
 }
 
-inline
-bool operator==(Omega_h::Reals const&, Omega_h::Reals const&) {
+inline bool operator==(Omega_h::Reals const&, Omega_h::Reals const&) {
   return false;
 }
 
-inline
-bool operator==(Omega_h::Bytes const&, Omega_h::Bytes const&) {
+inline bool operator==(Omega_h::Bytes const&, Omega_h::Bytes const&) {
   return false;
 }
 
-inline
-bool operator==(std::vector<Teuchos::any> const&, std::vector<Teuchos::any> const&) {
+inline bool operator==(
+    std::vector<Teuchos::any> const&, std::vector<Teuchos::any> const&) {
   return false;
 }
 
 template <Omega_h::Int dim>
-inline
-std::ostream& operator<<(std::ostream& os, Omega_h::Vector<dim> const&) {
+inline std::ostream& operator<<(std::ostream& os, Omega_h::Vector<dim> const&) {
   return os;
 }
 
 template <Omega_h::Int dim>
-inline
-std::ostream& operator<<(std::ostream& os, Omega_h::Matrix<dim,dim> const&) {
+inline std::ostream& operator<<(
+    std::ostream& os, Omega_h::Matrix<dim, dim> const&) {
   return os;
 }
 
-inline
-std::ostream& operator<<(std::ostream& os, Omega_h::Reals const&) {
+inline std::ostream& operator<<(std::ostream& os, Omega_h::Reals const&) {
   return os;
 }
 
-inline
-std::ostream& operator<<(std::ostream& os, Omega_h::Bytes const&) {
+inline std::ostream& operator<<(std::ostream& os, Omega_h::Bytes const&) {
   return os;
 }
 
-inline
-std::ostream& operator<<(std::ostream& os, std::vector<Teuchos::any> const&) {
+inline std::ostream& operator<<(
+    std::ostream& os, std::vector<Teuchos::any> const&) {
   return os;
 }
 
-} /* done appeasing the non-standard crap in Teuchos::any */
+}  // namespace Teuchos
 
 namespace Omega_h {
 
@@ -79,11 +74,13 @@ class ExprReader : public Teuchos::Reader {
  public:
   using Args = std::vector<Teuchos::any>;
   using Function = std::function<void(Teuchos::any&, Args&)>;
+
  private:
   LO size;
   Int dim;
   std::map<std::string, Teuchos::any> variables;
   std::map<std::string, Function> functions;
+
  public:
   ExprReader(LO size_in, Int dim_in);
   virtual ~ExprReader() override final;
@@ -91,8 +88,10 @@ class ExprReader : public Teuchos::Reader {
   void register_function(std::string const& name, Function const& value);
   void repeat(Teuchos::any& x);
  protected:
-  void at_shift(Teuchos::any& result, int token, std::string& text) override final;
-  void at_reduce(Teuchos::any& result, int token, std::vector<Teuchos::any>& rhs) override final;
+  void at_shift(
+      Teuchos::any& result, int token, std::string& text) override final;
+  void at_reduce(Teuchos::any& result, int token,
+      std::vector<Teuchos::any>& rhs) override final;
 };
 
 }  // end namespace Omega_h

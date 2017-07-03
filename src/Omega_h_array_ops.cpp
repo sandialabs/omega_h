@@ -188,9 +188,7 @@ Reals divide_each_maybe_zero(Reals a, Reals b) {
 Reals pow_each(Reals a, Reals b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<Real> c(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) {
-    c[i] = pow(a[i], b[i]);
-  };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = pow(a[i], b[i]); };
   parallel_for(a.size(), f);
   return c;
 }
@@ -453,9 +451,7 @@ Read<T> interleave(std::vector<Read<T>> arrays) {
   auto out = Write<T>(out_size);
   for (LO i = 0; i < narrays; ++i) {
     auto array = arrays[std::size_t(i)];
-    auto f = OMEGA_H_LAMBDA(LO j) {
-      out[j * narrays + i] = array[j];
-    };
+    auto f = OMEGA_H_LAMBDA(LO j) { out[j * narrays + i] = array[j]; };
     parallel_for(array_size, f);
   }
   return out;
@@ -576,23 +572,23 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \
   template Read<T> max_each(Read<T> a, Read<T> b);                             \
-  template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);                             \
+  template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);             \
   template Read<T> each_max_with(Read<T> a, T b);                              \
   template Read<T> add_to_each(Read<T> a, T b);                                \
   template Read<T> subtract_from_each(Read<T> a, T b);                         \
-  template Bytes each_geq_to(Read<T> a, T b);                               \
-  template Bytes each_leq_to(Read<T> a, T b);                               \
-  template Bytes each_gt(Read<T> a, T b);                                   \
-  template Bytes each_lt(Read<T> a, T b);                                   \
-  template Bytes each_neq_to(Read<T> a, T b);                               \
-  template Bytes each_eq_to(Read<T> a, T b);                                \
-  template Bytes gt_each(Read<T> a, Read<T> b);                             \
-  template Bytes lt_each(Read<T> a, Read<T> b);                             \
-  template Bytes eq_each(Read<T> a, Read<T> b);                             \
+  template Bytes each_geq_to(Read<T> a, T b);                                  \
+  template Bytes each_leq_to(Read<T> a, T b);                                  \
+  template Bytes each_gt(Read<T> a, T b);                                      \
+  template Bytes each_lt(Read<T> a, T b);                                      \
+  template Bytes each_neq_to(Read<T> a, T b);                                  \
+  template Bytes each_eq_to(Read<T> a, T b);                                   \
+  template Bytes gt_each(Read<T> a, Read<T> b);                                \
+  template Bytes lt_each(Read<T> a, Read<T> b);                                \
+  template Bytes eq_each(Read<T> a, Read<T> b);                                \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \
-  template bool is_sorted(Read<T> a); \
+  template bool is_sorted(Read<T> a);                                          \
   template Read<T> interleave(std::vector<Read<T>> arrays);
 
 INST(I8)
