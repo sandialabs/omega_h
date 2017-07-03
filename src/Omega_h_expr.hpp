@@ -87,6 +87,7 @@ class ExprReader : public Teuchos::Reader {
   void register_variable(std::string const& name, Teuchos::any const& value);
   void register_function(std::string const& name, Function const& value);
   void repeat(Teuchos::any& x);
+
  protected:
   void at_shift(
       Teuchos::any& result, int token, std::string& text) override final;

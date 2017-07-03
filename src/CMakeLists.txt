@@ -404,7 +404,10 @@ set(Omega_h_HEADERS
   )
 
 if(USE_TEUCHOS)
-  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_teuchos.hpp)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS}
+      Omega_h_teuchos.hpp
+      Omega_h_expr.hpp
+     )
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
