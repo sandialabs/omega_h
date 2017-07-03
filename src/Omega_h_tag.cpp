@@ -1,36 +1,9 @@
 #include "Omega_h_tag.hpp"
 
-/* regex support is a complete lie prior to GCC 4.9.0 */
-
-#if !defined(__clang__) && defined(__GNUC__)
-/* Test for GCC > 3.2.0 */
-#if __GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ >= 9))
-#define OMEGA_H_COMPILER_SUPPORTS_REGEX
-#endif
-#else
-#define OMEGA_H_COMPILER_SUPPORTS_REGEX
-#endif
-
-#ifdef OMEGA_H_COMPILER_SUPPORTS_REGEX
-#include <regex>
-#endif
-
 namespace Omega_h {
 
-/* basically just checks for a valid C identifier */
 void check_tag_name(std::string const& name) {
-#ifdef OMEGA_H_COMPILER_SUPPORTS_REGEX
-  auto id_regex_def = "[_a-zA-Z][_a-zA-Z0-9]*";
-  auto id_regex = std::regex(id_regex_def);
-  if (!std::regex_match(name, id_regex)) {
-    Omega_h_fail(
-        "\"%s\" is not a valid tag name.\n"
-        "tags must match this regex: %s\n",
-        name.c_str(), id_regex_def);
-  }
-#else
-  (void)name;
-#endif
+  OMEGA_H_CHECK(!name.empty());
 }
 
 TagBase::TagBase(std::string const& name, Int ncomps)
