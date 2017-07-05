@@ -1,5 +1,7 @@
 #include "Omega_h_mark.hpp"
 
+#include <algorithm>
+
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
@@ -97,12 +99,14 @@ Read<I8> mark_class_closure(
 Read<I8> mark_class_closures(
     Mesh* mesh, Int ent_dim, Int class_dim, std::vector<LO> const& class_ids) {
   OMEGA_H_CHECK(class_dim >= ent_dim);
-  HostWrite<LO> h_class_ids(LO(class_ids.size()));
-  for (size_t i = 0; i < class_ids.size(); ++i) {
-    h_class_ids[LO(i)] = class_ids[i];
+  auto sorted_class_ids = class_ids;
+  std::sort(begin(sorted_class_ids), end(sorted_class_ids));
+  HostWrite<LO> h_sorted_class_ids(LO(sorted_class_ids.size()));
+  for (size_t i = 0; i < sorted_class_ids.size(); ++i) {
+    h_sorted_class_ids[LO(i)] = sorted_class_ids[i];
   }
-  auto d_class_ids = LOs(h_class_ids.write());
-  auto nclass_ids = d_class_ids.size();
+  auto d_sorted_class_ids = LOs(h_sorted_class_ids.write());
+  auto nclass_ids = d_sorted_class_ids.size();
   auto eq_class_dims = mesh->get_array<I8>(class_dim, "class_dim");
   auto eq_class_ids = mesh->get_array<LO>(class_dim, "class_id");
   auto neq = mesh->nents(class_dim);
@@ -110,7 +114,7 @@ Read<I8> mark_class_closures(
   auto f = OMEGA_H_LAMBDA(LO eq) {
     eq_marks_w[eq] =
         I8((eq_class_dims[eq] == I8(class_dim)) &&
-            (-1 != binary_search(d_class_ids, eq_class_ids[eq], nclass_ids)));
+            (-1 != binary_search(d_sorted_class_ids, eq_class_ids[eq], nclass_ids)));
   };
   parallel_for(neq, f);
   auto eq_marks = Read<I8>(eq_marks_w);
