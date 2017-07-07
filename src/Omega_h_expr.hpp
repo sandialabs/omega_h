@@ -5,8 +5,6 @@
 #include <map>
 #include <vector>
 
-#include <Teuchos_Reader.hpp>
-
 #include <Omega_h_array.hpp>
 #include <Omega_h_matrix.hpp>
 
@@ -16,6 +14,8 @@
 
 /* appease the non-standard crap in Teuchos::any */
 namespace Teuchos {
+  
+class any;
 
 template <Omega_h::Int dim>
 inline bool operator==(
@@ -67,6 +67,8 @@ inline std::ostream& operator<<(
 }
 
 }  // namespace Teuchos
+
+#include <Teuchos_Reader.hpp>
 
 namespace Omega_h {
 
