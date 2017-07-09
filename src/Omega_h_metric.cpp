@@ -196,9 +196,8 @@ static Reals limit_gradation_once_tmpl(
       auto ax = get_vector<mesh_dim>(coords, av);
       auto vec = ax - x;
       auto metric_dist = metric_length(am, vec);
-      auto decomp = decompose_metric(am);
-      decomp.l = decomp.l * (1.0 + metric_dist * max_rate);
-      auto limiter = compose_metric(decomp.q, decomp.l);
+      auto factor = metric_eigenvalue_from_length(1.0 + metric_dist * max_rate);
+      auto limiter = am * factor;
       auto limited = intersect_metrics(m, limiter);
       m = limited;
     }
