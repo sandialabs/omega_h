@@ -628,16 +628,15 @@ static Reals diffuse_densities_once(
 
 struct AllBounded : public AndFunctor {
   Reals a;
-  Reals b;
-  AllBounded(Reals a_, Reals b_) : a(a_), b(b_) {}
+  Real b;
+  AllBounded(Reals a_, Real b_) : a(a_), b(b_) {}
   OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (fabs(a[i]) <= b[i]);
+    update = update && (fabs(a[i]) <= b);
   }
 };
 
-static bool all_bounded(CommPtr comm, Reals a, Reals b) {
-  auto out = bool(parallel_reduce(a.size(), AllBounded(a, b)));
-  return comm->reduce_and(out);
+static bool all_bounded(CommPtr comm, Reals a, Real b) {
+  return bool(get_min(comm, each_leq_to(fabs_each(a), b)));
 }
 
 static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
@@ -645,9 +644,7 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
     bool verbose) {
   auto comm = mesh->comm();
   Int niters = 0;
-  auto bounds =
-      multiply_each_by(opts.tolerance, invert_each(mesh->ask_sizes()));
-  for (niters = 0; !all_bounded(comm, densities, bounds); ++niters) {
+  for (niters = 0; !all_bounded(comm, densities, opts.tolerance); ++niters) {
     densities = diffuse_densities_once(mesh, g, densities, cell_sizes);
   }
   if (verbose && !comm->rank()) {
@@ -656,31 +653,29 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
   return densities;
 }
 
-static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g, Reals integrals,
-    Reals weights, VarCompareOpts opts, std::string const& name, bool verbose) {
-  if (opts.type == VarCompareOpts::NONE) return integrals;
-  auto ncomps = divide_no_remainder(integrals.size(), g.nnodes());
+static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g, Reals error_integrals,
+    Reals quantity_integrals, VarCompareOpts opts, std::string const& name, bool verbose) {
+  if (opts.type == VarCompareOpts::NONE) return error_integrals;
+  auto ncomps = divide_no_remainder(error_integrals.size(), g.nnodes());
   if (ncomps > 1) {
-    Write<Real> out(integrals.size());
+    Write<Real> out(error_integrals.size());
     for (Int c = 0; c < ncomps; ++c) {
-      auto comp_integrals = get_component(integrals, ncomps, c);
-      auto comp_weights = get_component(weights, ncomps, c);
+      auto comp_integrals = get_component(error_integrals, ncomps, c);
+      auto comp_quantity_integrals = get_component(quantity_integrals, ncomps, c);
       auto comp_name = name + "_" + to_string(c);
       comp_integrals = diffuse_integrals_weighted(
-          mesh, g, comp_integrals, comp_weights, opts, comp_name, verbose);
+          mesh, g, comp_integrals, comp_quantity_integrals, opts, comp_name, verbose);
       set_component(out, comp_integrals, ncomps, c);
     }
     return out;
   }
-  auto unweighted_sizes = mesh->ask_sizes();
-  weights = fabs_each(weights);
-  weights = each_max_with(weights, opts.floor);
-  auto weighted_sizes = multiply_each(unweighted_sizes, weights);
-  auto weighted_densities = divide_each(integrals, weighted_sizes);
+  auto weighted_sizes = fabs_each(quantity_integrals);
+  weighted_sizes = each_max_with(weighted_sizes, opts.floor);
+  auto weighted_densities = divide_each(error_integrals, weighted_sizes);
   weighted_densities = diffuse_densities(
       mesh, g, weighted_densities, weighted_sizes, opts, name, verbose);
-  integrals = multiply_each(weighted_densities, weighted_sizes);
-  return integrals;
+  error_integrals = multiply_each(weighted_densities, weighted_sizes);
+  return error_integrals;
 }
 
 static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
