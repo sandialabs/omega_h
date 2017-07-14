@@ -642,4 +642,14 @@ SurfaceInfo get_surface_info(Mesh* mesh) {
   return out;
 }
 
+Reals get_vert_curvatures(Mesh* mesh) {
+  auto surface_info = get_surface_info(mesh);
+  auto surf_vert_curvatures = get_max_eigenvalues(2, surface_info.surf_vert_IIs);
+  map_into(surf_vert_curvatures,
+      surface_info.surf_vert2vert, out, 1);
+  map_into(surface_info.curv_vert_curvatures,
+      surface_info.curv_vert2vert, out, 1);
+  return out;
+}
+
 }  // end namespace Omega_h
