@@ -221,7 +221,7 @@ Reals get_side_vert_normals(Mesh* mesh, LOs surf_side2side,
  * necessary to get a correct tangent vector at each vertex
  */
 static Read<I8> get_curv_vert_edge_flips(
-    Adj curv_verts2edges, LOs edges2curv_edge) {
+    Adj curv_verts2edges, LOs edge2curv_edge) {
   auto out = Write<I8>(curv_verts2edges.nedges());
   auto ncurv_verts = curv_verts2edges.nnodes();
   auto f = OMEGA_H_LAMBDA(LO curv_vert) {
@@ -229,7 +229,7 @@ static Read<I8> get_curv_vert_edge_flips(
     for (auto ve = curv_verts2edges.a2ab[curv_vert];
          ve < curv_verts2edges.a2ab[curv_vert + 1]; ++ve) {
       auto e = curv_verts2edges.ab2b[ve];
-      auto ce = edges2curv_edge[e];
+      auto ce = edge2curv_edge[e];
       if (-1 == ce) continue;
       auto code = curv_verts2edges.codes[ve];
       auto eev = code_which_down(code);
@@ -242,8 +242,8 @@ static Read<I8> get_curv_vert_edge_flips(
 }
 
 static Read<I8> get_curv_edge_vert_flips(
-    Mesh* mesh, Adj curv_verts2edges, LOs edges2curv_edge) {
-  auto in = get_curv_vert_edge_flips(curv_verts2edges, edges2curv_edge);
+    Mesh* mesh, Adj curv_verts2edges, LOs edge2curv_edge) {
+  auto in = get_curv_vert_edge_flips(curv_verts2edges, edge2curv_edge);
   auto out = Write<I8>(mesh->nedges() * 2, I8(0));
   auto ncurv_verts = curv_verts2edges.nnodes();
   auto f = OMEGA_H_LAMBDA(LO curv_vert) {
@@ -261,11 +261,11 @@ static Read<I8> get_curv_edge_vert_flips(
 
 template <Int dim>
 static Reals get_curv_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
-    Reals curv_edge_tangents, LOs curv_verts2vert) {
+    Reals curv_edge_tangents, LOs curv_vert2vert) {
   OMEGA_H_CHECK(mesh->dim() == dim);
   OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   auto verts2edges = mesh->ask_up(VERT, EDGE);
-  auto curv_verts2edges = unmap_adjacency(curv_verts2vert, verts2edges);
+  auto curv_verts2edges = unmap_adjacency(curv_vert2vert, verts2edges);
   auto narcs = curv_verts2edges.nedges();
   auto edge2curv_edge = invert_injective_map(curv_edge2edge, mesh->nedges());
   auto arcs2tangents_w = Write<Real>(narcs * dim);
@@ -288,19 +288,19 @@ static Reals get_curv_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
   auto curv_vert_tangents = graph_weighted_average_arc_data(
       curv_verts2edges, weights, arcs2tangents, dim);
   curv_vert_tangents = mesh->sync_subset_array(
-      VERT, curv_vert_tangents, curv_verts2vert, 0.0, dim);
+      VERT, curv_vert_tangents, curv_vert2vert, 0.0, dim);
   return normalize_vectors(curv_vert_tangents, dim);
 }
 
 Reals get_curv_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
-    Reals curv_edge_tangents, LOs curv_verts2vert) {
+    Reals curv_edge_tangents, LOs curv_vert2vert) {
   if (mesh->dim() == 3) {
     return get_curv_vert_tangents_dim<3>(
-        mesh, curv_edge2edge, curv_edge_tangents, curv_verts2vert);
+        mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
   }
   if (mesh->dim() == 2) {
     return get_curv_vert_tangents_dim<2>(
-        mesh, curv_edge2edge, curv_edge_tangents, curv_verts2vert);
+        mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
   }
   OMEGA_H_NORETURN(Reals());
 }
@@ -311,15 +311,15 @@ Reals get_curv_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
  * 3DPVT 2004. Proceedings. 2nd International Symposium on. IEEE, 2004.
  */
 
-Reals get_surf_tri_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
-    LOs surf_verts2vert, Reals surf_vert_normals) {
-  auto verts2surf_vert = invert_injective_map(surf_verts2vert, mesh->nverts());
+Reals get_surf_tri_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
+    LOs surf_vert2vert, Reals surf_vert_normals) {
+  auto vert2surf_vert = invert_injective_map(surf_vert2vert, mesh->nverts());
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto coords = mesh->coords();
-  auto nsurf_tris = surf_tris2tri.size();
+  auto nsurf_tris = surf_tri2tri.size();
   auto surf_tri_IIs_w = Write<Real>(nsurf_tris * symm_ncomps(2));
   auto f = OMEGA_H_LAMBDA(LO surf_tri) {
-    auto tri = surf_tris2tri[surf_tri];
+    auto tri = surf_tri2tri[surf_tri];
     auto tn = get_vector<3>(surf_tri_normals, surf_tri);
     auto nuv = form_ortho_basis(tn);
     auto u = nuv[1];
@@ -329,7 +329,7 @@ Reals get_surf_tri_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
     Few<Vector<3>, 3> n;
     for (Int i = 0; i < 3; ++i) {
       auto vert = ttv[i];
-      auto surf_vert = verts2surf_vert[vert];
+      auto surf_vert = vert2surf_vert[vert];
       if (surf_vert >= 0)
         n[i] = get_vector<3>(surf_vert_normals, surf_vert);
       else
@@ -404,19 +404,19 @@ OMEGA_H_INLINE Matrix<3, 3> rotate_to_plane(Vector<3> n, Matrix<3, 3> tnuv) {
   return r * tnuv;
 }
 
-Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
-    Reals surf_tri_IIs, LOs surf_verts2vert, Reals surf_vert_normals) {
-  auto nsurf_verts = surf_verts2vert.size();
+Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
+    Reals surf_tri_IIs, LOs surf_vert2vert, Reals surf_vert_normals) {
+  auto nsurf_verts = surf_vert2vert.size();
   auto verts2tris = mesh->ask_up(VERT, TRI);
-  auto tris2surf_tri = invert_injective_map(surf_tris2tri, mesh->ntris());
+  auto tri2surf_tri = invert_injective_map(surf_tri2tri, mesh->ntris());
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto verts_not_surf = map_onto(
-      Read<I8>(nsurf_verts, I8(0)), surf_verts2vert, mesh->nverts(), I8(1), 1);
+      Read<I8>(nsurf_verts, I8(0)), surf_vert2vert, mesh->nverts(), I8(1), 1);
   auto tris_touch_bdry = mark_up(mesh, VERT, TRI, verts_not_surf);
   auto surf_vert_IIs_w = Write<Real>(nsurf_verts * 3);
   auto f = OMEGA_H_LAMBDA(LO surf_vert) {
-    auto vert = surf_verts2vert[surf_vert];
+    auto vert = surf_vert2vert[surf_vert];
     auto n = get_vector<3>(surf_vert_normals, surf_vert);
     auto nuv = form_ortho_basis(n);
     Real ws = 0.0;
@@ -425,14 +425,14 @@ Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
     for (auto vt = verts2tris.a2ab[vert]; vt < verts2tris.a2ab[vert + 1];
          ++vt) {
       auto tri = verts2tris.ab2b[vt];
-      auto surf_tri = tris2surf_tri[tri];
+      auto surf_tri = tri2surf_tri[tri];
       if (surf_tri < 0) continue;
       if (!tris_touch_bdry[tri]) ++nadj_int_tris;
     }
     for (auto vt = verts2tris.a2ab[vert]; vt < verts2tris.a2ab[vert + 1];
          ++vt) {
       auto tri = verts2tris.ab2b[vt];
-      auto surf_tri = tris2surf_tri[tri];
+      auto surf_tri = tri2surf_tri[tri];
       if (surf_tri < 0) continue;
       if (nadj_int_tris && tris_touch_bdry[tri]) continue;
       auto tn = get_vector<3>(surf_tri_normals, surf_tri);
@@ -462,30 +462,30 @@ Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tris2tri, Reals surf_tri_normals,
   };
   parallel_for(nsurf_verts, f);
   auto surf_vert_IIs = Reals(surf_vert_IIs_w);
-  return mesh->sync_subset_array(VERT, surf_vert_IIs, surf_verts2vert, 0.0, 3);
+  return mesh->sync_subset_array(VERT, surf_vert_IIs, surf_vert2vert, 0.0, 3);
 }
 
 template <Int dim>
-Reals get_curv_edge_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
-    Reals curv_edge_tangents, LOs curv_verts2vert, Reals curv_vert_tangents) {
-  auto verts2curv_vert = invert_injective_map(curv_verts2vert, mesh->nverts());
-  auto edges2curv_edge = invert_injective_map(curv_edges2edge, mesh->nedges());
+Reals get_curv_edge_curvatures_dim(Mesh* mesh, LOs curv_edge2edge,
+    Reals curv_edge_tangents, LOs curv_vert2vert, Reals curv_vert_tangents) {
+  auto vert2curv_vert = invert_injective_map(curv_vert2vert, mesh->nverts());
+  auto edge2curv_edge = invert_injective_map(curv_edge2edge, mesh->nedges());
   auto edges2verts = mesh->ask_verts_of(EDGE);
-  auto ncurv_edges = curv_edges2edge.size();
+  auto ncurv_edges = curv_edge2edge.size();
   auto curv_edges2curvature_w = Write<Real>(ncurv_edges);
   auto verts2edges = mesh->ask_up(VERT, EDGE);
-  auto curv_verts2edges = unmap_adjacency(curv_verts2vert, verts2edges);
+  auto curv_verts2edges = unmap_adjacency(curv_vert2vert, verts2edges);
   auto ev_flips =
-      get_curv_edge_vert_flips(mesh, curv_verts2edges, edges2curv_edge);
+      get_curv_edge_vert_flips(mesh, curv_verts2edges, edge2curv_edge);
   auto coords = mesh->coords();
   auto f = OMEGA_H_LAMBDA(LO curv_edge) {
-    auto edge = curv_edges2edge[curv_edge];
+    auto edge = curv_edge2edge[curv_edge];
     auto et = get_vector<dim>(curv_edge_tangents, curv_edge);
     Few<Vector<dim>, 2> ts;
     auto eev2v = gather_verts<2>(edges2verts, edge);
     for (Int eev = 0; eev < 2; ++eev) {
       auto vert = eev2v[eev];
-      auto curv_vert = verts2curv_vert[vert];
+      auto curv_vert = vert2curv_vert[vert];
       Vector<dim> vt;
       if (curv_vert >= 0) {
         vt = get_vector<dim>(curv_vert_tangents, curv_vert);
@@ -506,36 +506,36 @@ Reals get_curv_edge_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
   parallel_for(ncurv_edges, f);
   auto curv_edges2curvature = Reals(curv_edges2curvature_w);
   return mesh->sync_subset_array(
-      EDGE, curv_edges2curvature, curv_edges2edge, 0.0, 1);
+      EDGE, curv_edges2curvature, curv_edge2edge, 0.0, 1);
 }
 
-Reals get_curv_edge_curvatures(Mesh* mesh, LOs curv_edges2edge,
-    Reals curv_edge_tangents, LOs curv_verts2vert, Reals curv_vert_tangents) {
+Reals get_curv_edge_curvatures(Mesh* mesh, LOs curv_edge2edge,
+    Reals curv_edge_tangents, LOs curv_vert2vert, Reals curv_vert_tangents) {
   if (mesh->dim() == 3) {
-    return get_curv_edge_curvatures_dim<3>(mesh, curv_edges2edge,
-        curv_edge_tangents, curv_verts2vert, curv_vert_tangents);
+    return get_curv_edge_curvatures_dim<3>(mesh, curv_edge2edge,
+        curv_edge_tangents, curv_vert2vert, curv_vert_tangents);
   }
   if (mesh->dim() == 2) {
-    return get_curv_edge_curvatures_dim<2>(mesh, curv_edges2edge,
-        curv_edge_tangents, curv_verts2vert, curv_vert_tangents);
+    return get_curv_edge_curvatures_dim<2>(mesh, curv_edge2edge,
+        curv_edge_tangents, curv_vert2vert, curv_vert_tangents);
   }
   OMEGA_H_NORETURN(Reals());
 }
 
 template <Int dim>
-static Reals get_curv_vert_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
-    Reals curv_edge_curvatures, LOs curv_verts2vert) {
+static Reals get_curv_vert_curvatures_dim(Mesh* mesh, LOs curv_edge2edge,
+    Reals curv_edge_curvatures, LOs curv_vert2vert) {
   auto verts2edges = mesh->ask_up(VERT, EDGE);
   auto edges2verts = mesh->ask_verts_of(EDGE);
-  auto edges2curv_edge = invert_injective_map(curv_edges2edge, mesh->nedges());
-  auto ncurv_verts = curv_verts2vert.size();
+  auto edge2curv_edge = invert_injective_map(curv_edge2edge, mesh->nedges());
+  auto ncurv_verts = curv_vert2vert.size();
   auto verts_not_curv = map_onto(
-      Read<I8>(ncurv_verts, I8(0)), curv_verts2vert, mesh->nverts(), I8(1), 1);
+      Read<I8>(ncurv_verts, I8(0)), curv_vert2vert, mesh->nverts(), I8(1), 1);
   auto edges_touch_bdry = mark_up(mesh, VERT, EDGE, verts_not_curv);
   auto coords = mesh->coords();
   auto curv_vert_curvatures_w = Write<Real>(ncurv_verts);
   auto f = OMEGA_H_LAMBDA(LO curv_vert) {
-    auto vert = curv_verts2vert[curv_vert];
+    auto vert = curv_vert2vert[curv_vert];
     Int nadj_int_edges = 0;
     for (auto ve = verts2edges.a2ab[vert]; ve < verts2edges.a2ab[vert + 1];
          ++ve) {
@@ -547,7 +547,7 @@ static Reals get_curv_vert_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
     for (auto ve = verts2edges.a2ab[vert]; ve < verts2edges.a2ab[vert + 1];
          ++ve) {
       auto edge = verts2edges.ab2b[ve];
-      auto curv_edge = edges2curv_edge[edge];
+      auto curv_edge = edge2curv_edge[edge];
       if (curv_edge < 0) continue;
       if (nadj_int_edges && edges_touch_bdry[edge]) continue;
       auto eev2v = gather_verts<2>(edges2verts, edge);
@@ -563,18 +563,18 @@ static Reals get_curv_vert_curvatures_dim(Mesh* mesh, LOs curv_edges2edge,
   parallel_for(ncurv_verts, f);
   auto curv_vert_curvatures = Reals(curv_vert_curvatures_w);
   return mesh->sync_subset_array(
-      VERT, curv_vert_curvatures, curv_verts2vert, 0.0, 1);
+      VERT, curv_vert_curvatures, curv_vert2vert, 0.0, 1);
 }
 
-Reals get_curv_vert_curvatures(Mesh* mesh, LOs curv_edges2edge,
-    Reals curv_edge_curvatures, LOs curv_verts2vert) {
+Reals get_curv_vert_curvatures(Mesh* mesh, LOs curv_edge2edge,
+    Reals curv_edge_curvatures, LOs curv_vert2vert) {
   if (mesh->dim() == 3) {
     return get_curv_vert_curvatures_dim<3>(
-        mesh, curv_edges2edge, curv_edge_curvatures, curv_verts2vert);
+        mesh, curv_edge2edge, curv_edge_curvatures, curv_vert2vert);
   }
   if (mesh->dim() == 2) {
     return get_curv_vert_curvatures_dim<2>(
-        mesh, curv_edges2edge, curv_edge_curvatures, curv_verts2vert);
+        mesh, curv_edge2edge, curv_edge_curvatures, curv_vert2vert);
   }
   OMEGA_H_NORETURN(Reals());
 }
@@ -600,15 +600,16 @@ Reals get_corner_vert_curvatures(Mesh* mesh, Write<Real> vert_curvatures_w) {
   return mesh->sync_array(VERT, Reals(vert_curvatures_w), 1);
 }
 
-Reals get_vert_curvatures(Mesh* mesh) {
+SurfaceInfo get_surface_info(Mesh* mesh) {
+  SurfaceInfo out;
+  if (mesh->dim() == 1) return out;
   auto sdim = mesh->dim() - 1;
   auto sides_are_surf = mark_by_class_dim(mesh, sdim, sdim);
   auto verts_are_surf = mark_by_class_dim(mesh, VERT, sdim);
   auto surf_side2side = collect_marked(sides_are_surf);
   auto surf_vert2vert = collect_marked(verts_are_surf);
-  auto vert_curvatures_w = Write<Real>(mesh->nverts(), 0.0);
   LOs curv_edge2edge;
-  LOs curv_verts2vert;
+  LOs curv_vert2vert;
   if (mesh->dim() == 3) {
     auto surf_side_normals = get_side_normals(mesh, surf_side2side);
     auto surf_vert_normals = get_side_vert_normals(
@@ -616,26 +617,29 @@ Reals get_vert_curvatures(Mesh* mesh) {
     auto edges_are_curv = mark_by_class_dim(mesh, EDGE, EDGE);
     auto verts_are_curv = mark_by_class_dim(mesh, VERT, EDGE);
     curv_edge2edge = collect_marked(edges_are_curv);
-    curv_verts2vert = collect_marked(verts_are_curv);
+    curv_vert2vert = collect_marked(verts_are_curv);
     auto surf_tri_IIs = get_surf_tri_IIs(mesh, surf_side2side,
         surf_side_normals, surf_vert2vert, surf_vert_normals);
     auto surf_vert_IIs = get_surf_vert_IIs(mesh, surf_side2side,
         surf_side_normals, surf_tri_IIs, surf_vert2vert, surf_vert_normals);
-    auto surf_vert_curvatures = get_max_eigenvalues(2, surf_vert_IIs);
-    map_into(surf_vert_curvatures, surf_vert2vert, vert_curvatures_w, 1);
+    out.surf_vert2vert = surf_vert2vert;
+    out.surf_vert_normals = surf_vert_normals;
+    out.surf_vert_IIs = surf_vert_IIs;
   } else {
     curv_edge2edge = surf_side2side;
-    curv_verts2vert = surf_vert2vert;
+    curv_vert2vert = surf_vert2vert;
   }
   auto curv_edge_tangents = get_curv_edge_tangents(mesh, curv_edge2edge);
   auto curv_vert_tangents = get_curv_vert_tangents(
-      mesh, curv_edge2edge, curv_edge_tangents, curv_verts2vert);
+      mesh, curv_edge2edge, curv_edge_tangents, curv_vert2vert);
   auto curv_edge_curvatures = get_curv_edge_curvatures(mesh, curv_edge2edge,
-      curv_edge_tangents, curv_verts2vert, curv_vert_tangents);
+      curv_edge_tangents, curv_vert2vert, curv_vert_tangents);
   auto curv_vert_curvatures = get_curv_vert_curvatures(
-      mesh, curv_edge2edge, curv_edge_curvatures, curv_verts2vert);
-  map_into(curv_vert_curvatures, curv_verts2vert, vert_curvatures_w, 1);
-  return get_corner_vert_curvatures(mesh, vert_curvatures_w);
+      mesh, curv_edge2edge, curv_edge_curvatures, curv_vert2vert);
+  out.curv_vert2vert = curv_vert2vert;
+  out.curv_vert_tangents = curv_vert_tangents;
+  out.curv_vert_curvatures = curv_vert_curvatures;
+  return out;
 }
 
 }  // end namespace Omega_h
