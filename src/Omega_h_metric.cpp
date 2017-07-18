@@ -418,7 +418,7 @@ void get_curve_curvature_metrics(
     SurfaceInfo surface_info, Real segment_angle, Write<Real> out) {
   auto f = OMEGA_H_LAMBDA(LO curv_vert) {
     auto k = surface_info.curv_vert_curvatures[curv_vert];
-    auto t = get_vector<dim>(surface_info.curv_vert_tangets, curv_vert);
+    auto t = get_vector<dim>(surface_info.curv_vert_tangents, curv_vert);
     auto ew = square(k / segment_angle);
     auto m = outer_product(t, ew * t); // t * ew * transpose(t)
     auto vert = surface_info.curv_vert2vert[curv_vert];
@@ -429,7 +429,7 @@ void get_curve_curvature_metrics(
 
 Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
   auto surface_info = get_surface_info(mesh);
-  auto out = Write<Real>(mesh->nverts() * symm_ncoms(mesh->dim()), 0.0);
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(mesh->dim()), 0.0);
   if (mesh->dim() == 3) {
     auto f = OMEGA_H_LAMBDA(LO surf_vert) {
       auto II = get_symm<2>(surface_info.surf_vert_IIs, surf_vert);
@@ -440,9 +440,10 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
       }
       auto n = get_vector<3>(surface_info.surf_vert_normals, surf_vert);
       auto frame = form_ortho_basis(n);
-      Matrix<3,2> surf_frame;
-      surf_frame[0] = frame[1];
-      surf_frame[1] = frame[2];
+      Matrix<3,2> surf_frame_t;
+      surf_frame_t[0] = frame[1];
+      surf_frame_t[1] = frame[2];
+      auto surf_frame = transpose(surf_frame_t);
       auto m_q_inv = II_decomp.q * surf_frame;
       auto m_q = pseudo_invert(m_q_inv);
       auto m = m_q * diagonal(m_ews) * m_q_inv;

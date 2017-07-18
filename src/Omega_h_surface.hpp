@@ -24,7 +24,7 @@ Reals get_curv_edge_curvatures(Mesh* mesh, LOs curv_edge2edge,
 Reals get_curv_vert_curvatures(Mesh* mesh, LOs curv_edge2edge,
     Reals curv_edge_curvatures, LOs curv_vert2vert);
 
-struct Curvature {
+struct SurfaceInfo {
   LOs surf_vert2vert;
   Reals surf_vert_normals;
   Reals surf_vert_IIs;
@@ -34,6 +34,8 @@ struct Curvature {
 };
 
 SurfaceInfo get_surface_info(Mesh* mesh);
+
+Reals get_vert_curvatures(Mesh* mesh, SurfaceInfo surface_info);
 
 }  // end namespace Omega_h
 

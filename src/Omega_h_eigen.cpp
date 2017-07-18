@@ -10,7 +10,8 @@ static Reals get_max_eigenvalues_dim(Reals symms) {
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) {
     auto a = get_symm<dim>(symms, i);
-    auto max_ew = maximum_magnitude(get_eigenvalues(a));
+    auto ews = get_eigenvalues(a);
+    auto max_ew = maximum_magnitude(ews.values, ews.n);
     out[i] = max_ew;
   };
   parallel_for(n, f);
