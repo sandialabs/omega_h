@@ -92,6 +92,20 @@ OMEGA_H_INLINE T maximum(Few<T, n> x) {
   return out;
 }
 
+template <Int n_max, typename T>
+OMEGA_H_INLINE T maximum_magnitude(Few<T, n_max> x, Int n) {
+  auto out = x[0];
+  auto max_mag = std::abs(x[0]);
+  for (Int i = 1; i < n; ++i) {
+    auto mag = std::abs(x[i]);
+    if (mag > max_mag) {
+      max_mag = mag;
+      out = x[i];
+    }
+  }
+  return out;
+}
+
 template <Int n, typename T>
 OMEGA_H_INLINE T sum(Few<T, n> x) {
   auto out = x[0];

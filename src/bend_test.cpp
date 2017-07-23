@@ -50,7 +50,8 @@ int main(int argc, char** argv) {
     mesh.add_tag(VERT, "warp", mesh.dim(), Reals(warp_w));
     do {
       std::cout << "WARP STEP\n";
-      auto metric = get_curvature_isos(&mesh, segment_angle);
+      auto metric = get_curvature_metrics(&mesh, segment_angle);
+      metric = apply_isotropy(mesh.nverts(), metric, OMEGA_H_ISO_LENGTH);
       metric = clamp_metrics(mesh.nverts(), metric, 0.0, max_size);
       metric = limit_metric_gradation(&mesh, metric, 1.015);
       mesh.set_tag(VERT, "metric", metric);

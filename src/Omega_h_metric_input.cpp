@@ -178,7 +178,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         metrics = get_proximity_isos(mesh, source.knob);
         break;
       case OMEGA_H_CURVATURE:
-        metrics = get_curvature_isos(mesh, source.knob);
+        metrics = get_curvature_metrics(mesh, source.knob);
         break;
     }
     metrics = apply_isotropy(n, metrics, source.isotropy);

@@ -30,6 +30,8 @@ Graph filter_graph(Graph g, Read<I8> keep_edge);
 bool operator==(Graph a, Graph b);
 Graph identity_graph(LO nnodes);
 
+Graph add_self_edges(Graph g);
+
 template <typename T>
 void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width);
 template <typename T>
