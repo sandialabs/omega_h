@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
            surface_info.surf_vert2vert, mesh.nverts(), 0.0, 3);
     mesh.add_tag(VERT, "II", 3, vert_IIs);
     mesh.sync_tag(VERT, "II");
-    attach_basis_vectors(&mesh, 2, surface_info.surf_vert2vert,
+    attach_basis_vectors(&mesh, VERT, surface_info.surf_vert2vert,
         surface_info.surf_vert_normals);
   }
   auto vert_tangents = map_onto(surface_info.curv_vert_tangents,
@@ -63,6 +63,8 @@ int main(int argc, char** argv) {
   auto vert_curvatures = get_vert_curvatures(&mesh, surface_info);
   mesh.add_tag(VERT, "curvature", 1, vert_curvatures);
   mesh.sync_tag(VERT, "curvature");
+  auto vert_metrics = get_curvature_metrics(&mesh, PI / 4.0);
+  mesh.add_tag(VERT, "metric", symm_ncomps(mesh.dim()), vert_metrics);
   bool ok = check_regression(std::string("gold_curv_") + name, &mesh);
   if (!ok) return 2;
   return 0;

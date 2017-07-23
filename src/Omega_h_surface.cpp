@@ -635,38 +635,4 @@ Reals get_vert_curvatures(Mesh* mesh, SurfaceInfo surface_info) {
   return out;
 }
 
-Graph get_surface_smoothing_graph(Mesh* mesh) {
-  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
-  auto full_star = add_self_edges(mesh->ask_star(VERT));
-  auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
-  auto mesh_dim = mesh->dim();
-  Write<I8> keep(full_star.nedges());
-  auto f = OMEGA_H_LAMBDA(LO v) {
-/* several tricks in here so that the initially zero values at corners
-   do not influence any other values, including their own future values */
-    auto v_dim = Int(class_dims[v]);
-    auto begin = full_star.a2ab[v];
-    auto end = full_star.a2ab[v + 1];
-    for (auto vv = begin; vv < end; ++vv) {
-      if (v_dim == mesh_dim) {
-        keep[vv] = 0;
-        continue;
-      }
-      auto ov = full_star.ab2b[vv];
-      if (v_dim == VERT && v == ov) {
-        keep[vv] = 0;
-        continue;
-      }
-      auto ov_dim = class_dims[ov];
-      if (ov_dim == mesh_dim || ov_dim == VERT) {
-        keep[vv] = 0;
-        continue;
-      }
-      keep[vv] = 1;
-    }
-  };
-  parallel_for(full_star.nnodes(), f);
-  return filter_graph(full_star, Bytes(keep));
-}
-
 }  // end namespace Omega_h

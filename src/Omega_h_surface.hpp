@@ -36,7 +36,6 @@ struct SurfaceInfo {
 SurfaceInfo get_surface_info(Mesh* mesh);
 
 Reals get_vert_curvatures(Mesh* mesh, SurfaceInfo surface_info);
-Graph get_surface_smoothing_graph(Mesh* mesh, SurfaceInfo surface_info);
 
 }  // end namespace Omega_h
 

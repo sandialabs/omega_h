@@ -429,27 +429,7 @@ void get_curve_curvature_metrics(
   parallel_for(surface_info.curv_vert2vert.size(), f);
 }
 
-static Reals smooth_curvature_metrics(Mesh* mesh, Reals metrics, Int niters) {
-  if (niters < 1) {
-    if (mesh->comm()->rank() == 0) {
-      std::cout << "warning: curvature metrics are not being smoothed.\n"
-                    "this means corners will have zero metric tensors\n";
-    }
-    return;
-  }
-  auto g = get_surface_smoothing_graph(mesh);
-  auto ncomps = divide_no_remainder(metrics.size(), mesh->nverts());
-  auto linear_metrics = linearize_metrics(mesh->nverts(), metrics);
-  auto ones = Reals(g.nedges(), 1.0);
-  for (Int i = 0; i < niters; ++i) {
-    linear_metrics = graph_weighted_average(g, ones, linear_metrics, ncomps);
-    linear_metrics = mesh->sync_array(VERT, linear_metrics, ncomps);
-  }
-  return delinearize_metrics(mesh->nverts(), linear_metrics);
-}
-
-Reals get_curvature_metrics(Mesh* mesh, Real segment_angle,
-    Int nsmooth_iters) {
+Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
   auto surface_info = get_surface_info(mesh);
   auto out = Write<Real>(mesh->nverts() * symm_ncomps(mesh->dim()), 0.0);
   if (mesh->dim() == 3) {
@@ -479,7 +459,7 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle,
   } else if (mesh->dim() == 2) {
     get_curve_curvature_metrics<2>(surface_info, segment_angle, out);
   }
-  return smooth_curvature_metrics(mesh, out, nsmooth_iters);
+  return out;
 }
 
 /* The algorithms below are for scaling a size field such that
