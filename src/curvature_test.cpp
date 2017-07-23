@@ -30,6 +30,7 @@ static void attach_basis_vectors(
     ss << "axis_" << i;
     auto s = ss.str();
     mesh->add_tag(ent_dim, s, 3, b);
+    mesh->sync_tag(ent_dim, s);
   }
 }
 
@@ -42,22 +43,26 @@ int main(int argc, char** argv) {
   auto mesh = gmsh::read(path + "/" + name + ".msh", world);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto surface_info = get_surface_info(&mesh);
-  auto vert_normals = map_onto(surface_info.surf_vert_normals,
-      surface_info.surf_vert2vert, mesh.nverts(), 0.0, mesh.dim());
-  mesh.add_tag(VERT, "normal", mesh.dim(), vert_normals);
   if (mesh.dim() == 3) {
+    auto vert_normals = map_onto(surface_info.surf_vert_normals,
+        surface_info.surf_vert2vert, mesh.nverts(), 0.0, mesh.dim());
+    mesh.add_tag(VERT, "normal", mesh.dim(), vert_normals);
+    mesh.sync_tag(VERT, "normal");
     auto vert_IIs =
         map_onto(surface_info.surf_vert_IIs,
            surface_info.surf_vert2vert, mesh.nverts(), 0.0, 3);
     mesh.add_tag(VERT, "II", 3, vert_IIs);
+    mesh.sync_tag(VERT, "II");
     attach_basis_vectors(&mesh, 2, surface_info.surf_vert2vert,
         surface_info.surf_vert_normals);
   }
   auto vert_tangents = map_onto(surface_info.curv_vert_tangents,
       surface_info.curv_vert2vert, mesh.nverts(), 0.0, mesh.dim());
   mesh.add_tag(VERT, "tangent", mesh.dim(), vert_tangents);
+  mesh.sync_tag(VERT, "tangent");
   auto vert_curvatures = get_vert_curvatures(&mesh, surface_info);
   mesh.add_tag(VERT, "curvature", 1, vert_curvatures);
+  mesh.sync_tag(VERT, "curvature");
   bool ok = check_regression(std::string("gold_curv_") + name, &mesh);
   if (!ok) return 2;
   return 0;

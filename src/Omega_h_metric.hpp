@@ -235,7 +235,7 @@ Real get_metric_scalar_for_nelems(
     Int elem_dim, Real expected_nelems, Real target_nelems);
 Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
 Reals smooth_metric_once(Mesh* mesh, Reals v2m);
-Reals get_curvature_metrics(Mesh* mesh, Real segment_angle);
+Reals get_curvature_metrics(Mesh* mesh, Real segment_angle, Int nsmooth_iters = 1);
 Reals get_hessian_metrics(Int dim, Reals hessians, Real eps);
 Reals get_gradient_metrics(Int dim, Reals gradients, Real eps);
 Reals get_derivative_metrics(Mesh* mesh, std::string const& name, Real knob);
