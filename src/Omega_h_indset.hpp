@@ -8,6 +8,10 @@ namespace Omega_h {
 
 class Mesh;
 
+namespace indset {
+
+}  // end namespace indset
+
 Read<I8> find_indset(
     Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates);
 Read<I8> find_indset(

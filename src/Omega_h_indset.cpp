@@ -8,71 +8,104 @@ namespace Omega_h {
 
 namespace indset {
 
-enum { NOT_IN, IN, UNKNOWN };
+enum {
+  NOT_IN  = -1,
+  UNKNOWN =  0,
+  IN      =  1,
+};
 
-static Read<I8> local_iteration(
-    LOs xadj, LOs adj, Reals quality, Read<GO> global, Read<I8> old_state) {
-  auto n = global.size();
-  Write<I8> new_state = deep_copy(old_state);
-  auto f = OMEGA_H_LAMBDA(LO v) {
-    if (old_state[v] != UNKNOWN) return;
-    auto begin = xadj[v];
-    auto end = xadj[v + 1];
-    // nodes adjacent to chosen ones are rejected
-    for (auto j = begin; j < end; ++j) {
-      auto u = adj[j];
-      if (old_state[u] == IN) {
-        new_state[v] = NOT_IN;
-        return;
+struct Tuples {
+  Bytes marks; // one of IN, NOT_IN, or UNKNOWN
+  Reals qualities;
+  GOs globals;
+};
+
+struct Tuple {
+  OMEGA_H_INLINE Tuple(Tuples const& tuples, LO i) {
+    mark = tuples.marks[i];
+    quality = tuples.qualities[i];
+    global = tuples.qlobals[i];
+  }
+  I8 mark; 
+  Real quality;
+  GO global;
+  OMEGA_H_INLINE bool operator<(Tuple const& other) {
+    if (mark != other.mark) return mark < other.mark;
+    if (quality != other.quality) return quality < other.quality;
+    return global < other.global;
+  }
+};
+
+}
+
+/* Algorithm 5: MIS_parallel
+   Nathan Bell, Steven Dalton, and Luke N. Olson.
+   "Exposing fine-grained parallelism in algebraic multigrid methods."
+   SIAM Journal on Scientific Computing 34.4 (2012): C123-C152.
+*/
+
+GOs find_indset(
+    Graph graph,
+    Int distance,
+    Bytes candidates,
+    Reals qualities,
+    GOs globals, 
+    Dist owners2copies) {
+  auto comm = owners2copies->parent_comm();
+  auto n = candidates.size();
+  auto is_distributed = comm->size() > 1;
+  if (is_distributed) OMEGA_H_CHECK(owners2copies.nroots() == n);
+  OMEGA_H_CHECK(qualities.size() == n);
+  Write<I8> initial_marks(n);
+  auto setup = OMEGA_H_LAMBDA(LO i) {
+    if (candidates[i]) initial_marks[i] = indset::UNKNOWN;
+    else initial_marks[i] = indset::NOT_IN;
+  };
+  parallel_for(n, setup);
+  auto marks = Bytes(initial_marks);
+  Write<GO> owner_globals(n);
+  while (get_sum(comm, each_eq_to(marks, indset::UNKNOWN))) {
+    indset::Tuples tuples = {marks, qualities, globals};
+    for (Int r = 0; r < k; ++r) {
+      Write<I8> new_marks(n);
+      Write<Real> new_qualities(n);
+      Write<GO> new_globals(n);
+      auto propagate = OMEGA_H_LAMBDA(LO i) {
+        auto b = graph.a2ab[i];
+        auto e = graph.a2ab[i + 1];
+        auto t = Tuple(tuples, i);
+        for (auto ij = b; ij < e; ++ij) {
+          auto j = graph.ab2b[ij];
+          t = max2(t, Tuple(tuples, j));
+        }
+        new_marks[i] = t.mark;
+        new_qualities[i] = t.quality;
+        new_globals[i] = t.global;
+      };
+      parallel_for(n, propagate);
+      tuples.marks = new_marks;
+      tuples.qualities = new_qualities;
+      tuples.globals = new_globals;
+      if (is_distributed) {
+        tuples.marks = owners2copies.exch(tuples.marks, 1);
+        tuples.qualities = owners2copies.exch(tuples.qualities, 1);
+        tuples.globals = owners2copies.exch(tuples.globals, 1);
       }
     }
-    // check if node is a local maximum
-    auto v_qual = quality[v];
-    for (auto j = begin; j < end; ++j) {
-      auto u = adj[j];
-      // neighbor was rejected, ignore its presence
-      if (old_state[u] == NOT_IN) continue;
-      auto u_qual = quality[u];
-      // neighbor has higher quality
-      if (u_qual > v_qual) return;
-      // neighbor has equal quality, tiebreaker by global ID
-      if (u_qual == v_qual && global[u] > global[v]) return;
-    }
-    // only local maxima reach this line
-    new_state[v] = IN;
-  };
-  parallel_for(n, f);
-  return new_state;
-}
-
-static Read<I8> iteration(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
-    Read<GO> global, Read<I8> old_state) {
-  auto local_state = local_iteration(xadj, adj, quality, global, old_state);
-  auto synced_state = mesh->sync_array(dim, local_state, 1);
-  return synced_state;
-}
-
-static Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Reals quality,
-    Read<GO> global, Read<I8> candidates) {
-  auto n = global.size();
-  OMEGA_H_CHECK(quality.size() == n);
-  OMEGA_H_CHECK(candidates.size() == n);
-  auto initial_state = Write<I8>(n);
-  auto f = OMEGA_H_LAMBDA(LO i) {
-    if (candidates[i])
-      initial_state[i] = UNKNOWN;
-    else
-      initial_state[i] = NOT_IN;
-  };
-  parallel_for(n, f);
-  auto comm = mesh->comm();
-  auto state = Read<I8>(initial_state);
-  while (get_max(comm, state) == UNKNOWN) {
-    state = iteration(mesh, dim, xadj, adj, quality, global, state);
+    Write<I8> new_marks(n);
+    auto accept = OMEGA_H_LAMBDA(LO i) {
+      if (marks[i] == indset::UNKNOWN) {
+        if (tuples.globals[i] == globals[i]) {
+          new_marks[i] = indset::IN;
+        } else if (tuples.marks[i] == indset::IN) {
+          new_marks[i] = indset::NOT_IN;
+        }
+      }
+    };
+    marks = new_marks;
+    if (is_distributed) marks = owners2copies.exch(marks, 1);
   }
-  return state;
 }
-}  // namespace indset
 
 Read<I8> find_indset(
     Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates) {
