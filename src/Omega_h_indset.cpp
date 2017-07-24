@@ -97,14 +97,17 @@ GOs find_indset(
       if (marks[i] == indset::UNKNOWN) {
         if (tuples.globals[i] == globals[i]) {
           new_marks[i] = indset::IN;
+          owner_globals[i] = globals[i];
         } else if (tuples.marks[i] == indset::IN) {
           new_marks[i] = indset::NOT_IN;
+          owner_globals[i] = tuples.globals[i];
         }
       }
     };
     marks = new_marks;
     if (is_distributed) marks = owners2copies.exch(marks, 1);
   }
+  return owner_globals;
 }
 
 Read<I8> find_indset(
