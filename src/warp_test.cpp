@@ -64,7 +64,10 @@ static void postprocess_pointwise(Mesh* mesh) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
+  auto cmdline = CmdLine();
+  cmdline.add_flag("--move-dont-swap", "replace swapping with node motion");
   auto world = lib.world();
+  if (!cmdline.parse_final(world, &argc, argv)) return -1;
   constexpr Int dim = 3;
   auto nx = 10;
   auto mesh = build_box(world, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);

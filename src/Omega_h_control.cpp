@@ -138,7 +138,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
-  if (argc && argv) cmdline.parse(world_, argc, *argv);
+  if (argc && argv) {
+    OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
+  }
   Omega_h::should_log_memory = cmdline.parsed("--osh-memory");
   should_time_ = cmdline.parsed("--osh-time");
   bool should_protect = cmdline.parsed("--osh-signal");

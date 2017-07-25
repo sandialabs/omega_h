@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto cmdline = Omega_h::CmdLine();
   cmdline.add_arg<std::string>("mesh-path");
-  cmdline.parse_all_or_help(lib.world(), &argc, argv);
+  if (!cmdline.parse_final(lib.world(), &argc, argv)) return -1;
   auto path = cmdline.get<std::string>("mesh-path");
   auto mesh = Omega_h::gmsh::read(path, lib.world());
   auto opts = Omega_h::AdaptOpts(&mesh);

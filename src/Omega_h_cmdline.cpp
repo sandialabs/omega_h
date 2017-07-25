@@ -33,12 +33,12 @@ static bool parse_arg(char const* arg, std::string* p_value) {
 }
 
 static bool parse_arg(char const* arg, int* p_value) {
-  *p_value = atoi(arg);
+  *p_value = std::atoi(arg);
   return true;
 }
 
 static bool parse_arg(char const* arg, double* p_value) {
-  *p_value = atof(arg);
+  *p_value = std::atof(arg);
   return true;
 }
 
@@ -100,6 +100,7 @@ bool CmdLineFlag::parse_impl(
       std::cout << "flag " << name() << " takes " << args_.size()
                 << " arguments\n";
     }
+    return false;
   }
   for (auto const& arg : args_) {
     if (!arg->parse(p_argc, argv, i, should_print)) {
@@ -131,18 +132,21 @@ CmdLineItem* CmdLineFlag::arg(std::string const& arg_name) {
 
 std::size_t CmdLineFlag::nargs() const { return args_.size(); }
 
-CmdLine::CmdLine() : nargs_parsed_(0) {}
+CmdLine::CmdLine() : nargs_parsed_(0), parsed_help_(false) {}
 
-bool CmdLine::parse_all_or_help(CommPtr comm, int* p_argc, char** argv) {
-  if (!parse(comm, p_argc, argv) || !check_empty(comm, *p_argc, argv)) {
-    show_help(comm, argv);
-    return false;
-  }
-  return true;
+bool CmdLine::parse_final(CommPtr comm, int* p_argc, char** argv) {
+  bool no_error = parse(p_argc, argv, !comm->rank());
+  bool was_empty = check_empty(comm, *p_argc, argv);
+  if (no_error && !parsed_help_ && was_empty) return true;
+  show_help(argv);
+  return false;
 }
 
 bool CmdLine::parse(CommPtr comm, int* p_argc, char** argv) {
-  return parse(p_argc, argv, comm->rank() == 0);
+  bool no_error = parse(p_argc, argv, !comm->rank());
+  if (no_error && !parsed_help_) return true;
+  show_help(argv);
+  return no_error;
 }
 
 bool CmdLine::parse(int* p_argc, char** argv, bool should_print) {
@@ -161,10 +165,9 @@ bool CmdLine::parse(int* p_argc, char** argv, bool should_print) {
     }
     if (parsed_by_flag) {
       continue;
-    } else if (std::string("-help") == argv[i]) {
-      return false;
     } else if (std::string("--help") == argv[i]) {
-      return false;
+      parsed_help_ = true;
+      ++i;
     } else if (args_.size() > nargs_parsed_) {
       if (args_[nargs_parsed_]->parse(p_argc, argv, i, should_print)) {
         ++nargs_parsed_;
@@ -240,7 +243,9 @@ bool CmdLine::check_empty(int argc, char** argv, bool should_print) {
   if (argc == 1) return true;
   if (should_print) {
     for (int i = 1; i < argc; ++i) {
-      std::cout << "unknown argument \"" << argv[i] << "\"\n";
+      if (std::string("--help") != argv[i]) {
+        std::cout << "unknown argument \"" << argv[i] << "\"\n";
+      }
     }
   }
   return false;
