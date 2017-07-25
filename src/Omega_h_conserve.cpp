@@ -272,6 +272,18 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors);
 }
 
+static void transfer_size_error(Mesh* old_mesh,
+    Mesh* new_mesh, CavsByBdryStatus const& cavs,
+    LOs same_ents2old_ents, LOs same_ents2new_ents,
+    ConservedBools conserved_bools) {
+  auto error_name = "size_error";
+  auto old_elem_densities = Reals(old_mesh->nelems(), 1.0);
+  auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
+  transfer_integ_error(old_mesh, new_mesh, cavs, old_elem_densities,
+      new_elem_densities, error_name, same_ents2old_ents, same_ents2new_ents,
+      conserved_bools);
+}
+
 static void transfer_density_error(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, CavsByBdryStatus const& cavs, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
@@ -336,6 +348,10 @@ static void transfer_conservation_errors(Mesh* old_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     OpConservation op_conservation) {
   auto dim = new_mesh->dim();
+  if (opts.should_conserve_size) {
+    transfer_size_error(old_mesh, new_mesh, cavs, same_ents2old_ents,
+        same_ents2new_ents, op_conservation.density);
+  }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
@@ -552,6 +568,9 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   auto dim = mesh->dim();
+  if (xfer_opts.should_conserve_size) {
+    mesh->add_tag(dim, "size_error", 1, Reals(mesh->nelems(), 0.0));
+  }
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
@@ -770,6 +789,9 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto diffusion_graph = get_elem_diffusion_graph(mesh);
   auto elem_sizes = mesh->ask_sizes();
   auto dim = mesh->dim();
+  if (xfer_opts.should_conserve_size) {
+    mesh->remove_tag(dim, "size_error");
+  }
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
