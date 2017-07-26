@@ -64,10 +64,7 @@ static void postprocess_pointwise(Mesh* mesh) {
 
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
-  auto cmdline = CmdLine();
-  cmdline.add_flag("--move-dont-swap", "replace swapping with node motion");
   auto world = lib.world();
-  if (!cmdline.parse_final(world, &argc, argv)) return -1;
   constexpr Int dim = 3;
   auto nx = 10;
   auto mesh = build_box(world, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
@@ -113,7 +110,9 @@ int main(int argc, char** argv) {
     };
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
-    while (warp_to_limit(&mesh, opts)) adapt(&mesh, opts);
+    while (warp_to_limit(&mesh, opts)) {
+      adapt(&mesh, opts);
+    }
   }
   Now t1 = now();
   mesh.set_parting(OMEGA_H_ELEM_BASED);
