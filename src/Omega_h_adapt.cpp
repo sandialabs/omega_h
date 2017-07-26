@@ -181,11 +181,11 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       post_rebuild(mesh, opts);
       continue;
     }
-    if (opts.should_coarsen_slivers && coarsen_slivers(mesh, opts)) {
+    if (opts.should_move_for_quality && move_verts_for_quality(mesh, opts)) {
       post_rebuild(mesh, opts);
       continue;
     }
-    if (opts.should_move_for_quality && move_verts_for_quality(mesh, opts)) {
+    if (opts.should_coarsen_slivers && coarsen_slivers(mesh, opts)) {
       post_rebuild(mesh, opts);
       continue;
     }
