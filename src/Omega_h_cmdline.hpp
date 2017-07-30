@@ -56,9 +56,10 @@ class CmdLineFlag : public CmdLineItem {
 class CmdLine {
  public:
   CmdLine();
+  OMEGA_H_NODISCARD
+  bool parse_final(CommPtr comm, int* p_argc, char** argv);
+  OMEGA_H_NODISCARD
   bool parse(CommPtr comm, int* p_argc, char** argv);
-  bool parse_all_or_help(CommPtr comm, int* p_argc, char** argv);
-  bool parse(int* p_argc, char** argv, bool should_print);
   CmdLineFlag& add_flag(std::string const& name, std::string const& desc);
   template <typename T>
   void add_arg(std::string const& name, T const& defval = T());
@@ -75,9 +76,11 @@ class CmdLine {
   void show_help(char** argv) const;
 
  private:
+  bool parse(int* p_argc, char** argv, bool should_print);
   std::vector<std::unique_ptr<CmdLineItem>> args_;
   std::vector<std::unique_ptr<CmdLineFlag>> flags_;
   std::size_t nargs_parsed_;
+  bool parsed_help_;
 };
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \

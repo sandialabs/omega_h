@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
   Omega_h::CmdLine cmdline;
   cmdline.add_arg<std::string>("input.osh");
   cmdline.add_arg<std::string>("output.osh");
-  if (!cmdline.parse_all_or_help(world, &argc, argv)) return -1;
+  if (!cmdline.parse_final(world, &argc, argv)) return -1;
   auto inpath = cmdline.get<std::string>("input.osh");
   auto outpath = cmdline.get<std::string>("output.osh");
   Omega_h::Mesh mesh(&lib);

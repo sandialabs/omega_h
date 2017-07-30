@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
   auto configpath_placeholder = "input.xml";
 #endif
   cmdline.add_arg<std::string>(configpath_placeholder);
-  if (!cmdline.parse_all_or_help(comm, &argc, argv)) {
+  if (!cmdline.parse_final(comm, &argc, argv)) {
     return -1;
   }
   auto configpath = cmdline.get<std::string>(configpath_placeholder);

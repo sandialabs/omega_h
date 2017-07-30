@@ -27,4 +27,6 @@
 #define OMEGA_H_FALLTHROUGH ((void)0)
 #endif
 
+#define OMEGA_H_NODISCARD __attribute__((warn_unused_result))
+
 #endif

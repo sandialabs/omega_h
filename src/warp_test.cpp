@@ -110,7 +110,9 @@ int main(int argc, char** argv) {
     };
     parallel_for(mesh.nverts(), warp_fun);
     mesh.add_tag(VERT, "warp", dim, Reals(warp_w));
-    while (warp_to_limit(&mesh, opts)) adapt(&mesh, opts);
+    while (warp_to_limit(&mesh, opts)) {
+      adapt(&mesh, opts);
+    }
   }
   Now t1 = now();
   mesh.set_parting(OMEGA_H_ELEM_BASED);

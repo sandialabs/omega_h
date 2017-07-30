@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
   auto cmdline = Omega_h::CmdLine();
   cmdline.add_arg<std::string>("input.{xml,yaml}", "input config file");
   cmdline.add_arg<std::string>("output.{xml,yaml}", "ouput config file");
-  if (!cmdline.parse_all_or_help(comm, &argc, argv)) {
+  if (!cmdline.parse_final(comm, &argc, argv)) {
     return 2;
   }
   auto inpath = cmdline.get<std::string>("input.{xml,yaml}");

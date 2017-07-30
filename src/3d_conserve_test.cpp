@@ -90,6 +90,7 @@ int main(int argc, char** argv) {
       VarCompareOpts{VarCompareOpts::RELATIVE, 0.2, 0.0};
   opts.xfer_opts.integral_diffuse_map["momentum"] =
       VarCompareOpts{VarCompareOpts::RELATIVE, 0.02, 1e-6};
+  opts.xfer_opts.should_conserve_size = true;
   adapt(&mesh, opts);
   check_total_mass(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
