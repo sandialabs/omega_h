@@ -9,6 +9,8 @@ namespace Omega_h {
 template <Int mesh_dim, Int metric_dim>
 MotionChoices motion_choices_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
+  auto tolerance = opts.motion_tolerance;
+  OMEGA_H_CHECK(tolerance >= 0.0);
   auto nsteps = opts.motion_step_count;
   OMEGA_H_CHECK(nsteps > 0);
   auto step_size = opts.motion_step_size;
@@ -35,11 +37,12 @@ MotionChoices motion_choices_tmpl(
     Real old_obj = -1.0;
     auto old_x = get_vector<mesh_dim>(coords, v);
     auto new_x = old_x;
-    Real new_qual = -1.0;
+    bool did_move = false;
     while (true) {
-      new_qual = 1.0;
       Real new_obj = 0.0;
       auto obj_grad = zero_vector<mesh_dim>();
+      bool obj_converged = true;
+      bool quality_ok = true;
       for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
         auto k = v2k.ab2b[vk];
         auto vk_code = v2k.codes[vk];
@@ -52,23 +55,27 @@ MotionChoices motion_choices_tmpl(
         auto k_size_grad = get_size_gradient(kvv2nx, kvv_c);
         auto k_size_diff = k_tmp_size - orig_sizes[k];
         auto k_tmp_error = size_errors[k] + k_size_diff;
+        auto k_tmp_rel_error = k_tmp_error / k_tmp_size;
+        if (k_tmp_rel_error > tolerance) obj_converged = false;
         auto k_obj = square(k_tmp_error);
-        auto k_obj_grad = 2.0 * k_obj * k_size_grad;
+        auto k_obj_grad = 2.0 * k_tmp_error * k_size_grad;
         auto kvv2m = gather_symms<mesh_dim + 1, metric_dim>(metrics, kvv2v);
         auto km = maxdet_metric(kvv2m);
         auto k_qual = metric_element_quality(kvv2nx, km);
+        if (k_qual < min_qual_allowed) {
+          quality_ok = false;
+          break;
+        }
         new_obj += k_obj;
         obj_grad += k_obj_grad;
-        new_qual = min2(new_qual, k_qual);
       }
-      if (step && (new_obj >= old_obj || new_qual < min_qual_allowed)) {
+      if (step && (!quality_ok || new_obj >= old_obj))
         /* we either took a step or backtracked, and the new position
            is bad either because it increases the objective or the elements
            are too distorted */
         if (step == nsteps) {
           /* out of time, fully back up to the last good position */
           new_x = old_x;
-          new_qual = old_qual;
           break;
         } else {
           /* still have time, backtrack */
@@ -77,8 +84,10 @@ MotionChoices motion_choices_tmpl(
       } else {
         /* either no prior step exists, or the prior step both reduced
            the objective (good) and created acceptable quality elements */
-        if (step == nsteps) {
-          /* out of time, but the last step was good. don't move. */
+        if (step) did_move = true;
+        if (obj_converged || step == nsteps) {
+          /* either we've solved the problem or we're out of time.
+             the last step (if any) was a good one. don't move. */
           break;
         } else {
           /* actually take a new step */
@@ -88,6 +97,7 @@ MotionChoices motion_choices_tmpl(
         }
       }
     }
+    did_move_w[cand] = I8(did_move);
     new_quals_w[cand] = new_qual;
     set_vector(new_coords_w, cand, new_x);
   };
