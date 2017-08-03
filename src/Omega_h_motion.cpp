@@ -38,8 +38,6 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto verts_are_keys = mesh->get_array<I8>(VERT, "key");
   mesh->remove_tag(VERT, "key");
-  auto new_sol = mesh->get_array<Real>(VERT, "motion_solution");
-  mesh->remove_tag(VERT, "motion_solution");
   auto keys2verts = collect_marked(verts_are_keys);
   if (opts.verbosity >= EACH_REBUILD) {
     auto nkeys = keys2verts.size();
@@ -56,7 +54,13 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
       new_mesh.set_ents(ent_dim, mesh->ask_down(ent_dim, ent_dim - 1));
     }
     new_mesh.set_owners(ent_dim, mesh->ask_owners(ent_dim));
-    transfer_motion(mesh, opts.xfer_opts, &new_mesh, verts_are_keys, ent_dim);
+    transfer_motion(
+        mesh, opts.xfer_opts, &new_mesh, verts_are_keys, keys2verts, ent_dim);
+    if (ent_dim == VERT) {
+      auto new_coords = mesh->get_array<Real>(VERT, "motion_coords");
+      mesh->remove_tag(VERT, "motion_coords");
+      mesh->set_coords(new_coords);
+    }
   }
   *mesh = new_mesh;
 }

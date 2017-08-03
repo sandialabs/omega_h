@@ -653,14 +653,9 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
 }
 
 void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
-    Bytes verts_are_keys, Int prod_dim) {
+    Bytes verts_are_keys, LOs keys2verts, Int prod_dim) {
   auto t0 = now();
-  if (prod_dim == VERT) {
-    transfer_copy(old_mesh, opts, new_mesh, prod_dim);
-  } else {
-    transfer_inherit_coarsen(old_mesh, opts, new_mesh, keys2doms, prod_dim,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-  }
+  transfer_copy(old_mesh, opts, new_mesh, prod_dim);
   if (prod_dim == EDGE) {
     auto edges_did_move = mark_up(new_mesh, VERT, EDGE, verts_are_keys);
     auto edges_didnt_move = invert_marks(edges_did_move);
@@ -682,9 +677,8 @@ void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         old_mesh, new_mesh, same_elems2elems, same_elems2elems, new_elems2elems);
     auto verts2elems = old_mesh->ask_graph(VERT, old_mesh->dim());
     auto keys2elems = unmap_graph(keys2verts, verts2elems);
-    transfer_copy(old_mesh, opts, new_mesh, prod_dim);
-    transfer_conserve_motion(old_mesh, opts, new_mesh, keys2verts, keys2doms,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_conserve_motion(old_mesh, opts, new_mesh, keys2verts, keys2elems,
+        new_elems2elems, same_elems2elems, same_elems2elems);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);

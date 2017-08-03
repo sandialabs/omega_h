@@ -11,25 +11,21 @@ MotionChoices motion_choices_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
   auto tolerance = opts.motion_tolerance;
   OMEGA_H_CHECK(tolerance >= 0.0);
-  auto nsteps = opts.motion_step_count;
-  OMEGA_H_CHECK(nsteps > 0);
+  auto max_steps = opts.max_motion_steps;
+  OMEGA_H_CHECK(max_steps > 0);
   auto step_size = opts.motion_step_size;
   OMEGA_H_CHECK(0.0 < step_size);
   OMEGA_H_CHECK(step_size < 1.0);
+  auto min_qual_allowed = opts.min_quality_allowed;
   auto coords = mesh->coords();
   auto metrics = mesh->get_array<Real>(VERT, "metric");
   auto size_errors = mesh->get_array<Real>(mesh_dim, "size_error");
+  auto orig_sizes = mesh->ask_sizes();
   auto ncands = cands2verts.size();
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto v2k = mesh->ask_up(VERT, mesh_dim);
   auto kv2v = mesh->ask_verts_of(mesh_dim);
-  auto verts2dim = mesh->get_array<I8>(VERT, "class_dim");
-  auto edges2dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto cands2elems = unmap_graph(cands2verts, v2k);
-  auto elems2old_qual = mesh->ask_qualities();
-  auto cands2old_qual =
-      graph_reduce(cands2elems, elems2old_qual, 1, OMEGA_H_MIN);
   auto did_move_w = Write<I8>(ncands);
   auto new_coords_w = Write<Real>(ncands * mesh_dim);
   auto new_quals_w = Write<Real>(ncands);
@@ -39,11 +35,13 @@ MotionChoices motion_choices_tmpl(
     auto old_x = get_vector<mesh_dim>(coords, v);
     auto new_x = old_x;
     bool did_move = false;
-    while (true) {
+    Real new_qual;
+    for (Int step = 0; true; ++step) {
       Real new_obj = 0.0;
       auto obj_grad = zero_vector<mesh_dim>();
       bool obj_converged = true;
       bool quality_ok = true;
+      new_qual = 1.0;
       for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
         auto k = v2k.ab2b[vk];
         auto vk_code = v2k.codes[vk];
@@ -51,7 +49,7 @@ MotionChoices motion_choices_tmpl(
         auto kvv2v = gather_verts<mesh_dim + 1>(kv2v, k);
         auto kvv2nx = gather_vectors<mesh_dim + 1, mesh_dim>(coords, kvv2v);
         kvv2nx[kvv_c] = new_x;
-        auto k_basis = simplex_basis(kvv2nx);
+        auto k_basis = simplex_basis<mesh_dim, mesh_dim>(kvv2nx);
         auto k_tmp_size = element_size(k_basis);
         auto k_size_grad = get_size_gradient(kvv2nx, kvv_c);
         auto k_size_diff = k_tmp_size - orig_sizes[k];
@@ -69,12 +67,13 @@ MotionChoices motion_choices_tmpl(
         }
         new_obj += k_obj;
         obj_grad += k_obj_grad;
+        new_qual = min2(new_qual, k_qual);
       }
-      if (step && (!quality_ok || new_obj >= old_obj))
+      if (step && (!quality_ok || new_obj >= old_obj)) {
         /* we either took a step or backtracked, and the new position
            is bad either because it increases the objective or the elements
            are too distorted */
-        if (step == nsteps) {
+        if (step == max_steps) {
           /* out of time, fully back up to the last good position */
           new_x = old_x;
           break;
@@ -86,7 +85,7 @@ MotionChoices motion_choices_tmpl(
         /* either no prior step exists, or the prior step both reduced
            the objective (good) and created acceptable quality elements */
         if (step) did_move = true;
-        if (obj_converged || step == nsteps) {
+        if (obj_converged || step == max_steps) {
           /* either we've solved the problem or we're out of time.
              the last step (if any) was a good one. don't move. */
           break;
@@ -106,7 +105,7 @@ MotionChoices motion_choices_tmpl(
   auto did_move = Bytes(did_move_w);
   auto new_quals = Reals(new_quals_w);
   auto new_coords = Reals(new_coords_w);
-  return {new_quals, new_coords};
+  return {did_move, new_quals, new_coords};
 }
 
 MotionChoices get_motion_choices(
