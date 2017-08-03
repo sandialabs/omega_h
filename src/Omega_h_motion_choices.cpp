@@ -30,6 +30,7 @@ MotionChoices motion_choices_tmpl(
   auto elems2old_qual = mesh->ask_qualities();
   auto cands2old_qual =
       graph_reduce(cands2elems, elems2old_qual, 1, OMEGA_H_MIN);
+  auto did_move_w = Write<I8>(ncands);
   auto new_coords_w = Write<Real>(ncands * mesh_dim);
   auto new_quals_w = Write<Real>(ncands);
   auto f = OMEGA_H_LAMBDA(LO cand) {
@@ -102,6 +103,7 @@ MotionChoices motion_choices_tmpl(
     set_vector(new_coords_w, cand, new_x);
   };
   parallel_for(ncands, f);
+  auto did_move = Bytes(did_move_w);
   auto new_quals = Reals(new_quals_w);
   auto new_coords = Reals(new_coords_w);
   return {new_quals, new_coords};

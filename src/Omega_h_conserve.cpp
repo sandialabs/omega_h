@@ -542,6 +542,27 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
       same_ents2old_ents, same_ents2new_ents, op_conservation);
 }
 
+void transfer_conserve_motion(Mesh* old_mesh, TransferOpts const& opts,
+    Mesh* new_mesh, LOs keys2verts, Adj keys2doms, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  if (!should_conserve_any(old_mesh, opts)) return;
+  auto keys2prods = keys2doms.a2ab;
+  auto init_cavs = form_initial_cavs(
+      old_mesh, new_mesh, VERT, keys2verts, keys2prods, prods2new_ents);
+  auto bdry_keys2doms = keys2doms;
+  auto cavs = separate_cavities(
+      old_mesh, new_mesh, init_cavs, VERT, keys2verts, &bdry_keys2doms);
+  OpConservation op_conservation;
+  op_conservation.density.this_time[NOT_BDRY] = true;
+  op_conservation.density.this_time[TOUCH_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = false;
+  op_conservation.momentum.this_time[NOT_BDRY] = false;
+  op_conservation.momentum.this_time[TOUCH_BDRY] = false;
+  op_conservation.momentum.this_time[KEY_BDRY] = false;
+  transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
+      same_ents2old_ents, same_ents2new_ents, op_conservation);
+}
+
 void fix_momentum_velocity_verts(
     Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp) {
   for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
