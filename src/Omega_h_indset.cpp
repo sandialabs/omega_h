@@ -71,9 +71,9 @@ GOs find_indset(
       Write<Real> new_qualities(n);
       Write<GO> new_globals(n);
       auto propagate = OMEGA_H_LAMBDA(LO i) {
+        auto t = indset::Tuple(tuples, i);
         auto b = graph.a2ab[i];
         auto e = graph.a2ab[i + 1];
-        auto t = indset::Tuple(tuples, i);
         for (auto ij = b; ij < e; ++ij) {
           auto j = graph.ab2b[ij];
           t = max2(t, indset::Tuple(tuples, j));
@@ -101,9 +101,14 @@ GOs find_indset(
         } else if (tuples.marks[i] == indset::IN) {
           new_marks[i] = indset::NOT_IN;
           owner_globals[i] = tuples.globals[i];
+        } else {
+          new_marks[i] = marks[i];
         }
+      } else {
+        new_marks[i] = marks[i];
       }
     };
+    parallel_for(n, accept);
     marks = new_marks;
     if (is_distributed) marks = owners2copies.exch(marks, 1);
   }
