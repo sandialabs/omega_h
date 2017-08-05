@@ -1,9 +1,15 @@
 #ifndef OMEGA_H_DOLFIN_HPP
 #define OMEGA_H_DOLFIN_HPP
 
-namespace dolfin {
-class Mesh;
-}
+#include <Omega_h_config.h>
+
+#ifdef OMEGA_H_USE_MPI
+#define HAS_MPI // omg DOLFIN this is so bad
+#endif
+#include <dolfin.h>
+#ifdef OMEGA_H_USE_MPI
+#undef HAS_MPI // omg DOLFIN this is so bad
+#endif
 
 namespace Omega_h {
 

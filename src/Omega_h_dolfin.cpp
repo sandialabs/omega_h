@@ -4,12 +4,6 @@
 
 #include <Omega_h_mesh.hpp>
 
-#ifdef OMEGA_H_USE_MPI
-#define HAS_MPI // omg DOLFIN this is so bad
-#endif
-
-#include <dolfin/mesh/MeshEditor.h>
-
 namespace Omega_h {
 
 void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
@@ -44,7 +38,7 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   /* this type needs to have .size(), .begin(), and .end().
      could have templated on dimension, but there is no threading
      here so its okay to just allocate it once. */
-  std::vector<LO> cell_verts(dim);
+  std::vector<LO> cell_verts(dim + 1);
   for (LO i = 0; i < ncells; ++i) {
     for (LO j = 0; j < (dim + 1); ++j) {
       cell_verts[j] = h_conn[i * (dim + 1) + j];
