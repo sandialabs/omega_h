@@ -21,7 +21,7 @@ struct Tuples {
 };
 
 struct Tuple {
-  OMEGA_H_INLINE Tuple(Tuples const& tuples, LO i) {
+  OMEGA_H_DEVICE Tuple(Tuples const& tuples, LO i) {
     mark = tuples.marks[i];
     quality = tuples.qualities[i];
     global = tuples.globals[i];
