@@ -3,19 +3,24 @@
 
 #include <Omega_h_array.hpp>
 #include <Omega_h_graph.hpp>
+#include <Omega_h_dist.hpp>
 
 namespace Omega_h {
 
 class Mesh;
 
-namespace indset {
-
-}  // end namespace indset
+GOs find_indset(
+    Graph graph,
+    Int distance,
+    Bytes candidates,
+    Reals qualities,
+    GOs globals, 
+    Dist owners2copies);
 
 Read<I8> find_indset(
-    Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates);
+    Mesh* mesh, Int ent_dim, Graph graph, Reals qualities, Bytes candidates);
 Read<I8> find_indset(
-    Mesh* mesh, Int ent_dim, Reals quality, Read<I8> candidates);
+    Mesh* mesh, Int ent_dim, Reals qualities, Bytes candidates);
 
 }  // end namespace Omega_h
 

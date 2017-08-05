@@ -24,7 +24,7 @@ struct Tuple {
   OMEGA_H_INLINE Tuple(Tuples const& tuples, LO i) {
     mark = tuples.marks[i];
     quality = tuples.qualities[i];
-    global = tuples.qlobals[i];
+    global = tuples.globals[i];
   }
   I8 mark; 
   Real quality;
@@ -51,7 +51,7 @@ GOs find_indset(
     Reals qualities,
     GOs globals, 
     Dist owners2copies) {
-  auto comm = owners2copies->parent_comm();
+  auto comm = owners2copies.parent_comm();
   auto n = candidates.size();
   auto is_distributed = comm->size() > 1;
   if (is_distributed) OMEGA_H_CHECK(owners2copies.nroots() == n);
@@ -64,19 +64,19 @@ GOs find_indset(
   parallel_for(n, setup);
   auto marks = Bytes(initial_marks);
   Write<GO> owner_globals(n);
-  while (get_sum(comm, each_eq_to(marks, indset::UNKNOWN))) {
+  while (get_sum(comm, each_eq_to(marks, I8(indset::UNKNOWN)))) {
     indset::Tuples tuples = {marks, qualities, globals};
-    for (Int r = 0; r < k; ++r) {
+    for (Int r = 0; r < distance; ++r) {
       Write<I8> new_marks(n);
       Write<Real> new_qualities(n);
       Write<GO> new_globals(n);
       auto propagate = OMEGA_H_LAMBDA(LO i) {
         auto b = graph.a2ab[i];
         auto e = graph.a2ab[i + 1];
-        auto t = Tuple(tuples, i);
+        auto t = indset::Tuple(tuples, i);
         for (auto ij = b; ij < e; ++ij) {
           auto j = graph.ab2b[ij];
-          t = max2(t, Tuple(tuples, j));
+          t = max2(t, indset::Tuple(tuples, j));
         }
         new_marks[i] = t.mark;
         new_qualities[i] = t.quality;
@@ -111,20 +111,21 @@ GOs find_indset(
 }
 
 Read<I8> find_indset(
-    Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates) {
-  auto xadj = graph.a2ab;
-  auto adj = graph.ab2b;
+    Mesh* mesh, Int ent_dim, Graph graph, Reals qualities, Bytes candidates) {
   auto globals = mesh->globals(ent_dim);
-  return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
+  auto owners2copies = mesh->ask_dist(ent_dim).invert();
+  auto distance = 1;
+  auto indset_globals = find_indset(graph, distance, candidates, qualities, globals, owners2copies);
+  return each_eq(indset_globals, globals);
 }
 
 Read<I8> find_indset(
-    Mesh* mesh, Int ent_dim, Reals quality, Read<I8> candidates) {
+    Mesh* mesh, Int ent_dim, Reals qualities, Bytes candidates) {
   if (ent_dim == mesh->dim()) return candidates;
   mesh->owners_have_all_upward(ent_dim);
   OMEGA_H_CHECK(mesh->owners_have_all_upward(ent_dim));
   auto graph = mesh->ask_star(ent_dim);
-  return find_indset(mesh, ent_dim, graph, quality, candidates);
+  return find_indset(mesh, ent_dim, graph, qualities, candidates);
 }
 
 }  // end namespace Omega_h
