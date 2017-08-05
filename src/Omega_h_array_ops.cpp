@@ -348,6 +348,15 @@ Bytes each_neq_to(Read<T> a, T b) {
 }
 
 template <typename T>
+Bytes each_eq(Read<T> a, Read<T> b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b[i]); };
+  parallel_for(c.size(), f);
+  return c;
+}
+
+template <typename T>
 Bytes each_eq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b); };
@@ -581,6 +590,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Bytes each_gt(Read<T> a, T b);                                      \
   template Bytes each_lt(Read<T> a, T b);                                      \
   template Bytes each_neq_to(Read<T> a, T b);                                  \
+  template Bytes each_eq(Read<T> a, Read<T> b);                                   \
   template Bytes each_eq_to(Read<T> a, T b);                                   \
   template Bytes gt_each(Read<T> a, Read<T> b);                                \
   template Bytes lt_each(Read<T> a, Read<T> b);                                \
