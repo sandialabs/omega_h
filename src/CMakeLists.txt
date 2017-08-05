@@ -123,6 +123,10 @@ if(USE_TEUCHOS)
       )
 endif()
 
+if(Omega_h_USE_DOLFIN)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
+endif()
+
 if(Omega_h_ONE_FILE)
   foreach(source IN LISTS Omega_h_SOURCES)
     set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
@@ -177,7 +181,11 @@ if(Omega_h_USE_TeuchosParser)
   target_link_libraries(omega_h PUBLIC teuchosparser)
 endif()
 
-bob_export_target(omega_h)
+if(Omega_h_USE_DOLFIN)
+  target_link_libraries(omega_h PUBLIC dolfin)
+  target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_INCLUDE_DIRS})
+    target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
+endif()
 
 if(Omega_h_USE_ZLIB)
   message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
@@ -189,6 +197,8 @@ if(Omega_h_USE_ZLIB)
     target_link_libraries(omega_h PUBLIC ZLIB::ZLIB)
   endif()
 endif()
+
+bob_export_target(omega_h)
 
 function(osh_add_exe EXE_NAME)
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
@@ -412,6 +422,10 @@ if(USE_TEUCHOS)
       Omega_h_teuchos.hpp
       Omega_h_expr.hpp
      )
+endif()
+
+if(Omega_h_USE_DOLFIN)
+  set(Omega_h_HEADERS ${Omega_h_SOURCES} Omega_h_dolfin.hpp)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

@@ -111,7 +111,7 @@ class Read {
   Read(LO size, T offset, T stride);
   Read(std::initializer_list<T> l);
   LO size() const;
-  OMEGA_H_DEVICE T operator[](LO i) const { return write_[i]; }
+  OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
   OMEGA_H_INLINE T const* data() const { return write_.data(); }
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<const T*> view() const;
@@ -170,7 +170,7 @@ class HostRead {
   HostRead();
   HostRead(Read<T> read);
   LO size() const;
-  inline T operator[](LO i) const {
+  inline T const& operator[](LO i) const {
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);

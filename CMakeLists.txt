@@ -124,6 +124,11 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 bob_end_cxx_flags()
 
+bob_public_dep(DOLFIN)
+if (Omega_h_USE_DOLFIN)
+  find_package(Boost REQUIRED COMPONENTS "timer")
+endif()
+
 set(Omega_h_KEY_BOOLS
     Omega_h_USE_MPI
     Omega_h_USE_KokkosCore
@@ -137,6 +142,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_TeuchosComm
     Omega_h_USE_TeuchosParser
     Omega_h_USE_YAML
+    Omega_h_USE_DOLFIN
     Omega_h_CHECK_BOUNDS
    )
 
