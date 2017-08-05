@@ -63,7 +63,7 @@ GOs find_indset(
   };
   parallel_for(n, setup);
   auto marks = Bytes(initial_marks);
-  Write<GO> owner_globals(n);
+  Write<GO> owner_globals(n, GO(-1));
   while (get_sum(comm, each_eq_to(marks, I8(indset::UNKNOWN)))) {
     indset::Tuples tuples = {marks, qualities, globals};
     for (Int r = 0; r < distance; ++r) {
