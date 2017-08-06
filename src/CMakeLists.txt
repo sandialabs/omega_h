@@ -182,9 +182,9 @@ if(Omega_h_USE_TeuchosParser)
 endif()
 
 if(Omega_h_USE_DOLFIN)
-  target_link_libraries(omega_h PUBLIC dolfin)
+  target_link_libraries(omega_h PUBLIC Boost::timer dolfin)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_INCLUDE_DIRS})
-    target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
+  target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
 endif()
 
 if(Omega_h_USE_ZLIB)

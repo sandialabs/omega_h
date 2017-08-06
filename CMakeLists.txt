@@ -125,9 +125,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 bob_end_cxx_flags()
 
 bob_public_dep(DOLFIN)
-if (Omega_h_USE_DOLFIN)
-  find_package(Boost REQUIRED COMPONENTS "timer")
-endif()
+set(Omega_h_USE_Boost_DEFAULT ${Omega_h_USE_DOLFIN})
+bob_add_dependency(PUBLIC NAME Boost COMPONENTS timer)
 
 set(Omega_h_KEY_BOOLS
     Omega_h_USE_MPI
