@@ -17,6 +17,8 @@ class Mesh;
 
 void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh);
 void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin);
+void from_dolfin(Mesh* mesh_osh, dolfin::Function const& function,
+    std::string const& name);
 
 }
 

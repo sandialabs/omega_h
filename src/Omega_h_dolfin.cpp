@@ -50,8 +50,29 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
 }
 
 void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
-  (void)mesh_osh;
-  (void)mesh_dolfin;
+  (void) mesh_osh;
+  (void) mesh_dolfin;
+}
+
+void from_dolfin(Mesh* mesh_osh, dolfin::Function const& function,
+    std::string const& name) {
+  auto function_space = function.function_space();
+  auto vector = function.vector();
+  auto dofmap = function_space->dofmap();
+  auto mesh_dolfin = function_space->mesh();
+  for (Int ent_dim = 0; ent_dim <= mesh_osh->dim(); ++ent_dim) {
+    auto ndofs_per_ent = dofmap->num_entity_dofs(ent_dim);
+    if (ndofs_per_ent == 0) continue;
+    auto nents = mesh_osh->nents(ent_dim);
+    auto entity_indices = std::vector<std::size_t>(nents);
+    for (LO i = 0; i < nents; ++i) entity_indices[i] = i;
+    auto dof_indices = dofmap->entity_dofs(*mesh_dolfin, ent_dim, entity_indices);
+    auto h_data = HostWrite<Real>(nents * ndofs_per_ent);
+    vector->get_local(h_data.data(), nents * ndofs_per_ent, dof_indices.data());
+    auto d_data = Reals(h_data.write());
+    mesh_osh->remove_tag(ent_dim, name);
+    mesh_osh->add_tag(ent_dim, name, ndofs_per_ent, d_data);
+  }
 }
 
 }
