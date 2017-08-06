@@ -428,7 +428,7 @@ if(USE_TEUCHOS)
 endif()
 
 if(Omega_h_USE_DOLFIN)
-  set(Omega_h_HEADERS ${Omega_h_SOURCES} Omega_h_dolfin.hpp)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_dolfin.hpp)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
