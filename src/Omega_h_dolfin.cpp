@@ -67,7 +67,7 @@ void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
   auto& vert_globals_dolfin = topology.global_indices(VERT);
   auto h_vert_globals = HostWrite<GO>(nverts);
   for (LO i = 0; i < nverts; ++i) {
-    h_vert_globals = vert_globals_dolfin[i];
+    h_vert_globals[i] = vert_globals_dolfin[i];
   }
   auto d_vert_globals = GOs(h_vert_globals.write());
   auto& elem_verts_dolfin = topology(dim, VERT);
@@ -81,8 +81,9 @@ void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
   }
   auto d_elem_verts = h_elem_verts.write();
   build_from_elems2verts(mesh_osh, dim, d_elem_verts, nverts);
+  mesh_osh->remove_tag(VERT, "global");
   mesh_osh->add_tag(VERT, "global", 1, d_vert_globals);
-  mesh_osh->set_coords(d_coords);
+  mesh_osh->add_tag(VERT, "coordinates", dim, d_coords);
 }
 
 void from_dolfin(Mesh* mesh_osh, dolfin::Function const& function,
