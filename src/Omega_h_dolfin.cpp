@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <Omega_h_mesh.hpp>
+#include <Omega_h_build.hpp>
 
 namespace Omega_h {
 
@@ -50,8 +51,38 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
 }
 
 void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
-  (void) mesh_osh;
-  (void) mesh_dolfin;
+  auto& topology = mesh_dolfin.topology();
+  auto& geometry = mesh_dolfin.geometry();
+  OMEGA_H_CHECK(geometry.degree() == 1);
+  OMEGA_H_CHECK(topology.dim() == geometry.dim());
+  auto dim = Int(topology.dim());
+  auto nverts = LO(topology.size(VERT));
+  auto nelems = LO(topology.size(dim));
+  auto& coords_dolfin = geometry.x();
+  auto h_coords = HostWrite<Real>(nverts * dim);
+  for (LO i = 0; i < nverts * dim; ++i) {
+    h_coords[i] = coords_dolfin[i];
+  }
+  auto d_coords = Reals(h_coords.write());
+  auto& vert_globals_dolfin = topology.global_indices(VERT);
+  auto h_vert_globals = HostWrite<GO>(nverts);
+  for (LO i = 0; i < nverts; ++i) {
+    h_vert_globals = vert_globals_dolfin[i];
+  }
+  auto d_vert_globals = GOs(h_vert_globals.write());
+  auto& elem_verts_dolfin = topology(dim, VERT);
+  if (nelems) OMEGA_H_CHECK(Int(elem_verts_dolfin.size(0)) == (dim + 1));
+  auto h_elem_verts = HostWrite<LO>(nelems * (dim + 1));
+  for (LO i = 0; i < nelems; ++i) {
+    auto ptr_dolfin = elem_verts_dolfin(i);
+    for (Int j = 0; j < (dim + 1); ++j) {
+      h_elem_verts[i * (dim + 1) + j] = ptr_dolfin[j];
+    }
+  }
+  auto d_elem_verts = h_elem_verts.write();
+  build_from_elems2verts(mesh_osh, dim, d_elem_verts, nverts);
+  mesh_osh->add_tag(VERT, "global", 1, d_vert_globals);
+  mesh_osh->set_coords(d_coords);
 }
 
 void from_dolfin(Mesh* mesh_osh, dolfin::Function const& function,
