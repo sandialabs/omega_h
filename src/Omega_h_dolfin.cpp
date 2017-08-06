@@ -4,6 +4,9 @@
 
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_build.hpp>
+#include <Omega_h_adj.hpp>
+#include <Omega_h_shape.hpp>
+#include <Omega_h_loop.hpp>
 
 namespace Omega_h {
 
@@ -50,6 +53,31 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   editor.close(should_reorder);
 }
 
+/* DOLFIN intermixes inverted elements with non-inverted ones!
+   best we can do given that crap is to reverse the ordering of
+   the inverted ones */
+template <Int dim>
+static void fix_inverted_elements_dim(Write<LO> elem_verts, Reals coords) {
+  auto nelems = divide_no_remainder(elem_verts.size(), dim + 1);
+  auto f = OMEGA_H_LAMBDA(LO e) {
+    auto eev2v = gather_verts<dim + 1>(elem_verts, e);
+    auto eev2x = gather_vectors<dim + 1, dim>(coords, eev2v);
+    auto b = simplex_basis<dim, dim>(eev2x);
+    auto s = element_size(b);
+    if (s < 0.0) {
+      swap2(elem_verts[e * (dim + 1) + 0],
+            elem_verts[e * (dim + 1) + 1]);
+    }
+  };
+  parallel_for(nelems, f);
+}
+
+static void fix_inverted_elements(Int dim, Write<LO> elem_verts, Reals coords) {
+  if (dim == 1) fix_inverted_elements_dim<1>(elem_verts, coords);
+  if (dim == 2) fix_inverted_elements_dim<2>(elem_verts, coords);
+  if (dim == 3) fix_inverted_elements_dim<3>(elem_verts, coords);
+}
+
 void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
   auto& topology = mesh_dolfin.topology();
   auto& geometry = mesh_dolfin.geometry();
@@ -80,6 +108,7 @@ void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
     }
   }
   auto d_elem_verts = h_elem_verts.write();
+  fix_inverted_elements(dim, d_elem_verts, d_coords);
   build_from_elems2verts(mesh_osh, dim, d_elem_verts, nverts);
   mesh_osh->remove_tag(VERT, "global");
   mesh_osh->add_tag(VERT, "global", 1, d_vert_globals);
