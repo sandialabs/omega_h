@@ -48,9 +48,8 @@ int main(int argc, char** argv) {
         surface_info.surf_vert2vert, mesh.nverts(), 0.0, mesh.dim());
     mesh.add_tag(VERT, "normal", mesh.dim(), vert_normals);
     mesh.sync_tag(VERT, "normal");
-    auto vert_IIs =
-        map_onto(surface_info.surf_vert_IIs,
-           surface_info.surf_vert2vert, mesh.nverts(), 0.0, 3);
+    auto vert_IIs = map_onto(surface_info.surf_vert_IIs,
+        surface_info.surf_vert2vert, mesh.nverts(), 0.0, 3);
     mesh.add_tag(VERT, "II", 3, vert_IIs);
     mesh.sync_tag(VERT, "II");
     attach_basis_vectors(&mesh, VERT, surface_info.surf_vert2vert,

@@ -624,13 +624,13 @@ SurfaceInfo get_surface_info(Mesh* mesh) {
 Reals get_vert_curvatures(Mesh* mesh, SurfaceInfo surface_info) {
   Write<Real> out(mesh->nverts(), 0.0);
   if (mesh->dim() >= 3) {
-    auto surf_vert_curvatures = get_max_eigenvalues(2, surface_info.surf_vert_IIs);
-    map_into(surf_vert_curvatures,
-        surface_info.surf_vert2vert, out, 1);
+    auto surf_vert_curvatures =
+        get_max_eigenvalues(2, surface_info.surf_vert_IIs);
+    map_into(surf_vert_curvatures, surface_info.surf_vert2vert, out, 1);
   }
   if (mesh->dim() >= 2) {
-    map_into(surface_info.curv_vert_curvatures,
-        surface_info.curv_vert2vert, out, 1);
+    map_into(
+        surface_info.curv_vert_curvatures, surface_info.curv_vert2vert, out, 1);
   }
   return out;
 }

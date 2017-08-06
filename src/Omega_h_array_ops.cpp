@@ -590,7 +590,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Bytes each_gt(Read<T> a, T b);                                      \
   template Bytes each_lt(Read<T> a, T b);                                      \
   template Bytes each_neq_to(Read<T> a, T b);                                  \
-  template Bytes each_eq(Read<T> a, Read<T> b);                                   \
+  template Bytes each_eq(Read<T> a, Read<T> b);                                \
   template Bytes each_eq_to(Read<T> a, T b);                                   \
   template Bytes gt_each(Read<T> a, Read<T> b);                                \
   template Bytes lt_each(Read<T> a, Read<T> b);                                \

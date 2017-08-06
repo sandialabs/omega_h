@@ -9,13 +9,13 @@ namespace Omega_h {
 namespace indset {
 
 enum {
-  NOT_IN  = -1,
-  UNKNOWN =  0,
-  IN      =  1,
+  NOT_IN = -1,
+  UNKNOWN = 0,
+  IN = 1,
 };
 
 struct Tuples {
-  Bytes marks; // one of IN, NOT_IN, or UNKNOWN
+  Bytes marks;  // one of IN, NOT_IN, or UNKNOWN
   Reals qualities;
   GOs globals;
 };
@@ -26,7 +26,7 @@ struct Tuple {
     quality = tuples.qualities[i];
     global = tuples.globals[i];
   }
-  I8 mark; 
+  I8 mark;
   Real quality;
   GO global;
   OMEGA_H_INLINE bool operator<(Tuple const& other) {
@@ -36,7 +36,7 @@ struct Tuple {
   }
 };
 
-}
+}  // namespace indset
 
 /* Algorithm 5: MIS_parallel
    Nathan Bell, Steven Dalton, and Luke N. Olson.
@@ -44,13 +44,8 @@ struct Tuple {
    SIAM Journal on Scientific Computing 34.4 (2012): C123-C152.
 */
 
-GOs find_indset(
-    Graph graph,
-    Int distance,
-    Bytes candidates,
-    Reals qualities,
-    GOs globals, 
-    Dist owners2copies) {
+GOs find_indset(Graph graph, Int distance, Bytes candidates, Reals qualities,
+    GOs globals, Dist owners2copies) {
   auto comm = owners2copies.parent_comm();
   auto n = candidates.size();
   auto is_distributed = comm->size() > 1;
@@ -58,8 +53,10 @@ GOs find_indset(
   OMEGA_H_CHECK(qualities.size() == n);
   Write<I8> initial_marks(n);
   auto setup = OMEGA_H_LAMBDA(LO i) {
-    if (candidates[i]) initial_marks[i] = indset::UNKNOWN;
-    else initial_marks[i] = indset::NOT_IN;
+    if (candidates[i])
+      initial_marks[i] = indset::UNKNOWN;
+    else
+      initial_marks[i] = indset::NOT_IN;
   };
   parallel_for(n, setup);
   auto marks = Bytes(initial_marks);
@@ -120,7 +117,8 @@ Read<I8> find_indset(
   auto globals = mesh->globals(ent_dim);
   auto owners2copies = mesh->ask_dist(ent_dim).invert();
   auto distance = 1;
-  auto indset_globals = find_indset(graph, distance, candidates, qualities, globals, owners2copies);
+  auto indset_globals = find_indset(
+      graph, distance, candidates, qualities, globals, owners2copies);
   return each_eq(indset_globals, globals);
 }
 
