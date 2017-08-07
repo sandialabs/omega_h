@@ -112,9 +112,9 @@ Read<I8> mark_class_closures(
   auto neq = mesh->nents(class_dim);
   Write<I8> eq_marks_w(neq);
   auto f = OMEGA_H_LAMBDA(LO eq) {
-    eq_marks_w[eq] =
-        I8((eq_class_dims[eq] == I8(class_dim)) &&
-            (-1 != binary_search(d_sorted_class_ids, eq_class_ids[eq], nclass_ids)));
+    eq_marks_w[eq] = I8((eq_class_dims[eq] == I8(class_dim)) &&
+                        (-1 != binary_search(d_sorted_class_ids,
+                                   eq_class_ids[eq], nclass_ids)));
   };
   parallel_for(neq, f);
   auto eq_marks = Read<I8>(eq_marks_w);

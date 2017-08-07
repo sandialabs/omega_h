@@ -272,6 +272,17 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors);
 }
 
+static void transfer_size_error(Mesh* old_mesh, Mesh* new_mesh,
+    CavsByBdryStatus const& cavs, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, ConservedBools conserved_bools) {
+  auto error_name = "size_error";
+  auto old_elem_densities = Reals(old_mesh->nelems(), 1.0);
+  auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
+  transfer_integ_error(old_mesh, new_mesh, cavs, old_elem_densities,
+      new_elem_densities, error_name, same_ents2old_ents, same_ents2new_ents,
+      conserved_bools);
+}
+
 static void transfer_density_error(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, CavsByBdryStatus const& cavs, TagBase const* tagbase,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
@@ -336,6 +347,10 @@ static void transfer_conservation_errors(Mesh* old_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     OpConservation op_conservation) {
   auto dim = new_mesh->dim();
+  if (opts.should_conserve_size) {
+    transfer_size_error(old_mesh, new_mesh, cavs, same_ents2old_ents,
+        same_ents2new_ents, op_conservation.density);
+  }
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
     if (should_conserve(old_mesh, opts, dim, tagbase)) {
@@ -552,6 +567,9 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   auto dim = mesh->dim();
+  if (xfer_opts.should_conserve_size) {
+    mesh->add_tag(dim, "size_error", 1, Reals(mesh->nelems(), 0.0));
+  }
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
@@ -628,16 +646,15 @@ static Reals diffuse_densities_once(
 
 struct AllBounded : public AndFunctor {
   Reals a;
-  Reals b;
-  AllBounded(Reals a_, Reals b_) : a(a_), b(b_) {}
+  Real b;
+  AllBounded(Reals a_, Real b_) : a(a_), b(b_) {}
   OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (fabs(a[i]) <= b[i]);
+    update = update && (fabs(a[i]) <= b);
   }
 };
 
-static bool all_bounded(CommPtr comm, Reals a, Reals b) {
-  auto out = bool(parallel_reduce(a.size(), AllBounded(a, b)));
-  return comm->reduce_and(out);
+static bool all_bounded(CommPtr comm, Reals a, Real b) {
+  return bool(get_min(comm, each_leq_to(fabs_each(a), b)));
 }
 
 static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
@@ -645,9 +662,7 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
     bool verbose) {
   auto comm = mesh->comm();
   Int niters = 0;
-  auto bounds =
-      multiply_each_by(opts.tolerance, invert_each(mesh->ask_sizes()));
-  for (niters = 0; !all_bounded(comm, densities, bounds); ++niters) {
+  for (niters = 0; !all_bounded(comm, densities, opts.tolerance); ++niters) {
     densities = diffuse_densities_once(mesh, g, densities, cell_sizes);
   }
   if (verbose && !comm->rank()) {
@@ -656,31 +671,31 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
   return densities;
 }
 
-static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g, Reals integrals,
-    Reals weights, VarCompareOpts opts, std::string const& name, bool verbose) {
-  if (opts.type == VarCompareOpts::NONE) return integrals;
-  auto ncomps = divide_no_remainder(integrals.size(), g.nnodes());
+static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
+    Reals error_integrals, Reals quantity_integrals, VarCompareOpts opts,
+    std::string const& name, bool verbose) {
+  if (opts.type == VarCompareOpts::NONE) return error_integrals;
+  auto ncomps = divide_no_remainder(error_integrals.size(), g.nnodes());
   if (ncomps > 1) {
-    Write<Real> out(integrals.size());
+    Write<Real> out(error_integrals.size());
     for (Int c = 0; c < ncomps; ++c) {
-      auto comp_integrals = get_component(integrals, ncomps, c);
-      auto comp_weights = get_component(weights, ncomps, c);
+      auto comp_integrals = get_component(error_integrals, ncomps, c);
+      auto comp_quantity_integrals =
+          get_component(quantity_integrals, ncomps, c);
       auto comp_name = name + "_" + to_string(c);
-      comp_integrals = diffuse_integrals_weighted(
-          mesh, g, comp_integrals, comp_weights, opts, comp_name, verbose);
+      comp_integrals = diffuse_integrals_weighted(mesh, g, comp_integrals,
+          comp_quantity_integrals, opts, comp_name, verbose);
       set_component(out, comp_integrals, ncomps, c);
     }
     return out;
   }
-  auto unweighted_sizes = mesh->ask_sizes();
-  weights = fabs_each(weights);
-  weights = each_max_with(weights, opts.floor);
-  auto weighted_sizes = multiply_each(unweighted_sizes, weights);
-  auto weighted_densities = divide_each(integrals, weighted_sizes);
+  auto weighted_sizes = fabs_each(quantity_integrals);
+  weighted_sizes = each_max_with(weighted_sizes, opts.floor);
+  auto weighted_densities = divide_each(error_integrals, weighted_sizes);
   weighted_densities = diffuse_densities(
       mesh, g, weighted_densities, weighted_sizes, opts, name, verbose);
-  integrals = multiply_each(weighted_densities, weighted_sizes);
-  return integrals;
+  error_integrals = multiply_each(weighted_densities, weighted_sizes);
+  return error_integrals;
 }
 
 static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
@@ -775,6 +790,9 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto diffusion_graph = get_elem_diffusion_graph(mesh);
   auto elem_sizes = mesh->ask_sizes();
   auto dim = mesh->dim();
+  if (xfer_opts.should_conserve_size) {
+    mesh->remove_tag(dim, "size_error");
+  }
   for (Int tagi = 0; tagi < mesh->ntags(dim); ++tagi) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {

@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
   CmdLine cmdline;
   get_diff_program_cmdline("gold_dir", "result_dir", &cmdline);
   cmdline.add_flag("-onestep", "Each directory is one time step");
-  if (!cmdline.parse_all_or_help(lib.world(), &argc, argv)) {
+  if (!cmdline.parse_final(lib.world(), &argc, argv)) {
     return -1;
   }
   auto patha = cmdline.get<std::string>("gold_dir");

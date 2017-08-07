@@ -108,6 +108,10 @@ Graph identity_graph(LO nnodes) {
   return {LOs(nnodes + 1, 0, 1), LOs(nnodes, 0, 1)};
 }
 
+Graph add_self_edges(Graph g) {
+  return add_edges(identity_graph(g.nnodes()), g);
+}
+
 template <typename T>
 void map_into(Read<T> a_data, Graph a2b, Write<T> b_data, Int width) {
   auto ab_data = expand(a_data, a2b.a2ab, width);

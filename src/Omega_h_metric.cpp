@@ -196,9 +196,8 @@ static Reals limit_gradation_once_tmpl(
       auto ax = get_vector<mesh_dim>(coords, av);
       auto vec = ax - x;
       auto metric_dist = metric_length(am, vec);
-      auto decomp = decompose_metric(am);
-      decomp.l = decomp.l * (1.0 + metric_dist * max_rate);
-      auto limiter = compose_metric(decomp.q, decomp.l);
+      auto factor = metric_eigenvalue_from_length(1.0 + metric_dist * max_rate);
+      auto limiter = am * factor;
       auto limited = intersect_metrics(m, limiter);
       m = limited;
     }
@@ -414,15 +413,52 @@ Reals get_gradient_metrics(Int dim, Reals gradients, Real eps) {
   OMEGA_H_NORETURN(Reals());
 }
 
-Reals get_curvature_isos(Mesh* mesh, Real segment_angle) {
-  auto vert_curvatures = get_vert_curvatures(mesh);
-  auto out = Write<Real>(mesh->nverts());
-  auto f = OMEGA_H_LAMBDA(LO v) {
-    auto curvature = vert_curvatures[v];
-    auto l = square(curvature / segment_angle);
-    out[v] = l;
+/* this algorithm creates degenerate metrics that only specify size in
+   the tangential direction to the sharp curves on the mesh surface */
+template <Int dim>
+void get_curve_curvature_metrics(
+    SurfaceInfo surface_info, Real segment_angle, Write<Real> out) {
+  auto f = OMEGA_H_LAMBDA(LO curv_vert) {
+    auto k = surface_info.curv_vert_curvatures[curv_vert];
+    auto t = get_vector<dim>(surface_info.curv_vert_tangents, curv_vert);
+    auto ew = square(k / segment_angle);
+    auto m = outer_product(t, ew * t);  // t * ew * transpose(t)
+    auto vert = surface_info.curv_vert2vert[curv_vert];
+    set_symm(out, vert, m);
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(surface_info.curv_vert2vert.size(), f);
+}
+
+Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
+  auto surface_info = get_surface_info(mesh);
+  auto out = Write<Real>(mesh->nverts() * symm_ncomps(mesh->dim()), 0.0);
+  if (mesh->dim() == 3) {
+    /* this algorithm creates degenerate metrics that only specify size in
+       the two tangential directions to mesh surfaces */
+    auto f = OMEGA_H_LAMBDA(LO surf_vert) {
+      auto II = get_symm<2>(surface_info.surf_vert_IIs, surf_vert);
+      auto II_decomp = decompose_eigen(II);
+      Vector<2> m_ews;
+      for (Int i = 0; i < 2; ++i) {
+        m_ews[i] = square(II_decomp.l[i] / segment_angle);
+      }
+      auto n = get_vector<3>(surface_info.surf_vert_normals, surf_vert);
+      auto frame = form_ortho_basis(n);
+      Matrix<3, 2> surf_frame_t;
+      surf_frame_t[0] = frame[1];
+      surf_frame_t[1] = frame[2];
+      auto surf_frame = transpose(surf_frame_t);
+      auto m_q_inv = II_decomp.q * surf_frame;
+      auto m_q = pseudo_invert(m_q_inv);
+      auto m = m_q * diagonal(m_ews) * m_q_inv;
+      auto vert = surface_info.surf_vert2vert[surf_vert];
+      set_symm(out, vert, m);
+    };
+    parallel_for(surface_info.surf_vert2vert.size(), f);
+    get_curve_curvature_metrics<3>(surface_info, segment_angle, out);
+  } else if (mesh->dim() == 2) {
+    get_curve_curvature_metrics<2>(surface_info, segment_angle, out);
+  }
   return out;
 }
 

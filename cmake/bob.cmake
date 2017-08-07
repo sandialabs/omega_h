@@ -150,40 +150,57 @@ function(bob_end_cxx_flags)
   set(CMAKE_CXX_FLAGS "${FLAGS}" PARENT_SCOPE)
 endfunction(bob_end_cxx_flags)
 
-macro(bob_private_dep pkg_name)
-  option(${PROJECT_NAME}_USE_${pkg_name} "Whether to use ${pkg_name}"
-         ${${PROJECT_NAME}_USE_${pkg_name}_DEFAULT})
-  message(STATUS "${PROJECT_NAME}_USE_${pkg_name}: ${${PROJECT_NAME}_USE_${pkg_name}}")
-  if(${PROJECT_NAME}_USE_${pkg_name})
-    set(${pkg_name}_PREFIX "${${pkg_name}_PREFIX_DEFAULT}"
-        CACHE PATH "${pkg_name} install directory")
-    if (${pkg_name}_PREFIX)
-      message(STATUS "${pkg_name}_PREFIX ${${pkg_name}_PREFIX}")
-      #if ${pkg_name}_PREFIX is set, don't find it anywhere else:
-      find_package(${pkg_name} ${${pkg_name}_REQUIRED_VERSION}
-                   REQUIRED PATHS ${${pkg_name}_PREFIX} NO_DEFAULT_PATH)
+macro(bob_add_dependency)
+  set(options PUBLIC PRIVATE)
+  set(oneValueArgs NAME)
+  set(multiValueArgs COMPONENTS)
+  cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+  if (NOT ARG_NAME)
+    message(FATAL_ERROR "bob_add_dependency: no NAME argument given")
+  endif()
+  if (ARG_PUBLIC AND ARG_PRIVATE)
+    message(FATAL_ERROR "bob_add_dependency: can't specify both PUBLIC and PRIVATE")
+  endif()
+  if (ARG_COMPONENTS)
+    set(ARG_COMPONENTS COMPONENTS ${ARG_COMPONENTS})
+  endif()
+  option(${PROJECT_NAME}_USE_${ARG_NAME} "Whether to use ${ARG_NAME}"
+         ${${PROJECT_NAME}_USE_${ARG_NAME}_DEFAULT})
+  message(STATUS "${PROJECT_NAME}_USE_${ARG_NAME}: ${${PROJECT_NAME}_USE_${ARG_NAME}}")
+  if(${PROJECT_NAME}_USE_${ARG_NAME})
+    set(${ARG_NAME}_PREFIX "${${ARG_NAME}_PREFIX_DEFAULT}"
+        CACHE PATH "${ARG_NAME} install directory")
+    if (${ARG_NAME}_PREFIX)
+      message(STATUS "${ARG_NAME}_PREFIX ${${ARG_NAME}_PREFIX}")
+      #if ${ARG_NAME}_PREFIX is set, don't find it anywhere else:
+      set(ARG_PREFIX PATHS "${${ARG_NAME}_PREFIX}" NO_DEFAULT_PATH)
     else()
-      #allow CMake to search other prefixes if ${pkg_name}_PREFIX is not set
-      find_package(${pkg_name} ${${pkg_name}_REQUIRED_VERSION} REQUIRED)
+      #allow CMake to search other prefixes if ${ARG_NAME}_PREFIX is not set
+      set(ARG_PREFIX)
     endif()
-    if(${pkg_name}_CONFIG)
-      message(STATUS "${pkg_name}_CONFIG: ${${pkg_name}_CONFIG}")
+    set(${ARG_NAME}_find_package_args
+        "${${ARG_NAME}_REQUIRED_VERSION}"
+        ${ARG_COMPONENTS}
+        ${ARG_PREFIX})
+    find_package(${ARG_NAME} ${${ARG_NAME}_find_package_args} REQUIRED)
+    if(${ARG_NAME}_CONFIG)
+      message(STATUS "${ARG_NAME}_CONFIG: ${${ARG_NAME}_CONFIG}")
     endif()
-    if(${pkg_name}_VERSION)
-      message(STATUS "${pkg_name}_VERSION: ${${pkg_name}_VERSION}")
+    if(${ARG_NAME}_VERSION)
+      message(STATUS "${ARG_NAME}_VERSION: ${${ARG_NAME}_VERSION}")
     endif()
   endif()
+  if (ARG_PUBLIC AND ${PROJECT_NAME}_USE_${ARG_NAME})
+    set(${PROJECT_NAME}_DEPS ${${PROJECT_NAME}_DEPS} ${ARG_NAME})
+  endif()
+endmacro(bob_add_dependency)
+
+macro(bob_private_dep pkg_name)
+  bob_add_dependency(PRIVATE NAME "${pkg_name}")
 endmacro(bob_private_dep)
 
 macro(bob_public_dep pkg_name)
-  bob_private_dep(${pkg_name} "${version}")
-  if(${PROJECT_NAME}_USE_${pkg_name})
-    if (${pkg_name}_PREFIX)
-      set(${PROJECT_NAME}_DEP_PREFIXES ${${PROJECT_NAME}_DEP_PREFIXES}
-          ${${pkg_name}_PREFIX})
-    endif()
-    set(${PROJECT_NAME}_DEPS ${${PROJECT_NAME}_DEPS} ${pkg_name})
-  endif()
+  bob_add_dependency(PUBLIC NAME "${pkg_name}")
 endmacro(bob_public_dep)
 
 function(bob_target_includes lib_name)
@@ -265,28 +282,62 @@ function(bob_end_package)
   include(CMakePackageConfigHelpers)
   set(INCLUDE_INSTALL_DIR include)
   set(LIB_INSTALL_DIR lib)
+  set(LATEST_FIND_DEPENDENCY
+"#The definition of this macro is really inconvenient prior to CMake
+#commit ab358d6a859d8b7e257ed1e06ca000e097a32ef6
+#we'll just copy the latest code into our Config.cmake file
+macro(latest_find_dependency dep)
+  if (NOT \${dep}_FOUND)
+    set(cmake_fd_quiet_arg)
+    if(\${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
+      set(cmake_fd_quiet_arg QUIET)
+    endif()
+    set(cmake_fd_required_arg)
+    if(\${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED)
+      set(cmake_fd_required_arg REQUIRED)
+    endif()
+
+    get_property(cmake_fd_alreadyTransitive GLOBAL PROPERTY
+      _CMAKE_\${dep}_TRANSITIVE_DEPENDENCY
+    )
+
+    find_package(\${dep} \${ARGN}
+      \${cmake_fd_quiet_arg}
+      \${cmake_fd_required_arg}
+    )
+
+    if(NOT DEFINED cmake_fd_alreadyTransitive OR cmake_fd_alreadyTransitive)
+      set_property(GLOBAL PROPERTY _CMAKE_\${dep}_TRANSITIVE_DEPENDENCY TRUE)
+    endif()
+
+    if (NOT \${dep}_FOUND)
+      set(\${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE \"\${CMAKE_FIND_PACKAGE_NAME} could not be found because dependency \${dep} could not be found.\")
+      set(\${CMAKE_FIND_PACKAGE_NAME}_FOUND False)
+      return()
+    endif()
+    set(cmake_fd_required_arg)
+    set(cmake_fd_quiet_arg)
+    set(cmake_fd_exact_arg)
+  endif()
+endmacro(latest_find_dependency)"
+       )
+  set(FIND_DEPS_CONTENT)
+  foreach(dep IN LISTS ${PROJECT_NAME}_DEPS)
+    string(REPLACE ";" " " FIND_DEP_ARGS "${${dep}_find_package_args}")
+    set(FIND_DEPS_CONTENT
+"${FIND_DEPS_CONTENT}
+latest_find_dependency(${dep} ${FIND_DEP_ARGS})"
+       )
+  endforeach()
   set(CONFIG_CONTENT
 "set(${PROJECT_NAME}_VERSION ${${PROJECT_NAME}_VERSION})
-include(CMakeFindDependencyMacro)
-# we will use find_dependency, but we don't want to force
-# our users to have to specify where all of our dependencies
-# were installed; that defeats the whole point of automatically
-# importing dependencies.
-# since the documentation for find_dependency() doesn't mention
-# a PATHS argument, we'll temporarily add the prefixes to
-# CMAKE_PREFIX_PATH.
-set(${PROJECT_NAME}_DEPS \"${${PROJECT_NAME}_DEPS}\")
-set(${PROJECT_NAME}_DEP_PREFIXES \"${${PROJECT_NAME}_DEP_PREFIXES}\")
-set(${PROJECT_NAME}_BACKUP_PREFIX_PATH \"\${CMAKE_PREFIX_PATH}\")
-set(CMAKE_PREFIX_PATH \"\${${PROJECT_NAME}_DEP_PREFIXES};\${CMAKE_PREFIX_PATH}\")
-foreach(dep IN LISTS ${PROJECT_NAME}_DEPS)
-  find_dependency(\${dep})
-endforeach()
-set(CMAKE_PREFIX_PATH \"\${${PROJECT_NAME}_BACKUP_PREFIX_PATH}\")
+${LATEST_FIND_DEPENDENCY}
+${FIND_DEPS_CONTENT}
 set(${PROJECT_NAME}_EXPORTED_TARGETS \"${${PROJECT_NAME}_EXPORTED_TARGETS}\")
 foreach(tgt IN LISTS ${PROJECT_NAME}_EXPORTED_TARGETS)
   include(\${CMAKE_CURRENT_LIST_DIR}/\${tgt}-target.cmake)
-endforeach()")
+endforeach()"
+  )
   foreach(TYPE IN ITEMS "BOOL" "INT" "STRING")
     if (${PROJECT_NAME}_KEY_${TYPE}S)
       foreach(KEY_${TYPE} IN LISTS ${PROJECT_NAME}_KEY_${TYPE}S)
