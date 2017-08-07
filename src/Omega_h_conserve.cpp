@@ -272,10 +272,9 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors);
 }
 
-static void transfer_size_error(Mesh* old_mesh,
-    Mesh* new_mesh, CavsByBdryStatus const& cavs,
-    LOs same_ents2old_ents, LOs same_ents2new_ents,
-    ConservedBools conserved_bools) {
+static void transfer_size_error(Mesh* old_mesh, Mesh* new_mesh,
+    CavsByBdryStatus const& cavs, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, ConservedBools conserved_bools) {
   auto error_name = "size_error";
   auto old_elem_densities = Reals(old_mesh->nelems(), 1.0);
   auto new_elem_densities = Reals(new_mesh->nelems(), 1.0);
@@ -693,18 +692,20 @@ static Reals diffuse_densities(Mesh* mesh, Graph g, Reals densities,
   return densities;
 }
 
-static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g, Reals error_integrals,
-    Reals quantity_integrals, VarCompareOpts opts, std::string const& name, bool verbose) {
+static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
+    Reals error_integrals, Reals quantity_integrals, VarCompareOpts opts,
+    std::string const& name, bool verbose) {
   if (opts.type == VarCompareOpts::NONE) return error_integrals;
   auto ncomps = divide_no_remainder(error_integrals.size(), g.nnodes());
   if (ncomps > 1) {
     Write<Real> out(error_integrals.size());
     for (Int c = 0; c < ncomps; ++c) {
       auto comp_integrals = get_component(error_integrals, ncomps, c);
-      auto comp_quantity_integrals = get_component(quantity_integrals, ncomps, c);
+      auto comp_quantity_integrals =
+          get_component(quantity_integrals, ncomps, c);
       auto comp_name = name + "_" + to_string(c);
-      comp_integrals = diffuse_integrals_weighted(
-          mesh, g, comp_integrals, comp_quantity_integrals, opts, comp_name, verbose);
+      comp_integrals = diffuse_integrals_weighted(mesh, g, comp_integrals,
+          comp_quantity_integrals, opts, comp_name, verbose);
       set_component(out, comp_integrals, ncomps, c);
     }
     return out;

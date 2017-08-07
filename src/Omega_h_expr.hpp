@@ -14,7 +14,7 @@
 
 /* appease the non-standard crap in Teuchos::any */
 namespace Teuchos {
-  
+
 class any;
 
 template <Omega_h::Int dim>

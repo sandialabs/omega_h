@@ -38,6 +38,8 @@ bool are_close(Reals a, Reals b, Real tol = EPSILON, Real floor = EPSILON);
 bool are_close_abs(Reals a, Reals b, Real tol = EPSILON);
 
 template <typename T>
+Bytes each_eq(Read<T> a, Read<T> b);
+template <typename T>
 Bytes each_eq_to(Read<T> a, T b);
 
 /* "a" may be larger than "b" by some integer factor */
@@ -136,6 +138,7 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Bytes each_gt(Read<T> a, T b);                               \
   extern template Bytes each_lt(Read<T> a, T b);                               \
   extern template Bytes each_neq_to(Read<T> a, T b);                           \
+  extern template Bytes each_eq(Read<T> a, Read<T> b);                         \
   extern template Bytes each_eq_to(Read<T> a, T b);                            \
   extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
   extern template Read<T> divide_each_by(T factor, Read<T> x);                 \
