@@ -19,15 +19,15 @@ static bool move_verts_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto cands2verts = collect_marked(verts_are_cands);
   auto choices = get_motion_choices(mesh, opts, cands2verts);
   verts_are_cands =
-      map_onto(choices.cands_did_move, cands2verts, mesh->nverts(), I8(0), 1);
+      map_onto(choices.did_move, cands2verts, mesh->nverts(), I8(0), 1);
   if (get_sum(comm, verts_are_cands) == 0) return false;
   auto vert_quals =
-      map_onto(choices.quals, cands2verts, mesh->nverts(), -1.0, 1);
+      map_onto(choices.new_quals, cands2verts, mesh->nverts(), -1.0, 1);
   auto verts_are_keys = find_indset(mesh, VERT, vert_quals, verts_are_cands);
   mesh->add_tag(VERT, "key", 1, verts_are_keys);
   auto new_coords = deep_copy(mesh->coords());
   map_into(choices.new_coords, cands2verts, new_coords, mesh->dim());
-  mesh->add_tag(VERT, "motion_coords", mesh->dim(), new_coords);
+  mesh->add_tag(VERT, "motion_coords", mesh->dim(), Reals(new_coords));
   auto keys2verts = collect_marked(verts_are_keys);
   auto verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);

@@ -959,28 +959,6 @@ static void test_proximity(Library* lib) {
   }
 }
 
-static void test_motion(Library* lib) {
-  Mesh mesh(lib);
-  build_box_internal(&mesh, 1, 1, 0, 2, 2, 0);
-  classify_by_angles(&mesh, Omega_h::PI / 4);
-  auto metrics = get_implied_isos(&mesh);
-  mesh.add_tag(VERT, "metric", 1, metrics);
-  auto coords_w = deep_copy(mesh.coords());
-  coords_w.set(4 * 2 + 0, 0.74);
-  coords_w.set(4 * 2 + 1, 0.26);
-  mesh.set_coords(coords_w);
-  OMEGA_H_CHECK(mesh.min_quality() < 0.5);
-  AdaptOpts opts(&mesh);
-  auto cands2verts = LOs({4});
-  auto choices = get_motion_choices(&mesh, opts, cands2verts);
-  OMEGA_H_CHECK(choices.cands_did_move.get(0));
-  OMEGA_H_CHECK(choices.quals.get(0) > 0.85);
-  auto verts_are_keys = Read<I8>({0, 0, 0, 0, 1, 0, 0, 0, 0});
-  unpack_linearized_fields(
-      &mesh, opts.xfer_opts, &mesh, choices.new_sol, verts_are_keys);
-  OMEGA_H_CHECK(mesh.min_quality() == choices.quals.get(0));
-}
-
 static void test_find_last() {
   auto a = LOs({0, 3, 55, 12});
   OMEGA_H_CHECK(find_last(a, 98) < 0);
@@ -1011,30 +989,30 @@ static void test_inball() {
 static void test_volume_vert_gradients() {
   {
     Few<Vector<1>, 2> parent_edge = {{0.0}, {1.0}};
-    auto grad0 = get_volume_vert_gradient(parent_edge, 0);
+    auto grad0 = get_size_gradient(parent_edge, 0);
     OMEGA_H_CHECK(are_close(grad0, vector_1(-1.0)));
-    auto grad1 = get_volume_vert_gradient(parent_edge, 1);
+    auto grad1 = get_size_gradient(parent_edge, 1);
     OMEGA_H_CHECK(are_close(grad1, vector_1(1.0)));
   }
   {
     Few<Vector<2>, 3> parent_tri = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}};
-    auto grad0 = get_volume_vert_gradient(parent_tri, 0);
+    auto grad0 = get_size_gradient(parent_tri, 0);
     OMEGA_H_CHECK(are_close(grad0, vector_2(-0.5, -0.5)));
-    auto grad1 = get_volume_vert_gradient(parent_tri, 1);
+    auto grad1 = get_size_gradient(parent_tri, 1);
     OMEGA_H_CHECK(are_close(grad1, vector_2(0.5, 0.0)));
-    auto grad2 = get_volume_vert_gradient(parent_tri, 2);
+    auto grad2 = get_size_gradient(parent_tri, 2);
     OMEGA_H_CHECK(are_close(grad2, vector_2(0.0, 0.5)));
   }
   {
     Few<Vector<3>, 4> parent_tet = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
     auto os = 1.0 / 6.0;
-    auto grad0 = get_volume_vert_gradient(parent_tet, 0);
+    auto grad0 = get_size_gradient(parent_tet, 0);
     OMEGA_H_CHECK(are_close(grad0, vector_3(-os, -os, -os)));
-    auto grad1 = get_volume_vert_gradient(parent_tet, 1);
+    auto grad1 = get_size_gradient(parent_tet, 1);
     OMEGA_H_CHECK(are_close(grad1, vector_3(os, 0, 0)));
-    auto grad2 = get_volume_vert_gradient(parent_tet, 2);
+    auto grad2 = get_size_gradient(parent_tet, 2);
     OMEGA_H_CHECK(are_close(grad2, vector_3(0, os, 0)));
-    auto grad3 = get_volume_vert_gradient(parent_tet, 3);
+    auto grad3 = get_size_gradient(parent_tet, 3);
     OMEGA_H_CHECK(are_close(grad3, vector_3(0, 0, os)));
   }
 }
@@ -1174,7 +1152,6 @@ int main(int argc, char** argv) {
   test_circumcenter();
   test_lie();
   test_proximity(&lib);
-  test_motion(&lib);
   test_find_last();
   test_inball();
   test_volume_vert_gradients();
