@@ -1,6 +1,4 @@
 #include "Omega_h_sort.hpp"
-#include "Omega_h_control.hpp"
-#include "Omega_h_timer.hpp"
 
 #include <algorithm>
 
@@ -19,6 +17,10 @@
 #include "intel_sort/parallel_stable_sort.hpp"
 #include "intel_sort/pss_common.hpp"
 #endif
+
+#include "Omega_h_control.hpp"
+#include "Omega_h_timer.hpp"
+#include "Omega_h_scalar.hpp"
 
 namespace Omega_h {
 
@@ -54,10 +56,10 @@ struct CompareKeySets {
 
 template <Int N, typename T>
 static LOs sort_by_keys_tmpl(Read<T> keys) {
-  OMEGA_H_CHECK(keys.size() % N == 0);
-  Write<LO> perm(keys.size() / N, 0, 1);
+  auto n = divide_no_remainder(keys.size(), N);
+  Write<LO> perm(n, 0, 1);
   LO* begin = perm.data();
-  LO* end = perm.data() + perm.size();
+  LO* end = perm.data() + n;
   T const* keyptr = keys.data();
   parallel_sort<LO, CompareKeySets<T, N>>(
       begin, end, CompareKeySets<T, N>(keyptr));
