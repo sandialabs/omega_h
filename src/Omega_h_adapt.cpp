@@ -72,7 +72,6 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_coarsen = true;
   should_swap = true;
   should_coarsen_slivers = true;
-  should_move_for_quality = false;
   should_allow_pinching = false;
   xfer_opts.should_conserve_size = false;
 }
@@ -178,10 +177,6 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   }
   do {
     if (opts.should_swap && swap_edges(mesh, opts)) {
-      post_rebuild(mesh, opts);
-      continue;
-    }
-    if (opts.should_move_for_quality && move_verts_for_quality(mesh, opts)) {
       post_rebuild(mesh, opts);
       continue;
     }

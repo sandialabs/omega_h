@@ -12,10 +12,8 @@ namespace Omega_h {
 static bool move_verts_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
-  auto elems_are_cands =
-      mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
-  OMEGA_H_CHECK(get_max(comm, elems_are_cands) == 1);
-  auto verts_are_cands = mark_down(mesh, mesh->dim(), VERT, elems_are_cands);
+  auto verts_are_interior = mark_by_class_dim(mesh, VERT, mesh->dim());
+  auto verts_are_cands = invert_marks(verts_are_interior);
   auto cands2verts = collect_marked(verts_are_cands);
   auto choices = get_motion_choices(mesh, opts, cands2verts);
   verts_are_cands =
@@ -65,7 +63,7 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
   *mesh = new_mesh;
 }
 
-bool move_verts_for_quality(Mesh* mesh, AdaptOpts const& opts) {
+bool move_verts_to_conserve_size(Mesh* mesh, AdaptOpts const& opts) {
   if (!move_verts_ghosted(mesh, opts)) return false;
   mesh->set_parting(OMEGA_H_ELEM_BASED, false);
   move_verts_elem_based(mesh, opts);

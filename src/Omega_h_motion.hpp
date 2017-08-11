@@ -25,7 +25,7 @@ struct MotionChoices {
 MotionChoices get_motion_choices(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2verts);
 
-bool move_verts_for_quality(Mesh* mesh, AdaptOpts const& opts);
+bool move_verts_to_conserve_size(Mesh* mesh, AdaptOpts const& opts);
 
 }  // namespace Omega_h
 
