@@ -3,6 +3,8 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 namespace meshb {
@@ -326,7 +328,9 @@ template <int version>
 static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
     const char* filepath, const char* sol_name) {
   using GmfReal = typename VersionTypes<version>::RealIn;
+  std::cerr << "calling GmfStatKwd(" << file << ", " << GmfSolAtVertices << ")\n";
   LO nverts = LO(GmfStatKwd(file, GmfSolAtVertices));
+  std::cerr << "done with call\n";
   OMEGA_H_CHECK(nverts == mesh->nverts());
   safe_goto(file, GmfSolAtVertices);
   std::int32_t nfields, field_type;
@@ -366,6 +370,8 @@ void read_sol(Mesh* mesh, const char* filepath, const char* sol_name) {
   auto file = GmfOpenMesh(filepath, GmfRead, &version, &dim);
   if (!file) {
     Omega_h_fail("could not open Meshb solution file %s for reading\n", filepath);
+  } else {
+    std::cerr << "loaded " << filepath << " as " << file << '\n';
   }
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   switch (version) {
