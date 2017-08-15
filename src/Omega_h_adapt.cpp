@@ -73,7 +73,6 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_swap = true;
   should_coarsen_slivers = true;
   should_allow_pinching = false;
-  xfer_opts.should_conserve_size = false;
 }
 
 static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const& opts) {
@@ -236,6 +235,14 @@ static void post_adapt(
   }
 }
 
+static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
+  if (opts.xfer_opts.should_conserve_size) {
+    while (move_verts_to_conserve_size(mesh, opts)) {
+      post_rebuild(mesh, opts);
+    }
+  }
+}
+
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t0 = now();
   if (!pre_adapt(mesh, opts)) return false;
@@ -245,6 +252,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
+  correct_size_errors(mesh, opts);
   correct_integral_errors(mesh, opts);
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
