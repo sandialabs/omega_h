@@ -57,7 +57,7 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
     if (ent_dim == VERT) {
       auto new_coords = mesh->get_array<Real>(VERT, "motion_coords");
       mesh->remove_tag(VERT, "motion_coords");
-      mesh->set_coords(new_coords);
+      new_mesh.add_tag(VERT, "coordinates", mesh->dim(), new_coords);
     }
   }
   *mesh = new_mesh;
