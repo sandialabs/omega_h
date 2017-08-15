@@ -24,6 +24,7 @@ std::string path_leaf_name(std::string const& path);
 namespace meshb {
 void read(Mesh* mesh, const char* filepath);
 void write(Mesh* mesh, const char* filepath, int version);
+void read_sol(Mesh* mesh, const char* filepath, const char* sol_name);
 }  // namespace meshb
 #endif
 
