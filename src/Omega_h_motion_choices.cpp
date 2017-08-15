@@ -4,6 +4,10 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 
+#include <iostream>
+
+#include <iomanip>
+
 namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
@@ -15,7 +19,6 @@ MotionChoices motion_choices_tmpl(
   OMEGA_H_CHECK(max_steps > 0);
   auto step_size = opts.motion_step_size;
   OMEGA_H_CHECK(0.0 < step_size);
-  OMEGA_H_CHECK(step_size < 1.0);
   auto min_qual_allowed = opts.min_quality_allowed;
   auto coords = mesh->coords();
   auto metrics = mesh->get_array<Real>(VERT, "metric");
@@ -29,7 +32,9 @@ MotionChoices motion_choices_tmpl(
   auto did_move_w = Write<I8>(ncands);
   auto new_coords_w = Write<Real>(ncands * mesh_dim);
   auto new_quals_w = Write<Real>(ncands);
+  std::cout << std::scientific << std::setprecision(15) << '\n';
   auto f = OMEGA_H_LAMBDA(LO cand) {
+    std::cout << "choosing for candidate " << cand << '\n';
     auto v = cands2verts[cand];
     Real old_obj = -1.0;
     auto old_x = get_vector<mesh_dim>(coords, v);
@@ -42,6 +47,7 @@ MotionChoices motion_choices_tmpl(
       bool obj_converged = true;
       bool quality_ok = true;
       new_qual = 1.0;
+    //std::cout << "checking elements...\n";
       for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
         auto k = v2k.ab2b[vk];
         auto vk_code = v2k.codes[vk];
@@ -54,14 +60,21 @@ MotionChoices motion_choices_tmpl(
         auto k_size_grad = get_size_gradient(kvv2nx, kvv_c);
         auto k_size_diff = k_tmp_size - orig_sizes[k];
         auto k_tmp_error = size_errors[k] + k_size_diff;
-        auto k_tmp_rel_error = k_tmp_error / k_tmp_size;
-        if (k_tmp_rel_error > tolerance) obj_converged = false;
+        std::cout << "element has " << k_tmp_error << " total error and volume " << k_tmp_size << '\n';
+        std::cout << "element's size gradient is (" << k_size_grad[0] << ", " << k_size_grad[1] /* << ", " << k_size_grad[2] */ << ")\n";
+        auto k_tmp_rel_error = std::fabs(k_tmp_error / k_tmp_size);
+        if (k_tmp_rel_error > tolerance) {
+          obj_converged = false;
+        }
         auto k_obj = square(k_tmp_error);
+      //std::cout << "element objective " << k_obj << '\n';
         auto k_obj_grad = 2.0 * k_tmp_error * k_size_grad;
+        std::cout << "element objective gradient (" << k_obj_grad[0] << ", " << k_obj_grad[1] /* << ", " << k_obj_grad[2] */ << ")\n";
         auto kvv2m = gather_symms<mesh_dim + 1, metric_dim>(metrics, kvv2v);
         auto km = maxdet_metric(kvv2m);
         auto k_qual = metric_element_quality(kvv2nx, km);
         if (k_qual < min_qual_allowed) {
+          std::cout << "element quality " << k_qual << " below allowed " << min_qual_allowed << '\n';
           quality_ok = false;
           break;
         }
@@ -69,15 +82,18 @@ MotionChoices motion_choices_tmpl(
         obj_grad += k_obj_grad;
         new_qual = min2(new_qual, k_qual);
       }
+      std::cout << "objective " << new_obj << '\n';
       if (step && (!quality_ok || new_obj >= old_obj)) {
         /* we either took a step or backtracked, and the new position
            is bad either because it increases the objective or the elements
            are too distorted */
         if (step == max_steps) {
+          std::cout << "bad step, out of time\n";
           /* out of time, fully back up to the last good position */
           new_x = old_x;
           break;
         } else {
+          std::cout << "bad step, backtrack by half\n";
           /* still have time, backtrack */
           new_x = (new_x + old_x) / 2.0;
         }
@@ -86,6 +102,7 @@ MotionChoices motion_choices_tmpl(
            the objective (good) and created acceptable quality elements */
         if (step) did_move = true;
         if (obj_converged || step == max_steps) {
+          std::cout << "convergence or out-of-time\n";
           /* either we've solved the problem or we're out of time.
              the last step (if any) was a good one. don't move. */
           break;
@@ -93,7 +110,14 @@ MotionChoices motion_choices_tmpl(
           /* actually take a new step */
           old_x = new_x;
           old_obj = new_obj;
-          new_x = (old_x - (obj_grad * step_size));
+          std::cout << "objective gradient (" << obj_grad[0] << ", " << obj_grad[1] << /* ", " << obj_grad[2] << */ ")\n";
+          Vector<mesh_dim> delta_x;
+          for (Int i = 0; i < mesh_dim; ++i) delta_x[i] = -(new_obj / obj_grad[i]);
+          std::cout << "unscaled delta_x " << delta_x[0] << ", " << delta_x[1] << /* ", " << delta_x[2] << */ ")\n";
+          delta_x *= step_size;
+          std::cout << "scaled delta_x " << delta_x[0] << ", " << delta_x[1] << /* ", " << delta_x[2] << */ ")\n";
+          new_x = old_x + delta_x;
+          std::cout << "take a step (distance " << norm(delta_x) << ")\n";
         }
       }
     }

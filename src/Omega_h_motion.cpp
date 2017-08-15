@@ -6,6 +6,7 @@
 #include "Omega_h_transfer.hpp"
 
 #include <iostream>
+#include "Omega_h_file.hpp"
 
 namespace Omega_h {
 
@@ -52,14 +53,16 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
       new_mesh.set_ents(ent_dim, mesh->ask_down(ent_dim, ent_dim - 1));
     }
     new_mesh.set_owners(ent_dim, mesh->ask_owners(ent_dim));
-    transfer_motion(
-        mesh, opts.xfer_opts, &new_mesh, verts_are_keys, keys2verts, ent_dim);
+  //transfer_motion(
+  //    mesh, opts.xfer_opts, &new_mesh, verts_are_keys, keys2verts, ent_dim);
     if (ent_dim == VERT) {
       auto new_coords = mesh->get_array<Real>(VERT, "motion_coords");
       mesh->remove_tag(VERT, "motion_coords");
       new_mesh.add_tag(VERT, "coordinates", mesh->dim(), new_coords);
     }
   }
+  vtk::write_vtu("before_motion.vtu", mesh);
+  vtk::write_vtu("after_motion.vtu", &new_mesh);
   *mesh = new_mesh;
 }
 

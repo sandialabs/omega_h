@@ -81,6 +81,7 @@ int main(int argc, char** argv) {
     masses_before[obj] = get_object_mass(&mesh, obj);
   }
   auto opts = AdaptOpts(&mesh);
+  opts.motion_step_size = 1e-3;
   opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.integral_map["density"] = "mass";

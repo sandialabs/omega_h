@@ -68,6 +68,7 @@ AdaptOpts::AdaptOpts(Int dim) {
 #endif
   max_motion_steps = 100;
   motion_step_size = 0.1;
+  motion_tolerance = 1e-3;
   should_refine = true;
   should_coarsen = true;
   should_swap = true;
