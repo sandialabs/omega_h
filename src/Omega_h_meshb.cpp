@@ -329,16 +329,17 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
     const char* filepath, const char* sol_name) {
   using GmfReal = typename VersionTypes<version>::RealIn;
   std::cerr << "calling GmfStatKwd(" << file << ", " << GmfSolAtVertices << ")\n";
-  LO nverts = LO(GmfStatKwd(file, GmfSolAtVertices));
-  std::cerr << "done with call\n";
-  OMEGA_H_CHECK(nverts == mesh->nverts());
+  constexpr auto max_ntypes = 64;
+  int type_table[max_ntypes];
+  int ntypes, sol_size;
+  LO nverts = LO(GmfStatKwd(file, GmfSolAtVertices, &ntypes, &sol_size, type_table));
+  std::cerr << "got ntypes " << ntypes << " sol_size " << sol_size << " type_table[0] " <<  type_table[0] << '\n';
   safe_goto(file, GmfSolAtVertices);
-  std::int32_t nfields, field_type;
-  GmfGetLin(file, GmfSolAtVertices, &nfields, &field_type);
-  if (nfields != 1) {
+  if (ntypes != 1) {
     Omega_h_fail(
-        "\"%s\" has %d fields, Omega_h supports only one\n", filepath, nfields);
+        "\"%s\" has %d fields, Omega_h supports only one\n", filepath, ntypes);
   }
+  auto field_type = type_table[0];
   Int ncomps = -1;
   if (field_type == 1) ncomps = 1;
   else if (field_type == 2) ncomps = dim;
@@ -347,6 +348,7 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
     Omega_h_fail(
         "unexpected field type %d in \"%s\"\n", field_type, filepath);
   }
+  std::cerr << "set ncomps to " << ncomps << '\n';
   HostWrite<Real> hw(ncomps * nverts);
   for (LO i = 0; i < nverts; ++i) {
     Few<GmfReal, 6> tmp;
@@ -357,7 +359,7 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
       GmfGetLin(file, GmfSolAtVertices,
           &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5]);
     }
-    for (Int j = 0; j < ncomps; ++j) hw[i * nverts + j] = Real(tmp[j]);
+    for (Int j = 0; j < ncomps; ++j) hw[i * ncomps + j] = Real(tmp[j]);
   }
   GmfCloseMesh(file);
   auto dr = Reals(hw.write());
