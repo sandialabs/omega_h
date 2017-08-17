@@ -52,7 +52,7 @@ Read<I8> find_angle_triangles(Mesh* mesh) {
     auto t_dim = tris2class_dim[tri];
     tris_are_angle[tri] = is_angle_triangle(ttv2dim, tte2dim, t_dim);
   };
-  parallel_for(mesh->ntris(), f);
+  parallel_for(mesh->ntris(), f, "find_angle_triangles");
   return tris_are_angle;
 }
 

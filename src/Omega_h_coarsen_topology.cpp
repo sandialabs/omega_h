@@ -115,7 +115,7 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
       }
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "coarsen_topology");
   return prod_verts2verts;
 }
 
