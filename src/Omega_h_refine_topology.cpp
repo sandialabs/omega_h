@@ -27,7 +27,7 @@ static void refine_edges_to_pairs(Mesh* mesh, LOs keys2edges, LOs keys2midverts,
     pair_verts2verts_w[key * 4 + 3] =
         old_verts2new_verts[edge_verts2verts[edge * 2 + 1]];
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "refine_edges_to_pairs");
   keys2pairs = LOs(nkeys + 1, 0, 2);
   pair_verts2verts = pair_verts2verts_w;
 }
@@ -98,7 +98,7 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
       }
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "refine_domains_to_pairs");
   pair_verts2verts = pair_verts2verts_w;
 }
 
@@ -146,7 +146,7 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
       ++cut;
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "refine_domains_to_cuts");
   cut_verts2verts = cut_verts2verts_w;
 }
 
@@ -179,7 +179,7 @@ void combine_pairs_and_cuts(Int ent_dim, LOs keys2cuts, LOs keys2pairs,
       ++prod;
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "combine_pairs_and_cuts");
   prod_verts2verts = prod_verts2verts_w;
 }
 

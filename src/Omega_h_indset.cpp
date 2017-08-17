@@ -58,7 +58,7 @@ GOs find_indset(Graph graph, Int distance, Bytes candidates, Reals qualities,
     else
       initial_marks[i] = indset::NOT_IN;
   };
-  parallel_for(n, setup);
+  parallel_for(n, setup, "find_indset(setup)");
   auto marks = Bytes(initial_marks);
   Write<GO> owner_globals(n, GO(-1));
   while (get_sum(comm, each_eq_to(marks, I8(indset::UNKNOWN)))) {
@@ -79,7 +79,7 @@ GOs find_indset(Graph graph, Int distance, Bytes candidates, Reals qualities,
         new_qualities[i] = t.quality;
         new_globals[i] = t.global;
       };
-      parallel_for(n, propagate);
+      parallel_for(n, propagate, "find_indset(propagate)");
       tuples.marks = new_marks;
       tuples.qualities = new_qualities;
       tuples.globals = new_globals;
@@ -105,7 +105,7 @@ GOs find_indset(Graph graph, Int distance, Bytes candidates, Reals qualities,
         new_marks[i] = marks[i];
       }
     };
-    parallel_for(n, accept);
+    parallel_for(n, accept, "find_indset(accept)");
     marks = new_marks;
     if (is_distributed) marks = owners2copies.exch(marks, 1);
   }

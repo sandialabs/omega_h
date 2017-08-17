@@ -32,7 +32,7 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
       ++bc;
     }
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "unmap_adjacency");
   return Adj(a2ac, ac2c, ac_codes);
 }
 
@@ -80,7 +80,7 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
     auto is_flipped = IsFlipped<deg>::is(tmp);
     codes[e] = make_code(is_flipped, rotation, 0);
   };
-  parallel_for(ne, f);
+  parallel_for(ne, f, "get_codes_to_canonical");
   return codes;
 }
 
@@ -112,7 +112,7 @@ Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e) {
     auto e1 = e_sorted2e[e_sorted + 1];
     if (!are_equal(deg, canon, e0, e1)) jumps[e_sorted] = 1;
   };
-  parallel_for(ne - 1, f);
+  parallel_for(ne - 1, f, "find_canonical_jumps");
   if (jumps.size()) jumps.set(jumps.size() - 1, 1);
   return jumps;
 }
@@ -149,7 +149,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
       }
     }
   };
-  parallel_for(nhigh, f);
+  parallel_for(nhigh, f, "form_uses");
   return uv2v;
 }
 
@@ -172,10 +172,11 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
       swap2(codes[j], codes[k_min]);
     }
   };
-  parallel_for(nl, f);
+  parallel_for(nl, f, "sort_by_high_index");
 }
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
+  begin_code("invert_adj");
   auto t0 = now();
   auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
@@ -195,7 +196,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
       Int rotation = code_rotation(down_code);
       codes[lh] = make_code(is_flipped, rotation, which_down);
     };
-    parallel_for(nlh, f);
+    parallel_for(nlh, f, "full_codes");
   } else {
     auto f = OMEGA_H_LAMBDA(LO lh) {
       LO hl = lh2hl[lh];
@@ -204,11 +205,12 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
       Int which_down = hl % nlows_per_high;
       codes[lh] = make_code(false, 0, which_down);
     };
-    parallel_for(nlh, f);
+    parallel_for(nlh, f, "easy_codes");
   }
   sort_by_high_index(l2lh, lh2h, codes);
   auto t1 = now();
   add_to_global_timer("inverting", t1 - t0);
+  end_code();
   return Adj(l2lh, lh2h, codes);
 }
 
@@ -277,7 +279,7 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     }
     OMEGA_H_NORETURN();
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "find_matches");
   *a2b_out = a2b;
   *codes_out = codes;
 }
@@ -360,7 +362,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       }
     }
   };
-  parallel_for(nhighs, f);
+  parallel_for(nhighs, f, "transit");
   if (low_dim == 1) return Adj(hl2l, codes);
   return Adj(hl2l);
 }
@@ -380,7 +382,7 @@ Graph verts_across_edges(Adj e2v, Adj v2e) {
     auto v = ev2v[e * 2 + (1 - eev)];
     vv2v[vv] = v;
   };
-  parallel_for(vv2v.size(), f);
+  parallel_for(vv2v.size(), f, "verts_across_edges");
   return Adj(v2vv, vv2v);
 }
 
@@ -411,7 +413,7 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
       ee2e[ee_begin + eef * 2 + 1] = e2;
     }
   };
-  parallel_for(ne, lambda);
+  parallel_for(ne, lambda, "edges_across_tris");
   return Adj(e2ee, ee2e);
 }
 
@@ -437,7 +439,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
       ee2e[ee] = e_opp;
     }
   };
-  parallel_for(ne, f);
+  parallel_for(ne, f, "edges_across_tets");
   return Adj(e2ee, ee2e);
 }
 
@@ -462,7 +464,7 @@ Graph elements_across_sides(
     }
     degrees[elem] = n;
   };
-  parallel_for(nelems, count);
+  parallel_for(nelems, count, "elements_across_sides(count)");
   auto elem2elem_elems = offset_scan(LOs(degrees));
   auto nelem_elems = elem2elem_elems.last();
   Write<LO> elem_elem2elem(nelem_elems);
@@ -480,7 +482,7 @@ Graph elements_across_sides(
       }
     }
   };
-  parallel_for(nelems, fill);
+  parallel_for(nelems, fill, "elements_across_sides(fill)");
   return Graph(elem2elem_elems, elem_elem2elem);
 }
 

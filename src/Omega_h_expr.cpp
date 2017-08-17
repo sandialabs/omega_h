@@ -427,7 +427,7 @@ void eval_exp(LO size, any& result, ExprReader::Args& args) {
         "exp() given array that wasn't scalars");
     auto out = Write<Real>(a.size());
     auto f = OMEGA_H_LAMBDA(LO i) { out[i] = std::exp(a[i]); };
-    parallel_for(a.size(), f);
+    parallel_for(a.size(), f, "eval_exp(Reals)");
     result = Reals(out);
   } else {
     throw Teuchos::ParserFail("unexpected argument type to exp()");
@@ -446,7 +446,7 @@ void eval_sqrt(LO size, any& result, ExprReader::Args& args) {
         "sqrt() given array that wasn't scalars");
     auto out = Write<Real>(a.size());
     auto f = OMEGA_H_LAMBDA(LO i) { out[i] = std::sqrt(a[i]); };
-    parallel_for(a.size(), f);
+    parallel_for(a.size(), f, "eval_sqrt(Reals)");
     result = Reals(out);
   } else {
     throw Teuchos::ParserFail("unexpected argument type to pow()");
