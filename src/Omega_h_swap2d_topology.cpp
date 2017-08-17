@@ -41,7 +41,7 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
       ntv[2] = ov[1 - i];
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "swap2d_topology");
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   keys2prods[EDGE] = LOs(nkeys + 1, 0, 1);

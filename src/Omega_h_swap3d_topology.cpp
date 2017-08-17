@@ -30,7 +30,7 @@ HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
     keys2nprods_w[TRI][key] = nprod_tris;
     keys2nprods_w[TET][key] = nprod_tets;
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "swap3d_keys_to_prods");
   HostFew<LOs, 4> keys2prods;
   for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     keys2prods[prod_dim] = offset_scan(LOs(keys2nprods_w[prod_dim]));
@@ -110,7 +110,7 @@ HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
       }
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "swap3d_topology");
   HostFew<LOs, 4> prod_verts2verts;
   for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
     prod_verts2verts[prod_dim] = prod_verts2verts_w[prod_dim];
