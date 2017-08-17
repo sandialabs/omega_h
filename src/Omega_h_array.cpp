@@ -76,7 +76,7 @@ Write<T>& Write<T>::operator=(Write<T> const& other) {
 template <typename T>
 static void fill(Write<T> a, T val) {
   auto f = OMEGA_H_LAMBDA(LO i) { a[i] = val; };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "Write(size,value)");
 }
 
 template <typename T>
@@ -89,7 +89,7 @@ void fill_linear(Write<T> a, T offset, T stride) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     a[i] = offset + (stride * static_cast<T>(i));
   };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "Write(size,offset,stride)");
 }
 
 template <typename T>
@@ -379,7 +379,7 @@ Write<T> deep_copy(Read<T> a) {
   Kokkos::deep_copy(b.view(), a.view());
 #else
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i]; };
-  parallel_for(b.size(), f);
+  parallel_for(b.size(), f, "deep_copy");
 #endif
   return b;
 }
