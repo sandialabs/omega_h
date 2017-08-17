@@ -85,6 +85,7 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
 
 void read(
     std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
+  begin_code("exodus::read");
   auto comp_ws = int(sizeof(Real));
   int io_ws = 0;
   float version;
@@ -154,7 +155,7 @@ void read(
     auto f0 = OMEGA_H_LAMBDA(LO entry) {
       elem_class_ids_w[start + entry] = region_id;
     };
-    parallel_for(nentries, f0);
+    parallel_for(nentries, f0, "elem_class_ids");
     start += nentries * nnodes_per_entry;
   }
   OMEGA_H_CHECK(start == init_params.num_elem * (dim + 1));
@@ -238,7 +239,7 @@ void read(
         auto side = elems2sides[elem * nsides_per_elem + local];
         set_sides2side_w[set_side] = side;
       };
-      parallel_for(nentries, f2);
+      parallel_for(nentries, f2, "set_sides2side");
       auto set_sides2side = LOs(set_sides2side_w);
       auto surface_id = side_set_ids[i];
       map_into(LOs(nentries, surface_id), set_sides2side, side_class_ids_w, 1);
@@ -254,10 +255,12 @@ void read(
   mesh->add_tag(dim - 1, "class_id", 1, side_class_ids);
   mesh->set_tag(dim - 1, "class_dim", side_class_dims);
   finalize_classification(mesh);
+  end_code();
 }
 
 void write(
     std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
+  begin_code("exodus::write");
   auto comp_ws = int(sizeof(Real));
   auto io_ws = comp_ws;
   auto mode = EX_CLOBBER | EX_MAPS_INT64_API;
@@ -307,7 +310,7 @@ void write(
   auto f0 = OMEGA_H_LAMBDA(LO i) {
     for (Int j = 0; j < dim; ++j) coord_blk[j][i] = coords[i * dim + j];
   };
-  parallel_for(mesh->nverts(), f0);
+  parallel_for(mesh->nverts(), f0, "copy_coords");
   HostRead<Real> h_coord_blk[3];
   for (Int i = 0; i < dim; ++i) h_coord_blk[i] = HostRead<Real>(coord_blk[i]);
   CALL(ex_put_coord(file, h_coord_blk[0].data(), h_coord_blk[1].data(),
@@ -351,7 +354,7 @@ void write(
           set_sides2elem[set_side] = elem + 1;
           set_sides2local[set_side] = side_osh2exo(dim, which_down);
         };
-        parallel_for(nset_sides, f1);
+        parallel_for(nset_sides, f1, "set_sides2elem");
         auto h_set_sides2elem = HostRead<int>(set_sides2elem);
         auto h_set_sides2local = HostRead<int>(set_sides2local);
         CALL(ex_put_set_param(file, EX_SIDE_SET, set_id, nset_sides, 0));
@@ -373,6 +376,7 @@ void write(
     }
   }
   CALL(ex_close(file));
+  end_code();
 }
 
 #undef CALL

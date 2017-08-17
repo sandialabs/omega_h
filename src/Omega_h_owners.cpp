@@ -34,7 +34,7 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
       }
       old_owners2own_idxs[old_owner] = own_idx;
     };
-    parallel_for(nold_owners, f);
+    parallel_for(nold_owners, f, "update_ownership(ranks)");
     copies2own_ranks = own_ranks;
   } else {
     Write<I32> old_owners2own_ranks(nold_owners);
@@ -60,7 +60,7 @@ Remotes update_ownership(Dist copies2old_owners, Read<I32> own_ranks) {
       old_owners2own_ranks[old_owner] = own_rank;
       old_owners2own_idxs[old_owner] = own_idx;
     };
-    parallel_for(nold_owners, f);
+    parallel_for(nold_owners, f, "update_ownership");
     copies2own_ranks =
         old_owners2copies.exch(Read<I32>(old_owners2own_ranks), 1);
   }
@@ -96,7 +96,7 @@ Read<T> reduce_data_to_owners(
       owner_data_w[owner * ncomps + c] = serv_copy_data[sc_begin * ncomps + c];
     }
   };
-  parallel_for(nowners, f);
+  parallel_for(nowners, f, "reduce_data_to_owners");
   return owner_data_w;
 }
 
@@ -114,7 +114,8 @@ void globals_from_owners(Mesh* mesh, Int ent_dim) {
   auto start = mesh->comm()->exscan(GO(nnew_owned), OMEGA_H_SUM);
   auto new_globals_w = Write<GO>(nnew_ents);
   parallel_for(nnew_ents,
-      OMEGA_H_LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; });
+      OMEGA_H_LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; },
+      "globals_from_owners");
   auto new_globals = Read<GO>(new_globals_w);
   new_globals = mesh->sync_array(ent_dim, new_globals, 1);
   mesh->add_tag(ent_dim, "global", 1, new_globals);
