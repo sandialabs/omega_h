@@ -56,7 +56,7 @@ void choose_rails(Mesh* mesh, LOs cands2edges, Read<I8> cand_edge_codes,
     vert_quals_w[v] = best_qual;
     vert_rails_w[v] = best_global;
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(mesh->nverts(), f, "choose_rails");
   *verts_are_cands = verts_are_cands_w;
   *verts_are_cands = mesh->sync_array(VERT, *verts_are_cands, 1);
   *vert_quals = vert_quals_w;
@@ -101,7 +101,7 @@ void find_rails(Mesh* mesh, LOs keys2verts, Read<GO> verts2rail,
     }
     OMEGA_H_NORETURN();
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "find_rails");
   *rails2edges = rails2edges_w;
   *rail_col_dirs = rail_col_dirs_w;
 }

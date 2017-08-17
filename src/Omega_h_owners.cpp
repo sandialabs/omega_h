@@ -113,9 +113,10 @@ void globals_from_owners(Mesh* mesh, Int ent_dim) {
   auto nnew_owned = local_offsets.last();
   auto start = mesh->comm()->exscan(GO(nnew_owned), OMEGA_H_SUM);
   auto new_globals_w = Write<GO>(nnew_ents);
-  parallel_for(nnew_ents,
-      OMEGA_H_LAMBDA(LO e) { new_globals_w[e] = local_offsets[e] + start; },
-      "globals_from_owners");
+  auto f = OMEGA_H_LAMBDA(LO e) {
+    new_globals_w[e] = local_offsets[e] + start;
+  };
+  parallel_for(nnew_ents, f, "globals_from_owners");
   auto new_globals = Read<GO>(new_globals_w);
   new_globals = mesh->sync_array(ent_dim, new_globals, 1);
   mesh->add_tag(ent_dim, "global", 1, new_globals);

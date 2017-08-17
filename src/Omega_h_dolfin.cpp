@@ -50,7 +50,7 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
 }
 
 /* DOLFIN intermixes inverted elements with non-inverted ones!
-   best we can do given that crap is to reverse the ordering of
+   best we can do is to reverse the ordering of
    the inverted ones */
 template <Int dim>
 static void fix_inverted_elements_dim(Write<LO> elem_verts, Reals coords) {
@@ -64,7 +64,7 @@ static void fix_inverted_elements_dim(Write<LO> elem_verts, Reals coords) {
       swap2(elem_verts[e * (dim + 1) + 0], elem_verts[e * (dim + 1) + 1]);
     }
   };
-  parallel_for(nelems, f);
+  parallel_for(nelems, f, "fix_inverted_elements");
 }
 
 static void fix_inverted_elements(Int dim, Write<LO> elem_verts, Reals coords) {

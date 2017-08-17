@@ -14,7 +14,7 @@ static Reals get_max_eigenvalues_dim(Reals symms) {
     auto max_ew = maximum_magnitude(ews.values, ews.n);
     out[i] = max_ew;
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "get_max_eigenvalues");
   return out;
 }
 

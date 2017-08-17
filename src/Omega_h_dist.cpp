@@ -26,13 +26,14 @@ Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
 void Dist::set_parent_comm(CommPtr parent_comm) { parent_comm_ = parent_comm; }
 
 void Dist::set_dest_ranks(Read<I32> items2ranks) {
+  begin_code("Dist::set_dest_ranks");
   auto content2items = sort_by_keys(items2ranks);
   auto content2ranks = unmap(content2items, items2ranks, 1);
   Write<I8> jumps(content2ranks.size());
   auto mark_jumps = OMEGA_H_LAMBDA(LO i) {
     jumps[i] = (content2ranks[i] != content2ranks[i + 1]);
   };
-  parallel_for(jumps.size() - 1, mark_jumps);
+  parallel_for(jumps.size() - 1, mark_jumps, "mark_jumps");
   if (jumps.size()) {
     jumps.set(jumps.size() - 1, 1);
   }
@@ -44,7 +45,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
       msgs2ranks[content2msgs[i]] = content2ranks[i];
     }
   };
-  parallel_for(jumps.size(), log_ranks);
+  parallel_for(jumps.size(), log_ranks, "log_ranks");
   Write<LO> msgs2content(nmsgs + 1);
   msgs2content.set(0, 0);
   auto log_ends = OMEGA_H_LAMBDA(LO i) {
@@ -52,7 +53,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
       msgs2content[content2msgs[i] + 1] = i + 1;
     }
   };
-  parallel_for(jumps.size(), log_ends);
+  parallel_for(jumps.size(), log_ends, "log_ends");
   items2content_[F] = invert_permutation(content2items);
   msgs2content_[F] = msgs2content;
   comm_[F] = parent_comm_->graph(msgs2ranks);
@@ -60,6 +61,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   auto fdegrees = get_degrees(msgs2content_[F]);
   auto rdegrees = comm_[F]->alltoall(fdegrees);
   msgs2content_[R] = offset_scan(rdegrees);
+  end_code();
 }
 
 void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
