@@ -210,7 +210,7 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
         }
       }
     };
-    parallel_for(nkeys, f);
+    parallel_for(nkeys, f, "transfer_inherit_refine(pairs)");
   }
   if (prod_dim < old_mesh->dim()) {
     auto dom_dim = prod_dim + 1;
@@ -231,7 +231,7 @@ void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
         ++prod;
       }
     };
-    parallel_for(nkeys, f);
+    parallel_for(nkeys, f, "transfer_inherit_refine(cuts)");
   }
   transfer_common(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
       same_ents2new_ents, prods2new_ents, old_tag, Read<T>(prod_data));
@@ -493,7 +493,7 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
       }
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "transfer_pointwise");
   auto prod_data = Reals(prod_data_w);
   transfer_common(old_mesh, new_mesh, dim, same_elems2old_elems,
       same_elems2new_elems, prods2new_elems, old_tag, prod_data);

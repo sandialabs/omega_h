@@ -50,7 +50,7 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
     for (Int j = 0; j < dim; ++j) /* this cast *should* be safe... */
       out[i * dim + j] = static_cast<I64>(Y[j]);
   };
-  parallel_for(npts, f);
+  parallel_for(npts, f, "hilbert::dists_from_coords");
   return out;
 }
 

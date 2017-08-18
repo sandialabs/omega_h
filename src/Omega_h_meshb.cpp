@@ -225,5 +225,167 @@ void write(Mesh* mesh, const char* filepath, int version) {
   }
   Omega_h_fail("unknown libMeshb version %d when writing\n", version);
 }
+
+OMEGA_H_INLINE static Matrix<1, 1> vector2symm_inria(Vector<1> v) {
+  return matrix_1x1(v[0]);
+}
+
+OMEGA_H_INLINE static Matrix<2, 2> vector2symm_inria(Vector<3> v) {
+  Matrix<2, 2> symm;
+  symm[0][0] = v[0];
+  symm[0][1] = v[1];
+  symm[1][1] = v[2];
+  symm[1][0] = symm[0][1];
+  return symm;
+}
+
+OMEGA_H_INLINE static Matrix<3, 3> vector2symm_inria(Vector<6> v) {
+  Matrix<3, 3> symm;
+  symm[0][0] = v[0];
+  symm[0][1] = v[1];
+  symm[1][1] = v[2];
+  symm[0][2] = v[3];
+  symm[1][2] = v[4];
+  symm[2][2] = v[5];
+  symm[1][0] = symm[0][1];
+  symm[2][0] = symm[0][2];
+  symm[2][1] = symm[1][2];
+  return symm;
+}
+
+template <Int dim>
+static Reals symms_inria2osh_dim(Reals symms) {
+  auto n = divide_no_remainder(symms.size(), symm_ncomps(dim));
+  Write<Real> out(symms.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto iv = get_vector<symm_ncomps(dim)>(symms, i);
+    auto is = vector2symm_inria(iv);
+    auto ov = symm2vector(is);
+    set_vector(out, i, ov);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+static Reals symms_inria2osh(Int dim, Reals symms) {
+  if (dim == 3) return symms_inria2osh_dim<3>(symms);
+  if (dim == 2) return symms_inria2osh_dim<2>(symms);
+  if (dim == 1) return symms_inria2osh_dim<1>(symms);
+  OMEGA_H_NORETURN(Reals());
+}
+
+#if 0
+/* Symmetric metric tensor storage convention used by
+   INRIA:  https://hal.inria.fr/inria-00363007/document */
+OMEGA_H_INLINE static Vector<1> symm2vector_inria(Matrix<1, 1> symm) {
+  return vector_1(symm[0][0]);
+}
+
+OMEGA_H_INLINE static Vector<3> symm2vector_inria(Matrix<2, 2> symm) {
+  Vector<3> v;
+  v[0] = symm[0][0];
+  v[1] = symm[0][1];
+  v[2] = symm[1][1];
+  return v;
+}
+
+OMEGA_H_INLINE static Vector<6> symm2vector_inria(Matrix<3, 3> symm) {
+  Vector<6> v;
+  v[0] = symm[0][0];
+  v[1] = symm[0][1];
+  v[2] = symm[1][1];
+  v[3] = symm[0][2];
+  v[4] = symm[1][2];
+  v[5] = symm[2][2];
+  return v;
+}
+
+template <Int dim>
+static Reals symms_osh2inria_dim(Reals symms) {
+  auto n = divide_no_remainder(symms.size(), symm_ncomps(dim));
+  Write<Real> out(symms.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto iv = get_vector<symm_ncomps(dim)>(symms, i);
+    auto is = vector2symm(iv);
+    auto ov = symm2vector_inria(is);
+    set_vector(out, i, ov);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+static Reals symms_osh2inria(Int dim, Reals symms) {
+  if (dim == 3) return symms_osh2inria_dim<3>(symms);
+  if (dim == 2) return symms_osh2inria_dim<2>(symms);
+  if (dim == 1) return symms_osh2inria_dim<1>(symms);
+  OMEGA_H_NORETURN(Reals());
+}
+#endif
+
+template <int version>
+static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
+    const char* filepath, const char* sol_name) {
+  using GmfReal = typename VersionTypes<version>::RealIn;
+  int type_table[1];
+  int ntypes, sol_size;
+  LO nverts = LO(GmfStatKwd(file, GmfSolAtVertices, &ntypes, &sol_size, type_table));
+  safe_goto(file, GmfSolAtVertices);
+  if (ntypes != 1) {
+    Omega_h_fail(
+        "\"%s\" has %d fields, Omega_h supports only one\n", filepath, ntypes);
+    /* also, there was definitely a buffer overflow writing to type_table */
+  }
+  auto field_type = type_table[0];
+  Int ncomps = -1;
+  if (field_type == 1) ncomps = 1;
+  else if (field_type == 2) ncomps = dim;
+  else if (field_type == 3) ncomps = symm_ncomps(dim);
+  else {
+    Omega_h_fail(
+        "unexpected field type %d in \"%s\"\n", field_type, filepath);
+  }
+  HostWrite<Real> hw(ncomps * nverts);
+  for (LO i = 0; i < nverts; ++i) {
+    Few<GmfReal, 6> tmp;
+    if (ncomps == 1) GmfGetLin(file, GmfSolAtVertices, &tmp[0]);
+    else if (ncomps == 2) GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1]);
+    else if (ncomps == 3) GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1], &tmp[2]);
+    else if (ncomps == 6) {
+      GmfGetLin(file, GmfSolAtVertices,
+          &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5]);
+    }
+    for (Int j = 0; j < ncomps; ++j) hw[i * ncomps + j] = Real(tmp[j]);
+  }
+  GmfCloseMesh(file);
+  auto dr = Reals(hw.write());
+  if (field_type == 3) dr = symms_inria2osh(dim, dr);
+  mesh->add_tag(VERT, sol_name, ncomps, dr);
+}
+
+void read_sol(Mesh* mesh, const char* filepath, const char* sol_name) {
+  int version, dim;
+  auto file = GmfOpenMesh(filepath, GmfRead, &version, &dim);
+  if (!file) {
+    Omega_h_fail("could not open Meshb solution file %s for reading\n", filepath);
+  }
+  OMEGA_H_CHECK(dim == 2 || dim == 3);
+  switch (version) {
+    case 1:
+      read_sol_version<1>(mesh, file, dim, filepath, sol_name);
+      return;
+    case 2:
+      read_sol_version<2>(mesh, file, dim, filepath, sol_name);
+      return;
+    case 3:
+      read_sol_version<3>(mesh, file, dim, filepath, sol_name);
+      return;
+    case 4:
+      read_sol_version<4>(mesh, file, dim, filepath, sol_name);
+      return;
+  }
+  Omega_h_fail("unknown libMeshb solution version %d when reading\n", version);
+}
+
 }  // namespace meshb
+
 }  // namespace Omega_h

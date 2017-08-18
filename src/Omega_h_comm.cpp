@@ -418,7 +418,7 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
       else
         other_data_w[i - self_count] = sendbuf[i];
     };
-    parallel_for(sendbuf.size(), f);
+    parallel_for(sendbuf.size(), f, "self_send_part1");
     self_data = self_data_w;
     sendbuf = other_data_w;
     auto sendcounts_w = deep_copy(sendcounts);
@@ -458,7 +458,7 @@ void self_send_part2(
       else
         recvbuf_w[i] = recvbuf[i - self_count];
     };
-    parallel_for(recvbuf_w.size(), f);
+    parallel_for(recvbuf_w.size(), f, "self_send_part2");
     recvbuf = recvbuf_w;
   }
   *p_recvbuf = recvbuf;

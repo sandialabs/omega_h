@@ -66,7 +66,7 @@ static Reals swap2d_qualities_tmpl(
     }
     cand_quals_w[cand] = minqual;
   };
-  parallel_for(ncands, f);
+  parallel_for(ncands, f, "swap2d_qualities");
   auto cand_quals = Reals(cand_quals_w);
   return mesh->sync_subset_array(EDGE, cand_quals, cands2edges, -1.0, 1);
 }

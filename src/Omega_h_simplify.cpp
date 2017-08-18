@@ -135,7 +135,7 @@ LOs tris_from_quads(LOs qv2v) {
       }
     }
   };
-  parallel_for(nq, f);
+  parallel_for(nq, f, "tris_from_quads");
   return tv2v;
 }
 
@@ -188,7 +188,7 @@ LOs tets_from_hexes(LOs hv2v) {
     else
       degrees[h] = 6;
   };
-  parallel_for(nh, count);
+  parallel_for(nh, count, "tets_from_hexes(count)");
   auto h2ht = offset_scan(LOs(degrees));
   LO nt = h2ht.last();
   Write<LO> tv2v(nt * 4);
@@ -221,7 +221,7 @@ LOs tets_from_hexes(LOs hv2v) {
       fill_tets_from_hex(tv2v, h2ht, h, hhv2v, htv2hhv_3, 6);
     }
   };
-  parallel_for(nh, fill);
+  parallel_for(nh, fill, "test_from_hexes(fill)");
   return tv2v;
 }
 

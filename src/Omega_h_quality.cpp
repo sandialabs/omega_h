@@ -15,7 +15,7 @@ Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e, Reals metrics) {
     auto v = gather_verts<mesh_dim + 1>(ev2v, e);
     qualities[a] = measurer.measure(v);
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "measure_qualities");
   return qualities;
 }
 
@@ -82,7 +82,7 @@ Reals get_1d_cavity_qualities(Mesh* mesh, Int key_dim, LOs keys2kds) {
     auto val = (global % 2);
     out[key] = Real(val);
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "get_1d_cavity_qualities");
   return out;
 }
 

@@ -80,7 +80,7 @@ static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
     }
     quals_w[cand] = minqual;
   };
-  parallel_for(ncands, f);
+  parallel_for(ncands, f, "refine_qualities");
   auto cand_quals = Reals(quals_w);
   return mesh->sync_subset_array(EDGE, cand_quals, candidates, -1.0, 1);
 }

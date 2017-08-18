@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
+  Omega_h_kokkos.cpp
   )
 
 if(Omega_h_USE_libMeshb)
@@ -221,6 +222,7 @@ osh_add_util(osh_reorder)
 if(Omega_h_USE_libMeshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
+  osh_add_util(osh_read_solb)
   osh_add_util(ugawg_stats)
 endif()
 if(Omega_h_USE_SEACASExodus)

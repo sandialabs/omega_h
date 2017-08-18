@@ -14,7 +14,7 @@ static Reals measure_edges_tmpl(Mesh* mesh, LOs a2e, EdgeLengths impl) {
     auto v = gather_verts<2>(ev2v, e);
     lengths[a] = impl.measure(v);
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "measure_edges");
   return lengths;
 }
 
@@ -83,7 +83,7 @@ static Reals measure_elements_real_tmpl(Mesh* mesh, LOs a2e) {
     auto v = gather_verts<dim + 1>(ev2v, e);
     sizes[a] = measurer.measure(v);
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "measure_elements_real");
   return sizes;
 }
 

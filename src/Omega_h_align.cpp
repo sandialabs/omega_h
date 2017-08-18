@@ -12,7 +12,7 @@ static Read<T> align_ev2v_deg(Read<T> ev2v, Read<I8> codes) {
   auto f = OMEGA_H_LAMBDA(LO e) {
     align_adj<deg>(codes[e], ev2v, e * deg, ev2v_w, e * deg);
   };
-  parallel_for(ne, f);
+  parallel_for(ne, f, "align_ev2v");
   return ev2v_w;
 }
 

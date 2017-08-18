@@ -26,7 +26,7 @@ Reals resize_symms_tmpl(Reals old_symms) {
     }
     set_symm(new_symms, i, b);
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "resize_symms");
   return new_symms;
 }
 
@@ -54,7 +54,7 @@ Reals matrices_times_vectors_dim(Reals ms, Reals vs) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_vector(out, i, get_matrix<dim>(ms, i) * get_vector<dim>(vs, i));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "matrices_times_vectors");
   return out;
 }
 
@@ -73,7 +73,7 @@ Reals matrices_times_matrices_dim(Reals a, Reals b) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_matrix(out, i, get_matrix<dim>(a, i) * get_matrix<dim>(b, i));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "matrices_times_matrices");
   return out;
 }
 

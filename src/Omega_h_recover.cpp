@@ -46,7 +46,7 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
       set_vector(out, v * ncomps + comp, coeffs);
     }
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(mesh->nverts(), f, "get_interior_coeffs");
   return mesh->sync_array(VERT, Reals(out), ncomps * (dim + 1));
 }
 
@@ -88,7 +88,7 @@ static void diffuse_to_exterior(
     }
     new_visited[v] = 1;
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(mesh->nverts(), f, "diffuse_to_exterior");
   v_data = new_data;
   visited = new_visited;
   v_data = mesh->sync_array(VERT, v_data, ncomps);
@@ -109,7 +109,7 @@ static Reals evaluate_coeffs_dim(Mesh* mesh, Reals v_coeffs, Int ncomps) {
       out[v * ncomps + comp] = val;
     }
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(mesh->nverts(), f, "evaluate_coeffs");
   return out;
 }
 
@@ -186,7 +186,7 @@ static Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
     auto du_dx = dxi_dx * du_dxi;
     set_vector(out, e, du_dx);
   };
-  parallel_for(mesh->nelems(), f);
+  parallel_for(mesh->nelems(), f, "derive_element_gradients");
   return out;
 }
 
@@ -210,7 +210,7 @@ static Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
     auto du_dx = dxi_dx * du_dxi;
     set_symm(out, e, du_dx);
   };
-  parallel_for(mesh->nelems(), f);
+  parallel_for(mesh->nelems(), f, "derive_element_hessians");
   return out;
 }
 

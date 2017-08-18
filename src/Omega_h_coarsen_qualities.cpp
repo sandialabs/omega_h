@@ -52,7 +52,7 @@ static Reals coarsen_qualities_tmpl(
       qualities[cand * 2 + eev_col] = minqual;
     }
   };
-  parallel_for(ncands, f);
+  parallel_for(ncands, f, "coarsen_qualities");
   auto out = Reals(qualities);
   return mesh->sync_subset_array(EDGE, out, cands2edges, -1.0, 2);
 }
@@ -93,7 +93,7 @@ static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
     }
     codes_w[cand] = code;
   };
-  parallel_for(codes_w.size(), f);
+  parallel_for(codes_w.size(), f, "filter_coarsen_dirs");
   return codes_w;
 }
 
