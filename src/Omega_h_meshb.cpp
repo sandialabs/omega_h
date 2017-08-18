@@ -3,8 +3,6 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 namespace meshb {
@@ -328,16 +326,14 @@ template <int version>
 static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
     const char* filepath, const char* sol_name) {
   using GmfReal = typename VersionTypes<version>::RealIn;
-  std::cerr << "calling GmfStatKwd(" << file << ", " << GmfSolAtVertices << ")\n";
-  constexpr auto max_ntypes = 64;
-  int type_table[max_ntypes];
+  int type_table[1];
   int ntypes, sol_size;
   LO nverts = LO(GmfStatKwd(file, GmfSolAtVertices, &ntypes, &sol_size, type_table));
-  std::cerr << "got ntypes " << ntypes << " sol_size " << sol_size << " type_table[0] " <<  type_table[0] << '\n';
   safe_goto(file, GmfSolAtVertices);
   if (ntypes != 1) {
     Omega_h_fail(
         "\"%s\" has %d fields, Omega_h supports only one\n", filepath, ntypes);
+    /* also, there was definitely a buffer overflow writing to type_table */
   }
   auto field_type = type_table[0];
   Int ncomps = -1;
@@ -348,7 +344,6 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
     Omega_h_fail(
         "unexpected field type %d in \"%s\"\n", field_type, filepath);
   }
-  std::cerr << "set ncomps to " << ncomps << '\n';
   HostWrite<Real> hw(ncomps * nverts);
   for (LO i = 0; i < nverts; ++i) {
     Few<GmfReal, 6> tmp;
@@ -372,8 +367,6 @@ void read_sol(Mesh* mesh, const char* filepath, const char* sol_name) {
   auto file = GmfOpenMesh(filepath, GmfRead, &version, &dim);
   if (!file) {
     Omega_h_fail("could not open Meshb solution file %s for reading\n", filepath);
-  } else {
-    std::cerr << "loaded " << filepath << " as " << file << '\n';
   }
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   switch (version) {
