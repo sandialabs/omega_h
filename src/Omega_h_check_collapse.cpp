@@ -40,7 +40,7 @@ Read<I8> check_collapse_class(
     }
     cand_codes_w[cand] = code;
   };
-  parallel_for(ncands, f);
+  parallel_for(ncands, f, "check_collapse_class");
   return cand_codes_w;
 }
 
@@ -101,7 +101,7 @@ static Read<I8> check_collapse_exposure(
     }
     cand_codes_w[cand] = code;
   };
-  parallel_for(ncands, f);
+  parallel_for(ncands, f, "check_collapse_exposure");
   return cand_codes_w;
 }
 

@@ -38,7 +38,7 @@ static RemoteGraph get_own_verts2own_elems(Mesh* mesh) {
  * and a description of which ranks will obtain copies of which vertices,
  * determine the list of all element uses by each rank, which is essentially
  * the list of elements that will have copies on that rank but with
- * duplicates that need to be filtered out by get_new_copies2old_owners().
+ * duplicates that need to be filtered out by get_old_owners2uniq_uses().
  */
 Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
   auto own_verts2serv_uses = own_verts2own_elems.locals2edges;
@@ -68,7 +68,7 @@ Remotes push_elem_uses(RemoteGraph own_verts2own_elems, Dist own_verts2verts) {
     }
     OMEGA_H_CHECK(item == own_verts2items[ov + 1]);
   };
-  parallel_for(nown_verts, f);
+  parallel_for(nown_verts, f, "push_elem_uses");
   auto verts2own_verts = own_verts2verts.invert();
   auto nverts = verts2own_verts.nitems();
   auto items2verts_map = Remotes(Read<I32>(vert_ranks), LOs(vert_idxs));

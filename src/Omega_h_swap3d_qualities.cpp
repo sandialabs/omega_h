@@ -48,7 +48,7 @@ static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
     cand_configs_w[cand] = static_cast<I8>(choice.mesh);
     cand_quals_w[cand] = choice.quality;
   };
-  parallel_for(ncands, f);
+  parallel_for(ncands, f, "swap3d_qualities");
   *cand_quals = cand_quals_w;
   *cand_configs = cand_configs_w;
   *cand_quals =

@@ -16,7 +16,7 @@ void classify_sides_by_exposure(Mesh* mesh, Read<I8> side_is_exposed) {
   auto f = OMEGA_H_LAMBDA(LO s) {
     class_dim[s] = static_cast<I8>(dim - side_is_exposed[s]);
   };
-  parallel_for(ns, f);
+  parallel_for(ns, f, "classify_sides_by_exposure");
   mesh->add_tag<I8>(dim - 1, "class_dim", 1, class_dim);
 }
 
@@ -29,7 +29,7 @@ void classify_hinges_by_sharpness(
     class_dim[h] =
         static_cast<I8>(dim - hinge_is_exposed[h] - hinge_is_sharp[h]);
   };
-  parallel_for(nh, f);
+  parallel_for(nh, f, "classify_hinges_by_sharpness");
   mesh->add_tag<I8>(dim - 2, "class_dim", 1, class_dim);
 }
 
@@ -60,7 +60,7 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
     LO hinge = surf_hinge2hinge[surf_hinge];
     hinge_is_sharp[hinge] = (surf_hinge_angles[surf_hinge] >= sharp_angle);
   };
-  parallel_for(nsurf_hinges, f);
+  parallel_for(nsurf_hinges, f, "classify_by_angles(is_sharp)");
   classify_hinges_by_sharpness(mesh, hinge_is_exposed, hinge_is_sharp);
   if (dim == 2) return;
   finalize_classification(mesh);
@@ -132,7 +132,7 @@ static void project_classification(
     class_dim[l] = static_cast<I8>(best_dim);
     class_id[l] = best_id;
   };
-  parallel_for(mesh->nents(d), f);
+  parallel_for(mesh->nents(d), f, "project_classification");
 }
 
 void finalize_classification(Mesh* mesh) {

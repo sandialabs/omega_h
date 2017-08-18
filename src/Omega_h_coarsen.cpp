@@ -170,7 +170,7 @@ static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
     }
     edge_codes_w[e] = code;
   };
-  parallel_for(mesh->nedges(), f);
+  parallel_for(mesh->nedges(), f, "coarsen_verts(edge_codes)");
   mesh->add_tag(EDGE, "collapse_code", 1, Read<I8>(edge_codes_w));
   return coarsen(mesh, opts, overshoot, improve);
 }

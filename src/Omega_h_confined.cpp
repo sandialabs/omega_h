@@ -22,7 +22,7 @@ Read<I8> find_bridge_edges(Mesh* mesh) {
     edges_are_bridges_w[edge] = ((edim != verts2class_dim[eev2v[0]]) &&
                                  (edim != verts2class_dim[eev2v[1]]));
   };
-  parallel_for(mesh->nedges(), f);
+  parallel_for(mesh->nedges(), f, "find_bridge_edges");
   return edges_are_bridges_w;
 }
 
@@ -52,7 +52,7 @@ Read<I8> find_angle_triangles(Mesh* mesh) {
     auto t_dim = tris2class_dim[tri];
     tris_are_angle[tri] = is_angle_triangle(ttv2dim, tte2dim, t_dim);
   };
-  parallel_for(mesh->ntris(), f);
+  parallel_for(mesh->ntris(), f, "find_angle_triangles");
   return tris_are_angle;
 }
 
