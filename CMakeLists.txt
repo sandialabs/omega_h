@@ -7,6 +7,11 @@ set(USE_XSDK_DEFAULTS_DEFAULT OFF)
 include(cmake/XSDKDefaults.cmake)
 
 enable_language(CXX)
+option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" OFF)
+if (Omega_h_USE_DOLFIN)
+  # The FindPETSc module will use try_compile with a C code file
+  enable_language(C)
+endif()
 
 include(cmake/bob.cmake)
 
