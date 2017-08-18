@@ -7,6 +7,11 @@ set(USE_XSDK_DEFAULTS_DEFAULT OFF)
 include(cmake/XSDKDefaults.cmake)
 
 enable_language(CXX)
+option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" OFF)
+if (Omega_h_USE_DOLFIN)
+  # The FindPETSc module will use try_compile with a C code file
+  enable_language(C)
+endif()
 
 include(cmake/bob.cmake)
 
@@ -124,9 +129,8 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
 bob_end_cxx_flags()
 
-bob_public_dep(DOLFIN)
-set(Omega_h_USE_Boost_DEFAULT ${Omega_h_USE_DOLFIN})
-bob_add_dependency(PUBLIC NAME Boost COMPONENTS timer)
+include(cmake/osh_use_dolfin.cmake)
+osh_use_dolfin()
 
 set(Omega_h_KEY_BOOLS
     Omega_h_USE_MPI
