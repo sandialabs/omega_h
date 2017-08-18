@@ -6,7 +6,7 @@ void begin_code(std::string const& name) {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::Profiling::pushRegion(name);
 #else
-  (void) name;
+  (void)name;
 #endif
 }
 
@@ -16,4 +16,4 @@ void end_code() {
 #endif
 }
 
-}
+}  // namespace Omega_h

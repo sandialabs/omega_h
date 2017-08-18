@@ -19,8 +19,8 @@
 #endif
 
 #include "Omega_h_control.hpp"
-#include "Omega_h_timer.hpp"
 #include "Omega_h_scalar.hpp"
+#include "Omega_h_timer.hpp"
 
 namespace Omega_h {
 

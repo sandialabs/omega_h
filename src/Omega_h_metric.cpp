@@ -426,7 +426,8 @@ void get_curve_curvature_metrics(
     auto vert = surface_info.curv_vert2vert[curv_vert];
     set_symm(out, vert, m);
   };
-  parallel_for(surface_info.curv_vert2vert.size(), f, "get_curve_curvature_metrics");
+  parallel_for(
+      surface_info.curv_vert2vert.size(), f, "get_curve_curvature_metrics");
 }
 
 Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
@@ -454,7 +455,8 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
       auto vert = surface_info.surf_vert2vert[surf_vert];
       set_symm(out, vert, m);
     };
-    parallel_for(surface_info.surf_vert2vert.size(), f, "get_curvature_metrics(surf)");
+    parallel_for(
+        surface_info.surf_vert2vert.size(), f, "get_curvature_metrics(surf)");
     get_curve_curvature_metrics<3>(surface_info, segment_angle, out);
   } else if (mesh->dim() == 2) {
     get_curve_curvature_metrics<2>(surface_info, segment_angle, out);

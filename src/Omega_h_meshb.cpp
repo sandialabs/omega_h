@@ -328,7 +328,8 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
   using GmfReal = typename VersionTypes<version>::RealIn;
   int type_table[1];
   int ntypes, sol_size;
-  LO nverts = LO(GmfStatKwd(file, GmfSolAtVertices, &ntypes, &sol_size, type_table));
+  LO nverts =
+      LO(GmfStatKwd(file, GmfSolAtVertices, &ntypes, &sol_size, type_table));
   safe_goto(file, GmfSolAtVertices);
   if (ntypes != 1) {
     Omega_h_fail(
@@ -337,22 +338,27 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
   }
   auto field_type = type_table[0];
   Int ncomps = -1;
-  if (field_type == 1) ncomps = 1;
-  else if (field_type == 2) ncomps = dim;
-  else if (field_type == 3) ncomps = symm_ncomps(dim);
+  if (field_type == 1)
+    ncomps = 1;
+  else if (field_type == 2)
+    ncomps = dim;
+  else if (field_type == 3)
+    ncomps = symm_ncomps(dim);
   else {
-    Omega_h_fail(
-        "unexpected field type %d in \"%s\"\n", field_type, filepath);
+    Omega_h_fail("unexpected field type %d in \"%s\"\n", field_type, filepath);
   }
   HostWrite<Real> hw(ncomps * nverts);
   for (LO i = 0; i < nverts; ++i) {
     Few<GmfReal, 6> tmp;
-    if (ncomps == 1) GmfGetLin(file, GmfSolAtVertices, &tmp[0]);
-    else if (ncomps == 2) GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1]);
-    else if (ncomps == 3) GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1], &tmp[2]);
+    if (ncomps == 1)
+      GmfGetLin(file, GmfSolAtVertices, &tmp[0]);
+    else if (ncomps == 2)
+      GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1]);
+    else if (ncomps == 3)
+      GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1], &tmp[2]);
     else if (ncomps == 6) {
-      GmfGetLin(file, GmfSolAtVertices,
-          &tmp[0], &tmp[1], &tmp[2], &tmp[3], &tmp[4], &tmp[5]);
+      GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1], &tmp[2], &tmp[3],
+          &tmp[4], &tmp[5]);
     }
     for (Int j = 0; j < ncomps; ++j) hw[i * ncomps + j] = Real(tmp[j]);
   }
@@ -366,7 +372,8 @@ void read_sol(Mesh* mesh, const char* filepath, const char* sol_name) {
   int version, dim;
   auto file = GmfOpenMesh(filepath, GmfRead, &version, &dim);
   if (!file) {
-    Omega_h_fail("could not open Meshb solution file %s for reading\n", filepath);
+    Omega_h_fail(
+        "could not open Meshb solution file %s for reading\n", filepath);
   }
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   switch (version) {
