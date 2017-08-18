@@ -674,7 +674,7 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
       out[a * ncomps + j] = comp;
     }
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "average_field");
   return out;
 }
 

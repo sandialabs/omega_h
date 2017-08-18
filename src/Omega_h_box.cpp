@@ -16,14 +16,14 @@ void make_1d_box(Real x, LO nx, LOs* ev2v_out, Reals* coords_out) {
     LO i = v % nv;
     coords[v] = i * dx;
   };
-  parallel_for(nv, fill_coords);
+  parallel_for(nv, fill_coords, "make_1d_box(coords)");
   Write<LO> ev2v(ne * 2);
   auto fill_conn = OMEGA_H_LAMBDA(LO q) {
     LO i = q % ne;
     ev2v[q * 2 + 0] = i + 0;
     ev2v[q * 2 + 1] = i + 1;
   };
-  parallel_for(ne, fill_conn);
+  parallel_for(ne, fill_conn, "make_1d_box(conn)");
   *ev2v_out = ev2v;
   *coords_out = coords;
 }
@@ -43,7 +43,7 @@ void make_2d_box(
     coords[v * 2 + 0] = i * dx;
     coords[v * 2 + 1] = j * dy;
   };
-  parallel_for(nv, fill_coords);
+  parallel_for(nv, fill_coords, "make_2d_box(coords)");
   Write<LO> qv2v(nq * 4);
   auto fill_conn = OMEGA_H_LAMBDA(LO q) {
     LO i = q % nx;
@@ -53,7 +53,7 @@ void make_2d_box(
     qv2v[q * 4 + 2] = (j + 1) * nvx + (i + 1);
     qv2v[q * 4 + 3] = (j + 1) * nvx + (i + 0);
   };
-  parallel_for(nq, fill_conn);
+  parallel_for(nq, fill_conn, "make_2d_box(conn)");
   *qv2v_out = qv2v;
   *coords_out = coords;
 }
@@ -80,7 +80,7 @@ void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
     coords[v * 3 + 1] = j * dy;
     coords[v * 3 + 2] = k * dz;
   };
-  parallel_for(nv, fill_coords);
+  parallel_for(nv, fill_coords, "make_3d_box(coords)");
   Write<LO> hv2v(nh * 8);
   auto fill_conn = OMEGA_H_LAMBDA(LO h) {
     LO ij = h % nxy;
@@ -96,13 +96,13 @@ void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
     hv2v[h * 8 + 6] = (k + 1) * nvxy + (j + 1) * nvx + (i + 1);
     hv2v[h * 8 + 7] = (k + 1) * nvxy + (j + 1) * nvx + (i + 0);
   };
-  parallel_for(nh, fill_conn);
+  parallel_for(nh, fill_conn, "make_3d_box(conn)");
   *hv2v_out = hv2v;
   *coords_out = coords;
 }
 
 template <Int dim>
-static Read<I32> box_centroids_class_ids(
+static Read<I32> set_box_class_ids_dim(
     Reals centroids, Few<LO, 3> nel, Vector<3> l) {
   OMEGA_H_CHECK(centroids.size() % dim == 0);
   auto npts = centroids.size() / dim;
@@ -121,7 +121,7 @@ static Read<I32> box_centroids_class_ids(
     }
     class_ids[i] = id;
   };
-  parallel_for(npts, f);
+  parallel_for(npts, f, "set_box_class_ids");
   return class_ids;
 }
 
@@ -139,11 +139,11 @@ void set_box_class_ids(
     }
     Read<LO> class_ids;
     if (mesh->dim() == 3) {
-      class_ids = box_centroids_class_ids<3>(centroids, nel, l);
+      class_ids = set_box_class_ids_dim<3>(centroids, nel, l);
     } else if (mesh->dim() == 2) {
-      class_ids = box_centroids_class_ids<2>(centroids, nel, l);
+      class_ids = set_box_class_ids_dim<2>(centroids, nel, l);
     } else if (mesh->dim() == 1) {
-      class_ids = box_centroids_class_ids<1>(centroids, nel, l);
+      class_ids = set_box_class_ids_dim<1>(centroids, nel, l);
     }
     mesh->add_tag<LO>(ent_dim, "class_id", 1, class_ids);
   }

@@ -19,7 +19,7 @@ LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
     auto eev = rail_col_dirs[key];
     keys2verts_onto_w[key] = ev2v[e * 2 + (1 - eev)];
   };
-  parallel_for(nkeys, set_key_onto);
+  parallel_for(nkeys, set_key_onto, "get_verts_onto");
   return keys2verts_onto_w;
 }
 
@@ -49,7 +49,7 @@ static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
       dead_sides[s_opp] = 1;
     }
   };
-  parallel_for(nrails, f);
+  parallel_for(nrails, f, "mark_dead_ents");
 }
 
 HostFew<Read<I8>, 4> mark_dead_ents(
@@ -115,7 +115,7 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
       }
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "coarsen_topology");
   return prod_verts2verts;
 }
 

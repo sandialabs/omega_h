@@ -136,7 +136,7 @@ Read<T> swap_if_needed(Read<T> array, bool is_little_endian) {
   }
   Write<T> out = deep_copy(array);
   auto f = OMEGA_H_LAMBDA(LO i) { swap_bytes(&out[i]); };
-  parallel_for(out.size(), f);
+  parallel_for(out.size(), f, "swap_if_needed");
   return out;
 }
 

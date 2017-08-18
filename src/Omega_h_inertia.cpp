@@ -23,7 +23,7 @@ Vector<3> get_center(
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_vector<3>(weighted_coords, i, masses[i] * get_vector<3>(coords, i));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "get_center");
   Vector<3> result;
   repro_sum(comm, Reals(weighted_coords), 3, &result[0]);
   return result / total_mass;
@@ -38,7 +38,7 @@ Matrix<3, 3> get_matrix(
     auto dxc = cross(x - center);
     set_symm(weighted_contrib, i, -masses[i] * (dxc * dxc));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "get_matrix");
   Vector<6> v;
   repro_sum(comm, Reals(weighted_contrib), 6, &v[0]);
   return vector2symm(v);
@@ -64,7 +64,7 @@ Reals get_distances(Reals coords, Vector<3> center, Vector<3> axis) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     distances[i] = (get_vector<3>(coords, i) - center) * axis;
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "get_distances");
   return distances;
 }
 
@@ -74,7 +74,7 @@ Real get_half_weight(CommPtr comm, Reals masses, Read<I8> marked) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     weighted[i] = (Real(marked[i]) * masses[i]);
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "get_half_weight");
   return repro_sum(comm, Reals(weighted));
 }
 
@@ -82,7 +82,7 @@ Read<I8> mark_half(Reals distances, Real distance) {
   auto n = distances.size();
   Write<I8> marked(n);
   auto f = OMEGA_H_LAMBDA(LO i) { marked[i] = (distances[i] > distance); };
-  parallel_for(n, f);
+  parallel_for(n, f, "mark_half");
   return marked;
 }
 

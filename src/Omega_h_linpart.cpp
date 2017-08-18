@@ -22,7 +22,7 @@ Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
       idxs[i] = static_cast<LO>(g % quot);
     }
   };
-  parallel_for(globals.size(), f);
+  parallel_for(globals.size(), f, "globals_to_linear_owners");
   return Remotes(ranks, idxs);
 }
 

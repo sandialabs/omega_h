@@ -36,7 +36,7 @@ Graph add_edges(Graph g1, Graph g2) {
     for (auto j = begin2; j < end2; ++j) e2v[k++] = e2v2[j];
     OMEGA_H_CHECK(k == end);
   };
-  parallel_for(nv, f);
+  parallel_for(nv, f, "add_edges");
   return Graph(v2e, e2v);
 }
 
@@ -55,7 +55,7 @@ Graph unmap_graph(LOs a2b, Graph b2c) {
       ac2c[ac] = bc2c[bc++];
     }
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "unmap_graph");
   return Graph(a2ac, ac2c);
 }
 
