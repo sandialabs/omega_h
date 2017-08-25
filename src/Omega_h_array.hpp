@@ -213,6 +213,7 @@ class HostWrite {
   }
   T* data() const;
   T* nonnull_data() const;
+  OMEGA_H_INLINE bool exists() const { return write_.exists(); }
 };
 
 template <class T>
