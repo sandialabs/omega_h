@@ -18,7 +18,9 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("mesh_in.meshb");
   cmdline.add_arg<std::string>("mach_in.solb");
   cmdline.add_arg<std::string>("metric_in.solb");
+#ifdef OMEGA_H_USE_EGADS
   cmdline.add_arg<std::string>("geom_in.egads");
+#endif
   if (!cmdline.parse_final(lib.world(), &argc, argv)) return -1;
   auto mesh_path = cmdline.get<std::string>("mesh_in.meshb");
   auto mach_path = cmdline.get<std::string>("mach_in.solb");
@@ -34,10 +36,14 @@ int main(int argc, char** argv) {
   Omega_h::meshb::read_sol(&mesh, metric_path.c_str(), "original_metric");
 #ifdef OMEGA_H_USE_EGADS
   auto geom = Omega_h::egads_load(geom_path);
-  Omega_h::egads_reclassify(&mesh, geom);
-  Omega_h::vtk::write_vtu("reclassified_faces.vtu", &mesh, 1);
-  Omega_h::vtk::write_vtu("reclassified_edges.vtu", &mesh, 1);
+//Omega_h::egads_reclassify(&mesh, geom);
+//Omega_h::vtk::write_vtu("reclassified_faces.vtu", &mesh, 1);
+//Omega_h::vtk::write_vtu("reclassified_edges.vtu", &mesh, 1);
+//auto snap = Omega_h::egads_get_snap_warp(&mesh, geom);
+//mesh.add_tag(Omega_h::VERT, "snap", mesh.dim(), snap);
+//Omega_h::vtk::write_vtu("snap.vtu", &mesh);
 #endif
+//return 0;
   auto original_metrics = mesh.get_array<Omega_h::Real>(Omega_h::VERT, "original_metric");
   auto graded_metrics = Omega_h::limit_metric_gradation(&mesh,
       original_metrics, 1.0);
@@ -61,7 +67,6 @@ int main(int argc, char** argv) {
     std::cout << "after adapt!\n";
     writer.write();
     std::cout << "wrote again!\n";
-    lib.world()->barrier();
   }
 #ifdef OMEGA_H_USE_EGADS
   Omega_h::egads_free(geom);
