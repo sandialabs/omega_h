@@ -1,8 +1,8 @@
-#include <Omega_h_library.hpp>
-#include <Omega_h_mesh.hpp>
-#include <Omega_h_file.hpp>
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_cmdline.hpp>
+#include <Omega_h_file.hpp>
+#include <Omega_h_library.hpp>
+#include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
 #include <Omega_h_vtk.hpp>
 
@@ -37,11 +37,12 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_EGADS
   auto geom = Omega_h::egads_load(geom_path);
 #endif
-  auto original_metrics = mesh.get_array<Omega_h::Real>(Omega_h::VERT, "original_metric");
-  auto graded_metrics = Omega_h::limit_metric_gradation(&mesh,
-      original_metrics, 1.0);
-  mesh.add_tag(Omega_h::VERT, "target_metric",
-      Omega_h::symm_ncomps(mesh.dim()), graded_metrics);
+  auto original_metrics =
+      mesh.get_array<Omega_h::Real>(Omega_h::VERT, "original_metric");
+  auto graded_metrics =
+      Omega_h::limit_metric_gradation(&mesh, original_metrics, 1.0);
+  mesh.add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_ncomps(mesh.dim()),
+      graded_metrics);
   Omega_h::add_implied_metric_tag(&mesh);
   mesh.ask_qualities();
   auto opts = Omega_h::AdaptOpts(&mesh);

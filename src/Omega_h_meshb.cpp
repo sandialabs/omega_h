@@ -110,8 +110,8 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   }
   for (Int ent_dim = 1; ent_dim < dim; ++ent_dim) {
     if (eqs2class_id[ent_dim].exists()) {
-      classify_equal_order(
-          mesh, ent_dim, eqs2verts[ent_dim].write(), eqs2class_id[ent_dim].write());
+      classify_equal_order(mesh, ent_dim, eqs2verts[ent_dim].write(),
+          eqs2class_id[ent_dim].write());
     }
   }
   finalize_classification(mesh);
@@ -173,7 +173,8 @@ void read(Mesh* mesh, std::string const& filepath) {
   int version, dim;
   auto file = GmfOpenMesh(filepath.c_str(), GmfRead, &version, &dim);
   if (!file) {
-    Omega_h_fail("could not open Meshb file %s for reading\n", filepath.c_str());
+    Omega_h_fail(
+        "could not open Meshb file %s for reading\n", filepath.c_str());
   }
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   switch (version) {
@@ -197,7 +198,8 @@ void write(Mesh* mesh, std::string const& filepath, int version) {
   auto dim = int(mesh->dim());
   auto file = GmfOpenMesh(filepath.c_str(), GmfWrite, version, dim);
   if (!file) {
-    Omega_h_fail("could not open Meshb file %s for writing\n", filepath.c_str());
+    Omega_h_fail(
+        "could not open Meshb file %s for writing\n", filepath.c_str());
   }
   switch (version) {
     case 1:
@@ -320,8 +322,8 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
       LO(GmfStatKwd(file, GmfSolAtVertices, &ntypes, &sol_size, type_table));
   safe_goto(file, GmfSolAtVertices);
   if (ntypes != 1) {
-    Omega_h_fail(
-        "\"%s\" has %d fields, Omega_h supports only one\n", filepath.c_str(), ntypes);
+    Omega_h_fail("\"%s\" has %d fields, Omega_h supports only one\n",
+        filepath.c_str(), ntypes);
     /* also, there was definitely a buffer overflow writing to type_table */
   }
   auto field_type = type_table[0];
@@ -333,7 +335,8 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
   else if (field_type == 3)
     ncomps = symm_ncomps(dim);
   else {
-    Omega_h_fail("unexpected field type %d in \"%s\"\n", field_type, filepath.c_str());
+    Omega_h_fail(
+        "unexpected field type %d in \"%s\"\n", field_type, filepath.c_str());
   }
   HostWrite<Real> hw(ncomps * nverts);
   for (LO i = 0; i < nverts; ++i) {
@@ -347,12 +350,13 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
   mesh->add_tag(VERT, sol_name, ncomps, dr);
 }
 
-void read_sol(Mesh* mesh, std::string const& filepath, std::string const& sol_name) {
+void read_sol(
+    Mesh* mesh, std::string const& filepath, std::string const& sol_name) {
   int version, dim;
   auto file = GmfOpenMesh(filepath.c_str(), GmfRead, &version, &dim);
   if (!file) {
-    Omega_h_fail(
-        "could not open Meshb solution file %s for reading\n", filepath.c_str());
+    Omega_h_fail("could not open Meshb solution file %s for reading\n",
+        filepath.c_str());
   }
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   switch (version) {
@@ -373,7 +377,8 @@ void read_sol(Mesh* mesh, std::string const& filepath, std::string const& sol_na
 }
 
 template <int version>
-static void write_sol_version(Mesh* mesh, GmfFile file, std::string const& sol_name) {
+static void write_sol_version(
+    Mesh* mesh, GmfFile file, std::string const& sol_name) {
   auto dim = mesh->dim();
   using GmfReal = typename VersionTypes<version>::RealIn;
   auto nverts = mesh->nverts();
@@ -387,8 +392,8 @@ static void write_sol_version(Mesh* mesh, GmfFile file, std::string const& sol_n
   } else if (ncomps == symm_ncomps(dim)) {
     field_type = 3;
   } else {
-    Omega_h_fail("unexpected # of components %d in tag %s\n",
-        ncomps, sol_name.c_str());
+    Omega_h_fail(
+        "unexpected # of components %d in tag %s\n", ncomps, sol_name.c_str());
   }
   int type_table[1] = {field_type};
   constexpr int ntypes = 1;
@@ -404,12 +409,13 @@ static void write_sol_version(Mesh* mesh, GmfFile file, std::string const& sol_n
   GmfCloseMesh(file);
 }
 
-void write_sol(Mesh* mesh, std::string const& filepath, std::string const& sol_name, int version) {
+void write_sol(Mesh* mesh, std::string const& filepath,
+    std::string const& sol_name, int version) {
   auto dim = int(mesh->dim());
   auto file = GmfOpenMesh(filepath.c_str(), GmfWrite, version, dim);
   if (!file) {
-    Omega_h_fail(
-        "could not open Meshb solution file %s for writing\n", filepath.c_str());
+    Omega_h_fail("could not open Meshb solution file %s for writing\n",
+        filepath.c_str());
   }
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   switch (version) {

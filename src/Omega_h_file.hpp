@@ -24,8 +24,10 @@ std::string path_leaf_name(std::string const& path);
 namespace meshb {
 void read(Mesh* mesh, std::string const& filepath);
 void write(Mesh* mesh, std::string const& filepath, int version = 2);
-void read_sol(Mesh* mesh, std::string const& filepath, std::string const& sol_name);
-void write_sol(Mesh* mesh, std::string const& filepath, std::string const& sol_name, int version = 2);
+void read_sol(
+    Mesh* mesh, std::string const& filepath, std::string const& sol_name);
+void write_sol(Mesh* mesh, std::string const& filepath,
+    std::string const& sol_name, int version = 2);
 }  // namespace meshb
 #endif
 
