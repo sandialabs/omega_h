@@ -338,16 +338,7 @@ static void read_sol_version(Mesh* mesh, GmfFile file, Int dim,
   HostWrite<Real> hw(ncomps * nverts);
   for (LO i = 0; i < nverts; ++i) {
     Few<GmfReal, 6> tmp;
-    if (ncomps == 1)
-      GmfGetLin(file, GmfSolAtVertices, &tmp[0]);
-    else if (ncomps == 2)
-      GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1]);
-    else if (ncomps == 3)
-      GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1], &tmp[2]);
-    else if (ncomps == 6) {
-      GmfGetLin(file, GmfSolAtVertices, &tmp[0], &tmp[1], &tmp[2], &tmp[3],
-          &tmp[4], &tmp[5]);
-    }
+    GmfGetLin(file, GmfSolAtVertices, tmp.data());
     for (Int j = 0; j < ncomps; ++j) hw[i * ncomps + j] = Real(tmp[j]);
   }
   GmfCloseMesh(file);
@@ -408,16 +399,7 @@ static void write_sol_version(Mesh* mesh, GmfFile file, std::string const& sol_n
   for (LO i = 0; i < nverts; ++i) {
     Few<GmfReal, 6> tmp;
     for (Int j = 0; j < ncomps; ++j) tmp[j] = GmfReal(hr[i * ncomps + j]);
-    if (ncomps == 1)
-      GmfSetLin(file, GmfSolAtVertices, tmp[0]);
-    else if (ncomps == 2)
-      GmfSetLin(file, GmfSolAtVertices, tmp[0], tmp[1]);
-    else if (ncomps == 3)
-      GmfSetLin(file, GmfSolAtVertices, tmp[0], tmp[1], tmp[2]);
-    else if (ncomps == 6) {
-      GmfSetLin(file, GmfSolAtVertices, tmp[0], tmp[1], tmp[2], tmp[3],
-          tmp[4], tmp[5]);
-    }
+    GmfSetLin(file, GmfSolAtVertices, tmp.data());
   }
   GmfCloseMesh(file);
 }
