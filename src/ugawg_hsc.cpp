@@ -52,7 +52,6 @@ int main(int argc, char** argv) {
   opts.verbosity = Omega_h::EXTRA_STATS;
   Omega_h::vtk::Writer writer(out_prefix + "_vtk", &mesh);
   writer.write();
-  lib.world()->barrier();
   while (Omega_h::approach_metric(&mesh, opts)) {
     Omega_h::adapt(&mesh, opts);
     writer.write();
