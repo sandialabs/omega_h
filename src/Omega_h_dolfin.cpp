@@ -45,13 +45,19 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
     }
     editor.add_cell(i, h_cell_globals[i], cell_verts);
   }
-  bool should_reorder = false;
+  /* the reordering in question is local to each cell,
+     and among other things it requires the vertices of
+     a cell to be ordered by increasing global number.
+     this seems to be called "UFC order" */
+  bool should_reorder = true;
   editor.close(should_reorder);
 }
 
-/* DOLFIN intermixes inverted elements with non-inverted ones!
-   best we can do is to reverse the ordering of
-   the inverted ones */
+/* due to their "UFC order" which requires vertices of a cell
+   to be in increasing order of global ID,
+   DOLFIN elements may look inverted from the Omega_h perspective.
+   we can only assume that the DOLFIN connectivity is reasonable
+   and adjust our own cell ordering to ensure positive volumes */
 template <Int dim>
 static void fix_inverted_elements_dim(Write<LO> elem_verts, Reals coords) {
   auto nelems = divide_no_remainder(elem_verts.size(), dim + 1);
