@@ -48,6 +48,6 @@ OMEGA_H_SYSTEM_HEADER
 namespace Omega_h {
 void begin_code(std::string const& name = "");
 void end_code();
-}
+}  // namespace Omega_h
 
 #endif

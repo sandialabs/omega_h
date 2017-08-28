@@ -105,6 +105,7 @@ Egads* egads_load(std::string const& filename) {
     CALL(EG_getBodyTopos(
         eg->body, nullptr, dims2oclass[i], &eg->counts[i], &eg->entities[i]));
   }
+  // preprocess edge and vertex adjacency to faces
   for (int i = 0; i < 2; ++i) {
     std::vector<std::set<ego>> idxs2adj_faces(eg->counts[i]);
     for (int j = 0; j < eg->counts[2]; ++j) {
@@ -121,6 +122,12 @@ Egads* egads_load(std::string const& filename) {
     }
     for (int j = 0; j < eg->counts[i]; ++j) {
       auto adj_faces = idxs2adj_faces[j];
+      // HACK!: we have a really insane CAD model with nonsensical topology.
+      // this essentially manifests as edges that are adjacent to only one
+      // model face.
+      // we actually want to just ignore these edges, so we won't create
+      // classifier entries for them.
+      if (adj_faces.size() == 1) continue;
       eg->classifier[adj_faces] = eg->entities[i][j];
     }
   }

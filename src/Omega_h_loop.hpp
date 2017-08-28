@@ -26,7 +26,8 @@ void parallel_for(LO n, T const& f, std::string const& name = "") {
 }
 
 template <typename T>
-typename T::value_type parallel_reduce(LO n, T f, std::string const& name = "") {
+typename T::value_type parallel_reduce(
+    LO n, T f, std::string const& name = "") {
   typedef typename T::value_type VT;
   VT result;
   f.init(result);
