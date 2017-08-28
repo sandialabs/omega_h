@@ -25,9 +25,9 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Write(Kokkos::View<T*> view);
 #endif
-  Write(LO size);
-  Write(LO size, T value);
-  Write(LO size, T offset, T stride);
+  Write(LO size, std::string const& name = "");
+  Write(LO size, T value, std::string const& name = "");
+  Write(LO size, T offset, T stride, std::string const& name = "");
   Write(HostWrite<T> host_write);
   OMEGA_H_INLINE Write(Write<T> const& other)
       :
@@ -107,9 +107,9 @@ class Read {
  public:
   OMEGA_H_INLINE Read() {}
   Read(Write<T> write);
-  Read(LO size, T value);
-  Read(LO size, T offset, T stride);
-  Read(std::initializer_list<T> l);
+  Read(LO size, T value, std::string const& name = "");
+  Read(LO size, T offset, T stride, std::string const& name = "");
+  Read(std::initializer_list<T> l, std::string const& name = "");
   LO size() const;
   OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
   OMEGA_H_INLINE T const* data() const { return write_.data(); }
@@ -127,8 +127,8 @@ class Bytes : public Read<Byte> {
   OMEGA_H_INLINE Bytes() {}
   OMEGA_H_INLINE Bytes(Read<Byte> base) : Read<Byte>(base) {}
   Bytes(Write<Byte> write);
-  Bytes(LO size, Byte value);
-  Bytes(std::initializer_list<Byte> l);
+  Bytes(LO size, Byte value, std::string const& name = "");
+  Bytes(std::initializer_list<Byte> l, std::string const& name = "");
 };
 
 class LOs : public Read<LO> {
@@ -136,9 +136,9 @@ class LOs : public Read<LO> {
   OMEGA_H_INLINE LOs() {}
   OMEGA_H_INLINE LOs(Read<LO> base) : Read<LO>(base) {}
   LOs(Write<LO> write);
-  LOs(LO size, LO value);
-  LOs(LO size, LO offset, LO stride);
-  LOs(std::initializer_list<LO> l);
+  LOs(LO size, LO value, std::string const& name = "");
+  LOs(LO size, LO offset, LO stride, std::string const& name = "");
+  LOs(std::initializer_list<LO> l, std::string const& name = "");
 };
 
 class GOs : public Read<GO> {
@@ -146,9 +146,9 @@ class GOs : public Read<GO> {
   OMEGA_H_INLINE GOs() {}
   OMEGA_H_INLINE GOs(Read<GO> base) : Read<GO>(base) {}
   GOs(Write<GO> write);
-  GOs(LO size, GO value);
-  GOs(LO size, GO offset, GO stride);
-  GOs(std::initializer_list<GO> l);
+  GOs(LO size, GO value, std::string const& name = "");
+  GOs(LO size, GO offset, GO stride, std::string const& name = "");
+  GOs(std::initializer_list<GO> l, std::string const& name = "");
 };
 
 class Reals : public Read<Real> {
@@ -156,8 +156,8 @@ class Reals : public Read<Real> {
   OMEGA_H_INLINE Reals() {}
   OMEGA_H_INLINE Reals(Read<Real> base) : Read<Real>(base) {}
   Reals(Write<Real> write);
-  Reals(LO size, Real value);
-  Reals(std::initializer_list<Real> l);
+  Reals(LO size, Real value, std::string const& name = "");
+  Reals(std::initializer_list<Real> l, std::string const& name = "");
 };
 
 template <typename T>
@@ -194,10 +194,10 @@ class HostWrite {
 #endif
  public:
   HostWrite();
-  HostWrite(LO size);
-  HostWrite(LO size, T offset, T stride);
+  HostWrite(LO size, std::string const& name = "");
+  HostWrite(LO size, T offset, T stride, std::string const& name = "");
   HostWrite(Write<T> write);
-  HostWrite(std::initializer_list<T> l);
+  HostWrite(std::initializer_list<T> l, std::string const& name = "");
   Write<T> write() const;
   LO size() const;
   inline T& operator[](LO i) const {
