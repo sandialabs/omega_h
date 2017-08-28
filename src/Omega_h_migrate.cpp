@@ -42,7 +42,7 @@ static Dist get_old_owners2uniq_uses(Dist uses2old_owners) {
     }
     degrees_w[old_owner] = degree;
   };
-  parallel_for(nold_owners, f);
+  parallel_for(nold_owners, f, "get_old_owners2uniq_uses");
   auto degrees = LOs(degrees_w);
   auto keep = Read<I8>(keep_w);
   auto uniq_serv_uses2serv_uses = collect_marked(keep);
@@ -92,7 +92,7 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
       serv_uses2new_idxs[serv_use] = idx;
     }
   };
-  parallel_for(nold_owners, f);
+  parallel_for(nold_owners, f, "form_new_conn");
   auto serv_uses2new_uses = old_owners2new_uses;
   serv_uses2new_uses.set_roots2items(LOs());
   return serv_uses2new_uses.exch(LOs(serv_uses2new_idxs), 1);

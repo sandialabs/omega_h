@@ -1,0 +1,41 @@
+#trying to deal with the lack of standardized CMake support for exporting
+#dependencies on upstream packages, which DOLFIN suffers from like most
+#other packages, except Omega_h which benefits from bob.cmake
+
+macro(osh_use_dolfin)
+  bob_public_dep(DOLFIN)
+  if (Omega_h_USE_DOLFIN)
+    get_target_property(DOLFIN_INTERFACE_LIBS dolfin INTERFACE_LINK_LIBRARIES)
+    message("DOLFIN_INTERFACE_LIBS: \"${DOLFIN_INTERFACE_LIBS}\"")
+    foreach(dep_lib IN LISTS DOLFIN_INTERFACE_LIBS)
+      if ("${dep_lib}" MATCHES "Boost::")
+        string(REPLACE "Boost::" "" boost_component "${dep_lib}")
+        if (NOT ("${boost_component}" STREQUAL "boost"))
+          message("need Boost component \"${boost_component}\"")
+          set(DOLFIN_BOOST_COMPONENTS ${DOLFIN_BOOST_COMPONENTS} ${boost_component})
+        endif()
+      elseif ("${dep_lib}" STREQUAL PETSC::petsc)
+        set(DOLFIN_USES_PETSc True)
+      elseif ("${dep_lib}" STREQUAL SLEPC::slepc)
+        set(DOLFIN_USES_SLEPc True)
+      endif()
+    endforeach()
+    # DOLFIN does conveniently provide us with its
+    # FindPETSc and FindSLEPC modules alongside
+    # its CMake configuration file
+    get_filename_component(DOLFIN_MODULES_DIR "${DOLFIN_CONFIG}" DIRECTORY)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${DOLFIN_MODULES_DIR}")
+    if (DOLFIN_BOOST_COMPONENTS)
+      set(Omega_h_USE_Boost_DEFAULT ON)
+      bob_add_dependency(PUBLIC NAME Boost COMPONENTS ${DOLFIN_BOOST_COMPONENTS})
+    endif()
+    if (DOLFIN_USES_PETSc)
+      set(Omega_h_USE_PETSc_DEFAULT ON)
+      bob_add_dependency(PUBLIC NAME PETSc)
+    endif()
+    if (DOLFIN_USES_SLEPc)
+      set(Omega_h_USE_SLEPc_DEFAULT ON)
+      bob_add_dependency(PUBLIC NAME SLEPc)
+    endif()
+  endif()
+endmacro(osh_use_dolfin)

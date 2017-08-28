@@ -8,7 +8,7 @@ static Reals get_vector_norms_tmpl(Reals vs) {
   auto n = divide_no_remainder(vs.size(), dim);
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) { out[i] = norm(get_vector<dim>(vs, i)); };
-  parallel_for(n, f);
+  parallel_for(n, f, "get_vector_norms");
   return out;
 }
 
@@ -29,7 +29,7 @@ static Reals normalize_vectors_tmpl(Reals vs) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_vector<dim>(out, i, normalize(get_vector<dim>(vs, i)));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "normalize_vectors");
   return out;
 }
 
@@ -51,7 +51,7 @@ Reals dot_vectors_dim(Reals a, Reals b) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     out[i] = get_vector<dim>(a, i) * get_vector<dim>(b, i);
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "dot_vectors");
   return out;
 }
 
@@ -75,7 +75,7 @@ Reals resize_vectors(Reals old_vectors, Int old_dim, Int new_dim) {
       new_vectors[i * new_dim + j] = 0.0;
     }
   };
-  parallel_for(nv, f);
+  parallel_for(nv, f, "resize_vectors");
   return new_vectors;
 }
 
@@ -83,7 +83,7 @@ template <Int dim>
 Reals repeat_vector(LO n, Vector<dim> v) {
   Write<Real> vs(n * dim);
   auto f = OMEGA_H_LAMBDA(LO i) { set_vector(vs, i, v); };
-  parallel_for(n, f);
+  parallel_for(n, f, "repeat_vector");
   return vs;
 }
 

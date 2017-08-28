@@ -82,7 +82,7 @@ static SeparationResult separate_by_color_once(
       new_keep_w[kn] = (new_elem_colors[elem] == color);
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "separate_by_color");
   auto old_keep = Read<I8>(old_keep_w);
   auto new_keep = Read<I8>(new_keep_w);
   auto separated_old = filter_graph(keys2old, old_keep);
@@ -451,7 +451,7 @@ static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
       }
     }  // end loop over new elements
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "transfer_by_intersection");
 }
 
 static void transfer_by_intersection(Mesh* old_mesh, Mesh* new_mesh,
@@ -661,7 +661,7 @@ static Reals diffuse_densities_once(
       out[e] += (ox - x) * factor;
     }
   };
-  parallel_for(mesh->nelems(), f);
+  parallel_for(mesh->nelems(), f, "diffuse_densities");
   return mesh->sync_array(mesh->dim(), Reals(out), 1);
 }
 
@@ -796,7 +796,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       }
     }
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(mesh->nverts(), f, "correct_momentum_error");
   auto new_velocities = Reals(out);
   new_velocities = mesh->sync_array(VERT, new_velocities, ncomps);
   mesh->set_tag(VERT, velocity_name, new_velocities);

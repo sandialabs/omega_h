@@ -9,7 +9,7 @@
 namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
-static Read<I8> prevent_overshoot_tmpl(
+static Read<I8> prevent_coarsen_overshoot_tmp(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
   OMEGA_H_CHECK(mesh->dim() == mesh_dim);
   MetricEdgeLengths<mesh_dim, metric_dim> measurer(mesh);
@@ -43,7 +43,7 @@ static Read<I8> prevent_overshoot_tmpl(
     }
     out[cand] = code;
   };
-  parallel_for(ncands, f);
+  parallel_for(ncands, f, "prevent_coarsen_overshoot");
   return mesh->sync_subset_array(
       EDGE, Read<I8>(out), cands2edges, I8(DONT_COLLAPSE), 1);
 }
@@ -52,23 +52,23 @@ Read<I8> prevent_coarsen_overshoot(
     Mesh* mesh, Real max_length, LOs cands2edges, Read<I8> cand_codes) {
   auto metric_dim = get_metric_dim(mesh);
   if (mesh->dim() == 3 && metric_dim == 3) {
-    return prevent_overshoot_tmpl<3, 3>(
+    return prevent_coarsen_overshoot_tmp<3, 3>(
         mesh, max_length, cands2edges, cand_codes);
   }
   if (mesh->dim() == 2 && metric_dim == 2) {
-    return prevent_overshoot_tmpl<2, 2>(
+    return prevent_coarsen_overshoot_tmp<2, 2>(
         mesh, max_length, cands2edges, cand_codes);
   }
   if (mesh->dim() == 3 && metric_dim == 1) {
-    return prevent_overshoot_tmpl<3, 1>(
+    return prevent_coarsen_overshoot_tmp<3, 1>(
         mesh, max_length, cands2edges, cand_codes);
   }
   if (mesh->dim() == 2 && metric_dim == 1) {
-    return prevent_overshoot_tmpl<2, 1>(
+    return prevent_coarsen_overshoot_tmp<2, 1>(
         mesh, max_length, cands2edges, cand_codes);
   }
   if (mesh->dim() == 1 && metric_dim == 1) {
-    return prevent_overshoot_tmpl<1, 1>(
+    return prevent_coarsen_overshoot_tmp<1, 1>(
         mesh, max_length, cands2edges, cand_codes);
   }
   OMEGA_H_NORETURN(Read<I8>());

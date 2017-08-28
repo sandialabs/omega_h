@@ -24,7 +24,7 @@ Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
     auto n = normalize(cross(b[0], b[1]));
     set_vector(normals, surf_tri, n);
   };
-  parallel_for(nsurf_tris, lambda);
+  parallel_for(nsurf_tris, lambda, "get_triangle_normals");
   return normals;
 }
 
@@ -46,7 +46,7 @@ Reals get_edge_normals(Mesh* mesh, LOs surf_edge2edge) {
     auto n = -normalize(perp(b[0]));
     set_vector(normals, surf_edge, n);
   };
-  parallel_for(nsurf_edges, lambda);
+  parallel_for(nsurf_edges, lambda, "get_edge_normals");
   return normals;
 }
 
@@ -72,7 +72,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
     }
     angles[surf_hinge] = acos(n[0] * n[1]);
   };
-  parallel_for(nsurf_hinges, f);
+  parallel_for(nsurf_hinges, f, "get_hingle_angles");
   return angles;
 }
 
@@ -99,7 +99,7 @@ Reals get_curv_edge_tangents_dim(Mesh* mesh, LOs curv_edge2edge) {
     auto n = normalize(b[0]);
     set_vector(normals, curv_edge, n);
   };
-  parallel_for(ncurv_edges, lambda);
+  parallel_for(ncurv_edges, lambda, "get_curv_edge_tangents");
   return normals;
 }
 
@@ -158,7 +158,7 @@ static Reals tri_vert_normal_weights(
       weights[vf] = w;
     }
   };
-  parallel_for(nsurf_verts, func);
+  parallel_for(nsurf_verts, func, "tri_vert_normal_weights");
   return weights;
 }
 
@@ -178,7 +178,7 @@ static Reals get_recip_length_weights(
     else
       edge2weight_w[edge] = 1.0 / edge2len[edge];
   };
-  parallel_for(nedges, f);
+  parallel_for(nedges, f, "get_recip_length_weights");
   auto edge2weight = Reals(edge2weight_w);
   return unmap(surf_verts2edges.ab2b, edge2weight, 1);
 }
@@ -237,7 +237,7 @@ static Read<I8> get_curv_vert_edge_flips(
       ++lc;
     }
   };
-  parallel_for(ncurv_verts, f);
+  parallel_for(ncurv_verts, f, "get_curv_vert_edge_flips");
   return out;
 }
 
@@ -255,7 +255,7 @@ static Read<I8> get_curv_edge_vert_flips(
       out[e * 2 + eev] = in[ve];
     }
   };
-  parallel_for(ncurv_verts, f);
+  parallel_for(ncurv_verts, f, "get_curv_edge_vert_flips");
   return out;
 }
 
@@ -281,7 +281,7 @@ static Reals get_curv_vert_tangents_dim(Mesh* mesh, LOs curv_edge2edge,
       set_vector(arcs2tangents_w, arc, tangent);
     }
   };
-  parallel_for(narcs, f);
+  parallel_for(narcs, f, "get_curv_vert_tangents");
   auto arcs2tangents = Reals(arcs2tangents_w);
   auto weights =
       get_recip_length_weights(mesh, curv_verts2edges, edge2curv_edge);
@@ -352,7 +352,7 @@ Reals get_surf_tri_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
     auto II = vector2symm(II_comps);
     set_symm(surf_tri_IIs_w, surf_tri, II);
   };
-  parallel_for(nsurf_tris, f);
+  parallel_for(nsurf_tris, f, "get_surf_tri_IIs");
   return surf_tri_IIs_w;
 }
 
@@ -460,7 +460,7 @@ Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
     comps = comps / ws;
     set_vector(surf_vert_IIs_w, surf_vert, comps);
   };
-  parallel_for(nsurf_verts, f);
+  parallel_for(nsurf_verts, f, "get_surf_vert_IIs");
   auto surf_vert_IIs = Reals(surf_vert_IIs_w);
   return mesh->sync_subset_array(VERT, surf_vert_IIs, surf_vert2vert, 0.0, 3);
 }
@@ -503,7 +503,7 @@ Reals get_curv_edge_curvatures_dim(Mesh* mesh, LOs curv_edge2edge,
     auto curvature = norm(dt - (u * (dt * u))) / l;
     curv_edges2curvature_w[curv_edge] = curvature;
   };
-  parallel_for(ncurv_edges, f);
+  parallel_for(ncurv_edges, f, "get_curv_edge_curvatures");
   auto curv_edges2curvature = Reals(curv_edges2curvature_w);
   return mesh->sync_subset_array(
       EDGE, curv_edges2curvature, curv_edge2edge, 0.0, 1);
@@ -560,7 +560,7 @@ static Reals get_curv_vert_curvatures_dim(Mesh* mesh, LOs curv_edge2edge,
     curvature /= ws;
     curv_vert_curvatures_w[curv_vert] = curvature;
   };
-  parallel_for(ncurv_verts, f);
+  parallel_for(ncurv_verts, f, "get_curv_vert_curvatures");
   auto curv_vert_curvatures = Reals(curv_vert_curvatures_w);
   return mesh->sync_subset_array(
       VERT, curv_vert_curvatures, curv_vert2vert, 0.0, 1);

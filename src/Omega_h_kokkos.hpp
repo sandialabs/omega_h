@@ -2,6 +2,7 @@
 #define OMEGA_H_KOKKOS_HPP
 
 #include <Omega_h_c.h>
+#include <string>
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 
@@ -43,5 +44,10 @@ OMEGA_H_SYSTEM_HEADER
 #else
 #define OMEGA_H_CONSTANT_DATA
 #endif
+
+namespace Omega_h {
+void begin_code(std::string const& name = "");
+void end_code();
+}  // namespace Omega_h
 
 #endif

@@ -144,7 +144,7 @@ static LOs get_keys2reps(
       auto rep = first_adj;
       keys2reps_w[key] = rep;
     };
-    parallel_for(nkeys, setup_reps);
+    parallel_for(nkeys, setup_reps, "get_keys2reps");
     keys2reps = keys2reps_w;
   } else {
     OMEGA_H_CHECK(ent_dim == VERT && key_dim == EDGE);
@@ -164,7 +164,7 @@ static LOs get_keys2reps(
       auto edge = keys2kds[key];
       keys2reps_w[key] = edge_verts2verts[edge * 2 + 0];
     };
-    parallel_for(nkeys, setup_reps);
+    parallel_for(nkeys, setup_reps, "get_keys2rep(split)");
     keys2reps = keys2reps_w;
   }
   return keys2reps;
@@ -197,13 +197,13 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
     OMEGA_H_CHECK(ent < nents);
     if ((!are_global) || owned[ent]) rep_counts[ent] = 1;
   };
-  parallel_for(nsame_ents, mark_same);
+  parallel_for(nsame_ents, mark_same, "get_rep_counts(mark_same)");
   auto mark_reps = OMEGA_H_LAMBDA(LO key) {
     auto rep = keys2reps[key];
     auto nkey_prods = keys2nprods[key];
     atomic_add(&rep_counts[rep], nkey_prods);
   };
-  parallel_for(nkeys, mark_reps);
+  parallel_for(nkeys, mark_reps, "get_rep_counts(mark_reps)");
   return rep_counts;
 }
 
@@ -252,7 +252,7 @@ LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys) {
       }
     }
   };
-  parallel_for(nverts, f);
+  parallel_for(nverts, f, "get_edge2rep_order");
   return order_w;
 }
 
@@ -289,7 +289,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
          edge2rep_order array (see get_edge2rep_order()) */
       prods2new_offsets_w[prod] = offset + edge2rep_order[edge];
     };
-    parallel_for(nkeys, write_prod_offsets);
+    parallel_for(nkeys, write_prod_offsets, "find_new_offsets(split)");
   } else {
     auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
       auto offset = keys2new_offsets[key];
@@ -298,7 +298,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
         ++offset;
       }
     };
-    parallel_for(nkeys, write_prod_offsets);
+    parallel_for(nkeys, write_prod_offsets, "find_new_offsets");
   }
   *p_prods2new_offsets = prods2new_offsets_w;
 }
@@ -330,7 +330,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto write_lin_globals = OMEGA_H_LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
   };
-  parallel_for(nlins, write_lin_globals);
+  parallel_for(nlins, write_lin_globals, "modify_globals(write_lin_globals)");
   auto old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
   Read<GO> same_ents2new_globals;
   Read<GO> prods2new_globals;
@@ -417,7 +417,7 @@ void set_owners_by_indset(
       new_elem_ranks[elem] = kd_rank;
     }
   };
-  parallel_for(nkeys, f);
+  parallel_for(nkeys, f, "set_owners_by_indset");
   elem_owners = update_ownership(elems2owners, new_elem_ranks);
   mesh->set_owners(elem_dim, elem_owners);
 }

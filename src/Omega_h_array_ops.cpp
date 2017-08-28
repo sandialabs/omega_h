@@ -124,7 +124,7 @@ template <typename T>
 Read<T> multiply_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i] * factor; };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "multiply_each_by");
   return b;
 }
 
@@ -141,7 +141,7 @@ Read<T> multiply_each(Read<T> a, Read<T> b) {
       c[i * width + j] = a[i * width + j] * b[i];
     }
   };
-  parallel_for(b.size(), f);
+  parallel_for(b.size(), f, "multiply_each");
   return c;
 }
 
@@ -158,7 +158,7 @@ Read<T> divide_each(Read<T> a, Read<T> b) {
       c[i * width + j] = a[i * width + j] / b[i];
     }
   };
-  parallel_for(b.size(), f);
+  parallel_for(b.size(), f, "divide_each");
   return c;
 }
 
@@ -181,7 +181,7 @@ Reals divide_each_maybe_zero(Reals a, Reals b) {
       }
     }
   };
-  parallel_for(b.size(), f);
+  parallel_for(b.size(), f, "divide_maybe_zero");
   return c;
 }
 
@@ -189,7 +189,7 @@ Reals pow_each(Reals a, Reals b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<Real> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = pow(a[i], b[i]); };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "pow_each");
   return c;
 }
 
@@ -197,7 +197,7 @@ template <typename T>
 Read<T> divide_each_by(T factor, Read<T> a) {
   Write<T> b(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i] / factor; };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "divide_each_by");
   return b;
 }
 
@@ -206,7 +206,7 @@ Read<T> add_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] + b[i]; };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "add_each");
   return c;
 }
 
@@ -215,7 +215,7 @@ Read<T> subtract_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] - b[i]; };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "subtract_each");
   return c;
 }
 
@@ -223,7 +223,7 @@ template <typename T>
 Read<T> add_to_each(Read<T> a, T b) {
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] + b; };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "add_to_each");
   return c;
 }
 
@@ -231,7 +231,7 @@ template <typename T>
 Read<T> subtract_from_each(Read<T> a, T b) {
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] - b; };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "subtract_from_each");
   return c;
 }
 
@@ -239,7 +239,7 @@ template <typename T>
 Bytes each_geq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] >= b); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_geq_to");
   return c;
 }
 
@@ -247,7 +247,7 @@ template <typename T>
 Bytes each_leq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] <= b); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_leq_to");
   return c;
 }
 
@@ -255,7 +255,7 @@ template <typename T>
 Bytes each_gt(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] > b); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_gt");
   return c;
 }
 
@@ -263,7 +263,7 @@ template <typename T>
 Bytes each_lt(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] < b); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_lt");
   return c;
 }
 
@@ -272,7 +272,7 @@ Bytes gt_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] > b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "gt_each");
   return c;
 }
 
@@ -281,7 +281,7 @@ Bytes lt_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] < b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "lt_each");
   return c;
 }
 
@@ -290,7 +290,7 @@ Bytes eq_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "eq_each");
   return c;
 }
 
@@ -299,7 +299,7 @@ Bytes geq_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] >= b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "geq_each");
   return c;
 }
 
@@ -308,7 +308,7 @@ Read<T> min_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = min2(a[i], b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "min_each");
   return c;
 }
 
@@ -317,7 +317,7 @@ Read<T> max_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = max2(a[i], b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "max_each");
   return c;
 }
 
@@ -327,7 +327,7 @@ Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b) {
   auto width = divide_no_remainder(a.size(), cond.size());
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = cond[i / width] ? a[i] : b[i]; };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "ternary_each");
   return c;
 }
 
@@ -335,7 +335,7 @@ template <typename T>
 Read<T> each_max_with(Read<T> a, T b) {
   Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = max2(a[i], b); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_max_with");
   return c;
 }
 
@@ -343,7 +343,7 @@ template <typename T>
 Bytes each_neq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] != b); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_neq_to");
   return c;
 }
 
@@ -352,7 +352,7 @@ Bytes each_eq(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_eq");
   return c;
 }
 
@@ -360,7 +360,7 @@ template <typename T>
 Bytes each_eq_to(Read<T> a, T b) {
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] == b); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "each_eq_to");
   return c;
 }
 
@@ -368,7 +368,7 @@ Bytes land_each(Bytes a, Bytes b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] && b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "land_each");
   return c;
 }
 
@@ -376,7 +376,7 @@ Bytes lor_each(Bytes a, Bytes b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] || b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "lor_each");
   return c;
 }
 
@@ -384,21 +384,21 @@ Bytes bit_or_each(Bytes a, Bytes b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] | b[i]); };
-  parallel_for(c.size(), f);
+  parallel_for(c.size(), f, "bit_or_each");
   return c;
 }
 
 Bytes bit_neg_each(Bytes a) {
   Write<I8> b(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = ~(a[i]); };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "bit_neg_each");
   return b;
 }
 
 Read<Real> fabs_each(Read<Real> a) {
   Write<Real> b(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = fabs(a[i]); };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "fabs_each");
   return b;
 }
 
@@ -406,14 +406,14 @@ template <typename T>
 Read<T> get_component(Read<T> a, Int ncomps, Int comp) {
   Write<T> b(divide_no_remainder(a.size(), ncomps));
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i * ncomps + comp]; };
-  parallel_for(b.size(), f);
+  parallel_for(b.size(), f, "get_component");
   return b;
 }
 
 template <typename T>
 void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp) {
   auto f = OMEGA_H_LAMBDA(LO i) { out[i * ncomps + comp] = a[i]; };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "set_component");
 }
 
 template <typename T>
@@ -461,7 +461,7 @@ Read<T> interleave(std::vector<Read<T>> arrays) {
   for (LO i = 0; i < narrays; ++i) {
     auto array = arrays[std::size_t(i)];
     auto f = OMEGA_H_LAMBDA(LO j) { out[j * narrays + i] = array[j]; };
-    parallel_for(array_size, f);
+    parallel_for(array_size, f, "interleave");
   }
   return out;
 }
@@ -545,14 +545,14 @@ Reals interpolate_between(Reals a, Reals b, Real t) {
   auto n = a.size();
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) { out[i] = a[i] * (1.0 - t) + b[i] * t; };
-  parallel_for(n, f);
+  parallel_for(n, f, "interpolate_between");
   return out;
 }
 
 Reals invert_each(Reals a) {
   auto out = Write<Real>(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) { out[i] = 1.0 / a[i]; };
-  parallel_for(a.size(), f);
+  parallel_for(a.size(), f, "invert_each");
   return out;
 }
 
@@ -560,7 +560,7 @@ template <typename Tout, typename Tin>
 Read<Tout> array_cast(Read<Tin> in) {
   auto out = Write<Tout>(in.size());
   auto f = OMEGA_H_LAMBDA(LO i) { out[i] = static_cast<Tout>(in[i]); };
-  parallel_for(in.size(), f);
+  parallel_for(in.size(), f, "array_cast");
   return out;
 }
 

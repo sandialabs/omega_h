@@ -37,7 +37,7 @@ static Reals clamp_metrics_dim(
     m = clamp_metric(m, h_min, h_max);
     set_symm(out, i, m);
   };
-  parallel_for(nmetrics, f);
+  parallel_for(nmetrics, f, "clamp_metrics");
   return out;
 }
 
@@ -50,7 +50,7 @@ Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
 }
 
 template <Int mdim, Int edim>
-static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
+static Reals get_mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
   auto na = a2e.size();
   Write<Real> out(na * symm_ncomps(mdim));
   auto ev2v = mesh->ask_verts_of(edim);
@@ -61,32 +61,32 @@ static Reals mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
     auto m = average_metric(ms);
     set_symm(out, a, m);
   };
-  parallel_for(na, f);
+  parallel_for(na, f, "get_mident_metrics");
   return out;
 }
 
 Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
   auto metrics_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (metrics_dim == 3 && ent_dim == 3) {
-    return mident_metrics_tmpl<3, 3>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<3, 3>(mesh, entities, v2m);
   }
   if (metrics_dim == 3 && ent_dim == 1) {
-    return mident_metrics_tmpl<3, 1>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<3, 1>(mesh, entities, v2m);
   }
   if (metrics_dim == 2 && ent_dim == 2) {
-    return mident_metrics_tmpl<2, 2>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<2, 2>(mesh, entities, v2m);
   }
   if (metrics_dim == 2 && ent_dim == 1) {
-    return mident_metrics_tmpl<2, 1>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<2, 1>(mesh, entities, v2m);
   }
   if (metrics_dim == 1 && ent_dim == 3) {
-    return mident_metrics_tmpl<1, 3>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<1, 3>(mesh, entities, v2m);
   }
   if (metrics_dim == 1 && ent_dim == 2) {
-    return mident_metrics_tmpl<1, 2>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<1, 2>(mesh, entities, v2m);
   }
   if (metrics_dim == 1 && ent_dim == 1) {
-    return mident_metrics_tmpl<1, 1>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<1, 1>(mesh, entities, v2m);
   }
   OMEGA_H_NORETURN(Reals());
 }
@@ -110,7 +110,7 @@ Reals linearize_metrics_dim(Reals metrics) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_symm(out, i, linearize_metric(get_symm<dim>(metrics, i)));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "linearize_metrics");
   return out;
 }
 
@@ -121,7 +121,7 @@ Reals delinearize_metrics_dim(Reals lms) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_symm(out, i, delinearize_metric(get_symm<dim>(lms, i)));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "delinearize_metrics");
   return out;
 }
 
@@ -150,7 +150,7 @@ static HostFew<Reals, dim> axes_from_metrics_dim(Reals metrics) {
     auto md = decompose_metric(get_symm<dim>(metrics, i));
     for (Int j = 0; j < dim; ++j) set_vector(w[j], i, md.q[j] * md.l[j]);
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "axes_from_metrics");
   HostFew<Reals, dim> r;
   for (Int i = 0; i < dim; ++i) r[i] = Reals(w[i]);
   return r;
@@ -203,7 +203,7 @@ static Reals limit_gradation_once_tmpl(
     }
     set_symm(out, v, m);
   };
-  parallel_for(mesh->nverts(), f);
+  parallel_for(mesh->nverts(), f, "limit_metric_gradation");
   values = Reals(out);
   values = mesh->sync_array(VERT, values, symm_ncomps(metric_dim));
   return values;
@@ -268,7 +268,7 @@ static Reals element_implied_length_metrics_dim(Mesh* mesh) {
     auto m = element_implied_metric(p);
     set_symm(out, e, m);
   };
-  parallel_for(mesh->nelems(), f);
+  parallel_for(mesh->nelems(), f, "element_implied_length_metrics");
   return out;
 }
 
@@ -302,7 +302,7 @@ static Reals metric_quality_corrections_dim(Mesh* mesh) {
     auto metric_corr = power<2, dim>(size_corr);
     out[e] = metric_corr;
   };
-  parallel_for(mesh->nelems(), f);
+  parallel_for(mesh->nelems(), f, "metric_quality_corrections");
   return out;
 }
 
@@ -367,7 +367,7 @@ static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
     auto m = metric_from_hessian(hess, eps);
     set_symm(out, i, m);
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "metric_from_hessians");
   return out;
 }
 
@@ -401,7 +401,7 @@ static Reals metric_from_gradients_dim(Reals gradients, Real eps) {
     auto m = metric_from_gradient(grad, eps);
     set_symm(out, i, m);
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "metric_from_gradients");
   return out;
 }
 
@@ -426,7 +426,8 @@ void get_curve_curvature_metrics(
     auto vert = surface_info.curv_vert2vert[curv_vert];
     set_symm(out, vert, m);
   };
-  parallel_for(surface_info.curv_vert2vert.size(), f);
+  parallel_for(
+      surface_info.curv_vert2vert.size(), f, "get_curve_curvature_metrics");
 }
 
 Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
@@ -454,7 +455,8 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
       auto vert = surface_info.surf_vert2vert[surf_vert];
       set_symm(out, vert, m);
     };
-    parallel_for(surface_info.surf_vert2vert.size(), f);
+    parallel_for(
+        surface_info.surf_vert2vert.size(), f, "get_curvature_metrics(surf)");
     get_curve_curvature_metrics<3>(surface_info, segment_angle, out);
   } else if (mesh->dim() == 2) {
     get_curve_curvature_metrics<2>(surface_info, segment_angle, out);
@@ -475,7 +477,7 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
  */
 
 template <Int mesh_dim, Int metric_dim>
-static Reals expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
+static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   auto elems2verts = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
@@ -492,22 +494,22 @@ static Reals expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
     auto r = lr * mr;
     out_w[e] = r;
   };
-  parallel_for(mesh->nelems(), f);
+  parallel_for(mesh->nelems(), f, "get_expected_nelems_per_elem");
   return Reals(out_w);
 }
 
 Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (mesh->dim() == 3 && metric_dim == 3) {
-    return expected_nelems_per_elem_tmpl<3, 3>(mesh, v2m);
+    return get_expected_nelems_per_elem_tmpl<3, 3>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 2) {
-    return expected_nelems_per_elem_tmpl<2, 2>(mesh, v2m);
+    return get_expected_nelems_per_elem_tmpl<2, 2>(mesh, v2m);
   } else if (mesh->dim() == 3 && metric_dim == 1) {
-    return expected_nelems_per_elem_tmpl<3, 1>(mesh, v2m);
+    return get_expected_nelems_per_elem_tmpl<3, 1>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 1) {
-    return expected_nelems_per_elem_tmpl<2, 1>(mesh, v2m);
+    return get_expected_nelems_per_elem_tmpl<2, 1>(mesh, v2m);
   } else if (mesh->dim() == 1) {
-    return expected_nelems_per_elem_tmpl<1, 1>(mesh, v2m);
+    return get_expected_nelems_per_elem_tmpl<1, 1>(mesh, v2m);
   }
   OMEGA_H_NORETURN(Reals());
 }
@@ -543,7 +545,7 @@ Reals intersect_metrics_dim(Reals a, Reals b) {
     auto cm = intersect_metrics(am, bm);
     set_symm(c, i, cm);
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "intersect_metrics");
   return c;
 }
 
@@ -562,7 +564,7 @@ Reals metrics_from_isos_dim(Reals isos) {
   auto f = OMEGA_H_LAMBDA(Int i) {
     set_symm(new_symms, i, diagonal(fill_vector<new_dim>(isos[i])));
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "metrics_from_isos");
   return new_symms;
 }
 
@@ -580,9 +582,8 @@ static Reals get_size_isos_dim(Reals metrics) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     auto m = get_symm<dim>(metrics, i);
     out[i] = root<dim>(determinant(m));
-    ;
   };
-  parallel_for(n, f);
+  parallel_for(n, f, "get_size_isos");
   return out;
 }
 

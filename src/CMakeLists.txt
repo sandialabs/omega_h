@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
+  Omega_h_kokkos.cpp
   )
 
 if(Omega_h_USE_libMeshb)
@@ -351,6 +352,7 @@ if(BUILD_TESTING)
     if(Omega_h_USE_EGADS)
       osh_add_exe(ugawg_cylinder)
     endif()
+    osh_add_exe(ugawg_hsc)
   endif()
   osh_add_exe(slope_test)
   if(Omega_h_USE_EGADS)

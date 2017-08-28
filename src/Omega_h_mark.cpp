@@ -14,7 +14,7 @@ Read<I8> mark_exposed_sides(Mesh* mesh) {
   auto s2sc = mesh->ask_up(mesh->dim() - 1, mesh->dim()).a2ab;
   Write<I8> exposed(ns);
   auto f = OMEGA_H_LAMBDA(LO s) { exposed[s] = ((s2sc[s + 1] - s2sc[s]) < 2); };
-  parallel_for(ns, f);
+  parallel_for(ns, f, "mark_exposed_sides");
   return exposed;
 }
 
@@ -33,7 +33,7 @@ Read<I8> mark_down(
     for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
       if (high_marked[lh2h[lh]]) low_marks_w[l] = 1;
   };
-  parallel_for(nl, f);
+  parallel_for(nl, f, "mark_down");
   auto low_marks = Read<I8>(low_marks_w);
   if (!mesh->owners_have_all_upward(low_dim)) {
     low_marks = mesh->reduce_array(low_dim, low_marks, 1, OMEGA_H_MAX);
@@ -54,7 +54,7 @@ Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
       if (low_marked[l]) out[h] = 1;
     }
   };
-  parallel_for(nh, f);
+  parallel_for(nh, f, "mark_up");
   return out;
 }
 
@@ -73,7 +73,7 @@ Read<I8> mark_up_all(
     }
     out[h] = I8(all_marked);
   };
-  parallel_for(nh, f);
+  parallel_for(nh, f, "mark_up_all");
   return out;
 }
 
@@ -116,7 +116,7 @@ Read<I8> mark_class_closures(
                         (-1 != binary_search(d_sorted_class_ids,
                                    eq_class_ids[eq], nclass_ids)));
   };
-  parallel_for(neq, f);
+  parallel_for(neq, f, "mark_class_closures");
   auto eq_marks = Read<I8>(eq_marks_w);
   auto marks = mark_down(mesh, class_dim, ent_dim, eq_marks);
   return marks;
