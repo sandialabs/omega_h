@@ -83,7 +83,8 @@ static void fill(Write<T> a, T val) {
 }
 
 template <typename T>
-Write<T>::Write(LO size, T value, std::string const& name) : Write<T>(size, name) {
+Write<T>::Write(LO size, T value, std::string const& name)
+    : Write<T>(size, name) {
   fill(*this, value);
 }
 
@@ -96,7 +97,8 @@ void fill_linear(Write<T> a, T offset, T stride) {
 }
 
 template <typename T>
-Write<T>::Write(LO size, T offset, T stride, std::string const& name) : Write<T>(size, name) {
+Write<T>::Write(LO size, T offset, T stride, std::string const& name)
+    : Write<T>(size, name) {
   fill_linear(*this, offset, stride);
 }
 
@@ -140,48 +142,56 @@ T Write<T>::get(LO i) const {
 
 Bytes::Bytes(Write<Byte> write) : Read<Byte>(write) {}
 
-Bytes::Bytes(LO size, Byte value, std::string const& name) : Read<Byte>(size, value, name) {}
+Bytes::Bytes(LO size, Byte value, std::string const& name)
+    : Read<Byte>(size, value, name) {}
 
-Bytes::Bytes(std::initializer_list<Byte> l, std::string const& name) : Read<Byte>(l, name) {}
+Bytes::Bytes(std::initializer_list<Byte> l, std::string const& name)
+    : Read<Byte>(l, name) {}
 
 LOs::LOs(Write<LO> write) : Read<LO>(write) {}
 
-LOs::LOs(LO size, LO value, std::string const& name) : Read<LO>(size, value, name) {}
+LOs::LOs(LO size, LO value, std::string const& name)
+    : Read<LO>(size, value, name) {}
 
-LOs::LOs(LO size, LO offset, LO stride, std::string const& name) :
-  Read<LO>(size, offset, stride, name) {}
+LOs::LOs(LO size, LO offset, LO stride, std::string const& name)
+    : Read<LO>(size, offset, stride, name) {}
 
-LOs::LOs(std::initializer_list<LO> l, std::string const& name) : Read<LO>(l, name) {}
+LOs::LOs(std::initializer_list<LO> l, std::string const& name)
+    : Read<LO>(l, name) {}
 
 GOs::GOs(Write<GO> write) : Read<GO>(write) {}
 
-GOs::GOs(LO size, GO value, std::string const& name) : Read<GO>(size, value, name) {}
+GOs::GOs(LO size, GO value, std::string const& name)
+    : Read<GO>(size, value, name) {}
 
-GOs::GOs(LO size, GO offset, GO stride, std::string const& name) :
-  Read<GO>(size, offset, stride, name) {}
+GOs::GOs(LO size, GO offset, GO stride, std::string const& name)
+    : Read<GO>(size, offset, stride, name) {}
 
-GOs::GOs(std::initializer_list<GO> l, std::string const& name) : Read<GO>(l, name) {}
+GOs::GOs(std::initializer_list<GO> l, std::string const& name)
+    : Read<GO>(l, name) {}
 
 Reals::Reals(Write<Real> write) : Read<Real>(write) {}
 
-Reals::Reals(LO size, Real value, std::string const& name) :
-  Read<Real>(size, value, name) {}
+Reals::Reals(LO size, Real value, std::string const& name)
+    : Read<Real>(size, value, name) {}
 
-Reals::Reals(std::initializer_list<Real> l, std::string const& name) :
-  Read<Real>(l, name) {}
+Reals::Reals(std::initializer_list<Real> l, std::string const& name)
+    : Read<Real>(l, name) {}
 
 template <typename T>
 Read<T>::Read(Write<T> write) : write_(write) {}
 
 template <typename T>
-Read<T>::Read(LO size, T value, std::string const& name) : Read<T>(Write<T>(size, value, name)) {}
+Read<T>::Read(LO size, T value, std::string const& name)
+    : Read<T>(Write<T>(size, value, name)) {}
 
 template <typename T>
 Read<T>::Read(LO size, T offset, T stride, std::string const& name)
     : Read<T>(Write<T>(size, offset, stride, name)) {}
 
 template <typename T>
-Read<T>::Read(std::initializer_list<T> l, std::string const& name) : Read<T>(HostWrite<T>(l, name).write()) {}
+Read<T>::Read(std::initializer_list<T> l, std::string const& name)
+    : Read<T>(HostWrite<T>(l, name).write()) {}
 
 template <typename T>
 LO Read<T>::size() const {
