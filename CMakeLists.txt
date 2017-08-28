@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.3.2 LANGUAGES NONE)
+project(Omega_h VERSION 9.3.3 LANGUAGES NONE)
 
 set(USE_XSDK_DEFAULTS_DEFAULT OFF)
 
