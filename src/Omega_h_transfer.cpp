@@ -9,9 +9,6 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
 
-// DEBUG
-#include "Omega_h_array_ops.hpp"
-
 namespace Omega_h {
 
 bool is_transfer_required(
@@ -187,7 +184,6 @@ template <typename T>
 void transfer_inherit_refine(Mesh* old_mesh, Mesh* new_mesh, LOs keys2edges,
     Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, std::string const& name) {
-  std::cout << "transfer inherit refine\n";
   auto old_tag = old_mesh->get_tag<T>(prod_dim, name);
   auto ncomps = old_tag->ncomps();
   auto nprods = keys2prods.last();
@@ -369,7 +365,6 @@ template <typename T>
 static void transfer_inherit_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
     Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, TagBase const* tagbase) {
-  std::cout << "transfer inherit coarsen\n";
   auto name = tagbase->name();
   auto old_tag = as<T>(tagbase);
   auto ncomps = old_tag->ncomps();
@@ -590,7 +585,6 @@ template <typename T>
 static void transfer_inherit_swap_tmpl(Mesh* old_mesh, Mesh* new_mesh,
     Int prod_dim, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents, TagBase const* tagbase) {
-  std::cout << "transfer inherit swap\n";
   auto const& name = tagbase->name();
   auto old_tag = old_mesh->get_tag<T>(EDGE, name);
   auto ncomps = old_tag->ncomps();
@@ -682,10 +676,6 @@ void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         old_mesh, new_mesh, same_elems2elems, same_elems2elems, moved_elems2elems);
     transfer_quality(
         old_mesh, new_mesh, same_elems2elems, same_elems2elems, moved_elems2elems);
-    OMEGA_H_CHECK(old_mesh->get_array<I32>(old_mesh->dim(), "class_id") ==
-        new_mesh->get_array<I32>(new_mesh->dim(), "class_id"));
-    OMEGA_H_CHECK(old_mesh->get_array<I8>(old_mesh->dim(), "class_dim") ==
-        new_mesh->get_array<I8>(new_mesh->dim(), "class_dim"));
     transfer_conserve_motion(old_mesh, opts, new_mesh, keys2verts, keys2elems,
         same_elems2elems, same_elems2elems);
   }

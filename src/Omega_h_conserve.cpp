@@ -60,44 +60,28 @@ struct SeparationResult {
    sub-cavities to be single-color as they're processed */
 static SeparationResult separate_by_color_once(
     Cavs cavs, LOs old_elem_colors, LOs new_elem_colors) {
-  std::cout << "  separate_by_color_once\n";
   auto keys2old = cavs.keys2old_elems;
   auto keys2new = cavs.keys2new_elems;
   auto nkeys = cavs.size();
   auto old_keep_w = Write<I8>(keys2old.nedges());
   auto new_keep_w = Write<I8>(keys2new.nedges(), I8(1));
   auto f = OMEGA_H_LAMBDA(LO key) {
-    if (key == 12) std::cout << "   key 12\n";
     auto ob = keys2old.a2ab[key];
     auto oe = keys2old.a2ab[key + 1];
     if (ob == oe) {
-      if (key == 12) std::cout << "   key2old.a2ab empty\n";
       return;
     }
-    if (key == 12) std::cout << "   " << (oe - ob) << " old elems\n";
     auto old_first = keys2old.ab2b[ob];
     auto color = old_elem_colors[old_first];
-    if (key == 12) std::cout << "   color: " << color << '\n';
     for (auto ko = ob; ko < oe; ++ko) {
       auto elem = keys2old.ab2b[ko];
-      if (key == 12) std::cout << "   cold elem " << elem;
       old_keep_w[ko] = (old_elem_colors[elem] == color);
-      if (key == 12) {
-        if (old_keep_w[ko]) std::cout << " has color\n";
-        else std::cout << " doesn't have color\n";
-      }
     }
     auto nb = keys2new.a2ab[key];
     auto ne = keys2new.a2ab[key + 1];
-    if (key == 12) std::cout << "   " << (ne - nb) << " new elems\n";
     for (auto kn = nb; kn < ne; ++kn) {
       auto elem = keys2new.ab2b[kn];
-      if (key == 12) std::cout << "   new elem " << elem;
       new_keep_w[kn] = (new_elem_colors[elem] == color);
-      if (key == 12) {
-        if (new_keep_w[kn]) std::cout << " has color\n";
-        else std::cout << " doesn't have color\n";
-      }
     }
   };
   parallel_for(nkeys, f, "separate_by_color");
@@ -105,15 +89,6 @@ static SeparationResult separate_by_color_once(
   auto new_keep = Read<I8>(new_keep_w);
   auto separated_old = filter_graph(keys2old, old_keep);
   auto separated_new = filter_graph(keys2new, new_keep);
-  auto debug_old_counts = get_degrees(separated_old.a2ab);
-  auto debug_new_counts = get_degrees(separated_new.a2ab);
-  for (LO i = 0; i < debug_new_counts.size(); ++i) {
-    if (debug_new_counts[i] == 0 && i == 12) {
-      std::cout << "    cavity " << i << " has new count zero old count "
-        << debug_old_counts[i]
-        << '\n';
-    }
-  }
   auto remainder_old = filter_graph(keys2old, invert_marks(old_keep));
   auto remainder_new = filter_graph(keys2new, invert_marks(new_keep));
   OMEGA_H_CHECK(
@@ -132,7 +107,6 @@ using CavsByBdryStatus = std::array<CavsByColorMethod, 3>;
 static CavsByColor separate_by_color(
     Cavs cavs, LOs old_elem_colors, LOs new_elem_colors) {
   CavsByColor cavs_by_color;
-  std::cout << "separate_by_color\n";
   while (cavs.keys2old_elems.nedges() || cavs.keys2new_elems.nedges()) {
     auto res = separate_by_color_once(cavs, old_elem_colors, new_elem_colors);
     cavs_by_color.push_back(res.separated);
@@ -255,12 +229,6 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto new_cav_integrals = fan_reduce(
       keys2new_elems.a2ab, new_cav_elem_integrals, ncomps, OMEGA_H_SUM);
   auto cav_errors = subtract_each(new_cav_integrals, old_cav_integrals);
-  auto debug_new_cav_counts = get_degrees(keys2new_elems.a2ab);
-  for (LO i = 0; i < debug_new_cav_counts.size(); ++i) {
-    if (debug_new_cav_counts[i] == 0) {
-      std::cout << "cavity " << i << " has new count of zero\n";
-    }
-  }
   auto new_cav_sizes =
       fan_reduce(keys2new_elems.a2ab, new_cav_elem_sizes, 1, OMEGA_H_SUM);
   auto cav_error_densities = divide_each_maybe_zero(cav_errors, new_cav_sizes);
@@ -291,7 +259,6 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   for (std::size_t i = 0; i < 3; ++i) {
     if (!conserved_bools.this_time[i]) {
       for (auto class_cavs : cavs[i][CLASS_COLOR]) {
-        std::cout << "doing a CLASS_COLOR set, type " << i << '\n';
         introduce_class_integ_error(old_mesh, new_mesh, class_cavs,
             old_elem_densities, new_elem_densities, new_elem_errors_w);
       }
