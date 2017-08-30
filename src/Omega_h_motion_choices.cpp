@@ -31,7 +31,8 @@ MotionChoices motion_choices_tmpl(
   auto f = OMEGA_H_LAMBDA(LO cand) {
     auto v = cands2verts[cand];
     Real old_obj = -1.0;
-    auto old_x = get_vector<mesh_dim>(coords, v);
+    auto orig_x = get_vector<mesh_dim>(coords, v);
+    auto old_x = orig_x;
     auto new_x = old_x;
     bool did_move = false;
     Real new_qual;
@@ -101,6 +102,11 @@ MotionChoices motion_choices_tmpl(
           new_x = old_x + delta_x;
         }
       }
+    }
+    /* if we didn't move that far in total, just ignore the motion */
+    if (did_move && (norm(new_x - orig_x) < EPSILON)) {
+      new_x = orig_x;
+      did_move = false;
     }
     did_move_w[cand] = I8(did_move);
     new_quals_w[cand] = new_qual;

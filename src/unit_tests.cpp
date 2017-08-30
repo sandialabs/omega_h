@@ -9,7 +9,6 @@
 #include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_motion.hpp"
 #include "Omega_h_proximity.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine_qualities.hpp"
