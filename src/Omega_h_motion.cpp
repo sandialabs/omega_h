@@ -26,6 +26,13 @@ static bool move_verts_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   mesh->add_tag(VERT, "key", 1, verts_are_keys);
   auto new_coords = deep_copy(mesh->coords());
   map_into(choices.new_coords, cands2verts, new_coords, mesh->dim());
+  auto debug_old_coords = mesh->coords();
+  for (LO i = 0; i < verts_are_keys.size(); ++i) {
+    if (verts_are_keys[i]) {
+      auto dist = norm(get_vector<3>(new_coords, i) - get_vector<3>(debug_old_coords, i));
+      std::cout << "moving distance " << dist << '\n';
+    }
+  }
   mesh->add_tag(VERT, "motion_coords", mesh->dim(), Reals(new_coords));
   auto keys2verts = collect_marked(verts_are_keys);
   auto verts2cav_elems = mesh->ask_up(VERT, mesh->dim());
@@ -61,8 +68,6 @@ static void move_verts_elem_based(Mesh* mesh, AdaptOpts const& opts) {
       new_mesh.set_tag(VERT, "coordinates", new_coords);
     }
   }
-  vtk::write_vtu("before_motion.vtu", mesh);
-  vtk::write_vtu("after_motion.vtu", &new_mesh);
   *mesh = new_mesh;
 }
 

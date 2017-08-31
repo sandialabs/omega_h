@@ -12,7 +12,6 @@ int main(int argc, char** argv) {
   add_implied_metric_tag(&mesh);
   vtk::write_vtu("before.vtu", &mesh);
   auto opts = AdaptOpts(&mesh);
-  opts.motion_step_size = 1.0;
   auto cands2verts = LOs({4});
   auto choices = get_motion_choices(&mesh, opts, cands2verts);
   auto new_coords = deep_copy(mesh.coords());

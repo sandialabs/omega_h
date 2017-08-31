@@ -22,7 +22,12 @@
 
 namespace Omega_h {
 
-TransferOpts::TransferOpts() { should_conserve_size = false; }
+TransferOpts::TransferOpts() {
+  should_conserve_size = false;
+  max_size_steps = 100;
+  min_size_step_ratio = 2e-3;
+  max_size_error_ratio = 2e-2;
+}
 
 void TransferOpts::validate(Mesh* mesh) const {
   for (auto pair : type_map) {
@@ -66,9 +71,6 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_smooth_snap = true;
   snap_smooth_tolerance = 1e-2;
 #endif
-  max_motion_steps = 100;
-  motion_step_size = 0.1;
-  motion_tolerance = 1e-3;
   should_refine = true;
   should_coarsen = true;
   should_swap = true;
@@ -238,7 +240,10 @@ static void post_adapt(
 
 static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.xfer_opts.should_conserve_size) {
+  //vtk::Writer writer("motion", mesh);
+  //writer.write();
     while (move_verts_to_conserve_size(mesh, opts)) {
+    //writer.write();
       post_rebuild(mesh, opts);
     }
   }
