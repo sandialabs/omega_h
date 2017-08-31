@@ -145,6 +145,9 @@ MotionChoices motion_choices_tmpl(
   auto did_move = Bytes(did_move_w);
   auto new_quals = Reals(new_quals_w);
   auto new_coords = Reals(new_coords_w);
+  did_move = mesh->sync_subset_array(VERT, did_move, cands2verts, I8(-1), 1);
+  new_quals = mesh->sync_subset_array(VERT, new_quals, cands2verts, -1.0, 1);
+  new_coords = mesh->sync_subset_array(VERT, new_coords, cands2verts, 0.0, mesh_dim);
   return {did_move, new_quals, new_coords};
 }
 
