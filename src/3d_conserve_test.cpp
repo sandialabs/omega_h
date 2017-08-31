@@ -28,6 +28,17 @@ static void check_total_mass(Mesh* mesh) {
   OMEGA_H_CHECK(are_close(1.0, total_mass));
 }
 
+static Real get_object_size(Mesh* mesh, Int obj) {
+  auto densities = mesh->get_array<Real>(mesh->dim(), "density");
+  auto sizes = mesh->ask_sizes();
+  auto masses = multiply_each(densities, sizes);
+  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
+  auto elem_in_obj = each_eq_to(class_ids, obj_ids[obj]);
+  auto obj_elems = collect_marked(elem_in_obj);
+  auto obj_sizes = unmap(obj_elems, sizes, 1);
+  return repro_sum(mesh->comm(), obj_sizes);
+}
+
 static Real get_object_mass(Mesh* mesh, Int obj) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
@@ -77,8 +88,10 @@ int main(int argc, char** argv) {
   fix_momentum_velocity_verts(&mesh, {{2, 10}}, 2);
   auto momentum_before = get_total_momentum(&mesh);
   Real masses_before[nobjs];
+  Real sizes_before[nobjs];
   for (Int obj = 0; obj < nobjs; ++obj) {
     masses_before[obj] = get_object_mass(&mesh, obj);
+    sizes_before[obj] = get_object_size(&mesh, obj);
   }
   auto opts = AdaptOpts(&mesh);
   opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
@@ -95,9 +108,12 @@ int main(int argc, char** argv) {
   check_total_mass(&mesh);
   for (Int obj = 0; obj < nobjs; ++obj) {
     auto mass_after = get_object_mass(&mesh, obj);
+    auto size_after = get_object_size(&mesh, obj);
     if (world->rank() == 0) {
       std::cout << "model region " << obj_ids[obj] << " mass before "
                 << masses_before[obj] << ", after " << mass_after << '\n';
+      std::cout << "model region " << obj_ids[obj] << " size before "
+                << sizes_before[obj] << ", after " << size_after << '\n';
     }
     OMEGA_H_CHECK(are_close(mass_after, masses_before[obj]));
   }

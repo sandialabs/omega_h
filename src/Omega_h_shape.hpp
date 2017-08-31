@@ -319,7 +319,7 @@ OMEGA_H_INLINE Sphere<1> get_inball(Few<Vector<1>, 2> p) {
 }
 
 template <Int dim>
-Vector<dim> get_volume_vert_gradient(Few<Vector<dim>, dim + 1> p, Int ivert) {
+OMEGA_H_INLINE Vector<dim> get_size_gradient(Few<Vector<dim>, dim + 1> p, Int ivert) {
   auto iside = opposite_template(dim, VERT, ivert);
   auto n = -get_side_normal(p, iside);
   return n / Real(factorial(dim));

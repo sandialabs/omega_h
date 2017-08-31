@@ -68,7 +68,9 @@ static SeparationResult separate_by_color_once(
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto ob = keys2old.a2ab[key];
     auto oe = keys2old.a2ab[key + 1];
-    if (ob == oe) return;
+    if (ob == oe) {
+      return;
+    }
     auto old_first = keys2old.ab2b[ob];
     auto color = old_elem_colors[old_first];
     for (auto ko = ob; ko < oe; ++ko) {
@@ -148,9 +150,9 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto kd_class_dims = old_mesh->get_array<I8>(key_dim, "class_dim");
   auto key_class_dims = unmap(keys2kds, kd_class_dims, 1);
   auto keys_are_bdry = each_lt(key_class_dims, I8(old_mesh->dim()));
-  auto key_cavs2cavs = collect_marked(keys_are_bdry);
-  out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(key_cavs2cavs, cavs));
-  if (keys2doms) *keys2doms = unmap_graph(key_cavs2cavs, *keys2doms);
+  auto bdry_cavs2cavs = collect_marked(keys_are_bdry);
+  out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(bdry_cavs2cavs, cavs));
+  if (keys2doms) *keys2doms = unmap_graph(bdry_cavs2cavs, *keys2doms);
   auto keys_arent_bdry = invert_marks(keys_are_bdry);
   auto cavs_touch_bdry = land_each(cavs_are_bdry, keys_arent_bdry);
   auto touch_cavs2cavs = collect_marked(cavs_touch_bdry);
@@ -530,6 +532,30 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
           same_ents2new_ents, tagbase, new_elem_densities_w);
     }
   }
+  OpConservation op_conservation;
+  op_conservation.density.this_time[NOT_BDRY] = true;
+  op_conservation.density.this_time[TOUCH_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = false;
+  op_conservation.momentum.this_time[NOT_BDRY] = false;
+  op_conservation.momentum.this_time[TOUCH_BDRY] = false;
+  op_conservation.momentum.this_time[KEY_BDRY] = false;
+  transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
+      same_ents2old_ents, same_ents2new_ents, op_conservation);
+}
+
+void transfer_conserve_motion(Mesh* old_mesh, TransferOpts const& opts,
+    Mesh* new_mesh, LOs keys2verts, Graph keys2elems,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  if (!should_conserve_any(old_mesh, opts)) return;
+  auto keys2prods = keys2elems.a2ab;
+  auto prods2new_ents = keys2elems.ab2b;
+  auto init_cavs = form_initial_cavs(
+      old_mesh, new_mesh, VERT, keys2verts, keys2prods, prods2new_ents);
+  OMEGA_H_CHECK(init_cavs.keys2old_elems.a2ab == init_cavs.keys2new_elems.a2ab);
+  OMEGA_H_CHECK(init_cavs.keys2old_elems.ab2b == init_cavs.keys2new_elems.ab2b);
+  auto bdry_keys2doms = keys2elems;
+  auto cavs = separate_cavities(
+      old_mesh, new_mesh, init_cavs, VERT, keys2verts, &bdry_keys2doms);
   OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;

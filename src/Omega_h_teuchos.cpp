@@ -94,6 +94,9 @@ void update_transfer_opts(
     }
   }
   set_if_given(&opts->should_conserve_size, pl, "Conserve Size");
+  set_if_given(&opts->max_size_steps, pl, "Max Size Steps");
+  set_if_given(&opts->min_size_step_ratio, pl, "Min Size Step Ratio");
+  set_if_given(&opts->max_size_error_ratio, pl, "Max Size Error Ratio");
 }
 
 void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
@@ -125,8 +128,6 @@ void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
   set_if_given(&opts->should_smooth_snap, pl, "Smooth Snap");
   set_if_given(&opts->snap_smooth_tolerance, pl, "Snap Smooth Tolerance");
 #endif
-  set_if_given(&opts->max_motion_steps, pl, "Max Motion Steps");
-  set_if_given(&opts->motion_step_size, pl, "Motion Step Size");
   set_if_given(&opts->should_refine, pl, "Refine");
   set_if_given(&opts->should_coarsen, pl, "Coarsen");
   set_if_given(&opts->should_swap, pl, "Swap");

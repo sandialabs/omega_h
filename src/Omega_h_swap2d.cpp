@@ -47,7 +47,7 @@ static void swap2d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto new_mesh = mesh->copy_meta();
   new_mesh.set_verts(mesh->nverts());
   new_mesh.set_owners(VERT, mesh->ask_owners(VERT));
-  transfer_copy_swap(mesh, opts.xfer_opts, &new_mesh);
+  transfer_copy(mesh, opts.xfer_opts, &new_mesh, VERT);
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   swap2d_topology(mesh, keys2edges, &keys2prods, &prod_verts2verts);

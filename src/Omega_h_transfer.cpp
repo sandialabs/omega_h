@@ -558,11 +558,11 @@ static void transfer_copy_tmpl(
   new_mesh->add_tag(prod_dim, name, ncomps, old_data, true);
 }
 
-void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
-    std::function<bool(TagBase const*)> filter) {
+void transfer_copy(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
+    Int prod_dim) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
-    if (filter(tagbase)) {
+    if (should_transfer_copy(old_mesh, opts, prod_dim, tagbase)) {
       switch (tagbase->type()) {
         case OMEGA_H_I8:
           transfer_copy_tmpl<I8>(new_mesh, prod_dim, tagbase);
@@ -579,21 +579,6 @@ void transfer_copy(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
       }
     }
   }
-}
-
-void transfer_copy_swap(
-    Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh) {
-  transfer_copy(old_mesh, new_mesh, VERT, [=](TagBase const* tb) -> bool {
-    return should_transfer_copy(old_mesh, opts, VERT, tb);
-  });
-}
-
-void transfer_copy_motion(
-    Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh, Int prod_dim) {
-  transfer_copy(old_mesh, new_mesh, prod_dim, [=](TagBase const* tb) -> bool {
-    return should_inherit(old_mesh, opts, prod_dim, tb) ||
-           tb->name() == "global";
-  });
 }
 
 template <typename T>
@@ -662,6 +647,37 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_conserve_swap(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+  }
+  auto t1 = now();
+  add_to_global_timer("transferring", t1 - t0);
+}
+
+void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
+    Bytes verts_are_keys, LOs keys2verts, Int prod_dim) {
+  auto t0 = now();
+  transfer_copy(old_mesh, opts, new_mesh, prod_dim);
+  if (prod_dim == EDGE) {
+    auto edges_did_move = mark_up(new_mesh, VERT, EDGE, verts_are_keys);
+    auto edges_didnt_move = invert_marks(edges_did_move);
+    auto same_edges2edges = collect_marked(edges_didnt_move);
+    auto new_edges2edges = collect_marked(edges_did_move);
+    transfer_length(
+        old_mesh, new_mesh, same_edges2edges, same_edges2edges, new_edges2edges);
+  }
+  if (prod_dim == old_mesh->dim()) {
+    /* stuff from old motion */
+    auto verts2elems = old_mesh->ask_graph(VERT, old_mesh->dim());
+    auto keys2elems = unmap_graph(keys2verts, verts2elems);
+    auto moved_elems2elems = keys2elems.ab2b;
+    auto elems_did_move = mark_image(moved_elems2elems, old_mesh->nelems());
+    auto elems_didnt_move = invert_marks(elems_did_move);
+    auto same_elems2elems = collect_marked(elems_didnt_move);
+    transfer_size(
+        old_mesh, new_mesh, same_elems2elems, same_elems2elems, moved_elems2elems);
+    transfer_quality(
+        old_mesh, new_mesh, same_elems2elems, same_elems2elems, moved_elems2elems);
+    transfer_conserve_motion(old_mesh, opts, new_mesh, keys2verts, keys2elems,
+        same_elems2elems, same_elems2elems);
   }
   auto t1 = now();
   add_to_global_timer("transferring", t1 - t0);

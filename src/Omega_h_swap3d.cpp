@@ -53,7 +53,7 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
   auto new_mesh = mesh->copy_meta();
   new_mesh.set_verts(mesh->nverts());
   new_mesh.set_owners(VERT, mesh->ask_owners(VERT));
-  transfer_copy_swap(mesh, opts.xfer_opts, &new_mesh);
+  transfer_copy(mesh, opts.xfer_opts, &new_mesh, VERT);
   auto keys2prods = swap3d_keys_to_prods(mesh, keys2edges);
   auto prod_verts2verts =
       swap3d_topology(mesh, keys2edges, edges_configs, keys2prods);
