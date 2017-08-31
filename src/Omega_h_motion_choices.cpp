@@ -38,7 +38,6 @@ MotionChoices motion_choices_tmpl(
     auto new_x = old_x;
     bool did_move = false;
     Real new_qual;
-    Real debug_total_rel_error = -1.0;
     Real max_rl = 0.0;
     for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
       auto e = v2e.ab2b[ve];
@@ -55,8 +54,6 @@ MotionChoices motion_choices_tmpl(
       bool obj_converged = true;
       bool quality_ok = true;
       new_qual = 1.0;
-      Real debug_total_tmp_error = 0.0;
-      Real debug_total_tmp_size = 0.0;
       for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
         auto k = v2k.ab2b[vk];
         auto vk_code = v2k.codes[vk];
@@ -66,11 +63,9 @@ MotionChoices motion_choices_tmpl(
         kkv2nx[kkv_c] = new_x;
         auto k_basis = simplex_basis<mesh_dim, mesh_dim>(kkv2nx);
         auto k_tmp_size = element_size(k_basis);
-        debug_total_tmp_size += k_tmp_size;
         auto k_size_grad = get_size_gradient(kkv2nx, kkv_c);
         auto k_size_diff = k_tmp_size - orig_sizes[k];
         auto k_tmp_error = size_errors[k] + k_size_diff;
-        debug_total_tmp_error += std::fabs(k_tmp_error);
         auto k_tmp_rel_error = std::fabs(k_tmp_error / k_tmp_size);
         if (k_tmp_rel_error > max_rel_error) {
           obj_converged = false;
@@ -115,7 +110,6 @@ MotionChoices motion_choices_tmpl(
       } else {
         /* either no prior step exists, or the prior step both reduced
            the objective (good) and created acceptable quality elements */
-        debug_total_rel_error = debug_total_tmp_error / debug_total_tmp_size;
         if (step) did_move = true;
         if (obj_converged || step == max_steps) {
           /* either we've solved the problem or we're out of time.
