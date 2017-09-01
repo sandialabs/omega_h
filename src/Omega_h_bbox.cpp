@@ -28,7 +28,7 @@ struct BBoxFunctor {
 template <Int dim>
 BBox<dim> find_bounding_box(Reals coords) {
   auto npts = divide_no_remainder(coords.size(), dim);
-  return parallel_reduce(npts, BBoxFunctor<dim>(coords));
+  return parallel_reduce(npts, BBoxFunctor<dim>(coords), "find_bounding_box");
 }
 
 template BBox<1> find_bounding_box<1>(Reals coords);
