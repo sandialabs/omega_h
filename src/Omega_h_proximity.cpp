@@ -1,38 +1,34 @@
 #include "Omega_h_proximity.hpp"
 
-#include "Omega_h_array_ops.hpp"
-#include "Omega_h_confined.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_metric.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 
 template <Int dim>
-static Reals get_edge_pad_isos(
-    Mesh* mesh, Real factor, Read<I8> edges_are_bridges) {
+static Reals get_edge_pad_dists(
+    Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto edges2verts = mesh->ask_verts_of(EDGE);
-  auto out = Write<Real>(mesh->nedges(), 0.0);
+  auto out = Write<Real>(mesh->nedges(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO edge) {
     if (!edges_are_bridges[edge]) return;
     auto eev2v = gather_verts<2>(edges2verts, edge);
     auto eev2x = gather_vectors<2, dim>(coords, eev2v);
-    auto h = norm(eev2x[1] - eev2x[0]) * factor;
-    out[edge] = metric_eigenvalue_from_length(h);
+    auto h = norm(eev2x[1] - eev2x[0]);
+    out[edge] = h;
   };
   parallel_for(mesh->nedges(), f);
   return out;
 }
 
 template <Int dim>
-static Reals get_tri_pad_isos(
-    Mesh* mesh, Real factor, Read<I8> edges_are_bridges) {
+static Reals get_tri_pad_dists(
+    Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
-  auto out = Write<Real>(mesh->ntris(), 0.0);
+  auto out = Write<Real>(mesh->ntris(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_verts<3>(tris2verts, tri);
     auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
@@ -50,20 +46,20 @@ static Reals get_tri_pad_isos(
       auto d = oa - proj;
       auto lambda = ((ab * d) - (ab * oa)) / nabsq;
       if (!((0 <= lambda) && (lambda <= 1.0))) continue;
-      auto h = norm(d) * factor;
-      out[tri] = metric_eigenvalue_from_length(h);
+      auto h = norm(d);
+      out[tri] = h;
     }
   };
   parallel_for(mesh->ntris(), f);
   return out;
 }
 
-static Reals get_tet_pad_isos(
-    Mesh* mesh, Real factor, Read<I8> edges_are_bridges) {
+static Reals get_tet_pad_dists(
+    Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tets2verts = mesh->ask_verts_of(TET);
   auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
-  auto out = Write<Real>(mesh->ntets(), 0.0);
+  auto out = Write<Real>(mesh->ntets(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO tet) {
     auto ttv2v = gather_verts<4>(tets2verts, tet);
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
@@ -96,11 +92,11 @@ static Reals get_tet_pad_isos(
                     0)) {
           break;
         }
-        out[tet] = metric_eigenvalue_from_length(h);
+        out[tet] = h;
         return;  // edge-edge implies no plane-vertex
       }
     }
-    Real l = 0;  // multiple vertex-planes may occur
+    Real h = ArithTraits<Real>::max();  // multiple vertex-planes may occur
     for (Int ttv = 0; ttv < 4; ++ttv) {
       Few<Int, 3> vve2tte;
       Few<Int, 3> vve2wd;
@@ -134,48 +130,36 @@ static Reals get_tet_pad_isos(
       auto ad = od - oa;
       auto xi = form_barycentric(inv_basis * ad);
       if (!is_barycentric_inside(xi)) continue;
-      auto h = norm(od) * factor;
-      l = max2(l, metric_eigenvalue_from_length(h));
+      auto this_h = norm(od);
+      h = min2(h, this_h);
     }
-    out[tet] = l;
+    if (h == ArithTraits<Real>::max()) h = -1.0;
+    out[tet] = h;
   };
   parallel_for(mesh->ntets(), f);
   return out;
 }
 
-Reals get_pad_isos(
-    Mesh* mesh, Int pad_dim, Real factor, Read<I8> edges_are_bridges) {
+Reals get_pad_dists(
+    Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
   if (pad_dim == EDGE) {
-    if (mesh->dim() == 3)
-      return get_edge_pad_isos<3>(mesh, factor, edges_are_bridges);
-    if (mesh->dim() == 2)
-      return get_edge_pad_isos<2>(mesh, factor, edges_are_bridges);
+    if (mesh->dim() == 3) {
+      return get_edge_pad_dists<3>(mesh, edges_are_bridges);
+    } else if (mesh->dim() == 2) {
+      return get_edge_pad_dists<2>(mesh, edges_are_bridges);
+    } else if (mesh->dim() == 1) {
+      return get_edge_pad_dists<1>(mesh, edges_are_bridges);
+    }
   } else if (pad_dim == TRI) {
-    if (mesh->dim() == 3)
-      return get_tri_pad_isos<3>(mesh, factor, edges_are_bridges);
-    if (mesh->dim() == 2)
-      return get_tri_pad_isos<2>(mesh, factor, edges_are_bridges);
+    if (mesh->dim() == 3) {
+      return get_tri_pad_dists<3>(mesh, edges_are_bridges);
+    } else if (mesh->dim() == 2) {
+      return get_tri_pad_dists<2>(mesh, edges_are_bridges);
+    }
   } else if (pad_dim == TET) {
-    return get_tet_pad_isos(mesh, factor, edges_are_bridges);
+    return get_tet_pad_dists(mesh, edges_are_bridges);
   }
   OMEGA_H_NORETURN(Reals());
 }
 
-Reals get_proximity_isos(Mesh* mesh, Real factor) {
-  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
-  auto edges_are_bridges = find_bridge_edges(mesh);
-  auto verts_are_bridged = mark_down(mesh, EDGE, VERT, edges_are_bridges);
-  auto bridged_verts = collect_marked(verts_are_bridged);
-  auto nbv = bridged_verts.size();
-  auto bv2m = Reals(nbv, 0.0);
-  for (Int pad_dim = EDGE; pad_dim <= mesh->dim(); ++pad_dim) {
-    auto v2p = mesh->ask_graph(VERT, pad_dim);
-    auto bv2p = unmap_graph(bridged_verts, v2p);
-    auto p2m = get_pad_isos(mesh, pad_dim, factor, edges_are_bridges);
-    auto bv2m_tmp = graph_reduce(bv2p, p2m, 1, OMEGA_H_MAX);
-    bv2m = max_each(bv2m, bv2m_tmp);
-  }
-  auto v2m = map_onto(bv2m, bridged_verts, mesh->nverts(), 0.0, 1);
-  return mesh->sync_array(VERT, v2m, 1);
-}
 }  // namespace Omega_h
