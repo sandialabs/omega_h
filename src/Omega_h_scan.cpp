@@ -21,7 +21,7 @@ template <typename T>
 LOs offset_scan(Read<T> a) {
   Write<LO> out(a.size() + 1);
   out.set(0, 0);
-  parallel_scan(a.size(), ExclScan<T>(a, out));
+  parallel_scan(a.size(), ExclScan<T>(a, out), "offset_scan");
   return out;
 }
 
@@ -39,6 +39,6 @@ struct FillRight : public MaxFunctor<I64> {
   }
 };
 
-void fill_right(Write<LO> a) { parallel_scan(a.size(), FillRight(a)); }
+void fill_right(Write<LO> a) { parallel_scan(a.size(), FillRight(a), "fill_right"); }
 
 }  // end namespace Omega_h

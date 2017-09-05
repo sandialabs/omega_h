@@ -56,6 +56,7 @@ struct CompareKeySets {
 
 template <Int N, typename T>
 static LOs sort_by_keys_tmpl(Read<T> keys) {
+  begin_code("sort_by_keys");
   auto n = divide_no_remainder(keys.size(), N);
   Write<LO> perm(n, 0, 1);
   LO* begin = perm.data();
@@ -63,6 +64,7 @@ static LOs sort_by_keys_tmpl(Read<T> keys) {
   T const* keyptr = keys.data();
   parallel_sort<LO, CompareKeySets<T, N>>(
       begin, end, CompareKeySets<T, N>(keyptr));
+  end_code();
   return perm;
 }
 

@@ -17,7 +17,7 @@ struct SameContent : public AndFunctor {
 template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
-  return parallel_reduce(a.size(), SameContent<T>(a, b));
+  return parallel_reduce(a.size(), SameContent<T>(a, b), "operator==");
 }
 
 template <typename T>
@@ -32,7 +32,7 @@ struct Sum : public SumFunctor<T> {
 
 template <typename T>
 typename StandinTraits<T>::type get_sum(Read<T> a) {
-  return parallel_reduce(a.size(), Sum<T>(a));
+  return parallel_reduce(a.size(), Sum<T>(a), "get_sum");
 }
 
 template <typename T>
@@ -52,7 +52,7 @@ struct Min : public MinFunctor<T> {
 
 template <typename T>
 T get_min(Read<T> a) {
-  auto r = parallel_reduce(a.size(), Min<T>(a));
+  auto r = parallel_reduce(a.size(), Min<T>(a), "get_min");
   return static_cast<T>(r);  // see StandinTraits
 }
 
@@ -68,7 +68,7 @@ struct Max : public MaxFunctor<T> {
 
 template <typename T>
 T get_max(Read<T> a) {
-  auto r = parallel_reduce(a.size(), Max<T>(a));
+  auto r = parallel_reduce(a.size(), Max<T>(a), "get_max");
   return static_cast<T>(r);  // see StandinTraits
 }
 
@@ -101,8 +101,9 @@ struct AreClose : public AndFunctor {
 
 bool are_close(Reals a, Reals b, Real tol, Real floor) {
   OMEGA_H_CHECK(a.size() == b.size());
-  return static_cast<bool>(
-      parallel_reduce(a.size(), AreClose(a, b, tol, floor)));
+  auto f = AreClose(a, b, tol, floor);
+  auto res = parallel_reduce(a.size(), f, "are_close");
+  return static_cast<bool>(res);
 }
 
 struct AreCloseAbs : public AndFunctor {
@@ -117,7 +118,9 @@ struct AreCloseAbs : public AndFunctor {
 
 bool are_close_abs(Reals a, Reals b, Real tol) {
   OMEGA_H_CHECK(a.size() == b.size());
-  return static_cast<bool>(parallel_reduce(a.size(), AreCloseAbs(a, b, tol)));
+  auto f = AreCloseAbs(a, b, tol);
+  auto res = parallel_reduce(a.size(), f, "are_close_abs");
+  return static_cast<bool>(res);
 }
 
 template <typename T>
@@ -431,8 +434,9 @@ struct FindLast : public MaxFunctor<LO> {
 
 template <typename T>
 LO find_last(Read<T> array, T value) {
-  return static_cast<LO>(
-      parallel_reduce(array.size(), FindLast<T>(array, value)));
+  auto f = FindLast<T>(array, value);
+  auto res = parallel_reduce(array.size(), f, "find_last");
+  return static_cast<LO>(res);
 }
 
 template <typename T>
@@ -447,7 +451,7 @@ struct IsSorted : public AndFunctor {
 template <typename T>
 bool is_sorted(Read<T> a) {
   if (a.size() < 2) return true;
-  return parallel_reduce(a.size() - 1, IsSorted<T>(a));
+  return parallel_reduce(a.size() - 1, IsSorted<T>(a), "is_sorted");
 }
 
 template <typename T>
@@ -507,7 +511,8 @@ struct MaxExponent : public MaxFunctor<int> {
 };
 
 static int max_exponent(Reals a) {
-  return static_cast<int>(parallel_reduce(a.size(), MaxExponent(a)));
+  auto res = parallel_reduce(a.size(), MaxExponent(a), "max_exponent");
+  return static_cast<int>(res);
 }
 
 struct ReproSum : public SumFunctor<Int128> {
@@ -520,17 +525,21 @@ struct ReproSum : public SumFunctor<Int128> {
 };
 
 Real repro_sum(Reals a) {
+  begin_code("repro_sum");
   int expo = max_exponent(a);
   double unit = exp2(double(expo - MANTISSA_BITS));
-  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit));
+  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit), "fixpt_sum");
+  end_code();
   return fixpt_sum.to_double(unit);
 }
 
 Real repro_sum(CommPtr comm, Reals a) {
+  begin_code("repro_sum(comm)");
   int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
   double unit = exp2(double(expo - MANTISSA_BITS));
-  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit));
+  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit), "fixpt_sum");
   fixpt_sum = comm->add_int128(fixpt_sum);
+  end_code();
   return fixpt_sum.to_double(unit);
 }
 
