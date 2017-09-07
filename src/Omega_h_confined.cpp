@@ -10,7 +10,7 @@
 
 namespace Omega_h {
 
-Read<I8> find_bridge_edges(Mesh* mesh) {
+Bytes find_bridge_edges(Mesh* mesh) {
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto edges_are_bridges_w = Write<I8>(mesh->nedges());
@@ -37,7 +37,7 @@ static OMEGA_H_DEVICE bool is_angle_triangle(
   return false;
 }
 
-Read<I8> find_angle_triangles(Mesh* mesh) {
+Bytes find_angle_triangles(Mesh* mesh) {
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto tris2class_dim = mesh->get_array<I8>(TRI, "class_dim");
@@ -56,7 +56,7 @@ Read<I8> find_angle_triangles(Mesh* mesh) {
   return tris_are_angle;
 }
 
-Read<I8> find_angle_elems(Mesh* mesh) {
+Bytes find_angle_elems(Mesh* mesh) {
   auto tris_are_angle = find_angle_triangles(mesh);
   if (mesh->dim() == 2) return tris_are_angle;
   if (mesh->dim() == 3) return mark_up(mesh, TRI, TET, tris_are_angle);
