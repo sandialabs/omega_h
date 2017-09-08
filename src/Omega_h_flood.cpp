@@ -98,9 +98,18 @@ void flood_element_variables(Mesh* mesh,
     auto f = OMEGA_H_LAMBDA(LO e) {
       if (!elems_should_flood[e]) return;
       auto flood_class_id = elem_flood_class_ids[e];
+      // once a flood material has been selected for an element,
+      // it cannot be changed.
+      // this will allow multiple flood fronts to advance in from
+      // different boundaries and stop when they meet in the middle,
+      // rather than forcing one material to fill the entire region.
+      // certain whiteboard musings suggest that this will prevent
+      // flip/flop livelock when two thin regions are trapped between objects.
+      if (flood_class_id != -1) return;
+      // however, we will accumulate all contributions across sides in
+      // an associative way, to ensure the algorithm produces the
+      // same answer regardless of element-local side ordering.
       auto flood_density = elem_flood_densities[e];
-      auto class_id = elem_class_ids[e];
-      auto density = elem_densities[e];
       for (Int ees = 0; ees < (dim + 1); ++ees) {
         auto s = e2s.ab2b[e * (dim + 1) + ees];
         // detect inter-material boundaries in the original model,
@@ -112,19 +121,19 @@ void flood_element_variables(Mesh* mesh,
           auto oe = s2e.ab2b[se];
           if (oe == e) continue;
           auto oe_should_flood = elems_should_flood[oe];
-          auto oe_flood_class_id = elem_flood_class_ids[oe];
-          auto oe_flood_density = elem_flood_densities[oe];
-          auto oe_class_id = elem_class_ids[oe];
-          auto oe_density = elem_densities[oe];
           // if the other element is across an old material boundary,
           // and the element on the other side is NOT part of another
           // flood region
           if (is_different_region && (!oe_should_flood)) {
+            auto oe_class_id = elem_class_ids[oe];
+            auto oe_density = elem_densities[oe];
             // we are allowed to start new flooding into the current flood
             // region from this other (original) material region
             flood_update(flood_class_id, flood_density,
                 oe_class_id, oe_density);
           } else {
+            auto oe_flood_class_id = elem_flood_class_ids[oe];
+            auto oe_flood_density = elem_flood_densities[oe];
             // we are allowed to continue active flooding into the current
             // element
             flood_update(flood_class_id, flood_density,
