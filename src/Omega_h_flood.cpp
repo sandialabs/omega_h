@@ -1,3 +1,5 @@
+#include "Omega_h_flood.hpp"
+
 #include "Omega_h_confined.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_adapt.hpp"
@@ -32,7 +34,7 @@ Bytes mark_flood_seeds(Mesh* mesh, AdaptOpts const& opts,
 
 Bytes mark_seeded_flood_zones(Mesh* mesh, Bytes elems_can_flood, Bytes elems_are_seeded) {
   OMEGA_H_CHECK(elems_can_flood.size() == mesh->nelems());
-  OMEGA_H_CHECK(marks.size() == mesh->nelems());
+  OMEGA_H_CHECK(elems_are_seeded.size() == mesh->nelems());
   auto dim = mesh->dim();
   auto e2s = mesh->ask_down(dim, dim - 1);
   auto s2e = mesh->ask_up(dim - 1, dim);
@@ -50,7 +52,7 @@ Bytes mark_seeded_flood_zones(Mesh* mesh, Bytes elems_can_flood, Bytes elems_are
           auto oe = s2e.ab2b[se];
           if (oe == e) continue;
           if (!elems_can_flood[oe]) continue;
-          if (marks[oe]) {
+          if (elems_are_seeded[oe]) {
             elems_are_seeded_w[e] = Byte(1);
           }
         }
@@ -85,13 +87,14 @@ void flood_element_variables(Mesh* mesh,
     Read<I32>* p_elem_flood_class_ids,
     Reals* p_elem_flood_densities) {
   auto dim = mesh->dim();
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(dim - 1));
   auto elem_class_ids = mesh->get_array<I32>(dim, "class_id");
   auto e2s = mesh->ask_down(dim, dim - 1);
   auto s2e = mesh->ask_up(dim - 1, dim);
   auto side_class_dims = mesh->get_array<I8>(dim - 1, "class_dim");
   // initially, no material is able to flood
   auto elem_flood_class_ids = Read<I32>(mesh->nelems(), I32(-1));
-  auto elem_flood_densities = Reals(mesh->nelems(), ArithTraits<Reala>::max());
+  auto elem_flood_densities = Reals(mesh->nelems(), ArithTraits<Real>::max());
   while (true) {
     auto elem_flood_class_ids_w = deep_copy(elem_flood_class_ids);
     auto elem_flood_densities_w = deep_copy(elem_flood_densities);
@@ -144,7 +147,7 @@ void flood_element_variables(Mesh* mesh,
     };
     parallel_for(mesh->nelems(), f);
     auto new_elem_flood_class_ids = Read<I32>(elem_flood_class_ids_w);
-    auto new_elem_flood_densities = Read<I32>(elem_flood_densities_w);
+    auto new_elem_flood_densities = Reals(elem_flood_densities_w);
     new_elem_flood_class_ids = mesh->sync_array(dim, new_elem_flood_class_ids, 1);
     new_elem_flood_densities = mesh->sync_array(dim, new_elem_flood_densities, 1);
     if (new_elem_flood_class_ids == elem_flood_class_ids &&
@@ -157,3 +160,5 @@ void flood_element_variables(Mesh* mesh,
   *p_elem_flood_class_ids = elem_flood_class_ids;
   *p_elem_flood_densities = elem_flood_densities;
 }
+
+}  // end namespace Omega_h

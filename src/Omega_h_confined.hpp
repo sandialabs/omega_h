@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_CONFINED_HPP
 #define OMEGA_H_CONFINED_HPP
 
-#include "Omega_h_defines.hpp"
+#include "Omega_h_array.hpp"
 
 namespace Omega_h {
 

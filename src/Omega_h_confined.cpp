@@ -1,5 +1,9 @@
 #include "Omega_h_confined.hpp"
 
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_mark.hpp"
+
 /* Code to find classification-enforced constraints on
  * element size and shape.
  * For example, two geometric boundaries may be so close
