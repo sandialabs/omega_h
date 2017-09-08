@@ -544,8 +544,8 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
 }
 
 void transfer_conserve_motion(Mesh* old_mesh, TransferOpts const& opts,
-    Mesh* new_mesh, LOs keys2verts, Graph keys2elems,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    Mesh* new_mesh, LOs keys2verts, Graph keys2elems, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
   auto keys2prods = keys2elems.a2ab;
   auto prods2new_ents = keys2elems.ab2b;

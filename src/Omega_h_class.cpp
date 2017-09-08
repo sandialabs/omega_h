@@ -125,7 +125,8 @@ void project_classification(
         }
       }
     }
-    if ((nadj != 2 && best_dim == ent_dim + 1) || (nadj < 2 && best_dim > ent_dim + 1)) {
+    if ((nadj != 2 && best_dim == ent_dim + 1) ||
+        (nadj < 2 && best_dim > ent_dim + 1)) {
       best_dim = ent_dim;
       best_id = -1;
     }
@@ -138,10 +139,12 @@ void project_classification(
 void finalize_classification(Mesh* mesh) {
   bool had_ids = has_any_ids(mesh);
   for (Int ent_dim = mesh->dim(); ent_dim >= VERT; --ent_dim) {
-    auto class_dim =
-        copy_and_remove_or_default<I8>(mesh, ent_dim, "class_dim", I8(mesh->dim()));
-    auto class_id = copy_and_remove_or_default<ClassId>(mesh, ent_dim, "class_id", -1);
-    if (ent_dim < mesh->dim()) project_classification(mesh, ent_dim, class_dim, class_id);
+    auto class_dim = copy_and_remove_or_default<I8>(
+        mesh, ent_dim, "class_dim", I8(mesh->dim()));
+    auto class_id =
+        copy_and_remove_or_default<ClassId>(mesh, ent_dim, "class_id", -1);
+    if (ent_dim < mesh->dim())
+      project_classification(mesh, ent_dim, class_dim, class_id);
     mesh->add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
     mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_id);
   }

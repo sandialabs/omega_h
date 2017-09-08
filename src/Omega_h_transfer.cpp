@@ -558,8 +558,8 @@ static void transfer_copy_tmpl(
   new_mesh->add_tag(prod_dim, name, ncomps, old_data, true);
 }
 
-void transfer_copy(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
-    Int prod_dim) {
+void transfer_copy(
+    Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh, Int prod_dim) {
   for (Int i = 0; i < old_mesh->ntags(prod_dim); ++i) {
     auto tagbase = old_mesh->get_tag(prod_dim, i);
     if (should_transfer_copy(old_mesh, opts, prod_dim, tagbase)) {
@@ -661,8 +661,8 @@ void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     auto edges_didnt_move = invert_marks(edges_did_move);
     auto same_edges2edges = collect_marked(edges_didnt_move);
     auto new_edges2edges = collect_marked(edges_did_move);
-    transfer_length(
-        old_mesh, new_mesh, same_edges2edges, same_edges2edges, new_edges2edges);
+    transfer_length(old_mesh, new_mesh, same_edges2edges, same_edges2edges,
+        new_edges2edges);
   }
   if (prod_dim == old_mesh->dim()) {
     /* stuff from old motion */
@@ -672,10 +672,10 @@ void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     auto elems_did_move = mark_image(moved_elems2elems, old_mesh->nelems());
     auto elems_didnt_move = invert_marks(elems_did_move);
     auto same_elems2elems = collect_marked(elems_didnt_move);
-    transfer_size(
-        old_mesh, new_mesh, same_elems2elems, same_elems2elems, moved_elems2elems);
-    transfer_quality(
-        old_mesh, new_mesh, same_elems2elems, same_elems2elems, moved_elems2elems);
+    transfer_size(old_mesh, new_mesh, same_elems2elems, same_elems2elems,
+        moved_elems2elems);
+    transfer_quality(old_mesh, new_mesh, same_elems2elems, same_elems2elems,
+        moved_elems2elems);
     transfer_conserve_motion(old_mesh, opts, new_mesh, keys2verts, keys2elems,
         same_elems2elems, same_elems2elems);
   }

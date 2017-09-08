@@ -240,10 +240,10 @@ static void post_adapt(
 
 static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.xfer_opts.should_conserve_size) {
-  //vtk::Writer writer("motion", mesh);
-  //writer.write();
+    // vtk::Writer writer("motion", mesh);
+    // writer.write();
     while (move_verts_to_conserve_size(mesh, opts)) {
-    //writer.write();
+      // writer.write();
       post_rebuild(mesh, opts);
     }
   }

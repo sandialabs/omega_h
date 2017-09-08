@@ -39,6 +39,8 @@ struct FillRight : public MaxFunctor<I64> {
   }
 };
 
-void fill_right(Write<LO> a) { parallel_scan(a.size(), FillRight(a), "fill_right"); }
+void fill_right(Write<LO> a) {
+  parallel_scan(a.size(), FillRight(a), "fill_right");
+}
 
 }  // end namespace Omega_h

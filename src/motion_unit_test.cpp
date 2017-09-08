@@ -8,7 +8,8 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto mesh = Mesh(&lib);
   build_box_internal(&mesh, 1.0, 1.0, 0.0, 2, 2, 0);
-  mesh.add_tag(mesh.dim(), "size_error", 1, Read<Real>(mesh.nelems(), -0.1, 0.2 / 7.0));
+  mesh.add_tag(
+      mesh.dim(), "size_error", 1, Read<Real>(mesh.nelems(), -0.1, 0.2 / 7.0));
   add_implied_metric_tag(&mesh);
   vtk::write_vtu("before.vtu", &mesh);
   auto opts = AdaptOpts(&mesh);

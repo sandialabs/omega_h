@@ -1,8 +1,8 @@
 #include "Omega_h_confined.hpp"
 
-#include "Omega_h_mesh.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mark.hpp"
+#include "Omega_h_mesh.hpp"
 
 /* Code to find classification-enforced constraints on
  * element size and shape.

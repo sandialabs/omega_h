@@ -1,11 +1,11 @@
 #include "Omega_h_flood.hpp"
 
-#include "Omega_h_confined.hpp"
-#include "Omega_h_mesh.hpp"
 #include "Omega_h_adapt.hpp"
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_loop.hpp"
 #include "Omega_h_class.hpp"
+#include "Omega_h_confined.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 
@@ -19,8 +19,8 @@ Bytes mark_floodable_elements(Mesh* mesh) {
   return elems_can_flood;
 }
 
-Bytes mark_flood_seeds(Mesh* mesh, AdaptOpts const& opts,
-    Bytes elems_can_flood) {
+Bytes mark_flood_seeds(
+    Mesh* mesh, AdaptOpts const& opts, Bytes elems_can_flood) {
   auto elem_quals = mesh->ask_qualities();
   /* I had thoughts of using much more complex criteria such as for pads
      comparing their distance to the minimum allowed edge length and for
@@ -33,7 +33,8 @@ Bytes mark_flood_seeds(Mesh* mesh, AdaptOpts const& opts,
   return land_each(elems_can_flood, elems_are_lowqual);
 }
 
-Bytes mark_seeded_flood_zones(Mesh* mesh, Bytes elems_can_flood, Bytes elems_are_seeded) {
+Bytes mark_seeded_flood_zones(
+    Mesh* mesh, Bytes elems_can_flood, Bytes elems_are_seeded) {
   OMEGA_H_CHECK(elems_can_flood.size() == mesh->nelems());
   OMEGA_H_CHECK(elems_are_seeded.size() == mesh->nelems());
   auto dim = mesh->dim();
@@ -68,24 +69,18 @@ Bytes mark_seeded_flood_zones(Mesh* mesh, Bytes elems_can_flood, Bytes elems_are
   return elems_are_seeded;
 }
 
-static
-OMEGA_H_INLINE
-void flood_update(I32& my_class_id, Real& my_density,
+static OMEGA_H_INLINE void flood_update(I32& my_class_id, Real& my_density,
     I32 other_class_id, Real other_density) {
   if (other_class_id >= 0 &&
-      (my_class_id == -1 ||
-       other_density < my_density ||
-       (other_density == my_density &&
-        other_class_id < my_class_id))) {
+      (my_class_id == -1 || other_density < my_density ||
+          (other_density == my_density && other_class_id < my_class_id))) {
     my_class_id = other_class_id;
     my_density = other_density;
   }
 }
 
-void flood_element_variables(Mesh* mesh, 
-    Bytes elems_should_flood,
-    Reals elem_densities,
-    Read<I32>* p_elem_flood_class_ids,
+void flood_element_variables(Mesh* mesh, Bytes elems_should_flood,
+    Reals elem_densities, Read<I32>* p_elem_flood_class_ids,
     Reals* p_elem_flood_densities) {
   auto dim = mesh->dim();
   OMEGA_H_CHECK(mesh->owners_have_all_upward(dim - 1));
@@ -133,15 +128,15 @@ void flood_element_variables(Mesh* mesh,
             auto oe_density = elem_densities[oe];
             // we are allowed to start new flooding into the current flood
             // region from this other (original) material region
-            flood_update(flood_class_id, flood_density,
-                oe_class_id, oe_density);
+            flood_update(
+                flood_class_id, flood_density, oe_class_id, oe_density);
           } else {
             auto oe_flood_class_id = elem_flood_class_ids[oe];
             auto oe_flood_density = elem_flood_densities[oe];
             // we are allowed to continue active flooding into the current
             // element
-            flood_update(flood_class_id, flood_density,
-                oe_flood_class_id, oe_flood_density);
+            flood_update(flood_class_id, flood_density, oe_flood_class_id,
+                oe_flood_density);
           }
         }
       }
@@ -151,8 +146,10 @@ void flood_element_variables(Mesh* mesh,
     parallel_for(mesh->nelems(), f);
     auto new_elem_flood_class_ids = Read<I32>(elem_flood_class_ids_w);
     auto new_elem_flood_densities = Reals(elem_flood_densities_w);
-    new_elem_flood_class_ids = mesh->sync_array(dim, new_elem_flood_class_ids, 1);
-    new_elem_flood_densities = mesh->sync_array(dim, new_elem_flood_densities, 1);
+    new_elem_flood_class_ids =
+        mesh->sync_array(dim, new_elem_flood_class_ids, 1);
+    new_elem_flood_densities =
+        mesh->sync_array(dim, new_elem_flood_densities, 1);
     if (new_elem_flood_class_ids == elem_flood_class_ids &&
         new_elem_flood_densities == elem_flood_densities) {
       break;

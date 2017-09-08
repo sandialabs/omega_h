@@ -44,8 +44,8 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
 void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     Bytes verts_are_keys, LOs keys2verts, Int prod_dim);
 
-void transfer_copy(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
-    Int prod_dim);
+void transfer_copy(
+    Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh, Int prod_dim);
 
 template <typename T>
 void transfer_common3(

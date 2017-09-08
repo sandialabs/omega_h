@@ -6,8 +6,7 @@
 namespace Omega_h {
 
 template <Int dim>
-static Reals get_edge_pad_dists(
-    Mesh* mesh, Read<I8> edges_are_bridges) {
+static Reals get_edge_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto out = Write<Real>(mesh->nedges(), -1.0);
@@ -23,8 +22,7 @@ static Reals get_edge_pad_dists(
 }
 
 template <Int dim>
-static Reals get_tri_pad_dists(
-    Mesh* mesh, Read<I8> edges_are_bridges) {
+static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(TRI);
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
@@ -54,8 +52,7 @@ static Reals get_tri_pad_dists(
   return out;
 }
 
-static Reals get_tet_pad_dists(
-    Mesh* mesh, Read<I8> edges_are_bridges) {
+static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tets2verts = mesh->ask_verts_of(TET);
   auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
@@ -140,8 +137,7 @@ static Reals get_tet_pad_dists(
   return out;
 }
 
-Reals get_pad_dists(
-    Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
+Reals get_pad_dists(Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
   if (pad_dim == EDGE) {
     if (mesh->dim() == 3) {
       return get_edge_pad_dists<3>(mesh, edges_are_bridges);
