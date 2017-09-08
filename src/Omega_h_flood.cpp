@@ -206,4 +206,30 @@ void flood_class_ids(Mesh* mesh, Int ent_dim) {
   mesh->set_tag(ent_dim, "class_id", class_ids);
 }
 
+void flood_classification(Mesh* mesh, Bytes elems_did_flood) {
+  auto dim = mesh->dim();
+  for (Int ent_dim = VERT; ent_dim < dim; ++ent_dim) {
+    auto ents_in_flood_closure = mark_down(mesh, dim, ent_dim, elems_did_flood);
+    auto class_ids_w = deep_copy(mesh->get_array<ClassId>(ent_dim, "class_id"));
+    auto class_dims_w = deep_copy(mesh->get_array<I8>(ent_dim, "class_dim"));
+    auto f = OMEGA_H_LAMBDA(LO i) {
+      if (ents_in_flood_closure[i]) {
+        class_ids_w[i] = -1;
+        class_dims_w[i] = dim;
+      }
+    };
+    parallel_for(mesh->nents(ent_dim), f);
+    mesh->set_tag(ent_dim, "class_id", class_id_w);
+    mesh->set_tag(ent_dim, "class_dim", class_dims_w);
+  }
+  for (Int ent_dim = dim - 1; ent_dim >= VERT; --ent_dim) {
+    auto class_ids_w = deep_copy(mesh->get_array<ClassId>(ent_dim, "class_id"));
+    auto class_dims_w = deep_copy(mesh->get_array<I8>(ent_dim, "class_dim"));
+    project_classification(mesh, ent_dim, class_dims_w, class_ids_w);
+    mesh->set_tag(ent_dim, "class_id", class_id_w);
+    mesh->set_tag(ent_dim, "class_dim", class_dims_w);
+    if (ent_dim > VERT) flood_class_ids(mesh, ent_dim);
+  }
+}
+
 }  // end namespace Omega_h
