@@ -117,7 +117,7 @@ static CavsByColor separate_by_color(
 
 static LOs get_elem_class_ids(Mesh* mesh) {
   if (mesh->has_tag(mesh->dim(), "class_id")) {
-    return mesh->get_array<LO>(mesh->dim(), "class_id");
+    return mesh->get_array<ClassId>(mesh->dim(), "class_id");
   } else {
     return LOs(mesh->nelems(), 1);
   }

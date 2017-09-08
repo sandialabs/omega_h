@@ -168,7 +168,6 @@ void recursively_bisect(CommPtr comm, Real tolerance, Reals* p_coords,
   if (comm->size() == 1) {
     return;
   }
-  auto halfsize = divide_no_remainder(comm->size(), 2);
   Vector<3> axis;
   Read<I8> marks;
   if (hints.axes.empty()) {
@@ -183,6 +182,7 @@ void recursively_bisect(CommPtr comm, Real tolerance, Reals* p_coords,
   coords = dist.exch(coords, 3);
   masses = dist.exch(masses, 1);
   owners = dist.exch(owners, 1);
+  auto halfsize = divide_no_remainder(comm->size(), 2);
   comm = comm->split(comm->rank() / halfsize, comm->rank() % halfsize);
   recursively_bisect(comm, tolerance, p_coords, p_masses, p_owners, p_hints);
   hints.axes.insert(hints.axes.begin(), axis);

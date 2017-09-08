@@ -17,6 +17,7 @@ void flood_element_variables(Mesh* mesh,
     Reals elem_densities,
     Read<I32>* p_elem_flood_class_ids,
     Reals* p_elem_flood_densities);
+void flood_class_ids(Mesh* mesh, Int ent_dim);
 
 }  // end namespace Omega_h
 

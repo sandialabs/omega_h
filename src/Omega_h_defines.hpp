@@ -14,6 +14,7 @@ typedef std::int64_t I64;
 typedef I8 Byte;
 typedef I32 Int;
 typedef I32 LO;
+typedef I32 ClassId;
 typedef I64 GO;
 typedef double Real;
 

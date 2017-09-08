@@ -83,7 +83,7 @@ Read<I8> mark_by_class_dim(Mesh* mesh, Int ent_dim, Int class_dim) {
 }
 
 Read<I8> mark_by_class(Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id) {
-  auto e2class_id = mesh->get_array<I32>(ent_dim, "class_id");
+  auto e2class_id = mesh->get_array<ClassId>(ent_dim, "class_id");
   auto id_marks = each_eq_to(e2class_id, class_id);
   return land_each(id_marks, mark_by_class_dim(mesh, ent_dim, class_dim));
 }

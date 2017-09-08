@@ -88,7 +88,7 @@ void flood_element_variables(Mesh* mesh,
     Reals* p_elem_flood_densities) {
   auto dim = mesh->dim();
   OMEGA_H_CHECK(mesh->owners_have_all_upward(dim - 1));
-  auto elem_class_ids = mesh->get_array<I32>(dim, "class_id");
+  auto elem_class_ids = mesh->get_array<ClassId>(dim, "class_id");
   auto e2s = mesh->ask_down(dim, dim - 1);
   auto s2e = mesh->ask_up(dim - 1, dim);
   auto side_class_dims = mesh->get_array<I8>(dim - 1, "class_dim");
@@ -144,6 +144,8 @@ void flood_element_variables(Mesh* mesh,
           }
         }
       }
+      elem_flood_class_ids_w[e] = flood_class_id;
+      elem_flood_densities_w[e] = flood_density;
     };
     parallel_for(mesh->nelems(), f);
     auto new_elem_flood_class_ids = Read<I32>(elem_flood_class_ids_w);
@@ -159,6 +161,49 @@ void flood_element_variables(Mesh* mesh,
   }
   *p_elem_flood_class_ids = elem_flood_class_ids;
   *p_elem_flood_densities = elem_flood_densities;
+}
+
+// tries to extend existing boundary tags onto
+// the newly formed interfaces created by flooding
+void flood_class_ids(Mesh* mesh, Int ent_dim) {
+  auto class_ids = mesh->get_array<ClassId>(ent_dim, "class_id");
+  auto class_dims = mesh->get_array<I8>(ent_dim, "class_dim");
+  auto low_class_dims = mesh->get_array<I8>(ent_dim - 1, "class_dim");
+  while (true) {
+    auto class_ids_w = deep_copy(class_ids);
+    auto h2l = mesh->ask_down(ent_dim, ent_dim - 1);
+    auto l2h = mesh->ask_up(ent_dim - 1, ent_dim);
+    auto f = OMEGA_H_LAMBDA(LO h) {
+      auto class_dim = class_dims[h];
+      if (class_dim != ent_dim) return;
+      auto class_id = class_ids[h];
+      if (class_id != -1) return;
+      for (LO hl = h * (ent_dim + 1); hl < (h + 1) * (ent_dim + 1); ++hl) {
+        auto l = h2l.ab2b[hl];
+        auto l_class_dim = low_class_dims[l];
+        if (l_class_dim < ent_dim) continue;
+        for (LO lh = l2h.a2ab[l]; lh < l2h.a2ab[l + 1]; ++lh) {
+          auto oh = l2h.ab2b[lh];
+          auto oh_class_dim = class_dims[oh];
+          if (oh_class_dim != class_dim) continue;
+          auto oh_class_id = class_ids[oh];
+          if (oh_class_id == -1) continue;
+          if (class_id == -1 || oh_class_id < class_id) {
+            class_id = oh_class_id;
+          }
+        }
+      }
+      class_ids_w[h] = class_id;
+    };
+    parallel_for(mesh->nents(ent_dim), f);
+    auto new_class_ids = Read<ClassId>(class_ids_w);
+    new_class_ids = mesh->sync_array(ent_dim, new_class_ids, 1);
+    if (new_class_ids == class_ids) {
+      break;
+    }
+    class_ids = new_class_ids;
+  }
+  mesh->set_tag(ent_dim, "class_id", class_ids);
 }
 
 }  // end namespace Omega_h

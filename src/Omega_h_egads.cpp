@@ -175,7 +175,7 @@ void egads_free(Egads* eg) {
 void egads_reclassify(Mesh* mesh, Egads* eg) {
   OMEGA_H_CHECK(mesh->dim() == 3);
   auto face_class_dims = mesh->get_array<I8>(TRI, "class_dim");
-  auto face_class_ids = mesh->get_array<LO>(TRI, "class_id");
+  auto face_class_ids = mesh->get_array<ClassId>(TRI, "class_id");
   for (Int dim = 0; dim < 2; ++dim) {
     auto ents2faces = mesh->ask_up(dim, TRI);
     auto adj_class_dims = unmap(ents2faces.ab2b, face_class_dims, 1);
@@ -185,7 +185,7 @@ void egads_reclassify(Mesh* mesh, Egads* eg) {
     auto host_a2ab = HostRead<LO>(ents2eq_faces.a2ab);
     auto host_face_ids = HostRead<LO>(adj_eq_face_ids);
     auto class_dims = mesh->get_array<I8>(dim, "class_dim");
-    auto class_ids = mesh->get_array<LO>(dim, "class_id");
+    auto class_ids = mesh->get_array<ClassId>(dim, "class_id");
     auto host_class_dims = HostWrite<I8>(deep_copy(class_dims));
     auto host_class_ids = HostWrite<LO>(deep_copy(class_ids));
     for (LO i = 0; i < mesh->nents(dim); ++i) {
@@ -215,7 +215,7 @@ static Vector<3> get_closest_point(ego g, Vector<3> in) {
 Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
   OMEGA_H_CHECK(mesh->dim() == 3);
   auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
-  auto class_ids = mesh->get_array<LO>(VERT, "class_id");
+  auto class_ids = mesh->get_array<ClassId>(VERT, "class_id");
   auto coords = mesh->coords();
   auto host_class_dims = HostRead<I8>(class_dims);
   auto host_class_ids = HostRead<LO>(class_ids);
