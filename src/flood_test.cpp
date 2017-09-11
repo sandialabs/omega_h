@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   auto elems_are_obj =
     mark_class_closures(&mesh, dim, dim, {weight_id, droplet_id});
   auto obj_verts = collect_marked(verts_are_obj);
-  auto obj_elems = collect_marked(verts_are_obj);
+  auto obj_elems = collect_marked(elems_are_obj);
   auto obj_vert_warps =
     repeat_vector(obj_verts.size(), vector_2(0, -3./8.));
   auto vert_warps =

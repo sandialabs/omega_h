@@ -210,6 +210,8 @@ void flood_classification(Mesh* mesh, Bytes elems_did_flood) {
   auto dim = mesh->dim();
   for (Int ent_dim = VERT; ent_dim < dim; ++ent_dim) {
     auto ents_in_flood_closure = mark_down(mesh, dim, ent_dim, elems_did_flood);
+    std::cout << "clearing classification for " << get_sum(ents_in_flood_closure)
+      << " entities of dimension " << ent_dim << '\n';
     auto class_ids_w = deep_copy(mesh->get_array<ClassId>(ent_dim, "class_id"));
     auto class_dims_w = deep_copy(mesh->get_array<I8>(ent_dim, "class_dim"));
     auto f = OMEGA_H_LAMBDA(LO i) {
