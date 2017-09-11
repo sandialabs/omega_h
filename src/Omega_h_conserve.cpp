@@ -600,7 +600,12 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
       auto density_name = tagbase->name();
-      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
+      auto it = xfer_opts.integral_map.find(density_name);
+      if (it == xfer_opts.integral_map.end()) {
+        Omega_h_fail("conserved density \"%s\" has no integral_map entry\n",
+            density_name.c_str());
+      }
+      auto integral_name = it->second;
       auto error_name = integral_name + "_error";
       auto ncomps = tagbase->ncomps();
       mesh->add_tag(
