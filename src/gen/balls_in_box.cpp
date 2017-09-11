@@ -14,5 +14,5 @@ int main() {
   gmod::add_to_group(g, solid2);
   gmod::insert_into(fluid, solid2);
   gmod::write_closure_to_geo(g, "balls_in_box.geo");
-  printf("solids are %u and %u\n", solid1->id, solid2->id);
+  printf("solids are %d and %d\n", solid1->id, solid2->id);
 }

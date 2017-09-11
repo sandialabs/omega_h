@@ -278,6 +278,7 @@ if(BUILD_TESTING)
     gen_func(ball)
     gen_func(twin_rotor)
     gen_func(solder_balls)
+    gen_func(square_and_disk_in_square)
   endif()
 
   osh_add_exe(unit_tests)
