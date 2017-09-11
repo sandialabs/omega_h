@@ -378,6 +378,7 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
+  osh_add_exe(flood_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")

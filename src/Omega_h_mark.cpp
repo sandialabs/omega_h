@@ -89,7 +89,7 @@ Read<I8> mark_by_class(Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id) {
 }
 
 Read<I8> mark_class_closure(
-    Mesh* mesh, Int ent_dim, Int class_dim, I32 class_id) {
+    Mesh* mesh, Int ent_dim, Int class_dim, ClassId class_id) {
   OMEGA_H_CHECK(ent_dim <= class_dim);
   auto eq_marks = mark_by_class(mesh, class_dim, class_dim, class_id);
   if (ent_dim == class_dim) return eq_marks;
@@ -97,7 +97,7 @@ Read<I8> mark_class_closure(
 }
 
 Read<I8> mark_class_closures(
-    Mesh* mesh, Int ent_dim, Int class_dim, std::vector<LO> const& class_ids) {
+    Mesh* mesh, Int ent_dim, Int class_dim, std::vector<ClassId> const& class_ids) {
   OMEGA_H_CHECK(class_dim >= ent_dim);
   auto sorted_class_ids = class_ids;
   std::sort(begin(sorted_class_ids), end(sorted_class_ids));
@@ -105,7 +105,7 @@ Read<I8> mark_class_closures(
   for (size_t i = 0; i < sorted_class_ids.size(); ++i) {
     h_sorted_class_ids[LO(i)] = sorted_class_ids[i];
   }
-  auto d_sorted_class_ids = LOs(h_sorted_class_ids.write());
+  auto d_sorted_class_ids = Read<ClassId>(h_sorted_class_ids.write());
   auto nclass_ids = d_sorted_class_ids.size();
   auto eq_class_dims = mesh->get_array<I8>(class_dim, "class_dim");
   auto eq_class_ids = mesh->get_array<LO>(class_dim, "class_id");
