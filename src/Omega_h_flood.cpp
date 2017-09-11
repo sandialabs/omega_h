@@ -8,6 +8,7 @@
 #include "Omega_h_mesh.hpp"
 
 #include <iostream>
+#include "Omega_h_file.hpp"
 
 namespace Omega_h {
 
@@ -225,12 +226,15 @@ void flood_classification(Mesh* mesh, Bytes elems_did_flood) {
     mesh->set_tag(ent_dim, "class_dim", Read<I8>(class_dims_w));
   }
   for (Int ent_dim = dim - 1; ent_dim >= VERT; --ent_dim) {
-    auto class_ids_w = deep_copy(mesh->get_array<ClassId>(ent_dim, "class_id"));
-    auto class_dims_w = deep_copy(mesh->get_array<I8>(ent_dim, "class_dim"));
-    project_classification(mesh, ent_dim, class_dims_w, class_ids_w);
-    mesh->set_tag(ent_dim, "class_id", Read<ClassId>(class_ids_w));
-    mesh->set_tag(ent_dim, "class_dim", Read<I8>(class_dims_w));
-    if (ent_dim > VERT) flood_class_ids(mesh, ent_dim);
+    bool relaxed = true;
+    project_classification(mesh, ent_dim, relaxed);
+    if (ent_dim > VERT) {
+      // we have to project one further down,
+      // because flood_class_ids() looks at those
+      // entities to decide how far IDs can flood
+      project_classification(mesh, ent_dim - 1, relaxed);
+      flood_class_ids(mesh, ent_dim);
+    }
   }
 }
 

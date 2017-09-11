@@ -21,13 +21,13 @@ int main(int argc, char** argv) {
   mesh.set_parting(OMEGA_H_GHOSTED);
   add_implied_metric_tag(&mesh);
   auto verts_are_obj =
-    mark_class_closures(&mesh, VERT, dim, {weight_id, droplet_id});
+    mark_class_closures(&mesh, VERT, dim, {droplet_id});
   auto elems_are_obj =
     mark_class_closures(&mesh, dim, dim, {weight_id, droplet_id});
   auto obj_verts = collect_marked(verts_are_obj);
   auto obj_elems = collect_marked(elems_are_obj);
   auto obj_vert_warps =
-    repeat_vector(obj_verts.size(), vector_2(0, -3./8.));
+    repeat_vector(obj_verts.size(), vector_2(-1./6., 0));
   auto vert_warps =
     map_onto(obj_vert_warps, obj_verts, mesh.nverts(), 0.0, dim);
   mesh.add_tag(VERT, "warp", dim, vert_warps);
