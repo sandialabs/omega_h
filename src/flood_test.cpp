@@ -26,5 +26,14 @@ int main(int argc, char** argv) {
   auto vert_warps =
     map_onto(obj_vert_warps, verts_on_obj, mesh.nverts(), 0.0, dim);
   mesh.add_tag(VERT, "warp", dim, vert_warps);
-  vtk::write_vtu("warps.vtu", &mesh);
+  vtk::Writer writer("flood", &mesh);
+  writer.write();
+  auto opts = AdaptOpts(&mesh);
+  while (warp_to_limit(&mesh, opts)) {
+    adapt(&mesh, opts);
+    if (mesh.min_quality() < opts.min_quality_desired) {
+      writer.write();
+      return 0;
+    }
+  }
 }
