@@ -18,6 +18,8 @@ void flood_element_variables(Mesh* mesh, Bytes elems_should_flood,
     Reals* p_elem_flood_densities);
 void flood_class_ids(Mesh* mesh, Int ent_dim);
 void flood_classification(Mesh* mesh, Bytes elems_did_flood);
+void flood(Mesh* mesh, AdaptOpts const& opts,
+    std::string const& density_name);
 
 }  // end namespace Omega_h
 

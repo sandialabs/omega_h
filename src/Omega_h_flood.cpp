@@ -230,4 +230,34 @@ void flood_classification(Mesh* mesh, Bytes elems_did_flood) {
   }
 }
 
+void flood(Mesh* mesh, AdaptOpts const& opts,
+    std::string const& density_name) {
+  mesh->set_parting(OMEGA_H_GHOSTED);
+  auto dim = mesh->dim();
+  auto elems_can_flood = mark_floodable_elements(mesh);
+  auto elems_are_seeds = mark_flood_seeds(mesh, opts, elems_can_flood);
+  auto elems_should_flood =
+    mark_seeded_flood_zones(mesh, elems_can_flood, elems_are_seeds);
+  auto elem_densities = mesh->get_array<Real>(dim, density_name);
+  Read<I32> elem_flood_class_ids;
+  Reals elem_flood_densities;
+  flood_element_variables(mesh, elems_should_flood, elem_densities,
+      &elem_flood_class_ids, &elem_flood_densities);
+  auto elem_class_ids = mesh->get_array<ClassId>(dim, "class_id");
+  auto elem_class_ids_w = Write<ClassId>(mesh->nelems());
+  auto elems_did_flood_w = Write<I8>(mesh->nelems());
+  auto f = OMEGA_H_LAMBDA(LO e) {
+    if (elem_flood_class_ids[e] == -1) {
+      elems_did_flood_w[e] = 0;
+      elem_class_ids_w[e] = elem_class_ids[e];
+    } else {
+      elems_did_flood_w[e] = 1;
+      elem_class_ids_w[e] = elem_flood_class_ids[e];
+    }
+  };
+  parallel_for(mesh->nelems(), f);
+  mesh->set_tag(dim, "class_id", Read<ClassId>(elem_class_ids_w));
+  flood_classification(mesh, Bytes(elems_did_flood_w));
+}
+
 }  // end namespace Omega_h
