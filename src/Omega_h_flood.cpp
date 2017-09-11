@@ -253,19 +253,23 @@ void flood(Mesh* mesh, AdaptOpts const& opts,
   auto elem_class_ids = mesh->get_array<ClassId>(dim, "class_id");
   auto elem_class_ids_w = Write<ClassId>(mesh->nelems());
   auto elems_did_flood_w = Write<I8>(mesh->nelems());
+  auto elem_densities_w = Write<Real>(mesh->nelems());
   auto f = OMEGA_H_LAMBDA(LO e) {
     if (elem_flood_class_ids[e] == -1) {
       elems_did_flood_w[e] = 0;
       elem_class_ids_w[e] = elem_class_ids[e];
+      elem_densities_w[e] = elem_densities[e];
     } else {
       elems_did_flood_w[e] = 1;
       elem_class_ids_w[e] = elem_flood_class_ids[e];
+      elem_densities_w[e] = elem_flood_densities[e];
     }
   };
   parallel_for(mesh->nelems(), f);
   auto elems_did_flood = Bytes(elems_did_flood_w);
   std::cout << get_sum(elems_did_flood) << " elements flooded\n";
   mesh->set_tag(dim, "class_id", Read<ClassId>(elem_class_ids_w));
+  mesh->set_tag(dim, density_name, Reals(elem_densities_w));
   flood_classification(mesh, elems_did_flood);
 }
 

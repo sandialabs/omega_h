@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   auto densities = map_onto(Reals(obj_elems.size(), obj_density),
       obj_elems, mesh.nelems(), air_density, 1);
   mesh.add_tag(dim, "density", 1, densities);
-  vtk::Writer writer("flood", &mesh);
+  vtk::FullWriter writer("flood", &mesh);
   writer.write();
   auto opts = AdaptOpts(&mesh);
   opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
