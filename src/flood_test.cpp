@@ -21,13 +21,13 @@ int main(int argc, char** argv) {
   mesh.set_parting(OMEGA_H_GHOSTED);
   add_implied_metric_tag(&mesh);
   auto verts_are_obj =
-    mark_class_closures(&mesh, VERT, dim, {droplet_id});
+    mark_class_closures(&mesh, VERT, dim, {weight_id, droplet_id});
   auto elems_are_obj =
     mark_class_closures(&mesh, dim, dim, {weight_id, droplet_id});
   auto obj_verts = collect_marked(verts_are_obj);
   auto obj_elems = collect_marked(elems_are_obj);
   auto obj_vert_warps =
-    repeat_vector(obj_verts.size(), vector_2(-1./6., 0));
+    repeat_vector(obj_verts.size(), vector_2(0, -3./8.));
   auto vert_warps =
     map_onto(obj_vert_warps, obj_verts, mesh.nverts(), 0.0, dim);
   mesh.add_tag(VERT, "warp", dim, vert_warps);
@@ -39,11 +39,13 @@ int main(int argc, char** argv) {
   auto opts = AdaptOpts(&mesh);
   opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
   opts.xfer_opts.integral_map["density"] = "mass";
+  auto fopts = FloodOpts();
+  fopts.density_name = "density";
   while (warp_to_limit(&mesh, opts)) {
     adapt(&mesh, opts);
     if (mesh.min_quality() < opts.min_quality_desired) {
       writer.write();
-      flood(&mesh, opts, "density");
+      flood(&mesh, fopts);
       writer.write();
       return 0;
     }

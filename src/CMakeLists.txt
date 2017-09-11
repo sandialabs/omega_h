@@ -75,7 +75,6 @@ set(Omega_h_SOURCES
   Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
-  Omega_h_proximity.cpp
   Omega_h_motion_choices.cpp
   Omega_h_motion_transfer.cpp
   Omega_h_motion.cpp

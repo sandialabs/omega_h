@@ -12,32 +12,18 @@
 
 namespace Omega_h {
 
-Bytes mark_floodable_elements(Mesh* mesh) {
+Bytes mark_flood_zones(Mesh* mesh, FloodOpts const&) {
+  auto dim = mesh->dim();
   auto edges_are_bridge = find_bridge_edges(mesh);
   auto elems_are_angle = find_angle_elems(mesh);
   auto elems_adj_bridge = mark_adj(mesh, EDGE, mesh->dim(), edges_are_bridge);
-  return lor_each(elems_are_angle, elems_adj_bridge);
-}
-
-Bytes mark_flood_seeds(
-    Mesh* mesh, AdaptOpts const& opts, Bytes elems_can_seed) {
-  auto elem_quals = mesh->ask_qualities();
-  /* I had thoughts of using much more complex criteria such as for pads
-     comparing their distance to the minimum allowed edge length and for
-     angles comparing the minimum possible quality given the forced dihedral
-     angle to the minimum desired element quality.
-     For now I'll just fall back on the lazy catch-all of low current quality.
-     If misidentification of flood seeds becomes an issue, revisit the above
-     ideas. */
-  auto elems_are_lowqual = each_lt(elem_quals, opts.min_quality_desired);
-  return land_each(elems_can_seed, elems_are_lowqual);
-}
-
-Bytes mark_seeded_flood_zones(
-    Mesh* mesh, Bytes elems_can_flood, Bytes elems_are_seeded) {
-  OMEGA_H_CHECK(elems_can_flood.size() == mesh->nelems());
-  OMEGA_H_CHECK(elems_are_seeded.size() == mesh->nelems());
-  auto dim = mesh->dim();
+  auto elems_can_seed = lor_each(elems_are_angle, elems_adj_bridge);
+  auto elem_qualities = mesh->ask_qualities();
+  /* this is a totally useless standin to just compile while we work on the new stuff */
+  auto elems_low_qual = each_lt(elem_qualities, 0.5);
+  auto elems_are_seeded = land_each(elems_low_qual, elems_can_seed);
+  auto verts_are_seeds = mark_adj(mesh, dim, VERT, elems_are_seeded);
+  auto elems_can_flood = mark_adj(mesh, VERT, dim, verts_are_seeds);
   auto e2s = mesh->ask_down(dim, dim - 1);
   auto s2e = mesh->ask_up(dim - 1, dim);
   auto side_class_dims = mesh->get_array<I8>(dim - 1, "class_dim");
@@ -53,7 +39,6 @@ Bytes mark_seeded_flood_zones(
         for (LO se = se_begin; se < se_end; ++se) {
           auto oe = s2e.ab2b[se];
           if (oe == e) continue;
-          if (!elems_can_flood[oe]) continue;
           if (elems_are_seeded[oe]) {
             elems_are_seeded_w[e] = Byte(1);
           }
@@ -235,20 +220,11 @@ void flood_classification(Mesh* mesh, Bytes elems_did_flood) {
   }
 }
 
-void flood(Mesh* mesh, AdaptOpts const& opts,
-    std::string const& density_name) {
+void flood(Mesh* mesh, FloodOpts const& opts) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto dim = mesh->dim();
-  auto edges_are_bridge = find_bridge_edges(mesh);
-  auto elems_are_angle = find_angle_elems(mesh);
-  auto elems_adj_bridge = mark_adj(mesh, EDGE, mesh->dim(), edges_are_bridge);
-  auto elems_can_seed = lor_each(elems_are_angle, elems_adj_bridge);
-  auto elems_are_seeds = mark_flood_seeds(mesh, opts, elems_can_seed);
-  auto verts_are_seeds = mark_adj(mesh, dim, VERT, elems_are_seeds);
-  auto elems_can_flood = mark_adj(mesh, VERT, dim, verts_are_seeds);
-  auto elems_should_flood =
-    mark_seeded_flood_zones(mesh, elems_can_flood, elems_are_seeds);
-  auto elem_densities = mesh->get_array<Real>(dim, density_name);
+  auto elems_should_flood = mark_flood_zones(mesh, opts);
+  auto elem_densities = mesh->get_array<Real>(dim, opts.density_name);
   Read<I32> elem_flood_class_ids;
   Reals elem_flood_densities;
   flood_element_variables(mesh, elems_should_flood, elem_densities,
@@ -272,7 +248,7 @@ void flood(Mesh* mesh, AdaptOpts const& opts,
   auto elems_did_flood = Bytes(elems_did_flood_w);
   std::cout << get_sum(elems_did_flood) << " elements flooded\n";
   mesh->set_tag(dim, "class_id", Read<ClassId>(elem_class_ids_w));
-  mesh->set_tag(dim, density_name, Reals(elem_densities_w));
+  mesh->set_tag(dim, opts.density_name, Reals(elem_densities_w));
   flood_classification(mesh, elems_did_flood);
 }
 

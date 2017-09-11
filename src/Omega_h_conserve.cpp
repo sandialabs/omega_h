@@ -571,7 +571,7 @@ void fix_momentum_velocity_verts(
     Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp) {
   for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
     auto ent_marks = mark_class_closures(mesh, ent_dim, class_pairs);
-    auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
+    auto comp_marks = multiply_each_by(ent_marks, I8(1 << comp));
     if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
       auto old_marks = mesh->get_array<I8>(ent_dim, "momentum_velocity_fixed");
       auto new_marks = bit_or_each(old_marks, comp_marks);
@@ -775,7 +775,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       subtract_each(new_elem_momenta, old_elem_momenta);
   auto verts2elems = mesh->ask_up(VERT, dim);
   auto vert_masses = graph_reduce(verts2elems, elem_masses, 1, OMEGA_H_SUM);
-  vert_masses = divide_each_by(Real(dim + 1), vert_masses);
+  vert_masses = divide_each_by(vert_masses, Real(dim + 1));
   auto elems2verts = mesh->ask_down(dim, VERT);
   auto all_flags = get_comps_are_fixed(mesh);
   auto elem_errors = mesh->get_array<Real>(dim, error_name);

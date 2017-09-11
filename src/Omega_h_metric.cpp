@@ -7,7 +7,8 @@
 #include "Omega_h_host_few.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_proximity.hpp"
+#include "Omega_h_confined.hpp"
+#include "Omega_h_mark.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
@@ -626,7 +627,7 @@ Reals get_proximity_isos(Mesh* mesh, Real factor) {
     auto v2p = mesh->ask_graph(VERT, pad_dim);
     auto bv2p = unmap_graph(bridged_verts, v2p);
     auto p2h = get_pad_dists(mesh, pad_dim, edges_are_bridges);
-    auto p2m = isos_from_lengths(multiply_each_by(factor, p2h));
+    auto p2m = isos_from_lengths(multiply_each_by(p2h, factor));
     auto bv2m_tmp = graph_reduce(bv2p, p2m, 1, OMEGA_H_MAX);
     bv2m = max_each(bv2m, bv2m_tmp);
   }

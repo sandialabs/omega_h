@@ -9,7 +9,7 @@
 #include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_proximity.hpp"
+#include "Omega_h_confined.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_scan.hpp"
@@ -20,6 +20,9 @@
 #include "Omega_h_swap3d_loop.hpp"
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_recover.hpp"
 
 #ifdef OMEGA_H_USE_TEUCHOSPARSER
 #include "Omega_h_expr.hpp"

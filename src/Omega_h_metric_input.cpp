@@ -164,14 +164,14 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         metrics = mesh->get_array<Real>(VERT, source.tag_name);
         if (source.knob != 1.0) {
           metrics = multiply_each_by(
-              metric_eigenvalue_from_length(source.knob), metrics);
+              metrics, metric_eigenvalue_from_length(source.knob));
         }
         break;
       case OMEGA_H_IMPLIED:
         metrics = get_implied_metrics(mesh);
         if (source.knob != 1.0) {
           metrics = multiply_each_by(
-              metric_eigenvalue_from_length(source.knob), metrics);
+              metrics, metric_eigenvalue_from_length(source.knob));
         }
         break;
       case OMEGA_H_PROXIMITY:
@@ -202,7 +202,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
         in_metrics = metrics_from_isos(metric_dim, in_metrics);
       }
       if (input.sources[i].scales == OMEGA_H_SCALES) {
-        in_metrics = multiply_each_by(scalar, in_metrics);
+        in_metrics = multiply_each_by(in_metrics, scalar);
       }
       if (input.should_limit_lengths) {
         in_metrics =

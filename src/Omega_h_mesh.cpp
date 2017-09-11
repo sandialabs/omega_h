@@ -483,7 +483,7 @@ void Mesh::balance(bool predictive) {
     /* average between input mesh weight (1.0)
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);
-    masses = multiply_each_by(1. / 2., masses);
+    masses = multiply_each_by(masses, 1. / 2.);
     abs_tol = max2(0.0, get_max(comm_, masses));
   } else {
     masses = Reals(nelems(), 1);
