@@ -7,6 +7,8 @@
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 Bytes mark_floodable_elements(Mesh* mesh) {
@@ -14,7 +16,7 @@ Bytes mark_floodable_elements(Mesh* mesh) {
   auto vert_are_bridge = mark_down(mesh, EDGE, VERT, edges_are_bridge);
   auto elems_are_angle = find_angle_elems(mesh);
   auto verts_are_angle = mark_down(mesh, mesh->dim(), VERT, elems_are_angle);
-  auto verts_can_flood = land_each(vert_are_bridge, verts_are_angle);
+  auto verts_can_flood = lor_each(vert_are_bridge, verts_are_angle);
   auto elems_can_flood = mark_up(mesh, VERT, mesh->dim(), verts_can_flood);
   return elems_can_flood;
 }
@@ -235,9 +237,12 @@ void flood(Mesh* mesh, AdaptOpts const& opts,
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto dim = mesh->dim();
   auto elems_can_flood = mark_floodable_elements(mesh);
+  std::cout << get_sum(elems_can_flood) << " elements can flood\n";
   auto elems_are_seeds = mark_flood_seeds(mesh, opts, elems_can_flood);
+  std::cout << get_sum(elems_are_seeds) << " elements are seeds\n";
   auto elems_should_flood =
     mark_seeded_flood_zones(mesh, elems_can_flood, elems_are_seeds);
+  std::cout << get_sum(elems_should_flood) << " elements should flood\n";
   auto elem_densities = mesh->get_array<Real>(dim, density_name);
   Read<I32> elem_flood_class_ids;
   Reals elem_flood_densities;
@@ -256,8 +261,10 @@ void flood(Mesh* mesh, AdaptOpts const& opts,
     }
   };
   parallel_for(mesh->nelems(), f);
+  auto elems_did_flood = Bytes(elems_did_flood_w);
+  std::cout << get_sum(elems_did_flood) << " elements flooded\n";
   mesh->set_tag(dim, "class_id", Read<ClassId>(elem_class_ids_w));
-  flood_classification(mesh, Bytes(elems_did_flood_w));
+  flood_classification(mesh, elems_did_flood);
 }
 
 }  // end namespace Omega_h
