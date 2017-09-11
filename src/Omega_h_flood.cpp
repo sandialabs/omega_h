@@ -14,16 +14,13 @@ namespace Omega_h {
 
 Bytes mark_floodable_elements(Mesh* mesh) {
   auto edges_are_bridge = find_bridge_edges(mesh);
-  auto vert_are_bridge = mark_down(mesh, EDGE, VERT, edges_are_bridge);
   auto elems_are_angle = find_angle_elems(mesh);
-  auto verts_are_angle = mark_down(mesh, mesh->dim(), VERT, elems_are_angle);
-  auto verts_can_flood = lor_each(vert_are_bridge, verts_are_angle);
-  auto elems_can_flood = mark_up(mesh, VERT, mesh->dim(), verts_can_flood);
-  return elems_can_flood;
+  auto elems_adj_bridge = mark_adj(mesh, EDGE, mesh->dim(), edges_are_bridge);
+  return lor_each(elems_are_angle, elems_adj_bridge);
 }
 
 Bytes mark_flood_seeds(
-    Mesh* mesh, AdaptOpts const& opts, Bytes elems_can_flood) {
+    Mesh* mesh, AdaptOpts const& opts, Bytes elems_can_seed) {
   auto elem_quals = mesh->ask_qualities();
   /* I had thoughts of using much more complex criteria such as for pads
      comparing their distance to the minimum allowed edge length and for
@@ -33,7 +30,7 @@ Bytes mark_flood_seeds(
      If misidentification of flood seeds becomes an issue, revisit the above
      ideas. */
   auto elems_are_lowqual = each_lt(elem_quals, opts.min_quality_desired);
-  return land_each(elems_can_flood, elems_are_lowqual);
+  return land_each(elems_can_seed, elems_are_lowqual);
 }
 
 Bytes mark_seeded_flood_zones(
@@ -242,13 +239,15 @@ void flood(Mesh* mesh, AdaptOpts const& opts,
     std::string const& density_name) {
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto dim = mesh->dim();
-  auto elems_can_flood = mark_floodable_elements(mesh);
-  std::cout << get_sum(elems_can_flood) << " elements can flood\n";
-  auto elems_are_seeds = mark_flood_seeds(mesh, opts, elems_can_flood);
-  std::cout << get_sum(elems_are_seeds) << " elements are seeds\n";
+  auto edges_are_bridge = find_bridge_edges(mesh);
+  auto elems_are_angle = find_angle_elems(mesh);
+  auto elems_adj_bridge = mark_adj(mesh, EDGE, mesh->dim(), edges_are_bridge);
+  auto elems_can_seed = lor_each(elems_are_angle, elems_adj_bridge);
+  auto elems_are_seeds = mark_flood_seeds(mesh, opts, elems_can_seed);
+  auto verts_are_seeds = mark_adj(mesh, dim, VERT, elems_are_seeds);
+  auto elems_can_flood = mark_adj(mesh, VERT, dim, verts_are_seeds);
   auto elems_should_flood =
     mark_seeded_flood_zones(mesh, elems_can_flood, elems_are_seeds);
-  std::cout << get_sum(elems_should_flood) << " elements should flood\n";
   auto elem_densities = mesh->get_array<Real>(dim, density_name);
   Read<I32> elem_flood_class_ids;
   Reals elem_flood_densities;

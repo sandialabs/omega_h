@@ -58,6 +58,13 @@ Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
   return out;
 }
 
+Read<I8> mark_adj(Mesh* mesh, Int from_dim, Int to_dim, Read<I8> from_marked) {
+  if (from_dim == to_dim) return from_marked;
+  if (from_dim < to_dim) return mark_up(mesh, from_dim, to_dim, from_marked);
+  if (from_dim > to_dim) return mark_down(mesh, from_dim, to_dim, from_marked);
+  OMEGA_H_NORETURN(Read<I8>());
+}
+
 Read<I8> mark_up_all(
     Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
   auto l2h = mesh->ask_down(high_dim, low_dim);
