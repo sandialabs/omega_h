@@ -32,41 +32,6 @@ Bytes find_bridge_edges(Mesh* mesh) {
   return edges_are_bridges_w;
 }
 
-static OMEGA_H_DEVICE bool is_angle_triangle(
-    Few<I8, 3> vert_dims, Few<I8, 3> edge_dims, I8 tri_dim) {
-  for (Int i = 0; i < 3; ++i) {
-    if (vert_dims[i] > (tri_dim - 2)) continue;
-    if (edge_dims[(i + 0) % 3] > (tri_dim - 1)) continue;
-    if (edge_dims[(i + 2) % 3] > (tri_dim - 1)) continue;
-    return true;
-  }
-  return false;
-}
-
-Bytes find_angle_triangles(Mesh* mesh) {
-  auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
-  auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto tris2class_dim = mesh->get_array<I8>(TRI, "class_dim");
-  auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
-  auto tris2verts = mesh->ask_down(TRI, VERT).ab2b;
-  auto tris_are_angle = Write<I8>(mesh->ntris());
-  auto f = OMEGA_H_LAMBDA(LO tri) {
-    auto ttv2v = gather_down<3>(tris2verts, tri);
-    auto tte2e = gather_down<3>(tris2edges, tri);
-    auto ttv2dim = gather_scalars(verts2class_dim, ttv2v);
-    auto tte2dim = gather_scalars(edges2class_dim, tte2e);
-    auto t_dim = tris2class_dim[tri];
-    tris_are_angle[tri] = is_angle_triangle(ttv2dim, tte2dim, t_dim);
-  };
-  parallel_for(mesh->ntris(), f, "find_angle_triangles");
-  return tris_are_angle;
-}
-
-Bytes find_angle_elems(Mesh* mesh) {
-  auto tris_are_angle = find_angle_triangles(mesh);
-  return mark_adj(mesh, TRI, mesh->dim(), tris_are_angle);
-}
-
 template <Int dim>
 static Reals get_edge_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
@@ -218,6 +183,52 @@ Reals get_pad_dists(Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
     return get_tet_pad_dists(mesh, edges_are_bridges);
   }
   OMEGA_H_NORETURN(Reals());
+}
+
+static OMEGA_H_DEVICE Real get_pinched_triangle_angle(
+    Few<I8, 3> vert_dims, Few<I8, 3> edge_dims, I8 tri_dim) {
+}
+
+template <Int dim>
+Reals get_pinched_triangle_angles_dim(Mesh* mesh) {
+  auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
+  auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
+  auto tris2class_dim = mesh->get_array<I8>(TRI, "class_dim");
+  auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
+  auto tris2verts = mesh->ask_down(TRI, VERT).ab2b;
+  auto tri_angles_w = Write<I8>(mesh->ntris());
+  auto f = OMEGA_H_LAMBDA(LO tri) {
+    auto ttv2v = gather_down<3>(tris2verts, tri);
+    auto tte2e = gather_down<3>(tris2edges, tri);
+    auto ttv2dim = gather_scalars(verts2class_dim, ttv2v);
+    auto tte2dim = gather_scalars(edges2class_dim, tte2e);
+    auto t_dim = tris2class_dim[tri];
+    auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
+    Real tri_angle = -1.0;
+    for (Int i = 0; i < 3; ++i) {
+      if (edge_dims[(i + 0) % 3] == tri_dim) continue;
+      if (edge_dims[(i + 2) % 3] == tri_dim) continue;
+      if (edge_dims[(i + 0) % 3] == vert_dims[i]) continue;
+      if (edge_dims[(i + 2) % 3] == vert_dims[i]) continue;
+      auto v0 = ttv2x[(i + 1) % 3] - ttv2x[i];
+      auto v1 = ttv2x[(i + 2) % 3] - ttv2x[i];
+      // save one sqrt call? speeed?
+      auto denom = std::sqrt(norm_squared(v0) * norm_squared(v1));
+      auto cos_a = (v0 * v1) / denom;
+      auto angle = std::acos(cos_a);
+      if (tri_angle == -1.0 || angle < tri_angle) {
+        tri_angle = angle;
+      }
+    }
+    tri_angles_w[tri] = tri_angle;
+  };
+  parallel_for(mesh->ntris(), f, "get_pinched_triangle_angles");
+  return tri_angles_w;
+}
+
+Bytes find_angle_elems(Mesh* mesh) {
+  auto tris_are_angle = find_angle_triangles(mesh);
+  return mark_adj(mesh, TRI, mesh->dim(), tris_are_angle);
 }
 
 }  // end namespace Omega_h
