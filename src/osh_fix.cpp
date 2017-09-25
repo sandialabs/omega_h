@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
   std::cout << "computing minimum quality\n";
   auto minqual = mesh.min_quality();
   Omega_h::AdaptOpts opts(&mesh);
-  while (minqual > minqual_old) {
+  while (minqual < opts.min_quality_desired && minqual > minqual_old) {
     std::cout << "current quality " << minqual << '\n';
     minqual_old = minqual;
     opts.min_quality_allowed = minqual;
@@ -44,5 +44,6 @@ int main(int argc, char** argv) {
     minqual = mesh.min_quality();
   }
   std::cout << "writing out " << path_out << '\n';
+  mesh.remove_tag(Omega_h::VERT, "metric");
   Omega_h::binary::write(path_out, &mesh);
 }
