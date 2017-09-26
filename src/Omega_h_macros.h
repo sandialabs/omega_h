@@ -31,5 +31,6 @@
 #endif
 
 #define OMEGA_H_NODISCARD __attribute__((warn_unused_result))
+#define OMEGA_H_PURE __attribute__((const, warn_unused_result))
 
 #endif

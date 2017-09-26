@@ -75,17 +75,14 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_coarsen = true;
   should_swap = true;
   should_coarsen_slivers = true;
-  should_allow_pinching = false;
 }
 
-static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const& opts) {
-  auto elem_quals = mesh->ask_qualities();
-  if (!opts.should_allow_pinching) return elem_quals;
-  auto elems_are_angle = find_angle_elems(mesh);
-  auto elems_are_fixable = invert_marks(elems_are_angle);
-  auto fixable_elems_to_elems = collect_marked(elems_are_fixable);
-  auto fixable_elem_quals = unmap(fixable_elems_to_elems, elem_quals, 1);
-  return fixable_elem_quals;
+static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const&) {
+  /* This used to be an attempt to continue adapting when certain
+     elements were constrained to by geometry to have small dihedral angles.
+     We'll leave it here as a placeholder for reimplementing such a system
+     in the future, but for now it just returns all qualities */
+  return mesh->ask_qualities();
 }
 
 Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts) {

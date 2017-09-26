@@ -15,9 +15,8 @@ namespace Omega_h {
 Bytes mark_flood_zones(Mesh* mesh, FloodOpts const&) {
   auto dim = mesh->dim();
   auto edges_are_bridge = find_bridge_edges(mesh);
-  auto elems_are_angle = find_angle_elems(mesh);
   auto elems_adj_bridge = mark_adj(mesh, EDGE, mesh->dim(), edges_are_bridge);
-  auto elems_can_seed = lor_each(elems_are_angle, elems_adj_bridge);
+  auto elems_can_seed = elems_adj_bridge;
   auto elem_qualities = mesh->ask_qualities();
   /* this is a totally useless standin to just compile while we work on the new stuff */
   auto elems_low_qual = each_lt(elem_qualities, 0.5);

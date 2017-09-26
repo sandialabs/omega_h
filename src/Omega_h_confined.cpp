@@ -185,36 +185,28 @@ Reals get_pad_dists(Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
   OMEGA_H_NORETURN(Reals());
 }
 
-static OMEGA_H_DEVICE Real get_pinched_triangle_angle(
-    Few<I8, 3> vert_dims, Few<I8, 3> edge_dims, I8 tri_dim) {
-}
-
 template <Int dim>
-Reals get_pinched_triangle_angles_dim(Mesh* mesh) {
+static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto tris2class_dim = mesh->get_array<I8>(TRI, "class_dim");
   auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
   auto tris2verts = mesh->ask_down(TRI, VERT).ab2b;
-  auto tri_angles_w = Write<I8>(mesh->ntris());
+  auto coords = mesh->coords();
+  auto tri_angles_w = Write<Real>(mesh->ntris());
   auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_down<3>(tris2verts, tri);
     auto tte2e = gather_down<3>(tris2edges, tri);
     auto ttv2dim = gather_scalars(verts2class_dim, ttv2v);
     auto tte2dim = gather_scalars(edges2class_dim, tte2e);
-    auto t_dim = tris2class_dim[tri];
     auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
     Real tri_angle = -1.0;
     for (Int i = 0; i < 3; ++i) {
-      if (edge_dims[(i + 0) % 3] == tri_dim) continue;
-      if (edge_dims[(i + 2) % 3] == tri_dim) continue;
-      if (edge_dims[(i + 0) % 3] == vert_dims[i]) continue;
-      if (edge_dims[(i + 2) % 3] == vert_dims[i]) continue;
-      auto v0 = ttv2x[(i + 1) % 3] - ttv2x[i];
-      auto v1 = ttv2x[(i + 2) % 3] - ttv2x[i];
-      // save one sqrt call? speeed?
-      auto denom = std::sqrt(norm_squared(v0) * norm_squared(v1));
-      auto cos_a = (v0 * v1) / denom;
+      if (ttv2dim[i] != 0) continue;
+      if (tte2dim[(i + 0) % 3] != 1) continue;
+      if (tte2dim[(i + 2) % 3] != 1) continue;
+      auto d0 = ttv2x[(i + 1) % 3] - ttv2x[i];
+      auto d1 = ttv2x[(i + 2) % 3] - ttv2x[i];
+      auto cos_a = normalize(d0) * normalize(d1);
       auto angle = std::acos(cos_a);
       if (tri_angle == -1.0 || angle < tri_angle) {
         tri_angle = angle;
@@ -222,13 +214,65 @@ Reals get_pinched_triangle_angles_dim(Mesh* mesh) {
     }
     tri_angles_w[tri] = tri_angle;
   };
-  parallel_for(mesh->ntris(), f, "get_pinched_triangle_angles");
+  parallel_for(mesh->ntris(), f, "get_pinched_tri_angles");
   return tri_angles_w;
 }
 
-Bytes find_angle_elems(Mesh* mesh) {
-  auto tris_are_angle = find_angle_triangles(mesh);
-  return mark_adj(mesh, TRI, mesh->dim(), tris_are_angle);
+static Reals get_pinched_tet_angles(Mesh* mesh) {
+  auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
+  auto tris2class_dim = mesh->get_array<I8>(TRI, "class_dim");
+  auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
+  auto tets2tris = mesh->ask_down(TET, TRI).ab2b;
+  auto edges2verts = mesh->ask_down(EDGE, VERT).ab2b;
+  auto coords = mesh->coords();
+  auto tet_angles_w = Write<Real>(mesh->ntets());
+  auto f = OMEGA_H_LAMBDA(LO tet) {
+    auto kke2e = gather_down<6>(tets2edges, tet);
+    auto kkt2t = gather_down<4>(tets2tris, tet);
+    auto kke2dim = gather_scalars(edges2class_dim, kke2e);
+    auto kkt2dim = gather_scalars(tris2class_dim, kkt2t);
+    Real tet_angle = -1.0;
+    for (Int kke = 0; kke < 6; ++kke) {
+      if (kke2dim[kke] != 1) continue;
+      auto ket0 = up_template(3, 1, kke, 0).up;
+      auto ket1 = up_template(3, 1, kke, 1).up;
+      if (kkt2dim[ket0] != 2) continue;
+      if (kkt2dim[ket1] != 2) continue;
+      auto e0 = kke2e[kke];
+      auto e0v2v = gather_down<2>(edges2verts, e0);
+      auto e0v2x = gather_vectors<2, 3>(coords, e0v2v);
+      auto tangent = e0v2x[1] - e0v2x[0];
+      auto kke_opp = opposite_template(3, 1, kke);
+      auto e1 = kke2e[kke_opp];
+      auto e1v2v = gather_down<2>(edges2verts, e1);
+      auto e1v2x = gather_vectors<2, 3>(coords, e1v2v);
+      auto l0 = e1v2x[0] - e0v2x[0];
+      auto l1 = e1v2x[1] - e0v2x[0];
+      auto d0 = reject(l0, tangent);
+      auto d1 = reject(l1, tangent);
+      auto cos_a = normalize(d0) * normalize(d1);
+      auto angle = std::acos(cos_a);
+      if (tet_angle == -1.0 || angle < tet_angle) {
+        tet_angle = angle;
+      }
+    }
+    tet_angles_w[tet] = tet_angle;
+  };
+  parallel_for(mesh->ntets(), f, "get_pinched_tet_angles");
+  return tet_angles_w;
+}
+
+Reals get_pinched_angles(Mesh* mesh, Int pinched_dim) {
+  if (pinched_dim == TRI) {
+    if (mesh->dim() == 3) {
+      return get_pinched_tri_angles_dim<3>(mesh);
+    } else if (mesh->dim() == 2) {
+      return get_pinched_tri_angles_dim<2>(mesh);
+    }
+  } else if (pinched_dim == TET) {
+    return get_pinched_tet_angles(mesh);
+  }
+  OMEGA_H_NORETURN(Reals());
 }
 
 }  // end namespace Omega_h
