@@ -83,6 +83,9 @@ OMEGA_H_DEVICE Vector<dim + 1> fit_cavity_polynomial(
     auto e = ke2e[ke];
     b[i] = e_data[e * ncomps + comp];
   }
+  for (auto i = nfit_pts; i < max_fit_pts; ++i) {
+    b[i] = 0.0;
+  }
   auto qtb = implicit_q_trans_b(nfit_pts, dim + 1, qr.v, b);
   auto coeffs = solve_upper_triangular(dim + 1, qr.r, qtb);
   return coeffs;
