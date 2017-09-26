@@ -6,7 +6,8 @@
 namespace Omega_h {
 
 template <typename T>
-struct ExclScan : public SumFunctor<I64> {
+struct ExclScan : public SumFunctor<T> {
+  using typename SumFunctor<T>::value_type;
   Read<T> in_;
   Write<LO> out_;
   ExclScan(Read<T> in, Write<LO> out) : in_(in), out_(out) {}
@@ -28,8 +29,7 @@ LOs offset_scan(Read<T> a) {
 template LOs offset_scan(Read<I8> a);
 template LOs offset_scan(Read<I32> a);
 
-struct FillRight : public MaxFunctor<I64> {
-  using value_type = I64;
+struct FillRight : public MaxFunctor<LO> {
   Write<LO> a_;
   FillRight(Write<LO> a) : a_(a) {}
   OMEGA_H_DEVICE void operator()(
