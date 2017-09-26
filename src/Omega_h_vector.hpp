@@ -115,7 +115,7 @@ OMEGA_H_INLINE Real norm_squared(Vector<n> v) {
 
 template <Int n>
 OMEGA_H_INLINE Real norm(Vector<n> v) {
-  return sqrt(norm_squared(v));
+  return std::sqrt(norm_squared(v));
 }
 
 template <Int n>
@@ -196,6 +196,18 @@ OMEGA_H_INLINE Vector<3> cross(Omega_h::Vector<3> a, Omega_h::Vector<3> b) {
 }
 
 OMEGA_H_INLINE Vector<2> perp(Vector<2> v) { return vector_2(-v[1], v[0]); }
+
+template <Int n>
+OMEGA_H_INLINE Vector<n> project(Vector<n> a, Vector<n> b) {
+  auto dir = normalize(b);
+  auto len = a * dir;
+  return len * dir;
+}
+
+template <Int n>
+OMEGA_H_INLINE Vector<n> reject(Vector<n> a, Vector<n> b) {
+  return a - project(a, b);
+}
 
 template <Int n>
 OMEGA_H_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) {

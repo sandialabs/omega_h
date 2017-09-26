@@ -75,13 +75,13 @@ set(Omega_h_SOURCES
   Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
-  Omega_h_proximity.cpp
   Omega_h_motion_choices.cpp
   Omega_h_motion_transfer.cpp
   Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
   Omega_h_kokkos.cpp
+  Omega_h_flood.cpp
   )
 
 if(Omega_h_USE_libMeshb)
@@ -280,6 +280,7 @@ if(BUILD_TESTING)
     gen_func(ball)
     gen_func(twin_rotor)
     gen_func(solder_balls)
+    gen_func(square_and_disk_in_square)
   endif()
 
   osh_add_exe(unit_tests)
@@ -350,6 +351,7 @@ if(BUILD_TESTING)
   endif()
   osh_add_exe(bend_test)
   osh_add_exe(test_degree)
+  osh_add_exe(test_dihedral)
   if(Omega_h_USE_libMeshb)
     osh_add_exe(ugawg_linear)
     if(Omega_h_USE_EGADS)
@@ -378,6 +380,7 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
+  osh_add_exe(flood_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")

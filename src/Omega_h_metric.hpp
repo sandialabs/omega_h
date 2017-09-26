@@ -246,6 +246,8 @@ Reals intersect_metrics(LO nmetrics, Reals a, Reals b);
 Reals metrics_from_isos(Int new_dim, Reals isos);
 Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy);
 
+Reals isos_from_lengths(Reals h);
+
 }  // end namespace Omega_h
 
 #endif

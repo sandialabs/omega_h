@@ -3,8 +3,12 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_confined.hpp"
 #include "Omega_h_host_few.hpp"
 #include "Omega_h_loop.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_confined.hpp"
+#include "Omega_h_mark.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
@@ -610,6 +614,34 @@ Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy) {
       return get_size_isos(dim, metrics);
   }
   OMEGA_H_NORETURN(Reals());
+}
+
+Reals get_proximity_isos(Mesh* mesh, Real factor) {
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
+  auto edges_are_bridges = find_bridge_edges(mesh);
+  auto verts_are_bridged = mark_down(mesh, EDGE, VERT, edges_are_bridges);
+  auto bridged_verts = collect_marked(verts_are_bridged);
+  auto nbv = bridged_verts.size();
+  auto bv2m = Reals(nbv, 0.0);
+  for (Int pad_dim = EDGE; pad_dim <= mesh->dim(); ++pad_dim) {
+    auto v2p = mesh->ask_graph(VERT, pad_dim);
+    auto bv2p = unmap_graph(bridged_verts, v2p);
+    auto p2h = get_pad_dists(mesh, pad_dim, edges_are_bridges);
+    auto p2m = isos_from_lengths(multiply_each_by(p2h, factor));
+    auto bv2m_tmp = graph_reduce(bv2p, p2m, 1, OMEGA_H_MAX);
+    bv2m = max_each(bv2m, bv2m_tmp);
+  }
+  auto v2m = map_onto(bv2m, bridged_verts, mesh->nverts(), 0.0, 1);
+  return mesh->sync_array(VERT, v2m, 1);
+}
+
+Reals isos_from_lengths(Reals h) {
+  auto out = Write<Real>(h.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    out[i] = metric_eigenvalue_from_length(h[i]);
+  };
+  parallel_for(h.size(), f);
+  return out;
 }
 
 }  // end namespace Omega_h

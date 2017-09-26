@@ -269,12 +269,12 @@ void write(
   auto title = "Omega_h " OMEGA_H_SEMVER " Exodus Output";
   std::set<LO> region_set;
   auto dim = mesh->dim();
-  auto elem_class_ids = mesh->get_array<LO>(dim, "class_id");
+  auto elem_class_ids = mesh->get_array<ClassId>(dim, "class_id");
   auto h_elem_class_ids = HostRead<LO>(elem_class_ids);
   for (LO i = 0; i < h_elem_class_ids.size(); ++i) {
     region_set.insert(h_elem_class_ids[i]);
   }
-  auto side_class_ids = mesh->get_array<LO>(dim - 1, "class_id");
+  auto side_class_ids = mesh->get_array<ClassId>(dim - 1, "class_id");
   auto side_class_dims = mesh->get_array<I8>(dim - 1, "class_dim");
   auto h_side_class_ids = HostRead<LO>(side_class_ids);
   auto h_side_class_dims = HostRead<I8>(side_class_dims);

@@ -47,7 +47,7 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
           "min quality %.2e max length %.2e\n",
           i, min_fixable_quality(mesh, opts), mesh->max_length());
     }
-    auto half_warp = multiply_each_by(1.0 / 2.0, warp);
+    auto half_warp = multiply_each_by(warp, 1.0 / 2.0);
     warp = half_warp;
     remainder = add_each(remainder, half_warp);
     mesh->set_coords(add_each(coords, warp));

@@ -32,7 +32,7 @@ static Real get_object_size(Mesh* mesh, Int obj) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
   auto masses = multiply_each(densities, sizes);
-  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
+  auto class_ids = mesh->get_array<ClassId>(mesh->dim(), "class_id");
   auto elem_in_obj = each_eq_to(class_ids, obj_ids[obj]);
   auto obj_elems = collect_marked(elem_in_obj);
   auto obj_sizes = unmap(obj_elems, sizes, 1);
@@ -43,7 +43,7 @@ static Real get_object_mass(Mesh* mesh, Int obj) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
   auto masses = multiply_each(densities, sizes);
-  auto class_ids = mesh->get_array<I32>(mesh->dim(), "class_id");
+  auto class_ids = mesh->get_array<ClassId>(mesh->dim(), "class_id");
   auto elem_in_obj = each_eq_to(class_ids, obj_ids[obj]);
   auto obj_elems = collect_marked(elem_in_obj);
   auto obj_masses = unmap(obj_elems, masses, 1);
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   {
     auto metrics = get_implied_isos(&mesh);
     auto scalar = metric_eigenvalue_from_length(1.2);
-    metrics = multiply_each_by(scalar, metrics);
+    metrics = multiply_each_by(metrics, scalar);
     mesh.add_tag(VERT, "metric", 1, metrics);
   }
   mesh.set_parting(OMEGA_H_ELEM_BASED);

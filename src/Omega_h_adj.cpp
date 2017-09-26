@@ -393,7 +393,7 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
   auto e2ef_codes = e2f.codes;
   auto ne = e2ef.size() - 1;
   auto e2ef_degrees = get_degrees(e2ef);
-  auto e2ee_degrees = multiply_each_by(2, e2ef_degrees);
+  auto e2ee_degrees = multiply_each_by(e2ef_degrees, 2);
   auto e2ee = offset_scan(e2ee_degrees);
   auto nee = e2ee.last();
   Write<LO> ee2e(nee);

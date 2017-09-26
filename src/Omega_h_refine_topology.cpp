@@ -66,7 +66,7 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
   auto keys2key_doms = offset_scan(key_dom_degrees);
   auto ndoms = keys2key_doms.last();
   auto npairs = ndoms * 2;
-  keys2pairs = multiply_each_by(2, keys2key_doms);
+  keys2pairs = multiply_each_by(keys2key_doms, 2);
   Write<LO> pair_verts2verts_w(npairs * (dim + 1));
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto edge = keys2edges[key];

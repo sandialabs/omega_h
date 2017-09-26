@@ -46,13 +46,13 @@ Bytes each_eq_to(Read<T> a, T b);
 template <typename T>
 Read<T> multiply_each(Read<T> a, Read<T> b);
 template <typename T>
-Read<T> multiply_each_by(T factor, Read<T> a);
+Read<T> multiply_each_by(Read<T> a, T b);
 template <typename T>
 Read<T> divide_each(Read<T> a, Read<T> b);
 Reals divide_each_maybe_zero(Reals a, Reals b);
 Reals pow_each(Reals a, Reals b);
 template <typename T>
-Read<T> divide_each_by(T a, Read<T> b);
+Read<T> divide_each_by(Read<T> a, T b);
 template <typename T>
 Read<T> add_each(Read<T> a, Read<T> b);
 template <typename T>
@@ -140,8 +140,8 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Bytes each_neq_to(Read<T> a, T b);                           \
   extern template Bytes each_eq(Read<T> a, Read<T> b);                         \
   extern template Bytes each_eq_to(Read<T> a, T b);                            \
-  extern template Read<T> multiply_each_by(T factor, Read<T> x);               \
-  extern template Read<T> divide_each_by(T factor, Read<T> x);                 \
+  extern template Read<T> multiply_each_by(Read<T> a, T b);               \
+  extern template Read<T> divide_each_by(Read<T> a, T b);                 \
   extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> max_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);      \

@@ -124,11 +124,11 @@ bool are_close_abs(Reals a, Reals b, Real tol) {
 }
 
 template <typename T>
-Read<T> multiply_each_by(T factor, Read<T> a) {
-  Write<T> b(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i] * factor; };
+Read<T> multiply_each_by(Read<T> a, T b) {
+  Write<T> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] * b; };
   parallel_for(a.size(), f, "multiply_each_by");
-  return b;
+  return c;
 }
 
 template <typename T>
@@ -197,11 +197,11 @@ Reals pow_each(Reals a, Reals b) {
 }
 
 template <typename T>
-Read<T> divide_each_by(T factor, Read<T> a) {
-  Write<T> b(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i] / factor; };
+Read<T> divide_each_by(Read<T> a, T b) {
+  Write<T> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] / b; };
   parallel_for(a.size(), f, "divide_each_by");
-  return b;
+  return c;
 }
 
 template <typename T>
@@ -582,8 +582,8 @@ Read<Tout> array_cast(Read<Tin> in) {
   template T get_min(CommPtr comm, Read<T> a);                                 \
   template T get_max(CommPtr comm, Read<T> a);                                 \
   template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                      \
-  template Read<T> multiply_each_by(T factor, Read<T> x);                      \
-  template Read<T> divide_each_by(T factor, Read<T> x);                        \
+  template Read<T> multiply_each_by(Read<T> a, T b);                      \
+  template Read<T> divide_each_by(Read<T> x, T b);                        \
   template Read<T> multiply_each(Read<T> a, Read<T> b);                        \
   template Read<T> divide_each(Read<T> a, Read<T> b);                          \
   template Read<T> add_each(Read<T> a, Read<T> b);                             \

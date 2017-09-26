@@ -117,7 +117,7 @@ static CavsByColor separate_by_color(
 
 static LOs get_elem_class_ids(Mesh* mesh) {
   if (mesh->has_tag(mesh->dim(), "class_id")) {
-    return mesh->get_array<LO>(mesh->dim(), "class_id");
+    return mesh->get_array<ClassId>(mesh->dim(), "class_id");
   } else {
     return LOs(mesh->nelems(), 1);
   }
@@ -544,8 +544,8 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
 }
 
 void transfer_conserve_motion(Mesh* old_mesh, TransferOpts const& opts,
-    Mesh* new_mesh, LOs keys2verts, Graph keys2elems,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+    Mesh* new_mesh, LOs keys2verts, Graph keys2elems, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
   auto keys2prods = keys2elems.a2ab;
   auto prods2new_ents = keys2elems.ab2b;
@@ -571,7 +571,7 @@ void fix_momentum_velocity_verts(
     Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp) {
   for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
     auto ent_marks = mark_class_closures(mesh, ent_dim, class_pairs);
-    auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
+    auto comp_marks = multiply_each_by(ent_marks, I8(1 << comp));
     if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
       auto old_marks = mesh->get_array<I8>(ent_dim, "momentum_velocity_fixed");
       auto new_marks = bit_or_each(old_marks, comp_marks);
@@ -600,7 +600,12 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
       auto density_name = tagbase->name();
-      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
+      auto it = xfer_opts.integral_map.find(density_name);
+      if (it == xfer_opts.integral_map.end()) {
+        Omega_h_fail("conserved density \"%s\" has no integral_map entry\n",
+            density_name.c_str());
+      }
+      auto integral_name = it->second;
       auto error_name = integral_name + "_error";
       auto ncomps = tagbase->ncomps();
       mesh->add_tag(
@@ -770,7 +775,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       subtract_each(new_elem_momenta, old_elem_momenta);
   auto verts2elems = mesh->ask_up(VERT, dim);
   auto vert_masses = graph_reduce(verts2elems, elem_masses, 1, OMEGA_H_SUM);
-  vert_masses = divide_each_by(Real(dim + 1), vert_masses);
+  vert_masses = divide_each_by(vert_masses, Real(dim + 1));
   auto elems2verts = mesh->ask_down(dim, VERT);
   auto all_flags = get_comps_are_fixed(mesh);
   auto elem_errors = mesh->get_array<Real>(dim, error_name);

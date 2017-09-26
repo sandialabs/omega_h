@@ -95,7 +95,8 @@ MotionChoices motion_choices_tmpl(
         auto ml = metric_edge_length(eev2nx, eev2m);
         max_ml = max2(max_ml, ml);
       }
-      if (step && (!quality_ok || new_obj >= old_obj || max_ml > max_ml_allowed)) {
+      if (step &&
+          (!quality_ok || new_obj >= old_obj || max_ml > max_ml_allowed)) {
         /* we either took a step or backtracked, and the new position
            is bad either because it increases the objective, or the elements
            are too distorted, or an edge got too long */
@@ -141,7 +142,8 @@ MotionChoices motion_choices_tmpl(
   auto new_coords = Reals(new_coords_w);
   did_move = mesh->sync_subset_array(VERT, did_move, cands2verts, I8(-1), 1);
   new_quals = mesh->sync_subset_array(VERT, new_quals, cands2verts, -1.0, 1);
-  new_coords = mesh->sync_subset_array(VERT, new_coords, cands2verts, 0.0, mesh_dim);
+  new_coords =
+      mesh->sync_subset_array(VERT, new_coords, cands2verts, 0.0, mesh_dim);
   return {did_move, new_quals, new_coords};
 }
 

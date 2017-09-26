@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
   {
     auto metrics = get_implied_isos(&mesh);
     auto scalar = metric_eigenvalue_from_length(1.3);
-    metrics = multiply_each_by(scalar, metrics);
+    metrics = multiply_each_by(metrics, scalar);
     mesh.add_tag(VERT, "metric", 1, metrics);
   }
   mesh.set_parting(OMEGA_H_ELEM_BASED);

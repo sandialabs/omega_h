@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
   if (vtk_path) writer.write();
   auto scalar = Omega_h::get_metric_scalar_for_nelems(
       &mesh, analytic_metric, target_nelems);
-  auto scaled_metric = Omega_h::multiply_each_by(scalar, analytic_metric);
+  auto scaled_metric = Omega_h::multiply_each_by(analytic_metric, scalar);
   mesh.set_tag(Omega_h::VERT, "metric", scaled_metric);
   auto imb = mesh.imbalance();
   if (!mesh.comm()->rank()) std::cout << "imbalance on input " << imb << '\n';
