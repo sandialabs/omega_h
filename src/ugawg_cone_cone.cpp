@@ -26,8 +26,8 @@ static void compute_target_metric(Omega_h::Mesh* mesh) {
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   Omega_h::CmdLine cmdline;
-  cmdline.add_arg<std::string>("mesh_in.osh");
-  cmdline.add_arg<std::string>("mesh_out.osh");
+  cmdline.add_arg<std::string>("mesh_in.meshb");
+  cmdline.add_arg<std::string>("mesh_out.meshb");
 #ifdef OMEGA_H_USE_EGADS
   auto& model_flag = cmdline.add_flag("--model", "optional EGADS model");
   model_flag.add_arg<std::string>("model.step");
@@ -35,11 +35,11 @@ int main(int argc, char** argv) {
   auto& viz_flag = cmdline.add_flag("--viz", "optional VTK progress log");
   viz_flag.add_arg<std::string>("path_vtk");
   if (!cmdline.parse_final(lib.world(), &argc, argv)) return -1;
-  auto path_in = cmdline.get<std::string>("mesh_in.osh");
-  auto path_out = cmdline.get<std::string>("mesh_out.osh");
+  auto path_in = cmdline.get<std::string>("mesh_in.meshb");
+  auto path_out = cmdline.get<std::string>("mesh_out.meshb");
   Omega_h::Mesh mesh(&lib);
   std::cout << "reading in " << path_in << '\n';
-  Omega_h::binary::read(path_in, lib.world(), &mesh);
+  Omega_h::meshb::read(&mesh, path_in);
   std::cout << "computing metric tags\n";
   compute_implied_metric(&mesh);
   compute_target_metric(&mesh);
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
   }
   std::cout << "writing out " << path_out << '\n';
   mesh.remove_tag(Omega_h::VERT, "metric");
-  Omega_h::binary::write(path_out, &mesh);
+  Omega_h::meshb::write(&mesh, path_out);
 #ifdef OMEGA_H_USE_EGADS
   if (has_model) {
     Omega_h::egads_free(opts.egads_model);
