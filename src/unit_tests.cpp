@@ -1101,6 +1101,22 @@ static void test_expr() {
 #endif
 }
 
+static void test_sort_small_range() {
+  Read<I32> in({10, 100, 1000, 10, 100, 1000, 10, 100, 1000});
+  LOs perm;
+  LOs fan;
+  Read<I32> uniq;
+  sort_small_range(in, &perm, &fan, &uniq);
+  OMEGA_H_CHECK(perm == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
+  OMEGA_H_CHECK(fan == LOs({0, 3, 6, 9}));
+  OMEGA_H_CHECK(uniq == Read<I32>({10, 100, 1000}));
+  in = Read<I32>({});
+  sort_small_range(in, &perm, &fan, &uniq);
+  OMEGA_H_CHECK(perm == LOs({}));
+  OMEGA_H_CHECK(fan == LOs({0}));
+  OMEGA_H_CHECK(uniq == Read<I32>({}));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1162,5 +1178,6 @@ int main(int argc, char** argv) {
   test_scalar_ptr();
   test_is_sorted();
   test_expr();
+  test_sort_small_range();
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }

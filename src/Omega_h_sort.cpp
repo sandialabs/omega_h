@@ -1,6 +1,7 @@
 #include "Omega_h_sort.hpp"
 
 #include <algorithm>
+#include <vector>
 
 #if defined(OMEGA_H_USE_CUDA)
 #ifdef __GNUC__
@@ -21,6 +22,11 @@
 #include "Omega_h_control.hpp"
 #include "Omega_h_scalar.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_array_ops.hpp"
+
+//DEBUG
+#include <cstdio>
 
 namespace Omega_h {
 
@@ -85,5 +91,104 @@ LOs sort_by_keys(Read<T> keys, Int width) {
 INST(LO)
 INST(GO)
 #undef INST
+
+template <typename T>
+struct SortSmallRangeValue {
+  T next_smallest;
+  LO index;
+};
+
+template <typename T>
+struct SortSmallRange {
+  using value_type = SortSmallRangeValue<T>;
+  using input_type = T;
+  Read<T> items2values_;
+  Write<LO> perm_;
+  LO nitems_;
+  LO target_value_;
+  Write<LO> ndone_after_;
+  Write<T> next_smallest_;
+  LO ndone_before_;
+  OMEGA_H_INLINE void init(value_type& update) const {
+    update.next_smallest = ArithTraits<T>::max();
+    update.index = ndone_before_;
+  }
+  OMEGA_H_INLINE void join(
+      volatile value_type& update, const volatile value_type& input) const {
+    update.next_smallest = min2(update.next_smallest, input.next_smallest);
+    update.index += input.index;
+  }
+  OMEGA_H_DEVICE void operator()(
+      LO i, value_type& update, bool final_pass) const {
+    auto value = items2values_[i];
+    if (value == target_value_) {
+      ++update.index;
+      //printf("item %d equal, index %d\n", i, update.index);
+    } else if (value > target_value_) {
+      update.next_smallest = min2(update.next_smallest, value);
+      //printf("item %d greater, next %d\n", i, update.next_smallest);
+    }
+    if (final_pass) {
+      if (i == nitems_ - 1) {
+        next_smallest_[0] = update.next_smallest;
+        ndone_after_[0] = update.index;
+      }
+      if (value == target_value_) {
+        perm_[i] = update.index - 1;
+      }
+    }
+  }
+  void run(Read<T> items2values, LOs* p_perm, LOs* p_fan, Read<T>* p_uniq) {
+    nitems_ = items2values.size();
+    if (nitems_ == 0) {
+      *p_perm = LOs({});
+      *p_fan = LOs({0});
+      *p_uniq = LOs({});
+      return;
+    }
+    items2values_ = items2values;
+    ndone_after_ = Write<LO>(1, 0);
+    next_smallest_ = Write<LO>(1);
+    perm_ = Write<LO>(nitems_);
+    target_value_ = get_min(items2values);
+    ndone_before_ = 0;
+    std::vector<T> uniq_vector;
+    std::vector<T> fan_vector;
+    //printf("input:\n");
+    //for (int i = 0; i < items2values.size(); ++i) printf("[%d] = %d\n", i, items2values[i]);
+    //printf("begin\n");
+    while (ndone_before_ < nitems_) {
+      //printf("iterate %d done, target %d\n", ndone_before_, target_value_);
+      uniq_vector.push_back(target_value_);
+      fan_vector.push_back(ndone_before_);
+      parallel_scan(nitems_, *this, "sort_small_range");
+      OMEGA_H_CHECK(ndone_after_.get(0) > ndone_before_);
+      target_value_ = next_smallest_.get(0);
+      ndone_before_ = ndone_after_.get(0);
+    }
+    fan_vector.push_back(ndone_before_);
+    auto nuniq = LO(uniq_vector.size());
+    auto nfan = LO(fan_vector.size());
+    OMEGA_H_CHECK(nfan == nuniq + 1);
+    auto uniq_h = HostWrite<LO>(nuniq);
+    auto fan_h = HostWrite<LO>(nfan);
+    for (LO i = 0; i < nuniq; ++i) {
+      uniq_h[i] = uniq_vector[std::size_t(i)];
+      fan_h[i] = fan_vector[std::size_t(i)];
+    }
+    fan_h[nuniq] = fan_vector[std::size_t(nuniq)];
+    *p_perm = perm_;
+    *p_uniq = uniq_h.write();
+    *p_fan = fan_h.write();
+  }
+};
+
+template <typename T>
+void sort_small_range(Read<T> items2values, LOs* p_perm, LOs* p_fan, Read<T>* p_uniq) {
+  SortSmallRange<T> f;
+  f.run(items2values, p_perm, p_fan, p_uniq);
+}
+
+template void sort_small_range(Read<I32> items2values, LOs* p_perm, LOs* p_fan, Read<I32>* p_uniq);
 
 }  // end namespace Omega_h
