@@ -66,7 +66,7 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
 
 void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
   auto rcontent2rroots = exch(fitems2rroots, 1);
-  auto rroots2rcontent = invert_map_by_sorting(rcontent2rroots, nrroots);
+  auto rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
   roots2items_[R] = rroots2rcontent.a2ab;
   items2content_[R] = rroots2rcontent.ab2b;
 }
