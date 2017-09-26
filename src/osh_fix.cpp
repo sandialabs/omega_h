@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-static void compute_metric(Omega_h::Mesh* mesh) {
+static void compute_implied_metric(Omega_h::Mesh* mesh) {
   auto metrics = Omega_h::get_implied_metrics(mesh);
   metrics = Omega_h::limit_metric_gradation(mesh, metrics, 1.0);
   mesh->remove_tag(Omega_h::VERT, "metric");
@@ -34,10 +34,11 @@ int main(int argc, char** argv) {
   std::cout << "reading in " << path_in << '\n';
   Omega_h::binary::read(path_in, lib.world(), &mesh);
   std::cout << "computing implied metric tag\n";
-  compute_metric(&mesh);
+  compute_implied_metric(&mesh);
   Omega_h::Real minqual_old = -1.0;
   std::cout << "computing minimum quality\n";
   auto minqual = mesh.min_quality();
+  std::cout << "minimum quality " << minqual << '\n';
   Omega_h::AdaptOpts opts(&mesh);
 #ifdef OMEGA_H_USE_EGADS
   if (cmdline.parsed("--model")) {
@@ -58,11 +59,15 @@ int main(int argc, char** argv) {
     compute_metric(&mesh);
     std::cout << "recomputing minimum quality\n";
     minqual = mesh.min_quality();
+    std::cout << "minimum quality " << minqual << '\n';
   }
   std::cout << "writing out " << path_out << '\n';
   mesh.remove_tag(Omega_h::VERT, "metric");
   Omega_h::binary::write(path_out, &mesh);
 #ifdef OMEGA_H_USE_EGADS
-  Omega_h::egads_free(opts.egads_model);
+  if (opts.egads_model != nullptr) {
+    Omega_h::egads_free(opts.egads_model);
+  }
 #endif
 }
+
