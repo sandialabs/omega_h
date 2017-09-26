@@ -12,7 +12,7 @@ struct ExclScan : public SumFunctor<T> {
   Write<LO> out_;
   ExclScan(Read<T> in, Write<LO> out) : in_(in), out_(out) {}
   OMEGA_H_DEVICE void operator()(
-      Int i, value_type& update, bool final_pass) const {
+      LO i, value_type& update, bool final_pass) const {
     update += in_[i];
     if (final_pass) out_[i + 1] = static_cast<LO>(update);
   }
