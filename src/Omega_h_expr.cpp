@@ -344,7 +344,7 @@ void neg(any& result, any& val) {
   } else if (val.type() == typeid(Matrix<dim, dim>)) {
     result = -any_cast<Matrix<dim, dim>>(val);
   } else if (val.type() == typeid(Reals)) {
-    result = Reals(multiply_each_by(-1.0, any_cast<Reals>(val)));
+    result = Reals(multiply_each_by(any_cast<Reals>(val), -1.0));
   } else {
     throw Teuchos::ParserFail("Invalid operand type to negation operator");
   }

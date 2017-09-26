@@ -132,8 +132,6 @@ void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
   set_if_given(&opts->should_coarsen, pl, "Coarsen");
   set_if_given(&opts->should_swap, pl, "Swap");
   set_if_given(&opts->should_coarsen_slivers, pl, "Coarsen Slivers");
-  set_if_given(&opts->should_move_for_quality, pl, "Move For Quality");
-  set_if_given(&opts->should_allow_pinching, pl, "Allow Pinching");
   if (pl.isSublist("Transfer")) {
     update_transfer_opts(&opts->xfer_opts, pl.sublist("Transfer"));
   }
