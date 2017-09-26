@@ -223,6 +223,7 @@ Reals project_metrics(Mesh* mesh, Reals e2m);
 Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max);
 Reals get_pure_implied_isos(Mesh* mesh);
 Reals get_implied_isos(Mesh* mesh);
+Reals get_element_implied_length_metrics(Mesh* mesh);
 Reals get_pure_implied_metrics(Mesh* mesh);
 Reals get_implied_metrics(Mesh* mesh);
 void axes_from_metric_field(

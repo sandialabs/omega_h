@@ -230,7 +230,7 @@ template <typename T>
 T CmdLine::get(std::string const& arg_name) const {
   for (auto const& arg : args_)
     if (arg->name() == arg_name) return Omega_h::get<T>(arg.get());
-  OMEGA_H_NORETURN(T());
+  Omega_h_fail("Omega_h::CmdLine::get(%s): no such argument name!\n", arg_name.c_str());
 }
 
 bool CmdLine::parsed(std::size_t i) const { return args_.at(i)->parsed(); }

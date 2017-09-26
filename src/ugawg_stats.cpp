@@ -86,6 +86,9 @@ static Reals get_cube_cylinder_quality_layer_metric(Mesh* mesh) {
 }
 
 static Reals get_metric(Mesh* mesh, std::string const& name) {
+  if (name == "implied") {
+    return get_implied_metrics(mesh);
+  }
   if (name == "cube-linear") {
     return get_cube_linear_metric(mesh);
   }

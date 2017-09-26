@@ -276,7 +276,7 @@ static Reals element_implied_length_metrics_dim(Mesh* mesh) {
   return out;
 }
 
-static Reals get_element_implied_length_metrics(Mesh* mesh) {
+Reals get_element_implied_length_metrics(Mesh* mesh) {
   if (mesh->dim() == 3) return element_implied_length_metrics_dim<3>(mesh);
   if (mesh->dim() == 2) return element_implied_length_metrics_dim<2>(mesh);
   if (mesh->dim() == 1) return element_implied_length_metrics_dim<1>(mesh);

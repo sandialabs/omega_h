@@ -26,7 +26,9 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   auto a_1 = coeffs[1];
   auto a_2 = coeffs[2];
   Few<Real, 3> roots;
+  roots[0] = roots[1] = roots[2] = 0.0;
   Few<Int, 3> mults;
+  mults[0] = mults[1] = mults[2] = 0;
   // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
   Real q = (9. * a_1 * a_2 - 27. * a_0 - 2. * cube(a_2)) / 27.;
@@ -90,7 +92,9 @@ OMEGA_H_INLINE Roots<2> find_polynomial_roots(
   auto a = coeffs[1];
   auto b = coeffs[0];
   Few<Real, 2> roots;
+  roots[0] = roots[1] = 0.0;
   Few<Int, 2> mults;
+  mults[0] = mults[1] = 0;
   Real disc = square(a) - 4. * b;
   if (fabs(disc) < eps) {
     mults[0] = 2;
