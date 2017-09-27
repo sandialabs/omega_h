@@ -1107,6 +1107,10 @@ static void test_sort_small_range() {
   LOs fan;
   Read<I32> uniq;
   sort_small_range(in, &perm, &fan, &uniq);
+//HostRead<I32> h_perm(perm);
+//for (int i = 0; i < h_perm.size(); ++i) {
+//  fprintf(stderr, "[%d] = %d\n", i, h_perm[i]);
+//}
   OMEGA_H_CHECK(perm == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
   OMEGA_H_CHECK(fan == LOs({0, 3, 6, 9}));
   OMEGA_H_CHECK(uniq == Read<I32>({10, 100, 1000}));
@@ -1132,6 +1136,7 @@ int main(int argc, char** argv) {
   test_int128();
   test_repro_sum();
   test_sort();
+  test_sort_small_range();
   test_scan();
   test_intersect_metrics();
   test_fan_and_funnel();
@@ -1178,6 +1183,5 @@ int main(int argc, char** argv) {
   test_scalar_ptr();
   test_is_sorted();
   test_expr();
-  test_sort_small_range();
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }

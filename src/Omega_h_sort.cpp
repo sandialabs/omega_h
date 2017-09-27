@@ -111,7 +111,7 @@ struct SortSmallRange {
   LO ndone_before_;
   OMEGA_H_INLINE void init(value_type& update) const {
     update.next_smallest = ArithTraits<T>::max();
-    update.index = ndone_before_;
+    update.index = 0;
   }
   OMEGA_H_INLINE void join(
       volatile value_type& update, const volatile value_type& input) const {
@@ -131,10 +131,13 @@ struct SortSmallRange {
     if (final_pass) {
       if (i == nitems_ - 1) {
         next_smallest_[0] = update.next_smallest;
-        ndone_after_[0] = update.index;
+        //printf("final [%d] next_smallest %d\n", i, next_smallest_[0]);
+        ndone_after_[0] = update.index + ndone_before_;
+        //printf("final [%d] ndone_after_ %d\n", i, ndone_after_[0]);
       }
       if (value == target_value_) {
-        perm_[i] = update.index - 1;
+        perm_[i] = update.index + ndone_before_ - 1;
+        //printf("final [%d] = %d\n", i, perm_[i]);
       }
     }
   }
