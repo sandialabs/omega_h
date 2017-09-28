@@ -9,6 +9,9 @@
 namespace Omega_h {
 
 template <typename T>
+T* nonnull(T* p);
+
+template <typename T>
 class HostWrite;
 
 template <typename T>
@@ -64,7 +67,6 @@ class Write {
     return ptr_.get();
 #endif
   }
-  T* nonnull_data();
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view() const;
 #endif
@@ -183,7 +185,6 @@ class HostRead {
 #endif
   }
   T const* data() const;
-  T const* nonnull_data() const;
   T last() const;
 };
 
@@ -213,7 +214,6 @@ class HostWrite {
 #endif
   }
   T* data() const;
-  T* nonnull_data() const;
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
 };
 
@@ -222,6 +222,8 @@ Write<T> deep_copy(Read<T> a);
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
+  extern template T* nonnull(T*); \
+  extern template T const* nonnull(T const*); \
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \

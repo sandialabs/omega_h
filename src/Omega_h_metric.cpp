@@ -644,4 +644,13 @@ Reals isos_from_lengths(Reals h) {
   return out;
 }
 
+Reals lengths_from_isos(Reals l) {
+  auto out = Write<Real>(l.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    out[i] = metric_length_from_eigenvalue(l[i]);
+  };
+  parallel_for(l.size(), f);
+  return out;
+}
+
 }  // end namespace Omega_h
