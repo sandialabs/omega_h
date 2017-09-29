@@ -58,19 +58,18 @@ Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
 
 template <typename T>
 Write<T>::Write(LO size, std::string const& name)
-    :
-#ifdef OMEGA_H_USE_KOKKOSCORE
-      view_(Kokkos::ViewAllocateWithoutInitializing(name),
-          static_cast<std::size_t>(size))
-#else
-      ptr_(new T[size], std::default_delete<T[]>()),
-      size_(size)
-#endif
 {
-#ifndef OMEGA_H_USE_KOKKOSCORE
+  begin_code("Write(size,name)");
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name),
+      static_cast<std::size_t>(size));
+#else
   (void)name;
+  ptr_ = decltype(ptr_)(new T[size], std::default_delete<T[]>());
+  size_ = size;
 #endif
   log_allocation();
+  end_code();
 }
 
 template <typename T>

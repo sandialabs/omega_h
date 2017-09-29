@@ -20,9 +20,11 @@ struct ExclScan : public SumFunctor<T> {
 
 template <typename T>
 LOs offset_scan(Read<T> a) {
+  begin_code("offset_scan");
   Write<LO> out(a.size() + 1);
   out.set(0, 0);
   parallel_scan(a.size(), ExclScan<T>(a, out), "offset_scan");
+  end_code();
   return out;
 }
 

@@ -311,51 +311,45 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
 }
 
 /* custom implementation of MPI_Neighbor_alltoallv
- * in the case that we cannot use MPI 3.0 neighborhood collectives
- * for one of two reasons:
- * 1) we are using an MPI older than version 3.0
- * 2) we are using CUDA-aware MPI, which the Internet says is only robust
- *    for the point-to-point primitives
+ * this used to be here as a workaround, but now allows us to precompute
+ * fewer things
  */
 
 static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
-    const void* sendbuf, const int sendcounts[], const int sdispls[],
-    MPI_Datatype sendtype, void* recvbuf, const int recvcounts[],
-    const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm) {
+    int width,
+    const void* sendbuf,
+    const int sdispls[],
+    MPI_Datatype sendtype,
+    void* recvbuf,
+    const int rdispls[],
+    MPI_Datatype recvtype,
+    MPI_Comm comm) {
   begin_code("Neighbor_alltoallv");
-#if (MPI_VERSION < 3) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
-  static int const tag = 42;
+  int const tag = 42;
   int indegree, outdegree;
   indegree = sources.size();
   outdegree = destinations.size();
   int sendwidth;
   CALL(MPI_Type_size(sendtype, &sendwidth));
+  sendwidth *= width;
   int recvwidth;
   CALL(MPI_Type_size(sendtype, &recvwidth));
+  recvwidth *= width;
   MPI_Request* recvreqs = new MPI_Request[indegree];
-//MPI_Request* sendreqs = new MPI_Request[outdegree];
   for (int i = 0; i < indegree; ++i) {
     CALL(MPI_Irecv(static_cast<char*>(recvbuf) + rdispls[i] * recvwidth,
-        recvcounts[i], recvtype, sources[i], tag, comm, recvreqs + i));
+        (rdispls[i + 1] - rdispls[i]) * width,
+        recvtype, sources[i], tag, comm, recvreqs + i));
   }
-//CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i) {
     CALL(MPI_Send(static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth,
-        sendcounts[i], sendtype, destinations[i], tag, comm /*, sendreqs + i*/));
+        (sdispls[i + 1] - sdispls[i]) * width,
+        sendtype, destinations[i], tag, comm));
   }
-//CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-//delete[] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
-  int ret = MPI_SUCCESS;
-#else // (MPI_VERSION >= 3) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
-  (void)sources;
-  (void)destinations;
-  int ret = MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf,
-      recvcounts, rdispls, recvtype, comm);
-#endif  // (MPI_VERSION >= 3) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   end_code();
-  return ret;
+  return MPI_SUCCESS;
 }
 
 #endif  // end ifdef OMEGA_H_USE_MPI
@@ -392,13 +386,11 @@ Read<T> Comm::alltoall(Read<T> x) const {
 
 template <typename T>
 Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
-    Read<LO>* p_sendcounts, Read<LO>* p_sdispls, Read<LO>* p_recvcounts,
     Read<LO>* p_rdispls, LO threshold) {
   Read<T> self_data;
   if (self_dst < 0) return self_data;
   OMEGA_H_CHECK(self_src >= 0);
   auto sendbuf = *p_sendbuf;
-  auto sendcounts = *p_sendcounts;
   auto sdispls = *p_sdispls;
   auto recvcounts = *p_recvcounts;
   auto rdispls = *p_rdispls;
@@ -408,8 +400,6 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
   if (self_count == sendbuf.size()) {
     self_data = sendbuf;
     sendbuf = Read<T>({});
-    OMEGA_H_CHECK(sendcounts.size() == 1);
-    sendcounts = LOs({0});
     sdispls = LOs({0, 0});
     auto recvcounts_w = deep_copy(recvcounts);
     recvcounts_w.set(self_src, 0);
@@ -430,7 +420,7 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
     parallel_for(sendbuf.size(), f, "self_send_part1");
     self_data = self_data_w;
     sendbuf = other_data_w;
-    auto sendcounts_w = deep_copy(sendcounts);
+    auto sendcounts_w = deep_copy(get_degrees(sdispls));
     auto recvcounts_w = deep_copy(recvcounts);
     sendcounts_w.set(self_dst, 0);
     recvcounts_w.set(self_src, 0);
@@ -440,7 +430,6 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
     rdispls = offset_scan(recvcounts);
   }
   *p_sendbuf = sendbuf;
-  *p_sendcounts = sendcounts;
   *p_sdispls = sdispls;
   *p_recvcounts = recvcounts;
   *p_rdispls = rdispls;
@@ -476,46 +465,51 @@ void self_send_part2(
 #endif
 
 template <typename T>
-Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sendcounts_dev,
-    Read<LO> sdispls_dev, Read<LO> recvcounts_dev, Read<LO> rdispls_dev) const {
+Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
+    Read<LO> sdispls_dev, Read<LO> rdispls_dev,
+    Int width) const {
   begin_code("Comm::alltoallv");
+  std::cerr << "beginning of alltoallv\n";
 #ifdef OMEGA_H_USE_MPI
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
-      &sendcounts_dev, &sdispls_dev, &recvcounts_dev, &rdispls_dev,
+      &sdispls_dev, &rdispls_dev,
       library_->self_send_threshold());
 #endif
-  HostRead<LO> sendcounts(sendcounts_dev);
-  HostRead<LO> recvcounts(recvcounts_dev);
   HostRead<LO> sdispls(sdispls_dev);
   HostRead<LO> rdispls(rdispls_dev);
-  OMEGA_H_CHECK(rdispls.size() == recvcounts.size() + 1);
-  OMEGA_H_CHECK(sendcounts.size() == host_dsts_.size());
-  OMEGA_H_CHECK(recvcounts.size() == host_srcs_.size());
-  OMEGA_H_CHECK(sdispls.size() == sendcounts.size() + 1);
-  OMEGA_H_CHECK(sendbuf_dev.size() == sdispls.last());
+  OMEGA_H_CHECK(sendbuf_dev.size() == sdispls.last() * width);
+  std::cerr << "after the sdispls.last check\n";
   int nrecvd = rdispls.last();
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   HostWrite<T> recvbuf(nrecvd);
   HostRead<T> sendbuf(sendbuf_dev);
-  CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, nonnull(sendbuf.data()),
-      nonnull(sendcounts.data()), nonnull(sdispls.data()),
-      MpiTraits<T>::datatype(), nonnull(recvbuf.data()),
-      nonnull(recvcounts.data()), nonnull(rdispls.data()),
-      MpiTraits<T>::datatype(), impl_));
+  CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
+      nonnull(sendbuf.data()),
+      nonnull(sdispls.data()),
+      MpiTraits<T>::datatype(),
+      nonnull(recvbuf.data()),
+      nonnull(rdispls.data()),
+      MpiTraits<T>::datatype(),
+      impl_));
   auto recvbuf_dev = Read<T>(recvbuf.write());
   self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev);
 #else // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+  std::cerr << "before recvbuf_dev_w ctor\n";
   Write<T> recvbuf_dev_w(nrecvd);
-  CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, nonnull(sendbuf_dev.data()),
-      nonnull(sendcounts.data()), nonnull(sdispls.data()),
-      MpiTraits<T>::datatype(), nonnull(recvbuf_dev_w.data()),
-      nonnull(recvcounts.data()), nonnull(rdispls.data()),
-      MpiTraits<T>::datatype(), impl_));
+  std::cerr << "calling Neighbor_alltoallv\n";
+  CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
+      nonnull(sendbuf_dev.data()),
+      nonnull(sdispls.data()),
+      MpiTraits<T>::datatype(),
+      nonnull(recvbuf_dev_w.data()),
+      nonnull(rdispls.data()),
+      MpiTraits<T>::datatype(),
+      impl_));
+  std::cerr << "before output Read ctor\n";
   Read<T> recvbuf_dev = recvbuf_dev_w;
 #endif // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #else // !defined(OMEGA_H_USE_MPI)
-  (void)sendcounts_dev;
   (void)sdispls_dev;
   auto recvbuf_dev = sendbuf_dev;
 #endif // !defined(OMEGA_H_USE_MPI)
@@ -537,8 +531,8 @@ void Comm::barrier() const {
   template void Comm::bcast(T& x) const;                                       \
   template Read<T> Comm::allgather(T x) const;                                 \
   template Read<T> Comm::alltoall(Read<T> x) const;                            \
-  template Read<T> Comm::alltoallv(Read<T> sendbuf, Read<LO> sendcounts,       \
-      Read<LO> sdispls, Read<LO> recvcounts, Read<LO> rdispls) const;
+  template Read<T> Comm::alltoallv(Read<T> sendbuf,       \
+      Read<LO> sdispls, Read<LO> rdispls, Int width) const;
 INST(I8)
 INST(I32)
 INST(I64)

@@ -113,11 +113,7 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   if (items2content_[F].exists()) {
     data = permute(data, items2content_[F], width);
   }
-  auto sendcounts = multiply_each_by(get_degrees(msgs2content_[F]), width);
-  auto recvcounts = multiply_each_by(get_degrees(msgs2content_[R]), width);
-  auto sdispls = offset_scan(sendcounts);
-  auto rdispls = offset_scan(recvcounts);
-  data = comm_[F]->alltoallv(data, sendcounts, sdispls, recvcounts, rdispls);
+  data = comm_[F]->alltoallv(data, msgs2content_[F], msgs2content_[R], width);
   if (items2content_[R].exists()) {
     data = unmap(items2content_[R], data, width);
   }
