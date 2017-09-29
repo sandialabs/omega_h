@@ -339,21 +339,11 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   CALL(MPI_Type_size(sendtype, &recvwidth));
   MPI_Request* recvreqs = new MPI_Request[indegree];
   for (int i = 0; i < indegree; ++i) {
-    std::cerr << "receiving " << 
-        (rdispls[i + 1] - rdispls[i]) * width
-        << " items starting at "
-        << rdispls[i] * width
-        << '\n';
     CALL(MPI_Irecv(static_cast<char*>(recvbuf) + rdispls[i] * recvwidth * width,
         (rdispls[i + 1] - rdispls[i]) * width,
         recvtype, sources[i], tag, comm, recvreqs + i));
   }
   for (int i = 0; i < outdegree; ++i) {
-    std::cerr << "sending " << 
-        (sdispls[i + 1] - sdispls[i]) * width
-        << " items starting at "
-        << sdispls[i] * width
-        << '\n';
     CALL(MPI_Send(static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth * width,
         (sdispls[i + 1] - sdispls[i]) * width,
         sendtype, destinations[i], tag, comm));
@@ -479,7 +469,6 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
     Read<LO> sdispls_dev, Read<LO> rdispls_dev,
     Int width) const {
   begin_code("Comm::alltoallv");
-  std::cerr << "beginning of alltoallv\n";
 #ifdef OMEGA_H_USE_MPI
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
@@ -489,7 +478,6 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
   HostRead<LO> sdispls(sdispls_dev);
   HostRead<LO> rdispls(rdispls_dev);
   OMEGA_H_CHECK(sendbuf_dev.size() == sdispls.last() * width);
-  std::cerr << "after the sdispls.last check\n";
   int nrecvd = rdispls.last() * width;
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   HostWrite<T> recvbuf(nrecvd);
@@ -505,11 +493,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
   auto recvbuf_dev = Read<T>(recvbuf.write());
   self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev);
 #else // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
-  std::cerr << "before recvbuf_dev_w ctor\n";
   Write<T> recvbuf_dev_w(nrecvd);
-  std::cerr << "sendbuf_dev.size() " << sendbuf_dev.size() << '\n';
-  std::cerr << "recvbuf_dev_w.size() " << recvbuf_dev_w.size() << '\n';
-  std::cerr << "calling Neighbor_alltoallv\n";
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
       nonnull(sendbuf_dev.data()),
       nonnull(sdispls.data()),
@@ -518,7 +502,6 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
       nonnull(rdispls.data()),
       MpiTraits<T>::datatype(),
       impl_));
-  std::cerr << "before output Read ctor\n";
   Read<T> recvbuf_dev = recvbuf_dev_w;
 #endif // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #else // !defined(OMEGA_H_USE_MPI)
