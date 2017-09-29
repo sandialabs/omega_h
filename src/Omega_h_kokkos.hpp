@@ -49,11 +49,11 @@ namespace Omega_h {
 
 inline void begin_code(char const* name) {
   (void) name;
-  Kokkos::Profiling::pushRegion(name);
+//Kokkos::Profiling::pushRegion(name);
 }
 
 inline void end_code() {
-  Kokkos::Profiling::popRegion();
+//Kokkos::Profiling::popRegion();
 }
 
 }  // namespace Omega_h

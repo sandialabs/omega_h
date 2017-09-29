@@ -349,7 +349,6 @@ static void read_tag(
 }
 
 void write(std::ostream& stream, Mesh* mesh) {
-  begin_code("binary::write(stream,Mesh)");
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
 // write_value(stream, latest_version); moved to /version at version 4
 #ifdef OMEGA_H_USE_ZLIB
@@ -380,7 +379,6 @@ void write(std::ostream& stream, Mesh* mesh) {
       write_array(stream, owners.idxs);
     }
   }
-  end_code();
 }
 
 void read(std::istream& stream, Mesh* mesh, I32 version) {
@@ -475,7 +473,6 @@ I32 read_version(std::string const& path, CommPtr comm) {
 }
 
 void write(std::string const& path, Mesh* mesh) {
-  begin_code("binary::write(path,Mesh)");
   if (!ends_with(path, ".osh") && can_print(mesh)) {
     std::cout
         << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
@@ -490,7 +487,6 @@ void write(std::string const& path, Mesh* mesh) {
   write_nparts(path, mesh);
   write_version(path, mesh);
   mesh->comm()->barrier();
-  end_code();
 }
 
 void read_in_comm(

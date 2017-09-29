@@ -46,7 +46,6 @@ struct Tuple {
 
 GOs find_indset(Graph graph, Int distance, Bytes candidates, Reals qualities,
     GOs globals, Dist owners2copies) {
-  begin_code("find_indset");
   auto comm = owners2copies.parent_comm();
   auto n = candidates.size();
   auto is_distributed = comm->size() > 1;
@@ -110,7 +109,6 @@ GOs find_indset(Graph graph, Int distance, Bytes candidates, Reals qualities,
     marks = new_marks;
     if (is_distributed) marks = owners2copies.exch(marks, 1);
   }
-  end_code();
   return owner_globals;
 }
 

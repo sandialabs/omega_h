@@ -134,7 +134,6 @@ Reals get_derivative_metrics(Mesh* mesh, std::string const& name, Real knob) {
 }
 
 Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
-  begin_code("generate_metrics");
   auto t0 = now();
   if (input.should_limit_lengths) {
     OMEGA_H_CHECK(input.min_length <= input.max_length);
@@ -240,6 +239,7 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
     }
   }
   auto t1 = now();
+  add_to_global_timer("generating metrics", t1 - t0);
   if (input.verbose && mesh->comm()->rank() == 0) {
     if (input.should_limit_element_count) {
       std::cout << "generated metrics in " << niters << " iterations and "
@@ -248,7 +248,6 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
       std::cout << "generated metrics in " << (t1 - t0) << " seconds\n";
     }
   }
-  end_code();
   return metrics;
 }
 

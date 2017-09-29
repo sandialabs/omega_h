@@ -101,7 +101,6 @@ LOs form_new_conn(Dist new_ents2old_owners, Dist old_owners2new_uses) {
 void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents, Adj& new_ents2new_lows,
     Dist& old_low_owners2new_lows) {
-  begin_code("push_down");
   auto nlows_per_high = simplex_degrees[ent_dim][low_dim];
   auto old_use_owners = form_down_use_owners(old_mesh, ent_dim, low_dim);
   auto new_use_owners =
@@ -116,16 +115,13 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
   auto new_conn = form_new_conn(new_lows2old_owners, old_low_owners2new_uses);
   new_ents2new_lows.ab2b = new_conn;
   auto old_codes = old_mesh->ask_down(ent_dim, low_dim).codes;
-  if (old_codes.exists()) {
-    auto new_codes = old_owners2new_ents.exch(old_codes, nlows_per_high);
-    new_ents2new_lows.codes = new_codes;
-  }
-  end_code();
+  if (!old_codes.exists()) return;
+  auto new_codes = old_owners2new_ents.exch(old_codes, nlows_per_high);
+  new_ents2new_lows.codes = new_codes;
 }
 
 void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
     Dist old_owners2new_ents) {
-  begin_code("push_tags");
   OMEGA_H_CHECK(old_owners2new_ents.nroots() == old_mesh->nents(ent_dim));
   for (Int i = 0; i < old_mesh->ntags(ent_dim); ++i) {
     auto tag = old_mesh->get_tag(ent_dim, i);
@@ -147,7 +143,6 @@ void push_tags(Mesh const* old_mesh, Mesh* new_mesh, Int ent_dim,
       new_mesh->add_tag<Real>(ent_dim, tag->name(), tag->ncomps(), array, true);
     }
   }
-  end_code();
 }
 
 void push_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
@@ -194,7 +189,6 @@ static void print_migrate_stats(CommPtr comm, Dist new_elems2old_owners) {
 
 void migrate_mesh(
     Mesh* mesh, Dist new_elems2old_owners, Omega_h_Parting mode, bool verbose) {
-  begin_code("migrate_mesh");
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
   }
@@ -224,7 +218,6 @@ void migrate_mesh(
   for (Int d = 0; d <= mesh->dim(); ++d) {
     OMEGA_H_CHECK(mesh->has_tag(d, "global"));
   }
-  end_code();
 }
 
 }  // end namespace Omega_h

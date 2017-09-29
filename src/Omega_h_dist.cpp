@@ -72,20 +72,16 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
 }
 
 void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
-  begin_code("Dist::set_dest_idxs");
   auto rcontent2rroots = exch(fitems2rroots, 1);
   auto rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
   roots2items_[R] = rroots2rcontent.a2ab;
   items2content_[R] = rroots2rcontent.ab2b;
-  end_code();
 }
 
 void Dist::set_dest_globals(GOs fitems2ritem_globals) {
-  begin_code("Dist::set_dest_globals");
   auto rcontent2ritem_globals = exch(fitems2ritem_globals, 1);
   items2content_[R] = sort_by_keys(rcontent2ritem_globals);
   roots2items_[R] = LOs();
-  end_code();
 }
 
 void Dist::set_roots2items(LOs froots2fitems) {
@@ -106,7 +102,6 @@ Dist Dist::invert() const {
 
 template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
-//begin_code("Dist::exch");
   if (roots2items_[F].exists()) {
     data = expand(data, roots2items_[F], width);
   }
@@ -117,7 +112,6 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   if (items2content_[R].exists()) {
     data = unmap(items2content_[R], data, width);
   }
-//end_code();
   return data;
 }
 
