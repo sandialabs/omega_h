@@ -107,21 +107,18 @@ Dist Dist::invert() const {
 template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
   begin_code("Dist::exch");
-  Write<T> data_w;
   if (roots2items_[F].exists()) {
-    data_w = expand(data, roots2items_[F], width);
-  } else {
-    data_w = deep_copy(data);
+    data = expand(data, roots2items_[F], width);
   }
   if (items2content_[F].exists()) {
-    permute_inplace(data_w, items2content_[F], width);
+    data = permute(data, items2content_[F], width);
   }
-  data_w = comm_[F]->alltoallv(data_w, msgs2content_[F], msgs2content_[R], width);
+  data = comm_[F]->alltoallv(data, msgs2content_[F], msgs2content_[R], width);
   if (items2content_[R].exists()) {
-    unpermute_inplace(items2content_[R], data_w, width);
+    data = unmap(items2content_[R], data, width);
   }
   end_code();
-  return data_w;
+  return data;
 }
 
 template <typename T>

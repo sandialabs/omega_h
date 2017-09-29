@@ -63,7 +63,7 @@ class Comm {
   template <typename T>
   Read<T> alltoall(Read<T> x) const;
   template <typename T>
-  Write<T> alltoallv(Write<T> sendbuf, Read<LO> sdispls,
+  Read<T> alltoallv(Read<T> sendbuf, Read<LO> sdispls,
       Read<LO> rdispls, Int width) const;
   void barrier() const;
 };

@@ -42,28 +42,21 @@ Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width) {
 }
 
 template <typename T>
-void unmap_into(Write<T> a_data, LOs a2b, Read<T> b_data, Int width) {
+Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
   auto na = a2b.size();
-  OMEGA_H_CHECK(a_data.size() == na * width);
+  Write<T> a_data(na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
     for (Int j = 0; j < width; ++j) {
       a_data[a * width + j] = b_data[b * width + j];
     }
   };
-  parallel_for(na, f, "unmap_into");
-}
-
-template <typename T>
-Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
-  auto na = a2b.size();
-  Write<T> a_data(na * width);
-  unmap_into(a_data, a2b, b_data, width);
+  parallel_for(na, f, "unmap");
   return a_data;
 }
 
 template <typename T>
-Write<T> expand(Read<T> a_data, LOs a2b, Int width) {
+Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
   auto na = a2b.size() - 1;
   auto nb = a2b.last();
   OMEGA_H_CHECK(a_data.size() == na * width);
@@ -82,24 +75,9 @@ Write<T> expand(Read<T> a_data, LOs a2b, Int width) {
 template <typename T>
 Read<T> permute(Read<T> a_data, LOs a2b, Int width) {
   auto nb = a2b.size();
-  OMEGA_H_CHECK(nb == a_data.size());
   Write<T> b_data(nb * width);
   map_into(a_data, a2b, b_data, width);
   return b_data;
-}
-
-template <typename T>
-void permute_inplace(Write<T> a_data, LOs a2b, Int width) {
-  auto nb = a2b.size();
-  OMEGA_H_CHECK(nb == a_data.size());
-  map_into(a_data, a2b, a_data, width);
-}
-
-template <typename T>
-void unpermute_inplace(Write<T> a_data, LOs a2b, Int width) {
-  auto nb = a2b.size();
-  OMEGA_H_CHECK(nb == a_data.size());
-  unmap_into(a_data, a2b, a_data, width);
 }
 
 LOs multiply_fans(LOs a2b, LOs a2c) {
@@ -275,12 +253,9 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   template void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
-  template void unmap_into(Write<T> a_data, LOs a2b, Read<T> b_data, Int width);                  \
   template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
-  template Write<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
+  template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
   template Read<T> permute(Read<T> a_data, LOs a2b, Int width);                \
-  template void permute_inplace(Write<T> a_data, LOs a2b, Int width);                \
-  template void unpermute_inplace(Write<T> a_data, LOs a2b, Int width);                \
   template Read<T> fan_reduce(                                                 \
       LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 INST_T(I8)
