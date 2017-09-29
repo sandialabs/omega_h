@@ -5,10 +5,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_scan.hpp"
 
-#define OMEGA_H_USE_CUDA_AWARE_MPI
-#include <iostream>
-
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #include "Omega_h_library.hpp"
 #include "Omega_h_loop.hpp"
 #endif
@@ -388,7 +385,7 @@ Read<T> Comm::alltoall(Read<T> x) const {
 #endif
 }
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 
 template <typename T>
 Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,

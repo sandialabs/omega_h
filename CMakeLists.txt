@@ -27,6 +27,7 @@ set(EGADS_PREFIX "" CACHE PATH "EGADS (or ESP) installation directory")
 option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
 message(STATUS "Omega_h_USE_Trilinos: ${Omega_h_USE_Trilinos}")
 set(Trilinos_PREFIX "" CACHE PATH "Path to Trilinos install")
+option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_public_dep(ZLIB)
@@ -102,6 +103,7 @@ set(Omega_h_USE_OpenMP ${KokkosCore_HAS_OpenMP})
 message(STATUS "Omega_h_USE_OpenMP: ${Omega_h_USE_OpenMP}")
 set(Omega_h_USE_CUDA ${KokkosCore_HAS_CUDA})
 message(STATUS "Omega_h_USE_CUDA: ${Omega_h_USE_CUDA}")
+message(STATUS "Omega_h_USE_CUDA_AWARE_MPI: ${Omega_h_USE_CUDA_AWARE_MPI}")
 set(Omega_h_USE_YAML ${TeuchosParameterList_HAS_YAML})
 message(STATUS "Omega_h_USE_YAML: ${Omega_h_USE_YAML}")
 
@@ -147,6 +149,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_YAML
     Omega_h_USE_DOLFIN
     Omega_h_CHECK_BOUNDS
+    Omega_h_USE_CUDA_AWARE_MPI
    )
 
 set(Omega_h_KEY_INTS
