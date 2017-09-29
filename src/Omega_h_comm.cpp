@@ -506,6 +506,8 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
 #endif // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #else // !defined(OMEGA_H_USE_MPI)
   (void)sdispls_dev;
+  (void)rdispls_dev;
+  (void)width;
   auto recvbuf_dev = sendbuf_dev;
 #endif // !defined(OMEGA_H_USE_MPI)
 //end_code();

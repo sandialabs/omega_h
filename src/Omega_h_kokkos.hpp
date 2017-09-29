@@ -47,7 +47,7 @@ OMEGA_H_SYSTEM_HEADER
 
 namespace Omega_h {
 
-inline void begin_code(char const* name) {
+inline void begin_code(std::string const& name) {
   (void) name;
 //Kokkos::Profiling::pushRegion(name);
 }
