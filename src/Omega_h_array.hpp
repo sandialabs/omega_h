@@ -122,7 +122,7 @@ class Read {
   T first() const;
   T last() const;
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
-  Write<T> never_ever_call_this() { return write_; }
+  Write<T> get_write_be_careful_calling_this() { return write_; }
 };
 
 class Bytes : public Read<Byte> {
