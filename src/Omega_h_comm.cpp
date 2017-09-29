@@ -328,7 +328,7 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
     const int rdispls[],
     MPI_Datatype recvtype,
     MPI_Comm comm) {
-  begin_code("Neighbor_alltoallv");
+//begin_code("Neighbor_alltoallv");
   int const tag = 42;
   int indegree, outdegree;
   indegree = sources.size();
@@ -350,7 +350,7 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   }
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
-  end_code();
+//end_code();
   return MPI_SUCCESS;
 }
 
@@ -468,7 +468,7 @@ template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
     Read<LO> sdispls_dev, Read<LO> rdispls_dev,
     Int width) const {
-  begin_code("Comm::alltoallv");
+//begin_code("Comm::alltoallv");
 #ifdef OMEGA_H_USE_MPI
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
@@ -508,7 +508,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
   (void)sdispls_dev;
   auto recvbuf_dev = sendbuf_dev;
 #endif // !defined(OMEGA_H_USE_MPI)
-  end_code();
+//end_code();
   return recvbuf_dev;
 }
 
