@@ -190,7 +190,7 @@ bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
-  auto ret = (get_max(comm, edge_is_cand) != 1);
+  auto ret = (get_max(comm, edge_is_cand) == 1);
   if (ret) {
     ret = coarsen_ents(mesh, opts, EDGE, edge_is_cand, DESIRED, DONT_IMPROVE);
   }
