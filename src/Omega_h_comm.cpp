@@ -10,6 +10,10 @@
 #include "Omega_h_loop.hpp"
 #endif
 
+#include "Omega_h_map.hpp"
+
+#include <cstdio> //DEBUG
+
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
@@ -331,18 +335,26 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   outdegree = destinations.size();
   int sendwidth;
   CALL(MPI_Type_size(sendtype, &sendwidth));
-  sendwidth *= width;
   int recvwidth;
   CALL(MPI_Type_size(sendtype, &recvwidth));
-  recvwidth *= width;
   MPI_Request* recvreqs = new MPI_Request[indegree];
   for (int i = 0; i < indegree; ++i) {
-    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + rdispls[i] * recvwidth,
+    std::cerr << "receiving " << 
+        (rdispls[i + 1] - rdispls[i]) * width
+        << " items starting at "
+        << rdispls[i] * width
+        << '\n';
+    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + rdispls[i] * recvwidth * width,
         (rdispls[i + 1] - rdispls[i]) * width,
         recvtype, sources[i], tag, comm, recvreqs + i));
   }
   for (int i = 0; i < outdegree; ++i) {
-    CALL(MPI_Send(static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth,
+    std::cerr << "sending " << 
+        (sdispls[i + 1] - sdispls[i]) * width
+        << " items starting at "
+        << sdispls[i] * width
+        << '\n';
+    CALL(MPI_Send(static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth * width,
         (sdispls[i + 1] - sdispls[i]) * width,
         sendtype, destinations[i], tag, comm));
   }
@@ -386,13 +398,12 @@ Read<T> Comm::alltoall(Read<T> x) const {
 
 template <typename T>
 Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
-    Read<LO>* p_rdispls, LO threshold) {
+    Read<LO>* p_sdispls, Read<LO>* p_rdispls, LO threshold) {
   Read<T> self_data;
   if (self_dst < 0) return self_data;
   OMEGA_H_CHECK(self_src >= 0);
   auto sendbuf = *p_sendbuf;
   auto sdispls = *p_sdispls;
-  auto recvcounts = *p_recvcounts;
   auto rdispls = *p_rdispls;
   auto begin = sdispls.get(self_dst);
   auto end = sdispls.get(self_dst + 1);
@@ -401,9 +412,9 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
     self_data = sendbuf;
     sendbuf = Read<T>({});
     sdispls = LOs({0, 0});
-    auto recvcounts_w = deep_copy(recvcounts);
+    auto recvcounts_w = deep_copy(get_degrees(rdispls));
     recvcounts_w.set(self_src, 0);
-    recvcounts = recvcounts_w;
+    auto recvcounts = LOs(recvcounts_w);
     rdispls = offset_scan(recvcounts);
   } else {
     if (self_count * sizeof(T) < size_t(threshold)) return self_data;
@@ -421,17 +432,16 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
     self_data = self_data_w;
     sendbuf = other_data_w;
     auto sendcounts_w = deep_copy(get_degrees(sdispls));
-    auto recvcounts_w = deep_copy(recvcounts);
+    auto recvcounts_w = deep_copy(get_degrees(rdispls));
     sendcounts_w.set(self_dst, 0);
     recvcounts_w.set(self_src, 0);
-    sendcounts = sendcounts_w;
-    recvcounts = recvcounts_w;
+    auto sendcounts = LOs(sendcounts_w);
+    auto recvcounts = LOs(recvcounts_w);
     sdispls = offset_scan(sendcounts);
     rdispls = offset_scan(recvcounts);
   }
   *p_sendbuf = sendbuf;
   *p_sdispls = sdispls;
-  *p_recvcounts = recvcounts;
   *p_rdispls = rdispls;
   return self_data;
 }
@@ -480,7 +490,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
   HostRead<LO> rdispls(rdispls_dev);
   OMEGA_H_CHECK(sendbuf_dev.size() == sdispls.last() * width);
   std::cerr << "after the sdispls.last check\n";
-  int nrecvd = rdispls.last();
+  int nrecvd = rdispls.last() * width;
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   HostWrite<T> recvbuf(nrecvd);
   HostRead<T> sendbuf(sendbuf_dev);
@@ -497,6 +507,8 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev,
 #else // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   std::cerr << "before recvbuf_dev_w ctor\n";
   Write<T> recvbuf_dev_w(nrecvd);
+  std::cerr << "sendbuf_dev.size() " << sendbuf_dev.size() << '\n';
+  std::cerr << "recvbuf_dev_w.size() " << recvbuf_dev_w.size() << '\n';
   std::cerr << "calling Neighbor_alltoallv\n";
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
       nonnull(sendbuf_dev.data()),
