@@ -322,6 +322,7 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, const int sendcounts[], const int sdispls[],
     MPI_Datatype sendtype, void* recvbuf, const int recvcounts[],
     const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm) {
+  begin_code("Neighbor_alltoallv");
 #if (MPI_VERSION < 3) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   static int const tag = 42;
   int indegree, outdegree;
@@ -346,13 +347,15 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
 //delete[] sendreqs;
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
-  return MPI_SUCCESS;
+  int ret = MPI_SUCCESS;
 #else // (MPI_VERSION >= 3) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   (void)sources;
   (void)destinations;
-  return MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf,
+  int ret = MPI_Neighbor_alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf,
       recvcounts, rdispls, recvtype, comm);
 #endif  // (MPI_VERSION >= 3) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
+  end_code();
+  return ret;
 }
 
 #endif  // end ifdef OMEGA_H_USE_MPI
