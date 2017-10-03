@@ -665,7 +665,6 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
   auto verts2elems = mesh->ask_up(VERT, dim);
   constexpr auto max_elems_per_patch =
     AvgDegree<dim, 0, dim>::value * nverts_per_elem * 2;
-  std::cout << max_elems_per_patch << " MAX ELEMS PER PATCH\n";
   auto elems2volume = measure_elements_real(mesh);
   auto nglobal_elems = get_sum(mesh->comm(), mesh->owned(dim));
   auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
