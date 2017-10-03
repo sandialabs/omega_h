@@ -664,7 +664,8 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
   auto elem_verts2vert = mesh->ask_elem_verts();
   auto verts2elems = mesh->ask_up(VERT, dim);
   constexpr auto max_elems_per_patch =
-    AvgDegree<dim, 0, dim>::value * nverts_per_elem;
+    AvgDegree<dim, 0, dim>::value * nverts_per_elem * 2;
+  std::cout << max_elems_per_patch << " MAX ELEMS PER PATCH\n";
   auto elems2volume = measure_elements_real(mesh);
   auto nglobal_elems = get_sum(mesh->comm(), mesh->owned(dim));
   auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
@@ -677,6 +678,7 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
       for (auto ve = verts2elems.a2ab[vert];
            ve < verts2elems.a2ab[vert + 1]; ++ve) {
         auto patch_elem = verts2elems.ab2b[ve];
+        OMEGA_H_CHECK(npatch_elems < max_elems_per_patch);
         add_unique(patch_elems, npatch_elems, patch_elem);
       }
     }
@@ -712,13 +714,17 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
     for (Int i = 0; i < dim; ++i) g[i] = max2(g[i], g_min);
     Matrix<dim, dim> r;
     for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
+    auto scaling = std::pow(product(g), 1.0 / 18.0);
     Vector<dim> h;
-    for (Int i = 0; i < dim; ++i) h[i] = root<dim>(a / g[dim - i - 1]);
+    for (Int i = 0; i < dim; ++i) h[i] = root<dim>(a) * scaling / root<2>(g[dim - i - 1]);
     auto m = compose_metric(r, h);
     set_symm(out, elem, m);
   };
   parallel_for(mesh->nelems(), f);
-  return out;
+  auto elem_metrics = Reals(out);
+  auto metrics = Omega_h::project_by_average(&mesh, elem_metrics);
+  metrics = Omega_h::multiply_each_by(metrics, 3.0 / 8.0);
+  return metrics;
 }
 
 Reals get_aniso_zz_metric(Mesh* mesh, Reals elem_gradients,
