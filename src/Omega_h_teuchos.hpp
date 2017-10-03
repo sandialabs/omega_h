@@ -5,8 +5,7 @@
 #include <Omega_h_assoc.hpp>
 #include <Omega_h_file.hpp>
 
-#include <Teuchos_Comm.hpp>
-#include <Teuchos_ParameterList.hpp>
+#include <Omega_h_teuchos_includes.hpp>
 
 namespace Omega_h {
 

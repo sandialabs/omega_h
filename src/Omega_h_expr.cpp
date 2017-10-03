@@ -1,15 +1,10 @@
 #include <Omega_h_expr.hpp>
 #include <Omega_h_matrix.hpp>
 
-#include <Teuchos_Language.hpp>
-#include <Teuchos_MathExpr.hpp>
-
 #include <Omega_h_array_ops.hpp>
 #include <Omega_h_loop.hpp>
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
-
-#include <Teuchos_any.hpp>
 
 namespace Omega_h {
 

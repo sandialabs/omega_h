@@ -74,15 +74,15 @@ if  ( Omega_h_USE_TeuchosParameterList
   AND Omega_h_USE_TeuchosParser
   )
   message(STATUS "Using Teuchos")
-  set(USE_TEUCHOS ON)
-elseif  ( Omega_h_USE_TeuchosParameterList 
+  set(Omega_h_USE_Teuchos ON)
+elseif  ( Omega_h_USE_TeuchosParameterList
        OR Omega_h_USE_TeuchosComm
        OR Omega_h_USE_TeuchosParser
        )
   message(FATAL_ERROR "Must use TeuchosParameterList, TeuchosComm, and TeuchosParser or none")
 else()
   message(STATUS "Not using Teuchos")
-  set(USE_TEUCHOS OFF)
+  set(Omega_h_USE_Teuchos OFF)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/detect_trilinos_opts.cmake)
@@ -143,9 +143,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
     Omega_h_USE_SEACASExodus
-    Omega_h_USE_TeuchosParameterList
-    Omega_h_USE_TeuchosComm
-    Omega_h_USE_TeuchosParser
+    Omega_h_USE_Teuchos
     Omega_h_USE_YAML
     Omega_h_USE_DOLFIN
     Omega_h_CHECK_BOUNDS

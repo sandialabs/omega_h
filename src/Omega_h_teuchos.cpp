@@ -4,20 +4,6 @@
 
 #include <fstream>
 
-#include <TeuchosCore_config.h>
-
-#include <Teuchos_XMLParameterListHelpers.hpp>
-#ifdef OMEGA_H_USE_YAML
-#include <Teuchos_YamlParameterListHelpers.hpp>
-#endif
-#include <Teuchos_TwoDArray.hpp>
-
-#ifdef OMEGA_H_USE_MPI
-#include <Teuchos_DefaultMpiComm.hpp>
-#else
-#include <Teuchos_DefaultSerialComm.hpp>
-#endif
-
 namespace Omega_h {
 
 void update_var_compare_opts(
@@ -285,7 +271,7 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
         for (decltype(npairs) i = 0; i < npairs; ++i) {
           auto class_dim = Int(pairs(i, 0));
           auto class_id = LO(pairs(i, 1));
-          assoc[set_type][set_name].push_back({class_dim, class_id});
+          assoc[std::size_t(set_type)][set_name].push_back({class_dim, class_id});
         }
       }
     }

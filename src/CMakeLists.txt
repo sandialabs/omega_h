@@ -116,7 +116,7 @@ if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
 
-if(USE_TEUCHOS)
+if(Omega_h_USE_Teuchos)
   set(Omega_h_SOURCES ${Omega_h_SOURCES}
       Omega_h_teuchos.cpp
       Omega_h_expr.cpp
@@ -232,7 +232,7 @@ if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
   osh_add_util(osh2exo)
 endif()
-if(USE_TEUCHOS)
+if(Omega_h_USE_Teuchos)
   osh_add_util(osh_adapt)
   osh_add_util(osh_copy_params)
 endif()
@@ -433,6 +433,7 @@ set(Omega_h_HEADERS
 if(USE_TEUCHOS)
   set(Omega_h_HEADERS ${Omega_h_HEADERS}
       Omega_h_teuchos.hpp
+      Omega_h_teuchos_includes.hpp
       Omega_h_expr.hpp
      )
 endif()
