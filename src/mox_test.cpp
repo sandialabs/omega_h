@@ -12,17 +12,6 @@
 #include <cmath>
 #include <iostream>
 
-void compute_error(Mesh* mesh, Reals u) {
-  auto elem_gradients_h =
-    Omega_h::derive_element_gradients(&mesh, u);
-  auto coords = mesh->coords();
-  auto elem_coords = Omega_h::average_field(
-      mesh, mesh->dim(), mesh->dim(), coords);
-  auto f = OMEGA_H_LAMBDA(LO e) {
-    auto x = get_vector<3>(elem_coords, e);
-  };
-}
-
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto world = lib.world();
@@ -35,9 +24,9 @@ int main(int argc, char** argv) {
       12, 12, 12);
   }
   Omega_h::vtk::Writer writer("adapting", &mesh);
-  auto tau_start = 2.0;
+  auto tau_start = 10.0;
   auto tau_end = 1.0;
-  auto niter = 10;
+  auto niter = 30;
   for (int iter = 0; iter < niter; ++iter) {
     auto u_w = Omega_h::Write<Omega_h::Real>(mesh.nverts());
     auto eps = 0.01;

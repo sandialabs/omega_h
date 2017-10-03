@@ -722,7 +722,7 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
   };
   parallel_for(mesh->nelems(), f);
   auto elem_metrics = Reals(out);
-  auto metrics = Omega_h::project_by_average(&mesh, elem_metrics);
+  auto metrics = Omega_h::project_by_average(mesh, elem_metrics);
   metrics = Omega_h::multiply_each_by(metrics, 3.0 / 8.0);
   return metrics;
 }
