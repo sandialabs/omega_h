@@ -165,7 +165,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new ::Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
-      reinterpret_cast<const ::Bytef*>(uncompressed.nonnull_data()),
+      reinterpret_cast<const ::Bytef*>(nonnull(uncompressed.data())),
       source_bytes, Z_BEST_SPEED);
   OMEGA_H_CHECK(ret == Z_OK);
   I64 compressed_bytes = static_cast<I64>(dest_bytes);
@@ -173,7 +173,7 @@ void write_array(std::ostream& stream, Read<T> array) {
   stream.write(reinterpret_cast<const char*>(compressed), compressed_bytes);
   delete[] compressed;
 #else
-  stream.write(reinterpret_cast<const char*>(uncompressed.nonnull_data()),
+  stream.write(reinterpret_cast<const char*>(nonnull(uncompressed.data())),
       uncompressed_bytes);
 #endif
 }
@@ -196,7 +196,7 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
     uLong dest_bytes = static_cast<uLong>(uncompressed_bytes);
     uLong source_bytes = static_cast<uLong>(compressed_bytes);
     ::Bytef* uncompressed_ptr =
-        reinterpret_cast< ::Bytef*>(uncompressed.nonnull_data());
+        reinterpret_cast< ::Bytef*>(nonnull(uncompressed.data()));
     int ret =
         ::uncompress(uncompressed_ptr, &dest_bytes, compressed, source_bytes);
     OMEGA_H_CHECK(ret == Z_OK);
@@ -207,7 +207,7 @@ void read_array(std::istream& stream, Read<T>& array, bool is_compressed) {
   OMEGA_H_CHECK(is_compressed == false);
 #endif
   {
-    stream.read(reinterpret_cast<char*>(uncompressed.nonnull_data()),
+    stream.read(reinterpret_cast<char*>(nonnull(uncompressed.data())),
         uncompressed_bytes);
   }
   array = swap_if_needed(Read<T>(uncompressed.write()), true);

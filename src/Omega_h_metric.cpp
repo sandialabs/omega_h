@@ -644,6 +644,16 @@ Reals isos_from_lengths(Reals h) {
   return out;
 }
 
+
+Reals lengths_from_isos(Reals l) {
+  auto out = Write<Real>(l.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    out[i] = metric_length_from_eigenvalue(l[i]);
+  };
+  parallel_for(l.size(), f);
+  return out;
+}
+
 /* Micheletti, S., and S. Perotto.
  * "Anisotropic adaptation via a Zienkiewicz–Zhu error estimator
  *  for 2D elliptic problems."
@@ -730,8 +740,8 @@ Reals get_aniso_zz_metric(Mesh* mesh, Reals elem_gradients,
     Real error_bound, Real max_size) {
   if (mesh->dim() == 3) {
     return get_aniso_zz_metric_dim<3>(mesh, elem_gradients, error_bound, max_size);
-  } else if (mesh->dim() == 2) {
-    return get_aniso_zz_metric_dim<2>(mesh, elem_gradients, error_bound, max_size);
+  // TODO: currently we fixed the algorithm to match the 3D paper.
+  // In 2D, the terms are slightly different (e.g. no 1/18 power)
   } else {
     OMEGA_H_NORETURN(Reals());
   }

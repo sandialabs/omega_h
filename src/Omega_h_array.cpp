@@ -9,6 +9,22 @@
 
 namespace Omega_h {
 
+/* Several C libraries including ZLib and
+   OpenMPI will throw errors when input pointers
+   are NULL, even if they point to arrays of size zero. */
+template <typename T>
+class NonNullPtr {
+  static T scratch[1];
+
+ public:
+  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
+};
+template <typename T>
+T NonNullPtr<T>::scratch[1] = {0};
+
+template <typename T>
+T* nonnull(T* p) { return NonNullPtr<T>::get(p); }
+
 static std::size_t current_array_bytes = 0;
 
 std::size_t get_current_bytes() { return current_array_bytes; }
@@ -42,19 +58,18 @@ Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
 
 template <typename T>
 Write<T>::Write(LO size, std::string const& name)
-    :
-#ifdef OMEGA_H_USE_KOKKOSCORE
-      view_(Kokkos::ViewAllocateWithoutInitializing(name),
-          static_cast<std::size_t>(size))
-#else
-      ptr_(new T[size], std::default_delete<T[]>()),
-      size_(size)
-#endif
 {
-#ifndef OMEGA_H_USE_KOKKOSCORE
+//begin_code("Write(size,name)");
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name),
+      static_cast<std::size_t>(size));
+#else
   (void)name;
+  ptr_ = decltype(ptr_)(new T[size], std::default_delete<T[]>());
+  size_ = size;
 #endif
   log_allocation();
+//end_code();
 }
 
 template <typename T>
@@ -318,25 +333,6 @@ T* HostWrite<T>::data() const {
 #endif
 }
 
-/* Several C libraries including ZLib and
-   OpenMPI will throw errors when input pointers
-   are NULL, even if they point to arrays of size zero. */
-template <typename T>
-class NonNullPtr {
-  static T scratch[1];
-
- public:
-  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
-  static T const* get(T const* p) { return (p == nullptr) ? scratch : p; }
-};
-template <typename T>
-T NonNullPtr<T>::scratch[1] = {0};
-
-template <typename T>
-T* HostWrite<T>::nonnull_data() const {
-  return NonNullPtr<T>::get(data());
-}
-
 template <typename T>
 #ifdef __INTEL_COMPILER
 HostRead<T>::HostRead() {
@@ -380,11 +376,6 @@ T const* HostRead<T>::data() const {
 }
 
 template <typename T>
-T const* HostRead<T>::nonnull_data() const {
-  return NonNullPtr<T>::get(data());
-}
-
-template <typename T>
 T HostRead<T>::last() const {
   return operator[](size() - 1);
 }
@@ -402,6 +393,8 @@ Write<T> deep_copy(Read<T> a) {
 }
 
 #define INST(T)                                                                \
+  template T* nonnull(T*); \
+  template T const* nonnull(T const*); \
   template class NonNullPtr<T>;                                                \
   template class Write<T>;                                                     \
   template class Read<T>;                                                      \

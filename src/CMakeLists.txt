@@ -80,7 +80,6 @@ set(Omega_h_SOURCES
   Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
-  Omega_h_kokkos.cpp
   Omega_h_flood.cpp
   )
 

@@ -249,6 +249,7 @@ Reals get_aniso_zz_metric(Mesh* mesh, Reals elem_gradients,
     Real error_bound, Real max_size);
 
 Reals isos_from_lengths(Reals h);
+Reals lengths_from_isos(Reals l);
 
 }  // end namespace Omega_h
 
