@@ -156,8 +156,10 @@ set(Omega_h_KEY_INTS
     Omega_h_VERSION_PATCH
    )
 
+set(Omega_h_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(Omega_h_KEY_STRINGS
     Omega_h_SEMVER
+    Omega_h_CXX_FLAGS
    )
 
 bob_form_semver()
