@@ -148,6 +148,7 @@ static void test_eigen_metric(Vector<3> h) {
 }
 
 static void test_eigen_quadratic() {
+  test_eigen(matrix_1x1(42.0), vector_1(42.0));
   test_eigen(identity_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(1, 1));
   test_eigen(zero_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(0, 0));
   test_eigen(matrix_2x2(8.67958, -14.0234, -1.04985, 2.25873),
