@@ -140,8 +140,8 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Bytes each_neq_to(Read<T> a, T b);                           \
   extern template Bytes each_eq(Read<T> a, Read<T> b);                         \
   extern template Bytes each_eq_to(Read<T> a, T b);                            \
-  extern template Read<T> multiply_each_by(Read<T> a, T b);               \
-  extern template Read<T> divide_each_by(Read<T> a, T b);                 \
+  extern template Read<T> multiply_each_by(Read<T> a, T b);                    \
+  extern template Read<T> divide_each_by(Read<T> a, T b);                      \
   extern template Read<T> min_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> max_each(Read<T> a, Read<T> b);                      \
   extern template Read<T> ternary_each(Bytes cond, Read<T> a, Read<T> b);      \

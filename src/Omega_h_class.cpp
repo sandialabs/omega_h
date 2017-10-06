@@ -91,9 +91,8 @@ static Write<T> copy_and_remove_or_default(
   }
 }
 
-void project_classification(
-    Mesh* mesh, Int ent_dim, Write<I8> class_dim, Write<ClassId> class_id,
-    bool relaxed) {
+void project_classification(Mesh* mesh, Int ent_dim, Write<I8> class_dim,
+    Write<ClassId> class_id, bool relaxed) {
   auto l2h = mesh->ask_up(ent_dim, ent_dim + 1);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
@@ -112,8 +111,7 @@ void project_classification(
         best_id = high_id;
         nadj = 1;
       } else if (high_dim == best_dim) {
-        if (high_id != best_id &&
-            (!relaxed || high_id != -1)) {
+        if (high_id != best_id && (!relaxed || high_id != -1)) {
           if (best_id == -1) {
             best_id = high_id;
             ++nadj;

@@ -103,8 +103,8 @@ Read<I8> mark_class_closure(
   return mark_down(mesh, class_dim, ent_dim, eq_marks);
 }
 
-Read<I8> mark_class_closures(
-    Mesh* mesh, Int ent_dim, Int class_dim, std::vector<ClassId> const& class_ids) {
+Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
+    std::vector<ClassId> const& class_ids) {
   OMEGA_H_CHECK(class_dim >= ent_dim);
   auto sorted_class_ids = class_ids;
   std::sort(begin(sorted_class_ids), end(sorted_class_ids));

@@ -14,9 +14,8 @@ void classify_hinges_by_sharpness(
     Mesh* mesh, Read<I8> hinge_is_exposed, Read<I8> hinge_is_sharp);
 void classify_elements(Mesh* mesh);
 
-void project_classification(
-    Mesh* mesh, Int ent_dim, Write<I8> class_dim, Write<ClassId> class_id,
-    bool relaxed = false);
+void project_classification(Mesh* mesh, Int ent_dim, Write<I8> class_dim,
+    Write<ClassId> class_id, bool relaxed = false);
 void project_classification(Mesh* mesh, Int ent_dim, bool relaxed = false);
 
 /* this function is meant to take in any amount

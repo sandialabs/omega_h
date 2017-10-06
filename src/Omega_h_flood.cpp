@@ -18,7 +18,8 @@ Bytes mark_flood_zones(Mesh* mesh, FloodOpts const&) {
   auto elems_adj_bridge = mark_adj(mesh, EDGE, mesh->dim(), edges_are_bridge);
   auto elems_can_seed = elems_adj_bridge;
   auto elem_qualities = mesh->ask_qualities();
-  /* this is a totally useless standin to just compile while we work on the new stuff */
+  /* this is a totally useless standin to just compile while we work on the new
+   * stuff */
   auto elems_low_qual = each_lt(elem_qualities, 0.5);
   auto elems_are_seeded = land_each(elems_low_qual, elems_can_seed);
   auto verts_are_seeds = mark_adj(mesh, dim, VERT, elems_are_seeded);
@@ -192,8 +193,9 @@ void flood_classification(Mesh* mesh, Bytes elems_did_flood) {
   auto dim = mesh->dim();
   for (Int ent_dim = VERT; ent_dim < dim; ++ent_dim) {
     auto ents_in_flood_closure = mark_down(mesh, dim, ent_dim, elems_did_flood);
-    std::cout << "clearing classification for " << get_sum(ents_in_flood_closure)
-      << " entities of dimension " << ent_dim << '\n';
+    std::cout << "clearing classification for "
+              << get_sum(ents_in_flood_closure) << " entities of dimension "
+              << ent_dim << '\n';
     auto class_ids_w = deep_copy(mesh->get_array<ClassId>(ent_dim, "class_id"));
     auto class_dims_w = deep_copy(mesh->get_array<I8>(ent_dim, "class_dim"));
     auto f = OMEGA_H_LAMBDA(LO i) {

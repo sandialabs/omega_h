@@ -1,8 +1,8 @@
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_cmdline.hpp>
+#include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_mesh.hpp>
-#include <Omega_h_adapt.hpp>
-#include <Omega_h_file.hpp>
-#include <Omega_h_cmdline.hpp>
 #include <Omega_h_metric.hpp>
 
 #ifdef OMEGA_H_USE_EGADS
@@ -14,13 +14,16 @@
 static void compute_implied_metric(Omega_h::Mesh* mesh) {
   auto metrics = Omega_h::get_implied_metrics(mesh);
   metrics = Omega_h::limit_metric_gradation(mesh, metrics, 1.0);
-  mesh->add_tag(Omega_h::VERT, "metric", Omega_h::symm_ncomps(mesh->dim()), metrics);
+  mesh->add_tag(
+      Omega_h::VERT, "metric", Omega_h::symm_ncomps(mesh->dim()), metrics);
 }
 
 static void compute_target_metric(Omega_h::Mesh* mesh) {
-  auto metric = Omega_h::diagonal(Omega_h::metric_eigenvalues_from_lengths(Omega_h::vector_3(0.1, 0.1, 0.1)));
+  auto metric = Omega_h::diagonal(Omega_h::metric_eigenvalues_from_lengths(
+      Omega_h::vector_3(0.1, 0.1, 0.1)));
   auto metrics = Omega_h::repeat_symm(mesh->nverts(), metric);
-  mesh->add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_ncomps(mesh->dim()), metrics);
+  mesh->add_tag(Omega_h::VERT, "target_metric",
+      Omega_h::symm_ncomps(mesh->dim()), metrics);
 }
 
 int main(int argc, char** argv) {

@@ -214,11 +214,11 @@ static void run_case(Library* lib, Case const& c, Int niters) {
     auto motion = Reals(motion_w);
     motion = solve_laplacian(&mesh, motion, mesh.dim(), 1e-2);
     mesh.add_tag(VERT, "warp", mesh.dim(), motion);
-  //auto metrics = mesh.get_array<Real>(VERT, "metric");
-  //auto lengths = lengths_from_isos(metrics);
-  //lengths = solve_laplacian(&mesh, lengths, 1, 1e-2);
-  //metrics = isos_from_lengths(lengths);
-  //mesh.set_tag(VERT, "metric", metrics);
+    // auto metrics = mesh.get_array<Real>(VERT, "metric");
+    // auto lengths = lengths_from_isos(metrics);
+    // lengths = solve_laplacian(&mesh, lengths, 1, 1e-2);
+    // metrics = isos_from_lengths(lengths);
+    // mesh.set_tag(VERT, "metric", metrics);
     auto opts = AdaptOpts(&mesh);
     opts.max_length_allowed = opts.max_length_desired * 2.0;
     int warp_step = 0;

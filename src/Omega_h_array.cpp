@@ -23,7 +23,9 @@ template <typename T>
 T NonNullPtr<T>::scratch[1] = {0};
 
 template <typename T>
-T* nonnull(T* p) { return NonNullPtr<T>::get(p); }
+T* nonnull(T* p) {
+  return NonNullPtr<T>::get(p);
+}
 
 static std::size_t current_array_bytes = 0;
 
@@ -57,9 +59,8 @@ Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
 #endif
 
 template <typename T>
-Write<T>::Write(LO size, std::string const& name)
-{
-//begin_code("Write(size,name)");
+Write<T>::Write(LO size, std::string const& name) {
+// begin_code("Write(size,name)");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name),
       static_cast<std::size_t>(size));
@@ -69,7 +70,7 @@ Write<T>::Write(LO size, std::string const& name)
   size_ = size;
 #endif
   log_allocation();
-//end_code();
+  // end_code();
 }
 
 template <typename T>
@@ -393,8 +394,8 @@ Write<T> deep_copy(Read<T> a) {
 }
 
 #define INST(T)                                                                \
-  template T* nonnull(T*); \
-  template T const* nonnull(T const*); \
+  template T* nonnull(T*);                                                     \
+  template T const* nonnull(T const*);                                         \
   template class NonNullPtr<T>;                                                \
   template class Write<T>;                                                     \
   template class Read<T>;                                                      \

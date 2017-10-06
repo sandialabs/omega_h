@@ -53,9 +53,9 @@ int main() {
   // hppfile << "namespace Omega_h {\n\n";
   // hppfile << "static constexpr Int ndihedral_samples = " << ndihedral_samples
   // << ";\n";  hppfile << "extern const Real
-  // best_tri_qual_for_dihedral[ndihedral_samples];\n";  hppfile << "extern const
-  // Real best_tet_qual_for_dihedral[ndihedral_samples];\n\n";  hppfile << "}  //
-  // end namespace Omega_h\n\n";  hppfile << "#endif\n";
+  // best_tri_qual_for_dihedral[ndihedral_samples];\n";  hppfile << "extern
+  // const Real best_tet_qual_for_dihedral[ndihedral_samples];\n\n";  hppfile <<
+  // "}  // end namespace Omega_h\n\n";  hppfile << "#endif\n";
   //}
   //{
   // std::ofstream cppfile("Omega_h_dihedral_quality.cpp");

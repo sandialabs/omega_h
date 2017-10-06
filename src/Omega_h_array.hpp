@@ -222,8 +222,8 @@ Write<T> deep_copy(Read<T> a);
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
-  extern template T* nonnull(T*); \
-  extern template T const* nonnull(T const*); \
+  extern template T* nonnull(T*);                                              \
+  extern template T const* nonnull(T const*);                                  \
   extern template class Read<T>;                                               \
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \

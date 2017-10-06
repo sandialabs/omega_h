@@ -1,13 +1,13 @@
-#include <Omega_h_library.hpp>
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_adj.hpp>
+#include <Omega_h_array_ops.hpp>
 #include <Omega_h_build.hpp>
+#include <Omega_h_file.hpp>
+#include <Omega_h_library.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
 #include <Omega_h_recover.hpp>
-#include <Omega_h_mesh.hpp>
-#include <Omega_h_file.hpp>
-#include <Omega_h_adapt.hpp>
-#include <Omega_h_array_ops.hpp>
-#include <Omega_h_adj.hpp>
 
 #include <cmath>
 #include <iostream>
@@ -19,9 +19,7 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     Omega_h::binary::read(argv[1], world, &mesh);
   } else {
-    mesh = Omega_h::build_box(world,
-      1.0, 1.0, 1.0,
-      12, 12, 12);
+    mesh = Omega_h::build_box(world, 1.0, 1.0, 1.0, 12, 12, 12);
   }
   Omega_h::vtk::Writer writer("adapting", &mesh);
   auto tau_start = 10.0;
@@ -35,26 +33,22 @@ int main(int argc, char** argv) {
       auto x = coords[v * 3 + 0];
       auto y = coords[v * 3 + 1];
       auto z = coords[v * 3 + 2];
-      u_w[v] = std::exp(-x / eps)
-             + std::exp(-y / eps)
-             + std::exp(-z / eps);
+      u_w[v] = std::exp(-x / eps) + std::exp(-y / eps) + std::exp(-z / eps);
     };
     Omega_h::parallel_for(mesh.nverts(), u_f);
     auto u = Omega_h::Reals(u_w);
     mesh.remove_tag(0, "u");
     mesh.add_tag(0, "u", 1, u);
-    auto gradients =
-      Omega_h::derive_element_gradients(&mesh, u);
+    auto gradients = Omega_h::derive_element_gradients(&mesh, u);
     auto pseudo_time = Omega_h::Real(iter) / Omega_h::Real(niter - 1);
     auto tau = tau_start * (1.0 - pseudo_time) + tau_end * pseudo_time;
     auto max_size = 1.0;
     std::cout << "using tau = " << tau << '\n';
-    auto metrics = Omega_h::get_aniso_zz_metric(&mesh,
-        gradients, tau, max_size);
+    auto metrics =
+        Omega_h::get_aniso_zz_metric(&mesh, gradients, tau, max_size);
     mesh.remove_tag(0, "original_metric");
     mesh.add_tag(0, "original_metric", 6, metrics);
-    auto metrics2 = Omega_h::limit_metric_gradation(
-        &mesh, metrics, 0.6);
+    auto metrics2 = Omega_h::limit_metric_gradation(&mesh, metrics, 0.6);
     mesh.remove_tag(0, "target_metric");
     mesh.add_tag(0, "target_metric", 6, metrics2);
     Omega_h::vtk::write_vtu("metric.vtu", &mesh);

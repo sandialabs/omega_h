@@ -2,15 +2,18 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_assoc.hpp"
 #include "Omega_h_bbox.hpp"
+#include "Omega_h_build.hpp"
 #include "Omega_h_compare.hpp"
+#include "Omega_h_confined.hpp"
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_confined.hpp"
 #include "Omega_h_quality.hpp"
+#include "Omega_h_recover.hpp"
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_scan.hpp"
 #include "Omega_h_shape.hpp"
@@ -20,9 +23,6 @@
 #include "Omega_h_swap3d_loop.hpp"
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
-#include "Omega_h_loop.hpp"
-#include "Omega_h_build.hpp"
-#include "Omega_h_recover.hpp"
 
 #ifdef OMEGA_H_USE_TEUCHOSPARSER
 #include "Omega_h_expr.hpp"
@@ -1107,10 +1107,10 @@ static void test_sort_small_range() {
   LOs fan;
   Read<I32> uniq;
   sort_small_range(in, &perm, &fan, &uniq);
-//HostRead<I32> h_perm(perm);
-//for (int i = 0; i < h_perm.size(); ++i) {
-//  fprintf(stderr, "[%d] = %d\n", i, h_perm[i]);
-//}
+  // HostRead<I32> h_perm(perm);
+  // for (int i = 0; i < h_perm.size(); ++i) {
+  //  fprintf(stderr, "[%d] = %d\n", i, h_perm[i]);
+  //}
   OMEGA_H_CHECK(perm == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
   OMEGA_H_CHECK(fan == LOs({0, 3, 6, 9}));
   OMEGA_H_CHECK(uniq == Read<I32>({10, 100, 1000}));

@@ -30,7 +30,8 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
   constexpr bool use_small_neighborhood_algorithm = true;
   if (use_small_neighborhood_algorithm) {
     Read<I32> msgs2ranks1;
-    sort_small_range(items2ranks, &items2content_[F], &msgs2content_[F], &msgs2ranks1);
+    sort_small_range(
+        items2ranks, &items2content_[F], &msgs2content_[F], &msgs2ranks1);
     comm_[F] = parent_comm_->graph(msgs2ranks1);
   } else {
     auto content2items = sort_by_keys(items2ranks);

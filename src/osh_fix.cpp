@@ -1,8 +1,8 @@
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_cmdline.hpp>
+#include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_mesh.hpp>
-#include <Omega_h_adapt.hpp>
-#include <Omega_h_file.hpp>
-#include <Omega_h_cmdline.hpp>
 #include <Omega_h_metric.hpp>
 
 #ifdef OMEGA_H_USE_EGADS
@@ -15,7 +15,8 @@ static void compute_metric(Omega_h::Mesh* mesh) {
   auto metrics = Omega_h::get_implied_metrics(mesh);
   metrics = Omega_h::limit_metric_gradation(mesh, metrics, 1.0);
   mesh->remove_tag(Omega_h::VERT, "metric");
-  mesh->add_tag(Omega_h::VERT, "metric", Omega_h::symm_ncomps(mesh->dim()), metrics);
+  mesh->add_tag(
+      Omega_h::VERT, "metric", Omega_h::symm_ncomps(mesh->dim()), metrics);
 }
 
 int main(int argc, char** argv) {
@@ -70,4 +71,3 @@ int main(int argc, char** argv) {
   }
 #endif
 }
-

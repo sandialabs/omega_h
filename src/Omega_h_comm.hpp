@@ -63,8 +63,8 @@ class Comm {
   template <typename T>
   Read<T> alltoall(Read<T> x) const;
   template <typename T>
-  Read<T> alltoallv(Read<T> sendbuf, Read<LO> sdispls,
-      Read<LO> rdispls, Int width) const;
+  Read<T> alltoallv(
+      Read<T> sendbuf, Read<LO> sdispls, Read<LO> rdispls, Int width) const;
   void barrier() const;
 };
 
@@ -137,9 +137,8 @@ inline MPI_Op mpi_op(Omega_h_Op op) {
   extern template void Comm::bcast(T& x) const;                                \
   extern template Read<T> Comm::allgather(T x) const;                          \
   extern template Read<T> Comm::alltoall(Read<T> x) const;                     \
-  extern template Read<T> Comm::alltoallv(Read<T> sendbuf,                     \
-      Read<LO> sdispls,              \
-      Read<LO> rdispls, Int width) const;
+  extern template Read<T> Comm::alltoallv(                                     \
+      Read<T> sendbuf, Read<LO> sdispls, Read<LO> rdispls, Int width) const;
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)

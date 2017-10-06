@@ -3,8 +3,8 @@
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_simplex.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_simplex.hpp"
 
 /* Code to find classification-enforced constraints on
  * element size and shape.

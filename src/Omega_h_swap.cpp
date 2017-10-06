@@ -42,8 +42,10 @@ Read<I8> filter_swap_improve(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
 bool swap_edges(Mesh* mesh, AdaptOpts const& opts) {
   begin_code("swap_edges");
   bool ret = false;
-  if (mesh->dim() == 3) ret = swap_edges_3d(mesh, opts);
-  else if (mesh->dim() == 2) ret = swap_edges_2d(mesh, opts);
+  if (mesh->dim() == 3)
+    ret = swap_edges_3d(mesh, opts);
+  else if (mesh->dim() == 2)
+    ret = swap_edges_2d(mesh, opts);
   end_code();
   return ret;
 }

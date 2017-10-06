@@ -7,7 +7,6 @@
 #include "Omega_h_host_few.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_confined.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_shape.hpp"
@@ -644,7 +643,6 @@ Reals isos_from_lengths(Reals h) {
   return out;
 }
 
-
 Reals lengths_from_isos(Reals l) {
   auto out = Write<Real>(l.size());
   auto f = OMEGA_H_LAMBDA(LO i) {
@@ -667,25 +665,25 @@ Reals lengths_from_isos(Reals l) {
  */
 
 template <Int dim>
-Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
-    Real error_bound, Real max_size) {
+Reals get_aniso_zz_metric_dim(
+    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size) {
   OMEGA_H_CHECK(mesh->have_all_upward());
   constexpr auto nverts_per_elem = dim + 1;
   auto elem_verts2vert = mesh->ask_elem_verts();
   auto verts2elems = mesh->ask_up(VERT, dim);
   constexpr auto max_elems_per_patch =
-    AvgDegree<dim, 0, dim>::value * nverts_per_elem * 2;
+      AvgDegree<dim, 0, dim>::value * nverts_per_elem * 2;
   auto elems2volume = measure_elements_real(mesh);
   auto nglobal_elems = get_sum(mesh->comm(), mesh->owned(dim));
   auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO elem) {
     Few<LO, max_elems_per_patch> patch_elems;
     Int npatch_elems = 0;
-    for (auto ev = elem * nverts_per_elem;
-         ev < ((elem + 1) * nverts_per_elem); ++ev) {
+    for (auto ev = elem * nverts_per_elem; ev < ((elem + 1) * nverts_per_elem);
+         ++ev) {
       auto vert = elem_verts2vert[ev];
-      for (auto ve = verts2elems.a2ab[vert];
-           ve < verts2elems.a2ab[vert + 1]; ++ve) {
+      for (auto ve = verts2elems.a2ab[vert]; ve < verts2elems.a2ab[vert + 1];
+           ++ve) {
         auto patch_elem = verts2elems.ab2b[ve];
         OMEGA_H_CHECK(npatch_elems < max_elems_per_patch);
         add_unique(patch_elems, npatch_elems, patch_elem);
@@ -711,11 +709,12 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
       op_sum = op_sum + (op * volume);
     }
     auto op_avg = op_sum / patch_volume;
-    auto iso_volume = (dim == 3) ?
-      (1.0 / (6.0 * sqrt(2.0))) : (sqrt(3.0) / 4.0);
+    auto iso_volume =
+        (dim == 3) ? (1.0 / (6.0 * sqrt(2.0))) : (sqrt(3.0) / 4.0);
     auto volume_factor = elems2volume[elem] / iso_volume;
     auto pullback_volume = patch_volume / volume_factor;
-    auto a = square(error_bound) / (Real(dim) * nglobal_elems * pullback_volume);
+    auto a =
+        square(error_bound) / (Real(dim) * nglobal_elems * pullback_volume);
     auto op_decomp = decompose_eigen(op_avg);
     auto g = op_decomp.l;
     auto gv = op_decomp.q;
@@ -725,7 +724,8 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
     for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
     auto scaling = std::pow(product(g), 1.0 / 18.0);
     Vector<dim> h;
-    for (Int i = 0; i < dim; ++i) h[i] = root<dim>(a) * scaling / root<2>(g[dim - i - 1]);
+    for (Int i = 0; i < dim; ++i)
+      h[i] = root<dim>(a) * scaling / root<2>(g[dim - i - 1]);
     auto m = compose_metric(r, h);
     set_symm(out, elem, m);
   };
@@ -736,12 +736,13 @@ Reals get_aniso_zz_metric_dim(Mesh* mesh, Reals elem_gradients,
   return metrics;
 }
 
-Reals get_aniso_zz_metric(Mesh* mesh, Reals elem_gradients,
-    Real error_bound, Real max_size) {
+Reals get_aniso_zz_metric(
+    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size) {
   if (mesh->dim() == 3) {
-    return get_aniso_zz_metric_dim<3>(mesh, elem_gradients, error_bound, max_size);
-  // TODO: currently we fixed the algorithm to match the 3D paper.
-  // In 2D, the terms are slightly different (e.g. no 1/18 power)
+    return get_aniso_zz_metric_dim<3>(
+        mesh, elem_gradients, error_bound, max_size);
+    // TODO: currently we fixed the algorithm to match the 3D paper.
+    // In 2D, the terms are slightly different (e.g. no 1/18 power)
   } else {
     OMEGA_H_NORETURN(Reals());
   }

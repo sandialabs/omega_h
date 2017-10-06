@@ -271,7 +271,8 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
         for (decltype(npairs) i = 0; i < npairs; ++i) {
           auto class_dim = Int(pairs(i, 0));
           auto class_id = LO(pairs(i, 1));
-          assoc[std::size_t(set_type)][set_name].push_back({class_dim, class_id});
+          assoc[std::size_t(set_type)][set_name].push_back(
+              {class_dim, class_id});
         }
       }
     }
