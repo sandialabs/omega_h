@@ -113,6 +113,18 @@ OMEGA_H_INLINE Roots<2> find_polynomial_roots(
   return {0, roots, mults};
 }
 
+// solve linear equation x + a = 0
+OMEGA_H_INLINE Roots<1> find_polynomial_roots(
+    Few<Real, 1> coeffs, Real eps = 1e-6) {
+  (void)eps;
+  auto a = coeffs[0];
+  Few<Real, 1> roots;
+  roots[0] = -a;
+  Few<Int, 1> mults;
+  mults[0] = 1;
+  return {1, roots, mults};
+}
+
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
 OMEGA_H_INLINE Few<Real, 3> characteristic_polynomial(Matrix<3, 3> A) {
   auto tA = trace(A);
@@ -131,9 +143,17 @@ OMEGA_H_INLINE Few<Real, 2> characteristic_polynomial(Matrix<2, 2> A) {
   return coeffs;
 }
 
+OMEGA_H_INLINE Few<Real, 1> characteristic_polynomial(Matrix<1, 1> A) {
+  Few<Real, 1> coeffs;
+  coeffs[1] = -determinant(A);
+  return coeffs;
+}
+
 template <Int n>
 OMEGA_H_INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
   auto poly = characteristic_polynomial(A);
+  // WARNING: I no longer remember the source of this magic number.
+  // was probably tuned to avoid failures with the cubic solver
   return find_polynomial_roots(poly, 5e-5);
 }
 
