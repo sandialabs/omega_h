@@ -145,7 +145,7 @@ OMEGA_H_INLINE Few<Real, 2> characteristic_polynomial(Matrix<2, 2> A) {
 
 OMEGA_H_INLINE Few<Real, 1> characteristic_polynomial(Matrix<1, 1> A) {
   Few<Real, 1> coeffs;
-  coeffs[1] = -determinant(A);
+  coeffs[0] = -determinant(A);
   return coeffs;
 }
 
@@ -287,6 +287,12 @@ OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m) {
   return {q, l};
 }
 
+OMEGA_H_INLINE DiagDecomp<1> decompose_eigen_dim(Matrix<1, 1> m) {
+  auto roots_obj = get_eigenvalues(m);
+  auto roots = roots_obj.values;
+  return {matrix_1x1(1.0), vector_1(roots[0])};
+}
+
 /* decompose an m x m matrix (where m <= 3) into
    eigenvalues and eigenvectors.
 
@@ -311,10 +317,6 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m) {
   m = m / nm;
   auto decomp = decompose_eigen_dim(m);
   return {decomp.q, decomp.l * nm};
-}
-
-OMEGA_H_INLINE DiagDecomp<1> decompose_eigen(Matrix<1, 1> m) {
-  return {matrix_1x1(1.0), vector_1(m[0][0])};
 }
 
 /* Q, again, being the matrix whose columns
