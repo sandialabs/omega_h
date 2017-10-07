@@ -430,7 +430,7 @@ set(Omega_h_HEADERS
   Omega_h_quality.hpp
   )
 
-if(USE_TEUCHOS)
+if(Omega_h_USE_Teuchos)
   set(Omega_h_HEADERS ${Omega_h_HEADERS}
       Omega_h_teuchos.hpp
       Omega_h_teuchos_includes.hpp
