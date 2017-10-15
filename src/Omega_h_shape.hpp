@@ -61,6 +61,12 @@ OMEGA_H_INLINE Real distance(Plane<dim> plane, Vector<dim> point) {
 }
 
 template <Int dim>
+OMEGA_H_INLINE Plane<dim> normalize(Plane<dim> p) {
+  auto l = norm(p.n);
+  return {p.n / l, p.d / l};
+}
+
+template <Int dim>
 OMEGA_H_INLINE Vector<dim + 1> form_barycentric(Vector<dim> c) {
   Vector<dim + 1> xi;
   xi[dim] = 1.0;
@@ -270,17 +276,17 @@ OMEGA_H_INLINE Matrix<3, 3> element_implied_metric(Few<Vector<3>, 4> p) {
   return vector2symm(x);
 }
 
-OMEGA_H_INLINE Vector<1> get_side_normal(Few<Vector<1>, 2>, Int ivert) {
+OMEGA_H_INLINE Vector<1> get_side_vector(Few<Vector<1>, 2>, Int ivert) {
   return vector_1((ivert == 1) ? 1.0 : -1.0);
 }
 
-OMEGA_H_INLINE Vector<2> get_side_normal(Few<Vector<2>, 3> p, Int iedge) {
+OMEGA_H_INLINE Vector<2> get_side_vector(Few<Vector<2>, 3> p, Int iedge) {
   auto a = p[down_template(2, 1, iedge, 0)];
   auto b = p[down_template(2, 1, iedge, 1)];
   return -perp(b - a);
 }
 
-OMEGA_H_INLINE Vector<3> get_side_normal(Few<Vector<3>, 4> p, Int iface) {
+OMEGA_H_INLINE Vector<3> get_side_vector(Few<Vector<3>, 4> p, Int iface) {
   auto a = p[down_template(3, 2, iface, 0)];
   auto b = p[down_template(3, 2, iface, 1)];
   auto c = p[down_template(3, 2, iface, 2)];
@@ -290,9 +296,9 @@ OMEGA_H_INLINE Vector<3> get_side_normal(Few<Vector<3>, 4> p, Int iface) {
 template <Int dim>
 OMEGA_H_INLINE Plane<dim> get_side_plane(
     Few<Vector<dim>, dim + 1> p, Int iside) {
-  auto n = get_side_normal(p, iside);
-  auto a = p[down_template(dim, dim - 1, iside, 0)];
-  return {n, n * a};
+  auto n = get_side_vector(p, iside);
+  auto o = p[down_template(dim, dim - 1, iside, 0)];
+  return {n, n * o};
 }
 
 template <Int dim>
@@ -300,16 +306,17 @@ OMEGA_H_INLINE Sphere<dim> get_inball(Few<Vector<dim>, dim + 1> p) {
   auto nsides = dim + 1;
   Few<Plane<dim>, dim + 1> planes;
   for (Int iside = 0; iside < nsides; ++iside) {
-    planes[iside] = get_side_plane(p, iside);
+    planes[iside] = normalize(get_side_plane(p, iside));
   }
   Matrix<dim, dim> a;
   Vector<dim> b;
   for (Int i = 0; i < dim; ++i) {
-    a[i] = planes[dim].n - planes[i].n;
-    b[i] = planes[dim].d - planes[i].d;
+    a[i] = planes[i + 1].n - planes[0].n;
+    b[i] = planes[i + 1].d - planes[0].d;
   }
-  auto c = invert(transpose(a)) * b;
-  auto r = -distance(planes[0], c) / norm(planes[0].n);
+  a = transpose(a);
+  auto c = invert(a) * b;
+  auto r = -distance(planes[0], c);
   return {c, r};
 }
 
@@ -322,7 +329,7 @@ template <Int dim>
 OMEGA_H_INLINE Vector<dim> get_size_gradient(
     Few<Vector<dim>, dim + 1> p, Int ivert) {
   auto iside = opposite_template(dim, VERT, ivert);
-  auto n = -get_side_normal(p, iside);
+  auto n = -get_side_vector(p, iside);
   return n / Real(factorial(dim));
 }
 

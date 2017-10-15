@@ -47,7 +47,7 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
   if (dim == 1) return;
   auto hinge_is_exposed = mark_down(mesh, dim - 1, dim - 2, side_is_exposed);
   auto surf_side2side = collect_marked(side_is_exposed);
-  auto surf_side_normals = get_side_normals(mesh, surf_side2side);
+  auto surf_side_normals = get_side_vectors(mesh, surf_side2side);
   auto surf_hinge2hinge = collect_marked(hinge_is_exposed);
   auto nsurf_hinges = surf_hinge2hinge.size();
   auto nsides = mesh->nents(dim - 1);
