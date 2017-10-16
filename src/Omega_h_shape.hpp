@@ -320,11 +320,6 @@ OMEGA_H_INLINE Sphere<dim> get_inball(Few<Vector<dim>, dim + 1> p) {
   return {c, r};
 }
 
-template <>
-OMEGA_H_INLINE Sphere<1> get_inball(Few<Vector<1>, 2> p) {
-  return {average(p), fabs((p[1] - p[0])[0] / 2.0)};
-}
-
 template <Int dim>
 OMEGA_H_INLINE Vector<dim> get_size_gradient(
     Few<Vector<dim>, dim + 1> p, Int ivert) {

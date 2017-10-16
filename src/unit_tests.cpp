@@ -976,10 +976,10 @@ static void test_inball() {
   OMEGA_H_CHECK(are_close(inball1.c, vector_1(0.0)));
   OMEGA_H_CHECK(are_close(inball1.r, 1.0));
   Few<Vector<2>, 3> regular_tri = {
-      {-1.0, 0.0}, {1.0, 0.0}, {0.0, sqrt(3.0) / 2.0}};
+      {-1.0, 0.0}, {1.0, 0.0}, {0.0, sqrt(3.0)}};
   auto inball2 = get_inball(regular_tri);
-  OMEGA_H_CHECK(are_close(inball2.c, vector_2(0.0, sqrt(3.0) / 6.0)));
-  OMEGA_H_CHECK(are_close(inball2.r, sqrt(3.0) / 6.0));
+  OMEGA_H_CHECK(are_close(inball2.c, vector_2(0.0, sqrt(3.0) / 3.0)));
+  OMEGA_H_CHECK(are_close(inball2.r, sqrt(3.0) / 3.0));
   Few<Vector<3>, 4> regular_tet = {{1, 0, -1.0 / sqrt(2.0)},
       {-1, 0, -1.0 / sqrt(2.0)}, {0, -1, 1.0 / sqrt(2.0)},
       {0, 1, 1.0 / sqrt(2.0)}};
