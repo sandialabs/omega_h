@@ -27,6 +27,8 @@ static void add_solution(Mesh* mesh) {
 static void add_metric(Mesh* mesh) {
   MetricInput input;
   input.sources.push_back(MetricSource{OMEGA_H_VARIATION, 1.0, "solution"});
+  input.should_limit_lengths = true;
+  input.max_length = 1.0;
   input.should_limit_gradation = true;
   input.max_gradation_rate = 1.0;
   input.should_limit_element_count = true;
