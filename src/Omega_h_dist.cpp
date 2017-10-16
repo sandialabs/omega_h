@@ -17,25 +17,25 @@ Dist& Dist::operator=(Dist const& other) {
   return *this;
 }
 
-Dist::Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots) {
-  set_parent_comm(comm);
+Dist::Dist(CommPtr comm_in, Remotes fitems2rroots, LO nrroots) {
+  set_parent_comm(comm_in);
   set_dest_ranks(fitems2rroots.ranks);
   set_dest_idxs(fitems2rroots.idxs, nrroots);
 }
 
-void Dist::set_parent_comm(CommPtr parent_comm) { parent_comm_ = parent_comm; }
+void Dist::set_parent_comm(CommPtr parent_comm_in) { parent_comm_ = parent_comm_in; }
 
-void Dist::set_dest_ranks(Read<I32> items2ranks) {
+void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
   begin_code("Dist::set_dest_ranks");
   constexpr bool use_small_neighborhood_algorithm = true;
   if (use_small_neighborhood_algorithm) {
     Read<I32> msgs2ranks1;
     sort_small_range(
-        items2ranks, &items2content_[F], &msgs2content_[F], &msgs2ranks1);
+        items2ranks_in, &items2content_[F], &msgs2content_[F], &msgs2ranks1);
     comm_[F] = parent_comm_->graph(msgs2ranks1);
   } else {
-    auto content2items = sort_by_keys(items2ranks);
-    auto content2ranks = unmap(content2items, items2ranks, 1);
+    auto content2items = sort_by_keys(items2ranks_in);
+    auto content2ranks = unmap(content2items, items2ranks_in, 1);
     Write<I8> jumps(content2ranks.size());
     auto mark_jumps = OMEGA_H_LAMBDA(LO i) {
       jumps[i] = (content2ranks[i] != content2ranks[i + 1]);
@@ -44,26 +44,26 @@ void Dist::set_dest_ranks(Read<I32> items2ranks) {
     if (jumps.size()) {
       jumps.set(jumps.size() - 1, 1);
     }
-    auto content2msgs = offset_scan(Read<I8>(jumps));
-    auto nmsgs = content2msgs.last();
-    Write<I32> msgs2ranks(nmsgs);
+    auto tmp_content2msgs = offset_scan(Read<I8>(jumps));
+    auto nmsgs = tmp_content2msgs.last();
+    Write<I32> msgs2ranks_w(nmsgs);
     auto log_ranks = OMEGA_H_LAMBDA(LO i) {
       if (jumps[i]) {
-        msgs2ranks[content2msgs[i]] = content2ranks[i];
+        msgs2ranks_w[tmp_content2msgs[i]] = content2ranks[i];
       }
     };
     parallel_for(jumps.size(), log_ranks, "log_ranks");
-    Write<LO> msgs2content(nmsgs + 1);
-    msgs2content.set(0, 0);
+    Write<LO> msgs2content_w(nmsgs + 1);
+    msgs2content_w.set(0, 0);
     auto log_ends = OMEGA_H_LAMBDA(LO i) {
       if (jumps[i]) {
-        msgs2content[content2msgs[i] + 1] = i + 1;
+        msgs2content_w[tmp_content2msgs[i] + 1] = i + 1;
       }
     };
     parallel_for(jumps.size(), log_ends, "log_ends");
     items2content_[F] = invert_permutation(content2items);
-    msgs2content_[F] = msgs2content;
-    comm_[F] = parent_comm_->graph(msgs2ranks);
+    msgs2content_[F] = msgs2content_w;
+    comm_[F] = parent_comm_->graph(msgs2ranks_w);
   }
   comm_[R] = comm_[F]->graph_inverse();
   auto fdegrees = get_degrees(msgs2content_[F]);

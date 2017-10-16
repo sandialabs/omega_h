@@ -28,19 +28,19 @@ Comm::Comm() {
 }
 
 #ifdef OMEGA_H_USE_MPI
-Comm::Comm(Library* library, MPI_Comm impl) : impl_(impl), library_(library) {
+Comm::Comm(Library* library_in, MPI_Comm impl_in) : impl_(impl_in), library_(library_in) {
   int topo_type;
-  CALL(MPI_Topo_test(impl, &topo_type));
+  CALL(MPI_Topo_test(impl_in, &topo_type));
   if (topo_type == MPI_DIST_GRAPH) {
     int nin, nout, is_weighted;
-    CALL(MPI_Dist_graph_neighbors_count(impl, &nin, &nout, &is_weighted));
-    HostWrite<I32> sources(nin);
-    HostWrite<I32> destinations(nout);
-    CALL(MPI_Dist_graph_neighbors(impl, nin, nonnull(sources.data()),
-        OMEGA_H_MPI_UNWEIGHTED, nout, nonnull(destinations.data()),
+    CALL(MPI_Dist_graph_neighbors_count(impl_in, &nin, &nout, &is_weighted));
+    HostWrite<I32> sources_w(nin);
+    HostWrite<I32> destinations_w(nout);
+    CALL(MPI_Dist_graph_neighbors(impl_in, nin, nonnull(sources_w.data()),
+        OMEGA_H_MPI_UNWEIGHTED, nout, nonnull(destinations_w.data()),
         OMEGA_H_MPI_UNWEIGHTED));
-    srcs_ = sources.write();
-    dsts_ = destinations.write();
+    srcs_ = sources_w.write();
+    dsts_ = destinations_w.write();
     self_src_ = find_last(srcs_, rank());
     self_dst_ = find_last(dsts_, rank());
     host_srcs_ = HostRead<I32>(srcs_);
@@ -48,8 +48,8 @@ Comm::Comm(Library* library, MPI_Comm impl) : impl_(impl), library_(library) {
   }
 }
 #else
-Comm::Comm(Library* library, bool is_graph, bool sends_to_self)
-    : library_(library) {
+Comm::Comm(Library* library_in, bool is_graph, bool sends_to_self)
+    : library_(library_in) {
   if (is_graph) {
     if (sends_to_self) {
       srcs_ = Read<LO>({0});
@@ -122,12 +122,12 @@ CommPtr Comm::graph(Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
   int n = 1;
-  int sources[1] = {rank()};
-  int degrees[1] = {dsts.size()};
-  HostRead<I32> destinations(dsts);
+  int source[1] = {rank()};
+  int degree[1] = {dsts.size()};
+  HostRead<I32> h_destinations(dsts);
   int reorder = 0;
-  CALL(MPI_Dist_graph_create(impl_, n, sources, degrees,
-      nonnull(destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
+  CALL(MPI_Dist_graph_create(impl_, n, source, degree,
+      nonnull(h_destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
       reorder, &impl2));
   return CommPtr(new Comm(library_, impl2));
 #else
@@ -138,12 +138,12 @@ CommPtr Comm::graph(Read<I32> dsts) const {
 CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
-  HostRead<I32> sources(srcs);
-  HostRead<I32> destinations(dsts);
+  HostRead<I32> h_sources(srcs);
+  HostRead<I32> h_destinations(dsts);
   int reorder = 0;
-  CALL(MPI_Dist_graph_create_adjacent(impl_, sources.size(),
-      nonnull(sources.data()), OMEGA_H_MPI_UNWEIGHTED, destinations.size(),
-      nonnull(destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
+  CALL(MPI_Dist_graph_create_adjacent(impl_, h_sources.size(),
+      nonnull(h_sources.data()), OMEGA_H_MPI_UNWEIGHTED, h_destinations.size(),
+      nonnull(h_destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
       reorder, &impl2));
   return CommPtr(new Comm(library_, impl2));
 #else

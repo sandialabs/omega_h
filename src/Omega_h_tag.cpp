@@ -4,9 +4,9 @@ namespace Omega_h {
 
 void check_tag_name(std::string const& name) { OMEGA_H_CHECK(!name.empty()); }
 
-TagBase::TagBase(std::string const& name, Int ncomps)
-    : name_(name), ncomps_(ncomps) {
-  check_tag_name(name);
+TagBase::TagBase(std::string const& name_in, Int ncomps_in)
+    : name_(name_in), ncomps_(ncomps_in) {
+  check_tag_name(name_in);
 }
 
 TagBase::~TagBase() = default;
@@ -33,7 +33,7 @@ Tag<T>* as(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name, Int ncomps) : TagBase(name, ncomps) {}
+Tag<T>::Tag(std::string const& name_in, Int ncomps_in) : TagBase(name_in, ncomps_in) {}
 
 template <typename T>
 Read<T> Tag<T>::array() const {
@@ -41,8 +41,8 @@ Read<T> Tag<T>::array() const {
 }
 
 template <typename T>
-void Tag<T>::set_array(Read<T> array) {
-  array_ = array;
+void Tag<T>::set_array(Read<T> array_in) {
+  array_ = array_in;
 }
 
 template <typename T>

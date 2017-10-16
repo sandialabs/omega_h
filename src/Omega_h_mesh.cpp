@@ -21,13 +21,13 @@
 
 namespace Omega_h {
 
-Mesh::Mesh(Library* library) {
+Mesh::Mesh(Library* library_in) {
   dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = -1;
   nghost_layers_ = -1;
-  OMEGA_H_CHECK(library != nullptr);
-  library_ = library;
+  OMEGA_H_CHECK(library_in != nullptr);
+  library_ = library_in;
 }
 
 Library* Mesh::library() const { return library_; }
@@ -64,29 +64,29 @@ void Mesh::set_comm(CommPtr const& new_comm) {
   comm_ = new_comm;
 }
 
-void Mesh::set_dim(Int dim) {
+void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
-  OMEGA_H_CHECK(dim >= 1);
-  OMEGA_H_CHECK(dim <= 3);
-  dim_ = dim;
+  OMEGA_H_CHECK(dim_in >= 1);
+  OMEGA_H_CHECK(dim_in <= 3);
+  dim_ = dim_in;
 }
 
-void Mesh::set_verts(LO nverts) { nents_[VERT] = nverts; }
+void Mesh::set_verts(LO nverts_in) { nents_[VERT] = nverts_in; }
 
-void Mesh::set_ents(Int dim, Adj down) {
-  check_dim(dim);
-  OMEGA_H_CHECK(!has_ents(dim));
+void Mesh::set_ents(Int ent_dim, Adj down) {
+  check_dim(ent_dim);
+  OMEGA_H_CHECK(!has_ents(ent_dim));
   LOs hl2l = down.ab2b;
-  OMEGA_H_CHECK(hl2l.size() % simplex_degrees[dim][dim - 1] == 0);
-  nents_[dim] = hl2l.size() / simplex_degrees[dim][dim - 1];
-  add_adj(dim, dim - 1, down);
+  OMEGA_H_CHECK(hl2l.size() % simplex_degrees[ent_dim][ent_dim - 1] == 0);
+  nents_[ent_dim] = hl2l.size() / simplex_degrees[ent_dim][ent_dim - 1];
+  add_adj(ent_dim, ent_dim - 1, down);
 }
 
 CommPtr Mesh::comm() const { return comm_; }
 
-LO Mesh::nents(Int dim) const {
-  check_dim2(dim);
-  return nents_[dim];
+LO Mesh::nents(Int ent_dim) const {
+  check_dim2(ent_dim);
+  return nents_[ent_dim];
 }
 
 LO Mesh::nelems() const { return nents(dim()); }
@@ -99,112 +99,112 @@ LO Mesh::nedges() const { return nents(EDGE); }
 
 LO Mesh::nverts() const { return nents(VERT); }
 
-GO Mesh::nglobal_ents(Int dim) {
-  if (!could_be_shared(dim)) {
-    return comm_->allreduce(GO(nents(dim)), OMEGA_H_SUM);
+GO Mesh::nglobal_ents(Int ent_dim) {
+  if (!could_be_shared(ent_dim)) {
+    return comm_->allreduce(GO(nents(ent_dim)), OMEGA_H_SUM);
   }
-  auto nowned = get_sum(this->owned(dim));
+  auto nowned = get_sum(this->owned(ent_dim));
   return comm_->allreduce(GO(nowned), OMEGA_H_SUM);
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps) {
-  check_dim2(dim);
+void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
+  check_dim2(ent_dim);
   check_tag_name(name);
-  if (has_tag(dim, name)) {
+  if (has_tag(ent_dim, name)) {
     Omega_h_fail(
         "add_tag(%s, %s): already exists. use set_tag or "
         "remove_tag\n",
-        plural_names[dim], name.c_str());
+        plural_names[ent_dim], name.c_str());
   }
   OMEGA_H_CHECK(ncomps >= 0);
   OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
-  OMEGA_H_CHECK(tags_[dim].size() < size_t(INT8_MAX));
-  tags_[dim].push_back(TagPtr(new Tag<T>(name, ncomps)));
+  OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
+  tags_[ent_dim].push_back(TagPtr(new Tag<T>(name, ncomps)));
 }
 
 template <typename T>
-void Mesh::add_tag(Int dim, std::string const& name, Int ncomps, Read<T> array,
+void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps, Read<T> array,
     bool internal) {
-  add_tag<T>(dim, name, ncomps);
-  set_tag<T>(dim, name, array, internal);
+  add_tag<T>(ent_dim, name, ncomps);
+  set_tag<T>(ent_dim, name, array, internal);
 }
 
 template <typename T>
 void Mesh::set_tag(
-    Int dim, std::string const& name, Read<T> array, bool internal) {
-  if (!has_tag(dim, name)) {
+    Int ent_dim, std::string const& name, Read<T> array, bool internal) {
+  if (!has_tag(ent_dim, name)) {
     Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
-        plural_names[dim], name.c_str());
+        plural_names[ent_dim], name.c_str());
   }
-  Tag<T>* tag = as<T>(tag_iter(dim, name)->get());
-  OMEGA_H_CHECK(array.size() == nents(dim) * tag->ncomps());
+  Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
+  OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
   /* internal typically indicates migration/adaptation/file reading,
      when we do not want any invalidation to take place.
      the invalidation is there to prevent users changing coordinates
      etc. without updating dependent fields */
-  if (!internal) react_to_set_tag(dim, name);
+  if (!internal) react_to_set_tag(ent_dim, name);
   tag->set_array(array);
 }
 
-void Mesh::react_to_set_tag(Int dim, std::string const& name) {
+void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
   /* hardcoded cache invalidations */
-  if ((dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
+  if ((ent_dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
     remove_tag(EDGE, "length");
-    remove_tag(this->dim(), "quality");
+    remove_tag(dim(), "quality");
   }
-  if ((dim == VERT) && (name == "coordinates")) {
-    remove_tag(this->dim(), "size");
+  if ((ent_dim == VERT) && (name == "coordinates")) {
+    remove_tag(dim(), "size");
   }
 }
 
-TagBase const* Mesh::get_tagbase(Int dim, std::string const& name) const {
-  check_dim2(dim);
-  if (!has_tag(dim, name)) {
-    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n", plural_names[dim],
+TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
+  check_dim2(ent_dim);
+  if (!has_tag(ent_dim, name)) {
+    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n", plural_names[ent_dim],
         name.c_str());
   }
-  return tag_iter(dim, name)->get();
+  return tag_iter(ent_dim, name)->get();
 }
 
 template <typename T>
-Tag<T> const* Mesh::get_tag(Int dim, std::string const& name) const {
-  return as<T>(get_tagbase(dim, name));
+Tag<T> const* Mesh::get_tag(Int ent_dim, std::string const& name) const {
+  return as<T>(get_tagbase(ent_dim, name));
 }
 
 template <typename T>
-Read<T> Mesh::get_array(Int dim, std::string const& name) const {
-  return get_tag<T>(dim, name)->array();
+Read<T> Mesh::get_array(Int ent_dim, std::string const& name) const {
+  return get_tag<T>(ent_dim, name)->array();
 }
 
-void Mesh::remove_tag(Int dim, std::string const& name) {
-  if (!has_tag(dim, name)) return;
-  check_dim2(dim);
-  OMEGA_H_CHECK(has_tag(dim, name));
-  tags_[dim].erase(tag_iter(dim, name));
+void Mesh::remove_tag(Int ent_dim, std::string const& name) {
+  if (!has_tag(ent_dim, name)) return;
+  check_dim2(ent_dim);
+  OMEGA_H_CHECK(has_tag(ent_dim, name));
+  tags_[ent_dim].erase(tag_iter(ent_dim, name));
 }
 
-bool Mesh::has_tag(Int dim, std::string const& name) const {
-  check_dim(dim);
-  if (!has_ents(dim)) return false;
-  return tag_iter(dim, name) != tags_[dim].end();
+bool Mesh::has_tag(Int ent_dim, std::string const& name) const {
+  check_dim(ent_dim);
+  if (!has_ents(ent_dim)) return false;
+  return tag_iter(ent_dim, name) != tags_[ent_dim].end();
 }
 
-Int Mesh::ntags(Int dim) const {
-  check_dim2(dim);
-  return static_cast<Int>(tags_[dim].size());
+Int Mesh::ntags(Int ent_dim) const {
+  check_dim2(ent_dim);
+  return static_cast<Int>(tags_[ent_dim].size());
 }
 
-TagBase const* Mesh::get_tag(Int dim, Int i) const {
-  check_dim2(dim);
+TagBase const* Mesh::get_tag(Int ent_dim, Int i) const {
+  check_dim2(ent_dim);
   OMEGA_H_CHECK(0 <= i);
-  OMEGA_H_CHECK(i <= ntags(dim));
-  return tags_[dim][static_cast<std::size_t>(i)].get();
+  OMEGA_H_CHECK(i <= ntags(ent_dim));
+  return tags_[ent_dim][static_cast<std::size_t>(i)].get();
 }
 
-bool Mesh::has_ents(Int dim) const {
-  check_dim(dim);
-  return nents_[dim] >= 0;
+bool Mesh::has_ents(Int ent_dim) const {
+  check_dim(ent_dim);
+  return nents_[ent_dim] >= 0;
 }
 
 bool Mesh::has_adj(Int from, Int to) const {
@@ -225,7 +225,7 @@ Adj Mesh::ask_down(Int from, Int to) {
   return ask_adj(from, to);
 }
 
-LOs Mesh::ask_verts_of(Int dim) { return ask_adj(dim, VERT).ab2b; }
+LOs Mesh::ask_verts_of(Int ent_dim) { return ask_adj(ent_dim, VERT).ab2b; }
 
 LOs Mesh::ask_elem_verts() { return ask_verts_of(dim()); }
 
@@ -234,9 +234,9 @@ Adj Mesh::ask_up(Int from, Int to) {
   return ask_adj(from, to);
 }
 
-Graph Mesh::ask_star(Int dim) {
-  OMEGA_H_CHECK(dim < this->dim());
-  return ask_adj(dim, dim);
+Graph Mesh::ask_star(Int ent_dim) {
+  OMEGA_H_CHECK(ent_dim < dim());
+  return ask_adj(ent_dim, ent_dim);
 }
 
 Graph Mesh::ask_dual() { return ask_adj(dim(), dim()); }
@@ -249,22 +249,22 @@ struct HasName {
   }
 };
 
-Mesh::TagIter Mesh::tag_iter(Int dim, std::string const& name) {
-  return std::find_if(tags_[dim].begin(), tags_[dim].end(), HasName(name));
+Mesh::TagIter Mesh::tag_iter(Int ent_dim, std::string const& name) {
+  return std::find_if(tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
 }
 
-Mesh::TagCIter Mesh::tag_iter(Int dim, std::string const& name) const {
-  return std::find_if(tags_[dim].begin(), tags_[dim].end(), HasName(name));
+Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
+  return std::find_if(tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
 }
 
-void Mesh::check_dim(Int dim) const {
-  OMEGA_H_CHECK(0 <= dim);
-  OMEGA_H_CHECK(dim <= this->dim());
+void Mesh::check_dim(Int ent_dim) const {
+  OMEGA_H_CHECK(0 <= ent_dim);
+  OMEGA_H_CHECK(ent_dim <= dim());
 }
 
-void Mesh::check_dim2(Int dim) const {
-  check_dim(dim);
-  OMEGA_H_CHECK(has_ents(dim));
+void Mesh::check_dim2(Int ent_dim) const {
+  check_dim(ent_dim);
+  OMEGA_H_CHECK(has_ents(ent_dim));
 }
 
 void Mesh::add_adj(Int from, Int to, Adj adj) {
@@ -353,7 +353,7 @@ void Mesh::set_coords(Reals const& array) {
   set_tag<Real>(VERT, "coordinates", array);
 }
 
-Read<GO> Mesh::globals(Int dim) const { return get_array<GO>(dim, "global"); }
+Read<GO> Mesh::globals(Int ent_dim) const { return get_array<GO>(ent_dim, "global"); }
 
 Reals Mesh::ask_lengths() {
   if (!has_tag(EDGE, "length")) {
@@ -379,36 +379,36 @@ Reals Mesh::ask_sizes() {
   return get_array<Real>(dim(), "size");
 }
 
-void Mesh::set_owners(Int dim, Remotes owners) {
-  check_dim2(dim);
-  OMEGA_H_CHECK(nents(dim) == owners.ranks.size());
-  OMEGA_H_CHECK(nents(dim) == owners.idxs.size());
-  owners_[dim] = owners;
-  dists_[dim] = DistPtr();
+void Mesh::set_owners(Int ent_dim, Remotes owners) {
+  check_dim2(ent_dim);
+  OMEGA_H_CHECK(nents(ent_dim) == owners.ranks.size());
+  OMEGA_H_CHECK(nents(ent_dim) == owners.idxs.size());
+  owners_[ent_dim] = owners;
+  dists_[ent_dim] = DistPtr();
 }
 
-Remotes Mesh::ask_owners(Int dim) {
-  if (!owners_[dim].ranks.exists() || !owners_[dim].idxs.exists()) {
+Remotes Mesh::ask_owners(Int ent_dim) {
+  if (!owners_[ent_dim].ranks.exists() || !owners_[ent_dim].idxs.exists()) {
     OMEGA_H_CHECK(comm_->size() == 1);
-    owners_[dim] =
-        Remotes(Read<I32>(nents(dim), comm_->rank()), LOs(nents(dim), 0, 1));
+    owners_[ent_dim] =
+        Remotes(Read<I32>(nents(ent_dim), comm_->rank()), LOs(nents(ent_dim), 0, 1));
   }
-  return owners_[dim];
+  return owners_[ent_dim];
 }
 
-Read<I8> Mesh::owned(Int dim) {
-  auto e2rank = ask_owners(dim).ranks;
+Read<I8> Mesh::owned(Int ent_dim) {
+  auto e2rank = ask_owners(ent_dim).ranks;
   return each_eq_to(e2rank, comm()->rank());
 }
 
-Dist Mesh::ask_dist(Int dim) {
-  if (!dists_[dim]) {
-    auto owners = ask_owners(dim);
+Dist Mesh::ask_dist(Int ent_dim) {
+  if (!dists_[ent_dim]) {
+    auto owners = ask_owners(ent_dim);
     OMEGA_H_CHECK(owners.ranks.exists());
     OMEGA_H_CHECK(owners.idxs.exists());
-    dists_[dim] = std::make_shared<Dist>(comm_, owners, nents(dim));
+    dists_[ent_dim] = std::make_shared<Dist>(comm_, owners, nents(ent_dim));
   }
-  return *(dists_[dim]);
+  return *(dists_[ent_dim]);
 }
 
 Omega_h_Parting Mesh::parting() const {
@@ -418,10 +418,10 @@ Omega_h_Parting Mesh::parting() const {
 
 Int Mesh::nghost_layers() const { return nghost_layers_; }
 
-void Mesh::set_parting(Omega_h_Parting parting, Int nlayers, bool verbose) {
+void Mesh::set_parting(Omega_h_Parting parting_in, Int nlayers, bool verbose) {
   if (verbose && comm_->rank() == 0) {
     std::cout << "going to ";
-    switch (parting) {
+    switch (parting_in) {
       case OMEGA_H_ELEM_BASED:
         std::cout << "element based";
         break;
@@ -435,34 +435,34 @@ void Mesh::set_parting(Omega_h_Parting parting, Int nlayers, bool verbose) {
     std::cout << " partitioning\n";
   }
   if (parting_ == -1) {
-    parting_ = parting;
+    parting_ = parting_in;
     nghost_layers_ = nlayers;
     return;
   }
-  if (parting_ == parting && nghost_layers_ == nlayers) {
+  if (parting_ == parting_in && nghost_layers_ == nlayers) {
     return;
   }
-  if (parting == OMEGA_H_ELEM_BASED) {
+  if (parting_in == OMEGA_H_ELEM_BASED) {
     OMEGA_H_CHECK(nlayers == 0);
     if (comm_->size() > 1) partition_by_elems(this, verbose);
-  } else if (parting == OMEGA_H_GHOSTED) {
+  } else if (parting_in == OMEGA_H_GHOSTED) {
     if (parting_ != OMEGA_H_GHOSTED || nlayers < nghost_layers_) {
       set_parting(OMEGA_H_ELEM_BASED, 0, false);
     }
     if (comm_->size() > 1) ghost_mesh(this, nlayers, verbose);
-  } else if (parting == OMEGA_H_VERT_BASED) {
+  } else if (parting_in == OMEGA_H_VERT_BASED) {
     OMEGA_H_CHECK(nlayers == 1);
     if (comm_->size() > 1) partition_by_verts(this, verbose);
   }
-  parting_ = parting;
+  parting_ = parting_in;
   nghost_layers_ = nlayers;
 }
 
-void Mesh::set_parting(Omega_h_Parting parting, bool verbose) {
-  if (parting == OMEGA_H_ELEM_BASED)
-    set_parting(parting, 0, verbose);
+void Mesh::set_parting(Omega_h_Parting parting_in, bool verbose) {
+  if (parting_in == OMEGA_H_ELEM_BASED)
+    set_parting(parting_in, 0, verbose);
   else
-    set_parting(parting, 1, verbose);
+    set_parting(parting_in, 1, verbose);
 }
 
 /* this is a member function mainly because it
@@ -544,57 +544,57 @@ Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width) {
   return unmap(o2e, a, width);
 }
 
-void Mesh::sync_tag(Int dim, std::string const& name) {
-  auto tagbase = get_tagbase(dim, name);
+void Mesh::sync_tag(Int ent_dim, std::string const& name) {
+  auto tagbase = get_tagbase(ent_dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
-      auto out = sync_array(dim, as<I8>(tagbase)->array(), tagbase->ncomps());
-      set_tag(dim, name, out);
+      auto out = sync_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
+      set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I32: {
-      auto out = sync_array(dim, as<I32>(tagbase)->array(), tagbase->ncomps());
-      set_tag(dim, name, out);
+      auto out = sync_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
+      set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I64: {
-      auto out = sync_array(dim, as<I64>(tagbase)->array(), tagbase->ncomps());
-      set_tag(dim, name, out);
+      auto out = sync_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
+      set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_F64: {
-      auto out = sync_array(dim, as<Real>(tagbase)->array(), tagbase->ncomps());
-      set_tag(dim, name, out);
+      auto out = sync_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
+      set_tag(ent_dim, name, out);
       break;
     }
   }
 }
 
-void Mesh::reduce_tag(Int dim, std::string const& name, Omega_h_Op op) {
-  auto tagbase = get_tagbase(dim, name);
+void Mesh::reduce_tag(Int ent_dim, std::string const& name, Omega_h_Op op) {
+  auto tagbase = get_tagbase(ent_dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
       auto out =
-          reduce_array(dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
-      set_tag(dim, name, out);
+          reduce_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I32: {
       auto out =
-          reduce_array(dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
-      set_tag(dim, name, out);
+          reduce_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I64: {
       auto out =
-          reduce_array(dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
-      set_tag(dim, name, out);
+          reduce_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_F64: {
       auto out =
-          reduce_array(dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
-      set_tag(dim, name, out);
+          reduce_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
+      set_tag(ent_dim, name, out);
       break;
     }
   }
@@ -638,8 +638,8 @@ Mesh::RibPtr Mesh::rib_hints() const { return rib_hints_; }
 void Mesh::set_rib_hints(RibPtr hints) { rib_hints_ = hints; }
 
 Real Mesh::imbalance(Int ent_dim) const {
-  if (ent_dim == -1) ent_dim = this->dim();
-  auto local = Real(this->nents(ent_dim));
+  if (ent_dim == -1) ent_dim = dim();
+  auto local = Real(nents(ent_dim));
   auto s = comm_->allreduce(local, OMEGA_H_SUM);
   if (s == 0.0) return 1.0;
   auto m = comm_->allreduce(local, OMEGA_H_MAX);
@@ -652,13 +652,13 @@ bool can_print(Mesh* mesh) {
   return (!mesh->library()->silent_) && (mesh->comm()->rank() == 0);
 }
 
-Real repro_sum_owned(Mesh* mesh, Int dim, Reals a) {
-  return repro_sum(mesh->comm(), mesh->owned_array(dim, a, 1));
+Real repro_sum_owned(Mesh* mesh, Int ent_dim, Reals a) {
+  return repro_sum(mesh->comm(), mesh->owned_array(ent_dim, a, 1));
 }
 
-Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
-  auto ev2v = mesh->ask_verts_of(dim);
-  auto degree = simplex_degrees[dim][VERT];
+Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
+  auto ev2v = mesh->ask_verts_of(ent_dim);
+  auto degree = simplex_degrees[ent_dim][VERT];
   OMEGA_H_CHECK(v2x.size() % ncomps == 0);
   auto na = a2e.size();
   Write<Real> out(na * ncomps);
@@ -678,9 +678,9 @@ Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x) {
   return out;
 }
 
-Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x) {
-  auto a2e = LOs(mesh->nents(dim), 0, 1);
-  return average_field(mesh, dim, a2e, ncomps, v2x);
+Reals average_field(Mesh* mesh, Int ent_dim, Int ncomps, Reals v2x) {
+  auto a2e = LOs(mesh->nents(ent_dim), 0, 1);
+  return average_field(mesh, ent_dim, a2e, ncomps, v2x);
 }
 
 TagSet get_all_mesh_tags(Mesh* mesh) {

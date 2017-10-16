@@ -4,15 +4,7 @@
 #include <vector>
 
 #if defined(OMEGA_H_USE_CUDA)
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#endif
-#include <thrust/device_ptr.h>
-#include <thrust/sort.h>
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
+#include <Omega_h_thrust.hpp>
 #elif defined(OMEGA_H_USE_OPENMP)
 #include <omp.h>
 #include "intel_sort/parallel_stable_sort.hpp"

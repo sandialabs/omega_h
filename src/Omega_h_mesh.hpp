@@ -21,16 +21,16 @@ class Mesh {
   Mesh(Library* library);
   Library* library() const;
   void set_comm(CommPtr const& comm);
-  void set_dim(Int dim);
-  void set_verts(LO nverts);
-  void set_ents(Int dim, Adj down);
+  void set_dim(Int dim_in);
+  void set_verts(LO nverts_in);
+  void set_ents(Int ent_dim, Adj down);
   CommPtr comm() const;
   Omega_h_Parting parting() const;
   inline Int dim() const {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
-  LO nents(Int dim) const;
+  LO nents(Int ent_dim) const;
   LO nelems() const;
   LO ntets() const;
   LO ntris() const;
@@ -107,8 +107,8 @@ class Mesh {
   Read<I8> owned(Int dim);
   Dist ask_dist(Int dim);
   Int nghost_layers() const;
-  void set_parting(Omega_h_Parting parting, Int nlayers, bool verbose);
-  void set_parting(Omega_h_Parting parting, bool verbose = false);
+  void set_parting(Omega_h_Parting parting_in, Int nlayers, bool verbose);
+  void set_parting(Omega_h_Parting parting_in, bool verbose = false);
   void balance(bool predictive = false);
   Graph ask_graph(Int from, Int to);
   template <typename T>

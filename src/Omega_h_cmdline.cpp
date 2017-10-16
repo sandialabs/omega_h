@@ -44,8 +44,8 @@ static bool parse_arg(char const* arg, double* p_value) {
 
 CmdLineItem::~CmdLineItem() {}
 
-CmdLineItem::CmdLineItem(std::string const& name)
-    : name_(name), parsed_(false) {}
+CmdLineItem::CmdLineItem(std::string const& name_in)
+    : name_(name_in), parsed_(false) {}
 
 bool CmdLineItem::parse(int* p_argc, char** argv, int i, bool should_print) {
   if (parsed_) {
@@ -64,8 +64,8 @@ std::string const& CmdLineItem::name() const { return name_; }
 bool CmdLineItem::parsed() const { return parsed_; }
 
 template <typename T>
-CmdLineArg<T>::CmdLineArg(std::string const& name, T const& defval)
-    : CmdLineItem(name), value_(defval) {}
+CmdLineArg<T>::CmdLineArg(std::string const& name_in, T const& defval)
+    : CmdLineItem(name_in), value_(defval) {}
 
 template <typename T>
 CmdLineArg<T>::~CmdLineArg() {}
@@ -89,8 +89,8 @@ T CmdLineArg<T>::get() const {
   return value_;
 }
 
-CmdLineFlag::CmdLineFlag(std::string const& name, std::string const& desc)
-    : CmdLineItem(name), desc_(desc) {}
+CmdLineFlag::CmdLineFlag(std::string const& name_in, std::string const& desc_in)
+    : CmdLineItem(name_in), desc_(desc_in) {}
 
 bool CmdLineFlag::parse_impl(
     int* p_argc, char** argv, int i, bool should_print) {
@@ -102,10 +102,10 @@ bool CmdLineFlag::parse_impl(
     }
     return false;
   }
-  for (auto const& arg : args_) {
-    if (!arg->parse(p_argc, argv, i, should_print)) {
+  for (auto const& the_arg : args_) {
+    if (!the_arg->parse(p_argc, argv, i, should_print)) {
       if (should_print) {
-        std::cout << "could not parse argument <" << arg->name() << "> of flag "
+        std::cout << "could not parse argument <" << the_arg->name() << "> of flag "
                   << name() << '\n';
       }
       return false;
@@ -115,9 +115,9 @@ bool CmdLineFlag::parse_impl(
 }
 
 template <typename T>
-void CmdLineFlag::add_arg(std::string const& name, T const& defval) {
+void CmdLineFlag::add_arg(std::string const& arg_name, T const& defval) {
   args_.push_back(
-      std::unique_ptr<CmdLineArg<T>>(new CmdLineArg<T>(name, defval)));
+      std::unique_ptr<CmdLineArg<T>>(new CmdLineArg<T>(arg_name, defval)));
 }
 
 std::string const& CmdLineFlag::desc() const { return desc_; }
@@ -125,8 +125,8 @@ std::string const& CmdLineFlag::desc() const { return desc_; }
 CmdLineItem* CmdLineFlag::arg(std::size_t i) { return args_.at(i).get(); }
 
 CmdLineItem* CmdLineFlag::arg(std::string const& arg_name) {
-  for (auto const& arg : args_)
-    if (arg->name() == arg_name) return arg.get();
+  for (auto const& the_arg : args_)
+    if (the_arg->name() == arg_name) return the_arg.get();
   OMEGA_H_NORETURN(nullptr);
 }
 

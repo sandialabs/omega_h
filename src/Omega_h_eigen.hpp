@@ -1,8 +1,6 @@
 #ifndef OMEGA_H_EIGEN_HPP
 #define OMEGA_H_EIGEN_HPP
 
-#include <iostream>
-
 #include <Omega_h_matrix.hpp>
 
 namespace Omega_h {
@@ -290,6 +288,7 @@ OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m) {
 OMEGA_H_INLINE DiagDecomp<1> decompose_eigen_dim(Matrix<1, 1> m) {
   auto roots_obj = get_eigenvalues(m);
   auto roots = roots_obj.values;
+  OMEGA_H_CHECK(are_close(roots[0], m[0][0]));
   return {matrix_1x1(1.0), vector_1(roots[0])};
 }
 
