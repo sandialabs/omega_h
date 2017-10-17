@@ -23,6 +23,9 @@
 
 #if defined(__clang__)
 #define OMEGA_H_FALLTHROUGH [[clang::fallthrough]]
+/* Test for GCC >= 7.0.0 */
+#elif defined(__GNUC__) && (__GNUC__ > 7 || __GNUC__ == 7)
+#define OMEGA_H_FALLTHROUGH [[gnu::fallthrough]]
 #else
 #define OMEGA_H_FALLTHROUGH ((void)0)
 #endif

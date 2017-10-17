@@ -68,7 +68,9 @@ static SeparationResult separate_by_color_once(
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto ob = keys2old.a2ab[key];
     auto oe = keys2old.a2ab[key + 1];
-    if (ob == oe) return;
+    if (ob == oe) {
+      return;
+    }
     auto old_first = keys2old.ab2b[ob];
     auto color = old_elem_colors[old_first];
     for (auto ko = ob; ko < oe; ++ko) {
@@ -115,7 +117,7 @@ static CavsByColor separate_by_color(
 
 static LOs get_elem_class_ids(Mesh* mesh) {
   if (mesh->has_tag(mesh->dim(), "class_id")) {
-    return mesh->get_array<LO>(mesh->dim(), "class_id");
+    return mesh->get_array<ClassId>(mesh->dim(), "class_id");
   } else {
     return LOs(mesh->nelems(), 1);
   }
@@ -148,9 +150,9 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto kd_class_dims = old_mesh->get_array<I8>(key_dim, "class_dim");
   auto key_class_dims = unmap(keys2kds, kd_class_dims, 1);
   auto keys_are_bdry = each_lt(key_class_dims, I8(old_mesh->dim()));
-  auto key_cavs2cavs = collect_marked(keys_are_bdry);
-  out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(key_cavs2cavs, cavs));
-  if (keys2doms) *keys2doms = unmap_graph(key_cavs2cavs, *keys2doms);
+  auto bdry_cavs2cavs = collect_marked(keys_are_bdry);
+  out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(bdry_cavs2cavs, cavs));
+  if (keys2doms) *keys2doms = unmap_graph(bdry_cavs2cavs, *keys2doms);
   auto keys_arent_bdry = invert_marks(keys_are_bdry);
   auto cavs_touch_bdry = land_each(cavs_are_bdry, keys_arent_bdry);
   auto touch_cavs2cavs = collect_marked(cavs_touch_bdry);
@@ -541,11 +543,35 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
       same_ents2old_ents, same_ents2new_ents, op_conservation);
 }
 
+void transfer_conserve_motion(Mesh* old_mesh, TransferOpts const& opts,
+    Mesh* new_mesh, LOs keys2verts, Graph keys2elems, LOs same_ents2old_ents,
+    LOs same_ents2new_ents) {
+  if (!should_conserve_any(old_mesh, opts)) return;
+  auto keys2prods = keys2elems.a2ab;
+  auto prods2new_ents = keys2elems.ab2b;
+  auto init_cavs = form_initial_cavs(
+      old_mesh, new_mesh, VERT, keys2verts, keys2prods, prods2new_ents);
+  OMEGA_H_CHECK(init_cavs.keys2old_elems.a2ab == init_cavs.keys2new_elems.a2ab);
+  OMEGA_H_CHECK(init_cavs.keys2old_elems.ab2b == init_cavs.keys2new_elems.ab2b);
+  auto bdry_keys2doms = keys2elems;
+  auto cavs = separate_cavities(
+      old_mesh, new_mesh, init_cavs, VERT, keys2verts, &bdry_keys2doms);
+  OpConservation op_conservation;
+  op_conservation.density.this_time[NOT_BDRY] = true;
+  op_conservation.density.this_time[TOUCH_BDRY] = true;
+  op_conservation.density.this_time[KEY_BDRY] = false;
+  op_conservation.momentum.this_time[NOT_BDRY] = false;
+  op_conservation.momentum.this_time[TOUCH_BDRY] = false;
+  op_conservation.momentum.this_time[KEY_BDRY] = false;
+  transfer_conservation_errors(old_mesh, opts, new_mesh, cavs,
+      same_ents2old_ents, same_ents2new_ents, op_conservation);
+}
+
 void fix_momentum_velocity_verts(
     Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp) {
   for (Int ent_dim = VERT; ent_dim <= mesh->dim(); ++ent_dim) {
     auto ent_marks = mark_class_closures(mesh, ent_dim, class_pairs);
-    auto comp_marks = multiply_each_by(I8(1 << comp), ent_marks);
+    auto comp_marks = multiply_each_by(ent_marks, I8(1 << comp));
     if (mesh->has_tag(ent_dim, "momentum_velocity_fixed")) {
       auto old_marks = mesh->get_array<I8>(ent_dim, "momentum_velocity_fixed");
       auto new_marks = bit_or_each(old_marks, comp_marks);
@@ -574,7 +600,12 @@ void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
     auto tagbase = mesh->get_tag(dim, tagi);
     if (should_conserve(mesh, xfer_opts, dim, tagbase)) {
       auto density_name = tagbase->name();
-      auto integral_name = xfer_opts.integral_map.find(density_name)->second;
+      auto it = xfer_opts.integral_map.find(density_name);
+      if (it == xfer_opts.integral_map.end()) {
+        Omega_h_fail("conserved density \"%s\" has no integral_map entry\n",
+            density_name.c_str());
+      }
+      auto integral_name = it->second;
       auto error_name = integral_name + "_error";
       auto ncomps = tagbase->ncomps();
       mesh->add_tag(
@@ -744,7 +775,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
       subtract_each(new_elem_momenta, old_elem_momenta);
   auto verts2elems = mesh->ask_up(VERT, dim);
   auto vert_masses = graph_reduce(verts2elems, elem_masses, 1, OMEGA_H_SUM);
-  vert_masses = divide_each_by(Real(dim + 1), vert_masses);
+  vert_masses = divide_each_by(vert_masses, Real(dim + 1));
   auto elems2verts = mesh->ask_down(dim, VERT);
   auto all_flags = get_comps_are_fixed(mesh);
   auto elem_errors = mesh->get_array<Real>(dim, error_name);

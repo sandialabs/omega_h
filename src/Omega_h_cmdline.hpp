@@ -11,7 +11,7 @@ namespace Omega_h {
 
 class CmdLineItem {
  public:
-  CmdLineItem(std::string const& name);
+  CmdLineItem(std::string const& name_in);
   virtual ~CmdLineItem();
   bool parse(int* p_argc, char** argv, int i, bool should_print);
   virtual bool parse_impl(
@@ -27,7 +27,7 @@ class CmdLineItem {
 template <typename T>
 class CmdLineArg : public CmdLineItem {
  public:
-  CmdLineArg(std::string const& name, T const& defval);
+  CmdLineArg(std::string const& name_in, T const& defval);
   ~CmdLineArg() override;
   bool parse_impl(int* p_argc, char** argv, int i, bool should_print) override;
   T get() const;
@@ -38,10 +38,10 @@ class CmdLineArg : public CmdLineItem {
 
 class CmdLineFlag : public CmdLineItem {
  public:
-  CmdLineFlag(std::string const& name, std::string const& desc);
+  CmdLineFlag(std::string const& name_in, std::string const& desc_in);
   bool parse_impl(int* p_argc, char** argv, int i, bool should_print) override;
   template <typename T>
-  void add_arg(std::string const& name, T const& defval = T());
+  void add_arg(std::string const& arg_name, T const& defval = T());
   std::string const& desc() const;
   CmdLineItem* arg(std::size_t i);
   CmdLineItem* arg(std::string const& arg_name);

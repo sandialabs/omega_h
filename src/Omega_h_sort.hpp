@@ -27,6 +27,13 @@ OMEGA_H_INST_DECL(LO)
 OMEGA_H_INST_DECL(GO)
 #undef OMEGA_H_INST_DECL
 
+template <typename T>
+void sort_small_range(
+    Read<T> items2values, LOs* p_perm, LOs* p_fan, Read<T>* p_uniq);
+
+extern template void sort_small_range(
+    Read<I32> items2values, LOs* p_perm, LOs* p_fan, Read<I32>* p_uniq);
+
 }  // end namespace Omega_h
 
 #endif

@@ -2,16 +2,18 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_assoc.hpp"
 #include "Omega_h_bbox.hpp"
+#include "Omega_h_build.hpp"
 #include "Omega_h_compare.hpp"
+#include "Omega_h_confined.hpp"
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_motion.hpp"
-#include "Omega_h_proximity.hpp"
 #include "Omega_h_quality.hpp"
+#include "Omega_h_recover.hpp"
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_scan.hpp"
 #include "Omega_h_shape.hpp"
@@ -901,84 +903,62 @@ static void test_proximity(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, Reals({0, 0, 1, 0, 0, 1}));
-    auto isos = get_pad_isos(&mesh, 2, 1.0, Read<I8>({0, 1, 0}));
-    OMEGA_H_CHECK(isos == Reals({0.0}));
+    auto dists = get_pad_dists(&mesh, 2, Read<I8>({0, 1, 0}));
+    OMEGA_H_CHECK(dists == Reals({-1.0}));
   }
   {  // triangle off-center
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, Reals({0, 0, 1, 1, 1, 2}));
-    auto isos = get_pad_isos(&mesh, 2, 1.0, Read<I8>({1, 1, 0}));
-    OMEGA_H_CHECK(isos == Reals({0.0}));
+    auto dists = get_pad_dists(&mesh, 2, Read<I8>({1, 1, 0}));
+    OMEGA_H_CHECK(dists == Reals({-1.0}));
   }
   {  // triangle expected
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 2, LOs({0, 1, 2}), 3);
     mesh.add_tag(VERT, "coordinates", 2, Reals({0, 0, 1, -1, 1, 1}));
-    auto isos = get_pad_isos(&mesh, 2, 1.0, Read<I8>({1, 1, 0}));
-    OMEGA_H_CHECK(are_close(isos, Reals({1.0})));
+    auto dists = get_pad_dists(&mesh, 2, Read<I8>({1, 1, 0}));
+    OMEGA_H_CHECK(are_close(dists, Reals({1.0})));
   }
   {  // tet with two bridges
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(VERT, "coordinates", 3, Reals(3 * 4, 0.0));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({1, 1, 0, 0, 0, 0}));
-    OMEGA_H_CHECK(are_close(isos, Reals({0.0})));
+    auto dists = get_pad_dists(&mesh, 3, Read<I8>({1, 1, 0, 0, 0, 0}));
+    OMEGA_H_CHECK(are_close(dists, Reals({-1.0})));
   }
   {  // tet with three bridges, off-center
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 1, -1, 1, 1, 1, 1, 1, 0, 2}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({1, 1, 1, 0, 0, 0}));
-    OMEGA_H_CHECK(are_close(isos, Reals({0.0})));
+    auto dists = get_pad_dists(&mesh, 3, Read<I8>({1, 1, 1, 0, 0, 0}));
+    OMEGA_H_CHECK(are_close(dists, Reals({-1.0})));
   }
   {  // tet with three bridges, expected
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 1, -1, -1, 1, 1, -1, 1, 0, 2}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({1, 1, 1, 0, 0, 0}));
-    OMEGA_H_CHECK(are_close(isos, Reals({1.0})));
+    auto dists = get_pad_dists(&mesh, 3, Read<I8>({1, 1, 1, 0, 0, 0}));
+    OMEGA_H_CHECK(are_close(dists, Reals({1.0})));
   }
   {  // edge-edge tet, off center
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 1, 0, 0, -1, 1, 0, -1, 1, 1}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({0, 1, 1, 1, 1, 0}));
-    OMEGA_H_CHECK(are_close(isos, Reals({0.0})));
+    auto dists = get_pad_dists(&mesh, 3, Read<I8>({0, 1, 1, 1, 1, 0}));
+    OMEGA_H_CHECK(are_close(dists, Reals({-1.0})));
   }
   {  // edge-edge tet, expected
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, 3, LOs({0, 1, 2, 3}), 4);
     mesh.add_tag(
         VERT, "coordinates", 3, Reals({0, 0, 0, 2, 0, 0, 1, 1, -1, 1, 1, 1}));
-    auto isos = get_pad_isos(&mesh, 3, 1.0, Read<I8>({0, 1, 1, 1, 1, 0}));
-    OMEGA_H_CHECK(are_close(isos, Reals({1.0})));
+    auto dists = get_pad_dists(&mesh, 3, Read<I8>({0, 1, 1, 1, 1, 0}));
+    OMEGA_H_CHECK(are_close(dists, Reals({1.0})));
   }
-}
-
-static void test_motion(Library* lib) {
-  Mesh mesh(lib);
-  build_box_internal(&mesh, 1, 1, 0, 2, 2, 0);
-  classify_by_angles(&mesh, Omega_h::PI / 4);
-  auto metrics = get_implied_isos(&mesh);
-  mesh.add_tag(VERT, "metric", 1, metrics);
-  auto coords_w = deep_copy(mesh.coords());
-  coords_w.set(4 * 2 + 0, 0.74);
-  coords_w.set(4 * 2 + 1, 0.26);
-  mesh.set_coords(coords_w);
-  OMEGA_H_CHECK(mesh.min_quality() < 0.5);
-  AdaptOpts opts(&mesh);
-  auto cands2verts = LOs({4});
-  auto choices = get_motion_choices(&mesh, opts, cands2verts);
-  OMEGA_H_CHECK(choices.cands_did_move.get(0));
-  OMEGA_H_CHECK(choices.quals.get(0) > 0.85);
-  auto verts_are_keys = Read<I8>({0, 0, 0, 0, 1, 0, 0, 0, 0});
-  unpack_linearized_fields(
-      &mesh, opts.xfer_opts, &mesh, choices.new_sol, verts_are_keys);
-  OMEGA_H_CHECK(mesh.min_quality() == choices.quals.get(0));
 }
 
 static void test_find_last() {
@@ -996,10 +976,10 @@ static void test_inball() {
   OMEGA_H_CHECK(are_close(inball1.c, vector_1(0.0)));
   OMEGA_H_CHECK(are_close(inball1.r, 1.0));
   Few<Vector<2>, 3> regular_tri = {
-      {-1.0, 0.0}, {1.0, 0.0}, {0.0, sqrt(3.0) / 2.0}};
+      {-1.0, 0.0}, {1.0, 0.0}, {0.0, sqrt(3.0)}};
   auto inball2 = get_inball(regular_tri);
-  OMEGA_H_CHECK(are_close(inball2.c, vector_2(0.0, sqrt(3.0) / 6.0)));
-  OMEGA_H_CHECK(are_close(inball2.r, sqrt(3.0) / 6.0));
+  OMEGA_H_CHECK(are_close(inball2.c, vector_2(0.0, sqrt(3.0) / 3.0)));
+  OMEGA_H_CHECK(are_close(inball2.r, sqrt(3.0) / 3.0));
   Few<Vector<3>, 4> regular_tet = {{1, 0, -1.0 / sqrt(2.0)},
       {-1, 0, -1.0 / sqrt(2.0)}, {0, -1, 1.0 / sqrt(2.0)},
       {0, 1, 1.0 / sqrt(2.0)}};
@@ -1011,30 +991,30 @@ static void test_inball() {
 static void test_volume_vert_gradients() {
   {
     Few<Vector<1>, 2> parent_edge = {{0.0}, {1.0}};
-    auto grad0 = get_volume_vert_gradient(parent_edge, 0);
+    auto grad0 = get_size_gradient(parent_edge, 0);
     OMEGA_H_CHECK(are_close(grad0, vector_1(-1.0)));
-    auto grad1 = get_volume_vert_gradient(parent_edge, 1);
+    auto grad1 = get_size_gradient(parent_edge, 1);
     OMEGA_H_CHECK(are_close(grad1, vector_1(1.0)));
   }
   {
     Few<Vector<2>, 3> parent_tri = {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}};
-    auto grad0 = get_volume_vert_gradient(parent_tri, 0);
+    auto grad0 = get_size_gradient(parent_tri, 0);
     OMEGA_H_CHECK(are_close(grad0, vector_2(-0.5, -0.5)));
-    auto grad1 = get_volume_vert_gradient(parent_tri, 1);
+    auto grad1 = get_size_gradient(parent_tri, 1);
     OMEGA_H_CHECK(are_close(grad1, vector_2(0.5, 0.0)));
-    auto grad2 = get_volume_vert_gradient(parent_tri, 2);
+    auto grad2 = get_size_gradient(parent_tri, 2);
     OMEGA_H_CHECK(are_close(grad2, vector_2(0.0, 0.5)));
   }
   {
     Few<Vector<3>, 4> parent_tet = {{0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
     auto os = 1.0 / 6.0;
-    auto grad0 = get_volume_vert_gradient(parent_tet, 0);
+    auto grad0 = get_size_gradient(parent_tet, 0);
     OMEGA_H_CHECK(are_close(grad0, vector_3(-os, -os, -os)));
-    auto grad1 = get_volume_vert_gradient(parent_tet, 1);
+    auto grad1 = get_size_gradient(parent_tet, 1);
     OMEGA_H_CHECK(are_close(grad1, vector_3(os, 0, 0)));
-    auto grad2 = get_volume_vert_gradient(parent_tet, 2);
+    auto grad2 = get_size_gradient(parent_tet, 2);
     OMEGA_H_CHECK(are_close(grad2, vector_3(0, os, 0)));
-    auto grad3 = get_volume_vert_gradient(parent_tet, 3);
+    auto grad3 = get_size_gradient(parent_tet, 3);
     OMEGA_H_CHECK(are_close(grad3, vector_3(0, 0, os)));
   }
 }
@@ -1121,6 +1101,26 @@ static void test_expr() {
 #endif
 }
 
+static void test_sort_small_range() {
+  Read<I32> in({10, 100, 1000, 10, 100, 1000, 10, 100, 1000});
+  LOs perm;
+  LOs fan;
+  Read<I32> uniq;
+  sort_small_range(in, &perm, &fan, &uniq);
+  // HostRead<I32> h_perm(perm);
+  // for (int i = 0; i < h_perm.size(); ++i) {
+  //  fprintf(stderr, "[%d] = %d\n", i, h_perm[i]);
+  //}
+  OMEGA_H_CHECK(perm == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
+  OMEGA_H_CHECK(fan == LOs({0, 3, 6, 9}));
+  OMEGA_H_CHECK(uniq == Read<I32>({10, 100, 1000}));
+  in = Read<I32>({});
+  sort_small_range(in, &perm, &fan, &uniq);
+  OMEGA_H_CHECK(perm == LOs({}));
+  OMEGA_H_CHECK(fan == LOs({0}));
+  OMEGA_H_CHECK(uniq == Read<I32>({}));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1129,6 +1129,7 @@ int main(int argc, char** argv) {
   test_cubic();
   test_form_ortho_basis();
   test_qr_decomps();
+  test_eigen(matrix_1x1(42.0), vector_1(42.0));
   test_eigen_quadratic();
   test_eigen_cubic();
   test_eigen_jacobi();
@@ -1136,6 +1137,7 @@ int main(int argc, char** argv) {
   test_int128();
   test_repro_sum();
   test_sort();
+  test_sort_small_range();
   test_scan();
   test_intersect_metrics();
   test_fan_and_funnel();
@@ -1174,7 +1176,6 @@ int main(int argc, char** argv) {
   test_circumcenter();
   test_lie();
   test_proximity(&lib);
-  test_motion(&lib);
   test_find_last();
   test_inball();
   test_volume_vert_gradients();

@@ -3,8 +3,11 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_confined.hpp"
 #include "Omega_h_host_few.hpp"
 #include "Omega_h_loop.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_mark.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
@@ -272,7 +275,7 @@ static Reals element_implied_length_metrics_dim(Mesh* mesh) {
   return out;
 }
 
-static Reals get_element_implied_length_metrics(Mesh* mesh) {
+Reals get_element_implied_length_metrics(Mesh* mesh) {
   if (mesh->dim() == 3) return element_implied_length_metrics_dim<3>(mesh);
   if (mesh->dim() == 2) return element_implied_length_metrics_dim<2>(mesh);
   if (mesh->dim() == 1) return element_implied_length_metrics_dim<1>(mesh);
@@ -610,6 +613,139 @@ Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy) {
       return get_size_isos(dim, metrics);
   }
   OMEGA_H_NORETURN(Reals());
+}
+
+Reals get_proximity_isos(Mesh* mesh, Real factor) {
+  OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
+  auto edges_are_bridges = find_bridge_edges(mesh);
+  auto verts_are_bridged = mark_down(mesh, EDGE, VERT, edges_are_bridges);
+  auto bridged_verts = collect_marked(verts_are_bridged);
+  auto nbv = bridged_verts.size();
+  auto bv2m = Reals(nbv, 0.0);
+  for (Int pad_dim = EDGE; pad_dim <= mesh->dim(); ++pad_dim) {
+    auto v2p = mesh->ask_graph(VERT, pad_dim);
+    auto bv2p = unmap_graph(bridged_verts, v2p);
+    auto p2h = get_pad_dists(mesh, pad_dim, edges_are_bridges);
+    auto p2m = isos_from_lengths(multiply_each_by(p2h, factor));
+    auto bv2m_tmp = graph_reduce(bv2p, p2m, 1, OMEGA_H_MAX);
+    bv2m = max_each(bv2m, bv2m_tmp);
+  }
+  auto v2m = map_onto(bv2m, bridged_verts, mesh->nverts(), 0.0, 1);
+  return mesh->sync_array(VERT, v2m, 1);
+}
+
+Reals isos_from_lengths(Reals h) {
+  auto out = Write<Real>(h.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    out[i] = metric_eigenvalue_from_length(h[i]);
+  };
+  parallel_for(h.size(), f);
+  return out;
+}
+
+Reals lengths_from_isos(Reals l) {
+  auto out = Write<Real>(l.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    out[i] = metric_length_from_eigenvalue(l[i]);
+  };
+  parallel_for(l.size(), f);
+  return out;
+}
+
+/* Micheletti, S., and S. Perotto.
+ * "Anisotropic adaptation via a Zienkiewicz–Zhu error estimator
+ *  for 2D elliptic problems."
+ * Numerical Mathematics and Advanced Applications 2009.
+ * Springer Berlin Heidelberg, 2010. 645-653.
+ *
+ * Farrell, P. E., S. Micheletti, and S. Perotto.
+ * "An anisotropic Zienkiewicz–Zhu‐type error estimator for 3D applications."
+ * International journal for numerical methods in engineering
+ * 85.6 (2011): 671-692.
+ */
+
+template <Int dim>
+Reals get_aniso_zz_metric_dim(
+    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size) {
+  OMEGA_H_CHECK(mesh->have_all_upward());
+  constexpr auto nverts_per_elem = dim + 1;
+  auto elem_verts2vert = mesh->ask_elem_verts();
+  auto verts2elems = mesh->ask_up(VERT, dim);
+  constexpr auto max_elems_per_patch =
+      AvgDegree<dim, 0, dim>::value * nverts_per_elem * 2;
+  auto elems2volume = measure_elements_real(mesh);
+  auto nglobal_elems = get_sum(mesh->comm(), mesh->owned(dim));
+  auto out = Write<Real>(mesh->nelems() * symm_ncomps(dim));
+  auto f = OMEGA_H_LAMBDA(LO elem) {
+    Few<LO, max_elems_per_patch> patch_elems;
+    Int npatch_elems = 0;
+    for (auto ev = elem * nverts_per_elem; ev < ((elem + 1) * nverts_per_elem);
+         ++ev) {
+      auto vert = elem_verts2vert[ev];
+      for (auto ve = verts2elems.a2ab[vert]; ve < verts2elems.a2ab[vert + 1];
+           ++ve) {
+        auto patch_elem = verts2elems.ab2b[ve];
+        OMEGA_H_CHECK(npatch_elems < max_elems_per_patch);
+        add_unique(patch_elems, npatch_elems, patch_elem);
+      }
+    }
+    Real patch_volume = 0;
+    auto grad_sum = zero_vector<dim>();
+    for (Int i = 0; i < npatch_elems; ++i) {
+      auto patch_elem = patch_elems[i];
+      auto gradient = get_vector<dim>(elem_gradients, patch_elem);
+      auto volume = elems2volume[patch_elem];
+      patch_volume += volume;
+      grad_sum = grad_sum + (gradient * volume);
+    }
+    auto grad_avg = grad_sum / patch_volume;
+    auto op_sum = zero_matrix<dim, dim>();
+    for (Int i = 0; i < npatch_elems; ++i) {
+      auto patch_elem = patch_elems[i];
+      auto gradient = get_vector<dim>(elem_gradients, patch_elem);
+      auto volume = elems2volume[patch_elem];
+      auto grad_err = grad_avg - gradient;
+      auto op = outer_product(grad_err, grad_err);
+      op_sum = op_sum + (op * volume);
+    }
+    auto op_avg = op_sum / patch_volume;
+    auto iso_volume =
+        (dim == 3) ? (1.0 / (6.0 * sqrt(2.0))) : (sqrt(3.0) / 4.0);
+    auto volume_factor = elems2volume[elem] / iso_volume;
+    auto pullback_volume = patch_volume / volume_factor;
+    auto a =
+        square(error_bound) / (Real(dim) * nglobal_elems * pullback_volume);
+    auto op_decomp = decompose_eigen(op_avg);
+    auto g = op_decomp.l;
+    auto gv = op_decomp.q;
+    auto g_min = a / raise<dim>(max_size);
+    for (Int i = 0; i < dim; ++i) g[i] = max2(g[i], g_min);
+    Matrix<dim, dim> r;
+    for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
+    auto scaling = std::pow(product(g), 1.0 / 18.0);
+    Vector<dim> h;
+    for (Int i = 0; i < dim; ++i)
+      h[i] = root<dim>(a) * scaling / root<2>(g[dim - i - 1]);
+    auto m = compose_metric(r, h);
+    set_symm(out, elem, m);
+  };
+  parallel_for(mesh->nelems(), f);
+  auto elem_metrics = Reals(out);
+  auto metrics = Omega_h::project_by_average(mesh, elem_metrics);
+  metrics = Omega_h::multiply_each_by(metrics, 3.0 / 8.0);
+  return metrics;
+}
+
+Reals get_aniso_zz_metric(
+    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size) {
+  if (mesh->dim() == 3) {
+    return get_aniso_zz_metric_dim<3>(
+        mesh, elem_gradients, error_bound, max_size);
+    // TODO: currently we fixed the algorithm to match the 3D paper.
+    // In 2D, the terms are slightly different (e.g. no 1/18 power)
+  } else {
+    OMEGA_H_NORETURN(Reals());
+  }
 }
 
 }  // end namespace Omega_h

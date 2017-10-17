@@ -9,122 +9,142 @@ namespace Omega_h {
 template <Int mesh_dim, Int metric_dim>
 MotionChoices motion_choices_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2verts) {
-  using Metric = Matrix<metric_dim, metric_dim>;
-  auto pack = pack_linearized_fields(mesh, opts.xfer_opts);
-  constexpr Int maxcomps = 30;
-  OMEGA_H_CHECK(pack.ncomps <= maxcomps);
-  auto new_sol_w = deep_copy(pack.data);
+  auto max_steps = opts.xfer_opts.max_size_steps;
+  OMEGA_H_CHECK(max_steps > 0);
+  auto min_step_size = opts.xfer_opts.min_size_step_ratio;
+  OMEGA_H_CHECK(0.0 <= min_step_size);
+  OMEGA_H_CHECK(min_step_size <= 1.0);
+  auto max_rel_error = opts.xfer_opts.max_size_error_ratio;
+  OMEGA_H_CHECK(max_rel_error >= 0.0);
+  auto min_qual_allowed = opts.min_quality_allowed;
+  auto max_ml_allowed = opts.max_length_allowed;
   auto coords = mesh->coords();
   auto metrics = mesh->get_array<Real>(VERT, "metric");
+  auto size_errors = mesh->get_array<Real>(mesh_dim, "size_error");
+  auto orig_sizes = mesh->ask_sizes();
   auto ncands = cands2verts.size();
   auto v2e = mesh->ask_up(VERT, EDGE);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto v2k = mesh->ask_up(VERT, mesh_dim);
   auto kv2v = mesh->ask_verts_of(mesh_dim);
-  auto verts2dim = mesh->get_array<I8>(VERT, "class_dim");
-  auto edges2dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto cands2elems = unmap_graph(cands2verts, v2k);
-  auto elems2old_qual = mesh->ask_qualities();
-  auto cands2old_qual =
-      graph_reduce(cands2elems, elems2old_qual, 1, OMEGA_H_MIN);
-  auto max_steps = opts.max_motion_steps;
-  OMEGA_H_CHECK(max_steps >= 0);
-  auto step_size = opts.motion_step_size;
-  auto max_length = opts.max_length_allowed;
-  OMEGA_H_CHECK(0.0 < step_size);
-  OMEGA_H_CHECK(step_size < 1.0);
   auto did_move_w = Write<I8>(ncands);
-  auto coordinates_w = Write<Real>(ncands * mesh_dim);
-  constexpr auto metric_ncomps = symm_ncomps(metric_dim);
-  auto metrics_w = Write<Real>(ncands * metric_ncomps);
-  auto qualities_w = Write<Real>(ncands);
+  auto new_coords_w = Write<Real>(ncands * mesh_dim);
+  auto new_quals_w = Write<Real>(ncands);
   auto f = OMEGA_H_LAMBDA(LO cand) {
     auto v = cands2verts[cand];
-    auto v_dim = verts2dim[v];
-    auto old_qual = cands2old_qual[cand];
-    auto last_qual = old_qual;
-    Vector<maxcomps> tmp;
-    for (Int i = 0; i < pack.ncomps; ++i) {
-      tmp[i] = pack.data[v * pack.ncomps + i];
+    Real old_obj = -1.0;
+    auto orig_x = get_vector<mesh_dim>(coords, v);
+    auto old_x = orig_x;
+    auto new_x = old_x;
+    bool did_move = false;
+    Real new_qual;
+    Real max_rl = 0.0;
+    for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
+      auto e = v2e.ab2b[ve];
+      auto ve_code = v2e.codes[ve];
+      auto eev_c = code_which_down(ve_code);
+      auto ov = ev2v[e * 2 + (1 - eev_c)];
+      auto ox = get_vector<mesh_dim>(coords, ov);
+      auto rl = norm(orig_x - ox);
+      max_rl = max2(max_rl, rl);
     }
-    for (Int step = 0; step < max_steps; ++step) {
-      bool found_step = false;
+    for (Int step = 0; true; ++step) {
+      Real new_obj = 0.0;
+      auto obj_grad = zero_vector<mesh_dim>();
+      bool obj_converged = true;
+      bool quality_ok = true;
+      new_qual = 1.0;
+      for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
+        auto k = v2k.ab2b[vk];
+        auto vk_code = v2k.codes[vk];
+        auto kkv_c = code_which_down(vk_code);
+        auto kkv2v = gather_verts<mesh_dim + 1>(kv2v, k);
+        auto kkv2nx = gather_vectors<mesh_dim + 1, mesh_dim>(coords, kkv2v);
+        kkv2nx[kkv_c] = new_x;
+        auto k_basis = simplex_basis<mesh_dim, mesh_dim>(kkv2nx);
+        auto k_tmp_size = element_size(k_basis);
+        auto k_size_grad = get_size_gradient(kkv2nx, kkv_c);
+        auto k_size_diff = k_tmp_size - orig_sizes[k];
+        auto k_tmp_error = size_errors[k] + k_size_diff;
+        auto k_tmp_rel_error = std::fabs(k_tmp_error / k_tmp_size);
+        if (k_tmp_rel_error > max_rel_error) {
+          obj_converged = false;
+        }
+        auto k_obj = square(k_tmp_error);
+        auto k_obj_grad = 2.0 * k_tmp_error * k_size_grad;
+        auto kvv2m = gather_symms<mesh_dim + 1, metric_dim>(metrics, kkv2v);
+        auto km = maxdet_metric(kvv2m);
+        auto k_qual = metric_element_quality(kkv2nx, km);
+        if (k_qual < min_qual_allowed) {
+          quality_ok = false;
+          break;
+        }
+        new_obj += k_obj;
+        obj_grad += k_obj_grad;
+        new_qual = min2(new_qual, k_qual);
+      }
+      Real max_ml = 0.0;
       for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
         auto e = v2e.ab2b[ve];
-        auto e_dim = edges2dim[e];
-        if (e_dim != v_dim) continue;
         auto ve_code = v2e.codes[ve];
-        auto evv_c = code_which_down(ve_code);
-        auto evv_o = 1 - evv_c;
-        auto evv2v = gather_verts<2>(ev2v, e);
-        auto ov = evv2v[evv_o];
-        for (Int i = 0; i < pack.ncomps; ++i) {
-          tmp[i] = (1.0 - step_size) * new_sol_w[v * pack.ncomps + i] +
-                   step_size * pack.data[ov * pack.ncomps + i];
+        auto eev_c = code_which_down(ve_code);
+        auto eev2v = gather_verts<2>(ev2v, e);
+        auto eev2nx = gather_vectors<2, mesh_dim>(coords, eev2v);
+        eev2nx[eev_c] = new_x;
+        auto eev2m = gather_symms<2, metric_dim>(metrics, eev2v);
+        auto ml = metric_edge_length(eev2nx, eev2m);
+        max_ml = max2(max_ml, ml);
+      }
+      if (step &&
+          (!quality_ok || new_obj >= old_obj || max_ml > max_ml_allowed)) {
+        /* we either took a step or backtracked, and the new position
+           is bad either because it increases the objective, or the elements
+           are too distorted, or an edge got too long */
+        if (step == max_steps) {
+          /* out of time, fully back up to the last good position */
+          new_x = old_x;
+          break;
+        } else {
+          /* still have time, backtrack */
+          new_x = (new_x + old_x) / 2.0;
         }
-        Vector<mesh_dim> nx;
-        for (Int i = 0; i < mesh_dim; ++i) nx[i] = tmp[pack.coords_offset + i];
-        Vector<metric_ncomps> metric_comps;
-        for (Int i = 0; i < metric_ncomps; ++i) {
-          metric_comps[i] = tmp[pack.metric_offset + i];
-        }
-        auto lnm = vector2symm(metric_comps);
-        auto nm = delinearize_metric(lnm);
-        auto overshoots = false;
-        for (auto ve_l = v2e.a2ab[v]; ve_l < v2e.a2ab[v + 1]; ++ve_l) {
-          auto e_l = v2e.ab2b[ve_l];
-          auto ve_code_l = v2e.codes[ve_l];
-          auto evv_c_l = code_which_down(ve_code_l);
-          auto evv_o_l = 1 - evv_c_l;
-          auto ov_l = ev2v[e_l * 2 + evv_o_l];
-          auto om = get_symm<metric_dim>(metrics, ov_l);
-          auto ox = get_vector<mesh_dim>(coords, ov_l);
-          Few<Vector<mesh_dim>, 2> evv2nx;
-          Few<Metric, 2> evv2nm;
-          evv2nx[evv_c_l] = nx;
-          evv2nx[evv_o_l] = ox;
-          evv2nm[evv_c_l] = nm;
-          evv2nm[evv_o_l] = om;
-          auto nl = metric_edge_length(evv2nx, evv2nm);
-          if (nl > max_length) {
-            overshoots = true;
-            break;
+      } else {
+        /* either no prior step exists, or the prior step both reduced
+           the objective (good) and created acceptable quality elements */
+        if (step) did_move = true;
+        if (obj_converged || step == max_steps) {
+          /* either we've solved the problem or we're out of time.
+             the last step (if any) was a good one. don't move. */
+          break;
+        } else {
+          /* actually take a new step */
+          old_x = new_x;
+          old_obj = new_obj;
+          Vector<mesh_dim> delta_x;
+          for (Int i = 0; i < mesh_dim; ++i) {
+            delta_x[i] = -(new_obj / obj_grad[i]);
           }
-        }  // end loop over edges again for overshooting
-        if (overshoots) continue;
-        Real new_qual = 1.0;
-        for (auto vk = v2k.a2ab[v]; vk < v2k.a2ab[v + 1]; ++vk) {
-          auto k = v2k.ab2b[vk];
-          auto vk_code = v2k.codes[vk];
-          auto kvv_c = code_which_down(vk_code);
-          auto kvv2v = gather_verts<mesh_dim + 1>(kv2v, k);
-          auto kvv2nx = gather_vectors<mesh_dim + 1, mesh_dim>(coords, kvv2v);
-          kvv2nx[kvv_c] = nx;
-          auto kvv2m = gather_symms<mesh_dim + 1, metric_dim>(metrics, kvv2v);
-          kvv2m[kvv_c] = nm;
-          auto km = maxdet_metric(kvv2m);
-          auto k_qual = metric_element_quality(kvv2nx, km);
-          new_qual = min2(new_qual, k_qual);
-          if (new_qual <= last_qual) break;
-        }  // end loop over elements for quality
-        if (new_qual <= last_qual) continue;
-        found_step = true;
-        last_qual = new_qual;
-        for (Int i = 0; i < pack.ncomps; ++i) {
-          new_sol_w[v * pack.ncomps + i] = tmp[i];
+          new_x = old_x + delta_x;
         }
-      }  // end loop over edges for possible steps
-      if (!found_step) break;
-    }  // end loop over motion steps
-    auto did_move = last_qual > old_qual;
-    qualities_w[cand] = last_qual;
-    did_move_w[cand] = did_move;
-    if (did_move) OMEGA_H_CHECK(last_qual >= 0.0);
+      }
+    }
+    if (did_move && (norm(new_x - orig_x) < (min_step_size * max_rl))) {
+      new_x = orig_x;
+      did_move = false;
+    }
+    did_move_w[cand] = I8(did_move);
+    new_quals_w[cand] = new_qual;
+    set_vector(new_coords_w, cand, new_x);
   };
   parallel_for(ncands, f);
-  auto qualities = Reals(qualities_w);
-  auto new_sol = Reals(new_sol_w);
-  return {Read<I8>(did_move_w), Reals(qualities_w), Reals(new_sol_w)};
+  auto did_move = Bytes(did_move_w);
+  auto new_quals = Reals(new_quals_w);
+  auto new_coords = Reals(new_coords_w);
+  did_move = mesh->sync_subset_array(VERT, did_move, cands2verts, I8(-1), 1);
+  new_quals = mesh->sync_subset_array(VERT, new_quals, cands2verts, -1.0, 1);
+  new_coords =
+      mesh->sync_subset_array(VERT, new_coords, cands2verts, 0.0, mesh_dim);
+  return {did_move, new_quals, new_coords};
 }
 
 MotionChoices get_motion_choices(

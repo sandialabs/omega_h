@@ -23,6 +23,9 @@ struct TransferOpts {
   std::map<std::string, VarCompareOpts>
       integral_diffuse_map;  // "mass" -> tolerance
   bool should_conserve_size;
+  Int max_size_steps;
+  Real min_size_step_ratio;
+  Real max_size_error_ratio;
   void validate(Mesh* mesh) const;
 };
 
@@ -51,14 +54,10 @@ struct AdaptOpts {
   bool should_smooth_snap;
   Real snap_smooth_tolerance;
 #endif
-  Int max_motion_steps;
-  Real motion_step_size;
   bool should_refine;
   bool should_coarsen;
   bool should_swap;
   bool should_coarsen_slivers;
-  bool should_move_for_quality;
-  bool should_allow_pinching;
   TransferOpts xfer_opts;
 };
 

@@ -8,10 +8,6 @@
 #include <Omega_h_array.hpp>
 #include <Omega_h_matrix.hpp>
 
-#ifndef OMEGA_H_USE_TEUCHOSPARSER
-#error "Can't use Omega_h_expr.hpp without Omega_h_USE_TeuchosParser=ON"
-#endif
-
 /* appease the non-standard crap in Teuchos::any */
 namespace Teuchos {
 
@@ -68,7 +64,7 @@ inline std::ostream& operator<<(
 
 }  // namespace Teuchos
 
-#include <Teuchos_Reader.hpp>
+#include <Omega_h_teuchos_includes.hpp>
 
 namespace Omega_h {
 

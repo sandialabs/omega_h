@@ -46,8 +46,16 @@ OMEGA_H_SYSTEM_HEADER
 #endif
 
 namespace Omega_h {
-void begin_code(std::string const& name = "");
-void end_code();
+
+inline void begin_code(std::string const& name) {
+  (void)name;
+  // Kokkos::Profiling::pushRegion(name);
+}
+
+inline void end_code() {
+  // Kokkos::Profiling::popRegion();
+}
+
 }  // namespace Omega_h
 
 #endif

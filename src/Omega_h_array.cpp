@@ -9,6 +9,24 @@
 
 namespace Omega_h {
 
+/* Several C libraries including ZLib and
+   OpenMPI will throw errors when input pointers
+   are NULL, even if they point to arrays of size zero. */
+template <typename T>
+class NonNullPtr {
+  static T scratch[1];
+
+ public:
+  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
+};
+template <typename T>
+T NonNullPtr<T>::scratch[1] = {0};
+
+template <typename T>
+T* nonnull(T* p) {
+  return NonNullPtr<T>::get(p);
+}
+
 static std::size_t current_array_bytes = 0;
 
 std::size_t get_current_bytes() { return current_array_bytes; }
@@ -35,26 +53,24 @@ void Write<T>::log_allocation() const {
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view) : view_(view) {
+Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {
   log_allocation();
 }
 #endif
 
 template <typename T>
-Write<T>::Write(LO size, std::string const& name)
-    :
+Write<T>::Write(LO size_in, std::string const& name) {
+// begin_code("Write(size,name)");
 #ifdef OMEGA_H_USE_KOKKOSCORE
-      view_(Kokkos::ViewAllocateWithoutInitializing(name),
-          static_cast<std::size_t>(size))
+  view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name),
+      static_cast<std::size_t>(size_in));
 #else
-      ptr_(new T[size], std::default_delete<T[]>()),
-      size_(size)
-#endif
-{
-#ifndef OMEGA_H_USE_KOKKOSCORE
   (void)name;
+  ptr_ = decltype(ptr_)(new T[size_in], std::default_delete<T[]>());
+  size_ = size_in;
 #endif
   log_allocation();
+  // end_code();
 }
 
 template <typename T>
@@ -83,8 +99,8 @@ static void fill(Write<T> a, T val) {
 }
 
 template <typename T>
-Write<T>::Write(LO size, T value, std::string const& name)
-    : Write<T>(size, name) {
+Write<T>::Write(LO size_in, T value, std::string const& name)
+    : Write<T>(size_in, name) {
   fill(*this, value);
 }
 
@@ -97,8 +113,8 @@ void fill_linear(Write<T> a, T offset, T stride) {
 }
 
 template <typename T>
-Write<T>::Write(LO size, T offset, T stride, std::string const& name)
-    : Write<T>(size, name) {
+Write<T>::Write(LO size_in, T offset, T stride, std::string const& name)
+    : Write<T>(size_in, name) {
   fill_linear(*this, offset, stride);
 }
 
@@ -142,38 +158,38 @@ T Write<T>::get(LO i) const {
 
 Bytes::Bytes(Write<Byte> write) : Read<Byte>(write) {}
 
-Bytes::Bytes(LO size, Byte value, std::string const& name)
-    : Read<Byte>(size, value, name) {}
+Bytes::Bytes(LO size_in, Byte value, std::string const& name)
+    : Read<Byte>(size_in, value, name) {}
 
 Bytes::Bytes(std::initializer_list<Byte> l, std::string const& name)
     : Read<Byte>(l, name) {}
 
 LOs::LOs(Write<LO> write) : Read<LO>(write) {}
 
-LOs::LOs(LO size, LO value, std::string const& name)
-    : Read<LO>(size, value, name) {}
+LOs::LOs(LO size_in, LO value, std::string const& name)
+    : Read<LO>(size_in, value, name) {}
 
-LOs::LOs(LO size, LO offset, LO stride, std::string const& name)
-    : Read<LO>(size, offset, stride, name) {}
+LOs::LOs(LO size_in, LO offset, LO stride, std::string const& name)
+    : Read<LO>(size_in, offset, stride, name) {}
 
 LOs::LOs(std::initializer_list<LO> l, std::string const& name)
     : Read<LO>(l, name) {}
 
 GOs::GOs(Write<GO> write) : Read<GO>(write) {}
 
-GOs::GOs(LO size, GO value, std::string const& name)
-    : Read<GO>(size, value, name) {}
+GOs::GOs(LO size_in, GO value, std::string const& name)
+    : Read<GO>(size_in, value, name) {}
 
-GOs::GOs(LO size, GO offset, GO stride, std::string const& name)
-    : Read<GO>(size, offset, stride, name) {}
+GOs::GOs(LO size_in, GO offset, GO stride, std::string const& name)
+    : Read<GO>(size_in, offset, stride, name) {}
 
 GOs::GOs(std::initializer_list<GO> l, std::string const& name)
     : Read<GO>(l, name) {}
 
 Reals::Reals(Write<Real> write) : Read<Real>(write) {}
 
-Reals::Reals(LO size, Real value, std::string const& name)
-    : Read<Real>(size, value, name) {}
+Reals::Reals(LO size_in, Real value, std::string const& name)
+    : Read<Real>(size_in, value, name) {}
 
 Reals::Reals(std::initializer_list<Real> l, std::string const& name)
     : Read<Real>(l, name) {}
@@ -182,12 +198,12 @@ template <typename T>
 Read<T>::Read(Write<T> write) : write_(write) {}
 
 template <typename T>
-Read<T>::Read(LO size, T value, std::string const& name)
-    : Read<T>(Write<T>(size, value, name)) {}
+Read<T>::Read(LO size_in, T value, std::string const& name)
+    : Read<T>(Write<T>(size_in, value, name)) {}
 
 template <typename T>
-Read<T>::Read(LO size, T offset, T stride, std::string const& name)
-    : Read<T>(Write<T>(size, offset, stride, name)) {}
+Read<T>::Read(LO size_in, T offset, T stride, std::string const& name)
+    : Read<T>(Write<T>(size_in, offset, stride, name)) {}
 
 template <typename T>
 Read<T>::Read(std::initializer_list<T> l, std::string const& name)
@@ -262,8 +278,8 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror_view(
 #endif
 
 template <typename T>
-HostWrite<T>::HostWrite(LO size, std::string const& name)
-    : write_(size, name)
+HostWrite<T>::HostWrite(LO size_in, std::string const& name)
+    : write_(size_in, name)
 #ifdef OMEGA_H_USE_KOKKOSCORE
       ,
       mirror_(create_uninit_mirror_view(write_.view()))
@@ -272,12 +288,12 @@ HostWrite<T>::HostWrite(LO size, std::string const& name)
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(LO size, T offset, T stride, std::string const& name)
-    : HostWrite<T>(Write<T>(size, offset, stride, name)) {}
+HostWrite<T>::HostWrite(LO size_in, T offset, T stride, std::string const& name)
+    : HostWrite<T>(Write<T>(size_in, offset, stride, name)) {}
 
 template <typename T>
-HostWrite<T>::HostWrite(Write<T> write)
-    : write_(write)
+HostWrite<T>::HostWrite(Write<T> write_in)
+    : write_(write_in)
 #ifdef OMEGA_H_USE_KOKKOSCORE
       ,
       mirror_(create_uninit_mirror_view(write_.view()))
@@ -316,25 +332,6 @@ T* HostWrite<T>::data() const {
 #else
   return write_.data();
 #endif
-}
-
-/* Several C libraries including ZLib and
-   OpenMPI will throw errors when input pointers
-   are NULL, even if they point to arrays of size zero. */
-template <typename T>
-class NonNullPtr {
-  static T scratch[1];
-
- public:
-  static T* get(T* p) { return (p == nullptr) ? scratch : p; }
-  static T const* get(T const* p) { return (p == nullptr) ? scratch : p; }
-};
-template <typename T>
-T NonNullPtr<T>::scratch[1] = {0};
-
-template <typename T>
-T* HostWrite<T>::nonnull_data() const {
-  return NonNullPtr<T>::get(data());
 }
 
 template <typename T>
@@ -380,11 +377,6 @@ T const* HostRead<T>::data() const {
 }
 
 template <typename T>
-T const* HostRead<T>::nonnull_data() const {
-  return NonNullPtr<T>::get(data());
-}
-
-template <typename T>
 T HostRead<T>::last() const {
   return operator[](size() - 1);
 }
@@ -402,6 +394,8 @@ Write<T> deep_copy(Read<T> a) {
 }
 
 #define INST(T)                                                                \
+  template T* nonnull(T*);                                                     \
+  template T const* nonnull(T const*);                                         \
   template class NonNullPtr<T>;                                                \
   template class Write<T>;                                                     \
   template class Read<T>;                                                      \

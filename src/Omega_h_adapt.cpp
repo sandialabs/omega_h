@@ -22,7 +22,12 @@
 
 namespace Omega_h {
 
-TransferOpts::TransferOpts() { should_conserve_size = false; }
+TransferOpts::TransferOpts() {
+  should_conserve_size = false;
+  max_size_steps = 100;
+  min_size_step_ratio = 2e-3;
+  max_size_error_ratio = 2e-2;
+}
 
 void TransferOpts::validate(Mesh* mesh) const {
   for (auto pair : type_map) {
@@ -66,25 +71,18 @@ AdaptOpts::AdaptOpts(Int dim) {
   should_smooth_snap = true;
   snap_smooth_tolerance = 1e-2;
 #endif
-  max_motion_steps = 100;
-  motion_step_size = 0.1;
   should_refine = true;
   should_coarsen = true;
   should_swap = true;
   should_coarsen_slivers = true;
-  should_move_for_quality = false;
-  should_allow_pinching = false;
-  xfer_opts.should_conserve_size = false;
 }
 
-static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const& opts) {
-  auto elem_quals = mesh->ask_qualities();
-  if (!opts.should_allow_pinching) return elem_quals;
-  auto elems_are_angle = find_angle_elems(mesh);
-  auto elems_are_fixable = invert_marks(elems_are_angle);
-  auto fixable_elems_to_elems = collect_marked(elems_are_fixable);
-  auto fixable_elem_quals = unmap(fixable_elems_to_elems, elem_quals, 1);
-  return fixable_elem_quals;
+static Reals get_fixable_qualities(Mesh* mesh, AdaptOpts const&) {
+  /* This used to be an attempt to continue adapting when certain
+     elements were constrained to by geometry to have small dihedral angles.
+     We'll leave it here as a placeholder for reimplementing such a system
+     in the future, but for now it just returns all qualities */
+  return mesh->ask_qualities();
 }
 
 Real min_fixable_quality(Mesh* mesh, AdaptOpts const& opts) {
@@ -185,10 +183,6 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       post_rebuild(mesh, opts);
       continue;
     }
-    if (opts.should_move_for_quality && move_verts_for_quality(mesh, opts)) {
-      post_rebuild(mesh, opts);
-      continue;
-    }
     if ((opts.verbosity > SILENT) && !mesh->comm()->rank()) {
       std::cout << "adapt() could not satisfy quality\n";
     }
@@ -241,6 +235,17 @@ static void post_adapt(
   }
 }
 
+static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
+  if (opts.xfer_opts.should_conserve_size) {
+    // vtk::Writer writer("motion", mesh);
+    // writer.write();
+    while (move_verts_to_conserve_size(mesh, opts)) {
+      // writer.write();
+      post_rebuild(mesh, opts);
+    }
+  }
+}
+
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t0 = now();
   if (!pre_adapt(mesh, opts)) return false;
@@ -250,6 +255,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
+  correct_size_errors(mesh, opts);
   correct_integral_errors(mesh, opts);
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);

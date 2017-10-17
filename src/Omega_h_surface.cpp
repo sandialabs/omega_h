@@ -78,7 +78,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
 
 }  // end anonymous namespace
 
-Reals get_side_normals(Mesh* mesh, LOs surf_side2side) {
+Reals get_side_vectors(Mesh* mesh, LOs surf_side2side) {
   if (mesh->dim() == 3) return get_triangle_normals(mesh, surf_side2side);
   if (mesh->dim() == 2) return get_edge_normals(mesh, surf_side2side);
   OMEGA_H_NORETURN(Reals());
@@ -590,7 +590,7 @@ SurfaceInfo get_surface_info(Mesh* mesh) {
   LOs curv_edge2edge;
   LOs curv_vert2vert;
   if (mesh->dim() == 3) {
-    auto surf_side_normals = get_side_normals(mesh, surf_side2side);
+    auto surf_side_normals = get_side_vectors(mesh, surf_side2side);
     auto surf_vert_normals = get_side_vert_normals(
         mesh, surf_side2side, surf_side_normals, surf_vert2vert);
     auto edges_are_curv = mark_by_class_dim(mesh, EDGE, EDGE);

@@ -47,7 +47,7 @@ void classify_by_angles(Mesh* mesh, Real sharp_angle) {
   if (dim == 1) return;
   auto hinge_is_exposed = mark_down(mesh, dim - 1, dim - 2, side_is_exposed);
   auto surf_side2side = collect_marked(side_is_exposed);
-  auto surf_side_normals = get_side_normals(mesh, surf_side2side);
+  auto surf_side_normals = get_side_vectors(mesh, surf_side2side);
   auto surf_hinge2hinge = collect_marked(hinge_is_exposed);
   auto nsurf_hinges = surf_hinge2hinge.size();
   auto nsides = mesh->nents(dim - 1);
@@ -80,7 +80,7 @@ static void remove_all_ids(Mesh* mesh) {
 }
 
 template <typename T>
-static Write<T> deep_copy_or_default(
+static Write<T> copy_and_remove_or_default(
     Mesh* mesh, Int dim, std::string const& name, T def_val) {
   if (mesh->has_tag(dim, name)) {
     auto a = deep_copy(mesh->get_array<T>(dim, name));
@@ -91,13 +91,13 @@ static Write<T> deep_copy_or_default(
   }
 }
 
-static void project_classification(
-    Mesh* mesh, Int d, Write<I8> class_dim, Write<LO> class_id) {
-  auto l2h = mesh->ask_up(d, d + 1);
+void project_classification(Mesh* mesh, Int ent_dim, Write<I8> class_dim,
+    Write<ClassId> class_id, bool relaxed) {
+  auto l2h = mesh->ask_up(ent_dim, ent_dim + 1);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
-  auto high_class_dim = mesh->get_array<I8>(d + 1, "class_dim");
-  auto high_class_id = mesh->get_array<LO>(d + 1, "class_id");
+  auto high_class_dim = mesh->get_array<I8>(ent_dim + 1, "class_dim");
+  auto high_class_id = mesh->get_array<ClassId>(ent_dim + 1, "class_id");
   auto f = OMEGA_H_LAMBDA(LO l) {
     Int best_dim = class_dim[l];
     auto best_id = class_id[l];
@@ -111,7 +111,7 @@ static void project_classification(
         best_id = high_id;
         nadj = 1;
       } else if (high_dim == best_dim) {
-        if (high_id != best_id) {
+        if (high_id != best_id && (!relaxed || high_id != -1)) {
           if (best_id == -1) {
             best_id = high_id;
             ++nadj;
@@ -125,31 +125,42 @@ static void project_classification(
         }
       }
     }
-    if ((nadj != 2 && best_dim == d + 1) || (nadj < 2 && best_dim > d + 1)) {
-      best_dim = d;
+    if ((nadj != 2 && best_dim == ent_dim + 1) ||
+        (nadj < 2 && best_dim > ent_dim + 1)) {
+      best_dim = ent_dim;
       best_id = -1;
     }
     class_dim[l] = static_cast<I8>(best_dim);
     class_id[l] = best_id;
   };
-  parallel_for(mesh->nents(d), f, "project_classification");
+  parallel_for(mesh->nents(ent_dim), f, "project_classification");
+}
+
+void project_classification(Mesh* mesh, Int ent_dim, bool relaxed) {
+  auto class_ids_w = deep_copy(mesh->get_array<ClassId>(ent_dim, "class_id"));
+  auto class_dims_w = deep_copy(mesh->get_array<I8>(ent_dim, "class_dim"));
+  project_classification(mesh, ent_dim, class_dims_w, class_ids_w, relaxed);
+  mesh->set_tag(ent_dim, "class_id", Read<ClassId>(class_ids_w));
+  mesh->set_tag(ent_dim, "class_dim", Read<I8>(class_dims_w));
 }
 
 void finalize_classification(Mesh* mesh) {
   bool had_ids = has_any_ids(mesh);
-  for (Int d = mesh->dim(); d >= VERT; --d) {
-    Write<I8> class_dim =
-        deep_copy_or_default<I8>(mesh, d, "class_dim", I8(mesh->dim()));
-    Write<LO> class_id = deep_copy_or_default<LO>(mesh, d, "class_id", -1);
-    if (d < mesh->dim()) project_classification(mesh, d, class_dim, class_id);
-    mesh->add_tag<I8>(d, "class_dim", 1, class_dim);
-    mesh->add_tag<LO>(d, "class_id", 1, class_id);
+  for (Int ent_dim = mesh->dim(); ent_dim >= VERT; --ent_dim) {
+    auto class_dim = copy_and_remove_or_default<I8>(
+        mesh, ent_dim, "class_dim", I8(mesh->dim()));
+    auto class_id =
+        copy_and_remove_or_default<ClassId>(mesh, ent_dim, "class_id", -1);
+    if (ent_dim < mesh->dim())
+      project_classification(mesh, ent_dim, class_dim, class_id);
+    mesh->add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
+    mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_id);
   }
   if (!had_ids) remove_all_ids(mesh);
 }
 
 void classify_equal_order(
-    Mesh* mesh, Int ent_dim, LOs eqv2v, Read<LO> eq_class_ids) {
+    Mesh* mesh, Int ent_dim, LOs eqv2v, Read<ClassId> eq_class_ids) {
   LOs eq2e;
   if (ent_dim == mesh->dim()) {
     /* assuming elements were constructed in the same order ! */
@@ -168,7 +179,7 @@ void classify_equal_order(
       map_onto(eq_class_dim, eq2e, mesh->nents(ent_dim), I8(mesh->dim()), 1);
   auto class_id = map_onto(eq_class_ids, eq2e, mesh->nents(ent_dim), -1, 1);
   mesh->add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
-  mesh->add_tag<LO>(ent_dim, "class_id", 1, class_id);
+  mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_id);
 }
 
 }  // end namespace Omega_h

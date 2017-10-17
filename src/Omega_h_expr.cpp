@@ -1,15 +1,10 @@
 #include <Omega_h_expr.hpp>
 #include <Omega_h_matrix.hpp>
 
-#include <Teuchos_Language.hpp>
-#include <Teuchos_MathExpr.hpp>
-
 #include <Omega_h_array_ops.hpp>
 #include <Omega_h_loop.hpp>
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
-
-#include <Teuchos_any.hpp>
 
 namespace Omega_h {
 
@@ -106,7 +101,11 @@ void promote(LO size, any& x) {
   } else if (x.type() == typeid(Reals)) {
     return;
   } else {
-    throw Teuchos::ParserFail("Unexpected type being promoted");
+    std::string msg;
+    msg += "Unexpected type ";
+    msg += x.type().name();
+    msg += " being promoted";
+    throw Teuchos::ParserFail(msg);
   }
 }
 
@@ -136,8 +135,8 @@ void ternary(
   } else if (cond.type() == typeid(Bytes)) {
     promote(size, dim, true_val);
     promote(size, dim, false_val);
-    result = ternary_each(any_cast<Bytes>(cond), any_cast<Reals>(true_val),
-        any_cast<Reals>(false_val));
+    result = Reals(ternary_each(any_cast<Bytes>(cond), any_cast<Reals>(true_val),
+        any_cast<Reals>(false_val)));
   } else {
     throw Teuchos::ParserFail(
         "Invalid condition value type in ternary operator");
@@ -168,7 +167,7 @@ void gt(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) > any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
-    result = gt_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+    result = gt_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs));
   } else {
     throw Teuchos::ParserFail("Invalid operand types to > operator");
   }
@@ -178,7 +177,7 @@ void lt(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) < any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
-    result = lt_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+    result = lt_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs));
   } else {
     throw Teuchos::ParserFail("Invalid operand types to > operator");
   }
@@ -188,7 +187,7 @@ void eq(any& result, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Real)) {
     result = any_cast<Real>(lhs) == any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
-    result = eq_each(any_cast<Bytes>(lhs), any_cast<Bytes>(rhs));
+    result = eq_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs));
   } else {
     throw Teuchos::ParserFail("Invalid operand types to == operator");
   }
@@ -344,7 +343,7 @@ void neg(any& result, any& val) {
   } else if (val.type() == typeid(Matrix<dim, dim>)) {
     result = -any_cast<Matrix<dim, dim>>(val);
   } else if (val.type() == typeid(Reals)) {
-    result = Reals(multiply_each_by(-1.0, any_cast<Reals>(val)));
+    result = Reals(multiply_each_by(any_cast<Reals>(val), -1.0));
   } else {
     throw Teuchos::ParserFail("Invalid operand type to negation operator");
   }

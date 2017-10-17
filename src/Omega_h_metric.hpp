@@ -223,6 +223,7 @@ Reals project_metrics(Mesh* mesh, Reals e2m);
 Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max);
 Reals get_pure_implied_isos(Mesh* mesh);
 Reals get_implied_isos(Mesh* mesh);
+Reals get_element_implied_length_metrics(Mesh* mesh);
 Reals get_pure_implied_metrics(Mesh* mesh);
 Reals get_implied_metrics(Mesh* mesh);
 void axes_from_metric_field(
@@ -244,6 +245,11 @@ Reals get_proximity_isos(Mesh* mesh, Real factor);
 Reals intersect_metrics(LO nmetrics, Reals a, Reals b);
 Reals metrics_from_isos(Int new_dim, Reals isos);
 Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy);
+Reals get_aniso_zz_metric(
+    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size);
+
+Reals isos_from_lengths(Reals h);
+Reals lengths_from_isos(Reals l);
 
 }  // end namespace Omega_h
 

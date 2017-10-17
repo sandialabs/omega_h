@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.3.3 LANGUAGES NONE)
+project(Omega_h VERSION 9.4.0 LANGUAGES NONE)
 
 set(USE_XSDK_DEFAULTS_DEFAULT OFF)
 
@@ -27,6 +27,7 @@ set(EGADS_PREFIX "" CACHE PATH "EGADS (or ESP) installation directory")
 option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
 message(STATUS "Omega_h_USE_Trilinos: ${Omega_h_USE_Trilinos}")
 set(Trilinos_PREFIX "" CACHE PATH "Path to Trilinos install")
+option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_public_dep(ZLIB)
@@ -73,15 +74,15 @@ if  ( Omega_h_USE_TeuchosParameterList
   AND Omega_h_USE_TeuchosParser
   )
   message(STATUS "Using Teuchos")
-  set(USE_TEUCHOS ON)
-elseif  ( Omega_h_USE_TeuchosParameterList 
+  set(Omega_h_USE_Teuchos ON)
+elseif  ( Omega_h_USE_TeuchosParameterList
        OR Omega_h_USE_TeuchosComm
        OR Omega_h_USE_TeuchosParser
        )
   message(FATAL_ERROR "Must use TeuchosParameterList, TeuchosComm, and TeuchosParser or none")
 else()
   message(STATUS "Not using Teuchos")
-  set(USE_TEUCHOS OFF)
+  set(Omega_h_USE_Teuchos OFF)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/detect_trilinos_opts.cmake)
@@ -102,6 +103,7 @@ set(Omega_h_USE_OpenMP ${KokkosCore_HAS_OpenMP})
 message(STATUS "Omega_h_USE_OpenMP: ${Omega_h_USE_OpenMP}")
 set(Omega_h_USE_CUDA ${KokkosCore_HAS_CUDA})
 message(STATUS "Omega_h_USE_CUDA: ${Omega_h_USE_CUDA}")
+message(STATUS "Omega_h_USE_CUDA_AWARE_MPI: ${Omega_h_USE_CUDA_AWARE_MPI}")
 set(Omega_h_USE_YAML ${TeuchosParameterList_HAS_YAML})
 message(STATUS "Omega_h_USE_YAML: ${Omega_h_USE_YAML}")
 
@@ -112,11 +114,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   if(Omega_h_USE_CUDA)
     set(FLAGS "${FLAGS} -expt-extended-lambda")
-  elseif(Omega_h_USE_OpenMP)
-    set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
-    set(FLAGS "${FLAGS} -fopenmp")
   else()
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
+    if(Omega_h_USE_OpenMP)
+      set(FLAGS "${FLAGS} -fopenmp")
+    endif()
   endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
@@ -141,12 +143,11 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
     Omega_h_USE_SEACASExodus
-    Omega_h_USE_TeuchosParameterList
-    Omega_h_USE_TeuchosComm
-    Omega_h_USE_TeuchosParser
+    Omega_h_USE_Teuchos
     Omega_h_USE_YAML
     Omega_h_USE_DOLFIN
     Omega_h_CHECK_BOUNDS
+    Omega_h_USE_CUDA_AWARE_MPI
    )
 
 set(Omega_h_KEY_INTS
@@ -155,8 +156,10 @@ set(Omega_h_KEY_INTS
     Omega_h_VERSION_PATCH
    )
 
+set(Omega_h_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(Omega_h_KEY_STRINGS
     Omega_h_SEMVER
+    Omega_h_CXX_FLAGS
    )
 
 bob_form_semver()

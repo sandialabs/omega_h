@@ -75,13 +75,12 @@ set(Omega_h_SOURCES
   Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
-  Omega_h_proximity.cpp
   Omega_h_motion_choices.cpp
   Omega_h_motion_transfer.cpp
   Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
-  Omega_h_kokkos.cpp
+  Omega_h_flood.cpp
   )
 
 if(Omega_h_USE_libMeshb)
@@ -117,7 +116,7 @@ if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
 
-if(USE_TEUCHOS)
+if(Omega_h_USE_Teuchos)
   set(Omega_h_SOURCES ${Omega_h_SOURCES}
       Omega_h_teuchos.cpp
       Omega_h_expr.cpp
@@ -219,17 +218,21 @@ osh_add_util(osh_box)
 osh_add_util(osh_part)
 osh_add_util(osh_scale)
 osh_add_util(osh_reorder)
+osh_add_util(osh_fix)
+osh_add_util(osh_eval_implied)
+osh_add_util(mox_test)
 if(Omega_h_USE_libMeshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
   osh_add_util(osh_read_solb)
   osh_add_util(ugawg_stats)
+  osh_add_util(ugawg_cone_cone)
 endif()
 if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
   osh_add_util(osh2exo)
 endif()
-if(USE_TEUCHOS)
+if(Omega_h_USE_Teuchos)
   osh_add_util(osh_adapt)
   osh_add_util(osh_copy_params)
 endif()
@@ -277,6 +280,7 @@ if(BUILD_TESTING)
     gen_func(ball)
     gen_func(twin_rotor)
     gen_func(solder_balls)
+    gen_func(square_and_disk_in_square)
   endif()
 
   osh_add_exe(unit_tests)
@@ -321,6 +325,7 @@ if(BUILD_TESTING)
                 ${Omega_h_DATA}/ball_in_cube.msh)
     endif()
   endif()
+  osh_add_exe(motion_unit_test)
   osh_add_exe(perf_tests)
   osh_add_exe(ring_test)
   if(Omega_h_DATA)
@@ -346,6 +351,7 @@ if(BUILD_TESTING)
   endif()
   osh_add_exe(bend_test)
   osh_add_exe(test_degree)
+  osh_add_exe(test_dihedral)
   if(Omega_h_USE_libMeshb)
     osh_add_exe(ugawg_linear)
     if(Omega_h_USE_EGADS)
@@ -374,6 +380,7 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
+  osh_add_exe(flood_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -423,9 +430,10 @@ set(Omega_h_HEADERS
   Omega_h_quality.hpp
   )
 
-if(USE_TEUCHOS)
+if(Omega_h_USE_Teuchos)
   set(Omega_h_HEADERS ${Omega_h_HEADERS}
       Omega_h_teuchos.hpp
+      Omega_h_teuchos_includes.hpp
       Omega_h_expr.hpp
      )
 endif()

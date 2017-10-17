@@ -1,8 +1,6 @@
 #ifndef OMEGA_H_EIGEN_HPP
 #define OMEGA_H_EIGEN_HPP
 
-#include <iostream>
-
 #include <Omega_h_matrix.hpp>
 
 namespace Omega_h {
@@ -26,7 +24,9 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   auto a_1 = coeffs[1];
   auto a_2 = coeffs[2];
   Few<Real, 3> roots;
+  roots[0] = roots[1] = roots[2] = 0.0;
   Few<Int, 3> mults;
+  mults[0] = mults[1] = mults[2] = 0;
   // http://mathworld.wolfram.com/CubicFormula.html
   Real p = (3. * a_1 - square(a_2)) / 3.;
   Real q = (9. * a_1 * a_2 - 27. * a_0 - 2. * cube(a_2)) / 27.;
@@ -90,7 +90,9 @@ OMEGA_H_INLINE Roots<2> find_polynomial_roots(
   auto a = coeffs[1];
   auto b = coeffs[0];
   Few<Real, 2> roots;
+  roots[0] = roots[1] = 0.0;
   Few<Int, 2> mults;
+  mults[0] = mults[1] = 0;
   Real disc = square(a) - 4. * b;
   if (fabs(disc) < eps) {
     mults[0] = 2;
@@ -107,6 +109,18 @@ OMEGA_H_INLINE Roots<2> find_polynomial_roots(
     return {2, roots, mults};
   }
   return {0, roots, mults};
+}
+
+// solve linear equation x + a = 0
+OMEGA_H_INLINE Roots<1> find_polynomial_roots(
+    Few<Real, 1> coeffs, Real eps = 1e-6) {
+  (void)eps;
+  auto a = coeffs[0];
+  Few<Real, 1> roots;
+  roots[0] = -a;
+  Few<Int, 1> mults;
+  mults[0] = 1;
+  return {1, roots, mults};
 }
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
@@ -127,9 +141,17 @@ OMEGA_H_INLINE Few<Real, 2> characteristic_polynomial(Matrix<2, 2> A) {
   return coeffs;
 }
 
+OMEGA_H_INLINE Few<Real, 1> characteristic_polynomial(Matrix<1, 1> A) {
+  Few<Real, 1> coeffs;
+  coeffs[0] = -determinant(A);
+  return coeffs;
+}
+
 template <Int n>
 OMEGA_H_INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
   auto poly = characteristic_polynomial(A);
+  // WARNING: I no longer remember the source of this magic number.
+  // was probably tuned to avoid failures with the cubic solver
   return find_polynomial_roots(poly, 5e-5);
 }
 
@@ -263,6 +285,13 @@ OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m) {
   return {q, l};
 }
 
+OMEGA_H_INLINE DiagDecomp<1> decompose_eigen_dim(Matrix<1, 1> m) {
+  auto roots_obj = get_eigenvalues(m);
+  auto roots = roots_obj.values;
+  OMEGA_H_CHECK(are_close(roots[0], m[0][0]));
+  return {matrix_1x1(1.0), vector_1(roots[0])};
+}
+
 /* decompose an m x m matrix (where m <= 3) into
    eigenvalues and eigenvectors.
 
@@ -287,10 +316,6 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m) {
   m = m / nm;
   auto decomp = decompose_eigen_dim(m);
   return {decomp.q, decomp.l * nm};
-}
-
-OMEGA_H_INLINE DiagDecomp<1> decompose_eigen(Matrix<1, 1> m) {
-  return {matrix_1x1(1.0), vector_1(m[0][0])};
 }
 
 /* Q, again, being the matrix whose columns

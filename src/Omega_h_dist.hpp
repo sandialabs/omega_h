@@ -90,15 +90,15 @@ class Dist {
   Dist();
   Dist(Dist const& other);
   Dist& operator=(Dist const& other);
-  Dist(CommPtr comm, Remotes fitems2rroots, LO nrroots);
-  void set_parent_comm(CommPtr parent_comm);
+  Dist(CommPtr comm_in, Remotes fitems2rroots, LO nrroots);
+  void set_parent_comm(CommPtr parent_comm_in);
   /* set the destination graph node MPI ranks of the "items"
      (graph edges sorted by local source node).
      this call defines the majority of the communication pattern,
      including neighbors and forwards items2content permutation.
      this is a collective call.
    */
-  void set_dest_ranks(Read<I32> items2ranks);
+  void set_dest_ranks(Read<I32> items2ranks_in);
   /* optionally set the destination root (local) indices of
      each forward item. one also needs to specify the number
      of destination roots on this MPI rank.

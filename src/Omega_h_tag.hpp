@@ -15,7 +15,7 @@ void check_tag_name(std::string const& name);
 
 class TagBase {
  public:
-  TagBase(std::string const& name, Int ncomps);
+  TagBase(std::string const& name_in, Int ncomps_in);
   virtual ~TagBase();
   std::string const& name() const;
   Int ncomps() const;
@@ -29,9 +29,9 @@ class TagBase {
 template <typename T>
 class Tag : public TagBase {
  public:
-  Tag(std::string const& name, Int ncomps);
+  Tag(std::string const& name_in, Int ncomps_in);
   Read<T> array() const;
-  void set_array(Read<T> array);
+  void set_array(Read<T> array_in);
   virtual Omega_h_Type type() const override;
 
  private:

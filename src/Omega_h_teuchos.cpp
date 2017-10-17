@@ -4,20 +4,6 @@
 
 #include <fstream>
 
-#include <TeuchosCore_config.h>
-
-#include <Teuchos_XMLParameterListHelpers.hpp>
-#ifdef OMEGA_H_USE_YAML
-#include <Teuchos_YamlParameterListHelpers.hpp>
-#endif
-#include <Teuchos_TwoDArray.hpp>
-
-#ifdef OMEGA_H_USE_MPI
-#include <Teuchos_DefaultMpiComm.hpp>
-#else
-#include <Teuchos_DefaultSerialComm.hpp>
-#endif
-
 namespace Omega_h {
 
 void update_var_compare_opts(
@@ -94,6 +80,9 @@ void update_transfer_opts(
     }
   }
   set_if_given(&opts->should_conserve_size, pl, "Conserve Size");
+  set_if_given(&opts->max_size_steps, pl, "Max Size Steps");
+  set_if_given(&opts->min_size_step_ratio, pl, "Min Size Step Ratio");
+  set_if_given(&opts->max_size_error_ratio, pl, "Max Size Error Ratio");
 }
 
 void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
@@ -125,14 +114,10 @@ void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
   set_if_given(&opts->should_smooth_snap, pl, "Smooth Snap");
   set_if_given(&opts->snap_smooth_tolerance, pl, "Snap Smooth Tolerance");
 #endif
-  set_if_given(&opts->max_motion_steps, pl, "Max Motion Steps");
-  set_if_given(&opts->motion_step_size, pl, "Motion Step Size");
   set_if_given(&opts->should_refine, pl, "Refine");
   set_if_given(&opts->should_coarsen, pl, "Coarsen");
   set_if_given(&opts->should_swap, pl, "Swap");
   set_if_given(&opts->should_coarsen_slivers, pl, "Coarsen Slivers");
-  set_if_given(&opts->should_move_for_quality, pl, "Move For Quality");
-  set_if_given(&opts->should_allow_pinching, pl, "Allow Pinching");
   if (pl.isSublist("Transfer")) {
     update_transfer_opts(&opts->xfer_opts, pl.sublist("Transfer"));
   }
@@ -286,7 +271,8 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
         for (decltype(npairs) i = 0; i < npairs; ++i) {
           auto class_dim = Int(pairs(i, 0));
           auto class_id = LO(pairs(i, 1));
-          assoc[set_type][set_name].push_back({class_dim, class_id});
+          assoc[std::size_t(set_type)][set_name].push_back(
+              {class_dim, class_id});
         }
       }
     }

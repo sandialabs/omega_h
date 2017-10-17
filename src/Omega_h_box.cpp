@@ -145,7 +145,7 @@ void set_box_class_ids(
     } else if (mesh->dim() == 1) {
       class_ids = set_box_class_ids_dim<1>(centroids, nel, l);
     }
-    mesh->add_tag<LO>(ent_dim, "class_id", 1, class_ids);
+    mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_ids);
   }
 }
 

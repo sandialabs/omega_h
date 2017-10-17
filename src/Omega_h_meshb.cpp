@@ -70,14 +70,14 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
     for (int j = 0; j < dim; ++j) coords[i * dim + j] = Real(tmp[j]);
   }
   HostWrite<LO> eqs2verts[4];
-  HostWrite<I32> eqs2class_id[4];
+  HostWrite<ClassId> eqs2class_id[4];
   LO neqs[4];
   for (Int ent_dim = 1; ent_dim <= dim; ++ent_dim) {
     auto ent_kwd = simplex_kwds[ent_dim];
     neqs[ent_dim] = LO(GmfStatKwd(file, ent_kwd));
     if (ent_dim < dim && neqs[ent_dim] < 1) continue;
     eqs2verts[ent_dim] = HostWrite<LO>(LO(neqs[ent_dim]) * (ent_dim + 1));
-    eqs2class_id[ent_dim] = HostWrite<I32>(LO(neqs[ent_dim]));
+    eqs2class_id[ent_dim] = HostWrite<ClassId>(LO(neqs[ent_dim]));
     safe_goto(file, ent_kwd);
     bool is_old_convention = true;
     for (LO i = 0; i < neqs[ent_dim]; ++i) {
@@ -93,20 +93,20 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
       for (Int j = 0; j < (ent_dim + 1); ++j) {
         eqs2verts[ent_dim][i * (ent_dim + 1) + j] = LO(tmp[j]) - 1;
       }
-      eqs2class_id[ent_dim][i] = I32(class_id);
+      eqs2class_id[ent_dim][i] = ClassId(class_id);
       if (LO(class_id) != i + 1) is_old_convention = false;
     }
     if (is_old_convention) {
-      eqs2class_id[ent_dim] = HostWrite<I32>();
+      eqs2class_id[ent_dim] = HostWrite<ClassId>();
     }
   }
   GmfCloseMesh(file);
   build_from_elems2verts(mesh, dim, LOs(eqs2verts[dim].write()), LO(nverts));
   mesh->add_tag(VERT, "coordinates", dim, Reals(coords.write()));
   if (eqs2class_id[dim].exists()) {
-    mesh->add_tag(dim, "class_id", 1, LOs(LO(neqs[dim]), 1));
+    mesh->add_tag(dim, "class_id", 1, Read<ClassId>(ClassId(neqs[dim]), 1));
   } else {
-    mesh->add_tag(dim, "class_id", 1, LOs(eqs2class_id[dim].write()));
+    mesh->add_tag(dim, "class_id", 1, Read<ClassId>(eqs2class_id[dim].write()));
   }
   for (Int ent_dim = 1; ent_dim < dim; ++ent_dim) {
     if (eqs2class_id[ent_dim].exists()) {
@@ -126,7 +126,7 @@ static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   auto coords = HostRead<Real>(mesh->coords());
   LOs vert_refs;
   if (mesh->has_tag(VERT, "class_id")) {
-    vert_refs = mesh->get_array<LO>(VERT, "class_id");
+    vert_refs = mesh->get_array<ClassId>(VERT, "class_id");
   } else {
     vert_refs = LOs(mesh->nverts(), 1);
   }
@@ -142,7 +142,7 @@ static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   }
   for (Int ent_dim = 1; ent_dim <= dim; ++ent_dim) {
     auto ents2class_dim = mesh->get_array<I8>(ent_dim, "class_dim");
-    auto ents2class_id = mesh->get_array<LO>(ent_dim, "class_id");
+    auto ents2class_id = mesh->get_array<ClassId>(ent_dim, "class_id");
     auto ents2verts = mesh->ask_verts_of(ent_dim);
     auto ents_are_eqs = each_eq_to(ents2class_dim, I8(ent_dim));
     auto eqs2ents = collect_marked(ents_are_eqs);

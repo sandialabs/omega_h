@@ -5,12 +5,8 @@
 
 namespace Omega_h {
 
-/* values smaller than 64 bits cause wrong reduction
- * answers on GPUs; the StandinTraits system raises
- * such values to their equivalent 64-bit type which is
- * then used as the reduction value_type
- * in addition, we use this type for global MPI reductions,
- * so it makes even more sense for it to be 64 bits.
+/* Kokkos requires reduction value types to be at least sizeof(int).
+   This class encapsulates the choice to use a wider integer if needed.
  */
 template <typename T>
 struct StandinTraits {
