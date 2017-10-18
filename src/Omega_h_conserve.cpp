@@ -722,7 +722,7 @@ static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
   }
   auto weighted_sizes = fabs_each(quantity_integrals);
   weighted_sizes = each_max_with(weighted_sizes, opts.floor);
-  auto weighted_densities = divide_each(error_integrals, weighted_sizes);
+  auto weighted_densities = divide_each_maybe_zero(error_integrals, weighted_sizes);
   weighted_densities = diffuse_densities(
       mesh, g, weighted_densities, weighted_sizes, opts, name, verbose);
   error_integrals = multiply_each(weighted_densities, weighted_sizes);
