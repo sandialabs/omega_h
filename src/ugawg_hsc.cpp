@@ -10,8 +10,6 @@
 #include <Omega_h_egads.hpp>
 #endif
 
-#include <iostream>
-
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   Omega_h::CmdLine cmdline;

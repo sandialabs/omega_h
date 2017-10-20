@@ -3,7 +3,6 @@
 #include "Omega_h_map.hpp"
 
 #include <cassert>
-#include <iostream>
 #include <map>
 #include <set>
 #include <vector>

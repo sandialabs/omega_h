@@ -1,7 +1,5 @@
 #include "Omega_h_r3d.hpp"
 
-#include <iostream>
-
 static void test_3d() {
   r3d::Few<r3d::Vector<3>, 4> verts = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}};

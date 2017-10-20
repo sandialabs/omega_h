@@ -16,9 +16,6 @@
 #include "Omega_h_tag.hpp"
 #include "Omega_h_xml.hpp"
 
-//DEBUG
-#include <cstdio>
-
 namespace Omega_h {
 
 namespace vtk {
@@ -555,11 +552,9 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   if (mesh->could_be_shared(VERT)) {
     vert_globals = read_known_array<GO>(
         stream, "global", nverts, 1, is_little_endian, is_compressed);
-    printf("rank %d loading vertex tag \"global\"\n", comm->rank());
   } else {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
-  printf("rank %d build_verts_from_globals\n", comm->rank());
   build_verts_from_globals(mesh, vert_globals);
   mesh->add_tag(VERT, "coordinates", dim, coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
@@ -571,14 +566,10 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   if (mesh->could_be_shared(dim)) {
     elem_globals = read_known_array<GO>(
         stream, "global", ncells, 1, is_little_endian, is_compressed);
-    printf("rank %d loading cell/element tag \"global\"\n", comm->rank());
   } else {
     elem_globals = Read<GO>(ncells, 0, 1);
   }
-  printf("rank %d build_ents_from_elems2verts\n", comm->rank());
   build_ents_from_elems2verts(mesh, ev2v, vert_globals, elem_globals);
-  printf("rank %d mesh->nglobal_ents(mesh->dim()) %ld\n",
-      comm->rank(), mesh->nglobal_ents(mesh->dim()));
   while (read_tag(stream, mesh, dim, is_little_endian, is_compressed))
     ;
   mesh->remove_tag(dim, "local");
@@ -737,14 +728,11 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   std::string vtupath;
   Int nghost_layers;
   read_pvtu(pvtupath, comm, &npieces, &vtupath, &nghost_layers);
-  printf("rank %d npieces %d\n", comm->rank(), npieces);
   bool in_subcomm = (comm->rank() < npieces);
   auto subcomm = comm->split(I32(!in_subcomm), 0);
   if (in_subcomm) {
     std::ifstream vtustream(vtupath.c_str());
     OMEGA_H_CHECK(vtustream.is_open());
-    printf("rank %d before reading file \"%s\"\n", comm->rank(),
-        vtupath.c_str());
     mesh->set_comm(subcomm);
     if (nghost_layers == 0) {
       mesh->set_parting(OMEGA_H_ELEM_BASED, 0, false);
@@ -752,8 +740,6 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
       mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, false);
     }
     read_vtu_ents(vtustream, mesh);
-    printf("rank %d done reading file \"%s\"\n", comm->rank(),
-        vtupath.c_str());
   }
   mesh->set_comm(comm);
 }

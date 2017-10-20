@@ -28,7 +28,6 @@
 #include "Omega_h_expr.hpp"
 #endif
 
-#include <iostream>
 #include <sstream>
 
 using namespace Omega_h;

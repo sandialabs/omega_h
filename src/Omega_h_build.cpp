@@ -10,9 +10,6 @@
 #include "Omega_h_owners.hpp"
 #include "Omega_h_simplify.hpp"
 
-//DEBUG
-#include <cstdio>
-
 namespace Omega_h {
 
 void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
@@ -50,16 +47,13 @@ void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
 void build_verts_from_globals(
     Mesh* mesh, GOs vert_globals) {
   auto comm = mesh->comm();
-  printf("rank %d start build_verts_from_globals\n", comm->rank());
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
   mesh->add_tag(VERT, "global", 1, vert_globals);
   if (comm->size() > 1) {
-    printf("rank %d setting vertex owners from globals!\n", comm->rank());
     mesh->set_owners(
         VERT, owners_from_globals(comm, vert_globals, Read<I32>()));
   }
-  printf("rank %d end build_verts_from_globals\n", comm->rank());
 }
 
 void build_ents_from_elems2verts(
@@ -74,7 +68,6 @@ void build_ents_from_elems2verts(
   if (!comm->reduce_and(is_sorted(vert_globals))) {
     reorder_by_globals(mesh);
   }
-  printf("rank %d end build_ents_from_elems2verts\n", comm->rank());
 }
 
 void build_from_elems2verts(

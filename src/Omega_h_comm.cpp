@@ -12,8 +12,6 @@
 
 #include "Omega_h_map.hpp"
 
-#include <cstdio>  //DEBUG
-
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
