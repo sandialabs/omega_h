@@ -506,10 +506,16 @@ void write_vtu(
   }
   stream << "</PointData>\n";
   stream << "<CellData>\n";
+  /* globals go first so read_vtu() knows where to find them */
+  if (mesh->has_tag(cell_dim, "global") &&
+      tags[size_t(cell_dim)].count("global")) {
+    write_tag(stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim());
+  }
   write_locals_and_owners(stream, mesh, cell_dim, tags);
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
-    if (tags[size_t(cell_dim)].count(tag->name())) {
+    if (tag->name() != "global" &&
+        tags[size_t(cell_dim)].count(tag->name())) {
       write_tag(stream, tag, mesh->dim());
     }
   }
@@ -545,24 +551,34 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   if (dim < 3) coords = resize_vectors(coords, 3, dim);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "PointData");
-  Read<GO> vert_globals;
-  if (comm->size() > 1) {
+  GOs vert_globals;
+  if (mesh->could_be_shared(VERT)) {
     vert_globals = read_known_array<GO>(
         stream, "global", nverts, 1, is_little_endian, is_compressed);
     printf("rank %d loading vertex tag \"global\"\n", comm->rank());
   } else {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
-  printf("rank %d build_from_elems2verts\n", comm->rank());
-  build_ents_from_elems2verts(mesh, ev2v, vert_globals);
-  printf("rank %d mesh->nglobal_ents(mesh->dim()) %ld\n",
-      comm->rank(), mesh->nglobal_ents(mesh->dim()));
+  printf("rank %d build_verts_from_globals\n", comm->rank());
+  build_verts_from_globals(mesh, vert_globals);
   mesh->add_tag(VERT, "coordinates", dim, coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
     ;
   mesh->remove_tag(VERT, "local");
   mesh->remove_tag(VERT, "owner");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "CellData");
+  GOs elem_globals;
+  if (mesh->could_be_shared(dim)) {
+    elem_globals = read_known_array<GO>(
+        stream, "global", ncells, 1, is_little_endian, is_compressed);
+    printf("rank %d loading cell/element tag \"global\"\n", comm->rank());
+  } else {
+    elem_globals = Read<GO>(ncells, 0, 1);
+  }
+  printf("rank %d build_ents_from_elems2verts\n", comm->rank());
+  build_ents_from_elems2verts(mesh, ev2v, vert_globals, elem_globals);
+  printf("rank %d mesh->nglobal_ents(mesh->dim()) %ld\n",
+      comm->rank(), mesh->nglobal_ents(mesh->dim()));
   while (read_tag(stream, mesh, dim, is_little_endian, is_compressed))
     ;
   mesh->remove_tag(dim, "local");

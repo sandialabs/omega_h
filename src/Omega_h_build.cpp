@@ -15,37 +15,43 @@
 
 namespace Omega_h {
 
-void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
+void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
+    GOs elem_globals) {
   auto comm = mesh->comm();
-  auto deg = edim + 1;
+  auto deg = ent_dim + 1;
   auto ne = divide_no_remainder(ev2v.size(), deg);
   Remotes owners;
   if (comm->size() > 1) {
-    if (mesh->could_be_shared(edim)) {
-      resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
+    if (mesh->could_be_shared(ent_dim)) {
+      if (ent_dim == mesh->dim()) {
+        mesh->set_owners(
+            ent_dim, owners_from_globals(comm, elem_globals, Read<I32>()));
+      } else {
+        resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
+      }
     } else {
       owners = identity_remotes(comm, ne);
     }
   }
-  if (edim == 1) {
-    mesh->set_ents(edim, Adj(ev2v));
+  if (ent_dim == 1) {
+    mesh->set_ents(ent_dim, Adj(ev2v));
   } else {
-    auto ldim = edim - 1;
+    auto ldim = ent_dim - 1;
     auto lv2v = mesh->ask_verts_of(ldim);
     auto v2l = mesh->ask_up(VERT, ldim);
-    auto down = reflect_down(ev2v, lv2v, v2l, edim, ldim);
-    mesh->set_ents(edim, down);
+    auto down = reflect_down(ev2v, lv2v, v2l, ent_dim, ldim);
+    mesh->set_ents(ent_dim, down);
   }
   if (comm->size() > 1) {
-    mesh->set_owners(edim, owners);
+    mesh->set_owners(ent_dim, owners);
   }
-  globals_from_owners(mesh, edim);
+  globals_from_owners(mesh, ent_dim);
 }
 
-void build_ents_from_elems2verts(
-    Mesh* mesh, LOs ev2v, Read<GO> vert_globals) {
+void build_verts_from_globals(
+    Mesh* mesh, GOs vert_globals) {
   auto comm = mesh->comm();
-  printf("rank %d start build_ents_from_elems2verts\n", comm->rank());
+  printf("rank %d start build_verts_from_globals\n", comm->rank());
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
   mesh->add_tag(VERT, "global", 1, vert_globals);
@@ -54,12 +60,18 @@ void build_ents_from_elems2verts(
     mesh->set_owners(
         VERT, owners_from_globals(comm, vert_globals, Read<I32>()));
   }
-  auto edim = mesh->dim();
-  for (Int mdim = 1; mdim < edim; ++mdim) {
-    auto mv2v = find_unique(ev2v, edim, mdim);
-    add_ents2verts(mesh, mdim, mv2v, vert_globals);
+  printf("rank %d end build_verts_from_globals\n", comm->rank());
+}
+
+void build_ents_from_elems2verts(
+    Mesh* mesh, LOs ev2v, GOs vert_globals, GOs elem_globals) {
+  auto comm = mesh->comm();
+  auto elem_dim = mesh->dim();
+  for (Int mdim = 1; mdim < elem_dim; ++mdim) {
+    auto mv2v = find_unique(ev2v, elem_dim, mdim);
+    add_ents2verts(mesh, mdim, mv2v, vert_globals, elem_globals);
   }
-  add_ents2verts(mesh, edim, ev2v, vert_globals);
+  add_ents2verts(mesh, elem_dim, ev2v, vert_globals, elem_globals);
   if (!comm->reduce_and(is_sorted(vert_globals))) {
     reorder_by_globals(mesh);
   }
@@ -71,6 +83,7 @@ void build_from_elems2verts(
   mesh->set_comm(comm);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   mesh->set_dim(edim);
+  build_verts_from_globals(mesh, vert_globals);
   build_ents_from_elems2verts(mesh, ev2v, vert_globals);
 }
 
