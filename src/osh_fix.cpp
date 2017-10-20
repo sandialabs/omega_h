@@ -12,7 +12,7 @@
 #include <iostream>
 
 static void compute_metric(Omega_h::Mesh* mesh) {
-  auto metrics = Omega_h::get_implied_metrics(mesh);
+  auto metrics = Omega_h::get_pure_implied_metrics(mesh);
   metrics = Omega_h::limit_metric_gradation(mesh, metrics, 1.0);
   mesh->remove_tag(Omega_h::VERT, "metric");
   mesh->add_tag(
