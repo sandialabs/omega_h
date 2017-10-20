@@ -135,8 +135,8 @@ void ternary(
   } else if (cond.type() == typeid(Bytes)) {
     promote(size, dim, true_val);
     promote(size, dim, false_val);
-    result = Reals(ternary_each(any_cast<Bytes>(cond), any_cast<Reals>(true_val),
-        any_cast<Reals>(false_val)));
+    result = Reals(ternary_each(any_cast<Bytes>(cond),
+        any_cast<Reals>(true_val), any_cast<Reals>(false_val)));
   } else {
     throw Teuchos::ParserFail(
         "Invalid condition value type in ternary operator");

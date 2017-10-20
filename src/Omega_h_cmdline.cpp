@@ -105,8 +105,8 @@ bool CmdLineFlag::parse_impl(
   for (auto const& the_arg : args_) {
     if (!the_arg->parse(p_argc, argv, i, should_print)) {
       if (should_print) {
-        std::cout << "could not parse argument <" << the_arg->name() << "> of flag "
-                  << name() << '\n';
+        std::cout << "could not parse argument <" << the_arg->name()
+                  << "> of flag " << name() << '\n';
       }
       return false;
     }

@@ -17,9 +17,6 @@
 #include "Omega_h_scalar.hpp"
 #include "Omega_h_timer.hpp"
 
-// DEBUG
-#include <cstdio>
-
 namespace Omega_h {
 
 template <typename T, typename Comp>
@@ -115,21 +112,16 @@ struct SortSmallRange {
     auto value = items2values_[i];
     if (value == target_value_) {
       ++update.index;
-      // printf("item %d equal, index %d\n", i, update.index);
     } else if (value > target_value_) {
       update.next_smallest = min2(update.next_smallest, value);
-      // printf("item %d greater, next %d\n", i, update.next_smallest);
     }
     if (final_pass) {
       if (i == nitems_ - 1) {
         next_smallest_[0] = update.next_smallest;
-        // printf("final [%d] next_smallest %d\n", i, next_smallest_[0]);
         ndone_after_[0] = update.index + ndone_before_;
-        // printf("final [%d] ndone_after_ %d\n", i, ndone_after_[0]);
       }
       if (value == target_value_) {
         perm_[i] = update.index + ndone_before_ - 1;
-        // printf("final [%d] = %d\n", i, perm_[i]);
       }
     }
   }
@@ -149,11 +141,7 @@ struct SortSmallRange {
     ndone_before_ = 0;
     std::vector<T> uniq_vector;
     std::vector<T> fan_vector;
-    // printf("input:\n");
-    // for (int i = 0; i < items2values.size(); ++i) printf("[%d] = %d\n", i,
-    // items2values[i]);  printf("begin\n");
     while (ndone_before_ < nitems_) {
-      // printf("iterate %d done, target %d\n", ndone_before_, target_value_);
       uniq_vector.push_back(target_value_);
       fan_vector.push_back(ndone_before_);
       parallel_scan(nitems_, *this, "sort_small_range");

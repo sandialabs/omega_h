@@ -1,8 +1,8 @@
 #include "Omega_h_xml.hpp"
 
-#include <iostream>
-
 #include "Omega_h_defines.hpp"
+
+#include <istream>
 
 namespace Omega_h {
 

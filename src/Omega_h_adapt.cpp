@@ -30,7 +30,16 @@ TransferOpts::TransferOpts() {
 }
 
 void TransferOpts::validate(Mesh* mesh) const {
-  for (auto pair : type_map) {
+  for (auto& pair : type_map) {
+    auto& name = pair.first;
+    bool tag_exists = false;
+    for (Int d = 0; d <= mesh->dim(); ++d) {
+      if (mesh->has_tag(d, name)) tag_exists = true;
+    }
+    if (!tag_exists) {
+      Omega_h_fail("Field \"%s\" needs to be transferred but is not attached\n",
+          name.c_str());
+    }
     if (pair.second == OMEGA_H_MOMENTUM_VELOCITY) {
       auto velocity_name = pair.first;
       OMEGA_H_CHECK(velocity_momentum_map.count(velocity_name));

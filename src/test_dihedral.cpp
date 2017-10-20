@@ -2,7 +2,6 @@
 
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 
 static void tet_run(Omega_h::Int dihedral_angle_in_degrees, std::ostream& os) {
   auto dihedral_angle =

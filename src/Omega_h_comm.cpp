@@ -12,8 +12,6 @@
 
 #include "Omega_h_map.hpp"
 
-#include <cstdio>  //DEBUG
-
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
@@ -28,7 +26,8 @@ Comm::Comm() {
 }
 
 #ifdef OMEGA_H_USE_MPI
-Comm::Comm(Library* library_in, MPI_Comm impl_in) : impl_(impl_in), library_(library_in) {
+Comm::Comm(Library* library_in, MPI_Comm impl_in)
+    : impl_(impl_in), library_(library_in) {
   int topo_type;
   CALL(MPI_Topo_test(impl_in, &topo_type));
   if (topo_type == MPI_DIST_GRAPH) {

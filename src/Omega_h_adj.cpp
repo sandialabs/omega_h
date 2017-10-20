@@ -86,12 +86,9 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
 
 template <typename T>
 Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
-  if (deg == 3) {
-    return get_codes_to_canonical_deg<3>(ev2v);
-  } else {
-    OMEGA_H_CHECK(deg == 2);
-    return get_codes_to_canonical_deg<2>(ev2v);
-  }
+  if (deg == 3) return get_codes_to_canonical_deg<3>(ev2v);
+  if (deg == 2) return get_codes_to_canonical_deg<2>(ev2v);
+  OMEGA_H_NORETURN(Read<I8>());
 }
 
 /* check whether adjacent lists of (deg) vertices
@@ -99,8 +96,9 @@ Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
 OMEGA_H_DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
   auto a = e0 * deg;
   auto b = e1 * deg;
-  for (LO j = 0; j < deg; ++j)
+  for (LO j = 0; j < deg; ++j) {
     if (canon[a + j] != canon[b + j]) return false;
+  }
   return true;
 }
 

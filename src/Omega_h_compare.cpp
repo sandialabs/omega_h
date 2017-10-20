@@ -51,10 +51,37 @@ MeshCompareOpts MeshCompareOpts::init(
 
 template <typename T>
 struct CompareArrays {
-  static bool compare(
-      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts, Int, Int, bool) {
+  static bool compare(CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts,
+      Int ncomps, Int dim, bool verbose) {
     if (opts.type == VarCompareOpts::NONE) return true;
-    return comm->reduce_and(a == b);
+    auto this_rank_matches = (a == b);
+    if (comm->reduce_and(this_rank_matches)) return true;
+    if (!verbose) return false;
+    /* if integer arrays are different, we find the first mismatching
+       value and print it out as a place for users to start
+       tracking down the issue */
+    auto h_a = HostRead<T>(a);
+    auto h_b = HostRead<T>(b);
+    auto global_start = comm->exscan(GO(h_a.size()), OMEGA_H_SUM);
+    I32 rank_cand = ArithTraits<I32>::max();
+    if (!this_rank_matches) rank_cand = comm->rank();
+    // only the first mismatching rank prints
+    auto best_rank = comm->allreduce(rank_cand, OMEGA_H_MIN);
+    if (comm->rank() == best_rank) {
+      for (LO j = 0; j < h_a.size(); ++j) {
+        // and it only prints its first mismatching value
+        if (h_a[j] != h_b[j]) {
+          auto global_comp = global_start + GO(j);
+          auto global_ent = global_comp / ncomps;
+          auto comp = global_comp % ncomps;
+          std::cout << singular_names[dim] << ' ' << global_ent << " comp "
+                    << comp << " " << I64(h_a[j]) << " != " << I64(h_b[j])
+                    << '\n';
+          break;
+        }
+      }
+    }
+    return false;
   }
 };
 
@@ -177,7 +204,7 @@ Omega_h_Comparison compare_meshes(
       auto a_conn = get_local_conn(a, dim, full);
       auto b_conn = get_local_conn(b, dim, full);
       auto ok = compare_copy_data(dim, a_conn, a_dist, b_conn, b_dist, dim + 1,
-          VarCompareOpts::zero_tolerance(), verbose);
+          VarCompareOpts::zero_tolerance(), true);
       if (!ok) {
         if (should_print) {
           std::cout << singular_names[dim] << " connectivity doesn't match\n";
