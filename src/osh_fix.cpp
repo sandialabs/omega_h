@@ -64,12 +64,12 @@ int main(int argc, char** argv) {
     minqual = mesh.min_quality();
     std::cout << "minimum quality " << minqual << '\n';
     std::cout << "old minimum quality " << minqual_old << '\n';
-    if (minqual == minqual_old) break; //stalled
-  //std::cout << "recomputing implied metric tag\n";
-  //compute_metric(&mesh);
-  //std::cout << "recomputing minimum quality\n";
-  //minqual = mesh.min_quality();
-  //std::cout << "minimum quality " << minqual << '\n';
+    if (minqual == minqual_old) break;  // stalled
+    // std::cout << "recomputing implied metric tag\n";
+    // compute_metric(&mesh);
+    // std::cout << "recomputing minimum quality\n";
+    // minqual = mesh.min_quality();
+    // std::cout << "minimum quality " << minqual << '\n';
   }
   std::cout << "writing out " << path_out << '\n';
   mesh.remove_tag(Omega_h::VERT, "metric");

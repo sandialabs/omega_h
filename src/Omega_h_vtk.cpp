@@ -1,8 +1,8 @@
 #include "Omega_h_vtk.hpp"
 
-#include <iostream>
-#include <fstream>
 #include <cstdlib>
+#include <fstream>
+#include <iostream>
 
 #ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
@@ -101,10 +101,14 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     return false;
   }
   auto type_name = st.attribs["type"];
-  if (type_name == "Int8") *type_out = OMEGA_H_I8;
-  else if (type_name == "Int32") *type_out = OMEGA_H_I32;
-  else if (type_name == "Int64") *type_out = OMEGA_H_I64;
-  else if (type_name == "Float64") *type_out = OMEGA_H_F64;
+  if (type_name == "Int8")
+    *type_out = OMEGA_H_I8;
+  else if (type_name == "Int32")
+    *type_out = OMEGA_H_I32;
+  else if (type_name == "Int64")
+    *type_out = OMEGA_H_I64;
+  else if (type_name == "Float64")
+    *type_out = OMEGA_H_F64;
   *name_out = st.attribs["Name"];
   *ncomps_out = std::stoi(st.attribs["NumberOfComponents"]);
   OMEGA_H_CHECK(st.attribs["format"] == "binary");
@@ -511,8 +515,7 @@ void write_vtu(
   write_locals_and_owners(stream, mesh, cell_dim, tags);
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
-    if (tag->name() != "global" &&
-        tags[size_t(cell_dim)].count(tag->name())) {
+    if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
       write_tag(stream, tag, mesh->dim());
     }
   }
@@ -601,7 +604,8 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid";
   if (mesh->parting() == OMEGA_H_VERT_BASED && can_print(mesh) == 0) {
-    std::cerr << "WARNING: a pvtu file may be written from a vertex-partitioned mesh, but NOT read back in\n";
+    std::cerr << "WARNING: a pvtu file may be written from a "
+                 "vertex-partitioned mesh, but NOT read back in\n";
   }
   if (mesh->parting() == OMEGA_H_GHOSTED) {
     stream << " GhostLevel=\"" << mesh->nghost_layers() << "\"";

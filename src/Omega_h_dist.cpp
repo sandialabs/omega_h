@@ -23,7 +23,9 @@ Dist::Dist(CommPtr comm_in, Remotes fitems2rroots, LO nrroots) {
   set_dest_idxs(fitems2rroots.idxs, nrroots);
 }
 
-void Dist::set_parent_comm(CommPtr parent_comm_in) { parent_comm_ = parent_comm_in; }
+void Dist::set_parent_comm(CommPtr parent_comm_in) {
+  parent_comm_ = parent_comm_in;
+}
 
 void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
   begin_code("Dist::set_dest_ranks");

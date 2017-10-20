@@ -12,8 +12,8 @@
 
 namespace Omega_h {
 
-void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
-    GOs elem_globals) {
+void add_ents2verts(
+    Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals, GOs elem_globals) {
   auto comm = mesh->comm();
   auto deg = ent_dim + 1;
   auto ne = divide_no_remainder(ev2v.size(), deg);
@@ -50,8 +50,7 @@ void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
   }
 }
 
-void build_verts_from_globals(
-    Mesh* mesh, GOs vert_globals) {
+void build_verts_from_globals(Mesh* mesh, GOs vert_globals) {
   auto comm = mesh->comm();
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);

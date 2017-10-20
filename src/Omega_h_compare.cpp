@@ -51,8 +51,8 @@ MeshCompareOpts MeshCompareOpts::init(
 
 template <typename T>
 struct CompareArrays {
-  static bool compare(
-      CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts, Int ncomps, Int dim, bool verbose) {
+  static bool compare(CommPtr comm, Read<T> a, Read<T> b, VarCompareOpts opts,
+      Int ncomps, Int dim, bool verbose) {
     if (opts.type == VarCompareOpts::NONE) return true;
     auto this_rank_matches = (a == b);
     if (comm->reduce_and(this_rank_matches)) return true;
@@ -74,9 +74,9 @@ struct CompareArrays {
           auto global_comp = global_start + GO(j);
           auto global_ent = global_comp / ncomps;
           auto comp = global_comp % ncomps;
-          std::cout << singular_names[dim] << ' ' << global_ent
-            << " comp " << comp << " " << I64(h_a[j])
-            << " != " << I64(h_b[j]) << '\n';
+          std::cout << singular_names[dim] << ' ' << global_ent << " comp "
+                    << comp << " " << I64(h_a[j]) << " != " << I64(h_b[j])
+                    << '\n';
           break;
         }
       }

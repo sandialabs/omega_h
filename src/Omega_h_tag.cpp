@@ -33,7 +33,8 @@ Tag<T>* as(TagBase* t) {
 }
 
 template <typename T>
-Tag<T>::Tag(std::string const& name_in, Int ncomps_in) : TagBase(name_in, ncomps_in) {}
+Tag<T>::Tag(std::string const& name_in, Int ncomps_in)
+    : TagBase(name_in, ncomps_in) {}
 
 template <typename T>
 Read<T> Tag<T>::array() const {

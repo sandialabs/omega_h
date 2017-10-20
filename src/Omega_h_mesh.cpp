@@ -124,8 +124,8 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
 }
 
 template <typename T>
-void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps, Read<T> array,
-    bool internal) {
+void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
+    Read<T> array, bool internal) {
   add_tag<T>(ent_dim, name, ncomps);
   set_tag<T>(ent_dim, name, array, internal);
 }
@@ -250,11 +250,13 @@ struct HasName {
 };
 
 Mesh::TagIter Mesh::tag_iter(Int ent_dim, std::string const& name) {
-  return std::find_if(tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
+  return std::find_if(
+      tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
 }
 
 Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
-  return std::find_if(tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
+  return std::find_if(
+      tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
 }
 
 void Mesh::check_dim(Int ent_dim) const {
@@ -353,7 +355,9 @@ void Mesh::set_coords(Reals const& array) {
   set_tag<Real>(VERT, "coordinates", array);
 }
 
-Read<GO> Mesh::globals(Int ent_dim) const { return get_array<GO>(ent_dim, "global"); }
+Read<GO> Mesh::globals(Int ent_dim) const {
+  return get_array<GO>(ent_dim, "global");
+}
 
 Reals Mesh::ask_lengths() {
   if (!has_tag(EDGE, "length")) {
@@ -390,8 +394,8 @@ void Mesh::set_owners(Int ent_dim, Remotes owners) {
 Remotes Mesh::ask_owners(Int ent_dim) {
   if (!owners_[ent_dim].ranks.exists() || !owners_[ent_dim].idxs.exists()) {
     OMEGA_H_CHECK(comm_->size() == 1);
-    owners_[ent_dim] =
-        Remotes(Read<I32>(nents(ent_dim), comm_->rank()), LOs(nents(ent_dim), 0, 1));
+    owners_[ent_dim] = Remotes(
+        Read<I32>(nents(ent_dim), comm_->rank()), LOs(nents(ent_dim), 0, 1));
   }
   return owners_[ent_dim];
 }
@@ -548,22 +552,26 @@ void Mesh::sync_tag(Int ent_dim, std::string const& name) {
   auto tagbase = get_tagbase(ent_dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
-      auto out = sync_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
+      auto out =
+          sync_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I32: {
-      auto out = sync_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
+      auto out =
+          sync_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I64: {
-      auto out = sync_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
+      auto out =
+          sync_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_F64: {
-      auto out = sync_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
+      auto out =
+          sync_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps());
       set_tag(ent_dim, name, out);
       break;
     }
@@ -574,26 +582,26 @@ void Mesh::reduce_tag(Int ent_dim, std::string const& name, Omega_h_Op op) {
   auto tagbase = get_tagbase(ent_dim, name);
   switch (tagbase->type()) {
     case OMEGA_H_I8: {
-      auto out =
-          reduce_array(ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
+      auto out = reduce_array(
+          ent_dim, as<I8>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I32: {
-      auto out =
-          reduce_array(ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
+      auto out = reduce_array(
+          ent_dim, as<I32>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_I64: {
-      auto out =
-          reduce_array(ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
+      auto out = reduce_array(
+          ent_dim, as<I64>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
       break;
     }
     case OMEGA_H_F64: {
-      auto out =
-          reduce_array(ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
+      auto out = reduce_array(
+          ent_dim, as<Real>(tagbase)->array(), tagbase->ncomps(), op);
       set_tag(ent_dim, name, out);
       break;
     }
