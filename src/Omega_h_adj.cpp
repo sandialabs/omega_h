@@ -88,7 +88,7 @@ template <typename T>
 Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
   if (deg == 3) return get_codes_to_canonical_deg<3>(ev2v);
   if (deg == 2) return get_codes_to_canonical_deg<2>(ev2v);
-  OMEGA_H_NORETURN(Read<I8>);
+  OMEGA_H_NORETURN(Read<I8>());
 }
 
 /* check whether adjacent lists of (deg) vertices
