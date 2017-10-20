@@ -45,6 +45,8 @@ void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
     } else {
       globals_from_owners(mesh, ent_dim);
     }
+  } else {
+    mesh->add_tag(ent_dim, "global", 1, GOs(ne, 0, 1));
   }
 }
 
