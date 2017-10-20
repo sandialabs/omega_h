@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <iostream>
+#include <cstdio>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_bcast.hpp"
@@ -388,8 +389,10 @@ void Mesh::set_owners(Int ent_dim, Remotes owners) {
 }
 
 Remotes Mesh::ask_owners(Int ent_dim) {
+  printf("rank %d ask_owners(%d)\n", comm_->rank(), ent_dim);
   if (!owners_[ent_dim].ranks.exists() || !owners_[ent_dim].idxs.exists()) {
     OMEGA_H_CHECK(comm_->size() == 1);
+    printf("rank %d setting linear owners assuming one rank!!\n", comm_->rank());
     owners_[ent_dim] =
         Remotes(Read<I32>(nents(ent_dim), comm_->rank()), LOs(nents(ent_dim), 0, 1));
   }
@@ -397,6 +400,7 @@ Remotes Mesh::ask_owners(Int ent_dim) {
 }
 
 Read<I8> Mesh::owned(Int ent_dim) {
+  printf("rank %d requesting owned(%d)\n", comm_->rank(), ent_dim);
   auto e2rank = ask_owners(ent_dim).ranks;
   return each_eq_to(e2rank, comm()->rank());
 }

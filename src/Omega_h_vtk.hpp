@@ -30,12 +30,13 @@ void update_pvd(std::string const& root_path, std::streampos* pos_inout,
     Int step, Real time);
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh);
+void read_vtu_ents(std::istream& stream, Mesh* mesh);
 
 void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
-    std::string* vtupath_out);
+    std::string* vtupath_out, Int* nghost_layers_out);
 
 void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
-    std::string* vtupath_out);
+    std::string* vtupath_out, Int* nghost_layers_out);
 
 void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh);
 

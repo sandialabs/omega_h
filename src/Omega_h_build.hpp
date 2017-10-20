@@ -9,6 +9,8 @@ namespace Omega_h {
 class Mesh;
 struct Remotes;
 
+void build_ents_from_elems2verts(
+    Mesh* mesh, LOs ev2v, Read<GO> vert_globals);
 void build_from_elems2verts(
     Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals);
 void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts);

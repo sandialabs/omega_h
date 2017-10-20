@@ -10,6 +10,9 @@
 #include "Omega_h_owners.hpp"
 #include "Omega_h_simplify.hpp"
 
+//DEBUG
+#include <cstdio>
+
 namespace Omega_h {
 
 void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
@@ -18,7 +21,7 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   auto ne = divide_no_remainder(ev2v.size(), deg);
   Remotes owners;
   if (comm->size() > 1) {
-    if (edim < mesh->dim()) {
+    if (mesh->could_be_shared(edim)) {
       resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
     } else {
       owners = identity_remotes(comm, ne);
@@ -39,18 +42,19 @@ void add_ents2verts(Mesh* mesh, Int edim, LOs ev2v, Read<GO> vert_globals) {
   globals_from_owners(mesh, edim);
 }
 
-void build_from_elems2verts(
-    Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals) {
-  mesh->set_comm(comm);
-  mesh->set_parting(OMEGA_H_ELEM_BASED);
-  mesh->set_dim(edim);
+void build_ents_from_elems2verts(
+    Mesh* mesh, LOs ev2v, Read<GO> vert_globals) {
+  auto comm = mesh->comm();
+  printf("rank %d start build_ents_from_elems2verts\n", comm->rank());
   auto nverts = vert_globals.size();
   mesh->set_verts(nverts);
   mesh->add_tag(VERT, "global", 1, vert_globals);
   if (comm->size() > 1) {
+    printf("rank %d setting vertex owners from globals!\n", comm->rank());
     mesh->set_owners(
         VERT, owners_from_globals(comm, vert_globals, Read<I32>()));
   }
+  auto edim = mesh->dim();
   for (Int mdim = 1; mdim < edim; ++mdim) {
     auto mv2v = find_unique(ev2v, edim, mdim);
     add_ents2verts(mesh, mdim, mv2v, vert_globals);
@@ -59,6 +63,15 @@ void build_from_elems2verts(
   if (!comm->reduce_and(is_sorted(vert_globals))) {
     reorder_by_globals(mesh);
   }
+  printf("rank %d end build_ents_from_elems2verts\n", comm->rank());
+}
+
+void build_from_elems2verts(
+    Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals) {
+  mesh->set_comm(comm);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->set_dim(edim);
+  build_ents_from_elems2verts(mesh, ev2v, vert_globals);
 }
 
 void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {

@@ -1,6 +1,8 @@
 #include "Omega_h_vtk.hpp"
 
+#include <iostream>
 #include <fstream>
+#include <cstdlib>
 
 #ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
@@ -13,6 +15,9 @@
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_tag.hpp"
 #include "Omega_h_xml.hpp"
+
+//DEBUG
+#include <cstdio>
 
 namespace Omega_h {
 
@@ -99,14 +104,10 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     return false;
   }
   auto type_name = st.attribs["type"];
-  if (type_name == "Int8")
-    *type_out = OMEGA_H_I8;
-  else if (type_name == "Int32")
-    *type_out = OMEGA_H_I32;
-  else if (type_name == "Int64")
-    *type_out = OMEGA_H_I64;
-  else if (type_name == "Float64")
-    *type_out = OMEGA_H_F64;
+  if (type_name == "Int8") *type_out = OMEGA_H_I8;
+  else if (type_name == "Int32") *type_out = OMEGA_H_I32;
+  else if (type_name == "Int64") *type_out = OMEGA_H_I64;
+  else if (type_name == "Float64") *type_out = OMEGA_H_F64;
   *name_out = st.attribs["Name"];
   *ncomps_out = std::stoi(st.attribs["NumberOfComponents"]);
   OMEGA_H_CHECK(st.attribs["format"] == "binary");
@@ -519,16 +520,24 @@ void write_vtu(
 }
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
+  mesh->set_comm(comm);
+  mesh->set_parting(OMEGA_H_ELEM_BASED);
+  read_vtu_ents(stream, mesh);
+}
+
+void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   bool is_little_endian, is_compressed;
   read_vtkfile_vtu_start_tag(stream, &is_little_endian, &is_compressed);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
   LO nverts, ncells;
   read_piece_start_tag(stream, &nverts, &ncells);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");
+  auto comm = mesh->comm();
   Int dim;
   LOs ev2v;
   read_connectivity(
       stream, comm, ncells, is_little_endian, is_compressed, &dim, &ev2v);
+  mesh->set_dim(dim);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
   auto coords = read_known_array<Real>(
@@ -540,10 +549,14 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   if (comm->size() > 1) {
     vert_globals = read_known_array<GO>(
         stream, "global", nverts, 1, is_little_endian, is_compressed);
+    printf("rank %d loading vertex tag \"global\"\n", comm->rank());
   } else {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
-  build_from_elems2verts(mesh, comm, dim, ev2v, vert_globals);
+  printf("rank %d build_from_elems2verts\n", comm->rank());
+  build_ents_from_elems2verts(mesh, ev2v, vert_globals);
+  printf("rank %d mesh->nglobal_ents(mesh->dim()) %ld\n",
+      comm->rank(), mesh->nglobal_ents(mesh->dim()));
   mesh->add_tag(VERT, "coordinates", dim, coords, true);
   while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
     ;
@@ -579,7 +592,14 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     std::string const& piecepath, TagSet const& tags) {
   ask_for_mesh_tags(mesh, tags);
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
-  stream << "<PUnstructuredGrid GhostLevel=\"0\">\n";
+  stream << "<PUnstructuredGrid";
+  if (mesh->parting() == OMEGA_H_VERT_BASED && can_print(mesh) == 0) {
+    std::cerr << "WARNING: a pvtu file may be written from a vertex-partitioned mesh, but NOT read back in\n";
+  }
+  if (mesh->parting() == OMEGA_H_GHOSTED) {
+    stream << " GhostLevel=\"" << mesh->nghost_layers() << "\"";
+  }
+  stream << ">\n";
   stream << "<PPoints>\n";
   write_p_data_array<Real>(stream, "coordinates", 3);
   stream << "</PPoints>\n";
@@ -630,36 +650,43 @@ void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
 }
 
 void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
-    std::string* vtupath_out) {
+    std::string* vtupath_out, Int* nghost_layers_out) {
   I32 npieces = 0;
   std::string vtupath;
+  Int nghost_layers = 0;
   for (std::string line; std::getline(stream, line);) {
     xml::Tag tag;
     if (!xml::parse_tag(line, &tag)) continue;
-    if (tag.elem_name != "Piece") continue;
-    if (npieces == comm->rank()) {
-      vtupath = tag.attribs["Source"];
+    if (tag.elem_name == "Piece") {
+      if (npieces == comm->rank()) {
+        vtupath = tag.attribs["Source"];
+      }
+      ++npieces;
     }
-    ++npieces;
+    if (tag.elem_name == "PUnstructuredGrid") {
+      if (tag.attribs.find("GhostLevel") != tag.attribs.end()) {
+        auto& ghostlevelstr = tag.attribs["GhostLevel"];
+        nghost_layers = std::atoi(ghostlevelstr.c_str());
+      }
+    }
   }
   OMEGA_H_CHECK(npieces >= 1);
   OMEGA_H_CHECK(npieces <= comm->size());
   *npieces_out = npieces;
   *vtupath_out = vtupath;
+  *nghost_layers_out = nghost_layers;
 }
 
 void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
-    std::string* vtupath_out) {
+    std::string* vtupath_out, Int* nghost_layers_out) {
   auto parentpath = parent_path(pvtupath);
-  I32 npieces;
   std::string vtupath;
   std::ifstream stream(pvtupath.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("couldn't open \"%s\"\n", pvtupath.c_str());
   }
-  read_pvtu(stream, comm, &npieces, &vtupath);
+  read_pvtu(stream, comm, npieces_out, &vtupath, nghost_layers_out);
   vtupath = parentpath + "/" + vtupath;
-  *npieces_out = npieces;
   *vtupath_out = vtupath;
 }
 
@@ -692,13 +719,25 @@ void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
 void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   I32 npieces;
   std::string vtupath;
-  read_pvtu(pvtupath, comm, &npieces, &vtupath);
+  Int nghost_layers;
+  read_pvtu(pvtupath, comm, &npieces, &vtupath, &nghost_layers);
+  printf("rank %d npieces %d\n", comm->rank(), npieces);
   bool in_subcomm = (comm->rank() < npieces);
   auto subcomm = comm->split(I32(!in_subcomm), 0);
   if (in_subcomm) {
     std::ifstream vtustream(vtupath.c_str());
     OMEGA_H_CHECK(vtustream.is_open());
-    read_vtu(vtustream, subcomm, mesh);
+    printf("rank %d before reading file \"%s\"\n", comm->rank(),
+        vtupath.c_str());
+    mesh->set_comm(subcomm);
+    if (nghost_layers == 0) {
+      mesh->set_parting(OMEGA_H_ELEM_BASED, 0, false);
+    } else {
+      mesh->set_parting(OMEGA_H_GHOSTED, nghost_layers, false);
+    }
+    read_vtu_ents(vtustream, mesh);
+    printf("rank %d done reading file \"%s\"\n", comm->rank(),
+        vtupath.c_str());
   }
   mesh->set_comm(comm);
 }
