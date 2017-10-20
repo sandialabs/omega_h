@@ -40,8 +40,12 @@ void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
   }
   if (comm->size() > 1) {
     mesh->set_owners(ent_dim, owners);
+    if (ent_dim == mesh->dim() && elem_globals.exists()) {
+      mesh->add_tag(ent_dim, "global", 1, elem_globals);
+    } else {
+      globals_from_owners(mesh, ent_dim);
+    }
   }
-  globals_from_owners(mesh, ent_dim);
 }
 
 void build_verts_from_globals(
