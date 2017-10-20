@@ -24,8 +24,7 @@ void add_ents2verts(Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals,
   if (comm->size() > 1) {
     if (mesh->could_be_shared(ent_dim)) {
       if (ent_dim == mesh->dim()) {
-        mesh->set_owners(
-            ent_dim, owners_from_globals(comm, elem_globals, Read<I32>()));
+        owners = owners_from_globals(comm, elem_globals, Read<I32>());
       } else {
         resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
       }
