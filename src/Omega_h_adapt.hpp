@@ -72,7 +72,8 @@ void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts);
 void fix_momentum_velocity_verts(
     Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp);
 
-bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
+    bool exit_on_stall = false, Int max_niters = 40);
 bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
 
 struct MetricSource {

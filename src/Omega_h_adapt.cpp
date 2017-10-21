@@ -178,9 +178,9 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
   } while (did_anything);
 }
 
-static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
-  if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return;
-  if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
+static bool satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
+  if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return true;
+  if ((opts.verbosity >= EACH_REBUILD) && can_print(mesh)) {
     std::cout << "addressing element qualities\n";
   }
   do {
@@ -192,11 +192,12 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       post_rebuild(mesh, opts);
       continue;
     }
-    if ((opts.verbosity > SILENT) && !mesh->comm()->rank()) {
-      std::cout << "adapt() could not satisfy quality\n";
+    if ((opts.verbosity > SILENT) && can_print(mesh)) {
+      std::cout << "could not satisfy quality\n";
     }
-    break;
+    return false;
   } while (min_fixable_quality(mesh, opts) < opts.min_quality_desired);
+  return true;
 }
 
 static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
@@ -209,7 +210,12 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
           solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
     }
     mesh->add_tag(VERT, "warp", mesh->dim(), warp);
-    while (warp_to_limit(mesh, opts)) satisfy_quality(mesh, opts);
+    while (warp_to_limit(mesh, opts)) {
+      if (!satisfy_quality(mesh, opts)) {
+        mesh->remove_tag(VERT, "warp");
+        break;
+      }
+    }
   } else
 #endif
     satisfy_quality(mesh, opts);

@@ -4,6 +4,8 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_shape.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
@@ -25,7 +27,8 @@ static bool okay(Mesh* mesh, AdaptOpts const& opts) {
   return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
 }
 
-bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
+    bool exit_on_stall, Int max_niters) {
   if (!mesh->has_tag(VERT, "warp")) return false;
   check_okay(mesh, opts);
   auto coords = mesh->coords();
@@ -37,10 +40,16 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
   }
   auto remainder = Reals(warp.size(), 0.0);
   Int i = 0;
-  constexpr Int max_i = 40;
   do {
     ++i;
-    if (i == max_i) {
+    if (i > max_niters) {
+      if (exit_on_stall) {
+        if (can_print(mesh)) {
+          std::cout << "warp_to_limit stalled, dropping warp field and continuing anyway\n";
+        }
+        mesh->remove_tag(VERT, "warp");
+        return true;
+      }
       Omega_h_fail(
           "warp step %d : Omega_h is probably unable to satisfy"
           " this warp under this size field\n"
