@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
   Omega_h_flood.cpp
+  Omega_h_fix.cpp
   )
 
 if(Omega_h_USE_libMeshb)

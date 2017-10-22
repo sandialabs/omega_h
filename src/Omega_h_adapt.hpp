@@ -115,6 +115,11 @@ void add_implied_metric_tag(Mesh* mesh);
 void add_implied_isos_tag(Mesh* mesh);
 void add_implied_metric_based_on_target(Mesh* mesh);
 
+void fix(Mesh* mesh
+    , AdaptOpts const& adapt_opts
+    , bool verbose
+    );
+
 }  // namespace Omega_h
 
 #endif
