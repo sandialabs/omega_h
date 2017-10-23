@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
   std::cout << "writing out fixed.vtu\n";
   Omega_h::vtk::write_vtu("fixed.vtu", &mesh);
   auto maxlen = mesh.max_length();
-  opts.max_length_allowed = max2(maxlen, opts.min_length_desired * 2.0);
+  opts.max_length_allowed = Omega_h::max2(maxlen, opts.max_length_desired * 2.0);
   std::cout << "limiting gradation of UGAWG metric, setting as target\n";
   auto target_metrics = mesh.get_array<Omega_h::Real>(Omega_h::VERT, "ugawg_metric");
   target_metrics = Omega_h::limit_metric_gradation(&mesh, target_metrics, 1.0);

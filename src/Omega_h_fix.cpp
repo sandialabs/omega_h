@@ -10,12 +10,12 @@
 
 namespace Omega_h {
 
-static void compute_metric(Omega_h::Mesh* mesh) {
-  auto metrics = Omega_h::get_pure_implied_metrics(mesh);
-  metrics = Omega_h::limit_metric_gradation(mesh, metrics, 1.0);
-  mesh->remove_tag(Omega_h::VERT, "metric");
+static void compute_metric(Mesh* mesh) {
+  auto metrics = get_pure_implied_metrics(mesh);
+  metrics = limit_metric_gradation(mesh, metrics, 1.0);
+  mesh->remove_tag(VERT, "metric");
   mesh->add_tag(
-      Omega_h::VERT, "metric", Omega_h::symm_ncomps(mesh->dim()), metrics);
+      VERT, "metric", symm_ncomps(mesh->dim()), metrics);
 }
 
 void fix(Mesh* mesh
@@ -30,15 +30,21 @@ void fix(Mesh* mesh
   auto maxlen = mesh->max_length();
   if (verbose) std::cout << "minimum quality " << minqual << '\n';
   if (verbose) std::cout << "maximum length " << maxlen << '\n';
-  Omega_h::AdaptOpts opts = adapt_opts;
+  AdaptOpts opts = adapt_opts;
   while (true) {
     auto minqual_old = minqual;
     opts.min_quality_allowed = minqual;
-    opts.max_length_allowed = max2(maxlen, opts.min_length_desired * 2.0);
-    opts.verbosity = Omega_h::EXTRA_STATS;
+    opts.max_length_allowed = max2(maxlen, opts.max_length_desired * 2.0);
+    std::cout << "max_length_allowed(" << opts.max_length_allowed << ") = max("
+      << "maxlen(" << maxlen << "), max_length_desired*2(" << opts.max_length_desired * 2.0 << "))\n";
+    opts.verbosity = EXTRA_STATS;
     opts.nsliver_layers = 10;
-    opts.min_quality_desired = Omega_h::min2(minqual + 0.1, 1.0);
-    Omega_h::adapt(mesh, opts);
+    opts.min_quality_desired = min2(minqual + 0.1, 1.0);
+    adapt(mesh, opts);
+    if ((1)) {
+      std::cout << "writing debug.osh after adapt\n";
+      Omega_h::binary::write("debug.osh", mesh);
+    }
     minqual = mesh->min_quality();
     maxlen = mesh->max_length();
     if (verbose) std::cout << "minimum quality " << minqual << '\n';
