@@ -1,6 +1,7 @@
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
+#include <Omega_h_file.hpp>
 
 #ifdef OMEGA_H_USE_EGADS
 #include <Omega_h_egads.hpp>
