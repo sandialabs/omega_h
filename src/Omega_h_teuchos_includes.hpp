@@ -14,9 +14,7 @@ OMEGA_H_SYSTEM_HEADER
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <Teuchos_any.hpp>
 
-#ifdef OMEGA_H_USE_YAML
 #include <Teuchos_YamlParameterListHelpers.hpp>
-#endif
 
 #ifdef OMEGA_H_USE_MPI
 #include <Teuchos_DefaultMpiComm.hpp>

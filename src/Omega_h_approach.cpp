@@ -4,6 +4,8 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_shape.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
@@ -25,33 +27,48 @@ static bool okay(Mesh* mesh, AdaptOpts const& opts) {
   return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
 }
 
-bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts) {
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
+    bool exit_on_stall, Int max_niters) {
   if (!mesh->has_tag(VERT, "warp")) return false;
   check_okay(mesh, opts);
   auto coords = mesh->coords();
   auto warp = mesh->get_array<Real>(VERT, "warp");
   mesh->set_coords(add_each(coords, warp));
   if (okay(mesh, opts)) {
+    if (opts.verbosity >= EACH_REBUILD && can_print(mesh)) {
+      std::cout << "warp_to_limit completed in one step\n";
+    }
     mesh->remove_tag(VERT, "warp");
     return true;
   }
   auto remainder = Reals(warp.size(), 0.0);
   Int i = 0;
-  constexpr Int max_i = 40;
+  Real factor = 1.0;
   do {
     ++i;
-    if (i == max_i) {
+    if (i > max_niters) {
+      if (exit_on_stall) {
+        if (can_print(mesh)) {
+          std::cout << "warp_to_limit stalled, dropping warp field and continuing anyway\n";
+        }
+        mesh->remove_tag(VERT, "warp");
+        return true;
+      }
       Omega_h_fail(
           "warp step %d : Omega_h is probably unable to satisfy"
           " this warp under this size field\n"
           "min quality %.2e max length %.2e\n",
           i, min_fixable_quality(mesh, opts), mesh->max_length());
     }
-    auto half_warp = multiply_each_by(warp, 1.0 / 2.0);
+    auto half_warp = divide_each_by(warp, 2.0);
+    factor /= 2.0;
     warp = half_warp;
     remainder = add_each(remainder, half_warp);
     mesh->set_coords(add_each(coords, warp));
   } while (!okay(mesh, opts));
+  if (opts.verbosity >= EACH_REBUILD && can_print(mesh)) {
+    std::cout << "warp_to_limit moved by factor " << factor << '\n';
+  }
   mesh->set_tag(VERT, "warp", remainder);
   return true;
 }

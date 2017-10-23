@@ -56,7 +56,7 @@ void TransferOpts::validate(Mesh* mesh) const {
 AdaptOpts::AdaptOpts(Int dim) {
   min_length_desired = 1.0 / sqrt(2.0);
   max_length_desired = sqrt(2.0);
-  max_length_allowed = ArithTraits<Real>::max();
+  max_length_allowed = max_length_desired * 2.0;
   if (dim == 3) {
     min_quality_allowed = 0.20;
     min_quality_desired = 0.30;
@@ -178,9 +178,9 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
   } while (did_anything);
 }
 
-static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
-  if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return;
-  if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
+static bool satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
+  if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return true;
+  if ((opts.verbosity >= EACH_REBUILD) && can_print(mesh)) {
     std::cout << "addressing element qualities\n";
   }
   do {
@@ -192,24 +192,39 @@ static void satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       post_rebuild(mesh, opts);
       continue;
     }
-    if ((opts.verbosity > SILENT) && !mesh->comm()->rank()) {
-      std::cout << "adapt() could not satisfy quality\n";
+    if ((opts.verbosity > SILENT) && can_print(mesh)) {
+      std::cout << "could not satisfy quality\n";
     }
-    break;
+    return false;
   } while (min_fixable_quality(mesh, opts) < opts.min_quality_desired);
+  return true;
 }
 
 static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 #ifdef OMEGA_H_USE_EGADS
   if (opts.egads_model) {
     mesh->set_parting(OMEGA_H_GHOSTED);
-    auto warp = egads_get_snap_warp(mesh, opts.egads_model);
+    auto warp = egads_get_snap_warp(mesh, opts.egads_model,
+        opts.verbosity >= EACH_REBUILD);
     if (opts.should_smooth_snap) {
+      if (opts.verbosity >= EACH_REBUILD) {
+        std::cout << "Solving Laplacian of warp field...\n";
+      }
+      auto t0 = now();
       warp =
           solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
+      auto t1 = now();
+      if (opts.verbosity >= EACH_REBUILD) {
+        std::cout << "Solving Laplacian of warp field took " << (t1 - t0) << " seconds\n";
+      }
     }
     mesh->add_tag(VERT, "warp", mesh->dim(), warp);
-    while (warp_to_limit(mesh, opts)) satisfy_quality(mesh, opts);
+    while (warp_to_limit(mesh, opts)) {
+      if (!satisfy_quality(mesh, opts)) {
+        mesh->remove_tag(VERT, "warp");
+        break;
+      }
+    }
   } else
 #endif
     satisfy_quality(mesh, opts);

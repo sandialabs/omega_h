@@ -81,6 +81,7 @@ set(Omega_h_SOURCES
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
   Omega_h_flood.cpp
+  Omega_h_fix.cpp
   )
 
 if(Omega_h_USE_libMeshb)
@@ -227,6 +228,9 @@ if(Omega_h_USE_libMeshb)
   osh_add_util(osh_read_solb)
   osh_add_util(ugawg_stats)
   osh_add_util(ugawg_cone_cone)
+  if (Omega_h_USE_EGADS)
+    osh_add_util(ugawg_solution)
+  endif()
 endif()
 if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)

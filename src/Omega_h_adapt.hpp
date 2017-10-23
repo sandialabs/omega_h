@@ -72,7 +72,8 @@ void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts);
 void fix_momentum_velocity_verts(
     Mesh* mesh, std::vector<ClassPair> const& class_pairs, Int comp);
 
-bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts);
+bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
+    bool exit_on_stall = false, Int max_niters = 40);
 bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
 
 struct MetricSource {
@@ -113,6 +114,11 @@ void generate_target_metric_tag(Mesh* mesh, MetricInput const& input);
 void add_implied_metric_tag(Mesh* mesh);
 void add_implied_isos_tag(Mesh* mesh);
 void add_implied_metric_based_on_target(Mesh* mesh);
+
+void fix(Mesh* mesh
+    , AdaptOpts const& adapt_opts
+    , bool verbose
+    );
 
 }  // namespace Omega_h
 
