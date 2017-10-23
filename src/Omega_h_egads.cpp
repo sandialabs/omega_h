@@ -1,11 +1,13 @@
 #include "Omega_h_egads.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_timer.hpp"
 
 #include <cassert>
 #include <map>
 #include <set>
 #include <vector>
+#include <iostream>
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -211,8 +213,10 @@ static Vector<3> get_closest_point(ego g, Vector<3> in) {
   return out;
 }
 
-Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
+Reals egads_get_snap_warp(Mesh* mesh, Egads* eg, bool verbose) {
   OMEGA_H_CHECK(mesh->dim() == 3);
+  if (verbose) std::cout << "Querying closests point for surface vertices...\n";
+  auto t0 = now();
   auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
   auto class_ids = mesh->get_array<ClassId>(VERT, "class_id");
   auto coords = mesh->coords();
@@ -239,6 +243,12 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg) {
     set_vector(host_warp, i, d);
   }
   auto warp = Reals(host_warp.write());
+  auto t1 = now();
+  if (verbose) {
+    std::cout << "Querying closests point for surface vertices took "
+      << (t1 - t0) << " seconds\n";
+  }
   return warp;
 }
+
 }  // namespace Omega_h
