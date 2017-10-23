@@ -27,21 +27,22 @@ void fix(Mesh* mesh
   compute_metric(mesh);
   if (verbose) std::cout << "computing minimum quality\n";
   auto minqual = mesh->min_quality();
+  auto maxlen = mesh->max_length();
   if (verbose) std::cout << "minimum quality " << minqual << '\n';
+  if (verbose) std::cout << "maximum length " << maxlen << '\n';
   Omega_h::AdaptOpts opts = adapt_opts;
-  opts.max_length_allowed = opts.max_length_desired * 2.0;
   while (true) {
-    if (verbose) std::cout << "current quality " << minqual << '\n';
     auto minqual_old = minqual;
     opts.min_quality_allowed = minqual;
+    opts.max_length_allowed = max2(maxlen, opts.min_length_desired * 2.0);
     opts.verbosity = Omega_h::EXTRA_STATS;
     opts.nsliver_layers = 10;
     opts.min_quality_desired = Omega_h::min2(minqual + 0.1, 1.0);
     Omega_h::adapt(mesh, opts);
-    if (verbose) std::cout << "computing minimum quality right after adapt\n";
     minqual = mesh->min_quality();
+    maxlen = mesh->max_length();
     if (verbose) std::cout << "minimum quality " << minqual << '\n';
-    if (verbose) std::cout << "old minimum quality " << minqual_old << '\n';
+    if (verbose) std::cout << "maximum length " << maxlen << '\n';
     if (minqual == minqual_old) break;  // stalled
   }
 }
