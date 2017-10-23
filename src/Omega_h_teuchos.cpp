@@ -214,12 +214,10 @@ void update_parameters_from_file(std::string const& filepath,
     Teuchos::updateParametersFromXmlFileAndBroadcast(
         filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
   }
-#ifdef OMEGA_H_USE_YAML
   else if (ends_with(filepath, ".yaml")) {
     Teuchos::updateParametersFromYamlFileAndBroadcast(
         filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
   }
-#endif
   else {
     Omega_h_fail(
         "\"%s\" is not a known parameter list format\n", filepath.c_str());
@@ -236,11 +234,9 @@ void write_parameters(
   if (ends_with(filepath, ".xml")) {
     Teuchos::writeParameterListToXmlOStream(pl, stream);
   }
-#ifdef OMEGA_H_USE_YAML
   else if (ends_with(filepath, ".yaml")) {
     Teuchos::writeParameterListToYamlOStream(pl, stream);
   }
-#endif
   else {
     Omega_h_fail(
         "\"%s\" is not a known parameter list format\n", filepath.c_str());

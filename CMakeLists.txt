@@ -104,8 +104,6 @@ message(STATUS "Omega_h_USE_OpenMP: ${Omega_h_USE_OpenMP}")
 set(Omega_h_USE_CUDA ${KokkosCore_HAS_CUDA})
 message(STATUS "Omega_h_USE_CUDA: ${Omega_h_USE_CUDA}")
 message(STATUS "Omega_h_USE_CUDA_AWARE_MPI: ${Omega_h_USE_CUDA_AWARE_MPI}")
-set(Omega_h_USE_YAML ${TeuchosParameterList_HAS_YAML})
-message(STATUS "Omega_h_USE_YAML: ${Omega_h_USE_YAML}")
 
 bob_begin_cxx_flags()
 bob_cxx11_flags()
@@ -144,7 +142,6 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_EGADS
     Omega_h_USE_SEACASExodus
     Omega_h_USE_Teuchos
-    Omega_h_USE_YAML
     Omega_h_USE_DOLFIN
     Omega_h_CHECK_BOUNDS
     Omega_h_USE_CUDA_AWARE_MPI
