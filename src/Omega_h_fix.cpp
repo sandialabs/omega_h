@@ -42,7 +42,7 @@ void fix(Mesh* mesh
     opts.nsliver_layers = 10;
     opts.min_quality_desired = min2(minqual + 0.1, 1.0);
     adapt(mesh, opts);
-    if ((1)) {
+    if ((0)) {
       std::cout << "writing debug.osh after adapt\n";
       Omega_h::binary::write("debug.osh", mesh);
     }
