@@ -44,7 +44,6 @@ void fix(Mesh* mesh
     if (verbose) std::cout << "old minimum quality " << minqual_old << '\n';
     if (minqual == minqual_old) break;  // stalled
   }
-  mesh->remove_tag(Omega_h::VERT, "metric");
 }
 
 }

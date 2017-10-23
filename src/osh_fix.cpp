@@ -37,7 +37,8 @@ int main(int argc, char** argv) {
   opts.egads_model = eg;
 #endif
   Omega_h::fix(&mesh, opts, true);
-  std::cout << "writing in " << path_out << '\n';
+  mesh.remove_tag(Omega_h::VERT, "metric");
+  std::cout << "writing out " << path_out << '\n';
   Omega_h::binary::write(path_out, &mesh);
 #ifdef OMEGA_H_USE_EGADS
   if (eg != nullptr) {
