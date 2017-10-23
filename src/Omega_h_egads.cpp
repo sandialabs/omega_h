@@ -215,7 +215,7 @@ static Vector<3> get_closest_point(ego g, Vector<3> in) {
 
 Reals egads_get_snap_warp(Mesh* mesh, Egads* eg, bool verbose) {
   OMEGA_H_CHECK(mesh->dim() == 3);
-  if (verbose) std::cout << "Querying closests point for surface vertices...\n";
+  if (verbose) std::cout << "Querying closest points for surface vertices...\n";
   auto t0 = now();
   auto class_dims = mesh->get_array<I8>(VERT, "class_dim");
   auto class_ids = mesh->get_array<ClassId>(VERT, "class_id");
@@ -245,7 +245,7 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg, bool verbose) {
   auto warp = Reals(host_warp.write());
   auto t1 = now();
   if (verbose) {
-    std::cout << "Querying closests point for surface vertices took "
+    std::cout << "Querying closest points for surface vertices took "
       << (t1 - t0) << " seconds\n";
   }
   return warp;
