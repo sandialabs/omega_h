@@ -33,6 +33,8 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl);
 
 void update_tag_set(TagSet* p_tags, Int dim, Teuchos::ParameterList const& pl);
 
+void write_scatterplot(Mesh* mesh, Teuchos::ParameterList const& pl);
+
 }  // namespace Omega_h
 
 #endif

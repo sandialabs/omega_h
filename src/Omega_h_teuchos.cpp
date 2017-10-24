@@ -1,6 +1,7 @@
 #include "Omega_h_teuchos.hpp"
 
 #include "Omega_h_file.hpp"
+#include "Omega_h_scatterplot.hpp"
 
 #include <fstream>
 
@@ -293,6 +294,43 @@ void update_tag_set(
       tags[size_t(dim)].insert(tag_name);
     }
   }
+}
+
+template <Int dim>
+static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList const& pl) {
+  auto filepath = pl.get<std::string>("File");
+  Int ent_dim = 0;
+  if (pl.isType<std::string>("Entity")) {
+    auto ent_str = pl.get<std::string>("Entity");
+    if (ent_str == "Element") ent_dim = mesh->dim();
+    else if (ent_str == "Side") ent_dim = mesh->dim() - 1;
+    else if (ent_str == "Node") ent_dim = 0;
+    else if (ent_str == "Edge") ent_dim = 1;
+    else if (ent_str == "Face") ent_dim = 2;
+    else if (ent_str == "Cell") ent_dim = mesh->dim();
+    else Omega_h_fail("Unknown scatterplot Entity \"%s\"\n", ent_str.c_str());
+  }
+  auto tag_name = pl.get<std::string>("Field");
+  auto data = mesh->get_array<Real>(ent_dim, tag_name);
+  auto origin = zero_vector<dim>();
+  if (pl.isType<Teuchos::Array<double>>("Origin")) {
+    auto origin_teuchos = pl.get<Teuchos::Array<double>>("Origin");
+    for (Int i = 0; i < dim; ++i) origin[i] = origin_teuchos[i];
+  }
+  if (pl.isType<Teuchos::Array<double>>("Direction")) {
+    Vector<dim> direction;
+    auto direction_teuchos = pl.get<Teuchos::Array<double>>("Direction");
+    for (Int i = 0; i < dim; ++i) direction[i] = direction_teuchos[i];
+    write_linear_scatterplot(filepath, mesh, ent_dim, data, direction, origin, ",\t");
+  } else {
+    write_radial_scatterplot(filepath, mesh, ent_dim, data, origin, ",\t");
+  }
+}
+
+void write_scatterplot(Mesh* mesh, Teuchos::ParameterList const& pl) {
+  if (mesh->dim() == 3) write_scatterplot_dim<3>(mesh, pl);
+  if (mesh->dim() == 2) write_scatterplot_dim<2>(mesh, pl);
+  if (mesh->dim() == 1) write_scatterplot_dim<1>(mesh, pl);
 }
 
 }  // namespace Omega_h
