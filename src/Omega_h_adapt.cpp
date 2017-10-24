@@ -160,6 +160,9 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
+  auto minsize = get_min(mesh->comm(), mesh->ask_sizes());
+  std::cerr << "minsize " << minsize << '\n';
+  mesh->ask_down(2, 1);
   if (opts.verbosity >= EACH_REBUILD) print_adapt_status(mesh, opts);
 }
 
