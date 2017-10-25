@@ -28,6 +28,7 @@ option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
 message(STATUS "Omega_h_USE_Trilinos: ${Omega_h_USE_Trilinos}")
 set(Trilinos_PREFIX "" CACHE PATH "Path to Trilinos install")
 option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
+set(Omega_h_VALGRIND "" CACHE STRING "Valgrind plus arguments for testing")
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_public_dep(ZLIB)
