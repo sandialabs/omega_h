@@ -15,6 +15,8 @@
 #include "Omega_h_timer.hpp"
 #include "Omega_h_unmap_mesh.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
@@ -44,10 +46,16 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nnew_ents = nsame_ents + nprods;
   Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree);
   auto new_ent_low_codes = Write<I8>();
+  auto min_prod_lows2new_lows = get_min(prod_lows2new_lows);
+  std::cerr << "min_prod_lows2new_lows " << min_prod_lows2new_lows << '\n';
   map_into(
       prod_lows2new_lows, prods2new_ents, new_ent_lows2new_lows, down_degree);
+  auto min_same_ent_lows2new_lows = get_min(same_ent_lows2new_lows);
+  std::cerr << "min_same_ent_lows2new_lows " << min_same_ent_lows2new_lows << '\n';
   map_into(same_ent_lows2new_lows, same_ents2new_ents, new_ent_lows2new_lows,
       down_degree);
+  auto min_ev2v = get_min(LOs(new_ent_lows2new_lows));
+  std::cerr << "min_ev2v " << min_ev2v << '\n';
   if (low_dim > VERT) {
     new_ent_low_codes = Write<I8>(nnew_ents * down_degree);
     auto old_ent_low_codes = old_ents2old_lows.codes;

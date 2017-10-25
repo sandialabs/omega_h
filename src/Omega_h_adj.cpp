@@ -306,6 +306,9 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim) {
   LOs hl2l;
   Read<I8> codes;
   find_matches(low_dim, uv2v, lv2v, v2l, &hl2l, &codes);
+  std::cerr << "reflect_down(hvwv, lv2v, v2l, high_dim=" << high_dim << ", low_dim=" << low_dim << ")\n";
+  auto min_hl2l = get_min(hl2l);
+  std::cerr << "min_hl2l " << min_hl2l << '\n';
   return Adj(hl2l, codes);
 }
 

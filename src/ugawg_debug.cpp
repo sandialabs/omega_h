@@ -2,6 +2,7 @@
 #include <Omega_h_cmdline.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
+#include <Omega_h_array_ops.hpp>
 
 #ifdef OMEGA_H_USE_EGADS
 #include <Omega_h_egads.hpp>
@@ -43,7 +44,7 @@ int main(int argc, char** argv) {
   opts.verbosity = Omega_h::EXTRA_STATS;
   opts.nsliver_layers = 10;
   opts.min_quality_desired = Omega_h::min2(minqual + 0.1, 1.0);
-  auto es2s = mesh->ask_down(3, 2).ab2b;
+  auto es2s = mesh.ask_down(3, 2).ab2b;
   auto min_es2s = Omega_h::get_min(es2s);
   std::cout << "min_es2s " << min_es2s << '\n';
   Omega_h::adapt(&mesh, opts);
