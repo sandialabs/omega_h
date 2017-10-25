@@ -296,19 +296,23 @@ void update_tag_set(
   }
 }
 
+Int get_ent_dim_by_name(Mesh* mesh, std::string const& name) {
+  if (name == "Element") return mesh->dim();
+  else if (name == "Side") return mesh->dim() - 1;
+  else if (name == "Node") return 0;
+  else if (name == "Edge") return 1;
+  else if (name == "Face") return 2;
+  else if (name == "Cell") return mesh->dim();
+  else OMEGA_H_NORETURN(-1);
+}
+
 template <Int dim>
 static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList const& pl) {
   auto filepath = pl.get<std::string>("File");
   Int ent_dim = 0;
   if (pl.isType<std::string>("Entity")) {
     auto ent_str = pl.get<std::string>("Entity");
-    if (ent_str == "Element") ent_dim = mesh->dim();
-    else if (ent_str == "Side") ent_dim = mesh->dim() - 1;
-    else if (ent_str == "Node") ent_dim = 0;
-    else if (ent_str == "Edge") ent_dim = 1;
-    else if (ent_str == "Face") ent_dim = 2;
-    else if (ent_str == "Cell") ent_dim = mesh->dim();
-    else Omega_h_fail("Unknown scatterplot Entity \"%s\"\n", ent_str.c_str());
+    ent_dim = get_ent_dim_by_name(mesh, ent_str);
   }
   auto tag_name = pl.get<std::string>("Field");
   auto data = mesh->get_array<Real>(ent_dim, tag_name);
@@ -317,13 +321,15 @@ static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList const& pl) 
     auto origin_teuchos = pl.get<Teuchos::Array<double>>("Origin");
     for (Int i = 0; i < dim; ++i) origin[i] = origin_teuchos[i];
   }
+  std::string separator = "\t";
+  if (ends_with(filepath, "csv")) separator = ", ";
   if (pl.isType<Teuchos::Array<double>>("Direction")) {
     Vector<dim> direction;
     auto direction_teuchos = pl.get<Teuchos::Array<double>>("Direction");
     for (Int i = 0; i < dim; ++i) direction[i] = direction_teuchos[i];
-    write_linear_scatterplot(filepath, mesh, ent_dim, data, direction, origin, ",\t");
+    write_linear_scatterplot(filepath, mesh, ent_dim, data, direction, origin, separator);
   } else {
-    write_radial_scatterplot(filepath, mesh, ent_dim, data, origin, ",\t");
+    write_radial_scatterplot(filepath, mesh, ent_dim, data, origin, separator);
   }
 }
 
