@@ -12,7 +12,7 @@
 
 namespace Omega_h {
 
-static void compute_ill_metric(Mesh* mesh, AdaptOpts const& orig_opts) {
+static void compute_ill_metric(Mesh* mesh) {
   auto elem_metrics = get_element_implied_length_metrics(mesh);
   auto metrics = project_metrics(mesh, elem_metrics);
   metrics = limit_metric_gradation(mesh, metrics, 1.0);
@@ -45,7 +45,9 @@ static void fix_for_given_metric(Mesh* mesh, AdaptOpts const& adapt_opts, bool v
     opts.verbosity = EXTRA_STATS;
     opts.nsliver_layers = 10;
     opts.min_quality_desired = min2(minqual + 0.1, 1.0);
+#ifdef OMEGA_H_USE_EGADS
     opts.allow_snap_failure = true;
+#endif
     adapt(mesh, opts);
     if ((0)) {
       std::cout << "writing debug.osh after adapt\n";
