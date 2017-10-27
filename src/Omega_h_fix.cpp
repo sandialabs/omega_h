@@ -12,8 +12,9 @@
 
 namespace Omega_h {
 
-static void compute_ill_metric(Mesh* mesh) {
-  auto metrics = get_pure_implied_metrics(mesh);
+static void compute_ill_metric(Mesh* mesh, AdaptOpts const& orig_opts) {
+  auto elem_metrics = get_element_implied_length_metrics(mesh);
+  auto metrics = project_metrics(mesh, elem_metrics);
   metrics = limit_metric_gradation(mesh, metrics, 1.0);
   mesh->remove_tag(VERT, "metric");
   mesh->add_tag(
@@ -54,8 +55,7 @@ static void fix_for_given_metric(Mesh* mesh, AdaptOpts const& adapt_opts, bool v
     maxlen = mesh->max_length();
     if (verbose) std::cout << "minimum quality " << minqual << '\n';
     if (verbose) std::cout << "maximum length " << maxlen << '\n';
-    if (verbose) printf("quality improvement: %.17e\n", minqual - minqual_old);
-    if (minqual < minqual_old + OMEGA_H_EPSILON) break;  // stalled
+    if (minqual < minqual_old + 1e-3) break;  // stalled
   }
 }
 
