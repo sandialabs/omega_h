@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     opts.egads_model = Omega_h::egads_load(model_path);
   }
   auto t0 = Omega_h::now();
-  Omega_h::fix(&mesh, opts, true);
+  Omega_h::fix(&mesh, opts, OMEGA_H_ANISOTROPIC, true);
   auto t1 = Omega_h::now();
   std::cout << "fixing the mesh took " << (t1 - t0) << " seconds\n";
   std::cout << "writing out fixed.vtu\n";

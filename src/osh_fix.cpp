@@ -18,6 +18,7 @@ int main(int argc, char** argv) {
   auto& model_flag = cmdline.add_flag("--model", "optional EGADS model");
   model_flag.add_arg<std::string>("model.step");
 #endif
+  cmdline.add_flag("--isotropic", "aim for an isotropic mesh");
   if (!cmdline.parse_final(lib.world(), &argc, argv)) return -1;
   auto path_in = cmdline.get<std::string>("mesh_in.osh");
   auto path_out = cmdline.get<std::string>("mesh_out.osh");
@@ -36,7 +37,8 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_EGADS
   opts.egads_model = eg;
 #endif
-  Omega_h::fix(&mesh, opts, true);
+  Omega_h_Isotropy isotropy = cmdline.parsed("--isotropic") ? OMEGA_H_ISO_LENGTH : OMEGA_H_ANISOTROPIC;
+  Omega_h::fix(&mesh, opts, isotropy, true);
   mesh.remove_tag(Omega_h::VERT, "metric");
   std::cout << "writing out " << path_out << '\n';
   Omega_h::binary::write(path_out, &mesh);
