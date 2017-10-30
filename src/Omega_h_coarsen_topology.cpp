@@ -8,6 +8,8 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_simplex.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
@@ -87,6 +89,7 @@ Adj find_coarsen_domains(
 
 LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
     Adj keys2doms, LOs old_verts2new_verts) {
+  std::cerr << "coarsen_topology(dom_dim = " << dom_dim << ")\n";
   auto nccv = simplex_degrees[dom_dim][VERT];
   auto cv2v = mesh->ask_verts_of(dom_dim);
   auto k2kc = keys2doms.a2ab;
@@ -98,9 +101,19 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
   auto nkeys = keys2verts_onto.size();
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto v_onto = keys2verts_onto[key];
+    bool is_bad = false;
+    if (dom_dim == 3) {
+      for (auto kc = k2kc[key]; kc < k2kc[key + 1]; ++kc) {
+        auto prod = kc;
+        if (prod == 167) is_bad = true;
+      }
+    }
     for (auto kc = k2kc[key]; kc < k2kc[key + 1]; ++kc) {
       auto prod = kc;
       auto c = kc2c[kc];
+      if (is_bad) {
+        std::cerr << "cavity " << key << " onto old vert " << v_onto << " contains prod " << prod << " which is old entity " << c << '\n';
+      }
       auto kc_code = kc_codes[kc];
       auto ccv_col = code_which_down(kc_code);
       auto ppv2v = &prod_verts2verts[prod * nccv];

@@ -4,6 +4,7 @@
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_simplex.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_adj.hpp>
 
 #include <iostream>
 
@@ -226,7 +227,15 @@ bool verify_down_verts(Mesh* mesh) {
             //  std::cerr << "h2l.ab2b[" << h << " * " << nhhl << " + " << hhl << "] = " << l2 << '\n';
             //}
               if (l != l2) {
+                std::cerr << "hd " << hd << " md " << md << " ld " << ld << '\n';
                 std::cerr << "h " << h << " m " << m << " l " << l << '\n';
+                auto edges2verts = mesh->ask_down(1, 0).ab2b;
+                std::cerr << "local edge " << hhl << " of element " << h << " is " << l2
+                  << " which connects " << edges2verts[l2 * 2 + 0]
+                  << " and " << edges2verts[l2 * 2 + 1] << '\n';
+                std::cerr << "local edge " << mml << " of face " << m << " is " << l
+                  << " which connects " << edges2verts[l * 2 + 0]
+                  << " and " << edges2verts[l * 2 + 1] << '\n';
                 return false;
               }
               OMEGA_H_CHECK(l == l2);
@@ -240,6 +249,18 @@ bool verify_down_verts(Mesh* mesh) {
   }
   std::cout << "mesh verified!\n";
   return true;
+}
+
+void verify_no_duplicates(Mesh* mesh) {
+  for (Int ent_dim = 1; ent_dim <= mesh->dim(); ++ent_dim) {
+    std::cerr << "checking for duplicates in dim " << ent_dim << " entities...\n";
+    auto ev2v = mesh->ask_verts_of(ent_dim);
+    auto v2e = mesh->ask_up(VERT, ent_dim);
+    LOs a2b;
+    Bytes codes;
+    find_matches(ent_dim, ev2v, ev2v, v2e, &a2b, &codes);
+    std::cerr << "no duplicates in dim " << ent_dim << " entities...\n";
+  }
 }
 
 }  // end namespace Omega_h

@@ -249,6 +249,26 @@ struct IsMatch<3> {
   }
 };
 
+template <>
+struct IsMatch<4> {
+  template <typename T>
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
+      Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
+    if (av2v[a_begin + 2] != bv2v[b_begin + 2]) return false;
+    if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 4)] &&
+        av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 3) % 4)]) {
+      *match_code = 0;
+      return true;
+    }
+    if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 3) % 4)] &&
+        av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 1) % 4)]) {
+      *match_code = 0;
+      return true;
+    }
+    return false;
+  }
+};
+
 template <Int deg, typename T>
 static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out) {
@@ -264,6 +284,7 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     auto a_begin = a * deg;
     auto vb_begin = v2vb[fv];
     auto vb_end = v2vb[fv + 1];
+    bool found = false;
     for (LO vb = vb_begin; vb < vb_end; ++vb) {
       auto b = vb2b[vb];
       auto vb_code = vb_codes[vb];
@@ -272,12 +293,13 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
       I8 match_code;
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
+        OMEGA_H_CHECK(!found); // there can't be more than one!
         a2b[a] = b;
         codes[a] = match_code;
-        return;
+        found = true;
       }
     }
-    OMEGA_H_NORETURN();
+    OMEGA_H_CHECK(found); // there can't be less than one!
   };
   parallel_for(na, f, "find_matches");
   *a2b_out = a2b;
@@ -291,6 +313,8 @@ void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     find_matches_deg<2>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
   } else if (deg == 3) {
     find_matches_deg<3>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
+  } else if (deg == 4) {
+    find_matches_deg<4>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
   }
 }
 

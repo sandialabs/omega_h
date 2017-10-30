@@ -6,6 +6,9 @@
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_quality.hpp"
+#include "Omega_h_file.hpp"
+
+#include <iostream>
 
 namespace Omega_h {
 
@@ -22,20 +25,30 @@ static Reals coarsen_qualities_tmpl(
   auto vc_codes = v2c.codes;
   auto ncands = cands2edges.size();
   auto qualities = Write<Real>(ncands * 2, -1.0);
+  auto coords = mesh->coords();
+  auto is_bad_w = Write<Byte>(mesh->nelems(), Byte(0));
   auto f = OMEGA_H_LAMBDA(LO cand) {
     auto e = cands2edges[cand];
+    auto should_print = e == 1927440;
+    if (should_print) std::cerr << "considering collapsing edge " << e << '\n';
     auto code = cand_codes[cand];
     for (Int eev_col = 0; eev_col < 2; ++eev_col) {
       if (!collapses(code, eev_col)) continue;
       auto v_col = ev2v[e * 2 + eev_col];
       auto eev_onto = 1 - eev_col;
       auto v_onto = ev2v[e * 2 + eev_onto];
+      if (should_print) std::cerr << "considering collapsing " << v_col << " onto " << v_onto << '\n';
       Real minqual = 1.0;
       for (auto vc = v2vc[v_col]; vc < v2vc[v_col + 1]; ++vc) {
         auto c = vc2c[vc];
         auto vc_code = vc_codes[vc];
         auto ccv_col = code_which_down(vc_code);
         auto ccv2v = gather_verts<mesh_dim + 1>(cv2v, c);
+        if (should_print) {
+          std::cerr << "c " << c << " considered for edge " << e << " in direction " << eev_col
+            << " onto old vert " << v_onto << '\n';
+          is_bad_w[c] = 1;
+        }
         bool will_die = false;
         for (auto ccv = 0; ccv < (mesh_dim + 1); ++ccv) {
           if ((ccv != ccv_col) && (ccv2v[ccv] == v_onto)) {
@@ -44,16 +57,39 @@ static Reals coarsen_qualities_tmpl(
           }
         }
         if (will_die) continue;
+        /*
+           cavity contains prod 162 which is old entity 139386
+           cavity contains prod 163 which is old entity 321988
+           cavity contains prod 164 which is old entity 321989
+           cavity contains prod 165 which is old entity 321991
+           cavity contains prod 166 which is old entity 321995
+           cavity contains prod 167 which is old entity 321997
+        */
+      //if (c == 139386 || c == 321988 || c == 321989 || c == 321991 ||
+      //    c == 321995 || c == 321997) {
         OMEGA_H_CHECK(0 <= ccv_col && ccv_col < mesh_dim + 1);
         ccv2v[ccv_col] = v_onto;  // vertices of new cell
         auto qual = measure.measure(ccv2v);
+        if (should_print) {
+          std::cerr << "predicted quality of old elem " << c << " after collapse is " << qual << '\n';
+          auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, ccv2v);
+          auto b = simplex_basis<mesh_dim, mesh_dim>(p);
+          auto rs = element_size(b);
+          std::cerr << "real size is " << rs << '\n';
+          auto rq = metric_element_quality(p, matrix_1x1(1.0));
+          std::cerr << "real space quality is " << rq << '\n';
+        }
         minqual = min2(minqual, qual);
       }
+      if (should_print) std::cerr << "minqual in this direction is " << minqual << '\n';
       qualities[cand * 2 + eev_col] = minqual;
     }
   };
   parallel_for(ncands, f, "coarsen_qualities");
   auto out = Reals(qualities);
+  mesh->add_tag(mesh->dim(), "is_bad", 1, Bytes(is_bad_w));
+  std::cerr << "writing is_bad.osh\n";
+  binary::write("is_bad.osh", mesh);
   return mesh->sync_subset_array(EDGE, out, cands2edges, -1.0, 2);
 }
 
