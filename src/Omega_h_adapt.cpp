@@ -79,6 +79,7 @@ AdaptOpts::AdaptOpts(Int dim) {
   egads_model = nullptr;
   should_smooth_snap = true;
   snap_smooth_tolerance = 1e-2;
+  allow_snap_failure = false;
 #endif
   should_refine = true;
   should_coarsen = true;
@@ -219,7 +220,7 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
       }
     }
     mesh->add_tag(VERT, "warp", mesh->dim(), warp);
-    while (warp_to_limit(mesh, opts)) {
+    while (warp_to_limit(mesh, opts, opts.allow_snap_failure)) {
       if (!satisfy_quality(mesh, opts)) {
         mesh->remove_tag(VERT, "warp");
         break;

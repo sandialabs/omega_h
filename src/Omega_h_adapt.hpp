@@ -53,6 +53,7 @@ struct AdaptOpts {
   Egads* egads_model;
   bool should_smooth_snap;
   Real snap_smooth_tolerance;
+  bool allow_snap_failure;
 #endif
   bool should_refine;
   bool should_coarsen;
@@ -117,6 +118,7 @@ void add_implied_metric_based_on_target(Mesh* mesh);
 
 void fix(Mesh* mesh
     , AdaptOpts const& adapt_opts
+    , Omega_h_Isotropy isotropy
     , bool verbose
     );
 
