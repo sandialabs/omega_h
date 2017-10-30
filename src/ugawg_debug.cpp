@@ -3,6 +3,7 @@
 #include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_array_ops.hpp>
+#include <Omega_h_coarsen.hpp>
 
 #ifdef OMEGA_H_USE_EGADS
 #include <Omega_h_egads.hpp>
@@ -35,8 +36,8 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_EGADS
   opts.egads_model = eg;
 #endif
-  auto minqual = mesh.min_quality();
-  auto maxlen = mesh.max_length();
+  auto minqual = 0.00510154;
+  auto maxlen = 7.4219;
   opts.min_quality_allowed = minqual;
   opts.max_length_allowed = Omega_h::max2(maxlen, opts.max_length_desired * 2.0);
   std::cout << "max_length_allowed(" << opts.max_length_allowed << ") = max("
@@ -47,8 +48,9 @@ int main(int argc, char** argv) {
   auto es2s = mesh.ask_down(3, 2).ab2b;
   auto min_es2s = Omega_h::get_min(es2s);
   std::cout << "min_es2s " << min_es2s << '\n';
-  Omega_h::adapt(&mesh, opts);
-  mesh.remove_tag(Omega_h::VERT, "metric");
+  mesh.remove_tag(Omega_h::VERT, "key");
+  mesh.remove_tag(Omega_h::VERT, "collapse_quality");
+  Omega_h::coarsen_slivers(&mesh, opts);
 #ifdef OMEGA_H_USE_EGADS
   if (eg != nullptr) {
     Omega_h::egads_free(eg);

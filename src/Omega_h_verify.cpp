@@ -5,6 +5,8 @@
 #include <Omega_h_simplex.hpp>
 #include <Omega_h_loop.hpp>
 
+#include <iostream>
+
 namespace Omega_h {
 
 OMEGA_H_INLINE Int down_template2(
@@ -193,33 +195,51 @@ OMEGA_H_INLINE Int down_template2(
    consistent with one another.
    e.g. the first face of tetrahedron {4,8,7,6}
    must be {4,8,7}. */
-void verify_down_verts(Mesh* mesh) {
-  for (Int ld = 0; ld < 1; ++ld) {
+bool verify_down_verts(Mesh* mesh) {
+  for (Int ld = 0; ld <= 1; ++ld) {
     for (Int md = ld + 1; md < mesh->dim(); ++md) {
       for (Int hd = md + 1; hd <= mesh->dim(); ++hd) {
+      //std::cerr << "verify_down_verts ld " << ld << " md " << md << " hd " << hd << '\n';
         auto h2l =  mesh->ask_down(hd, ld);
         auto h2m =  mesh->ask_down(hd, md);
         auto m2l =  mesh->ask_down(md, ld);
         auto nhhm = simplex_degree(hd, md);
         auto nhhl = simplex_degree(hd, ld);
         auto nmml = simplex_degree(md, ld);
-        auto f = OMEGA_H_LAMBDA(LO h) {
+      //auto f = OMEGA_H_LAMBDA(LO h) {
+        for (LO h = 0; h < mesh->nents(hd); ++h) {
           for (Int hhm = 0; hhm < nhhm; ++hhm) {
             auto m = h2m.ab2b[h * nhhm + hhm];
+          //if (ld == 1 && h == 143137) {
+          //  std::cerr << "h2m.ab2b[" << h << " * " << nhhm << " + " << hhm << "] = " << m << '\n';
+          //}
             auto code = h2m.codes[h * nhhm + hhm];
             for (Int mml = 0; mml < nmml; ++mml) {
               auto l = m2l.ab2b[m * nmml + mml];
+            //if (ld == 1 && h == 143137) {
+            //  std::cerr << "m2l.ab2b[" << m << " * " << nmml << " + " << mml << "] = " << l << '\n';
+            //}
               auto hml = align_index(nmml, ld, mml, code);
               auto hhl = down_template2(hd, md, ld, hhm, hml);
               auto l2 = h2l.ab2b[h * nhhl + hhl];
+            //if (ld == 1 && h == 143137) {
+            //  std::cerr << "h2l.ab2b[" << h << " * " << nhhl << " + " << hhl << "] = " << l2 << '\n';
+            //}
+              if (l != l2) {
+                std::cerr << "h " << h << " m " << m << " l " << l << '\n';
+                return false;
+              }
               OMEGA_H_CHECK(l == l2);
             }
           }
-        };
-        parallel_for(mesh->nents(hd), f);
+        }
+      //};
+      //parallel_for(mesh->nents(hd), f);
       }
     }
   }
+  std::cout << "mesh verified!\n";
+  return true;
 }
 
 }  // end namespace Omega_h

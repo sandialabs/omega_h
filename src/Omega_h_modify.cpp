@@ -14,6 +14,7 @@
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_unmap_mesh.hpp"
+#include "Omega_h_verify.hpp"
 
 #include <iostream>
 
@@ -22,52 +23,58 @@ namespace Omega_h {
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs old_lows2new_lows, LOs keys2kds) {
-  std::cerr << "modify_conn ent_dim " << ent_dim << '\n';
+//std::cerr << "modify_conn ent_dim " << ent_dim << '\n';
+  (void)keys2kds;
   auto t0 = now();
   auto low_dim = ent_dim - 1;
   auto down_degree = simplex_degrees[ent_dim][low_dim];
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, low_dim);
   auto old_ent_lows2old_lows = old_ents2old_lows.ab2b;
-  auto min_old_ent_lows2old_lows = get_min(old_ent_lows2old_lows);
-  std::cerr << "min_old_ent_lows2old_lows " << min_old_ent_lows2old_lows << '\n';
+//auto min_old_ent_lows2old_lows = get_min(old_ent_lows2old_lows);
+//std::cerr << "min_old_ent_lows2old_lows " << min_old_ent_lows2old_lows << '\n';
   auto same_ent_lows2old_lows =
       unmap(same_ents2old_ents, old_ent_lows2old_lows, down_degree);
-  auto min_same_ent_lows2old_lows = get_min(same_ent_lows2old_lows);
-  std::cerr << "min_same_ent_lows2old_lows " << min_same_ent_lows2old_lows << '\n';
-  auto min_old_lows2new_lows = get_min(old_lows2new_lows);
-  std::cerr << "min_old_lows2new_lows " << min_old_lows2new_lows << '\n';
+//auto min_same_ent_lows2old_lows = get_min(same_ent_lows2old_lows);
+//std::cerr << "min_same_ent_lows2old_lows " << min_same_ent_lows2old_lows << '\n';
+//auto min_old_lows2new_lows = get_min(old_lows2new_lows);
+//std::cerr << "min_old_lows2new_lows " << min_old_lows2new_lows << '\n';
   auto same_ent_lows2new_lows =
       compound_maps(same_ent_lows2old_lows, old_lows2new_lows);
-  auto min_same_ent_lows2new_lows = get_min(same_ent_lows2new_lows);
-  std::cerr << "min_same_ent_lows2new_lows " << min_same_ent_lows2new_lows << '\n';
-  if (min_same_ent_lows2new_lows < 0) {
-    for (LO i = 0; i < same_ent_lows2new_lows.size(); ++i) {
-      if (same_ent_lows2new_lows[i] < 0) {
-        std::cerr << "same_ent_lows2new_lows[" << i << "] is " << same_ent_lows2new_lows[i] << '\n';
-        auto same_ent = i / down_degree;
-        std::cerr << i << " = same ent " << same_ent  << ", face " << i % down_degree << '\n';
-        auto old_ent = same_ents2old_ents[same_ent];
-        std::cerr << "same ent " << same_ent << " is old ent " << same_ents2old_ents[same_ent]
-          << " and new ent " << same_ents2new_ents[same_ent] << '\n';
-        auto old_low = same_ent_lows2old_lows[i];
-        std::cerr << "same_ent_lows2old_lows[" << i << "] is " << old_low << '\n';
-        std::cerr << "old_lows2new_lows[" << old_low << "] is " << old_lows2new_lows[old_low] << '\n';
-        auto old_lows2kds = old_mesh->ask_down(2, 1).ab2b;
-        auto old_ents2kds = old_mesh->ask_down(3, 1).ab2b;
-        auto kds2keys = invert_injective_map(keys2kds, old_mesh->nedges());
-        for (Int sse = 0; sse < 3; ++sse) {
-          auto kd = old_lows2kds[old_low * 3 + sse];
-          std::cerr << "old_lows2kds[" << old_low << " * 3 + " << sse << "] is " << kd << '\n';
-          std::cerr << "kds2keys[" << kd << "] is " << kds2keys[kd] << '\n';
-        }
-        for (Int kke = 0; kke < 6; ++kke) {
-          auto kd = old_ents2kds[old_ent * 6 + kke];
-          std::cerr << "old_ents2kds[" << old_low << " * 6 + " << kke << "] is " << kd << '\n';
-          std::cerr << "kds2keys[" << kd << "] is " << kds2keys[kd] << '\n';
-        }
-      }
-    }
-  }
+//auto min_same_ent_lows2new_lows = get_min(same_ent_lows2new_lows);
+//std::cerr << "min_same_ent_lows2new_lows " << min_same_ent_lows2new_lows << '\n';
+//if (min_same_ent_lows2new_lows < 0) {
+//  for (LO i = 0; i < same_ent_lows2new_lows.size(); ++i) {
+//    if (same_ent_lows2new_lows[i] < 0) {
+//      verify_down_verts(old_mesh);
+//    //std::cerr << "same_ent_lows2new_lows[" << i << "] is " << same_ent_lows2new_lows[i] << '\n';
+//      auto same_ent = i / down_degree;
+//    //std::cerr << i << " = same ent " << same_ent  << ", face " << i % down_degree << '\n';
+//      auto old_ent = same_ents2old_ents[same_ent];
+//    //std::cerr << "same ent " << same_ent << " is old ent " << same_ents2old_ents[same_ent]
+//    //  << " and new ent " << same_ents2new_ents[same_ent] << '\n';
+//      auto old_low = same_ent_lows2old_lows[i];
+//    //std::cerr << "same_ent_lows2old_lows[" << i << "] is " << old_low << '\n';
+//    //std::cerr << "old_lows2new_lows[" << old_low << "] is " << old_lows2new_lows[old_low] << '\n';
+//      auto old_lows2kds = old_mesh->ask_down(2, 1).ab2b;
+//      auto old_ents2kds = old_mesh->ask_down(3, 1).ab2b;
+//      auto kds2keys = invert_injective_map(keys2kds, old_mesh->nedges());
+//      for (Int kks = 0; kks < 4; ++kks) {
+//        auto s = old_ent_lows2old_lows[old_ent * 4 + kks];
+//      //std::cerr << "old_ent_lows2old_lows[" << old_ent << " * 4 + " << kks << "] is " << s << '\n';
+//      }
+//      for (Int sse = 0; sse < 3; ++sse) {
+//        auto kd = old_lows2kds[old_low * 3 + sse];
+//      //std::cerr << "old_lows2kds[" << old_low << " * 3 + " << sse << "] is " << kd << '\n';
+//      //std::cerr << "kds2keys[" << kd << "] is " << kds2keys[kd] << '\n';
+//      }
+//      for (Int kke = 0; kke < 6; ++kke) {
+//        auto kd = old_ents2kds[old_ent * 6 + kke];
+//      //std::cerr << "old_ents2kds[" << old_ent << " * 6 + " << kke << "] is " << kd << '\n';
+//      //std::cerr << "kds2keys[" << kd << "] is " << kds2keys[kd] << '\n';
+//      }
+//    }
+//  }
+//}
   auto prods2new_lows = Adj();
   if (low_dim > VERT) {
     auto new_low_verts2new_verts = new_mesh->ask_verts_of(low_dim);
@@ -83,14 +90,14 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nnew_ents = nsame_ents + nprods;
   Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree);
   auto new_ent_low_codes = Write<I8>();
-  auto min_prod_lows2new_lows = get_min(prod_lows2new_lows);
-  std::cerr << "min_prod_lows2new_lows " << min_prod_lows2new_lows << '\n';
+//auto min_prod_lows2new_lows = get_min(prod_lows2new_lows);
+//std::cerr << "min_prod_lows2new_lows " << min_prod_lows2new_lows << '\n';
   map_into(
       prod_lows2new_lows, prods2new_ents, new_ent_lows2new_lows, down_degree);
   map_into(same_ent_lows2new_lows, same_ents2new_ents, new_ent_lows2new_lows,
       down_degree);
-  auto min_ev2v = get_min(LOs(new_ent_lows2new_lows));
-  std::cerr << "min_ev2v " << min_ev2v << '\n';
+//auto min_ev2v = get_min(LOs(new_ent_lows2new_lows));
+//std::cerr << "min_ev2v " << min_ev2v << '\n';
   if (low_dim > VERT) {
     new_ent_low_codes = Write<I8>(nnew_ents * down_degree);
     auto old_ent_low_codes = old_ents2old_lows.codes;
@@ -398,7 +405,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
-  std::cerr << "modify_ents ent_dim " << ent_dim << " key_dim " << key_dim << '\n';
+//std::cerr << "modify_ents ent_dim " << ent_dim << " key_dim " << key_dim << '\n';
   auto t0 = now();
   *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim, keys2kds);
   auto nkeys = keys2kds.size();

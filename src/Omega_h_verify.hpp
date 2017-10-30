@@ -5,7 +5,7 @@ namespace Omega_h {
 
 class Mesh;
 
-void verify_down_verts(Mesh* mesh);
+bool verify_down_verts(Mesh* mesh);
 
 }  // end namespace Omega_h
 
