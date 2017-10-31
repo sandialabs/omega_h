@@ -5,6 +5,8 @@
 #include <Omega_h_simplex.hpp>
 #include <Omega_h_loop.hpp>
 #include <Omega_h_adj.hpp>
+#include <Omega_h_class.hpp>
+#include <Omega_h_array_ops.hpp>
 
 #include <iostream>
 
@@ -260,6 +262,62 @@ void verify_no_duplicates(Mesh* mesh) {
     Bytes codes;
     find_matches(ent_dim, ev2v, ev2v, v2e, &a2b, &codes);
     std::cerr << "no duplicates in dim " << ent_dim << " entities...\n";
+  }
+}
+
+void verify_class(Mesh* mesh) {
+  for (Int ent_dim = mesh->dim() - 1; ent_dim >= VERT; --ent_dim) {
+    std::cerr << "verifying classification, dim " << ent_dim << '\n';
+    auto class_dims = mesh->get_array<Byte>(ent_dim, "class_dim");
+    auto class_ids = mesh->get_array<ClassId>(ent_dim, "class_id");
+    auto class_dims_w = deep_copy(class_dims);
+    auto class_ids_w = deep_copy(class_ids);
+    project_classification(mesh, ent_dim, class_dims_w, class_ids_w);
+    if (ent_dim == 1) {
+      auto ev2v = mesh->ask_verts_of(ent_dim);
+      auto vert_class_dims = mesh->get_array<Byte>(VERT, "class_dim");
+      auto vert_class_ids = mesh->get_array<ClassId>(VERT, "class_id");
+      auto tri_class_dims = mesh->get_array<Byte>(TRI, "class_dim");
+      auto tri_class_ids = mesh->get_array<ClassId>(TRI, "class_id");
+      auto tet_class_dims = mesh->get_array<Byte>(TET, "class_dim");
+      auto tet_class_ids = mesh->get_array<ClassId>(TET, "class_id");
+      auto e2t = mesh->ask_up(EDGE, TRI);
+      auto t2k = mesh->ask_up(TRI, TET);
+      for (LO i = 0; i < mesh->nents(ent_dim); ++i) {
+        if ((ev2v[i * 2 + 0] == 188224 && ev2v[i * 2 + 1] == 293364) ||
+            (ev2v[i * 2 + 0] == 293364 && ev2v[i * 2 + 1] == 188224) ||
+            (ev2v[i * 2 + 0] == 293364 && ev2v[i * 2 + 1] == 19882) ||
+            (ev2v[i * 2 + 0] == 19882 && ev2v[i * 2 + 1] == 293364)) {
+          std::cerr << "edge " << i << " has vertices "
+            << ev2v[i * 2 + 0] << " and " << ev2v[i * 2 + 1] << '\n';
+          std::cerr << "edge " << i << " is classified on model " << class_ids[i]
+            << " of dimension " << Int(class_dims[i]) << '\n';
+          for (Int j = 0; j < 2; ++j) {
+            auto v = ev2v[i * 2 + j];
+            std::cerr << "vertex " << v << " is classified on model " << vert_class_ids[v]
+              << " of dimension " << Int(vert_class_dims[v]) << '\n';
+          }
+          for (auto et = e2t.a2ab[i]; et < e2t.a2ab[i + 1]; ++et) {
+            auto t = e2t.ab2b[et];
+            std::cerr << "edge " << i << " is adjacent to triangle " << t
+              << " which is classified on model " << tri_class_ids[t]
+              << " of dimension " << Int(tri_class_dims[t]) << '\n';
+            for (auto tk = t2k.a2ab[t]; tk < t2k.a2ab[t + 1]; ++tk) {
+              auto k = t2k.ab2b[tk];
+              std::cerr << "triangle " << t << " is adjacent to tetrahedron "
+                << k << " which is classified on model " << tet_class_ids[k]
+                << " of dimension " << Int(tet_class_dims[k]) << '\n';
+            }
+          }
+        }
+      }
+    }
+    if (get_min(each_eq(class_dims, Read<Byte>(class_dims_w))) == Byte(0)) {
+      Omega_h_fail("class_dim for dimension %d is inconsistent\n", ent_dim);
+    }
+    if (get_min(each_eq(class_ids, Read<ClassId>(class_ids_w))) == Byte(0)) {
+      Omega_h_fail("class_id for dimension %d is inconsistent\n", ent_dim);
+    }
   }
 }
 

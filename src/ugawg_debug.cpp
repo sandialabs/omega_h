@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   Omega_h::Mesh mesh(&lib);
   std::cout << "reading in " << path_in << '\n';
   Omega_h::binary::read(path_in, lib.world(), &mesh);
-  Omega_h::verify_no_duplicates(&mesh);
+  Omega_h::verify_class(&mesh);
 #ifdef OMEGA_H_USE_EGADS
   Omega_h::Egads* eg = nullptr;
   if (cmdline.parsed("--model")) {
