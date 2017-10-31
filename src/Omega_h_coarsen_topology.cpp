@@ -89,7 +89,6 @@ Adj find_coarsen_domains(
 
 LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
     Adj keys2doms, LOs old_verts2new_verts) {
-  std::cerr << "coarsen_topology(dom_dim = " << dom_dim << ")\n";
   auto nccv = simplex_degrees[dom_dim][VERT];
   auto cv2v = mesh->ask_verts_of(dom_dim);
   auto k2kc = keys2doms.a2ab;
@@ -101,28 +100,31 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
   auto nkeys = keys2verts_onto.size();
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto v_onto = keys2verts_onto[key];
-    bool is_bad = false;
-    if (dom_dim == 3) {
-      for (auto kc = k2kc[key]; kc < k2kc[key + 1]; ++kc) {
-        auto prod = kc;
-        if (prod == 167) is_bad = true;
-      }
-    }
     for (auto kc = k2kc[key]; kc < k2kc[key + 1]; ++kc) {
       auto prod = kc;
       auto c = kc2c[kc];
-      if (is_bad) {
-        std::cerr << "cavity " << key << " onto old vert " << v_onto << " contains prod " << prod << " which is old entity " << c << '\n';
-      }
       auto kc_code = kc_codes[kc];
       auto ccv_col = code_which_down(kc_code);
       auto ppv2v = &prod_verts2verts[prod * nccv];
+      auto should_print = (dom_dim == 1 && (prod == 927 || prod == 937));
+      if (should_print) {
+        std::cerr << "prod edge " << prod << " comes from key " << key << '\n';
+        std::cerr << "prod edge " << prod << " comes from old edge " << c
+          << " which used to have verts "
+          << cv2v[c * nccv + 0]
+          << " and " << cv2v[c * nccv + 1] << '\n';
+        std::cerr << "  and will now have verts:\n";
+      }
       for (Int ccv = 0; ccv < nccv; ++ccv) {
         LO old_v;
         if (ccv == ccv_col) {
           old_v = v_onto;
         } else {
           old_v = cv2v[c * nccv + ccv];
+        }
+        if (should_print) {
+          std::cerr << "  old vert " << old_v << " new vert "
+            << old_verts2new_verts[old_v] << '\n';
         }
         ppv2v[ccv] = old_verts2new_verts[old_v];
       }

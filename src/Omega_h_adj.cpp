@@ -285,6 +285,7 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     auto vb_begin = v2vb[fv];
     auto vb_end = v2vb[fv + 1];
     bool found = false;
+    LO b_found = -1;
     for (LO vb = vb_begin; vb < vb_end; ++vb) {
       auto b = vb2b[vb];
       auto vb_code = vb_codes[vb];
@@ -293,10 +294,13 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
       I8 match_code;
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
+        if (found) std::cerr << "prod tri use " << a << " (prod tri " << a / 3 << ") and new edge " << b << " of dimension " << deg - 1 << " are the same\n";
+        if (found) std::cerr << "new edges " << b_found << " and " << b << " are the same!!!\n";
         OMEGA_H_CHECK(!found); // there can't be more than one!
         a2b[a] = b;
         codes[a] = match_code;
         found = true;
+        b_found = b;
       }
     }
     OMEGA_H_CHECK(found); // there can't be less than one!
@@ -330,9 +334,6 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim) {
   LOs hl2l;
   Read<I8> codes;
   find_matches(low_dim, uv2v, lv2v, v2l, &hl2l, &codes);
-  std::cerr << "reflect_down(hvwv, lv2v, v2l, high_dim=" << high_dim << ", low_dim=" << low_dim << ")\n";
-  auto min_hl2l = get_min(hl2l);
-  std::cerr << "min_hl2l " << min_hl2l << '\n';
   return Adj(hl2l, codes);
 }
 

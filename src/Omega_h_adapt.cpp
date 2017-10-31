@@ -16,6 +16,7 @@
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
 #include "Omega_h_verify.hpp"
+#include "Omega_h_file.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -161,9 +162,14 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
-//auto minsize = get_min(mesh->comm(), mesh->ask_sizes());
-//std::cerr << "minsize " << minsize << '\n';
-//mesh->ask_down(2, 1);
+  static int ncalls = 0;
+  if (ncalls == 115) {
+    std::cerr << "ncalls == " << ncalls << ", writing debug.osh\n";
+    binary::write("debug.osh", mesh);
+  }
+  std::cerr << "verify_no_duplicates, ncalls = " << ncalls << '\n';
+  verify_no_duplicates(mesh);
+  ++ncalls;
   if (opts.verbosity >= EACH_REBUILD) print_adapt_status(mesh, opts);
 }
 
@@ -276,7 +282,7 @@ static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
 
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t0 = now();
-  verify_down_verts(mesh);
+  verify_no_duplicates(mesh);
   if (!pre_adapt(mesh, opts)) return false;
   setup_conservation_tags(mesh, opts);
   auto t1 = now();
@@ -289,7 +295,6 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
-  verify_down_verts(mesh);
   return true;
 }
 

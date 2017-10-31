@@ -94,6 +94,14 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   mesh->add_tag(VERT, "collapse_quality", 1, vert_quals);
   mesh->add_tag(VERT, "collapse_rail", 1, vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
+  for (LO i = 0; i < keys2verts.size(); ++i) {
+    if (i == 323 || i == 325) {
+      auto v = keys2verts[i];
+      std::cerr << "key " << i << " is vert " << v
+        << " has quality " << vert_quals[v]
+        << " and rail " << vert_rails[v] << '\n';
+    }
+  }
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
 }
@@ -142,30 +150,11 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     if (ent_dim == VERT) {
       old_verts2new_verts = old_ents2new_ents;
-      for (LO i = 0; i < old_verts2new_verts.size(); ++i) {
-          if (old_verts2new_verts[i] == 230298 ||
-              old_verts2new_verts[i] == 126507) {
-          std::cerr << "old_verts2new_verts[" << i << "] = " << old_verts2new_verts[i] << '\n';
-        }
-      }
     }
     transfer_coarsen(mesh, opts.xfer_opts, &new_mesh, keys2verts, keys2doms,
         ent_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
-  static int ncalls = 0;
-  std::cerr << "ncalls " << ncalls << '\n';
-  std::cerr << "verifying old mesh...\n";
-  verify_down_verts(mesh);
-  std::cerr << "verifying new mesh...\n";
-  if (!verify_down_verts(&new_mesh)) {
-    std::cerr << "new mesh doesn't verify!\n";
-  //std::cerr << "writing old mesh as debug.osh\n";
-  //binary::write("debug.osh", mesh);
-    std::cerr << "exiting\n";
-    exit(-1);
-  }
-  ++ncalls;
   *mesh = new_mesh;
 }
 
