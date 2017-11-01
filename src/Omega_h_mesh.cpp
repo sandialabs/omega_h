@@ -336,10 +336,9 @@ Adj Mesh::ask_adj(Int from, Int to) {
   if (has_adj(from, to)) {
     return get_adj(from, to);
   }
-  auto t0 = now();
+  begin_code("derive_adj");
   Adj derived = derive_adj(from, to);
-  auto t1 = now();
-  add_to_global_timer("deriving adjacencies", t1 - t0);
+  end_code();
   adjs_[from][to] = std::make_shared<Adj>(derived);
   return derived;
 }
