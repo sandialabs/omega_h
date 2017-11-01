@@ -48,12 +48,17 @@ OMEGA_H_SYSTEM_HEADER
 namespace Omega_h {
 
 inline void begin_code(std::string const& name) {
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  Kokkos::Profiling::pushRegion(name);
+#else
   (void)name;
-  // Kokkos::Profiling::pushRegion(name);
+#endif
 }
 
 inline void end_code() {
-  // Kokkos::Profiling::popRegion();
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  Kokkos::Profiling::popRegion();
+#endif
 }
 
 }  // namespace Omega_h

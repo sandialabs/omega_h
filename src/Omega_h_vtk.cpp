@@ -481,6 +481,7 @@ static void default_dim(Mesh* mesh, Int* cell_dim) {
 
 void write_vtu(
     std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags) {
+  begin_code("write_vtu");
   default_dim(mesh, &cell_dim);
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
@@ -523,6 +524,7 @@ void write_vtu(
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
   stream << "</VTKFile>\n";
+  end_code();
 }
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
@@ -703,6 +705,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
 
 void write_parallel(
     std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags) {
+  begin_code("vtk::write_parallel");
   default_dim(mesh, &cell_dim);
   ask_for_mesh_tags(mesh, tags);
   auto rank = mesh->comm()->rank();
@@ -721,6 +724,7 @@ void write_parallel(
     write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece", tags);
   }
   write_vtu(piece_filename(piecepath, rank), mesh, cell_dim, tags);
+  end_code();
 }
 
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
