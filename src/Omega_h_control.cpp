@@ -209,10 +209,6 @@ Library::~Library() {
   }
 #endif
   delete[] Omega_h::max_memory_stacktrace;
-  for (auto pair : timers) {
-    std::cout << "total time spent " << pair.first << ": " << pair.second
-              << " seconds\n";
-  }
   the_library = nullptr;
 }
 
@@ -229,15 +225,6 @@ CommPtr Library::self() {
   return self_;
 }
 
-void Library::add_to_timer(std::string const& name, double nsecs) {
-  if (!should_time_) return;
-  timers[name] += nsecs;
-}
-
 LO Library::self_send_threshold() const { return self_send_threshold_; }
-
-void add_to_global_timer(std::string const& name, double nsecs) {
-  the_library->add_to_timer(name, nsecs);
-}
 
 }  // end namespace Omega_h

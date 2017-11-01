@@ -264,7 +264,6 @@ static void post_adapt(
   Now t5 = now();
   if (opts.verbosity > SILENT && !mesh->comm()->rank()) {
     std::cout << "adapting took " << (t5 - t0) << " seconds\n\n";
-    add_to_global_timer("adapting", t5 - t0);
   }
 }
 
