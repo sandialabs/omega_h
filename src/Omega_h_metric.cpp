@@ -323,7 +323,10 @@ static Reals get_element_implied_size_metrics(Mesh* mesh) {
 }
 
 Reals get_implied_metrics(Mesh* mesh) {
-  return project_metrics(mesh, get_element_implied_size_metrics(mesh));
+  begin_code("get_implied_metrics");
+  auto out = project_metrics(mesh, get_element_implied_size_metrics(mesh));
+  end_code();
+  return out;
 }
 
 Reals get_pure_implied_isos(Mesh* mesh) {
@@ -332,8 +335,11 @@ Reals get_pure_implied_isos(Mesh* mesh) {
 }
 
 Reals get_implied_isos(Mesh* mesh) {
+  begin_code("get_implied_isos");
   auto metrics = get_implied_metrics(mesh);
-  return apply_isotropy(mesh->nverts(), metrics, OMEGA_H_ISO_SIZE);
+  metrics = apply_isotropy(mesh->nverts(), metrics, OMEGA_H_ISO_SIZE);
+  end_code();
+  return metrics;
 }
 
 /* A Hessian-based anisotropic size field, from

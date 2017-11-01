@@ -7,7 +7,6 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
-#include "Omega_h_timer.hpp"
 
 namespace Omega_h {
 
@@ -334,7 +333,7 @@ void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
 void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2midverts, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  auto t0 = now();
+  begin_code("transfer_refine");
   transfer_inherit_refine(old_mesh, opts, new_mesh, keys2edges, prod_dim,
       keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   if (prod_dim == VERT) {
@@ -357,8 +356,7 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_pointwise_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
-  auto t1 = now();
-  add_to_global_timer("transferring", t1 - t0);
+  end_code();
 }
 
 template <typename T>
@@ -522,7 +520,7 @@ void transfer_pointwise(Mesh* old_mesh, TransferOpts const& opts,
 void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     LOs keys2verts, Adj keys2doms, Int prod_dim, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  auto t0 = now();
+  begin_code("transfer_coarsen");
   if (prod_dim == VERT) {
     transfer_no_products(old_mesh, opts, new_mesh, prod_dim, same_ents2old_ents,
         same_ents2new_ents);
@@ -544,8 +542,7 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts, keys2doms,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
-  auto t1 = now();
-  add_to_global_timer("transferring", t1 - t0);
+  end_code();
 }
 
 template <typename T>
@@ -630,7 +627,7 @@ static void transfer_inherit_swap(Mesh* old_mesh, TransferOpts const& opts,
 void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     Int prod_dim, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  auto t0 = now();
+  begin_code("transfer_swap");
   OMEGA_H_CHECK(prod_dim != VERT);
   transfer_inherit_swap(old_mesh, opts, new_mesh, prod_dim, keys2edges,
       keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
@@ -648,13 +645,12 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_conserve_swap(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
-  auto t1 = now();
-  add_to_global_timer("transferring", t1 - t0);
+  end_code();
 }
 
 void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     Bytes verts_are_keys, LOs keys2verts, Int prod_dim) {
-  auto t0 = now();
+  begin_code("transfer_motion");
   transfer_copy(old_mesh, opts, new_mesh, prod_dim);
   if (prod_dim == EDGE) {
     auto edges_did_move = mark_up(new_mesh, VERT, EDGE, verts_are_keys);
@@ -679,8 +675,7 @@ void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_conserve_motion(old_mesh, opts, new_mesh, keys2verts, keys2elems,
         same_elems2elems, same_elems2elems);
   }
-  auto t1 = now();
-  add_to_global_timer("transferring", t1 - t0);
+  end_code();
 }
 
 #define INST(T)                                                                \
