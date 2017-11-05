@@ -23,6 +23,7 @@
 #include "Omega_h_swap3d_loop.hpp"
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
+#include "Omega_h_most_normal.hpp"
 
 #ifdef OMEGA_H_USE_TEUCHOSPARSER
 #include "Omega_h_expr.hpp"
@@ -1119,6 +1120,21 @@ static void test_sort_small_range() {
   OMEGA_H_CHECK(uniq == Read<I32>({}));
 }
 
+static void test_most_normal() {
+  {
+  Few<Vector<3>, 3> N =
+      {{1,0,0},{0,1,0},{0,0,1}};
+  auto N_c = get_most_normal_normal(N, 3);
+  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,1))));
+  }
+  {
+  Few<Vector<3>, 4> N =
+      {{1,0,0},{0,0,1},normalize(vector_3(1,1,1)),{0,1,0}};
+  auto N_c = get_most_normal_normal(N, 4);
+  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,1))));
+  }
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1133,6 +1149,7 @@ int main(int argc, char** argv) {
   test_eigen_jacobi();
   test_least_squares();
   test_int128();
+  test_most_normal();
   test_repro_sum();
   test_sort();
   test_sort_small_range();

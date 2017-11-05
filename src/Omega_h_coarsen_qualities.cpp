@@ -77,8 +77,6 @@ static Reals coarsen_qualities_tmpl(
   parallel_for(ncands, f, "coarsen_qualities");
   auto out = Reals(qualities);
   mesh->add_tag(mesh->dim(), "is_bad", 1, Bytes(is_bad_w));
-  std::cerr << "writing is_bad.vtu\n";
-  vtk::write_vtu("is_bad.vtu", mesh);
   return mesh->sync_subset_array(EDGE, out, cands2edges, -1.0, 2);
 }
 

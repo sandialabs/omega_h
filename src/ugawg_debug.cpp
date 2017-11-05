@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
   opts.verbosity = Omega_h::EXTRA_STATS;
   opts.nsliver_layers = 10;
   opts.min_quality_desired = Omega_h::min2(minqual + 0.1, 1.0);
+  opts.should_prevent_coarsen_flip = true;
   mesh.remove_tag(Omega_h::VERT, "key");
   mesh.remove_tag(Omega_h::VERT, "collapse_quality");
   Omega_h::coarsen_slivers(&mesh, opts);

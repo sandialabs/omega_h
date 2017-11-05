@@ -177,7 +177,6 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
   begin_code("invert_adj");
-  auto t0 = now();
   auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
@@ -208,8 +207,6 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
     parallel_for(nlh, f, "easy_codes");
   }
   sort_by_high_index(l2lh, lh2h, codes);
-  auto t1 = now();
-  add_to_global_timer("inverting", t1 - t0);
   end_code();
   return Adj(l2lh, lh2h, codes);
 }

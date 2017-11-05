@@ -53,6 +53,9 @@ set(Omega_h_SOURCES
   Omega_h_check_collapse.cpp
   Omega_h_coarsen_qualities.cpp
   Omega_h_coarsen_topology.cpp
+  Omega_h_coarsen_overshoot.cpp
+  Omega_h_coarsen_flip.cpp
+  Omega_h_collapse_rail.cpp
   Omega_h_coarsen.cpp
   Omega_h_approach.cpp
   Omega_h_laplace.cpp
@@ -69,8 +72,6 @@ set(Omega_h_SOURCES
   Omega_h_align.cpp
   Omega_h_xml.cpp
   Omega_h_recover.cpp
-  Omega_h_coarsen_overshoot.cpp
-  Omega_h_collapse_rail.cpp
   Omega_h_histogram.cpp
   Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
@@ -83,6 +84,7 @@ set(Omega_h_SOURCES
   Omega_h_flood.cpp
   Omega_h_fix.cpp
   Omega_h_verify.cpp
+  Omega_h_scatterplot.cpp
   )
 
 if(Omega_h_USE_libMeshb)
@@ -254,14 +256,15 @@ if(BUILD_TESTING)
   endif()
 
   function(test_func TEST_NAME NUM_PROCS)
+    string(REPLACE " " ";" VALGRIND "${Omega_h_VALGRIND}")
     if(MPIRUN)
-      set(TEST_STR ${MPIRUN} -np ${NUM_PROCS} ${ARGN})
+      set(TEST_STR ${MPIRUN} -np ${NUM_PROCS} ${VALGRIND} ${ARGN})
     else()
       if(NOT (${NUM_PROCS} EQUAL "1"))
         message(STATUS "test ${TEST_NAME} ignored because MPIRUN not found!")
         return()
       endif()
-      set(TEST_STR ${ARGN})
+      set(TEST_STR ${VALGRIND} ${ARGN})
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
   endfunction(test_func)
@@ -434,6 +437,7 @@ set(Omega_h_HEADERS
   Omega_h_qr.hpp
   Omega_h_shape.hpp
   Omega_h_quality.hpp
+  Omega_h_scatterplot.hpp
   )
 
 if(Omega_h_USE_Teuchos)

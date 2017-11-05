@@ -1,6 +1,7 @@
 #include "Omega_h_teuchos.hpp"
 
 #include "Omega_h_file.hpp"
+#include "Omega_h_scatterplot.hpp"
 
 #include <fstream>
 
@@ -293,6 +294,49 @@ void update_tag_set(
       tags[size_t(dim)].insert(tag_name);
     }
   }
+}
+
+Int get_ent_dim_by_name(Mesh* mesh, std::string const& name) {
+  if (name == "Element") return mesh->dim();
+  else if (name == "Side") return mesh->dim() - 1;
+  else if (name == "Node") return 0;
+  else if (name == "Edge") return 1;
+  else if (name == "Face") return 2;
+  else if (name == "Cell") return mesh->dim();
+  else OMEGA_H_NORETURN(-1);
+}
+
+template <Int dim>
+static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList const& pl) {
+  auto filepath = pl.get<std::string>("File");
+  Int ent_dim = 0;
+  if (pl.isType<std::string>("Entity")) {
+    auto ent_str = pl.get<std::string>("Entity");
+    ent_dim = get_ent_dim_by_name(mesh, ent_str);
+  }
+  auto tag_name = pl.get<std::string>("Field");
+  auto data = mesh->get_array<Real>(ent_dim, tag_name);
+  auto origin = zero_vector<dim>();
+  if (pl.isType<Teuchos::Array<double>>("Origin")) {
+    auto origin_teuchos = pl.get<Teuchos::Array<double>>("Origin");
+    for (Int i = 0; i < dim; ++i) origin[i] = origin_teuchos[i];
+  }
+  std::string separator = "\t";
+  if (ends_with(filepath, "csv")) separator = ", ";
+  if (pl.isType<Teuchos::Array<double>>("Direction")) {
+    Vector<dim> direction;
+    auto direction_teuchos = pl.get<Teuchos::Array<double>>("Direction");
+    for (Int i = 0; i < dim; ++i) direction[i] = direction_teuchos[i];
+    write_linear_scatterplot(filepath, mesh, ent_dim, data, direction, origin, separator);
+  } else {
+    write_radial_scatterplot(filepath, mesh, ent_dim, data, origin, separator);
+  }
+}
+
+void write_scatterplot(Mesh* mesh, Teuchos::ParameterList const& pl) {
+  if (mesh->dim() == 3) write_scatterplot_dim<3>(mesh, pl);
+  if (mesh->dim() == 2) write_scatterplot_dim<2>(mesh, pl);
+  if (mesh->dim() == 1) write_scatterplot_dim<1>(mesh, pl);
 }
 
 }  // namespace Omega_h

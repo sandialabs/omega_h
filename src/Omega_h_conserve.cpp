@@ -249,6 +249,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
     Reals new_elem_densities, std::string const& error_name,
     LOs same_ents2old_ents, LOs same_ents2new_ents,
     ConservedBools conserved_bools) {
+  begin_code("transfer_integ_error");
   auto dim = old_mesh->dim();
   auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
   auto ncomps = old_tag->ncomps();
@@ -272,6 +273,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   }
   auto new_elem_errors = Reals(new_elem_errors_w);
   new_mesh->add_tag(dim, error_name, ncomps, new_elem_errors);
+  end_code();
 }
 
 static void transfer_size_error(Mesh* old_mesh, Mesh* new_mesh,
@@ -817,6 +819,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
   auto xfer_opts = opts.xfer_opts;
   if (!should_conserve_any(mesh, xfer_opts)) return;
+  begin_code("correct_integral_errors");
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto verbose = opts.verbosity > SILENT;
   auto diffusion_graph = get_elem_diffusion_graph(mesh);
@@ -845,6 +848,7 @@ void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
       mesh->remove_tag(dim, std::string("old_") + density_name);
     }
   }
+  end_code();
 }
 
 }  // end namespace Omega_h

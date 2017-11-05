@@ -23,6 +23,7 @@ namespace Omega_h {
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs old_lows2new_lows, LOs keys2kds) {
+  begin_code("modify_conn");
   for (LO i = 0; i < prods2new_ents.size(); ++i) {
     if (ent_dim == 2 && (i == 3427)) std::cerr << "prod " << i <<
         " of dimension " << ent_dim << " has verts "
@@ -36,7 +37,6 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     }
   }
   (void)keys2kds;
-  auto t0 = now();
   auto low_dim = ent_dim - 1;
   auto down_degree = simplex_degrees[ent_dim][low_dim];
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, low_dim);
@@ -85,8 +85,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto new_ents2new_lows =
       Adj(LOs(new_ent_lows2new_lows), Read<I8>(new_ent_low_codes));
   new_mesh->set_ents(ent_dim, new_ents2new_lows);
-  auto t1 = now();
-  add_to_global_timer("modifying connectivity", t1 - t0);
+  end_code();
 }
 
 /* set the owners of the mesh after an adaptive rebuild pass.
@@ -330,7 +329,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs keys2reps,
     LOs global_rep_counts) {
-  auto t0 = now();
+  begin_code("modify_globals");
   OMEGA_H_CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
   auto nsame_ents = same_ents2old_ents.size();
   OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
@@ -370,8 +369,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
   new_mesh->add_tag(ent_dim, "global", 1, Read<GO>(new_globals));
-  auto t1 = now();
-  add_to_global_timer("modifying globals", t1 - t0);
+  end_code();
 }
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
@@ -379,7 +377,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
 //std::cerr << "modify_ents ent_dim " << ent_dim << " key_dim " << key_dim << '\n';
-  auto t0 = now();
+  begin_code("modify_ents");
   *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim, keys2kds);
   auto nkeys = keys2kds.size();
   OMEGA_H_CHECK(nkeys == keys2prods.size() - 1);
@@ -417,8 +415,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   modify_globals(old_mesh, new_mesh, ent_dim, key_dim, keys2kds, keys2prods,
       *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
       keys2reps, global_rep_counts);
-  auto t1 = now();
-  add_to_global_timer("modifying mesh", t1 - t0);
+  end_code();
 }
 
 void set_owners_by_indset(

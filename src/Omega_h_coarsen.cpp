@@ -71,6 +71,12 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
       prevent_coarsen_overshoot(mesh, max_length, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
+  if (opts.should_prevent_coarsen_flip) {
+    cand_edge_codes =
+        prevent_coarsen_flip(mesh, cands2edges, cand_edge_codes);
+    filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
+    if (comm->reduce_and(cands2edges.size() == 0)) return false;
+  }
   /* cavity quality checks */
   auto cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
   cand_edge_codes = filter_coarsen_min_qual(
@@ -160,14 +166,18 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
 
 static bool coarsen(Mesh* mesh, AdaptOpts const& opts, OvershootLimit overshoot,
     Improve improve) {
-  if (!coarsen_element_based1(mesh)) return false;
-  mesh->set_parting(OMEGA_H_GHOSTED);
-  if (!coarsen_ghosted(mesh, opts, overshoot, improve)) {
-    return false;
+  begin_code("coarsen");
+  auto ret = coarsen_element_based1(mesh);
+  if (ret) {
+    mesh->set_parting(OMEGA_H_GHOSTED);
+    ret = coarsen_ghosted(mesh, opts, overshoot, improve);
   }
-  mesh->set_parting(OMEGA_H_ELEM_BASED, false);
-  coarsen_element_based2(mesh, opts);
-  return true;
+  if (ret) {
+    mesh->set_parting(OMEGA_H_ELEM_BASED, false);
+    coarsen_element_based2(mesh, opts);
+  }
+  end_code();
+  return ret;
 }
 
 static bool coarsen_verts(Mesh* mesh, AdaptOpts const& opts,
@@ -195,21 +205,29 @@ static bool coarsen_ents(Mesh* mesh, AdaptOpts const& opts, Int ent_dim,
 }
 
 bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
+  begin_code("coarsen_by_size");
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
-  if (get_max(comm, edge_is_cand) != 1) return false;
-  return coarsen_ents(mesh, opts, EDGE, edge_is_cand, DESIRED, DONT_IMPROVE);
+  auto ret = (get_max(comm, edge_is_cand) == 1);
+  if (ret) {
+    ret = coarsen_ents(mesh, opts, EDGE, edge_is_cand, DESIRED, DONT_IMPROVE);
+  }
+  end_code();
+  return ret;
 }
 
 bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
+  begin_code("coarsen_slivers");
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands =
       mark_sliver_layers(mesh, opts.min_quality_desired, opts.nsliver_layers);
   OMEGA_H_CHECK(get_max(comm, elems_are_cands) == 1);
-  return coarsen_ents(
+  auto ret = coarsen_ents(
       mesh, opts, mesh->dim(), elems_are_cands, ALLOWED, IMPROVE_LOCALLY);
+  end_code();
+  return ret;
 }
 
 }  // end namespace Omega_h

@@ -481,6 +481,7 @@ static void default_dim(Mesh* mesh, Int* cell_dim) {
 
 void write_vtu(
     std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags) {
+  begin_code("write_vtu");
   default_dim(mesh, &cell_dim);
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
@@ -523,6 +524,7 @@ void write_vtu(
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
   stream << "</VTKFile>\n";
+  end_code();
 }
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
@@ -603,14 +605,17 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   ask_for_mesh_tags(mesh, tags);
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid";
-  if (mesh->parting() == OMEGA_H_VERT_BASED && can_print(mesh) == 0) {
-    std::cerr << "WARNING: a pvtu file may be written from a "
-                 "vertex-partitioned mesh, but NOT read back in\n";
-  }
+  stream << " GhostLevel=\"";
   if (mesh->parting() == OMEGA_H_GHOSTED) {
-    stream << " GhostLevel=\"" << mesh->nghost_layers() << "\"";
+    stream << mesh->nghost_layers();
+  } else {
+    if (mesh->parting() == OMEGA_H_VERT_BASED && can_print(mesh) == 0) {
+      std::cerr << "WARNING: a pvtu file may be written from a "
+                   "vertex-partitioned mesh, but NOT read back in\n";
+    }
+    stream << Int(0);
   }
-  stream << ">\n";
+  stream << "\">\n";
   stream << "<PPoints>\n";
   write_p_data_array<Real>(stream, "coordinates", 3);
   stream << "</PPoints>\n";
@@ -633,6 +638,9 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   }
   stream << "</PPointData>\n";
   stream << "<PCellData>\n";
+  if (mesh->has_tag(cell_dim, "global") && tags[size_t(cell_dim)].count("global")) {
+    write_p_tag(stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim());
+  }
   if (tags[size_t(cell_dim)].count("local")) {
     write_p_data_array2(stream, "local", 1, OMEGA_H_I32);
   }
@@ -641,7 +649,7 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   }
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
-    if (tags[size_t(cell_dim)].count(tag->name())) {
+    if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
       write_p_tag(stream, tag, mesh->dim());
     }
   }
@@ -703,6 +711,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
 
 void write_parallel(
     std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags) {
+  begin_code("vtk::write_parallel");
   default_dim(mesh, &cell_dim);
   ask_for_mesh_tags(mesh, tags);
   auto rank = mesh->comm()->rank();
@@ -721,6 +730,7 @@ void write_parallel(
     write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece", tags);
   }
   write_vtu(piece_filename(piecepath, rank), mesh, cell_dim, tags);
+  end_code();
 }
 
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
