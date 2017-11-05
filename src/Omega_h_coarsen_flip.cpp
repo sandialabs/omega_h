@@ -30,29 +30,38 @@ static Reals compute_flip_normals_dim(
   auto out = Write<Real>(mesh->nverts() * dim, 0.0);
   auto f = OMEGA_H_LAMBDA(LO vm) {
     auto v = verts_that_matter[vm];
+    auto should_print = (v == 82451);
+    if (should_print) std::cerr << "computing flip normals for " << v << '\n';
     auto N_c = zero_vector<dim>();
     Few<Vector<dim>, max_adj_sides> N;
     auto n = 0;
     for (auto vs = v2s.a2ab[v]; vs < v2s.a2ab[v + 1]; ++vs) {
       auto s = v2s.ab2b[vs];
       if (!sides_are_exposed[s]) continue;
+      OMEGA_H_CHECK(n < max_adj_sides);
+      if (should_print) std::cerr << "adjacent side " << s << " is exposed\n";
       auto ssv2v = gather_verts<side_dim + 1>(sv2v, s);
       auto ssv2x = gather_vectors<side_dim + 1, dim>(coords, ssv2v);
       auto svec = get_side_vector(ssv2x);
       N_c += svec; // svec is the area weighted face normal
+      if (should_print) std::cerr << "side " << s << " vector is " << svec[0] << " " << svec[1] << " " << svec[2] << '\n';
       N[n++] = normalize(svec);
+      if (should_print) std::cerr << "normalized is " << N[n - 1][0] << " " << N[n - 1][1] << " " << N[n - 1][2] << '\n';
     }
     // as suggested by Aubry and Lohner, start with an initial guess done by
     // some kind of averaging (area weighted being an option)
     N_c = normalize(N_c);
+    if (should_print) std::cerr << "first guess vector is " << N_c[0] << " " << N_c[1] << " " << N_c[2] << '\n';
     // if that is roughly the same as all the face normals, just accept it
     // and don't bother with the expensive algorithm.
     // this is especially a good idea because most models are mostly flat surfaces
     Int i;
     for (i = 0; i < n; ++i) {
+      if (should_print) std::cerr << "first guess vector dot with " << i << " is " << N_c * N[i] << '\n';
       if (N_c * N[i] < simple_algorithm_threshold) break;
     }
     if (i < n) {
+      if (should_print) std::cerr << "first guess vector not good enough, running most_normal_normal\n";
       // nope, we actually have some nontrivial normals here.
       // run the super expensive algorithm.
       N_c = get_most_normal_normal(N, n);
@@ -134,9 +143,8 @@ static Bytes prevent_coarsen_flip_dim(
   auto verts_matter = mark_down(mesh, side_dim, VERT, sides_matter);
   auto vert_normals = compute_flip_normals_dim<dim>(
       mesh, sides_are_exposed, verts_matter);
+  std::cerr << "setting flip_normal tag on vertices\n";
   mesh->add_tag(VERT, "flip_normals", dim, vert_normals);
-  std::cerr << "writing is_bad.vtu\n";
-  vtk::write_vtu("is_bad.vtu", mesh);
   auto new_codes = prevent_coarsen_flip2_dim<dim>(
       mesh, sides_matter, verts_matter, vert_normals, cands2edges, cand_codes);
   return new_codes;
@@ -146,6 +154,7 @@ Bytes prevent_coarsen_flip(
     Mesh* mesh,
     LOs cands2edges,
     Bytes cand_codes) {
+  std::cerr << "begin prevent_coarsen_flip\n";
   if (mesh->dim() == 3) {
     return prevent_coarsen_flip_dim<3>(mesh, cands2edges, cand_codes);
   }
