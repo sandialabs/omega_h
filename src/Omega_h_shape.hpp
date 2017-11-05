@@ -280,17 +280,27 @@ OMEGA_H_INLINE Vector<1> get_side_vector(Few<Vector<1>, 2>, Int ivert) {
   return vector_1((ivert == 1) ? 1.0 : -1.0);
 }
 
+OMEGA_H_INLINE Vector<2> get_side_vector(Few<Vector<2>, 2> p) {
+  return -perp(p[1] - p[0]);
+}
+
 OMEGA_H_INLINE Vector<2> get_side_vector(Few<Vector<2>, 3> p, Int iedge) {
-  auto a = p[down_template(2, 1, iedge, 0)];
-  auto b = p[down_template(2, 1, iedge, 1)];
+  Few<Vector<2>, 2> sp;
+  sp[0] = p[down_template(2, 1, iedge, 0)];
+  sp[1] = p[down_template(2, 1, iedge, 1)];
   return -perp(b - a);
 }
 
+OMEGA_H_INLINE Vector<3> get_side_vector(Few<Vector<3>, 3> p) {
+  return get_triangle_normal(p[0], p[1], p[2]);
+}
+
 OMEGA_H_INLINE Vector<3> get_side_vector(Few<Vector<3>, 4> p, Int iface) {
-  auto a = p[down_template(3, 2, iface, 0)];
-  auto b = p[down_template(3, 2, iface, 1)];
-  auto c = p[down_template(3, 2, iface, 2)];
-  return cross(b - a, c - a);
+  Few<Vector<3>, 3> sp;
+  sp[0] = p[down_template(3, 2, iface, 0)];
+  sp[1] = p[down_template(3, 2, iface, 1)];
+  sp[2] = p[down_template(3, 2, iface, 2)];
+  return get_side_vector(sp);
 }
 
 template <Int dim>

@@ -13,6 +13,7 @@ Communications in Numerical Methods in Engineering
 DOI: 10.1002/cnm.1056
 */
 template <Int nmax>
+OMEGA_H_INLINE
 Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
     Real inside_tol = OMEGA_H_EPSILON) {
   // first try pairs
@@ -64,12 +65,12 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
         N_cy = N_cy * N_cz;
         auto N_c = vector_3(N_cx, N_cy, N_cz);
         //Check the orientation
-        auto scal = N_c * N_i;
+        auto scal = N_c * N[i];
         if (scal < 0.0) N_c = - N_c;
         //Compute the radius
-        scal = N_b * N[i];
-        OMEGA_H_CHECK(are_close(scale, N_b * N[j]));
-        OMEGA_H_CHECK(are_close(scale, N_b * N[k]));
+        scal = N_c * N[i];
+        OMEGA_H_CHECK(are_close(scal, N_c * N[j]));
+        OMEGA_H_CHECK(are_close(scal, N_c * N[k]));
         //Compare the current against smallest length
         if (scal < scalmin) continue;
         //Are all the points inside this circle?
@@ -87,6 +88,11 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
   }
   OMEGA_H_CHECK(scalmin > -1.0);
   return c;
+}
+
+OMEGA_H_INLINE
+Vector<2> get_most_normal_normal(Few<Vector<2>, 2> N, Int) {
+  return normalize(N[0] + N[1]);
 }
 
 }  // end namespace Omega_h
