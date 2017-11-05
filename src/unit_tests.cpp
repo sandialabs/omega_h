@@ -1133,6 +1133,18 @@ static void test_most_normal() {
   auto N_c = get_most_normal_normal(N, 4);
   OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,1))));
   }
+  {
+  Few<Vector<3>, 3> N =
+      {{1,0,0},{0,1,0},{0,1,0}};
+  auto N_c = get_most_normal_normal(N, 3);
+  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,0))));
+  }
+  {
+  Few<Vector<3>, 3> N =
+      {{1,0,0},{1,0,0},{1,0,0}};
+  auto N_c = get_most_normal_normal(N, 3);
+  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,0,0))));
+  }
 }
 
 int main(int argc, char** argv) {
