@@ -104,7 +104,7 @@ static Bytes prevent_coarsen_flip2_dim(
         for (ssv = 0; ssv < side_dim + 1; ++ssv) {
           if (ssv2n[ssv] * sn < epsilon) break;
         }
-        if (ssv != side_dim + 1) { // got a violator here
+        if (ssv < side_dim + 1) { // got a violator here
           code = dont_collapse(code, eev_col);
         }
       }
