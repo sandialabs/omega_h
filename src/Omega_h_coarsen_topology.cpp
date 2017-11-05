@@ -106,25 +106,12 @@ LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
       auto kc_code = kc_codes[kc];
       auto ccv_col = code_which_down(kc_code);
       auto ppv2v = &prod_verts2verts[prod * nccv];
-      auto should_print = (dom_dim == 1 && (prod == 927 || prod == 937));
-      if (should_print) {
-        std::cerr << "prod edge " << prod << " comes from key " << key << '\n';
-        std::cerr << "prod edge " << prod << " comes from old edge " << c
-          << " which used to have verts "
-          << cv2v[c * nccv + 0]
-          << " and " << cv2v[c * nccv + 1] << '\n';
-        std::cerr << "  and will now have verts:\n";
-      }
       for (Int ccv = 0; ccv < nccv; ++ccv) {
         LO old_v;
         if (ccv == ccv_col) {
           old_v = v_onto;
         } else {
           old_v = cv2v[c * nccv + ccv];
-        }
-        if (should_print) {
-          std::cerr << "  old vert " << old_v << " new vert "
-            << old_verts2new_verts[old_v] << '\n';
         }
         ppv2v[ccv] = old_verts2new_verts[old_v];
       }

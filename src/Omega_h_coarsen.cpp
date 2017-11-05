@@ -11,7 +11,6 @@
 #include "Omega_h_modify.hpp"
 #include "Omega_h_transfer.hpp"
 #include "Omega_h_verify.hpp"
-#include "Omega_h_file.hpp"
 #include <cstdlib>
 
 namespace Omega_h {
@@ -100,14 +99,6 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   mesh->add_tag(VERT, "collapse_quality", 1, vert_quals);
   mesh->add_tag(VERT, "collapse_rail", 1, vert_rails);
   auto keys2verts = collect_marked(verts_are_keys);
-  for (LO i = 0; i < keys2verts.size(); ++i) {
-    if (i == 323 || i == 325) {
-      auto v = keys2verts[i];
-      std::cerr << "key " << i << " is vert " << v
-        << " has quality " << vert_quals[v]
-        << " and rail " << vert_rails[v] << '\n';
-    }
-  }
   set_owners_by_indset(mesh, VERT, keys2verts, verts2cav_elems);
   return true;
 }

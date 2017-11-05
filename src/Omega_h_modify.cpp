@@ -24,18 +24,6 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs old_lows2new_lows, LOs keys2kds) {
   begin_code("modify_conn");
-  for (LO i = 0; i < prods2new_ents.size(); ++i) {
-    if (ent_dim == 2 && (i == 3427)) std::cerr << "prod " << i <<
-        " of dimension " << ent_dim << " has verts "
-        << prod_verts2verts[i * 3 + 0]
-        << ", " << prod_verts2verts[i * 3 + 1]
-        << " and " << prod_verts2verts[i * 3 + 2] << '\n';
-    if (ent_dim == 1 && (prods2new_ents[i] == 189489 || prods2new_ents[i] == 1012953)) {
-      std::cerr << "prod edge " << i << " is new edge " << prods2new_ents[i]
-        << " and has verts " << prod_verts2verts[i * 2 + 0]
-        << " and " << prod_verts2verts[i * 2 + 1] << '\n';
-    }
-  }
   (void)keys2kds;
   auto low_dim = ent_dim - 1;
   auto down_degree = simplex_degrees[ent_dim][low_dim];
@@ -48,16 +36,9 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto prods2new_lows = Adj();
   if (low_dim > VERT) {
     auto new_low_verts2new_verts = new_mesh->ask_verts_of(low_dim);
-    for (LO i = 0; i < new_mesh->nents(low_dim); ++i) {
-      if (ent_dim == 2 && i == 1012953) std::cerr << "new low ent " << i << " of dimension " << low_dim <<
-        " has verts " << new_low_verts2new_verts[i * 2 + 0]
-          << " and " << new_low_verts2new_verts[i * 2 + 1] << '\n';
-    }
     auto new_verts2new_lows = new_mesh->ask_up(VERT, low_dim);
-    std::cerr << "calling reflect_down(ent_dim = " << ent_dim << ", low_dim = " << low_dim << ")\n";
     prods2new_lows = reflect_down(prod_verts2verts, new_low_verts2new_verts,
         new_verts2new_lows, ent_dim, low_dim);
-    std::cerr << "called reflect_down(...)\n";
   } else {
     prods2new_lows = Adj(prod_verts2verts);
   }

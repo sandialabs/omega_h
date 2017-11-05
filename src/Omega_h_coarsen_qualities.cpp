@@ -35,19 +35,12 @@ static Reals coarsen_qualities_tmpl(
       auto v_col = ev2v[e * 2 + eev_col];
       auto eev_onto = 1 - eev_col;
       auto v_onto = ev2v[e * 2 + eev_onto];
-      auto should_print = (e == 1015622 || e == 1793123) && v_onto == 188224;
-      if (should_print) std::cerr << "considering collapsing " << v_col << " across edge " << e << " onto " << v_onto << '\n';
       Real minqual = 1.0;
       for (auto vc = v2vc[v_col]; vc < v2vc[v_col + 1]; ++vc) {
         auto c = vc2c[vc];
         auto vc_code = vc_codes[vc];
         auto ccv_col = code_which_down(vc_code);
         auto ccv2v = gather_verts<mesh_dim + 1>(cv2v, c);
-        if (should_print) {
-          std::cerr << "c " << c << " considered for edge " << e << " in direction " << eev_col
-            << " onto old vert " << v_onto << '\n';
-          is_bad_w[c] = 1;
-        }
         bool will_die = false;
         for (auto ccv = 0; ccv < (mesh_dim + 1); ++ccv) {
           if ((ccv != ccv_col) && (ccv2v[ccv] == v_onto)) {
@@ -59,27 +52,13 @@ static Reals coarsen_qualities_tmpl(
         OMEGA_H_CHECK(0 <= ccv_col && ccv_col < mesh_dim + 1);
         ccv2v[ccv_col] = v_onto;  // vertices of new cell
         auto qual = measure.measure(ccv2v);
-        if (should_print) {
-          std::cerr << "predicted quality of old elem " << c << " after collapse is " << qual << '\n';
-          auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, ccv2v);
-          auto b = simplex_basis<mesh_dim, mesh_dim>(p);
-          auto rs = element_size(b);
-          std::cerr << "real size is " << rs << '\n';
-          auto rq = metric_element_quality(p, matrix_1x1(1.0));
-          std::cerr << "real space quality is " << rq << '\n';
-        }
         minqual = min2(minqual, qual);
       }
-      if (should_print) std::cerr << "minqual in this direction is " << minqual << '\n';
       qualities[cand * 2 + eev_col] = minqual;
     }
   };
   parallel_for(ncands, f, "coarsen_qualities");
   auto out = Reals(qualities);
-  std::cerr << "setting is_bad tag on elements\n";
-  mesh->add_tag(mesh->dim(), "is_bad", 1, Bytes(is_bad_w));
-  std::cerr << "writing is_bad.vtu\n";
-  vtk::write_vtu("is_bad.vtu", mesh);
   return mesh->sync_subset_array(EDGE, out, cands2edges, -1.0, 2);
 }
 
