@@ -4,6 +4,10 @@
 #include "Omega_h_collapse.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_mark.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_array_ops.hpp"
+#include "Omega_h_most_normal.hpp"
 
 namespace Omega_h {
 
@@ -13,8 +17,8 @@ static Reals compute_flip_normals_dim(
     Bytes sides_are_exposed,
     Bytes verts_matter,
     Real simple_algorithm_threshold = 0.95) { // constant given by Aubry and Lohner
-  constexpr max_adj_sides = AvgDegree<side_dim, VERT, side_dim>::value * 2;
   constexpr auto side_dim = dim - 1;
+  constexpr auto max_adj_sides = AvgDegree<side_dim, VERT, side_dim>::value * 2;
   auto v2s = mesh->ask_up(VERT, side_dim);
   auto sv2v = mesh->ask_verts_of(side_dim);
   auto verts_that_matter = collect_marked(verts_matter);
@@ -66,6 +70,7 @@ static Bytes prevent_coarsen_flip2_dim(
     Real epsilon = OMEGA_H_EPSILON) { // below this value a dot product is considered negative
   OMEGA_H_CHECK(mesh->dim() == dim);
   constexpr auto side_dim = dim - 1;
+  auto ev2v = mesh->ask_verts_of(EDGE);
   auto sv2v = mesh->ask_verts_of(side_dim);
   auto v2s = mesh->ask_up(VERT, side_dim);
   auto coords = mesh->coords();
@@ -92,7 +97,7 @@ static Bytes prevent_coarsen_flip2_dim(
         }
         if (ssv != side_dim + 1) continue; // ignore sides that will disappear (part 2)
         ssv2v[ssv_col] = v_onto; // simulate the edge collapse on this side
-        auto ssv2x = gather_vectors<side_dim + 1, side_dim>(coords, ssv2v);
+        auto ssv2x = gather_vectors<side_dim + 1, dim>(coords, ssv2v);
         auto sn = get_side_vector(ssv2x); // get its new normal
         // compare the new side normal with the old normals of its vertices
         auto ssv2n = gather_vectors<side_dim + 1, dim>(vert_normals, ssv2v);
@@ -116,7 +121,7 @@ static Bytes prevent_coarsen_flip_dim(
     Mesh* mesh,
     LOs cands2edges,
     Bytes cand_codes) {
-  auto edges_are_cands = mark_image(cands2edges);
+  auto edges_are_cands = mark_image(cands2edges, mesh->nedges());
   auto verts_are_cands = mark_down(mesh, EDGE, VERT, edges_are_cands);
   auto side_dim = dim - 1;
   auto sides_are_adj = mark_up(mesh, VERT, side_dim, verts_are_cands);

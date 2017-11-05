@@ -276,6 +276,12 @@ OMEGA_H_INLINE Matrix<3, 3> element_implied_metric(Few<Vector<3>, 4> p) {
   return vector2symm(x);
 }
 
+template <Int dim>
+OMEGA_H_INLINE Vector<dim> get_triangle_normal(
+    Vector<dim> a, Vector<dim> b, Vector<dim> c) {
+  return cross(b - a, c - a);
+}
+
 OMEGA_H_INLINE Vector<1> get_side_vector(Few<Vector<1>, 2>, Int ivert) {
   return vector_1((ivert == 1) ? 1.0 : -1.0);
 }
@@ -288,11 +294,11 @@ OMEGA_H_INLINE Vector<2> get_side_vector(Few<Vector<2>, 3> p, Int iedge) {
   Few<Vector<2>, 2> sp;
   sp[0] = p[down_template(2, 1, iedge, 0)];
   sp[1] = p[down_template(2, 1, iedge, 1)];
-  return -perp(b - a);
+  return get_side_vector(sp);
 }
 
 OMEGA_H_INLINE Vector<3> get_side_vector(Few<Vector<3>, 3> p) {
-  return get_triangle_normal(p[0], p[1], p[2]);
+  return get_triangle_normal<3>(p[0], p[1], p[2]);
 }
 
 OMEGA_H_INLINE Vector<3> get_side_vector(Few<Vector<3>, 4> p, Int iface) {
@@ -368,12 +374,6 @@ OMEGA_H_INLINE Vector<3> get_circumcenter_vector(Few<Vector<3>, 2> basis) {
                     (balength * ca[1] - calength * ba[1]) * crossbc[0]) *
                 factor;
   return vector_3(xcirca, ycirca, zcirca);
-}
-
-template <Int dim>
-OMEGA_H_INLINE Vector<dim> get_triangle_normal(
-    Vector<dim> a, Vector<dim> b, Vector<dim> c) {
-  return cross(b - a, c - a);
 }
 
 /* This paper (and a few others):

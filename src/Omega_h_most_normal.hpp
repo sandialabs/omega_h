@@ -90,8 +90,9 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
   return c;
 }
 
+template <Int nmax>
 OMEGA_H_INLINE
-Vector<2> get_most_normal_normal(Few<Vector<2>, 2> N, Int) {
+Vector<2> get_most_normal_normal(Few<Vector<2>, nmax> N, Int) {
   return normalize(N[0] + N[1]);
 }
 
