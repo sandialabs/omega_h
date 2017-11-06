@@ -53,7 +53,7 @@ Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
 }
 
 template <Int mdim, Int edim>
-static Reals get_mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
+static Reals get_mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m, bool has_degen) {
   auto na = a2e.size();
   Write<Real> out(na * symm_ncomps(mdim));
   auto ev2v = mesh->ask_verts_of(edim);
@@ -61,42 +61,42 @@ static Reals get_mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m) {
     auto e = a2e[a];
     auto v = gather_verts<edim + 1>(ev2v, e);
     auto ms = gather_symms<edim + 1, mdim>(v2m, v);
-    auto m = average_metric(ms);
+    auto m = average_metric(ms, has_degen);
     set_symm(out, a, m);
   };
   parallel_for(na, f, "get_mident_metrics");
   return out;
 }
 
-Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m) {
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m, bool has_degen) {
   auto metrics_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (metrics_dim == 3 && ent_dim == 3) {
-    return get_mident_metrics_tmpl<3, 3>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<3, 3>(mesh, entities, v2m, has_degen);
   }
   if (metrics_dim == 3 && ent_dim == 1) {
-    return get_mident_metrics_tmpl<3, 1>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<3, 1>(mesh, entities, v2m, has_degen);
   }
   if (metrics_dim == 2 && ent_dim == 2) {
-    return get_mident_metrics_tmpl<2, 2>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<2, 2>(mesh, entities, v2m, has_degen);
   }
   if (metrics_dim == 2 && ent_dim == 1) {
-    return get_mident_metrics_tmpl<2, 1>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<2, 1>(mesh, entities, v2m, has_degen);
   }
   if (metrics_dim == 1 && ent_dim == 3) {
-    return get_mident_metrics_tmpl<1, 3>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<1, 3>(mesh, entities, v2m, has_degen);
   }
   if (metrics_dim == 1 && ent_dim == 2) {
-    return get_mident_metrics_tmpl<1, 2>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<1, 2>(mesh, entities, v2m, has_degen);
   }
   if (metrics_dim == 1 && ent_dim == 1) {
-    return get_mident_metrics_tmpl<1, 1>(mesh, entities, v2m);
+    return get_mident_metrics_tmpl<1, 1>(mesh, entities, v2m, has_degen);
   }
   OMEGA_H_NORETURN(Reals());
 }
 
-Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m) {
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m, bool has_degen) {
   LOs e2e(mesh->nents(ent_dim), 0, 1);
-  return get_mident_metrics(mesh, ent_dim, e2e, v2m);
+  return get_mident_metrics(mesh, ent_dim, e2e, v2m, has_degen);
 }
 
 Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t) {
@@ -255,26 +255,14 @@ Reals project_metrics_dim(Mesh* mesh, Reals e2m) {
   auto v2e = mesh->ask_up(VERT, mesh->dim());
   auto v_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(metric_dim));
   auto f = OMEGA_H_LAMBDA(LO v) {
-    auto vlm = zero_matrix<metric_dim, metric_dim>();
-    auto beg = v2e.a2ab[v];
-    auto end = v2e.a2ab[v + 1];
+    auto vm = zero_matrix<metric_dim, metric_dim>();
     Int n = 0;
-    for (auto ve = beg; ve < end; ++ve) {
+    for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
       auto e = v2e.ab2b[ve];
       auto em = get_symm<metric_dim>(e2m, e);
-      if (!are_close(em, zero_matrix<metric_dim, metric_dim>())) {
-        auto elm = linearize_metric(em);
-        vlm += elm;
-        ++n;
-      }
+      average_metric_contrib(vm, n, em, true); 
     }
-    Matrix<metric_dim, metric_dim> vm;
-    if (n) {
-      vlm /= n;
-      vm = delinearize_metric(vlm);
-    } else {
-      vm = zero_matrix<metric_dim, metric_dim>();
-    }
+    vm = average_metric_finish(vm, n, true);
     set_symm(v_metrics_w, v, vm);
   };
   parallel_for(mesh->nverts(), f);
@@ -283,10 +271,14 @@ Reals project_metrics_dim(Mesh* mesh, Reals e2m) {
 }
 
 Reals project_metrics(Mesh* mesh, Reals e2m) {
+  if (mesh->dim() == 3) return project_metrics_dim<3>(mesh, e2m);
+  else if (mesh->dim() == 2) return project_metrics_dim<2>(mesh, e2m);
+  else if (mesh->dim() == 1) return project_metrics_dim<1>(mesh, e2m);
+  else OMEGA_H_NORETURN(Reals());
 }
 
-Reals smooth_metric_once(Mesh* mesh, Reals v2m) {
-  return project_metrics(mesh, get_mident_metrics(mesh, mesh->dim(), v2m));
+Reals smooth_metric_once(Mesh* mesh, Reals v2m, bool has_degen) {
+  return project_metrics(mesh, get_mident_metrics(mesh, mesh->dim(), v2m, has_degen));
 }
 
 template <Int dim>

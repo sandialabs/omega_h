@@ -248,9 +248,28 @@ OMEGA_H_INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
 /* the "proper" way to interpolate the metric tensor to
  * the barycenter of a simplex; does several eigendecompositions
  */
-template <Int n, typename T>
-OMEGA_H_INLINE T average_metric(Few<T, n> ms) {
-  return delinearize_metric(average(linearize_metrics(ms)));
+template <Int dim>
+OMEGA_H_INLINE void average_metric_contrib(Matrix<dim, dim>& am, Int& n, Matrix<dim, dim> m, bool has_degen) {
+  if (has_degen && max_norm(m) < OMEGA_H_EPSILON) return;
+  am += linearize_metric(m);
+  n++;
+}
+
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> average_metric_finish(Matrix<dim, dim> am, Int n, bool has_degen) {
+  if (has_degen && n == 0) return am;
+  am /= n;
+  return delinearize_metric(am);
+}
+
+template <Int dim, Int n>
+OMEGA_H_INLINE Matrix<dim, dim> average_metric(Few<Matrix<dim, dim>, n> ms, bool has_degen) {
+  auto am = zero_matrix<dim, dim>();
+  Int ngood = 0;
+  for (Int i = 0; i < n; ++i) {
+    average_metric_contrib(am, ngood, ms[i], has_degen);
+  }
+  return average_metric_finish(am, ngood, has_degen);
 }
 
 template <Int dim>
@@ -291,8 +310,8 @@ Int get_metric_dim(Int ncomps);
 Int get_metrics_dim(LO nmetrics, Reals metrics);
 Int get_metric_dim(Mesh* mesh);
 
-Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m);
-Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m);
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m, bool has_degen = false);
+Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m, bool has_degen = false);
 Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t);
 Reals linearize_metrics(LO nmetrics, Reals metrics);
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);
@@ -314,7 +333,7 @@ Real get_expected_nelems(Mesh* mesh, Reals v2m);
 Real get_metric_scalar_for_nelems(
     Int elem_dim, Real expected_nelems, Real target_nelems);
 Real get_metric_scalar_for_nelems(Mesh* mesh, Reals v2m, Real target_nelems);
-Reals smooth_metric_once(Mesh* mesh, Reals v2m);
+Reals smooth_metric_once(Mesh* mesh, Reals v2m, bool has_dege = false);
 Reals get_curvature_metrics(Mesh* mesh, Real segment_angle);
 Reals get_hessian_metrics(Int dim, Reals hessians, Real eps);
 Reals get_gradient_metrics(Int dim, Reals gradients, Real eps);
