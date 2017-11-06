@@ -249,10 +249,40 @@ Reals limit_metric_gradation(
   return values2;
 }
 
-Reals project_metrics(Mesh* mesh, Reals e2m) {
+template <Int metric_dim>
+Reals project_metrics_dim(Mesh* mesh, Reals e2m) {
   auto e_linear = linearize_metrics(mesh->nelems(), e2m);
-  auto v_linear = project_by_average(mesh, e_linear);
-  return delinearize_metrics(mesh->nverts(), v_linear);
+  auto v2e = mesh->ask_up(VERT, mesh->dim());
+  auto v_metrics_w = Write<Real>(mesh->nverts() * symm_ncomps(metric_dim));
+  auto f = OMEGA_H_LAMBDA(LO v) {
+    auto vlm = zero_matrix<metric_dim, metric_dim>();
+    auto beg = v2e.a2ab[v];
+    auto end = v2e.a2ab[v + 1];
+    Int n = 0;
+    for (auto ve = beg; ve < end; ++ve) {
+      auto e = v2e.ab2b[ve];
+      auto em = get_symm<metric_dim>(e2m, e);
+      if (!are_close(em, zero_matrix<metric_dim, metric_dim>())) {
+        auto elm = linearize_metric(em);
+        vlm += elm;
+        ++n;
+      }
+    }
+    Matrix<metric_dim, metric_dim> vm;
+    if (n) {
+      vlm /= n;
+      vm = delinearize_metric(vlm);
+    } else {
+      vm = zero_matrix<metric_dim, metric_dim>();
+    }
+    set_symm(v_metrics_w, v, vm);
+  };
+  parallel_for(mesh->nverts(), f);
+  auto v_metrics = Reals(v_metrics_w);
+  return mesh->sync_array(VERT, v_metrics, symm_ncomps(metric_dim));
+}
+
+Reals project_metrics(Mesh* mesh, Reals e2m) {
 }
 
 Reals smooth_metric_once(Mesh* mesh, Reals v2m) {

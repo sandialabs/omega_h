@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
   Omega_h::AdaptOpts opts(&mesh);
   opts.verbosity = Omega_h::EXTRA_STATS;
   opts.xfer_opts.type_map["ugawg_metric"] = OMEGA_H_METRIC;
+  opts.should_prevent_coarsen_flip = true;
   if (cmdline.parsed("--model")) {
     auto model_path = cmdline.get<std::string>("--model", "model.step");
     std::cout << "reading in " << model_path << '\n';
@@ -50,7 +51,7 @@ int main(int argc, char** argv) {
   mesh.add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_ncomps(mesh.dim()), target_metrics);
   std::cout << "writing out before_adapt.vtu\n";
   Omega_h::vtk::write_vtu("before_adapt.vtu", &mesh);
-  while (Omega_h::approach_metric(&mesh, opts)) {
+  while (Omega_h::approach_metric(&mesh, opts, 0.0)) {
     Omega_h::adapt(&mesh, opts);
   }
   auto t2 = Omega_h::now();

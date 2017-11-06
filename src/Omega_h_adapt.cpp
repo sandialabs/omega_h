@@ -166,8 +166,6 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
-  std::cerr << "post_rebuild: calling verify_no_duplicates\n";
-  verify_no_duplicates(mesh);
   if (opts.verbosity >= EACH_REBUILD) print_adapt_status(mesh, opts);
 }
 

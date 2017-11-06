@@ -18,7 +18,7 @@ static Reals compute_flip_normals_dim(
     Bytes verts_matter,
     Real simple_algorithm_threshold = 0.95) { // constant given by Aubry and Lohner
   constexpr auto side_dim = dim - 1;
-  constexpr auto max_adj_sides = AvgDegree<side_dim, VERT, side_dim>::value * 2;
+  constexpr auto max_adj_sides = AvgDegree<side_dim, VERT, side_dim>::value * 4;
   auto v2s = mesh->ask_up(VERT, side_dim);
   auto sv2v = mesh->ask_verts_of(side_dim);
   auto verts_that_matter = collect_marked(verts_matter);

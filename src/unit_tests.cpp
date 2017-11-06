@@ -219,6 +219,15 @@ static void test_intersect_subset_metrics() {
   OMEGA_H_CHECK(are_close(intersect_metrics(m1, m2), m1));
 }
 
+static void test_intersect_with_null() {
+  auto q =
+      rotate(PI / 4., vector_3(0, 0, 1)) * rotate(PI / 4., vector_3(0, 1, 0));
+  auto m1 = compose_metric(q, vector_3(1, 1, 1e-3));
+  auto m2 = zero_matrix<3, 3>();
+  OMEGA_H_CHECK(are_close(intersect_metrics(m1, m2), m1));
+  OMEGA_H_CHECK(are_close(intersect_metrics(m2, m1), m1));
+}
+
 static void test_intersect_metrics() {
   test_intersect_ortho_metrics(
       vector_3(0.5, 1, 1), vector_3(1, 0.5, 1), vector_3(0.5, 0.5, 1));
@@ -229,6 +238,7 @@ static void test_intersect_metrics() {
   test_intersect_ortho_metrics(vector_3(1e-5, 1e-3, 1e-3),
       vector_3(1e-3, 1e-3, 1e-5), vector_3(1e-5, 1e-3, 1e-5));
   test_intersect_subset_metrics();
+  test_intersect_with_null();
 }
 
 static void test_sort() {

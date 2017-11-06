@@ -76,7 +76,7 @@ void fix_momentum_velocity_verts(
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
     bool exit_on_stall = false, Int max_niters = 40);
-bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
+bool approach_metric(Mesh* mesh, AdaptOpts const& opts, Real min_step = 1e-4);
 
 struct MetricSource {
   Omega_h_Source type;

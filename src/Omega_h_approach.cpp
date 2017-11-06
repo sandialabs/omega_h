@@ -73,7 +73,7 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
   return true;
 }
 
-bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
+bool approach_metric(Mesh* mesh, AdaptOpts const& opts, Real min_step) {
   auto name = "metric";
   auto target_name = "target_metric";
   if (!mesh->has_tag(VERT, target_name)) return false;
@@ -85,19 +85,21 @@ bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
     mesh->remove_tag(VERT, target_name);
     return true;
   }
-  Real t = 1.0;
-  constexpr Real min_t = 1e-4;
+  Real factor = 1.0;
   do {
-    t /= 2.0;
-    if (t < min_t) {
+    factor /= 2.0;
+    if (factor < min_step) {
       Omega_h_fail(
           "size field approach step = %f < %f.\n"
           "Omega_h is probably unable to satisfy this size field\n",
-          t, min_t);
+          factor, min_step);
     }
-    auto current = interpolate_between_metrics(mesh->nverts(), orig, target, t);
+    auto current = interpolate_between_metrics(mesh->nverts(), orig, target, factor);
     mesh->set_tag(VERT, name, current);
   } while (!okay(mesh, opts));
+  if (opts.verbosity >= EACH_REBUILD && can_print(mesh)) {
+    std::cout << "approach_metric moved by factor " << factor << '\n';
+  }
   return true;
 }
 

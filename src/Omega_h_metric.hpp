@@ -1,6 +1,7 @@
 #ifndef OMEGA_H_METRIC_HPP
 #define OMEGA_H_METRIC_HPP
 
+#include <Omega_h_eigen.hpp>
 #include <Omega_h_lie.hpp>
 
 namespace Omega_h {
@@ -67,50 +68,128 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   return {ed.q, h};
 }
 
-/* INRIA knows what they're doing with respect to the metric.
-   See these papers:
+/* Metric intersection that accounts for all degenerate cases,
+   thanks to:
+   Barral, Nicolas.
+   "Time-accurate anisotropic mesh adaptation for three-dimensional moving mesh problems"
+   Diss. Universite Pierre et Marie Curie-Paris VI, 2015.
+ */
+OMEGA_H_INLINE Matrix<1, 1> intersect_degenerate_metrics(
+    Matrix<1, 1> m1,
+    DiagDecomp<1>,
+    Few<Int, 1>,
+    Int,
+    Matrix<1, 1>,
+    DiagDecomp<1>,
+    Few<Int, 1>,
+    Int) {
+  // this should be impossible, but toss something in here so the code compiles
+  return m1;
+}
 
-   Frey, Pascal-Jean, and Frédéric Alauzet.
-   "Anisotropic mesh adaptation for CFD computations."
-   Computer methods in applied mechanics and engineering
-   194.48 (2005): 5068-5082.
+// Appendix A.1 in Barral's dissertation, case 5
+OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(
+    Matrix<2, 2> m1,
+    DiagDecomp<2> m1_dc,
+    Few<Int, 2> m1_ew_is_degen,
+    Int,
+    Matrix<2, 2> m2,
+    DiagDecomp<2> m2_dc,
+    Few<Int, 2> m2_ew_is_degen,
+    Int) {
+  Vector<2> u1, v1, v2;
+  Real l1 = -1.0;
+  Real l2 = -1.0;
+  for (Int i = 0; i < 2; ++i) {
+    if (m1_ew_is_degen[i]) v1 = m1_dc.q[i];
+    else {
+      u1 = m1_dc.q[i];
+      l1 = m1_dc.l[i];
+    }
+    if (m2_ew_is_degen[i]) v2 = m2_dc.q[i];
+    else l2 = m2_dc.l[i];
+  }
+  if (v1 * v2 < OMEGA_H_EPSILON) {
+    // case 5.a
+    return outer_product(u1, u1) * max2(l1, l2);
+  } else {
+    // case 5.b
+    Matrix<2, 2> p;
+    p[0] = v1;
+    p[1] = v2;
+    auto p_inv = invert(p);
+    Vector<2> l;
+    l[0] = v1 * (m2 * v1);
+    l[1] = v2 * (m1 * v2);
+    return transpose(p_inv) * diagonal(l) * p_inv;
+  }
+}
 
-   F. Alauzet, P.J. Frey, Estimateur d'erreur geometrique
-   et metriques anisotropes pour l'adaptation de maillage.
-   Partie I: aspects theoriques,
-   RR-4759, INRIA Rocquencourt, 2003.
-
-https://www.rocq.inria.fr/gamma/Frederic.Alauzet/
-
-   This metric interpolation code is from Section 2.2 of
-   that report, with one slight correction to Remark 2.5,
-   where we suspect that in the more general case, if
-   all eigenvalues of N are above one or all are below one,
-   then one metric encompasses the other.
-*/
+OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
+    Matrix<3, 3>,
+    DiagDecomp<3>,
+    Few<Int, 3>,
+    Int,
+    Matrix<3, 3>,
+    DiagDecomp<3>,
+    Few<Int, 3>,
+    Int) {
+  // TODO: implement this later. in a bit of a rush.
+  OMEGA_H_CHECK(false);
+}
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
-  auto n = invert(m1) * m2;
-  auto n_decomp = decompose_eigen(n);
-  bool all_above_one = true;
-  bool all_below_one = true;
+    Matrix<dim, dim> m1,
+    Matrix<dim, dim> m2) {
+  auto m1_dc = decompose_eigen(m1);
+  auto m2_dc = decompose_eigen(m2);
+  Few<Int, dim> m1_ew_is_degen;
+  Few<Int, dim> m2_ew_is_degen;
   for (Int i = 0; i < dim; ++i) {
-    if (n_decomp.l[i] > 1) all_below_one = false;
-    if (n_decomp.l[i] < 1) all_above_one = false;
+    // if EPSILON is 1e-10, this corresponds roughly to edges
+    // of absolute length 1e5 or more being considered "infinite"
+    m1_ew_is_degen[i] = m1_dc.l[i] < OMEGA_H_EPSILON;
+    m2_ew_is_degen[i] = m2_dc.l[i] < OMEGA_H_EPSILON;
   }
-  if (all_below_one) return m1;
-  if (all_above_one) return m2;
-  auto p = n_decomp.q;
-  Vector<dim> w;
-  for (Int i = 0; i < dim; ++i) {
-    auto u = metric_product(m1, p[i]);
-    auto v = metric_product(m2, p[i]);
-    w[i] = max2(u, v);
+  auto nm1_degen_ews = sum(m1_ew_is_degen);
+  auto nm2_degen_ews = sum(m2_ew_is_degen);
+  if (nm1_degen_ews > nm2_degen_ews) {
+    swap2(m1_dc, m2_dc);
+    swap2(m1_ew_is_degen, m2_ew_is_degen);
+    swap2(nm1_degen_ews, nm2_degen_ews);
   }
-  auto ip = invert(p);
-  return transpose(ip) * diagonal(w) * ip;
+  // At this point, M_1 is the least degenerate, or they are equally degenerate.
+  if (nm1_degen_ews == dim) {
+    // The least degenerate metric is null... they must both be... return null
+    return zero_matrix<dim, dim>();
+  }
+  if (nm1_degen_ews == 0) {
+    // as long as M_1 is not degenerate, the "normal" procedure can be applied
+    Vector<dim> l_m1_sqrt;
+    Vector<dim> l_m1_inv_sqrt;
+    for (Int i = 0; i < dim; ++i) {
+      l_m1_sqrt[i] = std::sqrt(m1_dc.l[i]);
+      l_m1_inv_sqrt[i] = 1.0 / l_m1_sqrt[i];
+    }
+    auto m1_sqrt = compose_ortho(m1_dc.q, l_m1_sqrt);
+    auto m1_inv_sqrt = compose_ortho(m1_dc.q, l_m1_inv_sqrt);
+    auto m2_bar = transpose(m1_inv_sqrt) * m2 * m1_inv_sqrt;
+    auto m2_bar_dc = decompose_eigen(m2_bar);
+    auto p = m2_bar_dc.q;
+    Vector<dim> l_m_int_bar;
+    for (Int i = 0; i < dim; ++i) {
+      l_m_int_bar[i] = max2(m2_bar_dc.l[i], 1.0);
+    }
+    auto m_int_bar = compose_ortho(p, l_m_int_bar);
+    auto m_int = transpose(m1_sqrt) * m_int_bar * m1_sqrt;
+    return m_int;
+  }
+  // okay, both the metrics are partially degenerate.
+  // call the dimension-specific logic.
+  return intersect_degenerate_metrics(
+      m1, m1_dc, m1_ew_is_degen, nm1_degen_ews,
+      m2, m2_dc, m2_ew_is_degen, nm2_degen_ews);
 }
 
 /* Alauzet details four different ways to interpolate
