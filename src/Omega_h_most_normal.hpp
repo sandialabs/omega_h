@@ -59,8 +59,9 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
         M[2] = N[k];
         // if the vectors aren't linearly independent, then either
         // two or more of them are the same or they are co-linear.
-        // neither of these cases is something we want to deal with
-        if (std::fabs(determinant(M)) < OMEGA_H_EPSILON) continue;
+        // neither of these cases is something we want to deal with.
+        auto abs_det = std::fabs(determinant(M));
+        if (std::fabs(determinant(M)) < 1e-6) continue;
         // otherwise, the un-normalized vector we're looking for
         // is one that has the same dot product with all three,
         // we choose the arbitrary constant 1.0 as this product
@@ -74,6 +75,9 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
           std::cerr << N[j][0] << " " << N[j][1] << " " << N[j][2] << '\n';
           std::cerr << N[k][0] << " " << N[k][1] << " " << N[k][2] << '\n';
           std::cerr << "output " << N_c[0] << " " << N_c[1] << " " << N_c[2] << '\n';
+          std::cerr << "matrix determinant " << abs_det << '\n';
+          std::cerr << "error with N[j] " << rel_diff_with_floor(scal, N_c * N[j]) << '\n';
+          std::cerr << "error with N[k] " << rel_diff_with_floor(scal, N_c * N[k]) << '\n';
         }
         OMEGA_H_CHECK(are_close(scal, N_c * N[j]));
         OMEGA_H_CHECK(are_close(scal, N_c * N[k]));
