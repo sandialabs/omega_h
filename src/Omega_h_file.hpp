@@ -74,9 +74,10 @@ class Writer {
   Writer& operator=(Writer const&);
   ~Writer();
   Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1);
-  void write(Real time);
   void write();
+  void write(Real time);
   void write(Real time, TagSet const& tags);
+  void write(Int step, Real time, TagSet const& tags);
 };
 class FullWriter {
   std::vector<Writer> writers_;

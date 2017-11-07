@@ -858,11 +858,16 @@ Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
   }
 }
 
-void Writer::write(Real time, TagSet const& tags) {
+void Writer::write(Int step, Real time, TagSet const& tags) {
+  step_ = step;
   write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags);
   if (mesh_->comm()->rank() == 0) {
     update_pvd(root_path_, &pvd_pos_, step_, time);
   }
+}
+
+void Writer::write(Real time, TagSet const& tags) {
+  this->write(step_, time, tags);
   ++step_;
 }
 
