@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <limits>
 
 #ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
@@ -758,16 +759,29 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-std::streampos write_initial_pvd(std::string const& root_path) {
+std::streampos write_initial_pvd(std::string const& root_path, bool overwrite) {
   std::string pvdpath = get_pvd_path(root_path);
-  std::ofstream file(pvdpath.c_str());
-  OMEGA_H_CHECK(file.is_open());
-  file << "<VTKFile type=\"Collection\" version=\"0.1\">\n";
-  file << "<Collection>\n";
-  auto pos = file.tellp();
-  file << "</Collection>\n";
-  file << "</VTKFile>\n";
-  return pos;
+  static char const epilogue[] = "</Collection>\n</VTKFile>\n";
+  if (overwrite || !file_exists(pvdpath.c_str())) {
+    std::ofstream file(pvdpath.c_str());
+    OMEGA_H_CHECK(file.is_open());
+    file << "<VTKFile type=\"Collection\" version=\"0.1\">\n";
+    file << "<Collection>\n";
+    auto pos = file.tellp();
+    file << epilogue;
+    return pos;
+  } else {
+    /* some code off StackOverflow to determine the size of the existing file */
+    std::ifstream file;
+    file.open(pvdpath, std::ios::in | std::ios::binary);
+    file.ignore(std::numeric_limits<std::streamsize>::max());
+    auto pos = file.gcount();
+    file.clear();   //  Since ignore will have set eof.
+    file.seekg(0, std::ios_base::beg);
+    OMEGA_H_CHECK(pos > decltype(pos)(sizeof(epilogue)));
+    pos -= sizeof(epilogue);
+    return pos;
+  }
 }
 
 void update_pvd(std::string const& root_path, std::streampos* pos_inout,
@@ -839,7 +853,7 @@ Writer& Writer::operator=(Writer const& other) {
 
 Writer::~Writer() {}
 
-Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
+Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim, bool overwrite)
     : mesh_(mesh),
       root_path_(root_path),
       cell_dim_(cell_dim),
@@ -854,15 +868,20 @@ Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
   if (rank == 0) safe_mkdir(stepsdir.c_str());
   comm->barrier();
   if (rank == 0) {
-    pvd_pos_ = write_initial_pvd(root_path);
+    pvd_pos_ = write_initial_pvd(root_path, overwrite);
   }
 }
 
-void Writer::write(Real time, TagSet const& tags) {
+void Writer::write(Int step, Real time, TagSet const& tags) {
+  step_ = step;
   write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags);
   if (mesh_->comm()->rank() == 0) {
     update_pvd(root_path_, &pvd_pos_, step_, time);
   }
+}
+
+void Writer::write(Real time, TagSet const& tags) {
+  this->write(step_, time, tags);
   ++step_;
 }
 

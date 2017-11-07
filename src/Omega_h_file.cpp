@@ -38,6 +38,13 @@ void safe_mkdir(const char* path) {
   }
 }
 
+bool file_exists(const char* path) {
+  struct stat info;
+  if (stat(path, &info) != 0) return false;
+  OMEGA_H_CHECK(info.st_mode & S_IFREG);
+  return true;
+}
+
 bool directory_exists(const char* path) {
   struct stat info;
   if (stat(path, &info) != 0) return false;

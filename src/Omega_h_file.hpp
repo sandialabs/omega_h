@@ -16,6 +16,7 @@ namespace Omega_h {
 bool ends_with(std::string const& s, std::string const& suffix);
 bool is_little_endian_cpu();
 void safe_mkdir(const char* path);
+bool file_exists(const char* path);
 bool directory_exists(const char* path);
 std::string parent_path(std::string const& path);
 std::string path_leaf_name(std::string const& path);
@@ -73,10 +74,11 @@ class Writer {
   Writer(Writer const&);
   Writer& operator=(Writer const&);
   ~Writer();
-  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1);
-  void write(Real time);
+  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1, bool overwrite = true);
   void write();
+  void write(Real time);
   void write(Real time, TagSet const& tags);
+  void write(Int step, Real time, TagSet const& tags);
 };
 class FullWriter {
   std::vector<Writer> writers_;

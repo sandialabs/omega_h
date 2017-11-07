@@ -150,7 +150,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
   silent_ = cmdline.parsed("--osh-silent");
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  if (!Kokkos::DefaultExecutionSpace::is_initialized()) {
+  if (!Kokkos::is_initialized()) {
     OMEGA_H_CHECK(argc != nullptr);
     OMEGA_H_CHECK(argv != nullptr);
     Kokkos::initialize(*argc, *argv);
