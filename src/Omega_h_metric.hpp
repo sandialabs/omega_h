@@ -125,15 +125,50 @@ OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(
   }
 }
 
+// Barral's thesis, appendix A.2
 OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
-    Matrix<3, 3>,
-    DiagDecomp<3>,
-    Few<Int, 3>,
-    Int,
-    Matrix<3, 3>,
-    DiagDecomp<3>,
-    Few<Int, 3>,
-    Int) {
+    Matrix<3, 3> m1,
+    DiagDecomp<3> m1_dc,
+    Few<Int, 3> m1_ew_is_degen,
+    Int nm1_degen_ews,
+    Matrix<3, 3> m2,
+    DiagDecomp<3> m2_dc,
+    Few<Int, 3> m2_ew_is_degen,
+    Int nm2_degen_ews) {
+  if (nm1_degen_ews == 2 && nm2_degen_ews == 2) {
+    // case 2
+    Vector<3> u1, u2;
+    Real l1, l2;
+    for (Int i = 0; i < 3; ++i) {
+      if (!m1_ew_is_degen[i]) {
+        u1 = m1_dc.q[i];
+        l1 = m1_dc.l[i];
+      }
+      if (!m2_ew_is_degen[i]) {
+        u2 = m2_dc.q[i];
+        l2 = m2_dc.l[i];
+      }
+    }
+    auto u = cross(u1, u2);
+    if (norm_squared(u) < EPSILON) {
+      // case 2.a (u1 == u2)
+      return max2(l1, l2) * outer_product(u1, u1);
+    } else {
+      // case 2.a (u1 != u2)
+      auto e1 = cross(u1, u);
+      auto e2 = cross(u2, u);
+      Matrix<3, 3> P;
+      P[0] = e1;
+      P[1] = e2;
+      P[2] = u;
+      Vector<3> l;
+      l[0] = e1 * (m2 * e1);
+      l[1] = e2 * (m1 * e2);
+      l[2] = 0.0;
+      auto Pinv = invert(P);
+      return transpose(Pinv) * diagonal(l) * Pinv;
+    }
+  }
   // TODO: implement this later. in a bit of a rush.
   OMEGA_H_CHECK(false);
 }
