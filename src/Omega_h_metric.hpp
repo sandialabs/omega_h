@@ -154,7 +154,7 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
       // case 2.a (u1 == u2)
       return max2(l1, l2) * outer_product(u1, u1);
     } else {
-      // case 2.a (u1 != u2)
+      // case 2.b (u1 != u2)
       auto e1 = cross(u1, u);
       auto e2 = cross(u2, u);
       Matrix<3, 3> P;
@@ -168,6 +168,62 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
       auto Pinv = invert(P);
       return transpose(Pinv) * diagonal(l) * Pinv;
     }
+  }
+  if (nm1_degen_ews == 1 && nm2_degen_ews == 2) {
+    // case 3
+    // note that in Barral's dissertation, it is m1 that has two degenerate directions.
+    // however, here we keep the rule that m1 is the least degenerate.
+    // so, in this case all 1 and 2 are swapped compared to the dissertation.
+    Vector<3> u1, v1, w1, u2, v2, w2;
+    bool found_u1 = false;
+    bool found_v2 = false;
+    for (Int i = 0; i < 3; ++i) {
+      if (m1_ew_is_degen[i]) w1 = m1_dc.q[i];
+      else {
+        if (found_u1) {
+          v1 = m1_dc.q[i];
+        } else {
+          u1 = m1_dc.q[i];
+          found_u1 = true;
+        }
+      }
+      if (!m2_ew_is_degen[i]) u2 = m2_dc.q[i];
+      else {
+        if (found_v2) {
+          w2 = m2_dc.q[i];
+        } else {
+          v2 = m2_dc.q[i];
+          found_v2 = true;
+        }
+      }
+    }
+    if (u2 * w1 < EPSILON) {
+      // case 3.a , u2 and w1 are orthogonal
+      Matrix<3, 2> P;
+      P[0] = u1;
+      P[1] = v1;
+      auto PT = transpose(P);
+      auto m1_bar = PT * (m1 * P);
+      auto m2_bar = PT * (m2 * P);
+      auto mint_bar = intersect_metrics(m1_bar, m2_bar); // reduced to 2D
+      // u1 and v1 are supposed to be orthogonal, so the pseudo-inverse is the transpose
+      return P * (mint_bar * PT);
+    } else {
+      // case 3.b, u2 and w1 are not orthogonal
+      Matrix<3, 3> P;
+      P[0] = v2;
+      P[1] = w2;
+      P[2] = w1;
+      auto Pinv = invert(P);
+      Vector<3> l;
+      l[0] = P[0] * (m1 * P[0]);
+      l[1] = P[1] * (m1 * P[1]);
+      l[2] = P[2] * (m2 * P[2]);
+      return transpose(Pinv) * diagonal(l) * Pinv;
+    }
+  }
+  if (nm1_degen_ews == 1 && nm2_degen_ews == 1) {
+    // case 4
   }
   // TODO: implement this later. in a bit of a rush.
   OMEGA_H_CHECK(false);
