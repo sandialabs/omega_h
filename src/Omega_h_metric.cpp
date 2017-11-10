@@ -239,15 +239,9 @@ Reals limit_metric_gradation(
     values = values2;
     values2 = limit_gradation_once(mesh, values, max_rate);
     ++i;
-    if (verbose && can_print(mesh) && i > 40) {
+    if (verbose && can_print(mesh) && i > 0 && i % 50 == 0) {
       std::cout << "warning: gradation limiting is up to step " << i << '\n';
     }
-    Real max_rel_diff;
-    for (LO j = 0; j < values.size(); ++j) {
-      auto rel_diff = rel_diff_with_floor(values[j], values2[j], EPSILON);
-      max_rel_diff = max2(max_rel_diff, rel_diff);
-    }
-    std::cout << "max_rel_diff " << max_rel_diff << '\n';
   } while (!comm->reduce_and(are_close(values, values2, tol)));
   if (verbose && can_print(mesh)) {
     std::cout << "limited gradation in " << i << " steps\n";
