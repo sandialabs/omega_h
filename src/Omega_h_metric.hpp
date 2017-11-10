@@ -28,14 +28,10 @@ OMEGA_H_INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
   return 1.0 / metric_length(m, dir);
 }
 
-OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l)
-    __attribute__((const));
 OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) {
   return 1.0 / sqrt(l);
 }
 
-OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h)
-    __attribute__((const));
 OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {
   return 1.0 / square(h);
 }
@@ -67,6 +63,11 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto h = metric_lengths_from_eigenvalues(ed.l);
   return {ed.q, h};
 }
+
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
+    Matrix<dim, dim> m1,
+    Matrix<dim, dim> m2);
 
 /* Metric intersection that accounts for all degenerate cases,
    thanks to:
@@ -123,6 +124,7 @@ OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(
     l[1] = v2 * (m1 * v2);
     return transpose(p_inv) * diagonal(l) * p_inv;
   }
+  return m1;
 }
 
 // Barral's thesis, appendix A.2
@@ -138,7 +140,7 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
   if (nm1_degen_ews == 2 && nm2_degen_ews == 2) {
     // case 2
     Vector<3> u1, u2;
-    Real l1, l2;
+    Real l1 = -1.0, l2 = -1.0;
     for (Int i = 0; i < 3; ++i) {
       if (!m1_ew_is_degen[i]) {
         u1 = m1_dc.q[i];
@@ -154,6 +156,7 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
       // case 2.a (u1 == u2)
       return max2(l1, l2) * outer_product(u1, u1);
     } else {
+      u = normalize(u);
       // case 2.b (u1 != u2)
       auto e1 = cross(u1, u);
       auto e2 = cross(u2, u);
@@ -224,9 +227,47 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
   }
   if (nm1_degen_ews == 1 && nm2_degen_ews == 1) {
     // case 4
+    Vector<3> u1, v1, w1, w2;
+    bool found_u1 = false;
+    for (Int i = 0; i < 3; ++i) {
+      if (m1_ew_is_degen[i]) w1 = m1_dc.q[i];
+      else {
+        if (found_u1) {
+          v1 = m1_dc.q[i];
+        } else {
+          u1 = m1_dc.q[i];
+          found_u1 = true;
+        }
+      }
+      if (m2_ew_is_degen[i]) w2 = m2_dc.q[i];
+    }
+    auto w = cross(w1, w2);
+    if (norm_squared(w) > EPSILON) {
+      // case 4.a
+      Matrix<3, 2> P;
+      P[0] = u1;
+      P[1] = v1;
+      auto PT = transpose(P);
+      auto m1_bar = PT * (m1 * P);
+      auto m2_bar = PT * (m2 * P);
+      auto mint_bar = intersect_metrics(m1_bar, m2_bar);
+      return P * (mint_bar * PT);
+    } else {
+      // case 4.b
+      w = normalize(w);
+      Matrix<3, 3> P;
+      P[0] = w1;
+      P[1] = w2;
+      P[2] = w;
+      Vector<3> l;
+      l[0] = P[0] * (m2 * P[0]);
+      l[1] = P[1] * (m1 * P[1]);
+      l[2] = max2(P[2] * (m1 * P[2]), P[2] * (m2 * P[2]));
+      auto Pinv = invert(P);
+      return transpose(Pinv) * diagonal(l) * Pinv;
+    }
   }
-  // TODO: implement this later. in a bit of a rush.
-  OMEGA_H_CHECK(false);
+  return m1;
 }
 
 template <Int dim>
