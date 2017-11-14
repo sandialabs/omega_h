@@ -387,7 +387,7 @@ OMEGA_H_INLINE Vector<2> schur_sym(Real f, Real g, Real h) {
     if (t >= 0.0) {
       t = 1.0 / (std::sqrt(1.0 + square(t)) + t);
     } else {
-      t = -1.0 / (std::sqrt(1.0 + square(t)) + t);
+      t = -1.0 / (std::sqrt(1.0 + square(t)) - t);
     }
     c = 1.0 / std::sqrt(1.0 + square(t));
     s = t * c;

@@ -31,6 +31,10 @@
 
 #include <sstream>
 
+//DEBUG
+#include <iostream>
+#include <iomanip>
+
 using namespace Omega_h;
 
 template <Int m, Int n>
@@ -180,6 +184,13 @@ static void test_eigen_jacobi(
   OMEGA_H_CHECK(are_close(ed.l, expect_l));
 }
 
+static void test_eigen_jacobi_sign_bug() {
+  auto sign_bug_input = matrix_3x3(0.99999999998511147, 5.3809065327405379e-11, 9.7934015130085018e-10,
+      5.3809065327405379e-11, 0.99999999995912181, -1.676999986436999e-09,
+      9.7934015130085018e-10, -1.676999986436999e-09, 0.99999995816580101);
+  decompose_eigen_jacobi(sign_bug_input);
+}
+
 static void test_eigen_jacobi() {
   test_eigen_jacobi(
       identity_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(1, 1));
@@ -191,6 +202,7 @@ static void test_eigen_jacobi() {
       Matrix<3, 3>({normalize(vector_3(0, 1, 2)), normalize(vector_3(1, 0, 0)),
           normalize(vector_3(0, 2, -1))}),
       vector_3(11, 2, 1));
+  test_eigen_jacobi_sign_bug();
 }
 
 static void test_intersect_ortho_metrics(
