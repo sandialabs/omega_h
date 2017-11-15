@@ -465,16 +465,17 @@ static void transfer_by_intersection(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-void transfer_conserve_swap(Mesh* old_mesh, TransferOpts const& opts,
+void transfer_densities_and_conserve_swap(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  if (!should_conserve_any(old_mesh, opts)) return;
+  if (!has_densities_or_conserved(old_mesh, opts)) return;
   auto init_cavs = form_initial_cavs(
       old_mesh, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (should_conserve(old_mesh, opts, dim, tagbase)) {
+    if (should_conserve(old_mesh, opts, dim, tagbase)||
+        is_density(old_mesh, opts, dim, tagbase)) {
       auto ncomps = tagbase->ncomps();
       auto new_elem_densities_w = Write<Real>(new_mesh->nelems() * ncomps);
       transfer_by_intersection(
@@ -483,6 +484,7 @@ void transfer_conserve_swap(Mesh* old_mesh, TransferOpts const& opts,
           same_ents2new_ents, tagbase, new_elem_densities_w);
     }
   }
+  if (!should_conserve_any(old_mesh, opts)) return;
   OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;
@@ -496,10 +498,10 @@ void transfer_conserve_swap(Mesh* old_mesh, TransferOpts const& opts,
       same_ents2old_ents, same_ents2new_ents, op_conservation);
 }
 
-void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
+void transfer_densities_and_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2verts, Adj keys2doms, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
-  if (!should_conserve_any(old_mesh, opts)) return;
+  if (!has_densities_or_conserved(old_mesh, opts)) return;
   auto keys2prods = keys2doms.a2ab;
   auto init_cavs = form_initial_cavs(
       old_mesh, new_mesh, VERT, keys2verts, keys2prods, prods2new_ents);
@@ -509,7 +511,8 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (should_conserve(old_mesh, opts, dim, tagbase)) {
+    if (should_conserve(old_mesh, opts, dim, tagbase) ||
+        is_density(old_mesh, opts, dim, tagbase)) {
       auto ncomps = tagbase->ncomps();
       auto new_elem_densities_w = Write<Real>(new_mesh->nelems() * ncomps);
       transfer_by_intersection(old_mesh, new_mesh, tagbase,
@@ -524,6 +527,7 @@ void transfer_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
           same_ents2new_ents, tagbase, new_elem_densities_w);
     }
   }
+  if (!should_conserve_any(old_mesh, opts)) return;
   OpConservation op_conservation;
   op_conservation.density.this_time[NOT_BDRY] = true;
   op_conservation.density.this_time[TOUCH_BDRY] = true;

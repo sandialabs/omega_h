@@ -70,6 +70,21 @@ bool should_conserve(
   return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
 }
 
+bool has_densities_or_conserved(Mesh* mesh, TransferOpts const& opts) {
+  if (opts.should_conserve_size) return true;
+  auto dim = mesh->dim();
+  for (Int i = 0; i < mesh->ntags(dim); ++i) {
+    auto tag = mesh->get_tag(dim, i);
+    if (should_conserve(mesh, opts, dim, tag)) {
+      return true;
+    }
+    if (is_density(mesh, opts, dim, tag)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool should_conserve_any(Mesh* mesh, TransferOpts const& opts) {
   if (opts.should_conserve_size) return true;
   auto dim = mesh->dim();
@@ -117,6 +132,7 @@ static bool should_transfer_no_products(
          should_interpolate(mesh, opts, dim, tag) ||
          is_metric(mesh, opts, dim, tag) ||
          should_conserve(mesh, opts, dim, tag) ||
+         is_density(mesh, opts, dim, tag) ||
          is_momentum_velocity(mesh, opts, dim, tag);
 }
 
@@ -574,7 +590,7 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts, keys2doms,
+    transfer_densities_and_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts, keys2doms,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   end_code();
@@ -677,7 +693,7 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_swap(old_mesh, opts, new_mesh, keys2edges, keys2prods,
+    transfer_densities_and_conserve_swap(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   end_code();
