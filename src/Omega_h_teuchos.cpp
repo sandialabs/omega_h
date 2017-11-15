@@ -41,6 +41,8 @@ void update_transfer_opts(
           opts->type_map[field_name] = OMEGA_H_LINEAR_INTERP;
         } else if (type_name == "Metric") {
           opts->type_map[field_name] = OMEGA_H_METRIC;
+        } else if (type_name == "Density") {
+          opts->type_map[field_name] = OMEGA_H_DENSITY;
         } else if (type_name == "Conserve") {
           opts->type_map[field_name] = OMEGA_H_CONSERVE;
         } else if (type_name == "Momentum Velocity") {
