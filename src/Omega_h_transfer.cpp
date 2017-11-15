@@ -52,6 +52,15 @@ bool should_fit(
   return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
 }
 
+bool is_density(
+    Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
+  auto& name = tag->name();
+  if (!is_transfer_required(opts, name, OMEGA_H_DENSITY)) {
+    return false;
+  }
+  return dim == mesh->dim() && tag->type() == OMEGA_H_REAL;
+}
+
 bool should_conserve(
     Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
   auto& name = tag->name();
@@ -115,6 +124,11 @@ static bool should_transfer_copy(
     Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
   return should_transfer_no_products(mesh, opts, dim, tag) ||
          tag->name() == "global";
+}
+
+static bool should_transfer_density(
+    Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
+  return should_conserve(mesh, opts, dim, tag) || is_density(mesh, opts, dim, tag);
 }
 
 template <typename T>
@@ -276,6 +290,21 @@ static void transfer_inherit_refine(Mesh* old_mesh, TransferOpts const& opts,
   }
 }
 
+static void transfer_density_refine(Mesh* old_mesh, TransferOpts const& opts,
+    Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+  auto dim = old_mesh->dim();
+  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
+    auto tagbase = old_mesh->get_tag(dim, i);
+    if (should_transfer_density(old_mesh, opts, dim, tagbase)) {
+      /* just inherit the density field */
+      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, old_mesh->dim(),
+          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
+          tagbase);
+    }
+  }
+}
+
 static void transfer_pointwise_refine(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
@@ -351,8 +380,14 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_conserve_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_density_refine(old_mesh, opts, new_mesh,
+        keys2edges, keys2prods,
+        prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
+    transfer_conserve_refine(old_mesh, opts, new_mesh,
+        keys2edges, keys2prods,
+        prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }

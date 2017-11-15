@@ -16,6 +16,8 @@ bool should_interpolate(
     Mesh* mesh, TransferOpts const& xopts, Int dim, TagBase const* tag);
 bool should_fit(
     Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
+bool is_density(
+    Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
 bool should_conserve(
     Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag);
 bool should_conserve_any(Mesh* mesh, TransferOpts const& opts);

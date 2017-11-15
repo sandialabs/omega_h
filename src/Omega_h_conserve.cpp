@@ -384,16 +384,6 @@ void transfer_conserve_refine(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!should_conserve_any(old_mesh, opts)) return;
-  auto dim = old_mesh->dim();
-  for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
-    auto tagbase = old_mesh->get_tag(dim, i);
-    if (should_conserve(old_mesh, opts, dim, tagbase)) {
-      /* just inherit the density field */
-      transfer_inherit_refine(old_mesh, new_mesh, keys2edges, old_mesh->dim(),
-          keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents,
-          tagbase);
-    }
-  }
   auto init_cavs = form_initial_cavs(
       old_mesh, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
   auto cavs =
