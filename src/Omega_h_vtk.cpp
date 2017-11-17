@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
+#include <limits>
 
 #ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
@@ -758,15 +760,42 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-std::streampos write_initial_pvd(std::string const& root_path) {
-  std::string pvdpath = get_pvd_path(root_path);
+static char const pvd_prologue[] = "<VTKFile type=\"Collection\" version=\"0.1\">\n<Collection>\n";
+static char const pvd_epilogue[] = "</Collection>\n</VTKFile>\n";
+
+static std::string read_existing_pvd(std::string const& pvdpath, Real restart_time) {
+  std::ifstream file(pvdpath.c_str());
+  if (!file.is_open()) return pvd_prologue;
+  std::string contents;
+  std::string line;
+  std::getline(file, contents); //VTKFile
+  contents += '\n';
+  std::getline(file, line); //Collection
+  contents += line;
+  contents += '\n';
+  // existing file may be corrupted somehow
+  if (contents != pvd_prologue) return pvd_prologue;
+  while (std::getline(file, line)) {
+    xml::Tag tag;
+    if (!xml::parse_tag(line, &tag)) break;
+    if (tag.elem_name != "DataSet") break;
+    if (!tag.attribs.count("timestep")) break;
+    auto time = std::stod(tag.attribs["timestep"]);
+    if (time >= restart_time) break;
+    contents += line;
+    contents += '\n';
+  }
+  return contents;
+}
+
+std::streampos write_initial_pvd(std::string const& root_path, Real restart_time) {
+  auto pvdpath = get_pvd_path(root_path);
+  auto content = read_existing_pvd(pvdpath, restart_time);
   std::ofstream file(pvdpath.c_str());
   OMEGA_H_CHECK(file.is_open());
-  file << "<VTKFile type=\"Collection\" version=\"0.1\">\n";
-  file << "<Collection>\n";
+  file << content;
   auto pos = file.tellp();
-  file << "</Collection>\n";
-  file << "</VTKFile>\n";
+  file << pvd_epilogue;
   return pos;
 }
 
@@ -777,6 +806,7 @@ void update_pvd(std::string const& root_path, std::streampos* pos_inout,
   file.open(pvdpath.c_str(), std::ios::out | std::ios::in);
   OMEGA_H_CHECK(file.is_open());
   file.seekp(*pos_inout);
+  file << std::scientific << std::setprecision(18);
   file << "<DataSet timestep=\"" << time << "\" part=\"0\" ";
   auto relstep = get_rel_step_path(step);
   auto relpvtu = get_pvtu_path(relstep);
@@ -839,7 +869,7 @@ Writer& Writer::operator=(Writer const& other) {
 
 Writer::~Writer() {}
 
-Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
+Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim, Real restart_time)
     : mesh_(mesh),
       root_path_(root_path),
       cell_dim_(cell_dim),
@@ -854,15 +884,20 @@ Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim)
   if (rank == 0) safe_mkdir(stepsdir.c_str());
   comm->barrier();
   if (rank == 0) {
-    pvd_pos_ = write_initial_pvd(root_path);
+    pvd_pos_ = write_initial_pvd(root_path, restart_time);
   }
 }
 
-void Writer::write(Real time, TagSet const& tags) {
+void Writer::write(Int step, Real time, TagSet const& tags) {
+  step_ = step;
   write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags);
   if (mesh_->comm()->rank() == 0) {
     update_pvd(root_path_, &pvd_pos_, step_, time);
   }
+}
+
+void Writer::write(Real time, TagSet const& tags) {
+  this->write(step_, time, tags);
   ++step_;
 }
 

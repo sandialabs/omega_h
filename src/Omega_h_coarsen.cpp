@@ -68,6 +68,12 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
       prevent_coarsen_overshoot(mesh, max_length, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
+  if (opts.should_prevent_coarsen_flip) {
+    cand_edge_codes =
+        prevent_coarsen_flip(mesh, cands2edges, cand_edge_codes);
+    filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
+    if (comm->reduce_and(cands2edges.size() == 0)) return false;
+  }
   /* cavity quality checks */
   auto cand_edge_quals = coarsen_qualities(mesh, cands2edges, cand_edge_codes);
   cand_edge_codes = filter_coarsen_min_qual(

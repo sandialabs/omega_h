@@ -53,6 +53,9 @@ set(Omega_h_SOURCES
   Omega_h_check_collapse.cpp
   Omega_h_coarsen_qualities.cpp
   Omega_h_coarsen_topology.cpp
+  Omega_h_coarsen_overshoot.cpp
+  Omega_h_coarsen_flip.cpp
+  Omega_h_collapse_rail.cpp
   Omega_h_coarsen.cpp
   Omega_h_approach.cpp
   Omega_h_laplace.cpp
@@ -69,8 +72,6 @@ set(Omega_h_SOURCES
   Omega_h_align.cpp
   Omega_h_xml.cpp
   Omega_h_recover.cpp
-  Omega_h_coarsen_overshoot.cpp
-  Omega_h_collapse_rail.cpp
   Omega_h_histogram.cpp
   Omega_h_eigen.cpp
   Omega_h_cmdline.cpp

@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <cerrno>
+#include <cstring>
 #include <fstream>
 #include <iostream>
 
@@ -34,8 +35,16 @@ void safe_mkdir(const char* path) {
   errno = 0;
   err = mkdir(path, mode);
   if (err != 0 && errno != EEXIST) {
-    Omega_h_fail("omega_h could not create directory \"%s\"\n", path);
+    Omega_h_fail("omega_h could not create directory \"%s\", got error \"%s\"\n",
+        path, std::strerror(errno));
   }
+}
+
+bool file_exists(const char* path) {
+  struct stat info;
+  if (stat(path, &info) != 0) return false;
+  OMEGA_H_CHECK(info.st_mode & S_IFREG);
+  return true;
 }
 
 bool directory_exists(const char* path) {

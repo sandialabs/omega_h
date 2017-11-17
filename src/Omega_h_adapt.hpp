@@ -59,6 +59,7 @@ struct AdaptOpts {
   bool should_coarsen;
   bool should_swap;
   bool should_coarsen_slivers;
+  bool should_prevent_coarsen_flip;
   TransferOpts xfer_opts;
 };
 
