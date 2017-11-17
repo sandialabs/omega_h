@@ -4,6 +4,9 @@
 #include <Omega_h_eigen.hpp>
 #include <Omega_h_lie.hpp>
 
+//DEBUG
+#include <iostream>
+
 namespace Omega_h {
 
 template <Int dim>
@@ -212,6 +215,9 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
       // u1 and v1 are supposed to be orthogonal, so the pseudo-inverse is the transpose
       return P * (mint_bar * PT);
     } else {
+      std::cerr << "case 3, ews are " << m1_dc.l[0] << ", " << m1_dc.l[1] << ", " << m1_dc.l[2]
+        << " and " << m2_dc.l[0] << ", " << m2_dc.l[1] << ", " << m2_dc.l[2] << '\n';
+      std::cerr << "u2 is " << u2[0] << ", " << 
       // case 3.b, u2 and w1 are not orthogonal
       Matrix<3, 3> P;
       P[0] = v2;

@@ -228,6 +228,42 @@ static void test_intersect_with_null() {
   OMEGA_H_CHECK(are_close(intersect_metrics(m2, m1), m1));
 }
 
+static void test_intersect_degen_metrics() {
+  if ((0)) {
+  test_intersect_with_null();
+  // 2.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(0, 0, 1))),
+        diagonal(vector_3(1, 0, 1))));
+  // 2.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(2, 0, 0))),
+        diagonal(vector_3(2, 0, 0))));
+  // 3.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(2, 1, 0))),
+        diagonal(vector_3(2, 1, 0))));
+  }
+  // 3.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(0, 1, 2))),
+        diagonal(vector_3(1, 1, 2))));
+  // 4.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 2)),
+          diagonal(vector_3(2, 0, 1))),
+        diagonal(vector_3(2, 0, 2))));
+  // 4.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 2)),
+          diagonal(vector_3(2, 1, 0))),
+        diagonal(vector_3(2, 1, 2))));
+}
+
 static void test_intersect_metrics() {
   test_intersect_ortho_metrics(
       vector_3(0.5, 1, 1), vector_3(1, 0.5, 1), vector_3(0.5, 0.5, 1));
@@ -238,7 +274,7 @@ static void test_intersect_metrics() {
   test_intersect_ortho_metrics(vector_3(1e-5, 1e-3, 1e-3),
       vector_3(1e-3, 1e-3, 1e-5), vector_3(1e-5, 1e-3, 1e-5));
   test_intersect_subset_metrics();
-  test_intersect_with_null();
+  test_intersect_degen_metrics();
 }
 
 static void test_sort() {
