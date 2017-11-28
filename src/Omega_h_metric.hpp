@@ -215,9 +215,6 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
       // u1 and v1 are supposed to be orthogonal, so the pseudo-inverse is the transpose
       return P * (mint_bar * PT);
     } else {
-      std::cerr << "case 3, ews are " << m1_dc.l[0] << ", " << m1_dc.l[1] << ", " << m1_dc.l[2]
-        << " and " << m2_dc.l[0] << ", " << m2_dc.l[1] << ", " << m2_dc.l[2] << '\n';
-      std::cerr << "u2 is " << u2[0] << ", " << 
       // case 3.b, u2 and w1 are not orthogonal
       Matrix<3, 3> P;
       P[0] = v2;
@@ -248,7 +245,7 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
       if (m2_ew_is_degen[i]) w2 = m2_dc.q[i];
     }
     auto w = cross(w1, w2);
-    if (norm_squared(w) > EPSILON) {
+    if (norm_squared(w) < EPSILON) {
       // case 4.a
       Matrix<3, 2> P;
       P[0] = u1;
@@ -293,6 +290,7 @@ OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
   auto nm1_degen_ews = sum(m1_ew_is_degen);
   auto nm2_degen_ews = sum(m2_ew_is_degen);
   if (nm1_degen_ews > nm2_degen_ews) {
+    swap2(m1, m2);
     swap2(m1_dc, m2_dc);
     swap2(m1_ew_is_degen, m2_ew_is_degen);
     swap2(nm1_degen_ews, nm2_degen_ews);
