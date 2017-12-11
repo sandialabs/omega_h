@@ -90,9 +90,22 @@ bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
   do {
     t /= 2.0;
     if (t < min_t) {
+      auto minq = min_fixable_quality(mesh, opts);
+      auto maxl = mesh->max_length();
+      if (can_print(mesh)) {
+        if (minq < opts.min_quality_allowed) {
+          std::cerr << "Metric approach has stalled with minimum quality
+            minq << " < " << opts.min_quality_allowed << "\n";
+          std::cerr << "Decreasing \"Min Quality Allowed\" may help, but otherwise the metric is likely not satisfiable\n";
+        }
+        if (maxl > opts.max_length_allowed) {
+          std::cerr << "Metric approach has stalled with maximum length
+            maxl << " < " << opts.max_length_allowed << "\n";
+          std::cerr << "Increasing \"Max Length Allowed\" will probably fix this, otherwise the metric is likely not satisfiable\n";
+        }
+      }
       Omega_h_fail(
-          "size field approach step = %f < %f.\n"
-          "Omega_h is probably unable to satisfy this size field\n",
+          "Metric approach has stalled at step size = %f < %f.\n"
           t, min_t);
     }
     auto current = interpolate_between_metrics(mesh->nverts(), orig, target, t);
