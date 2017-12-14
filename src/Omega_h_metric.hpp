@@ -4,9 +4,6 @@
 #include <Omega_h_eigen.hpp>
 #include <Omega_h_lie.hpp>
 
-//DEBUG
-#include <iostream>
-
 namespace Omega_h {
 
 template <Int dim>
@@ -101,7 +98,9 @@ OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(
     DiagDecomp<2> m2_dc,
     Few<Int, 2> m2_ew_is_degen,
     Int) {
-  Vector<2> u1, v1, v2;
+  auto u1 = zero_vector<2>();
+  auto v1 = zero_vector<2>();
+  auto v2 = zero_vector<2>();
   Real l1 = -1.0;
   Real l2 = -1.0;
   for (Int i = 0; i < 2; ++i) {
@@ -127,7 +126,6 @@ OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(
     l[1] = v2 * (m1 * v2);
     return transpose(p_inv) * diagonal(l) * p_inv;
   }
-  return m1;
 }
 
 // Barral's thesis, appendix A.2
@@ -142,7 +140,8 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
     Int nm2_degen_ews) {
   if (nm1_degen_ews == 2 && nm2_degen_ews == 2) {
     // case 2
-    Vector<3> u1, u2;
+    auto u1 = zero_vector<3>();
+    auto u2 = zero_vector<3>();
     Real l1 = -1.0, l2 = -1.0;
     for (Int i = 0; i < 3; ++i) {
       if (!m1_ew_is_degen[i]) {
@@ -180,7 +179,12 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
     // note that in Barral's dissertation, it is m1 that has two degenerate directions.
     // however, here we keep the rule that m1 is the least degenerate.
     // so, in this case all 1 and 2 are swapped compared to the dissertation.
-    Vector<3> u1, v1, w1, u2, v2, w2;
+    auto u1 = zero_vector<3>();
+    auto v1 = zero_vector<3>();
+    auto w1 = zero_vector<3>();
+    auto u2 = zero_vector<3>();
+    auto v2 = zero_vector<3>();
+    auto w2 = zero_vector<3>();
     bool found_u1 = false;
     bool found_v2 = false;
     for (Int i = 0; i < 3; ++i) {
@@ -230,7 +234,10 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
   }
   if (nm1_degen_ews == 1 && nm2_degen_ews == 1) {
     // case 4
-    Vector<3> u1, v1, w1, w2;
+    auto u1 = zero_vector<3>();
+    auto v1 = zero_vector<3>();
+    auto w1 = zero_vector<3>();
+    auto w2 = zero_vector<3>();
     bool found_u1 = false;
     for (Int i = 0; i < 3; ++i) {
       if (m1_ew_is_degen[i]) w1 = m1_dc.q[i];

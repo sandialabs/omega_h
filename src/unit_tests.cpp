@@ -31,10 +31,6 @@
 
 #include <sstream>
 
-//DEBUG
-#include <iostream>
-#include <iomanip>
-
 using namespace Omega_h;
 
 template <Int m, Int n>

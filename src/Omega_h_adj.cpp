@@ -362,18 +362,10 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       auto hm = ut.up;
       auto hml = ut.which_down;
       auto m = hm2m[hm_begin + hm];
-      if (m < 0) {
-        std::cerr << "hm_begin " << hm_begin << " h " << h << " nmids_per_high " << nmids_per_high << '\n';
-        std::cerr << "m " << m << " hm_begin " << hm_begin << " hm " << hm << '\n';
-      }
       auto m2hm_code = m2hm_codes[hm_begin + hm];
       auto hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
       auto ml = align_index(nlows_per_mid, low_dim, hml, hm2m_code);
       auto ml_begin = m * nlows_per_mid;
-      if (ml_begin + ml < 0) {
-        std::cerr << "ml_begin " << ml_begin << " ml " << ml << " high_dim " << high_dim << " low_dim " << low_dim << " nlows_per_mid " << nlows_per_mid << " hml " << hml << " m " << m << '\n';
-        Omega_h_fail("dead.\n");
-      }
       auto l = ml2l[ml_begin + ml];
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)

@@ -3,9 +3,6 @@
 
 #include <Omega_h_vector.hpp>
 
-//DEBUG
-#include <iostream>
-
 namespace Omega_h {
 
 /*
@@ -69,16 +66,6 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
         N_c = normalize(N_c);
         //Compute the radius
         auto scal = N_c * N[i];
-        if (!are_close(scal, N_c * N[j])) {
-          std::cerr << "three vectors (i " << i << " j " << j << " k " << k << ")\n";
-          std::cerr << N[i][0] << " " << N[i][1] << " " << N[i][2] << '\n';
-          std::cerr << N[j][0] << " " << N[j][1] << " " << N[j][2] << '\n';
-          std::cerr << N[k][0] << " " << N[k][1] << " " << N[k][2] << '\n';
-          std::cerr << "output " << N_c[0] << " " << N_c[1] << " " << N_c[2] << '\n';
-          std::cerr << "matrix determinant " << abs_det << '\n';
-          std::cerr << "error with N[j] " << rel_diff_with_floor(scal, N_c * N[j]) << '\n';
-          std::cerr << "error with N[k] " << rel_diff_with_floor(scal, N_c * N[k]) << '\n';
-        }
         OMEGA_H_CHECK(are_close(scal, N_c * N[j]));
         OMEGA_H_CHECK(are_close(scal, N_c * N[k]));
         //Compare the current against smallest length
