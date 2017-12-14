@@ -57,7 +57,6 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
         // if the vectors aren't linearly independent, then either
         // two or more of them are the same or they are co-linear.
         // neither of these cases is something we want to deal with.
-        auto abs_det = std::fabs(determinant(M));
         if (std::fabs(determinant(M)) < 1e-6) continue;
         // otherwise, the un-normalized vector we're looking for
         // is one that has the same dot product with all three,
