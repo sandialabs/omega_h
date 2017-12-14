@@ -85,7 +85,7 @@ void Omega_h_fail(char const* format, ...)
                 "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
 
-#ifdef __clang__
+#if defined( __clang__ )
 #define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
 #else
 #define OMEGA_H_NORETURN(x)                                                    \

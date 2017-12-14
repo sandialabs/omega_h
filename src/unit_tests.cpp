@@ -31,10 +31,6 @@
 
 #include <sstream>
 
-//DEBUG
-#include <iostream>
-#include <iomanip>
-
 using namespace Omega_h;
 
 template <Int m, Int n>
@@ -231,6 +227,51 @@ static void test_intersect_subset_metrics() {
   OMEGA_H_CHECK(are_close(intersect_metrics(m1, m2), m1));
 }
 
+static void test_intersect_with_null() {
+  auto q =
+      rotate(PI / 4., vector_3(0, 0, 1)) * rotate(PI / 4., vector_3(0, 1, 0));
+  auto m1 = compose_metric(q, vector_3(1, 1, 1e-3));
+  auto m2 = zero_matrix<3, 3>();
+  OMEGA_H_CHECK(are_close(intersect_metrics(m1, m2), m1));
+  OMEGA_H_CHECK(are_close(intersect_metrics(m2, m1), m1));
+}
+
+static void test_intersect_degen_metrics() {
+  if ((0)) {
+  test_intersect_with_null();
+  // 2.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(0, 0, 1))),
+        diagonal(vector_3(1, 0, 1))));
+  // 2.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(2, 0, 0))),
+        diagonal(vector_3(2, 0, 0))));
+  // 3.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(2, 1, 0))),
+        diagonal(vector_3(2, 1, 0))));
+  }
+  // 3.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 0)),
+          diagonal(vector_3(0, 1, 2))),
+        diagonal(vector_3(1, 1, 2))));
+  // 4.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 2)),
+          diagonal(vector_3(2, 0, 1))),
+        diagonal(vector_3(2, 0, 2))));
+  // 4.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(
+          diagonal(vector_3(1, 0, 2)),
+          diagonal(vector_3(2, 1, 0))),
+        diagonal(vector_3(2, 1, 2))));
+}
+
 static void test_intersect_metrics() {
   test_intersect_ortho_metrics(
       vector_3(0.5, 1, 1), vector_3(1, 0.5, 1), vector_3(0.5, 0.5, 1));
@@ -241,6 +282,7 @@ static void test_intersect_metrics() {
   test_intersect_ortho_metrics(vector_3(1e-5, 1e-3, 1e-3),
       vector_3(1e-3, 1e-3, 1e-5), vector_3(1e-5, 1e-3, 1e-5));
   test_intersect_subset_metrics();
+  test_intersect_degen_metrics();
 }
 
 static void test_sort() {
@@ -1144,6 +1186,18 @@ static void test_most_normal() {
       {{1,0,0},{0,0,1},normalize(vector_3(1,1,1)),{0,1,0}};
   auto N_c = get_most_normal_normal(N, 4);
   OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,1))));
+  }
+  {
+  Few<Vector<3>, 3> N =
+      {{1,0,0},{0,1,0},{0,1,0}};
+  auto N_c = get_most_normal_normal(N, 3);
+  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,0))));
+  }
+  {
+  Few<Vector<3>, 3> N =
+      {{1,0,0},{1,0,0},{1,0,0}};
+  auto N_c = get_most_normal_normal(N, 3);
+  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,0,0))));
   }
 }
 

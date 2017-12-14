@@ -24,7 +24,7 @@ namespace vtk {
 
 TagSet get_all_vtk_tags(Mesh* mesh) {
   auto out = get_all_mesh_tags(mesh);
-  for (Int i = 0; i < mesh->dim(); ++i) {
+  for (Int i = 0; i <= mesh->dim(); ++i) {
     out[size_t(i)].insert("local");
     if (mesh->comm()->size() > 1) {
       out[size_t(i)].insert("owner");

@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
   mesh.ask_lengths();
   mesh.ask_qualities();
   auto opts = AdaptOpts(&mesh);
+  opts.verbosity = EXTRA_STATS;
   Now t0 = now();
   while (approach_metric(&mesh, opts)) adapt(&mesh, opts);
   Now t1 = now();

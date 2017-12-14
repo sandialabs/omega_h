@@ -18,12 +18,12 @@ static Reals compute_flip_normals_dim(
     Bytes verts_matter,
     Real simple_algorithm_threshold = 0.95) { // constant given by Aubry and Lohner
   constexpr auto side_dim = dim - 1;
-  constexpr auto max_adj_sides = AvgDegree<side_dim, VERT, side_dim>::value * 2;
+  constexpr auto max_adj_sides = AvgDegree<side_dim, VERT, side_dim>::value * 4;
   auto v2s = mesh->ask_up(VERT, side_dim);
   auto sv2v = mesh->ask_verts_of(side_dim);
   auto verts_that_matter = collect_marked(verts_matter);
   auto coords = mesh->coords();
-  auto out = Write<Real>(mesh->nverts() * dim);
+  auto out = Write<Real>(mesh->nverts() * dim, 0.0);
   auto f = OMEGA_H_LAMBDA(LO vm) {
     auto v = verts_that_matter[vm];
     auto N_c = zero_vector<dim>();
@@ -32,6 +32,7 @@ static Reals compute_flip_normals_dim(
     for (auto vs = v2s.a2ab[v]; vs < v2s.a2ab[v + 1]; ++vs) {
       auto s = v2s.ab2b[vs];
       if (!sides_are_exposed[s]) continue;
+      OMEGA_H_CHECK(n < max_adj_sides);
       auto ssv2v = gather_verts<side_dim + 1>(sv2v, s);
       auto ssv2x = gather_vectors<side_dim + 1, dim>(coords, ssv2v);
       auto svec = get_side_vector(ssv2x);

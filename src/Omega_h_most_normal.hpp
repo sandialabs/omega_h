@@ -49,26 +49,23 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
     for (Int j = i + 1; j < n; ++j) {
       for (Int k = j + 1; k < n; ++k) {
         //Compute the center of the circle
-        auto r_ij = N[i] - N[j];
-        auto rx_ij = r_ij[0];
-        auto ry_ij = r_ij[1];
-        auto rz_ij = r_ij[2];
-        auto r_ik = N[i] - N[k];
-        auto rx_ik = r_ik[0];
-        auto ry_ik = r_ik[1];
-        auto rz_ik = r_ik[2];
-        auto denom = rx_ij * ry_ik - rx_ik * ry_ij;
-        auto N_cx = (rz_ik * ry_ij - rz_ij * ry_ik) / denom;
-        auto N_cy = (rx_ik * rz_ij - rx_ij * rz_ik) / denom;
-        auto N_cz = 1.0 / std::sqrt(1.0 + N_cx * N_cx + N_cy * N_cy);
-        N_cx = N_cx * N_cz;
-        N_cy = N_cy * N_cz;
-        auto N_c = vector_3(N_cx, N_cy, N_cz);
-        //Check the orientation
-        auto scal = N_c * N[i];
-        if (scal < 0.0) N_c = - N_c;
+        //Instead of Aubry and Lohner's math, just do some matrix algebra:
+        Matrix<3, 3> M;
+        M[0] = N[i];
+        M[1] = N[j];
+        M[2] = N[k];
+        // if the vectors aren't linearly independent, then either
+        // two or more of them are the same or they are co-linear.
+        // neither of these cases is something we want to deal with.
+        auto abs_det = std::fabs(determinant(M));
+        if (std::fabs(determinant(M)) < 1e-6) continue;
+        // otherwise, the un-normalized vector we're looking for
+        // is one that has the same dot product with all three,
+        // we choose the arbitrary constant 1.0 as this product
+        auto N_c = invert(transpose(M)) * vector_3(1.0, 1.0, 1.0);
+        N_c = normalize(N_c);
         //Compute the radius
-        scal = N_c * N[i];
+        auto scal = N_c * N[i];
         OMEGA_H_CHECK(are_close(scal, N_c * N[j]));
         OMEGA_H_CHECK(are_close(scal, N_c * N[k]));
         //Compare the current against smallest length

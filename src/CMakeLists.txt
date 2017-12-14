@@ -83,6 +83,7 @@ set(Omega_h_SOURCES
   Omega_h_assoc.cpp
   Omega_h_flood.cpp
   Omega_h_fix.cpp
+  Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
   )
 
@@ -232,6 +233,7 @@ if(Omega_h_USE_libMeshb)
   osh_add_util(ugawg_cone_cone)
   if (Omega_h_USE_EGADS)
     osh_add_util(ugawg_solution)
+    osh_add_util(ugawg_debug)
   endif()
 endif()
 if(Omega_h_USE_SEACASExodus)

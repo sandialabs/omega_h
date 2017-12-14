@@ -94,6 +94,7 @@ int main(int argc, char** argv) {
     sizes_before[obj] = get_object_size(&mesh, obj);
   }
   auto opts = AdaptOpts(&mesh);
+  opts.verbosity = EXTRA_STATS;
   opts.xfer_opts.type_map["density"] = OMEGA_H_CONSERVE;
   opts.xfer_opts.type_map["velocity"] = OMEGA_H_MOMENTUM_VELOCITY;
   opts.xfer_opts.integral_map["density"] = "mass";

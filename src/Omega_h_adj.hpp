@@ -58,7 +58,7 @@ Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e);
 */
 template <typename T>
 void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out);
+    LOs* a2b_out, Read<I8>* codes_out, bool allow_duplicates = false);
 
 /* for testing only, internally computes upward
    adjacency */
@@ -113,7 +113,7 @@ OMEGA_H_DEVICE Few<Matrix<dim, dim>, neev> gather_symms(
 #define INST_DECL(T)                                                           \
   extern template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);      \
   extern template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v,        \
-      Read<T> bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
+      Read<T> bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out, bool);
 INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
