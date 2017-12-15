@@ -143,6 +143,11 @@ endif()
 
 bob_library_includes(omega_h)
 
+if(Omega_h_USE_OpenMP)
+  get_filename_component(INTEL_SORT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl/intel_sort" ABSOLUTE)
+  target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${INTEL_SORT_PATH}>)
+endif()
+
 if(Omega_h_USE_KokkosCore)
   target_link_libraries(omega_h PUBLIC kokkoscore)
   target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
