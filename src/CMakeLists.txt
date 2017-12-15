@@ -144,7 +144,7 @@ endif()
 bob_library_includes(omega_h)
 
 get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
-target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
+target_include_directories(omega_h PUBLIC $<BUILD_INTERFACE:${TPL_PATH}>)
 
 if(Omega_h_USE_KokkosCore)
   target_link_libraries(omega_h PUBLIC kokkoscore)
@@ -393,6 +393,7 @@ if(BUILD_TESTING)
     osh_add_exe(dolfin_test)
   endif()
   osh_add_exe(flood_test)
+  osh_add_exe(random_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
