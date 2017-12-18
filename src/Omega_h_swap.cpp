@@ -6,6 +6,8 @@
 #include "Omega_h_swap2d.hpp"
 #include "Omega_h_swap3d.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 bool swap_part1(Mesh* mesh, AdaptOpts const& opts) {

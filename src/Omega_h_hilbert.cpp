@@ -28,27 +28,13 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
   LO npts = coords.size() / dim;
   Write<I64> out(npts * dim);
   auto f = OMEGA_H_LAMBDA(LO i) {
-    hilbert::coord_t X[dim];
-    Int nbits = MANTISSA_BITS;
+    constexpr Int nbits = MANTISSA_BITS;
+    auto spatial_coord = get_vector<dim>(coords, i);
+    auto hilbert_coord =
+        hilbert::from_spatial(bbox.min, maxl, nbits, spatial_coord);
     for (Int j = 0; j < dim; ++j) {
-      /* floating-point coordinate to fine-grid integer coordinate,
-         should be non-negative since we subtract the BBox min */
-      Real coord = coords[i * dim + j];
-      Real zero_to_one_coord = (coord - bbox.min[j]) / maxl;
-      Real zero_to_2eP_coord = zero_to_one_coord * exp2(Real(nbits));
-      X[j] = hilbert::coord_t(zero_to_2eP_coord);
-      /* some values will just graze the acceptable range
-         (with proper floating point math they are exactly
-          equal to 2^(nbits), and we'll be safe with (>=) in case
-         floating point math is even worse than that. */
-      if (X[j] >= (hilbert::coord_t(1) << nbits))
-        X[j] = (hilbert::coord_t(1) << nbits) - 1;
+      out[i * dim + j] = static_cast<I64>(hilbert_coord[j]);
     }
-    hilbert::AxestoTranspose(X, nbits, dim);
-    hilbert::coord_t Y[dim];
-    hilbert::untranspose(X, Y, nbits, dim);
-    for (Int j = 0; j < dim; ++j) /* this cast *should* be safe... */
-      out[i * dim + j] = static_cast<I64>(Y[j]);
   };
   parallel_for(npts, f, "hilbert::dists_from_coords");
   return out;

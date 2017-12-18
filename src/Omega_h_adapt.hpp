@@ -76,7 +76,7 @@ void fix_momentum_velocity_verts(
 
 bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
     bool exit_on_stall = false, Int max_niters = 40);
-bool approach_metric(Mesh* mesh, AdaptOpts const& opts);
+bool approach_metric(Mesh* mesh, AdaptOpts const& opts, Real min_step = 1e-4);
 
 struct MetricSource {
   Omega_h_Source type;
@@ -117,11 +117,8 @@ void add_implied_metric_tag(Mesh* mesh);
 void add_implied_isos_tag(Mesh* mesh);
 void add_implied_metric_based_on_target(Mesh* mesh);
 
-void fix(Mesh* mesh
-    , AdaptOpts const& adapt_opts
-    , Omega_h_Isotropy isotropy
-    , bool verbose
-    );
+void fix(Mesh* mesh, AdaptOpts const& adapt_opts, Omega_h_Isotropy isotropy,
+    bool verbose);
 
 }  // namespace Omega_h
 

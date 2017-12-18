@@ -29,7 +29,9 @@ OMEGA_H_INLINE Vector<max_m> householder_vector(
    * to be full-rank, so we can save a bunch of bookkeeping up
    * the stack if we simply assert this here.
    */
-  OMEGA_H_CHECK(norm_x > OMEGA_H_EPSILON * anorm);
+  // OMEGA_H_CHECK(norm_x > OMEGA_H_EPSILON * anorm);
+  OMEGA_H_CHECK(norm_x > 0.0);
+  (void)anorm;
   Vector<max_m> v_k;
   for (Int i = k; i < m; ++i) v_k[i] = a[k][i];
   v_k[k] += sign(a[k][k]) * norm_x;

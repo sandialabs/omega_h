@@ -1,5 +1,5 @@
-#ifndef PARALLEL_STABLE_SORT_HPP
-#define PARALLEL_STABLE_SORT_HPP
+#ifndef PSS_HPP
+#define PSS_HPP
 
 /*
   Copyright (C) 2014 Intel Corporation

@@ -8,6 +8,8 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_simplex.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {

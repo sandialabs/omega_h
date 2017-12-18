@@ -35,8 +35,9 @@ void safe_mkdir(const char* path) {
   errno = 0;
   err = mkdir(path, mode);
   if (err != 0 && errno != EEXIST) {
-    Omega_h_fail("omega_h could not create directory \"%s\", got error \"%s\"\n",
-        path, std::strerror(errno));
+    Omega_h_fail(
+        "omega_h could not create directory \"%s\", got error \"%s\"\n", path,
+        std::strerror(errno));
   }
 }
 

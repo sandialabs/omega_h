@@ -1,6 +1,10 @@
 #include <libmeshb7.h>
-#include "Omega_h.hpp"
+
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_class.hpp"
+#include "Omega_h_file.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 
 namespace Omega_h {

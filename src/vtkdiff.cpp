@@ -1,11 +1,9 @@
-#include "Omega_h.hpp"
-#include "Omega_h_compare.hpp"
+#include <Omega_h_compare.hpp>
+#include <Omega_h_vtk.hpp>
 
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-
-#include "Omega_h_vtk.hpp"
 
 using namespace Omega_h;
 

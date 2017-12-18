@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <cstdlib>
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_collapse.hpp"
 #include "Omega_h_indset.hpp"
@@ -10,6 +11,7 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_modify.hpp"
 #include "Omega_h_transfer.hpp"
+#include "Omega_h_verify.hpp"
 
 namespace Omega_h {
 
@@ -69,8 +71,7 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   if (opts.should_prevent_coarsen_flip) {
-    cand_edge_codes =
-        prevent_coarsen_flip(mesh, cands2edges, cand_edge_codes);
+    cand_edge_codes = prevent_coarsen_flip(mesh, cands2edges, cand_edge_codes);
     filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
     if (comm->reduce_and(cands2edges.size() == 0)) return false;
   }
@@ -143,7 +144,9 @@ static void coarsen_element_based2(Mesh* mesh, AdaptOpts const& opts) {
     modify_ents(mesh, &new_mesh, ent_dim, VERT, keys2verts, keys2prods,
         prod_verts2verts, old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
-    if (ent_dim == VERT) old_verts2new_verts = old_ents2new_ents;
+    if (ent_dim == VERT) {
+      old_verts2new_verts = old_ents2new_ents;
+    }
     transfer_coarsen(mesh, opts.xfer_opts, &new_mesh, keys2verts, keys2doms,
         ent_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;

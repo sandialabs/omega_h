@@ -27,8 +27,8 @@ static bool okay(Mesh* mesh, AdaptOpts const& opts) {
   return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
 }
 
-bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
-    bool exit_on_stall, Int max_niters) {
+bool warp_to_limit(
+    Mesh* mesh, AdaptOpts const& opts, bool exit_on_stall, Int max_niters) {
   if (!mesh->has_tag(VERT, "warp")) return false;
   check_okay(mesh, opts);
   auto coords = mesh->coords();
@@ -49,7 +49,8 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
     if (i > max_niters) {
       if (exit_on_stall) {
         if (can_print(mesh)) {
-          std::cout << "warp_to_limit stalled, dropping warp field and continuing anyway\n";
+          std::cout << "warp_to_limit stalled, dropping warp field and "
+                       "continuing anyway\n";
         }
         mesh->remove_tag(VERT, "warp");
         return true;
@@ -73,7 +74,7 @@ bool warp_to_limit(Mesh* mesh, AdaptOpts const& opts,
   return true;
 }
 
-bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
+bool approach_metric(Mesh* mesh, AdaptOpts const& opts, Real min_step) {
   auto name = "metric";
   auto target_name = "target_metric";
   if (!mesh->has_tag(VERT, target_name)) return false;
@@ -85,19 +86,36 @@ bool approach_metric(Mesh* mesh, AdaptOpts const& opts) {
     mesh->remove_tag(VERT, target_name);
     return true;
   }
-  Real t = 1.0;
-  constexpr Real min_t = 1e-4;
+  Real factor = 1.0;
   do {
-    t /= 2.0;
-    if (t < min_t) {
-      Omega_h_fail(
-          "size field approach step = %f < %f.\n"
-          "Omega_h is probably unable to satisfy this size field\n",
-          t, min_t);
+    factor /= 2.0;
+    if (factor < min_step) {
+      auto minq = min_fixable_quality(mesh, opts);
+      auto maxl = mesh->max_length();
+      if (can_print(mesh)) {
+        if (minq < opts.min_quality_allowed) {
+          std::cerr << "Metric approach has stalled with minimum quality "
+                    << minq << " < " << opts.min_quality_allowed << "\n";
+          std::cerr << "Decreasing \"Min Quality Allowed\" may help, but "
+                       "otherwise the metric is likely not satisfiable\n";
+        }
+        if (maxl > opts.max_length_allowed) {
+          std::cerr << "Metric approach has stalled with maximum length "
+                    << maxl << " < " << opts.max_length_allowed << "\n";
+          std::cerr << "Increasing \"Max Length Allowed\" will probably fix "
+                       "this, otherwise the metric is likely not satisfiable\n";
+        }
+      }
+      Omega_h_fail("Metric approach has stalled at step size = %f < %f.\n",
+          factor, min_step);
     }
-    auto current = interpolate_between_metrics(mesh->nverts(), orig, target, t);
+    auto current =
+        interpolate_between_metrics(mesh->nverts(), orig, target, factor);
     mesh->set_tag(VERT, name, current);
   } while (!okay(mesh, opts));
+  if (opts.verbosity >= EACH_REBUILD && can_print(mesh)) {
+    std::cout << "approach_metric moved by factor " << factor << '\n';
+  }
   return true;
 }
 
