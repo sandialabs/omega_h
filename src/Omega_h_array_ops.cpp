@@ -436,7 +436,7 @@ template <typename T>
 LO find_last(Read<T> array, T value) {
   auto f = FindLast<T>(array, value);
   auto res = parallel_reduce(array.size(), f, "find_last");
-  return static_cast<LO>(res);
+  return (res == ArithTraits<LO>::min()) ? -1 : res;
 }
 
 template <typename T>

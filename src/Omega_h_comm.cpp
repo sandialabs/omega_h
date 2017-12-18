@@ -382,17 +382,17 @@ Read<T> Comm::alltoall(Read<T> x) const {
 
 template <typename T>
 Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
-    Read<LO>* p_sdispls, Read<LO>* p_rdispls, LO threshold) {
+    Read<LO>* p_sdispls, Read<LO>* p_rdispls, Int width, LO threshold) {
   Read<T> self_data;
   if (self_dst < 0) return self_data;
   OMEGA_H_CHECK(self_src >= 0);
   auto sendbuf = *p_sendbuf;
   auto sdispls = *p_sdispls;
   auto rdispls = *p_rdispls;
-  auto begin = sdispls.get(self_dst);
-  auto end = sdispls.get(self_dst + 1);
-  auto self_count = end - begin;
-  if (self_count == sendbuf.size()) {
+  auto begin = sdispls.get(self_dst) * width;
+  auto end = sdispls.get(self_dst + 1) * width;
+  auto self_size = end - begin;
+  if (self_size == sendbuf.size()) {
     self_data = sendbuf;
     sendbuf = Read<T>({});
     sdispls = LOs({0, 0});
@@ -401,16 +401,16 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
     auto recvcounts = LOs(recvcounts_w);
     rdispls = offset_scan(recvcounts);
   } else {
-    if (self_count * sizeof(T) < size_t(threshold)) return self_data;
-    auto self_data_w = Write<T>(end - begin);
-    auto other_data_w = Write<T>(sendbuf.size() - self_count);
+    if (self_size * sizeof(T) < size_t(threshold)) return self_data;
+    auto self_data_w = Write<T>(self_size);
+    auto other_data_w = Write<T>(sendbuf.size() - self_size);
     auto f = OMEGA_H_LAMBDA(LO i) {
       if (i < begin)
         other_data_w[i] = sendbuf[i];
       else if (i < end)
         self_data_w[i - begin] = sendbuf[i];
       else
-        other_data_w[i - self_count] = sendbuf[i];
+        other_data_w[i - self_size] = sendbuf[i];
     };
     parallel_for(sendbuf.size(), f, "self_send_part1");
     self_data = self_data_w;
@@ -439,16 +439,16 @@ void self_send_part2(
     recvbuf = self_data;
   } else {
     auto begin = rdispls.get(self_src);
-    auto self_count = self_data.size();
-    auto end = begin + self_count;
-    auto recvbuf_w = Write<T>(recvbuf.size() + self_count);
+    auto self_size = self_data.size();
+    auto end = begin + self_size;
+    auto recvbuf_w = Write<T>(recvbuf.size() + self_size);
     auto f = OMEGA_H_LAMBDA(LO i) {
       if (i < begin)
         recvbuf_w[i] = recvbuf[i];
       else if (i < end)
         recvbuf_w[i] = self_data[i - begin];
       else
-        recvbuf_w[i] = recvbuf[i - self_count];
+        recvbuf_w[i] = recvbuf[i - self_size];
     };
     parallel_for(recvbuf_w.size(), f, "self_send_part2");
     recvbuf = recvbuf_w;
@@ -461,11 +461,11 @@ void self_send_part2(
 template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
     Read<LO> rdispls_dev, Int width) const {
-// begin_code("Comm::alltoallv");
+  begin_code("Comm::alltoallv");
 #ifdef OMEGA_H_USE_MPI
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
-      &sdispls_dev, &rdispls_dev, library_->self_send_threshold());
+      &sdispls_dev, &rdispls_dev, width, library_->self_send_threshold());
 #endif
   HostRead<LO> sdispls(sdispls_dev);
   HostRead<LO> rdispls(rdispls_dev);
@@ -494,7 +494,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   (void)width;
   auto recvbuf_dev = sendbuf_dev;
 #endif  // !defined(OMEGA_H_USE_MPI)
-        // end_code();
+  end_code();
   return recvbuf_dev;
 }
 
