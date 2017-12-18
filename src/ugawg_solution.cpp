@@ -1,8 +1,8 @@
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_cmdline.hpp>
+#include <Omega_h_egads.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
-#include <Omega_h_egads.hpp>
 #include <Omega_h_timer.hpp>
 
 #include <iostream>
@@ -44,18 +44,22 @@ int main(int argc, char** argv) {
   std::cout << "writing out fixed.vtu\n";
   Omega_h::vtk::write_vtu("fixed.vtu", &mesh);
   auto maxlen = mesh.max_length();
-  opts.max_length_allowed = Omega_h::max2(maxlen, opts.max_length_desired * 2.0);
+  opts.max_length_allowed =
+      Omega_h::max2(maxlen, opts.max_length_desired * 2.0);
   std::cout << "limiting gradation of UGAWG metric, setting as target\n";
-  auto target_metrics = mesh.get_array<Omega_h::Real>(Omega_h::VERT, "ugawg_metric");
+  auto target_metrics =
+      mesh.get_array<Omega_h::Real>(Omega_h::VERT, "ugawg_metric");
   target_metrics = Omega_h::limit_metric_gradation(&mesh, target_metrics, 1.0);
-  mesh.add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_ncomps(mesh.dim()), target_metrics);
+  mesh.add_tag(Omega_h::VERT, "target_metric", Omega_h::symm_ncomps(mesh.dim()),
+      target_metrics);
   std::cout << "writing out before_adapt.vtu\n";
   Omega_h::vtk::write_vtu("before_adapt.vtu", &mesh);
   while (Omega_h::approach_metric(&mesh, opts, 0.0)) {
     Omega_h::adapt(&mesh, opts);
   }
   auto t2 = Omega_h::now();
-  std::cout << "adaptation to (interpolated) given metric took " << (t2 - t1) << " seconds\n";
+  std::cout << "adaptation to (interpolated) given metric took " << (t2 - t1)
+            << " seconds\n";
   std::cout << "writing out adapted.vtu\n";
   Omega_h::vtk::write_vtu("adapted.vtu", &mesh);
   std::cout << "writing out " << mesh_path_out << '\n';

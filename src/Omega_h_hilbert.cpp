@@ -30,7 +30,8 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     constexpr Int nbits = MANTISSA_BITS;
     auto spatial_coord = get_vector<dim>(coords, i);
-    auto hilbert_coord = hilbert::from_spatial(bbox.min, maxl, nbits, spatial_coord);
+    auto hilbert_coord =
+        hilbert::from_spatial(bbox.min, maxl, nbits, spatial_coord);
     for (Int j = 0; j < dim; ++j) {
       out[i * dim + j] = static_cast<I64>(hilbert_coord[j]);
     }

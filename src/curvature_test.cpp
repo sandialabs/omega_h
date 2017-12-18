@@ -1,12 +1,12 @@
 #include <Omega_h_compare.hpp>
 #include <Omega_h_eigen.hpp>
-#include <Omega_h_host_few.hpp>
-#include <Omega_h_map.hpp>
-#include <Omega_h_surface.hpp>
-#include <Omega_h_loop.hpp>
-#include <Omega_h_mesh.hpp>
 #include <Omega_h_file.hpp>
+#include <Omega_h_host_few.hpp>
+#include <Omega_h_loop.hpp>
+#include <Omega_h_map.hpp>
+#include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
+#include <Omega_h_surface.hpp>
 
 #include <sstream>
 

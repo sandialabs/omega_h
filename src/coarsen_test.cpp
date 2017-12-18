@@ -1,7 +1,7 @@
+#include <Omega_h_build.hpp>
 #include <Omega_h_coarsen.hpp>
 #include <Omega_h_compare.hpp>
 #include <Omega_h_library.hpp>
-#include <Omega_h_build.hpp>
 #include <Omega_h_metric.hpp>
 
 #include <cmath>

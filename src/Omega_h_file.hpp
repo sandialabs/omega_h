@@ -74,7 +74,8 @@ class Writer {
   Writer(Writer const&);
   Writer& operator=(Writer const&);
   ~Writer();
-  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1, Real restart_time = 0.0);
+  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1,
+      Real restart_time = 0.0);
   void write();
   void write(Real time);
   void write(Real time, TagSet const& tags);

@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <cstdlib>
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_collapse.hpp"
 #include "Omega_h_indset.hpp"
@@ -11,7 +12,6 @@
 #include "Omega_h_modify.hpp"
 #include "Omega_h_transfer.hpp"
 #include "Omega_h_verify.hpp"
-#include <cstdlib>
 
 namespace Omega_h {
 
@@ -71,8 +71,7 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
   if (comm->reduce_and(cands2edges.size() == 0)) return false;
   if (opts.should_prevent_coarsen_flip) {
-    cand_edge_codes =
-        prevent_coarsen_flip(mesh, cands2edges, cand_edge_codes);
+    cand_edge_codes = prevent_coarsen_flip(mesh, cands2edges, cand_edge_codes);
     filter_coarsen_candidates(&cands2edges, &cand_edge_codes);
     if (comm->reduce_and(cands2edges.size() == 0)) return false;
   }

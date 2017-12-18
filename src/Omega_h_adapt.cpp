@@ -6,6 +6,7 @@
 #include "Omega_h_confined.hpp"
 #include "Omega_h_conserve.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_file.hpp"
 #include "Omega_h_histogram.hpp"
 #include "Omega_h_laplace.hpp"
 #include "Omega_h_map.hpp"
@@ -16,7 +17,6 @@
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
 #include "Omega_h_verify.hpp"
-#include "Omega_h_file.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -132,7 +132,8 @@ void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
   auto lh = get_histogram(mesh, EDGE, opts.nlength_histogram_bins,
       opts.length_histogram_min, opts.length_histogram_max,
       mesh->ask_lengths());
-  auto owned_qualities = mesh->owned_array(mesh->dim(), mesh->ask_qualities(), 1);
+  auto owned_qualities =
+      mesh->owned_array(mesh->dim(), mesh->ask_qualities(), 1);
   auto qual_sum = get_sum(mesh->comm(), owned_qualities);
   auto global_nelems = mesh->nglobal_ents(mesh->dim());
   auto avg_qual = qual_sum / global_nelems;
@@ -222,8 +223,8 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.egads_model) {
     begin_code("snap");
     mesh->set_parting(OMEGA_H_GHOSTED);
-    auto warp = egads_get_snap_warp(mesh, opts.egads_model,
-        opts.verbosity >= EACH_REBUILD);
+    auto warp = egads_get_snap_warp(
+        mesh, opts.egads_model, opts.verbosity >= EACH_REBUILD);
     if (opts.should_smooth_snap) {
       if (opts.verbosity >= EACH_REBUILD) {
         std::cout << "Solving Laplacian of warp field...\n";
@@ -233,7 +234,8 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
           solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
       auto t1 = now();
       if (opts.verbosity >= EACH_REBUILD) {
-        std::cout << "Solving Laplacian of warp field took " << (t1 - t0) << " seconds\n";
+        std::cout << "Solving Laplacian of warp field took " << (t1 - t0)
+                  << " seconds\n";
       }
     }
     mesh->add_tag(VERT, "warp", mesh->dim(), warp);

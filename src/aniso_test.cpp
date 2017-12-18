@@ -1,8 +1,8 @@
+#include <Omega_h_adapt.hpp>
 #include <Omega_h_build.hpp>
 #include <Omega_h_compare.hpp>
-#include <Omega_h_timer.hpp>
-#include <Omega_h_adapt.hpp>
 #include <Omega_h_metric.hpp>
+#include <Omega_h_timer.hpp>
 
 #include <iostream>
 

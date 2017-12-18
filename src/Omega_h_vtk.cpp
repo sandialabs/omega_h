@@ -2,8 +2,8 @@
 
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <limits>
 
 #ifdef OMEGA_H_USE_ZLIB
@@ -640,7 +640,8 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   }
   stream << "</PPointData>\n";
   stream << "<PCellData>\n";
-  if (mesh->has_tag(cell_dim, "global") && tags[size_t(cell_dim)].count("global")) {
+  if (mesh->has_tag(cell_dim, "global") &&
+      tags[size_t(cell_dim)].count("global")) {
     write_p_tag(stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim());
   }
   if (tags[size_t(cell_dim)].count("local")) {
@@ -760,17 +761,19 @@ void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);
 }
 
-static char const pvd_prologue[] = "<VTKFile type=\"Collection\" version=\"0.1\">\n<Collection>\n";
+static char const pvd_prologue[] =
+    "<VTKFile type=\"Collection\" version=\"0.1\">\n<Collection>\n";
 static char const pvd_epilogue[] = "</Collection>\n</VTKFile>\n";
 
-static std::string read_existing_pvd(std::string const& pvdpath, Real restart_time) {
+static std::string read_existing_pvd(
+    std::string const& pvdpath, Real restart_time) {
   std::ifstream file(pvdpath.c_str());
   if (!file.is_open()) return pvd_prologue;
   std::string contents;
   std::string line;
-  std::getline(file, contents); //VTKFile
+  std::getline(file, contents);  // VTKFile
   contents += '\n';
-  std::getline(file, line); //Collection
+  std::getline(file, line);  // Collection
   contents += line;
   contents += '\n';
   // existing file may be corrupted somehow
@@ -788,7 +791,8 @@ static std::string read_existing_pvd(std::string const& pvdpath, Real restart_ti
   return contents;
 }
 
-std::streampos write_initial_pvd(std::string const& root_path, Real restart_time) {
+std::streampos write_initial_pvd(
+    std::string const& root_path, Real restart_time) {
   auto pvdpath = get_pvd_path(root_path);
   auto content = read_existing_pvd(pvdpath, restart_time);
   std::ofstream file(pvdpath.c_str());
@@ -869,7 +873,8 @@ Writer& Writer::operator=(Writer const& other) {
 
 Writer::~Writer() {}
 
-Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim, Real restart_time)
+Writer::Writer(
+    std::string const& root_path, Mesh* mesh, Int cell_dim, Real restart_time)
     : mesh_(mesh),
       root_path_(root_path),
       cell_dim_(cell_dim),

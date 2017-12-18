@@ -37,7 +37,8 @@ int main(int argc, char** argv) {
 #ifdef OMEGA_H_USE_EGADS
   opts.egads_model = eg;
 #endif
-  Omega_h_Isotropy isotropy = cmdline.parsed("--isotropic") ? OMEGA_H_ISO_LENGTH : OMEGA_H_ANISOTROPIC;
+  Omega_h_Isotropy isotropy =
+      cmdline.parsed("--isotropic") ? OMEGA_H_ISO_LENGTH : OMEGA_H_ANISOTROPIC;
   Omega_h::fix(&mesh, opts, isotropy, true);
   mesh.remove_tag(Omega_h::VERT, "metric");
   std::cout << "writing out " << path_out << '\n';

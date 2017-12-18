@@ -290,14 +290,14 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
       I8 match_code;
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
-        OMEGA_H_CHECK(!found); // there can't be more than one!
+        OMEGA_H_CHECK(!found);  // there can't be more than one!
         a2b[a] = b;
         codes[a] = match_code;
         found = true;
         if (allow_duplicates) break;
       }
     }
-    OMEGA_H_CHECK(found); // there can't be less than one!
+    OMEGA_H_CHECK(found);  // there can't be less than one!
   };
   parallel_for(na, f, "find_matches");
   *a2b_out = a2b;
@@ -308,11 +308,14 @@ template <typename T>
 void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out, bool allow_duplicates) {
   if (deg == 2) {
-    find_matches_deg<2>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
+    find_matches_deg<2>(
+        a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
   } else if (deg == 3) {
-    find_matches_deg<3>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
+    find_matches_deg<3>(
+        a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
   } else if (deg == 4) {
-    find_matches_deg<4>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
+    find_matches_deg<4>(
+        a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
   }
 }
 

@@ -1,12 +1,12 @@
 #include <Omega_h_verify.hpp>
 
+#include <Omega_h_adj.hpp>
 #include <Omega_h_align.hpp>
+#include <Omega_h_array_ops.hpp>
+#include <Omega_h_class.hpp>
+#include <Omega_h_loop.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_simplex.hpp>
-#include <Omega_h_loop.hpp>
-#include <Omega_h_adj.hpp>
-#include <Omega_h_class.hpp>
-#include <Omega_h_array_ops.hpp>
 
 #include <iostream>
 
@@ -202,9 +202,9 @@ bool verify_down_verts(Mesh* mesh) {
   for (Int ld = 0; ld <= 1; ++ld) {
     for (Int md = ld + 1; md < mesh->dim(); ++md) {
       for (Int hd = md + 1; hd <= mesh->dim(); ++hd) {
-        auto h2l =  mesh->ask_down(hd, ld);
-        auto h2m =  mesh->ask_down(hd, md);
-        auto m2l =  mesh->ask_down(md, ld);
+        auto h2l = mesh->ask_down(hd, ld);
+        auto h2m = mesh->ask_down(hd, md);
+        auto m2l = mesh->ask_down(md, ld);
         auto nhhm = simplex_degree(hd, md);
         auto nhhl = simplex_degree(hd, ld);
         auto nmml = simplex_degree(md, ld);
@@ -231,7 +231,8 @@ bool verify_down_verts(Mesh* mesh) {
 
 void verify_no_duplicates(Mesh* mesh) {
   for (Int ent_dim = 1; ent_dim <= mesh->dim(); ++ent_dim) {
-    std::cerr << "checking for duplicates in dim " << ent_dim << " entities...\n";
+    std::cerr << "checking for duplicates in dim " << ent_dim
+              << " entities...\n";
     auto ev2v = mesh->ask_verts_of(ent_dim);
     auto v2e = mesh->ask_up(VERT, ent_dim);
     LOs a2b;

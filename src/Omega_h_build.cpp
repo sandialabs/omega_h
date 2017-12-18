@@ -178,7 +178,8 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   LOs se2ose;
   Read<I8> se2ose_codes;
   constexpr bool allow_duplicates = true;
-  find_matches_ex(deg, se2fsv, sev2vg, sev2vg, sv2se, &se2ose, &se2ose_codes, allow_duplicates);
+  find_matches_ex(deg, se2fsv, sev2vg, sev2vg, sv2se, &se2ose, &se2ose_codes,
+      allow_duplicates);
   auto ose2oe = out_dist.items2dests();
   auto se2oe = unmap(se2ose, ose2oe);
   out_dist.set_roots2items(LOs());

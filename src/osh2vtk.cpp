@@ -1,6 +1,6 @@
+#include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_mesh.hpp>
-#include <Omega_h_file.hpp>
 
 #include <cstdlib>
 

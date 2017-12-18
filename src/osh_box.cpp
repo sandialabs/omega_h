@@ -1,10 +1,10 @@
 #include <cstdlib>
 #include <iostream>
 
-#include <Omega_h_library.hpp>
 #include <Omega_h_build.hpp>
-#include <Omega_h_mesh.hpp>
 #include <Omega_h_file.hpp>
+#include <Omega_h_library.hpp>
+#include <Omega_h_mesh.hpp>
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);

@@ -66,51 +66,41 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> m1,
-    Matrix<dim, dim> m2);
+    Matrix<dim, dim> m1, Matrix<dim, dim> m2);
 
 /* Metric intersection that accounts for all degenerate cases,
    thanks to:
    Barral, Nicolas.
-   "Time-accurate anisotropic mesh adaptation for three-dimensional moving mesh problems"
-   Diss. Universite Pierre et Marie Curie-Paris VI, 2015.
+   "Time-accurate anisotropic mesh adaptation for three-dimensional moving mesh
+   problems" Diss. Universite Pierre et Marie Curie-Paris VI, 2015.
  */
-OMEGA_H_INLINE Matrix<1, 1> intersect_degenerate_metrics(
-    Matrix<1, 1> m1,
-    DiagDecomp<1>,
-    Few<Int, 1>,
-    Int,
-    Matrix<1, 1>,
-    DiagDecomp<1>,
-    Few<Int, 1>,
+OMEGA_H_INLINE Matrix<1, 1> intersect_degenerate_metrics(Matrix<1, 1> m1,
+    DiagDecomp<1>, Few<Int, 1>, Int, Matrix<1, 1>, DiagDecomp<1>, Few<Int, 1>,
     Int) {
   // this should be impossible, but toss something in here so the code compiles
   return m1;
 }
 
 // Appendix A.1 in Barral's dissertation, case 5
-OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(
-    Matrix<2, 2> m1,
-    DiagDecomp<2> m1_dc,
-    Few<Int, 2> m1_ew_is_degen,
-    Int,
-    Matrix<2, 2> m2,
-    DiagDecomp<2> m2_dc,
-    Few<Int, 2> m2_ew_is_degen,
-    Int) {
+OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(Matrix<2, 2> m1,
+    DiagDecomp<2> m1_dc, Few<Int, 2> m1_ew_is_degen, Int, Matrix<2, 2> m2,
+    DiagDecomp<2> m2_dc, Few<Int, 2> m2_ew_is_degen, Int) {
   auto u1 = zero_vector<2>();
   auto v1 = zero_vector<2>();
   auto v2 = zero_vector<2>();
   Real l1 = -1.0;
   Real l2 = -1.0;
   for (Int i = 0; i < 2; ++i) {
-    if (m1_ew_is_degen[i]) v1 = m1_dc.q[i];
+    if (m1_ew_is_degen[i])
+      v1 = m1_dc.q[i];
     else {
       u1 = m1_dc.q[i];
       l1 = m1_dc.l[i];
     }
-    if (m2_ew_is_degen[i]) v2 = m2_dc.q[i];
-    else l2 = m2_dc.l[i];
+    if (m2_ew_is_degen[i])
+      v2 = m2_dc.q[i];
+    else
+      l2 = m2_dc.l[i];
   }
   if (v1 * v2 < OMEGA_H_EPSILON) {
     // case 5.a
@@ -129,14 +119,9 @@ OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(
 }
 
 // Barral's thesis, appendix A.2
-OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
-    Matrix<3, 3> m1,
-    DiagDecomp<3> m1_dc,
-    Few<Int, 3> m1_ew_is_degen,
-    Int nm1_degen_ews,
-    Matrix<3, 3> m2,
-    DiagDecomp<3> m2_dc,
-    Few<Int, 3> m2_ew_is_degen,
+OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
+    DiagDecomp<3> m1_dc, Few<Int, 3> m1_ew_is_degen, Int nm1_degen_ews,
+    Matrix<3, 3> m2, DiagDecomp<3> m2_dc, Few<Int, 3> m2_ew_is_degen,
     Int nm2_degen_ews) {
   if (nm1_degen_ews == 2 && nm2_degen_ews == 2) {
     // case 2
@@ -176,9 +161,10 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
   }
   if (nm1_degen_ews == 1 && nm2_degen_ews == 2) {
     // case 3
-    // note that in Barral's dissertation, it is m1 that has two degenerate directions.
-    // however, here we keep the rule that m1 is the least degenerate.
-    // so, in this case all 1 and 2 are swapped compared to the dissertation.
+    // note that in Barral's dissertation, it is m1 that has two degenerate
+    // directions. however, here we keep the rule that m1 is the least
+    // degenerate. so, in this case all 1 and 2 are swapped compared to the
+    // dissertation.
     auto u1 = zero_vector<3>();
     auto v1 = zero_vector<3>();
     auto w1 = zero_vector<3>();
@@ -188,7 +174,8 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
     bool found_u1 = false;
     bool found_v2 = false;
     for (Int i = 0; i < 3; ++i) {
-      if (m1_ew_is_degen[i]) w1 = m1_dc.q[i];
+      if (m1_ew_is_degen[i])
+        w1 = m1_dc.q[i];
       else {
         if (found_u1) {
           v1 = m1_dc.q[i];
@@ -197,7 +184,8 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
           found_u1 = true;
         }
       }
-      if (!m2_ew_is_degen[i]) u2 = m2_dc.q[i];
+      if (!m2_ew_is_degen[i])
+        u2 = m2_dc.q[i];
       else {
         if (found_v2) {
           w2 = m2_dc.q[i];
@@ -215,8 +203,9 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
       auto PT = transpose(P);
       auto m1_bar = PT * (m1 * P);
       auto m2_bar = PT * (m2 * P);
-      auto mint_bar = intersect_metrics(m1_bar, m2_bar); // reduced to 2D
-      // u1 and v1 are supposed to be orthogonal, so the pseudo-inverse is the transpose
+      auto mint_bar = intersect_metrics(m1_bar, m2_bar);  // reduced to 2D
+      // u1 and v1 are supposed to be orthogonal, so the pseudo-inverse is the
+      // transpose
       return P * (mint_bar * PT);
     } else {
       // case 3.b, u2 and w1 are not orthogonal
@@ -240,7 +229,8 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
     auto w2 = zero_vector<3>();
     bool found_u1 = false;
     for (Int i = 0; i < 3; ++i) {
-      if (m1_ew_is_degen[i]) w1 = m1_dc.q[i];
+      if (m1_ew_is_degen[i])
+        w1 = m1_dc.q[i];
       else {
         if (found_u1) {
           v1 = m1_dc.q[i];
@@ -282,8 +272,7 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> m1,
-    Matrix<dim, dim> m2) {
+    Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
   auto m1_dc = decompose_eigen(m1);
   auto m2_dc = decompose_eigen(m2);
   Few<Int, dim> m1_ew_is_degen;
@@ -330,8 +319,7 @@ OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
   }
   // okay, both the metrics are partially degenerate.
   // call the dimension-specific logic.
-  return intersect_degenerate_metrics(
-      m1, m1_dc, m1_ew_is_degen, nm1_degen_ews,
+  return intersect_degenerate_metrics(m1, m1_dc, m1_ew_is_degen, nm1_degen_ews,
       m2, m2_dc, m2_ew_is_degen, nm2_degen_ews);
 }
 
@@ -392,21 +380,24 @@ OMEGA_H_INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
  * the barycenter of a simplex; does several eigendecompositions
  */
 template <Int dim>
-OMEGA_H_INLINE void average_metric_contrib(Matrix<dim, dim>& am, Int& n, Matrix<dim, dim> m, bool has_degen) {
+OMEGA_H_INLINE void average_metric_contrib(
+    Matrix<dim, dim>& am, Int& n, Matrix<dim, dim> m, bool has_degen) {
   if (has_degen && max_norm(m) < OMEGA_H_EPSILON) return;
   am += linearize_metric(m);
   n++;
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> average_metric_finish(Matrix<dim, dim> am, Int n, bool has_degen) {
+OMEGA_H_INLINE Matrix<dim, dim> average_metric_finish(
+    Matrix<dim, dim> am, Int n, bool has_degen) {
   if (has_degen && n == 0) return am;
   am /= n;
   return delinearize_metric(am);
 }
 
 template <Int dim, Int n>
-OMEGA_H_INLINE Matrix<dim, dim> average_metric(Few<Matrix<dim, dim>, n> ms, bool has_degen) {
+OMEGA_H_INLINE Matrix<dim, dim> average_metric(
+    Few<Matrix<dim, dim>, n> ms, bool has_degen) {
   auto am = zero_matrix<dim, dim>();
   Int ngood = 0;
   for (Int i = 0; i < n; ++i) {
@@ -453,8 +444,10 @@ Int get_metric_dim(Int ncomps);
 Int get_metrics_dim(LO nmetrics, Reals metrics);
 Int get_metric_dim(Mesh* mesh);
 
-Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m, bool has_degen = false);
-Reals get_mident_metrics(Mesh* mesh, Int ent_dim, Reals v2m, bool has_degen = false);
+Reals get_mident_metrics(
+    Mesh* mesh, Int ent_dim, LOs entities, Reals v2m, bool has_degen = false);
+Reals get_mident_metrics(
+    Mesh* mesh, Int ent_dim, Reals v2m, bool has_degen = false);
 Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t);
 Reals linearize_metrics(LO nmetrics, Reals metrics);
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics);

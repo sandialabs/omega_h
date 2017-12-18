@@ -4,10 +4,10 @@
 #include "Omega_h_timer.hpp"
 
 #include <cassert>
+#include <iostream>
 #include <map>
 #include <set>
 #include <vector>
-#include <iostream>
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -246,7 +246,7 @@ Reals egads_get_snap_warp(Mesh* mesh, Egads* eg, bool verbose) {
   auto t1 = now();
   if (verbose) {
     std::cout << "Querying closest points for surface vertices took "
-      << (t1 - t0) << " seconds\n";
+              << (t1 - t0) << " seconds\n";
   }
   return warp;
 }

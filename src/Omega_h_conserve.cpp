@@ -6,14 +6,14 @@
 #include "Omega_h_adj.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
+#include "Omega_h_file.hpp"
 #include "Omega_h_graph.hpp"
 #include "Omega_h_host_few.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_loop.hpp"
-#include "Omega_h_mesh.hpp"
-#include "Omega_h_file.hpp"
 
 namespace Omega_h {
 
@@ -468,16 +468,16 @@ static void transfer_by_intersection(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-void transfer_densities_and_conserve_swap(Mesh* old_mesh, TransferOpts const& opts,
-    Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+void transfer_densities_and_conserve_swap(Mesh* old_mesh,
+    TransferOpts const& opts, Mesh* new_mesh, LOs keys2edges, LOs keys2prods,
+    LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!has_densities_or_conserved(old_mesh, opts)) return;
   auto init_cavs = form_initial_cavs(
       old_mesh, new_mesh, EDGE, keys2edges, keys2prods, prods2new_ents);
   auto dim = old_mesh->dim();
   for (Int i = 0; i < old_mesh->ntags(dim); ++i) {
     auto tagbase = old_mesh->get_tag(dim, i);
-    if (should_conserve(old_mesh, opts, dim, tagbase)||
+    if (should_conserve(old_mesh, opts, dim, tagbase) ||
         is_density(old_mesh, opts, dim, tagbase)) {
       auto ncomps = tagbase->ncomps();
       auto new_elem_densities_w = Write<Real>(new_mesh->nelems() * ncomps);
@@ -501,9 +501,9 @@ void transfer_densities_and_conserve_swap(Mesh* old_mesh, TransferOpts const& op
       same_ents2old_ents, same_ents2new_ents, op_conservation);
 }
 
-void transfer_densities_and_conserve_coarsen(Mesh* old_mesh, TransferOpts const& opts,
-    Mesh* new_mesh, LOs keys2verts, Adj keys2doms, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents) {
+void transfer_densities_and_conserve_coarsen(Mesh* old_mesh,
+    TransferOpts const& opts, Mesh* new_mesh, LOs keys2verts, Adj keys2doms,
+    LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
   if (!has_densities_or_conserved(old_mesh, opts)) return;
   auto keys2prods = keys2doms.a2ab;
   auto init_cavs = form_initial_cavs(

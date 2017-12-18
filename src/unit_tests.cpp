@@ -12,6 +12,7 @@
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_most_normal.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_refine_qualities.hpp"
@@ -23,7 +24,6 @@
 #include "Omega_h_swap3d_loop.hpp"
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml.hpp"
-#include "Omega_h_most_normal.hpp"
 
 #ifdef OMEGA_H_USE_TEUCHOSPARSER
 #include "Omega_h_expr.hpp"
@@ -181,9 +181,10 @@ static void test_eigen_jacobi(
 }
 
 static void test_eigen_jacobi_sign_bug() {
-  auto sign_bug_input = matrix_3x3(0.99999999998511147, 5.3809065327405379e-11, 9.7934015130085018e-10,
-      5.3809065327405379e-11, 0.99999999995912181, -1.676999986436999e-09,
-      9.7934015130085018e-10, -1.676999986436999e-09, 0.99999995816580101);
+  auto sign_bug_input = matrix_3x3(0.99999999998511147, 5.3809065327405379e-11,
+      9.7934015130085018e-10, 5.3809065327405379e-11, 0.99999999995912181,
+      -1.676999986436999e-09, 9.7934015130085018e-10, -1.676999986436999e-09,
+      0.99999995816580101);
   decompose_eigen_jacobi(sign_bug_input);
 }
 
@@ -238,38 +239,32 @@ static void test_intersect_with_null() {
 
 static void test_intersect_degen_metrics() {
   if ((0)) {
-  test_intersect_with_null();
-  // 2.a
-  OMEGA_H_CHECK(are_close(intersect_metrics(
-          diagonal(vector_3(1, 0, 0)),
-          diagonal(vector_3(0, 0, 1))),
+    test_intersect_with_null();
+    // 2.a
+    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                                diagonal(vector_3(0, 0, 1))),
         diagonal(vector_3(1, 0, 1))));
-  // 2.b
-  OMEGA_H_CHECK(are_close(intersect_metrics(
-          diagonal(vector_3(1, 0, 0)),
-          diagonal(vector_3(2, 0, 0))),
+    // 2.b
+    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                                diagonal(vector_3(2, 0, 0))),
         diagonal(vector_3(2, 0, 0))));
-  // 3.a
-  OMEGA_H_CHECK(are_close(intersect_metrics(
-          diagonal(vector_3(1, 0, 0)),
-          diagonal(vector_3(2, 1, 0))),
+    // 3.a
+    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                                diagonal(vector_3(2, 1, 0))),
         diagonal(vector_3(2, 1, 0))));
   }
   // 3.b
-  OMEGA_H_CHECK(are_close(intersect_metrics(
-          diagonal(vector_3(1, 0, 0)),
-          diagonal(vector_3(0, 1, 2))),
-        diagonal(vector_3(1, 1, 2))));
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                              diagonal(vector_3(0, 1, 2))),
+      diagonal(vector_3(1, 1, 2))));
   // 4.a
-  OMEGA_H_CHECK(are_close(intersect_metrics(
-          diagonal(vector_3(1, 0, 2)),
-          diagonal(vector_3(2, 0, 1))),
-        diagonal(vector_3(2, 0, 2))));
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 2)),
+                              diagonal(vector_3(2, 0, 1))),
+      diagonal(vector_3(2, 0, 2))));
   // 4.b
-  OMEGA_H_CHECK(are_close(intersect_metrics(
-          diagonal(vector_3(1, 0, 2)),
-          diagonal(vector_3(2, 1, 0))),
-        diagonal(vector_3(2, 1, 2))));
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 2)),
+                              diagonal(vector_3(2, 1, 0))),
+      diagonal(vector_3(2, 1, 2))));
 }
 
 static void test_intersect_metrics() {
@@ -1176,28 +1171,25 @@ static void test_sort_small_range() {
 
 static void test_most_normal() {
   {
-  Few<Vector<3>, 3> N =
-      {{1,0,0},{0,1,0},{0,0,1}};
-  auto N_c = get_most_normal_normal(N, 3);
-  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,1))));
+    Few<Vector<3>, 3> N = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    auto N_c = get_most_normal_normal(N, 3);
+    OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1, 1, 1))));
   }
   {
-  Few<Vector<3>, 4> N =
-      {{1,0,0},{0,0,1},normalize(vector_3(1,1,1)),{0,1,0}};
-  auto N_c = get_most_normal_normal(N, 4);
-  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,1))));
+    Few<Vector<3>, 4> N = {
+        {1, 0, 0}, {0, 0, 1}, normalize(vector_3(1, 1, 1)), {0, 1, 0}};
+    auto N_c = get_most_normal_normal(N, 4);
+    OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1, 1, 1))));
   }
   {
-  Few<Vector<3>, 3> N =
-      {{1,0,0},{0,1,0},{0,1,0}};
-  auto N_c = get_most_normal_normal(N, 3);
-  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,1,0))));
+    Few<Vector<3>, 3> N = {{1, 0, 0}, {0, 1, 0}, {0, 1, 0}};
+    auto N_c = get_most_normal_normal(N, 3);
+    OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1, 1, 0))));
   }
   {
-  Few<Vector<3>, 3> N =
-      {{1,0,0},{1,0,0},{1,0,0}};
-  auto N_c = get_most_normal_normal(N, 3);
-  OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1,0,0))));
+    Few<Vector<3>, 3> N = {{1, 0, 0}, {1, 0, 0}, {1, 0, 0}};
+    auto N_c = get_most_normal_normal(N, 3);
+    OMEGA_H_CHECK(are_close(N_c, normalize(vector_3(1, 0, 0))));
   }
 }
 
