@@ -1,6 +1,10 @@
-#include "Omega_h.hpp"
-#include "Omega_h_array_ops.hpp"
-#include "Omega_h_bbox.hpp"
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_array_ops.hpp>
+#include <Omega_h_bbox.hpp>
+#include <Omega_h_file.hpp>
+#include <Omega_h_metric.hpp>
+#include <Omega_h_loop.hpp>
+#include <Omega_h_adapt.hpp>
 
 #include <cstdlib>
 #include <cstring>

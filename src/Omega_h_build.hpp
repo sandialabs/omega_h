@@ -3,6 +3,7 @@
 
 #include <Omega_h_array.hpp>
 #include <Omega_h_comm.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
 

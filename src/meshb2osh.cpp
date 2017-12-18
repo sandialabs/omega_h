@@ -1,7 +1,9 @@
-#include <Omega_h.hpp>
 #include <iostream>
+
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_file.hpp>
 #ifdef OMEGA_H_USE_EGADS
-#include "Omega_h_egads.hpp"
+#include <Omega_h_egads.hpp>
 #endif
 
 int main(int argc, char** argv) {

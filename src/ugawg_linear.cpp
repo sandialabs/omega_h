@@ -1,5 +1,9 @@
-#include "Omega_h.hpp"
-#include "Omega_h_timer.hpp"
+#include <Omega_h_timer.hpp>
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_metric.hpp>
+#include <Omega_h_file.hpp>
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_loop.hpp>
 
 #include <iostream>
 

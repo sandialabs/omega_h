@@ -1,6 +1,10 @@
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_map.hpp>
-#include "Omega_h_motion.hpp"
+#include <Omega_h_motion.hpp>
+#include <Omega_h_library.hpp>
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_build.hpp>
+#include <Omega_h_file.hpp>
 
 using namespace Omega_h;
 

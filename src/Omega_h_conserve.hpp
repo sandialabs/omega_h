@@ -1,9 +1,12 @@
-#ifndef TRANSFER_CONSERVE_HPP
-#define TRANSFER_CONSERVE_HPP
+#ifndef OMEGA_H_TRANSFER_CONSERVE_HPP
+#define OMEGA_H_TRANSFER_CONSERVE_HPP
 
-#include "Omega_h.hpp"
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_adj.hpp>
 
 namespace Omega_h {
+
+class Mesh;
 
 void transfer_conserve_refine(Mesh* old_mesh, TransferOpts const& opts,
     Mesh* new_mesh, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
