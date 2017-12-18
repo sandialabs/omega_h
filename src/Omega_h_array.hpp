@@ -48,7 +48,16 @@ class Write {
     check_release();
 #endif
   }
-  LO size() const;
+  OMEGA_H_INLINE LO size() const {
+#ifndef __CUDA_ARCH__
+    OMEGA_H_CHECK(exists());
+#endif
+#ifdef OMEGA_H_USE_KOKKOSCORE
+    return static_cast<LO>(view_.size());
+#else
+    return size_;
+#endif
+  }
   OMEGA_H_DEVICE T& operator[](LO i) const {
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
@@ -79,7 +88,7 @@ class Write {
     return ptr_.use_count();
 #endif
   }
-  OMEGA_H_INLINE bool exists() const { return use_count() != 0; }
+  bool exists() const { return use_count() != 0; }
   std::size_t bytes() const;
 
  private:

@@ -296,6 +296,7 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t0 = now();
   if (!pre_adapt(mesh, opts)) return false;
   begin_code("adapt");
+  vtk::write_parallel("before-adapt-vtk", mesh);
   setup_conservation_tags(mesh, opts);
   auto t1 = now();
   satisfy_lengths(mesh, opts);

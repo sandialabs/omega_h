@@ -372,8 +372,9 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       auto l = ml2l[ml_begin + ml];
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)
-      for (Int hhl2 = 0; hhl2 < hl; ++hhl2)
+      for (Int hhl2 = 0; hhl2 < hl; ++hhl2) {
         OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
+      }
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
         auto tet_tri_code = hm2m_code;

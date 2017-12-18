@@ -740,6 +740,10 @@ void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
   write_parallel(path, mesh, cell_dim, get_all_vtk_tags(mesh));
 }
 
+void write_parallel(std::string const& path, Mesh* mesh) {
+  write_parallel(path, mesh, mesh->dim());
+}
+
 void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
   I32 npieces;
   std::string vtupath;
