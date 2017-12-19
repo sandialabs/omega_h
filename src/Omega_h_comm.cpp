@@ -321,7 +321,7 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
 static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
     int width, const void* sendbuf, const int sdispls[], MPI_Datatype sendtype,
     void* recvbuf, const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm) {
-  // begin_code("Neighbor_alltoallv");
+  begin_code("Neighbor_alltoallv");
   int const tag = 42;
   int indegree, outdegree;
   indegree = sources.size();
@@ -344,7 +344,7 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   }
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
-  // end_code();
+  end_code();
   return MPI_SUCCESS;
 }
 
