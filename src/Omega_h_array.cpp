@@ -122,16 +122,6 @@ template <typename T>
 Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
 template <typename T>
-LO Write<T>::size() const {
-  OMEGA_H_CHECK(exists());
-#ifdef OMEGA_H_USE_KOKKOSCORE
-  return static_cast<LO>(view_.size());
-#else
-  return size_;
-#endif
-}
-
-template <typename T>
 std::size_t Write<T>::bytes() const {
   return static_cast<std::size_t>(size()) * sizeof(T);
 }
