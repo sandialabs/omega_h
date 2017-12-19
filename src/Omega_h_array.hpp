@@ -49,9 +49,7 @@ class Write {
 #endif
   }
   OMEGA_H_INLINE LO size() const {
-#ifndef __CUDA_ARCH__
     OMEGA_H_CHECK(exists());
-#endif
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return static_cast<LO>(view_.size());
 #else
@@ -88,7 +86,13 @@ class Write {
     return ptr_.use_count();
 #endif
   }
-  bool exists() const { return use_count() != 0; }
+  OMEGA_H_INLINE bool exists() const {
+#ifdef __CUDA_ARCH__
+    return true;
+#else
+    return use_count() != 0;
+#endif
+  }
   std::size_t bytes() const;
 
  private:
