@@ -431,8 +431,8 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
 }
 
 template <typename T>
-void self_send_part2(
-    Read<T> self_data, LO self_src, Read<T>* p_recvbuf, Read<LO> rdispls, Int width) {
+void self_send_part2(Read<T> self_data, LO self_src, Read<T>* p_recvbuf,
+    Read<LO> rdispls, Int width) {
   if (!self_data.exists()) return;
   auto recvbuf = *p_recvbuf;
   if (recvbuf.size() == 0) {
