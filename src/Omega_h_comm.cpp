@@ -432,13 +432,13 @@ Read<T> self_send_part1(LO self_dst, LO self_src, Read<T>* p_sendbuf,
 
 template <typename T>
 void self_send_part2(
-    Read<T> self_data, LO self_src, Read<T>* p_recvbuf, Read<LO> rdispls) {
+    Read<T> self_data, LO self_src, Read<T>* p_recvbuf, Read<LO> rdispls, Int width) {
   if (!self_data.exists()) return;
   auto recvbuf = *p_recvbuf;
   if (recvbuf.size() == 0) {
     recvbuf = self_data;
   } else {
-    auto begin = rdispls.get(self_src);
+    auto begin = rdispls.get(self_src) * width;
     auto self_size = self_data.size();
     auto end = begin + self_size;
     auto recvbuf_w = Write<T>(recvbuf.size() + self_size);
@@ -479,7 +479,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
       MpiTraits<T>::datatype(), nonnull(recvbuf.data()),
       nonnull(rdispls.data()), MpiTraits<T>::datatype(), impl_));
   auto recvbuf_dev = Read<T>(recvbuf.write());
-  self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev);
+  self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev, width);
 #else   // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   Write<T> recvbuf_dev_w(nrecvd);
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
