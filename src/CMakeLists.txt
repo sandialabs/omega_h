@@ -394,6 +394,7 @@ if(BUILD_TESTING)
   endif()
   osh_add_exe(flood_test)
   osh_add_exe(random_test)
+  osh_add_exe(adapt_from_pumi)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -405,7 +406,6 @@ set(Omega_h_HEADERS
   Omega_h_kokkos.hpp
   Omega_h_defines.hpp
   Omega_h_array.hpp
-  Omega_h.hpp
   Omega_h_vector.hpp
   Omega_h_matrix.hpp
   Omega_h_functors.hpp

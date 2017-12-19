@@ -39,6 +39,7 @@ void choose_rails(Mesh* mesh, LOs cands2edges, Read<I8> cand_edge_codes,
       auto ve_code = ve_codes[ve];
       auto eev = code_which_down(ve_code);
       auto cand_code = cand_edge_codes[cand];
+      OMEGA_H_CHECK(cand_code != DONT_COLLAPSE);
       if (!collapses(cand_code, eev)) continue;
       auto global = globals[e];
       auto length = lengths[e];

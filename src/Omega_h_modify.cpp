@@ -357,7 +357,8 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
-//std::cerr << "modify_ents ent_dim " << ent_dim << " key_dim " << key_dim << '\n';
+  // std::cerr << "modify_ents ent_dim " << ent_dim << " key_dim " << key_dim <<
+  // '\n';
   begin_code("modify_ents");
   *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim, keys2kds);
   auto nkeys = keys2kds.size();

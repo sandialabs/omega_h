@@ -13,32 +13,31 @@ Communications in Numerical Methods in Engineering
 DOI: 10.1002/cnm.1056
 */
 template <Int nmax>
-OMEGA_H_INLINE
-Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
-    Real inside_tol = OMEGA_H_EPSILON) {
+OMEGA_H_INLINE Vector<3> get_most_normal_normal(
+    Few<Vector<3>, nmax> N, Int n, Real inside_tol = OMEGA_H_EPSILON) {
   // first try pairs
   Real scalmin = -1.0;
   Vector<3> c;
   for (Int i = 0; i < n; ++i) {
     for (Int j = i + 1; j < n; ++j) {
-      //Compute the bisector vector (center):
+      // Compute the bisector vector (center):
       auto N_b = N[i] + N[j];
       N_b = normalize(N_b);
-      //Compute the radius (angle):
+      // Compute the radius (angle):
       auto scal = N_b * N[i];
-      //Compare the current length against current
-      //smallest length
+      // Compare the current length against current
+      // smallest length
       if (scal < scalmin) continue;
-      //Are all the points inside this circle?
+      // Are all the points inside this circle?
       Int l;
       for (l = 0; l < n; ++l) {
         auto scalt = N[l] * N_b;
         if (scalt + inside_tol < scal) break;
       }
-      if (l < n) continue; // not all points inside
-      //Store minimal radius and the center
+      if (l < n) continue;  // not all points inside
+      // Store minimal radius and the center
       c = N_b;
-      scalmin=scal;
+      scalmin = scal;
     }
   }
   // if a circle with two points is found to enclose all the points...
@@ -48,8 +47,8 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
   for (Int i = 0; i < n; ++i) {
     for (Int j = i + 1; j < n; ++j) {
       for (Int k = j + 1; k < n; ++k) {
-        //Compute the center of the circle
-        //Instead of Aubry and Lohner's math, just do some matrix algebra:
+        // Compute the center of the circle
+        // Instead of Aubry and Lohner's math, just do some matrix algebra:
         Matrix<3, 3> M;
         M[0] = N[i];
         M[1] = N[j];
@@ -63,20 +62,20 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
         // we choose the arbitrary constant 1.0 as this product
         auto N_c = invert(transpose(M)) * vector_3(1.0, 1.0, 1.0);
         N_c = normalize(N_c);
-        //Compute the radius
+        // Compute the radius
         auto scal = N_c * N[i];
         OMEGA_H_CHECK(are_close(scal, N_c * N[j]));
         OMEGA_H_CHECK(are_close(scal, N_c * N[k]));
-        //Compare the current against smallest length
+        // Compare the current against smallest length
         if (scal < scalmin) continue;
-        //Are all the points inside this circle?
+        // Are all the points inside this circle?
         Int l;
         for (l = 0; l < n; ++l) {
           auto scalt = N[l] * N_c;
           if (scalt + inside_tol < scal) break;
         }
-        if (l < n) continue; // not all points inside
-        //Store the minimal radius and the center
+        if (l < n) continue;  // not all points inside
+        // Store the minimal radius and the center
         c = N_c;
         scalmin = scal;
       }
@@ -87,8 +86,7 @@ Vector<3> get_most_normal_normal(Few<Vector<3>, nmax> N, Int n,
 }
 
 template <Int nmax>
-OMEGA_H_INLINE
-Vector<2> get_most_normal_normal(Few<Vector<2>, nmax> N, Int) {
+OMEGA_H_INLINE Vector<2> get_most_normal_normal(Few<Vector<2>, nmax> N, Int) {
   return normalize(N[0] + N[1]);
 }
 

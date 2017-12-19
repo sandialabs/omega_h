@@ -53,7 +53,8 @@ Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
 }
 
 template <Int mdim, Int edim>
-static Reals get_mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m, bool has_degen) {
+static Reals get_mident_metrics_tmpl(
+    Mesh* mesh, LOs a2e, Reals v2m, bool has_degen) {
   auto na = a2e.size();
   Write<Real> out(na * symm_ncomps(mdim));
   auto ev2v = mesh->ask_verts_of(edim);
@@ -68,7 +69,8 @@ static Reals get_mident_metrics_tmpl(Mesh* mesh, LOs a2e, Reals v2m, bool has_de
   return out;
 }
 
-Reals get_mident_metrics(Mesh* mesh, Int ent_dim, LOs entities, Reals v2m, bool has_degen) {
+Reals get_mident_metrics(
+    Mesh* mesh, Int ent_dim, LOs entities, Reals v2m, bool has_degen) {
   auto metrics_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (metrics_dim == 3 && ent_dim == 3) {
     return get_mident_metrics_tmpl<3, 3>(mesh, entities, v2m, has_degen);
@@ -260,7 +262,7 @@ Reals project_metrics_dim(Mesh* mesh, Reals e2m) {
     for (auto ve = v2e.a2ab[v]; ve < v2e.a2ab[v + 1]; ++ve) {
       auto e = v2e.ab2b[ve];
       auto em = get_symm<metric_dim>(e2m, e);
-      average_metric_contrib(vm, n, em, true); 
+      average_metric_contrib(vm, n, em, true);
     }
     vm = average_metric_finish(vm, n, true);
     set_symm(v_metrics_w, v, vm);
@@ -271,14 +273,19 @@ Reals project_metrics_dim(Mesh* mesh, Reals e2m) {
 }
 
 Reals project_metrics(Mesh* mesh, Reals e2m) {
-  if (mesh->dim() == 3) return project_metrics_dim<3>(mesh, e2m);
-  else if (mesh->dim() == 2) return project_metrics_dim<2>(mesh, e2m);
-  else if (mesh->dim() == 1) return project_metrics_dim<1>(mesh, e2m);
-  else OMEGA_H_NORETURN(Reals());
+  if (mesh->dim() == 3)
+    return project_metrics_dim<3>(mesh, e2m);
+  else if (mesh->dim() == 2)
+    return project_metrics_dim<2>(mesh, e2m);
+  else if (mesh->dim() == 1)
+    return project_metrics_dim<1>(mesh, e2m);
+  else
+    OMEGA_H_NORETURN(Reals());
 }
 
 Reals smooth_metric_once(Mesh* mesh, Reals v2m, bool has_degen) {
-  return project_metrics(mesh, get_mident_metrics(mesh, mesh->dim(), v2m, has_degen));
+  return project_metrics(
+      mesh, get_mident_metrics(mesh, mesh->dim(), v2m, has_degen));
 }
 
 template <Int dim>

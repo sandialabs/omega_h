@@ -1,7 +1,11 @@
-#include "Omega_h.hpp"
-#include "Omega_h_cmdline.hpp"
-#include "Omega_h_histogram.hpp"
-#include "Omega_h_simplex.hpp"
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_cmdline.hpp>
+#include <Omega_h_file.hpp>
+#include <Omega_h_histogram.hpp>
+#include <Omega_h_loop.hpp>
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_metric.hpp>
+#include <Omega_h_simplex.hpp>
 
 #include <iostream>
 

@@ -117,11 +117,8 @@ void add_implied_metric_tag(Mesh* mesh);
 void add_implied_isos_tag(Mesh* mesh);
 void add_implied_metric_based_on_target(Mesh* mesh);
 
-void fix(Mesh* mesh
-    , AdaptOpts const& adapt_opts
-    , Omega_h_Isotropy isotropy
-    , bool verbose
-    );
+void fix(Mesh* mesh, AdaptOpts const& adapt_opts, Omega_h_Isotropy isotropy,
+    bool verbose);
 
 }  // namespace Omega_h
 

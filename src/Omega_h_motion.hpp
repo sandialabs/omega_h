@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_MOTION_HPP
 #define OMEGA_H_MOTION_HPP
 
-#include "Omega_h.hpp"
+#include <Omega_h_adapt.hpp>
 
 namespace Omega_h {
 

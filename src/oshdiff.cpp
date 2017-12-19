@@ -1,5 +1,7 @@
-#include "Omega_h.hpp"
-#include "Omega_h_compare.hpp"
+#include <Omega_h_compare.hpp>
+#include <Omega_h_file.hpp>
+#include <Omega_h_library.hpp>
+#include <Omega_h_mesh.hpp>
 
 #include <cstring>
 #include <iostream>
