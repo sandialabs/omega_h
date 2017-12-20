@@ -33,7 +33,9 @@ static Read<I64> dists_from_coords_dim(Reals coords) {
     auto hilbert_coord =
         hilbert::from_spatial(unit_affine, nbits, spatial_coord);
     for (Int j = 0; j < dim; ++j) {
-      out[i * dim + j] = static_cast<I64>(hilbert_coord[j]);
+      auto sv = static_cast<I64>(hilbert_coord[j]);
+      OMEGA_H_CHECK(sv >= 0);
+      out[i * dim + j] = sv;
     }
   };
   parallel_for(npts, f, "hilbert::dists_from_coords");
