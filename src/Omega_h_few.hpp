@@ -19,6 +19,7 @@ class Few {
   T array_[n];
 
  public:
+  using value_type = T;
   enum { size = n };
   OMEGA_H_INLINE T* data() { return array_; }
   OMEGA_H_INLINE T const* data() const { return array_; }

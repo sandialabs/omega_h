@@ -12,6 +12,7 @@ OMEGA_H_DEVICE Few<std::uint64_t, 2> run_philox_cbrng(Few<std::uint64_t, 2> ctr,
   using PhiloxType = r123::Philox4x32;
   using ctr_type = typename PhiloxType::ctr_type;
   using key_type = typename PhiloxType::key_type;
+  PhiloxType philox_cbrng;
   ctr_type ctr_philox;
   key_type key_philox;
   ctr_philox[0] = static_cast<std::uint32_t>(ctr[0]);
@@ -20,7 +21,7 @@ OMEGA_H_DEVICE Few<std::uint64_t, 2> run_philox_cbrng(Few<std::uint64_t, 2> ctr,
   ctr_philox[3] = static_cast<std::uint32_t>(ctr[1] >> 32);
   key_philox[0] = static_cast<std::uint32_t>(key);
   key_philox[1] = static_cast<std::uint32_t>(key >> 32);
-  ctr_philox = PhiloxType(ctr_philox, key_philox);
+  ctr_philox = philox_cbrng(ctr_philox, key_philox);
   ctr[0] = ctr_philox[1];
   ctr[0] <<= 32;
   ctr[0] |= ctr_philox[0];

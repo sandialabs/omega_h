@@ -393,7 +393,6 @@ if(BUILD_TESTING)
     osh_add_exe(dolfin_test)
   endif()
   osh_add_exe(flood_test)
-  osh_add_exe(random_test)
   osh_add_exe(adapt_from_pumi)
 endif()
 
