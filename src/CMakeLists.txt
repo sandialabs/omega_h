@@ -441,6 +441,7 @@ set(Omega_h_HEADERS
   Omega_h_shape.hpp
   Omega_h_quality.hpp
   Omega_h_scatterplot.hpp
+  Omega_h_affine.hpp
   )
 
 if(Omega_h_USE_Teuchos)

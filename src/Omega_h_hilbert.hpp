@@ -6,6 +6,7 @@
 #include <Omega_h_array.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <Omega_h_vector.hpp>
+#include <Omega_h_affine.hpp>
 
 namespace Omega_h {
 
@@ -90,8 +91,6 @@ void AxestoTranspose(coord_t* X, int b, int n)  // position, #bits, dimension
   for (i = 0; i < n; i++) X[i] ^= t;
 }
 
-/* Dan Ibanez: end verbatim code, what follows are omega_h helpers */
-
 // un-transpose:
 //                  in[0] = A D G J M
 //                  in[1] = B E H K N
@@ -108,30 +107,43 @@ OMEGA_H_INLINE void untranspose(
   }
 }
 
+/* Dan Ibanez: end verbatim code, what follows are omega_h helpers */
+
 /* converts a floating-point spatial coordinate into an integral
-   coordinate on an implicit regular grid defined by an origin and
-   a side length, where the number of implicit grid cells along
-   one axis is (2^nbits)).
+   1D Hilbert coordinate on an implicit regular grid.
+   The grid is defined by an affine transformation
+   which maps real space vectors into a unit box,
+   where the number of implicit grid cells along
+   one axis of the unit box is (2^nbits)).
+
    After doing this, it converts the integral grid cell indices into
    a "one-dimensional" Hilbert space-filling-curve integer.
    In practice, this integer may be up to (64*dim) bits, so it is stored
-   as several 64-bit integers. */
+   as several 64-bit integers.
+
+   It is the user's responsibility to ensure that the affine transformation
+   maps all possible input points such that the resulting point has all
+   its coordinates in the range [0.0, 1.0].
+   This function will clamp those coordinates for additional safety.
+ */
 template <Int dim>
 OMEGA_H_INLINE Few<hilbert::coord_t, dim> from_spatial(
-    Vector<dim> origin, Real length, Int nbits, Vector<dim> coord) {
+    Affine<dim> to_unit_box, Int nbits, Vector<dim> coord) {
+  auto unit_box_coord = to_unit_box * coord;
   hilbert::coord_t X[dim];
   for (Int j = 0; j < dim; ++j) {
-    /* floating-point coordinate to fine-grid integer coordinate,
-       should be non-negative since we subtract the origin */
-    Real zero_to_one_coord = (coord[j] - origin[j]) / length;
-    Real zero_to_2eP_coord = zero_to_one_coord * std::exp2(Real(nbits));
+    /* this is more of an assert, and allows coordinates to be slightly
+       outside the unit box without too severe consequences */
+    auto zero_to_one_coord = clamp(unit_box_coord[j], 0.0, 1.0);
+    auto zero_to_2eP_coord = zero_to_one_coord * std::exp2(Real(nbits));
     X[j] = hilbert::coord_t(zero_to_2eP_coord);
     /* some values will just graze the acceptable range
        (with proper floating point math they are exactly
         equal to 2^(nbits), and we'll be safe with (>=) in case
        floating point math is even worse than that. */
-    if (X[j] >= (hilbert::coord_t(1) << nbits))
+    if (X[j] >= (hilbert::coord_t(1) << nbits)) {
       X[j] = (hilbert::coord_t(1) << nbits) - 1;
+    }
   }
   hilbert::AxestoTranspose(X, nbits, dim);
   Few<hilbert::coord_t, dim> Y;

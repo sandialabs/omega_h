@@ -23,15 +23,15 @@ namespace hilbert {
 template <Int dim>
 static Read<I64> dists_from_coords_dim(Reals coords) {
   auto bbox = find_bounding_box<dim>(coords);
-  Real maxl = 0;
-  for (Int i = 0; i < dim; ++i) maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
-  LO npts = coords.size() / dim;
+  bbox = make_equilateral(bbox);
+  auto unit_affine = get_affine_from_bbox_into_unit(bbox);
+  auto npts = divide_no_remainder(coords.size(), dim);
   Write<I64> out(npts * dim);
   auto f = OMEGA_H_LAMBDA(LO i) {
     constexpr Int nbits = MANTISSA_BITS;
     auto spatial_coord = get_vector<dim>(coords, i);
     auto hilbert_coord =
-        hilbert::from_spatial(bbox.min, maxl, nbits, spatial_coord);
+        hilbert::from_spatial(unit_affine, nbits, spatial_coord);
     for (Int j = 0; j < dim; ++j) {
       out[i * dim + j] = static_cast<I64>(hilbert_coord[j]);
     }

@@ -24,14 +24,6 @@ OMEGA_H_INLINE Affine<dim> invert(Affine<dim> a) {
   return ai;
 }
 
-template <Int dim>
-OMEGA_H_INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
-  Affine<dim> a;
-  a.r = simplex_basis<dim, dim>(p);
-  a.t = p[0];
-  return a;
-}
-
 }
 
 #endif
