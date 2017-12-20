@@ -215,10 +215,10 @@ OMEGA_H_INLINE Real power(Real x, Int np, Int dp) {
 }
 
 OMEGA_H_INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
-  Real am = fabs(a);
-  Real bm = fabs(b);
+  Real am = std::abs(a);
+  Real bm = std::abs(b);
   if (am <= floor && bm <= floor) return 0.0;
-  return fabs(b - a) / max2(am, bm);
+  return std::abs(b - a) / max2(am, bm);
 }
 
 OMEGA_H_INLINE bool are_close(
@@ -230,6 +230,15 @@ template <typename T>
 T divide_no_remainder(T a, T b) {
   OMEGA_H_CHECK(a % b == 0);
   return a / b;
+}
+
+OMEGA_H_INLINE Real uniform_to_standard_normal(Real uniform_x) {
+  constexpr auto one_over_sqrt_two_pi = 0.3989422804014327;
+  return one_over_sqrt_two_pi * std::exp((-1.0 / 2.0) * square(uniform_x));
+}
+
+OMEGA_H_INLINE Real uniform_to_general_normal(Real uniform_x, Real standard_deviation, Real mean) {
+  return (1.0 / standard_deviation) * uniform_to_standard_normal((uniform_x - mean) / standard_deviation);
 }
 
 }  // namespace Omega_h
