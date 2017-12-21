@@ -82,7 +82,8 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   b = c;
 }
 
-constexpr OMEGA_H_INLINE Int factorial(Int x) {
+template <typename T>
+constexpr OMEGA_H_INLINE T factorial(T x) {
   return (x > 1) ? (x * factorial(x - 1)) : 1;
 }
 
@@ -230,15 +231,6 @@ template <typename T>
 T divide_no_remainder(T a, T b) {
   OMEGA_H_CHECK(a % b == 0);
   return a / b;
-}
-
-OMEGA_H_INLINE Real uniform_to_standard_normal(Real uniform_x) {
-  constexpr auto one_over_sqrt_two_pi = 0.3989422804014327;
-  return one_over_sqrt_two_pi * std::exp((-1.0 / 2.0) * square(uniform_x));
-}
-
-OMEGA_H_INLINE Real uniform_to_general_normal(Real uniform_x, Real standard_deviation, Real mean) {
-  return (1.0 / standard_deviation) * uniform_to_standard_normal((uniform_x - mean) / standard_deviation);
 }
 
 }  // namespace Omega_h

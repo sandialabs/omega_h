@@ -394,6 +394,7 @@ if(BUILD_TESTING)
   endif()
   osh_add_exe(flood_test)
   osh_add_exe(adapt_from_pumi)
+  osh_add_exe(random_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
