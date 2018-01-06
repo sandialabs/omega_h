@@ -33,13 +33,8 @@ TagSet get_all_vtk_tags(Mesh* mesh) {
   return out;
 }
 
-namespace {
-
 /* start of C++ ritual dance to print a string based on
    type properties */
-
-template <bool is_signed, std::size_t size>
-struct IntTraits;
 
 template <>
 struct IntTraits<true, 1> {
@@ -61,13 +56,12 @@ struct IntTraits<false, 8> {
   inline static char const* name() { return "UInt64"; }
 };
 
-template <std::size_t size>
-struct FloatTraits;
-
 template <>
 struct FloatTraits<8> {
   inline static char const* name() { return "Float64"; }
 };
+
+namespace {
 
 template <typename T, typename Enable = void>
 struct Traits;
