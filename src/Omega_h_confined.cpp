@@ -94,13 +94,13 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
     if (nb == 4) {
       for (Int tte = 0; tte < 3; ++tte) {
         if (tte2b[tte]) continue;
-        auto opp = opposite_template(TET, EDGE, tte);
+        auto opp = simplex_opposite_template(TET, EDGE, tte);
         if (tte2b[opp]) continue;
         // at this point we have edge-edge nearness
-        auto a = ttv2x[down_template(TET, EDGE, tte, 0)];
-        auto b = ttv2x[down_template(TET, EDGE, tte, 1)];
-        auto c = ttv2x[down_template(TET, EDGE, opp, 0)];
-        auto d = ttv2x[down_template(TET, EDGE, opp, 1)];
+        auto a = ttv2x[simplex_down_template(TET, EDGE, tte, 0)];
+        auto b = ttv2x[simplex_down_template(TET, EDGE, tte, 1)];
+        auto c = ttv2x[simplex_down_template(TET, EDGE, opp, 0)];
+        auto d = ttv2x[simplex_down_template(TET, EDGE, opp, 1)];
         auto ab = b - a;
         auto cd = d - c;
         auto n = normalize(cross(ab, cd));
@@ -125,8 +125,8 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       Few<Int, 3> vve2tte;
       Few<Int, 3> vve2wd;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2tte[vve] = up_template(TET, VERT, ttv, vve).up;
-        vve2wd[vve] = up_template(TET, VERT, ttv, vve).which_down;
+        vve2tte[vve] = simplex_up_template(TET, VERT, ttv, vve).up;
+        vve2wd[vve] = simplex_up_template(TET, VERT, ttv, vve).which_down;
       }
       Few<I8, 3> vve2b;
       for (Int vve = 0; vve < 3; ++vve) vve2b[vve] = tte2b[vve2tte[vve]];
@@ -135,7 +135,7 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2ttv[vve] = down_template(TET, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
+        vve2ttv[vve] = simplex_down_template(TET, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];
@@ -234,15 +234,15 @@ static Reals get_pinched_tet_angles(Mesh* mesh) {
     Real tet_angle = -1.0;
     for (Int kke = 0; kke < 6; ++kke) {
       if (kke2dim[kke] != 1) continue;
-      auto ket0 = up_template(3, 1, kke, 0).up;
-      auto ket1 = up_template(3, 1, kke, 1).up;
+      auto ket0 = simplex_up_template(3, 1, kke, 0).up;
+      auto ket1 = simplex_up_template(3, 1, kke, 1).up;
       if (kkt2dim[ket0] != 2) continue;
       if (kkt2dim[ket1] != 2) continue;
       auto e0 = kke2e[kke];
       auto e0v2v = gather_down<2>(edges2verts, e0);
       auto e0v2x = gather_vectors<2, 3>(coords, e0v2v);
       auto tangent = e0v2x[1] - e0v2x[0];
-      auto kke_opp = opposite_template(3, 1, kke);
+      auto kke_opp = simplex_opposite_template(3, 1, kke);
       auto e1 = kke2e[kke_opp];
       auto e1v2v = gather_down<2>(edges2verts, e1);
       auto e1v2x = gather_vectors<2, 3>(coords, e1v2v);

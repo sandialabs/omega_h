@@ -292,8 +292,8 @@ OMEGA_H_INLINE Vector<2> get_side_vector(Few<Vector<2>, 2> p) {
 
 OMEGA_H_INLINE Vector<2> get_side_vector(Few<Vector<2>, 3> p, Int iedge) {
   Few<Vector<2>, 2> sp;
-  sp[0] = p[down_template(2, 1, iedge, 0)];
-  sp[1] = p[down_template(2, 1, iedge, 1)];
+  sp[0] = p[simplex_down_template(2, 1, iedge, 0)];
+  sp[1] = p[simplex_down_template(2, 1, iedge, 1)];
   return get_side_vector(sp);
 }
 
@@ -303,9 +303,9 @@ OMEGA_H_INLINE Vector<3> get_side_vector(Few<Vector<3>, 3> p) {
 
 OMEGA_H_INLINE Vector<3> get_side_vector(Few<Vector<3>, 4> p, Int iface) {
   Few<Vector<3>, 3> sp;
-  sp[0] = p[down_template(3, 2, iface, 0)];
-  sp[1] = p[down_template(3, 2, iface, 1)];
-  sp[2] = p[down_template(3, 2, iface, 2)];
+  sp[0] = p[simplex_down_template(3, 2, iface, 0)];
+  sp[1] = p[simplex_down_template(3, 2, iface, 1)];
+  sp[2] = p[simplex_down_template(3, 2, iface, 2)];
   return get_side_vector(sp);
 }
 
@@ -313,7 +313,7 @@ template <Int dim>
 OMEGA_H_INLINE Plane<dim> get_side_plane(
     Few<Vector<dim>, dim + 1> p, Int iside) {
   auto n = get_side_vector(p, iside);
-  auto o = p[down_template(dim, dim - 1, iside, 0)];
+  auto o = p[simplex_down_template(dim, dim - 1, iside, 0)];
   return {n, n * o};
 }
 
@@ -339,7 +339,7 @@ OMEGA_H_INLINE Sphere<dim> get_inball(Few<Vector<dim>, dim + 1> p) {
 template <Int dim>
 OMEGA_H_INLINE Vector<dim> get_size_gradient(
     Few<Vector<dim>, dim + 1> p, Int ivert) {
-  auto iside = opposite_template(dim, VERT, ivert);
+  auto iside = simplex_opposite_template(dim, VERT, ivert);
   auto n = -get_side_vector(p, iside);
   return n / Real(factorial(dim));
 }

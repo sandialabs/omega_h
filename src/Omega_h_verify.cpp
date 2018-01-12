@@ -12,7 +12,7 @@
 
 namespace Omega_h {
 
-OMEGA_H_INLINE Int down_template2(
+OMEGA_H_INLINE Int simplex_down_template2(
     Int high_dim, Int mid_dim, Int low_dim, Int which_mid, Int which_low) {
   switch (high_dim) {
     case 1:
@@ -215,7 +215,7 @@ bool verify_down_verts(Mesh* mesh) {
             for (Int mml = 0; mml < nmml; ++mml) {
               auto l = m2l.ab2b[m * nmml + mml];
               auto hml = align_index(nmml, ld, mml, code);
-              auto hhl = down_template2(hd, md, ld, hhm, hml);
+              auto hhl = simplex_down_template2(hd, md, ld, hhm, hml);
               auto l2 = h2l.ab2b[h * nhhl + hhl];
               OMEGA_H_CHECK(l == l2);
             }
