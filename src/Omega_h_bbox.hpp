@@ -1,7 +1,8 @@
-#ifndef BBOX_HPP
-#define BBOX_HPP
+#ifndef OMEGA_H_BBOX_HPP
+#define OMEGA_H_BBOX_HPP
 
 #include <Omega_h_vector.hpp>
+#include <Omega_h_affine.hpp>
 
 namespace Omega_h {
 
@@ -38,6 +39,23 @@ OMEGA_H_INLINE BBox<dim> unite(BBox<dim> a, BBox<dim> b) {
 template <Int dim>
 OMEGA_H_INLINE bool are_close(BBox<dim> a, BBox<dim> b) {
   return are_close(a.min, b.min) && are_close(a.max, b.max);
+}
+
+template <Int dim>
+OMEGA_H_INLINE BBox<dim> make_equilateral(BBox<dim> bbox) {
+  auto maxl = maximum(bbox.max - bbox.min);
+  for (Int i = 0; i < dim; ++i) bbox.max[i] = bbox.min[i] + maxl;
+  return bbox;
+}
+
+template <Int dim>
+OMEGA_H_INLINE Affine<dim> get_affine_from_bbox_into_unit(BBox<dim> bbox) {
+  Vector<dim> s;
+  for (Int i = 0; i < dim; ++i) s[i] = 1.0 / (bbox.max[i] - bbox.min[i]);
+  Affine<dim> a;
+  a.r = diagonal(s);
+  a.t = a.r * bbox.min;
+  return a;
 }
 
 template <Int dim>

@@ -82,7 +82,8 @@ OMEGA_H_INLINE void swap2(T& a, T& b) {
   b = c;
 }
 
-constexpr OMEGA_H_INLINE Int factorial(Int x) {
+template <typename T>
+constexpr OMEGA_H_INLINE T factorial(T x) {
   return (x > 1) ? (x * factorial(x - 1)) : 1;
 }
 
@@ -215,10 +216,10 @@ OMEGA_H_INLINE Real power(Real x, Int np, Int dp) {
 }
 
 OMEGA_H_INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
-  Real am = fabs(a);
-  Real bm = fabs(b);
+  Real am = std::abs(a);
+  Real bm = std::abs(b);
   if (am <= floor && bm <= floor) return 0.0;
-  return fabs(b - a) / max2(am, bm);
+  return std::abs(b - a) / max2(am, bm);
 }
 
 OMEGA_H_INLINE bool are_close(

@@ -6,6 +6,7 @@
 #include <Omega_h_metric.hpp>
 #include <Omega_h_qr.hpp>
 #include <Omega_h_simplex.hpp>
+#include <Omega_h_affine.hpp>
 
 namespace Omega_h {
 
@@ -14,33 +15,6 @@ OMEGA_H_INLINE Matrix<sdim, edim> simplex_basis(Few<Vector<sdim>, edim + 1> p) {
   Matrix<sdim, edim> b;
   for (Int i = 0; i < edim; ++i) b[i] = p[i + 1] - p[0];
   return b;
-}
-
-template <Int dim>
-struct Affine {
-  Matrix<dim, dim> r;
-  Vector<dim> t;
-};
-
-template <Int dim>
-OMEGA_H_INLINE Vector<dim> operator*(Affine<dim> a, Vector<dim> v) {
-  return (a.r * v) + a.t;
-}
-
-template <Int dim>
-OMEGA_H_INLINE Affine<dim> invert(Affine<dim> a) {
-  Affine<dim> ai;
-  ai.r = invert(a.r);
-  ai.t = -(ai.r * a.t);
-  return ai;
-}
-
-template <Int dim>
-OMEGA_H_INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
-  Affine<dim> a;
-  a.r = simplex_basis<dim, dim>(p);
-  a.t = p[0];
-  return a;
 }
 
 template <Int dim>
@@ -413,6 +387,14 @@ template <>
 struct EquilateralSize<3> {
   static constexpr Real value = 0.1178511301977579;  // 1/sqrt(72)
 };
+
+template <Int dim>
+OMEGA_H_INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
+  Affine<dim> a;
+  a.r = simplex_basis<dim, dim>(p);
+  a.t = p[0];
+  return a;
+}
 
 }  // end namespace Omega_h
 
