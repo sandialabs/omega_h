@@ -145,7 +145,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
       for (Int uv = 0; uv < nverts_per_low; ++uv) {
         uv2v[u_begin + uv] =
-            hv2v[h_begin + down_template(high_dim, low_dim, u, uv)];
+            hv2v[h_begin + simplex_down_template(high_dim, low_dim, u, uv)];
       }
     }
   };
@@ -361,7 +361,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-      auto ut = up_template(high_dim, low_dim, hl, 0);
+      auto ut = simplex_up_template(high_dim, low_dim, hl, 0);
       auto hm = ut.up;
       auto hml = ut.which_down;
       auto m = hm2m[hm_begin + hm];
@@ -458,7 +458,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
       auto r = er2r[er];
       auto e2er_code = e2er_codes[er];
       auto rre = code_which_down(e2er_code);
-      auto rre_opp = opposite_template(TET, EDGE, rre);
+      auto rre_opp = simplex_opposite_template(TET, EDGE, rre);
       auto re_begin = r * 6;
       auto e_opp = re2e[re_begin + rre_opp];
       auto ee = er;

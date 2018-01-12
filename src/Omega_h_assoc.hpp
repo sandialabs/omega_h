@@ -33,6 +33,8 @@ MeshSets invert(Mesh* mesh, Assoc const& geom_sets);
 
 void update_from_file(Assoc* p_assoc, std::string const& filepath);
 
+Assoc read_assoc_file(std::string const& filepath);
+
 }  // namespace Omega_h
 
 #endif

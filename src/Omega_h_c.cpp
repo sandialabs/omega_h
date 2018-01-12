@@ -46,7 +46,14 @@ void Omega_h_signal_handler(int s) {
   Omega_h::print_stacktrace(ss, 64);
   auto str = ss.str();
   std::cerr << str;
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
   signal(s, SIG_DFL);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
   ::raise(s);
 }
 

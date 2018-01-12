@@ -44,8 +44,8 @@ static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
       auto cce = code_which_down(ec_code);
       auto rot = code_rotation(ec_code);
       auto cev_onto = rot ^ eev_onto;
-      auto ccv_onto = down_template(cell_dim, EDGE, cce, cev_onto);
-      auto ccs_opp = opposite_template(cell_dim, VERT, ccv_onto);
+      auto ccv_onto = simplex_down_template(cell_dim, EDGE, cce, cev_onto);
+      auto ccs_opp = simplex_opposite_template(cell_dim, VERT, ccv_onto);
       auto s_opp = cs2s[c * nccs + ccs_opp];
       dead_cells[c] = 1;
       dead_sides[s_opp] = 1;

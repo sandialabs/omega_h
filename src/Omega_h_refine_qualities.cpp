@@ -61,12 +61,12 @@ static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
            and connecting it to the midpoint to form the new cell
            (see refine_domain_interiors) */
         auto cev = eev ^ rot;
-        auto ccv = down_template(mesh_dim, EDGE, cce, cev);
-        auto ccs = opposite_template(mesh_dim, VERT, ccv);
+        auto ccv = simplex_down_template(mesh_dim, EDGE, cce, cev);
+        auto ccs = simplex_opposite_template(mesh_dim, VERT, ccv);
         Few<LO, mesh_dim> csv2v;
         Few<Vector<mesh_dim>, mesh_dim + 1> ncp;
         for (Int csv = 0; csv < mesh_dim; ++csv) {
-          auto ccv2 = down_template(mesh_dim, mesh_dim - 1, ccs, csv);
+          auto ccv2 = simplex_down_template(mesh_dim, mesh_dim - 1, ccs, csv);
           auto v2 = ccv2v[ccv2];
           csv2v[csv] = v2;
           ncp[csv] = get_vector<mesh_dim>(coords, v2);

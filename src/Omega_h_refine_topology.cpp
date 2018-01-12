@@ -83,11 +83,11 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
            its side that is opposite to one of the edge endpoints
            and connecting it to the midpoint to form the new cell */
         auto dev = eev ^ rot;
-        auto ddv = down_template(dim, EDGE, dde, dev);
-        auto dds = opposite_template(dim, VERT, ddv);
+        auto ddv = simplex_down_template(dim, EDGE, dde, dev);
+        auto dds = simplex_opposite_template(dim, VERT, ddv);
         auto ppv2v = &pair_verts2verts_w[pair * (dim + 1)];
         for (Int dsv = 0; dsv < dim; ++dsv) {
-          auto ddv2 = down_template(dim, dim - 1, dds, dsv);
+          auto ddv2 = simplex_down_template(dim, dim - 1, dds, dsv);
           auto ov = dom_verts2verts[dom * (dim + 1) + ddv2];
           auto nv = old_verts2new_verts[ov];
           ppv2v[dsv] = nv;
@@ -135,9 +135,9 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
          not adjacent to the key edge. for tet domains, the tip
          is the edge not adjacent to the key edge. */
       auto ccv2v = &cut_verts2verts_w[cut * dim];
-      auto ddt = opposite_template(dim, EDGE, dde);
+      auto ddt = simplex_opposite_template(dim, EDGE, dde);
       for (Int dtv = 0; dtv < dim - 1; ++dtv) {
-        auto ddv2 = down_template(dim, dim - 2, ddt, dtv);
+        auto ddv2 = simplex_down_template(dim, dim - 2, ddt, dtv);
         auto ov = dom_verts2verts[dom * (dim + 1) + ddv2];
         auto nv = old_verts2new_verts[ov];
         ccv2v[dtv] = nv;

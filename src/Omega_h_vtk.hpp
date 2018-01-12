@@ -46,6 +46,13 @@ void read_pvd(std::istream& stream, std::vector<Real>* times_out,
 
 void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
     std::vector<std::string>* pvtupaths_out);
+
+template <bool is_signed, std::size_t size>
+struct IntTraits;
+
+template <std::size_t size>
+struct FloatTraits;
+
 }  // namespace vtk
 
 }  // end namespace Omega_h
