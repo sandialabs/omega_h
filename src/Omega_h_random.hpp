@@ -140,10 +140,24 @@ OMEGA_H_INLINE Real weibull_density(Real shape, Real scale, Real value) {
   return (shape / scale) * std::pow(value / scale, shape - 1.0) * std::exp(-std::pow(value / scale, shape));
 }
 
-OMEGA_H_INLINE Real chi_squared_density(Real ndofs, Real x) {
-  if (x <= 0.0) return 0.0;
-  return (std::pow(x, ndofs / 2.0 - 1.0) * std::exp(-x / 2.0)) /
-         (std::exp2(ndofs / 2.0) / std::tgamma(ndofs / 2.0));
+// regularized lower incomplete gamma function, by series expansion
+OMEGA_H_INLINE Real regularized_lower_incomplete_gamma(Real s, Real z)
+{
+	Real sum = 1.0;
+  Real x = 1.0;
+	for (Int k = 1; k < 100; ++k) {
+    x *= z / (s + k);
+		sum += x;
+    if (sum > 1e100) return 1.0;
+		if (x / sum < 1e-14) break;
+	}
+  auto a = s * std::log(z) - z - std::lgamma(s + 1.0);
+	return std::exp(a + std::log(sum));
+}
+
+OMEGA_H_INLINE Real cumulative_chi_squared_density(Real ndofs, Real chi_squared) {
+  if (chi_squared < 0.0 || ndofs < 1.0) return 0.0;
+  return regularized_lower_incomplete_gamma(ndofs / 2.0, chi_squared / 2.0);
 }
 
 OMEGA_H_INLINE Real cumulative_standard_normal_density(Real x) {
