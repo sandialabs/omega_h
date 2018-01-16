@@ -8,7 +8,7 @@
 
 extern "C" {
 
-#ifdef __clang__
+#if defined(__clang__) && !defined(__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
@@ -21,7 +21,7 @@ void Omega_h_fail(char const* format, ...) {
   abort();
 }
 
-#ifdef __clang__
+#if defined(__clang__) && !defined(__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
@@ -46,12 +46,12 @@ void Omega_h_signal_handler(int s) {
   Omega_h::print_stacktrace(ss, 64);
   auto str = ss.str();
   std::cerr << str;
-#ifdef __clang__
+#if defined(__clang__) && !defined(__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
 #endif
   signal(s, SIG_DFL);
-#ifdef __clang__
+#if defined(__clang__) && !defined(__APPLE__)
 #pragma clang diagnostic pop
 #endif
   ::raise(s);
