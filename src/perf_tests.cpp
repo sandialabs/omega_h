@@ -214,7 +214,7 @@ static void test_adjs(Library* lib) {
   LOs tris2verts;
   {
     Now t0 = now();
-    tets2verts = mesh.ask_verts_of(TET);
+    tets2verts = mesh.ask_verts_of(REGION);
     tris2verts = mesh.ask_verts_of(TRI);
     Now t1 = now();
     std::cout << "asking tet->vert and tri->vert of a " << mesh.nelems()

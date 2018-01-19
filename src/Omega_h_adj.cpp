@@ -458,7 +458,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
       auto r = er2r[er];
       auto e2er_code = e2er_codes[er];
       auto rre = code_which_down(e2er_code);
-      auto rre_opp = simplex_opposite_template(TET, EDGE, rre);
+      auto rre_opp = simplex_opposite_template(REGION, EDGE, rre);
       auto re_begin = r * 6;
       auto e_opp = re2e[re_begin + rre_opp];
       auto ee = er;

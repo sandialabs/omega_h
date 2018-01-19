@@ -10,12 +10,12 @@
 namespace Omega_h {
 
 HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
-  auto edges2tets = mesh->ask_up(EDGE, TET);
+  auto edges2tets = mesh->ask_up(EDGE, REGION);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edges2ntets = get_degrees(edges2edge_tets);
   auto nkeys = keys2edges.size();
   HostFew<Write<LO>, 4> keys2nprods_w;
-  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= REGION; ++prod_dim) {
     keys2nprods_w[prod_dim] = Write<LO>(nkeys);
   }
   auto f = OMEGA_H_LAMBDA(LO key) {
@@ -28,11 +28,11 @@ HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
     auto nprod_tets = 2 * nplane_tris;
     keys2nprods_w[EDGE][key] = nprod_edges;
     keys2nprods_w[TRI][key] = nprod_tris;
-    keys2nprods_w[TET][key] = nprod_tets;
+    keys2nprods_w[REGION][key] = nprod_tets;
   };
   parallel_for(nkeys, f, "swap3d_keys_to_prods");
   HostFew<LOs, 4> keys2prods;
-  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= REGION; ++prod_dim) {
     keys2prods[prod_dim] = offset_scan(LOs(keys2nprods_w[prod_dim]));
   }
   return keys2prods;
@@ -40,14 +40,14 @@ HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
 
 HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
     Read<I8> edge_configs, HostFew<LOs, 4> keys2prods) {
-  auto edges2tets = mesh->ask_up(EDGE, TET);
+  auto edges2tets = mesh->ask_up(EDGE, REGION);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
   auto edge_tet_codes = edges2tets.codes;
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
-  auto tet_verts2verts = mesh->ask_verts_of(TET);
+  auto tet_verts2verts = mesh->ask_verts_of(REGION);
   HostFew<Write<LO>, 4> prod_verts2verts_w;
-  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= REGION; ++prod_dim) {
     prod_verts2verts_w[prod_dim] =
         Write<LO>(keys2prods[prod_dim].last() * Int(prod_dim + 1));
   }
@@ -97,7 +97,7 @@ HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
         prod_verts2verts_w[TRI][prod_tri * 3 + pfv] = plane_tri_verts[pfv];
       }
       for (Int eev = 0; eev < 2; ++eev) {
-        auto prod_tet = keys2prods[TET][key] + 2 * plane_tri + eev;
+        auto prod_tet = keys2prods[REGION][key] + 2 * plane_tri + eev;
         Few<LO, 4> new_tet_verts;
         for (Int pfv = 0; pfv < 3; ++pfv) {
           new_tet_verts[pfv] = plane_tri_verts[pfv];
@@ -105,14 +105,14 @@ HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
         if (eev == 0) swap2(new_tet_verts[1], new_tet_verts[2]);
         new_tet_verts[3] = loop.eev2v[eev];
         for (Int nrv = 0; nrv < 4; ++nrv) {
-          prod_verts2verts_w[TET][prod_tet * 4 + nrv] = new_tet_verts[nrv];
+          prod_verts2verts_w[REGION][prod_tet * 4 + nrv] = new_tet_verts[nrv];
         }
       }
     }
   };
   parallel_for(nkeys, f, "swap3d_topology");
   HostFew<LOs, 4> prod_verts2verts;
-  for (Int prod_dim = EDGE; prod_dim <= TET; ++prod_dim) {
+  for (Int prod_dim = EDGE; prod_dim <= REGION; ++prod_dim) {
     prod_verts2verts[prod_dim] = prod_verts2verts_w[prod_dim];
   }
   return prod_verts2verts;

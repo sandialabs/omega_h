@@ -762,12 +762,12 @@ static void test_swap2d_topology(Library* lib) {
 static void test_swap3d_loop(Library* lib) {
   auto mesh = Mesh(lib);
   build_box_internal(&mesh, 1, 1, 1, 1, 1, 1);
-  auto edges2tets = mesh.ask_up(EDGE, TET);
+  auto edges2tets = mesh.ask_up(EDGE, REGION);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
   auto edge_tet_codes = edges2tets.codes;
   auto edge_verts2verts = mesh.ask_verts_of(EDGE);
-  auto tet_verts2verts = mesh.ask_verts_of(TET);
+  auto tet_verts2verts = mesh.ask_verts_of(REGION);
   auto f = OMEGA_H_LAMBDA(LO foo) {
     (void)foo;
     LO edge = 6;

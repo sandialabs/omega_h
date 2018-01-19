@@ -16,7 +16,7 @@ enum Omega_h_Type {
 
 enum { OMEGA_H_DIMS = 4 };
 
-enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_TET = 3 };
+enum { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_TRI = 2, OMEGA_H_REGION = 3 };
 
 enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 

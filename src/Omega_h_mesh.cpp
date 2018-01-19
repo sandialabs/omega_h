@@ -91,7 +91,7 @@ LO Mesh::nents(Int ent_dim) const {
 
 LO Mesh::nelems() const { return nents(dim()); }
 
-LO Mesh::ntets() const { return nents(TET); }
+LO Mesh::ntets() const { return nents(REGION); }
 
 LO Mesh::ntris() const { return nents(TRI); }
 
@@ -320,7 +320,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
       Graph g = edges_across_tris(ask_adj(TRI, EDGE), ask_adj(EDGE, TRI));
       if (dim() == 3) {
         g = add_edges(
-            g, edges_across_tets(ask_adj(TET, EDGE), ask_adj(EDGE, TET)));
+            g, edges_across_tets(ask_adj(REGION, EDGE), ask_adj(EDGE, REGION)));
       }
       return g;
     }

@@ -46,13 +46,13 @@ OMEGA_H_DEVICE Loop find_loop(LOs const& edges2edge_tets,
     auto code = edge_tet_codes[edge_tet];
     auto rre = code_which_down(code);
     auto rot = code_rotation(code);
-    auto rre_opp = simplex_opposite_template(TET, EDGE, rre);
+    auto rre_opp = simplex_opposite_template(REGION, EDGE, rre);
     for (Int eev = 0; eev < 2; ++eev) {
       /* we rely on the fact that tet-edge-vertices are
          defined such that the opposite edge curls around
          the input edge. */
       auto rev = rot ^ eev;
-      auto rrv = simplex_down_template(TET, EDGE, rre_opp, rev);
+      auto rrv = simplex_down_template(REGION, EDGE, rre_opp, rev);
       auto v = tet_verts2verts[tet * 4 + rrv];
       tmp_edges[edge_tet - begin_use][eev] = v;
     }
