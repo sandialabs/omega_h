@@ -732,9 +732,9 @@ static void test_mark_up_down(Library* lib) {
   auto mesh = Mesh(lib);
   build_box_internal(&mesh, 1., 1., 0., 1, 1, 0);
   OMEGA_H_CHECK(
-      mark_down(&mesh, TRI, VERT, Read<I8>({1, 0})) == Read<I8>({1, 1, 0, 1}));
+      mark_down(&mesh, FACE, VERT, Read<I8>({1, 0})) == Read<I8>({1, 1, 0, 1}));
   OMEGA_H_CHECK(
-      mark_up(&mesh, VERT, TRI, Read<I8>({0, 1, 0, 0})) == Read<I8>({1, 0}));
+      mark_up(&mesh, VERT, FACE, Read<I8>({0, 1, 0, 0})) == Read<I8>({1, 0}));
 }
 
 static void test_compare_meshes(Library* lib) {
@@ -754,9 +754,9 @@ static void test_swap2d_topology(Library* lib) {
   auto keys2edges = LOs({2});
   swap2d_topology(&mesh, keys2edges, &keys2prods, &prod_verts2verts);
   OMEGA_H_CHECK(prod_verts2verts[EDGE] == LOs({2, 1}));
-  OMEGA_H_CHECK(prod_verts2verts[TRI] == LOs({3, 2, 1, 0, 1, 2}));
+  OMEGA_H_CHECK(prod_verts2verts[FACE] == LOs({3, 2, 1, 0, 1, 2}));
   OMEGA_H_CHECK(keys2prods[EDGE] == offset_scan(LOs({1})));
-  OMEGA_H_CHECK(keys2prods[TRI] == offset_scan(LOs({2})));
+  OMEGA_H_CHECK(keys2prods[FACE] == offset_scan(LOs({2})));
 }
 
 static void test_swap3d_loop(Library* lib) {

@@ -93,7 +93,7 @@ LO Mesh::nelems() const { return nents(dim()); }
 
 LO Mesh::ntets() const { return nents(REGION); }
 
-LO Mesh::ntris() const { return nents(TRI); }
+LO Mesh::ntris() const { return nents(FACE); }
 
 LO Mesh::nedges() const { return nents(EDGE); }
 
@@ -317,7 +317,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     }
     if (from == EDGE && to == EDGE) {
       OMEGA_H_CHECK(dim() >= 2);
-      Graph g = edges_across_tris(ask_adj(TRI, EDGE), ask_adj(EDGE, TRI));
+      Graph g = edges_across_tris(ask_adj(FACE, EDGE), ask_adj(EDGE, FACE));
       if (dim() == 3) {
         g = add_edges(
             g, edges_across_tets(ask_adj(REGION, EDGE), ask_adj(EDGE, REGION)));

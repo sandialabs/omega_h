@@ -215,7 +215,7 @@ static void test_adjs(Library* lib) {
   {
     Now t0 = now();
     tets2verts = mesh.ask_verts_of(REGION);
-    tris2verts = mesh.ask_verts_of(TRI);
+    tris2verts = mesh.ask_verts_of(FACE);
     Now t1 = now();
     std::cout << "asking tet->vert and tri->vert of a " << mesh.nelems()
               << " tet mesh took " << (t1 - t0) << " seconds\n";

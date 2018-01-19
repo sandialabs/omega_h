@@ -15,12 +15,12 @@ namespace Omega_h {
 template <Int metric_dim>
 static Reals swap2d_qualities_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
-  auto e2t = mesh->ask_up(EDGE, TRI);
+  auto e2t = mesh->ask_up(EDGE, FACE);
   auto e2et = e2t.a2ab;
   auto et2t = e2t.ab2b;
   auto et_codes = e2t.codes;
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
-  auto tri_verts2verts = mesh->ask_verts_of(TRI);
+  auto tri_verts2verts = mesh->ask_verts_of(FACE);
   auto edges_are_owned = mesh->owned(EDGE);
   auto quality_measure = MetricElementQualities<2, metric_dim>(mesh);
   auto length_measure = MetricEdgeLengths<2, metric_dim>(mesh);
@@ -46,7 +46,7 @@ static Reals swap2d_qualities_tmpl(
       auto tte = code_which_down(code);
       auto rot = code_rotation(code);
       t[rot] = et2t[et];
-      auto ttv = simplex_opposite_template(TRI, EDGE, tte);
+      auto ttv = simplex_opposite_template(FACE, EDGE, tte);
       ov[rot] = tri_verts2verts[t[rot] * 3 + ttv];
     }
     auto l = length_measure.measure(ov);

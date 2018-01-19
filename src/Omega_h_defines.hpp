@@ -27,7 +27,7 @@ enum { DIMS = OMEGA_H_DIMS };
 enum : Int {
   VERT = OMEGA_H_VERT,
   EDGE = OMEGA_H_EDGE,
-  TRI = OMEGA_H_TRI,
+  FACE = OMEGA_H_FACE,
   REGION = OMEGA_H_REGION
 };
 

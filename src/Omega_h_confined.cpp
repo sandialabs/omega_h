@@ -51,8 +51,8 @@ static Reals get_edge_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
 template <Int dim>
 static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
-  auto tris2verts = mesh->ask_verts_of(TRI);
-  auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
+  auto tris2verts = mesh->ask_verts_of(FACE);
+  auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
   auto out = Write<Real>(mesh->ntris(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_verts<3>(tris2verts, tri);
@@ -173,7 +173,7 @@ Reals get_pad_dists(Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
     } else if (mesh->dim() == 1) {
       return get_edge_pad_dists<1>(mesh, edges_are_bridges);
     }
-  } else if (pad_dim == TRI) {
+  } else if (pad_dim == FACE) {
     if (mesh->dim() == 3) {
       return get_tri_pad_dists<3>(mesh, edges_are_bridges);
     } else if (mesh->dim() == 2) {
@@ -189,8 +189,8 @@ template <Int dim>
 static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
-  auto tris2verts = mesh->ask_down(TRI, VERT).ab2b;
+  auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
+  auto tris2verts = mesh->ask_down(FACE, VERT).ab2b;
   auto coords = mesh->coords();
   auto tri_angles_w = Write<Real>(mesh->ntris());
   auto f = OMEGA_H_LAMBDA(LO tri) {
@@ -220,9 +220,9 @@ static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
 
 static Reals get_pinched_tet_angles(Mesh* mesh) {
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto tris2class_dim = mesh->get_array<I8>(TRI, "class_dim");
+  auto tris2class_dim = mesh->get_array<I8>(FACE, "class_dim");
   auto tets2edges = mesh->ask_down(REGION, EDGE).ab2b;
-  auto tets2tris = mesh->ask_down(REGION, TRI).ab2b;
+  auto tets2tris = mesh->ask_down(REGION, FACE).ab2b;
   auto edges2verts = mesh->ask_down(EDGE, VERT).ab2b;
   auto coords = mesh->coords();
   auto tet_angles_w = Write<Real>(mesh->ntets());
@@ -263,7 +263,7 @@ static Reals get_pinched_tet_angles(Mesh* mesh) {
 }
 
 Reals get_pinched_angles(Mesh* mesh, Int pinched_dim) {
-  if (pinched_dim == TRI) {
+  if (pinched_dim == FACE) {
     if (mesh->dim() == 3) {
       return get_pinched_tri_angles_dim<3>(mesh);
     } else if (mesh->dim() == 2) {

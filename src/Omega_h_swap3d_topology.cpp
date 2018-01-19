@@ -27,7 +27,7 @@ HostFew<LOs, 4> swap3d_keys_to_prods(Mesh* mesh, LOs keys2edges) {
     auto nprod_tris = nplane_tris + 2 * nplane_edges;
     auto nprod_tets = 2 * nplane_tris;
     keys2nprods_w[EDGE][key] = nprod_edges;
-    keys2nprods_w[TRI][key] = nprod_tris;
+    keys2nprods_w[FACE][key] = nprod_tris;
     keys2nprods_w[REGION][key] = nprod_tets;
   };
   parallel_for(nkeys, f, "swap3d_keys_to_prods");
@@ -77,9 +77,9 @@ HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
           new_tri_verts[nfv] = plane_edge_verts[nfv];
         }
         new_tri_verts[2] = loop.eev2v[eev];
-        auto prod_tri = keys2prods[TRI][key] + 2 * plane_edge + eev;
+        auto prod_tri = keys2prods[FACE][key] + 2 * plane_edge + eev;
         for (Int nfv = 0; nfv < 3; ++nfv) {
-          prod_verts2verts_w[TRI][prod_tri * 3 + nfv] = new_tri_verts[nfv];
+          prod_verts2verts_w[FACE][prod_tri * 3 + nfv] = new_tri_verts[nfv];
         }
       }
     }
@@ -92,9 +92,9 @@ HostFew<LOs, 4> swap3d_topology(Mesh* mesh, LOs keys2edges,
         auto vert = loop.loop_verts2verts[loop_vert];
         plane_tri_verts[pfv] = vert;
       }
-      auto prod_tri = keys2prods[TRI][key] + 2 * nplane_edges + plane_tri;
+      auto prod_tri = keys2prods[FACE][key] + 2 * nplane_edges + plane_tri;
       for (Int pfv = 0; pfv < 3; ++pfv) {
-        prod_verts2verts_w[TRI][prod_tri * 3 + pfv] = plane_tri_verts[pfv];
+        prod_verts2verts_w[FACE][prod_tri * 3 + pfv] = plane_tri_verts[pfv];
       }
       for (Int eev = 0; eev < 2; ++eev) {
         auto prod_tet = keys2prods[REGION][key] + 2 * plane_tri + eev;

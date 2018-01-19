@@ -111,7 +111,7 @@ void build_box_internal(
     Reals coords;
     make_2d_box(x, y, nx, ny, &qv2v, &coords);
     auto tv2v = simplify::tris_from_quads(qv2v);
-    build_from_elems_and_coords(mesh, TRI, tv2v, coords);
+    build_from_elems_and_coords(mesh, FACE, tv2v, coords);
   } else {
     LOs hv2v;
     Reals coords;
