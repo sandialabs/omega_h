@@ -379,8 +379,6 @@ OMEGA_H_INLINE Int simplex_degree(Int from_dim, Int to_dim) {
   return -1;
 }
 
-/* TODO: replace simplex_degrees with simplex_degree() */
-extern Int const simplex_degrees[DIMS][DIMS];
 /* TODO: rename to singular_simplex_names */
 extern char const* const singular_names[DIMS];
 /* TODO: rename to plural_simplex_names */

@@ -231,7 +231,7 @@ void read(
           subtract_from_each(LOs(h_set_sides2elem.write()), 1);
       auto set_sides2local = LOs(h_set_sides2local.write());
       auto elems2sides = mesh->ask_down(dim, dim - 1).ab2b;
-      auto nsides_per_elem = simplex_degrees[dim][dim - 1];
+      auto nsides_per_elem = simplex_degree(dim, dim - 1);
       auto set_sides2side_w = Write<LO>(nentries);
       auto f2 = OMEGA_H_LAMBDA(LO set_side) {
         auto elem = set_sides2elem[set_side];

@@ -160,7 +160,7 @@ void combine_pairs_and_cuts(Int ent_dim, LOs keys2cuts, LOs keys2pairs,
   auto keys2nprods = add_each(keys2ncuts, keys2npairs);
   keys2prods = offset_scan(keys2nprods);
   auto nprods = keys2prods.last();
-  auto nppv = simplex_degrees[ent_dim][VERT];
+  auto nppv = simplex_degree(ent_dim, VERT);
   auto prod_verts2verts_w = Write<LO>(nprods * nppv);
   auto f = OMEGA_H_LAMBDA(LO key) {
     auto prod = keys2prods[key];

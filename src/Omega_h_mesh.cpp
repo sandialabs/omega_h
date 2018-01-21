@@ -77,8 +77,8 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   check_dim(ent_dim);
   OMEGA_H_CHECK(!has_ents(ent_dim));
   LOs hl2l = down.ab2b;
-  OMEGA_H_CHECK(hl2l.size() % simplex_degrees[ent_dim][ent_dim - 1] == 0);
-  nents_[ent_dim] = hl2l.size() / simplex_degrees[ent_dim][ent_dim - 1];
+  OMEGA_H_CHECK(hl2l.size() % simplex_degree(ent_dim, ent_dim - 1) == 0);
+  nents_[ent_dim] = hl2l.size() / simplex_degree(ent_dim, ent_dim - 1);
   add_adj(ent_dim, ent_dim - 1, down);
 }
 
@@ -280,12 +280,12 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
     } else {
       OMEGA_H_CHECK(adj.codes.exists());
     }
-    OMEGA_H_CHECK(adj.ab2b.size() == nents(from) * simplex_degrees[from][to]);
+    OMEGA_H_CHECK(adj.ab2b.size() == nents(from) * simplex_degree(from, to));
   } else {
     if (from < to) {
       OMEGA_H_CHECK(adj.a2ab.exists());
       OMEGA_H_CHECK(adj.codes.exists());
-      OMEGA_H_CHECK(adj.ab2b.size() == nents(to) * simplex_degrees[to][from]);
+      OMEGA_H_CHECK(adj.ab2b.size() == nents(to) * simplex_degree(to, from));
     }
     OMEGA_H_CHECK(adj.a2ab.size() == nents(from) + 1);
   }
@@ -297,7 +297,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
   check_dim2(to);
   if (from < to) {
     Adj down = ask_adj(to, from);
-    Int nlows_per_high = simplex_degrees[to][from];
+    Int nlows_per_high = simplex_degree(to, from);
     LO nlows = nents(from);
     Adj up = invert_adj(down, nlows_per_high, nlows);
     return up;
@@ -510,7 +510,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
   }
   if (to < from) {
     auto down = ask_down(from, to);
-    auto a2ab = LOs(nents(from) + 1, 0, simplex_degrees[from][to]);
+    auto a2ab = LOs(nents(from) + 1, 0, simplex_degree(from, to));
     return Graph(a2ab, down.ab2b);
   }
   OMEGA_H_CHECK(from == to);
@@ -665,7 +665,7 @@ Real repro_sum_owned(Mesh* mesh, Int ent_dim, Reals a) {
 
 Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
   auto ev2v = mesh->ask_verts_of(ent_dim);
-  auto degree = simplex_degrees[ent_dim][VERT];
+  auto degree = simplex_degree(ent_dim, VERT);
   OMEGA_H_CHECK(v2x.size() % ncomps == 0);
   auto na = a2e.size();
   Write<Real> out(na * ncomps);
