@@ -175,10 +175,10 @@ void egads_free(Egads* eg) {
 
 void egads_reclassify(Mesh* mesh, Egads* eg) {
   OMEGA_H_CHECK(mesh->dim() == 3);
-  auto face_class_dims = mesh->get_array<I8>(TRI, "class_dim");
-  auto face_class_ids = mesh->get_array<ClassId>(TRI, "class_id");
+  auto face_class_dims = mesh->get_array<I8>(FACE, "class_dim");
+  auto face_class_ids = mesh->get_array<ClassId>(FACE, "class_id");
   for (Int dim = 0; dim < 2; ++dim) {
-    auto ents2faces = mesh->ask_up(dim, TRI);
+    auto ents2faces = mesh->ask_up(dim, FACE);
     auto adj_class_dims = unmap(ents2faces.ab2b, face_class_dims, 1);
     auto keep_edges = each_eq_to(adj_class_dims, I8(2));
     auto ents2eq_faces = filter_graph(ents2faces, keep_edges);

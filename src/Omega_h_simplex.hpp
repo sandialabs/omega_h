@@ -1,13 +1,28 @@
 #ifndef OMEGA_H_SIMPLEX_HPP
 #define OMEGA_H_SIMPLEX_HPP
 
-#include <Omega_h_defines.hpp>
+#include <Omega_h_template_up.hpp>
 #include <Omega_h_kokkos.hpp>
+
+/*! \file Omega_h_simplex.hpp
+  \brief Describes the canonical local boundary connectivity
+         orderings for a single simplex, and other related properties
+  \details A simplex is a generalization of a triangle in arbitrary dimensions.
+           In Omega_h the relevant simplices are vertices, edges, triangles, and tetrahedra.
+  */
 
 namespace Omega_h {
 
 /* TODO: make these constexpr, either with C++14 or lots of
    ternary operators */
+
+/*! \brief Relates bounding simplex vertices the parent simplex's vertices
+  \param elem_dim The parent simplex's dimension
+  \param bdry_dim The bounding simplex's dimension
+  \param which_bdry The parent-local index of the bounding simplex
+  \param which_vert The bounding-local index of the vertex
+  \returns The parent-local index of the vertex
+  */
 OMEGA_H_INLINE Int simplex_down_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_vert) {
   switch (elem_dim) {
@@ -137,12 +152,6 @@ OMEGA_H_INLINE Int simplex_down_template(
   }
   return -1;
 }
-
-struct TemplateUp {
-  Int up;
-  Int which_down;
-  bool is_flipped;
-};
 
 OMEGA_H_INLINE TemplateUp simplex_up_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
@@ -370,11 +379,12 @@ OMEGA_H_INLINE Int simplex_degree(Int from_dim, Int to_dim) {
   return -1;
 }
 
-/* TODO: replace simplex_degrees with simplex_degree() */
-extern Int const simplex_degrees[DIMS][DIMS];
+/* TODO: rename to singular_simplex_names */
 extern char const* const singular_names[DIMS];
+/* TODO: rename to plural_simplex_names */
 extern char const* const plural_names[DIMS];
 
+/* TODO: rename to SimplexAverageDegree */
 template <Int dim, Int low, Int high>
 struct AvgDegree;
 

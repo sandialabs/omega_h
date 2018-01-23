@@ -73,7 +73,7 @@ static Read<I8> check_collapse_exposure(
   auto ec2c = e2c.ab2b;
   auto ec_codes = e2c.codes;
   auto cs2s = mesh->ask_down(cell_dim, cell_dim - 1).ab2b;
-  auto nccs = simplex_degrees[cell_dim][cell_dim - 1];
+  auto nccs = simplex_degree(cell_dim, cell_dim - 1);
   auto c2dim = mesh->get_array<I8>(cell_dim, "class_dim");
   auto s2dim = mesh->get_array<I8>(cell_dim - 1, "class_dim");
   auto ncands = cands2edges.size();

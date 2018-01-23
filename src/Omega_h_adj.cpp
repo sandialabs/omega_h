@@ -133,9 +133,9 @@ LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {
 }
 
 LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
-  Int nverts_per_high = simplex_degrees[high_dim][0];
-  Int nverts_per_low = simplex_degrees[low_dim][0];
-  Int nlows_per_high = simplex_degrees[high_dim][low_dim];
+  Int nverts_per_high = simplex_degree(high_dim, 0);
+  Int nverts_per_low = simplex_degree(low_dim, 0);
+  Int nlows_per_high = simplex_degree(high_dim, low_dim);
   LO nhigh = hv2v.size() / nverts_per_high;
   LO nuses = nhigh * nlows_per_high;
   Write<LO> uv2v(nuses * nverts_per_low);
@@ -335,7 +335,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim) {
 }
 
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
-  Int nverts_per_low = simplex_degrees[low_dim][0];
+  Int nverts_per_low = simplex_degree(low_dim, 0);
   auto l2v = Adj(lv2v);
   Adj v2l = invert_adj(l2v, nverts_per_low, nv);
   return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);
@@ -350,9 +350,9 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   auto m2hm_codes = h2m.codes;
   auto ml2l = m2l.ab2b;
   auto ml_codes = m2l.codes;
-  auto nmids_per_high = simplex_degrees[high_dim][mid_dim];
-  auto nlows_per_mid = simplex_degrees[mid_dim][low_dim];
-  auto nlows_per_high = simplex_degrees[high_dim][low_dim];
+  auto nmids_per_high = simplex_degree(high_dim, mid_dim);
+  auto nlows_per_mid = simplex_degree(mid_dim, low_dim);
+  auto nlows_per_high = simplex_degree(high_dim, low_dim);
   auto nhighs = hm2m.size() / nmids_per_high;
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;
@@ -458,7 +458,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
       auto r = er2r[er];
       auto e2er_code = e2er_codes[er];
       auto rre = code_which_down(e2er_code);
-      auto rre_opp = simplex_opposite_template(TET, EDGE, rre);
+      auto rre_opp = simplex_opposite_template(REGION, EDGE, rre);
       auto re_begin = r * 6;
       auto e_opp = re2e[re_begin + rre_opp];
       auto ee = er;

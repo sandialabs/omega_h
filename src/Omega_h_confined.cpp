@@ -51,8 +51,8 @@ static Reals get_edge_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
 template <Int dim>
 static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
-  auto tris2verts = mesh->ask_verts_of(TRI);
-  auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
+  auto tris2verts = mesh->ask_verts_of(FACE);
+  auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
   auto out = Write<Real>(mesh->ntris(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_verts<3>(tris2verts, tri);
@@ -81,8 +81,8 @@ static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
 
 static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
-  auto tets2verts = mesh->ask_verts_of(TET);
-  auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
+  auto tets2verts = mesh->ask_verts_of(REGION);
+  auto tets2edges = mesh->ask_down(REGION, EDGE).ab2b;
   auto out = Write<Real>(mesh->ntets(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO tet) {
     auto ttv2v = gather_verts<4>(tets2verts, tet);
@@ -94,13 +94,13 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
     if (nb == 4) {
       for (Int tte = 0; tte < 3; ++tte) {
         if (tte2b[tte]) continue;
-        auto opp = simplex_opposite_template(TET, EDGE, tte);
+        auto opp = simplex_opposite_template(REGION, EDGE, tte);
         if (tte2b[opp]) continue;
         // at this point we have edge-edge nearness
-        auto a = ttv2x[simplex_down_template(TET, EDGE, tte, 0)];
-        auto b = ttv2x[simplex_down_template(TET, EDGE, tte, 1)];
-        auto c = ttv2x[simplex_down_template(TET, EDGE, opp, 0)];
-        auto d = ttv2x[simplex_down_template(TET, EDGE, opp, 1)];
+        auto a = ttv2x[simplex_down_template(REGION, EDGE, tte, 0)];
+        auto b = ttv2x[simplex_down_template(REGION, EDGE, tte, 1)];
+        auto c = ttv2x[simplex_down_template(REGION, EDGE, opp, 0)];
+        auto d = ttv2x[simplex_down_template(REGION, EDGE, opp, 1)];
         auto ab = b - a;
         auto cd = d - c;
         auto n = normalize(cross(ab, cd));
@@ -125,8 +125,8 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       Few<Int, 3> vve2tte;
       Few<Int, 3> vve2wd;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2tte[vve] = simplex_up_template(TET, VERT, ttv, vve).up;
-        vve2wd[vve] = simplex_up_template(TET, VERT, ttv, vve).which_down;
+        vve2tte[vve] = simplex_up_template(REGION, VERT, ttv, vve).up;
+        vve2wd[vve] = simplex_up_template(REGION, VERT, ttv, vve).which_down;
       }
       Few<I8, 3> vve2b;
       for (Int vve = 0; vve < 3; ++vve) vve2b[vve] = tte2b[vve2tte[vve]];
@@ -135,7 +135,7 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2ttv[vve] = simplex_down_template(TET, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
+        vve2ttv[vve] = simplex_down_template(REGION, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];
@@ -173,13 +173,13 @@ Reals get_pad_dists(Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
     } else if (mesh->dim() == 1) {
       return get_edge_pad_dists<1>(mesh, edges_are_bridges);
     }
-  } else if (pad_dim == TRI) {
+  } else if (pad_dim == FACE) {
     if (mesh->dim() == 3) {
       return get_tri_pad_dists<3>(mesh, edges_are_bridges);
     } else if (mesh->dim() == 2) {
       return get_tri_pad_dists<2>(mesh, edges_are_bridges);
     }
-  } else if (pad_dim == TET) {
+  } else if (pad_dim == REGION) {
     return get_tet_pad_dists(mesh, edges_are_bridges);
   }
   OMEGA_H_NORETURN(Reals());
@@ -189,8 +189,8 @@ template <Int dim>
 static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto tris2edges = mesh->ask_down(TRI, EDGE).ab2b;
-  auto tris2verts = mesh->ask_down(TRI, VERT).ab2b;
+  auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
+  auto tris2verts = mesh->ask_down(FACE, VERT).ab2b;
   auto coords = mesh->coords();
   auto tri_angles_w = Write<Real>(mesh->ntris());
   auto f = OMEGA_H_LAMBDA(LO tri) {
@@ -220,9 +220,9 @@ static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
 
 static Reals get_pinched_tet_angles(Mesh* mesh) {
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
-  auto tris2class_dim = mesh->get_array<I8>(TRI, "class_dim");
-  auto tets2edges = mesh->ask_down(TET, EDGE).ab2b;
-  auto tets2tris = mesh->ask_down(TET, TRI).ab2b;
+  auto tris2class_dim = mesh->get_array<I8>(FACE, "class_dim");
+  auto tets2edges = mesh->ask_down(REGION, EDGE).ab2b;
+  auto tets2tris = mesh->ask_down(REGION, FACE).ab2b;
   auto edges2verts = mesh->ask_down(EDGE, VERT).ab2b;
   auto coords = mesh->coords();
   auto tet_angles_w = Write<Real>(mesh->ntets());
@@ -263,13 +263,13 @@ static Reals get_pinched_tet_angles(Mesh* mesh) {
 }
 
 Reals get_pinched_angles(Mesh* mesh, Int pinched_dim) {
-  if (pinched_dim == TRI) {
+  if (pinched_dim == FACE) {
     if (mesh->dim() == 3) {
       return get_pinched_tri_angles_dim<3>(mesh);
     } else if (mesh->dim() == 2) {
       return get_pinched_tri_angles_dim<2>(mesh);
     }
-  } else if (pinched_dim == TET) {
+  } else if (pinched_dim == REGION) {
     return get_pinched_tet_angles(mesh);
   }
   OMEGA_H_NORETURN(Reals());
