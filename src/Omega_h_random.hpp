@@ -36,10 +36,6 @@ OMEGA_H_INLINE Real unit_uniform_deviate_from_uint64(std::uint64_t x) {
   return static_cast<Real>(x) / static_cast<Real>(ArithTraits<std::uint64_t>::max());
 }
 
-using RandomKey = Few<std::uint64_t, 2>;
-using RandomCounter = std::uint64_t;
-using RandomState = Few<std::uint64_t, 2>;
-
 class UnitUniformDistribution {
  public:
   OMEGA_H_INLINE UnitUniformDistribution(
@@ -47,21 +43,26 @@ class UnitUniformDistribution {
     counter[1] = static_cast<std::uint64_t>(seed_in);
     key = static_cast<std::uint64_t>(key_in);
     counter[0] = static_cast<std::uint64_t>(counter_in);
+    if (counter[0] % 2) even_step();
+    else state[1] = 0; // Silences GCC 7.2.0 -Wmaybe-uninitialized about state[1] in operator()
   }
   OMEGA_H_INLINE Real operator()() {
     Real ret;
     if (counter[0] % 2) {
       ret = unit_uniform_deviate_from_uint64(state[1]);
     } else {
-      counter[0] >>= 1;
-      state = run_philox_cbrng(counter, key);
+      even_step();
       ret = unit_uniform_deviate_from_uint64(state[0]);
-      counter[0] <<= 1;
     }
     ++counter[0];
     return ret;
   }
  private:
+  OMEGA_H_INLINE void even_step() {
+    counter[0] >>= 1;
+    state = run_philox_cbrng(counter, key);
+    counter[0] <<= 1;
+  }
   Few<std::uint64_t, 2> counter;
   std::uint64_t key;
   Few<std::uint64_t, 2> state;

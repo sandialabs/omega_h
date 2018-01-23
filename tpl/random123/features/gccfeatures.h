@@ -81,7 +81,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    earlier versions, the only way  to detect whether --std=c++0x was requested
    on the command line is to look at the __GCC_EXPERIMENTAL_CXX0X__ pp-symbol.
 */
-#define GNU_CXX11 (__cplusplus>=201103L || (R123_GNUC_VERSION<40700 && defined(__GCC_EXPERIMENTAL_CXX0X__) ))
+#if (__cplusplus>=201103L || (R123_GNUC_VERSION<40700 && defined(__GCC_EXPERIMENTAL_CXX0X__) ))
+#define GNU_CXX11 1
+#else
+#define GNU_CXX11 0
+#endif
 
 #ifndef R123_USE_CXX11_UNRESTRICTED_UNIONS
 #define R123_USE_CXX11_UNRESTRICTED_UNIONS ((R123_GNUC_VERSION >= 40600) && GNU_CXX11)

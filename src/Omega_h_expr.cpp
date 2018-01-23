@@ -518,7 +518,7 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
     }
     case Teuchos::MathExpr::PROD_ASSIGN: {
       std::string const& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
-      swap(variable_map[name], rhs.at(4));
+      swap(variables[name], rhs.at(4));
       break;
     }
     case Teuchos::MathExpr::PROD_EXPR:
