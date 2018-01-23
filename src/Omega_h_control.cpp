@@ -78,7 +78,7 @@ void print_stacktrace(std::ostream& out, int max_frames) {
     }
     auto symbol = line.substr(start, (plus - start));
     int status;
-    char* demangled = abi::__cxa_demangle(symbol.c_str(), NULL, NULL, &status);
+    char* demangled = abi::__cxa_demangle(symbol.c_str(), nullptr, nullptr, &status);
     if (status == 0) {
       symbol = demangled;
     }

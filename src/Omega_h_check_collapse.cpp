@@ -73,7 +73,7 @@ static Read<I8> check_collapse_exposure(
   auto ec2c = e2c.ab2b;
   auto ec_codes = e2c.codes;
   auto cs2s = mesh->ask_down(cell_dim, cell_dim - 1).ab2b;
-  auto nccs = simplex_degrees[cell_dim][cell_dim - 1];
+  auto nccs = simplex_degree(cell_dim, cell_dim - 1);
   auto c2dim = mesh->get_array<I8>(cell_dim, "class_dim");
   auto s2dim = mesh->get_array<I8>(cell_dim - 1, "class_dim");
   auto ncands = cands2edges.size();
@@ -91,8 +91,8 @@ static Read<I8> check_collapse_exposure(
         if (!collapses(code, eev_col)) continue;
         auto eev_onto = 1 - eev_col;
         auto cev_onto = rot ^ eev_onto;
-        auto ccv_onto = down_template(cell_dim, EDGE, cce, cev_onto);
-        auto ccs_opp = opposite_template(cell_dim, VERT, ccv_onto);
+        auto ccv_onto = simplex_down_template(cell_dim, EDGE, cce, cev_onto);
+        auto ccs_opp = simplex_opposite_template(cell_dim, VERT, ccv_onto);
         auto s_opp = cs2s[c * nccs + ccs_opp];
         if (s2dim[s_opp] != c_dim) {
           code = dont_collapse(code, eev_col);

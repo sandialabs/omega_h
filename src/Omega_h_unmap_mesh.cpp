@@ -28,7 +28,7 @@ void unmap_tags(
 
 void unmap_down(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs new_ents2old_ents, LOs old_lows2new_lows) {
-  auto deg = simplex_degrees[ent_dim][ent_dim - 1];
+  auto deg = simplex_degree(ent_dim, ent_dim - 1);
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, ent_dim - 1);
   auto oel2ol = old_ents2old_lows.ab2b;
   auto oe2l_codes = old_ents2old_lows.codes;

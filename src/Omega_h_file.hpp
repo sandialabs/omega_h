@@ -98,6 +98,7 @@ class FullWriter {
 namespace binary {
 
 void write(std::string const& path, Mesh* mesh);
+Mesh read(std::string const& path, CommPtr comm);
 I32 read(std::string const& path, CommPtr comm, Mesh* mesh);
 I32 read_nparts(std::string const& path, CommPtr comm);
 I32 read_version(std::string const& path, CommPtr comm);

@@ -10,8 +10,8 @@ namespace Omega_h {
 void swap2d_topology(Mesh* mesh, LOs keys2edges,
     HostFew<LOs, 3>* keys2prods_out, HostFew<LOs, 3>* prod_verts2verts_out) {
   auto ev2v = mesh->ask_verts_of(EDGE);
-  auto tv2v = mesh->ask_verts_of(TRI);
-  auto e2t = mesh->ask_up(EDGE, TRI);
+  auto tv2v = mesh->ask_verts_of(FACE);
+  auto e2t = mesh->ask_up(EDGE, FACE);
   auto e2et = e2t.a2ab;
   auto et2t = e2t.ab2b;
   auto et_codes = e2t.codes;
@@ -29,7 +29,7 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
       auto tte = code_which_down(code);
       auto rot = code_rotation(code);
       t[rot] = et2t[et];
-      auto ttv = opposite_template(TRI, EDGE, tte);
+      auto ttv = simplex_opposite_template(FACE, EDGE, tte);
       ov[rot] = tv2v[t[rot] * 3 + ttv];
     }
     auto ev = gather_verts<2>(ev2v, e);
@@ -45,9 +45,9 @@ void swap2d_topology(Mesh* mesh, LOs keys2edges,
   HostFew<LOs, 3> keys2prods;
   HostFew<LOs, 3> prod_verts2verts;
   keys2prods[EDGE] = LOs(nkeys + 1, 0, 1);
-  keys2prods[TRI] = LOs(nkeys + 1, 0, 2);
+  keys2prods[FACE] = LOs(nkeys + 1, 0, 2);
   prod_verts2verts[EDGE] = edge_verts2verts_w;
-  prod_verts2verts[TRI] = tri_verts2verts_w;
+  prod_verts2verts[FACE] = tri_verts2verts_w;
   *keys2prods_out = keys2prods;
   *prod_verts2verts_out = prod_verts2verts;
 }

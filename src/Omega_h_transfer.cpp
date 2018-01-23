@@ -8,6 +8,7 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_affine.hpp"
 
 namespace Omega_h {
 

@@ -13,7 +13,7 @@ namespace {
 Reals get_triangle_normals(Mesh* mesh, LOs surf_tri2tri) {
   OMEGA_H_CHECK(mesh->dim() == 3);
   auto nsurf_tris = surf_tri2tri.size();
-  auto fv2v = mesh->ask_verts_of(TRI);
+  auto fv2v = mesh->ask_verts_of(FACE);
   auto coords = mesh->coords();
   Write<Real> normals(nsurf_tris * 3);
   auto lambda = OMEGA_H_LAMBDA(LO surf_tri) {
@@ -133,7 +133,7 @@ Reals get_hinge_angles(Mesh* mesh, Reals surf_side_normals,
 static Reals tri_vert_normal_weights(
     Mesh* mesh, Adj surf_verts2tris, LOs tri2surf_tri) {
   auto nsurf_verts = surf_verts2tris.nnodes();
-  auto fv2v = mesh->ask_verts_of(TRI);
+  auto fv2v = mesh->ask_verts_of(FACE);
   auto coords = mesh->coords();
   auto nweights = surf_verts2tris.nedges();
   auto weights = Write<Real>(nweights);
@@ -314,7 +314,7 @@ Reals get_curv_vert_tangents(Mesh* mesh, LOs curv_edge2edge,
 Reals get_surf_tri_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
     LOs surf_vert2vert, Reals surf_vert_normals) {
   auto vert2surf_vert = invert_injective_map(surf_vert2vert, mesh->nverts());
-  auto tris2verts = mesh->ask_verts_of(TRI);
+  auto tris2verts = mesh->ask_verts_of(FACE);
   auto coords = mesh->coords();
   auto nsurf_tris = surf_tri2tri.size();
   auto surf_tri_IIs_w = Write<Real>(nsurf_tris * symm_ncomps(2));
@@ -407,13 +407,13 @@ OMEGA_H_INLINE Matrix<3, 3> rotate_to_plane(Vector<3> n, Matrix<3, 3> tnuv) {
 Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
     Reals surf_tri_IIs, LOs surf_vert2vert, Reals surf_vert_normals) {
   auto nsurf_verts = surf_vert2vert.size();
-  auto verts2tris = mesh->ask_up(VERT, TRI);
+  auto verts2tris = mesh->ask_up(VERT, FACE);
   auto tri2surf_tri = invert_injective_map(surf_tri2tri, mesh->ntris());
   auto coords = mesh->coords();
-  auto tris2verts = mesh->ask_verts_of(TRI);
+  auto tris2verts = mesh->ask_verts_of(FACE);
   auto verts_not_surf = map_onto(
       Read<I8>(nsurf_verts, I8(0)), surf_vert2vert, mesh->nverts(), I8(1), 1);
-  auto tris_touch_bdry = mark_up(mesh, VERT, TRI, verts_not_surf);
+  auto tris_touch_bdry = mark_up(mesh, VERT, FACE, verts_not_surf);
   auto surf_vert_IIs_w = Write<Real>(nsurf_verts * 3);
   auto f = OMEGA_H_LAMBDA(LO surf_vert) {
     auto vert = surf_vert2vert[surf_vert];

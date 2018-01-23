@@ -32,7 +32,7 @@ static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
   auto ec2c = e2c.ab2b;
   auto ec_codes = e2c.codes;
   auto cs2s = mesh->ask_down(cell_dim, cell_dim - 1).ab2b;
-  auto nccs = simplex_degrees[cell_dim][cell_dim - 1];
+  auto nccs = simplex_degree(cell_dim, cell_dim - 1);
   auto nrails = rails2edges.size();
   auto f = OMEGA_H_LAMBDA(LO rail) {
     auto e = rails2edges[rail];
@@ -44,8 +44,8 @@ static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
       auto cce = code_which_down(ec_code);
       auto rot = code_rotation(ec_code);
       auto cev_onto = rot ^ eev_onto;
-      auto ccv_onto = down_template(cell_dim, EDGE, cce, cev_onto);
-      auto ccs_opp = opposite_template(cell_dim, VERT, ccv_onto);
+      auto ccv_onto = simplex_down_template(cell_dim, EDGE, cce, cev_onto);
+      auto ccs_opp = simplex_opposite_template(cell_dim, VERT, ccv_onto);
       auto s_opp = cs2s[c * nccs + ccs_opp];
       dead_cells[c] = 1;
       dead_sides[s_opp] = 1;
@@ -89,7 +89,7 @@ Adj find_coarsen_domains(
 
 LOs coarsen_topology(Mesh* mesh, LOs keys2verts_onto, Int dom_dim,
     Adj keys2doms, LOs old_verts2new_verts) {
-  auto nccv = simplex_degrees[dom_dim][VERT];
+  auto nccv = simplex_degree(dom_dim, VERT);
   auto cv2v = mesh->ask_verts_of(dom_dim);
   auto k2kc = keys2doms.a2ab;
   auto kc2c = keys2doms.ab2b;

@@ -530,6 +530,12 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh) {
   return nparts;
 }
 
+Mesh read(std::string const& path, CommPtr comm) {
+  auto mesh = Mesh(comm->library());
+  binary::read(path, comm, &mesh);
+  return mesh;
+}
+
 #define OMEGA_H_INST(T)                                                        \
   template void swap_if_needed(T& val, bool is_little_endian);                 \
   template Read<T> swap_if_needed(Read<T> array, bool is_little_endian);       \

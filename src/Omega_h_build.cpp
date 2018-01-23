@@ -111,13 +111,13 @@ void build_box_internal(
     Reals coords;
     make_2d_box(x, y, nx, ny, &qv2v, &coords);
     auto tv2v = simplify::tris_from_quads(qv2v);
-    build_from_elems_and_coords(mesh, TRI, tv2v, coords);
+    build_from_elems_and_coords(mesh, FACE, tv2v, coords);
   } else {
     LOs hv2v;
     Reals coords;
     make_3d_box(x, y, z, nx, ny, nz, &hv2v, &coords);
     auto tv2v = simplify::tets_from_hexes(hv2v);
-    build_from_elems_and_coords(mesh, TET, tv2v, coords);
+    build_from_elems_and_coords(mesh, REGION, tv2v, coords);
   }
 }
 

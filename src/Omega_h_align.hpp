@@ -8,14 +8,14 @@
 
 namespace Omega_h {
 
-/* A six-bit code describes the alignment relationship
+/* A seven-bit code describes the alignment relationship
    between a simplex and a lower-dimensional simplex
    on its boundary:
 
    "which_down" given a canonical ordering of the
    lower-dimensional simplices on the boundary, which
    one is this one ?
-   (3 bits)
+   (4 bits)
 
 The other two pieces describe alignment between two
 representations of the same simplex.

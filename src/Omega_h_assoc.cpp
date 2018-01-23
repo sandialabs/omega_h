@@ -91,4 +91,10 @@ void update_from_file(Assoc* p_assoc, std::string const& filepath) {
   }
 }
 
+Assoc read_assoc_file(std::string const& filepath) {
+  Assoc assoc;
+  update_from_file(&assoc, filepath);
+  return assoc;
+}
+
 }  // namespace Omega_h
