@@ -505,6 +505,22 @@ void ExprReader::at_shift(any& result_any, int token, std::string& text) {
 void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
   using std::swap;
   switch (prod) {
+    case Teuchos::MathExpr::PROD_PROGRAM: {
+      TEUCHOS_TEST_FOR_EXCEPTION(rhs.at(1).empty(), Teuchos::ParserFail,
+        "Omega_h::ExprReader needs an expression to evaluate!");
+      swap(result, rhs.at(1));
+      break;
+    }
+    case Teuchos::MathExpr::PROD_NO_STATEMENTS:
+    case Teuchos::MathExpr::PROD_NO_EXPR:
+    case Teuchos::MathExpr::PROD_NEXT_STATEMENT: {
+      break;
+    }
+    case Teuchos::MathExpr::PROD_ASSIGN: {
+      std::string const& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
+      swap(variable_map[name], rhs.at(4));
+      break;
+    }
     case Teuchos::MathExpr::PROD_EXPR:
     case Teuchos::MathExpr::PROD_TERNARY_DECAY:
     case Teuchos::MathExpr::PROD_OR_DECAY:
