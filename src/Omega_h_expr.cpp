@@ -521,6 +521,7 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       swap(variables[name], rhs.at(4));
       break;
     }
+    case Teuchos::MathExpr::PROD_YES_EXPR:
     case Teuchos::MathExpr::PROD_EXPR:
     case Teuchos::MathExpr::PROD_TERNARY_DECAY:
     case Teuchos::MathExpr::PROD_OR_DECAY:
