@@ -63,6 +63,11 @@ enum Omega_h_Scales {
   OMEGA_H_SCALES,
 };
 
+enum Omega_h_Family {
+  OMEGA_H_SIMPLEX,
+  OMEGA_H_HYPERCUBE
+};
+
 #ifdef __cplusplus
 extern "C" {
 #endif
