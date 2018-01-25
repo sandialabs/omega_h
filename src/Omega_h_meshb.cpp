@@ -136,7 +136,7 @@ static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   }
   auto h_vert_refs = HostRead<LO>(vert_refs);
   for (LO i = 0; i < nverts; ++i) {
-    Few<GmfReal, 3> tmp;
+    Few<GmfReal, 3> tmp = {0.0, 0.0, 0.0};
     for (int j = 0; j < dim; ++j) tmp[j] = GmfReal(coords[i * dim + j]);
     auto ref = GmfIndex(h_vert_refs[i]);
     if (dim == 2)
