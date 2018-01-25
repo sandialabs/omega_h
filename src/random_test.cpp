@@ -4,7 +4,7 @@
 
 using namespace Omega_h;
 
-static OMEGA_H_INLINE void contrib(Write<Real> const& buckets, Real value) {
+static OMEGA_H_DEVICE void contrib(Write<Real> const& buckets, Real value) {
   if (value < 0.0 || value >= 1.0) return;
   buckets[LO(std::floor(value * buckets.size()))]++;
 }
