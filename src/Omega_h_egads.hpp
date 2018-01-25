@@ -1,10 +1,11 @@
 #ifndef OMEGA_H_EGADS_HPP
 #define OMEGA_H_EGADS_HPP
 
-#include <Omega_h.hpp>
+#include <string>
 
 namespace Omega_h {
 
+class Mesh;
 struct Egads;
 
 Egads* egads_load(std::string const& filename);
