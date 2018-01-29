@@ -10,12 +10,12 @@ namespace Omega_h {
 template <Int metric_dim>
 static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
     LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
-  auto edges2tets = mesh->ask_up(EDGE, TET);
+  auto edges2tets = mesh->ask_up(EDGE, REGION);
   auto edges2edge_tets = edges2tets.a2ab;
   auto edge_tets2tets = edges2tets.ab2b;
   auto edge_tet_codes = edges2tets.codes;
   auto edge_verts2verts = mesh->ask_verts_of(EDGE);
-  auto tet_verts2verts = mesh->ask_verts_of(TET);
+  auto tet_verts2verts = mesh->ask_verts_of(REGION);
   auto edges_are_owned = mesh->owned(EDGE);
   auto quality_measure = MetricElementQualities<3, metric_dim>(mesh);
   auto length_measure = MetricEdgeLengths<3, metric_dim>(mesh);

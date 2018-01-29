@@ -3,9 +3,12 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_collapse.hpp"
+#include "Omega_h_file.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_quality.hpp"
+
+#include <iostream>
 
 namespace Omega_h {
 
@@ -22,6 +25,8 @@ static Reals coarsen_qualities_tmpl(
   auto vc_codes = v2c.codes;
   auto ncands = cands2edges.size();
   auto qualities = Write<Real>(ncands * 2, -1.0);
+  auto coords = mesh->coords();
+  auto is_bad_w = Write<Byte>(mesh->nelems(), Byte(0));
   auto f = OMEGA_H_LAMBDA(LO cand) {
     auto e = cands2edges[cand];
     auto code = cand_codes[cand];

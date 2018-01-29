@@ -212,6 +212,16 @@ LOs invert_fan(LOs a2b) {
   return b2a;
 }
 
+Bytes mark_fan_preimage(LOs a2b) {
+  OMEGA_H_CHECK(a2b.size() >= 1);
+  auto out = Write<Byte>(a2b.size() - 1);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    out[i] = (a2b[i] != a2b[i + 1]);
+  };
+  parallel_for(out.size(), f);
+  return out;
+}
+
 template <typename Functor>
 static Read<typename Functor::input_type> fan_reduce_tmpl(
     LOs a2b, Read<typename Functor::input_type> b_data, Int width) {

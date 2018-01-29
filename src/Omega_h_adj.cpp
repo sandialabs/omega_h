@@ -10,6 +10,8 @@
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
 
+#include <iostream>
+
 namespace Omega_h {
 
 Adj unmap_adjacency(LOs a2b, Adj b2c) {
@@ -131,9 +133,9 @@ LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {
 }
 
 LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
-  Int nverts_per_high = simplex_degrees[high_dim][0];
-  Int nverts_per_low = simplex_degrees[low_dim][0];
-  Int nlows_per_high = simplex_degrees[high_dim][low_dim];
+  Int nverts_per_high = simplex_degree(high_dim, 0);
+  Int nverts_per_low = simplex_degree(low_dim, 0);
+  Int nlows_per_high = simplex_degree(high_dim, low_dim);
   LO nhigh = hv2v.size() / nverts_per_high;
   LO nuses = nhigh * nlows_per_high;
   Write<LO> uv2v(nuses * nverts_per_low);
@@ -143,7 +145,7 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
       for (Int uv = 0; uv < nverts_per_low; ++uv) {
         uv2v[u_begin + uv] =
-            hv2v[h_begin + down_template(high_dim, low_dim, u, uv)];
+            hv2v[h_begin + simplex_down_template(high_dim, low_dim, u, uv)];
       }
     }
   };
@@ -244,9 +246,29 @@ struct IsMatch<3> {
   }
 };
 
+template <>
+struct IsMatch<4> {
+  template <typename T>
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
+      Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
+    if (av2v[a_begin + 2] != bv2v[b_begin + 2]) return false;
+    if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 4)] &&
+        av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 3) % 4)]) {
+      *match_code = 0;
+      return true;
+    }
+    if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 3) % 4)] &&
+        av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 1) % 4)]) {
+      *match_code = 0;
+      return true;
+    }
+    return false;
+  }
+};
+
 template <Int deg, typename T>
 static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out) {
+    LOs* a2b_out, Read<I8>* codes_out, bool allow_duplicates) {
   LO na = a2fv.size();
   OMEGA_H_CHECK(na * deg == av2v.size());
   LOs v2vb = v2b.a2ab;
@@ -259,6 +281,7 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     auto a_begin = a * deg;
     auto vb_begin = v2vb[fv];
     auto vb_end = v2vb[fv + 1];
+    bool found = false;
     for (LO vb = vb_begin; vb < vb_end; ++vb) {
       auto b = vb2b[vb];
       auto vb_code = vb_codes[vb];
@@ -267,12 +290,14 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
       I8 match_code;
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
+        OMEGA_H_CHECK(!found);  // there can't be more than one!
         a2b[a] = b;
         codes[a] = match_code;
-        return;
+        found = true;
+        if (allow_duplicates) break;
       }
     }
-    OMEGA_H_NORETURN();
+    OMEGA_H_CHECK(found);  // there can't be less than one!
   };
   parallel_for(na, f, "find_matches");
   *a2b_out = a2b;
@@ -281,11 +306,16 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
 
 template <typename T>
 void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out) {
+    LOs* a2b_out, Read<I8>* codes_out, bool allow_duplicates) {
   if (deg == 2) {
-    find_matches_deg<2>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
+    find_matches_deg<2>(
+        a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
   } else if (deg == 3) {
-    find_matches_deg<3>(a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
+    find_matches_deg<3>(
+        a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
+  } else if (deg == 4) {
+    find_matches_deg<4>(
+        a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
   }
 }
 
@@ -305,7 +335,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim) {
 }
 
 Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
-  Int nverts_per_low = simplex_degrees[low_dim][0];
+  Int nverts_per_low = simplex_degree(low_dim, 0);
   auto l2v = Adj(lv2v);
   Adj v2l = invert_adj(l2v, nverts_per_low, nv);
   return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);
@@ -320,9 +350,9 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   auto m2hm_codes = h2m.codes;
   auto ml2l = m2l.ab2b;
   auto ml_codes = m2l.codes;
-  auto nmids_per_high = simplex_degrees[high_dim][mid_dim];
-  auto nlows_per_mid = simplex_degrees[mid_dim][low_dim];
-  auto nlows_per_high = simplex_degrees[high_dim][low_dim];
+  auto nmids_per_high = simplex_degree(high_dim, mid_dim);
+  auto nlows_per_mid = simplex_degree(mid_dim, low_dim);
+  auto nlows_per_high = simplex_degree(high_dim, low_dim);
   auto nhighs = hm2m.size() / nmids_per_high;
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;
@@ -331,7 +361,7 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-      auto ut = up_template(high_dim, low_dim, hl, 0);
+      auto ut = simplex_up_template(high_dim, low_dim, hl, 0);
       auto hm = ut.up;
       auto hml = ut.which_down;
       auto m = hm2m[hm_begin + hm];
@@ -342,8 +372,9 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       auto l = ml2l[ml_begin + ml];
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)
-      for (Int hhl2 = 0; hhl2 < hl; ++hhl2)
+      for (Int hhl2 = 0; hhl2 < hl; ++hhl2) {
         OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
+      }
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
         auto tet_tri_code = hm2m_code;
@@ -427,7 +458,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
       auto r = er2r[er];
       auto e2er_code = e2er_codes[er];
       auto rre = code_which_down(e2er_code);
-      auto rre_opp = opposite_template(TET, EDGE, rre);
+      auto rre_opp = simplex_opposite_template(REGION, EDGE, rre);
       auto re_begin = r * 6;
       auto e_opp = re2e[re_begin + rre_opp];
       auto ee = er;
@@ -484,7 +515,7 @@ Graph elements_across_sides(
 #define INST(T)                                                                \
   template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);             \
   template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, \
-      Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
+      Adj v2b, LOs* a2b_out, Read<I8>* codes_out, bool);
 INST(LO)
 INST(GO)
 #undef INST

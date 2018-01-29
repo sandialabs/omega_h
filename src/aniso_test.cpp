@@ -1,6 +1,8 @@
-#include "Omega_h.hpp"
-#include "Omega_h_compare.hpp"
-#include "Omega_h_timer.hpp"
+#include <Omega_h_adapt.hpp>
+#include <Omega_h_build.hpp>
+#include <Omega_h_compare.hpp>
+#include <Omega_h_metric.hpp>
+#include <Omega_h_timer.hpp>
 
 #include <iostream>
 
@@ -20,6 +22,7 @@ int main(int argc, char** argv) {
   mesh.ask_lengths();
   mesh.ask_qualities();
   auto opts = AdaptOpts(&mesh);
+  opts.verbosity = EXTRA_STATS;
   Now t0 = now();
   while (approach_metric(&mesh, opts)) adapt(&mesh, opts);
   Now t1 = now();

@@ -15,6 +15,7 @@
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
+#include "Omega_h_verify.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -130,9 +131,15 @@ void print_adapt_histograms(Mesh* mesh, AdaptOpts const& opts) {
   auto lh = get_histogram(mesh, EDGE, opts.nlength_histogram_bins,
       opts.length_histogram_min, opts.length_histogram_max,
       mesh->ask_lengths());
-  if (mesh->comm()->rank() == 0) {
+  auto owned_qualities =
+      mesh->owned_array(mesh->dim(), mesh->ask_qualities(), 1);
+  auto qual_sum = get_sum(mesh->comm(), owned_qualities);
+  auto global_nelems = mesh->nglobal_ents(mesh->dim());
+  auto avg_qual = qual_sum / global_nelems;
+  if (can_print(mesh)) {
     print_histogram(qh, "quality");
     print_histogram(lh, "length");
+    std::cout << "average quality: " << avg_qual << '\n';
   }
 }
 
@@ -156,7 +163,9 @@ static bool pre_adapt(Mesh* mesh, AdaptOpts const& opts) {
     std::cout << "before adapting:\n";
   }
   if (print_adapt_status(mesh, opts)) return false;
-  if (opts.verbosity >= EXTRA_STATS) print_adapt_histograms(mesh, opts);
+  if (opts.verbosity >= EXTRA_STATS) {
+    print_adapt_histograms(mesh, opts);
+  }
   if ((opts.verbosity >= EACH_REBUILD) && !mesh->comm()->rank()) {
     std::cout << "addressing edge lengths\n";
   }
@@ -213,8 +222,8 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.egads_model) {
     begin_code("snap");
     mesh->set_parting(OMEGA_H_GHOSTED);
-    auto warp = egads_get_snap_warp(mesh, opts.egads_model,
-        opts.verbosity >= EACH_REBUILD);
+    auto warp = egads_get_snap_warp(
+        mesh, opts.egads_model, opts.verbosity >= EACH_REBUILD);
     if (opts.should_smooth_snap) {
       if (opts.verbosity >= EACH_REBUILD) {
         std::cout << "Solving Laplacian of warp field...\n";
@@ -224,7 +233,8 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
           solve_laplacian(mesh, warp, mesh->dim(), opts.snap_smooth_tolerance);
       auto t1 = now();
       if (opts.verbosity >= EACH_REBUILD) {
-        std::cout << "Solving Laplacian of warp field took " << (t1 - t0) << " seconds\n";
+        std::cout << "Solving Laplacian of warp field took " << (t1 - t0)
+                  << " seconds\n";
       }
     }
     mesh->add_tag(VERT, "warp", mesh->dim(), warp);
@@ -271,10 +281,7 @@ static void post_adapt(
 static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
   if (opts.xfer_opts.should_conserve_size) {
     begin_code("correct_size_errors");
-    // vtk::Writer writer("motion", mesh);
-    // writer.write();
     while (move_verts_to_conserve_size(mesh, opts)) {
-      // writer.write();
       post_rebuild(mesh, opts);
     }
     end_code();

@@ -14,15 +14,19 @@
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_unmap_mesh.hpp"
+#include "Omega_h_verify.hpp"
+
+#include <iostream>
 
 namespace Omega_h {
 
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, LOs old_lows2new_lows) {
+    LOs same_ents2new_ents, LOs old_lows2new_lows, LOs keys2kds) {
   begin_code("modify_conn");
+  (void)keys2kds;
   auto low_dim = ent_dim - 1;
-  auto down_degree = simplex_degrees[ent_dim][low_dim];
+  auto down_degree = simplex_degree(ent_dim, low_dim);
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, low_dim);
   auto old_ent_lows2old_lows = old_ents2old_lows.ab2b;
   auto same_ent_lows2old_lows =
@@ -353,6 +357,8 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
+  // std::cerr << "modify_ents ent_dim " << ent_dim << " key_dim " << key_dim <<
+  // '\n';
   begin_code("modify_ents");
   *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, key_dim, keys2kds);
   auto nkeys = keys2kds.size();
@@ -380,7 +386,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   } else {
     modify_conn(old_mesh, new_mesh, ent_dim, prod_verts2verts,
         *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
-        old_lows2new_lows);
+        old_lows2new_lows, keys2kds);
   }
   if (old_mesh->comm()->size() > 1) {
     modify_owners(old_mesh, new_mesh, ent_dim, *p_prods2new_ents,

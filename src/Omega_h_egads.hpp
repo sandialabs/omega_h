@@ -1,10 +1,12 @@
 #ifndef OMEGA_H_EGADS_HPP
 #define OMEGA_H_EGADS_HPP
 
-#include <Omega_h.hpp>
+#include <string>
+#include <Omega_h_array.hpp>
 
 namespace Omega_h {
 
+class Mesh;
 struct Egads;
 
 Egads* egads_load(std::string const& filename);
@@ -14,6 +16,7 @@ void egads_free(Egads* eg);
 
 void egads_reclassify(Mesh* mesh, Egads* eg);
 Reals egads_get_snap_warp(Mesh* mesh, Egads* eg, bool verbose);
+
 }  // namespace Omega_h
 
 #endif

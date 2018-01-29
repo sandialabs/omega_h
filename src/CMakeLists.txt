@@ -83,6 +83,7 @@ set(Omega_h_SOURCES
   Omega_h_assoc.cpp
   Omega_h_flood.cpp
   Omega_h_fix.cpp
+  Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
   )
 
@@ -141,6 +142,9 @@ else()
 endif()
 
 bob_library_includes(omega_h)
+
+get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
+target_include_directories(omega_h PUBLIC $<BUILD_INTERFACE:${TPL_PATH}>)
 
 if(Omega_h_USE_KokkosCore)
   target_link_libraries(omega_h PUBLIC kokkoscore)
@@ -232,6 +236,7 @@ if(Omega_h_USE_libMeshb)
   osh_add_util(ugawg_cone_cone)
   if (Omega_h_USE_EGADS)
     osh_add_util(ugawg_solution)
+    osh_add_util(ugawg_debug)
   endif()
 endif()
 if(Omega_h_USE_SEACASExodus)
@@ -388,6 +393,9 @@ if(BUILD_TESTING)
     osh_add_exe(dolfin_test)
   endif()
   osh_add_exe(flood_test)
+  osh_add_exe(adapt_from_pumi)
+  osh_add_exe(random_test)
+  test_func(run_random_test 1 ./random_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -399,7 +407,6 @@ set(Omega_h_HEADERS
   Omega_h_kokkos.hpp
   Omega_h_defines.hpp
   Omega_h_array.hpp
-  Omega_h.hpp
   Omega_h_vector.hpp
   Omega_h_matrix.hpp
   Omega_h_functors.hpp
@@ -431,11 +438,13 @@ set(Omega_h_HEADERS
   Omega_h_assoc.hpp
   Omega_h_cmdline.hpp
   Omega_h_compare.hpp
+  Omega_h_template_up.hpp
   Omega_h_simplex.hpp
   Omega_h_qr.hpp
   Omega_h_shape.hpp
   Omega_h_quality.hpp
   Omega_h_scatterplot.hpp
+  Omega_h_affine.hpp
   )
 
 if(Omega_h_USE_Teuchos)

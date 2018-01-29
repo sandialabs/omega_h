@@ -25,7 +25,8 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     std::string const& piecepath, TagSet const& tags);
 
-std::streampos write_initial_pvd(std::string const& root_path, Real restart_time);
+std::streampos write_initial_pvd(
+    std::string const& root_path, Real restart_time);
 void update_pvd(std::string const& root_path, std::streampos* pos_inout,
     Int step, Real time);
 
@@ -45,6 +46,13 @@ void read_pvd(std::istream& stream, std::vector<Real>* times_out,
 
 void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
     std::vector<std::string>* pvtupaths_out);
+
+template <bool is_signed, std::size_t size>
+struct IntTraits;
+
+template <std::size_t size>
+struct FloatTraits;
+
 }  // namespace vtk
 
 }  // end namespace Omega_h

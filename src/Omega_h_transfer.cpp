@@ -3,10 +3,12 @@
 #include "Omega_h_conserve.hpp"
 #include "Omega_h_control.hpp"
 #include "Omega_h_fit.hpp"
+#include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_affine.hpp"
 
 namespace Omega_h {
 
@@ -144,7 +146,8 @@ static bool should_transfer_copy(
 
 static bool should_transfer_density(
     Mesh* mesh, TransferOpts const& opts, Int dim, TagBase const* tag) {
-  return should_conserve(mesh, opts, dim, tag) || is_density(mesh, opts, dim, tag);
+  return should_conserve(mesh, opts, dim, tag) ||
+         is_density(mesh, opts, dim, tag);
 }
 
 template <typename T>
@@ -396,14 +399,10 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_quality(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
-    transfer_density_refine(old_mesh, opts, new_mesh,
-        keys2edges, keys2prods,
-        prods2new_ents,
-        same_ents2old_ents, same_ents2new_ents);
-    transfer_conserve_refine(old_mesh, opts, new_mesh,
-        keys2edges, keys2prods,
-        prods2new_ents,
-        same_ents2old_ents, same_ents2new_ents);
+    transfer_density_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_conserve_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
+        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
@@ -590,8 +589,9 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, VERT, keys2verts,
         keys2doms.a2ab, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_densities_and_conserve_coarsen(old_mesh, opts, new_mesh, keys2verts, keys2doms,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_densities_and_conserve_coarsen(old_mesh, opts, new_mesh,
+        keys2verts, keys2doms, prods2new_ents, same_ents2old_ents,
+        same_ents2new_ents);
   }
   end_code();
 }
@@ -693,8 +693,8 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents);
     transfer_pointwise(old_mesh, opts, new_mesh, EDGE, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-    transfer_densities_and_conserve_swap(old_mesh, opts, new_mesh, keys2edges, keys2prods,
-        prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_densities_and_conserve_swap(old_mesh, opts, new_mesh, keys2edges,
+        keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
   end_code();
 }

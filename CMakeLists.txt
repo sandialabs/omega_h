@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.6.0 LANGUAGES NONE)
+project(Omega_h VERSION 9.8.0 LANGUAGES NONE)
 
 set(USE_XSDK_DEFAULTS_DEFAULT OFF)
 
@@ -110,6 +110,9 @@ bob_begin_cxx_flags()
 bob_cxx11_flags()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
+  if(APPLE)
+    set(FLAGS "${FLAGS} -fcomment-block-commands=file")
+  endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   if(Omega_h_USE_CUDA)
     set(FLAGS "${FLAGS} -expt-extended-lambda -lineinfo")

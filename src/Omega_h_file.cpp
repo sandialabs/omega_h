@@ -35,8 +35,9 @@ void safe_mkdir(const char* path) {
   errno = 0;
   err = mkdir(path, mode);
   if (err != 0 && errno != EEXIST) {
-    Omega_h_fail("omega_h could not create directory \"%s\", got error \"%s\"\n",
-        path, std::strerror(errno));
+    Omega_h_fail(
+        "omega_h could not create directory \"%s\", got error \"%s\"\n", path,
+        std::strerror(errno));
   }
 }
 
@@ -527,6 +528,12 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh) {
   }
   mesh->set_comm(comm);
   return nparts;
+}
+
+Mesh read(std::string const& path, CommPtr comm) {
+  auto mesh = Mesh(comm->library());
+  binary::read(path, comm, &mesh);
+  return mesh;
 }
 
 #define OMEGA_H_INST(T)                                                        \

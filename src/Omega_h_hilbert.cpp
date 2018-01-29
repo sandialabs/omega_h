@@ -23,32 +23,20 @@ namespace hilbert {
 template <Int dim>
 static Read<I64> dists_from_coords_dim(Reals coords) {
   auto bbox = find_bounding_box<dim>(coords);
-  Real maxl = 0;
-  for (Int i = 0; i < dim; ++i) maxl = max2(maxl, bbox.max[i] - bbox.min[i]);
-  LO npts = coords.size() / dim;
+  bbox = make_equilateral(bbox);
+  auto unit_affine = get_affine_from_bbox_into_unit(bbox);
+  auto npts = divide_no_remainder(coords.size(), dim);
   Write<I64> out(npts * dim);
   auto f = OMEGA_H_LAMBDA(LO i) {
-    hilbert::coord_t X[dim];
-    Int nbits = MANTISSA_BITS;
+    constexpr Int nbits = MANTISSA_BITS;
+    auto spatial_coord = get_vector<dim>(coords, i);
+    auto hilbert_coord =
+        hilbert::from_spatial(unit_affine, nbits, spatial_coord);
     for (Int j = 0; j < dim; ++j) {
-      /* floating-point coordinate to fine-grid integer coordinate,
-         should be non-negative since we subtract the BBox min */
-      Real coord = coords[i * dim + j];
-      Real zero_to_one_coord = (coord - bbox.min[j]) / maxl;
-      Real zero_to_2eP_coord = zero_to_one_coord * exp2(Real(nbits));
-      X[j] = hilbert::coord_t(zero_to_2eP_coord);
-      /* some values will just graze the acceptable range
-         (with proper floating point math they are exactly
-          equal to 2^(nbits), and we'll be safe with (>=) in case
-         floating point math is even worse than that. */
-      if (X[j] >= (hilbert::coord_t(1) << nbits))
-        X[j] = (hilbert::coord_t(1) << nbits) - 1;
+      auto sv = static_cast<I64>(hilbert_coord[j]);
+      OMEGA_H_CHECK(sv >= 0);
+      out[i * dim + j] = sv;
     }
-    hilbert::AxestoTranspose(X, nbits, dim);
-    hilbert::coord_t Y[dim];
-    hilbert::untranspose(X, Y, nbits, dim);
-    for (Int j = 0; j < dim; ++j) /* this cast *should* be safe... */
-      out[i * dim + j] = static_cast<I64>(Y[j]);
   };
   parallel_for(npts, f, "hilbert::dists_from_coords");
   return out;

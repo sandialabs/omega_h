@@ -1,9 +1,9 @@
 #include <Omega_h_scatterplot.hpp>
 
-#include <Omega_h_mesh.hpp>
-#include <Omega_h_owners.hpp>
 #include <Omega_h_linpart.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_owners.hpp>
 
 #include <fstream>
 #include <iomanip>
@@ -11,7 +11,8 @@
 namespace Omega_h {
 
 template <Int dim>
-Reals get_linear_scatter_coords(Reals coords, Vector<dim> direction, Vector<dim> origin) {
+Reals get_linear_scatter_coords(
+    Reals coords, Vector<dim> direction, Vector<dim> origin) {
   auto offset = origin * direction;
   auto n = divide_no_remainder(coords.size(), dim);
   auto coords_1d_w = Write<Real>(n);
@@ -37,8 +38,8 @@ Reals get_radial_scatter_coords(Reals coords, Vector<dim> center) {
   return coords_1d_w;
 }
 
-void write_scatterplot(std::string const& path, CommPtr comm, Reals coords_1d, Reals data,
-    std::string const& separator) {
+void write_scatterplot(std::string const& path, CommPtr comm, Reals coords_1d,
+    Reals data, std::string const& separator) {
   std::ofstream os(path.c_str());
   os << std::scientific << std::setprecision(17);
   HostRead<Real> coords_1d_h(coords_1d);
@@ -58,8 +59,8 @@ void write_scatterplot(std::string const& path, CommPtr comm, Reals coords_1d, R
   }
 }
 
-void write_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim, Reals coords_1d,
-    Reals data, std::string const& separator) {
+void write_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim,
+    Reals coords_1d, Reals data, std::string const& separator) {
   auto comm = mesh->comm();
   auto ncomps = divide_no_remainder(data.size(), coords_1d.size());
   if (comm->size() > 1) {
@@ -72,8 +73,10 @@ void write_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim, Reals c
 
 template <Int dim>
 void write_linear_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim,
-    Reals data, Vector<dim> direction, Vector<dim> origin, std::string const& separator) {
-  auto coords = average_field(mesh, ent_dim, dim, mesh->coords()); // get centroids
+    Reals data, Vector<dim> direction, Vector<dim> origin,
+    std::string const& separator) {
+  auto coords =
+      average_field(mesh, ent_dim, dim, mesh->coords());  // get centroids
   auto coords_1d = get_linear_scatter_coords(coords, direction, origin);
   write_scatterplot(path, mesh, ent_dim, coords_1d, data, separator);
 }
@@ -81,21 +84,25 @@ void write_linear_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim,
 template <Int dim>
 void write_radial_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim,
     Reals data, Vector<dim> center, std::string const& separator) {
-  auto coords = average_field(mesh, ent_dim, dim, mesh->coords()); // get centroids
+  auto coords =
+      average_field(mesh, ent_dim, dim, mesh->coords());  // get centroids
   auto coords_1d = get_radial_scatter_coords(coords, center);
   write_scatterplot(path, mesh, ent_dim, coords_1d, data, separator);
 }
 
-#define OMEGA_H_EXPL_INST(dim) \
-template Reals get_linear_scatter_coords(Reals coords, Vector<dim> direction, Vector<dim> origin); \
-template Reals get_radial_scatter_coords(Reals coords, Vector<dim> center); \
-template void write_linear_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim, \
-    Reals data, Vector<dim> direction, Vector<dim> origin, std::string const& separator); \
-template void write_radial_scatterplot(std::string const& path, Mesh* mesh, Int ent_dim, \
-    Reals data, Vector<dim> center, std::string const& separator);
+#define OMEGA_H_EXPL_INST(dim)                                                 \
+  template Reals get_linear_scatter_coords(                                    \
+      Reals coords, Vector<dim> direction, Vector<dim> origin);                \
+  template Reals get_radial_scatter_coords(Reals coords, Vector<dim> center);  \
+  template void write_linear_scatterplot(std::string const& path, Mesh* mesh,  \
+      Int ent_dim, Reals data, Vector<dim> direction, Vector<dim> origin,      \
+      std::string const& separator);                                           \
+  template void write_radial_scatterplot(std::string const& path, Mesh* mesh,  \
+      Int ent_dim, Reals data, Vector<dim> center,                             \
+      std::string const& separator);
 OMEGA_H_EXPL_INST(1)
 OMEGA_H_EXPL_INST(2)
 OMEGA_H_EXPL_INST(3)
 #undef OMEGA_H_EXPL_INST
 
-}
+}  // namespace Omega_h

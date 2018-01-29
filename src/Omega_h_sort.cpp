@@ -7,8 +7,8 @@
 #include <Omega_h_thrust.hpp>
 #elif defined(OMEGA_H_USE_OPENMP)
 #include <omp.h>
-#include "intel_sort/parallel_stable_sort.hpp"
-#include "intel_sort/pss_common.hpp"
+#include <pss/parallel_stable_sort.hpp>
+#include <pss/pss_common.hpp>
 #endif
 
 #include "Omega_h_array_ops.hpp"

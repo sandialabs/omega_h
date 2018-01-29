@@ -74,7 +74,8 @@ class Writer {
   Writer(Writer const&);
   Writer& operator=(Writer const&);
   ~Writer();
-  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1, Real restart_time = 0.0);
+  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1,
+      Real restart_time = 0.0);
   void write();
   void write(Real time);
   void write(Real time, TagSet const& tags);
@@ -97,6 +98,7 @@ class FullWriter {
 namespace binary {
 
 void write(std::string const& path, Mesh* mesh);
+Mesh read(std::string const& path, CommPtr comm);
 I32 read(std::string const& path, CommPtr comm, Mesh* mesh);
 I32 read_nparts(std::string const& path, CommPtr comm);
 I32 read_version(std::string const& path, CommPtr comm);

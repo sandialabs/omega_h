@@ -38,7 +38,7 @@ Histogram get_histogram(Mesh* mesh, Int dim, Int nbins, Real min_value,
 }
 
 void print_histogram(Histogram const& histogram, std::string const& name) {
-  std::ios saved_state(0);
+  std::ios saved_state(nullptr);
   saved_state.copyfmt(std::cout);
   std::cout << std::fixed << std::setprecision(2);
   std::cout << name << " histogram:\n";

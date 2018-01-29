@@ -24,11 +24,11 @@ constexpr Int MANTISSA_BITS = OMEGA_H_MANTISSA_BITS;
 
 enum { DIMS = OMEGA_H_DIMS };
 
-enum {
+enum : Int {
   VERT = OMEGA_H_VERT,
   EDGE = OMEGA_H_EDGE,
-  TRI = OMEGA_H_TRI,
-  TET = OMEGA_H_TET
+  FACE = OMEGA_H_FACE,
+  REGION = OMEGA_H_REGION
 };
 
 }  // end namespace Omega_h
