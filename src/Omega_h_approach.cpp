@@ -101,7 +101,7 @@ bool approach_metric(Mesh* mesh, AdaptOpts const& opts, Real min_step) {
         }
         if (maxl > opts.max_length_allowed) {
           std::cerr << "Metric approach has stalled with maximum length "
-                    << maxl << " < " << opts.max_length_allowed << "\n";
+                    << maxl << " > " << opts.max_length_allowed << "\n";
           std::cerr << "Increasing \"Max Length Allowed\" will probably fix "
                        "this, otherwise the metric is likely not satisfiable\n";
         }
