@@ -62,7 +62,7 @@ void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
 
 /* for testing only, internally computes upward
    adjacency */
-Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim);
+Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim, Int low_dim);
 
 Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim);
 

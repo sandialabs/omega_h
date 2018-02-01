@@ -337,11 +337,11 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family, Int high_di
   return Adj(hl2l, codes);
 }
 
-Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
-  Int nverts_per_low = simplex_degree(low_dim, 0);
+Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim, Int low_dim) {
+  auto nverts_per_low = element_degree(family, low_dim, 0);
   auto l2v = Adj(lv2v);
-  Adj v2l = invert_adj(l2v, nverts_per_low, nv);
-  return reflect_down(hv2v, lv2v, v2l, OMEGA_H_SIMPLEX, high_dim, low_dim);
+  auto v2l = invert_adj(l2v, nverts_per_low, nv);
+  return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
 Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
