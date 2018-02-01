@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     Omega_h::binary::read(argv[1], world, &mesh);
   } else {
-    mesh = Omega_h::build_box(world, 1.0, 1.0, 1.0, 12, 12, 12);
+    mesh = Omega_h::build_box(world, OMEGA_H_SIMPLEX, 1.0, 1.0, 1.0, 12, 12, 12);
   }
   Omega_h::vtk::Writer writer("adapting", &mesh);
   auto tau_start = 10.0;

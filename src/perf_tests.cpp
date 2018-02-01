@@ -198,7 +198,7 @@ static void test_adjs(Library* lib) {
   {
     Now t0 = now();
     auto nx = 42;
-    build_box_internal(&mesh, 1, 1, 1, nx, nx, nx);
+    build_box_internal(&mesh, OMEGA_H_SIMPLEX, 1, 1, 1, nx, nx, nx);
     Now t1 = now();
     std::cout << "building a " << nx << 'x' << nx << 'x' << nx << " box took "
               << (t1 - t0) << " seconds\n";
