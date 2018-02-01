@@ -408,7 +408,7 @@ Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
     Reals surf_tri_IIs, LOs surf_vert2vert, Reals surf_vert_normals) {
   auto nsurf_verts = surf_vert2vert.size();
   auto verts2tris = mesh->ask_up(VERT, FACE);
-  auto tri2surf_tri = invert_injective_map(surf_tri2tri, mesh->ntris());
+  auto tri2surf_tri = invert_injective_map(surf_tri2tri, mesh->nfaces());
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(FACE);
   auto verts_not_surf = map_onto(

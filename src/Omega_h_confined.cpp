@@ -53,7 +53,7 @@ static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(FACE);
   auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
-  auto out = Write<Real>(mesh->ntris(), -1.0);
+  auto out = Write<Real>(mesh->nfaces(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_verts<3>(tris2verts, tri);
     auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
@@ -75,7 +75,7 @@ static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       out[tri] = h;
     }
   };
-  parallel_for(mesh->ntris(), f);
+  parallel_for(mesh->nfaces(), f);
   return out;
 }
 
@@ -83,7 +83,7 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tets2verts = mesh->ask_verts_of(REGION);
   auto tets2edges = mesh->ask_down(REGION, EDGE).ab2b;
-  auto out = Write<Real>(mesh->ntets(), -1.0);
+  auto out = Write<Real>(mesh->nregions(), -1.0);
   auto f = OMEGA_H_LAMBDA(LO tet) {
     auto ttv2v = gather_verts<4>(tets2verts, tet);
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
@@ -160,7 +160,7 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
     if (h == ArithTraits<Real>::max()) h = -1.0;
     out[tet] = h;
   };
-  parallel_for(mesh->ntets(), f);
+  parallel_for(mesh->nregions(), f);
   return out;
 }
 
@@ -192,7 +192,7 @@ static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
   auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
   auto tris2verts = mesh->ask_down(FACE, VERT).ab2b;
   auto coords = mesh->coords();
-  auto tri_angles_w = Write<Real>(mesh->ntris());
+  auto tri_angles_w = Write<Real>(mesh->nfaces());
   auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_down<3>(tris2verts, tri);
     auto tte2e = gather_down<3>(tris2edges, tri);
@@ -214,7 +214,7 @@ static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
     }
     tri_angles_w[tri] = tri_angle;
   };
-  parallel_for(mesh->ntris(), f, "get_pinched_tri_angles");
+  parallel_for(mesh->nfaces(), f, "get_pinched_tri_angles");
   return tri_angles_w;
 }
 
@@ -225,7 +225,7 @@ static Reals get_pinched_tet_angles(Mesh* mesh) {
   auto tets2tris = mesh->ask_down(REGION, FACE).ab2b;
   auto edges2verts = mesh->ask_down(EDGE, VERT).ab2b;
   auto coords = mesh->coords();
-  auto tet_angles_w = Write<Real>(mesh->ntets());
+  auto tet_angles_w = Write<Real>(mesh->nregions());
   auto f = OMEGA_H_LAMBDA(LO tet) {
     auto kke2e = gather_down<6>(tets2edges, tet);
     auto kkt2t = gather_down<4>(tets2tris, tet);
@@ -258,7 +258,7 @@ static Reals get_pinched_tet_angles(Mesh* mesh) {
     }
     tet_angles_w[tet] = tet_angle;
   };
-  parallel_for(mesh->ntets(), f, "get_pinched_tet_angles");
+  parallel_for(mesh->nregions(), f, "get_pinched_tet_angles");
   return tet_angles_w;
 }
 

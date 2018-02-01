@@ -65,6 +65,10 @@ void Mesh::set_comm(CommPtr const& new_comm) {
   comm_ = new_comm;
 }
 
+void Mesh::set_family(Omega_h_Family family) {
+  family_ = family;
+}
+
 void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
   OMEGA_H_CHECK(dim_in >= 1);
@@ -92,9 +96,9 @@ LO Mesh::nents(Int ent_dim) const {
 
 LO Mesh::nelems() const { return nents(dim()); }
 
-LO Mesh::ntets() const { return nents(REGION); }
+LO Mesh::nregions() const { return nents(REGION); }
 
-LO Mesh::ntris() const { return nents(FACE); }
+LO Mesh::nfaces() const { return nents(FACE); }
 
 LO Mesh::nedges() const { return nents(EDGE); }
 

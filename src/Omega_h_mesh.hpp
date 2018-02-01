@@ -21,6 +21,7 @@ class Mesh {
   Mesh(Library* library);
   Library* library() const;
   void set_comm(CommPtr const& comm);
+  void set_family(Omega_h_Family family);
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
@@ -35,8 +36,8 @@ class Mesh {
   }
   LO nents(Int ent_dim) const;
   LO nelems() const;
-  LO ntets() const;
-  LO ntris() const;
+  LO nregions() const;
+  LO nfaces() const;
   LO nedges() const;
   LO nverts() const;
   GO nglobal_ents(Int dim);
