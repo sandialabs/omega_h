@@ -475,21 +475,21 @@ static void test_reflect_down() {
   a = reflect_down(LOs({}), LOs({}), OMEGA_H_HYPERCUBE, 0, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs({}));
   OMEGA_H_CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 3, 3, 0}), OMEGA_H_HYPERCUBE, 3, 2, 1);
+  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 3, 3, 0}), OMEGA_H_HYPERCUBE, 4, 2, 1);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
   OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0, 0}));
   auto hex_verts = LOs(8, 0, 1);
   a = reflect_down(
-      hex_verts, LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 6, 6, 7, 7, 4}), OMEGA_H_HYPERCUBE, 4, 3, 1);
+      hex_verts, LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 6, 6, 7, 7, 4}), OMEGA_H_HYPERCUBE, 8, 3, 1);
   OMEGA_H_CHECK(a.ab2b == LOs(12, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(12, 0));
   a = reflect_down(
-      hex_verts, LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7, 6, 3, 0, 4, 7, 4, 5, 5, 6, 6, 7, 7, 4}),
-      OMEGA_H_HYPERCUBE, 4, 3, 2);
+      hex_verts, LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7, 6, 3, 0, 4, 7, 4, 5, 6, 7}),
+      OMEGA_H_HYPERCUBE, 8, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs(6, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(6, 0));
 //a = reflect_down(
-//    LOs({0, 1, 2, 3}), LOs({0, 1, 2, 0, 3, 1, 1, 3, 2, 2, 3, 0}), OMEGA_H_HYPERCUBE, 4, 3, 2);
+//    hex_verts, LOs({1, 2, 3, 0, 4, 5, 1, 0, 5, 6, 2, 1, 6, 7, 3, 2, 7, 4, 0, 3, }), OMEGA_H_HYPERCUBE, 4, 3, 2);
 //OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
 //OMEGA_H_CHECK(a.codes == Read<I8>(4, make_code(true, 0, 0)));
 //a = reflect_down(
@@ -1231,7 +1231,6 @@ static void test_most_normal() {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
-  if ((0)) {
   test_edge_length();
   test_power();
   test_cubic();
@@ -1254,9 +1253,7 @@ int main(int argc, char** argv) {
   test_invert_map();
   test_invert_adj();
   test_tri_align();
-  }
   test_form_uses();
-  if ((0)) {
   test_reflect_down();
   test_find_unique();
   test_hilbert();
@@ -1295,6 +1292,5 @@ int main(int argc, char** argv) {
   test_scalar_ptr();
   test_is_sorted();
   test_expr();
-  }
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }
