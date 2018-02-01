@@ -229,19 +229,6 @@ bool verify_down_verts(Mesh* mesh) {
   return true;
 }
 
-void verify_no_duplicates(Mesh* mesh) {
-  for (Int ent_dim = 1; ent_dim <= mesh->dim(); ++ent_dim) {
-    std::cerr << "checking for duplicates in dim " << ent_dim
-              << " entities...\n";
-    auto ev2v = mesh->ask_verts_of(ent_dim);
-    auto v2e = mesh->ask_up(VERT, ent_dim);
-    LOs a2b;
-    Bytes codes;
-    find_matches(ent_dim, ev2v, ev2v, v2e, &a2b, &codes);
-    std::cerr << "no duplicates in dim " << ent_dim << " entities...\n";
-  }
-}
-
 void verify_class(Mesh* mesh) {
   for (Int ent_dim = mesh->dim() - 1; ent_dim >= VERT; --ent_dim) {
     std::cerr << "verifying classification, dim " << ent_dim << '\n';

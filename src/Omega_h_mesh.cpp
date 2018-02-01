@@ -22,6 +22,7 @@
 namespace Omega_h {
 
 Mesh::Mesh(Library* library_in) {
+  family_ = OMEGA_H_SIMPLEX;
   dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = -1;

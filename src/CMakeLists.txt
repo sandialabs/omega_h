@@ -440,6 +440,8 @@ set(Omega_h_HEADERS
   Omega_h_compare.hpp
   Omega_h_template_up.hpp
   Omega_h_simplex.hpp
+  Omega_h_hypercube.hpp
+  Omega_h_element.hpp
   Omega_h_qr.hpp
   Omega_h_shape.hpp
   Omega_h_quality.hpp

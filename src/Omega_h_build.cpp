@@ -35,7 +35,7 @@ void add_ents2verts(
     auto ldim = ent_dim - 1;
     auto lv2v = mesh->ask_verts_of(ldim);
     auto v2l = mesh->ask_up(VERT, ldim);
-    auto down = reflect_down(ev2v, lv2v, v2l, ent_dim, ldim);
+    auto down = reflect_down(ev2v, lv2v, v2l, mesh->family(), ent_dim, ldim);
     mesh->set_ents(ent_dim, down);
   }
   if (comm->size() > 1) {

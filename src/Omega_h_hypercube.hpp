@@ -4,6 +4,9 @@
 #include <Omega_h_template_up.hpp>
 #include <Omega_h_kokkos.hpp>
 
+//DEBUG REMOVE NOW
+#include <iostream>
+
 /*! \file Omega_h_hypercube.hpp
   \brief Describes the canonical local boundary connectivity
          orderings for a single hypercube, and other related properties
@@ -231,12 +234,6 @@ OMEGA_H_INLINE Int hypercube_down_template(
   }
   return -1;
 }
-
-struct TemplateUp {
-  Int up;
-  Int which_down;
-  bool is_flipped;
-};
 
 OMEGA_H_INLINE TemplateUp hypercube_up_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {

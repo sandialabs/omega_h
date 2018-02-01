@@ -30,6 +30,9 @@ class Mesh {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
+  inline Omega_h_Family family() const {
+    return family_;
+  }
   LO nents(Int ent_dim) const;
   LO nelems() const;
   LO ntets() const;
@@ -82,6 +85,7 @@ class Mesh {
   Adj derive_adj(Int from, Int to);
   Adj ask_adj(Int from, Int to);
   void react_to_set_tag(Int dim, std::string const& name);
+  Omega_h_Family family_;
   Int dim_;
   CommPtr comm_;
   Int parting_;
