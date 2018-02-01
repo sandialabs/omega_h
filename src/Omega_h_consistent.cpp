@@ -4,7 +4,7 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_simplex.hpp"
+#include "Omega_h_element.hpp"
 
 namespace Omega_h {
 
@@ -41,7 +41,7 @@ static bool tags_are_consistent(Mesh* mesh, Int dim) {
         break;
     }
     if (!ok && mesh->comm()->rank() == 0) {
-      std::cerr << singular_names[dim] << " tag " << tagbase->name()
+      std::cerr << topological_singular_name(mesh->family(), dim) << " tag " << tagbase->name()
                 << " is not consistent\n";
       return false;
     }

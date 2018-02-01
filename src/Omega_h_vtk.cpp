@@ -14,7 +14,7 @@
 #include "Omega_h_build.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_simplex.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_tag.hpp"
 #include "Omega_h_xml.hpp"
 
@@ -925,7 +925,7 @@ FullWriter::FullWriter(std::string const& root_path, Mesh* mesh) {
   if (rank == 0) safe_mkdir(root_path.c_str());
   comm->barrier();
   for (Int i = EDGE; i <= mesh->dim(); ++i)
-    writers_.push_back(Writer(root_path + "/" + plural_names[i], mesh, i));
+    writers_.push_back(Writer(root_path + "/" + dimensional_plural_name(i), mesh, i));
 }
 
 void FullWriter::write(Real time) {

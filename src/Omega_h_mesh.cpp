@@ -16,7 +16,7 @@
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
-#include "Omega_h_simplex.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_timer.hpp"
 
 namespace Omega_h {
@@ -120,7 +120,7 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
     Omega_h_fail(
         "add_tag(%s, %s): already exists. use set_tag or "
         "remove_tag\n",
-        plural_names[ent_dim], name.c_str());
+        topological_plural_name(family(), ent_dim), name.c_str());
   }
   OMEGA_H_CHECK(ncomps >= 0);
   OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
@@ -140,7 +140,7 @@ void Mesh::set_tag(
     Int ent_dim, std::string const& name, Read<T> array, bool internal) {
   if (!has_tag(ent_dim, name)) {
     Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
-        plural_names[ent_dim], name.c_str());
+        topological_plural_name(family(), ent_dim), name.c_str());
   }
   Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
   OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
@@ -166,7 +166,7 @@ void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
   if (!has_tag(ent_dim, name)) {
-    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n", plural_names[ent_dim],
+    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n", topological_plural_name(family(), ent_dim),
         name.c_str());
   }
   return tag_iter(ent_dim, name)->get();
@@ -330,8 +330,8 @@ Adj Mesh::derive_adj(Int from, Int to) {
       return g;
     }
   }
-  Omega_h_fail("can't derive adjacency from %s to %s\n", plural_names[from],
-      plural_names[to]);
+  Omega_h_fail("can't derive adjacency from %s to %s\n", topological_plural_name(family(), from),
+      topological_plural_name(family(), to));
   OMEGA_H_NORETURN(Adj());
 }
 

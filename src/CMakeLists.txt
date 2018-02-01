@@ -11,7 +11,6 @@ set(Omega_h_SOURCES
   Omega_h_sort.cpp
   Omega_h_int128.cpp
   Omega_h_indset.cpp
-  Omega_h_simplex.cpp
   Omega_h_adj.cpp
   Omega_h_tag.cpp
   Omega_h_mesh.cpp

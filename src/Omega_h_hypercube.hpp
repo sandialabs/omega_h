@@ -476,6 +476,22 @@ OMEGA_H_INLINE Int hypercube_degree(Int from_dim, Int to_dim) {
   return -1;
 }
 
+constexpr char const* hypercube_singular_name(Int dim) {
+  return (dim == 3 ? "hex" :
+         (dim == 2 ? "quad" :
+         (dim == 1 ? "edge" :
+         (dim == 0 ? "vertex" :
+          nullptr))));
+}
+
+constexpr char const* hypercube_plural_name(Int dim) {
+  return (dim == 3 ? "hexes" :
+         (dim == 2 ? "quads" :
+         (dim == 1 ? "edges" :
+         (dim == 0 ? "vertices" :
+          nullptr))));
+}
+
 }  // end namespace Omega_h
 
 #endif

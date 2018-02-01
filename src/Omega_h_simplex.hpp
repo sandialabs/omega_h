@@ -379,10 +379,21 @@ OMEGA_H_INLINE Int simplex_degree(Int from_dim, Int to_dim) {
   return -1;
 }
 
-/* TODO: rename to singular_simplex_names */
-extern char const* const singular_names[DIMS];
-/* TODO: rename to plural_simplex_names */
-extern char const* const plural_names[DIMS];
+constexpr char const* simplex_singular_name(Int dim) {
+  return (dim == 3 ? "tet" :
+         (dim == 2 ? "triangle" :
+         (dim == 1 ? "edge" :
+         (dim == 0 ? "vertex" :
+          nullptr))));
+}
+
+constexpr char const* simplex_plural_name(Int dim) {
+  return (dim == 3 ? "tets" :
+         (dim == 2 ? "triangles" :
+         (dim == 1 ? "edges" :
+         (dim == 0 ? "vertices" :
+          nullptr))));
+}
 
 /* TODO: rename to SimplexAverageDegree */
 template <Int dim, Int low, Int high>

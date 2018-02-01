@@ -27,6 +27,30 @@ OMEGA_H_INLINE TemplateUp element_up_template(
           hypercube_up_template(elem_dim, bdry_dim, which_bdry, which_up));
 }
 
+constexpr char const* dimensional_singular_name(Int dim) {
+  return (dim == 3 ? "region" :
+         (dim == 2 ? "face" :
+         (dim == 1 ? "edge" :
+         (dim == 0 ? "vertex" :
+          nullptr))));
+}
+
+constexpr char const* dimensional_plural_name(Int dim) {
+  return (dim == 3 ? "regions" :
+         (dim == 2 ? "faces" :
+         (dim == 1 ? "edges" :
+         (dim == 0 ? "vertices" :
+          nullptr))));
+}
+
+constexpr char const* topological_singular_name(Omega_h_Family family, Int dim) {
+  return (family == OMEGA_H_SIMPLEX ? simplex_singular_name(dim) : hypercube_singular_name(dim));
+}
+
+constexpr char const* topological_plural_name(Omega_h_Family family, Int dim) {
+  return (family == OMEGA_H_SIMPLEX ? simplex_plural_name(dim) : hypercube_plural_name(dim));
+}
+
 }
 
 #endif
