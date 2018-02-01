@@ -466,6 +466,33 @@ static void test_reflect_down() {
   a = reflect_down(
       LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}), OMEGA_H_SIMPLEX, 4, 2, 1);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 4, 2, 3, 4}));
+  a = reflect_down(LOs({}), LOs({}), OMEGA_H_HYPERCUBE, 0, 2, 1);
+  OMEGA_H_CHECK(a.ab2b == LOs({}));
+  OMEGA_H_CHECK(a.codes == Read<I8>({}));
+  a = reflect_down(LOs({}), LOs({}), OMEGA_H_HYPERCUBE, 0, 3, 1);
+  OMEGA_H_CHECK(a.ab2b == LOs({}));
+  OMEGA_H_CHECK(a.codes == Read<I8>({}));
+  a = reflect_down(LOs({}), LOs({}), OMEGA_H_HYPERCUBE, 0, 3, 2);
+  OMEGA_H_CHECK(a.ab2b == LOs({}));
+  OMEGA_H_CHECK(a.codes == Read<I8>({}));
+  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 3, 3, 0}), OMEGA_H_HYPERCUBE, 3, 2, 1);
+  OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
+  OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0, 0}));
+//a = reflect_down(
+//    LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}), OMEGA_H_HYPERCUBE, 4, 3, 1);
+//OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3, 4, 5}));
+//OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0, 0, 0, 0}));
+//a = reflect_down(
+//    LOs({0, 1, 2, 3}), LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}), OMEGA_H_HYPERCUBE, 4, 3, 2);
+//OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
+//OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0, 0}));
+//a = reflect_down(
+//    LOs({0, 1, 2, 3}), LOs({0, 1, 2, 0, 3, 1, 1, 3, 2, 2, 3, 0}), OMEGA_H_HYPERCUBE, 4, 3, 2);
+//OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
+//OMEGA_H_CHECK(a.codes == Read<I8>(4, make_code(true, 0, 0)));
+//a = reflect_down(
+//    LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}), OMEGA_H_HYPERCUBE, 4, 2, 1);
+//OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 4, 2, 3, 4}));
 }
 
 static void test_find_unique() {
