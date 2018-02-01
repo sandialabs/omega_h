@@ -310,7 +310,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     OMEGA_H_CHECK(to + 1 < from);
     Adj h2m = ask_adj(from, to + 1);
     Adj m2l = ask_adj(to + 1, to);
-    Adj h2l = transit(h2m, m2l, from, to);
+    Adj h2l = transit(h2m, m2l, family_, from, to);
     return h2l;
   } else {
     if (from == dim() && to == dim()) {

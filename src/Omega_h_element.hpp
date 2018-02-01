@@ -20,6 +20,13 @@ OMEGA_H_INLINE Int element_degree(Omega_h_Family family, Int from_dim, Int to_di
           hypercube_degree(from_dim, to_dim));
 }
 
+OMEGA_H_INLINE TemplateUp element_up_template(
+    Omega_h_Family family, Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
+  return (family == OMEGA_H_SIMPLEX ?
+          simplex_up_template(elem_dim, bdry_dim, which_bdry, which_up) :
+          hypercube_up_template(elem_dim, bdry_dim, which_bdry, which_up));
+}
+
 }
 
 #endif

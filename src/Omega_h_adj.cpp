@@ -76,7 +76,7 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
       }
     }
     /* rotate to make it first */
-    auto rotation = rotation_to_first<deg>(min_j);
+    auto rotation = rotation_to_first(deg, min_j);
     T tmp[deg];
     rotate_adj<deg>(rotation, ev2v, begin, tmp, 0);
     auto is_flipped = IsFlipped<deg>::is(tmp);
@@ -214,6 +214,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
 template <Int deg>
 struct IsMatch;
 
+// edges
 template <>
 struct IsMatch<2> {
   template <typename T>
@@ -227,6 +228,7 @@ struct IsMatch<2> {
   }
 };
 
+// triangles
 template <>
 struct IsMatch<3> {
   template <typename T>
@@ -234,18 +236,19 @@ struct IsMatch<3> {
       Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
-      *match_code = make_code(false, rotation_to_first<3>(which_down), 0);
+      *match_code = make_code(false, rotation_to_first(3, which_down), 0);
       return true;
     }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 2) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 1) % 3)]) {
-      *match_code = make_code(true, rotation_to_first<3>(which_down), 0);
+      *match_code = make_code(true, rotation_to_first(3, which_down), 0);
       return true;
     }
     return false;
   }
 };
 
+// quads
 template <>
 struct IsMatch<4> {
   template <typename T>
@@ -256,12 +259,12 @@ struct IsMatch<4> {
     }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 4)] &&
         av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 3) % 4)]) {
-      *match_code = make_code(false, rotation_to_first<4>(which_down), 0);
+      *match_code = make_code(false, rotation_to_first(4, which_down), 0);
       return true;
     }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 3) % 4)] &&
         av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 1) % 4)]) {
-      *match_code = make_code(true, rotation_to_first<4>(which_down), 0);
+      *match_code = make_code(true, rotation_to_first(4, which_down), 0);
       return true;
     }
     return false;
@@ -346,7 +349,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
   return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
-Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
+Adj transit(Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) {
   OMEGA_H_CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
@@ -355,18 +358,20 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   auto m2hm_codes = h2m.codes;
   auto ml2l = m2l.ab2b;
   auto ml_codes = m2l.codes;
-  auto nmids_per_high = simplex_degree(high_dim, mid_dim);
-  auto nlows_per_mid = simplex_degree(mid_dim, low_dim);
-  auto nlows_per_high = simplex_degree(high_dim, low_dim);
+  auto nmids_per_high = element_degree(family, high_dim, mid_dim);
+  auto nlows_per_mid = element_degree(family, mid_dim, low_dim);
+  auto nlows_per_high = element_degree(family, high_dim, low_dim);
   auto nhighs = hm2m.size() / nmids_per_high;
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;
+  /* codes only need to be created when transiting region->face + face->edge = region->edge.
+     any other transit has vertices as its destination, and vertices have no orientation/alignment */
   if (low_dim == 1) codes = Write<I8>(hl2l.size());
   auto f = OMEGA_H_LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-      auto ut = simplex_up_template(high_dim, low_dim, hl, 0);
+      auto ut = element_up_template(family, high_dim, low_dim, hl, 0);
       auto hm = ut.up;
       auto hml = ut.which_down;
       auto m = hm2m[hm_begin + hm];
@@ -382,14 +387,18 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       }
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
-        auto tet_tri_code = hm2m_code;
-        auto tri_edge_code = ml_codes[ml_begin + ml];
-        auto tet_tri_flipped = code_is_flipped(tet_tri_code);
-        auto tri_edge_flipped = bool(code_rotation(tri_edge_code) == 1);
+        /* all we are determining here is whether the edge is pointed
+           in or against the direction of the "canonical edge" as
+           defined by the element's template.
+           this is a bitwise XOR of several flips along the way */
+        auto region_face_code = hm2m_code;
+        auto face_edge_code = ml_codes[ml_begin + ml];
+        auto region_face_flipped = code_is_flipped(region_face_code);
+        auto face_edge_flipped = bool(code_rotation(face_edge_code) == 1);
         auto canon_flipped = ut.is_flipped;
-        bool tet_edge_flipped =
-            tet_tri_flipped ^ tri_edge_flipped ^ canon_flipped;
-        codes[hl_begin + hl] = make_code(false, tet_edge_flipped, 0);
+        bool region_edge_flipped =
+            region_face_flipped ^ face_edge_flipped ^ canon_flipped;
+        codes[hl_begin + hl] = make_code(false, region_edge_flipped, 0);
       }
     }
   };
