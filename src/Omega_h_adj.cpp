@@ -251,7 +251,9 @@ struct IsMatch<4> {
   template <typename T>
   OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
       Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
-    if (av2v[a_begin + 2] != bv2v[b_begin + 2]) return false;
+    if (av2v[a_begin + 2] != bv2v[b_begin + ((which_down + 2) % 4)]) {
+      return false;
+    }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 4)] &&
         av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 3) % 4)]) {
       *match_code = make_code(false, rotation_to_first<4>(which_down), 0);

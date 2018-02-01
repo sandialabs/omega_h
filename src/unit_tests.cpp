@@ -488,10 +488,10 @@ static void test_reflect_down() {
       OMEGA_H_HYPERCUBE, 8, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs(6, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(6, 0));
-//a = reflect_down(
-//    hex_verts, LOs({1, 2, 3, 0, 4, 5, 1, 0, 5, 6, 2, 1, 6, 7, 3, 2, 7, 4, 0, 3, }), OMEGA_H_HYPERCUBE, 4, 3, 2);
-//OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
-//OMEGA_H_CHECK(a.codes == Read<I8>(4, make_code(true, 0, 0)));
+  a = reflect_down(
+      hex_verts, LOs({1, 2, 3, 0, 4, 5, 1, 0, 5, 6, 2, 1, 6, 7, 3, 2, 7, 4, 0, 3, 7, 6, 5, 4}), OMEGA_H_HYPERCUBE, 8, 3, 2);
+  OMEGA_H_CHECK(a.ab2b == LOs(6, 0, 1));
+  OMEGA_H_CHECK(a.codes == Read<I8>(6, make_code(true, 1, 0)));
 //a = reflect_down(
 //    LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}), OMEGA_H_HYPERCUBE, 4, 2, 1);
 //OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 4, 2, 3, 4}));
