@@ -35,13 +35,14 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   auto h_cell_globals = HostRead<GO>(d_cell_globals);
   auto d_conn = mesh_osh->ask_elem_verts();
   auto h_conn = HostRead<LO>(d_conn);
+  auto nverts_per_cell = dim + 1;
   /* this type needs to have .size(), .begin(), and .end().
      could have templated on dimension, but there is no threading
      here so its okay to just allocate it once. */
-  std::vector<LO> cell_verts(dim + 1);
+  std::vector<LO> cell_verts(nverts_per_cell);
   for (LO i = 0; i < ncells; ++i) {
-    for (LO j = 0; j < (dim + 1); ++j) {
-      cell_verts[j] = h_conn[i * (dim + 1) + j];
+    for (LO j = 0; j < (nverts_per_cell); ++j) {
+      cell_verts[j] = h_conn[i * (nverts_per_cell) + j];
     }
     editor.add_cell(i, h_cell_globals[i], cell_verts);
   }
@@ -60,14 +61,15 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
    and adjust our own cell ordering to ensure positive volumes */
 template <Int dim>
 static void fix_inverted_elements_dim(Write<LO> elem_verts, Reals coords) {
-  auto nelems = divide_no_remainder(elem_verts.size(), dim + 1);
+  constexpr auto nverts_per_cell = dim + 1;
+  auto nelems = divide_no_remainder(elem_verts.size(), nverts_per_cell);
   auto f = OMEGA_H_LAMBDA(LO e) {
-    auto eev2v = gather_verts<dim + 1>(elem_verts, e);
-    auto eev2x = gather_vectors<dim + 1, dim>(coords, eev2v);
+    auto eev2v = gather_verts<nverts_per_cell>(elem_verts, e);
+    auto eev2x = gather_vectors<nverts_per_cell, dim>(coords, eev2v);
     auto b = simplex_basis<dim, dim>(eev2x);
     auto s = element_size(b);
     if (s < 0.0) {
-      swap2(elem_verts[e * (dim + 1) + 0], elem_verts[e * (dim + 1) + 1]);
+      swap2(elem_verts[e * (nverts_per_cell) + 0], elem_verts[e * (nverts_per_cell) + 1]);
     }
   };
   parallel_for(nelems, f, "fix_inverted_elements");
@@ -100,12 +102,13 @@ void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
   }
   auto d_vert_globals = GOs(h_vert_globals.write());
   auto& elem_verts_dolfin = topology(dim, VERT);
-  if (nelems) OMEGA_H_CHECK(Int(elem_verts_dolfin.size(0)) == (dim + 1));
-  auto h_elem_verts = HostWrite<LO>(nelems * (dim + 1));
+  auto nverts_per_cell = dim + 1;
+  if (nelems) OMEGA_H_CHECK(Int(elem_verts_dolfin.size(0)) == (nverts_per_cell));
+  auto h_elem_verts = HostWrite<LO>(nelems * (nverts_per_cell));
   for (LO i = 0; i < nelems; ++i) {
     auto ptr_dolfin = elem_verts_dolfin(i);
-    for (Int j = 0; j < (dim + 1); ++j) {
-      h_elem_verts[i * (dim + 1) + j] = ptr_dolfin[j];
+    for (Int j = 0; j < (nverts_per_cell); ++j) {
+      h_elem_verts[i * (nverts_per_cell) + j] = ptr_dolfin[j];
     }
   }
   auto d_elem_verts = h_elem_verts.write();
