@@ -115,7 +115,7 @@ void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
   }
   auto d_elem_verts = h_elem_verts.write();
   fix_inverted_elements(dim, d_elem_verts, d_coords);
-  build_from_elems2verts(mesh_osh, dim, d_elem_verts, nverts);
+  build_from_elems2verts(mesh_osh, OMEGA_H_SIMPLEX, dim, d_elem_verts, nverts);
   mesh_osh->remove_tag(VERT, "global");
   mesh_osh->add_tag(VERT, "global", 1, d_vert_globals);
   mesh_osh->add_tag(VERT, "coordinates", dim, d_coords);
