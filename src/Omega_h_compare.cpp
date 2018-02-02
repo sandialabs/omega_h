@@ -169,8 +169,7 @@ static bool compare_copy_data(Int dim, Read<T> a_data, Dist a_dist,
   return ret;
 }
 
-static Read<GO> get_local_conn(Mesh* mesh, Int dim, bool full) {
-  auto low_dim = ((full) ? (dim - 1) : (VERT));
+static Read<GO> get_local_conn(Mesh* mesh, Int dim, Int low_dim) {
   auto h2l = mesh->ask_down(dim, low_dim);
   auto l_globals = mesh->globals(low_dim);
   auto hl2l_globals = unmap(h2l.ab2b, l_globals, 1);
@@ -206,9 +205,11 @@ Omega_h_Comparison compare_meshes(
     auto a_dist = copies_to_linear_owners(comm, a_globals);
     auto b_dist = copies_to_linear_owners(comm, b_globals);
     if (dim > 0) {
-      auto a_conn = get_local_conn(a, dim, full);
-      auto b_conn = get_local_conn(b, dim, full);
-      auto ok = compare_copy_data(dim, a_conn, a_dist, b_conn, b_dist, dim + 1,
+      auto low_dim = ((full) ? (dim - 1) : (VERT));
+      auto a_conn = get_local_conn(a, dim, low_dim);
+      auto b_conn = get_local_conn(b, dim, low_dim);
+      auto deg = element_degree(a->family(), dim, low_dim);
+      auto ok = compare_copy_data(dim, a_conn, a_dist, b_conn, b_dist, deg,
           VarCompareOpts::zero_tolerance(), true);
       if (!ok) {
         if (should_print) {
