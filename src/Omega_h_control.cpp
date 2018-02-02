@@ -78,7 +78,8 @@ void print_stacktrace(std::ostream& out, int max_frames) {
     }
     auto symbol = line.substr(start, (plus - start));
     int status;
-    char* demangled = abi::__cxa_demangle(symbol.c_str(), nullptr, nullptr, &status);
+    char* demangled =
+        abi::__cxa_demangle(symbol.c_str(), nullptr, nullptr, &status);
     if (status == 0) {
       symbol = demangled;
     }
@@ -102,7 +103,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     ,
     MPI_Comm comm_mpi
 #endif
-    ) {
+) {
   std::string lib_desc = OMEGA_H_SEMVER;
   if (lib_desc != head_desc) {
     std::stringstream msg;

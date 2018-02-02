@@ -1,11 +1,11 @@
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_cmdline.hpp>
+#include <Omega_h_element.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_histogram.hpp>
 #include <Omega_h_loop.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
-#include <Omega_h_element.hpp>
 
 #include <iostream>
 
@@ -172,7 +172,8 @@ int main(int argc, char** argv) {
     opts.min_quality_desired = cmdline.get<double>("-q", "min-desired-quality");
   }
   for (Int i = 0; i <= dim; ++i) {
-    std::cout << "mesh has " << mesh.nents(i) << ' ' << topological_plural_name(mesh.family(), i) << '\n';
+    std::cout << "mesh has " << mesh.nents(i) << ' '
+              << topological_plural_name(mesh.family(), i) << '\n';
   }
   auto metrics = get_metric(&mesh, metric_name);
   mesh.add_tag(VERT, "metric", symm_ncomps(dim), metrics);

@@ -29,8 +29,8 @@
 #include "Omega_h_expr.hpp"
 #endif
 
-#include <sstream>
 #include <iostream>
+#include <sstream>
 
 using namespace Omega_h;
 
@@ -425,16 +425,20 @@ static void test_tri_align() {
 }
 
 static void test_form_uses() {
-  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2}), OMEGA_H_SIMPLEX, 2, 1) == LOs({0, 1, 1, 2, 2, 0}));
+  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2}), OMEGA_H_SIMPLEX, 2, 1) ==
+                LOs({0, 1, 1, 2, 2, 0}));
   OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3}), OMEGA_H_SIMPLEX, 3, 1) ==
                 LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}));
   OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3}), OMEGA_H_SIMPLEX, 3, 2) ==
                 LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}));
-  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3}), OMEGA_H_HYPERCUBE, 2, 1) == LOs({0, 1, 1, 2, 2, 3, 3, 0}));
-  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7, 8}), OMEGA_H_HYPERCUBE, 3, 1) ==
-                LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 6, 6, 7, 7, 4}));
-  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7, 8}), OMEGA_H_HYPERCUBE, 3, 2) ==
-                LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7, 6, 3, 0, 4, 7, 4, 5, 6, 7}));
+  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3}), OMEGA_H_HYPERCUBE, 2, 1) ==
+                LOs({0, 1, 1, 2, 2, 3, 3, 0}));
+  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7, 8}), OMEGA_H_HYPERCUBE,
+                    3, 1) == LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3,
+                                 7, 4, 5, 5, 6, 6, 7, 7, 4}));
+  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7, 8}), OMEGA_H_HYPERCUBE,
+                    3, 2) == LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7,
+                                 6, 3, 0, 4, 7, 4, 5, 6, 7}));
 }
 
 static void test_reflect_down() {
@@ -448,23 +452,24 @@ static void test_reflect_down() {
   a = reflect_down(LOs({}), LOs({}), OMEGA_H_SIMPLEX, 0, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs({}));
   OMEGA_H_CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs({0, 1, 2}), LOs({0, 1, 1, 2, 2, 0}), OMEGA_H_SIMPLEX, 3, 2, 1);
+  a = reflect_down(
+      LOs({0, 1, 2}), LOs({0, 1, 1, 2, 2, 0}), OMEGA_H_SIMPLEX, 3, 2, 1);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2}));
   OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0}));
-  a = reflect_down(
-      LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}), OMEGA_H_SIMPLEX, 4, 3, 1);
+  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3}),
+      OMEGA_H_SIMPLEX, 4, 3, 1);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3, 4, 5}));
   OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0, 0, 0, 0}));
-  a = reflect_down(
-      LOs({0, 1, 2, 3}), LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}), OMEGA_H_SIMPLEX, 4, 3, 2);
+  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}),
+      OMEGA_H_SIMPLEX, 4, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
   OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0, 0}));
-  a = reflect_down(
-      LOs({0, 1, 2, 3}), LOs({0, 1, 2, 0, 3, 1, 1, 3, 2, 2, 3, 0}), OMEGA_H_SIMPLEX, 4, 3, 2);
+  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 2, 0, 3, 1, 1, 3, 2, 2, 3, 0}),
+      OMEGA_H_SIMPLEX, 4, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
   OMEGA_H_CHECK(a.codes == Read<I8>(4, make_code(true, 0, 0)));
-  a = reflect_down(
-      LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}), OMEGA_H_SIMPLEX, 4, 2, 1);
+  a = reflect_down(LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}),
+      OMEGA_H_SIMPLEX, 4, 2, 1);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 4, 2, 3, 4}));
   a = reflect_down(LOs({}), LOs({}), OMEGA_H_HYPERCUBE, 0, 2, 1);
   OMEGA_H_CHECK(a.ab2b == LOs({}));
@@ -475,26 +480,33 @@ static void test_reflect_down() {
   a = reflect_down(LOs({}), LOs({}), OMEGA_H_HYPERCUBE, 0, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs({}));
   OMEGA_H_CHECK(a.codes == Read<I8>({}));
-  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 3, 3, 0}), OMEGA_H_HYPERCUBE, 4, 2, 1);
+  a = reflect_down(LOs({0, 1, 2, 3}), LOs({0, 1, 1, 2, 2, 3, 3, 0}),
+      OMEGA_H_HYPERCUBE, 4, 2, 1);
   OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 2, 3}));
   OMEGA_H_CHECK(a.codes == Read<I8>({0, 0, 0, 0}));
   auto hex_verts = LOs(8, 0, 1);
-  a = reflect_down(
-      hex_verts, LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 6, 6, 7, 7, 4}), OMEGA_H_HYPERCUBE, 8, 3, 1);
+  a = reflect_down(hex_verts,
+      LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3, 7, 4, 5, 5, 6, 6, 7, 7,
+          4}),
+      OMEGA_H_HYPERCUBE, 8, 3, 1);
   OMEGA_H_CHECK(a.ab2b == LOs(12, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(12, 0));
-  a = reflect_down(
-      hex_verts, LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7, 6, 3, 0, 4, 7, 4, 5, 6, 7}),
+  a = reflect_down(hex_verts,
+      LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7, 6, 3, 0, 4, 7, 4, 5, 6,
+          7}),
       OMEGA_H_HYPERCUBE, 8, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs(6, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(6, 0));
-  a = reflect_down(
-      hex_verts, LOs({1, 2, 3, 0, 4, 5, 1, 0, 5, 6, 2, 1, 6, 7, 3, 2, 7, 4, 0, 3, 7, 6, 5, 4}), OMEGA_H_HYPERCUBE, 8, 3, 2);
+  a = reflect_down(hex_verts,
+      LOs({1, 2, 3, 0, 4, 5, 1, 0, 5, 6, 2, 1, 6, 7, 3, 2, 7, 4, 0, 3, 7, 6, 5,
+          4}),
+      OMEGA_H_HYPERCUBE, 8, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs(6, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(6, make_code(true, 1, 0)));
-//a = reflect_down(
-//    LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}), OMEGA_H_HYPERCUBE, 4, 2, 1);
-//OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 4, 2, 3, 4}));
+  // a = reflect_down(
+  //    LOs({0, 1, 2, 2, 3, 0}), LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 2}),
+  //    OMEGA_H_HYPERCUBE, 4, 2, 1);
+  // OMEGA_H_CHECK(a.ab2b == LOs({0, 1, 4, 2, 3, 4}));
 }
 
 static void test_find_unique() {
@@ -569,31 +581,9 @@ static void test_build_from_elems2verts(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, OMEGA_H_HYPERCUBE, 3, LOs(8, 0, 1), 8);
     OMEGA_H_CHECK(mesh.ask_down(3, 0).ab2b == LOs(8, 0, 1));
-    OMEGA_H_CHECK(mesh.ask_down(2, 0).ab2b == LOs({
-        0
-       ,3
-       ,2
-       ,1
-       ,0
-       ,1
-       ,5
-       ,4
-       ,3
-       ,0
-       ,4
-       ,7
-       ,1
-       ,2
-       ,6
-       ,5
-       ,2
-       ,3
-       ,7
-       ,6
-       ,4
-       ,5
-       ,6
-       ,7}));
+    OMEGA_H_CHECK(
+        mesh.ask_down(2, 0).ab2b == LOs({0, 3, 2, 1, 0, 1, 5, 4, 3, 0, 4, 7, 1,
+                                        2, 6, 5, 2, 3, 7, 6, 4, 5, 6, 7}));
   }
 }
 
@@ -953,7 +943,8 @@ static void test_element_implied_metric() {
 template <Int dim>
 static void test_recover_hessians_dim(Library* lib) {
   auto one_if_3d = ((dim == 3) ? 1 : 0);
-  auto mesh = build_box(lib->world(), OMEGA_H_SIMPLEX, 1., 1., one_if_3d, 4, 4, 4 * one_if_3d);
+  auto mesh = build_box(
+      lib->world(), OMEGA_H_SIMPLEX, 1., 1., one_if_3d, 4, 4, 4 * one_if_3d);
   auto u_w = Write<Real>(mesh.nverts());
   auto coords = mesh.coords();
   // attach a field = x^2 + y^2 (+ z^2)
@@ -984,8 +975,8 @@ static void test_sf_scale_dim(Library* lib) {
   auto nl = 2;
   Int one_if_2d = ((dim >= 2) ? 1 : 0);
   Int one_if_3d = ((dim >= 3) ? 1 : 0);
-  auto mesh = build_box(lib->world(), OMEGA_H_SIMPLEX, 1, one_if_2d, one_if_3d, nl,
-      nl * one_if_2d, nl * one_if_3d);
+  auto mesh = build_box(lib->world(), OMEGA_H_SIMPLEX, 1, one_if_2d, one_if_3d,
+      nl, nl * one_if_2d, nl * one_if_3d);
   auto target_nelems = mesh.nelems();
   auto metrics = Omega_h::get_implied_metrics(&mesh);
   {

@@ -44,15 +44,18 @@ OMEGA_H_INLINE constexpr Int code_rotation(I8 code) { return (code >> 1) & 3; }
 
 OMEGA_H_INLINE constexpr Int code_which_down(I8 code) { return (code >> 3); }
 
-OMEGA_H_INLINE constexpr I8 make_code(bool is_flipped, Int rotation, Int which_down) {
+OMEGA_H_INLINE constexpr I8 make_code(
+    bool is_flipped, Int rotation, Int which_down) {
   return static_cast<I8>((which_down << 3) | (rotation << 1) | is_flipped);
 }
 
-OMEGA_H_INLINE constexpr Int rotate_index(Int nverts_per_ent, Int index, Int rotation) {
+OMEGA_H_INLINE constexpr Int rotate_index(
+    Int nverts_per_ent, Int index, Int rotation) {
   return (index + rotation) % nverts_per_ent;
 }
 
-/* get the rotation code which, when compounded with the input rotation, produces an identity map */
+/* get the rotation code which, when compounded with the input rotation,
+ * produces an identity map */
 OMEGA_H_INLINE constexpr Int invert_rotation(Int nverts_per_ent, Int rotation) {
   return (nverts_per_ent - rotation) % nverts_per_ent;
 }
@@ -60,9 +63,7 @@ OMEGA_H_INLINE constexpr Int invert_rotation(Int nverts_per_ent, Int rotation) {
 /* all the following can probably be optimized
    down to a few integer ops by an expert... */
 
-OMEGA_H_INLINE constexpr Int reverse_index(Int n, Int i) {
-  return n - 1 - i;
-}
+OMEGA_H_INLINE constexpr Int reverse_index(Int n, Int i) { return n - 1 - i; }
 
 OMEGA_H_INLINE constexpr Int flip_vert_index(Int n, Int i) {
   return (i == 0 ? 0 : (1 + reverse_index(n - 1, i - 1)));
@@ -72,33 +73,39 @@ OMEGA_H_INLINE constexpr Int flip_edge_index(Int n, Int i) {
   return reverse_index(n, i);
 }
 
-OMEGA_H_INLINE constexpr Int align_vert_index(Int nverts_per_ent, Int index, I8 code) {
-  return code_is_flipped(code) ?
-    flip_vert_index(nverts_per_ent, rotate_index(nverts_per_ent, index, code_rotation(code))) :
-    rotate_index(nverts_per_ent, index, code_rotation(code));
+OMEGA_H_INLINE constexpr Int align_vert_index(
+    Int nverts_per_ent, Int index, I8 code) {
+  return code_is_flipped(code)
+             ? flip_vert_index(nverts_per_ent,
+                   rotate_index(nverts_per_ent, index, code_rotation(code)))
+             : rotate_index(nverts_per_ent, index, code_rotation(code));
 }
 
-OMEGA_H_INLINE constexpr Int align_edge_index(Int nverts_per_ent, Int index, I8 code) {
-  return code_is_flipped(code) ?
-    flip_edge_index(nverts_per_ent, rotate_index(nverts_per_ent, index, code_rotation(code))) :
-    rotate_index(nverts_per_ent, index, code_rotation(code));
+OMEGA_H_INLINE constexpr Int align_edge_index(
+    Int nverts_per_ent, Int index, I8 code) {
+  return code_is_flipped(code)
+             ? flip_edge_index(nverts_per_ent,
+                   rotate_index(nverts_per_ent, index, code_rotation(code)))
+             : rotate_index(nverts_per_ent, index, code_rotation(code));
 }
 
 OMEGA_H_INLINE constexpr Int align_index(
     Int nverts_per_ent, Int index_dim, Int index, I8 code) {
-  return (index_dim == 0 ?
-      align_vert_index(nverts_per_ent, index, code) :
-      align_edge_index(nverts_per_ent, index, code));
+  return (index_dim == 0 ? align_vert_index(nverts_per_ent, index, code)
+                         : align_edge_index(nverts_per_ent, index, code));
 }
 
-OMEGA_H_INLINE constexpr Int rotation_to_first(Int nverts_per_ent, Int new_first) {
+OMEGA_H_INLINE constexpr Int rotation_to_first(
+    Int nverts_per_ent, Int new_first) {
   return invert_rotation(nverts_per_ent, new_first);
 }
 
 OMEGA_H_INLINE constexpr I8 invert_alignment(Int nverts_per_ent, I8 code) {
   /* flipped codes are their own inverses */
-  return code_is_flipped(code) ? code : 
-    make_code(false, invert_rotation(nverts_per_ent, code_rotation(code)), 0);
+  return code_is_flipped(code)
+             ? code
+             : make_code(false,
+                   invert_rotation(nverts_per_ent, code_rotation(code)), 0);
 }
 
 /* returns the single transformation equivalent
@@ -109,8 +116,8 @@ OMEGA_H_INLINE I8 compound_alignments(I8 code1, I8 code2) {
   /* we can look for the inverse of the compound
      by looking at what happens to the vertex
      that used to be first (0) */
-  Int old_first = align_vert_index(nverts_per_ent,
-      align_vert_index(nverts_per_ent, 0, code1), code2);
+  Int old_first = align_vert_index(
+      nverts_per_ent, align_vert_index(nverts_per_ent, 0, code1), code2);
   /* the inverse transformation would bring that
      vertex back to being the first */
   Int rotation = rotation_to_first(nverts_per_ent, old_first);

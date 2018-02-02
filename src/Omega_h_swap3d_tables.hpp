@@ -107,11 +107,12 @@ OMEGA_H_CONSTANT_DATA static Int const meshes_7[42 * 5] = {0, 1, 2, 3, 4, 0, 1,
 
 /* array [8] of pointer to array [3] of Int const */
 OMEGA_H_CONSTANT_DATA static swap_tri_t const* const
-    swap_triangles[MAX_EDGE_SWAP + 1] = {nullptr, nullptr, nullptr, triangles_3, triangles_4,
-        triangles_5, triangles_6, triangles_7};
+    swap_triangles[MAX_EDGE_SWAP + 1] = {nullptr, nullptr, nullptr, triangles_3,
+        triangles_4, triangles_5, triangles_6, triangles_7};
 
 OMEGA_H_CONSTANT_DATA static Int const* const swap_meshes[MAX_EDGE_SWAP + 1] = {
-    nullptr, nullptr, nullptr, meshes_3, meshes_4, meshes_5, meshes_6, meshes_7};
+    nullptr, nullptr, nullptr, meshes_3, meshes_4, meshes_5, meshes_6,
+    meshes_7};
 
 typedef int IntPair[2];
 
@@ -130,8 +131,8 @@ OMEGA_H_CONSTANT_DATA static IntPair const unique_edges_7[26] = {{2, 0}, {3, 0},
     {1, 4}, {4, 1}, {1, 6}, {1, 5}, {5, 1}, {6, 2}};
 
 OMEGA_H_CONSTANT_DATA static IntPair const* const
-    unique_edges[MAX_EDGE_SWAP + 1] = {nullptr, nullptr, nullptr, nullptr, unique_edges_4,
-        unique_edges_5, unique_edges_6, unique_edges_7};
+    unique_edges[MAX_EDGE_SWAP + 1] = {nullptr, nullptr, nullptr, nullptr,
+        unique_edges_4, unique_edges_5, unique_edges_6, unique_edges_7};
 
 OMEGA_H_CONSTANT_DATA static Int const edges2unique_4_0[1] = {0};
 
@@ -286,8 +287,8 @@ OMEGA_H_CONSTANT_DATA static Int const* const edges2unique_7[42] = {
     edges2unique_7_40, edges2unique_7_41};
 
 OMEGA_H_CONSTANT_DATA static Int const* const* const
-    edges2unique[MAX_EDGE_SWAP + 1] = {nullptr, nullptr, nullptr, nullptr, edges2unique_4,
-        edges2unique_5, edges2unique_6, edges2unique_7};
+    edges2unique[MAX_EDGE_SWAP + 1] = {nullptr, nullptr, nullptr, nullptr,
+        edges2unique_4, edges2unique_5, edges2unique_6, edges2unique_7};
 
 OMEGA_H_CONSTANT_DATA static Int const nedges[MAX_EDGE_SWAP + 1] = {
     0, 0, 0, 0, 1, 2, 3, 4};

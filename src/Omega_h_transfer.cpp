@@ -1,5 +1,6 @@
 #include "Omega_h_transfer.hpp"
 
+#include "Omega_h_affine.hpp"
 #include "Omega_h_conserve.hpp"
 #include "Omega_h_control.hpp"
 #include "Omega_h_fit.hpp"
@@ -8,7 +9,6 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
-#include "Omega_h_affine.hpp"
 
 namespace Omega_h {
 

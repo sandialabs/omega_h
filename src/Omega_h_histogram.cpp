@@ -6,9 +6,9 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_element.hpp"
 
 namespace Omega_h {
 
@@ -65,7 +65,8 @@ void print_goal_stats(Mesh* mesh, char const* name, Int ent_dim, Reals values,
     auto precision_before = std::cout.precision();
     std::ios::fmtflags stream_state(std::cout.flags());
     std::cout << std::fixed << std::setprecision(2);
-    std::cout << ntotal << " " << topological_plural_name(mesh->family(), ent_dim);
+    std::cout << ntotal << " "
+              << topological_plural_name(mesh->family(), ent_dim);
     std::cout << ", " << name << " [" << actual.min << "," << actual.max << "]";
     if (nlow) {
       std::cout << ", " << nlow << " <" << desired.min;

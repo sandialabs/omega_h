@@ -8,6 +8,7 @@
 #include "Omega_h_bcast.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_loop.hpp"
@@ -16,7 +17,6 @@
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
-#include "Omega_h_element.hpp"
 #include "Omega_h_timer.hpp"
 
 namespace Omega_h {
@@ -65,9 +65,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
   comm_ = new_comm;
 }
 
-void Mesh::set_family(Omega_h_Family family) {
-  family_ = family;
-}
+void Mesh::set_family(Omega_h_Family family) { family_ = family; }
 
 void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
@@ -166,8 +164,8 @@ void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
   if (!has_tag(ent_dim, name)) {
-    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n", topological_plural_name(family(), ent_dim),
-        name.c_str());
+    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
+        topological_plural_name(family(), ent_dim), name.c_str());
   }
   return tag_iter(ent_dim, name)->get();
 }
@@ -285,12 +283,14 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
     } else {
       OMEGA_H_CHECK(adj.codes.exists());
     }
-    OMEGA_H_CHECK(adj.ab2b.size() == nents(from) * element_degree(family(), from, to));
+    OMEGA_H_CHECK(
+        adj.ab2b.size() == nents(from) * element_degree(family(), from, to));
   } else {
     if (from < to) {
       OMEGA_H_CHECK(adj.a2ab.exists());
       OMEGA_H_CHECK(adj.codes.exists());
-      OMEGA_H_CHECK(adj.ab2b.size() == nents(to) * element_degree(family(), to, from));
+      OMEGA_H_CHECK(
+          adj.ab2b.size() == nents(to) * element_degree(family(), to, from));
     }
     OMEGA_H_CHECK(adj.a2ab.size() == nents(from) + 1);
   }
@@ -330,7 +330,8 @@ Adj Mesh::derive_adj(Int from, Int to) {
       return g;
     }
   }
-  Omega_h_fail("can't derive adjacency from %s to %s\n", topological_plural_name(family(), from),
+  Omega_h_fail("can't derive adjacency from %s to %s\n",
+      topological_plural_name(family(), from),
       topological_plural_name(family(), to));
   OMEGA_H_NORETURN(Adj());
 }

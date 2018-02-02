@@ -3,8 +3,8 @@
 #include <Omega_h_egads.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
-#include <Omega_h_timer.hpp>
 #include <Omega_h_metric.hpp>
+#include <Omega_h_timer.hpp>
 
 #include <iostream>
 

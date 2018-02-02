@@ -15,11 +15,14 @@ void build_verts_from_globals(Mesh* mesh, GOs vert_globals);
 // called first
 void build_ents_from_elems2verts(
     Mesh* mesh, LOs ev2v, GOs vert_globals, GOs elem_globals = GOs());
+void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family, Int edim,
+    LOs ev2v, Read<GO> vert_globals);
 void build_from_elems2verts(
-    Mesh* mesh, CommPtr comm, Omega_h_Family, Int edim, LOs ev2v, Read<GO> vert_globals);
-void build_from_elems2verts(Mesh* mesh, Omega_h_Family, Int edim, LOs ev2v, LO nverts);
-void build_from_elems_and_coords(Mesh* mesh, Omega_h_Family, Int edim, LOs ev2v, Reals coords);
-Mesh build_box(CommPtr comm, Omega_h_Family, Real x, Real y, Real z, LO nx, LO ny, LO nz);
+    Mesh* mesh, Omega_h_Family, Int edim, LOs ev2v, LO nverts);
+void build_from_elems_and_coords(
+    Mesh* mesh, Omega_h_Family, Int edim, LOs ev2v, Reals coords);
+Mesh build_box(
+    CommPtr comm, Omega_h_Family, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 void build_box_internal(
     Mesh* mesh, Omega_h_Family, Real x, Real y, Real z, LO nx, LO ny, LO nz);
 

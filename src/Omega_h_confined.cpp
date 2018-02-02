@@ -135,7 +135,8 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;
       for (Int vve = 0; vve < 3; ++vve) {
-        vve2ttv[vve] = simplex_down_template(REGION, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
+        vve2ttv[vve] =
+            simplex_down_template(REGION, EDGE, vve2tte[vve], 1 - vve2wd[vve]);
       }
       Few<Vector<3>, 3> vve2x;
       for (Int vve = 0; vve < 3; ++vve) vve2x[vve] = ttv2x[vve2ttv[vve]];

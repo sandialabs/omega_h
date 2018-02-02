@@ -31,9 +31,7 @@ class Mesh {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
-  inline Omega_h_Family family() const {
-    return family_;
-  }
+  inline Omega_h_Family family() const { return family_; }
   LO nents(Int ent_dim) const;
   LO nelems() const;
   LO nregions() const;

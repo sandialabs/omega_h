@@ -4,9 +4,9 @@
 #include <Omega_h_align.hpp>
 #include <Omega_h_array_ops.hpp>
 #include <Omega_h_class.hpp>
+#include <Omega_h_element.hpp>
 #include <Omega_h_loop.hpp>
 #include <Omega_h_mesh.hpp>
-#include <Omega_h_element.hpp>
 
 #include <iostream>
 

@@ -7,11 +7,11 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_cmdline.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
-#include "Omega_h_element.hpp"
 
 namespace Omega_h {
 
@@ -74,9 +74,9 @@ struct CompareArrays {
           auto global_comp = global_start + GO(j);
           auto global_ent = global_comp / ncomps;
           auto comp = global_comp % ncomps;
-          std::cout << dimensional_singular_name(dim) << ' ' << global_ent << " comp "
-                    << comp << " " << I64(h_a[j]) << " != " << I64(h_b[j])
-                    << '\n';
+          std::cout << dimensional_singular_name(dim) << ' ' << global_ent
+                    << " comp " << comp << " " << I64(h_a[j])
+                    << " != " << I64(h_b[j]) << '\n';
           break;
         }
       }
@@ -138,9 +138,9 @@ struct CompareArrays<Real> {
       auto precision_before = std::cout.precision();
       std::ios::fmtflags flags_before(std::cout.flags());
       std::cout << std::scientific << std::setprecision(15);
-      std::cout << "max diff at " << dimensional_singular_name(dim) << " " << ent_global
-                << ", comp " << comp << ", values " << ah[max_i] << " vs "
-                << bh[max_i] << '\n';
+      std::cout << "max diff at " << dimensional_singular_name(dim) << " "
+                << ent_global << ", comp " << comp << ", values " << ah[max_i]
+                << " vs " << bh[max_i] << '\n';
       std::cout.flags(flags_before);
       std::cout.precision(precision_before);
     }
@@ -195,7 +195,8 @@ Omega_h_Comparison compare_meshes(
   for (Int dim = 0; dim <= a->dim(); ++dim) {
     if (a->nglobal_ents(dim) != b->nglobal_ents(dim)) {
       if (should_print) {
-        std::cout << "global " << topological_singular_name(a->family(), dim) << " counts differ\n";
+        std::cout << "global " << topological_singular_name(a->family(), dim)
+                  << " counts differ\n";
       }
       return OMEGA_H_DIFF;
     }
@@ -211,7 +212,8 @@ Omega_h_Comparison compare_meshes(
           VarCompareOpts::zero_tolerance(), true);
       if (!ok) {
         if (should_print) {
-          std::cout << topological_singular_name(a->family(), dim) << " connectivity doesn't match\n";
+          std::cout << topological_singular_name(a->family(), dim)
+                    << " connectivity doesn't match\n";
         }
         result = OMEGA_H_DIFF;
         continue;
@@ -222,8 +224,8 @@ Omega_h_Comparison compare_meshes(
       auto const& name = tag->name();
       if (!b->has_tag(dim, name)) {
         if (should_print) {
-          std::cout << topological_singular_name(a->family(), dim) << " tag \"" << name
-                    << "\" exists in first mesh but not second\n";
+          std::cout << topological_singular_name(a->family(), dim) << " tag \""
+                    << name << "\" exists in first mesh but not second\n";
         }
         result = OMEGA_H_DIFF;
         continue;
@@ -251,8 +253,8 @@ Omega_h_Comparison compare_meshes(
       }
       if (!ok) {
         if (should_print) {
-          std::cout << topological_singular_name(a->family(), dim) << " tag \"" << name
-                    << "\" values are different\n";
+          std::cout << topological_singular_name(a->family(), dim) << " tag \""
+                    << name << "\" values are different\n";
         }
         comm->barrier();
         result = OMEGA_H_DIFF;
@@ -262,7 +264,8 @@ Omega_h_Comparison compare_meshes(
       auto tag = b->get_tag(dim, i);
       if (!a->has_tag(dim, tag->name())) {
         if (should_print) {
-          std::cout << topological_singular_name(a->family(), dim) << " tag \"" << tag->name()
+          std::cout << topological_singular_name(a->family(), dim) << " tag \""
+                    << tag->name()
                     << "\" exists in second mesh but not in first\n";
         }
         if (result == OMEGA_H_SAME) {

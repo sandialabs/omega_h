@@ -507,7 +507,7 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
   switch (prod) {
     case Teuchos::MathExpr::PROD_PROGRAM: {
       TEUCHOS_TEST_FOR_EXCEPTION(rhs.at(1).empty(), Teuchos::ParserFail,
-        "Omega_h::ExprReader needs an expression to evaluate!");
+          "Omega_h::ExprReader needs an expression to evaluate!");
       swap(result, rhs.at(1));
       break;
     }

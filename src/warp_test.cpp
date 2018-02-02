@@ -67,7 +67,8 @@ int main(int argc, char** argv) {
   auto world = lib.world();
   constexpr Int dim = 3;
   auto nx = 10;
-  auto mesh = build_box(world, OMEGA_H_SIMPLEX, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
+  auto mesh =
+      build_box(world, OMEGA_H_SIMPLEX, 1, 1, 1, nx, nx, (dim == 3) ? nx : 0);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto metrics = get_implied_isos(&mesh);
   mesh.add_tag(VERT, "metric", 1, metrics);

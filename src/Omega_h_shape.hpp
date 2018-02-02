@@ -2,11 +2,11 @@
 #define OMEGA_H_SHAPE_HPP
 
 #include <Omega_h_adj.hpp>
+#include <Omega_h_affine.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
 #include <Omega_h_qr.hpp>
 #include <Omega_h_simplex.hpp>
-#include <Omega_h_affine.hpp>
 
 namespace Omega_h {
 

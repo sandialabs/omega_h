@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_EGADS_HPP
 #define OMEGA_H_EGADS_HPP
 
-#include <string>
 #include <Omega_h_array.hpp>
+#include <string>
 
 namespace Omega_h {
 

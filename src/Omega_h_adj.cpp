@@ -3,10 +3,10 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_scan.hpp"
-#include "Omega_h_element.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
 
@@ -156,8 +156,8 @@ LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
     for (Int u = 0; u < nlows_per_high; ++u) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
       for (Int uv = 0; uv < nverts_per_low; ++uv) {
-        uv2v[u_begin + uv] =
-            hv2v[h_begin + element_down_template(family, high_dim, low_dim, u, uv)];
+        uv2v[u_begin + uv] = hv2v[h_begin + element_down_template(family,
+                                                high_dim, low_dim, u, uv)];
       }
     }
   };
@@ -338,15 +338,16 @@ void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
   }
 }
 
-void find_matches(
-    Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out) {
+void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
+    LOs* a2b_out, Read<I8>* codes_out) {
   OMEGA_H_CHECK(dim <= 2);
   auto deg = element_degree(family, dim, VERT);
   auto a2fv = get_component(av2v, deg, 0);
   find_matches_ex(deg, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
 }
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family, Int high_dim, Int low_dim) {
+Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
+    Int high_dim, Int low_dim) {
   LOs uv2v = form_uses(hv2v, family, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
@@ -354,14 +355,16 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family, Int high_di
   return Adj(hl2l, codes);
 }
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim, Int low_dim) {
+Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
+    Int low_dim) {
   auto nverts_per_low = element_degree(family, low_dim, 0);
   auto l2v = Adj(lv2v);
   auto v2l = invert_adj(l2v, nverts_per_low, nv);
   return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
-Adj transit(Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) {
+Adj transit(
+    Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) {
   OMEGA_H_CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
@@ -376,8 +379,9 @@ Adj transit(Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) 
   auto nhighs = hm2m.size() / nmids_per_high;
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;
-  /* codes only need to be created when transiting region->face + face->edge = region->edge.
-     any other transit has vertices as its destination, and vertices have no orientation/alignment */
+  /* codes only need to be created when transiting region->face + face->edge =
+     region->edge. any other transit has vertices as its destination, and
+     vertices have no orientation/alignment */
   if (low_dim == 1) codes = Write<I8>(hl2l.size());
   auto f = OMEGA_H_LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
