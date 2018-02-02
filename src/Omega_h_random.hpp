@@ -2,14 +2,15 @@
 #define OMEGA_H_RANDOM_HPP
 
 #include <random123/philox.h>
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_few.hpp>
+#include <Omega_h_kokkos.hpp>
 #include <Omega_h_scalar.hpp>
 #include <Omega_h_vector.hpp>
 
 namespace Omega_h {
 
-OMEGA_H_INLINE Few<std::uint64_t, 2> run_philox_cbrng(Few<std::uint64_t, 2> ctr, std::uint64_t key) {
+OMEGA_H_INLINE Few<std::uint64_t, 2> run_philox_cbrng(
+    Few<std::uint64_t, 2> ctr, std::uint64_t key) {
   using PhiloxType = r123::Philox4x32;
   using ctr_type = typename PhiloxType::ctr_type;
   using key_type = typename PhiloxType::key_type;
@@ -33,7 +34,8 @@ OMEGA_H_INLINE Few<std::uint64_t, 2> run_philox_cbrng(Few<std::uint64_t, 2> ctr,
 }
 
 OMEGA_H_INLINE Real unit_uniform_deviate_from_uint64(std::uint64_t x) {
-  return static_cast<Real>(x) / static_cast<Real>(ArithTraits<std::uint64_t>::max());
+  return static_cast<Real>(x) /
+         static_cast<Real>(ArithTraits<std::uint64_t>::max());
 }
 
 class UnitUniformDistribution {
@@ -43,8 +45,11 @@ class UnitUniformDistribution {
     counter[1] = static_cast<std::uint64_t>(seed_in);
     key = static_cast<std::uint64_t>(key_in);
     counter[0] = static_cast<std::uint64_t>(counter_in);
-    if (counter[0] % 2) even_step();
-    else state[1] = 0; // Silences GCC 7.2.0 -Wmaybe-uninitialized about state[1] in operator()
+    if (counter[0] % 2)
+      even_step();
+    else
+      state[1] = 0;  // Silences GCC 7.2.0 -Wmaybe-uninitialized about state[1]
+                     // in operator()
   }
   OMEGA_H_INLINE Real operator()() {
     Real ret;
@@ -57,6 +62,7 @@ class UnitUniformDistribution {
     ++counter[0];
     return ret;
   }
+
  private:
   OMEGA_H_INLINE void even_step() {
     counter[0] >>= 1;
@@ -91,8 +97,7 @@ class UnitUniformDistribution {
 
 class StandardNormalDistribution {
  public:
-  OMEGA_H_INLINE StandardNormalDistribution() : counter(0) {
-  }
+  OMEGA_H_INLINE StandardNormalDistribution() : counter(0) {}
   OMEGA_H_INLINE Real operator()(UnitUniformDistribution& uniform_rng) {
     Real ret;
     if (counter) {
@@ -112,19 +117,21 @@ class StandardNormalDistribution {
     }
     return ret;
   }
+
  private:
   int counter;
   Vector<2> state;
 };
 
-/* fortunately, the Weibull distribution has a closed-form inverse CDF (quantile)
- 
+/* fortunately, the Weibull distribution has a closed-form inverse CDF
+(quantile)
+
 https://en.wikipedia.org/wiki/Weibull_distribution#Cumulative_distribution_function
  */
 OMEGA_H_INLINE Real weibull_quantile(Real shape, Real scale, Real p) {
   auto one_minus_p = 1.0 - p;
   if (one_minus_p == 0) one_minus_p = DBL_MIN;
-  return scale * std::pow(double(- std::log(one_minus_p)), double(1.0 / shape));
+  return scale * std::pow(double(-std::log(one_minus_p)), double(1.0 / shape));
 }
 
 OMEGA_H_INLINE Real standard_normal_density(Real value) {
@@ -132,31 +139,34 @@ OMEGA_H_INLINE Real standard_normal_density(Real value) {
   return one_over_sqrt_two_pi * std::exp((-1.0 / 2.0) * square(value));
 }
 
-OMEGA_H_INLINE Real general_normal_density(Real mean, Real standard_deviation, Real value) {
-  return (1.0 / standard_deviation) * standard_normal_density((value - mean) / standard_deviation);
+OMEGA_H_INLINE Real general_normal_density(
+    Real mean, Real standard_deviation, Real value) {
+  return (1.0 / standard_deviation) *
+         standard_normal_density((value - mean) / standard_deviation);
 }
 
 OMEGA_H_INLINE Real weibull_density(Real shape, Real scale, Real value) {
   if (value < 0.0) return 0.0;
-  return (shape / scale) * std::pow(value / scale, shape - 1.0) * std::exp(-std::pow(value / scale, shape));
+  return (shape / scale) * std::pow(value / scale, shape - 1.0) *
+         std::exp(-std::pow(value / scale, shape));
 }
 
 // regularized lower incomplete gamma function, by series expansion
-OMEGA_H_INLINE Real regularized_lower_incomplete_gamma(Real s, Real z)
-{
-	Real sum = 1.0;
+OMEGA_H_INLINE Real regularized_lower_incomplete_gamma(Real s, Real z) {
+  Real sum = 1.0;
   Real x = 1.0;
-	for (Int k = 1; k < 100; ++k) {
+  for (Int k = 1; k < 100; ++k) {
     x *= z / (s + k);
-		sum += x;
+    sum += x;
     if (sum > 1e100) return 1.0;
-		if (x / sum < 1e-14) break;
-	}
+    if (x / sum < 1e-14) break;
+  }
   auto a = s * std::log(z) - z - std::lgamma(s + 1.0);
-	return std::exp(a + std::log(sum));
+  return std::exp(a + std::log(sum));
 }
 
-OMEGA_H_INLINE Real cumulative_chi_squared_density(Real ndofs, Real chi_squared) {
+OMEGA_H_INLINE Real cumulative_chi_squared_density(
+    Real ndofs, Real chi_squared) {
   if (chi_squared < 0.0 || ndofs < 1.0) return 0.0;
   return regularized_lower_incomplete_gamma(ndofs / 2.0, chi_squared / 2.0);
 }
@@ -165,7 +175,8 @@ OMEGA_H_INLINE Real cumulative_standard_normal_density(Real x) {
   return (1.0 / 2.0) * (1.0 + std::erf(x / std::sqrt(2.0)));
 }
 
-OMEGA_H_INLINE Real cumulative_general_normal_density(Real mean, Real standard_deviation, Real x) {
+OMEGA_H_INLINE Real cumulative_general_normal_density(
+    Real mean, Real standard_deviation, Real x) {
   return cumulative_standard_normal_density((x - mean) / standard_deviation);
 }
 
@@ -173,6 +184,6 @@ OMEGA_H_INLINE Real cumulative_weibull_density(Real shape, Real scale, Real x) {
   return 1.0 - std::exp(-std::pow(x / scale, shape));
 }
 
-}
+}  // namespace Omega_h
 
 #endif

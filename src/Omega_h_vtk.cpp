@@ -12,9 +12,9 @@
 
 #include "Omega_h_base64.hpp"
 #include "Omega_h_build.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_simplex.hpp"
 #include "Omega_h_tag.hpp"
 #include "Omega_h_xml.hpp"
 
@@ -360,8 +360,10 @@ void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   Read<I8> types(mesh->nents(cell_dim), vtk_types[cell_dim]);
   write_array(stream, "types", 1, types);
   LOs ev2v = mesh->ask_verts_of(cell_dim);
-  LOs ends(mesh->nents(cell_dim), simplex_degree(cell_dim, VERT),
-      simplex_degree(cell_dim, VERT));
+  auto deg = element_degree(mesh->family(), cell_dim, VERT);
+  /* starts off already at the end of the first entity's adjacencies,
+     increments by a constant value */
+  LOs ends(mesh->nents(cell_dim), deg, deg);
   write_array(stream, "connectivity", 1, ev2v);
   write_array(stream, "offsets", 1, ends);
 }
@@ -371,16 +373,23 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
   auto types = read_known_array<I8>(
       stream, "types", ncells, 1, is_little_endian, is_compressed);
   Int dim = -1;
+  Int deg = -1;
   if (types.size()) {
     auto type = types.get(0);
-    if (type == VTK_TRIANGLE) dim = 2;
-    if (type == VTK_TETRA) dim = 3;
+    if (type == VTK_TRIANGLE) {
+      dim = 2;
+      deg = 3;
+    }
+    if (type == VTK_TETRA) {
+      dim = 3;
+      deg = 4;
+    }
   }
   dim = comm->allreduce(dim, OMEGA_H_MAX);
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   *dim_out = dim;
-  auto ev2v = read_known_array<LO>(stream, "connectivity", ncells * (dim + 1),
-      1, is_little_endian, is_compressed);
+  auto ev2v = read_known_array<LO>(
+      stream, "connectivity", ncells * deg, 1, is_little_endian, is_compressed);
   *ev2v_out = ev2v;
   read_known_array<LO>(
       stream, "offsets", ncells, 1, is_little_endian, is_compressed);
@@ -925,7 +934,8 @@ FullWriter::FullWriter(std::string const& root_path, Mesh* mesh) {
   if (rank == 0) safe_mkdir(root_path.c_str());
   comm->barrier();
   for (Int i = EDGE; i <= mesh->dim(); ++i)
-    writers_.push_back(Writer(root_path + "/" + plural_names[i], mesh, i));
+    writers_.push_back(
+        Writer(root_path + "/" + dimensional_plural_name(i), mesh, i));
 }
 
 void FullWriter::write(Real time) {

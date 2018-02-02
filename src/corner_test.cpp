@@ -12,7 +12,7 @@ using namespace Omega_h;
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  auto mesh = build_box(world, 1., 1., 1., 4, 4, 4);
+  auto mesh = build_box(world, OMEGA_H_SIMPLEX, 1., 1., 1., 4, 4, 4);
   mesh.add_tag<Real>(VERT, "metric", 1);
   auto opts = AdaptOpts(&mesh);
   opts.min_quality_allowed = 0.47;

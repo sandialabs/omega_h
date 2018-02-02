@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_BBOX_HPP
 #define OMEGA_H_BBOX_HPP
 
-#include <Omega_h_vector.hpp>
 #include <Omega_h_affine.hpp>
+#include <Omega_h_vector.hpp>
 
 namespace Omega_h {
 

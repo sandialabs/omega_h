@@ -3,12 +3,12 @@
 #include <iostream>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_scan.hpp"
-#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 
@@ -102,7 +102,7 @@ void push_down(Mesh* old_mesh, Int ent_dim, Int low_dim,
     Dist old_owners2new_ents, Adj& new_ents2new_lows,
     Dist& old_low_owners2new_lows) {
   begin_code("push_down");
-  auto nlows_per_high = simplex_degree(ent_dim, low_dim);
+  auto nlows_per_high = element_degree(old_mesh->family(), ent_dim, low_dim);
   auto old_use_owners = form_down_use_owners(old_mesh, ent_dim, low_dim);
   auto new_use_owners =
       old_owners2new_ents.exch(old_use_owners, nlows_per_high);

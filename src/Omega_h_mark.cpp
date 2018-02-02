@@ -3,9 +3,9 @@
 #include <algorithm>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_simplex.hpp"
 
 namespace Omega_h {
 
@@ -44,7 +44,7 @@ Read<I8> mark_down(
 
 Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
   auto l2h = mesh->ask_down(high_dim, low_dim);
-  auto deg = simplex_degree(high_dim, low_dim);
+  auto deg = element_degree(mesh->family(), high_dim, low_dim);
   auto hl2l = l2h.ab2b;
   auto nh = mesh->nents(high_dim);
   Write<I8> out(nh, 0);
@@ -68,7 +68,7 @@ Read<I8> mark_adj(Mesh* mesh, Int from_dim, Int to_dim, Read<I8> from_marked) {
 Read<I8> mark_up_all(
     Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked) {
   auto l2h = mesh->ask_down(high_dim, low_dim);
-  auto deg = simplex_degree(high_dim, low_dim);
+  auto deg = element_degree(mesh->family(), high_dim, low_dim);
   auto hl2l = l2h.ab2b;
   auto nh = mesh->nents(high_dim);
   Write<I8> out(nh, 0);

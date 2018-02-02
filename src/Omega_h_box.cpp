@@ -102,31 +102,41 @@ void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
 }
 
 template <Int dim>
-static Read<I32> set_box_class_ids_dim(
-    Reals centroids, Few<LO, 3> nel, Vector<3> l) {
+static void classify_box_dim(
+    Mesh* mesh, Int ent_dim, Reals centroids, Few<LO, 3> nel, Vector<3> l) {
   OMEGA_H_CHECK(centroids.size() % dim == 0);
   auto npts = centroids.size() / dim;
   Vector<dim> dists;
+  /* we assume that if an entity should not be classified on
+     the boundary surface, its centroid is more than an eight
+     of a cell width away from said boundary */
   for (Int i = 0; i < dim; ++i) dists[i] = l[i] / (nel[i] * 8);
-  auto class_ids = Write<I32>(npts);
+  auto class_ids = Write<ClassId>(npts);
+  auto class_dims = Write<Byte>(npts);
   auto f = OMEGA_H_LAMBDA(Int i) {
     auto x = get_vector<dim>(centroids, i);
     Int id = 0;
+    Int class_dim = 0;
     for (Int j = dim - 1; j >= 0; --j) {
       id *= 3;
-      if (x[j] > (l[j] - dists[j]))
+      if (x[j] > (l[j] - dists[j])) {
+        /* case 1: point lies on the upper boundary */
         id += 2;
-      else if (x[j] > dists[j])
+      } else if (x[j] > dists[j]) {
+        /* case 2: point lies on the interior */
         id += 1;
+        ++class_dim;
+      }
     }
     class_ids[i] = id;
+    class_dims[i] = Byte(class_dim);
   };
   parallel_for(npts, f, "set_box_class_ids");
-  return class_ids;
+  mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_ids);
+  mesh->add_tag<Byte>(ent_dim, "class_dim", 1, class_dims);
 }
 
-void set_box_class_ids(
-    Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
+void classify_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
   Few<LO, 3> nel({nx, ny, nz});
   Vector<3> l({x, y, z});
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
@@ -138,14 +148,14 @@ void set_box_class_ids(
       centroids = mesh->coords();
     }
     Read<LO> class_ids;
-    if (mesh->dim() == 3) {
-      class_ids = set_box_class_ids_dim<3>(centroids, nel, l);
-    } else if (mesh->dim() == 2) {
-      class_ids = set_box_class_ids_dim<2>(centroids, nel, l);
-    } else if (mesh->dim() == 1) {
-      class_ids = set_box_class_ids_dim<1>(centroids, nel, l);
-    }
-    mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_ids);
+    if (mesh->dim() == 3)
+      classify_box_dim<3>(mesh, ent_dim, centroids, nel, l);
+    else if (mesh->dim() == 2)
+      classify_box_dim<2>(mesh, ent_dim, centroids, nel, l);
+    else if (mesh->dim() == 1)
+      classify_box_dim<1>(mesh, ent_dim, centroids, nel, l);
+    else
+      Omega_h_fail("classify_box: dimension isn't 1, 2, or 3!");
   }
 }
 

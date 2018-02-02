@@ -289,6 +289,7 @@ static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
+  OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto t0 = now();
   if (!pre_adapt(mesh, opts)) return false;
   begin_code("adapt");

@@ -105,7 +105,8 @@ static void read_meshb_version(Mesh* mesh, GmfFile file, int dim) {
     }
   }
   GmfCloseMesh(file);
-  build_from_elems2verts(mesh, dim, LOs(eqs2verts[dim].write()), LO(nverts));
+  build_from_elems2verts(
+      mesh, OMEGA_H_SIMPLEX, dim, LOs(eqs2verts[dim].write()), LO(nverts));
   mesh->add_tag(VERT, "coordinates", dim, Reals(coords.write()));
   if (eqs2class_id[dim].exists()) {
     mesh->add_tag(dim, "class_id", 1, Read<ClassId>(ClassId(neqs[dim]), 1));
@@ -136,7 +137,7 @@ static void write_meshb_version(Mesh* mesh, GmfFile file, int dim) {
   }
   auto h_vert_refs = HostRead<LO>(vert_refs);
   for (LO i = 0; i < nverts; ++i) {
-    Few<GmfReal, 3> tmp;
+    Few<GmfReal, 3> tmp = {0.0, 0.0, 0.0};
     for (int j = 0; j < dim; ++j) tmp[j] = GmfReal(coords[i * dim + j]);
     auto ref = GmfIndex(h_vert_refs[i]);
     if (dim == 2)

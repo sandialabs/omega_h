@@ -6,7 +6,6 @@ namespace Omega_h {
 class Mesh;
 
 bool verify_down_verts(Mesh* mesh);
-void verify_no_duplicates(Mesh* mesh);
 void verify_class(Mesh* mesh);
 
 }  // end namespace Omega_h

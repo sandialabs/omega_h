@@ -19,13 +19,16 @@ int main(int argc, char** argv) {
   if (argc == 2) {
     Omega_h::binary::read(argv[1], world, &mesh);
   } else {
-    mesh = Omega_h::build_box(world, 1.0, 1.0, 1.0, 12, 12, 12);
+    mesh =
+        Omega_h::build_box(world, OMEGA_H_SIMPLEX, 1.0, 1.0, 1.0, 12, 12, 12);
   }
+  mesh.balance();
   Omega_h::vtk::Writer writer("adapting", &mesh);
   auto tau_start = 10.0;
   auto tau_end = 1.0;
   auto niter = 30;
   for (int iter = 0; iter < niter; ++iter) {
+    mesh.set_parting(OMEGA_H_GHOSTED);
     auto u_w = Omega_h::Write<Omega_h::Real>(mesh.nverts());
     auto eps = 0.01;
     auto coords = mesh.coords();

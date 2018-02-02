@@ -3,14 +3,12 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_scan.hpp"
-#include "Omega_h_simplex.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
-
-#include <iostream>
 
 namespace Omega_h {
 
@@ -40,6 +38,15 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
 
 template <Int deg>
 struct IsFlipped;
+
+template <>
+struct IsFlipped<4> {
+  template <typename T>
+  OMEGA_H_INLINE static bool is(T adj[]) {
+    return adj[3] < adj[1];
+  }
+};
+
 template <>
 struct IsFlipped<3> {
   template <typename T>
@@ -76,7 +83,7 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
       }
     }
     /* rotate to make it first */
-    auto rotation = rotation_to_first<deg>(min_j);
+    auto rotation = rotation_to_first(deg, min_j);
     T tmp[deg];
     rotate_adj<deg>(rotation, ev2v, begin, tmp, 0);
     auto is_flipped = IsFlipped<deg>::is(tmp);
@@ -88,6 +95,7 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
 
 template <typename T>
 Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
+  if (deg == 4) return get_codes_to_canonical_deg<4>(ev2v);
   if (deg == 3) return get_codes_to_canonical_deg<3>(ev2v);
   if (deg == 2) return get_codes_to_canonical_deg<2>(ev2v);
   OMEGA_H_NORETURN(Read<I8>());
@@ -127,15 +135,19 @@ static LOs find_unique_deg(Int deg, LOs uv2v) {
   return unmap<LO>(e2u, uv2v, deg);
 }
 
-LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {
-  auto uv2v = form_uses(hv2v, high_dim, low_dim);
-  return find_unique_deg(low_dim + 1, uv2v);
+LOs find_unique(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
+  OMEGA_H_CHECK(high_dim > low_dim);
+  OMEGA_H_CHECK(low_dim <= 2);
+  OMEGA_H_CHECK(hv2v.size() % element_degree(family, high_dim, VERT) == 0);
+  auto uv2v = form_uses(hv2v, family, high_dim, low_dim);
+  auto deg = element_degree(family, low_dim, VERT);
+  return find_unique_deg(deg, uv2v);
 }
 
-LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
-  Int nverts_per_high = simplex_degree(high_dim, 0);
-  Int nverts_per_low = simplex_degree(low_dim, 0);
-  Int nlows_per_high = simplex_degree(high_dim, low_dim);
+LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
+  Int nverts_per_high = element_degree(family, high_dim, 0);
+  Int nverts_per_low = element_degree(family, low_dim, 0);
+  Int nlows_per_high = element_degree(family, high_dim, low_dim);
   LO nhigh = hv2v.size() / nverts_per_high;
   LO nuses = nhigh * nlows_per_high;
   Write<LO> uv2v(nuses * nverts_per_low);
@@ -144,8 +156,8 @@ LOs form_uses(LOs hv2v, Int high_dim, Int low_dim) {
     for (Int u = 0; u < nlows_per_high; ++u) {
       LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
       for (Int uv = 0; uv < nverts_per_low; ++uv) {
-        uv2v[u_begin + uv] =
-            hv2v[h_begin + simplex_down_template(high_dim, low_dim, u, uv)];
+        uv2v[u_begin + uv] = hv2v[h_begin + element_down_template(family,
+                                                high_dim, low_dim, u, uv)];
       }
     }
   };
@@ -214,6 +226,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
 template <Int deg>
 struct IsMatch;
 
+// edges
 template <>
 struct IsMatch<2> {
   template <typename T>
@@ -227,6 +240,7 @@ struct IsMatch<2> {
   }
 };
 
+// triangles
 template <>
 struct IsMatch<3> {
   template <typename T>
@@ -234,32 +248,35 @@ struct IsMatch<3> {
       Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
-      *match_code = make_code(false, rotation_to_first<3>(which_down), 0);
+      *match_code = make_code(false, rotation_to_first(3, which_down), 0);
       return true;
     }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 2) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 1) % 3)]) {
-      *match_code = make_code(true, rotation_to_first<3>(which_down), 0);
+      *match_code = make_code(true, rotation_to_first(3, which_down), 0);
       return true;
     }
     return false;
   }
 };
 
+// quads
 template <>
 struct IsMatch<4> {
   template <typename T>
   OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
       Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
-    if (av2v[a_begin + 2] != bv2v[b_begin + 2]) return false;
+    if (av2v[a_begin + 2] != bv2v[b_begin + ((which_down + 2) % 4)]) {
+      return false;
+    }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 4)] &&
         av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 3) % 4)]) {
-      *match_code = 0;
+      *match_code = make_code(false, rotation_to_first(4, which_down), 0);
       return true;
     }
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 3) % 4)] &&
         av2v[a_begin + 3] == bv2v[b_begin + ((which_down + 1) % 4)]) {
-      *match_code = 0;
+      *match_code = make_code(true, rotation_to_first(4, which_down), 0);
       return true;
     }
     return false;
@@ -316,32 +333,38 @@ void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
   } else if (deg == 4) {
     find_matches_deg<4>(
         a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
+  } else {
+    Omega_h_fail("find_matches_ex called with unsupported degree %d\n", deg);
   }
 }
 
-void find_matches(
-    Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out) {
-  auto deg = dim + 1;
+void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
+    LOs* a2b_out, Read<I8>* codes_out) {
+  OMEGA_H_CHECK(dim <= 2);
+  auto deg = element_degree(family, dim, VERT);
   auto a2fv = get_component(av2v, deg, 0);
   find_matches_ex(deg, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
 }
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim) {
-  LOs uv2v = form_uses(hv2v, high_dim, low_dim);
+Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
+    Int high_dim, Int low_dim) {
+  LOs uv2v = form_uses(hv2v, family, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
-  find_matches(low_dim, uv2v, lv2v, v2l, &hl2l, &codes);
+  find_matches(family, low_dim, uv2v, lv2v, v2l, &hl2l, &codes);
   return Adj(hl2l, codes);
 }
 
-Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim) {
-  Int nverts_per_low = simplex_degree(low_dim, 0);
+Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
+    Int low_dim) {
+  auto nverts_per_low = element_degree(family, low_dim, 0);
   auto l2v = Adj(lv2v);
-  Adj v2l = invert_adj(l2v, nverts_per_low, nv);
-  return reflect_down(hv2v, lv2v, v2l, high_dim, low_dim);
+  auto v2l = invert_adj(l2v, nverts_per_low, nv);
+  return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
-Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
+Adj transit(
+    Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) {
   OMEGA_H_CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
@@ -350,18 +373,21 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
   auto m2hm_codes = h2m.codes;
   auto ml2l = m2l.ab2b;
   auto ml_codes = m2l.codes;
-  auto nmids_per_high = simplex_degree(high_dim, mid_dim);
-  auto nlows_per_mid = simplex_degree(mid_dim, low_dim);
-  auto nlows_per_high = simplex_degree(high_dim, low_dim);
+  auto nmids_per_high = element_degree(family, high_dim, mid_dim);
+  auto nlows_per_mid = element_degree(family, mid_dim, low_dim);
+  auto nlows_per_high = element_degree(family, high_dim, low_dim);
   auto nhighs = hm2m.size() / nmids_per_high;
   Write<LO> hl2l(nhighs * nlows_per_high);
   Write<I8> codes;
+  /* codes only need to be created when transiting region->face + face->edge =
+     region->edge. any other transit has vertices as its destination, and
+     vertices have no orientation/alignment */
   if (low_dim == 1) codes = Write<I8>(hl2l.size());
   auto f = OMEGA_H_LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-      auto ut = simplex_up_template(high_dim, low_dim, hl, 0);
+      auto ut = element_up_template(family, high_dim, low_dim, hl, 0);
       auto hm = ut.up;
       auto hml = ut.which_down;
       auto m = hm2m[hm_begin + hm];
@@ -377,14 +403,18 @@ Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim) {
       }
       hl2l[hl_begin + hl] = l;
       if (low_dim == 1) {
-        auto tet_tri_code = hm2m_code;
-        auto tri_edge_code = ml_codes[ml_begin + ml];
-        auto tet_tri_flipped = code_is_flipped(tet_tri_code);
-        auto tri_edge_flipped = bool(code_rotation(tri_edge_code) == 1);
+        /* all we are determining here is whether the edge is pointed
+           in or against the direction of the "canonical edge" as
+           defined by the element's template.
+           this is a bitwise XOR of several flips along the way */
+        auto region_face_code = hm2m_code;
+        auto face_edge_code = ml_codes[ml_begin + ml];
+        auto region_face_flipped = code_is_flipped(region_face_code);
+        auto face_edge_flipped = bool(code_rotation(face_edge_code) == 1);
         auto canon_flipped = ut.is_flipped;
-        bool tet_edge_flipped =
-            tet_tri_flipped ^ tri_edge_flipped ^ canon_flipped;
-        codes[hl_begin + hl] = make_code(false, tet_edge_flipped, 0);
+        bool region_edge_flipped =
+            region_face_flipped ^ face_edge_flipped ^ canon_flipped;
+        codes[hl_begin + hl] = make_code(false, region_edge_flipped, 0);
       }
     }
   };

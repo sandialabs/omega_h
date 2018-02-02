@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
   auto nx = 10;
-  auto mesh = build_box(world, 1, 1, 0, nx, nx, 0);
+  auto mesh = build_box(world, OMEGA_H_SIMPLEX, 1, 1, 0, nx, nx, 0);
   mesh.set_parting(OMEGA_H_GHOSTED);
   {
     auto metrics = get_implied_isos(&mesh);

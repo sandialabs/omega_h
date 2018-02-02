@@ -105,55 +105,22 @@ inline R123_CUDA_DEVICE value_type assemble_from_u32(std::uint32_t *p32){
     R123_CUDA_DEVICE reference back(){ return v[_N-1]; }                                 \
     R123_CUDA_DEVICE const_reference back() const{ return v[_N-1]; }                     \
     R123_CUDA_DEVICE bool operator==(const r123array##_N##x##W& rhs) const{ \
-	/* CUDA3 does not have std::equal */ \
-	for (size_t i = 0; i < _N; ++i) \
-	    if (v[i] != rhs.v[i]) return false; \
-	return true; \
+      /* CUDA3 does not have std::equal */ \
+      for (size_t i = 0; i < _N; ++i) \
+        if (v[i] != rhs.v[i]) return false; \
+      return true; \
     } \
     R123_CUDA_DEVICE bool operator!=(const r123array##_N##x##W& rhs) const{ return !(*this == rhs); } \
     /* CUDA3 does not have std::fill_n */ \
     R123_CUDA_DEVICE void fill(const value_type& val){ for (size_t i = 0; i < _N; ++i) v[i] = val; } \
     R123_CUDA_DEVICE void swap(r123array##_N##x##W& rhs){ \
-	/* CUDA3 does not have std::swap_ranges */ \
-	for (size_t i = 0; i < _N; ++i) { \
-	    T tmp = v[i]; \
-	    v[i] = rhs.v[i]; \
-	    rhs.v[i] = tmp; \
-	} \
+      /* CUDA3 does not have std::swap_ranges */ \
+      for (size_t i = 0; i < _N; ++i) { \
+          T tmp = v[i]; \
+          v[i] = rhs.v[i]; \
+          rhs.v[i] = tmp; \
+      } \
     } \
-    R123_CUDA_DEVICE r123array##_N##x##W& incr(R123_ULONG_LONG n=1){                         \
-        /* This test is tricky because we're trying to avoid spurious   \
-           complaints about illegal shifts, yet still be compile-time   \
-           evaulated. */                                                \
-        if(sizeof(T)<sizeof(n) && n>>((sizeof(T)<sizeof(n))?8*sizeof(T):0) ) \
-            return incr_carefully(n);                                   \
-        if(n==1){                                                       \
-            ++v[0];                                                     \
-            if(_N==1 || R123_BUILTIN_EXPECT(!!v[0], 1)) return *this;   \
-        }else{                                                          \
-            v[0] += n;                                                  \
-            if(_N==1 || R123_BUILTIN_EXPECT(n<=v[0], 1)) return *this;  \
-        }                                                               \
-        /* We expect that the N==?? tests will be                       \
-           constant-folded/optimized away by the compiler, so only the  \
-           overflow tests (!!v[i]) remain to be done at runtime.  For  \
-           small values of N, it would be better to do this as an       \
-           uncondtional sequence of adc.  An experiment/optimization    \
-           for another day...                                           \
-           N.B.  The weird subscripting: v[_N>3?3:0] is to silence      \
-           a spurious error from icpc                                   \
-           */                                                           \
-        ++v[_N>1?1:0];                                                  \
-        if(_N==2 || R123_BUILTIN_EXPECT(!!v[_N>1?1:0], 1)) return *this; \
-        ++v[_N>2?2:0];                                                  \
-        if(_N==3 || R123_BUILTIN_EXPECT(!!v[_N>2?2:0], 1)) return *this;  \
-        ++v[_N>3?3:0];                                                  \
-        for(size_t i=4; i<_N; ++i){                                     \
-            if( R123_BUILTIN_EXPECT(!!v[i-1], 1) ) return *this;        \
-            ++v[i];                                                     \
-        }                                                               \
-        return *this;                                                   \
-    }                                                                   \
     /* seed(SeedSeq) would be a constructor if having a constructor */  \
     /* didn't cause headaches with defaults */                          \
     template <typename SeedSeq>                                         \
@@ -170,26 +137,6 @@ inline R123_CUDA_DEVICE value_type assemble_from_u32(std::uint32_t *p32){
         return ret;                                                     \
     }                                                                   \
 protected:                                                              \
-    R123_CUDA_DEVICE r123array##_N##x##W& incr_carefully(R123_ULONG_LONG n){ \
-        /* n may be greater than the maximum value of a single value_type */ \
-        value_type vtn;                                                 \
-        vtn = value_type(n);                                            \
-        v[0] += n;                                                      \
-        const unsigned rshift = 8* ((sizeof(n)>sizeof(value_type))? sizeof(value_type) : 0); \
-        for(size_t i=1; i<_N; ++i){                                     \
-            if(rshift){                                                 \
-                n >>= rshift;                                           \
-            }else{                                                      \
-                n=0;                                                    \
-            }                                                           \
-            if( v[i-1] < vtn )                                          \
-                ++n;                                                    \
-            if( n==0 ) break;                                           \
-            vtn = value_type(n);                                        \
-            v[i] += n;                                                  \
-        }                                                               \
-        return *this;                                                   \
-    }                                                                   \
     
                                                                         
 // There are several tricky considerations for the insertion and extraction

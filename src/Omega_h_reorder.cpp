@@ -1,4 +1,5 @@
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
@@ -16,7 +17,8 @@ namespace Omega_h {
    "responsible for" that entity */
 static Graph find_entities_of_first_vertices(Mesh* mesh, Int ent_dim) {
   auto ev2v = mesh->ask_verts_of(ent_dim);
-  auto e2fv = get_component(ev2v, ent_dim + 1, 0);
+  auto deg = element_degree(mesh->family(), ent_dim, VERT);
+  auto e2fv = get_component(ev2v, deg, 0);
   auto fv2e = invert_map_by_sorting(e2fv, mesh->nverts());
   return fv2e;
 }

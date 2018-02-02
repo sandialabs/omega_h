@@ -1,22 +1,24 @@
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_file.hpp>
-#include <Omega_h_metric.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_metric.hpp>
 #include <Omega_h_timer.hpp>
 
 #include <iostream>
 
 using namespace Omega_h;
 
-int main(int argc, char ** argv) {
+int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto mesh = Mesh(&lib);
   binary::read(argv[1], lib.world(), &mesh);
   auto all_h = mesh.get_array<Real>(VERT, "proteus_size_scale");
   auto all_R = mesh.get_array<Real>(VERT, "proteus_size_frame");
-  auto all_M_without_frames = Write<Real>(mesh.nverts() * symm_ncomps(mesh.dim()));
+  auto all_M_without_frames =
+      Write<Real>(mesh.nverts() * symm_ncomps(mesh.dim()));
   auto all_M_with_frames = Write<Real>(mesh.nverts() * symm_ncomps(mesh.dim()));
-  auto all_M_without_scales = Write<Real>(mesh.nverts() * symm_ncomps(mesh.dim()));
+  auto all_M_without_scales =
+      Write<Real>(mesh.nverts() * symm_ncomps(mesh.dim()));
   constexpr auto dim = 3;
   auto f = OMEGA_H_LAMBDA(LO v) {
     auto h = get_vector<dim>(all_h, v);
@@ -34,9 +36,12 @@ int main(int argc, char ** argv) {
     set_symm(all_M_without_scales, v, M_without_scale);
   };
   parallel_for(mesh.nverts(), f, "convert_metric");
-  mesh.add_tag(VERT, "M_without_frame", symm_ncomps(dim), Reals(all_M_without_frames));
-  mesh.add_tag(VERT, "M_with_frame", symm_ncomps(dim), Reals(all_M_with_frames));
-  mesh.add_tag(VERT, "M_without_scales", symm_ncomps(dim), Reals(all_M_without_scales));
+  mesh.add_tag(
+      VERT, "M_without_frame", symm_ncomps(dim), Reals(all_M_without_frames));
+  mesh.add_tag(
+      VERT, "M_with_frame", symm_ncomps(dim), Reals(all_M_with_frames));
+  mesh.add_tag(
+      VERT, "M_without_scales", symm_ncomps(dim), Reals(all_M_without_scales));
   vtk::write_vtu("converted.vtu", &mesh);
   mesh.remove_tag(VERT, "M_without_frame");
   mesh.remove_tag(VERT, "M_with_frame");

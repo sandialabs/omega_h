@@ -1,14 +1,15 @@
 #ifndef OMEGA_H_HYPERCUBE_HPP
 #define OMEGA_H_HYPERCUBE_HPP
 
-#include <Omega_h_template_up.hpp>
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_template_up.hpp>
 
 /*! \file Omega_h_hypercube.hpp
   \brief Describes the canonical local boundary connectivity
          orderings for a single hypercube, and other related properties
   \details A hypercube is a generalization of a square in arbitrary dimensions.
-           In Omega_h the relevant hypercubes are vertices, edges, quadrilaterals, and hexahedra.
+           In Omega_h the relevant hypercubes are vertices, edges,
+  quadrilaterals, and hexahedra.
   */
 
 namespace Omega_h {
@@ -231,12 +232,6 @@ OMEGA_H_INLINE Int hypercube_down_template(
   }
   return -1;
 }
-
-struct TemplateUp {
-  Int up;
-  Int which_down;
-  bool is_flipped;
-};
 
 OMEGA_H_INLINE TemplateUp hypercube_up_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
@@ -479,7 +474,21 @@ OMEGA_H_INLINE Int hypercube_degree(Int from_dim, Int to_dim) {
   return -1;
 }
 
+constexpr char const* hypercube_singular_name(Int dim) {
+  return (dim == 3 ? "hex"
+                   : (dim == 2 ? "quad"
+                               : (dim == 1 ? "edge"
+                                           : (dim == 0 ? "vertex" : nullptr))));
+}
+
+constexpr char const* hypercube_plural_name(Int dim) {
+  return (dim == 3
+              ? "hexes"
+              : (dim == 2 ? "quads"
+                          : (dim == 1 ? "edges"
+                                      : (dim == 0 ? "vertices" : nullptr))));
+}
+
 }  // end namespace Omega_h
 
 #endif
-

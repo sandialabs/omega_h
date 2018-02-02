@@ -38,7 +38,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     auto new_low_verts2new_verts = new_mesh->ask_verts_of(low_dim);
     auto new_verts2new_lows = new_mesh->ask_up(VERT, low_dim);
     prods2new_lows = reflect_down(prod_verts2verts, new_low_verts2new_verts,
-        new_verts2new_lows, ent_dim, low_dim);
+        new_verts2new_lows, old_mesh->family(), ent_dim, low_dim);
   } else {
     prods2new_lows = Adj(prod_verts2verts);
   }
