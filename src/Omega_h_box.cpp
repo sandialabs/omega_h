@@ -136,8 +136,7 @@ static void classify_box_dim(
   mesh->add_tag<Byte>(ent_dim, "class_dim", 1, class_dims);
 }
 
-void classify_box(
-    Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
+void classify_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
   Few<LO, 3> nel({nx, ny, nz});
   Vector<3> l({x, y, z});
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
@@ -149,10 +148,14 @@ void classify_box(
       centroids = mesh->coords();
     }
     Read<LO> class_ids;
-    if (mesh->dim() == 3) classify_box_dim<3>(mesh, ent_dim, centroids, nel, l);
-    else if (mesh->dim() == 2) classify_box_dim<2>(mesh, ent_dim, centroids, nel, l);
-    else if (mesh->dim() == 1) classify_box_dim<1>(mesh, ent_dim, centroids, nel, l);
-    else Omega_h_fail("classify_box: dimension isn't 1, 2, or 3!");
+    if (mesh->dim() == 3)
+      classify_box_dim<3>(mesh, ent_dim, centroids, nel, l);
+    else if (mesh->dim() == 2)
+      classify_box_dim<2>(mesh, ent_dim, centroids, nel, l);
+    else if (mesh->dim() == 1)
+      classify_box_dim<1>(mesh, ent_dim, centroids, nel, l);
+    else
+      Omega_h_fail("classify_box: dimension isn't 1, 2, or 3!");
   }
 }
 

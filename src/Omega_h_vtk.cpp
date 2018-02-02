@@ -379,7 +379,8 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
     if (type == VTK_TRIANGLE) {
       dim = 2;
       deg = 3;
-    } if (type == VTK_TETRA) {
+    }
+    if (type == VTK_TETRA) {
       dim = 3;
       deg = 4;
     }
@@ -387,8 +388,8 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
   dim = comm->allreduce(dim, OMEGA_H_MAX);
   OMEGA_H_CHECK(dim == 2 || dim == 3);
   *dim_out = dim;
-  auto ev2v = read_known_array<LO>(stream, "connectivity", ncells * deg,
-      1, is_little_endian, is_compressed);
+  auto ev2v = read_known_array<LO>(
+      stream, "connectivity", ncells * deg, 1, is_little_endian, is_compressed);
   *ev2v_out = ev2v;
   read_known_array<LO>(
       stream, "offsets", ncells, 1, is_little_endian, is_compressed);

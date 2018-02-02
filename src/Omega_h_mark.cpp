@@ -3,9 +3,9 @@
 #include <algorithm>
 
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_element.hpp"
 
 namespace Omega_h {
 

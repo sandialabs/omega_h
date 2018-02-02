@@ -5,29 +5,25 @@
 
 namespace Omega_h {
 
-class Overlay
-{
-public:
-  Overlay(int* argc, char*** argv
-   ,const Omega_h::Vector<3>& overlayGridCenter
-   ,double cellSize
-   ,size_t Nx
-   ,size_t Ny
-   ,size_t Nz
+class Overlay {
+ public:
+  Overlay(int* argc, char*** argv, const Omega_h::Vector<3>& overlayGridCenter,
+      double cellSize, size_t Nx, size_t Ny, size_t Nz
 #ifdef OMEGA_H_USE_MPI
-   ,MPI_Comm comm
+      ,
+      MPI_Comm comm
 #endif
-    );
+  );
 
   std::array<size_t, 2> get_face_cells(size_t face) const;
 
-  const std::vector<size_t> & get_cells() const;
+  const std::vector<size_t>& get_cells() const;
 
-  const std::vector<size_t> & get_edges() const;
+  const std::vector<size_t>& get_edges() const;
 
-  const std::vector<size_t> & get_faces() const;
+  const std::vector<size_t>& get_faces() const;
 
-  const std::vector<size_t> & get_nodes() const;
+  const std::vector<size_t>& get_nodes() const;
 
   std::array<size_t, 8> get_cell_nodes(size_t cell) const;
 
@@ -45,7 +41,7 @@ public:
 
   double get_cell_size() const;
 
-private:
+ private:
   double cell_size;
   Omega_h::Library library;
   Omega_h::Mesh mesh;
@@ -55,6 +51,6 @@ private:
   std::vector<size_t> silly_nodes;
 };
 
-}
+}  // namespace Omega_h
 
 #endif

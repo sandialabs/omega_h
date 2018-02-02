@@ -589,8 +589,8 @@ static void test_build(Library* lib) {
                                       5, 1, 3, 5, 3, 4, 5, 2, 4, 5}));
   }
   {
-    auto mesh = build_box(lib->world(), OMEGA_H_HYPERCUBE,
-        1.0, 1.0, 1.0, 2, 2, 2);
+    auto mesh =
+        build_box(lib->world(), OMEGA_H_HYPERCUBE, 1.0, 1.0, 1.0, 2, 2, 2);
   }
 }
 

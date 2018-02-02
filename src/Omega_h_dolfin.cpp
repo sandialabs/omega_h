@@ -69,7 +69,8 @@ static void fix_inverted_elements_dim(Write<LO> elem_verts, Reals coords) {
     auto b = simplex_basis<dim, dim>(eev2x);
     auto s = element_size(b);
     if (s < 0.0) {
-      swap2(elem_verts[e * (nverts_per_cell) + 0], elem_verts[e * (nverts_per_cell) + 1]);
+      swap2(elem_verts[e * (nverts_per_cell) + 0],
+          elem_verts[e * (nverts_per_cell) + 1]);
     }
   };
   parallel_for(nelems, f, "fix_inverted_elements");
@@ -103,7 +104,8 @@ void from_dolfin(Mesh* mesh_osh, dolfin::Mesh const& mesh_dolfin) {
   auto d_vert_globals = GOs(h_vert_globals.write());
   auto& elem_verts_dolfin = topology(dim, VERT);
   auto nverts_per_cell = dim + 1;
-  if (nelems) OMEGA_H_CHECK(Int(elem_verts_dolfin.size(0)) == (nverts_per_cell));
+  if (nelems)
+    OMEGA_H_CHECK(Int(elem_verts_dolfin.size(0)) == (nverts_per_cell));
   auto h_elem_verts = HostWrite<LO>(nelems * (nverts_per_cell));
   for (LO i = 0; i < nelems; ++i) {
     auto ptr_dolfin = elem_verts_dolfin(i);

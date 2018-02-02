@@ -327,8 +327,8 @@ void write(
                 << " of type " << type_name << '\n';
     }
     auto deg = element_degree(mesh->family(), dim, VERT);
-    CALL(ex_put_block(file, EX_ELEM_BLOCK, block_id, type_name, nblock_elems,
-        deg, 0, 0, 0));
+    CALL(ex_put_block(
+        file, EX_ELEM_BLOCK, block_id, type_name, nblock_elems, deg, 0, 0, 0));
     auto block_conn = unmap(block_elems2elem, all_conn, deg);
     auto block_conn_ex = add_to_each(block_conn, 1);
     auto h_block_conn = HostRead<LO>(block_conn_ex);
