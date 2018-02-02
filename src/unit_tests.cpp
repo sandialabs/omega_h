@@ -557,7 +557,7 @@ static void test_bbox() {
           Reals({0, -3, 0, 3, 0, 0, 0, 3, 0, -3, 0, 0, 0, 0, -3, 0, 0, 3}))));
 }
 
-static void test_build_from_elems2verts(Library* lib) {
+static void test_build(Library* lib) {
   {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, OMEGA_H_SIMPLEX, 2, LOs({0, 1, 2}), 3);
@@ -587,6 +587,10 @@ static void test_build_from_elems2verts(Library* lib) {
     OMEGA_H_CHECK(
         mesh.ask_up(0, 2).ab2b == LOs({0, 1, 2, 0, 1, 3, 0, 3, 4, 0, 2, 4, 1, 2,
                                       5, 1, 3, 5, 3, 4, 5, 2, 4, 5}));
+  }
+  {
+    auto mesh = build_box(lib->world(), OMEGA_H_HYPERCUBE,
+        1.0, 1.0, 1.0, 2, 2, 2);
   }
 }
 
@@ -1295,7 +1299,7 @@ int main(int argc, char** argv) {
   test_find_unique();
   test_hilbert();
   test_bbox();
-  test_build_from_elems2verts(&lib);
+  test_build(&lib);
   test_star(&lib);
   test_injective_map();
   test_dual(&lib);

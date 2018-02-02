@@ -133,8 +133,7 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
   if (comm->rank() == 0) {
     build_box_internal(&mesh, family, x, y, z, nx, ny, nz);
     reorder_by_hilbert(&mesh);
-    classify_by_angles(&mesh, PI / 4);
-    set_box_class_ids(&mesh, x, y, z, nx, ny, nz);
+    classify_box(&mesh, x, y, z, nx, ny, nz);
   }
   mesh.set_comm(comm);
   mesh.balance();

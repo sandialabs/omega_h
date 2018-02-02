@@ -40,6 +40,7 @@ void classify_elements(Mesh* mesh) {
 }
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle) {
+  OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto dim = mesh->dim();
   classify_elements(mesh);
   auto side_is_exposed = mark_exposed_sides(mesh);
