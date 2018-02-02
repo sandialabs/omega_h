@@ -360,8 +360,10 @@ void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim) {
   Read<I8> types(mesh->nents(cell_dim), vtk_types[cell_dim]);
   write_array(stream, "types", 1, types);
   LOs ev2v = mesh->ask_verts_of(cell_dim);
-  LOs ends(mesh->nents(cell_dim), simplex_degree(cell_dim, VERT),
-      simplex_degree(cell_dim, VERT));
+  auto deg = element_degree(mesh->family(), cell_dim, VERT);
+  /* starts off already at the end of the first entity's adjacencies,
+     increments by a constant value */
+  LOs ends(mesh->nents(cell_dim), deg, deg);
   write_array(stream, "connectivity", 1, ev2v);
   write_array(stream, "offsets", 1, ends);
 }
