@@ -4,9 +4,6 @@
 #include <Omega_h_template_up.hpp>
 #include <Omega_h_kokkos.hpp>
 
-//DEBUG REMOVE NOW
-#include <iostream>
-
 /*! \file Omega_h_hypercube.hpp
   \brief Describes the canonical local boundary connectivity
          orderings for a single hypercube, and other related properties

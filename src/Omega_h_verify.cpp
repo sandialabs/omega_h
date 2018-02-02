@@ -6,7 +6,7 @@
 #include <Omega_h_class.hpp>
 #include <Omega_h_loop.hpp>
 #include <Omega_h_mesh.hpp>
-#include <Omega_h_simplex.hpp>
+#include <Omega_h_element.hpp>
 
 #include <iostream>
 
@@ -199,15 +199,17 @@ OMEGA_H_INLINE Int simplex_down_template2(
    e.g. the first face of tetrahedron {4,8,7,6}
    must be {4,8,7}. */
 bool verify_down_verts(Mesh* mesh) {
+  // we need a hypercube equivalent of simplex_down_template2
+  OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   for (Int ld = 0; ld <= 1; ++ld) {
     for (Int md = ld + 1; md < mesh->dim(); ++md) {
       for (Int hd = md + 1; hd <= mesh->dim(); ++hd) {
         auto h2l = mesh->ask_down(hd, ld);
         auto h2m = mesh->ask_down(hd, md);
         auto m2l = mesh->ask_down(md, ld);
-        auto nhhm = simplex_degree(hd, md);
-        auto nhhl = simplex_degree(hd, ld);
-        auto nmml = simplex_degree(md, ld);
+        auto nhhm = element_degree(mesh->family(), hd, md);
+        auto nhhl = element_degree(mesh->family(), hd, ld);
+        auto nmml = element_degree(mesh->family(), md, ld);
         auto f = OMEGA_H_LAMBDA(LO h) {
           for (Int hhm = 0; hhm < nhhm; ++hhm) {
             auto m = h2m.ab2b[h * nhhm + hhm];

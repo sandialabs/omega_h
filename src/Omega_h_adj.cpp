@@ -10,9 +10,6 @@
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
 
-//DEBUG REMOVE NOW
-#include <iostream>
-
 namespace Omega_h {
 
 Adj unmap_adjacency(LOs a2b, Adj b2c) {
@@ -315,24 +312,6 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
         codes[a] = match_code;
         found = true;
         if (allow_duplicates) break;
-      }
-    }
-    if (!found) {
-      std::cerr << "couldn't find {";
-      for (int i = 0; i < deg; ++i) {
-        std::cerr << av2v[a_begin + i];
-        if (i < deg - 1) std::cerr << ", ";
-      }
-      std::cerr << "}\n";
-      for (LO vb = vb_begin; vb < vb_end; ++vb) {
-        auto b = vb2b[vb];
-        auto b_begin = b * deg;
-        std::cerr << "looked at {";
-        for (int i = 0; i < deg; ++i) {
-          std::cerr << bv2v[b_begin + i];
-          if (i < deg - 1) std::cerr << ", ";
-        }
-        std::cerr << "}\n";
       }
     }
     OMEGA_H_CHECK(found);  // there can't be less than one!

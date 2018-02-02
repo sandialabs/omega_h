@@ -565,6 +565,36 @@ static void test_build_from_elems2verts(Library* lib) {
     OMEGA_H_CHECK(mesh.ask_down(1, 0).ab2b == LOs({0, 1, 3, 0, 1, 2, 2, 3}));
     OMEGA_H_CHECK(mesh.ask_down(2, 1).ab2b == LOs({0, 2, 3, 1}));
   }
+  {
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, OMEGA_H_HYPERCUBE, 3, LOs(8, 0, 1), 8);
+    OMEGA_H_CHECK(mesh.ask_down(3, 0).ab2b == LOs(8, 0, 1));
+    OMEGA_H_CHECK(mesh.ask_down(2, 0).ab2b == LOs({
+        0
+       ,3
+       ,2
+       ,1
+       ,0
+       ,1
+       ,5
+       ,4
+       ,3
+       ,0
+       ,4
+       ,7
+       ,1
+       ,2
+       ,6
+       ,5
+       ,2
+       ,3
+       ,7
+       ,6
+       ,4
+       ,5
+       ,6
+       ,7}));
+  }
 }
 
 static void test_star(Library* lib) {
