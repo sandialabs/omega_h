@@ -84,6 +84,7 @@ set(Omega_h_SOURCES
   Omega_h_fix.cpp
   Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
+  Omega_h_overlay.cpp
   )
 
 if(Omega_h_USE_libMeshb)
@@ -446,6 +447,7 @@ set(Omega_h_HEADERS
   Omega_h_quality.hpp
   Omega_h_scatterplot.hpp
   Omega_h_affine.hpp
+  Omega_h_overlay.hpp
   )
 
 if(Omega_h_USE_Teuchos)
