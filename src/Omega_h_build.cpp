@@ -9,21 +9,22 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_simplify.hpp"
+#include "Omega_h_element.hpp"
 
 namespace Omega_h {
 
 void add_ents2verts(
     Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals, GOs elem_globals) {
   auto comm = mesh->comm();
-  auto deg = ent_dim + 1;
-  auto ne = divide_no_remainder(ev2v.size(), deg);
+  auto nverts_per_ent = element_degree(mesh->family(), ent_dim, VERT);
+  auto ne = divide_no_remainder(ev2v.size(), nverts_per_ent);
   Remotes owners;
   if (comm->size() > 1) {
     if (mesh->could_be_shared(ent_dim)) {
       if (ent_dim == mesh->dim()) {
         owners = owners_from_globals(comm, elem_globals, Read<I32>());
       } else {
-        resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
+        resolve_derived_copies(comm, vert_globals, nverts_per_ent, &ev2v, &owners);
       }
     } else {
       owners = identity_remotes(comm, ne);
@@ -66,7 +67,7 @@ void build_ents_from_elems2verts(
   auto comm = mesh->comm();
   auto elem_dim = mesh->dim();
   for (Int mdim = 1; mdim < elem_dim; ++mdim) {
-    auto mv2v = find_unique(ev2v, elem_dim, mdim);
+    auto mv2v = find_unique(ev2v, mesh->family(), elem_dim, mdim);
     add_ents2verts(mesh, mdim, mv2v, vert_globals, elem_globals);
   }
   add_ents2verts(mesh, elem_dim, ev2v, vert_globals, elem_globals);

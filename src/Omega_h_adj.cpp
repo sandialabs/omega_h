@@ -10,6 +10,7 @@
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
 
+//DEBUG REMOVE NOW
 #include <iostream>
 
 namespace Omega_h {
@@ -40,6 +41,15 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
 
 template <Int deg>
 struct IsFlipped;
+
+template <>
+struct IsFlipped<4> {
+  template <typename T>
+  OMEGA_H_INLINE static bool is(T adj[]) {
+    return adj[3] < adj[1];
+  }
+};
+
 template <>
 struct IsFlipped<3> {
   template <typename T>
@@ -88,6 +98,7 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
 
 template <typename T>
 Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
+  if (deg == 4) return get_codes_to_canonical_deg<4>(ev2v);
   if (deg == 3) return get_codes_to_canonical_deg<3>(ev2v);
   if (deg == 2) return get_codes_to_canonical_deg<2>(ev2v);
   OMEGA_H_NORETURN(Read<I8>());
@@ -127,9 +138,13 @@ static LOs find_unique_deg(Int deg, LOs uv2v) {
   return unmap<LO>(e2u, uv2v, deg);
 }
 
-LOs find_unique(LOs hv2v, Int high_dim, Int low_dim) {
-  auto uv2v = form_uses(hv2v, OMEGA_H_SIMPLEX, high_dim, low_dim);
-  return find_unique_deg(low_dim + 1, uv2v);
+LOs find_unique(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
+  OMEGA_H_CHECK(high_dim > low_dim);
+  OMEGA_H_CHECK(low_dim <= 2);
+  OMEGA_H_CHECK(hv2v.size() % element_degree(family, high_dim, VERT) == 0);
+  auto uv2v = form_uses(hv2v, family, high_dim, low_dim);
+  auto deg = element_degree(family, low_dim, VERT);
+  return find_unique_deg(deg, uv2v);
 }
 
 LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
@@ -300,6 +315,24 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
         codes[a] = match_code;
         found = true;
         if (allow_duplicates) break;
+      }
+    }
+    if (!found) {
+      std::cerr << "couldn't find {";
+      for (int i = 0; i < deg; ++i) {
+        std::cerr << av2v[a_begin + i];
+        if (i < deg - 1) std::cerr << ", ";
+      }
+      std::cerr << "}\n";
+      for (LO vb = vb_begin; vb < vb_end; ++vb) {
+        auto b = vb2b[vb];
+        auto b_begin = b * deg;
+        std::cerr << "looked at {";
+        for (int i = 0; i < deg; ++i) {
+          std::cerr << bv2v[b_begin + i];
+          if (i < deg - 1) std::cerr << ", ";
+        }
+        std::cerr << "}\n";
       }
     }
     OMEGA_H_CHECK(found);  // there can't be less than one!

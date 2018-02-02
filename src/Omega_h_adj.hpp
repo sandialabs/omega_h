@@ -36,7 +36,7 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows);
    entities by high entities */
 LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
 
-LOs find_unique(LOs hv2v, Int high_dim, Int low_dim);
+LOs find_unique(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
 
 /* for each entity (or entity use), sort its vertex list
    and express the sorting transformation as an alignment code */

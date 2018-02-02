@@ -498,11 +498,17 @@ static void test_reflect_down() {
 }
 
 static void test_find_unique() {
-  OMEGA_H_CHECK(find_unique(LOs({}), 2, 1) == LOs({}));
-  OMEGA_H_CHECK(find_unique(LOs({}), 3, 1) == LOs({}));
-  OMEGA_H_CHECK(find_unique(LOs({}), 3, 2) == LOs({}));
-  OMEGA_H_CHECK(find_unique(LOs({0, 1, 2, 2, 3, 0}), 2, 1) ==
+  OMEGA_H_CHECK(find_unique(LOs({}), OMEGA_H_SIMPLEX, 2, 1) == LOs({}));
+  OMEGA_H_CHECK(find_unique(LOs({}), OMEGA_H_SIMPLEX, 3, 1) == LOs({}));
+  OMEGA_H_CHECK(find_unique(LOs({}), OMEGA_H_SIMPLEX, 3, 2) == LOs({}));
+  OMEGA_H_CHECK(find_unique(LOs({0, 1, 2, 2, 3, 0}), OMEGA_H_SIMPLEX, 2, 1) ==
                 LOs({0, 1, 0, 2, 3, 0, 1, 2, 2, 3}));
+  OMEGA_H_CHECK(find_unique(LOs({}), OMEGA_H_HYPERCUBE, 2, 1) == LOs({}));
+  OMEGA_H_CHECK(find_unique(LOs({}), OMEGA_H_HYPERCUBE, 3, 1) == LOs({}));
+  OMEGA_H_CHECK(find_unique(LOs({}), OMEGA_H_HYPERCUBE, 3, 2) == LOs({}));
+  auto a = find_unique(LOs({0, 1, 2, 3}), OMEGA_H_HYPERCUBE, 2, 1);
+  OMEGA_H_CHECK(find_unique(LOs({0, 1, 2, 3}), OMEGA_H_HYPERCUBE, 2, 1) ==
+                LOs({0, 1, 3, 0, 1, 2, 2, 3}));
 }
 
 static void test_hilbert() {
@@ -551,6 +557,13 @@ static void test_build_from_elems2verts(Library* lib) {
     Mesh mesh(lib);
     build_from_elems2verts(&mesh, OMEGA_H_SIMPLEX, 3, LOs({0, 1, 2, 3}), 4);
     OMEGA_H_CHECK(mesh.ask_down(3, 0).ab2b == LOs({0, 1, 2, 3}));
+  }
+  {
+    Mesh mesh(lib);
+    build_from_elems2verts(&mesh, OMEGA_H_HYPERCUBE, 2, LOs({0, 1, 2, 3}), 4);
+    OMEGA_H_CHECK(mesh.ask_down(2, 0).ab2b == LOs({0, 1, 2, 3}));
+    OMEGA_H_CHECK(mesh.ask_down(1, 0).ab2b == LOs({0, 1, 3, 0, 1, 2, 2, 3}));
+    OMEGA_H_CHECK(mesh.ask_down(2, 1).ab2b == LOs({0, 2, 3, 1}));
   }
 }
 

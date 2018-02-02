@@ -133,25 +133,31 @@ OMEGA_H_DEVICE void rotate_adj(
   }
 }
 
-template <typename InOut>
-OMEGA_H_DEVICE void flip_adj3(InOut& adj, LO offset) {
-  swap2(adj[offset + 1], adj[offset + 2]);
-}
-
 template <Int deg>
 struct FlipAdj;
+
+template <>
+struct FlipAdj<4> {
+  template <typename InOut>
+  OMEGA_H_DEVICE static void flip(InOut& adj, LO offset) {
+    swap2(adj[offset + 1], adj[offset + 3]);
+  }
+};
+
 template <>
 struct FlipAdj<3> {
   template <typename InOut>
   OMEGA_H_DEVICE static void flip(InOut& adj, LO offset) {
-    flip_adj3(adj, offset);
+    swap2(adj[offset + 1], adj[offset + 2]);
   }
 };
+
 template <>
 struct FlipAdj<2> {
   template <typename InOut>
   OMEGA_H_DEVICE static void flip(InOut&, LO) {}
 };
+
 template <Int deg, typename InOut>
 OMEGA_H_DEVICE void flip_adj(InOut& adj, LO offset) {
   FlipAdj<deg>::flip(adj, offset);

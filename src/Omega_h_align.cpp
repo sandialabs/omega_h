@@ -18,12 +18,10 @@ static Read<T> align_ev2v_deg(Read<T> ev2v, Read<I8> codes) {
 
 template <typename T>
 Read<T> align_ev2v(Int deg, Read<T> ev2v, Read<I8> codes) {
-  if (deg == 3) {
-    return align_ev2v_deg<3>(ev2v, codes);
-  } else {
-    OMEGA_H_CHECK(deg == 2);
-    return align_ev2v_deg<2>(ev2v, codes);
-  }
+  if (deg == 4) return align_ev2v_deg<4>(ev2v, codes);
+  if (deg == 3) return align_ev2v_deg<3>(ev2v, codes);
+  if (deg == 2) return align_ev2v_deg<2>(ev2v, codes);
+  OMEGA_H_NORETURN(Read<T>());
 }
 
 #define INST(T)                                                                \
