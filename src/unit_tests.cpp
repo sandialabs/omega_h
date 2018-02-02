@@ -1231,10 +1231,6 @@ static void test_sort_small_range() {
   LOs fan;
   Read<I32> uniq;
   sort_small_range(in, &perm, &fan, &uniq);
-  // HostRead<I32> h_perm(perm);
-  // for (int i = 0; i < h_perm.size(); ++i) {
-  //  fprintf(stderr, "[%d] = %d\n", i, h_perm[i]);
-  //}
   OMEGA_H_CHECK(perm == LOs({0, 3, 6, 1, 4, 7, 2, 5, 8}));
   OMEGA_H_CHECK(fan == LOs({0, 3, 6, 9}));
   OMEGA_H_CHECK(uniq == Read<I32>({10, 100, 1000}));

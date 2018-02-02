@@ -638,6 +638,7 @@ bool Mesh::have_all_upward() const {
 
 Mesh Mesh::copy_meta() const {
   Mesh m(library_);
+  m.family_ = this->family_;
   m.dim_ = this->dim_;
   m.comm_ = this->comm_;
   m.parting_ = this->parting_;
