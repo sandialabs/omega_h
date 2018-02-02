@@ -584,6 +584,9 @@ static void test_build_from_elems2verts(Library* lib) {
     OMEGA_H_CHECK(
         mesh.ask_down(2, 0).ab2b == LOs({0, 3, 2, 1, 0, 1, 5, 4, 3, 0, 4, 7, 1,
                                         2, 6, 5, 2, 3, 7, 6, 4, 5, 6, 7}));
+    OMEGA_H_CHECK(
+        mesh.ask_up(0, 2).ab2b == LOs({0, 1, 2, 0, 1, 3, 0, 3, 4, 0, 2, 4, 1, 2,
+                                      5, 1, 3, 5, 3, 4, 5, 2, 4, 5}));
   }
 }
 
