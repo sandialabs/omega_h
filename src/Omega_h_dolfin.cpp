@@ -10,6 +10,38 @@
 
 namespace Omega_h {
 
+static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim) {
+  auto n = mesh->nents(ent_dim);
+  if (!mesh_osh->could_be_shared(ent_dim)) {
+    mesh_dolfin.topology().init_ghost(ent_dim, n);
+    return;
+  }
+  auto dist = mesh_osh->ask_dist(ent_dim).invert();
+  auto d_owners2copies = dist.roots2items();
+  auto d_copies2rank = dist.items2ranks();
+  auto d_osh2dolfin = mesh_osh->ask_parallel_packed
+  auto h_owners2copies = HostRead<LO>(d_owners2copies);
+  auto h_copies2rank = HostRead<I32>(d_copies2rank);
+  auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
+  std::map<std::int32_t, std::set<unsigned int>> shared_ents;
+  LO num_non_shared = 0;
+  for (LO i_osh = 0; i_osh < n; ++i_osh) {
+    auto begin = h_owners2copies[i_osh];
+    auto end = h_owners2copies[i_osh + 1];
+    if (end - begin <= 1) {
+      ++num_non_shared;
+      continue;
+    }
+    auto i_dolfin = h_osh2dolfin[i_osh];
+    for (LO copy = begin; copy < end; ++copy) {
+      auto rank = h_copies2rank[copy];
+      shared_ents[i_dolfin].insert(rank);
+    }
+  }
+  mesh_dolfin.topology().init_ghost(ent_dim, num_non_shared);
+  mesh_dolfin.topology().shared_entities(ent_dim) = shared_ents;
+}
+
 void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   dolfin::MeshEditor editor;
   static char const* const cell_type_names[4] = {
@@ -24,9 +56,12 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   auto h_vert_globals = HostRead<GO>(d_vert_globals);
   auto d_coords = mesh_osh->coords();
   auto h_coords = HostRead<Real>(d_coords);
-  for (LO i = 0; i < nverts; ++i) {
+  auto d_vert_indices = mesh_osh->ask_parallel_packed(VERT);
+  auto h_vert_indices = HostRead<LO>(d_vert_indices);
+  for (LO i_osh = 0; i_osh < nverts; ++i_osh) {
+    auto i_dolfin = h_vert_indices[i_osh];
     editor.add_vertex_global(
-        i, h_vert_globals[i], dolfin::Point(dim, &h_coords[i * dim]));
+        i_dolfin, h_vert_globals[i_osh], dolfin::Point(dim, &h_coords[i_osh * dim]));
   }
   auto ncells = mesh_osh->nelems();
   auto ncells_global = mesh_osh->nglobal_ents(dim);
@@ -42,7 +77,9 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   std::vector<LO> cell_verts(nverts_per_cell);
   for (LO i = 0; i < ncells; ++i) {
     for (LO j = 0; j < (nverts_per_cell); ++j) {
-      cell_verts[j] = h_conn[i * (nverts_per_cell) + j];
+      auto vert_osh = h_conn[i * (nverts_per_cell) + j];
+      auto vert_dolfin = h_vert_indices[vert_osh];
+      cell_verts[j] = vert_dolfin;
     }
     editor.add_cell(i, h_cell_globals[i], cell_verts);
   }
@@ -52,6 +89,8 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
      this seems to be called "UFC order" */
   bool should_reorder = true;
   editor.close(should_reorder);
+  form_sharing(mesh_dolfin, mesh_osh, VERT);
+  form_sharing(mesh_dolfin, mesh_osh, dim);
 }
 
 /* due to their "UFC order" which requires vertices of a cell
@@ -131,10 +170,12 @@ void from_dolfin(
     auto ndofs_per_ent = dofmap->num_entity_dofs(ent_dim);
     if (ndofs_per_ent == 0) continue;
     auto nents = mesh_osh->nents(ent_dim);
-    auto entity_indices = std::vector<std::size_t>(nents);
-    for (LO i = 0; i < nents; ++i) entity_indices[i] = i;
+    auto retrieve_indices = std::vector<std::size_t>(nents);
+    auto d_osh2dolfin = mesh_osh->ask_parallel_packed(ent_dim);
+    auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
+    for (LO i = 0; i < nents; ++i) retrieve_indices[i] = h_osh2dolfin[i];
     auto dof_indices =
-        dofmap->entity_dofs(*mesh_dolfin, ent_dim, entity_indices);
+        dofmap->entity_dofs(*mesh_dolfin, ent_dim, retrieve_indices);
     auto h_data = HostWrite<Real>(nents * ndofs_per_ent);
     vector->get_local(h_data.data(), nents * ndofs_per_ent, dof_indices.data());
     auto d_data = Reals(h_data.write());
