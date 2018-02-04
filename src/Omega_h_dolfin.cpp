@@ -19,12 +19,15 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
   auto dist = mesh_osh->ask_dist(ent_dim).invert();
   auto d_owners2copies = dist.roots2items();
   auto d_copies2rank = dist.items2ranks();
-  auto d_osh2dolfin = mesh_osh->ask_parallel_packed
+  auto d_copies2indices = dist.items2dest_idxs();
   auto h_owners2copies = HostRead<LO>(d_owners2copies);
   auto h_copies2rank = HostRead<I32>(d_copies2rank);
-  auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
-  std::map<std::int32_t, std::set<unsigned int>> shared_ents;
+  auto h_copies2indices = HostRead<LO>(d_copies2indices);
+  std::vector<I32> full_src_ranks;
+  std::vector<I32> full_dest_ranks;
+  std::vector<LO> full_dest_indices;
   LO num_non_shared = 0;
+  auto my_rank = mesh_osh->comm()->rank();
   for (LO i_osh = 0; i_osh < n; ++i_osh) {
     auto begin = h_owners2copies[i_osh];
     auto end = h_owners2copies[i_osh + 1];
@@ -34,11 +37,50 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
     }
     auto i_dolfin = h_osh2dolfin[i_osh];
     for (LO copy = begin; copy < end; ++copy) {
-      auto rank = h_copies2rank[copy];
-      shared_ents[i_dolfin].insert(rank);
+      auto dest_rank = h_copies2rank[copy];
+      auto dest_index = h_copies2indices[copy];
+      for (LO copy2 = begin; copy2 < end; ++copy2) {
+        auto src_rank = h_copies2rank[copy2];
+        full_src_ranks.push_back(src_rank);
+        full_dest_ranks.push_back(dest_rank);
+        full_dest_indices.push_back(dest_index);
+      }
     }
   }
   mesh_dolfin.topology().init_ghost(ent_dim, num_non_shared);
+  auto h_full_src_ranks = HostWrite<I32>(LO(full_src_ranks.size()));
+  auto h_full_dest_ranks = HostWrite<I32>(LO(full_src_ranks.size()));
+  auto h_full_dest_indices = HostWrite<I32>(LO(full_dest_indices.size()));
+  for (LO i = 0; i < h_full_src_ranks.size(); ++i) {
+    h_full_src_ranks[i] = full_src_ranks[size_t(i)];
+    h_full_dest_ranks[i] = full_dest_ranks[size_t(i)];
+    h_full_dest_indices[i] = full_dest_indices[size_t(i)];
+  }
+  auto d_full_src_ranks = Read<I32>(h_full_src_ranks.write());
+  auto d_full_dest_ranks = Read<I32>(h_full_dest_ranks.write());
+  auto d_full_dest_indices = Read<I32>(h_full_dest_indices.write());
+  auto dist = Dist();
+  dist.set_parent_comm(mesh_osh->comm());
+  dist.set_dest_ranks(d_full_dest_ranks);
+  dist.set_dest_idxs(d_full_dest_indices, mesh_osh->nents(ent_dim));
+  auto d_exchd_full_src_ranks = dist.exch(d_full_src_ranks, 1);
+  auto d_shared2ranks = dist.invert().roots2items();
+  auto d_osh2dolfin = mesh_osh->ask_parallel_packed();
+  auto h_exchd_full_src_ranks = HostRead<I32>(d_exchd_full_src_ranks);
+  auto h_shared2ranks = HostRead<LO>(d_shared2ranks);
+  auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
+  std::map<std::int32_t, std::set<unsigned int>> shared_ents;
+  for (LO i_osh = 0; i_osh < h_shared2ranks.size(); ++i_osh) {
+    auto i_dolfin = h_osh2dolfin[i_osh];
+    auto begin = h_shared2ranks[i_osh];
+    auto end = h_shared2ranks[i_osh + 1];
+    for (auto j = begin; j < end; ++j) {
+      auto rank = h_shared2ranks[j];
+      shared_ents[i_dolfin].insert(unsigned(rank));
+      std::cout << "rank " << mesh->comm()->rank()
+        << " shares local " << i_dolfin << " with rank " << rank << '\n';
+    }
+  }
   mesh_dolfin.topology().shared_entities(ent_dim) = shared_ents;
 }
 
