@@ -72,12 +72,12 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
     for (auto j = begin; j < end; ++j) {
       auto rank = h_shared2ranks[j];
       shared_ents[i_dolfin].insert(unsigned(rank));
-      std::cout << "rank " << my_rank
-        << " shares local dolfin " << i_dolfin << " osh " << i_osh << " with rank " << rank << '\n';
+      printf("rank %d shared local dolfin %d osh %d with rank %d\n",
+          my_rank, i_dolfin, i_osh, rank);
     }
   }
   auto num_not_shared = n - LO(shared_ents.size());
-  std::cout << "rank " << my_rank << " not-shared " << num_not_shared << '\n';
+  printf("rank %d num-not-shared %d\n", my_rank, num_not_shared);
   mesh_dolfin.topology().init_ghost(ent_dim, num_non_shared);
   mesh_dolfin.topology().shared_entities(ent_dim) = shared_ents;
 }
