@@ -31,7 +31,6 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
     auto begin = h_owners2copies[i_osh];
     auto end = h_owners2copies[i_osh + 1];
     if (end - begin <= 1) continue;
-    auto i_dolfin = h_osh2dolfin[i_osh];
     for (LO copy = begin; copy < end; ++copy) {
       auto dest_rank = h_copies2rank[copy];
       auto dest_index = h_copies2indices[copy];
