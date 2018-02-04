@@ -70,9 +70,11 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
     auto end = h_shared2ranks[i_osh + 1];
     for (auto j = begin; j < end; ++j) {
       auto rank = h_exchd_full_src_ranks[j];
-      shared_ents[i_dolfin].insert(unsigned(rank));
-      printf("rank %d shared local dolfin %d osh %d with rank %d\n",
-          my_rank, i_dolfin, i_osh, rank);
+      if (rank != my_rank) {
+        shared_ents[i_dolfin].insert(unsigned(rank));
+        printf("rank %d shared local dolfin %d osh %d with rank %d\n",
+            my_rank, i_dolfin, i_osh, rank);
+      }
     }
   }
   auto num_not_shared = n - LO(shared_ents.size());
