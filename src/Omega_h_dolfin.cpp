@@ -77,7 +77,7 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
   }
   auto num_not_shared = n - LO(shared_ents.size());
   printf("rank %d num-not-shared %d\n", my_rank, num_not_shared);
-  mesh_dolfin.topology().init_ghost(ent_dim, num_non_shared);
+  mesh_dolfin.topology().init_ghost(ent_dim, num_not_shared);
   mesh_dolfin.topology().shared_entities(ent_dim) = shared_ents;
 }
 
