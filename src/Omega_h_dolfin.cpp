@@ -11,7 +11,7 @@
 namespace Omega_h {
 
 static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim) {
-  auto n = mesh->nents(ent_dim);
+  auto n = mesh_osh->nents(ent_dim);
   if (!mesh_osh->could_be_shared(ent_dim)) {
     mesh_dolfin.topology().init_ghost(ent_dim, n);
     return;
@@ -26,15 +26,11 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
   std::vector<I32> full_src_ranks;
   std::vector<I32> full_dest_ranks;
   std::vector<LO> full_dest_indices;
-  LO num_non_shared = 0;
   auto my_rank = mesh_osh->comm()->rank();
   for (LO i_osh = 0; i_osh < n; ++i_osh) {
     auto begin = h_owners2copies[i_osh];
     auto end = h_owners2copies[i_osh + 1];
-    if (end - begin <= 1) {
-      ++num_non_shared;
-      continue;
-    }
+    if (end - begin <= 1) continue;
     auto i_dolfin = h_osh2dolfin[i_osh];
     for (LO copy = begin; copy < end; ++copy) {
       auto dest_rank = h_copies2rank[copy];
@@ -47,7 +43,6 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
       }
     }
   }
-  mesh_dolfin.topology().init_ghost(ent_dim, num_non_shared);
   auto h_full_src_ranks = HostWrite<I32>(LO(full_src_ranks.size()));
   auto h_full_dest_ranks = HostWrite<I32>(LO(full_src_ranks.size()));
   auto h_full_dest_indices = HostWrite<I32>(LO(full_dest_indices.size()));
@@ -62,7 +57,7 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
   auto dist = Dist();
   dist.set_parent_comm(mesh_osh->comm());
   dist.set_dest_ranks(d_full_dest_ranks);
-  dist.set_dest_idxs(d_full_dest_indices, mesh_osh->nents(ent_dim));
+  dist.set_dest_idxs(d_full_dest_indices, n);
   auto d_exchd_full_src_ranks = dist.exch(d_full_src_ranks, 1);
   auto d_shared2ranks = dist.invert().roots2items();
   auto d_osh2dolfin = mesh_osh->ask_parallel_packed();
@@ -70,17 +65,20 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
   auto h_shared2ranks = HostRead<LO>(d_shared2ranks);
   auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
   std::map<std::int32_t, std::set<unsigned int>> shared_ents;
-  for (LO i_osh = 0; i_osh < h_shared2ranks.size(); ++i_osh) {
+  for (LO i_osh = 0; i_osh < n; ++i_osh) {
     auto i_dolfin = h_osh2dolfin[i_osh];
     auto begin = h_shared2ranks[i_osh];
     auto end = h_shared2ranks[i_osh + 1];
     for (auto j = begin; j < end; ++j) {
       auto rank = h_shared2ranks[j];
       shared_ents[i_dolfin].insert(unsigned(rank));
-      std::cout << "rank " << mesh->comm()->rank()
-        << " shares local " << i_dolfin << " with rank " << rank << '\n';
+      std::cout << "rank " << my_rank
+        << " shares local dolfin " << i_dolfin << " osh " << i_osh << " with rank " << rank << '\n';
     }
   }
+  auto num_not_shared = n - LO(shared_ents.size());
+  std::cout << "rank " << my_rank << " not-shared " << num_not_shared << '\n';
+  mesh_dolfin.topology().init_ghost(ent_dim, num_non_shared);
   mesh_dolfin.topology().shared_entities(ent_dim) = shared_ents;
 }
 
