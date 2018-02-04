@@ -53,12 +53,12 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
   auto d_full_src_ranks = Read<I32>(h_full_src_ranks.write());
   auto d_full_dest_ranks = Read<I32>(h_full_dest_ranks.write());
   auto d_full_dest_indices = Read<I32>(h_full_dest_indices.write());
-  auto dist = Dist();
-  dist.set_parent_comm(mesh_osh->comm());
-  dist.set_dest_ranks(d_full_dest_ranks);
-  dist.set_dest_idxs(d_full_dest_indices, n);
-  auto d_exchd_full_src_ranks = dist.exch(d_full_src_ranks, 1);
-  auto d_shared2ranks = dist.invert().roots2items();
+  auto dist2 = Dist();
+  dist2.set_parent_comm(mesh_osh->comm());
+  dist2.set_dest_ranks(d_full_dest_ranks);
+  dist2.set_dest_idxs(d_full_dest_indices, n);
+  auto d_exchd_full_src_ranks = dist2.exch(d_full_src_ranks, 1);
+  auto d_shared2ranks = dist2.invert().roots2items();
   auto d_osh2dolfin = mesh_osh->ask_parallel_packed();
   auto h_exchd_full_src_ranks = HostRead<I32>(d_exchd_full_src_ranks);
   auto h_shared2ranks = HostRead<LO>(d_shared2ranks);
