@@ -663,34 +663,6 @@ Real Mesh::imbalance(Int ent_dim) const {
   return m / a;
 }
 
-LOs Mesh::ask_parallel_packed(Int ent_dim) {
-  if (!has_tag(ent_dim, "parallel_packed_index")) {
-    auto n = nents(ent_dim);
-    if (!could_be_shared(ent_dim)) {
-      add_tag(ent_dim, "parallel_packed_index", 1, LOs(n, 0, 1));
-    } else {
-      auto owners2copies = ask_dist(ent_dim).invert().roots2items();
-      auto owners2ncopies = get_degrees(owners2copies);
-      auto ents_are_shared = each_neq_to(owners2ncopies, LO(1));
-      auto ents_arent_shared = invert_marks(ents_are_shared);
-      auto shared_indices = offset_scan(ents_are_shared);
-      auto non_shared_indices = offset_scan(ents_arent_shared);
-      auto num_non_shared = non_shared_indices.last();
-      auto packed_indices = Write<LO>(n);
-      auto f = OMEGA_H_LAMBDA(LO i) {
-        if (ents_are_shared[i]) {
-          packed_indices[i] = shared_indices[i] + num_non_shared;
-        } else {
-          packed_indices[i] = non_shared_indices[i];
-        }
-      };
-      parallel_for(n, f);
-      add_tag(ent_dim, "parallel_packed_index", 1, LOs(packed_indices));
-    }
-  }
-  return get_array<LO>(ent_dim, "parallel_packed_index");
-}
-
 bool can_print(Mesh* mesh) {
   return (!mesh->library()->silent_) && (mesh->comm()->rank() == 0);
 }

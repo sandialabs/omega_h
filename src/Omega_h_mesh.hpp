@@ -135,7 +135,6 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
-  LOs ask_parallel_packed(Int ent_dim);
 };
 
 bool can_print(Mesh* mesh);

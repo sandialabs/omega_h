@@ -10,10 +10,12 @@
 
 namespace Omega_h {
 
-static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim) {
+static form_sharing(Mesh* mesh_osh, Int ent_dim,
+    std::map<std::int32_t, std::set<unsigned int>>* shared_ents,
+    LOs* osh2dolfin) {
   auto n = mesh_osh->nents(ent_dim);
   if (!mesh_osh->could_be_shared(ent_dim)) {
-    mesh_dolfin.topology().init_ghost(ent_dim, n);
+    *osh2dolfin = LOs(n, 0, 1);
     return;
   }
   auto dist = mesh_osh->ask_dist(ent_dim).invert();
@@ -63,24 +65,38 @@ static void form_sharing(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh, Int ent_dim)
   auto h_exchd_full_src_ranks = HostRead<I32>(d_exchd_full_src_ranks);
   auto h_shared2ranks = HostRead<LO>(d_shared2ranks);
   auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
-  std::map<std::int32_t, std::set<unsigned int>> shared_ents;
+  auto ents_are_shared_w = HostWrite<Byte>(n);
   for (LO i_osh = 0; i_osh < n; ++i_osh) {
     auto i_dolfin = h_osh2dolfin[i_osh];
     auto begin = h_shared2ranks[i_osh];
     auto end = h_shared2ranks[i_osh + 1];
+    ents_are_shared_w[i_osh] = ((begin - end) > 0);
     for (auto j = begin; j < end; ++j) {
       auto rank = h_exchd_full_src_ranks[j];
       if (rank != my_rank) {
-        shared_ents[i_dolfin].insert(unsigned(rank));
+        (*shared_ents)[i_dolfin].insert(unsigned(rank));
         printf("rank %d shared local dolfin %d osh %d with rank %d\n",
             my_rank, i_dolfin, i_osh, rank);
       }
     }
   }
-  auto num_not_shared = n - LO(shared_ents.size());
-  printf("rank %d num-not-shared %d\n", my_rank, num_not_shared);
-  mesh_dolfin.topology().init_ghost(ent_dim, num_not_shared);
-  mesh_dolfin.topology().shared_entities(ent_dim) = shared_ents;
+  auto ents_are_shared = Bytes(ents_are_shared_w.write());
+  auto ents_arent_shared = invert_marks(ents_are_shared);
+  auto shared_indices = offset_scan(ents_are_shared);
+  auto non_shared_indices = offset_scan(ents_arent_shared);
+  auto num_not_shared = n - LO(shared_ents->size());
+  auto num_non_shared = non_shared_indices.last();
+  auto osh2dolfin_w = Write<LO>(n);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    if (ents_are_shared[i]) {
+      osh2dolfin_w[i] = shared_indices[i] + num_non_shared;
+    } else {
+      osh2dolfin_w[i] = non_shared_indices[i];
+    }
+  };
+  parallel_for(n, f);
+  printf("rank %d num-not-shared %d\n", my_rank, num_non_shared);
+  *osh2dolfin = LOs(osh2dolfin_w);
 }
 
 void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
@@ -88,6 +104,12 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   static char const* const cell_type_names[4] = {
       "point", "interval", "triangle", "tetrahedron"};
   OMEGA_H_CHECK(mesh_osh->parting() == OMEGA_H_ELEM_BASED);
+  std::map<std::int32_t, std::set<unsigned int>> shared_verts;
+  LOs osh2dolfin_verts;
+  form_sharing(mesh_osh, VERT, &shared_verts, &osh2dolfin_verts);
+  std::map<std::int32_t, std::set<unsigned int>> shared_cells;
+  LOs osh2dolfin_cells;
+  form_sharing(mesh_osh, dim, &shared_cells, &osh2dolfin_cells);
   auto dim = mesh_osh->dim();
   editor.open(mesh_dolfin, cell_type_names[dim], dim, dim);
   auto nverts = mesh_osh->nverts();
@@ -97,10 +119,8 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   auto h_vert_globals = HostRead<GO>(d_vert_globals);
   auto d_coords = mesh_osh->coords();
   auto h_coords = HostRead<Real>(d_coords);
-  auto d_vert_indices = mesh_osh->ask_parallel_packed(VERT);
-  auto h_vert_indices = HostRead<LO>(d_vert_indices);
   for (LO i_osh = 0; i_osh < nverts; ++i_osh) {
-    auto i_dolfin = h_vert_indices[i_osh];
+    auto i_dolfin = osh2dolfin_verts[i_osh];
     editor.add_vertex_global(
         i_dolfin, h_vert_globals[i_osh], dolfin::Point(dim, &h_coords[i_osh * dim]));
   }
@@ -130,8 +150,16 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
      this seems to be called "UFC order" */
   bool should_reorder = true;
   editor.close(should_reorder);
-  form_sharing(mesh_dolfin, mesh_osh, VERT);
-  form_sharing(mesh_dolfin, mesh_osh, dim);
+
+  // Set the ghost cell offset
+  mesh.topology().init_ghost(dim, size_t(ncells) - shared_cells.size());
+
+  // Set the ghost vertex offset
+  mesh.topology().init_ghost(0, size_t(nverts) - shared_verts.size());
+
+  // Assign map of shared cells and vertices
+  mesh.topology().shared_entities(dim) = shared_cells;
+  mesh.topology().shared_entities(0) = shared_verts;
 }
 
 /* due to their "UFC order" which requires vertices of a cell
