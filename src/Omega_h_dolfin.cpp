@@ -10,7 +10,7 @@
 
 namespace Omega_h {
 
-static form_sharing(Mesh* mesh_osh, Int ent_dim,
+static void form_sharing(Mesh* mesh_osh, Int ent_dim,
     std::map<std::int32_t, std::set<unsigned int>>* shared_ents,
     LOs* osh2dolfin) {
   auto n = mesh_osh->nents(ent_dim);
