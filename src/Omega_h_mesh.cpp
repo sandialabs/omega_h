@@ -18,7 +18,6 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
-#include "Omega_h_scan.hpp"
 
 namespace Omega_h {
 

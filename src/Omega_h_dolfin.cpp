@@ -7,14 +7,18 @@
 #include <Omega_h_loop.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_shape.hpp>
+#include <Omega_h_map.hpp>
+#include <Omega_h_scan.hpp>
 
 namespace Omega_h {
 
 static void form_sharing(Mesh* mesh_osh, Int ent_dim,
     std::map<std::int32_t, std::set<unsigned int>>* shared_ents,
-    LOs* osh2dolfin) {
+    LOs* osh2dolfin,
+    HostRead<LO>* h_osh2dolfin) {
   auto n = mesh_osh->nents(ent_dim);
   if (!mesh_osh->could_be_shared(ent_dim)) {
+    printf("entities of dim %d can't be shared\n", ent_dim);
     *osh2dolfin = LOs(n, 0, 1);
     return;
   }
@@ -61,16 +65,37 @@ static void form_sharing(Mesh* mesh_osh, Int ent_dim,
   dist2.set_dest_idxs(d_full_dest_indices, n);
   auto d_exchd_full_src_ranks = dist2.exch(d_full_src_ranks, 1);
   auto d_shared2ranks = dist2.invert().roots2items();
-  auto d_osh2dolfin = mesh_osh->ask_parallel_packed(ent_dim);
   auto h_exchd_full_src_ranks = HostRead<I32>(d_exchd_full_src_ranks);
   auto h_shared2ranks = HostRead<LO>(d_shared2ranks);
-  auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
   auto ents_are_shared_w = HostWrite<Byte>(n);
   for (LO i_osh = 0; i_osh < n; ++i_osh) {
-    auto i_dolfin = h_osh2dolfin[i_osh];
     auto begin = h_shared2ranks[i_osh];
     auto end = h_shared2ranks[i_osh + 1];
-    ents_are_shared_w[i_osh] = ((begin - end) > 0);
+    ents_are_shared_w[i_osh] = ((end - begin) > 0);
+    if (ents_are_shared_w[i_osh]) printf("rank %d shares osh local %d, with %d ranks\n", my_rank, i_osh, (end - begin));
+  }
+  auto ents_are_shared = Bytes(ents_are_shared_w.write());
+  auto ents_arent_shared = invert_marks(ents_are_shared);
+  auto shared_indices = offset_scan(ents_are_shared);
+  auto non_shared_indices = offset_scan(ents_arent_shared);
+  auto num_not_shared = non_shared_indices.last();
+  auto osh2dolfin_w = Write<LO>(n);
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    if (ents_are_shared[i]) {
+      osh2dolfin_w[i] = shared_indices[i] + num_not_shared;
+    } else {
+      osh2dolfin_w[i] = non_shared_indices[i];
+    }
+  };
+  parallel_for(n, f);
+  printf("rank %d num-not-shared %d\n", my_rank, num_not_shared);
+  *osh2dolfin = LOs(osh2dolfin_w);
+  mesh_osh->add_tag(ent_dim, "dolfin_index", 1, *osh2dolfin);
+  *h_osh2dolfin = HostRead<LO>(*osh2dolfin);
+  for (LO i_osh = 0; i_osh < n; ++i_osh) {
+    auto i_dolfin = (*h_osh2dolfin)[i_osh];
+    auto begin = h_shared2ranks[i_osh];
+    auto end = h_shared2ranks[i_osh + 1];
     for (auto j = begin; j < end; ++j) {
       auto rank = h_exchd_full_src_ranks[j];
       if (rank != my_rank) {
@@ -80,37 +105,23 @@ static void form_sharing(Mesh* mesh_osh, Int ent_dim,
       }
     }
   }
-  auto ents_are_shared = Bytes(ents_are_shared_w.write());
-  auto ents_arent_shared = invert_marks(ents_are_shared);
-  auto shared_indices = offset_scan(ents_are_shared);
-  auto non_shared_indices = offset_scan(ents_arent_shared);
-  auto num_not_shared = n - LO(shared_ents->size());
-  auto num_non_shared = non_shared_indices.last();
-  auto osh2dolfin_w = Write<LO>(n);
-  auto f = OMEGA_H_LAMBDA(LO i) {
-    if (ents_are_shared[i]) {
-      osh2dolfin_w[i] = shared_indices[i] + num_non_shared;
-    } else {
-      osh2dolfin_w[i] = non_shared_indices[i];
-    }
-  };
-  parallel_for(n, f);
-  printf("rank %d num-not-shared %d\n", my_rank, num_non_shared);
-  *osh2dolfin = LOs(osh2dolfin_w);
+  OMEGA_H_CHECK(num_not_shared == (n - LO(shared_ents->size())));
 }
 
 void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   dolfin::MeshEditor editor;
   static char const* const cell_type_names[4] = {
       "point", "interval", "triangle", "tetrahedron"};
+  auto dim = mesh_osh->dim();
   OMEGA_H_CHECK(mesh_osh->parting() == OMEGA_H_ELEM_BASED);
   std::map<std::int32_t, std::set<unsigned int>> shared_verts;
   LOs osh2dolfin_verts;
-  form_sharing(mesh_osh, VERT, &shared_verts, &osh2dolfin_verts);
+  HostRead<LO> h_osh2dolfin_verts;
+  form_sharing(mesh_osh, VERT, &shared_verts, &osh2dolfin_verts, &h_osh2dolfin_verts);
   std::map<std::int32_t, std::set<unsigned int>> shared_cells;
   LOs osh2dolfin_cells;
-  form_sharing(mesh_osh, dim, &shared_cells, &osh2dolfin_cells);
-  auto dim = mesh_osh->dim();
+  HostRead<LO> h_osh2dolfin_cells;
+  form_sharing(mesh_osh, dim, &shared_cells, &osh2dolfin_cells, &h_osh2dolfin_cells);
   editor.open(mesh_dolfin, cell_type_names[dim], dim, dim);
   auto nverts = mesh_osh->nverts();
   auto nverts_global = mesh_osh->nglobal_ents(VERT);
@@ -139,7 +150,7 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   for (LO i = 0; i < ncells; ++i) {
     for (LO j = 0; j < (nverts_per_cell); ++j) {
       auto vert_osh = h_conn[i * (nverts_per_cell) + j];
-      auto vert_dolfin = h_vert_indices[vert_osh];
+      auto vert_dolfin = h_osh2dolfin_verts[vert_osh];
       cell_verts[j] = vert_dolfin;
     }
     editor.add_cell(i, h_cell_globals[i], cell_verts);
@@ -152,14 +163,14 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   editor.close(should_reorder);
 
   // Set the ghost cell offset
-  mesh.topology().init_ghost(dim, size_t(ncells) - shared_cells.size());
+  mesh_dolfin.topology().init_ghost(dim, size_t(ncells) - shared_cells.size());
 
   // Set the ghost vertex offset
-  mesh.topology().init_ghost(0, size_t(nverts) - shared_verts.size());
+  mesh_dolfin.topology().init_ghost(0, size_t(nverts) - shared_verts.size());
 
   // Assign map of shared cells and vertices
-  mesh.topology().shared_entities(dim) = shared_cells;
-  mesh.topology().shared_entities(0) = shared_verts;
+  mesh_dolfin.topology().shared_entities(dim) = shared_cells;
+  mesh_dolfin.topology().shared_entities(0) = shared_verts;
 }
 
 /* due to their "UFC order" which requires vertices of a cell
@@ -240,7 +251,7 @@ void from_dolfin(
     if (ndofs_per_ent == 0) continue;
     auto nents = mesh_osh->nents(ent_dim);
     auto retrieve_indices = std::vector<std::size_t>(nents);
-    auto d_osh2dolfin = mesh_osh->ask_parallel_packed(ent_dim);
+    auto d_osh2dolfin = mesh_osh->get_array<LO>(ent_dim, "dolfin_index");
     auto h_osh2dolfin = HostRead<LO>(d_osh2dolfin);
     for (LO i = 0; i < nents; ++i) retrieve_indices[i] = h_osh2dolfin[i];
     auto dof_indices =
