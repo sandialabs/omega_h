@@ -5,17 +5,92 @@
 #include <Omega_h_adj.hpp>
 #include <Omega_h_build.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
+#include <Omega_h_scan.hpp>
 #include <Omega_h_shape.hpp>
 
 namespace Omega_h {
+
+static void form_sharing(Mesh* mesh_osh, Int ent_dim,
+    std::map<std::int32_t, std::set<unsigned int>>* shared_ents) {
+  auto n = mesh_osh->nents(ent_dim);
+  if (!mesh_osh->could_be_shared(ent_dim)) {
+    return;
+  }
+  auto dist = mesh_osh->ask_dist(ent_dim).invert();
+  auto d_owners2copies = dist.roots2items();
+  auto d_copies2rank = dist.items2ranks();
+  auto d_copies2indices = dist.items2dest_idxs();
+  auto h_owners2copies = HostRead<LO>(d_owners2copies);
+  auto h_copies2rank = HostRead<I32>(d_copies2rank);
+  auto h_copies2indices = HostRead<LO>(d_copies2indices);
+  std::vector<I32> full_src_ranks;
+  std::vector<I32> full_dest_ranks;
+  std::vector<LO> full_dest_indices;
+  auto my_rank = mesh_osh->comm()->rank();
+  for (LO i_osh = 0; i_osh < n; ++i_osh) {
+    auto begin = h_owners2copies[i_osh];
+    auto end = h_owners2copies[i_osh + 1];
+    if (end - begin <= 1) continue;
+    for (LO copy = begin; copy < end; ++copy) {
+      auto dest_rank = h_copies2rank[copy];
+      auto dest_index = h_copies2indices[copy];
+      for (LO copy2 = begin; copy2 < end; ++copy2) {
+        auto src_rank = h_copies2rank[copy2];
+        full_src_ranks.push_back(src_rank);
+        full_dest_ranks.push_back(dest_rank);
+        full_dest_indices.push_back(dest_index);
+      }
+    }
+  }
+  auto h_full_src_ranks = HostWrite<I32>(LO(full_src_ranks.size()));
+  auto h_full_dest_ranks = HostWrite<I32>(LO(full_src_ranks.size()));
+  auto h_full_dest_indices = HostWrite<I32>(LO(full_dest_indices.size()));
+  for (LO i = 0; i < h_full_src_ranks.size(); ++i) {
+    h_full_src_ranks[i] = full_src_ranks[size_t(i)];
+    h_full_dest_ranks[i] = full_dest_ranks[size_t(i)];
+    h_full_dest_indices[i] = full_dest_indices[size_t(i)];
+  }
+  auto d_full_src_ranks = Read<I32>(h_full_src_ranks.write());
+  auto d_full_dest_ranks = Read<I32>(h_full_dest_ranks.write());
+  auto d_full_dest_indices = Read<I32>(h_full_dest_indices.write());
+  auto dist2 = Dist();
+  dist2.set_parent_comm(mesh_osh->comm());
+  dist2.set_dest_ranks(d_full_dest_ranks);
+  dist2.set_dest_idxs(d_full_dest_indices, n);
+  auto d_exchd_full_src_ranks = dist2.exch(d_full_src_ranks, 1);
+  auto d_shared2ranks = dist2.invert().roots2items();
+  auto h_exchd_full_src_ranks = HostRead<I32>(d_exchd_full_src_ranks);
+  auto h_shared2ranks = HostRead<LO>(d_shared2ranks);
+  auto ents_are_shared_w = HostWrite<Byte>(n);
+  for (LO i_osh = 0; i_osh < n; ++i_osh) {
+    auto begin = h_shared2ranks[i_osh];
+    auto end = h_shared2ranks[i_osh + 1];
+    ents_are_shared_w[i_osh] = ((end - begin) > 0);
+  }
+  auto globals = mesh_osh->globals(ent_dim);
+  for (LO i_osh = 0; i_osh < n; ++i_osh) {
+    auto i_global = globals[i_osh];
+    auto begin = h_shared2ranks[i_osh];
+    auto end = h_shared2ranks[i_osh + 1];
+    for (auto j = begin; j < end; ++j) {
+      auto rank = h_exchd_full_src_ranks[j];
+      if (rank != my_rank) {
+        (*shared_ents)[i_osh].insert(unsigned(rank));
+      }
+    }
+  }
+}
 
 void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   dolfin::MeshEditor editor;
   static char const* const cell_type_names[4] = {
       "point", "interval", "triangle", "tetrahedron"};
-  OMEGA_H_CHECK(mesh_osh->parting() == OMEGA_H_ELEM_BASED);
   auto dim = mesh_osh->dim();
+  OMEGA_H_CHECK(mesh_osh->parting() == OMEGA_H_ELEM_BASED);
+  std::map<std::int32_t, std::set<unsigned int>> shared_verts;
+  form_sharing(mesh_osh, VERT, &shared_verts);
   editor.open(mesh_dolfin, cell_type_names[dim], dim, dim);
   auto nverts = mesh_osh->nverts();
   auto nverts_global = mesh_osh->nglobal_ents(VERT);
@@ -24,9 +99,9 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   auto h_vert_globals = HostRead<GO>(d_vert_globals);
   auto d_coords = mesh_osh->coords();
   auto h_coords = HostRead<Real>(d_coords);
-  for (LO i = 0; i < nverts; ++i) {
-    editor.add_vertex_global(
-        i, h_vert_globals[i], dolfin::Point(dim, &h_coords[i * dim]));
+  for (LO i_osh = 0; i_osh < nverts; ++i_osh) {
+    editor.add_vertex_global(i_osh, h_vert_globals[i_osh],
+        dolfin::Point(dim, &h_coords[i_osh * dim]));
   }
   auto ncells = mesh_osh->nelems();
   auto ncells_global = mesh_osh->nglobal_ents(dim);
@@ -42,7 +117,8 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   std::vector<LO> cell_verts(nverts_per_cell);
   for (LO i = 0; i < ncells; ++i) {
     for (LO j = 0; j < (nverts_per_cell); ++j) {
-      cell_verts[j] = h_conn[i * (nverts_per_cell) + j];
+      auto vert_osh = h_conn[i * (nverts_per_cell) + j];
+      cell_verts[j] = vert_osh;
     }
     editor.add_cell(i, h_cell_globals[i], cell_verts);
   }
@@ -52,6 +128,21 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
      this seems to be called "UFC order" */
   bool should_reorder = true;
   editor.close(should_reorder);
+
+  // Set the ghost cell offset
+  mesh_dolfin.topology().init_ghost(dim, size_t(ncells));
+
+  // Set the ghost vertex offset
+  mesh_dolfin.topology().init_ghost(0, size_t(nverts));
+
+  // Assign map of shared cells and vertices
+  mesh_dolfin.topology().shared_entities(0) = shared_verts;
+
+  // Initialise number of globally connected cells to each facet. This
+  // is necessary to distinguish between facets on an exterior
+  // boundary and facets on a partition boundary (see
+  // https://bugs.launchpad.net/dolfin/+bug/733834).
+  dolfin::DistributedMeshTools::init_facet_cell_connections(mesh_dolfin);
 }
 
 /* due to their "UFC order" which requires vertices of a cell
@@ -131,10 +222,10 @@ void from_dolfin(
     auto ndofs_per_ent = dofmap->num_entity_dofs(ent_dim);
     if (ndofs_per_ent == 0) continue;
     auto nents = mesh_osh->nents(ent_dim);
-    auto entity_indices = std::vector<std::size_t>(nents);
-    for (LO i = 0; i < nents; ++i) entity_indices[i] = i;
+    auto retrieve_indices = std::vector<std::size_t>(nents);
+    for (LO i = 0; i < nents; ++i) retrieve_indices[i] = i;
     auto dof_indices =
-        dofmap->entity_dofs(*mesh_dolfin, ent_dim, entity_indices);
+        dofmap->entity_dofs(*mesh_dolfin, ent_dim, retrieve_indices);
     auto h_data = HostWrite<Real>(nents * ndofs_per_ent);
     vector->get_local(h_data.data(), nents * ndofs_per_ent, dof_indices.data());
     auto d_data = Reals(h_data.write());
