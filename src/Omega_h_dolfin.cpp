@@ -5,10 +5,10 @@
 #include <Omega_h_adj.hpp>
 #include <Omega_h_build.hpp>
 #include <Omega_h_loop.hpp>
-#include <Omega_h_mesh.hpp>
-#include <Omega_h_shape.hpp>
 #include <Omega_h_map.hpp>
+#include <Omega_h_mesh.hpp>
 #include <Omega_h_scan.hpp>
+#include <Omega_h_shape.hpp>
 
 namespace Omega_h {
 
@@ -100,8 +100,8 @@ void to_dolfin(dolfin::Mesh& mesh_dolfin, Mesh* mesh_osh) {
   auto d_coords = mesh_osh->coords();
   auto h_coords = HostRead<Real>(d_coords);
   for (LO i_osh = 0; i_osh < nverts; ++i_osh) {
-    editor.add_vertex_global(
-        i_osh, h_vert_globals[i_osh], dolfin::Point(dim, &h_coords[i_osh * dim]));
+    editor.add_vertex_global(i_osh, h_vert_globals[i_osh],
+        dolfin::Point(dim, &h_coords[i_osh * dim]));
   }
   auto ncells = mesh_osh->nelems();
   auto ncells_global = mesh_osh->nglobal_ents(dim);
