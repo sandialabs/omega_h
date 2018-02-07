@@ -65,7 +65,7 @@ void Mesh::set_comm(CommPtr const& new_comm) {
   comm_ = new_comm;
 }
 
-void Mesh::set_family(Omega_h_Family family) { family_ = family; }
+void Mesh::set_family(Omega_h_Family family_in) { family_ = family_in; }
 
 void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
