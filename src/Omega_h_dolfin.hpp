@@ -3,11 +3,14 @@
 
 #include <Omega_h_config.h>
 
-#ifdef OMEGA_H_USE_MPI
+#if defined(OMEGA_H_USE_MPI) && (!defined(HAS_MPI))
 #define HAS_MPI
+#define OMEGA_H_SET_HAS_MPI
 #endif
+
 #include <dolfin.h>
-#ifdef OMEGA_H_USE_MPI
+
+#ifdef OMEGA_H_SET_HAS_MPI
 #undef HAS_MPI
 #endif
 
