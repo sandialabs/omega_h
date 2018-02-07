@@ -69,9 +69,7 @@ static void form_sharing(Mesh* mesh_osh, Int ent_dim,
     auto end = h_shared2ranks[i_osh + 1];
     ents_are_shared_w[i_osh] = ((end - begin) > 0);
   }
-  auto globals = mesh_osh->globals(ent_dim);
   for (LO i_osh = 0; i_osh < n; ++i_osh) {
-    auto i_global = globals[i_osh];
     auto begin = h_shared2ranks[i_osh];
     auto end = h_shared2ranks[i_osh + 1];
     for (auto j = begin; j < end; ++j) {
