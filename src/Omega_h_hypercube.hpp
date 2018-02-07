@@ -439,39 +439,21 @@ OMEGA_H_INLINE TemplateUp hypercube_up_template(
   return {-1, -1, true};
 };
 
-OMEGA_H_INLINE Int hypercube_degree(Int from_dim, Int to_dim) {
-  switch (from_dim) {
-    case 0:
-      return 1;
-    case 1:
-      switch (to_dim) {
-        case 0:
-          return 2;
-        case 1:
-          return 1;
-      }
-    case 2:
-      switch (to_dim) {
-        case 0:
-          return 4;
-        case 1:
-          return 4;
-        case 2:
-          return 1;
-      }
-    case 3:
-      switch (to_dim) {
-        case 0:
-          return 8;
-        case 1:
-          return 12;
-        case 2:
-          return 6;
-        case 3:
-          return 1;
-      }
-  }
-  return -1;
+OMEGA_H_INLINE constexpr Int hypercube_degree(Int from_dim, Int to_dim) {
+  return (from_dim == 0 ?
+           (to_dim == 0 ? 1 : -1) :
+         (from_dim == 1 ?
+           (to_dim == 0 ? 2 :
+           (to_dim == 1 ? 1 : -1)) :
+         (from_dim == 2 ?
+           (to_dim == 0 ? 4 :
+           (to_dim == 1 ? 4 :
+           (to_dim == 2 ? 1 : -1))) :
+         (from_dim == 3 ?
+           (to_dim == 0 ? 8 :
+           (to_dim == 1 ? 12 :
+           (to_dim == 2 ? 6 :
+           (to_dim == 3 ? 1 : -1)))) : -1))));
 }
 
 constexpr char const* hypercube_singular_name(Int dim) {
@@ -487,6 +469,16 @@ constexpr char const* hypercube_plural_name(Int dim) {
               : (dim == 2 ? "quads"
                           : (dim == 1 ? "edges"
                                       : (dim == 0 ? "vertices" : nullptr))));
+}
+
+struct SplitVert {
+  Int parent_dim;
+  Int parent_which_down;
+};
+
+//every interior split entity can be seen as the dual of a corresponding boundary entity
+OMEGA_H_INLINE constexpr Int hypercube_split_degree(Int parent_dim, Int split_dim) {
+  return hypercube_degree(parent_dim, parent_dim - split_dim);
 }
 
 }  // end namespace Omega_h
