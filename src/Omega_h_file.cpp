@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 #ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
@@ -534,6 +535,39 @@ Mesh read(std::string const& path, CommPtr comm) {
   auto mesh = Mesh(comm->library());
   binary::read(path, comm, &mesh);
   return mesh;
+}
+
+void write_reals_txt(std::string const& filename, Reals a, Int ncomps) {
+  std::ofstream stream(filename.c_str());
+  write_reals_txt(stream, a, ncomps);
+}
+
+void write_reals_txt(std::ostream& stream, Reals a, Int ncomps) {
+  auto n = divide_no_remainder(a.size(), ncomps);
+  auto h_a = HostRead<Real>(a);
+  stream << std::scientific << std::setprecision(17);
+  for (LO i = 0; i < n; ++i) {
+    for (Int j = 0; j < ncomps; ++j) {
+      stream << h_a[i * ncomps + j];
+      if (j < ncomps - 1) stream << ' ';
+    }
+    stream << '\n';
+  }
+}
+
+Reals read_reals_txt(std::string const& filename, LO n, Int ncomps) {
+  std::ifstream stream(filename.c_str());
+  return read_reals_txt(stream, n, ncomps);
+}
+
+Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
+  auto h_a = HostWrite<Real>(n * ncomps);
+  for (LO i = 0; i < n; ++i) {
+    for (Int j = 0; j < ncomps; ++j) {
+      stream >> h_a[i * ncomps + j];
+    }
+  }
+  return h_a.write();
 }
 
 #define OMEGA_H_INST(T)                                                        \
