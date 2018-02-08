@@ -35,6 +35,33 @@ Int type_dim(Int type) {
   OMEGA_H_NORETURN(-1);
 }
 
+Int gmsh_type(Omega_h_Family family, Int dim) {
+  switch (family) {
+    case OMEGA_H_SIMPLEX:
+      switch (dim) {
+        case 0:
+          return GMSH_VERT;
+        case 1:
+          return GMSH_LINE;
+        case 2:
+          return GMSH_TRI;
+        case 3:
+          return GMSH_TET;
+      }
+    case OMEGA_H_HYPERCUBE:
+      switch (dim) {
+        case 0:
+          return GMSH_VERT;
+        case 1:
+          return GMSH_LINE;
+        case 2:
+        case 3:
+      }
+  };
+  Omega_h_fail("omega_h can only accept linear simplices from Gmsh");
+  OMEGA_H_NORETURN(-1);
+}
+
 void seek_line(std::istream& stream, std::string const& want) {
   OMEGA_H_CHECK(stream);
   std::string line;
@@ -153,6 +180,36 @@ Mesh read(std::string const& filename, CommPtr comm) {
     Omega_h_fail("couldn't open \"%s\"\n", filename.c_str());
   }
   return read(file, comm);
+}
+
+void write(std::ostream& stream, Mesh* mesh) {
+  OMEGA_H_CHECK(mesh->comm()->size() == 1);
+  stream << "$MeshFormat\n";
+  stream << "2.2 0 " << sizeof(Real) << '\n';
+  stream << "$EndMeshFormat\n";
+  stream << "$Nodes\n";
+  auto nverts = mesh->nverts();
+  stream << nverts << '\n';
+  auto dim = mesh->dim();
+  auto d_coords = mesh->coords();
+  auto h_coords = HostRead<Real>(d_coords);
+  stream << std::scientific << std::setprecision(17);
+  for (LO i = 0; i < nverts; ++i) {
+    stream << (i + 1) << ' ';
+    for (Int j = 0; j < dim; ++j) stream << h_coords[i * dim + j] << ' ';
+    for (Int j = dim; j < 3; ++j) stream << "0 ";
+    stream << '\n';
+  }
+  stream << "$EndNodes\n";
+  stream << "$Elements\n";
+  LO ent_i = 1;
+  auto family = mesh->family();
+  for (Int ent_dim = VERT; ent_dim <= dim; ++ent_dim) {
+    for (LO i = 0; i < nents; ++i) {
+      stream << ent_i++ << ' ';
+      stream << gmsh_type(family, ent_dim) << ' ';
+    }
+  }
 }
 
 }  // namespace gmsh
