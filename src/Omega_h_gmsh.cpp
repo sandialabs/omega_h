@@ -1,11 +1,13 @@
 #include "Omega_h_file.hpp"
 
 #include <fstream>
+#include <iomanip>
 
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
+#include "Omega_h_element.hpp"
 
 namespace Omega_h {
 
@@ -14,10 +16,12 @@ namespace gmsh {
 namespace {
 
 enum {
-  GMSH_VERT = 15,
   GMSH_LINE = 1,
-  GMSH_TRI = 2,
-  GMSH_TET = 4,
+  GMSH_TRI  = 2,
+  GMSH_QUAD = 3,
+  GMSH_TET  = 4,
+  GMSH_HEX  = 5,
+  GMSH_VERT = 15,
 };
 
 Int type_dim(Int type) {
@@ -27,11 +31,55 @@ Int type_dim(Int type) {
     case GMSH_LINE:
       return 1;
     case GMSH_TRI:
+    case GMSH_QUAD:
       return 2;
     case GMSH_TET:
+    case GMSH_HEX:
       return 3;
   }
-  Omega_h_fail("omega_h can only accept linear simplices from Gmsh");
+  Omega_h_fail("omega_h can only accept linear simplices and hypercubes from Gmsh");
+  OMEGA_H_NORETURN(-1);
+}
+
+Omega_h_Family type_family(Int type) {
+  switch (type) {
+    case GMSH_VERT:
+    case GMSH_LINE:
+    case GMSH_TRI:
+    case GMSH_TET:
+      return OMEGA_H_SIMPLEX;
+    case GMSH_QUAD:
+    case GMSH_HEX:
+      return OMEGA_H_HYPERCUBE;
+  }
+  OMEGA_H_NORETURN(Omega_h_Family());
+}
+
+Int gmsh_type(Omega_h_Family family, Int dim) {
+  switch (family) {
+    case OMEGA_H_SIMPLEX:
+      switch (dim) {
+        case 0:
+          return GMSH_VERT;
+        case 1:
+          return GMSH_LINE;
+        case 2:
+          return GMSH_TRI;
+        case 3:
+          return GMSH_TET;
+      }
+    case OMEGA_H_HYPERCUBE:
+      switch (dim) {
+        case 0:
+          return GMSH_VERT;
+        case 1:
+          return GMSH_LINE;
+        case 2:
+          return GMSH_QUAD;
+        case 3:
+          return GMSH_HEX;
+      }
+  };
   OMEGA_H_NORETURN(-1);
 }
 
@@ -76,6 +124,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
   OMEGA_H_CHECK(nents >= 0);
   std::vector<LO> ent_class_ids[4];
   std::vector<LO> ent_nodes[4];
+  Omega_h_Family family = OMEGA_H_SIMPLEX;
   for (LO i = 0; i < nents; ++i) {
     LO number;
     stream >> number;
@@ -83,6 +132,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     Int type;
     stream >> type;
     Int dim = type_dim(type);
+    if (type_family(type) == OMEGA_H_HYPERCUBE) family = OMEGA_H_HYPERCUBE;
     Int ntags;
     stream >> ntags;
     OMEGA_H_CHECK(ntags >= 2);
@@ -101,11 +151,10 @@ void read_internal(std::istream& stream, Mesh* mesh) {
       ent_nodes[dim].push_back(node_number - 1);
     }
   }
-  OMEGA_H_CHECK(ent_nodes[2].size());
-  Int max_dim = 2;
-  if (ent_nodes[3].size()) {
-    max_dim = 3;
-  }
+  OMEGA_H_CHECK(ent_nodes[1].size());
+  Int max_dim = 1;
+  if (ent_nodes[3].size()) max_dim = 3;
+  else if (ent_nodes[2].size()) max_dim = 2;
   HostWrite<Real> host_coords(nnodes * max_dim);
   for (LO i = 0; i < nnodes; ++i) {
     for (Int j = 0; j < max_dim; ++j) {
@@ -114,7 +163,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     }
   }
   for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
-    Int neev = ent_dim + 1;
+    Int neev = element_degree(family, ent_dim, VERT);
     LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size()) / neev;
     HostWrite<LO> host_ev2v(ndim_ents * neev);
     HostWrite<LO> host_class_id(ndim_ents);
@@ -128,7 +177,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     auto eqv2v = Read<LO>(host_ev2v.write());
     if (ent_dim == max_dim) {
       build_from_elems_and_coords(
-          mesh, OMEGA_H_SIMPLEX, max_dim, eqv2v, host_coords.write());
+          mesh, family, max_dim, eqv2v, host_coords.write());
     }
     classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
   }
@@ -152,7 +201,70 @@ Mesh read(std::string const& filename, CommPtr comm) {
   if (!file.is_open()) {
     Omega_h_fail("couldn't open \"%s\"\n", filename.c_str());
   }
-  return read(file, comm);
+  return gmsh::read(file, comm);
+}
+
+void write(std::ostream& stream, Mesh* mesh) {
+  OMEGA_H_CHECK(mesh->comm()->size() == 1);
+  stream << "$MeshFormat\n";
+  stream << "2.2 0 " << sizeof(Real) << '\n';
+  stream << "$EndMeshFormat\n";
+  stream << "$Nodes\n";
+  auto nverts = mesh->nverts();
+  stream << nverts << '\n';
+  auto dim = mesh->dim();
+  auto d_coords = mesh->coords();
+  auto h_coords = HostRead<Real>(d_coords);
+  stream << std::scientific << std::setprecision(17);
+  for (LO i = 0; i < nverts; ++i) {
+    stream << (i + 1);
+    for (Int j = 0; j < dim; ++j) stream << ' ' << h_coords[i * dim + j];
+    for (Int j = dim; j < 3; ++j) stream << " 0";
+    stream << '\n';
+  }
+  stream << "$EndNodes\n";
+  stream << "$Elements\n";
+  LO gmsh_elem_i = 0;
+  auto family = mesh->family();
+  for (Int ent_dim = VERT; ent_dim <= dim; ++ent_dim) {
+    auto nents = mesh->nents(ent_dim);
+    auto d_class_dims = mesh->get_array<Byte>(ent_dim, "class_dim");
+    auto h_class_dims = HostRead<Byte>(d_class_dims);
+    for (LO i = 0; i < nents; ++i) {
+      if (h_class_dims[i] == ent_dim) ++gmsh_elem_i;
+    }
+  }
+  auto gmsh_nelems = gmsh_elem_i;
+  stream << gmsh_nelems << '\n'; 
+  gmsh_elem_i = 0;
+  for (Int ent_dim = VERT; ent_dim <= dim; ++ent_dim) {
+    auto nents = mesh->nents(ent_dim);
+    auto d_class_ids = mesh->get_array<ClassId>(ent_dim, "class_id");
+    auto d_class_dims = mesh->get_array<Byte>(ent_dim, "class_dim");
+    auto d_ents2verts = mesh->ask_verts_of(ent_dim);
+    auto h_class_ids = HostRead<ClassId>(d_class_ids);
+    auto h_class_dims = HostRead<Byte>(d_class_dims);
+    auto h_ents2verts = HostRead<LO>(d_ents2verts);
+    auto deg = element_degree(family, ent_dim, VERT);
+    for (LO i = 0; i < nents; ++i) {
+      if (h_class_dims[i] != ent_dim) continue;
+      stream << ++gmsh_elem_i;
+      stream << ' ' << gmsh_type(family, ent_dim);
+      stream << " 2";
+      auto class_id = h_class_ids[i];
+      stream << ' ' << class_id << ' ' << class_id;
+      for (Int j = 0; j < deg; ++j) {
+        stream << ' ' << (h_ents2verts[i * deg + j] + 1);
+      }
+      stream << '\n';
+    }
+  }
+  stream << "$EndElements\n";
+}
+
+void write(std::string const& filepath, Mesh* mesh) {
+  std::ofstream stream(filepath.c_str());
+  gmsh::write(stream, mesh);
 }
 
 }  // namespace gmsh

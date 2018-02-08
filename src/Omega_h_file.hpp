@@ -48,6 +48,8 @@ void write(std::string const& path, Mesh* mesh, bool verbose = false,
 namespace gmsh {
 Mesh read(std::istream& stream, CommPtr comm);
 Mesh read(std::string const& filename, CommPtr comm);
+void write(std::ostream& stream, Mesh* mesh);
+void write(std::string const& filepath, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
