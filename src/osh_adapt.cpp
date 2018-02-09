@@ -27,13 +27,19 @@ int main(int argc, char** argv) {
     return -1;
   }
   if (!cmdline.parsed("--mesh-in")) {
-    Omega_h_fail("No input mesh file specified");
+    std::cout << "No input mesh file specified\n";
+    cmdline.show_help(argv);
+    return -1;
   }
   if (!cmdline.parsed("--mesh-out")) {
-    Omega_h_fail("No output mesh file specified");
+    std::cout << "No output mesh file specified\n";
+    cmdline.show_help(argv);
+    return -1;
   }
   if (!cmdline.parsed("--metric-in")) {
-    Omega_h_fail("No input metric file specified");
+    std::cout << "No input metric file specified\n";
+    cmdline.show_help(argv);
+    return -1;
   }
   auto mesh_in = cmdline.get<std::string>("--mesh-in", "mesh.msh");
   auto mesh_out = cmdline.get<std::string>("--mesh-out", "mesh.msh");
