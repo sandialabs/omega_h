@@ -314,15 +314,17 @@ enum {
 };
 
 static constexpr I8 vtk_type(Omega_h_Family family, Int dim) {
-  return (family == OMEGA_H_SIMPLEX ?
-      (dim == 3 ? VTK_TETRA :
-       (dim == 2 ? VTK_TRIANGLE :
-        (dim == 1 ? VTK_LINE :
-         (dim == 0 ? VTK_VERTEX : -1)))) :
-      (dim == 3 ? VTK_HEXAHEDRON :
-       (dim == 2 ? VTK_QUAD :
-        (dim == 1 ? VTK_LINE :
-         (dim == 0 ? VTK_VERTEX : -1)))));
+  return (
+      family == OMEGA_H_SIMPLEX
+          ? (dim == 3 ? VTK_TETRA
+                      : (dim == 2 ? VTK_TRIANGLE
+                                  : (dim == 1 ? VTK_LINE
+                                              : (dim == 0 ? VTK_VERTEX : -1))))
+          : (dim == 3
+                    ? VTK_HEXAHEDRON
+                    : (dim == 2 ? VTK_QUAD
+                                : (dim == 1 ? VTK_LINE
+                                            : (dim == 0 ? VTK_VERTEX : -1)))));
 }
 
 static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
@@ -378,7 +380,8 @@ void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim) {
 }
 
 void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
-    bool is_little_endian, bool is_compressed, Omega_h_Family* family_out, Int* dim_out, LOs* ev2v_out) {
+    bool is_little_endian, bool is_compressed, Omega_h_Family* family_out,
+    Int* dim_out, LOs* ev2v_out) {
   auto types = read_known_array<I8>(
       stream, "types", ncells, 1, is_little_endian, is_compressed);
   Omega_h_Family family = OMEGA_H_SIMPLEX;
@@ -569,8 +572,8 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   Omega_h_Family family;
   Int dim;
   LOs ev2v;
-  read_connectivity(
-      stream, comm, ncells, is_little_endian, is_compressed, &family, &dim, &ev2v);
+  read_connectivity(stream, comm, ncells, is_little_endian, is_compressed,
+      &family, &dim, &ev2v);
   mesh->set_family(family);
   mesh->set_dim(dim);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");

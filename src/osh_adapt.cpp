@@ -1,48 +1,29 @@
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_teuchos.hpp"
-
-using namespace Omega_h;
 
 int main(int argc, char** argv) {
-  auto lib = Library(&argc, &argv);
+  auto lib = Omega_h::Library(&argc, &argv);
   auto comm = lib.world();
-  CmdLine cmdline;
-#ifdef OMEGA_H_USE_YAML
-  auto configpath_placeholder = "input.{xml,yaml}";
+  Omega_h::CmdLine cmdline;
+#ifdef OMEGA_H_USE_LIBMESHB
+  auto metricfile_placeholder = "metric.{txt,sol}";
 #else
-  auto configpath_placeholder = "input.xml";
+  auto metricfile_placeholder = "metric.txt";
 #endif
-  cmdline.add_arg<std::string>(configpath_placeholder);
+  auto& meshfile_flag = cmdline.add_flag("--mesh-file");
+  meshfile_flag.add_arg<std::string>("mesh.msh");
+  auto& metricfile_flag = cmdline.add_flag("--metric-file");
+  metricfile_flag.add_arg<std::string>(metricfile_placeholder);
   if (!cmdline.parse_final(comm, &argc, argv)) {
     return -1;
   }
-  auto configpath = cmdline.get<std::string>(configpath_placeholder);
-  auto pl_rcp = Teuchos::createParameterList("Omega_h");
-  auto comm_teuchos = make_teuchos_comm(comm);
-  update_parameters_from_file(configpath, pl_rcp.get(), *comm_teuchos);
-  auto inputpath = pl_rcp->get<std::string>("Input File");
-  auto outputpath = pl_rcp->get<std::string>("Output File");
-  auto mesh = Mesh(&lib);
-  binary::read(inputpath, comm, &mesh);
-  if (pl_rcp->isSublist("Target Metric")) {
-    auto& target_metric_pl = pl_rcp->sublist("Target Metric");
-    auto target_metric_input = MetricInput();
-    update_metric_input(&target_metric_input, target_metric_pl);
-    generate_target_metric_tag(&mesh, target_metric_input);
+  if (!cmdline.parsed("--mesh-file")) {
+    Omega_h_fail("No mesh file specified");
   }
-  auto& metric_pl = pl_rcp->sublist("Metric");
-  auto metric_input = MetricInput();
-  update_metric_input(&metric_input, metric_pl);
-  generate_metric_tag(&mesh, metric_input);
-  auto adapt_opts = AdaptOpts(&mesh);
-  if (pl_rcp->isSublist("Adapt")) {
-    auto& adapt_pl = pl_rcp->sublist("Adapt");
-    update_adapt_opts(&adapt_opts, adapt_pl);
+  if (!cmdline.parsed("--metric-file")) {
+    Omega_h_fail("No metric file specified");
   }
-  do {
-    adapt(&mesh, adapt_opts);
-  } while (approach_metric(&mesh, adapt_opts));
-  binary::write(outputpath, &mesh);
+  auto meshfile = cmdline.get<std::string>("--mesh-file", "mesh.msh");
+  auto metricfile = cmdline.get<std::string>("--metric-file", metricfile_placeholder);
 }

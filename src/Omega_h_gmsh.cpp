@@ -5,9 +5,9 @@
 
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
-#include "Omega_h_element.hpp"
 
 namespace Omega_h {
 
@@ -17,10 +17,10 @@ namespace {
 
 enum {
   GMSH_LINE = 1,
-  GMSH_TRI  = 2,
+  GMSH_TRI = 2,
   GMSH_QUAD = 3,
-  GMSH_TET  = 4,
-  GMSH_HEX  = 5,
+  GMSH_TET = 4,
+  GMSH_HEX = 5,
   GMSH_VERT = 15,
 };
 
@@ -37,7 +37,8 @@ Int type_dim(Int type) {
     case GMSH_HEX:
       return 3;
   }
-  Omega_h_fail("omega_h can only accept linear simplices and hypercubes from Gmsh");
+  Omega_h_fail(
+      "omega_h can only accept linear simplices and hypercubes from Gmsh");
   OMEGA_H_NORETURN(-1);
 }
 
@@ -153,8 +154,11 @@ void read_internal(std::istream& stream, Mesh* mesh) {
   }
   OMEGA_H_CHECK(ent_nodes[1].size());
   Int max_dim = 1;
-  if (ent_nodes[3].size()) max_dim = 3;
-  else if (ent_nodes[2].size()) max_dim = 2;
+  if (ent_nodes[3].size()) {
+    max_dim = 3;
+  } else if (ent_nodes[2].size()) {
+    max_dim = 2;
+  }
   HostWrite<Real> host_coords(nnodes * max_dim);
   for (LO i = 0; i < nnodes; ++i) {
     for (Int j = 0; j < max_dim; ++j) {
@@ -235,7 +239,7 @@ void write(std::ostream& stream, Mesh* mesh) {
     }
   }
   auto gmsh_nelems = gmsh_elem_i;
-  stream << gmsh_nelems << '\n'; 
+  stream << gmsh_nelems << '\n';
   gmsh_elem_i = 0;
   for (Int ent_dim = VERT; ent_dim <= dim; ++ent_dim) {
     auto nents = mesh->nents(ent_dim);
