@@ -64,14 +64,10 @@ static LOs sort_by_keys_tmpl(Read<T> keys) {
 
 template <typename T>
 LOs sort_by_keys(Read<T> keys, Int width) {
-  switch (width) {
-    case 1:
-      return sort_by_keys_tmpl<1>(keys);
-    case 2:
-      return sort_by_keys_tmpl<2>(keys);
-    case 3:
-      return sort_by_keys_tmpl<3>(keys);
-  }
+  if (width == 1) return sort_by_keys_tmpl<1>(keys);
+  if (width == 2) return sort_by_keys_tmpl<2>(keys);
+  if (width == 3) return sort_by_keys_tmpl<3>(keys);
+  if (width == 4) return sort_by_keys_tmpl<4>(keys);
   OMEGA_H_NORETURN(LOs());
 }
 

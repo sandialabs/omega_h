@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
   auto ny = atoi(argv[5]);
   auto nz = atoi(argv[6]);
   auto outdir = argv[7];
-  auto mesh = Omega_h::build_box(world, x, y, z, nx, ny, nz);
+  auto mesh = Omega_h::build_box(world, OMEGA_H_SIMPLEX, x, y, z, nx, ny, nz);
   Omega_h::binary::write(outdir, &mesh);
   return 0;
 }

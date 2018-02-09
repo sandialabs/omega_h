@@ -40,6 +40,7 @@ void classify_elements(Mesh* mesh) {
 }
 
 void classify_by_angles(Mesh* mesh, Real sharp_angle) {
+  OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto dim = mesh->dim();
   classify_elements(mesh);
   auto side_is_exposed = mark_exposed_sides(mesh);
@@ -171,7 +172,7 @@ void classify_equal_order(
     Read<I8> codes;
     auto ev2v = mesh->ask_verts_of(ent_dim);
     auto v2e = mesh->ask_up(VERT, ent_dim);
-    find_matches(ent_dim, eqv2v, ev2v, v2e, &eq2e, &codes);
+    find_matches(mesh->family(), ent_dim, eqv2v, ev2v, v2e, &eq2e, &codes);
   }
   auto neq = eqv2v.size() / (ent_dim + 1);
   auto eq_class_dim = Read<I8>(neq, I8(ent_dim));

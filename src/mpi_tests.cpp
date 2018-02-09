@@ -178,7 +178,7 @@ static void test_construct(Library* lib, CommPtr comm) {
   }
   auto tv2v = LOs({0, 1, 2});
   Mesh mesh(lib);
-  build_from_elems2verts(&mesh, comm, 2, tv2v, verts2globs);
+  build_from_elems2verts(&mesh, comm, OMEGA_H_SIMPLEX, 2, tv2v, verts2globs);
   auto ev2v = mesh.ask_verts_of(EDGE);
   auto owners = mesh.ask_owners(EDGE);
   OMEGA_H_CHECK(ev2v == LOs({0, 1, 0, 2, 1, 2}));
@@ -192,7 +192,7 @@ static void test_construct(Library* lib, CommPtr comm) {
 }
 
 static void test_read_vtu(Library* lib, CommPtr comm) {
-  auto mesh0 = build_box(comm, 1., 1., 0., 1, 1, 0);
+  auto mesh0 = build_box(comm, OMEGA_H_SIMPLEX, 1., 1., 0., 1, 1, 0);
   std::stringstream stream;
   vtk::write_vtu(stream, &mesh0, mesh0.dim(), vtk::get_all_vtk_tags(&mesh0));
   Mesh mesh1(lib);
@@ -203,7 +203,7 @@ static void test_read_vtu(Library* lib, CommPtr comm) {
 }
 
 static void test_binary_io(Library* lib, CommPtr comm) {
-  auto mesh0 = build_box(comm, 1., 1., 0., 4, 4, 0);
+  auto mesh0 = build_box(comm, OMEGA_H_SIMPLEX, 1., 1., 0., 4, 4, 0);
   mesh0.set_parting(OMEGA_H_ELEM_BASED);
   binary::write("mpi_test_elem_based.osh", &mesh0);
   Mesh mesh1(lib);

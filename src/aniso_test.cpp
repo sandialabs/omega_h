@@ -11,7 +11,7 @@ using namespace Omega_h;
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  auto mesh = build_box(world, 1., 1., 0.5, 8, 8, 4);
+  auto mesh = build_box(world, OMEGA_H_SIMPLEX, 1., 1., 0.5, 8, 8, 4);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto metrics = get_implied_metrics(&mesh);
   mesh.add_tag(VERT, "metric", symm_ncomps(mesh.dim()), metrics);

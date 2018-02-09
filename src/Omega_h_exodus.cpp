@@ -124,7 +124,8 @@ void read(
   auto coords = Reals(h_coords.write());
   std::vector<int> block_ids(init_params.num_elem_blk);
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
-  HostWrite<LO> h_conn(init_params.num_elem * (dim + 1));
+  auto deg = element_degree(mesh->family(), dim, VERT);
+  HostWrite<LO> h_conn(init_params.num_elem * deg);
   Write<LO> elem_class_ids_w(init_params.num_elem);
   LO start = 0;
   for (size_t i = 0; i < block_ids.size(); ++i) {
@@ -144,7 +145,7 @@ void read(
     if (!is_type_supported(dim, elem_type)) {
       Omega_h_fail("type %s is not supported for %dD !\n", elem_type, dim);
     }
-    OMEGA_H_CHECK(nnodes_per_entry == dim + 1);
+    OMEGA_H_CHECK(nnodes_per_entry == deg);
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     std::vector<int> edge_conn(nentries * nedges_per_entry);
@@ -158,7 +159,7 @@ void read(
     parallel_for(nentries, f0, "elem_class_ids");
     start += nentries * nnodes_per_entry;
   }
-  OMEGA_H_CHECK(start == init_params.num_elem * (dim + 1));
+  OMEGA_H_CHECK(start == init_params.num_elem * deg);
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
   build_from_elems_and_coords(mesh, dim, conn, coords);
   classify_elements(mesh);
@@ -231,7 +232,7 @@ void read(
           subtract_from_each(LOs(h_set_sides2elem.write()), 1);
       auto set_sides2local = LOs(h_set_sides2local.write());
       auto elems2sides = mesh->ask_down(dim, dim - 1).ab2b;
-      auto nsides_per_elem = simplex_degree(dim, dim - 1);
+      auto nsides_per_elem = element_degree(mesh->family(), dim, dim - 1);
       auto set_sides2side_w = Write<LO>(nentries);
       auto f2 = OMEGA_H_LAMBDA(LO set_side) {
         auto elem = set_sides2elem[set_side];
@@ -325,9 +326,10 @@ void write(
       std::cout << "element block " << block_id << " has " << nblock_elems
                 << " of type " << type_name << '\n';
     }
-    CALL(ex_put_block(file, EX_ELEM_BLOCK, block_id, type_name, nblock_elems,
-        dim + 1, 0, 0, 0));
-    auto block_conn = unmap(block_elems2elem, all_conn, dim + 1);
+    auto deg = element_degree(mesh->family(), dim, VERT);
+    CALL(ex_put_block(
+        file, EX_ELEM_BLOCK, block_id, type_name, nblock_elems, deg, 0, 0, 0));
+    auto block_conn = unmap(block_elems2elem, all_conn, deg);
     auto block_conn_ex = add_to_each(block_conn, 1);
     auto h_block_conn = HostRead<LO>(block_conn_ex);
     CALL(ex_put_conn(

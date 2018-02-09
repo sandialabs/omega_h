@@ -238,6 +238,8 @@ void read(std::istream& stream, std::string& val) {
 }
 
 static void write_meta(std::ostream& stream, Mesh const* mesh) {
+  auto family = I8(mesh->family());
+  write_value(stream, family);
   auto dim = I8(mesh->dim());
   write_value(stream, dim);
   I32 comm_size = mesh->comm()->size();
@@ -261,6 +263,11 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
 }
 
 static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
+  if (version >= 7) {
+    I8 family;
+    read_value(stream, family);
+    mesh->set_family(Omega_h_Family(family));
+  }
   I8 dim;
   read_value(stream, dim);
   mesh->set_dim(Int(dim));

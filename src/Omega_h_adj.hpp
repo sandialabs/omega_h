@@ -19,10 +19,11 @@ struct Adj : public Graph {
   Read<I8> codes;
 };
 
-void find_matches(
-    Int dim, LOs av2v, LOs bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out);
+void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
+    LOs* a2b_out, Read<I8>* codes_out);
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Int high_dim, Int low_dim);
+Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
+    Int high_dim, Int low_dim);
 
 Adj unmap_adjacency(LOs a2b, Adj b2c);
 
@@ -34,9 +35,9 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows);
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low
    entities by high entities */
-LOs form_uses(LOs hv2v, Int high_dim, Int low_dim);
+LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
 
-LOs find_unique(LOs hv2v, Int high_dim, Int low_dim);
+LOs find_unique(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
 
 /* for each entity (or entity use), sort its vertex list
    and express the sorting transformation as an alignment code */
@@ -62,9 +63,10 @@ void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
 
 /* for testing only, internally computes upward
    adjacency */
-Adj reflect_down(LOs hv2v, LOs lv2v, LO nv, Int high_dim, Int low_dim);
+Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
+    Int low_dim);
 
-Adj transit(Adj h2m, Adj m2l, Int high_dim, Int low_dim);
+Adj transit(Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim);
 
 Graph verts_across_edges(Adj e2v, Adj v2e);
 Graph edges_across_tris(Adj f2e, Adj e2f);

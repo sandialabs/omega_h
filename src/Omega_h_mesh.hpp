@@ -21,6 +21,7 @@ class Mesh {
   Mesh(Library* library);
   Library* library() const;
   void set_comm(CommPtr const& comm);
+  void set_family(Omega_h_Family family);
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
@@ -30,10 +31,11 @@ class Mesh {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
+  inline Omega_h_Family family() const { return family_; }
   LO nents(Int ent_dim) const;
   LO nelems() const;
-  LO ntets() const;
-  LO ntris() const;
+  LO nregions() const;
+  LO nfaces() const;
   LO nedges() const;
   LO nverts() const;
   GO nglobal_ents(Int dim);
@@ -82,6 +84,7 @@ class Mesh {
   Adj derive_adj(Int from, Int to);
   Adj ask_adj(Int from, Int to);
   void react_to_set_tag(Int dim, std::string const& name);
+  Omega_h_Family family_;
   Int dim_;
   CommPtr comm_;
   Int parting_;

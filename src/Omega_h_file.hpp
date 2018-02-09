@@ -48,6 +48,8 @@ void write(std::string const& path, Mesh* mesh, bool verbose = false,
 namespace gmsh {
 Mesh read(std::istream& stream, CommPtr comm);
 Mesh read(std::string const& filename, CommPtr comm);
+void write(std::ostream& stream, Mesh* mesh);
+void write(std::string const& filepath, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
@@ -105,7 +107,7 @@ I32 read_version(std::string const& path, CommPtr comm);
 void read_in_comm(
     std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
 
-constexpr I32 latest_version = 6;
+constexpr I32 latest_version = 7;
 
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian = true);

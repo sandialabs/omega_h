@@ -1,14 +1,15 @@
 #ifndef OMEGA_H_SIMPLEX_HPP
 #define OMEGA_H_SIMPLEX_HPP
 
-#include <Omega_h_template_up.hpp>
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_template_up.hpp>
 
 /*! \file Omega_h_simplex.hpp
   \brief Describes the canonical local boundary connectivity
          orderings for a single simplex, and other related properties
   \details A simplex is a generalization of a triangle in arbitrary dimensions.
-           In Omega_h the relevant simplices are vertices, edges, triangles, and tetrahedra.
+           In Omega_h the relevant simplices are vertices, edges, triangles, and
+  tetrahedra.
   */
 
 namespace Omega_h {
@@ -379,10 +380,20 @@ OMEGA_H_INLINE Int simplex_degree(Int from_dim, Int to_dim) {
   return -1;
 }
 
-/* TODO: rename to singular_simplex_names */
-extern char const* const singular_names[DIMS];
-/* TODO: rename to plural_simplex_names */
-extern char const* const plural_names[DIMS];
+constexpr char const* simplex_singular_name(Int dim) {
+  return (dim == 3 ? "tet"
+                   : (dim == 2 ? "triangle"
+                               : (dim == 1 ? "edge"
+                                           : (dim == 0 ? "vertex" : nullptr))));
+}
+
+constexpr char const* simplex_plural_name(Int dim) {
+  return (dim == 3
+              ? "tets"
+              : (dim == 2 ? "triangles"
+                          : (dim == 1 ? "edges"
+                                      : (dim == 0 ? "vertices" : nullptr))));
+}
 
 /* TODO: rename to SimplexAverageDegree */
 template <Int dim, Int low, Int high>

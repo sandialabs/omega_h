@@ -185,7 +185,7 @@ static void test_reflect_down(LOs tets2verts, LOs tris2verts, LO nverts) {
   {
     Now t0 = now();
     for (Int i = 0; i < niters; ++i)
-      reflect_down(tets2verts, tris2verts, verts2tris, 3, 2);
+      reflect_down(tets2verts, tris2verts, verts2tris, OMEGA_H_SIMPLEX, 3, 2);
     Now t1 = now();
     std::cout << "reflect_down " << ntets << " tets -> tris "
               << "by only upward " << niters << " times takes " << (t1 - t0)
@@ -198,7 +198,7 @@ static void test_adjs(Library* lib) {
   {
     Now t0 = now();
     auto nx = 42;
-    build_box_internal(&mesh, 1, 1, 1, nx, nx, nx);
+    build_box_internal(&mesh, OMEGA_H_SIMPLEX, 1, 1, 1, nx, nx, nx);
     Now t1 = now();
     std::cout << "building a " << nx << 'x' << nx << 'x' << nx << " box took "
               << (t1 - t0) << " seconds\n";

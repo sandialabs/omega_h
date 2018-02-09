@@ -11,7 +11,6 @@ set(Omega_h_SOURCES
   Omega_h_sort.cpp
   Omega_h_int128.cpp
   Omega_h_indset.cpp
-  Omega_h_simplex.cpp
   Omega_h_adj.cpp
   Omega_h_tag.cpp
   Omega_h_mesh.cpp
@@ -86,6 +85,10 @@ set(Omega_h_SOURCES
   Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
   )
+
+if (NOT Omega_h_USE_CUDA)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_overlay.cpp)
+endif()
 
 if(Omega_h_USE_libMeshb)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshb.cpp)
@@ -396,6 +399,7 @@ if(BUILD_TESTING)
   osh_add_exe(adapt_from_pumi)
   osh_add_exe(random_test)
   test_func(run_random_test 1 ./random_test)
+  osh_add_exe(hypercube_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -440,12 +444,18 @@ set(Omega_h_HEADERS
   Omega_h_compare.hpp
   Omega_h_template_up.hpp
   Omega_h_simplex.hpp
+  Omega_h_hypercube.hpp
+  Omega_h_element.hpp
   Omega_h_qr.hpp
   Omega_h_shape.hpp
   Omega_h_quality.hpp
   Omega_h_scatterplot.hpp
   Omega_h_affine.hpp
   )
+
+if (NOT Omega_h_USE_CUDA)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_overlay.hpp)
+endif()
 
 if(Omega_h_USE_Teuchos)
   set(Omega_h_HEADERS ${Omega_h_HEADERS}

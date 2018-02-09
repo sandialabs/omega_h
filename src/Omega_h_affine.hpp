@@ -24,6 +24,6 @@ OMEGA_H_INLINE Affine<dim> invert(Affine<dim> a) {
   return ai;
 }
 
-}
+}  // namespace Omega_h
 
 #endif

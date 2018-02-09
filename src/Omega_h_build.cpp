@@ -4,6 +4,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_box.hpp"
 #include "Omega_h_class.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
@@ -15,15 +16,16 @@ namespace Omega_h {
 void add_ents2verts(
     Mesh* mesh, Int ent_dim, LOs ev2v, GOs vert_globals, GOs elem_globals) {
   auto comm = mesh->comm();
-  auto deg = ent_dim + 1;
-  auto ne = divide_no_remainder(ev2v.size(), deg);
+  auto nverts_per_ent = element_degree(mesh->family(), ent_dim, VERT);
+  auto ne = divide_no_remainder(ev2v.size(), nverts_per_ent);
   Remotes owners;
   if (comm->size() > 1) {
     if (mesh->could_be_shared(ent_dim)) {
       if (ent_dim == mesh->dim()) {
         owners = owners_from_globals(comm, elem_globals, Read<I32>());
       } else {
-        resolve_derived_copies(comm, vert_globals, deg, &ev2v, &owners);
+        resolve_derived_copies(
+            comm, vert_globals, nverts_per_ent, &ev2v, &owners);
       }
     } else {
       owners = identity_remotes(comm, ne);
@@ -35,7 +37,7 @@ void add_ents2verts(
     auto ldim = ent_dim - 1;
     auto lv2v = mesh->ask_verts_of(ldim);
     auto v2l = mesh->ask_up(VERT, ldim);
-    auto down = reflect_down(ev2v, lv2v, v2l, ent_dim, ldim);
+    auto down = reflect_down(ev2v, lv2v, v2l, mesh->family(), ent_dim, ldim);
     mesh->set_ents(ent_dim, down);
   }
   if (comm->size() > 1) {
@@ -66,7 +68,7 @@ void build_ents_from_elems2verts(
   auto comm = mesh->comm();
   auto elem_dim = mesh->dim();
   for (Int mdim = 1; mdim < elem_dim; ++mdim) {
-    auto mv2v = find_unique(ev2v, elem_dim, mdim);
+    auto mv2v = find_unique(ev2v, mesh->family(), elem_dim, mdim);
     add_ents2verts(mesh, mdim, mv2v, vert_globals, elem_globals);
   }
   add_ents2verts(mesh, elem_dim, ev2v, vert_globals, elem_globals);
@@ -75,29 +77,32 @@ void build_ents_from_elems2verts(
   }
 }
 
-void build_from_elems2verts(
-    Mesh* mesh, CommPtr comm, Int edim, LOs ev2v, Read<GO> vert_globals) {
+void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family family,
+    Int edim, LOs ev2v, Read<GO> vert_globals) {
   mesh->set_comm(comm);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
+  mesh->set_family(family);
   mesh->set_dim(edim);
   build_verts_from_globals(mesh, vert_globals);
   build_ents_from_elems2verts(mesh, ev2v, vert_globals);
 }
 
-void build_from_elems2verts(Mesh* mesh, Int edim, LOs ev2v, LO nverts) {
+void build_from_elems2verts(
+    Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, LO nverts) {
   auto vert_globals = Read<GO>(nverts, 0, 1);
   build_from_elems2verts(
-      mesh, mesh->library()->self(), edim, ev2v, vert_globals);
+      mesh, mesh->library()->self(), family, edim, ev2v, vert_globals);
 }
 
-void build_from_elems_and_coords(Mesh* mesh, Int edim, LOs ev2v, Reals coords) {
+void build_from_elems_and_coords(
+    Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords) {
   auto nverts = coords.size() / edim;
-  build_from_elems2verts(mesh, edim, ev2v, nverts);
+  build_from_elems2verts(mesh, family, edim, ev2v, nverts);
   mesh->add_coords(coords);
 }
 
-void build_box_internal(
-    Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
+void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
+    Real z, LO nx, LO ny, LO nz) {
   OMEGA_H_CHECK(nx > 0);
   OMEGA_H_CHECK(ny >= 0);
   OMEGA_H_CHECK(nz >= 0);
@@ -105,30 +110,30 @@ void build_box_internal(
     LOs ev2v;
     Reals coords;
     make_1d_box(x, nx, &ev2v, &coords);
-    build_from_elems_and_coords(mesh, EDGE, ev2v, coords);
+    build_from_elems_and_coords(mesh, family, EDGE, ev2v, coords);
   } else if (nz == 0) {
-    LOs qv2v;
+    LOs fv2v;
     Reals coords;
-    make_2d_box(x, y, nx, ny, &qv2v, &coords);
-    auto tv2v = simplify::tris_from_quads(qv2v);
-    build_from_elems_and_coords(mesh, FACE, tv2v, coords);
+    make_2d_box(x, y, nx, ny, &fv2v, &coords);
+    if (family == OMEGA_H_SIMPLEX) fv2v = simplify::tris_from_quads(fv2v);
+    build_from_elems_and_coords(mesh, family, FACE, fv2v, coords);
   } else {
-    LOs hv2v;
+    LOs rv2v;
     Reals coords;
-    make_3d_box(x, y, z, nx, ny, nz, &hv2v, &coords);
-    auto tv2v = simplify::tets_from_hexes(hv2v);
-    build_from_elems_and_coords(mesh, REGION, tv2v, coords);
+    make_3d_box(x, y, z, nx, ny, nz, &rv2v, &coords);
+    if (family == OMEGA_H_SIMPLEX) rv2v = simplify::tets_from_hexes(rv2v);
+    build_from_elems_and_coords(mesh, family, REGION, rv2v, coords);
   }
 }
 
-Mesh build_box(CommPtr comm, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
+Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
+    LO nx, LO ny, LO nz) {
   auto lib = comm->library();
   auto mesh = Mesh(lib);
   if (comm->rank() == 0) {
-    build_box_internal(&mesh, x, y, z, nx, ny, nz);
+    build_box_internal(&mesh, family, x, y, z, nx, ny, nz);
     reorder_by_hilbert(&mesh);
-    classify_by_angles(&mesh, PI / 4);
-    set_box_class_ids(&mesh, x, y, z, nx, ny, nz);
+    classify_box(&mesh, x, y, z, nx, ny, nz);
   }
   mesh.set_comm(comm);
   mesh.balance();

@@ -9,10 +9,10 @@
 
 namespace Omega_h {
 
-/*! \details Describes the upward relationship between an entity of dimension (d+1)
-           (called the upward entity) adjacent to an entity of dimension d
-           (called the downward entity), both of which are part of the local
-           boundary of a third entity of dimension > d+1 (called the parent entity).
+/*! \details Describes the upward relationship between an entity of dimension
+   (d+1) (called the upward entity) adjacent to an entity of dimension d (called
+   the downward entity), both of which are part of the local boundary of a third
+   entity of dimension > d+1 (called the parent entity).
  */
 struct TemplateUp {
   /*! \brief The parent-local index of the upward entity */
@@ -24,6 +24,6 @@ struct TemplateUp {
   bool is_flipped;
 };
 
-}
+}  // namespace Omega_h
 
 #endif

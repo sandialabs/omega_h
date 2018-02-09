@@ -8,6 +8,7 @@
 #include "Omega_h_bcast.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_loop.hpp"
@@ -16,12 +17,12 @@
 #include "Omega_h_migrate.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
-#include "Omega_h_simplex.hpp"
 #include "Omega_h_timer.hpp"
 
 namespace Omega_h {
 
 Mesh::Mesh(Library* library_in) {
+  family_ = OMEGA_H_SIMPLEX;
   dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = -1;
@@ -64,6 +65,8 @@ void Mesh::set_comm(CommPtr const& new_comm) {
   comm_ = new_comm;
 }
 
+void Mesh::set_family(Omega_h_Family family_in) { family_ = family_in; }
+
 void Mesh::set_dim(Int dim_in) {
   OMEGA_H_CHECK(dim_ == -1);
   OMEGA_H_CHECK(dim_in >= 1);
@@ -77,8 +80,8 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   check_dim(ent_dim);
   OMEGA_H_CHECK(!has_ents(ent_dim));
   LOs hl2l = down.ab2b;
-  OMEGA_H_CHECK(hl2l.size() % simplex_degree(ent_dim, ent_dim - 1) == 0);
-  nents_[ent_dim] = hl2l.size() / simplex_degree(ent_dim, ent_dim - 1);
+  auto deg = element_degree(family(), ent_dim, ent_dim - 1);
+  nents_[ent_dim] = divide_no_remainder(hl2l.size(), deg);
   add_adj(ent_dim, ent_dim - 1, down);
 }
 
@@ -91,9 +94,9 @@ LO Mesh::nents(Int ent_dim) const {
 
 LO Mesh::nelems() const { return nents(dim()); }
 
-LO Mesh::ntets() const { return nents(REGION); }
+LO Mesh::nregions() const { return nents(REGION); }
 
-LO Mesh::ntris() const { return nents(FACE); }
+LO Mesh::nfaces() const { return nents(FACE); }
 
 LO Mesh::nedges() const { return nents(EDGE); }
 
@@ -115,7 +118,7 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
     Omega_h_fail(
         "add_tag(%s, %s): already exists. use set_tag or "
         "remove_tag\n",
-        plural_names[ent_dim], name.c_str());
+        topological_plural_name(family(), ent_dim), name.c_str());
   }
   OMEGA_H_CHECK(ncomps >= 0);
   OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
@@ -135,7 +138,7 @@ void Mesh::set_tag(
     Int ent_dim, std::string const& name, Read<T> array, bool internal) {
   if (!has_tag(ent_dim, name)) {
     Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
-        plural_names[ent_dim], name.c_str());
+        topological_plural_name(family(), ent_dim), name.c_str());
   }
   Tag<T>* tag = as<T>(tag_iter(ent_dim, name)->get());
   OMEGA_H_CHECK(array.size() == nents(ent_dim) * tag->ncomps());
@@ -161,8 +164,8 @@ void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
   if (!has_tag(ent_dim, name)) {
-    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n", plural_names[ent_dim],
-        name.c_str());
+    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
+        topological_plural_name(family(), ent_dim), name.c_str());
   }
   return tag_iter(ent_dim, name)->get();
 }
@@ -280,12 +283,14 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
     } else {
       OMEGA_H_CHECK(adj.codes.exists());
     }
-    OMEGA_H_CHECK(adj.ab2b.size() == nents(from) * simplex_degree(from, to));
+    OMEGA_H_CHECK(
+        adj.ab2b.size() == nents(from) * element_degree(family(), from, to));
   } else {
     if (from < to) {
       OMEGA_H_CHECK(adj.a2ab.exists());
       OMEGA_H_CHECK(adj.codes.exists());
-      OMEGA_H_CHECK(adj.ab2b.size() == nents(to) * simplex_degree(to, from));
+      OMEGA_H_CHECK(
+          adj.ab2b.size() == nents(to) * element_degree(family(), to, from));
     }
     OMEGA_H_CHECK(adj.a2ab.size() == nents(from) + 1);
   }
@@ -297,7 +302,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
   check_dim2(to);
   if (from < to) {
     Adj down = ask_adj(to, from);
-    Int nlows_per_high = simplex_degree(to, from);
+    Int nlows_per_high = element_degree(family(), to, from);
     LO nlows = nents(from);
     Adj up = invert_adj(down, nlows_per_high, nlows);
     return up;
@@ -305,7 +310,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     OMEGA_H_CHECK(to + 1 < from);
     Adj h2m = ask_adj(from, to + 1);
     Adj m2l = ask_adj(to + 1, to);
-    Adj h2l = transit(h2m, m2l, from, to);
+    Adj h2l = transit(h2m, m2l, family_, from, to);
     return h2l;
   } else {
     if (from == dim() && to == dim()) {
@@ -325,8 +330,9 @@ Adj Mesh::derive_adj(Int from, Int to) {
       return g;
     }
   }
-  Omega_h_fail("can't derive adjacency from %s to %s\n", plural_names[from],
-      plural_names[to]);
+  Omega_h_fail("can't derive adjacency from %s to %s\n",
+      topological_plural_name(family(), from),
+      topological_plural_name(family(), to));
   OMEGA_H_NORETURN(Adj());
 }
 
@@ -510,7 +516,7 @@ Graph Mesh::ask_graph(Int from, Int to) {
   }
   if (to < from) {
     auto down = ask_down(from, to);
-    auto a2ab = LOs(nents(from) + 1, 0, simplex_degree(from, to));
+    auto a2ab = LOs(nents(from) + 1, 0, element_degree(family(), from, to));
     return Graph(a2ab, down.ab2b);
   }
   OMEGA_H_CHECK(from == to);
@@ -632,6 +638,7 @@ bool Mesh::have_all_upward() const {
 
 Mesh Mesh::copy_meta() const {
   Mesh m(library_);
+  m.family_ = this->family_;
   m.dim_ = this->dim_;
   m.comm_ = this->comm_;
   m.parting_ = this->parting_;
@@ -665,7 +672,7 @@ Real repro_sum_owned(Mesh* mesh, Int ent_dim, Reals a) {
 
 Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
   auto ev2v = mesh->ask_verts_of(ent_dim);
-  auto degree = simplex_degree(ent_dim, VERT);
+  auto degree = element_degree(mesh->family(), ent_dim, VERT);
   OMEGA_H_CHECK(v2x.size() % ncomps == 0);
   auto na = a2e.size();
   Write<Real> out(na * ncomps);

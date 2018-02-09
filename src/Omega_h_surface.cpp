@@ -147,7 +147,7 @@ static Reals tri_vert_normal_weights(
       }
       auto code = surf_verts2tris.codes[vf];
       auto ffv = code_which_down(code);
-      auto rot = rotation_to_first<3>(ffv);
+      auto rot = rotation_to_first(3, ffv);
       auto ffv2v_0 = gather_verts<3>(fv2v, f);
       Few<LO, 3> ffv2v;
       rotate_adj<3>(rot, ffv2v_0, 0, ffv2v, 0);
@@ -408,7 +408,7 @@ Reals get_surf_vert_IIs(Mesh* mesh, LOs surf_tri2tri, Reals surf_tri_normals,
     Reals surf_tri_IIs, LOs surf_vert2vert, Reals surf_vert_normals) {
   auto nsurf_verts = surf_vert2vert.size();
   auto verts2tris = mesh->ask_up(VERT, FACE);
-  auto tri2surf_tri = invert_injective_map(surf_tri2tri, mesh->ntris());
+  auto tri2surf_tri = invert_injective_map(surf_tri2tri, mesh->nfaces());
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(FACE);
   auto verts_not_surf = map_onto(
