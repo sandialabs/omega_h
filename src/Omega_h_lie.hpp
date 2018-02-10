@@ -36,13 +36,13 @@ OMEGA_H_INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
 // logarithm of a tensor in Special Orthogonal Group(3), as axis times angle
 OMEGA_H_INLINE Vector<3> log_so(Matrix<3, 3> r) {
   auto a = rotation_angle(r);
-  if (fabs(a) < EPSILON) return zero_vector<3>();
-  if (fabs(a - PI) < EPSILON) {
+  if (std::abs(a) < EPSILON) return zero_vector<3>();
+  if (std::abs(a - PI) < EPSILON) {
     auto decomp = decompose_eigen(r);
-    auto best_d = fabs(decomp.l[0] - 1.0);
+    auto best_d = std::abs(decomp.l[0] - 1.0);
     auto best_i = 0;
     for (Int i = 1; i < 3; ++i) {
-      auto d = fabs(decomp.l[i] - 1.0);
+      auto d = std::abs(decomp.l[i] - 1.0);
       if (d < best_d) {
         best_d = d;
         best_i = i;
@@ -57,7 +57,7 @@ OMEGA_H_INLINE Vector<3> log_so(Matrix<3, 3> r) {
 // exponential of axis-angle, resulting in an SO(3) tensor
 OMEGA_H_INLINE Matrix<3, 3> exp_so(Vector<3> axis_angle) {
   auto a = norm(axis_angle);
-  if (fabs(a) < EPSILON) return identity_matrix<3, 3>();
+  if (std::abs(a) < EPSILON) return identity_matrix<3, 3>();
   return rotate(a, axis_angle / a);
 }
 

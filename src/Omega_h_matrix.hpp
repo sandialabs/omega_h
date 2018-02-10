@@ -179,7 +179,7 @@ template <Int m, Int n>
 OMEGA_H_INLINE Real max_norm(Matrix<m, n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)
-    for (Int i = 0; i < m; ++i) x = max2(x, fabs(a[j][i]));
+    for (Int i = 0; i < m; ++i) x = max2(x, std::abs(a[j][i]));
   return x;
 }
 
@@ -510,7 +510,7 @@ OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   struct {
     Int i;
     Real m;
-  } s[3] = {{0, fabs(v[0])}, {1, fabs(v[1])}, {2, fabs(v[2])}};
+  } s[3] = {{0, std::abs(v[0])}, {1, std::abs(v[1])}, {2, std::abs(v[2])}};
   if (s[2].m > s[1].m) swap2(s[1], s[2]);
   if (s[1].m > s[0].m) swap2(s[0], s[1]);
   if (s[2].m > s[1].m) swap2(s[1], s[2]);

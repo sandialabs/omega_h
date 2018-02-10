@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
   auto coords = mesh.coords();
   auto f = OMEGA_H_LAMBDA(LO vert) {
     auto x = get_vector<3>(coords, vert);
-    set_vector(velocity, vert, vector_3(0, 0, 1) * sqrt(fabs(x[2])));
+    set_vector(velocity, vert, vector_3(0, 0, 1) * std::sqrt(std::abs(x[2])));
   };
   parallel_for(mesh.nverts(), f);
   mesh.add_tag(VERT, "velocity", mesh.dim(), Reals(velocity));
