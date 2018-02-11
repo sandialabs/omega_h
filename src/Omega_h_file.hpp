@@ -129,11 +129,6 @@ void read(std::istream& stream, std::string& val);
 void write(std::ostream& stream, Mesh* mesh);
 void read(std::istream& stream, Mesh* mesh, I32 version);
 
-void write_reals_txt(std::string const& filename, Reals a, Int ncomps);
-void write_reals_txt(std::ostream& stream, Reals a, Int ncomps);
-Reals read_reals_txt(std::string const& filename, LO n, Int ncomps);
-Reals read_reals_txt(std::istream& stream, LO n, Int ncomps);
-
 #define INST_DECL(T)                                                           \
   extern template void swap_if_needed(T& val, bool is_little_endian);          \
   extern template Read<T> swap_if_needed(                                      \
@@ -151,6 +146,11 @@ INST_DECL(Real)
 // for VTK compression headers
 extern template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
 }  // namespace binary
+
+void write_reals_txt(std::string const& filename, Reals a, Int ncomps);
+void write_reals_txt(std::ostream& stream, Reals a, Int ncomps);
+Reals read_reals_txt(std::string const& filename, LO n, Int ncomps);
+Reals read_reals_txt(std::istream& stream, LO n, Int ncomps);
 
 inline std::string to_string(I32 x) {
 #ifdef __INTEL_COMPILER

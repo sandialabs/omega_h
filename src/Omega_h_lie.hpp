@@ -86,12 +86,12 @@ template <Int dim>
 OMEGA_H_INLINE LogDecomp<dim> log_glp(Matrix<dim, dim> a) {
   auto aa_dc = decompose_eigen(transpose(a) * a);
   Vector<dim> p_l;
-  for (Int i = 0; i < dim; ++i) p_l[i] = ::sqrt(aa_dc.l[i]);
+  for (Int i = 0; i < dim; ++i) p_l[i] = std::sqrt(aa_dc.l[i]);
   auto p = compose_eigen(aa_dc.q, p_l);
   auto u = a * invert(p);
   auto log_u = log_so(u);
   Vector<dim> log_p_l;
-  for (Int i = 0; i < dim; ++i) log_p_l[i] = ::log(p_l[i]);
+  for (Int i = 0; i < dim; ++i) log_p_l[i] = std::log(p_l[i]);
   auto log_p = compose_ortho(aa_dc.q, log_p_l);
   return {log_u, log_p};
 }

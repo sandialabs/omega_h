@@ -544,6 +544,25 @@ Mesh read(std::string const& path, CommPtr comm) {
   return mesh;
 }
 
+#define OMEGA_H_INST(T)                                                        \
+  template void swap_if_needed(T& val, bool is_little_endian);                 \
+  template Read<T> swap_if_needed(Read<T> array, bool is_little_endian);       \
+  template void write_value(std::ostream& stream, T val);                      \
+  template void read_value(std::istream& stream, T& val);                      \
+  template void write_array(std::ostream& stream, Read<T> array);              \
+  template void read_array(                                                    \
+      std::istream& stream, Read<T>& array, bool is_compressed);
+OMEGA_H_INST(I8)
+OMEGA_H_INST(I32)
+OMEGA_H_INST(I64)
+OMEGA_H_INST(Real)
+#undef OMEGA_H_INST
+
+// for VTK compression headers
+template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
+
+}  // end namespace binary
+
 void write_reals_txt(std::string const& filename, Reals a, Int ncomps) {
   std::ofstream stream(filename.c_str());
   write_reals_txt(stream, a, ncomps);
@@ -576,24 +595,5 @@ Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
   }
   return h_a.write();
 }
-
-#define OMEGA_H_INST(T)                                                        \
-  template void swap_if_needed(T& val, bool is_little_endian);                 \
-  template Read<T> swap_if_needed(Read<T> array, bool is_little_endian);       \
-  template void write_value(std::ostream& stream, T val);                      \
-  template void read_value(std::istream& stream, T& val);                      \
-  template void write_array(std::ostream& stream, Read<T> array);              \
-  template void read_array(                                                    \
-      std::istream& stream, Read<T>& array, bool is_compressed);
-OMEGA_H_INST(I8)
-OMEGA_H_INST(I32)
-OMEGA_H_INST(I64)
-OMEGA_H_INST(Real)
-#undef OMEGA_H_INST
-
-// for VTK compression headers
-template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
-
-}  // end namespace binary
 
 }  // end namespace Omega_h

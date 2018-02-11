@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   Omega_h::Reals target_metric;
   std::cout << "Loading metric from " << metric_in << "\n";
   if (Omega_h::ends_with(metric_in, ".txt")) {
-  //target_metric = Omega_h::read_reals_txt(metric_in, mesh.nverts(), Omega_h::symm_ndofs(mesh.dim()));
+    target_metric = Omega_h::read_reals_txt(metric_in, mesh.nverts(), Omega_h::symm_ndofs(mesh.dim()));
     target_metric = Omega_h::symms_inria2osh(mesh.dim(), target_metric);
     mesh.add_tag(0, "target_metric", Omega_h::symm_ncomps(mesh.dim()), target_metric);
   } else
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
     if (Omega_h::ends_with(metric_out, ".txt")) {
       auto metric = mesh.get_array<Omega_h::Real>(0, "metric");
       metric = Omega_h::symms_osh2inria(mesh.dim(), metric);
-      //Omega_h::write_reals_txt(metric_out, metric);
+      Omega_h::write_reals_txt(metric_out, metric);
     } else
 #ifdef OMEGA_H_USE_LIBMESHB
     if (Omega_h::ends_with(metric_out, ".sol") ||

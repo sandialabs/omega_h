@@ -90,7 +90,7 @@ OMEGA_H_INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
 
 OMEGA_H_INLINE Real edge_length(Real l_a, Real l_b) {
   if (std::abs(l_a - l_b) > 1e-3) {
-    return (l_a - l_b) / (::log(l_a / l_b));
+    return (l_a - l_b) / (std::log(l_a / l_b));
   }
   return (l_a + l_b) / 2.;
 }
