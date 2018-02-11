@@ -47,11 +47,12 @@ int main(int argc, char** argv) {
   std::cout << "Loading mesh from " << mesh_in << "\n";
   auto mesh = Omega_h::gmsh::read(mesh_in, comm);
   Omega_h::Reals target_metric;
-  std::cout << "Loading metric from " << metric_in << "\n";
+  std::cout << "Loading target metric from " << metric_in << "\n";
+  auto dim = mesh.dim();
   if (Omega_h::ends_with(metric_in, ".txt")) {
-    target_metric = Omega_h::read_reals_txt(metric_in, mesh.nverts(), Omega_h::symm_ndofs(mesh.dim()));
-    target_metric = Omega_h::symms_inria2osh(mesh.dim(), target_metric);
-    mesh.add_tag(0, "target_metric", Omega_h::symm_ncomps(mesh.dim()), target_metric);
+    target_metric = Omega_h::read_reals_txt(metric_in, mesh.nverts(), Omega_h::symm_ncomps(dim));
+    target_metric = Omega_h::symms_inria2osh(dim, target_metric);
+    mesh.add_tag(0, "target_metric", Omega_h::symm_ncomps(dim), target_metric);
   } else
 #ifdef OMEGA_H_USE_LIBMESHB
   if (Omega_h::ends_with(metric_in, ".sol") ||
@@ -62,18 +63,21 @@ int main(int argc, char** argv) {
   {
     Omega_h_fail("unknown extension for \"%s\"\n", metric_in.c_str());
   }
+  std::cout << "Limiting target metric gradation...\n";
   target_metric = Omega_h::limit_metric_gradation(&mesh, target_metric, 1.0);
+  std::cout << "Deriving implied metric...\n";
+  Omega_h::add_implied_metric_tag(&mesh);
   auto opts = Omega_h::AdaptOpts(&mesh);
   auto min_qual = mesh.min_quality();
+  std::cout << "Initial mesh has minimum quality " << min_qual;
   if (min_qual < opts.min_quality_allowed) {
-    std::cout << "Initial mesh has minimum quality " << min_qual
-      << " < minimum acceptable quality " << opts.min_quality_allowed << '\n';
+    std::cout << " < minimum acceptable quality " << opts.min_quality_allowed << '\n';
     std::cout << "Omega_h will now attempt to repair the initial mesh quality.\n";
     std::cout << "This could take some time...\n";
     Omega_h::fix(&mesh, opts, OMEGA_H_ANISOTROPIC, /*verbose=*/true);
     std::cout << "\nOmega_h is done repairing mesh quality!\n\n";
   } else {
-    Omega_h::add_implied_metric_tag(&mesh);
+    std::cout << ", which is good\n";
   }
   std::cout << "Adapting...\n";
   while (Omega_h::approach_metric(&mesh, opts)) {
@@ -87,8 +91,8 @@ int main(int argc, char** argv) {
     std::cout << "Storing metric in " << metric_out << '\n';
     if (Omega_h::ends_with(metric_out, ".txt")) {
       auto metric = mesh.get_array<Omega_h::Real>(0, "metric");
-      metric = Omega_h::symms_osh2inria(mesh.dim(), metric);
-      Omega_h::write_reals_txt(metric_out, metric);
+      metric = Omega_h::symms_osh2inria(dim, metric);
+      Omega_h::write_reals_txt(metric_out, metric, Omega_h::symm_ncomps(dim));
     } else
 #ifdef OMEGA_H_USE_LIBMESHB
     if (Omega_h::ends_with(metric_out, ".sol") ||
