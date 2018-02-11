@@ -13,7 +13,7 @@ namespace Omega_h {
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> log_spd(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = ::log(decomp.l[i]);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
 }
 
@@ -21,7 +21,7 @@ OMEGA_H_INLINE Matrix<dim, dim> log_spd(Matrix<dim, dim> m) {
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = ::exp(decomp.l[i]);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
 }
 
@@ -29,7 +29,7 @@ OMEGA_H_INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
   auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = ::sqrt(decomp.l[i]);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::sqrt(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
 }
 

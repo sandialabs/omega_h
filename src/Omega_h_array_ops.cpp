@@ -505,7 +505,7 @@ struct MaxExponent : public MaxFunctor<int> {
   MaxExponent(Reals a) : a_(a) {}
   OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
     int expo;
-    frexp(a_[i], &expo);
+    std::frexp(a_[i], &expo);
     if (expo > update) update = expo;
   }
 };
