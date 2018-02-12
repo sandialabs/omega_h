@@ -70,7 +70,7 @@ Reals get_hinge_angles_tmpl(Mesh* mesh, Reals surf_side_normals,
       if (-1 == ss) continue;
       n[i++] = get_vector<dim>(surf_side_normals, ss);
     }
-    angles[surf_hinge] = acos(n[0] * n[1]);
+    angles[surf_hinge] = std::acos(n[0] * n[1]);
   };
   parallel_for(nsurf_hinges, f, "get_hingle_angles");
   return angles;

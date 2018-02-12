@@ -47,11 +47,11 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   } else {
     // D < 0 implies Q < 0, since R^2 must be positive
     auto cos_theta = R / std::sqrt(-cube(Q));
-    Real theta = acos(clamp(cos_theta, -1.0, 1.0));
+    Real theta = std::acos(clamp(cos_theta, -1.0, 1.0));
     Real radius = 2. * std::sqrt(-Q);
-    Real z_1 = radius * cos((theta) / 3.) + shift;
-    Real z_2 = radius * cos((theta + 2. * PI) / 3.) + shift;
-    Real z_3 = radius * cos((theta - 2. * PI) / 3.) + shift;
+    Real z_1 = radius * std::cos((theta) / 3.) + shift;
+    Real z_2 = radius * std::cos((theta + 2. * PI) / 3.) + shift;
+    Real z_3 = radius * std::cos((theta - 2. * PI) / 3.) + shift;
     roots[0] = z_1;
     roots[1] = z_2;
     roots[2] = z_3;
