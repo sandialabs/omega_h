@@ -471,4 +471,9 @@ endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
 
+if (Omega_h_USE_pybind11)
+  pybind11_add_module(omega_h_pybind11 Omega_h_pybind11.cpp)
+  target_link_libraries(omega_h_pybind11 PUBLIC omega_h)
+endif()
+
 bob_end_subdir()

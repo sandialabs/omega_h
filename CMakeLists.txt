@@ -70,6 +70,9 @@ set(Omega_h_USE_TeuchosParser_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParser_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_public_dep(TeuchosParser)
 
+set(Omega_h_USE_pybind11_DEFAULT OFF)
+bob_public_dep(pybind11)
+
 if  ( Omega_h_USE_TeuchosParameterList
   AND Omega_h_USE_TeuchosComm
   AND Omega_h_USE_TeuchosParser

@@ -10,6 +10,9 @@ namespace Omega_h {
 class Library {
  public:
   Library(Library const&);
+  inline Library():
+    Library(nullptr, nullptr)
+  {}
   inline Library(int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
       ,
