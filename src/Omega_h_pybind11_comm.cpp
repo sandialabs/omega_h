@@ -4,7 +4,7 @@
 namespace Omega_h {
 
 void pybind11_comm(py::module& module) {
-  py::class_<Omega_h::Comm>(module, "Comm")
+  py::class_<Omega_h::Comm, std::shared_ptr<Omega_h::Comm>>(module, "Comm")
       .def("rank", &Omega_h::Comm::rank)
       .def("size", &Omega_h::Comm::size);
 }
