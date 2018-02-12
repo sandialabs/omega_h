@@ -476,6 +476,7 @@ if (Omega_h_USE_pybind11)
       Omega_h_pybind11.cpp
       Omega_h_pybind11_comm.cpp
       Omega_h_pybind11_library.cpp
+      Omega_h_pybind11_mesh.cpp
       )
   target_link_libraries(omega_h_pybind11 PUBLIC omega_h)
 endif()
