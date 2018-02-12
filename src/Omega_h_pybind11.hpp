@@ -14,4 +14,9 @@
 
 namespace py = pybind11;
 
+namespace Omega_h {
+void pybind11_comm(py::module& module);
+void pybind11_library(py::module& module);
+}
+
 #endif
