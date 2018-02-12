@@ -120,7 +120,8 @@ void add_implied_metric_based_on_target(Mesh* mesh);
 void fix(Mesh* mesh, AdaptOpts const& adapt_opts, Omega_h_Isotropy isotropy,
     bool verbose);
 
-void grade_fix_adapt(Mesh* mesh, AdaptOpts const& opts, Reals target_metric, bool verbose);
+void grade_fix_adapt(
+    Mesh* mesh, AdaptOpts const& opts, Reals target_metric, bool verbose);
 
 }  // namespace Omega_h
 

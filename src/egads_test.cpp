@@ -109,7 +109,8 @@ int main(int argc, char** argv) {
   print_closest_point(faces, 2, {{0.5, 0.5, 1.0}});
   print_closest_point(faces, 3, {{0.5, 1.0, 0.5}});
   print_closest_point(faces, 4, {{0.5, 0.5, 0.0}});
-  print_closest_point(faces, 5, {{0.5 / std::sqrt(2), 0.5 / std::sqrt(2), 0.5}});
+  print_closest_point(
+      faces, 5, {{0.5 / std::sqrt(2), 0.5 / std::sqrt(2), 0.5}});
   print_closest_point(faces, 6, {{1.0, 0.5, 0.5}});
   print_closest_point(faces, 7, {{0.75, 0.0, 0.5}});
   EG_free(faces);

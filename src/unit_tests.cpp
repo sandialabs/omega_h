@@ -194,8 +194,8 @@ static void test_eigen_jacobi() {
       identity_matrix<2, 2>(), identity_matrix<2, 2>(), vector_2(1, 1));
   test_eigen_jacobi(
       identity_matrix<3, 3>(), identity_matrix<3, 3>(), vector_3(1, 1, 1));
-  test_eigen_jacobi(matrix_2x2(2, 1, 1, 2), matrix_2x2(1, 1, 1, -1) / std::sqrt(2),
-      vector_2(3, 1));
+  test_eigen_jacobi(matrix_2x2(2, 1, 1, 2),
+      matrix_2x2(1, 1, 1, -1) / std::sqrt(2), vector_2(3, 1));
   test_eigen_jacobi(matrix_3x3(2, 0, 0, 0, 3, 4, 0, 4, 9),
       Matrix<3, 3>({normalize(vector_3(0, 1, 2)), normalize(vector_3(1, 0, 0)),
           normalize(vector_3(0, 2, -1))}),
@@ -638,17 +638,19 @@ static void test_dual(Library* lib) {
 static void test_quality() {
   Few<Vector<2>, 3> perfect_tri(
       {vector_2(1, 0), vector_2(0, std::sqrt(3.0)), vector_2(-1, 0)});
-  Few<Vector<3>, 4> perfect_tet(
-      {vector_3(1, 0, -1.0 / std::sqrt(2.0)), vector_3(-1, 0, -1.0 / std::sqrt(2.0)),
-          vector_3(0, -1, 1.0 / std::sqrt(2.0)), vector_3(0, 1, 1.0 / std::sqrt(2.0))});
+  Few<Vector<3>, 4> perfect_tet({vector_3(1, 0, -1.0 / std::sqrt(2.0)),
+      vector_3(-1, 0, -1.0 / std::sqrt(2.0)),
+      vector_3(0, -1, 1.0 / std::sqrt(2.0)),
+      vector_3(0, 1, 1.0 / std::sqrt(2.0))});
   Few<Vector<2>, 3> flat_tri({vector_2(1, 0), vector_2(0, 0), vector_2(-1, 0)});
   Few<Vector<3>, 4> flat_tet({vector_3(1, 0, 0), vector_3(-1, 0, 0),
       vector_3(0, -1, 0), vector_3(0, 1, 0)});
   Few<Vector<2>, 3> inv_tri(
       {vector_2(1, 0), vector_2(-1, 0), vector_2(0, std::sqrt(3.0))});
-  Few<Vector<3>, 4> inv_tet(
-      {vector_3(1, 0, -1.0 / std::sqrt(2.0)), vector_3(-1, 0, -1.0 / std::sqrt(2.0)),
-          vector_3(0, 1, 1.0 / std::sqrt(2.0)), vector_3(0, -1, 1.0 / std::sqrt(2.0))});
+  Few<Vector<3>, 4> inv_tet({vector_3(1, 0, -1.0 / std::sqrt(2.0)),
+      vector_3(-1, 0, -1.0 / std::sqrt(2.0)),
+      vector_3(0, 1, 1.0 / std::sqrt(2.0)),
+      vector_3(0, -1, 1.0 / std::sqrt(2.0))});
   Matrix<2, 2> id_metric_2 = identity_matrix<2, 2>();
   Matrix<3, 3> id_metric_3 = identity_matrix<3, 3>();
   Matrix<2, 2> x_metric_2 =
@@ -939,9 +941,10 @@ static void test_element_implied_metric() {
   auto bfm = compose_metric(identity_matrix<2, 2>(), vector_2(2, 2));
   OMEGA_H_CHECK(are_close(afm, bfm));
   /* perfect tet with edge lengths = 2 */
-  Few<Vector<3>, 4> perfect_tet(
-      {vector_3(1, 0, -1.0 / std::sqrt(2.0)), vector_3(-1, 0, -1.0 / std::sqrt(2.0)),
-          vector_3(0, -1, 1.0 / std::sqrt(2.0)), vector_3(0, 1, 1.0 / std::sqrt(2.0))});
+  Few<Vector<3>, 4> perfect_tet({vector_3(1, 0, -1.0 / std::sqrt(2.0)),
+      vector_3(-1, 0, -1.0 / std::sqrt(2.0)),
+      vector_3(0, -1, 1.0 / std::sqrt(2.0)),
+      vector_3(0, 1, 1.0 / std::sqrt(2.0))});
   auto arm = element_implied_metric(perfect_tet);
   auto brm = compose_metric(identity_matrix<3, 3>(), vector_3(2, 2, 2));
   OMEGA_H_CHECK(are_close(arm, brm));
@@ -1100,7 +1103,8 @@ static void test_inball() {
   auto inball1 = get_inball(regular_edge);
   OMEGA_H_CHECK(are_close(inball1.c, vector_1(0.0)));
   OMEGA_H_CHECK(are_close(inball1.r, 1.0));
-  Few<Vector<2>, 3> regular_tri = {{-1.0, 0.0}, {1.0, 0.0}, {0.0, std::sqrt(3.0)}};
+  Few<Vector<2>, 3> regular_tri = {
+      {-1.0, 0.0}, {1.0, 0.0}, {0.0, std::sqrt(3.0)}};
   auto inball2 = get_inball(regular_tri);
   OMEGA_H_CHECK(are_close(inball2.c, vector_2(0.0, std::sqrt(3.0) / 3.0)));
   OMEGA_H_CHECK(are_close(inball2.r, std::sqrt(3.0) / 3.0));

@@ -5,8 +5,8 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>

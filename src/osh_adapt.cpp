@@ -1,9 +1,9 @@
 #include <iostream>
 
+#include "Omega_h_adapt.hpp"
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_adapt.hpp"
 #include "Omega_h_metric.hpp"
 
 int main(int argc, char** argv) {
@@ -19,9 +19,11 @@ int main(int argc, char** argv) {
   mesh_in_flag.add_arg<std::string>("mesh.msh");
   auto& mesh_out_flag = cmdline.add_flag("--mesh-out", "output mesh file path");
   mesh_out_flag.add_arg<std::string>("mesh.msh");
-  auto& metric_in_flag = cmdline.add_flag("--metric-in", "input metric file path");
+  auto& metric_in_flag =
+      cmdline.add_flag("--metric-in", "input metric file path");
   metric_in_flag.add_arg<std::string>(metric_doc);
-  auto& metric_out_flag = cmdline.add_flag("--metric-out", "output metric file path");
+  auto& metric_out_flag =
+      cmdline.add_flag("--metric-out", "output metric file path");
   metric_out_flag.add_arg<std::string>(metric_doc);
   if (!cmdline.parse_final(comm, &argc, argv)) {
     return -1;
@@ -50,13 +52,14 @@ int main(int argc, char** argv) {
   std::cout << "Loading target metric from " << metric_in << "\n";
   auto dim = mesh.dim();
   if (Omega_h::ends_with(metric_in, ".txt")) {
-    target_metric = Omega_h::read_reals_txt(metric_in, mesh.nverts(), Omega_h::symm_ncomps(dim));
+    target_metric = Omega_h::read_reals_txt(
+        metric_in, mesh.nverts(), Omega_h::symm_ncomps(dim));
     target_metric = Omega_h::symms_inria2osh(dim, target_metric);
     mesh.add_tag(0, "target_metric", Omega_h::symm_ncomps(dim), target_metric);
   } else
 #ifdef OMEGA_H_USE_LIBMESHB
-  if (Omega_h::ends_with(metric_in, ".sol") ||
-      Omega_h::ends_with(metric_in, ".solb")) {
+      if (Omega_h::ends_with(metric_in, ".sol") ||
+          Omega_h::ends_with(metric_in, ".solb")) {
     Omega_h::meshb::read_sol(&mesh, metric_in, "target_metric");
     target_metric = mesh.get_array<Omega_h::Real>(0, "target_metric");
   } else
@@ -77,8 +80,8 @@ int main(int argc, char** argv) {
       Omega_h::write_reals_txt(metric_out, metric, Omega_h::symm_ncomps(dim));
     } else
 #ifdef OMEGA_H_USE_LIBMESHB
-    if (Omega_h::ends_with(metric_out, ".sol") ||
-        Omega_h::ends_with(metric_out, ".solb")) {
+        if (Omega_h::ends_with(metric_out, ".sol") ||
+            Omega_h::ends_with(metric_out, ".solb")) {
       Omega_h::meshb::write_sol(&mesh, metric_out, "metric");
     } else
 #endif

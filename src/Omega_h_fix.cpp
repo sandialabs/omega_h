@@ -118,7 +118,8 @@ void fix(Mesh* mesh, AdaptOpts const& adapt_opts, Omega_h_Isotropy isotropy,
   }
 }
 
-void grade_fix_adapt(Mesh* mesh, AdaptOpts const& opts, Reals target_metric, bool verbose) {
+void grade_fix_adapt(
+    Mesh* mesh, AdaptOpts const& opts, Reals target_metric, bool verbose) {
   verbose = verbose && can_print(mesh);
   auto metric_dim = get_metrics_dim(mesh->nverts(), target_metric);
   if (verbose) std::cout << "Limiting target metric gradation...\n";
@@ -128,10 +129,13 @@ void grade_fix_adapt(Mesh* mesh, AdaptOpts const& opts, Reals target_metric, boo
   auto min_qual = mesh->min_quality();
   std::cout << "Initial mesh has minimum quality " << min_qual;
   if (min_qual < opts.min_quality_allowed) {
-    std::cout << " < minimum acceptable quality " << opts.min_quality_allowed << '\n';
-    std::cout << "Omega_h will now attempt to repair the initial mesh quality.\n";
+    std::cout << " < minimum acceptable quality " << opts.min_quality_allowed
+              << '\n';
+    std::cout
+        << "Omega_h will now attempt to repair the initial mesh quality.\n";
     std::cout << "This could take some time...\n";
-    auto isotropy = (metric_dim == 1 ? OMEGA_H_ISO_LENGTH : OMEGA_H_ANISOTROPIC);
+    auto isotropy =
+        (metric_dim == 1 ? OMEGA_H_ISO_LENGTH : OMEGA_H_ANISOTROPIC);
     Omega_h::fix(mesh, opts, isotropy, /*verbose=*/true);
     std::cout << "\nOmega_h is done repairing mesh quality!\n\n";
   } else {
