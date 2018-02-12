@@ -38,12 +38,12 @@ static void tet_run(Omega_h::Real side_angle_in_degrees) {
   auto half_cord_length = sin(half_side_angle);
   auto cord_length = 2. * half_cord_length;
   std::cout << "cord_length " << cord_length << '\n';
-  auto surf_tri_height = sqrt(3.) / 2. * cord_length;
+  auto surf_tri_height = std::sqrt(3.) / 2. * cord_length;
   auto inradius = surf_tri_height / 3.;
   auto circumradius = inradius * 2.;
   std::cout << "circumradius " << circumradius << '\n';
-  auto surf_tri_area = sqrt(3.) / 4. * Omega_h::square(cord_length);
-  auto tet_height = sqrt(1. - Omega_h::square(circumradius));
+  auto surf_tri_area = std::sqrt(3.) / 4. * Omega_h::square(cord_length);
+  auto tet_height = std::sqrt(1. - Omega_h::square(circumradius));
   auto tet_volume = 1. / 3. * surf_tri_area * tet_height;
   std::cout << "tet_volume " << tet_volume << '\n';
   auto msl = (3 * Omega_h::square(cord_length) + 3.) / 6.;
@@ -63,7 +63,7 @@ static void tri_run(Omega_h::Real side_angle_in_degrees) {
   auto half_cord_length = sin(half_side_angle);
   auto cord_length = 2. * half_cord_length;
   std::cout << "cord_length " << cord_length << '\n';
-  auto height = sqrt(1. - Omega_h::square(half_cord_length));
+  auto height = std::sqrt(1. - Omega_h::square(half_cord_length));
   auto area = cord_length * height / 2.;
   std::cout << "area " << area << '\n';
   auto msl = (Omega_h::square(cord_length) + 2.) / 3.;

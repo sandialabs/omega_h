@@ -238,7 +238,7 @@ R3D_INLINE Real norm_squared(Vector<n> v) {
 
 template <Int n>
 R3D_INLINE Real norm(Vector<n> v) {
-  return sqrt(norm_squared(v));
+  return std::sqrt(norm_squared(v));
 }
 
 template <Int n>

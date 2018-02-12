@@ -55,8 +55,8 @@ void TransferOpts::validate(Mesh* mesh) const {
 }
 
 AdaptOpts::AdaptOpts(Int dim) {
-  min_length_desired = 1.0 / sqrt(2.0);
-  max_length_desired = sqrt(2.0);
+  min_length_desired = 1.0 / std::sqrt(2.0);
+  max_length_desired = std::sqrt(2.0);
   max_length_allowed = max_length_desired * 2.0;
   if (dim == 3) {
     min_quality_allowed = 0.20;

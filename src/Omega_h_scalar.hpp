@@ -136,7 +136,7 @@ struct Root<1> {
 
 template <>
 struct Root<2> {
-  static OMEGA_H_INLINE Real eval(Real x) { return sqrt(x); }
+  static OMEGA_H_INLINE Real eval(Real x) { return std::sqrt(x); }
 };
 
 template <>

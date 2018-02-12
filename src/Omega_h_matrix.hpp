@@ -265,7 +265,7 @@ OMEGA_H_INLINE Real inner_product(Matrix<m, n> a, Matrix<m, n> b) {
 
 template <Int max_m, Int max_n>
 OMEGA_H_INLINE Real norm(Int m, Int n, Matrix<max_m, max_n> a) {
-  return sqrt(inner_product(m, n, a, a));
+  return std::sqrt(inner_product(m, n, a, a));
 }
 
 template <Int m, Int n>
