@@ -58,32 +58,14 @@ int main(int argc, char** argv) {
   if (Omega_h::ends_with(metric_in, ".sol") ||
       Omega_h::ends_with(metric_in, ".solb")) {
     Omega_h::meshb::read_sol(&mesh, metric_in, "target_metric");
+    target_metric = mesh.get_array<Omega_h::Real>(0, "target_metric");
   } else
 #endif
   {
     Omega_h_fail("unknown extension for \"%s\"\n", metric_in.c_str());
   }
-  std::cout << "Limiting target metric gradation...\n";
-  target_metric = Omega_h::limit_metric_gradation(&mesh, target_metric, 1.0);
-  std::cout << "Deriving implied metric...\n";
-  Omega_h::add_implied_metric_tag(&mesh);
   auto opts = Omega_h::AdaptOpts(&mesh);
-  auto min_qual = mesh.min_quality();
-  std::cout << "Initial mesh has minimum quality " << min_qual;
-  if (min_qual < opts.min_quality_allowed) {
-    std::cout << " < minimum acceptable quality " << opts.min_quality_allowed << '\n';
-    std::cout << "Omega_h will now attempt to repair the initial mesh quality.\n";
-    std::cout << "This could take some time...\n";
-    Omega_h::fix(&mesh, opts, OMEGA_H_ANISOTROPIC, /*verbose=*/true);
-    std::cout << "\nOmega_h is done repairing mesh quality!\n\n";
-  } else {
-    std::cout << ", which is good\n";
-  }
-  std::cout << "Adapting...\n";
-  while (Omega_h::approach_metric(&mesh, opts)) {
-    Omega_h::adapt(&mesh, opts);
-  }
-  std::cout << "\nDone adapting!\n\n";
+  Omega_h::grade_fix_adapt(&mesh, opts, target_metric, /*verbose=*/true);
   std::cout << "Storing mesh in " << mesh_out << '\n';
   Omega_h::gmsh::write(mesh_out, &mesh);
   if (cmdline.parsed("--metric-out")) {
