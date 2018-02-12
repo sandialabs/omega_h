@@ -35,8 +35,8 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   Real D = cube(Q) + square(R);
   Real shift = -a_2 / 3.;
   if (D >= 0.0) {
-    Real S = cbrt(R + std::sqrt(D));
-    Real T = cbrt(R - std::sqrt(D));
+    Real S = std::cbrt(R + std::sqrt(D));
+    Real T = std::cbrt(R - std::sqrt(D));
     Real B = S + T;
     Real z_1 = shift + B;
     Real z_23_real = shift - (1. / 2.) * B;

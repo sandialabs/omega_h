@@ -87,9 +87,9 @@ static void test_power() {
   OMEGA_H_CHECK(are_close(x * x, power(x, 2, 1)));
   OMEGA_H_CHECK(are_close(x * x * x, power(x, 3, 1)));
   OMEGA_H_CHECK(are_close(std::sqrt(x), power(x, 1, 2)));
-  OMEGA_H_CHECK(are_close(cbrt(x), power(x, 1, 3)));
+  OMEGA_H_CHECK(are_close(std::cbrt(x), power(x, 1, 3)));
   OMEGA_H_CHECK(are_close(std::sqrt(x * x * x), power(x, 3, 2)));
-  OMEGA_H_CHECK(are_close(cbrt(x * x), power(x, 2, 3)));
+  OMEGA_H_CHECK(are_close(std::cbrt(x * x), power(x, 2, 3)));
 }
 
 static void test_cubic(Few<Real, 3> coeffs, Int nroots_wanted,
