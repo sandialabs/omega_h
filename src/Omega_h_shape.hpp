@@ -56,7 +56,7 @@ OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi) {
   return 0.0 <= minimum(xi) && maximum(xi) <= 1.0;
 }
 
-OMEGA_H_INLINE Real edge_length(Few<Vector<1>, 1> b) { return fabs(b[0][0]); }
+OMEGA_H_INLINE Real edge_length(Few<Vector<1>, 1> b) { return std::abs(b[0][0]); }
 
 OMEGA_H_INLINE Real element_size(Few<Vector<1>, 1> b) { return edge_length(b); }
 
@@ -89,8 +89,8 @@ OMEGA_H_INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
  */
 
 OMEGA_H_INLINE Real edge_length(Real l_a, Real l_b) {
-  if (::fabs(l_a - l_b) > 1e-3) {
-    return (l_a - l_b) / (::log(l_a / l_b));
+  if (std::abs(l_a - l_b) > 1e-3) {
+    return (l_a - l_b) / (std::log(l_a / l_b));
   }
   return (l_a + l_b) / 2.;
 }

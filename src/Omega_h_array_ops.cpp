@@ -112,7 +112,7 @@ struct AreCloseAbs : public AndFunctor {
   Real tol_;
   AreCloseAbs(Reals a, Reals b, Real tol) : a_(a), b_(b), tol_(tol) {}
   OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (fabs(a_[i] - b_[i]) <= tol_);
+    update = update && (std::abs(a_[i] - b_[i]) <= tol_);
   }
 };
 
@@ -400,7 +400,7 @@ Bytes bit_neg_each(Bytes a) {
 
 Read<Real> fabs_each(Read<Real> a) {
   Write<Real> b(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = fabs(a[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { b[i] = std::abs(a[i]); };
   parallel_for(a.size(), f, "fabs_each");
   return b;
 }
@@ -505,7 +505,7 @@ struct MaxExponent : public MaxFunctor<int> {
   MaxExponent(Reals a) : a_(a) {}
   OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
     int expo;
-    frexp(a_[i], &expo);
+    std::frexp(a_[i], &expo);
     if (expo > update) update = expo;
   }
 };

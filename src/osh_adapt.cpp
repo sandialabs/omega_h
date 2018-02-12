@@ -1,48 +1,107 @@
+#include <iostream>
+
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_teuchos.hpp"
-
-using namespace Omega_h;
+#include "Omega_h_adapt.hpp"
+#include "Omega_h_metric.hpp"
 
 int main(int argc, char** argv) {
-  auto lib = Library(&argc, &argv);
+  auto lib = Omega_h::Library(&argc, &argv);
   auto comm = lib.world();
-  CmdLine cmdline;
-#ifdef OMEGA_H_USE_YAML
-  auto configpath_placeholder = "input.{xml,yaml}";
+  Omega_h::CmdLine cmdline;
+#ifdef OMEGA_H_USE_LIBMESHB
+  auto metric_doc = "metric.{txt,sol}";
 #else
-  auto configpath_placeholder = "input.xml";
+  auto metric_doc = "metric.txt";
 #endif
-  cmdline.add_arg<std::string>(configpath_placeholder);
+  auto& mesh_in_flag = cmdline.add_flag("--mesh-in", "input mesh file path");
+  mesh_in_flag.add_arg<std::string>("mesh.msh");
+  auto& mesh_out_flag = cmdline.add_flag("--mesh-out", "output mesh file path");
+  mesh_out_flag.add_arg<std::string>("mesh.msh");
+  auto& metric_in_flag = cmdline.add_flag("--metric-in", "input metric file path");
+  metric_in_flag.add_arg<std::string>(metric_doc);
+  auto& metric_out_flag = cmdline.add_flag("--metric-out", "output metric file path");
+  metric_out_flag.add_arg<std::string>(metric_doc);
   if (!cmdline.parse_final(comm, &argc, argv)) {
     return -1;
   }
-  auto configpath = cmdline.get<std::string>(configpath_placeholder);
-  auto pl_rcp = Teuchos::createParameterList("Omega_h");
-  auto comm_teuchos = make_teuchos_comm(comm);
-  update_parameters_from_file(configpath, pl_rcp.get(), *comm_teuchos);
-  auto inputpath = pl_rcp->get<std::string>("Input File");
-  auto outputpath = pl_rcp->get<std::string>("Output File");
-  auto mesh = Mesh(&lib);
-  binary::read(inputpath, comm, &mesh);
-  if (pl_rcp->isSublist("Target Metric")) {
-    auto& target_metric_pl = pl_rcp->sublist("Target Metric");
-    auto target_metric_input = MetricInput();
-    update_metric_input(&target_metric_input, target_metric_pl);
-    generate_target_metric_tag(&mesh, target_metric_input);
+  if (!cmdline.parsed("--mesh-in")) {
+    std::cout << "No input mesh file specified\n";
+    cmdline.show_help(argv);
+    return -1;
   }
-  auto& metric_pl = pl_rcp->sublist("Metric");
-  auto metric_input = MetricInput();
-  update_metric_input(&metric_input, metric_pl);
-  generate_metric_tag(&mesh, metric_input);
-  auto adapt_opts = AdaptOpts(&mesh);
-  if (pl_rcp->isSublist("Adapt")) {
-    auto& adapt_pl = pl_rcp->sublist("Adapt");
-    update_adapt_opts(&adapt_opts, adapt_pl);
+  if (!cmdline.parsed("--mesh-out")) {
+    std::cout << "No output mesh file specified\n";
+    cmdline.show_help(argv);
+    return -1;
   }
-  do {
-    adapt(&mesh, adapt_opts);
-  } while (approach_metric(&mesh, adapt_opts));
-  binary::write(outputpath, &mesh);
+  if (!cmdline.parsed("--metric-in")) {
+    std::cout << "No input metric file specified\n";
+    cmdline.show_help(argv);
+    return -1;
+  }
+  auto mesh_in = cmdline.get<std::string>("--mesh-in", "mesh.msh");
+  auto mesh_out = cmdline.get<std::string>("--mesh-out", "mesh.msh");
+  auto metric_in = cmdline.get<std::string>("--metric-in", metric_doc);
+  std::cout << "Loading mesh from " << mesh_in << "\n";
+  auto mesh = Omega_h::gmsh::read(mesh_in, comm);
+  Omega_h::Reals target_metric;
+  std::cout << "Loading target metric from " << metric_in << "\n";
+  auto dim = mesh.dim();
+  if (Omega_h::ends_with(metric_in, ".txt")) {
+    target_metric = Omega_h::read_reals_txt(metric_in, mesh.nverts(), Omega_h::symm_ncomps(dim));
+    target_metric = Omega_h::symms_inria2osh(dim, target_metric);
+    mesh.add_tag(0, "target_metric", Omega_h::symm_ncomps(dim), target_metric);
+  } else
+#ifdef OMEGA_H_USE_LIBMESHB
+  if (Omega_h::ends_with(metric_in, ".sol") ||
+      Omega_h::ends_with(metric_in, ".solb")) {
+    Omega_h::meshb::read_sol(&mesh, metric_in, "target_metric");
+  } else
+#endif
+  {
+    Omega_h_fail("unknown extension for \"%s\"\n", metric_in.c_str());
+  }
+  std::cout << "Limiting target metric gradation...\n";
+  target_metric = Omega_h::limit_metric_gradation(&mesh, target_metric, 1.0);
+  std::cout << "Deriving implied metric...\n";
+  Omega_h::add_implied_metric_tag(&mesh);
+  auto opts = Omega_h::AdaptOpts(&mesh);
+  auto min_qual = mesh.min_quality();
+  std::cout << "Initial mesh has minimum quality " << min_qual;
+  if (min_qual < opts.min_quality_allowed) {
+    std::cout << " < minimum acceptable quality " << opts.min_quality_allowed << '\n';
+    std::cout << "Omega_h will now attempt to repair the initial mesh quality.\n";
+    std::cout << "This could take some time...\n";
+    Omega_h::fix(&mesh, opts, OMEGA_H_ANISOTROPIC, /*verbose=*/true);
+    std::cout << "\nOmega_h is done repairing mesh quality!\n\n";
+  } else {
+    std::cout << ", which is good\n";
+  }
+  std::cout << "Adapting...\n";
+  while (Omega_h::approach_metric(&mesh, opts)) {
+    Omega_h::adapt(&mesh, opts);
+  }
+  std::cout << "\nDone adapting!\n\n";
+  std::cout << "Storing mesh in " << mesh_out << '\n';
+  Omega_h::gmsh::write(mesh_out, &mesh);
+  if (cmdline.parsed("--metric-out")) {
+    auto metric_out = cmdline.get<std::string>("--metric-out", metric_doc);
+    std::cout << "Storing metric in " << metric_out << '\n';
+    if (Omega_h::ends_with(metric_out, ".txt")) {
+      auto metric = mesh.get_array<Omega_h::Real>(0, "metric");
+      metric = Omega_h::symms_osh2inria(dim, metric);
+      Omega_h::write_reals_txt(metric_out, metric, Omega_h::symm_ncomps(dim));
+    } else
+#ifdef OMEGA_H_USE_LIBMESHB
+    if (Omega_h::ends_with(metric_out, ".sol") ||
+        Omega_h::ends_with(metric_out, ".solb")) {
+      Omega_h::meshb::write_sol(&mesh, metric_out, "metric");
+    } else
+#endif
+    {
+      Omega_h_fail("unknown extension for \"%s\"\n", metric_out.c_str());
+    }
+  }
 }

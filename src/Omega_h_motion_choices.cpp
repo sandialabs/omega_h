@@ -69,7 +69,7 @@ MotionChoices motion_choices_tmpl(
         auto k_size_grad = get_size_gradient(kkv2nx, kkv_c);
         auto k_size_diff = k_tmp_size - orig_sizes[k];
         auto k_tmp_error = size_errors[k] + k_size_diff;
-        auto k_tmp_rel_error = std::fabs(k_tmp_error / k_tmp_size);
+        auto k_tmp_rel_error = std::abs(k_tmp_error / k_tmp_size);
         if (k_tmp_rel_error > max_rel_error) {
           obj_converged = false;
         }

@@ -84,4 +84,46 @@ Reals matrices_times_matrices(Reals a, Reals b, Int dim) {
   OMEGA_H_NORETURN(Reals());
 }
 
+template <Int dim>
+static Reals symms_inria2osh_dim(Reals symms) {
+  auto n = divide_no_remainder(symms.size(), symm_ncomps(dim));
+  Write<Real> out(symms.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto iv = get_vector<symm_ncomps(dim)>(symms, i);
+    auto is = vector2symm_inria(iv);
+    auto ov = symm2vector(is);
+    set_vector(out, i, ov);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals symms_inria2osh(Int dim, Reals symms) {
+  if (dim == 3) return symms_inria2osh_dim<3>(symms);
+  if (dim == 2) return symms_inria2osh_dim<2>(symms);
+  if (dim == 1) return symms_inria2osh_dim<1>(symms);
+  OMEGA_H_NORETURN(Reals());
+}
+
+template <Int dim>
+static Reals symms_osh2inria_dim(Reals symms) {
+  auto n = divide_no_remainder(symms.size(), symm_ncomps(dim));
+  Write<Real> out(symms.size());
+  auto f = OMEGA_H_LAMBDA(LO i) {
+    auto iv = get_vector<symm_ncomps(dim)>(symms, i);
+    auto is = vector2symm(iv);
+    auto ov = symm2vector_inria(is);
+    set_vector(out, i, ov);
+  };
+  parallel_for(n, f);
+  return out;
+}
+
+Reals symms_osh2inria(Int dim, Reals symms) {
+  if (dim == 3) return symms_osh2inria_dim<3>(symms);
+  if (dim == 2) return symms_osh2inria_dim<2>(symms);
+  if (dim == 1) return symms_osh2inria_dim<1>(symms);
+  OMEGA_H_NORETURN(Reals());
+}
+
 }  // end namespace Omega_h

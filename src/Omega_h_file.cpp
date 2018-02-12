@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 #ifdef OMEGA_H_USE_ZLIB
 #include <zlib.h>
@@ -238,6 +239,8 @@ void read(std::istream& stream, std::string& val) {
 }
 
 static void write_meta(std::ostream& stream, Mesh const* mesh) {
+  auto family = I8(mesh->family());
+  write_value(stream, family);
   auto dim = I8(mesh->dim());
   write_value(stream, dim);
   I32 comm_size = mesh->comm()->size();
@@ -261,6 +264,11 @@ static void write_meta(std::ostream& stream, Mesh const* mesh) {
 }
 
 static void read_meta(std::istream& stream, Mesh* mesh, Int version) {
+  if (version >= 7) {
+    I8 family;
+    read_value(stream, family);
+    mesh->set_family(Omega_h_Family(family));
+  }
   I8 dim;
   read_value(stream, dim);
   mesh->set_dim(Int(dim));
@@ -554,5 +562,38 @@ OMEGA_H_INST(Real)
 template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
 
 }  // end namespace binary
+
+void write_reals_txt(std::string const& filename, Reals a, Int ncomps) {
+  std::ofstream stream(filename.c_str());
+  write_reals_txt(stream, a, ncomps);
+}
+
+void write_reals_txt(std::ostream& stream, Reals a, Int ncomps) {
+  auto n = divide_no_remainder(a.size(), ncomps);
+  auto h_a = HostRead<Real>(a);
+  stream << std::scientific << std::setprecision(17);
+  for (LO i = 0; i < n; ++i) {
+    for (Int j = 0; j < ncomps; ++j) {
+      stream << h_a[i * ncomps + j];
+      if (j < ncomps - 1) stream << ' ';
+    }
+    stream << '\n';
+  }
+}
+
+Reals read_reals_txt(std::string const& filename, LO n, Int ncomps) {
+  std::ifstream stream(filename.c_str());
+  return read_reals_txt(stream, n, ncomps);
+}
+
+Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
+  auto h_a = HostWrite<Real>(n * ncomps);
+  for (LO i = 0; i < n; ++i) {
+    for (Int j = 0; j < ncomps; ++j) {
+      stream >> h_a[i * ncomps + j];
+    }
+  }
+  return h_a.write();
+}
 
 }  // end namespace Omega_h

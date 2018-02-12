@@ -179,7 +179,7 @@ template <Int m, Int n>
 OMEGA_H_INLINE Real max_norm(Matrix<m, n> a) {
   Real x = 0.0;
   for (Int j = 0; j < n; ++j)
-    for (Int i = 0; i < m; ++i) x = max2(x, fabs(a[j][i]));
+    for (Int i = 0; i < m; ++i) x = max2(x, std::abs(a[j][i]));
   return x;
 }
 
@@ -378,6 +378,58 @@ OMEGA_H_INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
   return symm;
 }
 
+/* Symmetric metric tensor storage convention used by
+   INRIA:  https://hal.inria.fr/inria-00363007/document */
+OMEGA_H_INLINE Matrix<1, 1> vector2symm_inria(Vector<1> v) {
+  return matrix_1x1(v[0]);
+}
+
+OMEGA_H_INLINE Matrix<2, 2> vector2symm_inria(Vector<3> v) {
+  Matrix<2, 2> symm;
+  symm[0][0] = v[0];
+  symm[0][1] = v[1];
+  symm[1][1] = v[2];
+  symm[1][0] = symm[0][1];
+  return symm;
+}
+
+OMEGA_H_INLINE Matrix<3, 3> vector2symm_inria(Vector<6> v) {
+  Matrix<3, 3> symm;
+  symm[0][0] = v[0];
+  symm[0][1] = v[1];
+  symm[1][1] = v[2];
+  symm[0][2] = v[3];
+  symm[1][2] = v[4];
+  symm[2][2] = v[5];
+  symm[1][0] = symm[0][1];
+  symm[2][0] = symm[0][2];
+  symm[2][1] = symm[1][2];
+  return symm;
+}
+
+OMEGA_H_INLINE Vector<1> symm2vector_inria(Matrix<1, 1> symm) {
+  return vector_1(symm[0][0]);
+}
+
+OMEGA_H_INLINE Vector<3> symm2vector_inria(Matrix<2, 2> symm) {
+  Vector<3> v;
+  v[0] = symm[0][0];
+  v[1] = symm[0][1];
+  v[2] = symm[1][1];
+  return v;
+}
+
+OMEGA_H_INLINE Vector<6> symm2vector_inria(Matrix<3, 3> symm) {
+  Vector<6> v;
+  v[0] = symm[0][0];
+  v[1] = symm[0][1];
+  v[2] = symm[1][1];
+  v[3] = symm[0][2];
+  v[4] = symm[1][2];
+  v[5] = symm[2][2];
+  return v;
+}
+
 OMEGA_H_INLINE constexpr Int matrix_ncomps(Int dim) { return dim * dim; }
 
 template <Int dim>
@@ -458,7 +510,7 @@ OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   struct {
     Int i;
     Real m;
-  } s[3] = {{0, fabs(v[0])}, {1, fabs(v[1])}, {2, fabs(v[2])}};
+  } s[3] = {{0, std::abs(v[0])}, {1, std::abs(v[1])}, {2, std::abs(v[2])}};
   if (s[2].m > s[1].m) swap2(s[1], s[2]);
   if (s[1].m > s[0].m) swap2(s[0], s[1]);
   if (s[2].m > s[1].m) swap2(s[1], s[2]);
@@ -499,6 +551,9 @@ extern template Reals repeat_matrix(LO n, Matrix<1, 1> m);
 
 Reals matrices_times_vectors(Reals ms, Reals vs, Int dim);
 Reals matrices_times_matrices(Reals ms, Reals vs, Int dim);
+
+Reals symms_inria2osh(Int dim, Reals symms);
+Reals symms_osh2inria(Int dim, Reals symms);
 
 }  // end namespace Omega_h
 

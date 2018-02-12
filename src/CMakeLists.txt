@@ -246,8 +246,8 @@ if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
   osh_add_util(osh2exo)
 endif()
+osh_add_util(osh_adapt)
 if(Omega_h_USE_Teuchos)
-  osh_add_util(osh_adapt)
   osh_add_util(osh_copy_params)
 endif()
 
@@ -399,6 +399,7 @@ if(BUILD_TESTING)
   osh_add_exe(adapt_from_pumi)
   osh_add_exe(random_test)
   test_func(run_random_test 1 ./random_test)
+  osh_add_exe(hypercube_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -469,5 +470,14 @@ if(Omega_h_USE_DOLFIN)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
+
+if (Omega_h_USE_pybind11)
+  pybind11_add_module(omega_h_pybind11
+      Omega_h_pybind11.cpp
+      Omega_h_pybind11_comm.cpp
+      Omega_h_pybind11_library.cpp
+      )
+  target_link_libraries(omega_h_pybind11 PUBLIC omega_h)
+endif()
 
 bob_end_subdir()

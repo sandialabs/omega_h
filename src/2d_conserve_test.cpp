@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   auto f = OMEGA_H_LAMBDA(LO vert) {
     auto x = get_vector<2>(coords, vert);
     auto x2 = x[0] - 0.3;
-    auto w = sign(x2) * sqrt(fabs(x2));
+    auto w = sign(x2) * std::sqrt(std::abs(x2));
     set_vector(velocity, vert, vector_2(1, 0) * w);
   };
   parallel_for(mesh.nverts(), f);

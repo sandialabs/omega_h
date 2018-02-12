@@ -48,6 +48,8 @@ void write(std::string const& path, Mesh* mesh, bool verbose = false,
 namespace gmsh {
 Mesh read(std::istream& stream, CommPtr comm);
 Mesh read(std::string const& filename, CommPtr comm);
+void write(std::ostream& stream, Mesh* mesh);
+void write(std::string const& filepath, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
@@ -105,7 +107,7 @@ I32 read_version(std::string const& path, CommPtr comm);
 void read_in_comm(
     std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
 
-constexpr I32 latest_version = 6;
+constexpr I32 latest_version = 7;
 
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian = true);
@@ -144,6 +146,11 @@ INST_DECL(Real)
 // for VTK compression headers
 extern template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
 }  // namespace binary
+
+void write_reals_txt(std::string const& filename, Reals a, Int ncomps);
+void write_reals_txt(std::ostream& stream, Reals a, Int ncomps);
+Reals read_reals_txt(std::string const& filename, LO n, Int ncomps);
+Reals read_reals_txt(std::istream& stream, LO n, Int ncomps);
 
 inline std::string to_string(I32 x) {
 #ifdef __INTEL_COMPILER

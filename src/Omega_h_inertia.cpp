@@ -91,13 +91,13 @@ bool mark_axis_bisection(CommPtr comm, Reals distances, Reals masses,
   auto n = distances.size();
   OMEGA_H_CHECK(n == masses.size());
   auto minmax_dist = get_minmax(comm, distances);
-  auto range = max2(fabs(minmax_dist.min), fabs(minmax_dist.max));
+  auto range = max2(std::abs(minmax_dist.min), std::abs(minmax_dist.max));
   auto step = range / 2.;
   Real distance = 0.;
   for (Int i = 0; i < MANTISSA_BITS; ++i) {
     marked = mark_half(distances, distance);
     auto half_weight = get_half_weight(comm, masses, marked);
-    if (fabs(half_weight - (total_mass / 2.)) <= tolerance) {
+    if (std::abs(half_weight - (total_mass / 2.)) <= tolerance) {
       return true;
     }
     if (half_weight > total_mass / 2.) {

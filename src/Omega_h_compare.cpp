@@ -89,7 +89,7 @@ Real get_real_diff(Real a, Real b, VarCompareOpts opts) {
   if (opts.type == VarCompareOpts::RELATIVE) {
     return rel_diff_with_floor(a, b, opts.floor);
   } else {
-    return fabs(a - b);
+    return std::abs(a - b);
   }
 }
 

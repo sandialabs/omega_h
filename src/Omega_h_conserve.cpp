@@ -679,7 +679,7 @@ struct AllBounded : public AndFunctor {
   Real b;
   AllBounded(Reals a_, Real b_) : a(a_), b(b_) {}
   OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (fabs(a[i]) <= b);
+    update = update && (std::abs(a[i]) <= b);
   }
 };
 

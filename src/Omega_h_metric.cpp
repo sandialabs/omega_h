@@ -390,7 +390,7 @@ static OMEGA_H_INLINE Matrix<dim, dim> metric_from_hessian(
   constexpr auto c_denom = 2 * square(dim + 1);
   decltype(l) tilde_l;
   for (Int i = 0; i < dim; ++i) {
-    tilde_l[i] = (c_num * fabs(l[i])) / (c_denom * eps);
+    tilde_l[i] = (c_num * std::abs(l[i])) / (c_denom * eps);
   }
   return compose_eigen(r, tilde_l);
 }

@@ -167,7 +167,7 @@ static LOs get_keys2reps(
       auto edge = keys2kds[key];
       keys2reps_w[key] = edge_verts2verts[edge * 2 + 0];
     };
-    parallel_for(nkeys, setup_reps, "get_keys2rep(split)");
+    parallel_for(nkeys, setup_reps, "get_keys2rep(edge-refine)");
     keys2reps = keys2reps_w;
   }
   return keys2reps;
@@ -292,7 +292,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
          edge2rep_order array (see get_edge2rep_order()) */
       prods2new_offsets_w[prod] = offset + edge2rep_order[edge];
     };
-    parallel_for(nkeys, write_prod_offsets, "find_new_offsets(split)");
+    parallel_for(nkeys, write_prod_offsets, "find_new_offsets(edge-refine)");
   } else {
     auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
       auto offset = keys2new_offsets[key];
