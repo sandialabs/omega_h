@@ -51,7 +51,7 @@ OMEGA_H_INLINE Vector<3> log_so(Matrix<3, 3> r) {
     auto v = decomp.q[best_i];
     return PI * v;
   }
-  return (a / sin(a)) * uncross(r - transpose(r));
+  return (a / std::sin(a)) * uncross(r - transpose(r));
 }
 
 // exponential of axis-angle, resulting in an SO(3) tensor

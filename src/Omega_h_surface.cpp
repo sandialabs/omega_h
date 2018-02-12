@@ -399,7 +399,7 @@ OMEGA_H_INLINE Matrix<3, 3> rotate_to_plane(Vector<3> n, Matrix<3, 3> tnuv) {
   auto cpl = norm(cp);
   if (cpl < EPSILON) return tnuv;
   auto axis = cp / cpl;
-  auto angle = asin(cpl);
+  auto angle = std::asin(cpl);
   auto r = rotate(angle, axis);
   return r * tnuv;
 }

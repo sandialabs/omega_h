@@ -26,7 +26,7 @@ static void tet_run(Omega_h::Real side_angle_in_degrees) {
   std::cout << "side_angle " << side_angle << '\n';
   auto dihedral_angle =
       acos((cos(side_angle) - Omega_h::square(cos(side_angle))) /
-           (Omega_h::square(sin(side_angle))));
+           (Omega_h::square(std::sin(side_angle))));
   std::cout << "dihedral_angle " << dihedral_angle << '\n';
   std::cout << "dihedral_angle in degrees "
             << (dihedral_angle * 180. / Omega_h::PI) << '\n';
@@ -35,7 +35,7 @@ static void tet_run(Omega_h::Real side_angle_in_degrees) {
   auto degree = 4. * Omega_h::PI / solid_angle;
   std::cout << "degree " << degree << '\n';
   auto half_side_angle = side_angle / 2.;
-  auto half_cord_length = sin(half_side_angle);
+  auto half_cord_length = std::sin(half_side_angle);
   auto cord_length = 2. * half_cord_length;
   std::cout << "cord_length " << cord_length << '\n';
   auto surf_tri_height = std::sqrt(3.) / 2. * cord_length;
@@ -60,7 +60,7 @@ static void tri_run(Omega_h::Real side_angle_in_degrees) {
   auto degree = 2. * Omega_h::PI / side_angle;
   std::cout << "degree " << degree << '\n';
   auto half_side_angle = side_angle / 2.;
-  auto half_cord_length = sin(half_side_angle);
+  auto half_cord_length = std::sin(half_side_angle);
   auto cord_length = 2. * half_cord_length;
   std::cout << "cord_length " << cord_length << '\n';
   auto height = std::sqrt(1. - Omega_h::square(half_cord_length));

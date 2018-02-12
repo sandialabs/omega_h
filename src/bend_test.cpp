@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
       auto op = get_vector<dim>(orig_coords, v);
       auto angle = full_angle * (op[2] / orig_height);
       auto radius = bend_radius - op[1];
-      auto y = bend_radius - radius * cos(angle);
-      auto z = radius * sin(angle);
+      auto y = bend_radius - radius * std::cos(angle);
+      auto z = radius * std::sin(angle);
       auto p2 = vector_3(op[0], y, z);
       auto p = get_vector<dim>(coords, v);
       auto wv = p2 - p;

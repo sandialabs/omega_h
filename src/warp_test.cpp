@@ -103,8 +103,8 @@ int main(int argc, char** argv) {
       }
       auto dest_a = polar_a + rot_a;
       auto dst = x0;
-      dst[0] = cos(dest_a) * polar_r;
-      dst[1] = sin(dest_a) * polar_r;
+      dst[0] = std::cos(dest_a) * polar_r;
+      dst[1] = std::sin(dest_a) * polar_r;
       dst = dst + mid;
       auto w = dst - x0;
       set_vector<dim>(warp_w, vert, w);
