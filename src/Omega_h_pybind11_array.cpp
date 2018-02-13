@@ -9,4 +9,3 @@ void pybind11_array(py::module& module) {
 }
 
 }  // namespace Omega_h
-
