@@ -17,8 +17,6 @@ namespace Omega_h {
 bool should_log_memory = false;
 char* max_memory_stacktrace = nullptr;
 
-static Library* the_library = nullptr;
-
 // stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
 // published under the WTFPL v2.0
 
@@ -161,8 +159,6 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
 #endif
   if (should_protect) Omega_h_protect();
-  OMEGA_H_CHECK(the_library == nullptr);
-  the_library = this;
 }
 
 Library::Library(Library const& other)
@@ -180,6 +176,7 @@ Library::Library(Library const& other)
 }
 
 Library::~Library() {
+  std::cerr << "calling ~Library\n";
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (we_called_kokkos_init) {
     Kokkos::finalize();
@@ -210,7 +207,6 @@ Library::~Library() {
   }
 #endif
   delete[] Omega_h::max_memory_stacktrace;
-  the_library = nullptr;
 }
 
 CommPtr Library::world() { return world_; }
