@@ -8,7 +8,7 @@ void pybind11_mesh(py::module& module) {
       .def("dim", &Omega_h::Mesh::dim)
       .def("nents", &Omega_h::Mesh::nents)
       .def("nglobal_ents", &Omega_h::Mesh::nglobal_ents)
-//    .def("get_array_real", &Omega_h::Mesh::get_array<Omega_h::Real>)
+      .def("get_array_real", &Omega_h::Mesh::get_array<Omega_h::Real>)
       ;
 }
 
