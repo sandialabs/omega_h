@@ -176,7 +176,6 @@ Library::Library(Library const& other)
 }
 
 Library::~Library() {
-  std::cerr << "calling ~Library\n";
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (we_called_kokkos_init) {
     Kokkos::finalize();
