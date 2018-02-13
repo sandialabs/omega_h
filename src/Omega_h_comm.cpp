@@ -12,8 +12,6 @@
 
 #include "Omega_h_map.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
@@ -30,7 +28,6 @@ Comm::Comm() {
 #ifdef OMEGA_H_USE_MPI
 Comm::Comm(Library* library_in, MPI_Comm impl_in)
     : impl_(impl_in), library_(library_in) {
-  std::cerr << "constructing Comm " << this << '\n';
   int topo_type;
   CALL(MPI_Topo_test(impl_in, &topo_type));
   if (topo_type == MPI_DIST_GRAPH) {
@@ -52,7 +49,6 @@ Comm::Comm(Library* library_in, MPI_Comm impl_in)
 #else
 Comm::Comm(Library* library_in, bool is_graph, bool sends_to_self)
     : library_(library_in) {
-  std::cerr << "constructing Comm " << this << '\n';
   if (is_graph) {
     if (sends_to_self) {
       srcs_ = Read<LO>({0});
@@ -71,7 +67,6 @@ Comm::Comm(Library* library_in, bool is_graph, bool sends_to_self)
 #endif
 
 Comm::~Comm() {
-  std::cerr << "destroying Comm " << this << '\n';
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Comm_free(&impl_));
 #endif

@@ -10,6 +10,8 @@ namespace Omega_h {
    So, for now, I'll take the approach that the Python interface will have
    the Library as a hidden global variable.
    This is consistent with how mpi4py seems to work.
+   I tried using the Python atexit mechanism, but that seems to execute prior
+   to final garbage collection.
  */
 
 std::unique_ptr<Library> pybind11_global_library;
