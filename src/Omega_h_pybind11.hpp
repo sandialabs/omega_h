@@ -20,6 +20,7 @@ void pybind11_comm(py::module& module);
 void pybind11_library(py::module& module);
 void pybind11_mesh(py::module& module);
 void pybind11_build(py::module& module);
+void pybind11_adapt(py::module& module);
 }  // namespace Omega_h
 
 #endif
