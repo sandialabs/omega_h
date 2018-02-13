@@ -474,6 +474,7 @@ install(FILES ${Omega_h_HEADERS} DESTINATION include)
 if (Omega_h_USE_pybind11)
   pybind11_add_module(omega_h_pybind11
       Omega_h_pybind11_c.cpp
+      Omega_h_pybind11_array.cpp
       Omega_h_pybind11_comm.cpp
       Omega_h_pybind11_library.cpp
       Omega_h_pybind11_mesh.cpp
