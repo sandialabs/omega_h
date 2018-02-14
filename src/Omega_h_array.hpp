@@ -228,6 +228,8 @@ class HostWrite {
   }
   T* data() const;
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
+  void set(LO i, T value);
+  T get(LO i) const;
 };
 
 template <class T>
