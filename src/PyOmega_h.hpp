@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_PYBIND11_HPP
-#define OMEGA_H_PYBIND11_HPP
+#ifndef OMEGA_H_PY_HPP
+#define OMEGA_H_PY_HPP
 
 #include <Omega_h_config.h>
 

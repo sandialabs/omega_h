@@ -1,5 +1,5 @@
 #include <Omega_h_library.hpp>
-#include <Omega_h_pybind11.hpp>
+#include <PyOmega_h.hpp>
 #include <iostream>
 
 namespace Omega_h {

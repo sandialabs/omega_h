@@ -1,6 +1,6 @@
 #include <Omega_h_adapt.hpp>
 #include <Omega_h_mesh.hpp>
-#include <Omega_h_pybind11.hpp>
+#include <PyOmega_h.hpp>
 
 namespace Omega_h {
 

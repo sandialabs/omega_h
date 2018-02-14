@@ -1,6 +1,6 @@
-#include <Omega_h_pybind11.hpp>
+#include <PyOmega_h.hpp>
 
-PYBIND11_MODULE(omega_h_pybind11, module) {
+PYBIND11_MODULE(PyOmega_h, module) {
   module.doc() = "Omega_h: simplex mesh adaptation";
   Omega_h::pybind11_c(module);
   Omega_h::pybind11_array(module);
