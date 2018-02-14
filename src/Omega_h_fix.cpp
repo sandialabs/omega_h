@@ -124,28 +124,40 @@ void grade_fix_adapt(
   auto metric_dim = get_metrics_dim(mesh->nverts(), target_metric);
   if (verbose) std::cout << "Limiting target metric gradation...\n";
   target_metric = Omega_h::limit_metric_gradation(mesh, target_metric, 1.0);
-  std::cout << "Deriving implied metric...\n";
-  Omega_h::add_implied_metric_tag(mesh);
+  mesh->remove_tag(VERT, "target_metric");
+  mesh->add_tag(VERT, "target_metric", symm_ncomps(metric_dim), target_metric);
+  if (mesh->has_tag(0, "metric")) {
+    if (verbose) std::cout << "Mesh already has \"metric\" on vertices, assuming that is current\n";
+  } else {
+    if (verbose) std::cout << "Deriving implied metric...\n";
+    if (metric_dim == 1) {
+      Omega_h::add_implied_isos_tag(mesh);
+    } else {
+      Omega_h::add_implied_metric_tag(mesh);
+    }
+  }
   auto min_qual = mesh->min_quality();
-  std::cout << "Initial mesh has minimum quality " << min_qual;
+  if (verbose) std::cout << "Initial mesh has minimum quality " << min_qual;
   if (min_qual < opts.min_quality_allowed) {
-    std::cout << " < minimum acceptable quality " << opts.min_quality_allowed
-              << '\n';
-    std::cout
-        << "Omega_h will now attempt to repair the initial mesh quality.\n";
-    std::cout << "This could take some time...\n";
+    if (verbose) {
+      std::cout << " < minimum acceptable quality " << opts.min_quality_allowed
+                << '\n';
+      std::cout
+          << "Omega_h will now attempt to repair the initial mesh quality.\n";
+      std::cout << "This could take some time...\n";
+    }
     auto isotropy =
         (metric_dim == 1 ? OMEGA_H_ISO_LENGTH : OMEGA_H_ANISOTROPIC);
     Omega_h::fix(mesh, opts, isotropy, /*verbose=*/true);
-    std::cout << "\nOmega_h is done repairing mesh quality!\n\n";
+    if (verbose) std::cout << "\nOmega_h is done repairing mesh quality!\n\n";
   } else {
-    std::cout << ", which is good\n";
+    if (verbose) std::cout << ", which is good\n";
   }
-  std::cout << "Adapting...\n";
+  if (verbose) std::cout << "Adapting...\n";
   while (Omega_h::approach_metric(mesh, opts)) {
     Omega_h::adapt(mesh, opts);
   }
-  std::cout << "\nDone adapting!\n\n";
+  if (verbose) std::cout << "\nDone adapting!\n\n";
 }
 
 }  // namespace Omega_h
