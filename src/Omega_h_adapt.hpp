@@ -106,6 +106,7 @@ struct MetricInput {
   Real min_element_count;
   Real element_count_over_relaxation;
   Int nsmoothing_steps;
+  void add_source(MetricSource const& src);
 };
 
 Reals generate_metrics(Mesh* mesh, MetricInput const& input);

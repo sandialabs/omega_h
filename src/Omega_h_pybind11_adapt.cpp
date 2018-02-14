@@ -23,6 +23,22 @@ void pybind11_adapt(py::module& module) {
          py::arg("tag_name") = "",
          py::arg("isotropy") = OMEGA_H_ANISOTROPIC,
          py::arg("scales") = OMEGA_H_SCALES);
+  py::class_<MetricInput>(module, "MetricInput", "Describes all inputs that form a metric field")
+    .def(py::init<>())
+    .def_readwrite("verbose", &MetricInput::verbose)
+    .def_readwrite("should_limit_lengths", &MetricInput::should_limit_lengths)
+    .def_readwrite("max_length", &MetricInput::max_length)
+    .def_readwrite("min_length", &MetricInput::min_length)
+    .def_readwrite("should_limit_gradation", &MetricInput::should_limit_gradation)
+    .def_readwrite("max_gradation_rate", &MetricInput::max_gradation_rate)
+    .def_readwrite("gradation_convergence_tolerance", &MetricInput::gradation_convergence_tolerance)
+    .def_readwrite("should_limit_element_count", &MetricInput::should_limit_element_count)
+    .def_readwrite("max_element_count", &MetricInput::max_element_count)
+    .def_readwrite("min_element_count", &MetricInput::min_element_count)
+    .def_readwrite("element_count_over_relaxation", &MetricInput::element_count_over_relaxation)
+    .def_readwrite("nsmoothing_steps", &MetricInput::nsmoothing_steps)
+    .def("add_source", &MetricInput::add_source)
+    ;
 }
 
 }  // namespace Omega_h
