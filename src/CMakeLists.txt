@@ -472,7 +472,8 @@ endif()
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
 
 if (Omega_h_USE_pybind11)
-  pybind11_add_module(omega_h_pybind11
+  set(PYBIND11_SOURCES
+      Omega_h_pybind11.cpp
       Omega_h_pybind11_c.cpp
       Omega_h_pybind11_array.cpp
       Omega_h_pybind11_comm.cpp
@@ -481,8 +482,14 @@ if (Omega_h_USE_pybind11)
       Omega_h_pybind11_build.cpp
       Omega_h_pybind11_adapt.cpp
       Omega_h_pybind11_file.cpp
-      Omega_h_pybind11.cpp
       )
+  if (Omega_h_USE_DOLFIN)
+    set(PYBIND11_SOURCES ${PYBIND11_SOURCES}
+        Omega_h_pybind11_dolfin.cpp
+       )
+  endif()
+  pybind11_add_module(omega_h_pybind11
+      ${PYBIND11_SOURCES})
   target_link_libraries(omega_h_pybind11 PUBLIC omega_h)
 endif()
 

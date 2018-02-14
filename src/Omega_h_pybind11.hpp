@@ -1,6 +1,8 @@
 #ifndef OMEGA_H_PYBIND11_HPP
 #define OMEGA_H_PYBIND11_HPP
 
+#include <Omega_h_config.h>
+
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -25,6 +27,9 @@ void pybind11_mesh(py::module& module);
 void pybind11_build(py::module& module);
 void pybind11_adapt(py::module& module);
 void pybind11_file(py::module& module);
+#ifdef OMEGA_H_USE_DOLFIN
+void pybind11_dolfin(py::module& module);
+#endif
 }  // namespace Omega_h
 
 #endif
