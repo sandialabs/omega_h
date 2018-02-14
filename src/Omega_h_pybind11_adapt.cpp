@@ -39,6 +39,11 @@ void pybind11_adapt(py::module& module) {
     .def_readwrite("nsmoothing_steps", &MetricInput::nsmoothing_steps)
     .def("add_source", &MetricInput::add_source)
     ;
+  module.def("grade_fix_adapt", &grade_fix_adapt, "Apply gradation control, possibly fix quality, then adapt",
+      py::arg("mesh"),
+      py::arg("opts"),
+      py::arg("target_metric"),
+      py::arg("verbose") = true);
 }
 
 }  // namespace Omega_h

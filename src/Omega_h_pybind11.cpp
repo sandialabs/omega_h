@@ -9,4 +9,5 @@ PYBIND11_MODULE(omega_h_pybind11, module) {
   Omega_h::pybind11_mesh(module);
   Omega_h::pybind11_build(module);
   Omega_h::pybind11_adapt(module);
+  Omega_h::pybind11_file(module);
 }
