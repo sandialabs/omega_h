@@ -198,6 +198,7 @@ class HostRead {
 #endif
   }
   T const* data() const;
+  T get(LO i) const;
   T last() const;
 };
 

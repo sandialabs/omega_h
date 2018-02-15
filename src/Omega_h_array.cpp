@@ -385,8 +385,13 @@ T const* HostRead<T>::data() const {
 }
 
 template <typename T>
+T HostRead<T>::get(LO i) const {
+  return operator[](i);
+}
+
+template <typename T>
 T HostRead<T>::last() const {
-  return operator[](size() - 1);
+  return get(size() - 1);
 }
 
 template <class T>
