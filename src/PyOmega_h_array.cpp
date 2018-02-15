@@ -3,57 +3,70 @@
 
 namespace Omega_h {
 
-void pybind11_array(py::module& module) {
-  py::class_<Write<Real>>(module, "Write_float64")
-    .def("size", &Write<Real>::size)
+template <class Scalar, class Wrapper>
+static void pybind11_array_type(py::module& module, std::string const& py_scalar, std::string const& py_wrapper) {
+  auto write_name = std::string("Write_") + py_scalar;
+  auto read_name = std::string("Read_") + py_scalar;
+  auto hostread_name = std::string("HostRead_") + py_scalar;
+  auto hostwrite_name = std::string("HostWrite_") + py_scalar;
+  auto deepcopy_name = std::string("deep_copy_") + py_scalar;
+  py::class_<Write<Scalar>>(module, write_name.c_str())
+    .def("size", &Write<Scalar>::size)
     ;
-  py::class_<Read<Real>>(module, "Read_float64")
-    .def(py::init<Write<Real>>())
-    .def("size", &Read<Real>::size)
+  py::class_<Read<Scalar>>(module, read_name.c_str())
+    .def(py::init<Write<Scalar>>())
+    .def("size", &Read<Scalar>::size)
     ;
-  py::class_<Reals, Read<Real>>(module, "Reals")
-    .def(py::init<LO, Real, std::string const&>(),
+  py::class_<Wrapper, Read<Scalar>>(module, py_wrapper.c_str())
+    .def(py::init<LO, Scalar, std::string const&>(),
         py::arg("size"),
         py::arg("value"),
         py::arg("name") = "")
     ;
-  py::class_<HostRead<Real>>(module, "HostRead_float64", py::buffer_protocol())
-    .def(py::init<Read<Real>>())
-    .def_buffer([](HostRead<Real>& a) -> py::buffer_info {
+  py::class_<HostRead<Scalar>>(module, hostread_name.c_str(), py::buffer_protocol())
+    .def(py::init<Read<Scalar>>())
+    .def_buffer([](HostRead<Scalar>& a) -> py::buffer_info {
         return py::buffer_info(
   /* note: although this breaks const-correctness, I think
      the benefits may outweigh the drawbacks */
-            const_cast<Real*>(a.data()),
-            sizeof(Real),
-            py::format_descriptor<Real>::format(),
+            const_cast<Scalar*>(a.data()),
+            sizeof(Scalar),
+            py::format_descriptor<Scalar>::format(),
             1,
             { a.size() },
-            { sizeof(Real) }
+            { sizeof(Scalar) }
             );
         })
-     .def("get", &HostRead<Real>::get)
+     .def("get", &HostRead<Scalar>::get)
      ;
-  py::class_<HostWrite<Real>>(module, "HostWrite_float64", py::buffer_protocol())
+  py::class_<HostWrite<Scalar>>(module, hostwrite_name.c_str(), py::buffer_protocol())
     .def(py::init<LO, std::string const&>(),
         py::arg("size"),
         py::arg("name") = "")
-    .def_buffer([](HostWrite<Real>& a) -> py::buffer_info {
+    .def_buffer([](HostWrite<Scalar>& a) -> py::buffer_info {
         return py::buffer_info(
             a.data(),
-            sizeof(Real),
-            py::format_descriptor<Real>::format(),
+            sizeof(Scalar),
+            py::format_descriptor<Scalar>::format(),
             1,
             { a.size() },
-            { sizeof(Real) }
+            { sizeof(Scalar) }
             );
         })
-     .def("set", &HostWrite<Real>::set)
-     .def("get", &HostWrite<Real>::get)
-     .def("write", &HostWrite<Real>::write)
+     .def("set", &HostWrite<Scalar>::set)
+     .def("get", &HostWrite<Scalar>::get)
+     .def("write", &HostWrite<Scalar>::write)
      ;
-  Write<Real> (*deep_copy_float64)(Read<Real> a)
+  Write<Scalar> (*deep_copy_type)(Read<Scalar> a)
     = &deep_copy;
-  module.def("deep_copy_float64", deep_copy_float64);
+  module.def(deepcopy_name.c_str(), deep_copy_type);
+}
+
+void pybind11_array(py::module& module) {
+  pybind11_array_type<I8, Bytes>(module, "int8", "Bytes");
+  pybind11_array_type<I32, LOs>(module, "int32", "LOs");
+  pybind11_array_type<I64, GOs>(module, "int64", "GOs");
+  pybind11_array_type<Real, Reals>(module, "float64", "Reals");
 }
 
 }  // namespace Omega_h
