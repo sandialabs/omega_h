@@ -18,6 +18,7 @@ static void pybind11_array_type(py::module& module, std::string const& py_scalar
     .def("size", &Read<Scalar>::size)
     ;
   py::class_<Wrapper, Read<Scalar>>(module, py_wrapper.c_str())
+    .def(py::init<Write<Scalar>>())
     .def(py::init<LO, Scalar, std::string const&>(),
         py::arg("size"),
         py::arg("value"),
