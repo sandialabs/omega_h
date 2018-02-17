@@ -20,7 +20,7 @@ OMEGA_H_INLINE Vector<max_m> householder_vector(
     Int m, Matrix<max_m, max_n> a, Real anorm, Int k) {
   Real norm_x = 0;
   for (Int i = k; i < m; ++i) norm_x += square(a[k][i]);
-  norm_x = sqrt(norm_x);
+  norm_x = std::sqrt(norm_x);
   /* technically, every matrix has a QR decomposition.
    * if norm_x is close to zero here, the matrix is rank-deficient
    * and we could just skip this reflection and carry forward
@@ -37,7 +37,7 @@ OMEGA_H_INLINE Vector<max_m> householder_vector(
   v_k[k] += sign(a[k][k]) * norm_x;
   Real norm_v_k = 0;
   for (Int i = k; i < m; ++i) norm_v_k += square(v_k[i]);
-  norm_v_k = sqrt(norm_v_k);
+  norm_v_k = std::sqrt(norm_v_k);
   for (Int i = k; i < m; ++i) v_k[i] /= norm_v_k;
   return v_k;
 }

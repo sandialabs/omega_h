@@ -7,7 +7,7 @@ static gmod::ObjPtr new_solder_ball(gmod::Vector center,
     double radius, double height,
     double mid_res, double edge_res) {
   double half_height = height / 2.0;
-  double disk_radius = sqrt(radius * radius - half_height * half_height);
+  double disk_radius = std::sqrt(radius * radius - half_height * half_height);
   gmod::default_size = edge_res;
   auto bot_disk = gmod::new_disk(center - gmod::Vector{0,0,half_height},
       gmod::Vector{0,0,1}, gmod::Vector{disk_radius,0,0});

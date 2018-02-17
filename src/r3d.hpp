@@ -238,7 +238,7 @@ R3D_INLINE Real norm_squared(Vector<n> v) {
 
 template <Int n>
 R3D_INLINE Real norm(Vector<n> v) {
-  return sqrt(norm_squared(v));
+  return std::sqrt(norm_squared(v));
 }
 
 template <Int n>
@@ -866,7 +866,7 @@ R3D_INLINE Real integrate(
    integrate() for 1D edges, just hardcode the
    length measurement */
 R3D_INLINE Real measure(Polytope<1> const& polytope) {
-  return fabs(polytope.verts[1].pos[0] - polytope.verts[0].pos[0]);
+  return std::abs(polytope.verts[1].pos[0] - polytope.verts[0].pos[0]);
 }
 
 R3D_INLINE Real measure(Polytope<2> const& polytope) {

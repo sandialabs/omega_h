@@ -320,6 +320,24 @@ T* HostWrite<T>::data() const {
 }
 
 template <typename T>
+void HostWrite<T>::set(LO i, T value) {
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  mirror_[i] = value;
+#else
+  write_[i] = value;
+#endif
+}
+
+template <typename T>
+T HostWrite<T>::get(LO i) const {
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  return mirror_[i];
+#else
+  return write_[i];
+#endif
+}
+
+template <typename T>
 #ifdef __INTEL_COMPILER
 HostRead<T>::HostRead() {
 }
@@ -362,8 +380,13 @@ T const* HostRead<T>::data() const {
 }
 
 template <typename T>
+T HostRead<T>::get(LO i) const {
+  return operator[](i);
+}
+
+template <typename T>
 T HostRead<T>::last() const {
-  return operator[](size() - 1);
+  return get(size() - 1);
 }
 
 template <class T>

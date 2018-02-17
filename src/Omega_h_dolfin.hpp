@@ -2,6 +2,7 @@
 #define OMEGA_H_DOLFIN_HPP
 
 #include <Omega_h_config.h>
+#include "Omega_h_mesh.hpp"
 
 #if defined(OMEGA_H_USE_MPI) && (!defined(HAS_MPI))
 #define HAS_MPI

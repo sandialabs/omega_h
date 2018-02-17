@@ -35,8 +35,8 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   Real D = cube(Q) + square(R);
   Real shift = -a_2 / 3.;
   if (D >= 0.0) {
-    Real S = cbrt(R + sqrt(D));
-    Real T = cbrt(R - sqrt(D));
+    Real S = std::cbrt(R + std::sqrt(D));
+    Real T = std::cbrt(R - std::sqrt(D));
     Real B = S + T;
     Real z_1 = shift + B;
     Real z_23_real = shift - (1. / 2.) * B;
@@ -46,12 +46,12 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
     roots[1] = roots[2] = z_23_real;
   } else {
     // D < 0 implies Q < 0, since R^2 must be positive
-    auto cos_theta = R / sqrt(-cube(Q));
-    Real theta = acos(clamp(cos_theta, -1.0, 1.0));
-    Real radius = 2. * sqrt(-Q);
-    Real z_1 = radius * cos((theta) / 3.) + shift;
-    Real z_2 = radius * cos((theta + 2. * PI) / 3.) + shift;
-    Real z_3 = radius * cos((theta - 2. * PI) / 3.) + shift;
+    auto cos_theta = R / std::sqrt(-cube(Q));
+    Real theta = std::acos(clamp(cos_theta, -1.0, 1.0));
+    Real radius = 2. * std::sqrt(-Q);
+    Real z_1 = radius * std::cos((theta) / 3.) + shift;
+    Real z_2 = radius * std::cos((theta + 2. * PI) / 3.) + shift;
+    Real z_3 = radius * std::cos((theta - 2. * PI) / 3.) + shift;
     roots[0] = z_1;
     roots[1] = z_2;
     roots[2] = z_3;
@@ -61,11 +61,11 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   // close enough to be called repeated roots
   // first step, if two roots are close, then
   // move them to the second and third slots
-  if (fabs(roots[0] - roots[1]) < eps) {
+  if (std::abs(roots[0] - roots[1]) < eps) {
     swap2(roots[0], roots[2]);
-  } else if (fabs(roots[0] - roots[2]) < eps) {
+  } else if (std::abs(roots[0] - roots[2]) < eps) {
     swap2(roots[0], roots[1]);
-  } else if (fabs(roots[1] - roots[2]) < eps) {
+  } else if (std::abs(roots[1] - roots[2]) < eps) {
     // no need to swap, they're already there
   } else {
     // no pairs were close, all three roots are distinct
@@ -75,7 +75,7 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   roots[1] = average(roots[1], roots[2]);
   mults[1] = 2;
   // lets see if they are all the same
-  if (fabs(roots[0] - roots[1]) < eps) {
+  if (std::abs(roots[0] - roots[1]) < eps) {
     // roots[1] is already an average, weight it properly
     roots[0] = (1. / 3.) * roots[0] + (2. / 3.) * roots[1];
     mults[0] = 3;
@@ -94,7 +94,7 @@ OMEGA_H_INLINE Roots<2> find_polynomial_roots(
   Few<Int, 2> mults;
   mults[0] = mults[1] = 0;
   Real disc = square(a) - 4. * b;
-  if (fabs(disc) < eps) {
+  if (std::abs(disc) < eps) {
     mults[0] = 2;
     roots[0] = -a / 2.;
     roots[1] = roots[0];
@@ -104,8 +104,8 @@ OMEGA_H_INLINE Roots<2> find_polynomial_roots(
   if (disc > 0.0) {
     mults[0] = 1;
     mults[1] = 1;
-    roots[0] = (-a + sqrt(disc)) / 2.;
-    roots[1] = (-a - sqrt(disc)) / 2.;
+    roots[0] = (-a + std::sqrt(disc)) / 2.;
+    roots[1] = (-a - std::sqrt(disc)) / 2.;
     return {2, roots, mults};
   }
   return {0, roots, mults};
@@ -348,7 +348,7 @@ OMEGA_H_INLINE Real norm_off_diag(Matrix<dim, dim> a) {
       }
     }
   }
-  return sqrt(s);
+  return std::sqrt(s);
 }
 
 // R^N arg max off-diagonal. Useful for SVD and other algorithms
@@ -359,10 +359,10 @@ template <Int dim>
 OMEGA_H_INLINE Few<Int, 2> arg_max_off_diag(Matrix<dim, dim> a) {
   Int p = 0;
   Int q = 1;
-  auto s = fabs(a(p, q));
+  auto s = std::abs(a(p, q));
   for (Int j = 0; j < dim; ++j) {
     for (Int i = 0; i < dim; ++i) {
-      auto s2 = fabs(a(i, j));
+      auto s2 = std::abs(a(i, j));
       if (i != j && s2 > s) {
         p = i;
         q = j;
@@ -458,9 +458,9 @@ OMEGA_H_INLINE DiagDecomp<dim> sort_by_magnitude(DiagDecomp<dim> dd) {
   for (Int i = 0; i < dim; ++i) perm[i] = i;
   for (Int i = 0; i < dim; ++i) {
     auto max_j = i;
-    auto max_m = fabs(dd.l[perm[max_j]]);
+    auto max_m = std::abs(dd.l[perm[max_j]]);
     for (Int j = i + 1; j < dim; ++j) {
-      auto m = fabs(dd.l[perm[j]]);
+      auto m = std::abs(dd.l[perm[j]]);
       if (m > max_m) max_j = j;
     }
     swap2(perm[i], perm[max_j]);

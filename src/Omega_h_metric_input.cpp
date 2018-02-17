@@ -34,6 +34,10 @@ MetricInput::MetricInput() {
   nsmoothing_steps = 0;
 }
 
+void MetricInput::add_source(MetricSource const& src) {
+  sources.push_back(src);
+}
+
 static Reals get_variation_metrics(
     Mesh* mesh, Real knob, Int dim, Int ncomps, Reals data) {
   OMEGA_H_CHECK(data.size() == mesh->nents(dim) * ncomps);

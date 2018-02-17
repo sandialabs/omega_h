@@ -24,8 +24,8 @@ int main(int argc, char** argv) {
       auto coarse = 0.4;
       auto fine = 0.04;
       auto radius = norm(x);
-      auto diagonal = sqrt(3) - 0.5;
-      auto distance = fabs(radius - 0.5) / diagonal;
+      auto diagonal = std::sqrt(3) - 0.5;
+      auto distance = std::abs(radius - 0.5) / diagonal;
       auto h = coarse * distance + fine * (1.0 - distance);
       metrics_w[v] = metric_eigenvalue_from_length(h);
     };

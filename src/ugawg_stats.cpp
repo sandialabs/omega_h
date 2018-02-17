@@ -20,7 +20,7 @@ static Reals get_cube_linear_metric(Mesh* mesh) {
     auto z = coords[v * dim + (dim - 1)];
     auto h = Vector<dim>();
     for (Int i = 0; i < dim - 1; ++i) h[i] = 0.1;
-    h[dim - 1] = 0.001 + 0.198 * fabs(z - 0.5);
+    h[dim - 1] = 0.001 + 0.198 * std::abs(z - 0.5);
     auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(out, v, m);
   };
@@ -35,7 +35,7 @@ static Reals get_cube_cylinder_shock_metric(Mesh* mesh) {
   auto f = OMEGA_H_LAMBDA(LO v) {
     auto p = get_vector<dim>(coords, v);
     auto z = p[2];
-    auto h = vector_3(0.1, 0.1, h0 + 2 * (0.1 - h0) * fabs(z - 0.5));
+    auto h = vector_3(0.1, 0.1, h0 + 2 * (0.1 - h0) * std::abs(z - 0.5));
     auto m = diagonal(metric_eigenvalues_from_lengths(h));
     set_symm(out, v, m);
   };
@@ -56,7 +56,7 @@ static Reals get_cube_cylinder_layer_metric(Mesh* mesh) {
     auto xy = vector_2(x, y);
     auto radius = norm(xy);
     auto t = atan2(y, x);
-    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * std::abs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
     set_symm(out, v, m);
@@ -80,7 +80,7 @@ static Reals get_cube_cylinder_quality_layer_metric(Mesh* mesh) {
     auto d = (0.6 - radius) * 10.0;
     Real h_t = (d < 0.0) ? (1.0 / 10.0)
                          : (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));
-    auto h = vector_3(h0 + 2 * (0.1 - h0) * fabs(radius - 0.5), h_t, h_z);
+    auto h = vector_3(h0 + 2 * (0.1 - h0) * std::abs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
     set_symm(out, v, m);

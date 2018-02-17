@@ -246,8 +246,8 @@ if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
   osh_add_util(osh2exo)
 endif()
+osh_add_util(osh_adapt)
 if(Omega_h_USE_Teuchos)
-  osh_add_util(osh_adapt)
   osh_add_util(osh_copy_params)
 endif()
 
@@ -470,5 +470,27 @@ if(Omega_h_USE_DOLFIN)
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
+
+if (Omega_h_USE_pybind11)
+  set(PYBIND11_SOURCES
+      PyOmega_h.cpp
+      PyOmega_h_c.cpp
+      PyOmega_h_array.cpp
+      PyOmega_h_comm.cpp
+      PyOmega_h_library.cpp
+      PyOmega_h_mesh.cpp
+      PyOmega_h_build.cpp
+      PyOmega_h_adapt.cpp
+      PyOmega_h_file.cpp
+      )
+  if (Omega_h_USE_DOLFIN)
+    set(PYBIND11_SOURCES ${PYBIND11_SOURCES}
+        PyOmega_h_dolfin.cpp
+       )
+  endif()
+  pybind11_add_module(PyOmega_h
+      ${PYBIND11_SOURCES})
+  target_link_libraries(PyOmega_h PUBLIC omega_h)
+endif()
 
 bob_end_subdir()

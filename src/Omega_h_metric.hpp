@@ -20,7 +20,7 @@ metric_product(Matrix<1, 1> m, Vector<space_dim> v) {
 template <Int metric_dim, Int space_dim>
 OMEGA_H_INLINE Real metric_length(
     Matrix<metric_dim, metric_dim> m, Vector<space_dim> v) {
-  return sqrt(metric_product(m, v));
+  return std::sqrt(metric_product(m, v));
 }
 
 template <Int dim>
@@ -29,7 +29,7 @@ OMEGA_H_INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
 }
 
 OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) {
-  return 1.0 / sqrt(l);
+  return 1.0 / std::sqrt(l);
 }
 
 OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.9.2 LANGUAGES NONE)
+project(Omega_h VERSION 9.10.0 LANGUAGES NONE)
 
 set(USE_XSDK_DEFAULTS_DEFAULT OFF)
 
@@ -70,6 +70,9 @@ set(Omega_h_USE_TeuchosParser_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParser_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_public_dep(TeuchosParser)
 
+set(Omega_h_USE_pybind11_DEFAULT OFF)
+bob_public_dep(pybind11)
+
 if  ( Omega_h_USE_TeuchosParameterList
   AND Omega_h_USE_TeuchosComm
   AND Omega_h_USE_TeuchosParser
@@ -110,9 +113,6 @@ bob_begin_cxx_flags()
 bob_cxx11_flags()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
-  if(APPLE)
-    set(FLAGS "${FLAGS} -fcomment-block-commands=file")
-  endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   if(Omega_h_USE_CUDA)
     set(FLAGS "${FLAGS} -expt-extended-lambda -lineinfo")
