@@ -10,6 +10,11 @@ void pybind11_c(py::module& module) {
     .value("FACE", OMEGA_H_FACE)
     .value("REGION", OMEGA_H_REGION)
     .export_values();
+  py::enum_<Omega_h_Parting>(module, "Parting")
+    .value("ELEM_BASED", OMEGA_H_ELEM_BASED)
+    .value("GHOSTED", OMEGA_H_GHOSTED)
+    .value("VERT_BASED", OMEGA_H_VERT_BASED)
+    .export_values();
   py::enum_<Omega_h_Source>(module, "Source", "The type of source of a metric field")
     .value("CONSTANT", OMEGA_H_CONSTANT)
     .value("VARIATION", OMEGA_H_VARIATION)

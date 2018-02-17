@@ -3,22 +3,36 @@
 
 namespace Omega_h {
 
+#define OMEGA_H_DECL_TYPE(T, name) \
+  void (Mesh::*add_tag_##name)(Int, std::string const&, Int, Read<T>, bool) \
+    = &Mesh::add_tag<T>;
+#define OMEGA_H_DEF_TYPE(T, name) \
+  .def("get_array_" #name, &Mesh::get_array<T>) \
+  .def("add_tag_" #name, add_tag_##name, \
+      "Add " #name " tag array to the mesh", \
+      py::arg("ent_dim") = OMEGA_H_VERT, \
+      py::arg("name"), \
+      py::arg("ncomps") = 1, \
+      py::arg("array"), \
+      py::arg("internal_do_not_use_ever") = false)
+
 void pybind11_mesh(py::module& module) {
-  void (Mesh::*add_tag_float64)(Int, std::string const&, Int, Read<Real>, bool)
-    = &Mesh::add_tag<Real>;
+  OMEGA_H_DECL_TYPE(Real, float64)
+  void (Mesh::*set_parting)(Omega_h_Parting, Int, bool)
+    = &Mesh::set_parting;
   py::class_<Omega_h::Mesh>(module, "Mesh")
       .def("dim", &Omega_h::Mesh::dim)
       .def("nents", &Omega_h::Mesh::nents)
       .def("nglobal_ents", &Omega_h::Mesh::nglobal_ents)
-      .def("get_array_float64", &Omega_h::Mesh::get_array<Omega_h::Real>)
-      .def("add_tag_float64", add_tag_float64,
-          "Add a tag array to the mesh",
-          py::arg("ent_dim") = OMEGA_H_VERT,
-          py::arg("name"),
-          py::arg("ncomps") = 1,
-          py::arg("array"),
-          py::arg("internal_do_not_use_ever") = false)
+      .def("set_parting", set_parting,
+          py::arg("parting"),
+          py::arg("nlayers") = 1,
+          py::arg("verbose") = false)
+      OMEGA_H_DEF_TYPE(Real, float64)
       ;
 }
+
+#undef OMEGA_H_DECL_TYPE
+#undef OMEGA_H_DEF_TYPE
 
 }  // namespace Omega_h
