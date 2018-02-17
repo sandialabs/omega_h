@@ -17,6 +17,9 @@ namespace Omega_h {
       py::arg("internal_do_not_use_ever") = false)
 
 void pybind11_mesh(py::module& module) {
+  OMEGA_H_DECL_TYPE(I8, int8)
+  OMEGA_H_DECL_TYPE(I32, int32)
+  OMEGA_H_DECL_TYPE(I64, int64)
   OMEGA_H_DECL_TYPE(Real, float64)
   void (Mesh::*set_parting)(Omega_h_Parting, Int, bool)
     = &Mesh::set_parting;
@@ -28,6 +31,9 @@ void pybind11_mesh(py::module& module) {
           py::arg("parting"),
           py::arg("nlayers") = 1,
           py::arg("verbose") = false)
+      OMEGA_H_DEF_TYPE(I8, int8)
+      OMEGA_H_DEF_TYPE(I32, int32)
+      OMEGA_H_DEF_TYPE(I64, int64)
       OMEGA_H_DEF_TYPE(Real, float64)
       ;
 }
