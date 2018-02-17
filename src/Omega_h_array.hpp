@@ -125,7 +125,7 @@ class Read {
   Read(LO size, T value, std::string const& name = "");
   Read(LO size, T offset, T stride, std::string const& name = "");
   Read(std::initializer_list<T> l, std::string const& name = "");
-  LO size() const;
+  OMEGA_H_INLINE LO size() const { return write_.size(); }
   OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
   OMEGA_H_INLINE T const* data() const { return write_.data(); }
 #ifdef OMEGA_H_USE_KOKKOSCORE

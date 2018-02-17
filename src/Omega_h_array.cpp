@@ -199,11 +199,6 @@ template <typename T>
 Read<T>::Read(std::initializer_list<T> l, std::string const& name)
     : Read<T>(HostWrite<T>(l, name).write()) {}
 
-template <typename T>
-LO Read<T>::size() const {
-  return write_.size();
-}
-
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
 Kokkos::View<const T*> Read<T>::view() const {
