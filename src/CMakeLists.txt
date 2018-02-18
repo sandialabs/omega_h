@@ -491,6 +491,14 @@ if (Omega_h_USE_pybind11)
   pybind11_add_module(PyOmega_h
       ${PYBIND11_SOURCES})
   target_link_libraries(PyOmega_h PUBLIC omega_h)
+  if (PYTHON_VERSION_MAJOR EQUAL 3)
+    set(PyOmega_h_DEST "lib/python3/dist-packages")
+  else()
+    set(PyOmega_h_DEST "lib/python/dist-packages")
+  endif()
+  install(TARGETS PyOmega_h
+      ARCHIVE DESTINATION "${PyOmega_h_DEST}"
+      LIBRARY DESTINATION "${PyOmega_h_DEST}")
 endif()
 
 bob_end_subdir()

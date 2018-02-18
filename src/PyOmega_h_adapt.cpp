@@ -44,6 +44,13 @@ void pybind11_adapt(py::module& module) {
       py::arg("opts"),
       py::arg("target_metric"),
       py::arg("verbose") = true);
+  module.def("add_implied_metric_tag", &add_implied_metric_tag);
+  module.def("generate_target_metric_tag", &generate_target_metric_tag);
+  module.def("approach_metric", &approach_metric,
+      py::arg("mesh"),
+      py::arg("opts"),
+      py::arg("min_step") = 1e-4);
+  module.def("adapt", &adapt);
 }
 
 }  // namespace Omega_h

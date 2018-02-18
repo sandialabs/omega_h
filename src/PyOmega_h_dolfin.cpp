@@ -12,6 +12,10 @@ void pybind11_dolfin(py::module& module) {
       "Convert an Omega_h mesh to a DOLFIN mesh");
   module.def("mesh_from_dolfin", mesh_from_dolfin,
       "Convert a DOLFIN mesh to an Omega_h mesh");
+  module.def("mesh_from_dolfin_unit_square", [](Mesh* mesh_osh, std::shared_ptr<dolfin::UnitSquareMesh>* mesh_dolfin) {
+        from_dolfin(mesh_osh, *(*mesh_dolfin));
+      }, 
+      "Convert a DOLFIN UnitSquareMesh to an Omega_h mesh");
   module.def("function_from_dolfin", function_from_dolfin,
       "Convert a DOLFIN Function to Omega_h tag(s)");
 }

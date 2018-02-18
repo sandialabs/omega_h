@@ -36,6 +36,9 @@ void pybind11_mesh(py::module& module) {
       OMEGA_H_DEF_TYPE(I64, int64)
       OMEGA_H_DEF_TYPE(Real, float64)
       ;
+  module.def("new_empty_mesh", []() {
+    return Mesh(pybind11_global_library.get());
+  });
 }
 
 #undef OMEGA_H_DECL_TYPE
