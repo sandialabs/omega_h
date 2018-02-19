@@ -1,5 +1,6 @@
-#include <Omega_h.hpp>
+#include <Omega_h_library.hpp>
 #include <Omega_h_cmdline.hpp>
+#include <Omega_h_file.hpp>
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
