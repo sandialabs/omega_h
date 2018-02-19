@@ -127,7 +127,9 @@ void grade_fix_adapt(
   mesh->remove_tag(VERT, "target_metric");
   mesh->add_tag(VERT, "target_metric", symm_ncomps(metric_dim), target_metric);
   if (mesh->has_tag(0, "metric")) {
-    if (verbose) std::cout << "Mesh already has \"metric\" on vertices, assuming that is current\n";
+    if (verbose)
+      std::cout << "Mesh already has \"metric\" on vertices, assuming that is "
+                   "current\n";
   } else {
     if (verbose) std::cout << "Deriving implied metric...\n";
     if (metric_dim == 1) {

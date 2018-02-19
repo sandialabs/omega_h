@@ -17,11 +17,12 @@ namespace Omega_h {
 std::unique_ptr<Library> pybind11_global_library;
 
 void pybind11_library(py::module& module) {
-  pybind11_global_library = decltype(pybind11_global_library)(new Omega_h::Library());
-  module.def("world",
-      []() { return pybind11_global_library->world(); }, "Returns the world communicator");
-  module.def("self",
-      []() { return pybind11_global_library->self(); }, "Returns the self communicator");
+  pybind11_global_library =
+      decltype(pybind11_global_library)(new Omega_h::Library());
+  module.def("world", []() { return pybind11_global_library->world(); },
+      "Returns the world communicator");
+  module.def("self", []() { return pybind11_global_library->self(); },
+      "Returns the self communicator");
 }
 
 }  // namespace Omega_h

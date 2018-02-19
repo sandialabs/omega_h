@@ -21,10 +21,10 @@ void build_from_elems2verts(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, LO nverts);
 void build_from_elems_and_coords(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords);
-Mesh build_box(
-    CommPtr comm, Omega_h_Family family, Real x, Real y, Real z, LO nx, LO ny, LO nz);
-void build_box_internal(
-    Mesh* mesh, Omega_h_Family family, Real x, Real y, Real z, LO nx, LO ny, LO nz);
+Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
+    LO nx, LO ny, LO nz);
+void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
+    Real z, LO nx, LO ny, LO nz);
 
 void add_ents2verts(
     Mesh* mesh, Int edim, LOs ev2v, GOs vert_globals, GOs elem_globals = GOs());
