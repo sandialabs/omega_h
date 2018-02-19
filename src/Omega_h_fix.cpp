@@ -123,7 +123,7 @@ void grade_fix_adapt(
   verbose = verbose && can_print(mesh);
   auto metric_dim = get_metrics_dim(mesh->nverts(), target_metric);
   if (verbose) std::cout << "Limiting target metric gradation...\n";
-  target_metric = Omega_h::limit_metric_gradation(mesh, target_metric, 1.0);
+  target_metric = Omega_h::limit_metric_gradation(mesh, target_metric, 0.5);
   mesh->remove_tag(VERT, "target_metric");
   mesh->add_tag(VERT, "target_metric", symm_ncomps(metric_dim), target_metric);
   if (mesh->has_tag(0, "metric")) {

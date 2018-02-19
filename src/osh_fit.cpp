@@ -3,10 +3,14 @@
 #include <Omega_h_file.hpp>
 #include <Omega_h_loop.hpp>
 #include <Omega_h_class.hpp>
+#include <Omega_h_metric.hpp>
+#include <Omega_h_recover.hpp>
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
+  //build mesh
   auto mesh = Omega_h::build_box(lib.world(), OMEGA_H_SIMPLEX, 1.0, 1.0, 0.0, 16, 16, 0);
+  //attach density field
   auto coords = mesh.coords();
   auto u_w = Omega_h::Write<Omega_h::Real>(mesh.nverts());
   constexpr auto dim = 2;
@@ -19,7 +23,18 @@ int main(int argc, char** argv) {
   auto u = Omega_h::Reals(u_w);
   mesh.add_tag(OMEGA_H_VERT, "u", 1, u);
   Omega_h::vtk::write_vtu("u.vtu", &mesh);
+  //adapt the mesh
+  auto grad_u = Omega_h::recover_gradients(&mesh, u);
+  auto target_metric = Omega_h::get_gradient_metrics(dim, grad_u, 5.0e-2);
+  target_metric = Omega_h::clamp_metrics(mesh.nverts(), target_metric, 0.0, 1.0);
+  mesh.add_tag(OMEGA_H_VERT, "target_metric", Omega_h::symm_ncomps(dim), target_metric);
+  Omega_h::vtk::write_vtu("target.vtu", &mesh);
+  auto adapt_opts = Omega_h::AdaptOpts(&mesh);
+  adapt_opts.xfer_opts.type_map["u"] = OMEGA_H_LINEAR_INTERP;
+  Omega_h::grade_fix_adapt(&mesh, adapt_opts, target_metric, true);
+  Omega_h::vtk::write_vtu("adapted.vtu", &mesh);
   //start the classification process
+  u = mesh.get_array<Omega_h::Real>(OMEGA_H_VERT, "u");
   auto elem_u = Omega_h::average_field(&mesh, mesh.dim(), 1, u);
   Omega_h::ClassId inside_class_id = 42;
   Omega_h::ClassId outside_class_id = 31;
