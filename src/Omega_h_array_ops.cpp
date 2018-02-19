@@ -191,7 +191,7 @@ Reals divide_each_maybe_zero(Reals a, Reals b) {
 Reals pow_each(Reals a, Reals b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<Real> c(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = pow(a[i], b[i]); };
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = std::pow(a[i], b[i]); };
   parallel_for(a.size(), f, "pow_each");
   return c;
 }

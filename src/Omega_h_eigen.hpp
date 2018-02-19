@@ -35,8 +35,8 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
   Real D = cube(Q) + square(R);
   Real shift = -a_2 / 3.;
   if (D >= 0.0) {
-    Real S = cbrt(R + sqrt(D));
-    Real T = cbrt(R - sqrt(D));
+    Real S = std::cbrt(R + std::sqrt(D));
+    Real T = std::cbrt(R - std::sqrt(D));
     Real B = S + T;
     Real z_1 = shift + B;
     Real z_23_real = shift - (1. / 2.) * B;
@@ -46,12 +46,12 @@ OMEGA_H_INLINE Roots<3> find_polynomial_roots(
     roots[1] = roots[2] = z_23_real;
   } else {
     // D < 0 implies Q < 0, since R^2 must be positive
-    auto cos_theta = R / sqrt(-cube(Q));
-    Real theta = acos(clamp(cos_theta, -1.0, 1.0));
-    Real radius = 2. * sqrt(-Q);
-    Real z_1 = radius * cos((theta) / 3.) + shift;
-    Real z_2 = radius * cos((theta + 2. * PI) / 3.) + shift;
-    Real z_3 = radius * cos((theta - 2. * PI) / 3.) + shift;
+    auto cos_theta = R / std::sqrt(-cube(Q));
+    Real theta = std::acos(clamp(cos_theta, -1.0, 1.0));
+    Real radius = 2. * std::sqrt(-Q);
+    Real z_1 = radius * std::cos((theta) / 3.) + shift;
+    Real z_2 = radius * std::cos((theta + 2. * PI) / 3.) + shift;
+    Real z_3 = radius * std::cos((theta - 2. * PI) / 3.) + shift;
     roots[0] = z_1;
     roots[1] = z_2;
     roots[2] = z_3;
@@ -104,8 +104,8 @@ OMEGA_H_INLINE Roots<2> find_polynomial_roots(
   if (disc > 0.0) {
     mults[0] = 1;
     mults[1] = 1;
-    roots[0] = (-a + sqrt(disc)) / 2.;
-    roots[1] = (-a - sqrt(disc)) / 2.;
+    roots[0] = (-a + std::sqrt(disc)) / 2.;
+    roots[1] = (-a - std::sqrt(disc)) / 2.;
     return {2, roots, mults};
   }
   return {0, roots, mults};
@@ -348,7 +348,7 @@ OMEGA_H_INLINE Real norm_off_diag(Matrix<dim, dim> a) {
       }
     }
   }
-  return sqrt(s);
+  return std::sqrt(s);
 }
 
 // R^N arg max off-diagonal. Useful for SVD and other algorithms

@@ -22,9 +22,9 @@ static void tri_run(Omega_h::Int dihedral_angle_in_degrees, std::ostream& os) {
   auto dihedral_angle =
       Omega_h::Real(dihedral_angle_in_degrees) / 180. * Omega_h::PI;
   auto half_dihedral_angle = dihedral_angle / 2.;
-  auto half_cord_length = sin(half_dihedral_angle);
+  auto half_cord_length = std::sin(half_dihedral_angle);
   auto cord_length = 2. * half_cord_length;
-  auto height = sqrt(1. - Omega_h::square(half_cord_length));
+  auto height = std::sqrt(1. - Omega_h::square(half_cord_length));
   auto area = cord_length * height / 2.;
   auto msl = (Omega_h::square(cord_length) + 2.) / 3.;
   auto quality = Omega_h::mean_ratio<2>(area, msl);

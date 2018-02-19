@@ -400,6 +400,7 @@ if(BUILD_TESTING)
   osh_add_exe(random_test)
   test_func(run_random_test 1 ./random_test)
   osh_add_exe(hypercube_test)
+  osh_add_exe(osh_fit)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -472,12 +473,33 @@ endif()
 install(FILES ${Omega_h_HEADERS} DESTINATION include)
 
 if (Omega_h_USE_pybind11)
-  pybind11_add_module(omega_h_pybind11
-      Omega_h_pybind11.cpp
-      Omega_h_pybind11_comm.cpp
-      Omega_h_pybind11_library.cpp
+  set(PYBIND11_SOURCES
+      PyOmega_h.cpp
+      PyOmega_h_c.cpp
+      PyOmega_h_array.cpp
+      PyOmega_h_comm.cpp
+      PyOmega_h_library.cpp
+      PyOmega_h_mesh.cpp
+      PyOmega_h_build.cpp
+      PyOmega_h_adapt.cpp
+      PyOmega_h_file.cpp
       )
-  target_link_libraries(omega_h_pybind11 PUBLIC omega_h)
+  if (Omega_h_USE_DOLFIN)
+    set(PYBIND11_SOURCES ${PYBIND11_SOURCES}
+        PyOmega_h_dolfin.cpp
+       )
+  endif()
+  pybind11_add_module(PyOmega_h
+      ${PYBIND11_SOURCES})
+  target_link_libraries(PyOmega_h PUBLIC omega_h)
+  if (PYTHON_VERSION_MAJOR EQUAL 3)
+    set(PyOmega_h_DEST "lib/python3/dist-packages")
+  else()
+    set(PyOmega_h_DEST "lib/python/dist-packages")
+  endif()
+  install(TARGETS PyOmega_h
+      ARCHIVE DESTINATION "${PyOmega_h_DEST}"
+      LIBRARY DESTINATION "${PyOmega_h_DEST}")
 endif()
 
 bob_end_subdir()

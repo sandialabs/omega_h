@@ -3,11 +3,16 @@
 #include <algorithm>
 #include <set>
 
-#include "Omega_h.hpp"
+#include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_build.hpp"
+#include "Omega_h_class.hpp"
+#include "Omega_h_element.hpp"
+#include "Omega_h_file.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_simplex.hpp"
+#include "Omega_h_mark.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 
@@ -161,7 +166,7 @@ void read(
   }
   OMEGA_H_CHECK(start == init_params.num_elem * deg);
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
-  build_from_elems_and_coords(mesh, dim, conn, coords);
+  build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, dim, conn, coords);
   classify_elements(mesh);
   std::vector<int> side_set_ids(init_params.num_side_sets);
   CALL(ex_get_ids(file, EX_SIDE_SET, side_set_ids.data()));

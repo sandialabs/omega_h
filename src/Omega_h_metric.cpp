@@ -425,7 +425,7 @@ static OMEGA_H_INLINE Matrix<dim, dim> metric_from_gradient(
   constexpr auto c_denom = square(2 * (dim + 1));
   auto l = (c_num * grad_norm_sq) / (c_denom * square(eps));
   if (l < EPSILON) return zero_matrix<dim, dim>();
-  auto grad_norm = sqrt(grad_norm_sq);
+  auto grad_norm = std::sqrt(grad_norm_sq);
   auto dir = grad / grad_norm;
   return outer_product(dir, dir) * l;
 }
@@ -745,7 +745,7 @@ Reals get_aniso_zz_metric_dim(
     }
     auto op_avg = op_sum / patch_volume;
     auto iso_volume =
-        (dim == 3) ? (1.0 / (6.0 * sqrt(2.0))) : (sqrt(3.0) / 4.0);
+        (dim == 3) ? (1.0 / (6.0 * std::sqrt(2.0))) : (std::sqrt(3.0) / 4.0);
     auto volume_factor = elems2volume[elem] / iso_volume;
     auto pullback_volume = patch_volume / volume_factor;
     auto a =

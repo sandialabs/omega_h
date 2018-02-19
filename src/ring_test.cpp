@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     auto v = bv2v[bv];
     auto x = get_vector<2>(coords, v);
     auto theta = atan2(x[1], x[0]);
-    initial_w[v] = 4.0 * sin(5.0 * theta);
+    initial_w[v] = 4.0 * std::sin(5.0 * theta);
   };
   parallel_for(bv2v.size(), f);
   auto initial = Reals(initial_w);

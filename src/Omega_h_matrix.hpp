@@ -265,7 +265,7 @@ OMEGA_H_INLINE Real inner_product(Matrix<m, n> a, Matrix<m, n> b) {
 
 template <Int max_m, Int max_n>
 OMEGA_H_INLINE Real norm(Int m, Int n, Matrix<max_m, max_n> a) {
-  return sqrt(inner_product(m, n, a, a));
+  return std::sqrt(inner_product(m, n, a, a));
 }
 
 template <Int m, Int n>
@@ -477,19 +477,23 @@ OMEGA_H_DEVICE Matrix<dim, dim> get_matrix(Reals const& a, Int i) {
 
 /* Rodrigues' Rotation Formula */
 OMEGA_H_INLINE Matrix<3, 3> rotate(Real angle, Vector<3> axis) {
-  return cos(angle) * identity_matrix<3, 3>() + sin(angle) * cross(axis) +
-         (1 - cos(angle)) * outer_product(axis, axis);
+  return std::cos(angle) * identity_matrix<3, 3>() +
+         std::sin(angle) * cross(axis) +
+         (1 - std::cos(angle)) * outer_product(axis, axis);
 }
 
 OMEGA_H_INLINE Matrix<2, 2> rotate(Real angle) {
-  return matrix_2x2(cos(angle), -sin(angle), sin(angle), cos(angle));
+  return matrix_2x2(
+      std::cos(angle), -std::sin(angle), std::sin(angle), std::cos(angle));
 }
 
-OMEGA_H_INLINE Real rotation_angle(Matrix<2, 2> r) { return acos(r[0][0]); }
+OMEGA_H_INLINE Real rotation_angle(Matrix<2, 2> r) {
+  return std::acos(r[0][0]);
+}
 
 OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) __attribute__((pure));
 OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) {
-  return acos((trace(r) - 1.0) / 2.0);
+  return std::acos((trace(r) - 1.0) / 2.0);
 }
 
 OMEGA_H_INLINE Matrix<1, 1> form_ortho_basis(Vector<1> v) {
