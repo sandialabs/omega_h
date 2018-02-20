@@ -112,7 +112,14 @@ static void enable_floating_point_exceptions() {
 #include <xmmintrin.h>
 // Intel system
 static void enable_floating_point_exceptions() {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsign-conversion"
+#endif
   _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 }
 #else
 #error "FPE enabled but not supported"
