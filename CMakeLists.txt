@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.10.1 LANGUAGES NONE)
+project(Omega_h VERSION 9.10.2 LANGUAGES NONE)
 
 set(USE_XSDK_DEFAULTS_DEFAULT OFF)
 
@@ -19,6 +19,8 @@ bob_begin_package()
 
 option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
 message(STATUS "Omega_h_CHECK_BOUNDS: ${Omega_h_CHECK_BOUNDS}")
+option(Omega_h_CHECK_FPE "Enable floating point exceptions" OFF)
+message(STATUS "Omega_h_CHECK_FPE: ${Omega_h_CHECK_FPE}")
 option(Omega_h_ONE_FILE "Compile Omega_h as a single file" OFF)
 message(STATUS "Omega_h_ONE_FILE: ${Omega_h_ONE_FILE}")
 set(Omega_h_DATA "" CACHE PATH "Path to omega_h-data test files")
@@ -148,6 +150,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_Teuchos
     Omega_h_USE_DOLFIN
     Omega_h_CHECK_BOUNDS
+    Omega_h_CHECK_FPE
     Omega_h_USE_CUDA_AWARE_MPI
    )
 

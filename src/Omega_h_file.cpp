@@ -521,26 +521,40 @@ void read_in_comm(
   read(file, mesh, version);
 }
 
-I32 read(std::string const& path, CommPtr comm, Mesh* mesh) {
+I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict) {
   auto nparts = read_nparts(path, comm);
   auto version = read_version(path, comm);
-  if (nparts > comm->size()) {
-    Omega_h_fail(
-        "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
-        path.c_str(), nparts, comm->size());
+  if (strict) {
+    if (nparts != comm->size()) {
+      Omega_h_fail("Mesh \"%s\" is being read in strict mode"
+                   " (no repartitioning) and its number of parts %d"
+                   " doesn't match the number of MPI ranks %d\n",
+                   path.c_str(), nparts, comm->size());
+    }
+    read_in_comm(path, comm, mesh, version);
+  } else {
+    if (nparts > comm->size()) {
+      Omega_h_fail(
+          "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
+          path.c_str(), nparts, comm->size());
+    }
+    auto in_subcomm = (comm->rank() < nparts);
+    auto subcomm = comm->split(I32(!in_subcomm), 0);
+    if (in_subcomm) {
+      read_in_comm(path, subcomm, mesh, version);
+    }
+    mesh->set_comm(comm);
   }
-  auto in_subcomm = (comm->rank() < nparts);
-  auto subcomm = comm->split(I32(!in_subcomm), 0);
-  if (in_subcomm) {
-    read_in_comm(path, subcomm, mesh, version);
-  }
-  mesh->set_comm(comm);
   return nparts;
 }
 
-Mesh read(std::string const& path, CommPtr comm) {
+Mesh read(std::string const& path, Library* lib, bool strict) {
+  return binary::read(path, lib->world(), strict);
+}
+
+Mesh read(std::string const& path, CommPtr comm, bool strict) {
   auto mesh = Mesh(comm->library());
-  binary::read(path, comm, &mesh);
+  binary::read(path, comm, &mesh, strict);
   return mesh;
 }
 

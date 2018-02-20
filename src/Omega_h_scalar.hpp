@@ -229,6 +229,7 @@ OMEGA_H_INLINE bool are_close(
 
 template <typename T>
 T divide_no_remainder(T a, T b) {
+  OMEGA_H_CHECK(b != 0);
   OMEGA_H_CHECK(a % b == 0);
   return a / b;
 }

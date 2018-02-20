@@ -28,6 +28,7 @@ static bool is_type_supported(int dim, std::string const& type) {
   if (dim == 3) {
     if (type == "tetra4") return true;
     if (type == "TETRA") return true;
+    if (type == "TET4") return true;
   }
   return false;
 }
