@@ -17,8 +17,7 @@ int main(int argc, char** argv) {
   auto path_in = argv[1];
   auto target_nelems = atof(argv[2]);
   auto path_out = argv[3];
-  Omega_h::Mesh mesh(&lib);
-  Omega_h::binary::read(path_in, lib.world(), &mesh);
+  auto mesh = Omega_h::binary::read(path_in, &lib, /*strict=*/true);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto metrics = Omega_h::get_implied_isos(&mesh);
   auto scalar =

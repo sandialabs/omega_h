@@ -71,6 +71,7 @@ static Reals get_mident_metrics_tmpl(
 
 Reals get_mident_metrics(
     Mesh* mesh, Int ent_dim, LOs entities, Reals v2m, bool has_degen) {
+  if (entities.size() == 0) return Reals({});
   auto metrics_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (metrics_dim == 3 && ent_dim == 3) {
     return get_mident_metrics_tmpl<3, 3>(mesh, entities, v2m, has_degen);
@@ -110,7 +111,7 @@ Reals interpolate_between_metrics(LO nmetrics, Reals a, Reals b, Real t) {
 
 template <Int dim>
 Reals linearize_metrics_dim(Reals metrics) {
-  auto n = metrics.size() / symm_ncomps(dim);
+  auto n = divide_no_remainder(metrics.size(), symm_ncomps(dim));
   auto out = Write<Real>(n * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_symm(out, i, linearize_metric(get_symm<dim>(metrics, i)));
@@ -121,7 +122,7 @@ Reals linearize_metrics_dim(Reals metrics) {
 
 template <Int dim>
 Reals delinearize_metrics_dim(Reals lms) {
-  auto n = lms.size() / symm_ncomps(dim);
+  auto n = divide_no_remainder(lms.size(), symm_ncomps(dim));
   auto out = Write<Real>(n * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO i) {
     set_symm(out, i, delinearize_metric(get_symm<dim>(lms, i)));
@@ -131,6 +132,7 @@ Reals delinearize_metrics_dim(Reals lms) {
 }
 
 Reals linearize_metrics(LO nmetrics, Reals metrics) {
+  if (nmetrics == 0) return metrics;
   auto dim = get_metrics_dim(nmetrics, metrics);
   if (dim == 3) return linearize_metrics_dim<3>(metrics);
   if (dim == 2) return linearize_metrics_dim<2>(metrics);
@@ -139,6 +141,7 @@ Reals linearize_metrics(LO nmetrics, Reals metrics) {
 }
 
 Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
+  if (nmetrics == 0) return linear_metrics;
   auto dim = get_metrics_dim(nmetrics, linear_metrics);
   if (dim == 3) return delinearize_metrics_dim<3>(linear_metrics);
   if (dim == 2) return delinearize_metrics_dim<2>(linear_metrics);
@@ -537,6 +540,7 @@ static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
 }
 
 Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
+  if (v2m.size() == 0) return Reals({});
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return get_expected_nelems_per_elem_tmpl<3, 3>(mesh, v2m);
@@ -638,6 +642,7 @@ static Reals get_size_isos(Int dim, Reals metrics) {
 }
 
 Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy) {
+  if (nmetrics == 0) return metrics;
   auto dim = get_metrics_dim(nmetrics, metrics);
   switch (isotropy) {
     case OMEGA_H_ANISOTROPIC:

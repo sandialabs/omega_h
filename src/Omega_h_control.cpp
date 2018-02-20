@@ -96,6 +96,31 @@ char const* Library::static_version() { return OMEGA_H_SEMVER; }
 
 char const* Library::version() { return static_version(); }
 
+#ifdef OMEGA_H_CHECK_FPE
+#if defined(__GNUC__) && (!defined(__clang__))
+#define _GNU_SOURCE 1
+#include <fenv.h>
+static void enable_floating_point_exceptions() {
+  feclearexcept(FE_ALL_EXCEPT);
+  // FE_INEXACT inexact result: rounding was necessary to store the result of an earlier floating-point operation
+  // sounds like the above would happen in almost any floating point operation involving non-whole numbers ???
+  // As for underflow, there are plenty of cases where we will have things like ((a + eps) - (a)) -> eps,
+  // where eps can be arbitrarily close to zero (usually it would have been zero with infinite precision).
+  feenableexcept(FE_ALL_EXCEPT - FE_INEXACT - FE_UNDERFLOW);
+}
+#elif defined(__x86_64__) || defined(_M_X64)
+#include <xmmintrin.h>
+// Intel system
+static void enable_floating_point_exceptions() {
+  _MM_SET_EXCEPTION_MASK(_MM_GET_EXCEPTION_MASK() & ~_MM_MASK_INVALID);
+}
+#else
+#error "FPE enabled but not supported"
+#endif
+#else  // don't check FPE
+static void enable_floating_point_exceptions() {}
+#endif
+
 void Library::initialize(char const* head_desc, int* argc, char*** argv
 #ifdef OMEGA_H_USE_MPI
     ,
@@ -120,6 +145,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   } else {
     we_called_mpi_init = false;
   }
+  enable_floating_point_exceptions();
   MPI_Comm world_dup;
   MPI_Comm_dup(comm_mpi, &world_dup);
   world_ = CommPtr(new Comm(this, world_dup));

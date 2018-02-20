@@ -20,6 +20,7 @@ Reals measure_qualities_tmpl(Mesh* mesh, LOs a2e, Reals metrics) {
 }
 
 Reals measure_qualities(Mesh* mesh, LOs a2e, Reals metrics) {
+  if (a2e.size() == 0) return Reals({});
   auto metric_dim = get_metrics_dim(mesh->nverts(), metrics);
   if (mesh->dim() == 3 && metric_dim == 3) {
     return measure_qualities_tmpl<3, 3>(mesh, a2e, metrics);
