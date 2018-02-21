@@ -483,6 +483,7 @@ if (Omega_h_USE_pybind11)
       PyOmega_h_build.cpp
       PyOmega_h_adapt.cpp
       PyOmega_h_file.cpp
+      PyOmega_h_class.cpp
       )
   if (Omega_h_USE_DOLFIN)
     set(PYBIND11_SOURCES ${PYBIND11_SOURCES}
