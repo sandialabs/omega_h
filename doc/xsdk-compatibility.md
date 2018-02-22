@@ -18,7 +18,7 @@ For current xSDK member packages: If you were not compliant at some point, pleas
 |**M3.** Employ userprovided MPI communicator (no `MPI_COMM_WORLD`). |Full| `Omega_h::Library` takes an `MPI_Comm` argument, nothing uses `MPI_COMM_WORLD`. |
 |**M4.** Give best effort at portability to key architectures (standard Linux distributions, GNU, Clang, vendor compilers, and target machines at ALCF, NERSC, OLCF). |Full| Omega_h supports GNU, Clang, NVCC, Intel, and other compilers, and optionally uses MPI, OpenMP, and/or CUDA for parallelism through Kokkos. |
 |**M5.** Provide a documented, reliable way to contact the development team. |Full| GitHub provides the mechanism for contacting the developer. |
-|**M6.** Respect system resources and settings made by other previously called packages (e.g. signal handling). |Full| None. |
+|**M6.** Respect system resources and settings made by other previously called packages (e.g. signal handling). |Full| We do. |
 |**M7.** Come with an open source (BSD style) license. |Full| Omega_h is released under the 2-clause BSD license. |
 |**M8.** Provide a runtime API to return the current version number of the software. |Full| `const char* version = Omega_h::Library::static_version()`. |
 |**M9.** Use a limited and well-defined symbol, macro, library, and include file name space. |Full| All linkable symbols are in C++ namespace `Omega_h`, all macros begin with `OMEGA_H`, all files begin with `Omega_h`, all executables include `osh` in a non-abiguous way as part of the name, and the library is called `libomega_h`. |
@@ -27,7 +27,7 @@ For current xSDK member packages: If you were not compliant at some point, pleas
 |**M12.** For external dependencies, allow installing, building, and linking against an outside copy of external software. |Full| This is the only way Omega_h brings in software which is separately available. |
 |**M13.** Install headers and libraries under \<prefix\>/include and \<prefix\>/lib. |Full| We do. |
 |**M14.** Be buildable using 64 bit pointers. 32 bit is optional. |Full| Omega_h builds with 64-bit pointers. |
-|**M15.** All xSDK compatibility changes should be sustainable. |Full| None. |
+|**M15.** All xSDK compatibility changes should be sustainable. |Full| They are. |
 |**M16.** The package must support production-quality installation compatible with the xSDK install tool and xSDK metapackage. |None| Omega_h does not yet integrate with Spack or the xSDK metapackage. |
 
 ### Recommended Policies
