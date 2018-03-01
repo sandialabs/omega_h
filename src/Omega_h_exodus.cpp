@@ -96,6 +96,30 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
   return -1;
 }
 
+static void read_nodal_fields(Mesh* mesh, int file, int time_step, bool verbose) {
+  int num_nodal_vars;
+  CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
+  if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
+  std::int64_t max_name_length = ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
+  ++max_name_length; // it really is tightly-fitted, and doesn't include null terminators
+  std::cout << "max name length " << max_name_length << '\n';
+  std::vector<char> names_memory(std::size_t(num_nodal_vars * max_name_length), '\0');
+  std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
+  for (int i = 0; i < num_nodal_vars; ++i) {
+    name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
+  }
+  CALL(ex_get_variable_names(file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
+  for (int i = 0; i < num_nodal_vars; ++i) {
+    auto name = name_ptrs[std::size_t(i)];
+    if (verbose) std::cout << "Loading nodal variable \"" << name << "\"\n";
+    HostWrite<double> host_write(mesh->nverts());
+    CALL(ex_get_var(file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/0, mesh->nverts(), host_write.data()));
+    auto device_write = host_write.write();
+    auto device_read = Reals(device_write);
+    mesh->add_tag(VERT, name, 1, device_read);
+  }
+}
+
 void read(
     std::string const& path, Mesh* mesh, bool verbose, int classify_with, int time_step) {
   begin_code("exodus::read");
@@ -120,37 +144,6 @@ void read(
     std::cout << " num_elem_blk " << init_params.num_elem_blk << '\n';
     std::cout << " num_node_sets " << init_params.num_node_sets << '\n';
     std::cout << " num_side_sets " << init_params.num_side_sets << '\n';
-  }
-  {
-    int num_global_vars;
-    CALL(ex_get_variable_param(file, EX_GLOBAL, &num_global_vars));
-    int num_nodal_vars;
-    CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
-    int num_elem_block_vars;
-    CALL(ex_get_variable_param(file, EX_ELEM_BLOCK, &num_elem_block_vars));
-    std::cout << num_global_vars << " global variables\n";
-    std::cout << num_nodal_vars << " nodal variables\n";
-    std::cout << num_elem_block_vars << " element block variables\n";
-    std::int64_t max_name_length = ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
-    ++max_name_length; // it really is tightly-fitted, and doesn't include null terminators
-    std::cout << "max name length " << max_name_length << '\n';
-    std::vector<char> names_memory(std::size_t(num_nodal_vars * max_name_length), '\0');
-    std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
-    for (int i = 0; i < num_nodal_vars; ++i) {
-      name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
-    }
-    CALL(ex_get_variable_names(file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
-    for (auto ptr : name_ptrs) std::cout << "nodal variable: \"" << ptr << "\"\n";
-    auto num_time_steps = int(ex_inquire_int(file, EX_INQ_TIME));
-    std::cout << num_time_steps << " time steps\n";
-    if (time_step < 0) time_step = num_time_steps - 1;
-    int topology_var_idx = -1;
-    for (int i = 0; i < num_nodal_vars; ++i) {
-      if (std::string("Topology") == name_ptrs[std::size_t(i)]) topology_var_idx = i;
-    }
-    std::cout << "Topology is variable " << topology_var_idx << '\n';
-    std::vector<double> topology_data(std::size_t(init_params.num_nodes));
-    CALL(ex_get_var(file, time_step + 1, EX_NODAL, topology_var_idx + 1, /*obj_id*/0, init_params.num_nodes, topology_data.data())); 
   }
   auto dim = int(init_params.num_dim);
   HostWrite<Real> h_coord_blk[3];
@@ -292,7 +285,6 @@ void read(
           side_class_dims_w, 1);
     }
   }
-  CALL(ex_close(file));
   auto elem_class_ids = LOs(elem_class_ids_w);
   auto side_class_ids = LOs(side_class_ids_w);
   auto side_class_dims = Read<I8>(side_class_dims_w);
@@ -300,6 +292,12 @@ void read(
   mesh->add_tag(dim - 1, "class_id", 1, side_class_ids);
   mesh->set_tag(dim - 1, "class_dim", side_class_dims);
   finalize_classification(mesh);
+  auto num_time_steps = int(ex_inquire_int(file, EX_INQ_TIME));
+  if (verbose) std::cout << num_time_steps << " time steps\n";
+  if (time_step < 0) time_step = num_time_steps - 1;
+  if (verbose) std::cout << "reading time step " << time_step << '\n';
+  read_nodal_fields(mesh, file, time_step, verbose);
+  CALL(ex_close(file));
   end_code();
 }
 

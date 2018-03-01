@@ -39,7 +39,7 @@ enum ClassifyWith {
   SIDE_SETS = 0x2,
 };
 void read(std::string const& path, Mesh* mesh, bool verbose = false,
-    int classify_with = NODE_SETS | SIDE_SETS, int time_step);
+    int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
 void write(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
 }  // namespace exodus
