@@ -1,4 +1,11 @@
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
+#endif
 #include <exodusII.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #include <algorithm>
 #include <set>
@@ -89,8 +96,32 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
   return -1;
 }
 
+static void read_nodal_fields(Mesh* mesh, int file, int time_step, bool verbose) {
+  int num_nodal_vars;
+  CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
+  if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
+  std::int64_t max_name_length = ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
+  ++max_name_length; // it really is tightly-fitted, and doesn't include null terminators
+  std::cout << "max name length " << max_name_length << '\n';
+  std::vector<char> names_memory(std::size_t(num_nodal_vars * max_name_length), '\0');
+  std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
+  for (int i = 0; i < num_nodal_vars; ++i) {
+    name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
+  }
+  CALL(ex_get_variable_names(file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
+  for (int i = 0; i < num_nodal_vars; ++i) {
+    auto name = name_ptrs[std::size_t(i)];
+    if (verbose) std::cout << "Loading nodal variable \"" << name << "\"\n";
+    HostWrite<double> host_write(mesh->nverts());
+    CALL(ex_get_var(file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/0, mesh->nverts(), host_write.data()));
+    auto device_write = host_write.write();
+    auto device_read = Reals(device_write);
+    mesh->add_tag(VERT, name, 1, device_read);
+  }
+}
+
 void read(
-    std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
+    std::string const& path, Mesh* mesh, bool verbose, int classify_with, int time_step) {
   begin_code("exodus::read");
   auto comp_ws = int(sizeof(Real));
   int io_ws = 0;
@@ -117,22 +148,22 @@ void read(
   auto dim = int(init_params.num_dim);
   HostWrite<Real> h_coord_blk[3];
   for (Int i = 0; i < dim; ++i) {
-    h_coord_blk[i] = HostWrite<Real>(init_params.num_nodes);
+    h_coord_blk[i] = HostWrite<Real>(LO(init_params.num_nodes));
   }
   CALL(ex_get_coord(file, h_coord_blk[0].data(), h_coord_blk[1].data(),
       h_coord_blk[2].data()));
-  HostWrite<Real> h_coords(init_params.num_nodes * dim);
+  HostWrite<Real> h_coords(LO(init_params.num_nodes * dim));
   for (LO i = 0; i < init_params.num_nodes; ++i) {
     for (Int j = 0; j < dim; ++j) {
       h_coords[i * dim + j] = h_coord_blk[j][i];
     }
   }
   auto coords = Reals(h_coords.write());
-  std::vector<int> block_ids(init_params.num_elem_blk);
+  std::vector<int> block_ids(std::size_t(init_params.num_elem_blk));
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
   auto deg = element_degree(mesh->family(), dim, VERT);
-  HostWrite<LO> h_conn(init_params.num_elem * deg);
-  Write<LO> elem_class_ids_w(init_params.num_elem);
+  HostWrite<LO> h_conn(LO(init_params.num_elem * deg));
+  Write<LO> elem_class_ids_w(LO(init_params.num_elem));
   LO start = 0;
   for (size_t i = 0; i < block_ids.size(); ++i) {
     char elem_type[MAX_STR_LENGTH + 1];
@@ -154,8 +185,8 @@ void read(
     OMEGA_H_CHECK(nnodes_per_entry == deg);
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
-    std::vector<int> edge_conn(nentries * nedges_per_entry);
-    std::vector<int> face_conn(nentries * nfaces_per_entry);
+    std::vector<int> edge_conn(std::size_t(nentries * nedges_per_entry));
+    std::vector<int> face_conn(std::size_t(nentries * nfaces_per_entry));
     CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i], h_conn.data() + start,
         edge_conn.data(), face_conn.data()));
     auto region_id = block_ids[i];
@@ -169,7 +200,7 @@ void read(
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
   build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, dim, conn, coords);
   classify_elements(mesh);
-  std::vector<int> side_set_ids(init_params.num_side_sets);
+  std::vector<int> side_set_ids(std::size_t(init_params.num_side_sets));
   CALL(ex_get_ids(file, EX_SIDE_SET, side_set_ids.data()));
   Write<LO> side_class_ids_w(mesh->nents(dim - 1), -1);
   auto sides_are_exposed = mark_exposed_sides(mesh);
@@ -185,7 +216,7 @@ void read(
       max_side_set_id =
           *std::max_element(side_set_ids.begin(), side_set_ids.end());
     }
-    std::vector<int> node_set_ids(init_params.num_node_sets);
+    std::vector<int> node_set_ids(std::size_t(init_params.num_node_sets));
     CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
     for (size_t i = 0; i < node_set_ids.size(); ++i) {
       int nentries, ndist_factors;
@@ -196,7 +227,7 @@ void read(
                   << " nodes\n";
       }
       if (ndist_factors) {
-        std::cout << "Omega_h doesn't support distribution factors\n";
+        std::cout << path << " has distribution factors, Omega_h ignores these\n";
       }
       HostWrite<LO> h_set_nodes2nodes(nentries);
       CALL(ex_get_set(file, EX_NODE_SET, node_set_ids[i],
@@ -254,7 +285,6 @@ void read(
           side_class_dims_w, 1);
     }
   }
-  CALL(ex_close(file));
   auto elem_class_ids = LOs(elem_class_ids_w);
   auto side_class_ids = LOs(side_class_ids_w);
   auto side_class_dims = Read<I8>(side_class_dims_w);
@@ -262,6 +292,12 @@ void read(
   mesh->add_tag(dim - 1, "class_id", 1, side_class_ids);
   mesh->set_tag(dim - 1, "class_dim", side_class_dims);
   finalize_classification(mesh);
+  auto num_time_steps = int(ex_inquire_int(file, EX_INQ_TIME));
+  if (verbose) std::cout << num_time_steps << " time steps\n";
+  if (time_step < 0) time_step = num_time_steps - 1;
+  if (verbose) std::cout << "reading time step " << time_step << '\n';
+  read_nodal_fields(mesh, file, time_step, verbose);
+  CALL(ex_close(file));
   end_code();
 }
 
