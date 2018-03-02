@@ -84,6 +84,7 @@ set(Omega_h_SOURCES
   Omega_h_fix.cpp
   Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
+  Omega_h_amr_topology.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)

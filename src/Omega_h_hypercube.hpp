@@ -14,6 +14,8 @@
 
 namespace Omega_h {
 
+class Mesh;
+
 /* TODO: make these constexpr, either with C++14 or lots of
    ternary operators */
 
@@ -484,6 +486,8 @@ OMEGA_H_INLINE constexpr Int hypercube_split_degree(
     Int parent_dim, Int split_dim) {
   return hypercube_degree(parent_dim, parent_dim - split_dim);
 }
+
+LOs count_amr_new_ents(Mesh* mesh, Read<Byte> elem_mark);
 
 }  // end namespace Omega_h
 
