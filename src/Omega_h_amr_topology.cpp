@@ -5,18 +5,26 @@
 
 namespace Omega_h {
 
-LOs count_amr_new_ents(Mesh* mesh, Read<Byte> elem_mark) {
-  Write<LO> num_new_ents(4, 0);
+void mark_amr(Mesh* mesh, Read<Byte> elem_mark) {
   auto dim = mesh->dim();
   for (Int i = 1; i <= dim; ++i) {
     auto dim_mark = mark_down(mesh, dim, i, elem_mark);
+    mesh->add_tag<Omega_h::Byte>(i, "refine", 1, dim_mark);
+  }
+}
+
+Few<Real, 4> count_amr(Mesh* mesh) {
+  auto dim = mesh->dim();
+  Few<Real, 4> num_ents({0,0,0,0});
+  for (Int i = 1; i <=dim; ++i) {
+    auto dim_tag = mesh->get_tag<Byte>(i, "refine");
     for (Int j = 0; j <= i; ++j) {
       auto deg = hypercube_split_degree(i, j);
-      auto nsplit = get_sum(dim_mark);
-      num_new_ents[j] += deg * nsplit;
+      auto nsplit = get_sum(dim_tag->array());
+      num_ents[j] += deg * nsplit;
     }
   }
-  return num_new_ents;
+  return num_ents;
 }
 
 }

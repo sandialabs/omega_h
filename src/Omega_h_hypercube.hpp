@@ -1,6 +1,7 @@
 #ifndef OMEGA_H_HYPERCUBE_HPP
 #define OMEGA_H_HYPERCUBE_HPP
 
+#include <Omega_h_few.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <Omega_h_template_up.hpp>
 
@@ -487,7 +488,9 @@ OMEGA_H_INLINE constexpr Int hypercube_split_degree(
   return hypercube_degree(parent_dim, parent_dim - split_dim);
 }
 
-LOs count_amr_new_ents(Mesh* mesh, Read<Byte> elem_mark);
+void mark_amr(Mesh* mesh, Read<Byte> elem_mark);
+
+Few<Real, 4> count_amr(Mesh* mesh);
 
 }  // end namespace Omega_h
 
