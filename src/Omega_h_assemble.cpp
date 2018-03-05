@@ -104,4 +104,54 @@ Reals get_elem_jac_invs(Mesh* mesh) {
   OMEGA_H_NORETURN(Reals());
 }
 
+/*
+   A*x = b
+   B = A*e_i
+   (A - A*e_i)*x = A*x - A*e_i*x
+   (A - A*e_i)*x = b - A*e_i*x
+ */
+
+void apply_dirichlet(Mesh* mesh, Reals* p_a_edge, Reals a_vert, Reals* p_b, Bytes are_dbc, Reals dbc_values) {
+  auto a_edge = *p_a_edge;
+  auto b = *p_b;
+  OMEGA_H_CHECK(a_edge.size() == mesh->nedges());
+  OMEGA_H_CHECK(a_vert.size() == mesh->nverts());
+  auto a_edge_new = deep_copy(a_edge);
+  auto b_new = deep_copy(b);
+  auto verts2edges = mesh->ask_up(VERT, EDGE);
+  auto edges2verts = mesh->ask_verts_of(EDGE);
+  auto v_f = OMEGA_H_LAMBDA(LO v) {
+    Real b_v_new = b_new[v];
+    if (are_dbc[v]) {
+      b_v_new = a_vert[v] * dbc_values[v];
+    } else {
+      auto begin = verts2edges.a2ab[v];
+      auto end = verts2edges.a2ab[v + 1];
+      for (auto vert_edge = begin; vert_edge < end; ++vert_edge) {
+        auto edge = verts2edges.ab2b[vert_edge];
+        auto code = verts2edges.codes[vert_edge];
+        auto edge_vert = code_which_down(code);
+        auto other_vert = edges2verts[edge * 2 + (1 - edge_vert)];
+        if (are_dbc[other_vert]) {
+          b_v_new -= a_edge[edge] * dbc_values[other_vert];
+        }
+      }
+    }
+    b_new[v] = b_v_new;
+  };
+  parallel_for(mesh->nverts(), v_f);
+  *p_b = mesh->sync_array(VERT, Reals(b_new), 1);
+  auto e_f = OMEGA_H_LAMBDA(LO e) {
+    auto a_e_new = a_edge_new[e];
+    for (Int edge_vert = 0; edge_vert < 2; ++edge_vert) {
+      if (are_dbc[edges2verts[e * 2 + edge_vert]]) {
+        a_e_new = 0.;
+      }
+    }
+    a_edge_new[e] = a_e_new;
+  };
+  parallel_for(mesh->nedges(), e_f);
+  *p_a_edge = mesh->sync_array(EDGE, Reals(a_edge_new), 1);
+}
+
 }
