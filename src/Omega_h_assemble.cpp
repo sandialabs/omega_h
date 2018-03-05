@@ -40,7 +40,7 @@ Reals get_edge_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_materia
 }
 
 template <Int dim>
-Reals get_vert_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices) {
+Reals get_vert_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices, Reals elem_sizes) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   auto verts2elems = mesh->ask_up(VERT, dim);
@@ -57,7 +57,7 @@ Reals get_vert_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_materia
       auto grad = (elem_vert == 0) ? (-sum(jac_inv)) : jac_inv[elem_vert - 1];
       auto material_matrix = get_symm<dim>(elem_material_matrices, elem);
       auto contrib = grad * (material_matrix * grad);
-      value += contrib;
+      value += contrib * elem_sizes[elem];
     }
     out_w[vert] = value;
   };
@@ -83,17 +83,17 @@ Reals get_elem_jac_invs_dim(Mesh* mesh) {
   return out_w;
 }
 
-Reals get_edge_grad_grad(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices) {
-  if (mesh->dim() == 3) return get_edge_grad_grad_dim<3>(mesh, elem_jac_invs, elem_material_matrices);
-  if (mesh->dim() == 2) return get_edge_grad_grad_dim<2>(mesh, elem_jac_invs, elem_material_matrices);
-  if (mesh->dim() == 1) return get_edge_grad_grad_dim<1>(mesh, elem_jac_invs, elem_material_matrices);
+Reals get_edge_grad_grad(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices, Reals elem_sizes) {
+  if (mesh->dim() == 3) return get_edge_grad_grad_dim<3>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 2) return get_edge_grad_grad_dim<2>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 1) return get_edge_grad_grad_dim<1>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
   OMEGA_H_NORETURN(Reals());
 }
 
-Reals get_vert_grad_grad(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices) {
-  if (mesh->dim() == 3) return get_vert_grad_grad_dim<3>(mesh, elem_jac_invs, elem_material_matrices);
-  if (mesh->dim() == 2) return get_vert_grad_grad_dim<2>(mesh, elem_jac_invs, elem_material_matrices);
-  if (mesh->dim() == 1) return get_vert_grad_grad_dim<1>(mesh, elem_jac_invs, elem_material_matrices);
+Reals get_vert_grad_grad(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices, Reals elem_sizes) {
+  if (mesh->dim() == 3) return get_vert_grad_grad_dim<3>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 2) return get_vert_grad_grad_dim<2>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 1) return get_vert_grad_grad_dim<1>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
   OMEGA_H_NORETURN(Reals());
 }
 
