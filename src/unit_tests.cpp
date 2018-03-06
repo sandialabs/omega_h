@@ -7,6 +7,7 @@
 #include "Omega_h_confined.hpp"
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_hilbert.hpp"
+#include "Omega_h_hypercube.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
@@ -1269,6 +1270,43 @@ static void test_most_normal() {
   }
 }
 
+static bool compare_hst(Int pd, Int cd, Int wc, Int wcv,
+    SplitVertex truth) {
+  auto split_vtx = hypercube_split_template(pd, cd, wc, wcv);
+  if (split_vtx.dim != truth.dim) return false;
+  if (split_vtx.which_down != truth.which_down) return false;
+  return true;
+}
+
+static void test_hypercube_split_template() {
+  OMEGA_H_CHECK(compare_hst(1, 0, 0, 0, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 0, 0, {0, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 0, 1, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 1, 0, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 1, 1, {0, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 0, 0, 0, {2, 0}));
+  for (Int i = 0; i <= 4; ++i) {
+    OMEGA_H_CHECK(compare_hst(2, 1, i, 0, {1, i}));
+    OMEGA_H_CHECK(compare_hst(2, 1, i, 1, {2, 0}));
+  }
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 0, {0, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 1, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 2, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 3, {1, 3}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 0, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 1, {0, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 2, {1, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 3, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 0, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 1, {1, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 2, {0, 2}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 3, {1, 2}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 0, {1, 3}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 1, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 2, {1, 2}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 3, {0, 3}));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1333,5 +1371,6 @@ int main(int argc, char** argv) {
   test_scalar_ptr();
   test_is_sorted();
   test_expr();
+  test_hypercube_split_template();
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }
