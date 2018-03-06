@@ -270,13 +270,14 @@ template <typename T>
 static void find_new_offsets(Read<T> old_ents2new_offsets,
     LOs same_ents2old_ents, LOs keys2kds, LOs keys2reps, LOs keys2prods,
     LOs key2rep_order, Read<T>* p_same_ents2new_offsets,
-    Read<T>* p_prods2new_offsets) {
+    Read<T>* p_prods2new_offsets, bool reps_count_selves) {
   *p_same_ents2new_offsets = unmap(same_ents2old_ents, old_ents2new_offsets, 1);
   auto keys2new_offsets = unmap(keys2reps, old_ents2new_offsets, 1);
   auto nprods = keys2prods.last();
   Write<T> prods2new_offsets_w(nprods);
   auto nkeys = keys2reps.size();
   OMEGA_H_CHECK(nkeys == keys2prods.size() - 1);
+  Int rep_self_count = (reps_count_selves ? 1 : 0);
   if (key2rep_order.exists()) {
     OMEGA_H_CHECK(keys2kds.exists());
     auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
@@ -284,7 +285,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
          new vertex numbers after edge refinement.
          in this case, the representative entity of the key edge
          is a vertex *which stays the same*, hence the "+ 1" here: */
-      auto offset = keys2new_offsets[key] + 1;
+      auto offset = keys2new_offsets[key] + rep_self_count;
       auto edge = keys2kds[key];
       auto prod = key;
       /* in addition, since multiple key edges may share a representative
@@ -295,7 +296,7 @@ static void find_new_offsets(Read<T> old_ents2new_offsets,
     parallel_for(nkeys, write_prod_offsets, "find_new_offsets(edge-refine)");
   } else {
     auto write_prod_offsets = OMEGA_H_LAMBDA(LO key) {
-      auto offset = keys2new_offsets[key];
+      auto offset = keys2new_offsets[key] + rep_self_count;
       for (auto prod = keys2prods[key]; prod < keys2prods[key + 1]; ++prod) {
         prods2new_offsets_w[prod] = offset;
         ++offset;
@@ -343,7 +344,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   }
   find_new_offsets(old_ents2new_globals, same_ents2old_ents, keys2kds,
       keys2reps, keys2prods, key2rep_order, &same_ents2new_globals,
-      &prods2new_globals);
+      &prods2new_globals, key2rep_order.exists());
   auto nnew_ents = new_mesh->nents(ent_dim);
   OMEGA_H_CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
@@ -377,7 +378,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     key2rep_order = get_key2rep_order(old_mesh, EDGE, VERT, edges_are_keys);
   }
   find_new_offsets(local_offsets, *p_same_ents2old_ents, keys2kds, keys2reps,
-      keys2prods, key2rep_order, p_same_ents2new_ents, p_prods2new_ents);
+      keys2prods, key2rep_order, p_same_ents2new_ents, p_prods2new_ents, key2rep_order.exists());
   auto nold_ents = old_mesh->nents(ent_dim);
   *p_old_ents2new_ents =
       map_onto(*p_same_ents2new_ents, *p_same_ents2old_ents, nold_ents, -1, 1);
