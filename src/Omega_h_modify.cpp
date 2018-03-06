@@ -96,11 +96,10 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->set_owners(ent_dim, new_owners);
 }
 
-static LOs collect_same(Mesh* mesh, Int ent_dim, Few<LOs, 4> modified_ents, bool keep_mods) {
+static LOs collect_same(Mesh* mesh, Int ent_dim, Few<Bytes, 4> mds_are_mods, bool keep_mods) {
   if (keep_mods) return LOs(mesh->nents(ent_dim), 0, 1);
   auto nmds = mesh->nents(ent_dim);
-  auto ents_are_modified = mark_image(modified_ents[ent_dim], nmds);
-  auto ents_not_modified = invert_marks(ents_are_modified);
+  auto ents_not_modified = invert_marks(mds_are_mods[ent_dim]);
   return collect_marked(ents_not_modified);
 }
 
@@ -178,6 +177,7 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2reps,
   };
   parallel_for(nsame_ents, mark_same, "get_rep_counts(same)");
   for (Int mod_dim = 0; mod_dim <= mesh->dim(); ++mod_dim) {
+    if (!mods2reps[mods_dim].exists()) continue;
     auto mods2reps_dim = mods2reps[mod_dim];
     auto mods2nprods_dim = mods2nprods[mod_dim];
     auto nmods = mods2reps_dim.size();
@@ -193,53 +193,62 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2reps,
   return rep_counts;
 }
 
-/* One more thing we need to for the pathological
-   case of new vertices is to resolve the situation
-   where multiple cavities share the same representative
-   vertex of the old mesh.
-   That vertex represents the sum of all adjacent cavities
+/* One more thing we need to for the
+   case when multiple modified entities share a representative.
+   That representative represents the sum of all adjacent modifications
    and has a single global number from which the globals
-   of the new vertices of all adjacent cavities will be derived.
-   We just need to determine an order in which to assign
-   adjacent globals from the representative.
+   of all represented product entities will be derived.
+   We just need to determine an order in which to
+   product globals from the representative.
    The most intuitive order is the upward adjacent ordering
-   from vertices to edges (guaranteed to be sorted by globals).
+   from representatives to products (guaranteed to be sorted by globals).
    The ordering is stored as a tag on edges.
-   Each representative vertex assigns a value to each
-   adjacent key edge for which it is the 0th adjacent vertex.
-   The global version of this is only available in OMEGA_H_GHOSTED mode,
-   so, this function is called to save that ordering while in OMEGA_H_GHOSTED
-   mode so it can be used later by find_new_offsets(), which
+   Each representative entity assigns a value to each
+   modified entity that it represents.
+   The global version of this only works in OMEGA_H_GHOSTED mode,
+   so this function is called to save that ordering while in OMEGA_H_GHOSTED
+   mode, and that global ordering is used later by find_new_offsets(), which
    runs in OMEGA_H_ELEM_BASED mode.
    This function is also called to determine the local version
-   of this ordering, i.e. only for key edges on the same
+   of this ordering, i.e. only for modified entities on the same
    MPI rank in OMEGA_H_ELEM_BASED mode.
    The local version is used to deterime new *local* numbers
-   for vertices created by refinement, and is also the reason
+   for products, and is also the reason
    why this function doesn't check for ghosting.
  */
 
-LOs get_key2rep_order(Mesh* mesh, Int key_dim, Int rep_dim, Read<I8> kds_are_keys) {
-  auto nkds = mesh->nents(key_dim);
+Few<LOs, 4> get_mod2rep_order(Mesh* mesh, Int rep_dim, Few<Bytes, 4> mds_are_mods, Few<bool, 4> mods_have_prods) {
+  auto nmds = mesh->nents(mod_dim);
   auto nreps = mesh->nents(rep_dim);
-  auto order_w = Write<LO>(nkds, -1);
-  auto reps2keys = mesh->ask_up(rep_dim, key_dim);
-  auto r2rk = reps2keys.a2ab;
-  auto rk2k = reps2keys.ab2b;
-  auto rk_codes = reps2keys.codes;
-  auto f = OMEGA_H_LAMBDA(LO r) {
+  auto elem_dim = mesh->dim();
+  Few<Write<LO>, 4> orders_w;
+  Few<Adj, 4> reps2mds;
+  for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
+    if (!mods_have_prods[mod_dim]) continue;
+    orders_w[mod_dim] = Write<LO>(mesh->nents(mod_dim), -1);
+    reps2mds[mod_dim] = mesh->ask_up(rep_dim, mod_dim);
+  }
+  auto f = OMEGA_H_LAMBDA(LO rep) {
     LO i = 0;
-    for (auto rk = r2rk[r]; rk < r2rk[r + 1]; ++rk) {
-      auto e = rk2k[rk];
-      auto code = rk_codes[rk];
-      auto dir = code_which_down(code);
-      if (dir == 0 && kds_are_keys[e]) {
-        order_w[e] = i++;
+    for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
+      if (!mods_have_prods[mod_dim]) continue;
+      for (auto rep_md = reps2mds[mod_dim].a2ab[r]; rep_md < reps2mds[mod_dim].a2ab[r + 1]; ++rep_md) {
+        auto md = reps2mds[mod_dim].ab2b[rep_md];
+        auto code = reps2mds[mod_dim].codes[rep_md];
+        auto dir = code_which_down(code);
+        if (dir == 0 && mds_are_mods[mod_dim][md]) {
+          order_w[mod_dim][md] = i++;
+        }
       }
     }
   };
-  parallel_for(nreps, f, "get_key2rep_order");
-  return order_w;
+  parallel_for(nreps, f, "get_mod2rep_order");
+  Few<LOs, 4> out;
+  for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
+    if (!mods_have_prods[mod_dim]) continue;
+    out[mod_dim] = LOs(orders_w[mod_dim]);
+  }
+  return out;
 }
 
 /* Assigns a new numbering to all entities in the new mesh,
@@ -342,47 +351,36 @@ void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
   Few<LOs, 4> mods2mds;
-  for (Int mod_dim = 0; mod_dim < key_dim; ++mod_dim) {
-    mods2mds[mod_dim] = LOs({});
-  }
-  mods2mds[mod_dim] = keys2kds;
-  /* TODO: this is also done in collect_same, we can save time by only doing it once */
-  auto kds_are_modified = mark_image(keys2kds, mesh->nents(key_dim));
-  for (Int mod_dim = key_dim + 1; mod_dim <= mesh->dim(); ++mod_dim) {
-    auto mds_are_modified = mark_up(mesh, key_dim, mod_dim, kds_are_modified);
-    mods2mds[mod_dim] = collect_marked(mds_are_modified);
-  }
+  Few<Bytes, 4> mds_are_mods;
   Few<LOs, 4> mods2prods;
   for (Int mod_dim = 0; mod_dim < key_dim; ++mod_dim) {
-    mods2prods[mod_dim] =
-      LOs(mods2mds[mod_dim].size() + 1, 0);
+    mods2mds[mod_dim] = LOs({});
+    mds_are_mods[mod_dim] = Bytes({});
+  }
+  mods2mds[mod_dim] = keys2kds;
+  mds_are_mods[key_dim] = mark_image(keys2kds, mesh->nents(key_dim));
+  for (Int mod_dim = key_dim + 1; mod_dim <= mesh->dim(); ++mod_dim) {
+    mds_are_mods[mod_dim] = mark_up(mesh, key_dim, mod_dim, mds_are_mods[key_dim]);
+    mods2mds[mod_dim] = collect_marked(mds_are_mods[mod_dim]);
   }
   mods2prods[mod_dim] = keys2prods;
-  auto nprods = keys2prods.last();
-  /* TODO: a lot of time may be wasted here and later if this entire modified dimension
-     does not produce any products.
-     We should introduce a boolean denoting this to short-circuit the appropriate pieces
-     of work later on */
-  for (Int mod_dim = key_dim + 1; mod_dim <= mesh->dim(); ++mod_dim) {
-    mods2prods[mod_dim] =
-      LOs(mods2mds[mod_dim].size() + 1, nprods);
-  }
-  modify_ents(old_mesh, new_mesh, ent_dim, mods2mds, mods2prods, prod_verts2verts, old_lows2new_lows,
+  modify_ents(old_mesh, new_mesh, ent_dim, mods2mds, mds_are_mods, mods2prods, prod_verts2verts, old_lows2new_lows,
       /*keep_mods*/false, p_prods2new_ents, p_same_ents2old_ents, p_same_ents2new_ents,
       p_old_ents2new_ents);
 }
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
+    Few<LOs, 4> mods2mds, Few<Bytes, 4> mds_are_mods, Few<LOs, 4> mods2prods,
     LOs prod_verts2verts, LOs old_lows2new_lows,
     bool keep_mods,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
   begin_code("modify_ents");
-  *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, modified_ents, keep_mods);
+  *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, mds_are_mods, keep_mods);
   Few<LOs, 4> mods2nprods;
   Few<LOs, 4> mods2reps;
   for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
+    if (!mods2prods[mod_dim].exists()) continue;
     OMEGA_H_CHECK(mods2prods[mod_dim].size() == mods2mds.size() + 1);
     mods2reps[mod_dim] = get_mods2reps(old_mesh, ent_dim, mod_dim, mods2mds[mod_dim]);
     mods2nprods[mod_dim] = get_degrees(mods2prods[mod_dim]);
@@ -392,14 +390,11 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto local_offsets = offset_scan(local_rep_counts);
   auto nnew_ents = local_offsets.last();
   /* recompute MPI-local orders of modified entities per representative */
-  Few<LOs, 4> mod2rep_order;
-  for (Int mod_dim = ent_dim + 1; mod_dim <= old_mesh->dim(); ++mod_dim) {
-    /* TODO: this is probably the third time mds_are_mods is computed from mods2mds... */
-    auto mds_are_mods = mark_image(mods2mds[mod_dim], old_mesh->nents(mod_dim));
-    mod2rep_order[mod_dim] = get_key2rep_order(old_mesh, EDGE, VERT, mds_are_mods);
-  }
+  Few<bool, 4> mods_have_prods;
+  for (Int mod_dim = 0; mod_dim < 4; ++mod_dim) mods_have_prods[mod_dim] = mods2prods[mod_dim].exists();
+  auto local_mod2rep_order = get_mod2rep_order(old_mesh, ent_dim, mds_are_mods, mods_have_prods);
   find_new_offsets(local_offsets, *p_same_ents2old_ents, keys2kds, keys2reps,
-      keys2prods, key2rep_order, p_same_ents2new_ents, p_prods2new_ents, key2rep_order.exists());
+      keys2prods, local_mod2rep_order, p_same_ents2new_ents, p_prods2new_ents, key2rep_order.exists());
   auto nold_ents = old_mesh->nents(ent_dim);
   *p_old_ents2new_ents =
       map_onto(*p_same_ents2new_ents, *p_same_ents2old_ents, nold_ents, -1, 1);
