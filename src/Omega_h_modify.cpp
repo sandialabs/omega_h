@@ -22,9 +22,8 @@ namespace Omega_h {
 
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs prods2new_ents, LOs same_ents2old_ents,
-    LOs same_ents2new_ents, LOs old_lows2new_lows, LOs keys2kds) {
+    LOs same_ents2new_ents, LOs old_lows2new_lows) {
   begin_code("modify_conn");
-  (void)keys2kds;
   auto low_dim = ent_dim - 1;
   auto down_degree = simplex_degree(ent_dim, low_dim);
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, low_dim);
@@ -417,7 +416,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   } else {
     modify_conn(old_mesh, new_mesh, ent_dim, prod_verts2verts,
         *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
-        old_lows2new_lows, keys2kds);
+        old_lows2new_lows);
   }
   if (old_mesh->comm()->size() > 1) {
     modify_owners(old_mesh, new_mesh, ent_dim, *p_prods2new_ents,
