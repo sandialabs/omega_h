@@ -96,10 +96,10 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->set_owners(ent_dim, new_owners);
 }
 
-static LOs collect_same(Mesh* mesh, Int ent_dim, std::array<LOs, 4> modified_ents, bool keep_mods) {
+static LOs collect_same(Mesh* mesh, Int ent_dim, Few<LOs, 4> modified_ents, bool keep_mods) {
   if (keep_mods) return LOs(mesh->nents(ent_dim), 0, 1);
   auto nmds = mesh->nents(ent_dim);
-  auto ents_are_modified = mark_image(modified_ents[std::size_t(ent_dim)], nmds);
+  auto ents_are_modified = mark_image(modified_ents[ent_dim], nmds);
   auto ents_not_modified = invert_marks(ents_are_modified);
   return collect_marked(ents_not_modified);
 }
@@ -164,8 +164,8 @@ static LOs get_mods2reps(
    If (count_modified) is true, modified entities who represent themselves count themselves.
    If (count_non_owned) is false, non-owned entities do not count themselves.
  */
-static LOs get_rep_counts(Mesh* mesh, Int ent_dim, std::array<LOs, 4> mods2reps,
-    std::array<LOs, 4> mods2nprods, LOs same_ents2ents, bool count_modified, bool count_non_owned) {
+static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2reps,
+    Few<LOs, 4> mods2nprods, LOs same_ents2ents, bool count_modified, bool count_non_owned) {
   auto nents = mesh->nents(ent_dim);
   Write<LO> rep_counts(nents, 0);
   auto nsame_ents = same_ents2ents.size();
@@ -177,7 +177,7 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, std::array<LOs, 4> mods2reps,
     if (count_non_owned || owned[ent]) rep_counts[ent] = 1;
   };
   parallel_for(nsame_ents, mark_same, "get_rep_counts(same)");
-  for (std::size_t mod_dim = 0; mod_dim <= std::size_t(mesh->dim()); ++mod_dim) {
+  for (Int mod_dim = 0; mod_dim <= mesh->dim(); ++mod_dim) {
     auto mods2reps_dim = mods2reps[mod_dim];
     auto mods2nprods_dim = mods2nprods[mod_dim];
     auto nmods = mods2reps_dim.size();
@@ -341,31 +341,31 @@ void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
-  std::array<LOs, 4> mods2mds;
+  Few<LOs, 4> mods2mds;
   for (Int mod_dim = 0; mod_dim < key_dim; ++mod_dim) {
-    mods2mds[std::size_t(mod_dim)] = LOs({});
+    mods2mds[mod_dim] = LOs({});
   }
-  mods2mds[std::size_t(mod_dim)] = keys2kds;
+  mods2mds[mod_dim] = keys2kds;
   /* TODO: this is also done in collect_same, we can save time by only doing it once */
   auto kds_are_modified = mark_image(keys2kds, mesh->nents(key_dim));
   for (Int mod_dim = key_dim + 1; mod_dim <= mesh->dim(); ++mod_dim) {
     auto mds_are_modified = mark_up(mesh, key_dim, mod_dim, kds_are_modified);
-    mods2mds[std::size_t(mod_dim)] = collect_marked(mds_are_modified);
+    mods2mds[mod_dim] = collect_marked(mds_are_modified);
   }
-  std::array<LOs, 4> mods2prods;
+  Few<LOs, 4> mods2prods;
   for (Int mod_dim = 0; mod_dim < key_dim; ++mod_dim) {
-    mods2prods[std::size_t(mod_dim)] =
-      LOs(mods2mds[std::size_t(mod_dim)].size() + 1, 0);
+    mods2prods[mod_dim] =
+      LOs(mods2mds[mod_dim].size() + 1, 0);
   }
-  mods2prods[std::size_t(mod_dim)] = keys2prods;
+  mods2prods[mod_dim] = keys2prods;
   auto nprods = keys2prods.last();
   /* TODO: a lot of time may be wasted here and later if this entire modified dimension
      does not produce any products.
      We should introduce a boolean denoting this to short-circuit the appropriate pieces
      of work later on */
   for (Int mod_dim = key_dim + 1; mod_dim <= mesh->dim(); ++mod_dim) {
-    mods2prods[std::size_t(mod_dim)] =
-      LOs(mods2mds[std::size_t(mod_dim)].size() + 1, nprods);
+    mods2prods[mod_dim] =
+      LOs(mods2mds[mod_dim].size() + 1, nprods);
   }
   modify_ents(old_mesh, new_mesh, ent_dim, mods2mds, mods2prods, prod_verts2verts, old_lows2new_lows,
       /*keep_mods*/false, p_prods2new_ents, p_same_ents2old_ents, p_same_ents2new_ents,
@@ -373,16 +373,16 @@ void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
 }
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    std::array<LOs, 4> mods2mds, std::array<LOs, 4> mods2prods,
+    Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
     LOs prod_verts2verts, LOs old_lows2new_lows,
     bool keep_mods,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
   begin_code("modify_ents");
   *p_same_ents2old_ents = collect_same(old_mesh, ent_dim, modified_ents, keep_mods);
-  std::array<LOs, 4> mods2nprods;
-  std::array<LOs, 4> mods2reps;
-  for (std::size_t mod_dim = 0; mod_dim <= std::size_t(old_mesh->dim()); ++mod_dim) {
+  Few<LOs, 4> mods2nprods;
+  Few<LOs, 4> mods2reps;
+  for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
     OMEGA_H_CHECK(mods2prods[mod_dim].size() == mods2mds.size() + 1);
     mods2reps[mod_dim] = get_mods2reps(old_mesh, ent_dim, mod_dim, mods2mds[mod_dim]);
     mods2nprods[mod_dim] = get_degrees(mods2prods[mod_dim]);
@@ -392,8 +392,8 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto local_offsets = offset_scan(local_rep_counts);
   auto nnew_ents = local_offsets.last();
   /* recompute MPI-local orders of modified entities per representative */
-  std::array<LOs, 4> mod2rep_order;
-  for (std::size_t mod_dim = ent_dim + 1; mod_dim <= std::size_t(old_mesh->dim()); ++mod_dim) {
+  Few<LOs, 4> mod2rep_order;
+  for (Int mod_dim = ent_dim + 1; mod_dim <= old_mesh->dim(); ++mod_dim) {
     /* TODO: this is probably the third time mds_are_mods is computed from mods2mds... */
     auto mds_are_mods = mark_image(mods2mds[mod_dim], old_mesh->nents(mod_dim));
     mod2rep_order[mod_dim] = get_key2rep_order(old_mesh, EDGE, VERT, mds_are_mods);
