@@ -14,7 +14,7 @@ class Vector : public Few<Real, n> {
   OMEGA_H_INLINE void operator=(Vector<n> const& rhs) volatile {
     Few<Real, n>::operator=(rhs);
   }
-  KOKKOS_INLINE_FUNCTION void operator=(Vector<Scalar,n> const& rhs) {
+  OMEGA_H_INLINE void operator=(Vector<Scalar,n> const& rhs) {
     Few<Scalar, n>::operator=(rhs);
   }
   OMEGA_H_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
