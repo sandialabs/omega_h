@@ -25,7 +25,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs same_ents2new_ents, LOs old_lows2new_lows) {
   begin_code("modify_conn");
   auto low_dim = ent_dim - 1;
-  auto down_degree = simplex_degree(ent_dim, low_dim);
+  auto down_degree = element_degree(old_mesh->family(), ent_dim, low_dim);
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, low_dim);
   auto old_ent_lows2old_lows = old_ents2old_lows.ab2b;
   auto same_ent_lows2old_lows =
