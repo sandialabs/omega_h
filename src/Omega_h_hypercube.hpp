@@ -1,7 +1,6 @@
 #ifndef OMEGA_H_HYPERCUBE_HPP
 #define OMEGA_H_HYPERCUBE_HPP
 
-#include <Omega_h_few.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <Omega_h_template_up.hpp>
 
@@ -14,8 +13,6 @@
   */
 
 namespace Omega_h {
-
-class Mesh;
 
 /* TODO: make these constexpr, either with C++14 or lots of
    ternary operators */
@@ -487,10 +484,6 @@ OMEGA_H_INLINE constexpr Int hypercube_split_degree(
     Int parent_dim, Int split_dim) {
   return hypercube_degree(parent_dim, parent_dim - split_dim);
 }
-
-void mark_amr(Mesh* mesh, Read<Byte> elem_mark);
-
-Few<Real, 4> count_amr(Mesh* mesh);
 
 }  // end namespace Omega_h
 
