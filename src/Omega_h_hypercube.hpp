@@ -473,11 +473,6 @@ constexpr char const* hypercube_plural_name(Int dim) {
                                       : (dim == 0 ? "vertices" : nullptr))));
 }
 
-struct SplitVert {
-  Int parent_dim;
-  Int parent_which_down;
-};
-
 // every interior split entity can be seen as the dual of a corresponding
 // boundary entity
 OMEGA_H_INLINE constexpr Int hypercube_split_degree(
