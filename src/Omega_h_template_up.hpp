@@ -24,6 +24,11 @@ struct TemplateUp {
   bool is_flipped;
 };
 
+struct SplitVertex {
+  Int dim;
+  Int which_down;
+};
+
 }  // namespace Omega_h
 
 #endif
