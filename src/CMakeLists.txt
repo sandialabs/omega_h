@@ -85,6 +85,8 @@ set(Omega_h_SOURCES
   Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
   Omega_h_amr_topology.cpp
+  Omega_h_assemble.cpp
+  Omega_h_solve.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)
@@ -402,6 +404,7 @@ if(BUILD_TESTING)
   test_func(run_random_test 1 ./random_test)
   osh_add_exe(hypercube_test)
   osh_add_exe(osh_fit)
+  osh_add_exe(assemble_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")

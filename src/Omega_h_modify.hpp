@@ -8,7 +8,7 @@ namespace Omega_h {
 
 class Mesh;
 
-LOs get_edge2rep_order(Mesh* mesh, Read<I8> edges_are_keys);
+LOs get_key2rep_order(Mesh* mesh, Int key_dim, Int rep_dim, Read<I8> kds_are_keys);
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,

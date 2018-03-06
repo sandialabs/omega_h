@@ -345,39 +345,22 @@ OMEGA_H_INLINE Int simplex_opposite_template(
   return -1;
 }
 
-OMEGA_H_INLINE Int simplex_degree(Int from_dim, Int to_dim) {
-  switch (from_dim) {
-    case 0:
-      return 1;
-    case 1:
-      switch (to_dim) {
-        case 0:
-          return 2;
-        case 1:
-          return 1;
-      }
-    case 2:
-      switch (to_dim) {
-        case 0:
-          return 3;
-        case 1:
-          return 3;
-        case 2:
-          return 1;
-      }
-    case 3:
-      switch (to_dim) {
-        case 0:
-          return 4;
-        case 1:
-          return 6;
-        case 2:
-          return 4;
-        case 3:
-          return 1;
-      }
-  }
-  return -1;
+OMEGA_H_INLINE constexpr Int simplex_degree(Int from_dim, Int to_dim) {
+// clang-format off
+  return (from_dim == 0 ? 1 :
+         (from_dim == 1 ?
+           (to_dim == 0 ? 2 :
+           (to_dim == 1 ? 1 : -1)) :
+         (from_dim == 2 ?
+           (to_dim == 0 ? 3 :
+           (to_dim == 1 ? 3 :
+           (to_dim == 2 ? 1 : -1))) :
+         (from_dim == 3 ?
+           (to_dim == 0 ? 4 :
+           (to_dim == 1 ? 6 :
+           (to_dim == 2 ? 4 :
+           (to_dim == 3 ? 1 : -1)))) : -1))));
+// clang-format on
 }
 
 constexpr char const* simplex_singular_name(Int dim) {
