@@ -27,7 +27,9 @@ void pybind11_mesh(py::module& module) {
       .def("set_parting", set_parting, py::arg("parting"),
           py::arg("nlayers"), py::arg("verbose") = false)
           OMEGA_H_DEF_TYPE(I8, int8) OMEGA_H_DEF_TYPE(I32, int32)
-              OMEGA_H_DEF_TYPE(I64, int64) OMEGA_H_DEF_TYPE(Real, float64);
+              OMEGA_H_DEF_TYPE(I64, int64) OMEGA_H_DEF_TYPE(Real, float64)
+      .def("min_quality", &Omega_h::Mesh::min_quality)
+      .def("max_length", &Omega_h::Mesh::max_length);
   module.def(
       "new_empty_mesh", []() { return Mesh(pybind11_global_library.get()); });
 }
