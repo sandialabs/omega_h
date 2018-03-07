@@ -240,22 +240,19 @@ static void test_intersect_with_null() {
 }
 
 static void test_intersect_degen_metrics() {
-  /* TODO: turn these tests back on */
-  if ((0)) {
-    test_intersect_with_null();
-    // 2.a
-    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
-                                diagonal(vector_3(0, 0, 1))),
-        diagonal(vector_3(1, 0, 1))));
-    // 2.b
-    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
-                                diagonal(vector_3(2, 0, 0))),
-        diagonal(vector_3(2, 0, 0))));
-    // 3.a
-    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
-                                diagonal(vector_3(2, 1, 0))),
-        diagonal(vector_3(2, 1, 0))));
-  }
+  test_intersect_with_null();
+  // 2.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                              diagonal(vector_3(0, 0, 1))),
+      diagonal(vector_3(1, 0, 1))));
+  // 2.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                              diagonal(vector_3(2, 0, 0))),
+      diagonal(vector_3(2, 0, 0))));
+  // 3.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                              diagonal(vector_3(2, 1, 0))),
+      diagonal(vector_3(2, 1, 0))));
   // 3.b
   OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
                               diagonal(vector_3(0, 1, 2))),
