@@ -1,15 +1,16 @@
 #include <Omega_h_assemble.hpp>
 
-#include <Omega_h_mesh.hpp>
 #include <Omega_h_align.hpp>
 #include <Omega_h_element.hpp>
-#include <Omega_h_shape.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_shape.hpp>
 
 namespace Omega_h {
 
 template <Int dim>
-Reals get_edge_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices, Reals elem_sizes) {
+Reals get_edge_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs,
+    Reals elem_material_matrices, Reals elem_sizes) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   OMEGA_H_CHECK(mesh->owners_have_all_upward(EDGE));
   auto edges2elems = mesh->ask_up(EDGE, dim);
@@ -24,11 +25,15 @@ Reals get_edge_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_materia
       auto code = edges2elems.codes[edge_elem];
       auto elem_edge = code_which_down(code);
       auto rot = code_rotation(code);
-      auto elem_vert0 = element_down_template(family, dim, EDGE, elem_edge, rot);
-      auto elem_vert1 = element_down_template(family, dim, EDGE, elem_edge, 1 - rot);
+      auto elem_vert0 =
+          element_down_template(family, dim, EDGE, elem_edge, rot);
+      auto elem_vert1 =
+          element_down_template(family, dim, EDGE, elem_edge, 1 - rot);
       auto jac_inv = get_matrix<dim>(elem_jac_invs, elem);
-      auto grad0 = (elem_vert0 == 0) ? (-sum(jac_inv)) : jac_inv[elem_vert0 - 1];
-      auto grad1 = (elem_vert1 == 0) ? (-sum(jac_inv)) : jac_inv[elem_vert1 - 1];
+      auto grad0 =
+          (elem_vert0 == 0) ? (-sum(jac_inv)) : jac_inv[elem_vert0 - 1];
+      auto grad1 =
+          (elem_vert1 == 0) ? (-sum(jac_inv)) : jac_inv[elem_vert1 - 1];
       auto material_matrix = get_symm<dim>(elem_material_matrices, elem);
       auto elem_value = grad0 * (material_matrix * grad1);
       value += elem_value * elem_sizes[elem];
@@ -40,7 +45,8 @@ Reals get_edge_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_materia
 }
 
 template <Int dim>
-Reals get_vert_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices, Reals elem_sizes) {
+Reals get_vert_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs,
+    Reals elem_material_matrices, Reals elem_sizes) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   auto verts2elems = mesh->ask_up(VERT, dim);
@@ -83,17 +89,31 @@ Reals get_elem_jac_invs_dim(Mesh* mesh) {
   return out_w;
 }
 
-Reals get_edge_grad_grad(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices, Reals elem_sizes) {
-  if (mesh->dim() == 3) return get_edge_grad_grad_dim<3>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
-  if (mesh->dim() == 2) return get_edge_grad_grad_dim<2>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
-  if (mesh->dim() == 1) return get_edge_grad_grad_dim<1>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+Reals get_edge_grad_grad(Mesh* mesh, Reals elem_jac_invs,
+    Reals elem_material_matrices, Reals elem_sizes) {
+  if (mesh->dim() == 3)
+    return get_edge_grad_grad_dim<3>(
+        mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 2)
+    return get_edge_grad_grad_dim<2>(
+        mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 1)
+    return get_edge_grad_grad_dim<1>(
+        mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
   OMEGA_H_NORETURN(Reals());
 }
 
-Reals get_vert_grad_grad(Mesh* mesh, Reals elem_jac_invs, Reals elem_material_matrices, Reals elem_sizes) {
-  if (mesh->dim() == 3) return get_vert_grad_grad_dim<3>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
-  if (mesh->dim() == 2) return get_vert_grad_grad_dim<2>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
-  if (mesh->dim() == 1) return get_vert_grad_grad_dim<1>(mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+Reals get_vert_grad_grad(Mesh* mesh, Reals elem_jac_invs,
+    Reals elem_material_matrices, Reals elem_sizes) {
+  if (mesh->dim() == 3)
+    return get_vert_grad_grad_dim<3>(
+        mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 2)
+    return get_vert_grad_grad_dim<2>(
+        mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
+  if (mesh->dim() == 1)
+    return get_vert_grad_grad_dim<1>(
+        mesh, elem_jac_invs, elem_material_matrices, elem_sizes);
   OMEGA_H_NORETURN(Reals());
 }
 
@@ -111,7 +131,8 @@ Reals get_elem_jac_invs(Mesh* mesh) {
    (A - A*e_i)*x = b - A*e_i*x
  */
 
-void apply_dirichlet(Mesh* mesh, Reals* p_a_edge, Reals a_vert, Reals* p_b, Bytes are_dbc, Reals dbc_values) {
+void apply_dirichlet(Mesh* mesh, Reals* p_a_edge, Reals a_vert, Reals* p_b,
+    Bytes are_dbc, Reals dbc_values) {
   auto a_edge = *p_a_edge;
   auto b = *p_b;
   OMEGA_H_CHECK(a_edge.size() == mesh->nedges());
@@ -154,4 +175,4 @@ void apply_dirichlet(Mesh* mesh, Reals* p_a_edge, Reals a_vert, Reals* p_b, Byte
   *p_a_edge = mesh->sync_array(EDGE, Reals(a_edge_new), 1);
 }
 
-}
+}  // namespace Omega_h

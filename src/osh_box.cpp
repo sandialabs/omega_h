@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
   cmdline.add_arg<std::string>("output.osh");
   auto& family_flag = cmdline.add_flag("--family", "simplex or hypercube");
   family_flag.add_arg<std::string>("type");
-  if(!cmdline.parse_final(world, &argc, argv)) return -1;
+  if (!cmdline.parse_final(world, &argc, argv)) return -1;
   auto x = cmdline.get<double>("length");
   auto y = cmdline.get<double>("width");
   auto z = cmdline.get<double>("height");
@@ -31,8 +31,10 @@ int main(int argc, char** argv) {
   auto family = OMEGA_H_SIMPLEX;
   if (cmdline.parsed("--family")) {
     auto family_type = cmdline.get<std::string>("--family", "type");
-    if (family_type == "simplex") family = OMEGA_H_SIMPLEX;
-    else if (family_type == "hypercube") family = OMEGA_H_HYPERCUBE;
+    if (family_type == "simplex")
+      family = OMEGA_H_SIMPLEX;
+    else if (family_type == "hypercube")
+      family = OMEGA_H_HYPERCUBE;
     else {
       std::cout << "unknown family: " << family_type << std::endl;
       cmdline.show_help(world, argv);
