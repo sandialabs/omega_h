@@ -346,7 +346,7 @@ OMEGA_H_INLINE Int simplex_opposite_template(
 }
 
 OMEGA_H_INLINE constexpr Int simplex_degree(Int from_dim, Int to_dim) {
-// clang-format off
+  // clang-format off
   return (from_dim == 0 ? 1 :
          (from_dim == 1 ?
            (to_dim == 0 ? 2 :
@@ -360,7 +360,7 @@ OMEGA_H_INLINE constexpr Int simplex_degree(Int from_dim, Int to_dim) {
            (to_dim == 1 ? 6 :
            (to_dim == 2 ? 4 :
            (to_dim == 3 ? 1 : -1)))) : -1))));
-// clang-format on
+  // clang-format on
 }
 
 constexpr char const* simplex_singular_name(Int dim) {

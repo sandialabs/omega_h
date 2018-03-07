@@ -1270,8 +1270,7 @@ static void test_most_normal() {
   }
 }
 
-static bool compare_hst(Int pd, Int cd, Int wc, Int wcv,
-    SplitVertex truth) {
+static bool compare_hst(Int pd, Int cd, Int wc, Int wcv, SplitVertex truth) {
   auto split_vtx = hypercube_split_template(pd, cd, wc, wcv);
   if (split_vtx.dim != truth.dim) return false;
   if (split_vtx.which_down != truth.which_down) return false;

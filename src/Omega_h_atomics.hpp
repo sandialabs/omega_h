@@ -3,7 +3,8 @@
 
 namespace Omega_h {
 
-//TODO: remove the whole disable system once the Kokkos February 2018 version is released
+// TODO: remove the whole disable system once the Kokkos February 2018 version
+// is released
 
 template <bool Enable>
 struct Atomics;

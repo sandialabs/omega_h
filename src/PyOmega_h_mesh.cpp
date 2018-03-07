@@ -24,10 +24,10 @@ void pybind11_mesh(py::module& module) {
       .def("dim", &Omega_h::Mesh::dim)
       .def("nents", &Omega_h::Mesh::nents)
       .def("nglobal_ents", &Omega_h::Mesh::nglobal_ents)
-      .def("set_parting", set_parting, py::arg("parting"),
-          py::arg("nlayers"), py::arg("verbose") = false)
-          OMEGA_H_DEF_TYPE(I8, int8) OMEGA_H_DEF_TYPE(I32, int32)
-              OMEGA_H_DEF_TYPE(I64, int64) OMEGA_H_DEF_TYPE(Real, float64)
+      .def("set_parting", set_parting, py::arg("parting"), py::arg("nlayers"),
+          py::arg("verbose") = false) OMEGA_H_DEF_TYPE(I8, int8)
+          OMEGA_H_DEF_TYPE(I32, int32) OMEGA_H_DEF_TYPE(I64, int64)
+              OMEGA_H_DEF_TYPE(Real, float64)
       .def("min_quality", &Omega_h::Mesh::min_quality)
       .def("max_length", &Omega_h::Mesh::max_length);
   module.def(

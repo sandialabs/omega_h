@@ -506,7 +506,7 @@ OMEGA_H_INLINE SplitVertex hypercube_split_template(
           }
       }
     case 2:
-      switch (child_dim)  {
+      switch (child_dim) {
         case 0:
           return {2, 0};
         case 1:

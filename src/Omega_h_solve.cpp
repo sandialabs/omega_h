@@ -1,8 +1,8 @@
-#include <Omega_h_solve.hpp>
-#include <Omega_h_array_ops.hpp>
-#include <Omega_h_mesh.hpp>
 #include <Omega_h_align.hpp>
+#include <Omega_h_array_ops.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_solve.hpp>
 
 namespace Omega_h {
 
@@ -33,9 +33,8 @@ Real vector_dot_product(CommPtr comm, Reals u, Reals v) {
   return std::sqrt(repro_sum(comm, squares));
 }
 
-Reals conjugate_gradient(Mesh* mesh, Reals b,
-    Reals a_edge, Reals a_vert, Reals x_0,
-    Real tolerance, Int max_iters) {
+Reals conjugate_gradient(Mesh* mesh, Reals b, Reals a_edge, Reals a_vert,
+    Reals x_0, Real tolerance, Int max_iters) {
   OMEGA_H_CHECK(tolerance >= 0.);
   auto comm = mesh->comm();
   auto x_k = x_0;
@@ -58,8 +57,10 @@ Reals conjugate_gradient(Mesh* mesh, Reals b,
     r_k = r_kp1;
     normsq_k = normsq_kp1;
   }
-  Omega_h_fail("conjugate_gradient method failed to converge in %d iterations, residual norm is %.17e > %.17e\n",
+  Omega_h_fail(
+      "conjugate_gradient method failed to converge in %d iterations, residual "
+      "norm is %.17e > %.17e\n",
       max_iters, std::sqrt(normsq_k), tolerance);
 }
 
-}
+}  // namespace Omega_h

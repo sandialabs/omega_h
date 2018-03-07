@@ -236,7 +236,8 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, LOs keys2reps,
    why this function doesn't check for ghosting.
  */
 
-LOs get_key2rep_order(Mesh* mesh, Int key_dim, Int rep_dim, Read<I8> kds_are_keys) {
+LOs get_key2rep_order(
+    Mesh* mesh, Int key_dim, Int rep_dim, Read<I8> kds_are_keys) {
   auto nkds = mesh->nents(key_dim);
   auto nreps = mesh->nents(rep_dim);
   auto order_w = Write<LO>(nkds, -1);
@@ -378,7 +379,8 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     key2rep_order = get_key2rep_order(old_mesh, EDGE, VERT, edges_are_keys);
   }
   find_new_offsets(local_offsets, *p_same_ents2old_ents, keys2kds, keys2reps,
-      keys2prods, key2rep_order, p_same_ents2new_ents, p_prods2new_ents, key2rep_order.exists());
+      keys2prods, key2rep_order, p_same_ents2new_ents, p_prods2new_ents,
+      key2rep_order.exists());
   auto nold_ents = old_mesh->nents(ent_dim);
   *p_old_ents2new_ents =
       map_onto(*p_same_ents2new_ents, *p_same_ents2old_ents, nold_ents, -1, 1);

@@ -13,6 +13,6 @@ void mark_amr(Mesh* mesh, Read<Byte> elem_mark);
 
 Few<LO, 4> count_amr(Mesh* mesh);
 
-}
+}  // namespace Omega_h
 
 #endif

@@ -96,14 +96,18 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
   return -1;
 }
 
-static void read_nodal_fields(Mesh* mesh, int file, int time_step, bool verbose) {
+static void read_nodal_fields(
+    Mesh* mesh, int file, int time_step, bool verbose) {
   int num_nodal_vars;
   CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
-  std::int64_t max_name_length = ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
-  ++max_name_length; // it really is tightly-fitted, and doesn't include null terminators
+  std::int64_t max_name_length =
+      ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
+  ++max_name_length;  // it really is tightly-fitted, and doesn't include null
+                      // terminators
   std::cout << "max name length " << max_name_length << '\n';
-  std::vector<char> names_memory(std::size_t(num_nodal_vars * max_name_length), '\0');
+  std::vector<char> names_memory(
+      std::size_t(num_nodal_vars * max_name_length), '\0');
   std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
   for (int i = 0; i < num_nodal_vars; ++i) {
     name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
@@ -113,15 +117,16 @@ static void read_nodal_fields(Mesh* mesh, int file, int time_step, bool verbose)
     auto name = name_ptrs[std::size_t(i)];
     if (verbose) std::cout << "Loading nodal variable \"" << name << "\"\n";
     HostWrite<double> host_write(mesh->nverts());
-    CALL(ex_get_var(file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/0, mesh->nverts(), host_write.data()));
+    CALL(ex_get_var(file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/ 0,
+        mesh->nverts(), host_write.data()));
     auto device_write = host_write.write();
     auto device_read = Reals(device_write);
     mesh->add_tag(VERT, name, 1, device_read);
   }
 }
 
-void read(
-    std::string const& path, Mesh* mesh, bool verbose, int classify_with, int time_step) {
+void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
+    int time_step) {
   begin_code("exodus::read");
   auto comp_ws = int(sizeof(Real));
   int io_ws = 0;
@@ -227,7 +232,8 @@ void read(
                   << " nodes\n";
       }
       if (ndist_factors) {
-        std::cout << path << " has distribution factors, Omega_h ignores these\n";
+        std::cout << path
+                  << " has distribution factors, Omega_h ignores these\n";
       }
       HostWrite<LO> h_set_nodes2nodes(nentries);
       CALL(ex_get_set(file, EX_NODE_SET, node_set_ids[i],

@@ -16,8 +16,8 @@ void mark_amr(Mesh* mesh, Read<Byte> elem_mark) {
 
 Few<LO, 4> count_amr(Mesh* mesh) {
   auto dim = mesh->dim();
-  Few<LO, 4> num_ents({0,0,0,0});
-  for (Int i = 1; i <=dim; ++i) {
+  Few<LO, 4> num_ents({0, 0, 0, 0});
+  for (Int i = 1; i <= dim; ++i) {
     auto dim_mark = mesh->get_array<Byte>(i, "refine");
     for (Int j = 0; j <= i; ++j) {
       auto deg = hypercube_split_degree(i, j);
@@ -28,4 +28,4 @@ Few<LO, 4> count_amr(Mesh* mesh) {
   return num_ents;
 }
 
-}
+}  // namespace Omega_h
