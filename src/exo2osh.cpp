@@ -34,7 +34,8 @@ int main(int argc, char** argv) {
     classify_with = Omega_h::exodus::NODE_SETS | Omega_h::exodus::SIDE_SETS;
   }
   Omega_h::Mesh mesh(&lib);
-  Omega_h::exodus::read(inpath, &mesh, verbose, classify_with);
+  auto time_step = -1;
+  Omega_h::exodus::read(inpath, &mesh, verbose, classify_with, time_step);
   Omega_h::binary::write(outpath, &mesh);
   return 0;
 }

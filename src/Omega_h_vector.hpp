@@ -14,6 +14,9 @@ class Vector : public Few<Real, n> {
   OMEGA_H_INLINE void operator=(Vector<n> const& rhs) volatile {
     Few<Real, n>::operator=(rhs);
   }
+  OMEGA_H_INLINE void operator=(Vector<n> const& rhs) {
+    Few<Real, n>::operator=(rhs);
+  }
   OMEGA_H_INLINE Vector(Vector<n> const& rhs) : Few<Real, n>(rhs) {}
   OMEGA_H_INLINE Vector(const volatile Vector<n>& rhs) : Few<Real, n>(rhs) {}
 #define OMEGA_H_VECTOR_AT return Few<Real, n>::operator[](i)

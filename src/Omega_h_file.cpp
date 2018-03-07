@@ -526,10 +526,11 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict) {
   auto version = read_version(path, comm);
   if (strict) {
     if (nparts != comm->size()) {
-      Omega_h_fail("Mesh \"%s\" is being read in strict mode"
-                   " (no repartitioning) and its number of parts %d"
-                   " doesn't match the number of MPI ranks %d\n",
-                   path.c_str(), nparts, comm->size());
+      Omega_h_fail(
+          "Mesh \"%s\" is being read in strict mode"
+          " (no repartitioning) and its number of parts %d"
+          " doesn't match the number of MPI ranks %d\n",
+          path.c_str(), nparts, comm->size());
     }
     read_in_comm(path, comm, mesh, version);
   } else {

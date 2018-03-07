@@ -10,6 +10,7 @@ PYBIND11_MODULE(PyOmega_h, module) {
   Omega_h::pybind11_build(module);
   Omega_h::pybind11_adapt(module);
   Omega_h::pybind11_file(module);
+  Omega_h::pybind11_class(module);
 #ifdef OMEGA_H_USE_DOLFIN
   Omega_h::pybind11_dolfin(module);
 #endif

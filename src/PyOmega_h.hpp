@@ -27,6 +27,7 @@ void pybind11_mesh(py::module& module);
 void pybind11_build(py::module& module);
 void pybind11_adapt(py::module& module);
 void pybind11_file(py::module& module);
+void pybind11_class(py::module& module);
 #ifdef OMEGA_H_USE_DOLFIN
 void pybind11_dolfin(py::module& module);
 #endif

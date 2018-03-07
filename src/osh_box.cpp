@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include <Omega_h_build.hpp>
+#include <Omega_h_cmdline.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_mesh.hpp>
@@ -9,23 +10,38 @@
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   auto world = lib.world();
-  if (argc != 8) {
-    if (world->rank() == 0) {
-      std::cout << "usage: " << argv[0]
-                << " length width height nx ny nz output.osh\n";
-      std::cout << " where ny is the number of elements along the Y axis.\n";
-      std::cout << " set nz=0 to generate a 2D mesh.\n";
+  Omega_h::CmdLine cmdline;
+  cmdline.add_arg<double>("length");
+  cmdline.add_arg<double>("width");
+  cmdline.add_arg<double>("height");
+  cmdline.add_arg<int>("nx");
+  cmdline.add_arg<int>("ny");
+  cmdline.add_arg<int>("nz");
+  cmdline.add_arg<std::string>("output.osh");
+  auto& family_flag = cmdline.add_flag("--family", "simplex or hypercube");
+  family_flag.add_arg<std::string>("type");
+  if (!cmdline.parse_final(world, &argc, argv)) return -1;
+  auto x = cmdline.get<double>("length");
+  auto y = cmdline.get<double>("width");
+  auto z = cmdline.get<double>("height");
+  auto nx = cmdline.get<int>("nx");
+  auto ny = cmdline.get<int>("ny");
+  auto nz = cmdline.get<int>("nz");
+  auto outdir = cmdline.get<std::string>("output.osh");
+  auto family = OMEGA_H_SIMPLEX;
+  if (cmdline.parsed("--family")) {
+    auto family_type = cmdline.get<std::string>("--family", "type");
+    if (family_type == "simplex")
+      family = OMEGA_H_SIMPLEX;
+    else if (family_type == "hypercube")
+      family = OMEGA_H_HYPERCUBE;
+    else {
+      std::cout << "unknown family: " << family_type << std::endl;
+      cmdline.show_help(world, argv);
+      return -1;
     }
-    return -1;
   }
-  auto x = atof(argv[1]);
-  auto y = atof(argv[2]);
-  auto z = atof(argv[3]);
-  auto nx = atoi(argv[4]);
-  auto ny = atoi(argv[5]);
-  auto nz = atoi(argv[6]);
-  auto outdir = argv[7];
-  auto mesh = Omega_h::build_box(world, OMEGA_H_SIMPLEX, x, y, z, nx, ny, nz);
+  auto mesh = Omega_h::build_box(world, family, x, y, z, nx, ny, nz);
   Omega_h::binary::write(outdir, &mesh);
   return 0;
 }

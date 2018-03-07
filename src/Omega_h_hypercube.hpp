@@ -473,16 +473,99 @@ constexpr char const* hypercube_plural_name(Int dim) {
                                       : (dim == 0 ? "vertices" : nullptr))));
 }
 
-struct SplitVert {
-  Int parent_dim;
-  Int parent_which_down;
-};
-
 // every interior split entity can be seen as the dual of a corresponding
 // boundary entity
 OMEGA_H_INLINE constexpr Int hypercube_split_degree(
     Int parent_dim, Int split_dim) {
   return hypercube_degree(parent_dim, parent_dim - split_dim);
+}
+
+OMEGA_H_INLINE SplitVertex hypercube_split_template(
+    Int parent_dim, Int child_dim, Int which_child, Int which_child_vtx) {
+  switch (parent_dim) {
+    case 1:
+      switch (child_dim) {
+        case 0:
+          return {1, 0};
+        case 1:
+          switch (which_child) {
+            case 0:
+              switch (which_child_vtx) {
+                case 0:
+                  return {0, 0};
+                case 1:
+                  return {1, 0};
+              }
+            case 1:
+              switch (which_child_vtx) {
+                case 0:
+                  return {1, 0};
+                case 1:
+                  return {0, 1};
+              }
+          }
+      }
+    case 2:
+      switch (child_dim) {
+        case 0:
+          return {2, 0};
+        case 1:
+          switch (which_child_vtx) {
+            case 0:
+              return {1, which_child};
+            case 1:
+              return {2, 0};
+          }
+        case 2:
+          switch (which_child) {
+            case 0:
+              switch (which_child_vtx) {
+                case 0:
+                  return {0, 0};
+                case 1:
+                  return {1, 0};
+                case 2:
+                  return {2, 0};
+                case 3:
+                  return {1, 3};
+              }
+            case 1:
+              switch (which_child_vtx) {
+                case 0:
+                  return {1, 0};
+                case 1:
+                  return {0, 1};
+                case 2:
+                  return {1, 1};
+                case 3:
+                  return {2, 0};
+              }
+            case 2:
+              switch (which_child_vtx) {
+                case 0:
+                  return {2, 0};
+                case 1:
+                  return {1, 1};
+                case 2:
+                  return {0, 2};
+                case 3:
+                  return {1, 2};
+              }
+            case 3:
+              switch (which_child_vtx) {
+                case 0:
+                  return {1, 3};
+                case 1:
+                  return {2, 0};
+                case 2:
+                  return {1, 2};
+                case 3:
+                  return {0, 3};
+              }
+          }
+      }
+  }
+  return {-1, -1};
 }
 
 }  // end namespace Omega_h

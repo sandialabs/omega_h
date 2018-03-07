@@ -1,7 +1,10 @@
-#ifndef ATOMICS_HPP
-#define ATOMICS_HPP
+#ifndef OMEGA_H_ATOMICS_HPP
+#define OMEGA_H_ATOMICS_HPP
 
 namespace Omega_h {
+
+// TODO: remove the whole disable system once the Kokkos February 2018 version
+// is released
 
 template <bool Enable>
 struct Atomics;

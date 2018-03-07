@@ -14,9 +14,6 @@
 
 namespace Omega_h {
 
-/* TODO: make these constexpr, either with C++14 or lots of
-   ternary operators */
-
 /*! \brief Relates bounding simplex vertices the parent simplex's vertices
   \param elem_dim The parent simplex's dimension
   \param bdry_dim The bounding simplex's dimension
@@ -24,135 +21,75 @@ namespace Omega_h {
   \param which_vert The bounding-local index of the vertex
   \returns The parent-local index of the vertex
   */
-OMEGA_H_INLINE Int simplex_down_template(
+constexpr OMEGA_H_INLINE Int simplex_down_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_vert) {
-  switch (elem_dim) {
-    case 1:
-      switch (bdry_dim) {
-        case 0:
-          return which_bdry;
-      }
-    case 2:
-      switch (bdry_dim) {
-        case 0:
-          return which_bdry;
-        case 1:
-          switch (which_bdry) {
-            case 0:
-              switch (which_vert) {
-                case 0:
-                  return 0;
-                case 1:
-                  return 1;
-              }
-            case 1:
-              switch (which_vert) {
-                case 0:
-                  return 1;
-                case 1:
-                  return 2;
-              }
-            case 2:
-              switch (which_vert) {
-                case 0:
-                  return 2;
-                case 1:
-                  return 0;
-              }
-          }
-      }
-    case 3:
-      switch (bdry_dim) {
-        case 0:
-          return which_bdry;
-        case 1:
-          switch (which_bdry) {
-            case 0:
-              switch (which_vert) {
-                case 0:
-                  return 0;
-                case 1:
-                  return 1;
-              }
-            case 1:
-              switch (which_vert) {
-                case 0:
-                  return 1;
-                case 1:
-                  return 2;
-              }
-            case 2:
-              switch (which_vert) {
-                case 0:
-                  return 2;
-                case 1:
-                  return 0;
-              }
-            case 3:
-              switch (which_vert) {
-                case 0:
-                  return 0;
-                case 1:
-                  return 3;
-              }
-            case 4:
-              switch (which_vert) {
-                case 0:
-                  return 1;
-                case 1:
-                  return 3;
-              }
-            case 5:
-              switch (which_vert) {
-                case 0:
-                  return 2;
-                case 1:
-                  return 3;
-              }
-          }
-        case 2:
-          switch (which_bdry) {
-            case 0:
-              switch (which_vert) {
-                case 0:
-                  return 0;
-                case 1:
-                  return 2;
-                case 2:
-                  return 1;
-              }
-            case 1:
-              switch (which_vert) {
-                case 0:
-                  return 0;
-                case 1:
-                  return 1;
-                case 2:
-                  return 3;
-              }
-            case 2:
-              switch (which_vert) {
-                case 0:
-                  return 1;
-                case 1:
-                  return 2;
-                case 2:
-                  return 3;
-              }
-            case 3:
-              switch (which_vert) {
-                case 0:
-                  return 2;
-                case 1:
-                  return 0;
-                case 2:
-                  return 3;
-              }
-          }
-      }
-  }
-  return -1;
+  // clang-format off
+  return (elem_dim == 3 ?
+           (bdry_dim == 2 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 2 :
+               (which_vert == 2 ? 1 : -1))) :
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 1 :
+               (which_vert == 2 ? 3 : -1))) :
+             (which_bdry == 2 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 2 :
+               (which_vert == 2 ? 3 : -1))) :
+             (which_bdry == 3 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 0 :
+               (which_vert == 2 ? 3 : -1))) : -1)))) :
+           (bdry_dim == 1 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 1 : -1)) :
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 2 : -1)) :
+             (which_bdry == 2 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 0 : -1)) :
+             (which_bdry == 3 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 3 : -1)) :
+             (which_bdry == 4 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 3 : -1)) :
+             (which_bdry == 5 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 3 : -1)) : -1)))))) :
+           (bdry_dim == 0 ?
+             (which_bdry == 0 ? 0 :
+             (which_bdry == 1 ? 1 :
+             (which_bdry == 2 ? 2 :
+             (which_bdry == 3 ? 3 : -1)))) : -1))) :
+         (elem_dim == 2 ?
+           (bdry_dim == 1 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 1 : -1)) :
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 2 : -1)) :
+             (which_bdry == 2 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 0 : -1)) : -1))) :
+           (bdry_dim == 0 ?
+             (which_bdry == 0 ? 0 :
+             (which_bdry == 1 ? 1 :
+             (which_bdry == 2 ? 2 : -1))) : -1)) :
+         (elem_dim == 1 ?
+           (bdry_dim == 0 ?
+             (which_bdry == 0 ? 0 :
+             (which_bdry == 1 ? 1 : -1)) : -1) : -1)));
+  // clang-format on
 }
+
+/* TODO: make these constexpr, either with C++14 or lots of
+   ternary operators */
 
 OMEGA_H_INLINE TemplateUp simplex_up_template(
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
@@ -345,39 +282,22 @@ OMEGA_H_INLINE Int simplex_opposite_template(
   return -1;
 }
 
-OMEGA_H_INLINE Int simplex_degree(Int from_dim, Int to_dim) {
-  switch (from_dim) {
-    case 0:
-      return 1;
-    case 1:
-      switch (to_dim) {
-        case 0:
-          return 2;
-        case 1:
-          return 1;
-      }
-    case 2:
-      switch (to_dim) {
-        case 0:
-          return 3;
-        case 1:
-          return 3;
-        case 2:
-          return 1;
-      }
-    case 3:
-      switch (to_dim) {
-        case 0:
-          return 4;
-        case 1:
-          return 6;
-        case 2:
-          return 4;
-        case 3:
-          return 1;
-      }
-  }
-  return -1;
+OMEGA_H_INLINE constexpr Int simplex_degree(Int from_dim, Int to_dim) {
+  // clang-format off
+  return (from_dim == 0 ? 1 :
+         (from_dim == 1 ?
+           (to_dim == 0 ? 2 :
+           (to_dim == 1 ? 1 : -1)) :
+         (from_dim == 2 ?
+           (to_dim == 0 ? 3 :
+           (to_dim == 1 ? 3 :
+           (to_dim == 2 ? 1 : -1))) :
+         (from_dim == 3 ?
+           (to_dim == 0 ? 4 :
+           (to_dim == 1 ? 6 :
+           (to_dim == 2 ? 4 :
+           (to_dim == 3 ? 1 : -1)))) : -1))));
+  // clang-format on
 }
 
 constexpr char const* simplex_singular_name(Int dim) {

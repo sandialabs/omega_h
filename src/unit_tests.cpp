@@ -7,6 +7,7 @@
 #include "Omega_h_confined.hpp"
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_hilbert.hpp"
+#include "Omega_h_hypercube.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_lie.hpp"
 #include "Omega_h_linpart.hpp"
@@ -239,21 +240,19 @@ static void test_intersect_with_null() {
 }
 
 static void test_intersect_degen_metrics() {
-  if ((0)) {
-    test_intersect_with_null();
-    // 2.a
-    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
-                                diagonal(vector_3(0, 0, 1))),
-        diagonal(vector_3(1, 0, 1))));
-    // 2.b
-    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
-                                diagonal(vector_3(2, 0, 0))),
-        diagonal(vector_3(2, 0, 0))));
-    // 3.a
-    OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
-                                diagonal(vector_3(2, 1, 0))),
-        diagonal(vector_3(2, 1, 0))));
-  }
+  test_intersect_with_null();
+  // 2.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                              diagonal(vector_3(0, 0, 1))),
+      diagonal(vector_3(1, 0, 1))));
+  // 2.b
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                              diagonal(vector_3(2, 0, 0))),
+      diagonal(vector_3(2, 0, 0))));
+  // 3.a
+  OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
+                              diagonal(vector_3(2, 1, 0))),
+      diagonal(vector_3(2, 1, 0))));
   // 3.b
   OMEGA_H_CHECK(are_close(intersect_metrics(diagonal(vector_3(1, 0, 0)),
                               diagonal(vector_3(0, 1, 2))),
@@ -1116,6 +1115,48 @@ static void test_inball() {
   OMEGA_H_CHECK(are_close(inball3.r, 2.0 / std::sqrt(24.0)));
 }
 
+static void test_down_template() {
+  OMEGA_H_CHECK(simplex_down_template(1, 0, 0, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(1, 0, 1, 0) == 1);
+  OMEGA_H_CHECK(simplex_down_template(2, 0, 0, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(2, 0, 1, 0) == 1);
+  OMEGA_H_CHECK(simplex_down_template(2, 0, 2, 0) == 2);
+  OMEGA_H_CHECK(simplex_down_template(2, 1, 0, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(2, 1, 0, 1) == 1);
+  OMEGA_H_CHECK(simplex_down_template(2, 1, 1, 0) == 1);
+  OMEGA_H_CHECK(simplex_down_template(2, 1, 1, 1) == 2);
+  OMEGA_H_CHECK(simplex_down_template(2, 1, 2, 0) == 2);
+  OMEGA_H_CHECK(simplex_down_template(2, 1, 2, 1) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 0, 0, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 0, 1, 0) == 1);
+  OMEGA_H_CHECK(simplex_down_template(3, 0, 2, 0) == 2);
+  OMEGA_H_CHECK(simplex_down_template(3, 0, 3, 0) == 3);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 0, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 0, 1) == 1);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 1, 0) == 1);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 1, 1) == 2);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 2, 0) == 2);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 2, 1) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 3, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 3, 1) == 3);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 4, 0) == 1);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 4, 1) == 3);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 5, 0) == 2);
+  OMEGA_H_CHECK(simplex_down_template(3, 1, 5, 1) == 3);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 0, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 0, 1) == 2);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 0, 2) == 1);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 1, 0) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 1, 1) == 1);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 1, 2) == 3);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 2, 0) == 1);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 2, 1) == 2);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 2, 2) == 3);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 3, 0) == 2);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 3, 1) == 0);
+  OMEGA_H_CHECK(simplex_down_template(3, 2, 3, 2) == 3);
+}
+
 static void test_volume_vert_gradients() {
   {
     Few<Vector<1>, 2> parent_edge = {{0.0}, {1.0}};
@@ -1269,6 +1310,42 @@ static void test_most_normal() {
   }
 }
 
+static bool compare_hst(Int pd, Int cd, Int wc, Int wcv, SplitVertex truth) {
+  auto split_vtx = hypercube_split_template(pd, cd, wc, wcv);
+  if (split_vtx.dim != truth.dim) return false;
+  if (split_vtx.which_down != truth.which_down) return false;
+  return true;
+}
+
+static void test_hypercube_split_template() {
+  OMEGA_H_CHECK(compare_hst(1, 0, 0, 0, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 0, 0, {0, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 0, 1, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 1, 0, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(1, 1, 1, 1, {0, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 0, 0, 0, {2, 0}));
+  for (Int i = 0; i <= 4; ++i) {
+    OMEGA_H_CHECK(compare_hst(2, 1, i, 0, {1, i}));
+    OMEGA_H_CHECK(compare_hst(2, 1, i, 1, {2, 0}));
+  }
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 0, {0, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 1, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 2, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 0, 3, {1, 3}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 0, {1, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 1, {0, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 2, {1, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 1, 3, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 0, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 1, {1, 1}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 2, {0, 2}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 2, 3, {1, 2}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 0, {1, 3}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 1, {2, 0}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 2, {1, 2}));
+  OMEGA_H_CHECK(compare_hst(2, 2, 3, 3, {0, 3}));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -1293,6 +1370,7 @@ int main(int argc, char** argv) {
   test_permute();
   test_invert_map();
   test_invert_adj();
+  test_down_template();
   test_tri_align();
   test_form_uses();
   test_reflect_down();
@@ -1333,5 +1411,6 @@ int main(int argc, char** argv) {
   test_scalar_ptr();
   test_is_sorted();
   test_expr();
+  test_hypercube_split_template();
   OMEGA_H_CHECK(get_current_bytes() == 0);
 }

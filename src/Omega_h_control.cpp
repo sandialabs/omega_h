@@ -102,10 +102,12 @@ char const* Library::version() { return static_version(); }
 #include <fenv.h>
 static void enable_floating_point_exceptions() {
   feclearexcept(FE_ALL_EXCEPT);
-  // FE_INEXACT inexact result: rounding was necessary to store the result of an earlier floating-point operation
-  // sounds like the above would happen in almost any floating point operation involving non-whole numbers ???
-  // As for underflow, there are plenty of cases where we will have things like ((a + eps) - (a)) -> eps,
-  // where eps can be arbitrarily close to zero (usually it would have been zero with infinite precision).
+  // FE_INEXACT inexact result: rounding was necessary to store the result of an
+  // earlier floating-point operation sounds like the above would happen in
+  // almost any floating point operation involving non-whole numbers ??? As for
+  // underflow, there are plenty of cases where we will have things like ((a +
+  // eps) - (a)) -> eps, where eps can be arbitrarily close to zero (usually it
+  // would have been zero with infinite precision).
   feenableexcept(FE_ALL_EXCEPT - FE_INEXACT - FE_UNDERFLOW);
 }
 #elif defined(__x86_64__) || defined(_M_X64)

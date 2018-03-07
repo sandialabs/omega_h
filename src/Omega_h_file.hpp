@@ -39,7 +39,7 @@ enum ClassifyWith {
   SIDE_SETS = 0x2,
 };
 void read(std::string const& path, Mesh* mesh, bool verbose = false,
-    int classify_with = NODE_SETS | SIDE_SETS);
+    int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
 void write(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
 }  // namespace exodus
@@ -102,7 +102,8 @@ namespace binary {
 void write(std::string const& path, Mesh* mesh);
 Mesh read(std::string const& path, Library* lib, bool strict = false);
 Mesh read(std::string const& path, CommPtr comm, bool strict = false);
-I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict = false);
+I32 read(
+    std::string const& path, CommPtr comm, Mesh* mesh, bool strict = false);
 I32 read_nparts(std::string const& path, CommPtr comm);
 I32 read_version(std::string const& path, CommPtr comm);
 void read_in_comm(
