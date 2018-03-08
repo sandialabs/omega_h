@@ -261,17 +261,17 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
    why this function doesn't check for ghosting.
  */
 
-Few<LOs, 4> get_md2rep_order(Mesh* mesh, Int rep_dim, Few<Bytes, 4> mods2mds,
+Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<Bytes, 4> mods2mds,
     Few<LOs, 4> mods2nprods, Few<bool, 4> mods_have_prods) {
   auto nmds = mesh->nents(mod_dim);
   auto nreps = mesh->nents(rep_dim);
   auto elem_dim = mesh->dim();
-  Few<Write<LO>, 4> md2rep_order_w;
+  Few<Write<LO>, 4> rep2md_order_w;
   Few<Adj, 4> reps2mds;
   Few<LOs, 4> mds2mods;
   for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
     if (!mods_have_prods[mod_dim]) continue;
-    md2rep_order_w[mod_dim] = Write<LO>(mesh->nents(mod_dim), -1);
+    rep2md_order_w[mod_dim] = Write<LO>(mesh->nents(mod_dim), -1);
     reps2mds[mod_dim] = mesh->ask_up(rep_dim, mod_dim);
     mds2mods[mod_dim] =
         invert_injective_map(mods2mds[mod_dim], mesh->nents(mod_dim));
@@ -288,18 +288,18 @@ Few<LOs, 4> get_md2rep_order(Mesh* mesh, Int rep_dim, Few<Bytes, 4> mods2mds,
           auto code = reps2mds[mod_dim].codes[rep_md];
           auto dir = code_which_down(code);
           if (dir == 0) {
-            md2rep_order_w[mod_dim][md] = offset;
+            rep2md_order_w[mod_dim][md] = offset;
             offset += mods2nprods[mod_dim][mod];
           }
         }
       }
     }
   };
-  parallel_for(nreps, f, "get_md2rep_order");
+  parallel_for(nreps, f, "get_rep2md_order");
   Few<LOs, 4> out;
   for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
     if (!mods_have_prods[mod_dim]) continue;
-    out[mod_dim] = LOs(md2rep_order_w[mod_dim]);
+    out[mod_dim] = LOs(rep2md_order_w[mod_dim]);
   }
   return out;
 }
@@ -314,7 +314,7 @@ Few<LOs, 4> get_md2rep_order(Mesh* mesh, Int rep_dim, Few<Bytes, 4> mods2mds,
 template <typename T>
 static void assign_new_numbering(Read<T> old_ents2new_numbers,
     LOs same_ents2old_ents, Few<LOs, 4> mods2mds, Few<LOs, 4> mods2reps,
-    Few<LOs, 4> mods2prods, Few<LOs, 4> md2rep_order,
+    Few<LOs, 4> mods2prods, Few<LOs, 4> rep2md_order,
     Read<T>* p_same_ents2new_numbers, Read<T>* p_prods2new_numbers,
     bool keep_mods) {
   *p_same_ents2new_numbers = unmap(same_ents2old_ents, old_ents2new_numbers, 1);
@@ -337,16 +337,16 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
       /* if modified entities aren't being kept, I assume we're doing simplex
          adaptation, in which case representatives counting themselves should
          only happen if we're splitting simplex edges. This is a HACK */
-      rep_self_count = (md2rep_order[mod_dim].exists() ? 1 : 0);
+      rep_self_count = (rep2md_order[mod_dim].exists() ? 1 : 0);
     }
     auto mods2prods_dim = mods2prods[mod_dim];
-    if (md2rep_order[mod_dim].exists()) {
+    if (rep2md_order[mod_dim].exists()) {
       /* this is the upward adjacency case */
       OMEGA_H_CHECK(mods2mds[mod_dim].exists());
       auto mods2mds_dim = mods2mds[mod_dim];
       auto write_prod_offsets = OMEGA_H_LAMBDA(LO mod) {
         auto md = mods2mds_dim;
-        auto offset = mods2new_offsets[mod] + md2rep_order[md] + rep_self_count;
+        auto offset = mods2new_offsets[mod] + rep2md_order[md] + rep_self_count;
         for (auto prod = mods2prods_dim[mod]; prod < mods2prods_dim[mod + 1];
              ++prod) {
           prods2new_offsets_w[prod] = offset++;
@@ -368,17 +368,13 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
 }
 
 static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    Int key_dim, LOs keys2kds, LOs keys2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, LOs keys2reps,
+    bool keep_mods, Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, Few<LOs, 4> mods2reps,
     LOs global_rep_counts) {
   begin_code("modify_globals");
-  OMEGA_H_CHECK(ent_dim >= key_dim || (ent_dim == VERT && key_dim == EDGE));
   auto nsame_ents = same_ents2old_ents.size();
   OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
-  auto nkeys = keys2kds.size();
-  OMEGA_H_CHECK(nkeys + 1 == keys2prods.size());
   auto nprods = prods2new_ents.size();
-  OMEGA_H_CHECK(nprods == keys2prods.last());
   auto old_globals = old_mesh->globals(ent_dim);
   auto comm = old_mesh->comm();
   auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
@@ -394,17 +390,19 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto write_lin_globals = OMEGA_H_LAMBDA(LO lin) {
     lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
   };
-  parallel_for(nlins, write_lin_globals, "modify_globals(write_lin_globals)");
+  parallel_for(nlins, write_lin_globals, "write_lin_globals");
   auto old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
+  Few<LOs, 4> global_rep2md_order;
+  for (Int mod_dim = 0; mod_dim <= mesh->dim(); ++mod_dim) {
+    if (mod_dim > ent_dim) {
+      global_rep2md_order[mod_dim] = old_mesh->get_array<LO>(mod_dim, "rep2md_order");
+    }
+  }
   Read<GO> same_ents2new_globals;
   Read<GO> prods2new_globals;
-  auto key2rep_order = LOs();
-  if (key_dim > ent_dim) {
-    key2rep_order = old_mesh->get_array<LO>(EDGE, "key2rep_order");
-  }
-  assign_new_numbering(old_ents2new_globals, same_ents2old_ents, keys2kds,
-      keys2reps, keys2prods, key2rep_order, &same_ents2new_globals,
-      &prods2new_globals, key2rep_order.exists());
+  assign_new_numbering(old_ents2new_globals, same_ents2old_ents, mods2mds,
+      mods2reps, mods2prods, global_rep2md_order, &same_ents2new_globals,
+      &prods2new_globals, keep_mods);
   auto nnew_ents = new_mesh->nents(ent_dim);
   OMEGA_H_CHECK(nnew_ents == nsame_ents + nprods);
   Write<GO> new_globals(nnew_ents);
@@ -459,10 +457,10 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   Few<bool, 4> mods_have_prods;
   for (Int mod_dim = 0; mod_dim < 4; ++mod_dim)
     mods_have_prods[mod_dim] = mods2prods[mod_dim].exists();
-  auto local_md2rep_order = get_md2rep_order(
+  auto local_rep2md_order = get_rep2md_order(
       old_mesh, ent_dim, mods2mds, mods2nprods, mods_have_prods);
   assign_new_numbering(local_offsets, *p_same_ents2old_ents, mods2mds,
-      mods2reps, mods2prods, local_md2rep_order, p_same_ents2new_ents,
+      mods2reps, mods2prods, local_rep2md_order, p_same_ents2new_ents,
       p_prods2new_ents, keep_mods);
   auto nold_ents = old_mesh->nents(ent_dim);
   *p_old_ents2new_ents =
@@ -482,9 +480,9 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto global_rep_counts =
       get_rep_counts(old_mesh, ent_dim, mods2mds, mods2reps, mods2nprods,
           *p_same_ents2old_ents, keep_mods, /*count_non_owned*/ false);
-  modify_globals(old_mesh, new_mesh, ent_dim, key_dim, keys2kds, keys2prods,
+  modify_globals(old_mesh, new_mesh, ent_dim, keep_mods, mods2mds, mods2prods,
       *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
-      keys2reps, global_rep_counts, mods_can_be_shared);
+      mods2reps, global_rep_counts);
   end_code();
 }
 
