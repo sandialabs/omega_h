@@ -407,7 +407,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
   Few<LOs, 4> global_rep2md_order;
   for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
-    if (mod_dim > ent_dim) {
+    if ((mod_dim > ent_dim) && mods2prods[mod_dim].exists()) {
       global_rep2md_order[mod_dim] = old_mesh->get_array<LO>(mod_dim, "rep2md_order");
     }
   }
