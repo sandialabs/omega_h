@@ -11,8 +11,14 @@ class Mesh;
 LOs get_key2rep_order(
     Mesh* mesh, Int key_dim, Int rep_dim, Read<I8> kds_are_keys);
 
-void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
+void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,
+    LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
+    LOs* p_old_ents2new_ents);
+
+void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
+    Few<LOs, 4> mods2mds, Few<Bytes, 4> mds_are_mods, Few<LOs, 4> mods2prods,
+    LOs prod_verts2verts, LOs old_lows2new_lows, bool keep_mods, bool mods_can_be_shared,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents);
 

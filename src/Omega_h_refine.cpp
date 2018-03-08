@@ -65,7 +65,7 @@ static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods,
+    modify_ents_adapt(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods,
         prod_verts2verts, old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     if (ent_dim == VERT) {
