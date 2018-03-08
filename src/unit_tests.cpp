@@ -1345,7 +1345,7 @@ static void test_hypercube_split_template() {
   OMEGA_H_CHECK(compare_hst(2, 2, 3, 2, {1, 2}));
   OMEGA_H_CHECK(compare_hst(2, 2, 3, 3, {0, 3}));
   OMEGA_H_CHECK(compare_hst(3, 0, 0, 0, {3, 0}));
-  for (Int i = 0; i <= 4; ++i) {
+  for (Int i = 0; i <= 6; ++i) {
     OMEGA_H_CHECK(compare_hst(3, 1, i, 0, {2, i}));
     OMEGA_H_CHECK(compare_hst(3, 1, i, 1, {3, 0}));
   }
