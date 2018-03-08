@@ -135,7 +135,9 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 
 static LOs collect_same(
     Mesh* mesh, Int ent_dim, Few<Bytes, 4> mds_are_mods, bool keep_mods) {
-  if (keep_mods) return LOs(mesh->nents(ent_dim), 0, 1);
+  if (keep_mods || (!mds_are_mods[ent_dim].exists())) {
+    return LOs(mesh->nents(ent_dim), 0, 1);
+  }
   auto ents_not_modified = invert_marks(mds_are_mods[ent_dim]);
   return collect_marked(ents_not_modified);
 }
@@ -268,6 +270,7 @@ LOs get_rep2md_order_adapt(Mesh* mesh, Int key_dim, Int rep_dim, Bytes kds_are_k
   Few<bool, 4> mods_have_prods = {false, false, false, false};
   mods_have_prods[key_dim] = true;
   auto all_orders = get_rep2md_order(mesh, rep_dim, mods2mds, mods2nprods, mods_have_prods);
+  OMEGA_H_CHECK(all_orders[key_dim].exists());
   return all_orders[key_dim];
 }
 
@@ -278,7 +281,7 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
   Few<Write<LO>, 4> rep2md_order_w;
   Few<Adj, 4> reps2mds;
   Few<LOs, 4> mds2mods;
-  for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
+  for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
     if (!mods_have_prods[mod_dim]) continue;
     rep2md_order_w[mod_dim] = Write<LO>(mesh->nents(mod_dim), -1);
     reps2mds[mod_dim] = mesh->ask_up(rep_dim, mod_dim);
@@ -287,7 +290,7 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
   }
   auto f = OMEGA_H_LAMBDA(LO rep) {
     LO offset = 0;
-    for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
+    for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
       if (!mods_have_prods[mod_dim]) continue;
       for (auto rep_md = reps2mds[mod_dim].a2ab[rep];
            rep_md < reps2mds[mod_dim].a2ab[rep + 1]; ++rep_md) {
@@ -306,7 +309,7 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
   };
   parallel_for(nreps, f, "get_rep2md_order");
   Few<LOs, 4> out;
-  for (Int mod_dim = rep_dim + 1; mod_dim < elem_dim; ++mod_dim) {
+  for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
     if (!mods_have_prods[mod_dim]) continue;
     out[mod_dim] = LOs(rep2md_order_w[mod_dim]);
   }
