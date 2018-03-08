@@ -68,12 +68,45 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   end_code();
 }
 
+/* this is the case of AMR-style refinement where
+   some entities being split (mods) are actually on
+   the partition boundary.
+   in this case they need to communicate on owners
+   for the child entities.
+   the rule is: a child copy is an owner if its parent
+   copy is an owner */
+static Remotes get_prod_owners_shared(
+    Mesh* old_mesh,
+    Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
+    LOs prods2new_ents) {
+  auto nprods = prods2new_ents.size();
+  Write<I32> prod_own_ranks(nprods);
+  Write<LO> prod_own_idxs(nprods);
+  for (Int mod_dim = 0; mod_dim < 4; ++mod_dim) {
+    if (!mods2prods[mod_dim].exists()) continue;
+    auto prod_begin = mods2prods[mod_dim].first();
+    auto prod_end = mods2prods[mod_dim].last();
+    auto nmods = mods2prods[mod_dim].size() - 1;
+    auto nmod_prods = prod_end - prod_begin;
+    /* HACK: assuming the number of products per split entity is constant! */
+    auto nprods_per_mod = divide_no_remainder(nmod_prods, nmods);
+    auto md_ranks = mesh->ask_owners(mod_dim).ranks; 
+    auto mod_ranks = unmap(mods2mds[mod_dim], md_ranks, 1);
+    auto mod_prod_idxs = unmap_range(prod_begin, prod_end, prods2new_ents, 1);
+    mod_prod_idxs = mesh->sync_subset_array(mod_dim, mod_prod_idxs, mods2mds[mod_dim], -1, nprods_per_mod);
+    map_into_range(mod_prod_idxs, prod_begin, prod_end, prod_own_idxs, 1);
+    expand_into(mod_ranks, mods2prods[mod_dim], prod_own_ranks, 1);
+  }
+  return {prod_own_ranks, prod_own_idxs};
+}
+
 /* set the owners of the mesh after an adaptive rebuild pass.
    the entities that stay the same retain the same conceptual
    ownership, just updated by unmap_owners() to reflect new indices.
    all entities produced by this MPI rank exist only on this
    MPI rank, so they are their own owners */
 static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
+    Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
     LOs old_ents2new_ents) {
   auto same_owners =
@@ -81,16 +114,21 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto same_own_ranks = same_owners.ranks;
   auto same_own_idxs = same_owners.idxs;
   auto nprods = prods2new_ents.size();
-  auto prod_own_ranks = Read<I32>(nprods, new_mesh->comm()->rank());
-  auto& prod_own_idxs = prods2new_ents;
+  Remotes prod_owners;
+  if (mods_can_be_shared) {
+    prod_owners = get_prod_owners_shared(old_mesh, mods2mds, mods2prods, prods2new_ents);
+  } else {
+    prod_owners.ranks = Read<I32>(nprods, new_mesh->comm()->rank());
+    prod_owners.idxs = prods2new_ents;
+  }
   auto nsame_ents = same_ents2old_ents.size();
   auto nnew_ents = nsame_ents + nprods;
   Write<I32> new_own_ranks(nnew_ents);
   Write<LO> new_own_idxs(nnew_ents);
   map_into(same_own_ranks, same_ents2new_ents, new_own_ranks, 1);
   map_into(same_own_idxs, same_ents2new_ents, new_own_idxs, 1);
-  map_into(prod_own_ranks, prods2new_ents, new_own_ranks, 1);
-  map_into(prod_own_idxs, prods2new_ents, new_own_idxs, 1);
+  map_into(prod_owners.ranks, prods2new_ents, new_own_ranks, 1);
+  map_into(prod_owners.idxs, prods2new_ents, new_own_idxs, 1);
   auto new_owners = Remotes(Read<I32>(new_own_ranks), LOs(new_own_idxs));
   new_mesh->set_owners(ent_dim, new_owners);
 }
@@ -188,7 +226,9 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
     auto mark_reps = OMEGA_H_LAMBDA(LO mod) {
       auto rep = mods2reps_dim[mod];
       auto nmod_prods = mods2nprods_dim[mod] + self_count;
+      /* TODO: the non-owned check can be skipped entirely for the AMR case */
       if (count_non_owned || mds_are_owned[mods2mds[mod]]) {
+        /* TODO: the atomic_add can be skipped for mod_dim <= ent_dim */
         atomic_add(&rep_counts[rep], nmod_prods);
       }
     };
@@ -397,7 +437,7 @@ void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Few<LOs, 4> mods2mds, Few<Bytes, 4> mds_are_mods, Few<LOs, 4> mods2prods,
-    LOs prod_verts2verts, LOs old_lows2new_lows, bool keep_mods,
+    LOs prod_verts2verts, LOs old_lows2new_lows, bool keep_mods, bool mods_can_be_shared,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
   begin_code("modify_ents");
@@ -436,14 +476,15 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   }
   if (old_mesh->comm()->size() > 1) {
     modify_owners(old_mesh, new_mesh, ent_dim, *p_prods2new_ents,
-        *p_same_ents2old_ents, *p_same_ents2new_ents, *p_old_ents2new_ents);
+        *p_same_ents2old_ents, *p_same_ents2new_ents, *p_old_ents2new_ents,
+        mods_can_be_shared);
   }
   auto global_rep_counts =
       get_rep_counts(old_mesh, ent_dim, mods2mds, mods2reps, mods2nprods,
           *p_same_ents2old_ents, keep_mods, /*count_non_owned*/ false);
   modify_globals(old_mesh, new_mesh, ent_dim, key_dim, keys2kds, keys2prods,
       *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
-      keys2reps, global_rep_counts);
+      keys2reps, global_rep_counts, mods_can_be_shared);
   end_code();
 }
 
