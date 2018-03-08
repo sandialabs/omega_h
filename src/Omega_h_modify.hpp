@@ -3,13 +3,16 @@
 
 #include <Omega_h_array.hpp>
 #include <Omega_h_graph.hpp>
+#include <Omega_h_few.hpp>
 
 namespace Omega_h {
 
 class Mesh;
 
-LOs get_key2rep_order(
-    Mesh* mesh, Int key_dim, Int rep_dim, Read<I8> kds_are_keys);
+LOs get_rep2md_order_adapt(Mesh* mesh, Int key_dim, Int rep_dim, Bytes kds_are_keys);
+
+Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
+    Few<LOs, 4> mods2nprods, Few<bool, 4> mods_have_prods);
 
 void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,
