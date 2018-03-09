@@ -13,6 +13,10 @@ void mark_amr(Mesh* mesh, Read<Byte> elem_mark);
 
 Few<LO, 4> count_amr(Mesh* mesh);
 
+LOs get_amr_topology(Mesh* mesh, Int child_dim, Int num_children,
+    Few<LOs, 4> parents2mds, Few<LOs, 4> mds2parents,
+    Few<LOs, 4> parents2midverts);
+
 }  // namespace Omega_h
 
 #endif
