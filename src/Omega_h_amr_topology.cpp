@@ -35,22 +35,23 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
   Int spatial_dim = mesh->dim();
   Int num_verts_per_child = hypercube_degree(child_dim, 0);
   Write<LO> child_verts(num_children * num_verts_per_child);
-  for (Int dim = 0; dim <= spatial_dim; ++dim) {
-    Int offset = 0;
+  LO offset = 0;
+  for (Int d = child_dim; d <= spatial_dim; ++d) {
     Few <LOs, 4> mds2lows;
-    for (Int low_dim = 0; low_dim <= 3; ++low_dim)
-      mds2lows[low_dim] = mesh->ask_down(dim, low_dim).ab2b;
-    LO num_parents = parents2midverts[dim].size();
-    Int num_child_per_parent = hypercube_split_degree(dim, child_dim);
+    for (Int lowd = 0; lowd <= d; ++lowd) {
+      mds2lows[lowd] = mesh->ask_graph(d, lowd).ab2b;
+    }
+    LO num_parents = parents2midverts[d].size();
+    Int num_child_per_parent = hypercube_split_degree(d, child_dim);
     auto parent_loop = OMEGA_H_LAMBDA(LO parent) {
-      LO md = parents2mds[dim][parent];
+      LO md = parents2mds[d][parent];
       for (Int child = 0; child < num_child_per_parent; ++child) {
         for (Int vert = 0; vert < num_verts_per_child; ++vert) {
-          auto low = hypercube_split_template(dim, child_dim, child, vert);
-          Int num_lows_per_parent = hypercube_degree(dim, low.dim);
+          auto low = hypercube_split_template(d, child_dim, child, vert);
+          Int num_lows_per_parent = hypercube_degree(d, low.dim);
           LO low_gid = mds2lows[low.dim][md * num_lows_per_parent + low.which_down];
-          LO low_adj_parent = mds2parents[dim][low_gid];
-          LO midvert = parents2midverts[dim][low_adj_parent];
+          LO low_adj_parent = mds2parents[low.dim][low_gid];
+          LO midvert = parents2midverts[low.dim][low_adj_parent];
           LO idx = offset + (parent * num_child_per_parent + child) * num_verts_per_child + vert;
           child_verts[idx] = midvert;
         }
