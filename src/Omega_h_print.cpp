@@ -1,0 +1,34 @@
+#include <Omega_h_print.hpp>
+#include <Omega_h_functors.hpp>
+
+namespace Omega_h {
+
+template <class T>
+std::ostream& operator<<(std::ostream& stream, HostRead<T> hr) {
+  stream << '{';
+  using T2 = typename StandinTraits<T>::type;
+  const bool do_designators = (hr.size() > 8);
+  for (LO i = 0; i < hr.size(); ++i) {
+    if (i > 0) stream << ", ";
+    if (do_designators) stream << '[' << i << "]=";
+    stream << T2(hr[i]);
+  }
+  stream << '}';
+  return stream;
+}
+
+template <class T>
+std::ostream& operator<<(std::ostream& stream, Read<T> r) {
+  return stream << HostRead<T>(r);
+}
+
+#define OMEGA_H_EXPL_INST(T)                                              \
+  template std::ostream& operator<<(std::ostream&, HostRead<T>); \
+  template std::ostream& operator<<(std::ostream&, Read<T>);
+OMEGA_H_EXPL_INST(I8)
+OMEGA_H_EXPL_INST(I32)
+OMEGA_H_EXPL_INST(I64)
+OMEGA_H_EXPL_INST(Real)
+#undef OMEGA_H_EXPL_INST
+
+}
