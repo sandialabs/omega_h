@@ -4,6 +4,9 @@
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_solve.hpp>
 
+// DEBUG REMOVE NOW
+#include <Omega_h_file.hpp>
+
 namespace Omega_h {
 
 Reals matrix_vector_product(Mesh* mesh, Reals a_edge, Reals a_vert, Reals x) {
@@ -43,7 +46,11 @@ Reals conjugate_gradient(Mesh* mesh, Reals b, Reals a_edge, Reals a_vert,
   auto normsq_k = vector_dot_product(comm, r_k, r_k);
   if (normsq_k <= square(tolerance)) return x_k;
   auto p_k = r_k;
+  auto writer = Omega_h::vtk::Writer("cg-vtk", mesh, 1);
   for (Int k = 0; k < max_iters; ++k) {
+    mesh->remove_tag(0, "u");
+    mesh->add_tag(0, "u", 1, x_k);
+    writer.write();
     auto ap_k = matrix_vector_product(mesh, a_edge, a_vert, p_k);
     auto c_k = normsq_k / vector_dot_product(comm, p_k, ap_k);
     auto x_kp1 = add_each(x_k, multiply_each_by(p_k, c_k));
