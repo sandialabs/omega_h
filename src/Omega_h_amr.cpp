@@ -4,6 +4,7 @@
 #include <Omega_h_map.hpp>
 #include <Omega_h_hypercube.hpp>
 #include <Omega_h_modify.hpp>
+#include <Omega_h_amr_transfer.hpp>
 
 namespace Omega_h {
 
@@ -30,7 +31,7 @@ static void amr_refine_ghosted(Mesh* mesh) {
   }
 }
 
-static void amr_refine_elem_based(Mesh* mesh) {
+static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   auto prod_counts = count_amr(mesh);
   Few<Bytes, 4> mds_are_mods;
   Few<LOs, 4> mods2mds;
@@ -60,7 +61,6 @@ static void amr_refine_elem_based(Mesh* mesh) {
     modify_ents(mesh, &new_mesh, prod_dim, mods2mds, mds_are_mods, mods2prods, prods2verts, old_lows2new_lows,
         /*keep_mods*/true, /*mods_can_be_shared*/true, &prods2new_ents, &same_ents2old_ents,
         &same_ents2new_ents, &old_ents2new_ents);
-    /*TODO: transfer!*/
     if (prod_dim == VERT) {
       LO offset = 0;
       for (Int mod_dim = EDGE; mod_dim <= mesh->dim(); ++mod_dim) {
@@ -71,19 +71,21 @@ static void amr_refine_elem_based(Mesh* mesh) {
         mods2midverts[mod_dim] = unmap_range(begin, end, prods2new_ents, 1);
         offset = end;
       }
+      amr_transfer_linear_interp(mesh, &new_mesh, mods2mds, mods2midverts, same_ents2old_ents, same_ents2new_ents, xfer_opts);
     }
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
 }
 
-void amr_refine(Mesh* mesh, Bytes elems_are_marked) {
+void amr_refine(Mesh* mesh, Bytes elems_are_marked,
+    TransferOpts xfer_opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_HYPERCUBE);
   mark_amr(mesh, elems_are_marked);
   mesh->set_parting(OMEGA_H_GHOSTED);
   amr_refine_ghosted(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  amr_refine_elem_based(mesh);
+  amr_refine_elem_based(mesh, xfer_opts);
 }
 
 }

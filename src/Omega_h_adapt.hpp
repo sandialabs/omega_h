@@ -22,6 +22,7 @@ struct TransferOpts {
       velocity_momentum_map;  // "velocity" -> "momentum"
   std::map<std::string, VarCompareOpts>
       integral_diffuse_map;  // "mass" -> tolerance
+  /* TODO: rip these things out */
   bool should_conserve_size;
   Int max_size_steps;
   Real min_size_step_ratio;
