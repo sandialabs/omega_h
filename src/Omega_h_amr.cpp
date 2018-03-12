@@ -25,7 +25,7 @@ static void amr_refine_ghosted(Mesh* mesh) {
     }
     auto rep2md_orders = get_rep2md_order(mesh, prod_dim, mods2mds, mods2nprods, mods_have_prods);
     auto name = std::string("rep_") + hypercube_singular_name(prod_dim) + "2md_order";
-    for (Int mod_dim = 1; mod_dim <= mesh->dim(); ++mod_dim) {
+    for (Int mod_dim = prod_dim + 1; mod_dim <= mesh->dim(); ++mod_dim) {
       mesh->add_tag(mod_dim, name, 1, rep2md_orders[mod_dim]);
     }
   }
@@ -52,7 +52,7 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
     Few<LOs, 4> mods2prods;
     for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= mesh->dim(); ++mod_dim) {
       auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
-      mods2prods[mod_dim] = LOs(mods2mds[mod_dim].size(), nprods_per_mod);
+      mods2prods[mod_dim] = LOs(mods2mds[mod_dim].size() + 1, 0, nprods_per_mod);
     }
     LOs prods2new_ents;
     LOs same_ents2old_ents;
@@ -62,6 +62,7 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
         /*keep_mods*/true, /*mods_can_be_shared*/true, &prods2new_ents, &same_ents2old_ents,
         &same_ents2new_ents, &old_ents2new_ents);
     if (prod_dim == VERT) {
+      mods2midverts[VERT] = unmap(mods2mds[VERT], old_ents2new_ents, 1);
       LO offset = 0;
       for (Int mod_dim = EDGE; mod_dim <= mesh->dim(); ++mod_dim) {
         OMEGA_H_CHECK(hypercube_split_degree(mod_dim, prod_dim) == 1);

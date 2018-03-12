@@ -8,10 +8,10 @@
 namespace Omega_h {
 
 void mark_amr(Mesh* mesh, Read<Byte> elem_mark) {
-  auto dim = mesh->dim();
-  for (Int i = 1; i <= dim; ++i) {
-    auto dim_mark = mark_down(mesh, dim, i, elem_mark);
-    mesh->add_tag<Omega_h::Byte>(i, "refine", 1, dim_mark);
+  auto elem_dim = mesh->dim();
+  for (Int mod_dim = 0; mod_dim <= elem_dim; ++mod_dim) {
+    auto dim_mark = mark_down(mesh, elem_dim, mod_dim, elem_mark);
+    mesh->add_tag<Omega_h::Byte>(mod_dim, "refine", 1, dim_mark);
   }
 }
 
