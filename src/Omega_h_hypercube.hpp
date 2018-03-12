@@ -476,8 +476,8 @@ constexpr char const* hypercube_plural_name(Int dim) {
 // every interior split entity can be seen as the dual of a corresponding
 // boundary entity
 OMEGA_H_INLINE constexpr Int hypercube_split_degree(
-    Int parent_dim, Int split_dim) {
-  return hypercube_degree(parent_dim, parent_dim - split_dim);
+    Int parent_dim, Int child_dim) {
+  return hypercube_degree(parent_dim, parent_dim - child_dim);
 }
 
 OMEGA_H_INLINE SplitVertex hypercube_split_template(

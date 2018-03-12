@@ -87,6 +87,7 @@ set(Omega_h_SOURCES
   Omega_h_amr_topology.cpp
   Omega_h_assemble.cpp
   Omega_h_solve.cpp
+  Omega_h_amr.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)
