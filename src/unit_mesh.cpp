@@ -18,6 +18,8 @@
 #include "Omega_h_swap3d_choice.hpp"
 #include "Omega_h_swap3d_loop.hpp"
 
+#include <sstream>
+
 using namespace Omega_h;
 
 static void test_down_template() {
