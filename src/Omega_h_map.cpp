@@ -6,6 +6,8 @@
 #include "Omega_h_scan.hpp"
 #include "Omega_h_sort.hpp"
 
+// DEBUG REMOVE NOW
+
 namespace Omega_h {
 
 template <typename T>

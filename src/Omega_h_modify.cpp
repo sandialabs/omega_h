@@ -16,6 +16,7 @@
 #include "Omega_h_unmap_mesh.hpp"
 #include "Omega_h_verify.hpp"
 
+// DEBUG REMOVE NOW
 #include <iostream>
 
 namespace Omega_h {
@@ -362,6 +363,10 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
         auto offset = mods2new_offsets[mod] + rep2md_order_dim[md] + rep_self_count;
         for (auto prod = mods2prods_dim[mod]; prod < mods2prods_dim[mod + 1];
              ++prod) {
+          if (prod >= prods2new_offsets_w.size()) {
+            std::cerr << "trying to assign " << sizeof(T) << "-byte offset value " << offset
+              << " to prod " << prod << " but there are only " << prods2new_offsets_w.size() << " prods\n";
+          }
           prods2new_offsets_w[prod] = offset++;
         }
       };
@@ -453,6 +458,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
   begin_code("modify_ents");
+  std::cerr << "prod_dim " << ent_dim << '\n';
   *p_same_ents2old_ents =
       collect_same(old_mesh, ent_dim, mds_are_mods, keep_mods);
   Few<LOs, 4> mods2nprods;
