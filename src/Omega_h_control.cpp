@@ -154,7 +154,6 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   } else {
     we_called_mpi_init = false;
   }
-  enable_floating_point_exceptions();
   MPI_Comm world_dup;
   MPI_Comm_dup(comm_mpi, &world_dup);
   world_ = CommPtr(new Comm(this, world_dup));
@@ -162,6 +161,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   world_ = CommPtr(new Comm(this, false, false));
   self_ = CommPtr(new Comm(this, false, false));
 #endif
+  enable_floating_point_exceptions();
   Omega_h::CmdLine cmdline;
   cmdline.add_flag(
       "--osh-memory", "print amount and stacktrace of max memory use");
