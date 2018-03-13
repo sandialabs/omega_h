@@ -10,6 +10,9 @@
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
 
+// DEBUG REMOVE NOW
+#include "Omega_h_print.hpp"
+
 namespace Omega_h {
 
 Adj unmap_adjacency(LOs a2b, Adj b2c) {
@@ -189,6 +192,8 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
 
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
   begin_code("invert_adj");
+  std::cerr << "invert_adj nlows_per_high " << nlows_per_high << " nlows " << nlows << '\n';
+  std::cerr << "down.ab2b " << down.ab2b << '\n';
   auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;

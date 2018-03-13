@@ -18,6 +18,7 @@
 
 // DEBUG REMOVE NOW
 #include <iostream>
+#include "Omega_h_print.hpp"
 
 namespace Omega_h {
 
@@ -36,6 +37,10 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto prods2new_lows = Adj();
   if (low_dim > VERT) {
     auto new_low_verts2new_verts = new_mesh->ask_verts_of(low_dim);
+    if (ent_dim == FACE) {
+      std::cerr << "new_mesh coords: " << new_mesh->coords() << '\n';
+      std::cerr << "new_mesh verts of edges: " << new_low_verts2new_verts << '\n';
+    }
     auto new_verts2new_lows = new_mesh->ask_up(VERT, low_dim);
     prods2new_lows = reflect_down(prod_verts2verts, new_low_verts2new_verts,
         new_verts2new_lows, old_mesh->family(), ent_dim, low_dim);
@@ -48,10 +53,18 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nnew_ents = nsame_ents + nprods;
   Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree);
   auto new_ent_low_codes = Write<I8>();
+  std::cerr << "down_degree " << down_degree
+    << " prods2new_ents.size() " << prods2new_ents.size()
+    << " new_ent_lows2new_lows.size() " << new_ent_lows2new_lows.size()
+    << " prod_lows2new_lows.size() " << prod_lows2new_lows.size() << '\n';
+  std::cerr << "prods2new_ents = " << prods2new_ents << '\n';
   map_into(
       prod_lows2new_lows, prods2new_ents, new_ent_lows2new_lows, down_degree);
+  std::cerr << "after mapping products: " << LOs(new_ent_lows2new_lows) << '\n';
+  std::cerr << "same_ents2new_ents = " << same_ents2new_ents << '\n';
   map_into(same_ent_lows2new_lows, same_ents2new_ents, new_ent_lows2new_lows,
       down_degree);
+  std::cerr << "after mapping same: " << LOs(new_ent_lows2new_lows) << '\n';
   if (low_dim > VERT) {
     new_ent_low_codes = Write<I8>(nnew_ents * down_degree);
     auto old_ent_low_codes = old_ents2old_lows.codes;
@@ -137,6 +150,7 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 static LOs collect_same(
     Mesh* mesh, Int ent_dim, Few<Bytes, 4> mds_are_mods, bool keep_mods) {
   if (keep_mods || (!mds_are_mods[ent_dim].exists())) {
+    std::cerr << "collect_same dim " << ent_dim << ": taking all " << mesh->nents(ent_dim) << '\n';
     return LOs(mesh->nents(ent_dim), 0, 1);
   }
   auto ents_not_modified = invert_marks(mds_are_mods[ent_dim]);
@@ -205,7 +219,8 @@ static LOs get_mods2reps(Mesh* mesh, Int ent_dim, Int mod_dim, LOs mods2mds) {
  */
 static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
     Few<LOs, 4> mods2reps, Few<LOs, 4> mods2nprods, LOs same_ents2ents,
-    bool count_modified, bool count_non_owned) {
+    bool count_non_owned) {
+  std::cerr << "get_rep_counts prod_dim " << ent_dim << '\n';
   auto nents = mesh->nents(ent_dim);
   Write<LO> rep_counts(nents, 0);
   auto nsame_ents = same_ents2ents.size();
@@ -213,10 +228,12 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
   OMEGA_H_CHECK(ents_are_owned.size() == nents);
   auto mark_same = OMEGA_H_LAMBDA(LO same_ent) {
     auto ent = same_ents2ents[same_ent];
+    std::cerr << "same ent " << ent << '\n';
     if (count_non_owned || ents_are_owned[ent]) rep_counts[ent] = 1;
   };
   parallel_for(nsame_ents, mark_same, "get_rep_counts(same)");
   for (Int mod_dim = 0; mod_dim <= mesh->dim(); ++mod_dim) {
+    std::cerr << "get_rep_counts mod_dim " << mod_dim << '\n';
     if (!mods2reps[mod_dim].exists()) continue;
     auto mods2reps_dim = mods2reps[mod_dim];
     auto mods2nprods_dim = mods2nprods[mod_dim];
@@ -224,13 +241,13 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
     auto mds_are_owned = mesh->owned(mod_dim);
     auto nmods = mods2reps_dim.size();
     OMEGA_H_CHECK(nmods == mods2nprods_dim.size());
-    LO self_count = (count_modified && (mod_dim == ent_dim)) ? 1 : 0;
     auto mark_reps = OMEGA_H_LAMBDA(LO mod) {
       auto rep = mods2reps_dim[mod];
-      auto nmod_prods = mods2nprods_dim[mod] + self_count;
+      auto nmod_prods = mods2nprods_dim[mod];
       /* TODO: the non-owned check can be skipped entirely for the AMR case */
       if (count_non_owned || mds_are_owned[mods2mds_dim[mod]]) {
         /* TODO: the atomic_add can be skipped for mod_dim <= ent_dim */
+        std::cerr << "mod " << mod << " contributing " << nmod_prods << " to rep " << rep << '\n';
         atomic_add(&rep_counts[rep], nmod_prods);
       }
     };
@@ -282,15 +299,28 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
   Few<Write<LO>, 4> rep2md_order_w;
   Few<Adj, 4> reps2mds;
   Few<LOs, 4> mds2mods;
+  bool do_anything = false;
   for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
     if (!mods_have_prods[mod_dim]) continue;
+    else do_anything = true;
     rep2md_order_w[mod_dim] = Write<LO>(mesh->nents(mod_dim), -1);
     reps2mds[mod_dim] = mesh->ask_up(rep_dim, mod_dim);
     mds2mods[mod_dim] =
         invert_injective_map(mods2mds[mod_dim], mesh->nents(mod_dim));
   }
+  Few<LOs, 4> out;
+  if (!do_anything) return out;
+  if (mods_have_prods[rep_dim]) {
+    mds2mods[rep_dim] =
+        invert_injective_map(mods2mds[rep_dim], mesh->nents(rep_dim));
+  }
   auto f = OMEGA_H_LAMBDA(LO rep) {
     LO offset = 0;
+    if (mods_have_prods[rep_dim]) {
+      auto mod = mds2mods[rep_dim][rep];
+      offset += mods2nprods[rep_dim][mod];
+      std::cerr << "rep " << rep << " offset = " << offset << '\n';
+    }
     for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
       if (!mods_have_prods[mod_dim]) continue;
       for (auto rep_md = reps2mds[mod_dim].a2ab[rep];
@@ -301,6 +331,7 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
           auto code = reps2mds[mod_dim].codes[rep_md];
           auto dir = code_which_down(code);
           if (dir == 0) {
+            std::cerr << "rep2md_order[" << mod_dim << "][" << md << "] = "  << offset << '\n';
             rep2md_order_w[mod_dim][md] = offset;
             offset += mods2nprods[mod_dim][mod];
           }
@@ -309,7 +340,6 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
     }
   };
   parallel_for(nreps, f, "get_rep2md_order");
-  Few<LOs, 4> out;
   for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
     if (!mods_have_prods[mod_dim]) continue;
     out[mod_dim] = LOs(rep2md_order_w[mod_dim]);
@@ -358,8 +388,11 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
       OMEGA_H_CHECK(mods2mds[mod_dim].exists());
       auto mods2mds_dim = mods2mds[mod_dim];
       auto rep2md_order_dim = rep2md_order[mod_dim];
+      std::cerr << "nmods " << nmods << '\n';
       auto write_prod_offsets = OMEGA_H_LAMBDA(LO mod) {
         auto md = mods2mds_dim[mod];
+        std::cerr << "md " << md << " has offset " << mods2new_offsets[mod] << " and rep2md order "
+          << rep2md_order_dim[md] << '\n';
         auto offset = mods2new_offsets[mod] + rep2md_order_dim[md] + rep_self_count;
         for (auto prod = mods2prods_dim[mod]; prod < mods2prods_dim[mod + 1];
              ++prod) {
@@ -470,8 +503,10 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
         get_mods2reps(old_mesh, ent_dim, mod_dim, mods2mds[mod_dim]);
     mods2nprods[mod_dim] = get_degrees(mods2prods[mod_dim]);
   }
+  std::cerr << "same_ents2old_ents = " << *p_same_ents2old_ents << '\n';
   auto local_rep_counts = get_rep_counts(old_mesh, ent_dim, mods2mds, mods2reps,
-      mods2nprods, *p_same_ents2old_ents, keep_mods, /*count_non_owned*/ true);
+      mods2nprods, *p_same_ents2old_ents, /*count_non_owned*/ true);
+  std::cerr << "local_rep_counts " << local_rep_counts << '\n';
   auto local_offsets = offset_scan(local_rep_counts);
   auto nnew_ents = local_offsets.last();
   Few<bool, 4> mods_have_prods;
@@ -479,6 +514,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     mods_have_prods[mod_dim] = mods2prods[mod_dim].exists();
   auto local_rep2md_order = get_rep2md_order(
       old_mesh, ent_dim, mods2mds, mods2nprods, mods_have_prods);
+  std::cerr << "local_offsets " << local_offsets << '\n';
   assign_new_numbering(local_offsets, *p_same_ents2old_ents, mods2mds,
       mods2reps, mods2prods, local_rep2md_order, p_same_ents2new_ents,
       p_prods2new_ents, keep_mods);
@@ -499,7 +535,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   }
   auto global_rep_counts =
       get_rep_counts(old_mesh, ent_dim, mods2mds, mods2reps, mods2nprods,
-          *p_same_ents2old_ents, keep_mods, /*count_non_owned*/ false);
+          *p_same_ents2old_ents, /*count_non_owned*/ false);
   modify_globals(old_mesh, new_mesh, ent_dim, keep_mods, mods2mds, mods2prods,
       *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
       mods2reps, global_rep_counts);
