@@ -50,9 +50,14 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
       prods2verts = get_amr_topology(mesh, prod_dim, prod_counts[prod_dim], mods2mds, mds2mods, mods2midverts);
     }
     Few<LOs, 4> mods2prods;
-    for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= mesh->dim(); ++mod_dim) {
-      auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
-      mods2prods[mod_dim] = LOs(mods2mds[mod_dim].size() + 1, 0, nprods_per_mod);
+    {
+      LO offset = 0;
+      for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= mesh->dim(); ++mod_dim) {
+        auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
+        auto nmods_of_dim = mods2mds[mod_dim].size();
+        mods2prods[mod_dim] = LOs(mods2mds[mod_dim].size() + 1, offset, nprods_per_mod);
+        offset += nprods_per_mod * nmods_of_dim;
+      }
     }
     LOs prods2new_ents;
     LOs same_ents2old_ents;
