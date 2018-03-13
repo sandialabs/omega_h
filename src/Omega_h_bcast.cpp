@@ -8,6 +8,10 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   if (new_comm->rank() == 0) {
     OMEGA_H_CHECK(is_source);
   }
+  I32 family;
+  if (is_source) family = mesh->family();
+  new_comm->bcast(family);
+  if (!is_source) mesh->set_family(Omega_h_Family(family));
   I32 dim;
   if (is_source) dim = mesh->dim();
   new_comm->bcast(dim);
@@ -15,7 +19,7 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
   I32 parting;
   if (is_source) parting = mesh->parting();
   new_comm->bcast(parting);
-  if (!is_source) mesh->set_parting(static_cast<Omega_h_Parting>(parting));
+  if (!is_source) mesh->set_parting(Omega_h_Parting(parting));
   if (!is_source) mesh->set_verts(0);
   for (Int d = 0; d <= dim; ++d) {
     if (d > VERT && !is_source) {

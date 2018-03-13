@@ -35,6 +35,19 @@ void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
 }
 
 template <typename T>
+void map_into_range(Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width) {
+  auto na = end - begin;
+  OMEGA_H_CHECK(a_data.size() == na * width);
+  auto f = OMEGA_H_LAMBDA(LO a) {
+    auto b = begin + a;
+    for (Int j = 0; j < width; ++j) {
+      b_data[b * width + j] = a_data[a * width + j];
+    }
+  };
+  parallel_for(na, f, "map_into_range");
+}
+
+template <typename T>
 Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width) {
   auto out = Write<T>(nb * width, init_val);
   map_into(a_data, a2b, out, width);
@@ -56,11 +69,24 @@ Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
 }
 
 template <typename T>
-Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
+Read<T> unmap_range(LO begin, LO end, Read<T> b_data, Int width) {
+  OMEGA_H_CHECK(begin <= end);
+  auto na = end - begin;
+  Write<T> a_data(na * width);
+  auto f = OMEGA_H_LAMBDA(LO a) {
+    auto b = a + begin;
+    for (Int j = 0; j < width; ++j) {
+      a_data[a * width + j] = b_data[b * width + j];
+    }
+  };
+  parallel_for(na, f, "unmap_range");
+  return a_data;
+}
+
+template <typename T>
+void expand_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
   auto na = a2b.size() - 1;
-  auto nb = a2b.last();
   OMEGA_H_CHECK(a_data.size() == na * width);
-  Write<T> b_data(nb * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
     for (auto b = a2b[a]; b < a2b[a + 1]; ++b) {
       for (Int j = 0; j < width; ++j) {
@@ -68,7 +94,14 @@ Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
       }
     }
   };
-  parallel_for(na, f, "expand");
+  parallel_for(na, f, "expand_into");
+}
+
+template <typename T>
+Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
+  auto nb = a2b.last();
+  Write<T> b_data(nb * width);
+  expand_into(a_data, a2b, b_data, width);
   return b_data;
 }
 
@@ -260,9 +293,12 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
 #define INST_T(T)                                                              \
   template void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
+  template void map_into_range(Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width); \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
   template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
+  template Read<T> unmap_range(LO begin, LO end, Read<T> b_data, Int width);                  \
   template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
+  template void expand_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                 \
   template Read<T> permute(Read<T> a_data, LOs a2b, Int width);                \
   template Read<T> fan_reduce(                                                 \
       LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);

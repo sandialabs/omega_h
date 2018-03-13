@@ -27,8 +27,8 @@ static bool refine_ghosted(Mesh* mesh, AdaptOpts const& opts) {
   auto edge_quals = map_onto(cand_quals, cands2edges, nedges, 0.0, 1);
   auto edges_are_keys = find_indset(mesh, EDGE, edge_quals, edges_are_initial);
   mesh->add_tag(EDGE, "key", 1, edges_are_keys);
-  mesh->add_tag(EDGE, "key2rep_order", 1,
-      get_key2rep_order(mesh, EDGE, VERT, edges_are_keys));
+  mesh->add_tag(EDGE, "rep_vertex2md_order", 1,
+      get_rep2md_order_adapt(mesh, EDGE, VERT, edges_are_keys));
   auto keys2edges = collect_marked(edges_are_keys);
   Graph edges2elems;
   if (mesh->dim() == 1)
@@ -65,7 +65,7 @@ static void refine_element_based(Mesh* mesh, AdaptOpts const& opts) {
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods,
+    modify_ents_adapt(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods,
         prod_verts2verts, old_lows2new_lows, &prods2new_ents,
         &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     if (ent_dim == VERT) {

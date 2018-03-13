@@ -474,6 +474,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   HostWrite<T> recvbuf(nrecvd);
   HostRead<T> sendbuf(sendbuf_dev);
+  OMEGA_H_CHECK(recvbuf.size() == rdispls.last() * width);
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
       nonnull(sendbuf.data()), nonnull(sdispls.data()),
       MpiTraits<T>::datatype(), nonnull(recvbuf.data()),
@@ -482,6 +483,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   self_send_part2(self_data, self_src_, &recvbuf_dev, rdispls_dev, width);
 #else   // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   Write<T> recvbuf_dev_w(nrecvd);
+  OMEGA_H_CHECK(recvbuf_dev_w.size() == rdispls.last() * width);
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
       nonnull(sendbuf_dev.data()), nonnull(sdispls.data()),
       MpiTraits<T>::datatype(), nonnull(recvbuf_dev_w.data()),

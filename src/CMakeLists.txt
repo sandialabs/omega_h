@@ -87,6 +87,9 @@ set(Omega_h_SOURCES
   Omega_h_amr_topology.cpp
   Omega_h_assemble.cpp
   Omega_h_solve.cpp
+  Omega_h_amr.cpp
+  Omega_h_amr_transfer.cpp
+  Omega_h_print.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)
@@ -301,9 +304,18 @@ if(BUILD_TESTING)
     gen_func(square_and_disk_in_square)
   endif()
 
-  osh_add_exe(unit_tests)
-  set(TEST_EXES ${TEST_EXES} unit_tests)
-  test_func(run_unit_tests 1 ./unit_tests)
+  osh_add_exe(unit_math)
+  set(TEST_EXES ${TEST_EXES} unit_math)
+  test_func(run_unit_math 1 ./unit_math)
+  osh_add_exe(unit_array_algs)
+  set(TEST_EXES ${TEST_EXES} unit_array_algs)
+  test_func(run_unit_array_algs 1 ./unit_array_algs)
+  osh_add_exe(unit_mesh)
+  set(TEST_EXES ${TEST_EXES} unit_mesh)
+  test_func(run_unit_mesh 1 ./unit_mesh)
+  osh_add_exe(unit_io)
+  set(TEST_EXES ${TEST_EXES} unit_io)
+  test_func(run_unit_io 1 ./unit_io)
   osh_add_exe(r3d_test)
   test_func(run_test_r3d 1 ./r3d_test)
   osh_add_exe(mpi_tests)
@@ -405,6 +417,11 @@ if(BUILD_TESTING)
   osh_add_exe(hypercube_test)
   osh_add_exe(osh_fit)
   osh_add_exe(assemble_test)
+  osh_add_exe(amr_topo_test)
+  test_func(amr_topo_test 1 ./amr_topo_test)
+  osh_add_exe(solve_test)
+  osh_add_exe(amr_test)
+  test_func(amr_test 1 ./amr_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
