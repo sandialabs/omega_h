@@ -9,7 +9,7 @@
 namespace Omega_h {
 
 struct Adj : public Graph {
-  Adj() {}
+  OMEGA_H_INLINE Adj() {}
   explicit Adj(LOs ab2b_) : Graph(ab2b_) {}
   Adj(LOs ab2b_, Read<I8> codes_) : Graph(ab2b_), codes(codes_) {}
   Adj(LOs a2ab_, LOs ab2b_, Read<I8> codes_)
