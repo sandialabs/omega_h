@@ -11,31 +11,38 @@ namespace Omega_h {
 
 template <typename T>
 void set_if_given(
-    T* var, Teuchos::ParameterList const& pl, std::string const& name) {
-  if (pl.isType<T>(name)) *var = pl.get<T>(name);
+    T* var, Teuchos::ParameterList& pl, std::string const& name) {
+  *var = pl.get<T>(name, *var);
 }
 
 void update_var_compare_opts(
-    VarCompareOpts* opts, Teuchos::ParameterList const& pl);
-void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList const& pl);
-void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl);
-MetricSource get_metric_source(Teuchos::ParameterList const& pl);
-void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl);
+    VarCompareOpts* opts, Teuchos::ParameterList& pl);
+void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList& pl);
+void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList& pl);
+MetricSource get_metric_source(Teuchos::ParameterList& pl);
+void update_metric_input(MetricInput* input, Teuchos::ParameterList& pl);
 
 Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh);
 void update_parameters_from_file(std::string const& filepath,
     Teuchos::ParameterList* pl, Teuchos::Comm<int> const& comm);
 
 void write_parameters(
+    std::ostream& stream, Teuchos::ParameterList const& pl, bool is_yaml = true);
+
+void write_parameters(
     std::string const& filepath, Teuchos::ParameterList const& pl);
 
-void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl);
+void check_unused(Teuchos::ParameterList const& pl);
 
-void update_tag_set(TagSet* p_tags, Int dim, Teuchos::ParameterList const& pl);
+void echo_parameters(std::ostream& stream, Teuchos::ParameterList const& pl);
+
+void update_assoc(Assoc* p_assoc, Teuchos::ParameterList& pl);
+
+void update_tag_set(TagSet* p_tags, Int dim, Teuchos::ParameterList& pl);
 
 Int get_ent_dim_by_name(Mesh* mesh, std::string const& name);
 
-void write_scatterplot(Mesh* mesh, Teuchos::ParameterList const& pl);
+void write_scatterplot(Mesh* mesh, Teuchos::ParameterList& pl);
 
 }  // namespace Omega_h
 

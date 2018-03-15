@@ -485,11 +485,11 @@ std::string piece_filename(std::string const& piecepath, I32 rank) {
   return piecepath + '_' + Omega_h::to_string(rank) + ".vtu";
 }
 
-std::string get_rel_step_path(Int step) {
-  return "steps/step_" + Omega_h::to_string(step);
+std::string get_rel_step_path(I64 step) {
+  return "steps/step_" + std::to_string(step);
 }
 
-std::string get_step_path(std::string const& root_path, Int step) {
+std::string get_step_path(std::string const& root_path, I64 step) {
   return root_path + '/' + get_rel_step_path(step);
 }
 
@@ -836,7 +836,7 @@ std::streampos write_initial_pvd(
 }
 
 void update_pvd(std::string const& root_path, std::streampos* pos_inout,
-    Int step, Real time) {
+    I64 step, Real time) {
   std::string pvdpath = get_pvd_path(root_path);
   std::fstream file;
   file.open(pvdpath.c_str(), std::ios::out | std::ios::in);
@@ -925,7 +925,7 @@ Writer::Writer(
   }
 }
 
-void Writer::write(Int step, Real time, TagSet const& tags) {
+void Writer::write(I64 step, Real time, TagSet const& tags) {
   step_ = step;
   write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags);
   if (mesh_->comm()->rank() == 0) {
