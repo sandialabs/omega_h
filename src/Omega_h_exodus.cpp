@@ -105,7 +105,7 @@ static void read_nodal_fields(
       ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
   ++max_name_length;  // it really is tightly-fitted, and doesn't include null
                       // terminators
-  std::cout << "max name length " << max_name_length << '\n';
+  if (verbose) std::cout << "max name length " << max_name_length << '\n';
   std::vector<char> names_memory(
       std::size_t(num_nodal_vars * max_name_length), '\0');
   std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
