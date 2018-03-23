@@ -448,7 +448,7 @@ void eval_sqrt(LO size, any& result, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_sqrt(Reals)");
     result = Reals(out);
   } else {
-    throw Teuchos::ParserFail("unexpected argument type to pow()");
+    throw Teuchos::ParserFail("unexpected argument type to sqrt()");
   }
 }
 
@@ -467,7 +467,7 @@ void eval_sin(LO size, any& result, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_sin(Reals)");
     result = Reals(out);
   } else {
-    throw Teuchos::ParserFail("unexpected argument type to pow()");
+    throw Teuchos::ParserFail("unexpected argument type to sin()");
   }
 }
 
@@ -486,7 +486,7 @@ void eval_cos(LO size, any& result, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_cos(Reals)");
     result = Reals(out);
   } else {
-    throw Teuchos::ParserFail("unexpected argument type to pow()");
+    throw Teuchos::ParserFail("unexpected argument type to sin()");
   }
 }
 
