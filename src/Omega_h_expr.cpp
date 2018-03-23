@@ -448,7 +448,45 @@ void eval_sqrt(LO size, any& result, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_sqrt(Reals)");
     result = Reals(out);
   } else {
-    throw Teuchos::ParserFail("unexpected argument type to pow()");
+    throw Teuchos::ParserFail("unexpected argument type to sqrt()");
+  }
+}
+
+void eval_sin(LO size, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 1, Teuchos::ParserFail,
+      "sin() takes exactly one argument, given " << args.size());
+  auto& in_any = args.at(0);
+  if (in_any.type() == typeid(Real)) {
+    result = std::sin(any_cast<Real>(in_any));
+  } else if (in_any.type() == typeid(Reals)) {
+    auto a = Teuchos::any_cast<Reals>(in_any);
+    TEUCHOS_TEST_FOR_EXCEPTION(a.size() != size, Teuchos::ParserFail,
+        "sin() given array that wasn't scalars");
+    auto out = Write<Real>(a.size());
+    auto f = OMEGA_H_LAMBDA(LO i) { out[i] = std::sin(a[i]); };
+    parallel_for(a.size(), f, "eval_sin(Reals)");
+    result = Reals(out);
+  } else {
+    throw Teuchos::ParserFail("unexpected argument type to sin()");
+  }
+}
+
+void eval_cos(LO size, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 1, Teuchos::ParserFail,
+      "cos() takes exactly one argument, given " << args.size());
+  auto& in_any = args.at(0);
+  if (in_any.type() == typeid(Real)) {
+    result = std::cos(any_cast<Real>(in_any));
+  } else if (in_any.type() == typeid(Reals)) {
+    auto a = Teuchos::any_cast<Reals>(in_any);
+    TEUCHOS_TEST_FOR_EXCEPTION(a.size() != size, Teuchos::ParserFail,
+        "cos() given array that wasn't scalars");
+    auto out = Write<Real>(a.size());
+    auto f = OMEGA_H_LAMBDA(LO i) { out[i] = std::cos(a[i]); };
+    parallel_for(a.size(), f, "eval_cos(Reals)");
+    result = Reals(out);
+  } else {
+    throw Teuchos::ParserFail("unexpected argument type to cos()");
   }
 }
 
@@ -468,6 +506,10 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
       [=](any& result, Args& args) { eval_exp(local_size, result, args); });
   register_function("sqrt",
       [=](any& result, Args& args) { eval_sqrt(local_size, result, args); });
+  register_function("sin",
+      [=](any& result, Args& args) { eval_sin(local_size, result, args); });
+  register_function("cos",
+      [=](any& result, Args& args) { eval_cos(local_size, result, args); });
 }
 
 ExprReader::~ExprReader() {}
