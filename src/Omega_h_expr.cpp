@@ -486,7 +486,7 @@ void eval_cos(LO size, any& result, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_cos(Reals)");
     result = Reals(out);
   } else {
-    throw Teuchos::ParserFail("unexpected argument type to sin()");
+    throw Teuchos::ParserFail("unexpected argument type to cos()");
   }
 }
 
