@@ -105,7 +105,7 @@ static void read_nodal_fields(
       ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
   ++max_name_length;  // it really is tightly-fitted, and doesn't include null
                       // terminators
-  std::cout << "max name length " << max_name_length << '\n';
+  if (verbose) std::cout << "max name length " << max_name_length << '\n';
   std::vector<char> names_memory(
       std::size_t(num_nodal_vars * max_name_length), '\0');
   std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
@@ -169,7 +169,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
   auto deg = element_degree(mesh->family(), dim, VERT);
   HostWrite<LO> h_conn(LO(init_params.num_elem * deg));
   Write<LO> elem_class_ids_w(LO(init_params.num_elem));
-  LO start = 0;
+  LO elem_start = 0;
   for (size_t i = 0; i < block_ids.size(); ++i) {
     char elem_type[MAX_STR_LENGTH + 1];
     int nentries;
@@ -184,24 +184,27 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
       std::cout << "block " << block_ids[i] << " has " << nentries
                 << " elements of type " << elem_type << '\n';
     }
+    /* some pretty weird blocks from the CDFEM people... */
+    if (std::string("NULL") == elem_type && nentries == 0) continue;
     if (!is_type_supported(dim, elem_type)) {
-      Omega_h_fail("type %s is not supported for %dD !\n", elem_type, dim);
+      Omega_h_fail("type %s is not supported for %dD ! (%d nodes %d edges %d faces %d attr)\n", elem_type, dim,
+          nnodes_per_entry, nedges_per_entry, nfaces_per_entry, nattr_per_entry);
     }
     OMEGA_H_CHECK(nnodes_per_entry == deg);
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     std::vector<int> edge_conn(std::size_t(nentries * nedges_per_entry));
     std::vector<int> face_conn(std::size_t(nentries * nfaces_per_entry));
-    CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i], h_conn.data() + start,
+    CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i], h_conn.data() + elem_start * nnodes_per_entry,
         edge_conn.data(), face_conn.data()));
     auto region_id = block_ids[i];
     auto f0 = OMEGA_H_LAMBDA(LO entry) {
-      elem_class_ids_w[start + entry] = region_id;
+      elem_class_ids_w[elem_start + entry] = region_id;
     };
-    parallel_for(nentries, f0, "elem_class_ids");
-    start += nentries * nnodes_per_entry;
+    parallel_for(nentries, f0, "set_elem_class_ids");
+    elem_start += nentries;
   }
-  OMEGA_H_CHECK(start == init_params.num_elem * deg);
+  OMEGA_H_CHECK(elem_start == init_params.num_elem);
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
   build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, dim, conn, coords);
   classify_elements(mesh);

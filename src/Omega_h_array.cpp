@@ -232,9 +232,9 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror(
   typedef typename src_type::HostMirror dst_type;
   return dst_type(Kokkos::ViewAllocateWithoutInitializing(
                       std::string("host_") + src.label()),
-      src.dimension_0(), src.dimension_1(), src.dimension_2(),
-      src.dimension_3(), src.dimension_4(), src.dimension_5(),
-      src.dimension_6(), src.dimension_7());
+      src.extent(0), src.extent(1), src.extent(2),
+      src.extent(3), src.extent(4), src.extent(5),
+      src.extent(6), src.extent(7));
 }
 
 template <class T, class... P>

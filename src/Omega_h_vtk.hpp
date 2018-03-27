@@ -28,7 +28,7 @@ void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
 std::streampos write_initial_pvd(
     std::string const& root_path, Real restart_time);
 void update_pvd(std::string const& root_path, std::streampos* pos_inout,
-    Int step, Real time);
+    I64 step, Real time);
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh);
 void read_vtu_ents(std::istream& stream, Mesh* mesh);

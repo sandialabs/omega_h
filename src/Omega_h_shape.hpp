@@ -320,6 +320,14 @@ OMEGA_H_INLINE Vector<dim> get_size_gradient(
   return n / Real(factorial(dim));
 }
 
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim + 1> get_size_gradients(
+    Few<Vector<dim>, dim + 1> p) {
+  Matrix<dim, dim + 1> sgrads;
+  for (Int i = 0; i < dim + 1; ++i) sgrads[i] = get_size_gradient(p, i);
+  return sgrads;
+}
+
 /* This code is copied from the tricircumcenter3d() function
  * by Shewchuk:
  * http://www.ics.uci.edu/~eppstein/junkyard/circumcenter.html

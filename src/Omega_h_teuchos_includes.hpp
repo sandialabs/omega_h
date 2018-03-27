@@ -5,6 +5,11 @@
 
 OMEGA_H_SYSTEM_HEADER
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #include <Teuchos_Comm.hpp>
 #include <Teuchos_Language.hpp>
 #include <Teuchos_MathExpr.hpp>
@@ -20,6 +25,10 @@ OMEGA_H_SYSTEM_HEADER
 #include <Teuchos_DefaultMpiComm.hpp>
 #else
 #include <Teuchos_DefaultSerialComm.hpp>
+#endif
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
 #endif
 
 #endif

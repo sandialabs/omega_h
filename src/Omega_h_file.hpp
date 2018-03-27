@@ -68,7 +68,7 @@ class Writer {
   Mesh* mesh_;
   std::string root_path_;
   Int cell_dim_;
-  Int step_;
+  I64 step_;
   std::streampos pvd_pos_;
 
  public:
@@ -81,7 +81,7 @@ class Writer {
   void write();
   void write(Real time);
   void write(Real time, TagSet const& tags);
-  void write(Int step, Real time, TagSet const& tags);
+  void write(I64 step, Real time, TagSet const& tags);
 };
 class FullWriter {
   std::vector<Writer> writers_;

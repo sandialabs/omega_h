@@ -8,7 +8,7 @@
 namespace Omega_h {
 
 void update_var_compare_opts(
-    VarCompareOpts* opts, Teuchos::ParameterList const& pl) {
+    VarCompareOpts* opts, Teuchos::ParameterList& pl) {
   if (pl.isType<std::string>("Type")) {
     auto type_name = pl.get<std::string>("Type");
     if (type_name == "None") {
@@ -27,7 +27,7 @@ void update_var_compare_opts(
 }
 
 void update_transfer_opts(
-    TransferOpts* opts, Teuchos::ParameterList const& pl) {
+    TransferOpts* opts, Teuchos::ParameterList& pl) {
   if (pl.isSublist("Fields")) {
     auto& fields_pl = pl.sublist("Fields");
     for (auto it = fields_pl.begin(), end = fields_pl.end(); it != end; ++it) {
@@ -88,7 +88,7 @@ void update_transfer_opts(
   set_if_given(&opts->max_size_error_ratio, pl, "Max Size Error Ratio");
 }
 
-void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
+void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList& pl) {
   set_if_given(&opts->min_length_desired, pl, "Min Length Desired");
   set_if_given(&opts->max_length_desired, pl, "Max Length Desired");
   set_if_given(&opts->max_length_allowed, pl, "Max Length Allowed");
@@ -126,7 +126,7 @@ void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList const& pl) {
   }
 }
 
-MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
+MetricSource get_metric_source(Teuchos::ParameterList& pl) {
   MetricSource source;
   auto type_name = pl.get<std::string>("Type");
   if (type_name == "Constant") {
@@ -171,7 +171,7 @@ MetricSource get_metric_source(Teuchos::ParameterList const& pl) {
   return source;
 }
 
-void update_metric_input(MetricInput* input, Teuchos::ParameterList const& pl) {
+void update_metric_input(MetricInput* input, Teuchos::ParameterList& pl) {
   if (pl.isSublist("Sources")) {
     auto& sources_pl = pl.sublist("Sources");
     for (auto it = sources_pl.begin(), end = sources_pl.end(); it != end;
@@ -226,26 +226,59 @@ void update_parameters_from_file(std::string const& filepath,
 }
 
 void write_parameters(
+    std::ostream& stream, Teuchos::ParameterList const& pl, bool is_yaml) {
+  std::ios saved_state(nullptr);
+  saved_state.copyfmt(stream);
+  stream << std::scientific << std::setprecision(17);
+  if (is_yaml) {
+    Teuchos::writeParameterListToYamlOStream(pl, stream);
+  } else {
+    Teuchos::writeParameterListToXmlOStream(pl, stream);
+  }
+  stream.copyfmt(saved_state);
+}
+
+void write_parameters(
     std::string const& filepath, Teuchos::ParameterList const& pl) {
   std::ofstream stream(filepath.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("couldn't open \"%s\" to write\n", filepath.c_str());
   }
-  stream << std::scientific << std::setprecision(17);
-  if (ends_with(filepath, ".xml")) {
-    Teuchos::writeParameterListToXmlOStream(pl, stream);
-  } else if (ends_with(filepath, ".yaml")) {
-    Teuchos::writeParameterListToYamlOStream(pl, stream);
-  } else {
-    Omega_h_fail(
-        "\"%s\" is not a known parameter list format\n", filepath.c_str());
+  write_parameters(stream, pl, ends_with(filepath, ".yaml"));
+}
+
+void check_unused(Teuchos::ParameterList const& pl) {
+  for (auto it = pl.begin(), end = pl.end(); it != end; ++it) {
+    auto& entry = it->second;
+    if (entry.isList()) {
+      auto& a = entry.getAny(false);
+      auto& sl = Teuchos::any_cast<Teuchos::ParameterList>(a);
+      check_unused(sl);
+    } else if (!entry.isDefault() && !entry.isUsed()) {
+      auto name = pl.name();
+      name += "->";
+      name += it->first;
+      Omega_h_fail("Parameter \"%s\" was not used!", name.c_str());
+    }
   }
+}
+
+void echo_parameters(std::ostream& stream, Teuchos::ParameterList const& pl) {
+  Teuchos::ParameterList::PrintOptions opts;
+  std::ios saved_state(nullptr);
+  saved_state.copyfmt(stream);
+  stream << std::scientific << std::setprecision(17);
+  opts.showTypes(true);
+  opts.showFlags(true);
+  opts.showDoc(true);
+  pl.print(std::cout, opts);
+  stream.copyfmt(saved_state);
 }
 
 static char const* const assoc_param_names[NSET_TYPES] = {
     "Element Sets", "Side Sets", "Node Sets"};
 
-void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
+void update_assoc(Assoc* p_assoc, Teuchos::ParameterList& pl) {
   if (pl.isType<std::string>("File")) {
     auto filepath = pl.get<std::string>("File");
     update_from_file(p_assoc, filepath);
@@ -275,7 +308,7 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList const& pl) {
 }
 
 void update_tag_set(
-    TagSet* p_tags, Int elem_dim, Teuchos::ParameterList const& pl) {
+    TagSet* p_tags, Int elem_dim, Teuchos::ParameterList& pl) {
   TagSet& tags = *p_tags;
   std::map<std::string, Int> names2dims;
   names2dims["Element"] = elem_dim;
@@ -313,7 +346,7 @@ Int get_ent_dim_by_name(Mesh* mesh, std::string const& name) {
 
 template <Int dim>
 static void write_scatterplot_dim(
-    Mesh* mesh, Teuchos::ParameterList const& pl) {
+    Mesh* mesh, Teuchos::ParameterList& pl) {
   auto filepath = pl.get<std::string>("File");
   Int ent_dim = 0;
   if (pl.isType<std::string>("Entity")) {
@@ -340,7 +373,7 @@ static void write_scatterplot_dim(
   }
 }
 
-void write_scatterplot(Mesh* mesh, Teuchos::ParameterList const& pl) {
+void write_scatterplot(Mesh* mesh, Teuchos::ParameterList& pl) {
   if (mesh->dim() == 3) write_scatterplot_dim<3>(mesh, pl);
   if (mesh->dim() == 2) write_scatterplot_dim<2>(mesh, pl);
   if (mesh->dim() == 1) write_scatterplot_dim<1>(mesh, pl);

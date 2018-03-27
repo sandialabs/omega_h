@@ -87,7 +87,8 @@ constexpr OMEGA_H_INLINE T factorial(T x) {
   return (x > 1) ? (x * factorial(x - 1)) : 1;
 }
 
-OMEGA_H_INLINE Real average(Real a, Real b) { return (a + b) / 2.; }
+template <typename T>
+constexpr OMEGA_H_INLINE T average(T a, T b) { return (a + b) / 2; }
 
 template <Int p, typename T>
 struct Raise {
