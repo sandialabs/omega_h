@@ -430,28 +430,28 @@ OMEGA_H_INLINE Vector<6> symm2vector_inria(Matrix<3, 3> symm) {
   return v;
 }
 
-OMEGA_H_INLINE constexpr Int matrix_ncomps(Int dim) { return dim * dim; }
+OMEGA_H_INLINE constexpr Int matrix_ncomps(Int m, Int n) { return m * n; }
 
-template <Int dim>
-OMEGA_H_INLINE Vector<matrix_ncomps(dim)> matrix2vector(Matrix<dim, dim> m) {
-  Vector<matrix_ncomps(dim)> v;
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      v[j * dim + i] = m[i][j];
+template <Int m, Int n>
+OMEGA_H_INLINE Vector<matrix_ncomps(m, n)> matrix2vector(Matrix<m, n> a) {
+  Vector<matrix_ncomps(m, n)> v;
+  for (Int i = 0; i < m; ++i) {
+    for (Int j = 0; j < n; ++j) {
+      v[i * n + j] = a(i, j);
     }
   }
   return v;
 }
 
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> vector2matrix(Vector<matrix_ncomps(dim)> v) {
-  Matrix<dim, dim> m;
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      m[i][j] = v[j * dim + i];
+template <Int m, Int n>
+OMEGA_H_INLINE Matrix<m, n> vector2matrix(Vector<matrix_ncomps(m, n)> v) {
+  Matrix<m, n> a;
+  for (Int i = 0; i < m; ++i) {
+    for (Int j = 0; j < n; ++j) {
+      a(i, j) = v[i * n + j];
     }
   }
-  return m;
+  return a;
 }
 
 template <Int n>
@@ -464,15 +464,15 @@ OMEGA_H_DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
   return vector2symm(get_vector<symm_ncomps(n)>(a, i));
 }
 
-template <Int dim>
+template <Int m, Int n>
 OMEGA_H_DEVICE void set_matrix(
-    Write<Real> const& a, Int i, Matrix<dim, dim> m) {
-  set_vector(a, i, matrix2vector(m));
+    Write<Real> const& matrices, Int i, Matrix<m, n> matrix) {
+  set_vector(matrices, i, matrix2vector(matrix));
 }
 
-template <Int dim>
-OMEGA_H_DEVICE Matrix<dim, dim> get_matrix(Reals const& a, Int i) {
-  return vector2matrix<dim>(get_vector<matrix_ncomps(dim)>(a, i));
+template <Int m, Int n>
+OMEGA_H_DEVICE Matrix<m, n> get_matrix(Reals const& matrices, Int i) {
+  return vector2matrix<m, n>(get_vector<matrix_ncomps(m, n)>(matrices, i));
 }
 
 /* Rodrigues' Rotation Formula */

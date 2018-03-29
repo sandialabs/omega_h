@@ -29,7 +29,7 @@ Reals get_edge_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs,
           element_down_template(family, dim, EDGE, elem_edge, rot);
       auto elem_vert1 =
           element_down_template(family, dim, EDGE, elem_edge, 1 - rot);
-      auto jac_inv = get_matrix<dim>(elem_jac_invs, elem);
+      auto jac_inv = get_matrix<dim, dim>(elem_jac_invs, elem);
       auto grad0 =
           (elem_vert0 == 0) ? (-sum(jac_inv)) : jac_inv[elem_vert0 - 1];
       auto grad1 =
@@ -59,7 +59,7 @@ Reals get_vert_grad_grad_dim(Mesh* mesh, Reals elem_jac_invs,
       auto elem = verts2elems.ab2b[vert_elem];
       auto code = verts2elems.codes[vert_elem];
       auto elem_vert = code_which_down(code);
-      auto jac_inv = get_matrix<dim>(elem_jac_invs, elem);
+      auto jac_inv = get_matrix<dim, dim>(elem_jac_invs, elem);
       auto grad = (elem_vert == 0) ? (-sum(jac_inv)) : jac_inv[elem_vert - 1];
       auto material_matrix = get_symm<dim>(elem_material_matrices, elem);
       auto contrib = grad * (material_matrix * grad);
@@ -77,7 +77,7 @@ Reals get_elem_jac_invs_dim(Mesh* mesh) {
   constexpr auto nelem_verts = simplex_degree(dim, VERT);
   auto elems2verts = mesh->ask_elem_verts();
   auto coords = mesh->coords();
-  auto out_w = Write<Real>(mesh->nelems() * matrix_ncomps(dim));
+  auto out_w = Write<Real>(mesh->nelems() * matrix_ncomps(dim, dim));
   auto f = OMEGA_H_LAMBDA(LO elem) {
     auto elem_verts = gather_verts<nelem_verts>(elems2verts, elem);
     auto elem_coords = gather_vectors<nelem_verts, dim>(coords, elem_verts);
