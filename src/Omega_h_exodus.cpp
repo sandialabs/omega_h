@@ -390,7 +390,7 @@ void write(
     for (auto set_id : surface_set) {
       auto sides_in_set = land_each(each_eq_to(side_class_ids, set_id),
           each_eq_to(side_class_dims, I8(dim - 1)));
-      if (classify_with | exodus::SIDE_SETS) {
+      if (classify_with & exodus::SIDE_SETS) {
         auto set_sides2side = collect_marked(sides_in_set);
         auto nset_sides = set_sides2side.size();
         std::cout << "side set " << set_id << " has " << nset_sides
@@ -414,7 +414,7 @@ void write(
         CALL(ex_put_set(file, EX_SIDE_SET, set_id, h_set_sides2elem.data(),
             h_set_sides2local.data()));
       }
-      if (classify_with | exodus::NODE_SETS) {
+      if (classify_with & exodus::NODE_SETS) {
         auto nodes_in_set = mark_down(mesh, dim - 1, VERT, sides_in_set);
         auto set_nodes2node = collect_marked(nodes_in_set);
         auto set_nodes2node_ex = add_to_each(set_nodes2node, 1);
