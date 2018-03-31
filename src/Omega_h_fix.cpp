@@ -14,13 +14,23 @@
 namespace Omega_h {
 
 template <Int dim>
-static void compute_ill_metric_dim(Mesh* mesh, AdaptOpts const& opts) {
+static void compute_ill_metric_dim(Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
   mesh->remove_tag(VERT, "metric");
   std::cerr << "getting element implied metrics\n";
   auto elem_metrics = get_element_implied_length_metrics(mesh);
+  elem_metrics = apply_isotropy(mesh->nelems(), elem_metrics, isotropy);
+  auto ncomps = divide_no_remainder(elem_metrics.size(), mesh->nelems());
+  mesh->add_tag(dim, "metric", ncomps, elem_metrics);
   std::cerr << "projecting them\n";
   auto metrics = project_metrics(mesh, elem_metrics);
-  mesh->add_tag(VERT, "metric", symm_ncomps(mesh->dim()), metrics);
+  OMEGA_H_CHECK(ncomps == divide_no_remainder(metrics.size(), mesh->nverts()));
+  if (isotropy == OMEGA_H_ANISOTROPIC) {
+    for (Int i = 0; i < 5; ++i) {
+      std::cerr << "metric smoothing iteration " << i << '\n';
+      metrics = smooth_metric_once(mesh, metrics, true);
+    }
+  }
+  mesh->add_tag(VERT, "metric", ncomps, metrics);
   std::cerr << "computing qualities\n";
   mesh->ask_qualities();
   std::cerr << "writing predicted.vtu\n";
@@ -31,17 +41,24 @@ static void compute_ill_metric_dim(Mesh* mesh, AdaptOpts const& opts) {
   auto elem_metrics_w = deep_copy(elem_metrics);
   auto f = OMEGA_H_LAMBDA(LO e) {
     if (prelim_quals[e] < min_qual) {
-      set_symm(elem_metrics_w, e, zero_matrix<dim, dim>());
+      for (Int i = 0; i < ncomps; ++i) {
+        elem_metrics_w[e * ncomps + i] = 0.;
+      }
     }
   };
   parallel_for(mesh->nelems(), f, "ignore_low_quality_implied");
   elem_metrics = Reals(elem_metrics_w);
+  std::cerr << "done removing low-quality contributions\n";
+  mesh->remove_tag(dim, "metric");
+  mesh->add_tag(dim, "metric", ncomps, elem_metrics);
   std::cerr << "projecting metrics elem -> node\n";
-  /*auto*/ metrics = project_metrics(mesh, elem_metrics);
-  for (Int i = 0; i < 5; ++i) {
-    std::cerr << "metric smoothing iteration " << i << '\n';
-    metrics = smooth_metric_once(mesh, metrics, true);
-  }
+  metrics = project_metrics(mesh, elem_metrics);
+  mesh->remove_tag(VERT, "metric");
+  mesh->add_tag(VERT, "metric", divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
+  vtk::write_vtu("no_low_qual_metric.vtu", mesh);
+  mesh->remove_tag(VERT, "metric");
+  mesh->add_tag(VERT, "metric", divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
+  vtk::write_vtu("unlimited_ill_metric.vtu", mesh);
   std::cerr << "limiting metric gradation\n";
   metrics = limit_metric_gradation(mesh, metrics, 1.0);
   mesh->remove_tag(VERT, "metric");
@@ -53,13 +70,13 @@ static void compute_ill_metric_dim(Mesh* mesh, AdaptOpts const& opts) {
   std::cerr << "done with \"ill\" metric\n";
 }
 
-static void compute_ill_metric(Mesh* mesh, AdaptOpts const& opts) {
+static void compute_ill_metric(Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
   if (mesh->dim() == 3)
-    compute_ill_metric_dim<3>(mesh, opts);
+    compute_ill_metric_dim<3>(mesh, opts, isotropy);
   else if (mesh->dim() == 2)
-    compute_ill_metric_dim<2>(mesh, opts);
+    compute_ill_metric_dim<2>(mesh, opts, isotropy);
   else if (mesh->dim() == 1)
-    compute_ill_metric_dim<1>(mesh, opts);
+    compute_ill_metric_dim<1>(mesh, opts, isotropy);
   else
     OMEGA_H_NORETURN();
 }
@@ -73,7 +90,7 @@ static void compute_typical_metric(Mesh* mesh, Omega_h_Isotropy isotropy) {
   mesh->add_tag(VERT, "metric", ncomps, metrics);
 }
 
-static void fix_for_given_metric(
+void fix_for_given_metric(
     Mesh* mesh, AdaptOpts const& adapt_opts, bool verbose) {
   if (verbose) std::cout << "computing minimum quality\n";
   auto minqual = mesh->min_quality();
@@ -107,7 +124,7 @@ void fix(Mesh* mesh, AdaptOpts const& adapt_opts, Omega_h_Isotropy isotropy,
     bool verbose) {
   verbose = verbose && can_print(mesh);
   if (verbose) std::cout << "Computing bad-mesh \"implied\" metric\n";
-  compute_ill_metric(mesh, adapt_opts);
+  compute_ill_metric(mesh, adapt_opts, isotropy);
   fix_for_given_metric(mesh, adapt_opts, verbose);
   // TODO: commenting this out because metric quality corrections assume
   // isotropy!!! we need to fix this, but for now just skip this step

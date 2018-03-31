@@ -272,11 +272,11 @@ void mul(LO size, any& result, any& lhs, any& rhs) {
     } else if (lhs_vals.size() == size * dim &&
                rhs_vals.size() == size * dim) {  // dot products
       result = dot_vectors(lhs_vals, rhs_vals, dim);
-    } else if (lhs_vals.size() == size * matrix_ncomps(dim) &&
+    } else if (lhs_vals.size() == size * matrix_ncomps(dim, dim) &&
                rhs_vals.size() == size * dim) {  // matrices * vectors
       result = matrices_times_vectors(lhs_vals, rhs_vals, dim);
-    } else if (lhs_vals.size() == size * matrix_ncomps(dim) &&
-               rhs_vals.size() == size * matrix_ncomps(dim)) {
+    } else if (lhs_vals.size() == size * matrix_ncomps(dim, dim) &&
+               rhs_vals.size() == size * matrix_ncomps(dim, dim)) {
       result = matrices_times_matrices(lhs_vals, rhs_vals, dim);
     } else {
       throw Teuchos::ParserFail("Unexpected array size in * operator");
@@ -368,8 +368,8 @@ void access(LO size, any& result, any& var, ExprReader::Args& args) {
     auto array = any_cast<Reals>(var);
     if (array.size() == size * dim) {
       result = Reals(get_component(array, dim, i));
-    } else if (array.size() == size * matrix_ncomps(dim)) {
-      result = Reals(get_component(array, matrix_ncomps(dim), j * dim + i));
+    } else if (array.size() == size * matrix_ncomps(dim, dim)) {
+      result = Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
     } else {
       throw Teuchos::ParserFail("Unexpected array size in access operator\n");
     }

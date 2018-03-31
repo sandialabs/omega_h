@@ -49,10 +49,10 @@ template Reals repeat_matrix(LO n, Matrix<1, 1> m);
 template <Int dim>
 Reals matrices_times_vectors_dim(Reals ms, Reals vs) {
   auto n = divide_no_remainder(vs.size(), dim);
-  OMEGA_H_CHECK(ms.size() == n * matrix_ncomps(dim));
+  OMEGA_H_CHECK(ms.size() == n * matrix_ncomps(dim, dim));
   auto out = Write<Real>(n * dim);
   auto f = OMEGA_H_LAMBDA(LO i) {
-    set_vector(out, i, get_matrix<dim>(ms, i) * get_vector<dim>(vs, i));
+    set_vector(out, i, get_matrix<dim, dim>(ms, i) * get_vector<dim>(vs, i));
   };
   parallel_for(n, f, "matrices_times_vectors");
   return out;
@@ -67,11 +67,11 @@ Reals matrices_times_vectors(Reals ms, Reals vs, Int dim) {
 
 template <Int dim>
 Reals matrices_times_matrices_dim(Reals a, Reals b) {
-  auto n = divide_no_remainder(a.size(), matrix_ncomps(dim));
-  OMEGA_H_CHECK(b.size() == n * matrix_ncomps(dim));
-  auto out = Write<Real>(n * matrix_ncomps(dim));
+  auto n = divide_no_remainder(a.size(), matrix_ncomps(dim, dim));
+  OMEGA_H_CHECK(b.size() == n * matrix_ncomps(dim, dim));
+  auto out = Write<Real>(n * matrix_ncomps(dim, dim));
   auto f = OMEGA_H_LAMBDA(LO i) {
-    set_matrix(out, i, get_matrix<dim>(a, i) * get_matrix<dim>(b, i));
+    set_matrix(out, i, get_matrix<dim, dim>(a, i) * get_matrix<dim, dim>(b, i));
   };
   parallel_for(n, f, "matrices_times_matrices");
   return out;

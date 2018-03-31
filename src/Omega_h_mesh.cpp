@@ -114,12 +114,6 @@ template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
   check_dim2(ent_dim);
   check_tag_name(name);
-  if (has_tag(ent_dim, name)) {
-    Omega_h_fail(
-        "add_tag(%s, %s): already exists. use set_tag or "
-        "remove_tag\n",
-        topological_plural_name(family(), ent_dim), name.c_str());
-  }
   OMEGA_H_CHECK(ncomps >= 0);
   OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
   OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));

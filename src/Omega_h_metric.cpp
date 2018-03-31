@@ -276,11 +276,12 @@ Reals project_metrics_dim(Mesh* mesh, Reals e2m) {
 }
 
 Reals project_metrics(Mesh* mesh, Reals e2m) {
-  if (mesh->dim() == 3)
+  auto metric_dim = get_metrics_dim(mesh->nelems(), e2m);
+  if (metric_dim == 3)
     return project_metrics_dim<3>(mesh, e2m);
-  else if (mesh->dim() == 2)
+  else if (metric_dim == 2)
     return project_metrics_dim<2>(mesh, e2m);
-  else if (mesh->dim() == 1)
+  else if (metric_dim == 1)
     return project_metrics_dim<1>(mesh, e2m);
   else
     OMEGA_H_NORETURN(Reals());

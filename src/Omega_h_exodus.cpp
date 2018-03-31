@@ -368,6 +368,8 @@ void write(
   CALL(ex_put_coord(file, h_coord_blk[0].data(), h_coord_blk[1].data(),
       h_coord_blk[2].data()));
   auto all_conn = mesh->ask_elem_verts();
+  auto elems2file_idx = Write<LO>(mesh->nelems());
+  auto elem_file_offset = LO(0);
   for (auto block_id : region_set) {
     auto type_name = (dim == 3) ? "tetra4" : "tri3";
     auto elems_in_block = each_eq_to(elem_class_ids, block_id);
@@ -385,12 +387,17 @@ void write(
     auto h_block_conn = HostRead<LO>(block_conn_ex);
     CALL(ex_put_conn(
         file, EX_ELEM_BLOCK, block_id, h_block_conn.data(), nullptr, nullptr));
+    auto f = OMEGA_H_LAMBDA(LO block_elem) {
+      elems2file_idx[block_elems2elem[block_elem]] = elem_file_offset + block_elem;
+    };
+    parallel_for(nblock_elems, f);
+    elem_file_offset += nblock_elems;
   }
   if (classify_with) {
     for (auto set_id : surface_set) {
       auto sides_in_set = land_each(each_eq_to(side_class_ids, set_id),
           each_eq_to(side_class_dims, I8(dim - 1)));
-      if (classify_with | exodus::SIDE_SETS) {
+      if (classify_with & exodus::SIDE_SETS) {
         auto set_sides2side = collect_marked(sides_in_set);
         auto nset_sides = set_sides2side.size();
         std::cout << "side set " << set_id << " has " << nset_sides
@@ -400,11 +407,12 @@ void write(
         Write<int> set_sides2local(nset_sides);
         auto f1 = OMEGA_H_LAMBDA(LO set_side) {
           auto side = set_sides2side[set_side];
-          auto se = sides2elems.a2ab[side];
-          auto elem = sides2elems.ab2b[se];
-          auto code = sides2elems.codes[se];
+          auto side_elem = sides2elems.a2ab[side];
+          auto elem = sides2elems.ab2b[side_elem];
+          auto elem_in_file = elems2file_idx[elem];
+          auto code = sides2elems.codes[side_elem];
           auto which_down = code_which_down(code);
-          set_sides2elem[set_side] = elem + 1;
+          set_sides2elem[set_side] = elem_in_file + 1;
           set_sides2local[set_side] = side_osh2exo(dim, which_down);
         };
         parallel_for(nset_sides, f1, "set_sides2elem");
@@ -414,7 +422,7 @@ void write(
         CALL(ex_put_set(file, EX_SIDE_SET, set_id, h_set_sides2elem.data(),
             h_set_sides2local.data()));
       }
-      if (classify_with | exodus::NODE_SETS) {
+      if (classify_with & exodus::NODE_SETS) {
         auto nodes_in_set = mark_down(mesh, dim - 1, VERT, sides_in_set);
         auto set_nodes2node = collect_marked(nodes_in_set);
         auto set_nodes2node_ex = add_to_each(set_nodes2node, 1);
