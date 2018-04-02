@@ -151,65 +151,28 @@ endif()
 bob_library_includes(omega_h)
 
 get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
-target_include_directories(omega_h PUBLIC $<BUILD_INTERFACE:${TPL_PATH}>)
+target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
 
-if(Omega_h_USE_KokkosCore)
-  target_link_libraries(omega_h PUBLIC kokkoscore)
-  target_include_directories(omega_h PUBLIC ${KokkosCore_INCLUDE_DIRS})
-endif()
+bob_link_dependency(omega_h PUBLIC kokkoscore)
 
-if(Omega_h_USE_libMeshb)
-  target_link_libraries(omega_h PUBLIC libMeshb::Meshb.7)
-endif()
+bob_link_dependency(omega_h PUBLIC libMeshb)
 
 if(Omega_h_USE_EGADS)
   target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
 endif()
 
-if(Omega_h_USE_SEACASExodus)
-  target_link_libraries(omega_h PUBLIC exodus)
-  target_include_directories(omega_h
-      PRIVATE ${SEACASExodus_TPL_INCLUDE_DIRS})
-  target_link_libraries(omega_h
-      PUBLIC ${SEACASExodus_TPL_LIBRARIES})
-endif()
+bob_link_dependency(omega_h PUBLIC SEACASExodus)
+bob_link_dependency(omega_h PUBLIC TeuchosParameterList)
+bob_link_dependency(omega_h PUBLIC TeuchosComm)
+bob_link_dependency(omega_h PUBLIC TeuchosParser)
 
-if(Omega_h_USE_TeuchosParameterList)
-  target_link_libraries(omega_h PUBLIC teuchosparameterlist)
-  target_include_directories(omega_h
-      PUBLIC ${TeuchosParameterList_TPL_INCLUDE_DIRS})
-  target_link_libraries(omega_h
-      PUBLIC ${TeuchosParameterList_TPL_LIBRARIES})
-endif()
-
-if(Omega_h_USE_TeuchosComm)
-  target_link_libraries(omega_h PUBLIC teuchoscomm)
-  target_include_directories(omega_h
-      PUBLIC ${TeuchosComm_TPL_INCLUDE_DIRS})
-  target_link_libraries(omega_h
-      PUBLIC ${TeuchosComm_TPL_LIBRARIES})
-endif()
-
-if(Omega_h_USE_TeuchosParser)
-  target_link_libraries(omega_h PUBLIC teuchosparser)
-endif()
+bob_link_dependency(omega_h PUBLIC ZLIB)
 
 if(Omega_h_USE_DOLFIN)
   target_link_libraries(omega_h PUBLIC Boost::timer dolfin)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_INCLUDE_DIRS})
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
-endif()
-
-if(Omega_h_USE_ZLIB)
-  message(STATUS "ZLIB_INCLUDE_DIRS: ${ZLIB_INCLUDE_DIRS}")
-  # The ZLIB::ZLIB imported target is not present in CMake 3.0.0
-  if (CMAKE_VERSION VERSION_LESS "3.1.0")
-    target_link_libraries(omega_h PUBLIC ${ZLIB_LIBRARIES})
-    target_include_directories(omega_h PUBLIC ${ZLIB_INCLUDE_DIRS})
-  else()
-    target_link_libraries(omega_h PUBLIC ZLIB::ZLIB)
-  endif()
 endif()
 
 bob_export_target(omega_h)
@@ -282,7 +245,7 @@ if(BUILD_TESTING)
   if(Omega_h_USE_Gmodel)
     function(gen_func MODEL_NAME)
       add_executable(gen_${MODEL_NAME} gen/${MODEL_NAME}.cpp)
-      target_link_libraries(gen_${MODEL_NAME} PRIVATE gmodel)
+      bob_link_dependency(gen_${MODEL_NAME} PRIVATE Gmodel)
       if(Omega_h_DATA)
         set(TEST_EXES ${TEST_EXES} gen_${MODEL_NAME})
         add_test(NAME run_gen_${MODEL_NAME} COMMAND ./gen_${MODEL_NAME})
@@ -411,6 +374,7 @@ if(BUILD_TESTING)
   osh_add_exe(flood_test)
   osh_add_exe(adapt_from_pumi)
   osh_add_exe(random_test)
+  target_include_directories(random_test PRIVATE ${TPL_PATH})
   test_func(run_random_test 1 ./random_test)
   osh_add_exe(hypercube_test)
   osh_add_exe(osh_fit)
