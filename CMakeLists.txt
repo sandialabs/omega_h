@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.12.1 LANGUAGES NONE)
+project(Omega_h VERSION 9.12.1 LANGUAGES CXX)
 
-set(USE_XSDK_DEFAULTS_DEFAULT OFF)
-
-include(cmake/XSDKDefaults.cmake)
-
-enable_language(CXX)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" OFF)
 if (Omega_h_USE_DOLFIN)
   # The FindPETSc module will use try_compile with a C code file

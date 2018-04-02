@@ -244,7 +244,6 @@ macro(bob_add_dependency)
         message(STATUS "${ARG_NAME}_VERSION: ${${ARG_NAME}_VERSION}")
       endif()
       set(tgt "${PROJECT_NAME}-${ARG_NAME}")
-      message("adding interface library ${tgt}")
       add_library(${tgt} INTERFACE)
       if (ARG_TARGETS)
         target_link_libraries(${tgt} INTERFACE ${ARG_TARGETS})
@@ -255,7 +254,6 @@ macro(bob_add_dependency)
       if (ARG_INCLUDE_DIRS_VAR)
         target_include_directories(${tgt} INTERFACE ${${ARG_INCLUDE_DIRS_VAR}})
       endif()
-      message("installing interface library ${tgt}")
       install(TARGETS ${tgt} EXPORT
           ${tgt}-target
           RUNTIME DESTINATION bin
@@ -307,11 +305,15 @@ function(bob_export_target tgt_name)
   if (${tgt_type} STREQUAL "EXECUTABLE")
     install(TARGETS ${tgt_name} DESTINATION bin)
   else()
-    install(TARGETS ${tgt_name} EXPORT ${tgt_name}-target DESTINATION lib)
-    install(EXPORT ${tgt_name}-target NAMESPACE ${PROJECT_NAME}::
-            DESTINATION lib/cmake/${PROJECT_NAME})
-    set(${PROJECT_NAME}_EXPORTED_TARGETS
-        ${${PROJECT_NAME}_EXPORTED_TARGETS} ${tgt_name} PARENT_SCOPE)
+    if (USE_XSDK_DEFAULTS)
+      install(TARGETS ${tgt_name} DESTINATION lib)
+    else()
+      install(TARGETS ${tgt_name} EXPORT ${tgt_name}-target DESTINATION lib)
+      install(EXPORT ${tgt_name}-target NAMESPACE ${PROJECT_NAME}::
+              DESTINATION lib/cmake/${PROJECT_NAME})
+      set(${PROJECT_NAME}_EXPORTED_TARGETS
+          ${${PROJECT_NAME}_EXPORTED_TARGETS} ${tgt_name} PARENT_SCOPE)
+    endif()
   endif()
 endfunction(bob_export_target)
 
