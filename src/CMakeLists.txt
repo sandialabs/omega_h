@@ -153,7 +153,7 @@ bob_library_includes(omega_h)
 get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
 target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
 
-bob_link_dependency(omega_h PUBLIC kokkoscore)
+bob_link_dependency(omega_h PUBLIC KokkosCore)
 
 bob_link_dependency(omega_h PUBLIC libMeshb)
 

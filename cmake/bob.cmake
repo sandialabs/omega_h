@@ -207,6 +207,8 @@ macro(bob_add_dependency)
     option(TPL_ENABLE_${ARG_NAME} "Whether to use ${ARG_NAME}"
            ${${PROJECT_NAME}_USE_${ARG_NAME}_DEFAULT})
     message(STATUS "TPL_ENABLE_${ARG_NAME}: ${TPL_ENABLE_${ARG_NAME}}")
+    set(${PROJECT_NAME}_USE_${ARG_NAME} "${TPL_ENABLE_${ARG_NAME}}")
+    message(STATUS "${PROJECT_NAME}_USE_${ARG_NAME}: ${${PROJECT_NAME}_USE_${ARG_NAME}}")
     if(TPL_ENABLE_${ARG_NAME})
       set(TPL_${ARG_NAME}_LIBRARIES CACHE STRING "${ARG_NAME} libraries")
       set(TPL_${ARG_NAME}_INCLUDE_DIRS CACHE STRING "${ARG_NAME} include directories")
