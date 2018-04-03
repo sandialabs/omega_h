@@ -159,9 +159,10 @@ set(Omega_h_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(Omega_h_KEY_STRINGS
     Omega_h_SEMVER
     Omega_h_CXX_FLAGS
+    Omega_h_CMAKE_ARGS
    )
 
-bob_form_semver()
+bob_get_semver()
 
 add_subdirectory(src)
 
