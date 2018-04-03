@@ -499,5 +499,9 @@ set(${KEY_${TYPE}} \"${${KEY_${TYPE}}}\")")
       "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
       DESTINATION lib/cmake/${PROJECT_NAME})
   endif()
-  message("to replicate this configuration:\ncmake\n${${PROJECT_NAME}_CMAKE_ARGS}\n")
+  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_cmake_args.txt
+       "${${PROJECT_NAME}_CMAKE_ARGS}")
+  install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_cmake_args.txt
+      DESTINATION lib/cmake/${PROJECT_NAME})
 endfunction(bob_end_package)

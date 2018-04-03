@@ -96,6 +96,14 @@ char const* Library::static_version() { return OMEGA_H_SEMVER; }
 
 char const* Library::version() { return static_version(); }
 
+char const* Library::static_commit_id() { return OMEGA_H_COMMIT; }
+
+char const* Library::commit_id() { return static_commit_id(); }
+
+char const* Library::static_configure_options() { return OMEGA_H_CMAKE_ARGS; }
+
+char const* Library::configure_options() { return static_configure_options(); }
+
 #ifdef OMEGA_H_CHECK_FPE
 #if defined(__GNUC__) && (!defined(__clang__))
 #define _GNU_SOURCE 1
