@@ -1,6 +1,6 @@
 set(Omega_h_SOURCES
   Omega_h_c.cpp
-  Omega_h_control.cpp
+  Omega_h_library.cpp
   Omega_h_timer.cpp
   Omega_h_array.cpp
   Omega_h_array_ops.cpp
