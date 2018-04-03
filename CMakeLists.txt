@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.12.1 LANGUAGES NONE)
+project(Omega_h VERSION 9.12.1 LANGUAGES CXX)
 
-set(USE_XSDK_DEFAULTS_DEFAULT OFF)
-
-include(cmake/XSDKDefaults.cmake)
-
-enable_language(CXX)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" OFF)
 if (Omega_h_USE_DOLFIN)
   # The FindPETSc module will use try_compile with a C code file
@@ -33,44 +28,44 @@ option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" O
 set(Omega_h_VALGRIND "" CACHE STRING "Valgrind plus arguments for testing")
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
-bob_public_dep(ZLIB)
+bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
 set(Omega_h_USE_KokkosCore_DEFAULT ${Omega_h_USE_Trilinos})
 set(KokkosCore_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(KokkosCore)
-
-if(Omega_h_USE_KokkosCore)
-  get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
-  message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
-  get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
-  if(kokkoscore_LINK)
-    message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
-  endif()
-endif()
+bob_add_dependency(PUBLIC NAME KokkosCore TARGETS kokkoscore INCLUDE_DIRS_VAR KokkosCore_INCLUDE_DIRS)
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
-bob_public_dep(libMeshb)
+bob_add_dependency(PUBLIC NAME libMeshb TARGETS libMeshb::Meshb.7)
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
-bob_private_dep(Gmodel)
+bob_add_dependency(PRIVATE NAME Gmodel TARGETS gmodel)
 
 set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
 set(SEACASExodus_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(SEACASExodus)
+bob_add_dependency(PUBLIC NAME SEACASExodus
+    TARGETS exodus
+    INCLUDE_DIRS_VAR SEACASExodus_TPL_INCLUDE_DIRS
+    LIBRARIES_VAR SEACASExodus_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosParameterList_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosParameterList)
+bob_add_dependency(PUBLIC NAME TeuchosParameterList
+    TARGETS teuchosparameterlist
+    INCLUDE_DIRS_VAR TeuchosParameterList_TPL_INCLUDE_DIRS
+    LIBRARIES_VAR TeuchosParameterList_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosComm_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosComm)
+bob_add_dependency(PUBLIC NAME TeuchosComm
+    TARGETS teuchoscomm
+    INCLUDE_DIRS_VAR TeuchosComm_TPL_INCLUDE_DIRS
+    LIBRARIES_VAR TeuchosComm_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosParser_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParser_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosParser)
+bob_add_dependency(PUBLIC NAME TeuchosParser TARGETS teuchosparser)
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
