@@ -13,8 +13,8 @@ For current xSDK member packages: If you were not compliant at some point, pleas
 
 | Policy                 |Support| Notes                   |
 |------------------------|-------|-------------------------|
-|**M1.** Support xSDK community GNU Autoconf or CMake options. |Partial| Omega\_h uses CMake, but doesn't yet support the xSDK CMake options|
-|**M2.** Provide a comprehensive test suite for correctness of installation verification. |Full| Omega_h has an easy to run test suite. |
+|**M1.** Support xSDK community GNU Autoconf or CMake options. |Full| Omega\_h obeys all xSDK Community Installation Policies|
+|**M2.** Provide a comprehensive test suite for correctness of installation verification. |Full| Omega_h supports `make test_install`. |
 |**M3.** Employ userprovided MPI communicator (no `MPI_COMM_WORLD`). |Full| `Omega_h::Library` takes an `MPI_Comm` argument, nothing uses `MPI_COMM_WORLD`. |
 |**M4.** Give best effort at portability to key architectures (standard Linux distributions, GNU, Clang, vendor compilers, and target machines at ALCF, NERSC, OLCF). |Full| Omega_h supports GNU, Clang, NVCC, Intel, and other compilers, and optionally uses MPI, OpenMP, and/or CUDA for parallelism through Kokkos. |
 |**M5.** Provide a documented, reliable way to contact the development team. |Full| GitHub provides the mechanism for contacting the developer. |
