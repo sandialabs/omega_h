@@ -691,6 +691,13 @@ Reals average_field(Mesh* mesh, Int ent_dim, Int ncomps, Reals v2x) {
   return average_field(mesh, ent_dim, a2e, ncomps, v2x);
 }
 
+void get_all_dim_tags(Mesh* mesh, Int dim, TagSet* tags) {
+  for (Int j = 0; j < mesh->ntags(dim); ++j) {
+    auto tagbase = mesh->get_tag(dim, j);
+    (*tags)[size_t(dim)].insert(tagbase->name());
+  }
+}
+
 TagSet get_all_mesh_tags(Mesh* mesh) {
   TagSet out;
   for (Int i = 0; i <= mesh->dim(); ++i) {
