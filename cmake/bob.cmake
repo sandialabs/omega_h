@@ -504,4 +504,13 @@ set(${KEY_${TYPE}} \"${${KEY_${TYPE}}}\")")
   install(FILES
       ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_cmake_args.txt
       DESTINATION lib/cmake/${PROJECT_NAME})
+  get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" build_type_upper)
+  foreach(lang IN LISTS languages)
+    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${lang}_compile_line.txt
+         "${CMAKE_${lang}_COMPILER} ${CMAKE_${lang}_FLAGS} ${CMAKE_${lang}_FLAGS_${build_type_upper}}")
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_${lang}_compile_line.txt
+        DESTINATION lib/cmake/${PROJECT_NAME})
+  endforeach()
 endfunction(bob_end_package)
