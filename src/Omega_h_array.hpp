@@ -125,6 +125,7 @@ class Read {
   T last() const;
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
   Write<T> never_ever_call_this() { return write_; }
+  std::string name() const { return write_.name(); }
 };
 
 class Bytes : public Read<Byte> {
