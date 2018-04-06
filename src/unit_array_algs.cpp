@@ -15,6 +15,12 @@
 
 using namespace Omega_h;
 
+static void test_write() {
+  auto w = Write<Real>(100, "foo");
+  OMEGA_H_CHECK(w.size() == 100);
+  OMEGA_H_CHECK(w.name() == "foo");
+}
+
 static void test_int128() {
   Int128 a(INT64_MAX);
   auto b = a + a;
@@ -258,6 +264,7 @@ static void test_expr() {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
+  test_write();
   test_int128();
   test_repro_sum();
   test_sort();
@@ -275,5 +282,4 @@ int main(int argc, char** argv) {
   test_find_last();
   test_scalar_ptr();
   test_expr();
-  OMEGA_H_CHECK(get_current_bytes() == 0);
 }

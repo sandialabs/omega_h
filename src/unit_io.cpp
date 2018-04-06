@@ -134,5 +134,4 @@ int main(int argc, char** argv) {
   test_file(&lib);
   test_xml();
   test_read_vtu(&lib);
-  OMEGA_H_CHECK(get_current_bytes() == 0);
 }

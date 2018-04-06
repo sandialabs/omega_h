@@ -767,5 +767,4 @@ int main(int argc, char** argv) {
   test_proximity(&lib);
   test_1d_box(&lib);
   test_hypercube_split_template();
-  OMEGA_H_CHECK(get_current_bytes() == 0);
 }

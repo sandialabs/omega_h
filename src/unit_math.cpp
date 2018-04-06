@@ -378,5 +378,4 @@ int main(int argc, char** argv) {
   test_positivize();
   test_inball();
   test_volume_vert_gradients();
-  OMEGA_H_CHECK(get_current_bytes() == 0);
 }

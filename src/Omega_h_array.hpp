@@ -14,13 +14,22 @@ T* nonnull(T* p);
 template <typename T>
 class HostWrite;
 
+#ifndef OMEGA_H_USE_KOKKOSCORE
+template <typename T>
+struct SharedAlloc {
+  std::string name;
+  std::unique_ptr<T[]> ptr;
+};
+#endif
+
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view_;
 #else
-  std::shared_ptr<T> ptr_;
+  std::shared_ptr<SharedAlloc<T>> tracker_;
   LO size_;
+  T* ptr_;
 #endif
 
  public:
@@ -32,22 +41,8 @@ class Write {
   Write(LO size_in, T value, std::string const& name = "");
   Write(LO size_in, T offset, T stride, std::string const& name = "");
   Write(HostWrite<T> host_write);
-  OMEGA_H_INLINE Write(Write<T> const& other)
-      :
-#ifdef OMEGA_H_USE_KOKKOSCORE
-        view_(other.view_)
-#else
-        ptr_(other.ptr_),
-        size_(other.size_)
-#endif
-  {
-  }
-  Write<T>& operator=(Write<T> const&);
-  OMEGA_H_INLINE ~Write() {
-#ifndef __CUDA_ARCH__
-    check_release();
-#endif
-  }
+  OMEGA_H_INLINE Write(Write const&) = default;
+  OMEGA_H_INLINE Write& operator=(Write const&) = default;
   OMEGA_H_INLINE LO size() const {
     OMEGA_H_CHECK(exists());
 #ifdef OMEGA_H_USE_KOKKOSCORE
@@ -64,14 +59,14 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return view_(i);
 #else
-    return ptr_.get()[i];
+    return ptr_[i];
 #endif
   }
   OMEGA_H_INLINE T* data() const {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return view_.data();
 #else
-    return ptr_.get();
+    return ptr_;
 #endif
   }
 #ifdef OMEGA_H_USE_KOKKOSCORE
@@ -83,7 +78,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return view_.use_count();
 #else
-    return ptr_.use_count();
+    return tracker_.use_count();
 #endif
   }
   OMEGA_H_INLINE bool exists() const {
@@ -93,15 +88,8 @@ class Write {
     return use_count() != 0;
 #endif
   }
-  std::size_t bytes() const;
-
- private:
-  void log_allocation() const;
-  void check_release() const;
+  std::string name() const;
 };
-
-std::size_t get_current_bytes();
-std::size_t get_max_bytes();
 
 template <typename T>
 OMEGA_H_INLINE Write<T>::Write()
@@ -109,8 +97,9 @@ OMEGA_H_INLINE Write<T>::Write()
 #ifdef OMEGA_H_USE_KOKKOSCORE
       view_()
 #else
-      ptr_(),
-      size_(0)
+      tracker_(),
+      size_(0),
+      ptr_(nullptr)
 #endif
 {
 }
