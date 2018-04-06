@@ -97,9 +97,9 @@ OMEGA_H_DEVICE Few<T, neev> gather_scalars(Read<T> const& a, Few<LO, neev> v) {
 }
 
 template <Int neev, Int dim>
-OMEGA_H_DEVICE Few<Vector<dim>, neev> gather_vectors(
+OMEGA_H_DEVICE Matrix<dim, neev> gather_vectors(
     Reals const& a, Few<LO, neev> v) {
-  Few<Vector<dim>, neev> x;
+  Matrix<dim, neev> x;
   for (Int i = 0; i < neev; ++i) x[i] = get_vector<dim>(a, v[i]);
   return x;
 }

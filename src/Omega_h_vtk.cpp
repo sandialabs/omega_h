@@ -22,15 +22,17 @@ namespace Omega_h {
 
 namespace vtk {
 
-TagSet get_all_vtk_tags(Mesh* mesh) {
-  auto out = get_all_mesh_tags(mesh);
-  for (Int i = 0; i <= mesh->dim(); ++i) {
-    out[size_t(i)].insert("local");
-    if (mesh->comm()->size() > 1) {
-      out[size_t(i)].insert("owner");
-    }
+TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim) {
+  TagSet tags;
+  get_all_dim_tags(mesh, VERT, &tags);
+  get_all_dim_tags(mesh, cell_dim, &tags);
+  tags[VERT].insert("local");
+  tags[size_t(cell_dim)].insert("local");
+  if (mesh->comm()->size() > 1) {
+    tags[VERT].insert("owner");
+    tags[size_t(cell_dim)].insert("owner");
   }
-  return out;
+  return tags;
 }
 
 /* start of C++ ritual dance to print a string based on
@@ -507,10 +509,33 @@ static void default_dim(Mesh* mesh, Int* cell_dim) {
   if (*cell_dim == -1) *cell_dim = mesh->dim();
 }
 
+static void verify_vtk_tagset(Mesh* mesh, Int cell_dim, TagSet const& tags) {
+  for (Int dim = 0; dim < 4; ++dim) {
+    if (dim == 0 || dim == cell_dim) {
+      for (auto& name : tags[size_t(dim)]) {
+        if (!mesh->has_tag(dim, name) &&
+            name != "local" &&
+            name != "owner") {
+          Omega_h_fail("User requested VTK output of tag %s"
+              " on %s, but that tag doesn't exist on the mesh!",
+              name.c_str(),
+              dimensional_plural_name(dim));
+        }
+      }
+    } else if (!tags[size_t(dim)].empty()) {
+      Omega_h_fail("User requested VTK output of tags on %s,"
+          " but only vertices and %s are output!",
+          dimensional_plural_name(dim),
+          dimensional_plural_name(cell_dim));
+    }
+  }
+}
+
 void write_vtu(
     std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags) {
   begin_code("write_vtu");
   default_dim(mesh, &cell_dim);
+  verify_vtk_tagset(mesh, cell_dim, tags);
   write_vtkfile_vtu_start_tag(stream);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
@@ -623,7 +648,8 @@ void write_vtu(
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
-  write_vtu(filename, mesh, cell_dim, get_all_vtk_tags(mesh));
+  default_dim(mesh, &cell_dim);
+  write_vtu(filename, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim));
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh) {
@@ -765,7 +791,8 @@ void write_parallel(
 }
 
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
-  write_parallel(path, mesh, cell_dim, get_all_vtk_tags(mesh));
+  default_dim(mesh, &cell_dim);
+  write_parallel(path, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim));
 }
 
 void write_parallel(std::string const& path, Mesh* mesh) {
@@ -938,7 +965,7 @@ void Writer::write(Real time, TagSet const& tags) {
   ++step_;
 }
 
-void Writer::write(Real time) { this->write(time, get_all_vtk_tags(mesh_)); }
+void Writer::write(Real time) { this->write(time, get_all_vtk_tags(mesh_, cell_dim_)); }
 
 void Writer::write() { this->write(Real(step_)); }
 

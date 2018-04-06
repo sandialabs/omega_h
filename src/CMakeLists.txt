@@ -1,6 +1,6 @@
 set(Omega_h_SOURCES
   Omega_h_c.cpp
-  Omega_h_control.cpp
+  Omega_h_library.cpp
   Omega_h_timer.cpp
   Omega_h_array.cpp
   Omega_h_array_ops.cpp
@@ -483,5 +483,11 @@ if (Omega_h_USE_pybind11)
       ARCHIVE DESTINATION "${PyOmega_h_DEST}"
       LIBRARY DESTINATION "${PyOmega_h_DEST}")
 endif()
+
+add_custom_target(test_install
+    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_box 1 1 1 2 2 2 ${CMAKE_CURRENT_BINARY_DIR}/box.osh
+    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh_scale ${CMAKE_CURRENT_BINARY_DIR}/box.osh 100 ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh
+    COMMAND ${CMAKE_INSTALL_PREFIX}/bin/osh2vtk ${CMAKE_CURRENT_BINARY_DIR}/box_100.osh ${CMAKE_CURRENT_BINARY_DIR}/box_100_vtk
+    COMMENT "Test installed Omega_h utilities")
 
 bob_end_subdir()

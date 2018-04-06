@@ -39,7 +39,7 @@ static Reals get_second_metric(Mesh* mesh) {
     auto y = p[1];
     auto xy = vector_2(x, y);
     auto radius = norm(xy);
-    auto t = atan2(y, x);
+    auto t = std::atan2(y, x);
     auto h = vector_3(h0 + 2 * (0.1 - h0) * std::abs(radius - 0.5), h_t, h_z);
     auto rotation = rotate(t, vector_3(0, 0, 1));
     auto m = compose_metric(rotation, h);
@@ -60,7 +60,7 @@ static Reals get_third_metric(Mesh* mesh) {
     auto y = p[1];
     auto xy = vector_2(x, y);
     auto radius = norm(xy);
-    auto t = atan2(y, x);
+    auto t = std::atan2(y, x);
     auto d = (0.6 - radius) * 10.0;
     Real h_t = (d < 0.0) ? (1.0 / 10.0)
                          : (d * (1.0 / 40.0) + (1.0 - d) * (1.0 / 10.0));

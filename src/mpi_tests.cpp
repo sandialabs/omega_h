@@ -194,7 +194,7 @@ static void test_construct(Library* lib, CommPtr comm) {
 static void test_read_vtu(Library* lib, CommPtr comm) {
   auto mesh0 = build_box(comm, OMEGA_H_SIMPLEX, 1., 1., 0., 1, 1, 0);
   std::stringstream stream;
-  vtk::write_vtu(stream, &mesh0, mesh0.dim(), vtk::get_all_vtk_tags(&mesh0));
+  vtk::write_vtu(stream, &mesh0, mesh0.dim(), vtk::get_all_vtk_tags(&mesh0, mesh0.dim()));
   Mesh mesh1(lib);
   vtk::read_vtu(stream, comm, &mesh1);
   auto opts = MeshCompareOpts::init(&mesh0, VarCompareOpts::zero_tolerance());

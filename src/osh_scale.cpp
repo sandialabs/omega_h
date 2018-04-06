@@ -9,14 +9,14 @@
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
-  if (argc != 4) {
-    std::cout << "usage: " << argv[0]
-              << " input.osh <target nelems> output.osh\n";
-    return -1;
-  }
-  auto path_in = argv[1];
-  auto target_nelems = atof(argv[2]);
-  auto path_out = argv[3];
+  Omega_h::CmdLine cmdline;
+  cmdline.add_arg<std::string>("input.osh");
+  cmdline.add_arg<double>("<target nelems>");
+  cmdline.add_arg<std::string>("output.osh");
+  if (!cmdline.parse_final(lib.world(), &argc, argv)) return -1;
+  auto path_in = cmdline.get<std::string>("input.osh");
+  auto target_nelems = cmdline.get<double>("<target nelems>");
+  auto path_out = cmdline.get<std::string>("output.osh");
   auto mesh = Omega_h::binary::read(path_in, &lib, /*strict=*/true);
   mesh.set_parting(OMEGA_H_GHOSTED);
   auto metrics = Omega_h::get_implied_isos(&mesh);

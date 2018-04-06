@@ -27,6 +27,10 @@ class Library {
   ~Library();
   static char const* static_version();
   char const* version();
+  static char const* static_commit_id();
+  char const* commit_id();
+  static char const* static_configure_options();
+  char const* configure_options();
   CommPtr world();
   CommPtr self();
   void add_to_timer(std::string const& name, double nsecs);
