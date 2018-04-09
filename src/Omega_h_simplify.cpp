@@ -13,13 +13,12 @@ void quads2tris(Mesh* mesh) {
   auto nold_verts = mesh->nverts();
   auto nquads = mesh->nfaces();
   auto old_coords = mesh->coords();
-  auto quad_center_coords = average_field(mesh, 2, 3, old_coords);
+  auto quad_center_coords = average_field(mesh, 2, 2, old_coords);
   auto nverts = nold_verts + nquads;
-  auto coords = Write<Real>(nverts * 3);
+  auto coords = Write<Real>(nverts * 2);
   auto ntris = nquads * 4;
   auto qv2v = mesh->ask_elem_verts();
-  auto hq2q = mesh->ask_down(3, 2).ab2b;
-  auto tv2v = Write<LO>(ntris * 4);
+  auto tv2v = Write<LO>(ntris * 3);
   auto f = OMEGA_H_LAMBDA(LO q) {
     auto qqv2v = gather_verts<8>(qv2v, q);
     for (Int qqt = 0; qqt < 4; ++qqt) {
@@ -28,15 +27,16 @@ void quads2tris(Mesh* mesh) {
       auto v1 = qqv2v[(qqt + 1) % 4];
       auto vq = nold_verts + q;
       tv2v[t * 3 + 0] = vq;
-      tv2v[t * 3 + 1] = v1;
-      tv2v[t * 3 + 2] = v0;
+      tv2v[t * 3 + 1] = v0;
+      tv2v[t * 3 + 2] = v1;
     }
   };
   parallel_for(nquads, f);
-  map_into_range(old_coords, 0, nold_verts, coords, 3);
-  map_into_range(quad_center_coords, nold_verts, nold_verts + nquads, coords, 3);
+  map_into_range(old_coords, 0, nold_verts, coords, 2);
+  map_into_range(quad_center_coords, nold_verts, nold_verts + nquads, coords, 2);
   Mesh new_mesh(mesh->library());
-  build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, 2, tv2v, coords);
+  build_from_elems_and_coords(&new_mesh, OMEGA_H_SIMPLEX, 2, tv2v, coords);
+  *mesh = new_mesh;
 }
 
 void hexes2tets(Mesh* mesh) {
@@ -75,7 +75,8 @@ void hexes2tets(Mesh* mesh) {
   map_into_range(quad_center_coords, nold_verts, nold_verts + nquads, coords, 3);
   map_into_range(hex_center_coords, nold_verts + nquads, nverts, coords, 3);
   Mesh new_mesh(mesh->library());
-  build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, 3, tv2v, coords);
+  build_from_elems_and_coords(&new_mesh, OMEGA_H_SIMPLEX, 3, tv2v, coords);
+  *mesh = new_mesh;
 }
 
 }  // end namespace Omega_h
