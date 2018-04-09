@@ -115,14 +115,14 @@ void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
     LOs fv2v;
     Reals coords;
     make_2d_box(x, y, nx, ny, &fv2v, &coords);
-    if (family == OMEGA_H_SIMPLEX) fv2v = simplify::tris_from_quads(fv2v);
-    build_from_elems_and_coords(mesh, family, FACE, fv2v, coords);
+    build_from_elems_and_coords(mesh, OMEGA_H_HYPERCUBE, FACE, fv2v, coords);
+    if (family == OMEGA_H_SIMPLEX) quads2tris(mesh);
   } else {
     LOs rv2v;
     Reals coords;
     make_3d_box(x, y, z, nx, ny, nz, &rv2v, &coords);
-    if (family == OMEGA_H_SIMPLEX) rv2v = simplify::tets_from_hexes(rv2v);
-    build_from_elems_and_coords(mesh, family, REGION, rv2v, coords);
+    build_from_elems_and_coords(mesh, OMEGA_H_HYPERCUBE, REGION, rv2v, coords);
+    if (family == OMEGA_H_SIMPLEX) hexes2tets(mesh);
   }
 }
 
