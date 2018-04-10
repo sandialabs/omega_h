@@ -144,6 +144,7 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
 Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x);
 Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x);
 
+void get_all_dim_tags(Mesh* mesh, Int dim, TagSet* tags);
 TagSet get_all_mesh_tags(Mesh* mesh);
 void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags);
 

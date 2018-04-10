@@ -1,13 +1,9 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.12.1 LANGUAGES NONE)
+project(Omega_h VERSION 9.13.0 LANGUAGES CXX)
 
-set(USE_XSDK_DEFAULTS_DEFAULT OFF)
-
-include(cmake/XSDKDefaults.cmake)
-
-enable_language(CXX)
-option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" OFF)
+set(Omega_h_USE_DOLFIN_DEFAULT OFF)
+option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
 if (Omega_h_USE_DOLFIN)
   # The FindPETSc module will use try_compile with a C code file
   enable_language(C)
@@ -17,60 +13,56 @@ include(cmake/bob.cmake)
 
 bob_begin_package()
 
-option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
-message(STATUS "Omega_h_CHECK_BOUNDS: ${Omega_h_CHECK_BOUNDS}")
-option(Omega_h_CHECK_FPE "Enable floating point exceptions" OFF)
-message(STATUS "Omega_h_CHECK_FPE: ${Omega_h_CHECK_FPE}")
-option(Omega_h_ONE_FILE "Compile Omega_h as a single file" OFF)
-message(STATUS "Omega_h_ONE_FILE: ${Omega_h_ONE_FILE}")
-set(Omega_h_DATA "" CACHE PATH "Path to omega_h-data test files")
-option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
-set(EGADS_PREFIX "" CACHE PATH "EGADS (or ESP) installation directory")
-option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
-message(STATUS "Omega_h_USE_Trilinos: ${Omega_h_USE_Trilinos}")
-set(Trilinos_PREFIX "" CACHE PATH "Path to Trilinos install")
-option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
-set(Omega_h_VALGRIND "" CACHE STRING "Valgrind plus arguments for testing")
+bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
+bob_option(Omega_h_CHECK_FPE "Enable floating point exceptions" OFF)
+bob_option(Omega_h_ONE_FILE "Compile Omega_h as a single file" OFF)
+bob_input(Omega_h_DATA "" PATH "Path to omega_h-data test files")
+bob_option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
+bob_input(EGADS_PREFIX "" PATH "EGADS (or ESP) installation directory")
+bob_option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
+bob_input(Trilinos_PREFIX "" PATH "Path to Trilinos install")
+bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
+bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
-bob_public_dep(ZLIB)
+bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
 set(Omega_h_USE_KokkosCore_DEFAULT ${Omega_h_USE_Trilinos})
 set(KokkosCore_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(KokkosCore)
-
-if(Omega_h_USE_KokkosCore)
-  get_target_property(kokkoscore_LOCATION kokkoscore LOCATION)
-  message(STATUS "kokkoscore LOCATION: ${kokkoscore_LOCATION}")
-  get_target_property(kokkoscore_LINK kokkoscore INTERFACE_LINK_LIBRARIES)
-  if(kokkoscore_LINK)
-    message(STATUS "kokkoscore INTERFACE_LINK_LIBRARIES: ${kokkoscore_LINK}")
-  endif()
-endif()
+bob_add_dependency(PUBLIC NAME KokkosCore TARGETS kokkoscore INCLUDE_DIRS_VAR KokkosCore_INCLUDE_DIRS)
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
-bob_public_dep(libMeshb)
+bob_add_dependency(PUBLIC NAME libMeshb TARGETS libMeshb::Meshb.7)
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
-bob_private_dep(Gmodel)
+bob_add_dependency(PRIVATE NAME Gmodel TARGETS gmodel)
 
 set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
 set(SEACASExodus_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(SEACASExodus)
+bob_add_dependency(PUBLIC NAME SEACASExodus
+    TARGETS exodus
+    INCLUDE_DIRS_VAR SEACASExodus_TPL_INCLUDE_DIRS
+    LIBRARIES_VAR SEACASExodus_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosParameterList_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosParameterList)
+bob_add_dependency(PUBLIC NAME TeuchosParameterList
+    TARGETS teuchosparameterlist
+    INCLUDE_DIRS_VAR TeuchosParameterList_TPL_INCLUDE_DIRS
+    LIBRARIES_VAR TeuchosParameterList_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosComm_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosComm)
+bob_add_dependency(PUBLIC NAME TeuchosComm
+    TARGETS teuchoscomm
+    INCLUDE_DIRS_VAR TeuchosComm_TPL_INCLUDE_DIRS
+    LIBRARIES_VAR TeuchosComm_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosParser_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParser_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_public_dep(TeuchosParser)
+bob_add_dependency(PUBLIC NAME TeuchosParser TARGETS teuchosparser)
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
@@ -118,6 +110,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   if(Omega_h_USE_CUDA)
     set(FLAGS "${FLAGS} -expt-extended-lambda -lineinfo")
+    set(FLAGS "${FLAGS} -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored")
   else()
     set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
     if(Omega_h_USE_OpenMP)
@@ -163,10 +156,13 @@ set(Omega_h_KEY_INTS
 set(Omega_h_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 set(Omega_h_KEY_STRINGS
     Omega_h_SEMVER
+    Omega_h_COMMIT
     Omega_h_CXX_FLAGS
+    Omega_h_CMAKE_ARGS
    )
 
-bob_form_semver()
+bob_get_commit()
+bob_get_semver()
 
 add_subdirectory(src)
 

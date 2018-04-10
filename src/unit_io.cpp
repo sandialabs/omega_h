@@ -114,7 +114,7 @@ static void test_xml() {
 
 static void test_read_vtu(Mesh* mesh0) {
   std::stringstream stream;
-  vtk::write_vtu(stream, mesh0, mesh0->dim(), vtk::get_all_vtk_tags(mesh0));
+  vtk::write_vtu(stream, mesh0, mesh0->dim(), vtk::get_all_vtk_tags(mesh0, mesh0->dim()));
   Mesh mesh1(mesh0->library());
   vtk::read_vtu(stream, mesh0->comm(), &mesh1);
   auto opts = MeshCompareOpts::init(mesh0, VarCompareOpts::zero_tolerance());
@@ -134,5 +134,4 @@ int main(int argc, char** argv) {
   test_file(&lib);
   test_xml();
   test_read_vtu(&lib);
-  OMEGA_H_CHECK(get_current_bytes() == 0);
 }

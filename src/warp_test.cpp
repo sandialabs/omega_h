@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
       x1[0] = x0[0];
       x1[1] = x0[1];
       auto x2 = x1 - mid;
-      auto polar_a = atan2(x2[1], x2[0]);
+      auto polar_a = std::atan2(x2[1], x2[0]);
       auto polar_r = norm(x2);
       Real rot_a = 0;
       if (polar_r < 0.5) {

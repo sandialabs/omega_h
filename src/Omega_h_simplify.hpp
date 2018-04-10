@@ -5,10 +5,13 @@
 
 namespace Omega_h {
 
-namespace simplify {
+class Mesh;
+
 LOs tris_from_quads(LOs qv2v);
 LOs tets_from_hexes(LOs hv2v);
-}  // namespace simplify
+
+void tris_from_quads_symmetric(Mesh* mesh);
+void tets_from_hexes_symmetric(Mesh* mesh);
 
 }  // end namespace Omega_h
 

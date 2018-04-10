@@ -27,69 +27,26 @@ T* nonnull(T* p) {
   return NonNullPtr<T>::get(p);
 }
 
-static std::size_t current_array_bytes = 0;
-
-std::size_t get_current_bytes() { return current_array_bytes; }
-
-static std::size_t max_array_bytes = 0;
-
-std::size_t get_max_bytes() { return max_array_bytes; }
-
-template <typename T>
-void Write<T>::log_allocation() const {
-  if (!should_log_memory) return;
-  current_array_bytes += bytes();
-  if (current_array_bytes > max_array_bytes) {
-    max_array_bytes = current_array_bytes;
-    delete[] max_memory_stacktrace;
-    max_memory_stacktrace = nullptr;
-    std::stringstream ss;
-    print_stacktrace(ss, 64);
-    auto s = ss.str();
-    max_memory_stacktrace = new char[s.length() + 1];
-    strcpy(max_memory_stacktrace, s.c_str());
-  }
-}
-
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
 Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {
-  log_allocation();
 }
 #endif
 
 template <typename T>
 Write<T>::Write(LO size_in, std::string const& name) {
-// begin_code("Write(size,name)");
+  begin_code("Write(size,name)");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name),
       static_cast<std::size_t>(size_in));
 #else
-  (void)name;
-  ptr_ = decltype(ptr_)(new T[size_in], std::default_delete<T[]>());
+  tracker_ = decltype(tracker_)(new SharedAlloc<T>());
+  tracker_->name = name;
+  ptr_ = new T[size_in];
+  tracker_->ptr = decltype(tracker_->ptr)(ptr_);
   size_ = size_in;
 #endif
-  log_allocation();
-  // end_code();
-}
-
-template <typename T>
-void Write<T>::check_release() const {
-  if (should_log_memory && use_count() == 1) {
-    current_array_bytes -= bytes();
-  }
-}
-
-template <typename T>
-Write<T>& Write<T>::operator=(Write<T> const& other) {
-  check_release();
-#ifdef OMEGA_H_USE_KOKKOSCORE
-  view_ = other.view_;
-#else
-  ptr_ = other.ptr_;
-  size_ = other.size_;
-#endif
-  return *this;
+  end_code();
 }
 
 template <typename T>
@@ -122,8 +79,12 @@ template <typename T>
 Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
 template <typename T>
-std::size_t Write<T>::bytes() const {
-  return static_cast<std::size_t>(size()) * sizeof(T);
+std::string Write<T>::name() const {
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  return view_.label();
+#else
+  return tracker_->name;
+#endif
 }
 
 template <typename T>

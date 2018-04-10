@@ -14,7 +14,6 @@
 
 namespace Omega_h {
 
-bool should_log_memory = false;
 char* max_memory_stacktrace = nullptr;
 
 // stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
@@ -96,6 +95,14 @@ char const* Library::static_version() { return OMEGA_H_SEMVER; }
 
 char const* Library::version() { return static_version(); }
 
+char const* Library::static_commit_id() { return OMEGA_H_COMMIT; }
+
+char const* Library::commit_id() { return static_commit_id(); }
+
+char const* Library::static_configure_options() { return OMEGA_H_CMAKE_ARGS; }
+
+char const* Library::configure_options() { return static_configure_options(); }
+
 #ifdef OMEGA_H_CHECK_FPE
 #if defined(__GNUC__) && (!defined(__clang__))
 #define _GNU_SOURCE 1
@@ -175,7 +182,6 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (argc && argv) {
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
-  Omega_h::should_log_memory = cmdline.parsed("--osh-memory");
   should_time_ = cmdline.parsed("--osh-time");
   bool should_protect = cmdline.parsed("--osh-signal");
   self_send_threshold_ = 1000 * 1000;
@@ -217,20 +223,6 @@ Library::~Library() {
     we_called_kokkos_init = false;
   }
 #endif
-  if (Omega_h::should_log_memory) {
-    auto mem_used = get_max_bytes();
-    auto max_mem_used =
-        std::size_t(world_->allreduce(I64(mem_used), OMEGA_H_MAX));
-    auto max_mem_rank =
-        (mem_used == max_mem_used) ? world_->rank() : world_->size();
-    max_mem_rank = world_->allreduce(max_mem_rank, OMEGA_H_MIN);
-    if (world_->rank() == max_mem_rank) {
-      std::cout << "maximum Omega_h memory usage: " << mem_used << '\n';
-      if (Omega_h::max_memory_stacktrace) {
-        std::cout << Omega_h::max_memory_stacktrace;
-      }
-    }
-  }
   // need to destroy all Comm objects prior to MPI_Finalize()
   world_ = CommPtr();
   self_ = CommPtr();

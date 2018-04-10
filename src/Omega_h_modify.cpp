@@ -297,6 +297,7 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
     LO offset = 0;
     if (mods_have_prods[rep_dim]) {
       auto mod = mds2mods[rep_dim][rep];
+      if (mod < 0) return; // not actually a representative
       offset += mods2nprods[rep_dim][mod];
     }
     for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
