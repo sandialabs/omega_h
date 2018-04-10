@@ -102,7 +102,7 @@ void build_from_elems_and_coords(
 }
 
 void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
-    Real z, LO nx, LO ny, LO nz) {
+    Real z, LO nx, LO ny, LO nz, bool symmetric) {
   OMEGA_H_CHECK(nx > 0);
   OMEGA_H_CHECK(ny >= 0);
   OMEGA_H_CHECK(nz >= 0);
@@ -115,23 +115,27 @@ void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
     LOs fv2v;
     Reals coords;
     make_2d_box(x, y, nx, ny, &fv2v, &coords);
-    build_from_elems_and_coords(mesh, OMEGA_H_HYPERCUBE, FACE, fv2v, coords);
-    if (family == OMEGA_H_SIMPLEX) quads2tris(mesh);
+    if (family == OMEGA_H_SIMPLEX && (!symmetric)) fv2v = tris_from_quads(fv2v);
+    auto fam2 = symmetric ? OMEGA_H_HYPERCUBE : family;
+    build_from_elems_and_coords(mesh, fam2, FACE, fv2v, coords);
+    if (family == OMEGA_H_SIMPLEX && symmetric) tris_from_quads_symmetric(mesh);
   } else {
     LOs rv2v;
     Reals coords;
     make_3d_box(x, y, z, nx, ny, nz, &rv2v, &coords);
-    build_from_elems_and_coords(mesh, OMEGA_H_HYPERCUBE, REGION, rv2v, coords);
-    if (family == OMEGA_H_SIMPLEX) hexes2tets(mesh);
+    if (family == OMEGA_H_SIMPLEX && (!symmetric)) rv2v = tets_from_hexes(rv2v);
+    auto fam2 = symmetric ? OMEGA_H_HYPERCUBE : family;
+    build_from_elems_and_coords(mesh, fam2, REGION, rv2v, coords);
+    if (family == OMEGA_H_SIMPLEX && symmetric) tets_from_hexes_symmetric(mesh);
   }
 }
 
 Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
-    LO nx, LO ny, LO nz) {
+    LO nx, LO ny, LO nz, bool symmetric) {
   auto lib = comm->library();
   auto mesh = Mesh(lib);
   if (comm->rank() == 0) {
-    build_box_internal(&mesh, family, x, y, z, nx, ny, nz);
+    build_box_internal(&mesh, family, x, y, z, nx, ny, nz, symmetric);
     reorder_by_hilbert(&mesh);
     classify_box(&mesh, x, y, z, nx, ny, nz);
   }

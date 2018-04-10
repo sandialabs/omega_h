@@ -12,10 +12,10 @@ std::ostream& operator<<(std::ostream& stream, HostRead<T> hr);
 template <class T>
 std::ostream& operator<<(std::ostream& stream, Read<T> r); 
 
-template <class T>
-std::ostream& operator<<(std::ostream& stream, Few<T> f) {
+template <class T, Int n>
+std::ostream& operator<<(std::ostream& stream, Few<T, n> f) {
   stream << "{";
-  for (Int i = 0; i < f.size; ++i) {
+  for (Int i = 0; i < n; ++i) {
     if (i) stream << ", ";
     stream << f[i];
   }

@@ -19,6 +19,7 @@ int main(int argc, char** argv) {
   cmdline.add_arg<int>("nz");
   cmdline.add_arg<std::string>("output.osh");
   auto& family_flag = cmdline.add_flag("--family", "simplex or hypercube");
+  cmdline.add_flag("--symmetric", "split hypercubes symmetrically");
   family_flag.add_arg<std::string>("type");
   if (!cmdline.parse_final(world, &argc, argv)) return -1;
   auto x = cmdline.get<double>("length");
@@ -41,7 +42,8 @@ int main(int argc, char** argv) {
       return -1;
     }
   }
-  auto mesh = Omega_h::build_box(world, family, x, y, z, nx, ny, nz);
+  auto symmetric = cmdline.parsed("--symmetric");
+  auto mesh = Omega_h::build_box(world, family, x, y, z, nx, ny, nz, symmetric);
   Omega_h::binary::write(outdir, &mesh);
   return 0;
 }

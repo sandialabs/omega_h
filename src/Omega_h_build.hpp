@@ -22,9 +22,9 @@ void build_from_elems2verts(
 void build_from_elems_and_coords(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords);
 Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
-    LO nx, LO ny, LO nz);
+    LO nx, LO ny, LO nz, bool symmetric = false);
 void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
-    Real z, LO nx, LO ny, LO nz);
+    Real z, LO nx, LO ny, LO nz, bool symmetric = false);
 
 void add_ents2verts(
     Mesh* mesh, Int edim, LOs ev2v, GOs vert_globals, GOs elem_globals = GOs());
