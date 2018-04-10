@@ -1,6 +1,7 @@
 #ifndef OMEGA_H_PRINT_HPP
 #define OMEGA_H_PRINT_HPP
 
+#include <Omega_h_few.hpp>
 #include <Omega_h_array.hpp>
 #include <iostream>
 
@@ -10,6 +11,17 @@ template <class T>
 std::ostream& operator<<(std::ostream& stream, HostRead<T> hr); 
 template <class T>
 std::ostream& operator<<(std::ostream& stream, Read<T> r); 
+
+template <class T>
+std::ostream& operator<<(std::ostream& stream, Few<T> f) {
+  stream << "{";
+  for (Int i = 0; i < f.size; ++i) {
+    if (i) stream << ", ";
+    stream << f[i];
+  }
+  stream << "}";
+  return stream;
+}
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template std::ostream& operator<<(std::ostream&, HostRead<T>); \
