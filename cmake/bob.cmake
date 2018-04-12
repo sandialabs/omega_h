@@ -35,8 +35,8 @@ bob_cmake_arg2("${var}" "${type}" "${default}")
 endfunction()
 
 function(bob_option var desc default)
-option(${var} "${desc}" ${default})
-bob_cmake_arg(${var} BOOL ${default})
+option(${var} "${desc}" "${default}")
+bob_cmake_arg(${var} BOOL "${default}")
 endfunction()
 
 function(bob_input var default type desc)
