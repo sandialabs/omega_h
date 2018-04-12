@@ -35,6 +35,8 @@ void update_from_file(Assoc* p_assoc, std::string const& filepath);
 
 Assoc read_assoc_file(std::string const& filepath);
 
+Assoc get_box_assoc(int dim);
+
 }  // namespace Omega_h
 
 #endif

@@ -21,12 +21,20 @@
 
 namespace Omega_h {
 
-Mesh::Mesh(Library* library_in) {
+Mesh::Mesh() {
   family_ = OMEGA_H_SIMPLEX;
   dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   parting_ = -1;
   nghost_layers_ = -1;
+  library_ = nullptr;
+}
+
+Mesh::Mesh(Library* library_in):Mesh() {
+  set_library(library_in);
+}
+
+void Mesh::set_library(Library* library_in) {
   OMEGA_H_CHECK(library_in != nullptr);
   library_ = library_in;
 }

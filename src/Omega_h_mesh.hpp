@@ -18,13 +18,15 @@ struct Rib;
 
 class Mesh {
  public:
+  Mesh();
   Mesh(Library* library);
-  Library* library() const;
+  void set_library(Library* library);
   void set_comm(CommPtr const& comm);
   void set_family(Omega_h_Family family);
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
+  Library* library() const;
   CommPtr comm() const;
   Omega_h_Parting parting() const;
   inline Int dim() const {

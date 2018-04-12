@@ -218,7 +218,7 @@ void update_parameters_from_file(std::string const& filepath,
         filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
   } else if (ends_with(filepath, ".yaml")) {
     Teuchos::updateParametersFromYamlFileAndBroadcast(
-        filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
+        filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm, true);
   } else {
     Omega_h_fail(
         "\"%s\" is not a known parameter list format\n", filepath.c_str());
