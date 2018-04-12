@@ -97,4 +97,40 @@ Assoc read_assoc_file(std::string const& filepath) {
   return assoc;
 }
 
+Assoc get_box_assoc(int dim) {
+  Assoc assoc;
+  if (dim == 1) {
+    assoc[NODE_SET]["x-"] = {{0,0}};
+    assoc[SIDE_SET]["x-"] = {{0,0}};
+    assoc[ELEM_SET]["body"] = {{1,1}};
+    assoc[NODE_SET]["x+"] = {{0,2}};
+    assoc[SIDE_SET]["x+"] = {{0,2}};
+  } else if (dim == 2) {
+    assoc[NODE_SET]["y-"] = {{1,1}};
+    assoc[SIDE_SET]["y-"] = {{1,1}};
+    assoc[NODE_SET]["x-"] = {{1,3}};
+    assoc[SIDE_SET]["x-"] = {{1,3}};
+    assoc[ELEM_SET]["body"] = {{2,4}};
+    assoc[NODE_SET]["x+"] = {{1,5}};
+    assoc[SIDE_SET]["x+"] = {{1,5}};
+    assoc[NODE_SET]["y+"] = {{1,7}};
+    assoc[SIDE_SET]["y+"] = {{1,7}};
+  } else if (dim == 3) {
+    assoc[NODE_SET]["z-"] = {{2,4}};
+    assoc[SIDE_SET]["z-"] = {{2,4}};
+    assoc[NODE_SET]["y-"] = {{2,10}};
+    assoc[SIDE_SET]["y-"] = {{2,10}};
+    assoc[NODE_SET]["x-"] = {{2,12}};
+    assoc[SIDE_SET]["x-"] = {{2,12}};
+    assoc[ELEM_SET]["body"] = {{3,13}};
+    assoc[NODE_SET]["x+"] = {{2,14}};
+    assoc[SIDE_SET]["x+"] = {{2,14}};
+    assoc[NODE_SET]["y+"] = {{2,16}};
+    assoc[SIDE_SET]["y+"] = {{2,16}};
+    assoc[NODE_SET]["z+"] = {{2,22}};
+    assoc[SIDE_SET]["z+"] = {{2,22}};
+  }
+  return assoc;
+}
+
 }  // namespace Omega_h
