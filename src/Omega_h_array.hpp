@@ -27,7 +27,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view_;
 #else
-  std::shared_ptr<SharedAlloc<T>> tracker_;
+  std::shared_ptr<SharedAlloc<T> > tracker_;
   LO size_;
   T* ptr_;
 #endif

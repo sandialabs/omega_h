@@ -1,12 +1,12 @@
 #include "Omega_h_simplify.hpp"
 
-#include "Omega_h_loop.hpp"
-#include "Omega_h_scalar.hpp"
-#include "Omega_h_scan.hpp"
-#include "Omega_h_mesh.hpp"
-#include "Omega_h_map.hpp"
 #include "Omega_h_build.hpp"
 #include "Omega_h_hypercube.hpp"
+#include "Omega_h_loop.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
+#include "Omega_h_scalar.hpp"
+#include "Omega_h_scan.hpp"
 
 namespace Omega_h {
 
@@ -253,7 +253,8 @@ void tris_from_quads_symmetric(Mesh* mesh) {
   };
   parallel_for(nquads, f);
   map_into_range(old_coords, 0, nold_verts, coords, 2);
-  map_into_range(quad_center_coords, nold_verts, nold_verts + nquads, coords, 2);
+  map_into_range(
+      quad_center_coords, nold_verts, nold_verts + nquads, coords, 2);
   Mesh new_mesh(mesh->library());
   build_from_elems_and_coords(&new_mesh, OMEGA_H_SIMPLEX, 2, tv2v, coords);
   *mesh = new_mesh;
@@ -292,7 +293,8 @@ void tets_from_hexes_symmetric(Mesh* mesh) {
   };
   parallel_for(nhexes, f);
   map_into_range(old_coords, 0, nold_verts, coords, 3);
-  map_into_range(quad_center_coords, nold_verts, nold_verts + nquads, coords, 3);
+  map_into_range(
+      quad_center_coords, nold_verts, nold_verts + nquads, coords, 3);
   map_into_range(hex_center_coords, nold_verts + nquads, nverts, coords, 3);
   Mesh new_mesh(mesh->library());
   build_from_elems_and_coords(&new_mesh, OMEGA_H_SIMPLEX, 3, tv2v, coords);

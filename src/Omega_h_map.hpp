@@ -13,7 +13,8 @@ template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);
 
 template <typename T>
-void map_into_range(Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);
+void map_into_range(
+    Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);
 
 template <typename T>
 Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width);
@@ -74,14 +75,16 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
       Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                    \
   extern template void map_into(                                               \
       Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                    \
-  extern template void map_into_range(                                               \
-      Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);                    \
+  extern template void map_into_range(                                         \
+      Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);           \
   extern template Read<T> map_onto(                                            \
       Read<T> a_data, LOs a2b, LO nb, T, Int width);                           \
   extern template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);           \
-  extern template Read<T> unmap_range(LO begin, LO end, Read<T> b_data, Int width);           \
+  extern template Read<T> unmap_range(                                         \
+      LO begin, LO end, Read<T> b_data, Int width);                            \
   extern template Read<T> expand(Read<T> a_data, LOs a2b, Int width);          \
-  extern template void expand_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                 \
+  extern template void expand_into(                                            \
+      Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                    \
   extern template Read<T> fan_reduce(                                          \
       LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
 INST_T(I8)

@@ -369,7 +369,8 @@ void access(LO size, any& result, any& var, ExprReader::Args& args) {
     if (array.size() == size * dim) {
       result = Reals(get_component(array, dim, i));
     } else if (array.size() == size * matrix_ncomps(dim, dim)) {
-      result = Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
+      result =
+          Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
     } else {
       throw Teuchos::ParserFail("Unexpected array size in access operator\n");
     }
@@ -510,9 +511,9 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
       [=](any& result, Args& args) { eval_sin(local_size, result, args); });
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
-  if (dim == 3) register_variable("I", any(identity_matrix<3,3>()));
-  if (dim == 2) register_variable("I", any(identity_matrix<2,2>()));
-  if (dim == 1) register_variable("I", any(identity_matrix<1,1>()));
+  if (dim == 3) register_variable("I", any(identity_matrix<3, 3>()));
+  if (dim == 2) register_variable("I", any(identity_matrix<2, 2>()));
+  if (dim == 1) register_variable("I", any(identity_matrix<1, 1>()));
 }
 
 ExprReader::~ExprReader() {}

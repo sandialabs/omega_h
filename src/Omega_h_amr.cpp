@@ -1,10 +1,10 @@
 #include <Omega_h_amr.hpp>
 #include <Omega_h_amr_topology.hpp>
-#include <Omega_h_mesh.hpp>
-#include <Omega_h_map.hpp>
-#include <Omega_h_hypercube.hpp>
-#include <Omega_h_modify.hpp>
 #include <Omega_h_amr_transfer.hpp>
+#include <Omega_h_hypercube.hpp>
+#include <Omega_h_map.hpp>
+#include <Omega_h_mesh.hpp>
+#include <Omega_h_modify.hpp>
 
 namespace Omega_h {
 
@@ -23,8 +23,10 @@ static void amr_refine_ghosted(Mesh* mesh) {
       mods2nprods[mod_dim] = LOs(mods2mds[mod_dim].size(), nprods_per_mods);
       mods_have_prods[mod_dim] = true;
     }
-    auto rep2md_orders = get_rep2md_order(mesh, prod_dim, mods2mds, mods2nprods, mods_have_prods);
-    auto name = std::string("rep_") + hypercube_singular_name(prod_dim) + "2md_order";
+    auto rep2md_orders = get_rep2md_order(
+        mesh, prod_dim, mods2mds, mods2nprods, mods_have_prods);
+    auto name =
+        std::string("rep_") + hypercube_singular_name(prod_dim) + "2md_order";
     for (Int mod_dim = prod_dim + 1; mod_dim <= mesh->dim(); ++mod_dim) {
       mesh->add_tag(mod_dim, name, 1, rep2md_orders[mod_dim]);
     }
@@ -39,7 +41,8 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   for (Int mod_dim = 0; mod_dim <= mesh->dim(); ++mod_dim) {
     mds_are_mods[mod_dim] = mesh->get_array<Byte>(mod_dim, "refine");
     mods2mds[mod_dim] = collect_marked(mds_are_mods[mod_dim]);
-    mds2mods[mod_dim] = invert_injective_map(mods2mds[mod_dim], mesh->nents(mod_dim));
+    mds2mods[mod_dim] =
+        invert_injective_map(mods2mds[mod_dim], mesh->nents(mod_dim));
   }
   auto new_mesh = mesh->copy_meta();
   Few<LOs, 4> mods2midverts;
@@ -47,15 +50,18 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   for (Int prod_dim = 0; prod_dim <= mesh->dim(); ++prod_dim) {
     LOs prods2verts;
     if (prod_dim != VERT) {
-      prods2verts = get_amr_topology(mesh, prod_dim, prod_counts[prod_dim], mods2mds, mds2mods, mods2midverts);
+      prods2verts = get_amr_topology(mesh, prod_dim, prod_counts[prod_dim],
+          mods2mds, mds2mods, mods2midverts);
     }
     Few<LOs, 4> mods2prods;
     {
       LO offset = 0;
-      for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= mesh->dim(); ++mod_dim) {
+      for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= mesh->dim();
+           ++mod_dim) {
         auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
         auto nmods_of_dim = mods2mds[mod_dim].size();
-        mods2prods[mod_dim] = LOs(mods2mds[mod_dim].size() + 1, offset, nprods_per_mod);
+        mods2prods[mod_dim] =
+            LOs(mods2mds[mod_dim].size() + 1, offset, nprods_per_mod);
         offset += nprods_per_mod * nmods_of_dim;
       }
     }
@@ -63,9 +69,10 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
     LOs same_ents2old_ents;
     LOs same_ents2new_ents;
     LOs old_ents2new_ents;
-    modify_ents(mesh, &new_mesh, prod_dim, mods2mds, mds_are_mods, mods2prods, prods2verts, old_lows2new_lows,
-        /*keep_mods*/true, /*mods_can_be_shared*/true, &prods2new_ents, &same_ents2old_ents,
-        &same_ents2new_ents, &old_ents2new_ents);
+    modify_ents(mesh, &new_mesh, prod_dim, mods2mds, mds_are_mods, mods2prods,
+        prods2verts, old_lows2new_lows,
+        /*keep_mods*/ true, /*mods_can_be_shared*/ true, &prods2new_ents,
+        &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
     if (prod_dim == VERT) {
       mods2midverts[VERT] = unmap(mods2mds[VERT], old_ents2new_ents, 1);
       LO offset = 0;
@@ -77,15 +84,15 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
         mods2midverts[mod_dim] = unmap_range(begin, end, prods2new_ents, 1);
         offset = end;
       }
-      amr_transfer_linear_interp(mesh, &new_mesh, mods2mds, mods2midverts, same_ents2old_ents, same_ents2new_ents, xfer_opts);
+      amr_transfer_linear_interp(mesh, &new_mesh, mods2mds, mods2midverts,
+          same_ents2old_ents, same_ents2new_ents, xfer_opts);
     }
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;
 }
 
-void amr_refine(Mesh* mesh, Bytes elems_are_marked,
-    TransferOpts xfer_opts) {
+void amr_refine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_HYPERCUBE);
   mark_amr(mesh, elems_are_marked);
   mesh->set_parting(OMEGA_H_GHOSTED);
@@ -94,4 +101,4 @@ void amr_refine(Mesh* mesh, Bytes elems_are_marked,
   amr_refine_elem_based(mesh, xfer_opts);
 }
 
-}
+}  // namespace Omega_h

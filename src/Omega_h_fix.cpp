@@ -14,7 +14,8 @@
 namespace Omega_h {
 
 template <Int dim>
-static void compute_ill_metric_dim(Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
+static void compute_ill_metric_dim(
+    Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
   mesh->remove_tag(VERT, "metric");
   std::cerr << "getting element implied metrics\n";
   auto elem_metrics = get_element_implied_length_metrics(mesh);
@@ -54,10 +55,12 @@ static void compute_ill_metric_dim(Mesh* mesh, AdaptOpts const& opts, Omega_h_Is
   std::cerr << "projecting metrics elem -> node\n";
   metrics = project_metrics(mesh, elem_metrics);
   mesh->remove_tag(VERT, "metric");
-  mesh->add_tag(VERT, "metric", divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
+  mesh->add_tag(VERT, "metric",
+      divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
   vtk::write_vtu("no_low_qual_metric.vtu", mesh);
   mesh->remove_tag(VERT, "metric");
-  mesh->add_tag(VERT, "metric", divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
+  mesh->add_tag(VERT, "metric",
+      divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
   vtk::write_vtu("unlimited_ill_metric.vtu", mesh);
   std::cerr << "limiting metric gradation\n";
   metrics = limit_metric_gradation(mesh, metrics, 1.0);
@@ -70,7 +73,8 @@ static void compute_ill_metric_dim(Mesh* mesh, AdaptOpts const& opts, Omega_h_Is
   std::cerr << "done with \"ill\" metric\n";
 }
 
-static void compute_ill_metric(Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
+static void compute_ill_metric(
+    Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
   if (mesh->dim() == 3)
     compute_ill_metric_dim<3>(mesh, opts, isotropy);
   else if (mesh->dim() == 2)
