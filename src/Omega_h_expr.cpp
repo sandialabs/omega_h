@@ -369,7 +369,8 @@ void access(LO size, any& result, any& var, ExprReader::Args& args) {
     if (array.size() == size * dim) {
       result = Reals(get_component(array, dim, i));
     } else if (array.size() == size * matrix_ncomps(dim, dim)) {
-      result = Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
+      result =
+          Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
     } else {
       throw Teuchos::ParserFail("Unexpected array size in access operator\n");
     }
@@ -387,25 +388,35 @@ void access(LO size, Int dim, any& result, any& var, ExprReader::Args& args) {
 template <Int dim>
 void make_vector(any& result, ExprReader::Args& args) {
   Vector<dim> v;
-  for (Int i = 0; i < dim; ++i) {
+  Int i;
+  for (i = 0; i < Int(args.size()); ++i) {
     auto& arg = args[std::size_t(i)];
     v[i] = any_cast<Real>(arg);
+  }
+  for (; i < dim; ++i) {
+    v[i] = v[Int(args.size() - 1)];
   }
   result = v;
 }
 
 void make_vector(LO size, Int dim, any& result, ExprReader::Args& args) {
-  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != std::size_t(dim),
-      Teuchos::ParserFail, "Wrong number of arguments to vector()\n");
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() > std::size_t(dim),
+      Teuchos::ParserFail, "Too many arguments to vector()\n");
   bool has_arrays = false;
   for (auto& arg : args)
     if (arg.type() == typeid(Reals)) has_arrays = true;
   if (has_arrays) {
     std::vector<Read<Real>> arrays;
-    for (auto& arg : args) {
+    Int i;
+    for (i = 0; i < Int(args.size()); ++i) {
+      auto& arg = args[std::size_t(i)];
       promote(size, dim, arg);
       arrays.push_back(any_cast<Reals>(arg));
     }
+    for (; i < dim; ++i) {
+      arrays.push_back(arrays.back());
+    }
+    OMEGA_H_CHECK(Int(arrays.size()) == dim);
     result = Reals(interleave(arrays));
   } else {
     if (dim == 3) make_vector<3>(result, args);
@@ -510,6 +521,10 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
       [=](any& result, Args& args) { eval_sin(local_size, result, args); });
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
+  register_variable("d", any(Real(dim)));
+  if (dim == 3) register_variable("I", any(identity_matrix<3, 3>()));
+  if (dim == 2) register_variable("I", any(identity_matrix<2, 2>()));
+  if (dim == 1) register_variable("I", any(identity_matrix<1, 1>()));
 }
 
 ExprReader::~ExprReader() {}

@@ -10,13 +10,11 @@
 namespace Omega_h {
 
 template <typename T>
-void set_if_given(
-    T* var, Teuchos::ParameterList& pl, std::string const& name) {
+void set_if_given(T* var, Teuchos::ParameterList& pl, std::string const& name) {
   *var = pl.get<T>(name, *var);
 }
 
-void update_var_compare_opts(
-    VarCompareOpts* opts, Teuchos::ParameterList& pl);
+void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList& pl);
 void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList& pl);
 void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList& pl);
 MetricSource get_metric_source(Teuchos::ParameterList& pl);
@@ -26,8 +24,8 @@ Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh);
 void update_parameters_from_file(std::string const& filepath,
     Teuchos::ParameterList* pl, Teuchos::Comm<int> const& comm);
 
-void write_parameters(
-    std::ostream& stream, Teuchos::ParameterList const& pl, bool is_yaml = true);
+void write_parameters(std::ostream& stream, Teuchos::ParameterList const& pl,
+    bool is_yaml = true);
 
 void write_parameters(
     std::string const& filepath, Teuchos::ParameterList const& pl);

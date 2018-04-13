@@ -63,9 +63,10 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
     auto same_ents2old_ents = LOs();
     auto same_ents2new_ents = LOs();
     auto old_ents2new_ents = LOs();
-    modify_ents_adapt(mesh, &new_mesh, ent_dim, EDGE, keys2edges, keys2prods[ent_dim],
-        prod_verts2verts[ent_dim], old_lows2new_lows, &prods2new_ents,
-        &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
+    modify_ents_adapt(mesh, &new_mesh, ent_dim, EDGE, keys2edges,
+        keys2prods[ent_dim], prod_verts2verts[ent_dim], old_lows2new_lows,
+        &prods2new_ents, &same_ents2old_ents, &same_ents2new_ents,
+        &old_ents2new_ents);
     transfer_swap(mesh, opts.xfer_opts, &new_mesh, ent_dim, keys2edges,
         keys2prods[ent_dim], prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);

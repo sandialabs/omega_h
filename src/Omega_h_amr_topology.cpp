@@ -37,7 +37,7 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
   Write<LO> child_verts(num_children * num_verts_per_child);
   LO offset = 0;
   for (Int d = child_dim; d <= spatial_dim; ++d) {
-    Few <LOs, 4> mds2lows;
+    Few<LOs, 4> mds2lows;
     for (Int lowd = 0; lowd <= d; ++lowd) {
       mds2lows[lowd] = mesh->ask_graph(d, lowd).ab2b;
     }
@@ -49,10 +49,14 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
         for (Int vert = 0; vert < num_verts_per_child; ++vert) {
           auto low = hypercube_split_template(d, child_dim, child, vert);
           Int num_lows_per_parent = hypercube_degree(d, low.dim);
-          LO low_gid = mds2lows[low.dim][md * num_lows_per_parent + low.which_down];
+          LO low_gid =
+              mds2lows[low.dim][md * num_lows_per_parent + low.which_down];
           LO low_adj_parent = mds2parents[low.dim][low_gid];
           LO midvert = parents2midverts[low.dim][low_adj_parent];
-          LO idx = offset + (parent * num_child_per_parent + child) * num_verts_per_child + vert;
+          LO idx =
+              offset +
+              (parent * num_child_per_parent + child) * num_verts_per_child +
+              vert;
           child_verts[idx] = midvert;
         }
       }

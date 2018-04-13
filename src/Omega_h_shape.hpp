@@ -406,7 +406,7 @@ OMEGA_H_INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
   return a;
 }
 
-template <Int dim> 
+template <Int dim>
 Real max_simplex_edge_length(Few<Vector<dim>, dim + 1> p) {
   auto b = simplex_basis(p);
   auto ev = element_edge_vectors(p, b);

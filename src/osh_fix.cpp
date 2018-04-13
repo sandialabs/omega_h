@@ -20,7 +20,8 @@ int main(int argc, char** argv) {
   model_flag.add_arg<std::string>("model.step");
 #endif
   cmdline.add_flag("--isotropic", "aim for an isotropic mesh");
-  auto& length_flag = cmdline.add_flag("--length", "desired uniform edge length");
+  auto& length_flag =
+      cmdline.add_flag("--length", "desired uniform edge length");
   length_flag.add_arg<double>("length");
   if (!cmdline.parse_final(lib.world(), &argc, argv)) return -1;
   auto path_in = cmdline.get<std::string>("mesh_in.osh");
@@ -42,12 +43,14 @@ int main(int argc, char** argv) {
 #endif
   if (cmdline.parsed("--length")) {
     auto length = cmdline.get<double>("--length", "length");
-    auto metric = Omega_h::Reals(mesh.nverts(), Omega_h::metric_eigenvalue_from_length(length));
+    auto metric = Omega_h::Reals(
+        mesh.nverts(), Omega_h::metric_eigenvalue_from_length(length));
     mesh.add_tag(0, "metric", 1, metric);
     Omega_h::fix_for_given_metric(&mesh, opts, true);
   } else {
-    Omega_h_Isotropy isotropy =
-        cmdline.parsed("--isotropic") ? OMEGA_H_ISO_LENGTH : OMEGA_H_ANISOTROPIC;
+    Omega_h_Isotropy isotropy = cmdline.parsed("--isotropic")
+                                    ? OMEGA_H_ISO_LENGTH
+                                    : OMEGA_H_ANISOTROPIC;
     Omega_h::fix(&mesh, opts, isotropy, true);
   }
   mesh.remove_tag(Omega_h::VERT, "metric");

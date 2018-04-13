@@ -1,5 +1,5 @@
-#include <Omega_h_print.hpp>
 #include <Omega_h_functors.hpp>
+#include <Omega_h_print.hpp>
 
 namespace Omega_h {
 
@@ -22,8 +22,8 @@ std::ostream& operator<<(std::ostream& stream, Read<T> r) {
   return stream << HostRead<T>(r);
 }
 
-#define OMEGA_H_EXPL_INST(T)                                              \
-  template std::ostream& operator<<(std::ostream&, HostRead<T>); \
+#define OMEGA_H_EXPL_INST(T)                                                   \
+  template std::ostream& operator<<(std::ostream&, HostRead<T>);               \
   template std::ostream& operator<<(std::ostream&, Read<T>);
 OMEGA_H_EXPL_INST(I8)
 OMEGA_H_EXPL_INST(I32)
@@ -31,4 +31,4 @@ OMEGA_H_EXPL_INST(I64)
 OMEGA_H_EXPL_INST(Real)
 #undef OMEGA_H_EXPL_INST
 
-}
+}  // namespace Omega_h

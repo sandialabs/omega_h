@@ -29,8 +29,7 @@ T* nonnull(T* p) {
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
-Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {
-}
+Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
 #endif
 
 template <typename T>
@@ -191,11 +190,10 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror(
     const Kokkos::View<T, P...>& src) {
   typedef Kokkos::View<T, P...> src_type;
   typedef typename src_type::HostMirror dst_type;
+  static_assert(src_type::rank == 1, "Hardcoded for 1D Views!");
   return dst_type(Kokkos::ViewAllocateWithoutInitializing(
                       std::string("host_") + src.label()),
-      src.extent(0), src.extent(1), src.extent(2),
-      src.extent(3), src.extent(4), src.extent(5),
-      src.extent(6), src.extent(7));
+      src.extent(0));
 }
 
 template <class T, class... P>

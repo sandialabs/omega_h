@@ -34,8 +34,10 @@ int main(int argc, char** argv) {
   }
   auto counts = Omega_h::count_amr(&mesh);
   auto num_child_edges = counts[1];
-  auto edge_verts = Omega_h::get_amr_topology(&mesh, 1, num_child_edges, p2mds, mds2p, p2mv);
-  Omega_h::LOs truth({0,1,1,2,9,6,6,2,9,8,8,7,7,4,4,0,1,5,6,5,8,5,4,5});
+  auto edge_verts =
+      Omega_h::get_amr_topology(&mesh, 1, num_child_edges, p2mds, mds2p, p2mv);
+  Omega_h::LOs truth(
+      {0, 1, 1, 2, 9, 6, 6, 2, 9, 8, 8, 7, 7, 4, 4, 0, 1, 5, 6, 5, 8, 5, 4, 5});
   OMEGA_H_CHECK(truth.size() == 24);
   OMEGA_H_CHECK(edge_verts == truth);
   return 0;
