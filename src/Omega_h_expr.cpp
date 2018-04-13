@@ -387,7 +387,7 @@ void access(LO size, Int dim, any& result, any& var, ExprReader::Args& args) {
 
 template <Int dim>
 void make_vector(any& result, ExprReader::Args& args) {
-  Vector<dim> v;
+  auto v = zero_vector<dim>();
   Int i;
   for (i = 0; i < Int(args.size()); ++i) {
     auto& arg = args[std::size_t(i)];
