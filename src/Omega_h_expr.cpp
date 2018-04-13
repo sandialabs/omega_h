@@ -510,6 +510,9 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
       [=](any& result, Args& args) { eval_sin(local_size, result, args); });
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
+  if (dim == 3) register_variable("I", any(identity_matrix<3,3>()));
+  if (dim == 2) register_variable("I", any(identity_matrix<2,2>()));
+  if (dim == 1) register_variable("I", any(identity_matrix<1,1>()));
 }
 
 ExprReader::~ExprReader() {}
