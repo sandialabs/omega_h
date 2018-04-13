@@ -1,6 +1,7 @@
 #ifndef OMEGA_H_SCALAR_HPP
 #define OMEGA_H_SCALAR_HPP
 
+#include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <cfloat>
 #include <climits>
