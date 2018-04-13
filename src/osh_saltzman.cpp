@@ -5,8 +5,8 @@
 #include <Omega_h_cmdline.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_library.hpp>
-#include <Omega_h_mesh.hpp>
 #include <Omega_h_loop.hpp>
+#include <Omega_h_mesh.hpp>
 
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
@@ -52,15 +52,16 @@ int main(int argc, char** argv) {
   auto dx = x / nx;
   auto pi_over_x = Omega_h::PI / x;
   Omega_h::Real factor = 1.;
-  if (cmdline.parsed("--factor")) factor = cmdline.get<double>("--factor", "factor");
+  if (cmdline.parsed("--factor"))
+    factor = cmdline.get<double>("--factor", "factor");
   auto new_coords = Omega_h::Write<Omega_h::Real>(mesh.nverts() * 3);
   auto f = OMEGA_H_LAMBDA(Omega_h::LO v) {
     auto v_pos = Omega_h::get_vector<3>(coords, v);
     auto v_x = v_pos[0];
     auto v_y = v_pos[1];
     auto v_z = v_pos[2];
-    auto v_y_norm  = (v_y / y) - (1. / 2.);
-    auto v_z_norm  = (v_z / z) - (1. / 2.);
+    auto v_y_norm = (v_y / y) - (1. / 2.);
+    auto v_z_norm = (v_z / z) - (1. / 2.);
     auto v_yz_norm = v_y_norm * v_z_norm;
     auto x_shift = factor * v_yz_norm * dx * std::sin(pi_over_x * v_x);
     v_pos[0] += x_shift;
@@ -71,4 +72,3 @@ int main(int argc, char** argv) {
   Omega_h::binary::write(outdir, &mesh);
   return 0;
 }
-

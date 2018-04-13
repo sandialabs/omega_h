@@ -108,9 +108,9 @@ static void classify_box_dim(
   auto npts = centroids.size() / dim;
   Vector<dim> dists;
   /* we assume that if an entity should not be classified on
-     the boundary surface, its centroid is more than an eight
+     the boundary surface, its centroid is more than an (1/32)
      of a cell width away from said boundary */
-  for (Int i = 0; i < dim; ++i) dists[i] = l[i] / (nel[i] * 8);
+  for (Int i = 0; i < dim; ++i) dists[i] = l[i] / (nel[i] * 32);
   auto class_ids = Write<ClassId>(npts);
   auto class_dims = Write<Byte>(npts);
   auto f = OMEGA_H_LAMBDA(Int i) {

@@ -7,8 +7,7 @@
 
 namespace Omega_h {
 
-void update_var_compare_opts(
-    VarCompareOpts* opts, Teuchos::ParameterList& pl) {
+void update_var_compare_opts(VarCompareOpts* opts, Teuchos::ParameterList& pl) {
   if (pl.isType<std::string>("Type")) {
     auto type_name = pl.get<std::string>("Type");
     if (type_name == "None") {
@@ -26,8 +25,7 @@ void update_var_compare_opts(
   set_if_given(&opts->floor, pl, "Floor");
 }
 
-void update_transfer_opts(
-    TransferOpts* opts, Teuchos::ParameterList& pl) {
+void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList& pl) {
   if (pl.isSublist("Fields")) {
     auto& fields_pl = pl.sublist("Fields");
     for (auto it = fields_pl.begin(), end = fields_pl.end(); it != end; ++it) {
@@ -307,8 +305,7 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList& pl) {
   }
 }
 
-void update_tag_set(
-    TagSet* p_tags, Int elem_dim, Teuchos::ParameterList& pl) {
+void update_tag_set(TagSet* p_tags, Int elem_dim, Teuchos::ParameterList& pl) {
   TagSet& tags = *p_tags;
   std::map<std::string, Int> names2dims;
   names2dims["Element"] = elem_dim;
@@ -345,8 +342,7 @@ Int get_ent_dim_by_name(Mesh* mesh, std::string const& name) {
 }
 
 template <Int dim>
-static void write_scatterplot_dim(
-    Mesh* mesh, Teuchos::ParameterList& pl) {
+static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList& pl) {
   auto filepath = pl.get<std::string>("File");
   Int ent_dim = 0;
   if (pl.isType<std::string>("Entity")) {

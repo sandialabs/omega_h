@@ -1,6 +1,7 @@
 #ifndef OMEGA_H_SCALAR_HPP
 #define OMEGA_H_SCALAR_HPP
 
+#include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <cfloat>
 #include <climits>
@@ -88,7 +89,9 @@ constexpr OMEGA_H_INLINE T factorial(T x) {
 }
 
 template <typename T>
-constexpr OMEGA_H_INLINE T average(T a, T b) { return (a + b) / 2; }
+constexpr OMEGA_H_INLINE T average(T a, T b) {
+  return (a + b) / 2;
+}
 
 template <Int p, typename T>
 struct Raise {

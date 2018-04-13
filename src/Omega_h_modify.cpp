@@ -4,6 +4,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_atomics.hpp"
 #include "Omega_h_control.hpp"
+#include "Omega_h_element.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
@@ -11,7 +12,6 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_owners.hpp"
 #include "Omega_h_scan.hpp"
-#include "Omega_h_element.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_unmap_mesh.hpp"
 #include "Omega_h_verify.hpp"
@@ -73,10 +73,8 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
    for the child entities.
    the rule is: a child copy is an owner if its parent
    copy is an owner */
-static Remotes get_prod_owners_shared(
-    Mesh* mesh,
-    Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
-    LOs prods2new_ents) {
+static Remotes get_prod_owners_shared(Mesh* mesh, Few<LOs, 4> mods2mds,
+    Few<LOs, 4> mods2prods, LOs prods2new_ents) {
   auto nprods = prods2new_ents.size();
   Write<I32> prod_own_ranks(nprods);
   Write<LO> prod_own_idxs(nprods);
@@ -88,10 +86,11 @@ static Remotes get_prod_owners_shared(
     auto nmod_prods = prod_end - prod_begin;
     /* HACK: assuming the number of products per split entity is constant! */
     auto nprods_per_mod = divide_no_remainder(nmod_prods, nmods);
-    auto md_ranks = mesh->ask_owners(mod_dim).ranks; 
+    auto md_ranks = mesh->ask_owners(mod_dim).ranks;
     auto mod_ranks = unmap(mods2mds[mod_dim], md_ranks, 1);
     auto mod_prod_idxs = unmap_range(prod_begin, prod_end, prods2new_ents, 1);
-    mod_prod_idxs = mesh->sync_subset_array(mod_dim, mod_prod_idxs, mods2mds[mod_dim], -1, nprods_per_mod);
+    mod_prod_idxs = mesh->sync_subset_array(
+        mod_dim, mod_prod_idxs, mods2mds[mod_dim], -1, nprods_per_mod);
     map_into_range(mod_prod_idxs, prod_begin, prod_end, prod_own_idxs, 1);
     expand_into(mod_ranks, mods2prods[mod_dim], prod_own_ranks, 1);
   }
@@ -104,9 +103,9 @@ static Remotes get_prod_owners_shared(
    all entities produced by this MPI rank exist only on this
    MPI rank, so they are their own owners */
 static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
-    LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
-    LOs old_ents2new_ents, bool mods_can_be_shared) {
+    Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods, LOs prods2new_ents,
+    LOs same_ents2old_ents, LOs same_ents2new_ents, LOs old_ents2new_ents,
+    bool mods_can_be_shared) {
   auto same_owners =
       unmap_owners(old_mesh, ent_dim, same_ents2old_ents, old_ents2new_ents);
   auto same_own_ranks = same_owners.ranks;
@@ -114,7 +113,8 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nprods = prods2new_ents.size();
   Remotes prod_owners;
   if (mods_can_be_shared) {
-    prod_owners = get_prod_owners_shared(old_mesh, mods2mds, mods2prods, prods2new_ents);
+    prod_owners =
+        get_prod_owners_shared(old_mesh, mods2mds, mods2prods, prods2new_ents);
   } else {
     prod_owners.ranks = Read<I32>(nprods, new_mesh->comm()->rank());
     prod_owners.idxs = prods2new_ents;
@@ -259,14 +259,16 @@ static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
    why this function doesn't check for ghosting.
  */
 
-LOs get_rep2md_order_adapt(Mesh* mesh, Int key_dim, Int rep_dim, Bytes kds_are_keys) {
+LOs get_rep2md_order_adapt(
+    Mesh* mesh, Int key_dim, Int rep_dim, Bytes kds_are_keys) {
   Few<LOs, 4> mods2mds;
   Few<LOs, 4> mods2nprods;
   mods2mds[key_dim] = collect_marked(kds_are_keys);
   mods2nprods[key_dim] = LOs(mods2mds[key_dim].size(), 1);
   Few<bool, 4> mods_have_prods = {false, false, false, false};
   mods_have_prods[key_dim] = true;
-  auto all_orders = get_rep2md_order(mesh, rep_dim, mods2mds, mods2nprods, mods_have_prods);
+  auto all_orders =
+      get_rep2md_order(mesh, rep_dim, mods2mds, mods2nprods, mods_have_prods);
   OMEGA_H_CHECK(all_orders[key_dim].exists());
   return all_orders[key_dim];
 }
@@ -280,8 +282,10 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
   Few<LOs, 4> mds2mods;
   bool do_anything = false;
   for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
-    if (!mods_have_prods[mod_dim]) continue;
-    else do_anything = true;
+    if (!mods_have_prods[mod_dim])
+      continue;
+    else
+      do_anything = true;
     rep2md_order_w[mod_dim] = Write<LO>(mesh->nents(mod_dim), -1);
     reps2mds[mod_dim] = mesh->ask_up(rep_dim, mod_dim);
     mds2mods[mod_dim] =
@@ -297,7 +301,7 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
     LO offset = 0;
     if (mods_have_prods[rep_dim]) {
       auto mod = mds2mods[rep_dim][rep];
-      if (mod < 0) return; // not actually a representative
+      if (mod < 0) return;  // not actually a representative
       offset += mods2nprods[rep_dim][mod];
     }
     for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
@@ -368,7 +372,8 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
       auto rep2md_order_dim = rep2md_order[mod_dim];
       auto write_prod_offsets = OMEGA_H_LAMBDA(LO mod) {
         auto md = mods2mds_dim[mod];
-        auto offset = mods2new_offsets[mod] + rep2md_order_dim[md] + rep_self_count;
+        auto offset =
+            mods2new_offsets[mod] + rep2md_order_dim[md] + rep_self_count;
         for (auto prod = mods2prods_dim[mod]; prod < mods2prods_dim[mod + 1];
              ++prod) {
           prods2new_offsets_w[prod] = offset++;
@@ -390,9 +395,9 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
 }
 
 static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
-    bool keep_mods, Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods, LOs prods2new_ents,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, Few<LOs, 4> mods2reps,
-    LOs global_rep_counts) {
+    bool keep_mods, Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
+    LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
+    Few<LOs, 4> mods2reps, LOs global_rep_counts) {
   begin_code("modify_globals");
   auto nsame_ents = same_ents2old_ents.size();
   OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
@@ -417,7 +422,8 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   Few<LOs, 4> global_rep2md_order;
   for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
     if ((mod_dim > ent_dim) && mods2prods[mod_dim].exists()) {
-      auto name = std::string("rep_") + hypercube_singular_name(ent_dim) + "2md_order";
+      auto name =
+          std::string("rep_") + hypercube_singular_name(ent_dim) + "2md_order";
       global_rep2md_order[mod_dim] = old_mesh->get_array<LO>(mod_dim, name);
     }
   }
@@ -452,15 +458,15 @@ void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
   mods2prods[key_dim] = keys2prods;
   modify_ents(old_mesh, new_mesh, ent_dim, mods2mds, mds_are_mods, mods2prods,
       prod_verts2verts, old_lows2new_lows,
-      /*keep_mods*/ false, /*mods_can_be_shared*/ false, p_prods2new_ents, p_same_ents2old_ents,
-      p_same_ents2new_ents, p_old_ents2new_ents);
+      /*keep_mods*/ false, /*mods_can_be_shared*/ false, p_prods2new_ents,
+      p_same_ents2old_ents, p_same_ents2new_ents, p_old_ents2new_ents);
 }
 
 void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Few<LOs, 4> mods2mds, Few<Bytes, 4> mds_are_mods, Few<LOs, 4> mods2prods,
-    LOs prod_verts2verts, LOs old_lows2new_lows, bool keep_mods, bool mods_can_be_shared,
-    LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
-    LOs* p_old_ents2new_ents) {
+    LOs prod_verts2verts, LOs old_lows2new_lows, bool keep_mods,
+    bool mods_can_be_shared, LOs* p_prods2new_ents, LOs* p_same_ents2old_ents,
+    LOs* p_same_ents2new_ents, LOs* p_old_ents2new_ents) {
   begin_code("modify_ents");
   *p_same_ents2old_ents =
       collect_same(old_mesh, ent_dim, mds_are_mods, keep_mods);
@@ -496,13 +502,12 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
         old_lows2new_lows);
   }
   if (old_mesh->comm()->size() > 1) {
-    modify_owners(old_mesh, new_mesh, ent_dim, mods2mds, mods2prods, *p_prods2new_ents,
-        *p_same_ents2old_ents, *p_same_ents2new_ents, *p_old_ents2new_ents,
-        mods_can_be_shared);
+    modify_owners(old_mesh, new_mesh, ent_dim, mods2mds, mods2prods,
+        *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
+        *p_old_ents2new_ents, mods_can_be_shared);
   }
-  auto global_rep_counts =
-      get_rep_counts(old_mesh, ent_dim, mods2mds, mods2reps, mods2nprods,
-          *p_same_ents2old_ents, /*count_non_owned*/ false);
+  auto global_rep_counts = get_rep_counts(old_mesh, ent_dim, mods2mds,
+      mods2reps, mods2nprods, *p_same_ents2old_ents, /*count_non_owned*/ false);
   modify_globals(old_mesh, new_mesh, ent_dim, keep_mods, mods2mds, mods2prods,
       *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
       mods2reps, global_rep_counts);

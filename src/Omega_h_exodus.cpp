@@ -187,16 +187,20 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
     /* some pretty weird blocks from the CDFEM people... */
     if (std::string("NULL") == elem_type && nentries == 0) continue;
     if (!is_type_supported(dim, elem_type)) {
-      Omega_h_fail("type %s is not supported for %dD ! (%d nodes %d edges %d faces %d attr)\n", elem_type, dim,
-          nnodes_per_entry, nedges_per_entry, nfaces_per_entry, nattr_per_entry);
+      Omega_h_fail(
+          "type %s is not supported for %dD ! (%d nodes %d edges %d faces %d "
+          "attr)\n",
+          elem_type, dim, nnodes_per_entry, nedges_per_entry, nfaces_per_entry,
+          nattr_per_entry);
     }
     OMEGA_H_CHECK(nnodes_per_entry == deg);
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     std::vector<int> edge_conn(std::size_t(nentries * nedges_per_entry));
     std::vector<int> face_conn(std::size_t(nentries * nfaces_per_entry));
-    CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i], h_conn.data() + elem_start * nnodes_per_entry,
-        edge_conn.data(), face_conn.data()));
+    CALL(ex_get_conn(file, EX_ELEM_BLOCK, block_ids[i],
+        h_conn.data() + elem_start * nnodes_per_entry, edge_conn.data(),
+        face_conn.data()));
     auto region_id = block_ids[i];
     auto f0 = OMEGA_H_LAMBDA(LO entry) {
       elem_class_ids_w[elem_start + entry] = region_id;
@@ -388,7 +392,8 @@ void write(
     CALL(ex_put_conn(
         file, EX_ELEM_BLOCK, block_id, h_block_conn.data(), nullptr, nullptr));
     auto f = OMEGA_H_LAMBDA(LO block_elem) {
-      elems2file_idx[block_elems2elem[block_elem]] = elem_file_offset + block_elem;
+      elems2file_idx[block_elems2elem[block_elem]] =
+          elem_file_offset + block_elem;
     };
     parallel_for(nblock_elems, f);
     elem_file_offset += nblock_elems;
