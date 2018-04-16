@@ -232,7 +232,8 @@ HostWrite<T>::HostWrite(LO size_in, std::string const& name_in)
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(LO size_in, T offset, T stride, std::string const& name_in)
+HostWrite<T>::HostWrite(
+    LO size_in, T offset, T stride, std::string const& name_in)
     : HostWrite<T>(Write<T>(size_in, offset, stride, name_in)) {}
 
 template <typename T>
