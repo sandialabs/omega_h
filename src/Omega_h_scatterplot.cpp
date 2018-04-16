@@ -40,12 +40,14 @@ Reals get_radial_scatter_coords(Reals coords, Vector<dim> center) {
 
 void write_scatterplot(std::string const& path, CommPtr comm, Reals coords_1d,
     Reals data, std::string const& separator) {
-  std::ofstream os(path.c_str());
-  os << std::scientific << std::setprecision(17);
   HostRead<Real> coords_1d_h(coords_1d);
   HostRead<Real> data_h(data);
   auto ncomps = divide_no_remainder(data.size(), coords_1d.size());
   for (I32 rank = 0; rank < comm->size(); ++rank) {
+    std::ofstream os;
+    if (rank) os.open(path.c_str(), std::ios_base::app);
+    else  os.open(path.c_str());
+    os << std::scientific << std::setprecision(17);
     if (comm->rank() == rank) {
       for (LO i = 0; i < coords_1d_h.size(); ++i) {
         os << coords_1d_h[i];
@@ -55,6 +57,7 @@ void write_scatterplot(std::string const& path, CommPtr comm, Reals coords_1d,
         os << '\n';
       }
     }
+    os.close();
     comm->barrier();
   }
 }
