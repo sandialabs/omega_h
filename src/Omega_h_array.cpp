@@ -33,14 +33,14 @@ Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
 #endif
 
 template <typename T>
-Write<T>::Write(LO size_in, std::string const& name) {
+Write<T>::Write(LO size_in, std::string const& name_in) {
   begin_code("Write(size,name)");
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name),
+  view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
 #else
   tracker_ = decltype(tracker_)(new SharedAlloc<T>());
-  tracker_->name = name;
+  tracker_->name = name_in;
   ptr_ = new T[size_in];
   tracker_->ptr = decltype(tracker_->ptr)(ptr_);
   size_ = size_in;
@@ -55,8 +55,8 @@ static void fill(Write<T> a, T val) {
 }
 
 template <typename T>
-Write<T>::Write(LO size_in, T value, std::string const& name)
-    : Write<T>(size_in, name) {
+Write<T>::Write(LO size_in, T value, std::string const& name_in)
+    : Write<T>(size_in, name_in) {
   fill(*this, value);
 }
 
@@ -69,8 +69,8 @@ void fill_linear(Write<T> a, T offset, T stride) {
 }
 
 template <typename T>
-Write<T>::Write(LO size_in, T offset, T stride, std::string const& name)
-    : Write<T>(size_in, name) {
+Write<T>::Write(LO size_in, T offset, T stride, std::string const& name_in)
+    : Write<T>(size_in, name_in) {
   fill_linear(*this, offset, stride);
 }
 
@@ -108,56 +108,56 @@ T Write<T>::get(LO i) const {
 
 Bytes::Bytes(Write<Byte> write) : Read<Byte>(write) {}
 
-Bytes::Bytes(LO size_in, Byte value, std::string const& name)
-    : Read<Byte>(size_in, value, name) {}
+Bytes::Bytes(LO size_in, Byte value, std::string const& name_in)
+    : Read<Byte>(size_in, value, name_in) {}
 
-Bytes::Bytes(std::initializer_list<Byte> l, std::string const& name)
-    : Read<Byte>(l, name) {}
+Bytes::Bytes(std::initializer_list<Byte> l, std::string const& name_in)
+    : Read<Byte>(l, name_in) {}
 
 LOs::LOs(Write<LO> write) : Read<LO>(write) {}
 
-LOs::LOs(LO size_in, LO value, std::string const& name)
-    : Read<LO>(size_in, value, name) {}
+LOs::LOs(LO size_in, LO value, std::string const& name_in)
+    : Read<LO>(size_in, value, name_in) {}
 
-LOs::LOs(LO size_in, LO offset, LO stride, std::string const& name)
-    : Read<LO>(size_in, offset, stride, name) {}
+LOs::LOs(LO size_in, LO offset, LO stride, std::string const& name_in)
+    : Read<LO>(size_in, offset, stride, name_in) {}
 
-LOs::LOs(std::initializer_list<LO> l, std::string const& name)
-    : Read<LO>(l, name) {}
+LOs::LOs(std::initializer_list<LO> l, std::string const& name_in)
+    : Read<LO>(l, name_in) {}
 
 GOs::GOs(Write<GO> write) : Read<GO>(write) {}
 
-GOs::GOs(LO size_in, GO value, std::string const& name)
-    : Read<GO>(size_in, value, name) {}
+GOs::GOs(LO size_in, GO value, std::string const& name_in)
+    : Read<GO>(size_in, value, name_in) {}
 
-GOs::GOs(LO size_in, GO offset, GO stride, std::string const& name)
-    : Read<GO>(size_in, offset, stride, name) {}
+GOs::GOs(LO size_in, GO offset, GO stride, std::string const& name_in)
+    : Read<GO>(size_in, offset, stride, name_in) {}
 
-GOs::GOs(std::initializer_list<GO> l, std::string const& name)
-    : Read<GO>(l, name) {}
+GOs::GOs(std::initializer_list<GO> l, std::string const& name_in)
+    : Read<GO>(l, name_in) {}
 
 Reals::Reals(Write<Real> write) : Read<Real>(write) {}
 
-Reals::Reals(LO size_in, Real value, std::string const& name)
-    : Read<Real>(size_in, value, name) {}
+Reals::Reals(LO size_in, Real value, std::string const& name_in)
+    : Read<Real>(size_in, value, name_in) {}
 
-Reals::Reals(std::initializer_list<Real> l, std::string const& name)
-    : Read<Real>(l, name) {}
+Reals::Reals(std::initializer_list<Real> l, std::string const& name_in)
+    : Read<Real>(l, name_in) {}
 
 template <typename T>
 Read<T>::Read(Write<T> write) : write_(write) {}
 
 template <typename T>
-Read<T>::Read(LO size_in, T value, std::string const& name)
-    : Read<T>(Write<T>(size_in, value, name)) {}
+Read<T>::Read(LO size_in, T value, std::string const& name_in)
+    : Read<T>(Write<T>(size_in, value, name_in)) {}
 
 template <typename T>
-Read<T>::Read(LO size_in, T offset, T stride, std::string const& name)
-    : Read<T>(Write<T>(size_in, offset, stride, name)) {}
+Read<T>::Read(LO size_in, T offset, T stride, std::string const& name_in)
+    : Read<T>(Write<T>(size_in, offset, stride, name_in)) {}
 
 template <typename T>
-Read<T>::Read(std::initializer_list<T> l, std::string const& name)
-    : Read<T>(HostWrite<T>(l, name).write()) {}
+Read<T>::Read(std::initializer_list<T> l, std::string const& name_in)
+    : Read<T>(HostWrite<T>(l, name_in).write()) {}
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
@@ -222,8 +222,8 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror_view(
 #endif
 
 template <typename T>
-HostWrite<T>::HostWrite(LO size_in, std::string const& name)
-    : write_(size_in, name)
+HostWrite<T>::HostWrite(LO size_in, std::string const& name_in)
+    : write_(size_in, name_in)
 #ifdef OMEGA_H_USE_KOKKOSCORE
       ,
       mirror_(create_uninit_mirror_view(write_.view()))
@@ -232,8 +232,8 @@ HostWrite<T>::HostWrite(LO size_in, std::string const& name)
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(LO size_in, T offset, T stride, std::string const& name)
-    : HostWrite<T>(Write<T>(size_in, offset, stride, name)) {}
+HostWrite<T>::HostWrite(LO size_in, T offset, T stride, std::string const& name_in)
+    : HostWrite<T>(Write<T>(size_in, offset, stride, name_in)) {}
 
 template <typename T>
 HostWrite<T>::HostWrite(Write<T> write_in)
@@ -249,9 +249,9 @@ HostWrite<T>::HostWrite(Write<T> write_in)
 }
 
 template <typename T>
-HostWrite<T>::HostWrite(std::initializer_list<T> l, std::string const& name)
+HostWrite<T>::HostWrite(std::initializer_list<T> l, std::string const& name_in)
     :  // an initializer_list should never have over 2 billion items...
-      HostWrite<T>(static_cast<LO>(l.size()), name) {
+      HostWrite<T>(static_cast<LO>(l.size()), name_in) {
   LO i = 0;
   for (auto v : l) operator[](i++) = v;
 }
