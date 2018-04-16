@@ -45,8 +45,8 @@ void write_scatterplot(std::string const& path, CommPtr comm, Reals coords_1d,
   auto ncomps = divide_no_remainder(data.size(), coords_1d.size());
   for (I32 rank = 0; rank < comm->size(); ++rank) {
     std::ofstream os;
-    if (rank) os.open(path.c_str(), std::ios_base::app);
-    else  os.open(path.c_str());
+    if (rank) os.open(path.c_str(), std::ios_base::ate);
+    else  os.open(path.c_str(), std::ios_base::trunc);
     os << std::scientific << std::setprecision(17);
     if (comm->rank() == rank) {
       for (LO i = 0; i < coords_1d_h.size(); ++i) {
