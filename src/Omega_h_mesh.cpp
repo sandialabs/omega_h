@@ -388,12 +388,12 @@ Reals Mesh::ask_sizes() {
   return get_array<Real>(dim(), "size");
 }
 
-LOs Mesh::ask_levels(Int ent_dim) {
+Bytes Mesh::ask_levels(Int ent_dim) {
   if (!has_tag(ent_dim, "level")) {
-    auto levels = LOs(nents(ent_dim), 0);
+    auto levels = Bytes(nents(ent_dim), 0);
     add_tag(ent_dim, "level", 1, levels); 
   }
-  return get_array<LO>(ent_dim, "level");
+  return get_array<Byte>(ent_dim, "level");
 }
 
 Bytes Mesh::ask_leaves(Int ent_dim) {
