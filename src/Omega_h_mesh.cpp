@@ -118,6 +118,7 @@ GO Mesh::nglobal_ents(Int ent_dim) {
 
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
+  if (has_tag(ent_dim, name)) remove_tag(ent_dim, name);
   check_dim2(ent_dim);
   check_tag_name(name);
   OMEGA_H_CHECK(ncomps >= 0);
