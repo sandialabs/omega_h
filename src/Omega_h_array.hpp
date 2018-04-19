@@ -223,7 +223,7 @@ class HostWrite {
 };
 
 template <class T>
-Write<T> deep_copy(Read<T> a);
+Write<T> deep_copy(Read<T> a, std::string const& name = "");
 
 /* begin explicit instantiation declarations */
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
@@ -233,7 +233,7 @@ Write<T> deep_copy(Read<T> a);
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
-  extern template Write<T> deep_copy(Read<T> a);
+  extern template Write<T> deep_copy(Read<T> a, std::string const&);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)
