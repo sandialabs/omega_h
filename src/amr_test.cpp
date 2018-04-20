@@ -26,4 +26,10 @@ int main(int argc, char** argv) {
   edge_writer.write();
   vtx_writer.write();
 
+  Omega_h::amr_refine(&mesh, Omega_h::Bytes({0,0,0,0,0,1,0,0,1,0}), xfer_opts);
+
+  face_writer.write();
+  edge_writer.write();
+  vtx_writer.write();
+
 }
