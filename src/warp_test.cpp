@@ -50,7 +50,7 @@ static void add_pointwise(Mesh* mesh) {
 static void check_total_mass(Mesh* mesh) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
-  auto masses = multiply_each(densities, sizes);
+  Reals masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
   OMEGA_H_CHECK(are_close(1.0, get_sum(mesh->comm(), owned_masses)));
 }

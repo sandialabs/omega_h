@@ -124,27 +124,27 @@ bool are_close_abs(Reals a, Reals b, Real tol) {
 }
 
 template <typename T>
-Read<T> multiply_each_by(Read<T> a, T b) {
-  Write<T> c(a.size());
-  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] * b; };
-  parallel_for(a.size(), f, "multiply_each_by");
-  return c;
-}
-
-template <typename T>
-Read<T> multiply_each(Read<T> a, Read<T> b) {
+Write<T> multiply_each(Read<T> a, Read<T> b, std::string const& name) {
+  Write<T> c(a.size(), name);
   if (b.size() == 0) {
     OMEGA_H_CHECK(a.size() == 0);
-    return a;
+    return c;
   }
   auto width = divide_no_remainder(a.size(), b.size());
-  Write<T> c(a.size());
   auto f = OMEGA_H_LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
       c[i * width + j] = a[i * width + j] * b[i];
     }
   };
   parallel_for(b.size(), f, "multiply_each");
+  return c;
+}
+
+template <typename T>
+Read<T> multiply_each_by(Read<T> a, T b) {
+  Write<T> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] * b; };
+  parallel_for(a.size(), f, "multiply_each_by");
   return c;
 }
 
@@ -582,9 +582,9 @@ Read<Tout> array_cast(Read<Tin> in) {
   template T get_min(CommPtr comm, Read<T> a);                                 \
   template T get_max(CommPtr comm, Read<T> a);                                 \
   template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                      \
+  template Write<T> multiply_each(Read<T> a, Read<T> b, std::string const&);                        \
   template Read<T> multiply_each_by(Read<T> a, T b);                           \
   template Read<T> divide_each_by(Read<T> x, T b);                             \
-  template Read<T> multiply_each(Read<T> a, Read<T> b);                        \
   template Read<T> divide_each(Read<T> a, Read<T> b);                          \
   template Read<T> add_each(Read<T> a, Read<T> b);                             \
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \

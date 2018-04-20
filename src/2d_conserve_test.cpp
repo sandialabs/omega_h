@@ -29,7 +29,7 @@ static void add_density_tag(Mesh* mesh) {
 static void check_total_mass(Mesh* mesh) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
-  auto masses = multiply_each(densities, sizes);
+  Reals masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
   auto expected_mass = 1.0 * 0.5 + 1e-4 * 0.5;
   auto mass = get_sum(mesh->comm(), owned_masses);
@@ -45,8 +45,8 @@ static Vector<2> get_total_momentum(Mesh* mesh) {
       LOs(mesh->nelems(), 0, 1), mesh->dim(), vert_velocities);
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
-  auto masses = multiply_each(densities, sizes);
-  auto momenta = multiply_each(elem_velocities, masses);
+  Reals masses = multiply_each(densities, sizes);
+  Reals momenta = multiply_each(elem_velocities, masses);
   auto owned_momenta = mesh->owned_array(mesh->dim(), momenta, mesh->dim());
   Vector<2> total;
   repro_sum(mesh->comm(), owned_momenta, mesh->dim(), &total[0]);

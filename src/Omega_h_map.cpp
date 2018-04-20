@@ -117,7 +117,7 @@ Read<T> permute(Read<T> a_data, LOs a2b, Int width) {
 LOs multiply_fans(LOs a2b, LOs a2c) {
   auto b_degrees = get_degrees(a2b);
   auto c_degrees = get_degrees(a2c);
-  auto degrees = multiply_each(b_degrees, c_degrees);
+  LOs degrees = multiply_each(b_degrees, c_degrees);
   auto a2bc = offset_scan(degrees);
   return a2bc;
 }
