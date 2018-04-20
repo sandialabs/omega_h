@@ -240,7 +240,7 @@ void tris_from_quads_symmetric(Mesh* mesh) {
   auto qv2v = mesh->ask_elem_verts();
   auto tv2v = Write<LO>(ntris * 3);
   auto f = OMEGA_H_LAMBDA(LO q) {
-    auto qqv2v = gather_verts<8>(qv2v, q);
+    auto qqv2v = gather_verts<4>(qv2v, q);
     for (Int qqt = 0; qqt < 4; ++qqt) {
       auto t = q * 4 + qqt;
       auto v0 = qqv2v[qqt];
