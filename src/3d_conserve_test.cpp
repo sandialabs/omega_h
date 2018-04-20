@@ -19,7 +19,7 @@ constexpr Int obj_ids[nobjs] = {34, 72};
 static void check_total_mass(Mesh* mesh) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
-  auto masses = multiply_each(densities, sizes);
+  Reals masses = multiply_each(densities, sizes);
   auto owned_masses = mesh->owned_array(mesh->dim(), masses, 1);
   auto total_mass = get_sum(mesh->comm(), owned_masses);
   if (mesh->comm()->rank() == 0) {
@@ -42,7 +42,7 @@ static Real get_object_size(Mesh* mesh, Int obj) {
 static Real get_object_mass(Mesh* mesh, Int obj) {
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
-  auto masses = multiply_each(densities, sizes);
+  Reals masses = multiply_each(densities, sizes);
   auto class_ids = mesh->get_array<ClassId>(mesh->dim(), "class_id");
   auto elem_in_obj = each_eq_to(class_ids, obj_ids[obj]);
   auto obj_elems = collect_marked(elem_in_obj);
@@ -56,8 +56,8 @@ static Vector<3> get_total_momentum(Mesh* mesh) {
       average_field(mesh, mesh->dim(), mesh->dim(), vert_velocities);
   auto densities = mesh->get_array<Real>(mesh->dim(), "density");
   auto sizes = mesh->ask_sizes();
-  auto masses = multiply_each(densities, sizes);
-  auto momenta = multiply_each(elem_velocities, masses);
+  Reals masses = multiply_each(densities, sizes);
+  Reals momenta = multiply_each(elem_velocities, masses);
   Vector<3> total;
   repro_sum(mesh->comm(), momenta, mesh->dim(), &total[0]);
   return total;

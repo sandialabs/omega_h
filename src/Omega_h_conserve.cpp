@@ -200,7 +200,7 @@ static void carry_class_bdry_integ_error(Mesh* old_mesh, Mesh* new_mesh,
       divide_each_maybe_zero(old_cav_errors, new_cav_sizes);
   auto cav_elem_error_densities =
       expand(cav_error_densities, keys2new.a2ab, ncomps);
-  auto cav_elem_errors =
+  Reals cav_elem_errors =
       multiply_each(cav_elem_error_densities, new_cav_elem_sizes);
   add_into(cav_elem_errors, keys2new.ab2b, new_elem_errors_w, ncomps);
 }
@@ -223,9 +223,9 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
       unmap(keys2new_elems.ab2b, new_elem_densities, ncomps);
   auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
   auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, new_elem_sizes, 1);
-  auto old_cav_elem_integrals =
+  Reals old_cav_elem_integrals =
       multiply_each(old_cav_elem_densities, old_cav_elem_sizes);
-  auto new_cav_elem_integrals =
+  Reals new_cav_elem_integrals =
       multiply_each(new_cav_elem_densities, new_cav_elem_sizes);
   auto old_cav_integrals = fan_reduce(
       keys2old_elems.a2ab, old_cav_elem_integrals, ncomps, OMEGA_H_SUM);
@@ -237,7 +237,7 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto cav_error_densities = divide_each_maybe_zero(cav_errors, new_cav_sizes);
   auto cav_elem_error_densities =
       expand(cav_error_densities, keys2new_elems.a2ab, ncomps);
-  auto cav_elem_errors =
+  Reals cav_elem_errors =
       multiply_each(cav_elem_error_densities, new_cav_elem_sizes);
   add_into(cav_elem_errors, keys2new_elems.ab2b, new_elem_errors_w, ncomps);
 }
@@ -327,9 +327,9 @@ static void transfer_momentum_error(Mesh* old_mesh, TransferOpts const& opts,
       average_field(old_mesh, dim, ncomps, old_vert_velocities);
   auto new_elem_velocities =
       average_field(new_mesh, dim, ncomps, new_vert_velocities);
-  auto old_elem_momenta =
+  Reals old_elem_momenta =
       multiply_each(old_elem_velocities, old_elem_densities);
-  auto new_elem_momenta =
+  Reals new_elem_momenta =
       multiply_each(new_elem_velocities, new_elem_densities);
   transfer_integ_error(old_mesh, new_mesh, cavs, old_elem_momenta,
       new_elem_momenta, error_name, same_ents2old_ents, same_ents2new_ents,
@@ -739,7 +739,7 @@ static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
   auto old_densities = mesh->get_array<Real>(dim, density_name);
   mesh->add_tag(dim, std::string("old_") + density_name, ncomps, old_densities);
   auto sizes = mesh->ask_sizes();
-  auto old_integrals = multiply_each(old_densities, sizes);
+  Reals old_integrals = multiply_each(old_densities, sizes);
   auto errors = mesh->get_array<Real>(dim, error_name);
   auto diffuse_tol = xfer_opts.integral_diffuse_map.find(integral_name)->second;
   errors = diffuse_integrals_weighted(mesh, diffusion_graph, errors,
@@ -763,14 +763,14 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
   auto error_name = momentum_name + "_error";
   auto elem_densities = mesh->get_array<Real>(dim, density_name);
   auto elem_sizes = mesh->ask_sizes();
-  auto elem_masses = multiply_each(elem_densities, elem_sizes);
+  Reals elem_masses = multiply_each(elem_densities, elem_sizes);
   auto vert_velocities = mesh->get_array<Real>(VERT, velocity_name);
   auto old_elem_densities =
       mesh->get_array<Real>(dim, std::string("old_") + density_name);
-  auto old_elem_masses = multiply_each(old_elem_densities, elem_sizes);
+  Reals old_elem_masses = multiply_each(old_elem_densities, elem_sizes);
   auto elem_velocities = average_field(mesh, dim, ncomps, vert_velocities);
-  auto old_elem_momenta = multiply_each(elem_velocities, old_elem_masses);
-  auto new_elem_momenta = multiply_each(elem_velocities, elem_masses);
+  Reals old_elem_momenta = multiply_each(elem_velocities, old_elem_masses);
+  Reals new_elem_momenta = multiply_each(elem_velocities, elem_masses);
   auto elem_errors_from_density =
       subtract_each(new_elem_momenta, old_elem_momenta);
   auto verts2elems = mesh->ask_up(VERT, dim);
