@@ -41,8 +41,6 @@ class Write {
   Write(LO size_in, T value, std::string const& name = "");
   Write(LO size_in, T offset, T stride, std::string const& name = "");
   Write(HostWrite<T> host_write);
-  OMEGA_H_INLINE Write(Write const&) = default;
-  OMEGA_H_INLINE Write& operator=(Write const&) = default;
   OMEGA_H_INLINE LO size() const {
     OMEGA_H_CHECK(exists());
 #ifdef OMEGA_H_USE_KOKKOSCORE
