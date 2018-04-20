@@ -389,6 +389,22 @@ Reals Mesh::ask_sizes() {
   return get_array<Real>(dim(), "size");
 }
 
+Bytes Mesh::ask_levels(Int ent_dim) {
+  if (!has_tag(ent_dim, "level")) {
+    auto levels = Bytes(nents(ent_dim), 0);
+    add_tag(ent_dim, "level", 1, levels); 
+  }
+  return get_array<Byte>(ent_dim, "level");
+}
+
+Bytes Mesh::ask_leaves(Int ent_dim) {
+  if (!has_tag(ent_dim, "leaf")) {
+    auto leaves = Bytes(nents(ent_dim), 1);
+    add_tag(ent_dim, "leaf", 1, leaves);
+  }
+  return get_array<Byte>(ent_dim, "leaf");
+}
+
 void Mesh::set_owners(Int ent_dim, Remotes owners) {
   check_dim2(ent_dim);
   OMEGA_H_CHECK(nents(ent_dim) == owners.ranks.size());
