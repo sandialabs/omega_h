@@ -1,5 +1,6 @@
 #include <Omega_h_amr_transfer.hpp>
 #include <Omega_h_hypercube.hpp>
+#include <Omega_h_loop.hpp>
 #include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_transfer.hpp>
@@ -27,36 +28,58 @@ void amr_transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void amr_transfer_levels(Mesh* old_mesh, Mesh* new_mesh,
+void amr_transfer_levels(Mesh* old_mesh, Mesh* new_mesh,
     Int prod_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,
     Few<LOs, 4> mods2mds, LOs prods2new_ents) {
-  auto levels = old_mesh->ask_levels(prod_dim);
-  auto tag_data = old_mesh->get_tag<Byte>(prod_dim, "level");
-  auto new_data = Write<Byte>(new_mesh->nents(prod_dim), -1);
+  auto dim = old_mesh->dim();
+  auto old_data = old_mesh->ask_levels(prod_dim);
+  auto new_data = Write<Byte>(new_mesh->nents(prod_dim));
+  auto tag = old_mesh->get_tag<Byte>(prod_dim, "level");
   Int offset = 0;
-  for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= old_mesh->dim();
-      ++mod_dim) {
+  for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
     auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
     auto nmods_of_dim = mods2mds[mod_dim].size();
-    for (LO i = 0; i < mods2mds[mod_dim].size(); ++i) {
-      auto old_idx = mods2mds[mod_dim][i];
-      auto old_level = levels[old_idx];
-      for (Int j = 0; j < nprods_per_mod; ++j) {
-        auto new_idx = prods2new_ents[offset + (i * nprods_per_mod + j)];
+    auto f = OMEGA_H_LAMBDA(LO md) {
+      auto old_idx = mods2mds[mod_dim][md];
+      auto old_level = old_data[old_idx];
+      for (Int prod = 0; prod < nprods_per_mod; ++prod) {
+        auto new_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
         new_data[new_idx] = old_level + 1;
       }
-    }
+    };
+    parallel_for(nmods_of_dim, f);
     offset += nprods_per_mod * nmods_of_dim;
   }
   transfer_common2(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
-      same_ents2new_ents, tag_data, new_data);
+      same_ents2new_ents, tag, new_data);
 }
 
-void amr_transfer_leaves_and_levels(Mesh* old_mesh, Mesh* new_mesh,
+void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh,
     Int prod_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,
-    Few<LOs, 4> mods2mds, LOs prods2new_ents) {
-  amr_transfer_levels(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
-      same_ents2new_ents, mods2mds, prods2new_ents);
+    Few<LOs, 4> mods2mds, LOs prods2new_ents, LOs old_ents2new_ents) {
+  auto dim = old_mesh->dim();
+  auto ncomps = 1;
+  auto old_data = old_mesh->ask_leaves(prod_dim);
+  auto new_data = Write<Byte>(new_mesh->nents(prod_dim), -1);
+  auto same_data = unmap(same_ents2old_ents, old_data, ncomps);
+  map_into(same_data, same_ents2new_ents, new_data, ncomps);
+  Int offset = 0;
+  for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
+    auto mods2new_ents = unmap(mods2mds[mod_dim], old_ents2new_ents, ncomps);
+    auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
+    auto nmods_of_dim = mods2mds[mod_dim].size();
+    auto f = OMEGA_H_LAMBDA(LO md) {
+      for (Int prod = 0; prod < nprods_per_mod; ++prod) {
+        auto new_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
+        new_data[new_idx] = 1;
+      }
+      auto mod_idx = mods2new_ents[md];
+      new_data[mod_idx] = 0;
+    };
+    parallel_for(nmods_of_dim, f);
+    offset += nprods_per_mod * nmods_of_dim;
+  }
+  new_mesh->add_tag<Byte>(prod_dim, "leaf", 1, new_data, true);
 }
 
 }  // namespace Omega_h
