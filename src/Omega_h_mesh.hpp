@@ -107,6 +107,8 @@ class Mesh {
   Reals ask_lengths();
   Reals ask_qualities();
   Reals ask_sizes();
+  Bytes ask_levels(Int dim);
+  Bytes ask_leaves(Int dim);
   void set_owners(Int dim, Remotes owners);
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);

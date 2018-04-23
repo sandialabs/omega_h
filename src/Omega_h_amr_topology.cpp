@@ -7,7 +7,16 @@
 
 namespace Omega_h {
 
-void mark_amr(Mesh* mesh, Read<Byte> elem_mark) {
+static void validate_marking(Mesh* mesh, Bytes elem_mark) {
+  auto is_leaf = mesh->ask_leaves(mesh->dim());
+  auto f = OMEGA_H_LAMBDA(LO elem) {
+    if (elem_mark[elem]) OMEGA_H_CHECK(is_leaf[elem]);
+  };
+  parallel_for(mesh->nelems(), f);
+}
+
+void mark_amr(Mesh* mesh, Bytes elem_mark) {
+  validate_marking(mesh, elem_mark);
   auto elem_dim = mesh->dim();
   for (Int mod_dim = 0; mod_dim <= elem_dim; ++mod_dim) {
     auto dim_mark = mark_down(mesh, elem_dim, mod_dim, elem_mark);
