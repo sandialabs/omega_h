@@ -91,6 +91,11 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   add_adj(ent_dim, ent_dim - 1, down);
 }
 
+void Mesh::set_parents(Int ent_dim, Parents parents) {
+  check_dim2(ent_dim);
+  parents_[ent_dim] = std::make_shared<Parents>(parents);
+}
+
 CommPtr Mesh::comm() const { return comm_; }
 
 LO Mesh::nents(Int ent_dim) const {

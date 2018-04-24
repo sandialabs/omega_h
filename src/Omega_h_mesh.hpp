@@ -26,6 +26,7 @@ class Mesh {
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
+  void set_parents(Int ent_dim, Parents parents);
   Library* library() const;
   CommPtr comm() const;
   Omega_h_Parting parting() const;
