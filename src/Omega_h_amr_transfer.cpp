@@ -66,20 +66,23 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh,
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
   Int offset = 0;
   for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
-    auto mods2new_ents = unmap(mods2mds[mod_dim], old_ents2new_ents, ncomps);
     auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
     auto nmods_of_dim = mods2mds[mod_dim].size();
-    auto f = OMEGA_H_LAMBDA(LO md) {
+    auto f = OMEGA_H_LAMBDA(LO mod) {
       for (Int prod = 0; prod < nprods_per_mod; ++prod) {
-        auto new_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
+        auto new_idx = prods2new_ents[offset + (mod * nprods_per_mod + prod)];
         new_data[new_idx] = 1;
       }
-      auto mod_idx = mods2new_ents[md];
-      new_data[mod_idx] = 0;
     };
     parallel_for(nmods_of_dim, f);
     offset += nprods_per_mod * nmods_of_dim;
   }
+  auto mods2new_ents = unmap(mods2mds[prod_dim], old_ents2new_ents, ncomps);
+  auto f = OMEGA_H_LAMBDA(LO mod) {
+    auto mod_idx = mods2new_ents[mod];
+    new_data[mod_idx] = 0;
+  };
+  parallel_for(mods2mds[prod_dim].size(), f);
   new_mesh->add_tag<Byte>(prod_dim, "leaf", 1, new_data, true);
 }
 
