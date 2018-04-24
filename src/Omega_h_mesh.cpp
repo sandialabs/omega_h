@@ -390,6 +390,7 @@ Reals Mesh::ask_sizes() {
 }
 
 Bytes Mesh::ask_levels(Int ent_dim) {
+  check_dim2(ent_dim);
   if (!has_tag(ent_dim, "level")) {
     auto levels = Bytes(nents(ent_dim), 0);
     add_tag(ent_dim, "level", 1, levels); 
@@ -398,6 +399,7 @@ Bytes Mesh::ask_levels(Int ent_dim) {
 }
 
 Bytes Mesh::ask_leaves(Int ent_dim) {
+  check_dim2(ent_dim);
   if (!has_tag(ent_dim, "leaf")) {
     auto leaves = Bytes(nents(ent_dim), 1);
     add_tag(ent_dim, "leaf", 1, leaves);
