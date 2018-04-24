@@ -83,31 +83,37 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh,
   new_mesh->add_tag<Byte>(prod_dim, "leaf", 1, new_data, true);
 }
 
-void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
+void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh,
+    Int prod_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,
     Few<LOs, 4> mods2mds, LOs prods2new_ents, LOs old_ents2new_ents) {
-  Parents parents;
+  if (prod_dim == VERT) return;
   auto dim = old_mesh->dim();
   auto ncomps = 1;
-  auto pidx = Write<LO>(new_mesh->nents(prod_dim), -1);
-  auto codes = Write<I8>(new_mesh->nents(prod_dim), 0);
+  auto old_parent_data = (old_mesh->ask_parents(prod_dim)).parent_idx;
+  auto old_codes_data = (old_mesh->ask_parents(prod_dim)).codes;
+  auto new_parent_data = Write<LO>(new_mesh->nents(prod_dim), -1);
+  auto new_codes_data = Write<I8>(new_mesh->nents(prod_dim), 0);
+  auto same_parent_data = unmap(same_ents2old_ents, old_parent_data, ncomps);
+  auto same_code_data = unmap(same_ents2old_ents, old_codes_data, ncomps);
+  map_into(same_parent_data, same_ents2new_ents, new_parent_data, ncomps);
+  map_into(same_code_data, same_ents2new_ents, new_codes_data, ncomps);
   Int offset = 0;
   for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
     auto mods2new_ents = unmap(mods2mds[mod_dim], old_ents2new_ents, ncomps);
     auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
     auto nmods_of_dim = mods2mds[mod_dim].size();
     auto f = OMEGA_H_LAMBDA(LO md) {
-      auto parent_id = mods2new_ents[md];
+      auto mod_id = mods2new_ents[md];
       for (Int prod = 0; prod < nprods_per_mod; ++prod) {
-        auto child_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
-        pidx[child_idx] = parent_id;
-        codes[child_idx] = make_amr_code(prod, mod_dim);
+        auto prod_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
+        new_parent_data[prod_idx] = mod_id;
+        new_codes_data[prod_idx] = make_amr_code(prod, mod_dim);
       }
     };
     parallel_for(nmods_of_dim, f);
     offset += nprods_per_mod * nmods_of_dim;
   }
-  parents.parent_idx = pidx;
-  parents.codes = codes;
+  Parents parents(new_parent_data, new_codes_data);
   new_mesh->set_parents(prod_dim, parents);
 }
 

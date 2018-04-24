@@ -20,7 +20,8 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     LOs prods2new_ents, LOs old_ents2new_ents);
 
 void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
-    Few<LOs, 4> mods2mds, LOs prods2new_ents, LOs old_ents2new_ents);
+    LOs same_ents2old_ents, LOs same_ents2new_ents, Few<LOs, 4> mods2mds,
+    LOs prods2new_ents, LOs old_ents2new_ents);
 
 }  // namespace Omega_h
 
