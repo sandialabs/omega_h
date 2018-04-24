@@ -91,6 +91,8 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
         same_ents2new_ents, mods2mds, prods2new_ents);
     amr_transfer_leaves(mesh, &new_mesh, prod_dim, same_ents2old_ents,
         same_ents2new_ents, mods2mds, prods2new_ents, old_ents2new_ents);
+    amr_transfer_parents(mesh, &new_mesh, prod_dim, mods2mds, prods2new_ents,
+        old_ents2new_ents);
     old_lows2new_lows = old_ents2new_ents;
   }
   *mesh = new_mesh;

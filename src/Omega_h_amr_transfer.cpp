@@ -1,3 +1,4 @@
+#include <Omega_h_amr.hpp>
 #include <Omega_h_amr_transfer.hpp>
 #include <Omega_h_hypercube.hpp>
 #include <Omega_h_loop.hpp>
@@ -80,6 +81,34 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh,
     offset += nprods_per_mod * nmods_of_dim;
   }
   new_mesh->add_tag<Byte>(prod_dim, "leaf", 1, new_data, true);
+}
+
+void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
+    Few<LOs, 4> mods2mds, LOs prods2new_ents, LOs old_ents2new_ents) {
+  Parents parents;
+  auto dim = old_mesh->dim();
+  auto ncomps = 1;
+  auto pidx = Write<LO>(new_mesh->nents(prod_dim), -1);
+  auto codes = Write<I8>(new_mesh->nents(prod_dim), 0);
+  Int offset = 0;
+  for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
+    auto mods2new_ents = unmap(mods2mds[mod_dim], old_ents2new_ents, ncomps);
+    auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
+    auto nmods_of_dim = mods2mds[mod_dim].size();
+    auto f = OMEGA_H_LAMBDA(LO md) {
+      auto parent_id = mods2new_ents[md];
+      for (Int prod = 0; prod < nprods_per_mod; ++prod) {
+        auto child_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
+        pidx[child_idx] = parent_id;
+        codes[child_idx] = make_amr_code(prod, mod_dim);
+      }
+    };
+    parallel_for(nmods_of_dim, f);
+    offset += nprods_per_mod * nmods_of_dim;
+  }
+  parents.parent_idx = pidx;
+  parents.codes = codes;
+  new_mesh->set_parents(prod_dim, parents);
 }
 
 }  // namespace Omega_h
