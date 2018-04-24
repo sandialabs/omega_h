@@ -415,9 +415,9 @@ Bytes Mesh::ask_leaves(Int ent_dim) {
 Parents Mesh::ask_parents(Int child_dim) {
   check_dim2(child_dim);
   if (!parents_[child_dim]) {
-    Parents p;
-    p.parent_idx = LOs(nents(child_dim), -1);
-    p.codes = Read<I8>(nents(child_dim), 0);
+    auto parent_idx = LOs(nents(child_dim), -1);
+    auto codes = Read<I8>(nents(child_dim), 0);
+    Parents p(parent_idx, codes);
     parents_[child_dim] = std::make_shared<Parents>(p);
   }
   return *(parents_[child_dim]);

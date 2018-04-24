@@ -20,6 +20,9 @@ struct Adj : public Graph {
 };
 
 struct Parents {
+  OMEGA_H_INLINE Parents() {}
+  Parents(LOs parent_idx_, Read<I8> codes_)
+      : parent_idx(parent_idx_), codes(codes_) {}
   LOs parent_idx;
   Read<I8> codes;
 };
