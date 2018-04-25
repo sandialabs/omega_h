@@ -6,8 +6,6 @@
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_transfer.hpp>
 
-#include <Omega_h_print.hpp>
-
 namespace Omega_h {
 
 void amr_transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
