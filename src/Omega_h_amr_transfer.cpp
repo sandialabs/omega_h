@@ -6,6 +6,8 @@
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_transfer.hpp>
 
+#include <Omega_h_print.hpp>
+
 namespace Omega_h {
 
 void amr_transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
@@ -87,37 +89,38 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
 }
 
 void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh,
-    Int prod_dim, LOs same_ents2old_ents, LOs same_ents2new_ents,
-    Few<LOs, 4> mods2mds, LOs prods2new_ents, LOs old_ents2new_ents) {
-  if (prod_dim == VERT) return;
+    Few<LOs, 4> mods2mds, Few<LOs, 4> prods2new_ents,
+    Few<LOs, 4> same_ents2old_ents, Few<LOs, 4> same_ents2new_ents,
+    Few<LOs, 4> old_ents2new_ents) {
   auto dim = old_mesh->dim();
-  auto ncomps = 1;
-  auto old_parent_data = (old_mesh->ask_parents(prod_dim)).parent_idx;
-  auto old_codes_data = (old_mesh->ask_parents(prod_dim)).codes;
-  auto new_parent_data = Write<LO>(new_mesh->nents(prod_dim), -1);
-  auto new_codes_data = Write<I8>(new_mesh->nents(prod_dim), 0);
-  auto same_parent_data = unmap(same_ents2old_ents, old_parent_data, ncomps);
-  auto same_code_data = unmap(same_ents2old_ents, old_codes_data, ncomps);
-  map_into(same_parent_data, same_ents2new_ents, new_parent_data, ncomps);
-  map_into(same_code_data, same_ents2new_ents, new_codes_data, ncomps);
-  Int offset = 0;
-  for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
-    auto mods2new_ents = unmap(mods2mds[mod_dim], old_ents2new_ents, ncomps);
-    auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
-    auto nmods_of_dim = mods2mds[mod_dim].size();
-    auto f = OMEGA_H_LAMBDA(LO md) {
-      auto mod_id = mods2new_ents[md];
-      for (Int prod = 0; prod < nprods_per_mod; ++prod) {
-        auto prod_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
-        new_parent_data[prod_idx] = mod_id;
-        new_codes_data[prod_idx] = make_amr_code(prod, mod_dim);
-      }
-    };
-    parallel_for(nmods_of_dim, f);
-    offset += nprods_per_mod * nmods_of_dim;
+  for (Int prod_dim = 0; prod_dim <= dim; ++prod_dim) {
+    auto old_p_data = (old_mesh->ask_parents(prod_dim)).parent_idx;
+    auto old_c_data = (old_mesh->ask_parents(prod_dim)).codes;
+    auto new_p_data = Write<LO>(new_mesh->nents(prod_dim), 42);
+    auto new_c_data = Write<I8>(new_mesh->nents(prod_dim), 0);
+    auto same_p_data = unmap(same_ents2old_ents[prod_dim], old_p_data, 1);
+    auto same_c_data = unmap(same_ents2old_ents[prod_dim], old_c_data, 1);
+    map_into(same_p_data, same_ents2new_ents[prod_dim], new_p_data, 1);
+    map_into(same_c_data, same_ents2new_ents[prod_dim], new_c_data, 1);
+    Int offset = 0;
+    for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
+      auto mods2new_ents = unmap(mods2mds[mod_dim], old_ents2new_ents[mod_dim], 1);
+      auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
+      auto nmods_of_dim = mods2mds[mod_dim].size();
+      auto f = OMEGA_H_LAMBDA(LO mod) {
+        for (Int prod = 0; prod < nprods_per_mod; ++prod) {
+          auto idx = offset + (mod * nprods_per_mod + prod);
+          auto prod_idx = prods2new_ents[prod_dim][idx];
+          new_p_data[prod_idx] = mods2new_ents[mod];
+          new_c_data[prod_idx] = make_amr_code(prod, mod_dim);
+        }
+      };
+      parallel_for(nmods_of_dim, f);
+      offset += nprods_per_mod * nmods_of_dim;
+    }
+    Parents parents(new_p_data, new_c_data);
+    new_mesh->set_parents(prod_dim, parents);
   }
-  Parents parents(new_parent_data, new_codes_data);
-  new_mesh->set_parents(prod_dim, parents);
 }
 
 }  // namespace Omega_h
