@@ -38,11 +38,11 @@ void amr_transfer_levels(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     auto old_mod_data = old_mesh->ask_levels(mod_dim);
     auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
     auto nmods_of_dim = mods2mds[mod_dim].size();
-    auto f = OMEGA_H_LAMBDA(LO md) {
-      auto old_idx = mods2mds[mod_dim][md];
+    auto f = OMEGA_H_LAMBDA(LO mod) {
+      auto old_idx = mods2mds[mod_dim][mod];
       auto old_level = old_mod_data[old_idx];
       for (Int prod = 0; prod < nprods_per_mod; ++prod) {
-        auto new_idx = prods2new_ents[offset + (md * nprods_per_mod + prod)];
+        auto new_idx = prods2new_ents[offset + (mod * nprods_per_mod + prod)];
         new_data[new_idx] = old_level + 1;
       }
     };
