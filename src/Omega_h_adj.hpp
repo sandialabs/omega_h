@@ -19,6 +19,14 @@ struct Adj : public Graph {
   Read<I8> codes;
 };
 
+struct Parents {
+  OMEGA_H_INLINE Parents() {}
+  Parents(LOs parent_idx_, Read<I8> codes_)
+      : parent_idx(parent_idx_), codes(codes_) {}
+  LOs parent_idx;
+  Read<I8> codes;
+};
+
 void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
     LOs* a2b_out, Read<I8>* codes_out);
 

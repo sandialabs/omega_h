@@ -11,7 +11,7 @@
 
 namespace Omega_h {
 
-enum {
+enum SetType {
   ELEM_SET,
   SIDE_SET,
   NODE_SET,
