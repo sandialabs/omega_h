@@ -307,9 +307,11 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
   finalize_classification(mesh);
   auto num_time_steps = int(ex_inquire_int(file, EX_INQ_TIME));
   if (verbose) std::cout << num_time_steps << " time steps\n";
-  if (time_step < 0) time_step = num_time_steps - 1;
-  if (verbose) std::cout << "reading time step " << time_step << '\n';
-  read_nodal_fields(mesh, file, time_step, verbose);
+  if (num_time_steps > 0) {
+    if (time_step < 0) time_step = num_time_steps - 1;
+    if (verbose) std::cout << "reading time step " << time_step << '\n';
+    read_nodal_fields(mesh, file, time_step, verbose);
+  }
   CALL(ex_close(file));
   end_code();
 }
