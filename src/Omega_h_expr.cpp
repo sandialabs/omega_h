@@ -525,6 +525,7 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
   if (dim == 3) register_variable("I", any(identity_matrix<3, 3>()));
   if (dim == 2) register_variable("I", any(identity_matrix<2, 2>()));
   if (dim == 1) register_variable("I", any(identity_matrix<1, 1>()));
+  register_variable("pi", any(Real(Omega_h::PI)));
 }
 
 ExprReader::~ExprReader() {}
