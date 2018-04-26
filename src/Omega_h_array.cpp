@@ -351,7 +351,8 @@ T HostRead<T>::last() const {
 
 template <class T>
 Write<T> deep_copy(Read<T> a, std::string const& name) {
-  Write<T> b(a.size(), name);
+  auto name2 = name.empty() ? a.name() : name;
+  Write<T> b(a.size(), name2);
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(b.view(), a.view());
 #else
