@@ -969,17 +969,6 @@ void Writer::write(Real time) {
 
 void Writer::write() { this->write(Real(step_)); }
 
-FullWriter::FullWriter() {}
-
-FullWriter::FullWriter(FullWriter const& other) : writers_(other.writers_) {}
-
-FullWriter& FullWriter::operator=(FullWriter const& other) {
-  writers_ = other.writers_;
-  return *this;
-}
-
-FullWriter::~FullWriter() {}
-
 FullWriter::FullWriter(std::string const& root_path, Mesh* mesh) {
   auto comm = mesh->comm();
   auto rank = comm->rank();

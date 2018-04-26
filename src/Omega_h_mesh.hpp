@@ -26,6 +26,7 @@ class Mesh {
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
+  void set_parents(Int ent_dim, Parents parents);
   Library* library() const;
   CommPtr comm() const;
   Omega_h_Parting parting() const;
@@ -73,6 +74,7 @@ class Mesh {
   typedef std::shared_ptr<Adj> AdjPtr;
   typedef std::shared_ptr<Dist> DistPtr;
   typedef std::shared_ptr<inertia::Rib> RibPtr;
+  typedef std::shared_ptr<Parents> ParentPtr;
 
  private:
   typedef std::vector<TagPtr> TagVector;
@@ -97,6 +99,7 @@ class Mesh {
   Remotes owners_[DIMS];
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;
+  ParentPtr parents_[DIMS];
   Library* library_;
 
  public:
@@ -109,6 +112,7 @@ class Mesh {
   Reals ask_sizes();
   Bytes ask_levels(Int dim);
   Bytes ask_leaves(Int dim);
+  Parents ask_parents(Int child_dim);
   void set_owners(Int dim, Remotes owners);
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);

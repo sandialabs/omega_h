@@ -91,6 +91,11 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   add_adj(ent_dim, ent_dim - 1, down);
 }
 
+void Mesh::set_parents(Int ent_dim, Parents parents) {
+  check_dim2(ent_dim);
+  parents_[ent_dim] = std::make_shared<Parents>(parents);
+}
+
 CommPtr Mesh::comm() const { return comm_; }
 
 LO Mesh::nents(Int ent_dim) const {
@@ -390,6 +395,7 @@ Reals Mesh::ask_sizes() {
 }
 
 Bytes Mesh::ask_levels(Int ent_dim) {
+  check_dim2(ent_dim);
   if (!has_tag(ent_dim, "level")) {
     auto levels = Bytes(nents(ent_dim), 0);
     add_tag(ent_dim, "level", 1, levels); 
@@ -398,11 +404,23 @@ Bytes Mesh::ask_levels(Int ent_dim) {
 }
 
 Bytes Mesh::ask_leaves(Int ent_dim) {
+  check_dim2(ent_dim);
   if (!has_tag(ent_dim, "leaf")) {
     auto leaves = Bytes(nents(ent_dim), 1);
     add_tag(ent_dim, "leaf", 1, leaves);
   }
   return get_array<Byte>(ent_dim, "leaf");
+}
+
+Parents Mesh::ask_parents(Int child_dim) {
+  check_dim2(child_dim);
+  if (!parents_[child_dim]) {
+    auto parent_idx = LOs(nents(child_dim), -1);
+    auto codes = Read<I8>(nents(child_dim), 0);
+    Parents p(parent_idx, codes);
+    parents_[child_dim] = std::make_shared<Parents>(p);
+  }
+  return *(parents_[child_dim]);
 }
 
 void Mesh::set_owners(Int ent_dim, Remotes owners) {
