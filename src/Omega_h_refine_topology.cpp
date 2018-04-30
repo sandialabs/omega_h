@@ -62,7 +62,7 @@ void refine_domains_to_pairs(Mesh* mesh, Int dim, LOs keys2edges,
   auto edge_doms2doms = edges2doms.ab2b;
   auto edge_dom_codes = edges2doms.codes;
   auto edge_dom_degrees = get_degrees(edges2edge_doms);
-  auto key_dom_degrees = unmap(keys2edges, edge_dom_degrees, 1);
+  auto key_dom_degrees = read(unmap(keys2edges, edge_dom_degrees, 1));
   auto keys2key_doms = offset_scan(key_dom_degrees);
   auto ndoms = keys2key_doms.last();
   auto npairs = ndoms * 2;
@@ -114,7 +114,7 @@ void refine_domains_to_cuts(Mesh* mesh, Int dim, LOs keys2edges,
   auto edge_doms2doms = edges2doms.ab2b;
   auto edge_dom_codes = edges2doms.codes;
   auto edge_dom_degrees = get_degrees(edges2edge_doms);
-  auto key_dom_degrees = unmap(keys2edges, edge_dom_degrees, 1);
+  auto key_dom_degrees = read(unmap(keys2edges, edge_dom_degrees, 1));
   auto keys2key_doms = offset_scan(key_dom_degrees);
   auto ndoms = keys2key_doms.last();
   auto ncuts = ndoms;

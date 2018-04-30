@@ -54,7 +54,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     auto old_ent_low_codes = old_ents2old_lows.codes;
     OMEGA_H_CHECK(same_ents2old_ents.size() == same_ents2new_ents.size());
     auto same_ent_low_codes =
-        unmap(same_ents2old_ents, old_ent_low_codes, down_degree);
+        read(unmap(same_ents2old_ents, old_ent_low_codes, down_degree));
     map_into(
         same_ent_low_codes, same_ents2new_ents, new_ent_low_codes, down_degree);
     auto prod_low_codes = prods2new_lows.codes;
@@ -87,7 +87,7 @@ static Remotes get_prod_owners_shared(Mesh* mesh, Few<LOs, 4> mods2mds,
     /* HACK: assuming the number of products per split entity is constant! */
     auto nprods_per_mod = divide_no_remainder(nmod_prods, nmods);
     auto md_ranks = mesh->ask_owners(mod_dim).ranks;
-    auto mod_ranks = unmap(mods2mds[mod_dim], md_ranks, 1);
+    auto mod_ranks = read(unmap(mods2mds[mod_dim], md_ranks, 1));
     auto mod_prod_idxs = unmap_range(prod_begin, prod_end, prods2new_ents, 1);
     mod_prod_idxs = mesh->sync_subset_array(
         mod_dim, mod_prod_idxs, mods2mds[mod_dim], -1, nprods_per_mod);

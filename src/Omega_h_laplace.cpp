@@ -21,7 +21,7 @@ Reals solve_laplacian(
   auto boundary = invert_marks(interior);
   auto b2v = collect_marked(boundary);
   auto weights = Reals(star.ab2b.size(), 1.0);
-  auto bc_data = unmap(b2v, initial, width);
+  auto bc_data = read(unmap(b2v, initial, width));
   bool done = false;
   Int niters = 0;
   do {

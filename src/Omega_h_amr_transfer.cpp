@@ -62,7 +62,7 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
   auto ncomps = 1;
   auto old_data = old_mesh->ask_leaves(prod_dim);
   auto new_data = Write<Byte>(new_mesh->nents(prod_dim), -1);
-  auto same_data = unmap(same_ents2old_ents, old_data, ncomps);
+  auto same_data = read(unmap(same_ents2old_ents, old_data, ncomps));
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
   Int offset = 0;
   for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
@@ -96,8 +96,8 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh,
     auto old_c_data = (old_mesh->ask_parents(prod_dim)).codes;
     auto new_p_data = Write<LO>(new_mesh->nents(prod_dim), 42);
     auto new_c_data = Write<I8>(new_mesh->nents(prod_dim), 0);
-    auto same_p_data = unmap(same_ents2old_ents[prod_dim], old_p_data, 1);
-    auto same_c_data = unmap(same_ents2old_ents[prod_dim], old_c_data, 1);
+    auto same_p_data = read(unmap(same_ents2old_ents[prod_dim], old_p_data, 1));
+    auto same_c_data = read(unmap(same_ents2old_ents[prod_dim], old_c_data, 1));
     map_into(same_p_data, same_ents2new_ents[prod_dim], new_p_data, 1);
     map_into(same_c_data, same_ents2new_ents[prod_dim], new_c_data, 1);
     Int offset = 0;

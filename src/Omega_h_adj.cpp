@@ -17,7 +17,7 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
   auto bc2c = b2c.ab2b;
   auto bc_codes = b2c.codes;
   auto b_degrees = get_degrees(b2bc);
-  auto a_degrees = unmap(a2b, b_degrees, 1);
+  LOs a_degrees = unmap(a2b, b_degrees, 1);
   auto a2ac = offset_scan(a_degrees);
   auto na = a2b.size();
   auto nac = a2ac.last();

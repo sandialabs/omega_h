@@ -42,7 +42,7 @@ Graph unmap_graph(LOs a2b, Graph b2c) {
   auto b2bc = b2c.a2ab;
   auto bc2c = b2c.ab2b;
   auto b_degrees = get_degrees(b2bc);
-  auto a_degrees = unmap(a2b, b_degrees, 1);
+  auto a_degrees = read(unmap(a2b, b_degrees, 1));
   auto a2ac = offset_scan(a_degrees);
   auto na = a2b.size();
   Write<LO> ac2c(a2ac.last());
@@ -61,7 +61,7 @@ template <typename T>
 Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   auto a2ab = a2b.a2ab;
   auto ab2b = a2b.ab2b;
-  auto ab_data = unmap(ab2b, b_data, width);
+  auto ab_data = read(unmap(ab2b, b_data, width));
   return fan_reduce(a2ab, ab_data, width, op);
 }
 

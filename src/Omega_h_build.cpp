@@ -165,7 +165,7 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
 void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
     LOs* p_ent_verts2verts, Remotes* p_ents2owners) {
   auto ev2v = *p_ent_verts2verts;
-  auto ev2vg = unmap(ev2v, verts2globs, 1);
+  auto ev2vg = read(unmap(ev2v, verts2globs, 1));
   auto canon_codes = get_codes_to_canonical(deg, ev2vg);
   auto ev2v_canon = align_ev2v(deg, ev2v, canon_codes);
   *p_ent_verts2verts = ev2v_canon;

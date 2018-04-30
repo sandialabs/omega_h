@@ -151,7 +151,7 @@ static CavsByBdryStatus separate_cavities(Mesh* old_mesh, Mesh* new_mesh,
   auto int_cavs2cavs = collect_marked(cavs_arent_bdry);
   out[NOT_BDRY][NO_COLOR].push_back(unmap_cavs(int_cavs2cavs, cavs));
   auto kd_class_dims = old_mesh->get_array<I8>(key_dim, "class_dim");
-  auto key_class_dims = unmap(keys2kds, kd_class_dims, 1);
+  auto key_class_dims = read(unmap(keys2kds, kd_class_dims, 1));
   auto keys_are_bdry = each_lt(key_class_dims, I8(old_mesh->dim()));
   auto bdry_cavs2cavs = collect_marked(keys_are_bdry);
   out[KEY_BDRY][NO_COLOR].push_back(unmap_cavs(bdry_cavs2cavs, cavs));
@@ -188,7 +188,7 @@ static void carry_class_bdry_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto keys2old = class_bdry_cavs.keys2old_elems;
   auto keys2new = class_bdry_cavs.keys2new_elems;
   auto new_elem_sizes = new_mesh->ask_sizes();
-  auto new_cav_elem_sizes = unmap(keys2new.ab2b, new_elem_sizes, 1);
+  auto new_cav_elem_sizes = read(unmap(keys2new.ab2b, new_elem_sizes, 1));
   auto old_tag = old_mesh->get_tag<Real>(dim, error_name);
   auto ncomps = old_tag->ncomps();
   auto old_elem_errors = old_tag->array();
@@ -218,11 +218,11 @@ static void introduce_class_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto old_elem_sizes = old_mesh->ask_sizes();
   auto new_elem_sizes = new_mesh->ask_sizes();
   auto old_cav_elem_densities =
-      unmap(keys2old_elems.ab2b, old_elem_densities, ncomps);
+      read(unmap(keys2old_elems.ab2b, old_elem_densities, ncomps));
   auto new_cav_elem_densities =
-      unmap(keys2new_elems.ab2b, new_elem_densities, ncomps);
-  auto old_cav_elem_sizes = unmap(keys2old_elems.ab2b, old_elem_sizes, 1);
-  auto new_cav_elem_sizes = unmap(keys2new_elems.ab2b, new_elem_sizes, 1);
+      read(unmap(keys2new_elems.ab2b, new_elem_densities, ncomps));
+  auto old_cav_elem_sizes = read(unmap(keys2old_elems.ab2b, old_elem_sizes, 1));
+  auto new_cav_elem_sizes = read(unmap(keys2new_elems.ab2b, new_elem_sizes, 1));
   Reals old_cav_elem_integrals =
       multiply_each(old_cav_elem_densities, old_cav_elem_sizes);
   Reals new_cav_elem_integrals =
@@ -258,7 +258,7 @@ static void transfer_integ_error(Mesh* old_mesh, Mesh* new_mesh,
   auto ncomps = old_tag->ncomps();
   auto old_elem_errors = old_tag->array();
   auto new_elem_errors_w = Write<Real>(new_mesh->nelems() * ncomps, 0.0);
-  auto same_errors = unmap(same_ents2old_ents, old_elem_errors, ncomps);
+  auto same_errors = read(unmap(same_ents2old_ents, old_elem_errors, ncomps));
   map_into(same_errors, same_ents2new_ents, new_elem_errors_w, ncomps);
   for (std::size_t i = 0; i < 3; ++i) {
     if (!conserved_bools.this_time[i]) {

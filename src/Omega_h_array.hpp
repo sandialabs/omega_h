@@ -125,6 +125,9 @@ class Read {
   std::string name() const { return write_.name(); }
 };
 
+template <typename T>
+Read<T> read(Write<T> a) { return Read<T>(a); }
+
 class Bytes : public Read<Byte> {
  public:
   OMEGA_H_INLINE Bytes() {}
