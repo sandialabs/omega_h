@@ -47,7 +47,8 @@ Adj unmap_adjacency(LOs a2b, Adj b2c);
    index of the upward adjacent entity */
 Adj invert_adj(Adj down, Int nlows_per_high, LO nlows);
 
-Children invert_parents(Parents children2parents, Int parent_dim);
+Children invert_parents(Parents children2parents, Int parent_dim,
+    Int nparent_dim_ents);
 
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low

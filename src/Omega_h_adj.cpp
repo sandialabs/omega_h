@@ -234,13 +234,12 @@ static Bytes filter_parents(Parents c2p, Int parent_dim) {
   return filter;
 }
 
-Children invert_parents(Parents c2p, Int parent_dim) {
+Children invert_parents(Parents c2p, Int parent_dim, Int nparent_dim_ents) {
   auto filter = filter_parents(c2p, parent_dim);
   auto rc2c = collect_marked(filter);
   auto rc2p = unmap(rc2c, c2p.parent_idx, 1);
-  auto nparents = rc2c.size();
   begin_code("invert_parents");
-  auto p2rc = invert_map_by_atomics(rc2p, nparents);
+  auto p2rc = invert_map_by_atomics(rc2p, nparent_dim_ents);
   auto p2pc = p2rc.a2ab;
   auto pc2rc = p2rc.ab2b;
   auto pc2c = unmap(pc2rc, rc2c, 1);
