@@ -75,6 +75,7 @@ class Mesh {
   typedef std::shared_ptr<Dist> DistPtr;
   typedef std::shared_ptr<inertia::Rib> RibPtr;
   typedef std::shared_ptr<Parents> ParentPtr;
+  typedef std::shared_ptr<Children> ChildrenPtr;
 
  private:
   typedef std::vector<TagPtr> TagVector;
@@ -100,6 +101,7 @@ class Mesh {
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;
   ParentPtr parents_[DIMS];
+  ChildrenPtr children_[DIMS][DIMS];
   Library* library_;
 
  public:
@@ -113,6 +115,7 @@ class Mesh {
   Bytes ask_levels(Int dim);
   Bytes ask_leaves(Int dim);
   Parents ask_parents(Int child_dim);
+  Children ask_children(Int parent_dim, Int child_dim);
   void set_owners(Int dim, Remotes owners);
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);

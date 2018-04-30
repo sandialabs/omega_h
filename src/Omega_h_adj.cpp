@@ -1,6 +1,7 @@
 #include "Omega_h_adj.hpp"
 
 #include "Omega_h_align.hpp"
+#include "Omega_h_amr.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_control.hpp"
 #include "Omega_h_element.hpp"
@@ -221,6 +222,32 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
   sort_by_high_index(l2lh, lh2h, codes);
   end_code();
   return Adj(l2lh, lh2h, codes);
+}
+
+static Bytes filter_parents(Parents c2p, Int parent_dim) {
+  Write<Byte> filter(c2p.parent_idx.size(), 0);
+  auto f = OMEGA_H_LAMBDA(LO c) {
+    auto code = c2p.codes[c];
+    if (code_parent_dim(code) == parent_dim) filter[c] = 1;
+  };
+  parallel_for(c2p.parent_idx.size(), f, "filter_parents");
+  return filter;
+}
+
+Children invert_parents(Parents c2p, Int parent_dim) {
+  auto filter = filter_parents(c2p, parent_dim);
+  auto rc2c = collect_marked(filter);
+  auto rc2p = unmap(rc2c, c2p.parent_idx, 1);
+  auto nparents = rc2c.size();
+  begin_code("invert_parents");
+  auto p2rc = invert_map_by_atomics(rc2p, nparents);
+  auto p2pc = p2rc.a2ab;
+  auto pc2rc = p2rc.ab2b;
+  auto pc2c = unmap(pc2rc, rc2c, 1);
+  auto codes = unmap(pc2c, c2p.codes, 1);
+  sort_by_high_index(p2pc, pc2c, codes);
+  end_code();
+  return Children(p2pc, pc2c, codes);
 }
 
 template <Int deg>
