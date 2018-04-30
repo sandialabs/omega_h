@@ -225,20 +225,21 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
 }
 
 static Bytes filter_parents(Parents c2p, Int parent_dim) {
-  Write<Byte> filter(c2p.parent_idx.size(), 0);
+  Write<Byte> filter(c2p.parent_idx.size());
   auto f = OMEGA_H_LAMBDA(LO c) {
     auto code = c2p.codes[c];
     if (code_parent_dim(code) == parent_dim) filter[c] = 1;
+    else filter[c] = 0;
   };
   parallel_for(c2p.parent_idx.size(), f, "filter_parents");
   return filter;
 }
 
 Children invert_parents(Parents c2p, Int parent_dim, Int nparent_dim_ents) {
+  begin_code("invert_parents");
   auto filter = filter_parents(c2p, parent_dim);
   auto rc2c = collect_marked(filter);
   auto rc2p = unmap(rc2c, c2p.parent_idx, 1);
-  begin_code("invert_parents");
   auto p2rc = invert_map_by_atomics(rc2p, nparent_dim_ents);
   auto p2pc = p2rc.a2ab;
   auto pc2rc = p2rc.ab2b;
