@@ -12,6 +12,7 @@ LO Graph::nnodes() const { return a2ab.size() - 1; }
 LO Graph::nedges() const { return ab2b.size(); }
 
 Graph add_edges(Graph g1, Graph g2) {
+  OMEGA_H_TIME_FUNCTION;
   auto v2e1 = g1.a2ab;
   auto e2v1 = g1.ab2b;
   auto v2e2 = g2.a2ab;
@@ -20,8 +21,8 @@ Graph add_edges(Graph g1, Graph g2) {
   auto deg1 = get_degrees(v2e1);
   auto deg2 = get_degrees(v2e2);
   auto deg = add_each(deg1, deg2);
-  auto v2e = offset_scan(deg);
-  Write<LO> e2v(v2e.last());
+  auto v2e = offset_scan(deg, v2e1.name());
+  Write<LO> e2v(v2e.last(), e2v1.name());
   auto f = OMEGA_H_LAMBDA(LO v) {
     auto begin1 = v2e1[v];
     auto end1 = v2e1[v + 1];

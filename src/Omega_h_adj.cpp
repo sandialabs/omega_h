@@ -468,6 +468,7 @@ Adj transit(
 }
 
 Graph verts_across_edges(Adj e2v, Adj v2e) {
+  OMEGA_H_TIME_FUNCTION;
   auto ev2v = e2v.ab2b;
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
@@ -487,6 +488,7 @@ Graph verts_across_edges(Adj e2v, Adj v2e) {
 }
 
 Graph edges_across_tris(Adj f2e, Adj e2f) {
+  OMEGA_H_TIME_FUNCTION;
   auto fe2e = f2e.ab2b;
   auto e2ef = e2f.a2ab;
   auto ef2f = e2f.ab2b;
@@ -518,6 +520,7 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
 }
 
 Graph edges_across_tets(Adj r2e, Adj e2r) {
+  OMEGA_H_TIME_FUNCTION;
   auto re2e = r2e.ab2b;
   auto e2er = e2r.a2ab;
   auto er2r = e2r.ab2b;
@@ -545,6 +548,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
 
 Graph elements_across_sides(
     Int dim, Adj elems2sides, Adj sides2elems, Read<I8> side_is_exposed) {
+  OMEGA_H_TIME_FUNCTION;
   auto elem_side2side = elems2sides.ab2b;
   auto side2side_elems = sides2elems.a2ab;
   auto side_elem2elem = sides2elems.ab2b;
