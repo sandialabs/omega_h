@@ -375,7 +375,7 @@ OMEGA_H_INLINE Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
   basis[0] = e[ttv];
   basis[1] = -e[(ttv + 2) % 3];
   if (ttv_obtuse >= 0) {
-    auto area = triangle_area(basis);
+    auto area = triangle_area_from_basis(basis);
     if (ttv == ttv_obtuse)
       return area / 2.0;
     else
@@ -385,10 +385,10 @@ OMEGA_H_INLINE Real get_mixed_area(Few<Vector<3>, 3> p, Int ttv) {
     Few<Vector<3>, 2> halfbasis;
     halfbasis[0] = basis[0] / 2.0;
     halfbasis[1] = ao;
-    auto area = triangle_area(halfbasis);
+    auto area = triangle_area_from_basis(halfbasis);
     halfbasis[0] = ao;
     halfbasis[1] = basis[1] / 2.0;
-    area += triangle_area(halfbasis);
+    area += triangle_area_from_basis(halfbasis);
     return area;
   }
 }

@@ -31,7 +31,7 @@ template <Int dim, typename Metric>
 OMEGA_H_INLINE Real metric_element_quality(
     Few<Vector<dim>, dim + 1> p, Metric metric) {
   auto b = simplex_basis<dim, dim>(p);
-  auto rs = element_size(b);
+  auto rs = simplex_size_from_basis(b);
   auto s = metric_size<dim>(rs, metric);
   if (s < 0) return s;
   auto ev = element_edge_vectors(p, b);

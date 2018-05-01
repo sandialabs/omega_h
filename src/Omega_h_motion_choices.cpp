@@ -65,7 +65,7 @@ MotionChoices motion_choices_tmpl(
         auto kkv2nx = gather_vectors<mesh_dim + 1, mesh_dim>(coords, kkv2v);
         kkv2nx[kkv_c] = new_x;
         auto k_basis = simplex_basis<mesh_dim, mesh_dim>(kkv2nx);
-        auto k_tmp_size = element_size(k_basis);
+        auto k_tmp_size = simplex_size_from_basis(k_basis);
         auto k_size_grad = get_size_gradient(kkv2nx, kkv_c);
         auto k_size_diff = k_tmp_size - orig_sizes[k];
         auto k_tmp_error = size_errors[k] + k_size_diff;

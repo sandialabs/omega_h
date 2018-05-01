@@ -75,14 +75,14 @@ Reals measure_edges_metric(Mesh* mesh) {
 
 template <Int dim>
 static Reals measure_elements_real_tmpl(Mesh* mesh, LOs a2e) {
-  RealElementSizes measurer(mesh);
+  RealSimplexSizes measurer(mesh);
   auto ev2v = mesh->ask_elem_verts();
   auto na = a2e.size();
   Write<Real> sizes(na);
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto e = a2e[a];
     auto v = gather_verts<dim + 1>(ev2v, e);
-    sizes[a] = measurer.measure(v);
+    sizes[a] = measurer.measure<dim, dim>(v);
   };
   parallel_for(na, f, "measure_elements_real");
   return sizes;

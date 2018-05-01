@@ -6,9 +6,9 @@
 using namespace Omega_h;
 
 static void test_edge_length() {
-  OMEGA_H_CHECK(are_close(1., edge_length(1., 1.)));
-  OMEGA_H_CHECK(edge_length(1., 2.) > 1.);
-  OMEGA_H_CHECK(edge_length(1., 2.) < 1.5);
+  OMEGA_H_CHECK(are_close(1., anisotropic_edge_length(1., 1.)));
+  OMEGA_H_CHECK(anisotropic_edge_length(1., 2.) > 1.);
+  OMEGA_H_CHECK(anisotropic_edge_length(1., 2.) < 1.5);
 }
 
 static void test_least_squares() {
