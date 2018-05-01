@@ -310,7 +310,7 @@ Adj Mesh::derive_adj(Int from, Int to) {
     Adj down = ask_adj(to, from);
     Int nlows_per_high = element_degree(family(), to, from);
     LO nlows = nents(from);
-    Adj up = invert_adj(down, nlows_per_high, nlows);
+    Adj up = invert_adj(down, nlows_per_high, nlows, to, from);
     return up;
   } else if (to < from) {
     OMEGA_H_CHECK(to + 1 < from);

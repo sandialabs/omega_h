@@ -45,7 +45,8 @@ Adj unmap_adjacency(LOs a2b, Adj b2c);
 /* Given a downward adjacency, derive its corresponding upward adjacency.
    The list of upward adjacent entities will be sorted by the local
    index of the upward adjacent entity */
-Adj invert_adj(Adj down, Int nlows_per_high, LO nlows);
+Adj invert_adj(Adj down, Int nlows_per_high, LO nlows,
+    Int high_dim, Int low_dim);
 
 Children invert_parents(Parents children2parents, Int parent_dim,
     Int nparent_dim_ents);

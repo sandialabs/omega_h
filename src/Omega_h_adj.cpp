@@ -188,15 +188,26 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
   parallel_for(nl, f, "sort_by_high_index");
 }
 
-Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
-  begin_code("invert_adj");
-  auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
+Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim) {
+  OMEGA_H_TIME_FUNCTION;
+  auto high_plural_name = dimensional_plural_name(high_dim);
+  auto high_singular_name = dimensional_singular_name(high_dim);
+  auto low_plural_name = dimensional_plural_name(low_dim);
+  auto low_singular_name = dimensional_singular_name(low_dim);
+  auto l2lh_name = std::string(low_plural_name) + " to "
+    + low_singular_name + " " + high_plural_name;
+  auto lh2hl_name = std::string(low_singular_name) + " " + high_plural_name + " to "
+    + high_singular_name + " " + low_plural_name;
+  auto lh2h_name = std::string(low_singular_name) + " " + high_plural_name + " to "
+    + high_plural_name;
+  auto codes_name = std::string(low_singular_name) + " " + high_plural_name + " codes";
+  auto l2hl = invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
   LO nlh = lh2hl.size();
   Read<I8> down_codes(down.codes);
-  Write<LO> lh2h(nlh);
-  Write<I8> codes(nlh);
+  Write<LO> lh2h(nlh, lh2h_name);
+  Write<I8> codes(nlh, codes_name);
   if (down_codes.exists()) {
     auto f = OMEGA_H_LAMBDA(LO lh) {
       LO hl = lh2hl[lh];
@@ -220,7 +231,6 @@ Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
     parallel_for(nlh, f, "easy_codes");
   }
   sort_by_high_index(l2lh, lh2h, codes);
-  end_code();
   return Adj(l2lh, lh2h, codes);
 }
 
@@ -386,7 +396,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
     Int low_dim) {
   auto nverts_per_low = element_degree(family, low_dim, 0);
   auto l2v = Adj(lv2v);
-  auto v2l = invert_adj(l2v, nverts_per_low, nv);
+  auto v2l = invert_adj(l2v, nverts_per_low, nv, high_dim, low_dim);
   return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
