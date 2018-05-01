@@ -13,9 +13,9 @@ static void write_parent(
   std::cout << "i        parent_idx      which_child     parent_dim" << std::endl;
   std::cout << "--------------------------------------------" << std::endl;
   for (Omega_h::LO i = 0; i < parent_idx.size(); ++i) {
-    std::cout << i << "\t\t" << parent_idx[i] << "\t\t"
-      << Omega_h::code_which_child(codes[i]) << "\t\t"
-      << Omega_h::code_parent_dim(codes[i]) << std::endl;
+    std::cout << i << "\t\t" << parent_idx.get(i) << "\t\t"
+      << Omega_h::code_which_child(codes.get(i)) << "\t\t"
+      << Omega_h::code_parent_dim(codes.get(i)) << std::endl;
   }
 }
 
