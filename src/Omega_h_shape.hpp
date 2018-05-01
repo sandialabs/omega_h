@@ -68,12 +68,13 @@ OMEGA_H_INLINE Real triangle_area_from_basis(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
 }
 
-OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<2>, 2> b) {
-  return triangle_area_from_basis(b);
-}
-
 OMEGA_H_INLINE Real triangle_area_from_basis(Few<Vector<3>, 2> b) {
   return norm(cross(b[0], b[1])) / 2.0;
+}
+
+template <Int sdim>
+OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<sdim>, 2> b) {
+  return triangle_area_from_basis(b);
 }
 
 OMEGA_H_INLINE Real tet_volume_from_basis(Few<Vector<3>, 3> b) {
@@ -162,6 +163,7 @@ struct RealSimplexSizes {
   }
 };
 
+Reals measure_ents_real(Mesh* mesh, Int ent_dim, LOs a2e);
 Reals measure_elements_real(Mesh* mesh, LOs a2e);
 Reals measure_elements_real(Mesh* mesh);
 

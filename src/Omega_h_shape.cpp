@@ -73,26 +73,33 @@ Reals measure_edges_metric(Mesh* mesh) {
   return measure_edges_metric(mesh, mesh->get_array<Real>(VERT, "metric"));
 }
 
-template <Int dim>
-static Reals measure_elements_real_tmpl(Mesh* mesh, LOs a2e) {
+template <Int sdim, Int edim>
+static Reals measure_ents_real_tmpl(Mesh* mesh, LOs a2e) {
   RealSimplexSizes measurer(mesh);
-  auto ev2v = mesh->ask_elem_verts();
+  auto ev2v = mesh->ask_verts_of(edim);
   auto na = a2e.size();
   Write<Real> sizes(na);
   auto f = OMEGA_H_LAMBDA(LO a) {
     auto e = a2e[a];
-    auto v = gather_verts<dim + 1>(ev2v, e);
-    sizes[a] = measurer.measure<dim, dim>(v);
+    auto v = gather_verts<edim + 1>(ev2v, e);
+    sizes[a] = measurer.measure<sdim, edim>(v);
   };
-  parallel_for(na, f, "measure_elements_real");
+  parallel_for(na, f, "measure_ents_real");
   return sizes;
 }
 
-Reals measure_elements_real(Mesh* mesh, LOs a2e) {
-  if (mesh->dim() == 3) return measure_elements_real_tmpl<3>(mesh, a2e);
-  if (mesh->dim() == 2) return measure_elements_real_tmpl<2>(mesh, a2e);
-  if (mesh->dim() == 1) return measure_elements_real_tmpl<1>(mesh, a2e);
+Reals measure_ents_real(Mesh* mesh, Int ent_dim, LOs a2e) {
+  if (mesh->dim() == 3 && ent_dim == 3) return measure_ents_real_tmpl<3, 3>(mesh, a2e);
+  if (mesh->dim() == 3 && ent_dim == 2) return measure_ents_real_tmpl<3, 2>(mesh, a2e);
+  if (mesh->dim() == 3 && ent_dim == 1) return measure_ents_real_tmpl<3, 1>(mesh, a2e);
+  if (mesh->dim() == 2 && ent_dim == 2) return measure_ents_real_tmpl<2, 2>(mesh, a2e);
+  if (mesh->dim() == 2 && ent_dim == 1) return measure_ents_real_tmpl<2, 1>(mesh, a2e);
+  if (mesh->dim() == 1 && ent_dim == 1) return measure_ents_real_tmpl<1, 1>(mesh, a2e);
   OMEGA_H_NORETURN(Reals());
+}
+
+Reals measure_elements_real(Mesh* mesh, LOs a2e) {
+  return measure_ents_real(mesh, mesh->dim(), a2e);
 }
 
 Reals measure_elements_real(Mesh* mesh) {
