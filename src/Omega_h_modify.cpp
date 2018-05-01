@@ -21,7 +21,7 @@ namespace Omega_h {
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs old_lows2new_lows) {
-  begin_code("modify_conn");
+  OMEGA_H_TIME_FUNCTION;
   auto low_dim = ent_dim - 1;
   auto down_degree = element_degree(old_mesh->family(), ent_dim, low_dim);
   auto old_ents2old_lows = old_mesh->ask_down(ent_dim, low_dim);
@@ -43,14 +43,18 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nsame_ents = same_ents2old_ents.size();
   auto nprods = prods2new_ents.size();
   auto nnew_ents = nsame_ents + nprods;
-  Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree);
+  auto ent_name = dimensional_singular_name(ent_dim);
+  auto lows_name = dimensional_plural_name(low_dim);
+  auto ent_lows2lows_name = std::string(ent_name) + " " + lows_name + " to " + lows_name;
+  Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree, ent_lows2lows_name);
   auto new_ent_low_codes = Write<I8>();
   map_into(
       prod_lows2new_lows, prods2new_ents, new_ent_lows2new_lows, down_degree);
   map_into(same_ent_lows2new_lows, same_ents2new_ents, new_ent_lows2new_lows,
       down_degree);
   if (low_dim > VERT) {
-    new_ent_low_codes = Write<I8>(nnew_ents * down_degree);
+    auto codes_name = std::string(ent_name) + " " + lows_name + " codes";
+    new_ent_low_codes = Write<I8>(nnew_ents * down_degree, codes_name);
     auto old_ent_low_codes = old_ents2old_lows.codes;
     OMEGA_H_CHECK(same_ents2old_ents.size() == same_ents2new_ents.size());
     auto same_ent_low_codes =
@@ -63,7 +67,6 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto new_ents2new_lows =
       Adj(LOs(new_ent_lows2new_lows), Read<I8>(new_ent_low_codes));
   new_mesh->set_ents(ent_dim, new_ents2new_lows);
-  end_code();
 }
 
 /* this is the case of AMR-style refinement where

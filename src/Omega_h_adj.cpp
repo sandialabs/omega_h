@@ -402,6 +402,10 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
 
 Adj transit(
     Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) {
+  OMEGA_H_TIME_FUNCTION;
+  auto high_singular_name = dimensional_singular_name(high_dim);
+  auto low_plural_name = dimensional_plural_name(low_dim);
+  auto hl2l_name = std::string(high_singular_name) + " " + low_plural_name + " to " + low_plural_name;
   OMEGA_H_CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
@@ -414,12 +418,15 @@ Adj transit(
   auto nlows_per_mid = element_degree(family, mid_dim, low_dim);
   auto nlows_per_high = element_degree(family, high_dim, low_dim);
   auto nhighs = hm2m.size() / nmids_per_high;
-  Write<LO> hl2l(nhighs * nlows_per_high);
+  Write<LO> hl2l(nhighs * nlows_per_high, hl2l_name);
   Write<I8> codes;
   /* codes only need to be created when transiting region->face + face->edge =
      region->edge. any other transit has vertices as its destination, and
      vertices have no orientation/alignment */
-  if (low_dim == 1) codes = Write<I8>(hl2l.size());
+  if (low_dim == 1) {
+    auto codes_name = std::string(high_singular_name) + " " + low_plural_name + " codes";
+    codes = Write<I8>(hl2l.size(), codes_name);
+  }
   auto f = OMEGA_H_LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
