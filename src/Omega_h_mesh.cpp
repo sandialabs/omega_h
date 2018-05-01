@@ -423,6 +423,17 @@ Parents Mesh::ask_parents(Int child_dim) {
   return *(parents_[child_dim]);
 }
 
+Children Mesh::ask_children(Int parent_dim, Int child_dim) {
+  check_dim2(parent_dim);
+  auto nparent_dim_ents = nents(parent_dim);
+  auto c2p = ask_parents(child_dim);
+  if (!children_[parent_dim][child_dim]) {
+    auto c = invert_parents(c2p, parent_dim, nparent_dim_ents);
+    children_[parent_dim][child_dim] = std::make_shared<Children>(c);
+  }
+  return *(children_[parent_dim][child_dim]);
+}
+
 void Mesh::set_owners(Int ent_dim, Remotes owners) {
   check_dim2(ent_dim);
   OMEGA_H_CHECK(nents(ent_dim) == owners.ranks.size());
