@@ -227,8 +227,8 @@ Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name, std::s
   return Graph(b2ba, ba2a);
 }
 
-LOs get_degrees(LOs offsets) {
-  Write<LO> degrees(offsets.size() - 1);
+LOs get_degrees(LOs offsets, std::string const& name) {
+  Write<LO> degrees(offsets.size() - 1, name);
   auto f = OMEGA_H_LAMBDA(LO i) { degrees[i] = offsets[i + 1] - offsets[i]; };
   parallel_for(degrees.size(), f, "get_degrees");
   return degrees;

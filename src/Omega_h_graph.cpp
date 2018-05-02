@@ -18,9 +18,9 @@ Graph add_edges(Graph g1, Graph g2) {
   auto v2e2 = g2.a2ab;
   auto e2v2 = g2.ab2b;
   auto nv = v2e1.size() - 1;
-  auto deg1 = get_degrees(v2e1);
-  auto deg2 = get_degrees(v2e2);
-  auto deg = add_each(deg1, deg2);
+  auto deg1 = get_degrees(v2e1, "deg1");
+  auto deg2 = get_degrees(v2e2, "deg2");
+  auto deg = add_each(deg1, deg2, "deg1+2");
   auto v2e = offset_scan(deg, v2e1.name());
   Write<LO> e2v(v2e.last(), e2v1.name());
   auto f = OMEGA_H_LAMBDA(LO v) {

@@ -496,9 +496,9 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
   auto ne = e2ef.size() - 1;
   auto e2ef_degrees = get_degrees(e2ef);
   auto e2ee_degrees = multiply_each_by(e2ef_degrees, 2);
-  auto e2ee = offset_scan(e2ee_degrees);
+  auto e2ee = offset_scan(e2ee_degrees, "edges to edge edges");
   auto nee = e2ee.last();
-  Write<LO> ee2e(nee);
+  Write<LO> ee2e(nee, "edge edges to edges");
   auto lambda = OMEGA_H_LAMBDA(LO e) {
     auto ef_begin = e2ef[e];
     auto ef_end = e2ef[e + 1];
@@ -527,7 +527,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
   auto e2er_codes = e2r.codes;
   auto ne = e2er.size() - 1;
   auto& e2ee = e2er;
-  Write<LO> ee2e(er2r.size());
+  Write<LO> ee2e(er2r.size(), "edge edges to edges");
   auto f = OMEGA_H_LAMBDA(LO e) {
     auto er_begin = e2er[e];
     auto er_end = e2er[e + 1];

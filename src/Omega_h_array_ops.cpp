@@ -205,9 +205,9 @@ Read<T> divide_each_by(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<T> add_each(Read<T> a, Read<T> b) {
+Read<T> add_each(Read<T> a, Read<T> b, std::string const& name) {
   OMEGA_H_CHECK(a.size() == b.size());
-  Write<T> c(a.size());
+  Write<T> c(a.size(), name);
   auto f = OMEGA_H_LAMBDA(LO i) { c[i] = a[i] + b[i]; };
   parallel_for(c.size(), f, "add_each");
   return c;
@@ -586,7 +586,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Read<T> multiply_each_by(Read<T> a, T b);                           \
   template Read<T> divide_each_by(Read<T> x, T b);                             \
   template Read<T> divide_each(Read<T> a, Read<T> b);                          \
-  template Read<T> add_each(Read<T> a, Read<T> b);                             \
+  template Read<T> add_each(Read<T> a, Read<T> b, std::string const&);                             \
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \
   template Read<T> max_each(Read<T> a, Read<T> b);                             \

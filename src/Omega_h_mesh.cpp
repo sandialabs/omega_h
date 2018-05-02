@@ -304,36 +304,30 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
 }
 
 Adj Mesh::derive_adj(Int from, Int to) {
-  ScopedTimer("not derive_adj");
+  OMEGA_H_TIME_FUNCTION;
   check_dim(from);
   check_dim2(to);
   if (from < to) {
-    ScopedTimer("invert case");
     Adj down = ask_adj(to, from);
     Int nlows_per_high = element_degree(family(), to, from);
     LO nlows = nents(from);
     Adj up = invert_adj(down, nlows_per_high, nlows, to, from);
     return up;
   } else if (to < from) {
-    ScopedTimer("transit case");
     OMEGA_H_CHECK(to + 1 < from);
     Adj h2m = ask_adj(from, to + 1);
     Adj m2l = ask_adj(to + 1, to);
     Adj h2l = transit(h2m, m2l, family_, from, to);
     return h2l;
   } else {
-    ScopedTimer("special case");
     if (from == dim() && to == dim()) {
-      ScopedTimer("dual case");
       return elements_across_sides(dim(), ask_adj(dim(), dim() - 1),
           ask_adj(dim() - 1, dim()), mark_exposed_sides(this));
     }
     if (from == VERT && to == VERT) {
-      ScopedTimer("v2v case");
       return verts_across_edges(ask_adj(EDGE, VERT), ask_adj(VERT, EDGE));
     }
     if (from == EDGE && to == EDGE) {
-      ScopedTimer("e2e case");
       OMEGA_H_CHECK(dim() >= 2);
       Graph g = edges_across_tris(ask_adj(FACE, EDGE), ask_adj(EDGE, FACE));
       if (dim() == 3) {

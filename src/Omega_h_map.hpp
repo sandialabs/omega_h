@@ -54,7 +54,7 @@ Graph invert_map_by_sorting(LOs a2b, LO nb);
 
 Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name = "", std::string const& ba2a_name = "");
 
-LOs get_degrees(LOs offsets);
+LOs get_degrees(LOs offsets, std::string const& name = "");
 
 LOs invert_fan(LOs a2b);
 
