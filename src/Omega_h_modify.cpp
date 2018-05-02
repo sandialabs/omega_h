@@ -45,7 +45,8 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto nnew_ents = nsame_ents + nprods;
   auto ent_name = dimensional_singular_name(ent_dim);
   auto lows_name = dimensional_plural_name(low_dim);
-  auto ent_lows2lows_name = std::string(ent_name) + " " + lows_name + " to " + lows_name;
+  auto ent_lows2lows_name =
+      std::string(ent_name) + " " + lows_name + " to " + lows_name;
   Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree, ent_lows2lows_name);
   auto new_ent_low_codes = Write<I8>();
   map_into(

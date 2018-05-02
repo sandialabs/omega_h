@@ -62,7 +62,9 @@ OMEGA_H_INLINE Real edge_length_from_basis(Few<Vector<sdim>, 1> b) {
 }
 
 template <Int sdim>
-OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<sdim>, 1> b) { return edge_length_from_basis(b); }
+OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<sdim>, 1> b) {
+  return edge_length_from_basis(b);
+}
 
 OMEGA_H_INLINE Real triangle_area_from_basis(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
@@ -81,7 +83,9 @@ OMEGA_H_INLINE Real tet_volume_from_basis(Few<Vector<3>, 3> b) {
   return (cross(b[0], b[1]) * b[2]) / 6.0;
 }
 
-OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<3>, 3> b) { return tet_volume_from_basis(b); }
+OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<3>, 3> b) {
+  return tet_volume_from_basis(b);
+}
 
 /* Loseille, Adrien, and Rainald Lohner.
  * "On 3D anisotropic local remeshing for surface, volume and boundary layers."

@@ -513,7 +513,9 @@ void eval_norm(LO size, any& result, ExprReader::Args& args) {
     TEUCHOS_TEST_FOR_EXCEPTION(a.size() != size * dim, Teuchos::ParserFail,
         "norm() given array that wasn't vectors");
     auto out = Write<Real>(size);
-    auto f = OMEGA_H_LAMBDA(LO i) { out[i] = Omega_h::norm(Omega_h::get_vector<dim>(a, i)); };
+    auto f = OMEGA_H_LAMBDA(LO i) {
+      out[i] = Omega_h::norm(Omega_h::get_vector<dim>(a, i));
+    };
     parallel_for(size, f, "eval_norm(Reals)");
     result = Reals(out);
   } else {
@@ -547,8 +549,9 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
   register_function("vector", vector);
-  register_function("norm",
-      [=](any& result, Args& args) { eval_norm(local_dim, local_size, result, args); });
+  register_function("norm", [=](any& result, Args& args) {
+    eval_norm(local_dim, local_size, result, args);
+  });
   register_variable("d", any(Real(dim)));
   if (dim == 3) register_variable("I", any(identity_matrix<3, 3>()));
   if (dim == 2) register_variable("I", any(identity_matrix<2, 2>()));

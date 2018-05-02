@@ -86,10 +86,9 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
   new_mesh->add_tag<Byte>(prod_dim, "leaf", 1, new_data, true);
 }
 
-void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh,
-    Few<LOs, 4> mods2mds, Few<LOs, 4> prods2new_ents,
-    Few<LOs, 4> same_ents2old_ents, Few<LOs, 4> same_ents2new_ents,
-    Few<LOs, 4> old_ents2new_ents) {
+void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
+    Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
+    Few<LOs, 4> same_ents2new_ents, Few<LOs, 4> old_ents2new_ents) {
   auto dim = old_mesh->dim();
   for (Int prod_dim = 0; prod_dim <= dim; ++prod_dim) {
     auto old_p_data = (old_mesh->ask_parents(prod_dim)).parent_idx;
@@ -102,7 +101,8 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh,
     map_into(same_c_data, same_ents2new_ents[prod_dim], new_c_data, 1);
     Int offset = 0;
     for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
-      auto mods2new_ents = unmap(mods2mds[mod_dim], old_ents2new_ents[mod_dim], 1);
+      auto mods2new_ents =
+          unmap(mods2mds[mod_dim], old_ents2new_ents[mod_dim], 1);
       auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
       auto nmods_of_dim = mods2mds[mod_dim].size();
       auto f = OMEGA_H_LAMBDA(LO mod) {

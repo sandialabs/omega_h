@@ -75,18 +75,21 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
         &(same_ents2old_ents[prod_dim]), &(same_ents2new_ents[prod_dim]),
         &(old_ents2new_ents[prod_dim]));
     if (prod_dim == VERT) {
-      mods2midverts[VERT] = unmap(mods2mds[VERT], old_ents2new_ents[prod_dim], 1);
+      mods2midverts[VERT] =
+          unmap(mods2mds[VERT], old_ents2new_ents[prod_dim], 1);
       LO offset = 0;
       for (Int mod_dim = EDGE; mod_dim <= mesh->dim(); ++mod_dim) {
         OMEGA_H_CHECK(hypercube_split_degree(mod_dim, prod_dim) == 1);
         auto nmods_of_dim = mods2mds[mod_dim].size();
         auto begin = offset;
         auto end = begin + nmods_of_dim;
-        mods2midverts[mod_dim] = unmap_range(begin, end, prods2new_ents[prod_dim], 1);
+        mods2midverts[mod_dim] =
+            unmap_range(begin, end, prods2new_ents[prod_dim], 1);
         offset = end;
       }
       amr_transfer_linear_interp(mesh, &new_mesh, mods2mds, mods2midverts,
-          same_ents2old_ents[prod_dim], same_ents2new_ents[prod_dim], xfer_opts);
+          same_ents2old_ents[prod_dim], same_ents2new_ents[prod_dim],
+          xfer_opts);
     }
     amr_transfer_levels(mesh, &new_mesh, prod_dim, mods2mds,
         prods2new_ents[prod_dim], same_ents2old_ents[prod_dim],

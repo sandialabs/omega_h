@@ -172,7 +172,8 @@ static void test_invert_adj(LOs tets2verts, LO nverts) {
   Adj inv;
   Int niters = 5;
   Now t0 = now();
-  for (Int i = 0; i < niters; ++i) inv = invert_adj(Adj(tets2verts), 4, nverts, 3, 0);
+  for (Int i = 0; i < niters; ++i)
+    inv = invert_adj(Adj(tets2verts), 4, nverts, 3, 0);
   Now t1 = now();
   std::cout << "inverting " << ntets << " tets -> verts " << niters
             << " times takes " << (t1 - t0) << " seconds\n";

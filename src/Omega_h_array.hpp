@@ -126,7 +126,9 @@ class Read {
 };
 
 template <typename T>
-Read<T> read(Write<T> a) { return Read<T>(a); }
+Read<T> read(Write<T> a) {
+  return Read<T>(a);
+}
 
 class Bytes : public Read<Byte> {
  public:

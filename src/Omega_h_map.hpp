@@ -52,7 +52,8 @@ LOs invert_funnel(LOs ab2a, LO na);
 
 Graph invert_map_by_sorting(LOs a2b, LO nb);
 
-Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name = "", std::string const& ba2a_name = "");
+Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name = "",
+    std::string const& ba2a_name = "");
 
 LOs get_degrees(LOs offsets, std::string const& name = "");
 
@@ -79,7 +80,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
       Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);           \
   extern template Read<T> map_onto(                                            \
       Read<T> a_data, LOs a2b, LO nb, T, Int width);                           \
-  extern template Write<T> unmap(LOs a2b, Read<T> b_data, Int width);           \
+  extern template Write<T> unmap(LOs a2b, Read<T> b_data, Int width);          \
   extern template Read<T> unmap_range(                                         \
       LO begin, LO end, Read<T> b_data, Int width);                            \
   extern template Read<T> expand(Read<T> a_data, LOs a2b, Int width);          \

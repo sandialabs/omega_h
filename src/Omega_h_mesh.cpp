@@ -398,7 +398,7 @@ Bytes Mesh::ask_levels(Int ent_dim) {
   check_dim2(ent_dim);
   if (!has_tag(ent_dim, "level")) {
     auto levels = Bytes(nents(ent_dim), 0);
-    add_tag(ent_dim, "level", 1, levels); 
+    add_tag(ent_dim, "level", 1, levels);
   }
   return get_array<Byte>(ent_dim, "level");
 }

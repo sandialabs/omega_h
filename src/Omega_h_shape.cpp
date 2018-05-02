@@ -65,12 +65,18 @@ static Reals measure_ents_real_tmpl(Mesh* mesh, LOs a2e, Reals coords) {
 }
 
 Reals measure_ents_real(Mesh* mesh, Int ent_dim, LOs a2e, Reals coords) {
-  if (mesh->dim() == 3 && ent_dim == 3) return measure_ents_real_tmpl<3, 3>(mesh, a2e, coords);
-  if (mesh->dim() == 3 && ent_dim == 2) return measure_ents_real_tmpl<3, 2>(mesh, a2e, coords);
-  if (mesh->dim() == 3 && ent_dim == 1) return measure_ents_real_tmpl<3, 1>(mesh, a2e, coords);
-  if (mesh->dim() == 2 && ent_dim == 2) return measure_ents_real_tmpl<2, 2>(mesh, a2e, coords);
-  if (mesh->dim() == 2 && ent_dim == 1) return measure_ents_real_tmpl<2, 1>(mesh, a2e, coords);
-  if (mesh->dim() == 1 && ent_dim == 1) return measure_ents_real_tmpl<1, 1>(mesh, a2e, coords);
+  if (mesh->dim() == 3 && ent_dim == 3)
+    return measure_ents_real_tmpl<3, 3>(mesh, a2e, coords);
+  if (mesh->dim() == 3 && ent_dim == 2)
+    return measure_ents_real_tmpl<3, 2>(mesh, a2e, coords);
+  if (mesh->dim() == 3 && ent_dim == 1)
+    return measure_ents_real_tmpl<3, 1>(mesh, a2e, coords);
+  if (mesh->dim() == 2 && ent_dim == 2)
+    return measure_ents_real_tmpl<2, 2>(mesh, a2e, coords);
+  if (mesh->dim() == 2 && ent_dim == 1)
+    return measure_ents_real_tmpl<2, 1>(mesh, a2e, coords);
+  if (mesh->dim() == 1 && ent_dim == 1)
+    return measure_ents_real_tmpl<1, 1>(mesh, a2e, coords);
   OMEGA_H_NORETURN(Reals());
 }
 

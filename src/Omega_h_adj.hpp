@@ -29,8 +29,8 @@ struct Parents {
 
 struct Children : public Graph {
   OMEGA_H_INLINE Children() {}
-  Children(LOs a2ab_, LOs ab2b_, Read<I8> codes_) :
-    Graph(a2ab_, ab2b_), codes(codes_) {}
+  Children(LOs a2ab_, LOs ab2b_, Read<I8> codes_)
+      : Graph(a2ab_, ab2b_), codes(codes_) {}
   Read<I8> codes;
 };
 
@@ -45,11 +45,11 @@ Adj unmap_adjacency(LOs a2b, Adj b2c);
 /* Given a downward adjacency, derive its corresponding upward adjacency.
    The list of upward adjacent entities will be sorted by the local
    index of the upward adjacent entity */
-Adj invert_adj(Adj down, Int nlows_per_high, LO nlows,
-    Int high_dim, Int low_dim);
+Adj invert_adj(
+    Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim);
 
-Children invert_parents(Parents children2parents, Int parent_dim,
-    Int nparent_dim_ents);
+Children invert_parents(
+    Parents children2parents, Int parent_dim, Int nparent_dim_ents);
 
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low

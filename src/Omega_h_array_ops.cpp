@@ -582,11 +582,11 @@ Read<Tout> array_cast(Read<Tin> in) {
   template T get_min(CommPtr comm, Read<T> a);                                 \
   template T get_max(CommPtr comm, Read<T> a);                                 \
   template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                      \
-  template Write<T> multiply_each(Read<T> a, Read<T> b, std::string const&);                        \
+  template Write<T> multiply_each(Read<T> a, Read<T> b, std::string const&);   \
   template Read<T> multiply_each_by(Read<T> a, T b);                           \
   template Read<T> divide_each_by(Read<T> x, T b);                             \
   template Read<T> divide_each(Read<T> a, Read<T> b);                          \
-  template Read<T> add_each(Read<T> a, Read<T> b, std::string const&);                             \
+  template Read<T> add_each(Read<T> a, Read<T> b, std::string const&);         \
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \
   template Read<T> max_each(Read<T> a, Read<T> b);                             \

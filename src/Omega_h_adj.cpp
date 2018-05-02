@@ -188,19 +188,21 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
   parallel_for(nl, f, "sort_by_high_index");
 }
 
-Adj invert_adj(Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim) {
+Adj invert_adj(
+    Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim) {
   OMEGA_H_TIME_FUNCTION;
   auto high_plural_name = dimensional_plural_name(high_dim);
   auto high_singular_name = dimensional_singular_name(high_dim);
   auto low_plural_name = dimensional_plural_name(low_dim);
   auto low_singular_name = dimensional_singular_name(low_dim);
-  auto l2lh_name = std::string(low_plural_name) + " to "
-    + low_singular_name + " " + high_plural_name;
-  auto lh2hl_name = std::string(low_singular_name) + " " + high_plural_name + " to "
-    + high_singular_name + " " + low_plural_name;
-  auto lh2h_name = std::string(low_singular_name) + " " + high_plural_name + " to "
-    + high_plural_name;
-  auto codes_name = std::string(low_singular_name) + " " + high_plural_name + " codes";
+  auto l2lh_name = std::string(low_plural_name) + " to " + low_singular_name +
+                   " " + high_plural_name;
+  auto lh2hl_name = std::string(low_singular_name) + " " + high_plural_name +
+                    " to " + high_singular_name + " " + low_plural_name;
+  auto lh2h_name = std::string(low_singular_name) + " " + high_plural_name +
+                   " to " + high_plural_name;
+  auto codes_name =
+      std::string(low_singular_name) + " " + high_plural_name + " codes";
   auto l2hl = invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
@@ -238,8 +240,10 @@ static Bytes filter_parents(Parents c2p, Int parent_dim) {
   Write<Byte> filter(c2p.parent_idx.size());
   auto f = OMEGA_H_LAMBDA(LO c) {
     auto code = c2p.codes[c];
-    if (code_parent_dim(code) == parent_dim) filter[c] = 1;
-    else filter[c] = 0;
+    if (code_parent_dim(code) == parent_dim)
+      filter[c] = 1;
+    else
+      filter[c] = 0;
   };
   parallel_for(c2p.parent_idx.size(), f, "filter_parents");
   return filter;
@@ -405,7 +409,8 @@ Adj transit(
   OMEGA_H_TIME_FUNCTION;
   auto high_singular_name = dimensional_singular_name(high_dim);
   auto low_plural_name = dimensional_plural_name(low_dim);
-  auto hl2l_name = std::string(high_singular_name) + " " + low_plural_name + " to " + low_plural_name;
+  auto hl2l_name = std::string(high_singular_name) + " " + low_plural_name +
+                   " to " + low_plural_name;
   OMEGA_H_CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
@@ -424,7 +429,8 @@ Adj transit(
      region->edge. any other transit has vertices as its destination, and
      vertices have no orientation/alignment */
   if (low_dim == 1) {
-    auto codes_name = std::string(high_singular_name) + " " + low_plural_name + " codes";
+    auto codes_name =
+        std::string(high_singular_name) + " " + low_plural_name + " codes";
     codes = Write<I8>(hl2l.size(), codes_name);
   }
   auto f = OMEGA_H_LAMBDA(LO h) {
