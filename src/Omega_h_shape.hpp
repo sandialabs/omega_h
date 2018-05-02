@@ -155,7 +155,7 @@ OMEGA_H_INLINE Real real_simplex_size(Few<Vector<sdim>, edim + 1> p) {
 
 struct RealSimplexSizes {
   Reals coords;
-  RealSimplexSizes(Mesh const* mesh) : coords(mesh->coords()) {}
+  RealSimplexSizes(Reals coords_in) : coords(coords_in) {}
   template <Int sdim, Int edim>
   OMEGA_H_DEVICE Real measure(Few<LO, edim + 1> v) const {
     auto p = gather_vectors<edim + 1, sdim>(coords, v);
@@ -163,7 +163,7 @@ struct RealSimplexSizes {
   }
 };
 
-Reals measure_ents_real(Mesh* mesh, Int ent_dim, LOs a2e);
+Reals measure_ents_real(Mesh* mesh, Int ent_dim, LOs a2e, Reals coords);
 Reals measure_elements_real(Mesh* mesh, LOs a2e);
 Reals measure_elements_real(Mesh* mesh);
 
