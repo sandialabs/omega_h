@@ -87,6 +87,7 @@ class FullWriter {
   std::vector<Writer> writers_;
 
  public:
+  FullWriter() = default;
   FullWriter(std::string const& root_path, Mesh* mesh);
   void write(Real time);
   void write();
