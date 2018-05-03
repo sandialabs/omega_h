@@ -188,6 +188,35 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
   parallel_for(nl, f, "sort_by_high_index");
 }
 
+static void separate_upward_with_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
+    Write<LO> lh2h, Bytes down_codes, Write<Byte> codes) {
+  auto f = OMEGA_H_LAMBDA(LO lh) {
+    LO hl = lh2hl[lh];
+    LO h = hl / nlows_per_high;
+    lh2h[lh] = h;
+    Int which_down = hl % nlows_per_high;
+    auto down_code = down_codes[hl];
+    bool is_flipped = code_is_flipped(down_code);
+    Int rotation = code_rotation(down_code);
+    codes[lh] = make_code(is_flipped, rotation, which_down);
+  };
+  parallel_for(nlh, f, "separate_upward_with_codes");
+}
+
+void separate_upward_no_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
+    Write<LO> lh2h, Write<Byte> codes);
+void separate_upward_no_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
+    Write<LO> lh2h, Write<Byte> codes) {
+  auto f = OMEGA_H_LAMBDA(LO lh) {
+    LO hl = lh2hl[lh];
+    LO h = hl / nlows_per_high;
+    lh2h[lh] = h;
+    Int which_down = hl % nlows_per_high;
+    codes[lh] = make_code(false, 0, which_down);
+  };
+  parallel_for(nlh, f, "separate_upward_no_codes");
+}
+
 Adj invert_adj(
     Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim) {
   OMEGA_H_TIME_FUNCTION;
@@ -211,26 +240,11 @@ Adj invert_adj(
   Write<LO> lh2h(nlh, lh2h_name);
   Write<I8> codes(nlh, codes_name);
   if (down_codes.exists()) {
-    auto f = OMEGA_H_LAMBDA(LO lh) {
-      LO hl = lh2hl[lh];
-      LO h = hl / nlows_per_high;
-      lh2h[lh] = h;
-      Int which_down = hl % nlows_per_high;
-      auto down_code = down_codes[hl];
-      bool is_flipped = code_is_flipped(down_code);
-      Int rotation = code_rotation(down_code);
-      codes[lh] = make_code(is_flipped, rotation, which_down);
-    };
-    parallel_for(nlh, f, "full_codes");
+    separate_upward_with_codes(nlh, lh2hl, nlows_per_high,
+        lh2h, down_codes, codes);
   } else {
-    auto f = OMEGA_H_LAMBDA(LO lh) {
-      LO hl = lh2hl[lh];
-      LO h = hl / nlows_per_high;
-      lh2h[lh] = h;
-      Int which_down = hl % nlows_per_high;
-      codes[lh] = make_code(false, 0, which_down);
-    };
-    parallel_for(nlh, f, "easy_codes");
+    separate_upward_no_codes(nlh, lh2hl, nlows_per_high,
+        lh2h, codes);
   }
   sort_by_high_index(l2lh, lh2h, codes);
   return Adj(l2lh, lh2h, codes);
