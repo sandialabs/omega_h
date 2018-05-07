@@ -3,6 +3,8 @@
 #include <Omega_h_build.hpp>
 #include <Omega_h_file.hpp>
 
+#include <Omega_h_print.hpp>
+
 using Omega_h::Int;
 using Omega_h::LOs;
 using Omega_h::Bytes;
@@ -122,7 +124,104 @@ static void test_2D_arrays(Omega_h::Library* lib) {
   check_2D_after(&m);
 }
 
+static void check_3D_leaves_after(Omega_h::Mesh* m) {
+  auto vtx_leaves = m->ask_leaves(0);
+  auto edge_leaves = m->ask_leaves(1);
+  auto face_leaves = m->ask_leaves(2);
+  auto region_leaves = m->ask_leaves(3);
+  auto e = Bytes({0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1,
+      1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1,
+      1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1,
+      1, 0, 1, 1, 1, 1});
+  auto f = Bytes({0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1,
+      1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1,
+      1, 1, 1});
+  auto r = Bytes({0, 1, 1, 1, 1, 1, 1, 1, 1, 1});
+  OMEGA_H_CHECK(vtx_leaves == Bytes(31, 1));
+  OMEGA_H_CHECK(edge_leaves == e);
+  OMEGA_H_CHECK(face_leaves == f);
+  OMEGA_H_CHECK(region_leaves == r);
+}
+
+static void check_3D_levels_after(Omega_h::Mesh* m) {
+  auto vtx_levels = m->ask_levels(0);
+  auto edge_levels = m->ask_levels(1);
+  auto face_levels = m->ask_levels(2);
+  auto region_levels = m->ask_levels(3);
+  auto v = Bytes({0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1,
+      1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0});
+  auto e = Bytes({0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1,
+      1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1,
+      1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0,
+      0, 0, 1, 1, 0, 0});
+  auto f = Bytes({0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1,
+      1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0,
+      0, 0, 0});
+  auto r = Bytes({0, 1, 1, 1, 1, 1, 1, 1, 1, 0});
+  OMEGA_H_CHECK(vtx_levels == v);
+  OMEGA_H_CHECK(edge_levels == e);
+  OMEGA_H_CHECK(face_levels == f);
+  OMEGA_H_CHECK(region_levels == r);
+}
+
+static void check_3D_parents_after(Omega_h::Mesh* m) {
+  auto vtx_parents = m->ask_parents(0);
+  auto edge_parents = m->ask_parents(1);
+  auto face_parents = m->ask_parents(2);
+  auto region_parents = m->ask_parents(3);
+  auto vp = LOs({-1, 0, 13, 0, 17, 0, -1, 16, 22, -1, 23, -1, 26, 37, 27, -1,
+      40, 47, 54, 32, 37, -1, -1, 59, 62, -1, -1, -1, -1, 69, -1});
+  auto vc = Bytes({0, 1, 1, 2, 2, 3, 0, 1, 2, 0, 1, 0, 1, 1, 2, 0, 1, 1, 1, 2,
+      2, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0});
+  auto ep = LOs({-1, 0, 0, 17, 17, 17, 17, 0, 0, 0, 0, 0, 0, -1, 13, 13, -1,
+      16, 16, 22, 22, 22, 22, -1, 23, 23, -1, 26, 26, 0, 0, 0, 0, 27, 27, 27,
+      27, -1, 37, 37, -1, 40, 40, 32, 32, 32, 32, -1, 47, 47, 37, 37, 37, 37,
+      -1, 54, 54, -1, -1, -1, 59, 59, -1, 62, 62, -1, -1, -1, -1, -1, 69, 69,
+      -1, -1});
+  auto ec = Bytes({0, 1, 5, 2, 6, 10, 14, 3, 7, 11, 15, 19, 23, 0, 1, 5, 0, 1,
+      5, 2, 6, 10, 14, 0, 1, 5, 0, 1, 5, 2, 6, 10, 14, 2, 6, 10, 14, 0, 1, 5,
+      0, 1, 5, 2, 6, 10, 14, 0, 1, 5, 2, 6, 10, 14, 0, 1, 5, 0, 0, 0, 1, 5, 0,
+      1, 5, 0, 0, 0, 0, 0, 1, 5, 0, 0});
+  auto fp = LOs({-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 17,
+      17, 17, 17, -1, 22, 22, 22, 22, -1, 27, 27, 27, 27, -1, 32, 32, 32, 32,
+      -1, 37, 37, 37, 37, -1, -1, -1, -1, -1});
+  auto fc = Bytes({0, 2, 6, 10, 14, 3, 7, 11, 15, 19, 23, 27, 31, 35, 39, 43,
+      47, 0, 2, 6, 10, 14, 0, 2, 6, 10, 14, 0, 2, 6, 10, 14, 0, 2, 6, 10, 14,
+      0, 2, 6, 10, 14, 0, 0, 0, 0, 0});
+  auto rp = LOs({-1, 0, 0, 0, 0, 0, 0, 0, 0, -1});
+  auto rc = Bytes({0, 3, 7, 11, 15, 19, 23, 27, 31, 0});
+  OMEGA_H_CHECK(vtx_parents.parent_idx == vp);
+  OMEGA_H_CHECK(vtx_parents.codes == vc);
+  OMEGA_H_CHECK(edge_parents.parent_idx == ep);
+  OMEGA_H_CHECK(edge_parents.codes == ec);
+  OMEGA_H_CHECK(face_parents.parent_idx == fp);
+  OMEGA_H_CHECK(face_parents.codes == fc);
+  OMEGA_H_CHECK(region_parents.parent_idx == rp);
+  OMEGA_H_CHECK(region_parents.codes == rc);
+}
+
+static void check_3D_after(Omega_h::Mesh* m) {
+  check_3D_leaves_after(m);
+  check_3D_levels_after(m);
+  check_3D_parents_after(m);
+}
+
+static void test_3D_arrays(Omega_h::Library* lib) {
+  auto w = lib->world();
+  auto f = OMEGA_H_HYPERCUBE;
+  auto m = Omega_h::build_box(w, f, 2.0, 1.0, 1.0, 2, 1, 1);
+  Int lengths[4] = {12, 20, 11, 2};
+  check_before(&m, lengths);
+  auto xfer_opts = Omega_h::TransferOpts();
+  Omega_h::amr_refine(&m, Omega_h::Bytes({1, 0}), xfer_opts);
+  check_3D_after(&m);
+
+  Omega_h::vtk::FullWriter writer("out", &m);
+  writer.write();
+}
+
 int main(int argc, char** argv) {
   auto lib = Omega_h::Library(&argc, &argv);
   test_2D_arrays(&lib);
+  test_3D_arrays(&lib);
 }
