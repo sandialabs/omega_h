@@ -94,6 +94,7 @@ static Write<T> copy_and_remove_or_default(
 
 void project_classification(Mesh* mesh, Int ent_dim, Write<I8> class_dim,
     Write<ClassId> class_id, bool relaxed) {
+  OMEGA_H_CHECK(mesh->comm()->size() == 1);
   auto l2h = mesh->ask_up(ent_dim, ent_dim + 1);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
