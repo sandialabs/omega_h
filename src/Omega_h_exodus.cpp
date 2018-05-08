@@ -347,7 +347,7 @@ static void read_sliced_nodal_fields(
   }
 }
 
-void read_sliced(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
+void read_sliced(std::string const& path, Mesh* mesh, Omega_h_Family family, bool verbose, int,
     int time_step) {
   begin_code("exodus::read");
   verbose = verbose && can_print(mesh);
@@ -356,8 +356,8 @@ void read_sliced(std::string const& path, Mesh* mesh, bool verbose, int classify
   auto comp_ws = int(sizeof(Real));
   int io_ws = 0;
   float version;
-  auto mode = EX_READ | EX_BULK_INT64 | EX_MPIIO;
-  auto file = ex_open_par(path.c_str(), mode, &comp_ws, &io_ws, &version, comm_mpi, MPI_INFO_IGNORE);
+  auto mode = EX_READ | EX_BULK_INT64_API | EX_MPIIO;
+  auto file = ex_open_par(path.c_str(), mode, &comp_ws, &io_ws, &version, comm_mpi, MPI_INFO_NULL);
   if (file < 0) Omega_h_fail("can't open sliced Exodus file %s\n", path.c_str());
   ex_init_params init_params;
   CALL(ex_get_init_ext(file, &init_params));
@@ -394,7 +394,7 @@ void read_sliced(std::string const& path, Mesh* mesh, bool verbose, int classify
   auto slice_coords = Reals(h_coords.write());
   std::vector<int> block_ids(std::size_t(init_params.num_elem_blk));
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
-  auto deg = element_degree(mesh->family(), dim, VERT);
+  auto deg = element_degree(family, dim, VERT);
   GO elems_begin, elems_end;
   suggest_slices(init_params.num_elem, comm->size(), comm->rank(), &elems_begin, &elems_end);
   auto nslice_elems = LO(elems_end - elems_begin);
@@ -430,7 +430,7 @@ void read_sliced(std::string const& path, Mesh* mesh, bool verbose, int classify
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     if (elems_end <= total_elem_offset) continue;
     if (total_elem_offset + nentries <= elems_begin) continue;
-    auto block_begin = std::max(elems_begin - total_elem_offset, 0);
+    auto block_begin = std::max(elems_begin - total_elem_offset, GO(0));
     auto block_end = std::min(elems_end - total_elem_offset, nentries);
     auto nfrom_block = LO(block_end - block_begin);
     std::vector<int> edge_conn(std::size_t(nfrom_block * nedges_per_entry));
@@ -454,7 +454,7 @@ void read_sliced(std::string const& path, Mesh* mesh, bool verbose, int classify
   Dist slice_elems2elems;
   Dist slice_verts2verts;
   LOs conn;
-  assemble_slices(comm, mesh->family(), dim,
+  assemble_slices(comm, family, dim,
       init_params.num_elem, elems_begin, slice_conn,
       init_params.num_nodes, nodes_begin, slice_coords,
       &slice_elems2elems, &conn, &slice_verts2verts);
@@ -462,7 +462,7 @@ void read_sliced(std::string const& path, Mesh* mesh, bool verbose, int classify
   auto slice_node_globals = GOs{nslice_nodes, nodes_begin, 1};
   auto node_globals = slice_verts2verts.exch(slice_node_globals, 1);
 
-  build_from_elems2verts(mesh, comm, family, dim, conn, globals);
+  build_from_elems2verts(mesh, comm, family, dim, conn, node_globals);
 
   auto coords = slice_verts2verts.exch(slice_coords, dim);
   mesh->set_coords(coords);
