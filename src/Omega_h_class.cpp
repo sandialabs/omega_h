@@ -94,7 +94,6 @@ static Write<T> copy_and_remove_or_default(
 
 void project_classification(Mesh* mesh, Int ent_dim, Write<I8> class_dim,
     Write<ClassId> class_id, bool relaxed) {
-  OMEGA_H_CHECK(mesh->comm()->size() == 1);
   auto l2h = mesh->ask_up(ent_dim, ent_dim + 1);
   auto l2lh = l2h.a2ab;
   auto lh2h = l2h.ab2b;
@@ -139,6 +138,7 @@ void project_classification(Mesh* mesh, Int ent_dim, Write<I8> class_dim,
 }
 
 void project_classification(Mesh* mesh, Int ent_dim, bool relaxed) {
+  OMEGA_H_CHECK(mesh->comm()->size() == 1);
   auto class_ids_w = deep_copy(mesh->get_array<ClassId>(ent_dim, "class_id"));
   auto class_dims_w = deep_copy(mesh->get_array<I8>(ent_dim, "class_dim"));
   project_classification(mesh, ent_dim, class_dims_w, class_ids_w, relaxed);
@@ -149,12 +149,16 @@ void project_classification(Mesh* mesh, Int ent_dim, bool relaxed) {
 void finalize_classification(Mesh* mesh) {
   bool had_ids = has_any_ids(mesh);
   for (Int ent_dim = mesh->dim(); ent_dim >= VERT; --ent_dim) {
-    auto class_dim = copy_and_remove_or_default<I8>(
+    OMEGA_H_CHECK(mesh->owners_have_all_upward(ent_dim));
+    auto class_dim_w = copy_and_remove_or_default<I8>(
         mesh, ent_dim, "class_dim", I8(mesh->dim()));
-    auto class_id =
+    auto class_id_w =
         copy_and_remove_or_default<ClassId>(mesh, ent_dim, "class_id", -1);
-    if (ent_dim < mesh->dim())
-      project_classification(mesh, ent_dim, class_dim, class_id);
+    if (ent_dim < mesh->dim()) {
+      project_classification(mesh, ent_dim, class_dim_w, class_id_w);
+    }
+    auto class_dim = mesh->sync_array(ent_dim, read(class_dim_w), 1);
+    auto class_id = mesh->sync_array(ent_dim, read(class_id_w), 1);
     mesh->add_tag<I8>(ent_dim, "class_dim", 1, class_dim);
     mesh->add_tag<ClassId>(ent_dim, "class_id", 1, class_id);
   }
