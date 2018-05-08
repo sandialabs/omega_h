@@ -35,7 +35,11 @@ int main(int argc, char** argv) {
   }
   Omega_h::Mesh mesh(&lib);
   auto time_step = -1;
-  Omega_h::exodus::read(inpath, &mesh, verbose, classify_with, time_step);
+  if (comm->size() == 1) {
+    Omega_h::exodus::read(inpath, &mesh, verbose, classify_with, time_step);
+  } else {
+    mesh = Omega_h::exodus::read_sliced(inpath, comm, verbose, classify_with, time_step);
+  }
   Omega_h::binary::write(outpath, &mesh);
   return 0;
 }

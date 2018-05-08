@@ -254,22 +254,24 @@ void assemble_slices(CommPtr comm, Omega_h_Family family, Int dim,
   auto rib_masses = Reals(nslice_elems, 1.0);
   auto rib_tol = 2.0;
   auto elem_owners = identity_remotes(comm, nslice_elems);
+  auto rib_coords = resize_vectors(slice_elem_coords, dim, 3);
   inertia::Rib rib_hints;
-  inertia::recursively_bisect(comm, rib_tol, &slice_elem_coords, &rib_masses,
+  inertia::recursively_bisect(comm, rib_tol, &rib_coords, &rib_masses,
       &elem_owners, &rib_hints);
   // communication pattern from sliced elements to partitioned elements
   auto elems2slice_elems = Dist{comm, elem_owners, nslice_elems};
+  auto slice_elems2elems = elems2slice_elems.invert();
   // communication pattern from sliced vertices to partitioned elements
   auto slice_elem_vert_owners = slice_elems2slice_verts.items2dests();
-  auto elem_vert_owners = elems2slice_elems.exch(slice_elem_vert_owners, 1);
+  auto elem_vert_owners = slice_elems2elems.exch(slice_elem_vert_owners, verts_per_elem);
   auto elems2slice_verts = Dist{comm, elem_vert_owners, nslice_verts};
   // unique set of vertices needed for partitioned elements
-  auto slice_vert_globals = GOs{nslice_verts, vert_offset, 1};
+  auto slice_vert_globals = GOs{nslice_verts, vert_offset, 1, "slice vert globals"};
   auto verts2slice_verts = get_new_copies2old_owners(elems2slice_verts, slice_vert_globals);
   // new (local) connectivity
   auto slice_verts2elems = elems2slice_verts.invert();
   auto new_conn = form_new_conn(verts2slice_verts, slice_verts2elems);
-  *p_slice_elems2elems = elems2slice_elems.invert();
+  *p_slice_elems2elems = slice_elems2elems;
   *p_conn_out = new_conn;
   *p_slice_verts2verts = verts2slice_verts.invert();
 }
