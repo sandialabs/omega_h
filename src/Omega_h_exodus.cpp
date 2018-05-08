@@ -23,31 +23,38 @@
 
 namespace Omega_h {
 
-#define CALL(f) \
-{ \
-  auto f_err = (f); \
-  if (f_err != 0) { \
-    const char* errmsg; \
-    const char* errfunc; \
-    int errnum; \
-    ex_get_err(&errmsg, &errfunc, &errnum); \
-    Omega_h_fail("Exodus call %s failed (%d): %s: %s\n", #f, errnum, errfunc, errmsg); \
-  } \
-}
+#define CALL(f)                                                                \
+  {                                                                            \
+    auto f_err = (f);                                                          \
+    if (f_err != 0) {                                                          \
+      const char* errmsg;                                                      \
+      const char* errfunc;                                                     \
+      int errnum;                                                              \
+      ex_get_err(&errmsg, &errfunc, &errnum);                                  \
+      Omega_h_fail("Exodus call %s failed (%d): %s: %s\n", #f, errnum,         \
+          errfunc, errmsg);                                                    \
+    }                                                                          \
+  }
 
 namespace exodus {
 
-static void get_elem_type_info(std::string const& type, int* p_dim, Omega_h_Family* p_family) {
+static void get_elem_type_info(
+    std::string const& type, int* p_dim, Omega_h_Family* p_family) {
   if (type == "tri3") {
-    *p_dim = 2; *p_family = OMEGA_H_SIMPLEX;
+    *p_dim = 2;
+    *p_family = OMEGA_H_SIMPLEX;
   } else if (type == "TRI") {
-    *p_dim = 2; *p_family = OMEGA_H_SIMPLEX;
+    *p_dim = 2;
+    *p_family = OMEGA_H_SIMPLEX;
   } else if (type == "tetra4") {
-    *p_dim = 3; *p_family = OMEGA_H_SIMPLEX;
+    *p_dim = 3;
+    *p_family = OMEGA_H_SIMPLEX;
   } else if (type == "TETRA") {
-    *p_dim = 3; *p_family = OMEGA_H_SIMPLEX;
+    *p_dim = 3;
+    *p_family = OMEGA_H_SIMPLEX;
   } else if (type == "TET4") {
-    *p_dim = 3; *p_family = OMEGA_H_SIMPLEX;
+    *p_dim = 3;
+    *p_family = OMEGA_H_SIMPLEX;
   } else {
     Omega_h_fail("Unsupported Exodus element type \"%s\"\n", type.c_str());
   }
@@ -207,7 +214,9 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
     OMEGA_H_CHECK(family_int == family_from_type);
     auto deg = element_degree(Omega_h_Family(family_int), dim, VERT);
     OMEGA_H_CHECK(nnodes_per_entry == deg);
-    if (!h_conn.exists()) h_conn = decltype(h_conn)(LO(init_params.num_elem * deg), "host connectivity");
+    if (!h_conn.exists())
+      h_conn =
+          decltype(h_conn)(LO(init_params.num_elem * deg), "host connectivity");
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     std::vector<int> edge_conn(std::size_t(nentries * nedges_per_entry));
@@ -331,9 +340,8 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
   end_code();
 }
 
-static void read_sliced_nodal_fields(
-    Mesh* mesh, int file, int time_step, bool verbose,
-    Dist slice_verts2verts, GO nodes_begin, LO nslice_nodes) {
+static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
+    bool verbose, Dist slice_verts2verts, GO nodes_begin, LO nslice_nodes) {
   int num_nodal_vars;
   CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
@@ -362,8 +370,8 @@ static void read_sliced_nodal_fields(
   }
 }
 
-Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
-    int time_step) {
+Mesh read_sliced(
+    std::string const& path, CommPtr comm, bool verbose, int, int time_step) {
   ScopedTimer timer("exodus::read");
   verbose = verbose && (comm->rank() == 0);
   auto comm_mpi = comm->get_impl();
@@ -371,8 +379,10 @@ Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
   int io_ws = 0;
   float version;
   auto mode = EX_READ | EX_BULK_INT64_API | EX_MPIIO;
-  auto file = ex_open_par(path.c_str(), mode, &comp_ws, &io_ws, &version, comm_mpi, MPI_INFO_NULL);
-  if (file < 0) Omega_h_fail("can't open sliced Exodus file %s\n", path.c_str());
+  auto file = ex_open_par(
+      path.c_str(), mode, &comp_ws, &io_ws, &version, comm_mpi, MPI_INFO_NULL);
+  if (file < 0)
+    Omega_h_fail("can't open sliced Exodus file %s\n", path.c_str());
   ex_init_params init_params;
   CALL(ex_get_init_ext(file, &init_params));
   if (verbose) {
@@ -391,7 +401,8 @@ Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
   }
   auto dim = int(init_params.num_dim);
   GO nodes_begin, nodes_end;
-  suggest_slices(init_params.num_nodes, comm->size(), comm->rank(), &nodes_begin, &nodes_end);
+  suggest_slices(init_params.num_nodes, comm->size(), comm->rank(),
+      &nodes_begin, &nodes_end);
   auto nslice_nodes = LO(nodes_end - nodes_begin);
   HostWrite<Real> h_coord_blk[3];
   for (Int i = 0; i < dim; ++i) {
@@ -410,7 +421,8 @@ Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
   std::vector<int> block_ids(std::size_t(init_params.num_elem_blk));
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
   GO elems_begin, elems_end;
-  suggest_slices(init_params.num_elem, comm->size(), comm->rank(), &elems_begin, &elems_end);
+  suggest_slices(init_params.num_elem, comm->size(), comm->rank(), &elems_begin,
+      &elems_end);
   auto nslice_elems = LO(elems_end - elems_begin);
   HostWrite<GO> h_conn;
   Write<ClassId> elem_class_ids_w(nslice_elems);
@@ -441,7 +453,8 @@ Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
     OMEGA_H_CHECK(family_int == family_from_type);
     auto deg = element_degree(Omega_h_Family(family_int), dim, VERT);
     OMEGA_H_CHECK(nnodes_per_entry == deg);
-    if (!h_conn.exists()) h_conn = decltype(h_conn)(nslice_elems * deg, "host connectivity");
+    if (!h_conn.exists())
+      h_conn = decltype(h_conn)(nslice_elems * deg, "host connectivity");
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     if (elems_end <= total_elem_offset) continue;
@@ -451,10 +464,9 @@ Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
     auto nfrom_block = LO(block_end - block_begin);
     std::vector<int> edge_conn(std::size_t(nfrom_block * nedges_per_entry));
     std::vector<int> face_conn(std::size_t(nfrom_block * nfaces_per_entry));
-    CALL(ex_get_partial_conn(file, EX_ELEM_BLOCK, block_ids[i],
-        block_begin + 1, nfrom_block, 
-        h_conn.data() + slice_elem_offset * nnodes_per_entry, edge_conn.data(),
-        face_conn.data()));
+    CALL(ex_get_partial_conn(file, EX_ELEM_BLOCK, block_ids[i], block_begin + 1,
+        nfrom_block, h_conn.data() + slice_elem_offset * nnodes_per_entry,
+        edge_conn.data(), face_conn.data()));
     auto region_id = block_ids[i];
     auto f0 = OMEGA_H_LAMBDA(LO entry) {
       elem_class_ids_w[slice_elem_offset + entry] = region_id;
@@ -471,12 +483,12 @@ Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
   Dist slice_elems2elems;
   Dist slice_verts2verts;
   LOs conn;
-  assemble_slices(comm, family, dim,
-      init_params.num_elem, elems_begin, slice_conn,
-      init_params.num_nodes, nodes_begin, slice_coords,
+  assemble_slices(comm, family, dim, init_params.num_elem, elems_begin,
+      slice_conn, init_params.num_nodes, nodes_begin, slice_coords,
       &slice_elems2elems, &conn, &slice_verts2verts);
 
-  auto slice_node_globals = GOs{nslice_nodes, nodes_begin, 1, "slice node globals"};
+  auto slice_node_globals =
+      GOs{nslice_nodes, nodes_begin, 1, "slice node globals"};
   auto node_globals = slice_verts2verts.exch(slice_node_globals, 1);
 
   Mesh mesh(comm->library());
@@ -494,8 +506,8 @@ Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose, int,
   if (num_time_steps > 0) {
     if (time_step < 0) time_step = num_time_steps - 1;
     if (verbose) std::cout << "reading time step " << time_step << '\n';
-    read_sliced_nodal_fields(&mesh, file, time_step, verbose,
-        slice_verts2verts, nodes_begin, nslice_nodes);
+    read_sliced_nodal_fields(&mesh, file, time_step, verbose, slice_verts2verts,
+        nodes_begin, nslice_nodes);
   }
   CALL(ex_close(file));
   return mesh;

@@ -5,15 +5,14 @@
 #include "Omega_h_box.hpp"
 #include "Omega_h_class.hpp"
 #include "Omega_h_element.hpp"
-#include "Omega_h_linpart.hpp"
-#include "Omega_h_map.hpp"
-#include "Omega_h_mesh.hpp"
-#include "Omega_h_owners.hpp"
-#include "Omega_h_simplify.hpp"
+#include "Omega_h_inertia.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_loop.hpp"
-#include "Omega_h_inertia.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_mesh.hpp"
 #include "Omega_h_migrate.hpp"
+#include "Omega_h_owners.hpp"
+#include "Omega_h_simplify.hpp"
 
 namespace Omega_h {
 
@@ -200,7 +199,8 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   *p_ents2owners = e2oe;
 }
 
-void suggest_slices(GO total, I32 comm_size, I32 comm_rank, GO* p_begin, GO* p_end) {
+void suggest_slices(
+    GO total, I32 comm_size, I32 comm_rank, GO* p_begin, GO* p_end) {
   auto comm_size_gt = GO(comm_size);
   auto quot = total / comm_size_gt;
   auto rem = total % comm_size_gt;
@@ -214,25 +214,26 @@ void suggest_slices(GO total, I32 comm_size, I32 comm_rank, GO* p_begin, GO* p_e
 }
 
 void assemble_slices(CommPtr comm, Omega_h_Family family, Int dim,
-    GO global_nelems, GO elem_offset, GOs conn_in,
-    GO global_nverts, GO vert_offset, Reals vert_coords,
-    Dist* p_slice_elems2elems, LOs* p_conn_out, Dist* p_slice_verts2verts) {
+    GO global_nelems, GO elem_offset, GOs conn_in, GO global_nverts,
+    GO vert_offset, Reals vert_coords, Dist* p_slice_elems2elems,
+    LOs* p_conn_out, Dist* p_slice_verts2verts) {
   auto verts_per_elem = element_degree(family, dim, 0);
   auto nslice_elems = divide_no_remainder(conn_in.size(), verts_per_elem);
   auto nslice_verts = divide_no_remainder(vert_coords.size(), dim);
-  { // require that slicing was done as suggested
-  GO suggested_elem_offset, suggested_elem_end;
-  suggest_slices(global_nelems, comm->size(), comm->rank(), &suggested_elem_offset,
-      &suggested_elem_end);
-  OMEGA_H_CHECK(suggested_elem_offset == elem_offset);
-  OMEGA_H_CHECK(suggested_elem_end == elem_offset + nslice_elems);
-  GO suggested_vert_offset, suggested_vert_end;
-  suggest_slices(global_nverts, comm->size(), comm->rank(), &suggested_vert_offset,
-      &suggested_vert_end);
-  OMEGA_H_CHECK(suggested_vert_offset == vert_offset);
-  OMEGA_H_CHECK(suggested_vert_end == vert_offset + nslice_verts);
+  {  // require that slicing was done as suggested
+    GO suggested_elem_offset, suggested_elem_end;
+    suggest_slices(global_nelems, comm->size(), comm->rank(),
+        &suggested_elem_offset, &suggested_elem_end);
+    OMEGA_H_CHECK(suggested_elem_offset == elem_offset);
+    OMEGA_H_CHECK(suggested_elem_end == elem_offset + nslice_elems);
+    GO suggested_vert_offset, suggested_vert_end;
+    suggest_slices(global_nverts, comm->size(), comm->rank(),
+        &suggested_vert_offset, &suggested_vert_end);
+    OMEGA_H_CHECK(suggested_vert_offset == vert_offset);
+    OMEGA_H_CHECK(suggested_vert_end == vert_offset + nslice_verts);
   }
-  // generate communication pattern from sliced vertices to their sliced elements
+  // generate communication pattern from sliced vertices to their sliced
+  // elements
   auto slice_elems2slice_verts = copies_to_linear_owners(comm, conn_in);
   auto slice_verts2slice_elems = slice_elems2slice_verts.invert();
   // compute sliced element coordinates
@@ -243,7 +244,7 @@ void assemble_slices(CommPtr comm, Omega_h_Family family, Int dim,
       slice_elem_coords_w[slice_elem * dim + i] = 0.;
       for (Int j = 0; j < verts_per_elem; ++j) {
         slice_elem_coords_w[slice_elem * dim + i] +=
-          slice_elem_vert_coords[(slice_elem * verts_per_elem + j) * dim + i];
+            slice_elem_vert_coords[(slice_elem * verts_per_elem + j) * dim + i];
       }
       slice_elem_coords_w[slice_elem * dim + i] /= verts_per_elem;
     }
@@ -256,18 +257,21 @@ void assemble_slices(CommPtr comm, Omega_h_Family family, Int dim,
   auto elem_owners = identity_remotes(comm, nslice_elems);
   auto rib_coords = resize_vectors(slice_elem_coords, dim, 3);
   inertia::Rib rib_hints;
-  inertia::recursively_bisect(comm, rib_tol, &rib_coords, &rib_masses,
-      &elem_owners, &rib_hints);
+  inertia::recursively_bisect(
+      comm, rib_tol, &rib_coords, &rib_masses, &elem_owners, &rib_hints);
   // communication pattern from sliced elements to partitioned elements
   auto elems2slice_elems = Dist{comm, elem_owners, nslice_elems};
   auto slice_elems2elems = elems2slice_elems.invert();
   // communication pattern from sliced vertices to partitioned elements
   auto slice_elem_vert_owners = slice_elems2slice_verts.items2dests();
-  auto elem_vert_owners = slice_elems2elems.exch(slice_elem_vert_owners, verts_per_elem);
+  auto elem_vert_owners =
+      slice_elems2elems.exch(slice_elem_vert_owners, verts_per_elem);
   auto elems2slice_verts = Dist{comm, elem_vert_owners, nslice_verts};
   // unique set of vertices needed for partitioned elements
-  auto slice_vert_globals = GOs{nslice_verts, vert_offset, 1, "slice vert globals"};
-  auto verts2slice_verts = get_new_copies2old_owners(elems2slice_verts, slice_vert_globals);
+  auto slice_vert_globals =
+      GOs{nslice_verts, vert_offset, 1, "slice vert globals"};
+  auto verts2slice_verts =
+      get_new_copies2old_owners(elems2slice_verts, slice_vert_globals);
   // new (local) connectivity
   auto slice_verts2elems = elems2slice_verts.invert();
   auto new_conn = form_new_conn(verts2slice_verts, slice_verts2elems);

@@ -31,11 +31,12 @@ void add_ents2verts(
 void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
     LOs* p_ent_verts2verts, Remotes* p_ents2owners);
 
-void suggest_slices(GO total, I32 comm_size, I32 comm_rank, GO* p_begin, GO* p_end);
+void suggest_slices(
+    GO total, I32 comm_size, I32 comm_rank, GO* p_begin, GO* p_end);
 void assemble_slices(CommPtr comm, Omega_h_Family family, Int dim,
-    GO global_nelems, GO elem_offset, GOs conn_in,
-    GO global_nverts, GO vert_offset, Reals vert_coords,
-    Dist* p_slice_elems2elems, LOs* conn_out, Dist* p_slice_verts2verts);
+    GO global_nelems, GO elem_offset, GOs conn_in, GO global_nverts,
+    GO vert_offset, Reals vert_coords, Dist* p_slice_elems2elems, LOs* conn_out,
+    Dist* p_slice_verts2verts);
 
 }  // end namespace Omega_h
 

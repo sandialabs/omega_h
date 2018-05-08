@@ -203,10 +203,10 @@ static void separate_upward_with_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
   parallel_for(nlh, f, "separate_upward_with_codes");
 }
 
-void separate_upward_no_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
-    Write<LO> lh2h, Write<Byte> codes);
-void separate_upward_no_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
-    Write<LO> lh2h, Write<Byte> codes) {
+void separate_upward_no_codes(
+    LO nlh, LOs lh2hl, Int nlows_per_high, Write<LO> lh2h, Write<Byte> codes);
+void separate_upward_no_codes(
+    LO nlh, LOs lh2hl, Int nlows_per_high, Write<LO> lh2h, Write<Byte> codes) {
   auto f = OMEGA_H_LAMBDA(LO lh) {
     LO hl = lh2hl[lh];
     LO h = hl / nlows_per_high;
@@ -240,11 +240,10 @@ Adj invert_adj(
   Write<LO> lh2h(nlh, lh2h_name);
   Write<I8> codes(nlh, codes_name);
   if (down_codes.exists()) {
-    separate_upward_with_codes(nlh, lh2hl, nlows_per_high,
-        lh2h, down_codes, codes);
+    separate_upward_with_codes(
+        nlh, lh2hl, nlows_per_high, lh2h, down_codes, codes);
   } else {
-    separate_upward_no_codes(nlh, lh2hl, nlows_per_high,
-        lh2h, codes);
+    separate_upward_no_codes(nlh, lh2hl, nlows_per_high, lh2h, codes);
   }
   sort_by_high_index(l2lh, lh2h, codes);
   return Adj(l2lh, lh2h, codes);

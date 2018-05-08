@@ -39,7 +39,8 @@ class CmdLineArg : public CmdLineItem {
 class CmdLineFlag : public CmdLineItem {
  public:
   CmdLineFlag(std::string const& name_in, std::string const& desc_in);
-  virtual bool parse_impl(int* p_argc, char** argv, int i, bool should_print) override;
+  virtual bool parse_impl(
+      int* p_argc, char** argv, int i, bool should_print) override;
   template <typename T>
   void add_arg(std::string const& arg_name, T const& defval = T());
   std::string const& desc() const;
