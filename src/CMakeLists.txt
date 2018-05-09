@@ -383,6 +383,8 @@ if(BUILD_TESTING)
   test_func(amr_topo_test 1 ./amr_topo_test)
   osh_add_exe(amr_test)
   test_func(amr_test 1 ./amr_test)
+  osh_add_exe(amr_test2)
+  test_func(amr_test2 1 ./amr_test2)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
