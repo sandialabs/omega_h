@@ -3,8 +3,6 @@
 #include <Omega_h_build.hpp>
 #include <Omega_h_file.hpp>
 
-#include <Omega_h_print.hpp>
-
 using Omega_h::Bytes;
 using Omega_h::Int;
 using Omega_h::LOs;
@@ -218,9 +216,6 @@ static void test_3D_arrays(Omega_h::Library* lib) {
   auto xfer_opts = Omega_h::TransferOpts();
   Omega_h::amr_refine(&m, Omega_h::Bytes({1, 0}), xfer_opts);
   check_3D_after(&m);
-
-  Omega_h::vtk::FullWriter writer("out", &m);
-  writer.write();
 }
 
 int main(int argc, char** argv) {
