@@ -2,11 +2,49 @@
 #include <Omega_h_amr_topology.hpp>
 #include <Omega_h_amr_transfer.hpp>
 #include <Omega_h_hypercube.hpp>
+#include <Omega_h_loop.hpp>
 #include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_modify.hpp>
 
 namespace Omega_h {
+
+static OMEGA_H_DEVICE Byte mark_elem(LO elem, Adj elems2bridges,
+    Adj bridges2elems, Bytes is_interior, Int nbridges_per_elem) {
+  for (Int b = 0; b < nbridges_per_elem; ++b) {
+    auto bridge = elems2bridges.ab2b[elem * nbridges_per_elem + b];
+    if (! is_interior[bridge]) continue;
+    auto adj_elem_begin = bridges2elems.a2ab[bridge];
+    auto adj_elem_end = bridges2elems.a2ab[bridge + 1];
+    (void)adj_elem_begin;
+    (void)adj_elem_end;
+  }
+  return 0;
+}
+
+Bytes enforce_one_level(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
+  auto elem_dim = mesh->dim();
+  OMEGA_H_CHECK(bridge_dim > 0);
+  OMEGA_H_CHECK(bridge_dim < elem_dim);
+  auto is_leaf = mesh->ask_leaves(elem_dim);
+  auto elems2bridges = mesh->ask_down(elem_dim, bridge_dim);
+  auto bridges2elems = mesh->ask_up(bridge_dim, elem_dim);
+  auto nbridges_per_elem = Omega_h::hypercube_degree(elem_dim, bridge_dim);
+  auto is_bridge_interior = Omega_h::mark_by_class_dim(mesh, bridge_dim, elem_dim);
+  Write<Byte> one_level_mark(mesh->nelems());
+  auto f = OMEGA_H_LAMBDA(LO elem) {
+    if (!is_leaf[elem]) {
+      one_level_mark[elem] = 0;
+    } else if (elems_are_marked[elem]) {
+      one_level_mark[elem] = 1;
+    } else {
+      one_level_mark[elem] = mark_elem(elem, elems2bridges, bridges2elems,
+          is_bridge_interior, nbridges_per_elem);
+    }
+  };
+  Omega_h::parallel_for(mesh->nelems(), f);
+  return one_level_mark;
+}
 
 static void amr_refine_ghosted(Mesh* mesh) {
   Few<LOs, 4> mods2mds;
