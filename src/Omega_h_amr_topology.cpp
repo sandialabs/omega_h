@@ -7,19 +7,19 @@
 
 namespace Omega_h {
 
-static void validate_marking(Mesh* mesh, Bytes elem_mark) {
+static void validate_marking(Mesh* mesh, Bytes elems_are_marked) {
   auto is_leaf = mesh->ask_leaves(mesh->dim());
   auto f = OMEGA_H_LAMBDA(LO elem) {
-    if (elem_mark[elem]) OMEGA_H_CHECK(is_leaf[elem]);
+    if (elems_are_marked[elem]) OMEGA_H_CHECK(is_leaf[elem]);
   };
   parallel_for(mesh->nelems(), f);
 }
 
-void mark_amr(Mesh* mesh, Bytes elem_mark) {
-  validate_marking(mesh, elem_mark);
+void mark_amr(Mesh* mesh, Bytes elems_are_marked) {
+  validate_marking(mesh, elems_are_marked);
   auto elem_dim = mesh->dim();
   for (Int mod_dim = 0; mod_dim <= elem_dim; ++mod_dim) {
-    auto dim_mark = mark_down(mesh, elem_dim, mod_dim, elem_mark);
+    auto dim_mark = mark_down(mesh, elem_dim, mod_dim, elems_are_marked);
     mesh->add_tag<Omega_h::Byte>(mod_dim, "refine", 1, dim_mark);
   }
 }
