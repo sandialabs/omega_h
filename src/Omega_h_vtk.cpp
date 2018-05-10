@@ -115,7 +115,8 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
 
 template <typename T>
 void write_array(
-    std::ostream& stream, std::string const& name, Int ncomps, Read<T> array) {
+    std::ostream& stream, std::string const& name, Int ncomps, Read<T> array, bool compress) {
+  OMEGA_H_TIME_FUNCTION;
   if (!(array.exists())) {
     Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
@@ -125,26 +126,40 @@ void write_array(
   HostRead<T> uncompressed(array);
   std::uint64_t uncompressed_bytes =
       sizeof(T) * static_cast<uint64_t>(array.size());
+  std::string enc_header;
+  std::string encoded;
 #ifdef OMEGA_H_USE_ZLIB
+  if (compress)
+  {
+  begin_code("zlib");
   uLong source_bytes = uncompressed_bytes;
   uLong dest_bytes = ::compressBound(source_bytes);
   auto compressed = new ::Bytef[dest_bytes];
   int ret = ::compress2(compressed, &dest_bytes,
       reinterpret_cast<const ::Bytef*>(nonnull(uncompressed.data())),
       source_bytes, Z_BEST_SPEED);
+  end_code();
   OMEGA_H_CHECK(ret == Z_OK);
-  std::string encoded = base64::encode(compressed, dest_bytes);
+  begin_code("base64");
+  encoded = base64::encode(compressed, dest_bytes);
   delete[] compressed;
   std::uint64_t header[4] = {
       1, uncompressed_bytes, uncompressed_bytes, dest_bytes};
-  std::string enc_header = base64::encode(header, sizeof(header));
+  enc_header = base64::encode(header, sizeof(header));
+  end_code();
+  } else
 #else
-  std::string enc_header =
-      base64::encode(&uncompressed_bytes, sizeof(std::uint64_t));
-  std::string encoded =
-      base64::encode(nonnull(uncompressed.data()), uncompressed_bytes);
+  OMEGA_H_CHECK(!compress);
 #endif
+  {
+  enc_header =
+      base64::encode(&uncompressed_bytes, sizeof(std::uint64_t));
+  encoded =
+      base64::encode(nonnull(uncompressed.data()), uncompressed_bytes);
+  }
+  begin_code("stream bulk");
   stream << enc_header << encoded << '\n';
+  end_code();
   stream << "</DataArray>\n";
 }
 
@@ -205,13 +220,14 @@ Read<T> read_array(
       Read<T>(uncompressed.write()), is_little_endian);
 }
 
-void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
+void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim, bool compress) {
+  OMEGA_H_TIME_FUNCTION;
   if (is<I8>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), as<I8>(tag)->array());
+    write_array(stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
   } else if (is<I32>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), as<I32>(tag)->array());
+    write_array(stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
   } else if (is<I64>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), as<I64>(tag)->array());
+    write_array(stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
   } else if (is<Real>(tag)) {
     Reals array = as<Real>(tag)->array();
     if (1 < space_dim && space_dim < 3) {
@@ -221,17 +237,17 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
         // this filter adds a 3rd zero component to any
         // fields with 2 components for 2D meshes
         write_array(
-            stream, tag->name(), 3, resize_vectors(array, space_dim, 3));
+            stream, tag->name(), 3, resize_vectors(array, space_dim, 3), compress);
       } else if (tag->ncomps() == symm_ncomps(space_dim)) {
         // Likewise, ParaView has component names specially set up for
         // 3D symmetric tensors
         write_array(stream, tag->name(), symm_ncomps(3),
-            resize_symms(array, space_dim, 3));
+            resize_symms(array, space_dim, 3), compress);
       } else {
-        write_array(stream, tag->name(), tag->ncomps(), array);
+        write_array(stream, tag->name(), tag->ncomps(), array, compress);
       }
     } else {
-      write_array(stream, tag->name(), tag->ncomps(), array);
+      write_array(stream, tag->name(), tag->ncomps(), array, compress);
     }
   } else {
     Omega_h_fail("unknown tag type in write_tag");
@@ -329,7 +345,7 @@ static constexpr I8 vtk_type(Omega_h_Family family, Int dim) {
                                             : (dim == 0 ? VTK_VERTEX : -1)))));
 }
 
-static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
+static void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
   stream << "<VTKFile type=\"UnstructuredGrid\" byte_order=\"";
   if (is_little_endian_cpu())
     stream << "LittleEndian";
@@ -339,9 +355,15 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream) {
   stream << Traits<std::uint64_t>::name();
   stream << "\"";
 #ifdef OMEGA_H_USE_ZLIB
-  stream << " compressor=\"vtkZLibDataCompressor\"";
+  if (compress) {
+    stream << " compressor=\"vtkZLibDataCompressor\"";
+  } else
+#else
+  OMEGA_H_CHECK(!compress);
 #endif
-  stream << ">\n";
+  {
+    stream << ">\n";
+  }
 }
 
 static void read_vtkfile_vtu_start_tag(
@@ -369,16 +391,16 @@ void read_piece_start_tag(
   *ncells_out = std::stoi(st.attribs["NumberOfCells"]);
 }
 
-void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim) {
+void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim, bool compress) {
   Read<I8> types(mesh->nents(cell_dim), vtk_type(mesh->family(), cell_dim));
-  write_array(stream, "types", 1, types);
+  write_array(stream, "types", 1, types, compress);
   LOs ev2v = mesh->ask_verts_of(cell_dim);
   auto deg = element_degree(mesh->family(), cell_dim, VERT);
   /* starts off already at the end of the first entity's adjacencies,
      increments by a constant value */
   LOs ends(mesh->nents(cell_dim), deg, deg);
-  write_array(stream, "connectivity", 1, ev2v);
-  write_array(stream, "offsets", 1, ends);
+  write_array(stream, "connectivity", 1, ev2v, compress);
+  write_array(stream, "offsets", 1, ends, compress);
 }
 
 void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
@@ -420,22 +442,23 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
       stream, "offsets", ncells, 1, is_little_endian, is_compressed);
 }
 
-void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim) {
-  write_array(stream, "local", 1, Read<LO>(mesh->nents(ent_dim), 0, 1));
+void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
+  write_array(stream, "local", 1, Read<LO>(mesh->nents(ent_dim), 0, 1), compress);
 }
 
-void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim) {
+void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
   if (mesh->comm()->size() == 1) return;
-  write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks);
+  write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks, compress);
 }
 
 void write_locals_and_owners(
-    std::ostream& stream, Mesh* mesh, Int ent_dim, TagSet const& tags) {
+    std::ostream& stream, Mesh* mesh, Int ent_dim, TagSet const& tags, bool compress) {
+  OMEGA_H_TIME_FUNCTION;
   if (tags[size_t(ent_dim)].count("local")) {
-    write_locals(stream, mesh, ent_dim);
+    write_locals(stream, mesh, ent_dim, compress);
   }
   if (tags[size_t(ent_dim)].count("owner")) {
-    write_owners(stream, mesh, ent_dim);
+    write_owners(stream, mesh, ent_dim, compress);
   }
 }
 
@@ -530,31 +553,31 @@ static void verify_vtk_tagset(Mesh* mesh, Int cell_dim, TagSet const& tags) {
 }
 
 void write_vtu(
-    std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags) {
-  begin_code("write_vtu");
+    std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress) {
+  OMEGA_H_TIME_FUNCTION;
   default_dim(mesh, &cell_dim);
   verify_vtk_tagset(mesh, cell_dim, tags);
-  write_vtkfile_vtu_start_tag(stream);
+  write_vtkfile_vtu_start_tag(stream, compress);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag(stream, mesh, cell_dim);
   stream << "<Cells>\n";
-  write_connectivity(stream, mesh, cell_dim);
+  write_connectivity(stream, mesh, cell_dim, compress);
   stream << "</Cells>\n";
   stream << "<Points>\n";
   auto coords = mesh->coords();
-  write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3));
+  write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3), compress);
   stream << "</Points>\n";
   stream << "<PointData>\n";
   /* globals go first so read_vtu() knows where to find them */
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
-    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim());
+    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
   }
-  write_locals_and_owners(stream, mesh, VERT, tags);
+  write_locals_and_owners(stream, mesh, VERT, tags, compress);
   for (Int i = 0; i < mesh->ntags(VERT); ++i) {
     auto tag = mesh->get_tag(VERT, i);
     if (tag->name() != "coordinates" && tag->name() != "global" &&
         tags[VERT].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim());
+      write_tag(stream, tag, mesh->dim(), compress);
     }
   }
   stream << "</PointData>\n";
@@ -562,20 +585,19 @@ void write_vtu(
   /* globals go first so read_vtu() knows where to find them */
   if (mesh->has_tag(cell_dim, "global") &&
       tags[size_t(cell_dim)].count("global")) {
-    write_tag(stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim());
+    write_tag(stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
   }
-  write_locals_and_owners(stream, mesh, cell_dim, tags);
+  write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
     if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim());
+      write_tag(stream, tag, mesh->dim(), compress);
     }
   }
   stream << "</CellData>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
   stream << "</VTKFile>\n";
-  end_code();
 }
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
@@ -638,20 +660,20 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
 }
 
 void write_vtu(
-    std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags) {
+    std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
   ask_for_mesh_tags(mesh, tags);
-  write_vtu(file, mesh, cell_dim, tags);
+  write_vtu(file, mesh, cell_dim, tags, compress);
 }
 
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim) {
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, bool compress) {
   default_dim(mesh, &cell_dim);
-  write_vtu(filename, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim));
+  write_vtu(filename, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim), compress);
 }
 
-void write_vtu(std::string const& filename, Mesh* mesh) {
-  write_vtu(filename, mesh, mesh->dim());
+void write_vtu(std::string const& filename, Mesh* mesh, bool compress) {
+  write_vtu(filename, mesh, mesh->dim(), compress);
 }
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
@@ -765,7 +787,7 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
 }
 
 void write_parallel(
-    std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags) {
+    std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress) {
   begin_code("vtk::write_parallel");
   default_dim(mesh, &cell_dim);
   ask_for_mesh_tags(mesh, tags);
@@ -784,17 +806,17 @@ void write_parallel(
   if (rank == 0) {
     write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece", tags);
   }
-  write_vtu(piece_filename(piecepath, rank), mesh, cell_dim, tags);
+  write_vtu(piece_filename(piecepath, rank), mesh, cell_dim, tags, compress);
   end_code();
 }
 
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim) {
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim, bool compress) {
   default_dim(mesh, &cell_dim);
-  write_parallel(path, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim));
+  write_parallel(path, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim), compress);
 }
 
-void write_parallel(std::string const& path, Mesh* mesh) {
-  write_parallel(path, mesh, mesh->dim());
+void write_parallel(std::string const& path, Mesh* mesh, bool compress) {
+  write_parallel(path, mesh, mesh->dim(), compress);
 }
 
 void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
@@ -931,10 +953,11 @@ Writer& Writer::operator=(Writer const& other) {
 Writer::~Writer() {}
 
 Writer::Writer(
-    std::string const& root_path, Mesh* mesh, Int cell_dim, Real restart_time)
+    std::string const& root_path, Mesh* mesh, Int cell_dim, Real restart_time, bool compress)
     : mesh_(mesh),
       root_path_(root_path),
       cell_dim_(cell_dim),
+      compress_(compress),
       step_(0),
       pvd_pos_(0) {
   default_dim(mesh_, &cell_dim_);
@@ -952,7 +975,7 @@ Writer::Writer(
 
 void Writer::write(I64 step, Real time, TagSet const& tags) {
   step_ = step;
-  write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags);
+  write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags, compress_);
   if (mesh_->comm()->rank() == 0) {
     update_pvd(root_path_, &pvd_pos_, step_, time);
   }
@@ -969,14 +992,14 @@ void Writer::write(Real time) {
 
 void Writer::write() { this->write(Real(step_)); }
 
-FullWriter::FullWriter(std::string const& root_path, Mesh* mesh) {
+FullWriter::FullWriter(std::string const& root_path, Mesh* mesh, Real restart_time, bool compress) {
   auto comm = mesh->comm();
   auto rank = comm->rank();
   if (rank == 0) safe_mkdir(root_path.c_str());
   comm->barrier();
   for (Int i = EDGE; i <= mesh->dim(); ++i)
     writers_.push_back(
-        Writer(root_path + "/" + dimensional_plural_name(i), mesh, i));
+        Writer(root_path + "/" + dimensional_plural_name(i), mesh, i, restart_time, compress));
 }
 
 void FullWriter::write(Real time) {
