@@ -172,7 +172,7 @@ template <typename T>
 class HostRead {
   Read<T> read_;
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  typename Kokkos::View<const T*>::HostMirror mirror_;
+  typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
 #endif
  public:
   HostRead();
