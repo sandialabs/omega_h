@@ -6,8 +6,6 @@
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_transfer.hpp>
 
-#include <Omega_h_print.hpp>
-
 namespace Omega_h {
 
 void amr_transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
@@ -173,6 +171,9 @@ static void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+/* inherited quantities come directly from parents, which have
+   multiple dimensions, so we enforce that inherited tags exist
+   across all valid dimensions */
 static void validate_tag(Mesh* m, TagBase const* tagbase) {
   auto name = tagbase->name();
   for (Int d = 1; d <= m->dim(); ++d) {
@@ -186,9 +187,6 @@ static void validate_tag(Mesh* m, TagBase const* tagbase) {
 void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
     Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, TransferOpts const& opts) {
-  /* inherited quantities come directly from parents, which have
-     multiple dimensions, so we enforce that inherited tags exist
-     across all valid dimensions */
   for (Int i = 0; i < old_mesh->ntags(0); ++i) {
     auto tagbase = old_mesh->get_tag(0, i);
     if (should_inherit(old_mesh, opts, 0, tagbase)) {
