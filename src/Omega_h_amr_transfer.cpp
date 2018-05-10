@@ -95,9 +95,18 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
     auto old_c_data = (old_mesh->ask_parents(prod_dim)).codes;
     auto new_p_data = Write<LO>(new_mesh->nents(prod_dim), 42);
     auto new_c_data = Write<I8>(new_mesh->nents(prod_dim), 0);
-    auto same_p_data = read(unmap(same_ents2old_ents[prod_dim], old_p_data, 1));
+    auto same_p_data = unmap(same_ents2old_ents[prod_dim], old_p_data, 1);
     auto same_c_data = read(unmap(same_ents2old_ents[prod_dim], old_c_data, 1));
-    map_into(same_p_data, same_ents2new_ents[prod_dim], new_p_data, 1);
+    auto lambda1 = OMEGA_H_LAMBDA(LO same_ent) {
+      auto old_parent = same_p_data[same_ent];
+      if (old_parent < 0) return;
+      auto code = same_c_data[same_ent];
+      auto parent_dim = code_parent_dim(code);
+      auto new_parent = old_ents2new_ents[parent_dim][old_parent];
+      same_p_data[same_ent] = new_parent;
+    };
+    parallel_for(same_p_data.size(), lambda1);
+    map_into(read(same_p_data), same_ents2new_ents[prod_dim], new_p_data, 1);
     map_into(same_c_data, same_ents2new_ents[prod_dim], new_c_data, 1);
     Int offset = 0;
     for (Int mod_dim = max2(Int(EDGE), prod_dim); mod_dim <= dim; ++mod_dim) {
@@ -105,7 +114,7 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
           unmap(mods2mds[mod_dim], old_ents2new_ents[mod_dim], 1);
       auto nprods_per_mod = hypercube_split_degree(mod_dim, prod_dim);
       auto nmods_of_dim = mods2mds[mod_dim].size();
-      auto f = OMEGA_H_LAMBDA(LO mod) {
+      auto lambda2 = OMEGA_H_LAMBDA(LO mod) {
         for (Int prod = 0; prod < nprods_per_mod; ++prod) {
           auto idx = offset + (mod * nprods_per_mod + prod);
           auto prod_idx = prods2new_ents[prod_dim][idx];
@@ -113,7 +122,7 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
           new_c_data[prod_idx] = make_amr_code(prod, mod_dim);
         }
       };
-      parallel_for(nmods_of_dim, f);
+      parallel_for(nmods_of_dim, lambda2);
       offset += nprods_per_mod * nmods_of_dim;
     }
     Parents parents(new_p_data, new_c_data);
