@@ -139,6 +139,8 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   }
   amr_transfer_parents(mesh, &new_mesh, mods2mds, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
+  amr_transfer_inherit(mesh, &new_mesh, prods2new_ents, same_ents2old_ents,
+      same_ents2new_ents, xfer_opts);
   *mesh = new_mesh;
 }
 

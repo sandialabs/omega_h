@@ -6,6 +6,8 @@
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_transfer.hpp>
 
+#include <Omega_h_print.hpp>
+
 namespace Omega_h {
 
 void amr_transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
@@ -118,6 +120,82 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
     }
     Parents parents(new_p_data, new_c_data);
     new_mesh->set_parents(prod_dim, parents);
+  }
+}
+
+template <typename T>
+void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
+    Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
+    Few<LOs, 4> same_ents2new_ents, std::string const& name) {
+  Few<Write<T>, 4> new_data;
+  auto ncomps = old_mesh->get_tag<T>(0, name)->ncomps();
+  for (Int prod_dim = 0; prod_dim <= old_mesh->dim(); ++prod_dim) {
+    new_data[prod_dim] = Write<T>(new_mesh->nents(prod_dim), -1);
+    auto old_data = old_mesh->get_array<T>(prod_dim, name);
+    auto same_data = read(unmap(same_ents2old_ents[prod_dim], old_data, ncomps));
+    map_into(same_data, same_ents2new_ents[prod_dim], new_data[prod_dim], ncomps);
+  }
+  for (Int prod_dim = 0; prod_dim <= old_mesh->dim(); ++prod_dim) {
+    auto parents = new_mesh->ask_parents(prod_dim);
+    auto f = OMEGA_H_LAMBDA(LO prod) {
+      auto prod_ent = prods2new_ents[prod_dim][prod];
+      auto parent_ent = parents.parent_idx[prod_ent];
+      auto code = parents.codes[prod_ent];
+      auto parent_dim = code_parent_dim(code);
+      new_data[prod_dim][prod_ent] = new_data[parent_dim][parent_ent];
+    };
+    parallel_for(prods2new_ents[prod_dim].size(), f);
+    new_mesh->add_tag(prod_dim, name, ncomps, Read<T>(new_data[prod_dim]), true);
+  }
+}
+
+static void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
+    Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
+    Few<LOs, 4> same_ents2new_ents, TagBase const* tagbase) {
+  auto name = tagbase->name();
+  switch(tagbase->type()) {
+    case OMEGA_H_I8:
+      amr_transfer_inherit<I8>(old_mesh, new_mesh, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents, name);
+      break;
+    case OMEGA_H_I32:
+      amr_transfer_inherit<I32>(old_mesh, new_mesh, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents, name);
+      break;
+    case OMEGA_H_I64:
+      amr_transfer_inherit<I64>(old_mesh, new_mesh, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents, name);
+      break;
+    case OMEGA_H_F64:
+      amr_transfer_inherit<Real>(old_mesh, new_mesh, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents, name);
+      break;
+  }
+}
+
+static void validate_tag(Mesh* m, TagBase const* tagbase) {
+  auto name = tagbase->name();
+  for (Int d = 1; d <= m->dim(); ++d) {
+    OMEGA_H_CHECK(m->has_tag(d, name));
+    auto dtagbase = m->get_tagbase(d, name);
+    OMEGA_H_CHECK(tagbase->type() == dtagbase->type());
+    OMEGA_H_CHECK(tagbase->ncomps() == dtagbase->ncomps());
+  }
+}
+
+void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
+    Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
+    Few<LOs, 4> same_ents2new_ents, TransferOpts const& opts) {
+  /* inherited quantities come directly from parents, which have
+     multiple dimensions, so we enforce that inherited tags exist
+     across all valid dimensions */
+  for (Int i = 0; i < old_mesh->ntags(0); ++i) {
+    auto tagbase = old_mesh->get_tag(0, i);
+    if (should_inherit(old_mesh, opts, 0, tagbase)) {
+      validate_tag(old_mesh, tagbase);
+      amr_transfer_inherit(old_mesh, new_mesh, prods2new_ents,
+          same_ents2old_ents, same_ents2new_ents, tagbase);
+    }
   }
 }
 
