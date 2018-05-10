@@ -121,7 +121,7 @@ OMEGA_H_INLINE T product(Few<T, n> x) {
   return out;
 }
 
-#if !(defined( OMEGA_H_USE_CUDA ) && defined( __clang__ ))
+#if !(defined(OMEGA_H_USE_CUDA) && defined(__clang__))
 template <Int n, typename T>
 OMEGA_H_INLINE decltype(std::declval<T>() * std::declval<T>()) inner_product(
     Few<T, n> a, Few<T, n> b) {
@@ -131,8 +131,7 @@ OMEGA_H_INLINE decltype(std::declval<T>() * std::declval<T>()) inner_product(
 }
 #else
 template <Int n, typename T>
-OMEGA_H_INLINE decltype(T() * T()) inner_product(
-    Few<T, n> a, Few<T, n> b) {
+OMEGA_H_INLINE decltype(T() * T()) inner_product(Few<T, n> a, Few<T, n> b) {
   auto out = a[0] * b[0];
   for (Int i = 1; i < n; ++i) out = out + (a[i] * b[i]);
   return out;

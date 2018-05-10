@@ -4,7 +4,7 @@
 #include <vector>
 
 #if defined(OMEGA_H_USE_CUDA)
-#if defined( __clang__ )
+#if defined(__clang__)
 template <class... Args>
 inline __host__ __device__ void va_printf(const char*, Args...) {
   printf("\n");

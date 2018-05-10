@@ -23,21 +23,41 @@
 
 namespace Omega_h {
 
-#define CALL(f) OMEGA_H_CHECK((f) >= 0)
+#define CALL(f)                                                                \
+  {                                                                            \
+    auto f_err = (f);                                                          \
+    if (f_err != 0) {                                                          \
+      const char* errmsg;                                                      \
+      const char* errfunc;                                                     \
+      int errnum;                                                              \
+      ex_get_err(&errmsg, &errfunc, &errnum);                                  \
+      Omega_h_fail("Exodus call %s failed (%d): %s: %s\n", #f, errnum,         \
+          errfunc, errmsg);                                                    \
+    }                                                                          \
+  }
 
 namespace exodus {
 
-static bool is_type_supported(int dim, std::string const& type) {
-  if (dim == 2) {
-    if (type == "tri3") return true;
-    if (type == "TRI") return true;
+static void get_elem_type_info(
+    std::string const& type, int* p_dim, Omega_h_Family* p_family) {
+  if (type == "tri3") {
+    *p_dim = 2;
+    *p_family = OMEGA_H_SIMPLEX;
+  } else if (type == "TRI") {
+    *p_dim = 2;
+    *p_family = OMEGA_H_SIMPLEX;
+  } else if (type == "tetra4") {
+    *p_dim = 3;
+    *p_family = OMEGA_H_SIMPLEX;
+  } else if (type == "TETRA") {
+    *p_dim = 3;
+    *p_family = OMEGA_H_SIMPLEX;
+  } else if (type == "TET4") {
+    *p_dim = 3;
+    *p_family = OMEGA_H_SIMPLEX;
+  } else {
+    Omega_h_fail("Unsupported Exodus element type \"%s\"\n", type.c_str());
   }
-  if (dim == 3) {
-    if (type == "tetra4") return true;
-    if (type == "TETRA") return true;
-    if (type == "TET4") return true;
-  }
-  return false;
 }
 
 // subtracts one and maps from Exodus
@@ -166,10 +186,10 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
   auto coords = Reals(h_coords.write());
   std::vector<int> block_ids(std::size_t(init_params.num_elem_blk));
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
-  auto deg = element_degree(mesh->family(), dim, VERT);
-  HostWrite<LO> h_conn(LO(init_params.num_elem * deg));
+  HostWrite<LO> h_conn;
   Write<LO> elem_class_ids_w(LO(init_params.num_elem));
   LO elem_start = 0;
+  int family_int = -1;
   for (size_t i = 0; i < block_ids.size(); ++i) {
     char elem_type[MAX_STR_LENGTH + 1];
     int nentries;
@@ -186,14 +206,17 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
     }
     /* some pretty weird blocks from the CDFEM people... */
     if (std::string("NULL") == elem_type && nentries == 0) continue;
-    if (!is_type_supported(dim, elem_type)) {
-      Omega_h_fail(
-          "type %s is not supported for %dD ! (%d nodes %d edges %d faces %d "
-          "attr)\n",
-          elem_type, dim, nnodes_per_entry, nedges_per_entry, nfaces_per_entry,
-          nattr_per_entry);
-    }
+    int dim_from_type;
+    Omega_h_Family family_from_type;
+    get_elem_type_info(elem_type, &dim_from_type, &family_from_type);
+    OMEGA_H_CHECK(dim_from_type == dim);
+    if (family_int == -1) family_int = family_from_type;
+    OMEGA_H_CHECK(family_int == family_from_type);
+    auto deg = element_degree(Omega_h_Family(family_int), dim, VERT);
     OMEGA_H_CHECK(nnodes_per_entry == deg);
+    if (!h_conn.exists())
+      h_conn =
+          decltype(h_conn)(LO(init_params.num_elem * deg), "host connectivity");
     if (nedges_per_entry < 0) nedges_per_entry = 0;
     if (nfaces_per_entry < 0) nfaces_per_entry = 0;
     std::vector<int> edge_conn(std::size_t(nentries * nedges_per_entry));
@@ -209,6 +232,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
     elem_start += nentries;
   }
   OMEGA_H_CHECK(elem_start == init_params.num_elem);
+  Omega_h_Family family = Omega_h_Family(family_int);
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
   build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, dim, conn, coords);
   classify_elements(mesh);
@@ -282,7 +306,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
           subtract_from_each(LOs(h_set_sides2elem.write()), 1);
       auto set_sides2local = LOs(h_set_sides2local.write());
       auto elems2sides = mesh->ask_down(dim, dim - 1).ab2b;
-      auto nsides_per_elem = element_degree(mesh->family(), dim, dim - 1);
+      auto nsides_per_elem = element_degree(family, dim, dim - 1);
       auto set_sides2side_w = Write<LO>(nentries);
       auto f2 = OMEGA_H_LAMBDA(LO set_side) {
         auto elem = set_sides2elem[set_side];
@@ -314,6 +338,179 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
   }
   CALL(ex_close(file));
   end_code();
+}
+
+static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
+    bool verbose, Dist slice_verts2verts, GO nodes_begin, LO nslice_nodes) {
+  int num_nodal_vars;
+  CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
+  if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
+  std::int64_t max_name_length =
+      ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
+  ++max_name_length;  // it really is tightly-fitted, and doesn't include null
+                      // terminators
+  if (verbose) std::cout << "max name length " << max_name_length << '\n';
+  std::vector<char> names_memory(
+      std::size_t(num_nodal_vars * max_name_length), '\0');
+  std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
+  for (int i = 0; i < num_nodal_vars; ++i) {
+    name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
+  }
+  CALL(ex_get_variable_names(file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
+  for (int i = 0; i < num_nodal_vars; ++i) {
+    auto name = name_ptrs[std::size_t(i)];
+    if (verbose) std::cout << "Loading nodal variable \"" << name << "\"\n";
+    HostWrite<double> host_write(nslice_nodes);
+    CALL(ex_get_partial_var(file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/ 0,
+        nodes_begin + 1, nslice_nodes, host_write.data()));
+    auto device_write = host_write.write();
+    auto slice_data = Reals(device_write);
+    auto data = slice_verts2verts.exch(slice_data, 1);
+    mesh->add_tag(VERT, name, 1, data);
+  }
+}
+
+Mesh read_sliced(
+    std::string const& path, CommPtr comm, bool verbose, int, int time_step) {
+  ScopedTimer timer("exodus::read");
+  verbose = verbose && (comm->rank() == 0);
+  auto comm_mpi = comm->get_impl();
+  auto comp_ws = int(sizeof(Real));
+  int io_ws = 0;
+  float version;
+  auto mode = EX_READ | EX_BULK_INT64_API | EX_MPIIO;
+  auto file = ex_open_par(
+      path.c_str(), mode, &comp_ws, &io_ws, &version, comm_mpi, MPI_INFO_NULL);
+  if (file < 0)
+    Omega_h_fail("can't open sliced Exodus file %s\n", path.c_str());
+  ex_init_params init_params;
+  CALL(ex_get_init_ext(file, &init_params));
+  if (verbose) {
+    std::cout << "init params for " << path << ":\n";
+    std::cout << " ExodusII " << version << '\n';
+    std::cout << " Exodus ID " << file << '\n';
+    std::cout << " comp_ws " << comp_ws << '\n';
+    std::cout << " io_ws " << io_ws << '\n';
+    std::cout << " Title " << init_params.title << '\n';
+    std::cout << " num_dim " << init_params.num_dim << '\n';
+    std::cout << " num_nodes " << init_params.num_nodes << '\n';
+    std::cout << " num_elem " << init_params.num_elem << '\n';
+    std::cout << " num_elem_blk " << init_params.num_elem_blk << '\n';
+    std::cout << " num_node_sets " << init_params.num_node_sets << '\n';
+    std::cout << " num_side_sets " << init_params.num_side_sets << '\n';
+  }
+  auto dim = int(init_params.num_dim);
+  GO nodes_begin, nodes_end;
+  suggest_slices(init_params.num_nodes, comm->size(), comm->rank(),
+      &nodes_begin, &nodes_end);
+  auto nslice_nodes = LO(nodes_end - nodes_begin);
+  HostWrite<Real> h_coord_blk[3];
+  for (Int i = 0; i < dim; ++i) {
+    h_coord_blk[i] = HostWrite<Real>(nslice_nodes);
+  }
+  nc_set_log_level(5);
+  CALL(ex_get_partial_coord(file, nodes_begin + 1, nslice_nodes,
+      h_coord_blk[0].data(), h_coord_blk[1].data(), h_coord_blk[2].data()));
+  HostWrite<Real> h_coords(nslice_nodes * dim);
+  for (LO i = 0; i < nslice_nodes; ++i) {
+    for (Int j = 0; j < dim; ++j) {
+      h_coords[i * dim + j] = h_coord_blk[j][i];
+    }
+  }
+  auto slice_coords = Reals(h_coords.write());
+  std::vector<int> block_ids(std::size_t(init_params.num_elem_blk));
+  CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
+  GO elems_begin, elems_end;
+  suggest_slices(init_params.num_elem, comm->size(), comm->rank(), &elems_begin,
+      &elems_end);
+  auto nslice_elems = LO(elems_end - elems_begin);
+  HostWrite<GO> h_conn;
+  Write<ClassId> elem_class_ids_w(nslice_elems);
+  GO total_elem_offset = 0;
+  LO slice_elem_offset = 0;
+  int family_int = -1;
+  for (size_t i = 0; i < block_ids.size(); ++i) {
+    char elem_type[MAX_STR_LENGTH + 1];
+    GO nentries;
+    GO nnodes_per_entry;
+    GO nedges_per_entry;
+    GO nfaces_per_entry;
+    GO nattr_per_entry;
+    CALL(ex_get_block(file, EX_ELEM_BLOCK, block_ids[i], elem_type, &nentries,
+        &nnodes_per_entry, &nedges_per_entry, &nfaces_per_entry,
+        &nattr_per_entry));
+    if (verbose) {
+      std::cout << "block " << block_ids[i] << " has " << nentries
+                << " elements of type " << elem_type << '\n';
+    }
+    /* some pretty weird blocks from the CDFEM people... */
+    if (std::string("NULL") == elem_type && nentries == 0) continue;
+    int dim_from_type;
+    Omega_h_Family family_from_type;
+    get_elem_type_info(elem_type, &dim_from_type, &family_from_type);
+    OMEGA_H_CHECK(dim_from_type == dim);
+    if (family_int == -1) family_int = family_from_type;
+    OMEGA_H_CHECK(family_int == family_from_type);
+    auto deg = element_degree(Omega_h_Family(family_int), dim, VERT);
+    OMEGA_H_CHECK(nnodes_per_entry == deg);
+    if (!h_conn.exists())
+      h_conn = decltype(h_conn)(nslice_elems * deg, "host connectivity");
+    if (nedges_per_entry < 0) nedges_per_entry = 0;
+    if (nfaces_per_entry < 0) nfaces_per_entry = 0;
+    if (elems_end <= total_elem_offset) continue;
+    if (total_elem_offset + nentries <= elems_begin) continue;
+    auto block_begin = std::max(elems_begin - total_elem_offset, GO(0));
+    auto block_end = std::min(elems_end - total_elem_offset, nentries);
+    auto nfrom_block = LO(block_end - block_begin);
+    std::vector<int> edge_conn(std::size_t(nfrom_block * nedges_per_entry));
+    std::vector<int> face_conn(std::size_t(nfrom_block * nfaces_per_entry));
+    CALL(ex_get_partial_conn(file, EX_ELEM_BLOCK, block_ids[i], block_begin + 1,
+        nfrom_block, h_conn.data() + slice_elem_offset * nnodes_per_entry,
+        edge_conn.data(), face_conn.data()));
+    auto region_id = block_ids[i];
+    auto f0 = OMEGA_H_LAMBDA(LO entry) {
+      elem_class_ids_w[slice_elem_offset + entry] = region_id;
+    };
+    parallel_for(nfrom_block, f0, "set_elem_class_ids");
+    total_elem_offset += nentries;
+    slice_elem_offset += nfrom_block;
+  }
+  OMEGA_H_CHECK(total_elem_offset == init_params.num_elem);
+  OMEGA_H_CHECK(slice_elem_offset == nslice_elems);
+  Omega_h_Family family = Omega_h_Family(family_int);
+  auto slice_conn = subtract_from_each(GOs(h_conn.write()), GO(1));
+
+  Dist slice_elems2elems;
+  Dist slice_verts2verts;
+  LOs conn;
+  assemble_slices(comm, family, dim, init_params.num_elem, elems_begin,
+      slice_conn, init_params.num_nodes, nodes_begin, slice_coords,
+      &slice_elems2elems, &conn, &slice_verts2verts);
+
+  auto slice_node_globals =
+      GOs{nslice_nodes, nodes_begin, 1, "slice node globals"};
+  auto node_globals = slice_verts2verts.exch(slice_node_globals, 1);
+
+  Mesh mesh(comm->library());
+  build_from_elems2verts(&mesh, comm, family, dim, conn, node_globals);
+
+  auto coords = slice_verts2verts.exch(slice_coords, dim);
+  mesh.add_tag(VERT, "coordinates", dim, coords);
+
+  classify_elements(&mesh);
+  auto sides_are_exposed = mark_exposed_sides(&mesh);
+  classify_sides_by_exposure(&mesh, sides_are_exposed);
+
+  auto num_time_steps = int(ex_inquire_int(file, EX_INQ_TIME));
+  if (verbose) std::cout << num_time_steps << " time steps\n";
+  if (num_time_steps > 0) {
+    if (time_step < 0) time_step = num_time_steps - 1;
+    if (verbose) std::cout << "reading time step " << time_step << '\n';
+    read_sliced_nodal_fields(&mesh, file, time_step, verbose, slice_verts2verts,
+        nodes_begin, nslice_nodes);
+  }
+  CALL(ex_close(file));
+  return mesh;
 }
 
 void write(
@@ -407,8 +604,10 @@ void write(
       if (classify_with & exodus::SIDE_SETS) {
         auto set_sides2side = collect_marked(sides_in_set);
         auto nset_sides = set_sides2side.size();
-        std::cout << "side set " << set_id << " has " << nset_sides
-                  << " sides\n";
+        if (verbose) {
+          std::cout << "side set " << set_id << " has " << nset_sides
+                    << " sides\n";
+        }
         auto sides2elems = mesh->ask_up(dim - 1, dim);
         Write<int> set_sides2elem(nset_sides);
         Write<int> set_sides2local(nset_sides);
@@ -434,8 +633,10 @@ void write(
         auto set_nodes2node = collect_marked(nodes_in_set);
         auto set_nodes2node_ex = add_to_each(set_nodes2node, 1);
         auto nset_nodes = set_nodes2node.size();
-        std::cout << "node set " << set_id << " has " << nset_nodes
-                  << " nodes\n";
+        if (verbose) {
+          std::cout << "node set " << set_id << " has " << nset_nodes
+                    << " nodes\n";
+        }
         auto h_set_nodes2node = HostRead<LO>(set_nodes2node_ex);
         CALL(ex_put_set_param(file, EX_NODE_SET, set_id, nset_nodes, 0));
         CALL(ex_put_set(

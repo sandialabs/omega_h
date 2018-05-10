@@ -42,6 +42,8 @@ void read(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
 void write(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
+Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose = false,
+    int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
 }  // namespace exodus
 #endif
 
