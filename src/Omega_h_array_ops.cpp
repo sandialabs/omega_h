@@ -149,13 +149,9 @@ Read<T> multiply_each_by(Read<T> a, T b) {
 }
 
 template <typename T>
-Read<T> divide_each(Read<T> a, Read<T> b) {
-  if (b.size() == 0) {
-    OMEGA_H_CHECK(a.size() == 0);
-    return a;
-  }
+Write<T> divide_each(Read<T> a, Read<T> b, std::string const& name) {
   auto width = divide_no_remainder(a.size(), b.size());
-  Write<T> c(a.size());
+  Write<T> c(a.size(), name);
   auto f = OMEGA_H_LAMBDA(LO i) {
     for (Int j = 0; j < width; ++j) {
       c[i * width + j] = a[i * width + j] / b[i];
@@ -585,7 +581,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Write<T> multiply_each(Read<T> a, Read<T> b, std::string const&);   \
   template Read<T> multiply_each_by(Read<T> a, T b);                           \
   template Read<T> divide_each_by(Read<T> x, T b);                             \
-  template Read<T> divide_each(Read<T> a, Read<T> b);                          \
+  template Write<T> divide_each(Read<T> a, Read<T> b, std::string const&);                          \
   template Read<T> add_each(Read<T> a, Read<T> b, std::string const&);         \
   template Read<T> subtract_each(Read<T> a, Read<T> b);                        \
   template Read<T> min_each(Read<T> a, Read<T> b);                             \

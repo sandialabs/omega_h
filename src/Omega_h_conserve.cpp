@@ -746,7 +746,7 @@ static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
       old_integrals, diffuse_tol, error_name, verbose);
   mesh->set_tag(dim, error_name, errors);
   auto new_integrals = subtract_each(old_integrals, errors);
-  auto new_densities = divide_each(new_integrals, sizes);
+  auto new_densities = read(divide_each(new_integrals, sizes));
   mesh->set_tag(dim, density_name, new_densities);
   mesh->remove_tag(dim, error_name);
 }

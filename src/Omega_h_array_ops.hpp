@@ -48,7 +48,7 @@ Write<T> multiply_each(Read<T> a, Read<T> b, std::string const& name = "");
 template <typename T>
 Read<T> multiply_each_by(Read<T> a, T b);
 template <typename T>
-Read<T> divide_each(Read<T> a, Read<T> b);
+Write<T> divide_each(Read<T> a, Read<T> b, std::string const& name = "");
 Reals divide_each_maybe_zero(Reals a, Reals b);
 Reals pow_each(Reals a, Reals b);
 template <typename T>
@@ -129,7 +129,7 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template MinMax<T> get_minmax(CommPtr comm, Read<T> a);               \
   extern template Write<T> multiply_each(                                      \
       Read<T> a, Read<T> b, std::string const&);                               \
-  extern template Read<T> divide_each(Read<T> a, Read<T> b);                   \
+  extern template Write<T> divide_each(Read<T> a, Read<T> b, std::string const&);                   \
   extern template Read<T> add_each(Read<T> a, Read<T> b, std::string const&);  \
   extern template Read<T> subtract_each(Read<T> a, Read<T> b);                 \
   extern template Read<T> add_to_each(Read<T> a, T b);                         \
