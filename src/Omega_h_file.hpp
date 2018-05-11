@@ -42,6 +42,8 @@ void read(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
 void write(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
+Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose = false,
+    int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
 }  // namespace exodus
 #endif
 
@@ -55,19 +57,20 @@ void write(std::string const& filepath, Mesh* mesh);
 namespace vtk {
 TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim);
 void write_vtu(
-    std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags);
+    std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress = true);
 void write_vtu(
-    std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags);
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim);
-void write_vtu(std::string const& filename, Mesh* mesh);
+    std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress = true);
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, bool compress = true);
+void write_vtu(std::string const& filename, Mesh* mesh, bool compress = true);
 void write_parallel(
-    std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags);
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim);
-void write_parallel(std::string const& path, Mesh* mesh);
+    std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress = true);
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim, bool compress = true);
+void write_parallel(std::string const& path, Mesh* mesh, bool compress = true);
 class Writer {
   Mesh* mesh_;
   std::string root_path_;
   Int cell_dim_;
+  bool compress_;
   I64 step_;
   std::streampos pvd_pos_;
 
@@ -77,7 +80,7 @@ class Writer {
   Writer& operator=(Writer const&);
   ~Writer();
   Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1,
-      Real restart_time = 0.0);
+      Real restart_time = 0.0, bool compress = true);
   void write();
   void write(Real time);
   void write(Real time, TagSet const& tags);
@@ -87,11 +90,8 @@ class FullWriter {
   std::vector<Writer> writers_;
 
  public:
-  FullWriter();
-  FullWriter(FullWriter const&);
-  FullWriter& operator=(FullWriter const&);
-  ~FullWriter();
-  FullWriter(std::string const& root_path, Mesh* mesh);
+  FullWriter() = default;
+  FullWriter(std::string const& root_path, Mesh* mesh, Real restart_time = 0.0, bool compress = true);
   void write(Real time);
   void write();
 };

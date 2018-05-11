@@ -91,6 +91,11 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   add_adj(ent_dim, ent_dim - 1, down);
 }
 
+void Mesh::set_parents(Int ent_dim, Parents parents) {
+  check_dim2(ent_dim);
+  parents_[ent_dim] = std::make_shared<Parents>(parents);
+}
+
 CommPtr Mesh::comm() const { return comm_; }
 
 LO Mesh::nents(Int ent_dim) const {
@@ -299,13 +304,14 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
 }
 
 Adj Mesh::derive_adj(Int from, Int to) {
+  OMEGA_H_TIME_FUNCTION;
   check_dim(from);
   check_dim2(to);
   if (from < to) {
     Adj down = ask_adj(to, from);
     Int nlows_per_high = element_degree(family(), to, from);
     LO nlows = nents(from);
-    Adj up = invert_adj(down, nlows_per_high, nlows);
+    Adj up = invert_adj(down, nlows_per_high, nlows, to, from);
     return up;
   } else if (to < from) {
     OMEGA_H_CHECK(to + 1 < from);
@@ -338,14 +344,13 @@ Adj Mesh::derive_adj(Int from, Int to) {
 }
 
 Adj Mesh::ask_adj(Int from, Int to) {
+  OMEGA_H_TIME_FUNCTION;
   check_dim2(from);
   check_dim2(to);
   if (has_adj(from, to)) {
     return get_adj(from, to);
   }
-  begin_code("derive_adj");
   Adj derived = derive_adj(from, to);
-  end_code();
   adjs_[from][to] = std::make_shared<Adj>(derived);
   return derived;
 }
@@ -387,6 +392,46 @@ Reals Mesh::ask_sizes() {
     add_tag(dim(), "size", 1, sizes);
   }
   return get_array<Real>(dim(), "size");
+}
+
+Bytes Mesh::ask_levels(Int ent_dim) {
+  check_dim2(ent_dim);
+  if (!has_tag(ent_dim, "level")) {
+    auto levels = Bytes(nents(ent_dim), 0);
+    add_tag(ent_dim, "level", 1, levels);
+  }
+  return get_array<Byte>(ent_dim, "level");
+}
+
+Bytes Mesh::ask_leaves(Int ent_dim) {
+  check_dim2(ent_dim);
+  if (!has_tag(ent_dim, "leaf")) {
+    auto leaves = Bytes(nents(ent_dim), 1);
+    add_tag(ent_dim, "leaf", 1, leaves);
+  }
+  return get_array<Byte>(ent_dim, "leaf");
+}
+
+Parents Mesh::ask_parents(Int child_dim) {
+  check_dim2(child_dim);
+  if (!parents_[child_dim]) {
+    auto parent_idx = LOs(nents(child_dim), -1);
+    auto codes = Read<I8>(nents(child_dim), 0);
+    Parents p(parent_idx, codes);
+    parents_[child_dim] = std::make_shared<Parents>(p);
+  }
+  return *(parents_[child_dim]);
+}
+
+Children Mesh::ask_children(Int parent_dim, Int child_dim) {
+  check_dim2(parent_dim);
+  auto nparent_dim_ents = nents(parent_dim);
+  auto c2p = ask_parents(child_dim);
+  if (!children_[parent_dim][child_dim]) {
+    auto c = invert_parents(c2p, parent_dim, nparent_dim_ents);
+    children_[parent_dim][child_dim] = std::make_shared<Children>(c);
+  }
+  return *(children_[parent_dim][child_dim]);
 }
 
 void Mesh::set_owners(Int ent_dim, Remotes owners) {

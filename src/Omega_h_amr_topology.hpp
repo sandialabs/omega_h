@@ -9,7 +9,7 @@ namespace Omega_h {
 
 class Mesh;
 
-void mark_amr(Mesh* mesh, Read<Byte> elem_mark);
+void mark_amr(Mesh* mesh, Bytes elem_mark);
 
 Few<LO, 4> count_amr(Mesh* mesh);
 

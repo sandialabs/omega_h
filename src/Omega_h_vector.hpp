@@ -119,6 +119,8 @@ OMEGA_H_INLINE Real norm(Vector<n> v) {
   return std::sqrt(norm_squared(v));
 }
 
+OMEGA_H_INLINE Real norm(Vector<1> v) { return std::abs(v[0]); }
+
 template <Int n>
 OMEGA_H_INLINE Vector<n> normalize(Vector<n> v) {
   return v / norm(v);

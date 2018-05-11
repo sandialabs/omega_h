@@ -46,6 +46,10 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   }
   auto new_mesh = mesh->copy_meta();
   Few<LOs, 4> mods2midverts;
+  Few<LOs, 4> prods2new_ents;
+  Few<LOs, 4> same_ents2old_ents;
+  Few<LOs, 4> same_ents2new_ents;
+  Few<LOs, 4> old_ents2new_ents;
   LOs old_lows2new_lows;
   for (Int prod_dim = 0; prod_dim <= mesh->dim(); ++prod_dim) {
     LOs prods2verts;
@@ -65,30 +69,38 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
         offset += nprods_per_mod * nmods_of_dim;
       }
     }
-    LOs prods2new_ents;
-    LOs same_ents2old_ents;
-    LOs same_ents2new_ents;
-    LOs old_ents2new_ents;
     modify_ents(mesh, &new_mesh, prod_dim, mods2mds, mds_are_mods, mods2prods,
-        prods2verts, old_lows2new_lows,
-        /*keep_mods*/ true, /*mods_can_be_shared*/ true, &prods2new_ents,
-        &same_ents2old_ents, &same_ents2new_ents, &old_ents2new_ents);
+        prods2verts, old_lows2new_lows, /*keep_mods*/ true,
+        /*mods_can_be_shared*/ true, &(prods2new_ents[prod_dim]),
+        &(same_ents2old_ents[prod_dim]), &(same_ents2new_ents[prod_dim]),
+        &(old_ents2new_ents[prod_dim]));
     if (prod_dim == VERT) {
-      mods2midverts[VERT] = unmap(mods2mds[VERT], old_ents2new_ents, 1);
+      mods2midverts[VERT] =
+          unmap(mods2mds[VERT], old_ents2new_ents[prod_dim], 1);
       LO offset = 0;
       for (Int mod_dim = EDGE; mod_dim <= mesh->dim(); ++mod_dim) {
         OMEGA_H_CHECK(hypercube_split_degree(mod_dim, prod_dim) == 1);
         auto nmods_of_dim = mods2mds[mod_dim].size();
         auto begin = offset;
         auto end = begin + nmods_of_dim;
-        mods2midverts[mod_dim] = unmap_range(begin, end, prods2new_ents, 1);
+        mods2midverts[mod_dim] =
+            unmap_range(begin, end, prods2new_ents[prod_dim], 1);
         offset = end;
       }
       amr_transfer_linear_interp(mesh, &new_mesh, mods2mds, mods2midverts,
-          same_ents2old_ents, same_ents2new_ents, xfer_opts);
+          same_ents2old_ents[prod_dim], same_ents2new_ents[prod_dim],
+          xfer_opts);
     }
-    old_lows2new_lows = old_ents2new_ents;
+    amr_transfer_levels(mesh, &new_mesh, prod_dim, mods2mds,
+        prods2new_ents[prod_dim], same_ents2old_ents[prod_dim],
+        same_ents2new_ents[prod_dim]);
+    amr_transfer_leaves(mesh, &new_mesh, prod_dim, mods2mds,
+        prods2new_ents[prod_dim], same_ents2old_ents[prod_dim],
+        same_ents2new_ents[prod_dim], old_ents2new_ents[prod_dim]);
+    old_lows2new_lows = old_ents2new_ents[prod_dim];
   }
+  amr_transfer_parents(mesh, &new_mesh, mods2mds, prods2new_ents,
+      same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
   *mesh = new_mesh;
 }
 

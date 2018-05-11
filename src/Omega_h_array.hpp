@@ -125,6 +125,11 @@ class Read {
   std::string name() const { return write_.name(); }
 };
 
+template <typename T>
+Read<T> read(Write<T> a) {
+  return Read<T>(a);
+}
+
 class Bytes : public Read<Byte> {
  public:
   OMEGA_H_INLINE Bytes() {}
@@ -167,7 +172,7 @@ template <typename T>
 class HostRead {
   Read<T> read_;
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  typename Kokkos::View<const T*>::HostMirror mirror_;
+  typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
 #endif
  public:
   HostRead();

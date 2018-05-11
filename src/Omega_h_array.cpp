@@ -216,7 +216,7 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror_view(
             typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
         std::is_same<typename Kokkos::View<T, P...>::data_type,
             typename Kokkos::View<T, P...>::HostMirror::data_type>::value)>::
-        type* = 0) {
+        type* = nullptr) {
   return create_uninit_mirror(src);
 }
 #endif
@@ -308,13 +308,11 @@ HostRead<T>::HostRead() = default;
 template <typename T>
 HostRead<T>::HostRead(Read<T> read)
     : read_(read)
-#ifdef OMEGA_H_USE_KOKKOSCORE
-      ,
-      mirror_(Kokkos::create_mirror_view(read.view()))
-#endif
 {
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  Kokkos::deep_copy(mirror_, read_.view());
+  Kokkos::View<const T*> dev_view = read.view();
+  Kokkos::View<const T*, Kokkos::HostSpace> h_view = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
+  mirror_ = h_view;
 #endif
 }
 
@@ -351,7 +349,8 @@ T HostRead<T>::last() const {
 
 template <class T>
 Write<T> deep_copy(Read<T> a, std::string const& name) {
-  Write<T> b(a.size(), name);
+  auto name2 = name.empty() ? a.name() : name;
+  Write<T> b(a.size(), name2);
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(b.view(), a.view());
 #else

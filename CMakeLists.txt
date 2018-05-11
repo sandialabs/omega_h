@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.13.4 LANGUAGES CXX)
+project(Omega_h VERSION 9.13.5 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -67,6 +67,18 @@ bob_add_dependency(PUBLIC NAME TeuchosParser TARGETS teuchosparser)
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
 
+bob_option(Omega_h_USE_dwarf "Use libdwarf for better stack traces" OFF)
+if (Omega_h_USE_dwarf)
+	find_path(LIBDWARF_INCLUDE_DIR NAMES "libdwarf.h" PATH_SUFFIXES libdwarf)
+	find_path(LIBELF_INCLUDE_DIR NAMES "libelf.h")
+	find_path(LIBDL_INCLUDE_DIR NAMES "dlfcn.h")
+	find_library(LIBDWARF_LIBRARY dwarf)
+	find_library(LIBELF_LIBRARY elf)
+	find_library(LIBDL_LIBRARY dl)
+	set(LIBDWARF_INCLUDE_DIRS ${LIBDWARF_INCLUDE_DIR} ${LIBELF_INCLUDE_DIR} ${LIBDL_INCLUDE_DIR})
+	set(LIBDWARF_LIBRARIES ${LIBDWARF_LIBRARY} ${LIBELF_LIBRARY} ${LIBDL_LIBRARY})
+endif()
+
 if  ( Omega_h_USE_TeuchosParameterList
   AND Omega_h_USE_TeuchosComm
   AND Omega_h_USE_TeuchosParser
@@ -96,15 +108,31 @@ bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${KokkosCore_HAS_CUDA}")
 
 if (Omega_h_USE_CUDA)
   find_package(CUDA)
+  bob_input(Omega_h_CUDA_ARCH "" STRING "CUDA arch specifier")
 endif()
 
 bob_begin_cxx_flags()
 bob_cxx11_flags()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  message("compiler is Clang!")
   set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
+  if(Omega_h_USE_CUDA)
+    message("Omega_h_USE_CUDA!")
+    if (Omega_h_CUDA_ARCH)
+      add_compile_options($<$<COMPILE_LANGUAGE:CXX>:--cuda-gpu-arch=${Omega_h_CUDA_ARCH}>)
+    endif()
+    message("adding -x cuda!")
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-x>)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:cuda>)
+    # -Wweak-vtables gives false positives with -x cuda
+    set(FLAGS "${FLAGS} -Wno-weak-vtables")
+  endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   if(Omega_h_USE_CUDA)
     set(FLAGS "${FLAGS} -expt-extended-lambda -lineinfo")
+    if (Omega_h_CUDA_ARCH)
+      set(FLAGS "${FLAGS} -arch=${Omega_h_CUDA_ARCH}")
+    endif()
     if (CUDA_VERSION EQUAL 9)
       set(FLAGS "${FLAGS} -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored")
     endif()
@@ -139,6 +167,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_SEACASExodus
     Omega_h_USE_Teuchos
     Omega_h_USE_DOLFIN
+    Omega_h_USE_dwarf
     Omega_h_CHECK_BOUNDS
     Omega_h_CHECK_FPE
     Omega_h_USE_CUDA_AWARE_MPI

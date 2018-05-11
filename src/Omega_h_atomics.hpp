@@ -45,7 +45,7 @@ struct Atomics<false> {
   }
 };
 
-#if defined( OMEGA_H_USE_KOKKOSCORE ) && defined( KOKKOS_ENABLE_SERIAL )
+#if defined(OMEGA_H_USE_KOKKOSCORE) && defined(KOKKOS_ENABLE_SERIAL)
 constexpr bool enable_atomics =
     !std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Serial>::value;
 #else

@@ -32,7 +32,7 @@ static bool coarsen_element_based1(Mesh* mesh) {
   auto edge_cand_codes = get_edge_codes(mesh);
   auto edges_are_cands = each_neq_to(edge_cand_codes, I8(DONT_COLLAPSE));
   auto cands2edges = collect_marked(edges_are_cands);
-  auto cand_codes = unmap(cands2edges, edge_cand_codes, 1);
+  auto cand_codes = read(unmap(cands2edges, edge_cand_codes, 1));
   cand_codes = check_collapse_class(mesh, cands2edges, cand_codes);
   /* edge and endpoints classification check */
   if (get_max(comm, cand_codes) <= DONT_COLLAPSE) return false;
@@ -59,7 +59,7 @@ static bool coarsen_ghosted(Mesh* mesh, AdaptOpts const& opts,
   auto edge_cand_codes = get_edge_codes(mesh);
   auto edges_are_cands = each_neq_to(edge_cand_codes, I8(DONT_COLLAPSE));
   auto cands2edges = collect_marked(edges_are_cands);
-  auto cand_edge_codes = unmap(cands2edges, edge_cand_codes, 1);
+  auto cand_edge_codes = read(unmap(cands2edges, edge_cand_codes, 1));
   /* surface exposure (classification) checks */
   cand_edge_codes = check_collapse_exposure(mesh, cands2edges, cand_edge_codes);
   filter_coarsen_candidates(&cands2edges, &cand_edge_codes);

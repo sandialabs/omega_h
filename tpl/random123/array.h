@@ -75,8 +75,6 @@ inline R123_CUDA_DEVICE value_type assemble_from_u32(std::uint32_t *p32){
     typedef ptrdiff_t difference_type;                                  \
     typedef T* pointer;                                                 \
     typedef const T* const_pointer;                                     \
-    typedef std::reverse_iterator<iterator> reverse_iterator;           \
-    typedef std::reverse_iterator<const_iterator> const_reverse_iterator; \
     /* Boost.array has static_size.  C++11 specializes tuple_size */    \
     enum {static_size = _N};                                            \
     R123_CUDA_DEVICE reference operator[](size_type i){return v[i];}                     \
@@ -92,12 +90,6 @@ inline R123_CUDA_DEVICE value_type assemble_from_u32(std::uint32_t *p32){
     R123_CUDA_DEVICE const_iterator end() const { return &v[_N]; }                       \
     R123_CUDA_DEVICE const_iterator cbegin() const { return &v[0]; }                     \
     R123_CUDA_DEVICE const_iterator cend() const { return &v[_N]; }                      \
-    R123_CUDA_DEVICE reverse_iterator rbegin(){ return reverse_iterator(end()); }        \
-    R123_CUDA_DEVICE const_reverse_iterator rbegin() const{ return const_reverse_iterator(end()); } \
-    R123_CUDA_DEVICE reverse_iterator rend(){ return reverse_iterator(begin()); }        \
-    R123_CUDA_DEVICE const_reverse_iterator rend() const{ return const_reverse_iterator(begin()); } \
-    R123_CUDA_DEVICE const_reverse_iterator crbegin() const{ return const_reverse_iterator(cend()); } \
-    R123_CUDA_DEVICE const_reverse_iterator crend() const{ return const_reverse_iterator(cbegin()); } \
     R123_CUDA_DEVICE pointer data(){ return &v[0]; }                                     \
     R123_CUDA_DEVICE const_pointer data() const{ return &v[0]; }                         \
     R123_CUDA_DEVICE reference front(){ return v[0]; }                                   \

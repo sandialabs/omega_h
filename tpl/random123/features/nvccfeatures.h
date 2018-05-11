@@ -58,6 +58,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //for both device and host functions in CUDA by setting compiler flags
 //for the device function
 #ifdef  __CUDA_ARCH__
+
+#include <cassert>
+
 #ifndef R123_CUDA_DEVICE
 #define R123_CUDA_DEVICE __device__
 #endif
@@ -72,7 +75,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 #ifndef R123_ASSERT
-#define R123_ASSERT(x) if((x)) ; else asm("trap;")
+#define R123_ASSERT(x) assert(x)
 #endif
 
 #else // ! __CUDA_ARCH__

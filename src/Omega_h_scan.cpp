@@ -19,17 +19,17 @@ struct ExclScan : public SumFunctor<T> {
 };
 
 template <typename T>
-LOs offset_scan(Read<T> a) {
+LOs offset_scan(Read<T> a, std::string const& name) {
   begin_code("offset_scan");
-  Write<LO> out(a.size() + 1);
+  Write<LO> out(a.size() + 1, name);
   out.set(0, 0);
   parallel_scan(a.size(), ExclScan<T>(a, out), "offset_scan");
   end_code();
   return out;
 }
 
-template LOs offset_scan(Read<I8> a);
-template LOs offset_scan(Read<I32> a);
+template LOs offset_scan(Read<I8> a, std::string const& name);
+template LOs offset_scan(Read<I32> a, std::string const& name);
 
 struct FillRight : public MaxFunctor<LO> {
   Write<LO> a_;

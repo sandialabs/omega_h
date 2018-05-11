@@ -12,16 +12,17 @@ LO Graph::nnodes() const { return a2ab.size() - 1; }
 LO Graph::nedges() const { return ab2b.size(); }
 
 Graph add_edges(Graph g1, Graph g2) {
+  OMEGA_H_TIME_FUNCTION;
   auto v2e1 = g1.a2ab;
   auto e2v1 = g1.ab2b;
   auto v2e2 = g2.a2ab;
   auto e2v2 = g2.ab2b;
   auto nv = v2e1.size() - 1;
-  auto deg1 = get_degrees(v2e1);
-  auto deg2 = get_degrees(v2e2);
-  auto deg = add_each(deg1, deg2);
-  auto v2e = offset_scan(deg);
-  Write<LO> e2v(v2e.last());
+  auto deg1 = get_degrees(v2e1, "deg1");
+  auto deg2 = get_degrees(v2e2, "deg2");
+  auto deg = add_each(deg1, deg2, "deg1+2");
+  auto v2e = offset_scan(deg, v2e1.name());
+  Write<LO> e2v(v2e.last(), e2v1.name());
   auto f = OMEGA_H_LAMBDA(LO v) {
     auto begin1 = v2e1[v];
     auto end1 = v2e1[v + 1];
@@ -42,7 +43,7 @@ Graph unmap_graph(LOs a2b, Graph b2c) {
   auto b2bc = b2c.a2ab;
   auto bc2c = b2c.ab2b;
   auto b_degrees = get_degrees(b2bc);
-  auto a_degrees = unmap(a2b, b_degrees, 1);
+  auto a_degrees = read(unmap(a2b, b_degrees, 1));
   auto a2ac = offset_scan(a_degrees);
   auto na = a2b.size();
   Write<LO> ac2c(a2ac.last());
@@ -61,7 +62,7 @@ template <typename T>
 Read<T> graph_reduce(Graph a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   auto a2ab = a2b.a2ab;
   auto ab2b = a2b.ab2b;
-  auto ab_data = unmap(ab2b, b_data, width);
+  auto ab_data = read(unmap(ab2b, b_data, width));
   return fan_reduce(a2ab, ab_data, width, op);
 }
 

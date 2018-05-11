@@ -56,7 +56,7 @@ Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width) {
 }
 
 template <typename T>
-Read<T> unmap(LOs a2b, Read<T> b_data, Int width) {
+Write<T> unmap(LOs a2b, Read<T> b_data, Int width) {
   auto na = a2b.size();
   Write<T> a_data(na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
@@ -207,14 +207,15 @@ Graph invert_map_by_sorting(LOs a2b, LO nb) {
   return Graph(b2ba, ba2a);
 }
 
-Graph invert_map_by_atomics(LOs a2b, LO nb) {
+Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name,
+    std::string const& ba2a_name) {
   auto na = a2b.size();
   Write<LO> degrees(nb, 0);
   auto count = OMEGA_H_LAMBDA(LO a) { atomic_increment(&degrees[a2b[a]]); };
   parallel_for(na, count, "invert_map_by_atomics(count)");
-  auto b2ba = offset_scan(Read<LO>(degrees));
+  auto b2ba = offset_scan(Read<LO>(degrees), b2ba_name);
   auto nba = b2ba.get(nb);
-  Write<LO> write_ba2a(nba);
+  Write<LO> write_ba2a(nba, ba2a_name);
   auto positions = Write<LO>(nb, 0);
   auto fill = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
@@ -227,8 +228,8 @@ Graph invert_map_by_atomics(LOs a2b, LO nb) {
   return Graph(b2ba, ba2a);
 }
 
-LOs get_degrees(LOs offsets) {
-  Write<LO> degrees(offsets.size() - 1);
+LOs get_degrees(LOs offsets, std::string const& name) {
+  Write<LO> degrees(offsets.size() - 1, name);
   auto f = OMEGA_H_LAMBDA(LO i) { degrees[i] = offsets[i + 1] - offsets[i]; };
   parallel_for(degrees.size(), f, "get_degrees");
   return degrees;
@@ -297,7 +298,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
   template void map_into_range(                                                \
       Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);           \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
-  template Read<T> unmap(LOs a2b, Read<T> b_data, Int width);                  \
+  template Write<T> unmap(LOs a2b, Read<T> b_data, Int width);                 \
   template Read<T> unmap_range(LO begin, LO end, Read<T> b_data, Int width);   \
   template Read<T> expand(Read<T> a_data, LOs a2b, Int width);                 \
   template void expand_into(                                                   \

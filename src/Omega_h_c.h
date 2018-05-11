@@ -81,6 +81,9 @@ void Omega_h_fail(char const* format, ...)
 }  // end of extern "C" block
 #endif
 
+#if defined(OMEGA_H_USE_CUDA) && defined(__clang__)
+#define OMEGA_H_CHECK(cond) assert(cond)
+#else
 #ifdef __CUDA_ARCH__
 #define OMEGA_H_CHECK(cond) assert(cond)
 #else
@@ -89,8 +92,9 @@ void Omega_h_fail(char const* format, ...)
           : Omega_h_fail(                                                      \
                 "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
+#endif
 
-#if defined( __clang__ )
+#if defined( __clang__ ) && !defined(OMEGA_H_USE_CUDA)
 #define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
 #else
 #define OMEGA_H_NORETURN(x)                                                    \

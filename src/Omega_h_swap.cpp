@@ -37,7 +37,7 @@ Read<I8> filter_swap_improve(Mesh* mesh, LOs cands2edges, Reals cand_quals) {
   auto edges2elems = mesh->ask_up(EDGE, mesh->dim());
   auto edge_old_quals = graph_reduce(edges2elems, elem_quals, 1, OMEGA_H_MIN);
   edge_old_quals = mesh->sync_array(EDGE, edge_old_quals, 1);
-  auto cand_old_quals = unmap(cands2edges, edge_old_quals, 1);
+  auto cand_old_quals = read(unmap(cands2edges, edge_old_quals, 1));
   return gt_each(cand_quals, cand_old_quals);
 }
 

@@ -169,6 +169,11 @@ bob_link_dependency(omega_h PUBLIC TeuchosParser)
 
 bob_link_dependency(omega_h PUBLIC ZLIB)
 
+if (Omega_h_USE_dwarf)
+  target_include_directories(omega_h PRIVATE "${LIBDWARF_INCLUDE_DIRS}")
+  target_link_libraries(omega_h PUBLIC "${LIBDWARF_LIBRARIES}")
+endif()
+
 if(Omega_h_USE_DOLFIN)
   target_link_libraries(omega_h PUBLIC Boost::timer dolfin)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_INCLUDE_DIRS})
@@ -383,6 +388,8 @@ if(BUILD_TESTING)
   test_func(amr_topo_test 1 ./amr_topo_test)
   osh_add_exe(amr_test)
   test_func(amr_test 1 ./amr_test)
+  osh_add_exe(amr_test2)
+  test_func(amr_test2 1 ./amr_test2)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")

@@ -6,10 +6,10 @@
 namespace Omega_h {
 
 template <typename T>
-LOs offset_scan(Read<T> a);
+LOs offset_scan(Read<T> a, std::string const& name = "");
 
-extern template LOs offset_scan(Read<I8> a);
-extern template LOs offset_scan(Read<I32> a);
+extern template LOs offset_scan(Read<I8> a, std::string const& name);
+extern template LOs offset_scan(Read<I32> a, std::string const& name);
 
 /* given an array whose values are
    either non-negative or (-1), and whose

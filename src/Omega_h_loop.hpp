@@ -9,9 +9,9 @@ namespace Omega_h {
 #ifdef OMEGA_H_USE_KOKKOSCORE
 using ExecSpace = Kokkos::DefaultExecutionSpace;
 using StaticSched = Kokkos::Schedule<Kokkos::Static>;
-using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched>;
+using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched, Omega_h::LO>;
 
-inline Policy policy(LO n) { return Policy(0, static_cast<std::size_t>(n)); }
+inline Policy policy(LO n) { return Policy(0, n); }
 #endif
 
 template <typename T>

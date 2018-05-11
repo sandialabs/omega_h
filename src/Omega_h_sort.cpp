@@ -4,6 +4,12 @@
 #include <vector>
 
 #if defined(OMEGA_H_USE_CUDA)
+#if defined(__clang__)
+template <class... Args>
+inline __host__ __device__ void va_printf(const char*, Args...) {
+  printf("\n");
+}
+#endif
 #include <Omega_h_thrust.hpp>
 #elif defined(OMEGA_H_USE_OPENMP)
 #include <omp.h>

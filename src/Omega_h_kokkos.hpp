@@ -61,6 +61,18 @@ inline void end_code() {
 #endif
 }
 
+struct ScopedTimer {
+  ScopedTimer(std::string const& name) { begin_code(name); }
+  ~ScopedTimer() { end_code(); }
+  ScopedTimer(ScopedTimer const&) = delete;
+  ScopedTimer(ScopedTimer&&) = delete;
+  ScopedTimer& operator=(ScopedTimer const&) = delete;
+  ScopedTimer& operator=(ScopedTimer&&) = delete;
+};
+
 }  // namespace Omega_h
+
+#define OMEGA_H_TIME_FUNCTION                                                  \
+  ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__)
 
 #endif

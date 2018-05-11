@@ -165,7 +165,7 @@ void transfer_common2(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto const& name = tagbase->name();
   auto ncomps = tagbase->ncomps();
   auto old_data = old_mesh->get_array<T>(ent_dim, name);
-  auto same_data = unmap(same_ents2old_ents, old_data, ncomps);
+  auto same_data = read(unmap(same_ents2old_ents, old_data, ncomps));
   map_into(same_data, same_ents2new_ents, new_data, ncomps);
   transfer_common3(new_mesh, ent_dim, tagbase, new_data);
 }
@@ -418,7 +418,7 @@ static void transfer_inherit_coarsen_tmpl(Mesh* old_mesh, Mesh* new_mesh,
   auto ncomps = old_tag->ncomps();
   auto dom_data = old_tag->array();
   auto key_doms2doms = keys2doms.ab2b;
-  auto prod_data = unmap(key_doms2doms, dom_data, ncomps);
+  auto prod_data = read(unmap(key_doms2doms, dom_data, ncomps));
   transfer_common(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
       same_ents2new_ents, prods2new_ents, old_tag, prod_data);
 }
@@ -637,7 +637,7 @@ static void transfer_inherit_swap_tmpl(Mesh* old_mesh, Mesh* new_mesh,
   auto old_tag = old_mesh->get_tag<T>(EDGE, name);
   auto ncomps = old_tag->ncomps();
   auto edge_data = old_tag->array();
-  auto key_data = unmap(keys2edges, edge_data, ncomps);
+  auto key_data = read(unmap(keys2edges, edge_data, ncomps));
   auto prod_data = expand(key_data, keys2prods, ncomps);
   transfer_common(old_mesh, new_mesh, prod_dim, same_ents2old_ents,
       same_ents2new_ents, prods2new_ents, old_tag, prod_data);

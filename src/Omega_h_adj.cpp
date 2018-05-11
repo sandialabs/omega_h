@@ -1,6 +1,7 @@
 #include "Omega_h_adj.hpp"
 
 #include "Omega_h_align.hpp"
+#include "Omega_h_amr.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_control.hpp"
 #include "Omega_h_element.hpp"
@@ -17,7 +18,7 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
   auto bc2c = b2c.ab2b;
   auto bc_codes = b2c.codes;
   auto b_degrees = get_degrees(b2bc);
-  auto a_degrees = unmap(a2b, b_degrees, 1);
+  LOs a_degrees = unmap(a2b, b_degrees, 1);
   auto a2ac = offset_scan(a_degrees);
   auto na = a2b.size();
   auto nac = a2ac.last();
@@ -187,40 +188,93 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
   parallel_for(nl, f, "sort_by_high_index");
 }
 
-Adj invert_adj(Adj down, Int nlows_per_high, LO nlows) {
-  begin_code("invert_adj");
-  auto l2hl = invert_map_by_atomics(down.ab2b, nlows);
+static void separate_upward_with_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
+    Write<LO> lh2h, Bytes down_codes, Write<Byte> codes) {
+  auto f = OMEGA_H_LAMBDA(LO lh) {
+    LO hl = lh2hl[lh];
+    LO h = hl / nlows_per_high;
+    lh2h[lh] = h;
+    Int which_down = hl % nlows_per_high;
+    auto down_code = down_codes[hl];
+    bool is_flipped = code_is_flipped(down_code);
+    Int rotation = code_rotation(down_code);
+    codes[lh] = make_code(is_flipped, rotation, which_down);
+  };
+  parallel_for(nlh, f, "separate_upward_with_codes");
+}
+
+void separate_upward_no_codes(
+    LO nlh, LOs lh2hl, Int nlows_per_high, Write<LO> lh2h, Write<Byte> codes);
+void separate_upward_no_codes(
+    LO nlh, LOs lh2hl, Int nlows_per_high, Write<LO> lh2h, Write<Byte> codes) {
+  auto f = OMEGA_H_LAMBDA(LO lh) {
+    LO hl = lh2hl[lh];
+    LO h = hl / nlows_per_high;
+    lh2h[lh] = h;
+    Int which_down = hl % nlows_per_high;
+    codes[lh] = make_code(false, 0, which_down);
+  };
+  parallel_for(nlh, f, "separate_upward_no_codes");
+}
+
+Adj invert_adj(
+    Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim) {
+  OMEGA_H_TIME_FUNCTION;
+  auto high_plural_name = dimensional_plural_name(high_dim);
+  auto high_singular_name = dimensional_singular_name(high_dim);
+  auto low_plural_name = dimensional_plural_name(low_dim);
+  auto low_singular_name = dimensional_singular_name(low_dim);
+  auto l2lh_name = std::string(low_plural_name) + " to " + low_singular_name +
+                   " " + high_plural_name;
+  auto lh2hl_name = std::string(low_singular_name) + " " + high_plural_name +
+                    " to " + high_singular_name + " " + low_plural_name;
+  auto lh2h_name = std::string(low_singular_name) + " " + high_plural_name +
+                   " to " + high_plural_name;
+  auto codes_name =
+      std::string(low_singular_name) + " " + high_plural_name + " codes";
+  auto l2hl = invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
   auto l2lh = l2hl.a2ab;
   auto lh2hl = l2hl.ab2b;
   LO nlh = lh2hl.size();
   Read<I8> down_codes(down.codes);
-  Write<LO> lh2h(nlh);
-  Write<I8> codes(nlh);
+  Write<LO> lh2h(nlh, lh2h_name);
+  Write<I8> codes(nlh, codes_name);
   if (down_codes.exists()) {
-    auto f = OMEGA_H_LAMBDA(LO lh) {
-      LO hl = lh2hl[lh];
-      LO h = hl / nlows_per_high;
-      lh2h[lh] = h;
-      Int which_down = hl % nlows_per_high;
-      auto down_code = down_codes[hl];
-      bool is_flipped = code_is_flipped(down_code);
-      Int rotation = code_rotation(down_code);
-      codes[lh] = make_code(is_flipped, rotation, which_down);
-    };
-    parallel_for(nlh, f, "full_codes");
+    separate_upward_with_codes(
+        nlh, lh2hl, nlows_per_high, lh2h, down_codes, codes);
   } else {
-    auto f = OMEGA_H_LAMBDA(LO lh) {
-      LO hl = lh2hl[lh];
-      LO h = hl / nlows_per_high;
-      lh2h[lh] = h;
-      Int which_down = hl % nlows_per_high;
-      codes[lh] = make_code(false, 0, which_down);
-    };
-    parallel_for(nlh, f, "easy_codes");
+    separate_upward_no_codes(nlh, lh2hl, nlows_per_high, lh2h, codes);
   }
   sort_by_high_index(l2lh, lh2h, codes);
-  end_code();
   return Adj(l2lh, lh2h, codes);
+}
+
+static Bytes filter_parents(Parents c2p, Int parent_dim) {
+  Write<Byte> filter(c2p.parent_idx.size());
+  auto f = OMEGA_H_LAMBDA(LO c) {
+    auto code = c2p.codes[c];
+    if (code_parent_dim(code) == parent_dim)
+      filter[c] = 1;
+    else
+      filter[c] = 0;
+  };
+  parallel_for(c2p.parent_idx.size(), f, "filter_parents");
+  return filter;
+}
+
+Children invert_parents(Parents c2p, Int parent_dim, Int nparent_dim_ents) {
+  begin_code("invert_parents");
+  auto filter = filter_parents(c2p, parent_dim);
+  auto rc2c = collect_marked(filter);
+  auto rc2p = unmap(rc2c, c2p.parent_idx, 1);
+  auto p2rc = invert_map_by_atomics(rc2p, nparent_dim_ents);
+  auto p2pc = p2rc.a2ab;
+  auto pc2rc = p2rc.ab2b;
+  auto pc2c = unmap(pc2rc, rc2c, 1);
+  auto codes = unmap(pc2c, c2p.codes, 1);
+  sort_by_high_index(p2pc, pc2c, codes);
+  end_code();
+  return Children(p2pc, pc2c, codes);
 }
 
 template <Int deg>
@@ -359,12 +413,17 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
     Int low_dim) {
   auto nverts_per_low = element_degree(family, low_dim, 0);
   auto l2v = Adj(lv2v);
-  auto v2l = invert_adj(l2v, nverts_per_low, nv);
+  auto v2l = invert_adj(l2v, nverts_per_low, nv, high_dim, low_dim);
   return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
 Adj transit(
     Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) {
+  OMEGA_H_TIME_FUNCTION;
+  auto high_singular_name = dimensional_singular_name(high_dim);
+  auto low_plural_name = dimensional_plural_name(low_dim);
+  auto hl2l_name = std::string(high_singular_name) + " " + low_plural_name +
+                   " to " + low_plural_name;
   OMEGA_H_CHECK(3 >= high_dim);
   auto mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
@@ -377,12 +436,16 @@ Adj transit(
   auto nlows_per_mid = element_degree(family, mid_dim, low_dim);
   auto nlows_per_high = element_degree(family, high_dim, low_dim);
   auto nhighs = hm2m.size() / nmids_per_high;
-  Write<LO> hl2l(nhighs * nlows_per_high);
+  Write<LO> hl2l(nhighs * nlows_per_high, hl2l_name);
   Write<I8> codes;
   /* codes only need to be created when transiting region->face + face->edge =
      region->edge. any other transit has vertices as its destination, and
      vertices have no orientation/alignment */
-  if (low_dim == 1) codes = Write<I8>(hl2l.size());
+  if (low_dim == 1) {
+    auto codes_name =
+        std::string(high_singular_name) + " " + low_plural_name + " codes";
+    codes = Write<I8>(hl2l.size(), codes_name);
+  }
   auto f = OMEGA_H_LAMBDA(LO h) {
     auto hl_begin = h * nlows_per_high;
     auto hm_begin = h * nmids_per_high;
@@ -424,6 +487,7 @@ Adj transit(
 }
 
 Graph verts_across_edges(Adj e2v, Adj v2e) {
+  OMEGA_H_TIME_FUNCTION;
   auto ev2v = e2v.ab2b;
   auto v2ve = v2e.a2ab;
   auto ve2e = v2e.ab2b;
@@ -443,6 +507,7 @@ Graph verts_across_edges(Adj e2v, Adj v2e) {
 }
 
 Graph edges_across_tris(Adj f2e, Adj e2f) {
+  OMEGA_H_TIME_FUNCTION;
   auto fe2e = f2e.ab2b;
   auto e2ef = e2f.a2ab;
   auto ef2f = e2f.ab2b;
@@ -450,9 +515,9 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
   auto ne = e2ef.size() - 1;
   auto e2ef_degrees = get_degrees(e2ef);
   auto e2ee_degrees = multiply_each_by(e2ef_degrees, 2);
-  auto e2ee = offset_scan(e2ee_degrees);
+  auto e2ee = offset_scan(e2ee_degrees, "edges to edge edges");
   auto nee = e2ee.last();
-  Write<LO> ee2e(nee);
+  Write<LO> ee2e(nee, "edge edges to edges");
   auto lambda = OMEGA_H_LAMBDA(LO e) {
     auto ef_begin = e2ef[e];
     auto ef_end = e2ef[e + 1];
@@ -474,13 +539,14 @@ Graph edges_across_tris(Adj f2e, Adj e2f) {
 }
 
 Graph edges_across_tets(Adj r2e, Adj e2r) {
+  OMEGA_H_TIME_FUNCTION;
   auto re2e = r2e.ab2b;
   auto e2er = e2r.a2ab;
   auto er2r = e2r.ab2b;
   auto e2er_codes = e2r.codes;
   auto ne = e2er.size() - 1;
   auto& e2ee = e2er;
-  Write<LO> ee2e(er2r.size());
+  Write<LO> ee2e(er2r.size(), "edge edges to edges");
   auto f = OMEGA_H_LAMBDA(LO e) {
     auto er_begin = e2er[e];
     auto er_end = e2er[e + 1];
@@ -501,6 +567,7 @@ Graph edges_across_tets(Adj r2e, Adj e2r) {
 
 Graph elements_across_sides(
     Int dim, Adj elems2sides, Adj sides2elems, Read<I8> side_is_exposed) {
+  OMEGA_H_TIME_FUNCTION;
   auto elem_side2side = elems2sides.ab2b;
   auto side2side_elems = sides2elems.a2ab;
   auto side_elem2elem = sides2elems.ab2b;

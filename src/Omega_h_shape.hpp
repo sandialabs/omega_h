@@ -56,29 +56,36 @@ OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi) {
   return 0.0 <= minimum(xi) && maximum(xi) <= 1.0;
 }
 
-OMEGA_H_INLINE Real edge_length(Few<Vector<1>, 1> b) {
-  return std::abs(b[0][0]);
+template <Int sdim>
+OMEGA_H_INLINE Real edge_length_from_basis(Few<Vector<sdim>, 1> b) {
+  return norm(b[0]);
 }
 
-OMEGA_H_INLINE Real element_size(Few<Vector<1>, 1> b) { return edge_length(b); }
+template <Int sdim>
+OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<sdim>, 1> b) {
+  return edge_length_from_basis(b);
+}
 
-OMEGA_H_INLINE Real triangle_area(Few<Vector<2>, 2> b) {
+OMEGA_H_INLINE Real triangle_area_from_basis(Few<Vector<2>, 2> b) {
   return cross(b[0], b[1]) / 2.0;
 }
 
-OMEGA_H_INLINE Real element_size(Few<Vector<2>, 2> b) {
-  return triangle_area(b);
-}
-
-OMEGA_H_INLINE Real triangle_area(Few<Vector<3>, 2> b) {
+OMEGA_H_INLINE Real triangle_area_from_basis(Few<Vector<3>, 2> b) {
   return norm(cross(b[0], b[1])) / 2.0;
 }
 
-OMEGA_H_INLINE Real tet_volume(Few<Vector<3>, 3> b) {
+template <Int sdim>
+OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<sdim>, 2> b) {
+  return triangle_area_from_basis(b);
+}
+
+OMEGA_H_INLINE Real tet_volume_from_basis(Few<Vector<3>, 3> b) {
   return (cross(b[0], b[1]) * b[2]) / 6.0;
 }
 
-OMEGA_H_INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
+OMEGA_H_INLINE Real simplex_size_from_basis(Few<Vector<3>, 3> b) {
+  return tet_volume_from_basis(b);
+}
 
 /* Loseille, Adrien, and Rainald Lohner.
  * "On 3D anisotropic local remeshing for surface, volume and boundary layers."
@@ -90,7 +97,7 @@ OMEGA_H_INLINE Real element_size(Few<Vector<3>, 3> b) { return tet_volume(b); }
  * which is consistent with the Log-Euclidean metric interpolation we now use.
  */
 
-OMEGA_H_INLINE Real edge_length(Real l_a, Real l_b) {
+OMEGA_H_INLINE Real anisotropic_edge_length(Real l_a, Real l_b) {
   if (std::abs(l_a - l_b) > 1e-3) {
     return (l_a - l_b) / (std::log(l_a / l_b));
   }
@@ -103,7 +110,7 @@ OMEGA_H_INLINE Real metric_edge_length(
   auto v = p[1] - p[0];
   auto l_a = metric_length(ms[0], v);
   auto l_b = metric_length(ms[1], v);
-  return edge_length(l_a, l_b);
+  return anisotropic_edge_length(l_a, l_b);
 }
 
 template <Int space_dim, Int metric_dim>
@@ -144,22 +151,23 @@ Reals measure_edges_real(Mesh* mesh);
 Reals measure_edges_metric(Mesh* mesh);
 Reals measure_edges_metric(Mesh* mesh, Reals metrics);
 
-template <Int dim>
-OMEGA_H_INLINE Real real_element_size(Few<Vector<dim>, dim + 1> p) {
-  auto b = simplex_basis<dim, dim>(p);
-  return element_size(b);
+template <Int sdim, Int edim>
+OMEGA_H_INLINE Real real_simplex_size(Few<Vector<sdim>, edim + 1> p) {
+  auto b = simplex_basis<sdim, edim>(p);
+  return simplex_size_from_basis(b);
 }
 
-struct RealElementSizes {
+struct RealSimplexSizes {
   Reals coords;
-  RealElementSizes(Mesh const* mesh) : coords(mesh->coords()) {}
-  template <Int neev>
-  OMEGA_H_DEVICE Real measure(Few<LO, neev> v) const {
-    auto p = gather_vectors<neev, neev - 1>(coords, v);
-    return real_element_size<neev - 1>(p);
+  RealSimplexSizes(Reals coords_in) : coords(coords_in) {}
+  template <Int sdim, Int edim>
+  OMEGA_H_DEVICE Real measure(Few<LO, edim + 1> v) const {
+    auto p = gather_vectors<edim + 1, sdim>(coords, v);
+    return real_simplex_size<sdim, edim>(p);
   }
 };
 
+Reals measure_ents_real(Mesh* mesh, Int ent_dim, LOs a2e, Reals coords);
 Reals measure_elements_real(Mesh* mesh, LOs a2e);
 Reals measure_elements_real(Mesh* mesh);
 

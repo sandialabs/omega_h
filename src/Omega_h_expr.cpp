@@ -501,6 +501,34 @@ void eval_cos(LO size, any& result, ExprReader::Args& args) {
   }
 }
 
+template <Int dim>
+void eval_norm(LO size, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 1, Teuchos::ParserFail,
+      "norm() takes exactly one argument, given " << args.size());
+  auto& in_any = args.at(0);
+  if (in_any.type() == typeid(Vector<dim>)) {
+    result = Omega_h::norm(any_cast<Vector<dim>>(in_any));
+  } else if (in_any.type() == typeid(Reals)) {
+    auto a = Teuchos::any_cast<Reals>(in_any);
+    TEUCHOS_TEST_FOR_EXCEPTION(a.size() != size * dim, Teuchos::ParserFail,
+        "norm() given array that wasn't vectors");
+    auto out = Write<Real>(size);
+    auto f = OMEGA_H_LAMBDA(LO i) {
+      out[i] = Omega_h::norm(Omega_h::get_vector<dim>(a, i));
+    };
+    parallel_for(size, f, "eval_norm(Reals)");
+    result = Reals(out);
+  } else {
+    throw Teuchos::ParserFail("unexpected argument type to norm()");
+  }
+}
+
+void eval_norm(Int dim, LO size, any& result, ExprReader::Args& args) {
+  if (dim == 3) eval_norm<3>(size, result, args);
+  if (dim == 2) eval_norm<2>(size, result, args);
+  if (dim == 1) eval_norm<1>(size, result, args);
+}
+
 }  // end anonymous namespace
 
 ExprReader::ExprReader(LO size_in, Int dim_in)
@@ -512,7 +540,6 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
   auto vector = [=](any& result, Args& args) {
     make_vector(local_size, local_dim, result, args);
   };
-  register_function("vector", vector);
   register_function("exp",
       [=](any& result, Args& args) { eval_exp(local_size, result, args); });
   register_function("sqrt",
@@ -521,10 +548,15 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
       [=](any& result, Args& args) { eval_sin(local_size, result, args); });
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
+  register_function("vector", vector);
+  register_function("norm", [=](any& result, Args& args) {
+    eval_norm(local_dim, local_size, result, args);
+  });
   register_variable("d", any(Real(dim)));
   if (dim == 3) register_variable("I", any(identity_matrix<3, 3>()));
   if (dim == 2) register_variable("I", any(identity_matrix<2, 2>()));
   if (dim == 1) register_variable("I", any(identity_matrix<1, 1>()));
+  register_variable("pi", any(Real(Omega_h::PI)));
 }
 
 ExprReader::~ExprReader() {}
