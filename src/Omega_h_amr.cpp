@@ -10,36 +10,48 @@
 namespace Omega_h {
 
 static OMEGA_H_DEVICE Byte mark_elem(LO elem, Adj elems2bridges,
-    Adj bridges2elems, Bytes is_interior, Int nbridges_per_elem) {
+    Adj bridges2elems, Bytes is_interior, Bytes is_bridge_leaf,
+    Int nbridges_per_elem, Children children, Bytes elems_are_marked) {
+  Byte mark = 0;
   for (Int b = 0; b < nbridges_per_elem; ++b) {
     auto bridge = elems2bridges.ab2b[elem * nbridges_per_elem + b];
-    if (! is_interior[bridge]) continue;
-    auto adj_elem_begin = bridges2elems.a2ab[bridge];
-    auto adj_elem_end = bridges2elems.a2ab[bridge + 1];
-    (void)adj_elem_begin;
-    (void)adj_elem_end;
+    if (!is_interior[bridge]) continue;
+    if (is_bridge_leaf[bridge]) continue;
+    auto bridge_child_begin = children.a2ab[bridge];
+    auto bridge_child_end = children.a2ab[bridge + 1];
+    for (auto c = bridge_child_begin; c < bridge_child_end; ++c) {
+      auto child = children.ab2b[c];
+      auto child_adj_elem_begin = bridges2elems.a2ab[child];
+      auto child_adj_elem_end = bridges2elems.a2ab[child + 1];
+      OMEGA_H_CHECK((child_adj_elem_end - child_adj_elem_begin) == 1);
+      auto child_adj_elem = bridges2elems.ab2b[child_adj_elem_begin];
+      if (elems_are_marked[child_adj_elem]) mark = 1;
+    }
   }
-  return 0;
+  return mark;
 }
 
 Bytes enforce_one_level(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
   auto elem_dim = mesh->dim();
   OMEGA_H_CHECK(bridge_dim > 0);
   OMEGA_H_CHECK(bridge_dim < elem_dim);
-  auto is_leaf = mesh->ask_leaves(elem_dim);
+  auto is_elem_leaf = mesh->ask_leaves(elem_dim);
+  auto is_bridge_leaf = mesh->ask_leaves(bridge_dim);
   auto elems2bridges = mesh->ask_down(elem_dim, bridge_dim);
   auto bridges2elems = mesh->ask_up(bridge_dim, elem_dim);
   auto nbridges_per_elem = Omega_h::hypercube_degree(elem_dim, bridge_dim);
-  auto is_bridge_interior = Omega_h::mark_by_class_dim(mesh, bridge_dim, elem_dim);
+  auto is_interior = Omega_h::mark_by_class_dim(mesh, bridge_dim, elem_dim);
+  auto children = mesh->ask_children(bridge_dim, bridge_dim);
   Write<Byte> one_level_mark(mesh->nelems());
   auto f = OMEGA_H_LAMBDA(LO elem) {
-    if (!is_leaf[elem]) {
+    if (!is_elem_leaf[elem]) {
       one_level_mark[elem] = 0;
     } else if (elems_are_marked[elem]) {
       one_level_mark[elem] = 1;
     } else {
       one_level_mark[elem] = mark_elem(elem, elems2bridges, bridges2elems,
-          is_bridge_interior, nbridges_per_elem);
+          is_interior, is_bridge_leaf, nbridges_per_elem, children,
+          elems_are_marked);
     }
   };
   Omega_h::parallel_for(mesh->nelems(), f);
