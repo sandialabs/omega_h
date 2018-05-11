@@ -260,8 +260,8 @@
 //
 // Note that only one of the define should be set to 1 at a time.
 //
-#	if   BACKWARD_HAS_UNWIND == 1
-#	elif BACKWARD_HAS_BACKTRACE == 1
+#	if defined(BACKWARD_HAS_UNWIND) && BACKWARD_HAS_UNWIND == 1
+#	elif defined(BACKWARD_HAS_BACKTRACE) && BACKWARD_HAS_BACKTRACE == 1
 #	else
 #		undef  BACKWARD_HAS_UNWIND
 #		define BACKWARD_HAS_UNWIND 1
@@ -280,7 +280,7 @@
 // The default is:
 // #define BACKWARD_HAS_BACKTRACE_SYMBOL == 1
 //
-#	if BACKWARD_HAS_BACKTRACE_SYMBOL == 1
+#	if defined(BACKWARD_HAS_BACKTRACE_SYMBOL) && BACKWARD_HAS_BACKTRACE_SYMBOL == 1
 #	else
 #		undef  BACKWARD_HAS_BACKTRACE_SYMBOL
 #		define BACKWARD_HAS_BACKTRACE_SYMBOL 1
@@ -3105,7 +3105,7 @@ public:
 				return;
 			}
 			_symbols.reset(
-					backtrace_symbols(st.begin(), st.size())
+					backtrace_symbols(st.begin(), int(st.size()))
 					);
 		}
 
