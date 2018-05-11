@@ -262,10 +262,6 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
         std::cout << "node set " << node_set_ids[i] << " has " << nentries
                   << " nodes\n";
       }
-      if (ndist_factors) {
-        std::cout << path
-                  << " has distribution factors, Omega_h ignores these\n";
-      }
       HostWrite<LO> h_set_nodes2nodes(nentries);
       CALL(ex_get_set(file, EX_NODE_SET, node_set_ids[i],
           h_set_nodes2nodes.data(), nullptr));
@@ -293,10 +289,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
           file, EX_SIDE_SET, side_set_ids[i], &nentries, &ndist_factors));
       if (verbose) {
         std::cout << "side set " << side_set_ids[i] << " has " << nentries
-                  << " sides\n";
-      }
-      if (ndist_factors && verbose) {
-        std::cout << "Omega_h doesn't support distribution factors\n";
+                  << " sides, will be surface " << side_set_ids[i] << "\n";
       }
       HostWrite<LO> h_set_sides2elem(nentries);
       HostWrite<LO> h_set_sides2local(nentries);
