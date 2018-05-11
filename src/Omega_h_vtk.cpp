@@ -357,13 +357,11 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
 #ifdef OMEGA_H_USE_ZLIB
   if (compress) {
     stream << " compressor=\"vtkZLibDataCompressor\"";
-  } else
+  }
 #else
   OMEGA_H_CHECK(!compress);
 #endif
-  {
-    stream << ">\n";
-  }
+  stream << ">\n";
 }
 
 static void read_vtkfile_vtu_start_tag(
