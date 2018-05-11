@@ -340,6 +340,7 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
   end_code();
 }
 
+#ifdef PARALLEL_AWARE_EXODUS
 static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
     bool verbose, Dist slice_verts2verts, GO nodes_begin, LO nslice_nodes) {
   int num_nodal_vars;
@@ -512,6 +513,12 @@ Mesh read_sliced(
   CALL(ex_close(file));
   return mesh;
 }
+#else
+Mesh read_sliced(
+    std::string const&, CommPtr, bool, int, int) {
+  Omega_h_fail("Can't read Exodus file by slices, Exodus not compiled with parallel support\n");
+}
+#endif
 
 void write(
     std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
