@@ -37,8 +37,8 @@ Few<LO, 4> count_amr(Mesh* mesh) {
 }
 
 LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
-    Few<LOs, 4> parents2mds, Few<LOs, 4> mds2parents,
-    Few<LOs, 4> parents2midverts) {
+    Few<LOs, 4> mods2mds, Few<LOs, 4> mds2mods,
+    Few<LOs, 4> mods2midverts) {
   Int spatial_dim = mesh->dim();
   Int num_verts_per_child = hypercube_degree(child_dim, 0);
   Write<LO> child_verts(num_children * num_verts_per_child);
@@ -48,28 +48,27 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
     for (Int lowd = 0; lowd <= d; ++lowd) {
       mds2lows[lowd] = mesh->ask_graph(d, lowd).ab2b;
     }
-    LO num_parents = parents2midverts[d].size();
-    Int num_child_per_parent = hypercube_split_degree(d, child_dim);
-    auto parent_loop = OMEGA_H_LAMBDA(LO parent) {
-      LO md = parents2mds[d][parent];
-      for (Int child = 0; child < num_child_per_parent; ++child) {
+    LO num_mods = mods2midverts[d].size();
+    Int num_child_per_mod = hypercube_split_degree(d, child_dim);
+    auto mod_loop = OMEGA_H_LAMBDA(LO mod) {
+      LO md = mods2mds[d][mod];
+      for (Int child = 0; child < num_child_per_mod; ++child) {
         for (Int vert = 0; vert < num_verts_per_child; ++vert) {
           auto low = hypercube_split_template(d, child_dim, child, vert);
-          Int num_lows_per_parent = hypercube_degree(d, low.dim);
+          Int num_lows_per_mod = hypercube_degree(d, low.dim);
           LO low_gid =
-              mds2lows[low.dim][md * num_lows_per_parent + low.which_down];
-          LO low_adj_parent = mds2parents[low.dim][low_gid];
-          LO midvert = parents2midverts[low.dim][low_adj_parent];
+              mds2lows[low.dim][md * num_lows_per_mod + low.which_down];
+          LO low_adj_mod = mds2mods[low.dim][low_gid];
+          LO midvert = mods2midverts[low.dim][low_adj_mod];
           LO idx =
               offset +
-              (parent * num_child_per_parent + child) * num_verts_per_child +
-              vert;
+              (mod * num_child_per_mod + child) * num_verts_per_child + vert;
           child_verts[idx] = midvert;
         }
       }
     };
-    parallel_for(num_parents, parent_loop);
-    offset += num_parents * num_child_per_parent * num_verts_per_child;
+    parallel_for(num_mods, mod_loop);
+    offset += num_mods * num_child_per_mod * num_verts_per_child;
   }
   return child_verts;
 }
