@@ -93,7 +93,7 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
   for (Int prod_dim = 0; prod_dim <= dim; ++prod_dim) {
     auto old_p_data = (old_mesh->ask_parents(prod_dim)).parent_idx;
     auto old_c_data = (old_mesh->ask_parents(prod_dim)).codes;
-    auto new_p_data = Write<LO>(new_mesh->nents(prod_dim), 42);
+    auto new_p_data = Write<LO>(new_mesh->nents(prod_dim), -1);
     auto new_c_data = Write<I8>(new_mesh->nents(prod_dim), 0);
     auto same_p_data = unmap(same_ents2old_ents[prod_dim], old_p_data, 1);
     auto same_c_data = read(unmap(same_ents2old_ents[prod_dim], old_c_data, 1));
