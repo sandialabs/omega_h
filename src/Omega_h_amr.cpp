@@ -105,7 +105,7 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
     LOs prods2verts;
     if (prod_dim != VERT) {
       prods2verts = get_amr_topology(mesh, prod_dim, prod_counts[prod_dim],
-          mods2mds, mds2mods, mods2midverts);
+          mods2mds, mds2mods, mods2midverts, old_ents2new_ents[0]);
     }
     Few<LOs, 4> mods2prods;
     {

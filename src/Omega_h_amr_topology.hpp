@@ -15,7 +15,7 @@ Few<LO, 4> count_amr(Mesh* mesh);
 
 LOs get_amr_topology(Mesh* mesh, Int child_dim, Int num_children,
     Few<LOs, 4> mods2mds, Few<LOs, 4> mds2mods,
-    Few<LOs, 4> mods2midverts);
+    Few<LOs, 4> mods2midverts, LOs old_verts2new_verts);
 
 }  // namespace Omega_h
 
