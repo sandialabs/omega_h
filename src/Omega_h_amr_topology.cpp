@@ -43,6 +43,10 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
   Int num_verts_per_child = hypercube_degree(child_dim, 0);
   Write<LO> child_verts(num_children * num_verts_per_child);
   LO offset = 0;
+  Few<Children, 4> old_parents2child_verts;
+  for (Int lowd = 1; lowd <= spatial_dim; ++lowd) {
+    old_parents2child_verts[lowd] = mesh->ask_children(lowd, 0);
+  }
   for (Int d = child_dim; d <= spatial_dim; ++d) {
     Few<LOs, 4> mds2lows;
     for (Int lowd = 0; lowd <= d; ++lowd) {
@@ -52,20 +56,19 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
     Int num_child_per_mod = hypercube_split_degree(d, child_dim);
     auto mod_loop = OMEGA_H_LAMBDA(LO mod) {
       LO md = mods2mds[d][mod];
-      auto old_parents2child_verts = mesh->ask_children(d, 0);
       for (Int child = 0; child < num_child_per_mod; ++child) {
         for (Int vert = 0; vert < num_verts_per_child; ++vert) {
           auto low = hypercube_split_template(d, child_dim, child, vert);
           Int num_lows_per_mod = hypercube_degree(d, low.dim);
-          LO low_gid =
+          LO low_id =
               mds2lows[low.dim][md * num_lows_per_mod + low.which_down];
-          LO low_adj_mod = mds2mods[low.dim][low_gid];
           LO midvert;
+          LO low_adj_mod = mds2mods[low.dim][low_id];
           if (low_adj_mod == -1) {
-            auto old_midverts_begin = old_parents2child_verts.a2ab[low_gid];
-            auto old_midverts_end = old_parents2child_verts.a2ab[low_gid + 1];
-            OMEGA_H_CHECK(old_midverts_end - old_midverts_begin == 1);
-            auto old_midvert = old_parents2child_verts.ab2b[old_midverts_begin];
+            auto begin = old_parents2child_verts[low.dim].a2ab[low_id];
+            auto end = old_parents2child_verts[low.dim].a2ab[low_id + 1];
+            OMEGA_H_CHECK((end - begin) == 1);
+            auto old_midvert = old_parents2child_verts[low.dim].ab2b[begin];
             midvert = old_verts2new_verts[old_midvert];
           } else {
             midvert = mods2midverts[low.dim][low_adj_mod];
