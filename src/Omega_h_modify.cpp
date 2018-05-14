@@ -47,7 +47,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto lows_name = dimensional_plural_name(low_dim);
   auto ent_lows2lows_name =
       std::string(ent_name) + " " + lows_name + " to " + lows_name;
-  Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree, ent_lows2lows_name);
+  Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree, -1, ent_lows2lows_name);
   auto new_ent_low_codes = Write<I8>();
   map_into(
       prod_lows2new_lows, prods2new_ents, new_ent_lows2new_lows, down_degree);
@@ -305,8 +305,9 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
     LO offset = 0;
     if (mods_have_prods[rep_dim]) {
       auto mod = mds2mods[rep_dim][rep];
-      if (mod < 0) return;  // not actually a representative
-      offset += mods2nprods[rep_dim][mod];
+      if (mod >= 0) {
+        offset += mods2nprods[rep_dim][mod];
+      }
     }
     for (Int mod_dim = rep_dim + 1; mod_dim <= elem_dim; ++mod_dim) {
       if (!mods_have_prods[mod_dim]) continue;
@@ -369,13 +370,14 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
       rep_self_count = (rep2md_order[mod_dim].exists() ? 1 : 0);
     }
     auto mods2prods_dim = mods2prods[mod_dim];
+    auto mods2mds_dim = mods2mds[mod_dim];
     if (rep2md_order[mod_dim].exists()) {
       /* this is the upward adjacency case */
       OMEGA_H_CHECK(mods2mds[mod_dim].exists());
-      auto mods2mds_dim = mods2mds[mod_dim];
       auto rep2md_order_dim = rep2md_order[mod_dim];
       auto write_prod_offsets = OMEGA_H_LAMBDA(LO mod) {
         auto md = mods2mds_dim[mod];
+        OMEGA_H_CHECK(rep2md_order_dim[md] >= 0);
         auto offset =
             mods2new_offsets[mod] + rep2md_order_dim[md] + rep_self_count;
         for (auto prod = mods2prods_dim[mod]; prod < mods2prods_dim[mod + 1];
