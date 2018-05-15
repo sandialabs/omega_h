@@ -80,7 +80,7 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
         }
       }
     };
-    parallel_for(num_mods, mod_loop);
+    parallel_for(num_mods, mod_loop, "get_amr_topology");
     offset += num_mods * num_child_per_mod * num_verts_per_child;
   }
   return child_verts;

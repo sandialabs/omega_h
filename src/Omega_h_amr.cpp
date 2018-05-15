@@ -54,7 +54,7 @@ Bytes enforce_one_level(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
           elems_are_marked);
     }
   };
-  Omega_h::parallel_for(mesh->nelems(), f);
+  Omega_h::parallel_for(mesh->nelems(), f, "enforce_one_level");
   return one_level_mark;
 }
 
