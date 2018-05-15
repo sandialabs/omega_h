@@ -47,7 +47,7 @@ static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto lows_name = dimensional_plural_name(low_dim);
   auto ent_lows2lows_name =
       std::string(ent_name) + " " + lows_name + " to " + lows_name;
-  Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree, -1, ent_lows2lows_name);
+  Write<LO> new_ent_lows2new_lows(nnew_ents * down_degree, ent_lows2lows_name);
   auto new_ent_low_codes = Write<I8>();
   map_into(
       prod_lows2new_lows, prods2new_ents, new_ent_lows2new_lows, down_degree);
@@ -377,9 +377,10 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
       auto rep2md_order_dim = rep2md_order[mod_dim];
       auto write_prod_offsets = OMEGA_H_LAMBDA(LO mod) {
         auto md = mods2mds_dim[mod];
-        OMEGA_H_CHECK(rep2md_order_dim[md] >= 0);
+        auto md_order = rep2md_order_dim[md];
+        OMEGA_H_CHECK(md_order >= 0);
         auto offset =
-            mods2new_offsets[mod] + rep2md_order_dim[md] + rep_self_count;
+            mods2new_offsets[mod] + md_order + rep_self_count;
         for (auto prod = mods2prods_dim[mod]; prod < mods2prods_dim[mod + 1];
              ++prod) {
           prods2new_offsets_w[prod] = offset++;
