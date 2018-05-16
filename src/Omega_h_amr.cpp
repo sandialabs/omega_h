@@ -2,11 +2,61 @@
 #include <Omega_h_amr_topology.hpp>
 #include <Omega_h_amr_transfer.hpp>
 #include <Omega_h_hypercube.hpp>
+#include <Omega_h_loop.hpp>
 #include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_modify.hpp>
 
 namespace Omega_h {
+
+static OMEGA_H_DEVICE Byte mark_elem(LO elem, Adj elems2bridges,
+    Adj bridges2elems, Bytes is_interior, Bytes is_bridge_leaf,
+    Int nbridges_per_elem, Children children, Bytes elems_are_marked) {
+  Byte mark = 0;
+  for (Int b = 0; b < nbridges_per_elem; ++b) {
+    auto bridge = elems2bridges.ab2b[elem * nbridges_per_elem + b];
+    if (!is_interior[bridge]) continue;
+    if (is_bridge_leaf[bridge]) continue;
+    auto bridge_child_begin = children.a2ab[bridge];
+    auto bridge_child_end = children.a2ab[bridge + 1];
+    for (auto c = bridge_child_begin; c < bridge_child_end; ++c) {
+      auto child = children.ab2b[c];
+      auto child_adj_elem_begin = bridges2elems.a2ab[child];
+      auto child_adj_elem_end = bridges2elems.a2ab[child + 1];
+      OMEGA_H_CHECK((child_adj_elem_end - child_adj_elem_begin) == 1);
+      auto child_adj_elem = bridges2elems.ab2b[child_adj_elem_begin];
+      if (elems_are_marked[child_adj_elem]) mark = 1;
+    }
+  }
+  return mark;
+}
+
+Bytes enforce_one_level(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
+  auto elem_dim = mesh->dim();
+  OMEGA_H_CHECK(bridge_dim > 0);
+  OMEGA_H_CHECK(bridge_dim < elem_dim);
+  auto is_elem_leaf = mesh->ask_leaves(elem_dim);
+  auto is_bridge_leaf = mesh->ask_leaves(bridge_dim);
+  auto elems2bridges = mesh->ask_down(elem_dim, bridge_dim);
+  auto bridges2elems = mesh->ask_up(bridge_dim, elem_dim);
+  auto nbridges_per_elem = Omega_h::hypercube_degree(elem_dim, bridge_dim);
+  auto is_interior = Omega_h::mark_by_class_dim(mesh, bridge_dim, elem_dim);
+  auto children = mesh->ask_children(bridge_dim, bridge_dim);
+  Write<Byte> one_level_mark(mesh->nelems());
+  auto f = OMEGA_H_LAMBDA(LO elem) {
+    if (!is_elem_leaf[elem]) {
+      one_level_mark[elem] = 0;
+    } else if (elems_are_marked[elem]) {
+      one_level_mark[elem] = 1;
+    } else {
+      one_level_mark[elem] = mark_elem(elem, elems2bridges, bridges2elems,
+          is_interior, is_bridge_leaf, nbridges_per_elem, children,
+          elems_are_marked);
+    }
+  };
+  Omega_h::parallel_for(mesh->nelems(), f, "enforce_one_level");
+  return one_level_mark;
+}
 
 static void amr_refine_ghosted(Mesh* mesh) {
   Few<LOs, 4> mods2mds;
@@ -55,7 +105,7 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
     LOs prods2verts;
     if (prod_dim != VERT) {
       prods2verts = get_amr_topology(mesh, prod_dim, prod_counts[prod_dim],
-          mods2mds, mds2mods, mods2midverts);
+          mods2mds, mds2mods, mods2midverts, old_ents2new_ents[0]);
     }
     Few<LOs, 4> mods2prods;
     {
@@ -101,6 +151,8 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   }
   amr_transfer_parents(mesh, &new_mesh, mods2mds, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
+  amr_transfer_inherit(mesh, &new_mesh, prods2new_ents, same_ents2old_ents,
+      same_ents2new_ents, xfer_opts);
   *mesh = new_mesh;
 }
 

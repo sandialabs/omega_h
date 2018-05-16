@@ -7,20 +7,18 @@
 
 namespace Omega_h {
 
-static void validate_marking(Mesh* mesh, Bytes elem_mark) {
-  auto is_leaf = mesh->ask_leaves(mesh->dim());
-  auto f = OMEGA_H_LAMBDA(LO elem) {
-    if (elem_mark[elem]) OMEGA_H_CHECK(is_leaf[elem]);
-  };
-  parallel_for(mesh->nelems(), f);
+static Bytes mark_leaf_down(Mesh* mesh, Int mod_dim, Bytes elems_are_marked) {
+  auto elem_dim = mesh->dim();
+  auto is_mod_dim_leaf = mesh->ask_leaves(mod_dim);
+  auto dim_mark = mark_down(mesh, elem_dim, mod_dim, elems_are_marked);
+  return land_each(is_mod_dim_leaf, dim_mark);
 }
 
-void mark_amr(Mesh* mesh, Bytes elem_mark) {
-  validate_marking(mesh, elem_mark);
+void mark_amr(Mesh* mesh, Bytes elems_are_marked) {
   auto elem_dim = mesh->dim();
   for (Int mod_dim = 0; mod_dim <= elem_dim; ++mod_dim) {
-    auto dim_mark = mark_down(mesh, elem_dim, mod_dim, elem_mark);
-    mesh->add_tag<Omega_h::Byte>(mod_dim, "refine", 1, dim_mark);
+    auto mark = mark_leaf_down(mesh, mod_dim, elems_are_marked);
+    mesh->add_tag<Omega_h::Byte>(mod_dim, "refine", 1, mark);
   }
 }
 
@@ -39,39 +37,51 @@ Few<LO, 4> count_amr(Mesh* mesh) {
 }
 
 LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
-    Few<LOs, 4> parents2mds, Few<LOs, 4> mds2parents,
-    Few<LOs, 4> parents2midverts) {
+    Few<LOs, 4> mods2mds, Few<LOs, 4> mds2mods,
+    Few<LOs, 4> mods2midverts, LOs old_verts2new_verts) {
   Int spatial_dim = mesh->dim();
   Int num_verts_per_child = hypercube_degree(child_dim, 0);
   Write<LO> child_verts(num_children * num_verts_per_child);
   LO offset = 0;
+  Few<Children, 4> old_parents2child_verts;
+  for (Int lowd = 1; lowd <= spatial_dim; ++lowd) {
+    old_parents2child_verts[lowd] = mesh->ask_children(lowd, 0);
+  }
   for (Int d = child_dim; d <= spatial_dim; ++d) {
     Few<LOs, 4> mds2lows;
     for (Int lowd = 0; lowd <= d; ++lowd) {
       mds2lows[lowd] = mesh->ask_graph(d, lowd).ab2b;
     }
-    LO num_parents = parents2midverts[d].size();
-    Int num_child_per_parent = hypercube_split_degree(d, child_dim);
-    auto parent_loop = OMEGA_H_LAMBDA(LO parent) {
-      LO md = parents2mds[d][parent];
-      for (Int child = 0; child < num_child_per_parent; ++child) {
+    LO num_mods = mods2midverts[d].size();
+    Int num_child_per_mod = hypercube_split_degree(d, child_dim);
+    auto mod_loop = OMEGA_H_LAMBDA(LO mod) {
+      LO md = mods2mds[d][mod];
+      for (Int child = 0; child < num_child_per_mod; ++child) {
         for (Int vert = 0; vert < num_verts_per_child; ++vert) {
           auto low = hypercube_split_template(d, child_dim, child, vert);
-          Int num_lows_per_parent = hypercube_degree(d, low.dim);
-          LO low_gid =
-              mds2lows[low.dim][md * num_lows_per_parent + low.which_down];
-          LO low_adj_parent = mds2parents[low.dim][low_gid];
-          LO midvert = parents2midverts[low.dim][low_adj_parent];
+          Int num_lows_per_mod = hypercube_degree(d, low.dim);
+          LO low_id =
+              mds2lows[low.dim][md * num_lows_per_mod + low.which_down];
+          LO midvert;
+          LO low_adj_mod = mds2mods[low.dim][low_id];
+          if (low_adj_mod == -1) {
+            auto begin = old_parents2child_verts[low.dim].a2ab[low_id];
+            auto end = old_parents2child_verts[low.dim].a2ab[low_id + 1];
+            OMEGA_H_CHECK((end - begin) == 1);
+            auto old_midvert = old_parents2child_verts[low.dim].ab2b[begin];
+            midvert = old_verts2new_verts[old_midvert];
+          } else {
+            midvert = mods2midverts[low.dim][low_adj_mod];
+          }
           LO idx =
               offset +
-              (parent * num_child_per_parent + child) * num_verts_per_child +
-              vert;
+              (mod * num_child_per_mod + child) * num_verts_per_child + vert;
           child_verts[idx] = midvert;
         }
       }
     };
-    parallel_for(num_parents, parent_loop);
-    offset += num_parents * num_child_per_parent * num_verts_per_child;
+    parallel_for(num_mods, mod_loop, "get_amr_topology");
+    offset += num_mods * num_child_per_mod * num_verts_per_child;
   }
   return child_verts;
 }
