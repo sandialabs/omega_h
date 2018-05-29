@@ -8,13 +8,16 @@
 template <int dim>
 OMEGA_H_INLINE double eval_rc(Omega_h::Vector<dim> c);
 
-template <> OMEGA_H_INLINE double eval_rc<2>(Omega_h::Vector<2> c) {
-  auto rc2 = (c[0]-0.5)*(c[0]-0.5)+(c[1]-0.5)*(c[1]-0.5);
+template <>
+OMEGA_H_INLINE double eval_rc<2>(Omega_h::Vector<2> c) {
+  auto rc2 = (c[0] - 0.5) * (c[0] - 0.5) + (c[1] - 0.5) * (c[1] - 0.5);
   return std::sqrt(rc2);
 }
 
-template <> OMEGA_H_INLINE double eval_rc<3>(Omega_h::Vector<3> c) {
-  auto rc2 = (c[0]-0.5)*(c[0]-0.5)+(c[1]-0.5)*(c[1]-0.5)+(c[2]-0.5)*(c[2]-0.5);
+template <>
+OMEGA_H_INLINE double eval_rc<3>(Omega_h::Vector<3> c) {
+  auto rc2 = (c[0] - 0.5) * (c[0] - 0.5) + (c[1] - 0.5) * (c[1] - 0.5) +
+             (c[2] - 0.5) * (c[2] - 0.5);
   return std::sqrt(rc2);
 }
 
@@ -34,7 +37,7 @@ static Omega_h::Bytes mark(Omega_h::Mesh* m, int level) {
     if (std::abs(rc - r) < tol) marks[elem] = 1;
   };
   Omega_h::parallel_for(leaf_elems.size(), f);
-  return marks;
+  return Omega_h::enforce_one_level(m, dim - 1, marks);
 }
 
 static void run_2D_adapt(Omega_h::Library* lib) {
@@ -43,7 +46,7 @@ static void run_2D_adapt(Omega_h::Library* lib) {
   auto m = Omega_h::build_box(w, f, 1.0, 1.0, 0.0, 2, 2, 0);
   Omega_h::vtk::Writer writer("out_amr_2D", &m);
   writer.write();
-  for (int i = 1; i < 4; ++i) {
+  for (int i = 1; i < 5; ++i) {
     auto xfer_opts = Omega_h::TransferOpts();
     auto marks = mark<2>(&m, i);
     Omega_h::amr_refine(&m, marks, xfer_opts);
@@ -57,7 +60,7 @@ static void run_3D_adapt(Omega_h::Library* lib) {
   auto m = Omega_h::build_box(w, f, 1.0, 1.0, 1.0, 2, 2, 2);
   Omega_h::vtk::Writer writer("out_amr_3D", &m);
   writer.write();
-  for (int i = 1; i < 4; ++i) {
+  for (int i = 1; i < 5; ++i) {
     auto xfer_opts = Omega_h::TransferOpts();
     auto marks = mark<3>(&m, i);
     Omega_h::amr_refine(&m, marks, xfer_opts);

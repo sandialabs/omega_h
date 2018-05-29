@@ -156,7 +156,7 @@ static void fix_inverted_elements_dim(Write<LO> elem_verts, Reals coords) {
     auto eev2v = gather_verts<nverts_per_cell>(elem_verts, e);
     auto eev2x = gather_vectors<nverts_per_cell, dim>(coords, eev2v);
     auto b = simplex_basis<dim, dim>(eev2x);
-    auto s = element_size(b);
+    auto s = simplex_size_from_basis(b);
     if (s < 0.0) {
       swap2(elem_verts[e * (nverts_per_cell) + 0],
           elem_verts[e * (nverts_per_cell) + 1]);
