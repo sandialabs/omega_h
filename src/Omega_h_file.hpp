@@ -38,8 +38,14 @@ enum ClassifyWith {
   NODE_SETS = 0x1,
   SIDE_SETS = 0x2,
 };
-void read(std::string const& path, Mesh* mesh, bool verbose = false,
-    int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
+int open(std::string const& path, bool verbose = false);
+void close(int exodus_file);
+int get_num_time_steps(int exodus_file);
+void read_mesh(int exodus_file, Mesh* mesh, bool verbose = false,
+    int classify_with = NODE_SETS | SIDE_SETS);
+void read_nodal_fields(
+    int exodus_file, Mesh* mesh, int time_step,
+    std::string const& prefix = "", std::string const& postfix = "", bool verbose = false);
 void write(std::string const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
 Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose = false,

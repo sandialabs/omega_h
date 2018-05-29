@@ -34,10 +34,16 @@ int main(int argc, char** argv) {
     classify_with = Omega_h::exodus::NODE_SETS | Omega_h::exodus::SIDE_SETS;
   }
   Omega_h::Mesh mesh(&lib);
-  auto time_step = -1;
   if (comm->size() == 1) {
-    Omega_h::exodus::read(inpath, &mesh, verbose, classify_with, time_step);
+    auto exodus_file = Omega_h::exodus::open(inpath, verbose);
+    Omega_h::exodus::read_mesh(exodus_file, &mesh, verbose, classify_with);
+    auto ntime_steps = Omega_h::exodus::get_num_time_steps(exodus_file);
+    if (ntime_steps > 0) {
+      Omega_h::exodus::read_nodal_fields(exodus_file, &mesh, ntime_steps - 1, "", "", verbose);
+    }
+    Omega_h::exodus::close(exodus_file);
   } else {
+    auto time_step = -1;
     mesh = Omega_h::exodus::read_sliced(
         inpath, comm, verbose, classify_with, time_step);
   }

@@ -116,13 +116,38 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
   return -1;
 }
 
-static void read_nodal_fields(
-    Mesh* mesh, int file, int time_step, bool verbose) {
+int open(std::string const& path, bool verbose) {
+  auto comp_ws = int(sizeof(Real));
+  int io_ws = 0;
+  float version;
+  auto mode = EX_READ | EX_MAPS_INT64_API;
+  auto exodus_file = ex_open(path.c_str(), mode, &comp_ws, &io_ws, &version);
+  if (exodus_file < 0) Omega_h_fail("can't open Exodus file %s\n", path.c_str());
+  if (verbose) {
+    std::cout << "ex_open(" << path << ")\n";
+    std::cout << "  comp_ws: " << comp_ws << '\n';
+    std::cout << "  io_ws: " << io_ws << '\n';
+    std::cout << "  version: " << version << '\n';
+  }
+  return exodus_file;
+}
+
+void close(int exodus_file) {
+  CALL(ex_close(exodus_file));
+}
+
+int get_num_time_steps(int exodus_file) {
+  return int(ex_inquire_int(exodus_file, EX_INQ_TIME));
+}
+
+void read_nodal_fields(
+    int exodus_file, Mesh* mesh, int time_step,
+    std::string const& prefix, std::string const& postfix, bool verbose) {
   int num_nodal_vars;
-  CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
+  CALL(ex_get_variable_param(exodus_file, EX_NODAL, &num_nodal_vars));
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
   std::int64_t max_name_length =
-      ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
+      ex_inquire_int(exodus_file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
   ++max_name_length;  // it really is tightly-fitted, and doesn't include null
                       // terminators
   if (verbose) std::cout << "max name length " << max_name_length << '\n';
@@ -132,36 +157,27 @@ static void read_nodal_fields(
   for (int i = 0; i < num_nodal_vars; ++i) {
     name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
   }
-  CALL(ex_get_variable_names(file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
+  CALL(ex_get_variable_names(exodus_file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
   for (int i = 0; i < num_nodal_vars; ++i) {
     auto name = name_ptrs[std::size_t(i)];
-    if (verbose) std::cout << "Loading nodal variable \"" << name << "\"\n";
-    HostWrite<double> host_write(mesh->nverts());
-    CALL(ex_get_var(file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/ 0,
+    if (verbose) std::cout << "Loading nodal variable \"" << name << "\" at time step " << time_step << '\n';
+    auto name_osh = prefix + std::string(name) + postfix;
+    HostWrite<double> host_write(mesh->nverts(), name_osh);
+    CALL(ex_get_var(exodus_file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/ 0,
         mesh->nverts(), host_write.data()));
     auto device_write = host_write.write();
     auto device_read = Reals(device_write);
-    mesh->add_tag(VERT, name, 1, device_read);
+    mesh->add_tag(VERT, name_osh, 1, device_read);
   }
 }
 
-void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
-    int time_step) {
-  begin_code("exodus::read");
-  auto comp_ws = int(sizeof(Real));
-  int io_ws = 0;
-  float version;
-  auto mode = EX_READ | EX_MAPS_INT64_API;
-  auto file = ex_open(path.c_str(), mode, &comp_ws, &io_ws, &version);
-  if (file < 0) Omega_h_fail("can't open Exodus file %s\n", path.c_str());
+void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
+  begin_code("exodus::read_mesh");
   ex_init_params init_params;
   CALL(ex_get_init_ext(file, &init_params));
   if (verbose) {
-    std::cout << "init params for " << path << ":\n";
-    std::cout << " ExodusII " << version << '\n';
+    std::cout << "init params:\n";
     std::cout << " Exodus ID " << file << '\n';
-    std::cout << " comp_ws " << comp_ws << '\n';
-    std::cout << " io_ws " << io_ws << '\n';
     std::cout << " Title " << init_params.title << '\n';
     std::cout << " num_dim " << init_params.num_dim << '\n';
     std::cout << " num_nodes " << init_params.num_nodes << '\n';
@@ -322,14 +338,6 @@ void read(std::string const& path, Mesh* mesh, bool verbose, int classify_with,
   mesh->add_tag(dim - 1, "class_id", 1, side_class_ids);
   mesh->set_tag(dim - 1, "class_dim", side_class_dims);
   finalize_classification(mesh);
-  auto num_time_steps = int(ex_inquire_int(file, EX_INQ_TIME));
-  if (verbose) std::cout << num_time_steps << " time steps\n";
-  if (num_time_steps > 0) {
-    if (time_step < 0) time_step = num_time_steps - 1;
-    if (verbose) std::cout << "reading time step " << time_step << '\n';
-    read_nodal_fields(mesh, file, time_step, verbose);
-  }
-  CALL(ex_close(file));
   end_code();
 }
 
