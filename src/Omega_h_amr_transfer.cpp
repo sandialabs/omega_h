@@ -139,8 +139,10 @@ void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
   for (Int prod_dim = 0; prod_dim <= old_mesh->dim(); ++prod_dim) {
     new_data[prod_dim] = Write<T>(new_mesh->nents(prod_dim), -1);
     auto old_data = old_mesh->get_array<T>(prod_dim, name);
-    auto same_data = read(unmap(same_ents2old_ents[prod_dim], old_data, ncomps));
-    map_into(same_data, same_ents2new_ents[prod_dim], new_data[prod_dim], ncomps);
+    auto same_data =
+        read(unmap(same_ents2old_ents[prod_dim], old_data, ncomps));
+    map_into(
+        same_data, same_ents2new_ents[prod_dim], new_data[prod_dim], ncomps);
   }
   for (Int prod_dim = 0; prod_dim <= old_mesh->dim(); ++prod_dim) {
     auto parents = new_mesh->ask_parents(prod_dim);
@@ -152,7 +154,8 @@ void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
       new_data[prod_dim][prod_ent] = new_data[parent_dim][parent_ent];
     };
     parallel_for(prods2new_ents[prod_dim].size(), f);
-    new_mesh->add_tag(prod_dim, name, ncomps, Read<T>(new_data[prod_dim]), true);
+    new_mesh->add_tag(
+        prod_dim, name, ncomps, Read<T>(new_data[prod_dim]), true);
   }
 }
 
@@ -160,7 +163,7 @@ static void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
     Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, TagBase const* tagbase) {
   auto name = tagbase->name();
-  switch(tagbase->type()) {
+  switch (tagbase->type()) {
     case OMEGA_H_I8:
       amr_transfer_inherit<I8>(old_mesh, new_mesh, prods2new_ents,
           same_ents2old_ents, same_ents2new_ents, name);

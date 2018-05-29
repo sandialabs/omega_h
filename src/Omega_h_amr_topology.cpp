@@ -37,8 +37,8 @@ Few<LO, 4> count_amr(Mesh* mesh) {
 }
 
 LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
-    Few<LOs, 4> mods2mds, Few<LOs, 4> mds2mods,
-    Few<LOs, 4> mods2midverts, LOs old_verts2new_verts) {
+    Few<LOs, 4> mods2mds, Few<LOs, 4> mds2mods, Few<LOs, 4> mods2midverts,
+    LOs old_verts2new_verts) {
   Int spatial_dim = mesh->dim();
   Int num_verts_per_child = hypercube_degree(child_dim, 0);
   Write<LO> child_verts(num_children * num_verts_per_child);
@@ -60,8 +60,7 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
         for (Int vert = 0; vert < num_verts_per_child; ++vert) {
           auto low = hypercube_split_template(d, child_dim, child, vert);
           Int num_lows_per_mod = hypercube_degree(d, low.dim);
-          LO low_id =
-              mds2lows[low.dim][md * num_lows_per_mod + low.which_down];
+          LO low_id = mds2lows[low.dim][md * num_lows_per_mod + low.which_down];
           LO midvert;
           LO low_adj_mod = mds2mods[low.dim][low_id];
           if (low_adj_mod == -1) {
@@ -73,9 +72,9 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
           } else {
             midvert = mods2midverts[low.dim][low_adj_mod];
           }
-          LO idx =
-              offset +
-              (mod * num_child_per_mod + child) * num_verts_per_child + vert;
+          LO idx = offset +
+                   (mod * num_child_per_mod + child) * num_verts_per_child +
+                   vert;
           child_verts[idx] = midvert;
         }
       }

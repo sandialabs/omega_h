@@ -114,8 +114,8 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
 }
 
 template <typename T>
-void write_array(
-    std::ostream& stream, std::string const& name, Int ncomps, Read<T> array, bool compress) {
+void write_array(std::ostream& stream, std::string const& name, Int ncomps,
+    Read<T> array, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (!(array.exists())) {
     Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
@@ -129,33 +129,30 @@ void write_array(
   std::string enc_header;
   std::string encoded;
 #ifdef OMEGA_H_USE_ZLIB
-  if (compress)
-  {
-  begin_code("zlib");
-  uLong source_bytes = uncompressed_bytes;
-  uLong dest_bytes = ::compressBound(source_bytes);
-  auto compressed = new ::Bytef[dest_bytes];
-  int ret = ::compress2(compressed, &dest_bytes,
-      reinterpret_cast<const ::Bytef*>(nonnull(uncompressed.data())),
-      source_bytes, Z_BEST_SPEED);
-  end_code();
-  OMEGA_H_CHECK(ret == Z_OK);
-  begin_code("base64");
-  encoded = base64::encode(compressed, dest_bytes);
-  delete[] compressed;
-  std::uint64_t header[4] = {
-      1, uncompressed_bytes, uncompressed_bytes, dest_bytes};
-  enc_header = base64::encode(header, sizeof(header));
-  end_code();
+  if (compress) {
+    begin_code("zlib");
+    uLong source_bytes = uncompressed_bytes;
+    uLong dest_bytes = ::compressBound(source_bytes);
+    auto compressed = new ::Bytef[dest_bytes];
+    int ret = ::compress2(compressed, &dest_bytes,
+        reinterpret_cast<const ::Bytef*>(nonnull(uncompressed.data())),
+        source_bytes, Z_BEST_SPEED);
+    end_code();
+    OMEGA_H_CHECK(ret == Z_OK);
+    begin_code("base64");
+    encoded = base64::encode(compressed, dest_bytes);
+    delete[] compressed;
+    std::uint64_t header[4] = {
+        1, uncompressed_bytes, uncompressed_bytes, dest_bytes};
+    enc_header = base64::encode(header, sizeof(header));
+    end_code();
   } else
 #else
   OMEGA_H_CHECK(!compress);
 #endif
   {
-  enc_header =
-      base64::encode(&uncompressed_bytes, sizeof(std::uint64_t));
-  encoded =
-      base64::encode(nonnull(uncompressed.data()), uncompressed_bytes);
+    enc_header = base64::encode(&uncompressed_bytes, sizeof(std::uint64_t));
+    encoded = base64::encode(nonnull(uncompressed.data()), uncompressed_bytes);
   }
   begin_code("stream bulk");
   stream << enc_header << encoded << '\n';
@@ -220,14 +217,18 @@ Read<T> read_array(
       Read<T>(uncompressed.write()), is_little_endian);
 }
 
-void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim, bool compress) {
+void write_tag(
+    std::ostream& stream, TagBase const* tag, Int space_dim, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (is<I8>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
+    write_array(
+        stream, tag->name(), tag->ncomps(), as<I8>(tag)->array(), compress);
   } else if (is<I32>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
+    write_array(
+        stream, tag->name(), tag->ncomps(), as<I32>(tag)->array(), compress);
   } else if (is<I64>(tag)) {
-    write_array(stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
+    write_array(
+        stream, tag->name(), tag->ncomps(), as<I64>(tag)->array(), compress);
   } else if (is<Real>(tag)) {
     Reals array = as<Real>(tag)->array();
     if (1 < space_dim && space_dim < 3) {
@@ -236,8 +237,8 @@ void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim, bool com
         // regardless of whether this is a 2D mesh or not.
         // this filter adds a 3rd zero component to any
         // fields with 2 components for 2D meshes
-        write_array(
-            stream, tag->name(), 3, resize_vectors(array, space_dim, 3), compress);
+        write_array(stream, tag->name(), 3, resize_vectors(array, space_dim, 3),
+            compress);
       } else if (tag->ncomps() == symm_ncomps(space_dim)) {
         // Likewise, ParaView has component names specially set up for
         // 3D symmetric tensors
@@ -389,7 +390,8 @@ void read_piece_start_tag(
   *ncells_out = std::stoi(st.attribs["NumberOfCells"]);
 }
 
-void write_connectivity(std::ostream& stream, Mesh* mesh, Int cell_dim, bool compress) {
+void write_connectivity(
+    std::ostream& stream, Mesh* mesh, Int cell_dim, bool compress) {
   Read<I8> types(mesh->nents(cell_dim), vtk_type(mesh->family(), cell_dim));
   write_array(stream, "types", 1, types, compress);
   LOs ev2v = mesh->ask_verts_of(cell_dim);
@@ -440,17 +442,20 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
       stream, "offsets", ncells, 1, is_little_endian, is_compressed);
 }
 
-void write_locals(std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
-  write_array(stream, "local", 1, Read<LO>(mesh->nents(ent_dim), 0, 1), compress);
+void write_locals(
+    std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
+  write_array(
+      stream, "local", 1, Read<LO>(mesh->nents(ent_dim), 0, 1), compress);
 }
 
-void write_owners(std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
+void write_owners(
+    std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
   if (mesh->comm()->size() == 1) return;
   write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks, compress);
 }
 
-void write_locals_and_owners(
-    std::ostream& stream, Mesh* mesh, Int ent_dim, TagSet const& tags, bool compress) {
+void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
+    TagSet const& tags, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (tags[size_t(ent_dim)].count("local")) {
     write_locals(stream, mesh, ent_dim, compress);
@@ -550,8 +555,8 @@ static void verify_vtk_tagset(Mesh* mesh, Int cell_dim, TagSet const& tags) {
   }
 }
 
-void write_vtu(
-    std::ostream& stream, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress) {
+void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
+    TagSet const& tags, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   default_dim(mesh, &cell_dim);
   verify_vtk_tagset(mesh, cell_dim, tags);
@@ -563,7 +568,8 @@ void write_vtu(
   stream << "</Cells>\n";
   stream << "<Points>\n";
   auto coords = mesh->coords();
-  write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3), compress);
+  write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3),
+      compress);
   stream << "</Points>\n";
   stream << "<PointData>\n";
   /* globals go first so read_vtu() knows where to find them */
@@ -583,7 +589,8 @@ void write_vtu(
   /* globals go first so read_vtu() knows where to find them */
   if (mesh->has_tag(cell_dim, "global") &&
       tags[size_t(cell_dim)].count("global")) {
-    write_tag(stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
+    write_tag(
+        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
   }
   write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
@@ -657,17 +664,19 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "VTKFile");
 }
 
-void write_vtu(
-    std::string const& filename, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress) {
+void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
+    TagSet const& tags, bool compress) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
   ask_for_mesh_tags(mesh, tags);
   write_vtu(file, mesh, cell_dim, tags, compress);
 }
 
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim, bool compress) {
+void write_vtu(
+    std::string const& filename, Mesh* mesh, Int cell_dim, bool compress) {
   default_dim(mesh, &cell_dim);
-  write_vtu(filename, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim), compress);
+  write_vtu(
+      filename, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim), compress);
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, bool compress) {
@@ -784,8 +793,8 @@ void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
   *vtupath_out = vtupath;
 }
 
-void write_parallel(
-    std::string const& path, Mesh* mesh, Int cell_dim, TagSet const& tags, bool compress) {
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
+    TagSet const& tags, bool compress) {
   begin_code("vtk::write_parallel");
   default_dim(mesh, &cell_dim);
   ask_for_mesh_tags(mesh, tags);
@@ -808,9 +817,11 @@ void write_parallel(
   end_code();
 }
 
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim, bool compress) {
+void write_parallel(
+    std::string const& path, Mesh* mesh, Int cell_dim, bool compress) {
   default_dim(mesh, &cell_dim);
-  write_parallel(path, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim), compress);
+  write_parallel(
+      path, mesh, cell_dim, get_all_vtk_tags(mesh, cell_dim), compress);
 }
 
 void write_parallel(std::string const& path, Mesh* mesh, bool compress) {
@@ -950,8 +961,8 @@ Writer& Writer::operator=(Writer const& other) {
 
 Writer::~Writer() {}
 
-Writer::Writer(
-    std::string const& root_path, Mesh* mesh, Int cell_dim, Real restart_time, bool compress)
+Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim,
+    Real restart_time, bool compress)
     : mesh_(mesh),
       root_path_(root_path),
       cell_dim_(cell_dim),
@@ -973,7 +984,8 @@ Writer::Writer(
 
 void Writer::write(I64 step, Real time, TagSet const& tags) {
   step_ = step;
-  write_parallel(get_step_path(root_path_, step_), mesh_, cell_dim_, tags, compress_);
+  write_parallel(
+      get_step_path(root_path_, step_), mesh_, cell_dim_, tags, compress_);
   if (mesh_->comm()->rank() == 0) {
     update_pvd(root_path_, &pvd_pos_, step_, time);
   }
@@ -990,14 +1002,15 @@ void Writer::write(Real time) {
 
 void Writer::write() { this->write(Real(step_)); }
 
-FullWriter::FullWriter(std::string const& root_path, Mesh* mesh, Real restart_time, bool compress) {
+FullWriter::FullWriter(std::string const& root_path, Mesh* mesh,
+    Real restart_time, bool compress) {
   auto comm = mesh->comm();
   auto rank = comm->rank();
   if (rank == 0) safe_mkdir(root_path.c_str());
   comm->barrier();
   for (Int i = EDGE; i <= mesh->dim(); ++i)
-    writers_.push_back(
-        Writer(root_path + "/" + dimensional_plural_name(i), mesh, i, restart_time, compress));
+    writers_.push_back(Writer(root_path + "/" + dimensional_plural_name(i),
+        mesh, i, restart_time, compress));
 }
 
 void FullWriter::write(Real time) {

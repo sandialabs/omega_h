@@ -8,13 +8,16 @@
 template <int dim>
 OMEGA_H_INLINE double eval_rc(Omega_h::Vector<dim> c);
 
-template <> OMEGA_H_INLINE double eval_rc<2>(Omega_h::Vector<2> c) {
-  auto rc2 = (c[0]-0.5)*(c[0]-0.5)+(c[1]-0.5)*(c[1]-0.5);
+template <>
+OMEGA_H_INLINE double eval_rc<2>(Omega_h::Vector<2> c) {
+  auto rc2 = (c[0] - 0.5) * (c[0] - 0.5) + (c[1] - 0.5) * (c[1] - 0.5);
   return std::sqrt(rc2);
 }
 
-template <> OMEGA_H_INLINE double eval_rc<3>(Omega_h::Vector<3> c) {
-  auto rc2 = (c[0]-0.5)*(c[0]-0.5)+(c[1]-0.5)*(c[1]-0.5)+(c[2]-0.5)*(c[2]-0.5);
+template <>
+OMEGA_H_INLINE double eval_rc<3>(Omega_h::Vector<3> c) {
+  auto rc2 = (c[0] - 0.5) * (c[0] - 0.5) + (c[1] - 0.5) * (c[1] - 0.5) +
+             (c[2] - 0.5) * (c[2] - 0.5);
   return std::sqrt(rc2);
 }
 

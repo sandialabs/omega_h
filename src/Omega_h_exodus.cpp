@@ -122,7 +122,8 @@ int open(std::string const& path, bool verbose) {
   float version;
   auto mode = EX_READ | EX_MAPS_INT64_API;
   auto exodus_file = ex_open(path.c_str(), mode, &comp_ws, &io_ws, &version);
-  if (exodus_file < 0) Omega_h_fail("can't open Exodus file %s\n", path.c_str());
+  if (exodus_file < 0)
+    Omega_h_fail("can't open Exodus file %s\n", path.c_str());
   if (verbose) {
     std::cout << "ex_open(" << path << ")\n";
     std::cout << "  comp_ws: " << comp_ws << '\n';
@@ -132,16 +133,13 @@ int open(std::string const& path, bool verbose) {
   return exodus_file;
 }
 
-void close(int exodus_file) {
-  CALL(ex_close(exodus_file));
-}
+void close(int exodus_file) { CALL(ex_close(exodus_file)); }
 
 int get_num_time_steps(int exodus_file) {
   return int(ex_inquire_int(exodus_file, EX_INQ_TIME));
 }
 
-void read_nodal_fields(
-    int exodus_file, Mesh* mesh, int time_step,
+void read_nodal_fields(int exodus_file, Mesh* mesh, int time_step,
     std::string const& prefix, std::string const& postfix, bool verbose) {
   int num_nodal_vars;
   CALL(ex_get_variable_param(exodus_file, EX_NODAL, &num_nodal_vars));
@@ -157,10 +155,13 @@ void read_nodal_fields(
   for (int i = 0; i < num_nodal_vars; ++i) {
     name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
   }
-  CALL(ex_get_variable_names(exodus_file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
+  CALL(ex_get_variable_names(
+      exodus_file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
   for (int i = 0; i < num_nodal_vars; ++i) {
     auto name = name_ptrs[std::size_t(i)];
-    if (verbose) std::cout << "Loading nodal variable \"" << name << "\" at time step " << time_step << '\n';
+    if (verbose)
+      std::cout << "Loading nodal variable \"" << name << "\" at time step "
+                << time_step << '\n';
     auto name_osh = prefix + std::string(name) + postfix;
     HostWrite<double> host_write(mesh->nverts(), name_osh);
     CALL(ex_get_var(exodus_file, time_step + 1, EX_NODAL, i + 1, /*obj_id*/ 0,
@@ -515,9 +516,10 @@ Mesh read_sliced(
   return mesh;
 }
 #else
-Mesh read_sliced(
-    std::string const&, CommPtr, bool, int, int) {
-  Omega_h_fail("Can't read Exodus file by slices, Exodus not compiled with parallel support\n");
+Mesh read_sliced(std::string const&, CommPtr, bool, int, int) {
+  Omega_h_fail(
+      "Can't read Exodus file by slices, Exodus not compiled with parallel "
+      "support\n");
 }
 #endif
 

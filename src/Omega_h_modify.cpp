@@ -379,8 +379,7 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
         auto md = mods2mds_dim[mod];
         auto md_order = rep2md_order_dim[md];
         OMEGA_H_CHECK(md_order >= 0);
-        auto offset =
-            mods2new_offsets[mod] + md_order + rep_self_count;
+        auto offset = mods2new_offsets[mod] + md_order + rep_self_count;
         for (auto prod = mods2prods_dim[mod]; prod < mods2prods_dim[mod + 1];
              ++prod) {
           prods2new_offsets_w[prod] = offset++;

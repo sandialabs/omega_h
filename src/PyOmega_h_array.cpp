@@ -44,8 +44,10 @@ static void pybind11_array_type(py::module& module,
       .def("set", &HostWrite<Scalar>::set)
       .def("get", &HostWrite<Scalar>::get)
       .def("write", &HostWrite<Scalar>::write);
-  Write<Scalar> (*deep_copy_type)(Read<Scalar> a, std::string const&) = &deep_copy;
-  module.def(deepcopy_name.c_str(), deep_copy_type, py::arg("a"), py::arg("name") = "");
+  Write<Scalar> (*deep_copy_type)(Read<Scalar> a, std::string const&) =
+      &deep_copy;
+  module.def(deepcopy_name.c_str(), deep_copy_type, py::arg("a"),
+      py::arg("name") = "");
 }
 
 void pybind11_array(py::module& module) {

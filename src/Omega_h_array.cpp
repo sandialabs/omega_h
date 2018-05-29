@@ -306,12 +306,11 @@ HostRead<T>::HostRead() = default;
 #endif
 
 template <typename T>
-HostRead<T>::HostRead(Read<T> read)
-    : read_(read)
-{
+HostRead<T>::HostRead(Read<T> read) : read_(read) {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<const T*> dev_view = read.view();
-  Kokkos::View<const T*, Kokkos::HostSpace> h_view = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
+  Kokkos::View<const T*, Kokkos::HostSpace> h_view =
+      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
   mirror_ = h_view;
 #endif
 }

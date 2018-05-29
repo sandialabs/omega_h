@@ -49,9 +49,9 @@ Bytes enforce_one_level(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
     } else if (elems_are_marked[elem]) {
       one_level_mark[elem] = 1;
     } else {
-      one_level_mark[elem] = mark_elem(elem, elems2bridges, bridges2elems,
-          is_interior, is_bridge_leaf, nbridges_per_elem, children,
-          elems_are_marked);
+      one_level_mark[elem] =
+          mark_elem(elem, elems2bridges, bridges2elems, is_interior,
+              is_bridge_leaf, nbridges_per_elem, children, elems_are_marked);
     }
   };
   Omega_h::parallel_for(mesh->nelems(), f, "enforce_one_level");

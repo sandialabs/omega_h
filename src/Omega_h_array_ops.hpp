@@ -129,7 +129,8 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template MinMax<T> get_minmax(CommPtr comm, Read<T> a);               \
   extern template Write<T> multiply_each(                                      \
       Read<T> a, Read<T> b, std::string const&);                               \
-  extern template Write<T> divide_each(Read<T> a, Read<T> b, std::string const&);                   \
+  extern template Write<T> divide_each(                                        \
+      Read<T> a, Read<T> b, std::string const&);                               \
   extern template Read<T> add_each(Read<T> a, Read<T> b, std::string const&);  \
   extern template Read<T> subtract_each(Read<T> a, Read<T> b);                 \
   extern template Read<T> add_to_each(Read<T> a, T b);                         \

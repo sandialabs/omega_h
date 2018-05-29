@@ -1,5 +1,5 @@
-#include "Omega_h_control.hpp"
 #include "Omega_h_config.h"
+#include "Omega_h_control.hpp"
 
 #include <csignal>
 #include <cstdarg>
@@ -13,8 +13,10 @@
 #endif
 #include <backward/backward.hpp>
 namespace backward {
-  cfile_streambuf::int_type cfile_streambuf::underflow() { return traits_type::eof(); }
+cfile_streambuf::int_type cfile_streambuf::underflow() {
+  return traits_type::eof();
 }
+}  // namespace backward
 
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_library.hpp"
