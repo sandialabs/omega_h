@@ -440,6 +440,7 @@ set(Omega_h_HEADERS
   Omega_h_scatterplot.hpp
   Omega_h_affine.hpp
   Omega_h_print.hpp
+  Omega_h_amr.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
