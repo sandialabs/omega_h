@@ -18,9 +18,11 @@ typedef I32 ClassId;
 typedef I64 GO;
 typedef double Real;
 
-constexpr Real PI = OMEGA_H_PI;
-constexpr Real EPSILON = OMEGA_H_EPSILON;
-constexpr Int MANTISSA_BITS = OMEGA_H_MANTISSA_BITS;
+static constexpr Real PI = OMEGA_H_PI;
+static constexpr Real EPSILON = OMEGA_H_EPSILON;
+static constexpr Int MANTISSA_BITS = OMEGA_H_MANTISSA_BITS;
+static constexpr bool be_verbose = true;
+static constexpr bool dont_be_verbose = false;
 
 enum { DIMS = OMEGA_H_DIMS };
 

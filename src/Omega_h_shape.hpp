@@ -388,12 +388,13 @@ OMEGA_H_INLINE Real metric_size(
   return real_size * power<space_dim, 2 * metric_dim>(determinant(metric));
 }
 
+/* The measure of an equilateral simplex */
 template <Int dim>
 struct EquilateralSize;
 
 template <>
 struct EquilateralSize<1> {
-  static constexpr Real value = 1.0;  // sqrt(3)/4
+  static constexpr Real value = 1.0;
 };
 
 template <>

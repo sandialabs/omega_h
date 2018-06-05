@@ -61,6 +61,8 @@ void write(std::string const& filepath, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
+static constexpr bool do_compress = true;
+static constexpr bool dont_compress = false;
 TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim);
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = true);

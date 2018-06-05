@@ -319,40 +319,39 @@ Reals get_pure_implied_metrics(Mesh* mesh) {
   return project_metrics(mesh, get_element_implied_length_metrics(mesh));
 }
 
+/* These are completely empirical estimates of the volume of
+   an element in a "real" unit-edge-length mesh */
 template <Int dim>
-static Reals metric_quality_corrections_dim(Mesh* mesh) {
-  auto ev2v = mesh->ask_elem_verts();
-  auto coords = mesh->coords();
-  auto sizes = mesh->ask_sizes();
-  auto out = Write<Real>(mesh->nelems());
-  auto f = OMEGA_H_LAMBDA(LO e) {
-    auto v = gather_verts<dim + 1>(ev2v, e);
-    auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto b = simplex_basis<dim, dim>(p);
-    auto ev = element_edge_vectors(p, b);
-    auto msrl = mean_squared_real_length(ev);
-    auto len_scal = power<dim, 2>(msrl);
-    auto len_size = len_scal * EquilateralSize<dim>::value;
-    auto real_size = sizes[e];
-    auto size_corr = real_size / len_size;
-    auto metric_corr = power<2, dim>(size_corr);
-    out[e] = metric_corr;
-  };
-  parallel_for(mesh->nelems(), f, "metric_quality_corrections");
-  return out;
-}
+struct TypicalUnitSimplexSize;
 
-static Reals get_metric_quality_corrections(Mesh* mesh) {
-  if (mesh->dim() == 3) return metric_quality_corrections_dim<3>(mesh);
-  if (mesh->dim() == 2) return metric_quality_corrections_dim<2>(mesh);
-  if (mesh->dim() == 1) return metric_quality_corrections_dim<1>(mesh);
-  OMEGA_H_NORETURN(Reals());
+template <>
+struct TypicalUnitSimplexSize<1> {
+  static constexpr Real value = 1.0;
+};
+
+template <>
+struct TypicalUnitSimplexSize<2> {
+  static constexpr Real value = 0.3392045889356295;
+};
+
+template <>
+struct TypicalUnitSimplexSize<3> {
+  static constexpr Real value = 0.108;
+};
+
+static Real get_typical_over_perfect_size(Int dim) {
+  if (dim == 3) return TypicalUnitSimplexSize<3>::value / EquilateralSize<3>::value;
+  if (dim == 2) return TypicalUnitSimplexSize<2>::value / EquilateralSize<2>::value;
+  if (dim == 1) return TypicalUnitSimplexSize<1>::value / EquilateralSize<1>::value;
+  OMEGA_H_NORETURN(-1.0);
 }
 
 static Reals get_element_implied_size_metrics(Mesh* mesh) {
   auto length_metrics = get_element_implied_length_metrics(mesh);
-  auto corrections = get_metric_quality_corrections(mesh);
-  return multiply_each(length_metrics, corrections);
+  auto typical_over_perfect = get_typical_over_perfect_size(mesh->dim());
+  auto size_scalar = typical_over_perfect;
+  auto metric_scalar = power(size_scalar, 2, mesh->dim());
+  return multiply_each_by(length_metrics, metric_scalar);
 }
 
 Reals get_implied_metrics(Mesh* mesh) {
@@ -528,13 +527,12 @@ static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
     auto v = gather_verts<mesh_dim + 1>(elems2verts, e);
     auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
     auto b = simplex_basis<mesh_dim, mesh_dim>(p);
-    auto ev = element_edge_vectors(p, b);
-    auto msrl = mean_squared_real_length(ev);
-    auto lr = power<mesh_dim, 2>(msrl);
+    auto real_volume = simplex_size_from_basis(b);
+    auto typical_unit_volume = TypicalUnitSimplexSize<mesh_dim>::value;
     auto m = get_symm<metric_dim>(elem_metrics, e);
-    auto mr = power<mesh_dim, 2 * metric_dim>(determinant(m));
-    auto r = lr * mr;
-    out_w[e] = r;
+    auto unit_volume_over_desired_volume = power<mesh_dim, 2 * metric_dim>(determinant(m));
+    auto typical_desired_volume = typical_unit_volume / unit_volume_over_desired_volume;
+    out_w[e] = real_volume / typical_desired_volume;
   };
   parallel_for(mesh->nelems(), f, "get_expected_nelems_per_elem");
   return Reals(out_w);
