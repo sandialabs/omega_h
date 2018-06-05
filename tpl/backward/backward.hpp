@@ -28,6 +28,22 @@
 #	error "It's not going to compile without a C++ compiler..."
 #endif
 
+#ifndef BACKWARD_HAS_BACKTRACE
+#define BACKWARD_HAS_BACKTRACE 0
+#endif
+#ifndef BACKWARD_HAS_BACKTRACE_SYMBOL
+#define BACKWARD_HAS_BACKTRACE_SYMBOL 0
+#endif
+#ifndef BACKWARD_HAS_DW
+#define BACKWARD_HAS_DW 0
+#endif
+#ifndef BACKWARD_HAS_BFD
+#define BACKWARD_HAS_BFD 0
+#endif
+#ifndef BACKWARD_HAS_DWARF
+#define BACKWARD_HAS_DWARF 0
+#endif
+
 #if	  defined(BACKWARD_CXX11)
 #elif defined(BACKWARD_CXX98)
 #else
@@ -212,7 +228,7 @@
 #		endif
 #	endif
 
-#	if BACKWARD_HAS_DW == 1
+#	if defined(BACKWARD_HAS_DW) && BACKWARD_HAS_DW == 1
 #		include <elfutils/libdw.h>
 #		include <elfutils/libdwfl.h>
 #		include <dwarf.h>
@@ -220,8 +236,19 @@
 
 #	if BACKWARD_HAS_DWARF == 1
 #		include <libelf.h>
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreserved-id-macro"
+#pragma clang diagnostic ignored "-Wundef"
+#ifndef __LIBELF64
+#define __LIBELF64 0
+#endif
+#endif
 #		include <dwarf.h>
 #		include <libdwarf.h>
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #		include <map>
 #		include <algorithm>
 #		ifndef _GNU_SOURCE
@@ -233,7 +260,7 @@
 #		endif
 #	endif
 
-#	if (BACKWARD_HAS_BACKTRACE == 1) || (BACKWARD_HAS_BACKTRACE_SYMBOL == 1)
+#if (BACKWARD_HAS_BACKTRACE == 1) || (BACKWARD_HAS_BACKTRACE_SYMBOL == 1)
 		// then we shall rely on backtrace
 #		include <execinfo.h>
 #	endif
@@ -472,7 +499,7 @@ public:
 	}
 	operator const dummy*() const {
 		if (_empty) {
-			return 0;
+			return nullptr;
 		}
 		return reinterpret_cast<const dummy*>(_val);
 	}
@@ -1336,7 +1363,7 @@ public:
 			// ...from the current process.
 			dwfl_report_begin(_dwfl_handle.get());
 			int r = dwfl_linux_proc_report (_dwfl_handle.get(), getpid());
-			dwfl_report_end(_dwfl_handle.get(), NULL, NULL);
+			dwfl_report_end(_dwfl_handle.get(), nullptr, nullptr);
 			if (r < 0) {
 				return trace;
 			}
@@ -1649,16 +1676,16 @@ class TraceResolverLinuxImpl<trace_resolver_tag::libdwarf>:
 		path.resize(100);
 
 		while(true) {
-			ssize_t len = ::readlink(symlink_path.c_str(),
+      ssize_t len = ::readlink(symlink_path.c_str(),
 									&*path.begin(), path.size());
 			if(len < 0) {
 				return "";
 			}
-			if ((size_t)len == path.size()) {
+			if (std::size_t(len) == path.size()) {
 				path.resize(path.size() * 2);
 			}
 			else {
-				path.resize(len);
+				path.resize(std::size_t(len));
 				break;
 			}
 		}
@@ -1792,7 +1819,7 @@ public:
 		// Get the Dwarf_Line that the address points to and call libdwarf
 		// to get source file, line and column info.
 		Dwarf_Line line = die_object.line_buffer[it->second];
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 
 		char* filename;
 		if (dwarf_linesrc(line, &filename, &error)
@@ -1803,13 +1830,13 @@ public:
 
 		Dwarf_Unsigned number = 0;
 		if (dwarf_lineno(line, &number, &error) == DW_DLV_OK) {
-			trace.source.line = number;
+			trace.source.line = unsigned(number);
 		} else {
 			trace.source.line = 0;
 		}
 
 		if (dwarf_lineoff_b(line, &number, &error) == DW_DLV_OK) {
-			trace.source.col = number;
+			trace.source.col = unsigned(number);
 		} else {
 			trace.source.col = 0;
 		}
@@ -1825,7 +1852,7 @@ public:
 
 public:
 	static int close_dwarf(Dwarf_Debug dwarf) {
-		return dwarf_finish(dwarf, NULL);
+		return dwarf_finish(dwarf, nullptr);
 	}
 
 private:
@@ -1855,14 +1882,14 @@ private:
 		Dwarf_Line_Context		line_context;
 
 		inline bool isEmpty() {
-			return  line_buffer == NULL ||
+			return  line_buffer == nullptr ||
 					line_count == 0 ||
-					line_context == NULL ||
+					line_context == nullptr ||
 					line_section.empty();
 		}
 
 		die_cache_entry() :
-			line_buffer(0), line_count(0), line_context(0) {}
+			line_buffer(nullptr), line_count(0), line_context(nullptr) {}
 
 		~die_cache_entry()
 		{
@@ -1918,7 +1945,7 @@ private:
 
 		dwarf_file_t file_handle;
 		file_handle.reset(open(filename_object.c_str(), O_RDONLY));
-		if (file_handle < 0) {
+		if (file_handle < nullptr) {
 			return r;
 		}
 
@@ -1926,12 +1953,12 @@ private:
 		// because we want to see if there is a .gnu_debuglink section
 		// that points to a split debug file
 		dwarf_elf_t elf_handle;
-		elf_handle.reset(elf_begin(file_handle.get(), ELF_C_READ, NULL));
+		elf_handle.reset(elf_begin(file_handle.get(), ELF_C_READ, nullptr));
 		if (!elf_handle) {
 			return r;
 		}
 
-		const char* e_ident = elf_getident(elf_handle.get(), 0);
+		const char* e_ident = elf_getident(elf_handle.get(), nullptr);
 		if (!e_ident) {
 			return r;
 		}
@@ -1966,20 +1993,20 @@ private:
 		const char* section_name = 0;                                        \
 		                                                                     \
 		while ((elf_section = elf_nextscn(elf_handle.get(), elf_section))    \
-				!= NULL) {                                                   \
+				!= nullptr) {                                                   \
 			section_header = elf##ARCH##_getshdr(elf_section);               \
-			if (section_header == NULL) {                                    \
+			if (section_header == nullptr) {                                    \
 				return r;                                                    \
 			}                                                                \
 		                                                                     \
 			if ((section_name = elf_strptr(                                  \
 								elf_handle.get(), shdrstrndx,                \
-								section_header->sh_name)) == NULL) {         \
+								section_header->sh_name)) == nullptr) {         \
 				return r;                                                    \
 			}                                                                \
 		                                                                     \
 			if (cstrings_eq(section_name, ".gnu_debuglink")) {               \
-				elf_data = elf_getdata(elf_section, NULL);                   \
+				elf_data = elf_getdata(elf_section, nullptr);                   \
 				if (elf_data && elf_data->d_size > 0) {                      \
 					debuglink = std::string(                                 \
 							reinterpret_cast<const char*>(elf_data->d_buf)); \
@@ -2007,7 +2034,7 @@ private:
 		}                                                                    \
 		                                                                     \
 		if (symbol_section && symbol_count && symbol_strings) {              \
-			elf_data = elf_getdata(symbol_section, NULL);                    \
+			elf_data = elf_getdata(symbol_section, nullptr);                    \
 			symbol = reinterpret_cast<Elf##ARCH##_Sym*>(elf_data->d_buf);    \
 			for (size_t i = 0; i < symbol_count; ++i) {                      \
 				int type = ELF##ARCH##_ST_TYPE(symbol->st_info);             \
@@ -2021,6 +2048,10 @@ private:
 		}                                                                    \
 
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"
+#endif
 		if (e_ident[EI_CLASS] == ELFCLASS32) {
 			ELF_GET_DATA(32)
 		} else if (e_ident[EI_CLASS] == ELFCLASS64) {
@@ -2029,6 +2060,9 @@ private:
 			ELF_GET_DATA(64)
 #endif
 		}
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 		if (!debuglink.empty()) {
 			// We have a debuglink section! Open an elf instance on that
@@ -2039,7 +2073,7 @@ private:
 			if (debuglink_file.get() > 0) {
 				dwarf_elf_t debuglink_elf;
 				debuglink_elf.reset(
-					elf_begin(debuglink_file.get(),ELF_C_READ, NULL)
+					elf_begin(debuglink_file.get(),ELF_C_READ, nullptr)
 				);
 
 				// If we have a valid elf handle, return the new elf handle
@@ -2053,11 +2087,11 @@ private:
 
 		// Ok, we have a valid ELF handle, let's try to get debug symbols
 		Dwarf_Debug dwarf_debug;
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		dwarf_handle_t dwarf_handle;
 
 		int dwarf_result = dwarf_elf_init(elf_handle.get(),
-						DW_DLC_READ, NULL, NULL, &dwarf_debug, &error);
+						DW_DLC_READ, nullptr, nullptr, &dwarf_debug, &error);
 
 		// We don't do any special handling for DW_DLV_NO_ENTRY specially.
 		// If we get an error, or the file doesn't have debug information
@@ -2077,7 +2111,7 @@ private:
 
 	die_cache_entry& get_die_cache(dwarf_fileobject& fobj, Dwarf_Die die)
 	{
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 
 		// Get the die offset, we use it as the cache key
 		Dwarf_Off die_offset;
@@ -2112,7 +2146,7 @@ private:
 		// by using insert instead of the map's [ operator.
 
 		// Get the line context for the DIE
-		if (dwarf_srclines_b(die, 0, &table_count, &de.line_context, &error)
+		if (dwarf_srclines_b(die, nullptr, &table_count, &de.line_context, &error)
 				== DW_DLV_OK) {
 			// Get the source lines for this line context, to be deallocated
 			// later
@@ -2142,10 +2176,10 @@ private:
 		// because they have no pc, and we can do namespace resolution for
 		// DWARF function names.
 		Dwarf_Debug dwarf = fobj.dwarf_handle.get();
-		Dwarf_Die current_die = 0;
+		Dwarf_Die current_die = nullptr;
 		if (dwarf_child(die, &current_die, &error) == DW_DLV_OK) {
 			for(;;) {
-				Dwarf_Die sibling_die = 0;
+				Dwarf_Die sibling_die = nullptr;
 
 				Dwarf_Half tag_value;
 				dwarf_tag(current_die, &tag_value, &error);
@@ -2187,7 +2221,7 @@ private:
 
 				if (current_die != die) {
 					dwarf_dealloc(dwarf, current_die, DW_DLA_DIE);
-					current_die = 0;
+					current_die = nullptr;
 				}
 
 				current_die = sibling_die;
@@ -2198,10 +2232,10 @@ private:
 
 	static Dwarf_Die get_referenced_die(
 			Dwarf_Debug dwarf, Dwarf_Die die, Dwarf_Half attr, bool global) {
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		Dwarf_Attribute attr_mem;
 
-		Dwarf_Die found_die = NULL;
+		Dwarf_Die found_die = nullptr;
 		if (dwarf_attr(die, attr, &attr_mem, &error) == DW_DLV_OK) {
 			Dwarf_Off offset;
 			int result = 0;
@@ -2214,7 +2248,7 @@ private:
 			if (result == DW_DLV_OK) {
 				if (dwarf_offdie(dwarf, offset, &found_die, &error)
 						!= DW_DLV_OK) {
-					found_die = NULL;
+					found_die = nullptr;
 				}
 			}
 			dwarf_dealloc(dwarf, attr_mem, DW_DLA_ATTR);
@@ -2224,7 +2258,7 @@ private:
 
 	static std::string get_referenced_die_name(
 			Dwarf_Debug dwarf, Dwarf_Die die, Dwarf_Half attr, bool global) {
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		std::string value;
 
 		Dwarf_Die found_die = get_referenced_die(dwarf, die, attr, global);
@@ -2247,7 +2281,7 @@ private:
 	// deallocate the DIE
 	static Dwarf_Die get_spec_die(dwarf_fileobject& fobj, Dwarf_Die die) {
 		Dwarf_Debug dwarf = fobj.dwarf_handle.get();
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		Dwarf_Off die_offset;
 		if (fobj.current_cu && dwarf_die_CU_offset(die, &die_offset, &error)
 				== DW_DLV_OK) {
@@ -2257,7 +2291,7 @@ private:
 			// If we have a DIE that completes the current one, check if
 			// that one has the pc we are looking for
 			if (it != fobj.current_cu->spec_section.end()) {
-				Dwarf_Die spec_die = 0;
+				Dwarf_Die spec_die = nullptr;
 				if (dwarf_offdie(dwarf, it->second, &spec_die, &error)
 						== DW_DLV_OK) {
 					return spec_die;
@@ -2276,7 +2310,7 @@ private:
 		Dwarf_Addr low_pc = 0, high_pc = 0;
 		Dwarf_Half high_pc_form = 0;
 		Dwarf_Form_Class return_class;
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		Dwarf_Debug dwarf = fobj.dwarf_handle.get();
 		bool has_lowpc = false;
 		bool has_highpc = false;
@@ -2359,9 +2393,9 @@ private:
 	}
 
 	static void get_type(Dwarf_Debug dwarf, Dwarf_Die die, std::string& type) {
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 
-		Dwarf_Die child = 0;
+		Dwarf_Die child = nullptr;
 		if (dwarf_child(die, &child, &error) == DW_DLV_OK) {
 			get_type(dwarf, child, type);
 		}
@@ -2381,7 +2415,7 @@ private:
 	}
 
 	static std::string get_type_by_signature(Dwarf_Debug dwarf, Dwarf_Die die) {
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 
 		Dwarf_Sig8 signature;
 		Dwarf_Bool has_attr = 0;
@@ -2405,14 +2439,14 @@ private:
 		std::string result;
 		bool found = false;
 
-		while (dwarf_next_cu_header_d(dwarf, 0, 0, 0, 0, 0, 0, 0, &tu_signature,
-				0, &next_cu_header, 0, &error) == DW_DLV_OK) {
+		while (dwarf_next_cu_header_d(dwarf, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &tu_signature,
+				nullptr, &next_cu_header, nullptr, &error) == DW_DLV_OK) {
 
 			if (strncmp(signature.signature, tu_signature.signature, 8) == 0) {
-				Dwarf_Die type_cu_die = 0;
-				if (dwarf_siblingof_b(dwarf, 0, 0, &type_cu_die, &error)
+				Dwarf_Die type_cu_die = nullptr;
+				if (dwarf_siblingof_b(dwarf, nullptr, 0, &type_cu_die, &error)
 						== DW_DLV_OK) {
-					Dwarf_Die child_die = 0;
+					Dwarf_Die child_die = nullptr;
 					if (dwarf_child(type_cu_die, &child_die, &error)
 							== DW_DLV_OK) {
 						get_type(dwarf, child_die, result);
@@ -2425,8 +2459,8 @@ private:
 		}
 
 		if (found) {
-			while (dwarf_next_cu_header_d(dwarf, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					&next_cu_header, 0, &error) == DW_DLV_OK) {
+			while (dwarf_next_cu_header_d(dwarf, 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+					&next_cu_header, nullptr, &error) == DW_DLV_OK) {
 				// Reset the cu header state. Unfortunately, libdwarf's
 				// next_cu_header API keeps its own iterator per Dwarf_Debug that
 				// can't be reset. We need to keep fetching elements until the end.
@@ -2437,7 +2471,8 @@ private:
 			string_stream << "<0x" <<
 					std::hex << std::setfill('0');
 			for (int i = 0; i < 8; ++i) {
-				string_stream << std::setw(2) << std::hex << (int)(unsigned char)(signature.signature[i]);
+        using UC = unsigned char;
+				string_stream << std::setw(2) << std::hex << int(UC(signature.signature[i]));
 			}
 			string_stream << ">";
 			result = string_stream.str();
@@ -2464,7 +2499,7 @@ private:
 	static void set_parameter_string(
 			dwarf_fileobject& fobj, Dwarf_Die die, type_context_t &context) {
 		char *name;
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 
 		// typedefs contain also the base type, so we skip it and only
 		// print the typedef name
@@ -2578,8 +2613,8 @@ private:
 										std::vector<std::string>& ns,
 										dwarf_fileobject& fobj, Dwarf_Die die) {
 		Dwarf_Debug dwarf = fobj.dwarf_handle.get();
-		Dwarf_Error error = DW_DLE_NE;
-		Dwarf_Die current_die = 0;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
+		Dwarf_Die current_die = nullptr;
 		std::string parameters;
 		bool has_spec = true;
 		// Check if we have a spec DIE. If we do we use it as it contains
@@ -2615,7 +2650,7 @@ private:
 
 		if (dwarf_child(spec_die, &current_die, &error) == DW_DLV_OK) {
 			for(;;) {
-				Dwarf_Die sibling_die = 0;
+				Dwarf_Die sibling_die = nullptr;
 
 				Dwarf_Half tag_value;
 				dwarf_tag(current_die, &tag_value, &error);
@@ -2658,7 +2693,7 @@ private:
 
 				if (current_die != die) {
 					dwarf_dealloc(dwarf, current_die, DW_DLA_DIE);
-					current_die = 0;
+					current_die = nullptr;
 				}
 
 				current_die = sibling_die;
@@ -2679,7 +2714,7 @@ private:
 	// defined types... grrr.
 	struct inliners_search_cb {
 		void operator()(Dwarf_Die die, std::vector<std::string>& ns) {
-			Dwarf_Error error = DW_DLE_NE;
+			Dwarf_Error error = nullptr; //DW_DLE_NE;
 			Dwarf_Half tag_value;
 			Dwarf_Attribute attr_mem;
 			Dwarf_Debug dwarf = fobj.dwarf_handle.get();
@@ -2764,7 +2799,7 @@ private:
 							== DW_DLV_OK) {
 						if (dwarf_formudata(attr_mem, &number, &error)
 								== DW_DLV_OK) {
-							sloc.line = number;
+							sloc.line = unsigned(number);
 						}
 						dwarf_dealloc(dwarf, attr_mem, DW_DLA_ATTR);
 					}
@@ -2773,7 +2808,7 @@ private:
 							== DW_DLV_OK) {
 						if (dwarf_formudata(attr_mem, &number, &error)
 								== DW_DLV_OK) {
-							sloc.col = number;
+							sloc.col = unsigned(number);
 						}
 						dwarf_dealloc(dwarf, attr_mem, DW_DLA_ATTR);
 					}
@@ -2791,16 +2826,16 @@ private:
 
 	static Dwarf_Die find_fundie_by_pc(dwarf_fileobject& fobj,
 					Dwarf_Die parent_die, Dwarf_Addr pc, Dwarf_Die result) {
-		Dwarf_Die current_die = 0;
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Die current_die = nullptr;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		Dwarf_Debug dwarf = fobj.dwarf_handle.get();
 
 		if (dwarf_child(parent_die, &current_die, &error) != DW_DLV_OK) {
-			return NULL;
+			return nullptr;
 		}
 
 		for(;;) {
-			Dwarf_Die sibling_die = 0;
+			Dwarf_Die sibling_die = nullptr;
 			Dwarf_Half tag_value;
 			dwarf_tag(current_die, &tag_value, &error);
 
@@ -2827,7 +2862,7 @@ private:
 				// not necessarily at the first level, but might be nested
 				// inside a namespace, structure, a function, an inlined
 				// function etc.
-				Dwarf_Die die_mem = 0;
+				Dwarf_Die die_mem = nullptr;
 				Dwarf_Die indie = find_fundie_by_pc(
 						fobj, current_die, pc, die_mem);
 				if (indie) {
@@ -2839,28 +2874,28 @@ private:
 			int res = dwarf_siblingof(
 					dwarf, current_die, &sibling_die, &error);
 			if (res == DW_DLV_ERROR) {
-				return NULL;
+				return nullptr;
 			} else if (res == DW_DLV_NO_ENTRY) {
 				break;
 			}
 
 			if (current_die != parent_die) {
 				dwarf_dealloc(dwarf, current_die, DW_DLA_DIE);
-				current_die = 0;
+				current_die = nullptr;
 			}
 
 			current_die = sibling_die;
 		}
-		return NULL;
+		return nullptr;
 	}
 
 	template <typename CB>
 		static bool deep_first_search_by_pc(dwarf_fileobject& fobj,
 						Dwarf_Die parent_die, Dwarf_Addr pc,
 						std::vector<std::string>& ns, CB cb) {
-		Dwarf_Die current_die = 0;
+		Dwarf_Die current_die = nullptr;
 		Dwarf_Debug dwarf = fobj.dwarf_handle.get();
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 
 		if (dwarf_child(parent_die, &current_die, &error) != DW_DLV_OK) {
 			return false;
@@ -2869,12 +2904,12 @@ private:
 		bool branch_has_pc = false;
 		bool has_namespace = false;
 		for(;;) {
-			Dwarf_Die sibling_die = 0;
+			Dwarf_Die sibling_die = nullptr;
 
 			Dwarf_Half tag;
 			if (dwarf_tag(current_die, &tag, &error) == DW_DLV_OK) {
 				if (tag == DW_TAG_namespace || tag == DW_TAG_class_type) {
-					char* ns_name = NULL;
+					char* ns_name = nullptr;
 					if (dwarf_diename(current_die, &ns_name, &error)
 							== DW_DLV_OK) {
 						if (ns_name) {
@@ -2929,7 +2964,7 @@ private:
 
 			if (current_die != parent_die) {
 				dwarf_dealloc(dwarf, current_die, DW_DLA_DIE);
-				current_die = 0;
+				current_die = nullptr;
 			}
 
 			if (has_namespace) {
@@ -2948,7 +2983,7 @@ private:
 	static std::string die_call_file(
 			Dwarf_Debug dwarf, Dwarf_Die die, Dwarf_Die cu_die) {
 		Dwarf_Attribute attr_mem;
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		Dwarf_Signed file_index;
 
 		std::string file;
@@ -2963,7 +2998,7 @@ private:
 				return file;
 			}
 
-			char **srcfiles = 0;
+			char **srcfiles = nullptr;
 			Dwarf_Signed file_count = 0;
 			if (dwarf_srcfiles(cu_die, &srcfiles, &file_count, &error)
 					== DW_DLV_OK) {
@@ -2987,22 +3022,22 @@ private:
 		// we can speed up the search
 
 		Dwarf_Debug dwarf = fobj.dwarf_handle.get();
-		Dwarf_Error error = DW_DLE_NE;
+		Dwarf_Error error = nullptr; //DW_DLE_NE;
 		Dwarf_Arange *aranges;
 		Dwarf_Signed arange_count;
 
-		Dwarf_Die returnDie;
+		Dwarf_Die returnDie = nullptr;
 		bool found = false;
 		if (dwarf_get_aranges(
 				dwarf, &aranges, &arange_count, &error) != DW_DLV_OK) {
-			aranges = NULL;
+			aranges = nullptr;
 		}
 
 		if (aranges) {
 			// We have aranges. Get the one where our address is.
 			Dwarf_Arange arange;
 			if (dwarf_get_arange(
-					aranges, arange_count, addr, &arange, &error)
+					aranges, Dwarf_Unsigned(arange_count), addr, &arange, &error)
 						== DW_DLV_OK) {
 
 				// We found our address. Get the compilation-unit DIE offset
@@ -3028,9 +3063,9 @@ private:
 		// The search for aranges failed. Try to find our address by scanning
 		// all compilation units.
 		Dwarf_Unsigned next_cu_header;
-		while (dwarf_next_cu_header_d(dwarf, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-				&next_cu_header, 0, &error) == DW_DLV_OK) {
-			if (dwarf_siblingof(dwarf, 0, &returnDie, &error) == DW_DLV_OK) {
+		while (dwarf_next_cu_header_d(dwarf, 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+				&next_cu_header, nullptr, &error) == DW_DLV_OK) {
+			if (dwarf_siblingof(dwarf, nullptr, &returnDie, &error) == DW_DLV_OK) {
 				if (die_has_pc(fobj, returnDie, addr)) {
 					found = true;
 					break;
@@ -3039,8 +3074,8 @@ private:
 			}
 		}
 
-		while (dwarf_next_cu_header_d(dwarf, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-				&next_cu_header, 0, &error) == DW_DLV_OK) {
+		while (dwarf_next_cu_header_d(dwarf, 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+				&next_cu_header, nullptr, &error) == DW_DLV_OK) {
 			// Reset the cu header state. Unfortunately, libdwarf's
 			// next_cu_header API keeps its own iterator per Dwarf_Debug that
 			// can't be reset. We need to keep fetching elements until the end.
@@ -3052,11 +3087,11 @@ private:
 
 		// We couldn't find any compilation units with ranges or a high/low pc.
 		// Try again by looking at all DIEs in all compilation units.
-		Dwarf_Die cudie;
-		while (dwarf_next_cu_header_d(dwarf, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-				&next_cu_header, 0, &error) == DW_DLV_OK) {
-			if (dwarf_siblingof(dwarf, 0, &cudie, &error) == DW_DLV_OK) {
-				Dwarf_Die die_mem = 0;
+		Dwarf_Die cudie = nullptr;
+		while (dwarf_next_cu_header_d(dwarf, 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+				&next_cu_header, nullptr, &error) == DW_DLV_OK) {
+			if (dwarf_siblingof(dwarf, nullptr, &cudie, &error) == DW_DLV_OK) {
+				Dwarf_Die die_mem = nullptr;
 				Dwarf_Die resultDie = find_fundie_by_pc(
 						fobj, cudie, addr, die_mem);
 
@@ -3067,8 +3102,8 @@ private:
 			}
 		}
 
-		while (dwarf_next_cu_header_d(dwarf, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-				&next_cu_header, 0, &error) == DW_DLV_OK) {
+		while (dwarf_next_cu_header_d(dwarf, 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+				&next_cu_header, nullptr, &error) == DW_DLV_OK) {
 			// Reset the cu header state. Unfortunately, libdwarf's
 			// next_cu_header API keeps its own iterator per Dwarf_Debug that
 			// can't be reset. We need to keep fetching elements until the end.
@@ -3078,7 +3113,7 @@ private:
 			return cudie;
 
 		// We failed.
-		return NULL;
+		return nullptr;
 	}
 };
 #endif // BACKWARD_HAS_DWARF == 1
