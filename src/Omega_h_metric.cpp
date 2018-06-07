@@ -321,30 +321,14 @@ Reals get_pure_implied_metrics(Mesh* mesh) {
 
 /* These are completely empirical estimates of the volume of
    an element in a "real" unit-edge-length mesh */
-template <Int dim>
-struct TypicalUnitSimplexSize;
+static constexpr Real typical_unit_simplex_size(Int dim) {
+  return (dim == 3 ? 0.0838934100219 :
+         (dim == 2 ? 0.3392045889356295 :
+                     1.0));
+}
 
-template <>
-struct TypicalUnitSimplexSize<1> {
-  static constexpr Real value = 1.0;
-};
-
-template <>
-struct TypicalUnitSimplexSize<2> {
-  /* warning! this hasn't been well estimated! */
-  static constexpr Real value = 0.3392045889356295;
-};
-
-template <>
-struct TypicalUnitSimplexSize<3> {
-  static constexpr Real value = 0.0838934100219;
-};
-
-static Real get_typical_over_perfect_size(Int dim) {
-  if (dim == 3) return TypicalUnitSimplexSize<3>::value / EquilateralSize<3>::value;
-  if (dim == 2) return TypicalUnitSimplexSize<2>::value / EquilateralSize<2>::value;
-  if (dim == 1) return TypicalUnitSimplexSize<1>::value / EquilateralSize<1>::value;
-  OMEGA_H_NORETURN(-1.0);
+static constexpr Real get_typical_over_perfect_size(Int dim) {
+  return typical_unit_simplex_size(dim) / equilateral_simplex_size(dim);
 }
 
 static Reals get_element_implied_size_metrics(Mesh* mesh) {
@@ -519,7 +503,7 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
  */
 
 template <Int mesh_dim, Int metric_dim>
-static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
+static Reals get_complexity_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   auto elems2verts = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
@@ -529,38 +513,48 @@ static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
     auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
     auto b = simplex_basis<mesh_dim, mesh_dim>(p);
     auto real_volume = simplex_size_from_basis(b);
-  //auto typical_unit_volume = TypicalUnitSimplexSize<mesh_dim>::value;
     auto m = get_symm<metric_dim>(elem_metrics, e);
     auto sqrt_metric_det = power<mesh_dim, 2 * metric_dim>(determinant(m));
     out_w[e] = real_volume * sqrt_metric_det;
   };
-  parallel_for(mesh->nelems(), f, "get_expected_nelems_per_elem");
+  parallel_for(mesh->nelems(), f, "get_complexity_per_elem");
   return Reals(out_w);
 }
 
-Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
+Reals get_complexity_per_elem(Mesh* mesh, Reals v2m) {
   if (v2m.size() == 0) return Reals({});
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (mesh->dim() == 3 && metric_dim == 3) {
-    return get_expected_nelems_per_elem_tmpl<3, 3>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<3, 3>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 2) {
-    return get_expected_nelems_per_elem_tmpl<2, 2>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<2, 2>(mesh, v2m);
   } else if (mesh->dim() == 3 && metric_dim == 1) {
-    return get_expected_nelems_per_elem_tmpl<3, 1>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<3, 1>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 1) {
-    return get_expected_nelems_per_elem_tmpl<2, 1>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<2, 1>(mesh, v2m);
   } else if (mesh->dim() == 1) {
-    return get_expected_nelems_per_elem_tmpl<1, 1>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<1, 1>(mesh, v2m);
   }
   OMEGA_H_NORETURN(Reals());
 }
 
+Reals get_nelems_per_elem(Mesh* mesh, Reals v2m) {
+  auto complexity = get_complexity_per_elem(mesh, v2m);
+  return multiply_each_by(complexity, 1.0 / typical_unit_simplex_size(mesh->dim()));
+}
+
+Real get_complexity(Mesh* mesh, Reals v2m) {
+  auto complexity_per_elem = get_complexity_per_elem(mesh, v2m);
+  return repro_sum_owned(mesh, mesh->dim(), complexity_per_elem);
+}
+
+Real get_expected_nelems_from_complexity(Real complexity, Int dim) {
+  return complexity / typical_unit_simplex_size(dim);
+}
+
 Real get_expected_nelems(Mesh* mesh, Reals v2m) {
-  auto nelems_per_elem = get_expected_nelems_per_elem(mesh, v2m);
-  std::cerr << "before repro_sum_owned\n";
-  auto nelems = repro_sum_owned(mesh, mesh->dim(), nelems_per_elem);
-  std::cerr << "after repro_sum_owned\n";
-  return nelems;
+  auto complexity = get_complexity(mesh, v2m);
+  return get_expected_nelems_from_complexity(complexity, mesh->dim());
 }
 
 Real get_metric_scalar_for_nelems(

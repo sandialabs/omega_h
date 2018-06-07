@@ -389,23 +389,11 @@ OMEGA_H_INLINE Real metric_size(
 }
 
 /* The measure of an equilateral simplex */
-template <Int dim>
-struct EquilateralSize;
-
-template <>
-struct EquilateralSize<1> {
-  static constexpr Real value = 1.0;
-};
-
-template <>
-struct EquilateralSize<2> {
-  static constexpr Real value = 0.4330127018922193;  // sqrt(3)/4
-};
-
-template <>
-struct EquilateralSize<3> {
-  static constexpr Real value = 0.1178511301977579;  // 1/sqrt(72)
-};
+inline constexpr Real equilateral_simplex_size(Int dim) {
+  return (dim == 3 ? 0.1178511301977579 :
+         (dim == 2 ? 0.4330127018922193 :
+                     1.0));
+}
 
 template <Int dim>
 OMEGA_H_INLINE Affine<dim> simplex_affine(Few<Vector<dim>, dim + 1> p) {
