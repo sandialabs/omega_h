@@ -331,12 +331,13 @@ struct TypicalUnitSimplexSize<1> {
 
 template <>
 struct TypicalUnitSimplexSize<2> {
+  /* warning! this hasn't been well estimated! */
   static constexpr Real value = 0.3392045889356295;
 };
 
 template <>
 struct TypicalUnitSimplexSize<3> {
-  static constexpr Real value = 0.108;
+  static constexpr Real value = 0.0838934100219;
 };
 
 static Real get_typical_over_perfect_size(Int dim) {
@@ -528,11 +529,10 @@ static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
     auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
     auto b = simplex_basis<mesh_dim, mesh_dim>(p);
     auto real_volume = simplex_size_from_basis(b);
-    auto typical_unit_volume = TypicalUnitSimplexSize<mesh_dim>::value;
+  //auto typical_unit_volume = TypicalUnitSimplexSize<mesh_dim>::value;
     auto m = get_symm<metric_dim>(elem_metrics, e);
-    auto unit_volume_over_desired_volume = power<mesh_dim, 2 * metric_dim>(determinant(m));
-    auto typical_desired_volume = typical_unit_volume / unit_volume_over_desired_volume;
-    out_w[e] = real_volume / typical_desired_volume;
+    auto sqrt_metric_det = power<mesh_dim, 2 * metric_dim>(determinant(m));
+    out_w[e] = real_volume * sqrt_metric_det;
   };
   parallel_for(mesh->nelems(), f, "get_expected_nelems_per_elem");
   return Reals(out_w);
@@ -557,7 +557,9 @@ Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
 
 Real get_expected_nelems(Mesh* mesh, Reals v2m) {
   auto nelems_per_elem = get_expected_nelems_per_elem(mesh, v2m);
+  std::cerr << "before repro_sum_owned\n";
   auto nelems = repro_sum_owned(mesh, mesh->dim(), nelems_per_elem);
+  std::cerr << "after repro_sum_owned\n";
   return nelems;
 }
 
