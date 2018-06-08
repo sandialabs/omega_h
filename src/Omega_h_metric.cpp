@@ -319,40 +319,24 @@ Reals get_pure_implied_metrics(Mesh* mesh) {
   return project_metrics(mesh, get_element_implied_length_metrics(mesh));
 }
 
-template <Int dim>
-static Reals metric_quality_corrections_dim(Mesh* mesh) {
-  auto ev2v = mesh->ask_elem_verts();
-  auto coords = mesh->coords();
-  auto sizes = mesh->ask_sizes();
-  auto out = Write<Real>(mesh->nelems());
-  auto f = OMEGA_H_LAMBDA(LO e) {
-    auto v = gather_verts<dim + 1>(ev2v, e);
-    auto p = gather_vectors<dim + 1, dim>(coords, v);
-    auto b = simplex_basis<dim, dim>(p);
-    auto ev = element_edge_vectors(p, b);
-    auto msrl = mean_squared_real_length(ev);
-    auto len_scal = power<dim, 2>(msrl);
-    auto len_size = len_scal * EquilateralSize<dim>::value;
-    auto real_size = sizes[e];
-    auto size_corr = real_size / len_size;
-    auto metric_corr = power<2, dim>(size_corr);
-    out[e] = metric_corr;
-  };
-  parallel_for(mesh->nelems(), f, "metric_quality_corrections");
-  return out;
+/* These are completely empirical estimates of the volume of
+   an element in a "real" unit-edge-length mesh */
+static constexpr Real typical_unit_simplex_size(Int dim) {
+  return (dim == 3 ? 0.0838934100219 :
+         (dim == 2 ? 0.377645136635 :
+                     1.0));
 }
 
-static Reals get_metric_quality_corrections(Mesh* mesh) {
-  if (mesh->dim() == 3) return metric_quality_corrections_dim<3>(mesh);
-  if (mesh->dim() == 2) return metric_quality_corrections_dim<2>(mesh);
-  if (mesh->dim() == 1) return metric_quality_corrections_dim<1>(mesh);
-  OMEGA_H_NORETURN(Reals());
+static constexpr Real get_typical_over_perfect_size(Int dim) {
+  return typical_unit_simplex_size(dim) / equilateral_simplex_size(dim);
 }
 
 static Reals get_element_implied_size_metrics(Mesh* mesh) {
   auto length_metrics = get_element_implied_length_metrics(mesh);
-  auto corrections = get_metric_quality_corrections(mesh);
-  return multiply_each(length_metrics, corrections);
+  auto typical_over_perfect = get_typical_over_perfect_size(mesh->dim());
+  auto size_scalar = typical_over_perfect;
+  auto metric_scalar = power(size_scalar, 2, mesh->dim());
+  return multiply_each_by(length_metrics, metric_scalar);
 }
 
 Reals get_implied_metrics(Mesh* mesh) {
@@ -519,7 +503,7 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
  */
 
 template <Int mesh_dim, Int metric_dim>
-static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
+static Reals get_complexity_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   auto elems2verts = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto out_w = Write<Real>(mesh->nelems());
@@ -528,39 +512,49 @@ static Reals get_expected_nelems_per_elem_tmpl(Mesh* mesh, Reals v2m) {
     auto v = gather_verts<mesh_dim + 1>(elems2verts, e);
     auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
     auto b = simplex_basis<mesh_dim, mesh_dim>(p);
-    auto ev = element_edge_vectors(p, b);
-    auto msrl = mean_squared_real_length(ev);
-    auto lr = power<mesh_dim, 2>(msrl);
+    auto real_volume = simplex_size_from_basis(b);
     auto m = get_symm<metric_dim>(elem_metrics, e);
-    auto mr = power<mesh_dim, 2 * metric_dim>(determinant(m));
-    auto r = lr * mr;
-    out_w[e] = r;
+    auto sqrt_metric_det = power<mesh_dim, 2 * metric_dim>(determinant(m));
+    out_w[e] = real_volume * sqrt_metric_det;
   };
-  parallel_for(mesh->nelems(), f, "get_expected_nelems_per_elem");
+  parallel_for(mesh->nelems(), f, "get_complexity_per_elem");
   return Reals(out_w);
 }
 
-Reals get_expected_nelems_per_elem(Mesh* mesh, Reals v2m) {
+Reals get_complexity_per_elem(Mesh* mesh, Reals v2m) {
   if (v2m.size() == 0) return Reals({});
   auto metric_dim = get_metrics_dim(mesh->nverts(), v2m);
   if (mesh->dim() == 3 && metric_dim == 3) {
-    return get_expected_nelems_per_elem_tmpl<3, 3>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<3, 3>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 2) {
-    return get_expected_nelems_per_elem_tmpl<2, 2>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<2, 2>(mesh, v2m);
   } else if (mesh->dim() == 3 && metric_dim == 1) {
-    return get_expected_nelems_per_elem_tmpl<3, 1>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<3, 1>(mesh, v2m);
   } else if (mesh->dim() == 2 && metric_dim == 1) {
-    return get_expected_nelems_per_elem_tmpl<2, 1>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<2, 1>(mesh, v2m);
   } else if (mesh->dim() == 1) {
-    return get_expected_nelems_per_elem_tmpl<1, 1>(mesh, v2m);
+    return get_complexity_per_elem_tmpl<1, 1>(mesh, v2m);
   }
   OMEGA_H_NORETURN(Reals());
 }
 
+Reals get_nelems_per_elem(Mesh* mesh, Reals v2m) {
+  auto complexity = get_complexity_per_elem(mesh, v2m);
+  return multiply_each_by(complexity, 1.0 / typical_unit_simplex_size(mesh->dim()));
+}
+
+Real get_complexity(Mesh* mesh, Reals v2m) {
+  auto complexity_per_elem = get_complexity_per_elem(mesh, v2m);
+  return repro_sum_owned(mesh, mesh->dim(), complexity_per_elem);
+}
+
+Real get_expected_nelems_from_complexity(Real complexity, Int dim) {
+  return complexity / typical_unit_simplex_size(dim);
+}
+
 Real get_expected_nelems(Mesh* mesh, Reals v2m) {
-  auto nelems_per_elem = get_expected_nelems_per_elem(mesh, v2m);
-  auto nelems = repro_sum_owned(mesh, mesh->dim(), nelems_per_elem);
-  return nelems;
+  auto complexity = get_complexity(mesh, v2m);
+  return get_expected_nelems_from_complexity(complexity, mesh->dim());
 }
 
 Real get_metric_scalar_for_nelems(
