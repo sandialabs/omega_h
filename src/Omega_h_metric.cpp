@@ -323,7 +323,7 @@ Reals get_pure_implied_metrics(Mesh* mesh) {
    an element in a "real" unit-edge-length mesh */
 static constexpr Real typical_unit_simplex_size(Int dim) {
   return (dim == 3 ? 0.0838934100219 :
-         (dim == 2 ? 0.3392045889356295 :
+         (dim == 2 ? 0.377645136635 :
                      1.0));
 }
 
