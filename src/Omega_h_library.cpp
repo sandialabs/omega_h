@@ -164,7 +164,7 @@ Library::Library(Library const& other)
 Library::~Library() {
   if (Omega_h::perf::global_singleton_history) {
     if (world_->rank() == 0) {
-      Omega_h::perf::simple_print(
+      Omega_h::perf::print_top_down_and_bottom_up(
           *Omega_h::perf::global_singleton_history);
     }
     delete Omega_h::perf::global_singleton_history;

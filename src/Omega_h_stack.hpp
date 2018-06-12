@@ -144,13 +144,16 @@ struct History {
   std::size_t next(std::size_t sibling) const;
   std::size_t parent(std::size_t child) const;
   std::size_t pre_order_next(std::size_t frame) const;
-  double time(std::size_t frame);
-  double calls(std::size_t frame);
+  double time(std::size_t frame) const;
+  double calls(std::size_t frame) const;
 };
 
 extern History* global_singleton_history;
 
 void simple_print(perf::History const& history);
+History invert(History const& h);
+void print_time_sorted(History const& h);
+void print_top_down_and_bottom_up(History const& h);
 
 }}
 
