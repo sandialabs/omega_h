@@ -3,6 +3,7 @@
 
 #include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_stack.hpp>
 
 namespace Omega_h {
 
@@ -15,7 +16,7 @@ inline Policy policy(LO n) { return Policy(0, n); }
 #endif
 
 template <typename T>
-void parallel_for(LO n, T const& f, std::string const& name = "") {
+void parallel_for(LO n, T const& f, char const* name = "") {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (n > 0) Kokkos::parallel_for(policy(n), f, name);
 #else
@@ -27,14 +28,16 @@ void parallel_for(LO n, T const& f, std::string const& name = "") {
 
 template <typename T>
 typename T::value_type parallel_reduce(
-    LO n, T f, std::string const& name = "") {
-  typedef typename T::value_type VT;
+    LO n, T f, char const* name = "") {
+  using VT = typename T::value_type;
+#ifdef OMEGA_H_USE_KOKKOSCORE
   VT result;
   f.init(result);
-#ifdef OMEGA_H_USE_KOKKOSCORE
   if (n > 0) Kokkos::parallel_reduce(name, policy(n), f, result);
 #else
   begin_code(name);
+  VT result;
+  f.init(result);
   for (LO i = 0; i < n; ++i) f(i, result);
   end_code();
 #endif
@@ -42,11 +45,11 @@ typename T::value_type parallel_reduce(
 }
 
 template <typename T>
-void parallel_scan(LO n, T f, std::string const& name = "") {
+void parallel_scan(LO n, T f, char const* name = "") {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (n > 0) Kokkos::parallel_scan(policy(n), f, name);
 #else
-  typedef typename T::value_type VT;
+  using VT = typename T::value_type;
   begin_code(name);
   VT update;
   f.init(update);

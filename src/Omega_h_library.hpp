@@ -35,7 +35,6 @@ class Library {
   CommPtr self();
   void add_to_timer(std::string const& name, double nsecs);
   LO self_send_threshold() const;
-  bool should_time_;
   LO self_send_threshold_;
   bool silent_;
 

@@ -11,6 +11,7 @@
 #endif
 
 #include "Omega_h_map.hpp"
+#include "Omega_h_stack.hpp"
 
 namespace Omega_h {
 

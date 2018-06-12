@@ -45,34 +45,4 @@ OMEGA_H_SYSTEM_HEADER
 #define OMEGA_H_CONSTANT_DATA
 #endif
 
-namespace Omega_h {
-
-inline void begin_code(std::string const& name) {
-#ifdef OMEGA_H_USE_KOKKOSCORE
-  Kokkos::Profiling::pushRegion(name);
-#else
-  (void)name;
-#endif
-}
-
-inline void end_code() {
-#ifdef OMEGA_H_USE_KOKKOSCORE
-  Kokkos::Profiling::popRegion();
-#endif
-}
-
-struct ScopedTimer {
-  ScopedTimer(std::string const& name) { begin_code(name); }
-  ~ScopedTimer() { end_code(); }
-  ScopedTimer(ScopedTimer const&) = delete;
-  ScopedTimer(ScopedTimer&&) = delete;
-  ScopedTimer& operator=(ScopedTimer const&) = delete;
-  ScopedTimer& operator=(ScopedTimer&&) = delete;
-};
-
-}  // namespace Omega_h
-
-#define OMEGA_H_TIME_FUNCTION                                                  \
-  ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__)
-
 #endif

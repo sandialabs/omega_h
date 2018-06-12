@@ -88,6 +88,7 @@ set(Omega_h_SOURCES
   Omega_h_amr.cpp
   Omega_h_amr_transfer.cpp
   Omega_h_print.cpp
+  Omega_h_stack.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)
@@ -442,6 +443,7 @@ set(Omega_h_HEADERS
   Omega_h_affine.hpp
   Omega_h_print.hpp
   Omega_h_amr.hpp
+  Omega_h_stack.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
