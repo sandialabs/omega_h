@@ -389,7 +389,7 @@ OMEGA_H_INLINE Real metric_size(
 }
 
 /* The measure of an equilateral simplex */
-inline constexpr Real equilateral_simplex_size(Int dim) {
+OMEGA_H_INLINE constexpr Real equilateral_simplex_size(Int dim) {
   return (dim == 3 ? 0.1178511301977579 :
          (dim == 2 ? 0.4330127018922193 :
                      1.0));
