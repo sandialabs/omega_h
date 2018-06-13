@@ -18,7 +18,7 @@ inline Policy policy(LO n) { return Policy(0, n); }
 template <typename T>
 void parallel_for(LO n, T const& f, char const* name = "") {
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  if (n > 0) Kokkos::parallel_for(policy(n), f, name);
+  if (n > 0) Kokkos::parallel_for(name, policy(n), f);
 #else
   begin_code(name);
   for (LO i = 0; i < n; ++i) f(i);
@@ -47,7 +47,7 @@ typename T::value_type parallel_reduce(
 template <typename T>
 void parallel_scan(LO n, T f, char const* name = "") {
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  if (n > 0) Kokkos::parallel_scan(policy(n), f, name);
+  if (n > 0) Kokkos::parallel_scan(name, policy(n), f);
 #else
   using VT = typename T::value_type;
   begin_code(name);
