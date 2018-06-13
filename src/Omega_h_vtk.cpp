@@ -941,26 +941,9 @@ Writer::Writer()
     : mesh_(nullptr),
       root_path_("/not-set"),
       cell_dim_(-1),
+      compress_(true),
       step_(-1),
       pvd_pos_(0) {}
-
-Writer::Writer(Writer const& other)
-    : mesh_(other.mesh_),
-      root_path_(other.root_path_),
-      cell_dim_(other.cell_dim_),
-      step_(other.step_),
-      pvd_pos_(other.pvd_pos_) {}
-
-Writer& Writer::operator=(Writer const& other) {
-  mesh_ = other.mesh_;
-  root_path_ = other.root_path_;
-  cell_dim_ = other.cell_dim_;
-  step_ = other.step_;
-  pvd_pos_ = other.pvd_pos_;
-  return *this;
-}
-
-Writer::~Writer() {}
 
 Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim,
     Real restart_time, bool compress)
