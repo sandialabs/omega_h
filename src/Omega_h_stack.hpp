@@ -4,6 +4,7 @@
 #include <Omega_h_timer.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <vector>
+#include <cstring>
 
 namespace Omega_h {
 namespace perf {
@@ -48,7 +49,7 @@ struct History {
     if (parent == invalid) return find_root(name);
     for (std::size_t child = frames[parent].first_child;
         child != invalid; child = frames[child].next_sibling) {
-      if (0 == strcmp(get_name(child), name)) {
+      if (0 == std::strcmp(get_name(child), name)) {
         return child;
       }
     }
@@ -82,7 +83,7 @@ struct History {
   inline std::size_t find_root(char const* name) const {
     if (frames.empty()) return invalid;
     for (std::size_t i = 0; i != invalid; i = frames[i].next_sibling) {
-      if (frames[i].parent == invalid && (0 == strcmp(get_name(i), name))) {
+      if (frames[i].parent == invalid && (0 == std::strcmp(get_name(i), name))) {
         return i;
       }
     }

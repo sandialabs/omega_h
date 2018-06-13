@@ -1,6 +1,7 @@
 #include <Omega_h_stack.hpp>
 #include <iostream>
 #include <queue>
+#include <algorithm>
 
 namespace Omega_h {
 namespace perf {
