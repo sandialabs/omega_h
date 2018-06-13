@@ -61,6 +61,8 @@ void write(std::string const& filepath, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
+static constexpr bool do_compress = true;
+static constexpr bool dont_compress = false;
 TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim);
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = true);
@@ -84,9 +86,9 @@ class Writer {
 
  public:
   Writer();
-  Writer(Writer const&);
-  Writer& operator=(Writer const&);
-  ~Writer();
+  Writer(Writer const&) = default;
+  Writer& operator=(Writer const&) = default;
+  ~Writer() = default;
   Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1,
       Real restart_time = 0.0, bool compress = true);
   void write();

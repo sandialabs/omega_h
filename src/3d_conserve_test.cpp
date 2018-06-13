@@ -25,7 +25,7 @@ static void check_total_mass(Mesh* mesh) {
   if (mesh->comm()->rank() == 0) {
     std::cerr << "total mass " << total_mass << '\n';
   }
-  OMEGA_H_CHECK(are_close(1.0, total_mass));
+  OMEGA_H_CHECK(are_close(1.0, total_mass, 1e-4, 1e-4));
 }
 
 static Real get_object_size(Mesh* mesh, Int obj) {
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
       std::cout << "model region " << obj_ids[obj] << " size before "
                 << sizes_before[obj] << ", after " << size_after << '\n';
     }
-    OMEGA_H_CHECK(are_close(mass_after, masses_before[obj]));
+    OMEGA_H_CHECK(are_close(mass_after, masses_before[obj], 1e-4, 1e-4));
   }
   auto momentum_after = get_total_momentum(&mesh);
   if (world->rank() == 0) {

@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <set>
+#include <iostream>
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"

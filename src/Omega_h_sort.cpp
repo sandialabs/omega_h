@@ -145,7 +145,7 @@ struct SortSmallRange {
     while (ndone_before_ < nitems_) {
       uniq_vector.push_back(target_value_);
       fan_vector.push_back(ndone_before_);
-      parallel_scan(nitems_, *this, "sort_small_range");
+      ::Omega_h::parallel_scan(nitems_, *this, "sort_small_range");
       OMEGA_H_CHECK(ndone_after_.get(0) > ndone_before_);
       target_value_ = next_smallest_.get(0);
       ndone_before_ = ndone_after_.get(0);

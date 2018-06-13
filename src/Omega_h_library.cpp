@@ -1,5 +1,6 @@
-#include "Omega_h_config.h"
-#include "Omega_h_control.hpp"
+#include <Omega_h_config.h>
+#include <Omega_h_control.hpp>
+#include <Omega_h_stack.hpp>
 
 #include <csignal>
 #include <cstdarg>
@@ -123,7 +124,10 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (argc && argv) {
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
-  should_time_ = cmdline.parsed("--osh-time");
+  if (cmdline.parsed("--osh-time")) {
+    Omega_h::perf::global_singleton_history =
+      new Omega_h::perf::History();
+  }
   bool should_protect = cmdline.parsed("--osh-signal");
   self_send_threshold_ = 1000 * 1000;
   if (cmdline.parsed("--osh-self-send")) {
@@ -158,6 +162,13 @@ Library::Library(Library const& other)
 }
 
 Library::~Library() {
+  if (Omega_h::perf::global_singleton_history) {
+    if (world_->rank() == 0) {
+      Omega_h::perf::print_top_down_and_bottom_up(
+          *Omega_h::perf::global_singleton_history);
+    }
+    delete Omega_h::perf::global_singleton_history;
+  }
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (we_called_kokkos_init) {
     Kokkos::finalize();

@@ -88,6 +88,7 @@ set(Omega_h_SOURCES
   Omega_h_amr.cpp
   Omega_h_amr_transfer.cpp
   Omega_h_print.cpp
+  Omega_h_stack.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)
@@ -209,6 +210,7 @@ if(Omega_h_USE_libMeshb)
   osh_add_util(osh_read_solb)
   osh_add_util(ugawg_stats)
   osh_add_util(ugawg_cone_cone)
+  osh_add_util(ugawg_parallel_adapt)
   if (Omega_h_USE_EGADS)
     osh_add_util(ugawg_solution)
     osh_add_util(ugawg_debug)
@@ -440,6 +442,8 @@ set(Omega_h_HEADERS
   Omega_h_scatterplot.hpp
   Omega_h_affine.hpp
   Omega_h_print.hpp
+  Omega_h_amr.hpp
+  Omega_h_stack.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)

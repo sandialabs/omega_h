@@ -5,6 +5,7 @@
 #include "Omega_h_metric.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_timer.hpp"
+#include "Omega_h_stack.hpp"
 
 #include <iostream>
 

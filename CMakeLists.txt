@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.13.7 LANGUAGES CXX)
+project(Omega_h VERSION 9.13.8 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -29,7 +29,7 @@ bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
 set(Omega_h_USE_KokkosCore_DEFAULT ${Omega_h_USE_Trilinos})
 set(KokkosCore_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_add_dependency(PUBLIC NAME KokkosCore TARGETS kokkoscore INCLUDE_DIRS_VAR KokkosCore_INCLUDE_DIRS)
+bob_add_dependency(PUBLIC NAME KokkosCore TARGETS kokkoscore INCLUDE_DIR_VARS KokkosCore_INCLUDE_DIRS)
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
@@ -43,26 +43,35 @@ set(Omega_h_USE_SEACASExodus_DEFAULT OFF)
 set(SEACASExodus_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_add_dependency(PUBLIC NAME SEACASExodus
     TARGETS exodus
-    INCLUDE_DIRS_VAR SEACASExodus_TPL_INCLUDE_DIRS
-    LIBRARIES_VAR SEACASExodus_TPL_LIBRARIES)
+    INCLUDE_DIR_VARS
+      SEACASExodus_INCLUDE_DIRS
+      SEACASExodus_TPL_INCLUDE_DIRS
+    LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosParameterList_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_add_dependency(PUBLIC NAME TeuchosParameterList
     TARGETS teuchosparameterlist
-    INCLUDE_DIRS_VAR TeuchosParameterList_TPL_INCLUDE_DIRS
-    LIBRARIES_VAR TeuchosParameterList_TPL_LIBRARIES)
+    INCLUDE_DIR_VARS
+      TeuchosParameterList_INCLUDE_DIRS
+      TeuchosParameterList_TPL_INCLUDE_DIRS
+    LIBRARY_VARS TeuchosParameterList_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosComm_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
 bob_add_dependency(PUBLIC NAME TeuchosComm
     TARGETS teuchoscomm
-    INCLUDE_DIRS_VAR TeuchosComm_TPL_INCLUDE_DIRS
-    LIBRARIES_VAR TeuchosComm_TPL_LIBRARIES)
+    INCLUDE_DIR_VARS
+      TeuchosComm_INCLUDE_DIRS
+      TeuchosComm_TPL_INCLUDE_DIRS
+    LIBRARY_VARS TeuchosComm_TPL_LIBRARIES)
 
 set(Omega_h_USE_TeuchosParser_DEFAULT ${Omega_h_USE_Trilinos})
 set(TeuchosParser_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_add_dependency(PUBLIC NAME TeuchosParser TARGETS teuchosparser)
+bob_add_dependency(PUBLIC NAME TeuchosParser TARGETS teuchosparser
+    INCLUDE_DIR_VARS
+      TeuchosParser_INCLUDE_DIRS
+    )
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
@@ -114,14 +123,11 @@ endif()
 bob_begin_cxx_flags()
 bob_cxx11_flags()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  message("compiler is Clang!")
   set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
   if(Omega_h_USE_CUDA)
-    message("Omega_h_USE_CUDA!")
     if (Omega_h_CUDA_ARCH)
       add_compile_options($<$<COMPILE_LANGUAGE:CXX>:--cuda-gpu-arch=${Omega_h_CUDA_ARCH}>)
     endif()
-    message("adding -x cuda!")
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-x>)
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:cuda>)
     # -Wweak-vtables gives false positives with -x cuda
