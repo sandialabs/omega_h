@@ -139,7 +139,7 @@ static void print_time_sorted_recursive(History const& h, std::size_t frame, std
   std::stable_sort(begin(child_frames), end(child_frames), [&](std::size_t a, std::size_t b) { return h.time(a) > h.time(b); });
   for (auto child : child_frames) {
     std::size_t depth = depths[child];
-    for (std::size_t i = 0; i < depth; ++i) std::cout << "  ";
+    for (std::size_t i = 0; i < depth; ++i) std::cout << "|  ";
     std::cout << h.get_name(child) << ' ' << h.time(child) << ' ' << h.calls(child) << '\n';
     print_time_sorted_recursive(h, child, depths);
   }
