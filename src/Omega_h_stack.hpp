@@ -45,9 +45,9 @@ struct History {
   inline const char* get_name(std::size_t frame) const {
     return names.get(frames[frame].name_ptr);
   }
-  inline std::size_t find_child_of(std::size_t parent, char const* name) const {
-    if (parent == invalid) return find_root(name);
-    for (std::size_t child = frames[parent].first_child;
+  inline std::size_t find_child_of(std::size_t parent_index, char const* name) const {
+    if (parent_index == invalid) return find_root(name);
+    for (std::size_t child = frames[parent_index].first_child;
         child != invalid; child = frames[child].next_sibling) {
       if (0 == std::strcmp(get_name(child), name)) {
         return child;
@@ -60,18 +60,18 @@ struct History {
     auto index = frames.size();
     frames.push_back(Frame());
     auto& frame = frames.back();
-    auto& parent = frames[parent_index];
+    auto& parent_frame = frames[parent_index];
     frame.parent = parent_index;
     frame.first_child = invalid;
     frame.last_child = invalid;
-    auto old_last = parent.last_child;
+    auto old_last = parent_frame.last_child;
     if (old_last != invalid) {
       frames[old_last].next_sibling = index;
     } else {
-      parent.first_child = index;
+      parent_frame.first_child = index;
     }
     frame.next_sibling = invalid;
-    parent.last_child = index;
+    parent_frame.last_child = index;
     frame.name_ptr = names.save(name);
     frame.total_runtime = 0.0;
     frame.number_of_calls = 0;
