@@ -109,8 +109,15 @@ OMEGA_H_DEVICE Few<LO, neev> gather_verts(LOs const& ev2v, Int e) {
 }
 
 template <Int neev, typename T>
-OMEGA_H_DEVICE Few<T, neev> gather_scalars(Read<T> const& a, Few<LO, neev> v) {
+OMEGA_H_DEVICE Few<T, neev> gather_values(Read<T> const& a, Few<LO, neev> v) {
   Few<T, neev> x;
+  for (Int i = 0; i < neev; ++i) x[i] = a[v[i]];
+  return x;
+}
+
+template <Int neev>
+OMEGA_H_DEVICE Vector<neev> gather_scalars(Read<Real> const& a, Few<LO, neev> v) {
+  Vector<neev> x;
   for (Int i = 0; i < neev; ++i) x[i] = a[v[i]];
   return x;
 }

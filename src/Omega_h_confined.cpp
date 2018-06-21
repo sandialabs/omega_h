@@ -23,7 +23,7 @@ Bytes find_bridge_edges(Mesh* mesh) {
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto f = OMEGA_H_LAMBDA(LO edge) {
     auto eev2v = gather_verts<2>(edges2verts, edge);
-    auto eev2dim = gather_scalars(edges2class_dim, eev2v);
+    auto eev2dim = gather_values(edges2class_dim, eev2v);
     auto edim = edges2class_dim[edge];
     edges_are_bridges_w[edge] = ((edim != verts2class_dim[eev2v[0]]) &&
                                  (edim != verts2class_dim[eev2v[1]]));
@@ -58,7 +58,7 @@ static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
     auto ttv2v = gather_verts<3>(tris2verts, tri);
     auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
     auto tte2e = gather_down<3>(tris2edges, tri);
-    auto tte2b = gather_scalars<3>(edges_are_bridges, tte2e);
+    auto tte2b = gather_values<3>(edges_are_bridges, tte2e);
     for (Int ttv = 0; ttv < 3; ++ttv) {
       if (!(tte2b[(ttv + 0) % 3] && tte2b[(ttv + 2) % 3])) continue;
       auto o = ttv2x[ttv];
@@ -88,7 +88,7 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
     auto ttv2v = gather_verts<4>(tets2verts, tet);
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
     auto tte2e = gather_down<6>(tets2edges, tet);
-    auto tte2b = gather_scalars<6>(edges_are_bridges, tte2e);
+    auto tte2b = gather_values<6>(edges_are_bridges, tte2e);
     auto nb = sum(tte2b);
     if (nb == 0) return;
     if (nb == 4) {
@@ -197,8 +197,8 @@ static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
   auto f = OMEGA_H_LAMBDA(LO tri) {
     auto ttv2v = gather_down<3>(tris2verts, tri);
     auto tte2e = gather_down<3>(tris2edges, tri);
-    auto ttv2dim = gather_scalars(verts2class_dim, ttv2v);
-    auto tte2dim = gather_scalars(edges2class_dim, tte2e);
+    auto ttv2dim = gather_values(verts2class_dim, ttv2v);
+    auto tte2dim = gather_values(edges2class_dim, tte2e);
     auto ttv2x = gather_vectors<3, dim>(coords, ttv2v);
     Real tri_angle = -1.0;
     for (Int i = 0; i < 3; ++i) {
@@ -230,8 +230,8 @@ static Reals get_pinched_tet_angles(Mesh* mesh) {
   auto f = OMEGA_H_LAMBDA(LO tet) {
     auto kke2e = gather_down<6>(tets2edges, tet);
     auto kkt2t = gather_down<4>(tets2tris, tet);
-    auto kke2dim = gather_scalars(edges2class_dim, kke2e);
-    auto kkt2dim = gather_scalars(tris2class_dim, kkt2t);
+    auto kke2dim = gather_values(edges2class_dim, kke2e);
+    auto kkt2dim = gather_values(tris2class_dim, kkt2t);
     Real tet_angle = -1.0;
     for (Int kke = 0; kke < 6; ++kke) {
       if (kke2dim[kke] != 1) continue;
