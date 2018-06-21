@@ -10,8 +10,8 @@ History* global_singleton_history = nullptr;
 
 History::History():current_frame(invalid),last_root(invalid) {}
 
-std::size_t History::first(std::size_t parent) const {
-  if (parent != invalid) return frames[parent].first_child;
+std::size_t History::first(std::size_t parent_index) const {
+  if (parent_index != invalid) return frames[parent_index].first_child;
   if (!frames.empty()) return 0;
   return invalid;
 }
