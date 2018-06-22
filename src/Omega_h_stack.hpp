@@ -146,7 +146,7 @@ struct History {
   std::size_t parent(std::size_t child) const;
   std::size_t pre_order_next(std::size_t frame) const;
   double time(std::size_t frame) const;
-  double calls(std::size_t frame) const;
+  std::size_t calls(std::size_t frame) const;
 };
 
 extern History* global_singleton_history;
