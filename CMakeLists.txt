@@ -174,7 +174,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_DOLFIN
     Omega_h_USE_dwarf
     Omega_h_CHECK_BOUNDS
-    Omega_h_CHECK_FPE
+    Omega_h_THROW
     Omega_h_USE_CUDA_AWARE_MPI
    )
 

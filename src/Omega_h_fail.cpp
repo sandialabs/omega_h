@@ -19,6 +19,12 @@ extern "C" void Omega_h_signal_handler(int s);
 
 namespace Omega_h {
 
+exception::exception(std::string const& msg_in) : msg(msg_in) {}
+
+const char* exception::what() const noexcept {
+  return msg.c_str();
+}
+
 static void print_stacktrace(std::ostream& out, int max_frames) {
   ::backward::StackTrace st;
   st.load_here(std::size_t(max_frames));
@@ -32,12 +38,18 @@ static void print_stacktrace(std::ostream& out, int max_frames) {
 #endif
 
 void fail(char const* format, ...) {
-  va_list ap;
-  va_start(ap, format);
-  vfprintf(stderr, format, ap);
-  va_end(ap);
-  fprintf(stderr, "\n");
-  abort();
+  va_list vlist;
+  va_start(vlist, format);
+#ifdef OMEGA_H_THROW
+  char buffer[2048];
+  std::vsnprintf(buffer, sizeof(buffer), format, vlist);
+  va_end(vlist);
+  throw Omega_h::exception(buffer);
+#else
+  std::vfprintf(stderr, format, vlist);
+  va_end(vlist);
+  std::abort();
+#endif
 }
 
 #if defined(__clang__) && !defined(__APPLE__)

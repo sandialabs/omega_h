@@ -4,7 +4,20 @@
 #include <cassert>
 #include <Omega_h_config.h>
 
+#ifdef OMEGA_H_THROW
+#include <exception>
+#include <string>
+#endif
+
 namespace Omega_h {
+
+#ifdef OMEGA_H_THROW
+struct exception : public std::exception {
+  exception(std::string const& msg_in);
+  std::string msg;
+  const char* what() const noexcept override;
+};
+#endif
 
 void protect();
 void fail(char const* format, ...)
