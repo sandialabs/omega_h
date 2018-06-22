@@ -1,15 +1,9 @@
 #ifndef OMEGA_H_TAG_HPP
 #define OMEGA_H_TAG_HPP
 
-#include <array>
-#include <set>
-#include <string>
-
 #include <Omega_h_array.hpp>
 
 namespace Omega_h {
-
-using TagSet = std::array<std::set<std::string>, DIMS>;
 
 void check_tag_name(std::string const& name);
 

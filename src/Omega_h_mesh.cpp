@@ -129,7 +129,8 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
   OMEGA_H_CHECK(ncomps >= 0);
   OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
   OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
-  tags_[ent_dim].push_back(TagPtr(new Tag<T>(name, ncomps)));
+  TagPtr ptr(new Tag<T>(name, ncomps));
+  tags_[ent_dim].push_back(std::move(ptr));
 }
 
 template <typename T>
@@ -252,12 +253,12 @@ Graph Mesh::ask_dual() { return ask_adj(dim(), dim()); }
 
 Mesh::TagIter Mesh::tag_iter(Int ent_dim, std::string const& name) {
   return std::find_if(
-      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](std::shared_ptr<TagBase> const& a) { return a->name() == name; });
+      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](TagPtr const& a) { return a->name() == name; });
 }
 
 Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
   return std::find_if(
-      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](std::shared_ptr<TagBase> const& a) { return a->name() == name; });
+      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](TagPtr const& a) { return a->name() == name; });
 }
 
 void Mesh::check_dim(Int ent_dim) const {
