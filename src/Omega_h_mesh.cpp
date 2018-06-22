@@ -136,8 +136,29 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
 template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     Read<T> array, bool internal) {
-  add_tag<T>(ent_dim, name, ncomps);
-  set_tag<T>(ent_dim, name, array, internal);
+  check_dim2(ent_dim);
+  auto it = tag_iter(ent_dim, name);
+  auto had_tag = (it != tags_[ent_dim].end());
+  Tag<T>* tag;
+  if (had_tag) {
+    tag = as<T>(it->get());
+    OMEGA_H_CHECK(ncomps == tag->ncomps());
+  } else {
+    check_tag_name(name);
+    OMEGA_H_CHECK(ncomps >= 0);
+    OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
+    OMEGA_H_CHECK(tags_[ent_dim].size() < size_t(INT8_MAX));
+    tag = new Tag<T>(name, ncomps);
+    TagPtr ptr(tag);
+    tags_[ent_dim].push_back(std::move(ptr));
+  }
+  OMEGA_H_CHECK(array.size() == nents_[ent_dim] * ncomps);
+  /* internal typically indicates migration/adaptation/file reading,
+     when we do not want any invalidation to take place.
+     the invalidation is there to prevent users changing coordinates
+     etc. without updating dependent fields */
+  if (!internal) react_to_set_tag(ent_dim, name);
+  tag->set_array(array);
 }
 
 template <typename T>
@@ -159,22 +180,24 @@ void Mesh::set_tag(
 
 void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
   /* hardcoded cache invalidations */
-  if ((ent_dim == VERT) && ((name == "coordinates") || (name == "metric"))) {
+  bool is_coordinates = (name == "coordinates");
+  if ((ent_dim == VERT) && (is_coordinates || (name == "metric"))) {
     remove_tag(EDGE, "length");
     remove_tag(dim(), "quality");
   }
-  if ((ent_dim == VERT) && (name == "coordinates")) {
+  if ((ent_dim == VERT) && is_coordinates) {
     remove_tag(dim(), "size");
   }
 }
 
 TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
-  if (!has_tag(ent_dim, name)) {
+  auto it = tag_iter(ent_dim, name);;
+  if (it == tags_[ent_dim].end()) {
     Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
         topological_plural_name(family(), ent_dim), name.c_str());
   }
-  return tag_iter(ent_dim, name)->get();
+  return it->get();
 }
 
 template <typename T>
