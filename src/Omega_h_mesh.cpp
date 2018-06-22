@@ -250,22 +250,14 @@ Graph Mesh::ask_star(Int ent_dim) {
 
 Graph Mesh::ask_dual() { return ask_adj(dim(), dim()); }
 
-struct HasName {
-  std::string const& name_;
-  HasName(std::string const& name) : name_(name) {}
-  bool operator()(std::shared_ptr<TagBase> const& a) {
-    return a->name() == name_;
-  }
-};
-
 Mesh::TagIter Mesh::tag_iter(Int ent_dim, std::string const& name) {
   return std::find_if(
-      tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
+      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](std::shared_ptr<TagBase> const& a) { return a->name() == name });
 }
 
 Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
   return std::find_if(
-      tags_[ent_dim].begin(), tags_[ent_dim].end(), HasName(name));
+      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](std::shared_ptr<TagBase> const& a) { return a->name() == name });
 }
 
 void Mesh::check_dim(Int ent_dim) const {
