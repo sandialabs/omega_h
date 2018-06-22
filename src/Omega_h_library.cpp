@@ -45,7 +45,6 @@ char const* Library::static_configure_options() { return OMEGA_H_CMAKE_ARGS; }
 
 char const* Library::configure_options() { return static_configure_options(); }
 
-#ifdef OMEGA_H_CHECK_FPE
 #if defined(__GNUC__) && (!defined(__clang__))
 #define _GNU_SOURCE 1
 #include <fenv.h>
@@ -73,10 +72,7 @@ static void enable_floating_point_exceptions() {
 #endif
 }
 #else
-#error "FPE enabled but not supported"
-#endif
-#else  // don't check FPE
-static void enable_floating_point_exceptions() {}
+static void enable_floating_point_exceptions() { Omega_h_fail("FPE enabled but not supported"); }
 #endif
 
 void Library::initialize(char const* head_desc, int* argc, char*** argv
@@ -110,13 +106,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   world_ = CommPtr(new Comm(this, false, false));
   self_ = CommPtr(new Comm(this, false, false));
 #endif
-  enable_floating_point_exceptions();
   Omega_h::CmdLine cmdline;
   cmdline.add_flag(
       "--osh-memory", "print amount and stacktrace of max memory use");
   cmdline.add_flag(
       "--osh-time", "print amount of time spend in certain functions");
   cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
+  cmdline.add_flag("--osh-fpe", "enable floating-point exceptions");
   cmdline.add_flag("--osh-silent", "suppress all output");
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
@@ -127,6 +123,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (cmdline.parsed("--osh-time")) {
     Omega_h::perf::global_singleton_history =
       new Omega_h::perf::History();
+  }
+  if (cmdline.parsed("--osh-fpe")) {
+    enable_floating_point_exceptions();
   }
   bool should_protect = cmdline.parsed("--osh-signal");
   self_send_threshold_ = 1000 * 1000;

@@ -139,15 +139,7 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
-if(Omega_h_ONE_FILE)
-  foreach(source IN LISTS Omega_h_SOURCES)
-    set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
-  endforeach()
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/omega_h.cpp "${ONE_FILE_CONTENTS}")
-  add_library(omega_h omega_h.cpp)
-else()
-  add_library(omega_h ${Omega_h_SOURCES})
-endif()
+add_library(omega_h ${Omega_h_SOURCES})
 
 bob_library_includes(omega_h)
 
