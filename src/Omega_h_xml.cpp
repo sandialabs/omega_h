@@ -1,6 +1,7 @@
 #include "Omega_h_xml.hpp"
 
 #include "Omega_h_defines.hpp"
+#include "Omega_h_fail.hpp"
 
 #include <istream>
 

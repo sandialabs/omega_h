@@ -1,8 +1,7 @@
 #ifndef OMEGA_H_KOKKOS_HPP
 #define OMEGA_H_KOKKOS_HPP
 
-#include <Omega_h_c.h>
-#include <string>
+#include <Omega_h_config.h>
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 

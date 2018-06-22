@@ -56,6 +56,8 @@ class Library {
   std::map<std::string, double> timers;
 };
 
+extern char* max_memory_stacktrace;
+
 }  // namespace Omega_h
 
 #endif

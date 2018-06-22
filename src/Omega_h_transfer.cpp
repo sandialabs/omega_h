@@ -2,7 +2,6 @@
 
 #include "Omega_h_affine.hpp"
 #include "Omega_h_conserve.hpp"
-#include "Omega_h_control.hpp"
 #include "Omega_h_fit.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"

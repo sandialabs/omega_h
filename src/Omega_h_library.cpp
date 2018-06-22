@@ -1,5 +1,4 @@
 #include <Omega_h_config.h>
-#include <Omega_h_control.hpp>
 #include <Omega_h_stack.hpp>
 
 #include <csignal>
@@ -9,29 +8,12 @@
 #include <sstream>
 #include <string>
 
-#ifdef OMEGA_H_USE_DWARF
-#define BACKWARD_HAS_DWARF 1
-#endif
-#include <backward/backward.hpp>
-namespace backward {
-cfile_streambuf::int_type cfile_streambuf::underflow() {
-  return traits_type::eof();
-}
-}  // namespace backward
-
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_library.hpp"
 
 namespace Omega_h {
 
 char* max_memory_stacktrace = nullptr;
-
-void print_stacktrace(std::ostream& out, int max_frames) {
-  ::backward::StackTrace st;
-  st.load_here(std::size_t(max_frames));
-  ::backward::Printer p;
-  p.print(st, out);
-}
 
 char const* Library::static_version() { return OMEGA_H_SEMVER; }
 
@@ -88,7 +70,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     msg << "header says: " << head_desc << '\n';
     msg << "library says: " << lib_desc << '\n';
     std::string msg_str = msg.str();
-    Omega_h_fail("%s\n", msg_str.c_str());
+    Omega_h::fail("%s\n", msg_str.c_str());
   }
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
@@ -127,7 +109,6 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (cmdline.parsed("--osh-fpe")) {
     enable_floating_point_exceptions();
   }
-  bool should_protect = cmdline.parsed("--osh-signal");
   self_send_threshold_ = 1000 * 1000;
   if (cmdline.parsed("--osh-self-send")) {
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
@@ -143,7 +124,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_kokkos_init = false;
   }
 #endif
-  if (should_protect) Omega_h_protect();
+  if (cmdline.parsed("--osh-signal")) Omega_h::protect();
 }
 
 Library::Library(Library const& other)

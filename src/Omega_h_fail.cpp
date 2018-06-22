@@ -3,17 +3,35 @@
 #include <iostream>
 #include <sstream>
 
-#include "Omega_h_c.h"
-#include "Omega_h_control.hpp"
+#include <Omega_h_fail.hpp>
 
-extern "C" {
+#ifdef OMEGA_H_USE_DWARF
+#define BACKWARD_HAS_DWARF 1
+#endif
+#include <backward/backward.hpp>
+namespace backward {
+cfile_streambuf::int_type cfile_streambuf::underflow() {
+  return traits_type::eof();
+}
+}  // namespace backward
+
+extern "C" void Omega_h_signal_handler(int s);
+
+namespace Omega_h {
+
+static void print_stacktrace(std::ostream& out, int max_frames) {
+  ::backward::StackTrace st;
+  st.load_here(std::size_t(max_frames));
+  ::backward::Printer p;
+  p.print(st, out);
+}
 
 #if defined(__clang__) && !defined(__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
 #endif
 
-void Omega_h_fail(char const* format, ...) {
+void fail(char const* format, ...) {
   va_list ap;
   va_start(ap, format);
   vfprintf(stderr, format, ap);
@@ -34,16 +52,26 @@ static struct {
     {SIGABRT, "abort"}, {SIGTERM, "termination"},
     {SIGSEGV, "segmentation fault"}, {SIGINT, "interrupt"},
     {SIGILL, "illegal instruction"}, {SIGFPE, "floating point exception"}};
-constexpr auto NSIGS = (sizeof(known_signals) / sizeof(known_signals[0]));
+constexpr std::size_t NSIGS = (sizeof(known_signals) / sizeof(known_signals[0]));
 
-void Omega_h_signal_handler(int s) {
+void protect() {
+  for (std::size_t i = 0; i < NSIGS; ++i) {
+    signal(known_signals[i].code, Omega_h_signal_handler);
+  }
+}
+
+}
+
+extern "C" void Omega_h_signal_handler(int s) {
   static volatile sig_atomic_t already_dying = 0;
   if (already_dying) return;
   already_dying = 1;
   std::stringstream ss;
-  for (size_t i = 0; i < NSIGS; ++i)
-    if (s == known_signals[i].code)
-      ss << "Omega_h caught signal: " << known_signals[i].name << "\n";
+  for (std::size_t i = 0; i < Omega_h::NSIGS; ++i) {
+    if (s == Omega_h::known_signals[i].code) {
+      ss << "Omega_h caught signal: " << Omega_h::known_signals[i].name << "\n";
+    }
+  }
   Omega_h::print_stacktrace(ss, 64);
   auto str = ss.str();
   std::cerr << str;
@@ -57,11 +85,3 @@ void Omega_h_signal_handler(int s) {
 #endif
   ::raise(s);
 }
-
-void Omega_h_protect() {
-  for (size_t i = 0; i < NSIGS; ++i) {
-    signal(known_signals[i].code, Omega_h_signal_handler);
-  }
-}
-
-}  //  extern "C"

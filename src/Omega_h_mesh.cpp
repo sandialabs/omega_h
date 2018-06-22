@@ -7,7 +7,6 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_bcast.hpp"
 #include "Omega_h_compare.hpp"
-#include "Omega_h_control.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"

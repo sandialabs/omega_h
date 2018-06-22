@@ -14,6 +14,7 @@ include(cmake/bob.cmake)
 bob_begin_package()
 
 bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
+bob_option(Omega_h_THROW "Errors throw exceptions instead of abort" OFF)
 bob_input(Omega_h_DATA "" PATH "Path to omega_h-data test files")
 bob_option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
 bob_input(EGADS_PREFIX "" PATH "EGADS (or ESP) installation directory")

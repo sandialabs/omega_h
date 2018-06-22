@@ -1,5 +1,4 @@
 set(Omega_h_SOURCES
-  Omega_h_c.cpp
   Omega_h_library.cpp
   Omega_h_timer.cpp
   Omega_h_array.cpp
@@ -89,6 +88,7 @@ set(Omega_h_SOURCES
   Omega_h_amr_transfer.cpp
   Omega_h_print.cpp
   Omega_h_stack.cpp
+  Omega_h_fail.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)

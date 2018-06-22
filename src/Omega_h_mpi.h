@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_MPI_H
 #define OMEGA_H_MPI_H
 
-#include <Omega_h_c.h>
+#include <Omega_h_macros.h>
 
 #ifdef OMEGA_H_USE_MPI
 
