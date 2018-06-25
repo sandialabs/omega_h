@@ -19,11 +19,13 @@ extern "C" void Omega_h_signal_handler(int s);
 
 namespace Omega_h {
 
+#ifdef OMEGA_H_THROW
 exception::exception(std::string const& msg_in) : msg(msg_in) {}
 
 const char* exception::what() const noexcept {
   return msg.c_str();
 }
+#endif
 
 static void print_stacktrace(std::ostream& out, int max_frames) {
   ::backward::StackTrace st;

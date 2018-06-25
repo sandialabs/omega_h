@@ -5,6 +5,8 @@
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 
+#include <Omega_h_macros.h>
+
 OMEGA_H_SYSTEM_HEADER
 
 #ifdef __GNUC__
