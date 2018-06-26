@@ -389,7 +389,6 @@ set(Omega_h_HEADERS
   "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h"
   Omega_h_macros.h
   Omega_h_mpi.h
-  Omega_h_c.h
   Omega_h_kokkos.hpp
   Omega_h_defines.hpp
   Omega_h_array.hpp
