@@ -27,21 +27,7 @@ char const* Library::static_configure_options() { return OMEGA_H_CMAKE_ARGS; }
 
 char const* Library::configure_options() { return static_configure_options(); }
 
-#if defined(__GNUC__) && (!defined(__clang__)) && (!defined(OMEGA_H_USE_CUDA))
-#define _GNU_SOURCE 1
-#include <cfenv>
-#pragma STDC FENV_ACCESS ON
-static void enable_floating_point_exceptions() {
-  std::feclearexcept(FE_ALL_EXCEPT);
-  // FE_INEXACT inexact result: rounding was necessary to store the result of an
-  // earlier floating-point operation sounds like the above would happen in
-  // almost any floating point operation involving non-whole numbers ??? As for
-  // underflow, there are plenty of cases where we will have things like ((a +
-  // eps) - (a)) -> eps, where eps can be arbitrarily close to zero (usually it
-  // would have been zero with infinite precision).
-  std::feenableexcept(FE_ALL_EXCEPT - FE_INEXACT - FE_UNDERFLOW);
-}
-#elif defined(__x86_64__) || defined(_M_X64) && (!defined(OMEGA_H_USE_CUDA))
+#if defined(__x86_64__) || defined(_M_X64) && (!defined(OMEGA_H_USE_CUDA))
 #include <xmmintrin.h>
 // Intel system
 static void enable_floating_point_exceptions() {
