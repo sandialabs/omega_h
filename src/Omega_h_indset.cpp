@@ -126,7 +126,7 @@ Read<I8> find_indset(
 
 Read<I8> find_indset(
     Mesh* mesh, Int ent_dim, Reals qualities, Bytes candidates) {
-  if (ent_dim == mesh->dim()) return candidates;
+  if (ent_dim == mesh->dim()) return std::move(candidates);
   mesh->owners_have_all_upward(ent_dim);
   OMEGA_H_CHECK(mesh->owners_have_all_upward(ent_dim));
   auto graph = mesh->ask_star(ent_dim);
