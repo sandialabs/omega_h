@@ -6,6 +6,9 @@
 #include <Omega_h_kokkos.hpp>
 #include <initializer_list>
 #include <memory>
+#ifndef OMEGA_H_USE_KOKKOSCORE
+#include <string>
+#endif
 
 namespace Omega_h {
 
