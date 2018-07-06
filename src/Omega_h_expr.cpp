@@ -77,6 +77,7 @@ void promote(LO size, any& lhs, any& rhs) {
 }
 
 void promote(LO size, Int dim, any& lhs, any& rhs) {
+  ScopedTimer("promote(size, dim, lhs, rhs)");
   if (dim == 3)
     promote<3>(size, lhs, rhs);
   else if (dim == 2)
@@ -110,6 +111,7 @@ void promote(LO size, any& x) {
 }
 
 void promote(LO size, Int dim, any& x) {
+  ScopedTimer("promote(size, dim, any)");
   if (dim == 3)
     promote<3>(size, x);
   else if (dim == 2)
@@ -122,6 +124,7 @@ void promote(LO size, Int dim, any& x) {
 
 void ternary(
     LO size, Int dim, any& result, any& cond, any& true_val, any& false_val) {
+  OMEGA_H_TIME_FUNCTION;
   if (cond.type() == typeid(bool)) {
     if (true_val.type() == typeid(Real)) {
       result = any_cast<bool>(cond) ? any_cast<Real>(true_val)
@@ -531,10 +534,10 @@ void eval_norm(Int dim, LO size, any& result, ExprReader::Args& args) {
 
 }  // end anonymous namespace
 
-ExprReader::ExprReader(LO size_in, Int dim_in)
-    : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()),
-      size(size_in),
-      dim(dim_in) {
+ExprEnv::ExprEnv(LO size_in, Int dim_in)
+  :size(size_in)
+  ,dim(dim_in)
+{
   auto local_size = size;
   auto local_dim = dim;
   auto vector = [=](any& result, Args& args) {
@@ -559,23 +562,41 @@ ExprReader::ExprReader(LO size_in, Int dim_in)
   register_variable("pi", any(Real(Omega_h::PI)));
 }
 
-ExprReader::~ExprReader() {}
-
-void ExprReader::register_variable(
+void ExprEnv::register_variable(
     std::string const& name, Teuchos::any const& value) {
+  OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(variables.find(name) == variables.end());
   OMEGA_H_CHECK(functions.find(name) == functions.end());
   variables[name] = value;
 }
 
-void ExprReader::register_function(
+void ExprEnv::register_function(
     std::string const& name, Function const& value) {
   OMEGA_H_CHECK(variables.find(name) == variables.end());
   OMEGA_H_CHECK(functions.find(name) == functions.end());
   functions[name] = value;
 }
 
-void ExprReader::repeat(Teuchos::any& x) { promote(size, dim, x); }
+ExprReader::ExprReader(LO size_in, Int dim_in)
+    : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables())
+    , env(size_in, dim_in) {
+}
+
+ExprReader::~ExprReader() {}
+
+void ExprReader::register_variable(
+    std::string const& name, Teuchos::any const& value) {
+  env.register_variable(name, value);
+}
+
+void ExprReader::register_function(
+    std::string const& name, Function const& value) {
+  env.register_function(name, value);
+}
+
+void ExprReader::repeat(Teuchos::any& x) {
+  promote(env.size, env.dim, x);
+}
 
 void ExprReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
@@ -592,6 +613,7 @@ void ExprReader::at_shift(any& result_any, int token, std::string& text) {
 }
 
 void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
+  OMEGA_H_TIME_FUNCTION;
   using std::swap;
   switch (prod) {
     case Teuchos::MathExpr::PROD_PROGRAM: {
@@ -607,7 +629,7 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
     }
     case Teuchos::MathExpr::PROD_ASSIGN: {
       std::string const& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
-      swap(variables[name], rhs.at(4));
+      swap(env.variables[name], rhs.at(4));
       break;
     }
     case Teuchos::MathExpr::PROD_YES_EXPR:
@@ -624,66 +646,67 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       swap(result, rhs.at(0));
       break;
     case Teuchos::MathExpr::PROD_TERNARY:
-      promote(size, dim, rhs.at(3), rhs.at(6));
-      ternary(size, dim, result, rhs.at(0), rhs.at(3), rhs.at(6));
+      promote(env.size, env.dim, rhs.at(3), rhs.at(6));
+      ternary(env.size, env.dim, result, rhs.at(0), rhs.at(3), rhs.at(6));
       break;
     case Teuchos::MathExpr::PROD_OR:
-      promote(size, dim, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
       eval_or(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_AND:
-      promote(size, dim, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
       eval_and(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_GT:
-      promote(size, dim, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
       gt(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_LT:
-      promote(size, dim, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
       lt(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_GEQ:
     case Teuchos::MathExpr::PROD_LEQ:
       throw Teuchos::ParserFail("Operators <= and >= not supported yet");
     case Teuchos::MathExpr::PROD_EQ:
-      promote(size, dim, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
       eq(result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_ADD:
-      promote(size, dim, rhs.at(0), rhs.at(3));
-      add(dim, result, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
+      add(env.dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_SUB:
-      promote(size, dim, rhs.at(0), rhs.at(3));
-      sub(dim, result, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
+      sub(env.dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_MUL:
-      promote(size, dim, rhs.at(0), rhs.at(3));
-      mul(size, dim, result, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
+      mul(env.size, env.dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_DIV:
-      promote(size, dim, rhs.at(0), rhs.at(3));
-      div(dim, result, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
+      div(env.dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_POW:
-      promote(size, dim, rhs.at(0), rhs.at(3));
-      eval_pow(dim, result, rhs.at(0), rhs.at(3));
+      promote(env.size, env.dim, rhs.at(0), rhs.at(3));
+      eval_pow(env.dim, result, rhs.at(0), rhs.at(3));
       break;
     case Teuchos::MathExpr::PROD_CALL: {
+      ScopedTimer("call");
       auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
       auto& args = Teuchos::any_ref_cast<Args>(rhs.at(4));
-      auto vit = variables.find(name);
-      if (vit == variables.end()) {
+      auto vit = env.variables.find(name);
+      if (vit == env.variables.end()) {
         /* function call */
-        auto fit = functions.find(name);
-        TEUCHOS_TEST_FOR_EXCEPTION(fit == functions.end(), Teuchos::ParserFail,
+        auto fit = env.functions.find(name);
+        TEUCHOS_TEST_FOR_EXCEPTION(fit == env.functions.end(), Teuchos::ParserFail,
             "\"" << name << "\" is neither a variable nor a function name\n");
         fit->second(result, args);
       } else {
         /* access operator for vector/matrix */
         auto& val = vit->second;
-        access(size, dim, result, val, args);
+        access(env.size, env.dim, result, val, args);
       }
       break;
     }
@@ -705,7 +728,7 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       break;
     }
     case Teuchos::MathExpr::PROD_NEG:
-      neg(dim, result, rhs.at(2));
+      neg(env.dim, result, rhs.at(2));
       break;
     case Teuchos::MathExpr::PROD_VAL_PARENS:
     case Teuchos::MathExpr::PROD_BOOL_PARENS:
@@ -713,12 +736,295 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       break;
     case Teuchos::MathExpr::PROD_VAR:
       auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
-      auto it = variables.find(name);
-      TEUCHOS_TEST_FOR_EXCEPTION(it == variables.end(), Teuchos::ParserFail,
+      auto it = env.variables.find(name);
+      TEUCHOS_TEST_FOR_EXCEPTION(it == env.variables.end(), Teuchos::ParserFail,
           "unknown variable name \"" << name << "\"\n");
       result = it->second;
       break;
   }
 }
+
+ExprOp::~ExprOp() {}
+
+using OpPtr = std::shared_ptr<ExprOp>;
+
+struct AssignOp : public ExprOp {
+  std::string name;
+  OpPtr rhs;
+  virtual ~AssignOp() override final = default;
+  AssignOp(std::string const& name_in, OpPtr rhs_in)
+    :name(name_in)
+    ,rhs(rhs_in)
+  {}
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
+};
+void AssignOp::eval(ExprEnv& env, Teuchos::any& result) {
+  using std::swap;
+  rhs->eval(env, result);
+  swap(env.variables[name], result); 
+}
+
+struct VarOp : public ExprOp {
+  std::string name;
+  virtual ~VarOp() override final = default;
+  VarOp(std::string const& name_in)
+    :name(name_in)
+  {}
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
+};
+void VarOp::eval(ExprEnv& env, Teuchos::any& result) {
+  auto it = env.variables.find(name);
+  TEUCHOS_TEST_FOR_EXCEPTION(it == env.variables.end(), Teuchos::ParserFail,
+      "unknown variable name \"" << name << "\"\n");
+  result = it->second;
+}
+
+struct NegOp : public ExprOp {
+  OpPtr rhs;
+  virtual ~NegOp() override final = default;
+  NegOp(OpPtr rhs_in)
+    :rhs(rhs_in)
+  {}
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
+};
+void NegOp::eval(ExprEnv& env, Teuchos::any& result) {
+  Teuchos::any rhs_val;
+  rhs->eval(env, rhs_val);
+  neg(env.dim, result, rhs_val);
+}
+
+struct TernaryOp : public ExprOp {
+  OpPtr cond;
+  OpPtr lhs;
+  OpPtr rhs;
+  virtual ~TernaryOp() override final = default;
+  TernaryOp(OpPtr cond_in, OpPtr lhs_in, OpPtr rhs_in)
+    :cond(cond_in)
+    ,lhs(lhs_in)
+    ,rhs(rhs_in)
+  {}
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
+};
+void TernaryOp::eval(ExprEnv& env, Teuchos::any& result) {
+  Teuchos::any cond_val, lhs_val, rhs_val;
+  cond->eval(env, cond_val);
+  cond->eval(env, lhs_val);
+  cond->eval(env, rhs_val);
+  promote(env.size, env.dim, lhs_val, rhs_val);
+  ternary(env.size, env.dim, result, cond_val, lhs_val, rhs_val);
+}
+
+struct CallOp : public ExprOp {
+  std::string name;
+  std::vector<OpPtr> rhs;
+  ExprEnv::Args args;
+  virtual ~CallOp() override final = default;
+  CallOp(std::string const& name_in, ExprEnv::Args const& args_in)
+    :name(name_in)
+  {
+    for (auto& arg : args_in) {
+      OpPtr op = Teuchos::any_cast<OpPtr>(arg);
+      rhs.push_back(op);
+    }
+    args.reserve(rhs.size());
+  }
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
+};
+void CallOp::eval(ExprEnv& env, Teuchos::any& result) {
+  args.resize(rhs.size());
+  for (std::size_t i = 0; i < rhs.size(); ++i) {
+    rhs[i]->eval(env, args[i]);
+  }
+  auto vit = env.variables.find(name);
+  if (vit == env.variables.end()) {
+    /* function call */
+    auto fit = env.functions.find(name);
+    TEUCHOS_TEST_FOR_EXCEPTION(fit == env.functions.end(), Teuchos::ParserFail,
+        "\"" << name << "\" is neither a variable nor a function name\n");
+    fit->second(result, args);
+  } else {
+    /* access operator for vector/matrix */
+    auto& val = vit->second;
+    access(env.size, env.dim, result, val, args);
+  }
+  args.clear();
+}
+
+#define OMEGA_H_BINARY_OP(ClassName, func_call) \
+struct ClassName : public ExprOp { \
+  OpPtr lhs; \
+  OpPtr rhs; \
+  virtual ~ClassName() override final = default; \
+  ClassName(OpPtr lhs_in, OpPtr rhs_in) \
+    :lhs(lhs_in) \
+    ,rhs(rhs_in) \
+  {} \
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final; \
+}; \
+void ClassName::eval(ExprEnv& env, Teuchos::any& result) { \
+  Teuchos::any lhs_val, rhs_val; \
+  lhs->eval(env, lhs_val); \
+  rhs->eval(env, rhs_val); \
+  promote(env.size, env.dim, lhs_val, rhs_val); \
+  func_call; \
+}
+
+OMEGA_H_BINARY_OP(OrOp, eval_or(result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(AndOp, eval_and(result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(GtOp, gt(result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(LtOp, lt(result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(EqOp, eq(result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(AddOp, add(env.dim, result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(SubOp, sub(env.dim, result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(MulOp, mul(env.size, env.dim, result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(DivOp, div(env.dim, result, lhs_val, rhs_val));
+OMEGA_H_BINARY_OP(PowOp, eval_pow(env.dim, result, lhs_val, rhs_val));
+
+#undef OMEGA_H_BINARY_OP
+
+#define OMEGA_H_BINARY_REDUCE(ClassName) { \
+OpPtr lhs_op = Teuchos::any_cast<OpPtr>(rhs.at(0)); \
+OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(3)); \
+OpPtr result_op(new ClassName(lhs_op, rhs_op)); \
+result = result_op; \
+}
+
+ExprOpsReader::ExprOpsReader()
+    : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()) {
+}
+
+void ExprOpsReader::at_shift(any& result_any, int token, std::string& text) {
+  using std::swap;
+  switch (token) {
+    case Teuchos::MathExpr::TOK_NAME: {
+      auto& result = Teuchos::make_any_ref<std::string>(result_any);
+      swap(result, text);
+      break;
+    }
+    case Teuchos::MathExpr::TOK_CONST: {
+      result_any = std::atof(text.c_str());
+    }
+  }
+}
+
+void ExprOpsReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
+  OMEGA_H_TIME_FUNCTION;
+  using std::swap;
+  switch (prod) {
+    case Teuchos::MathExpr::PROD_PROGRAM: {
+      TEUCHOS_TEST_FOR_EXCEPTION(rhs.at(1).empty(), Teuchos::ParserFail,
+          "Omega_h::ExprReader needs an expression to evaluate!");
+      swap(result, rhs.at(1));
+      break;
+    }
+    case Teuchos::MathExpr::PROD_NO_STATEMENTS:
+    case Teuchos::MathExpr::PROD_NO_EXPR:
+    case Teuchos::MathExpr::PROD_NEXT_STATEMENT: {
+      break;
+    }
+    case Teuchos::MathExpr::PROD_ASSIGN: {
+      std::string const& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
+      OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(4));
+      OpPtr op(new AssignOp(name, rhs_op));
+      result = op;
+      break;
+    }
+    case Teuchos::MathExpr::PROD_YES_EXPR:
+    case Teuchos::MathExpr::PROD_EXPR:
+    case Teuchos::MathExpr::PROD_TERNARY_DECAY:
+    case Teuchos::MathExpr::PROD_OR_DECAY:
+    case Teuchos::MathExpr::PROD_AND_DECAY:
+    case Teuchos::MathExpr::PROD_ADD_SUB_DECAY:
+    case Teuchos::MathExpr::PROD_MUL_DIV_DECAY:
+    case Teuchos::MathExpr::PROD_POW_DECAY:
+    case Teuchos::MathExpr::PROD_NEG_DECAY:
+    case Teuchos::MathExpr::PROD_SOME_ARGS:
+    case Teuchos::MathExpr::PROD_CONST:
+      swap(result, rhs.at(0));
+      break;
+    case Teuchos::MathExpr::PROD_TERNARY: {
+      OpPtr cond_op = Teuchos::any_cast<OpPtr>(rhs.at(0));
+      OpPtr lhs_op = Teuchos::any_cast<OpPtr>(rhs.at(3));
+      OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(6));
+      OpPtr result_op(new TernaryOp(cond_op, lhs_op, rhs_op));
+      result = result_op;
+      }
+      break;
+    case Teuchos::MathExpr::PROD_OR:
+      OMEGA_H_BINARY_REDUCE(OrOp);
+      break;
+    case Teuchos::MathExpr::PROD_AND:
+      OMEGA_H_BINARY_REDUCE(AndOp);
+      break;
+    case Teuchos::MathExpr::PROD_GT:
+      OMEGA_H_BINARY_REDUCE(GtOp);
+      break;
+    case Teuchos::MathExpr::PROD_LT:
+      OMEGA_H_BINARY_REDUCE(LtOp);
+      break;
+    case Teuchos::MathExpr::PROD_GEQ:
+    case Teuchos::MathExpr::PROD_LEQ:
+      throw Teuchos::ParserFail("Operators <= and >= not supported yet");
+    case Teuchos::MathExpr::PROD_EQ:
+      OMEGA_H_BINARY_REDUCE(EqOp);
+      break;
+    case Teuchos::MathExpr::PROD_ADD:
+      OMEGA_H_BINARY_REDUCE(AddOp);
+      break;
+    case Teuchos::MathExpr::PROD_SUB:
+      OMEGA_H_BINARY_REDUCE(SubOp);
+      break;
+    case Teuchos::MathExpr::PROD_MUL:
+      OMEGA_H_BINARY_REDUCE(MulOp);
+      break;
+    case Teuchos::MathExpr::PROD_DIV:
+      OMEGA_H_BINARY_REDUCE(DivOp);
+      break;
+    case Teuchos::MathExpr::PROD_POW:
+      OMEGA_H_BINARY_REDUCE(PowOp);
+      break;
+    case Teuchos::MathExpr::PROD_CALL: {
+      auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
+      auto& args = Teuchos::any_ref_cast<ExprEnv::Args>(rhs.at(4));
+      OpPtr result_op(new CallOp(name, args));
+      result = result_op;
+      break;
+    }
+    case Teuchos::MathExpr::PROD_NO_ARGS: {
+      result = ExprEnv::Args{};
+      break;
+    }
+    case Teuchos::MathExpr::PROD_FIRST_ARG: {
+      auto& args = Teuchos::make_any_ref<ExprEnv::Args>(result);
+      args.push_back(any());
+      swap(args.back(), rhs.at(0));
+      break;
+    }
+    case Teuchos::MathExpr::PROD_NEXT_ARG: {
+      auto& args = Teuchos::any_ref_cast<ExprEnv::Args>(rhs.at(0));
+      args.push_back(any());
+      swap(args.back(), rhs.at(3));
+      swap(result, rhs.at(0));
+      break;
+    }
+    case Teuchos::MathExpr::PROD_NEG: {
+      OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(2));
+      OpPtr result_op(new NegOp(rhs_op));
+      result = result_op;
+      }
+      break;
+    case Teuchos::MathExpr::PROD_VAL_PARENS:
+    case Teuchos::MathExpr::PROD_BOOL_PARENS:
+      swap(result, rhs.at(2));
+      break;
+    case Teuchos::MathExpr::PROD_VAR:
+      auto& name = Teuchos::any_ref_cast<std::string>(rhs.at(0));
+      OpPtr result_op(new VarOp(name));
+      result = result_op;
+      break;
+  }
+}
+
+#undef OMEGA_H_BINARY_REDUCE
 
 }  // end namespace Omega_h
