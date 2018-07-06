@@ -1,6 +1,6 @@
 #include "Omega_h_base64.hpp"
 
-#include "Omega_h_c.h"
+#include "Omega_h_fail.hpp"
 
 namespace Omega_h {
 

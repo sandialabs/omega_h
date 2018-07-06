@@ -3,7 +3,6 @@
 #include <cstring>
 #include <sstream>
 
-#include "Omega_h_control.hpp"
 #include "Omega_h_functors.hpp"
 #include "Omega_h_loop.hpp"
 
@@ -348,13 +347,14 @@ T HostRead<T>::last() const {
 
 template <class T>
 Write<T> deep_copy(Read<T> a, std::string const& name) {
+  OMEGA_H_TIME_FUNCTION;
   auto name2 = name.empty() ? a.name() : name;
   Write<T> b(a.size(), name2);
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(b.view(), a.view());
 #else
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i]; };
-  parallel_for(b.size(), f, "deep_copy");
+  parallel_for(b.size(), f, "deep copy kernel");
 #endif
   return b;
 }

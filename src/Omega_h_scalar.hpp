@@ -3,9 +3,11 @@
 
 #include <Omega_h_defines.hpp>
 #include <Omega_h_kokkos.hpp>
+#include <Omega_h_fail.hpp>
 #include <cfloat>
 #include <climits>
 #include <cmath>
+#include <utility>
 
 namespace Omega_h {
 

@@ -1,5 +1,4 @@
 #include <Omega_h_config.h>
-#include <Omega_h_control.hpp>
 #include <Omega_h_stack.hpp>
 
 #include <csignal>
@@ -9,29 +8,12 @@
 #include <sstream>
 #include <string>
 
-#ifdef OMEGA_H_USE_DWARF
-#define BACKWARD_HAS_DWARF 1
-#endif
-#include <backward/backward.hpp>
-namespace backward {
-cfile_streambuf::int_type cfile_streambuf::underflow() {
-  return traits_type::eof();
-}
-}  // namespace backward
-
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_library.hpp"
 
 namespace Omega_h {
 
 char* max_memory_stacktrace = nullptr;
-
-void print_stacktrace(std::ostream& out, int max_frames) {
-  ::backward::StackTrace st;
-  st.load_here(std::size_t(max_frames));
-  ::backward::Printer p;
-  p.print(st, out);
-}
 
 char const* Library::static_version() { return OMEGA_H_SEMVER; }
 
@@ -45,21 +27,7 @@ char const* Library::static_configure_options() { return OMEGA_H_CMAKE_ARGS; }
 
 char const* Library::configure_options() { return static_configure_options(); }
 
-#ifdef OMEGA_H_CHECK_FPE
-#if defined(__GNUC__) && (!defined(__clang__))
-#define _GNU_SOURCE 1
-#include <fenv.h>
-static void enable_floating_point_exceptions() {
-  feclearexcept(FE_ALL_EXCEPT);
-  // FE_INEXACT inexact result: rounding was necessary to store the result of an
-  // earlier floating-point operation sounds like the above would happen in
-  // almost any floating point operation involving non-whole numbers ??? As for
-  // underflow, there are plenty of cases where we will have things like ((a +
-  // eps) - (a)) -> eps, where eps can be arbitrarily close to zero (usually it
-  // would have been zero with infinite precision).
-  feenableexcept(FE_ALL_EXCEPT - FE_INEXACT - FE_UNDERFLOW);
-}
-#elif defined(__x86_64__) || defined(_M_X64)
+#if defined(__x86_64__) || defined(_M_X64) && (!defined(OMEGA_H_USE_CUDA))
 #include <xmmintrin.h>
 // Intel system
 static void enable_floating_point_exceptions() {
@@ -73,10 +41,7 @@ static void enable_floating_point_exceptions() {
 #endif
 }
 #else
-#error "FPE enabled but not supported"
-#endif
-#else  // don't check FPE
-static void enable_floating_point_exceptions() {}
+static void enable_floating_point_exceptions() { Omega_h_fail("FPE enabled but not supported"); }
 #endif
 
 void Library::initialize(char const* head_desc, int* argc, char*** argv
@@ -92,7 +57,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     msg << "header says: " << head_desc << '\n';
     msg << "library says: " << lib_desc << '\n';
     std::string msg_str = msg.str();
-    Omega_h_fail("%s\n", msg_str.c_str());
+    Omega_h::fail("%s\n", msg_str.c_str());
   }
 #ifdef OMEGA_H_USE_MPI
   int mpi_is_init;
@@ -110,13 +75,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   world_ = CommPtr(new Comm(this, false, false));
   self_ = CommPtr(new Comm(this, false, false));
 #endif
-  enable_floating_point_exceptions();
   Omega_h::CmdLine cmdline;
   cmdline.add_flag(
       "--osh-memory", "print amount and stacktrace of max memory use");
   cmdline.add_flag(
       "--osh-time", "print amount of time spend in certain functions");
   cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
+  cmdline.add_flag("--osh-fpe", "enable floating-point exceptions");
   cmdline.add_flag("--osh-silent", "suppress all output");
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
@@ -128,7 +93,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     Omega_h::perf::global_singleton_history =
       new Omega_h::perf::History();
   }
-  bool should_protect = cmdline.parsed("--osh-signal");
+  if (cmdline.parsed("--osh-fpe")) {
+    enable_floating_point_exceptions();
+  }
   self_send_threshold_ = 1000 * 1000;
   if (cmdline.parsed("--osh-self-send")) {
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
@@ -144,7 +111,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_kokkos_init = false;
   }
 #endif
-  if (should_protect) Omega_h_protect();
+  if (cmdline.parsed("--osh-signal")) Omega_h::protect();
 }
 
 Library::Library(Library const& other)

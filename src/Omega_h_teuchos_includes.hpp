@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_TEUCHOS_INCLUDES_HPP
 #define OMEGA_H_TEUCHOS_INCLUDES_HPP
 
-#include <Omega_h_c.h>
+#include <Omega_h_macros.h>
 
 OMEGA_H_SYSTEM_HEADER
 

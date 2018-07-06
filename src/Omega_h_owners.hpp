@@ -34,11 +34,11 @@ template <typename T>
 Read<T> reduce_data_to_owners(
     Read<T> copy_data, Dist copies2owners, Int ncomps);
 
-/* resets the global numbers of entities of dimension (ent_dim).
+/* computes new global numbers of entities of dimension (ent_dim).
    owned entities on the same MPI rank will be numbered consecutively,
    and all entities owned by MPI rank (i) will be numbered before
    those owned by MPI rank (i + 1). */
-void globals_from_owners(Mesh* mesh, Int ent_dim);
+GOs globals_from_owners(Mesh* mesh, Int ent_dim);
 
 #define OMEGA_H_INST_DECL(T)                                                   \
   extern template Read<T> reduce_data_to_owners(                               \

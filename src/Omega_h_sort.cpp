@@ -18,7 +18,6 @@ inline __host__ __device__ void va_printf(const char*, Args...) {
 #endif
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_control.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_scalar.hpp"
 #include "Omega_h_timer.hpp"

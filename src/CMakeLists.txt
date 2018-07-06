@@ -1,5 +1,4 @@
 set(Omega_h_SOURCES
-  Omega_h_c.cpp
   Omega_h_library.cpp
   Omega_h_timer.cpp
   Omega_h_array.cpp
@@ -89,6 +88,7 @@ set(Omega_h_SOURCES
   Omega_h_amr_transfer.cpp
   Omega_h_print.cpp
   Omega_h_stack.cpp
+  Omega_h_fail.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)
@@ -139,15 +139,7 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
-if(Omega_h_ONE_FILE)
-  foreach(source IN LISTS Omega_h_SOURCES)
-    set(ONE_FILE_CONTENTS "${ONE_FILE_CONTENTS}#include <${source}>\n")
-  endforeach()
-  file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/omega_h.cpp "${ONE_FILE_CONTENTS}")
-  add_library(omega_h omega_h.cpp)
-else()
-  add_library(omega_h ${Omega_h_SOURCES})
-endif()
+add_library(omega_h ${Omega_h_SOURCES})
 
 bob_library_includes(omega_h)
 
@@ -203,7 +195,6 @@ osh_add_util(osh_scale)
 osh_add_util(osh_reorder)
 osh_add_util(osh_fix)
 osh_add_util(osh_eval_implied)
-osh_add_exe(mox_test)
 if(Omega_h_USE_libMeshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
@@ -390,14 +381,15 @@ if(BUILD_TESTING)
   test_func(amr_test 1 ./amr_test)
   osh_add_exe(amr_test2)
   test_func(amr_test2 1 ./amr_test2)
+  osh_add_exe(mox_test)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
 set(Omega_h_HEADERS
   "${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h"
   Omega_h_macros.h
+  Omega_h_fail.hpp
   Omega_h_mpi.h
-  Omega_h_c.h
   Omega_h_kokkos.hpp
   Omega_h_defines.hpp
   Omega_h_array.hpp
@@ -444,6 +436,7 @@ set(Omega_h_HEADERS
   Omega_h_print.hpp
   Omega_h_amr.hpp
   Omega_h_stack.hpp
+  Omega_h_owners.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)

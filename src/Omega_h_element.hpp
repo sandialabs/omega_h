@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_ELEMENT_HPP
 #define OMEGA_H_ELEMENT_HPP
 
-#include <Omega_h_c.h>
+#include <Omega_h_config.h>
 #include <Omega_h_hypercube.hpp>
 #include <Omega_h_simplex.hpp>
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.13.10 LANGUAGES CXX)
+project(Omega_h VERSION 9.13.11 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -14,8 +14,7 @@ include(cmake/bob.cmake)
 bob_begin_package()
 
 bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
-bob_option(Omega_h_CHECK_FPE "Enable floating point exceptions" OFF)
-bob_option(Omega_h_ONE_FILE "Compile Omega_h as a single file" OFF)
+bob_option(Omega_h_THROW "Errors throw exceptions instead of abort" ${USE_XSDK_DEFAULTS})
 bob_input(Omega_h_DATA "" PATH "Path to omega_h-data test files")
 bob_option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
 bob_input(EGADS_PREFIX "" PATH "EGADS (or ESP) installation directory")
@@ -175,7 +174,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_DOLFIN
     Omega_h_USE_dwarf
     Omega_h_CHECK_BOUNDS
-    Omega_h_CHECK_FPE
+    Omega_h_THROW
     Omega_h_USE_CUDA_AWARE_MPI
    )
 

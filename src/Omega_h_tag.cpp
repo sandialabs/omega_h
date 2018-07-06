@@ -2,8 +2,6 @@
 
 namespace Omega_h {
 
-void check_tag_name(std::string const& name) { OMEGA_H_CHECK(!name.empty()); }
-
 TagBase::TagBase(std::string const& name_in, Int ncomps_in)
     : name_(name_in), ncomps_(ncomps_in) {
   check_tag_name(name_in);

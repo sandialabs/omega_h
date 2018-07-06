@@ -1,5 +1,6 @@
 #include "Omega_h_vector.hpp"
 #include "Omega_h_loop.hpp"
+#include "Omega_h_fail.hpp"
 
 namespace Omega_h {
 

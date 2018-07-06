@@ -2,9 +2,13 @@
 #define OMEGA_H_ARRAY_HPP
 
 #include <Omega_h_defines.hpp>
+#include <Omega_h_fail.hpp>
 #include <Omega_h_kokkos.hpp>
 #include <initializer_list>
 #include <memory>
+#ifndef OMEGA_H_USE_KOKKOSCORE
+#include <string>
+#endif
 
 namespace Omega_h {
 

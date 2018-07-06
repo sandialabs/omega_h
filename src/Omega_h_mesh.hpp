@@ -1,6 +1,8 @@
 #ifndef OMEGA_H_MESH_HPP
 #define OMEGA_H_MESH_HPP
 
+#include <array>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -154,6 +156,8 @@ Real repro_sum_owned(Mesh* mesh, Int dim, Reals a);
 
 Reals average_field(Mesh* mesh, Int dim, LOs a2e, Int ncomps, Reals v2x);
 Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x);
+
+using TagSet = std::array<std::set<std::string>, DIMS>;
 
 void get_all_dim_tags(Mesh* mesh, Int dim, TagSet* tags);
 TagSet get_all_mesh_tags(Mesh* mesh);

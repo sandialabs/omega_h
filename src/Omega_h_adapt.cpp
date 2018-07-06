@@ -5,7 +5,6 @@
 #include "Omega_h_coarsen.hpp"
 #include "Omega_h_confined.hpp"
 #include "Omega_h_conserve.hpp"
-#include "Omega_h_control.hpp"
 #include "Omega_h_histogram.hpp"
 #include "Omega_h_laplace.hpp"
 #include "Omega_h_map.hpp"

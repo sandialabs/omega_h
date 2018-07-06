@@ -3,7 +3,6 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_amr.hpp"
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_control.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"

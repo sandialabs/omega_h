@@ -46,7 +46,7 @@ double History::time(std::size_t frame) const {
   return frames[frame].total_runtime;
 }
 
-double History::calls(std::size_t frame) const {
+std::size_t History::calls(std::size_t frame) const {
   return frames[frame].number_of_calls;
 }
 
