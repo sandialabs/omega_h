@@ -565,7 +565,7 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in)
 void ExprEnv::register_variable(
     std::string const& name, Teuchos::any const& value) {
   OMEGA_H_TIME_FUNCTION;
-  OMEGA_H_CHECK(variables.find(name) == variables.end());
+//OMEGA_H_CHECK(variables.find(name) == variables.end());
   OMEGA_H_CHECK(functions.find(name) == functions.end());
   variables[name] = value;
 }
@@ -573,7 +573,7 @@ void ExprEnv::register_variable(
 void ExprEnv::register_function(
     std::string const& name, Function const& value) {
   OMEGA_H_CHECK(variables.find(name) == variables.end());
-  OMEGA_H_CHECK(functions.find(name) == functions.end());
+//OMEGA_H_CHECK(functions.find(name) == functions.end());
   functions[name] = value;
 }
 
@@ -748,6 +748,19 @@ ExprOp::~ExprOp() {}
 
 using OpPtr = std::shared_ptr<ExprOp>;
 
+struct ConstOp : public ExprOp {
+  double value;
+  OpPtr rhs;
+  virtual ~ConstOp() override final = default;
+  ConstOp(double value_in)
+    :value(value_in)
+  {}
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
+};
+void ConstOp::eval(ExprEnv&, Teuchos::any& result) {
+  result = value;
+}
+
 struct AssignOp : public ExprOp {
   std::string name;
   OpPtr rhs;
@@ -902,7 +915,8 @@ void ExprOpsReader::at_shift(any& result_any, int token, std::string& text) {
       break;
     }
     case Teuchos::MathExpr::TOK_CONST: {
-      result_any = std::atof(text.c_str());
+      OpPtr result_op(new ConstOp(std::atof(text.c_str())));
+      result_any = result_op;
     }
   }
 }
