@@ -8,62 +8,6 @@
 #include <Omega_h_array.hpp>
 #include <Omega_h_matrix.hpp>
 
-/* appease the non-standard crap in Teuchos::any */
-namespace Teuchos {
-
-class any;
-
-template <Omega_h::Int dim>
-inline bool operator==(
-    Omega_h::Vector<dim> const&, Omega_h::Vector<dim> const&) {
-  return false;
-}
-
-template <Omega_h::Int dim>
-inline bool operator==(
-    Omega_h::Matrix<dim, dim> const&, Omega_h::Matrix<dim, dim> const&) {
-  return false;
-}
-
-inline bool operator==(Omega_h::Reals const&, Omega_h::Reals const&) {
-  return false;
-}
-
-inline bool operator==(Omega_h::Bytes const&, Omega_h::Bytes const&) {
-  return false;
-}
-
-inline bool operator==(
-    std::vector<Teuchos::any> const&, std::vector<Teuchos::any> const&) {
-  return false;
-}
-
-template <Omega_h::Int dim>
-inline std::ostream& operator<<(std::ostream& os, Omega_h::Vector<dim> const&) {
-  return os;
-}
-
-template <Omega_h::Int dim>
-inline std::ostream& operator<<(
-    std::ostream& os, Omega_h::Matrix<dim, dim> const&) {
-  return os;
-}
-
-inline std::ostream& operator<<(std::ostream& os, Omega_h::Reals const&) {
-  return os;
-}
-
-inline std::ostream& operator<<(std::ostream& os, Omega_h::Bytes const&) {
-  return os;
-}
-
-inline std::ostream& operator<<(
-    std::ostream& os, std::vector<Teuchos::any> const&) {
-  return os;
-}
-
-}  // namespace Teuchos
-
 #include <Omega_h_teuchos_includes.hpp>
 
 namespace Omega_h {
