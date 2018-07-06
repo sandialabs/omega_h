@@ -577,6 +577,10 @@ void ExprEnv::register_function(
   functions[name] = value;
 }
 
+void ExprEnv::repeat(Teuchos::any& x) {
+  promote(size, dim, x);
+}
+
 ExprReader::ExprReader(LO size_in, Int dim_in)
     : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables())
     , env(size_in, dim_in) {
@@ -595,7 +599,7 @@ void ExprReader::register_function(
 }
 
 void ExprReader::repeat(Teuchos::any& x) {
-  promote(env.size, env.dim, x);
+  env.repeat(x);
 }
 
 void ExprReader::at_shift(any& result_any, int token, std::string& text) {
