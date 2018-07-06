@@ -13,6 +13,7 @@
 namespace Omega_h {
 
 struct ExprEnv {
+  ExprEnv() = default;
   ExprEnv(LO size_in, Int dim_in);
   using Args = std::vector<Teuchos::any>;
   using Function = std::function<void(Teuchos::any&, Args&)>;
