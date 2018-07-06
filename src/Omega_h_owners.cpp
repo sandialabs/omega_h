@@ -100,13 +100,11 @@ Read<T> reduce_data_to_owners(
   return owner_data_w;
 }
 
-void globals_from_owners(Mesh* mesh, Int ent_dim) {
+GOs globals_from_owners(Mesh* mesh, Int ent_dim) {
   auto nnew_ents = mesh->nents(ent_dim);
   if (!mesh->could_be_shared(ent_dim)) {
     auto start = mesh->comm()->exscan(GO(nnew_ents), OMEGA_H_SUM);
-    auto globals = Read<GO>(nnew_ents, start, 1);
-    mesh->add_tag(ent_dim, "global", 1, globals);
-    return;
+    return Read<GO>(nnew_ents, start, 1);
   }
   auto new_owned = mesh->owned(ent_dim);
   auto local_offsets = offset_scan(new_owned);
@@ -118,8 +116,7 @@ void globals_from_owners(Mesh* mesh, Int ent_dim) {
   };
   parallel_for(nnew_ents, f, "globals_from_owners");
   auto new_globals = Read<GO>(new_globals_w);
-  new_globals = mesh->sync_array(ent_dim, new_globals, 1);
-  mesh->add_tag(ent_dim, "global", 1, new_globals);
+  return mesh->sync_array(ent_dim, new_globals, 1);
 }
 
 #define INST(T)                                                                \
