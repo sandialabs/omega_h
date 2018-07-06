@@ -732,6 +732,7 @@ Real repro_sum_owned(Mesh* mesh, Int ent_dim, Reals a) {
 }
 
 Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
+  OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(v2x.size() % ncomps == 0);
   if (ent_dim == 0) return unmap(a2e, v2x, ncomps);
   auto ev2v = mesh->ask_verts_of(ent_dim);
