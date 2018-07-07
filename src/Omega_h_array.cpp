@@ -76,14 +76,19 @@ Write<T>::Write(LO size_in, T offset, T stride, std::string const& name_in)
 template <typename T>
 Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
+#ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
 std::string Write<T>::name() const {
-#ifdef OMEGA_H_USE_KOKKOSCORE
   return view_.label();
-#else
-  return tracker_->name;
-#endif
 }
+#endif
+
+#ifndef OMEGA_H_USE_KOKKOSCORE
+template <typename T>
+void Write<T>::rename(std::string const& new_name) {
+  tracker_->name = new_name;
+}
+#endif
 
 template <typename T>
 void Write<T>::set(LO i, T value) const {

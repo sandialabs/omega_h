@@ -90,7 +90,14 @@ class Write {
     return use_count() != 0;
 #endif
   }
+#ifdef OMEGA_H_USE_KOKKOSCORE
   std::string name() const;
+#else
+  std::string const& name() const { return tracker_->name; }
+#endif
+#ifndef OMEGA_H_USE_KOKKOSCORE
+  void rename(std::string const& new_name);
+#endif
 };
 
 template <typename T>
