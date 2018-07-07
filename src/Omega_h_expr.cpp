@@ -825,8 +825,8 @@ struct TernaryOp : public ExprOp {
 void TernaryOp::eval(ExprEnv& env, Teuchos::any& result) {
   Teuchos::any cond_val, lhs_val, rhs_val;
   cond->eval(env, cond_val);
-  cond->eval(env, lhs_val);
-  cond->eval(env, rhs_val);
+  lhs->eval(env, lhs_val);
+  rhs->eval(env, rhs_val);
   promote(env.size, env.dim, lhs_val, rhs_val);
   ternary(env.size, env.dim, result, cond_val, lhs_val, rhs_val);
 }
