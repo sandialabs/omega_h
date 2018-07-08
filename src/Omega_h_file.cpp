@@ -31,6 +31,7 @@ bool is_little_endian_cpu() {
 }
 
 void safe_mkdir(const char* path) {
+  OMEGA_H_TIME_FUNCTION;
   mode_t const mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
   int err;
   errno = 0;

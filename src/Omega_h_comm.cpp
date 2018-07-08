@@ -502,6 +502,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
 }
 
 void Comm::barrier() const {
+  OMEGA_H_TIME_FUNCTION;
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Barrier(impl_));
 #endif
