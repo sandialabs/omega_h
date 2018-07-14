@@ -934,7 +934,9 @@ void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
   std::vector<Real> times;
   std::vector<std::string> pvtupaths;
   std::ifstream pvdstream(pvdpath.c_str());
-  OMEGA_H_CHECK(pvdstream.is_open());
+  if (!pvdstream.is_open()) {
+    Omega_h_fail("Couldn't open \"%s\"\n", pvdpath.c_str());
+  }
   read_pvd(pvdstream, &times, &pvtupaths);
   auto parentpath = parent_path(pvdpath);
   for (auto& pvtupath : pvtupaths) pvtupath = parentpath + "/" + pvtupath;

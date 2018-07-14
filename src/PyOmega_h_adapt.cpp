@@ -15,7 +15,8 @@ void pybind11_adapt(py::module& module) {
   py::class_<AdaptOpts>(
       module, "AdaptOpts", "Options controlling adaptation behavior")
       .def(py::init<Mesh*>())
-      .def_readwrite("verbosity", &AdaptOpts::verbosity);
+      .def_readwrite("verbosity", &AdaptOpts::verbosity)
+      .def_readwrite("min_quality_allowed", &AdaptOpts::min_quality_allowed);
   py::class_<MetricSource>(
       module, "MetricSource", "Describes a single source metric field")
       .def(py::init<Omega_h_Source, Real, std::string const&, Omega_h_Isotropy,
