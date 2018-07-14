@@ -107,6 +107,9 @@ bool is_sorted(Read<T> array);
 template <typename T>
 Read<T> interleave(std::vector<Read<T>> arrays);
 
+template <typename T>
+Read<T> coalesce(std::vector<Read<T>> arrays);
+
 Real repro_sum(Reals a);
 Real repro_sum(CommPtr comm, Reals a);
 void repro_sum(CommPtr comm, Reals a, Int ncomps, Real result[]);
@@ -156,7 +159,8 @@ Read<Tout> array_cast(Read<Tin> in);
       Write<T> out, Read<T> a, Int ncomps, Int comp);                          \
   extern template LO find_last(Read<T> array, T value);                        \
   extern template bool is_sorted(Read<T> array);                               \
-  extern template Read<T> interleave(std::vector<Read<T>> arrays);
+  extern template Read<T> interleave(std::vector<Read<T>> arrays); \
+  extern template Read<T> coalesce(std::vector<Read<T>> arrays);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)
