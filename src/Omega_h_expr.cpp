@@ -271,7 +271,7 @@ void mul(LO size, any& result, any& lhs, any& rhs) {
     if (rhs_vals.size() == size) {  // RHS is scalars
       result = Reals(multiply_each(lhs_vals, rhs_vals));
     } else if (lhs_vals.size() == size) {  // LHS is scalars
-      result = Reals(multiply_each(lhs_vals, rhs_vals));
+      result = Reals(multiply_each(rhs_vals, lhs_vals));
     } else if (lhs_vals.size() == size * dim &&
                rhs_vals.size() == size * dim) {  // dot products
       result = dot_vectors(lhs_vals, rhs_vals, dim);
