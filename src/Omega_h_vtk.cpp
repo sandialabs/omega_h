@@ -690,6 +690,7 @@ void write_vtu(std::string const& filename, Mesh* mesh, bool compress) {
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     std::string const& piecepath, TagSet const& tags) {
+  OMEGA_H_TIME_FUNCTION;
   ask_for_mesh_tags(mesh, tags);
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid";
