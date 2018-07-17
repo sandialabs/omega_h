@@ -783,6 +783,7 @@ OMEGA_H_INLINE SplitVertex hypercube_split_template(
               }
               return {-1, -1};
           }
+          return {-1, -1};
         case 3:
           switch (which_child) {
             case 0:
@@ -946,7 +947,9 @@ OMEGA_H_INLINE SplitVertex hypercube_split_template(
               }
               return {-1, -1};
           }
+          return {-1, -1};
       }
+      return {-1, -1};
   }
   return {-1, -1};
 }

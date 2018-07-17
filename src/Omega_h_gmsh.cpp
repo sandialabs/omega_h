@@ -69,6 +69,7 @@ Int gmsh_type(Omega_h_Family family, Int dim) {
         case 3:
           return GMSH_TET;
       }
+      return -1;
     case OMEGA_H_HYPERCUBE:
       switch (dim) {
         case 0:
@@ -80,8 +81,9 @@ Int gmsh_type(Omega_h_Family family, Int dim) {
         case 3:
           return GMSH_HEX;
       }
+      return -1;
   };
-  OMEGA_H_NORETURN(-1);
+  return -1;
 }
 
 void seek_line(std::istream& stream, std::string const& want) {
