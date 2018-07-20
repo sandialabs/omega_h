@@ -208,7 +208,7 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror_view(
             typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
         std::is_same<typename Kokkos::View<T, P...>::data_type,
             typename Kokkos::View<T, P...>::HostMirror::data_type>::value)>::
-        type* = 0) {
+        type* = nullptr) {
   return src;
 }
 

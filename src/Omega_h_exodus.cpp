@@ -1,3 +1,5 @@
+#include "Omega_h_mpi.h"
+
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wreserved-id-macro"
