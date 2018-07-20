@@ -273,6 +273,27 @@ void echo_parameters(std::ostream& stream, Teuchos::ParameterList const& pl) {
   stream.copyfmt(saved_state);
 }
 
+void update_class_sets(ClassSets* p_sets,
+    Teuchos::ParameterList& pl) {
+  ClassSets& sets = *p_sets;
+  for (auto it = pl.begin(), end = pl.end(); it != end;
+       ++it) {
+    auto set_name = pl.name(it);
+    auto pairs = pl.get<Teuchos::TwoDArray<int>>(set_name);
+    if (pairs.getNumCols() != 2) {
+      Omega_h_fail("Expected \"%s\" to be an array of int pairs\n",
+          set_name.c_str());
+    }
+    auto npairs = pairs.getNumRows();
+    for (decltype(npairs) i = 0; i < npairs; ++i) {
+      auto class_dim = Int(pairs(i, 0));
+      auto class_id = LO(pairs(i, 1));
+      assoc[std::size_t(set_type)][set_name].push_back(
+          {class_dim, class_id});
+    }
+  }
+}
+
 static char const* const assoc_param_names[NSET_TYPES] = {
     "Element Sets", "Side Sets", "Node Sets"};
 
@@ -285,22 +306,7 @@ void update_assoc(Assoc* p_assoc, Teuchos::ParameterList& pl) {
   for (Int set_type = 0; set_type < NSET_TYPES; ++set_type) {
     if (pl.isSublist(assoc_param_names[set_type])) {
       auto& set_type_pl = pl.sublist(assoc_param_names[set_type]);
-      for (auto it = set_type_pl.begin(), end = set_type_pl.end(); it != end;
-           ++it) {
-        auto set_name = set_type_pl.name(it);
-        auto pairs = set_type_pl.get<Teuchos::TwoDArray<int>>(set_name);
-        if (pairs.getNumCols() != 2) {
-          Omega_h_fail("Expected \"%s\" to be an array of int pairs\n",
-              set_name.c_str());
-        }
-        auto npairs = pairs.getNumRows();
-        for (decltype(npairs) i = 0; i < npairs; ++i) {
-          auto class_dim = Int(pairs(i, 0));
-          auto class_id = LO(pairs(i, 1));
-          assoc[std::size_t(set_type)][set_name].push_back(
-              {class_dim, class_id});
-        }
-      }
+      update_class_sets(&assoc[std::size_t(set_type)], set_type_pl);
     }
   }
 }

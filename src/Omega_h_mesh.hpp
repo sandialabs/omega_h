@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <map>
 
 #include <Omega_h_adj.hpp>
 #include <Omega_h_comm.hpp>
@@ -17,6 +18,18 @@ namespace Omega_h {
 namespace inertia {
 struct Rib;
 }
+
+struct ClassPair {
+  Int dim;
+  LO id;
+  OMEGA_H_INLINE bool operator<(ClassPair const& other) {
+    if (dim != other.dim) return dim < other.dim;
+    if (id != other.id) return id < other.id;
+    return false;
+  }
+};
+
+using std::map<std::string, ClassPair> ClassSets;
 
 class Mesh {
  public:
@@ -148,6 +161,8 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+ public:
+  ClassSets class_sets;
 };
 
 bool can_print(Mesh* mesh);
