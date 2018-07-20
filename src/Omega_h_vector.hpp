@@ -224,6 +224,17 @@ OMEGA_H_DEVICE Vector<n> get_vector(Arr const& a, Int i) {
   return v;
 }
 
+template <int new_dim, int old_dim>
+OMEGA_H_INLINE Vector<new_dim> resize(Vector<old_dim> v) {
+  constexpr int min_dim = Omega_h::min2(new_dim, old_dim);
+  Vector<new_dim> v2;
+  for (int i = 0; i < min_dim; ++i)
+    v2(i) = v(i);
+  for (int i = min_dim; i < new_dim; ++i)
+    v2(i) = 0.0;
+  return v2;
+}
+
 Reals get_vector_norms(Reals vs, Int dim);
 Reals normalize_vectors(Reals vs, Int dim);
 Reals dot_vectors(Reals a, Reals b, Int dim);

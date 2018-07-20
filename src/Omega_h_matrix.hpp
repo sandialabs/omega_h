@@ -539,6 +539,19 @@ OMEGA_H_INLINE Matrix<dim, dim> deviator(Matrix<dim, dim> a) {
   return (a - ((1.0 / dim) * trace(a) * identity_matrix<dim, dim>()));
 }
 
+template <int new_dim, int old_dim>
+OMEGA_H_INLINE Matrix<new_dim, new_dim> resize(Matrix<old_dim, old_dim> m) {
+  constexpr int min_dim = Omega_h::min2(new_dim, old_dim);
+  Matrix<new_dim, new_dim> m2;
+  for (int i = 0; i < min_dim; ++i)
+  for (int j = 0; j < min_dim; ++j)
+    m2(i, j) = m(i, j);
+  for (int i = 0; i < new_dim; ++i)
+  for (int j = min_dim; j < new_dim; ++j)
+    m2(i, j) = m2(j, i) = 0.0;
+  return m2;
+}
+
 template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
