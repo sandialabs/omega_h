@@ -142,22 +142,27 @@ int get_num_time_steps(int exodus_file) {
   return int(ex_inquire_int(exodus_file, EX_INQ_TIME));
 }
 
+static void setup_names(int exodus_file, int nnames, std::vector<char>& storage, std::vector<char*>& ptrs) {
+  std::int64_t max_name_length =
+      ex_inquire_int(exodus_file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
+  ++max_name_length;  // it really is tightly-fitted, and doesn't include null
+                      // terminators
+  names_memory = std::vector<char>(
+      std::size_t(nnames * max_name_length), '\0');
+  name_ptrs = std::vector<char*>(std::size_t(nnames), nullptr);
+  for (int i = 0; i < nnames; ++i) {
+    name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
+  }
+}
+
 void read_nodal_fields(int exodus_file, Mesh* mesh, int time_step,
     std::string const& prefix, std::string const& postfix, bool verbose) {
   int num_nodal_vars;
   CALL(ex_get_variable_param(exodus_file, EX_NODAL, &num_nodal_vars));
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
-  std::int64_t max_name_length =
-      ex_inquire_int(exodus_file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
-  ++max_name_length;  // it really is tightly-fitted, and doesn't include null
-                      // terminators
-  if (verbose) std::cout << "max name length " << max_name_length << '\n';
-  std::vector<char> names_memory(
-      std::size_t(num_nodal_vars * max_name_length), '\0');
-  std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
-  for (int i = 0; i < num_nodal_vars; ++i) {
-    name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
-  }
+  std::vector<char> names_memory;
+  std::vector<char*> name_ptrs;
+  setup_names(exodus_file, num_nodal_vars, names_memory, name_ptrs);
   CALL(ex_get_variable_names(
       exodus_file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
   for (int i = 0; i < num_nodal_vars; ++i) {
@@ -274,6 +279,10 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
     }
     std::vector<int> node_set_ids(std::size_t(init_params.num_node_sets));
     CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
+    std::vector<char> names_memory;
+    std::vector<char*> name_ptrs;
+    setup_names(file, int(init_params.num_node_sets), names_memory, name_ptrs);
+    CALL(ex_get_names(file, EX_NODE_SET, name_ptrs.data()));
     for (size_t i = 0; i < node_set_ids.size(); ++i) {
       int nentries, ndist_factors;
       CALL(ex_get_set_param(
@@ -293,22 +302,29 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       auto set_sides2side = collect_marked(sides_are_in_set);
       auto surface_id = node_set_ids[i] + max_side_set_id;
       if (verbose) {
-        std::cout << "node set " << node_set_ids[i] << " will be surface "
+        std::cout << "node set #" << node_set_ids[i] << " \""
+                  << name_ptrs[i] << "\" will be surface "
                   << surface_id << '\n';
       }
       map_into(LOs(set_sides2side.size(), surface_id), set_sides2side,
           side_class_ids_w, 1);
       map_into(Read<I8>(set_sides2side.size(), I8(dim - 1)), set_sides2side,
           side_class_dims_w, 1);
+      mesh.class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
     }
   }
   if (classify_with & SIDE_SETS) {
+    std::vector<char> names_memory;
+    std::vector<char*> name_ptrs;
+    setup_names(file, int(init_params.num_side_sets), names_memory, name_ptrs);
+    CALL(ex_get_names(file, EX_SIDE_SET, name_ptrs.data()));
     for (size_t i = 0; i < side_set_ids.size(); ++i) {
       int nentries, ndist_factors;
       CALL(ex_get_set_param(
           file, EX_SIDE_SET, side_set_ids[i], &nentries, &ndist_factors));
       if (verbose) {
-        std::cout << "side set " << side_set_ids[i] << " has " << nentries
+        std::cout << "side set #" << side_set_ids[i] << " \""
+                  << name_ptrs[i] << "\" has " << nentries
                   << " sides, will be surface " << side_set_ids[i] << "\n";
       }
       HostWrite<LO> h_set_sides2elem(nentries);
@@ -333,6 +349,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       map_into(LOs(nentries, surface_id), set_sides2side, side_class_ids_w, 1);
       map_into(Read<I8>(nentries, I8(dim - 1)), set_sides2side,
           side_class_dims_w, 1);
+      mesh.class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
     }
   }
   auto elem_class_ids = LOs(elem_class_ids_w);
@@ -351,17 +368,9 @@ static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
   int num_nodal_vars;
   CALL(ex_get_variable_param(file, EX_NODAL, &num_nodal_vars));
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
-  std::int64_t max_name_length =
-      ex_inquire_int(file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
-  ++max_name_length;  // it really is tightly-fitted, and doesn't include null
-                      // terminators
-  if (verbose) std::cout << "max name length " << max_name_length << '\n';
-  std::vector<char> names_memory(
-      std::size_t(num_nodal_vars * max_name_length), '\0');
-  std::vector<char*> name_ptrs(std::size_t(num_nodal_vars), nullptr);
-  for (int i = 0; i < num_nodal_vars; ++i) {
-    name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
-  }
+  std::vector<char> names_memory;
+  std::vector<char*> name_ptrs;
+  setup_names(file, num_nodal_vars, names_memory, name_ptrs);
   CALL(ex_get_variable_names(file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
   for (int i = 0; i < num_nodal_vars; ++i) {
     auto name = name_ptrs[std::size_t(i)];
@@ -655,6 +664,38 @@ void write(
         CALL(ex_put_set(
             file, EX_NODE_SET, set_id, h_set_nodes2node.data(), nullptr));
       }
+    }
+    std::vector<std::string> set_names(surface_set.size());
+    for (auto& pair : mesh.class_sets) {
+      auto& name = pair.first;
+      for (auto& cp : pair.second) {
+        if (cp.dim != I8(dim - 1)) continue;
+        std::size_t index;
+        for (auto surface_id : surface_set) {
+          if (surface_id == cp.id) {
+            set_names[index] = name;
+            if (verbose && (classify_with & exodus::NODE_SETS)) {
+              std::cout << "node set " << surface_id << " will be called \""
+                << name << "\"\n";
+            }
+            if (verbose && (classify_with & exodus::SIDE_SETS)) {
+              std::cout << "side set " << surface_id << " will be called \""
+                << name << "\"\n";
+            }
+          }
+          ++index;
+        }
+      }
+    }
+    std::vector<char*> set_name_ptrs(surface_set.size(), nullptr);
+    for (std::size_t i = 0; i < set_names.size(); ++i) {
+      set_name_ptrs[i] = set_names[i].c_str();
+    }
+    if (classify_with & exodus::NODE_SETS) {
+      CALL(ex_put_names(file, EX_NODE_SET, set_name_ptrs.data()));
+    }
+    if (classify_with & exodus::SIDE_SETS) {
+      CALL(ex_put_names(file, EX_SIDE_SET, set_name_ptrs.data()));
     }
   }
   CALL(ex_close(file));

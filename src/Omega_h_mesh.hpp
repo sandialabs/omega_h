@@ -29,7 +29,7 @@ struct ClassPair {
   }
 };
 
-using std::map<std::string, ClassPair> ClassSets;
+using std::map<std::string, std::vector<ClassPair>> ClassSets;
 
 class Mesh {
  public:
