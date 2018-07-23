@@ -3,10 +3,9 @@
 
 #include <Omega_h_array.hpp>
 #include <Omega_h_defines.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
-
-class Mesh;
 
 void make_1d_box(Real x, LO nx, LOs* ev2v_out, Reals* coords_out);
 void make_2d_box(
@@ -14,6 +13,7 @@ void make_2d_box(
 void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
     Reals* coords_out);
 void classify_box(Mesh* mesh, Real x, Real y, Real z, Int nx, Int ny, Int nz);
+ClassSets get_box_class_sets(Int dim);
 
 }  // end namespace Omega_h
 

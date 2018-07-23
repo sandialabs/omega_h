@@ -161,4 +161,28 @@ void classify_box(Mesh* mesh, Real x, Real y, Real z, LO nx, LO ny, LO nz) {
   }
 }
 
+ClassSets get_box_class_sets(Int dim) {
+  ClassSets sets;
+  if (dim == 1) {
+    sets["x-"] = {{0, 0}};
+    sets["body"] = {{1, 1}};
+    sets["x+"] = {{0, 2}};
+  } else if (dim == 2) {
+    sets["y-"] = {{1, 1}};
+    sets["x-"] = {{1, 3}};
+    sets["body"] = {{2, 4}};
+    sets["x+"] = {{1, 5}};
+    sets["y+"] = {{1, 7}};
+  } else if (dim == 3) {
+    sets["z-"] = {{2, 4}};
+    sets["y-"] = {{2, 10}};
+    sets["x-"] = {{2, 12}};
+    sets["body"] = {{3, 13}};
+    sets["x+"] = {{2, 14}};
+    sets["y+"] = {{2, 16}};
+    sets["z+"] = {{2, 22}};
+  }
+  return sets;
+}
+
 }  // end namespace Omega_h

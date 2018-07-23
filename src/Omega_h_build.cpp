@@ -141,6 +141,7 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
     build_box_internal(&mesh, family, x, y, z, nx, ny, nz, symmetric);
     reorder_by_hilbert(&mesh);
     classify_box(&mesh, x, y, z, nx, ny, nz);
+    mesh.class_sets = get_box_class_sets(mesh.dim());
   }
   mesh.set_comm(comm);
   mesh.balance();
