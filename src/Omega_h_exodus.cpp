@@ -147,11 +147,11 @@ static void setup_names(int exodus_file, int nnames, std::vector<char>& storage,
       ex_inquire_int(exodus_file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
   ++max_name_length;  // it really is tightly-fitted, and doesn't include null
                       // terminators
-  names_memory = std::vector<char>(
+  storage = std::vector<char>(
       std::size_t(nnames * max_name_length), '\0');
-  name_ptrs = std::vector<char*>(std::size_t(nnames), nullptr);
+  ptrs = std::vector<char*>(std::size_t(nnames), nullptr);
   for (int i = 0; i < nnames; ++i) {
-    name_ptrs[std::size_t(i)] = names_memory.data() + max_name_length * i;
+    ptrs[std::size_t(i)] = storage.data() + max_name_length * i;
   }
 }
 
@@ -310,7 +310,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
           side_class_ids_w, 1);
       map_into(Read<I8>(set_sides2side.size(), I8(dim - 1)), set_sides2side,
           side_class_dims_w, 1);
-      mesh.class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
+      mesh->class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
     }
   }
   if (classify_with & SIDE_SETS) {
@@ -349,7 +349,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       map_into(LOs(nentries, surface_id), set_sides2side, side_class_ids_w, 1);
       map_into(Read<I8>(nentries, I8(dim - 1)), set_sides2side,
           side_class_dims_w, 1);
-      mesh.class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
+      mesh->class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
     }
   }
   auto elem_class_ids = LOs(elem_class_ids_w);
@@ -666,11 +666,11 @@ void write(
       }
     }
     std::vector<std::string> set_names(surface_set.size());
-    for (auto& pair : mesh.class_sets) {
+    for (auto& pair : mesh->class_sets) {
       auto& name = pair.first;
       for (auto& cp : pair.second) {
         if (cp.dim != I8(dim - 1)) continue;
-        std::size_t index;
+        std::size_t index = 0;
         for (auto surface_id : surface_set) {
           if (surface_id == cp.id) {
             set_names[index] = name;
@@ -689,7 +689,7 @@ void write(
     }
     std::vector<char*> set_name_ptrs(surface_set.size(), nullptr);
     for (std::size_t i = 0; i < set_names.size(); ++i) {
-      set_name_ptrs[i] = set_names[i].c_str();
+      set_name_ptrs[i] = const_cast<char*>(set_names[i].c_str());
     }
     if (classify_with & exodus::NODE_SETS) {
       CALL(ex_put_names(file, EX_NODE_SET, set_name_ptrs.data()));
