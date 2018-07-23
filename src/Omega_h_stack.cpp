@@ -1,14 +1,14 @@
 #include <Omega_h_stack.hpp>
+#include <algorithm>
 #include <iostream>
 #include <queue>
-#include <algorithm>
 
 namespace Omega_h {
 namespace perf {
 
 History* global_singleton_history = nullptr;
 
-History::History():current_frame(invalid),last_root(invalid) {}
+History::History() : current_frame(invalid), last_root(invalid) {}
 
 std::size_t History::first(std::size_t parent_index) const {
   if (parent_index != invalid) return frames[parent_index].first_child;
@@ -56,14 +56,9 @@ struct PreOrderIterator {
     frame = history.pre_order_next(frame);
     return *this;
   }
-  reference operator*() {
-    return frame;
-  }
+  reference operator*() { return frame; }
   PreOrderIterator(History const& history_in, std::size_t i_in)
-    :history(history_in)
-    ,frame(i_in)
-  {
-  }
+      : history(history_in), frame(i_in) {}
   bool operator!=(PreOrderIterator const& other) {
     return frame != other.frame;
   }
@@ -92,11 +87,13 @@ static std::vector<std::size_t> compute_depths(History const& history) {
   return depths;
 }
 
-static void simple_print(History const& history, std::vector<std::size_t> const& depths) {
+static void simple_print(
+    History const& history, std::vector<std::size_t> const& depths) {
   for (auto frame : history) {
     std::size_t depth = depths[frame];
     for (std::size_t i = 0; i < depth; ++i) std::cout << "  ";
-    std::cout << history.get_name(frame) << ' ' << history.frames[frame].total_runtime << '\n';
+    std::cout << history.get_name(frame) << ' '
+              << history.frames[frame].total_runtime << '\n';
   }
 }
 
@@ -112,14 +109,16 @@ History invert(History const& h) {
     q.push(s);
   }
   while (!q.empty()) {
-    auto node = q.front(); q.pop();
+    auto node = q.front();
+    q.pop();
     auto self_time = h.time(node);
     auto calls = h.calls(node);
     for (auto child = h.first(node); child != invalid; child = h.next(child)) {
       self_time -= h.time(child);
       q.push(child);
     }
-    self_time = std::max(self_time, 0.); // floating-point may give negative epsilon instead of zero
+    self_time = std::max(self_time,
+        0.);  // floating-point may give negative epsilon instead of zero
     auto inv_node = invalid;
     for (; node != invalid; node = h.parent(node)) {
       auto name = h.get_name(node);
@@ -131,16 +130,20 @@ History invert(History const& h) {
   return invh;
 }
 
-static void print_time_sorted_recursive(History const& h, std::size_t frame, std::vector<std::size_t> const& depths) {
+static void print_time_sorted_recursive(History const& h, std::size_t frame,
+    std::vector<std::size_t> const& depths) {
   std::vector<std::size_t> child_frames;
-  for (std::size_t child = h.first(frame); child != invalid; child = h.next(child)) {
+  for (std::size_t child = h.first(frame); child != invalid;
+       child = h.next(child)) {
     child_frames.push_back(child);
   }
-  std::stable_sort(begin(child_frames), end(child_frames), [&](std::size_t a, std::size_t b) { return h.time(a) > h.time(b); });
+  std::stable_sort(begin(child_frames), end(child_frames),
+      [&](std::size_t a, std::size_t b) { return h.time(a) > h.time(b); });
   for (auto child : child_frames) {
     std::size_t depth = depths[child];
     for (std::size_t i = 0; i < depth; ++i) std::cout << "|  ";
-    std::cout << h.get_name(child) << ' ' << h.time(child) << ' ' << h.calls(child) << '\n';
+    std::cout << h.get_name(child) << ' ' << h.time(child) << ' '
+              << h.calls(child) << '\n';
     print_time_sorted_recursive(h, child, depths);
   }
 }
@@ -162,4 +165,5 @@ void print_top_down_and_bottom_up(History const& h) {
   print_time_sorted(h_inv);
 }
 
-}}
+}  // namespace perf
+}  // namespace Omega_h

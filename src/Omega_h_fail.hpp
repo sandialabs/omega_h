@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_FAIL_H
 #define OMEGA_H_FAIL_H
 
-#include <cassert>
 #include <Omega_h_config.h>
+#include <cassert>
 
 #ifdef OMEGA_H_THROW
 #include <exception>
@@ -22,7 +22,6 @@ struct exception : public std::exception {
 void protect();
 void fail(char const* format, ...)
     __attribute__((noreturn, format(printf, 1, 2)));
-
 }
 
 #define Omega_h_fail Omega_h::fail
@@ -34,16 +33,16 @@ void fail(char const* format, ...)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
   ((cond) ? ((void)0)                                                          \
-          : Omega_h::fail(                                                      \
+          : Omega_h::fail(                                                     \
                 "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
 
-#if defined( __clang__ ) && !defined(OMEGA_H_USE_CUDA)
+#if defined(__clang__) && !defined(OMEGA_H_USE_CUDA)
 #define OMEGA_H_NORETURN(x) OMEGA_H_CHECK(false)
 #else
 #define OMEGA_H_NORETURN(x)                                                    \
   do {                                                                         \
-    OMEGA_H_CHECK(false);                                                             \
+    OMEGA_H_CHECK(false);                                                      \
     return x;                                                                  \
   } while (false)
 #endif

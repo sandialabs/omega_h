@@ -46,7 +46,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 1;
               }
-	      return -1;
+              return -1;
             case 1:
               switch (which_vert) {
                 case 0:
@@ -54,7 +54,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 2;
               }
-	      return -1;
+              return -1;
             case 2:
               switch (which_vert) {
                 case 0:
@@ -62,7 +62,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 3;
               }
-	      return -1;
+              return -1;
             case 3:
               switch (which_vert) {
                 case 0:
@@ -70,7 +70,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 0;
               }
-	      return -1;
+              return -1;
           }
       }
       return -1;
@@ -87,7 +87,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 1;
               }
-	      return -1;
+              return -1;
             case 1:
               switch (which_vert) {
                 case 0:
@@ -95,7 +95,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 2;
               }
-	      return -1;
+              return -1;
             case 2:
               switch (which_vert) {
                 case 0:
@@ -103,7 +103,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 3;
               }
-	      return -1;
+              return -1;
             case 3:
               switch (which_vert) {
                 case 0:
@@ -111,7 +111,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 0;
               }
-	      return -1;
+              return -1;
             case 4:
               switch (which_vert) {
                 case 0:
@@ -119,7 +119,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 4;
               }
-	      return -1;
+              return -1;
             case 5:
               switch (which_vert) {
                 case 0:
@@ -127,7 +127,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 5;
               }
-	      return -1;
+              return -1;
             case 6:
               switch (which_vert) {
                 case 0:
@@ -135,7 +135,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 6;
               }
-	      return -1;
+              return -1;
             case 7:
               switch (which_vert) {
                 case 0:
@@ -143,7 +143,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 7;
               }
-	      return -1;
+              return -1;
             case 8:
               switch (which_vert) {
                 case 0:
@@ -151,7 +151,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 5;
               }
-	      return -1;
+              return -1;
             case 9:
               switch (which_vert) {
                 case 0:
@@ -159,7 +159,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 6;
               }
-	      return -1;
+              return -1;
             case 10:
               switch (which_vert) {
                 case 0:
@@ -167,7 +167,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 7;
               }
-	      return -1;
+              return -1;
             case 11:
               switch (which_vert) {
                 case 0:
@@ -175,9 +175,9 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 1:
                   return 4;
               }
-	      return -1;
+              return -1;
           }
-	  return -1;
+          return -1;
         case 2:
           switch (which_bdry) {
             case 0:
@@ -191,7 +191,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 3:
                   return 1;
               }
-	      return -1;
+              return -1;
             case 1:
               switch (which_vert) {
                 case 0:
@@ -203,7 +203,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 3:
                   return 4;
               }
-	      return -1;
+              return -1;
             case 2:
               switch (which_vert) {
                 case 0:
@@ -215,7 +215,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 3:
                   return 5;
               }
-	      return -1;
+              return -1;
             case 3:
               switch (which_vert) {
                 case 0:
@@ -227,7 +227,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 3:
                   return 6;
               }
-	      return -1;
+              return -1;
             case 4:
               switch (which_vert) {
                 case 0:
@@ -239,7 +239,7 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 3:
                   return 7;
               }
-	      return -1;
+              return -1;
             case 5:
               switch (which_vert) {
                 case 0:
@@ -251,9 +251,9 @@ OMEGA_H_INLINE Int hypercube_down_template(
                 case 3:
                   return 7;
               }
-	      return -1;
+              return -1;
           }
-	  return -1;
+          return -1;
       }
       return -1;
   }
@@ -348,7 +348,7 @@ OMEGA_H_INLINE TemplateUp hypercube_up_template(
               }
               return {-1, -1, 0};
           }
-	  return {-1, -1, 0};
+          return {-1, -1, 0};
         case 1:
           switch (which_bdry) {
             case 0:

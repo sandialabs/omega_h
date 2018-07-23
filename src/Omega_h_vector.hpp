@@ -228,10 +228,8 @@ template <int new_dim, int old_dim>
 OMEGA_H_INLINE Vector<new_dim> resize(Vector<old_dim> v) {
   constexpr int min_dim = Omega_h::min2(new_dim, old_dim);
   Vector<new_dim> v2;
-  for (int i = 0; i < min_dim; ++i)
-    v2(i) = v(i);
-  for (int i = min_dim; i < new_dim; ++i)
-    v2(i) = 0.0;
+  for (int i = 0; i < min_dim; ++i) v2(i) = v(i);
+  for (int i = min_dim; i < new_dim; ++i) v2(i) = 0.0;
   return v2;
 }
 

@@ -2,8 +2,8 @@
 #define OMEGA_H_SCALAR_HPP
 
 #include <Omega_h_defines.hpp>
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_fail.hpp>
+#include <Omega_h_kokkos.hpp>
 #include <cfloat>
 #include <climits>
 #include <cmath>

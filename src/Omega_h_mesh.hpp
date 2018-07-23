@@ -2,10 +2,10 @@
 #define OMEGA_H_MESH_HPP
 
 #include <array>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
-#include <map>
 
 #include <Omega_h_adj.hpp>
 #include <Omega_h_comm.hpp>
@@ -161,6 +161,7 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+
  public:
   ClassSets class_sets;
 };

@@ -10,8 +10,8 @@
 #endif
 
 #include <algorithm>
-#include <set>
 #include <iostream>
+#include <set>
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
@@ -142,13 +142,13 @@ int get_num_time_steps(int exodus_file) {
   return int(ex_inquire_int(exodus_file, EX_INQ_TIME));
 }
 
-static void setup_names(int exodus_file, int nnames, std::vector<char>& storage, std::vector<char*>& ptrs) {
+static void setup_names(int exodus_file, int nnames, std::vector<char>& storage,
+    std::vector<char*>& ptrs) {
   std::int64_t max_name_length =
       ex_inquire_int(exodus_file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
   ++max_name_length;  // it really is tightly-fitted, and doesn't include null
                       // terminators
-  storage = std::vector<char>(
-      std::size_t(nnames * max_name_length), '\0');
+  storage = std::vector<char>(std::size_t(nnames * max_name_length), '\0');
   ptrs = std::vector<char*>(std::size_t(nnames), nullptr);
   for (int i = 0; i < nnames; ++i) {
     ptrs[std::size_t(i)] = storage.data() + max_name_length * i;
@@ -302,9 +302,8 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       auto set_sides2side = collect_marked(sides_are_in_set);
       auto surface_id = node_set_ids[i] + max_side_set_id;
       if (verbose) {
-        std::cout << "node set #" << node_set_ids[i] << " \""
-                  << name_ptrs[i] << "\" will be surface "
-                  << surface_id << '\n';
+        std::cout << "node set #" << node_set_ids[i] << " \"" << name_ptrs[i]
+                  << "\" will be surface " << surface_id << '\n';
       }
       map_into(LOs(set_sides2side.size(), surface_id), set_sides2side,
           side_class_ids_w, 1);
@@ -323,9 +322,9 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       CALL(ex_get_set_param(
           file, EX_SIDE_SET, side_set_ids[i], &nentries, &ndist_factors));
       if (verbose) {
-        std::cout << "side set #" << side_set_ids[i] << " \""
-                  << name_ptrs[i] << "\" has " << nentries
-                  << " sides, will be surface " << side_set_ids[i] << "\n";
+        std::cout << "side set #" << side_set_ids[i] << " \"" << name_ptrs[i]
+                  << "\" has " << nentries << " sides, will be surface "
+                  << side_set_ids[i] << "\n";
       }
       HostWrite<LO> h_set_sides2elem(nentries);
       HostWrite<LO> h_set_sides2local(nentries);
@@ -676,11 +675,11 @@ void write(
             set_names[index] = name;
             if (verbose && (classify_with & exodus::NODE_SETS)) {
               std::cout << "node set " << surface_id << " will be called \""
-                << name << "\"\n";
+                        << name << "\"\n";
             }
             if (verbose && (classify_with & exodus::SIDE_SETS)) {
               std::cout << "side set " << surface_id << " will be called \""
-                << name << "\"\n";
+                        << name << "\"\n";
             }
           }
           ++index;

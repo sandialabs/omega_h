@@ -263,12 +263,12 @@ static void test_expr() {
 
 #ifdef OMEGA_H_USE_TEUCHOS
 static void test_expr2(ExprEnv& env, Teuchos::any& result,
-    std::string const& expr,
-    std::string const& test_name) {
+    std::string const& expr, std::string const& test_name) {
   ExprOpsReader reader;
   Teuchos::any any_op;
   reader.read_string(any_op, expr, test_name);
-  std::shared_ptr<ExprOp> op = Teuchos::any_cast<std::shared_ptr<ExprOp>>(any_op);
+  std::shared_ptr<ExprOp> op =
+      Teuchos::any_cast<std::shared_ptr<ExprOp>>(any_op);
   op->eval(env, result);
 }
 #endif
@@ -293,8 +293,7 @@ static void test_expr2() {
   env.register_variable("x", any(Reals({0, 1, 2, 3})));
   test_expr2(env, result, "x^2", "test4");
   OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 4, 9})));
-  env.register_variable(
-      "v", any(Reals({0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
+  env.register_variable("v", any(Reals({0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
   test_expr2(env, result, "v(1)", "test5");
   OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 2, 3})));
   test_expr2(env, result, "v - 1.5 * j", "test6");

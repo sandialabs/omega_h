@@ -27,8 +27,7 @@ void parallel_for(LO n, T const& f, char const* name = "") {
 }
 
 template <typename T>
-typename T::value_type parallel_reduce(
-    LO n, T f, char const* name = "") {
+typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
   using VT = typename T::value_type;
 #ifdef OMEGA_H_USE_KOKKOSCORE
   VT result;

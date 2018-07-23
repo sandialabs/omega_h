@@ -156,8 +156,8 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
     encoded = base64::encode(nonnull(uncompressed.data()), uncompressed_bytes);
   }
   begin_code("stream bulk");
-//stream << enc_header << encoded << '\n';
-//the following three lines are 30% faster than the above line
+  // stream << enc_header << encoded << '\n';
+  // the following three lines are 30% faster than the above line
   stream.write(enc_header.data(), std::streamsize(enc_header.length()));
   stream.write(encoded.data(), std::streamsize(encoded.length()));
   stream.write("\n", 1);

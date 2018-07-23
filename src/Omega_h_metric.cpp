@@ -322,9 +322,7 @@ Reals get_pure_implied_metrics(Mesh* mesh) {
 /* These are completely empirical estimates of the volume of
    an element in a "real" unit-edge-length mesh */
 static constexpr Real typical_unit_simplex_size(Int dim) {
-  return (dim == 3 ? 0.0838934100219 :
-         (dim == 2 ? 0.377645136635 :
-                     1.0));
+  return (dim == 3 ? 0.0838934100219 : (dim == 2 ? 0.377645136635 : 1.0));
 }
 
 static constexpr Real get_typical_over_perfect_size(Int dim) {
@@ -540,7 +538,8 @@ Reals get_complexity_per_elem(Mesh* mesh, Reals v2m) {
 
 Reals get_nelems_per_elem(Mesh* mesh, Reals v2m) {
   auto complexity = get_complexity_per_elem(mesh, v2m);
-  return multiply_each_by(complexity, 1.0 / typical_unit_simplex_size(mesh->dim()));
+  return multiply_each_by(
+      complexity, 1.0 / typical_unit_simplex_size(mesh->dim()));
 }
 
 Real get_complexity(Mesh* mesh, Reals v2m) {

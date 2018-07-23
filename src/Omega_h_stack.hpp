@@ -1,10 +1,10 @@
 #ifndef OMEGA_H_STACK_HPP
 #define OMEGA_H_STACK_HPP
 
-#include <Omega_h_timer.hpp>
 #include <Omega_h_kokkos.hpp>
-#include <vector>
+#include <Omega_h_timer.hpp>
 #include <cstring>
+#include <vector>
 
 namespace Omega_h {
 namespace perf {
@@ -45,17 +45,19 @@ struct History {
   inline const char* get_name(std::size_t frame) const {
     return names.get(frames[frame].name_ptr);
   }
-  inline std::size_t find_child_of(std::size_t parent_index, char const* name) const {
+  inline std::size_t find_child_of(
+      std::size_t parent_index, char const* name) const {
     if (parent_index == invalid) return find_root(name);
-    for (std::size_t child = frames[parent_index].first_child;
-        child != invalid; child = frames[child].next_sibling) {
+    for (std::size_t child = frames[parent_index].first_child; child != invalid;
+         child = frames[child].next_sibling) {
       if (0 == std::strcmp(get_name(child), name)) {
         return child;
       }
     }
     return invalid;
   }
-  inline std::size_t create_child_of(std::size_t parent_index, char const* name) {
+  inline std::size_t create_child_of(
+      std::size_t parent_index, char const* name) {
     if (parent_index == invalid) return create_root(name);
     auto index = frames.size();
     frames.push_back(Frame());
@@ -83,7 +85,8 @@ struct History {
   inline std::size_t find_root(char const* name) const {
     if (frames.empty()) return invalid;
     for (std::size_t i = 0; i != invalid; i = frames[i].next_sibling) {
-      if (frames[i].parent == invalid && (0 == std::strcmp(get_name(i), name))) {
+      if (frames[i].parent == invalid &&
+          (0 == std::strcmp(get_name(i), name))) {
         return i;
       }
     }
@@ -115,7 +118,8 @@ struct History {
   inline std::size_t find_or_create(char const* name) {
     return find_or_create_child_of(current_frame, name);
   }
-  inline std::size_t find_or_create_child_of(std::size_t parent_index, char const* name) {
+  inline std::size_t find_or_create_child_of(
+      std::size_t parent_index, char const* name) {
     auto found = find_child_of(parent_index, name);
     if (found != invalid) return found;
     return create_child_of(parent_index, name);
@@ -125,9 +129,7 @@ struct History {
     current_frame = id;
     return id;
   }
-  inline void pop() {
-    current_frame = frames[current_frame].parent;
-  }
+  inline void pop() { current_frame = frames[current_frame].parent; }
   inline void start(char const* const name) {
     auto id = push(name);
     frames[id].number_of_calls += 1;
@@ -156,7 +158,8 @@ History invert(History const& h);
 void print_time_sorted(History const& h);
 void print_top_down_and_bottom_up(History const& h);
 
-}}
+}  // namespace perf
+}  // namespace Omega_h
 
 namespace Omega_h {
 
@@ -187,7 +190,7 @@ struct ScopedTimer {
   ScopedTimer& operator=(ScopedTimer&&) = delete;
 };
 
-}
+}  // namespace Omega_h
 
 #define OMEGA_H_TIME_FUNCTION                                                  \
   ::Omega_h::ScopedTimer omega_h_scoped_function_timer(__FUNCTION__)

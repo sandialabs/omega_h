@@ -534,10 +534,7 @@ void eval_norm(Int dim, LO size, any& result, ExprReader::Args& args) {
 
 }  // end anonymous namespace
 
-ExprEnv::ExprEnv(LO size_in, Int dim_in)
-  :size(size_in)
-  ,dim(dim_in)
-{
+ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
   auto local_size = size;
   auto local_dim = dim;
   auto vector = [=](any& result, Args& args) {
@@ -565,7 +562,7 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in)
 void ExprEnv::register_variable(
     std::string const& name, Teuchos::any const& value) {
   OMEGA_H_TIME_FUNCTION;
-//OMEGA_H_CHECK(variables.find(name) == variables.end());
+  // OMEGA_H_CHECK(variables.find(name) == variables.end());
   OMEGA_H_CHECK(functions.find(name) == functions.end());
   variables[name] = value;
 }
@@ -573,18 +570,15 @@ void ExprEnv::register_variable(
 void ExprEnv::register_function(
     std::string const& name, Function const& value) {
   OMEGA_H_CHECK(variables.find(name) == variables.end());
-//OMEGA_H_CHECK(functions.find(name) == functions.end());
+  // OMEGA_H_CHECK(functions.find(name) == functions.end());
   functions[name] = value;
 }
 
-void ExprEnv::repeat(Teuchos::any& x) {
-  promote(size, dim, x);
-}
+void ExprEnv::repeat(Teuchos::any& x) { promote(size, dim, x); }
 
 ExprReader::ExprReader(LO size_in, Int dim_in)
-    : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables())
-    , env(size_in, dim_in) {
-}
+    : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()),
+      env(size_in, dim_in) {}
 
 ExprReader::~ExprReader() {}
 
@@ -598,9 +592,7 @@ void ExprReader::register_function(
   env.register_function(name, value);
 }
 
-void ExprReader::repeat(Teuchos::any& x) {
-  env.repeat(x);
-}
+void ExprReader::repeat(Teuchos::any& x) { env.repeat(x); }
 
 void ExprReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
@@ -704,7 +696,8 @@ void ExprReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       if (vit == env.variables.end()) {
         /* function call */
         auto fit = env.functions.find(name);
-        TEUCHOS_TEST_FOR_EXCEPTION(fit == env.functions.end(), Teuchos::ParserFail,
+        TEUCHOS_TEST_FOR_EXCEPTION(fit == env.functions.end(),
+            Teuchos::ParserFail,
             "\"" << name << "\" is neither a variable nor a function name\n");
         fit->second(result, args);
       } else {
@@ -756,37 +749,29 @@ struct ConstOp : public ExprOp {
   double value;
   OpPtr rhs;
   virtual ~ConstOp() override final = default;
-  ConstOp(double value_in)
-    :value(value_in)
-  {}
+  ConstOp(double value_in) : value(value_in) {}
   virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
 };
-void ConstOp::eval(ExprEnv&, Teuchos::any& result) {
-  result = value;
-}
+void ConstOp::eval(ExprEnv&, Teuchos::any& result) { result = value; }
 
 struct AssignOp : public ExprOp {
   std::string name;
   OpPtr rhs;
   virtual ~AssignOp() override final = default;
   AssignOp(std::string const& name_in, OpPtr rhs_in)
-    :name(name_in)
-    ,rhs(rhs_in)
-  {}
+      : name(name_in), rhs(rhs_in) {}
   virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
 };
 void AssignOp::eval(ExprEnv& env, Teuchos::any& result) {
   using std::swap;
   rhs->eval(env, result);
-  swap(env.variables[name], result); 
+  swap(env.variables[name], result);
 }
 
 struct VarOp : public ExprOp {
   std::string name;
   virtual ~VarOp() override final = default;
-  VarOp(std::string const& name_in)
-    :name(name_in)
-  {}
+  VarOp(std::string const& name_in) : name(name_in) {}
   virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
 };
 void VarOp::eval(ExprEnv& env, Teuchos::any& result) {
@@ -799,9 +784,7 @@ void VarOp::eval(ExprEnv& env, Teuchos::any& result) {
 struct NegOp : public ExprOp {
   OpPtr rhs;
   virtual ~NegOp() override final = default;
-  NegOp(OpPtr rhs_in)
-    :rhs(rhs_in)
-  {}
+  NegOp(OpPtr rhs_in) : rhs(rhs_in) {}
   virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
 };
 void NegOp::eval(ExprEnv& env, Teuchos::any& result) {
@@ -816,10 +799,7 @@ struct TernaryOp : public ExprOp {
   OpPtr rhs;
   virtual ~TernaryOp() override final = default;
   TernaryOp(OpPtr cond_in, OpPtr lhs_in, OpPtr rhs_in)
-    :cond(cond_in)
-    ,lhs(lhs_in)
-    ,rhs(rhs_in)
-  {}
+      : cond(cond_in), lhs(lhs_in), rhs(rhs_in) {}
   virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
 };
 void TernaryOp::eval(ExprEnv& env, Teuchos::any& result) {
@@ -837,8 +817,7 @@ struct CallOp : public ExprOp {
   ExprEnv::Args args;
   virtual ~CallOp() override final = default;
   CallOp(std::string const& name_in, ExprEnv::Args const& args_in)
-    :name(name_in)
-  {
+      : name(name_in) {
     for (auto& arg : args_in) {
       OpPtr op = Teuchos::any_cast<OpPtr>(arg);
       rhs.push_back(op);
@@ -867,24 +846,21 @@ void CallOp::eval(ExprEnv& env, Teuchos::any& result) {
   args.clear();
 }
 
-#define OMEGA_H_BINARY_OP(ClassName, func_call) \
-struct ClassName : public ExprOp { \
-  OpPtr lhs; \
-  OpPtr rhs; \
-  virtual ~ClassName() override final = default; \
-  ClassName(OpPtr lhs_in, OpPtr rhs_in) \
-    :lhs(lhs_in) \
-    ,rhs(rhs_in) \
-  {} \
-  virtual void eval(ExprEnv& env, Teuchos::any& result) override final; \
-}; \
-void ClassName::eval(ExprEnv& env, Teuchos::any& result) { \
-  Teuchos::any lhs_val, rhs_val; \
-  lhs->eval(env, lhs_val); \
-  rhs->eval(env, rhs_val); \
-  promote(env.size, env.dim, lhs_val, rhs_val); \
-  func_call; \
-}
+#define OMEGA_H_BINARY_OP(ClassName, func_call)                                \
+  struct ClassName : public ExprOp {                                           \
+    OpPtr lhs;                                                                 \
+    OpPtr rhs;                                                                 \
+    virtual ~ClassName() override final = default;                             \
+    ClassName(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}        \
+    virtual void eval(ExprEnv& env, Teuchos::any& result) override final;      \
+  };                                                                           \
+  void ClassName::eval(ExprEnv& env, Teuchos::any& result) {                   \
+    Teuchos::any lhs_val, rhs_val;                                             \
+    lhs->eval(env, lhs_val);                                                   \
+    rhs->eval(env, rhs_val);                                                   \
+    promote(env.size, env.dim, lhs_val, rhs_val);                              \
+    func_call;                                                                 \
+  }
 
 OMEGA_H_BINARY_OP(OrOp, eval_or(result, lhs_val, rhs_val));
 OMEGA_H_BINARY_OP(AndOp, eval_and(result, lhs_val, rhs_val));
@@ -899,16 +875,16 @@ OMEGA_H_BINARY_OP(PowOp, eval_pow(env.dim, result, lhs_val, rhs_val));
 
 #undef OMEGA_H_BINARY_OP
 
-#define OMEGA_H_BINARY_REDUCE(ClassName) { \
-OpPtr lhs_op = Teuchos::any_cast<OpPtr>(rhs.at(0)); \
-OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(3)); \
-OpPtr result_op(new ClassName(lhs_op, rhs_op)); \
-result = result_op; \
-}
+#define OMEGA_H_BINARY_REDUCE(ClassName)                                       \
+  {                                                                            \
+    OpPtr lhs_op = Teuchos::any_cast<OpPtr>(rhs.at(0));                        \
+    OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(3));                        \
+    OpPtr result_op(new ClassName(lhs_op, rhs_op));                            \
+    result = result_op;                                                        \
+  }
 
 ExprOpsReader::ExprOpsReader()
-    : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()) {
-}
+    : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()) {}
 
 void ExprOpsReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
@@ -966,8 +942,7 @@ void ExprOpsReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(6));
       OpPtr result_op(new TernaryOp(cond_op, lhs_op, rhs_op));
       result = result_op;
-      }
-      break;
+    } break;
     case Teuchos::MathExpr::PROD_OR:
       OMEGA_H_BINARY_REDUCE(OrOp);
       break;
@@ -1029,8 +1004,7 @@ void ExprOpsReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
       OpPtr rhs_op = Teuchos::any_cast<OpPtr>(rhs.at(2));
       OpPtr result_op(new NegOp(rhs_op));
       result = result_op;
-      }
-      break;
+    } break;
     case Teuchos::MathExpr::PROD_VAL_PARENS:
     case Teuchos::MathExpr::PROD_BOOL_PARENS:
       swap(result, rhs.at(2));

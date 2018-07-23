@@ -22,9 +22,7 @@ namespace Omega_h {
 #ifdef OMEGA_H_THROW
 exception::exception(std::string const& msg_in) : msg(msg_in) {}
 
-const char* exception::what() const noexcept {
-  return msg.c_str();
-}
+const char* exception::what() const noexcept { return msg.c_str(); }
 #endif
 
 static void print_stacktrace(std::ostream& out, int max_frames) {
@@ -66,14 +64,14 @@ static struct {
     {SIGABRT, "abort"}, {SIGTERM, "termination"},
     {SIGSEGV, "segmentation fault"}, {SIGINT, "interrupt"},
     {SIGILL, "illegal instruction"}, {SIGFPE, "floating point exception"}};
-constexpr std::size_t NSIGS = (sizeof(known_signals) / sizeof(known_signals[0]));
+constexpr std::size_t NSIGS =
+    (sizeof(known_signals) / sizeof(known_signals[0]));
 
 void protect() {
   for (std::size_t i = 0; i < NSIGS; ++i) {
     signal(known_signals[i].code, Omega_h_signal_handler);
   }
 }
-
 }
 
 extern "C" void Omega_h_signal_handler(int s) {

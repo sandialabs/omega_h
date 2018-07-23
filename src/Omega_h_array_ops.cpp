@@ -623,7 +623,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \
   template bool is_sorted(Read<T> a);                                          \
-  template Read<T> interleave(std::vector<Read<T>> arrays); \
+  template Read<T> interleave(std::vector<Read<T>> arrays);                    \
   template Read<T> coalesce(std::vector<Read<T>> arrays);
 
 INST(I8)

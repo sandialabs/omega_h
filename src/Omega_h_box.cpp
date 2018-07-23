@@ -117,7 +117,8 @@ static void classify_box_dim(
     auto x = get_vector<dim>(centroids, i);
     Int id = 0;
     Int class_dim = 0;
-    // the following copy is a workaround for a GCC 8.1.1 error that looks like a bug
+    // the following copy is a workaround for a GCC 8.1.1 error that looks like
+    // a bug
     const Vector<3> l2 = l;
     for (Int j = dim - 1; j >= 0; --j) {
       id *= 3;

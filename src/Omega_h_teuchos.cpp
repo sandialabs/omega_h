@@ -273,16 +273,14 @@ void echo_parameters(std::ostream& stream, Teuchos::ParameterList const& pl) {
   stream.copyfmt(saved_state);
 }
 
-void update_class_sets(ClassSets* p_sets,
-    Teuchos::ParameterList& pl) {
+void update_class_sets(ClassSets* p_sets, Teuchos::ParameterList& pl) {
   ClassSets& sets = *p_sets;
-  for (auto it = pl.begin(), end = pl.end(); it != end;
-       ++it) {
+  for (auto it = pl.begin(), end = pl.end(); it != end; ++it) {
     auto set_name = pl.name(it);
     auto pairs = pl.get<Teuchos::TwoDArray<int>>(set_name);
     if (pairs.getNumCols() != 2) {
-      Omega_h_fail("Expected \"%s\" to be an array of int pairs\n",
-          set_name.c_str());
+      Omega_h_fail(
+          "Expected \"%s\" to be an array of int pairs\n", set_name.c_str());
     }
     auto npairs = pairs.getNumRows();
     for (decltype(npairs) i = 0; i < npairs; ++i) {

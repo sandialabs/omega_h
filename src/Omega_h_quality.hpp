@@ -7,7 +7,8 @@ namespace Omega_h {
 
 template <Int dim>
 OMEGA_H_INLINE Real mean_ratio(Real size, Real mean_squared_length) {
-  return power<2, dim>(size / equilateral_simplex_size(dim)) / mean_squared_length;
+  return power<2, dim>(size / equilateral_simplex_size(dim)) /
+         mean_squared_length;
 }
 
 /* note that we will always use a constant metric tensor over the whole
