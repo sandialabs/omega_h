@@ -507,30 +507,17 @@ OMEGA_H_INLINE Matrix<2, 2> form_ortho_basis(Vector<2> v) {
   return A;
 }
 
+/* Duff, Tom, et al.
+   "Building an orthonormal basis, revisited."
+   Journal of Computer Graphics Techniques Vol 6.1 (2017). */
 OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   Matrix<3, 3> A;
   A[0] = v;
-  /* tiny custom code to sort components by absolute value */
-  struct {
-    Int i;
-    Real m;
-  } s[3] = {{0, std::abs(v[0])}, {1, std::abs(v[1])}, {2, std::abs(v[2])}};
-  if (s[2].m > s[1].m) swap2(s[1], s[2]);
-  if (s[1].m > s[0].m) swap2(s[0], s[1]);
-  if (s[2].m > s[1].m) swap2(s[1], s[2]);
-  /* done, components sorted by increasing magnitude */
-  Int lc = s[0].i;
-  Int mc = s[1].i;
-  Int sc = s[2].i;
-  /* use the 2D rotation on the largest components
-     (rotate v around the smallest axis) */
-  A[1][lc] = -v[mc];
-  A[1][mc] = v[lc];
-  /* and make the last component zero so that A[0] * A[1] == 0 */
-  A[1][sc] = 0;
-  A[1] = normalize(A[1]);
-  /* now we have 2 orthogonal unit vectors, cross product gives the third */
-  A[2] = cross(A[0], A[1]);
+  auto sign = std::copysign(1.0, v(2));
+  const auto a = -1.0 / (sign + v(2));
+  const auto b = v(0) * v(1) * a;
+  A[1] = vector_3(1.0 + sign * v(0) * v(0) * a, sign * b, -sign * v(0));
+  A[2] = vector_3(b, sign + v(1) * v(1) * a, -v(1));
   return A;
 }
 
