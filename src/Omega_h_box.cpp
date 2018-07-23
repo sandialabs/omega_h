@@ -117,12 +117,9 @@ static void classify_box_dim(
     auto x = get_vector<dim>(centroids, i);
     Int id = 0;
     Int class_dim = 0;
-    // the following copy is a workaround for a GCC 8.1.1 error that looks like
-    // a bug
-    const Vector<3> l2 = l;
     for (Int j = dim - 1; j >= 0; --j) {
       id *= 3;
-      if (x[j] > (l2[j] - dists[j])) {
+      if (x[j] > (l[j] - dists[j])) {
         /* case 1: point lies on the upper boundary */
         id += 2;
       } else if (x[j] > dists[j]) {
