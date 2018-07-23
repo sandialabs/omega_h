@@ -367,6 +367,38 @@ static void read_tag(
   }
 }
 
+static void write_sets(std::ostream& stream, Mesh* mesh) {
+  auto n = I32(mesh->class_sets.size());
+  write_value(stream, n);
+  for (auto& set : mesh->class_sets) {
+    auto& name = set.first;
+    write(stream, name);
+    auto npairs = I32(set.second.size());
+    write_value(stream, npairs);
+    for (auto& pair : set.second) {
+      write_value(stream, pair.dim);
+      write_value(stream, pair.id);
+    }
+  }
+}
+
+static void read_sets(std::istream& stream, Mesh* mesh) {
+  I32 n;
+  read_value(stream, n);
+  for (I32 i = 0; i < n; ++i) {
+    std::string name;
+    read(stream, name);
+    I32 npairs;
+    read_value(stream, npairs);
+    for (I32 j = 0; j < npairs; ++j) {
+      ClassPair pair;
+      read_value(stream, pair.dim);
+      read_value(stream, pair.id);
+      mesh->class_sets[name].push_back(pair);
+    }
+  }
+}
+
 void write(std::ostream& stream, Mesh* mesh) {
   begin_code("binary::write(stream,Mesh)");
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
@@ -399,6 +431,7 @@ void write(std::ostream& stream, Mesh* mesh) {
       write_array(stream, owners.idxs);
     }
   }
+  write_sets(stream, mesh);
   end_code();
 }
 
@@ -439,6 +472,9 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
       read_array(stream, owners.idxs, is_compressed);
       mesh->set_owners(d, owners);
     }
+  }
+  if (version >= 8) {
+    read_sets(stream, mesh);
   }
 }
 
