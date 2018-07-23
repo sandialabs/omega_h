@@ -39,8 +39,6 @@ void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
 void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
     std::string* vtupath_out, Int* nghost_layers_out);
 
-void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh);
-
 void read_pvd(std::istream& stream, std::vector<Real>* times_out,
     std::vector<std::string>* pvtupaths_out);
 

@@ -648,4 +648,48 @@ Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
   return h_a.write();
 }
 
+Mesh read_mesh_file(std::string const& path, CommPtr comm) {
+  if (ends_with(path, ".osh")) {
+    return binary::read(path, comm);
+  } else
+#ifdef OMEGA_H_USE_LIBMESHB
+  if (ends_with(path, ".meshb")) {
+    Mesh mesh(comm->library());
+    meshb::read(&mesh, path);
+    mesh.set_comm(comm);
+    return mesh;
+  } else
+#endif
+#ifdef OMEGA_H_USE_SEACASEXODUS
+  if (ends_with(path, ".exo") || ends_with(path, ".e") ||
+      ends_with(path, ".g")) {
+    Mesh mesh(comm->library());
+    auto file = exodus::open(path);
+    exodus::read_mesh(file, &mesh);
+    mesh.set_comm(comm);
+    return mesh;
+  } else
+#endif
+  if (ends_with(path, ".msh")) {
+    return gmsh::read(path, comm);
+  } else
+  if (ends_with(path, ".pvtu")) {
+    Mesh mesh(comm->library());
+    vtk::read_parallel(path, comm, &mesh);
+    mesh.set_comm(comm);
+    return mesh;
+  } else
+  if (ends_with(path, ".vtu")) {
+    Mesh mesh(comm->library());
+    std::ifstream stream(path.c_str());
+    OMEGA_H_CHECK(stream.is_open());
+    vtk::read_vtu(stream, comm, &mesh);
+    return mesh;
+  } else
+  {
+    Omega_h_fail("Unknown file extension on \"%s\"\n",
+        path.c_str());
+  }
+}
+
 }  // end namespace Omega_h
