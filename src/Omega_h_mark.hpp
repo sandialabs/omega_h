@@ -4,10 +4,9 @@
 #include <vector>
 
 #include <Omega_h_array.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
-
-class Mesh;
 
 Read<I8> mark_down(
     Mesh* mesh, Int high_dim, Int low_dim, Read<I8> marked_highs);
