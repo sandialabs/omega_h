@@ -170,7 +170,8 @@ struct Rb_tree_iterator : public Rb_tree_base_iterator
 
   Rb_tree_iterator() {}
   Rb_tree_iterator(Link_type x) { M_node = x; }
-  Rb_tree_iterator(const iterator& it) { M_node = it.M_node; }
+  Rb_tree_iterator(const Self&) = default;
+  Rb_tree_iterator& operator=(Rb_tree_iterator const&) = default;
 
   reference operator*() const { return Link_type(M_node)->M_value_field; }
   pointer operator->() const { return &(operator*()); }
@@ -524,11 +525,11 @@ protected:
     { return (x->M_color); }
 
   static Link_type& S_left(Base_ptr x)
-    { return static_cast<Link_type&>(x->M_left); }
+    { return (Link_type&)(x->M_left); }
   static Link_type& S_right(Base_ptr x)
-    { return static_cast<Link_type&>(x->M_right); }
+    { return (Link_type&)(x->M_right); }
   static Link_type& S_parent(Base_ptr x)
-    { return static_cast<Link_type&>(x->M_parent); }
+    { return (Link_type&)(x->M_parent); }
   static reference S_value(Base_ptr x)
     { return Link_type(x)->M_value_field; }
   static const Key& S_key(Base_ptr x)
@@ -611,16 +612,12 @@ public:
 
 public:
                                 // insert/erase
-  std::pair<iterator,bool> insert_unique(const value_type& x);
-  iterator insert_equal(const value_type& x);
+  std::pair<iterator,bool> insert(const value_type& x);
 
-  iterator insert_unique(iterator position, const value_type& x);
-  iterator insert_equal(iterator position, const value_type& x);
+  iterator insert(iterator position, const value_type& x);
 
   template <class InputIterator>
-  void insert_unique(InputIterator first, InputIterator last);
-  template <class InputIterator>
-  void insert_equal(InputIterator first, InputIterator last);
+  void insert(InputIterator first, InputIterator last);
 
   void erase(iterator position);
   size_type erase(const key_type& x);
@@ -733,26 +730,10 @@ Rb_tree<Key,Value,KeyOfValue,Compare>
 
 template <class Key, class Value, class KeyOfValue,
           class Compare>
-typename Rb_tree<Key,Value,KeyOfValue,Compare>::iterator
-Rb_tree<Key,Value,KeyOfValue,Compare>
-  ::insert_equal(const Value& v)
-{
-  Link_type y = M_header;
-  Link_type x = M_root();
-  while (x != nullptr) {
-    y = x;
-    x = M_key_compare(KeyOfValue()(v), S_key(x)) ?
-            S_left(x) : S_right(x);
-  }
-  return M_insert(x, y, v);
-}
-
-template <class Key, class Value, class KeyOfValue,
-          class Compare>
 std::pair<typename Rb_tree<Key,Value,KeyOfValue,Compare>::iterator,
      bool>
 Rb_tree<Key,Value,KeyOfValue,Compare>
-  ::insert_unique(const Value& v)
+  ::insert(const Value& v)
 {
   Link_type y = M_header;
   Link_type x = M_root();
@@ -781,7 +762,7 @@ template <class Key, class Val, class KeyOfValue,
           class Compare>
 typename Rb_tree<Key, Val, KeyOfValue, Compare>::iterator
 Rb_tree<Key, Val, KeyOfValue, Compare>
-  ::insert_unique(iterator position, const Val& v)
+  ::insert(iterator position, const Val& v)
 {
   if (position.M_node == M_header->M_left) { // begin()
     if (size() > 0 &&
@@ -789,75 +770,33 @@ Rb_tree<Key, Val, KeyOfValue, Compare>
       return M_insert(position.M_node, position.M_node, v);
     // first argument just needs to be non-null
     else
-      return insert_unique(v).first;
+      return insert(v).first;
   } else if (position.M_node == M_header) { // end()
     if (M_key_compare(S_key(M_rightmost()), KeyOfValue()(v)))
-      return M_insert(0, M_rightmost(), v);
+      return M_insert(nullptr, M_rightmost(), v);
     else
-      return insert_unique(v).first;
+      return insert(v).first;
   } else {
     iterator before = position;
     --before;
     if (M_key_compare(S_key(before.M_node), KeyOfValue()(v))
         && M_key_compare(KeyOfValue()(v), S_key(position.M_node))) {
       if (S_right(before.M_node) == nullptr)
-        return M_insert(0, before.M_node, v);
+        return M_insert(nullptr, before.M_node, v);
       else
         return M_insert(position.M_node, position.M_node, v);
     // first argument just needs to be non-null
     } else
-      return insert_unique(v).first;
-  }
-}
-
-template <class Key, class Val, class KeyOfValue,
-          class Compare>
-typename Rb_tree<Key,Val,KeyOfValue,Compare>::iterator
-Rb_tree<Key,Val,KeyOfValue,Compare>
-  ::insert_equal(iterator position, const Val& v)
-{
-  if (position.M_node == M_header->M_left) { // begin()
-    if (size() > 0 &&
-        !M_key_compare(S_key(position.M_node), KeyOfValue()(v)))
-      return M_insert(position.M_node, position.M_node, v);
-    // first argument just needs to be non-null
-    else
-      return insert_equal(v);
-  } else if (position.M_node == M_header) {// end()
-    if (!M_key_compare(KeyOfValue()(v), S_key(M_rightmost())))
-      return M_insert(0, M_rightmost(), v);
-    else
-      return insert_equal(v);
-  } else {
-    iterator before = position;
-    --before;
-    if (!M_key_compare(KeyOfValue()(v), S_key(before.M_node))
-        && !M_key_compare(S_key(position.M_node), KeyOfValue()(v))) {
-      if (S_right(before.M_node) == nullptr)
-        return M_insert(0, before.M_node, v);
-      else
-        return M_insert(position.M_node, position.M_node, v);
-    // first argument just needs to be non-null
-    } else
-      return insert_equal(v);
+      return insert(v).first;
   }
 }
 
 template <class Key, class Val, class KeyOfValue, class Cmp>
   template<class II>
 void Rb_tree<Key,Val,KeyOfValue,Cmp>
-  ::insert_equal(II first, II last)
-{
+  ::insert(II first, II last) {
   for ( ; first != last; ++first)
-    insert_equal(*first);
-}
-
-template <class Key, class Val, class KeyOfValue, class Cmp>
-  template<class II>
-void Rb_tree<Key,Val,KeyOfValue,Cmp>
-  ::insert_unique(II first, II last) {
-  for ( ; first != last; ++first)
-    insert_unique(*first);
+    insert(*first);
 }
 
 template <class Key, class Value, class KeyOfValue,
@@ -1117,7 +1056,15 @@ struct Rb_first_as_key {
 };
 
 template <class Key, class Value>
-using map = rb_tree<Key, std::pair<Key, Value>, Rb_first_as_key<Key, Value>>;
+struct map : public rb_tree<Key, std::pair<Key, Value>, Rb_first_as_key<Key, Value>> {
+  Value& operator[](const Key& key) {
+    auto it = this->upper_bound(key);
+    if (it == this->end() || (!(it->first == key))) {
+      it = this->insert(it, std::make_pair(key, Value()));
+    }
+    return it->second;
+  }
+};
 
 }
 
