@@ -111,6 +111,7 @@ struct Rb_tree_base_iterator
 {
   typedef Rb_tree_node_base::Base_ptr Base_ptr;
   typedef std::ptrdiff_t difference_type;
+  using iterator_category = std::bidirectional_iterator_tag;
   Base_ptr M_node;
 
   void M_increment()
@@ -496,18 +497,18 @@ protected:
   Compare M_key_compare;
 
   Link_type& M_root() const
-    { return M_header->M_parent; }
+    { return reinterpret_cast<Link_type&>(M_header->M_parent); }
   Link_type& M_leftmost() const
-    { return M_header->M_left; }
+    { return reinterpret_cast<Link_type&>(M_header->M_left); }
   Link_type& M_rightmost() const
-    { return M_header->M_right; }
+    { return reinterpret_cast<Link_type&>(M_header->M_right); }
 
   static Link_type& S_left(Link_type x)
-    { return static_cast<Link_type&>(x->M_left); }
+    { return reinterpret_cast<Link_type&>(x->M_left); }
   static Link_type& S_right(Link_type x)
-    { return static_cast<Link_type&>(x->M_right); }
+    { return reinterpret_cast<Link_type&>(x->M_right); }
   static Link_type& S_parent(Link_type x)
-    { return static_cast<Link_type&>(x->M_parent); }
+    { return reinterpret_cast<Link_type&>(x->M_parent); }
   static reference S_value(Link_type x)
     { return x->M_value_field; }
   static const Key& S_key(Link_type x)
@@ -690,8 +691,8 @@ typename Rb_tree<Key,Value,KeyOfValue,Compare>::iterator
 Rb_tree<Key,Value,KeyOfValue,Compare>
   ::M_insert(Base_ptr x_, Base_ptr y_, const Value& v)
 {
-  Link_type x = x_;
-  Link_type y = y_;
+  Link_type x = Link_type(x_);
+  Link_type y = Link_type(y_);
   Link_type z;
 
   if (y == M_header || x != nullptr ||
