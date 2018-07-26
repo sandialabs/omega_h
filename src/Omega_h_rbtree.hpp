@@ -59,6 +59,7 @@ iterators invalidated are those referring to the deleted node.
 #include <utility>
 #include <cstdlib>
 #include <functional>
+#include <iterator>
 
 namespace Omega_h {
 
@@ -198,22 +199,12 @@ inline bool operator!=(const Rb_tree_base_iterator& x,
   return x.M_node != y.M_node;
 }
 
-inline Rb_tree_base_iterator::difference_type*
-distance_type(const Rb_tree_base_iterator&) {
-  return (Rb_tree_base_iterator::difference_type*) 0;
-}
-
-template <class Value, class Ref, class Ptr>
-inline Value* value_type(const Rb_tree_iterator<Value, Ref, Ptr>&) {
-  return (Value*) 0;
-}
-
 inline void
 Rb_tree_rotate_left(Rb_tree_node_base* x, Rb_tree_node_base*& root)
 {
   Rb_tree_node_base* y = x->M_right;
   x->M_right = y->M_left;
-  if (y->M_left !=0)
+  if (y->M_left != nullptr)
     y->M_left->M_parent = x;
   y->M_parent = x->M_parent;
 
@@ -505,43 +496,43 @@ protected:
   Compare M_key_compare;
 
   Link_type& M_root() const
-    { return (Link_type&) M_header->M_parent; }
+    { return M_header->M_parent; }
   Link_type& M_leftmost() const
-    { return (Link_type&) M_header->M_left; }
+    { return M_header->M_left; }
   Link_type& M_rightmost() const
-    { return (Link_type&) M_header->M_right; }
+    { return M_header->M_right; }
 
   static Link_type& S_left(Link_type x)
-    { return (Link_type&)(x->M_left); }
+    { return static_cast<Link_type&>(x->M_left); }
   static Link_type& S_right(Link_type x)
-    { return (Link_type&)(x->M_right); }
+    { return static_cast<Link_type&>(x->M_right); }
   static Link_type& S_parent(Link_type x)
-    { return (Link_type&)(x->M_parent); }
+    { return static_cast<Link_type&>(x->M_parent); }
   static reference S_value(Link_type x)
     { return x->M_value_field; }
   static const Key& S_key(Link_type x)
     { return KeyOfValue()(S_value(x)); }
   static Color_type& S_color(Link_type x)
-    { return (Color_type&)(x->M_color); }
+    { return (x->M_color); }
 
   static Link_type& S_left(Base_ptr x)
-    { return (Link_type&)(x->M_left); }
+    { return static_cast<Link_type&>(x->M_left); }
   static Link_type& S_right(Base_ptr x)
-    { return (Link_type&)(x->M_right); }
+    { return static_cast<Link_type&>(x->M_right); }
   static Link_type& S_parent(Base_ptr x)
-    { return (Link_type&)(x->M_parent); }
+    { return static_cast<Link_type&>(x->M_parent); }
   static reference S_value(Base_ptr x)
-    { return ((Link_type)x)->M_value_field; }
+    { return Link_type(x)->M_value_field; }
   static const Key& S_key(Base_ptr x)
     { return KeyOfValue()(S_value(Link_type(x)));}
   static Color_type& S_color(Base_ptr x)
-    { return (Color_type&)(Link_type(x)->M_color); }
+    { return Link_type(x)->M_color; }
 
   static Link_type S_minimum(Link_type x)
-    { return (Link_type)  Rb_tree_node_base::S_minimum(x); }
+    { return Rb_tree_node_base::S_minimum(x); }
 
   static Link_type S_maximum(Link_type x)
-    { return (Link_type) Rb_tree_node_base::S_maximum(x); }
+    { return Rb_tree_node_base::S_maximum(x); }
 
 public:
   typedef Rb_tree_iterator<value_type, reference, pointer> iterator;
@@ -699,8 +690,8 @@ typename Rb_tree<Key,Value,KeyOfValue,Compare>::iterator
 Rb_tree<Key,Value,KeyOfValue,Compare>
   ::M_insert(Base_ptr x_, Base_ptr y_, const Value& v)
 {
-  Link_type x = (Link_type) x_;
-  Link_type y = (Link_type) y_;
+  Link_type x = x_;
+  Link_type y = y_;
   Link_type z;
 
   if (y == M_header || x != nullptr ||
@@ -864,7 +855,7 @@ inline void Rb_tree<Key,Value,KeyOfValue,Compare>
   ::erase(iterator position)
 {
   Link_type y =
-    (Link_type) Rb_tree_rebalance_for_erase(position.M_node,
+     Rb_tree_rebalance_for_erase(position.M_node,
                                               M_header->M_parent,
                                               M_header->M_left,
                                               M_header->M_right);
@@ -878,8 +869,7 @@ typename Rb_tree<Key,Value,KeyOfValue,Compare>::size_type
 Rb_tree<Key,Value,KeyOfValue,Compare>::erase(const Key& x)
 {
   std::pair<iterator,iterator> p = equal_range(x);
-  size_type n = 0;
-  distance(p.first, p.second, n);
+  size_type n = size_type(std::distance(p.first, p.second));
   erase(p.first, p.second);
   return n;
 }
@@ -993,9 +983,7 @@ Rb_tree<Key,Value,KeyOfValue,Compare>
   ::count(const Key& k) const
 {
   std::pair<const_iterator, const_iterator> p = equal_range(k);
-  size_type n = 0;
-  distance(p.first, p.second, n);
-  return n;
+  return size_type(std::distance(p.first, p.second));
 }
 
 template <class Key, class Value, class KeyOfValue,
@@ -1100,7 +1088,8 @@ struct rb_tree : public Rb_tree<Key, Value, KeyOfValue, Compare>
   rb_tree(const Compare& comp = Compare())
     : Base(comp) {}
 
-  ~rb_tree() {}
+  rb_tree(rb_tree const&) = default;
+  ~rb_tree() = default;
 };
 
 template <class T>
