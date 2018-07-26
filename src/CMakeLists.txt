@@ -437,6 +437,7 @@ set(Omega_h_HEADERS
   Omega_h_amr.hpp
   Omega_h_stack.hpp
   Omega_h_owners.hpp
+  Omega_h_rbtree.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
