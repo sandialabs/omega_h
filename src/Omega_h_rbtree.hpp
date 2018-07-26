@@ -428,7 +428,7 @@ template <class Tp>
 struct Rb_tree_base
 {
   Rb_tree_base()
-    : M_header(0) { M_header = M_get_node(); }
+    : M_header(nullptr) { M_header = M_get_node(); }
   ~Rb_tree_base() { M_put_node(M_header); }
 
 protected:
@@ -496,19 +496,26 @@ protected:
   size_type M_node_count; // keeps track of size of tree
   Compare M_key_compare;
 
+// although the following casts may technically break aliasing rules,
+// they provide an excellent separation of the generic tree code (base)
+// from the specific value type selected by the user
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wold-style-cast"
+#endif
   Link_type& M_root() const
-    { return reinterpret_cast<Link_type&>(M_header->M_parent); }
+    { return (Link_type&)(M_header->M_parent); }
   Link_type& M_leftmost() const
-    { return reinterpret_cast<Link_type&>(M_header->M_left); }
+    { return (Link_type&)(M_header->M_left); }
   Link_type& M_rightmost() const
-    { return reinterpret_cast<Link_type&>(M_header->M_right); }
+    { return (Link_type&)(M_header->M_right); }
 
   static Link_type& S_left(Link_type x)
-    { return reinterpret_cast<Link_type&>(x->M_left); }
+    { return (Link_type&)(x->M_left); }
   static Link_type& S_right(Link_type x)
-    { return reinterpret_cast<Link_type&>(x->M_right); }
+    { return (Link_type&)(x->M_right); }
   static Link_type& S_parent(Link_type x)
-    { return reinterpret_cast<Link_type&>(x->M_parent); }
+    { return (Link_type&)(x->M_parent); }
   static reference S_value(Link_type x)
     { return x->M_value_field; }
   static const Key& S_key(Link_type x)
@@ -528,12 +535,15 @@ protected:
     { return KeyOfValue()(S_value(Link_type(x)));}
   static Color_type& S_color(Base_ptr x)
     { return Link_type(x)->M_color; }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
   static Link_type S_minimum(Link_type x)
-    { return Rb_tree_node_base::S_minimum(x); }
+    { return static_cast<Link_type>(Rb_tree_node_base::S_minimum(x)); }
 
   static Link_type S_maximum(Link_type x)
-    { return Rb_tree_node_base::S_maximum(x); }
+    { return static_cast<Link_type>(Rb_tree_node_base::S_maximum(x)); }
 
 public:
   typedef Rb_tree_iterator<value_type, reference, pointer> iterator;
