@@ -34,6 +34,8 @@ void check_unused(Teuchos::ParameterList const& pl);
 
 void echo_parameters(std::ostream& stream, Teuchos::ParameterList const& pl);
 
+void update_class_sets(ClassSets* p_sets, Teuchos::ParameterList& pl);
+
 void update_assoc(Assoc* p_assoc, Teuchos::ParameterList& pl);
 
 void update_tag_set(TagSet* p_tags, Int dim, Teuchos::ParameterList& pl);
