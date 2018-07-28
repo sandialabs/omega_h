@@ -92,7 +92,11 @@ set(Omega_h_SOURCES
   Omega_h_shared_alloc.cpp
   )
 
-if (NOT Omega_h_USE_CUDA)
+if (Omega_h_USE_CUDA)
+  if (NOT Omega_h_USE_KokkosCore)
+    set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_for.cpp)
+  endif()
+else()
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_overlay.cpp)
 endif()
 
