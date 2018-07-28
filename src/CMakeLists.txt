@@ -417,6 +417,7 @@ set(Omega_h_HEADERS
   Omega_h_few.hpp
   Omega_h_mark.hpp
   Omega_h_loop.hpp
+  Omega_h_reduce.hpp
   Omega_h_timer.hpp
   Omega_h_eigen.hpp
   Omega_h_lie.hpp

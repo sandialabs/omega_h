@@ -30,23 +30,6 @@ void parallel_for(LO n, T const& f, char const* name = "") {
 }
 
 template <typename T>
-typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
-  using VT = typename T::value_type;
-#ifdef OMEGA_H_USE_KOKKOSCORE
-  VT result;
-  f.init(result);
-  if (n > 0) Kokkos::parallel_reduce(name, policy(n), f, result);
-#else
-  begin_code(name);
-  VT result;
-  f.init(result);
-  for (LO i = 0; i < n; ++i) f(i, result);
-  end_code();
-#endif
-  return result;
-}
-
-template <typename T>
 void parallel_scan(LO n, T f, char const* name = "") {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (n > 0) Kokkos::parallel_scan(name, policy(n), f);

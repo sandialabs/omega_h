@@ -1,6 +1,7 @@
 #include "Omega_h_array_ops.hpp"
 
 #include "Omega_h_loop.hpp"
+#include "Omega_h_reduce.hpp"
 
 namespace Omega_h {
 
