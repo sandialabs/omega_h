@@ -1,7 +1,7 @@
 #include <Omega_h_amr_topology.hpp>
 #include <Omega_h_array_ops.hpp>
 #include <Omega_h_hypercube.hpp>
-#include <Omega_h_loop.hpp>
+#include <Omega_h_for.hpp>
 #include <Omega_h_mark.hpp>
 #include <Omega_h_mesh.hpp>
 

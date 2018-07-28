@@ -1,6 +1,6 @@
 #include "Omega_h_shape.hpp"
 
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 
 namespace Omega_h {
 

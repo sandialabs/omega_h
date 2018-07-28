@@ -7,7 +7,7 @@
 
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #include "Omega_h_library.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #endif
 
 #include "Omega_h_map.hpp"

@@ -1,5 +1,5 @@
 #include "Omega_h_matrix.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 
 namespace Omega_h {
 

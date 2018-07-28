@@ -1,7 +1,7 @@
 #include <Omega_h_amr.hpp>
 #include <Omega_h_amr_transfer.hpp>
 #include <Omega_h_hypercube.hpp>
-#include <Omega_h_loop.hpp>
+#include <Omega_h_for.hpp>
 #include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_transfer.hpp>

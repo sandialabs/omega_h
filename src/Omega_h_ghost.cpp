@@ -1,6 +1,6 @@
 #include "Omega_h_ghost.hpp"
 
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_migrate.hpp"

@@ -2,7 +2,7 @@
 
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
