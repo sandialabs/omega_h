@@ -3,8 +3,6 @@
 
 #include <Omega_h_config.h>
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
-
 #include <Omega_h_macros.h>
 
 OMEGA_H_SYSTEM_HEADER
@@ -23,7 +21,5 @@ OMEGA_H_SYSTEM_HEADER
 #if defined(KOKKOS_HAVE_CUDA) && !defined(OMEGA_H_USE_CUDA)
 #error "Kokkos has CUDA, please reconfigure with Omega_h_USE_CUDA=ON"
 #endif
-
-#endif  // OMEGA_H_USE_KOKKOSCORE
 
 #endif

@@ -4,6 +4,10 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_stack.hpp>
 
+#ifdef OMEGA_H_USE_KOKKOSCORE
+#include <Omega_h_kokkos.hpp>
+#endif
+
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
