@@ -1,7 +1,6 @@
 #ifndef OMEGA_H_HYPERCUBE_HPP
 #define OMEGA_H_HYPERCUBE_HPP
 
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_template_up.hpp>
 
 /*! \file Omega_h_hypercube.hpp

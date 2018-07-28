@@ -1,7 +1,6 @@
 #ifndef OMEGA_H_R3D_HPP
 #define OMEGA_H_R3D_HPP
 
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_vector.hpp>
 
 #ifdef OMEGA_H_USE_CUDA

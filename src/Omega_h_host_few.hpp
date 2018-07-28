@@ -4,7 +4,6 @@
 #include <initializer_list>
 
 #include <Omega_h_defines.hpp>
-#include <Omega_h_kokkos.hpp>
 
 namespace Omega_h {
 

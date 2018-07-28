@@ -3,7 +3,6 @@
 
 #include <random123/philox.h>
 #include <Omega_h_few.hpp>
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_scalar.hpp>
 #include <Omega_h_vector.hpp>
 
