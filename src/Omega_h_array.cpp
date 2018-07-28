@@ -33,12 +33,12 @@ Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
 
 template <typename T>
 Write<T>::Write(LO size_in, std::string const& name_in) {
-  begin_code("Write(size,name)");
+  begin_code("Write allocation");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
 #else
-  tracker_ = decltype(tracker_)(new SharedAlloc<T>());
+  tracker_ = decltype(tracker_)(new SharedAlloc2<T>());
   tracker_->name = name_in;
   ptr_ = new T[size_in];
   tracker_->ptr = decltype(tracker_->ptr)(ptr_);

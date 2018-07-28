@@ -1,7 +1,22 @@
+#ifndef OMEGA_H_SHARED_ALLOC_HPP
+#define OMEGA_H_SHARED_ALLOC_HPP
+
+#include <cstddef>
+#include <string>
+#include <vector>
+#include <Omega_h_macros.h>
+
+namespace Omega_h {
+
+class Library;
+
 struct Allocs;
 
 extern bool entering_parallel;
-extern Allocs* global_allocations;
+extern Allocs* global_allocs;
+
+void start_tracking_allocations();
+void stop_tracking_allocations(Library* lib);
 
 struct Alloc {
   std::size_t size;
@@ -10,8 +25,8 @@ struct Alloc {
   int use_count;
   Alloc* prev;
   Alloc* next;
-  Alloc(std::string const& name_in, std::size_t size_in);
-  Alloc(std::string&& name_in, std::size_t size_in);
+  Alloc(std::size_t size_in, std::string const& name_in);
+  Alloc(std::size_t size_in, std::string&& name_in);
   ~Alloc();
   Alloc(Alloc const&) = delete;
   Alloc(Alloc&&) = delete;
@@ -36,17 +51,17 @@ struct Allocs {
 struct SharedAlloc {
   Alloc* alloc;
   void* direct_ptr;
-  SharedAlloc();
+  OMEGA_H_INLINE SharedAlloc():alloc(nullptr),direct_ptr(nullptr) {}
   SharedAlloc(std::size_t size_in, std::string const& name_in);
   SharedAlloc(std::size_t size_in, std::string&& name_in);
   SharedAlloc(std::size_t size_in);
   enum : std::uintptr_t {
-    FREE_BIT1   = 0x1;
-    FREE_BIT2   = 0x2;
-    FREE_BIT3   = 0x4;
-    FREE_MASK   = 0x7;
-    IN_PARALLEL = FREE_BIT1;
-    IS_IDENTITY = FREE_BIT2;
+    FREE_BIT1   = 0x1,
+    FREE_BIT2   = 0x2,
+    FREE_BIT3   = 0x4,
+    FREE_MASK   = 0x7,
+    IN_PARALLEL = FREE_BIT1,
+    IS_IDENTITY = FREE_BIT2,
   };
   /* possible states:
      1. uninitialized: alloc == nullptr
@@ -58,6 +73,7 @@ struct SharedAlloc {
    */
   OMEGA_H_INLINE void copy(SharedAlloc const& other) {
     alloc = other.alloc;
+#ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       if (entering_parallel) {
@@ -66,6 +82,7 @@ struct SharedAlloc {
         ++(alloc->use_count);
       }
     }
+#endif
     direct_ptr = other.direct_ptr;
   }
   OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) {
@@ -73,56 +90,61 @@ struct SharedAlloc {
   }
   OMEGA_H_INLINE void move(SharedAlloc&& other) {
     alloc = other.alloc;
+#ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       if (entering_parallel) {
         alloc = reinterpret_cast<Alloc*>((std::uintptr_t(alloc->size) << 3) & IN_PARALLEL);
       }
     }
+#endif
     direct_ptr = other.direct_ptr;
     other.alloc = nullptr;
     other.direct_ptr = nullptr;
   }
   OMEGA_H_INLINE SharedAlloc(SharedAlloc&& other) {
-    move(other);
+    move(std::move(other));
   }
   SharedAlloc& operator=(SharedAlloc const& other) {
     clear();
     copy(other);
     return *this;
   }
-  SharedAlloc& operator=(SharedAlloc&& other) {
+  OMEGA_H_INLINE SharedAlloc& operator=(SharedAlloc&& other) {
     clear();
-    move(other);
+    move(std::move(other));
     return *this;
   }
   OMEGA_H_INLINE ~SharedAlloc() {
     clear();
   }
   OMEGA_H_INLINE void clear() {
+#ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       --alloc->use_count;
       if (alloc->use_count == 0) delete alloc;
     }
+#endif
   }
   OMEGA_H_INLINE std::size_t size() {
+#ifndef __CUDA_ARCH__
     if (!(reinterpret_cast<std::uintptr_t>(alloc) & IN_PARALLEL)) {
       return alloc->size;
     }
+#endif
     return (reinterpret_cast<std::uintptr_t>(alloc) & (~FREE_MASK)) >> 3;
   }
   OMEGA_H_INLINE int maybe_identity_index(int i) {
-    if (reinterpret_cast<std::uintptr_t>(alloc) == IS_IDENTITY) return i;
+    if (reinterpret_cast<std::uintptr_t>(alloc) == IS_IDENTITY) {
+      return i;
+    }
     return static_cast<int*>(direct_ptr)[i];
   }
-  SharedAlloc identity(std::size_t size_in) {
-    SharedAlloc out;
-    out.direct_ptr = nullptr;
-    out.alloc = reinterpret_cast<Alloc*>((static_cast<std::uintptr_t>(size_in) << 3) & IS_IDENTITY);
-  }
   OMEGA_H_INLINE void* data() const { return direct_ptr; }
+  static SharedAlloc identity(std::size_t size_in);
 };
 
-};
+}
 
+#endif

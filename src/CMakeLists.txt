@@ -89,6 +89,7 @@ set(Omega_h_SOURCES
   Omega_h_print.cpp
   Omega_h_stack.cpp
   Omega_h_fail.cpp
+  Omega_h_shared_alloc.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)

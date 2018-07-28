@@ -32,4 +32,16 @@
 
 #define OMEGA_H_NODISCARD __attribute__((warn_unused_result))
 
+#ifdef OMEGA_H_USE_CUDA
+#define OMEGA_H_INLINE __host__ __device__ inline
+#define OMEGA_H_DEVICE __device__ inline
+#define OMEGA_H_LAMBDA [=] __device__
+#define OMEGA_H_CONSTANT_DATA __constant__
+#else
+#define OMEGA_H_INLINE inline
+#define OMEGA_H_DEVICE inline
+#define OMEGA_H_LAMBDA [=]
+#define OMEGA_H_CONSTANT_DATA
+#endif
+
 #endif
