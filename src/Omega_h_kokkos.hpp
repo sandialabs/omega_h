@@ -22,4 +22,12 @@ OMEGA_H_SYSTEM_HEADER
 #error "Kokkos has CUDA, please reconfigure with Omega_h_USE_CUDA=ON"
 #endif
 
+namespace Omega_h {
+using ExecSpace = Kokkos::DefaultExecutionSpace;
+using StaticSched = Kokkos::Schedule<Kokkos::Static>;
+using Policy = Kokkos::RangePolicy<ExecSpace, StaticSched, Omega_h::LO>;
+
+inline Policy policy(LO n) { return Policy(0, n); }
+}
+
 #endif

@@ -6,7 +6,7 @@ set(Omega_h_SOURCES
   Omega_h_vector.cpp
   Omega_h_matrix.cpp
   Omega_h_map.cpp
-  Omega_h_scan.cpp
+  Omega_h_int_scan.cpp
   Omega_h_sort.cpp
   Omega_h_int128.cpp
   Omega_h_indset.cpp
@@ -418,6 +418,7 @@ set(Omega_h_HEADERS
   Omega_h_mark.hpp
   Omega_h_loop.hpp
   Omega_h_reduce.hpp
+  Omega_h_scan.hpp
   Omega_h_timer.hpp
   Omega_h_eigen.hpp
   Omega_h_lie.hpp

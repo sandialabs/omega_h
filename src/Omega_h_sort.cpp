@@ -1,4 +1,5 @@
 #include "Omega_h_sort.hpp"
+#include "Omega_h_scan.hpp"
 
 #include <algorithm>
 #include <vector>

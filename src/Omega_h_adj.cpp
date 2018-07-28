@@ -6,7 +6,7 @@
 #include "Omega_h_element.hpp"
 #include "Omega_h_loop.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_timer.hpp"
 
