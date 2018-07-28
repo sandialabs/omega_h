@@ -35,12 +35,11 @@ template <Int dim>
 static Reals clamp_metrics_dim(
     LO nmetrics, Reals metrics, Real h_min, Real h_max) {
   auto out = Write<Real>(nmetrics * symm_ncomps(dim));
-  auto f = OMEGA_H_LAMBDA(LO i) {
+  OMEGA_H_FOR("clamp_metrics", i, nmetrics) {
     auto m = get_symm<dim>(metrics, i);
     m = clamp_metric(m, h_min, h_max);
     set_symm(out, i, m);
   };
-  parallel_for(nmetrics, f, "clamp_metrics");
   return out;
 }
 
