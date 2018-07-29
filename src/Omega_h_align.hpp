@@ -3,7 +3,6 @@
 
 #include <Omega_h_array.hpp>
 #include <Omega_h_defines.hpp>
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_scalar.hpp>
 
 namespace Omega_h {

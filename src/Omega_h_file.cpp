@@ -14,7 +14,7 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_mesh.hpp"
 
 namespace Omega_h {

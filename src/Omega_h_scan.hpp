@@ -1,24 +1,30 @@
-#ifndef OMEGA_H_SCAN_HPP
-#define OMEGA_H_SCAN_HPP
+#ifndef OMEGA_H_LOOP_HPP
+#define OMEGA_H_LOOP_HPP
 
-#include <Omega_h_array.hpp>
+#include <Omega_h_defines.hpp>
+#include <Omega_h_stack.hpp>
+
+#ifdef OMEGA_H_USE_KOKKOSCORE
+#include <Omega_h_kokkos.hpp>
+#endif
 
 namespace Omega_h {
 
 template <typename T>
-LOs offset_scan(Read<T> a, std::string const& name = "");
-
-extern template LOs offset_scan(Read<I8> a, std::string const& name);
-extern template LOs offset_scan(Read<I32> a, std::string const& name);
-
-/* given an array whose values are
-   either non-negative or (-1), and whose
-   non-negative values are sorted in
-   increasing order, replaces all (-1)
-   entries with the nearest non-negative
-   value to the left */
-void fill_right(Write<LO> a);
+void parallel_scan(LO n, T f, char const* name = "") {
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  if (n > 0) Kokkos::parallel_scan(name, policy(n), f);
+#else
+  using VT = typename T::value_type;
+  begin_code(name);
+  VT update;
+  f.init(update);
+  for (LO i = 0; i < n; ++i) f(i, update, true);
+  end_code();
+#endif
+}
 
 }  // end namespace Omega_h
 
 #endif
+

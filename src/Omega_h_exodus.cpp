@@ -19,7 +19,7 @@
 #include "Omega_h_class.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_file.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_mesh.hpp"

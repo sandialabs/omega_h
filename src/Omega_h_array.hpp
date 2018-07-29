@@ -3,10 +3,11 @@
 
 #include <Omega_h_defines.hpp>
 #include <Omega_h_fail.hpp>
-#include <Omega_h_kokkos.hpp>
 #include <initializer_list>
 #include <memory>
-#ifndef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOSCORE
+#include <Omega_h_kokkos.hpp>
+#else
 #include <string>
 #endif
 
@@ -20,7 +21,7 @@ class HostWrite;
 
 #ifndef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
-struct SharedAlloc {
+struct SharedAlloc2 {
   std::string name;
   std::unique_ptr<T[]> ptr;
 };
@@ -31,7 +32,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view_;
 #else
-  std::shared_ptr<SharedAlloc<T> > tracker_;
+  std::shared_ptr<SharedAlloc2<T> > tracker_;
   LO size_;
   T* ptr_;
 #endif

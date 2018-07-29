@@ -10,7 +10,7 @@
 #include "Omega_h_element.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_migrate.hpp"

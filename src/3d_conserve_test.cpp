@@ -5,7 +5,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_file.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_shape.hpp"

@@ -5,7 +5,7 @@
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
 #include "Omega_h_compare.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_timer.hpp"
 

@@ -1,10 +1,12 @@
 #ifndef OMEGA_H_STACK_HPP
 #define OMEGA_H_STACK_HPP
 
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_timer.hpp>
 #include <cstring>
 #include <vector>
+#ifdef OMEGA_H_USE_KOKKOSCORE
+#include <Omega_h_kokkos.hpp>
+#endif
 
 namespace Omega_h {
 namespace perf {
