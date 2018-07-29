@@ -6,7 +6,7 @@
 #include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 #include "Omega_h_sort.hpp"
 
 #ifdef OMEGA_H_USE_TEUCHOS

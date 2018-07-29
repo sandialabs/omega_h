@@ -5,7 +5,9 @@
 #include <Omega_h_fail.hpp>
 #include <initializer_list>
 #include <memory>
-#ifndef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOSCORE
+#include <Omega_h_kokkos.hpp>
+#else
 #include <string>
 #endif
 

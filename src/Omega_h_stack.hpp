@@ -4,6 +4,9 @@
 #include <Omega_h_timer.hpp>
 #include <cstring>
 #include <vector>
+#ifdef OMEGA_H_USE_KOKKOSCORE
+#include <Omega_h_kokkos.hpp>
+#endif
 
 namespace Omega_h {
 namespace perf {
