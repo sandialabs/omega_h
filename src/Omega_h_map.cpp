@@ -220,7 +220,7 @@ Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name,
   auto fill = OMEGA_H_LAMBDA(LO a) {
     auto b = a2b[a];
     auto first = b2ba[b];
-    auto j = atomic_fetch_add<LO>(&positions[b], 1);
+    auto j = atomic_fetch_add(&positions[b], 1);
     write_ba2a[first + j] = a;
   };
   parallel_for(na, fill, "invert_map_by_atomics(fill");
