@@ -11,7 +11,7 @@ namespace Omega_h {
 
 OMEGA_H_INLINE int atomic_fetch_add(int* const dest, const int val) {
 #if defined(OMEGA_H_USE_KOKKOSCORE)
-  Kokkos::atomic_fetch_add(dest, val);
+  return Kokkos::atomic_fetch_add(dest, val);
 #elif defined(OMEGA_H_USE_OPENMP)
   int oldval;
 #pragma omp atomic capture

@@ -12,7 +12,7 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_refine_qualities.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_swap2d.hpp"
 #include "Omega_h_swap3d_choice.hpp"
