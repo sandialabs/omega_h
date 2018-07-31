@@ -351,16 +351,22 @@ T HostRead<T>::last() const {
 }
 
 template <class T>
-Write<T> deep_copy(Read<T> a, std::string const& name) {
+void copy_into(Read<T> a, Write<T> b) {
   OMEGA_H_TIME_FUNCTION;
-  auto name2 = name.empty() ? a.name() : name;
-  Write<T> b(a.size(), name2);
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(b.view(), a.view());
 #else
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i]; };
-  parallel_for(b.size(), f, "deep copy kernel");
+  parallel_for(b.size(), f, "copy into kernel");
 #endif
+}
+
+template <class T>
+Write<T> deep_copy(Read<T> a, std::string const& name) {
+  OMEGA_H_TIME_FUNCTION;
+  auto name2 = name.empty() ? a.name() : name;
+  Write<T> b(a.size(), name2);
+  copy_into(a, b);
   return b;
 }
 
@@ -372,6 +378,7 @@ Write<T> deep_copy(Read<T> a, std::string const& name) {
   template class Read<T>;                                                      \
   template class HostWrite<T>;                                                 \
   template class HostRead<T>;                                                  \
+  template void copy_into(Read<T> a, Write<T> b); \
   template Write<T> deep_copy(Read<T> a, std::string const&);
 
 INST(I8)
