@@ -238,6 +238,8 @@ class HostWrite {
 };
 
 template <class T>
+void copy_into(Read<T> a, Write<T> b);
+template <class T>
 Write<T> deep_copy(Read<T> a, std::string const& name = "");
 
 /* begin explicit instantiation declarations */
