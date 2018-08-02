@@ -182,13 +182,13 @@ OMEGA_H_INLINE Int hypercube_down_template(
             case 0:
               switch (which_vert) {
                 case 0:
-                  return 0;
-                case 1:
-                  return 3;
-                case 2:
-                  return 2;
-                case 3:
                   return 1;
+                case 1:
+                  return 0;
+                case 2:
+                  return 3;
+                case 3:
+                  return 2;
               }
               return -1;
             case 1:
@@ -353,7 +353,7 @@ OMEGA_H_INLINE TemplateUp hypercube_up_template(
             case 0:
               switch (which_up) {
                 case 0:
-                  return {0, 3, 1};
+                  return {0, 0, 1};
                 case 1:
                   return {1, 0, 0};
               }
@@ -361,7 +361,7 @@ OMEGA_H_INLINE TemplateUp hypercube_up_template(
             case 1:
               switch (which_up) {
                 case 0:
-                  return {0, 2, 1};
+                  return {0, 3, 1};
                 case 1:
                   return {2, 0, 0};
               }
@@ -369,7 +369,7 @@ OMEGA_H_INLINE TemplateUp hypercube_up_template(
             case 2:
               switch (which_up) {
                 case 0:
-                  return {0, 1, 1};
+                  return {0, 2, 1};
                 case 1:
                   return {3, 0, 0};
               }
@@ -377,7 +377,7 @@ OMEGA_H_INLINE TemplateUp hypercube_up_template(
             case 3:
               switch (which_up) {
                 case 0:
-                  return {0, 0, 1};
+                  return {0, 1, 1};
                 case 1:
                   return {4, 0, 0};
               }
