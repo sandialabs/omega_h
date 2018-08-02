@@ -886,6 +886,12 @@ OMEGA_H_BINARY_OP(PowOp, eval_pow(env.dim, result, lhs_val, rhs_val));
 ExprOpsReader::ExprOpsReader()
     : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()) {}
 
+std::shared_ptr<Omega_h::ExprOp> ExprOpsReader::read_ops(std::string const& expr) {
+  Teuchos::any any_op;
+  read_string(any_op, expr, expr);
+  return Teuchos::any_cast<std::shared_ptr<Omega_h::ExprOp>>(any_op);
+}
+
 void ExprOpsReader::at_shift(any& result_any, int token, std::string& text) {
   using std::swap;
   switch (token) {
