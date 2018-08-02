@@ -22,7 +22,7 @@ struct Rib;
 struct ClassPair {
   Int dim;
   LO id;
-  OMEGA_H_INLINE bool operator<(ClassPair const& other) {
+  OMEGA_H_INLINE bool operator<(ClassPair const& other) const {
     if (dim != other.dim) return dim < other.dim;
     if (id != other.id) return id < other.id;
     return false;
