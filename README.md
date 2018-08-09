@@ -34,7 +34,7 @@ target_link_libraries(myprogram Omega_h::omega_h)
 
 ## Features
 
-Omega_h provides at least the following:
+Omega\_h provides at least the following:
 * Adaptation of tetrahedral and triangle meshes in parallel
 * Anisotropic metric field support
 * Given good input element quality, the output element
@@ -68,12 +68,12 @@ default execution space that Kokkos was built with.
 Teuchos provides parameter lists and file I/O for them,
 which are usable through `Omega_h_teuchos.hpp`.
 
-#### Omega_h_ONE_FILE
+#### Omega_h_USE_SEACASExodus
 Default: `OFF`
 
-Omega_h can include all other sources in a single `omega_h.cpp` for a (up to 4X)
-faster compile time from scratch, especially if compiling in serial
-or if using the CUDA compiler which has a high per-file overhead.
+Whether to use the Exodus subpackage of the SEACAS Trilinos package.
+This allows reading and writing Exodus files from Omega\_h.
+By default, it will look for this dependency in `Trilinos_PREFIX`.
 
 ## Contributing
 
