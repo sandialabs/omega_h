@@ -7,12 +7,12 @@
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_hypercube.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_refine_qualities.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_swap2d.hpp"
 #include "Omega_h_swap3d_choice.hpp"
@@ -122,7 +122,7 @@ static void test_form_uses() {
                     3, 1) == LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3,
                                  7, 4, 5, 5, 6, 6, 7, 7, 4}));
   OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7, 8}), OMEGA_H_HYPERCUBE,
-                    3, 2) == LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7,
+                    3, 2) == LOs({1, 0, 3, 2, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7,
                                  6, 3, 0, 4, 7, 4, 5, 6, 7}));
 }
 
@@ -177,13 +177,13 @@ static void test_reflect_down() {
   OMEGA_H_CHECK(a.ab2b == LOs(12, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(12, 0));
   a = reflect_down(hex_verts,
-      LOs({0, 3, 2, 1, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7, 6, 3, 0, 4, 7, 4, 5, 6,
+      LOs({1, 0, 3, 2, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7, 6, 3, 0, 4, 7, 4, 5, 6,
           7}),
       OMEGA_H_HYPERCUBE, 8, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs(6, 0, 1));
   OMEGA_H_CHECK(a.codes == Read<I8>(6, 0));
   a = reflect_down(hex_verts,
-      LOs({1, 2, 3, 0, 4, 5, 1, 0, 5, 6, 2, 1, 6, 7, 3, 2, 7, 4, 0, 3, 7, 6, 5,
+      LOs({2, 3, 0, 1, 4, 5, 1, 0, 5, 6, 2, 1, 6, 7, 3, 2, 7, 4, 0, 3, 7, 6, 5,
           4}),
       OMEGA_H_HYPERCUBE, 8, 3, 2);
   OMEGA_H_CHECK(a.ab2b == LOs(6, 0, 1));
@@ -267,7 +267,7 @@ static void test_build(Library* lib) {
     build_from_elems2verts(&mesh, OMEGA_H_HYPERCUBE, 3, LOs(8, 0, 1), 8);
     OMEGA_H_CHECK(mesh.ask_down(3, 0).ab2b == LOs(8, 0, 1));
     OMEGA_H_CHECK(
-        mesh.ask_down(2, 0).ab2b == LOs({0, 3, 2, 1, 0, 1, 5, 4, 3, 0, 4, 7, 1,
+        mesh.ask_down(2, 0).ab2b == LOs({1, 0, 3, 2, 0, 1, 5, 4, 3, 0, 4, 7, 1,
                                         2, 6, 5, 2, 3, 7, 6, 4, 5, 6, 7}));
     OMEGA_H_CHECK(
         mesh.ask_up(0, 2).ab2b == LOs({0, 1, 2, 0, 1, 3, 0, 3, 4, 0, 2, 4, 1, 2,

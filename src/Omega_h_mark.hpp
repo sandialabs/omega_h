@@ -4,10 +4,9 @@
 #include <vector>
 
 #include <Omega_h_array.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
-
-class Mesh;
 
 Read<I8> mark_down(
     Mesh* mesh, Int high_dim, Int low_dim, Read<I8> marked_highs);
@@ -27,11 +26,6 @@ Read<I8> mark_class_closure(
 
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
     std::vector<ClassId> const& class_ids);
-
-struct ClassPair {
-  Int dim;
-  LO id;
-};
 
 Read<I8> mark_class_closures(
     Mesh* mesh, Int ent_dim, std::vector<ClassPair> const& class_pairs);

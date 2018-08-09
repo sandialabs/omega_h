@@ -5,7 +5,6 @@
 
 #include <Omega_h_affine.hpp>
 #include <Omega_h_array.hpp>
-#include <Omega_h_kokkos.hpp>
 #include <Omega_h_vector.hpp>
 
 namespace Omega_h {

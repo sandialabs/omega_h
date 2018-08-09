@@ -2,11 +2,11 @@
 
 #include "Omega_h_build.hpp"
 #include "Omega_h_hypercube.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_scalar.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 
 namespace Omega_h {
 

@@ -14,7 +14,7 @@
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
@@ -31,6 +31,7 @@ bool is_little_endian_cpu() {
 }
 
 void safe_mkdir(const char* path) {
+  OMEGA_H_TIME_FUNCTION;
   mode_t const mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
   int err;
   errno = 0;
@@ -366,6 +367,38 @@ static void read_tag(
   }
 }
 
+static void write_sets(std::ostream& stream, Mesh* mesh) {
+  auto n = I32(mesh->class_sets.size());
+  write_value(stream, n);
+  for (auto& set : mesh->class_sets) {
+    auto& name = set.first;
+    write(stream, name);
+    auto npairs = I32(set.second.size());
+    write_value(stream, npairs);
+    for (auto& pair : set.second) {
+      write_value(stream, pair.dim);
+      write_value(stream, pair.id);
+    }
+  }
+}
+
+static void read_sets(std::istream& stream, Mesh* mesh) {
+  I32 n;
+  read_value(stream, n);
+  for (I32 i = 0; i < n; ++i) {
+    std::string name;
+    read(stream, name);
+    I32 npairs;
+    read_value(stream, npairs);
+    for (I32 j = 0; j < npairs; ++j) {
+      ClassPair pair;
+      read_value(stream, pair.dim);
+      read_value(stream, pair.id);
+      mesh->class_sets[name].push_back(pair);
+    }
+  }
+}
+
 void write(std::ostream& stream, Mesh* mesh) {
   begin_code("binary::write(stream,Mesh)");
   stream.write(reinterpret_cast<const char*>(magic), sizeof(magic));
@@ -398,6 +431,7 @@ void write(std::ostream& stream, Mesh* mesh) {
       write_array(stream, owners.idxs);
     }
   }
+  write_sets(stream, mesh);
   end_code();
 }
 
@@ -438,6 +472,9 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
       read_array(stream, owners.idxs, is_compressed);
       mesh->set_owners(d, owners);
     }
+  }
+  if (version >= 8) {
+    read_sets(stream, mesh);
   }
 }
 
@@ -609,6 +646,46 @@ Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
     }
   }
   return h_a.write();
+}
+
+Mesh read_mesh_file(std::string const& path, CommPtr comm) {
+  if (ends_with(path, ".osh")) {
+    return binary::read(path, comm);
+  } else
+#ifdef OMEGA_H_USE_LIBMESHB
+      if (ends_with(path, ".meshb")) {
+    Mesh mesh(comm->library());
+    meshb::read(&mesh, path);
+    mesh.set_comm(comm);
+    return mesh;
+  } else
+#endif
+#ifdef OMEGA_H_USE_SEACASEXODUS
+      if (ends_with(path, ".exo") || ends_with(path, ".e") ||
+          ends_with(path, ".g")) {
+    Mesh mesh(comm->library());
+    auto file = exodus::open(path);
+    exodus::read_mesh(file, &mesh);
+    mesh.set_comm(comm);
+    return mesh;
+  } else
+#endif
+      if (ends_with(path, ".msh")) {
+    return gmsh::read(path, comm);
+  } else if (ends_with(path, ".pvtu")) {
+    Mesh mesh(comm->library());
+    vtk::read_parallel(path, comm, &mesh);
+    mesh.set_comm(comm);
+    return mesh;
+  } else if (ends_with(path, ".vtu")) {
+    Mesh mesh(comm->library());
+    std::ifstream stream(path.c_str());
+    OMEGA_H_CHECK(stream.is_open());
+    vtk::read_vtu(stream, comm, &mesh);
+    return mesh;
+  } else {
+    Omega_h_fail("Unknown file extension on \"%s\"\n", path.c_str());
+  }
 }
 
 }  // end namespace Omega_h

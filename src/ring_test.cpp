@@ -2,7 +2,7 @@
 #include <Omega_h_file.hpp>
 #include <Omega_h_laplace.hpp>
 #include <Omega_h_library.hpp>
-#include <Omega_h_loop.hpp>
+#include <Omega_h_for.hpp>
 #include <Omega_h_map.hpp>
 #include <Omega_h_mark.hpp>
 

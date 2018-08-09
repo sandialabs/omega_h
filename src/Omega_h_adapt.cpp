@@ -11,11 +11,11 @@
 #include "Omega_h_motion.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine.hpp"
+#include "Omega_h_stack.hpp"
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
 #include "Omega_h_verify.hpp"
-#include "Omega_h_stack.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"

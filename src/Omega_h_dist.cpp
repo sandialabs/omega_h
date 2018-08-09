@@ -1,9 +1,9 @@
 #include "Omega_h_dist.hpp"
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 #include "Omega_h_sort.hpp"
 
 namespace Omega_h {
@@ -109,7 +109,7 @@ Dist Dist::invert() const {
 
 template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
-  begin_code("Dist::exch");
+  ScopedTimer exch_timer("Dist::exch");
   if (roots2items_[F].exists()) {
     data = expand(data, roots2items_[F], width);
   }
@@ -120,7 +120,6 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   if (items2content_[R].exists()) {
     data = unmap(items2content_[R], data, width);
   }
-  end_code();
   return data;
 }
 

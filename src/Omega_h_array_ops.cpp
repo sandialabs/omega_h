@@ -1,6 +1,7 @@
 #include "Omega_h_array_ops.hpp"
 
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
+#include "Omega_h_reduce.hpp"
 
 namespace Omega_h {
 
@@ -466,6 +467,25 @@ Read<T> interleave(std::vector<Read<T>> arrays) {
   return out;
 }
 
+template <typename T>
+Read<T> coalesce(std::vector<Read<T>> arrays) {
+  if (arrays.empty()) return Read<T>();
+  std::vector<LO> offsets(arrays.size() + 1);
+  offsets[0] = 0;
+  for (std::size_t i = 1; i <= arrays.size(); ++i) {
+    offsets[i] = offsets[i - 1] + arrays[i].size();
+  }
+  auto out_size = offsets[arrays.size()];
+  auto out = Write<T>(out_size);
+  for (std::size_t i = 0; i < arrays.size(); ++i) {
+    auto array = arrays[std::size_t(i)];
+    auto offset = offsets[i];
+    auto f = OMEGA_H_LAMBDA(LO j) { out[offset + j] = array[j]; };
+    parallel_for(array.size(), f, "coalesce");
+  }
+  return out;
+}
+
 /* A reproducible sum of floating-point values.
    this operation is one of the key places where
    a program's output begins to depend on parallel
@@ -604,7 +624,8 @@ Read<Tout> array_cast(Read<Tin> in) {
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \
   template bool is_sorted(Read<T> a);                                          \
-  template Read<T> interleave(std::vector<Read<T>> arrays);
+  template Read<T> interleave(std::vector<Read<T>> arrays);                    \
+  template Read<T> coalesce(std::vector<Read<T>> arrays);
 
 INST(I8)
 INST(I32)

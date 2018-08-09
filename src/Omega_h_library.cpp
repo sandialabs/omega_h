@@ -41,7 +41,9 @@ static void enable_floating_point_exceptions() {
 #endif
 }
 #else
-static void enable_floating_point_exceptions() { Omega_h_fail("FPE enabled but not supported"); }
+static void enable_floating_point_exceptions() {
+  Omega_h_fail("FPE enabled but not supported");
+}
 #endif
 
 void Library::initialize(char const* head_desc, int* argc, char*** argv
@@ -90,8 +92,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
   if (cmdline.parsed("--osh-time")) {
-    Omega_h::perf::global_singleton_history =
-      new Omega_h::perf::History();
+    Omega_h::perf::global_singleton_history = new Omega_h::perf::History();
   }
   if (cmdline.parsed("--osh-fpe")) {
     enable_floating_point_exceptions();

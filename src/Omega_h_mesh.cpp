@@ -10,7 +10,7 @@
 #include "Omega_h_element.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_migrate.hpp"
@@ -191,7 +191,8 @@ void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
 
 TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
-  auto it = tag_iter(ent_dim, name);;
+  auto it = tag_iter(ent_dim, name);
+  ;
   if (it == tags_[ent_dim].end()) {
     Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
         topological_plural_name(family(), ent_dim), name.c_str());
@@ -274,13 +275,13 @@ Graph Mesh::ask_star(Int ent_dim) {
 Graph Mesh::ask_dual() { return ask_adj(dim(), dim()); }
 
 Mesh::TagIter Mesh::tag_iter(Int ent_dim, std::string const& name) {
-  return std::find_if(
-      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](TagPtr const& a) { return a->name() == name; });
+  return std::find_if(tags_[ent_dim].begin(), tags_[ent_dim].end(),
+      [&](TagPtr const& a) { return a->name() == name; });
 }
 
 Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
-  return std::find_if(
-      tags_[ent_dim].begin(), tags_[ent_dim].end(), [&](TagPtr const& a) { return a->name() == name; });
+  return std::find_if(tags_[ent_dim].begin(), tags_[ent_dim].end(),
+      [&](TagPtr const& a) { return a->name() == name; });
 }
 
 void Mesh::check_dim(Int ent_dim) const {
@@ -548,8 +549,7 @@ void Mesh::balance(bool predictive) {
   Reals masses;
   Real abs_tol;
   if (predictive) {
-    masses =
-        get_complexity_per_elem(this, get_array<Real>(VERT, "metric"));
+    masses = get_complexity_per_elem(this, get_array<Real>(VERT, "metric"));
     /* average between input mesh weight (1.0)
        and predicted output mesh weight */
     masses = add_to_each(masses, 1.);
@@ -732,6 +732,7 @@ Real repro_sum_owned(Mesh* mesh, Int ent_dim, Reals a) {
 }
 
 Reals average_field(Mesh* mesh, Int ent_dim, LOs a2e, Int ncomps, Reals v2x) {
+  OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(v2x.size() % ncomps == 0);
   if (ent_dim == 0) return unmap(a2e, v2x, ncomps);
   auto ev2v = mesh->ask_verts_of(ent_dim);

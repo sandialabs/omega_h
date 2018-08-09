@@ -6,7 +6,7 @@ set(Omega_h_SOURCES
   Omega_h_vector.cpp
   Omega_h_matrix.cpp
   Omega_h_map.cpp
-  Omega_h_scan.cpp
+  Omega_h_int_scan.cpp
   Omega_h_sort.cpp
   Omega_h_int128.cpp
   Omega_h_indset.cpp
@@ -89,9 +89,14 @@ set(Omega_h_SOURCES
   Omega_h_print.cpp
   Omega_h_stack.cpp
   Omega_h_fail.cpp
+  Omega_h_shared_alloc.cpp
   )
 
-if (NOT Omega_h_USE_CUDA)
+if (Omega_h_USE_CUDA)
+  if (NOT Omega_h_USE_KokkosCore)
+    set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_for.cpp)
+  endif()
+else()
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_overlay.cpp)
 endif()
 
@@ -382,6 +387,7 @@ if(BUILD_TESTING)
   osh_add_exe(amr_test2)
   test_func(amr_test2 1 ./amr_test2)
   osh_add_exe(mox_test)
+  osh_add_exe(refine_scale)
 endif()
 
 bob_config_header("${CMAKE_CURRENT_BINARY_DIR}/Omega_h_config.h")
@@ -415,7 +421,9 @@ set(Omega_h_HEADERS
   Omega_h_align.hpp
   Omega_h_few.hpp
   Omega_h_mark.hpp
-  Omega_h_loop.hpp
+  Omega_h_for.hpp
+  Omega_h_reduce.hpp
+  Omega_h_scan.hpp
   Omega_h_timer.hpp
   Omega_h_eigen.hpp
   Omega_h_lie.hpp
@@ -437,6 +445,8 @@ set(Omega_h_HEADERS
   Omega_h_amr.hpp
   Omega_h_stack.hpp
   Omega_h_owners.hpp
+  Omega_h_rbtree.hpp
+  Omega_h_box.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
@@ -460,7 +470,7 @@ install(FILES ${Omega_h_HEADERS} DESTINATION include)
 if (Omega_h_USE_pybind11)
   set(PYBIND11_SOURCES
       PyOmega_h.cpp
-      PyOmega_h_c.cpp
+      PyOmega_h_defines.cpp
       PyOmega_h_array.cpp
       PyOmega_h_comm.cpp
       PyOmega_h_library.cpp

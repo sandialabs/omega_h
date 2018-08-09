@@ -3,7 +3,7 @@
 #include "Omega_h_affine.hpp"
 #include "Omega_h_conserve.hpp"
 #include "Omega_h_fit.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_metric.hpp"
 #include "Omega_h_quality.hpp"

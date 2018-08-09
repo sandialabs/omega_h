@@ -60,6 +60,27 @@ void bcast_mesh(Mesh* mesh, CommPtr new_comm, bool is_source) {
       }
     }
   }
+  I32 nsets;
+  if (is_source) nsets = I32(mesh->class_sets.size());
+  new_comm->bcast(nsets);
+  decltype(mesh->class_sets)::iterator it;
+  if (is_source) it = mesh->class_sets.begin();
+  for (I32 i = 0; i < nsets; ++i) {
+    std::string name;
+    if (is_source) name = it->first;
+    new_comm->bcast_string(name);
+    I32 npairs;
+    if (is_source) npairs = I32(it->second.size());
+    new_comm->bcast(npairs);
+    for (I32 j = 0; j < npairs; ++j) {
+      ClassPair pair;
+      if (is_source) pair = it->second[std::size_t(j)];
+      new_comm->bcast(pair.dim);
+      new_comm->bcast(pair.id);
+      if (!is_source) mesh->class_sets[name].push_back(pair);
+    }
+    if (is_source) ++it;
+  }
 }
 
 }  // end namespace Omega_h

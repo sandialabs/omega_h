@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "Omega_h_functors.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 
 namespace Omega_h {
 
@@ -33,12 +33,12 @@ Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
 
 template <typename T>
 Write<T>::Write(LO size_in, std::string const& name_in) {
-  begin_code("Write(size,name)");
+  begin_code("Write allocation");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
 #else
-  tracker_ = decltype(tracker_)(new SharedAlloc<T>());
+  tracker_ = decltype(tracker_)(new SharedAlloc2<T>());
   tracker_->name = name_in;
   ptr_ = new T[size_in];
   tracker_->ptr = decltype(tracker_->ptr)(ptr_);
@@ -76,14 +76,19 @@ Write<T>::Write(LO size_in, T offset, T stride, std::string const& name_in)
 template <typename T>
 Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
+#ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
 std::string Write<T>::name() const {
-#ifdef OMEGA_H_USE_KOKKOSCORE
   return view_.label();
-#else
-  return tracker_->name;
-#endif
 }
+#endif
+
+#ifndef OMEGA_H_USE_KOKKOSCORE
+template <typename T>
+void Write<T>::rename(std::string const& new_name) {
+  tracker_->name = new_name;
+}
+#endif
 
 template <typename T>
 void Write<T>::set(LO i, T value) const {
@@ -203,7 +208,7 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror_view(
             typename Kokkos::View<T, P...>::HostMirror::memory_space>::value &&
         std::is_same<typename Kokkos::View<T, P...>::data_type,
             typename Kokkos::View<T, P...>::HostMirror::data_type>::value)>::
-        type* = 0) {
+        type* = nullptr) {
   return src;
 }
 
@@ -346,16 +351,22 @@ T HostRead<T>::last() const {
 }
 
 template <class T>
-Write<T> deep_copy(Read<T> a, std::string const& name) {
+void copy_into(Read<T> a, Write<T> b) {
   OMEGA_H_TIME_FUNCTION;
-  auto name2 = name.empty() ? a.name() : name;
-  Write<T> b(a.size(), name2);
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(b.view(), a.view());
 #else
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i]; };
-  parallel_for(b.size(), f, "deep copy kernel");
+  parallel_for(b.size(), f, "copy into kernel");
 #endif
+}
+
+template <class T>
+Write<T> deep_copy(Read<T> a, std::string const& name) {
+  OMEGA_H_TIME_FUNCTION;
+  auto name2 = name.empty() ? a.name() : name;
+  Write<T> b(a.size(), name2);
+  copy_into(a, b);
   return b;
 }
 
@@ -367,6 +378,7 @@ Write<T> deep_copy(Read<T> a, std::string const& name) {
   template class Read<T>;                                                      \
   template class HostWrite<T>;                                                 \
   template class HostRead<T>;                                                  \
+  template void copy_into(Read<T> a, Write<T> b); \
   template Write<T> deep_copy(Read<T> a, std::string const&);
 
 INST(I8)

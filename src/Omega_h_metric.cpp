@@ -5,7 +5,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_confined.hpp"
 #include "Omega_h_host_few.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_recover.hpp"
@@ -35,12 +35,11 @@ template <Int dim>
 static Reals clamp_metrics_dim(
     LO nmetrics, Reals metrics, Real h_min, Real h_max) {
   auto out = Write<Real>(nmetrics * symm_ncomps(dim));
-  auto f = OMEGA_H_LAMBDA(LO i) {
+  OMEGA_H_FOR("clamp_metrics", i, nmetrics) {
     auto m = get_symm<dim>(metrics, i);
     m = clamp_metric(m, h_min, h_max);
     set_symm(out, i, m);
   };
-  parallel_for(nmetrics, f, "clamp_metrics");
   return out;
 }
 
@@ -322,9 +321,7 @@ Reals get_pure_implied_metrics(Mesh* mesh) {
 /* These are completely empirical estimates of the volume of
    an element in a "real" unit-edge-length mesh */
 static constexpr Real typical_unit_simplex_size(Int dim) {
-  return (dim == 3 ? 0.0838934100219 :
-         (dim == 2 ? 0.377645136635 :
-                     1.0));
+  return (dim == 3 ? 0.0838934100219 : (dim == 2 ? 0.377645136635 : 1.0));
 }
 
 static constexpr Real get_typical_over_perfect_size(Int dim) {
@@ -540,7 +537,8 @@ Reals get_complexity_per_elem(Mesh* mesh, Reals v2m) {
 
 Reals get_nelems_per_elem(Mesh* mesh, Reals v2m) {
   auto complexity = get_complexity_per_elem(mesh, v2m);
-  return multiply_each_by(complexity, 1.0 / typical_unit_simplex_size(mesh->dim()));
+  return multiply_each_by(
+      complexity, 1.0 / typical_unit_simplex_size(mesh->dim()));
 }
 
 Real get_complexity(Mesh* mesh, Reals v2m) {

@@ -156,8 +156,8 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
     encoded = base64::encode(nonnull(uncompressed.data()), uncompressed_bytes);
   }
   begin_code("stream bulk");
-//stream << enc_header << encoded << '\n';
-//the following three lines are 30% faster than the above line
+  // stream << enc_header << encoded << '\n';
+  // the following three lines are 30% faster than the above line
   stream.write(enc_header.data(), std::streamsize(enc_header.length()));
   stream.write(encoded.data(), std::streamsize(encoded.length()));
   stream.write("\n", 1);
@@ -690,6 +690,7 @@ void write_vtu(std::string const& filename, Mesh* mesh, bool compress) {
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     std::string const& piecepath, TagSet const& tags) {
+  OMEGA_H_TIME_FUNCTION;
   ask_for_mesh_tags(mesh, tags);
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
   stream << "<PUnstructuredGrid";
@@ -933,7 +934,9 @@ void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
   std::vector<Real> times;
   std::vector<std::string> pvtupaths;
   std::ifstream pvdstream(pvdpath.c_str());
-  OMEGA_H_CHECK(pvdstream.is_open());
+  if (!pvdstream.is_open()) {
+    Omega_h_fail("Couldn't open \"%s\"\n", pvdpath.c_str());
+  }
   read_pvd(pvdstream, &times, &pvtupaths);
   auto parentpath = parent_path(pvdpath);
   for (auto& pvtupath : pvtupaths) pvtupath = parentpath + "/" + pvtupath;

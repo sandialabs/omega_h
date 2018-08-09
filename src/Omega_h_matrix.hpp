@@ -507,36 +507,34 @@ OMEGA_H_INLINE Matrix<2, 2> form_ortho_basis(Vector<2> v) {
   return A;
 }
 
+/* Duff, Tom, et al.
+   "Building an orthonormal basis, revisited."
+   Journal of Computer Graphics Techniques Vol 6.1 (2017). */
 OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
   Matrix<3, 3> A;
   A[0] = v;
-  /* tiny custom code to sort components by absolute value */
-  struct {
-    Int i;
-    Real m;
-  } s[3] = {{0, std::abs(v[0])}, {1, std::abs(v[1])}, {2, std::abs(v[2])}};
-  if (s[2].m > s[1].m) swap2(s[1], s[2]);
-  if (s[1].m > s[0].m) swap2(s[0], s[1]);
-  if (s[2].m > s[1].m) swap2(s[1], s[2]);
-  /* done, components sorted by increasing magnitude */
-  Int lc = s[0].i;
-  Int mc = s[1].i;
-  Int sc = s[2].i;
-  /* use the 2D rotation on the largest components
-     (rotate v around the smallest axis) */
-  A[1][lc] = -v[mc];
-  A[1][mc] = v[lc];
-  /* and make the last component zero so that A[0] * A[1] == 0 */
-  A[1][sc] = 0;
-  A[1] = normalize(A[1]);
-  /* now we have 2 orthogonal unit vectors, cross product gives the third */
-  A[2] = cross(A[0], A[1]);
+  auto sign = std::copysign(1.0, v(2));
+  const auto a = -1.0 / (sign + v(2));
+  const auto b = v(0) * v(1) * a;
+  A[1] = vector_3(1.0 + sign * v(0) * v(0) * a, sign * b, -sign * v(0));
+  A[2] = vector_3(b, sign + v(1) * v(1) * a, -v(1));
   return A;
 }
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> deviator(Matrix<dim, dim> a) {
   return (a - ((1.0 / dim) * trace(a) * identity_matrix<dim, dim>()));
+}
+
+template <int new_dim, int old_dim>
+OMEGA_H_INLINE Matrix<new_dim, new_dim> resize(Matrix<old_dim, old_dim> m) {
+  constexpr int min_dim = Omega_h::min2(new_dim, old_dim);
+  Matrix<new_dim, new_dim> m2;
+  for (int i = 0; i < min_dim; ++i)
+    for (int j = 0; j < min_dim; ++j) m2(i, j) = m(i, j);
+  for (int i = 0; i < new_dim; ++i)
+    for (int j = min_dim; j < new_dim; ++j) m2(i, j) = m2(j, i) = 0.0;
+  return m2;
 }
 
 template <Int dim>

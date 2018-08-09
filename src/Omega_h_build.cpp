@@ -7,7 +7,7 @@
 #include "Omega_h_element.hpp"
 #include "Omega_h_inertia.hpp"
 #include "Omega_h_linpart.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_migrate.hpp"
@@ -141,6 +141,7 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
     build_box_internal(&mesh, family, x, y, z, nx, ny, nz, symmetric);
     reorder_by_hilbert(&mesh);
     classify_box(&mesh, x, y, z, nx, ny, nz);
+    mesh.class_sets = get_box_class_sets(mesh.dim());
   }
   mesh.set_comm(comm);
   mesh.balance();

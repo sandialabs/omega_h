@@ -5,7 +5,9 @@
 
 namespace Omega_h {
 
-inline void check_tag_name(std::string const& name) { OMEGA_H_CHECK(!name.empty()); }
+inline void check_tag_name(std::string const& name) {
+  OMEGA_H_CHECK(!name.empty());
+}
 
 class TagBase {
  public:

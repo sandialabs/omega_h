@@ -1,5 +1,5 @@
 #include <Omega_h_library.hpp>
-#include <Omega_h_loop.hpp>
+#include <Omega_h_for.hpp>
 #include <Omega_h_random.hpp>
 
 using namespace Omega_h;

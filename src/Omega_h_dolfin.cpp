@@ -4,7 +4,7 @@
 
 #include <Omega_h_adj.hpp>
 #include <Omega_h_build.hpp>
-#include <Omega_h_loop.hpp>
+#include <Omega_h_for.hpp>
 #include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_scan.hpp>

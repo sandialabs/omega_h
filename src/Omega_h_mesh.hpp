@@ -2,6 +2,7 @@
 #define OMEGA_H_MESH_HPP
 
 #include <array>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -17,6 +18,18 @@ namespace Omega_h {
 namespace inertia {
 struct Rib;
 }
+
+struct ClassPair {
+  Int dim;
+  LO id;
+  OMEGA_H_INLINE bool operator<(ClassPair const& other) const {
+    if (dim != other.dim) return dim < other.dim;
+    if (id != other.id) return id < other.id;
+    return false;
+  }
+};
+
+using ClassSets = std::map<std::string, std::vector<ClassPair>>;
 
 class Mesh {
  public:
@@ -148,6 +161,9 @@ class Mesh {
   RibPtr rib_hints() const;
   void set_rib_hints(RibPtr hints);
   Real imbalance(Int ent_dim = -1) const;
+
+ public:
+  ClassSets class_sets;
 };
 
 bool can_print(Mesh* mesh);

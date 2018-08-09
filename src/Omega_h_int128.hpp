@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <iosfwd>
 
-#include <Omega_h_kokkos.hpp>
+#include <Omega_h_macros.h>
 
 namespace Omega_h {
 

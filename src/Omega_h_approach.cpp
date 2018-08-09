@@ -23,8 +23,14 @@ static void check_okay(Mesh* mesh, AdaptOpts const& opts) {
 
 static bool okay(Mesh* mesh, AdaptOpts const& opts) {
   auto minq = min_fixable_quality(mesh, opts);
+  if (minq < opts.min_quality_allowed) {
+    return false;
+  }
   auto maxl = mesh->max_length();
-  return minq >= opts.min_quality_allowed && maxl <= opts.max_length_allowed;
+  if (maxl > opts.max_length_allowed) {
+    return false;
+  }
+  return true;
 }
 
 bool warp_to_limit(

@@ -3,11 +3,11 @@
 #include <string>
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #include "Omega_h_library.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #endif
 
 #include "Omega_h_map.hpp"
@@ -502,6 +502,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
 }
 
 void Comm::barrier() const {
+  OMEGA_H_TIME_FUNCTION;
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Barrier(impl_));
 #endif

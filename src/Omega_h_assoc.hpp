@@ -2,7 +2,6 @@
 #define OMEGA_H_ASSOC_HPP
 
 #include <array>
-#include <map>
 #include <string>
 #include <vector>
 
@@ -21,8 +20,7 @@ enum { NSET_TYPES = 3 };
 extern char const* const assoc_names[NSET_TYPES];
 
 // (set_type, set_name) -> class_pairs
-using Assoc =
-    std::array<std::map<std::string, std::vector<ClassPair>>, NSET_TYPES>;
+using Assoc = std::array<ClassSets, NSET_TYPES>;
 using MeshDimSets = std::map<std::string, LOs>;
 // (set_type, set_name) -> mesh_ents
 using MeshSets = std::array<MeshDimSets, NSET_TYPES>;

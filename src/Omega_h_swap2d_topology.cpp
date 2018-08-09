@@ -1,7 +1,7 @@
 #include "Omega_h_swap2d.hpp"
 
 #include "Omega_h_align.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_simplex.hpp"
 

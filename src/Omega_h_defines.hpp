@@ -15,7 +15,12 @@ enum Omega_h_Type {
 
 enum { OMEGA_H_DIMS = 4 };
 
-enum Omega_h_EntDim { OMEGA_H_VERT = 0, OMEGA_H_EDGE = 1, OMEGA_H_FACE = 2, OMEGA_H_REGION = 3 };
+enum Omega_h_EntDim {
+  OMEGA_H_VERT = 0,
+  OMEGA_H_EDGE = 1,
+  OMEGA_H_FACE = 2,
+  OMEGA_H_REGION = 3
+};
 
 enum Omega_h_Op { OMEGA_H_MIN, OMEGA_H_MAX, OMEGA_H_SUM };
 
@@ -49,9 +54,9 @@ enum Omega_h_Source {
 
 // controls the conversion of anisotropic metrics to isotropic ones
 enum Omega_h_Isotropy {
-  OMEGA_H_ANISOTROPIC, // keep anisotropy
-  OMEGA_H_ISO_LENGTH,  // use smallest length
-  OMEGA_H_ISO_SIZE,    // use equivalent volume
+  OMEGA_H_ANISOTROPIC,  // keep anisotropy
+  OMEGA_H_ISO_LENGTH,   // use smallest length
+  OMEGA_H_ISO_SIZE,     // use equivalent volume
 };
 
 /* determines whether a metric is allowed to be scaled
@@ -62,10 +67,7 @@ enum Omega_h_Scales {
   OMEGA_H_SCALES,
 };
 
-enum Omega_h_Family {
-  OMEGA_H_SIMPLEX,
-  OMEGA_H_HYPERCUBE
-};
+enum Omega_h_Family { OMEGA_H_SIMPLEX, OMEGA_H_HYPERCUBE };
 
 namespace Omega_h {
 

@@ -3,10 +3,11 @@
 
 #include <Omega_h_defines.hpp>
 #include <Omega_h_fail.hpp>
-#include <Omega_h_kokkos.hpp>
 #include <initializer_list>
 #include <memory>
-#ifndef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOSCORE
+#include <Omega_h_kokkos.hpp>
+#else
 #include <string>
 #endif
 
@@ -20,7 +21,7 @@ class HostWrite;
 
 #ifndef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
-struct SharedAlloc {
+struct SharedAlloc2 {
   std::string name;
   std::unique_ptr<T[]> ptr;
 };
@@ -31,7 +32,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view_;
 #else
-  std::shared_ptr<SharedAlloc<T> > tracker_;
+  std::shared_ptr<SharedAlloc2<T> > tracker_;
   LO size_;
   T* ptr_;
 #endif
@@ -90,7 +91,14 @@ class Write {
     return use_count() != 0;
 #endif
   }
+#ifdef OMEGA_H_USE_KOKKOSCORE
   std::string name() const;
+#else
+  std::string const& name() const { return tracker_->name; }
+#endif
+#ifndef OMEGA_H_USE_KOKKOSCORE
+  void rename(std::string const& new_name);
+#endif
 };
 
 template <typename T>
@@ -230,6 +238,8 @@ class HostWrite {
 };
 
 template <class T>
+void copy_into(Read<T> a, Write<T> b);
+template <class T>
 Write<T> deep_copy(Read<T> a, std::string const& name = "");
 
 /* begin explicit instantiation declarations */
@@ -240,6 +250,7 @@ Write<T> deep_copy(Read<T> a, std::string const& name = "");
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
+  extern template void copy_into(Read<T> a, Write<T> b); \
   extern template Write<T> deep_copy(Read<T> a, std::string const&);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)

@@ -13,6 +13,8 @@
 
 namespace Omega_h {
 
+Mesh read_mesh_file(std::string const& path, CommPtr comm);
+
 bool ends_with(std::string const& s, std::string const& suffix);
 bool is_little_endian_cpu();
 void safe_mkdir(const char* path);
@@ -76,6 +78,10 @@ void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
 void write_parallel(
     std::string const& path, Mesh* mesh, Int cell_dim, bool compress = true);
 void write_parallel(std::string const& path, Mesh* mesh, bool compress = true);
+
+void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh);
+void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh);
+
 class Writer {
   Mesh* mesh_;
   std::string root_path_;
@@ -120,7 +126,7 @@ I32 read_version(std::string const& path, CommPtr comm);
 void read_in_comm(
     std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
 
-constexpr I32 latest_version = 7;
+constexpr I32 latest_version = 8;
 
 template <typename T>
 void swap_if_needed(T& val, bool is_little_endian = true);

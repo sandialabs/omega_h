@@ -3,7 +3,7 @@
 #include <Omega_h_element.hpp>
 #include <Omega_h_file.hpp>
 #include <Omega_h_histogram.hpp>
-#include <Omega_h_loop.hpp>
+#include <Omega_h_for.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_metric.hpp>
 
