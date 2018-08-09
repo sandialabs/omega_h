@@ -1,9 +1,9 @@
-#include <Omega_h_c.h>
+#include <Omega_h_defines.hpp>
 #include <PyOmega_h.hpp>
 
 namespace Omega_h {
 
-void pybind11_c(py::module& module) {
+void pybind11_defines(py::module& module) {
   py::enum_<Omega_h_EntDim>(module, "EntDim", py::arithmetic())
       .value("VERT", OMEGA_H_VERT)
       .value("EDGE", OMEGA_H_EDGE)

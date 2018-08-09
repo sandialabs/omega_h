@@ -109,7 +109,7 @@ Dist Dist::invert() const {
 
 template <typename T>
 Read<T> Dist::exch(Read<T> data, Int width) const {
-  begin_code("Dist::exch");
+  ScopedTimer exch_timer("Dist::exch");
   if (roots2items_[F].exists()) {
     data = expand(data, roots2items_[F], width);
   }
@@ -120,7 +120,6 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
   if (items2content_[R].exists()) {
     data = unmap(items2content_[R], data, width);
   }
-  end_code();
   return data;
 }
 

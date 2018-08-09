@@ -142,12 +142,9 @@ int get_num_time_steps(int exodus_file) {
   return int(ex_inquire_int(exodus_file, EX_INQ_TIME));
 }
 
-static void setup_names(int exodus_file, int nnames, std::vector<char>& storage,
+static void setup_names(int nnames, std::vector<char>& storage,
     std::vector<char*>& ptrs) {
-  std::int64_t max_name_length =
-      ex_inquire_int(exodus_file, EX_INQ_DB_MAX_USED_NAME_LENGTH);
-  ++max_name_length;  // it really is tightly-fitted, and doesn't include null
-                      // terminators
+  constexpr auto max_name_length = MAX_STR_LENGTH + 1;
   storage = std::vector<char>(std::size_t(nnames * max_name_length), '\0');
   ptrs = std::vector<char*>(std::size_t(nnames), nullptr);
   for (int i = 0; i < nnames; ++i) {
@@ -162,7 +159,7 @@ void read_nodal_fields(int exodus_file, Mesh* mesh, int time_step,
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
   std::vector<char> names_memory;
   std::vector<char*> name_ptrs;
-  setup_names(exodus_file, num_nodal_vars, names_memory, name_ptrs);
+  setup_names(num_nodal_vars, names_memory, name_ptrs);
   CALL(ex_get_variable_names(
       exodus_file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
   for (int i = 0; i < num_nodal_vars; ++i) {
@@ -281,8 +278,13 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
     CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
     std::vector<char> names_memory;
     std::vector<char*> name_ptrs;
-    setup_names(file, int(init_params.num_node_sets), names_memory, name_ptrs);
+    std::cerr << "setting up names for " << init_params.num_node_sets << " node sets\n";
+    setup_names(int(init_params.num_node_sets), names_memory, name_ptrs);
+    std::cerr << "done setting up names for node sets\n";
+    std::cerr << "calling ex_get_names...\n";
     CALL(ex_get_names(file, EX_NODE_SET, name_ptrs.data()));
+    std::cerr << "done calling ex_get_names, names are:\n";
+    for (auto p : name_ptrs) std::cerr << '"' << p << "\"\n";
     for (size_t i = 0; i < node_set_ids.size(); ++i) {
       int nentries, ndist_factors;
       CALL(ex_get_set_param(
@@ -315,7 +317,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
   if (classify_with & SIDE_SETS) {
     std::vector<char> names_memory;
     std::vector<char*> name_ptrs;
-    setup_names(file, int(init_params.num_side_sets), names_memory, name_ptrs);
+    setup_names(int(init_params.num_side_sets), names_memory, name_ptrs);
     CALL(ex_get_names(file, EX_SIDE_SET, name_ptrs.data()));
     for (size_t i = 0; i < side_set_ids.size(); ++i) {
       int nentries, ndist_factors;
@@ -369,7 +371,7 @@ static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
   std::vector<char> names_memory;
   std::vector<char*> name_ptrs;
-  setup_names(file, num_nodal_vars, names_memory, name_ptrs);
+  setup_names(num_nodal_vars, names_memory, name_ptrs);
   CALL(ex_get_variable_names(file, EX_NODAL, num_nodal_vars, name_ptrs.data()));
   for (int i = 0; i < num_nodal_vars; ++i) {
     auto name = name_ptrs[std::size_t(i)];
