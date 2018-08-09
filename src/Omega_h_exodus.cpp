@@ -157,6 +157,7 @@ void read_nodal_fields(int exodus_file, Mesh* mesh, int time_step,
   int num_nodal_vars;
   CALL(ex_get_variable_param(exodus_file, EX_NODAL, &num_nodal_vars));
   if (verbose) std::cout << num_nodal_vars << " nodal variables\n";
+  if (num_nodal_vars == 0) return;
   std::vector<char> names_memory;
   std::vector<char*> name_ptrs;
   setup_names(num_nodal_vars, names_memory, name_ptrs);
