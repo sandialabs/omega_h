@@ -356,6 +356,7 @@ void copy_into(Read<T> a, Write<T> b) {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(b.view(), a.view());
 #else
+  OMEGA_H_CHECK(a.size() == b.size());
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i]; };
   parallel_for(b.size(), f, "copy into kernel");
 #endif
