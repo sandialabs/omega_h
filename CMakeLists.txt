@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.13.12 LANGUAGES CXX)
+project(Omega_h VERSION 9.13.13 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -22,6 +22,7 @@ bob_option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
 bob_input(Trilinos_PREFIX "" PATH "Path to Trilinos install")
 bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
+bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
@@ -195,6 +196,13 @@ set(Omega_h_KEY_STRINGS
 bob_get_commit()
 bob_get_semver()
 
+if(Omega_h_EXAMPLES)
+  find_program(GMSH_EXECUTABLE gmsh REQUIRED)
+  add_subdirectory(example/field_on_square)
+  add_subdirectory(example/castle)
+  add_subdirectory(example/gradient)
+  add_subdirectory(example/laplacian)
+endif()
 add_subdirectory(src)
 
 bob_end_package()
