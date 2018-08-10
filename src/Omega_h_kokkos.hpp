@@ -2,8 +2,8 @@
 #define OMEGA_H_KOKKOS_HPP
 
 #include <Omega_h_config.h>
-
 #include <Omega_h_macros.h>
+#include <Omega_h_defines.hpp>
 
 OMEGA_H_SYSTEM_HEADER
 
