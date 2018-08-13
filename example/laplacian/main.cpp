@@ -41,8 +41,7 @@ int main(int argc, char** argv) {
   const auto nGlobalTriangles = mesh.nglobal_ents(dim);
   const auto nOwnedTriangles = get_sum(mesh.owned(dim));
 
-  // synchronized parallel print including information specific to ghost
-  // elements
+  // synchronized parallel print including information specific to ghost elements
   const auto rank = mesh.comm()->rank();
   if (rank == 0) {
     std::cout << "Globally, " << nGlobalTriangles << " cover a total area of "
@@ -62,14 +61,11 @@ int main(int argc, char** argv) {
 
   // initialize the array for the candidate solution with value 0
   const Omega_h::Write<Omega_h::Real> sol_w(mesh.nverts(), 0);
-  // read-only arrays for the current candidate solution and the current
-  // residual
-  Omega_h::Reals sol, res;
-  // for the current mesh, 1000 iterations are enough to get the residual
-  // converged to machine precision
+  // read-only arrays for the current residual and candidate solution
+  Omega_h::Reals res, sol;
+  // on the current mesh, convergence to machine precision in < 1000 iterations
   for (auto iter = 0; iter < 1000; iter++) {
-    // initialization to 0 before assembling the finite element local vector of
-    // each triangle
+    // initialization to 0 before assembling the contribution of each triangle
     const Omega_h::Write<Omega_h::Real> res_w(mesh.nverts(), 0);
     const Omega_h::Write<Omega_h::Real> diag_w(mesh.nverts(), 0);
 
@@ -80,14 +76,12 @@ int main(int argc, char** argv) {
       const auto tri_j2verts = Omega_h::gather_verts<3>(tris2verts, j);
       const auto tri_j2x = Omega_h::gather_vectors<3, 2>(coords, tri_j2verts);
 
-      // M[ic][ir] = tri_j2x[ir + 1][ic] - tri_j2x[0][ic] as in
-      // gradient/main.cpp
+      // M[ic][ir] = tri_j2x[ir + 1][ic] - tri_j2x[0][ic] in gradient/main.cpp
       const auto M = Omega_h::simplex_basis<2, 2>(tri_j2x);
       // value of the current solution at the vertices in tri_j2verts
       const auto tri_j2sol = Omega_h::gather_scalars<3>(sol, tri_j2verts);
 
-      // projection matrix and solution vector such that u*P = b in
-      // gradient/main.cpp
+      // projection matrix and solution vector such that u*P = b in gradient
       const auto P = Omega_h::Matrix<3, 2>({{-1, 1, 0}, {-1, 0, 1}});
       Omega_h::Vector<3> u;
       for (auto ir = 0; ir < 3; ++ir) {

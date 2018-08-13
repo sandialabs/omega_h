@@ -93,9 +93,6 @@ int main(int argc, char** argv) {
   const auto elements2vertices = OMEGA_H_LAMBDA(Omega_h::LO j) {
     const auto tri_j2verts = Omega_h::gather_verts<3>(tris2verts, j);
     double sumVerts = 0.;
-
-    // e.g std::algorithm
-
     for (auto i = 0; i < 3; ++i) {
       sumVerts += vert_rank_s[tri_j2verts[i]];
     }

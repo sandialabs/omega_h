@@ -34,8 +34,7 @@ int main(int argc, char** argv) {
   // same quadratic function as in fieldOnSquare client
   const Omega_h::Write<Omega_h::Real> u_w(mesh.nverts());
   const auto init_u = OMEGA_H_LAMBDA(Omega_h::LO r) {
-    auto x_r = Omega_h::get_vector<2>(
-        coords, r);
+    auto x_r = Omega_h::get_vector<2>(coords, r);
     u_w[r] = x_r[1] - std::pow(2 * x_r[0] - 1, 2);
   };
   Omega_h::parallel_for(mesh.nverts(), init_u);
@@ -50,8 +49,7 @@ int main(int argc, char** argv) {
 
     // coords (x, y) and value of u at the 3 vertices in the jth triangle
     const auto tri_j2x = Omega_h::gather_vectors<3, 2>(coords, tri_j2verts);
-    const auto tri_j2u = Omega_h::gather_scalars<3>(
-        u_r, tri_j2verts);
+    const auto tri_j2u = Omega_h::gather_scalars<3>(u_r, tri_j2verts);
 
     Omega_h::Matrix<2, 2> M;
     Omega_h::Vector<2> b;
