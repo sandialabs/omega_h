@@ -9,15 +9,16 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_shape.hpp"
 
-/*
-  This program computes the solution of the finite element discretization
-  of the 2nd Poisson equation with constant right hand side = 3 and then
-  evaluates the local residual at each vertex of the corresponding finite
-  volume discretization.
-  Note: the iterative solution is a Richardson iteration
-  with a *Jacobi preconditioner*.
-*/
-
+/*!
+ *  \brief Computes finite element discretization of the 2nd Poisson equation
+ *  \details This program computes the solution of the finite element
+ *  discretization of the 2nd Poisson equation with constant 
+ *  right hand side = 3 and then evaluates the local residual at each vertex
+ *  of the corresponding finite volume discretization.
+ *  \remark the iterative solution is a Richardson iteration
+ *  with a <b>Jacobi preconditioner</b>.
+ *  \author Samuel Melchior
+ */
 int main(int argc, char** argv) {
   // initialization
   auto lib = Omega_h::Library(&argc, &argv);

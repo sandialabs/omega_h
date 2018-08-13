@@ -6,14 +6,17 @@
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
 
-/*
-  This program is intended to be run with `mpirun -n 2 ./castle`.
-  The local and global indices of the vertices of each triangle
-  in a very coarse mesh are written to standard output.
-  Then some iterations over the triangles and the vertices are performed
-  to investigate the usage of ghost elements depending
-  on the definition of the `NOGHOSTS` preprocessor macro.
-*/
+/*!
+ *  \brief Sandbox castle
+ *  \details This program is intended to be run with `mpirun -n 2 ./castle`.
+ *  The local and global indices of the vertices of each triangle
+ *  in a very coarse mesh are written to standard output.
+ *  Then some iterations over the triangles and the vertices are performed
+ *  to investigate the usage of ghost elements depending
+ *  on the definition of the `NOGHOSTS` preprocessor macro.
+ *  \author Omar Awile
+ *  \author Samuel Melchior
+ */
 
 /*
 // preprocessor variable that prevents the creation of ghost elements

@@ -6,11 +6,12 @@
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
 
-/*
-  This program computes the gradient of the same function
-  as the one defined in `field_on_square` example.
+/*!
+ *  \brief This program computes the gradient of the same function
+ *  as the one defined in \e field_on_square example.
+ *  \author Omar Awile
+ *  \author Samuel Melchior
 */
-
 int main(int argc, char** argv) {
   // initialization
   auto lib = Omega_h::Library(&argc, &argv);
