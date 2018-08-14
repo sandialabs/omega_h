@@ -12,6 +12,7 @@ OMEGA_H_SYSTEM_HEADER
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #if (__GNUC__ >= 7)
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
 #endif
 #endif
 
