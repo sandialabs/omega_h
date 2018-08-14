@@ -6,9 +6,18 @@
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
-#elif defined(OMEGA_H_USE_CUDA)
+#endif
+
+#if defined(OMEGA_H_USE_CUDA)
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <thrust/transform_reduce.h>
 #include <thrust/functional.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 #endif
 
 namespace Omega_h {
@@ -33,17 +42,17 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
 #if defined(OMEGA_H_USE_CUDA)
 
 template <class Op>
-Op native_op(Op const& op) const { return op; }
+Op native_op(Op const& op) { return op; }
 template<class T>
-thrust::logical_and<T> native_op(Omega_h::logical_and<T> const&) const { return thrust::logical_and<T>(); }
+thrust::logical_and<T> native_op(Omega_h::logical_and<T> const&) { return thrust::logical_and<T>(); }
 template<class T>
-thrust::plus<T> native_op(Omega_h::plus<T> const&) const { return thrust::plus<T>(); }
+thrust::plus<T> native_op(Omega_h::plus<T> const&) { return thrust::plus<T>(); }
 template <class T>
-thrust::maximum<T> native_op()(Omega_h::maximum<T> const&) const { return thrust::maximum<T>(); }
+thrust::maximum<T> native_op(Omega_h::maximum<T> const&) { return thrust::maximum<T>(); }
 template <class T>
-thrust::minimum<T> native_op(Omega_h::minimum<T> const&) const { return thrust::minimum<T>(); }
+thrust::minimum<T> native_op(Omega_h::minimum<T> const&) { return thrust::minimum<T>(); }
 template <class T>
-thrust::identity<T> native_op(Omega_h::identity<T> const&) const { return thrust::identity<T>(); }
+thrust::identity<T> native_op(Omega_h::identity<T> const&) { return thrust::identity<T>(); }
 
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(
