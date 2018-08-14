@@ -89,7 +89,7 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
     auto ttv2x = gather_vectors<4, 3>(coords, ttv2v);
     auto tte2e = gather_down<6>(tets2edges, tet);
     auto tte2b = gather_values<6>(edges_are_bridges, tte2e);
-    auto nb = sum(tte2b);
+    auto nb = reduce(tte2b, plus<I8>());
     if (nb == 0) return;
     if (nb == 4) {
       for (Int tte = 0; tte < 3; ++tte) {
@@ -130,7 +130,7 @@ static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
       }
       Few<I8, 3> vve2b;
       for (Int vve = 0; vve < 3; ++vve) vve2b[vve] = tte2b[vve2tte[vve]];
-      if (sum(vve2b) != 3) continue;
+      if (reduce(vve2b, plus<I8>()) != 3) continue;
       // at this point, we have vertex-plane nearness
       auto o = ttv2x[ttv];
       Few<Int, 3> vve2ttv;

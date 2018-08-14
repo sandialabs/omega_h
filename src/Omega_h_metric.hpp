@@ -283,8 +283,8 @@ OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
     m1_ew_is_degen[i] = m1_dc.l[i] < OMEGA_H_EPSILON;
     m2_ew_is_degen[i] = m2_dc.l[i] < OMEGA_H_EPSILON;
   }
-  auto nm1_degen_ews = sum(m1_ew_is_degen);
-  auto nm2_degen_ews = sum(m2_ew_is_degen);
+  auto nm1_degen_ews = reduce(m1_ew_is_degen, plus<Int>());
+  auto nm2_degen_ews = reduce(m2_ew_is_degen, plus<Int>());
   if (nm1_degen_ews > nm2_degen_ews) {
     swap2(m1, m2);
     swap2(m1_dc, m2_dc);

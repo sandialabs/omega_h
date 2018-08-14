@@ -43,7 +43,7 @@ OMEGA_H_INLINE bool are_close(BBox<dim> a, BBox<dim> b) {
 
 template <Int dim>
 OMEGA_H_INLINE BBox<dim> make_equilateral(BBox<dim> bbox) {
-  auto maxl = maximum(bbox.max - bbox.min);
+  auto maxl = reduce(bbox.max - bbox.min, maximum<Real>());
   for (Int i = 0; i < dim; ++i) bbox.max[i] = bbox.min[i] + maxl;
   return bbox;
 }
