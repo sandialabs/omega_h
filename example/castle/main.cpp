@@ -6,14 +6,17 @@
 #include "Omega_h_loop.hpp"
 #include "Omega_h_mesh.hpp"
 
-/*
-  This program is intended to be run with `mpirun -n 2 ./castle`.
-  The local and global indices of the vertices of each triangle
-  in a very coarse mesh are written to standard output.
-  Then some iterations over the triangles and the vertices are performed
-  to investigate the usage of ghost elements depending
-  on the definition of the `NOGHOSTS` preprocessor macro.
-*/
+/*!
+ *  \brief Sandbox castle
+ *  \details This program is intended to be run with `mpirun -n 2 ./castle`.
+ *  The local and global indices of the vertices of each triangle
+ *  in a very coarse mesh are written to standard output.
+ *  Then some iterations over the triangles and the vertices are performed
+ *  to investigate the usage of ghost elements depending
+ *  on the definition of the `NOGHOSTS` preprocessor macro.
+ *  \author Omar Awile
+ *  \author Samuel Melchior
+ */
 
 /*
 // preprocessor variable that prevents the creation of ghost elements
@@ -90,9 +93,6 @@ int main(int argc, char** argv) {
   const auto elements2vertices = OMEGA_H_LAMBDA(Omega_h::LO j) {
     const auto tri_j2verts = Omega_h::gather_verts<3>(tris2verts, j);
     double sumVerts = 0.;
-
-    // e.g std::algorithm
-
     for (auto i = 0; i < 3; ++i) {
       sumVerts += vert_rank_s[tri_j2verts[i]];
     }
