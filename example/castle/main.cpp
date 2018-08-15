@@ -3,7 +3,7 @@
 #include <numeric>
 
 #include "Omega_h_file.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_mesh.hpp"
 
 /*!
