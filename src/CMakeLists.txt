@@ -422,6 +422,7 @@ set(Omega_h_HEADERS
   Omega_h_few.hpp
   Omega_h_mark.hpp
   Omega_h_for.hpp
+  Omega_h_int_iterator.hpp
   Omega_h_reduce.hpp
   Omega_h_scan.hpp
   Omega_h_timer.hpp
