@@ -446,7 +446,7 @@ class Rb_tree : protected Rb_tree_base<Value> {
   typedef Rb_tree_base<Value> Base;
 protected:
   typedef Rb_tree_node_base* Base_ptr;
-  typedef Rb_tree_node<Value> Rb_tree_node;
+  typedef Rb_tree_node<Value> Node_type;
   typedef Rb_tree_Color_type Color_type;
 public:
   typedef Key key_type;
@@ -455,7 +455,7 @@ public:
   typedef const value_type* const_pointer;
   typedef value_type& reference;
   typedef const value_type& const_reference;
-  typedef Rb_tree_node* Link_type;
+  typedef Node_type* Link_type;
   typedef std::size_t size_type;
   typedef std::ptrdiff_t difference_type;
 
@@ -600,7 +600,7 @@ public:
   const_iterator begin() const { return M_leftmost(); }
   iterator end() { return M_header; }
   const_iterator end() const { return M_header; }
-  bool empty() const { return M_node_count == nullptr; }
+  bool empty() const { return M_node_count == 0; }
   size_type size() const { return M_node_count; }
   size_type max_size() const { return size_type(-1); }
 
