@@ -169,9 +169,10 @@ template <typename T>
 Read<T> read_array(
     std::istream& stream, LO size, bool is_little_endian, bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
-  std::uint64_t uncompressed_bytes, compressed_bytes;
+  std::uint64_t uncompressed_bytes;
   std::string encoded;
 #ifdef OMEGA_H_USE_ZLIB
+  std::uint64_t compressed_bytes;
   if (is_compressed) {
     std::uint64_t header[4];
     auto nheader_chars = base64::encoded_size(sizeof(header));
@@ -192,7 +193,9 @@ Read<T> read_array(
     auto enc_header = enc_both.substr(0, nheader_chars);
     base64::decode(enc_header, &uncompressed_bytes, sizeof(uncompressed_bytes));
     binary::swap_if_needed(uncompressed_bytes, is_little_endian);
+#ifdef OMEGA_H_USE_ZLIB
     compressed_bytes = uncompressed_bytes;
+#endif
     encoded = enc_both.substr(nheader_chars);
   }
   OMEGA_H_CHECK(uncompressed_bytes == std::uint64_t(size) * sizeof(T));
