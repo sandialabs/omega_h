@@ -97,6 +97,10 @@ void seek_line(std::istream& stream, std::string const& want) {
   OMEGA_H_CHECK(stream);
 }
 
+static void eat_newlines(std::istream& stream) {
+  while (stream.peek() == int('\n')) stream.get();
+}
+
 template <class T>
 static void read(std::istream& stream, T& value, bool is_binary, bool needs_swapping) {
   if (is_binary) {
@@ -116,9 +120,14 @@ void read_internal(std::istream& stream, Mesh* mesh) {
   bool is_binary = (file_type == 1);
   bool needs_swapping = false;
   if (is_binary) {
+    eat_newlines(stream);
     int one;
     binary::read_value(stream, one, false);
-    if (one != 1) needs_swapping = true;
+    if (one != 1) {
+      needs_swapping = true;
+      binary::swap_bytes(one);
+      OMEGA_H_CHECK(one == 1);
+    }
   }
   OMEGA_H_CHECK(data_size == sizeof(Real));
   seek_line(stream, "$Nodes");
@@ -126,6 +135,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
   stream >> nnodes;
   OMEGA_H_CHECK(nnodes >= 0);
   std::vector<Vector<3>> node_coords;
+  eat_newlines(stream);
   for (LO i = 0; i < nnodes; ++i) {
     LO number;
     read(stream, number, is_binary, needs_swapping);
@@ -147,6 +157,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
   std::vector<LO> ent_nodes[4];
   Omega_h_Family family = OMEGA_H_SIMPLEX;
   if (is_binary) {
+    eat_newlines(stream);
     LO i = 0;
     while (i < nents) {
       I32 type, nfollow, ntags;
@@ -156,11 +167,13 @@ void read_internal(std::istream& stream, Mesh* mesh) {
       Int dim = type_dim(type);
       if (type_family(type) == OMEGA_H_HYPERCUBE) family = OMEGA_H_HYPERCUBE;
       Int neev = dim + 1;
+      OMEGA_H_CHECK(ntags >= 2);
       for (Int j = 0; j < nfollow; ++j, ++i) {
         I32 number, physical, elementary;
         binary::read_value(stream, number, needs_swapping);
         binary::read_value(stream, physical, needs_swapping);
         binary::read_value(stream, elementary, needs_swapping);
+        ent_class_ids[dim].push_back(elementary);
         for (Int k = 2; k < ntags; ++k) {
           I32 ignored;
           binary::read_value(stream, ignored, false);
