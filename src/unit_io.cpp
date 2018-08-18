@@ -9,60 +9,64 @@
 
 using namespace Omega_h;
 
-static void test_file_components() {
+static void test_file_components(bool is_compressed, bool needs_swapping) {
   using namespace binary;
   std::stringstream stream;
   std::string s = "foo";
   LO n = 10;
-#ifdef OMEGA_H_USE_ZLIB
-  bool is_compressed = true;
-#else
-  bool is_compressed = false;
-#endif
   I8 a = 2;
-  write_value(stream, a);
+  write_value(stream, a, needs_swapping);
   I32 b = 42 * 1000 * 1000;
-  write_value(stream, b);
+  write_value(stream, b, needs_swapping);
   I64 c = I64(42) * 1000 * 1000 * 1000;
-  write_value(stream, c);
+  write_value(stream, c, needs_swapping);
   Real d = 4.2;
-  write_value(stream, d);
+  write_value(stream, d, needs_swapping);
   Read<I8> aa(n, 0, a);
-  write_array(stream, aa);
+  write_array(stream, aa, is_compressed, needs_swapping);
   Read<I32> ab(n, 0, b);
-  write_array(stream, ab);
+  write_array(stream, ab, is_compressed, needs_swapping);
   Read<I64> ac(n, 0, c);
-  write_array(stream, ac);
+  write_array(stream, ac, is_compressed, needs_swapping);
   Read<Real> ad(n, 0, d);
-  write_array(stream, ad);
-  write(stream, s);
+  write_array(stream, ad, is_compressed, needs_swapping);
+  write(stream, s, needs_swapping);
   I8 a2;
-  read_value(stream, a2);
+  read_value(stream, a2, needs_swapping);
   OMEGA_H_CHECK(a == a2);
   I32 b2;
-  read_value(stream, b2);
+  read_value(stream, b2, needs_swapping);
   OMEGA_H_CHECK(b == b2);
   I64 c2;
-  read_value(stream, c2);
+  read_value(stream, c2, needs_swapping);
   OMEGA_H_CHECK(c == c2);
   Real d2;
-  read_value(stream, d2);
+  read_value(stream, d2, needs_swapping);
   OMEGA_H_CHECK(d == d2);
   Read<I8> aa2;
-  read_array(stream, aa2, is_compressed);
+  read_array(stream, aa2, is_compressed, needs_swapping);
   OMEGA_H_CHECK(aa2 == aa);
   Read<I32> ab2;
-  read_array(stream, ab2, is_compressed);
+  read_array(stream, ab2, is_compressed, needs_swapping);
   OMEGA_H_CHECK(ab2 == ab);
   Read<I64> ac2;
-  read_array(stream, ac2, is_compressed);
+  read_array(stream, ac2, is_compressed, needs_swapping);
   OMEGA_H_CHECK(ac2 == ac);
   Read<Real> ad2;
-  read_array(stream, ad2, is_compressed);
+  read_array(stream, ad2, is_compressed, needs_swapping);
   OMEGA_H_CHECK(ad2 == ad);
   std::string s2;
-  read(stream, s2);
+  read(stream, s2, needs_swapping);
   OMEGA_H_CHECK(s == s2);
+}
+
+static void test_file_components() {
+  test_file_components(false, false);
+  test_file_components(false, true);
+#ifdef OMEGA_H_USE_ZLIB
+  test_file_components(true, false);
+  test_file_components(true, true);
+#endif
 }
 
 static void build_empty_mesh(Mesh* mesh, Int dim) {

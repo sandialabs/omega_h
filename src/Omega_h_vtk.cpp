@@ -167,7 +167,7 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
 
 template <typename T>
 Read<T> read_array(
-    std::istream& stream, LO size, bool is_little_endian, bool is_compressed) {
+    std::istream& stream, LO size, bool needs_swapping, bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
   std::uint64_t uncompressed_bytes;
   std::string encoded;
@@ -178,8 +178,10 @@ Read<T> read_array(
     auto nheader_chars = base64::encoded_size(sizeof(header));
     auto enc_header = enc_both.substr(0, nheader_chars);
     base64::decode(enc_header, header, sizeof(header));
-    for (std::uint64_t i = 0; i < 4; ++i) {
-      binary::swap_if_needed(header[i], is_little_endian);
+    if (needs_swapping) {
+      for (std::uint64_t i = 0; i < 4; ++i) {
+        binary::swap_bytes(header[i]);
+      }
     }
     encoded = enc_both.substr(nheader_chars);
     uncompressed_bytes = header[2];
@@ -192,7 +194,7 @@ Read<T> read_array(
     auto nheader_chars = base64::encoded_size(sizeof(std::uint64_t));
     auto enc_header = enc_both.substr(0, nheader_chars);
     base64::decode(enc_header, &uncompressed_bytes, sizeof(uncompressed_bytes));
-    binary::swap_if_needed(uncompressed_bytes, is_little_endian);
+    if (needs_swapping) binary::swap_bytes(uncompressed_bytes);
 #ifdef OMEGA_H_USE_ZLIB
     compressed_bytes = uncompressed_bytes;
 #endif
@@ -221,8 +223,8 @@ Read<T> read_array(
   {
     base64::decode(encoded, nonnull(uncompressed.data()), uncompressed_bytes);
   }
-  return binary::swap_if_needed(
-      Read<T>(uncompressed.write()), is_little_endian);
+  return binary::swap_bytes(
+      Read<T>(uncompressed.write()), needs_swapping);
 }
 
 void write_tag(
@@ -264,7 +266,7 @@ void write_tag(
 }
 
 bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
-    bool is_little_endian, bool is_compressed) {
+    bool needs_swapping, bool is_compressed) {
   Omega_h_Type type = OMEGA_H_I8;
   std::string name;
   Int ncomps = -1;
@@ -277,17 +279,17 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
   mesh->remove_tag(ent_dim, name);
   auto size = mesh->nents(ent_dim) * ncomps;
   if (type == OMEGA_H_I8) {
-    auto array = read_array<I8>(stream, size, is_little_endian, is_compressed);
+    auto array = read_array<I8>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   } else if (type == OMEGA_H_I32) {
-    auto array = read_array<I32>(stream, size, is_little_endian, is_compressed);
+    auto array = read_array<I32>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   } else if (type == OMEGA_H_I64) {
-    auto array = read_array<I64>(stream, size, is_little_endian, is_compressed);
+    auto array = read_array<I64>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   } else {
     auto array =
-        read_array<Real>(stream, size, is_little_endian, is_compressed);
+        read_array<Real>(stream, size, needs_swapping, is_compressed);
     // undo the resizes done in write_tag()
     if (1 < mesh->dim() && mesh->dim() < 3) {
       if (ncomps == 3) {
@@ -308,7 +310,7 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
 
 template <typename T>
 Read<T> read_known_array(std::istream& stream, std::string const& name,
-    LO nents, Int ncomps, bool is_little_endian, bool is_compressed) {
+    LO nents, Int ncomps, bool needs_swapping, bool is_compressed) {
   auto st = xml::read_tag(stream);
   OMEGA_H_CHECK(st.elem_name == "DataArray");
   OMEGA_H_CHECK(st.type == xml::Tag::START);
@@ -316,7 +318,7 @@ Read<T> read_known_array(std::istream& stream, std::string const& name,
   OMEGA_H_CHECK(st.attribs["type"] == Traits<T>::name());
   OMEGA_H_CHECK(st.attribs["NumberOfComponents"] == Omega_h::to_string(ncomps));
   auto array =
-      read_array<T>(stream, nents * ncomps, is_little_endian, is_compressed);
+      read_array<T>(stream, nents * ncomps, needs_swapping, is_compressed);
   auto et = xml::read_tag(stream);
   OMEGA_H_CHECK(et.elem_name == "DataArray");
   OMEGA_H_CHECK(et.type == xml::Tag::END);
@@ -374,12 +376,12 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
 }
 
 static void read_vtkfile_vtu_start_tag(
-    std::istream& stream, bool* is_little_endian_out, bool* is_compressed_out) {
+    std::istream& stream, bool* needs_swapping_out, bool* is_compressed_out) {
   auto st = xml::read_tag(stream);
   OMEGA_H_CHECK(st.elem_name == "VTKFile");
   OMEGA_H_CHECK(st.attribs["header_type"] == Traits<std::uint64_t>::name());
   auto is_little_endian = (st.attribs["byte_order"] == "LittleEndian");
-  *is_little_endian_out = is_little_endian;
+  *needs_swapping_out = (is_little_endian != is_little_endian_cpu());
   auto is_compressed = (st.attribs.count("compressor") == 1);
   *is_compressed_out = is_compressed;
 }
@@ -412,10 +414,10 @@ void write_connectivity(
 }
 
 void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
-    bool is_little_endian, bool is_compressed, Omega_h_Family* family_out,
+    bool needs_swapping, bool is_compressed, Omega_h_Family* family_out,
     Int* dim_out, LOs* ev2v_out) {
   auto types = read_known_array<I8>(
-      stream, "types", ncells, 1, is_little_endian, is_compressed);
+      stream, "types", ncells, 1, needs_swapping, is_compressed);
   Omega_h_Family family = OMEGA_H_SIMPLEX;
   Int dim = -1;
   if (types.size()) {
@@ -444,10 +446,10 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
   *dim_out = dim;
   auto deg = element_degree(family, dim, VERT);
   auto ev2v = read_known_array<LO>(
-      stream, "connectivity", ncells * deg, 1, is_little_endian, is_compressed);
+      stream, "connectivity", ncells * deg, 1, needs_swapping, is_compressed);
   *ev2v_out = ev2v;
   read_known_array<LO>(
-      stream, "offsets", ncells, 1, is_little_endian, is_compressed);
+      stream, "offsets", ncells, 1, needs_swapping, is_compressed);
 }
 
 void write_locals(
@@ -620,8 +622,8 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
 }
 
 void read_vtu_ents(std::istream& stream, Mesh* mesh) {
-  bool is_little_endian, is_compressed;
-  read_vtkfile_vtu_start_tag(stream, &is_little_endian, &is_compressed);
+  bool needs_swapping, is_compressed;
+  read_vtkfile_vtu_start_tag(stream, &needs_swapping, &is_compressed);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
   LO nverts, ncells;
   read_piece_start_tag(stream, &nverts, &ncells);
@@ -630,27 +632,27 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   Omega_h_Family family;
   Int dim;
   LOs ev2v;
-  read_connectivity(stream, comm, ncells, is_little_endian, is_compressed,
+  read_connectivity(stream, comm, ncells, needs_swapping, is_compressed,
       &family, &dim, &ev2v);
   mesh->set_family(family);
   mesh->set_dim(dim);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
   auto coords = read_known_array<Real>(
-      stream, "coordinates", nverts, 3, is_little_endian, is_compressed);
+      stream, "coordinates", nverts, 3, needs_swapping, is_compressed);
   if (dim < 3) coords = resize_vectors(coords, 3, dim);
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
   OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "PointData");
   GOs vert_globals;
   if (mesh->could_be_shared(VERT)) {
     vert_globals = read_known_array<GO>(
-        stream, "global", nverts, 1, is_little_endian, is_compressed);
+        stream, "global", nverts, 1, needs_swapping, is_compressed);
   } else {
     vert_globals = Read<GO>(nverts, 0, 1);
   }
   build_verts_from_globals(mesh, vert_globals);
   mesh->add_tag(VERT, "coordinates", dim, coords, true);
-  while (read_tag(stream, mesh, VERT, is_little_endian, is_compressed))
+  while (read_tag(stream, mesh, VERT, needs_swapping, is_compressed))
     ;
   mesh->remove_tag(VERT, "local");
   mesh->remove_tag(VERT, "owner");
@@ -658,12 +660,12 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   GOs elem_globals;
   if (mesh->could_be_shared(dim)) {
     elem_globals = read_known_array<GO>(
-        stream, "global", ncells, 1, is_little_endian, is_compressed);
+        stream, "global", ncells, 1, needs_swapping, is_compressed);
   } else {
     elem_globals = Read<GO>(ncells, 0, 1);
   }
   build_ents_from_elems2verts(mesh, ev2v, vert_globals, elem_globals);
-  while (read_tag(stream, mesh, dim, is_little_endian, is_compressed))
+  while (read_tag(stream, mesh, dim, needs_swapping, is_compressed))
     ;
   mesh->remove_tag(dim, "local");
   mesh->remove_tag(dim, "owner");
