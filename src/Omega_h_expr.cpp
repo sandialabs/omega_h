@@ -298,7 +298,7 @@ void mul(LO size, Int dim, any& result, any& lhs, any& rhs) {
 template <Int dim>
 void div(any& result, any& lhs, any& rhs) {
   if (rhs.type() == typeid(Reals)) {
-    result = Reals(divide_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
+    result = Reals(divide_each_maybe_zero(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else if (rhs.type() == typeid(Real)) {
     if (lhs.type() == typeid(Real)) {
       result = any_cast<Real>(lhs) / any_cast<Real>(rhs);
