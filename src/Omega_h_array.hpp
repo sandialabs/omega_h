@@ -135,6 +135,8 @@ class Read {
   T last() const;
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
   std::string name() const { return write_.name(); }
+  OMEGA_H_INLINE T const* begin() { return data(); }
+  OMEGA_H_INLINE T const* end() { return data() + size(); }
 };
 
 template <typename T>

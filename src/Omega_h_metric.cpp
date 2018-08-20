@@ -35,11 +35,12 @@ template <Int dim>
 static Reals clamp_metrics_dim(
     LO nmetrics, Reals metrics, Real h_min, Real h_max) {
   auto out = Write<Real>(nmetrics * symm_ncomps(dim));
-  OMEGA_H_FOR("clamp_metrics", i, nmetrics) {
+  auto functor = OMEGA_H_LAMBDA(LO i) {
     auto m = get_symm<dim>(metrics, i);
     m = clamp_metric(m, h_min, h_max);
     set_symm(out, i, m);
   };
+  parallel_for("clamp_metrics", nmetrics, std::move(functor));
   return out;
 }
 
@@ -755,7 +756,8 @@ Reals get_aniso_zz_metric_dim(
     for (Int i = 0; i < dim; ++i) g[i] = max2(g[i], g_min);
     Matrix<dim, dim> r;
     for (Int i = 0; i < dim; ++i) r[i] = gv[dim - i - 1];
-    auto scaling = std::pow(product(g), 1.0 / 18.0);
+    auto prod = reduce(g, multiplies<Real>());
+    auto scaling = std::pow(prod, 1.0 / 18.0);
     Vector<dim> h;
     for (Int i = 0; i < dim; ++i)
       h[i] = root<dim>(a) * scaling / root<2>(g[dim - i - 1]);

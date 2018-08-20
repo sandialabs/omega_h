@@ -504,6 +504,30 @@ void eval_cos(LO size, any& result, ExprReader::Args& args) {
   }
 }
 
+void eval_mod(LO size, Int dim, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 2, Teuchos::ParserFail,
+      "mod() takes exactly two arguments, given " << args.size());
+  auto& lhs_any = args.at(0);
+  auto& rhs_any = args.at(1);
+  promote(size, dim, lhs_any, rhs_any);
+  if (lhs_any.type() == typeid(Real)) {
+    result = std::fmod(any_cast<Real>(lhs_any), any_cast<Real>(rhs_any));
+  } else if (rhs_any.type() == typeid(Reals)) {
+    auto a = Teuchos::any_cast<Reals>(lhs_any);
+    auto b = Teuchos::any_cast<Reals>(rhs_any);
+    TEUCHOS_TEST_FOR_EXCEPTION(a.size() != size, Teuchos::ParserFail,
+        "mod() given first argument that wasn't scalars");
+    TEUCHOS_TEST_FOR_EXCEPTION(b.size() != size, Teuchos::ParserFail,
+        "mod() given second argument that wasn't scalars");
+    auto out = Write<Real>(a.size());
+    auto f = OMEGA_H_LAMBDA(LO i) { out[i] = std::fmod(a[i], b[i]); };
+    parallel_for("eval_mod(Reals)", a.size(), std::move(f));
+    result = Reals(out);
+  } else {
+    throw Teuchos::ParserFail("unexpected argument type to mod()");
+  }
+}
+
 template <Int dim>
 void eval_norm(LO size, any& result, ExprReader::Args& args) {
   TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 1, Teuchos::ParserFail,
@@ -548,6 +572,8 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
       [=](any& result, Args& args) { eval_sin(local_size, result, args); });
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
+  register_function("mod",
+      [=](any& result, Args& args) { eval_mod(local_size, local_dim, result, args); });
   register_function("vector", vector);
   register_function("norm", [=](any& result, Args& args) {
     eval_norm(local_dim, local_size, result, args);
@@ -754,6 +780,19 @@ struct ConstOp : public ExprOp {
 };
 void ConstOp::eval(ExprEnv&, Teuchos::any& result) { result = value; }
 
+struct SemicolonOp : public ExprOp {
+  OpPtr lhs;
+  OpPtr rhs;
+  virtual ~SemicolonOp() override final = default;
+  SemicolonOp(OpPtr lhs_in, OpPtr rhs_in)
+      : lhs(lhs_in), rhs(rhs_in) {}
+  virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
+};
+void SemicolonOp::eval(ExprEnv& env, Teuchos::any& result) {
+  lhs->eval(env, result); // LHS result ignored
+  rhs->eval(env, result);
+}
+
 struct AssignOp : public ExprOp {
   std::string name;
   OpPtr rhs;
@@ -914,12 +953,29 @@ void ExprOpsReader::at_reduce(any& result, int prod, std::vector<any>& rhs) {
     case Teuchos::MathExpr::PROD_PROGRAM: {
       TEUCHOS_TEST_FOR_EXCEPTION(rhs.at(1).empty(), Teuchos::ParserFail,
           "Omega_h::ExprReader needs an expression to evaluate!");
-      swap(result, rhs.at(1));
+      if (rhs.at(0).empty()) {
+        swap(result, rhs.at(1));
+      } else {
+        auto op_lhs = Teuchos::any_cast<OpPtr>(rhs.at(0));
+        auto op_rhs = Teuchos::any_cast<OpPtr>(rhs.at(1));
+        OpPtr op(new SemicolonOp(op_lhs, op_rhs));
+        result = op;
+      }
       break;
     }
     case Teuchos::MathExpr::PROD_NO_STATEMENTS:
-    case Teuchos::MathExpr::PROD_NO_EXPR:
+    case Teuchos::MathExpr::PROD_NO_EXPR: {
+      break;
+    }
     case Teuchos::MathExpr::PROD_NEXT_STATEMENT: {
+      if (rhs.at(0).empty()) {
+        swap(result, rhs.at(1));
+      } else {
+        auto op_lhs = Teuchos::any_cast<OpPtr>(rhs.at(0));
+        auto op_rhs = Teuchos::any_cast<OpPtr>(rhs.at(1));
+        OpPtr op(new SemicolonOp(op_lhs, op_rhs));
+        result = op;
+      }
       break;
     }
     case Teuchos::MathExpr::PROD_ASSIGN: {

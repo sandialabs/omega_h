@@ -129,41 +129,44 @@ void read_in_comm(
 constexpr I32 latest_version = 8;
 
 template <typename T>
-void swap_if_needed(T& val, bool is_little_endian = true);
-template <typename T>
-Read<T> swap_if_needed(Read<T> array, bool is_little_endian);
+void swap_bytes(T&);
 
 template <typename T>
-void write_value(std::ostream& stream, T val);
-template <typename T>
-void read_value(std::istream& stream, T& val);
-template <typename T>
-void write_array(std::ostream& stream, Read<T> array);
-template <typename T>
-void read_array(std::istream& stream, Read<T>& array, bool is_compressed);
+Read<T> swap_bytes(Read<T> array, bool needs_swapping);
 
-void write(std::ostream& stream, std::string const& val);
-void read(std::istream& stream, std::string& val);
+template <typename T>
+void write_value(std::ostream& stream, T val, bool needs_swapping);
+template <typename T>
+void read_value(std::istream& stream, T& val, bool needs_swapping);
+template <typename T>
+void write_array(std::ostream& stream, Read<T> array, bool is_compressed, bool needs_swapping);
+template <typename T>
+void read_array(std::istream& stream, Read<T>& array, bool is_compressed, bool needs_swapping);
+
+void write(std::ostream& stream, std::string const& val, bool needs_swapping);
+void read(std::istream& stream, std::string& val, bool needs_swapping);
 
 void write(std::ostream& stream, Mesh* mesh);
 void read(std::istream& stream, Mesh* mesh, I32 version);
 
 #define INST_DECL(T)                                                           \
-  extern template void swap_if_needed(T& val, bool is_little_endian);          \
-  extern template Read<T> swap_if_needed(                                      \
-      Read<T> array, bool is_little_endian);                                   \
-  extern template void write_value(std::ostream& stream, T val);               \
-  extern template void read_value(std::istream& stream, T& val);               \
-  extern template void write_array(std::ostream& stream, Read<T> array);       \
+  extern template void swap_bytes(T&); \
+  extern template Read<T> swap_bytes(                                      \
+      Read<T> array, bool needs_swapping);                                   \
+  extern template void write_value(std::ostream& stream, T val, bool);               \
+  extern template void read_value(std::istream& stream, T& val, bool);               \
+  extern template void write_array(std::ostream& stream, Read<T> array, bool, bool);       \
   extern template void read_array(                                             \
-      std::istream& stream, Read<T>& array, bool is_compressed);
+      std::istream& stream, Read<T>& array, bool, bool);
 INST_DECL(I8)
 INST_DECL(I32)
 INST_DECL(I64)
 INST_DECL(Real)
 #undef INST_DECL
+
 // for VTK compression headers
-extern template void swap_if_needed(std::uint64_t& val, bool is_little_endian);
+extern template void swap_bytes(std::uint64_t&);
+
 }  // namespace binary
 
 void write_reals_txt(std::string const& filename, Reals a, Int ncomps);

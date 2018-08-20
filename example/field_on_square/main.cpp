@@ -1,13 +1,15 @@
 #include <cmath>
 
 #include "Omega_h_file.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_mesh.hpp"
 
-/*
-  minimal client loading a square mesh, looping on whole its vertices to
-  assign the value y-(2x-1)² from the coordinates (x,y) and output it in
-  a vtu file.
+/*!
+ *  \brief Minimalist Omega_h client
+ *  \details Load a square mesh, looping on whole its vertices to
+ *  assign the value y-(2x-1)² from the coordinates (x,y) and output it in
+ *  a vtu file.
+ *  \author Samuel Melchior
 */
 int main(int argc, char** argv) {
   // calls MPI_init(&argc, &argv) and Kokkos::initialize(argc, argv)

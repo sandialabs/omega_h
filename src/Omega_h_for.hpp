@@ -82,24 +82,6 @@ void parallel_for(char const* name, LO n, T&& f) {
 #endif
 }
 
-// this class exists simply to allow users to omit a closing parenthesis:
-// OMEGA_H_FOR("name", i, n) {
-// }; // <- no closing paren needed!
-// as opposed to
-// parallel_for("name", n, OMEGA_H_LAMBDA(LO i) {
-// }); // <- closing paren needed!
-struct ParallelFor {
-  char const* name;
-  LO n;
-  ParallelFor(char const* name_in, LO n_in):name(name_in),n(n_in) {}
-  template <typename T>
-  void operator<<(T&& f) {
-    parallel_for(name, n, std::move(f));
-  }
-};
-
-#define OMEGA_H_FOR(name, i, n) ParallelFor(name, n) << OMEGA_H_LAMBDA(Omega_h::LO i)
-
 }  // end namespace Omega_h
 
 #endif

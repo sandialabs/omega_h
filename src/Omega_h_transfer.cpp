@@ -528,7 +528,7 @@ static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
         auto ia = invert(a);
         auto xi = ia * new_ip;
         auto bc = form_barycentric(xi);
-        auto distance = -minimum(bc);
+        auto distance = -reduce(bc, minimum<Real>());
         if (best_old_elem == -1 || distance < best_distance) {
           best_old_elem = old_elem;
           best_distance = distance;
