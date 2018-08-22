@@ -49,6 +49,9 @@ static void get_elem_type_info(
   } else if (type == "TRI") {
     *p_dim = 2;
     *p_family = OMEGA_H_SIMPLEX;
+  } else if (type == "TRI3") {
+    *p_dim = 2;
+    *p_family = OMEGA_H_SIMPLEX;
   } else if (type == "tetra4") {
     *p_dim = 3;
     *p_family = OMEGA_H_SIMPLEX;
@@ -193,26 +196,17 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
     std::cout << " num_node_sets " << init_params.num_node_sets << '\n';
     std::cout << " num_side_sets " << init_params.num_side_sets << '\n';
   }
-  auto dim = int(init_params.num_dim);
-  HostWrite<Real> h_coord_blk[3];
-  for (Int i = 0; i < dim; ++i) {
-    h_coord_blk[i] = HostWrite<Real>(LO(init_params.num_nodes));
-  }
-  CALL(ex_get_coord(file, h_coord_blk[0].data(), h_coord_blk[1].data(),
-      h_coord_blk[2].data()));
-  HostWrite<Real> h_coords(LO(init_params.num_nodes * dim));
-  for (LO i = 0; i < init_params.num_nodes; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      h_coords[i * dim + j] = h_coord_blk[j][i];
-    }
-  }
-  auto coords = Reals(h_coords.write());
   std::vector<int> block_ids(std::size_t(init_params.num_elem_blk));
   CALL(ex_get_ids(file, EX_ELEM_BLOCK, block_ids.data()));
+  std::vector<char> block_names_memory;
+  std::vector<char*> block_names;
+  setup_names(int(init_params.num_elem_blk), block_names_memory, block_names);
+  CALL(ex_get_names(file, EX_ELEM_BLOCK, block_names.data()));
   HostWrite<LO> h_conn;
   Write<LO> elem_class_ids_w(LO(init_params.num_elem));
   LO elem_start = 0;
   int family_int = -1;
+  int dim = -1;
   for (size_t i = 0; i < block_ids.size(); ++i) {
     char elem_type[MAX_STR_LENGTH + 1];
     int nentries;
@@ -224,7 +218,9 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
         &nnodes_per_entry, &nedges_per_entry, &nfaces_per_entry,
         &nattr_per_entry));
     if (verbose) {
-      std::cout << "block " << block_ids[i] << " has " << nentries
+      std::cout << "block " << block_ids[i]
+                << " \"" << block_names[i] << "\""
+                << " has " << nentries
                 << " elements of type " << elem_type << '\n';
     }
     /* some pretty weird blocks from the CDFEM people... */
@@ -232,9 +228,10 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
     int dim_from_type;
     Omega_h_Family family_from_type;
     get_elem_type_info(elem_type, &dim_from_type, &family_from_type);
-    OMEGA_H_CHECK(dim_from_type == dim);
     if (family_int == -1) family_int = family_from_type;
     OMEGA_H_CHECK(family_int == family_from_type);
+    if (dim == -1) dim = dim_from_type;
+    OMEGA_H_CHECK(dim == dim_from_type);
     auto deg = element_degree(Omega_h_Family(family_int), dim, VERT);
     OMEGA_H_CHECK(nnodes_per_entry == deg);
     if (!h_conn.exists())
@@ -252,11 +249,25 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       elem_class_ids_w[elem_start + entry] = region_id;
     };
     parallel_for(nentries, f0, "set_elem_class_ids");
+    mesh->class_sets[block_names[i]].push_back({I8(dim), region_id});
     elem_start += nentries;
   }
   OMEGA_H_CHECK(elem_start == init_params.num_elem);
   Omega_h_Family family = Omega_h_Family(family_int);
   auto conn = subtract_from_each(LOs(h_conn.write()), 1);
+  HostWrite<Real> h_coord_blk[3];
+  for (Int i = 0; i < dim; ++i) {
+    h_coord_blk[i] = HostWrite<Real>(LO(init_params.num_nodes));
+  }
+  CALL(ex_get_coord(file, h_coord_blk[0].data(), h_coord_blk[1].data(),
+      h_coord_blk[2].data()));
+  HostWrite<Real> h_coords(LO(init_params.num_nodes * dim));
+  for (LO i = 0; i < init_params.num_nodes; ++i) {
+    for (Int j = 0; j < dim; ++j) {
+      h_coords[i * dim + j] = h_coord_blk[j][i];
+    }
+  }
+  auto coords = Reals(h_coords.write());
   build_from_elems_and_coords(mesh, OMEGA_H_SIMPLEX, dim, conn, coords);
   classify_elements(mesh);
   std::vector<int> side_set_ids(std::size_t(init_params.num_side_sets));
@@ -269,7 +280,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
   auto exposed_sides2side = collect_marked(sides_are_exposed);
   map_into(LOs(exposed_sides2side.size(), 0), exposed_sides2side,
       side_class_ids_w, 1);
-  if (classify_with & NODE_SETS) {
+  if ((classify_with & NODE_SETS) && init_params.num_node_sets) {
     int max_side_set_id = 0;
     if ((classify_with & SIDE_SETS) && side_set_ids.size()) {
       max_side_set_id =
@@ -279,13 +290,8 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
     CALL(ex_get_ids(file, EX_NODE_SET, node_set_ids.data()));
     std::vector<char> names_memory;
     std::vector<char*> name_ptrs;
-    std::cerr << "setting up names for " << init_params.num_node_sets << " node sets\n";
     setup_names(int(init_params.num_node_sets), names_memory, name_ptrs);
-    std::cerr << "done setting up names for node sets\n";
-    std::cerr << "calling ex_get_names...\n";
     CALL(ex_get_names(file, EX_NODE_SET, name_ptrs.data()));
-    std::cerr << "done calling ex_get_names, names are:\n";
-    for (auto p : name_ptrs) std::cerr << '"' << p << "\"\n";
     for (size_t i = 0; i < node_set_ids.size(); ++i) {
       int nentries, ndist_factors;
       CALL(ex_get_set_param(
