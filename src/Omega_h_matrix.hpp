@@ -541,6 +541,7 @@ template <Int dim>
 Reals repeat_symm(LO n, Matrix<dim, dim> symm);
 extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
+extern template Reals repeat_symm(LO n, Matrix<1, 1> symm);
 
 Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim);
 
