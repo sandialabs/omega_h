@@ -429,6 +429,13 @@ void write(std::ostream& stream, Mesh* mesh) {
     }
   }
   write_sets(stream, mesh, needs_swapping);
+  if (mesh->family() == OMEGA_H_HYPERCUBE) {
+    for (Int d = 0; d <= mesh->dim(); ++d) {
+      auto parents = mesh->ask_parents(d);
+      write_array(stream, parents.parent_idx, is_compressed, needs_swapping);
+      write_array(stream, parents.codes, is_compressed, needs_swapping);
+    }
+  }
   end_code();
 }
 
@@ -473,6 +480,14 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
   }
   if (version >= 8) {
     read_sets(stream, mesh, needs_swapping);
+    if (mesh->family() == OMEGA_H_HYPERCUBE) {
+      for (Int d = 0; d <= mesh->dim(); ++d) {
+        Parents parents;
+        read_array(stream, parents.parent_idx, is_compressed, needs_swapping);
+        read_array(stream, parents.codes, is_compressed, needs_swapping);
+        mesh->set_parents(d, parents);
+      }
+    }
   }
 }
 
