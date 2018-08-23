@@ -68,28 +68,28 @@ static void get_elem_type_info(
 
 // subtracts one and maps from Exodus
 // side ordering to Omega_h
-static OMEGA_H_INLINE int side_exo2osh(int dim, int side) {
-  switch (dim) {
-    case 2:
-      switch (side) {
-        case 1:
-          return 0;
+static OMEGA_H_INLINE int side_exo2osh(Omega_h_Family family, int dim, int side) {
+  switch (family) {
+    case OMEGA_H_SIMPLEX:
+      switch (dim) {
         case 2:
-          return 1;
+          // seeing files from CUBIT with triangle sides in {3,4,5}...
+          // no clue what thats about, just modulo and move on
+          return (side) % 3;
         case 3:
-          return 2;
+          switch (side) {
+            case 1:
+              return 1;
+            case 2:
+              return 2;
+            case 3:
+              return 3;
+            case 4:
+              return 0;
+          }
       }
-    case 3:
-      switch (side) {
-        case 1:
-          return 1;
-        case 2:
-          return 2;
-        case 3:
-          return 3;
-        case 4:
-          return 0;
-      }
+    case OMEGA_H_HYPERCUBE:
+      return -1; // needs to be filled in!
   }
   return -1;
 }
@@ -347,8 +347,9 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       auto set_sides2side_w = Write<LO>(nentries);
       auto f2 = OMEGA_H_LAMBDA(LO set_side) {
         auto elem = set_sides2elem[set_side];
-        auto local = side_exo2osh(dim, set_sides2local[set_side]);
-        auto side = elems2sides[elem * nsides_per_elem + local];
+        auto side_of_element = side_exo2osh(family, dim, set_sides2local[set_side]);
+        OMEGA_H_CHECK(side_of_element != -1);
+        auto side = elems2sides[elem * nsides_per_elem + side_of_element];
         set_sides2side_w[set_side] = side;
       };
       parallel_for(nentries, f2, "set_sides2side");
