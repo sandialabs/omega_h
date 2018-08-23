@@ -131,6 +131,7 @@ class Mesh {
   Bytes ask_leaves(Int dim);
   Parents ask_parents(Int child_dim);
   Children ask_children(Int parent_dim, Int child_dim);
+  bool has_any_parents() const;
   void set_owners(Int dim, Remotes owners);
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);
