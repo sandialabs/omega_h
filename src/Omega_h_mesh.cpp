@@ -450,6 +450,16 @@ Children Mesh::ask_children(Int parent_dim, Int child_dim) {
   return *(children_[parent_dim][child_dim]);
 }
 
+bool Mesh::has_any_parents() const {
+  bool has_parents = false;
+  for (Int d = 0; d <= dim_; ++d) {
+    if (parents_[d]) {
+      has_parents = true;
+    }
+  }
+  return has_parents;
+}
+
 void Mesh::set_owners(Int ent_dim, Remotes owners) {
   check_dim2(ent_dim);
   OMEGA_H_CHECK(nents(ent_dim) == owners.ranks.size());
