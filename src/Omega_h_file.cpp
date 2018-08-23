@@ -480,6 +480,8 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
   }
   if (version >= 8) {
     read_sets(stream, mesh, needs_swapping);
+  }
+  if (version >= 9) {
     if (mesh->family() == OMEGA_H_HYPERCUBE) {
       for (Int d = 0; d <= mesh->dim(); ++d) {
         Parents parents;
