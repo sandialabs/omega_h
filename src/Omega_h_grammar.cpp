@@ -13,8 +13,8 @@ int get_nnonterminals(Grammar const& g) {
 }
 
 bool is_terminal(Grammar const& g, int symbol) {
-  assert(0 <= symbol);
-  assert(symbol <= g.nsymbols);
+  OMEGA_H_CHECK(0 <= symbol);
+  OMEGA_H_CHECK(symbol <= g.nsymbols);
   return symbol < g.nterminals;
 }
 
@@ -30,7 +30,7 @@ int find_goal_symbol(Grammar const& g) {
   std::set<int> nonterminals_in_rhss;
   for (auto& p : g.productions) {
     for (auto s : p.rhs) {
-      assert(0 <= s);
+      OMEGA_H_CHECK(0 <= s);
       if (is_nonterminal(g, s)) nonterminals_in_rhss.insert(s);
     }
   }

@@ -476,7 +476,7 @@ template <typename T>
 T&& move_value(any& a) {
   auto any_ptr = &(a);
   auto value_ptr = any_cast<T>(any_ptr);
-  assert(value_ptr != nullptr);
+  OMEGA_H_CHECK(value_ptr != nullptr);
   return std::move(*value_ptr);
 }
 

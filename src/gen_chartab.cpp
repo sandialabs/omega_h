@@ -93,7 +93,7 @@ int main() {
     else if (inv_chartab[i] == '\t') chartab_cpp << "\\t";
     else if (inv_chartab[i] == '\n') chartab_cpp << "\\n";
     else if (inv_chartab[i] == '\r') chartab_cpp << "\\r";
-    else assert(false);
+    else OMEGA_H_CHECK(false);
     chartab_cpp << '\'';
     if (i != n - 1) chartab_cpp << ',';
     chartab_cpp << '\n';

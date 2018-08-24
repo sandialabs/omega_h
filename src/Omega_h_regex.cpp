@@ -155,7 +155,7 @@ any regex::Reader::at_shift(int token, std::string& text) {
   if (token != TOK_CHAR) { return any(); }
   if (size(text) == 1) { return any(text[0]); }
   else if (size(text) == 2) {
-    assert(text[0] == '\\');
+    OMEGA_H_CHECK(text[0] == '\\');
     return any(text[1]);
   } else {
     std::cerr << "BUG: regex char text is \"" << text << "\"\n";

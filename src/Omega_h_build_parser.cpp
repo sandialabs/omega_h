@@ -67,7 +67,7 @@ static void close(StateInProgress& state,
   std::set<int> config_set;
   for (auto config_i : state.configs) {
     config_q.push(config_i);
-    assert(!config_set.count(config_i));
+    OMEGA_H_CHECK(!config_set.count(config_i));
     config_set.insert(config_i);
   }
   while (!config_q.empty()) {
@@ -306,7 +306,7 @@ static std::vector<FirstSet> compute_first_sets(Grammar const& grammar,
     dependee_firsts.insert(added_symb);
     auto& dependers = get_edges(dependees2dependers, dependee);
     for (auto depender : dependers) {
-      assert(is_nonterminal(grammar, depender));
+      OMEGA_H_CHECK(is_nonterminal(grammar, depender));
       auto& prods = get_edges(lhs2prods, depender);
       auto const& depender_firsts = at(first_sets, depender);
       for (auto prod_i : prods) {
@@ -386,7 +386,7 @@ void print_dot(
   auto& states2scs = pip.states2state_configs;
   std::cerr << "writing " << filepath << "\n\n";
   std::ofstream file(filepath.c_str());
-  assert(file.is_open());
+  OMEGA_H_CHECK(file.is_open());
   file << "digraph {\n";
   file << "graph [\n";
   file << "rankdir = \"LR\"\n";
@@ -496,7 +496,7 @@ static ParserGraph find_transition_predecessors(
     auto& state = *at(states, state_i);
     for (auto& action : state.actions) {
       if (action.action.kind != ACTION_SHIFT) continue;
-      assert(action.context.size() == 1);
+      OMEGA_H_CHECK(action.context.size() == 1);
       auto symbol = *(action.context.begin());
       auto state_j = action.action.next_state;
       auto& state2 = *at(states, state_j);
@@ -624,7 +624,7 @@ static void move_markers(
    not just a boolean. this would save us the search here: */
   auto it = std::find_if(lane.begin(), lane.end(),
       [=](int item) { return item == zeta_prime_addr; });
-  assert(it != lane.end());
+  OMEGA_H_CHECK(it != lane.end());
   auto loc_of_zeta_prime = int(it - lane.begin());
   int r = 0;
   for (int i = loc_of_zeta_prime + 1; i < zeta_pointer; ++i) {
@@ -718,8 +718,8 @@ static void deal_with_tests_failed(
     if (verbose) std::cerr << "    " << zeta_prime_addr << " is the second originator of " << zeta_addr << " to fail the tests\n";
     auto zeta_double_prime_addr = first_originator_failed;
     if (verbose) std::cerr << "    the first was " << zeta_double_prime_addr << '\n';
-    assert(at(lane, size(lane) - 1) == zeta_double_prime_addr);
-    assert(at(lane, size(lane) - 2) == zeta_addr);
+    OMEGA_H_CHECK(at(lane, size(lane) - 1) == zeta_double_prime_addr);
+    OMEGA_H_CHECK(at(lane, size(lane) - 2) == zeta_addr);
     if (verbose) std::cerr << "    pop LANE, push {marker, " << zeta_double_prime_addr << "} onto it:\n    ";
     lane.resize(lane.size() - 1);
     lane.push_back(MARKER);
@@ -801,7 +801,7 @@ static void compute_context_set(
     print_stack(lane);
   }
   while (true) {
-    assert(!lane.empty());
+    OMEGA_H_CHECK(!lane.empty());
     auto zeta_addr = lane.back();
     if (verbose) {
       std::cerr << "Top of LANE is $\\zeta$ = " << zeta_addr << '\n';
@@ -908,7 +908,7 @@ static void compute_context_set(
     bool keep_lane_popping = true;
     if (verbose) std::cerr << "  Start LANE popping\n";
     while (keep_lane_popping) { // LANE popping loop
-      assert(!lane.empty());
+      OMEGA_H_CHECK(!lane.empty());
       if (verbose) {
         std::cerr << "  LANE:";
         print_stack(lane);
@@ -917,7 +917,7 @@ static void compute_context_set(
         if (verbose) std::cerr << "  Top of LANE is a marker\n";
         if (verbose) std::cerr << "  Start STACK popping\n";
         while (true) { // STACK popping loop
-          assert(!stack.empty());
+          OMEGA_H_CHECK(!stack.empty());
           if (verbose) {
             std::cerr << "    STACK:";
             print_stack(stack);
@@ -1000,7 +1000,7 @@ static std::vector<bool> determine_adequate_states(
             if (ap1->action.kind == ACTION_SHIFT) {
               std::swap(ap1, ap2);
             }
-            assert(ap1->action.kind == ACTION_REDUCE);
+            OMEGA_H_CHECK(ap1->action.kind == ACTION_REDUCE);
             std::cerr << "shift-reduce conflict in state " << s_i << ":\n";
             std::cerr << "reduce ";
             auto& prod = at(grammar->productions, ap1->action.production);
@@ -1128,7 +1128,7 @@ Parser accept_parser(ParserInProgress const& pip) {
         add_nonterminal_action(out, s_i, nt, action.action.next_state);
       } else {
         for (auto terminal : action.context) {
-          assert(is_terminal(*grammar, terminal));
+          OMEGA_H_CHECK(is_terminal(*grammar, terminal));
           add_terminal_action(out, s_i, terminal, action.action);
         }
       }

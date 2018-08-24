@@ -20,7 +20,7 @@ class Reader {
   void read_file(std::string const& file_name);
   template <typename T>
   T&& move_result() {
-    assert(size(value_stack) == 1);
+    OMEGA_H_CHECK(size(value_stack) == 1);
     return move_value<T>(value_stack.back());
   }
  protected:

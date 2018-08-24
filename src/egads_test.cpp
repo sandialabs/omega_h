@@ -13,7 +13,7 @@
 #include <cassert>
 #include <cmath>
 
-#define CALL(f) assert(EGADS_SUCCESS == (f))
+#define CALL(f) OMEGA_H_CHECK(EGADS_SUCCESS == (f))
 
 static char const* get_oclass_name(int oclass) {
   switch (oclass) {
@@ -71,7 +71,7 @@ static void print_closest_point(ego* faces, int i, std::array<double, 3> pt) {
 }
 
 int main(int argc, char** argv) {
-  assert(argc == 2);
+  OMEGA_H_CHECK(argc == 2);
   ego context;
   CALL(EG_open(&context));
   ego model;

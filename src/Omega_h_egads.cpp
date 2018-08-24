@@ -101,7 +101,7 @@ Egads* egads_load(std::string const& filename) {
   int* body_senses;
   CALL(EG_getTopology(eg->model, &model_geom, &model_oclass, &model_mtype,
       nullptr, &nbodies, &bodies, &body_senses));
-  assert(nbodies == 1);
+  OMEGA_H_CHECK(nbodies == 1);
   eg->body = bodies[0];
   for (int i = 0; i < 3; ++i) {
     CALL(EG_getBodyTopos(

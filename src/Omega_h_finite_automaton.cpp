@@ -32,12 +32,12 @@ bool get_determinism(FiniteAutomaton const& fa) {
 }
 
 int get_epsilon0(FiniteAutomaton const& fa) {
-  assert(!fa.is_deterministic);
+  OMEGA_H_CHECK(!fa.is_deterministic);
   return get_ncols(fa.table) - 2;
 }
 
 int get_epsilon1(FiniteAutomaton const& fa) {
-  assert(!fa.is_deterministic);
+  OMEGA_H_CHECK(!fa.is_deterministic);
   return get_ncols(fa.table) - 1;
 }
 
@@ -52,16 +52,16 @@ int add_state(FiniteAutomaton& fa) {
 }
 
 void add_transition(FiniteAutomaton& fa, int from_state, int at_symbol, int to_state) {
-  assert(0 <= to_state);
-  assert(to_state < get_nstates(fa));
-  assert(0 <= at_symbol);
-  assert(at_symbol < get_ncols(fa.table)); // allow setting epsilon transitions
-  assert(at(fa.table, from_state, at_symbol) == -1);
+  OMEGA_H_CHECK(0 <= to_state);
+  OMEGA_H_CHECK(to_state < get_nstates(fa));
+  OMEGA_H_CHECK(0 <= at_symbol);
+  OMEGA_H_CHECK(at_symbol < get_ncols(fa.table)); // allow setting epsilon transitions
+  OMEGA_H_CHECK(at(fa.table, from_state, at_symbol) == -1);
   at(fa.table, from_state, at_symbol) = to_state;
 }
 
 void add_accept(FiniteAutomaton& fa, int state, int token) {
-  assert(0 <= token);
+  OMEGA_H_CHECK(0 <= token);
   at(fa.accepted_tokens, state) = token;
 }
 
@@ -70,10 +70,10 @@ void remove_accept(FiniteAutomaton& fa, int state) {
 }
 
 int step(FiniteAutomaton const& fa, int state, int symbol) {
-  assert(0 <= state);
-  assert(state < get_nstates(fa));
-  assert(0 <= symbol);
-  assert(symbol < get_ncols(fa.table)); // allow getting epsilon transitions
+  OMEGA_H_CHECK(0 <= state);
+  OMEGA_H_CHECK(state < get_nstates(fa));
+  OMEGA_H_CHECK(0 <= symbol);
+  OMEGA_H_CHECK(symbol < get_ncols(fa.table)); // allow getting epsilon transitions
   return at(fa.table, state, symbol);
 }
 
@@ -86,9 +86,9 @@ int get_nsymbols_eps(FiniteAutomaton const& fa) {
 }
 
 void append_states(FiniteAutomaton& fa, FiniteAutomaton const& other) {
-  assert(get_nsymbols(other) == get_nsymbols(fa));
+  OMEGA_H_CHECK(get_nsymbols(other) == get_nsymbols(fa));
   auto other_determ = get_determinism(other);
-  if (!other_determ) assert(!fa.is_deterministic);
+  if (!other_determ) OMEGA_H_CHECK(!fa.is_deterministic);
   auto offset = get_nstates(fa);
   for (int other_state = 0; other_state < get_nstates(other); ++other_state) {
     auto my_state = add_state(fa);
@@ -122,9 +122,9 @@ FiniteAutomaton FiniteAutomaton::make_set_nfa(int nsymbols, std::set<int> const&
 }
 
 FiniteAutomaton FiniteAutomaton::make_range_nfa(int nsymbols, int range_start, int range_end, int token) {
-  assert(0 <= range_start);
-  assert(range_start <= range_end);
-  assert(range_end <= nsymbols);
+  OMEGA_H_CHECK(0 <= range_start);
+  OMEGA_H_CHECK(range_start <= range_end);
+  OMEGA_H_CHECK(range_end <= nsymbols);
   FiniteAutomaton out(nsymbols, true, 2);
   auto start_state = add_state(out);
   auto accept_state = add_state(out);
@@ -342,13 +342,13 @@ FiniteAutomaton FiniteAutomaton::simplify_once(FiniteAutomaton const& fa) {
   }
   std::vector<bool> did_simple(size_t(nsimple), false);
   for (int state = 0; state < get_nstates(fa); ++state) {
-    assert(sr2ss.count(state));
+    OMEGA_H_CHECK(sr2ss.count(state));
     auto simple = sr2ss[state];
     if (at(did_simple, simple)) continue;
     for (int symbol = 0; symbol < get_nsymbols_eps(fa); ++symbol) {
       auto next_state = step(fa, state, symbol);
       if (next_state == -1) continue;
-      assert(sr2ss.count(next_state));
+      OMEGA_H_CHECK(sr2ss.count(next_state));
       auto next_simple = sr2ss[next_state];
       add_transition(out, simple, symbol, next_simple);
     }
@@ -390,15 +390,15 @@ bool is_symbol(char c) {
 }
 
 int get_symbol(char c) {
-  assert(0 <= c);
+  OMEGA_H_CHECK(0 <= c);
   auto symbol = Omega_h::chartab[int(c)];
-  assert(0 <= symbol);
+  OMEGA_H_CHECK(0 <= symbol);
   return symbol;
 }
 
 char get_char(int symbol) {
-  assert(0 <= symbol);
-  assert(symbol < Omega_h::NCHARS);
+  OMEGA_H_CHECK(0 <= symbol);
+  OMEGA_H_CHECK(symbol < Omega_h::NCHARS);
   return inv_chartab[symbol];
 }
 

@@ -2,7 +2,7 @@
 #define OMEGA_H_VECTOR_HPP
 
 #include <vector>
-#include <cassert>
+#include <Omega_h_fail.hpp>
 
 namespace Omega_h {
 
@@ -16,27 +16,27 @@ inline int size(std::vector<T> const& v) {
 
 template <typename T>
 inline typename std::vector<T>::reference at(std::vector<T>& v, int i) {
-  assert(0 <= i);
-  assert(i < int(v.size()));
+  OMEGA_H_CHECK(0 <= i);
+  OMEGA_H_CHECK(i < int(v.size()));
   return v[std::size_t(i)];
 }
 
 template <typename T>
 inline typename std::vector<T>::const_reference at(std::vector<T> const& v, int i) {
-  assert(0 <= i);
-  assert(i < int(v.size()));
+  OMEGA_H_CHECK(0 <= i);
+  OMEGA_H_CHECK(i < int(v.size()));
   return v[std::size_t(i)];
 }
 
 template <typename T>
 inline void resize(std::vector<T>& v, int n) {
-  assert(0 <= n);
+  OMEGA_H_CHECK(0 <= n);
   v.resize(std::size_t(n));
 }
 
 template <typename T>
 inline void reserve(std::vector<T>& v, int n) {
-  assert(0 <= n);
+  OMEGA_H_CHECK(0 <= n);
   v.reserve(std::size_t(n));
 }
 

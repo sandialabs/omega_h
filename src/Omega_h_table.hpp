@@ -14,15 +14,15 @@ struct Table {
   using ConstRef = typename std::vector<T>::const_reference;
   Table() = default;
   Table(int ncols_init, int nrows_reserve):ncols(ncols_init) {
-    assert(0 <= ncols_init);
+    OMEGA_H_CHECK(0 <= ncols_init);
     reserve(data, ncols * nrows_reserve);
   }
 };
 
 template <typename T>
 int get_nrows(Table<T> const& t) {
-  assert(t.ncols > 0);
-  assert(size(t.data) % t.ncols == 0);
+  OMEGA_H_CHECK(t.ncols > 0);
+  OMEGA_H_CHECK(size(t.data) % t.ncols == 0);
   return size(t.data) / t.ncols;
 }
 
@@ -31,25 +31,25 @@ int get_ncols(Table<T> const& t) { return t.ncols; }
 
 template <typename T>
 void resize(Table<T>& t, int new_nrows, int new_ncols) {
-  assert(new_ncols == t.ncols); // pretty specialized right now
+  OMEGA_H_CHECK(new_ncols == t.ncols); // pretty specialized right now
   Omega_h::resize(t.data, new_nrows * t.ncols);
 }
 
 template <typename T>
 typename Table<T>::Ref at(Table<T>& t, int row, int col) {
-  assert(0 <= col);
-  assert(col < t.ncols);
-  assert(0 <= row);
-  assert(row < get_nrows(t));
+  OMEGA_H_CHECK(0 <= col);
+  OMEGA_H_CHECK(col < t.ncols);
+  OMEGA_H_CHECK(0 <= row);
+  OMEGA_H_CHECK(row < get_nrows(t));
   return Omega_h::at(t.data, row * t.ncols + col);
 }
 
 template <typename T>
 typename Table<T>::ConstRef at(Table<T> const& t, int row, int col) {
-  assert(0 <= col);
-  assert(col < t.ncols);
-  assert(0 <= row);
-  assert(row < get_nrows(t));
+  OMEGA_H_CHECK(0 <= col);
+  OMEGA_H_CHECK(col < t.ncols);
+  OMEGA_H_CHECK(0 <= row);
+  OMEGA_H_CHECK(row < get_nrows(t));
   return Omega_h::at(t.data, row * t.ncols + col);
 }
 

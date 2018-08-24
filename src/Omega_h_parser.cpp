@@ -28,22 +28,22 @@ int add_state(Parser& p) {
 }
 
 void add_terminal_action(Parser& p, int state, int terminal, Action action) {
-  assert(at(p.terminal_table, state, terminal).kind == ACTION_NONE);
-  assert(action.kind != ACTION_NONE);
+  OMEGA_H_CHECK(at(p.terminal_table, state, terminal).kind == ACTION_NONE);
+  OMEGA_H_CHECK(action.kind != ACTION_NONE);
   if (action.kind == ACTION_SHIFT) {
-    assert(0 <= action.next_state);
-    assert(action.next_state < get_nstates(p));
+    OMEGA_H_CHECK(0 <= action.next_state);
+    OMEGA_H_CHECK(action.next_state < get_nstates(p));
   } else {
-    assert(0 <= action.production);
-    assert(action.production < size(p.grammar->productions));
+    OMEGA_H_CHECK(0 <= action.production);
+    OMEGA_H_CHECK(action.production < size(p.grammar->productions));
   }
   at(p.terminal_table, state, terminal) = action;
 }
 
 void add_nonterminal_action(Parser& p, int state, int nonterminal, int next_state) {
-  assert(0 <= next_state);
-  assert(next_state < get_nstates(p));
-  assert(at(p.nonterminal_table, state, nonterminal) == -1);
+  OMEGA_H_CHECK(0 <= next_state);
+  OMEGA_H_CHECK(next_state < get_nstates(p));
+  OMEGA_H_CHECK(at(p.nonterminal_table, state, nonterminal) == -1);
   at(p.nonterminal_table, state, nonterminal) = next_state;
 }
 
@@ -52,16 +52,16 @@ Action const& get_action(Parser const& p, int state, int terminal) {
 }
 
 int execute_action(Parser const& p, std::vector<int>& stack, Action const& action) {
-  assert(action.kind != ACTION_NONE);
+  OMEGA_H_CHECK(action.kind != ACTION_NONE);
   if (action.kind == ACTION_SHIFT) {
     stack.push_back(action.next_state);
   } else {
     auto& prod = at(p.grammar->productions, action.production);
     for (int i = 0; i < size(prod.rhs); ++i) stack.pop_back();
-    assert(p.grammar.get());
+    OMEGA_H_CHECK(p.grammar.get());
     auto& grammar = *(p.grammar);
     auto nt = as_nonterminal(grammar, prod.lhs);
-    assert(!stack.empty());
+    OMEGA_H_CHECK(!stack.empty());
     auto next_state = at(p.nonterminal_table, stack.back(), nt);
     stack.push_back(next_state);
   }
