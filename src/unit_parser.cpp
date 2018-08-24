@@ -204,12 +204,12 @@ static void test_yaml_reader() {
   test_yaml_reader("---\nfoo:bar\nfar:boo\n...\n");
   test_yaml_reader("---\nfoo:\n  bar:42\n  baz:  100\n...\n");
   test_yaml_reader("---\nfoo:\n  bar  :42\n  baz:  100\n...\n");
-  test_yaml_reader("---\n foo:bar\n...\n");
-  test_yaml_reader("---\n\"Don Knuth\":bar\n...\n");
-  test_yaml_reader("---\n\"Don \\\"Maverick\\\" Knuth\":bar\n...\n");
-  test_yaml_reader("---\n'never say never':true\n...\n");
-  test_yaml_reader("---\n'never say ''never''':true\n...\n");
-  test_yaml_reader("---\n - foo\n - bar\n...\n");
+  test_yaml_reader("---\nfoo: bar\n...\n");
+  test_yaml_reader("---\n\"Don Knuth\": bar\n...\n");
+  test_yaml_reader("---\n\"Don \\\"Maverick\\\" Knuth\": bar\n...\n");
+  test_yaml_reader("---\n'never say never': true\n...\n");
+  test_yaml_reader("---\n'never say ''never''': true\n...\n");
+  test_yaml_reader("---\ntop_list:\n - foo\n - bar\n...\n");
   test_yaml_reader("---\n1:\n - a\n - b\n...\n");
   test_yaml_reader("---\na: {1: 1, 2: 4, 3: 9}\n...\n");
   test_yaml_reader("---\na: [1, 2, 3]\n...\n");
