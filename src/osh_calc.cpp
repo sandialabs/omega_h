@@ -5,6 +5,7 @@
 
 #include <Omega_h_language.hpp>
 #include <Omega_h_reader.hpp>
+#include <Omega_h_fail.hpp>
 
 namespace {
 
@@ -127,64 +128,55 @@ class Reader : public Omega_h::Reader {
     }
     return Omega_h::any();
   }
-  virtual bool at_reduce(int prod, std::vector<Omega_h::any>& rhs, Omega_h::any& result) override {
+  virtual Omega_h::any at_reduce(int prod, std::vector<Omega_h::any>& rhs) override {
     switch (prod) {
       case PROD_EXPR:
       case PROD_ADD_SUB_DECAY:
       case PROD_MUL_DIV_DECAY:
       case PROD_POW_DECAY:
       case PROD_NEG_DECAY:
-        result = std::move(rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
       case PROD_ADD:
-        result = Omega_h::move_value<double>(rhs.at(0)) + Omega_h::move_value<double>(rhs.at(3));
-        break;
+        return Omega_h::move_value<double>(rhs.at(0)) + Omega_h::move_value<double>(rhs.at(3));
       case PROD_SUB:
-        result = Omega_h::move_value<double>(rhs.at(0)) - Omega_h::move_value<double>(rhs.at(3));
-        break;
+        return Omega_h::move_value<double>(rhs.at(0)) - Omega_h::move_value<double>(rhs.at(3));
       case PROD_MUL:
-        result = Omega_h::move_value<double>(rhs.at(0)) * Omega_h::move_value<double>(rhs.at(3));
-        break;
+        return Omega_h::move_value<double>(rhs.at(0)) * Omega_h::move_value<double>(rhs.at(3));
       case PROD_DIV:
-        result = Omega_h::move_value<double>(rhs.at(0)) / Omega_h::move_value<double>(rhs.at(3));
-        break;
+        return Omega_h::move_value<double>(rhs.at(0)) / Omega_h::move_value<double>(rhs.at(3));
       case PROD_POW:
-        result = std::pow(Omega_h::move_value<double>(rhs.at(0)), Omega_h::move_value<double>(rhs.at(3)));
-        break;
+        return std::pow(Omega_h::move_value<double>(rhs.at(0)), Omega_h::move_value<double>(rhs.at(3)));
       case PROD_NEG:
-        result = - Omega_h::move_value<double>(rhs.at(1));
-        break;
+        return - Omega_h::move_value<double>(rhs.at(1));
       case PROD_UNARY_CALL: {
         auto name = Omega_h::move_value<std::string>(rhs.at(0));
         auto arg = Omega_h::move_value<double>(rhs.at(4));
         if (!unary_map.count(name)) {
-          std::cerr << "Unknown unary function name \"" << name << "\"\n";
-          return false;
+          std::stringstream ss;
+          ss << "Unknown unary function name \"" << name << "\"\n";
+          throw Omega_h::ParserFail(ss.str());
         }
         auto fptr = unary_map[name];
-        result = (*fptr)(arg);
-        break;
+        return (*fptr)(arg);
       }
       case PROD_BINARY_CALL: {
         auto name = Omega_h::move_value<std::string>(rhs.at(0));
         auto arg1 = Omega_h::move_value<double>(rhs.at(4));
         auto arg2 = Omega_h::move_value<double>(rhs.at(7));
         if (!binary_map.count(name)) {
-          std::cerr << "Unknown binary function name \"" << name << "\"\n";
-          return false;
+          std::stringstream ss;
+          ss << "Unknown binary function name \"" << name << "\"\n";
+          throw Omega_h::ParserFail(ss.str());
         }
         auto fptr = binary_map[name];
-        result = (*fptr)(arg1, arg2);
-        break;
+        return (*fptr)(arg1, arg2);
       }
       case PROD_PARENS:
-        result = std::move(rhs.at(2));
-        break;
+        return std::move(rhs.at(2));
       case PROD_CONST:
-        result = std::move(rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
     }
-    return true;
+    OMEGA_H_NORETURN(Omega_h::any());
   }
  private:
   typedef double (*Unary)(double);
@@ -198,10 +190,8 @@ class Reader : public Omega_h::Reader {
 int main() {
   auto reader = Reader();
   for (std::string line; std::getline(std::cin, line);) {
-    bool ok = reader.read_string("input", line);
-    if (ok) {
-      auto value = reader.move_result<double>();
-      std::cout << value << '\n';
-    }
+    reader.read_string("input", line);
+    auto value = reader.move_result<double>();
+    std::cout << value << '\n';
   }
 }

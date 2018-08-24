@@ -131,13 +131,18 @@ LanguagePtr ask_language() {
 }
 
 FiniteAutomaton build_dfa(std::string const& name, std::string const& regex, int token) {
-  /* special "regex"es for indentation sensitivity support */
-  if (regex == "]INDENT[" || regex == "]DEDENT[" || regex == "]EQDENT[" || regex == "]NODENT[") {
-    return build_dfa(name, "\r?\n[ \t]*", token);
-  }
   auto reader = regex::Reader(token);
-  bool ok = reader.read_string(name, regex);
-  assert(ok);
+  try {
+    reader.read_string(name, regex);
+  } catch (const ParserFail& e) {
+    std::stringstream ss;
+    ss << e.what() << '\n';
+    ss << "error: couldn't build DFA for token \"" << name << "\" regex \"" << regex << "\"\n";
+    ss << "repeating with DebugReader:\n";
+    DebugReader debug_reader(regex::ask_reader_tables(), ss);
+    debug_reader.read_string(regex, name);
+    throw ParserFail(ss.str());
+  }
   return reader.move_result<FiniteAutomaton>();
 }
 

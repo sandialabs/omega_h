@@ -8,6 +8,7 @@
 #include "Omega_h_std_vector.hpp"
 #include "Omega_h_regex.hpp"
 #include "Omega_h_build_parser.hpp"
+#include "Omega_h_fail.hpp"
 
 namespace Omega_h {
 
@@ -27,12 +28,13 @@ GrammarPtr build_grammar(Language const& language) {
   out.nterminals = nterminals;
   for (auto& lang_prod : language.productions) {
     Grammar::Production gprod;
-    assert(symbol_map.count(lang_prod.lhs));
+    OMEGA_H_CHECK(symbol_map.count(lang_prod.lhs));
     gprod.lhs = symbol_map[lang_prod.lhs];
     for (auto& lang_symb : lang_prod.rhs) {
       if (!symbol_map.count(lang_symb)) {
-        std::cerr << "RHS entry \"" << lang_symb << "\" is neither a nonterminal (LHS of a production) nor a token!\n";
-        abort();
+        std::stringstream ss;
+        ss << "RHS entry \"" << lang_symb << "\" is neither a nonterminal (LHS of a production) nor a token!\n";
+        throw ParserFail(ss.str());
       }
       gprod.rhs.push_back(symbol_map[lang_symb]);
     }
@@ -101,58 +103,39 @@ static IndentInfo build_indent_info(Language const& language) {
   out.is_sensitive = false;
   out.indent_token = -1;
   out.dedent_token = -1;
-  out.eqdent_token = -1;
-  out.nodent_token = -1;
+  out.newline_token = -1;
   for (int tok_i = 0; tok_i < size(language.tokens); ++tok_i) {
     auto& token = at(language.tokens, tok_i);
-    if (token.regex == "]INDENT[") {
+    if (token.name == "INDENT") {
       if (out.indent_token != -1) {
-        std::cerr << "ERROR: Language has two or more ]INDENT[ tokens\n";
-        abort();
+        throw ParserFail("ERROR: Language has two or more INDENT tokens\n");
       }
       out.indent_token = tok_i;
       out.is_sensitive = true;
-    } else if (token.regex == "]DEDENT[") {
+    } else if (token.name == "DEDENT") {
       if (out.dedent_token != -1) {
-        std::cerr << "ERROR: Language has two or more ]INDENT[ tokens\n";
-        abort();
+        throw ParserFail("ERROR: Language has two or more DEDENT tokens\n");
       }
       out.dedent_token = tok_i;
-    } else if (token.regex == "]EQDENT[") {
-      if (out.eqdent_token != -1) {
-        std::cerr << "ERROR: Language has two or more ]EQDENT[ tokens\n";
-        abort();
+    } else if (token.name == "NEWLINE") {
+      if (out.newline_token != -1) {
+        throw ParserFail("ERROR: Language has two or more NEWLINE tokens\n");
       }
-      out.eqdent_token = tok_i;
-    } else if (token.regex == "]NODENT[") {
-      if (out.nodent_token != -1) {
-        std::cerr << "ERROR: Language has two or more ]EQDENT[ tokens\n";
-        abort();
-      }
-      out.nodent_token = tok_i;
+      out.newline_token = tok_i;
     }
   }
   if (out.is_sensitive && out.indent_token == -1) {
-    std::cerr << "ERROR: Indentation-sensitive language has no ]INDENT[ token\n";
-    abort();
+    throw ParserFail("ERROR: Indentation-sensitive language has no INDENT token\n");
   }
   if (out.is_sensitive && out.dedent_token == -1) {
-    std::cerr << "ERROR: Indentation-sensitive language has no ]DEDENT[ token\n";
-    abort();
+    throw ParserFail("ERROR: Indentation-sensitive language has no DEDENT token\n");
   }
-  if (out.is_sensitive && out.eqdent_token == -1) {
-    std::cerr << "ERROR: Indentation-sensitive language has no ]EQDENT[ token\n";
-    abort();
+  if (out.is_sensitive && out.newline_token == -1) {
+    throw ParserFail("ERROR: Indentation-sensitive language has no NEWLINE token\n");
   }
-  if (out.is_sensitive && out.nodent_token == -1) {
-    std::cerr << "ERROR: Indentation-sensitive language has no ]NODENT[ token\n";
-    abort();
-  }
-  if (out.indent_token < out.nodent_token ||
-      out.dedent_token < out.nodent_token ||
-      out.eqdent_token < out.nodent_token) {
-    std::cerr << "ERROR: ]NODENT[ needs to come before all other indent tokens\n";
-    abort();
+  if (out.indent_token < out.newline_token ||
+      out.dedent_token < out.newline_token) {
+    throw ParserFail("ERROR: NEWLINE needs to come before all other indent tokens\n");
   }
   return out;
 }

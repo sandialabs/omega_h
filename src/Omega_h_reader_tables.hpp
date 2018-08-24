@@ -12,8 +12,7 @@ struct IndentInfo {
   bool is_sensitive;
   int indent_token;
   int dedent_token;
-  int eqdent_token;
-  int nodent_token;
+  int newline_token;
 };
 
 struct ReaderTables {

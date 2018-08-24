@@ -70,4 +70,11 @@ int execute_action(Parser const& p, std::vector<int>& stack, Action const& actio
 
 GrammarPtr const& get_grammar(Parser const& p) { return p.grammar; }
 
+ParserFail::ParserFail(const std::string& msg):
+  std::invalid_argument(msg) {
+}
+
+void ParserFail::out_of_line_virtual_method() {
+}
+
 } // end namespace Omega_h
