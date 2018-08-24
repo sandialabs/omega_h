@@ -1,4 +1,4 @@
-#include "Omega_h_xml.hpp"
+#include "Omega_h_xml_lite.hpp"
 
 #include "Omega_h_defines.hpp"
 #include "Omega_h_fail.hpp"
@@ -7,19 +7,19 @@
 
 namespace Omega_h {
 
-namespace xml {
+namespace xml_lite {
 
-bool parse_tag(std::string const& line, xml::Tag* tag_out) {
+bool parse_tag(std::string const& line, xml_lite::Tag* tag_out) {
   /* state machine transitions:
     </ Foo   bar="quux" />
   --||-|--|--|--||----|-||-
   0 12 3  4  5  67    3 89   */
-  xml::Tag tag;
+  xml_lite::Tag tag;
   Int state = 0;
   std::string att_nm;
   std::string att_val;
   char quot = '\0';
-  tag.type = xml::Tag::START;
+  tag.type = xml_lite::Tag::START;
   for (auto c : line) {
     switch (state) {
       case 0:
@@ -30,7 +30,7 @@ bool parse_tag(std::string const& line, xml::Tag* tag_out) {
         break;
       case 1:
         if (c == '/') {
-          tag.type = xml::Tag::END;
+          tag.type = xml_lite::Tag::END;
           state = 2;
         } else if (c != ' ') {
           tag.elem_name.push_back(c);
@@ -55,7 +55,7 @@ bool parse_tag(std::string const& line, xml::Tag* tag_out) {
         break;
       case 4:
         if (c == '/') {
-          tag.type = xml::Tag::SELF_CLOSING;
+          tag.type = xml_lite::Tag::SELF_CLOSING;
           state = 8;
         } else if (c == '>') {
           state = 9;
@@ -99,13 +99,13 @@ bool parse_tag(std::string const& line, xml::Tag* tag_out) {
   return false;
 }
 
-xml::Tag read_tag(std::istream& stream) {
+xml_lite::Tag read_tag(std::istream& stream) {
   std::string line;
   std::getline(stream, line);
-  xml::Tag st;
+  xml_lite::Tag st;
   OMEGA_H_CHECK(parse_tag(line, &st));
   return st;
 }
-}  // namespace xml
+}  // namespace xml_lite
 
 }  // end namespace Omega_h

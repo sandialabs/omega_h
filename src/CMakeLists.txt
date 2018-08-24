@@ -68,7 +68,7 @@ set(Omega_h_SOURCES
   Omega_h_regress.cpp
   Omega_h_consistent.cpp
   Omega_h_align.cpp
-  Omega_h_xml.cpp
+  Omega_h_xml_lite.cpp
   Omega_h_recover.cpp
   Omega_h_histogram.cpp
   Omega_h_eigen.cpp
