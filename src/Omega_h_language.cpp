@@ -91,10 +91,10 @@ FiniteAutomaton build_lexer(Language const& language) {
     if (i == 0) {
       lexer = regex::build_dfa(name, regex, i);
     } else {
-      lexer = unite(lexer, regex::build_dfa(name, regex, i));
+      lexer = FiniteAutomaton::unite(lexer, regex::build_dfa(name, regex, i));
     }
   }
-  lexer = simplify(make_deterministic(lexer));
+  lexer = FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(lexer));
   return lexer;
 }
 

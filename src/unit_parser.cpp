@@ -42,21 +42,21 @@ static void test_finite_automaton() {
   assert(!accepts(single, "r"));
   assert(!accepts(single, "abc"));
   auto upper = make_char_range_nfa('A', 'Z');
-  auto alpha_nfa = unite(lower, upper);
-  auto alpha_dfa = make_deterministic(alpha_nfa);
+  auto alpha_nfa = FiniteAutomaton::unite(lower, upper);
+  auto alpha_dfa = FiniteAutomaton::make_deterministic(alpha_nfa);
   assert(get_nstates(alpha_dfa) > 2);
-  auto alpha = simplify(alpha_dfa);
+  auto alpha = FiniteAutomaton::simplify(alpha_dfa);
   assert(get_nstates(alpha) == 2);
   {
     auto num = make_char_range_nfa('0', '9');
     auto under = make_char_single_nfa('_');
-    auto under_alpha = unite(under, alpha);
-    auto under_alnum = unite(under_alpha, num);
-    auto under_alnum_star = star(under_alnum);
-    auto ident_nfa = concat(under_alpha, under_alnum_star);
-    auto ident_dfa = make_deterministic(ident_nfa);
+    auto under_alpha = FiniteAutomaton::unite(under, alpha);
+    auto under_alnum = FiniteAutomaton::unite(under_alpha, num);
+    auto under_alnum_star = FiniteAutomaton::star(under_alnum);
+    auto ident_nfa = FiniteAutomaton::concat(under_alpha, under_alnum_star);
+    auto ident_dfa = FiniteAutomaton::make_deterministic(ident_nfa);
     assert(get_nstates(ident_dfa) > 2);
-    auto identifier = simplify(ident_dfa);
+    auto identifier = FiniteAutomaton::simplify(ident_dfa);
     assert(get_nstates(identifier) == 2);
     assert(accepts(identifier, "_soup"));
     assert(!accepts(identifier, "007"));
@@ -119,8 +119,7 @@ static void test_regex_reader(std::string const& regex,
     std::vector<std::string> const& expect_matches,
     std::vector<std::string> const& expect_non_matches) {
   auto reader = regex::Reader(42);
-  bool ok = reader.read_string("test_regex_reader", regex);
-  assert(ok);
+  reader.read_string("test_regex_reader", regex);
   auto result = reader.move_result<FiniteAutomaton>();
   for (auto& expect_match : expect_matches) {
     assert(accepts(result, expect_match, 42));
@@ -177,8 +176,7 @@ static void test_xml_language() {
 
 static void test_xml_reader(std::string const& str) {
   auto reader = Reader(xml::ask_reader_tables());
-  bool ok = reader.read_string("test_xml_reader", str);
-  assert(ok);
+  reader.read_string("test_xml_reader", str);
 }
 
 static void test_xml_reader() {
@@ -197,8 +195,7 @@ static void test_yaml_language() {
 
 static void test_yaml_reader(std::string const& str) {
   auto reader = Reader(yaml::ask_reader_tables());
-  bool ok = reader.read_string("test_yaml_reader", str);
-  assert(ok);
+  reader.read_string("test_yaml_reader", str);
 }
 
 static void test_yaml_reader() {
@@ -218,9 +215,7 @@ static void test_yaml_reader() {
   test_yaml_reader("---\na: [1, 2, 3]\n...\n");
   test_yaml_reader("---\na: {1: [0, 1], 2: [0, 1, 2]}\n...\n");
   test_yaml_reader("---\nassocs: [[bottom, 1], [top, 42]]\n...\n");
-  auto reader = DebugReader(yaml::ask_reader_tables());
-  bool ok = reader.read_string("debug_yaml_reader", "---\npressure: -1.9e-6\nvolume: 0.7e+10\n...\n");
-  assert(ok);
+  test_yaml_reader("---\npressure: -1.9e-6\nvolume: 0.7e+10\n...\n");
 }
 
 int main() {

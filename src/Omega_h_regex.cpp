@@ -76,20 +76,20 @@ FiniteAutomaton build_lexer() {
     auto it = nonmeta_chars.find(get_symbol(meta_char));
     nonmeta_chars.erase(it);
   }
-  auto lex_nonmeta = make_set_nfa(NCHARS, nonmeta_chars, TOK_CHAR);
+  auto lex_nonmeta = FiniteAutomaton::make_set_nfa(NCHARS, nonmeta_chars, TOK_CHAR);
   auto lex_slash = make_char_single_nfa('\\');
-  auto lex_any = make_set_nfa(NCHARS, all_chars);
-  auto lex_escaped = concat(lex_slash, lex_any, TOK_CHAR);
-  auto lex_char = unite(lex_nonmeta, lex_escaped);
+  auto lex_any = FiniteAutomaton::make_set_nfa(NCHARS, all_chars);
+  auto lex_escaped = FiniteAutomaton::concat(lex_slash, lex_any, TOK_CHAR);
+  auto lex_char = FiniteAutomaton::unite(lex_nonmeta, lex_escaped);
   FiniteAutomaton lex_metachars;
   for (int i = 0; i < size(meta_chars_str); ++i) {
     int token = TOK_CHAR + i + 1;
     auto lex_metachar = make_char_single_nfa(at(meta_chars_str, i), token);
-    if (i) lex_metachars = unite(lex_metachars, lex_metachar);
+    if (i) lex_metachars = FiniteAutomaton::unite(lex_metachars, lex_metachar);
     else lex_metachars = lex_metachar;
   }
-  auto out = unite(lex_char, lex_metachars);
-  return simplify(make_deterministic(out));
+  auto out = FiniteAutomaton::unite(lex_char, lex_metachars);
+  return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(out));
 }
 
 ReaderTablesPtr ask_reader_tables() {
@@ -166,7 +166,7 @@ any regex::Reader::at_shift(int token, std::string& text) {
 any regex::Reader::at_reduce(int production, std::vector<any>& rhs) {
   switch (production) {
     case PROD_REGEX:
-      return simplify(make_deterministic(
+      return FiniteAutomaton::simplify(FiniteAutomaton::make_deterministic(
             move_value<FiniteAutomaton>(at(rhs, 0))));
     case PROD_UNION_DECAY:
     case PROD_CONCAT_DECAY:
@@ -175,7 +175,7 @@ any regex::Reader::at_reduce(int production, std::vector<any>& rhs) {
     case PROD_SET_ITEM_RANGE:
       return at(rhs, 0);
     case PROD_UNION:
-      return unite(
+      return FiniteAutomaton::unite(
           move_value<FiniteAutomaton>(at(rhs, 0)),
           move_value<FiniteAutomaton>(at(rhs, 2)));
     case PROD_CONCAT:
@@ -184,22 +184,22 @@ any regex::Reader::at_reduce(int production, std::vector<any>& rhs) {
         auto& b_any = at(rhs, 1);
         auto a = move_value<FiniteAutomaton>(a_any);
         auto b = move_value<FiniteAutomaton>(b_any);
-        return concat(a, b, result_token);
+        return FiniteAutomaton::concat(a, b, result_token);
       }
     case PROD_STAR:
-      return star(
+      return FiniteAutomaton::star(
           move_value<FiniteAutomaton>(at(rhs, 0)), result_token);
     case PROD_PLUS:
-      return plus(
+      return FiniteAutomaton::plus(
           move_value<FiniteAutomaton>(at(rhs, 0)), result_token);
     case PROD_MAYBE:
-      return maybe(
+      return FiniteAutomaton::maybe(
           move_value<FiniteAutomaton>(at(rhs, 0)), result_token);
     case PROD_SINGLE_CHAR:
       return make_char_single_nfa(
           move_value<char>(at(rhs, 0)), result_token);
     case PROD_ANY:
-      return make_range_nfa(NCHARS, 0, NCHARS - 1, result_token);
+      return FiniteAutomaton::make_range_nfa(NCHARS, 0, NCHARS - 1, result_token);
     case PROD_SINGLE_SET:
       return make_char_set_nfa(
           move_value<std::set<char>>(at(rhs, 0)), result_token);

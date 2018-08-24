@@ -22,6 +22,17 @@ struct FiniteAutomaton {
   bool is_deterministic;
   FiniteAutomaton() = default;
   FiniteAutomaton(int nsymbols_init, bool is_deterministic_init, int nstates_reserve);
+  static FiniteAutomaton make_single_nfa(int nsymbols, int symbol, int token = 0);
+  static FiniteAutomaton make_set_nfa(int nsymbols, std::set<int> const& accepted, int token = 0);
+  static FiniteAutomaton make_range_nfa(int nsymbols, int range_start, int range_end, int token = 0);
+  static FiniteAutomaton unite(FiniteAutomaton const& a, FiniteAutomaton const& b);
+  static FiniteAutomaton concat(FiniteAutomaton const& a, FiniteAutomaton const& b, int token = 0);
+  static FiniteAutomaton plus(FiniteAutomaton const& a, int token = 0);
+  static FiniteAutomaton maybe(FiniteAutomaton const& a, int token = 0);
+  static FiniteAutomaton star(FiniteAutomaton const& a, int token = 0);
+  static FiniteAutomaton make_deterministic(FiniteAutomaton const& nfa);
+  static FiniteAutomaton simplify_once(FiniteAutomaton const& fa);
+  static FiniteAutomaton simplify(FiniteAutomaton const& fa);
 };
 
 int get_nstates(FiniteAutomaton const& fa);
@@ -37,18 +48,6 @@ int step(FiniteAutomaton const& fa, int state, int symbol);
 int accepts(FiniteAutomaton const& fa, int state);
 int get_nsymbols_eps(FiniteAutomaton const& fa);
 void append_states(FiniteAutomaton& fa, FiniteAutomaton const& other);
-
-FiniteAutomaton make_single_nfa(int nsymbols, int symbol, int token = 0);
-FiniteAutomaton make_set_nfa(int nsymbols, std::set<int> const& accepted, int token = 0);
-FiniteAutomaton make_range_nfa(int nsymbols, int range_start, int range_end, int token = 0);
-FiniteAutomaton unite(FiniteAutomaton const& a, FiniteAutomaton const& b);
-FiniteAutomaton concat(FiniteAutomaton const& a, FiniteAutomaton const& b, int token = 0);
-FiniteAutomaton plus(FiniteAutomaton const& a, int token = 0);
-FiniteAutomaton maybe(FiniteAutomaton const& a, int token = 0);
-FiniteAutomaton star(FiniteAutomaton const& a, int token = 0);
-FiniteAutomaton make_deterministic(FiniteAutomaton const& nfa);
-FiniteAutomaton simplify_once(FiniteAutomaton const& fa);
-FiniteAutomaton simplify(FiniteAutomaton const& fa);
 
 FiniteAutomaton make_char_nfa(bool is_deterministic_init, int nstates_reserve);
 void add_char_transition(FiniteAutomaton& fa, int from_state, char at_char, int to_state);

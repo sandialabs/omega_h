@@ -106,11 +106,11 @@ void append_states(FiniteAutomaton& fa, FiniteAutomaton const& other) {
   }
 }
 
-FiniteAutomaton make_single_nfa(int nsymbols, int symbol, int token) {
-  return make_range_nfa(nsymbols, symbol, symbol, token);
+FiniteAutomaton FiniteAutomaton::make_single_nfa(int nsymbols, int symbol, int token) {
+  return FiniteAutomaton::make_range_nfa(nsymbols, symbol, symbol, token);
 }
 
-FiniteAutomaton make_set_nfa(int nsymbols, std::set<int> const& accepted, int token) {
+FiniteAutomaton FiniteAutomaton::make_set_nfa(int nsymbols, std::set<int> const& accepted, int token) {
   FiniteAutomaton out(nsymbols, true, 2);
   auto start_state = add_state(out);
   auto accept_state = add_state(out);
@@ -121,7 +121,7 @@ FiniteAutomaton make_set_nfa(int nsymbols, std::set<int> const& accepted, int to
   return out;
 }
 
-FiniteAutomaton make_range_nfa(int nsymbols, int range_start, int range_end, int token) {
+FiniteAutomaton FiniteAutomaton::make_range_nfa(int nsymbols, int range_start, int range_end, int token) {
   assert(0 <= range_start);
   assert(range_start <= range_end);
   assert(range_end <= nsymbols);
@@ -135,7 +135,7 @@ FiniteAutomaton make_range_nfa(int nsymbols, int range_start, int range_end, int
   return out;
 }
 
-FiniteAutomaton unite(FiniteAutomaton const& a, FiniteAutomaton const& b) {
+FiniteAutomaton FiniteAutomaton::unite(FiniteAutomaton const& a, FiniteAutomaton const& b) {
   auto nsymbols = get_nsymbols(a);
   FiniteAutomaton out(nsymbols, false, 1 + get_nstates(a) + get_nstates(b));
   auto start_state = add_state(out);
@@ -150,7 +150,7 @@ FiniteAutomaton unite(FiniteAutomaton const& a, FiniteAutomaton const& b) {
   return out;
 }
 
-FiniteAutomaton concat(FiniteAutomaton const& a, FiniteAutomaton const& b, int token) {
+FiniteAutomaton FiniteAutomaton::concat(FiniteAutomaton const& a, FiniteAutomaton const& b, int token) {
   auto nsymbols = get_nsymbols(a);
   FiniteAutomaton out(nsymbols, false, get_nstates(a) + get_nstates(b));
   append_states(out, a);
@@ -171,7 +171,7 @@ FiniteAutomaton concat(FiniteAutomaton const& a, FiniteAutomaton const& b, int t
   return out;
 }
 
-FiniteAutomaton plus(FiniteAutomaton const& a, int token) {
+FiniteAutomaton FiniteAutomaton::plus(FiniteAutomaton const& a, int token) {
   FiniteAutomaton out(get_nsymbols(a), false, get_nstates(a) + 1);
   append_states(out, a);
   auto new_accept_state = add_state(out);
@@ -190,7 +190,7 @@ FiniteAutomaton plus(FiniteAutomaton const& a, int token) {
   return out;
 }
 
-FiniteAutomaton maybe(FiniteAutomaton const& a, int token) {
+FiniteAutomaton FiniteAutomaton::maybe(FiniteAutomaton const& a, int token) {
   FiniteAutomaton out(get_nsymbols(a), false, get_nstates(a) + 2);
   auto new_start_state = add_state(out);
   auto offset = get_nstates(out);
@@ -214,7 +214,7 @@ FiniteAutomaton maybe(FiniteAutomaton const& a, int token) {
   return out;
 }
 
-FiniteAutomaton star(FiniteAutomaton const& a, int token) {
+FiniteAutomaton FiniteAutomaton::star(FiniteAutomaton const& a, int token) {
   return maybe(plus(a, token), token);
 }
 
@@ -266,7 +266,7 @@ static void emplace_back(StateSetUniqPtrVector& ssupv, StateSet& ss) {
 }
 
 /* powerset construction, NFA -> DFA */
-FiniteAutomaton make_deterministic(FiniteAutomaton const& nfa) {
+FiniteAutomaton FiniteAutomaton::make_deterministic(FiniteAutomaton const& nfa) {
   if (get_determinism(nfa)) return nfa;
   StateSetPtr2State ssp2s;
   StateSetUniqPtrVector ssupv;
@@ -327,7 +327,7 @@ struct StateRowLess {
 
 using StateRow2SimpleState = std::map<int, int, StateRowLess>;
 
-FiniteAutomaton simplify_once(FiniteAutomaton const& fa) {
+FiniteAutomaton FiniteAutomaton::simplify_once(FiniteAutomaton const& fa) {
   StateRow2SimpleState sr2ss({fa.table, fa.accepted_tokens});
   int nsimple = 0;
   for (int state = 0; state < get_nstates(fa); ++state) {
@@ -361,14 +361,14 @@ FiniteAutomaton simplify_once(FiniteAutomaton const& fa) {
   return out;
 }
 
-FiniteAutomaton simplify(FiniteAutomaton const& fa) {
+FiniteAutomaton FiniteAutomaton::simplify(FiniteAutomaton const& fa) {
   FiniteAutomaton out = fa;
   int nstates_new = get_nstates(fa);
   int nstates;
   int i = 0;
   do {
     nstates = nstates_new;
-    out = simplify_once(out);
+    out = FiniteAutomaton::simplify_once(out);
     ++i;
     nstates_new = get_nstates(out);
   } while (nstates_new < nstates);
@@ -405,15 +405,15 @@ char get_char(int symbol) {
 FiniteAutomaton make_char_set_nfa(std::set<char> const& accepted, int token) {
   std::set<int> symbol_set;
   for (auto c : accepted) symbol_set.insert(get_symbol(c));
-  return make_set_nfa(Omega_h::NCHARS, symbol_set, token);
+  return FiniteAutomaton::make_set_nfa(Omega_h::NCHARS, symbol_set, token);
 }
 
 FiniteAutomaton make_char_range_nfa(char range_start, char range_end, int token) {
-  return make_range_nfa(Omega_h::NCHARS, get_symbol(range_start), get_symbol(range_end), token);
+  return FiniteAutomaton::make_range_nfa(Omega_h::NCHARS, get_symbol(range_start), get_symbol(range_end), token);
 }
 
 FiniteAutomaton make_char_single_nfa(char symbol_char, int token) {
-  return make_range_nfa(Omega_h::NCHARS, get_symbol(symbol_char), get_symbol(symbol_char), token);
+  return FiniteAutomaton::make_range_nfa(Omega_h::NCHARS, get_symbol(symbol_char), get_symbol(symbol_char), token);
 }
 
 std::set<char> negate_set(std::set<char> const& s) {
