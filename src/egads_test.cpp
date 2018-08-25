@@ -10,7 +10,7 @@
 #endif
 
 #include <array>
-#include <cassert>
+#include <Omega_h_fail.hpp>
 #include <cmath>
 
 #define CALL(f) OMEGA_H_CHECK(EGADS_SUCCESS == (f))

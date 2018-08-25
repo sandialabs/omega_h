@@ -1,6 +1,6 @@
 #include "Omega_h_grammar.hpp"
 
-#include <cassert>
+#include <Omega_h_fail.hpp>
 #include <set>
 #include <iostream>
 

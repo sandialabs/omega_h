@@ -4,7 +4,7 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_timer.hpp"
 
-#include <cassert>
+#include <Omega_h_fail.hpp>
 #include <iostream>
 #include <map>
 #include <set>

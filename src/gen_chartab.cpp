@@ -2,7 +2,7 @@
 #include <climits>
 #include <iostream>
 #include <fstream>
-#include <cassert>
+#include <Omega_h_fail.hpp>
 
 int main() {
   int chartab[CHAR_MAX + 1];

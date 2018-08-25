@@ -2,7 +2,7 @@
 #define OMEGA_H_STRING_HPP
 
 #include <string>
-#include <cassert>
+#include <Omega_h_fail.hpp>
 
 namespace Omega_h {
 

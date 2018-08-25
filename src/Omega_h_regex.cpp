@@ -1,6 +1,6 @@
 #include <Omega_h_regex.hpp>
 
-#include <cassert>
+#include <Omega_h_fail.hpp>
 #include <iostream>
 #include <sstream>
 

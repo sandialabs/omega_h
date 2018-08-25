@@ -2,7 +2,7 @@
 #define OMEGA_H_FAIL_H
 
 #include <Omega_h_config.h>
-#include <cassert>
+#include <Omega_h_fail.hpp>
 
 #ifdef OMEGA_H_THROW
 #include <exception>
