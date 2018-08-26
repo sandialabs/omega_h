@@ -1,8 +1,8 @@
-#ifndef OMEGA_H_FAIL_H
-#define OMEGA_H_FAIL_H
+#ifndef OMEGA_H_FAIL_HPP
+#define OMEGA_H_FAIL_HPP
 
 #include <Omega_h_config.h>
-#include <Omega_h_fail.hpp>
+#include <cassert>
 
 #ifdef OMEGA_H_THROW
 #include <exception>
@@ -27,9 +27,9 @@ void fail(char const* format, ...)
 #define Omega_h_fail Omega_h::fail
 
 #if defined(OMEGA_H_USE_CUDA) && defined(__clang__)
-#define OMEGA_H_CHECK(cond) OMEGA_H_CHECK(cond)
+#define OMEGA_H_CHECK(cond) assert(cond)
 #elif defined(__CUDA_ARCH__)
-#define OMEGA_H_CHECK(cond) OMEGA_H_CHECK(cond)
+#define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
   ((cond) ? ((void)0)                                                          \

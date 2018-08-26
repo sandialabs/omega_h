@@ -102,6 +102,7 @@ set(Omega_h_SOURCES
   Omega_h_regex.cpp
   Omega_h_xml.cpp
   Omega_h_yaml.cpp
+  Omega_h_math_lang.cpp
   )
 
 if (Omega_h_USE_CUDA)

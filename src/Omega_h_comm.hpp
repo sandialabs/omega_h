@@ -8,6 +8,12 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_fail.hpp>
 #include <Omega_h_int128.hpp>
+#ifndef OMEGA_H_FAIL_HPP
+#error "included fail but guard not defined"
+#endif
+#ifndef OMEGA_H_CHECK
+#error "included fail but check not defined"
+#endif
 
 namespace Omega_h {
 

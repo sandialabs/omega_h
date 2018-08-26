@@ -436,14 +436,10 @@ inline ValueType any_cast(any& operand)
 template<typename ValueType>
 inline ValueType any_cast(any&& operand)
 {
-#ifdef ANY_IMPL_ANY_CAST_MOVEABLE
     // https://cplusplus.github.io/LWG/lwg-active.html#2509
     using can_move = std::integral_constant<bool,
         std::is_move_constructible<ValueType>::value
         && !std::is_lvalue_reference<ValueType>::value>;
-#else
-    using can_move = std::false_type;
-#endif
 
     auto p = any_cast<typename std::remove_reference<ValueType>::type>(&operand);
     if(p == nullptr) throw bad_any_cast();
@@ -480,14 +476,11 @@ T&& move_value(any& a) {
   return std::move(*value_ptr);
 }
 
-} //  end namespace Omega_h
-
-namespace std
+inline void swap(Omega_h::any& lhs, Omega_h::any& rhs) noexcept
 {
-    inline void swap(Omega_h::any& lhs, Omega_h::any& rhs) noexcept
-    {
-        lhs.swap(rhs);
-    }
+    lhs.swap(rhs);
 }
+
+} //  end namespace Omega_h
 
 #endif
