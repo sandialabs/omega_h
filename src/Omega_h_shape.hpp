@@ -54,7 +54,7 @@ OMEGA_H_INLINE Vector<dim + 1> form_barycentric(Vector<dim> c) {
 template <Int n>
 OMEGA_H_INLINE bool is_barycentric_inside(Vector<n> xi) {
   return 0.0 <= reduce(xi, minimum<Real>()) &&
-    reduce(xi, maximum<Real>()) <= 1.0;
+         reduce(xi, maximum<Real>()) <= 1.0;
 }
 
 template <Int sdim>

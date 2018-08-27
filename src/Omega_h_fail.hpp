@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_FAIL_H
-#define OMEGA_H_FAIL_H
+#ifndef OMEGA_H_FAIL_HPP
+#define OMEGA_H_FAIL_HPP
 
 #include <Omega_h_config.h>
 #include <cassert>

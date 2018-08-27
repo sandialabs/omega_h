@@ -3,9 +3,9 @@
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_int_scan.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_int_scan.hpp"
 #include "Omega_h_simplex.hpp"
 
 namespace Omega_h {

@@ -239,6 +239,8 @@ class HostWrite {
   T get(LO i) const;
 };
 
+template <typename T>
+void fill(Write<T> a, T val);
 template <class T>
 void copy_into(Read<T> a, Write<T> b);
 template <class T>
@@ -252,7 +254,8 @@ Write<T> deep_copy(Read<T> a, std::string const& name = "");
   extern template class Write<T>;                                              \
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
-  extern template void copy_into(Read<T> a, Write<T> b); \
+  extern template void fill(Write<T> a, T val);                                \
+  extern template void copy_into(Read<T> a, Write<T> b);                       \
   extern template Write<T> deep_copy(Read<T> a, std::string const&);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)

@@ -102,7 +102,8 @@ static void eat_newlines(std::istream& stream) {
 }
 
 template <class T>
-static void read(std::istream& stream, T& value, bool is_binary, bool needs_swapping) {
+static void read(
+    std::istream& stream, T& value, bool is_binary, bool needs_swapping) {
   if (is_binary) {
     binary::read_value(stream, value, needs_swapping);
   } else {

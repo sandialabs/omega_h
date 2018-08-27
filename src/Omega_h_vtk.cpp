@@ -17,7 +17,7 @@
 #include "Omega_h_file.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_tag.hpp"
-#include "Omega_h_xml.hpp"
+#include "Omega_h_xml_lite.hpp"
 
 namespace Omega_h {
 
@@ -94,9 +94,9 @@ void describe_array(std::ostream& stream, std::string const& name, Int ncomps) {
 
 bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     std::string* name_out, Int* ncomps_out) {
-  auto st = xml::read_tag(stream);
-  if (st.elem_name != "DataArray" || st.type != xml::Tag::START) {
-    OMEGA_H_CHECK(st.type == xml::Tag::END);
+  auto st = xml_lite::read_tag(stream);
+  if (st.elem_name != "DataArray" || st.type != xml_lite::Tag::START) {
+    OMEGA_H_CHECK(st.type == xml_lite::Tag::END);
     return false;
   }
   auto type_name = st.attribs["type"];
@@ -223,8 +223,7 @@ Read<T> read_array(
   {
     base64::decode(encoded, nonnull(uncompressed.data()), uncompressed_bytes);
   }
-  return binary::swap_bytes(
-      Read<T>(uncompressed.write()), needs_swapping);
+  return binary::swap_bytes(Read<T>(uncompressed.write()), needs_swapping);
 }
 
 void write_tag(
@@ -288,8 +287,7 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     auto array = read_array<I64>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   } else {
-    auto array =
-        read_array<Real>(stream, size, needs_swapping, is_compressed);
+    auto array = read_array<Real>(stream, size, needs_swapping, is_compressed);
     // undo the resizes done in write_tag()
     if (1 < mesh->dim() && mesh->dim() < 3) {
       if (ncomps == 3) {
@@ -302,26 +300,26 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     }
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   }
-  auto et = xml::read_tag(stream);
+  auto et = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(et.elem_name == "DataArray");
-  OMEGA_H_CHECK(et.type == xml::Tag::END);
+  OMEGA_H_CHECK(et.type == xml_lite::Tag::END);
   return true;
 }
 
 template <typename T>
 Read<T> read_known_array(std::istream& stream, std::string const& name,
     LO nents, Int ncomps, bool needs_swapping, bool is_compressed) {
-  auto st = xml::read_tag(stream);
+  auto st = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(st.elem_name == "DataArray");
-  OMEGA_H_CHECK(st.type == xml::Tag::START);
+  OMEGA_H_CHECK(st.type == xml_lite::Tag::START);
   OMEGA_H_CHECK(st.attribs["Name"] == name);
   OMEGA_H_CHECK(st.attribs["type"] == Traits<T>::name());
   OMEGA_H_CHECK(st.attribs["NumberOfComponents"] == Omega_h::to_string(ncomps));
   auto array =
       read_array<T>(stream, nents * ncomps, needs_swapping, is_compressed);
-  auto et = xml::read_tag(stream);
+  auto et = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(et.elem_name == "DataArray");
-  OMEGA_H_CHECK(et.type == xml::Tag::END);
+  OMEGA_H_CHECK(et.type == xml_lite::Tag::END);
   return array;
 }
 
@@ -377,7 +375,7 @@ static void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
 
 static void read_vtkfile_vtu_start_tag(
     std::istream& stream, bool* needs_swapping_out, bool* is_compressed_out) {
-  auto st = xml::read_tag(stream);
+  auto st = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(st.elem_name == "VTKFile");
   OMEGA_H_CHECK(st.attribs["header_type"] == Traits<std::uint64_t>::name());
   auto is_little_endian = (st.attribs["byte_order"] == "LittleEndian");
@@ -394,7 +392,7 @@ void write_piece_start_tag(
 
 void read_piece_start_tag(
     std::istream& stream, LO* nverts_out, LO* ncells_out) {
-  auto st = xml::read_tag(stream);
+  auto st = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(st.elem_name == "Piece");
   *nverts_out = std::stoi(st.attribs["NumberOfPoints"]);
   *ncells_out = std::stoi(st.attribs["NumberOfCells"]);
@@ -624,10 +622,10 @@ void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
 void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   bool needs_swapping, is_compressed;
   read_vtkfile_vtu_start_tag(stream, &needs_swapping, &is_compressed);
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "UnstructuredGrid");
   LO nverts, ncells;
   read_piece_start_tag(stream, &nverts, &ncells);
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Cells");
   auto comm = mesh->comm();
   Omega_h_Family family;
   Int dim;
@@ -636,13 +634,13 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
       &family, &dim, &ev2v);
   mesh->set_family(family);
   mesh->set_dim(dim);
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Cells");
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Cells");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Points");
   auto coords = read_known_array<Real>(
       stream, "coordinates", nverts, 3, needs_swapping, is_compressed);
   if (dim < 3) coords = resize_vectors(coords, 3, dim);
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Points");
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "PointData");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Points");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "PointData");
   GOs vert_globals;
   if (mesh->could_be_shared(VERT)) {
     vert_globals = read_known_array<GO>(
@@ -656,7 +654,7 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
     ;
   mesh->remove_tag(VERT, "local");
   mesh->remove_tag(VERT, "owner");
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "CellData");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "CellData");
   GOs elem_globals;
   if (mesh->could_be_shared(dim)) {
     elem_globals = read_known_array<GO>(
@@ -669,9 +667,9 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
     ;
   mesh->remove_tag(dim, "local");
   mesh->remove_tag(dim, "owner");
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "Piece");
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "UnstructuredGrid");
-  OMEGA_H_CHECK(xml::read_tag(stream).elem_name == "VTKFile");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "Piece");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "UnstructuredGrid");
+  OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "VTKFile");
 }
 
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
@@ -769,8 +767,8 @@ void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
   std::string vtupath;
   Int nghost_layers = 0;
   for (std::string line; std::getline(stream, line);) {
-    xml::Tag tag;
-    if (!xml::parse_tag(line, &tag)) continue;
+    xml_lite::Tag tag;
+    if (!xml_lite::parse_tag(line, &tag)) continue;
     if (tag.elem_name == "Piece") {
       if (npieces == comm->rank()) {
         vtupath = tag.attribs["Source"];
@@ -878,8 +876,8 @@ static std::string read_existing_pvd(
   // existing file may be corrupted somehow
   if (contents != pvd_prologue) return pvd_prologue;
   while (std::getline(file, line)) {
-    xml::Tag tag;
-    if (!xml::parse_tag(line, &tag)) break;
+    xml_lite::Tag tag;
+    if (!xml_lite::parse_tag(line, &tag)) break;
     if (tag.elem_name != "DataSet") break;
     if (!tag.attribs.count("timestep")) break;
     auto time = std::stod(tag.attribs["timestep"]);
@@ -924,8 +922,8 @@ void read_pvd(std::istream& stream, std::vector<Real>* times_out,
   std::vector<Real> times;
   std::vector<std::string> pvtupaths;
   for (std::string line; std::getline(stream, line);) {
-    xml::Tag tag;
-    if (!xml::parse_tag(line, &tag)) continue;
+    xml_lite::Tag tag;
+    if (!xml_lite::parse_tag(line, &tag)) continue;
     if (tag.elem_name != "DataSet") continue;
     times.push_back(std::stod(tag.attribs["timestep"]));
     pvtupaths.push_back(tag.attribs["file"]);

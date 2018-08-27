@@ -2,7 +2,7 @@
 #include "Omega_h_build.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_vtk.hpp"
-#include "Omega_h_xml.hpp"
+#include "Omega_h_xml_lite.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -98,22 +98,23 @@ static void test_file(Library* lib) {
 }
 
 static void test_xml() {
-  xml::Tag tag;
-  OMEGA_H_CHECK(!xml::parse_tag("AQAAAAAAAADABg", &tag));
-  OMEGA_H_CHECK(!xml::parse_tag("   <Foo bar=\"qu", &tag));
-  OMEGA_H_CHECK(!xml::parse_tag("   <Foo bar=", &tag));
-  OMEGA_H_CHECK(xml::parse_tag("   <Foo bar=\"quux\"   >", &tag));
+  xml_lite::Tag tag;
+  OMEGA_H_CHECK(!xml_lite::parse_tag("AQAAAAAAAADABg", &tag));
+  OMEGA_H_CHECK(!xml_lite::parse_tag("   <Foo bar=\"qu", &tag));
+  OMEGA_H_CHECK(!xml_lite::parse_tag("   <Foo bar=", &tag));
+  OMEGA_H_CHECK(xml_lite::parse_tag("   <Foo bar=\"quux\"   >", &tag));
   OMEGA_H_CHECK(tag.elem_name == "Foo");
   OMEGA_H_CHECK(tag.attribs["bar"] == "quux");
-  OMEGA_H_CHECK(tag.type == xml::Tag::START);
-  OMEGA_H_CHECK(xml::parse_tag("   <Elem att=\"val\"  answer=\"42\" />", &tag));
+  OMEGA_H_CHECK(tag.type == xml_lite::Tag::START);
+  OMEGA_H_CHECK(
+      xml_lite::parse_tag("   <Elem att=\"val\"  answer=\"42\" />", &tag));
   OMEGA_H_CHECK(tag.elem_name == "Elem");
   OMEGA_H_CHECK(tag.attribs["att"] == "val");
   OMEGA_H_CHECK(tag.attribs["answer"] == "42");
-  OMEGA_H_CHECK(tag.type == xml::Tag::SELF_CLOSING);
-  OMEGA_H_CHECK(xml::parse_tag("</Foo>", &tag));
+  OMEGA_H_CHECK(tag.type == xml_lite::Tag::SELF_CLOSING);
+  OMEGA_H_CHECK(xml_lite::parse_tag("</Foo>", &tag));
   OMEGA_H_CHECK(tag.elem_name == "Foo");
-  OMEGA_H_CHECK(tag.type == xml::Tag::END);
+  OMEGA_H_CHECK(tag.type == xml_lite::Tag::END);
 }
 
 static void test_read_vtu(Mesh* mesh0) {

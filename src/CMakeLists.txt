@@ -68,7 +68,7 @@ set(Omega_h_SOURCES
   Omega_h_regress.cpp
   Omega_h_consistent.cpp
   Omega_h_align.cpp
-  Omega_h_xml.cpp
+  Omega_h_xml_lite.cpp
   Omega_h_recover.cpp
   Omega_h_histogram.cpp
   Omega_h_eigen.cpp
@@ -90,6 +90,19 @@ set(Omega_h_SOURCES
   Omega_h_stack.cpp
   Omega_h_fail.cpp
   Omega_h_shared_alloc.cpp
+  Omega_h_any.cpp
+  Omega_h_build_parser.cpp
+  Omega_h_chartab.cpp
+  Omega_h_finite_automaton.cpp
+  Omega_h_grammar.cpp
+  Omega_h_language.cpp
+  Omega_h_parser.cpp
+  Omega_h_parser_graph.cpp
+  Omega_h_reader.cpp
+  Omega_h_regex.cpp
+  Omega_h_xml.cpp
+  Omega_h_yaml.cpp
+  Omega_h_math_lang.cpp
   )
 
 if (Omega_h_USE_CUDA)
@@ -200,6 +213,7 @@ osh_add_util(osh_scale)
 osh_add_util(osh_reorder)
 osh_add_util(osh_fix)
 osh_add_util(osh_eval_implied)
+osh_add_util(osh_calc)
 if(Omega_h_USE_libMeshb)
   osh_add_util(meshb2osh)
   osh_add_util(osh2meshb)
@@ -281,6 +295,9 @@ if(BUILD_TESTING)
   osh_add_exe(unit_io)
   set(TEST_EXES ${TEST_EXES} unit_io)
   test_func(run_unit_io 1 ./unit_io)
+  osh_add_exe(unit_parser)
+  set(TEST_EXES ${TEST_EXES} unit_parser)
+  test_func(run_unit_parser 1 ./unit_parser)
   osh_add_exe(r3d_test)
   test_func(run_test_r3d 1 ./r3d_test)
   osh_add_exe(mpi_tests)

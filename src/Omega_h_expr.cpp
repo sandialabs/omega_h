@@ -58,6 +58,11 @@ void promote_matrix(LO size, any& x) {
 }
 
 template <Int dim>
+void promote_symm(LO size, any& x) {
+  x = repeat_symm(size, vector2symm(any_cast<Vector<symm_ncomps(dim)>>(x)));
+}
+
+template <Int dim>
 void promote_matrices(LO size, any& lhs, any& rhs) {
   if (lhs.type() == typeid(Matrix<dim, dim>) && rhs.type() == typeid(Reals)) {
     promote_matrix<dim>(size, lhs);
@@ -99,6 +104,8 @@ void promote(LO size, any& x) {
     promote_vector<dim>(size, x);
   } else if (x.type() == typeid(Matrix<dim, dim>)) {
     promote_matrix<dim>(size, x);
+  } else if (x.type() == typeid(Vector<symm_ncomps(dim)>)) {
+    promote_symm<dim>(size, x);
   } else if (x.type() == typeid(Reals)) {
     return;
   } else {
@@ -298,7 +305,8 @@ void mul(LO size, Int dim, any& result, any& lhs, any& rhs) {
 template <Int dim>
 void div(any& result, any& lhs, any& rhs) {
   if (rhs.type() == typeid(Reals)) {
-    result = Reals(divide_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
+    result = Reals(
+        divide_each_maybe_zero(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else if (rhs.type() == typeid(Real)) {
     if (lhs.type() == typeid(Real)) {
       result = any_cast<Real>(lhs) / any_cast<Real>(rhs);
@@ -425,6 +433,44 @@ void make_vector(LO size, Int dim, any& result, ExprReader::Args& args) {
     if (dim == 3) make_vector<3>(result, args);
     if (dim == 2) make_vector<2>(result, args);
     if (dim == 1) make_vector<1>(result, args);
+  }
+}
+
+template <Int dim>
+void make_symm(any& result, ExprReader::Args& args) {
+  auto v = zero_vector<symm_ncomps(dim)>();
+  Int i;
+  for (i = 0; i < Int(args.size()); ++i) {
+    auto& arg = args[std::size_t(i)];
+    v[i] = any_cast<Real>(arg);
+  }
+  result = v;
+}
+
+void make_symm(LO size, Int dim, any& result, ExprReader::Args& args) {
+  TEUCHOS_TEST_FOR_EXCEPTION(
+      args.size() != 1 && args.size() != std::size_t(symm_ncomps(dim)),
+      Teuchos::ParserFail, "Wrong number of arguments to symm()\n");
+  bool has_arrays = false;
+  for (auto& arg : args)
+    if (arg.type() == typeid(Reals)) has_arrays = true;
+  if (has_arrays) {
+    std::vector<Read<Real>> arrays;
+    Int i;
+    for (i = 0; i < Int(args.size()); ++i) {
+      auto& arg = args[std::size_t(i)];
+      promote(size, dim, arg);
+      arrays.push_back(any_cast<Reals>(arg));
+    }
+    for (; i < symm_ncomps(dim); ++i) {
+      arrays.push_back(arrays.back());
+    }
+    OMEGA_H_CHECK(Int(arrays.size()) == dim);
+    result = Reals(interleave(arrays));
+  } else {
+    if (dim == 3) make_symm<3>(result, args);
+    if (dim == 2) make_symm<2>(result, args);
+    if (dim == 1) make_symm<1>(result, args);
   }
 }
 
@@ -564,6 +610,9 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
   auto vector = [=](any& result, Args& args) {
     make_vector(local_size, local_dim, result, args);
   };
+  auto symm = [=](any& result, Args& args) {
+    make_symm(local_size, local_dim, result, args);
+  };
   register_function("exp",
       [=](any& result, Args& args) { eval_exp(local_size, result, args); });
   register_function("sqrt",
@@ -572,9 +621,11 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
       [=](any& result, Args& args) { eval_sin(local_size, result, args); });
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
-  register_function("mod",
-      [=](any& result, Args& args) { eval_mod(local_size, local_dim, result, args); });
+  register_function("mod", [=](any& result, Args& args) {
+    eval_mod(local_size, local_dim, result, args);
+  });
   register_function("vector", vector);
+  register_function("symm", symm);
   register_function("norm", [=](any& result, Args& args) {
     eval_norm(local_dim, local_size, result, args);
   });
@@ -784,12 +835,11 @@ struct SemicolonOp : public ExprOp {
   OpPtr lhs;
   OpPtr rhs;
   virtual ~SemicolonOp() override final = default;
-  SemicolonOp(OpPtr lhs_in, OpPtr rhs_in)
-      : lhs(lhs_in), rhs(rhs_in) {}
+  SemicolonOp(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}
   virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
 };
 void SemicolonOp::eval(ExprEnv& env, Teuchos::any& result) {
-  lhs->eval(env, result); // LHS result ignored
+  lhs->eval(env, result);  // LHS result ignored
   rhs->eval(env, result);
 }
 
@@ -925,7 +975,8 @@ OMEGA_H_BINARY_OP(PowOp, eval_pow(env.dim, result, lhs_val, rhs_val));
 ExprOpsReader::ExprOpsReader()
     : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()) {}
 
-std::shared_ptr<Omega_h::ExprOp> ExprOpsReader::read_ops(std::string const& expr) {
+std::shared_ptr<Omega_h::ExprOp> ExprOpsReader::read_ops(
+    std::string const& expr) {
   Teuchos::any any_op;
   read_string(any_op, expr, expr);
   return Teuchos::any_cast<std::shared_ptr<Omega_h::ExprOp>>(any_op);

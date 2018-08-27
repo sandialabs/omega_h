@@ -131,6 +131,7 @@ class Mesh {
   Bytes ask_leaves(Int dim);
   Parents ask_parents(Int child_dim);
   Children ask_children(Int parent_dim, Int child_dim);
+  bool has_any_parents() const;
   void set_owners(Int dim, Remotes owners);
   Remotes ask_owners(Int dim);
   Read<I8> owned(Int dim);
@@ -183,9 +184,7 @@ void reorder_by_hilbert(Mesh* mesh);
 void reorder_by_globals(Mesh* mesh);
 
 LOs ents_on_closure(
-    Mesh* mesh,
-    std::set<std::string> const& class_names,
-    Int ent_dim);
+    Mesh* mesh, std::set<std::string> const& class_names, Int ent_dim);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \

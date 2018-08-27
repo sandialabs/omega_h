@@ -10,6 +10,7 @@ Reals repeat_symm(LO n, Matrix<dim, dim> symm) {
 
 template Reals repeat_symm(LO n, Matrix<3, 3> symm);
 template Reals repeat_symm(LO n, Matrix<2, 2> symm);
+template Reals repeat_symm(LO n, Matrix<1, 1> symm);
 
 template <Int old_dim, Int new_dim>
 Reals resize_symms_tmpl(Reals old_symms) {

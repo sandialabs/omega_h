@@ -13,8 +13,8 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #endif
-#include <thrust/transform_reduce.h>
 #include <thrust/functional.h>
+#include <thrust/transform_reduce.h>
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
@@ -42,39 +42,44 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
 #if defined(OMEGA_H_USE_CUDA)
 
 template <class Op>
-Op native_op(Op const& op) { return op; }
-template<class T>
-thrust::logical_and<T> native_op(Omega_h::logical_and<T> const&) { return thrust::logical_and<T>(); }
-template<class T>
-thrust::plus<T> native_op(Omega_h::plus<T> const&) { return thrust::plus<T>(); }
+Op native_op(Op const& op) {
+  return op;
+}
 template <class T>
-thrust::maximum<T> native_op(Omega_h::maximum<T> const&) { return thrust::maximum<T>(); }
+thrust::logical_and<T> native_op(Omega_h::logical_and<T> const&) {
+  return thrust::logical_and<T>();
+}
 template <class T>
-thrust::minimum<T> native_op(Omega_h::minimum<T> const&) { return thrust::minimum<T>(); }
+thrust::plus<T> native_op(Omega_h::plus<T> const&) {
+  return thrust::plus<T>();
+}
 template <class T>
-thrust::identity<T> native_op(Omega_h::identity<T> const&) { return thrust::identity<T>(); }
+thrust::maximum<T> native_op(Omega_h::maximum<T> const&) {
+  return thrust::maximum<T>();
+}
+template <class T>
+thrust::minimum<T> native_op(Omega_h::minimum<T> const&) {
+  return thrust::minimum<T>();
+}
+template <class T>
+thrust::identity<T> native_op(Omega_h::identity<T> const&) {
+  return thrust::identity<T>();
+}
 
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(
-    Iterator first,
-    Iterator last,
-    Tranform transform,
-    Result init,
-    Op op) {
-  return thrust::transform_reduce(thrust::device, first, last, native_op(transform), init, native_op(op));
+    Iterator first, Iterator last, Tranform transform, Result init, Op op) {
+  return thrust::transform_reduce(
+      thrust::device, first, last, native_op(transform), init, native_op(op));
 }
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
 template <class Iterator, class Tranform, class Result>
-Result transform_reduce(
-    Iterator first,
-    Iterator last,
-    Tranform transform,
-    Result init,
-    Omega_h::logical_and<Result> op) {
+Result transform_reduce(Iterator first, Iterator last, Tranform transform,
+    Result init, Omega_h::logical_and<Result> op) {
   auto n = last - first;
-#pragma omp parallel for reduction (&&:init)
+#pragma omp parallel for reduction(&& : init)
   for (decltype(n) i = 0; i < n; ++i) {
     init = op(init, transform(first[i]));
   }
@@ -82,14 +87,10 @@ Result transform_reduce(
 }
 
 template <class Iterator, class Tranform, class Result>
-Result transform_reduce(
-    Iterator first,
-    Iterator last,
-    Tranform transform,
-    Result init,
-    Omega_h::plus<Result> op) {
+Result transform_reduce(Iterator first, Iterator last, Tranform transform,
+    Result init, Omega_h::plus<Result> op) {
   auto n = last - first;
-#pragma omp parallel for reduction (+:init)
+#pragma omp parallel for reduction(+ : init)
   for (decltype(n) i = 0; i < n; ++i) {
     init = op(init, transform(first[i]));
   }
@@ -97,14 +98,10 @@ Result transform_reduce(
 }
 
 template <class Iterator, class Tranform, class Result>
-Result transform_reduce(
-    Iterator first,
-    Iterator last,
-    Tranform transform,
-    Result init,
-    Omega_h::maximum<Result> op) {
+Result transform_reduce(Iterator first, Iterator last, Tranform transform,
+    Result init, Omega_h::maximum<Result> op) {
   auto n = last - first;
-#pragma omp parallel for reduction (max:init)
+#pragma omp parallel for reduction(max : init)
   for (decltype(n) i = 0; i < n; ++i) {
     init = op(init, transform(first[i]));
   }
@@ -112,14 +109,10 @@ Result transform_reduce(
 }
 
 template <class Iterator, class Tranform, class Result>
-Result transform_reduce(
-    Iterator first,
-    Iterator last,
-    Tranform transform,
-    Result init,
-    Omega_h::minimum<Result> op) {
+Result transform_reduce(Iterator first, Iterator last, Tranform transform,
+    Result init, Omega_h::minimum<Result> op) {
   auto n = last - first;
-#pragma omp parallel for reduction (min:init)
+#pragma omp parallel for reduction(min : init)
   for (decltype(n) i = 0; i < n; ++i) {
     init = op(init, transform(first[i]));
   }
@@ -130,11 +123,7 @@ Result transform_reduce(
 
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(
-    Iterator first,
-    Iterator last,
-    Tranform transform,
-    Result init,
-    Op op) {
+    Iterator first, Iterator last, Tranform transform, Result init, Op op) {
   for (; first != last; ++first) {
     init = op(std::move(init), transform(*first));
   }
@@ -143,6 +132,6 @@ Result transform_reduce(
 
 #endif
 
-}
+}  // namespace Omega_h
 
 #endif
