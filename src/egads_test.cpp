@@ -9,8 +9,8 @@
 #pragma clang diagnostic pop
 #endif
 
-#include <array>
 #include <Omega_h_fail.hpp>
+#include <array>
 #include <cmath>
 
 #define CALL(f) OMEGA_H_CHECK(EGADS_SUCCESS == (f))

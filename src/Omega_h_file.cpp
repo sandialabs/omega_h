@@ -13,8 +13,8 @@
 #endif
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_inertia.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_inertia.hpp"
 #include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
@@ -156,7 +156,8 @@ void read_value(std::istream& stream, T& val, bool needs_swapping) {
 }
 
 template <typename T>
-void write_array(std::ostream& stream, Read<T> array, bool is_compressed, bool needs_swapping) {
+void write_array(std::ostream& stream, Read<T> array, bool is_compressed,
+    bool needs_swapping) {
   LO size = array.size();
   write_value(stream, size, needs_swapping);
   Read<T> swapped = swap_bytes(array, needs_swapping);
@@ -187,7 +188,8 @@ void write_array(std::ostream& stream, Read<T> array, bool is_compressed, bool n
 }
 
 template <typename T>
-void read_array(std::istream& stream, Read<T>& array, bool is_compressed, bool needs_swapping) {
+void read_array(std::istream& stream, Read<T>& array, bool is_compressed,
+    bool needs_swapping) {
   LO size;
   read_value(stream, size, needs_swapping);
   OMEGA_H_CHECK(size >= 0);
@@ -235,7 +237,8 @@ void read(std::istream& stream, std::string& val, bool needs_swapping) {
   stream.read(&val[0], len);
 }
 
-static void write_meta(std::ostream& stream, Mesh const* mesh, bool needs_swapping) {
+static void write_meta(
+    std::ostream& stream, Mesh const* mesh, bool needs_swapping) {
   auto family = I8(mesh->family());
   write_value(stream, family, needs_swapping);
   auto dim = I8(mesh->dim());
@@ -260,7 +263,8 @@ static void write_meta(std::ostream& stream, Mesh const* mesh, bool needs_swappi
   }
 }
 
-static void read_meta(std::istream& stream, Mesh* mesh, Int version, bool needs_swapping) {
+static void read_meta(
+    std::istream& stream, Mesh* mesh, Int version, bool needs_swapping) {
   if (version >= 7) {
     I8 family;
     read_value(stream, family, needs_swapping);
@@ -306,7 +310,8 @@ static void read_meta(std::istream& stream, Mesh* mesh, Int version, bool needs_
   }
 }
 
-static void write_tag(std::ostream& stream, TagBase const* tag, bool is_compressed, bool needs_swapping) {
+static void write_tag(std::ostream& stream, TagBase const* tag,
+    bool is_compressed, bool needs_swapping) {
   std::string name = tag->name();
   write(stream, name, needs_swapping);
   auto ncomps = I8(tag->ncomps());
@@ -326,8 +331,8 @@ static void write_tag(std::ostream& stream, TagBase const* tag, bool is_compress
   }
 }
 
-static void read_tag(
-    std::istream& stream, Mesh* mesh, Int d, bool is_compressed, I32 version, bool needs_swapping) {
+static void read_tag(std::istream& stream, Mesh* mesh, Int d,
+    bool is_compressed, I32 version, bool needs_swapping) {
   std::string name;
   read(stream, name, needs_swapping);
   I8 ncomps;
@@ -616,11 +621,11 @@ Mesh read(std::string const& path, CommPtr comm, bool strict) {
 }
 
 #define OMEGA_H_INST(T)                                                        \
-  template void swap_bytes(T&); \
-  template Read<T> swap_bytes(Read<T> array, bool is_little_endian);       \
-  template void write_value(std::ostream& stream, T val, bool);                      \
-  template void read_value(std::istream& stream, T& val, bool);                      \
-  template void write_array(std::ostream& stream, Read<T> array, bool, bool);              \
+  template void swap_bytes(T&);                                                \
+  template Read<T> swap_bytes(Read<T> array, bool is_little_endian);           \
+  template void write_value(std::ostream& stream, T val, bool);                \
+  template void read_value(std::istream& stream, T& val, bool);                \
+  template void write_array(std::ostream& stream, Read<T> array, bool, bool);  \
   template void read_array(                                                    \
       std::istream& stream, Read<T>& array, bool is_compressed, bool);
 OMEGA_H_INST(I8)

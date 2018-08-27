@@ -3,16 +3,16 @@
 #include <iostream>
 #include <sstream>
 
-#include <Omega_h_language.hpp>
-#include <Omega_h_reader.hpp>
 #include <Omega_h_fail.hpp>
+#include <Omega_h_language.hpp>
 #include <Omega_h_math_lang.hpp>
+#include <Omega_h_reader.hpp>
 
 namespace {
 
 class CalcReader : public Omega_h::Reader {
  public:
-  CalcReader():Omega_h::Reader(Omega_h::math_lang::ask_reader_tables()) {
+  CalcReader() : Omega_h::Reader(Omega_h::math_lang::ask_reader_tables()) {
     unary_function_map["sqrt"] = &std::sqrt;
     unary_function_map["sin"] = &std::sin;
     unary_function_map["cos"] = &std::cos;
@@ -26,6 +26,7 @@ class CalcReader : public Omega_h::Reader {
     binary_function_map["atan2"] = &std::atan2;
   }
   virtual ~CalcReader() = default;
+
  protected:
   struct CallArgs {
     double a0;
@@ -49,7 +50,7 @@ class CalcReader : public Omega_h::Reader {
       case Omega_h::math_lang::PROD_PROGRAM: {
         if (rhs.at(1).empty()) {
           throw Omega_h::ParserFail(
-            "Calculator needs an expression to evaluate!");
+              "Calculator needs an expression to evaluate!");
         }
         return std::move(rhs.at(1));
       }
@@ -76,9 +77,8 @@ class CalcReader : public Omega_h::Reader {
       case Omega_h::math_lang::PROD_SOME_ARGS:
         return std::move(rhs.at(0));
       case Omega_h::math_lang::PROD_TERNARY:
-        return any_cast<bool>(rhs.at(0)) ?
-               any_cast<double>(rhs.at(3)) :
-               any_cast<double>(rhs.at(6));
+        return any_cast<bool>(rhs.at(0)) ? any_cast<double>(rhs.at(3))
+                                         : any_cast<double>(rhs.at(6));
       case Omega_h::math_lang::PROD_OR:
         return any_cast<bool>(rhs.at(0)) || any_cast<bool>(rhs.at(3));
       case Omega_h::math_lang::PROD_AND:
@@ -104,13 +104,14 @@ class CalcReader : public Omega_h::Reader {
       case Omega_h::math_lang::PROD_DIV:
         return any_cast<double>(rhs.at(0)) / any_cast<double>(rhs.at(3));
       case Omega_h::math_lang::PROD_POW:
-        return std::pow(any_cast<double>(rhs.at(0)), any_cast<double>(rhs.at(3)));
+        return std::pow(
+            any_cast<double>(rhs.at(0)), any_cast<double>(rhs.at(3)));
       case Omega_h::math_lang::PROD_CALL: {
         auto& name = any_cast<std::string&>(rhs.at(0));
         auto& args = any_cast<CallArgs&>(rhs.at(4));
         if (args.n < 1 || args.n > 2) {
           throw Omega_h::ParserFail(
-            "Only unary and binary functions supported!\n");
+              "Only unary and binary functions supported!\n");
         }
         if (args.n == 1) {
           if (!unary_function_map.count(name)) {
@@ -148,7 +149,7 @@ class CalcReader : public Omega_h::Reader {
         return args;
       }
       case Omega_h::math_lang::PROD_NEG:
-        return - any_cast<double>(rhs.at(2));
+        return -any_cast<double>(rhs.at(2));
       case Omega_h::math_lang::PROD_VAL_PARENS:
         return any_cast<double>(rhs.at(2));
       case Omega_h::math_lang::PROD_CONST:
@@ -165,6 +166,7 @@ class CalcReader : public Omega_h::Reader {
     }
     return Omega_h::any();
   }
+
  private:
   typedef double (*Unary)(double);
   typedef double (*Binary)(double, double);

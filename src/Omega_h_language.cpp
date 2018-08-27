@@ -1,14 +1,14 @@
 #include "Omega_h_language.hpp"
 
-#include <set>
-#include <iostream>
-#include <sstream>
 #include <cstdlib>
+#include <iostream>
+#include <set>
+#include <sstream>
 
-#include "Omega_h_std_vector.hpp"
-#include "Omega_h_regex.hpp"
 #include "Omega_h_build_parser.hpp"
 #include "Omega_h_fail.hpp"
+#include "Omega_h_regex.hpp"
+#include "Omega_h_std_vector.hpp"
 
 namespace Omega_h {
 
@@ -33,7 +33,9 @@ GrammarPtr build_grammar(Language const& language) {
     for (auto& lang_symb : lang_prod.rhs) {
       if (!symbol_map.count(lang_symb)) {
         std::stringstream ss;
-        ss << "RHS entry \"" << lang_symb << "\" is neither a nonterminal (LHS of a production) nor a token!\n";
+        ss << "RHS entry \"" << lang_symb
+           << "\" is neither a nonterminal (LHS of a production) nor a "
+              "token!\n";
         throw ParserFail(ss.str());
       }
       gprod.rhs.push_back(symbol_map[lang_symb]);
@@ -70,11 +72,15 @@ std::ostream& operator<<(std::ostream& os, Language const& lang) {
     bool first = true;
     for (auto& prod : lang.productions) {
       if (prod.lhs != nonterminal) continue;
-      if (first) first = false;
-      else os << " |\n" << lead;
+      if (first)
+        first = false;
+      else
+        os << " |\n" << lead;
       for (auto& symb : prod.rhs) {
-        if (symb == "|") os << " '|'";
-        else os << " " << symb;
+        if (symb == "|")
+          os << " '|'";
+        else
+          os << " " << symb;
       }
     }
     os << "\n";
@@ -125,17 +131,21 @@ static IndentInfo build_indent_info(Language const& language) {
     }
   }
   if (out.is_sensitive && out.indent_token == -1) {
-    throw ParserFail("ERROR: Indentation-sensitive language has no INDENT token\n");
+    throw ParserFail(
+        "ERROR: Indentation-sensitive language has no INDENT token\n");
   }
   if (out.is_sensitive && out.dedent_token == -1) {
-    throw ParserFail("ERROR: Indentation-sensitive language has no DEDENT token\n");
+    throw ParserFail(
+        "ERROR: Indentation-sensitive language has no DEDENT token\n");
   }
   if (out.is_sensitive && out.newline_token == -1) {
-    throw ParserFail("ERROR: Indentation-sensitive language has no NEWLINE token\n");
+    throw ParserFail(
+        "ERROR: Indentation-sensitive language has no NEWLINE token\n");
   }
   if (out.indent_token < out.newline_token ||
       out.dedent_token < out.newline_token) {
-    throw ParserFail("ERROR: NEWLINE needs to come before all other indent tokens\n");
+    throw ParserFail(
+        "ERROR: NEWLINE needs to come before all other indent tokens\n");
   }
   return out;
 }
@@ -148,4 +158,4 @@ ReaderTablesPtr build_reader_tables(Language const& language) {
   return ReaderTablesPtr(new ReaderTables({parser, lexer, indent_info}));
 }
 
-}
+}  // namespace Omega_h

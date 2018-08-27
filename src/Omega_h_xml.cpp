@@ -21,7 +21,8 @@ Language build_language() {
   prods[PROD_EMPTY_TAG] = {"EmptyElemTag", {"<", "Name", "TagFill", "/", ">"}};
   prods[PROD_CONTENT] = {"content", {"CharData?", "ContentItem*", "ETag"}};
   prods[PROD_NO_CONTENT_ITEMS] = {"ContentItem*", {}};
-  prods[PROD_CONTENT_ITEMS] = {"ContentItem*", {"ContentItem*", "ContentItem", "CharData?"}};
+  prods[PROD_CONTENT_ITEMS] = {
+      "ContentItem*", {"ContentItem*", "ContentItem", "CharData?"}};
   prods[PROD_CONTENT_ELEMENT] = {"ContentItem", {"element"}};
   prods[PROD_CONTENT_REF] = {"ContentItem", {"Reference"}};
   prods[PROD_CONTENT_COMMENT] = {"ContentItem", {"Comment"}};
@@ -58,7 +59,8 @@ Language build_language() {
   prods[PROD_MISCS] = {"Miscs", {"Miscs", "Misc"}};
   prods[PROD_MISC_COMMENT] = {"Misc", {"Comment"}};
   prods[PROD_MISC_SPACE] = {"Misc", {"S"}};
-  prods[PROD_COMMENT] = {"Comment", {"<", "!", "-", "-", "Commenteds", "-", "-", ">"}};
+  prods[PROD_COMMENT] = {
+      "Comment", {"<", "!", "-", "-", "Commenteds", "-", "-", ">"}};
   prods[PROD_NO_COMMENTED] = {"Commenteds", {}};
   prods[PROD_COMMENTED] = {"Commenteds", {"Commenteds", "Commented"}};
   prods[PROD_COMMENT_CHAR] = {"Commented", {"CommentChar"}};
@@ -83,12 +85,12 @@ Language build_language() {
   prods[PROD_DATA_SQUOT] = {"DataChar", {"'"}};
   prods[PROD_DATA_DQUOT] = {"DataChar", {"\""}};
   prods[PROD_DATA_DASH] = {"DataChar", {"-"}};
-  prods[PROD_COMMENT_COMMON] = {"CommentChar", {"CommonChar"}}; 
-  prods[PROD_COMMENT_LANGLE] = {"CommentChar", {"<"}}; 
-  prods[PROD_COMMENT_AMP] = {"CommentChar", {"&"}}; 
-  prods[PROD_COMMENT_SQUOT] = {"CommentChar", {"'"}}; 
-  prods[PROD_COMMENT_DQUOT] = {"CommentChar", {"\""}}; 
-  prods[PROD_COMMENT_RSQUARE] = {"CommentChar", {"]"}}; 
+  prods[PROD_COMMENT_COMMON] = {"CommentChar", {"CommonChar"}};
+  prods[PROD_COMMENT_LANGLE] = {"CommentChar", {"<"}};
+  prods[PROD_COMMENT_AMP] = {"CommentChar", {"&"}};
+  prods[PROD_COMMENT_SQUOT] = {"CommentChar", {"'"}};
+  prods[PROD_COMMENT_DQUOT] = {"CommentChar", {"\""}};
+  prods[PROD_COMMENT_RSQUARE] = {"CommentChar", {"]"}};
   prods[PROD_COMMON_SPACE] = {"CommonChar", {"Space"}};
   prods[PROD_COMMON_LETTER] = {"CommonChar", {"Letter"}};
   prods[PROD_COMMON_DIGIT] = {"CommonChar", {"Digit"}};

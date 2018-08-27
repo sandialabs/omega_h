@@ -1,9 +1,9 @@
 #ifndef OMEGA_H_GRAMMAR_HPP
 #define OMEGA_H_GRAMMAR_HPP
 
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace Omega_h {
 
@@ -38,6 +38,6 @@ int get_accept_nonterminal(Grammar const& g);
 
 std::ostream& operator<<(std::ostream& os, Grammar const& g);
 
-}
+}  // namespace Omega_h
 
 #endif

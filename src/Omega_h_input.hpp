@@ -1,14 +1,14 @@
 #ifndef OMEGA_H_INPUT_HPP
 #define OMEGA_H_INPUT_HPP
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace Omega_h {
 
 struct Input {
-  Input():parent(nullptr),used(false) {}
+  Input() : parent(nullptr), used(false) {}
   Input* parent;
   bool used;
 };
@@ -25,12 +25,13 @@ inline InputType& as_type<InputType>(Input& input) {
 
 template <class ScalarType>
 struct ScalarInput : public Input {
-  ScalarInput(ScalarType value_in):value(value_in) {}
+  ScalarInput(ScalarType value_in) : value(value_in) {}
   ScalarType value;
 };
 
 struct NamedInput : public Input {
-  NamedInput(std::string const& name_in, Input* value_in):name(name_in),value(value_in) {}
+  NamedInput(std::string const& name_in, Input* value_in)
+      : name(name_in), value(value_in) {}
   std::string name;
   std::unique_ptr<Input> value;
 };
@@ -51,7 +52,10 @@ struct MapInput : public Input {
   void add(NamedInput* named_input) {
     auto it = by_name.upper_bound(named_input->name);
     if (it != by_name.end() && (*it)->name == named_input->name) {
-      fail("Tried to add a mapped input value of name \"%s\" that already existed\n", named_input->name.c_str());
+      fail(
+          "Tried to add a mapped input value of name \"%s\" that already "
+          "existed\n",
+          named_input->name.c_str());
     }
     std::unique_ptr<NamedInput> uptr(named_input);
     entries.push_back(std::move(uptr));
@@ -68,17 +72,13 @@ struct MapInput : public Input {
   bool is(std::string const& name) {
     return is_input<ScalarInput<ScalarType>>(name);
   }
-  bool is_map(std::string const& name) {
-    return is_input<MapInput>(name);
-  }
-  bool is_list(std::string const& name) {
-    return is_input<ListInput>(name);
-  }
+  bool is_map(std::string const& name) { return is_input<MapInput>(name); }
+  bool is_list(std::string const& name) { return is_input<ListInput>(name); }
   Input& get_named_input(std::string const& name) {
     auto it = by_name.find(name);
     if (it == by_name.end()) {
       auto s = get_full_name(*this) + name;
-      fail("Tried to get named input \"%s\" that doesn't exist\n", s.c_str()); 
+      fail("Tried to get named input \"%s\" that doesn't exist\n", s.c_str());
     }
     auto& named_uptr = *it;
     auto& value_uptr = named_uptr->value;
@@ -100,7 +100,8 @@ struct MapInput : public Input {
   }
   template <class ScalarType>
   ScalarType& get(std::string const& name, ScalarType const& default_value) {
-    if (has_input<ScalarInput<ScalarType>>(name)) return this->get<ScalarType>(name);
+    if (has_input<ScalarInput<ScalarType>>(name))
+      return this->get<ScalarType>(name);
     this->add(new NamedInput(name, new ScalarInput<ScalarType>(default_value)));
   }
 };
@@ -108,8 +109,10 @@ struct MapInput : public Input {
 struct ListInput : public Input {
   std::vector<std::unique_ptr<Input>> entries;
   std::size_t position(Input& input) {
-    auto it = std::find(entries.begin(), entries.end(), [&](std::unique_ptr<Input> const& uptr)
-        { return uptr.get() == &input; });
+    auto it = std::find(entries.begin(), entries.end(),
+        [&](std::unique_ptr<Input> const& uptr) {
+          return uptr.get() == &input;
+        });
     OMEGA_H_CHECK(it != entries.end());
     return it - entries.begin();
   }
@@ -146,6 +149,6 @@ std::string get_full_name(Input& input) {
   }
 }
 
-};
+};  // namespace Omega_h
 
 #endif

@@ -1,10 +1,10 @@
 #ifndef OMEGA_H_REGEX_HPP
 #define OMEGA_H_REGEX_HPP
 
-#include <Omega_h_language.hpp>
 #include <Omega_h_finite_automaton.hpp>
-#include <Omega_h_reader_tables.hpp>
+#include <Omega_h_language.hpp>
 #include <Omega_h_reader.hpp>
+#include <Omega_h_reader_tables.hpp>
 
 namespace Omega_h {
 namespace regex {
@@ -60,7 +60,8 @@ FiniteAutomaton build_lexer();
 
 ReaderTablesPtr ask_reader_tables();
 
-FiniteAutomaton build_dfa(std::string const& name, std::string const& regex, int token);
+FiniteAutomaton build_dfa(
+    std::string const& name, std::string const& regex, int token);
 
 any at_shift_internal(int token, std::string& text);
 any at_reduce_internal(int production, std::vector<any>& rhs, int result_token);
@@ -70,9 +71,11 @@ class Reader : public Omega_h::Reader {
   Reader(int result_token_in);
   Reader(Reader const& other) = default;
   virtual ~Reader() override = default;
+
  protected:
   virtual any at_shift(int token, std::string& text) override;
   virtual any at_reduce(int token, std::vector<any>& rhs) override;
+
  private:
   int result_token;
 };

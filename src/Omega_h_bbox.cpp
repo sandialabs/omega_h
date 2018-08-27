@@ -1,7 +1,7 @@
 #include "Omega_h_bbox.hpp"
 
-#include "Omega_h_reduce.hpp"
 #include "Omega_h_mesh.hpp"
+#include "Omega_h_reduce.hpp"
 
 namespace Omega_h {
 

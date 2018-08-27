@@ -32,7 +32,7 @@ void parallel_for(LO n, T const& f, char const* name = "") {
   T f2 = f;
   entering_parallel = false;
   LO nblocks = (n + block_size_cuda - 1) / block_size_cuda;
-  launch_cuda<T><<<nblocks, block_size>>>(f2, n);
+  launch_cuda<T><<<nblocks, block_size> > >(f2, n);
   end_code();
 #elif defined(OMEGA_H_USE_OPENMP)
   begin_code(name);
@@ -62,7 +62,7 @@ void parallel_for(char const* name, LO n, T&& f) {
   T f2 = std::move(f);
   entering_parallel = false;
   LO nblocks = (n + block_size_cuda - 1) / block_size_cuda;
-  launch_cuda<T><<<nblocks, block_size>>>(f2, n);
+  launch_cuda<T><<<nblocks, block_size> > >(f2, n);
   end_code();
 #elif defined(OMEGA_H_USE_OPENMP)
   begin_code(name);

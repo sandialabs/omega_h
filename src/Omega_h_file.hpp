@@ -139,9 +139,11 @@ void write_value(std::ostream& stream, T val, bool needs_swapping);
 template <typename T>
 void read_value(std::istream& stream, T& val, bool needs_swapping);
 template <typename T>
-void write_array(std::ostream& stream, Read<T> array, bool is_compressed, bool needs_swapping);
+void write_array(std::ostream& stream, Read<T> array, bool is_compressed,
+    bool needs_swapping);
 template <typename T>
-void read_array(std::istream& stream, Read<T>& array, bool is_compressed, bool needs_swapping);
+void read_array(std::istream& stream, Read<T>& array, bool is_compressed,
+    bool needs_swapping);
 
 void write(std::ostream& stream, std::string const& val, bool needs_swapping);
 void read(std::istream& stream, std::string& val, bool needs_swapping);
@@ -150,12 +152,12 @@ void write(std::ostream& stream, Mesh* mesh);
 void read(std::istream& stream, Mesh* mesh, I32 version);
 
 #define INST_DECL(T)                                                           \
-  extern template void swap_bytes(T&); \
-  extern template Read<T> swap_bytes(                                      \
-      Read<T> array, bool needs_swapping);                                   \
-  extern template void write_value(std::ostream& stream, T val, bool);               \
-  extern template void read_value(std::istream& stream, T& val, bool);               \
-  extern template void write_array(std::ostream& stream, Read<T> array, bool, bool);       \
+  extern template void swap_bytes(T&);                                         \
+  extern template Read<T> swap_bytes(Read<T> array, bool needs_swapping);      \
+  extern template void write_value(std::ostream& stream, T val, bool);         \
+  extern template void read_value(std::istream& stream, T& val, bool);         \
+  extern template void write_array(                                            \
+      std::ostream& stream, Read<T> array, bool, bool);                        \
   extern template void read_array(                                             \
       std::istream& stream, Read<T>& array, bool, bool);
 INST_DECL(I8)

@@ -13,7 +13,7 @@ struct Table {
   using Ref = typename std::vector<T>::reference;
   using ConstRef = typename std::vector<T>::const_reference;
   Table() = default;
-  Table(int ncols_init, int nrows_reserve):ncols(ncols_init) {
+  Table(int ncols_init, int nrows_reserve) : ncols(ncols_init) {
     OMEGA_H_CHECK(0 <= ncols_init);
     reserve(data, ncols * nrows_reserve);
   }
@@ -27,11 +27,13 @@ int get_nrows(Table<T> const& t) {
 }
 
 template <typename T>
-int get_ncols(Table<T> const& t) { return t.ncols; }
+int get_ncols(Table<T> const& t) {
+  return t.ncols;
+}
 
 template <typename T>
 void resize(Table<T>& t, int new_nrows, int new_ncols) {
-  OMEGA_H_CHECK(new_ncols == t.ncols); // pretty specialized right now
+  OMEGA_H_CHECK(new_ncols == t.ncols);  // pretty specialized right now
   Omega_h::resize(t.data, new_nrows * t.ncols);
 }
 
@@ -53,7 +55,6 @@ typename Table<T>::ConstRef at(Table<T> const& t, int row, int col) {
   return Omega_h::at(t.data, row * t.ncols + col);
 }
 
-}
+}  // namespace Omega_h
 
 #endif
-

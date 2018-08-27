@@ -1,8 +1,8 @@
+#include <Omega_h_fail.hpp>
 #include <cctype>
 #include <climits>
-#include <iostream>
 #include <fstream>
-#include <Omega_h_fail.hpp>
+#include <iostream>
 
 int main() {
   int chartab[CHAR_MAX + 1];
@@ -87,13 +87,20 @@ int main() {
   chartab_cpp << "char const inv_chartab[NCHARS] = {\n";
   for (int i = 0; i < n; ++i) {
     chartab_cpp << "  \'";
-    if (inv_chartab[i] == '\\') chartab_cpp << "\\\\";
-    else if (inv_chartab[i] == '\'') chartab_cpp << "\\\'";
-    else if (std::isprint(inv_chartab[i])) chartab_cpp << inv_chartab[i];
-    else if (inv_chartab[i] == '\t') chartab_cpp << "\\t";
-    else if (inv_chartab[i] == '\n') chartab_cpp << "\\n";
-    else if (inv_chartab[i] == '\r') chartab_cpp << "\\r";
-    else OMEGA_H_CHECK(false);
+    if (inv_chartab[i] == '\\')
+      chartab_cpp << "\\\\";
+    else if (inv_chartab[i] == '\'')
+      chartab_cpp << "\\\'";
+    else if (std::isprint(inv_chartab[i]))
+      chartab_cpp << inv_chartab[i];
+    else if (inv_chartab[i] == '\t')
+      chartab_cpp << "\\t";
+    else if (inv_chartab[i] == '\n')
+      chartab_cpp << "\\n";
+    else if (inv_chartab[i] == '\r')
+      chartab_cpp << "\\r";
+    else
+      OMEGA_H_CHECK(false);
     chartab_cpp << '\'';
     if (i != n - 1) chartab_cpp << ',';
     chartab_cpp << '\n';

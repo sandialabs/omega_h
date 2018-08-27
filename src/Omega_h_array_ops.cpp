@@ -34,7 +34,8 @@ struct Sum : public SumFunctor<T> {
 template <typename T>
 typename StandinTraits<T>::type get_sum(Read<T> a) {
   using T2 = typename StandinTraits<T>::type;
-  return transform_reduce(a.begin(), a.end(), OMEGA_H_LAMBDA(T val) -> T2 { return T2(val); }, T2(0), plus<T2>());
+  return transform_reduce(a.begin(), a.end(),
+      OMEGA_H_LAMBDA(T val)->T2 { return T2(val); }, T2(0), plus<T2>());
 }
 
 template <typename T>

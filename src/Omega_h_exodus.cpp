@@ -68,7 +68,8 @@ static void get_elem_type_info(
 
 // subtracts one and maps from Exodus
 // side ordering to Omega_h
-static OMEGA_H_INLINE int side_exo2osh(Omega_h_Family family, int dim, int side) {
+static OMEGA_H_INLINE int side_exo2osh(
+    Omega_h_Family family, int dim, int side) {
   switch (family) {
     case OMEGA_H_SIMPLEX:
       switch (dim) {
@@ -89,7 +90,7 @@ static OMEGA_H_INLINE int side_exo2osh(Omega_h_Family family, int dim, int side)
           }
       }
     case OMEGA_H_HYPERCUBE:
-      return -1; // needs to be filled in!
+      return -1;  // needs to be filled in!
   }
   return -1;
 }
@@ -145,8 +146,8 @@ int get_num_time_steps(int exodus_file) {
   return int(ex_inquire_int(exodus_file, EX_INQ_TIME));
 }
 
-static void setup_names(int nnames, std::vector<char>& storage,
-    std::vector<char*>& ptrs) {
+static void setup_names(
+    int nnames, std::vector<char>& storage, std::vector<char*>& ptrs) {
   constexpr auto max_name_length = MAX_STR_LENGTH + 1;
   storage = std::vector<char>(std::size_t(nnames * max_name_length), '\0');
   ptrs = std::vector<char*>(std::size_t(nnames), nullptr);
@@ -218,10 +219,9 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
         &nnodes_per_entry, &nedges_per_entry, &nfaces_per_entry,
         &nattr_per_entry));
     if (verbose) {
-      std::cout << "block " << block_ids[i]
-                << " \"" << block_names[i] << "\""
-                << " has " << nentries
-                << " elements of type " << elem_type << '\n';
+      std::cout << "block " << block_ids[i] << " \"" << block_names[i] << "\""
+                << " has " << nentries << " elements of type " << elem_type
+                << '\n';
     }
     /* some pretty weird blocks from the CDFEM people... */
     if (std::string("NULL") == elem_type && nentries == 0) continue;
@@ -347,7 +347,8 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       auto set_sides2side_w = Write<LO>(nentries);
       auto f2 = OMEGA_H_LAMBDA(LO set_side) {
         auto elem = set_sides2elem[set_side];
-        auto side_of_element = side_exo2osh(family, dim, set_sides2local[set_side]);
+        auto side_of_element =
+            side_exo2osh(family, dim, set_sides2local[set_side]);
         OMEGA_H_CHECK(side_of_element != -1);
         auto side = elems2sides[elem * nsides_per_elem + side_of_element];
         set_sides2side_w[set_side] = side;

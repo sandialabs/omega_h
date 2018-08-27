@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_BUILD_PARSER_HPP
 #define OMEGA_H_BUILD_PARSER_HPP
 
-#include <set>
 #include <memory>
+#include <set>
 
 #include <Omega_h_parser.hpp>
 #include <Omega_h_parser_graph.hpp>
@@ -48,18 +48,15 @@ struct ParserInProgress {
 };
 
 StateConfigs form_state_configs(StatesInProgress const& states);
-ParserGraph form_states_to_state_configs(StateConfigs const& scs,
-    StatesInProgress const& states);
+ParserGraph form_states_to_state_configs(
+    StateConfigs const& scs, StatesInProgress const& states);
 
-void print_dot(
-    std::string const& filepath,
-    ParserInProgress const& pip
-    );
+void print_dot(std::string const& filepath, ParserInProgress const& pip);
 
 ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose = false);
 
 Parser accept_parser(ParserInProgress const& pip);
 
-}
+}  // namespace Omega_h
 
 #endif

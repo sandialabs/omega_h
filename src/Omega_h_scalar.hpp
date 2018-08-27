@@ -241,57 +241,61 @@ T divide_no_remainder(T a, T b) {
   return a / b;
 }
 
-template<typename T>
-struct plus
-{
+template <typename T>
+struct plus {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T &lhs, const T &rhs) const {return lhs + rhs;}
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+    return lhs + rhs;
+  }
 };
 
-template<typename T>
-struct logical_and
-{
+template <typename T>
+struct logical_and {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
-  OMEGA_H_INLINE bool operator()(const T &lhs, const T &rhs) const {return lhs && rhs;}
+  OMEGA_H_INLINE bool operator()(const T& lhs, const T& rhs) const {
+    return lhs && rhs;
+  }
 };
 
-template<typename T>
-struct maximum
-{
+template <typename T>
+struct maximum {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T &lhs, const T &rhs) const {return lhs < rhs ? rhs : lhs;}
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+    return lhs < rhs ? rhs : lhs;
+  }
 };
 
-template<typename T>
-struct minimum
-{
+template <typename T>
+struct minimum {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T &lhs, const T &rhs) const {return lhs < rhs ? lhs : rhs;}
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+    return lhs < rhs ? lhs : rhs;
+  }
 };
 
-template<typename T>
-struct identity
-{
+template <typename T>
+struct identity {
   typedef T argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE const T& operator()(const T& x) const {return x;}
+  OMEGA_H_INLINE const T& operator()(const T& x) const { return x; }
 };
 
-template<typename T>
-struct multiplies
-{
+template <typename T>
+struct multiplies {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T &lhs, const T &rhs) const {return lhs * rhs;}
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+    return lhs * rhs;
+  }
 };
 
 }  // namespace Omega_h

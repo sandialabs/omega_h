@@ -23,6 +23,6 @@ struct ReaderTables {
 
 using ReaderTablesPtr = std::shared_ptr<ReaderTables const>;
 
-}
+}  // namespace Omega_h
 
 #endif

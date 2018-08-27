@@ -10,21 +10,13 @@ ParserGraph make_graph_with_nnodes(int nnodes) {
   return ParserGraph(std::size_t(nnodes));
 }
 
-int get_nnodes(ParserGraph const& g) {
-  return size(g);
-}
+int get_nnodes(ParserGraph const& g) { return size(g); }
 
-void add_edge(ParserGraph& g, int i, int j) {
-  at(g, i).push_back(j);
-}
+void add_edge(ParserGraph& g, int i, int j) { at(g, i).push_back(j); }
 
-NodeEdges const& get_edges(ParserGraph const& g, int i) {
-  return at(g, i);
-}
+NodeEdges const& get_edges(ParserGraph const& g, int i) { return at(g, i); }
 
-NodeEdges& get_edges(ParserGraph& g, int i) {
-  return at(g, i);
-}
+NodeEdges& get_edges(ParserGraph& g, int i) { return at(g, i); }
 
 ParserGraph make_transpose(ParserGraph const& g) {
   auto nnodes = get_nnodes(g);
@@ -37,9 +29,7 @@ ParserGraph make_transpose(ParserGraph const& g) {
   return transpose;
 }
 
-int at(ParserGraph const& g, int i, int j) {
-  return at(at(g, i), j);
-}
+int at(ParserGraph const& g, int i, int j) { return at(at(g, i), j); }
 
 std::ostream& operator<<(std::ostream& os, ParserGraph const& g) {
   for (int i = 0; i < get_nnodes(g); ++i) {
@@ -50,4 +40,4 @@ std::ostream& operator<<(std::ostream& os, ParserGraph const& g) {
   return os;
 }
 
-}
+}  // namespace Omega_h

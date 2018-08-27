@@ -1,13 +1,13 @@
 #ifndef OMEGA_H_LANGUAGE_HPP
 #define OMEGA_H_LANGUAGE_HPP
 
+#include <iosfwd>
 #include <map>
 #include <string>
 #include <vector>
-#include <iosfwd>
 
-#include <Omega_h_grammar.hpp>
 #include <Omega_h_finite_automaton.hpp>
+#include <Omega_h_grammar.hpp>
 #include <Omega_h_reader_tables.hpp>
 
 namespace Omega_h {
@@ -35,6 +35,6 @@ ReaderTablesPtr build_reader_tables(Language const& language);
 
 std::ostream& operator<<(std::ostream& os, Language const& lang);
 
-}
+}  // namespace Omega_h
 
 #endif

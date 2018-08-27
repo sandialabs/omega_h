@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_VECTOR_HPP
 #define OMEGA_H_VECTOR_HPP
 
-#include <vector>
 #include <Omega_h_fail.hpp>
+#include <vector>
 
 namespace Omega_h {
 
@@ -22,7 +22,8 @@ inline typename std::vector<T>::reference at(std::vector<T>& v, int i) {
 }
 
 template <typename T>
-inline typename std::vector<T>::const_reference at(std::vector<T> const& v, int i) {
+inline typename std::vector<T>::const_reference at(
+    std::vector<T> const& v, int i) {
   OMEGA_H_CHECK(0 <= i);
   OMEGA_H_CHECK(i < int(v.size()));
   return v[std::size_t(i)];
@@ -45,7 +46,6 @@ inline std::vector<T> make_vector(int n, T const& init_val = T()) {
   return std::vector<T>(std::size_t(n), init_val);
 }
 
-}
+}  // namespace Omega_h
 
 #endif
-

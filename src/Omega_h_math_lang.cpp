@@ -11,7 +11,8 @@ Language build_language() {
   prods.resize(NPRODS);
   prods[PROD_PROGRAM] = {"program", {"statements", "expr?"}};
   prods[PROD_NO_STATEMENTS] = {"statements", {}};
-  prods[PROD_NEXT_STATEMENT] = {"statements", {"statements", "statement", ";", "S?"}};
+  prods[PROD_NEXT_STATEMENT] = {
+      "statements", {"statements", "statement", ";", "S?"}};
   prods[PROD_ASSIGN] = {"statement", {"name", "S?", "=", "S?", "expr"}};
   prods[PROD_NO_EXPR] = {"expr?", {}};
   prods[PROD_YES_EXPR] = {"expr?", {"expr"}};
@@ -23,8 +24,8 @@ Language build_language() {
   prods[PROD_MUL_DIV_DECAY] = {"mul_div", {"neg"}};
   prods[PROD_NEG_DECAY] = {"neg", {"pow"}};
   prods[PROD_POW_DECAY] = {"pow", {"scalar"}};
-  prods[PROD_TERNARY] = {"ternary",
-    {"or", "?", "S?", "add_sub", ":", "S?", "add_sub"}};
+  prods[PROD_TERNARY] = {
+      "ternary", {"or", "?", "S?", "add_sub", ":", "S?", "add_sub"}};
   prods[PROD_OR] = {"or", {"or", "||", "S?", "and"}};
   prods[PROD_AND] = {"and", {"and", "&&", "S?", "comp"}};
   prods[PROD_GT] = {"comp", {"add_sub", ">", "S?", "add_sub"}};
@@ -38,8 +39,7 @@ Language build_language() {
   prods[PROD_MUL] = {"mul_div", {"mul_div", "*", "S?", "pow"}};
   prods[PROD_DIV] = {"mul_div", {"mul_div", "/", "S?", "pow"}};
   prods[PROD_POW] = {"pow", {"scalar", "^", "S?", "pow"}};
-  prods[PROD_CALL] = {"scalar",
-    {"name", "S?", "(", "S?", "args?", ")", "S?"}};
+  prods[PROD_CALL] = {"scalar", {"name", "S?", "(", "S?", "args?", ")", "S?"}};
   prods[PROD_NO_ARGS] = {"args?", {}};
   prods[PROD_SOME_ARGS] = {"args?", {"args"}};
   prods[PROD_FIRST_ARG] = {"args", {"ternary"}};
@@ -70,8 +70,8 @@ Language build_language() {
   out.tokens[TOK_EQ] = {"==", "=="};
   out.tokens[TOK_AND] = {"&&", "&&"};
   out.tokens[TOK_OR] = {"||", "\\|\\|"};
-  out.tokens[TOK_CONST] = {"constant",
-      "(0|([1-9][0-9]*))(\\.[0-9]*)?([eE]\\-?[1-9][0-9]*)?"};
+  out.tokens[TOK_CONST] = {
+      "constant", "(0|([1-9][0-9]*))(\\.[0-9]*)?([eE]\\-?[1-9][0-9]*)?"};
   out.tokens[TOK_SEMICOLON] = {";", ";"};
   out.tokens[TOK_ASSIGN] = {"=", "="};
   return out;
@@ -112,18 +112,17 @@ class SymbolSetReader : public Reader {
  public:
   SymbolSetReader();
   ~SymbolSetReader() override = default;
+
  public:
   std::set<std::string> variable_names;
   std::set<std::string> function_names;
+
  private:
   any at_shift(int token, std::string& text) override;
   any at_reduce(int prod, std::vector<any>& rhs) override;
 };
 
-SymbolSetReader::SymbolSetReader():
-  Reader(ask_reader_tables())
-{
-}
+SymbolSetReader::SymbolSetReader() : Reader(ask_reader_tables()) {}
 
 any SymbolSetReader::at_shift(int token, std::string& text) {
   if (token == TOK_NAME) return text;
@@ -157,4 +156,4 @@ std::set<std::string> get_symbols_used(std::string const& expr) {
 
 }  // end namespace math_lang
 
-}  // end namespace Teuchos
+}  // namespace Omega_h

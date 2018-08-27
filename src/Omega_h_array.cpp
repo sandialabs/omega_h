@@ -3,8 +3,8 @@
 #include <cstring>
 #include <sstream>
 
-#include "Omega_h_functors.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 
@@ -379,8 +379,8 @@ Write<T> deep_copy(Read<T> a, std::string const& name) {
   template class Read<T>;                                                      \
   template class HostWrite<T>;                                                 \
   template class HostRead<T>;                                                  \
-  template void fill(Write<T> a, T val); \
-  template void copy_into(Read<T> a, Write<T> b); \
+  template void fill(Write<T> a, T val);                                       \
+  template void copy_into(Read<T> a, Write<T> b);                              \
   template Write<T> deep_copy(Read<T> a, std::string const&);
 
 INST(I8)

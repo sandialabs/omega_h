@@ -2,15 +2,12 @@
 
 namespace Omega_h {
 
-Parser::Parser(GrammarPtr g, int nstates_reserve):
-  grammar(g),
-  terminal_table(g->nterminals, nstates_reserve),
-  nonterminal_table(get_nnonterminals(*g), nstates_reserve) {
-}
+Parser::Parser(GrammarPtr g, int nstates_reserve)
+    : grammar(g),
+      terminal_table(g->nterminals, nstates_reserve),
+      nonterminal_table(get_nnonterminals(*g), nstates_reserve) {}
 
-int get_nstates(Parser const& p) {
-  return get_nrows(p.terminal_table);
-}
+int get_nstates(Parser const& p) { return get_nrows(p.terminal_table); }
 
 int add_state(Parser& p) {
   auto state = get_nstates(p);
@@ -40,7 +37,8 @@ void add_terminal_action(Parser& p, int state, int terminal, Action action) {
   at(p.terminal_table, state, terminal) = action;
 }
 
-void add_nonterminal_action(Parser& p, int state, int nonterminal, int next_state) {
+void add_nonterminal_action(
+    Parser& p, int state, int nonterminal, int next_state) {
   OMEGA_H_CHECK(0 <= next_state);
   OMEGA_H_CHECK(next_state < get_nstates(p));
   OMEGA_H_CHECK(at(p.nonterminal_table, state, nonterminal) == -1);
@@ -51,7 +49,8 @@ Action const& get_action(Parser const& p, int state, int terminal) {
   return at(p.terminal_table, state, terminal);
 }
 
-int execute_action(Parser const& p, std::vector<int>& stack, Action const& action) {
+int execute_action(
+    Parser const& p, std::vector<int>& stack, Action const& action) {
   OMEGA_H_CHECK(action.kind != ACTION_NONE);
   if (action.kind == ACTION_SHIFT) {
     stack.push_back(action.next_state);
@@ -70,11 +69,8 @@ int execute_action(Parser const& p, std::vector<int>& stack, Action const& actio
 
 GrammarPtr const& get_grammar(Parser const& p) { return p.grammar; }
 
-ParserFail::ParserFail(const std::string& msg):
-  std::invalid_argument(msg) {
-}
+ParserFail::ParserFail(const std::string& msg) : std::invalid_argument(msg) {}
 
-void ParserFail::out_of_line_virtual_method() {
-}
+void ParserFail::out_of_line_virtual_method() {}
 
-} // end namespace Omega_h
+}  // end namespace Omega_h

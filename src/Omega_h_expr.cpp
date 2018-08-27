@@ -305,7 +305,8 @@ void mul(LO size, Int dim, any& result, any& lhs, any& rhs) {
 template <Int dim>
 void div(any& result, any& lhs, any& rhs) {
   if (rhs.type() == typeid(Reals)) {
-    result = Reals(divide_each_maybe_zero(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
+    result = Reals(
+        divide_each_maybe_zero(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else if (rhs.type() == typeid(Real)) {
     if (lhs.type() == typeid(Real)) {
       result = any_cast<Real>(lhs) / any_cast<Real>(rhs);
@@ -447,7 +448,8 @@ void make_symm(any& result, ExprReader::Args& args) {
 }
 
 void make_symm(LO size, Int dim, any& result, ExprReader::Args& args) {
-  TEUCHOS_TEST_FOR_EXCEPTION(args.size() != 1 && args.size() != std::size_t(symm_ncomps(dim)),
+  TEUCHOS_TEST_FOR_EXCEPTION(
+      args.size() != 1 && args.size() != std::size_t(symm_ncomps(dim)),
       Teuchos::ParserFail, "Wrong number of arguments to symm()\n");
   bool has_arrays = false;
   for (auto& arg : args)
@@ -619,8 +621,9 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
       [=](any& result, Args& args) { eval_sin(local_size, result, args); });
   register_function("cos",
       [=](any& result, Args& args) { eval_cos(local_size, result, args); });
-  register_function("mod",
-      [=](any& result, Args& args) { eval_mod(local_size, local_dim, result, args); });
+  register_function("mod", [=](any& result, Args& args) {
+    eval_mod(local_size, local_dim, result, args);
+  });
   register_function("vector", vector);
   register_function("symm", symm);
   register_function("norm", [=](any& result, Args& args) {
@@ -832,12 +835,11 @@ struct SemicolonOp : public ExprOp {
   OpPtr lhs;
   OpPtr rhs;
   virtual ~SemicolonOp() override final = default;
-  SemicolonOp(OpPtr lhs_in, OpPtr rhs_in)
-      : lhs(lhs_in), rhs(rhs_in) {}
+  SemicolonOp(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}
   virtual void eval(ExprEnv& env, Teuchos::any& result) override final;
 };
 void SemicolonOp::eval(ExprEnv& env, Teuchos::any& result) {
-  lhs->eval(env, result); // LHS result ignored
+  lhs->eval(env, result);  // LHS result ignored
   rhs->eval(env, result);
 }
 
@@ -973,7 +975,8 @@ OMEGA_H_BINARY_OP(PowOp, eval_pow(env.dim, result, lhs_val, rhs_val));
 ExprOpsReader::ExprOpsReader()
     : Teuchos::Reader(Teuchos::MathExpr::ask_reader_tables()) {}
 
-std::shared_ptr<Omega_h::ExprOp> ExprOpsReader::read_ops(std::string const& expr) {
+std::shared_ptr<Omega_h::ExprOp> ExprOpsReader::read_ops(
+    std::string const& expr) {
   Teuchos::any any_op;
   read_string(any_op, expr, expr);
   return Teuchos::any_cast<std::shared_ptr<Omega_h::ExprOp>>(any_op);

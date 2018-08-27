@@ -1,9 +1,9 @@
 #ifndef OMEGA_H_MATH_LANG_HPP
 #define OMEGA_H_MATH_LANG_HPP
 
-#include <set>
 #include <Omega_h_language.hpp>
 #include <Omega_h_reader_tables.hpp>
+#include <set>
 
 namespace Omega_h {
 
@@ -86,10 +86,8 @@ LanguagePtr ask_language();
 
 ReaderTablesPtr ask_reader_tables();
 
-std::set<std::string>
-get_variables_used(std::string const& expr);
-std::set<std::string>
-get_symbols_used(std::string const& expr);
+std::set<std::string> get_variables_used(std::string const& expr);
+std::set<std::string> get_symbols_used(std::string const& expr);
 
 }  // end namespace math_lang
 

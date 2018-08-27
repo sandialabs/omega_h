@@ -1,11 +1,11 @@
 #ifndef OMEGA_H_READER_HPP
 #define OMEGA_H_READER_HPP
 
-#include <iosfwd>
 #include <functional>
+#include <iosfwd>
 
-#include <Omega_h_reader_tables.hpp>
 #include <Omega_h_any.hpp>
+#include <Omega_h_reader_tables.hpp>
 
 namespace Omega_h {
 
@@ -23,9 +23,11 @@ class Reader {
     OMEGA_H_CHECK(size(value_stack) == 1);
     return move_value<T>(value_stack.back());
   }
+
  protected:
   virtual any at_shift(int token, std::string& text);
   virtual any at_reduce(int token, std::vector<any>& rhs);
+
  protected:
   ReaderTablesPtr tables;
   Parser const& parser;
@@ -47,7 +49,8 @@ class Reader {
   std::vector<any> reduction_rhs;
   std::string stream_name;
   bool did_accept;
- protected: // variables for indentation-sensitive language parsing
+
+ protected:  // variables for indentation-sensitive language parsing
   bool sensing_indent;
   std::string indent_text;
   struct IndentStackEntry {
@@ -63,7 +66,8 @@ class Reader {
   // stack, how many characters indent the line that that symbol
   // starts on
   std::vector<std::size_t> symbol_indentation_stack;
- private: // helper methods
+
+ private:  // helper methods
   void at_token(std::istream& stream);
   [[noreturn]] void indent_mismatch();
   void at_token_indent(std::istream& stream);
@@ -79,13 +83,15 @@ class DebugReader : public Reader {
   DebugReader(ReaderTablesPtr tables_in, std::ostream& os_in);
   DebugReader(DebugReader const& other) = default;
   virtual ~DebugReader() override = default;
+
  protected:
   virtual any at_shift(int token, std::string& text) override;
   virtual any at_reduce(int token, std::vector<any>& rhs) override;
+
  private:
   std::ostream& os;
 };
 
-}
+}  // namespace Omega_h
 
 #endif

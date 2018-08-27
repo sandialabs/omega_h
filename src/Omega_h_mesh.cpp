@@ -8,9 +8,9 @@
 #include "Omega_h_bcast.hpp"
 #include "Omega_h_compare.hpp"
 #include "Omega_h_element.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_ghost.hpp"
 #include "Omega_h_inertia.hpp"
-#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_migrate.hpp"
@@ -794,14 +794,13 @@ void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags) {
 }
 
 LOs ents_on_closure(
-    Mesh* mesh,
-    std::set<std::string> const& class_names,
-    Int ent_dim) {
+    Mesh* mesh, std::set<std::string> const& class_names, Int ent_dim) {
   std::set<ClassPair> class_pairs;
   for (auto& cn : class_names) {
     auto it = mesh->class_sets.find(cn);
     if (it == mesh->class_sets.end()) {
-      Omega_h_fail("classification set name \"%s\" "
+      Omega_h_fail(
+          "classification set name \"%s\" "
           "has no associated (dim,ID) pairs!\n",
           cn.c_str());
     }
@@ -809,11 +808,11 @@ LOs ents_on_closure(
       class_pairs.insert(p);
     }
   }
-  std::vector<ClassPair> class_pair_vector(class_pairs.begin(), class_pairs.end());
+  std::vector<ClassPair> class_pair_vector(
+      class_pairs.begin(), class_pairs.end());
   auto ents_are_on = mark_class_closures(mesh, ent_dim, class_pair_vector);
   return collect_marked(ents_are_on);
 }
-
 
 #define OMEGA_H_INST(T)                                                        \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \

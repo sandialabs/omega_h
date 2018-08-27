@@ -6,8 +6,8 @@
 #include "Omega_h_int_scan.hpp"
 
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
-#include "Omega_h_library.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_library.hpp"
 #endif
 
 #include "Omega_h_map.hpp"

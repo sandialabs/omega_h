@@ -1,16 +1,14 @@
 #include "Omega_h_grammar.hpp"
 
 #include <Omega_h_fail.hpp>
-#include <set>
 #include <iostream>
+#include <set>
 
 #include "Omega_h_std_vector.hpp"
 
 namespace Omega_h {
 
-int get_nnonterminals(Grammar const& g) {
-  return g.nsymbols - g.nterminals;
-}
+int get_nnonterminals(Grammar const& g) { return g.nsymbols - g.nterminals; }
 
 bool is_terminal(Grammar const& g, int symbol) {
   OMEGA_H_CHECK(0 <= symbol);
@@ -64,9 +62,7 @@ void add_end_terminal(Grammar& g) {
   g.nsymbols++;
 }
 
-int get_end_terminal(Grammar const& g) {
-  return g.nterminals - 1;
-}
+int get_end_terminal(Grammar const& g) { return g.nterminals - 1; }
 
 void add_accept_production(Grammar& g) {
   auto goal_symbol = find_goal_symbol(g);
@@ -78,13 +74,9 @@ void add_accept_production(Grammar& g) {
   g.nsymbols++;
 }
 
-int get_accept_production(Grammar const& g) {
-  return size(g.productions) - 1;
-}
+int get_accept_production(Grammar const& g) { return size(g.productions) - 1; }
 
-int get_accept_nonterminal(Grammar const& g) {
-  return g.nsymbols - 1;
-}
+int get_accept_nonterminal(Grammar const& g) { return g.nsymbols - 1; }
 
 std::ostream& operator<<(std::ostream& os, Grammar const& g) {
   os << "symbols:\n";
@@ -104,4 +96,4 @@ std::ostream& operator<<(std::ostream& os, Grammar const& g) {
   return os;
 }
 
-}
+}  // namespace Omega_h

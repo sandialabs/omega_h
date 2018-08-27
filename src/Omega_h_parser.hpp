@@ -3,8 +3,8 @@
 
 #include <stack>
 
-#include <Omega_h_table.hpp>
 #include <Omega_h_grammar.hpp>
+#include <Omega_h_table.hpp>
 
 namespace Omega_h {
 
@@ -35,17 +35,19 @@ struct Parser {
 int add_state(Parser& p);
 int get_nstates(Parser const& p);
 void add_terminal_action(Parser& p, int state, int terminal, Action action);
-void add_nonterminal_action(Parser& p, int state, int nonterminal, int next_state);
+void add_nonterminal_action(
+    Parser& p, int state, int nonterminal, int next_state);
 Action const& get_action(Parser const& p, int state, int terminal);
-int execute_action(Parser const& p, std::vector<int>& stack, Action const& action);
+int execute_action(
+    Parser const& p, std::vector<int>& stack, Action const& action);
 GrammarPtr const& get_grammar(Parser const& p);
 
-class ParserFail: public std::invalid_argument {
+class ParserFail : public std::invalid_argument {
  public:
   ParserFail(const std::string& msg);
   virtual void out_of_line_virtual_method();
 };
 
-}
+}  // namespace Omega_h
 
 #endif

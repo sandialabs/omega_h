@@ -3,8 +3,8 @@
 
 #include <Omega_h_array.hpp>
 #include <Omega_h_defines.hpp>
-#include <Omega_h_scalar.hpp>
 #include <Omega_h_fail.hpp>
+#include <Omega_h_scalar.hpp>
 
 namespace Omega_h {
 

@@ -106,7 +106,8 @@ static void test_xml() {
   OMEGA_H_CHECK(tag.elem_name == "Foo");
   OMEGA_H_CHECK(tag.attribs["bar"] == "quux");
   OMEGA_H_CHECK(tag.type == xml_lite::Tag::START);
-  OMEGA_H_CHECK(xml_lite::parse_tag("   <Elem att=\"val\"  answer=\"42\" />", &tag));
+  OMEGA_H_CHECK(
+      xml_lite::parse_tag("   <Elem att=\"val\"  answer=\"42\" />", &tag));
   OMEGA_H_CHECK(tag.elem_name == "Elem");
   OMEGA_H_CHECK(tag.attribs["att"] == "val");
   OMEGA_H_CHECK(tag.attribs["answer"] == "42");

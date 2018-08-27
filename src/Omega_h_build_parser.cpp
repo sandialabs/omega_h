@@ -1,16 +1,16 @@
 #include "Omega_h_build_parser.hpp"
 
-#include <map>
-#include <iostream>
-#include <cstdlib>
-#include <queue>
 #include <algorithm>
+#include <cstdlib>
 #include <fstream>
+#include <iostream>
+#include <map>
+#include <queue>
 
-#include "Omega_h_std_vector.hpp"
 #include "Omega_h_parser_graph.hpp"
-#include "Omega_h_std_stack.hpp"
 #include "Omega_h_set.hpp"
+#include "Omega_h_std_stack.hpp"
+#include "Omega_h_std_vector.hpp"
 
 namespace Omega_h {
 
@@ -32,7 +32,7 @@ static Configs make_configs(Grammar const& g) {
   for (int i = 0; i < size(g.productions); ++i) {
     auto& production = at(g.productions, i);
     for (int j = 0; j <= size(production.rhs); ++j) {
-      configs.push_back({i,j});
+      configs.push_back({i, j});
     }
   }
   return configs;
@@ -60,9 +60,8 @@ struct StateCompare {
 
 using StatePtr2StateIndex = std::map<StateInProgress const*, int, StateCompare>;
 
-static void close(StateInProgress& state,
-    Configs const& cs, Grammar const& grammar,
-    ParserGraph const& lhs2sc) {
+static void close(StateInProgress& state, Configs const& cs,
+    Grammar const& grammar, ParserGraph const& lhs2sc) {
   std::queue<int> config_q;
   std::set<int> config_set;
   for (auto config_i : state.configs) {
@@ -71,7 +70,8 @@ static void close(StateInProgress& state,
     config_set.insert(config_i);
   }
   while (!config_q.empty()) {
-    auto config_i = config_q.front(); config_q.pop();
+    auto config_i = config_q.front();
+    config_q.pop();
     auto& config = at(cs, config_i);
     auto prod_i = config.production;
     auto& prod = at(grammar.productions, prod_i);
@@ -89,11 +89,12 @@ static void close(StateInProgress& state,
 }
 
 static void emplace_back(StatesInProgress& sips, StateInProgress& sip) {
-  sips.push_back(std::unique_ptr<StateInProgress>(new StateInProgress(std::move(sip))));
+  sips.push_back(
+      std::unique_ptr<StateInProgress>(new StateInProgress(std::move(sip))));
 }
 
-static void add_reduction_actions(StatesInProgress& states,
-    Configs const& cs, Grammar const& grammar) {
+static void add_reduction_actions(
+    StatesInProgress& states, Configs const& cs, Grammar const& grammar) {
   for (auto& state_uptr : states) {
     auto& state = *state_uptr;
     for (auto config_i : state.configs) {
@@ -109,9 +110,7 @@ static void add_reduction_actions(StatesInProgress& states,
   }
 }
 
-static void set_lr0_contexts(
-    StatesInProgress& states,
-    Grammar const& grammar) {
+static void set_lr0_contexts(StatesInProgress& states, Grammar const& grammar) {
   for (auto& state_uptr : states) {
     auto& state = *state_uptr;
     for (auto& action : state.actions) {
@@ -127,8 +126,8 @@ static void set_lr0_contexts(
   }
 }
 
-static StatesInProgress build_lr0_parser(Configs const& cs, Grammar const& grammar,
-    ParserGraph const& lhs2sc) {
+static StatesInProgress build_lr0_parser(
+    Configs const& cs, Grammar const& grammar, ParserGraph const& lhs2sc) {
   StatesInProgress states;
   StatePtr2StateIndex state_ptrs2idxs;
   std::queue<int> state_q;
@@ -145,7 +144,8 @@ static StatesInProgress build_lr0_parser(Configs const& cs, Grammar const& gramm
     state_ptrs2idxs[states.back().get()] = start_state_i;
   }
   while (!state_q.empty()) {
-    auto state_i = state_q.front(); state_q.pop();
+    auto state_i = state_q.front();
+    state_q.pop();
     auto& state = *at(states, state_i);
     std::set<int> transition_symbols;
     for (auto config_i : state.configs) {
@@ -205,7 +205,8 @@ static ParserGraph get_productions_by_lhs(Grammar const& grammar) {
 /* compute a graph where symbols are graph nodes, and
    there exists an edge (A, B) if B appears in the RHS of
    any production in which A is the LHS */
-static ParserGraph get_symbol_graph(Grammar const& grammar, ParserGraph const& lhs2prods) {
+static ParserGraph get_symbol_graph(
+    Grammar const& grammar, ParserGraph const& lhs2prods) {
   auto nsymbols = grammar.nsymbols;
   auto out = make_graph_with_nnodes(nsymbols);
   for (int lhs = 0; lhs < nsymbols; ++lhs) {
@@ -237,18 +238,21 @@ static void print_set(std::set<int> const& set, Grammar const& grammar) {
   for (auto it = set.begin(); it != set.end(); ++it) {
     if (it != set.begin()) std::cerr << ", ";
     auto symb = *it;
-    if (symb == FIRST_NULL) std::cerr << "null";
+    if (symb == FIRST_NULL)
+      std::cerr << "null";
     else {
       auto& symb_name = at(grammar.symbol_names, symb);
-      if (symb_name == ",") std::cerr << "','";
-      else std::cerr << symb_name;
+      if (symb_name == ",")
+        std::cerr << "','";
+      else
+        std::cerr << symb_name;
     }
   }
   std::cerr << "}";
 }
 
-static FirstSet get_first_set_of_string(std::vector<int> const& string,
-    std::vector<FirstSet> const& first_sets) {
+static FirstSet get_first_set_of_string(
+    std::vector<int> const& string, std::vector<FirstSet> const& first_sets) {
   FirstSet out;
   /* walk the string, stop when any symbol is found that doesn't
      have a null terminal descendant */
@@ -257,8 +261,10 @@ static FirstSet get_first_set_of_string(std::vector<int> const& string,
     auto symbol = at(string, i);
     bool has_null = false;
     for (auto first_symbol : at(first_sets, symbol)) {
-      if (first_symbol == FIRST_NULL) has_null = true;
-      else out.insert(first_symbol);
+      if (first_symbol == FIRST_NULL)
+        has_null = true;
+      else
+        out.insert(first_symbol);
     }
     if (!has_null) break;
   }
@@ -269,8 +275,8 @@ static FirstSet get_first_set_of_string(std::vector<int> const& string,
 /* figure out the FIRST sets for each non-terminal in the grammar.
    I couldn't find a super-efficient way to do this, so here is a
    free-for-all event-driven implementation. */
-static std::vector<FirstSet> compute_first_sets(Grammar const& grammar,
-    bool verbose) {
+static std::vector<FirstSet> compute_first_sets(
+    Grammar const& grammar, bool verbose) {
   if (verbose) std::cerr << "computing FIRST sets...\n";
   struct Event {
     int added_symbol;
@@ -297,7 +303,8 @@ static std::vector<FirstSet> compute_first_sets(Grammar const& grammar,
   auto dependers2dependees = get_symbol_graph(grammar, lhs2prods);
   auto dependees2dependers = make_transpose(dependers2dependees);
   while (!event_q.empty()) {
-    auto event = event_q.front(); event_q.pop();
+    auto event = event_q.front();
+    event_q.pop();
     auto added_symb = event.added_symbol;
     auto dependee = event.dependee;
     auto& dependee_firsts = at(first_sets, dependee);
@@ -351,8 +358,8 @@ StateConfigs form_state_configs(StatesInProgress const& states) {
   return out;
 }
 
-ParserGraph form_states_to_state_configs(StateConfigs const& scs,
-    StatesInProgress const& states) {
+ParserGraph form_states_to_state_configs(
+    StateConfigs const& scs, StatesInProgress const& states) {
   auto out = make_graph_with_nnodes(size(states));
   for (int i = 0; i < size(scs); ++i) {
     auto& sc = at(scs, i);
@@ -376,10 +383,7 @@ static std::string escape_dot(std::string const& s) {
   return out;
 }
 
-void print_dot(
-    std::string const& filepath,
-    ParserInProgress const& pip
-    ) {
+void print_dot(std::string const& filepath, ParserInProgress const& pip) {
   auto& sips = pip.states;
   auto& cs = pip.configs;
   auto& grammar = pip.grammar;
@@ -429,7 +433,8 @@ void print_dot(
           }
         }
         if (!found) {
-          std::cerr << "BUG: missing reduce action in state " << s_i << " !!!\n";
+          std::cerr << "BUG: missing reduce action in state " << s_i
+                    << " !!!\n";
           abort();
         }
         file << "\\}";
@@ -453,12 +458,9 @@ void print_dot(
   file << "}\n";
 }
 
-static ParserGraph make_immediate_predecessor_graph(
-    StateConfigs const& scs,
-    StatesInProgress const& states,
-    ParserGraph const& states2scs,
-    Configs const& cs,
-    GrammarPtr grammar) {
+static ParserGraph make_immediate_predecessor_graph(StateConfigs const& scs,
+    StatesInProgress const& states, ParserGraph const& states2scs,
+    Configs const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int s_i = 0; s_i < size(states); ++s_i) {
     auto& state = *at(states, s_i);
@@ -485,12 +487,9 @@ static ParserGraph make_immediate_predecessor_graph(
   return out;
 }
 
-static ParserGraph find_transition_predecessors(
-    StateConfigs const& scs,
-    StatesInProgress const& states,
-    ParserGraph const& states2scs,
-    Configs const& cs,
-    GrammarPtr grammar) {
+static ParserGraph find_transition_predecessors(StateConfigs const& scs,
+    StatesInProgress const& states, ParserGraph const& states2scs,
+    Configs const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
   for (int state_i = 0; state_i < size(states); ++state_i) {
     auto& state = *at(states, state_i);
@@ -523,17 +522,13 @@ static ParserGraph find_transition_predecessors(
   return out;
 }
 
-static ParserGraph make_originator_graph(
-    StateConfigs const& scs,
-    StatesInProgress const& states,
-    ParserGraph const& states2scs,
-    Configs const& cs,
-    GrammarPtr grammar) {
+static ParserGraph make_originator_graph(StateConfigs const& scs,
+    StatesInProgress const& states, ParserGraph const& states2scs,
+    Configs const& cs, GrammarPtr grammar) {
   auto out = make_graph_with_nnodes(size(scs));
-  auto ipg = make_immediate_predecessor_graph(
-      scs, states, states2scs, cs, grammar);
-  auto tpg = find_transition_predecessors(
-      scs, states, states2scs, cs, grammar);
+  auto ipg =
+      make_immediate_predecessor_graph(scs, states, states2scs, cs, grammar);
+  auto tpg = find_transition_predecessors(scs, states, states2scs, cs, grammar);
   for (auto sc_i = 0; sc_i < size(scs); ++sc_i) {
     std::set<int> originators;
     /* breadth-first search through the transition
@@ -544,7 +539,8 @@ static ParserGraph make_originator_graph(
     tpq.push(sc_i);
     tps.insert(sc_i);
     while (!tpq.empty()) {
-      auto tpp = tpq.front(); tpq.pop();
+      auto tpp = tpq.front();
+      tpq.pop();
       for (auto tpc : get_edges(tpg, tpp)) {
         if (tps.count(tpc)) continue;
         tpq.push(tpc);
@@ -559,12 +555,8 @@ static ParserGraph make_originator_graph(
   return out;
 }
 
-static std::vector<int> get_follow_string(
-    int sc_addr,
-    StateConfigs const& scs,
-    StatesInProgress const& states,
-    Configs const& cs,
-    GrammarPtr grammar) {
+static std::vector<int> get_follow_string(int sc_addr, StateConfigs const& scs,
+    StatesInProgress const& states, Configs const& cs, GrammarPtr grammar) {
   auto& sc = at(scs, sc_addr);
   auto& state = *at(states, sc.state);
   auto config_i = at(state.configs, sc.config_in_state);
@@ -603,25 +595,24 @@ static Context get_contexts(FirstSet first_set) {
 }
 
 enum { MARKER = -433 };
-enum { ZERO = -100 }; // actual zero is a valid index for us
+enum { ZERO = -100 };  // actual zero is a valid index for us
 
 static void print_stack(std::vector<int> const& stack) {
   for (auto& symb : stack) {
-    if (symb == MARKER) std::cerr << " M";
-    else if (symb == ZERO) std::cerr << " Z";
-    else std::cerr << " " << symb;
+    if (symb == MARKER)
+      std::cerr << " M";
+    else if (symb == ZERO)
+      std::cerr << " Z";
+    else
+      std::cerr << " " << symb;
   }
   std::cerr << '\n';
 }
 
-static void move_markers(
-    std::vector<int>& lane,
-    int zeta_prime_addr,
-    int zeta_pointer,
-    bool tests_failed
-    ) {
-/* TODO: change in_lane to contain the index of that config in the lane,
-   not just a boolean. this would save us the search here: */
+static void move_markers(std::vector<int>& lane, int zeta_prime_addr,
+    int zeta_pointer, bool tests_failed) {
+  /* TODO: change in_lane to contain the index of that config in the lane,
+     not just a boolean. this would save us the search here: */
   auto it = std::find_if(lane.begin(), lane.end(),
       [=](int item) { return item == zeta_prime_addr; });
   OMEGA_H_CHECK(it != lane.end());
@@ -636,7 +627,7 @@ static void move_markers(
   int top_addr = -1;
   if (tests_failed) {
     top_addr = lane.back();
-    lane.resize(lane.size() - 1); // pop
+    lane.resize(lane.size() - 1);  // pop
   }
   for (int i = 0; i < r; ++i) lane.push_back(MARKER);
   if (tests_failed) lane.push_back(top_addr);
@@ -644,14 +635,9 @@ static void move_markers(
 
 using Contexts = std::vector<Context>;
 
-static void context_adding_routine(
-    std::vector<int> const& lane,
-    int zeta_pointer,
-    Context& contexts_generated,
-    Contexts& contexts,
-    bool verbose,
-    GrammarPtr grammar
-    ) {
+static void context_adding_routine(std::vector<int> const& lane,
+    int zeta_pointer, Context& contexts_generated, Contexts& contexts,
+    bool verbose, GrammarPtr grammar) {
   if (verbose) {
     std::cerr << "  CONTEXT ADDING ROUTINE\n";
     std::cerr << "  LANE:";
@@ -663,8 +649,10 @@ static void context_adding_routine(
     if (verbose) std::cerr << "    r = " << r << ", $v_r$ = ";
     if (v_r < 0) {
       if (verbose) {
-        if (v_r == MARKER) std::cerr << "marker\n";
-        else if (v_r == ZERO) std::cerr << "zero\n";
+        if (v_r == MARKER)
+          std::cerr << "marker\n";
+        else if (v_r == ZERO)
+          std::cerr << "zero\n";
       }
       continue;
     }
@@ -675,13 +663,15 @@ static void context_adding_routine(
       print_set(contexts_generated, *grammar);
       std::cerr << "\n    CONTEXTS_$\\tau_r$ = ";
       print_set(at(contexts, tau_r_addr), *grammar);
-      std::cerr << "\n    CONTEXTS_GENERATED <- CONTEXTS_GENERATED - CONTEXTS_$\\tau_r$";
+      std::cerr << "\n    CONTEXTS_GENERATED <- CONTEXTS_GENERATED - "
+                   "CONTEXTS_$\\tau_r$";
     }
     subtract_from(contexts_generated, at(contexts, tau_r_addr));
     if (verbose) {
       std::cerr << "\n    CONTEXTS_GENERATED = ";
       print_set(contexts_generated, *grammar);
-      std::cerr << "\n    CONTEXTS_$\\tau_r$ <- CONTEXTS_$\\tau_r$ U CONTEXTS_GENERATED";
+      std::cerr << "\n    CONTEXTS_$\\tau_r$ <- CONTEXTS_$\\tau_r$ U "
+                   "CONTEXTS_GENERATED";
     }
     unite_with(at(contexts, tau_r_addr), contexts_generated);
     if (verbose) {
@@ -692,22 +682,18 @@ static void context_adding_routine(
   }
 }
 
-static void deal_with_tests_failed(
-    int& num_originators_failed,
-    int& first_originator_failed,
-    int zeta_prime_addr,
-    bool& tests_failed,
-    std::vector<int>& lane,
-    std::vector<bool>& in_lane,
-    int zeta_addr,
-    std::vector<int>& stack,
-    bool verbose
-    ) {
+static void deal_with_tests_failed(int& num_originators_failed,
+    int& first_originator_failed, int zeta_prime_addr, bool& tests_failed,
+    std::vector<int>& lane, std::vector<bool>& in_lane, int zeta_addr,
+    std::vector<int>& stack, bool verbose) {
   if (verbose) std::cerr << "  Dealing with test failures\n";
   if (num_originators_failed == 0) {
-    if (verbose) std::cerr << "    " << zeta_prime_addr << " is the first originator of " << zeta_addr << " to fail the tests\n";
+    if (verbose)
+      std::cerr << "    " << zeta_prime_addr << " is the first originator of "
+                << zeta_addr << " to fail the tests\n";
     first_originator_failed = zeta_prime_addr;
-    if (verbose) std::cerr << "    pushing " << zeta_prime_addr << " onto LANE:\n    ";
+    if (verbose)
+      std::cerr << "    pushing " << zeta_prime_addr << " onto LANE:\n    ";
     lane.push_back(zeta_prime_addr);
     if (verbose) print_stack(lane);
     at(in_lane, zeta_prime_addr) = true;
@@ -715,39 +701,44 @@ static void deal_with_tests_failed(
     tests_failed = true;
     if (verbose) std::cerr << "    TESTS_FAILED <- ON\n";
   } else if (num_originators_failed == 1) {
-    if (verbose) std::cerr << "    " << zeta_prime_addr << " is the second originator of " << zeta_addr << " to fail the tests\n";
+    if (verbose)
+      std::cerr << "    " << zeta_prime_addr << " is the second originator of "
+                << zeta_addr << " to fail the tests\n";
     auto zeta_double_prime_addr = first_originator_failed;
-    if (verbose) std::cerr << "    the first was " << zeta_double_prime_addr << '\n';
+    if (verbose)
+      std::cerr << "    the first was " << zeta_double_prime_addr << '\n';
     OMEGA_H_CHECK(at(lane, size(lane) - 1) == zeta_double_prime_addr);
     OMEGA_H_CHECK(at(lane, size(lane) - 2) == zeta_addr);
-    if (verbose) std::cerr << "    pop LANE, push {marker, " << zeta_double_prime_addr << "} onto it:\n    ";
+    if (verbose)
+      std::cerr << "    pop LANE, push {marker, " << zeta_double_prime_addr
+                << "} onto it:\n    ";
     lane.resize(lane.size() - 1);
     lane.push_back(MARKER);
     lane.push_back(zeta_double_prime_addr);
     if (verbose) print_stack(lane);
-    if (verbose) std::cerr << "    push {marker, " << zeta_prime_addr << "} onto STACK:\n    ";
+    if (verbose)
+      std::cerr << "    push {marker, " << zeta_prime_addr
+                << "} onto STACK:\n    ";
     stack.push_back(MARKER);
     stack.push_back(zeta_prime_addr);
     if (verbose) print_stack(stack);
   } else {
-    if (verbose) std::cerr << "    " << zeta_prime_addr << " is the third or later originator of " << zeta_addr << " to fail the tests\n";
-    if (verbose) std::cerr << "    pushing " << zeta_prime_addr << " onto STACK:\n    ";
+    if (verbose)
+      std::cerr << "    " << zeta_prime_addr
+                << " is the third or later originator of " << zeta_addr
+                << " to fail the tests\n";
+    if (verbose)
+      std::cerr << "    pushing " << zeta_prime_addr << " onto STACK:\n    ";
     stack.push_back(zeta_prime_addr);
     if (verbose) print_stack(stack);
   }
   ++num_originators_failed;
 }
 
-static void heuristic_propagation_of_context_sets(
-    int tau_addr,
-    Contexts& contexts,
-    std::vector<bool>& complete,
-    StateConfigs const& scs,
-    StatesInProgress const& states,
-    ParserGraph const& states2scs,
-    Configs const& cs,
-    GrammarPtr grammar
-    ) {
+static void heuristic_propagation_of_context_sets(int tau_addr,
+    Contexts& contexts, std::vector<bool>& complete, StateConfigs const& scs,
+    StatesInProgress const& states, ParserGraph const& states2scs,
+    Configs const& cs, GrammarPtr grammar) {
   auto& tau = at(scs, tau_addr);
   auto& state = *at(states, tau.state);
   auto config_i = at(state.configs, tau.config_in_state);
@@ -769,23 +760,18 @@ static void heuristic_propagation_of_context_sets(
 
 /* Here it is! The magical algorithm described by a flowchart in
    Figure 7 of David Pager's paper. */
-static void compute_context_set(
-    int zeta_j_addr,
-    Contexts& contexts,
-    std::vector<bool>& complete,
-    StateConfigs const& scs,
-    ParserGraph const& originator_graph,
-    StatesInProgress const& states,
-    ParserGraph const& states2scs,
-    Configs const& cs,
-    std::vector<FirstSet> const& first_sets,
-    GrammarPtr grammar,
-    bool verbose
-    ) {
-  if (verbose) std::cerr << "Computing context set for $\\zeta_j$ = " << zeta_j_addr << "...\n";
+static void compute_context_set(int zeta_j_addr, Contexts& contexts,
+    std::vector<bool>& complete, StateConfigs const& scs,
+    ParserGraph const& originator_graph, StatesInProgress const& states,
+    ParserGraph const& states2scs, Configs const& cs,
+    std::vector<FirstSet> const& first_sets, GrammarPtr grammar, bool verbose) {
+  if (verbose)
+    std::cerr << "Computing context set for $\\zeta_j$ = " << zeta_j_addr
+              << "...\n";
   if (verbose) std::cerr << "BEGIN PROGRAM\n";
   if (at(complete, zeta_j_addr)) {
-    if (verbose) std::cerr << zeta_j_addr << " was already complete!\nEND PROGRAM\n\n";
+    if (verbose)
+      std::cerr << zeta_j_addr << " was already complete!\nEND PROGRAM\n\n";
     return;
   }
   std::vector<int> stack;
@@ -814,11 +800,13 @@ static void compute_context_set(
     /* DO_LOOP */
     for (auto zeta_prime_addr : get_edges(originator_graph, zeta_addr)) {
       if (verbose) {
-        std::cerr << "Next originator of $\\zeta$ = " << zeta_addr << " is $\\zeta'$ = " << zeta_prime_addr << '\n';
+        std::cerr << "Next originator of $\\zeta$ = " << zeta_addr
+                  << " is $\\zeta'$ = " << zeta_prime_addr << '\n';
       }
       auto gamma = get_follow_string(zeta_prime_addr, scs, states, cs, grammar);
       if (verbose) {
-        std::cerr << "  FOLLOW string of $\\zeta'$ = " << zeta_prime_addr << " is ";
+        std::cerr << "  FOLLOW string of $\\zeta'$ = " << zeta_prime_addr
+                  << " is ";
         print_string(gamma, grammar);
         std::cerr << '\n';
       }
@@ -830,7 +818,7 @@ static void compute_context_set(
         print_set(gamma_first, *grammar);
         std::cerr << "\n";
       }
-      if (has_non_null_terminal_descendant(gamma_first)) { // test A
+      if (has_non_null_terminal_descendant(gamma_first)) {  // test A
         if (verbose) {
           std::cerr << "  ";
           print_string(gamma, grammar);
@@ -852,22 +840,22 @@ static void compute_context_set(
           }
           if (at(complete, zeta_prime_addr)) {
             unite_with(contexts_generated, at(contexts, zeta_prime_addr));
-            context_adding_routine(lane, zeta_pointer, contexts_generated, contexts,
-                verbose, grammar);
+            context_adding_routine(lane, zeta_pointer, contexts_generated,
+                contexts, verbose, grammar);
           } else if (!at(in_lane, zeta_prime_addr)) {
-            context_adding_routine(lane, zeta_pointer, contexts_generated, contexts,
-                verbose, grammar);
+            context_adding_routine(lane, zeta_pointer, contexts_generated,
+                contexts, verbose, grammar);
             /* TRACE_FURTHER */
-            deal_with_tests_failed(num_originators_failed, first_originator_failed,
-                zeta_prime_addr, tests_failed, lane, in_lane, zeta_addr, stack,
-                verbose);
+            deal_with_tests_failed(num_originators_failed,
+                first_originator_failed, zeta_prime_addr, tests_failed, lane,
+                in_lane, zeta_addr, stack, verbose);
           } else {
             std::cerr << "ERROR: grammar is ambiguous.\n";
             abort();
           }
         } else {
-          context_adding_routine(lane, zeta_pointer, contexts_generated, contexts,
-              verbose, grammar);
+          context_adding_routine(lane, zeta_pointer, contexts_generated,
+              contexts, verbose, grammar);
         }
       } else {
         if (verbose) {
@@ -875,24 +863,28 @@ static void compute_context_set(
           print_string(gamma, grammar);
           std::cerr << " does not have a non-null terminal descendant\n";
         }
-        if (at(complete, zeta_prime_addr)) { // test B
-          if (verbose) std::cerr << "  COMPLETE(" << zeta_prime_addr << ") is ON\n";
+        if (at(complete, zeta_prime_addr)) {  // test B
+          if (verbose)
+            std::cerr << "  COMPLETE(" << zeta_prime_addr << ") is ON\n";
           contexts_generated = at(contexts, zeta_prime_addr);
-          context_adding_routine(lane, zeta_pointer, contexts_generated, contexts,
-              verbose, grammar);
+          context_adding_routine(lane, zeta_pointer, contexts_generated,
+              contexts, verbose, grammar);
         } else {
-          if (verbose) std::cerr << "  COMPLETE(" << zeta_prime_addr << ") is OFF\n";
-          if (at(in_lane, zeta_prime_addr)) { // test C
-            if (verbose) std::cerr << "  IN_LANE(" << zeta_prime_addr << ") is ON\n";
+          if (verbose)
+            std::cerr << "  COMPLETE(" << zeta_prime_addr << ") is OFF\n";
+          if (at(in_lane, zeta_prime_addr)) {  // test C
+            if (verbose)
+              std::cerr << "  IN_LANE(" << zeta_prime_addr << ") is ON\n";
             move_markers(lane, zeta_prime_addr, zeta_pointer, tests_failed);
             contexts_generated = at(contexts, zeta_prime_addr);
-            context_adding_routine(lane, zeta_pointer, contexts_generated, contexts,
-                verbose, grammar);
+            context_adding_routine(lane, zeta_pointer, contexts_generated,
+                contexts, verbose, grammar);
           } else {
-            if (verbose) std::cerr << "  IN_LANE(" << zeta_prime_addr << ") is OFF\n";
-            deal_with_tests_failed(num_originators_failed, first_originator_failed,
-                zeta_prime_addr, tests_failed, lane, in_lane, zeta_addr, stack,
-                verbose);
+            if (verbose)
+              std::cerr << "  IN_LANE(" << zeta_prime_addr << ") is OFF\n";
+            deal_with_tests_failed(num_originators_failed,
+                first_originator_failed, zeta_prime_addr, tests_failed, lane,
+                in_lane, zeta_addr, stack, verbose);
           }
         }
       }
@@ -900,14 +892,15 @@ static void compute_context_set(
     if (verbose) std::cerr << "END DO_LOOP\n";
     if (tests_failed) {
       if (verbose) {
-        std::cerr << "  TESTS_FAILED was on, turning it off and going to next configuration\n";
+        std::cerr << "  TESTS_FAILED was on, turning it off and going to next "
+                     "configuration\n";
       }
       tests_failed = false;
       continue;
     }
     bool keep_lane_popping = true;
     if (verbose) std::cerr << "  Start LANE popping\n";
-    while (keep_lane_popping) { // LANE popping loop
+    while (keep_lane_popping) {  // LANE popping loop
       OMEGA_H_CHECK(!lane.empty());
       if (verbose) {
         std::cerr << "  LANE:";
@@ -916,7 +909,7 @@ static void compute_context_set(
       if (at(lane, size(lane) - 1) == MARKER) {
         if (verbose) std::cerr << "  Top of LANE is a marker\n";
         if (verbose) std::cerr << "  Start STACK popping\n";
-        while (true) { // STACK popping loop
+        while (true) {  // STACK popping loop
           OMEGA_H_CHECK(!stack.empty());
           if (verbose) {
             std::cerr << "    STACK:";
@@ -925,58 +918,59 @@ static void compute_context_set(
             print_stack(lane);
           }
           if (stack.back() == MARKER) {
-            if (verbose) std::cerr << "    Top of STACK is a marker, pop STACK and LANE\n";
+            if (verbose)
+              std::cerr << "    Top of STACK is a marker, pop STACK and LANE\n";
             resize(stack, size(stack) - 1);
             resize(lane, size(lane) - 1);
-            break; // out of STACK popping, back into LANE popping
+            break;  // out of STACK popping, back into LANE popping
           } else if (at(complete, stack.back())) {
-            if (verbose) std::cerr << "    Top of STACK is has COMPLETE flag, pop STACK\n";
+            if (verbose)
+              std::cerr << "    Top of STACK is has COMPLETE flag, pop STACK\n";
             resize(stack, size(stack) - 1);
             // back into STACK popping
           } else {
             auto addr = stack.back();
-            if (verbose) std::cerr << "    Top of STACK is " << addr << ", pop STACK\n";
+            if (verbose)
+              std::cerr << "    Top of STACK is " << addr << ", pop STACK\n";
             resize(stack, size(stack) - 1);
             if (verbose) std::cerr << "    Push " << addr << " onto LANE\n";
             lane.push_back(addr);
             if (verbose) std::cerr << "    IN_LANE(" << addr << ") <- ON\n";
             at(in_lane, addr) = true;
             keep_lane_popping = false;
-            break; // out of STACK and LANE popping, into top-level loop
-          } // end STACK top checks
-        } // end STACK popping loop
+            break;  // out of STACK and LANE popping, into top-level loop
+          }         // end STACK top checks
+        }           // end STACK popping loop
       } else if (at(lane, size(lane) - 1) == ZERO) {
         if (verbose) std::cerr << "  Top of LANE is a zero\n";
         if (verbose) std::cerr << "  Pop LANE\n";
-        resize(lane, size(lane) - 1); // pop LANE
+        resize(lane, size(lane) - 1);  // pop LANE
         // back to top of LANE popping loop
-      } else { // top of LANE neither marker nor zero
+      } else {  // top of LANE neither marker nor zero
         auto tau_addr = lane.back();
-        if (verbose) std::cerr << "  Top of LANE is $\\tau$ = " << tau_addr << "\n";
+        if (verbose)
+          std::cerr << "  Top of LANE is $\\tau$ = " << tau_addr << "\n";
         at(in_lane, tau_addr) = false;
         if (verbose) std::cerr << "  IN_LANE(" << tau_addr << ") <- OFF\n";
         at(complete, tau_addr) = true;
         if (verbose) std::cerr << "  COMPLETE(" << tau_addr << ") <- ON\n";
         if (verbose) std::cerr << "  HEURISTIC PROPAGATION OF CONTEXT SETS\n";
         heuristic_propagation_of_context_sets(
-            tau_addr, contexts, complete,
-            scs, states, states2scs, cs, grammar);
+            tau_addr, contexts, complete, scs, states, states2scs, cs, grammar);
         if (size(lane) == 1 && at(lane, 0) == zeta_j_addr) {
           if (verbose) std::cerr << "END PROGRAM\n\n";
           return;
         }
         if (verbose) std::cerr << "  Pop LANE\n";
-        resize(lane, size(lane) - 1); // pop LANE
+        resize(lane, size(lane) - 1);  // pop LANE
         // back to top of LANE popping loop
-      } // end top of LANE checks
-    } // end LANE popping loop
-  } // end top-level while(1) loop
+      }  // end top of LANE checks
+    }    // end LANE popping loop
+  }      // end top-level while(1) loop
 }
 
 static std::vector<bool> determine_adequate_states(
-    StatesInProgress const& states,
-    GrammarPtr grammar,
-    bool verbose) {
+    StatesInProgress const& states, GrammarPtr grammar, bool verbose) {
   auto out = make_vector<bool>(size(states));
   for (int s_i = 0; s_i < size(states); ++s_i) {
     auto& state = *at(states, s_i);
@@ -1076,8 +1070,8 @@ ParserInProgress build_lalr1_parser(GrammarPtr grammar, bool verbose) {
       auto& prod = at(grammar->productions, config.production);
       if (config.dot != size(prod.rhs)) continue;
       auto zeta_j_addr = at(states2scs, s_i, cis_i);
-      compute_context_set(zeta_j_addr, contexts, complete, scs,
-          og, states, states2scs, cs, first_sets, grammar, verbose);
+      compute_context_set(zeta_j_addr, contexts, complete, scs, og, states,
+          states2scs, cs, first_sets, grammar, verbose);
     }
   }
   /* update the context sets for all reduction state-configs
@@ -1137,4 +1131,4 @@ Parser accept_parser(ParserInProgress const& pip) {
   return out;
 }
 
-}
+}  // namespace Omega_h

@@ -223,8 +223,7 @@ Read<T> read_array(
   {
     base64::decode(encoded, nonnull(uncompressed.data()), uncompressed_bytes);
   }
-  return binary::swap_bytes(
-      Read<T>(uncompressed.write()), needs_swapping);
+  return binary::swap_bytes(Read<T>(uncompressed.write()), needs_swapping);
 }
 
 void write_tag(
@@ -288,8 +287,7 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     auto array = read_array<I64>(stream, size, needs_swapping, is_compressed);
     mesh->add_tag(ent_dim, name, ncomps, array, true);
   } else {
-    auto array =
-        read_array<Real>(stream, size, needs_swapping, is_compressed);
+    auto array = read_array<Real>(stream, size, needs_swapping, is_compressed);
     // undo the resizes done in write_tag()
     if (1 < mesh->dim() && mesh->dim() < 3) {
       if (ncomps == 3) {

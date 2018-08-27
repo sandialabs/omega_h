@@ -6,8 +6,10 @@
 namespace Omega_h {
 
 template <typename T>
-int size(std::stack<T> const& s) { return static_cast<int>(s.size()); }
-
+int size(std::stack<T> const& s) {
+  return static_cast<int>(s.size());
 }
+
+}  // namespace Omega_h
 
 #endif

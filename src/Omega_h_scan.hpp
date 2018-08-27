@@ -27,4 +27,3 @@ void parallel_scan(LO n, T f, char const* name = "") {
 }  // end namespace Omega_h
 
 #endif
-

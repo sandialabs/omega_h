@@ -1,37 +1,43 @@
 #include "Omega_h_reader.hpp"
 
-#include <iostream>
-#include <sstream>
+#include <cstdlib>
 #include <fstream>
 #include <ios>
-#include <cstdlib>
+#include <iostream>
 #include <set>
+#include <sstream>
 
-#include "Omega_h_string.hpp"
 #include "Omega_h_fail.hpp"
+#include "Omega_h_string.hpp"
 
 namespace Omega_h {
 
 namespace {
 
-void print_indicator(std::ostream& os, std::string const& above, std::size_t pos) {
+void print_indicator(
+    std::ostream& os, std::string const& above, std::size_t pos) {
   for (std::size_t i = 0; i < pos; ++i) {
-    if (above.at(i) == '\t') os << '\t';
-    else os << ' ';
+    if (above.at(i) == '\t')
+      os << '\t';
+    else
+      os << ' ';
   }
   os << "^\n";
 }
 
-void print_underline(std::ostream& os, std::string const& above, std::size_t start, std::size_t end) {
+void print_underline(std::ostream& os, std::string const& above,
+    std::size_t start, std::size_t end) {
   for (std::size_t i = 0; i < start; ++i) {
-    if (above.at(i) == '\t') os << '\t';
-    else os << ' ';
+    if (above.at(i) == '\t')
+      os << '\t';
+    else
+      os << ' ';
   }
   for (auto i = start; i < end; ++i) os << '~';
   os << '\n';
 }
 
-} // end anonymous namespace
+}  // end anonymous namespace
 
 void Reader::at_token(std::istream& stream) {
   bool done = false;
@@ -45,8 +51,8 @@ void Reader::at_token(std::istream& stream) {
       ss << " column " << column << " of " << stream_name << '\n';
       error_print_line(stream, ss);
       std::set<std::string> expect_names;
-      for (int expect_token = 0;
-           expect_token < grammar->nterminals; ++expect_token) {
+      for (int expect_token = 0; expect_token < grammar->nterminals;
+           ++expect_token) {
         auto expect_action = get_action(parser, parser_state, expect_token);
         if (expect_action.kind != ACTION_NONE) {
           expect_names.insert(at(grammar->symbol_names, expect_token));
@@ -56,8 +62,10 @@ void Reader::at_token(std::istream& stream) {
       for (std::set<std::string>::iterator it = expect_names.begin();
            it != expect_names.end(); ++it) {
         if (it != expect_names.begin()) ss << ", ";
-        if (*it == ",") ss << "','";
-        else ss << *it;
+        if (*it == ",")
+          ss << "','";
+        else
+          ss << *it;
       }
       ss << "}\n";
       ss << "Got: " << at(grammar->symbol_names, lexer_token) << '\n';
@@ -80,13 +88,14 @@ void Reader::at_token(std::istream& stream) {
       auto& prod = at(grammar->productions, parser_action.production);
       reduction_rhs.clear();
       for (int i = 0; i < size(prod.rhs); ++i) {
-        reduction_rhs.emplace_back(std::move(
-              at(value_stack, size(value_stack) - size(prod.rhs) + i)));
+        reduction_rhs.emplace_back(
+            std::move(at(value_stack, size(value_stack) - size(prod.rhs) + i)));
       }
       resize(value_stack, size(value_stack) - size(prod.rhs));
       Omega_h::any reduce_result;
       try {
-        reduce_result = this->at_reduce(parser_action.production, reduction_rhs);
+        reduce_result =
+            this->at_reduce(parser_action.production, reduction_rhs);
       } catch (const ParserFail& e) {
         std::stringstream ss;
         ss << "error: Parser failure at line " << line;
@@ -99,15 +108,13 @@ void Reader::at_token(std::istream& stream) {
       if (sensing_indent) {
         if (size(prod.rhs)) {
           resize(symbol_indentation_stack,
-              (size(symbol_indentation_stack) + 1)
-              - size(prod.rhs));
+              (size(symbol_indentation_stack) + 1) - size(prod.rhs));
         } else {
           symbol_indentation_stack.push_back(symbol_indentation_stack.back());
         }
       }
     } else {
-      Omega_h_fail(
-          "SERIOUS BUG: Action::kind enum value not in range\n");
+      Omega_h_fail("SERIOUS BUG: Action::kind enum value not in range\n");
     }
     parser_state = execute_action(parser, parser_stack, parser_action);
   }
@@ -117,9 +124,10 @@ void Reader::indent_mismatch() {
   OMEGA_H_CHECK(!indent_stack.empty());
   auto top = indent_stack.back();
   std::stringstream ss;
-  ss << "error: Indentation characters beginning line " << line << " of " << stream_name
-    << " don't match those beginning line " << top.line << '\n';
-  ss << "It is strongly recommended not to mix tabs and spaces in indentation-sensitive formats\n";
+  ss << "error: Indentation characters beginning line " << line << " of "
+     << stream_name << " don't match those beginning line " << top.line << '\n';
+  ss << "It is strongly recommended not to mix tabs and spaces in "
+        "indentation-sensitive formats\n";
   throw ParserFail(ss.str());
 }
 
@@ -132,7 +140,8 @@ void Reader::at_token_indent(std::istream& stream) {
   if (last_newline_pos == std::string::npos) {
     Omega_h_fail("INDENT token did not contain a newline '\\n' !\n");
   }
-  auto lexer_indent = lexer_text.substr(last_newline_pos + 1, std::string::npos);
+  auto lexer_indent =
+      lexer_text.substr(last_newline_pos + 1, std::string::npos);
   // the at_token call is allowed to do anything to lexer_text
   at_token(stream);
   lexer_text.clear();
@@ -187,11 +196,12 @@ void Reader::at_lexer_end(std::istream& stream) {
   if (lexer_token == -1) {
     std::stringstream ss;
     if (lexer_text.find('\n') == std::string::npos) {
-      ss << "error: Could not tokenize this (line " <<  line;
+      ss << "error: Could not tokenize this (line " << line;
       ss << " column " << column << " of " << stream_name << "):\n";
       ss << line_text << '\n';
       OMEGA_H_CHECK(line_text.size() >= lexer_text.size());
-      print_underline(ss, line_text, line_text.size() - lexer_text.size(), line_text.size());
+      print_underline(ss, line_text, line_text.size() - lexer_text.size(),
+          line_text.size());
     } else {
       ss << "error: Could not tokenize this (ends at line " << line;
       ss << " column " << column << " of " << stream_name << "):\n";
@@ -204,12 +214,11 @@ void Reader::at_lexer_end(std::istream& stream) {
   reset_lexer_state();
 }
 
-Reader::Reader(ReaderTablesPtr tables_in):
-  tables(tables_in),
-  parser(tables->parser),
-  lexer(tables->lexer),
-  grammar(get_grammar(parser))
-{
+Reader::Reader(ReaderTablesPtr tables_in)
+    : tables(tables_in),
+      parser(tables->parser),
+      lexer(tables->lexer),
+      grammar(get_grammar(parser)) {
   OMEGA_H_CHECK(get_determinism(lexer));
 }
 
@@ -235,7 +244,8 @@ void Reader::error_print_line(std::istream& is, std::ostream& os) {
   if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
 }
 
-void Reader::read_stream(std::string const& stream_name_in, std::istream& stream) {
+void Reader::read_stream(
+    std::string const& stream_name_in, std::istream& stream) {
   line = 1;
   column = 1;
   lexer_state = 0;
@@ -285,7 +295,8 @@ void Reader::read_stream(std::string const& stream_name_in, std::istream& stream
   }
   if (last_lexer_accept < lexer_text.size()) {
     std::stringstream ss;
-    std::string bad_str = lexer_text.substr(last_lexer_accept, std::string::npos);
+    std::string bad_str =
+        lexer_text.substr(last_lexer_accept, std::string::npos);
     ss << "error: Could not tokenize \"" << bad_str;
     ss << "\" at end of " << stream_name << '\n';
     throw ParserFail(ss.str());
@@ -295,13 +306,15 @@ void Reader::read_stream(std::string const& stream_name_in, std::istream& stream
   at_token(stream);
   if (!did_accept) {
     Omega_h_fail(
-      "The EOF terminal was accepted but the root nonterminal was not reduced\n"
-      "This indicates a bug in Omega_h::Reader\n");
+        "The EOF terminal was accepted but the root nonterminal was not "
+        "reduced\n"
+        "This indicates a bug in Omega_h::Reader\n");
   }
   OMEGA_H_CHECK(value_stack.size() == 1);
 }
 
-void Reader::read_string(std::string const& string_name, std::string const& string) {
+void Reader::read_string(
+    std::string const& string_name, std::string const& string) {
   std::istringstream stream(string);
   read_stream(string_name, stream);
 }
@@ -316,30 +329,32 @@ void Reader::read_file(std::string const& file_name) {
   read_stream(file_name, stream);
 }
 
-any Reader::at_shift(int, std::string&) {
-  return any();
-}
+any Reader::at_shift(int, std::string&) { return any(); }
 
-any Reader::at_reduce(int, std::vector<any>&) {
-  return any();
-}
+any Reader::at_reduce(int, std::vector<any>&) { return any(); }
 
 DebugReader::DebugReader(ReaderTablesPtr tables_in, std::ostream& os_in)
-  :Reader(tables_in)
-  ,os(os_in)
-{}
+    : Reader(tables_in), os(os_in) {}
 
 any DebugReader::at_shift(int token, std::string& text) {
   std::string text_escaped;
   for (auto c : text) {
     switch (c) {
-      case '\n': text_escaped.append("\\n"); break;
-      case '\t': text_escaped.append("\\t"); break;
-      case '\r': text_escaped.append("\\r"); break;
-      default: text_escaped.push_back(c);
+      case '\n':
+        text_escaped.append("\\n");
+        break;
+      case '\t':
+        text_escaped.append("\\t");
+        break;
+      case '\r':
+        text_escaped.append("\\r");
+        break;
+      default:
+        text_escaped.push_back(c);
     }
   }
-  os << "SHIFT (" << at(grammar->symbol_names, token) << ")[" << text_escaped << "]\n";
+  os << "SHIFT (" << at(grammar->symbol_names, token) << ")[" << text_escaped
+     << "]\n";
   return text_escaped;
 }
 

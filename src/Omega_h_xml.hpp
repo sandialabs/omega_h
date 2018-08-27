@@ -140,6 +140,6 @@ LanguagePtr ask_language();
 ReaderTablesPtr ask_reader_tables();
 
 }  // end namespace xml
-}  // end namespace anagnosi
+}  // namespace Omega_h
 
 #endif

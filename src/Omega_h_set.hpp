@@ -35,6 +35,6 @@ bool intersects(std::set<T>& a, std::set<T> const& b) {
   return false;
 }
 
-}
+}  // namespace Omega_h
 
 #endif

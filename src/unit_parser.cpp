@@ -1,10 +1,10 @@
+#include <Omega_h_build_parser.hpp>
 #include <Omega_h_finite_automaton.hpp>
-#include <Omega_h_string.hpp>
 #include <Omega_h_language.hpp>
 #include <Omega_h_parser.hpp>
-#include <Omega_h_regex.hpp>
-#include <Omega_h_build_parser.hpp>
 #include <Omega_h_reader.hpp>
+#include <Omega_h_regex.hpp>
+#include <Omega_h_string.hpp>
 #include <Omega_h_xml.hpp>
 #include <Omega_h_yaml.hpp>
 
@@ -13,7 +13,8 @@
 
 using namespace Omega_h;
 
-static bool accepts(FiniteAutomaton const& fa, std::string const& s, int token = 0) {
+static bool accepts(
+    FiniteAutomaton const& fa, std::string const& s, int token = 0) {
   int state = 0;
   for (int i = 0; i < size(s); ++i) {
     auto c = at(s, i);
@@ -66,7 +67,7 @@ static void test_finite_automaton() {
 }
 
 static void test_lr0_language() {
-  /* The LR(0) grammar $G_1$ on page 20 of Pager's paper */ 
+  /* The LR(0) grammar $G_1$ on page 20 of Pager's paper */
   Language lang;
   lang.tokens.push_back({"a", "a"});
   lang.tokens.push_back({"(", "\\("});
@@ -142,28 +143,28 @@ static void test_regex_reader() {
   test_regex_reader("a*", {"", "a", "aa", "aaa"}, {"??", "b"});
   test_regex_reader("foo|bar", {"foo", "bar"}, {"??", "foobar"});
   test_regex_reader("[a-zA-Z0-9]",
-      {"a", "q", "z", "A", "Q", "Z", "0", "5", "9"},
-      {"?", "_", "-", "+"});
-  test_regex_reader("[_a-zA-Z][_a-zA-Z0-9]*",
-      {"_soup", "All_The_Case", "l33t"},
+      {"a", "q", "z", "A", "Q", "Z", "0", "5", "9"}, {"?", "_", "-", "+"});
+  test_regex_reader("[_a-zA-Z][_a-zA-Z0-9]*", {"_soup", "All_The_Case", "l33t"},
       {"007", "fire|hose", "+1"});
   test_regex_reader("\t \n\r", {"\t \n\r"}, {"abc", "  \n\r"});
-  test_regex_reader("ba(na)+", {"bana", "banana", "bananana"}, {"banan", "banane"});
+  test_regex_reader(
+      "ba(na)+", {"bana", "banana", "bananana"}, {"banan", "banane"});
   /* detect a C-style comment like this one */
   test_regex_reader("/\\*[^\\*]*\\*+([^/\\*][^\\*]*\\*+)*/",
-      {"/**/", "/*\n *\n */", "/* /* /***/"},
-      {"/*/"});
+      {"/**/", "/*\n *\n */", "/* /* /***/"}, {"/*/"});
   /* <!-- detect an XML-style comment like this one -->
    * note: after reading the XML spec, it seems they don't allow
    *       comments to be this general (contain --), and furthermore it doesn't
    *       seem like the right approach to detect comments in the lexer
    *       because XML's character meanings change so much between comments,
    *       attribute values, and elsewhere.
-   *       as such, the following is more of an academic exercise in how to generalize
-   *       the C comment rule above, but don't expect to see it in Omega_h::xml */
-  test_regex_reader("<!\\-\\-([^\\-]*\\-([^\\-]+\\-)*)\\-([^\\->]([^\\-]*\\-([^\\-]+\\-)*)\\-)*>",
-      {"<!-- foo -->", "<!-- <!--\nfoo bar\n>-- -->"},
-      {"<!-- --> -->"});
+   *       as such, the following is more of an academic exercise in how to
+   * generalize the C comment rule above, but don't expect to see it in
+   * Omega_h::xml */
+  test_regex_reader(
+      "<!\\-\\-([^\\-]*\\-([^\\-]+\\-)*)\\-([^\\->]([^\\-]*\\-([^\\-]+\\-)*)\\-"
+      ")*>",
+      {"<!-- foo -->", "<!-- <!--\nfoo bar\n>-- -->"}, {"<!-- --> -->"});
   test_regex_reader("(0|([1-9][0-9]*))(\\.[0-9]*)?([eE]\\-?[1-9][0-9]*)?",
       {"1", "1.0", "1e6", "3.14159", "2.2e3", "0.0", "0.0001"}, {"a", "-1"});
 }
@@ -183,7 +184,9 @@ static void test_xml_reader() {
   test_xml_reader("<the_tag100/>");
   test_xml_reader("<Parameter name=\"force\"/>");
   test_xml_reader("<Parameter name=\"force\"\ttype=\"double\" value=\"1.9\"/>");
-  test_xml_reader("<ParameterList name=\"Physics Vars\">\n  <Parameter name=\"force\"\ttype=\"double\" value=\"1.9\"/>\n</ParameterList>");
+  test_xml_reader(
+      "<ParameterList name=\"Physics Vars\">\n  <Parameter "
+      "name=\"force\"\ttype=\"double\" value=\"1.9\"/>\n</ParameterList>");
   test_xml_reader("<P name=\"foo&quot;&#72;bar\"/>");
 }
 

@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_GRAPH_HPP
 #define OMEGA_H_GRAPH_HPP
 
-#include <vector>
 #include <iosfwd>
+#include <vector>
 
 namespace Omega_h {
 
@@ -18,6 +18,6 @@ ParserGraph make_transpose(ParserGraph const& g);
 int at(ParserGraph const& g, int i, int j);
 std::ostream& operator<<(std::ostream& os, ParserGraph const& g);
 
-}
+}  // namespace Omega_h
 
 #endif

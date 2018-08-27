@@ -184,9 +184,7 @@ void reorder_by_hilbert(Mesh* mesh);
 void reorder_by_globals(Mesh* mesh);
 
 LOs ents_on_closure(
-    Mesh* mesh,
-    std::set<std::string> const& class_names,
-    Int ent_dim);
+    Mesh* mesh, std::set<std::string> const& class_names, Int ent_dim);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Tag<T> const* Mesh::get_tag<T>(                              \

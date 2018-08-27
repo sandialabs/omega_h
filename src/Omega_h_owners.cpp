@@ -1,9 +1,9 @@
 #include "Omega_h_owners.hpp"
 
-#include "Omega_h_linpart.hpp"
 #include "Omega_h_for.hpp"
-#include "Omega_h_mesh.hpp"
 #include "Omega_h_int_scan.hpp"
+#include "Omega_h_linpart.hpp"
+#include "Omega_h_mesh.hpp"
 
 namespace Omega_h {
 
