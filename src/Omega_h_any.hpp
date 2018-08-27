@@ -50,6 +50,7 @@ DEALINGS IN THE SOFTWARE.
 #include <stdexcept>
 #include <type_traits>
 #include <typeinfo>
+#include <Omega_h_fail.hpp>
 
 namespace Omega_h {
 
