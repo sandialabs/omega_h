@@ -3,10 +3,7 @@
 namespace Omega_h {
 namespace yaml {
 
-Language build_language() {
-  Language out;
-  auto& prods = out.productions;
-  auto& toks = out.tokens;
+static void build_productions(std::vector<Language::Production>& prods) {
   prods.resize(NPRODS);
   prods[PROD_DOC] = {"doc", {"top_items"}};
   prods[PROD_DOC2] = {"doc", {"NEWLINE", "top_items"}};
@@ -152,6 +149,13 @@ Language build_language() {
   prods[PROD_SPACE_STAR_NEXT] = {"WS*", {"WS*", "WS"}};
   prods[PROD_SPACE_PLUS_FIRST] = {"WS+", {"WS"}};
   prods[PROD_SPACE_PLUS_NEXT] = {"WS+", {"WS+", "WS"}};
+}
+
+Language build_language() {
+  Language out;
+  auto& prods = out.productions;
+  auto& toks = out.tokens;
+  build_productions(prods);
   toks.resize(NTOKS);
   toks[TOK_NEWLINE] = {"NEWLINE", "((#[^\r\n]*)?\r?\n[ \t]*)+"};
   toks[TOK_INDENT] = {"INDENT", "((#[^\r\n]*)?\r?\n[ \t]*)+"};

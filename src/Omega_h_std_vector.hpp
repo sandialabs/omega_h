@@ -17,7 +17,9 @@ inline int size(std::vector<T> const& v) {
 template <typename T>
 inline typename std::vector<T>::reference at(std::vector<T>& v, int i) {
   OMEGA_H_CHECK(0 <= i);
+#if !(defined(__GNUC__) && __GNUC__ < 5)
   OMEGA_H_CHECK(i < int(v.size()));
+#endif
   return v[std::size_t(i)];
 }
 
