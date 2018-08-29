@@ -405,6 +405,10 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_pointwise_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
   }
+  if (opts.user_xfer) {
+    opts.user_xfer->refine(*old_mesh, *new_mesh, keys2edges, keys2midverts, prod_dim,
+        keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+  }
   end_code();
 }
 
@@ -592,6 +596,10 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         keys2verts, keys2doms, prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);
   }
+  if (opts.user_xfer) {
+    opts.user_xfer->coarsen(*old_mesh, *new_mesh, keys2verts,
+      keys2doms, prod_dim, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+  }
   end_code();
 }
 
@@ -694,6 +702,10 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_densities_and_conserve_swap(old_mesh, opts, new_mesh, keys2edges,
         keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+  }
+  if (opts.user_xfer) {
+    opts.user_xfer->swap(*old_mesh, *new_mesh, prod_dim, keys2edges, keys2prods, prods2new_ents,
+        same_ents2old_ents, same_ents2new_ents);
   }
   end_code();
 }

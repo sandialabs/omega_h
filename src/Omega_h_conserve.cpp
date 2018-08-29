@@ -590,7 +590,7 @@ static Read<I8> get_comps_are_fixed(Mesh* mesh) {
 }
 
 void setup_conservation_tags(Mesh* mesh, AdaptOpts const& opts) {
-  auto xfer_opts = opts.xfer_opts;
+  auto& xfer_opts = opts.xfer_opts;
   auto dim = mesh->dim();
   if (xfer_opts.should_conserve_size) {
     mesh->add_tag(dim, "size_error", 1, Reals(mesh->nelems(), 0.0));
@@ -814,7 +814,7 @@ static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
 }
 
 void correct_integral_errors(Mesh* mesh, AdaptOpts const& opts) {
-  auto xfer_opts = opts.xfer_opts;
+  auto& xfer_opts = opts.xfer_opts;
   if (!should_conserve_any(mesh, xfer_opts)) return;
   begin_code("correct_integral_errors");
   mesh->set_parting(OMEGA_H_GHOSTED);

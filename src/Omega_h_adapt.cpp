@@ -23,6 +23,8 @@
 
 namespace Omega_h {
 
+void UserTransfer::out_of_line_virtual_method() {}
+
 TransferOpts::TransferOpts() {
   should_conserve_size = false;
   max_size_steps = 100;
