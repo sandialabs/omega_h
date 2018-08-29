@@ -13,6 +13,9 @@ template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width);
 
 template <typename T>
+void map_value_into(T a_value, LOs a2b, Write<T> b_data);
+
+template <typename T>
 void map_into_range(
     Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);
 
@@ -74,6 +77,8 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op);
   extern template Read<T> permute(Read<T> a_data, LOs a2b, Int width);         \
   extern template void add_into(                                               \
       Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                    \
+  extern template void map_value_into(                                               \
+      T a_value, LOs a2b, Write<T> b_data);                    \
   extern template void map_into(                                               \
       Read<T> a_data, LOs a2b, Write<T> b_data, Int width);                    \
   extern template void map_into_range(                                         \

@@ -35,6 +35,15 @@ void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
 }
 
 template <typename T>
+void map_value_into(T a_value, LOs a2b, Write<T> b_data) {
+  auto na = a2b.size();
+  auto functor = OMEGA_H_LAMBDA(LO a) {
+    b_data[a2b[a]] = a_value;
+  };
+  parallel_for("map_value_into", na, std::move(functor));
+}
+
+template <typename T>
 void map_into_range(
     Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width) {
   auto na = end - begin;
@@ -295,6 +304,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
 #define INST_T(T)                                                              \
   template void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
+  template void map_value_into(T a_value, LOs a2b, Write<T> b_data); \
   template void map_into_range(                                                \
       Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);           \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \
