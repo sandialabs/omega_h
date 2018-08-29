@@ -180,10 +180,14 @@ Read<I8> mark_image(LOs a2b, LO nb) {
   return out;
 }
 
+void inject_map(LOs a2b, Write<LO> b2a) {
+  auto functor = OMEGA_H_LAMBDA(LO a) { b2a[a2b[a]] = a; };
+  parallel_for("inject_map", a2b.size(), std::move(functor));
+}
+
 LOs invert_injective_map(LOs a2b, LO nb) {
   Write<LO> b2a(nb, -1);
-  auto f = OMEGA_H_LAMBDA(LO a) { b2a[a2b[a]] = a; };
-  parallel_for(a2b.size(), f, "invert_injective_map");
+  inject_map(a2b, b2a);
   return b2a;
 }
 

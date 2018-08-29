@@ -49,6 +49,8 @@ LOs collect_marked(Read<I8> marks);
 
 Read<I8> mark_image(LOs a2b, LO nb);
 
+void inject_map(LOs a2b, Write<LO> b2a);
+
 LOs invert_injective_map(LOs a2b, LO nb);
 
 LOs invert_funnel(LOs ab2a, LO na);
