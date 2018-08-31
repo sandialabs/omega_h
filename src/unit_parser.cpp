@@ -120,13 +120,12 @@ static void test_regex_reader(std::string const& regex,
     std::vector<std::string> const& expect_matches,
     std::vector<std::string> const& expect_non_matches) {
   auto reader = regex::Reader(42);
-  reader.read_string("test_regex_reader", regex);
-  auto result = reader.move_result<FiniteAutomaton>();
+  auto fa = any_cast<FiniteAutomaton>(reader.read_string("test_regex_reader", regex));
   for (auto& expect_match : expect_matches) {
-    OMEGA_H_CHECK(accepts(result, expect_match, 42));
+    OMEGA_H_CHECK(accepts(fa, expect_match, 42));
   }
   for (auto& expect_non_match : expect_non_matches) {
-    OMEGA_H_CHECK(!accepts(result, expect_non_match, 42));
+    OMEGA_H_CHECK(!accepts(fa, expect_non_match, 42));
   }
 }
 
