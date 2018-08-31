@@ -31,11 +31,13 @@ struct ExprOp {
   virtual any eval(ExprEnv& env) = 0;
 };
 
+using OpPtr = std::shared_ptr<ExprOp>;
+
 class ExprOpsReader : public Reader {
  public:
   ExprOpsReader();
   virtual ~ExprOpsReader() override final = default;
-  std::shared_ptr<ExprOp> read_ops(std::string const& str);
+  OpPtr read_ops(std::string const& str);
 
  protected:
   any at_shift(int token, std::string& text) override final;

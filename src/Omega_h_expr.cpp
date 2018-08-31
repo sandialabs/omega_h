@@ -795,8 +795,6 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
 
 ExprOp::~ExprOp() {}
 
-using OpPtr = std::shared_ptr<ExprOp>;
-
 struct ConstOp : public ExprOp {
   double value;
   OpPtr rhs;

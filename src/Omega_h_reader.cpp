@@ -244,8 +244,8 @@ void Reader::error_print_line(std::istream& is, std::ostream& os) {
   if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
 }
 
-any Reader::read_stream(
-    std::string const& stream_name_in, std::istream& stream) {
+any Reader::read_stream(std::istream& stream,
+    std::string const& stream_name_in) {
   line = 1;
   column = 1;
   lexer_state = 0;
@@ -315,9 +315,9 @@ any Reader::read_stream(
 }
 
 any Reader::read_string(
-    std::string const& string_name, std::string const& string) {
+    std::string const& string, std::string const& string_name) {
   std::istringstream stream(string);
-  return read_stream(string_name, stream);
+  return read_stream(stream, string_name);
 }
 
 any Reader::read_file(std::string const& file_name) {
@@ -327,7 +327,7 @@ any Reader::read_file(std::string const& file_name) {
     ss << "Could not open file " << file_name;
     throw ParserFail(ss.str());
   }
-  return read_stream(file_name, stream);
+  return read_stream(stream, file_name);
 }
 
 any Reader::at_shift(int, std::string&) { return any(); }
