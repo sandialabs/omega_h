@@ -950,7 +950,7 @@ OMEGA_H_BINARY_OP(PowOp, eval_pow(env.dim, lhs_val, rhs_val));
 ExprOpsReader::ExprOpsReader()
     : Reader(math_lang::ask_reader_tables()) {}
 
-std::shared_ptr<Omega_h::ExprOp> ExprOpsReader::read_ops(
+OpPtr ExprOpsReader::read_ops(
     std::string const& expr) {
   return any_cast<OpPtr>(read_string(expr, expr));
 }

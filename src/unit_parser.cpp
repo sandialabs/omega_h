@@ -7,6 +7,8 @@
 #include <Omega_h_string.hpp>
 #include <Omega_h_xml.hpp>
 #include <Omega_h_yaml.hpp>
+#include <Omega_h_expr.hpp>
+#include <Omega_h_array_ops.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -225,6 +227,16 @@ static void test_yaml_reader() {
   test_yaml_reader("---\npressure: -1.9e-6\nvolume: 0.7e+10\n...\n");
 }
 
+static void test_hydro() {
+  auto str = "vector((x > 0.5) ? 0.01 : 0.0)";
+  ExprOpsReader reader;
+  auto op = reader.read_ops(str);
+  ExprEnv env(2, 1);
+  env.register_variable("x", Reals({0.0, 1.0}));
+  auto res = any_cast<Reals>(op->eval(env));
+  OMEGA_H_CHECK(are_close(res, Reals({0.0, 0.01})));
+}
+
 int main() {
   std::string a("  ");
   std::string b("");
@@ -239,4 +251,5 @@ int main() {
   test_xml_reader();
   test_yaml_language();
   test_yaml_reader();
+  test_hydro();
 }
