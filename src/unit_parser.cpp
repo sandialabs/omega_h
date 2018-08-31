@@ -120,9 +120,14 @@ static void test_regex_reader(std::string const& regex,
     std::vector<std::string> const& expect_matches,
     std::vector<std::string> const& expect_non_matches) {
   auto reader = regex::Reader(42);
-  auto fa = any_cast<FiniteAutomaton>(reader.read_string("test_regex_reader", regex));
+  auto fa = any_cast<FiniteAutomaton>(reader.read_string(regex, "test_regex_reader"));
   for (auto& expect_match : expect_matches) {
-    OMEGA_H_CHECK(accepts(fa, expect_match, 42));
+    if (!(accepts(fa, expect_match, 42))) {
+      std::cerr << "Finite Automaton:\n" << fa << "\n";
+      std::cerr << "built from regex \"" << regex << "\"\n";
+      std::cerr << "doesn't match \"" << expect_match << "\"\n";
+      Omega_h_fail("\n");
+    }
   }
   for (auto& expect_non_match : expect_non_matches) {
     OMEGA_H_CHECK(!accepts(fa, expect_non_match, 42));
@@ -176,7 +181,7 @@ static void test_xml_language() {
 
 static void test_xml_reader(std::string const& str) {
   auto reader = Reader(xml::ask_reader_tables());
-  reader.read_string("test_xml_reader", str);
+  reader.read_string(str, "test_xml_reader");
 }
 
 static void test_xml_reader() {
@@ -197,7 +202,7 @@ static void test_yaml_language() {
 
 static void test_yaml_reader(std::string const& str) {
   auto reader = Reader(yaml::ask_reader_tables());
-  reader.read_string("test_yaml_reader", str);
+  reader.read_string(str, "test_yaml_reader");
 }
 
 static void test_yaml_reader() {
