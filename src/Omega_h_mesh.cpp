@@ -715,6 +715,7 @@ Mesh Mesh::copy_meta() const {
   m.parting_ = this->parting_;
   m.nghost_layers_ = this->nghost_layers_;
   m.rib_hints_ = this->rib_hints_;
+  m.class_sets = this->class_sets;
   return m;
 }
 

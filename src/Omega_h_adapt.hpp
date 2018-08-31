@@ -12,6 +12,18 @@ namespace Omega_h {
 
 class Mesh;
 
+struct UserTransfer {
+  virtual ~UserTransfer() = default;
+  virtual void out_of_line_virtual_method();
+  virtual void refine(Mesh& old_mesh, Mesh& new_mesh, LOs keys2edges, LOs keys2midverts,
+      Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+      LOs same_ents2new_ents) = 0;
+  virtual void coarsen(Mesh& old_mesh, Mesh& new_mesh, LOs keys2verts, Adj keys2doms,
+      Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
+  virtual void swap(Mesh& old_mesh, Mesh& new_mesh, Int prod_dim, LOs keys2edges,
+      LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
+};
+
 struct TransferOpts {
   TransferOpts();
   std::map<std::string, Omega_h_Transfer> type_map;  // "density" -> CONSERVE
@@ -22,6 +34,7 @@ struct TransferOpts {
       velocity_momentum_map;  // "velocity" -> "momentum"
   std::map<std::string, VarCompareOpts>
       integral_diffuse_map;  // "mass" -> tolerance
+  std::shared_ptr<UserTransfer> user_xfer;
   /* TODO: rip these things out */
   bool should_conserve_size;
   Int max_size_steps;

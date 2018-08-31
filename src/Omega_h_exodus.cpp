@@ -278,8 +278,8 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
   Write<I8> side_class_dims_w =
       deep_copy(mesh->get_array<I8>(dim - 1, "class_dim"));
   auto exposed_sides2side = collect_marked(sides_are_exposed);
-  map_into(LOs(exposed_sides2side.size(), 0), exposed_sides2side,
-      side_class_ids_w, 1);
+  map_value_into(0, exposed_sides2side,
+      side_class_ids_w);
   if ((classify_with & NODE_SETS) && init_params.num_node_sets) {
     int max_side_set_id = 0;
     if ((classify_with & SIDE_SETS) && side_set_ids.size()) {
@@ -314,10 +314,10 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
         std::cout << "node set #" << node_set_ids[i] << " \"" << name_ptrs[i]
                   << "\" will be surface " << surface_id << '\n';
       }
-      map_into(LOs(set_sides2side.size(), surface_id), set_sides2side,
-          side_class_ids_w, 1);
-      map_into(Read<I8>(set_sides2side.size(), I8(dim - 1)), set_sides2side,
-          side_class_dims_w, 1);
+      map_value_into(surface_id, set_sides2side,
+          side_class_ids_w);
+      map_value_into(I8(dim - 1), set_sides2side,
+          side_class_dims_w);
       mesh->class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
     }
   }
@@ -356,9 +356,8 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
       parallel_for(nentries, f2, "set_sides2side");
       auto set_sides2side = LOs(set_sides2side_w);
       auto surface_id = side_set_ids[i];
-      map_into(LOs(nentries, surface_id), set_sides2side, side_class_ids_w, 1);
-      map_into(Read<I8>(nentries, I8(dim - 1)), set_sides2side,
-          side_class_dims_w, 1);
+      map_value_into(surface_id, set_sides2side, side_class_ids_w);
+      map_value_into(I8(dim - 1), set_sides2side, side_class_dims_w);
       mesh->class_sets[name_ptrs[i]].push_back({I8(dim - 1), surface_id});
     }
   }

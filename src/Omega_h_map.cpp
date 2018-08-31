@@ -35,6 +35,15 @@ void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
 }
 
 template <typename T>
+void map_value_into(T a_value, LOs a2b, Write<T> b_data) {
+  auto na = a2b.size();
+  auto functor = OMEGA_H_LAMBDA(LO a) {
+    b_data[a2b[a]] = a_value;
+  };
+  parallel_for("map_value_into", na, std::move(functor));
+}
+
+template <typename T>
 void map_into_range(
     Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width) {
   auto na = end - begin;
@@ -171,10 +180,14 @@ Read<I8> mark_image(LOs a2b, LO nb) {
   return out;
 }
 
+void inject_map(LOs a2b, Write<LO> b2a) {
+  auto functor = OMEGA_H_LAMBDA(LO a) { b2a[a2b[a]] = a; };
+  parallel_for("inject_map", a2b.size(), std::move(functor));
+}
+
 LOs invert_injective_map(LOs a2b, LO nb) {
   Write<LO> b2a(nb, -1);
-  auto f = OMEGA_H_LAMBDA(LO a) { b2a[a2b[a]] = a; };
-  parallel_for(a2b.size(), f, "invert_injective_map");
+  inject_map(a2b, b2a);
   return b2a;
 }
 
@@ -295,6 +308,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
 #define INST_T(T)                                                              \
   template void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
+  template void map_value_into(T a_value, LOs a2b, Write<T> b_data); \
   template void map_into_range(                                                \
       Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);           \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \

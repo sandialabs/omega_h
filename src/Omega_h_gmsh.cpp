@@ -132,85 +132,152 @@ void read_internal(std::istream& stream, Mesh* mesh) {
   }
   OMEGA_H_CHECK(data_size == sizeof(Real));
   seek_line(stream, "$Nodes");
-  LO nnodes;
-  stream >> nnodes;
-  OMEGA_H_CHECK(nnodes >= 0);
   std::vector<Vector<3>> node_coords;
-  eat_newlines(stream);
-  for (LO i = 0; i < nnodes; ++i) {
-    LO number;
-    read(stream, number, is_binary, needs_swapping);
-    // the documentation says numbers don't have to be linear,
-    // but so far they have been and assuming they are saves
-    // me a big lookup structure (e.g. std::map)
-    OMEGA_H_CHECK(number == i + 1);
-    Vector<3> coords;
-    read(stream, coords[0], is_binary, needs_swapping);
-    read(stream, coords[1], is_binary, needs_swapping);
-    read(stream, coords[2], is_binary, needs_swapping);
-    node_coords.push_back(coords);
+  std::map<int, int> node_number_map;
+  int nnodes;
+  if (format >= 4.0) {
+    eat_newlines(stream);
+    int num_entity_blocks;
+    read(stream, num_entity_blocks, is_binary, needs_swapping);
+    read(stream, nnodes, is_binary, needs_swapping);
+    node_coords.reserve(std::size_t(nnodes));
+    for (int entity_block = 0; entity_block < num_entity_blocks; ++entity_block) {
+      int class_id, class_dim;
+      read(stream, class_id, is_binary, needs_swapping);
+      read(stream, class_dim, is_binary, needs_swapping);
+      int node_type, num_block_nodes;
+      read(stream, node_type, is_binary, needs_swapping);
+      read(stream, num_block_nodes, is_binary, needs_swapping);
+      for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
+        int node_number;
+        read(stream, node_number, is_binary, needs_swapping);
+        node_number_map[node_number] = int(node_coords.size());
+        Vector<3> coords;
+        read(stream, coords[0], is_binary, needs_swapping);
+        read(stream, coords[1], is_binary, needs_swapping);
+        read(stream, coords[2], is_binary, needs_swapping);
+        node_coords.push_back(coords);
+      }
+    }
+  } else {
+    stream >> nnodes;
+    OMEGA_H_CHECK(nnodes >= 0);
+    eat_newlines(stream);
+    for (LO i = 0; i < nnodes; ++i) {
+      LO number;
+      read(stream, number, is_binary, needs_swapping);
+      // the documentation says numbers don't have to be linear,
+      // but so far they have been and assuming they are saves
+      // me a big lookup structure (e.g. std::map)
+      OMEGA_H_CHECK(number == i + 1);
+      Vector<3> coords;
+      read(stream, coords[0], is_binary, needs_swapping);
+      read(stream, coords[1], is_binary, needs_swapping);
+      read(stream, coords[2], is_binary, needs_swapping);
+      node_coords.push_back(coords);
+    }
   }
   seek_line(stream, "$Elements");
-  LO nents;
-  stream >> nents;
-  OMEGA_H_CHECK(nents >= 0);
-  std::vector<LO> ent_class_ids[4];
-  std::vector<LO> ent_nodes[4];
+  std::vector<int> ent_class_ids[4];
+  std::vector<int> ent_nodes[4];
   Omega_h_Family family = OMEGA_H_SIMPLEX;
-  if (is_binary) {
+  if (format >= 4.0) {
     eat_newlines(stream);
-    LO i = 0;
-    while (i < nents) {
-      I32 type, nfollow, ntags;
-      binary::read_value(stream, type, needs_swapping);
-      binary::read_value(stream, nfollow, needs_swapping);
-      binary::read_value(stream, ntags, needs_swapping);
-      Int dim = type_dim(type);
-      if (type_family(type) == OMEGA_H_HYPERCUBE) family = OMEGA_H_HYPERCUBE;
-      Int neev = dim + 1;
-      OMEGA_H_CHECK(ntags >= 2);
-      for (Int j = 0; j < nfollow; ++j, ++i) {
-        I32 number, physical, elementary;
-        binary::read_value(stream, number, needs_swapping);
-        binary::read_value(stream, physical, needs_swapping);
-        binary::read_value(stream, elementary, needs_swapping);
-        ent_class_ids[dim].push_back(elementary);
-        for (Int k = 2; k < ntags; ++k) {
-          I32 ignored;
-          binary::read_value(stream, ignored, false);
-        }
-        for (Int k = 0; k < neev; ++k) {
-          I32 node_number;
-          binary::read_value(stream, node_number, needs_swapping);
-          ent_nodes[dim].push_back(node_number - 1);
+    int num_entity_blocks, total_num_ents;
+    read(stream, num_entity_blocks, is_binary, needs_swapping);
+    read(stream, total_num_ents, is_binary, needs_swapping);
+    for (int entity_block = 0; entity_block < num_entity_blocks; ++entity_block) {
+      int class_id, class_dim;
+      read(stream, class_id, is_binary, needs_swapping);
+      read(stream, class_dim, is_binary, needs_swapping);
+      int ent_type, num_block_ents;
+      read(stream, ent_type, is_binary, needs_swapping);
+      read(stream, num_block_ents, is_binary, needs_swapping);
+      Int dim = type_dim(ent_type);
+      OMEGA_H_CHECK(dim == class_dim);
+      if (type_family(ent_type) == OMEGA_H_HYPERCUBE) {
+        family = OMEGA_H_HYPERCUBE;
+      }
+      int nodes_per_ent = element_degree(family, dim, 0);
+      ent_class_ids[dim].reserve(
+          ent_class_ids[dim].size() + std::size_t(num_block_ents));
+      ent_nodes[dim].reserve(
+          ent_nodes[dim].size() +
+          std::size_t(num_block_ents * nodes_per_ent));
+      for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
+        ent_class_ids[dim].push_back(class_id);
+        int ent_number;
+        read(stream, ent_number, is_binary, needs_swapping);
+        for (int ent_node = 0; ent_node < nodes_per_ent; ++ent_node) {
+          int node_number;
+          read(stream, node_number, is_binary, needs_swapping);
+          auto it = node_number_map.find(node_number);
+          OMEGA_H_CHECK(it != node_number_map.end());
+          ent_nodes[dim].push_back(it->second);
         }
       }
     }
   } else {
-    for (LO i = 0; i < nents; ++i) {
-      LO number;
-      stream >> number;
-      OMEGA_H_CHECK(number > 0);
-      Int type;
-      stream >> type;
-      Int dim = type_dim(type);
-      if (type_family(type) == OMEGA_H_HYPERCUBE) family = OMEGA_H_HYPERCUBE;
-      Int ntags;
-      stream >> ntags;
-      OMEGA_H_CHECK(ntags >= 2);
-      Int physical;
-      Int elementary;
-      stream >> physical >> elementary;
-      ent_class_ids[dim].push_back(elementary);
-      Int tag;
-      for (Int j = 2; j < ntags; ++j) {
-        stream >> tag;
+    LO nents;
+    stream >> nents;
+    OMEGA_H_CHECK(nents >= 0);
+    if (is_binary) {
+      eat_newlines(stream);
+      LO i = 0;
+      while (i < nents) {
+        I32 type, nfollow, ntags;
+        binary::read_value(stream, type, needs_swapping);
+        binary::read_value(stream, nfollow, needs_swapping);
+        binary::read_value(stream, ntags, needs_swapping);
+        Int dim = type_dim(type);
+        if (type_family(type) == OMEGA_H_HYPERCUBE) {
+          family = OMEGA_H_HYPERCUBE;
+        }
+        Int neev = element_degree(family, dim, 0);
+        OMEGA_H_CHECK(ntags >= 2);
+        for (Int j = 0; j < nfollow; ++j, ++i) {
+          I32 number, physical, elementary;
+          binary::read_value(stream, number, needs_swapping);
+          binary::read_value(stream, physical, needs_swapping);
+          binary::read_value(stream, elementary, needs_swapping);
+          ent_class_ids[dim].push_back(elementary);
+          for (Int k = 2; k < ntags; ++k) {
+            I32 ignored;
+            binary::read_value(stream, ignored, false);
+          }
+          for (Int k = 0; k < neev; ++k) {
+            I32 node_number;
+            binary::read_value(stream, node_number, needs_swapping);
+            ent_nodes[dim].push_back(node_number - 1);
+          }
+        }
       }
-      Int neev = dim + 1;
-      LO node_number;
-      for (Int j = 0; j < neev; ++j) {
-        stream >> node_number;
-        ent_nodes[dim].push_back(node_number - 1);
+    } else {
+      for (LO i = 0; i < nents; ++i) {
+        LO number;
+        stream >> number;
+        OMEGA_H_CHECK(number > 0);
+        Int type;
+        stream >> type;
+        Int dim = type_dim(type);
+        if (type_family(type) == OMEGA_H_HYPERCUBE) family = OMEGA_H_HYPERCUBE;
+        Int ntags;
+        stream >> ntags;
+        OMEGA_H_CHECK(ntags >= 2);
+        Int physical;
+        Int elementary;
+        stream >> physical >> elementary;
+        ent_class_ids[dim].push_back(elementary);
+        Int tag;
+        for (Int j = 2; j < ntags; ++j) {
+          stream >> tag;
+        }
+        Int neev = dim + 1;
+        LO node_number;
+        for (Int j = 0; j < neev; ++j) {
+          stream >> node_number;
+          ent_nodes[dim].push_back(node_number - 1);
+        }
       }
     }
   }

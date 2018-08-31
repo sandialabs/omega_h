@@ -121,9 +121,11 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
   if (!(array.exists())) {
     Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
+  begin_code("header");
   stream << "<DataArray ";
   describe_array<T>(stream, name, ncomps);
   stream << ">\n";
+  end_code();
   HostRead<T> uncompressed(array);
   std::uint64_t uncompressed_bytes =
       sizeof(T) * static_cast<uint64_t>(array.size());
@@ -152,8 +154,10 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
   OMEGA_H_CHECK(!compress);
 #endif
   {
+    begin_code("base64 bulk");
     enc_header = base64::encode(&uncompressed_bytes, sizeof(std::uint64_t));
     encoded = base64::encode(nonnull(uncompressed.data()), uncompressed_bytes);
+    end_code();
   }
   begin_code("stream bulk");
   // stream << enc_header << encoded << '\n';
@@ -162,7 +166,9 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
   stream.write(encoded.data(), std::streamsize(encoded.length()));
   stream.write("\n", 1);
   end_code();
+  begin_code("footer");
   stream << "</DataArray>\n";
+  end_code();
 }
 
 template <typename T>
