@@ -465,6 +465,14 @@ set(Omega_h_HEADERS
   Omega_h_owners.hpp
   Omega_h_rbtree.hpp
   Omega_h_box.hpp
+  Omega_h_reader.hpp
+  Omega_h_any.hpp
+  Omega_h_reader_tables.hpp
+  Omega_h_std_vector.hpp
+  Omega_h_finite_automaton.hpp
+  Omega_h_parser.hpp
+  Omega_h_table.hpp
+  Omega_h_grammar.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)

@@ -6,6 +6,7 @@
 
 #include <Omega_h_any.hpp>
 #include <Omega_h_reader_tables.hpp>
+#include <Omega_h_std_vector.hpp>
 
 namespace Omega_h {
 
@@ -15,14 +16,9 @@ class Reader {
   Reader(Reader const& other) = default;
   virtual ~Reader() = default;
   Reader(ReaderTablesPtr tables_in);
-  void read_stream(std::string const& stream_name_in, std::istream& stream);
-  void read_string(std::string const& string_name, std::string const& string);
-  void read_file(std::string const& file_name);
-  template <typename T>
-  T&& move_result() {
-    OMEGA_H_CHECK(size(value_stack) == 1);
-    return move_value<T>(value_stack.back());
-  }
+  any read_stream(std::string const& stream_name_in, std::istream& stream);
+  any read_string(std::string const& string_name, std::string const& string);
+  any read_file(std::string const& file_name);
 
  protected:
   virtual any at_shift(int token, std::string& text);

@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_VECTOR_HPP
-#define OMEGA_H_VECTOR_HPP
+#ifndef OMEGA_H_STD_VECTOR_HPP
+#define OMEGA_H_STD_VECTOR_HPP
 
 #include <Omega_h_fail.hpp>
 #include <vector>
