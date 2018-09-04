@@ -377,6 +377,19 @@ void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
   }
 }
 
+void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
+    LOs same_ents2new_ents, LOs prods2new_ents) {
+    for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
+      TagBase const* tagbase = old_mesh->get_tag(FACE, i);
+      if (tagbase->name()=="magnetic_face_flux") {
+        Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
+        Read<Real> prod_data(prods2new_ents.size(),0);
+        transfer_common(old_mesh, new_mesh, FACE, same_ents2old_ents,
+            same_ents2new_ents, prods2new_ents, tagbase, prod_data);
+      }
+    }
+  }
+
 void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     LOs keys2edges, LOs keys2midverts, Int prod_dim, LOs keys2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) {
@@ -392,6 +405,10 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
   if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
+  }
+  else if (prod_dim == FACE) {
+    transfer_face_flux(old_mesh, new_mesh, 
+       same_ents2old_ents, same_ents2new_ents, prods2new_ents);
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -581,6 +598,10 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   }
+  else if (prod_dim == FACE) {
+    transfer_face_flux(old_mesh, new_mesh, 
+       same_ents2old_ents, same_ents2new_ents, prods2new_ents);
+  }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
@@ -684,6 +705,10 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
   if (prod_dim == EDGE) {
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
+  }
+  else if (prod_dim == FACE) {
+    transfer_face_flux(old_mesh, new_mesh, 
+       same_ents2old_ents, same_ents2new_ents, prods2new_ents);
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
