@@ -178,7 +178,10 @@ any gt(any& lhs, any& rhs) {
   } else if (lhs.type() == typeid(Reals)) {
     return gt_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs));
   } else {
-    throw ParserFail("Invalid operand types to > operator");
+    std::stringstream ss;
+    ss << "Invalid operand types to > operator: " <<
+      lhs.type().name() << ", " << rhs.type().name() << '\n';
+    throw ParserFail(ss.str());
   }
 }
 
@@ -188,7 +191,7 @@ any lt(any& lhs, any& rhs) {
   } else if (lhs.type() == typeid(Reals)) {
     return lt_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs));
   } else {
-    throw ParserFail("Invalid operand types to > operator");
+    throw ParserFail("Invalid operand types to < operator");
   }
 }
 
@@ -539,7 +542,9 @@ any eval_sin(LO size, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_sin(Reals)");
     return Reals(out);
   } else {
-    throw ParserFail("unexpected argument type to sin()");
+    std::stringstream ss;
+    ss << "unexpected argument type " << in_any.type() << " to sin()\n";
+    throw ParserFail(ss.str());
   }
 }
 
