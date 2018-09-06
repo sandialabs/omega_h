@@ -496,7 +496,9 @@ any eval_exp(LO size, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_exp(Reals)");
     return Reals(out);
   } else {
-    throw ParserFail("unexpected argument type to exp()");
+    std::stringstream ss;
+    ss << "unexpected argument type " << in_any.type().name() << " to exp()\n";
+    throw ParserFail(ss.str());
   }
 }
 
@@ -519,7 +521,9 @@ any eval_sqrt(LO size, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_sqrt(Reals)");
     return Reals(out);
   } else {
-    throw ParserFail("unexpected argument type to sqrt()");
+    std::stringstream ss;
+    ss << "unexpected argument type " << in_any.type().name() << " to sqrt()\n";
+    throw ParserFail(ss.str());
   }
 }
 
@@ -543,7 +547,7 @@ any eval_sin(LO size, ExprReader::Args& args) {
     return Reals(out);
   } else {
     std::stringstream ss;
-    ss << "unexpected argument type " << in_any.type() << " to sin()\n";
+    ss << "unexpected argument type " << in_any.type().name() << " to sin()\n";
     throw ParserFail(ss.str());
   }
 }
@@ -567,7 +571,9 @@ any eval_cos(LO size, ExprReader::Args& args) {
     parallel_for(a.size(), f, "eval_cos(Reals)");
     return Reals(out);
   } else {
-    throw ParserFail("unexpected argument type to cos()");
+    std::stringstream ss;
+    ss << "unexpected argument type " << in_any.type().name() << " to cos()\n";
+    throw ParserFail(ss.str());
   }
 }
 
@@ -593,7 +599,9 @@ any eval_norm(LO size, ExprReader::Args& args) {
     parallel_for(size, f, "eval_norm(Reals)");
     return Reals(out);
   } else {
-    throw ParserFail("unexpected argument type to norm()");
+    std::stringstream ss;
+    ss << "unexpected argument type " << in_any.type().name() << " to norm()\n";
+    throw ParserFail(ss.str());
   }
 }
 
