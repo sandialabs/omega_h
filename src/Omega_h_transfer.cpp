@@ -634,6 +634,7 @@ void transfer_copy(
       }
     }
   }
+  if (opts.user_xfer) opts.user_xfer->swap_copy_verts(*old_mesh, *new_mesh);
 }
 
 template <typename T>
