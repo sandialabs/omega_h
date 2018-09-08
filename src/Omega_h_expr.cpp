@@ -385,7 +385,10 @@ any access(LO size, any& var, ExprReader::Args& args) {
       return
           Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
     } else {
-      throw ParserFail("Unexpected array size in access operator\n");
+      std::stringstream ss;
+      ss << "Unexpected array size " << array.size() << " in access operator\n";
+      ss << "Value count is " << size << " dimension is " << dim << '\n';
+      throw ParserFail(ss.str());
     }
   } else {
     throw ParserFail("Unexpected variable type in access operator\n");
