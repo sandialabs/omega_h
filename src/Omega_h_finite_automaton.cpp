@@ -390,16 +390,53 @@ void add_char_transition(
   add_transition(fa, from_state, get_symbol(at_char), to_state);
 }
 
+template <typename T, bool is_signed = std::numeric_limits<T>::is_signed>
+struct IsSymbol;
+
+template <typename T>
+struct IsSymbol<T, true> {
+  static bool eval(T c) {
+    if (c < 0) return false;
+    return 0 <= Omega_h::chartab[int(c)];
+  }
+};
+
+template <typename T>
+struct IsSymbol<T, false> {
+  static bool eval(T c) {
+    if (c >= OMEGA_H_CHARTAB_SIZE) return false;
+    return 0 <= Omega_h::chartab[int(c)];
+  }
+};
+
 bool is_symbol(char c) {
-  if (c < 0) return false;
-  return 0 <= Omega_h::chartab[int(c)];
+  return IsSymbol<char>::eval(c);
 }
 
+template <typename T, bool is_signed = std::numeric_limits<T>::is_signed>
+struct GetSymbol;
+
+template <typename T>
+struct GetSymbol<T, true> {
+  static int eval(T c) {
+    OMEGA_H_CHECK(0 <= c);
+    int symbol = Omega_h::chartab[int(c)];
+    OMEGA_H_CHECK(0 <= symbol);
+    return symbol;
+  }
+};
+
+template <typename T>
+struct GetSymbol<T, false> {
+  static int eval(T c) {
+    int symbol = Omega_h::chartab[int(c)];
+    OMEGA_H_CHECK(0 <= symbol);
+    return symbol;
+  }
+};
+
 int get_symbol(char c) {
-  OMEGA_H_CHECK(0 <= c);
-  auto symbol = Omega_h::chartab[int(c)];
-  OMEGA_H_CHECK(0 <= symbol);
-  return symbol;
+  return GetSymbol<char>::eval(c);
 }
 
 char get_char(int symbol) {
