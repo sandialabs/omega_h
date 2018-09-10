@@ -7,6 +7,9 @@
 #include <Omega_h_string.hpp>
 #include <Omega_h_xml.hpp>
 #include <Omega_h_yaml.hpp>
+#include <Omega_h_expr.hpp>
+#include <Omega_h_array_ops.hpp>
+#include <Omega_h_library.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -120,13 +123,17 @@ static void test_regex_reader(std::string const& regex,
     std::vector<std::string> const& expect_matches,
     std::vector<std::string> const& expect_non_matches) {
   auto reader = regex::Reader(42);
-  reader.read_string("test_regex_reader", regex);
-  auto result = reader.move_result<FiniteAutomaton>();
+  auto fa = any_cast<FiniteAutomaton>(reader.read_string(regex, "test_regex_reader"));
   for (auto& expect_match : expect_matches) {
-    OMEGA_H_CHECK(accepts(result, expect_match, 42));
+    if (!(accepts(fa, expect_match, 42))) {
+      std::cerr << "Finite Automaton:\n" << fa << "\n";
+      std::cerr << "built from regex \"" << regex << "\"\n";
+      std::cerr << "doesn't match \"" << expect_match << "\"\n";
+      Omega_h_fail("\n");
+    }
   }
   for (auto& expect_non_match : expect_non_matches) {
-    OMEGA_H_CHECK(!accepts(result, expect_non_match, 42));
+    OMEGA_H_CHECK(!accepts(fa, expect_non_match, 42));
   }
 }
 
@@ -177,7 +184,7 @@ static void test_xml_language() {
 
 static void test_xml_reader(std::string const& str) {
   auto reader = Reader(xml::ask_reader_tables());
-  reader.read_string("test_xml_reader", str);
+  reader.read_string(str, "test_xml_reader");
 }
 
 static void test_xml_reader() {
@@ -198,7 +205,7 @@ static void test_yaml_language() {
 
 static void test_yaml_reader(std::string const& str) {
   auto reader = Reader(yaml::ask_reader_tables());
-  reader.read_string("test_yaml_reader", str);
+  reader.read_string(str, "test_yaml_reader");
 }
 
 static void test_yaml_reader() {
@@ -221,7 +228,18 @@ static void test_yaml_reader() {
   test_yaml_reader("---\npressure: -1.9e-6\nvolume: 0.7e+10\n...\n");
 }
 
-int main() {
+static void test_hydro() {
+  auto str = "vector((x > 0.5) ? 0.01 : 0.0)";
+  ExprOpsReader reader;
+  auto op = reader.read_ops(str);
+  ExprEnv env(2, 1);
+  env.register_variable("x", Reals({0.0, 1.0}));
+  auto res = any_cast<Reals>(op->eval(env));
+  OMEGA_H_CHECK(are_close(res, Reals({0.0, 0.01})));
+}
+
+int main(int argc, char** argv) {
+  Omega_h::Library lib(&argc, &argv);
   std::string a("  ");
   std::string b("");
   OMEGA_H_CHECK(0 == a.compare(0, 0, b));
@@ -235,4 +253,5 @@ int main() {
   test_xml_reader();
   test_yaml_language();
   test_yaml_reader();
+  test_hydro();
 }

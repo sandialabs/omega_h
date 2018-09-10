@@ -8,10 +8,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_sort.hpp"
-
-#ifdef OMEGA_H_USE_TEUCHOS
 #include "Omega_h_expr.hpp"
-#endif
 
 using namespace Omega_h;
 
@@ -222,94 +219,61 @@ static void test_scalar_ptr() {
 }
 
 static void test_expr() {
-#ifdef OMEGA_H_USE_TEUCHOS
-  using Teuchos::any;
-  using Teuchos::any_cast;
+  using Omega_h::any;
+  using Omega_h::any_cast;
   ExprReader reader(4, 3);
-  any result;
-  reader.read_string(result, "1.0", "test0");
-  OMEGA_H_CHECK(any_cast<Real>(result) == 1.0);
-  reader.read_string(result, "1 + 1", "test1");
-  OMEGA_H_CHECK(any_cast<Real>(result) == 2.0);
+  OMEGA_H_CHECK(any_cast<Real>(reader.read_string("1.0", "test0")) == 1.0);
+  OMEGA_H_CHECK(any_cast<Real>(reader.read_string("1 + 1", "test1")) == 2.0);
   reader.register_variable("pi", any(Real(3.14159)));
-  reader.read_string(result, "pi", "test2");
-  OMEGA_H_CHECK(any_cast<Real>(result) == 3.14159);
+  OMEGA_H_CHECK(any_cast<Real>(reader.read_string("pi", "test2")) == 3.14159);
   reader.register_variable("j", any(vector_3(0, 1, 0)));
-  reader.read_string(result, "pi * j", "test3");
   OMEGA_H_CHECK(
-      are_close(any_cast<Vector<3>>(result), vector_3(0, 3.14159, 0)));
+      are_close(any_cast<Vector<3>>(reader.read_string("pi * j", "test3")), vector_3(0, 3.14159, 0)));
   reader.register_variable("x", any(Reals({0, 1, 2, 3})));
-  reader.read_string(result, "x^2", "test4");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 4, 9})));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("x^2", "test4")), Reals({0, 1, 4, 9})));
   reader.register_variable(
       "v", any(Reals({0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
-  reader.read_string(result, "v(1)", "test5");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 2, 3})));
-  reader.read_string(result, "v - 1.5 * j", "test6");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result),
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("v(1)", "test5")), Reals({0, 1, 2, 3})));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("v - 1.5 * j", "test6")),
       Reals({0, -1.5, 0, 0, -0.5, 0, 0, 0.5, 0, 0, 1.5, 0})));
-  reader.read_string(result, "vector(0, 1, 2)", "test7");
-  OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(result), vector_3(0, 1, 2)));
-  reader.read_string(result, "vector(x, 0, 0)", "test8");
+  OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(reader.read_string("vector(0, 1, 2)", "test7")), vector_3(0, 1, 2)));
   OMEGA_H_CHECK(are_close(
-      any_cast<Reals>(result), Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
-  reader.read_string(result, "exp(0)", "test9");
-  OMEGA_H_CHECK(are_close(any_cast<Real>(result), 1.0));
-  reader.read_string(result, "exp(x)", "test10");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result),
+      any_cast<Reals>(reader.read_string("vector(x, 0, 0)", "test8")), Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
+  OMEGA_H_CHECK(are_close(any_cast<Real>(reader.read_string("exp(0)", "test9")), 1.0));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("exp(x)", "test10")),
       Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
-#endif
 }
 
-#ifdef OMEGA_H_USE_TEUCHOS
-static void test_expr2(ExprEnv& env, Teuchos::any& result,
+static Omega_h::any test_expr2(ExprEnv& env,
     std::string const& expr, std::string const& test_name) {
   ExprOpsReader reader;
-  Teuchos::any any_op;
-  reader.read_string(any_op, expr, test_name);
-  std::shared_ptr<ExprOp> op =
-      Teuchos::any_cast<std::shared_ptr<ExprOp>>(any_op);
-  op->eval(env, result);
+  auto op = any_cast<OpPtr>(reader.read_string(expr, test_name));
+  return op->eval(env);
 }
-#endif
 
 static void test_expr2() {
-#ifdef OMEGA_H_USE_TEUCHOS
-  using Teuchos::any;
-  using Teuchos::any_cast;
+  using Omega_h::any;
+  using Omega_h::any_cast;
   ExprEnv env(4, 3);
-  any result;
-  test_expr2(env, result, "1.0", "test0");
-  OMEGA_H_CHECK(any_cast<Real>(result) == 1.0);
-  test_expr2(env, result, "1 + 1", "test1");
-  OMEGA_H_CHECK(any_cast<Real>(result) == 2.0);
+  OMEGA_H_CHECK(any_cast<Real>(test_expr2(env, "1.0", "test0")) == 1.0);
+  OMEGA_H_CHECK(any_cast<Real>(test_expr2(env, "1 + 1", "test1")) == 2.0);
   env.register_variable("pi", any(Real(3.14159)));
-  test_expr2(env, result, "pi", "test2");
-  OMEGA_H_CHECK(any_cast<Real>(result) == 3.14159);
+  OMEGA_H_CHECK(any_cast<Real>(test_expr2(env, "pi", "test2")) == 3.14159);
   env.register_variable("j", any(vector_3(0, 1, 0)));
-  test_expr2(env, result, "pi * j", "test3");
   OMEGA_H_CHECK(
-      are_close(any_cast<Vector<3>>(result), vector_3(0, 3.14159, 0)));
+      are_close(any_cast<Vector<3>>(test_expr2(env, "pi * j", "test3")), vector_3(0, 3.14159, 0)));
   env.register_variable("x", any(Reals({0, 1, 2, 3})));
-  test_expr2(env, result, "x^2", "test4");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 4, 9})));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "x^2", "test4")), Reals({0, 1, 4, 9})));
   env.register_variable("v", any(Reals({0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
-  test_expr2(env, result, "v(1)", "test5");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result), Reals({0, 1, 2, 3})));
-  test_expr2(env, result, "v - 1.5 * j", "test6");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result),
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "v(1)", "test5")), Reals({0, 1, 2, 3})));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "v - 1.5 * j", "test6")),
       Reals({0, -1.5, 0, 0, -0.5, 0, 0, 0.5, 0, 0, 1.5, 0})));
-  test_expr2(env, result, "vector(0, 1, 2)", "test7");
-  OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(result), vector_3(0, 1, 2)));
-  test_expr2(env, result, "vector(x, 0, 0)", "test8");
+  OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(test_expr2(env, "vector(0, 1, 2)", "test7")), vector_3(0, 1, 2)));
   OMEGA_H_CHECK(are_close(
-      any_cast<Reals>(result), Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
-  test_expr2(env, result, "exp(0)", "test9");
-  OMEGA_H_CHECK(are_close(any_cast<Real>(result), 1.0));
-  test_expr2(env, result, "exp(x)", "test10");
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(result),
+      any_cast<Reals>(test_expr2(env, "vector(x, 0, 0)", "test8")), Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
+  OMEGA_H_CHECK(are_close(any_cast<Real>(test_expr2(env, "exp(0)", "test9")), 1.0));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "exp(x)", "test10")),
       Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
-#endif
 }
 
 int main(int argc, char** argv) {

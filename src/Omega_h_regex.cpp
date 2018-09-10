@@ -138,7 +138,7 @@ FiniteAutomaton build_dfa(
     std::string const& name, std::string const& regex, int token) {
   auto reader = regex::Reader(token);
   try {
-    reader.read_string(name, regex);
+    return any_cast<FiniteAutomaton>(reader.read_string(regex, name));
   } catch (const ParserFail& e) {
     std::stringstream ss;
     ss << e.what() << '\n';
@@ -149,7 +149,6 @@ FiniteAutomaton build_dfa(
     debug_reader.read_string(regex, name);
     throw ParserFail(ss.str());
   }
-  return reader.move_result<FiniteAutomaton>();
 }
 
 regex::Reader::Reader(int result_token_in)

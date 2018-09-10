@@ -22,6 +22,7 @@ struct UserTransfer {
       Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
   virtual void swap(Mesh& old_mesh, Mesh& new_mesh, Int prod_dim, LOs keys2edges,
       LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
+  virtual void swap_copy_verts(Mesh& old_mesh, Mesh& new_mesh) = 0;
 };
 
 struct TransferOpts {
@@ -50,6 +51,7 @@ struct Egads;
 #endif
 
 struct AdaptOpts {
+  AdaptOpts() = default;
   AdaptOpts(Int dim);     // sets defaults
   AdaptOpts(Mesh* mesh);  // calls above
   Real min_length_desired;

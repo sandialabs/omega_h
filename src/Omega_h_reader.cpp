@@ -244,8 +244,8 @@ void Reader::error_print_line(std::istream& is, std::ostream& os) {
   if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
 }
 
-void Reader::read_stream(
-    std::string const& stream_name_in, std::istream& stream) {
+any Reader::read_stream(std::istream& stream,
+    std::string const& stream_name_in) {
   line = 1;
   column = 1;
   lexer_state = 0;
@@ -311,22 +311,23 @@ void Reader::read_stream(
         "This indicates a bug in Omega_h::Reader\n");
   }
   OMEGA_H_CHECK(value_stack.size() == 1);
+  return std::move(value_stack.back());
 }
 
-void Reader::read_string(
-    std::string const& string_name, std::string const& string) {
+any Reader::read_string(
+    std::string const& string, std::string const& string_name) {
   std::istringstream stream(string);
-  read_stream(string_name, stream);
+  return read_stream(stream, string_name);
 }
 
-void Reader::read_file(std::string const& file_name) {
+any Reader::read_file(std::string const& file_name) {
   std::ifstream stream(file_name.c_str());
   if (!stream.is_open()) {
     std::stringstream ss;
     ss << "Could not open file " << file_name;
     throw ParserFail(ss.str());
   }
-  read_stream(file_name, stream);
+  return read_stream(stream, file_name);
 }
 
 any Reader::at_shift(int, std::string&) { return any(); }
