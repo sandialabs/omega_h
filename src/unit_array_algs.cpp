@@ -244,7 +244,7 @@ static void test_expr() {
       Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
 }
 
-static any test_expr2(ExprEnv& env,
+static Omega_h::any test_expr2(ExprEnv& env,
     std::string const& expr, std::string const& test_name) {
   ExprOpsReader reader;
   auto op = any_cast<OpPtr>(reader.read_string(expr, test_name));
@@ -252,6 +252,8 @@ static any test_expr2(ExprEnv& env,
 }
 
 static void test_expr2() {
+  using Omega_h::any;
+  using Omega_h::any_cast;
   ExprEnv env(4, 3);
   OMEGA_H_CHECK(any_cast<Real>(test_expr2(env, "1.0", "test0")) == 1.0);
   OMEGA_H_CHECK(any_cast<Real>(test_expr2(env, "1 + 1", "test1")) == 2.0);
