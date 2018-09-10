@@ -149,6 +149,6 @@ std::string get_full_name(Input& input) {
   }
 }
 
-};  // namespace Omega_h
+}  // namespace Omega_h
 
 #endif
