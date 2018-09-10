@@ -6,6 +6,7 @@
 #include <queue>
 #include <set>
 #include <utility>
+#include <limits>
 
 #include <Omega_h_chartab.hpp>
 
