@@ -9,6 +9,7 @@
 #include <Omega_h_yaml.hpp>
 #include <Omega_h_expr.hpp>
 #include <Omega_h_array_ops.hpp>
+#include <Omega_h_library.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -237,7 +238,8 @@ static void test_hydro() {
   OMEGA_H_CHECK(are_close(res, Reals({0.0, 0.01})));
 }
 
-int main() {
+int main(int argc, char** argv) {
+  Omega_h::Library lib(&argc, &argv);
   std::string a("  ");
   std::string b("");
   OMEGA_H_CHECK(0 == a.compare(0, 0, b));

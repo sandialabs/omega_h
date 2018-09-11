@@ -103,6 +103,7 @@ set(Omega_h_SOURCES
   Omega_h_xml.cpp
   Omega_h_yaml.cpp
   Omega_h_math_lang.cpp
+  Omega_h_expr.cpp
   )
 
 if (Omega_h_USE_CUDA)
@@ -149,7 +150,6 @@ endif()
 if(Omega_h_USE_Teuchos)
   set(Omega_h_SOURCES ${Omega_h_SOURCES}
       Omega_h_teuchos.cpp
-      Omega_h_expr.cpp
       )
 endif()
 
@@ -476,6 +476,7 @@ set(Omega_h_HEADERS
   Omega_h_vtk.hpp
   Omega_h_base64.hpp
   Omega_h_xml_lite.hpp
+  Omega_h_expr.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
@@ -486,7 +487,6 @@ if(Omega_h_USE_Teuchos)
   set(Omega_h_HEADERS ${Omega_h_HEADERS}
       Omega_h_teuchos.hpp
       Omega_h_teuchos_includes.hpp
-      Omega_h_expr.hpp
      )
 endif()
 
