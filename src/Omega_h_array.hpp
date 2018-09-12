@@ -87,6 +87,8 @@ class Write {
   OMEGA_H_INLINE bool exists() const {
 #ifdef __CUDA_ARCH__
     return true;
+#elif defined( OMEGA_H_USE_KOKKOSCORE )
+    return view().data() != nullptr;
 #else
     return use_count() != 0;
 #endif
