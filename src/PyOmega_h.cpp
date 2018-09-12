@@ -2,7 +2,7 @@
 
 PYBIND11_MODULE(PyOmega_h, module) {
   module.doc() = "Omega_h: simplex mesh adaptation";
-  Omega_h::pybind11_c(module);
+  Omega_h::pybind11_defines(module);
   Omega_h::pybind11_array(module);
   Omega_h::pybind11_comm(module);
   Omega_h::pybind11_library(module);
