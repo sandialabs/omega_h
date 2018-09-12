@@ -297,6 +297,15 @@ Bytes eq_each(Read<T> a, Read<T> b) {
 }
 
 template <typename T>
+Bytes neq_each(Read<T> a, Read<T> b) {
+  OMEGA_H_CHECK(a.size() == b.size());
+  Write<I8> c(a.size());
+  auto f = OMEGA_H_LAMBDA(LO i) { c[i] = (a[i] != b[i]); };
+  parallel_for("neq_each", c.size(), std::move(f));
+  return c;
+}
+
+template <typename T>
 Bytes geq_each(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
   Write<I8> c(a.size());
@@ -622,6 +631,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Bytes gt_each(Read<T> a, Read<T> b);                                \
   template Bytes lt_each(Read<T> a, Read<T> b);                                \
   template Bytes eq_each(Read<T> a, Read<T> b);                                \
+  template Bytes neq_each(Read<T> a, Read<T> b);                                \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \

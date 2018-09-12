@@ -141,7 +141,7 @@ LOs tris_from_quads(LOs qv2v) {
   return tv2v;
 }
 
-OMEGA_H_DEVICE void tets_from_hex_1(
+static OMEGA_H_DEVICE void tets_from_hex_1(
     LO h, LOs hv2v, LO hhv2v[], Int diags_into[], Int& ndiags_into) {
   LO hv_begin = h * 8;
   for (Int i = 0; i < 8; ++i) {
@@ -166,7 +166,7 @@ OMEGA_H_DEVICE void tets_from_hex_1(
   ndiags_into = diags_into[0] + diags_into[1] + diags_into[2];
 }
 
-OMEGA_H_DEVICE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
+static OMEGA_H_DEVICE void fill_tets_from_hex(Write<LO> tv2v, LOs h2ht, LO h,
     LO const hhv2v[], Int const case_template[][4], Int nhht) {
   LO t = h2ht[h];
   for (Int i = 0; i < nhht; ++i) {

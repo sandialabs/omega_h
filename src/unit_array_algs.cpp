@@ -276,6 +276,15 @@ static void test_expr2() {
       Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
 }
 
+static void test_uninit_kokkos() {
+#ifdef OMEGA_H_USE_KOKKOSCORE
+  Kokkos::View<double**> managed(Kokkos::ViewAllocateWithoutInitializing("view"), 10, 10);
+  Kokkos::View<double*> unmanaged(managed.data(), managed.span());
+  Omega_h::Write<double> array(unmanaged);
+  OMEGA_H_CHECK(array.exists());
+#endif
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -298,4 +307,5 @@ int main(int argc, char** argv) {
   test_scalar_ptr();
   test_expr();
   test_expr2();
+  test_uninit_kokkos();
 }
