@@ -477,6 +477,7 @@ set(Omega_h_HEADERS
   Omega_h_base64.hpp
   Omega_h_xml_lite.hpp
   Omega_h_expr.hpp
+  Omega_h_int_scan.cpp
   )
 
 if (NOT Omega_h_USE_CUDA)
