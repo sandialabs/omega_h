@@ -276,12 +276,21 @@ static void test_expr2() {
       Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
 }
 
-static void test_uninit_kokkos() {
+static void test_array_from_kokkos() {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<double**> managed(Kokkos::ViewAllocateWithoutInitializing("view"), 10, 10);
   Kokkos::View<double*> unmanaged(managed.data(), managed.span());
-  Omega_h::Write<double> array(unmanaged);
-  OMEGA_H_CHECK(array.exists());
+  Omega_h::Write<double> unmanaged_array(unmanaged);
+  OMEGA_H_CHECK(unmanaged_array.exists());
+  Kokkos::View<double*> zero_span("zero_span", 0);
+  Omega_h::Write<double> zero_span_array(zero_span);
+  if (zero_span.data() != nullptr) std::cerr << "zero span data is " << zero_span.data() << "!\n";
+  if (zero_span_array.exists()) std::cerr << "zero span exists!\n";
+  OMEGA_H_CHECK(zero_span_array.exists());
+  Kokkos::View<double*> uninitialized;
+  Omega_h::Write<double> uninitialized_array(uninitialized);
+  if (!uninitialized_array.exists()) std::cerr << "unitialized doesn't!\n";
+  OMEGA_H_CHECK(!uninitialized_array.exists());
 #endif
 }
 
@@ -307,5 +316,5 @@ int main(int argc, char** argv) {
   test_scalar_ptr();
   test_expr();
   test_expr2();
-  test_uninit_kokkos();
+  test_array_from_kokkos();
 }
