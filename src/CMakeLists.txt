@@ -66,7 +66,6 @@ set(Omega_h_SOURCES
   Omega_h_swap3d_topology.cpp
   Omega_h_swap3d.cpp
   Omega_h_regress.cpp
-  Omega_h_consistent.cpp
   Omega_h_align.cpp
   Omega_h_xml_lite.cpp
   Omega_h_recover.cpp
