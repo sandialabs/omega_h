@@ -2,6 +2,7 @@
 
 #include "Omega_h_for.hpp"
 #include "Omega_h_reduce.hpp"
+#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 
@@ -32,14 +33,14 @@ struct Sum : public SumFunctor<T> {
 };
 
 template <typename T>
-typename StandinTraits<T>::type get_sum(Read<T> a) {
-  using T2 = typename StandinTraits<T>::type;
+promoted_t<T> get_sum(Read<T> a) {
+  using PT = promoted_t<T>;
   return transform_reduce(a.begin(), a.end(),
-      OMEGA_H_LAMBDA(T val)->T2 { return T2(val); }, T2(0), plus<T2>());
+      OMEGA_H_LAMBDA(T val)->PT { return PT(val); }, PT(0), plus<PT>());
 }
 
 template <typename T>
-typename StandinTraits<T>::type get_sum(CommPtr comm, Read<T> a) {
+promoted_t<T> get_sum(CommPtr comm, Read<T> a) {
   return comm->allreduce(get_sum(a), OMEGA_H_SUM);
 }
 
@@ -602,10 +603,10 @@ Read<Tout> array_cast(Read<Tin> in) {
 
 #define INST(T)                                                                \
   template bool operator==(Read<T> a, Read<T> b);                              \
-  template typename StandinTraits<T>::type get_sum(Read<T> a);                 \
+  template promoted_t<T> get_sum(Read<T> a);                 \
   template T get_min(Read<T> a);                                               \
   template T get_max(Read<T> a);                                               \
-  template typename StandinTraits<T>::type get_sum(CommPtr comm, Read<T> a);   \
+  template promoted_t<T> get_sum(CommPtr comm, Read<T> a);   \
   template T get_min(CommPtr comm, Read<T> a);                                 \
   template T get_max(CommPtr comm, Read<T> a);                                 \
   template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                      \

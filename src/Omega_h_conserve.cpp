@@ -14,6 +14,7 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_transfer.hpp"
+#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 

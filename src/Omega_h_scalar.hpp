@@ -10,6 +10,22 @@
 
 namespace Omega_h {
 
+/* certain operations, including Kokkos reductions and writing
+   to std::cout, don't behave as desired on std::int8_t.
+   This class is just responsible for raising std::int8_t to std::int32_t */
+template <typename T>
+struct Promoted {
+  typedef T type;
+};
+
+template <>
+struct Promoted<I8> {
+  typedef I32 type;
+};
+
+template <typename T>
+using promoted_t = typename Promoted<T>::type;
+
 template <typename T>
 struct ArithTraits;
 

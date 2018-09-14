@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <Omega_h_comm.hpp>
-#include <Omega_h_functors.hpp>
+#include <Omega_h_scalar.hpp>
 
 namespace Omega_h {
 
@@ -12,14 +12,14 @@ template <class T>
 bool operator==(Read<T> a, Read<T> b);
 
 template <typename T>
-typename StandinTraits<T>::type get_sum(Read<T> a);
+promoted_t<T> get_sum(Read<T> a);
 template <typename T>
 T get_min(Read<T> a);
 template <typename T>
 T get_max(Read<T> a);
 
 template <typename T>
-typename StandinTraits<T>::type get_sum(CommPtr comm, Read<T> a);
+promoted_t<T> get_sum(CommPtr comm, Read<T> a);
 template <typename T>
 T get_min(CommPtr comm, Read<T> a);
 template <typename T>
@@ -124,10 +124,10 @@ Read<Tout> array_cast(Read<Tin> in);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
-  extern template typename StandinTraits<T>::type get_sum(Read<T> a);          \
+  extern template promoted_t<T> get_sum(Read<T> a);          \
   extern template T get_min(Read<T> a);                                        \
   extern template T get_max(Read<T> a);                                        \
-  extern template typename StandinTraits<T>::type get_sum(                     \
+  extern template promoted_t<T> get_sum(                     \
       CommPtr comm, Read<T> a);                                                \
   extern template T get_min(CommPtr comm, Read<T> a);                          \
   extern template T get_max(CommPtr comm, Read<T> a);                          \
