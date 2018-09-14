@@ -65,7 +65,7 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
+OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
     Matrix<dim, dim> m1, Matrix<dim, dim> m2);
 
 /* Metric intersection that accounts for all degenerate cases,
@@ -82,7 +82,7 @@ OMEGA_H_INLINE Matrix<1, 1> intersect_degenerate_metrics(Matrix<1, 1> m1,
 }
 
 // Appendix A.1 in Barral's dissertation, case 5
-OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(Matrix<2, 2> m1,
+OMEGA_H_INLINE_BIG Matrix<2, 2> intersect_degenerate_metrics(Matrix<2, 2> m1,
     DiagDecomp<2> m1_dc, Few<Int, 2> m1_ew_is_degen, Int, Matrix<2, 2> m2,
     DiagDecomp<2> m2_dc, Few<Int, 2> m2_ew_is_degen, Int) {
   auto u1 = zero_vector<2>();
@@ -119,7 +119,7 @@ OMEGA_H_INLINE Matrix<2, 2> intersect_degenerate_metrics(Matrix<2, 2> m1,
 }
 
 // Barral's thesis, appendix A.2
-OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
+OMEGA_H_INLINE_BIG Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
     DiagDecomp<3> m1_dc, Few<Int, 3> m1_ew_is_degen, Int nm1_degen_ews,
     Matrix<3, 3> m2, DiagDecomp<3> m2_dc, Few<Int, 3> m2_ew_is_degen,
     Int nm2_degen_ews) {
@@ -271,7 +271,7 @@ OMEGA_H_INLINE Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> intersect_metrics(
+OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
     Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
   auto m1_dc = decompose_eigen(m1);
   auto m2_dc = decompose_eigen(m2);

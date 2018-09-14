@@ -34,11 +34,13 @@
 
 #ifdef OMEGA_H_USE_CUDA
 #define OMEGA_H_INLINE __host__ __device__ inline
+#define OMEGA_H_INLINE_BIG OMEGA_H_INLINE
 #define OMEGA_H_DEVICE __device__ inline
 #define OMEGA_H_LAMBDA [=] __device__
 #define OMEGA_H_CONSTANT_DATA __constant__
 #else
 #define OMEGA_H_INLINE __attribute__((always_inline)) inline
+#define OMEGA_H_INLINE_BIG inline
 #define OMEGA_H_DEVICE __attribute__((always_inline)) inline
 #define OMEGA_H_LAMBDA(...) [=](__VA_ARGS__) __attribute__((always_inline, flatten))
 #define OMEGA_H_CONSTANT_DATA
