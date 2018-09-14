@@ -80,10 +80,6 @@ void update_transfer_opts(TransferOpts* opts, Teuchos::ParameterList& pl) {
       }
     }
   }
-  set_if_given(&opts->should_conserve_size, pl, "Conserve Size");
-  set_if_given(&opts->max_size_steps, pl, "Max Size Steps");
-  set_if_given(&opts->min_size_step_ratio, pl, "Min Size Step Ratio");
-  set_if_given(&opts->max_size_error_ratio, pl, "Max Size Error Ratio");
 }
 
 void update_adapt_opts(AdaptOpts* opts, Teuchos::ParameterList& pl) {

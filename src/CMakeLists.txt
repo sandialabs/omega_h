@@ -74,9 +74,6 @@ set(Omega_h_SOURCES
   Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
-  Omega_h_motion_choices.cpp
-  Omega_h_motion_transfer.cpp
-  Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
   Omega_h_fix.cpp
@@ -336,7 +333,6 @@ if(BUILD_TESTING)
                 ${Omega_h_DATA}/ball_in_cube.msh)
     endif()
   endif()
-  osh_add_exe(motion_unit_test)
   osh_add_exe(ring_test)
   if(Omega_h_DATA)
     set(TEST_EXES ${TEST_EXES} ring_test)

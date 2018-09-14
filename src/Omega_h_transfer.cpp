@@ -72,7 +72,6 @@ bool should_conserve(
 }
 
 bool has_densities_or_conserved(Mesh* mesh, TransferOpts const& opts) {
-  if (opts.should_conserve_size) return true;
   auto dim = mesh->dim();
   for (Int i = 0; i < mesh->ntags(dim); ++i) {
     auto tag = mesh->get_tag(dim, i);
@@ -87,7 +86,6 @@ bool has_densities_or_conserved(Mesh* mesh, TransferOpts const& opts) {
 }
 
 bool should_conserve_any(Mesh* mesh, TransferOpts const& opts) {
-  if (opts.should_conserve_size) return true;
   auto dim = mesh->dim();
   for (Int i = 0; i < mesh->ntags(dim); ++i) {
     if (should_conserve(mesh, opts, dim, mesh->get_tag(dim, i))) {
