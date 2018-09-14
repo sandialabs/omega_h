@@ -14,7 +14,6 @@
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_verify.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"

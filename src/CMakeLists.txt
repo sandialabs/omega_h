@@ -77,7 +77,6 @@ set(Omega_h_SOURCES
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
   Omega_h_fix.cpp
-  Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
   Omega_h_amr_topology.cpp
   Omega_h_amr.cpp
@@ -219,7 +218,6 @@ if(Omega_h_USE_libMeshb)
   osh_add_util(ugawg_parallel_adapt)
   if (Omega_h_USE_EGADS)
     osh_add_util(ugawg_solution)
-    osh_add_util(ugawg_debug)
   endif()
 endif()
 if(Omega_h_USE_SEACASExodus)
