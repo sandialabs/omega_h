@@ -79,7 +79,6 @@ set(Omega_h_SOURCES
   Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
-  Omega_h_flood.cpp
   Omega_h_fix.cpp
   Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
@@ -392,7 +391,6 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
-  osh_add_exe(flood_test)
   osh_add_exe(adapt_from_pumi)
   osh_add_exe(random_test)
   target_include_directories(random_test PRIVATE ${TPL_PATH})
