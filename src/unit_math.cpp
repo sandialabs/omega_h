@@ -2,6 +2,7 @@
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_most_normal.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_metric_intersect.hpp"
 
 using namespace Omega_h;
 
