@@ -88,7 +88,12 @@ class Write {
 #ifdef __CUDA_ARCH__
     return true;
 #elif defined( OMEGA_H_USE_KOKKOSCORE )
-    return view().data() != nullptr;
+    return view().data() != nullptr
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+      /* deprecated Kokkos behavior: zero-span views have data()==nullptr */
+      || view().use_count() != 0
+#endif
+      ;
 #else
     return use_count() != 0;
 #endif
