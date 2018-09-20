@@ -72,7 +72,7 @@ OMEGA_H_INLINE Matrix<3, 3> log_so(Matrix<3, 3> r) {
   }
   // R = cos(theta) * I + sin(theta) * cross(v) + (1 - cos(theta)) * outer_product(u, u)
   // R - R^T = 2 * sin(theta) * cross(v)
-  return (theta / std::sin(theta)) * (r - transpose(r));
+  return (theta / (2.0 * std::sin(theta))) * (r - transpose(r));
 }
 
 // exponential of axis-angle, resulting in an SO(3) tensor
@@ -151,7 +151,8 @@ OMEGA_H_INLINE Matrix<dim, dim> log_glp(Matrix<dim, dim> A) {
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> exp_glp(Matrix<dim, dim> log_A) {
-  Matrix<dim, dim> log_U, log_V;
+  auto log_U = zero_matrix<dim, dim>();
+  auto log_V = zero_matrix<dim, dim>();
   Vector<dim> log_D;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
@@ -160,6 +161,8 @@ OMEGA_H_INLINE Matrix<dim, dim> exp_glp(Matrix<dim, dim> log_A) {
       else log_D(i) = log_A(i, i);
     }
   }
+  log_U -= transpose(log_U);
+  log_V -= transpose(log_V);
   auto const U = exp_so(log_U);
   auto const V = exp_so(log_V);
   Vector<dim> D;
