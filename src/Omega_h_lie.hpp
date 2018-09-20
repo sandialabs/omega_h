@@ -25,6 +25,22 @@ OMEGA_H_INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
   return compose_ortho(decomp.q, decomp.l);
 }
 
+// logarithm of a symmetric positive definite tensor
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> log_spd_old(Matrix<dim, dim> m) {
+  auto decomp = decompose_eigen(m);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
+  return compose_ortho(decomp.q, decomp.l);
+}
+
+// exponential resulting in a symmetric positive definite tensor
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> exp_spd_old(Matrix<dim, dim> m) {
+  auto decomp = decompose_eigen(m);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
+  return compose_ortho(decomp.q, decomp.l);
+}
+
 // square root of a symmetric positive definite tensor
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
@@ -60,7 +76,7 @@ OMEGA_H_INLINE Matrix<3, 3> log_so(Matrix<3, 3> r) {
 }
 
 // exponential of axis-angle, resulting in an SO(3) tensor
-OMEGA_H_INLINE Matrix<3, 3> exp_so(Matrix<3> log_r) {
+OMEGA_H_INLINE Matrix<3, 3> exp_so(Matrix<3, 3> log_r) {
   auto const v_times_theta = uncross(log_r);
   auto const theta = norm(v_times_theta);
   if (std::abs(theta) < EPSILON) return identity_matrix<3, 3>();
@@ -80,11 +96,11 @@ OMEGA_H_INLINE Matrix<2, 2> exp_so(Matrix<2, 2> log_r) {
   return rotate(theta);
 }
 
-OMEGA_H_INLINE Matrix<1, 1> log_so(Matrix<1, 1> r) {
+OMEGA_H_INLINE Matrix<1, 1> log_so(Matrix<1, 1>) {
   return matrix_1x1(0.0);
 }
 
-OMEGA_H_INLINE Matrix<1, 1> exp_so(Matrix<1, 1> log_r) {
+OMEGA_H_INLINE Matrix<1, 1> exp_so(Matrix<1, 1>) {
   return matrix_1x1(1.0);
 }
 
@@ -134,7 +150,7 @@ OMEGA_H_INLINE Matrix<dim, dim> log_glp(Matrix<dim, dim> A) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> exp_glp(Matrix<dim, dim> A) {
+OMEGA_H_INLINE Matrix<dim, dim> exp_glp(Matrix<dim, dim> log_A) {
   Matrix<dim, dim> log_U, log_V;
   Vector<dim> log_D;
   for (Int i = 0; i < dim; ++i) {

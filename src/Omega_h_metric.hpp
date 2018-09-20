@@ -102,12 +102,12 @@ That is the mechanism we use here:
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
-  return log_spd(m);
+  return log_spd_old(m);
 }
 
 template <Int dim>
 OMEGA_H_INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
-  return exp_spd(log_m);
+  return exp_spd_old(log_m);
 }
 
 template <Int n, typename T>
