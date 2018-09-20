@@ -278,7 +278,7 @@ OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> a) {
 }
 
 OMEGA_H_INLINE Vector<3> uncross(Matrix<3, 3> c) {
-  return vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]) / 2.;
+  return 0.5 * vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]);
 }
 
 OMEGA_H_INLINE Matrix<1, 1> invert(Matrix<1, 1> m) {

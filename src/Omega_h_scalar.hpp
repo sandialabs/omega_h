@@ -95,7 +95,7 @@ constexpr OMEGA_H_INLINE T min2(T a, T b) {
 
 template <typename T>
 OMEGA_H_INLINE void swap2(T& a, T& b) {
-  T c(std::move(a));
+  T const c(std::move(a));
   a = std::move(b);
   b = std::move(c);
 }
