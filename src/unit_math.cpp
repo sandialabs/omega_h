@@ -288,11 +288,17 @@ static void test_circumcenter() {
   OMEGA_H_CHECK(are_close(v1, vector_3(0, -std::sqrt(3) * 2.0 / 3.0, 0)));
 }
 
-static void test_lie() {
-  auto a = identity_matrix<3, 3>();
+template <Int dim>
+static void test_lie(Matrix<dim, dim> a) {
   auto log_a = log_glp(a);
   auto a2 = exp_glp(log_a);
   OMEGA_H_CHECK(are_close(a2, a));
+}
+
+static void test_lie() {
+  test_lie(identity_matrix<1, 1>());
+  test_lie(identity_matrix<2, 2>());
+  test_lie(identity_matrix<3, 3>());
 }
 
 template <Int n>

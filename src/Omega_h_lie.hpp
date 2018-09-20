@@ -74,10 +74,18 @@ OMEGA_H_INLINE Matrix<2, 2> log_so(Matrix<2, 2> r) {
   return matrix_2x2(0, -theta, theta, 0);
 }
 
-// exponential of angle, resulting in an SO(2) tensor
+// exponential resulting in an SO(2) tensor
 OMEGA_H_INLINE Matrix<2, 2> exp_so(Matrix<2, 2> log_r) {
   auto const theta = 0.5 * (log_r(1, 0) - log_r(0, 1));
   return rotate(theta);
+}
+
+OMEGA_H_INLINE Matrix<1, 1> log_so(Matrix<1, 1> r) {
+  return matrix_1x1(0.0);
+}
+
+OMEGA_H_INLINE Matrix<1, 1> exp_so(Matrix<1, 1> log_r) {
+  return matrix_1x1(1.0);
 }
 
 /* get the logarithm of a tensor in the "identity component of the general linear group",
@@ -87,15 +95,13 @@ OMEGA_H_INLINE Matrix<2, 2> exp_so(Matrix<2, 2> log_r) {
    "Lie-group interpolation and variational recovery for internal variables."
    Computational Mechanics 52.6 (2013): 1281-1299.
 
-   The tensor A is first polar-decomposed into a rotation R and a symmetric tensor S
-   such that A=RS.
-   Then the logarithms of the rotation and symmetric tensor are taken separately.
-
-   Finally, we note that the logarithm of a rotation in SO(n) has ((n - 1) * n / 2)
+   We deviate from the approach outlined in the above paper.
+   Instead of dealing with R and S, we take logarithms of the three SVD components
+   U, D, and V.
  */
 
 template <Int dim>
-OMEGA_H_INLINE Vector<dim * dim> log_glp(Matrix<dim, dim> A) {
+OMEGA_H_INLINE Matrix<dim, dim> log_glp(Matrix<dim, dim> A) {
   // A = U * D * V^T
   // A * A^T = U * D^2 * U^T
   auto const UD = decompose_eigen_jacobi(A * transpose(A));
@@ -109,6 +115,40 @@ OMEGA_H_INLINE Vector<dim * dim> log_glp(Matrix<dim, dim> A) {
   }
   // V^T = D^{-1} * U^T * A
   auto const VT = diagonal(D_inv) * transpose(U) * A;
+  auto const V = transpose(VT);
+  auto const log_U = log_so(U);
+  auto const log_V = log_so(V);
+  Matrix<dim, dim> log_A;
+  // mix the independent components as follows:
+  // the lower triangle will store the lower triangle
+  // of log(U), the upper triangle will be upper triangle of log(V),
+  // and the diagonal will be the diagonal of log(D)
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j) {
+      if (i < j) log_A(i, j) = log_V(i, j);
+      else if (i > j) log_A(i, j) = log_U(i, j);
+      else log_A(i, i) = log_D(i);
+    }
+  }
+  return log_A;
+}
+
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> exp_glp(Matrix<dim, dim> A) {
+  Matrix<dim, dim> log_U, log_V;
+  Vector<dim> log_D;
+  for (Int i = 0; i < dim; ++i) {
+    for (Int j = 0; j < dim; ++j) {
+      if (i < j) log_V(i, j) = log_A(i, j);
+      else if (i > j) log_U(i, j) = log_A(i, j);
+      else log_D(i) = log_A(i, i);
+    }
+  }
+  auto const U = exp_so(log_U);
+  auto const V = exp_so(log_V);
+  Vector<dim> D;
+  for (Int i = 0; i < dim; ++i) D(i) = std::exp(log_D(i));
+  return U * diagonal(D) * transpose(V);
 }
 
 }  // namespace Omega_h
