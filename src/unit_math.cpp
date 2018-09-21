@@ -293,25 +293,8 @@ static void test_circumcenter() {
 
 template <Int dim>
 static void test_lie(Matrix<dim, dim> a) {
-  std::cerr << std::scientific << std::setprecision(17);
-  std::cerr << "rotate(0.1) " << Omega_h::rotate(0.1) << '\n';
-  std::cerr << "rotation_angle(rotate(0.1)) " << rotation_angle(Omega_h::rotate(0.1)) << '\n';
-  std::cerr << "rotation_angle(rotate(-0.1)) " << rotation_angle(Omega_h::rotate(-0.1)) << '\n';
-  std::cerr << "rotate(0.1) * vector_2(1.0, 0.0) " << Omega_h::rotate(0.1) * vector_2(1.0, 0.0) << '\n';
-  std::cerr << "transpose(rotate(-0.1)) * vector_2(1.0, 0.0) " << transpose(Omega_h::rotate(-0.1)) * vector_2(1.0, 0.0) << '\n';
-  std::cerr << "rotate(0.1, vector_3(0.0, 0.0, 1.0)) " << Omega_h::rotate(0.1, vector_3(0.0, 0.0, 1.0)) << '\n';
-  std::cerr << "rotate(0.1, vector_3(0.0, 0.0, 1.0)) * vector_3(1.0, 0.0, 0.0) " << Omega_h::rotate(0.1, vector_3(0.0, 0.0, 1.0)) * vector_3(1.0, 0.0, 0.0) << '\n';
-  std::cerr << "rotation_angle(rotate(0.1, vector_3(0.0, 0.0, 1.0))) " << rotation_angle(Omega_h::rotate(0.1, vector_3(0.0, 0.0, 1.0))) << '\n';
-  std::cerr << "rotation_angle(rotate(-0.1, vector_3(0.0, 0.0, 1.0))) " << rotation_angle(Omega_h::rotate(-0.1, vector_3(0.0, 0.0, 1.0))) << '\n';
-  std::cerr << "log_so(rotate(0.1, vector_3(0.0, 0.0, 1.0))) " << log_so(Omega_h::rotate(0.1, vector_3(0.0, 0.0, 1.0))) << '\n';
-  std::cerr << "exp_so(log_so(rotate(0.1, vector_3(0.0, 0.0, 1.0)))) " << exp_so(log_so(Omega_h::rotate(0.1, vector_3(0.0, 0.0, 1.0)))) << '\n';
-  std::cerr << "A " << a << '\n';
   auto log_a = log_glp(a);
-  std::cerr << "log(A) " << log_a << '\n';
   auto a2 = exp_glp(log_a);
-  std::cerr << "exp(log(A)) " << a2 << '\n';
-//if (!are_close(a2, a)) {
-//}
   OMEGA_H_CHECK(are_close(a2, a));
 }
 
@@ -325,22 +308,20 @@ static void test_lie_F(Matrix<dim, dim + 1> new_simplex_coords) {
       else old_simplex_basis_grads(i, j + 1) = 0.0;
     }
   }
-//std::cerr << "grads " << old_simplex_basis_grads << '\n';
-//std::cerr << "coords^T " << transpose(new_simplex_coords) << '\n';
   auto const F = old_simplex_basis_grads * transpose(new_simplex_coords);
   test_lie(F);
 }
 
 static void test_lie() {
-//test_lie(identity_matrix<1, 1>());
-//test_lie(identity_matrix<2, 2>());
-//test_lie(identity_matrix<3, 3>());
-//test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}});
-//test_lie_F<2>({{0.0, 0.0}, {2.0, 0.0}, {0.0, 1.0}});
-//test_lie_F<2>({{0.0, 0.0}, {0.5, 0.0}, {0.0, 1.0}});
-//test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}});
-//test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 0.5}});
-//test_lie_F<2>({{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
+  test_lie(identity_matrix<1, 1>());
+  test_lie(identity_matrix<2, 2>());
+  test_lie(identity_matrix<3, 3>());
+  test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}});
+  test_lie_F<2>({{0.0, 0.0}, {2.0, 0.0}, {0.0, 1.0}});
+  test_lie_F<2>({{0.0, 0.0}, {0.5, 0.0}, {0.0, 1.0}});
+  test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}});
+  test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 0.5}});
+  test_lie_F<2>({{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
   test_lie_F<3>({{0.0, 0.0, 0.0}, {std::cos(1.0), std::sin(1.0), 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
 }
 
