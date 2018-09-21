@@ -293,13 +293,19 @@ static void test_circumcenter() {
 
 template <Int dim>
 static void test_lie(Matrix<dim, dim> a) {
+  std::cerr << std::scientific << std::setprecision(17);
   auto log_a = log_glp(a);
   auto a2 = exp_glp(log_a);
-  OMEGA_H_CHECK(are_close(a2, a));
+//OMEGA_H_CHECK(are_close(a2, a));
+  if (!(are_close(a2, a))) {
+    std::cerr << "a " << a << '\n';
+    std::cerr << " != exp(log(a)) " << a2 << '\n';
+    std::cerr << "log(a) " << log_a << '\n';
+  }
 }
 
 template <Int dim>
-static void test_lie_F(Matrix<dim, dim + 1> new_simplex_coords) {
+static Matrix<dim, dim> F_from_coords(Matrix<dim, dim + 1> new_simplex_coords) {
   Matrix<dim, dim + 1> old_simplex_basis_grads;
   for (Int i = 0; i < dim; ++i) {
     old_simplex_basis_grads(i, 0) = -1.0;
@@ -308,11 +314,38 @@ static void test_lie_F(Matrix<dim, dim + 1> new_simplex_coords) {
       else old_simplex_basis_grads(i, j + 1) = 0.0;
     }
   }
-  auto const F = old_simplex_basis_grads * transpose(new_simplex_coords);
-  test_lie(F);
+  return old_simplex_basis_grads * transpose(new_simplex_coords);
+}
+
+template <Int dim>
+static void test_lie_F(Matrix<dim, dim + 1> new_simplex_coords) {
+  test_lie(F_from_coords(new_simplex_coords));
+}
+
+template <Int dim>
+static void test_lie_F_product(Matrix<dim, dim + 1> coords1, Matrix<dim, dim + 1> coords2) {
+  std::cerr << std::scientific << std::setprecision(17);
+  test_lie_F(coords1);
+  test_lie_F(coords2);
+  auto const F1 = F_from_coords(coords1);
+  std::cerr << "F1 " << F1 << '\n';
+  auto const F2 = F_from_coords(coords2);
+  std::cerr << "F2 " << F2 << '\n';
+  auto const F1_times_F2 = F1 * F2;
+  std::cerr << "F1 * F2 " << F1 * F2 << '\n';
+  auto const log_F1 = log_glp(F1);
+  std::cerr << "log(F1) " << log_F1 << '\n';
+  auto const log_F2 = log_glp(F2);
+  std::cerr << "log(F2) " << log_F2 << '\n';
+  auto const log_F1_plus_log_F2 = log_F1 + log_F2;
+  std::cerr << "log(F1) + log(F2) " << log_F1_plus_log_F2 << '\n';
+  std::cerr << "log(F1 * F2) " << log_glp(F1_times_F2) << '\n';
+  auto const recovered_F1_times_F2 = exp_glp(log_F1_plus_log_F2);
+  std::cerr << "exp(log(F1)+log(F2)) " << recovered_F1_times_F2 << '\n';
 }
 
 static void test_lie() {
+  if ((0)) {
   test_lie(identity_matrix<1, 1>());
   test_lie(identity_matrix<2, 2>());
   test_lie(identity_matrix<3, 3>());
@@ -323,6 +356,13 @@ static void test_lie() {
   test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 0.5}});
   test_lie_F<2>({{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
   test_lie_F<3>({{0.0, 0.0, 0.0}, {std::cos(1.0), std::sin(1.0), 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
+  test_lie_F_product<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}}, {{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}});
+  test_lie_F_product<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}}, {{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
+  test_lie_F_product<2>({{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}}, {{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
+  }
+  test_lie_F<2>({{0.0, 0.0}, {std::cos(2.0), std::sin(2.0)}, {-1.0, 0.0}});
+  test_lie_F_product<2>({{0.0, 0.0}, {std::cos(2.0), std::sin(2.0)}, {-1.0, 0.0}}, {{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
+  test_lie_F_product<2>({{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}}, {{0.0, 0.0}, {std::cos(2.0), std::sin(2.0)}, {-1.0, 0.0}});
 }
 
 template <Int n>
