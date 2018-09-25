@@ -14,6 +14,7 @@ OMEGA_H_SYSTEM_HEADER
 #pragma GCC diagnostic ignored "-Wint-in-bool-context"
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
 #endif
+#pragma GCC diagnostic ignored "-Wshadow"
 #endif
 
 #include <Kokkos_Core.hpp>
