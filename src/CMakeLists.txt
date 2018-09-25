@@ -66,7 +66,6 @@ set(Omega_h_SOURCES
   Omega_h_swap3d_topology.cpp
   Omega_h_swap3d.cpp
   Omega_h_regress.cpp
-  Omega_h_consistent.cpp
   Omega_h_align.cpp
   Omega_h_xml_lite.cpp
   Omega_h_recover.cpp
@@ -74,14 +73,9 @@ set(Omega_h_SOURCES
   Omega_h_eigen.cpp
   Omega_h_cmdline.cpp
   Omega_h_confined.cpp
-  Omega_h_motion_choices.cpp
-  Omega_h_motion_transfer.cpp
-  Omega_h_motion.cpp
   Omega_h_metric_input.cpp
   Omega_h_assoc.cpp
-  Omega_h_flood.cpp
   Omega_h_fix.cpp
-  Omega_h_verify.cpp
   Omega_h_scatterplot.cpp
   Omega_h_amr_topology.cpp
   Omega_h_amr.cpp
@@ -223,7 +217,6 @@ if(Omega_h_USE_libMeshb)
   osh_add_util(ugawg_parallel_adapt)
   if (Omega_h_USE_EGADS)
     osh_add_util(ugawg_solution)
-    osh_add_util(ugawg_debug)
   endif()
 endif()
 if(Omega_h_USE_SEACASExodus)
@@ -259,29 +252,6 @@ if(BUILD_TESTING)
     endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_STR})
   endfunction(test_func)
-
-  if(Omega_h_USE_Gmodel)
-    function(gen_func MODEL_NAME)
-      add_executable(gen_${MODEL_NAME} gen/${MODEL_NAME}.cpp)
-      bob_link_dependency(gen_${MODEL_NAME} PRIVATE Gmodel)
-      if(Omega_h_DATA)
-        set(TEST_EXES ${TEST_EXES} gen_${MODEL_NAME})
-        add_test(NAME run_gen_${MODEL_NAME} COMMAND ./gen_${MODEL_NAME})
-        add_test(NAME gold_gen_${MODEL_NAME}
-                 COMMAND diff
-                 ./${MODEL_NAME}.geo
-                 ${Omega_h_DATA}/${MODEL_NAME}.geo)
-      endif()
-    endfunction(gen_func)
-    gen_func(ring)
-    gen_func(ball_in_cube)
-    gen_func(balls_in_box)
-    gen_func(cylinder_thru_tube)
-    gen_func(ball)
-    gen_func(twin_rotor)
-    gen_func(solder_balls)
-    gen_func(square_and_disk_in_square)
-  endif()
 
   osh_add_exe(unit_math)
   set(TEST_EXES ${TEST_EXES} unit_math)
@@ -337,8 +307,6 @@ if(BUILD_TESTING)
                 ${Omega_h_DATA}/ball_in_cube.msh)
     endif()
   endif()
-  osh_add_exe(motion_unit_test)
-  osh_add_exe(perf_tests)
   osh_add_exe(ring_test)
   if(Omega_h_DATA)
     set(TEST_EXES ${TEST_EXES} ring_test)
@@ -392,7 +360,6 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
-  osh_add_exe(flood_test)
   osh_add_exe(adapt_from_pumi)
   osh_add_exe(random_test)
   target_include_directories(random_test PRIVATE ${TPL_PATH})
@@ -477,6 +444,7 @@ set(Omega_h_HEADERS
   Omega_h_base64.hpp
   Omega_h_xml_lite.hpp
   Omega_h_expr.hpp
+  Omega_h_int_scan.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)

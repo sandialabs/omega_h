@@ -8,14 +8,12 @@
 #include "Omega_h_histogram.hpp"
 #include "Omega_h_laplace.hpp"
 #include "Omega_h_map.hpp"
-#include "Omega_h_motion.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine.hpp"
 #include "Omega_h_stack.hpp"
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_verify.hpp"
 
 #ifdef OMEGA_H_USE_EGADS
 #include "Omega_h_egads.hpp"
@@ -26,10 +24,6 @@ namespace Omega_h {
 void UserTransfer::out_of_line_virtual_method() {}
 
 TransferOpts::TransferOpts() {
-  should_conserve_size = false;
-  max_size_steps = 100;
-  min_size_step_ratio = 2e-3;
-  max_size_error_ratio = 2e-2;
 }
 
 void TransferOpts::validate(Mesh* mesh) const {
@@ -280,16 +274,6 @@ static void post_adapt(
   }
 }
 
-static void correct_size_errors(Mesh* mesh, AdaptOpts const& opts) {
-  if (opts.xfer_opts.should_conserve_size) {
-    begin_code("correct_size_errors");
-    while (move_verts_to_conserve_size(mesh, opts)) {
-      post_rebuild(mesh, opts);
-    }
-    end_code();
-  }
-}
-
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto t0 = now();
@@ -301,7 +285,6 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t2 = now();
   snap_and_satisfy_quality(mesh, opts);
   auto t3 = now();
-  correct_size_errors(mesh, opts);
   correct_integral_errors(mesh, opts);
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);

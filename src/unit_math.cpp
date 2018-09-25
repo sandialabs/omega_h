@@ -2,6 +2,10 @@
 #include "Omega_h_eigen.hpp"
 #include "Omega_h_most_normal.hpp"
 #include "Omega_h_shape.hpp"
+#include "Omega_h_metric_intersect.hpp"
+
+#include <Omega_h_print.hpp>
+#include <iomanip>
 
 using namespace Omega_h;
 
@@ -287,11 +291,43 @@ static void test_circumcenter() {
   OMEGA_H_CHECK(are_close(v1, vector_3(0, -std::sqrt(3) * 2.0 / 3.0, 0)));
 }
 
-static void test_lie() {
-  auto a = identity_matrix<3, 3>();
+template <Int dim>
+static void test_lie(Matrix<dim, dim> a) {
   auto log_a = log_glp(a);
   auto a2 = exp_glp(log_a);
   OMEGA_H_CHECK(are_close(a2, a));
+}
+
+template <Int dim>
+static Matrix<dim, dim> F_from_coords(Matrix<dim, dim + 1> new_simplex_coords) {
+  Matrix<dim, dim + 1> old_simplex_basis_grads;
+  for (Int i = 0; i < dim; ++i) {
+    old_simplex_basis_grads(i, 0) = -1.0;
+    for (Int j = 0; j < dim; ++j) {
+      if (i == j) old_simplex_basis_grads(i, j + 1) = 1.0;
+      else old_simplex_basis_grads(i, j + 1) = 0.0;
+    }
+  }
+  return old_simplex_basis_grads * transpose(new_simplex_coords);
+}
+
+template <Int dim>
+static void test_lie_F(Matrix<dim, dim + 1> new_simplex_coords) {
+  test_lie(F_from_coords(new_simplex_coords));
+}
+
+static void test_lie() {
+  test_lie(identity_matrix<1, 1>());
+  test_lie(identity_matrix<2, 2>());
+  test_lie(identity_matrix<3, 3>());
+  test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 1.0}});
+  test_lie_F<2>({{0.0, 0.0}, {2.0, 0.0}, {0.0, 1.0}});
+  test_lie_F<2>({{0.0, 0.0}, {0.5, 0.0}, {0.0, 1.0}});
+  test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}});
+  test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 0.5}});
+  test_lie_F<2>({{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
+  test_lie_F<3>({{0.0, 0.0, 0.0}, {std::cos(1.0), std::sin(1.0), 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
+  test_lie_F<2>({{0.0, 0.0}, {std::cos(2.0), std::sin(2.0)}, {-1.0, 0.0}});
 }
 
 template <Int n>

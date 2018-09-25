@@ -278,7 +278,7 @@ OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> a) {
 }
 
 OMEGA_H_INLINE Vector<3> uncross(Matrix<3, 3> c) {
-  return vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]) / 2.;
+  return 0.5 * vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]);
 }
 
 OMEGA_H_INLINE Matrix<1, 1> invert(Matrix<1, 1> m) {
@@ -488,12 +488,14 @@ OMEGA_H_INLINE Matrix<2, 2> rotate(Real angle) {
 }
 
 OMEGA_H_INLINE Real rotation_angle(Matrix<2, 2> r) {
-  return std::acos(r[0][0]);
+  auto const cos_theta = 0.5 * trace(r);
+  auto const sin_theta = 0.5 * (r(1, 0) - r(0, 1));
+  return std::atan2(sin_theta, cos_theta);
 }
 
-OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) __attribute__((pure));
 OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) {
-  return std::acos((trace(r) - 1.0) / 2.0);
+  auto const cos_theta = 0.5 * (trace(r) - 1.0);
+  return std::acos(cos_theta);
 }
 
 OMEGA_H_INLINE Matrix<1, 1> form_ortho_basis(Vector<1> v) {

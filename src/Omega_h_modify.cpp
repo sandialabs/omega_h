@@ -13,7 +13,6 @@
 #include "Omega_h_owners.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_unmap_mesh.hpp"
-#include "Omega_h_verify.hpp"
 
 namespace Omega_h {
 

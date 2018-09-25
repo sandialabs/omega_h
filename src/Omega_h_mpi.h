@@ -25,7 +25,18 @@ OMEGA_H_SYSTEM_HEADER
 #define MPICH_SKIP_MPICXX
 #endif
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#if (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 3)
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#endif
+#endif
+
 #include <mpi.h>
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #endif  // ifdef OMEGA_H_USE_MPI
 

@@ -433,8 +433,7 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(
   auto v = identity_matrix<dim, dim>();
   auto tol = eps * norm(a);
   Int iter = 0;
-  while (norm_off_diag(a) > tol) {
-    OMEGA_H_CHECK(iter < max_iter);
+  while (norm_off_diag(a) > tol && iter < max_iter) {
     auto pq = arg_max_off_diag(a);
     auto p = pq[0];
     auto q = pq[1];

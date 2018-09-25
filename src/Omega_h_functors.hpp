@@ -5,19 +5,6 @@
 
 namespace Omega_h {
 
-/* Kokkos requires reduction value types to be at least sizeof(int).
-   This class encapsulates the choice to use a wider integer if needed.
- */
-template <typename T>
-struct StandinTraits {
-  typedef T type;
-};
-
-template <>
-struct StandinTraits<I8> {
-  typedef I32 type;
-};
-
 struct AndFunctor {
   typedef I64 value_type;
   OMEGA_H_INLINE void init(value_type& update) const { update = 1; }
@@ -29,7 +16,7 @@ struct AndFunctor {
 
 template <typename T>
 struct MaxFunctor {
-  typedef typename StandinTraits<T>::type value_type;
+  typedef promoted_t<T> value_type;
   typedef T input_type;
   OMEGA_H_INLINE void init(value_type& update) const {
     update = ArithTraits<T>::min();
@@ -42,7 +29,7 @@ struct MaxFunctor {
 
 template <typename T>
 struct MinFunctor {
-  typedef typename StandinTraits<T>::type value_type;
+  typedef promoted_t<T> value_type;
   typedef T input_type;
   OMEGA_H_INLINE void init(value_type& update) const {
     update = ArithTraits<T>::max();
@@ -55,7 +42,7 @@ struct MinFunctor {
 
 template <typename T>
 struct SumFunctor {
-  using value_type = typename StandinTraits<T>::type;
+  using value_type = promoted_t<T>;
   using input_type = T;
   OMEGA_H_INLINE void init(value_type& update) const { update = 0; }
   OMEGA_H_INLINE void join(

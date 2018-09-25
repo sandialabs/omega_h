@@ -1,4 +1,3 @@
-#include <Omega_h_functors.hpp>
 #include <Omega_h_print.hpp>
 
 namespace Omega_h {
@@ -6,12 +5,12 @@ namespace Omega_h {
 template <class T>
 std::ostream& operator<<(std::ostream& stream, HostRead<T> hr) {
   stream << '{';
-  using T2 = typename StandinTraits<T>::type;
+  using PT = promoted_t<T>;
   const bool do_designators = (hr.size() > 8);
   for (LO i = 0; i < hr.size(); ++i) {
     if (i > 0) stream << ", ";
     if (do_designators) stream << '[' << i << "]=";
-    stream << T2(hr[i]);
+    stream << PT(hr[i]);
   }
   stream << '}';
   return stream;

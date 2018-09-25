@@ -5,6 +5,7 @@
 #include "Omega_h_for.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_sort.hpp"
+#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 

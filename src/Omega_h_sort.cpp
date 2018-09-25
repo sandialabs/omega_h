@@ -5,17 +5,30 @@
 #include <vector>
 
 #if defined(OMEGA_H_USE_CUDA)
+
 #if defined(__clang__)
 template <class... Args>
 inline __host__ __device__ void va_printf(const char*, Args...) {
   printf("\n");
 }
 #endif
-#include <Omega_h_thrust.hpp>
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+#include <thrust/device_ptr.h>
+#include <thrust/sort.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 #elif defined(OMEGA_H_USE_OPENMP)
+
 #include <omp.h>
 #include <pss/parallel_stable_sort.hpp>
 #include <pss/pss_common.hpp>
+
 #endif
 
 #include "Omega_h_array_ops.hpp"

@@ -36,11 +36,6 @@ struct TransferOpts {
   std::map<std::string, VarCompareOpts>
       integral_diffuse_map;  // "mass" -> tolerance
   std::shared_ptr<UserTransfer> user_xfer;
-  /* TODO: rip these things out */
-  bool should_conserve_size;
-  Int max_size_steps;
-  Real min_size_step_ratio;
-  Real max_size_error_ratio;
   void validate(Mesh* mesh) const;
 };
 

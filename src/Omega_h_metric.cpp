@@ -12,6 +12,7 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_surface.hpp"
+#include "Omega_h_metric_intersect.hpp"
 
 namespace Omega_h {
 

@@ -4,7 +4,6 @@
 #include <sstream>
 
 #include "Omega_h_for.hpp"
-#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 
