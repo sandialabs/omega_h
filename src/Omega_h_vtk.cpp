@@ -625,7 +625,7 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   }
   write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
   if (tags[size_t(cell_dim)].count("vtkGhostType")) {
-    write_vtk_ghost_types(stream, mesh, mesh->dim(), compress);
+    write_vtk_ghost_types(stream, mesh, cell_dim, compress);
   }
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
