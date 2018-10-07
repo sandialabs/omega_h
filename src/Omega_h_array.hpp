@@ -9,6 +9,7 @@
 #include <Omega_h_kokkos.hpp>
 #else
 #include <string>
+#include <Omega_h_shared_alloc.hpp>
 #endif
 
 namespace Omega_h {
@@ -19,22 +20,12 @@ T* nonnull(T* p);
 template <typename T>
 class HostWrite;
 
-#ifndef OMEGA_H_USE_KOKKOSCORE
-template <typename T>
-struct SharedAlloc2 {
-  std::string name;
-  std::unique_ptr<T[]> ptr;
-};
-#endif
-
 template <typename T>
 class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view_;
 #else
-  std::shared_ptr<SharedAlloc2<T> > tracker_;
-  LO size_;
-  T* ptr_;
+  SharedAlloc shared_alloc_;
 #endif
 
  public:
@@ -51,7 +42,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return static_cast<LO>(view_.size());
 #else
-    return size_;
+    return shared_alloc_.size() / sizeof(T);
 #endif
   }
   OMEGA_H_DEVICE T& operator[](LO i) const {
@@ -62,14 +53,14 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return view_(i);
 #else
-    return ptr_[i];
+    return data()[i];
 #endif
   }
   OMEGA_H_INLINE T* data() const {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return view_.data();
 #else
-    return ptr_;
+    return static_cast<T*>(shared_alloc_.data());
 #endif
   }
 #ifdef OMEGA_H_USE_KOKKOSCORE
@@ -77,13 +68,15 @@ class Write {
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
-  OMEGA_H_INLINE long use_count() const {
 #ifdef OMEGA_H_USE_KOKKOSCORE
+  OMEGA_H_INLINE long use_count() const {
     return view_.use_count();
-#else
-    return tracker_.use_count();
-#endif
   }
+#else
+  inline int use_count() const {
+    return shared_alloc_.alloc->use_count;
+  }
+#endif
   OMEGA_H_INLINE bool exists() const {
 #ifdef __CUDA_ARCH__
     return true;
