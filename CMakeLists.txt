@@ -205,4 +205,10 @@ if(Omega_h_EXAMPLES)
 endif()
 add_subdirectory(src)
 
+if (Omega_h_USE_CUDA)
+  install(FILES
+      ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper
+      DESTINATION bin)
+endif()
+
 bob_end_package()
