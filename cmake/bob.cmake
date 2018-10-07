@@ -158,7 +158,10 @@ function(bob_begin_cxx_flags)
     option(${PROJECT_NAME}_CXX_WARNINGS "Compile C++ with warnings" ON)
     bob_cmake_arg(${PROJECT_NAME}_CXX_OPTIMIZE BOOL ON)
     bob_cmake_arg(${PROJECT_NAME}_CXX_SYMBOLS BOOL ON)
+    set(${PROJECT_NAME}_ARCH "native" CACHE STRING
+        "Argument to -march or -arch")
     bob_cmake_arg(${PROJECT_NAME}_ARCH STRING "native")
+    message("${PROJECT_NAME}_ARCH=${${PROJECT_NAME}_ARCH}")
     #CDash's simple output parser interprets the variable name WARNINGS as a warning...
     message(STATUS "${PROJECT_NAME}_CXX_W**NINGS: ${${PROJECT_NAME}_CXX_WARNINGS}")
     bob_cmake_arg2(${PROJECT_NAME}_CXX_WARNINGS BOOL ON)
