@@ -123,7 +123,7 @@ struct SharedAlloc {
     }
 #endif
   }
-  OMEGA_H_INLINE std::size_t size() {
+  OMEGA_H_INLINE std::size_t size() const {
 #ifndef __CUDA_ARCH__
     if (!(reinterpret_cast<std::uintptr_t>(alloc) & IN_PARALLEL)) {
       return alloc->size;
