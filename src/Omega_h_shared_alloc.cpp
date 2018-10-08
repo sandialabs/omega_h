@@ -83,6 +83,7 @@ void Alloc::init() {
 #else
   ptr = std::malloc(size);
 #endif
+  use_count = 1;
   auto ga = global_allocs;
   if (size && (ptr == nullptr)) {
     std::stringstream ss;
