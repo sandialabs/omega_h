@@ -42,7 +42,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return static_cast<LO>(view_.size());
 #else
-    return shared_alloc_.size() / sizeof(T);
+    return static_cast<LO>(shared_alloc_.size() / sizeof(T));
 #endif
   }
   OMEGA_H_DEVICE T& operator[](LO i) const {
@@ -94,10 +94,7 @@ class Write {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   std::string name() const;
 #else
-  std::string const& name() const { return tracker_->name; }
-#endif
-#ifndef OMEGA_H_USE_KOKKOSCORE
-  void rename(std::string const& new_name);
+  std::string const& name() const;
 #endif
 };
 
@@ -107,9 +104,7 @@ OMEGA_H_INLINE Write<T>::Write()
 #ifdef OMEGA_H_USE_KOKKOSCORE
       view_()
 #else
-      tracker_(),
-      size_(0),
-      ptr_(nullptr)
+      shared_alloc_()
 #endif
 {
 }
