@@ -6,7 +6,7 @@
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
-#elif defined(OMEGA_H_USE_OPENMP) || defined(OMEGA_H_USE_CUDA)
+#else
 #include <Omega_h_shared_alloc.hpp>
 #endif
 
@@ -53,6 +53,7 @@ void parallel_for(LO n, T const& f, char const* name = "") {
 #if defined(OMEGA_H_USE_KOKKOSCORE)
   if (n > 0) Kokkos::parallel_for(name, policy(n), f);
 #else
+  (void)name;
   auto f2 = f;
   parallel_for(n, std::move(f));
 #endif
@@ -63,6 +64,7 @@ void parallel_for(char const* name, LO n, T&& f) {
 #if defined(OMEGA_H_USE_KOKKOSCORE)
   if (n > 0) Kokkos::parallel_for(name, policy(n), f);
 #else
+  (void)name;
   parallel_for(n, std::move(f));
 #endif
 }

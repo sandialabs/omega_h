@@ -78,7 +78,7 @@ struct SharedAlloc {
       // allocated
       if (entering_parallel) {
         alloc = reinterpret_cast<Alloc*>(
-            (std::uintptr_t(alloc->size) << 3) & IN_PARALLEL);
+            (std::uintptr_t(alloc->size) << 3) | IN_PARALLEL);
       } else {
         ++(alloc->use_count);
       }
@@ -94,7 +94,7 @@ struct SharedAlloc {
       // allocated
       if (entering_parallel) {
         alloc = reinterpret_cast<Alloc*>(
-            (std::uintptr_t(alloc->size) << 3) & IN_PARALLEL);
+            (std::uintptr_t(alloc->size) << 3) | IN_PARALLEL);
       }
     }
 #endif
@@ -129,7 +129,7 @@ struct SharedAlloc {
       return alloc->size;
     }
 #endif
-    return (reinterpret_cast<std::uintptr_t>(alloc) & (~FREE_MASK)) >> 3;
+    return reinterpret_cast<std::uintptr_t>(alloc) >> 3;
   }
   OMEGA_H_INLINE int maybe_identity_index(int i) {
     if (reinterpret_cast<std::uintptr_t>(alloc) == IS_IDENTITY) {

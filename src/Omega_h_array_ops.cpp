@@ -35,8 +35,8 @@ struct Sum : public SumFunctor<T> {
 template <typename T>
 promoted_t<T> get_sum(Read<T> a) {
   using PT = promoted_t<T>;
-  return transform_reduce(a.begin(), a.end(),
-      OMEGA_H_LAMBDA(T val)->PT { return PT(val); }, PT(0), plus<PT>());
+  return transform_reduce(a.begin(), a.end(), PT(0), plus<PT>(),
+      OMEGA_H_LAMBDA(T val)->PT { return PT(val); });
 }
 
 template <typename T>

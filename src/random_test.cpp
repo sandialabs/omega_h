@@ -6,6 +6,7 @@ using namespace Omega_h;
 
 static OMEGA_H_DEVICE void contrib(Write<Real> const& buckets, Real value) {
   if (value < 0.0 || value >= 1.0) return;
+  OMEGA_H_CHECK(buckets.exists());
   buckets[LO(std::floor(value * buckets.size()))]++;
 }
 
@@ -47,7 +48,9 @@ int main(int argc, char** argv) {
   auto d_weibull_2_buckets = Write<Real>(nbuckets, 0);
   auto d_weibull_3_buckets = Write<Real>(nbuckets, 0);
   auto d_weibull_4_buckets = Write<Real>(nbuckets, 0);
+  OMEGA_H_CHECK(d_uniform_buckets.exists());
   auto f = OMEGA_H_LAMBDA(LO) {
+    OMEGA_H_CHECK(d_uniform_buckets.exists());
     UnitUniformDistribution uniform_rng{seed, key, 0};
     StandardNormalDistribution normal_rng;
     for (int i = 0; i < nsamples; ++i) {

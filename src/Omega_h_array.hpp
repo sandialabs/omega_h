@@ -38,7 +38,9 @@ class Write {
   Write(LO size_in, T offset, T stride, std::string const& name = "");
   Write(HostWrite<T> host_write);
   OMEGA_H_INLINE LO size() const {
+#ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(exists());
+#endif
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return static_cast<LO>(view_.size());
 #else
@@ -78,17 +80,15 @@ class Write {
   }
 #endif
   OMEGA_H_INLINE bool exists() const {
-#ifdef __CUDA_ARCH__
-    return true;
-#elif defined( OMEGA_H_USE_KOKKOSCORE )
+#if defined( OMEGA_H_USE_KOKKOSCORE )
     return view().data() != nullptr
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__))
       /* deprecated Kokkos behavior: zero-span views have data()==nullptr */
       || view().use_count() != 0
 #endif
       ;
 #else
-    return shared_alloc_.alloc != nullptr;
+    return shared_alloc_.data() != nullptr;
 #endif
   }
 #ifdef OMEGA_H_USE_KOKKOSCORE
