@@ -491,35 +491,35 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
    one billion values (10^9), for a total of (10^15) values.
 */
 
-struct MaxExponent : public MaxFunctor<int> {
-  Reals a_;
-  MaxExponent(Reals a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
-    int expo;
-    std::frexp(a_[i], &expo);
-    if (expo > update) update = expo;
-  }
-};
-
 static int max_exponent(Reals a) {
-  auto res = parallel_reduce(a.size(), MaxExponent(a), "max_exponent");
-  return static_cast<int>(res);
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = ArithTraits<int>::min();
+  auto const op = maximum<int>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> int {
+    int expo;
+    std::frexp(a[i], &expo);
+    return expo;
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
 
-struct ReproSum : public SumFunctor<Int128> {
-  Reals a_;
-  double unit_;
-  ReproSum(Reals a, double unit) : a_(a), unit_(unit) {}
-  OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
-    update = update + Int128::from_double(a_[i], unit_);
-  }
-};
+static Int128 int128_sum(Reals const a, double const unit) {
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = Int128(0);
+  auto const op = plus<Int128>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> Int128 {
+    return Int128::from_double(a[i], unit);
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
+}
 
 Real repro_sum(Reals a) {
   begin_code("repro_sum");
   int expo = max_exponent(a);
   double unit = exp2(double(expo - MANTISSA_BITS));
-  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit), "fixpt_sum");
+  Int128 fixpt_sum = int128_sum(a, unit);
   end_code();
   return fixpt_sum.to_double(unit);
 }
@@ -528,7 +528,7 @@ Real repro_sum(CommPtr comm, Reals a) {
   begin_code("repro_sum(comm)");
   int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
   double unit = exp2(double(expo - MANTISSA_BITS));
-  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit), "fixpt_sum");
+  Int128 fixpt_sum = int128_sum(a, unit);
   fixpt_sum = comm->add_int128(fixpt_sum);
   end_code();
   return fixpt_sum.to_double(unit);
