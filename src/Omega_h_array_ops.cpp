@@ -33,16 +33,6 @@ promoted_t<T> get_sum(CommPtr comm, Read<T> a) {
 }
 
 template <typename T>
-struct Min : public MinFunctor<T> {
-  using typename MinFunctor<T>::value_type;
-  Read<T> a_;
-  Min(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = min2<value_type>(update, a_[i]);
-  }
-};
-
-template <typename T>
 T get_min(Read<T> a) {
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
@@ -56,18 +46,15 @@ T get_min(Read<T> a) {
 }
 
 template <typename T>
-struct Max : public MaxFunctor<T> {
-  using typename MaxFunctor<T>::value_type;
-  Read<T> a_;
-  Max(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = max2<value_type>(update, a_[i]);
-  }
-};
-
-template <typename T>
 T get_max(Read<T> a) {
-  auto r = parallel_reduce(a.size(), Max<T>(a), "get_max");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = promoted_t<T>(ArithTraits<T>::min());
+  auto const op = maximum<promoted_t<T>>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
+  auto const r = transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<T>(r);  // see StandinTraits
 }
 
