@@ -401,23 +401,16 @@ void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp) {
 }
 
 template <typename T>
-struct FindLast : public MaxFunctor<LO> {
-  using typename MaxFunctor<LO>::value_type;
-  Read<T> array_;
-  T value_;
-  FindLast(Read<T> array, T value) : array_(array), value_(value) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    if (array_[i] == value_) {
-      update = max2<value_type>(update, i);
-    }
-  }
-};
-
-template <typename T>
 LO find_last(Read<T> array, T value) {
-  auto f = FindLast<T>(array, value);
-  auto res = parallel_reduce(array.size(), f, "find_last");
-  return (res == ArithTraits<LO>::min()) ? -1 : res;
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(array.size());
+  auto const init = -1;
+  auto const op = maximum<LO>();
+  auto const transform = OMEGA_H_LAMBDA(LO i) -> LO {
+    if (array[i] == value) return i;
+    else return -1;
+  };
+  return transform_reduce(first, last, init, op, transform);
 }
 
 template <typename T>
