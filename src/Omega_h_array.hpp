@@ -96,8 +96,8 @@ class Write {
 #else
   std::string const& name() const;
 #endif
-  OMEGA_H_INLINE T* begin() { return data(); }
-  OMEGA_H_INLINE T* end() { return data() + size(); }
+  OMEGA_H_INLINE T* begin() const { return data(); }
+  OMEGA_H_INLINE T* end() const { return data() + size(); }
 };
 
 template <typename T>
@@ -132,8 +132,8 @@ class Read {
   T last() const;
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
   std::string name() const { return write_.name(); }
-  OMEGA_H_INLINE T const* begin() { return data(); }
-  OMEGA_H_INLINE T const* end() { return data() + size(); }
+  OMEGA_H_INLINE T const* begin() const { return data(); }
+  OMEGA_H_INLINE T const* end() const { return data() + size(); }
 };
 
 template <typename T>
