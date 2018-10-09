@@ -3,34 +3,20 @@
 #include "Omega_h_for.hpp"
 #include "Omega_h_reduce.hpp"
 #include "Omega_h_functors.hpp"
+#include "Omega_h_int_iterator.hpp"
 
 namespace Omega_h {
 
 template <typename T>
-struct SameContent : public AndFunctor {
-  Read<T> a_;
-  Read<T> b_;
-  SameContent(Read<T> a, Read<T> b) : a_(a), b_(b) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (a_[i] == b_[i]);
-  }
-};
-
-template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
-  return parallel_reduce(a.size(), SameContent<T>(a, b), "operator==");
+  return transform_reduce(
+      IntIterator(0), IntIterator(a.size()),
+      true, logical_and<bool>(),
+      OMEGA_H_LAMBDA(LO i)->bool {
+        return a[i] == b[i];
+      });
 }
-
-template <typename T>
-struct Sum : public SumFunctor<T> {
-  using typename SumFunctor<T>::value_type;
-  Read<T> a_;
-  Sum(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update + a_[i];
-  }
-};
 
 template <typename T>
 promoted_t<T> get_sum(Read<T> a) {
