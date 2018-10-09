@@ -96,6 +96,8 @@ class Write {
 #else
   std::string const& name() const;
 #endif
+  OMEGA_H_INLINE T* begin() { return data(); }
+  OMEGA_H_INLINE T* end() { return data() + size(); }
 };
 
 template <typename T>

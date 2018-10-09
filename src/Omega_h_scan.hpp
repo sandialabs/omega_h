@@ -32,28 +32,28 @@ void parallel_scan(LO n, T f, char const* name = "") {
 
 #if defined(OMEGA_H_USE_CUDA)
 
-template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Reduce>
+template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Op>
 OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
     T init,
-    Reduce reduce,
+    Op op,
     Transform&& transform)
 {
   return thrust::transform_inclusive_scan(
-      thrust::device, first, last, result, native_op(transform), init, native_op(reduce));
+      thrust::device, first, last, result, native_op(transform), init, native_op(op));
 }
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
-template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Reduce>
+template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Op>
 OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
     T init,
-    Reduce reduce,
+    Op op,
     Transform&& transform)
 {
   constexpr int max_num_threads = 512;
@@ -76,7 +76,7 @@ OutputIterator transform_inclusive_scan(
       (begin_i + quotient + 1) : (begin_i + quotient);
     T thread_sum = init;
     for (auto i = begin_i; i < end_i; ++i) {
-      thread_sum = op(std::move(thread_sum), transform(first[i]));
+      thread_sum = op(std::move(thread_sum), transform_local(first[i]));
     }
     thread_sums[thread_num] = std::move(thread_sum);
 #pragma omp barrier
@@ -85,7 +85,7 @@ OutputIterator transform_inclusive_scan(
       thread_sum op(std::move(thread_sum thread_sums[i]);
     }
     for (auto i = begin_i; i < end_i; ++i) {
-      thread_sum = op(std::move(thread_sum), transform(first[i]));
+      thread_sum = op(std::move(thread_sum), transform_local(first[i]));
       result[i] = thread_sum;
     }
   }
@@ -94,24 +94,24 @@ OutputIterator transform_inclusive_scan(
 
 #else
 
-template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Reduce>
+template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Op>
 OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
     T init,
-    Reduce reduce,
+    Op op,
     Transform&& transform)
 {
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
   for (; first != last; ++first) {
-    init = op(std::move(init), transform(*first));
+    init = op(std::move(init), transform_local(*first));
     *result = init;
     ++result;
   }
-  return init;
+  return result;
 }
 
 #endif

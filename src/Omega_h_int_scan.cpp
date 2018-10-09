@@ -6,25 +6,17 @@
 namespace Omega_h {
 
 template <typename T>
-struct ExclScan : public SumFunctor<T> {
-  using typename SumFunctor<T>::value_type;
-  Read<T> in_;
-  Write<LO> out_;
-  ExclScan(Read<T> in, Write<LO> out) : in_(in), out_(out) {}
-  OMEGA_H_DEVICE void operator()(
-      LO i, value_type& update, bool final_pass) const {
-    update += in_[i];
-    if (final_pass) out_[i + 1] = static_cast<LO>(update);
-  }
-};
-
-template <typename T>
 LOs offset_scan(Read<T> a, std::string const& name) {
-  begin_code("offset_scan");
+  OMEGA_H_TIME_FUNCTION;
   Write<LO> out(a.size() + 1, name);
   out.set(0, 0);
-  parallel_scan(a.size(), ExclScan<T>(a, out), "offset_scan");
-  end_code();
+  auto const first = a.begin();
+  auto const last = a.end();
+  auto const result = out.begin() + 1;
+  auto const init = LO(0);
+  auto const op = plus<LO>();
+  auto transform = identity<LO>();
+  transform_inclusive_scan(first, last, result, init, op, std::move(transform));
   return out;
 }
 
@@ -42,6 +34,7 @@ struct FillRight : public MaxFunctor<LO> {
 };
 
 void fill_right(Write<LO> a) {
+  OMEGA_H_TIME_FUNCTION;
   parallel_scan(a.size(), FillRight(a), "fill_right");
 }
 
