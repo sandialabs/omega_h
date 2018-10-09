@@ -73,39 +73,29 @@ MinMax<T> get_minmax(CommPtr comm, Read<T> a) {
   return {get_min(comm, a), get_max(comm, a)};
 }
 
-struct AreClose : public AndFunctor {
-  Reals a_;
-  Reals b_;
-  Real tol_;
-  Real floor_;
-  AreClose(Reals a, Reals b, Real tol, Real floor)
-      : a_(a), b_(b), tol_(tol), floor_(floor) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && are_close(a_[i], b_[i], tol_, floor_);
-  }
-};
-
 bool are_close(Reals a, Reals b, Real tol, Real floor) {
   OMEGA_H_CHECK(a.size() == b.size());
-  auto f = AreClose(a, b, tol, floor);
-  auto res = parallel_reduce(a.size(), f, "are_close");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return are_close(a[i], b[i], tol, floor);
+  };
+  auto const res = transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
 }
 
-struct AreCloseAbs : public AndFunctor {
-  Reals a_;
-  Reals b_;
-  Real tol_;
-  AreCloseAbs(Reals a, Reals b, Real tol) : a_(a), b_(b), tol_(tol) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (std::abs(a_[i] - b_[i]) <= tol_);
-  }
-};
-
 bool are_close_abs(Reals a, Reals b, Real tol) {
   OMEGA_H_CHECK(a.size() == b.size());
-  auto f = AreCloseAbs(a, b, tol);
-  auto res = parallel_reduce(a.size(), f, "are_close_abs");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return (std::abs(a[i] - b[i]) <= tol);
+  };
+  auto const res = transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
 }
 
