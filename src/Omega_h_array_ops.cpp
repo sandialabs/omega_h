@@ -10,12 +10,14 @@ namespace Omega_h {
 template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
-  return transform_reduce(
-      IntIterator(0), IntIterator(a.size()),
-      true, logical_and<bool>(),
-      OMEGA_H_LAMBDA(LO i)->bool {
-        return a[i] == b[i];
-      });
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return a[i] == b[i];
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
 
 template <typename T>
