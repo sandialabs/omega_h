@@ -406,26 +406,24 @@ LO find_last(Read<T> array, T value) {
   auto const last = IntIterator(array.size());
   auto const init = -1;
   auto const op = maximum<LO>();
-  auto const transform = OMEGA_H_LAMBDA(LO i) -> LO {
+  auto transform = OMEGA_H_LAMBDA(LO i) -> LO {
     if (array[i] == value) return i;
     else return -1;
   };
-  return transform_reduce(first, last, init, op, transform);
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
-
-template <typename T>
-struct IsSorted : public AndFunctor {
-  Read<T> a_;
-  IsSorted(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (a_[i] <= a_[i + 1]);
-  }
-};
 
 template <typename T>
 bool is_sorted(Read<T> a) {
   if (a.size() < 2) return true;
-  return parallel_reduce(a.size() - 1, IsSorted<T>(a), "is_sorted");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size() - 1);
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return a[i] <= a[i + 1];
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
 
 template <typename T>
