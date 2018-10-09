@@ -12,7 +12,7 @@
 
 namespace Omega_h {
 
-#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
+#if defined(OMEGA_H_USE_CUDA)
 template <typename T>
 __global__ static void launch_cuda(const T f, const LO n) {
   LO i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -23,32 +23,38 @@ extern int block_size_cuda;
 #endif
 
 template <typename T>
-void parallel_for(LO n, T const& f, char const* name = "") {
-#if defined(OMEGA_H_USE_KOKKOSCORE)
-  if (n > 0) Kokkos::parallel_for(name, policy(n), f);
-#elif defined(OMEGA_H_USE_CUDA)
-  begin_code(name);
-  entering_parallel = true;
-  T f2 = f;
-  entering_parallel = false;
+void parallel_for(LO n, T&& f) {
+#if defined(OMEGA_H_USE_CUDA)
+  Omega_h::entering_parallel = true;
+  auto const f2 = std::move(f);
+  Omega_h::entering_parallel = false;
   LO nblocks = (n + block_size_cuda - 1) / block_size_cuda;
   launch_cuda<T><<<nblocks, block_size> > >(f2, n);
-  end_code();
 #elif defined(OMEGA_H_USE_OPENMP)
-  begin_code(name);
-  entering_parallel = true;
-  const T f2 = f;
-  entering_parallel = false;
+  Omega_h::entering_parallel = true;
+  auto const f2 = std::move(f);
+  Omega_h::entering_parallel = false;
 #pragma omp parallel for
   for (LO i = 0; i < n; ++i) {
     f2(i);
   }
-  end_code();
 #else
-  begin_code(name);
-  const T& f2 = f;
-  for (LO i = 0; i < n; ++i) f2(i);
-  end_code();
+  Omega_h::entering_parallel = true;
+  auto const f2 = std::move(f);
+  Omega_h::entering_parallel = false;
+  for (LO i = 0; i < n; ++i) {
+    f2(i);
+  }
+#endif
+}
+
+template <typename T>
+void parallel_for(LO n, T const& f, char const* name = "") {
+#if defined(OMEGA_H_USE_KOKKOSCORE)
+  if (n > 0) Kokkos::parallel_for(name, policy(n), f);
+#else
+  auto f2 = f;
+  parallel_for(n, std::move(f));
 #endif
 }
 
@@ -56,27 +62,8 @@ template <typename T>
 void parallel_for(char const* name, LO n, T&& f) {
 #if defined(OMEGA_H_USE_KOKKOSCORE)
   if (n > 0) Kokkos::parallel_for(name, policy(n), f);
-#elif defined(OMEGA_H_USE_CUDA)
-  Omega_h::entering_parallel = true;
-  auto const f2 = std::move(f);
-  Omega_h::entering_parallel = false;
-  LO nblocks = (n + block_size_cuda - 1) / block_size_cuda;
-  launch_cuda<T><<<nblocks, block_size> > >(f2, n);
-#elif defined(OMEGA_H_USE_OPENMP)
-  Omega_h::entering_parallel = true;
-  auto const f2 = std::move(f);
-  Omega_h::entering_parallel = false;
-#pragma omp parallel for
-  for (LO i = 0; i < n; ++i) {
-    f2(i);
-  }
 #else
-  Omega_h::entering_parallel = true;
-  auto const f2 = std::move(f);
-  Omega_h::entering_parallel = false;
-  for (LO i = 0; i < n; ++i) {
-    f2(i);
-  }
+  parallel_for(n, std::move(f));
 #endif
 }
 
