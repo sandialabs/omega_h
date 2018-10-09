@@ -44,8 +44,15 @@ struct Min : public MinFunctor<T> {
 
 template <typename T>
 T get_min(Read<T> a) {
-  auto r = parallel_reduce(a.size(), Min<T>(a), "get_min");
-  return static_cast<T>(r);  // see StandinTraits
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = promoted_t<T>(ArithTraits<T>::max());
+  auto const op = minimum<promoted_t<T>>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
+  auto const r = transform_reduce(first, last, init, op, std::move(transform));
+  return T(r);  // see StandinTraits
 }
 
 template <typename T>
