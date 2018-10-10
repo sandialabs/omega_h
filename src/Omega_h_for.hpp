@@ -19,6 +19,7 @@ namespace Omega_h {
 
 template <typename InputIterator, typename UnaryFunction>
 void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
+  if (first >= last) return;
 #if defined(OMEGA_H_USE_CUDA)
   Omega_h::entering_parallel = true;
   auto const f2 = std::move(f);
@@ -37,10 +38,10 @@ void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
   }
 #else
   Omega_h::entering_parallel = true;
-  auto const transform_local = std::move(transform);
+  auto const f2 = std::move(f);
   Omega_h::entering_parallel = false;
   for (; first != last; ++first) {
-    op(*first);
+    f2(*first);
   }
 #endif
 }
