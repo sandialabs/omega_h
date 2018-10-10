@@ -97,12 +97,12 @@ struct SharedAlloc {
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       if (entering_parallel) {
+        --(alloc->use_count);
         alloc = reinterpret_cast<Alloc*>(
             (std::uintptr_t(alloc->size) << 3) | IN_PARALLEL);
       }
     }
 #endif
-    other.clear();
     other.alloc = nullptr;
     other.direct_ptr = nullptr;
   }
