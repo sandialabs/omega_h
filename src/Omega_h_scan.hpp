@@ -104,11 +104,13 @@ OutputIterator transform_inclusive_scan(
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
-  auto value = *first;
-  ++first;
+  using T_const_ref = decltype(transform_local(*first));
+  using T_const = typename std::remove_reference<T_const_ref>::type;
+  using T = typename std::remove_const<T_const>::type;
+  T init = 0;
   for (; first != last; ++first) {
-    value = op(std::move(value), transform_local(*first));
-    *result = value;
+    init = op(std::move(init), transform_local(*first));
+    *result = init;
     ++result;
   }
   return result;
