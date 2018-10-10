@@ -11,6 +11,8 @@
 #if defined(OMEGA_H_USE_CUDA)
 #include <thrust/transform_scan.h>
 #include <thrust/execution_policy.h>
+#elif defined(OMEGA_H_USE_OPENMP)
+#include <omp.h>
 #endif
 #endif
 
@@ -64,16 +66,15 @@ OutputIterator transform_inclusive_scan(
   Omega_h::entering_parallel = false;
 #pragma omp parallel
   {
-    auto const num_threads = omp_get_num_threads();
-    auto const thread_num = omp_get_thread_num();
-    OMEGA_H_CHECK(num_threads <= max_num_threads);
+    int const num_threads = omp_get_num_threads();
+    int const thread_num = omp_get_thread_num();
     auto const quotient = n / num_threads;
     auto const remainder = n % num_threads;
     auto const begin_i = (thread_num > remainder) ?
       (quotient * thread_num + remainder) :
-      ((quotient + 1) * thread_num)
+      ((quotient + 1) * thread_num);
     auto const end_i = (thread_num >= remainder) ?
-      (begin_i + quotient + 1) : (begin_i + quotient);
+      (begin_i + quotient) : (begin_i + quotient + 1);
     T thread_sum = init;
     for (auto i = begin_i; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
@@ -81,8 +82,8 @@ OutputIterator transform_inclusive_scan(
     thread_sums[thread_num] = std::move(thread_sum);
 #pragma omp barrier
     thread_sum = init;
-    for (decltype(thread_num) i = 0; i < thread_num; ++i) {
-      thread_sum op(std::move(thread_sum thread_sums[i]);
+    for (int i = 0; i < thread_num; ++i) {
+      thread_sum = op(std::move(thread_sum), thread_sums[i]);
     }
     for (auto i = begin_i; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
