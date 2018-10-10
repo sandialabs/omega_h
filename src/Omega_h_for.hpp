@@ -4,50 +4,52 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_stack.hpp>
 
+#include <Omega_h_shared_alloc.hpp>
+#include <Omega_h_int_iterator.hpp>
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
 #else
-#include <Omega_h_shared_alloc.hpp>
+#ifdef OMEGA_H_USE_CUDA
+#include <thrust/for_each.h>
+#include <thrust/execution_policy.h>
+#endif
 #endif
 
 namespace Omega_h {
 
-#if defined(OMEGA_H_USE_CUDA)
-template <typename T>
-__global__ static void launch_cuda(const T f, const LO n) {
-  LO i = blockIdx.x * blockDim.x + threadIdx.x;
-  if (i >= n) return;
-  f(i);
-}
-extern int block_size_cuda;
-#endif
-
-template <typename T>
-void parallel_for(LO n, T&& f) {
+template <typename InputIterator, typename UnaryFunction>
+void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
 #if defined(OMEGA_H_USE_CUDA)
   Omega_h::entering_parallel = true;
   auto const f2 = std::move(f);
   Omega_h::entering_parallel = false;
-  LO nblocks = (n + block_size_cuda - 1) / block_size_cuda;
-// clang-format off
-  launch_cuda<T><<<nblocks, block_size_cuda>>>(f2, n);
-// clang-format on
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(n);
+  thrust::for_each(thrust::device, first, last, f2);
 #elif defined(OMEGA_H_USE_OPENMP)
+  LO const n = last - first;
   Omega_h::entering_parallel = true;
   auto const f2 = std::move(f);
   Omega_h::entering_parallel = false;
 #pragma omp parallel for
   for (LO i = 0; i < n; ++i) {
-    f2(i);
+    f2(first[i]);
   }
 #else
   Omega_h::entering_parallel = true;
-  auto const f2 = std::move(f);
+  auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
-  for (LO i = 0; i < n; ++i) {
-    f2(i);
+  for (; first != last; ++first) {
+    op(*first);
   }
 #endif
+}
+
+template <typename UnaryFunction>
+void parallel_for(LO n, UnaryFunction&& f) {
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(n);
+  for_each(first, last, f);
 }
 
 template <typename T>
