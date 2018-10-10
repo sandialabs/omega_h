@@ -206,7 +206,7 @@ endif()
 add_subdirectory(src)
 
 if (Omega_h_USE_CUDA)
-  install(FILES
+  install(PROGRAMS
       ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper
       DESTINATION bin)
 endif()
