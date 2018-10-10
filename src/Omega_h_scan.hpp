@@ -101,19 +101,19 @@ OutputIterator transform_inclusive_scan(
     BinaryOp op,
     UnaryOp&& transform)
 {
+  auto const n = last - first;
+  if (n <= 0) return result;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
-  using T_const_ref = decltype(transform_local(*first));
-  using T_const = typename std::remove_reference<T_const_ref>::type;
-  using T = typename std::remove_const<T_const>::type;
-  T init = 0;
-  for (; first != last; ++first) {
-    init = op(std::move(init), transform_local(*first));
-    *result = init;
-    ++result;
+  auto value = transform_local(first[0]);
+  result[0] = value;
+  using d_t = typename std::remove_const<decltype(n)>::type;
+  for (d_t i = 1; i < n; ++i) {
+    value = op(std::move(value), transform_local(first[i]));
+    result[i] = value;
   }
-  return result;
+  return result + n;
 }
 
 #endif
