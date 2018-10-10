@@ -48,23 +48,21 @@ OutputIterator transform_inclusive_scan(
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
-template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp>
+template <typename InputIterator, typename OutputIterator, typename Transform, typename Op>
 OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
-    BinaryOp op,
-    UnaryOp&& transform)
+    Op op,
+    Transform&& transform)
 {
   constexpr int max_num_threads = 512;
+  using T = int;
+  T thread_sums[max_num_threads];
   auto const n = last - first;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
-  using T_const_ref = decltype(transform_local(*first));
-  using T_const = typename std::remove_reference<T_const_ref>::type;
-  using T = typename std::remove_const<T_const>::type;
-  T thread_sums[max_num_threads];
 #pragma omp parallel
   {
     int const num_threads = omp_get_num_threads();
@@ -76,14 +74,14 @@ OutputIterator transform_inclusive_scan(
       ((quotient + 1) * thread_num);
     auto const end_i = (thread_num >= remainder) ?
       (begin_i + quotient) : (begin_i + quotient + 1);
-    T thread_sum = transform_local(*first);
-    for (auto i = begin_i + 1; i < end_i; ++i) {
+    T thread_sum = 0;
+    for (auto i = begin_i; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
     }
     thread_sums[thread_num] = std::move(thread_sum);
 #pragma omp barrier
-    thread_sum = thread_sums[0];
-    for (int i = 1; i < thread_num; ++i) {
+    thread_sum = 0;
+    for (int i = 0; i < thread_num; ++i) {
       thread_sum = op(std::move(thread_sum), thread_sums[i]);
     }
     for (auto i = begin_i; i < end_i; ++i) {
