@@ -10,8 +10,15 @@
 #include <Omega_h_kokkos.hpp>
 #else
 #ifdef OMEGA_H_USE_CUDA
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <thrust/for_each.h>
 #include <thrust/execution_policy.h>
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 #endif
 #endif
 
@@ -20,26 +27,18 @@ namespace Omega_h {
 template <typename InputIterator, typename UnaryFunction>
 void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
   if (first >= last) return;
-#if defined(OMEGA_H_USE_CUDA)
   Omega_h::entering_parallel = true;
   auto const f2 = std::move(f);
   Omega_h::entering_parallel = false;
-  auto const first = IntIterator(0);
-  auto const last = IntIterator(n);
+#if defined(OMEGA_H_USE_CUDA)
   thrust::for_each(thrust::device, first, last, f2);
 #elif defined(OMEGA_H_USE_OPENMP)
   LO const n = last - first;
-  Omega_h::entering_parallel = true;
-  auto const f2 = std::move(f);
-  Omega_h::entering_parallel = false;
 #pragma omp parallel for
   for (LO i = 0; i < n; ++i) {
     f2(first[i]);
   }
 #else
-  Omega_h::entering_parallel = true;
-  auto const f2 = std::move(f);
-  Omega_h::entering_parallel = false;
   for (; first != last; ++first) {
     f2(*first);
   }
