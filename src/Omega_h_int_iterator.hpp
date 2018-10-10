@@ -54,8 +54,8 @@ class IntIterator {
   OMEGA_H_INLINE IntIterator operator-(difference_type n) {
     return IntIterator(i - n);
   }
-  OMEGA_H_INLINE IntIterator operator-(IntIterator const& other) {
-    return IntIterator(i - other.i);
+  OMEGA_H_INLINE difference_type operator-(IntIterator const& other) {
+    return i - other.i;
   }
   OMEGA_H_INLINE LO operator[](difference_type n) { return i + n; }
   OMEGA_H_INLINE bool operator<(IntIterator const& other) const {
