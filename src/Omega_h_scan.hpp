@@ -77,8 +77,8 @@ OutputIterator transform_inclusive_scan(
       ((quotient + 1) * thread_num);
     auto const end_i = (thread_num >= remainder) ?
       (begin_i + quotient) : (begin_i + quotient + 1);
-    T thread_sum = 0;
-    for (auto i = begin_i; i < end_i; ++i) {
+    auto thread_sum = transform_local(first[begin_i]);
+    for (auto i = begin_i + 1; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
     }
     thread_sums[thread_num] = std::move(thread_sum);
