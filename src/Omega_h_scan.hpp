@@ -57,11 +57,14 @@ OutputIterator transform_inclusive_scan(
     UnaryOp&& transform)
 {
   constexpr int max_num_threads = 512;
-  T thread_sums[max_num_threads];
   auto const n = last - first;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
+  using T_const_ref = decltype(transform_local(*first));
+  using T_const = typename std::remove_reference<T_const_ref>::type;
+  using T = typename std::remove_const<T_const>::type;
+  T thread_sums[max_num_threads];
 #pragma omp parallel
   {
     int const num_threads = omp_get_num_threads();
@@ -73,7 +76,7 @@ OutputIterator transform_inclusive_scan(
       ((quotient + 1) * thread_num);
     auto const end_i = (thread_num >= remainder) ?
       (begin_i + quotient) : (begin_i + quotient + 1);
-    auto thread_sum = transform_local(*first);
+    T thread_sum = transform_local(*first);
     for (auto i = begin_i + 1; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
     }
