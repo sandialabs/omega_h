@@ -83,11 +83,17 @@ OutputIterator transform_inclusive_scan(
     }
     thread_sums[thread_num] = std::move(thread_sum);
 #pragma omp barrier
-    thread_sum = 0;
-    for (int i = 0; i < thread_num; ++i) {
-      thread_sum = op(std::move(thread_sum), thread_sums[i]);
+    if (thread_num) {
+      thread_sum = thread_sums[0];
+      for (int i = 1; i < thread_num; ++i) {
+        thread_sum = op(std::move(thread_sum), thread_sums[i]);
+      }
+      thread_sum = op(std::move(thread_sum), transform_local(first[begin_i]));
+    } else {
+      thread_sum = transform_local(first[begin_i]);
     }
-    for (auto i = begin_i; i < end_i; ++i) {
+    result[begin_i] = thread_sum;
+    for (auto i = begin_i + 1; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
       result[i] = thread_sum;
     }
