@@ -49,7 +49,7 @@ template <typename UnaryFunction>
 void parallel_for(LO n, UnaryFunction&& f) {
   auto const first = IntIterator(0);
   auto const last = IntIterator(n);
-  for_each(first, last, f);
+  ::Omega_h::for_each(first, last, f);
 }
 
 template <typename T>
