@@ -29,7 +29,9 @@ void parallel_for(LO n, T&& f) {
   auto const f2 = std::move(f);
   Omega_h::entering_parallel = false;
   LO nblocks = (n + block_size_cuda - 1) / block_size_cuda;
-  launch_cuda<T><<<nblocks, block_size> > >(f2, n);
+// clang-format off
+  launch_cuda<T><<<nblocks, block_size_cuda>>>(f2, n);
+// clang-format on
 #elif defined(OMEGA_H_USE_OPENMP)
   Omega_h::entering_parallel = true;
   auto const f2 = std::move(f);
