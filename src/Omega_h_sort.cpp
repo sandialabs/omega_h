@@ -114,12 +114,11 @@ static LO number_same_values(Read<T> const a, T const value, Write<LO> const tmp
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const result = tmp_perm.begin() + 1;
-  auto const init = LO(0);
   auto const op = plus<LO>();
   auto transform = OMEGA_H_LAMBDA(LO i) -> LO {
     return a[i] == value ? LO(1) : LO(0);
   };
-  transform_inclusive_scan(first, last, result, init, op, std::move(transform));
+  transform_inclusive_scan(first, last, result, op, std::move(transform));
   return read(tmp_perm).last();
 }
 

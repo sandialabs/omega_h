@@ -39,12 +39,11 @@ OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
-    T init,
     Op op,
     Transform&& transform)
 {
   return thrust::transform_inclusive_scan(
-      thrust::device, first, last, result, native_op(transform), init, native_op(op));
+      thrust::device, first, last, result, native_op(transform), native_op(op));
 }
 
 #elif defined(OMEGA_H_USE_OPENMP)
@@ -54,7 +53,6 @@ OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
-    T init,
     Op op,
     Transform&& transform)
 {
@@ -75,14 +73,14 @@ OutputIterator transform_inclusive_scan(
       ((quotient + 1) * thread_num);
     auto const end_i = (thread_num >= remainder) ?
       (begin_i + quotient) : (begin_i + quotient + 1);
-    T thread_sum = init;
-    for (auto i = begin_i; i < end_i; ++i) {
+    T thread_sum = transform_local(*first);
+    for (auto i = begin_i + 1; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
     }
     thread_sums[thread_num] = std::move(thread_sum);
 #pragma omp barrier
-    thread_sum = init;
-    for (int i = 0; i < thread_num; ++i) {
+    thread_sum = thread_sums[0];
+    for (int i = 1; i < thread_num; ++i) {
       thread_sum = op(std::move(thread_sum), thread_sums[i]);
     }
     for (auto i = begin_i; i < end_i; ++i) {
@@ -100,16 +98,17 @@ OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
-    T init,
     Op op,
     Transform&& transform)
 {
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
+  T value = *first;
+  ++first;
   for (; first != last; ++first) {
-    init = op(std::move(init), transform_local(*first));
-    *result = init;
+    value = op(std::move(value), transform_local(*first));
+    *result = value;
     ++result;
   }
   return result;

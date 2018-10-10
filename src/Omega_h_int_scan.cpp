@@ -13,10 +13,9 @@ LOs offset_scan(Read<T> a, std::string const& name) {
   auto const first = a.begin();
   auto const last = a.end();
   auto const result = out.begin() + 1;
-  auto const init = LO(0);
   auto const op = plus<LO>();
   auto transform = identity<LO>();
-  transform_inclusive_scan(first, last, result, init, op, std::move(transform));
+  transform_inclusive_scan(first, last, result, op, std::move(transform));
   return out;
 }
 
@@ -28,10 +27,9 @@ void fill_right(Write<LO> a) {
   auto const first = a.begin();
   auto const last = a.end();
   auto const result = a.begin();
-  auto const init = LO(0);
   auto const op = maximum<LO>();
   auto transform = identity<LO>();
-  transform_inclusive_scan(first, last, result, init, op, std::move(transform));
+  transform_inclusive_scan(first, last, result, op, std::move(transform));
 }
 
 }  // end namespace Omega_h
