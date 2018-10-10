@@ -504,11 +504,17 @@ static int max_exponent(Reals a) {
   return transform_reduce(first, last, init, op, std::move(transform));
 }
 
+struct Int128Plus {
+  OMEGA_H_INLINE Int128 operator()(Int128 a, Int128 b) const {
+    return a + b;
+  }
+};
+
 static Int128 int128_sum(Reals const a, double const unit) {
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = Int128(0);
-  auto const op = plus<Int128>();
+  auto const op = Int128Plus();
   auto transform = OMEGA_H_LAMBDA(LO i) -> Int128 {
     return Int128::from_double(a[i], unit);
   };

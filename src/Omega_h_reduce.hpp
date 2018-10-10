@@ -6,6 +6,8 @@
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
+#else
+#include <Omega_h_scalar.hpp>
 #endif
 
 #if defined(OMEGA_H_USE_CUDA)
@@ -75,15 +77,32 @@ Result transform_reduce(
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
+template <class Iterator, class Tranform, class Result, class Op>
+Result transform_reduce(Iterator first, Iterator last,
+    Result init, Op, Tranform&& transform) {
+#pragma omp declare reduction \
+  (osh : Result : omp_out = Op()(omp_out, omp_in)) \
+  initializer(omp_priv = omp_orig)
+  LO const n = last - first;
+  Omega_h::entering_parallel = true;
+  auto const transform_local = std::move(transform);
+  Omega_h::entering_parallel = false;
+#pragma omp parallel for reduction(osh : init)
+  for (LO i = 0; i < n; ++i) {
+    init = Op()(init, transform_local(first[i]));
+  }
+  return init;
+}
+
 template <class Iterator, class Tranform, class Result>
 Result transform_reduce(Iterator first, Iterator last,
     Result init, Omega_h::logical_and<Result> op, Tranform&& transform) {
-  auto const n = last - first;
+  LO const n = last - first;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
 #pragma omp parallel for reduction(&& : init)
-  for (decltype(n) i = 0; i < n; ++i) {
+  for (LO i = 0; i < n; ++i) {
     init = op(init, transform_local(first[i]));
   }
   return init;
@@ -92,12 +111,12 @@ Result transform_reduce(Iterator first, Iterator last,
 template <class Iterator, class Tranform, class Result>
 Result transform_reduce(Iterator first, Iterator last,
     Result init, Omega_h::plus<Result> op, Tranform&& transform) {
-  auto n = last - first;
+  LO const n = last - first;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
 #pragma omp parallel for reduction(+ : init)
-  for (decltype(n) i = 0; i < n; ++i) {
+  for (LO i = 0; i < n; ++i) {
     init = op(init, transform_local(first[i]));
   }
   return init;
@@ -106,12 +125,12 @@ Result transform_reduce(Iterator first, Iterator last,
 template <class Iterator, class Tranform, class Result>
 Result transform_reduce(Iterator first, Iterator last,
     Result init, Omega_h::maximum<Result> op, Tranform&& transform) {
-  auto n = last - first;
+  LO const n = last - first;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
 #pragma omp parallel for reduction(max : init)
-  for (decltype(n) i = 0; i < n; ++i) {
+  for (LO i = 0; i < n; ++i) {
     init = op(init, transform_local(first[i]));
   }
   return init;
@@ -120,12 +139,12 @@ Result transform_reduce(Iterator first, Iterator last,
 template <class Iterator, class Tranform, class Result>
 Result transform_reduce(Iterator first, Iterator last,
     Result init, Omega_h::minimum<Result> op, Tranform&& transform) {
-  auto n = last - first;
+  LO const n = last - first;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
 #pragma omp parallel for reduction(min : init)
-  for (decltype(n) i = 0; i < n; ++i) {
+  for (LO i = 0; i < n; ++i) {
     init = op(init, transform_local(first[i]));
   }
   return init;
