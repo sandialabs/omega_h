@@ -34,13 +34,13 @@ void parallel_scan(LO n, T f, char const* name = "") {
 
 #if defined(OMEGA_H_USE_CUDA)
 
-template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Op>
+template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp>
 OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
-    Op op,
-    Transform&& transform)
+    BinaryOp op,
+    UnaryOp&& transform)
 {
   return thrust::transform_inclusive_scan(
       thrust::device, first, last, result, native_op(transform), native_op(op));
@@ -48,13 +48,13 @@ OutputIterator transform_inclusive_scan(
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
-template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Op>
+template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp>
 OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
-    Op op,
-    Transform&& transform)
+    BinaryOp op,
+    UnaryOp&& transform)
 {
   constexpr int max_num_threads = 512;
   T thread_sums[max_num_threads];
@@ -73,7 +73,7 @@ OutputIterator transform_inclusive_scan(
       ((quotient + 1) * thread_num);
     auto const end_i = (thread_num >= remainder) ?
       (begin_i + quotient) : (begin_i + quotient + 1);
-    T thread_sum = transform_local(*first);
+    auto thread_sum = transform_local(*first);
     for (auto i = begin_i + 1; i < end_i; ++i) {
       thread_sum = op(std::move(thread_sum), transform_local(first[i]));
     }
@@ -93,18 +93,18 @@ OutputIterator transform_inclusive_scan(
 
 #else
 
-template <typename InputIterator, typename OutputIterator, typename Transform, typename T, typename Op>
+template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp>
 OutputIterator transform_inclusive_scan(
     InputIterator first,
     InputIterator last,
     OutputIterator result,
-    Op op,
-    Transform&& transform)
+    BinaryOp op,
+    UnaryOp&& transform)
 {
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;
-  T value = *first;
+  auto value = *first;
   ++first;
   for (; first != last; ++first) {
     value = op(std::move(value), transform_local(*first));
