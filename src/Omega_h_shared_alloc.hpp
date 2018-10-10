@@ -51,7 +51,8 @@ struct Allocs {
 struct SharedAlloc {
   Alloc* alloc;
   void* direct_ptr;
-  OMEGA_H_INLINE SharedAlloc() : alloc(nullptr), direct_ptr(nullptr) {}
+  OMEGA_H_INLINE SharedAlloc() : alloc(nullptr), direct_ptr(nullptr) {
+  }
   SharedAlloc(std::size_t size_in, std::string const& name_in);
   SharedAlloc(std::size_t size_in, std::string&& name_in);
   SharedAlloc(std::size_t size_in);
@@ -86,9 +87,12 @@ struct SharedAlloc {
 #endif
     direct_ptr = other.direct_ptr;
   }
-  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) { copy(other); }
+  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) {
+    copy(other);
+  }
   OMEGA_H_INLINE void move(SharedAlloc&& other) {
     alloc = other.alloc;
+    direct_ptr = other.direct_ptr;
 #ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
@@ -98,7 +102,7 @@ struct SharedAlloc {
       }
     }
 #endif
-    direct_ptr = other.direct_ptr;
+    other.clear();
     other.alloc = nullptr;
     other.direct_ptr = nullptr;
   }
@@ -118,7 +122,7 @@ struct SharedAlloc {
 #ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
-      --alloc->use_count;
+      --(alloc->use_count);
       if (alloc->use_count == 0) delete alloc;
     }
 #endif
