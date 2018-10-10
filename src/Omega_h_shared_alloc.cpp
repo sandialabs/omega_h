@@ -78,7 +78,10 @@ Alloc::~Alloc() {
 void Alloc::init() {
 #ifdef OMEGA_H_USE_CUDA
   void* tmp_ptr;
-  cudaMalloc(&tmp_ptr, size);
+  auto cuda_malloc_size = size;
+  if (cuda_malloc_size < 1) cuda_malloc_size = 1;
+  auto const err = cudaMalloc(&tmp_ptr, cuda_malloc_size);
+  OMEGA_H_CHECK(err == cudaSuccess);
   ptr = static_cast<decltype(ptr)>(tmp_ptr);
 #else
   ptr = std::malloc(size);
