@@ -19,10 +19,10 @@ class IntIterator {
   OMEGA_H_INLINE IntIterator(LO i_in) : i(i_in) {}
   OMEGA_H_INLINE bool operator==(IntIterator const& other) const {
     return i == other.i;
-  };
+  }
   OMEGA_H_INLINE bool operator!=(IntIterator const& other) const {
     return i != other.i;
-  };
+  }
   OMEGA_H_INLINE reference operator*() const { return i; }
   OMEGA_H_INLINE LO const* operator->() const { return &i; }
   OMEGA_H_INLINE IntIterator& operator++() {
