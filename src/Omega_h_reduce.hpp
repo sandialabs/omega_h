@@ -29,6 +29,7 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
   f.init(result);
   if (n > 0) Kokkos::parallel_reduce(name, policy(n), f, result);
 #else
+  (void)name;
   VT result;
   f.init(result);
   for (LO i = 0; i < n; ++i) f(i, result);
