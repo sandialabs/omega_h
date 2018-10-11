@@ -88,7 +88,7 @@ class Write {
 #endif
       ;
 #else
-    return use_count() != 0;
+    return shared_alloc_.data() != nullptr;
 #endif
   }
 #ifdef OMEGA_H_USE_KOKKOSCORE
