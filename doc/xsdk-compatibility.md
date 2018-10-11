@@ -28,7 +28,7 @@ For current xSDK member packages: If you were not compliant at some point, pleas
 |**M13.** Install headers and libraries under \<prefix\>/include and \<prefix\>/lib. |Full| We do. |
 |**M14.** Be buildable using 64 bit pointers. 32 bit is optional. |Full| Omega_h builds with 64-bit pointers. |
 |**M15.** All xSDK compatibility changes should be sustainable. |Full| They are. |
-|**M16.** The package must support production-quality installation compatible with the xSDK install tool and xSDK metapackage. |None| Omega_h does not yet integrate with Spack or the xSDK metapackage. |
+|**M16.** The package must support production-quality installation compatible with the xSDK install tool and xSDK metapackage. |Full| Omega_h is included in mainline Spack
 
 ### Recommended Policies
 
@@ -36,6 +36,6 @@ For current xSDK member packages: If you were not compliant at some point, pleas
 |------------------------|-------|-------------------------|
 |**R1.** Have a public repository. |Full| GitHub repository. |
 |**R2.** Possible to run test suite under valgrind in order to test for memory corruption issues. |Full| `-DOmega_h_VALGRIND="valgrind <args>"` to CMake. |
-|**R3.** Adopt and document consistent system for error conditions/exceptions. |None| Omega_h currently aborts on errors. |
+|**R3.** Adopt and document consistent system for error conditions/exceptions. |Full| Omega_h has a compile option `-DOmega_h_THROW:BOOL=ON` that enables consistent exceptions. |
 |**R4.** Free all system resources acquired as soon as they are no longer needed. |Full| We do. |
-|**R5.** Provide a mechanism to export ordered list of library dependencies. |None| None. |
+|**R5.** Provide a mechanism to export ordered list of library dependencies. |Full| Omega_h's build system exports such text files. |
