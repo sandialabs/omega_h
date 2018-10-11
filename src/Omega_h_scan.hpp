@@ -6,14 +6,14 @@
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
-#else
+#endif
+
 #include <Omega_h_reduce.hpp>
 #if defined(OMEGA_H_USE_CUDA)
 #include <thrust/transform_scan.h>
 #include <thrust/execution_policy.h>
 #elif defined(OMEGA_H_USE_OPENMP)
 #include <omp.h>
-#endif
 #endif
 
 namespace Omega_h {

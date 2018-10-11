@@ -1,15 +1,12 @@
 #ifndef OMEGA_H_REDUCE_HPP
 #define OMEGA_H_REDUCE_HPP
 
-#include <Omega_h_defines.hpp>
-#include <Omega_h_stack.hpp>
-
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
-#else
-#include <Omega_h_scalar.hpp>
 #endif
 
+#include <Omega_h_scalar.hpp>
+#include <Omega_h_shared_alloc.hpp>
 #if defined(OMEGA_H_USE_CUDA)
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -32,11 +29,9 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
   f.init(result);
   if (n > 0) Kokkos::parallel_reduce(name, policy(n), f, result);
 #else
-  begin_code(name);
   VT result;
   f.init(result);
   for (LO i = 0; i < n; ++i) f(i, result);
-  end_code();
 #endif
   return result;
 }
