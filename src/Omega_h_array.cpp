@@ -225,7 +225,7 @@ HostWrite<T>::HostWrite(LO size_in, std::string const& name_in)
       mirror_(create_uninit_mirror_view(write_.view()))
 #endif
 {
-#if defined(OMEGA_H_USE_CUDA)
+#if (!defined(OMEGA_H_USE_KOKKOSCORE)) && defined(OMEGA_H_USE_CUDA)
   mirror_.reset(new T[std::size_t(write_.size())]);
 #endif
 }
