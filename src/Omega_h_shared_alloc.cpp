@@ -54,7 +54,11 @@ Alloc::Alloc(std::size_t size_in, std::string&& name_in)
 }
 
 Alloc::~Alloc() {
+#ifdef OMEGA_H_USE_CUDA
+  cudaFree(ptr);
+#else
   std::free(ptr);
+#endif
   auto ga = global_allocs;
   if (ga) {
     if (next == nullptr) {
@@ -72,7 +76,13 @@ Alloc::~Alloc() {
 }
 
 void Alloc::init() {
+#ifdef OMEGA_H_USE_CUDA
+  void* tmp_ptr;
+  cudaMalloc(&tmp_ptr, size);
+  ptr = static_cast<decltype(ptr)>(tmp_ptr);
+#else
   ptr = std::malloc(size);
+#endif
   auto ga = global_allocs;
   if (size && (ptr == nullptr)) {
     std::stringstream ss;

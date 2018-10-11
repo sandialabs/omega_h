@@ -37,11 +37,9 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
 #else
-  tracker_ = decltype(tracker_)(new SharedAlloc2<T>());
-  tracker_->name = name_in;
-  ptr_ = new T[size_in];
-  tracker_->ptr = decltype(tracker_->ptr)(ptr_);
-  size_ = size_in;
+  shared_alloc_ = decltype(shared_alloc_)(
+      sizeof(T) * static_cast<std::size_t>(size_in),
+      name_in);
 #endif
   end_code();
 }
@@ -80,12 +78,10 @@ template <typename T>
 std::string Write<T>::name() const {
   return view_.label();
 }
-#endif
-
-#ifndef OMEGA_H_USE_KOKKOSCORE
+#else
 template <typename T>
-void Write<T>::rename(std::string const& new_name) {
-  tracker_->name = new_name;
+std::string const& Write<T>::name() const {
+  return shared_alloc_.alloc->name;
 }
 #endif
 
