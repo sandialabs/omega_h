@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.17.2 LANGUAGES CXX)
+project(Omega_h VERSION 9.18.1 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -204,5 +204,11 @@ if(Omega_h_EXAMPLES)
   add_subdirectory(example/laplacian)
 endif()
 add_subdirectory(src)
+
+if (Omega_h_USE_CUDA)
+  install(FILES
+      ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper
+      DESTINATION bin)
+endif()
 
 bob_end_package()
