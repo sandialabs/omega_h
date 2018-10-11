@@ -358,8 +358,8 @@ OMEGA_H_INLINE Real norm_off_diag(Matrix<dim, dim> a) {
 template <Int dim>
 OMEGA_H_INLINE Few<Int, 2> arg_max_off_diag(Matrix<dim, dim> a) {
   Int p = 0;
-  Int q = 1;
-  auto s = std::abs(a(p, q));
+  Int q = 0;
+  auto s = -1.0;
   for (Int j = 0; j < dim; ++j) {
     for (Int i = 0; i < dim; ++i) {
       auto s2 = std::abs(a(i, j));

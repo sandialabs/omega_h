@@ -284,12 +284,9 @@ static void test_array_from_kokkos() {
   OMEGA_H_CHECK(unmanaged_array.exists());
   Kokkos::View<double*> zero_span("zero_span", 0);
   Omega_h::Write<double> zero_span_array(zero_span);
-  if (zero_span.data() != nullptr) std::cerr << "zero span data is " << zero_span.data() << "!\n";
-  if (zero_span_array.exists()) std::cerr << "zero span exists!\n";
   OMEGA_H_CHECK(zero_span_array.exists());
   Kokkos::View<double*> uninitialized;
   Omega_h::Write<double> uninitialized_array(uninitialized);
-  if (!uninitialized_array.exists()) std::cerr << "unitialized doesn't!\n";
   OMEGA_H_CHECK(!uninitialized_array.exists());
 #endif
 }

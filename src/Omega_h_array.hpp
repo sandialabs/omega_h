@@ -38,7 +38,9 @@ class Write {
   Write(LO size_in, T offset, T stride, std::string const& name = "");
   Write(HostWrite<T> host_write);
   OMEGA_H_INLINE LO size() const {
+#ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(exists());
+#endif
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return static_cast<LO>(view_.size());
 #else
@@ -78,11 +80,9 @@ class Write {
   }
 #endif
   OMEGA_H_INLINE bool exists() const {
-#ifdef __CUDA_ARCH__
-    return true;
-#elif defined( OMEGA_H_USE_KOKKOSCORE )
+#if defined( OMEGA_H_USE_KOKKOSCORE )
     return view().data() != nullptr
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
+#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__))
       /* deprecated Kokkos behavior: zero-span views have data()==nullptr */
       || view().use_count() != 0
 #endif
@@ -96,6 +96,8 @@ class Write {
 #else
   std::string const& name() const;
 #endif
+  OMEGA_H_INLINE T* begin() const { return data(); }
+  OMEGA_H_INLINE T* end() const { return data() + size(); }
 };
 
 template <typename T>
@@ -130,8 +132,8 @@ class Read {
   T last() const;
   OMEGA_H_INLINE bool exists() const { return write_.exists(); }
   std::string name() const { return write_.name(); }
-  OMEGA_H_INLINE T const* begin() { return data(); }
-  OMEGA_H_INLINE T const* end() { return data() + size(); }
+  OMEGA_H_INLINE T const* begin() const { return data(); }
+  OMEGA_H_INLINE T const* end() const { return data() + size(); }
 };
 
 template <typename T>
@@ -180,11 +182,13 @@ class Reals : public Read<Real> {
 template <typename T>
 class HostRead {
   Read<T> read_;
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#if defined(OMEGA_H_USE_KOKKOSCORE)
   typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
+#elif defined(OMEGA_H_USE_CUDA)
+  std::unique_ptr<T[]> mirror_;
 #endif
  public:
-  HostRead();
+  HostRead() = default;
   HostRead(Read<T> read);
   LO size() const;
   inline T const& operator[](LO i) const {
@@ -195,7 +199,15 @@ class HostRead {
 #endif
     return mirror_(i);
 #else
+#ifdef OMEGA_H_USE_CUDA
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
+#endif
+    return mirror_[i];
+#else
     return read_[i];
+#endif
 #endif
   }
   T const* data() const;
@@ -208,9 +220,11 @@ class HostWrite {
   Write<T> write_;
 #ifdef OMEGA_H_USE_KOKKOSCORE
   typename Kokkos::View<T*>::HostMirror mirror_;
+#elif defined(OMEGA_H_USE_CUDA)
+  std::unique_ptr<T[]> mirror_;
 #endif
  public:
-  HostWrite();
+  HostWrite() = default;
   HostWrite(LO size_in, std::string const& name = "");
   HostWrite(LO size_in, T offset, T stride, std::string const& name = "");
   HostWrite(Write<T> write_in);
@@ -225,7 +239,15 @@ class HostWrite {
 #endif
     return mirror_(i);
 #else
+#ifdef OMEGA_H_USE_CUDA
+#ifdef OMEGA_H_CHECK_BOUNDS
+    OMEGA_H_CHECK(0 <= i);
+    OMEGA_H_CHECK(i < size());
+#endif
+    return mirror_[i];
+#else
     return write_[i];
+#endif
 #endif
   }
   T* data() const;
