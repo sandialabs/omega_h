@@ -49,6 +49,11 @@ struct IntTraits<true, 1> {
 };
 
 template <>
+struct IntTraits<false, 1> {
+  inline static char const* name() { return "UInt8"; }
+};
+
+template <>
 struct IntTraits<true, 4> {
   inline static char const* name() { return "Int32"; }
 };
@@ -90,12 +95,7 @@ struct Traits<T,
 
 template <typename T>
 void describe_array(std::ostream& stream, std::string const& name, Int ncomps) {
-  if (name.compare("vtkGhostType") == 0) {
-    stream << "type=\"UInt8\"";
-  }
-  else {
-    stream << "type=\"" << Traits<T>::name() << "\"";
-  }
+  stream << "type=\"" << Traits<T>::name() << "\"";
   stream << " Name=\"" << name << "\"";
   stream << " NumberOfComponents=\"" << ncomps << "\"";
   stream << " format=\"binary\"";
@@ -123,21 +123,21 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
   return true;
 }
 
-template <typename T>
+template <typename T_osh, typename T_vtk = T_osh>
 void write_array(std::ostream& stream, std::string const& name, Int ncomps,
-    Read<T> array, bool compress) {
+    Read<T_osh> array, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (!(array.exists())) {
     Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
   begin_code("header");
   stream << "<DataArray ";
-  describe_array<T>(stream, name, ncomps);
+  describe_array<T_vtk>(stream, name, ncomps);
   stream << ">\n";
   end_code();
-  HostRead<T> uncompressed(array);
+  HostRead<T_osh> uncompressed(array);
   std::uint64_t uncompressed_bytes =
-      sizeof(T) * static_cast<uint64_t>(array.size());
+      sizeof(T_osh) * static_cast<uint64_t>(array.size());
   std::string enc_header;
   std::string encoded;
 #ifdef OMEGA_H_USE_ZLIB
@@ -482,7 +482,7 @@ void write_vtk_ghost_types(
   if (mesh->comm()->size() == 1) return;
   const auto owned = mesh->owned(ent_dim);
   auto ghost_types = each_eq_to(owned, static_cast<I8>(0));
-  write_array(stream, "vtkGhostType", 1, ghost_types, compress);
+  write_array<I8, std::uint8_t>(stream, "vtkGhostType", 1, ghost_types, compress);
 }
 
 void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
@@ -767,7 +767,7 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
   }
   if (mesh->comm()->size() > 1 && tags[size_t(cell_dim)].count("vtkGhostType")) {
-    write_p_data_array2(stream, "vtkGhostType", 1, OMEGA_H_I8);
+    write_p_data_array<std::uint8_t>(stream, "vtkGhostType", 1);
   }
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
