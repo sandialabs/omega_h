@@ -9,16 +9,23 @@
 
 namespace Omega_h {
 
-OMEGA_H_INLINE int atomic_fetch_add(int* const dest, const int val) {
+OMEGA_H_DEVICE int atomic_fetch_add(int* const dest, const int val) {
 #if defined(OMEGA_H_USE_KOKKOSCORE)
   return Kokkos::atomic_fetch_add(dest, val);
 #elif defined(OMEGA_H_USE_OPENMP)
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+#endif
   int oldval;
 #pragma omp atomic capture
   {
     oldval = *dest;
     *dest += val;
   }
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
   return oldval;
 #elif defined(OMEGA_H_USE_CUDA)
   return atomicAdd(dest, val);
@@ -29,7 +36,7 @@ OMEGA_H_INLINE int atomic_fetch_add(int* const dest, const int val) {
 #endif
 }
 
-OMEGA_H_INLINE void atomic_increment(int* const dest) {
+OMEGA_H_DEVICE void atomic_increment(int* const dest) {
 #if defined(OMEGA_H_USE_OPENMP) || defined(OMEGA_H_USE_CUDA)
   atomic_fetch_add(dest, 1);
 #else
@@ -37,7 +44,7 @@ OMEGA_H_INLINE void atomic_increment(int* const dest) {
 #endif
 }
 
-OMEGA_H_INLINE void atomic_add(int* const dest, const int val) {
+OMEGA_H_DEVICE void atomic_add(int* const dest, const int val) {
 #if defined(OMEGA_H_USE_OPENMP) || defined(OMEGA_H_USE_CUDA)
   atomic_fetch_add(dest, val);
 #else

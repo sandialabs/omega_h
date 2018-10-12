@@ -470,8 +470,8 @@ OMEGA_H_DEVICE void set_matrix(
   set_vector(matrices, i, matrix2vector(matrix));
 }
 
-template <Int m, Int n>
-OMEGA_H_DEVICE Matrix<m, n> get_matrix(Reals const& matrices, Int i) {
+template <Int m, Int n, typename Arr>
+OMEGA_H_DEVICE Matrix<m, n> get_matrix(Arr const& matrices, Int i) {
   return vector2matrix<m, n>(get_vector<matrix_ncomps(m, n)>(matrices, i));
 }
 

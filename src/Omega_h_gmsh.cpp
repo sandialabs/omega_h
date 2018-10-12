@@ -281,12 +281,15 @@ void read_internal(std::istream& stream, Mesh* mesh) {
       }
     }
   }
-  OMEGA_H_CHECK(ent_nodes[1].size());
-  Int max_dim = 1;
+  Int max_dim;
   if (ent_nodes[3].size()) {
     max_dim = 3;
   } else if (ent_nodes[2].size()) {
     max_dim = 2;
+  } else if (ent_nodes[1].size()) {
+    max_dim = 1;
+  } else {
+    Omega_h_fail("There were no Elements of dimension higher than zero!\n");
   }
   HostWrite<Real> host_coords(nnodes * max_dim);
   for (LO i = 0; i < nnodes; ++i) {

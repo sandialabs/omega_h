@@ -3,40 +3,28 @@
 #include "Omega_h_for.hpp"
 #include "Omega_h_reduce.hpp"
 #include "Omega_h_functors.hpp"
+#include "Omega_h_int_iterator.hpp"
 
 namespace Omega_h {
 
 template <typename T>
-struct SameContent : public AndFunctor {
-  Read<T> a_;
-  Read<T> b_;
-  SameContent(Read<T> a, Read<T> b) : a_(a), b_(b) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (a_[i] == b_[i]);
-  }
-};
-
-template <typename T>
 bool operator==(Read<T> a, Read<T> b) {
   OMEGA_H_CHECK(a.size() == b.size());
-  return parallel_reduce(a.size(), SameContent<T>(a, b), "operator==");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return a[i] == b[i];
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
-
-template <typename T>
-struct Sum : public SumFunctor<T> {
-  using typename SumFunctor<T>::value_type;
-  Read<T> a_;
-  Sum(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update + a_[i];
-  }
-};
 
 template <typename T>
 promoted_t<T> get_sum(Read<T> a) {
   using PT = promoted_t<T>;
-  return transform_reduce(a.begin(), a.end(),
-      OMEGA_H_LAMBDA(T val)->PT { return PT(val); }, PT(0), plus<PT>());
+  return transform_reduce(a.begin(), a.end(), PT(0), plus<PT>(),
+      OMEGA_H_LAMBDA(T val)->PT { return PT(val); });
 }
 
 template <typename T>
@@ -45,34 +33,28 @@ promoted_t<T> get_sum(CommPtr comm, Read<T> a) {
 }
 
 template <typename T>
-struct Min : public MinFunctor<T> {
-  using typename MinFunctor<T>::value_type;
-  Read<T> a_;
-  Min(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = min2<value_type>(update, a_[i]);
-  }
-};
-
-template <typename T>
 T get_min(Read<T> a) {
-  auto r = parallel_reduce(a.size(), Min<T>(a), "get_min");
-  return static_cast<T>(r);  // see StandinTraits
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = promoted_t<T>(ArithTraits<T>::max());
+  auto const op = minimum<promoted_t<T>>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
+  auto const r = transform_reduce(first, last, init, op, std::move(transform));
+  return T(r);  // see StandinTraits
 }
 
 template <typename T>
-struct Max : public MaxFunctor<T> {
-  using typename MaxFunctor<T>::value_type;
-  Read<T> a_;
-  Max(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = max2<value_type>(update, a_[i]);
-  }
-};
-
-template <typename T>
 T get_max(Read<T> a) {
-  auto r = parallel_reduce(a.size(), Max<T>(a), "get_max");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = promoted_t<T>(ArithTraits<T>::min());
+  auto const op = maximum<promoted_t<T>>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> promoted_t<T> {
+    return promoted_t<T>(a[i]);
+  };
+  auto const r = transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<T>(r);  // see StandinTraits
 }
 
@@ -91,39 +73,29 @@ MinMax<T> get_minmax(CommPtr comm, Read<T> a) {
   return {get_min(comm, a), get_max(comm, a)};
 }
 
-struct AreClose : public AndFunctor {
-  Reals a_;
-  Reals b_;
-  Real tol_;
-  Real floor_;
-  AreClose(Reals a, Reals b, Real tol, Real floor)
-      : a_(a), b_(b), tol_(tol), floor_(floor) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && are_close(a_[i], b_[i], tol_, floor_);
-  }
-};
-
 bool are_close(Reals a, Reals b, Real tol, Real floor) {
   OMEGA_H_CHECK(a.size() == b.size());
-  auto f = AreClose(a, b, tol, floor);
-  auto res = parallel_reduce(a.size(), f, "are_close");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return are_close(a[i], b[i], tol, floor);
+  };
+  auto const res = transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
 }
 
-struct AreCloseAbs : public AndFunctor {
-  Reals a_;
-  Reals b_;
-  Real tol_;
-  AreCloseAbs(Reals a, Reals b, Real tol) : a_(a), b_(b), tol_(tol) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (std::abs(a_[i] - b_[i]) <= tol_);
-  }
-};
-
 bool are_close_abs(Reals a, Reals b, Real tol) {
   OMEGA_H_CHECK(a.size() == b.size());
-  auto f = AreCloseAbs(a, b, tol);
-  auto res = parallel_reduce(a.size(), f, "are_close_abs");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return (std::abs(a[i] - b[i]) <= tol);
+  };
+  auto const res = transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
 }
 
@@ -429,38 +401,29 @@ void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp) {
 }
 
 template <typename T>
-struct FindLast : public MaxFunctor<LO> {
-  using typename MaxFunctor<LO>::value_type;
-  Read<T> array_;
-  T value_;
-  FindLast(Read<T> array, T value) : array_(array), value_(value) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    if (array_[i] == value_) {
-      update = max2<value_type>(update, i);
-    }
-  }
-};
-
-template <typename T>
 LO find_last(Read<T> array, T value) {
-  auto f = FindLast<T>(array, value);
-  auto res = parallel_reduce(array.size(), f, "find_last");
-  return (res == ArithTraits<LO>::min()) ? -1 : res;
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(array.size());
+  auto const init = -1;
+  auto const op = maximum<LO>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> LO {
+    if (array[i] == value) return i;
+    else return -1;
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
-
-template <typename T>
-struct IsSorted : public AndFunctor {
-  Read<T> a_;
-  IsSorted(Read<T> a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(LO i, value_type& update) const {
-    update = update && (a_[i] <= a_[i + 1]);
-  }
-};
 
 template <typename T>
 bool is_sorted(Read<T> a) {
   if (a.size() < 2) return true;
-  return parallel_reduce(a.size() - 1, IsSorted<T>(a), "is_sorted");
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size() - 1);
+  auto const init = true;
+  auto const op = logical_and<bool>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+    return a[i] <= a[i + 1];
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
 
 template <typename T>
@@ -528,35 +491,41 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
    one billion values (10^9), for a total of (10^15) values.
 */
 
-struct MaxExponent : public MaxFunctor<int> {
-  Reals a_;
-  MaxExponent(Reals a) : a_(a) {}
-  OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
-    int expo;
-    std::frexp(a_[i], &expo);
-    if (expo > update) update = expo;
-  }
-};
-
 static int max_exponent(Reals a) {
-  auto res = parallel_reduce(a.size(), MaxExponent(a), "max_exponent");
-  return static_cast<int>(res);
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = ArithTraits<int>::min();
+  auto const op = maximum<int>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> int {
+    int expo;
+    std::frexp(a[i], &expo);
+    return expo;
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
 }
 
-struct ReproSum : public SumFunctor<Int128> {
-  Reals a_;
-  double unit_;
-  ReproSum(Reals a, double unit) : a_(a), unit_(unit) {}
-  OMEGA_H_DEVICE void operator()(Int i, value_type& update) const {
-    update = update + Int128::from_double(a_[i], unit_);
+struct Int128Plus {
+  OMEGA_H_INLINE Int128 operator()(Int128 a, Int128 b) const {
+    return a + b;
   }
 };
+
+static Int128 int128_sum(Reals const a, double const unit) {
+  auto const first = IntIterator(0);
+  auto const last = IntIterator(a.size());
+  auto const init = Int128(0);
+  auto const op = Int128Plus();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> Int128 {
+    return Int128::from_double(a[i], unit);
+  };
+  return transform_reduce(first, last, init, op, std::move(transform));
+}
 
 Real repro_sum(Reals a) {
   begin_code("repro_sum");
   int expo = max_exponent(a);
   double unit = exp2(double(expo - MANTISSA_BITS));
-  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit), "fixpt_sum");
+  Int128 fixpt_sum = int128_sum(a, unit);
   end_code();
   return fixpt_sum.to_double(unit);
 }
@@ -565,7 +534,7 @@ Real repro_sum(CommPtr comm, Reals a) {
   begin_code("repro_sum(comm)");
   int expo = comm->allreduce(max_exponent(a), OMEGA_H_MAX);
   double unit = exp2(double(expo - MANTISSA_BITS));
-  Int128 fixpt_sum = parallel_reduce(a.size(), ReproSum(a, unit), "fixpt_sum");
+  Int128 fixpt_sum = int128_sum(a, unit);
   fixpt_sum = comm->add_int128(fixpt_sum);
   end_code();
   return fixpt_sum.to_double(unit);
