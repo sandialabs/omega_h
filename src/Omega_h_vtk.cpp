@@ -980,7 +980,7 @@ Writer::Writer()
     : mesh_(nullptr),
       root_path_("/not-set"),
       cell_dim_(-1),
-      compress_(true),
+      compress_(OMEGA_H_DEFAULT_COMPRESS),
       step_(-1),
       pvd_pos_(0) {}
 
