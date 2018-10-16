@@ -60,8 +60,8 @@ class bad_any_cast : public std::bad_cast {
 };
 
 #ifdef __GNUC__
-#ifdef pragma GCC diagnostic push
-#ifdef pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif
 
 class any final {
@@ -364,7 +364,7 @@ class any final {
 };
 
 #ifdef __GNUC__
-#ifdef pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 #endif
 
 namespace detail {
