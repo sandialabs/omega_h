@@ -442,6 +442,7 @@ set(Omega_h_HEADERS
   Omega_h_xml_lite.hpp
   Omega_h_expr.hpp
   Omega_h_int_scan.hpp
+  r3d.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
