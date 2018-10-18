@@ -4,14 +4,12 @@ namespace Omega_h {
 
 Now now() {
   Now t;
-  t.impl = std::chrono::high_resolution_clock::now();
+  t.impl = std::chrono::steady_clock::now();
   return t;
 }
 
 Real operator-(Now b, Now a) {
-  return std::chrono::duration_cast<std::chrono::nanoseconds>(b.impl - a.impl)
-             .count() *
-         1e-9;
+  return std::chrono::duration<double>(b.impl - a.impl).count();
 }
 
 }  // end namespace Omega_h

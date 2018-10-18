@@ -8,7 +8,7 @@
 namespace Omega_h {
 
 struct Now {
-  typedef std::chrono::time_point<std::chrono::high_resolution_clock> Impl;
+  typedef std::chrono::time_point<std::chrono::steady_clock> Impl;
   Impl impl;
 };
 
