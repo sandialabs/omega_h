@@ -1,6 +1,7 @@
 #include <Omega_h_fail.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_shared_alloc.hpp>
+#include <Omega_h_stack.hpp>
 #include <sstream>
 
 namespace Omega_h {
@@ -54,11 +55,14 @@ Alloc::Alloc(std::size_t size_in, std::string&& name_in)
 }
 
 Alloc::~Alloc() {
+  {
+    Omega_h::ScopedTimer free_timer("free");
 #ifdef OMEGA_H_USE_CUDA
-  cudaFree(ptr);
+    cudaFree(ptr);
 #else
-  std::free(ptr);
+    std::free(ptr);
 #endif
+  }
   auto ga = global_allocs;
   if (ga) {
     if (next == nullptr) {
@@ -76,16 +80,20 @@ Alloc::~Alloc() {
 }
 
 void Alloc::init() {
+  Omega_h::ScopedTimer init_timer("Alloc::init");
+  {
+    Omega_h::ScopedTimer malloc_timer("malloc");
 #ifdef OMEGA_H_USE_CUDA
-  void* tmp_ptr;
-  auto cuda_malloc_size = size;
-  if (cuda_malloc_size < 1) cuda_malloc_size = 1;
-  auto const err = cudaMalloc(&tmp_ptr, cuda_malloc_size);
-  OMEGA_H_CHECK(err == cudaSuccess);
-  ptr = static_cast<decltype(ptr)>(tmp_ptr);
+    void* tmp_ptr;
+    auto cuda_malloc_size = size;
+    if (cuda_malloc_size < 1) cuda_malloc_size = 1;
+    auto const err = cudaMalloc(&tmp_ptr, cuda_malloc_size);
+    OMEGA_H_CHECK(err == cudaSuccess);
+    ptr = static_cast<decltype(ptr)>(tmp_ptr);
 #else
-  ptr = std::malloc(size);
+    ptr = std::malloc(size);
 #endif
+  }
   use_count = 1;
   auto ga = global_allocs;
   if (size && (ptr == nullptr)) {
@@ -113,6 +121,7 @@ void Alloc::init() {
     }
     ga->total_bytes += size;
     if (ga->total_bytes > ga->high_water_bytes) {
+      Omega_h::ScopedTimer high_water_timer("high water update");
       ga->high_water_bytes = ga->total_bytes;
       ga->high_water_records.clear();
       for (auto a = ga->first; a; a = a->next) {
@@ -123,11 +132,13 @@ void Alloc::init() {
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string const& name_in) {
+  Omega_h::ScopedTimer timer("SharedAlloc ctor");
   alloc = new Alloc(size_in, name_in);
   direct_ptr = alloc->ptr;
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string&& name_in) {
+  Omega_h::ScopedTimer timer("SharedAlloc ctor");
   alloc = new Alloc(size_in, name_in);
   direct_ptr = alloc->ptr;
 }
