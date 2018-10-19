@@ -26,6 +26,7 @@ struct InputScalar : public Input {
   std::string str;
   InputScalar(std::string const& str_in);
   bool as(std::string& out) const;
+  bool as(bool& out) const;
   bool as(double& out) const;
   bool as(int& out) const;
   bool as(long long& out) const;
@@ -93,6 +94,7 @@ extern template ScalarType& InputMap::get(std::string const& name, char const* d
 extern template bool InputList::is<ScalarType>(LO i); \
 extern template ScalarType InputList::get<ScalarType>(LO i);
 OMEGA_H_EXPL_INST(std::string)
+OMEGA_H_EXPL_INST(bool)
 OMEGA_H_EXPL_INST(double)
 OMEGA_H_EXPL_INST(int)
 OMEGA_H_EXPL_INST(long long)
