@@ -454,70 +454,67 @@ class InputYamlReader : public Reader {
         return std::move(rhs.at(2));
       }
       case yaml::PROD_BSCALAR: {
-        std::size_t parent_indent_level =
+        auto parent_indent_level =
           this->symbol_indentation_stack.at(
               this->symbol_indentation_stack.size() - 5);
-        std::string& header = any_ref_cast<std::string>(rhs.at(0));
-        std::string& leading_empties_or_comments =
-          any_ref_cast<std::string>(rhs.at(2));
-        std::string& rest = any_ref_cast<std::string>(rhs.at(4));
-        std::string& content = make_any_ref<std::string>(result_any);
-        std::string comment;
+        auto& header = any_cast<std::string&>(rhs.at(0));
+        auto& leading_empties_or_comments =
+          any_cast<std::string&>(rhs.at(2));
+        auto& rest = any_cast<std::string&>(rhs.at(4));
+        std::string content;
+        std::string ignored_comment;
         handle_block_scalar(
             parent_indent_level,
             header, leading_empties_or_comments, rest,
-            content, comment);
-        break;
+            content, ignored_comment);
+        return content;
       }
       case yaml::PROD_BSCALAR_FIRST: {
-        swap(result_any, rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
       }
       // all these cases reduce to concatenating two strings
       case yaml::PROD_BSCALAR_NEXT:
       case yaml::PROD_BSCALAR_LINE:
       case yaml::PROD_DESCAPE_NEXT:
       case yaml::PROD_SESCAPE_NEXT: {
-        swap(result_any, rhs.at(0));
-        std::string& str = any_ref_cast<std::string>(result_any);
-        str += any_ref_cast<std::string>(rhs.at(1));
-        break;
+        auto str = any_cast<std::string&&>(rhs.at(0));
+        str += any_cast<std::string&>(rhs.at(1));
+        return str;
       }
       case yaml::PROD_BSCALAR_INDENT: {
-        swap(result_any, rhs.at(1));
-        break;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_BSCALAR_HEADER_LITERAL:
       case yaml::PROD_BSCALAR_HEADER_FOLDED: {
-        std::string& result = make_any_ref<std::string>(result_any);
+        std::string result;
         if (prod == yaml::PROD_BSCALAR_HEADER_LITERAL) {
           result += "|";
         } else {
           result += ">";
         }
-        std::string& rest = any_ref_cast<std::string>(rhs.at(1));
+        auto& rest = any_cast<std::string&>(rhs.at(1));
         result += rest;
-        break;
+        return result;
       }
       case yaml::PROD_DESCAPE: {
-        std::string& str = make_any_ref<std::string>(result_any);
-        std::string& rest = any_ref_cast<std::string>(rhs.at(2));
+        std::string str;
+        auto& rest = any_cast<std::string&>(rhs.at(2));
         str += any_cast<char>(rhs.at(1));
         str += rest;
-        break;
+        return str;
       }
       case yaml::PROD_SESCAPE: {
-        std::string& str = make_any_ref<std::string>(result_any);
-        std::string& rest = any_ref_cast<std::string>(rhs.at(2));
+        std::string str;
+        auto& rest = any_cast<std::string&>(rhs.at(2));
         str += '\'';
         str += rest;
-        break;
+        return str;
       }
       case yaml::PROD_OTHER_FIRST:
       case yaml::PROD_SPACE_PLUS_FIRST: {
-        std::string& str = make_any_ref<std::string>(result_any);
+        std::string str;
         str.push_back(any_cast<char>(rhs.at(0)));
-        break;
+        return str;
       }
       case yaml::PROD_SCALAR_TAIL_SPACE:
       case yaml::PROD_SCALAR_TAIL_OTHER:
@@ -528,8 +525,7 @@ class InputYamlReader : public Reader {
       case yaml::PROD_COMMON_SPACE:
       case yaml::PROD_COMMON_OTHER:
       case yaml::PROD_BSCALAR_HEAD_OTHER: {
-        swap(result_any, rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
       }
       // all these cases reduce to appending a character
       case yaml::PROD_DQUOTED_NEXT:
@@ -539,12 +535,14 @@ class InputYamlReader : public Reader {
       case yaml::PROD_SPACE_STAR_NEXT:
       case yaml::PROD_SPACE_PLUS_NEXT:
       case yaml::PROD_BSCALAR_HEAD_NEXT: {
-        TEUCHOS_TEST_FOR_EXCEPTION(rhs.at(0).empty(), ParserFail,
-            "leading characters in " << prod << ": any was empty\n");
-        swap(result_any, rhs.at(0));
-        std::string& str = any_ref_cast<std::string>(result_any);
+        if (rhs.at(0).empty()) {
+          std::stringstream ss;
+          ss << "leading characters in " << prod << ": any was empty\n");
+          throw ParserFail(ss.str());
+        }
+        auto str = any_cast<std::string&&>(rhs.at(0));
         str += any_cast<char>(rhs.at(1));
-        break;
+        return str;
       }
       case yaml::PROD_DQUOTED_EMPTY:
       case yaml::PROD_SQUOTED_EMPTY:
@@ -554,77 +552,61 @@ class InputYamlReader : public Reader {
       case yaml::PROD_SCALAR_TAIL_EMPTY:
       case yaml::PROD_SPACE_STAR_EMPTY:
       case yaml::PROD_BSCALAR_HEAD_EMPTY: {
-        result_any = std::string();
-        break;
+        return std::string();
       }
       case yaml::PROD_DESCAPED_DQUOT:
       case yaml::PROD_SQUOTED_DQUOT:
       case yaml::PROD_ANY_DQUOT: {
-        result_any = '"';
-        break;
+        return '"';
       }
       case yaml::PROD_DESCAPED_SLASH:
       case yaml::PROD_SQUOTED_SLASH:
       case yaml::PROD_ANY_SLASH: {
-        result_any = '\\';
-        break;
+        return '\\';
       }
       case yaml::PROD_SCALAR_TAIL_SQUOT:
       case yaml::PROD_DQUOTED_SQUOT:
       case yaml::PROD_ANY_SQUOT: {
-        result_any = '\'';
-        break;
+        return '\'';
       }
       case yaml::PROD_COMMON_COLON: {
-        result_any = ':';
-        break;
+        return ':';
       }
       case yaml::PROD_SCALAR_TAIL_DOT:
       case yaml::PROD_COMMON_DOT: {
-        result_any = '.';
-        break;
+        return '.';
       }
       case yaml::PROD_SCALAR_TAIL_DASH:
       case yaml::PROD_COMMON_DASH:
       case yaml::PROD_BSCALAR_HEAD_DASH: {
-        result_any = '-';
-        break;
+        return '-';
       }
       case yaml::PROD_COMMON_PIPE: {
-        result_any = '|';
-        break;
+        return '|';
       }
       case yaml::PROD_COMMON_LSQUARE: {
-        result_any = '[';
-        break;
+        return '[';
       }
       case yaml::PROD_COMMON_RSQUARE: {
-        result_any = ']';
-        break;
+        return ']';
       }
       case yaml::PROD_COMMON_LCURLY: {
-        result_any = '{';
-        break;
+        return '{';
       }
       case yaml::PROD_COMMON_RCURLY: {
-        result_any = '}';
-        break;
+        return '}';
       }
       case yaml::PROD_COMMON_RANGLE: {
-        result_any = '>';
-        break;
+        return '>';
       }
       case yaml::PROD_COMMON_COMMA: {
-        result_any = ',';
-        break;
+        return ',';
       }
       case yaml::PROD_COMMON_PERCENT: {
-        result_any = '%';
-        break;
+        return '%';
       }
       case yaml::PROD_COMMON_EXCL: {
-        result_any = '!';
-        break;
+        return '!';
       }
     }
   }
