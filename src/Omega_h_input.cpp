@@ -71,12 +71,12 @@ T InputScalar::get() const {
   T out;
   if (!as(out)) {
     auto full_name = get_full_name(*this);
-    Omega_h_fail("InputScalar \"%s\" string \"%s\" is not of type %s",
+    Omega_h_fail("InputScalar \"%s\" string \"%s\" is not interpretable as a %s",
         full_name.c_str(),
         str.c_str(),
         (std::is_same<T, int>::value ? "int" :
         (std::is_same<T, double>::value ? "double" :
-        (std::is_same<T, long long>::value ? "long long")))
+        (std::is_same<T, long long>::value ? "long long" : "unknown type")))
         );
   }
   return out;
@@ -215,7 +215,12 @@ InputList& InputList::get_list(LO i) {
   return this->use_input<InputList>(i);
 }
 
-class YamlInputReader : public Reader {
+struct NameValue {
+  std::string name;
+  std::unique_ptr<Input> value;
+};
+
+class InputYamlReader : public Reader {
  public:
   Reader():Reader(yaml::ask_reader_tables()) {}
   ~Reader() override = default;
@@ -224,197 +229,192 @@ class YamlInputReader : public Reader {
     TRIM_NORMAL,
     TRIM_DASH
   };
-  virtual void at_shift(any& result_any, int token, std::string& text) {
-    using std::swap;
+  virtual any at_shift(int token, std::string& text) {
     switch (token) {
       case yaml::TOK_NEWLINE: {
-        std::string& result = make_any_ref<std::string>(result_any);
-        swap(result, text);
-        break;
+        return std::move(text);
       }
       case yaml::TOK_SPACE:
       case yaml::TOK_OTHER: {
-        result_any = text.at(0);
-        break;
+        return text.at(0);
       }
     }
   }
-  virtual void at_reduce(any& result_any, int prod, std::vector<any>& rhs) {
-    using std::swap;
+  virtual any at_reduce(int prod, std::vector<any>& rhs) {
     switch (prod) {
       case yaml::PROD_DOC:
       case yaml::PROD_DOC2: {
         std::size_t offset = prod == yaml::PROD_DOC2 ? 1 : 0;
-        TEUCHOS_ASSERT(!rhs.at(offset).empty());
-        swap(result_any, rhs.at(offset));
-        TEUCHOS_ASSERT(result_any.type() == typeid(ParameterList));
-        break;
+        OMEGA_H_CHECK(!rhs.at(offset).empty());
+        auto& result_any = rhs.at(offset);
+        OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
+        return std::move(result_any);
       }
       case yaml::PROD_TOP_BMAP: {
-        TEUCHOS_ASSERT(!rhs.at(0).empty());
-        TEUCHOS_ASSERT(rhs.at(0).type() == typeid(PLPair));
-        PLPair& pair = any_ref_cast<PLPair>(rhs.at(0));
-        any& pair_rhs_any = pair.value.getAny(/* set isUsed = */ false);
-        result_any = pair_rhs_any;
-        break;
+        OMEGA_H_CHECK(!rhs.at(0).empty());
+        OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
+        return std::move(as_type<InputMap>(*(any_cast<NameValue&>(rhs.at(0)).value)));
       }
       case yaml::PROD_TOP_FIRST: {
-        if (rhs.at(0).type() == typeid(ParameterList)) {
-          swap(result_any, rhs.at(0));
+        if (rhs.at(0).type() == typeid(InputMap)) {
+          return std::move(rhs.at(0));
         }
-        break;
+        return any();
       }
       case yaml::PROD_TOP_NEXT: {
-        if (rhs.at(1).type() == typeid(ParameterList)) {
-          TEUCHOS_TEST_FOR_EXCEPTION(!rhs.at(0).empty(), ParserFail,
-              "Can't specify multiple top-level ParameterLists in one YAML file!\n");
-          swap(result_any, rhs.at(1));
+        if (rhs.at(1).type() == typeid(InputMap)) {
+          if (!rhs.at(0).empty()) {
+            throw ParserFail("Can't specify multiple top-level InputMaps in one YAML file!\n");
+          }
+          return std::move(rhs.at(1));
         } else {
-          swap(result_any, rhs.at(0));
+          return std::move(rhs.at(0));
         }
-        break;
       }
       case yaml::PROD_BMAP_FIRST:
       case yaml::PROD_FMAP_FIRST: {
-        TEUCHOS_ASSERT(rhs.at(0).type() == typeid(PLPair));
-        map_first_item(result_any, rhs.at(0));
-        TEUCHOS_ASSERT(result_any.type() == typeid(ParameterList));
-        break;
+        OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
+        auto result_any = map_first_item(result_any, rhs.at(0));
+        OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
+        return result_any;
       }
       case yaml::PROD_BMAP_NEXT: {
-        map_next_item(result_any, rhs.at(0), rhs.at(1));
-        break;
+        return map_next_item(rhs.at(0), rhs.at(1));
       }
       case yaml::PROD_FMAP_NEXT: {
-        map_next_item(result_any, rhs.at(0), rhs.at(3));
-        break;
+        return map_next_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_BMAP_SCALAR:
-      case yaml::PROD_FMAP_SCALAR:
-      case yaml::PROD_FMAP_FMAP:
+      case yaml::PROD_FMAP_SCALAR {
+        auto& scalar = any_cast<InputScalar&>(rhs.at(4));
+        std::unique_ptr<Input> uptr(new InputScalar(std::move(scalar));
+        any item = std::move(uptr);
+        return map_item(rhs.at(0), item);
+      }
+      case yaml::PROD_FMAP_FMAP: {
+        auto& map = any_cast<InputMap&>(rhs.at(4));
+        std::unique_ptr<Input> uptr(new InputMap(std::move(map));
+        any item = std::move(uptr);
+        return map_item(rhs.at(0), item);
+      }
       case yaml::PROD_FMAP_FSEQ: {
-        int scalar_type = interpret_tag(rhs.at(3));
-        map_item(result_any, rhs.at(0), rhs.at(4), scalar_type);
-        break;
+        auto& list = any_cast<InputMap&>(rhs.at(4));
+        std::unique_ptr<Input> uptr(new InputList(std::move(list));
+        any item = std::move(uptr);
+        return map_item(rhs.at(0), item);
       }
       case yaml::PROD_BMAP_BSCALAR: {
-        map_item(result_any, rhs.at(0), rhs.at(3), Scalar::STRING);
-        break;
+        return map_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_BMAP_BVALUE: {
-        map_item(result_any, rhs.at(0), rhs.at(4));
-        break;
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BVALUE_EMPTY: {
-        result_any = ParameterList();
-        break;
+        std::unique_ptr<Input> uptr(new InputMap());
+        return uptr;
       }
-      case yaml::PROD_BVALUE_BMAP:
+      case yaml::PROD_BVALUE_BMAP: {
+        auto& map = any_cast<InputMap&>(rhs.at(1));
+        std::unique_ptr<Input> uptr(new InputMap(std::move(map));
+        return uptr;
+      }
       case yaml::PROD_BVALUE_BSEQ: {
-        swap(result_any, rhs.at(1));
-        break;
+        auto& list = any_cast<InputList&>(rhs.at(1));
+        std::unique_ptr<Input> uptr(new InputList(std::move(list));
+        return uptr;
       }
       case yaml::PROD_BMAP_FMAP: {
-        map_item(result_any, rhs.at(0), rhs.at(4));
-        break;
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BMAP_FSEQ: {
-        TEUCHOS_ASSERT(rhs.at(4).type() == typeid(Array<Scalar>) ||
-            rhs.at(4).type() == typeid(Array<Array<Scalar>>));
-        int scalar_type = interpret_tag(rhs.at(3));
-        map_item(result_any, rhs.at(0), rhs.at(4), scalar_type);
-        break;
+        return map_item(result_any, rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BSEQ_FIRST: {
-        seq_first_item(result_any, rhs.at(0));
-        break;
+        return seq_first_item(rhs.at(0));
       }
       case yaml::PROD_BSEQ_NEXT: {
-        seq_next_item(result_any, rhs.at(0), rhs.at(1));
-        break;
+        return seq_next_item(rhs.at(0), rhs.at(1));
       }
       case yaml::PROD_BSEQ_SCALAR: {
-        swap(result_any, rhs.at(3));
-        Scalar& scalar = any_ref_cast<Scalar>(result_any);
-        scalar.tag_type = interpret_tag(rhs.at(2));
-        break;
+        auto& scalar = any_cast<InputScalar&>(rhs.at(4));
+        std::unique_ptr<Input> uptr(new InputScalar(std::move(scalar));
+        return uptr;
       }
       case yaml::PROD_BSEQ_BSCALAR: {
-        swap(result_any, rhs.at(2));
-        break;
+        auto& scalar = any_cast<InputScalar&>(rhs.at(2));
+        std::unique_ptr<Input> uptr(new InputScalar(std::move(scalar));
+        return uptr;
       }
       case yaml::PROD_BSEQ_BMAP:
-      case yaml::PROD_BSEQ_BMAP_TRAIL:
       case yaml::PROD_BSEQ_FMAP: {
-        throw ParserFail("Can't interpret a map inside a sequence as a Teuchos Parameter");
+        auto& map = any_cast<InputMap&>(rhs.at(3));
+        std::unique_ptr<Input> uptr(new InputMap(std::move(map));
+        return uptr;
       }
-      case yaml::PROD_BSEQ_BSEQ: {
-        swap(result_any, rhs.at(3));
-        break;
+      case yaml::PROD_BSEQ_BMAP_TRAIL: {
+        auto& map = any_cast<InputMap&>(rhs.at(4));
+        std::unique_ptr<Input> uptr(new InputMap(std::move(map));
+        return uptr;
+      }
+      case yaml::PROD_BSEQ_BSEQ:
+      case yaml::PROD_BSEQ_FSEQ: {
+        auto& list = any_cast<InputList&>(rhs.at(3));
+        std::unique_ptr<Input> uptr(new InputList(std::move(list));
+        return uptr;
       }
       case yaml::PROD_BSEQ_BSEQ_TRAIL: {
-        swap(result_any, rhs.at(4));
-        break;
-      }
-      case yaml::PROD_BSEQ_FSEQ: {
-        swap(result_any, rhs.at(3));
-        break;
+        auto& list = any_cast<InputList&>(rhs.at(4));
+        std::unique_ptr<Input> uptr(new InputList(std::move(list));
+        return uptr;
       }
       case yaml::PROD_FMAP: {
-        swap(result_any, rhs.at(2));
-        break;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_FMAP_EMPTY: {
-        result_any = ParameterList();
-        break;
+        return InputMap();
       }
       case yaml::PROD_FSEQ: {
-        swap(result_any, rhs.at(2));
-        TEUCHOS_ASSERT(result_any.type() == typeid(Array<Scalar>) ||
-            result_any.type() == typeid(Array<Array<Scalar>>));
-        break;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_FSEQ_EMPTY: {
-        result_any = Array<Scalar>();
-        break;
+        return InputList();
       }
       case yaml::PROD_FSEQ_FIRST: {
-        seq_first_item(result_any, rhs.at(0));
-        break;
+        return seq_first_item(rhs.at(0));
       }
       case yaml::PROD_FSEQ_NEXT: {
-        seq_next_item(result_any, rhs.at(0), rhs.at(3));
-        break;
+        return seq_next_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_FSEQ_SCALAR: {
-        swap(result_any, rhs.at(1));
-        Scalar& scalar = any_ref_cast<Scalar>(result_any);
-        scalar.tag_type = interpret_tag(rhs.at(0));
-        break;
+        auto& scalar = any_cast<InputScalar&>(rhs.at(1));
+        std::unique_ptr<Input> uptr(new InputScalar(std::move(scalar));
+        return uptr;
       }
-      case yaml::PROD_FSEQ_FSEQ:
+      case yaml::PROD_FSEQ_FSEQ: {
+        auto& list = any_cast<InputList&>(rhs.at(1));
+        std::unique_ptr<Input> uptr(new InputList(std::move(list));
+        return uptr;
+      }
       case yaml::PROD_FSEQ_FMAP: {
-        swap(result_any, rhs.at(1));
-        break;
+        auto& map = any_cast<InputMap&>(rhs.at(1));
+        std::unique_ptr<Input> uptr(new InputMap(std::move(map));
+        return uptr;
       }
       case yaml::PROD_SCALAR_QUOTED:
       case yaml::PROD_MAP_SCALAR_QUOTED: {
-        swap(result_any, rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
       }
       case yaml::PROD_SCALAR_RAW:
       case yaml::PROD_MAP_SCALAR_RAW: {
-        Scalar& scalar = make_any_ref<Scalar>(result_any);
-        TEUCHOS_ASSERT(!rhs.at(0).empty());
-        scalar.text = any_ref_cast<std::string>(rhs.at(0));
-        scalar.text += any_ref_cast<std::string>(rhs.at(1));
+        InputScalar scalar;
+        OMEGA_H_CHECK(!rhs.at(0).empty());
+        scalar.str = any_cast<std::string&>(rhs.at(0));
+        scalar.str += any_cast<std::string&>(rhs.at(1));
         if (prod == yaml::PROD_MAP_SCALAR_RAW) {
-          scalar.text += any_ref_cast<std::string>(rhs.at(2));
+          scalar.str += any_cast<std::string&>(rhs.at(2));
         }
-        scalar.text = remove_trailing_whitespace(scalar.text);
-        scalar.source = Scalar::RAW;
-        scalar.tag_type = -1;
-        break;
+        scalar.str = remove_trailing_whitespace(scalar.str);
+        return scalar;
       }
       case yaml::PROD_SCALAR_HEAD_OTHER:
       case yaml::PROD_SCALAR_HEAD_DOT:
@@ -425,42 +425,33 @@ class YamlInputReader : public Reader {
         else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT) offset = 2;
         else offset = 1;
         char second = any_cast<char>(rhs.at(offset));
-        std::string& result = make_any_ref<std::string>(result_any);
+        std::string result;
         if (prod == yaml::PROD_SCALAR_HEAD_DOT) result += '.';
         else if (prod == yaml::PROD_SCALAR_HEAD_DASH) result += '-';
         else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT) result += "..";
         result += second;
-        break;
+        return result;
       }
       case yaml::PROD_SCALAR_DQUOTED:
       case yaml::PROD_SCALAR_SQUOTED: {
-        std::string& first = any_ref_cast<std::string>(rhs.at(1));
-        std::string& rest = any_ref_cast<std::string>(rhs.at(2));
-        Scalar& scalar = make_any_ref<Scalar>(result_any);
-        scalar.text += first;
-        scalar.text += rest;
-        if (prod == yaml::PROD_SCALAR_DQUOTED) {
-          scalar.source = Scalar::DQUOTED;
-        } else if (prod == yaml::PROD_SCALAR_SQUOTED) {
-          scalar.source = Scalar::SQUOTED;
-        }
-        scalar.tag_type = -1;
-        break;
+        auto& first = any_cast<std::string&>(rhs.at(1));
+        auto& rest = any_cast<std::string&>(rhs.at(2));
+        InputScalar scalar;
+        scalar.str += first;
+        scalar.str += rest;
+        return scalar;
       }
       case yaml::PROD_MAP_SCALAR_ESCAPED_EMPTY: {
-        result_any = std::string();
-        break;
+        return std::string();
       }
       case yaml::PROD_MAP_SCALAR_ESCAPED_NEXT: {
-        swap(result_any, rhs.at(0));
-        std::string& str = any_ref_cast<std::string>(result_any);
+        auto str = any_cast<std::string&&>(rhs.at(0));
         str += ',';
-        str += any_ref_cast<std::string>(rhs.at(2));
-        break;
+        str += any_cast<std::string&>(rhs.at(2));
+        return std::move(str);
       }
       case yaml::PROD_TAG: {
-        swap(result_any, rhs.at(2));
-        break;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_BSCALAR: {
         std::size_t parent_indent_level =
@@ -639,20 +630,20 @@ class YamlInputReader : public Reader {
   }
   void map_first_item(any& result_any, any& first_item) {
     ParameterList& list = make_any_ref<ParameterList>(result_any);
-    TEUCHOS_ASSERT(!first_item.empty());
-    PLPair& pair = any_ref_cast<PLPair>(first_item);
+    OMEGA_H_CHECK(!first_item.empty());
+    NameValue& pair = any_ref_cast<NameValue>(first_item);
     safe_set_entry(list, pair.key, pair.value);
   }
   void map_next_item(any& result_any, any& items, any& next_item) {
     using std::swap;
     swap(result_any, items);
     ParameterList& list = any_ref_cast<ParameterList>(result_any);
-    PLPair& pair = any_ref_cast<PLPair>(next_item);
+    NameValue& pair = any_ref_cast<NameValue>(next_item);
     safe_set_entry(list, pair.key, pair.value);
   }
   void map_item(any& result_any, any& key_any, any& value_any, int scalar_type = -1) {
     using std::swap;
-    PLPair& result = make_any_ref<PLPair>(result_any);
+    NameValue& result = make_any_ref<NameValue>(result_any);
     {
       std::string& key = any_ref_cast<Scalar>(key_any).text;
       swap(result.key, key);
