@@ -1,7 +1,7 @@
 #include <Omega_h_fail.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_shared_alloc.hpp>
-#include <Omega_h_stack.hpp>
+#include <Omega_h_profile.hpp>
 #include <sstream>
 
 namespace Omega_h {

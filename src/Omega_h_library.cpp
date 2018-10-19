@@ -1,5 +1,5 @@
 #include <Omega_h_config.h>
-#include <Omega_h_stack.hpp>
+#include <Omega_h_profile.hpp>
 
 #include <csignal>
 #include <cstdarg>

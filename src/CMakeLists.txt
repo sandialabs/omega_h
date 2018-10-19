@@ -81,7 +81,7 @@ set(Omega_h_SOURCES
   Omega_h_amr.cpp
   Omega_h_amr_transfer.cpp
   Omega_h_print.cpp
-  Omega_h_stack.cpp
+  Omega_h_profile.cpp
   Omega_h_fail.cpp
   Omega_h_shared_alloc.cpp
   Omega_h_any.cpp
@@ -425,7 +425,7 @@ set(Omega_h_HEADERS
   Omega_h_affine.hpp
   Omega_h_print.hpp
   Omega_h_amr.hpp
-  Omega_h_stack.hpp
+  Omega_h_profile.hpp
   Omega_h_owners.hpp
   Omega_h_rbtree.hpp
   Omega_h_box.hpp

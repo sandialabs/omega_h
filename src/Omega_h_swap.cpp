@@ -3,7 +3,7 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
-#include "Omega_h_stack.hpp"
+#include "Omega_h_profile.hpp"
 #include "Omega_h_swap2d.hpp"
 #include "Omega_h_swap3d.hpp"
 

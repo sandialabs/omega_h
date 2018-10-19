@@ -2,7 +2,7 @@
 #define OMEGA_H_FOR_HPP
 
 #include <Omega_h_defines.hpp>
-#include <Omega_h_stack.hpp>
+#include <Omega_h_profile.hpp>
 
 #include <Omega_h_shared_alloc.hpp>
 #include <Omega_h_int_iterator.hpp>
