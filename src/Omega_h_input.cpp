@@ -1,5 +1,219 @@
+#include <Omega_h_input.hpp>
 
 namespace Omega_h {
+
+Input::Input() : parent(nullptr), used(false) {}
+
+std::string get_full_name(Input& input) {
+  std::string full_name;
+  if (input.parent != nullptr) {
+    auto& parent = *(input.parent);
+    full_name = get_full_name(parent);
+    if (is_type<InputList>(parent)) {
+      auto i = as_type<InputList>(parent).position(input);
+      full_name += "[";
+      full_name += std::to_string(i);
+      full_name += "]";
+    }
+  }
+  if (is_type<NamedInput>(input)) {
+    if (!full_name.empty()) full_name += ".";
+    full_name += as_type<NamedInput>(input).name;
+  }
+}
+
+template <class InputType>
+bool is_type<InputType>(Input& input) {
+  auto ptr_in = &input;
+  auto ptr_out = dynamic_cast<InputType*>(ptr_in);
+  return ptr_out != nullptr;
+}
+
+template <class InputType>
+InputType& as_type<InputType>(Input& input) {
+  return dynamic_cast<InputType&>(input);
+}
+
+InputScalar::InputScalar(std::string const& str_in) : str(str_in) {}
+
+bool InputScalar::as(std::string& out) { out = str; return true; }
+
+bool InputScalar::as(double& out) {
+  std::istringstream ss(str);
+  double val;
+  ss >> std::noskipws >> val;
+  return ss.eof() && !ss.fail();
+}
+
+bool InputScalar::as(int& out) {
+  std::istringstream ss(text);
+  using LL = long long;
+  LL val;
+  ss >> std::noskipws >> val;
+  if (ss.eof() && !ss.fail() &&
+    (val >= LL(std::numeric_limits<int>::min())) &&
+    (val <= LL(std::numeric_limits<int>::max()))) {
+    out = int(val);
+    return true;
+  }
+  return false;
+}
+
+bool InputScalar::as(long long& out) {
+  std::istringstream ss(str);
+  long long val;
+  ss >> std::noskipws >> val;
+  return ss.eof() && !ss.fail();
+}
+
+template <class T>
+T InputScalar::get() const {
+  T out;
+  if (!as(out)) {
+    auto full_name = get_full_name(*this);
+    Omega_h_fail("InputScalar \"%s\" string \"%s\" is not of type %s",
+        full_name.c_str(),
+        str.c_str(),
+        (std::is_same<T, int>::value ? "int" :
+        (std::is_same<T, double>::value ? "double" :
+        (std::is_same<T, long long>::value ? "long long")))
+        );
+  }
+  return out;
+}
+
+
+void InputMap::add(std::string const& name,
+    std::unique_ptr<Input>&& input) {
+  auto it = map.upper_bound(name);
+  input->parent = this;
+  auto const did = entries.emplace(name, std::move(input)).second;
+  if (!did) {
+    fail(
+        "tried to add already existing InputMap name \"%s\"\n",
+        name.c_str());
+  }
+}
+
+template <class InputType>
+bool InputMap::is_input(std::string const& name) {
+  auto const it = map.find(name);
+  if (it == map.end()) return false;
+  auto const& uptr = *it;
+  return is_type<InputType>(*uptr);
+}
+
+template <class ScalarType>
+bool InputMap::is(std::string const& name) {
+  auto const it = map.find(name);
+  if (it == map.end()) return false;
+  auto const& uptr = *it;
+  ScalarType ignored;
+  return is_type<InputScalar>(*uptr) &&
+    as_type<InputScalar>(*uptr).as(ignored);
+}
+
+bool InputMap::is_map(std::string const& name) {
+  return this->is_input<InputMap>(name);
+}
+
+bool InputMap::is_list(std::string const& name) {
+  return this->is_input<InputList>(name);
+}
+
+Input& InputMap::find_named_input(std::string const& name) {
+  auto it = map.find(name);
+  if (it == map.end()) {
+    auto s = get_full_name(*this) + name;
+    fail("tried to find InputMap entry \"%s\" that doesn't exist\n", s.c_str());
+  }
+  return *(it->second);
+}
+
+template <class InputType>
+InputType& InputMap::use_input(std::string const& name) {
+  return Omega_h::use_input<InputType>(find_named_input(name));
+}
+
+template <class ScalarType>
+ScalarType InputMap::get(std::string const& name) {
+  return this->use_input<InputScalar>(name).get<ScalarType>();
+}
+
+InputMap& InputMap::get_map(std::string const& name) {
+  return this->use_input<InputMap>(name);
+}
+
+InputList& InputMap::get_list(std::string const& name) {
+  return this->use_input<InputList>(name);
+}
+
+template <class ScalarType>
+ScalarType& InputMap::get(std::string const& name, char const* default_value) {
+  if (this->is<ScalarType>(name)) {
+    return this->get<ScalarType>(name);
+  }
+  this->add(name, InputScalar(default_value));
+}
+
+void InputList::add(std::unique_ptr<Input>&& input) {
+  input->parent = this;
+  entries.push_back(std::move(input));
+}
+
+LO InputList::position(Input& input) {
+  auto it = std::find(entries.begin(), entries.end(),
+      [&](std::unique_ptr<Input> const& uptr) {
+        return uptr.get() == &input;
+      });
+  OMEGA_H_CHECK(it != entries.end());
+  return LO(it - entries.begin());
+}
+
+LO InputList::size() { return LO(entries.size()); }
+
+Input& InputList::at(LO i) {
+  return *(entries.at(std::size_t(i)));
+}
+
+template <class InputType>
+bool InputList::is_input(LO i) {
+  return Omega_h::is_type<InputType>(this->at(i));
+}
+
+template <class InputType>
+InputType& InputList::use_input(LO i) {
+  return Omega_h::use_input<InputType>(this->at(i));
+}
+
+template <class ScalarType>
+bool InputList::is(LO i) {
+  auto const& input = at(i);
+  ScalarType ignored;
+  return is_type<InputScalar>(input) &&
+    as_type<InputScalar>(input).as(ignored);
+}
+
+bool InputList::is_map(LO i) {
+  return this->is_input<InputMap>(i);
+}
+
+bool InputList::is_list(LO i) {
+  return this->is_input<InputList>(i);
+}
+
+template <class ScalarType>
+ScalarType InputList::get(LO i) {
+  return this->use_input<InputScalar>(i).get<ScalarType>();
+}
+
+InputMap& InputList::get_map(LO i) {
+  return this->use_input<InputMap>(i);
+}
+
+InputList& InputList::get_list(LO i) {
+  return this->use_input<InputList>(i);
+}
 
 class YamlInputReader : public Reader {
  public:
@@ -759,4 +973,30 @@ class YamlInputReader : public Reader {
     }
   }
 };
+
+#define OMEGA_H_EXPL_INST(InputType) \
+template bool is_type<InputType>(Input&); \
+template InputType as_type<InputType>(Input&); \
+template bool InputMap::is_input<InputType>(std::string const& name); \
+template InputType& InputMap::use_input<InputType>(std::string const& name) \
+template bool InputList::is_input(LO i); \
+template InputType& InputList::use_input(LO i);
+OMEGA_H_EXPL_INST_INPUT(InputScalar)
+OMEGA_H_EXPL_INST_INPUT(InputMap)
+OMEGA_H_EXPL_INST_INPUT(InputList)
+#undef OMEGA_H_EXPL_INST
+
+#define OMEGA_H_EXPL_INST(ScalarType) \
+template ScalarType InputScalar::get<ScalarType>() const; \
+template bool InputMap::is<ScalarType>(std::string const& name); \
+template ScalarType InputMap::get<ScalarType>(std::string const& name); \
+template ScalarType& InputMap::get(std::string const& name, char const* default_value); \
+template bool InputList::is<ScalarType>(LO i); \
+template ScalarType InputList::get<ScalarType>(LO i);
+OMEGA_H_EXPL_INST(std::string)
+OMEGA_H_EXPL_INST(double)
+OMEGA_H_EXPL_INST(int)
+OMEGA_H_EXPL_INST(long long)
+#undef OMEGA_H_EXPL_INST
+
 }

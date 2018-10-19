@@ -4,150 +4,99 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace Omega_h {
 
 struct Input {
-  Input() : parent(nullptr), used(false) {}
   Input* parent;
   bool used;
+  Input();
 };
 
-inline bool is_type<InputType>(Input& input) {
-  auto ptr_in = &input;
-  auto ptr_out = dynamic_cast<InputType*>(ptr_in);
-  return ptr_out != nullptr;
-}
-
-inline InputType& as_type<InputType>(Input& input) {
-  return dynamic_cast<InputType&>(input);
-}
-
-template <class ScalarType>
-struct ScalarInput : public Input {
-  ScalarInput(ScalarType value_in) : value(value_in) {}
-  ScalarType value;
-};
-
-struct NamedInput : public Input {
-  NamedInput(std::string const& name_in, Input* value_in)
-      : name(name_in), value(value_in) {}
-  std::string name;
-  std::unique_ptr<Input> value;
-};
-
-struct MapInput : public Input;
-struct ListInput : public Input;
+std::string get_full_name(Input& input);
 
 template <class InputType>
-InputType& get_input(Input& input) {
-  auto out = as_type<InputType>(input);
-  out.used = true;
-  return out;
-}
+bool is_type<InputType>(Input& input);
 
-struct MapInput : public Input {
-  std::vector<std::unique_ptr<NamedInput>> entries;
-  std::rb_tree<std::string, NamedInput*, NameOfNamedInput> by_name;
-  void add(NamedInput* named_input) {
-    auto it = by_name.upper_bound(named_input->name);
-    if (it != by_name.end() && (*it)->name == named_input->name) {
-      fail(
-          "Tried to add a mapped input value of name \"%s\" that already "
-          "existed\n",
-          named_input->name.c_str());
-    }
-    std::unique_ptr<NamedInput> uptr(named_input);
-    entries.push_back(std::move(uptr));
-    by_name.insert(it, named_input);
-  }
-  template <class InputType>
-  bool is_input(std::string const& name) {
-    auto it = by_name.find(name);
-    if (it == by_name.end()) return false;
-    auto& uptr = *it;
-    return is_type(*uptr);
-  }
-  template <class ScalarType>
-  bool is(std::string const& name) {
-    return is_input<ScalarInput<ScalarType>>(name);
-  }
-  bool is_map(std::string const& name) { return is_input<MapInput>(name); }
-  bool is_list(std::string const& name) { return is_input<ListInput>(name); }
-  Input& get_named_input(std::string const& name) {
-    auto it = by_name.find(name);
-    if (it == by_name.end()) {
-      auto s = get_full_name(*this) + name;
-      fail("Tried to get named input \"%s\" that doesn't exist\n", s.c_str());
-    }
-    auto& named_uptr = *it;
-    auto& value_uptr = named_uptr->value;
-    return *value_uptr;
-  }
-  template <class InputType>
-  InputType& get_input(std::string const& name) {
-    return Omega_h::get_input<InputType>(get_named_input(name));
-  }
-  template <class ScalarType>
-  ScalarType& get(std::string const& name) {
-    return this->get_input<ScalarInput<ScalarType>>(name).value;
-  }
-  MapInput& get_map(std::string const& name) {
-    return this->get_input<MapInput>(name).value;
-  }
-  ListInput& get_list(std::string const& name) {
-    return this->get_input<ListInput>(name).value;
-  }
-  template <class ScalarType>
-  ScalarType& get(std::string const& name, ScalarType const& default_value) {
-    if (has_input<ScalarInput<ScalarType>>(name))
-      return this->get<ScalarType>(name);
-    this->add(new NamedInput(name, new ScalarInput<ScalarType>(default_value)));
-  }
+template <class InputType>
+InputType& as_type<InputType>(Input& input);
+
+struct InputScalar : public Input {
+  std::string str;
+  InputScalar(std::string const& str_in);
+  bool as(std::string& out) const;
+  bool as(double& out) const;
+  bool as(int& out) const;
+  bool as(long long& out) const;
+  template <class T>
+  T get() const;
 };
 
-struct ListInput : public Input {
+struct InputMap : public Input {
+  std::map<std::string, std::unique_ptr<Input>> map;
+  void add(std::string const& name, std::unique_ptr<Input>&& input);
+  template <class InputType>
+  bool is_input(std::string const& name);
+  template <class ScalarType>
+  bool is(std::string const& name);
+  bool is_map(std::string const& name);
+  bool is_list(std::string const& name);
+  Input& find_named_input(std::string const& name);
+  template <class InputType>
+  InputType& use_input(std::string const& name);
+  template <class ScalarType>
+  ScalarType get(std::string const& name);
+  InputMap& get_map(std::string const& name);
+  InputList& get_list(std::string const& name);
+  template <class ScalarType>
+  ScalarType& get(std::string const& name, char const* default_value);
+};
+
+struct InputList : public Input {
   std::vector<std::unique_ptr<Input>> entries;
-  std::size_t position(Input& input) {
-    auto it = std::find(entries.begin(), entries.end(),
-        [&](std::unique_ptr<Input> const& uptr) {
-          return uptr.get() == &input;
-        });
-    OMEGA_H_CHECK(it != entries.end());
-    return it - entries.begin();
-  }
-  LO size() { return LO(entries.size()); }
+  void add(std::unique_ptr<Input>&& input);
+  LO position(Input& input);
+  LO size();
+  Input& at(LO i);
   template <class InputType>
-  bool is_input(LO i) {
-    return Omega_h::is_type<InputType>(*(entries[std::size_t(i)]));
-  }
+  bool is_input(LO i);
   template <class InputType>
-  InputType& get_input(LO i) {
-    return Omega_h::get_input<InputType>(*(entries[std::size_t(i)]));
-  }
+  InputType& use_input(LO i);
   template <class ScalarType>
-  ScalarType& get_input(LO i) {
-    return Omega_h::get_input<InputType>(*(entries[std::size_t(i)]));
-  }
+  bool is(LO i);
+  bool is_map(LO i);
+  bool is_list(LO i);
+  template <class ScalarType>
+  ScalarType get(LO i);
+  InputMap& get_map(LO i);
+  InputList& get_list(LO i);
 };
 
-std::string get_full_name(Input& input) {
-  std::string full_name;
-  if (input.parent != nullptr) {
-    auto& parent = *(input.parent);
-    full_name = get_full_name(parent);
-    if (is_type<ListInput>(parent)) {
-      auto i = as_type<ListInput>(parent).position(input);
-      full_name += "[";
-      full_name += std::to_string(i);
-      full_name += "]";
-    }
-  }
-  if (is_type<NamedInput>(input)) {
-    if (!full_name.empty()) full_name += ".";
-    full_name += as_type<NamedInput>(input).name;
-  }
-}
+#define OMEGA_H_EXPL_INST(InputType) \
+extern template bool is_type<InputType>(Input&); \
+extern template InputType as_type<InputType>(Input&); \
+extern template bool InputMap::is_input<InputType>(std::string const& name); \
+extern template InputType& InputMap::use_input<InputType>(std::string const& name) \
+extern template bool InputList::is_input(LO i); \
+extern template InputType& InputList::use_input(LO i);
+OMEGA_H_EXPL_INST_INPUT(InputScalar)
+OMEGA_H_EXPL_INST_INPUT(InputMap)
+OMEGA_H_EXPL_INST_INPUT(InputList)
+#undef OMEGA_H_EXPL_INST
+
+#define OMEGA_H_EXPL_INST(ScalarType) \
+extern template ScalarType InputScalar::get<ScalarType>() const; \
+extern template bool InputMap::is<ScalarType>(std::string const& name); \
+extern template ScalarType InputMap::get<ScalarType>(std::string const& name); \
+extern template ScalarType& InputMap::get(std::string const& name, char const* default_value); \
+extern template bool InputList::is<ScalarType>(LO i); \
+extern template ScalarType InputList::get<ScalarType>(LO i);
+OMEGA_H_EXPL_INST(std::string)
+OMEGA_H_EXPL_INST(double)
+OMEGA_H_EXPL_INST(int)
+OMEGA_H_EXPL_INST(long long)
+#undef OMEGA_H_EXPL_INST
 
 }  // namespace Omega_h
 
