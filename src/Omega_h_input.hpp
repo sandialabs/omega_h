@@ -5,26 +5,33 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <Omega_h_defines.hpp>
 
 namespace Omega_h {
 
 struct Input {
   Input* parent;
+  virtual ~Input() = default;
+  Input(Input const&) = default;
+  Input(Input&&) = default;
   bool used;
   Input();
+  virtual void out_of_line_virtual_method();
 };
 
-std::string get_full_name(Input& input);
+std::string get_full_name(Input const& input);
 
 template <class InputType>
-bool is_type<InputType>(Input& input);
+bool is_type(Input& input);
 
 template <class InputType>
-InputType& as_type<InputType>(Input& input);
+InputType& as_type(Input& input);
 
 struct InputScalar : public Input {
   std::string str;
   InputScalar(std::string const& str_in);
+  InputScalar(InputScalar const&) = default;
+  InputScalar(InputScalar&&) = default;
   bool as(std::string& out) const;
   bool as(bool& out) const;
   bool as(double& out) const;
@@ -32,11 +39,17 @@ struct InputScalar : public Input {
   bool as(long long& out) const;
   template <class T>
   T get() const;
+  virtual void out_of_line_virtual_method();
 };
 
+struct InputList;
+
 struct InputMap : public Input {
-  std::map<std::string, std::unique_ptr<Input>> map;
-  void add(std::string const& name, std::unique_ptr<Input>&& input);
+  std::map<std::string, std::shared_ptr<Input>> map;
+  InputMap() = default;
+  InputMap(InputMap const&) = default;
+  InputMap(InputMap&&) = default;
+  void add(std::string const& name, std::shared_ptr<Input>&& input);
   template <class InputType>
   bool is_input(std::string const& name);
   template <class ScalarType>
@@ -51,13 +64,18 @@ struct InputMap : public Input {
   InputMap& get_map(std::string const& name);
   InputList& get_list(std::string const& name);
   template <class ScalarType>
-  ScalarType& get(std::string const& name, char const* default_value);
+  ScalarType get(std::string const& name, char const* default_value);
+  std::string const& name(Input const& input);
+  virtual void out_of_line_virtual_method();
 };
 
 struct InputList : public Input {
-  std::vector<std::unique_ptr<Input>> entries;
-  void add(std::unique_ptr<Input>&& input);
-  LO position(Input& input);
+  std::vector<std::shared_ptr<Input>> entries;
+  InputList() = default;
+  InputList(InputList const&) = default;
+  InputList(InputList&&) = default;
+  void add(std::shared_ptr<Input>&& input);
+  LO position(Input const& input);
   LO size();
   Input& at(LO i);
   template <class InputType>
@@ -72,25 +90,26 @@ struct InputList : public Input {
   ScalarType get(LO i);
   InputMap& get_map(LO i);
   InputList& get_list(LO i);
+  virtual void out_of_line_virtual_method();
 };
 
 #define OMEGA_H_EXPL_INST(InputType) \
 extern template bool is_type<InputType>(Input&); \
-extern template InputType as_type<InputType>(Input&); \
+extern template InputType& as_type<InputType>(Input&); \
 extern template bool InputMap::is_input<InputType>(std::string const& name); \
-extern template InputType& InputMap::use_input<InputType>(std::string const& name) \
-extern template bool InputList::is_input(LO i); \
+extern template InputType& InputMap::use_input<InputType>(std::string const& name); \
+extern template bool InputList::is_input<InputType>(LO i); \
 extern template InputType& InputList::use_input(LO i);
-OMEGA_H_EXPL_INST_INPUT(InputScalar)
-OMEGA_H_EXPL_INST_INPUT(InputMap)
-OMEGA_H_EXPL_INST_INPUT(InputList)
+OMEGA_H_EXPL_INST(InputScalar)
+OMEGA_H_EXPL_INST(InputMap)
+OMEGA_H_EXPL_INST(InputList)
 #undef OMEGA_H_EXPL_INST
 
 #define OMEGA_H_EXPL_INST(ScalarType) \
 extern template ScalarType InputScalar::get<ScalarType>() const; \
 extern template bool InputMap::is<ScalarType>(std::string const& name); \
 extern template ScalarType InputMap::get<ScalarType>(std::string const& name); \
-extern template ScalarType& InputMap::get(std::string const& name, char const* default_value); \
+extern template ScalarType InputMap::get<ScalarType>(std::string const& name, char const* default_value); \
 extern template bool InputList::is<ScalarType>(LO i); \
 extern template ScalarType InputList::get<ScalarType>(LO i);
 OMEGA_H_EXPL_INST(std::string)
