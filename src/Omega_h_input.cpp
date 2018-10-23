@@ -3,6 +3,7 @@
 #include <Omega_h_reader.hpp>
 #include <Omega_h_yaml.hpp>
 #include <sstream>
+#include <fstream>
 
 namespace Omega_h {
 
@@ -101,6 +102,14 @@ T InputScalar::get() const {
 
 void InputScalar::out_of_line_virtual_method() {}
 
+InputMap::InputMap(InputMap&& other):Input(other),map(std::move(other.map)) {
+  for (auto& pair : map) (pair.second)->parent = this;
+}
+
+InputMap::InputMap(InputMap const&) {
+  Omega_h_fail("InputMap should never actually be copied!\n");
+}
+
 void InputMap::add(std::string const& name,
     std::shared_ptr<Input>&& input) {
   input->parent = this;
@@ -116,18 +125,18 @@ template <class InputType>
 bool InputMap::is_input(std::string const& name) {
   auto const it = map.find(name);
   if (it == map.end()) return false;
-  auto const& uptr = it->second;
-  return is_type<InputType>(*uptr);
+  auto const& sptr = it->second;
+  return is_type<InputType>(*sptr);
 }
 
 template <class ScalarType>
 bool InputMap::is(std::string const& name) {
   auto const it = map.find(name);
   if (it == map.end()) return false;
-  auto const& uptr = it->second;
+  auto const& sptr = it->second;
   ScalarType ignored;
-  return is_type<InputScalar>(*uptr) &&
-    as_type<InputScalar>(*uptr).as(ignored);
+  return is_type<InputScalar>(*sptr) &&
+    as_type<InputScalar>(*sptr).as(ignored);
 }
 
 bool InputMap::is_map(std::string const& name) {
@@ -141,7 +150,7 @@ bool InputMap::is_list(std::string const& name) {
 Input& InputMap::find_named_input(std::string const& name) {
   auto it = map.find(name);
   if (it == map.end()) {
-    auto s = get_full_name(*this) + name;
+    auto s = get_full_name(*this) + "." + name;
     fail("tried to find InputMap entry \"%s\" that doesn't exist\n", s.c_str());
   }
   return *(it->second);
@@ -164,6 +173,10 @@ ScalarType InputMap::get(std::string const& name) {
 }
 
 InputMap& InputMap::get_map(std::string const& name) {
+  if (!is_map(name)) {
+    std::shared_ptr<Input> sptr(new InputMap());
+    this->add(name, std::move(sptr));
+  }
   return this->use_input<InputMap>(name);
 }
 
@@ -174,8 +187,8 @@ InputList& InputMap::get_list(std::string const& name) {
 template <class ScalarType>
 ScalarType InputMap::get(std::string const& name, char const* default_value) {
   if (!this->is<ScalarType>(name)) {
-    std::shared_ptr<Input> uptr(new InputScalar(default_value));
-    this->add(name, std::move(uptr));
+    std::shared_ptr<Input> sptr(new InputScalar(default_value));
+    this->add(name, std::move(sptr));
   }
   return this->get<ScalarType>(name);
 }
@@ -189,6 +202,14 @@ std::string const& InputMap::name(Input const& input) {
 
 void InputMap::out_of_line_virtual_method() {}
 
+InputList::InputList(InputList&& other):entries(std::move(other.entries)) {
+  for (auto& sptr : entries) sptr->parent = this;
+}
+
+InputList::InputList(InputList const&) {
+  Omega_h_fail("InputList should never actually be copied!\n");
+}
+
 void InputList::add(std::shared_ptr<Input>&& input) {
   input->parent = this;
   entries.push_back(std::move(input));
@@ -196,8 +217,8 @@ void InputList::add(std::shared_ptr<Input>&& input) {
 
 LO InputList::position(Input const& input) {
   auto it = std::find_if(entries.begin(), entries.end(),
-      [&](std::shared_ptr<Input> const& uptr) {
-        return uptr.get() == &input;
+      [&](std::shared_ptr<Input> const& sptr) {
+        return sptr.get() == &input;
       });
   OMEGA_H_CHECK(it != entries.end());
   return LO(it - entries.begin());
@@ -314,12 +335,16 @@ class InputYamlReader : public Reader {
         OMEGA_H_CHECK(!rhs.at(offset).empty());
         auto& result_any = rhs.at(offset);
         OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
+        auto& map = any_cast<InputMap&>(result_any);
+        map.used = true;
         return std::move(result_any);
       }
       case yaml::PROD_TOP_BMAP: {
         OMEGA_H_CHECK(!rhs.at(0).empty());
         OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
-        return std::move(as_type<InputMap>(*(any_cast<NameValue&>(rhs.at(0)).value)));
+        auto& map = as_type<InputMap>(*(any_cast<NameValue&>(rhs.at(0)).value));
+        map.used = true;
+        return std::move(map);
       }
       case yaml::PROD_TOP_FIRST: {
         if (rhs.at(0).type() == typeid(InputMap)) {
@@ -352,22 +377,13 @@ class InputYamlReader : public Reader {
       }
       case yaml::PROD_BMAP_SCALAR:
       case yaml::PROD_FMAP_SCALAR: {
-        auto& scalar = any_cast<InputScalar&>(rhs.at(4));
-        std::shared_ptr<Input> uptr(new InputScalar(std::move(scalar)));
-        any item = std::move(uptr);
-        return map_item(rhs.at(0), item);
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_FMAP_FMAP: {
-        auto& map = any_cast<InputMap&>(rhs.at(4));
-        std::shared_ptr<Input> uptr(new InputMap(std::move(map)));
-        any item = std::move(uptr);
-        return map_item(rhs.at(0), item);
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_FMAP_FSEQ: {
-        auto& list = any_cast<InputList&>(rhs.at(4));
-        std::shared_ptr<Input> uptr(new InputList(std::move(list)));
-        any item = std::move(uptr);
-        return map_item(rhs.at(0), item);
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BMAP_BSCALAR: {
         return map_item(rhs.at(0), rhs.at(3));
@@ -376,18 +392,14 @@ class InputYamlReader : public Reader {
         return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BVALUE_EMPTY: {
-        std::shared_ptr<Input> uptr(new InputMap());
-        return uptr;
+        std::shared_ptr<Input> sptr(new InputMap());
+        return sptr;
       }
       case yaml::PROD_BVALUE_BMAP: {
-        auto& map = any_cast<InputMap&>(rhs.at(1));
-        std::shared_ptr<Input> uptr(new InputMap(std::move(map)));
-        return uptr;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_BVALUE_BSEQ: {
-        auto& list = any_cast<InputList&>(rhs.at(1));
-        std::shared_ptr<Input> uptr(new InputList(std::move(list)));
-        return uptr;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_BMAP_FMAP: {
         return map_item(rhs.at(0), rhs.at(4));
@@ -402,36 +414,24 @@ class InputYamlReader : public Reader {
         return seq_next_item(rhs.at(0), rhs.at(1));
       }
       case yaml::PROD_BSEQ_SCALAR: {
-        auto& scalar = any_cast<InputScalar&>(rhs.at(4));
-        std::shared_ptr<Input> uptr(new InputScalar(std::move(scalar)));
-        return uptr;
+        return std::move(rhs.at(3));
       }
       case yaml::PROD_BSEQ_BSCALAR: {
-        auto& scalar = any_cast<InputScalar&>(rhs.at(2));
-        std::shared_ptr<Input> uptr(new InputScalar(std::move(scalar)));
-        return uptr;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_BSEQ_BMAP:
       case yaml::PROD_BSEQ_FMAP: {
-        auto& map = any_cast<InputMap&>(rhs.at(3));
-        std::shared_ptr<Input> uptr(new InputMap(std::move(map)));
-        return uptr;
+        return std::move(rhs.at(3));
       }
       case yaml::PROD_BSEQ_BMAP_TRAIL: {
-        auto& map = any_cast<InputMap&>(rhs.at(4));
-        std::shared_ptr<Input> uptr(new InputMap(std::move(map)));
-        return uptr;
+        return std::move(rhs.at(4));
       }
       case yaml::PROD_BSEQ_BSEQ:
       case yaml::PROD_BSEQ_FSEQ: {
-        auto& list = any_cast<InputList&>(rhs.at(3));
-        std::shared_ptr<Input> uptr(new InputList(std::move(list)));
-        return uptr;
+        return std::move(rhs.at(3));
       }
       case yaml::PROD_BSEQ_BSEQ_TRAIL: {
-        auto& list = any_cast<InputList&>(rhs.at(4));
-        std::shared_ptr<Input> uptr(new InputList(std::move(list)));
-        return uptr;
+        return std::move(rhs.at(4));
       }
       case yaml::PROD_FMAP: {
         return std::move(rhs.at(2));
@@ -452,19 +452,13 @@ class InputYamlReader : public Reader {
         return seq_next_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_FSEQ_SCALAR: {
-        auto& scalar = any_cast<InputScalar&>(rhs.at(1));
-        std::shared_ptr<Input> uptr(new InputScalar(std::move(scalar)));
-        return uptr;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_FSEQ_FSEQ: {
-        auto& list = any_cast<InputList&>(rhs.at(1));
-        std::shared_ptr<Input> uptr(new InputList(std::move(list)));
-        return uptr;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_FSEQ_FMAP: {
-        auto& map = any_cast<InputMap&>(rhs.at(1));
-        std::shared_ptr<Input> uptr(new InputMap(std::move(map)));
-        return uptr;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_SCALAR_QUOTED:
       case yaml::PROD_MAP_SCALAR_QUOTED: {
@@ -672,12 +666,12 @@ class InputYamlReader : public Reader {
         return '!';
       }
     }
-    OMEGA_H_NORETURN(any());
+    return any();
   }
   any map_first_item(any& first_item) {
     InputMap map;
     OMEGA_H_CHECK(!first_item.empty());
-    any map_any = map;
+    any map_any = std::move(map);
     return map_next_item(map_any, first_item);
   }
   any map_next_item(any& items, any& next_item) {
@@ -710,26 +704,26 @@ class InputYamlReader : public Reader {
   }
   any seq_first_item(any& first_any) {
     InputList list;
-    any list_any = list;
+    any list_any = std::move(list);
     return seq_next_item(list_any, first_any);
   }
   any seq_next_item(any& items, any& next_item) {
     auto list = any_cast<InputList&&>(std::move(items));
     if (next_item.type() == typeid(std::string)) {
       std::string value = any_cast<std::string&&>(std::move(next_item));
-      std::shared_ptr<Input> uptr(new InputScalar(std::move(value)));
-      list.add(std::move(uptr));
+      std::shared_ptr<Input> sptr(new InputScalar(std::move(value)));
+      list.add(std::move(sptr));
     } else if (next_item.type() == typeid(InputList)) {
       InputList value = any_cast<InputList&&>(std::move(next_item));
-      std::shared_ptr<Input> uptr(new InputList(std::move(value)));
-      list.add(std::move(uptr));
+      std::shared_ptr<Input> sptr(new InputList(std::move(value)));
+      list.add(std::move(sptr));
     } else if (next_item.type() == typeid(InputMap)) {
       InputMap value = any_cast<InputMap&&>(std::move(next_item));
-      std::shared_ptr<Input> uptr(new InputMap(std::move(value)));
-      list.add(std::move(uptr));
+      std::shared_ptr<Input> sptr(new InputMap(std::move(value)));
+      list.add(std::move(sptr));
     } else {
       throw ParserFail(
-          "bug in YAMLParameterList::Reader: unexpected type for sequence item");
+          "bug in InputYamlReader: unexpected type for sequence item");
     }
     return list;
   }
@@ -839,6 +833,94 @@ class InputYamlReader : public Reader {
 
 InputYamlReader::~InputYamlReader() {}
 
+InputMap read_input(std::string const& path) {
+  std::ifstream stream(path.c_str());
+  Omega_h::InputYamlReader reader;
+  auto result_any = reader.read_stream(stream, path);
+  return any_cast<InputMap&&>(std::move(result_any));
+}
+
+void update_class_sets(ClassSets* p_sets, InputMap& pl) {
+  ClassSets& sets = *p_sets;
+  for (auto it = pl.map.begin(), end = pl.map.end(); it != end; ++it) {
+    auto const& set_name = it->first;
+    auto& pairs = pl.get_list(set_name);
+    if (pairs.size() != 2) {
+      Omega_h_fail(
+          "Expected \"%s\" to be an array of int pairs\n", set_name.c_str());
+    }
+    auto npairs = pairs.size();
+    for (decltype(npairs) i = 0; i < npairs; ++i) {
+      auto& pair = pairs.get_list(i);
+      auto class_dim = Int(pair.get<int>(0));
+      auto class_id = LO(pair.get<int>(1));
+      sets[set_name].push_back({class_dim, class_id});
+    }
+  }
+}
+
+static void echo_input_recursive(std::ostream& stream, Input& input, Int indent) {
+  if (is_type<InputScalar>(input)) {
+    auto& scalar = as_type<InputScalar>(input);
+    if (std::find(scalar.str.begin(), scalar.str.end(), '\n') != scalar.str.end()) {
+      stream << " |\n";
+      for (auto c : scalar.str) {
+        if (c == '\n') {
+          for (Int i = 0; i < indent; ++i) {
+            stream << "  ";
+          }
+        }
+        stream << c;
+      }
+    } else {
+      stream << " \'" << scalar.str << '\'';
+    }
+  } else if (is_type<InputMap>(input)) {
+    auto& map = as_type<InputMap>(input);
+    stream << '\n';
+    for (auto& pair : map.map) {
+      auto& name = pair.first;
+      for (Int i = 0; i < indent; ++i) {
+        stream << "  ";
+      }
+      stream << name << ":";
+      echo_input_recursive(stream, *(pair.second), indent + 1);
+    }
+  } else if (is_type<InputList>(input)) {
+    auto& list = as_type<InputList>(input);
+    stream << '\n';
+    for (LO i = 0; i < list.size(); ++i) {
+      for (Int j = 0; j < indent; ++j) {
+        stream << "  ";
+      }
+      stream << "-";
+      echo_input_recursive(stream, *(list.entries[std::size_t(i)]), indent + 1);
+    }
+  }
+}
+
+void echo_input(std::ostream& stream, Input& input) {
+  echo_input_recursive(stream, input, 0);
+}
+
+void check_unused(Input& input) {
+  if (!input.used) {
+    auto const full_name = get_full_name(input);
+    Omega_h_fail("input \"%s\" was not used!\n", full_name.c_str());
+  }
+  if (is_type<InputMap>(input)) {
+    auto& map = as_type<InputMap>(input);
+    for (auto& pair : map.map) {
+      check_unused(*(pair.second));
+    }
+  } else if (is_type<InputList>(input)) {
+    auto& list = as_type<InputList>(input);
+    for (LO i = 0; i < list.size(); ++i) {
+      check_unused(*(list.entries[std::size_t(i)]));
+    }
+  }
+}
+
 #define OMEGA_H_EXPL_INST(InputType) \
 template bool is_type<InputType>(Input&); \
 template InputType& as_type<InputType>(Input&); \
@@ -859,6 +941,7 @@ template ScalarType InputMap::get<ScalarType>(std::string const& name, char cons
 template bool InputList::is<ScalarType>(LO i); \
 template ScalarType InputList::get<ScalarType>(LO i);
 OMEGA_H_EXPL_INST(std::string)
+OMEGA_H_EXPL_INST(bool)
 OMEGA_H_EXPL_INST(double)
 OMEGA_H_EXPL_INST(int)
 OMEGA_H_EXPL_INST(long long)

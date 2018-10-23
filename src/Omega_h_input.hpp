@@ -5,16 +5,18 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iosfwd>
 #include <Omega_h_defines.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
 
 struct Input {
   Input* parent;
+  bool used;
   virtual ~Input() = default;
   Input(Input const&) = default;
   Input(Input&&) = default;
-  bool used;
   Input();
   virtual void out_of_line_virtual_method();
 };
@@ -47,8 +49,8 @@ struct InputList;
 struct InputMap : public Input {
   std::map<std::string, std::shared_ptr<Input>> map;
   InputMap() = default;
-  InputMap(InputMap const&) = default;
-  InputMap(InputMap&&) = default;
+  [[noreturn]] InputMap(InputMap const&);
+  InputMap(InputMap&&);
   void add(std::string const& name, std::shared_ptr<Input>&& input);
   template <class InputType>
   bool is_input(std::string const& name);
@@ -72,8 +74,8 @@ struct InputMap : public Input {
 struct InputList : public Input {
   std::vector<std::shared_ptr<Input>> entries;
   InputList() = default;
-  InputList(InputList const&) = default;
-  InputList(InputList&&) = default;
+  [[noreturn]] InputList(InputList const&);
+  InputList(InputList&&);
   void add(std::shared_ptr<Input>&& input);
   LO position(Input const& input);
   LO size();
@@ -92,6 +94,14 @@ struct InputList : public Input {
   InputList& get_list(LO i);
   virtual void out_of_line_virtual_method();
 };
+
+InputMap read_input(std::string const& path);
+
+void update_class_sets(ClassSets* p_sets, InputMap& pl);
+
+void echo_input(std::ostream& stream, Input& input);
+
+void check_unused(Input& input);
 
 #define OMEGA_H_EXPL_INST(InputType) \
 extern template bool is_type<InputType>(Input&); \

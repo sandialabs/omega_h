@@ -444,6 +444,9 @@ set(Omega_h_HEADERS
   Omega_h_expr.hpp
   Omega_h_int_scan.hpp
   r3d.hpp
+  Omega_h_input.hpp
+  Omega_h_math_lang.hpp
+  Omega_h_language.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
