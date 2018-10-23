@@ -10,7 +10,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine.hpp"
-#include "Omega_h_stack.hpp"
+#include "Omega_h_profile.hpp"
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"

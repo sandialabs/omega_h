@@ -1,206 +1,480 @@
+#include <Omega_h_input.hpp>
+#include <Omega_h_fail.hpp>
+#include <Omega_h_reader.hpp>
+#include <Omega_h_yaml.hpp>
+#include <sstream>
+#include <fstream>
 
 namespace Omega_h {
 
-class YamlInputReader : public Reader {
+Input::Input() : parent(nullptr), used(false) {}
+
+void Input::out_of_line_virtual_method() {}
+
+std::string get_full_name(Input const& input) {
+  std::string full_name;
+  if (input.parent != nullptr) {
+    auto& parent = *(input.parent);
+    full_name = get_full_name(parent);
+    if (is_type<InputList>(parent)) {
+      auto i = as_type<InputList>(parent).position(input);
+      full_name += "[";
+      full_name += std::to_string(i);
+      full_name += "]";
+    } else if (is_type<InputMap>(parent)) {
+      auto& name = as_type<InputMap>(parent).name(input);
+      full_name += ".";
+      full_name += name;
+    }
+  }
+  return full_name;
+}
+
+template <class InputType>
+bool is_type(Input& input) {
+  auto ptr_in = &input;
+  auto ptr_out = dynamic_cast<InputType*>(ptr_in);
+  return ptr_out != nullptr;
+}
+
+template <class InputType>
+InputType& as_type(Input& input) {
+  return dynamic_cast<InputType&>(input);
+}
+
+InputScalar::InputScalar(std::string const& str_in) : str(str_in) {}
+
+bool InputScalar::as(std::string& out) const { out = str; return true; }
+
+bool InputScalar::as(bool& out) const {
+  if (str == "true") {
+    out = true;
+    return true;
+  }
+  if (str == "false") {
+    out = false;
+    return true;
+  }
+  return false;
+}
+
+bool InputScalar::as(double& out) const {
+  std::istringstream ss(str);
+  ss >> std::noskipws >> out;
+  return ss.eof() && !ss.fail();
+}
+
+bool InputScalar::as(int& out) const {
+  std::istringstream ss(str);
+  using LL = long long;
+  LL val;
+  ss >> std::noskipws >> val;
+  if (ss.eof() && !ss.fail() &&
+    (val >= LL(std::numeric_limits<int>::min())) &&
+    (val <= LL(std::numeric_limits<int>::max()))) {
+    out = int(val);
+    return true;
+  }
+  return false;
+}
+
+bool InputScalar::as(long long& out) const {
+  std::istringstream ss(str);
+  ss >> std::noskipws >> out;
+  return ss.eof() && !ss.fail();
+}
+
+template <class T>
+T InputScalar::get() const {
+  T out;
+  if (!as(out)) {
+    auto full_name = get_full_name(*this);
+    Omega_h_fail("InputScalar \"%s\" string \"%s\" is not interpretable as a %s",
+        full_name.c_str(),
+        str.c_str(),
+        (std::is_same<T, int>::value ? "int" :
+        (std::is_same<T, double>::value ? "double" :
+        (std::is_same<T, long long>::value ? "long long" : "unknown type")))
+        );
+  }
+  return out;
+}
+
+void InputScalar::out_of_line_virtual_method() {}
+
+InputMap::InputMap(InputMap&& other):Input(other),map(std::move(other.map)) {
+  for (auto& pair : map) (pair.second)->parent = this;
+}
+
+InputMap::InputMap(InputMap const&) {
+  Omega_h_fail("InputMap should never actually be copied!\n");
+}
+
+void InputMap::add(std::string const& name,
+    std::shared_ptr<Input>&& input) {
+  input->parent = this;
+  auto const did = map.emplace(name, std::move(input)).second;
+  if (!did) {
+    fail(
+        "tried to add already existing InputMap name \"%s\"\n",
+        name.c_str());
+  }
+}
+
+template <class InputType>
+bool InputMap::is_input(std::string const& name) {
+  auto const it = map.find(name);
+  if (it == map.end()) return false;
+  auto const& sptr = it->second;
+  return is_type<InputType>(*sptr);
+}
+
+template <class ScalarType>
+bool InputMap::is(std::string const& name) {
+  auto const it = map.find(name);
+  if (it == map.end()) return false;
+  auto const& sptr = it->second;
+  ScalarType ignored;
+  return is_type<InputScalar>(*sptr) &&
+    as_type<InputScalar>(*sptr).as(ignored);
+}
+
+bool InputMap::is_map(std::string const& name) {
+  return this->is_input<InputMap>(name);
+}
+
+bool InputMap::is_list(std::string const& name) {
+  return this->is_input<InputList>(name);
+}
+
+Input& InputMap::find_named_input(std::string const& name) {
+  auto it = map.find(name);
+  if (it == map.end()) {
+    auto s = get_full_name(*this) + "." + name;
+    fail("tried to find InputMap entry \"%s\" that doesn't exist\n", s.c_str());
+  }
+  return *(it->second);
+}
+
+template <class InputType>
+static InputType& use_input(Input& input) {
+  input.used = true;
+  return as_type<InputType>(input);
+}
+
+template <class InputType>
+InputType& InputMap::use_input(std::string const& name) {
+  return Omega_h::use_input<InputType>(find_named_input(name));
+}
+
+template <class ScalarType>
+ScalarType InputMap::get(std::string const& name) {
+  return this->use_input<InputScalar>(name).get<ScalarType>();
+}
+
+InputMap& InputMap::get_map(std::string const& name) {
+  if (!is_map(name)) {
+    std::shared_ptr<Input> sptr(new InputMap());
+    this->add(name, std::move(sptr));
+  }
+  return this->use_input<InputMap>(name);
+}
+
+InputList& InputMap::get_list(std::string const& name) {
+  return this->use_input<InputList>(name);
+}
+
+template <class ScalarType>
+ScalarType InputMap::get(std::string const& name, char const* default_value) {
+  if (!this->is<ScalarType>(name)) {
+    std::shared_ptr<Input> sptr(new InputScalar(default_value));
+    this->add(name, std::move(sptr));
+  }
+  return this->get<ScalarType>(name);
+}
+
+std::string const& InputMap::name(Input const& input) {
+  for (auto& pair : map) {
+    if (pair.second.get() == &input) return pair.first;
+  }
+  OMEGA_H_NORETURN(std::string());
+}
+
+void InputMap::out_of_line_virtual_method() {}
+
+InputList::InputList(InputList&& other):entries(std::move(other.entries)) {
+  for (auto& sptr : entries) sptr->parent = this;
+}
+
+InputList::InputList(InputList const&) {
+  Omega_h_fail("InputList should never actually be copied!\n");
+}
+
+void InputList::add(std::shared_ptr<Input>&& input) {
+  input->parent = this;
+  entries.push_back(std::move(input));
+}
+
+LO InputList::position(Input const& input) {
+  auto it = std::find_if(entries.begin(), entries.end(),
+      [&](std::shared_ptr<Input> const& sptr) {
+        return sptr.get() == &input;
+      });
+  OMEGA_H_CHECK(it != entries.end());
+  return LO(it - entries.begin());
+}
+
+LO InputList::size() { return LO(entries.size()); }
+
+Input& InputList::at(LO i) {
+  return *(entries.at(std::size_t(i)));
+}
+
+template <class InputType>
+bool InputList::is_input(LO i) {
+  return Omega_h::is_type<InputType>(this->at(i));
+}
+
+template <class InputType>
+InputType& InputList::use_input(LO i) {
+  return Omega_h::use_input<InputType>(this->at(i));
+}
+
+template <class ScalarType>
+bool InputList::is(LO i) {
+  Input& input = at(i);
+  ScalarType ignored;
+  return is_type<InputScalar>(input) &&
+    as_type<InputScalar>(input).as(ignored);
+}
+
+bool InputList::is_map(LO i) {
+  return this->is_input<InputMap>(i);
+}
+
+bool InputList::is_list(LO i) {
+  return this->is_input<InputList>(i);
+}
+
+template <class ScalarType>
+ScalarType InputList::get(LO i) {
+  return this->use_input<InputScalar>(i).get<ScalarType>();
+}
+
+InputMap& InputList::get_map(LO i) {
+  return this->use_input<InputMap>(i);
+}
+
+InputList& InputList::get_list(LO i) {
+  return this->use_input<InputList>(i);
+}
+
+void InputList::out_of_line_virtual_method() {}
+
+struct NameValue {
+  std::string name;
+  std::shared_ptr<Input> value;
+};
+
+static std::string remove_trailing_whitespace(std::string const& in) {
+  std::size_t new_end = 0;
+  for (std::size_t ri = 0; ri < in.size(); ++ri) {
+    std::size_t i = in.size() - 1 - ri;
+    if (in[i] != ' ' && in[i] != '\t') {
+      new_end = i + 1;
+      break;
+    }
+  }
+  return in.substr(0, new_end);
+}
+
+static std::string remove_trailing_whitespace_and_newlines(std::string const& in) {
+  std::size_t new_end = 0;
+  for (std::size_t ri = 0; ri < in.size(); ++ri) {
+    std::size_t i = in.size() - 1 - ri;
+    if (in[i] != ' ' && in[i] != '\t' && in[i] != '\n' && in[i] != '\r') {
+      new_end = i + 1;
+      break;
+    }
+  }
+  return in.substr(0, new_end);
+}
+
+// http://en.cppreference.com/w/cpp/string/byte/isdigit
+static bool my_isdigit(char ch)
+{
+  return std::isdigit(static_cast<unsigned char>(ch));
+}
+
+class InputYamlReader : public Reader {
  public:
-  Reader():Reader(yaml::ask_reader_tables()) {}
-  ~Reader() override = default;
+  InputYamlReader():Reader(yaml::ask_reader_tables()) {}
+  ~InputYamlReader() override;
  protected:
   enum {
     TRIM_NORMAL,
     TRIM_DASH
   };
-  virtual void at_shift(any& result_any, int token, std::string& text) {
-    using std::swap;
+  any at_shift(int token, std::string& text) override final {
     switch (token) {
       case yaml::TOK_NEWLINE: {
-        std::string& result = make_any_ref<std::string>(result_any);
-        swap(result, text);
-        break;
+        return std::move(text);
       }
       case yaml::TOK_SPACE:
       case yaml::TOK_OTHER: {
-        result_any = text.at(0);
-        break;
+        return text.at(0);
       }
     }
+    return any();
   }
-  virtual void at_reduce(any& result_any, int prod, std::vector<any>& rhs) {
-    using std::swap;
+  any at_reduce(int prod, std::vector<any>& rhs) override final {
     switch (prod) {
       case yaml::PROD_DOC:
       case yaml::PROD_DOC2: {
         std::size_t offset = prod == yaml::PROD_DOC2 ? 1 : 0;
-        TEUCHOS_ASSERT(!rhs.at(offset).empty());
-        swap(result_any, rhs.at(offset));
-        TEUCHOS_ASSERT(result_any.type() == typeid(ParameterList));
-        break;
+        OMEGA_H_CHECK(!rhs.at(offset).empty());
+        auto& result_any = rhs.at(offset);
+        OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
+        auto& map = any_cast<InputMap&>(result_any);
+        map.used = true;
+        return std::move(result_any);
       }
       case yaml::PROD_TOP_BMAP: {
-        TEUCHOS_ASSERT(!rhs.at(0).empty());
-        TEUCHOS_ASSERT(rhs.at(0).type() == typeid(PLPair));
-        PLPair& pair = any_ref_cast<PLPair>(rhs.at(0));
-        any& pair_rhs_any = pair.value.getAny(/* set isUsed = */ false);
-        result_any = pair_rhs_any;
-        break;
+        OMEGA_H_CHECK(!rhs.at(0).empty());
+        OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
+        auto& map = as_type<InputMap>(*(any_cast<NameValue&>(rhs.at(0)).value));
+        map.used = true;
+        return std::move(map);
       }
       case yaml::PROD_TOP_FIRST: {
-        if (rhs.at(0).type() == typeid(ParameterList)) {
-          swap(result_any, rhs.at(0));
+        if (rhs.at(0).type() == typeid(InputMap)) {
+          return std::move(rhs.at(0));
         }
-        break;
+        return any();
       }
       case yaml::PROD_TOP_NEXT: {
-        if (rhs.at(1).type() == typeid(ParameterList)) {
-          TEUCHOS_TEST_FOR_EXCEPTION(!rhs.at(0).empty(), ParserFail,
-              "Can't specify multiple top-level ParameterLists in one YAML file!\n");
-          swap(result_any, rhs.at(1));
+        if (rhs.at(1).type() == typeid(InputMap)) {
+          if (!rhs.at(0).empty()) {
+            throw ParserFail("Can't specify multiple top-level InputMaps in one YAML file!\n");
+          }
+          return std::move(rhs.at(1));
         } else {
-          swap(result_any, rhs.at(0));
+          return std::move(rhs.at(0));
         }
-        break;
       }
       case yaml::PROD_BMAP_FIRST:
       case yaml::PROD_FMAP_FIRST: {
-        TEUCHOS_ASSERT(rhs.at(0).type() == typeid(PLPair));
-        map_first_item(result_any, rhs.at(0));
-        TEUCHOS_ASSERT(result_any.type() == typeid(ParameterList));
-        break;
+        OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
+        auto result_any = map_first_item(rhs.at(0));
+        OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
+        return result_any;
       }
       case yaml::PROD_BMAP_NEXT: {
-        map_next_item(result_any, rhs.at(0), rhs.at(1));
-        break;
+        return map_next_item(rhs.at(0), rhs.at(1));
       }
       case yaml::PROD_FMAP_NEXT: {
-        map_next_item(result_any, rhs.at(0), rhs.at(3));
-        break;
+        return map_next_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_BMAP_SCALAR:
-      case yaml::PROD_FMAP_SCALAR:
-      case yaml::PROD_FMAP_FMAP:
+      case yaml::PROD_FMAP_SCALAR: {
+        return map_item(rhs.at(0), rhs.at(4));
+      }
+      case yaml::PROD_FMAP_FMAP: {
+        return map_item(rhs.at(0), rhs.at(4));
+      }
       case yaml::PROD_FMAP_FSEQ: {
-        int scalar_type = interpret_tag(rhs.at(3));
-        map_item(result_any, rhs.at(0), rhs.at(4), scalar_type);
-        break;
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BMAP_BSCALAR: {
-        map_item(result_any, rhs.at(0), rhs.at(3), Scalar::STRING);
-        break;
+        return map_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_BMAP_BVALUE: {
-        map_item(result_any, rhs.at(0), rhs.at(4));
-        break;
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BVALUE_EMPTY: {
-        result_any = ParameterList();
-        break;
+        std::shared_ptr<Input> sptr(new InputMap());
+        return sptr;
       }
-      case yaml::PROD_BVALUE_BMAP:
+      case yaml::PROD_BVALUE_BMAP: {
+        return std::move(rhs.at(1));
+      }
       case yaml::PROD_BVALUE_BSEQ: {
-        swap(result_any, rhs.at(1));
-        break;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_BMAP_FMAP: {
-        map_item(result_any, rhs.at(0), rhs.at(4));
-        break;
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BMAP_FSEQ: {
-        TEUCHOS_ASSERT(rhs.at(4).type() == typeid(Array<Scalar>) ||
-            rhs.at(4).type() == typeid(Array<Array<Scalar>>));
-        int scalar_type = interpret_tag(rhs.at(3));
-        map_item(result_any, rhs.at(0), rhs.at(4), scalar_type);
-        break;
+        return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BSEQ_FIRST: {
-        seq_first_item(result_any, rhs.at(0));
-        break;
+        return seq_first_item(rhs.at(0));
       }
       case yaml::PROD_BSEQ_NEXT: {
-        seq_next_item(result_any, rhs.at(0), rhs.at(1));
-        break;
+        return seq_next_item(rhs.at(0), rhs.at(1));
       }
       case yaml::PROD_BSEQ_SCALAR: {
-        swap(result_any, rhs.at(3));
-        Scalar& scalar = any_ref_cast<Scalar>(result_any);
-        scalar.tag_type = interpret_tag(rhs.at(2));
-        break;
+        return std::move(rhs.at(3));
       }
       case yaml::PROD_BSEQ_BSCALAR: {
-        swap(result_any, rhs.at(2));
-        break;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_BSEQ_BMAP:
-      case yaml::PROD_BSEQ_BMAP_TRAIL:
       case yaml::PROD_BSEQ_FMAP: {
-        throw ParserFail("Can't interpret a map inside a sequence as a Teuchos Parameter");
+        return std::move(rhs.at(3));
       }
-      case yaml::PROD_BSEQ_BSEQ: {
-        swap(result_any, rhs.at(3));
-        break;
+      case yaml::PROD_BSEQ_BMAP_TRAIL: {
+        return std::move(rhs.at(4));
+      }
+      case yaml::PROD_BSEQ_BSEQ:
+      case yaml::PROD_BSEQ_FSEQ: {
+        return std::move(rhs.at(3));
       }
       case yaml::PROD_BSEQ_BSEQ_TRAIL: {
-        swap(result_any, rhs.at(4));
-        break;
-      }
-      case yaml::PROD_BSEQ_FSEQ: {
-        swap(result_any, rhs.at(3));
-        break;
+        return std::move(rhs.at(4));
       }
       case yaml::PROD_FMAP: {
-        swap(result_any, rhs.at(2));
-        break;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_FMAP_EMPTY: {
-        result_any = ParameterList();
-        break;
+        return InputMap();
       }
       case yaml::PROD_FSEQ: {
-        swap(result_any, rhs.at(2));
-        TEUCHOS_ASSERT(result_any.type() == typeid(Array<Scalar>) ||
-            result_any.type() == typeid(Array<Array<Scalar>>));
-        break;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_FSEQ_EMPTY: {
-        result_any = Array<Scalar>();
-        break;
+        return InputList();
       }
       case yaml::PROD_FSEQ_FIRST: {
-        seq_first_item(result_any, rhs.at(0));
-        break;
+        return seq_first_item(rhs.at(0));
       }
       case yaml::PROD_FSEQ_NEXT: {
-        seq_next_item(result_any, rhs.at(0), rhs.at(3));
-        break;
+        return seq_next_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_FSEQ_SCALAR: {
-        swap(result_any, rhs.at(1));
-        Scalar& scalar = any_ref_cast<Scalar>(result_any);
-        scalar.tag_type = interpret_tag(rhs.at(0));
-        break;
+        return std::move(rhs.at(1));
       }
-      case yaml::PROD_FSEQ_FSEQ:
+      case yaml::PROD_FSEQ_FSEQ: {
+        return std::move(rhs.at(1));
+      }
       case yaml::PROD_FSEQ_FMAP: {
-        swap(result_any, rhs.at(1));
-        break;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_SCALAR_QUOTED:
       case yaml::PROD_MAP_SCALAR_QUOTED: {
-        swap(result_any, rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
       }
       case yaml::PROD_SCALAR_RAW:
       case yaml::PROD_MAP_SCALAR_RAW: {
-        Scalar& scalar = make_any_ref<Scalar>(result_any);
-        TEUCHOS_ASSERT(!rhs.at(0).empty());
-        scalar.text = any_ref_cast<std::string>(rhs.at(0));
-        scalar.text += any_ref_cast<std::string>(rhs.at(1));
+        std::string text;
+        OMEGA_H_CHECK(!rhs.at(0).empty());
+        text = any_cast<std::string&&>(std::move(rhs.at(0)));
+        text += any_cast<std::string&>(rhs.at(1));
         if (prod == yaml::PROD_MAP_SCALAR_RAW) {
-          scalar.text += any_ref_cast<std::string>(rhs.at(2));
+          text += any_cast<std::string&>(rhs.at(2));
         }
-        scalar.text = remove_trailing_whitespace(scalar.text);
-        scalar.source = Scalar::RAW;
-        scalar.tag_type = -1;
-        break;
+        text = remove_trailing_whitespace(text);
+        return text;
       }
       case yaml::PROD_SCALAR_HEAD_OTHER:
       case yaml::PROD_SCALAR_HEAD_DOT:
@@ -211,108 +485,93 @@ class YamlInputReader : public Reader {
         else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT) offset = 2;
         else offset = 1;
         char second = any_cast<char>(rhs.at(offset));
-        std::string& result = make_any_ref<std::string>(result_any);
+        std::string result;
         if (prod == yaml::PROD_SCALAR_HEAD_DOT) result += '.';
         else if (prod == yaml::PROD_SCALAR_HEAD_DASH) result += '-';
         else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT) result += "..";
         result += second;
-        break;
+        return result;
       }
       case yaml::PROD_SCALAR_DQUOTED:
       case yaml::PROD_SCALAR_SQUOTED: {
-        std::string& first = any_ref_cast<std::string>(rhs.at(1));
-        std::string& rest = any_ref_cast<std::string>(rhs.at(2));
-        Scalar& scalar = make_any_ref<Scalar>(result_any);
-        scalar.text += first;
-        scalar.text += rest;
-        if (prod == yaml::PROD_SCALAR_DQUOTED) {
-          scalar.source = Scalar::DQUOTED;
-        } else if (prod == yaml::PROD_SCALAR_SQUOTED) {
-          scalar.source = Scalar::SQUOTED;
-        }
-        scalar.tag_type = -1;
-        break;
+        auto text = any_cast<std::string&&>(std::move(rhs.at(1)));
+        text += any_cast<std::string&>(rhs.at(2));
+        return text;
       }
       case yaml::PROD_MAP_SCALAR_ESCAPED_EMPTY: {
-        result_any = std::string();
-        break;
+        return std::string();
       }
       case yaml::PROD_MAP_SCALAR_ESCAPED_NEXT: {
-        swap(result_any, rhs.at(0));
-        std::string& str = any_ref_cast<std::string>(result_any);
+        auto str = any_cast<std::string&&>(std::move(rhs.at(0)));
         str += ',';
-        str += any_ref_cast<std::string>(rhs.at(2));
-        break;
+        str += any_cast<std::string&>(rhs.at(2));
+        return std::move(str);
       }
       case yaml::PROD_TAG: {
-        swap(result_any, rhs.at(2));
-        break;
+        return std::move(rhs.at(2));
       }
       case yaml::PROD_BSCALAR: {
-        std::size_t parent_indent_level =
+        auto parent_indent_level =
           this->symbol_indentation_stack.at(
               this->symbol_indentation_stack.size() - 5);
-        std::string& header = any_ref_cast<std::string>(rhs.at(0));
-        std::string& leading_empties_or_comments =
-          any_ref_cast<std::string>(rhs.at(2));
-        std::string& rest = any_ref_cast<std::string>(rhs.at(4));
-        std::string& content = make_any_ref<std::string>(result_any);
-        std::string comment;
+        auto& header = any_cast<std::string&>(rhs.at(0));
+        auto& leading_empties_or_comments =
+          any_cast<std::string&>(rhs.at(2));
+        auto& rest = any_cast<std::string&>(rhs.at(4));
+        std::string content;
+        std::string ignored_comment;
         handle_block_scalar(
             parent_indent_level,
             header, leading_empties_or_comments, rest,
-            content, comment);
-        break;
+            content, ignored_comment);
+        return content;
       }
       case yaml::PROD_BSCALAR_FIRST: {
-        swap(result_any, rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
       }
       // all these cases reduce to concatenating two strings
       case yaml::PROD_BSCALAR_NEXT:
       case yaml::PROD_BSCALAR_LINE:
       case yaml::PROD_DESCAPE_NEXT:
       case yaml::PROD_SESCAPE_NEXT: {
-        swap(result_any, rhs.at(0));
-        std::string& str = any_ref_cast<std::string>(result_any);
-        str += any_ref_cast<std::string>(rhs.at(1));
-        break;
+        auto str = any_cast<std::string&&>(std::move(rhs.at(0)));
+        str += any_cast<std::string&>(rhs.at(1));
+        return str;
       }
       case yaml::PROD_BSCALAR_INDENT: {
-        swap(result_any, rhs.at(1));
-        break;
+        return std::move(rhs.at(1));
       }
       case yaml::PROD_BSCALAR_HEADER_LITERAL:
       case yaml::PROD_BSCALAR_HEADER_FOLDED: {
-        std::string& result = make_any_ref<std::string>(result_any);
+        std::string result;
         if (prod == yaml::PROD_BSCALAR_HEADER_LITERAL) {
           result += "|";
         } else {
           result += ">";
         }
-        std::string& rest = any_ref_cast<std::string>(rhs.at(1));
+        auto& rest = any_cast<std::string&>(rhs.at(1));
         result += rest;
-        break;
+        return result;
       }
       case yaml::PROD_DESCAPE: {
-        std::string& str = make_any_ref<std::string>(result_any);
-        std::string& rest = any_ref_cast<std::string>(rhs.at(2));
+        std::string str;
+        auto& rest = any_cast<std::string&>(rhs.at(2));
         str += any_cast<char>(rhs.at(1));
         str += rest;
-        break;
+        return str;
       }
       case yaml::PROD_SESCAPE: {
-        std::string& str = make_any_ref<std::string>(result_any);
-        std::string& rest = any_ref_cast<std::string>(rhs.at(2));
+        std::string str;
+        auto& rest = any_cast<std::string&>(rhs.at(2));
         str += '\'';
         str += rest;
-        break;
+        return str;
       }
       case yaml::PROD_OTHER_FIRST:
       case yaml::PROD_SPACE_PLUS_FIRST: {
-        std::string& str = make_any_ref<std::string>(result_any);
+        std::string str;
         str.push_back(any_cast<char>(rhs.at(0)));
-        break;
+        return str;
       }
       case yaml::PROD_SCALAR_TAIL_SPACE:
       case yaml::PROD_SCALAR_TAIL_OTHER:
@@ -323,8 +582,7 @@ class YamlInputReader : public Reader {
       case yaml::PROD_COMMON_SPACE:
       case yaml::PROD_COMMON_OTHER:
       case yaml::PROD_BSCALAR_HEAD_OTHER: {
-        swap(result_any, rhs.at(0));
-        break;
+        return std::move(rhs.at(0));
       }
       // all these cases reduce to appending a character
       case yaml::PROD_DQUOTED_NEXT:
@@ -334,12 +592,14 @@ class YamlInputReader : public Reader {
       case yaml::PROD_SPACE_STAR_NEXT:
       case yaml::PROD_SPACE_PLUS_NEXT:
       case yaml::PROD_BSCALAR_HEAD_NEXT: {
-        TEUCHOS_TEST_FOR_EXCEPTION(rhs.at(0).empty(), ParserFail,
-            "leading characters in " << prod << ": any was empty\n");
-        swap(result_any, rhs.at(0));
-        std::string& str = any_ref_cast<std::string>(result_any);
+        if (rhs.at(0).empty()) {
+          std::stringstream ss;
+          ss << "leading characters in " << prod << ": any was empty\n";
+          throw ParserFail(ss.str());
+        }
+        auto str = any_cast<std::string&&>(std::move(rhs.at(0)));
         str += any_cast<char>(rhs.at(1));
-        break;
+        return str;
       }
       case yaml::PROD_DQUOTED_EMPTY:
       case yaml::PROD_SQUOTED_EMPTY:
@@ -349,317 +609,123 @@ class YamlInputReader : public Reader {
       case yaml::PROD_SCALAR_TAIL_EMPTY:
       case yaml::PROD_SPACE_STAR_EMPTY:
       case yaml::PROD_BSCALAR_HEAD_EMPTY: {
-        result_any = std::string();
-        break;
+        return std::string();
       }
       case yaml::PROD_DESCAPED_DQUOT:
       case yaml::PROD_SQUOTED_DQUOT:
       case yaml::PROD_ANY_DQUOT: {
-        result_any = '"';
-        break;
+        return '"';
       }
       case yaml::PROD_DESCAPED_SLASH:
       case yaml::PROD_SQUOTED_SLASH:
       case yaml::PROD_ANY_SLASH: {
-        result_any = '\\';
-        break;
+        return '\\';
       }
       case yaml::PROD_SCALAR_TAIL_SQUOT:
       case yaml::PROD_DQUOTED_SQUOT:
       case yaml::PROD_ANY_SQUOT: {
-        result_any = '\'';
-        break;
+        return '\'';
       }
       case yaml::PROD_COMMON_COLON: {
-        result_any = ':';
-        break;
+        return ':';
       }
       case yaml::PROD_SCALAR_TAIL_DOT:
       case yaml::PROD_COMMON_DOT: {
-        result_any = '.';
-        break;
+        return '.';
       }
       case yaml::PROD_SCALAR_TAIL_DASH:
       case yaml::PROD_COMMON_DASH:
       case yaml::PROD_BSCALAR_HEAD_DASH: {
-        result_any = '-';
-        break;
+        return '-';
       }
       case yaml::PROD_COMMON_PIPE: {
-        result_any = '|';
-        break;
+        return '|';
       }
       case yaml::PROD_COMMON_LSQUARE: {
-        result_any = '[';
-        break;
+        return '[';
       }
       case yaml::PROD_COMMON_RSQUARE: {
-        result_any = ']';
-        break;
+        return ']';
       }
       case yaml::PROD_COMMON_LCURLY: {
-        result_any = '{';
-        break;
+        return '{';
       }
       case yaml::PROD_COMMON_RCURLY: {
-        result_any = '}';
-        break;
+        return '}';
       }
       case yaml::PROD_COMMON_RANGLE: {
-        result_any = '>';
-        break;
+        return '>';
       }
       case yaml::PROD_COMMON_COMMA: {
-        result_any = ',';
-        break;
+        return ',';
       }
       case yaml::PROD_COMMON_PERCENT: {
-        result_any = '%';
-        break;
+        return '%';
       }
       case yaml::PROD_COMMON_EXCL: {
-        result_any = '!';
-        break;
+        return '!';
       }
     }
+    return any();
   }
-  void map_first_item(any& result_any, any& first_item) {
-    ParameterList& list = make_any_ref<ParameterList>(result_any);
-    TEUCHOS_ASSERT(!first_item.empty());
-    PLPair& pair = any_ref_cast<PLPair>(first_item);
-    safe_set_entry(list, pair.key, pair.value);
+  any map_first_item(any& first_item) {
+    InputMap map;
+    OMEGA_H_CHECK(!first_item.empty());
+    any map_any = std::move(map);
+    return map_next_item(map_any, first_item);
   }
-  void map_next_item(any& result_any, any& items, any& next_item) {
-    using std::swap;
-    swap(result_any, items);
-    ParameterList& list = any_ref_cast<ParameterList>(result_any);
-    PLPair& pair = any_ref_cast<PLPair>(next_item);
-    safe_set_entry(list, pair.key, pair.value);
+  any map_next_item(any& items, any& next_item) {
+    InputMap map = any_cast<InputMap&&>(std::move(items));
+    NameValue& pair = any_cast<NameValue&>(next_item);
+    map.add(pair.name, std::move(pair.value));
+    return map;
   }
-  void map_item(any& result_any, any& key_any, any& value_any, int scalar_type = -1) {
-    using std::swap;
-    PLPair& result = make_any_ref<PLPair>(result_any);
-    {
-      std::string& key = any_ref_cast<Scalar>(key_any).text;
-      swap(result.key, key);
-    }
-    resolve_map_value(value_any, scalar_type);
-    if (value_any.type() == typeid(bool)) {
-      bool value = any_cast<bool>(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(int)) {
-      int value = any_cast<int>(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(long long)) {
-      long long value = any_cast<long long>(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(double)) {
-      double value = any_cast<double>(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(std::string)) {
-      std::string& value = any_ref_cast<std::string >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(Array<int>)) {
-      Array<int>& value = any_ref_cast<Array<int> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(Array<long long>)) {
-      Array<long long>& value = any_ref_cast<Array<long long> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(Array<double>)) {
-      Array<double>& value = any_ref_cast<Array<double> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(Array<std::string>)) {
-      Array<std::string>& value = any_ref_cast<Array<std::string> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(TwoDArray<int>)) {
-      TwoDArray<int>& value = any_ref_cast<TwoDArray<int> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(TwoDArray<long long>)) {
-      TwoDArray<long long>& value = any_ref_cast<TwoDArray<long long> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(TwoDArray<double>)) {
-      TwoDArray<double>& value = any_ref_cast<TwoDArray<double> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(TwoDArray<std::string>)) {
-      TwoDArray<std::string>& value = any_ref_cast<TwoDArray<std::string> >(value_any);
-      result.value = ParameterEntry(value);
-    } else if (value_any.type() == typeid(ParameterList)) {
-      ParameterList& value = any_ref_cast<ParameterList>(value_any);
-      ParameterList& result_pl = result.value.setList();
-      swap(result_pl, value);
-      result_pl.setName(result.key);
+  any map_item(any& key_any, any& value_any) {
+    NameValue result;
+    result.name = any_cast<std::string&&>(std::move(key_any));
+    if (value_any.type() == typeid(std::string)) {
+      std::string value = any_cast<std::string&&>(std::move(value_any));
+      result.value.reset(new InputScalar(value));
+    } else if (value_any.type() == typeid(InputList)) {
+      InputList value = any_cast<InputList&&>(std::move(value_any));
+      result.value.reset(new InputList(std::move(value)));
+    } else if (value_any.type() == typeid(InputMap)) {
+      InputMap value = any_cast<InputMap&&>(std::move(value_any));
+      result.value.reset(new InputMap(std::move(value)));
     } else {
       std::string msg = "unexpected YAML map value type ";
       msg += value_any.type().name();
-      msg += " for key \"";
-      msg += result.key;
+      msg += " for name \"";
+      msg += result.name;
       msg += "\"\n";
       throw ParserFail(msg);
     }
+    return result;
   }
-  void resolve_map_value(any& value_any, int scalar_type = -1) const {
-    if (value_any.type() == typeid(Scalar)) {
-      Scalar& scalar_value = any_ref_cast<Scalar>(value_any);
-      if (scalar_type == -1) {
-        scalar_type = scalar_value.infer_type();
-      }
-      if (scalar_type == Scalar::BOOL) {
-        value_any = parse_as<bool>(scalar_value.text);
-      } else if (scalar_type == Scalar::INT) {
-        value_any = parse_as<int>(scalar_value.text);
-      } else if (scalar_type == Scalar::LONG_LONG) {
-        value_any = parse_as<long long>(scalar_value.text);
-      } else if (scalar_type == Scalar::DOUBLE) {
-        value_any = parse_as<double>(scalar_value.text);
-      } else {
-        value_any = scalar_value.text;
-      }
-    } else if (value_any.type() == typeid(Array<Scalar>)) {
-      Array<Scalar>& scalars = any_ref_cast<Array<Scalar> >(value_any);
-      if (scalar_type == -1) {
-        if (scalars.size() == 0) {
-          throw ParserFail("implicitly typed arrays can't be empty\n"
-                           "(need to determine their element type)\n");
-        }
-        /* Teuchos::Array uses std::vector but doesn't account for std::vector<bool>,
-           so it can't store bools */
-        scalar_type = Scalar::INT;
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          scalar_type = std::min(scalar_type, scalars[i].infer_type());
-        }
-      }
-      if (scalar_type == Scalar::INT) {
-        Array<int> result(scalars.size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          result[i] = parse_as<int>(scalars[i].text);
-        }
-        value_any = result;
-      } else if (scalar_type == Scalar::LONG_LONG) {
-        Array<long long> result(scalars.size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          result[i] = parse_as<long long>(scalars[i].text);
-        }
-        value_any = result;
-      } else if (scalar_type == Scalar::DOUBLE) {
-        Array<double> result(scalars.size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          result[i] = parse_as<double>(scalars[i].text);
-        }
-        value_any = result;
-      } else if (scalar_type == Scalar::STRING) {
-        Array<std::string> result(scalars.size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          result[i] = scalars[i].text;
-        }
-        value_any = result;
-      }
-    } else if (value_any.type() == typeid(Array<Array<Scalar>>)) {
-      Array<Array<Scalar>>& scalars = any_ref_cast<Array<Array<Scalar>> >(value_any);
-      if (scalar_type == -1) {
-        if (scalars.size() == 0) {
-          throw ParserFail("implicitly typed 2D arrays can't be empty\n"
-                           "(need to determine their element type)\n");
-        }
-        /* Teuchos::Array uses std::vector but doesn't account for std::vector<bool>,
-           so it can't store bools */
-        scalar_type = Scalar::INT;
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          if (scalars[0].size() == 0) {
-            throw ParserFail("implicitly typed 2D arrays can't have empty rows\n"
-                             "(need to determine their element type)\n");
-          }
-          if (scalars[i].size() != scalars[0].size()) {
-            throw ParserFail("2D array: sub-arrays are different sizes");
-          }
-          for (Teuchos_Ordinal j = 0; j < scalars[i].size(); ++j) {
-            int item_type = scalars[i][j].infer_type();
-            scalar_type = std::min(scalar_type, item_type);
-          }
-        }
-      }
-      if (scalar_type == Scalar::INT) {
-        TwoDArray<int> result(scalars.size(), scalars[0].size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          for (Teuchos_Ordinal j = 0; j < scalars[0].size(); ++j) {
-            result(i, j) = parse_as<int>(scalars[i][j].text);
-          }
-        }
-        value_any = result;
-      } else if (scalar_type == Scalar::LONG_LONG) {
-        TwoDArray<long long> result(scalars.size(), scalars[0].size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          for (Teuchos_Ordinal j = 0; j < scalars[0].size(); ++j) {
-            result(i, j) = parse_as<long long>(scalars[i][j].text);
-          }
-        }
-        value_any = result;
-      } else if (scalar_type == Scalar::DOUBLE) {
-        TwoDArray<double> result(scalars.size(), scalars[0].size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          for (Teuchos_Ordinal j = 0; j < scalars[0].size(); ++j) {
-            result(i, j) = parse_as<double>(scalars[i][j].text);
-          }
-        }
-        value_any = result;
-      } else if (scalar_type == Scalar::STRING) {
-        TwoDArray<std::string> result(scalars.size(), scalars[0].size());
-        for (Teuchos_Ordinal i = 0; i < scalars.size(); ++i) {
-          for (Teuchos_Ordinal j = 0; j < scalars[0].size(); ++j) {
-            result(i, j) = scalars[i][j].text;
-          }
-        }
-        value_any = result;
-      }
-    }
+  any seq_first_item(any& first_any) {
+    InputList list;
+    any list_any = std::move(list);
+    return seq_next_item(list_any, first_any);
   }
-  int interpret_tag(any& tag_any) {
-    if (tag_any.type() != typeid(std::string)) return -1;
-    std::string& text = any_ref_cast<std::string>(tag_any);
-    if (text.find("bool") != std::string::npos) return Scalar::BOOL;
-    else if (text.find("int") != std::string::npos) return Scalar::INT;
-    else if (text.find("double") != std::string::npos) return Scalar::DOUBLE;
-    else if (text.find("string") != std::string::npos) return Scalar::STRING;
-    else {
-      std::string msg = "Unable to parse type tag \"";
-      msg += text;
-      msg += "\"\n";
-      throw ParserFail(msg);
-    }
-  }
-  void seq_first_item(any& result_any, any& first_any) {
-    using std::swap;
-    if (first_any.type() == typeid(Scalar)) {
-      Array<Scalar>& a = make_any_ref<Array<Scalar> >(result_any);
-      Scalar& v = any_ref_cast<Scalar>(first_any);
-      a.push_back(Scalar());
-      swap(a.back(), v);
-    } else if (first_any.type() == typeid(Array<Scalar>)) {
-      Array<Array<Scalar>>& a = make_any_ref<Array<Array<Scalar>> >(result_any);
-      Array<Scalar>& v = any_ref_cast<Array<Scalar> >(first_any);
-      a.push_back(Array<Scalar>());
-      swap(a.back(), v);
+  any seq_next_item(any& items, any& next_item) {
+    auto list = any_cast<InputList&&>(std::move(items));
+    if (next_item.type() == typeid(std::string)) {
+      std::string value = any_cast<std::string&&>(std::move(next_item));
+      std::shared_ptr<Input> sptr(new InputScalar(std::move(value)));
+      list.add(std::move(sptr));
+    } else if (next_item.type() == typeid(InputList)) {
+      InputList value = any_cast<InputList&&>(std::move(next_item));
+      std::shared_ptr<Input> sptr(new InputList(std::move(value)));
+      list.add(std::move(sptr));
+    } else if (next_item.type() == typeid(InputMap)) {
+      InputMap value = any_cast<InputMap&&>(std::move(next_item));
+      std::shared_ptr<Input> sptr(new InputMap(std::move(value)));
+      list.add(std::move(sptr));
     } else {
-      throw Teuchos::ParserFail(
-          "bug in YAMLParameterList::Reader: unexpected type for first sequence item");
+      throw ParserFail(
+          "bug in InputYamlReader: unexpected type for sequence item");
     }
-  }
-  void seq_next_item(any& result_any, any& items, any& next_item) {
-    using std::swap;
-    swap(result_any, items);
-    if (result_any.type() == typeid(Array<Scalar>)) {
-      Array<Scalar>& a = any_ref_cast<Array<Scalar> >(result_any);
-      Scalar& val = any_ref_cast<Scalar>(next_item);
-      a.push_back(Scalar());
-      swap(a.back(), val);
-    } else if (result_any.type() == typeid(Array<Array<Scalar>>)) {
-      Array<Array<Scalar>>& a = any_ref_cast<Array<Array<Scalar>> >(result_any);
-      Array<Scalar>& v = any_ref_cast<Array<Scalar> >(next_item);
-      a.push_back(Array<Scalar>());
-      swap(a.back(), v);
-    } else {
-      throw Teuchos::ParserFail(
-          "bug in YAMLParameterList::Reader: unexpected type for next sequence item");
-    }
+    return list;
   }
   /* block scalars are a super complicated mess, this function handles that mess */
   void handle_block_scalar(
@@ -702,9 +768,14 @@ class YamlInputReader : public Reader {
     /* indentation indicator overrides the derived level of indentation, in case the
        user wants to keep some of that indentation as content */
     if (indentation_indicator > 0) {
-      TEUCHOS_TEST_FOR_EXCEPTION(num_indent_spaces < indentation_indicator,
-          Teuchos::ParserFail,
-          "Indentation indicator " << indentation_indicator << " > leading spaces " << num_indent_spaces);
+      if (num_indent_spaces < indentation_indicator) {
+        std::string msg = "Indentation indicator ";
+        msg += std::to_string(indentation_indicator);
+        msg += " > leading spaces ";
+        msg += std::to_string(num_indent_spaces);
+        msg += "\n";
+        throw ParserFail(msg);
+      }
       num_indent_spaces = indentation_indicator;
     }
     /* prepend the content from the leading_empties_or_comments to the rest */
@@ -726,7 +797,7 @@ class YamlInputReader : public Reader {
         ++num_spaces;
       }
       if (num_spaces >= num_indent_spaces) break;
-      content.erase(content.begin() + last_newline + 1, content.end());
+      content.erase(content.begin() + long(last_newline + 1), content.end());
     }
     /* remove both indentation and newlines as dictated by header information */
     std::size_t unindent_pos = 0;
@@ -759,4 +830,121 @@ class YamlInputReader : public Reader {
     }
   }
 };
+
+InputYamlReader::~InputYamlReader() {}
+
+InputMap read_input(std::string const& path) {
+  std::ifstream stream(path.c_str());
+  Omega_h::InputYamlReader reader;
+  auto result_any = reader.read_stream(stream, path);
+  return any_cast<InputMap&&>(std::move(result_any));
+}
+
+void update_class_sets(ClassSets* p_sets, InputMap& pl) {
+  ClassSets& sets = *p_sets;
+  for (auto it = pl.map.begin(), end = pl.map.end(); it != end; ++it) {
+    auto const& set_name = it->first;
+    auto& pairs = pl.get_list(set_name);
+    if (pairs.size() != 2) {
+      Omega_h_fail(
+          "Expected \"%s\" to be an array of int pairs\n", set_name.c_str());
+    }
+    auto npairs = pairs.size();
+    for (decltype(npairs) i = 0; i < npairs; ++i) {
+      auto& pair = pairs.get_list(i);
+      auto class_dim = Int(pair.get<int>(0));
+      auto class_id = LO(pair.get<int>(1));
+      sets[set_name].push_back({class_dim, class_id});
+    }
+  }
+}
+
+static void echo_input_recursive(std::ostream& stream, Input& input, Int indent) {
+  if (is_type<InputScalar>(input)) {
+    auto& scalar = as_type<InputScalar>(input);
+    if (std::find(scalar.str.begin(), scalar.str.end(), '\n') != scalar.str.end()) {
+      stream << " |\n";
+      for (auto c : scalar.str) {
+        if (c == '\n') {
+          for (Int i = 0; i < indent; ++i) {
+            stream << "  ";
+          }
+        }
+        stream << c;
+      }
+    } else {
+      stream << " \'" << scalar.str << '\'';
+    }
+  } else if (is_type<InputMap>(input)) {
+    auto& map = as_type<InputMap>(input);
+    stream << '\n';
+    for (auto& pair : map.map) {
+      auto& name = pair.first;
+      for (Int i = 0; i < indent; ++i) {
+        stream << "  ";
+      }
+      stream << name << ":";
+      echo_input_recursive(stream, *(pair.second), indent + 1);
+    }
+  } else if (is_type<InputList>(input)) {
+    auto& list = as_type<InputList>(input);
+    stream << '\n';
+    for (LO i = 0; i < list.size(); ++i) {
+      for (Int j = 0; j < indent; ++j) {
+        stream << "  ";
+      }
+      stream << "-";
+      echo_input_recursive(stream, *(list.entries[std::size_t(i)]), indent + 1);
+    }
+  }
+}
+
+void echo_input(std::ostream& stream, Input& input) {
+  echo_input_recursive(stream, input, 0);
+}
+
+void check_unused(Input& input) {
+  if (!input.used) {
+    auto const full_name = get_full_name(input);
+    Omega_h_fail("input \"%s\" was not used!\n", full_name.c_str());
+  }
+  if (is_type<InputMap>(input)) {
+    auto& map = as_type<InputMap>(input);
+    for (auto& pair : map.map) {
+      check_unused(*(pair.second));
+    }
+  } else if (is_type<InputList>(input)) {
+    auto& list = as_type<InputList>(input);
+    for (LO i = 0; i < list.size(); ++i) {
+      check_unused(*(list.entries[std::size_t(i)]));
+    }
+  }
+}
+
+#define OMEGA_H_EXPL_INST(InputType) \
+template bool is_type<InputType>(Input&); \
+template InputType& as_type<InputType>(Input&); \
+template bool InputMap::is_input<InputType>(std::string const& name); \
+template InputType& InputMap::use_input<InputType>(std::string const& name); \
+template bool InputList::is_input<InputType>(LO i); \
+template InputType& InputList::use_input<InputType>(LO i);
+OMEGA_H_EXPL_INST(InputScalar)
+OMEGA_H_EXPL_INST(InputMap)
+OMEGA_H_EXPL_INST(InputList)
+#undef OMEGA_H_EXPL_INST
+
+#define OMEGA_H_EXPL_INST(ScalarType) \
+template ScalarType InputScalar::get<ScalarType>() const; \
+template bool InputMap::is<ScalarType>(std::string const& name); \
+template ScalarType InputMap::get<ScalarType>(std::string const& name); \
+template ScalarType InputMap::get<ScalarType>(std::string const& name, char const* default_value); \
+template bool InputList::is<ScalarType>(LO i); \
+template ScalarType InputList::get<ScalarType>(LO i);
+OMEGA_H_EXPL_INST(std::string)
+OMEGA_H_EXPL_INST(bool)
+OMEGA_H_EXPL_INST(double)
+OMEGA_H_EXPL_INST(int)
+OMEGA_H_EXPL_INST(long long)
+#undef OMEGA_H_EXPL_INST
+
 }

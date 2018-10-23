@@ -1,5 +1,5 @@
 #include <Omega_h_config.h>
-#include <Omega_h_stack.hpp>
+#include <Omega_h_profile.hpp>
 
 #include <csignal>
 #include <cstdarg>
@@ -113,6 +113,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
 #endif
   if (cmdline.parsed("--osh-signal")) Omega_h::protect();
+#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
+  // trigger lazy initialization of the CUDA runtime
+  // and prevent it from polluting later timings
+  void* cuda_ptr;
+  cudaMalloc(&cuda_ptr, 1);
+  cudaFree(cuda_ptr);
+#endif
 }
 
 Library::Library(Library const& other)
