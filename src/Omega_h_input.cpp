@@ -392,8 +392,7 @@ class InputYamlReader : public Reader {
         return map_item(rhs.at(0), rhs.at(4));
       }
       case yaml::PROD_BVALUE_EMPTY: {
-        std::shared_ptr<Input> sptr(new InputMap());
-        return sptr;
+        return InputMap();
       }
       case yaml::PROD_BVALUE_BMAP: {
         return std::move(rhs.at(1));
