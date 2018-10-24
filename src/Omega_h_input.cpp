@@ -4,6 +4,8 @@
 #include <Omega_h_yaml.hpp>
 #include <sstream>
 #include <fstream>
+#include <limits>
+#include <algorithm>
 
 namespace Omega_h {
 
@@ -106,7 +108,7 @@ InputMap::InputMap(InputMap&& other):Input(other),map(std::move(other.map)) {
   for (auto& pair : map) (pair.second)->parent = this;
 }
 
-InputMap::InputMap(InputMap const&) {
+InputMap::InputMap(InputMap const& other):Input(other) {
   Omega_h_fail("InputMap should never actually be copied!\n");
 }
 
@@ -197,7 +199,7 @@ std::string const& InputMap::name(Input const& input) {
   for (auto& pair : map) {
     if (pair.second.get() == &input) return pair.first;
   }
-  OMEGA_H_NORETURN(std::string());
+  OMEGA_H_NORETURN(*(static_cast<std::string*>(nullptr)));
 }
 
 void InputMap::out_of_line_virtual_method() {}
@@ -206,7 +208,7 @@ InputList::InputList(InputList&& other):entries(std::move(other.entries)) {
   for (auto& sptr : entries) sptr->parent = this;
 }
 
-InputList::InputList(InputList const&) {
+InputList::InputList(InputList const& other):Input(other) {
   Omega_h_fail("InputList should never actually be copied!\n");
 }
 
@@ -677,7 +679,7 @@ class InputYamlReader : public Reader {
     InputMap map = any_cast<InputMap&&>(std::move(items));
     NameValue& pair = any_cast<NameValue&>(next_item);
     map.add(pair.name, std::move(pair.value));
-    return map;
+    return std::move(map);
   }
   any map_item(any& key_any, any& value_any) {
     NameValue result;
@@ -724,7 +726,7 @@ class InputYamlReader : public Reader {
       throw ParserFail(
           "bug in InputYamlReader: unexpected type for sequence item");
     }
-    return list;
+    return std::move(list);
   }
   /* block scalars are a super complicated mess, this function handles that mess */
   void handle_block_scalar(
