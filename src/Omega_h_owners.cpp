@@ -1,6 +1,7 @@
 #include "Omega_h_owners.hpp"
 
 #include "Omega_h_for.hpp"
+#include "Omega_h_globals.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_mesh.hpp"
@@ -107,15 +108,7 @@ GOs globals_from_owners(Mesh* mesh, Int ent_dim) {
     return Read<GO>(nnew_ents, start, 1);
   }
   auto new_owned = mesh->owned(ent_dim);
-  auto local_offsets = offset_scan(new_owned);
-  auto nnew_owned = local_offsets.last();
-  auto start = mesh->comm()->exscan(GO(nnew_owned), OMEGA_H_SUM);
-  auto new_globals_w = Write<GO>(nnew_ents);
-  auto f = OMEGA_H_LAMBDA(LO e) {
-    new_globals_w[e] = local_offsets[e] + start;
-  };
-  parallel_for(nnew_ents, f, "globals_from_owners");
-  auto new_globals = Read<GO>(new_globals_w);
+  auto new_globals = rescan_globals(mesh, new_owned);
   return mesh->sync_array(ent_dim, new_globals, 1);
 }
 
