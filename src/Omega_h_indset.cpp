@@ -2,12 +2,26 @@
 
 namespace Omega_h {
 
+struct QualityCompare {
+  Reals quality;
+  GOs global;
+  OMEGA_H_INLINE bool operator()(LO u, LO v) const {
+    auto const v_qual = quality[v];
+    auto const u_qual = quality[u];
+    if (u_qual != v_qual) return u_qual < v_qual;
+    // neighbor has equal quality, tiebreaker by global ID
+    return global[u] < global[v];
+  }
+};
+
 Read<I8> find_indset(
     Mesh* mesh, Int ent_dim, Graph graph, Reals quality, Read<I8> candidates) {
   auto xadj = graph.a2ab;
   auto adj = graph.ab2b;
-  auto globals = mesh->globals(ent_dim);
-  return indset::find(mesh, ent_dim, xadj, adj, quality, globals, candidates);
+  QualityCompare compare;
+  compare.quality = quality;
+  compare.global = mesh->globals(ent_dim);
+  return indset::find(mesh, ent_dim, xadj, adj, candidates, compare);
 }
 
 Read<I8> find_indset(
