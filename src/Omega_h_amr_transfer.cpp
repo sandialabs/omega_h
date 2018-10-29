@@ -8,7 +8,9 @@
 
 namespace Omega_h {
 
-void amr_transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
+namespace amr {
+
+void transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
     Few<LOs, 4> mods2mds, Few<LOs, 4> mods2midverts, LOs same_ents2old_ents,
     LOs same_ents2new_ents, TransferOpts opts) {
   for (Int i = 0; i < old_mesh->ntags(VERT); ++i) {
@@ -27,7 +29,7 @@ void amr_transfer_linear_interp(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-void amr_transfer_levels(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
+void transfer_levels(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     Few<LOs, 4> mods2mds, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents) {
   old_mesh->ask_levels(prod_dim);
@@ -54,7 +56,7 @@ void amr_transfer_levels(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
       same_ents2new_ents, tag, new_data);
 }
 
-void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
+void transfer_leaves(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
     Few<LOs, 4> mods2mds, LOs prods2new_ents, LOs same_ents2old_ents,
     LOs same_ents2new_ents, LOs old_ents2new_ents) {
   if (prod_dim == VERT) return;
@@ -86,7 +88,7 @@ void amr_transfer_leaves(Mesh* old_mesh, Mesh* new_mesh, Int prod_dim,
   new_mesh->add_tag<Byte>(prod_dim, "leaf", 1, new_data, true);
 }
 
-void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
+void transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
     Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, Few<LOs, 4> old_ents2new_ents) {
   auto dim = old_mesh->dim();
@@ -119,7 +121,7 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
           auto idx = offset + (mod * nprods_per_mod + prod);
           auto prod_idx = prods2new_ents[prod_dim][idx];
           new_p_data[prod_idx] = mods2new_ents[mod];
-          new_c_data[prod_idx] = make_amr_code(prod, mod_dim);
+          new_c_data[prod_idx] = amr::make_code(prod, mod_dim);
         }
       };
       parallel_for(nmods_of_dim, lambda2);
@@ -131,7 +133,7 @@ void amr_transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
 }
 
 template <typename T>
-void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
+void transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
     Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, std::string const& name) {
   Few<Write<T>, 4> new_data;
@@ -159,25 +161,25 @@ void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
+static void transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
     Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, TagBase const* tagbase) {
   auto name = tagbase->name();
   switch (tagbase->type()) {
     case OMEGA_H_I8:
-      amr_transfer_inherit<I8>(old_mesh, new_mesh, prods2new_ents,
+      amr::transfer_inherit<I8>(old_mesh, new_mesh, prods2new_ents,
           same_ents2old_ents, same_ents2new_ents, name);
       break;
     case OMEGA_H_I32:
-      amr_transfer_inherit<I32>(old_mesh, new_mesh, prods2new_ents,
+      amr::transfer_inherit<I32>(old_mesh, new_mesh, prods2new_ents,
           same_ents2old_ents, same_ents2new_ents, name);
       break;
     case OMEGA_H_I64:
-      amr_transfer_inherit<I64>(old_mesh, new_mesh, prods2new_ents,
+      amr::transfer_inherit<I64>(old_mesh, new_mesh, prods2new_ents,
           same_ents2old_ents, same_ents2new_ents, name);
       break;
     case OMEGA_H_F64:
-      amr_transfer_inherit<Real>(old_mesh, new_mesh, prods2new_ents,
+      amr::transfer_inherit<Real>(old_mesh, new_mesh, prods2new_ents,
           same_ents2old_ents, same_ents2new_ents, name);
       break;
   }
@@ -196,17 +198,19 @@ static void validate_tag(Mesh* m, TagBase const* tagbase) {
   }
 }
 
-void amr_transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
+void transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
     Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, TransferOpts const& opts) {
   for (Int i = 0; i < old_mesh->ntags(0); ++i) {
     auto tagbase = old_mesh->get_tag(0, i);
     if (should_inherit(old_mesh, opts, 0, tagbase)) {
       validate_tag(old_mesh, tagbase);
-      amr_transfer_inherit(old_mesh, new_mesh, prods2new_ents,
+      amr::transfer_inherit(old_mesh, new_mesh, prods2new_ents,
           same_ents2old_ents, same_ents2new_ents, tagbase);
     }
   }
 }
+
+}  // namespace amr
 
 }  // namespace Omega_h
