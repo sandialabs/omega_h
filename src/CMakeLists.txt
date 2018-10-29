@@ -99,6 +99,7 @@ set(Omega_h_SOURCES
   Omega_h_math_lang.cpp
   Omega_h_expr.cpp
   Omega_h_input.cpp
+  Omega_h_globals.cpp
   )
 
 if (Omega_h_USE_CUDA)
