@@ -7,7 +7,7 @@ namespace Omega_h {
 
 template <typename T>
 GOs rescan_globals(Mesh* mesh, Read<T> counts) {
-  begin_code("rescan_globals");
+  OMEGA_H_TIME_FUNCTION;
   auto local_offsets = offset_scan(counts);
   auto nnew = local_offsets.last();
   auto start = mesh->comm()->exscan(GO(nnew), OMEGA_H_SUM);
