@@ -5,6 +5,7 @@
 #include "Omega_h_atomics.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_globals.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_linpart.hpp"
 #include "Omega_h_map.hpp"
@@ -414,14 +415,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto lin_rep_counts =
       old_ents2lins.exch_reduce(global_rep_counts, 1, OMEGA_H_SUM);
   OMEGA_H_CHECK(lin_rep_counts.size() == nlins);
-  auto lin_local_offsets = offset_scan(lin_rep_counts);
-  auto lin_global_count = lin_local_offsets.last();
-  GO lin_global_offset = comm->exscan<GO>(GO(lin_global_count), OMEGA_H_SUM);
-  Write<GO> lin_globals(nlins);
-  auto write_lin_globals = OMEGA_H_LAMBDA(LO lin) {
-    lin_globals[lin] = lin_local_offsets[lin] + lin_global_offset;
-  };
-  parallel_for(nlins, write_lin_globals, "write_lin_globals");
+  auto lin_globals = rescan_globals(old_mesh, lin_rep_counts);
   auto old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
   Few<LOs, 4> global_rep2md_order;
   for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
