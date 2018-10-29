@@ -252,7 +252,7 @@ static Bytes filter_parents(Parents c2p, Int parent_dim) {
   Write<Byte> filter(c2p.parent_idx.size());
   auto f = OMEGA_H_LAMBDA(LO c) {
     auto code = c2p.codes[c];
-    if (code_parent_dim(code) == parent_dim)
+    if (amr::code_parent_dim(code) == parent_dim)
       filter[c] = 1;
     else
       filter[c] = 0;
