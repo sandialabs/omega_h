@@ -9,13 +9,17 @@ namespace Omega_h {
 
 class Mesh;
 
-void mark_amr(Mesh* mesh, Bytes elems_are_marked);
+namespace amr {
 
-Few<LO, 4> count_amr(Mesh* mesh);
+void mark_refined(Mesh* mesh, Bytes elems_are_marked);
 
-LOs get_amr_topology(Mesh* mesh, Int child_dim, Int num_children,
+Few<LO, 4> count_refined(Mesh* mesh);
+
+LOs get_refined_topology(Mesh* mesh, Int child_dim, Int num_children,
     Few<LOs, 4> mods2mds, Few<LOs, 4> mds2mods, Few<LOs, 4> mods2midverts,
     LOs old_verts2new_verts);
+
+}  // namespace amr
 
 }  // namespace Omega_h
 
