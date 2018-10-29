@@ -37,7 +37,7 @@ static Omega_h::Bytes mark(Omega_h::Mesh* m, int level) {
     if (std::abs(rc - r) < tol) marks[elem] = 1;
   };
   Omega_h::parallel_for(leaf_elems.size(), f);
-  return Omega_h::enforce_one_level(m, dim - 1, marks);
+  return Omega_h::amr::enforce_2to1_refine(m, dim - 1, marks);
 }
 
 static void run_2D_adapt(Omega_h::Library* lib) {
@@ -49,7 +49,7 @@ static void run_2D_adapt(Omega_h::Library* lib) {
   for (int i = 1; i < 5; ++i) {
     auto xfer_opts = Omega_h::TransferOpts();
     auto marks = mark<2>(&m, i);
-    Omega_h::amr_refine(&m, marks, xfer_opts);
+    Omega_h::amr::refine(&m, marks, xfer_opts);
     writer.write();
   }
 }
@@ -63,7 +63,7 @@ static void run_3D_adapt(Omega_h::Library* lib) {
   for (int i = 1; i < 5; ++i) {
     auto xfer_opts = Omega_h::TransferOpts();
     auto marks = mark<3>(&m, i);
-    Omega_h::amr_refine(&m, marks, xfer_opts);
+    Omega_h::amr::refine(&m, marks, xfer_opts);
     writer.write();
   }
 }

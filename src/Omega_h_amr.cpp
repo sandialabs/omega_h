@@ -9,7 +9,9 @@
 
 namespace Omega_h {
 
-static OMEGA_H_DEVICE Byte mark_elem(LO elem, Adj elems2bridges,
+namespace amr {
+
+static OMEGA_H_DEVICE Byte should_elem_be_refined(LO elem, Adj elems2bridges,
     Adj bridges2elems, Bytes is_interior, Bytes is_bridge_leaf,
     Int nbridges_per_elem, Children children, Bytes elems_are_marked) {
   Byte mark = 0;
@@ -31,7 +33,7 @@ static OMEGA_H_DEVICE Byte mark_elem(LO elem, Adj elems2bridges,
   return mark;
 }
 
-Bytes enforce_one_level(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
+Bytes enforce_2to1_refine(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
   auto elem_dim = mesh->dim();
   OMEGA_H_CHECK(bridge_dim > 0);
   OMEGA_H_CHECK(bridge_dim < elem_dim);
@@ -50,15 +52,16 @@ Bytes enforce_one_level(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
       one_level_mark[elem] = 1;
     } else {
       one_level_mark[elem] =
-          mark_elem(elem, elems2bridges, bridges2elems, is_interior,
-              is_bridge_leaf, nbridges_per_elem, children, elems_are_marked);
+          should_elem_be_refined(elem, elems2bridges, bridges2elems,
+              is_interior, is_bridge_leaf, nbridges_per_elem, children,
+              elems_are_marked);
     }
   };
   Omega_h::parallel_for(mesh->nelems(), f, "enforce_one_level");
   return one_level_mark;
 }
 
-static void amr_refine_ghosted(Mesh* mesh) {
+static void refine_ghosted(Mesh* mesh) {
   Few<LOs, 4> mods2mds;
   for (Int mod_dim = 0; mod_dim <= mesh->dim(); ++mod_dim) {
     auto mds_are_mods = mesh->get_array<Byte>(mod_dim, "refine");
@@ -83,8 +86,8 @@ static void amr_refine_ghosted(Mesh* mesh) {
   }
 }
 
-static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
-  auto prod_counts = count_amr(mesh);
+static void refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
+  auto prod_counts = amr::count_refined(mesh);
   Few<Bytes, 4> mds_are_mods;
   Few<LOs, 4> mods2mds;
   Few<LOs, 4> mds2mods;
@@ -104,8 +107,9 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   for (Int prod_dim = 0; prod_dim <= mesh->dim(); ++prod_dim) {
     LOs prods2verts;
     if (prod_dim != VERT) {
-      prods2verts = get_amr_topology(mesh, prod_dim, prod_counts[prod_dim],
-          mods2mds, mds2mods, mods2midverts, old_ents2new_ents[0]);
+      prods2verts = amr::get_refined_topology(mesh, prod_dim,
+          prod_counts[prod_dim], mods2mds, mds2mods, mods2midverts,
+          old_ents2new_ents[0]);
     }
     Few<LOs, 4> mods2prods;
     {
@@ -137,32 +141,34 @@ static void amr_refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
             unmap_range(begin, end, prods2new_ents[prod_dim], 1);
         offset = end;
       }
-      amr_transfer_linear_interp(mesh, &new_mesh, mods2mds, mods2midverts,
+      amr::transfer_linear_interp(mesh, &new_mesh, mods2mds, mods2midverts,
           same_ents2old_ents[prod_dim], same_ents2new_ents[prod_dim],
           xfer_opts);
     }
-    amr_transfer_levels(mesh, &new_mesh, prod_dim, mods2mds,
+    amr::transfer_levels(mesh, &new_mesh, prod_dim, mods2mds,
         prods2new_ents[prod_dim], same_ents2old_ents[prod_dim],
         same_ents2new_ents[prod_dim]);
-    amr_transfer_leaves(mesh, &new_mesh, prod_dim, mods2mds,
+    amr::transfer_leaves(mesh, &new_mesh, prod_dim, mods2mds,
         prods2new_ents[prod_dim], same_ents2old_ents[prod_dim],
         same_ents2new_ents[prod_dim], old_ents2new_ents[prod_dim]);
     old_lows2new_lows = old_ents2new_ents[prod_dim];
   }
-  amr_transfer_parents(mesh, &new_mesh, mods2mds, prods2new_ents,
+  amr::transfer_parents(mesh, &new_mesh, mods2mds, prods2new_ents,
       same_ents2old_ents, same_ents2new_ents, old_ents2new_ents);
-  amr_transfer_inherit(mesh, &new_mesh, prods2new_ents, same_ents2old_ents,
+  amr::transfer_inherit(mesh, &new_mesh, prods2new_ents, same_ents2old_ents,
       same_ents2new_ents, xfer_opts);
   *mesh = new_mesh;
 }
 
-void amr_refine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
+void refine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_HYPERCUBE);
-  mark_amr(mesh, elems_are_marked);
+  amr::mark_refined(mesh, elems_are_marked);
   mesh->set_parting(OMEGA_H_GHOSTED);
-  amr_refine_ghosted(mesh);
+  amr::refine_ghosted(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
-  amr_refine_elem_based(mesh, xfer_opts);
+  amr::refine_elem_based(mesh, xfer_opts);
 }
+
+}  // namespace amr
 
 }  // namespace Omega_h
