@@ -5,7 +5,7 @@ namespace Omega_h {
 struct QualityCompare {
   Reals quality;
   GOs global;
-  OMEGA_H_INLINE bool operator()(LO u, LO v) const {
+  OMEGA_H_DEVICE bool operator()(LO u, LO v) const {
     auto const v_qual = quality[v];
     auto const u_qual = quality[u];
     if (u_qual != v_qual) return u_qual < v_qual;
