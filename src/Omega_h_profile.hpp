@@ -9,7 +9,7 @@
 #endif
 
 namespace Omega_h {
-namespace perf {
+namespace profile {
 
 struct Strings {
   std::vector<char> chars;
@@ -155,12 +155,12 @@ struct History {
 
 extern History* global_singleton_history;
 
-void simple_print(perf::History const& history);
+void simple_print(profile::History const& history);
 History invert(History const& h);
 void print_time_sorted(History const& h);
 void print_top_down_and_bottom_up(History const& h);
 
-}  // namespace perf
+}  // namespace profile
 }  // namespace Omega_h
 
 namespace Omega_h {
@@ -169,8 +169,8 @@ inline void begin_code(char const* name) {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::Profiling::pushRegion(name);
 #endif
-  if (perf::global_singleton_history) {
-    perf::global_singleton_history->start(name);
+  if (profile::global_singleton_history) {
+    profile::global_singleton_history->start(name);
   }
 }
 
@@ -178,8 +178,8 @@ inline void end_code() {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::Profiling::popRegion();
 #endif
-  if (perf::global_singleton_history) {
-    perf::global_singleton_history->stop();
+  if (profile::global_singleton_history) {
+    profile::global_singleton_history->stop();
   }
 }
 
