@@ -113,7 +113,7 @@ class FullWriter {
  public:
   FullWriter() = default;
   FullWriter(std::string const& root_path, Mesh* mesh, Real restart_time = 0.0,
-      bool compress = true);
+      bool compress = OMEGA_H_DEFAULT_COMPRESS);
   void write(Real time);
   void write();
 };
