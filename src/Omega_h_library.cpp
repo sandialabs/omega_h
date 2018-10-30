@@ -1,5 +1,8 @@
 #include <Omega_h_config.h>
 #include <Omega_h_profile.hpp>
+#include <Omega_h_malloc.hpp>
+#include <Omega_h_cmdline.hpp>
+#include <Omega_h_library.hpp>
 
 #include <csignal>
 #include <cstdarg>
@@ -7,9 +10,6 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
-#include "Omega_h_cmdline.hpp"
-#include "Omega_h_library.hpp"
 
 namespace Omega_h {
 
@@ -85,6 +85,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   cmdline.add_flag("--osh-signal", "catch signals and print a stacktrace");
   cmdline.add_flag("--osh-fpe", "enable floating-point exceptions");
   cmdline.add_flag("--osh-silent", "suppress all output");
+  cmdline.add_flag("--osh-pool", "use memory pooling");
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
@@ -118,6 +119,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   // and prevent it from polluting later timings
   cudaFree(nullptr);
 #endif
+  if (cmdline.parsed("--osh-pool")) enable_pooling();
 }
 
 Library::Library(Library const& other)
@@ -158,6 +160,7 @@ Library::~Library() {
   }
 #endif
   delete[] Omega_h::max_memory_stacktrace;
+  disable_pooling();
 }
 
 CommPtr Library::world() { return world_; }
