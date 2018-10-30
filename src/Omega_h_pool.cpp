@@ -3,9 +3,6 @@
 #include <Omega_h_fail.hpp>
 #include <algorithm>
 
-//DEBUG
-#include <iostream>
-
 namespace Omega_h {
 
 static void call_underlying_frees(Pool& pool, BlockList& list) {
@@ -58,7 +55,6 @@ void* allocate(Pool& pool, std::size_t size) {
   auto const best_fit = find_best_fit(pool, size);
   if (best_fit != pool.free_blocks.end()) {
     auto const data = best_fit->data;
-    std::cerr << "pool resurrected " << data << ", " << best_fit->size << " for " << size << '\n';
     pool.used_blocks.push_back(*best_fit);
     pool.free_blocks.erase(best_fit);
     return data;
@@ -76,7 +72,6 @@ void* allocate(Pool& pool, std::size_t size) {
         size_to_alloc, underlying_total_size(pool));
   }
   pool.used_blocks.push_back({size_to_alloc, data});
-  std::cerr << "pool allocated " << data << ", " << size_to_alloc << " for " << size << '\n';
   return data;
 }
 
@@ -84,7 +79,6 @@ void deallocate(Pool& pool, void* data) {
   ScopedTimer timer("pool deallocate");
   auto const end = pool.used_blocks.end();
   auto const it = std::find_if(pool.used_blocks.begin(), end, [=](Block const& b) -> bool { return b.data == data; });
-  std::cerr << "pool recycling " << data << ", " << it->size << '\n';
   if (it == end) {
     Omega_h_fail("Tried to deallocate %p from pool, but pool didn't allocate it\n", data);
   }
