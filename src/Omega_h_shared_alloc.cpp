@@ -2,6 +2,7 @@
 #include <Omega_h_library.hpp>
 #include <Omega_h_shared_alloc.hpp>
 #include <Omega_h_profile.hpp>
+#include <Omega_h_malloc.hpp>
 #include <sstream>
 
 namespace Omega_h {
@@ -55,14 +56,7 @@ Alloc::Alloc(std::size_t size_in, std::string&& name_in)
 }
 
 Alloc::~Alloc() {
-  {
-    Omega_h::ScopedTimer free_timer("free");
-#ifdef OMEGA_H_USE_CUDA
-    cudaFree(ptr);
-#else
-    std::free(ptr);
-#endif
-  }
+  ::Omega_h::maybe_pooled_device_free(ptr);
   auto ga = global_allocs;
   if (ga) {
     if (next == nullptr) {
@@ -81,19 +75,7 @@ Alloc::~Alloc() {
 
 void Alloc::init() {
   Omega_h::ScopedTimer init_timer("Alloc::init");
-  {
-    Omega_h::ScopedTimer malloc_timer("malloc");
-#ifdef OMEGA_H_USE_CUDA
-    void* tmp_ptr;
-    auto cuda_malloc_size = size;
-    if (cuda_malloc_size < 1) cuda_malloc_size = 1;
-    auto const err = cudaMalloc(&tmp_ptr, cuda_malloc_size);
-    OMEGA_H_CHECK(err == cudaSuccess);
-    ptr = static_cast<decltype(ptr)>(tmp_ptr);
-#else
-    ptr = std::malloc(size);
-#endif
-  }
+  ptr = ::Omega_h::maybe_pooled_device_malloc(size);
   use_count = 1;
   auto ga = global_allocs;
   if (size && (ptr == nullptr)) {

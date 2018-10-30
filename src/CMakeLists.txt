@@ -100,6 +100,8 @@ set(Omega_h_SOURCES
   Omega_h_expr.cpp
   Omega_h_input.cpp
   Omega_h_globals.cpp
+  Omega_h_malloc.cpp
+  Omega_h_pool.cpp
   )
 
 if (Omega_h_USE_CUDA)
