@@ -2,6 +2,9 @@
 #include <Omega_h_profile.hpp>
 #include <Omega_h_fail.hpp>
 
+//DEBUG
+#include <iostream>
+
 namespace Omega_h {
 
 static void call_underlying_frees(Pool& pool, BlockList& list) {
@@ -70,11 +73,13 @@ void* allocate(Pool& pool, std::size_t size) {
         size_to_alloc, underlying_total_size(pool));
   }
   pool.used_blocks.push_back({size_to_alloc, data});
+  std::cout << "pool allocating " << data << '\n';
   return data;
 }
 
 void deallocate(Pool& pool, void* data) {
   ScopedTimer timer("pool deallocate");
+  std::cout << "pool deallocating " << data << '\n';
   auto const end = pool.used_blocks.end();
   auto const it = std::find_if(pool.used_blocks.begin(), end, [=](Block const& b) -> bool { return b.data == data; });
   if (it == end) {

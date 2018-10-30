@@ -69,7 +69,9 @@ static void test_sort_small_range() {
   sort_small_range(in, &perm, &fan, &uniq);
   OMEGA_H_CHECK(perm == LOs({}));
   OMEGA_H_CHECK(fan == LOs({0}));
-  OMEGA_H_CHECK(uniq == Read<I32>({}));
+  auto debug = Read<I32>({});
+  OMEGA_H_CHECK(uniq == debug);
+  debug = decltype(debug)();
 }
 
 static void test_scan() {

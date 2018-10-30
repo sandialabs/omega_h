@@ -58,13 +58,15 @@ static Pool* device_pool = nullptr;
 static Pool* host_pool = nullptr;
 
 void enable_pooling() {
+  constexpr std::size_t cpu_page_size = 4 * 1024;
 #ifdef OMEGA_H_USE_CUDA
-  auto const page_size = 2 * 1024 * 1024;
+  constexpr std::size_t gpu_page_size = 2 * 1024 * 1024;
+  constexpr std::size_t device_page_size = gpu_page_size;
 #else
-  auto const page_size = 4 * 1024;
+  constexpr std::size_t device_page_size = cpu_page_size;
 #endif
-  device_pool = new Pool(page_size, device_malloc, device_free);
-  host_pool = new Pool(page_size, host_malloc, host_free);
+  device_pool = new Pool(device_page_size, device_malloc, device_free);
+  host_pool = new Pool(cpu_page_size, host_malloc, host_free);
 }
 
 void disable_pooling() {
