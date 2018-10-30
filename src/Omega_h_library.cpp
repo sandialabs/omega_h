@@ -137,6 +137,10 @@ Library::Library(Library const& other)
 }
 
 Library::~Library() {
+  // need to destroy all Comm objects prior to MPI_Finalize()
+  world_ = CommPtr();
+  self_ = CommPtr();
+  disable_pooling();
   if (Omega_h::profile::global_singleton_history) {
     if (world_->rank() == 0) {
       Omega_h::profile::print_top_down_and_bottom_up(
@@ -150,9 +154,6 @@ Library::~Library() {
     we_called_kokkos_init = false;
   }
 #endif
-  // need to destroy all Comm objects prior to MPI_Finalize()
-  world_ = CommPtr();
-  self_ = CommPtr();
 #ifdef OMEGA_H_USE_MPI
   if (we_called_mpi_init) {
     OMEGA_H_CHECK(MPI_SUCCESS == MPI_Finalize());
@@ -160,7 +161,6 @@ Library::~Library() {
   }
 #endif
   delete[] Omega_h::max_memory_stacktrace;
-  disable_pooling();
 }
 
 CommPtr Library::world() { return world_; }
