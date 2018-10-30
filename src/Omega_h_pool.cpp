@@ -1,6 +1,7 @@
 #include <Omega_h_pool.hpp>
 #include <Omega_h_profile.hpp>
 #include <Omega_h_fail.hpp>
+#include <algorithm>
 
 namespace Omega_h {
 
@@ -30,7 +31,7 @@ static BlockList::iterator find_best_fit(Pool& pool, std::size_t size) {
   auto best = end;
   for (auto it = pool.free_blocks.begin(); it != end; ++it) {
     if (it->size < size) continue;
-    if ((it->size / 2) > size) continue; // ensure less than half the allocation is wasted
+    if ((it->size > pool.page_size) && ((it->size / 2) > size)) continue;
     if (best == end || it->size < best->size) {
       best = it;
     }
@@ -53,9 +54,10 @@ void* allocate(Pool& pool, std::size_t size) {
   ScopedTimer timer("pool allocate");
   auto const best_fit = find_best_fit(pool, size);
   if (best_fit != pool.free_blocks.end()) {
+    auto const data = best_fit->data;
     pool.used_blocks.push_back(*best_fit);
     pool.free_blocks.erase(best_fit);
-    return best_fit->data;
+    return data;
   }
   auto pages = size / pool.page_size;
   if (size % pool.page_size) pages += 1;
