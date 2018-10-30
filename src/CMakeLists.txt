@@ -368,7 +368,7 @@ if(BUILD_TESTING)
   osh_add_exe(amr_test)
   test_func(amr_test 1 ./amr_test)
   osh_add_exe(amr_test2)
-  test_func(amr_test2 1 ./amr_test2)
+# test_func(amr_test2 1 ./amr_test2)
   osh_add_exe(refine_scale)
 endif()
 
