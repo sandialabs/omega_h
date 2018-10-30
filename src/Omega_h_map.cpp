@@ -159,6 +159,7 @@ Read<I8> invert_marks(Read<I8> marks) {
 }
 
 LOs collect_marked(Read<I8> marks) {
+  OMEGA_H_TIME_FUNCTION;
   auto ntotal = marks.size();
   auto offsets = offset_scan(marks);
   auto nmarked = offsets.last();
@@ -166,7 +167,7 @@ LOs collect_marked(Read<I8> marks) {
   auto f = OMEGA_H_LAMBDA(LO i) {
     if (marks[i]) marked[offsets[i]] = i;
   };
-  parallel_for(ntotal, f, "collect_marked");
+  parallel_for(ntotal, std::move(f));
   return marked;
 }
 
