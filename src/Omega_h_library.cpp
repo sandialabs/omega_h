@@ -116,9 +116,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
 #if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
   // trigger lazy initialization of the CUDA runtime
   // and prevent it from polluting later timings
-  void* cuda_ptr;
-  cudaMalloc(&cuda_ptr, 1);
-  cudaFree(cuda_ptr);
+  cudaFree(nullptr);
 #endif
 }
 
