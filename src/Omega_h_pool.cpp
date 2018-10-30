@@ -1,6 +1,7 @@
 #include <Omega_h_pool.hpp>
 #include <Omega_h_profile.hpp>
 #include <Omega_h_fail.hpp>
+#include <algorithm>
 
 //DEBUG
 #include <iostream>
@@ -33,7 +34,7 @@ static BlockList::iterator find_best_fit(Pool& pool, std::size_t size) {
   auto best = end;
   for (auto it = pool.free_blocks.begin(); it != end; ++it) {
     if (it->size < size) continue;
-    if ((it->size / 2) > size) continue; // ensure less than half the allocation is wasted
+    if ((it->size > pool.page_size) && ((it->size / 2) > size)) continue;
     if (best == end || it->size < best->size) {
       best = it;
     }
@@ -56,9 +57,11 @@ void* allocate(Pool& pool, std::size_t size) {
   ScopedTimer timer("pool allocate");
   auto const best_fit = find_best_fit(pool, size);
   if (best_fit != pool.free_blocks.end()) {
+    auto const data = best_fit->data;
+    std::cerr << "pool resurrected " << data << ", " << best_fit->size << " for " << size << '\n';
     pool.used_blocks.push_back(*best_fit);
     pool.free_blocks.erase(best_fit);
-    return best_fit->data;
+    return data;
   }
   auto pages = size / pool.page_size;
   if (size % pool.page_size) pages += 1;
@@ -73,15 +76,15 @@ void* allocate(Pool& pool, std::size_t size) {
         size_to_alloc, underlying_total_size(pool));
   }
   pool.used_blocks.push_back({size_to_alloc, data});
-  std::cout << "pool allocating " << data << '\n';
+  std::cerr << "pool allocated " << data << ", " << size_to_alloc << " for " << size << '\n';
   return data;
 }
 
 void deallocate(Pool& pool, void* data) {
   ScopedTimer timer("pool deallocate");
-  std::cout << "pool deallocating " << data << '\n';
   auto const end = pool.used_blocks.end();
   auto const it = std::find_if(pool.used_blocks.begin(), end, [=](Block const& b) -> bool { return b.data == data; });
+  std::cerr << "pool recycling " << data << ", " << it->size << '\n';
   if (it == end) {
     Omega_h_fail("Tried to deallocate %p from pool, but pool didn't allocate it\n", data);
   }
