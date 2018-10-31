@@ -179,10 +179,8 @@ void derefine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
   GOs new_globals[4];
   for (int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
     auto does_ent_persist = mesh->get_array<Byte>(ent_dim, "persists");
-    auto old_ents2new_ents = offset_scan(does_ent_persist, "old_ents2new_ents");
-    auto nnew_ents = old_ents2new_ents.last();
+    new_ents2old_ents[ent_dim] = collect_marked(does_ent_persist);
     mesh->remove_tag(ent_dim, "persists");
-    new_ents2old_ents[ent_dim] = invert_injective_map(old_ents2new_ents, nnew_ents);
     auto old_ents2new_globals = rescan_globals(mesh, does_ent_persist);
     new_globals[ent_dim] = unmap(new_ents2old_ents[ent_dim], old_ents2new_globals, 1);
   }
