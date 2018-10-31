@@ -2,6 +2,7 @@
 
 #include "Omega_h_functors.hpp"
 #include "Omega_h_scan.hpp"
+#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 
