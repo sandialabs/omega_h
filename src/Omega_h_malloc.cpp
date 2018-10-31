@@ -20,7 +20,7 @@ void* device_malloc(std::size_t size) {
 #endif
 }
 
-void device_free(void* ptr) {
+void device_free(void* ptr, std::size_t) {
   OMEGA_H_TIME_FUNCTION;
 #ifdef OMEGA_H_USE_CUDA
   auto const err = cudaFree(ptr);
@@ -45,7 +45,7 @@ void* host_malloc(std::size_t size) {
 #endif
 }
 
-void host_free(void* ptr) {
+void host_free(void* ptr, std::size_t) {
   OMEGA_H_TIME_FUNCTION;
 #ifdef OMEGA_H_USE_CUDA
   auto const err = cudaFreeHost(ptr);
@@ -59,15 +59,8 @@ static Pool* device_pool = nullptr;
 static Pool* host_pool = nullptr;
 
 void enable_pooling() {
-  constexpr std::size_t cpu_page_size = 4 * 1024;
-#ifdef OMEGA_H_USE_CUDA
-  constexpr std::size_t gpu_page_size = 2 * 1024 * 1024;
-  constexpr std::size_t device_page_size = gpu_page_size;
-#else
-  constexpr std::size_t device_page_size = cpu_page_size;
-#endif
-  device_pool = new Pool(device_page_size, device_malloc, device_free);
-  host_pool = new Pool(cpu_page_size, host_malloc, host_free);
+  device_pool = new Pool(device_malloc, device_free);
+  host_pool = new Pool(host_malloc, host_free);
 }
 
 void disable_pooling() {
@@ -82,9 +75,9 @@ void* maybe_pooled_device_malloc(std::size_t size) {
   return device_malloc(size);
 }
 
-void maybe_pooled_device_free(void* ptr) {
-  if (device_pool) deallocate(*device_pool, ptr);
-  else device_free(ptr);
+void maybe_pooled_device_free(void* ptr, std::size_t size) {
+  if (device_pool) deallocate(*device_pool, ptr, size);
+  else device_free(ptr, size);
 }
 
 void* maybe_pooled_host_malloc(std::size_t size) {
@@ -92,9 +85,9 @@ void* maybe_pooled_host_malloc(std::size_t size) {
   return host_malloc(size);
 }
 
-void maybe_pooled_host_free(void* ptr) {
-  if (host_pool) deallocate(*host_pool, ptr);
-  else host_free(ptr);
+void maybe_pooled_host_free(void* ptr, std::size_t size) {
+  if (host_pool) deallocate(*host_pool, ptr, size);
+  else host_free(ptr, size);
 }
 
 }

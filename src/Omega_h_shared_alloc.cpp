@@ -56,7 +56,7 @@ Alloc::Alloc(std::size_t size_in, std::string&& name_in)
 }
 
 Alloc::~Alloc() {
-  ::Omega_h::maybe_pooled_device_free(ptr);
+  ::Omega_h::maybe_pooled_device_free(ptr, size);
   auto ga = global_allocs;
   if (ga) {
     if (next == nullptr) {

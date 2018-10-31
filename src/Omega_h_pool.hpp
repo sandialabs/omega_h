@@ -6,32 +6,26 @@
 
 namespace Omega_h {
 
-struct Block {
-  std::size_t size;
-  void* data;
-};
-
-using BlockList = std::vector<Block>;
 using VoidPtr = void*;
+using BlockList = std::vector<VoidPtr>;
 using MallocFunc = std::function<VoidPtr(std::size_t)>;
-using FreeFunc = std::function<void(VoidPtr)>;
+using FreeFunc = std::function<void(VoidPtr, std::size_t)>;
 
 struct Pool {
-  Pool(std::size_t, MallocFunc, FreeFunc);
+  Pool(MallocFunc, FreeFunc);
   ~Pool();
   Pool(Pool const&) = delete;
   Pool(Pool&&) = delete;
   Pool& operator=(Pool const&) = delete;
   Pool& operator=(Pool&&) = delete;
-  std::size_t page_size;
-  BlockList used_blocks;
-  BlockList free_blocks;
+  BlockList used_blocks[64];
+  BlockList free_blocks[64];
   MallocFunc underlying_malloc;
   FreeFunc underlying_free;
 };
 
 void* allocate(Pool&, std::size_t);
-void deallocate(Pool&, void*);
+void deallocate(Pool&, void*, std::size_t);
 
 }
 

@@ -5,18 +5,19 @@
 
 namespace Omega_h {
 
-static void call_underlying_frees(Pool& pool, BlockList& list) {
-  for (auto& block : list) {
-    pool.underlying_free(block.data);
+static void call_underlying_frees(Pool& pool, BlockList list[]) {
+  for (std::size_t i = 0; i < 64; ++i) {
+    for (auto block : list[i]) {
+      pool.underlying_free(block, (std::size_t(1) << i));
+    }
+    list[i].clear();
   }
-  list.clear();
 }
 
-Pool::Pool(std::size_t page_size_in,
+Pool::Pool(
     MallocFunc malloc_in,
     FreeFunc free_in)
-  :page_size(page_size_in)
-  ,underlying_malloc(malloc_in)
+  :underlying_malloc(malloc_in)
   ,underlying_free(free_in)
 {
 }
@@ -26,42 +27,26 @@ Pool::~Pool() {
   call_underlying_frees(*this, free_blocks);
 }
 
-static BlockList::iterator find_best_fit(Pool& pool, std::size_t size) {
-  auto const end = pool.free_blocks.end();
-  auto best = end;
-  for (auto it = pool.free_blocks.begin(); it != end; ++it) {
-    if (it->size < size) continue;
-    if ((it->size > pool.page_size) && ((it->size / 2) > size)) continue;
-    if (best == end || it->size < best->size) {
-      best = it;
-    }
-  }
-  return best;
-}
-
 static std::size_t underlying_total_size(Pool& pool) {
   std::size_t total_size = 0;
-  for (auto& block : pool.free_blocks) {
-    total_size += block.size;
-  }
-  for (auto& block : pool.used_blocks) {
-    total_size += block.size;
+  for (std::size_t i = 0; i < 64; ++i) {
+    total_size += (std::size_t(1) << i) * pool.used_blocks[i].size();
+    total_size += (std::size_t(1) << i) * pool.free_blocks[i].size();
   }
   return total_size;
 }
 
 void* allocate(Pool& pool, std::size_t size) {
   ScopedTimer timer("pool allocate");
-  auto const best_fit = find_best_fit(pool, size);
-  if (best_fit != pool.free_blocks.end()) {
-    auto const data = best_fit->data;
-    pool.used_blocks.push_back(*best_fit);
-    pool.free_blocks.erase(best_fit);
+  std::size_t shift;
+  for (shift = 0; ((std::size_t(1) << shift) < size); ++shift);
+  if (!pool.free_blocks[shift].empty()) {
+    auto const data = pool.free_blocks[shift].back();
+    pool.used_blocks[shift].push_back(data);
+    pool.free_blocks[shift].pop_back();
     return data;
   }
-  auto pages = size / pool.page_size;
-  if (size % pool.page_size) pages += 1;
-  auto const size_to_alloc = pages * pool.page_size;
+  auto const size_to_alloc = (std::size_t(1) << shift);
   auto data = pool.underlying_malloc(size_to_alloc);
   if (data == nullptr) {
     call_underlying_frees(pool, pool.free_blocks);
@@ -71,19 +56,21 @@ void* allocate(Pool& pool, std::size_t size) {
     Omega_h_fail("Pool failed to allocate %zu bytes, %zu bytes already allocated\n",
         size_to_alloc, underlying_total_size(pool));
   }
-  pool.used_blocks.push_back({size_to_alloc, data});
+  pool.used_blocks[shift].push_back(data);
   return data;
 }
 
-void deallocate(Pool& pool, void* data) {
+void deallocate(Pool& pool, void* data, std::size_t size) {
   ScopedTimer timer("pool deallocate");
-  auto const end = pool.used_blocks.end();
-  auto const it = std::find_if(pool.used_blocks.begin(), end, [=](Block const& b) -> bool { return b.data == data; });
+  std::size_t shift;
+  for (shift = 0; ((std::size_t(1) << shift) < size); ++shift);
+  auto const end = pool.used_blocks[shift].end();
+  auto const it = std::find_if(pool.used_blocks[shift].begin(), end, [=](VoidPtr b) -> bool { return b == data; });
   if (it == end) {
     Omega_h_fail("Tried to deallocate %p from pool, but pool didn't allocate it\n", data);
   }
-  pool.free_blocks.push_back(*it);
-  pool.used_blocks.erase(it);
+  pool.free_blocks[shift].push_back(*it);
+  pool.used_blocks[shift].erase(it);
 }
 
 }
