@@ -332,13 +332,6 @@ LO HostRead<T>::size() const {
   return read_.size();
 }
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
-template <typename T>
-Kokkos::View<T*> Write<T>::view() const {
-  return view_;
-}
-#endif
-
 template <typename T>
 T const* HostRead<T>::data() const {
 #if defined(OMEGA_H_USE_KOKKOSCORE)

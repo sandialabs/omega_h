@@ -66,7 +66,7 @@ class Write {
 #endif
   }
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  Kokkos::View<T*> view() const;
+  OMEGA_H_INLINE Kokkos::View<T*> const& view() const { return view_; }
 #endif
   void set(LO i, T value) const;
   T get(LO i) const;
