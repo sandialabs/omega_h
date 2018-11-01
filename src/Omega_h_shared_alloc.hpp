@@ -107,7 +107,7 @@ struct SharedAlloc {
     other.direct_ptr = nullptr;
   }
   OMEGA_H_INLINE SharedAlloc(SharedAlloc&& other) { move(std::move(other)); }
-  SharedAlloc& operator=(SharedAlloc const& other) {
+  OMEGA_H_INLINE SharedAlloc& operator=(SharedAlloc const& other) {
     clear();
     copy(other);
     return *this;
