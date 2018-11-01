@@ -54,7 +54,7 @@ OMEGA_H_INLINE Affine<dim> get_affine_from_bbox_into_unit(BBox<dim> bbox) {
   for (Int i = 0; i < dim; ++i) s[i] = 1.0 / (bbox.max[i] - bbox.min[i]);
   Affine<dim> a;
   a.r = diagonal(s);
-  a.t = a.r * bbox.min;
+  a.t = -(a.r * bbox.min);
   return a;
 }
 
