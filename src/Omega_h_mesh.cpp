@@ -689,9 +689,15 @@ bool Mesh::operator==(Mesh& other) {
   return OMEGA_H_SAME == compare_meshes(this, &other, opts, false);
 }
 
-Real Mesh::min_quality() { return get_min(comm_, ask_qualities()); }
+Real Mesh::min_quality() {
+  OMEGA_H_TIME_FUNCTION;
+  return get_min(comm_, ask_qualities());
+}
 
-Real Mesh::max_length() { return get_max(comm_, ask_lengths()); }
+Real Mesh::max_length() {
+  OMEGA_H_TIME_FUNCTION;
+  return get_max(comm_, ask_lengths());
+}
 
 bool Mesh::could_be_shared(Int ent_dim) const {
   return !((comm_->size() == 1) ||

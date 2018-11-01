@@ -274,6 +274,7 @@ void add_implied_metric_tag(Mesh* mesh) {
 }
 
 void add_implied_isos_tag(Mesh* mesh) {
+  OMEGA_H_TIME_FUNCTION;
   auto metrics = get_implied_isos(mesh);
   add_metric_tag(mesh, metrics, "metric");
 }

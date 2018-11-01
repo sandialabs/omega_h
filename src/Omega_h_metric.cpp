@@ -198,6 +198,7 @@ static Reals limit_gradation_once(Mesh* mesh, Reals values, Real max_rate) {
 
 Reals limit_metric_gradation(
     Mesh* mesh, Reals values, Real max_rate, Real tol, bool verbose) {
+  OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(mesh->owners_have_all_upward(VERT));
   OMEGA_H_CHECK(max_rate > 0.0);
   auto comm = mesh->comm();
@@ -313,10 +314,9 @@ Reals get_pure_implied_isos(Mesh* mesh) {
 }
 
 Reals get_implied_isos(Mesh* mesh) {
-  begin_code("get_implied_isos");
+  OMEGA_H_TIME_FUNCTION;
   auto metrics = get_implied_metrics(mesh);
   metrics = apply_isotropy(mesh->nverts(), metrics, OMEGA_H_ISO_SIZE);
-  end_code();
   return metrics;
 }
 
