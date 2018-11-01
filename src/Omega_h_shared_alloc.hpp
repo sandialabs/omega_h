@@ -130,12 +130,12 @@ struct SharedAlloc {
   OMEGA_H_INLINE std::size_t size() const {
 #ifndef __CUDA_ARCH__
     if (!(reinterpret_cast<std::uintptr_t>(alloc) & IN_PARALLEL)) {
-#if defined (__GNUC__) && (!defined (__clang__))
+#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
 #endif
       return alloc->size;
-#if defined (__GNUC__) && (!defined (__clang__))
+#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
 #pragma GCC diagnostic pop
 #endif
     }
