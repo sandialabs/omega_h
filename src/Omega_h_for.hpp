@@ -6,20 +6,25 @@
 
 #include <Omega_h_shared_alloc.hpp>
 #include <Omega_h_int_iterator.hpp>
+
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
-#else
+#endif
+
 #ifdef OMEGA_H_USE_CUDA
+
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #endif
+
 #include <thrust/for_each.h>
 #include <thrust/execution_policy.h>
+
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-#endif
+
 #endif
 
 namespace Omega_h {

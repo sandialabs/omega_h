@@ -21,6 +21,7 @@ OMEGA_H_INLINE constexpr I8 make_code(Int which_child, Int parent_dim) {
 Bytes enforce_2to1_refine(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked);
 
 void refine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts);
+void derefine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts);
 
 }  // namespace amr
 

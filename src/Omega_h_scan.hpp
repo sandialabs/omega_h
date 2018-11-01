@@ -1,5 +1,11 @@
-#ifndef OMEGA_H_LOOP_HPP
-#define OMEGA_H_LOOP_HPP
+#ifndef OMEGA_H_SCAN_HPP
+#define OMEGA_H_SCAN_HPP
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wduplicated-branches"
+#pragma GCC diagnostic ignored "-Wsubobject-linkage"
+#endif
 
 #include <Omega_h_defines.hpp>
 #include <Omega_h_profile.hpp>
@@ -9,11 +15,16 @@
 #endif
 
 #include <Omega_h_reduce.hpp>
+
 #if defined(OMEGA_H_USE_CUDA)
+
 #include <thrust/transform_scan.h>
 #include <thrust/execution_policy.h>
+
 #elif defined(OMEGA_H_USE_OPENMP)
+
 #include <omp.h>
+
 #endif
 
 namespace Omega_h {
@@ -134,5 +145,9 @@ OutputIterator transform_inclusive_scan(
 #endif
 
 }
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 #endif

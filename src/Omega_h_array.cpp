@@ -87,6 +87,7 @@ std::string const& Write<T>::name() const {
 
 template <typename T>
 void Write<T>::set(LO i, T value) const {
+  ScopedTimer timer("single host to device");
 #ifdef OMEGA_H_USE_CUDA
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
@@ -96,6 +97,7 @@ void Write<T>::set(LO i, T value) const {
 
 template <typename T>
 T Write<T>::get(LO i) const {
+  ScopedTimer timer("single device to host");
 #ifdef OMEGA_H_USE_CUDA
   T value;
   cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
@@ -260,6 +262,7 @@ HostWrite<T>::HostWrite(std::initializer_list<T> l, std::string const& name_in)
 
 template <typename T>
 Write<T> HostWrite<T>::write() const {
+  ScopedTimer timer("array host to device");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(write_.view(), mirror_);
 #elif defined(OMEGA_H_USE_CUDA)
@@ -310,6 +313,7 @@ T HostWrite<T>::get(LO i) const {
 
 template <typename T>
 HostRead<T>::HostRead(Read<T> read) : read_(read) {
+  ScopedTimer timer("array device to host");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<const T*> dev_view = read.view();
   Kokkos::View<const T*, Kokkos::HostSpace> h_view =
@@ -327,13 +331,6 @@ template <typename T>
 LO HostRead<T>::size() const {
   return read_.size();
 }
-
-#ifdef OMEGA_H_USE_KOKKOSCORE
-template <typename T>
-Kokkos::View<T*> Write<T>::view() const {
-  return view_;
-}
-#endif
 
 template <typename T>
 T const* HostRead<T>::data() const {

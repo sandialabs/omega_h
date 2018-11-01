@@ -2,10 +2,13 @@
 #include <Omega_h_amr_topology.hpp>
 #include <Omega_h_amr_transfer.hpp>
 #include <Omega_h_for.hpp>
+#include <Omega_h_globals.hpp>
 #include <Omega_h_hypercube.hpp>
+#include <Omega_h_int_scan.hpp>
 #include <Omega_h_map.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_modify.hpp>
+#include <Omega_h_unmap_mesh.hpp>
 
 namespace Omega_h {
 
@@ -167,6 +170,25 @@ void refine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
   amr::refine_ghosted(mesh);
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   amr::refine_elem_based(mesh, xfer_opts);
+}
+
+void derefine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
+  OMEGA_H_CHECK(mesh->family() == OMEGA_H_HYPERCUBE);
+  amr::tag_derefined(mesh, elems_are_marked);
+  LOs new_ents2old_ents[4];
+  GOs new_globals[4];
+  for (int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
+    auto does_ent_persist = mesh->get_array<Byte>(ent_dim, "persists");
+    new_ents2old_ents[ent_dim] = collect_marked(does_ent_persist);
+    mesh->remove_tag(ent_dim, "persists");
+    auto old_ents2new_globals = rescan_globals(mesh, does_ent_persist);
+    new_globals[ent_dim] = unmap(new_ents2old_ents[ent_dim], old_ents2new_globals, 1);
+  }
+  unmap_mesh(mesh, new_ents2old_ents);
+  for (int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
+    mesh->set_tag(ent_dim, "global", new_globals[ent_dim]);
+  }
+  (void)xfer_opts;
 }
 
 }  // namespace amr
