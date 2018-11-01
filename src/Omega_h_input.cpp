@@ -199,7 +199,7 @@ std::string const& InputMap::name(Input const& input) {
   for (auto& pair : map) {
     if (pair.second.get() == &input) return pair.first;
   }
-  OMEGA_H_NORETURN(*(static_cast<std::string*>(nullptr)));
+  OMEGA_H_NORETURN(map.end()->first);
 }
 
 void InputMap::out_of_line_virtual_method() {}

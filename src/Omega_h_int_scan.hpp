@@ -1,5 +1,5 @@
-#ifndef OMEGA_H_SCAN_HPP
-#define OMEGA_H_SCAN_HPP
+#ifndef OMEGA_H_INT_SCAN_HPP
+#define OMEGA_H_INT_SCAN_HPP
 
 #include <Omega_h_array.hpp>
 
