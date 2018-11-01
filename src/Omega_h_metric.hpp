@@ -201,8 +201,6 @@ Reals get_implied_isos(Mesh* mesh);
 Reals get_element_implied_length_metrics(Mesh* mesh);
 Reals get_pure_implied_metrics(Mesh* mesh);
 Reals get_implied_metrics(Mesh* mesh);
-void axes_from_metric_field(
-    Mesh* mesh, std::string const& metric_name, std::string const& axis_prefix);
 Reals limit_metric_gradation(Mesh* mesh, Reals values, Real max_rate,
     Real tol = 1e-2, bool verbose = true);
 Reals get_complexity_per_elem(Mesh* mesh, Reals v2m);
@@ -219,12 +217,9 @@ Reals get_hessian_metrics(Int dim, Reals hessians, Real eps);
 Reals get_gradient_metrics(Int dim, Reals gradients, Real eps);
 Reals get_derivative_metrics(Mesh* mesh, std::string const& name, Real knob);
 Reals get_variation_metrics(Mesh* mesh, std::string const& name, Real knob);
-Reals get_proximity_isos(Mesh* mesh, Real factor);
 Reals intersect_metrics(LO nmetrics, Reals a, Reals b);
 Reals metrics_from_isos(Int new_dim, Reals isos);
 Reals apply_isotropy(LO nmetrics, Reals metrics, Omega_h_Isotropy isotropy);
-Reals get_aniso_zz_metric(
-    Mesh* mesh, Reals elem_gradients, Real error_bound, Real max_size);
 
 Reals isos_from_lengths(Reals h);
 Reals lengths_from_isos(Reals l);
