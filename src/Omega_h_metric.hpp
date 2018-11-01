@@ -58,7 +58,7 @@ OMEGA_H_INLINE Matrix<dim, dim> compose_metric(
 }
 
 template <Int dim>
-OMEGA_H_INLINE DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
+OMEGA_H_INLINE_BIG DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
   auto ed = decompose_eigen(m);
   auto h = metric_lengths_from_eigenvalues(ed.l);
   return {ed.q, h};
@@ -101,17 +101,17 @@ That is the mechanism we use here:
 */
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
+OMEGA_H_INLINE_BIG Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
   return log_spd_old(m);
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
+OMEGA_H_INLINE_BIG Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
   return exp_spd_old(log_m);
 }
 
 template <Int n, typename T>
-OMEGA_H_INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
+OMEGA_H_INLINE_BIG Few<T, n> linearize_metrics(Few<T, n> ms) {
   Few<T, n> log_ms;
   for (Int i = 0; i < n; ++i) log_ms[i] = linearize_metric(ms[i]);
   return log_ms;
@@ -121,7 +121,7 @@ OMEGA_H_INLINE Few<T, n> linearize_metrics(Few<T, n> ms) {
  * the barycenter of a simplex; does several eigendecompositions
  */
 template <Int dim>
-OMEGA_H_INLINE void average_metric_contrib(
+OMEGA_H_INLINE_BIG void average_metric_contrib(
     Matrix<dim, dim>& am, Int& n, Matrix<dim, dim> m, bool has_degen) {
   if (has_degen && max_norm(m) < OMEGA_H_EPSILON) return;
   am += linearize_metric(m);
@@ -129,7 +129,7 @@ OMEGA_H_INLINE void average_metric_contrib(
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> average_metric_finish(
+OMEGA_H_INLINE_BIG Matrix<dim, dim> average_metric_finish(
     Matrix<dim, dim> am, Int n, bool has_degen) {
   if (has_degen && n == 0) return am;
   am /= n;
@@ -137,7 +137,7 @@ OMEGA_H_INLINE Matrix<dim, dim> average_metric_finish(
 }
 
 template <Int dim, Int n>
-OMEGA_H_INLINE Matrix<dim, dim> average_metric(
+OMEGA_H_INLINE_BIG Matrix<dim, dim> average_metric(
     Few<Matrix<dim, dim>, n> ms, bool has_degen) {
   auto am = zero_matrix<dim, dim>();
   Int ngood = 0;
@@ -148,7 +148,7 @@ OMEGA_H_INLINE Matrix<dim, dim> average_metric(
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> clamp_metric(
+OMEGA_H_INLINE_BIG Matrix<dim, dim> clamp_metric(
     Matrix<dim, dim> m, Real h_min, Real h_max) {
   auto ed = decompose_eigen(m);
   auto l_max = metric_eigenvalue_from_length(h_min);
@@ -166,7 +166,7 @@ OMEGA_H_INLINE Matrix<dim, dim> clamp_metric(
  * potential element (we do a lot of cavity pre-evaluation).
  */
 template <Int dim, Int n>
-OMEGA_H_INLINE Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
+OMEGA_H_INLINE_BIG Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
   auto m = ms[0];
   auto maxdet = determinant(m);
   for (Int i = 1; i < n; ++i) {

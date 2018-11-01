@@ -330,7 +330,7 @@ Reals get_implied_isos(Mesh* mesh) {
  */
 
 template <Int dim>
-static OMEGA_H_INLINE Matrix<dim, dim> metric_from_hessian(
+static OMEGA_H_INLINE_BIG Matrix<dim, dim> metric_from_hessian(
     Matrix<dim, dim> hessian, Real eps) {
   auto ed = decompose_eigen(hessian);
   auto r = ed.q;
@@ -367,7 +367,7 @@ Reals get_hessian_metrics(Int dim, Reals hessians, Real eps) {
 }
 
 template <Int dim>
-static OMEGA_H_INLINE Matrix<dim, dim> metric_from_gradient(
+static OMEGA_H_INLINE_BIG Matrix<dim, dim> metric_from_gradient(
     Vector<dim> grad, Real eps) {
   auto grad_norm_sq = norm_squared(grad);
   constexpr auto c_num = square(dim);
