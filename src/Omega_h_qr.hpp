@@ -17,8 +17,8 @@ namespace Omega_h {
 
 template <Int max_m, Int max_n>
 OMEGA_H_INLINE Vector<max_m> householder_vector(
-    Int m, Matrix<max_m, max_n> a, Real anorm, Int k) {
-  Real norm_x = 0;
+    Int m, Matrix<max_m, max_n> a, Int k) {
+  Real norm_x = 0.0;
   for (Int i = k; i < m; ++i) norm_x += square(a[k][i]);
   norm_x = std::sqrt(norm_x);
   /* technically, every matrix has a QR decomposition.
@@ -29,18 +29,14 @@ OMEGA_H_INLINE Vector<max_m> householder_vector(
    * to be full-rank, so we can save a bunch of bookkeeping up
    * the stack if we simply assert this here.
    */
-  // OMEGA_H_CHECK(norm_x > OMEGA_H_EPSILON * anorm);
   OMEGA_H_CHECK(norm_x > 0.0);
-  (void)anorm;
   Vector<max_m> v_k;
   for (Int i = k; i < m; ++i) v_k[i] = a[k][i];
-  for (Int i = k; i < m; ++i) assert(!isnan(v_k[i]));
   v_k[k] += sign(a[k][k]) * norm_x;
-  Real norm_v_k = 0;
+  Real norm_v_k = 0.0;
   for (Int i = k; i < m; ++i) norm_v_k += square(v_k[i]);
   norm_v_k = std::sqrt(norm_v_k);
   for (Int i = k; i < m; ++i) v_k[i] /= norm_v_k;
-  for (Int i = k; i < m; ++i) assert(!isnan(v_k[i]));
   return v_k;
 }
 
@@ -48,9 +44,9 @@ template <Int max_m, Int max_n>
 OMEGA_H_INLINE void reflect_columns(
     Int m, Int n, Matrix<max_m, max_n>& a, Vector<max_m> v_k, Int k) {
   for (Int j = k; j < n; ++j) {
-    Real dot = 0;
+    Real dot = 0.0;
     for (Int i = k; i < m; ++i) dot += a[j][i] * v_k[i];
-    for (Int i = k; i < m; ++i) a[j][i] -= 2 * dot * v_k[i];
+    for (Int i = k; i < m; ++i) a[j][i] -= 2.0 * dot * v_k[i];
   }
 }
 
@@ -64,9 +60,8 @@ template <Int max_m, Int max_n>
 OMEGA_H_INLINE QRFactorization<max_m, max_n> factorize_qr_householder(
     Int m, Int n, Matrix<max_m, max_n> a) {
   Few<Vector<max_m>, max_n> v;
-  Real anorm = norm(m, n, a);
   for (Int k = 0; k < n; ++k) {
-    v[k] = householder_vector(m, a, anorm, k);
+    v[k] = householder_vector(m, a, k);
     reflect_columns(m, n, a, v[k], k);
   }
   auto r = reduced_r_from_full(n, a);
@@ -84,9 +79,8 @@ OMEGA_H_INLINE Vector<max_n> implicit_q_trans_b(
     Int m, Int n, Few<Vector<max_m>, max_n> v, Vector<max_m> b) {
   for (Int k = 0; k < n; ++k) {
     Real dot = 0.0;
-    for (Int i = k; i < m; ++i) assert(!isnan(v[k][i]));
     for (Int i = k; i < m; ++i) dot += v[k][i] * b[i];
-    for (Int i = k; i < m; ++i) b[i] -= 2 * dot * v[k][i];
+    for (Int i = k; i < m; ++i) b[i] -= 2.0 * dot * v[k][i];
   }
   Vector<max_n> qtb;
   for (Int i = 0; i < n; ++i) qtb[i] = b[i];
