@@ -69,7 +69,7 @@ any at_reduce_internal(int production, std::vector<any>& rhs, int result_token);
 class Reader : public Omega_h::Reader {
  public:
   Reader(int result_token_in);
-  Reader(Reader const& other) = default;
+  Reader(Reader const&) = default;
   virtual ~Reader() override = default;
 
  protected:

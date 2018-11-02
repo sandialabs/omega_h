@@ -51,7 +51,8 @@ struct Allocs {
 struct SharedAlloc {
   Alloc* alloc;
   void* direct_ptr;
-  OMEGA_H_INLINE SharedAlloc() : alloc(nullptr), direct_ptr(nullptr) {}
+  OMEGA_H_INLINE SharedAlloc() : alloc(nullptr), direct_ptr(nullptr) {
+  }
   SharedAlloc(std::size_t size_in, std::string const& name_in);
   SharedAlloc(std::size_t size_in, std::string&& name_in);
   SharedAlloc(std::size_t size_in);
@@ -78,7 +79,7 @@ struct SharedAlloc {
       // allocated
       if (entering_parallel) {
         alloc = reinterpret_cast<Alloc*>(
-            (std::uintptr_t(alloc->size) << 3) & IN_PARALLEL);
+            (std::uintptr_t(alloc->size) << 3) | IN_PARALLEL);
       } else {
         ++(alloc->use_count);
       }
@@ -86,24 +87,27 @@ struct SharedAlloc {
 #endif
     direct_ptr = other.direct_ptr;
   }
-  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) { copy(other); }
+  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) {
+    copy(other);
+  }
   OMEGA_H_INLINE void move(SharedAlloc&& other) {
     alloc = other.alloc;
+    direct_ptr = other.direct_ptr;
 #ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       if (entering_parallel) {
+        --(alloc->use_count);
         alloc = reinterpret_cast<Alloc*>(
-            (std::uintptr_t(alloc->size) << 3) & IN_PARALLEL);
+            (std::uintptr_t(alloc->size) << 3) | IN_PARALLEL);
       }
     }
 #endif
-    direct_ptr = other.direct_ptr;
     other.alloc = nullptr;
     other.direct_ptr = nullptr;
   }
   OMEGA_H_INLINE SharedAlloc(SharedAlloc&& other) { move(std::move(other)); }
-  SharedAlloc& operator=(SharedAlloc const& other) {
+  OMEGA_H_INLINE SharedAlloc& operator=(SharedAlloc const& other) {
     clear();
     copy(other);
     return *this;
@@ -118,18 +122,25 @@ struct SharedAlloc {
 #ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
-      --alloc->use_count;
+      --(alloc->use_count);
       if (alloc->use_count == 0) delete alloc;
     }
 #endif
   }
-  OMEGA_H_INLINE std::size_t size() {
+  OMEGA_H_INLINE std::size_t size() const {
 #ifndef __CUDA_ARCH__
     if (!(reinterpret_cast<std::uintptr_t>(alloc) & IN_PARALLEL)) {
+#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
       return alloc->size;
+#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
+#pragma GCC diagnostic pop
+#endif
     }
 #endif
-    return (reinterpret_cast<std::uintptr_t>(alloc) & (~FREE_MASK)) >> 3;
+    return reinterpret_cast<std::uintptr_t>(alloc) >> 3;
   }
   OMEGA_H_INLINE int maybe_identity_index(int i) {
     if (reinterpret_cast<std::uintptr_t>(alloc) == IS_IDENTITY) {

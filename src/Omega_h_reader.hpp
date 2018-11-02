@@ -13,7 +13,7 @@ namespace Omega_h {
 class Reader {
  public:
   Reader() = default;
-  Reader(Reader const& other) = default;
+  Reader(Reader const&) = default;
   virtual ~Reader() = default;
   Reader(ReaderTablesPtr tables_in);
   any read_stream(std::istream& stream, std::string const& stream_name_in = "");

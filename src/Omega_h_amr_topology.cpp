@@ -7,6 +7,8 @@
 
 namespace Omega_h {
 
+namespace amr {
+
 static Bytes mark_leaf_down(Mesh* mesh, Int mod_dim, Bytes elems_are_marked) {
   auto elem_dim = mesh->dim();
   auto is_mod_dim_leaf = mesh->ask_leaves(mod_dim);
@@ -14,7 +16,7 @@ static Bytes mark_leaf_down(Mesh* mesh, Int mod_dim, Bytes elems_are_marked) {
   return land_each(is_mod_dim_leaf, dim_mark);
 }
 
-void mark_amr(Mesh* mesh, Bytes elems_are_marked) {
+void mark_refined(Mesh* mesh, Bytes elems_are_marked) {
   auto elem_dim = mesh->dim();
   for (Int mod_dim = 0; mod_dim <= elem_dim; ++mod_dim) {
     auto mark = mark_leaf_down(mesh, mod_dim, elems_are_marked);
@@ -22,7 +24,58 @@ void mark_amr(Mesh* mesh, Bytes elems_are_marked) {
   }
 }
 
-Few<LO, 4> count_amr(Mesh* mesh) {
+static Bytes mark_persisting_elems(Mesh* mesh, Bytes elems_are_marked) {
+  auto elem_dim = mesh->dim();
+  auto is_elem_leaf = mesh->ask_leaves(elem_dim);
+  auto children = mesh->ask_children(elem_dim, elem_dim);
+  Write<Byte> mark(mesh->nelems(), 1);
+  auto functor = OMEGA_H_LAMBDA(LO elem) {
+    if (! elems_are_marked[elem]) return;
+    auto child_begin = children.a2ab[elem];
+    auto child_end = children.a2ab[elem + 1];
+    for (auto idx = child_begin; idx < child_end; ++idx) {
+      auto child_elem = children.ab2b[idx];
+      if (is_elem_leaf[child_elem]) {
+        mark[child_elem] = 0;
+      }
+    }
+  };
+  parallel_for(mesh->nelems(), functor, "amr::mark_persisting_elems");
+  return mark;
+}
+
+static Bytes mark_persisting_ents(Mesh* mesh, Int ent_dim) {
+  auto elem_dim = mesh->dim();
+  auto elem_persists = mesh->get_array<Byte>(elem_dim, "persists");
+  auto adj_elems = mesh->ask_up(ent_dim, elem_dim);
+  auto is_ent_leaf = mesh->ask_leaves(ent_dim);
+  Write<Byte> mark(mesh->nents(ent_dim), 1);
+  auto functor = OMEGA_H_LAMBDA(LO ent) {
+    if (! is_ent_leaf[ent]) return;
+    auto elem_begin = adj_elems.a2ab[ent];
+    auto elem_end = adj_elems.a2ab[ent + 1];
+    Byte persists = 0;
+    for (auto idx = elem_begin; idx < elem_end; ++idx) {
+      auto adj_elem = adj_elems.ab2b[idx];
+      if (elem_persists[adj_elem]) persists = 1;
+    }
+    mark[ent] = persists;
+  };
+  parallel_for(mesh->nents(ent_dim), functor, "amr::mark_persisting_ents");
+  return mark;
+}
+
+void tag_derefined(Mesh* mesh, Bytes elems_are_marked) {
+  auto elem_dim = mesh->dim();
+  auto elem_mark = mark_persisting_elems(mesh, elems_are_marked);
+  mesh->add_tag<Byte>(elem_dim, "persists", 1, elem_mark);
+  for (Int ent_dim = 0; ent_dim < elem_dim; ++ent_dim) {
+    auto ent_mark = mark_persisting_ents(mesh, ent_dim);
+    mesh->add_tag<Byte>(ent_dim, "persists", 1, ent_mark);
+  }
+}
+
+Few<LO, 4> count_refined(Mesh* mesh) {
   auto dim = mesh->dim();
   Few<LO, 4> num_ents({0, 0, 0, 0});
   for (Int i = 1; i <= dim; ++i) {
@@ -36,7 +89,7 @@ Few<LO, 4> count_amr(Mesh* mesh) {
   return num_ents;
 }
 
-LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
+LOs get_refined_topology(Mesh* mesh, Int child_dim, LO num_children,
     Few<LOs, 4> mods2mds, Few<LOs, 4> mds2mods, Few<LOs, 4> mods2midverts,
     LOs old_verts2new_verts) {
   Int spatial_dim = mesh->dim();
@@ -84,5 +137,7 @@ LOs get_amr_topology(Mesh* mesh, Int child_dim, LO num_children,
   }
   return child_verts;
 }
+
+}  // namespace amr
 
 }  // namespace Omega_h

@@ -10,7 +10,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine.hpp"
-#include "Omega_h_stack.hpp"
+#include "Omega_h_profile.hpp"
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
@@ -109,13 +109,12 @@ static void adapt_summary(Mesh* mesh, AdaptOpts const& opts,
 }
 
 bool print_adapt_status(Mesh* mesh, AdaptOpts const& opts) {
-  begin_code("print_adapt_status");
+  OMEGA_H_TIME_FUNCTION;
   auto qualstats = get_minmax(mesh->comm(), get_fixable_qualities(mesh, opts));
   auto lenstats = get_minmax(mesh->comm(), mesh->ask_lengths());
   if (opts.verbosity > SILENT) {
     adapt_summary(mesh, opts, qualstats, lenstats);
   }
-  end_code();
   return (qualstats.min >= opts.min_quality_desired &&
           lenstats.min >= opts.min_length_desired &&
           lenstats.max <= opts.max_length_desired);
@@ -173,7 +172,7 @@ static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
-  begin_code("satisfy_lengths");
+  OMEGA_H_TIME_FUNCTION;
   bool did_anything;
   do {
     did_anything = false;
@@ -186,12 +185,11 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
       did_anything = true;
     }
   } while (did_anything);
-  end_code();
 }
 
 static bool satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
+  OMEGA_H_TIME_FUNCTION;
   if (min_fixable_quality(mesh, opts) >= opts.min_quality_desired) return true;
-  begin_code("satisfy_quality");
   if ((opts.verbosity >= EACH_REBUILD) && can_print(mesh)) {
     std::cout << "addressing element qualities\n";
   }
@@ -209,14 +207,13 @@ static bool satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
     }
     return false;
   } while (min_fixable_quality(mesh, opts) < opts.min_quality_desired);
-  end_code();
   return true;
 }
 
 static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
 #ifdef OMEGA_H_USE_EGADS
   if (opts.egads_model) {
-    begin_code("snap");
+    ScopedTimer snap_timer("snap");
     mesh->set_parting(OMEGA_H_GHOSTED);
     auto warp = egads_get_snap_warp(
         mesh, opts.egads_model, opts.verbosity >= EACH_REBUILD);
@@ -240,7 +237,6 @@ static void snap_and_satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
         break;
       }
     }
-    end_code();
   } else
 #endif
     satisfy_quality(mesh, opts);
@@ -275,10 +271,10 @@ static void post_adapt(
 }
 
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
+  ScopedTimer adapt_timer("adapt");
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto t0 = now();
   if (!pre_adapt(mesh, opts)) return false;
-  begin_code("adapt");
   setup_conservation_tags(mesh, opts);
   auto t1 = now();
   satisfy_lengths(mesh, opts);
@@ -289,7 +285,6 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
-  end_code();
   return true;
 }
 

@@ -8,6 +8,7 @@ OMEGA_H_SYSTEM_HEADER
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wdouble-promotion"
 #endif
 
 #include <Teuchos_Comm.hpp>

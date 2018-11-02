@@ -1,10 +1,10 @@
-#include <Omega_h_stack.hpp>
+#include <Omega_h_profile.hpp>
 #include <algorithm>
 #include <iostream>
 #include <queue>
 
 namespace Omega_h {
-namespace perf {
+namespace profile {
 
 History* global_singleton_history = nullptr;
 
@@ -165,5 +165,5 @@ void print_top_down_and_bottom_up(History const& h) {
   print_time_sorted(h_inv);
 }
 
-}  // namespace perf
+}  // namespace profile
 }  // namespace Omega_h

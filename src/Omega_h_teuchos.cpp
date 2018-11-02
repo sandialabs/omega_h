@@ -133,8 +133,6 @@ MetricSource get_metric_source(Teuchos::ParameterList& pl) {
     source.type = OMEGA_H_GIVEN;
   } else if (type_name == "Implied") {
     source.type = OMEGA_H_IMPLIED;
-  } else if (type_name == "Proximity") {
-    source.type = OMEGA_H_PROXIMITY;
   } else if (type_name == "Curvature") {
     source.type = OMEGA_H_CURVATURE;
   } else {

@@ -81,7 +81,7 @@ set(Omega_h_SOURCES
   Omega_h_amr.cpp
   Omega_h_amr_transfer.cpp
   Omega_h_print.cpp
-  Omega_h_stack.cpp
+  Omega_h_profile.cpp
   Omega_h_fail.cpp
   Omega_h_shared_alloc.cpp
   Omega_h_any.cpp
@@ -98,6 +98,10 @@ set(Omega_h_SOURCES
   Omega_h_yaml.cpp
   Omega_h_math_lang.cpp
   Omega_h_expr.cpp
+  Omega_h_input.cpp
+  Omega_h_globals.cpp
+  Omega_h_malloc.cpp
+  Omega_h_pool.cpp
   )
 
 if (Omega_h_USE_CUDA)
@@ -227,7 +231,6 @@ osh_add_util(osh_adapt)
 if(Omega_h_USE_Teuchos)
   osh_add_util(osh_copy_params)
 endif()
-osh_add_util(osh_saltzman)
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
@@ -360,17 +363,14 @@ if(BUILD_TESTING)
   if (Omega_h_USE_DOLFIN)
     osh_add_exe(dolfin_test)
   endif()
-  osh_add_exe(adapt_from_pumi)
   osh_add_exe(random_test)
   target_include_directories(random_test PRIVATE ${TPL_PATH})
   test_func(run_random_test 1 ./random_test)
   osh_add_exe(hypercube_test)
-  osh_add_exe(osh_fit)
   osh_add_exe(amr_test)
   test_func(amr_test 1 ./amr_test)
   osh_add_exe(amr_test2)
   test_func(amr_test2 1 ./amr_test2)
-  osh_add_exe(mox_test)
   osh_add_exe(refine_scale)
 endif()
 
@@ -383,6 +383,7 @@ set(Omega_h_HEADERS
   Omega_h_kokkos.hpp
   Omega_h_defines.hpp
   Omega_h_array.hpp
+  Omega_h_shared_alloc.hpp
   Omega_h_vector.hpp
   Omega_h_matrix.hpp
   Omega_h_functors.hpp
@@ -428,7 +429,7 @@ set(Omega_h_HEADERS
   Omega_h_affine.hpp
   Omega_h_print.hpp
   Omega_h_amr.hpp
-  Omega_h_stack.hpp
+  Omega_h_profile.hpp
   Omega_h_owners.hpp
   Omega_h_rbtree.hpp
   Omega_h_box.hpp
@@ -445,6 +446,12 @@ set(Omega_h_HEADERS
   Omega_h_xml_lite.hpp
   Omega_h_expr.hpp
   Omega_h_int_scan.hpp
+  r3d.hpp
+  Omega_h_input.hpp
+  Omega_h_math_lang.hpp
+  Omega_h_language.hpp
+  Omega_h_indset.hpp
+  Omega_h_indset_inline.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)

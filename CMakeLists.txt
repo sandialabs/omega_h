@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.18.0 LANGUAGES CXX)
+project(Omega_h VERSION 9.22.0 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -139,7 +139,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     if (Omega_h_CUDA_ARCH)
       set(FLAGS "${FLAGS} -arch=${Omega_h_CUDA_ARCH}")
     endif()
-    if (CUDA_VERSION EQUAL 9)
+    if (CUDA_VERSION VERSION_GREATER_EQUAL 9)
       set(FLAGS "${FLAGS} -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored")
     endif()
   else()
@@ -148,6 +148,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
       set(FLAGS "${FLAGS} -fopenmp")
     endif()
   endif()
+  set(FLAGS "${FLAGS} -Wno-subobject-linkage")
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
   set(FLAGS "${FLAGS} -fno-omit-frame-pointer")
   if(Omega_h_USE_OpenMP)
@@ -204,5 +205,11 @@ if(Omega_h_EXAMPLES)
   add_subdirectory(example/laplacian)
 endif()
 add_subdirectory(src)
+
+if (Omega_h_USE_CUDA)
+  install(PROGRAMS
+      ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper
+      DESTINATION bin)
+endif()
 
 bob_end_package()

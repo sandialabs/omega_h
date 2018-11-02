@@ -443,6 +443,17 @@ class Rb_tree : protected Rb_tree_base<Value> {
     return tmp;
   }
 
+  Link_type M_create_node(value_type&& x) {
+    Link_type tmp = M_get_node();
+    try {
+      new (&tmp->M_value_field) Value(x);
+    } catch (...) {
+      M_put_node(tmp);
+      throw;
+    }
+    return tmp;
+  }
+
   Link_type M_clone_node(Link_type x) {
     Link_type tmp = M_create_node(x->M_value_field);
     tmp->M_color = x->M_color;
@@ -505,6 +516,7 @@ class Rb_tree : protected Rb_tree_base<Value> {
 
  private:
   iterator M_insert(Base_ptr x, Base_ptr y, const value_type& v);
+  iterator M_insert(Base_ptr x, Base_ptr y, value_type&& v);
   Link_type M_copy(Link_type x, Link_type p);
   void M_erase(Link_type x);
 
@@ -561,8 +573,10 @@ class Rb_tree : protected Rb_tree_base<Value> {
  public:
   // insert/erase
   std::pair<iterator, bool> insert(const value_type& x);
+  std::pair<iterator, bool> insert(value_type&& x);
 
   iterator insert(iterator position, const value_type& x);
+  iterator insert(iterator position, value_type&& x);
 
   template <class InputIterator>
   void insert(InputIterator first, InputIterator last);
@@ -662,6 +676,38 @@ Rb_tree<Key, Value, KeyOfValue, Compare>::M_insert(
 }
 
 template <class Key, class Value, class KeyOfValue, class Compare>
+typename Rb_tree<Key, Value, KeyOfValue, Compare>::iterator
+Rb_tree<Key, Value, KeyOfValue, Compare>::M_insert(
+    Base_ptr x_, Base_ptr y_, Value&& v) {
+  Link_type x = Link_type(x_);
+  Link_type y = Link_type(y_);
+  Link_type z;
+
+  if (y == M_header || x != nullptr ||
+      M_key_compare(KeyOfValue()(v), S_key(y))) {
+    z = M_create_node(std::move(v));
+    S_left(y) = z;  // also makes M_leftmost() = z
+                    //    when y == M_header
+    if (y == M_header) {
+      M_root() = z;
+      M_rightmost() = z;
+    } else if (y == M_leftmost())
+      M_leftmost() = z;  // maintain M_leftmost() pointing to min node
+  } else {
+    z = M_create_node(std::move(v));
+    S_right(y) = z;
+    if (y == M_rightmost())
+      M_rightmost() = z;  // maintain M_rightmost() pointing to max node
+  }
+  S_parent(z) = y;
+  S_left(z) = nullptr;
+  S_right(z) = nullptr;
+  Rb_tree_rebalance(z, M_header->M_parent);
+  ++M_node_count;
+  return iterator(z);
+}
+
+template <class Key, class Value, class KeyOfValue, class Compare>
 std::pair<typename Rb_tree<Key, Value, KeyOfValue, Compare>::iterator, bool>
 Rb_tree<Key, Value, KeyOfValue, Compare>::insert(const Value& v) {
   Link_type y = M_header;
@@ -682,6 +728,31 @@ Rb_tree<Key, Value, KeyOfValue, Compare>::insert(const Value& v) {
   }
   if (M_key_compare(S_key(j.M_node), KeyOfValue()(v))) {
     return std::pair<iterator, bool>(M_insert(x, y, v), true);
+  }
+  return std::pair<iterator, bool>(j, false);
+}
+
+template <class Key, class Value, class KeyOfValue, class Compare>
+std::pair<typename Rb_tree<Key, Value, KeyOfValue, Compare>::iterator, bool>
+Rb_tree<Key, Value, KeyOfValue, Compare>::insert(Value&& v) {
+  Link_type y = M_header;
+  Link_type x = M_root();
+  bool comp = true;
+  while (x != nullptr) {
+    y = x;
+    comp = M_key_compare(KeyOfValue()(v), S_key(x));
+    x = comp ? S_left(x) : S_right(x);
+  }
+  iterator j = iterator(y);
+  if (comp) {
+    if (j == begin()) {
+      return std::pair<iterator, bool>(M_insert(x, y, std::move(v)), true);
+    } else {
+      --j;
+    }
+  }
+  if (M_key_compare(S_key(j.M_node), KeyOfValue()(v))) {
+    return std::pair<iterator, bool>(M_insert(x, y, std::move(v)), true);
   }
   return std::pair<iterator, bool>(j, false);
 }
@@ -713,6 +784,36 @@ Rb_tree<Key, Val, KeyOfValue, Compare>::insert(
       // first argument just needs to be non-null
     } else
       return insert(v).first;
+  }
+}
+
+template <class Key, class Val, class KeyOfValue, class Compare>
+typename Rb_tree<Key, Val, KeyOfValue, Compare>::iterator
+Rb_tree<Key, Val, KeyOfValue, Compare>::insert(
+    iterator position, Val&& v) {
+  if (position.M_node == M_header->M_left) {  // begin()
+    if (size() > 0 && M_key_compare(KeyOfValue()(v), S_key(position.M_node)))
+      return M_insert(position.M_node, position.M_node, std::move(v));
+    // first argument just needs to be non-null
+    else
+      return insert(std::move(v)).first;
+  } else if (position.M_node == M_header) {  // end()
+    if (M_key_compare(S_key(M_rightmost()), KeyOfValue()(v)))
+      return M_insert(nullptr, M_rightmost(), std::move(v));
+    else
+      return insert(std::move(v)).first;
+  } else {
+    iterator before = position;
+    --before;
+    if (M_key_compare(S_key(before.M_node), KeyOfValue()(v)) &&
+        M_key_compare(KeyOfValue()(v), S_key(position.M_node))) {
+      if (S_right(before.M_node) == nullptr)
+        return M_insert(nullptr, before.M_node, std::move(v));
+      else
+        return M_insert(position.M_node, position.M_node, std::move(v));
+      // first argument just needs to be non-null
+    } else
+      return insert(std::move(v)).first;
   }
 }
 

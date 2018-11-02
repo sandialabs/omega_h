@@ -590,7 +590,7 @@ void write(
   }
   CALL(ex_put_init(file, title, dim, mesh->nverts(), mesh->nelems(),
       nelem_blocks, nnode_sets, nside_sets));
-  Write<Real> coord_blk[3];
+  Few<Write<Real>, 3> coord_blk;
   for (Int i = 0; i < dim; ++i) coord_blk[i] = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
   auto f0 = OMEGA_H_LAMBDA(LO i) {

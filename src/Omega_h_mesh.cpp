@@ -689,9 +689,15 @@ bool Mesh::operator==(Mesh& other) {
   return OMEGA_H_SAME == compare_meshes(this, &other, opts, false);
 }
 
-Real Mesh::min_quality() { return get_min(comm_, ask_qualities()); }
+Real Mesh::min_quality() {
+  OMEGA_H_TIME_FUNCTION;
+  return get_min(comm_, ask_qualities());
+}
 
-Real Mesh::max_length() { return get_max(comm_, ask_lengths()); }
+Real Mesh::max_length() {
+  OMEGA_H_TIME_FUNCTION;
+  return get_max(comm_, ask_lengths());
+}
 
 bool Mesh::could_be_shared(Int ent_dim) const {
   return !((comm_->size() == 1) ||
@@ -814,6 +820,11 @@ LOs ents_on_closure(
   auto ents_are_on = mark_class_closures(mesh, ent_dim, class_pair_vector);
   return collect_marked(ents_are_on);
 }
+
+#ifdef OMEGA_H_USE_CUDA
+__host__
+#endif
+void assign(Mesh& a, Mesh const& b) { a = b; }
 
 #define OMEGA_H_INST(T)                                                        \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \

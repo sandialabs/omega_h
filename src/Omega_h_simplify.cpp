@@ -257,7 +257,7 @@ void tris_from_quads_symmetric(Mesh* mesh) {
       quad_center_coords, nold_verts, nold_verts + nquads, coords, 2);
   Mesh new_mesh(mesh->library());
   build_from_elems_and_coords(&new_mesh, OMEGA_H_SIMPLEX, 2, tv2v, coords);
-  *mesh = new_mesh;
+  assign(*mesh, new_mesh);
 }
 
 void tets_from_hexes_symmetric(Mesh* mesh) {
@@ -298,7 +298,7 @@ void tets_from_hexes_symmetric(Mesh* mesh) {
   map_into_range(hex_center_coords, nold_verts + nquads, nverts, coords, 3);
   Mesh new_mesh(mesh->library());
   build_from_elems_and_coords(&new_mesh, OMEGA_H_SIMPLEX, 3, tv2v, coords);
-  *mesh = new_mesh;
+  assign(*mesh, new_mesh);
 }
 
 }  // end namespace Omega_h

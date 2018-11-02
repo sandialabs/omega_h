@@ -11,7 +11,7 @@
 #endif
 
 #include "Omega_h_map.hpp"
-#include "Omega_h_stack.hpp"
+#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 

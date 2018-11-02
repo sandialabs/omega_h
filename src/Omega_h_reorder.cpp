@@ -5,6 +5,7 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_unmap_mesh.hpp"
+#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 
@@ -51,6 +52,7 @@ static void reorder_mesh_by_verts(Mesh* mesh, LOs new_verts2old_verts) {
 }
 
 void reorder_by_hilbert(Mesh* mesh) {
+  OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(mesh->comm()->size() == 1);
   auto coords = mesh->coords();
   LOs new_verts2old_verts = hilbert::sort_coords(coords, mesh->dim());

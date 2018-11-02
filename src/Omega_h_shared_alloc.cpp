@@ -1,6 +1,8 @@
 #include <Omega_h_fail.hpp>
 #include <Omega_h_library.hpp>
 #include <Omega_h_shared_alloc.hpp>
+#include <Omega_h_profile.hpp>
+#include <Omega_h_malloc.hpp>
 #include <sstream>
 
 namespace Omega_h {
@@ -54,7 +56,7 @@ Alloc::Alloc(std::size_t size_in, std::string&& name_in)
 }
 
 Alloc::~Alloc() {
-  std::free(ptr);
+  ::Omega_h::maybe_pooled_device_free(ptr, size);
   auto ga = global_allocs;
   if (ga) {
     if (next == nullptr) {
@@ -72,7 +74,9 @@ Alloc::~Alloc() {
 }
 
 void Alloc::init() {
-  ptr = std::malloc(size);
+  Omega_h::ScopedTimer init_timer("Alloc::init");
+  ptr = ::Omega_h::maybe_pooled_device_malloc(size);
+  use_count = 1;
   auto ga = global_allocs;
   if (size && (ptr == nullptr)) {
     std::stringstream ss;
@@ -99,6 +103,7 @@ void Alloc::init() {
     }
     ga->total_bytes += size;
     if (ga->total_bytes > ga->high_water_bytes) {
+      Omega_h::ScopedTimer high_water_timer("high water update");
       ga->high_water_bytes = ga->total_bytes;
       ga->high_water_records.clear();
       for (auto a = ga->first; a; a = a->next) {
@@ -109,11 +114,13 @@ void Alloc::init() {
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string const& name_in) {
+  Omega_h::ScopedTimer timer("SharedAlloc ctor");
   alloc = new Alloc(size_in, name_in);
   direct_ptr = alloc->ptr;
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string&& name_in) {
+  Omega_h::ScopedTimer timer("SharedAlloc ctor");
   alloc = new Alloc(size_in, name_in);
   direct_ptr = alloc->ptr;
 }

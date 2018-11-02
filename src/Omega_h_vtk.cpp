@@ -1,5 +1,5 @@
 #include "Omega_h_vtk.hpp"
-#include "Omega_h_stack.hpp"
+#include "Omega_h_profile.hpp"
 
 #include <cstdlib>
 #include <fstream>
@@ -11,6 +11,7 @@
 #include <zlib.h>
 #endif
 
+#include "Omega_h_array_ops.hpp"
 #include "Omega_h_base64.hpp"
 #include "Omega_h_build.hpp"
 #include "Omega_h_element.hpp"
@@ -32,6 +33,9 @@ TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim) {
   if (mesh->comm()->size() > 1) {
     tags[VERT].insert("owner");
     tags[size_t(cell_dim)].insert("owner");
+    if (mesh->parting() == OMEGA_H_GHOSTED) {
+      tags[size_t(cell_dim)].insert("vtkGhostType");
+    }
   }
   return tags;
 }
@@ -42,6 +46,11 @@ TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim) {
 template <>
 struct IntTraits<true, 1> {
   inline static char const* name() { return "Int8"; }
+};
+
+template <>
+struct IntTraits<false, 1> {
+  inline static char const* name() { return "UInt8"; }
 };
 
 template <>
@@ -114,21 +123,21 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
   return true;
 }
 
-template <typename T>
+template <typename T_osh, typename T_vtk = T_osh>
 void write_array(std::ostream& stream, std::string const& name, Int ncomps,
-    Read<T> array, bool compress) {
+    Read<T_osh> array, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (!(array.exists())) {
     Omega_h_fail("vtk::write_array: \"%s\" doesn't exist\n", name.c_str());
   }
   begin_code("header");
   stream << "<DataArray ";
-  describe_array<T>(stream, name, ncomps);
+  describe_array<T_vtk>(stream, name, ncomps);
   stream << ">\n";
   end_code();
-  HostRead<T> uncompressed(array);
+  HostRead<T_osh> uncompressed(array);
   std::uint64_t uncompressed_bytes =
-      sizeof(T) * static_cast<uint64_t>(array.size());
+      sizeof(T_osh) * static_cast<uint64_t>(array.size());
   std::string enc_header;
   std::string encoded;
 #ifdef OMEGA_H_USE_ZLIB
@@ -468,6 +477,14 @@ void write_owners(
   write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks, compress);
 }
 
+void write_vtk_ghost_types(
+    std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
+  if (mesh->comm()->size() == 1) return;
+  const auto owned = mesh->owned(ent_dim);
+  auto ghost_types = each_eq_to(owned, static_cast<I8>(0));
+  write_array<I8, std::uint8_t>(stream, "vtkGhostType", 1, ghost_types, compress);
+}
+
 void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
     TagSet const& tags, bool compress) {
   OMEGA_H_TIME_FUNCTION;
@@ -553,7 +570,7 @@ static void verify_vtk_tagset(Mesh* mesh, Int cell_dim, TagSet const& tags) {
   for (Int dim = 0; dim < 4; ++dim) {
     if (dim == 0 || dim == cell_dim) {
       for (auto& name : tags[size_t(dim)]) {
-        if (!mesh->has_tag(dim, name) && name != "local" && name != "owner") {
+        if (!mesh->has_tag(dim, name) && name != "local" && name != "owner" && name != "vtkGhostType") {
           Omega_h_fail(
               "User requested VTK output of tag %s"
               " on %s, but that tag doesn't exist on the mesh!",
@@ -607,6 +624,9 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
         stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
   }
   write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
+  if (tags[size_t(cell_dim)].count("vtkGhostType")) {
+    write_vtk_ghost_types(stream, mesh, cell_dim, compress);
+  }
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
     if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
@@ -745,6 +765,9 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   }
   if (mesh->comm()->size() > 1 && tags[size_t(cell_dim)].count("owner")) {
     write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
+  }
+  if (mesh->comm()->size() > 1 && tags[size_t(cell_dim)].count("vtkGhostType")) {
+    write_p_data_array<std::uint8_t>(stream, "vtkGhostType", 1);
   }
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
     auto tag = mesh->get_tag(cell_dim, i);
@@ -957,7 +980,7 @@ Writer::Writer()
     : mesh_(nullptr),
       root_path_("/not-set"),
       cell_dim_(-1),
-      compress_(true),
+      compress_(OMEGA_H_DEFAULT_COMPRESS),
       step_(-1),
       pvd_pos_(0) {}
 

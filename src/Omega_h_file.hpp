@@ -65,19 +65,24 @@ void write(std::string const& filepath, Mesh* mesh);
 namespace vtk {
 static constexpr bool do_compress = true;
 static constexpr bool dont_compress = false;
+#ifdef OMEGA_H_USE_ZLIB
+#define OMEGA_H_DEFAULT_COMPRESS true
+#else
+#define OMEGA_H_DEFAULT_COMPRESS false
+#endif
 TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim);
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    TagSet const& tags, bool compress = true);
+    TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    TagSet const& tags, bool compress = true);
+    TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    bool compress = true);
-void write_vtu(std::string const& filename, Mesh* mesh, bool compress = true);
+    bool compress = OMEGA_H_DEFAULT_COMPRESS);
+void write_vtu(std::string const& filename, Mesh* mesh, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
-    TagSet const& tags, bool compress = true);
+    TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_parallel(
-    std::string const& path, Mesh* mesh, Int cell_dim, bool compress = true);
-void write_parallel(std::string const& path, Mesh* mesh, bool compress = true);
+    std::string const& path, Mesh* mesh, Int cell_dim, bool compress = OMEGA_H_DEFAULT_COMPRESS);
+void write_parallel(std::string const& path, Mesh* mesh, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 
 void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh);
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh);
@@ -96,7 +101,7 @@ class Writer {
   Writer& operator=(Writer const&) = default;
   ~Writer() = default;
   Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1,
-      Real restart_time = 0.0, bool compress = true);
+      Real restart_time = 0.0, bool compress = OMEGA_H_DEFAULT_COMPRESS);
   void write();
   void write(Real time);
   void write(Real time, TagSet const& tags);
@@ -108,7 +113,7 @@ class FullWriter {
  public:
   FullWriter() = default;
   FullWriter(std::string const& root_path, Mesh* mesh, Real restart_time = 0.0,
-      bool compress = true);
+      bool compress = OMEGA_H_DEFAULT_COMPRESS);
   void write(Real time);
   void write();
 };

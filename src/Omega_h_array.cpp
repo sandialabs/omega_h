@@ -37,11 +37,9 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
 #else
-  tracker_ = decltype(tracker_)(new SharedAlloc2<T>());
-  tracker_->name = name_in;
-  ptr_ = new T[size_in];
-  tracker_->ptr = decltype(tracker_->ptr)(ptr_);
-  size_ = size_in;
+  shared_alloc_ = decltype(shared_alloc_)(
+      sizeof(T) * static_cast<std::size_t>(size_in),
+      name_in);
 #endif
   end_code();
 }
@@ -80,17 +78,16 @@ template <typename T>
 std::string Write<T>::name() const {
   return view_.label();
 }
-#endif
-
-#ifndef OMEGA_H_USE_KOKKOSCORE
+#else
 template <typename T>
-void Write<T>::rename(std::string const& new_name) {
-  tracker_->name = new_name;
+std::string const& Write<T>::name() const {
+  return shared_alloc_.alloc->name;
 }
 #endif
 
 template <typename T>
 void Write<T>::set(LO i, T value) const {
+  ScopedTimer timer("single host to device");
 #ifdef OMEGA_H_USE_CUDA
   cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
 #else
@@ -100,6 +97,7 @@ void Write<T>::set(LO i, T value) const {
 
 template <typename T>
 T Write<T>::get(LO i) const {
+  ScopedTimer timer("single device to host");
 #ifdef OMEGA_H_USE_CUDA
   T value;
   cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
@@ -184,9 +182,6 @@ T Read<T>::last() const {
   return get(size() - 1);
 }
 
-template <typename T>
-HostWrite<T>::HostWrite() = default;
-
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <class T, class... P>
 inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror(
@@ -232,6 +227,9 @@ HostWrite<T>::HostWrite(LO size_in, std::string const& name_in)
       mirror_(create_uninit_mirror_view(write_.view()))
 #endif
 {
+#if (!defined(OMEGA_H_USE_KOKKOSCORE)) && defined(OMEGA_H_USE_CUDA)
+  mirror_.reset(new T[std::size_t(write_.size())]);
+#endif
 }
 
 template <typename T>
@@ -249,6 +247,8 @@ HostWrite<T>::HostWrite(Write<T> write_in)
 {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(mirror_, write_.view());
+#elif defined(OMEGA_H_USE_CUDA)
+  mirror_.reset(new T[std::size_t(write_.size())]);
 #endif
 }
 
@@ -262,8 +262,13 @@ HostWrite<T>::HostWrite(std::initializer_list<T> l, std::string const& name_in)
 
 template <typename T>
 Write<T> HostWrite<T>::write() const {
+  ScopedTimer timer("array host to device");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::deep_copy(write_.view(), mirror_);
+#elif defined(OMEGA_H_USE_CUDA)
+  auto const err = cudaMemcpy(write_.data(), mirror_.get(),
+      std::size_t(size()) * sizeof(T), cudaMemcpyHostToDevice);
+  OMEGA_H_CHECK(err == cudaSuccess);
 #endif
   return write_;
 }
@@ -277,6 +282,8 @@ template <typename T>
 T* HostWrite<T>::data() const {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   return mirror_.data();
+#elif defined(OMEGA_H_USE_CUDA)
+  return mirror_.get();
 #else
   return write_.data();
 #endif
@@ -286,6 +293,8 @@ template <typename T>
 void HostWrite<T>::set(LO i, T value) {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   mirror_[i] = value;
+#elif defined(OMEGA_H_USE_CUDA)
+  mirror_[std::size_t(i)] = value;
 #else
   write_[i] = value;
 #endif
@@ -295,26 +304,26 @@ template <typename T>
 T HostWrite<T>::get(LO i) const {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   return mirror_[i];
+#elif defined(OMEGA_H_USE_CUDA)
+  return mirror_[std::size_t(i)];
 #else
   return write_[i];
 #endif
 }
 
 template <typename T>
-#ifdef __INTEL_COMPILER
-HostRead<T>::HostRead() {
-}
-#else
-HostRead<T>::HostRead() = default;
-#endif
-
-template <typename T>
 HostRead<T>::HostRead(Read<T> read) : read_(read) {
+  ScopedTimer timer("array device to host");
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<const T*> dev_view = read.view();
   Kokkos::View<const T*, Kokkos::HostSpace> h_view =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
   mirror_ = h_view;
+#elif defined(OMEGA_H_USE_CUDA)
+  mirror_.reset(new T[std::size_t(read_.size())]);
+  auto const err = cudaMemcpy(mirror_.get(), read_.data(),
+      std::size_t(size()) * sizeof(T), cudaMemcpyDeviceToHost);
+  OMEGA_H_CHECK(err == cudaSuccess);
 #endif
 }
 
@@ -323,17 +332,12 @@ LO HostRead<T>::size() const {
   return read_.size();
 }
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
-template <typename T>
-Kokkos::View<T*> Write<T>::view() const {
-  return view_;
-}
-#endif
-
 template <typename T>
 T const* HostRead<T>::data() const {
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#if defined(OMEGA_H_USE_KOKKOSCORE)
   return mirror_.data();
+#elif defined(OMEGA_H_USE_CUDA)
+  return mirror_.get();
 #else
   return read_.data();
 #endif
@@ -352,13 +356,9 @@ T HostRead<T>::last() const {
 template <class T>
 void copy_into(Read<T> a, Write<T> b) {
   OMEGA_H_TIME_FUNCTION;
-#ifdef OMEGA_H_USE_KOKKOSCORE
-  Kokkos::deep_copy(b.view(), a.view());
-#else
   OMEGA_H_CHECK(a.size() == b.size());
   auto f = OMEGA_H_LAMBDA(LO i) { b[i] = a[i]; };
   parallel_for(b.size(), f, "copy into kernel");
-#endif
 }
 
 template <class T>

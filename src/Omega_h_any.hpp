@@ -59,6 +59,11 @@ class bad_any_cast : public std::bad_cast {
   const char* what() const noexcept override;
 };
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#endif
+
 class any final {
  public:
   /// Constructs an object of type any with an empty state.
@@ -302,7 +307,7 @@ class any final {
   /// Checks if two type infos are the same.
   ///
   /// If ANY_IMPL_FAST_TYPE_INFO_COMPARE is defined, checks only the address of
-  /// the type infos, otherwise does an actual comparision. Checking addresses
+  /// the type infos, otherwise does an actual comparison. Checking addresses
   /// is only a valid approach when there's no interaction with outside sources
   /// (other shared libraries and such).
   static bool is_same(const std::type_info& a, const std::type_info& b) {
@@ -357,6 +362,10 @@ class any final {
     do_construct<ValueType, T>(std::forward<ValueType>(value));
   }
 };
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 namespace detail {
 template <typename ValueType>

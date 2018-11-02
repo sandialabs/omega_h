@@ -33,7 +33,7 @@ Read<I8> mark_down(
     for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
       if (high_marked[lh2h[lh]]) low_marks_w[l] = 1;
   };
-  parallel_for(nl, f, "mark_down");
+  parallel_for(nl, std::move(f));
   auto low_marks = Read<I8>(low_marks_w);
   if (!mesh->owners_have_all_upward(low_dim)) {
     low_marks = mesh->reduce_array(low_dim, low_marks, 1, OMEGA_H_MAX);
