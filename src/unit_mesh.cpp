@@ -20,11 +20,6 @@
 
 #include <sstream>
 
-//DEBUG
-#include <iostream>
-#include <iomanip>
-#include <Omega_h_print.hpp>
-
 using namespace Omega_h;
 
 static void test_down_template() {
@@ -489,9 +484,6 @@ static void test_recover_hessians_dim(Library* lib) {
   Vector<dim> dv;
   for (Int i = 0; i < dim; ++i) dv[i] = 2;
   auto expected_hess = repeat_symm(mesh.nverts(), diagonal(dv));
-  std::cerr << std::scientific << std::setprecision(17);
-  std::cerr << "recovered Hessians " << hess << '\n';
-  std::cerr << "expected Hessians " << expected_hess << '\n';
   OMEGA_H_CHECK(are_close(hess, expected_hess));
 }
 
