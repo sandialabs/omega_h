@@ -40,9 +40,16 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
   auto f = OMEGA_H_LAMBDA(LO v) {
     if (!owned[v] || (class_dim[v] != dim)) return;
     auto qr = get_cavity_qr_factorization<dim>(v, v2ve, ve2e, ev2v, coords);
+    auto const nfit_pts = v2ve[v + 1] - v2ve[v];
+    for (int k = 0; k < dim + 1; ++k) {
+      for (int i = k; i < nfit_pts; ++i) {
+        assert(!isnan(qr.v[k][i]));
+      }
+    }
     for (Int comp = 0; comp < ncomps; ++comp) {
       auto coeffs =
           fit_cavity_polynomial<dim>(qr, v, v2ve, ve2e, e_data, comp, ncomps);
+      for (int i = 0; i <= dim; ++i) assert(!isnan(coeffs[i]));
       set_vector(out, v * ncomps + comp, coeffs);
     }
   };
@@ -79,7 +86,7 @@ static void diffuse_to_exterior(
     }
     if (!nadj) return;
     for (Int comp = 0; comp < ncomps; ++comp) {
-      Real sum = 0;
+      Real sum = 0.0;
       for (auto vv = v2vv[v]; vv < v2vv[v + 1]; ++vv) {
         auto ov = vv2v[vv];
         if (visited[ov]) sum += v_data[ov * ncomps + comp];
@@ -105,7 +112,9 @@ static Reals evaluate_coeffs_dim(Mesh* mesh, Reals v_coeffs, Int ncomps) {
     auto x = get_vector<dim>(coords, v);
     for (Int comp = 0; comp < ncomps; ++comp) {
       auto coeffs = get_vector<dim + 1>(v_coeffs, v * ncomps + comp);
+      for (int i = 0; i <= dim; ++i) assert(!isnan(coeffs[i]));
       auto val = eval_polynomial(coeffs, x);
+      assert(!isnan(val));
       out[v * ncomps + comp] = val;
     }
   };
@@ -184,6 +193,7 @@ static Reals derive_element_gradients_dim(Mesh* mesh, Reals vert_values) {
     Matrix<dim, dim> dx_dxi = get_simplex_jacobian<dim>(evv2x);
     auto dxi_dx = invert(dx_dxi);
     auto du_dx = dxi_dx * du_dxi;
+    for (Int i = 0; i < dim; ++i) assert(!isnan(du_dx[i]));
     set_vector(out, e, du_dx);
   };
   parallel_for(mesh->nelems(), f, "derive_element_gradients");
@@ -198,16 +208,37 @@ static Reals derive_element_hessians_dim(Mesh* mesh, Reals vert_gradients) {
   auto f = OMEGA_H_LAMBDA(LO e) {
     auto evv2v = gather_verts<dim + 1>(ev2v, e);
     auto evv2u = gather_vectors<dim + 1, dim>(vert_gradients, evv2v);
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j <= dim; ++j) {
+        assert(!isnan(evv2u[j][i]));
+      }
+    }
     Matrix<dim, dim> du_dxi;
     for (Int i = 0; i < dim; ++i) {
       for (Int j = 0; j < dim; ++j) {
         du_dxi[i][j] = evv2u[j + 1][i] - evv2u[0][i];
+        assert(!isnan(du_dxi[i][j]));
       }
     }
     auto evv2x = gather_vectors<dim + 1, dim>(coords, evv2v);
     auto dx_dxi = get_simplex_jacobian<dim>(evv2x);
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j) {
+        assert(!isnan(dx_dxi(i,j)));
+      }
+    }
     auto dxi_dx = invert(dx_dxi);
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j) {
+        assert(!isnan(dxi_dx(i,j)));
+      }
+    }
     auto du_dx = dxi_dx * du_dxi;
+    for (Int i = 0; i < dim; ++i) {
+      for (Int j = 0; j < dim; ++j) {
+        assert(!isnan(du_dx(i,j)));
+      }
+    }
     set_symm(out, e, du_dx);
   };
   parallel_for(mesh->nelems(), f, "derive_element_hessians");

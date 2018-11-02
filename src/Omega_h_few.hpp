@@ -8,9 +8,25 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_scalar.hpp>
 
+// DEBUG
+#include <math_constants.h>
+#include <limits>
+
 namespace Omega_h {
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#if 1
+
+template <typename T>
+OMEGA_H_INLINE void fill_with_nan(T*, int) { }
+
+OMEGA_H_INLINE void fill_with_nan(double* p, int n) {
+#ifdef __CUDA_ARCH__
+  for (int i = 0; i < n; ++i) p[i] = CUDART_NAN;
+#else
+  for (int i = 0; i < n; ++i) p[i] = std::numeric_limits<double>::quiet_NaN();
+#endif
+}
+
 
 template <typename T, Int n>
 class Few {
@@ -21,8 +37,8 @@ class Few {
   enum { size = n };
   OMEGA_H_INLINE T* data() { return array_; }
   OMEGA_H_INLINE T const* data() const { return array_; }
-  OMEGA_H_INLINE T volatile* data() volatile { return array_; }
-  OMEGA_H_INLINE T const volatile* data() const volatile { return array_; }
+//OMEGA_H_INLINE T volatile* data() volatile { return array_; }
+//OMEGA_H_INLINE T const volatile* data() const volatile { return array_; }
 #ifdef OMEGA_H_CHECK_BOUNDS
 #define OMEGA_H_FEW_AT                                                         \
   OMEGA_H_CHECK(0 <= i);                                                       \
@@ -33,10 +49,10 @@ class Few {
 #endif
   OMEGA_H_INLINE T& operator[](Int i) { OMEGA_H_FEW_AT; }
   OMEGA_H_INLINE T const& operator[](Int i) const { OMEGA_H_FEW_AT; }
-  OMEGA_H_INLINE T volatile& operator[](Int i) volatile { OMEGA_H_FEW_AT; }
-  OMEGA_H_INLINE T const volatile& operator[](Int i) const volatile {
-    OMEGA_H_FEW_AT;
-  }
+//OMEGA_H_INLINE T volatile& operator[](Int i) volatile { OMEGA_H_FEW_AT; }
+//OMEGA_H_INLINE T const volatile& operator[](Int i) const volatile {
+//  OMEGA_H_FEW_AT;
+//}
 #undef OMEGA_H_FEW_AT
   Few(std::initializer_list<T> l) {
     Int i = 0;
@@ -44,23 +60,27 @@ class Few {
       new (array_ + (i++)) T(*it);
     }
   }
-  OMEGA_H_INLINE Few() {}
-  OMEGA_H_INLINE ~Few() {}
-  OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
-  }
-  OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
-  }
-  OMEGA_H_INLINE void operator=(Few<T, n> const volatile& rhs) {
-    for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
-  }
-  OMEGA_H_INLINE Few(Few<T, n> const& rhs) {
-    for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
-  }
-  OMEGA_H_INLINE Few(Few<T, n> const volatile& rhs) {
-    for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
-  }
+  OMEGA_H_INLINE Few() // = default;
+  { fill_with_nan(array_, n); }
+  OMEGA_H_INLINE ~Few() = default;
+//{}
+  OMEGA_H_INLINE Few& operator=(Few<T, n> const& rhs) = default;
+//{
+//  for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
+//}
+  OMEGA_H_INLINE Few(Few<T, n> const& rhs) = default;
+//{
+//  for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
+//}
+//OMEGA_H_INLINE void operator=(Few<T, n> const& rhs) volatile {
+//  for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
+//}
+//OMEGA_H_INLINE void operator=(Few<T, n> const volatile& rhs) {
+//  for (Int i = 0; i < n; ++i) array_[i] = rhs[i];
+//}
+//OMEGA_H_INLINE Few(Few<T, n> const volatile& rhs) {
+//  for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
+//}
 };
 
 #else

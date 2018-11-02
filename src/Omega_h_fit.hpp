@@ -54,6 +54,11 @@ get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
     }
   }
   auto qr = factorize_qr_householder(nfit_pts, dim + 1, vandermonde);
+  for (int k = 0; k < dim + 1; ++k) {
+    for (int i = k; i < nfit_pts; ++i) {
+      assert(!isnan(qr.v[k][i]));
+    }
+  }
   return qr;
 }
 
@@ -77,16 +82,28 @@ OMEGA_H_DEVICE Vector<dim + 1> fit_cavity_polynomial(
   auto nfit_pts = end - begin;
   OMEGA_H_CHECK(nfit_pts >= dim + 1);
   OMEGA_H_CHECK(nfit_pts <= max_fit_pts);
+  for (int k = 0; k < dim + 1; ++k) {
+    for (int i = k; i < nfit_pts; ++i) {
+      assert(!isnan(qr.v[k][i]));
+    }
+  }
   Vector<max_fit_pts> b;
   for (auto i = 0; i < nfit_pts; ++i) {
     auto ke = i + begin;
     auto e = ke2e[ke];
     b[i] = e_data[e * ncomps + comp];
+    assert(!isnan(b[i]));
   }
   for (auto i = nfit_pts; i < max_fit_pts; ++i) {
     b[i] = 0.0;
   }
   auto qtb = implicit_q_trans_b(nfit_pts, dim + 1, qr.v, b);
+  for (int i = 0; i < (dim + 1); ++i) {
+    assert(!isnan(qtb[i]));
+    for (int j = 0; j < (dim + 1); ++j) {
+      assert(!isnan(qr.r(i,j)));
+    }
+  }
   auto coeffs = solve_upper_triangular(dim + 1, qr.r, qtb);
   return coeffs;
 }

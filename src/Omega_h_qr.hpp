@@ -34,11 +34,13 @@ OMEGA_H_INLINE Vector<max_m> householder_vector(
   (void)anorm;
   Vector<max_m> v_k;
   for (Int i = k; i < m; ++i) v_k[i] = a[k][i];
+  for (Int i = k; i < m; ++i) assert(!isnan(v_k[i]));
   v_k[k] += sign(a[k][k]) * norm_x;
   Real norm_v_k = 0;
   for (Int i = k; i < m; ++i) norm_v_k += square(v_k[i]);
   norm_v_k = std::sqrt(norm_v_k);
   for (Int i = k; i < m; ++i) v_k[i] /= norm_v_k;
+  for (Int i = k; i < m; ++i) assert(!isnan(v_k[i]));
   return v_k;
 }
 
@@ -81,7 +83,8 @@ template <Int max_m, Int max_n>
 OMEGA_H_INLINE Vector<max_n> implicit_q_trans_b(
     Int m, Int n, Few<Vector<max_m>, max_n> v, Vector<max_m> b) {
   for (Int k = 0; k < n; ++k) {
-    Real dot = 0;
+    Real dot = 0.0;
+    for (Int i = k; i < m; ++i) assert(!isnan(v[k][i]));
     for (Int i = k; i < m; ++i) dot += v[k][i] * b[i];
     for (Int i = k; i < m; ++i) b[i] -= 2 * dot * v[k][i];
   }
