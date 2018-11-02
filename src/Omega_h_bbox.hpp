@@ -8,6 +8,8 @@ namespace Omega_h {
 
 class Mesh;
 
+#ifdef OMEGA_H_USE_KOKKOSCORE
+
 template <Int dim>
 struct BBox {
   OMEGA_H_INLINE BBox() {}
@@ -25,6 +27,21 @@ struct BBox {
   OMEGA_H_INLINE BBox(const volatile BBox<dim>& rhs)
       : min(rhs.min), max(rhs.max) {}
 };
+
+#else
+
+template <Int dim>
+struct BBox {
+  Vector<dim> min;
+  Vector<dim> max;
+  OMEGA_H_INLINE BBox() = default;
+  OMEGA_H_INLINE BBox(Vector<dim> x) : min(x), max(x) {}
+  OMEGA_H_INLINE BBox(Vector<dim> min_, Vector<dim> max_)
+      : min(min_), max(max_) {}
+  OMEGA_H_INLINE BBox(BBox<dim> const&) = default;
+};
+
+#endif
 
 template <Int dim>
 OMEGA_H_INLINE BBox<dim> unite(BBox<dim> a, BBox<dim> b) {

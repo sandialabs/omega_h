@@ -7,6 +7,9 @@
 namespace Omega_h {
 
 /* column-first storage and indexing !!! */
+
+#ifdef OMEGA_H_USE_KOKKOSCORE
+
 template <Int m, Int n>
 class Matrix : public Few<Vector<m>, n> {
  public:
@@ -35,6 +38,28 @@ class Matrix : public Few<Vector<m>, n> {
     return Few<Vector<m>, n>::operator[](j)[i];
   }
 };
+
+#else
+
+template <Int m, Int n>
+class Matrix : public Few<Vector<m>, n> {
+ public:
+  OMEGA_H_INLINE Matrix() = default;
+  /* these constructors accept the matrix in
+   * row-first order for convenience.
+   */
+  inline Matrix(std::initializer_list<Vector<m>> l) : Few<Vector<m>, n>(l) {}
+  inline Matrix(std::initializer_list<Real> l);
+  OMEGA_H_INLINE Matrix(Matrix const& rhs) = default;
+  OMEGA_H_INLINE Real& operator()(Int i, Int j) {
+    return Few<Vector<m>, n>::operator[](j)[i];
+  }
+  OMEGA_H_INLINE Real const& operator()(Int i, Int j) const {
+    return Few<Vector<m>, n>::operator[](j)[i];
+  }
+};
+
+#endif
 
 template <Int m, Int n>
 OMEGA_H_INLINE Real* scalar_ptr(Matrix<m, n>& a) {

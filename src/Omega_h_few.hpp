@@ -10,11 +10,10 @@
 
 namespace Omega_h {
 
+#ifdef OMEGA_H_USE_KOKKOSCORE
+
 template <typename T, Int n>
 class Few {
-  /* Can't use this because volatile forces us to make the class look non-POD
-   * static_assert(std::is_pod<T>::value, "T must be POD for Few<T>");
-   */
   T array_[n];
 
  public:
@@ -63,6 +62,44 @@ class Few {
     for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
   }
 };
+
+#else
+
+template <typename T, Int n>
+class Few {
+  T array_[n];
+
+ public:
+  using value_type = T;
+  static constexpr Int size = n;
+  OMEGA_H_INLINE T* data() noexcept { return array_; }
+  OMEGA_H_INLINE T const* data() const noexcept { return array_; }
+#ifdef OMEGA_H_CHECK_BOUNDS
+#define OMEGA_H_FEW_AT                                                         \
+  OMEGA_H_CHECK(0 <= i);                                                       \
+  OMEGA_H_CHECK(i < size);                                                     \
+  return array_[i]
+#else
+#define OMEGA_H_FEW_AT return array_[i]
+#endif
+  OMEGA_H_INLINE T& operator[](Int i) { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T const& operator[](Int i) const { OMEGA_H_FEW_AT; }
+#undef OMEGA_H_FEW_AT
+  Few(std::initializer_list<T> l) {
+    Int i = 0;
+    for (auto it = l.begin(); it != l.end(); ++it) {
+      new (array_ + (i++)) T(*it);
+    }
+  }
+  OMEGA_H_INLINE Few() = default;
+  OMEGA_H_INLINE ~Few() = default;
+  OMEGA_H_INLINE Few(Few<T, n> const& rhs) = default;
+  OMEGA_H_INLINE Few(Few<T, n>&& rhs) = default;
+  OMEGA_H_INLINE Few& operator=(Few const& rhs) = default;
+  OMEGA_H_INLINE Few& operator=(Few&& rhs) = default;
+};
+
+#endif
 
 template <Int capacity, typename T>
 OMEGA_H_INLINE void add_unique(Few<T, capacity>& stack, Int& n, T e) {

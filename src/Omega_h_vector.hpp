@@ -6,6 +6,8 @@
 
 namespace Omega_h {
 
+#ifdef OMEGA_H_USE_KOKKOSCORE
+
 template <Int n>
 class Vector : public Few<Real, n> {
  public:
@@ -30,6 +32,25 @@ class Vector : public Few<Real, n> {
   }
 #undef OMEGA_H_VECTOR_AT
 };
+
+#else
+
+template <Int n>
+class Vector : public Few<Real, n> {
+ public:
+  OMEGA_H_INLINE Vector() = default;
+  inline Vector(std::initializer_list<Real> l) : Few<Real, n>(l) {}
+  OMEGA_H_INLINE Vector& operator=(Vector const&) = default;
+  OMEGA_H_INLINE Vector& operator=(Vector&&) = default;
+  OMEGA_H_INLINE Vector(Vector const&) = default;
+  OMEGA_H_INLINE Vector(Vector&&) = default;
+#define OMEGA_H_VECTOR_AT return Few<Real, n>::operator[](i)
+  OMEGA_H_INLINE Real& operator()(Int i) { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real const& operator()(Int i) const { OMEGA_H_VECTOR_AT; }
+#undef OMEGA_H_VECTOR_AT
+};
+
+#endif
 
 template <Int n>
 OMEGA_H_INLINE Real* scalar_ptr(Vector<n>& v) {
