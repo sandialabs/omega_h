@@ -45,8 +45,8 @@ class Vector : public Few<Real, n> {
   OMEGA_H_INLINE Vector(Vector const&) = default;
   OMEGA_H_INLINE Vector(Vector&&) = default;
 #define OMEGA_H_VECTOR_AT return Few<Real, n>::operator[](i)
-  OMEGA_H_INLINE Real& operator()(Int i) { OMEGA_H_VECTOR_AT; }
-  OMEGA_H_INLINE Real const& operator()(Int i) const { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real& operator()(Int i) OMEGA_H_NOEXCEPT { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real const& operator()(Int i) const OMEGA_H_NOEXCEPT { OMEGA_H_VECTOR_AT; }
 #undef OMEGA_H_VECTOR_AT
 };
 

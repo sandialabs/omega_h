@@ -23,7 +23,6 @@ Bytes find_bridge_edges(Mesh* mesh) {
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto f = OMEGA_H_LAMBDA(LO edge) {
     auto eev2v = gather_verts<2>(edges2verts, edge);
-    auto eev2dim = gather_values(edges2class_dim, eev2v);
     auto edim = edges2class_dim[edge];
     edges_are_bridges_w[edge] = ((edim != verts2class_dim[eev2v[0]]) &&
                                  (edim != verts2class_dim[eev2v[1]]));

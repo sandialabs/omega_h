@@ -38,7 +38,10 @@ struct BBox {
   OMEGA_H_INLINE BBox(Vector<dim> x) : min(x), max(x) {}
   OMEGA_H_INLINE BBox(Vector<dim> min_, Vector<dim> max_)
       : min(min_), max(max_) {}
-  OMEGA_H_INLINE BBox(BBox<dim> const&) = default;
+  OMEGA_H_INLINE BBox(BBox const&) = default;
+  OMEGA_H_INLINE BBox(BBox&&) = default;
+  OMEGA_H_INLINE BBox& operator=(BBox const&) = default;
+  OMEGA_H_INLINE BBox& operator=(BBox&&) = default;
 };
 
 #endif

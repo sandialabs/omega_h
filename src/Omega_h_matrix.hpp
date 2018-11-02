@@ -50,11 +50,14 @@ class Matrix : public Few<Vector<m>, n> {
    */
   inline Matrix(std::initializer_list<Vector<m>> l) : Few<Vector<m>, n>(l) {}
   inline Matrix(std::initializer_list<Real> l);
-  OMEGA_H_INLINE Matrix(Matrix const& rhs) = default;
-  OMEGA_H_INLINE Real& operator()(Int i, Int j) {
+  OMEGA_H_INLINE Matrix(Matrix const&) = default;
+  OMEGA_H_INLINE Matrix(Matrix&&) = default;
+  OMEGA_H_INLINE Matrix& operator=(Matrix const&) = default;
+  OMEGA_H_INLINE Matrix& operator=(Matrix&&) = default;
+  OMEGA_H_INLINE Real& operator()(Int i, Int j) OMEGA_H_NOEXCEPT {
     return Few<Vector<m>, n>::operator[](j)[i];
   }
-  OMEGA_H_INLINE Real const& operator()(Int i, Int j) const {
+  OMEGA_H_INLINE Real const& operator()(Int i, Int j) const OMEGA_H_NOEXCEPT {
     return Few<Vector<m>, n>::operator[](j)[i];
   }
 };
@@ -80,7 +83,7 @@ inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
 }
 
 template <Int m, Int n>
-OMEGA_H_INLINE Vector<m> operator*(Matrix<m, n> a, Vector<n> b) {
+OMEGA_H_INLINE Vector<m> operator*(Matrix<m, n> a, Vector<n> b) OMEGA_H_NOEXCEPT {
   Vector<m> c = a[0] * b[0];
   for (Int j = 1; j < n; ++j) c = c + a[j] * b[j];
   return c;
