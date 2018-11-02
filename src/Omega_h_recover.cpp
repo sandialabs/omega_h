@@ -40,6 +40,7 @@ static Reals get_interior_coeffs_dim(Mesh* mesh, Reals e_data, Int ncomps) {
   auto f = OMEGA_H_LAMBDA(LO v) {
     if (!owned[v] || (class_dim[v] != dim)) return;
     auto qr = get_cavity_qr_factorization<dim>(v, v2ve, ve2e, ev2v, coords);
+    auto const nfit_pts = v2ve[v + 1] - v2ve[v];
     for (Int comp = 0; comp < ncomps; ++comp) {
       auto coeffs =
           fit_cavity_polynomial<dim>(qr, v, v2ve, ve2e, e_data, comp, ncomps);
@@ -79,7 +80,7 @@ static void diffuse_to_exterior(
     }
     if (!nadj) return;
     for (Int comp = 0; comp < ncomps; ++comp) {
-      Real sum = 0;
+      Real sum = 0.0;
       for (auto vv = v2vv[v]; vv < v2vv[v + 1]; ++vv) {
         auto ov = vv2v[vv];
         if (visited[ov]) sum += v_data[ov * ncomps + comp];

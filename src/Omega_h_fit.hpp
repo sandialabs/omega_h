@@ -54,6 +54,15 @@ get_cavity_qr_factorization(LO k, LOs const& k2ke, LOs const& ke2e,
     }
   }
   auto qr = factorize_qr_householder(nfit_pts, dim + 1, vandermonde);
+  // workaround CUDA compiler bug that makes these NaN
+  // if and only if we do not check whether they are NaN...
+#ifdef __CUDA_ARCH__
+  for (int k = 0; k < dim + 1; ++k) {
+    for (int i = k; i < nfit_pts; ++i) {
+      assert(!isnan(qr.v[k][i]));
+    }
+  }
+#endif
   return qr;
 }
 

@@ -186,6 +186,7 @@ void reorder_by_globals(Mesh* mesh);
 LOs ents_on_closure(
     Mesh* mesh, std::set<std::string> const& class_names, Int ent_dim);
 
+//workaround CUDA compiler bug
 #ifdef OMEGA_H_USE_CUDA
 __host__
 #endif
