@@ -371,7 +371,7 @@ void read_mesh(int file, Mesh* mesh, bool verbose, int classify_with) {
   end_code();
 }
 
-#ifdef PARALLEL_AWARE_EXODUS
+#if defined(OMEGA_H_USE_MPI) && defined(PARALLEL_AWARE_EXODUS)
 static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
     bool verbose, Dist slice_verts2verts, GO nodes_begin, LO nslice_nodes) {
   int num_nodal_vars;
