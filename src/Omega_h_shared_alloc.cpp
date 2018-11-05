@@ -115,16 +115,14 @@ void Alloc::init() {
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string const& name_in) {
   Omega_h::ScopedTimer timer("SharedAlloc ctor");
-  auto new_alloc = new Alloc(size_in, name_in);
-  alloc_ptr = new_alloc;
-  direct_ptr = new_alloc->ptr;
+  alloc = new Alloc(size_in, name_in);
+  direct_ptr = alloc->ptr;
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string&& name_in) {
   Omega_h::ScopedTimer timer("SharedAlloc ctor");
-  auto new_alloc = new Alloc(size_in, name_in);
-  alloc_ptr = new_alloc;
-  direct_ptr = new_alloc->ptr;
+  alloc = new Alloc(size_in, name_in);
+  direct_ptr = alloc->ptr;
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in) : SharedAlloc(size_in, "") {}
@@ -132,7 +130,7 @@ SharedAlloc::SharedAlloc(std::size_t size_in) : SharedAlloc(size_in, "") {}
 SharedAlloc SharedAlloc::identity(std::size_t size_in) {
   SharedAlloc out;
   out.direct_ptr = nullptr;
-  out.alloc_ptr = reinterpret_cast<void*>(
+  out.alloc = reinterpret_cast<Alloc*>(
       (static_cast<std::uintptr_t>(size_in) << 3) & IS_IDENTITY);
   return out;
 }

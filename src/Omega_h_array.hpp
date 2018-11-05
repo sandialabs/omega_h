@@ -77,7 +77,7 @@ class Write {
   }
 #else
   inline int use_count() const {
-    return shared_alloc_.get_alloc()->use_count;
+    return shared_alloc_.alloc->use_count;
   }
 #endif
   OMEGA_H_INLINE bool exists() const {
