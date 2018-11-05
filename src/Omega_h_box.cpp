@@ -5,37 +5,25 @@
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_vector.hpp"
 
-// DEBUG
-#include <Omega_h_array_ops.hpp>
-
 namespace Omega_h {
 
 void make_1d_box(Real x, LO nx, LOs* ev2v_out, Reals* coords_out) {
-  LO const ne = nx;
-  LO const nv = nx + 1;
-  Real const dx = x / Real(nx);
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
+  LO ne = nx;
+  LO nv = nx + 1;
+  Real dx = x / nx;
   Write<Real> coords(nv);
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
   auto fill_coords = OMEGA_H_LAMBDA(LO v) {
-    LO const i = v % nv;
-    Real const ri = Real(i);
-    coords[v] = ri * dx;
+    LO i = v % nv;
+    coords[v] = i * dx;
   };
-  parallel_for(nv, std::move(fill_coords));
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
+  parallel_for(nv, fill_coords, "make_1d_box(coords)");
   Write<LO> ev2v(ne * 2);
   auto fill_conn = OMEGA_H_LAMBDA(LO q) {
-    LO const i = q % ne;
+    LO i = q % ne;
     ev2v[q * 2 + 0] = i + 0;
     ev2v[q * 2 + 1] = i + 1;
   };
-  parallel_for(ne, std::move(fill_conn));
-  OMEGA_H_CHECK(is_sorted(Read<GO>(nv, 0, 1)));
+  parallel_for(ne, fill_conn, "make_1d_box(conn)");
   *ev2v_out = ev2v;
   *coords_out = coords;
 }
