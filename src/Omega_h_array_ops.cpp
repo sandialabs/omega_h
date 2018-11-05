@@ -417,16 +417,16 @@ LO find_last(Read<T> array, T value) {
 template <typename T>
 bool is_sorted(Read<T> a) {
   std::cerr << "a.size() " << a.size() << '\n';
-  std::cerr << "a.write_.shared_alloc_.alloc_ptr " << a.write_.shared_alloc_.alloc_ptr << '\n';
-  std::cerr << "reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3 "
-    << (reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3) << '\n';
+  std::cerr << "a.write_.shared_alloc_.alloc " << a.write_.shared_alloc_.alloc << '\n';
+  std::cerr << "reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc) >> 3 "
+    << (reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc) >> 3) << '\n';
   if (a.size() < 2) return true;
   auto debug = OMEGA_H_LAMBDA(LO i) {
     printf("device a.size() %d\n", a.size());
   };
   for_each(IntIterator(0), IntIterator(1), std::move(debug));
-  std::cerr << "reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3 "
-    << (reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3) << '\n';
+  std::cerr << "reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc) >> 3 "
+    << (reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc) >> 3) << '\n';
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size() - 1);
   long const init = 1;
