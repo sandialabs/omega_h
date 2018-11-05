@@ -82,7 +82,7 @@ OMEGA_H_INLINE Vector<max_n> implicit_q_trans_b(
     for (Int i = k; i < m; ++i) dot += v[k][i] * b[i];
     for (Int i = k; i < m; ++i) b[i] -= 2.0 * dot * v[k][i];
   }
-  Vector<max_n> qtb;
+  Vector<max_n> qtb = zero_vector<max_n>();
   for (Int i = 0; i < n; ++i) qtb[i] = b[i];
   return qtb;
 }
