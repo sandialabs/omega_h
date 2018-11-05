@@ -346,11 +346,9 @@ static void test_inball() {
   auto inball1 = get_inball(regular_edge);
   OMEGA_H_CHECK(are_close(inball1.c, vector_1(0.0)));
   OMEGA_H_CHECK(are_close(inball1.r, 1.0));
-  std::cerr << std::scientific << std::setprecision(17);
   Few<Vector<2>, 3> regular_tri = {
       {-1.0, 0.0}, {1.0, 0.0}, {0.0, std::sqrt(3.0)}};
   auto inball2 = get_inball(regular_tri);
-  std::cerr << inball2.c << " =?= " << (std::sqrt(3.0) / 3.0) << '\n';
   OMEGA_H_CHECK(are_close(inball2.c, vector_2(0.0, std::sqrt(3.0) / 3.0)));
   OMEGA_H_CHECK(are_close(inball2.r, std::sqrt(3.0) / 3.0));
   Few<Vector<3>, 4> regular_tet = {{1, 0, -1.0 / std::sqrt(2.0)},
