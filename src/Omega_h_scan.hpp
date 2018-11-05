@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_SCAN_HPP
 #define OMEGA_H_SCAN_HPP
 
-#ifdef __GNUC__
+#if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
@@ -51,10 +51,13 @@ OutputIterator transform_inclusive_scan(
     InputIterator last,
     OutputIterator result,
     BinaryOp op,
-    UnaryOp&& transform)
+    UnaryOp transform)
 {
+  Omega_h::entering_parallel = true;
+  auto const transform_parallel = std::move(transform);
+  Omega_h::entering_parallel = false;
   return thrust::transform_inclusive_scan(
-      thrust::device, first, last, result, native_op(transform), native_op(op));
+      thrust::device, first, last, result, native_op(transform_parallel), native_op(op));
 }
 
 #elif defined(OMEGA_H_USE_OPENMP)
@@ -146,7 +149,7 @@ OutputIterator transform_inclusive_scan(
 
 }
 
-#ifdef __GNUC__
+#if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))
 #pragma GCC diagnostic pop
 #endif
 

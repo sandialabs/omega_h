@@ -304,20 +304,22 @@ OMEGA_H_INLINE Plane<dim> get_side_plane(
 
 template <Int dim>
 OMEGA_H_INLINE Sphere<dim> get_inball(Few<Vector<dim>, dim + 1> p) {
-  auto nsides = dim + 1;
+  constexpr auto nsides = dim + 1;
   Few<Plane<dim>, dim + 1> planes;
   for (Int iside = 0; iside < nsides; ++iside) {
     planes[iside] = normalize(get_side_plane(p, iside));
   }
   Matrix<dim, dim> a;
-  Vector<dim> b;
   for (Int i = 0; i < dim; ++i) {
     a[i] = planes[i + 1].n - planes[0].n;
+  }
+  Vector<dim> b;
+  for (Int i = 0; i < dim; ++i) {
     b[i] = planes[i + 1].d - planes[0].d;
   }
   a = transpose(a);
-  auto c = invert(a) * b;
-  auto r = -distance(planes[0], c);
+  auto const c = invert(a) * b;
+  auto const r = -distance(planes[0], c);
   return {c, r};
 }
 

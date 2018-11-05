@@ -179,9 +179,6 @@ Reals generate_metrics(Mesh* mesh, MetricInput const& input) {
               metrics, metric_eigenvalue_from_length(source.knob));
         }
         break;
-      case OMEGA_H_PROXIMITY:
-        metrics = get_proximity_isos(mesh, source.knob);
-        break;
       case OMEGA_H_CURVATURE:
         metrics = get_curvature_metrics(mesh, source.knob);
         break;
@@ -277,6 +274,7 @@ void add_implied_metric_tag(Mesh* mesh) {
 }
 
 void add_implied_isos_tag(Mesh* mesh) {
+  OMEGA_H_TIME_FUNCTION;
   auto metrics = get_implied_isos(mesh);
   add_metric_tag(mesh, metrics, "metric");
 }

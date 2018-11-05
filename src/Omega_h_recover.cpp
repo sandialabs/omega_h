@@ -79,7 +79,7 @@ static void diffuse_to_exterior(
     }
     if (!nadj) return;
     for (Int comp = 0; comp < ncomps; ++comp) {
-      Real sum = 0;
+      Real sum = 0.0;
       for (auto vv = v2vv[v]; vv < v2vv[v + 1]; ++vv) {
         auto ov = vv2v[vv];
         if (visited[ov]) sum += v_data[ov * ncomps + comp];

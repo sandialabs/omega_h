@@ -4,9 +4,6 @@
 #include "Omega_h_shape.hpp"
 #include "Omega_h_metric_intersect.hpp"
 
-#include <Omega_h_print.hpp>
-#include <iomanip>
-
 using namespace Omega_h;
 
 static void test_edge_length() {

@@ -67,8 +67,11 @@ thrust::identity<T> native_op(Omega_h::identity<T> const&) {
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(
     Iterator first, Iterator last, Result init, Op op, Tranform transform) {
+  Omega_h::entering_parallel = true;
+  auto const transform_parallel = std::move(transform);
+  Omega_h::entering_parallel = false;
   return thrust::transform_reduce(
-      thrust::device, first, last, native_op(transform), init, native_op(op));
+      thrust::device, first, last, native_op(transform_parallel), init, native_op(op));
 }
 
 #elif defined(OMEGA_H_USE_OPENMP)

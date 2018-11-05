@@ -31,116 +31,116 @@ struct ArithTraits;
 
 template <>
 struct ArithTraits<unsigned char> {
-  static OMEGA_H_INLINE unsigned char max() { return UCHAR_MAX; }
-  static OMEGA_H_INLINE unsigned char min() { return 0; }
+  static OMEGA_H_INLINE unsigned char max() noexcept { return UCHAR_MAX; }
+  static OMEGA_H_INLINE unsigned char min() noexcept { return 0; }
 };
 
 template <>
 struct ArithTraits<signed char> {
-  static OMEGA_H_INLINE signed char max() { return SCHAR_MAX; }
-  static OMEGA_H_INLINE signed char min() { return SCHAR_MIN; }
+  static constexpr OMEGA_H_INLINE signed char max() noexcept { return SCHAR_MAX; }
+  static constexpr OMEGA_H_INLINE signed char min() noexcept { return SCHAR_MIN; }
 };
 
 template <>
 struct ArithTraits<unsigned int> {
-  static OMEGA_H_INLINE unsigned int max() { return UINT_MAX; }
-  static OMEGA_H_INLINE unsigned int min() { return 0; }
+  static constexpr OMEGA_H_INLINE unsigned int max() noexcept { return UINT_MAX; }
+  static constexpr OMEGA_H_INLINE unsigned int min() noexcept { return 0; }
 };
 
 template <>
 struct ArithTraits<int> {
-  static OMEGA_H_INLINE int max() { return INT_MAX; }
-  static OMEGA_H_INLINE int min() { return INT_MIN; }
+  static constexpr OMEGA_H_INLINE int max() noexcept { return INT_MAX; }
+  static constexpr OMEGA_H_INLINE int min() noexcept { return INT_MIN; }
 };
 
 template <>
 struct ArithTraits<unsigned long> {
-  static OMEGA_H_INLINE unsigned long max() { return ULONG_MAX; }
-  static OMEGA_H_INLINE unsigned long min() { return 0; }
+  static constexpr OMEGA_H_INLINE unsigned long max() noexcept { return ULONG_MAX; }
+  static constexpr OMEGA_H_INLINE unsigned long min() noexcept { return 0; }
 };
 
 template <>
 struct ArithTraits<signed long> {
-  static OMEGA_H_INLINE signed long max() { return LONG_MAX; }
-  static OMEGA_H_INLINE signed long min() { return LONG_MIN; }
+  static constexpr OMEGA_H_INLINE signed long max() noexcept { return LONG_MAX; }
+  static constexpr OMEGA_H_INLINE signed long min() noexcept { return LONG_MIN; }
 };
 
 template <>
 struct ArithTraits<unsigned long long> {
-  static OMEGA_H_INLINE unsigned long long max() { return ULLONG_MAX; }
-  static OMEGA_H_INLINE unsigned long long min() { return 0; }
+  static constexpr OMEGA_H_INLINE unsigned long long max() noexcept { return ULLONG_MAX; }
+  static constexpr OMEGA_H_INLINE unsigned long long min() noexcept { return 0; }
 };
 
 template <>
 struct ArithTraits<signed long long> {
-  static OMEGA_H_INLINE signed long long max() { return LLONG_MAX; }
-  static OMEGA_H_INLINE signed long long min() { return LLONG_MIN; }
+  static constexpr OMEGA_H_INLINE signed long long max() noexcept { return LLONG_MAX; }
+  static constexpr OMEGA_H_INLINE signed long long min() noexcept { return LLONG_MIN; }
 };
 
 template <>
 struct ArithTraits<double> {
-  static OMEGA_H_INLINE double max() { return DBL_MAX; }
-  static OMEGA_H_INLINE double min() { return -DBL_MAX; }
+  static constexpr OMEGA_H_INLINE double max() noexcept { return DBL_MAX; }
+  static constexpr OMEGA_H_INLINE double min() noexcept { return -DBL_MAX; }
 };
 
 template <typename T>
-constexpr OMEGA_H_INLINE T max2(T a, T b) {
+constexpr OMEGA_H_INLINE T max2(T a, T b) noexcept {
   return (a < b) ? (b) : (a);
 }
 
 template <typename T>
-constexpr OMEGA_H_INLINE T min2(T a, T b) {
+constexpr OMEGA_H_INLINE T min2(T a, T b) noexcept {
   return (b < a) ? (b) : (a);
 }
 
 template <typename T>
-OMEGA_H_INLINE void swap2(T& a, T& b) {
+OMEGA_H_INLINE void swap2(T& a, T& b) noexcept {
   T const c(std::move(a));
   a = std::move(b);
   b = std::move(c);
 }
 
 template <typename T>
-constexpr OMEGA_H_INLINE T factorial(T x) {
+constexpr OMEGA_H_INLINE T factorial(T x) noexcept {
   return (x > 1) ? (x * factorial(x - 1)) : 1;
 }
 
 template <typename T>
-constexpr OMEGA_H_INLINE T average(T a, T b) {
+constexpr OMEGA_H_INLINE T average(T a, T b) noexcept {
   return (a + b) / 2;
 }
 
 template <Int p, typename T>
 struct Raise {
   static_assert(p >= 0, "negative power not allowed in Raise!");
-  static constexpr OMEGA_H_INLINE T eval(T x) {
+  static constexpr OMEGA_H_INLINE T eval(T x) noexcept {
     return x * Raise<p - 1, T>::eval(x);
   }
 };
 
 template <typename T>
 struct Raise<0, T> {
-  static constexpr OMEGA_H_INLINE T eval(T) { return 1; }
+  static constexpr OMEGA_H_INLINE T eval(T) noexcept { return 1; }
 };
 
 template <Int p, typename T>
-constexpr OMEGA_H_INLINE T raise(T x) {
+constexpr OMEGA_H_INLINE T raise(T x) noexcept {
   return Raise<p, T>::eval(x);
 }
 
 template <typename T>
-constexpr OMEGA_H_INLINE T square(T x) {
+constexpr OMEGA_H_INLINE T square(T x) noexcept {
   return raise<2, T>(x);
 }
 
 template <typename T>
-OMEGA_H_INLINE T cube(T x) {
+OMEGA_H_INLINE T cube(T x) noexcept {
   return raise<3, T>(x);
 }
 
-OMEGA_H_INLINE Real sign(Real x) { return (x < 0.0) ? -1.0 : 1.0; }
+OMEGA_H_INLINE Real sign(Real x) noexcept { return (x < 0.0) ? -1.0 : 1.0; }
 
-OMEGA_H_INLINE Real clamp(Real x, Real low, Real high) {
+OMEGA_H_INLINE Real clamp(Real x, Real low, Real high) noexcept {
   return min2(max2(x, low), high);
 }
 
@@ -149,31 +149,31 @@ struct Root;
 
 template <>
 struct Root<0> {
-  static OMEGA_H_INLINE Real eval(Real) { return 1.0; }
+  static OMEGA_H_INLINE Real eval(Real) noexcept { return 1.0; }
 };
 
 template <>
 struct Root<1> {
-  static OMEGA_H_INLINE Real eval(Real x) { return x; }
+  static OMEGA_H_INLINE Real eval(Real x) noexcept { return x; }
 };
 
 template <>
 struct Root<2> {
-  static OMEGA_H_INLINE Real eval(Real x) { return std::sqrt(x); }
+  static OMEGA_H_INLINE Real eval(Real x) noexcept { return std::sqrt(x); }
 };
 
 template <>
 struct Root<3> {
-  static OMEGA_H_INLINE Real eval(Real x) { return std::cbrt(x); }
+  static OMEGA_H_INLINE Real eval(Real x) noexcept { return std::cbrt(x); }
 };
 
 template <Int p>
-OMEGA_H_INLINE Real root(Real x) {
+OMEGA_H_INLINE Real root(Real x) noexcept {
   return Root<p>::eval(x);
 }
 
 /* compile-time-executable Greatest Common Denominator code */
-constexpr OMEGA_H_INLINE Int gcd(Int a, Int b) {
+constexpr OMEGA_H_INLINE Int gcd(Int a, Int b) noexcept {
   return (b == 0) ? (a) : (gcd(b, a % b));
 }
 
@@ -191,21 +191,21 @@ struct Power : public Power<np / cd, dp / cd> {
 
 template <Int np, Int dp>
 struct Power<np, dp, 1> {
-  static OMEGA_H_INLINE Real eval(Real x) { return root<dp>(raise<np>(x)); }
+  static OMEGA_H_INLINE Real eval(Real x) noexcept { return root<dp>(raise<np>(x)); }
   static_assert(np != dp, "equal case should be specialized");
 };
 
 template <Int p>
 struct Power<p, p, 1> {
-  static OMEGA_H_INLINE Real eval(Real x) { return x; }
+  static OMEGA_H_INLINE Real eval(Real x) noexcept { return x; }
 };
 
 template <Int np, Int dp>
-OMEGA_H_INLINE Real power(Real x) {
+OMEGA_H_INLINE Real power(Real x) noexcept {
   return Power<np, dp>::eval(x);
 }
 
-OMEGA_H_INLINE Real power(Real x, Int np, Int dp) {
+OMEGA_H_INLINE Real power(Real x, Int np, Int dp) noexcept {
   switch (np) {
     case 1:
       switch (dp) {
@@ -238,7 +238,7 @@ OMEGA_H_INLINE Real power(Real x, Int np, Int dp) {
   return -42.0;
 }
 
-OMEGA_H_INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
+OMEGA_H_INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) noexcept {
   Real am = std::abs(a);
   Real bm = std::abs(b);
   if (am <= floor && bm <= floor) return 0.0;
@@ -246,7 +246,7 @@ OMEGA_H_INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) {
 }
 
 OMEGA_H_INLINE bool are_close(
-    Real a, Real b, Real tol = EPSILON, Real floor = EPSILON) {
+    Real a, Real b, Real tol = EPSILON, Real floor = EPSILON) noexcept {
   return rel_diff_with_floor(a, b, floor) <= tol;
 }
 
@@ -262,7 +262,7 @@ struct plus {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const noexcept {
     return lhs + rhs;
   }
 };
@@ -272,7 +272,7 @@ struct logical_and {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef bool result_type;
-  OMEGA_H_INLINE bool operator()(const T& lhs, const T& rhs) const {
+  OMEGA_H_INLINE bool operator()(const T& lhs, const T& rhs) const noexcept {
     return lhs && rhs;
   }
 };
@@ -282,7 +282,7 @@ struct maximum {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const noexcept {
     return lhs < rhs ? rhs : lhs;
   }
 };
@@ -292,7 +292,7 @@ struct minimum {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const noexcept {
     return lhs < rhs ? lhs : rhs;
   }
 };
@@ -301,7 +301,7 @@ template <typename T>
 struct identity {
   typedef T argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE const T& operator()(const T& x) const { return x; }
+  OMEGA_H_INLINE const T& operator()(const T& x) const noexcept { return x; }
 };
 
 template <typename T>
@@ -309,7 +309,7 @@ struct multiplies {
   typedef T first_argument_type;
   typedef T second_argument_type;
   typedef T result_type;
-  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const {
+  OMEGA_H_INLINE T operator()(const T& lhs, const T& rhs) const noexcept {
     return lhs * rhs;
   }
 };

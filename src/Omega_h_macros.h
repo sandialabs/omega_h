@@ -46,4 +46,10 @@
 #define OMEGA_H_CONSTANT_DATA
 #endif
 
+#if defined(OMEGA_H_CHECK_BOUNDS) && defined(OMEGA_H_THROW)
+#define OMEGA_H_NOEXCEPT
+#else
+#define OMEGA_H_NOEXCEPT noexcept
+#endif
+
 #endif
