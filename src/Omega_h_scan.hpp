@@ -51,8 +51,11 @@ OutputIterator transform_inclusive_scan(
     InputIterator last,
     OutputIterator result,
     BinaryOp op,
-    UnaryOp&& transform)
+    UnaryOp transform)
 {
+  Omega_h::entering_parallel = true;
+  auto const transform_parallel = std::move(transform);
+  Omega_h::entering_parallel = false;
   return thrust::transform_inclusive_scan(
       thrust::device, first, last, result, native_op(transform), native_op(op));
 }
