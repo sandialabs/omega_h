@@ -22,7 +22,6 @@ class HostWrite;
 
 template <typename T>
 class Write {
- public:
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view_;
 #else
@@ -114,7 +113,6 @@ OMEGA_H_INLINE Write<T>::Write()
 
 template <typename T>
 class Read {
- public:
   Write<T> write_;
 
  public:
