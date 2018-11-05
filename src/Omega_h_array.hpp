@@ -22,6 +22,7 @@ class HostWrite;
 
 template <typename T>
 class Write {
+ public:
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<T*> view_;
 #else
@@ -76,7 +77,7 @@ class Write {
   }
 #else
   inline int use_count() const {
-    return shared_alloc_.alloc->use_count;
+    return shared_alloc_.get_alloc()->use_count;
   }
 #endif
   OMEGA_H_INLINE bool exists() const {
@@ -113,6 +114,7 @@ OMEGA_H_INLINE Write<T>::Write()
 
 template <typename T>
 class Read {
+ public:
   Write<T> write_;
 
  public:

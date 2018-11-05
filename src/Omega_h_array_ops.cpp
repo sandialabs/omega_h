@@ -39,6 +39,7 @@ T get_min(Read<T> a) {
   auto const init = promoted_t<T>(ArithTraits<T>::max());
   auto const op = minimum<promoted_t<T>>();
   auto transform = OMEGA_H_LAMBDA(LO i) -> promoted_t<T> {
+    OMEGA_H_CHECK(i < a.size());
     return promoted_t<T>(a[i]);
   };
   auto const r = transform_reduce(first, last, init, op, std::move(transform));
@@ -415,15 +416,30 @@ LO find_last(Read<T> array, T value) {
 
 template <typename T>
 bool is_sorted(Read<T> a) {
+  std::cerr << "a.size() " << a.size() << '\n';
+  std::cerr << "a.write_.shared_alloc_.alloc_ptr " << a.write_.shared_alloc_.alloc_ptr << '\n';
+  std::cerr << "reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3 "
+    << (reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3) << '\n';
   if (a.size() < 2) return true;
+  auto debug = OMEGA_H_LAMBDA(LO i) {
+    printf("device a.size() %d\n", a.size());
+  };
+  for_each(IntIterator(0), IntIterator(1), std::move(debug));
+  std::cerr << "reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3 "
+    << (reinterpret_cast<std::uintptr_t>(a.write_.shared_alloc_.alloc_ptr) >> 3) << '\n';
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size() - 1);
-  auto const init = true;
-  auto const op = logical_and<bool>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
-    return a[i] <= a[i + 1];
+  long const init = 1;
+  auto const op = logical_and<long>();
+  auto transform = OMEGA_H_LAMBDA(LO i) -> long {
+  //if (!(i + 1 < a.size())) {
+      printf("%d + 1 ?= %d\n", i, a.size());
+  //}
+  //return (a[i] <= a[i + 1]) ? 1 : 0;
+  //__syncthreads();
+    return 1;
   };
-  return transform_reduce(first, last, init, op, std::move(transform));
+  return transform_reduce(first, last, init, op, transform) == 1;
 }
 
 template <typename T>

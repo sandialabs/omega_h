@@ -67,6 +67,9 @@ static void swap3d_element_based(Mesh* mesh, AdaptOpts const& opts) {
         keys2prods[ent_dim], prod_verts2verts[ent_dim], old_lows2new_lows,
         &prods2new_ents, &same_ents2old_ents, &same_ents2new_ents,
         &old_ents2new_ents);
+    std::cout << "3D swap pass, dimension " << ent_dim << ": out of " << mesh->nents(ent_dim)
+      << " total entities, " << same_ents2old_ents.size() << " remained the same"
+      << " and " << new_mesh.nents(ent_dim) << " was the total after\n";
     transfer_swap(mesh, opts.xfer_opts, &new_mesh, ent_dim, keys2edges,
         keys2prods[ent_dim], prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);

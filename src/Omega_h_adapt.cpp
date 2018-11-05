@@ -272,6 +272,12 @@ static void post_adapt(
 
 bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   ScopedTimer adapt_timer("adapt");
+  {
+  auto const volumes_before = measure_elements_real(mesh);
+  auto const volume_before = get_sum(volumes_before);
+  std::cout << std::scientific << std::setprecision(17) << '\n';
+  std::cout << "volume before adapt: " << volume_before << '\n';
+  }
   OMEGA_H_CHECK(mesh->family() == OMEGA_H_SIMPLEX);
   auto t0 = now();
   if (!pre_adapt(mesh, opts)) return false;
@@ -285,6 +291,12 @@ bool adapt(Mesh* mesh, AdaptOpts const& opts) {
   auto t4 = now();
   mesh->set_parting(OMEGA_H_ELEM_BASED);
   post_adapt(mesh, opts, t0, t1, t2, t3, t4);
+  {
+  auto const volumes_after = measure_elements_real(mesh);
+  auto const volume_after = get_sum(volumes_after);
+  std::cout << std::scientific << std::setprecision(17) << '\n';
+  std::cout << "volume after adapt: " << volume_after << '\n';
+  }
   return true;
 }
 

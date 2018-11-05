@@ -81,7 +81,7 @@ std::string Write<T>::name() const {
 #else
 template <typename T>
 std::string const& Write<T>::name() const {
-  return shared_alloc_.alloc->name;
+  return shared_alloc_.get_alloc()->name;
 }
 #endif
 

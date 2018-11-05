@@ -75,7 +75,8 @@ void build_ents_from_elems2verts(
     add_ents2verts(mesh, mdim, mv2v, vert_globals, elem_globals);
   }
   add_ents2verts(mesh, elem_dim, ev2v, vert_globals, elem_globals);
-  if (!comm->reduce_and(is_sorted(vert_globals))) {
+  auto const globals_are_locally_sorted = is_sorted(vert_globals);
+  if (!comm->reduce_and(globals_are_locally_sorted)) {
     reorder_by_globals(mesh);
   }
 }
@@ -93,13 +94,16 @@ void build_from_elems2verts(Mesh* mesh, CommPtr comm, Omega_h_Family family,
 void build_from_elems2verts(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, LO nverts) {
   auto vert_globals = Read<GO>(nverts, 0, 1);
+  OMEGA_H_CHECK(is_sorted(vert_globals));
+  OMEGA_H_CHECK(is_sorted(vert_globals));
   build_from_elems2verts(
       mesh, mesh->library()->self(), family, edim, ev2v, vert_globals);
+  OMEGA_H_CHECK(is_sorted(vert_globals));
 }
 
 void build_from_elems_and_coords(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords) {
-  auto nverts = coords.size() / edim;
+  auto nverts = divide_no_remainder(coords.size(), edim);
   build_from_elems2verts(mesh, family, edim, ev2v, nverts);
   mesh->add_coords(coords);
 }
@@ -109,6 +113,9 @@ void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
   OMEGA_H_CHECK(nx > 0);
   OMEGA_H_CHECK(ny >= 0);
   OMEGA_H_CHECK(nz >= 0);
+  auto const nverts = (nx + 1) * (ny + 1) * (nz + 1);
+  OMEGA_H_CHECK(is_sorted(Read<GO>(nverts, 0, 1)));
+  OMEGA_H_CHECK(is_sorted(Read<GO>(nverts, 0, 1)));
   if (ny == 0) {
     LOs ev2v;
     Reals coords;
@@ -135,16 +142,33 @@ void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
 
 Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
     LO nx, LO ny, LO nz, bool symmetric) {
+  {
+  auto const nverts = (nx + 1) * (ny + 1) * (nz + 1);
+  OMEGA_H_CHECK(is_sorted(Read<GO>(nverts, 0, 1)));
+  OMEGA_H_CHECK(is_sorted(Read<GO>(nverts, 0, 1)));
+  }
   auto lib = comm->library();
+  get_min(Reals({1.0}));
   auto mesh = Mesh(lib);
+  auto const nverts = (nx + 1) * (ny + 1) * (nz + 1);
+  OMEGA_H_CHECK(is_sorted(Read<GO>(nverts, 0, 1)));
+  OMEGA_H_CHECK(is_sorted(Read<GO>(nverts, 0, 1)));
+  get_min(Reals({1.0}));
   if (comm->rank() == 0) {
+    get_min(Reals({1.0}));
     build_box_internal(&mesh, family, x, y, z, nx, ny, nz, symmetric);
+    get_min(Reals({1.0}));
     reorder_by_hilbert(&mesh);
+    get_min(Reals({1.0}));
     classify_box(&mesh, x, y, z, nx, ny, nz);
+    get_min(Reals({1.0}));
     mesh.class_sets = get_box_class_sets(mesh.dim());
+    get_min(Reals(10000, 1.0));
   }
   mesh.set_comm(comm);
+  get_min(Reals({1.0}));
   mesh.balance();
+  get_min(Reals({1.0}));
   return mesh;
 }
 
