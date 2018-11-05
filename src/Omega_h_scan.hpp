@@ -57,7 +57,7 @@ OutputIterator transform_inclusive_scan(
   auto const transform_parallel = std::move(transform);
   Omega_h::entering_parallel = false;
   return thrust::transform_inclusive_scan(
-      thrust::device, first, last, result, native_op(transform), native_op(op));
+      thrust::device, first, last, result, native_op(transform_parallel), native_op(op));
 }
 
 #elif defined(OMEGA_H_USE_OPENMP)
