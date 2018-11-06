@@ -17,7 +17,7 @@ OMEGA_H_INLINE Vector<3> get_most_normal_normal(
     Few<Vector<3>, nmax> N, Int n, Real inside_tol = OMEGA_H_EPSILON) {
   // first try pairs
   Real scalmin = -1.0;
-  Vector<3> c;
+  Vector<3> c = zero_vector<3>();
   for (Int i = 0; i < n; ++i) {
     for (Int j = i + 1; j < n; ++j) {
       // Compute the bisector vector (center):
