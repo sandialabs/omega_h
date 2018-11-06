@@ -173,8 +173,11 @@ static void post_rebuild(Mesh* mesh, AdaptOpts const& opts) {
 
 static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_TIME_FUNCTION;
+  std::cout << "starting satisfy_lengths...\n";
+  OMEGA_H_CHECK(opts.should_refine && opts.should_coarsen);
   bool did_anything;
   do {
+    std::cout << "in while loop...\n";
     did_anything = false;
     if (opts.should_refine && refine_by_size(mesh, opts)) {
       post_rebuild(mesh, opts);
@@ -185,6 +188,7 @@ static void satisfy_lengths(Mesh* mesh, AdaptOpts const& opts) {
       did_anything = true;
     }
   } while (did_anything);
+  std::cout << "done with satisfy_lengths...\n";
 }
 
 static bool satisfy_quality(Mesh* mesh, AdaptOpts const& opts) {
