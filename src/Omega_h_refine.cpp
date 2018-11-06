@@ -91,15 +91,12 @@ static bool refine(Mesh* mesh, AdaptOpts const& opts) {
 
 bool refine_by_size(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_TIME_FUNCTION;
-  std::cerr << "starting refine_by_size...\n";
-  auto const comm = mesh->comm();
-  auto const lengths = mesh->ask_lengths();
-  auto const edge_is_cand = each_gt(lengths, opts.max_length_desired);
+  auto comm = mesh->comm();
+  auto lengths = mesh->ask_lengths();
+  auto edge_is_cand = each_gt(lengths, opts.max_length_desired);
   if (get_max(comm, edge_is_cand) != 1) return false;
   mesh->add_tag(EDGE, "candidate", 1, edge_is_cand);
-  auto const did_anything = refine(mesh, opts);
-  std::cerr << "done with refine_by_size\n";
-  return did_anything;
+  return refine(mesh, opts);
 }
 
 }  // end namespace Omega_h
