@@ -137,10 +137,6 @@ Library::Library(Library const& other)
 }
 
 Library::~Library() {
-  // need to destroy all Comm objects prior to MPI_Finalize()
-  world_ = CommPtr();
-  self_ = CommPtr();
-  disable_pooling();
   if (Omega_h::profile::global_singleton_history) {
     if (world_->rank() == 0) {
       Omega_h::profile::print_top_down_and_bottom_up(
@@ -148,6 +144,10 @@ Library::~Library() {
     }
     delete Omega_h::profile::global_singleton_history;
   }
+  // need to destroy all Comm objects prior to MPI_Finalize()
+  world_ = CommPtr();
+  self_ = CommPtr();
+  disable_pooling();
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (we_called_kokkos_init) {
     Kokkos::finalize();
