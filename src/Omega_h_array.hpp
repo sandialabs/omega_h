@@ -37,7 +37,7 @@ class Write {
   Write(LO size_in, T value, std::string const& name = "");
   Write(LO size_in, T offset, T stride, std::string const& name = "");
   Write(HostWrite<T> host_write);
-  OMEGA_H_INLINE LO size() const {
+  OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(exists());
 #endif
@@ -47,7 +47,7 @@ class Write {
     return static_cast<LO>(shared_alloc_.size() / sizeof(T));
 #endif
   }
-  OMEGA_H_DEVICE T& operator[](LO i) const {
+  OMEGA_H_DEVICE T& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
     OMEGA_H_CHECK(i < size());
@@ -58,7 +58,7 @@ class Write {
     return data()[i];
 #endif
   }
-  OMEGA_H_INLINE T* data() const {
+  OMEGA_H_INLINE T* data() const noexcept {
 #ifdef OMEGA_H_USE_KOKKOSCORE
     return view_.data();
 #else
@@ -79,7 +79,7 @@ class Write {
     return shared_alloc_.alloc->use_count;
   }
 #endif
-  OMEGA_H_INLINE bool exists() const {
+  OMEGA_H_INLINE bool exists() const noexcept {
 #if defined( OMEGA_H_USE_KOKKOSCORE )
     return view().data() != nullptr
 #if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && (!defined(__CUDA_ARCH__))
@@ -96,8 +96,8 @@ class Write {
 #else
   std::string const& name() const;
 #endif
-  OMEGA_H_INLINE T* begin() const { return data(); }
-  OMEGA_H_INLINE T* end() const { return data() + size(); }
+  OMEGA_H_INLINE T* begin() const noexcept { return data(); }
+  OMEGA_H_INLINE T* end() const OMEGA_H_NOEXCEPT { return data() + size(); }
 };
 
 template <typename T>
@@ -121,19 +121,19 @@ class Read {
   Read(LO size, T value, std::string const& name = "");
   Read(LO size, T offset, T stride, std::string const& name = "");
   Read(std::initializer_list<T> l, std::string const& name = "");
-  OMEGA_H_INLINE LO size() const { return write_.size(); }
-  OMEGA_H_DEVICE T const& operator[](LO i) const { return write_[i]; }
-  OMEGA_H_INLINE T const* data() const { return write_.data(); }
+  OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT { return write_.size(); }
+  OMEGA_H_DEVICE T const& operator[](LO i) const OMEGA_H_NOEXCEPT { return write_[i]; }
+  OMEGA_H_INLINE T const* data() const OMEGA_H_NOEXCEPT { return write_.data(); }
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::View<const T*> view() const;
 #endif
   T get(LO i) const;
   T first() const;
   T last() const;
-  OMEGA_H_INLINE bool exists() const { return write_.exists(); }
+  OMEGA_H_INLINE bool exists() const OMEGA_H_NOEXCEPT { return write_.exists(); }
   std::string name() const { return write_.name(); }
-  OMEGA_H_INLINE T const* begin() const { return data(); }
-  OMEGA_H_INLINE T const* end() const { return data() + size(); }
+  OMEGA_H_INLINE T const* begin() const noexcept { return data(); }
+  OMEGA_H_INLINE T const* end() const noexcept { return data() + size(); }
 };
 
 template <typename T>
@@ -191,7 +191,7 @@ class HostRead {
   HostRead() = default;
   HostRead(Read<T> read);
   LO size() const;
-  inline T const& operator[](LO i) const {
+  inline T const& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
@@ -230,8 +230,8 @@ class HostWrite {
   HostWrite(Write<T> write_in);
   HostWrite(std::initializer_list<T> l, std::string const& name = "");
   Write<T> write() const;
-  LO size() const;
-  inline T& operator[](LO i) const {
+  LO size() const OMEGA_H_NOEXCEPT;
+  inline T& operator[](LO i) const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #ifdef OMEGA_H_CHECK_BOUNDS
     OMEGA_H_CHECK(0 <= i);
@@ -251,7 +251,7 @@ class HostWrite {
 #endif
   }
   T* data() const;
-  OMEGA_H_INLINE bool exists() const { return write_.exists(); }
+  OMEGA_H_INLINE bool exists() const OMEGA_H_NOEXCEPT { return write_.exists(); }
   void set(LO i, T value);
   T get(LO i) const;
 };

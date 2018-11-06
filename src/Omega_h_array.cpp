@@ -274,7 +274,7 @@ Write<T> HostWrite<T>::write() const {
 }
 
 template <typename T>
-LO HostWrite<T>::size() const {
+LO HostWrite<T>::size() const OMEGA_H_NOEXCEPT {
   return write_.size();
 }
 
