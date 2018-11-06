@@ -33,10 +33,10 @@ int main(int argc, char** argv) {
     OMEGA_H_CHECK(group->rank() == group_rank);
     if (group_in_world == 0) {
       if (shift == 0) {
-        std::cout << "reading mesh...\n";
+        if (world_rank == 0) std::cout << "reading mesh...\n";
         mesh = Omega_h::binary::read(inpath, group, true);
       } else {
-        std::cout << "repartitioning...\n";
+        if (world_rank == 0) std::cout << "repartitioning...\n";
         mesh.set_comm(group);
         mesh.balance();
       }
@@ -44,6 +44,9 @@ int main(int argc, char** argv) {
       auto nelems = mesh.nglobal_ents(mesh.dim());
       if (world_rank == 0) std::cout << "mesh has " << nelems << " total elements\n";
       auto const desired_group_nelems = desired_nelems_per_rank * group_size;
+      if (double(nelems) >= desired_nelems_per_rank) {
+        if (world_rank == 0) std::cout << "element count " << nelems << " >= target " << desired_group_nelems << ", will not adapt\n";
+      }
       while (double(nelems) < desired_group_nelems) {
         if (world_rank == 0) std::cout << "element count " << nelems << " < target " << desired_group_nelems << ", will adapt\n";
         if (!mesh.has_tag(0, "metric")) {

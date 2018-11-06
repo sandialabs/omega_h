@@ -10,6 +10,7 @@
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_refine_topology.hpp"
 #include "Omega_h_transfer.hpp"
+#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 
@@ -89,6 +90,7 @@ static bool refine(Mesh* mesh, AdaptOpts const& opts) {
 }
 
 bool refine_by_size(Mesh* mesh, AdaptOpts const& opts) {
+  OMEGA_H_TIME_FUNCTION;
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_gt(lengths, opts.max_length_desired);
