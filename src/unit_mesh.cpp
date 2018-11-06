@@ -439,8 +439,9 @@ static void test_swap3d_loop(Library* lib) {
     OMEGA_H_CHECK(loop.eev2v[1] == 0);
     OMEGA_H_CHECK(loop.size == 6);
     LO const expect[6] = {2, 3, 1, 5, 4, 6};
-    for (Int i = 0; i < loop.size; ++i)
+    for (Int i = 0; i < 6; ++i) {
       OMEGA_H_CHECK(loop.loop_verts2verts[i] == expect[i]);
+    }
   };
   parallel_for(LO(1), f);
 }
