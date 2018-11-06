@@ -549,6 +549,7 @@ void Mesh::set_parting(Omega_h_Parting parting_in, bool verbose) {
 /* this is a member function mainly because it
    modifies the RIB hints */
 void Mesh::balance(bool predictive) {
+  OMEGA_H_TIME_FUNCTION;
   if (comm_->size() == 1) return;
   set_parting(OMEGA_H_ELEM_BASED);
   inertia::Rib hints;
