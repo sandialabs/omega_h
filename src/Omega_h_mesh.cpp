@@ -82,6 +82,7 @@ void Mesh::set_dim(Int dim_in) {
 void Mesh::set_verts(LO nverts_in) { nents_[VERT] = nverts_in; }
 
 void Mesh::set_ents(Int ent_dim, Adj down) {
+  OMEGA_H_TIME_FUNCTION;
   check_dim(ent_dim);
   OMEGA_H_CHECK(!has_ents(ent_dim));
   LOs hl2l = down.ab2b;

@@ -401,6 +401,7 @@ void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
     Int high_dim, Int low_dim) {
+  ScopedTimer timer("reflect_down(v2l)");
   LOs uv2v = form_uses(hv2v, family, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
@@ -410,6 +411,7 @@ Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
 
 Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
     Int low_dim) {
+  ScopedTimer timer("reflect_down(nv)");
   auto nverts_per_low = element_degree(family, low_dim, 0);
   auto l2v = Adj(lv2v);
   auto v2l = invert_adj(l2v, nverts_per_low, nv, high_dim, low_dim);

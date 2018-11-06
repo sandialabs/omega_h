@@ -24,6 +24,7 @@ void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
 
 template <typename T>
 void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
+  OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size();
   OMEGA_H_CHECK(a_data.size() == na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
@@ -32,7 +33,7 @@ void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
       b_data[b * width + j] = a_data[a * width + j];
     }
   };
-  parallel_for(na, f, "map_into");
+  parallel_for(na, std::move(f));
 }
 
 template <typename T>
@@ -67,6 +68,7 @@ Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T init_val, Int width) {
 
 template <typename T>
 Write<T> unmap(LOs a2b, Read<T> b_data, Int width) {
+  OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size();
   Write<T> a_data(na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
@@ -75,7 +77,7 @@ Write<T> unmap(LOs a2b, Read<T> b_data, Int width) {
       a_data[a * width + j] = b_data[b * width + j];
     }
   };
-  parallel_for(na, f, "unmap");
+  parallel_for(na, std::move(f));
   return a_data;
 }
 
@@ -96,6 +98,7 @@ Read<T> unmap_range(LO begin, LO end, Read<T> b_data, Int width) {
 
 template <typename T>
 void expand_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
+  OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size() - 1;
   OMEGA_H_CHECK(a_data.size() == na * width);
   auto f = OMEGA_H_LAMBDA(LO a) {
@@ -105,11 +108,12 @@ void expand_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
       }
     }
   };
-  parallel_for(na, f, "expand_into");
+  parallel_for(na, std::move(f));
 }
 
 template <typename T>
 Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
+  OMEGA_H_TIME_FUNCTION;
   auto nb = a2b.last();
   Write<T> b_data(nb * width);
   expand_into(a_data, a2b, b_data, width);
@@ -118,6 +122,7 @@ Read<T> expand(Read<T> a_data, LOs a2b, Int width) {
 
 template <typename T>
 Read<T> permute(Read<T> a_data, LOs a2b, Int width) {
+  OMEGA_H_TIME_FUNCTION;
   auto nb = a2b.size();
   Write<T> b_data(nb * width);
   map_into(a_data, a2b, b_data, width);
@@ -133,6 +138,7 @@ LOs multiply_fans(LOs a2b, LOs a2c) {
 }
 
 LOs compound_maps(LOs a2b, LOs b2c) {
+  OMEGA_H_TIME_FUNCTION;
   LO na = a2b.size();
   Write<LO> a2c(a2b.size());
   auto f = OMEGA_H_LAMBDA(LO a) {
@@ -140,7 +146,7 @@ LOs compound_maps(LOs a2b, LOs b2c) {
     LO c = b2c[b];
     a2c[a] = c;
   };
-  parallel_for(na, f, "compound_maps");
+  parallel_for(na, std::move(f));
   return a2c;
 }
 
