@@ -3,15 +3,14 @@
 #include <string>
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_int_scan.hpp"
+#include "Omega_h_scan.hpp"
 
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
-#include "Omega_h_for.hpp"
 #include "Omega_h_library.hpp"
+#include "Omega_h_loop.hpp"
 #endif
 
 #include "Omega_h_map.hpp"
-#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 
@@ -118,17 +117,67 @@ CommPtr Comm::split(I32 color, I32 key) const {
 #endif
 }
 
+#ifdef OMEGA_H_USE_MPI
+std::vector<int> sources_from_destinations(MPI_Comm comm, HostRead<I32> destinations) {
+  OMEGA_H_TIME_FUNCTION;
+  {
+  ScopedTimer first_barrier_timer("first barrier");
+  CALL(MPI_Barrier(comm));
+  }
+  char ignored_message = '\0';
+  std::vector<MPI_Request> send_requests(std::size_t(destinations.size()));
+  int tag = 377;
+  for (int i = 0; i < destinations.size(); ++i) {
+    CALL(MPI_Issend(&ignored_message, 1, MPI_CHAR, destinations[i], tag, comm, &send_requests[std::size_t(i)]));
+  }
+  std::vector<int> sources;
+  int locally_done_flag = 0;
+  MPI_Request globally_done_request;
+  int globally_done_flag = 0;
+  while (!globally_done_flag) {
+    MPI_Status status;
+    int flag;
+    int peer = MPI_ANY_SOURCE;
+    CALL(MPI_Iprobe(peer, tag, comm, &flag, &status));
+    if (flag) {
+      peer = status.MPI_SOURCE;
+      CALL(MPI_Recv(
+          &ignored_message,
+          1,
+          MPI_CHAR,
+          peer,
+          tag,
+          comm,
+          MPI_STATUS_IGNORE));
+      sources.push_back(peer);
+    }
+    if (locally_done_flag) {
+      CALL(MPI_Test(&globally_done_request, &globally_done_flag, MPI_STATUS_IGNORE));
+    } else {
+      CALL(MPI_Testall(destinations.size(), send_requests.data(), &locally_done_flag, MPI_STATUSES_IGNORE));
+      if (locally_done_flag) {
+        CALL(MPI_Ibarrier(comm, &globally_done_request));
+      }
+    }
+  }
+  CALL(MPI_Barrier(comm));
+  return sources;
+}
+#endif
+
 CommPtr Comm::graph(Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
+  std::cout << "before graph(dsts)\n";
   MPI_Comm impl2;
-  int n = 1;
-  int source[1] = {rank()};
-  int degree[1] = {dsts.size()};
   HostRead<I32> h_destinations(dsts);
+  auto h_sources = sources_from_destinations(impl_, h_destinations);
+  std::cout << "past sources_from_destinations\n";
   int reorder = 0;
-  CALL(MPI_Dist_graph_create(impl_, n, source, degree,
+  CALL(MPI_Dist_graph_create_adjacent(impl_, int(h_sources.size()),
+      nonnull(h_sources.data()), OMEGA_H_MPI_UNWEIGHTED, h_destinations.size(),
       nonnull(h_destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
       reorder, &impl2));
+  std::cout << "after graph(dsts)\n";
   return CommPtr(new Comm(library_, impl2));
 #else
   return CommPtr(new Comm(library_, true, dsts.size() == 1));
@@ -502,7 +551,6 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
 }
 
 void Comm::barrier() const {
-  OMEGA_H_TIME_FUNCTION;
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Barrier(impl_));
 #endif
