@@ -89,6 +89,7 @@ static OMEGA_H_INLINE int side_exo2osh(
               return 0;
           }
       }
+      return -1;
     case OMEGA_H_HYPERCUBE:
       return -1;  // needs to be filled in!
   }
@@ -108,6 +109,7 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
         case 2:
           return 3;
       }
+      return -1;
     case 3:
       switch (side) {
         case 1:
@@ -119,6 +121,7 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
         case 0:
           return 4;
       }
+      return -1;
   }
   return -1;
 }
