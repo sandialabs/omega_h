@@ -28,25 +28,19 @@ Comm::Comm() {
 #ifdef OMEGA_H_USE_MPI
 Comm::Comm(Library* library_in, MPI_Comm impl_in)
     : impl_(impl_in), library_(library_in) {
-  int topo_type;
-  CALL(MPI_Topo_test(impl_in, &topo_type));
-  if (topo_type == MPI_DIST_GRAPH) {
-    int nin, nout, is_weighted;
-    CALL(MPI_Dist_graph_neighbors_count(impl_in, &nin, &nout, &is_weighted));
-    HostWrite<I32> sources_w(nin);
-    HostWrite<I32> destinations_w(nout);
-    CALL(MPI_Dist_graph_neighbors(impl_in, nin, nonnull(sources_w.data()),
-        OMEGA_H_MPI_UNWEIGHTED, nout, nonnull(destinations_w.data()),
-        OMEGA_H_MPI_UNWEIGHTED));
-    srcs_ = sources_w.write();
-    dsts_ = destinations_w.write();
-    self_src_ = find_last(srcs_, rank());
-    self_dst_ = find_last(dsts_, rank());
-    host_srcs_ = HostRead<I32>(srcs_);
-    host_dsts_ = HostRead<I32>(dsts_);
-  }
+}
+
+Comm::Comm(Library* library_in, MPI_Comm impl_in, Read<I32> srcs, Read<I32> dsts)
+    : Comm(library_in, impl_in) {
+  srcs_ = srcs;
+  dsts_ = dsts;
+  self_src_ = find_last(srcs_, rank());
+  self_dst_ = find_last(dsts_, rank());
+  host_srcs_ = HostRead<I32>(srcs_);
+  host_dsts_ = HostRead<I32>(dsts_);
 }
 #else
+
 Comm::Comm(Library* library_in, bool is_graph, bool sends_to_self)
     : library_(library_in) {
   if (is_graph) {
@@ -167,18 +161,13 @@ std::vector<int> sources_from_destinations(MPI_Comm comm, HostRead<I32> destinat
 
 CommPtr Comm::graph(Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
-  std::cout << "before graph(dsts)\n";
-  MPI_Comm impl2;
   HostRead<I32> h_destinations(dsts);
-  auto h_sources = sources_from_destinations(impl_, h_destinations);
-  std::cout << "past sources_from_destinations\n";
-  int reorder = 0;
-  CALL(MPI_Dist_graph_create_adjacent(impl_, int(h_sources.size()),
-      nonnull(h_sources.data()), OMEGA_H_MPI_UNWEIGHTED, h_destinations.size(),
-      nonnull(h_destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
-      reorder, &impl2));
-  std::cout << "after graph(dsts)\n";
-  return CommPtr(new Comm(library_, impl2));
+  auto v_sources = sources_from_destinations(impl_, h_destinations);
+  HostWrite<I32> h_sources(int(v_sources.size()));
+  for (int i = 0; i < h_sources.size(); ++i) h_sources[i] = v_sources[std::size_t(i)];
+  MPI_Comm impl2;
+  CALL(MPI_Comm_dup(impl_, &impl2));
+  return CommPtr(new Comm(library_, impl2, h_sources.write(), dsts));
 #else
   return CommPtr(new Comm(library_, true, dsts.size() == 1));
 #endif
@@ -187,14 +176,8 @@ CommPtr Comm::graph(Read<I32> dsts) const {
 CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
-  HostRead<I32> h_sources(srcs);
-  HostRead<I32> h_destinations(dsts);
-  int reorder = 0;
-  CALL(MPI_Dist_graph_create_adjacent(impl_, h_sources.size(),
-      nonnull(h_sources.data()), OMEGA_H_MPI_UNWEIGHTED, h_destinations.size(),
-      nonnull(h_destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
-      reorder, &impl2));
-  return CommPtr(new Comm(library_, impl2));
+  CALL(MPI_Comm_dup(impl_, &impl2));
+  return CommPtr(new Comm(library_, impl2, srcs, dsts));
 #else
   OMEGA_H_CHECK(srcs == dsts);
   return CommPtr(new Comm(library_, true, dsts.size() == 1));
@@ -295,7 +278,6 @@ void Comm::bcast_string(std::string& s) const {
 static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf,
     int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
-#if MPI_VERSION < 3
   static int const tag = 42;
   int indegree, outdegree;
   indegree = sources.size();
@@ -316,12 +298,6 @@ static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
   return MPI_SUCCESS;
-#else
-  (void)sources;
-  (void)destinations;
-  return MPI_Neighbor_allgather(
-      sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
-#endif  // end if MPI_VERSION < 3
 }
 
 /* custom implementation of MPI_Neighbor_alltoall
@@ -332,7 +308,6 @@ static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
 static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf,
     int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
-#if MPI_VERSION < 3
   static int const tag = 42;
   int indegree, outdegree;
   indegree = sources.size();
@@ -355,12 +330,6 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
   return MPI_SUCCESS;
-#else
-  (void)sources;
-  (void)destinations;
-  return MPI_Neighbor_alltoall(
-      sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
-#endif  // end if MPI_VERSION < 3
 }
 
 /* custom implementation of MPI_Neighbor_alltoallv
@@ -371,7 +340,7 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
 static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
     int width, const void* sendbuf, const int sdispls[], MPI_Datatype sendtype,
     void* recvbuf, const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm) {
-  begin_code("Neighbor_alltoallv");
+  ScopedTimer timer("Neighbor_alltoallv");
   int const tag = 42;
   int indegree, outdegree;
   indegree = sources.size();
@@ -394,7 +363,6 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   }
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
-  end_code();
   return MPI_SUCCESS;
 }
 
