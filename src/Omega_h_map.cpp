@@ -230,10 +230,16 @@ Graph invert_map_by_sorting(LOs a2b, LO nb) {
 
 Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name,
     std::string const& ba2a_name) {
+  OMEGA_H_TIME_FUNCTION;
   auto na = a2b.size();
   Write<LO> degrees(nb, 0);
-  auto count = OMEGA_H_LAMBDA(LO a) { atomic_increment(&degrees[a2b[a]]); };
-  parallel_for(na, count, "invert_map_by_atomics(count)");
+  auto count = OMEGA_H_LAMBDA(LO a) {
+    auto const b = a2b[a];
+    OMEGA_H_CHECK(0 <= b);
+    OMEGA_H_CHECK(b < degrees.size());
+    atomic_increment(&degrees[b]);
+  };
+  parallel_for(na, std::move(count));
   auto b2ba = offset_scan(Read<LO>(degrees), b2ba_name);
   auto nba = b2ba.get(nb);
   Write<LO> write_ba2a(nba, ba2a_name);
@@ -244,7 +250,7 @@ Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name,
     auto j = atomic_fetch_add(&positions[b], 1);
     write_ba2a[first + j] = a;
   };
-  parallel_for(na, fill, "invert_map_by_atomics(fill");
+  parallel_for(na, std::move(fill));
   auto ba2a = LOs(write_ba2a);
   return Graph(b2ba, ba2a);
 }

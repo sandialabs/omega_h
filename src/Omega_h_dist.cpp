@@ -17,10 +17,10 @@ Dist& Dist::operator=(Dist const& other) {
   return *this;
 }
 
-Dist::Dist(CommPtr comm_in, Remotes fitems2rroots, LO nrroots) {
+Dist::Dist(CommPtr comm_in, Remotes fitems2rroots, LO nrroots, bool debug) {
   set_parent_comm(comm_in);
   set_dest_ranks(fitems2rroots.ranks);
-  set_dest_idxs(fitems2rroots.idxs, nrroots);
+  set_dest_idxs(fitems2rroots.idxs, nrroots, debug);
 }
 
 void Dist::set_parent_comm(CommPtr parent_comm_in) {
@@ -28,7 +28,7 @@ void Dist::set_parent_comm(CommPtr parent_comm_in) {
 }
 
 void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
-  begin_code("Dist::set_dest_ranks");
+  OMEGA_H_TIME_FUNCTION;
   constexpr bool use_small_neighborhood_algorithm = true;
   if (use_small_neighborhood_algorithm) {
     Read<I32> msgs2ranks1;
@@ -71,16 +71,51 @@ void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
   auto fdegrees = get_degrees(msgs2content_[F]);
   auto rdegrees = comm_[F]->alltoall(fdegrees);
   msgs2content_[R] = offset_scan(rdegrees);
-  end_code();
 }
 
-void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
-  begin_code("Dist::set_dest_idxs");
-  auto rcontent2rroots = exch(fitems2rroots, 1);
-  auto rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
+void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots, bool debug) {
+  LOs rcontent2rroots;
+  OMEGA_H_TIME_FUNCTION;
+  if (debug) {
+    auto data = fitems2rroots;
+    if (roots2items_[F].exists()) {
+      data = expand(data, roots2items_[F], 1);
+    }
+    if (items2content_[F].exists()) {
+      data = permute(data, items2content_[F], 1);
+    }
+    for (int i = 0; i < data.size(); ++i) {
+      OMEGA_H_CHECK(0 <= data[i]);
+      if (!(data[i] < nrroots)) {
+        std::cerr << "BAD pre-alltoall " << data[i] << " >= nrroots " << nrroots << '\n';
+      }
+      OMEGA_H_CHECK(data[i] < nrroots);
+    }
+    data = comm_[F]->alltoallv(data, msgs2content_[F], msgs2content_[R], 1);
+    for (int i = 0; i < data.size(); ++i) {
+      OMEGA_H_CHECK(0 <= data[i]);
+      if (!(data[i] < nrroots)) {
+        std::cerr << "BAD post-alltoall " << data[i] << " >= nrroots " << nrroots << '\n';
+      }
+      OMEGA_H_CHECK(data[i] < nrroots);
+    }
+    OMEGA_H_CHECK(!items2content_[R].exists());
+    rcontent2rroots = data;
+  } else {
+    rcontent2rroots = exch(fitems2rroots, 1);
+  }
+  if (debug) {
+    for (int i = 0; i < rcontent2rroots.size(); ++i) {
+      OMEGA_H_CHECK(0 <= rcontent2rroots[i]);
+      if (!(rcontent2rroots[i] < nrroots)) {
+        std::cerr << "BAD rcontent2rroot " << rcontent2rroots[i] << " >= nrroots " << nrroots << '\n';
+      }
+      OMEGA_H_CHECK(rcontent2rroots[i] < nrroots);
+    }
+  }
+  auto const rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
   roots2items_[R] = rroots2rcontent.a2ab;
   items2content_[R] = rroots2rcontent.ab2b;
-  end_code();
 }
 
 void Dist::set_dest_globals(GOs fitems2ritem_globals) {
@@ -136,6 +171,8 @@ CommPtr Dist::comm() const { return comm_[F]; }
 LOs Dist::msgs2content() const { return msgs2content_[F]; }
 
 LOs Dist::content2msgs() const { return invert_fan(msgs2content_[F]); }
+
+LOs Dist::items2content() const { return items2content_[F]; }
 
 LOs Dist::items2msgs() const {
   return unmap(items2content_[F], content2msgs(), 1);

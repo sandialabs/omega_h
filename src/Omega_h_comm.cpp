@@ -12,6 +12,9 @@
 
 #include "Omega_h_map.hpp"
 
+// DEBUG
+#include <algorithm>
+
 namespace Omega_h {
 
 #ifdef OMEGA_H_USE_MPI
@@ -120,8 +123,12 @@ std::vector<int> sources_from_destinations(MPI_Comm comm, HostRead<I32> destinat
   }
   char ignored_message = '\0';
   std::vector<MPI_Request> send_requests(std::size_t(destinations.size()));
-  int tag = 377;
+  int const tag = 377;
+  int comm_size;
+  CALL(MPI_Comm_size(comm, &comm_size));
   for (int i = 0; i < destinations.size(); ++i) {
+    OMEGA_H_CHECK(0 <= destinations[i]);
+    OMEGA_H_CHECK(destinations[i] < comm_size);
     CALL(MPI_Issend(&ignored_message, 1, MPI_CHAR, destinations[i], tag, comm, &send_requests[std::size_t(i)]));
   }
   std::vector<int> sources;
@@ -155,6 +162,8 @@ std::vector<int> sources_from_destinations(MPI_Comm comm, HostRead<I32> destinat
     }
   }
   CALL(MPI_Barrier(comm));
+  std::sort(sources.begin(), sources.end());
+//std::reverse(sources.begin(), sources.end());
   return sources;
 }
 #endif
@@ -339,7 +348,8 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
 
 static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
     int width, const void* sendbuf, const int sdispls[], MPI_Datatype sendtype,
-    void* recvbuf, const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm) {
+    void* recvbuf, const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm,
+    int sendbuf_size = -1, int recvbuf_size = -1) {
   ScopedTimer timer("Neighbor_alltoallv");
   int const tag = 42;
   int indegree, outdegree;
@@ -349,17 +359,36 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   CALL(MPI_Type_size(sendtype, &sendwidth));
   int recvwidth;
   CALL(MPI_Type_size(sendtype, &recvwidth));
+  OMEGA_H_CHECK(sendwidth == recvwidth);
   MPI_Request* recvreqs = new MPI_Request[indegree];
   for (int i = 0; i < indegree; ++i) {
-    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + rdispls[i] * recvwidth * width,
-        (rdispls[i + 1] - rdispls[i]) * width, recvtype, sources[i], tag, comm,
+    for (int j = 0; j < indegree; ++j) {
+      if (i != j) OMEGA_H_CHECK(sources[j] != sources[i]);
+    }
+    char* const single_recvbuf = static_cast<char*>(recvbuf) + rdispls[i] * recvwidth * width;
+    int const single_recvcount = (rdispls[i + 1] - rdispls[i]) * width;
+    if (recvbuf_size != -1) {
+      OMEGA_H_CHECK(static_cast<char*>(recvbuf) <= single_recvbuf);
+      OMEGA_H_CHECK(single_recvcount > 0);
+      OMEGA_H_CHECK(recvwidth > 0);
+      OMEGA_H_CHECK((single_recvbuf + single_recvcount * recvwidth) <= (static_cast<char*>(recvbuf) + recvbuf_size * recvwidth));
+    }
+    CALL(MPI_Irecv(single_recvbuf, single_recvcount, recvtype, sources[i], tag, comm,
         recvreqs + i));
   }
   for (int i = 0; i < outdegree; ++i) {
-    CALL(MPI_Send(
-        static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth * width,
-        (sdispls[i + 1] - sdispls[i]) * width, sendtype, destinations[i], tag,
-        comm));
+    for (int j = 0; j < outdegree; ++j) {
+      if (i != j) OMEGA_H_CHECK(destinations[j] != destinations[i]);
+    }
+    char const* const single_sendbuf = static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth * width;
+    int const single_sendcount = (sdispls[i + 1] - sdispls[i]) * width;
+    if (sendbuf_size != -1) {
+      OMEGA_H_CHECK(static_cast<char const*>(sendbuf) <= single_sendbuf);
+      OMEGA_H_CHECK(single_sendcount > 0);
+      OMEGA_H_CHECK(sendwidth > 0);
+      OMEGA_H_CHECK((single_sendbuf + single_sendcount * sendwidth) <= (static_cast<char const*>(sendbuf) + sendbuf_size * sendwidth));
+    }
+    CALL(MPI_Send(single_sendbuf, single_sendcount, sendtype, destinations[i], tag, comm));
   }
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
@@ -479,7 +508,8 @@ void self_send_part2(Read<T> self_data, LO self_src, Read<T>* p_recvbuf,
 template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
     Read<LO> rdispls_dev, Int width) const {
-  begin_code("Comm::alltoallv");
+  ScopedTimer timer("Comm::alltoallv");
+  CALL(MPI_Barrier(impl_));
 #ifdef OMEGA_H_USE_MPI
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
@@ -505,7 +535,8 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
       nonnull(sendbuf_dev.data()), nonnull(sdispls.data()),
       MpiTraits<T>::datatype(), nonnull(recvbuf_dev_w.data()),
-      nonnull(rdispls.data()), MpiTraits<T>::datatype(), impl_));
+      nonnull(rdispls.data()), MpiTraits<T>::datatype(), impl_,
+      sendbuf_dev.size(), recvbuf_dev_w.size()));
   Read<T> recvbuf_dev = recvbuf_dev_w;
 #endif  // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #else   // !defined(OMEGA_H_USE_MPI)
@@ -514,7 +545,7 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   (void)width;
   auto recvbuf_dev = sendbuf_dev;
 #endif  // !defined(OMEGA_H_USE_MPI)
-  end_code();
+  CALL(MPI_Barrier(impl_));
   return recvbuf_dev;
 }
 

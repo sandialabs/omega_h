@@ -109,6 +109,7 @@ static void modify_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs old_ents2new_ents,
     bool mods_can_be_shared) {
+  OMEGA_H_TIME_FUNCTION;
   auto same_owners =
       unmap_owners(old_mesh, ent_dim, same_ents2old_ents, old_ents2new_ents);
   auto same_own_ranks = same_owners.ranks;
@@ -351,7 +352,7 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
   for (Int mod_dim = 0; mod_dim < 4; ++mod_dim) {
     if (mods2prods[mod_dim].exists()) nprods = mods2prods[mod_dim].last();
   }
-  Write<T> prods2new_offsets_w(nprods);
+  Write<T> prods2new_offsets_w(nprods, T(-1));
   for (Int mod_dim = 0; mod_dim < 4; ++mod_dim) {
     if (!mods2prods[mod_dim].exists()) continue;
     auto mods2new_offsets = unmap(mods2reps[mod_dim], old_ents2new_numbers, 1);
@@ -384,7 +385,7 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
           prods2new_offsets_w[prod] = offset++;
         }
       };
-      parallel_for(nmods, write_prod_offsets, "assign_new_numbering(upward)");
+      parallel_for(nmods, std::move(write_prod_offsets));
     } else {
       auto write_prod_offsets = OMEGA_H_LAMBDA(LO mod) {
         auto offset = mods2new_offsets[mod] + rep_self_count;
@@ -393,7 +394,7 @@ static void assign_new_numbering(Read<T> old_ents2new_numbers,
           prods2new_offsets_w[prod] = offset++;
         }
       };
-      parallel_for(nmods, write_prod_offsets, "assign_new_numbering(downward)");
+      parallel_for(nmods, std::move(write_prod_offsets));
     }
   }
   *p_prods2new_numbers = prods2new_offsets_w;
@@ -403,20 +404,101 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     bool keep_mods, Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
     Few<LOs, 4> mods2reps, LOs global_rep_counts) {
-  begin_code("modify_globals");
+  auto const nold_ents_total = old_mesh->nglobal_ents(ent_dim);
+  auto const nnew_ents_total = new_mesh->nglobal_ents(ent_dim);
+  OMEGA_H_TIME_FUNCTION;
   auto nsame_ents = same_ents2old_ents.size();
   OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
   auto nprods = prods2new_ents.size();
   auto old_globals = old_mesh->globals(ent_dim);
+  for (int i = 0; i < old_globals.size(); ++i) {
+    OMEGA_H_CHECK(0 <= old_globals[i]);
+    OMEGA_H_CHECK(old_globals[i] < nold_ents_total);
+  }
   auto comm = old_mesh->comm();
-  auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
+  auto old_ents2lins = copies_to_linear_owners(comm, old_globals, nold_ents_total);
   auto lins2old_ents = old_ents2lins.invert();
   auto nlins = lins2old_ents.nroots();
-  auto lin_rep_counts =
-      old_ents2lins.exch_reduce(global_rep_counts, 1, OMEGA_H_SUM);
+  for (int i = 0; i < global_rep_counts.size(); ++i) {
+    OMEGA_H_CHECK(0 <= global_rep_counts[i]);
+    OMEGA_H_CHECK(global_rep_counts[i] < 100);
+  }
+  LOs lin_rep_counts;
+  {
+    LOs item_data;
+    { // inline exch()
+      auto data = global_rep_counts;
+      for (int i = 0; i < data.size(); ++i) {
+        OMEGA_H_CHECK(0 <= data[i]);
+        if (!(data[i] < 100)) {
+          std::cerr << "BAD data(1) " << data[i] << '\n';
+        }
+        OMEGA_H_CHECK(data[i] < 100);
+      }
+      auto const roots2items_F = old_ents2lins.roots2items();
+      OMEGA_H_CHECK(!roots2items_F.exists());
+      auto const items2content_F = old_ents2lins.items2content();
+      OMEGA_H_CHECK(items2content_F.exists());
+      data = permute(data, items2content_F, 1);
+      for (int i = 0; i < data.size(); ++i) {
+        OMEGA_H_CHECK(0 <= data[i]);
+        if (!(data[i] < 100)) {
+          std::cerr << "BAD data(2) " << data[i] << '\n';
+        }
+        OMEGA_H_CHECK(data[i] < 100);
+      }
+      auto const comm_F = old_ents2lins.comm();
+      auto const msgs2content_F = old_ents2lins.msgs2content();
+      auto const msgs2content_R = lins2old_ents.msgs2content();
+      data = comm_F->alltoallv(data, msgs2content_F, msgs2content_R, 1);
+      for (int i = 0; i < data.size(); ++i) {
+        OMEGA_H_CHECK(0 <= data[i]);
+        if (!(data[i] < 100)) {
+          std::cerr << "BAD data(3) " << data[i] << '\n';
+        }
+        OMEGA_H_CHECK(data[i] < 100);
+      }
+      auto const items2content_R = lins2old_ents.items2content();
+      OMEGA_H_CHECK(items2content_R.exists());
+      data = unmap(items2content_R, data, 1);
+      item_data = data;
+    }
+    for (int i = 0; i < item_data.size(); ++i) {
+      OMEGA_H_CHECK(0 <= item_data[i]);
+      if (!(item_data[i] < 100)) {
+        std::cerr << "BAD item_data " << item_data[i] << '\n';
+      }
+      OMEGA_H_CHECK(item_data[i] < 100);
+    }
+    auto const roots2items = lins2old_ents.roots2items();
+    for (int i = 0; i < roots2items.size() - 1; ++i) {
+      OMEGA_H_CHECK((roots2items[i + 1] - roots2items[i]) >= 0);
+      OMEGA_H_CHECK((roots2items[i + 1] - roots2items[i]) < 100);
+      OMEGA_H_CHECK(roots2items[i + 1] <= item_data.size());
+    }
+    lin_rep_counts = fan_reduce(roots2items, item_data, 1, OMEGA_H_SUM);
+  }
+  for (int i = 0; i < lin_rep_counts.size(); ++i) {
+    OMEGA_H_CHECK(0 <= lin_rep_counts[i]);
+    if (!(lin_rep_counts[i] < 100)) {
+      std::cerr << "BAD lin_rep_count " << lin_rep_counts[i] << '\n';
+    }
+    OMEGA_H_CHECK(lin_rep_counts[i] < 100);
+  }
   OMEGA_H_CHECK(lin_rep_counts.size() == nlins);
   auto lin_globals = rescan_globals(old_mesh, lin_rep_counts);
+  for (int i = 0; i < lin_globals.size(); ++i) {
+    OMEGA_H_CHECK(0 <= lin_globals[i]);
+    if (!(lin_globals[i] < nnew_ents_total)) {
+      std::cerr << "BAD lin_global " << lin_globals[i] << '\n';
+    }
+    OMEGA_H_CHECK(lin_globals[i] < nnew_ents_total);
+  }
   auto old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
+  for (int i = 0; i < old_ents2new_globals.size(); ++i) {
+    OMEGA_H_CHECK(0 <= old_ents2new_globals[i]);
+    OMEGA_H_CHECK(old_ents2new_globals[i] < nnew_ents_total);
+  }
   Few<LOs, 4> global_rep2md_order;
   for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
     if ((mod_dim > ent_dim) && mods2prods[mod_dim].exists()) {
@@ -430,19 +512,31 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   assign_new_numbering(old_ents2new_globals, same_ents2old_ents, mods2mds,
       mods2reps, mods2prods, global_rep2md_order, &same_ents2new_globals,
       &prods2new_globals, keep_mods);
+  for (int i = 0; i < same_ents2new_globals.size(); ++i) {
+    OMEGA_H_CHECK(0 <= same_ents2new_globals[i]);
+    OMEGA_H_CHECK(same_ents2new_globals[i] < nnew_ents_total);
+  }
+  for (int i = 0; i < prods2new_globals.size(); ++i) {
+    OMEGA_H_CHECK(0 <= prods2new_globals[i]);
+    OMEGA_H_CHECK(prods2new_globals[i] < nnew_ents_total);
+  }
   auto nnew_ents = new_mesh->nents(ent_dim);
   OMEGA_H_CHECK(nnew_ents == nsame_ents + nprods);
-  Write<GO> new_globals(nnew_ents);
+  Write<GO> new_globals(nnew_ents, GO(-1));
   map_into(same_ents2new_globals, same_ents2new_ents, new_globals, 1);
   map_into(prods2new_globals, prods2new_ents, new_globals, 1);
+  for (int i = 0; i < new_globals.size(); ++i) {
+    OMEGA_H_CHECK(0 <= new_globals[i]);
+    OMEGA_H_CHECK(new_globals[i] < nnew_ents_total);
+  }
   new_mesh->add_tag(ent_dim, "global", 1, Read<GO>(new_globals));
-  end_code();
 }
 
 void modify_ents_adapt(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prod_verts2verts, LOs old_lows2new_lows,
     LOs* p_prods2new_ents, LOs* p_same_ents2old_ents, LOs* p_same_ents2new_ents,
     LOs* p_old_ents2new_ents) {
+  OMEGA_H_TIME_FUNCTION;
   Few<LOs, 4> mods2mds;
   Few<Bytes, 4> mds_are_mods;
   Few<LOs, 4> mods2prods;
@@ -465,7 +559,7 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prod_verts2verts, LOs old_lows2new_lows, bool keep_mods,
     bool mods_can_be_shared, LOs* p_prods2new_ents, LOs* p_same_ents2old_ents,
     LOs* p_same_ents2new_ents, LOs* p_old_ents2new_ents) {
-  begin_code("modify_ents");
+  OMEGA_H_TIME_FUNCTION;
   *p_same_ents2old_ents =
       collect_same(old_mesh, ent_dim, mds_are_mods, keep_mods);
   Few<LOs, 4> mods2nprods;
@@ -509,7 +603,6 @@ void modify_ents(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   modify_globals(old_mesh, new_mesh, ent_dim, keep_mods, mods2mds, mods2prods,
       *p_prods2new_ents, *p_same_ents2old_ents, *p_same_ents2new_ents,
       mods2reps, global_rep_counts);
-  end_code();
 }
 
 void set_owners_by_indset(

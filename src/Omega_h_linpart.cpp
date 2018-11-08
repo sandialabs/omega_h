@@ -22,7 +22,7 @@ Remotes globals_to_linear_owners(Read<GO> globals, GO total, I32 comm_size) {
       idxs[i] = static_cast<LO>(g % quot);
     }
   };
-  parallel_for(globals.size(), f, "globals_to_linear_owners");
+  parallel_for(globals.size(), std::move(f));
   return Remotes(ranks, idxs);
 }
 
@@ -50,11 +50,19 @@ GO find_total_globals(CommPtr comm, Read<GO> globals) {
   return a + 1;
 }
 
-Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals) {
+Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals, GO expected_total) {
+  OMEGA_H_TIME_FUNCTION;
   auto total = find_total_globals(comm, globals);
+  if (expected_total != -1) OMEGA_H_CHECK(total == expected_total);
   auto nlins = linear_partition_size(comm, total);
   auto copies2lins_map = globals_to_linear_owners(comm, globals, total);
-  auto copies2lins_dist = Dist(comm, copies2lins_map, nlins);
+  if (total % GO(nlins) == 0) {
+    for (int i = 0; i < copies2lins_map.idxs.size(); ++i) {
+      OMEGA_H_CHECK(0 <= copies2lins_map.idxs[i]);
+      OMEGA_H_CHECK(copies2lins_map.idxs[i] < nlins);
+    }
+  }
+  auto copies2lins_dist = Dist(comm, copies2lins_map, nlins, (total % GO(nlins) == 0));
   return copies2lins_dist;
 }
 
