@@ -6,6 +6,9 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_sort.hpp"
 
+// DEBUG!!
+#include <iostream>
+
 namespace Omega_h {
 
 Dist::Dist() {}

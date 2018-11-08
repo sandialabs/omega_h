@@ -8,10 +8,10 @@ namespace Omega_h {
 class Mesh;
 
 template <typename T>
-GOs rescan_globals(Mesh* mesh, Read<T> counts);
+GOs rescan_globals(Mesh* mesh, Read<T> counts, GO expected_total = -1);
 
 #define OMEGA_H_INST_DECL(T) \
-extern template GOs rescan_globals(Mesh*, Read<T>);
+extern template GOs rescan_globals(Mesh*, Read<T>, GO);
 OMEGA_H_INST_DECL(I8)
 OMEGA_H_INST_DECL(I32)
 #undef OMEGA_H_INST_DECL
