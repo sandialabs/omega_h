@@ -124,11 +124,11 @@ std::vector<int> sources_from_destinations(MPI_Comm comm, HostRead<I32> destinat
   char ignored_message = '\0';
   std::vector<MPI_Request> send_requests(std::size_t(destinations.size()));
   int const tag = 377;
-  int comm_size;
-  CALL(MPI_Comm_size(comm, &comm_size));
+//int comm_size;
+//CALL(MPI_Comm_size(comm, &comm_size));
   for (int i = 0; i < destinations.size(); ++i) {
-    OMEGA_H_CHECK(0 <= destinations[i]);
-    OMEGA_H_CHECK(destinations[i] < comm_size);
+//  OMEGA_H_CHECK(0 <= destinations[i]);
+//  OMEGA_H_CHECK(destinations[i] < comm_size);
     CALL(MPI_Issend(&ignored_message, 1, MPI_CHAR, destinations[i], tag, comm, &send_requests[std::size_t(i)]));
   }
   std::vector<int> sources;
@@ -362,9 +362,6 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   OMEGA_H_CHECK(sendwidth == recvwidth);
   MPI_Request* recvreqs = new MPI_Request[indegree];
   for (int i = 0; i < indegree; ++i) {
-    for (int j = 0; j < indegree; ++j) {
-      if (i != j) OMEGA_H_CHECK(sources[j] != sources[i]);
-    }
     char* const single_recvbuf = static_cast<char*>(recvbuf) + rdispls[i] * recvwidth * width;
     int const single_recvcount = (rdispls[i + 1] - rdispls[i]) * width;
     if (recvbuf_size != -1) {
@@ -377,9 +374,6 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
         recvreqs + i));
   }
   for (int i = 0; i < outdegree; ++i) {
-    for (int j = 0; j < outdegree; ++j) {
-      if (i != j) OMEGA_H_CHECK(destinations[j] != destinations[i]);
-    }
     char const* const single_sendbuf = static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth * width;
     int const single_sendcount = (sdispls[i + 1] - sdispls[i]) * width;
     if (sendbuf_size != -1) {

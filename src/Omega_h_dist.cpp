@@ -87,35 +87,35 @@ void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots, bool debug) {
     if (items2content_[F].exists()) {
       data = permute(data, items2content_[F], 1);
     }
-    for (int i = 0; i < data.size(); ++i) {
-      OMEGA_H_CHECK(0 <= data[i]);
-      if (!(data[i] < nrroots)) {
-        std::cerr << "BAD pre-alltoall " << data[i] << " >= nrroots " << nrroots << '\n';
-      }
-      OMEGA_H_CHECK(data[i] < nrroots);
-    }
+//  for (int i = 0; i < data.size(); ++i) {
+//    OMEGA_H_CHECK(0 <= data[i]);
+//    if (!(data[i] < nrroots)) {
+//      std::cerr << "BAD pre-alltoall " << data[i] << " >= nrroots " << nrroots << '\n';
+//    }
+//    OMEGA_H_CHECK(data[i] < nrroots);
+//  }
     data = comm_[F]->alltoallv(data, msgs2content_[F], msgs2content_[R], 1);
-    for (int i = 0; i < data.size(); ++i) {
-      OMEGA_H_CHECK(0 <= data[i]);
-      if (!(data[i] < nrroots)) {
-        std::cerr << "BAD post-alltoall " << data[i] << " >= nrroots " << nrroots << '\n';
-      }
-      OMEGA_H_CHECK(data[i] < nrroots);
-    }
+//  for (int i = 0; i < data.size(); ++i) {
+//    OMEGA_H_CHECK(0 <= data[i]);
+//    if (!(data[i] < nrroots)) {
+//      std::cerr << "BAD post-alltoall " << data[i] << " >= nrroots " << nrroots << '\n';
+//    }
+//    OMEGA_H_CHECK(data[i] < nrroots);
+//  }
     OMEGA_H_CHECK(!items2content_[R].exists());
     rcontent2rroots = data;
   } else {
     rcontent2rroots = exch(fitems2rroots, 1);
   }
-  if (debug) {
-    for (int i = 0; i < rcontent2rroots.size(); ++i) {
-      OMEGA_H_CHECK(0 <= rcontent2rroots[i]);
-      if (!(rcontent2rroots[i] < nrroots)) {
-        std::cerr << "BAD rcontent2rroot " << rcontent2rroots[i] << " >= nrroots " << nrroots << '\n';
-      }
-      OMEGA_H_CHECK(rcontent2rroots[i] < nrroots);
-    }
-  }
+//if (debug) {
+//  for (int i = 0; i < rcontent2rroots.size(); ++i) {
+//    OMEGA_H_CHECK(0 <= rcontent2rroots[i]);
+//    if (!(rcontent2rroots[i] < nrroots)) {
+//      std::cerr << "BAD rcontent2rroot " << rcontent2rroots[i] << " >= nrroots " << nrroots << '\n';
+//    }
+//    OMEGA_H_CHECK(rcontent2rroots[i] < nrroots);
+//  }
+//}
   auto const rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
   roots2items_[R] = rroots2rcontent.a2ab;
   items2content_[R] = rroots2rcontent.ab2b;
