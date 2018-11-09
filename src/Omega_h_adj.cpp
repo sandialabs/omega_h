@@ -172,8 +172,8 @@ static void sort_by_high_index(LOs const l2lh, Write<LO> const lh2h, Write<I8> c
     LO const begin = l2lh[l];
     LO const end = l2lh[l + 1];
     for (LO j = begin; j < end; ++j) {
-      LO const k_min = j;
-      GO const min_h = lh2h[j];
+      LO k_min = j;
+      GO min_h = lh2h[j];
       for (LO k = j + 1; k < end; ++k) {
         GO const h = lh2h[k];
         if (h < min_h) {
