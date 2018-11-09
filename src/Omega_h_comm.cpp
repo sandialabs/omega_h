@@ -157,7 +157,6 @@ std::vector<int> sources_from_destinations(MPI_Comm comm, HostRead<I32> destinat
   }
   CALL(MPI_Barrier(comm));
   std::sort(sources.begin(), sources.end());
-//std::reverse(sources.begin(), sources.end());
   return sources;
 }
 #endif
