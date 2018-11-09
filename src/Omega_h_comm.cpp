@@ -304,16 +304,12 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
   MPI_Request* recvreqs = new MPI_Request[indegree];
-  MPI_Request* sendreqs = new MPI_Request[outdegree];
   for (int i = 0; i < indegree; ++i)
     CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * typewidth, recvcount,
         recvtype, sources[i], tag, comm, recvreqs + i));
-  CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Isend(static_cast<char const*>(sendbuf) + i * typewidth, sendcount,
-        sendtype, destinations[i], tag, comm, sendreqs + i));
-  CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-  delete[] sendreqs;
+    CALL(MPI_Send(static_cast<char const*>(sendbuf) + i * typewidth, sendcount,
+        sendtype, destinations[i], tag, comm));
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
   return MPI_SUCCESS;
