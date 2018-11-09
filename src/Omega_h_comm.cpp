@@ -272,11 +272,6 @@ void Comm::bcast_string(std::string& s) const {
 
 #ifdef OMEGA_H_USE_MPI
 
-/* custom implementation of MPI_Neighbor_allgather
- * in the case that we are using an MPI older
- * than version 3.0
- */
-
 static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf,
     int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
@@ -287,16 +282,13 @@ static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
   MPI_Request* recvreqs = new MPI_Request[indegree];
-  MPI_Request* sendreqs = new MPI_Request[outdegree];
-  for (int i = 0; i < indegree; ++i)
+  for (int i = 0; i < indegree; ++i) {
     CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * typewidth, recvcount,
         recvtype, sources[i], tag, comm, recvreqs + i));
-  CALL(MPI_Barrier(comm));
-  for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Isend(sendbuf, sendcount, sendtype, destinations[i], tag, comm,
-        sendreqs + i));
-  CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-  delete[] sendreqs;
+  }
+  for (int i = 0; i < outdegree; ++i) {
+    CALL(MPI_Send(sendbuf, sendcount, sendtype, destinations[i], tag, comm));
+  }
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
   return MPI_SUCCESS;
