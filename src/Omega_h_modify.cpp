@@ -15,8 +15,6 @@
 #include "Omega_h_timer.hpp"
 #include "Omega_h_unmap_mesh.hpp"
 
-#include <iostream>
-
 namespace Omega_h {
 
 static void modify_conn(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
