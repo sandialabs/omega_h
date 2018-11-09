@@ -496,7 +496,6 @@ template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
     Read<LO> rdispls_dev, Int width) const {
   ScopedTimer timer("Comm::alltoallv");
-  CALL(MPI_Barrier(impl_));
 #ifdef OMEGA_H_USE_MPI
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
@@ -532,7 +531,6 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   (void)width;
   auto recvbuf_dev = sendbuf_dev;
 #endif  // !defined(OMEGA_H_USE_MPI)
-  CALL(MPI_Barrier(impl_));
   return recvbuf_dev;
 }
 
