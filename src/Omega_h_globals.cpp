@@ -8,14 +8,14 @@ namespace Omega_h {
 template <typename T>
 GOs rescan_globals(Mesh* mesh, Read<T> counts) {
   OMEGA_H_TIME_FUNCTION;
-  auto local_offsets = offset_scan(counts);
-  auto nnew = local_offsets.last();
-  auto start = mesh->comm()->exscan(GO(nnew), OMEGA_H_SUM);
-  auto new_globals_w = Write<GO>(counts.size());
+  auto const local_offsets = offset_scan(counts);
+  auto const nnew = local_offsets.last();
+  auto const start = mesh->comm()->exscan(GO(nnew), OMEGA_H_SUM);
+  auto const new_globals_w = Write<GO>(counts.size());
   auto f = OMEGA_H_LAMBDA(LO i) {
     new_globals_w[i] = local_offsets[i] + start;
   };
-  parallel_for(counts.size(), f, "rescan_globals");
+  parallel_for(counts.size(), std::move(f));
   return new_globals_w;
 }
 
