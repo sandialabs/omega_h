@@ -90,7 +90,7 @@ class Dist {
   Dist();
   Dist(Dist const& other);
   Dist& operator=(Dist const& other);
-  Dist(CommPtr comm_in, Remotes fitems2rroots, LO nrroots, bool debug = false);
+  Dist(CommPtr comm_in, Remotes fitems2rroots, LO nrroots);
   void set_parent_comm(CommPtr parent_comm_in);
   /* set the destination graph node MPI ranks of the "items"
      (graph edges sorted by local source node).
@@ -107,7 +107,7 @@ class Dist {
      if not specified, then destination content, items,
      and roots will all be assumed to be the same.
    */
-  void set_dest_idxs(LOs fitems2rroots, LO nrroots, bool debug = false);
+  void set_dest_idxs(LOs fitems2rroots, LO nrroots);
   /* optionally specify the expansion ("fan") from forward
      roots to items.
      if not specified, forward roots and items will be assumed

@@ -62,7 +62,7 @@ Dist copies_to_linear_owners(CommPtr comm, Read<GO> globals, GO expected_total) 
       OMEGA_H_CHECK(copies2lins_map.idxs[i] < nlins);
     }
   }
-  auto copies2lins_dist = Dist(comm, copies2lins_map, nlins, (total % GO(nlins) == 0));
+  auto copies2lins_dist = Dist(comm, copies2lins_map, nlins);
   return copies2lins_dist;
 }
 
