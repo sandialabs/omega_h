@@ -1,18 +1,17 @@
 #include "Omega_h_comm.hpp"
 
 #include <string>
+#include <algorithm>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_int_scan.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_profile.hpp"
 
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #include "Omega_h_library.hpp"
 #include "Omega_h_for.hpp"
 #endif
-
-#include "Omega_h_map.hpp"
-
-#include <algorithm>
 
 namespace Omega_h {
 

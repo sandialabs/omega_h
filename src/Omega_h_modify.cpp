@@ -407,7 +407,6 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
     Few<LOs, 4> mods2reps, LOs global_rep_counts) {
   auto const nold_ents_total = old_mesh->nglobal_ents(ent_dim);
-  auto const nnew_ents_total = new_mesh->nglobal_ents(ent_dim);
   OMEGA_H_TIME_FUNCTION;
   auto nsame_ents = same_ents2old_ents.size();
   OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
@@ -488,7 +487,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 //  OMEGA_H_CHECK(lin_rep_counts[i] < 100);
 //}
   OMEGA_H_CHECK(lin_rep_counts.size() == nlins);
-  auto lin_globals = rescan_globals(old_mesh, lin_rep_counts, nnew_ents_total);
+  auto lin_globals = rescan_globals(old_mesh, lin_rep_counts);
 //for (int i = 0; i < lin_globals.size(); ++i) {
 //  OMEGA_H_CHECK(0 <= lin_globals[i]);
 //  if (!(lin_globals[i] <= nnew_ents_total)) {
