@@ -407,40 +407,22 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
     Few<LOs, 4> mods2reps, LOs global_rep_counts) {
   OMEGA_H_TIME_FUNCTION;
-  auto nsame_ents = same_ents2old_ents.size();
+  auto const nsame_ents = same_ents2old_ents.size();
   OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
-  auto nprods = prods2new_ents.size();
-  auto old_globals = old_mesh->globals(ent_dim);
-  auto comm = old_mesh->comm();
-  auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
-  auto lins2old_ents = old_ents2lins.invert();
-  auto nlins = lins2old_ents.nroots();
-  LOs lin_rep_counts;
-  {
-    LOs item_data;
-    { // inline exch()
-      auto data = global_rep_counts;
-      auto const roots2items_F = old_ents2lins.roots2items();
-      auto const items2content_F = old_ents2lins.items2content();
-      data = permute(data, items2content_F, 1);
-      auto const comm_F = old_ents2lins.comm();
-      auto const msgs2content_F = old_ents2lins.msgs2content();
-      auto const msgs2content_R = lins2old_ents.msgs2content();
-      data = comm_F->alltoallv(data, msgs2content_F, msgs2content_R, 1);
-      auto const items2content_R = lins2old_ents.items2content();
-      data = unmap(items2content_R, data, 1);
-      item_data = data;
-    }
-    auto const roots2items = lins2old_ents.roots2items();
-    lin_rep_counts = fan_reduce(roots2items, item_data, 1, OMEGA_H_SUM);
-  }
+  auto const nprods = prods2new_ents.size();
+  auto const old_globals = old_mesh->globals(ent_dim);
+  auto const comm = old_mesh->comm();
+  auto const old_ents2lins = copies_to_linear_owners(comm, old_globals);
+  auto const lins2old_ents = old_ents2lins.invert();
+  auto const nlins = lins2old_ents.nroots();
+  auto const lin_rep_counts = old_ents2lins.exch_reduce(global_rep_counts, 1, OMEGA_H_SUM);
   OMEGA_H_CHECK(lin_rep_counts.size() == nlins);
-  auto lin_globals = rescan_globals(old_mesh, lin_rep_counts);
-  auto old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
+  auto const lin_globals = rescan_globals(old_mesh, lin_rep_counts);
+  auto const old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
   Few<LOs, 4> global_rep2md_order;
   for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
     if ((mod_dim > ent_dim) && mods2prods[mod_dim].exists()) {
-      auto name =
+      auto const name =
           std::string("rep_") + hypercube_singular_name(ent_dim) + "2md_order";
       global_rep2md_order[mod_dim] = old_mesh->get_array<LO>(mod_dim, name);
     }
