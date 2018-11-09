@@ -235,8 +235,6 @@ Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name,
   Write<LO> degrees(nb, 0);
   auto count = OMEGA_H_LAMBDA(LO a) {
     auto const b = a2b[a];
-    OMEGA_H_CHECK(0 <= b);
-    OMEGA_H_CHECK(b < degrees.size());
     atomic_increment(&degrees[b]);
   };
   parallel_for(na, std::move(count));

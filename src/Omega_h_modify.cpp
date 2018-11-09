@@ -406,7 +406,6 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
     bool keep_mods, Few<LOs, 4> mods2mds, Few<LOs, 4> mods2prods,
     LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents,
     Few<LOs, 4> mods2reps, LOs global_rep_counts) {
-  auto const nold_ents_total = old_mesh->nglobal_ents(ent_dim);
   OMEGA_H_TIME_FUNCTION;
   auto nsame_ents = same_ents2old_ents.size();
   OMEGA_H_CHECK(nsame_ents == same_ents2new_ents.size());
@@ -417,7 +416,7 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 //  OMEGA_H_CHECK(old_globals[i] < nold_ents_total);
 //}
   auto comm = old_mesh->comm();
-  auto old_ents2lins = copies_to_linear_owners(comm, old_globals, nold_ents_total);
+  auto old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto lins2old_ents = old_ents2lins.invert();
   auto nlins = lins2old_ents.nroots();
 //for (int i = 0; i < global_rep_counts.size(); ++i) {
