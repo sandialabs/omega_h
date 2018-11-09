@@ -280,10 +280,10 @@ void Comm::bcast_string(std::string& s) const {
 static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf,
     int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
+  OMEGA_H_TIME_FUNCTION;
   static int const tag = 42;
-  int indegree, outdegree;
-  indegree = sources.size();
-  outdegree = destinations.size();
+  int const indegree = sources.size();
+  int const outdegree = destinations.size();
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
   MPI_Request* recvreqs = new MPI_Request[indegree];
@@ -302,18 +302,13 @@ static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
   return MPI_SUCCESS;
 }
 
-/* custom implementation of MPI_Neighbor_alltoall
- * in the case that we are using an MPI older
- * than version 3.0
- */
-
 static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf,
     int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
+  OMEGA_H_TIME_FUNCTION;
   static int const tag = 42;
-  int indegree, outdegree;
-  indegree = sources.size();
-  outdegree = destinations.size();
+  int const indegree = sources.size();
+  int const outdegree = destinations.size();
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
   MPI_Request* recvreqs = new MPI_Request[indegree];
@@ -332,20 +327,14 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
   return MPI_SUCCESS;
 }
 
-/* custom implementation of MPI_Neighbor_alltoallv
- * this used to be here as a workaround, but now allows us to precompute
- * fewer things
- */
-
 static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
     int width, const void* sendbuf, const int sdispls[], MPI_Datatype sendtype,
     void* recvbuf, const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm,
     int sendbuf_size = -1, int recvbuf_size = -1) {
-  ScopedTimer timer("Neighbor_alltoallv");
+  OMEGA_H_TIME_FUNCTION;
   int const tag = 42;
-  int indegree, outdegree;
-  indegree = sources.size();
-  outdegree = destinations.size();
+  int const indegree = sources.size();
+  int const outdegree = destinations.size();
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
   OMEGA_H_CHECK(typewidth == typewidth);
