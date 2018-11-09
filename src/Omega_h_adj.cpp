@@ -165,16 +165,17 @@ LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
-static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
-  LO nl = l2lh.size() - 1;
-  auto f = OMEGA_H_LAMBDA(LO l) {
-    LO begin = l2lh[l];
-    LO end = l2lh[l + 1];
+static void sort_by_high_index(LOs const l2lh, Write<LO> const lh2h, Write<I8> const codes) {
+  OMEGA_H_TIME_FUNCTION;
+  LO const nl = l2lh.size() - 1;
+  auto f = OMEGA_H_LAMBDA(LO const l) {
+    LO const begin = l2lh[l];
+    LO const end = l2lh[l + 1];
     for (LO j = begin; j < end; ++j) {
-      LO k_min = j;
-      GO min_h = lh2h[j];
+      LO const k_min = j;
+      GO const min_h = lh2h[j];
       for (LO k = j + 1; k < end; ++k) {
-        GO h = lh2h[k];
+        GO const h = lh2h[k];
         if (h < min_h) {
           k_min = k;
           min_h = h;
@@ -184,57 +185,56 @@ static void sort_by_high_index(LOs l2lh, Write<LO> lh2h, Write<I8> codes) {
       swap2(codes[j], codes[k_min]);
     }
   };
-  parallel_for(nl, f, "sort_by_high_index");
+  parallel_for(nl, std::move(f));
 }
 
-static void separate_upward_with_codes(LO nlh, LOs lh2hl, Int nlows_per_high,
-    Write<LO> lh2h, Bytes down_codes, Write<Byte> codes) {
+static void separate_upward_with_codes(LO const nlh, LOs const lh2hl, Int const nlows_per_high,
+    Write<LO> const lh2h, Bytes const down_codes, Write<Byte> const codes) {
+  OMEGA_H_TIME_FUNCTION;
   auto f = OMEGA_H_LAMBDA(LO lh) {
-    LO hl = lh2hl[lh];
-    LO h = hl / nlows_per_high;
+    LO const hl = lh2hl[lh];
+    LO const h = hl / nlows_per_high;
     lh2h[lh] = h;
-    Int which_down = hl % nlows_per_high;
-    auto down_code = down_codes[hl];
-    bool is_flipped = code_is_flipped(down_code);
-    Int rotation = code_rotation(down_code);
+    Int const which_down = hl % nlows_per_high;
+    auto const down_code = down_codes[hl];
+    bool const is_flipped = code_is_flipped(down_code);
+    Int const rotation = code_rotation(down_code);
     codes[lh] = make_code(is_flipped, rotation, which_down);
   };
-  parallel_for(nlh, f, "separate_upward_with_codes");
+  parallel_for(nlh, std::move(f));
 }
 
-void separate_upward_no_codes(
-    LO nlh, LOs lh2hl, Int nlows_per_high, Write<LO> lh2h, Write<Byte> codes);
-void separate_upward_no_codes(
-    LO nlh, LOs lh2hl, Int nlows_per_high, Write<LO> lh2h, Write<Byte> codes) {
+static void separate_upward_no_codes(
+    LO const nlh, LOs const lh2hl, Int const nlows_per_high, Write<LO> const lh2h, Write<Byte> const codes) {
   auto f = OMEGA_H_LAMBDA(LO lh) {
-    LO hl = lh2hl[lh];
-    LO h = hl / nlows_per_high;
+    LO const hl = lh2hl[lh];
+    LO const h = hl / nlows_per_high;
     lh2h[lh] = h;
-    Int which_down = hl % nlows_per_high;
+    Int const which_down = hl % nlows_per_high;
     codes[lh] = make_code(false, 0, which_down);
   };
-  parallel_for(nlh, f, "separate_upward_no_codes");
+  parallel_for(nlh, std::move(f));
 }
 
 Adj invert_adj(
     Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim) {
   OMEGA_H_TIME_FUNCTION;
-  auto high_plural_name = dimensional_plural_name(high_dim);
-  auto high_singular_name = dimensional_singular_name(high_dim);
-  auto low_plural_name = dimensional_plural_name(low_dim);
-  auto low_singular_name = dimensional_singular_name(low_dim);
-  auto l2lh_name = std::string(low_plural_name) + " to " + low_singular_name +
+  auto const high_plural_name = dimensional_plural_name(high_dim);
+  auto const high_singular_name = dimensional_singular_name(high_dim);
+  auto const low_plural_name = dimensional_plural_name(low_dim);
+  auto const low_singular_name = dimensional_singular_name(low_dim);
+  auto const l2lh_name = std::string(low_plural_name) + " to " + low_singular_name +
                    " " + high_plural_name;
-  auto lh2hl_name = std::string(low_singular_name) + " " + high_plural_name +
+  auto const lh2hl_name = std::string(low_singular_name) + " " + high_plural_name +
                     " to " + high_singular_name + " " + low_plural_name;
-  auto lh2h_name = std::string(low_singular_name) + " " + high_plural_name +
+  auto const lh2h_name = std::string(low_singular_name) + " " + high_plural_name +
                    " to " + high_plural_name;
-  auto codes_name =
+  auto const codes_name =
       std::string(low_singular_name) + " " + high_plural_name + " codes";
-  auto l2hl = invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
-  auto l2lh = l2hl.a2ab;
-  auto lh2hl = l2hl.ab2b;
-  LO nlh = lh2hl.size();
+  auto const l2hl = invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
+  auto const l2lh = l2hl.a2ab;
+  auto const lh2hl = l2hl.ab2b;
+  LO const nlh = lh2hl.size();
   Read<I8> down_codes(down.codes);
   Write<LO> lh2h(nlh, lh2h_name);
   Write<I8> codes(nlh, codes_name);
