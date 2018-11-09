@@ -3,16 +3,15 @@
 #include <string>
 
 #include "Omega_h_array_ops.hpp"
-#include "Omega_h_scan.hpp"
+#include "Omega_h_int_scan.hpp"
 
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #include "Omega_h_library.hpp"
-#include "Omega_h_loop.hpp"
+#include "Omega_h_for.hpp"
 #endif
 
 #include "Omega_h_map.hpp"
 
-// DEBUG
 #include <algorithm>
 
 namespace Omega_h {
@@ -124,11 +123,7 @@ std::vector<int> sources_from_destinations(MPI_Comm comm, HostRead<I32> destinat
   char ignored_message = '\0';
   std::vector<MPI_Request> send_requests(std::size_t(destinations.size()));
   int const tag = 377;
-//int comm_size;
-//CALL(MPI_Comm_size(comm, &comm_size));
   for (int i = 0; i < destinations.size(); ++i) {
-//  OMEGA_H_CHECK(0 <= destinations[i]);
-//  OMEGA_H_CHECK(destinations[i] < comm_size);
     CALL(MPI_Issend(&ignored_message, 1, MPI_CHAR, destinations[i], tag, comm, &send_requests[std::size_t(i)]));
   }
   std::vector<int> sources;
