@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
       auto nelems = mesh.nglobal_ents(mesh.dim());
       if (world_rank == 0) std::cout << "mesh has " << nelems << " total elements\n";
       auto const desired_group_nelems = desired_nelems_per_rank * group_size;
-      if (double(nelems) >= desired_nelems_per_rank) {
+      if (double(nelems) >= desired_group_nelems) {
         if (world_rank == 0) std::cout << "element count " << nelems << " >= target " << desired_group_nelems << ", will not adapt\n";
       }
       while (double(nelems) < desired_group_nelems) {
