@@ -228,28 +228,28 @@ Graph invert_map_by_sorting(LOs a2b, LO nb) {
   return Graph(b2ba, ba2a);
 }
 
-Graph invert_map_by_atomics(LOs a2b, LO nb, std::string const& b2ba_name,
+Graph invert_map_by_atomics(LOs const a2b, LO const nb, std::string const& b2ba_name,
     std::string const& ba2a_name) {
   OMEGA_H_TIME_FUNCTION;
-  auto na = a2b.size();
+  auto const na = a2b.size();
   Write<LO> degrees(nb, 0);
   auto count = OMEGA_H_LAMBDA(LO a) {
     auto const b = a2b[a];
     atomic_increment(&degrees[b]);
   };
   parallel_for(na, std::move(count));
-  auto b2ba = offset_scan(Read<LO>(degrees), b2ba_name);
-  auto nba = b2ba.get(nb);
+  auto const b2ba = offset_scan(Read<LO>(degrees), b2ba_name);
+  auto const nba = b2ba.get(nb);
   Write<LO> write_ba2a(nba, ba2a_name);
-  auto positions = Write<LO>(nb, 0);
+  auto const positions = Write<LO>(nb, 0);
   auto fill = OMEGA_H_LAMBDA(LO a) {
-    auto b = a2b[a];
-    auto first = b2ba[b];
-    auto j = atomic_fetch_add(&positions[b], 1);
+    auto const b = a2b[a];
+    auto const first = b2ba[b];
+    auto const j = atomic_fetch_add(&positions[b], 1);
     write_ba2a[first + j] = a;
   };
   parallel_for(na, std::move(fill));
-  auto ba2a = LOs(write_ba2a);
+  auto const ba2a = LOs(write_ba2a);
   return Graph(b2ba, ba2a);
 }
 

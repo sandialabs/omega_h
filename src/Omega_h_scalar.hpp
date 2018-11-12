@@ -216,6 +216,7 @@ OMEGA_H_INLINE Real power(Real x, Int np, Int dp) noexcept {
         case 3:
           return power<1, 3>(x);
       }
+      return -1.0;
     case 2:
       switch (dp) {
         case 1:
@@ -225,6 +226,7 @@ OMEGA_H_INLINE Real power(Real x, Int np, Int dp) noexcept {
         case 3:
           return power<2, 3>(x);
       }
+      return -1.0;
     case 3:
       switch (dp) {
         case 1:
@@ -234,8 +236,9 @@ OMEGA_H_INLINE Real power(Real x, Int np, Int dp) noexcept {
         case 3:
           return power<3, 3>(x);
       }
+      return -1.0;
   }
-  return -42.0;
+  return -1.0;
 }
 
 OMEGA_H_INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) noexcept {

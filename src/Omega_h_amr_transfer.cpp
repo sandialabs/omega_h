@@ -134,7 +134,7 @@ void transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
 
 template <typename T>
 void transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
-    Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
+    Few<LOs, 4> const prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, std::string const& name) {
   Few<Write<T>, 4> new_data;
   auto ncomps = old_mesh->get_tag<T>(0, name)->ncomps();
