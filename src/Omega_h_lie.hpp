@@ -50,7 +50,7 @@ OMEGA_H_INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
 }
 
 /* logarithm of a tensor in Special Orthogonal Group(3), as the
-   skew-symmetric cross product tensor of the axis of rotation times 
+   skew-symmetric cross product tensor of the axis of rotation times
    the angle of rotation.
   */
 OMEGA_H_INLINE Matrix<3, 3> log_so(Matrix<3, 3> r) {
@@ -70,7 +70,8 @@ OMEGA_H_INLINE Matrix<3, 3> log_so(Matrix<3, 3> r) {
     auto v = decomp.q[best_i];
     return PI * cross(v);
   }
-  // R = cos(theta) * I + sin(theta) * cross(v) + (1 - cos(theta)) * outer_product(u, u)
+  // R = cos(theta) * I + sin(theta) * cross(v) + (1 - cos(theta)) *
+  // outer_product(u, u)
   // R - R^T = 2 * sin(theta) * cross(v)
   return (theta / (2.0 * std::sin(theta))) * (r - transpose(r));
 }
@@ -96,23 +97,21 @@ OMEGA_H_INLINE Matrix<2, 2> exp_so(Matrix<2, 2> log_r) {
   return rotate(theta);
 }
 
-OMEGA_H_INLINE Matrix<1, 1> log_so(Matrix<1, 1>) {
-  return matrix_1x1(0.0);
-}
+OMEGA_H_INLINE Matrix<1, 1> log_so(Matrix<1, 1>) { return matrix_1x1(0.0); }
 
-OMEGA_H_INLINE Matrix<1, 1> exp_so(Matrix<1, 1>) {
-  return matrix_1x1(1.0);
-}
+OMEGA_H_INLINE Matrix<1, 1> exp_so(Matrix<1, 1>) { return matrix_1x1(1.0); }
 
-/* get the logarithm of a tensor in the "identity component of the general linear group",
-   denoted by GL+(n) in: 
+/* get the logarithm of a tensor in the "identity component of the general
+   linear group",
+   denoted by GL+(n) in:
 
    Mota, Alejandro, et al.
    "Lie-group interpolation and variational recovery for internal variables."
    Computational Mechanics 52.6 (2013): 1281-1299.
 
    We deviate from the approach outlined in the above paper.
-   Instead of dealing with R and S, we take logarithms of the three SVD components
+   Instead of dealing with R and S, we take logarithms of the three SVD
+   components
    U, D, and V.
  */
 
@@ -141,9 +140,12 @@ OMEGA_H_INLINE Matrix<dim, dim> log_glp(Matrix<dim, dim> A) {
   // and the diagonal will be the diagonal of log(D)
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
-      if (i < j) log_A(i, j) = log_V(i, j);
-      else if (i > j) log_A(i, j) = log_U(i, j);
-      else log_A(i, i) = log_D(i);
+      if (i < j)
+        log_A(i, j) = log_V(i, j);
+      else if (i > j)
+        log_A(i, j) = log_U(i, j);
+      else
+        log_A(i, i) = log_D(i);
     }
   }
   return log_A;
@@ -156,9 +158,12 @@ OMEGA_H_INLINE Matrix<dim, dim> exp_glp(Matrix<dim, dim> log_A) {
   Vector<dim> log_D;
   for (Int i = 0; i < dim; ++i) {
     for (Int j = 0; j < dim; ++j) {
-      if (i < j) log_V(i, j) = log_A(i, j);
-      else if (i > j) log_U(i, j) = log_A(i, j);
-      else log_D(i) = log_A(i, i);
+      if (i < j)
+        log_V(i, j) = log_A(i, j);
+      else if (i > j)
+        log_U(i, j) = log_A(i, j);
+      else
+        log_D(i) = log_A(i, i);
     }
   }
   log_U -= transpose(log_U);

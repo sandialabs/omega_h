@@ -82,6 +82,7 @@ void Mesh::set_dim(Int dim_in) {
 void Mesh::set_verts(LO nverts_in) { nents_[VERT] = nverts_in; }
 
 void Mesh::set_ents(Int ent_dim, Adj down) {
+  OMEGA_H_TIME_FUNCTION;
   check_dim(ent_dim);
   OMEGA_H_CHECK(!has_ents(ent_dim));
   LOs hl2l = down.ab2b;
@@ -549,6 +550,7 @@ void Mesh::set_parting(Omega_h_Parting parting_in, bool verbose) {
 /* this is a member function mainly because it
    modifies the RIB hints */
 void Mesh::balance(bool predictive) {
+  OMEGA_H_TIME_FUNCTION;
   if (comm_->size() == 1) return;
   set_parting(OMEGA_H_ELEM_BASED);
   inertia::Rib hints;
@@ -824,7 +826,10 @@ LOs ents_on_closure(
 #ifdef OMEGA_H_USE_CUDA
 __host__
 #endif
-void assign(Mesh& a, Mesh const& b) { a = b; }
+    void
+    assign(Mesh& a, Mesh const& b) {
+  a = b;
+}
 
 #define OMEGA_H_INST(T)                                                        \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \

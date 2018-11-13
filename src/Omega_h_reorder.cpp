@@ -3,9 +3,9 @@
 #include "Omega_h_hilbert.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
+#include "Omega_h_profile.hpp"
 #include "Omega_h_sort.hpp"
 #include "Omega_h_unmap_mesh.hpp"
-#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 

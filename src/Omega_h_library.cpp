@@ -1,8 +1,8 @@
 #include <Omega_h_config.h>
-#include <Omega_h_profile.hpp>
-#include <Omega_h_malloc.hpp>
 #include <Omega_h_cmdline.hpp>
 #include <Omega_h_library.hpp>
+#include <Omega_h_malloc.hpp>
+#include <Omega_h_profile.hpp>
 
 #include <csignal>
 #include <cstdarg>
@@ -51,7 +51,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     ,
     MPI_Comm comm_mpi
 #endif
-) {
+    ) {
   std::string lib_desc = OMEGA_H_SEMVER;
   if (lib_desc != head_desc) {
     std::stringstream msg;
@@ -93,7 +93,8 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
   if (cmdline.parsed("--osh-time")) {
-    Omega_h::profile::global_singleton_history = new Omega_h::profile::History();
+    Omega_h::profile::global_singleton_history =
+        new Omega_h::profile::History();
   }
   if (cmdline.parsed("--osh-fpe")) {
     enable_floating_point_exceptions();
@@ -137,10 +138,6 @@ Library::Library(Library const& other)
 }
 
 Library::~Library() {
-  // need to destroy all Comm objects prior to MPI_Finalize()
-  world_ = CommPtr();
-  self_ = CommPtr();
-  disable_pooling();
   if (Omega_h::profile::global_singleton_history) {
     if (world_->rank() == 0) {
       Omega_h::profile::print_top_down_and_bottom_up(
@@ -148,6 +145,10 @@ Library::~Library() {
     }
     delete Omega_h::profile::global_singleton_history;
   }
+  // need to destroy all Comm objects prior to MPI_Finalize()
+  world_ = CommPtr();
+  self_ = CommPtr();
+  disable_pooling();
 #ifdef OMEGA_H_USE_KOKKOSCORE
   if (we_called_kokkos_init) {
     Kokkos::finalize();

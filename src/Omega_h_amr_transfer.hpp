@@ -26,7 +26,7 @@ void transfer_parents(Mesh* old_mesh, Mesh* new_mesh, Few<LOs, 4> mods2mds,
     Few<LOs, 4> same_ents2new_ents, Few<LOs, 4> old_ents2new_ents);
 
 void transfer_inherit(Mesh* old_mesh, Mesh* new_mesh,
-    Few<LOs, 4> prods2new_ents, Few<LOs, 4> same_ents2old_ents,
+    Few<LOs, 4> const prods2new_ents, Few<LOs, 4> same_ents2old_ents,
     Few<LOs, 4> same_ents2new_ents, TransferOpts const& opts);
 
 }  // namespace amr

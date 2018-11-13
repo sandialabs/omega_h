@@ -336,11 +336,10 @@ constexpr char const* simplex_singular_name(Int dim) {
 }
 
 constexpr char const* simplex_plural_name(Int dim) {
-  return (dim == 3
-              ? "tets"
-              : (dim == 2 ? "triangles"
-                          : (dim == 1 ? "edges"
-                                      : (dim == 0 ? "vertices" : nullptr))));
+  return (dim == 3 ? "tets"
+                   : (dim == 2 ? "triangles"
+                               : (dim == 1 ? "edges" : (dim == 0 ? "vertices"
+                                                                 : nullptr))));
 }
 
 /* TODO: rename to SimplexAverageDegree */

@@ -244,8 +244,8 @@ void Reader::error_print_line(std::istream& is, std::ostream& os) {
   if (oldpos > 0) print_indicator(os, line_text, oldpos - 1);
 }
 
-any Reader::read_stream(std::istream& stream,
-    std::string const& stream_name_in) {
+any Reader::read_stream(
+    std::istream& stream, std::string const& stream_name_in) {
   line = 1;
   column = 1;
   lexer_state = 0;

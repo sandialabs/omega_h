@@ -1,12 +1,11 @@
 #include <sstream>
 
-#include <Omega_h_expr.hpp>
-#include <Omega_h_matrix.hpp>
 #include <Omega_h_array_ops.hpp>
+#include <Omega_h_expr.hpp>
 #include <Omega_h_for.hpp>
+#include <Omega_h_math_lang.hpp>
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_vector.hpp>
-#include <Omega_h_math_lang.hpp>
 
 namespace Omega_h {
 
@@ -128,27 +127,25 @@ void promote(LO size, Int dim, any& x) {
     OMEGA_H_NORETURN();
 }
 
-any ternary(
-    LO size, Int dim, any const& cond, any& true_val, any& false_val) {
+any ternary(LO size, Int dim, any const& cond, any& true_val, any& false_val) {
   OMEGA_H_TIME_FUNCTION;
   if (cond.type() == typeid(bool)) {
     if (true_val.type() == typeid(Real)) {
       return any_cast<bool>(cond) ? any_cast<Real>(true_val)
-                                    : any_cast<Real>(false_val);
+                                  : any_cast<Real>(false_val);
     } else if (true_val.type() == typeid(Reals)) {
       return any_cast<bool>(cond) ? any_cast<Reals>(true_val)
-                                    : any_cast<Reals>(false_val);
+                                  : any_cast<Reals>(false_val);
     } else {
       throw ParserFail("Invalid true value type in ternary operator");
     }
   } else if (cond.type() == typeid(Bytes)) {
     promote(size, dim, true_val);
     promote(size, dim, false_val);
-    return Reals(ternary_each(any_cast<Bytes>(cond),
-        any_cast<Reals>(true_val), any_cast<Reals>(false_val)));
+    return Reals(ternary_each(any_cast<Bytes>(cond), any_cast<Reals>(true_val),
+        any_cast<Reals>(false_val)));
   } else {
-    throw ParserFail(
-        "Invalid condition value type in ternary operator");
+    throw ParserFail("Invalid condition value type in ternary operator");
   }
 }
 
@@ -179,8 +176,8 @@ any gt(any& lhs, any& rhs) {
     return gt_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs));
   } else {
     std::stringstream ss;
-    ss << "Invalid operand types to > operator: " <<
-      lhs.type().name() << ", " << rhs.type().name() << '\n';
+    ss << "Invalid operand types to > operator: " << lhs.type().name() << ", "
+       << rhs.type().name() << '\n';
     throw ParserFail(ss.str());
   }
 }
@@ -222,8 +219,10 @@ any add(any& lhs, any& rhs) {
 
 any add(Int dim, any& lhs, any& rhs) {
   if (dim == 3) return add<3>(lhs, rhs);
-  if (dim == 2) return add<2>(lhs, rhs);
-  else return add<1>(lhs, rhs);
+  if (dim == 2)
+    return add<2>(lhs, rhs);
+  else
+    return add<1>(lhs, rhs);
 }
 
 template <Int dim>
@@ -243,8 +242,10 @@ any sub(any& lhs, any& rhs) {
 
 any sub(Int dim, any& lhs, any& rhs) {
   if (dim == 3) return sub<3>(lhs, rhs);
-  if (dim == 2) return sub<2>(lhs, rhs);
-  else return sub<1>(lhs, rhs);
+  if (dim == 2)
+    return sub<2>(lhs, rhs);
+  else
+    return sub<1>(lhs, rhs);
 }
 
 template <Int dim>
@@ -300,8 +301,10 @@ any mul(LO size, any& lhs, any& rhs) {
 
 any mul(LO size, Int dim, any& lhs, any& rhs) {
   if (dim == 3) return mul<3>(size, lhs, rhs);
-  if (dim == 2) return mul<2>(size, lhs, rhs);
-  else return mul<1>(size, lhs, rhs);
+  if (dim == 2)
+    return mul<2>(size, lhs, rhs);
+  else
+    return mul<1>(size, lhs, rhs);
 }
 
 template <Int dim>
@@ -382,8 +385,7 @@ any access(LO size, any& var, ExprReader::Args& args) {
     if (array.size() == size * dim) {
       return Reals(get_component(array, dim, i));
     } else if (array.size() == size * matrix_ncomps(dim, dim)) {
-      return
-          Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
+      return Reals(get_component(array, matrix_ncomps(dim, dim), j * dim + i));
     } else {
       std::stringstream ss;
       ss << "Unexpected array size " << array.size() << " in access operator\n";
@@ -619,23 +621,20 @@ any eval_norm(Int dim, LO size, ExprReader::Args& args) {
 ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
   auto local_size = size;
   auto local_dim = dim;
-  register_function("exp",
-      [=](Args& args) { return eval_exp(local_size, args); });
-  register_function("sqrt",
-      [=](Args& args) { return eval_sqrt(local_size, args); });
-  register_function("sin",
-      [=](Args& args) { return eval_sin(local_size, args); });
-  register_function("cos",
-      [=](Args& args) { return eval_cos(local_size, args); });
-  register_function("vector", [=](Args& args) {
-    return make_vector(local_size, local_dim, args);
-  });
-  register_function("symm", [=](Args& args) {
-    return make_symm(local_size, local_dim, args);
-  });
-  register_function("norm", [=](Args& args) {
-    return eval_norm(local_dim, local_size, args);
-  });
+  register_function(
+      "exp", [=](Args& args) { return eval_exp(local_size, args); });
+  register_function(
+      "sqrt", [=](Args& args) { return eval_sqrt(local_size, args); });
+  register_function(
+      "sin", [=](Args& args) { return eval_sin(local_size, args); });
+  register_function(
+      "cos", [=](Args& args) { return eval_cos(local_size, args); });
+  register_function("vector",
+      [=](Args& args) { return make_vector(local_size, local_dim, args); });
+  register_function("symm",
+      [=](Args& args) { return make_symm(local_size, local_dim, args); });
+  register_function("norm",
+      [=](Args& args) { return eval_norm(local_dim, local_size, args); });
   register_variable("d", any(Real(dim)));
   if (dim == 3) register_variable("I", any(identity_matrix<3, 3>()));
   if (dim == 2) register_variable("I", any(identity_matrix<2, 2>()));
@@ -643,8 +642,7 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
   register_variable("pi", any(Real(Omega_h::PI)));
 }
 
-void ExprEnv::register_variable(
-    std::string const& name, any const& value) {
+void ExprEnv::register_variable(std::string const& name, any const& value) {
   OMEGA_H_TIME_FUNCTION;
   // OMEGA_H_CHECK(variables.find(name) == variables.end());
   OMEGA_H_CHECK(functions.find(name) == functions.end());
@@ -661,13 +659,11 @@ void ExprEnv::register_function(
 void ExprEnv::repeat(any& x) { promote(size, dim, x); }
 
 ExprReader::ExprReader(LO size_in, Int dim_in)
-    : Reader(math_lang::ask_reader_tables()),
-      env(size_in, dim_in) {}
+    : Reader(math_lang::ask_reader_tables()), env(size_in, dim_in) {}
 
 ExprReader::~ExprReader() {}
 
-void ExprReader::register_variable(
-    std::string const& name, any const& value) {
+void ExprReader::register_variable(std::string const& name, any const& value) {
   env.register_variable(name, value);
 }
 
@@ -695,7 +691,8 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
   switch (prod) {
     case math_lang::PROD_PROGRAM: {
       if (rhs.at(1).empty()) {
-        throw ParserFail("Omega_h::ExprReader needs an expression to evaluate!");
+        throw ParserFail(
+            "Omega_h::ExprReader needs an expression to evaluate!");
       }
       return rhs.at(1);
     }
@@ -767,7 +764,8 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
         auto fit = env.functions.find(name);
         if (fit == env.functions.end()) {
           std::stringstream ss;
-          ss << "\"" << name << "\" is neither a variable nor a function name\n";
+          ss << "\"" << name
+             << "\" is neither a variable nor a function name\n";
           throw ParserFail(ss.str());
         }
         return fit->second(args);
@@ -828,7 +826,7 @@ struct SemicolonOp : public ExprOp {
   virtual any eval(ExprEnv& env) override final;
 };
 any SemicolonOp::eval(ExprEnv& env) {
-  lhs->eval(env); // LHS result ignored
+  lhs->eval(env);  // LHS result ignored
   return rhs->eval(env);
 }
 
@@ -867,9 +865,7 @@ struct NegOp : public ExprOp {
   NegOp(OpPtr rhs_in) : rhs(rhs_in) {}
   virtual any eval(ExprEnv& env) override final;
 };
-any NegOp::eval(ExprEnv& env) {
-  return neg(env.dim, rhs->eval(env));
-}
+any NegOp::eval(ExprEnv& env) { return neg(env.dim, rhs->eval(env)); }
 
 struct TernaryOp : public ExprOp {
   OpPtr cond;
@@ -934,13 +930,13 @@ any CallOp::eval(ExprEnv& env) {
     OpPtr rhs;                                                                 \
     virtual ~ClassName() override final = default;                             \
     ClassName(OpPtr lhs_in, OpPtr rhs_in) : lhs(lhs_in), rhs(rhs_in) {}        \
-    virtual any eval(ExprEnv& env) override final;      \
+    virtual any eval(ExprEnv& env) override final;                             \
   };                                                                           \
-  any ClassName::eval(ExprEnv& env) {                   \
-    auto lhs_val = lhs->eval(env);                                                   \
-    auto rhs_val = rhs->eval(env);                                                   \
+  any ClassName::eval(ExprEnv& env) {                                          \
+    auto lhs_val = lhs->eval(env);                                             \
+    auto rhs_val = rhs->eval(env);                                             \
     promote(env.size, env.dim, lhs_val, rhs_val);                              \
-    return func_call;                                                                 \
+    return func_call;                                                          \
   }
 
 OMEGA_H_BINARY_OP(OrOp, eval_or(lhs_val, rhs_val));
@@ -958,16 +954,14 @@ OMEGA_H_BINARY_OP(PowOp, eval_pow(env.dim, lhs_val, rhs_val));
 
 #define OMEGA_H_BINARY_REDUCE(ClassName)                                       \
   {                                                                            \
-    OpPtr lhs_op = any_cast<OpPtr>(rhs.at(0));                        \
-    OpPtr rhs_op = any_cast<OpPtr>(rhs.at(3));                        \
-    return OpPtr(new ClassName(lhs_op, rhs_op));                            \
+    OpPtr lhs_op = any_cast<OpPtr>(rhs.at(0));                                 \
+    OpPtr rhs_op = any_cast<OpPtr>(rhs.at(3));                                 \
+    return OpPtr(new ClassName(lhs_op, rhs_op));                               \
   }
 
-ExprOpsReader::ExprOpsReader()
-    : Reader(math_lang::ask_reader_tables()) {}
+ExprOpsReader::ExprOpsReader() : Reader(math_lang::ask_reader_tables()) {}
 
-OpPtr ExprOpsReader::read_ops(
-    std::string const& expr) {
+OpPtr ExprOpsReader::read_ops(std::string const& expr) {
   return any_cast<OpPtr>(read_string(expr, expr));
 }
 
@@ -989,7 +983,8 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
   switch (prod) {
     case math_lang::PROD_PROGRAM: {
       if (rhs.at(1).empty()) {
-        throw ParserFail("Omega_h::ExprReader needs an expression to evaluate!");
+        throw ParserFail(
+            "Omega_h::ExprReader needs an expression to evaluate!");
       }
       if (rhs.at(0).empty()) {
         return std::move(rhs.at(1));

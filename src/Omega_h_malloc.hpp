@@ -17,7 +17,6 @@ void* maybe_pooled_device_malloc(std::size_t size);
 void maybe_pooled_device_free(void* ptr, std::size_t size);
 void* maybe_pooled_host_malloc(std::size_t size);
 void maybe_pooled_host_free(void* ptr, std::size_t size);
-
 }
 
 #endif

@@ -131,6 +131,7 @@ class Dist {
   CommPtr comm() const;
   LOs msgs2content() const;
   LOs content2msgs() const;
+  LOs items2content() const;
   LOs items2msgs() const;
   LOs roots2items() const;
   Read<I32> msgs2ranks() const;

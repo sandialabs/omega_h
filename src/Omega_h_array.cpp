@@ -38,8 +38,7 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
       static_cast<std::size_t>(size_in));
 #else
   shared_alloc_ = decltype(shared_alloc_)(
-      sizeof(T) * static_cast<std::size_t>(size_in),
-      name_in);
+      sizeof(T) * static_cast<std::size_t>(size_in), name_in);
 #endif
   end_code();
 }
@@ -72,6 +71,10 @@ Write<T>::Write(LO size_in, T offset, T stride, std::string const& name_in)
 
 template <typename T>
 Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
+
+template <typename T>
+Write<T>::Write(std::initializer_list<T> l, std::string const& name_in)
+    : Write<T>(HostWrite<T>(l, name_in)) {}
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
@@ -274,7 +277,7 @@ Write<T> HostWrite<T>::write() const {
 }
 
 template <typename T>
-LO HostWrite<T>::size() const {
+LO HostWrite<T>::size() const OMEGA_H_NOEXCEPT {
   return write_.size();
 }
 

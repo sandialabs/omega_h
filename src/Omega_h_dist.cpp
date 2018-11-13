@@ -28,7 +28,7 @@ void Dist::set_parent_comm(CommPtr parent_comm_in) {
 }
 
 void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
-  begin_code("Dist::set_dest_ranks");
+  OMEGA_H_TIME_FUNCTION;
   constexpr bool use_small_neighborhood_algorithm = true;
   if (use_small_neighborhood_algorithm) {
     Read<I32> msgs2ranks1;
@@ -71,16 +71,14 @@ void Dist::set_dest_ranks(Read<I32> items2ranks_in) {
   auto fdegrees = get_degrees(msgs2content_[F]);
   auto rdegrees = comm_[F]->alltoall(fdegrees);
   msgs2content_[R] = offset_scan(rdegrees);
-  end_code();
 }
 
 void Dist::set_dest_idxs(LOs fitems2rroots, LO nrroots) {
-  begin_code("Dist::set_dest_idxs");
-  auto rcontent2rroots = exch(fitems2rroots, 1);
-  auto rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
+  OMEGA_H_TIME_FUNCTION;
+  auto const rcontent2rroots = exch(fitems2rroots, 1);
+  auto const rroots2rcontent = invert_map_by_atomics(rcontent2rroots, nrroots);
   roots2items_[R] = rroots2rcontent.a2ab;
   items2content_[R] = rroots2rcontent.ab2b;
-  end_code();
 }
 
 void Dist::set_dest_globals(GOs fitems2ritem_globals) {
@@ -136,6 +134,8 @@ CommPtr Dist::comm() const { return comm_[F]; }
 LOs Dist::msgs2content() const { return msgs2content_[F]; }
 
 LOs Dist::content2msgs() const { return invert_fan(msgs2content_[F]); }
+
+LOs Dist::items2content() const { return items2content_[F]; }
 
 LOs Dist::items2msgs() const {
   return unmap(items2content_[F], content2msgs(), 1);

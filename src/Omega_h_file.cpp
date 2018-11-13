@@ -447,6 +447,7 @@ void write(std::ostream& stream, Mesh* mesh) {
 }
 
 void read(std::istream& stream, Mesh* mesh, I32 version) {
+  ScopedTimer timer("binary::read(istream, mesh, version)");
   unsigned char magic_in[2];
   stream.read(reinterpret_cast<char*>(magic_in), sizeof(magic));
   OMEGA_H_CHECK(magic_in[0] == magic[0]);
@@ -574,6 +575,7 @@ void write(std::string const& path, Mesh* mesh) {
 
 void read_in_comm(
     std::string const& path, CommPtr comm, Mesh* mesh, I32 version) {
+  ScopedTimer timer("binary::read_in_comm(path, comm, mesh, version)");
   mesh->set_comm(comm);
   auto filepath = path + "/" + to_string(mesh->comm()->rank());
   if (version != -1) filepath += ".osh";
@@ -583,6 +585,7 @@ void read_in_comm(
 }
 
 I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict) {
+  ScopedTimer timer("binary::read(path, comm, mesh, strict)");
   auto nparts = read_nparts(path, comm);
   auto version = read_version(path, comm);
   if (strict) {
@@ -611,10 +614,12 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict) {
 }
 
 Mesh read(std::string const& path, Library* lib, bool strict) {
+  ScopedTimer timer("binary::read(path, lib, strict)");
   return binary::read(path, lib->world(), strict);
 }
 
 Mesh read(std::string const& path, CommPtr comm, bool strict) {
+  ScopedTimer timer("binary::read(path, comm, strict)");
   auto mesh = Mesh(comm->library());
   binary::read(path, comm, &mesh, strict);
   return mesh;

@@ -263,7 +263,6 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
   return intersect_degenerate_metrics(m1, m1_dc, m1_ew_is_degen, nm1_degen_ews,
       m2, m2_dc, m2_ew_is_degen, nm2_degen_ews);
 }
-
 }
 
 #endif

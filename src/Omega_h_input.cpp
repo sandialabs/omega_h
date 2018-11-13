@@ -1,11 +1,11 @@
-#include <Omega_h_input.hpp>
 #include <Omega_h_fail.hpp>
+#include <Omega_h_input.hpp>
 #include <Omega_h_reader.hpp>
 #include <Omega_h_yaml.hpp>
-#include <sstream>
+#include <algorithm>
 #include <fstream>
 #include <limits>
-#include <algorithm>
+#include <sstream>
 
 namespace Omega_h {
 
@@ -46,7 +46,10 @@ InputType& as_type(Input& input) {
 
 InputScalar::InputScalar(std::string const& str_in) : str(str_in) {}
 
-bool InputScalar::as(std::string& out) const { out = str; return true; }
+bool InputScalar::as(std::string& out) const {
+  out = str;
+  return true;
+}
 
 bool InputScalar::as(bool& out) const {
   if (str == "true") {
@@ -71,9 +74,8 @@ bool InputScalar::as(int& out) const {
   using LL = long long;
   LL val;
   ss >> std::noskipws >> val;
-  if (ss.eof() && !ss.fail() &&
-    (val >= LL(std::numeric_limits<int>::min())) &&
-    (val <= LL(std::numeric_limits<int>::max()))) {
+  if (ss.eof() && !ss.fail() && (val >= LL(std::numeric_limits<int>::min())) &&
+      (val <= LL(std::numeric_limits<int>::max()))) {
     out = int(val);
     return true;
   }
@@ -91,35 +93,35 @@ T InputScalar::get() const {
   T out;
   if (!as(out)) {
     auto full_name = get_full_name(*this);
-    Omega_h_fail("InputScalar \"%s\" string \"%s\" is not interpretable as a %s",
-        full_name.c_str(),
-        str.c_str(),
-        (std::is_same<T, int>::value ? "int" :
-        (std::is_same<T, double>::value ? "double" :
-        (std::is_same<T, long long>::value ? "long long" : "unknown type")))
-        );
+    Omega_h_fail(
+        "InputScalar \"%s\" string \"%s\" is not interpretable as a %s",
+        full_name.c_str(), str.c_str(),
+        (std::is_same<T, int>::value
+                ? "int"
+                : (std::is_same<T, double>::value
+                          ? "double"
+                          : (std::is_same<T, long long>::value
+                                    ? "long long"
+                                    : "unknown type"))));
   }
   return out;
 }
 
 void InputScalar::out_of_line_virtual_method() {}
 
-InputMap::InputMap(InputMap&& other):Input(other),map(std::move(other.map)) {
+InputMap::InputMap(InputMap&& other) : Input(other), map(std::move(other.map)) {
   for (auto& pair : map) (pair.second)->parent = this;
 }
 
-InputMap::InputMap(InputMap const& other):Input(other) {
+InputMap::InputMap(InputMap const& other) : Input(other) {
   Omega_h_fail("InputMap should never actually be copied!\n");
 }
 
-void InputMap::add(std::string const& name,
-    std::shared_ptr<Input>&& input) {
+void InputMap::add(std::string const& name, std::shared_ptr<Input>&& input) {
   input->parent = this;
   auto const did = map.emplace(name, std::move(input)).second;
   if (!did) {
-    fail(
-        "tried to add already existing InputMap name \"%s\"\n",
-        name.c_str());
+    fail("tried to add already existing InputMap name \"%s\"\n", name.c_str());
   }
 }
 
@@ -137,8 +139,7 @@ bool InputMap::is(std::string const& name) {
   if (it == map.end()) return false;
   auto const& sptr = it->second;
   ScalarType ignored;
-  return is_type<InputScalar>(*sptr) &&
-    as_type<InputScalar>(*sptr).as(ignored);
+  return is_type<InputScalar>(*sptr) && as_type<InputScalar>(*sptr).as(ignored);
 }
 
 bool InputMap::is_map(std::string const& name) {
@@ -204,11 +205,11 @@ std::string const& InputMap::name(Input const& input) {
 
 void InputMap::out_of_line_virtual_method() {}
 
-InputList::InputList(InputList&& other):entries(std::move(other.entries)) {
+InputList::InputList(InputList&& other) : entries(std::move(other.entries)) {
   for (auto& sptr : entries) sptr->parent = this;
 }
 
-InputList::InputList(InputList const& other):Input(other) {
+InputList::InputList(InputList const& other) : Input(other) {
   Omega_h_fail("InputList should never actually be copied!\n");
 }
 
@@ -219,18 +220,14 @@ void InputList::add(std::shared_ptr<Input>&& input) {
 
 LO InputList::position(Input const& input) {
   auto it = std::find_if(entries.begin(), entries.end(),
-      [&](std::shared_ptr<Input> const& sptr) {
-        return sptr.get() == &input;
-      });
+      [&](std::shared_ptr<Input> const& sptr) { return sptr.get() == &input; });
   OMEGA_H_CHECK(it != entries.end());
   return LO(it - entries.begin());
 }
 
 LO InputList::size() { return LO(entries.size()); }
 
-Input& InputList::at(LO i) {
-  return *(entries.at(std::size_t(i)));
-}
+Input& InputList::at(LO i) { return *(entries.at(std::size_t(i))); }
 
 template <class InputType>
 bool InputList::is_input(LO i) {
@@ -246,30 +243,21 @@ template <class ScalarType>
 bool InputList::is(LO i) {
   Input& input = at(i);
   ScalarType ignored;
-  return is_type<InputScalar>(input) &&
-    as_type<InputScalar>(input).as(ignored);
+  return is_type<InputScalar>(input) && as_type<InputScalar>(input).as(ignored);
 }
 
-bool InputList::is_map(LO i) {
-  return this->is_input<InputMap>(i);
-}
+bool InputList::is_map(LO i) { return this->is_input<InputMap>(i); }
 
-bool InputList::is_list(LO i) {
-  return this->is_input<InputList>(i);
-}
+bool InputList::is_list(LO i) { return this->is_input<InputList>(i); }
 
 template <class ScalarType>
 ScalarType InputList::get(LO i) {
   return this->use_input<InputScalar>(i).get<ScalarType>();
 }
 
-InputMap& InputList::get_map(LO i) {
-  return this->use_input<InputMap>(i);
-}
+InputMap& InputList::get_map(LO i) { return this->use_input<InputMap>(i); }
 
-InputList& InputList::get_list(LO i) {
-  return this->use_input<InputList>(i);
-}
+InputList& InputList::get_list(LO i) { return this->use_input<InputList>(i); }
 
 void InputList::out_of_line_virtual_method() {}
 
@@ -290,7 +278,8 @@ static std::string remove_trailing_whitespace(std::string const& in) {
   return in.substr(0, new_end);
 }
 
-static std::string remove_trailing_whitespace_and_newlines(std::string const& in) {
+static std::string remove_trailing_whitespace_and_newlines(
+    std::string const& in) {
   std::size_t new_end = 0;
   for (std::size_t ri = 0; ri < in.size(); ++ri) {
     std::size_t i = in.size() - 1 - ri;
@@ -303,20 +292,17 @@ static std::string remove_trailing_whitespace_and_newlines(std::string const& in
 }
 
 // http://en.cppreference.com/w/cpp/string/byte/isdigit
-static bool my_isdigit(char ch)
-{
+static bool my_isdigit(char ch) {
   return std::isdigit(static_cast<unsigned char>(ch));
 }
 
 class InputYamlReader : public Reader {
  public:
-  InputYamlReader():Reader(yaml::ask_reader_tables()) {}
+  InputYamlReader() : Reader(yaml::ask_reader_tables()) {}
   ~InputYamlReader() override;
+
  protected:
-  enum {
-    TRIM_NORMAL,
-    TRIM_DASH
-  };
+  enum { TRIM_NORMAL, TRIM_DASH };
   any at_shift(int token, std::string& text) override final {
     switch (token) {
       case yaml::TOK_NEWLINE: {
@@ -357,7 +343,9 @@ class InputYamlReader : public Reader {
       case yaml::PROD_TOP_NEXT: {
         if (rhs.at(1).type() == typeid(InputMap)) {
           if (!rhs.at(0).empty()) {
-            throw ParserFail("Can't specify multiple top-level InputMaps in one YAML file!\n");
+            throw ParserFail(
+                "Can't specify multiple top-level InputMaps in one YAML "
+                "file!\n");
           }
           return std::move(rhs.at(1));
         } else {
@@ -482,14 +470,20 @@ class InputYamlReader : public Reader {
       case yaml::PROD_SCALAR_HEAD_DASH:
       case yaml::PROD_SCALAR_HEAD_DOT_DOT: {
         std::size_t offset;
-        if (prod == yaml::PROD_SCALAR_HEAD_OTHER) offset = 0;
-        else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT) offset = 2;
-        else offset = 1;
+        if (prod == yaml::PROD_SCALAR_HEAD_OTHER)
+          offset = 0;
+        else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT)
+          offset = 2;
+        else
+          offset = 1;
         char second = any_cast<char>(rhs.at(offset));
         std::string result;
-        if (prod == yaml::PROD_SCALAR_HEAD_DOT) result += '.';
-        else if (prod == yaml::PROD_SCALAR_HEAD_DASH) result += '-';
-        else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT) result += "..";
+        if (prod == yaml::PROD_SCALAR_HEAD_DOT)
+          result += '.';
+        else if (prod == yaml::PROD_SCALAR_HEAD_DASH)
+          result += '-';
+        else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT)
+          result += "..";
         result += second;
         return result;
       }
@@ -512,19 +506,15 @@ class InputYamlReader : public Reader {
         return std::move(rhs.at(2));
       }
       case yaml::PROD_BSCALAR: {
-        auto parent_indent_level =
-          this->symbol_indentation_stack.at(
-              this->symbol_indentation_stack.size() - 5);
+        auto parent_indent_level = this->symbol_indentation_stack.at(
+            this->symbol_indentation_stack.size() - 5);
         auto& header = any_cast<std::string&>(rhs.at(0));
-        auto& leading_empties_or_comments =
-          any_cast<std::string&>(rhs.at(2));
+        auto& leading_empties_or_comments = any_cast<std::string&>(rhs.at(2));
         auto& rest = any_cast<std::string&>(rhs.at(4));
         std::string content;
         std::string ignored_comment;
-        handle_block_scalar(
-            parent_indent_level,
-            header, leading_empties_or_comments, rest,
-            content, ignored_comment);
+        handle_block_scalar(parent_indent_level, header,
+            leading_empties_or_comments, rest, content, ignored_comment);
         return content;
       }
       case yaml::PROD_BSCALAR_FIRST: {
@@ -728,31 +718,32 @@ class InputYamlReader : public Reader {
     }
     return std::move(list);
   }
-  /* block scalars are a super complicated mess, this function handles that mess */
-  void handle_block_scalar(
-      std::size_t parent_indent_level,
-      std::string const& header,
-      std::string const& leading_empties_or_comments,
-      std::string const& rest,
-      std::string& content,
-      std::string& comment) {
-    /* read the header, resulting in: block style, chomping indicator, and indentation indicator */
+  /* block scalars are a super complicated mess, this function handles that mess
+   */
+  void handle_block_scalar(std::size_t parent_indent_level,
+      std::string const& header, std::string const& leading_empties_or_comments,
+      std::string const& rest, std::string& content, std::string& comment) {
+    /* read the header, resulting in: block style, chomping indicator, and
+     * indentation indicator */
     char style;
     char chomping_indicator;
     std::size_t indentation_indicator = 0;
     style = header[0];
-    std::stringstream ss(header.substr(1,std::string::npos));
+    std::stringstream ss(header.substr(1, std::string::npos));
     if (header.size() > 1 && my_isdigit(header[1])) {
       ss >> indentation_indicator;
-      // indentation indicator is given as a relative number, but we need it in absolute terms
+      // indentation indicator is given as a relative number, but we need it in
+      // absolute terms
       indentation_indicator += parent_indent_level;
     }
     if (!(ss >> chomping_indicator)) chomping_indicator = '\0';
     /* get information about newlines, indentation level, and comment from
        the leading_empties_or_comments string */
-    std::size_t first_newline = leading_empties_or_comments.find_first_of("\r\n");
+    std::size_t first_newline =
+        leading_empties_or_comments.find_first_of("\r\n");
     std::string newline;
-    if (first_newline > 0 && leading_empties_or_comments[first_newline - 1] == '\r') {
+    if (first_newline > 0 &&
+        leading_empties_or_comments[first_newline - 1] == '\r') {
       newline = "\r\n";
     } else {
       newline = "\n";
@@ -762,11 +753,15 @@ class InputYamlReader : public Reader {
       comment = leading_empties_or_comments.substr(1, keep_beg);
     }
     // according to the YAML spec, a tab is content, not indentation
-    std::size_t content_beg = leading_empties_or_comments.find_first_not_of("\r\n ");
-    if (content_beg == std::string::npos) content_beg = leading_empties_or_comments.size();
-    std::size_t newline_before_content = leading_empties_or_comments.rfind("\n", content_beg);
+    std::size_t content_beg =
+        leading_empties_or_comments.find_first_not_of("\r\n ");
+    if (content_beg == std::string::npos)
+      content_beg = leading_empties_or_comments.size();
+    std::size_t newline_before_content =
+        leading_empties_or_comments.rfind("\n", content_beg);
     std::size_t num_indent_spaces = (content_beg - newline_before_content) - 1;
-    /* indentation indicator overrides the derived level of indentation, in case the
+    /* indentation indicator overrides the derived level of indentation, in case
+       the
        user wants to keep some of that indentation as content */
     if (indentation_indicator > 0) {
       if (num_indent_spaces < indentation_indicator) {
@@ -785,7 +780,7 @@ class InputYamlReader : public Reader {
     /* per Trilinos issue #2090, there can be trailing comments after the block
        scalar which are less indented than it, but they will be included in the
        final NEWLINE token.
-       this code removes all contiguous trailing lines which are less indented 
+       this code removes all contiguous trailing lines which are less indented
        than the content.
      */
     while (true) {
@@ -793,8 +788,7 @@ class InputYamlReader : public Reader {
       if (last_newline == std::string::npos) break;
       std::size_t num_spaces = 0;
       for (auto ispace = last_newline + 1;
-           ispace < content.size() && content[ispace] == ' ';
-           ++ispace) {
+           ispace < content.size() && content[ispace] == ' '; ++ispace) {
         ++num_spaces;
       }
       if (num_spaces >= num_indent_spaces) break;
@@ -818,7 +812,7 @@ class InputYamlReader : public Reader {
       end_cut = std::min(next_newline + 1 + num_indent_spaces, end_cut);
       /* cut this (newline?)+indentation out of the content */
       content = content.substr(0, start_cut) +
-        content.substr(end_cut, std::string::npos);
+                content.substr(end_cut, std::string::npos);
       unindent_pos = start_cut;
     }
     if (chomping_indicator != '+') {
@@ -860,10 +854,12 @@ void update_class_sets(ClassSets* p_sets, InputMap& pl) {
   }
 }
 
-static void echo_input_recursive(std::ostream& stream, Input& input, Int indent) {
+static void echo_input_recursive(
+    std::ostream& stream, Input& input, Int indent) {
   if (is_type<InputScalar>(input)) {
     auto& scalar = as_type<InputScalar>(input);
-    if (std::find(scalar.str.begin(), scalar.str.end(), '\n') != scalar.str.end()) {
+    if (std::find(scalar.str.begin(), scalar.str.end(), '\n') !=
+        scalar.str.end()) {
       stream << " |\n";
       for (auto c : scalar.str) {
         if (c == '\n') {
@@ -922,30 +918,30 @@ void check_unused(Input& input) {
   }
 }
 
-#define OMEGA_H_EXPL_INST(InputType) \
-template bool is_type<InputType>(Input&); \
-template InputType& as_type<InputType>(Input&); \
-template bool InputMap::is_input<InputType>(std::string const& name); \
-template InputType& InputMap::use_input<InputType>(std::string const& name); \
-template bool InputList::is_input<InputType>(LO i); \
-template InputType& InputList::use_input<InputType>(LO i);
+#define OMEGA_H_EXPL_INST(InputType)                                           \
+  template bool is_type<InputType>(Input&);                                    \
+  template InputType& as_type<InputType>(Input&);                              \
+  template bool InputMap::is_input<InputType>(std::string const& name);        \
+  template InputType& InputMap::use_input<InputType>(std::string const& name); \
+  template bool InputList::is_input<InputType>(LO i);                          \
+  template InputType& InputList::use_input<InputType>(LO i);
 OMEGA_H_EXPL_INST(InputScalar)
 OMEGA_H_EXPL_INST(InputMap)
 OMEGA_H_EXPL_INST(InputList)
 #undef OMEGA_H_EXPL_INST
 
-#define OMEGA_H_EXPL_INST(ScalarType) \
-template ScalarType InputScalar::get<ScalarType>() const; \
-template bool InputMap::is<ScalarType>(std::string const& name); \
-template ScalarType InputMap::get<ScalarType>(std::string const& name); \
-template ScalarType InputMap::get<ScalarType>(std::string const& name, char const* default_value); \
-template bool InputList::is<ScalarType>(LO i); \
-template ScalarType InputList::get<ScalarType>(LO i);
+#define OMEGA_H_EXPL_INST(ScalarType)                                          \
+  template ScalarType InputScalar::get<ScalarType>() const;                    \
+  template bool InputMap::is<ScalarType>(std::string const& name);             \
+  template ScalarType InputMap::get<ScalarType>(std::string const& name);      \
+  template ScalarType InputMap::get<ScalarType>(                               \
+      std::string const& name, char const* default_value);                     \
+  template bool InputList::is<ScalarType>(LO i);                               \
+  template ScalarType InputList::get<ScalarType>(LO i);
 OMEGA_H_EXPL_INST(std::string)
 OMEGA_H_EXPL_INST(bool)
 OMEGA_H_EXPL_INST(double)
 OMEGA_H_EXPL_INST(int)
 OMEGA_H_EXPL_INST(long long)
 #undef OMEGA_H_EXPL_INST
-
 }

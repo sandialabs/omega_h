@@ -1,6 +1,7 @@
 #include "Omega_h_adj.hpp"
 #include "Omega_h_align.hpp"
 #include "Omega_h_array_ops.hpp"
+#include "Omega_h_expr.hpp"
 #include "Omega_h_for.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_library.hpp"
@@ -8,7 +9,6 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
 #include "Omega_h_sort.hpp"
-#include "Omega_h_expr.hpp"
 
 using namespace Omega_h;
 
@@ -228,24 +228,33 @@ static void test_expr() {
   OMEGA_H_CHECK(any_cast<Real>(reader.read_string("pi", "test2")) == 3.14159);
   reader.register_variable("j", any(vector_3(0, 1, 0)));
   OMEGA_H_CHECK(
-      are_close(any_cast<Vector<3>>(reader.read_string("pi * j", "test3")), vector_3(0, 3.14159, 0)));
+      are_close(any_cast<Vector<3>>(reader.read_string("pi * j", "test3")),
+          vector_3(0, 3.14159, 0)));
   reader.register_variable("x", any(Reals({0, 1, 2, 3})));
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("x^2", "test4")), Reals({0, 1, 4, 9})));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("x^2", "test4")),
+      Reals({0, 1, 4, 9})));
   reader.register_variable(
       "v", any(Reals({0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("v(1)", "test5")), Reals({0, 1, 2, 3})));
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("v - 1.5 * j", "test6")),
-      Reals({0, -1.5, 0, 0, -0.5, 0, 0, 0.5, 0, 0, 1.5, 0})));
-  OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(reader.read_string("vector(0, 1, 2)", "test7")), vector_3(0, 1, 2)));
+  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("v(1)", "test5")),
+      Reals({0, 1, 2, 3})));
+  OMEGA_H_CHECK(
+      are_close(any_cast<Reals>(reader.read_string("v - 1.5 * j", "test6")),
+          Reals({0, -1.5, 0, 0, -0.5, 0, 0, 0.5, 0, 0, 1.5, 0})));
   OMEGA_H_CHECK(are_close(
-      any_cast<Reals>(reader.read_string("vector(x, 0, 0)", "test8")), Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
-  OMEGA_H_CHECK(are_close(any_cast<Real>(reader.read_string("exp(0)", "test9")), 1.0));
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(reader.read_string("exp(x)", "test10")),
-      Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
+      any_cast<Vector<3>>(reader.read_string("vector(0, 1, 2)", "test7")),
+      vector_3(0, 1, 2)));
+  OMEGA_H_CHECK(
+      are_close(any_cast<Reals>(reader.read_string("vector(x, 0, 0)", "test8")),
+          Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
+  OMEGA_H_CHECK(
+      are_close(any_cast<Real>(reader.read_string("exp(0)", "test9")), 1.0));
+  OMEGA_H_CHECK(
+      are_close(any_cast<Reals>(reader.read_string("exp(x)", "test10")),
+          Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
 }
 
-static Omega_h::any test_expr2(ExprEnv& env,
-    std::string const& expr, std::string const& test_name) {
+static Omega_h::any test_expr2(
+    ExprEnv& env, std::string const& expr, std::string const& test_name) {
   ExprOpsReader reader;
   auto op = any_cast<OpPtr>(reader.read_string(expr, test_name));
   return op->eval(env);
@@ -261,24 +270,33 @@ static void test_expr2() {
   OMEGA_H_CHECK(any_cast<Real>(test_expr2(env, "pi", "test2")) == 3.14159);
   env.register_variable("j", any(vector_3(0, 1, 0)));
   OMEGA_H_CHECK(
-      are_close(any_cast<Vector<3>>(test_expr2(env, "pi * j", "test3")), vector_3(0, 3.14159, 0)));
+      are_close(any_cast<Vector<3>>(test_expr2(env, "pi * j", "test3")),
+          vector_3(0, 3.14159, 0)));
   env.register_variable("x", any(Reals({0, 1, 2, 3})));
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "x^2", "test4")), Reals({0, 1, 4, 9})));
-  env.register_variable("v", any(Reals({0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "v(1)", "test5")), Reals({0, 1, 2, 3})));
-  OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "v - 1.5 * j", "test6")),
-      Reals({0, -1.5, 0, 0, -0.5, 0, 0, 0.5, 0, 0, 1.5, 0})));
-  OMEGA_H_CHECK(are_close(any_cast<Vector<3>>(test_expr2(env, "vector(0, 1, 2)", "test7")), vector_3(0, 1, 2)));
   OMEGA_H_CHECK(are_close(
-      any_cast<Reals>(test_expr2(env, "vector(x, 0, 0)", "test8")), Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
-  OMEGA_H_CHECK(are_close(any_cast<Real>(test_expr2(env, "exp(0)", "test9")), 1.0));
+      any_cast<Reals>(test_expr2(env, "x^2", "test4")), Reals({0, 1, 4, 9})));
+  env.register_variable("v", any(Reals({0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0})));
+  OMEGA_H_CHECK(are_close(
+      any_cast<Reals>(test_expr2(env, "v(1)", "test5")), Reals({0, 1, 2, 3})));
+  OMEGA_H_CHECK(
+      are_close(any_cast<Reals>(test_expr2(env, "v - 1.5 * j", "test6")),
+          Reals({0, -1.5, 0, 0, -0.5, 0, 0, 0.5, 0, 0, 1.5, 0})));
+  OMEGA_H_CHECK(are_close(
+      any_cast<Vector<3>>(test_expr2(env, "vector(0, 1, 2)", "test7")),
+      vector_3(0, 1, 2)));
+  OMEGA_H_CHECK(
+      are_close(any_cast<Reals>(test_expr2(env, "vector(x, 0, 0)", "test8")),
+          Reals({0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0})));
+  OMEGA_H_CHECK(
+      are_close(any_cast<Real>(test_expr2(env, "exp(0)", "test9")), 1.0));
   OMEGA_H_CHECK(are_close(any_cast<Reals>(test_expr2(env, "exp(x)", "test10")),
       Reals({1.0, std::exp(1.0), std::exp(2.0), std::exp(3.0)})));
 }
 
 static void test_array_from_kokkos() {
 #ifdef OMEGA_H_USE_KOKKOSCORE
-  Kokkos::View<double**> managed(Kokkos::ViewAllocateWithoutInitializing("view"), 10, 10);
+  Kokkos::View<double**> managed(
+      Kokkos::ViewAllocateWithoutInitializing("view"), 10, 10);
   Kokkos::View<double*> unmanaged(managed.data(), managed.span());
   Omega_h::Write<double> unmanaged_array(unmanaged);
   OMEGA_H_CHECK(unmanaged_array.exists());

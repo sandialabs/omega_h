@@ -141,7 +141,8 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     read(stream, num_entity_blocks, is_binary, needs_swapping);
     read(stream, nnodes, is_binary, needs_swapping);
     node_coords.reserve(std::size_t(nnodes));
-    for (int entity_block = 0; entity_block < num_entity_blocks; ++entity_block) {
+    for (int entity_block = 0; entity_block < num_entity_blocks;
+         ++entity_block) {
       int class_id, class_dim;
       read(stream, class_id, is_binary, needs_swapping);
       read(stream, class_dim, is_binary, needs_swapping);
@@ -186,7 +187,8 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     int num_entity_blocks, total_num_ents;
     read(stream, num_entity_blocks, is_binary, needs_swapping);
     read(stream, total_num_ents, is_binary, needs_swapping);
-    for (int entity_block = 0; entity_block < num_entity_blocks; ++entity_block) {
+    for (int entity_block = 0; entity_block < num_entity_blocks;
+         ++entity_block) {
       int class_id, class_dim;
       read(stream, class_id, is_binary, needs_swapping);
       read(stream, class_dim, is_binary, needs_swapping);
@@ -202,8 +204,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
       ent_class_ids[dim].reserve(
           ent_class_ids[dim].size() + std::size_t(num_block_ents));
       ent_nodes[dim].reserve(
-          ent_nodes[dim].size() +
-          std::size_t(num_block_ents * nodes_per_ent));
+          ent_nodes[dim].size() + std::size_t(num_block_ents * nodes_per_ent));
       for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
         ent_class_ids[dim].push_back(class_id);
         int ent_number;

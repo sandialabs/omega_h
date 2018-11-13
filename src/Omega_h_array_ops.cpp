@@ -1,9 +1,9 @@
 #include "Omega_h_array_ops.hpp"
 
 #include "Omega_h_for.hpp"
-#include "Omega_h_reduce.hpp"
 #include "Omega_h_functors.hpp"
 #include "Omega_h_int_iterator.hpp"
+#include "Omega_h_reduce.hpp"
 
 namespace Omega_h {
 
@@ -14,9 +14,7 @@ bool operator==(Read<T> a, Read<T> b) {
   auto const last = IntIterator(a.size());
   auto const init = true;
   auto const op = logical_and<bool>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
-    return a[i] == b[i];
-  };
+  auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] == b[i]; };
   return transform_reduce(first, last, init, op, std::move(transform));
 }
 
@@ -38,7 +36,7 @@ T get_min(Read<T> a) {
   auto const last = IntIterator(a.size());
   auto const init = promoted_t<T>(ArithTraits<T>::max());
   auto const op = minimum<promoted_t<T>>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> promoted_t<T> {
+  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
     return promoted_t<T>(a[i]);
   };
   auto const r = transform_reduce(first, last, init, op, std::move(transform));
@@ -51,7 +49,7 @@ T get_max(Read<T> a) {
   auto const last = IntIterator(a.size());
   auto const init = promoted_t<T>(ArithTraits<T>::min());
   auto const op = maximum<promoted_t<T>>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> promoted_t<T> {
+  auto transform = OMEGA_H_LAMBDA(LO i)->promoted_t<T> {
     return promoted_t<T>(a[i]);
   };
   auto const r = transform_reduce(first, last, init, op, std::move(transform));
@@ -79,10 +77,11 @@ bool are_close(Reals a, Reals b, Real tol, Real floor) {
   auto const last = IntIterator(a.size());
   auto const init = true;
   auto const op = logical_and<bool>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+  auto transform = OMEGA_H_LAMBDA(LO i)->bool {
     return are_close(a[i], b[i], tol, floor);
   };
-  auto const res = transform_reduce(first, last, init, op, std::move(transform));
+  auto const res =
+      transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
 }
 
@@ -92,10 +91,11 @@ bool are_close_abs(Reals a, Reals b, Real tol) {
   auto const last = IntIterator(a.size());
   auto const init = true;
   auto const op = logical_and<bool>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
+  auto transform = OMEGA_H_LAMBDA(LO i)->bool {
     return (std::abs(a[i] - b[i]) <= tol);
   };
-  auto const res = transform_reduce(first, last, init, op, std::move(transform));
+  auto const res =
+      transform_reduce(first, last, init, op, std::move(transform));
   return static_cast<bool>(res);
 }
 
@@ -406,9 +406,11 @@ LO find_last(Read<T> array, T value) {
   auto const last = IntIterator(array.size());
   auto const init = -1;
   auto const op = maximum<LO>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> LO {
-    if (array[i] == value) return i;
-    else return -1;
+  auto transform = OMEGA_H_LAMBDA(LO i)->LO {
+    if (array[i] == value)
+      return i;
+    else
+      return -1;
   };
   return transform_reduce(first, last, init, op, std::move(transform));
 }
@@ -420,9 +422,7 @@ bool is_sorted(Read<T> a) {
   auto const last = IntIterator(a.size() - 1);
   auto const init = true;
   auto const op = logical_and<bool>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> bool {
-    return a[i] <= a[i + 1];
-  };
+  auto transform = OMEGA_H_LAMBDA(LO i)->bool { return a[i] <= a[i + 1]; };
   return transform_reduce(first, last, init, op, std::move(transform));
 }
 
@@ -496,7 +496,7 @@ static int max_exponent(Reals a) {
   auto const last = IntIterator(a.size());
   auto const init = ArithTraits<int>::min();
   auto const op = maximum<int>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> int {
+  auto transform = OMEGA_H_LAMBDA(LO i)->int {
     int expo;
     std::frexp(a[i], &expo);
     return expo;
@@ -505,9 +505,7 @@ static int max_exponent(Reals a) {
 }
 
 struct Int128Plus {
-  OMEGA_H_INLINE Int128 operator()(Int128 a, Int128 b) const {
-    return a + b;
-  }
+  OMEGA_H_INLINE Int128 operator()(Int128 a, Int128 b) const { return a + b; }
 };
 
 static Int128 int128_sum(Reals const a, double const unit) {
@@ -515,7 +513,7 @@ static Int128 int128_sum(Reals const a, double const unit) {
   auto const last = IntIterator(a.size());
   auto const init = Int128(0);
   auto const op = Int128Plus();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> Int128 {
+  auto transform = OMEGA_H_LAMBDA(LO i)->Int128 {
     return Int128::from_double(a[i], unit);
   };
   return transform_reduce(first, last, init, op, std::move(transform));
@@ -572,10 +570,10 @@ Read<Tout> array_cast(Read<Tin> in) {
 
 #define INST(T)                                                                \
   template bool operator==(Read<T> a, Read<T> b);                              \
-  template promoted_t<T> get_sum(Read<T> a);                 \
+  template promoted_t<T> get_sum(Read<T> a);                                   \
   template T get_min(Read<T> a);                                               \
   template T get_max(Read<T> a);                                               \
-  template promoted_t<T> get_sum(CommPtr comm, Read<T> a);   \
+  template promoted_t<T> get_sum(CommPtr comm, Read<T> a);                     \
   template T get_min(CommPtr comm, Read<T> a);                                 \
   template T get_max(CommPtr comm, Read<T> a);                                 \
   template MinMax<T> get_minmax(CommPtr comm, Read<T> a);                      \
@@ -601,7 +599,7 @@ Read<Tout> array_cast(Read<Tin> in) {
   template Bytes gt_each(Read<T> a, Read<T> b);                                \
   template Bytes lt_each(Read<T> a, Read<T> b);                                \
   template Bytes eq_each(Read<T> a, Read<T> b);                                \
-  template Bytes neq_each(Read<T> a, Read<T> b);                                \
+  template Bytes neq_each(Read<T> a, Read<T> b);                               \
   template Read<T> get_component(Read<T> a, Int ncomps, Int comp);             \
   template void set_component(Write<T> out, Read<T> a, Int ncomps, Int comp);  \
   template LO find_last(Read<T> array, T value);                               \

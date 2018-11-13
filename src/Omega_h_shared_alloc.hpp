@@ -51,8 +51,7 @@ struct Allocs {
 struct SharedAlloc {
   Alloc* alloc;
   void* direct_ptr;
-  OMEGA_H_INLINE SharedAlloc() : alloc(nullptr), direct_ptr(nullptr) {
-  }
+  OMEGA_H_INLINE SharedAlloc() noexcept : alloc(nullptr), direct_ptr(nullptr) {}
   SharedAlloc(std::size_t size_in, std::string const& name_in);
   SharedAlloc(std::size_t size_in, std::string&& name_in);
   SharedAlloc(std::size_t size_in);
@@ -72,7 +71,7 @@ struct SharedAlloc {
      5. identity: alloc = (size << 3) & IS_IDENTITY
      6. identity, parallel: alloc = (size << 3) & IS_IDENTITY & IN_PARALLEL
    */
-  OMEGA_H_INLINE void copy(SharedAlloc const& other) {
+  OMEGA_H_INLINE void copy(SharedAlloc const& other) noexcept {
     alloc = other.alloc;
 #ifndef __CUDA_ARCH__
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
@@ -87,10 +86,8 @@ struct SharedAlloc {
 #endif
     direct_ptr = other.direct_ptr;
   }
-  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) {
-    copy(other);
-  }
-  OMEGA_H_INLINE void move(SharedAlloc&& other) {
+  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) { copy(other); }
+  OMEGA_H_INLINE void move(SharedAlloc&& other) noexcept {
     alloc = other.alloc;
     direct_ptr = other.direct_ptr;
 #ifndef __CUDA_ARCH__
@@ -127,28 +124,28 @@ struct SharedAlloc {
     }
 #endif
   }
-  OMEGA_H_INLINE std::size_t size() const {
+  OMEGA_H_INLINE std::size_t size() const noexcept {
 #ifndef __CUDA_ARCH__
     if (!(reinterpret_cast<std::uintptr_t>(alloc) & IN_PARALLEL)) {
-#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
+#if defined(__GNUC__) && (__GNUC__ >= 7) && (!defined(__clang__))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
 #endif
       return alloc->size;
-#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
+#if defined(__GNUC__) && (__GNUC__ >= 7) && (!defined(__clang__))
 #pragma GCC diagnostic pop
 #endif
     }
 #endif
     return reinterpret_cast<std::uintptr_t>(alloc) >> 3;
   }
-  OMEGA_H_INLINE int maybe_identity_index(int i) {
+  OMEGA_H_INLINE int maybe_identity_index(int i) const noexcept {
     if (reinterpret_cast<std::uintptr_t>(alloc) == IS_IDENTITY) {
       return i;
     }
     return static_cast<int*>(direct_ptr)[i];
   }
-  OMEGA_H_INLINE void* data() const { return direct_ptr; }
+  OMEGA_H_INLINE void* data() const noexcept { return direct_ptr; }
   static SharedAlloc identity(std::size_t size_in);
 };
 

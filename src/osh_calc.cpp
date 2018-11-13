@@ -180,6 +180,7 @@ class CalcReader : public Omega_h::Reader {
 int main() {
   CalcReader reader;
   for (std::string line; std::getline(std::cin, line);) {
-    std::cout << Omega_h::any_cast<double>(reader.read_string("input", line)) << '\n';
+    std::cout << Omega_h::any_cast<double>(reader.read_string("input", line))
+              << '\n';
   }
 }

@@ -77,12 +77,14 @@ void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
-void write_vtu(std::string const& filename, Mesh* mesh, bool compress = OMEGA_H_DEFAULT_COMPRESS);
+void write_vtu(std::string const& filename, Mesh* mesh,
+    bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
-void write_parallel(
-    std::string const& path, Mesh* mesh, Int cell_dim, bool compress = OMEGA_H_DEFAULT_COMPRESS);
-void write_parallel(std::string const& path, Mesh* mesh, bool compress = OMEGA_H_DEFAULT_COMPRESS);
+void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
+    bool compress = OMEGA_H_DEFAULT_COMPRESS);
+void write_parallel(std::string const& path, Mesh* mesh,
+    bool compress = OMEGA_H_DEFAULT_COMPRESS);
 
 void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh);
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh);

@@ -83,7 +83,9 @@ class Few {
 #define OMEGA_H_FEW_AT return array_[i]
 #endif
   OMEGA_H_INLINE T& operator[](Int i) OMEGA_H_NOEXCEPT { OMEGA_H_FEW_AT; }
-  OMEGA_H_INLINE T const& operator[](Int i) const OMEGA_H_NOEXCEPT { OMEGA_H_FEW_AT; }
+  OMEGA_H_INLINE T const& operator[](Int i) const OMEGA_H_NOEXCEPT {
+    OMEGA_H_FEW_AT;
+  }
 #undef OMEGA_H_FEW_AT
   Few(std::initializer_list<T> l) {
     Int i = 0;
@@ -102,7 +104,8 @@ class Few {
 #endif
 
 template <Int capacity, typename T>
-OMEGA_H_INLINE void add_unique(Few<T, capacity>& stack, Int& n, T e) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE void add_unique(
+    Few<T, capacity>& stack, Int& n, T e) OMEGA_H_NOEXCEPT {
   for (Int i = 0; i < n; ++i)
     if (stack[i] == e) return;
   stack[n++] = e;
@@ -132,7 +135,8 @@ OMEGA_H_INLINE decltype(std::declval<T>() * std::declval<T>()) inner_product(
 }
 #else
 template <Int n, typename T>
-OMEGA_H_INLINE decltype(T() * T()) inner_product(Few<T, n> a, Few<T, n> b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE decltype(T() * T()) inner_product(
+    Few<T, n> a, Few<T, n> b) OMEGA_H_NOEXCEPT {
   auto out = a[0] * b[0];
   for (Int i = 1; i < n; ++i) out = out + (a[i] * b[i]);
   return out;

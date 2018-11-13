@@ -1,8 +1,8 @@
 #include <Omega_h_fail.hpp>
 #include <Omega_h_library.hpp>
-#include <Omega_h_shared_alloc.hpp>
-#include <Omega_h_profile.hpp>
 #include <Omega_h_malloc.hpp>
+#include <Omega_h_profile.hpp>
+#include <Omega_h_shared_alloc.hpp>
 #include <sstream>
 
 namespace Omega_h {
@@ -74,7 +74,6 @@ Alloc::~Alloc() {
 }
 
 void Alloc::init() {
-  Omega_h::ScopedTimer init_timer("Alloc::init");
   ptr = ::Omega_h::maybe_pooled_device_malloc(size);
   use_count = 1;
   auto ga = global_allocs;
@@ -114,13 +113,11 @@ void Alloc::init() {
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string const& name_in) {
-  Omega_h::ScopedTimer timer("SharedAlloc ctor");
   alloc = new Alloc(size_in, name_in);
   direct_ptr = alloc->ptr;
 }
 
 SharedAlloc::SharedAlloc(std::size_t size_in, std::string&& name_in) {
-  Omega_h::ScopedTimer timer("SharedAlloc ctor");
   alloc = new Alloc(size_in, name_in);
   direct_ptr = alloc->ptr;
 }

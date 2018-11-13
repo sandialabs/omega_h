@@ -5,10 +5,10 @@
 #include <map>
 #include <vector>
 
+#include <Omega_h_any.hpp>
 #include <Omega_h_array.hpp>
 #include <Omega_h_matrix.hpp>
 #include <Omega_h_reader.hpp>
-#include <Omega_h_any.hpp>
 
 namespace Omega_h {
 
@@ -41,8 +41,7 @@ class ExprOpsReader : public Reader {
 
  protected:
   any at_shift(int token, std::string& text) override final;
-  any at_reduce(int token,
-      std::vector<any>& rhs) override final;
+  any at_reduce(int token, std::vector<any>& rhs) override final;
 };
 
 class ExprReader : public Reader {
@@ -56,10 +55,8 @@ class ExprReader : public Reader {
   void repeat(any& x);
 
  protected:
-  any at_shift(
-      int token, std::string& text) override final;
-  any at_reduce(int token,
-      std::vector<any>& rhs) override final;
+  any at_shift(int token, std::string& text) override final;
+  any at_reduce(int token, std::vector<any>& rhs) override final;
   ExprEnv env;
 };
 

@@ -1,10 +1,10 @@
 #ifndef OMEGA_H_INDSET_INLINE_HPP
 #define OMEGA_H_INDSET_INLINE_HPP
 
-#include <Omega_h_indset.hpp>
-#include <Omega_h_for.hpp>
-#include <Omega_h_mesh.hpp>
 #include <Omega_h_array_ops.hpp>
+#include <Omega_h_for.hpp>
+#include <Omega_h_indset.hpp>
+#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
 namespace indset {
@@ -43,16 +43,16 @@ static Read<I8> local_iteration(
 }
 
 template <class Compare>
-Read<I8> iteration(Mesh* mesh, Int dim, LOs xadj, LOs adj,
-    Read<I8> old_state, Compare compare) {
+Read<I8> iteration(Mesh* mesh, Int dim, LOs xadj, LOs adj, Read<I8> old_state,
+    Compare compare) {
   auto local_state = local_iteration(xadj, adj, old_state, compare);
   auto synced_state = mesh->sync_array(dim, local_state, 1);
   return synced_state;
 }
 
 template <class Compare>
-Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj,
-    Read<I8> candidates, Compare compare) {
+Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Read<I8> candidates,
+    Compare compare) {
   auto n = xadj.size() - 1;
   OMEGA_H_CHECK(candidates.size() == n);
   auto initial_state = Write<I8>(n);
@@ -70,7 +70,7 @@ Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj,
   }
   return state;
 }
-
-}}  // namespace Omega_h::indset
+}
+}  // namespace Omega_h::indset
 
 #endif

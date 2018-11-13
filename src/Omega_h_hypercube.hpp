@@ -518,11 +518,10 @@ constexpr char const* hypercube_singular_name(Int dim) {
 }
 
 constexpr char const* hypercube_plural_name(Int dim) {
-  return (dim == 3
-              ? "hexes"
-              : (dim == 2 ? "quads"
-                          : (dim == 1 ? "edges"
-                                      : (dim == 0 ? "vertices" : nullptr))));
+  return (dim == 3 ? "hexes"
+                   : (dim == 2 ? "quads"
+                               : (dim == 1 ? "edges" : (dim == 0 ? "vertices"
+                                                                 : nullptr))));
 }
 
 // every interior split entity can be seen as the dual of a corresponding
@@ -559,6 +558,7 @@ OMEGA_H_INLINE SplitVertex hypercube_split_template(
               return {-1, -1};
           }
       }
+      return {-1, -1};
     case 2:
       switch (child_dim) {
         case 0:
@@ -623,6 +623,7 @@ OMEGA_H_INLINE SplitVertex hypercube_split_template(
               return {-1, -1};
           }
       }
+      return {-1, -1};
     case 3:
       switch (child_dim) {
         case 0:

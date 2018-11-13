@@ -13,7 +13,7 @@ class Overlay {
       ,
       MPI_Comm comm
 #endif
-  );
+      );
 
   std::array<size_t, 2> get_face_cells(size_t face) const;
 

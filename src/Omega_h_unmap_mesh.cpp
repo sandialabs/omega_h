@@ -3,6 +3,7 @@
 #include "Omega_h_element.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
+#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 
@@ -44,6 +45,7 @@ void unmap_down(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 
 Remotes unmap_owners(
     Mesh* old_mesh, Int ent_dim, LOs new_ents2old_ents, LOs old_ents2new_ents) {
+  OMEGA_H_TIME_FUNCTION;
   auto old_copies2old_owners = old_mesh->ask_dist(ent_dim);
   auto old_owners2old_copies = old_copies2old_owners.invert();
   auto old_copies2new_owners = old_owners2old_copies.exch(old_ents2new_ents, 1);
@@ -63,8 +65,9 @@ void unmap_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 
 void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
   auto new_mesh = mesh->copy_meta();
-  auto nnew_verts = (new_ents2old_ents[0].exists()) ?
-    new_ents2old_ents[0].size() : mesh->nverts();
+  auto nnew_verts = (new_ents2old_ents[0].exists())
+                        ? new_ents2old_ents[0].size()
+                        : mesh->nverts();
   new_mesh.set_verts(nnew_verts);
   LOs old_lows2new_lows;
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {

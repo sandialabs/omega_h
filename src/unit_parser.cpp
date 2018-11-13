@@ -1,15 +1,15 @@
+#include <Omega_h_array_ops.hpp>
 #include <Omega_h_build_parser.hpp>
+#include <Omega_h_expr.hpp>
 #include <Omega_h_finite_automaton.hpp>
 #include <Omega_h_language.hpp>
+#include <Omega_h_library.hpp>
 #include <Omega_h_parser.hpp>
 #include <Omega_h_reader.hpp>
 #include <Omega_h_regex.hpp>
 #include <Omega_h_string.hpp>
 #include <Omega_h_xml.hpp>
 #include <Omega_h_yaml.hpp>
-#include <Omega_h_expr.hpp>
-#include <Omega_h_array_ops.hpp>
-#include <Omega_h_library.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -123,7 +123,8 @@ static void test_regex_reader(std::string const& regex,
     std::vector<std::string> const& expect_matches,
     std::vector<std::string> const& expect_non_matches) {
   auto reader = regex::Reader(42);
-  auto fa = any_cast<FiniteAutomaton>(reader.read_string(regex, "test_regex_reader"));
+  auto fa =
+      any_cast<FiniteAutomaton>(reader.read_string(regex, "test_regex_reader"));
   for (auto& expect_match : expect_matches) {
     if (!(accepts(fa, expect_match, 42))) {
       std::cerr << "Finite Automaton:\n" << fa << "\n";

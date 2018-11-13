@@ -1,8 +1,8 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_eigen.hpp"
+#include "Omega_h_metric_intersect.hpp"
 #include "Omega_h_most_normal.hpp"
 #include "Omega_h_shape.hpp"
-#include "Omega_h_metric_intersect.hpp"
 
 using namespace Omega_h;
 
@@ -301,8 +301,10 @@ static Matrix<dim, dim> F_from_coords(Matrix<dim, dim + 1> new_simplex_coords) {
   for (Int i = 0; i < dim; ++i) {
     old_simplex_basis_grads(i, 0) = -1.0;
     for (Int j = 0; j < dim; ++j) {
-      if (i == j) old_simplex_basis_grads(i, j + 1) = 1.0;
-      else old_simplex_basis_grads(i, j + 1) = 0.0;
+      if (i == j)
+        old_simplex_basis_grads(i, j + 1) = 1.0;
+      else
+        old_simplex_basis_grads(i, j + 1) = 0.0;
     }
   }
   return old_simplex_basis_grads * transpose(new_simplex_coords);
@@ -323,7 +325,8 @@ static void test_lie() {
   test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 2.0}});
   test_lie_F<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 0.5}});
   test_lie_F<2>({{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}});
-  test_lie_F<3>({{0.0, 0.0, 0.0}, {std::cos(1.0), std::sin(1.0), 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
+  test_lie_F<3>({{0.0, 0.0, 0.0}, {std::cos(1.0), std::sin(1.0), 0.0},
+      {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
   test_lie_F<2>({{0.0, 0.0}, {std::cos(2.0), std::sin(2.0)}, {-1.0, 0.0}});
 }
 

@@ -83,7 +83,8 @@ inline Matrix<m, n>::Matrix(std::initializer_list<Real> l) {
 }
 
 template <Int m, Int n>
-OMEGA_H_INLINE Vector<m> operator*(Matrix<m, n> a, Vector<n> b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE Vector<m> operator*(
+    Matrix<m, n> a, Vector<n> b)OMEGA_H_NOEXCEPT {
   Vector<m> c = a[0] * b[0];
   for (Int j = 1; j < n; ++j) c = c + a[j] * b[j];
   return c;
@@ -306,7 +307,8 @@ OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> a) {
 }
 
 OMEGA_H_INLINE Vector<3> uncross(Matrix<3, 3> c) {
-  return 0.5 * vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]);
+  return 0.5 *
+         vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]);
 }
 
 OMEGA_H_INLINE Matrix<1, 1> invert(Matrix<1, 1> m) {

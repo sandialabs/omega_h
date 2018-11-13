@@ -10,9 +10,9 @@ static OMEGA_H_DEVICE void contrib(Write<Real> const& buckets, Real value) {
   buckets[LO(std::floor(value * buckets.size()))]++;
 }
 
-static Real test_chi_squared(std::string const& name, HostRead<Real> const& buckets,
-    HostRead<Real> const& cdfs, Real num_distribution_parameters, Real nsamples,
-    Real cutoff) {
+static Real test_chi_squared(std::string const& name,
+    HostRead<Real> const& buckets, HostRead<Real> const& cdfs,
+    Real num_distribution_parameters, Real nsamples, Real cutoff) {
   OMEGA_H_CHECK(cdfs.size() == buckets.size() + 1);
   LO num_nonempty_buckets = 0;
   for (LO i = 0; i < buckets.size(); ++i) {

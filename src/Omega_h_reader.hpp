@@ -17,7 +17,8 @@ class Reader {
   virtual ~Reader() = default;
   Reader(ReaderTablesPtr tables_in);
   any read_stream(std::istream& stream, std::string const& stream_name_in = "");
-  any read_string(std::string const& string, std::string const& string_name = "");
+  any read_string(
+      std::string const& string, std::string const& string_name = "");
   any read_file(std::string const& file_name);
 
  protected:

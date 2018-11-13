@@ -124,11 +124,10 @@ Read<Tout> array_cast(Read<Tin> in);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template bool operator==(Read<T> a, Read<T> b);                       \
-  extern template promoted_t<T> get_sum(Read<T> a);          \
+  extern template promoted_t<T> get_sum(Read<T> a);                            \
   extern template T get_min(Read<T> a);                                        \
   extern template T get_max(Read<T> a);                                        \
-  extern template promoted_t<T> get_sum(                     \
-      CommPtr comm, Read<T> a);                                                \
+  extern template promoted_t<T> get_sum(CommPtr comm, Read<T> a);              \
   extern template T get_min(CommPtr comm, Read<T> a);                          \
   extern template T get_max(CommPtr comm, Read<T> a);                          \
   extern template MinMax<T> get_minmax(CommPtr comm, Read<T> a);               \
@@ -156,7 +155,7 @@ Read<Tout> array_cast(Read<Tin> in);
   extern template Bytes gt_each(Read<T> a, Read<T> b);                         \
   extern template Bytes lt_each(Read<T> a, Read<T> b);                         \
   extern template Bytes eq_each(Read<T> a, Read<T> b);                         \
-  extern template Bytes neq_each(Read<T> a, Read<T> b);                         \
+  extern template Bytes neq_each(Read<T> a, Read<T> b);                        \
   extern template Read<T> get_component(Read<T> a, Int ncomps, Int comp);      \
   extern template void set_component(                                          \
       Write<T> out, Read<T> a, Int ncomps, Int comp);                          \

@@ -15,13 +15,15 @@ class Mesh;
 struct UserTransfer {
   virtual ~UserTransfer() = default;
   virtual void out_of_line_virtual_method();
-  virtual void refine(Mesh& old_mesh, Mesh& new_mesh, LOs keys2edges, LOs keys2midverts,
-      Int prod_dim, LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents,
+  virtual void refine(Mesh& old_mesh, Mesh& new_mesh, LOs keys2edges,
+      LOs keys2midverts, Int prod_dim, LOs keys2prods, LOs prods2new_ents,
+      LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
+  virtual void coarsen(Mesh& old_mesh, Mesh& new_mesh, LOs keys2verts,
+      Adj keys2doms, Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents,
       LOs same_ents2new_ents) = 0;
-  virtual void coarsen(Mesh& old_mesh, Mesh& new_mesh, LOs keys2verts, Adj keys2doms,
-      Int prod_dim, LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
-  virtual void swap(Mesh& old_mesh, Mesh& new_mesh, Int prod_dim, LOs keys2edges,
-      LOs keys2prods, LOs prods2new_ents, LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
+  virtual void swap(Mesh& old_mesh, Mesh& new_mesh, Int prod_dim,
+      LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
+      LOs same_ents2old_ents, LOs same_ents2new_ents) = 0;
   virtual void swap_copy_verts(Mesh& old_mesh, Mesh& new_mesh) = 0;
 };
 

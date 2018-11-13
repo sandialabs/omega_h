@@ -8,13 +8,13 @@
 #include "Omega_h_compare.hpp"
 #include "Omega_h_file.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_functors.hpp"
 #include "Omega_h_graph.hpp"
 #include "Omega_h_host_few.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_r3d.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 

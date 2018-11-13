@@ -194,7 +194,7 @@ static bool coarsen_ents(Mesh* mesh, AdaptOpts const& opts, Int ent_dim,
 }
 
 bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
-  begin_code("coarsen_by_size");
+  OMEGA_H_TIME_FUNCTION;
   auto comm = mesh->comm();
   auto lengths = mesh->ask_lengths();
   auto edge_is_cand = each_lt(lengths, opts.min_length_desired);
@@ -202,12 +202,11 @@ bool coarsen_by_size(Mesh* mesh, AdaptOpts const& opts) {
   if (ret) {
     ret = coarsen_ents(mesh, opts, EDGE, edge_is_cand, DESIRED, DONT_IMPROVE);
   }
-  end_code();
   return ret;
 }
 
 bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
-  begin_code("coarsen_slivers");
+  OMEGA_H_TIME_FUNCTION;
   mesh->set_parting(OMEGA_H_GHOSTED);
   auto comm = mesh->comm();
   auto elems_are_cands =
@@ -215,7 +214,6 @@ bool coarsen_slivers(Mesh* mesh, AdaptOpts const& opts) {
   OMEGA_H_CHECK(get_max(comm, elems_are_cands) == 1);
   auto ret = coarsen_ents(
       mesh, opts, mesh->dim(), elems_are_cands, ALLOWED, IMPROVE_LOCALLY);
-  end_code();
   return ret;
 }
 

@@ -1,17 +1,17 @@
 #include "Omega_h_comm.hpp"
 
+#include <algorithm>
 #include <string>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_int_scan.hpp"
+#include "Omega_h_map.hpp"
+#include "Omega_h_profile.hpp"
 
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #include "Omega_h_for.hpp"
 #include "Omega_h_library.hpp"
 #endif
-
-#include "Omega_h_map.hpp"
-#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 
@@ -28,26 +28,20 @@ Comm::Comm() {
 
 #ifdef OMEGA_H_USE_MPI
 Comm::Comm(Library* library_in, MPI_Comm impl_in)
-    : impl_(impl_in), library_(library_in) {
-  int topo_type;
-  CALL(MPI_Topo_test(impl_in, &topo_type));
-  if (topo_type == MPI_DIST_GRAPH) {
-    int nin, nout, is_weighted;
-    CALL(MPI_Dist_graph_neighbors_count(impl_in, &nin, &nout, &is_weighted));
-    HostWrite<I32> sources_w(nin);
-    HostWrite<I32> destinations_w(nout);
-    CALL(MPI_Dist_graph_neighbors(impl_in, nin, nonnull(sources_w.data()),
-        OMEGA_H_MPI_UNWEIGHTED, nout, nonnull(destinations_w.data()),
-        OMEGA_H_MPI_UNWEIGHTED));
-    srcs_ = sources_w.write();
-    dsts_ = destinations_w.write();
-    self_src_ = find_last(srcs_, rank());
-    self_dst_ = find_last(dsts_, rank());
-    host_srcs_ = HostRead<I32>(srcs_);
-    host_dsts_ = HostRead<I32>(dsts_);
-  }
+    : impl_(impl_in), library_(library_in) {}
+
+Comm::Comm(
+    Library* library_in, MPI_Comm impl_in, Read<I32> srcs, Read<I32> dsts)
+    : Comm(library_in, impl_in) {
+  srcs_ = srcs;
+  dsts_ = dsts;
+  self_src_ = find_last(srcs_, rank());
+  self_dst_ = find_last(dsts_, rank());
+  host_srcs_ = HostRead<I32>(srcs_);
+  host_dsts_ = HostRead<I32>(dsts_);
 }
 #else
+
 Comm::Comm(Library* library_in, bool is_graph, bool sends_to_self)
     : library_(library_in) {
   if (is_graph) {
@@ -118,18 +112,63 @@ CommPtr Comm::split(I32 color, I32 key) const {
 #endif
 }
 
+#ifdef OMEGA_H_USE_MPI
+std::vector<int> sources_from_destinations(
+    MPI_Comm comm, HostRead<I32> destinations) {
+  OMEGA_H_TIME_FUNCTION;
+  {
+    ScopedTimer first_barrier_timer("first barrier");
+    CALL(MPI_Barrier(comm));
+  }
+  char ignored_message = '\0';
+  std::vector<MPI_Request> send_requests(std::size_t(destinations.size()));
+  int const tag = 377;
+  for (int i = 0; i < destinations.size(); ++i) {
+    CALL(MPI_Issend(&ignored_message, 1, MPI_CHAR, destinations[i], tag, comm,
+        &send_requests[std::size_t(i)]));
+  }
+  std::vector<int> sources;
+  int locally_done_flag = 0;
+  MPI_Request globally_done_request;
+  int globally_done_flag = 0;
+  while (!globally_done_flag) {
+    MPI_Status status;
+    int flag;
+    int peer = MPI_ANY_SOURCE;
+    CALL(MPI_Iprobe(peer, tag, comm, &flag, &status));
+    if (flag) {
+      peer = status.MPI_SOURCE;
+      CALL(MPI_Recv(
+          &ignored_message, 1, MPI_CHAR, peer, tag, comm, MPI_STATUS_IGNORE));
+      sources.push_back(peer);
+    }
+    if (locally_done_flag) {
+      CALL(MPI_Test(
+          &globally_done_request, &globally_done_flag, MPI_STATUS_IGNORE));
+    } else {
+      CALL(MPI_Testall(destinations.size(), send_requests.data(),
+          &locally_done_flag, MPI_STATUSES_IGNORE));
+      if (locally_done_flag) {
+        CALL(MPI_Ibarrier(comm, &globally_done_request));
+      }
+    }
+  }
+  CALL(MPI_Barrier(comm));
+  std::sort(sources.begin(), sources.end());
+  return sources;
+}
+#endif
+
 CommPtr Comm::graph(Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
-  MPI_Comm impl2;
-  int n = 1;
-  int source[1] = {rank()};
-  int degree[1] = {dsts.size()};
   HostRead<I32> h_destinations(dsts);
-  int reorder = 0;
-  CALL(MPI_Dist_graph_create(impl_, n, source, degree,
-      nonnull(h_destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
-      reorder, &impl2));
-  return CommPtr(new Comm(library_, impl2));
+  auto v_sources = sources_from_destinations(impl_, h_destinations);
+  HostWrite<I32> h_sources(int(v_sources.size()));
+  for (int i = 0; i < h_sources.size(); ++i)
+    h_sources[i] = v_sources[std::size_t(i)];
+  MPI_Comm impl2;
+  CALL(MPI_Comm_dup(impl_, &impl2));
+  return CommPtr(new Comm(library_, impl2, h_sources.write(), dsts));
 #else
   return CommPtr(new Comm(library_, true, dsts.size() == 1));
 #endif
@@ -138,14 +177,8 @@ CommPtr Comm::graph(Read<I32> dsts) const {
 CommPtr Comm::graph_adjacent(Read<I32> srcs, Read<I32> dsts) const {
 #ifdef OMEGA_H_USE_MPI
   MPI_Comm impl2;
-  HostRead<I32> h_sources(srcs);
-  HostRead<I32> h_destinations(dsts);
-  int reorder = 0;
-  CALL(MPI_Dist_graph_create_adjacent(impl_, h_sources.size(),
-      nonnull(h_sources.data()), OMEGA_H_MPI_UNWEIGHTED, h_destinations.size(),
-      nonnull(h_destinations.data()), OMEGA_H_MPI_UNWEIGHTED, MPI_INFO_NULL,
-      reorder, &impl2));
-  return CommPtr(new Comm(library_, impl2));
+  CALL(MPI_Comm_dup(impl_, &impl2));
+  return CommPtr(new Comm(library_, impl2, srcs, dsts));
 #else
   OMEGA_H_CHECK(srcs == dsts);
   return CommPtr(new Comm(library_, true, dsts.size() == 1));
@@ -238,114 +271,92 @@ void Comm::bcast_string(std::string& s) const {
 
 #ifdef OMEGA_H_USE_MPI
 
-/* custom implementation of MPI_Neighbor_allgather
- * in the case that we are using an MPI older
- * than version 3.0
- */
-
 static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf,
     int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
-#if MPI_VERSION < 3
+  OMEGA_H_TIME_FUNCTION;
   static int const tag = 42;
-  int indegree, outdegree;
-  indegree = sources.size();
-  outdegree = destinations.size();
-  int recvwidth;
-  CALL(MPI_Type_size(sendtype, &recvwidth));
+  int const indegree = sources.size();
+  int const outdegree = destinations.size();
+  int typewidth;
+  CALL(MPI_Type_size(sendtype, &typewidth));
   MPI_Request* recvreqs = new MPI_Request[indegree];
-  MPI_Request* sendreqs = new MPI_Request[outdegree];
-  for (int i = 0; i < indegree; ++i)
-    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * recvwidth, recvcount,
+  for (int i = 0; i < indegree; ++i) {
+    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * typewidth, recvcount,
         recvtype, sources[i], tag, comm, recvreqs + i));
-  CALL(MPI_Barrier(comm));
-  for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Isend(sendbuf, sendcount, sendtype, destinations[i], tag, comm,
-        sendreqs + i));
-  CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-  delete[] sendreqs;
+  }
+  for (int i = 0; i < outdegree; ++i) {
+    CALL(MPI_Send(sendbuf, sendcount, sendtype, destinations[i], tag, comm));
+  }
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
   return MPI_SUCCESS;
-#else
-  (void)sources;
-  (void)destinations;
-  return MPI_Neighbor_allgather(
-      sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
-#endif  // end if MPI_VERSION < 3
 }
-
-/* custom implementation of MPI_Neighbor_alltoall
- * in the case that we are using an MPI older
- * than version 3.0
- */
 
 static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
     const void* sendbuf, int sendcount, MPI_Datatype sendtype, void* recvbuf,
     int recvcount, MPI_Datatype recvtype, MPI_Comm comm) {
-#if MPI_VERSION < 3
+  OMEGA_H_TIME_FUNCTION;
   static int const tag = 42;
-  int indegree, outdegree;
-  indegree = sources.size();
-  outdegree = destinations.size();
-  int sendwidth;
-  CALL(MPI_Type_size(sendtype, &sendwidth));
-  int recvwidth;
-  CALL(MPI_Type_size(sendtype, &recvwidth));
+  int const indegree = sources.size();
+  int const outdegree = destinations.size();
+  int typewidth;
+  CALL(MPI_Type_size(sendtype, &typewidth));
   MPI_Request* recvreqs = new MPI_Request[indegree];
-  MPI_Request* sendreqs = new MPI_Request[outdegree];
   for (int i = 0; i < indegree; ++i)
-    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * recvwidth, recvcount,
+    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * typewidth, recvcount,
         recvtype, sources[i], tag, comm, recvreqs + i));
-  CALL(MPI_Barrier(comm));
   for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Isend(static_cast<char const*>(sendbuf) + i * sendwidth, sendcount,
-        sendtype, destinations[i], tag, comm, sendreqs + i));
-  CALL(MPI_Waitall(outdegree, sendreqs, MPI_STATUSES_IGNORE));
-  delete[] sendreqs;
+    CALL(MPI_Send(static_cast<char const*>(sendbuf) + i * typewidth, sendcount,
+        sendtype, destinations[i], tag, comm));
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
   return MPI_SUCCESS;
-#else
-  (void)sources;
-  (void)destinations;
-  return MPI_Neighbor_alltoall(
-      sendbuf, sendcount, sendtype, recvbuf, recvcount, recvtype, comm);
-#endif  // end if MPI_VERSION < 3
 }
-
-/* custom implementation of MPI_Neighbor_alltoallv
- * this used to be here as a workaround, but now allows us to precompute
- * fewer things
- */
 
 static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
     int width, const void* sendbuf, const int sdispls[], MPI_Datatype sendtype,
-    void* recvbuf, const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm) {
-  begin_code("Neighbor_alltoallv");
+    void* recvbuf, const int rdispls[], MPI_Datatype recvtype, MPI_Comm comm,
+    int sendbuf_size = -1, int recvbuf_size = -1) {
+  OMEGA_H_TIME_FUNCTION;
   int const tag = 42;
-  int indegree, outdegree;
-  indegree = sources.size();
-  outdegree = destinations.size();
-  int sendwidth;
-  CALL(MPI_Type_size(sendtype, &sendwidth));
-  int recvwidth;
-  CALL(MPI_Type_size(sendtype, &recvwidth));
+  int const indegree = sources.size();
+  int const outdegree = destinations.size();
+  int typewidth;
+  CALL(MPI_Type_size(sendtype, &typewidth));
+  OMEGA_H_CHECK(typewidth == typewidth);
   MPI_Request* recvreqs = new MPI_Request[indegree];
   for (int i = 0; i < indegree; ++i) {
-    CALL(MPI_Irecv(static_cast<char*>(recvbuf) + rdispls[i] * recvwidth * width,
-        (rdispls[i + 1] - rdispls[i]) * width, recvtype, sources[i], tag, comm,
-        recvreqs + i));
+    char* const single_recvbuf =
+        static_cast<char*>(recvbuf) + rdispls[i] * typewidth * width;
+    int const single_recvcount = (rdispls[i + 1] - rdispls[i]) * width;
+    if (recvbuf_size != -1) {
+      OMEGA_H_CHECK(static_cast<char*>(recvbuf) <= single_recvbuf);
+      OMEGA_H_CHECK(single_recvcount > 0);
+      OMEGA_H_CHECK(typewidth > 0);
+      OMEGA_H_CHECK((single_recvbuf + single_recvcount * typewidth) <=
+                    (static_cast<char*>(recvbuf) + recvbuf_size * typewidth));
+    }
+    CALL(MPI_Irecv(single_recvbuf, single_recvcount, recvtype, sources[i], tag,
+        comm, recvreqs + i));
   }
   for (int i = 0; i < outdegree; ++i) {
-    CALL(MPI_Send(
-        static_cast<char const*>(sendbuf) + sdispls[i] * sendwidth * width,
-        (sdispls[i + 1] - sdispls[i]) * width, sendtype, destinations[i], tag,
-        comm));
+    char const* const single_sendbuf =
+        static_cast<char const*>(sendbuf) + sdispls[i] * typewidth * width;
+    int const single_sendcount = (sdispls[i + 1] - sdispls[i]) * width;
+    if (sendbuf_size != -1) {
+      OMEGA_H_CHECK(static_cast<char const*>(sendbuf) <= single_sendbuf);
+      OMEGA_H_CHECK(single_sendcount > 0);
+      OMEGA_H_CHECK(typewidth > 0);
+      OMEGA_H_CHECK(
+          (single_sendbuf + single_sendcount * typewidth) <=
+          (static_cast<char const*>(sendbuf) + sendbuf_size * typewidth));
+    }
+    CALL(MPI_Send(single_sendbuf, single_sendcount, sendtype, destinations[i],
+        tag, comm));
   }
   CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
   delete[] recvreqs;
-  end_code();
   return MPI_SUCCESS;
 }
 
@@ -462,7 +473,7 @@ void self_send_part2(Read<T> self_data, LO self_src, Read<T>* p_recvbuf,
 template <typename T>
 Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
     Read<LO> rdispls_dev, Int width) const {
-  begin_code("Comm::alltoallv");
+  ScopedTimer timer("Comm::alltoallv");
 #ifdef OMEGA_H_USE_MPI
 #if defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   auto self_data = self_send_part1(self_dst_, self_src_, &sendbuf_dev,
@@ -488,7 +499,8 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   CALL(Neighbor_alltoallv(host_srcs_, host_dsts_, width,
       nonnull(sendbuf_dev.data()), nonnull(sdispls.data()),
       MpiTraits<T>::datatype(), nonnull(recvbuf_dev_w.data()),
-      nonnull(rdispls.data()), MpiTraits<T>::datatype(), impl_));
+      nonnull(rdispls.data()), MpiTraits<T>::datatype(), impl_,
+      sendbuf_dev.size(), recvbuf_dev_w.size()));
   Read<T> recvbuf_dev = recvbuf_dev_w;
 #endif  // !defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #else   // !defined(OMEGA_H_USE_MPI)
@@ -497,12 +509,10 @@ Read<T> Comm::alltoallv(Read<T> sendbuf_dev, Read<LO> sdispls_dev,
   (void)width;
   auto recvbuf_dev = sendbuf_dev;
 #endif  // !defined(OMEGA_H_USE_MPI)
-  end_code();
   return recvbuf_dev;
 }
 
 void Comm::barrier() const {
-  OMEGA_H_TIME_FUNCTION;
 #ifdef OMEGA_H_USE_MPI
   CALL(MPI_Barrier(impl_));
 #endif
