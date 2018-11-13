@@ -1,6 +1,6 @@
-#include <Omega_h_sort.hpp>
-#include <Omega_h_scan.hpp>
 #include <Omega_h_int_iterator.hpp>
+#include <Omega_h_scan.hpp>
+#include <Omega_h_sort.hpp>
 
 #include <algorithm>
 #include <vector>
@@ -102,20 +102,21 @@ static T next_smallest_value(Read<T> const a, T const value) {
   auto const last = IntIterator(a.size());
   auto const init = ArithTraits<T>::max();
   auto const op = minimum<T>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> T {
+  auto transform = OMEGA_H_LAMBDA(LO i)->T {
     return (a[i] > value) ? a[i] : init;
   };
   return transform_reduce(first, last, init, op, std::move(transform));
 }
 
 template <typename T>
-static LO number_same_values(Read<T> const a, T const value, Write<LO> const tmp_perm) {
+static LO number_same_values(
+    Read<T> const a, T const value, Write<LO> const tmp_perm) {
   tmp_perm.set(0, 0);
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const result = tmp_perm.begin() + 1;
   auto const op = plus<LO>();
-  auto transform = OMEGA_H_LAMBDA(LO i) -> LO {
+  auto transform = OMEGA_H_LAMBDA(LO i)->LO {
     return a[i] == value ? LO(1) : LO(0);
   };
   transform_inclusive_scan(first, last, result, op, std::move(transform));
@@ -133,8 +134,7 @@ static void combine_perms(Read<T> const a, T const value,
 }
 
 template <typename T>
-void sort_small_range(
-    Read<T> a, LOs* p_perm, LOs* p_fan, Read<T>* p_uniq) {
+void sort_small_range(Read<T> a, LOs* p_perm, LOs* p_fan, Read<T>* p_uniq) {
   LO ndone = 0;
   T value = get_min(a);
   Write<LO> tmp_perm(a.size() + 1);

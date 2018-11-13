@@ -482,7 +482,8 @@ void write_vtk_ghost_types(
   if (mesh->comm()->size() == 1) return;
   const auto owned = mesh->owned(ent_dim);
   auto ghost_types = each_eq_to(owned, static_cast<I8>(0));
-  write_array<I8, std::uint8_t>(stream, "vtkGhostType", 1, ghost_types, compress);
+  write_array<I8, std::uint8_t>(
+      stream, "vtkGhostType", 1, ghost_types, compress);
 }
 
 void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
@@ -570,7 +571,8 @@ static void verify_vtk_tagset(Mesh* mesh, Int cell_dim, TagSet const& tags) {
   for (Int dim = 0; dim < 4; ++dim) {
     if (dim == 0 || dim == cell_dim) {
       for (auto& name : tags[size_t(dim)]) {
-        if (!mesh->has_tag(dim, name) && name != "local" && name != "owner" && name != "vtkGhostType") {
+        if (!mesh->has_tag(dim, name) && name != "local" && name != "owner" &&
+            name != "vtkGhostType") {
           Omega_h_fail(
               "User requested VTK output of tag %s"
               " on %s, but that tag doesn't exist on the mesh!",
@@ -766,7 +768,8 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   if (mesh->comm()->size() > 1 && tags[size_t(cell_dim)].count("owner")) {
     write_p_data_array2(stream, "owner", 1, OMEGA_H_I32);
   }
-  if (mesh->comm()->size() > 1 && tags[size_t(cell_dim)].count("vtkGhostType")) {
+  if (mesh->comm()->size() > 1 &&
+      tags[size_t(cell_dim)].count("vtkGhostType")) {
     write_p_data_array<std::uint8_t>(stream, "vtkGhostType", 1);
   }
   for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {

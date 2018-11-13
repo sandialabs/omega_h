@@ -165,7 +165,8 @@ LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
   return uv2v;
 }
 
-static void sort_by_high_index(LOs const l2lh, Write<LO> const lh2h, Write<I8> const codes) {
+static void sort_by_high_index(
+    LOs const l2lh, Write<LO> const lh2h, Write<I8> const codes) {
   OMEGA_H_TIME_FUNCTION;
   LO const nl = l2lh.size() - 1;
   auto f = OMEGA_H_LAMBDA(LO const l) {
@@ -188,8 +189,9 @@ static void sort_by_high_index(LOs const l2lh, Write<LO> const lh2h, Write<I8> c
   parallel_for(nl, std::move(f));
 }
 
-static void separate_upward_with_codes(LO const nlh, LOs const lh2hl, Int const nlows_per_high,
-    Write<LO> const lh2h, Bytes const down_codes, Write<Byte> const codes) {
+static void separate_upward_with_codes(LO const nlh, LOs const lh2hl,
+    Int const nlows_per_high, Write<LO> const lh2h, Bytes const down_codes,
+    Write<Byte> const codes) {
   OMEGA_H_TIME_FUNCTION;
   auto f = OMEGA_H_LAMBDA(LO lh) {
     LO const hl = lh2hl[lh];
@@ -204,8 +206,8 @@ static void separate_upward_with_codes(LO const nlh, LOs const lh2hl, Int const 
   parallel_for(nlh, std::move(f));
 }
 
-static void separate_upward_no_codes(
-    LO const nlh, LOs const lh2hl, Int const nlows_per_high, Write<LO> const lh2h, Write<Byte> const codes) {
+static void separate_upward_no_codes(LO const nlh, LOs const lh2hl,
+    Int const nlows_per_high, Write<LO> const lh2h, Write<Byte> const codes) {
   auto f = OMEGA_H_LAMBDA(LO lh) {
     LO const hl = lh2hl[lh];
     LO const h = hl / nlows_per_high;
@@ -223,15 +225,17 @@ Adj invert_adj(
   auto const high_singular_name = dimensional_singular_name(high_dim);
   auto const low_plural_name = dimensional_plural_name(low_dim);
   auto const low_singular_name = dimensional_singular_name(low_dim);
-  auto const l2lh_name = std::string(low_plural_name) + " to " + low_singular_name +
-                   " " + high_plural_name;
-  auto const lh2hl_name = std::string(low_singular_name) + " " + high_plural_name +
-                    " to " + high_singular_name + " " + low_plural_name;
-  auto const lh2h_name = std::string(low_singular_name) + " " + high_plural_name +
-                   " to " + high_plural_name;
+  auto const l2lh_name = std::string(low_plural_name) + " to " +
+                         low_singular_name + " " + high_plural_name;
+  auto const lh2hl_name = std::string(low_singular_name) + " " +
+                          high_plural_name + " to " + high_singular_name + " " +
+                          low_plural_name;
+  auto const lh2h_name = std::string(low_singular_name) + " " +
+                         high_plural_name + " to " + high_plural_name;
   auto const codes_name =
       std::string(low_singular_name) + " " + high_plural_name + " codes";
-  auto const l2hl = invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
+  auto const l2hl =
+      invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
   auto const l2lh = l2hl.a2ab;
   auto const lh2hl = l2hl.ab2b;
   LO const nlh = lh2hl.size();

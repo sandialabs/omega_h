@@ -47,10 +47,10 @@ DEALINGS IN THE SOFTWARE.
 #ifndef OMEGA_H_ANY_HPP
 #define OMEGA_H_ANY_HPP
 
+#include <Omega_h_fail.hpp>
 #include <stdexcept>
 #include <type_traits>
 #include <typeinfo>
-#include <Omega_h_fail.hpp>
 
 namespace Omega_h {
 
@@ -284,11 +284,8 @@ class any final {
     using VTableType = typename std::conditional<requires_allocation<T>::value,
         vtable_dynamic<T>, vtable_stack<T>>::type;
     static vtable_type table = {
-        VTableType::type,
-        VTableType::destroy,
-        VTableType::copy,
-        VTableType::move,
-        VTableType::swap,
+        VTableType::type, VTableType::destroy, VTableType::copy,
+        VTableType::move, VTableType::swap,
     };
     return &table;
   }

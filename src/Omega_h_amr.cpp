@@ -54,10 +54,9 @@ Bytes enforce_2to1_refine(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
     } else if (elems_are_marked[elem]) {
       one_level_mark[elem] = 1;
     } else {
-      one_level_mark[elem] =
-          should_elem_be_refined(elem, elems2bridges, bridges2elems,
-              is_interior, is_bridge_leaf, nbridges_per_elem, children,
-              elems_are_marked);
+      one_level_mark[elem] = should_elem_be_refined(elem, elems2bridges,
+          bridges2elems, is_interior, is_bridge_leaf, nbridges_per_elem,
+          children, elems_are_marked);
     }
   };
   Omega_h::parallel_for(mesh->nelems(), f, "enforce_one_level");
@@ -110,9 +109,9 @@ static void refine_elem_based(Mesh* mesh, TransferOpts xfer_opts) {
   for (Int prod_dim = 0; prod_dim <= mesh->dim(); ++prod_dim) {
     LOs prods2verts;
     if (prod_dim != VERT) {
-      prods2verts = amr::get_refined_topology(mesh, prod_dim,
-          prod_counts[prod_dim], mods2mds, mds2mods, mods2midverts,
-          old_ents2new_ents[0]);
+      prods2verts =
+          amr::get_refined_topology(mesh, prod_dim, prod_counts[prod_dim],
+              mods2mds, mds2mods, mods2midverts, old_ents2new_ents[0]);
     }
     Few<LOs, 4> mods2prods;
     {
@@ -182,7 +181,8 @@ void derefine(Mesh* mesh, Bytes elems_are_marked, TransferOpts xfer_opts) {
     new_ents2old_ents[ent_dim] = collect_marked(does_ent_persist);
     mesh->remove_tag(ent_dim, "persists");
     auto old_ents2new_globals = rescan_globals(mesh, does_ent_persist);
-    new_globals[ent_dim] = unmap(new_ents2old_ents[ent_dim], old_ents2new_globals, 1);
+    new_globals[ent_dim] =
+        unmap(new_ents2old_ents[ent_dim], old_ents2new_globals, 1);
   }
   unmap_mesh(mesh, new_ents2old_ents);
   for (int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {

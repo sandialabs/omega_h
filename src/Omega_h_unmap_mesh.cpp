@@ -65,8 +65,9 @@ void unmap_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
 
 void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
   auto new_mesh = mesh->copy_meta();
-  auto nnew_verts = (new_ents2old_ents[0].exists()) ?
-    new_ents2old_ents[0].size() : mesh->nverts();
+  auto nnew_verts = (new_ents2old_ents[0].exists())
+                        ? new_ents2old_ents[0].size()
+                        : mesh->nverts();
   new_mesh.set_verts(nnew_verts);
   LOs old_lows2new_lows;
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {

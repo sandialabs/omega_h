@@ -826,7 +826,10 @@ LOs ents_on_closure(
 #ifdef OMEGA_H_USE_CUDA
 __host__
 #endif
-void assign(Mesh& a, Mesh const& b) { a = b; }
+    void
+    assign(Mesh& a, Mesh const& b) {
+  a = b;
+}
 
 #define OMEGA_H_INST(T)                                                        \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \

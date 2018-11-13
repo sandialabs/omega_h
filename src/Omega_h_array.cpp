@@ -38,8 +38,7 @@ Write<T>::Write(LO size_in, std::string const& name_in) {
       static_cast<std::size_t>(size_in));
 #else
   shared_alloc_ = decltype(shared_alloc_)(
-      sizeof(T) * static_cast<std::size_t>(size_in),
-      name_in);
+      sizeof(T) * static_cast<std::size_t>(size_in), name_in);
 #endif
   end_code();
 }

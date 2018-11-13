@@ -789,8 +789,7 @@ Rb_tree<Key, Val, KeyOfValue, Compare>::insert(
 
 template <class Key, class Val, class KeyOfValue, class Compare>
 typename Rb_tree<Key, Val, KeyOfValue, Compare>::iterator
-Rb_tree<Key, Val, KeyOfValue, Compare>::insert(
-    iterator position, Val&& v) {
+Rb_tree<Key, Val, KeyOfValue, Compare>::insert(iterator position, Val&& v) {
   if (position.M_node == M_header->M_left) {  // begin()
     if (size() > 0 && M_key_compare(KeyOfValue()(v), S_key(position.M_node)))
       return M_insert(position.M_node, position.M_node, std::move(v));

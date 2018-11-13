@@ -30,7 +30,7 @@ static Bytes mark_persisting_elems(Mesh* mesh, Bytes elems_are_marked) {
   auto children = mesh->ask_children(elem_dim, elem_dim);
   Write<Byte> mark(mesh->nelems(), 1);
   auto functor = OMEGA_H_LAMBDA(LO elem) {
-    if (! elems_are_marked[elem]) return;
+    if (!elems_are_marked[elem]) return;
     auto child_begin = children.a2ab[elem];
     auto child_end = children.a2ab[elem + 1];
     for (auto idx = child_begin; idx < child_end; ++idx) {
@@ -51,7 +51,7 @@ static Bytes mark_persisting_ents(Mesh* mesh, Int ent_dim) {
   auto is_ent_leaf = mesh->ask_leaves(ent_dim);
   Write<Byte> mark(mesh->nents(ent_dim), 1);
   auto functor = OMEGA_H_LAMBDA(LO ent) {
-    if (! is_ent_leaf[ent]) return;
+    if (!is_ent_leaf[ent]) return;
     auto elem_begin = adj_elems.a2ab[ent];
     auto elem_end = adj_elems.a2ab[ent + 1];
     Byte persists = 0;

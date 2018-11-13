@@ -51,11 +51,7 @@ struct Allocs {
 struct SharedAlloc {
   Alloc* alloc;
   void* direct_ptr;
-  OMEGA_H_INLINE SharedAlloc() noexcept
-    :alloc(nullptr)
-    ,direct_ptr(nullptr)
-  {
-  }
+  OMEGA_H_INLINE SharedAlloc() noexcept : alloc(nullptr), direct_ptr(nullptr) {}
   SharedAlloc(std::size_t size_in, std::string const& name_in);
   SharedAlloc(std::size_t size_in, std::string&& name_in);
   SharedAlloc(std::size_t size_in);
@@ -90,9 +86,7 @@ struct SharedAlloc {
 #endif
     direct_ptr = other.direct_ptr;
   }
-  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) {
-    copy(other);
-  }
+  OMEGA_H_INLINE SharedAlloc(SharedAlloc const& other) { copy(other); }
   OMEGA_H_INLINE void move(SharedAlloc&& other) noexcept {
     alloc = other.alloc;
     direct_ptr = other.direct_ptr;
@@ -133,12 +127,12 @@ struct SharedAlloc {
   OMEGA_H_INLINE std::size_t size() const noexcept {
 #ifndef __CUDA_ARCH__
     if (!(reinterpret_cast<std::uintptr_t>(alloc) & IN_PARALLEL)) {
-#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
+#if defined(__GNUC__) && (__GNUC__ >= 7) && (!defined(__clang__))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnull-dereference"
 #endif
       return alloc->size;
-#if defined (__GNUC__) && (__GNUC__ >= 7) && (!defined (__clang__))
+#if defined(__GNUC__) && (__GNUC__ >= 7) && (!defined(__clang__))
 #pragma GCC diagnostic pop
 #endif
     }

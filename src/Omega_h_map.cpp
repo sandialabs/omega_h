@@ -3,9 +3,9 @@
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_atomics.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_functors.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_sort.hpp"
-#include "Omega_h_functors.hpp"
 
 namespace Omega_h {
 
@@ -39,9 +39,7 @@ void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width) {
 template <typename T>
 void map_value_into(T a_value, LOs a2b, Write<T> b_data) {
   auto na = a2b.size();
-  auto functor = OMEGA_H_LAMBDA(LO a) {
-    b_data[a2b[a]] = a_value;
-  };
+  auto functor = OMEGA_H_LAMBDA(LO a) { b_data[a2b[a]] = a_value; };
   parallel_for("map_value_into", na, std::move(functor));
 }
 
@@ -228,8 +226,8 @@ Graph invert_map_by_sorting(LOs a2b, LO nb) {
   return Graph(b2ba, ba2a);
 }
 
-Graph invert_map_by_atomics(LOs const a2b, LO const nb, std::string const& b2ba_name,
-    std::string const& ba2a_name) {
+Graph invert_map_by_atomics(LOs const a2b, LO const nb,
+    std::string const& b2ba_name, std::string const& ba2a_name) {
   OMEGA_H_TIME_FUNCTION;
   auto const na = a2b.size();
   Write<LO> degrees(nb, 0);
@@ -320,7 +318,7 @@ Read<T> fan_reduce(LOs a2b, Read<T> b_data, Int width, Omega_h_Op op) {
 #define INST_T(T)                                                              \
   template void add_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
   template void map_into(Read<T> a_data, LOs a2b, Write<T> b_data, Int width); \
-  template void map_value_into(T a_value, LOs a2b, Write<T> b_data); \
+  template void map_value_into(T a_value, LOs a2b, Write<T> b_data);           \
   template void map_into_range(                                                \
       Read<T> a_data, LO begin, LO end, Write<T> b_data, Int width);           \
   template Read<T> map_onto(Read<T> a_data, LOs a2b, LO nb, T, Int width);     \

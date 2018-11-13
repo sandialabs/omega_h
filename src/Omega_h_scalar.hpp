@@ -37,13 +37,19 @@ struct ArithTraits<unsigned char> {
 
 template <>
 struct ArithTraits<signed char> {
-  static constexpr OMEGA_H_INLINE signed char max() noexcept { return SCHAR_MAX; }
-  static constexpr OMEGA_H_INLINE signed char min() noexcept { return SCHAR_MIN; }
+  static constexpr OMEGA_H_INLINE signed char max() noexcept {
+    return SCHAR_MAX;
+  }
+  static constexpr OMEGA_H_INLINE signed char min() noexcept {
+    return SCHAR_MIN;
+  }
 };
 
 template <>
 struct ArithTraits<unsigned int> {
-  static constexpr OMEGA_H_INLINE unsigned int max() noexcept { return UINT_MAX; }
+  static constexpr OMEGA_H_INLINE unsigned int max() noexcept {
+    return UINT_MAX;
+  }
   static constexpr OMEGA_H_INLINE unsigned int min() noexcept { return 0; }
 };
 
@@ -55,26 +61,40 @@ struct ArithTraits<int> {
 
 template <>
 struct ArithTraits<unsigned long> {
-  static constexpr OMEGA_H_INLINE unsigned long max() noexcept { return ULONG_MAX; }
+  static constexpr OMEGA_H_INLINE unsigned long max() noexcept {
+    return ULONG_MAX;
+  }
   static constexpr OMEGA_H_INLINE unsigned long min() noexcept { return 0; }
 };
 
 template <>
 struct ArithTraits<signed long> {
-  static constexpr OMEGA_H_INLINE signed long max() noexcept { return LONG_MAX; }
-  static constexpr OMEGA_H_INLINE signed long min() noexcept { return LONG_MIN; }
+  static constexpr OMEGA_H_INLINE signed long max() noexcept {
+    return LONG_MAX;
+  }
+  static constexpr OMEGA_H_INLINE signed long min() noexcept {
+    return LONG_MIN;
+  }
 };
 
 template <>
 struct ArithTraits<unsigned long long> {
-  static constexpr OMEGA_H_INLINE unsigned long long max() noexcept { return ULLONG_MAX; }
-  static constexpr OMEGA_H_INLINE unsigned long long min() noexcept { return 0; }
+  static constexpr OMEGA_H_INLINE unsigned long long max() noexcept {
+    return ULLONG_MAX;
+  }
+  static constexpr OMEGA_H_INLINE unsigned long long min() noexcept {
+    return 0;
+  }
 };
 
 template <>
 struct ArithTraits<signed long long> {
-  static constexpr OMEGA_H_INLINE signed long long max() noexcept { return LLONG_MAX; }
-  static constexpr OMEGA_H_INLINE signed long long min() noexcept { return LLONG_MIN; }
+  static constexpr OMEGA_H_INLINE signed long long max() noexcept {
+    return LLONG_MAX;
+  }
+  static constexpr OMEGA_H_INLINE signed long long min() noexcept {
+    return LLONG_MIN;
+  }
 };
 
 template <>
@@ -191,7 +211,9 @@ struct Power : public Power<np / cd, dp / cd> {
 
 template <Int np, Int dp>
 struct Power<np, dp, 1> {
-  static OMEGA_H_INLINE Real eval(Real x) noexcept { return root<dp>(raise<np>(x)); }
+  static OMEGA_H_INLINE Real eval(Real x) noexcept {
+    return root<dp>(raise<np>(x));
+  }
   static_assert(np != dp, "equal case should be specialized");
 };
 
@@ -241,7 +263,8 @@ OMEGA_H_INLINE Real power(Real x, Int np, Int dp) noexcept {
   return -1.0;
 }
 
-OMEGA_H_INLINE Real rel_diff_with_floor(Real a, Real b, Real floor = EPSILON) noexcept {
+OMEGA_H_INLINE Real rel_diff_with_floor(
+    Real a, Real b, Real floor = EPSILON) noexcept {
   Real am = std::abs(a);
   Real bm = std::abs(b);
   if (am <= floor && bm <= floor) return 0.0;

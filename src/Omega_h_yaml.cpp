@@ -80,8 +80,9 @@ static void build_productions(std::vector<Language::Production>& prods) {
       "map_scalar_escaped*", {"map_scalar_escaped*", ",", "scalar_tail*"}};
   prods[PROD_TAG_EMPTY] = {"tag?", {}};
   prods[PROD_TAG] = {"tag?", {"!", "!", "OTHERCHAR+", "WS+"}};
-  prods[PROD_BSCALAR] = {"bscalar", {"bscalar_header", "WS*", "NEWLINE",
-                                        "INDENT", "bscalar_items", "DEDENT"}};
+  prods[PROD_BSCALAR] = {"bscalar",
+      {"bscalar_header", "WS*", "NEWLINE", "INDENT", "bscalar_items",
+          "DEDENT"}};
   prods[PROD_BSCALAR_FIRST] = {"bscalar_items", {"bscalar_item"}};
   prods[PROD_BSCALAR_NEXT] = {
       "bscalar_items", {"bscalar_items", "bscalar_item"}};

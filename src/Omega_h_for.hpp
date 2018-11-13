@@ -4,8 +4,8 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_profile.hpp>
 
-#include <Omega_h_shared_alloc.hpp>
 #include <Omega_h_int_iterator.hpp>
+#include <Omega_h_shared_alloc.hpp>
 
 #ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
@@ -18,8 +18,8 @@
 #pragma GCC diagnostic ignored "-Wshadow"
 #endif
 
-#include <thrust/for_each.h>
 #include <thrust/execution_policy.h>
+#include <thrust/for_each.h>
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

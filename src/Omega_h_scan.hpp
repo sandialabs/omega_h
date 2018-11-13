@@ -18,8 +18,8 @@
 
 #if defined(OMEGA_H_USE_CUDA)
 
-#include <thrust/transform_scan.h>
 #include <thrust/execution_policy.h>
+#include <thrust/transform_scan.h>
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
@@ -45,31 +45,23 @@ void parallel_scan(LO n, T f, char const* name = "") {
 
 #if defined(OMEGA_H_USE_CUDA)
 
-template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp>
-OutputIterator transform_inclusive_scan(
-    InputIterator first,
-    InputIterator last,
-    OutputIterator result,
-    BinaryOp op,
-    UnaryOp transform)
-{
+template <typename InputIterator, typename OutputIterator, typename BinaryOp,
+    typename UnaryOp>
+OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
+    OutputIterator result, BinaryOp op, UnaryOp transform) {
   Omega_h::entering_parallel = true;
   auto const transform_parallel = std::move(transform);
   Omega_h::entering_parallel = false;
-  return thrust::transform_inclusive_scan(
-      thrust::device, first, last, result, native_op(transform_parallel), native_op(op));
+  return thrust::transform_inclusive_scan(thrust::device, first, last, result,
+      native_op(transform_parallel), native_op(op));
 }
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
-template <typename InputIterator, typename OutputIterator, typename Transform, typename Op>
-OutputIterator transform_inclusive_scan(
-    InputIterator first,
-    InputIterator last,
-    OutputIterator result,
-    Op op,
-    Transform&& transform)
-{
+template <typename InputIterator, typename OutputIterator, typename Transform,
+    typename Op>
+OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
+    OutputIterator result, Op op, Transform&& transform) {
   auto const n = last - first;
   if (n <= 0) return result;
   Omega_h::entering_parallel = true;
@@ -86,11 +78,11 @@ OutputIterator transform_inclusive_scan(
     int const thread_num = omp_get_thread_num();
     auto const quotient = n / num_threads;
     auto const remainder = n % num_threads;
-    auto const begin_i = (thread_num > remainder) ?
-      (quotient * thread_num + remainder) :
-      ((quotient + 1) * thread_num);
-    auto const end_i = (thread_num >= remainder) ?
-      (begin_i + quotient) : (begin_i + quotient + 1);
+    auto const begin_i = (thread_num > remainder)
+                             ? (quotient * thread_num + remainder)
+                             : ((quotient + 1) * thread_num);
+    auto const end_i = (thread_num >= remainder) ? (begin_i + quotient)
+                                                 : (begin_i + quotient + 1);
     T thread_sum;
     if (begin_i < end_i) {
       thread_sum = transform_local(first[begin_i]);
@@ -122,14 +114,10 @@ OutputIterator transform_inclusive_scan(
 
 #else
 
-template <typename InputIterator, typename OutputIterator, typename BinaryOp, typename UnaryOp>
-OutputIterator transform_inclusive_scan(
-    InputIterator first,
-    InputIterator last,
-    OutputIterator result,
-    BinaryOp op,
-    UnaryOp&& transform)
-{
+template <typename InputIterator, typename OutputIterator, typename BinaryOp,
+    typename UnaryOp>
+OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
+    OutputIterator result, BinaryOp op, UnaryOp&& transform) {
   auto const n = last - first;
   if (n <= 0) return result;
   Omega_h::entering_parallel = true;
@@ -146,7 +134,6 @@ OutputIterator transform_inclusive_scan(
 }
 
 #endif
-
 }
 
 #if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))

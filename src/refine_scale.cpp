@@ -1,9 +1,9 @@
-#include <Omega_h_file.hpp>
-#include <Omega_h_cmdline.hpp>
-#include <Omega_h_profile.hpp>
 #include <Omega_h_adapt.hpp>
-#include <Omega_h_metric.hpp>
 #include <Omega_h_array_ops.hpp>
+#include <Omega_h_cmdline.hpp>
+#include <Omega_h_file.hpp>
+#include <Omega_h_metric.hpp>
+#include <Omega_h_profile.hpp>
 #include <iostream>
 
 int main(int argc, char** argv) {
@@ -26,7 +26,8 @@ int main(int argc, char** argv) {
   Omega_h::Mesh mesh(&lib);
   for (int shift = 0; (1 << shift) <= world_size; ++shift) {
     int const group_size = (1 << shift);
-    if (world_rank == 0) std::cout << "going to group size " << group_size << '\n';
+    if (world_rank == 0)
+      std::cout << "going to group size " << group_size << '\n';
     int const group_in_world = world_rank / group_size;
     int const group_rank = world_rank % group_size;
     auto const group = world->split(group_in_world, group_rank);
@@ -42,28 +43,38 @@ int main(int argc, char** argv) {
       }
       Omega_h::AdaptOpts opts(&mesh);
       auto nelems = mesh.nglobal_ents(mesh.dim());
-      if (world_rank == 0) std::cout << "mesh has " << nelems << " total elements\n";
+      if (world_rank == 0)
+        std::cout << "mesh has " << nelems << " total elements\n";
       auto const desired_group_nelems = desired_nelems_per_rank * group_size;
       if (double(nelems) >= desired_group_nelems) {
-        if (world_rank == 0) std::cout << "element count " << nelems << " >= target " << desired_group_nelems << ", will not adapt\n";
+        if (world_rank == 0)
+          std::cout << "element count " << nelems << " >= target "
+                    << desired_group_nelems << ", will not adapt\n";
       }
       while (double(nelems) < desired_group_nelems) {
-        if (world_rank == 0) std::cout << "element count " << nelems << " < target " << desired_group_nelems << ", will adapt\n";
+        if (world_rank == 0)
+          std::cout << "element count " << nelems << " < target "
+                    << desired_group_nelems << ", will adapt\n";
         if (!mesh.has_tag(0, "metric")) {
-          if (world_rank == 0) std::cout << "mesh had no metric, adding implied and adapting to it\n";
+          if (world_rank == 0)
+            std::cout
+                << "mesh had no metric, adding implied and adapting to it\n";
           Omega_h::add_implied_metric_tag(&mesh);
           Omega_h::adapt(&mesh, opts);
           nelems = mesh.nglobal_ents(mesh.dim());
-          if (world_rank == 0) std::cout << "mesh now has " << nelems << " total elements\n";
+          if (world_rank == 0)
+            std::cout << "mesh now has " << nelems << " total elements\n";
         }
         auto metrics = mesh.get_array<double>(0, "metric");
         metrics = Omega_h::multiply_each_by(metrics, 1.2);
-        auto const metric_ncomps = Omega_h::divide_no_remainder(metrics.size(), mesh.nverts());
+        auto const metric_ncomps =
+            Omega_h::divide_no_remainder(metrics.size(), mesh.nverts());
         mesh.add_tag(0, "metric", metric_ncomps, metrics);
         if (world_rank == 0) std::cout << "adapting to scaled metric\n";
         Omega_h::adapt(&mesh, opts);
         nelems = mesh.nglobal_ents(mesh.dim());
-        if (world_rank == 0) std::cout << "mesh now has " << nelems << " total elements\n";
+        if (world_rank == 0)
+          std::cout << "mesh now has " << nelems << " total elements\n";
       }
     }
     world->barrier();

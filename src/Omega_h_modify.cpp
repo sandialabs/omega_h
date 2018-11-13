@@ -413,10 +413,12 @@ static void modify_globals(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   auto const old_ents2lins = copies_to_linear_owners(comm, old_globals);
   auto const lins2old_ents = old_ents2lins.invert();
   auto const nlins = lins2old_ents.nroots();
-  auto const lin_rep_counts = old_ents2lins.exch_reduce(global_rep_counts, 1, OMEGA_H_SUM);
+  auto const lin_rep_counts =
+      old_ents2lins.exch_reduce(global_rep_counts, 1, OMEGA_H_SUM);
   OMEGA_H_CHECK(lin_rep_counts.size() == nlins);
   auto const lin_globals = rescan_globals(old_mesh, lin_rep_counts);
-  auto const old_ents2new_globals = lins2old_ents.exch(Read<GO>(lin_globals), 1);
+  auto const old_ents2new_globals =
+      lins2old_ents.exch(Read<GO>(lin_globals), 1);
   Few<LOs, 4> global_rep2md_order;
   for (Int mod_dim = 0; mod_dim <= old_mesh->dim(); ++mod_dim) {
     if ((mod_dim > ent_dim) && mods2prods[mod_dim].exists()) {

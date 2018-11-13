@@ -8,11 +8,11 @@
 #include "Omega_h_host_few.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mark.hpp"
+#include "Omega_h_metric_intersect.hpp"
 #include "Omega_h_recover.hpp"
 #include "Omega_h_shape.hpp"
 #include "Omega_h_simplex.hpp"
 #include "Omega_h_surface.hpp"
-#include "Omega_h_metric_intersect.hpp"
 
 namespace Omega_h {
 

@@ -1,5 +1,5 @@
-#include "Omega_h_for.hpp"
 #include "Omega_h_globals.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_int_scan.hpp"
 #include "Omega_h_mesh.hpp"
 
@@ -19,8 +19,7 @@ GOs rescan_globals(Mesh* mesh, Read<T> counts) {
   return new_globals_w;
 }
 
-#define OMEGA_H_INST_DECL(T) \
-template GOs rescan_globals(Mesh*, Read<T>);
+#define OMEGA_H_INST_DECL(T) template GOs rescan_globals(Mesh*, Read<T>);
 OMEGA_H_INST_DECL(I8)
 OMEGA_H_INST_DECL(I32)
 #undef OMEGA_H_INST_DECL

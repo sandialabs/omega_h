@@ -1,8 +1,8 @@
 #ifndef OMEGA_H_POOL_HPP
 #define OMEGA_H_POOL_HPP
 
-#include <vector>
 #include <functional>
+#include <vector>
 
 namespace Omega_h {
 
@@ -26,7 +26,6 @@ struct Pool {
 
 void* allocate(Pool&, std::size_t);
 void deallocate(Pool&, void*, std::size_t);
-
 }
 
 #endif

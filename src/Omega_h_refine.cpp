@@ -7,10 +7,10 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_modify.hpp"
+#include "Omega_h_profile.hpp"
 #include "Omega_h_refine_qualities.hpp"
 #include "Omega_h_refine_topology.hpp"
 #include "Omega_h_transfer.hpp"
-#include "Omega_h_profile.hpp"
 
 namespace Omega_h {
 

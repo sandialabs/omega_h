@@ -8,9 +8,9 @@
 #include "Omega_h_histogram.hpp"
 #include "Omega_h_laplace.hpp"
 #include "Omega_h_map.hpp"
+#include "Omega_h_profile.hpp"
 #include "Omega_h_quality.hpp"
 #include "Omega_h_refine.hpp"
-#include "Omega_h_profile.hpp"
 #include "Omega_h_swap.hpp"
 #include "Omega_h_timer.hpp"
 #include "Omega_h_transfer.hpp"
@@ -23,8 +23,7 @@ namespace Omega_h {
 
 void UserTransfer::out_of_line_virtual_method() {}
 
-TransferOpts::TransferOpts() {
-}
+TransferOpts::TransferOpts() {}
 
 void TransferOpts::validate(Mesh* mesh) const {
   for (auto& pair : type_map) {

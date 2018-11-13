@@ -1,8 +1,8 @@
 #include "Omega_h_bbox.hpp"
 
+#include "Omega_h_int_iterator.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_reduce.hpp"
-#include "Omega_h_int_iterator.hpp"
 
 namespace Omega_h {
 
@@ -16,7 +16,7 @@ struct UniteOp {
 template <Int dim>
 struct GetBBoxOp {
   Reals coords;
-  GetBBoxOp(Reals coords_in):coords(coords_in) {}
+  GetBBoxOp(Reals coords_in) : coords(coords_in) {}
   OMEGA_H_INLINE BBox<dim> operator()(LO i) const {
     return BBox<dim>(get_vector<dim>(coords, i));
   }
@@ -30,7 +30,8 @@ BBox<dim> find_bounding_box(Reals coords) {
     init.min[i] = ArithTraits<Real>::max();
     init.max[i] = ArithTraits<Real>::min();
   }
-  return transform_reduce(IntIterator(0), IntIterator(npts), init, UniteOp<dim>(), GetBBoxOp<dim>(coords));
+  return transform_reduce(IntIterator(0), IntIterator(npts), init,
+      UniteOp<dim>(), GetBBoxOp<dim>(coords));
 }
 
 template BBox<1> find_bounding_box<1>(Reals coords);

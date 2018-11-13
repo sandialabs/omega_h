@@ -1,12 +1,12 @@
 #include <Omega_h_finite_automaton.hpp>
 
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <queue>
 #include <set>
 #include <utility>
-#include <limits>
 
 #include <Omega_h_chartab.hpp>
 
@@ -410,9 +410,7 @@ struct IsSymbol<T, false> {
   }
 };
 
-bool is_symbol(char c) {
-  return IsSymbol<char>::eval(c);
-}
+bool is_symbol(char c) { return IsSymbol<char>::eval(c); }
 
 template <typename T, bool is_signed = std::numeric_limits<T>::is_signed>
 struct GetSymbol;
@@ -436,9 +434,7 @@ struct GetSymbol<T, false> {
   }
 };
 
-int get_symbol(char c) {
-  return GetSymbol<char>::eval(c);
-}
+int get_symbol(char c) { return GetSymbol<char>::eval(c); }
 
 char get_char(int symbol) {
   OMEGA_H_CHECK(0 <= symbol);

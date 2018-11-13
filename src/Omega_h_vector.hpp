@@ -46,7 +46,9 @@ class Vector : public Few<Real, n> {
   OMEGA_H_INLINE Vector(Vector&&) = default;
 #define OMEGA_H_VECTOR_AT return Few<Real, n>::operator[](i)
   OMEGA_H_INLINE Real& operator()(Int i) OMEGA_H_NOEXCEPT { OMEGA_H_VECTOR_AT; }
-  OMEGA_H_INLINE Real const& operator()(Int i) const OMEGA_H_NOEXCEPT { OMEGA_H_VECTOR_AT; }
+  OMEGA_H_INLINE Real const& operator()(Int i) const OMEGA_H_NOEXCEPT {
+    OMEGA_H_VECTOR_AT;
+  }
 #undef OMEGA_H_VECTOR_AT
 };
 
@@ -69,7 +71,8 @@ OMEGA_H_INLINE Vector<n> operator+(Vector<n> a, Vector<n> b) OMEGA_H_NOEXCEPT {
 }
 
 template <Int n>
-OMEGA_H_INLINE Vector<n>& operator+=(Vector<n>& a, Vector<n> b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE Vector<n>& operator+=(
+    Vector<n>& a, Vector<n> b) OMEGA_H_NOEXCEPT {
   a = a + b;
   return a;
 }
@@ -82,7 +85,8 @@ OMEGA_H_INLINE Vector<n> operator-(Vector<n> a, Vector<n> b) OMEGA_H_NOEXCEPT {
 }
 
 template <Int n>
-OMEGA_H_INLINE Vector<n>& operator-=(Vector<n>& a, Vector<n> b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE Vector<n>& operator-=(
+    Vector<n>& a, Vector<n> b) OMEGA_H_NOEXCEPT {
   a = a - b;
   return a;
 }
@@ -95,7 +99,7 @@ OMEGA_H_INLINE Vector<n> operator-(Vector<n> a) OMEGA_H_NOEXCEPT {
 }
 
 template <Int n>
-OMEGA_H_INLINE Vector<n> operator*(Vector<n> a, Real b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE Vector<n> operator*(Vector<n> a, Real b)OMEGA_H_NOEXCEPT {
   Vector<n> c;
   for (Int i = 0; i < n; ++i) c[i] = a[i] * b;
   return c;
@@ -108,7 +112,7 @@ OMEGA_H_INLINE Vector<n>& operator*=(Vector<n>& a, Real b) OMEGA_H_NOEXCEPT {
 }
 
 template <Int n>
-OMEGA_H_INLINE Vector<n> operator*(Real a, Vector<n> b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE Vector<n> operator*(Real a, Vector<n> b)OMEGA_H_NOEXCEPT {
   return b * a;
 }
 
@@ -126,7 +130,7 @@ OMEGA_H_INLINE Vector<n>& operator/=(Vector<n>& a, Real b) OMEGA_H_NOEXCEPT {
 }
 
 template <Int n>
-OMEGA_H_INLINE Real operator*(Vector<n> a, Vector<n> b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE Real operator*(Vector<n> a, Vector<n> b)OMEGA_H_NOEXCEPT {
   return inner_product(a, b);
 }
 
@@ -140,7 +144,9 @@ OMEGA_H_INLINE Real norm(Vector<n> v) OMEGA_H_NOEXCEPT {
   return std::sqrt(norm_squared(v));
 }
 
-OMEGA_H_INLINE Real norm(Vector<1> v) OMEGA_H_NOEXCEPT { return std::abs(v[0]); }
+OMEGA_H_INLINE Real norm(Vector<1> v) OMEGA_H_NOEXCEPT {
+  return std::abs(v[0]);
+}
 
 template <Int n>
 OMEGA_H_INLINE Vector<n> normalize(Vector<n> v) OMEGA_H_NOEXCEPT {
@@ -169,8 +175,8 @@ OMEGA_H_INLINE Vector<3> vector_3(Real x, Real y, Real z) OMEGA_H_NOEXCEPT {
 }
 
 template <Int n>
-OMEGA_H_INLINE bool are_close(
-    Vector<n> a, Vector<n> b, Real tol = EPSILON, Real floor = EPSILON) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE bool are_close(Vector<n> a, Vector<n> b, Real tol = EPSILON,
+    Real floor = EPSILON) OMEGA_H_NOEXCEPT {
   for (Int i = 0; i < n; ++i)
     if (!are_close(a[i], b[i], tol, floor)) return false;
   return true;
@@ -214,12 +220,15 @@ OMEGA_H_INLINE Real cross(Vector<2> a, Vector<2> b) OMEGA_H_NOEXCEPT {
   return (a[0] * b[1] - a[1] * b[0]);
 }
 
-OMEGA_H_INLINE Vector<3> cross(Omega_h::Vector<3> a, Omega_h::Vector<3> b) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE Vector<3> cross(
+    Omega_h::Vector<3> a, Omega_h::Vector<3> b) OMEGA_H_NOEXCEPT {
   return vector_3(a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
       a[0] * b[1] - a[1] * b[0]);
 }
 
-OMEGA_H_INLINE Vector<2> perp(Vector<2> v) OMEGA_H_NOEXCEPT { return vector_2(-v[1], v[0]); }
+OMEGA_H_INLINE Vector<2> perp(Vector<2> v) OMEGA_H_NOEXCEPT {
+  return vector_2(-v[1], v[0]);
+}
 
 template <Int n>
 OMEGA_H_INLINE Vector<n> project(Vector<n> a, Vector<n> b) OMEGA_H_NOEXCEPT {
@@ -234,7 +243,8 @@ OMEGA_H_INLINE Vector<n> reject(Vector<n> a, Vector<n> b) OMEGA_H_NOEXCEPT {
 }
 
 template <Int n>
-OMEGA_H_DEVICE void set_vector(Write<Real> const& a, Int i, Vector<n> v) OMEGA_H_NOEXCEPT {
+OMEGA_H_DEVICE void set_vector(
+    Write<Real> const& a, Int i, Vector<n> v) OMEGA_H_NOEXCEPT {
   for (Int j = 0; j < n; ++j) a[i * n + j] = v[j];
 }
 

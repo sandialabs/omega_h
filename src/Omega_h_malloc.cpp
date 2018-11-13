@@ -2,7 +2,6 @@
 #include <Omega_h_malloc.hpp>
 #include <Omega_h_pool.hpp>
 #include <Omega_h_profile.hpp>
-#include <Omega_h_fail.hpp>
 
 namespace Omega_h {
 
@@ -77,8 +76,10 @@ void* maybe_pooled_device_malloc(std::size_t size) {
 }
 
 void maybe_pooled_device_free(void* ptr, std::size_t size) {
-  if (device_pool) deallocate(*device_pool, ptr, size);
-  else device_free(ptr, size);
+  if (device_pool)
+    deallocate(*device_pool, ptr, size);
+  else
+    device_free(ptr, size);
 }
 
 void* maybe_pooled_host_malloc(std::size_t size) {
@@ -87,8 +88,9 @@ void* maybe_pooled_host_malloc(std::size_t size) {
 }
 
 void maybe_pooled_host_free(void* ptr, std::size_t size) {
-  if (host_pool) deallocate(*host_pool, ptr, size);
-  else host_free(ptr, size);
+  if (host_pool)
+    deallocate(*host_pool, ptr, size);
+  else
+    host_free(ptr, size);
 }
-
 }

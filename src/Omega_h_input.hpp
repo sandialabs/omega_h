@@ -1,13 +1,13 @@
 #ifndef OMEGA_H_INPUT_HPP
 #define OMEGA_H_INPUT_HPP
 
+#include <Omega_h_defines.hpp>
+#include <Omega_h_mesh.hpp>
+#include <iosfwd>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
-#include <iosfwd>
-#include <Omega_h_defines.hpp>
-#include <Omega_h_mesh.hpp>
 
 namespace Omega_h {
 
@@ -103,25 +103,28 @@ void echo_input(std::ostream& stream, Input& input);
 
 void check_unused(Input& input);
 
-#define OMEGA_H_EXPL_INST(InputType) \
-extern template bool is_type<InputType>(Input&); \
-extern template InputType& as_type<InputType>(Input&); \
-extern template bool InputMap::is_input<InputType>(std::string const& name); \
-extern template InputType& InputMap::use_input<InputType>(std::string const& name); \
-extern template bool InputList::is_input<InputType>(LO i); \
-extern template InputType& InputList::use_input(LO i);
+#define OMEGA_H_EXPL_INST(InputType)                                           \
+  extern template bool is_type<InputType>(Input&);                             \
+  extern template InputType& as_type<InputType>(Input&);                       \
+  extern template bool InputMap::is_input<InputType>(std::string const& name); \
+  extern template InputType& InputMap::use_input<InputType>(                   \
+      std::string const& name);                                                \
+  extern template bool InputList::is_input<InputType>(LO i);                   \
+  extern template InputType& InputList::use_input(LO i);
 OMEGA_H_EXPL_INST(InputScalar)
 OMEGA_H_EXPL_INST(InputMap)
 OMEGA_H_EXPL_INST(InputList)
 #undef OMEGA_H_EXPL_INST
 
-#define OMEGA_H_EXPL_INST(ScalarType) \
-extern template ScalarType InputScalar::get<ScalarType>() const; \
-extern template bool InputMap::is<ScalarType>(std::string const& name); \
-extern template ScalarType InputMap::get<ScalarType>(std::string const& name); \
-extern template ScalarType InputMap::get<ScalarType>(std::string const& name, char const* default_value); \
-extern template bool InputList::is<ScalarType>(LO i); \
-extern template ScalarType InputList::get<ScalarType>(LO i);
+#define OMEGA_H_EXPL_INST(ScalarType)                                          \
+  extern template ScalarType InputScalar::get<ScalarType>() const;             \
+  extern template bool InputMap::is<ScalarType>(std::string const& name);      \
+  extern template ScalarType InputMap::get<ScalarType>(                        \
+      std::string const& name);                                                \
+  extern template ScalarType InputMap::get<ScalarType>(                        \
+      std::string const& name, char const* default_value);                     \
+  extern template bool InputList::is<ScalarType>(LO i);                        \
+  extern template ScalarType InputList::get<ScalarType>(LO i);
 OMEGA_H_EXPL_INST(std::string)
 OMEGA_H_EXPL_INST(bool)
 OMEGA_H_EXPL_INST(double)
