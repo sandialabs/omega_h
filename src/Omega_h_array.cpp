@@ -73,6 +73,10 @@ Write<T>::Write(LO size_in, T offset, T stride, std::string const& name_in)
 template <typename T>
 Write<T>::Write(HostWrite<T> host_write) : Write<T>(host_write.write()) {}
 
+template <typename T>
+Write<T>::Write(std::initializer_list<T> l, std::string const& name_in)
+    : Write<T>(HostWrite<T>(l, name_in)) {}
+
 #ifdef OMEGA_H_USE_KOKKOSCORE
 template <typename T>
 std::string Write<T>::name() const {

@@ -36,6 +36,7 @@ class Write {
   Write(LO size_in, std::string const& name = "");
   Write(LO size_in, T value, std::string const& name = "");
   Write(LO size_in, T offset, T stride, std::string const& name = "");
+  Write(std::initializer_list<T> l, std::string const& name = "");
   Write(HostWrite<T> host_write);
   OMEGA_H_INLINE LO size() const OMEGA_H_NOEXCEPT {
 #ifdef OMEGA_H_CHECK_BOUNDS
