@@ -14,9 +14,7 @@ LOs offset_scan(Read<T> a, std::string const& name) {
   auto const first = a.begin();
   auto const last = a.end();
   auto const result = out.begin() + 1;
-  auto const op = plus<LO>();
-  auto transform = identity<LO>();
-  transform_inclusive_scan(first, last, result, op, std::move(transform));
+  inclusive_scan(first, last, result);
   return out;
 }
 

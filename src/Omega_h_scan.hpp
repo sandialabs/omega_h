@@ -45,6 +45,12 @@ void parallel_scan(LO n, T f, char const* name = "") {
 
 #if defined(OMEGA_H_USE_CUDA)
 
+template <typename InputIterator, typename OutputIterator>
+OutputIterator inclusive_scan(InputIterator first, InputIterator last,
+    OutputIterator result) {
+  return thrust::inclusive_scan(thrust::device, first, last, result);
+}
+
 template <typename InputIterator, typename OutputIterator, typename BinaryOp,
     typename UnaryOp>
 OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
