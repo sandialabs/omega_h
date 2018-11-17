@@ -15,68 +15,68 @@ class IntIterator {
   using reference = LO const&;
   using pointer = LO const*;
   using iterator_category = std::random_access_iterator_tag;
-  OMEGA_H_INLINE IntIterator() = default;
-  OMEGA_H_INLINE IntIterator(LO i_in) : i(i_in) {}
-  OMEGA_H_INLINE bool operator==(IntIterator const& other) const {
+  OMEGA_H_INLINE IntIterator() noexcept = default;
+  OMEGA_H_INLINE IntIterator(LO i_in) noexcept : i(i_in) {}
+  OMEGA_H_INLINE bool operator==(IntIterator const& other) const noexcept {
     return i == other.i;
   }
-  OMEGA_H_INLINE bool operator!=(IntIterator const& other) const {
+  OMEGA_H_INLINE bool operator!=(IntIterator const& other) const noexcept {
     return i != other.i;
   }
-  OMEGA_H_INLINE reference operator*() const { return i; }
-  OMEGA_H_INLINE LO const* operator->() const { return &i; }
-  OMEGA_H_INLINE IntIterator& operator++() {
+  OMEGA_H_INLINE reference operator*() const noexcept { return i; }
+  OMEGA_H_INLINE pointer operator->() const noexcept { return &i; }
+  OMEGA_H_INLINE IntIterator& operator++() noexcept {
     ++i;
     return *this;
   }
-  OMEGA_H_INLINE IntIterator operator++(int) {
+  OMEGA_H_INLINE IntIterator operator++(int) noexcept {
     auto ret = *this;
     ++i;
     return ret;
   }
-  OMEGA_H_INLINE IntIterator& operator--() {
+  OMEGA_H_INLINE IntIterator& operator--() noexcept {
     --i;
     return *this;
   }
-  OMEGA_H_INLINE IntIterator operator--(int) {
+  OMEGA_H_INLINE IntIterator operator--(int) noexcept {
     auto ret = *this;
     --i;
     return ret;
   }
-  OMEGA_H_INLINE IntIterator& operator+=(difference_type n) {
+  OMEGA_H_INLINE IntIterator& operator+=(difference_type n) noexcept {
     i += n;
     return *this;
   }
-  OMEGA_H_INLINE IntIterator& operator-=(difference_type n) {
+  OMEGA_H_INLINE IntIterator& operator-=(difference_type n) noexcept {
     i -= n;
     return *this;
   }
-  OMEGA_H_INLINE IntIterator operator+(difference_type n) const {
+  OMEGA_H_INLINE IntIterator operator+(difference_type n) const noexcept {
     return IntIterator(i + n);
   }
-  OMEGA_H_INLINE IntIterator operator-(difference_type n) const {
+  OMEGA_H_INLINE IntIterator operator-(difference_type n) const noexcept {
     return IntIterator(i - n);
   }
-  OMEGA_H_INLINE difference_type operator-(IntIterator const& other) const {
+  OMEGA_H_INLINE difference_type operator-(IntIterator const& other) const noexcept {
     return i - other.i;
   }
-  OMEGA_H_INLINE LO operator[](difference_type n) const { return i + n; }
-  OMEGA_H_INLINE bool operator<(IntIterator const& other) const {
+  OMEGA_H_INLINE value_type operator[](difference_type n) const noexcept { return i + n; }
+  OMEGA_H_INLINE bool operator<(IntIterator const& other) const noexcept {
     return i < other.i;
   }
-  OMEGA_H_INLINE bool operator>(IntIterator const& other) const {
+  OMEGA_H_INLINE bool operator>(IntIterator const& other) const noexcept {
     return i > other.i;
   }
-  OMEGA_H_INLINE bool operator<=(IntIterator const& other) const {
+  OMEGA_H_INLINE bool operator<=(IntIterator const& other) const noexcept {
     return i <= other.i;
   }
-  OMEGA_H_INLINE bool operator>=(IntIterator const& other) const {
+  OMEGA_H_INLINE bool operator>=(IntIterator const& other) const noexcept {
     return i >= other.i;
   }
 };
 
 OMEGA_H_INLINE IntIterator operator+(
-    IntIterator::difference_type n, IntIterator it) {
+    IntIterator::difference_type n, IntIterator it) noexcept {
   return it + n;
 }
 
