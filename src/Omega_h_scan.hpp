@@ -79,6 +79,56 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
+template <typename InputIterator, typename OutputIterator>
+OutputIterator inclusive_scan(InputIterator first, InputIterator last,
+    OutputIterator result) {
+  auto const n = last - first;
+  if (n <= 0) return result;
+  constexpr int max_num_threads = 512;
+  using T_const_ref = decltype(*first);
+  using T_const = typename std::remove_reference<T_const_ref>::type;
+  using T = typename std::remove_const<T_const>::type;
+  T thread_sums[max_num_threads];
+#pragma omp parallel
+  {
+    int const num_threads = omp_get_num_threads();
+    int const thread_num = omp_get_thread_num();
+    auto const quotient = n / num_threads;
+    auto const remainder = n % num_threads;
+    auto const begin_i = (thread_num > remainder)
+                             ? (quotient * thread_num + remainder)
+                             : ((quotient + 1) * thread_num);
+    auto const end_i = (thread_num >= remainder) ? (begin_i + quotient)
+                                                 : (begin_i + quotient + 1);
+    T thread_sum;
+    if (begin_i < end_i) {
+      thread_sum = first[begin_i];
+      for (auto i = begin_i + 1; i < end_i; ++i) {
+        thread_sum = std::move(thread_sum) + first[i];
+      }
+      thread_sums[thread_num] = std::move(thread_sum);
+    }
+#pragma omp barrier
+    if (begin_i < end_i) {
+      if (thread_num) {
+        thread_sum = thread_sums[0];
+        for (int i = 1; i < thread_num; ++i) {
+          thread_sum = std::move(thread_sum) + thread_sums[i];
+        }
+        thread_sum = std::move(thread_sum) + first[begin_i];
+      } else {
+        thread_sum = first[begin_i];
+      }
+      result[begin_i] = thread_sum;
+      for (auto i = begin_i + 1; i < end_i; ++i) {
+        thread_sum = std::move(thread_sum) + first[i];
+        result[i] = thread_sum;
+      }
+    }
+  }
+  return result + n;
+}
+
 template <typename InputIterator, typename OutputIterator, typename Transform,
     typename Op>
 OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
@@ -134,6 +184,21 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
 }
 
 #else
+
+template <typename InputIterator, typename OutputIterator>
+OutputIterator inclusive_scan(InputIterator first, InputIterator last,
+    OutputIterator result) {
+  auto const n = last - first;
+  if (n <= 0) return result;
+  auto value = first[0];
+  result[0] = value;
+  using d_t = typename std::remove_const<decltype(n)>::type;
+  for (d_t i = 1; i < n; ++i) {
+    value = std::move(value) + first[i];
+    result[i] = value;
+  }
+  return result + n;
+}
 
 template <typename InputIterator, typename OutputIterator, typename BinaryOp,
     typename UnaryOp>
