@@ -60,7 +60,7 @@ class CastIterator {
   OMEGA_H_INLINE difference_type operator-(CastIterator const& other) const {
     return ptr - other.ptr;
   }
-  OMEGA_H_INLINE reference operator[](difference_type n) const { return *(ptr + n); }
+  OMEGA_H_INLINE value_type operator[](difference_type n) const { return *(ptr + n); }
   OMEGA_H_INLINE bool operator<(CastIterator const& other) const {
     return ptr < other.ptr;
   }
