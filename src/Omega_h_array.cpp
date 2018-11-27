@@ -382,6 +382,7 @@ Write<T> deep_copy(Read<T> a, std::string const& name) {
   template class HostWrite<T>;                                                 \
   template class HostRead<T>;                                                  \
   template void fill(Write<T> a, T val);                                       \
+  template void fill_linear(Write<T> a, T, T);                                       \
   template void copy_into(Read<T> a, Write<T> b);                              \
   template Write<T> deep_copy(Read<T> a, std::string const&);
 
