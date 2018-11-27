@@ -324,7 +324,6 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   int const outdegree = destinations.size();
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
-  OMEGA_H_CHECK(typewidth == typewidth);
   MPI_Request* recvreqs = new MPI_Request[indegree];
   for (int i = 0; i < indegree; ++i) {
     char* const single_recvbuf =
