@@ -3,6 +3,7 @@
 #include "Omega_h_functors.hpp"
 #include "Omega_h_profile.hpp"
 #include "Omega_h_scan.hpp"
+#include "Omega_h_cast_iterator.hpp"
 
 namespace Omega_h {
 
@@ -11,12 +12,10 @@ LOs offset_scan(Read<T> a, std::string const& name) {
   OMEGA_H_TIME_FUNCTION;
   Write<LO> out(a.size() + 1, name);
   out.set(0, 0);
-  auto const first = a.begin();
-  auto const last = a.end();
+  auto const first = CastIterator<LO, T>(a.begin());
+  auto const last = CastIterator<LO, T>(a.end());
   auto const result = out.begin() + 1;
-  auto const op = plus<LO>();
-  auto transform = identity<LO>();
-  transform_inclusive_scan(first, last, result, op, std::move(transform));
+  inclusive_scan(first, last, result);
   return out;
 }
 

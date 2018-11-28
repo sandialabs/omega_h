@@ -493,21 +493,21 @@ Adj transit(
 
 Graph verts_across_edges(Adj e2v, Adj v2e) {
   OMEGA_H_TIME_FUNCTION;
-  auto ev2v = e2v.ab2b;
-  auto v2ve = v2e.a2ab;
-  auto ve2e = v2e.ab2b;
-  auto v2ve_codes = v2e.codes;
-  auto& v2vv = v2ve;
+  auto const ev2v = e2v.ab2b;
+  auto const v2ve = v2e.a2ab;
+  auto const ve2e = v2e.ab2b;
+  auto const v2ve_codes = v2e.codes;
+  auto const v2vv = v2ve;
   Write<LO> vv2v(ve2e.size());
   auto f = OMEGA_H_LAMBDA(LO ve) {
-    auto vv = ve;
-    auto e = ve2e[ve];
-    auto v2ve_code = v2ve_codes[ve];
-    auto eev = code_which_down(v2ve_code);
-    auto v = ev2v[e * 2 + (1 - eev)];
+    auto const vv = ve;
+    auto const e = ve2e[ve];
+    auto const v2ve_code = v2ve_codes[ve];
+    auto const eev = code_which_down(v2ve_code);
+    auto const v = ev2v[e * 2 + (1 - eev)];
     vv2v[vv] = v;
   };
-  parallel_for(vv2v.size(), f, "verts_across_edges");
+  parallel_for(vv2v.size(), std::move(f));
   return Adj(v2vv, vv2v);
 }
 

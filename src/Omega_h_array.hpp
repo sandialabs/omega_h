@@ -264,6 +264,8 @@ class HostWrite {
 
 template <typename T>
 void fill(Write<T> a, T val);
+template <typename T>
+void fill_linear(Write<T> a, T offset, T stride);
 template <class T>
 void copy_into(Read<T> a, Write<T> b);
 template <class T>
@@ -278,6 +280,7 @@ Write<T> deep_copy(Read<T> a, std::string const& name = "");
   extern template class HostRead<T>;                                           \
   extern template class HostWrite<T>;                                          \
   extern template void fill(Write<T> a, T val);                                \
+  extern template void fill_linear(Write<T> a, T, T);                                \
   extern template void copy_into(Read<T> a, Write<T> b);                       \
   extern template Write<T> deep_copy(Read<T> a, std::string const&);
 OMEGA_H_EXPL_INST_DECL(I8)
