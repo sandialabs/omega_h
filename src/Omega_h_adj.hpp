@@ -40,7 +40,7 @@ void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
 Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
     Int high_dim, Int low_dim);
 
-Adj unmap_adjacency(LOs a2b, Adj b2c);
+Adj unmap_adjacency(LOs const a2b, Adj const b2c);
 
 /* Given a downward adjacency, derive its corresponding upward adjacency.
    The list of upward adjacent entities will be sorted by the local
@@ -56,14 +56,14 @@ Children invert_parents(
    entities by high entities */
 LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
 
-LOs find_unique(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
+LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim);
 
 /* for each entity (or entity use), sort its vertex list
    and express the sorting transformation as an alignment code */
 template <typename T>
-Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);
+Read<I8> get_codes_to_canonical(Int const deg, Read<T> const ev2v);
 
-Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e);
+Read<I8> find_canonical_jumps(Int const deg, LOs const canon, LOs const e_sorted2e);
 
 /* given entity uses and unique entities,
    both defined by vertex lists, match

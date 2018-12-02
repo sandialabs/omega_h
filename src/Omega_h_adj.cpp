@@ -12,19 +12,20 @@
 
 namespace Omega_h {
 
-Adj unmap_adjacency(LOs a2b, Adj b2c) {
-  auto b2bc = b2c.a2ab;
-  auto bc2c = b2c.ab2b;
-  auto bc_codes = b2c.codes;
-  auto b_degrees = get_degrees(b2bc);
+Adj unmap_adjacency(LOs const a2b, Adj const b2c) {
+  OMEGA_H_TIME_FUNCTION;
+  auto const b2bc = b2c.a2ab;
+  auto const bc2c = b2c.ab2b;
+  auto const bc_codes = b2c.codes;
+  auto const b_degrees = get_degrees(b2bc);
   LOs a_degrees = unmap(a2b, b_degrees, 1);
-  auto a2ac = offset_scan(a_degrees);
-  auto na = a2b.size();
-  auto nac = a2ac.last();
+  auto const a2ac = offset_scan(a_degrees);
+  auto const na = a2b.size();
+  auto const nac = a2ac.last();
   Write<LO> ac2c(nac);
-  auto ac_codes = Write<I8>(nac);
+  auto const ac_codes = Write<I8>(nac);
   auto f = OMEGA_H_LAMBDA(LO a) {
-    auto b = a2b[a];
+    auto const b = a2b[a];
     auto bc = b2bc[b];
     for (auto ac = a2ac[a]; ac < a2ac[a + 1]; ++ac) {
       ac2c[ac] = bc2c[bc];
@@ -32,7 +33,7 @@ Adj unmap_adjacency(LOs a2b, Adj b2c) {
       ++bc;
     }
   };
-  parallel_for(na, f, "unmap_adjacency");
+  parallel_for(na, std::move(f));
   return Adj(a2ac, ac2c, ac_codes);
 }
 
@@ -42,7 +43,7 @@ struct IsFlipped;
 template <>
 struct IsFlipped<4> {
   template <typename T>
-  OMEGA_H_INLINE static bool is(T adj[]) {
+  OMEGA_H_INLINE static bool is(T const adj[]) {
     return adj[3] < adj[1];
   }
 };
@@ -50,7 +51,7 @@ struct IsFlipped<4> {
 template <>
 struct IsFlipped<3> {
   template <typename T>
-  OMEGA_H_INLINE static bool is(T adj[]) {
+  OMEGA_H_INLINE static bool is(T const adj[]) {
     return adj[2] < adj[1];
   }
 };
@@ -58,19 +59,19 @@ struct IsFlipped<3> {
 template <>
 struct IsFlipped<2> {
   template <typename T>
-  OMEGA_H_INLINE static bool is(T adj[]) {
+  OMEGA_H_INLINE static bool is(T const adj[]) {
     (void)adj;
     return false;
   }
 };
 
 template <Int deg, typename T>
-static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
-  auto nev = ev2v.size();
-  auto ne = nev / deg;
+static Read<I8> get_codes_to_canonical_deg(Read<T> const ev2v) {
+  auto const nev = ev2v.size();
+  auto const ne = divide_no_remainder(nev, deg);
   Write<I8> codes(ne);
   auto f = OMEGA_H_LAMBDA(LO e) {
-    auto begin = e * deg;
+    auto const begin = e * deg;
     /* find the smallest vertex */
     Int min_j = 0;
     auto min_v = ev2v[begin];
@@ -83,18 +84,19 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> ev2v) {
       }
     }
     /* rotate to make it first */
-    auto rotation = rotation_to_first(deg, min_j);
+    auto const rotation = rotation_to_first(deg, min_j);
     T tmp[deg];
     rotate_adj<deg>(rotation, ev2v, begin, tmp, 0);
-    auto is_flipped = IsFlipped<deg>::is(tmp);
+    auto const is_flipped = IsFlipped<deg>::is(tmp);
     codes[e] = make_code(is_flipped, rotation, 0);
   };
-  parallel_for(ne, f, "get_codes_to_canonical");
+  parallel_for(ne, std::move(f));
   return codes;
 }
 
 template <typename T>
-Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
+Read<I8> get_codes_to_canonical(Int const deg, Read<T> const ev2v) {
+  OMEGA_H_TIME_FUNCTION;
   if (deg == 4) return get_codes_to_canonical_deg<4>(ev2v);
   if (deg == 3) return get_codes_to_canonical_deg<3>(ev2v);
   if (deg == 2) return get_codes_to_canonical_deg<2>(ev2v);
@@ -103,44 +105,45 @@ Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v) {
 
 /* check whether adjacent lists of (deg) vertices
    are the same */
-OMEGA_H_DEVICE static bool are_equal(Int deg, LOs const& canon, LO e0, LO e1) {
-  auto a = e0 * deg;
-  auto b = e1 * deg;
+OMEGA_H_DEVICE static bool are_equal(Int const deg, LOs const& canon, LO e0, LO e1) {
+  auto const a = e0 * deg;
+  auto const b = e1 * deg;
   for (LO j = 0; j < deg; ++j) {
     if (canon[a + j] != canon[b + j]) return false;
   }
   return true;
 }
 
-Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e) {
-  auto ne = e_sorted2e.size();
+Read<I8> find_canonical_jumps(Int const deg, LOs const canon, LOs const e_sorted2e) {
+  OMEGA_H_TIME_FUNCTION;
+  auto const ne = e_sorted2e.size();
   Write<I8> jumps(ne, 0);
   auto f = OMEGA_H_LAMBDA(LO e_sorted) {
-    auto e0 = e_sorted2e[e_sorted];
-    auto e1 = e_sorted2e[e_sorted + 1];
+    auto const e0 = e_sorted2e[e_sorted];
+    auto const e1 = e_sorted2e[e_sorted + 1];
     if (!are_equal(deg, canon, e0, e1)) jumps[e_sorted] = 1;
   };
-  parallel_for(ne - 1, f, "find_canonical_jumps");
+  parallel_for(ne - 1, std::move(f));
   if (jumps.size()) jumps.set(jumps.size() - 1, 1);
   return jumps;
 }
 
-static LOs find_unique_deg(Int deg, LOs uv2v) {
-  auto codes = get_codes_to_canonical(deg, uv2v);
-  auto uv2v_canon = align_ev2v(deg, uv2v, codes);
-  auto sorted2u = sort_by_keys(uv2v_canon, deg);
-  auto jumps = find_canonical_jumps(deg, uv2v_canon, sorted2u);
-  auto e2sorted = collect_marked(jumps);
-  auto e2u = compound_maps(e2sorted, sorted2u);
+static LOs find_unique_deg(Int const deg, LOs const uv2v) {
+  auto const codes = get_codes_to_canonical(deg, uv2v);
+  auto const uv2v_canon = align_ev2v(deg, uv2v, codes);
+  auto const sorted2u = sort_by_keys(uv2v_canon, deg);
+  auto const jumps = find_canonical_jumps(deg, uv2v_canon, sorted2u);
+  auto const e2sorted = collect_marked(jumps);
+  auto const e2u = compound_maps(e2sorted, sorted2u);
   return unmap<LO>(e2u, uv2v, deg);
 }
 
-LOs find_unique(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
+LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim) {
   OMEGA_H_CHECK(high_dim > low_dim);
   OMEGA_H_CHECK(low_dim <= 2);
   OMEGA_H_CHECK(hv2v.size() % element_degree(family, high_dim, VERT) == 0);
-  auto uv2v = form_uses(hv2v, family, high_dim, low_dim);
-  auto deg = element_degree(family, low_dim, VERT);
+  auto const uv2v = form_uses(hv2v, family, high_dim, low_dim);
+  auto const deg = element_degree(family, low_dim, VERT);
   return find_unique_deg(deg, uv2v);
 }
 
