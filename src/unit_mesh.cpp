@@ -118,10 +118,10 @@ static void test_form_uses() {
                 LOs({0, 2, 1, 0, 1, 3, 1, 2, 3, 2, 0, 3}));
   OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3}), OMEGA_H_HYPERCUBE, 2, 1) ==
                 LOs({0, 1, 1, 2, 2, 3, 3, 0}));
-  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7, 8}), OMEGA_H_HYPERCUBE,
+  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7}), OMEGA_H_HYPERCUBE,
                     3, 1) == LOs({0, 1, 1, 2, 2, 3, 3, 0, 0, 4, 1, 5, 2, 6, 3,
                                  7, 4, 5, 5, 6, 6, 7, 7, 4}));
-  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7, 8}), OMEGA_H_HYPERCUBE,
+  OMEGA_H_CHECK(form_uses(LOs({0, 1, 2, 3, 4, 5, 6, 7}), OMEGA_H_HYPERCUBE,
                     3, 2) == LOs({1, 0, 3, 2, 0, 1, 5, 4, 1, 2, 6, 5, 2, 3, 7,
                                  6, 3, 0, 4, 7, 4, 5, 6, 7}));
 }
