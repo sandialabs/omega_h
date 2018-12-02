@@ -76,8 +76,8 @@ static Read<I8> get_codes_to_canonical_deg(Read<T> const ev2v) {
     Int min_j = 0;
     auto min_v = ev2v[begin];
     for (Int j = 1; j < deg; ++j) {
-      auto ev = j + begin;
-      auto v = ev2v[ev];
+      auto const ev = j + begin;
+      auto const v = ev2v[ev];
       if (v < min_v) {
         min_j = j;
         min_v = v;
@@ -129,6 +129,7 @@ Read<I8> find_canonical_jumps(Int const deg, LOs const canon, LOs const e_sorted
 }
 
 static LOs find_unique_deg(Int const deg, LOs const uv2v) {
+  OMEGA_H_TIME_FUNCTION;
   auto const codes = get_codes_to_canonical(deg, uv2v);
   auto const uv2v_canon = align_ev2v(deg, uv2v, codes);
   auto const sorted2u = sort_by_keys(uv2v_canon, deg);
@@ -139,6 +140,7 @@ static LOs find_unique_deg(Int const deg, LOs const uv2v) {
 }
 
 LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim) {
+  OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(high_dim > low_dim);
   OMEGA_H_CHECK(low_dim <= 2);
   OMEGA_H_CHECK(hv2v.size() % element_degree(family, high_dim, VERT) == 0);
@@ -147,24 +149,25 @@ LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
   return find_unique_deg(deg, uv2v);
 }
 
-LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim) {
-  Int nverts_per_high = element_degree(family, high_dim, 0);
-  Int nverts_per_low = element_degree(family, low_dim, 0);
-  Int nlows_per_high = element_degree(family, high_dim, low_dim);
-  LO nhigh = hv2v.size() / nverts_per_high;
-  LO nuses = nhigh * nlows_per_high;
+LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim) {
+  OMEGA_H_TIME_FUNCTION;
+  Int const nverts_per_high = element_degree(family, high_dim, 0);
+  Int const nverts_per_low = element_degree(family, low_dim, 0);
+  Int const nlows_per_high = element_degree(family, high_dim, low_dim);
+  LO const nhigh = divide_no_remainder(hv2v.size(), nverts_per_high);
+  LO const nuses = nhigh * nlows_per_high;
   Write<LO> uv2v(nuses * nverts_per_low);
   auto f = OMEGA_H_LAMBDA(LO h) {
-    LO h_begin = h * nverts_per_high;
+    LO const h_begin = h * nverts_per_high;
     for (Int u = 0; u < nlows_per_high; ++u) {
-      LO u_begin = (h * nlows_per_high + u) * nverts_per_low;
+      LO const u_begin = (h * nlows_per_high + u) * nverts_per_low;
       for (Int uv = 0; uv < nverts_per_low; ++uv) {
         uv2v[u_begin + uv] = hv2v[h_begin + element_down_template(family,
                                                 high_dim, low_dim, u, uv)];
       }
     }
   };
-  parallel_for(nhigh, f, "form_uses");
+  parallel_for(nhigh, std::move(f));
   return uv2v;
 }
 
@@ -222,7 +225,7 @@ static void separate_upward_no_codes(LO const nlh, LOs const lh2hl,
 }
 
 Adj invert_adj(
-    Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim) {
+    Adj const down, Int const nlows_per_high, LO const nlows, Int const high_dim, Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
   auto const high_plural_name = dimensional_plural_name(high_dim);
   auto const high_singular_name = dimensional_singular_name(high_dim);
@@ -255,31 +258,31 @@ Adj invert_adj(
   return Adj(l2lh, lh2h, codes);
 }
 
-static Bytes filter_parents(Parents c2p, Int parent_dim) {
+static Bytes filter_parents(Parents const c2p, Int const parent_dim) {
+  OMEGA_H_TIME_FUNCTION;
   Write<Byte> filter(c2p.parent_idx.size());
   auto f = OMEGA_H_LAMBDA(LO c) {
-    auto code = c2p.codes[c];
+    auto const code = c2p.codes[c];
     if (amr::code_parent_dim(code) == parent_dim)
       filter[c] = 1;
     else
       filter[c] = 0;
   };
-  parallel_for(c2p.parent_idx.size(), f, "filter_parents");
+  parallel_for(c2p.parent_idx.size(), std::move(f));
   return filter;
 }
 
-Children invert_parents(Parents c2p, Int parent_dim, Int nparent_dim_ents) {
-  begin_code("invert_parents");
-  auto filter = filter_parents(c2p, parent_dim);
-  auto rc2c = collect_marked(filter);
-  auto rc2p = unmap(rc2c, c2p.parent_idx, 1);
-  auto p2rc = invert_map_by_atomics(rc2p, nparent_dim_ents);
-  auto p2pc = p2rc.a2ab;
-  auto pc2rc = p2rc.ab2b;
-  auto pc2c = unmap(pc2rc, rc2c, 1);
-  auto codes = unmap(pc2c, c2p.codes, 1);
+Children invert_parents(Parents const c2p, Int const parent_dim, Int const nparent_dim_ents) {
+  OMEGA_H_TIME_FUNCTION;
+  auto const filter = filter_parents(c2p, parent_dim);
+  auto const rc2c = collect_marked(filter);
+  auto const rc2p = unmap(rc2c, c2p.parent_idx, 1);
+  auto const p2rc = invert_map_by_atomics(rc2p, nparent_dim_ents);
+  auto const p2pc = p2rc.a2ab;
+  auto const pc2rc = p2rc.ab2b;
+  auto const pc2c = unmap(pc2rc, rc2c, 1);
+  auto const codes = unmap(pc2c, c2p.codes, 1);
   sort_by_high_index(p2pc, pc2c, codes);
-  end_code();
   return Children(p2pc, pc2c, codes);
 }
 
@@ -290,8 +293,8 @@ struct IsMatch;
 template <>
 struct IsMatch<2> {
   template <typename T>
-  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
-      Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO const a_begin,
+      Read<T> const& bv2v, LO const b_begin, Int const which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + (1 - which_down)]) {
       *match_code = make_code(false, which_down, 0);
       return true;
@@ -304,8 +307,8 @@ struct IsMatch<2> {
 template <>
 struct IsMatch<3> {
   template <typename T>
-  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
-      Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO const a_begin,
+      Read<T> const& bv2v, LO const b_begin, Int const which_down, I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
       *match_code = make_code(false, rotation_to_first(3, which_down), 0);
@@ -324,8 +327,8 @@ struct IsMatch<3> {
 template <>
 struct IsMatch<4> {
   template <typename T>
-  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO a_begin,
-      Read<T> const& bv2v, LO b_begin, Int which_down, I8* match_code) {
+  OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO const a_begin,
+      Read<T> const& bv2v, LO const b_begin, Int const which_down, I8* match_code) {
     if (av2v[a_begin + 2] != bv2v[b_begin + ((which_down + 2) % 4)]) {
       return false;
     }
@@ -344,26 +347,27 @@ struct IsMatch<4> {
 };
 
 template <Int deg, typename T>
-static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out, bool allow_duplicates) {
-  LO na = a2fv.size();
+static void find_matches_deg(LOs const a2fv, Read<T> const av2v, Read<T> const bv2v, Adj const v2b,
+    LOs* a2b_out, Read<I8>* codes_out, bool const allow_duplicates) {
+  OMEGA_H_TIME_FUNCTION;
+  LO const na = a2fv.size();
   OMEGA_H_CHECK(na * deg == av2v.size());
-  LOs v2vb = v2b.a2ab;
-  LOs vb2b = v2b.ab2b;
-  Read<I8> vb_codes = v2b.codes;
+  LOs const v2vb = v2b.a2ab;
+  LOs const vb2b = v2b.ab2b;
+  Read<I8> const vb_codes = v2b.codes;
   Write<LO> a2b(na);
   Write<I8> codes(na);
   auto f = OMEGA_H_LAMBDA(LO a) {
-    auto fv = a2fv[a];
-    auto a_begin = a * deg;
-    auto vb_begin = v2vb[fv];
-    auto vb_end = v2vb[fv + 1];
+    auto const fv = a2fv[a];
+    auto const a_begin = a * deg;
+    auto const vb_begin = v2vb[fv];
+    auto const vb_end = v2vb[fv + 1];
     bool found = false;
     for (LO vb = vb_begin; vb < vb_end; ++vb) {
-      auto b = vb2b[vb];
-      auto vb_code = vb_codes[vb];
-      auto which_down = code_which_down(vb_code);
-      auto b_begin = b * deg;
+      auto const b = vb2b[vb];
+      auto const vb_code = vb_codes[vb];
+      auto const which_down = code_which_down(vb_code);
+      auto const b_begin = b * deg;
       I8 match_code;
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
@@ -376,14 +380,14 @@ static void find_matches_deg(LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
     }
     OMEGA_H_CHECK(found);  // there can't be less than one!
   };
-  parallel_for(na, f, "find_matches");
+  parallel_for(na, std::move(f));
   *a2b_out = a2b;
   *codes_out = codes;
 }
 
 template <typename T>
-void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out, bool allow_duplicates) {
+void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v, Read<T> const bv2v, Adj const v2b,
+    LOs* a2b_out, Read<I8>* codes_out, bool const allow_duplicates) {
   if (deg == 2) {
     find_matches_deg<2>(
         a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
@@ -398,75 +402,75 @@ void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
   }
 }
 
-void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
+void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v, LOs const bv2v, Adj const v2b,
     LOs* a2b_out, Read<I8>* codes_out) {
   OMEGA_H_CHECK(dim <= 2);
-  auto deg = element_degree(family, dim, VERT);
-  auto a2fv = get_component(av2v, deg, 0);
+  auto const deg = element_degree(family, dim, VERT);
+  auto const a2fv = get_component(av2v, deg, 0);
   find_matches_ex(deg, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
 }
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
-    Int high_dim, Int low_dim) {
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l, Omega_h_Family const family,
+    Int const high_dim, Int const low_dim) {
   ScopedTimer timer("reflect_down(v2l)");
-  LOs uv2v = form_uses(hv2v, family, high_dim, low_dim);
+  LOs const uv2v = form_uses(hv2v, family, high_dim, low_dim);
   LOs hl2l;
   Read<I8> codes;
   find_matches(family, low_dim, uv2v, lv2v, v2l, &hl2l, &codes);
   return Adj(hl2l, codes);
 }
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
-    Int low_dim) {
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Omega_h_Family const family, LO const nv, Int const high_dim,
+    Int const low_dim) {
   ScopedTimer timer("reflect_down(nv)");
-  auto nverts_per_low = element_degree(family, low_dim, 0);
-  auto l2v = Adj(lv2v);
-  auto v2l = invert_adj(l2v, nverts_per_low, nv, high_dim, low_dim);
+  auto const nverts_per_low = element_degree(family, low_dim, 0);
+  auto const l2v = Adj(lv2v);
+  auto const v2l = invert_adj(l2v, nverts_per_low, nv, high_dim, low_dim);
   return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
 Adj transit(
-    Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim) {
+    Adj const h2m, Adj const m2l, Omega_h_Family const family, Int const high_dim, Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
-  auto high_singular_name = dimensional_singular_name(high_dim);
-  auto low_plural_name = dimensional_plural_name(low_dim);
-  auto hl2l_name = std::string(high_singular_name) + " " + low_plural_name +
+  auto const high_singular_name = dimensional_singular_name(high_dim);
+  auto const low_plural_name = dimensional_plural_name(low_dim);
+  auto const hl2l_name = std::string(high_singular_name) + " " + low_plural_name +
                    " to " + low_plural_name;
   OMEGA_H_CHECK(3 >= high_dim);
-  auto mid_dim = low_dim + 1;
+  auto const mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
   OMEGA_H_CHECK(low_dim == 1 || low_dim == 0);
-  auto hm2m = h2m.ab2b;
-  auto m2hm_codes = h2m.codes;
-  auto ml2l = m2l.ab2b;
-  auto ml_codes = m2l.codes;
-  auto nmids_per_high = element_degree(family, high_dim, mid_dim);
-  auto nlows_per_mid = element_degree(family, mid_dim, low_dim);
-  auto nlows_per_high = element_degree(family, high_dim, low_dim);
-  auto nhighs = hm2m.size() / nmids_per_high;
+  auto const hm2m = h2m.ab2b;
+  auto const m2hm_codes = h2m.codes;
+  auto const ml2l = m2l.ab2b;
+  auto const ml_codes = m2l.codes;
+  auto const nmids_per_high = element_degree(family, high_dim, mid_dim);
+  auto const nlows_per_mid = element_degree(family, mid_dim, low_dim);
+  auto const nlows_per_high = element_degree(family, high_dim, low_dim);
+  auto const nhighs = divide_no_remainder(hm2m.size(), nmids_per_high);
   Write<LO> hl2l(nhighs * nlows_per_high, hl2l_name);
   Write<I8> codes;
   /* codes only need to be created when transiting region->face + face->edge =
      region->edge. any other transit has vertices as its destination, and
      vertices have no orientation/alignment */
   if (low_dim == 1) {
-    auto codes_name =
+    auto const codes_name =
         std::string(high_singular_name) + " " + low_plural_name + " codes";
     codes = Write<I8>(hl2l.size(), codes_name);
   }
   auto f = OMEGA_H_LAMBDA(LO h) {
-    auto hl_begin = h * nlows_per_high;
-    auto hm_begin = h * nmids_per_high;
+    auto const hl_begin = h * nlows_per_high;
+    auto const hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-      auto ut = element_up_template(family, high_dim, low_dim, hl, 0);
-      auto hm = ut.up;
-      auto hml = ut.which_down;
-      auto m = hm2m[hm_begin + hm];
-      auto m2hm_code = m2hm_codes[hm_begin + hm];
-      auto hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
-      auto ml = align_index(nlows_per_mid, low_dim, hml, hm2m_code);
-      auto ml_begin = m * nlows_per_mid;
-      auto l = ml2l[ml_begin + ml];
+      auto const ut = element_up_template(family, high_dim, low_dim, hl, 0);
+      auto const hm = ut.up;
+      auto const hml = ut.which_down;
+      auto const m = hm2m[hm_begin + hm];
+      auto const m2hm_code = m2hm_codes[hm_begin + hm];
+      auto const hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
+      auto const ml = align_index(nlows_per_mid, low_dim, hml, hm2m_code);
+      auto const ml_begin = m * nlows_per_mid;
+      auto const l = ml2l[ml_begin + ml];
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)
       for (Int hhl2 = 0; hhl2 < hl; ++hhl2) {
@@ -478,23 +482,23 @@ Adj transit(
            in or against the direction of the "canonical edge" as
            defined by the element's template.
            this is a bitwise XOR of several flips along the way */
-        auto region_face_code = hm2m_code;
-        auto face_edge_code = ml_codes[ml_begin + ml];
-        auto region_face_flipped = code_is_flipped(region_face_code);
-        auto face_edge_flipped = bool(code_rotation(face_edge_code) == 1);
-        auto canon_flipped = ut.is_flipped;
-        bool region_edge_flipped =
+        auto const region_face_code = hm2m_code;
+        auto const face_edge_code = ml_codes[ml_begin + ml];
+        auto const region_face_flipped = code_is_flipped(region_face_code);
+        auto const face_edge_flipped = bool(code_rotation(face_edge_code) == 1);
+        auto const canon_flipped = ut.is_flipped;
+        bool const region_edge_flipped =
             region_face_flipped ^ face_edge_flipped ^ canon_flipped;
         codes[hl_begin + hl] = make_code(false, region_edge_flipped, 0);
       }
     }
   };
-  parallel_for(nhighs, f, "transit");
+  parallel_for(nhighs, std::move(f));
   if (low_dim == 1) return Adj(hl2l, codes);
   return Adj(hl2l);
 }
 
-Graph verts_across_edges(Adj e2v, Adj v2e) {
+Graph verts_across_edges(Adj const e2v, Adj const v2e) {
   OMEGA_H_TIME_FUNCTION;
   auto const ev2v = e2v.ab2b;
   auto const v2ve = v2e.a2ab;
@@ -514,80 +518,80 @@ Graph verts_across_edges(Adj e2v, Adj v2e) {
   return Adj(v2vv, vv2v);
 }
 
-Graph edges_across_tris(Adj f2e, Adj e2f) {
+Graph edges_across_tris(Adj const f2e, Adj const e2f) {
   OMEGA_H_TIME_FUNCTION;
-  auto fe2e = f2e.ab2b;
-  auto e2ef = e2f.a2ab;
-  auto ef2f = e2f.ab2b;
-  auto e2ef_codes = e2f.codes;
-  auto ne = e2ef.size() - 1;
-  auto e2ef_degrees = get_degrees(e2ef);
-  auto e2ee_degrees = multiply_each_by(e2ef_degrees, 2);
-  auto e2ee = offset_scan(e2ee_degrees, "edges to edge edges");
-  auto nee = e2ee.last();
+  auto const fe2e = f2e.ab2b;
+  auto const e2ef = e2f.a2ab;
+  auto const ef2f = e2f.ab2b;
+  auto const e2ef_codes = e2f.codes;
+  auto const ne = e2ef.size() - 1;
+  auto const e2ef_degrees = get_degrees(e2ef);
+  auto const e2ee_degrees = multiply_each_by(e2ef_degrees, 2);
+  auto const e2ee = offset_scan(e2ee_degrees, "edges to edge edges");
+  auto const nee = e2ee.last();
   Write<LO> ee2e(nee, "edge edges to edges");
-  auto lambda = OMEGA_H_LAMBDA(LO e) {
-    auto ef_begin = e2ef[e];
-    auto ef_end = e2ef[e + 1];
-    auto neef = ef_end - ef_begin;
-    auto ee_begin = e2ee[e];
+  auto functor = OMEGA_H_LAMBDA(LO e) {
+    auto const ef_begin = e2ef[e];
+    auto const ef_end = e2ef[e + 1];
+    auto const neef = ef_end - ef_begin;
+    auto const ee_begin = e2ee[e];
     for (Int eef = 0; eef < neef; ++eef) {
-      auto ef = ef_begin + eef;
-      auto f = ef2f[ef];
-      auto e2ef_code = e2ef_codes[ef];
-      auto ffe = code_which_down(e2ef_code);
-      auto e1 = fe2e[f * 3 + ((ffe + 1) % 3)];
-      auto e2 = fe2e[f * 3 + ((ffe + 2) % 3)];
+      auto const ef = ef_begin + eef;
+      auto const f = ef2f[ef];
+      auto const e2ef_code = e2ef_codes[ef];
+      auto const ffe = code_which_down(e2ef_code);
+      auto const e1 = fe2e[f * 3 + ((ffe + 1) % 3)];
+      auto const e2 = fe2e[f * 3 + ((ffe + 2) % 3)];
       ee2e[ee_begin + eef * 2 + 0] = e1;
       ee2e[ee_begin + eef * 2 + 1] = e2;
     }
   };
-  parallel_for(ne, lambda, "edges_across_tris");
+  parallel_for(ne, std::move(functor));
   return Adj(e2ee, ee2e);
 }
 
-Graph edges_across_tets(Adj r2e, Adj e2r) {
+Graph edges_across_tets(Adj const r2e, Adj const e2r) {
   OMEGA_H_TIME_FUNCTION;
-  auto re2e = r2e.ab2b;
-  auto e2er = e2r.a2ab;
-  auto er2r = e2r.ab2b;
-  auto e2er_codes = e2r.codes;
-  auto ne = e2er.size() - 1;
-  auto& e2ee = e2er;
+  auto const re2e = r2e.ab2b;
+  auto const e2er = e2r.a2ab;
+  auto const er2r = e2r.ab2b;
+  auto const e2er_codes = e2r.codes;
+  auto const ne = e2er.size() - 1;
+  auto const e2ee = e2er;
   Write<LO> ee2e(er2r.size(), "edge edges to edges");
   auto f = OMEGA_H_LAMBDA(LO e) {
-    auto er_begin = e2er[e];
-    auto er_end = e2er[e + 1];
+    auto const er_begin = e2er[e];
+    auto const er_end = e2er[e + 1];
     for (auto er = er_begin; er < er_end; ++er) {
-      auto r = er2r[er];
-      auto e2er_code = e2er_codes[er];
-      auto rre = code_which_down(e2er_code);
-      auto rre_opp = simplex_opposite_template(REGION, EDGE, rre);
-      auto re_begin = r * 6;
-      auto e_opp = re2e[re_begin + rre_opp];
-      auto ee = er;
+      auto const r = er2r[er];
+      auto const e2er_code = e2er_codes[er];
+      auto const rre = code_which_down(e2er_code);
+      auto const rre_opp = simplex_opposite_template(REGION, EDGE, rre);
+      auto const re_begin = r * 6;
+      auto const e_opp = re2e[re_begin + rre_opp];
+      auto const ee = er;
       ee2e[ee] = e_opp;
     }
   };
-  parallel_for(ne, f, "edges_across_tets");
+  parallel_for(ne, std::move(f));
   return Adj(e2ee, ee2e);
 }
 
 Graph elements_across_sides(
-    Int dim, Adj elems2sides, Adj sides2elems, Read<I8> side_is_exposed) {
+    Int const dim, Adj const elems2sides, Adj const sides2elems, Read<I8> const side_is_exposed) {
   OMEGA_H_TIME_FUNCTION;
-  auto elem_side2side = elems2sides.ab2b;
-  auto side2side_elems = sides2elems.a2ab;
-  auto side_elem2elem = sides2elems.ab2b;
-  Int nsides_per_elem = dim + 1;
-  auto nelems = elem_side2side.size() / nsides_per_elem;
+  auto const elem_side2side = elems2sides.ab2b;
+  auto const side2side_elems = sides2elems.a2ab;
+  auto const side_elem2elem = sides2elems.ab2b;
+  Int const nsides_per_elem = dim + 1;
+  auto  const nelems = divide_no_remainder(elem_side2side.size(), nsides_per_elem);
   Write<LO> degrees(nelems);
   auto count = OMEGA_H_LAMBDA(LO elem) {
-    auto begin = elem * nsides_per_elem;
-    auto end = begin + nsides_per_elem;
+    auto const begin = elem * nsides_per_elem;
+    auto const end = begin + nsides_per_elem;
     Int n = 0;
     for (auto elem_side = begin; elem_side < end; ++elem_side) {
-      auto side = elem_side2side[elem_side];
+      auto const side = elem_side2side[elem_side];
       if (!side_is_exposed[side]) {
         OMEGA_H_CHECK(side2side_elems[side + 1] - side2side_elems[side] == 2);
         ++n;
@@ -595,16 +599,16 @@ Graph elements_across_sides(
     }
     degrees[elem] = n;
   };
-  parallel_for(nelems, count, "elements_across_sides(count)");
-  auto elem2elem_elems = offset_scan(LOs(degrees));
-  auto nelem_elems = elem2elem_elems.last();
+  parallel_for(nelems, std::move(count));
+  auto const elem2elem_elems = offset_scan(LOs(degrees));
+  auto const nelem_elems = elem2elem_elems.last();
   Write<LO> elem_elem2elem(nelem_elems);
   auto fill = OMEGA_H_LAMBDA(LO elem) {
-    auto begin = elem * nsides_per_elem;
-    auto end = begin + nsides_per_elem;
+    auto const begin = elem * nsides_per_elem;
+    auto const end = begin + nsides_per_elem;
     LO elem_elem = elem2elem_elems[elem];
     for (auto elem_side = begin; elem_side < end; ++elem_side) {
-      auto side = elem_side2side[elem_side];
+      auto const side = elem_side2side[elem_side];
       if (!side_is_exposed[side]) {
         auto side_elem = side2side_elems[side];
         if (side_elem2elem[side_elem] == elem) ++side_elem;
@@ -613,7 +617,7 @@ Graph elements_across_sides(
       }
     }
   };
-  parallel_for(nelems, fill, "elements_across_sides(fill)");
+  parallel_for(nelems, std::move(fill));
   return Graph(elem2elem_elems, elem_elem2elem);
 }
 
