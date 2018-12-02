@@ -34,36 +34,36 @@ struct Children : public Graph {
   Read<I8> codes;
 };
 
-void find_matches(Omega_h_Family family, Int dim, LOs av2v, LOs bv2v, Adj v2b,
+void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v, LOs const bv2v, Adj const v2b,
     LOs* a2b_out, Read<I8>* codes_out);
 
-Adj reflect_down(LOs hv2v, LOs lv2v, Adj v2l, Omega_h_Family family,
-    Int high_dim, Int low_dim);
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l, Omega_h_Family const family,
+    Int const high_dim, Int const low_dim);
 
-Adj unmap_adjacency(LOs a2b, Adj b2c);
+Adj unmap_adjacency(LOs const a2b, Adj const b2c);
 
 /* Given a downward adjacency, derive its corresponding upward adjacency.
    The list of upward adjacent entities will be sorted by the local
    index of the upward adjacent entity */
 Adj invert_adj(
-    Adj down, Int nlows_per_high, LO nlows, Int high_dim, Int low_dim);
+    Adj const down, Int const nlows_per_high, LO const nlows, Int const high_dim, Int const low_dim);
 
 Children invert_parents(
-    Parents children2parents, Int parent_dim, Int nparent_dim_ents);
+    Parents const children2parents, Int const parent_dim, Int const nparent_dim_ents);
 
 /* given the vertex lists for high entities,
    create vertex lists for all uses of low
    entities by high entities */
-LOs form_uses(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
+LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim);
 
-LOs find_unique(LOs hv2v, Omega_h_Family family, Int high_dim, Int low_dim);
+LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim);
 
 /* for each entity (or entity use), sort its vertex list
    and express the sorting transformation as an alignment code */
 template <typename T>
-Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);
+Read<I8> get_codes_to_canonical(Int const deg, Read<T> const ev2v);
 
-Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e);
+Read<I8> find_canonical_jumps(Int const deg, LOs const canon, LOs const e_sorted2e);
 
 /* given entity uses and unique entities,
    both defined by vertex lists, match
@@ -77,21 +77,21 @@ Read<I8> find_canonical_jumps(Int deg, LOs canon, LOs e_sorted2e);
    from its boundary
 */
 template <typename T>
-void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, Adj v2b,
-    LOs* a2b_out, Read<I8>* codes_out, bool allow_duplicates = false);
+void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v, Read<T> const bv2v, Adj const v2b,
+    LOs* a2b_out, Read<I8>* codes_out, bool const allow_duplicates = false);
 
 /* for testing only, internally computes upward
    adjacency */
-Adj reflect_down(LOs hv2v, LOs lv2v, Omega_h_Family family, LO nv, Int high_dim,
-    Int low_dim);
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Omega_h_Family const family, LO const nv, Int const high_dim,
+    Int const low_dim);
 
-Adj transit(Adj h2m, Adj m2l, Omega_h_Family family, Int high_dim, Int low_dim);
+Adj transit(Adj const h2m, Adj const m2l, Omega_h_Family const family, Int const high_dim, Int const low_dim);
 
-Graph verts_across_edges(Adj e2v, Adj v2e);
-Graph edges_across_tris(Adj f2e, Adj e2f);
-Graph edges_across_tets(Adj r2e, Adj e2r);
+Graph verts_across_edges(Adj const e2v, Adj const v2e);
+Graph edges_across_tris(Adj const f2e, Adj const e2f);
+Graph edges_across_tets(Adj const r2e, Adj const e2r);
 Graph elements_across_sides(
-    Int dim, Adj elems2sides, Adj sides2elems, Read<I8> side_is_exposed);
+    Int const dim, Adj const elems2sides, Adj const sides2elems, Read<I8> const side_is_exposed);
 
 template <Int nhhl>
 OMEGA_H_DEVICE Few<LO, nhhl> gather_down(LOs const& hl2l, Int h) {
