@@ -184,6 +184,10 @@ InputMap& InputMap::get_map(std::string const& name) {
 }
 
 InputList& InputMap::get_list(std::string const& name) {
+  if (!is_list(name)) {
+    std::shared_ptr<Input> sptr(new InputList());
+    this->add(name, std::move(sptr));
+  }
   return this->use_input<InputList>(name);
 }
 
