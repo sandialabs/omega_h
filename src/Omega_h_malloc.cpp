@@ -2,6 +2,7 @@
 #include <Omega_h_malloc.hpp>
 #include <Omega_h_pool.hpp>
 #include <Omega_h_profile.hpp>
+#include <cstdlib>
 
 namespace Omega_h {
 
