@@ -1047,6 +1047,18 @@ void FullWriter::write() {
   for (auto& writer : writers_) writer.write();
 }
 
+#define INST(T) \
+  template void write_array<T1, T2>(std::ostream& stream, \
+      std::string const& name, Int ncomps, Read<T1> array, bool compress);
+INST(I8)
+INST(I32)
+INST(I64)
+INST(Real)
+#undef INST
+
+template void write_array<I8, std::uint8_t>(std::ostream& stream,
+    std::string const& name, Int ncomps, Read<I8> array, bool compress);
+
 }  // end namespace vtk
 
 }  // end namespace Omega_h

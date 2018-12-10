@@ -51,6 +51,22 @@ struct IntTraits;
 template <std::size_t size>
 struct FloatTraits;
 
+template <typename T_osh, typename T_vtk = T_osh>
+void write_array(std::ostream& stream, std::string const& name,
+    Int ncomps, Read<T_osh> array, bool compress);
+
+#define INST_DECL(T) \
+  extern template void write_array(std::ostream& stream, \
+      std::string const& name, Int ncomps, Read<T> array, bool compress);
+INST_DECL(I8)
+INST_DECL(I32)
+INST_DECL(I64)
+INST_DECL(Real)
+#undef INST_DECL
+
+extern template void write_array<I8, std::uint8_t>(std::ostream& stream,
+    std::string const& name, Int ncomps, Read<I8> array, bool compress);
+
 }  // namespace vtk
 
 }  // end namespace Omega_h
