@@ -55,17 +55,15 @@ template <typename T_osh, typename T_vtk = T_osh>
 void write_array(std::ostream& stream, std::string const& name,
     Int ncomps, Read<T_osh> array, bool compress);
 
-#define INST_DECL(T) \
-  extern template void write_array(std::ostream& stream, \
-      std::string const& name, Int ncomps, Read<T> array, bool compress);
-INST_DECL(I8)
-INST_DECL(I32)
-INST_DECL(I64)
-INST_DECL(Real)
-#undef INST_DECL
-
-extern template void write_array<I8, std::uint8_t>(std::ostream& stream,
-    std::string const& name, Int ncomps, Read<I8> array, bool compress);
+#define OMEGA_H_EXPL_INST_DECL(T1, T2) \
+  extern template void write_array<T1, T2>(std::ostream& stream, \
+      std::string const& name, Int ncomps, Read<T1> array, bool compress);
+OMEGA_H_EXPL_INST_DECL(I8, I8)
+OMEGA_H_EXPL_INST_DECL(I32, I32)
+OMEGA_H_EXPL_INST_DECL(I64, I64)
+OMEGA_H_EXPL_INST_DECL(Real, Real)
+OMEGA_H_EXPL_INST_DECL(Real, std::uint8_t)
+#undef OMEGA_H_EXPL_INST_DECL
 
 }  // namespace vtk
 
