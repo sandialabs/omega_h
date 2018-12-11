@@ -13,7 +13,7 @@
 
 namespace Omega_h {
 
-/*! \brief Relates bounding simplex vertices the parent simplex's vertices
+/*! \brief Relates bounding simplex vertices to the parent simplex's vertices
   \param elem_dim The parent simplex's dimension
   \param bdry_dim The bounding simplex's dimension
   \param which_bdry The parent-local index of the bounding simplex
