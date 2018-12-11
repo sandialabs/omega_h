@@ -36,7 +36,7 @@ OMEGA_H_INLINE bool lt(Int v_i, Int v_j, Int v_k, Int v_l) {
 }
 
 OMEGA_H_INLINE void rot(LO v[], Int n) {
-  LO tmp = v[n - 1];
+  auto const tmp = v[n - 1];
   for (Int i = 0; i < n - 1; ++i) v[i + 1] = v[i];
   v[0] = tmp;
 }
