@@ -144,6 +144,7 @@ Library::~Library() {
           *Omega_h::profile::global_singleton_history);
     }
     delete Omega_h::profile::global_singleton_history;
+    Omega_h::profile::global_singleton_history = nullptr;
   }
   // need to destroy all Comm objects prior to MPI_Finalize()
   world_ = CommPtr();
