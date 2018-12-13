@@ -113,7 +113,7 @@ CommPtr Comm::split(I32 color, I32 key) const {
 }
 
 #ifdef OMEGA_H_USE_MPI
-std::vector<int> sources_from_destinations(
+static std::vector<int> sources_from_destinations(
     MPI_Comm comm, HostRead<I32> destinations) {
   OMEGA_H_TIME_FUNCTION;
   {
