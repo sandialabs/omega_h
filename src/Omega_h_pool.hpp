@@ -26,6 +26,6 @@ struct Pool {
 
 void* allocate(Pool&, std::size_t);
 void deallocate(Pool&, void*, std::size_t);
-}
+}  // namespace Omega_h
 
 #endif

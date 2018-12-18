@@ -72,7 +72,7 @@ void protect() {
     signal(known_signals[i].code, Omega_h_signal_handler);
   }
 }
-}
+}  // namespace Omega_h
 
 extern "C" void Omega_h_signal_handler(int s) {
   static volatile sig_atomic_t already_dying = 0;

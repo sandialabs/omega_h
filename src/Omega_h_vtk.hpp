@@ -52,11 +52,11 @@ template <std::size_t size>
 struct FloatTraits;
 
 template <typename T_osh, typename T_vtk = T_osh>
-void write_array(std::ostream& stream, std::string const& name,
-    Int ncomps, Read<T_osh> array, bool compress);
+void write_array(std::ostream& stream, std::string const& name, Int ncomps,
+    Read<T_osh> array, bool compress);
 
-#define OMEGA_H_EXPL_INST_DECL(T1, T2) \
-  extern template void write_array<T1, T2>(std::ostream& stream, \
+#define OMEGA_H_EXPL_INST_DECL(T1, T2)                                         \
+  extern template void write_array<T1, T2>(std::ostream & stream,              \
       std::string const& name, Int ncomps, Read<T1> array, bool compress);
 OMEGA_H_EXPL_INST_DECL(I8, I8)
 OMEGA_H_EXPL_INST_DECL(I32, I32)

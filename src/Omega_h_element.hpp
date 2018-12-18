@@ -37,10 +37,11 @@ constexpr char const* dimensional_singular_name(Int dim) {
 }
 
 constexpr char const* dimensional_plural_name(Int dim) {
-  return (dim == 3 ? "regions"
-                   : (dim == 2 ? "faces"
-                               : (dim == 1 ? "edges" : (dim == 0 ? "vertices"
-                                                                 : nullptr))));
+  return (dim == 3
+              ? "regions"
+              : (dim == 2 ? "faces"
+                          : (dim == 1 ? "edges"
+                                      : (dim == 0 ? "vertices" : nullptr))));
 }
 
 constexpr char const* topological_singular_name(

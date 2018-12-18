@@ -105,7 +105,8 @@ Read<I8> get_codes_to_canonical(Int const deg, Read<T> const ev2v) {
 
 /* check whether adjacent lists of (deg) vertices
    are the same */
-OMEGA_H_DEVICE static bool are_equal(Int const deg, LOs const& canon, LO e0, LO e1) {
+OMEGA_H_DEVICE static bool are_equal(
+    Int const deg, LOs const& canon, LO e0, LO e1) {
   auto const a = e0 * deg;
   auto const b = e1 * deg;
   for (LO j = 0; j < deg; ++j) {
@@ -114,7 +115,8 @@ OMEGA_H_DEVICE static bool are_equal(Int const deg, LOs const& canon, LO e0, LO 
   return true;
 }
 
-Read<I8> find_canonical_jumps(Int const deg, LOs const canon, LOs const e_sorted2e) {
+Read<I8> find_canonical_jumps(
+    Int const deg, LOs const canon, LOs const e_sorted2e) {
   OMEGA_H_TIME_FUNCTION;
   auto const ne = e_sorted2e.size();
   Write<I8> jumps(ne, 0);
@@ -139,7 +141,8 @@ static LOs find_unique_deg(Int const deg, LOs const uv2v) {
   return unmap<LO>(e2u, uv2v, deg);
 }
 
-LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim) {
+LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
+    Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
   OMEGA_H_CHECK(high_dim > low_dim);
   OMEGA_H_CHECK(low_dim <= 2);
@@ -149,7 +152,8 @@ LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
   return find_unique_deg(deg, uv2v);
 }
 
-LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim, Int const low_dim) {
+LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
+    Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
   Int const nverts_per_high = element_degree(family, high_dim, 0);
   Int const nverts_per_low = element_degree(family, low_dim, 0);
@@ -224,8 +228,8 @@ static void separate_upward_no_codes(LO const nlh, LOs const lh2hl,
   parallel_for(nlh, std::move(f));
 }
 
-Adj invert_adj(
-    Adj const down, Int const nlows_per_high, LO const nlows, Int const high_dim, Int const low_dim) {
+Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
+    Int const high_dim, Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
   auto const high_plural_name = dimensional_plural_name(high_dim);
   auto const high_singular_name = dimensional_singular_name(high_dim);
@@ -272,7 +276,8 @@ static Bytes filter_parents(Parents const c2p, Int const parent_dim) {
   return filter;
 }
 
-Children invert_parents(Parents const c2p, Int const parent_dim, Int const nparent_dim_ents) {
+Children invert_parents(
+    Parents const c2p, Int const parent_dim, Int const nparent_dim_ents) {
   OMEGA_H_TIME_FUNCTION;
   auto const filter = filter_parents(c2p, parent_dim);
   auto const rc2c = collect_marked(filter);
@@ -294,7 +299,8 @@ template <>
 struct IsMatch<2> {
   template <typename T>
   OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO const a_begin,
-      Read<T> const& bv2v, LO const b_begin, Int const which_down, I8* match_code) {
+      Read<T> const& bv2v, LO const b_begin, Int const which_down,
+      I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + (1 - which_down)]) {
       *match_code = make_code(false, which_down, 0);
       return true;
@@ -308,7 +314,8 @@ template <>
 struct IsMatch<3> {
   template <typename T>
   OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO const a_begin,
-      Read<T> const& bv2v, LO const b_begin, Int const which_down, I8* match_code) {
+      Read<T> const& bv2v, LO const b_begin, Int const which_down,
+      I8* match_code) {
     if (av2v[a_begin + 1] == bv2v[b_begin + ((which_down + 1) % 3)] &&
         av2v[a_begin + 2] == bv2v[b_begin + ((which_down + 2) % 3)]) {
       *match_code = make_code(false, rotation_to_first(3, which_down), 0);
@@ -328,7 +335,8 @@ template <>
 struct IsMatch<4> {
   template <typename T>
   OMEGA_H_DEVICE static bool eval(Read<T> const& av2v, LO const a_begin,
-      Read<T> const& bv2v, LO const b_begin, Int const which_down, I8* match_code) {
+      Read<T> const& bv2v, LO const b_begin, Int const which_down,
+      I8* match_code) {
     if (av2v[a_begin + 2] != bv2v[b_begin + ((which_down + 2) % 4)]) {
       return false;
     }
@@ -347,8 +355,9 @@ struct IsMatch<4> {
 };
 
 template <Int deg, typename T>
-static void find_matches_deg(LOs const a2fv, Read<T> const av2v, Read<T> const bv2v, Adj const v2b,
-    LOs* a2b_out, Read<I8>* codes_out, bool const allow_duplicates) {
+static void find_matches_deg(LOs const a2fv, Read<T> const av2v,
+    Read<T> const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out,
+    bool const allow_duplicates) {
   OMEGA_H_TIME_FUNCTION;
   LO const na = a2fv.size();
   OMEGA_H_CHECK(na * deg == av2v.size());
@@ -386,8 +395,9 @@ static void find_matches_deg(LOs const a2fv, Read<T> const av2v, Read<T> const b
 }
 
 template <typename T>
-void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v, Read<T> const bv2v, Adj const v2b,
-    LOs* a2b_out, Read<I8>* codes_out, bool const allow_duplicates) {
+void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v,
+    Read<T> const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out,
+    bool const allow_duplicates) {
   if (deg == 2) {
     find_matches_deg<2>(
         a2fv, av2v, bv2v, v2b, a2b_out, codes_out, allow_duplicates);
@@ -402,16 +412,16 @@ void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v, Read<T> 
   }
 }
 
-void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v, LOs const bv2v, Adj const v2b,
-    LOs* a2b_out, Read<I8>* codes_out) {
+void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v,
+    LOs const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out) {
   OMEGA_H_CHECK(dim <= 2);
   auto const deg = element_degree(family, dim, VERT);
   auto const a2fv = get_component(av2v, deg, 0);
   find_matches_ex(deg, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
 }
 
-Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l, Omega_h_Family const family,
-    Int const high_dim, Int const low_dim) {
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
+    Omega_h_Family const family, Int const high_dim, Int const low_dim) {
   ScopedTimer timer("reflect_down(v2l)");
   LOs const uv2v = form_uses(hv2v, family, high_dim, low_dim);
   LOs hl2l;
@@ -420,8 +430,8 @@ Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l, Omega_h_Family c
   return Adj(hl2l, codes);
 }
 
-Adj reflect_down(LOs const hv2v, LOs const lv2v, Omega_h_Family const family, LO const nv, Int const high_dim,
-    Int const low_dim) {
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Omega_h_Family const family,
+    LO const nv, Int const high_dim, Int const low_dim) {
   ScopedTimer timer("reflect_down(nv)");
   auto const nverts_per_low = element_degree(family, low_dim, 0);
   auto const l2v = Adj(lv2v);
@@ -429,13 +439,13 @@ Adj reflect_down(LOs const hv2v, LOs const lv2v, Omega_h_Family const family, LO
   return reflect_down(hv2v, lv2v, v2l, family, high_dim, low_dim);
 }
 
-Adj transit(
-    Adj const h2m, Adj const m2l, Omega_h_Family const family, Int const high_dim, Int const low_dim) {
+Adj transit(Adj const h2m, Adj const m2l, Omega_h_Family const family,
+    Int const high_dim, Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
   auto const high_singular_name = dimensional_singular_name(high_dim);
   auto const low_plural_name = dimensional_plural_name(low_dim);
-  auto const hl2l_name = std::string(high_singular_name) + " " + low_plural_name +
-                   " to " + low_plural_name;
+  auto const hl2l_name = std::string(high_singular_name) + " " +
+                         low_plural_name + " to " + low_plural_name;
   OMEGA_H_CHECK(3 >= high_dim);
   auto const mid_dim = low_dim + 1;
   OMEGA_H_CHECK(high_dim > mid_dim);
@@ -577,14 +587,15 @@ Graph edges_across_tets(Adj const r2e, Adj const e2r) {
   return Adj(e2ee, ee2e);
 }
 
-Graph elements_across_sides(
-    Int const dim, Adj const elems2sides, Adj const sides2elems, Read<I8> const side_is_exposed) {
+Graph elements_across_sides(Int const dim, Adj const elems2sides,
+    Adj const sides2elems, Read<I8> const side_is_exposed) {
   OMEGA_H_TIME_FUNCTION;
   auto const elem_side2side = elems2sides.ab2b;
   auto const side2side_elems = sides2elems.a2ab;
   auto const side_elem2elem = sides2elems.ab2b;
   Int const nsides_per_elem = dim + 1;
-  auto  const nelems = divide_no_remainder(elem_side2side.size(), nsides_per_elem);
+  auto const nelems =
+      divide_no_remainder(elem_side2side.size(), nsides_per_elem);
   Write<LO> degrees(nelems);
   auto count = OMEGA_H_LAMBDA(LO elem) {
     auto const begin = elem * nsides_per_elem;

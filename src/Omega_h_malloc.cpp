@@ -94,4 +94,4 @@ void maybe_pooled_host_free(void* ptr, std::size_t size) {
   else
     host_free(ptr, size);
 }
-}
+}  // namespace Omega_h

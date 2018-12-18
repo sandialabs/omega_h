@@ -123,7 +123,7 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
   return true;
 }
 
-} // end anonymous namespace
+}  // end anonymous namespace
 
 template <typename T_osh, typename T_vtk>
 void write_array(std::ostream& stream, std::string const& name, Int ncomps,
@@ -182,8 +182,8 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
   end_code();
 }
 
-#define OMEGA_H_EXPL_INST(T1, T2) \
-  template void write_array<T1, T2>(std::ostream& stream, \
+#define OMEGA_H_EXPL_INST(T1, T2)                                              \
+  template void write_array<T1, T2>(std::ostream & stream,                     \
       std::string const& name, Int ncomps, Read<T1> array, bool compress);
 OMEGA_H_EXPL_INST(I8, I8)
 OMEGA_H_EXPL_INST(I32, I32)

@@ -4,4 +4,4 @@ namespace Omega_h {
 #if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
 int block_size_cuda = 256;
 #endif
-}
+}  // namespace Omega_h

@@ -70,7 +70,7 @@ Read<I8> find(Mesh* mesh, Int dim, LOs xadj, LOs adj, Read<I8> candidates,
   }
   return state;
 }
-}
-}  // namespace Omega_h::indset
+}  // namespace indset
+}  // namespace Omega_h
 
 #endif
