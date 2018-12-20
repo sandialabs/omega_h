@@ -239,7 +239,7 @@ static Read<T> read_array(
   return binary::swap_bytes(Read<T>(uncompressed.write()), needs_swapping);
 }
 
-static void write_tag(
+void write_tag(
     std::ostream& stream, TagBase const* tag, Int space_dim, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (is<I8>(tag)) {
@@ -365,25 +365,6 @@ static constexpr I8 vtk_type(Omega_h_Family family, Int dim) {
                     : (dim == 2 ? VTK_QUAD
                                 : (dim == 1 ? VTK_LINE
                                             : (dim == 0 ? VTK_VERTEX : -1)))));
-}
-
-static void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
-  stream << "<VTKFile type=\"UnstructuredGrid\" byte_order=\"";
-  if (is_little_endian_cpu())
-    stream << "LittleEndian";
-  else
-    stream << "BigEndian";
-  stream << "\" header_type=\"";
-  stream << Traits<std::uint64_t>::name();
-  stream << "\"";
-#ifdef OMEGA_H_USE_ZLIB
-  if (compress) {
-    stream << " compressor=\"vtkZLibDataCompressor\"";
-  }
-#else
-  OMEGA_H_CHECK(!compress);
-#endif
-  stream << ">\n";
 }
 
 static void read_vtkfile_vtu_start_tag(
@@ -582,6 +563,25 @@ static void verify_vtk_tagset(Mesh* mesh, Int cell_dim, TagSet const& tags) {
           dimensional_plural_name(dim), dimensional_plural_name(cell_dim));
     }
   }
+}
+
+void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
+  stream << "<VTKFile type=\"UnstructuredGrid\" byte_order=\"";
+  if (is_little_endian_cpu())
+    stream << "LittleEndian";
+  else
+    stream << "BigEndian";
+  stream << "\" header_type=\"";
+  stream << Traits<std::uint64_t>::name();
+  stream << "\"";
+#ifdef OMEGA_H_USE_ZLIB
+  if (compress) {
+    stream << " compressor=\"vtkZLibDataCompressor\"";
+  }
+#else
+  OMEGA_H_CHECK(!compress);
+#endif
+  stream << ">\n";
 }
 
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,

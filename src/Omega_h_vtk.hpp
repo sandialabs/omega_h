@@ -51,7 +51,12 @@ struct IntTraits;
 template <std::size_t size>
 struct FloatTraits;
 
+void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress);
+
 void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim);
+
+void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim,
+    bool compress);
 
 template <typename T>
 void write_p_data_array(std::ostream& stream, std::string const& name,
