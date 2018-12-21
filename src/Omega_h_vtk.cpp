@@ -73,8 +73,6 @@ struct FloatTraits<8> {
   inline static char const* name() { return "Float64"; }
 };
 
-namespace {
-
 template <typename T, typename Enable = void>
 struct Traits;
 
@@ -101,7 +99,7 @@ void describe_array(std::ostream& stream, std::string const& name, Int ncomps) {
   stream << " format=\"binary\"";
 }
 
-bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
+static bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
     std::string* name_out, Int* ncomps_out) {
   auto st = xml_lite::read_tag(stream);
   if (st.elem_name != "DataArray" || st.type != xml_lite::Tag::START) {
@@ -122,8 +120,6 @@ bool read_array_start_tag(std::istream& stream, Omega_h_Type* type_out,
   OMEGA_H_CHECK(st.attribs["format"] == "binary");
   return true;
 }
-
-}  // end anonymous namespace
 
 template <typename T_osh, typename T_vtk>
 void write_array(std::ostream& stream, std::string const& name, Int ncomps,
@@ -182,20 +178,8 @@ void write_array(std::ostream& stream, std::string const& name, Int ncomps,
   end_code();
 }
 
-#define OMEGA_H_EXPL_INST(T1, T2)                                              \
-  template void write_array<T1, T2>(std::ostream & stream,                     \
-      std::string const& name, Int ncomps, Read<T1> array, bool compress);
-OMEGA_H_EXPL_INST(I8, I8)
-OMEGA_H_EXPL_INST(I32, I32)
-OMEGA_H_EXPL_INST(I64, I64)
-OMEGA_H_EXPL_INST(Real, Real)
-OMEGA_H_EXPL_INST(I8, std::uint8_t)
-#undef OMEGA_H_EXPL_INST
-
-namespace {
-
 template <typename T>
-Read<T> read_array(
+static Read<T> read_array(
     std::istream& stream, LO size, bool needs_swapping, bool is_compressed) {
   auto enc_both = base64::read_encoded(stream);
   std::uint64_t uncompressed_bytes;
@@ -293,7 +277,7 @@ void write_tag(
   }
 }
 
-bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
+static bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
     bool needs_swapping, bool is_compressed) {
   Omega_h_Type type = OMEGA_H_I8;
   std::string name;
@@ -336,7 +320,7 @@ bool read_tag(std::istream& stream, Mesh* mesh, Int ent_dim,
 }
 
 template <typename T>
-Read<T> read_known_array(std::istream& stream, std::string const& name,
+static Read<T> read_known_array(std::istream& stream, std::string const& name,
     LO nents, Int ncomps, bool needs_swapping, bool is_compressed) {
   auto st = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(st.elem_name == "DataArray");
@@ -383,25 +367,6 @@ static constexpr I8 vtk_type(Omega_h_Family family, Int dim) {
                                             : (dim == 0 ? VTK_VERTEX : -1)))));
 }
 
-static void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
-  stream << "<VTKFile type=\"UnstructuredGrid\" byte_order=\"";
-  if (is_little_endian_cpu())
-    stream << "LittleEndian";
-  else
-    stream << "BigEndian";
-  stream << "\" header_type=\"";
-  stream << Traits<std::uint64_t>::name();
-  stream << "\"";
-#ifdef OMEGA_H_USE_ZLIB
-  if (compress) {
-    stream << " compressor=\"vtkZLibDataCompressor\"";
-  }
-#else
-  OMEGA_H_CHECK(!compress);
-#endif
-  stream << ">\n";
-}
-
 static void read_vtkfile_vtu_start_tag(
     std::istream& stream, bool* needs_swapping_out, bool* is_compressed_out) {
   auto st = xml_lite::read_tag(stream);
@@ -413,13 +378,13 @@ static void read_vtkfile_vtu_start_tag(
   *is_compressed_out = is_compressed;
 }
 
-void write_piece_start_tag(
+static void write_piece_start_tag(
     std::ostream& stream, Mesh const* mesh, Int cell_dim) {
   stream << "<Piece NumberOfPoints=\"" << mesh->nverts() << "\"";
   stream << " NumberOfCells=\"" << mesh->nents(cell_dim) << "\">\n";
 }
 
-void read_piece_start_tag(
+static void read_piece_start_tag(
     std::istream& stream, LO* nverts_out, LO* ncells_out) {
   auto st = xml_lite::read_tag(stream);
   OMEGA_H_CHECK(st.elem_name == "Piece");
@@ -427,7 +392,7 @@ void read_piece_start_tag(
   *ncells_out = std::stoi(st.attribs["NumberOfCells"]);
 }
 
-void write_connectivity(
+static void write_connectivity(
     std::ostream& stream, Mesh* mesh, Int cell_dim, bool compress) {
   Read<I8> types(mesh->nents(cell_dim), vtk_type(mesh->family(), cell_dim));
   write_array(stream, "types", 1, types, compress);
@@ -440,7 +405,7 @@ void write_connectivity(
   write_array(stream, "offsets", 1, ends, compress);
 }
 
-void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
+static void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
     bool needs_swapping, bool is_compressed, Omega_h_Family* family_out,
     Int* dim_out, LOs* ev2v_out) {
   auto types = read_known_array<I8>(
@@ -479,19 +444,19 @@ void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
       stream, "offsets", ncells, 1, needs_swapping, is_compressed);
 }
 
-void write_locals(
+static void write_locals(
     std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
   write_array(
       stream, "local", 1, Read<LO>(mesh->nents(ent_dim), 0, 1), compress);
 }
 
-void write_owners(
+static void write_owners(
     std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
   if (mesh->comm()->size() == 1) return;
   write_array(stream, "owner", 1, mesh->ask_owners(ent_dim).ranks, compress);
 }
 
-void write_vtk_ghost_types(
+static void write_vtk_ghost_types(
     std::ostream& stream, Mesh* mesh, Int ent_dim, bool compress) {
   if (mesh->comm()->size() == 1) return;
   const auto owned = mesh->owned(ent_dim);
@@ -500,7 +465,7 @@ void write_vtk_ghost_types(
       stream, "vtkGhostType", 1, ghost_types, compress);
 }
 
-void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
+static void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
     TagSet const& tags, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (tags[size_t(ent_dim)].count("local")) {
@@ -519,7 +484,7 @@ void write_p_data_array(
   stream << "/>\n";
 }
 
-void write_p_data_array2(std::ostream& stream, std::string const& name,
+static void write_p_data_array2(std::ostream& stream, std::string const& name,
     Int ncomps, Int Omega_h_Type) {
   switch (Omega_h_Type) {
     case OMEGA_H_I8:
@@ -555,19 +520,17 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
   }
 }
 
-std::string piece_filename(std::string const& piecepath, I32 rank) {
+static std::string piece_filename(std::string const& piecepath, I32 rank) {
   return piecepath + '_' + Omega_h::to_string(rank) + ".vtu";
 }
 
-std::string get_rel_step_path(I64 step) {
+static std::string get_rel_step_path(I64 step) {
   return "steps/step_" + std::to_string(step);
 }
 
-std::string get_step_path(std::string const& root_path, I64 step) {
+static std::string get_step_path(std::string const& root_path, I64 step) {
   return root_path + '/' + get_rel_step_path(step);
 }
-
-}  // end anonymous namespace
 
 std::string get_pvtu_path(std::string const& step_path) {
   return step_path + "/pieces.pvtu";
@@ -600,6 +563,25 @@ static void verify_vtk_tagset(Mesh* mesh, Int cell_dim, TagSet const& tags) {
           dimensional_plural_name(dim), dimensional_plural_name(cell_dim));
     }
   }
+}
+
+void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress) {
+  stream << "<VTKFile type=\"UnstructuredGrid\" byte_order=\"";
+  if (is_little_endian_cpu())
+    stream << "LittleEndian";
+  else
+    stream << "BigEndian";
+  stream << "\" header_type=\"";
+  stream << Traits<std::uint64_t>::name();
+  stream << "\"";
+#ifdef OMEGA_H_USE_ZLIB
+  if (compress) {
+    stream << " compressor=\"vtkZLibDataCompressor\"";
+  }
+#else
+  OMEGA_H_CHECK(!compress);
+#endif
+  stream << ">\n";
 }
 
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
@@ -1060,6 +1042,20 @@ void FullWriter::write(Real time) {
 void FullWriter::write() {
   for (auto& writer : writers_) writer.write();
 }
+
+#define OMEGA_H_EXPL_INST(T) \
+template void write_p_data_array<T>(std::ostream& stream, \
+    std::string const& name, Int ncomps); \
+template void write_array(std::ostream& stream, \
+    std::string const& name, Int ncomps, Read<T> array, bool compress);
+OMEGA_H_EXPL_INST(I8)
+OMEGA_H_EXPL_INST(I32)
+OMEGA_H_EXPL_INST(I64)
+OMEGA_H_EXPL_INST(Real)
+#undef OMEGA_H_EXPL_INST
+
+template void write_array<Real, std::uint8_t>(std::ostream& stream,
+    std::string const& name, Int ncomps, Read<Real> array, bool compress);
 
 }  // end namespace vtk
 

@@ -51,19 +51,34 @@ struct IntTraits;
 template <std::size_t size>
 struct FloatTraits;
 
-template <typename T_osh, typename T_vtk = T_osh>
-void write_array(std::ostream& stream, std::string const& name, Int ncomps,
-    Read<T_osh> array, bool compress);
+void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress);
 
-#define OMEGA_H_EXPL_INST_DECL(T1, T2)                                         \
-  extern template void write_array<T1, T2>(std::ostream & stream,              \
-      std::string const& name, Int ncomps, Read<T1> array, bool compress);
-OMEGA_H_EXPL_INST_DECL(I8, I8)
-OMEGA_H_EXPL_INST_DECL(I32, I32)
-OMEGA_H_EXPL_INST_DECL(I64, I64)
-OMEGA_H_EXPL_INST_DECL(Real, Real)
-OMEGA_H_EXPL_INST_DECL(Real, std::uint8_t)
+void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim);
+
+void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim,
+    bool compress);
+
+template <typename T>
+void write_p_data_array(std::ostream& stream, std::string const& name,
+    Int ncomps);
+
+template <typename T_osh, typename T_vtk = T_osh>
+void write_array(std::ostream& stream, std::string const& name,
+    Int ncomps, Read<T_osh> array, bool compress);
+
+#define OMEGA_H_EXPL_INST_DECL(T) \
+extern template void write_p_data_array<T>(std::ostream& stream, \
+    std::string const& name, Int ncomps); \
+extern template void write_array(std::ostream& stream, \
+    std::string const& name, Int ncomps, Read<T> array, bool compress);
+OMEGA_H_EXPL_INST_DECL(I8)
+OMEGA_H_EXPL_INST_DECL(I32)
+OMEGA_H_EXPL_INST_DECL(I64)
+OMEGA_H_EXPL_INST_DECL(Real)
 #undef OMEGA_H_EXPL_INST_DECL
+
+extern template void write_array<Real, std::uint8_t>(std::ostream& stream,
+    std::string const& name, Int ncomps, Read<Real> array, bool compress);
 
 }  // namespace vtk
 
