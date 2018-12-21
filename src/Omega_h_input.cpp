@@ -948,4 +948,4 @@ OMEGA_H_EXPL_INST(double)
 OMEGA_H_EXPL_INST(int)
 OMEGA_H_EXPL_INST(long long)
 #undef OMEGA_H_EXPL_INST
-}
+}  // namespace Omega_h

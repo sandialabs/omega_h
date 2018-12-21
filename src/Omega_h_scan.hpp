@@ -20,8 +20,8 @@
 
 #include <thrust/execution_policy.h>
 #include <thrust/transform_scan.h>
-#include <thrust/system/cuda/detail/cub/device/device_scan.cuh>
 #include <Omega_h_malloc.hpp>
+#include <thrust/system/cuda/detail/cub/device/device_scan.cuh>
 
 #elif defined(OMEGA_H_USE_OPENMP)
 
@@ -48,22 +48,20 @@ void parallel_scan(LO n, T f, char const* name = "") {
 #if defined(OMEGA_H_USE_CUDA)
 
 template <typename InputIterator, typename OutputIterator>
-OutputIterator inclusive_scan(InputIterator first, InputIterator last,
-    OutputIterator result) {
+OutputIterator inclusive_scan(
+    InputIterator first, InputIterator last, OutputIterator result) {
   std::size_t temp_storage_bytes;
   int const n = int(last - first);
   auto err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
-      nullptr, temp_storage_bytes,
-      first, result, (last - first));
+      nullptr, temp_storage_bytes, first, result, (last - first));
   OMEGA_H_CHECK(err == cudaSuccess);
   void* d_temp_storage = maybe_pooled_device_malloc(temp_storage_bytes);
   err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
-      d_temp_storage, temp_storage_bytes,
-      first, result, n);
+      d_temp_storage, temp_storage_bytes, first, result, n);
   OMEGA_H_CHECK(err == cudaSuccess);
   maybe_pooled_device_free(d_temp_storage, temp_storage_bytes);
   return result + n;
-//return thrust::inclusive_scan(thrust::device, first, last, result);
+  // return thrust::inclusive_scan(thrust::device, first, last, result);
 }
 
 template <typename InputIterator, typename OutputIterator, typename BinaryOp,
@@ -80,8 +78,8 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
 #elif defined(OMEGA_H_USE_OPENMP)
 
 template <typename InputIterator, typename OutputIterator>
-OutputIterator inclusive_scan(InputIterator first, InputIterator last,
-    OutputIterator result) {
+OutputIterator inclusive_scan(
+    InputIterator first, InputIterator last, OutputIterator result) {
   auto const n = last - first;
   if (n <= 0) return result;
   constexpr int max_num_threads = 512;
@@ -186,8 +184,8 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
 #else
 
 template <typename InputIterator, typename OutputIterator>
-OutputIterator inclusive_scan(InputIterator first, InputIterator last,
-    OutputIterator result) {
+OutputIterator inclusive_scan(
+    InputIterator first, InputIterator last, OutputIterator result) {
   auto const n = last - first;
   if (n <= 0) return result;
   auto value = first[0];
@@ -220,7 +218,7 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
 }
 
 #endif
-}
+}  // namespace Omega_h
 
 #if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))
 #pragma GCC diagnostic pop

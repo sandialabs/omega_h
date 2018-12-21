@@ -192,6 +192,6 @@ OMEGA_H_INLINE SVD<dim> svd_NxN(Matrix<dim, dim> A) {
   }
   return {U, S, V};
 }
-}
+}  // namespace Omega_h
 
 #endif

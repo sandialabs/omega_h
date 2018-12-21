@@ -518,10 +518,11 @@ constexpr char const* hypercube_singular_name(Int dim) {
 }
 
 constexpr char const* hypercube_plural_name(Int dim) {
-  return (dim == 3 ? "hexes"
-                   : (dim == 2 ? "quads"
-                               : (dim == 1 ? "edges" : (dim == 0 ? "vertices"
-                                                                 : nullptr))));
+  return (dim == 3
+              ? "hexes"
+              : (dim == 2 ? "quads"
+                          : (dim == 1 ? "edges"
+                                      : (dim == 0 ? "vertices" : nullptr))));
 }
 
 // every interior split entity can be seen as the dual of a corresponding

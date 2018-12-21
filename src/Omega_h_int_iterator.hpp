@@ -57,10 +57,13 @@ class IntIterator {
   OMEGA_H_INLINE IntIterator operator-(difference_type n) const noexcept {
     return IntIterator(i - n);
   }
-  OMEGA_H_INLINE difference_type operator-(IntIterator const& other) const noexcept {
+  OMEGA_H_INLINE difference_type operator-(IntIterator const& other) const
+      noexcept {
     return i - other.i;
   }
-  OMEGA_H_INLINE value_type operator[](difference_type n) const noexcept { return i + n; }
+  OMEGA_H_INLINE value_type operator[](difference_type n) const noexcept {
+    return i + n;
+  }
   OMEGA_H_INLINE bool operator<(IntIterator const& other) const noexcept {
     return i < other.i;
   }

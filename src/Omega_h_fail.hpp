@@ -22,7 +22,7 @@ struct exception : public std::exception {
 void protect();
 void fail(char const* format, ...)
     __attribute__((noreturn, format(printf, 1, 2)));
-}
+}  // namespace Omega_h
 
 #define Omega_h_fail Omega_h::fail
 
@@ -32,8 +32,9 @@ void fail(char const* format, ...)
 #define OMEGA_H_CHECK(cond) assert(cond)
 #else
 #define OMEGA_H_CHECK(cond)                                                    \
-  ((cond) ? ((void)0) : Omega_h::fail("assertion %s failed at %s +%d\n",       \
-                            #cond, __FILE__, __LINE__))
+  ((cond) ? ((void)0)                                                          \
+          : Omega_h::fail(                                                     \
+                "assertion %s failed at %s +%d\n", #cond, __FILE__, __LINE__))
 #endif
 
 #if defined(__clang__) && !defined(OMEGA_H_USE_CUDA)

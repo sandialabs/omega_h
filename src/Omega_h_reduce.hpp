@@ -79,8 +79,9 @@ Result transform_reduce(
 template <class Iterator, class Tranform, class Result, class Op>
 Result transform_reduce(
     Iterator first, Iterator last, Result init, Op, Tranform&& transform) {
-#pragma omp declare reduction(osh : Result : omp_out = Op()(omp_out, omp_in))  \
-                                  initializer(omp_priv = omp_orig)
+#pragma omp declare reduction(osh:Result                                       \
+                              : omp_out = Op()(omp_out, omp_in))               \
+    initializer(omp_priv = omp_orig)
   LO const n = last - first;
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);

@@ -73,4 +73,4 @@ void deallocate(Pool& pool, void* data, std::size_t size) {
   pool.free_blocks[shift].push_back(*it);
   pool.used_blocks[shift].erase(it);
 }
-}
+}  // namespace Omega_h
