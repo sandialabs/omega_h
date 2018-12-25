@@ -193,11 +193,13 @@ InputList& InputMap::get_list(std::string const& name) {
 
 template <class ScalarType>
 ScalarType InputMap::get(std::string const& name, char const* default_value) {
-  if (!this->is<ScalarType>(name)) {
-    std::shared_ptr<Input> sptr(new InputScalar(default_value));
-    this->add(name, std::move(sptr));
-  }
+  if (!this->is<ScalarType>(name)) set(name, default_value);
   return this->get<ScalarType>(name);
+}
+
+void InputMap::set(std::string const& name, char const* value) {
+  std::shared_ptr<Input> sptr(new InputScalar(value));
+  this->add(name, std::move(sptr));
 }
 
 std::string const& InputMap::name(Input const& input) {
