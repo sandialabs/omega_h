@@ -193,11 +193,13 @@ InputList& InputMap::get_list(std::string const& name) {
 
 template <class ScalarType>
 ScalarType InputMap::get(std::string const& name, char const* default_value) {
-  if (!this->is<ScalarType>(name)) {
-    std::shared_ptr<Input> sptr(new InputScalar(default_value));
-    this->add(name, std::move(sptr));
-  }
+  if (!this->is<ScalarType>(name)) set(name, default_value);
   return this->get<ScalarType>(name);
+}
+
+void InputMap::set(std::string const& name, char const* value) {
+  std::shared_ptr<Input> sptr(new InputScalar(value));
+  this->add(name, std::move(sptr));
 }
 
 std::string const& InputMap::name(Input const& input) {
@@ -332,26 +334,21 @@ class InputYamlReader : public Reader {
         return std::move(result_any);
       }
       case yaml::PROD_TOP_BMAP: {
-        OMEGA_H_CHECK(!rhs.at(0).empty());
-        OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
-        auto& map = as_type<InputMap>(*(any_cast<NameValue&>(rhs.at(0)).value));
-        map.used = true;
-        return std::move(map);
+        return std::move(rhs.at(0));
       }
       case yaml::PROD_TOP_FIRST: {
-        if (rhs.at(0).type() == typeid(InputMap)) {
-          return std::move(rhs.at(0));
+        if (rhs.at(0).type() == typeid(NameValue)) {
+          return map_first_item(rhs.at(0));
         }
         return any();
       }
       case yaml::PROD_TOP_NEXT: {
-        if (rhs.at(1).type() == typeid(InputMap)) {
-          if (!rhs.at(0).empty()) {
-            throw ParserFail(
-                "Can't specify multiple top-level InputMaps in one YAML "
-                "file!\n");
+        if (rhs.at(1).type() == typeid(NameValue)) {
+          if (rhs.at(0).type() == typeid(InputMap)) {
+            return map_next_item(rhs.at(0), rhs.at(1));
+          } else {
+            return map_first_item(rhs.at(0));
           }
-          return std::move(rhs.at(1));
         } else {
           return std::move(rhs.at(0));
         }
@@ -359,7 +356,7 @@ class InputYamlReader : public Reader {
       case yaml::PROD_BMAP_FIRST:
       case yaml::PROD_FMAP_FIRST: {
         OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
-        auto result_any = map_first_item(rhs.at(0));
+        auto const result_any = map_first_item(rhs.at(0));
         OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
         return result_any;
       }

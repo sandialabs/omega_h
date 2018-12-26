@@ -63,6 +63,7 @@ struct InputMap : public Input {
   InputType& use_input(std::string const& name);
   template <class ScalarType>
   ScalarType get(std::string const& name);
+  void set(std::string const& name, char const* value);
   InputMap& get_map(std::string const& name);
   InputList& get_list(std::string const& name);
   template <class ScalarType>
