@@ -358,7 +358,14 @@ class InputYamlReader : public Reader {
         OMEGA_H_CHECK(rhs.at(0).type() == typeid(NameValue));
         auto result_any = map_first_item(rhs.at(0));
         OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
         return std::move(result_any);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
       }
       case yaml::PROD_BMAP_NEXT: {
         return map_next_item(rhs.at(0), rhs.at(1));
