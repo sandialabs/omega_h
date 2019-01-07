@@ -12,13 +12,17 @@ namespace filesystem {
 
 class filesystem_error : public std::system_error {
  public:
+  filesystem_error(filesystem_error const&) = default;
+  virtual ~filesystem_error() override;
   filesystem_error(int ev, const char* what_arg);
 };
 
 class path {
  public:
   using value_type = char;
+  static constexpr value_type preferred_separator = '/';
   using string_type = std::basic_string<value_type>;
+  path() = default;
   path(value_type const* source);
   path(string_type const& source);
   value_type const* c_str() const noexcept;
@@ -26,6 +30,8 @@ class path {
  public:
   string_type impl;
 };
+
+path operator/(path const& a, path const& b);
 
 bool create_directory(path const& p);
 path current_path();
@@ -47,6 +53,7 @@ enum class file_type {
 };
 
 class file_status {
+ public:
   file_status(file_type const& type_in);
   file_type type() const noexcept;
  private:
@@ -57,6 +64,7 @@ file_status status(path const& p);
 
 class directory_entry {
  public:
+  directory_entry() = default;
   directory_entry(path const& p);
   const filesystem::path& path() const noexcept;
   bool is_regular_file() const;
@@ -76,7 +84,7 @@ class directory_iterator {
   ~directory_iterator();
   directory_iterator& operator++();
   const directory_entry& operator*() const;
-  const directory_entry* operator-> const;
+  const directory_entry* operator->() const;
   bool operator!=(directory_iterator const& other);
   // hassle to implement, not needed
   directory_iterator(directory_iterator const& other) = delete;
