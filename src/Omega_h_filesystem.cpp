@@ -1,8 +1,8 @@
 #include <Omega_h_filesystem.hpp>
 #include <cerrno>
 #include <cstdio>
-#include <vector>
 #include <cstring>
+#include <iostream>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -141,6 +141,11 @@ path operator/(path const& a, path const& b) {
   str.push_back(path::preferred_separator);
   str += b.impl;
   return str;
+}
+
+std::ostream& operator<<(std::ostream& os, path const& p) {
+  os << p.c_str();
+  return os;
 }
 
 filesystem_error::filesystem_error(int ev, const char* what_arg)

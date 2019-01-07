@@ -3,6 +3,7 @@
 
 #include <system_error>
 #include <cstdint>
+#include <iosfwd>
 
 // our own tiny subset of std::filesystem while we wait for C++17
 
@@ -32,6 +33,7 @@ class path {
 };
 
 path operator/(path const& a, path const& b);
+std::ostream& operator<<(std::ostream& os, path const& p);
 
 bool create_directory(path const& p);
 path current_path();
