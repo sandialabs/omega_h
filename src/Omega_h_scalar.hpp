@@ -115,7 +115,7 @@ constexpr OMEGA_H_INLINE T min2(T a, T b) noexcept {
 
 template <typename T>
 OMEGA_H_INLINE void swap2(T& a, T& b) noexcept {
-  T const c(std::move(a));
+  T c(std::move(a));
   a = std::move(b);
   b = std::move(c);
 }
