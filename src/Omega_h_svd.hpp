@@ -17,16 +17,16 @@ struct Givens {
 };
 
 OMEGA_H_INLINE
-Givens givens(T const& a, T const& b) {
-  T c = 1.0;
-  T s = 0.0;
+Givens givens(Real a, Real b) {
+  auto c = 1.0;
+  auto s = 0.0;
   if (b != 0.0) {
     if (std::abs(b) > std::abs(a)) {
-      T const t = -a / b;
+      auto const t = -a / b;
       s = 1.0 / std::sqrt(1.0 + t * t);
       c = t * s;
     } else {
-      T const t = -b / a;
+      auto const t = -b / a;
       c = 1.0 / std::sqrt(1.0 + t * t);
       s = t * c;
     }
@@ -51,15 +51,15 @@ struct SVD {
 //
 OMEGA_H_INLINE
 SVD<2> svd_bidiagonal(Real f, Real g, Real h) {
-  auto const fa = std::abs(f);
-  auto const ga = std::abs(g);
-  auto const ha = std::abs(h);
-  auto const s0 = 0.0;
-  auto const s1 = 0.0;
-  auto const cu = 1.0;
-  auto const su = 0.0;
-  auto const cv = 1.0;
-  auto const sv = 0.0;
+  auto fa = std::abs(f);
+  auto ga = std::abs(g);
+  auto ha = std::abs(h);
+  auto s0 = 0.0;
+  auto s1 = 0.0;
+  auto cu = 1.0;
+  auto su = 0.0;
+  auto cv = 1.0;
+  auto sv = 0.0;
   auto const swap_diag = (ha > fa);
   if (swap_diag == true) {
     swap2(fa, ha);
@@ -97,7 +97,7 @@ SVD<2> svd_bidiagonal(Real f, Real g, Real h) {
       tau = (m / (s + t) + m / (r + l)) * (1.0 + a);
     } else {
       // note that m is very tiny
-      tau = (l == 0.0) ? (std::copysign(T(2.0), f) * std::copysign(T(1.0), g))
+      tau = (l == 0.0) ? (std::copysign(2.0, f) * std::copysign(1.0, g))
                        : (g / std::copysign(d, f) + m / t);
     }
     auto const lv =
@@ -144,40 +144,39 @@ SVD<2> svd_2x2(Matrix<2, 2> A) {
 // \return \f$ A = USV^T\f$
 //
 template <Int dim>
-OMEGA_H_INLINE SVD<dim> svd_NxN(Matrix<dim, dim> A) {
+OMEGA_H_INLINE SVD<dim> svd_NxN(Matrix<dim, dim> const A) {
   // Scale first
   auto const norm_a = norm(A);
   auto const scale = norm_a > 0.0 ? norm_a : Real(1.0);
   auto S = A / scale;
   auto U = identity_matrix<dim, dim>();
   auto V = identity_matrix<dim, dim>();
-  auto const off = norm_off_diagonal(S);
+  auto off = norm_off_diag(S);
   auto const tol = DBL_EPSILON;
   Int const max_iter = 2048;
   Int num_iter = 0;
   while (off > tol && num_iter < max_iter) {
     // Find largest off-diagonal entry
-    auto const pq = arg_max_off_diagonal(S);
-    auto const p = pq[0];
-    auto const q = pq[1];
+    auto const pq = arg_max_off_diag(S);
+    auto p = pq[0];
+    auto q = pq[1];
     if (p > q) swap2(p, q);
     // Obtain left and right Givens rotations by using 2x2 SVD
     auto const Spq = matrix_2x2(S(p, p), S(p, q), S(q, p), S(q, q));
     auto const LDR = svd_2x2(Spq);
     auto const L = LDR.U;
-    auto const D = LDR.S;
     auto const R = LDR.V;
     auto const cl = L(0, 0);
     auto const sl = L(0, 1);
     auto const cr = R(0, 0);
-    auto const sr = (sgn(R(0, 1)) == sgn(R(1, 0))) ? (-R(0, 1)) : (R(0, 1));
+    auto const sr = (sign(R(0, 1)) == sign(R(1, 0))) ? (-R(0, 1)) : (R(0, 1));
     // Apply both Givens rotations to matrices
     // that are converging to singular values and singular vectors
     S = givens_left(cl, sl, p, q, S);
     S = givens_right(cr, sr, p, q, S);
     U = givens_right(cl, sl, p, q, U);
     V = givens_left(cr, sr, p, q, V);
-    off = norm_off_diagonal(S);
+    off = norm_off_diag(S);
     ++num_iter;
   }
   // Fix signs for entries in the diagonal matrix S
@@ -190,8 +189,10 @@ OMEGA_H_INLINE SVD<dim> svd_NxN(Matrix<dim, dim> A) {
       }
     }
   }
+  S *= scale;
   return {U, S, V};
 }
+
 }  // namespace Omega_h
 
 #endif
