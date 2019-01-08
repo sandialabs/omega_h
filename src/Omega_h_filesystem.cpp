@@ -156,11 +156,90 @@ const path::string_type& path::native() const noexcept {
   return impl;
 }
 
+std::string path::string() const {
+  return impl;
+}
+
+path path::filename() const {
+  auto const last_sep_pos = impl.find_last_of(preferred_separator);
+  if (last_sep_pos == std::string::npos) return impl;
+  return impl.substr(last_sep_pos + 1, std::string::npos);
+}
+
+path path::parent_path() const {
+  auto const last_sep_pos = impl.find_last_of(preferred_separator);
+  if (last_sep_pos == std::string::npos) return impl;
+  return impl.substr(0, last_sep_pos);
+}
+
+path path::extension() const {
+  auto const filename_str = filename().native();
+  auto const last_dot_pos = filename_str.find_last_of('.');
+  // If the pathname is either . or .., or if filename() does not contain the . character, then empty path is returned. 
+  if (last_dot_pos == std::string::npos) return path();
+  if (filename_str == "." || filename_str == "..") return path();
+  // If the first character in the filename is a period, that period is ignored
+  // (a filename like ".profile" is not treated as an extension) 
+  if (last_dot_pos == 0) return path();
+  // If the filename() component of the generic-format path contains a period (.),
+  // and is not one of the special filesystem elements dot or dot-dot,
+  // then the extension is the substring beginning at the rightmost period
+  // (including the period) and until the end of the pathname. 
+  return filename_str.substr(last_dot_pos, std::string::npos);
+}
+
+// see extension
+path path::stem() const {
+  auto const filename_str = filename().native();
+  auto const last_dot_pos = filename_str.find_last_of('.');
+  if (last_dot_pos == std::string::npos) return filename_str;
+  if (filename_str == "." || filename_str == "..") return filename_str;
+  if (last_dot_pos == 0) return filename_str;
+  return filename_str.substr(0, last_dot_pos);
+}
+
+path& path::operator/=(path const& p) {
+  impl.push_back(preferred_separator);
+  impl += p.impl;
+  return *this;
+}
+
+path& path::operator/=(std::string const& s) {
+  impl.push_back(preferred_separator);
+  impl += s;
+  return *this;
+}
+
+path& path::operator/=(const char* s) {
+  impl.push_back(preferred_separator);
+  impl += s;
+  return *this;
+}
+
+path& path::operator+=(path const& p) {
+  impl += p.impl;
+  return *this;
+}
+
+path& path::operator+=(std::string const& s) {
+  impl += s;
+  return *this;
+}
+
+path& path::operator+=(const char* s) {
+  impl += s;
+  return *this;
+}
+
+path& path::operator+=(char c) {
+  impl.push_back(c);
+  return *this;
+}
+
 path operator/(path const& a, path const& b) {
-  auto str = a.impl;
-  str.push_back(path::preferred_separator);
-  str += b.impl;
-  return str;
+  path c = a;
+  c /= b;
+  return c;
 }
 
 std::ostream& operator<<(std::ostream& os, path const& p) {

@@ -43,23 +43,24 @@ int main(int argc, char** argv) {
     cmdline.show_help(argv);
     return -1;
   }
-  auto mesh_in = cmdline.get<std::string>("--mesh-in", "mesh.msh");
-  auto mesh_out = cmdline.get<std::string>("--mesh-out", "mesh.msh");
-  auto metric_in = cmdline.get<std::string>("--metric-in", metric_doc);
+  Omega_h::filesystem::path mesh_in = cmdline.get<std::string>("--mesh-in", "mesh.msh");
+  Omega_h::filesystem::path mesh_out = cmdline.get<std::string>("--mesh-out", "mesh.msh");
+  Omega_h::filesystem::path metric_in = cmdline.get<std::string>("--metric-in", metric_doc);
   std::cout << "Loading mesh from " << mesh_in << "\n";
   auto mesh = Omega_h::gmsh::read(mesh_in, comm);
   Omega_h::Reals target_metric;
   std::cout << "Loading target metric from " << metric_in << "\n";
-  auto dim = mesh.dim();
-  if (Omega_h::ends_with(metric_in, ".txt")) {
+  auto const dim = mesh.dim();
+  auto const metric_in_ext = metric_in.extension().string();
+  if (metric_in_ext == ".txt") {
     target_metric = Omega_h::read_reals_txt(
         metric_in, mesh.nverts(), Omega_h::symm_ncomps(dim));
     target_metric = Omega_h::symms_inria2osh(dim, target_metric);
     mesh.add_tag(0, "target_metric", Omega_h::symm_ncomps(dim), target_metric);
   } else
 #ifdef OMEGA_H_USE_LIBMESHB
-      if (Omega_h::ends_with(metric_in, ".sol") ||
-          Omega_h::ends_with(metric_in, ".solb")) {
+      if (metric_in_ext == ".sol" ||
+          metric_in_ext == ".solb") {
     Omega_h::meshb::read_sol(&mesh, metric_in, "target_metric");
     target_metric = mesh.get_array<Omega_h::Real>(0, "target_metric");
   } else
@@ -72,16 +73,17 @@ int main(int argc, char** argv) {
   std::cout << "Storing mesh in " << mesh_out << '\n';
   Omega_h::gmsh::write(mesh_out, &mesh);
   if (cmdline.parsed("--metric-out")) {
-    auto metric_out = cmdline.get<std::string>("--metric-out", metric_doc);
+    Omega_h::filesystem::path metric_out = cmdline.get<std::string>("--metric-out", metric_doc);
+    auto const metric_out_ext = metric_out.extension().string();
     std::cout << "Storing metric in " << metric_out << '\n';
-    if (Omega_h::ends_with(metric_out, ".txt")) {
+    if (metric_out_ext == ".txt") {
       auto metric = mesh.get_array<Omega_h::Real>(0, "metric");
       metric = Omega_h::symms_osh2inria(dim, metric);
       Omega_h::write_reals_txt(metric_out, metric, Omega_h::symm_ncomps(dim));
     } else
 #ifdef OMEGA_H_USE_LIBMESHB
-        if (Omega_h::ends_with(metric_out, ".sol") ||
-            Omega_h::ends_with(metric_out, ".solb")) {
+        if (metric_out_ext == ".sol" ||
+            metric_out_ext == ".solb") {
       Omega_h::meshb::write_sol(&mesh, metric_out, "metric");
     } else
 #endif

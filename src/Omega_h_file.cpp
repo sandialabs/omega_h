@@ -19,54 +19,10 @@
 
 namespace Omega_h {
 
-bool ends_with(std::string const& s, std::string const& suffix) {
-  if (s.length() < suffix.length()) return false;
-  return 0 == s.compare(s.length() - suffix.length(), suffix.length(), suffix);
-}
-
 bool is_little_endian_cpu() {
   static std::uint16_t const endian_canary = 0x1;
   std::uint8_t const* p = reinterpret_cast<std::uint8_t const*>(&endian_canary);
   return *p == 0x1;
-}
-
-void safe_mkdir(const char* path) {
-  OMEGA_H_TIME_FUNCTION;
-  mode_t const mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-  int err;
-  errno = 0;
-  err = mkdir(path, mode);
-  if (err != 0 && errno != EEXIST) {
-    Omega_h_fail(
-        "omega_h could not create directory \"%s\", got error \"%s\"\n", path,
-        std::strerror(errno));
-  }
-}
-
-bool file_exists(const char* path) {
-  struct stat info;
-  if (stat(path, &info) != 0) return false;
-  OMEGA_H_CHECK(info.st_mode & S_IFREG);
-  return true;
-}
-
-bool directory_exists(const char* path) {
-  struct stat info;
-  if (stat(path, &info) != 0) return false;
-  OMEGA_H_CHECK(info.st_mode & S_IFDIR);
-  return true;
-}
-
-std::string parent_path(std::string const& path) {
-  auto pos = path.find_last_of('/');
-  OMEGA_H_CHECK(pos != std::string::npos);
-  return path.substr(0, pos);
-}
-
-std::string path_leaf_name(std::string const& path) {
-  auto pos = path.find_last_of('/');
-  if (pos == std::string::npos) return path;
-  return path.substr(pos + 1, std::string::npos);
 }
 
 namespace binary {
@@ -503,7 +459,7 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
   }
 }
 
-static void write_int_file(std::string const& filepath, Mesh* mesh, I32 value) {
+static void write_int_file(filesystem::path const& filepath, Mesh* mesh, I32 value) {
   if (mesh->comm()->rank() == 0) {
     std::ofstream file(filepath.c_str());
     OMEGA_H_CHECK(file.is_open());
@@ -511,18 +467,18 @@ static void write_int_file(std::string const& filepath, Mesh* mesh, I32 value) {
   }
 }
 
-static void write_nparts(std::string const& path, Mesh* mesh) {
-  write_int_file(path + "/nparts", mesh, mesh->comm()->size());
+static void write_nparts(filesystem::path const& path, Mesh* mesh) {
+  write_int_file(path / "nparts", mesh, mesh->comm()->size());
 }
 
-static void write_version(std::string const& path, Mesh* mesh) {
-  write_int_file(path + "/version", mesh, latest_version);
+static void write_version(filesystem::path const& path, Mesh* mesh) {
+  write_int_file(path / "version", mesh, latest_version);
 }
 
-I32 read_nparts(std::string const& path, CommPtr comm) {
+I32 read_nparts(filesystem::path const& path, CommPtr comm) {
   I32 nparts;
   if (comm->rank() == 0) {
-    auto filepath = path + "/nparts";
+    auto const filepath = path / "nparts";
     std::ifstream file(filepath.c_str());
     if (!file.is_open()) {
       Omega_h_fail("could not open file \"%s\"\n", filepath.c_str());
@@ -536,10 +492,10 @@ I32 read_nparts(std::string const& path, CommPtr comm) {
   return nparts;
 }
 
-I32 read_version(std::string const& path, CommPtr comm) {
+I32 read_version(filesystem::path const& path, CommPtr comm) {
   I32 version;
   if (comm->rank() == 0) {
-    auto filepath = path + "/version";
+    auto const filepath = path / "version";
     std::ifstream file(filepath.c_str());
     if (!file.is_open()) {
       version = -1;
@@ -554,16 +510,18 @@ I32 read_version(std::string const& path, CommPtr comm) {
   return version;
 }
 
-void write(std::string const& path, Mesh* mesh) {
+void write(filesystem::path const& path, Mesh* mesh) {
   begin_code("binary::write(path,Mesh)");
-  if (!ends_with(path, ".osh") && can_print(mesh)) {
+  if (path.extension().string() != ".osh" && can_print(mesh)) {
     std::cout
         << "it is strongly recommended to end Omega_h paths in \".osh\",\n";
     std::cout << "instead of just \"" << path << "\"\n";
   }
-  safe_mkdir(path.c_str());
+  filesystem::create_directory(path);
   mesh->comm()->barrier();
-  auto filepath = path + "/" + to_string(mesh->comm()->rank()) + ".osh";
+  auto filepath = path;
+  filepath /= std::to_string(mesh->comm()->rank());
+  filepath += ".osh";
   std::ofstream file(filepath.c_str());
   OMEGA_H_CHECK(file.is_open());
   write(file, mesh);
@@ -574,20 +532,21 @@ void write(std::string const& path, Mesh* mesh) {
 }
 
 void read_in_comm(
-    std::string const& path, CommPtr comm, Mesh* mesh, I32 version) {
+    filesystem::path const& path, CommPtr comm, Mesh* mesh, I32 version) {
   ScopedTimer timer("binary::read_in_comm(path, comm, mesh, version)");
   mesh->set_comm(comm);
-  auto filepath = path + "/" + to_string(mesh->comm()->rank());
+  auto filepath = path;
+  filepath /= std::to_string(mesh->comm()->rank());
   if (version != -1) filepath += ".osh";
   std::ifstream file(filepath.c_str());
   OMEGA_H_CHECK(file.is_open());
   read(file, mesh, version);
 }
 
-I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict) {
+I32 read(filesystem::path const& path, CommPtr comm, Mesh* mesh, bool strict) {
   ScopedTimer timer("binary::read(path, comm, mesh, strict)");
-  auto nparts = read_nparts(path, comm);
-  auto version = read_version(path, comm);
+  auto const nparts = read_nparts(path, comm);
+  auto const version = read_version(path, comm);
   if (strict) {
     if (nparts != comm->size()) {
       Omega_h_fail(
@@ -603,8 +562,8 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict) {
           "path \"%s\" contains %d parts, but only %d ranks are reading it\n",
           path.c_str(), nparts, comm->size());
     }
-    auto in_subcomm = (comm->rank() < nparts);
-    auto subcomm = comm->split(I32(!in_subcomm), 0);
+    auto const in_subcomm = (comm->rank() < nparts);
+    auto const subcomm = comm->split(I32(!in_subcomm), 0);
     if (in_subcomm) {
       read_in_comm(path, subcomm, mesh, version);
     }
@@ -613,12 +572,12 @@ I32 read(std::string const& path, CommPtr comm, Mesh* mesh, bool strict) {
   return nparts;
 }
 
-Mesh read(std::string const& path, Library* lib, bool strict) {
+Mesh read(filesystem::path const& path, Library* lib, bool strict) {
   ScopedTimer timer("binary::read(path, lib, strict)");
   return binary::read(path, lib->world(), strict);
 }
 
-Mesh read(std::string const& path, CommPtr comm, bool strict) {
+Mesh read(filesystem::path const& path, CommPtr comm, bool strict) {
   ScopedTimer timer("binary::read(path, comm, strict)");
   auto mesh = Mesh(comm->library());
   binary::read(path, comm, &mesh, strict);
@@ -644,7 +603,7 @@ template void swap_bytes(std::uint64_t&);
 
 }  // end namespace binary
 
-void write_reals_txt(std::string const& filename, Reals a, Int ncomps) {
+void write_reals_txt(filesystem::path const& filename, Reals a, Int ncomps) {
   std::ofstream stream(filename.c_str());
   write_reals_txt(stream, a, ncomps);
 }
@@ -662,7 +621,7 @@ void write_reals_txt(std::ostream& stream, Reals a, Int ncomps) {
   }
 }
 
-Reals read_reals_txt(std::string const& filename, LO n, Int ncomps) {
+Reals read_reals_txt(filesystem::path const& filename, LO n, Int ncomps) {
   std::ifstream stream(filename.c_str());
   return read_reals_txt(stream, n, ncomps);
 }
@@ -677,12 +636,13 @@ Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
   return h_a.write();
 }
 
-Mesh read_mesh_file(std::string const& path, CommPtr comm) {
-  if (ends_with(path, ".osh")) {
+Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
+  auto const extension = path.extension().string();
+  if (extension == ".osh") {
     return binary::read(path, comm);
   } else
 #ifdef OMEGA_H_USE_LIBMESHB
-      if (ends_with(path, ".meshb")) {
+      if (extension == ".meshb") {
     Mesh mesh(comm->library());
     meshb::read(&mesh, path);
     mesh.set_comm(comm);
@@ -690,8 +650,8 @@ Mesh read_mesh_file(std::string const& path, CommPtr comm) {
   } else
 #endif
 #ifdef OMEGA_H_USE_SEACASEXODUS
-      if (ends_with(path, ".exo") || ends_with(path, ".e") ||
-          ends_with(path, ".g")) {
+      if (extension == ".exo" || extension == ".e" ||
+          extension == ".g") {
     Mesh mesh(comm->library());
     auto file = exodus::open(path);
     exodus::read_mesh(file, &mesh);
@@ -699,14 +659,14 @@ Mesh read_mesh_file(std::string const& path, CommPtr comm) {
     return mesh;
   } else
 #endif
-      if (ends_with(path, ".msh")) {
+      if (extension == ".msh") {
     return gmsh::read(path, comm);
-  } else if (ends_with(path, ".pvtu")) {
+  } else if (extension == ".pvtu") {
     Mesh mesh(comm->library());
     vtk::read_parallel(path, comm, &mesh);
     mesh.set_comm(comm);
     return mesh;
-  } else if (ends_with(path, ".vtu")) {
+  } else if (extension == ".vtu") {
     Mesh mesh(comm->library());
     std::ifstream stream(path.c_str());
     OMEGA_H_CHECK(stream.is_open());

@@ -126,7 +126,7 @@ static OMEGA_H_INLINE int side_osh2exo(int dim, int side) {
   return -1;
 }
 
-int open(std::string const& path, bool verbose) {
+int open(filesystem::path const& path, bool verbose) {
   auto comp_ws = int(sizeof(Real));
   int io_ws = 0;
   float version;
@@ -395,7 +395,7 @@ static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
 }
 
 Mesh read_sliced(
-    std::string const& path, CommPtr comm, bool verbose, int, int time_step) {
+    filesystem::path const& path, CommPtr comm, bool verbose, int, int time_step) {
   ScopedTimer timer("exodus::read");
   verbose = verbose && (comm->rank() == 0);
   auto comm_mpi = comm->get_impl();
@@ -537,7 +537,7 @@ Mesh read_sliced(
   return mesh;
 }
 #else
-Mesh read_sliced(std::string const&, CommPtr, bool, int, int) {
+Mesh read_sliced(filesystem::path const&, CommPtr, bool, int, int) {
   Omega_h_fail(
       "Can't read Exodus file by slices, Exodus not compiled with parallel "
       "support\n");
@@ -545,7 +545,7 @@ Mesh read_sliced(std::string const&, CommPtr, bool, int, int) {
 #endif
 
 void write(
-    std::string const& path, Mesh* mesh, bool verbose, int classify_with) {
+    filesystem::path const& path, Mesh* mesh, bool verbose, int classify_with) {
   begin_code("exodus::write");
   auto comp_ws = int(sizeof(Real));
   auto io_ws = comp_ws;
