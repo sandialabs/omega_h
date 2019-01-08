@@ -184,10 +184,6 @@ file_type file_status::type() const noexcept {
 
 directory_entry::directory_entry(class path const& p):path_variable(p) {}
 
-const filesystem::path& directory_entry::path() const noexcept {
-  return path_variable;
-}
-
 bool directory_entry::is_regular_file() const {
   return status(path_variable).type() == file_type::regular;
 }

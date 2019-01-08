@@ -67,8 +67,8 @@ file_status status(path const& p);
 class directory_entry {
  public:
   directory_entry() = default;
-  directory_entry(path const& p);
-  const filesystem::path& path() const noexcept;
+  directory_entry(filesystem::path const& p);
+  const filesystem::path& path() const noexcept { return path_variable; }
   bool is_regular_file() const;
   bool is_directory() const;
   bool is_symlink() const;
