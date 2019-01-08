@@ -188,6 +188,16 @@ path path::extension() const {
   return filename_str.substr(last_dot_pos, std::string::npos);
 }
 
+// see extension
+path path::stem() const {
+  auto const filename_str = filename().native();
+  auto const last_dot_pos = filename_str.find_last_of('.');
+  if (last_dot_pos == std::string::npos) return filename_str;
+  if (filename_str == "." || filename_str == "..") return filename_str;
+  if (last_dot_pos == 0) return filename_str;
+  return filename_str.substr(0, last_dot_pos);
+}
+
 path& path::operator/=(path const& p) {
   impl.push_back(preferred_separator);
   impl += p.impl;

@@ -31,6 +31,7 @@ class path {
   std::string string() const;
   path filename() const;
   path extension() const;
+  path stem() const;
   path parent_path() const;
   path& operator/=(path const&);
   path& operator/=(std::string const&);
