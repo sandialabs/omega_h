@@ -102,6 +102,7 @@ set(Omega_h_SOURCES
   Omega_h_globals.cpp
   Omega_h_malloc.cpp
   Omega_h_pool.cpp
+  Omega_h_filesystem.cpp
   )
 
 if (Omega_h_USE_CUDA)
@@ -231,6 +232,7 @@ osh_add_util(osh_adapt)
 if(Omega_h_USE_Teuchos)
   osh_add_util(osh_copy_params)
 endif()
+osh_add_util(osh_filesystem)
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
