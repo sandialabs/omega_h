@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
           should_help = true;
         }
       }
-    } else if (ends_with(argv[i], ".egads")) {
+    } else if (filesystem::path(argv[i]).extension().string() == ".egads") {
       egads_path = argv[i];
     } else if (!in_path) {
       in_path = argv[i];

@@ -203,14 +203,15 @@ Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh) {
 #endif
 }
 
-void update_parameters_from_file(std::string const& filepath,
+void update_parameters_from_file(filesystem::path const& filepath,
     Teuchos::ParameterList* pl, Teuchos::Comm<int> const& comm) {
-  if (ends_with(filepath, ".xml")) {
+  auto const ext = filepath.extension().string();
+  if (ext == ".xml") {
     Teuchos::updateParametersFromXmlFileAndBroadcast(
-        filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
-  } else if (ends_with(filepath, ".yaml")) {
+        filepath.string(), Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
+  } else if (ext == ".yaml") {
     Teuchos::updateParametersFromYamlFileAndBroadcast(
-        filepath, Teuchos::Ptr<Teuchos::ParameterList>(pl), comm, true);
+        filepath.string(), Teuchos::Ptr<Teuchos::ParameterList>(pl), comm, true);
   } else {
     Omega_h_fail(
         "\"%s\" is not a known parameter list format\n", filepath.c_str());
@@ -231,7 +232,7 @@ void write_parameters(
 }
 
 void write_parameters(
-    std::string const& filepath, Teuchos::ParameterList const& pl) {
+    filesystem::path const& filepath, Teuchos::ParameterList const& pl) {
   std::ofstream stream(filepath.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("couldn't open \"%s\" to write\n", filepath.c_str());

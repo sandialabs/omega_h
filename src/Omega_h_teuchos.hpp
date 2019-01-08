@@ -21,14 +21,14 @@ MetricSource get_metric_source(Teuchos::ParameterList& pl);
 void update_metric_input(MetricInput* input, Teuchos::ParameterList& pl);
 
 Teuchos::RCP<Teuchos::Comm<int>> make_teuchos_comm(CommPtr comm_osh);
-void update_parameters_from_file(std::string const& filepath,
+void update_parameters_from_file(filesystem::path const& filepath,
     Teuchos::ParameterList* pl, Teuchos::Comm<int> const& comm);
 
 void write_parameters(std::ostream& stream, Teuchos::ParameterList const& pl,
     bool is_yaml = true);
 
 void write_parameters(
-    std::string const& filepath, Teuchos::ParameterList const& pl);
+    filesystem::path const& filepath, Teuchos::ParameterList const& pl);
 
 void check_unused(Teuchos::ParameterList const& pl);
 
