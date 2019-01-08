@@ -695,7 +695,7 @@ static Reals diffuse_integrals_weighted(Mesh* mesh, Graph g,
       auto comp_integrals = get_component(error_integrals, ncomps, c);
       auto comp_quantity_integrals =
           get_component(quantity_integrals, ncomps, c);
-      auto comp_name = name + "_" + ::Omega_h::to_string(c);
+      auto comp_name = name + "_" + std::to_string(c);
       comp_integrals = diffuse_integrals_weighted(mesh, g, comp_integrals,
           comp_quantity_integrals, opts, comp_name, verbose);
       set_component(out, comp_integrals, ncomps, c);

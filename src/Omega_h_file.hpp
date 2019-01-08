@@ -10,18 +10,13 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_tag.hpp>
+#include <Omega_h_filesystem.hpp>
 
 namespace Omega_h {
 
-Mesh read_mesh_file(std::string const& path, CommPtr comm);
+Mesh read_mesh_file(filesystem::path const& path, CommPtr comm);
 
-bool ends_with(std::string const& s, std::string const& suffix);
 bool is_little_endian_cpu();
-void safe_mkdir(const char* path);
-bool file_exists(const char* path);
-bool directory_exists(const char* path);
-std::string parent_path(std::string const& path);
-std::string path_leaf_name(std::string const& path);
 
 #ifdef OMEGA_H_USE_LIBMESHB
 namespace meshb {
@@ -40,7 +35,7 @@ enum ClassifyWith {
   NODE_SETS = 0x1,
   SIDE_SETS = 0x2,
 };
-int open(std::string const& path, bool verbose = false);
+int open(filesystem::path const& path, bool verbose = false);
 void close(int exodus_file);
 int get_num_time_steps(int exodus_file);
 void read_mesh(int exodus_file, Mesh* mesh, bool verbose = false,
@@ -48,18 +43,18 @@ void read_mesh(int exodus_file, Mesh* mesh, bool verbose = false,
 void read_nodal_fields(int exodus_file, Mesh* mesh, int time_step,
     std::string const& prefix = "", std::string const& postfix = "",
     bool verbose = false);
-void write(std::string const& path, Mesh* mesh, bool verbose = false,
+void write(filesystem::path const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
-Mesh read_sliced(std::string const& path, CommPtr comm, bool verbose = false,
+Mesh read_sliced(filesystem::path const& path, CommPtr comm, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
 }  // namespace exodus
 #endif
 
 namespace gmsh {
 Mesh read(std::istream& stream, CommPtr comm);
-Mesh read(std::string const& filename, CommPtr comm);
+Mesh read(filesystem::path const& filename, CommPtr comm);
 void write(std::ostream& stream, Mesh* mesh);
-void write(std::string const& filepath, Mesh* mesh);
+void write(filesystem::path const& filepath, Mesh* mesh);
 }  // namespace gmsh
 
 namespace vtk {
@@ -73,25 +68,25 @@ static constexpr bool dont_compress = false;
 TagSet get_all_vtk_tags(Mesh* mesh, Int cell_dim);
 void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
+void write_vtu(filesystem::path const& filename, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_vtu(std::string const& filename, Mesh* mesh,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
+void write_parallel(filesystem::path const& path, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
 void write_parallel(std::string const& path, Mesh* mesh,
     bool compress = OMEGA_H_DEFAULT_COMPRESS);
 
-void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh);
+void read_parallel(filesystem::path const& pvtupath, CommPtr comm, Mesh* mesh);
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh);
 
 class Writer {
   Mesh* mesh_;
-  std::string root_path_;
+  filesystem::path root_path_;
   Int cell_dim_;
   bool compress_;
   I64 step_;
@@ -102,7 +97,7 @@ class Writer {
   Writer(Writer const&) = default;
   Writer& operator=(Writer const&) = default;
   ~Writer() = default;
-  Writer(std::string const& root_path, Mesh* mesh, Int cell_dim = -1,
+  Writer(filesystem::path const& root_path, Mesh* mesh, Int cell_dim = -1,
       Real restart_time = 0.0, bool compress = OMEGA_H_DEFAULT_COMPRESS);
   void write();
   void write(Real time);
@@ -114,7 +109,7 @@ class FullWriter {
 
  public:
   FullWriter() = default;
-  FullWriter(std::string const& root_path, Mesh* mesh, Real restart_time = 0.0,
+  FullWriter(filesystem::path const& root_path, Mesh* mesh, Real restart_time = 0.0,
       bool compress = OMEGA_H_DEFAULT_COMPRESS);
   void write(Real time);
   void write();
@@ -123,15 +118,15 @@ class FullWriter {
 
 namespace binary {
 
-void write(std::string const& path, Mesh* mesh);
-Mesh read(std::string const& path, Library* lib, bool strict = false);
-Mesh read(std::string const& path, CommPtr comm, bool strict = false);
+void write(filesystem::path const& path, Mesh* mesh);
+Mesh read(filesystem::path const& path, Library* lib, bool strict = false);
+Mesh read(filesystem::path const& path, CommPtr comm, bool strict = false);
 I32 read(
-    std::string const& path, CommPtr comm, Mesh* mesh, bool strict = false);
-I32 read_nparts(std::string const& path, CommPtr comm);
-I32 read_version(std::string const& path, CommPtr comm);
+    filesystem::path const& path, CommPtr comm, Mesh* mesh, bool strict = false);
+I32 read_nparts(filesystem::path const& path, CommPtr comm);
+I32 read_version(filesystem::path const& path, CommPtr comm);
 void read_in_comm(
-    std::string const& path, CommPtr comm, Mesh* mesh, I32 version);
+    filesystem::path const& path, CommPtr comm, Mesh* mesh, I32 version);
 
 constexpr I32 latest_version = 9;
 
@@ -178,21 +173,10 @@ extern template void swap_bytes(std::uint64_t&);
 
 }  // namespace binary
 
-void write_reals_txt(std::string const& filename, Reals a, Int ncomps);
+void write_reals_txt(filesystem::path const& filename, Reals a, Int ncomps);
 void write_reals_txt(std::ostream& stream, Reals a, Int ncomps);
-Reals read_reals_txt(std::string const& filename, LO n, Int ncomps);
+Reals read_reals_txt(filesystem::path const& filename, LO n, Int ncomps);
 Reals read_reals_txt(std::istream& stream, LO n, Int ncomps);
-
-inline std::string to_string(I32 x) {
-#ifdef __INTEL_COMPILER
-  /* Intel compilers with low GCC compat. don't have 32-bit specializations
-   * for std::to_string, which makes them non-compliant with C++11
-   */
-  return std::to_string(static_cast<long long>(x));
-#else
-  return std::to_string(x);
-#endif
-}
 
 }  // namespace Omega_h
 

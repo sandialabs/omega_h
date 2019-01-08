@@ -28,6 +28,17 @@ class path {
   path(string_type const& source);
   value_type const* c_str() const noexcept;
   const string_type& native() const noexcept;
+  std::string string() const;
+  path filename() const;
+  path extension() const;
+  path parent_path() const;
+  path& operator/=(path const&);
+  path& operator/=(std::string const&);
+  path& operator/=(char const*);
+  path& operator+=(path const&);
+  path& operator+=(std::string const&);
+  path& operator+=(char const*);
+  path& operator+=(char);
  public:
   string_type impl;
 };

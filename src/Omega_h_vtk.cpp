@@ -327,7 +327,7 @@ static Read<T> read_known_array(std::istream& stream, std::string const& name,
   OMEGA_H_CHECK(st.type == xml_lite::Tag::START);
   OMEGA_H_CHECK(st.attribs["Name"] == name);
   OMEGA_H_CHECK(st.attribs["type"] == Traits<T>::name());
-  OMEGA_H_CHECK(st.attribs["NumberOfComponents"] == Omega_h::to_string(ncomps));
+  OMEGA_H_CHECK(st.attribs["NumberOfComponents"] == std::to_string(ncomps));
   auto array =
       read_array<T>(stream, nents * ncomps, needs_swapping, is_compressed);
   auto et = xml_lite::read_tag(stream);
@@ -520,24 +520,37 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
   }
 }
 
-static std::string piece_filename(std::string const& piecepath, I32 rank) {
-  return piecepath + '_' + Omega_h::to_string(rank) + ".vtu";
+static filesystem::path piece_filename(filesystem::path const& piecepath, I32 rank) {
+  auto piece_filename = piecepath;
+  piece_filename += '_';
+  piece_filename += std::to_string(rank);
+  piece_filename += ".vtu";
+  return piece_filename;
 }
 
-static std::string get_rel_step_path(I64 step) {
-  return "steps/step_" + std::to_string(step);
+static filesystem::path get_rel_step_path(I64 step) {
+  auto result = filesystem::path("steps");
+  result /= "step_";
+  result += std::to_string(step);
+  return result;
 }
 
-static std::string get_step_path(std::string const& root_path, I64 step) {
-  return root_path + '/' + get_rel_step_path(step);
+static filesystem::path get_step_path(filesystem::path const& root_path, I64 step) {
+  auto result = root_path;
+  result /= get_rel_step_path(step);
+  return result;
 }
 
-std::string get_pvtu_path(std::string const& step_path) {
-  return step_path + "/pieces.pvtu";
+filesystem::path get_pvtu_path(filesystem::path const& step_path) {
+  auto result = step_path;
+  result += "pieces.pvtu";
+  return result;
 }
 
-std::string get_pvd_path(std::string const& root_path) {
-  return root_path + "/steps.pvd";
+filesystem::path get_pvd_path(filesystem::path const& root_path) {
+  auto result = root_path;
+  result /= "steps.pvd";
+  return result;
 }
 
 static void default_dim(Mesh* mesh, Int* cell_dim) {
@@ -696,7 +709,7 @@ void read_vtu_ents(std::istream& stream, Mesh* mesh) {
   OMEGA_H_CHECK(xml_lite::read_tag(stream).elem_name == "VTKFile");
 }
 
-void write_vtu(std::string const& filename, Mesh* mesh, Int cell_dim,
+void write_vtu(filesystem::path const& filename, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
@@ -716,7 +729,7 @@ void write_vtu(std::string const& filename, Mesh* mesh, bool compress) {
 }
 
 void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath, TagSet const& tags) {
+    filesystem::path const& piecepath, TagSet const& tags) {
   OMEGA_H_TIME_FUNCTION;
   ask_for_mesh_tags(mesh, tags);
   stream << "<VTKFile type=\"PUnstructuredGrid\">\n";
@@ -782,8 +795,8 @@ void write_pvtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   stream << "</VTKFile>\n";
 }
 
-void write_pvtu(std::string const& filename, Mesh* mesh, Int cell_dim,
-    std::string const& piecepath, TagSet const& tags) {
+void write_pvtu(filesystem::path const& filename, Mesh* mesh, Int cell_dim,
+    filesystem::path const& piecepath, TagSet const& tags) {
   std::ofstream file(filename.c_str());
   OMEGA_H_CHECK(file.is_open());
   write_pvtu(file, mesh, cell_dim, piecepath, tags);
@@ -817,41 +830,40 @@ void read_pvtu(std::istream& stream, CommPtr comm, I32* npieces_out,
   *nghost_layers_out = nghost_layers;
 }
 
-void read_pvtu(std::string const& pvtupath, CommPtr comm, I32* npieces_out,
-    std::string* vtupath_out, Int* nghost_layers_out) {
-  auto parentpath = parent_path(pvtupath);
+void read_pvtu(filesystem::path const& pvtupath, CommPtr comm, I32* npieces_out,
+    filesystem::path* vtupath_out, Int* nghost_layers_out) {
+  auto parentpath = pvtupath.parent_path();
   std::string vtupath;
   std::ifstream stream(pvtupath.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("couldn't open \"%s\"\n", pvtupath.c_str());
   }
   read_pvtu(stream, comm, npieces_out, &vtupath, nghost_layers_out);
-  vtupath = parentpath + "/" + vtupath;
-  *vtupath_out = vtupath;
+  *vtupath_out = parentpath / vtupath;
 }
 
-void write_parallel(std::string const& path, Mesh* mesh, Int cell_dim,
+void write_parallel(filesystem::path const& path, Mesh* mesh, Int cell_dim,
     TagSet const& tags, bool compress) {
-  begin_code("vtk::write_parallel");
+  ScopedTimer timer("vtk::write_parallel");
   default_dim(mesh, &cell_dim);
   ask_for_mesh_tags(mesh, tags);
-  auto rank = mesh->comm()->rank();
+  auto const rank = mesh->comm()->rank();
   if (rank == 0) {
-    safe_mkdir(path.c_str());
+    filesystem::create_directory(path);
   }
   mesh->comm()->barrier();
-  auto piecesdir = path + "/pieces";
+  auto const piecesdir = path / "pieces";
   if (rank == 0) {
-    safe_mkdir(piecesdir.c_str());
+    filesystem::create_directory(piecesdir);
   }
   mesh->comm()->barrier();
-  auto piecepath = piecesdir + "/piece";
-  auto pvtuname = get_pvtu_path(path);
+  auto const piecepath = piecesdir / "piece";
+  auto const pvtuname = get_pvtu_path(path);
   if (rank == 0) {
-    write_pvtu(pvtuname, mesh, cell_dim, "pieces/piece", tags);
+    auto const relative_piecepath = filesystem::path("pieces") / "piece";
+    write_pvtu(pvtuname, mesh, cell_dim, relative_piecepath, tags);
   }
   write_vtu(piece_filename(piecepath, rank), mesh, cell_dim, tags, compress);
-  end_code();
 }
 
 void write_parallel(
@@ -865,9 +877,9 @@ void write_parallel(std::string const& path, Mesh* mesh, bool compress) {
   write_parallel(path, mesh, mesh->dim(), compress);
 }
 
-void read_parallel(std::string const& pvtupath, CommPtr comm, Mesh* mesh) {
+void read_parallel(filesystem::path const& pvtupath, CommPtr comm, Mesh* mesh) {
   I32 npieces;
-  std::string vtupath;
+  filesystem::path vtupath;
   Int nghost_layers;
   read_pvtu(pvtupath, comm, &npieces, &vtupath, &nghost_layers);
   bool in_subcomm = (comm->rank() < npieces);
@@ -891,7 +903,7 @@ static char const pvd_prologue[] =
 static char const pvd_epilogue[] = "</Collection>\n</VTKFile>\n";
 
 static std::string read_existing_pvd(
-    std::string const& pvdpath, Real restart_time) {
+    filesystem::path const& pvdpath, Real restart_time) {
   std::ifstream file(pvdpath.c_str());
   if (!file.is_open()) return pvd_prologue;
   std::string contents;
@@ -917,8 +929,8 @@ static std::string read_existing_pvd(
 }
 
 std::streampos write_initial_pvd(
-    std::string const& root_path, Real restart_time) {
-  auto pvdpath = get_pvd_path(root_path);
+    filesystem::path const& root_path, Real restart_time) {
+  auto const pvdpath = get_pvd_path(root_path);
   auto content = read_existing_pvd(pvdpath, restart_time);
   std::ofstream file(pvdpath.c_str());
   OMEGA_H_CHECK(file.is_open());
@@ -928,17 +940,17 @@ std::streampos write_initial_pvd(
   return pos;
 }
 
-void update_pvd(std::string const& root_path, std::streampos* pos_inout,
+void update_pvd(filesystem::path const& root_path, std::streampos* pos_inout,
     I64 step, Real time) {
-  std::string pvdpath = get_pvd_path(root_path);
+  auto const pvdpath = get_pvd_path(root_path);
   std::fstream file;
   file.open(pvdpath.c_str(), std::ios::out | std::ios::in);
   OMEGA_H_CHECK(file.is_open());
   file.seekp(*pos_inout);
   file << std::scientific << std::setprecision(18);
   file << "<DataSet timestep=\"" << time << "\" part=\"0\" ";
-  auto relstep = get_rel_step_path(step);
-  auto relpvtu = get_pvtu_path(relstep);
+  auto const relstep = get_rel_step_path(step);
+  auto const relpvtu = get_pvtu_path(relstep);
   file << "file=\"" << relpvtu << "\"/>\n";
   *pos_inout = file.tellp();
   file << "</Collection>\n";
@@ -946,9 +958,9 @@ void update_pvd(std::string const& root_path, std::streampos* pos_inout,
 }
 
 void read_pvd(std::istream& stream, std::vector<Real>* times_out,
-    std::vector<std::string>* pvtupaths_out) {
+    std::vector<filesystem::path>* pvtupaths_out) {
   std::vector<Real> times;
-  std::vector<std::string> pvtupaths;
+  std::vector<filesystem::path> pvtupaths;
   for (std::string line; std::getline(stream, line);) {
     xml_lite::Tag tag;
     if (!xml_lite::parse_tag(line, &tag)) continue;
@@ -960,17 +972,17 @@ void read_pvd(std::istream& stream, std::vector<Real>* times_out,
   *pvtupaths_out = pvtupaths;
 }
 
-void read_pvd(std::string const& pvdpath, std::vector<Real>* times_out,
-    std::vector<std::string>* pvtupaths_out) {
+void read_pvd(filesystem::path const& pvdpath, std::vector<Real>* times_out,
+    std::vector<filesystem::path>* pvtupaths_out) {
   std::vector<Real> times;
-  std::vector<std::string> pvtupaths;
+  std::vector<filesystem::path> pvtupaths;
   std::ifstream pvdstream(pvdpath.c_str());
   if (!pvdstream.is_open()) {
     Omega_h_fail("Couldn't open \"%s\"\n", pvdpath.c_str());
   }
   read_pvd(pvdstream, &times, &pvtupaths);
-  auto parentpath = parent_path(pvdpath);
-  for (auto& pvtupath : pvtupaths) pvtupath = parentpath + "/" + pvtupath;
+  auto const parentpath = pvdpath.parent_path();
+  for (auto& pvtupath : pvtupaths) pvtupath = parentpath / pvtupath;
   *times_out = times;
   *pvtupaths_out = pvtupaths;
 }
@@ -983,7 +995,7 @@ Writer::Writer()
       step_(-1),
       pvd_pos_(0) {}
 
-Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim,
+Writer::Writer(filesystem::path const& root_path, Mesh* mesh, Int cell_dim,
     Real restart_time, bool compress)
     : mesh_(mesh),
       root_path_(root_path),
@@ -992,15 +1004,19 @@ Writer::Writer(std::string const& root_path, Mesh* mesh, Int cell_dim,
       step_(0),
       pvd_pos_(0) {
   default_dim(mesh_, &cell_dim_);
-  auto comm = mesh->comm();
-  auto rank = comm->rank();
-  if (rank == 0) safe_mkdir(root_path_.c_str());
+  auto const comm = mesh->comm();
+  auto const rank = comm->rank();
+  if (rank == 0) {
+    filesystem::create_directory(root_path_);
+  }
   comm->barrier();
-  auto stepsdir = root_path_ + "/steps";
-  if (rank == 0) safe_mkdir(stepsdir.c_str());
+  auto const stepsdir = root_path_ / "steps";
+  if (rank == 0) {
+    filesystem::create_directory(stepsdir);
+  }
   comm->barrier();
   if (rank == 0) {
-    pvd_pos_ = write_initial_pvd(root_path, restart_time);
+    pvd_pos_ = write_initial_pvd(root_path_, restart_time);
   }
 }
 
@@ -1024,15 +1040,18 @@ void Writer::write(Real time) {
 
 void Writer::write() { this->write(Real(step_)); }
 
-FullWriter::FullWriter(std::string const& root_path, Mesh* mesh,
+FullWriter::FullWriter(filesystem::path const& root_path, Mesh* mesh,
     Real restart_time, bool compress) {
-  auto comm = mesh->comm();
-  auto rank = comm->rank();
-  if (rank == 0) safe_mkdir(root_path.c_str());
+  auto const comm = mesh->comm();
+  auto const rank = comm->rank();
+  if (rank == 0) {
+    filesystem::create_directory(root_path);
+  }
   comm->barrier();
-  for (Int i = EDGE; i <= mesh->dim(); ++i)
-    writers_.push_back(Writer(root_path + "/" + dimensional_plural_name(i),
+  for (Int i = EDGE; i <= mesh->dim(); ++i) {
+    writers_.push_back(Writer(root_path / dimensional_plural_name(i),
         mesh, i, restart_time, compress));
+  }
 }
 
 void FullWriter::write(Real time) {

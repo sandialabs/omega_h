@@ -7,10 +7,11 @@
 
 namespace Omega_h {
 
-bool check_regression(std::string const& prefix, Mesh* mesh) {
+bool check_regression(filesystem::path const& prefix, Mesh* mesh) {
   auto comm = mesh->comm();
-  auto goldpath = prefix + ".osh";
-  if (!directory_exists(goldpath.c_str())) {
+  auto goldpath = prefix;
+  goldpath += ".osh";
+  if (!exists(goldpath)) {
     if (comm->size() == 1) {
       binary::write(goldpath, mesh);
       if (!mesh->library()->silent_) {
@@ -19,7 +20,8 @@ bool check_regression(std::string const& prefix, Mesh* mesh) {
       }
       return true;
     } else {
-      auto tmppath = prefix + "_tmp.osh";
+      auto tmppath = prefix;
+      tmppath += "_tmp.osh";
       binary::write(tmppath, mesh);
       if (!mesh->library()->silent_ && comm->rank() == 0) {
         std::cout << "gold path \"" << goldpath;
@@ -41,7 +43,8 @@ bool check_regression(std::string const& prefix, Mesh* mesh) {
     return true;
   }
   if (res == OMEGA_H_MORE) {
-    auto newpath = prefix + "_new.osh";
+    auto newpath = prefix;
+    newpath += "_new.osh";
     binary::write(newpath, mesh);
     if (!mesh->library()->silent_ && comm->rank() == 0) {
       std::cout << "This run, stored at \"" << newpath << "\",\n";
@@ -52,7 +55,8 @@ bool check_regression(std::string const& prefix, Mesh* mesh) {
     }
     return false;
   }
-  auto badpath = prefix + "_bad.osh";
+  auto badpath = prefix;
+  badpath += "_bad.osh";
   binary::write(badpath, mesh);
   if (!mesh->library()->silent_ && comm->rank() == 0) {
     std::cout << "This run, stored at \"" << badpath << "\",\n";
