@@ -87,13 +87,17 @@ class directory_iterator {
   directory_iterator& operator++();
   const directory_entry& operator*() const;
   const directory_entry* operator->() const;
-  bool operator!=(directory_iterator const& other);
+  bool operator==(directory_iterator const& other) const;
   // hassle to implement, not needed
   directory_iterator(directory_iterator const& other) = delete;
  private:
   IteratorImpl* impl;
   directory_entry entry;
 };
+
+inline bool operator!=(directory_iterator const& a, directory_iterator const& b) {
+  return !(a == b);
+}
 
 }
 

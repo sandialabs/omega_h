@@ -1,4 +1,5 @@
 #include <Omega_h_filesystem.hpp>
+#include <Omega_h_fail.hpp>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -19,7 +20,7 @@ bool create_directory(path const& p) {
   int err = ::mkdir(p.c_str(), mode);
   if (err != 0) {
     if (errno != EEXIST) {
-      throw filesystem_error(errno, "Omega_h::filesystem::create_directory");
+      throw filesystem_error(errno, "create_directory");
     }
     return false;
   }
@@ -31,7 +32,7 @@ path current_path() {
   errno = 0;
   char* ret = ::getcwd(buf, sizeof(buf));
   if (ret == nullptr) {
-    throw filesystem_error(errno, "Omega_h::filesystem::current_path");
+    throw filesystem_error(errno, "current_path");
   }
   return ret;
 }
@@ -40,9 +41,27 @@ bool remove(path const& p) {
   errno = 0;
   int err = ::remove(p.impl.c_str());
   if (err != 0) {
-    throw filesystem_error(errno, "Omega_h::filesystem::remove");
+    throw filesystem_error(errno, "remove");
   }
   return true;
+}
+
+std::uintmax_t remove_all(path const& p) {
+  directory_iterator end;
+  std::uintmax_t count = 0;
+  while (true) {
+    directory_iterator first(p);
+    if (first == end) break;
+    if (first->is_directory()) {
+      count += remove_all(first->path());
+    } else {
+      remove(first->path());
+      ++count;
+    }
+  }
+  remove(p);
+  ++count;
+  return count;
 }
 
 bool exists(path const& p) {
@@ -55,7 +74,7 @@ struct IteratorImpl {
     errno = 0;
     stream = ::opendir(p.impl.c_str());
     if (stream == nullptr) {
-      throw filesystem_error(errno, "Omega_h::filesystem::directory_iterator");
+      throw filesystem_error(errno, "directory_iterator");
     }
     increment();
   }
@@ -68,7 +87,7 @@ struct IteratorImpl {
     int err = ::closedir(stream);
     stream = nullptr;
     if (err != 0) {
-      throw filesystem_error(errno, "Omega_h::filesystem::directory_iterator");
+      throw filesystem_error(errno, "directory_iterator");
     }
   }
   void increment() {
@@ -76,7 +95,7 @@ struct IteratorImpl {
     entry = ::readdir(stream);
     if (entry == nullptr) {
       if (errno != 0) {
-        throw filesystem_error(errno, "Omega_h::filesystem::directory_iterator");
+        throw filesystem_error(errno, "directory_iterator");
       }
       // safely reached the end of the directory
       close();
@@ -88,6 +107,7 @@ struct IteratorImpl {
     }
   }
   directory_entry deref() {
+    OMEGA_H_CHECK(entry != nullptr);
     return directory_entry(root / entry->d_name);
   }
   bool is_end() { return entry == nullptr; }
@@ -106,7 +126,7 @@ file_status status(path const& p) {
   struct ::stat buf;
   int ret = ::stat(p.c_str(), &buf);
   if (ret != 0) {
-    throw filesystem_error(errno, "Omega_h::filesystem::status");
+    throw filesystem_error(errno, "status");
   }
   file_type type;
   if (buf.st_mode & S_IFREG) type = file_type::regular;
@@ -193,8 +213,8 @@ directory_iterator::directory_iterator(directory_iterator&& other) {
 
 directory_iterator::directory_iterator(path const& p)
  : impl(new IteratorImpl(p))
- , entry(impl->deref())
 {
+  if (!impl->is_end()) entry = impl->deref();
 }
 
 directory_iterator::~directory_iterator() {
@@ -216,8 +236,8 @@ const directory_entry* directory_iterator::operator->() const {
   return &entry;
 }
 
-bool directory_iterator::operator!=(directory_iterator const& other) {
-  return !impl->equal(*other.impl);
+bool directory_iterator::operator==(directory_iterator const& other) const {
+  return impl->equal(*other.impl);
 }
 
 }
