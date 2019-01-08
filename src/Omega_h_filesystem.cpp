@@ -46,24 +46,6 @@ bool remove(path const& p) {
   return true;
 }
 
-std::uintmax_t remove_all(path const& p) {
-  directory_iterator end;
-  std::uintmax_t count = 0;
-  while (true) {
-    directory_iterator first(p);
-    if (first == end) break;
-    if (first->is_directory()) {
-      count += remove_all(first->path());
-    } else {
-      remove(first->path());
-      ++count;
-    }
-  }
-  remove(p);
-  ++count;
-  return count;
-}
-
 bool exists(path const& p) {
   return ::access(p.impl.c_str(), F_OK) != -1;
 }
@@ -139,6 +121,24 @@ file_status status(path const& p) {
 }
 
 // end of OS-specific stuff
+
+std::uintmax_t remove_all(path const& p) {
+  directory_iterator end;
+  std::uintmax_t count = 0;
+  while (true) {
+    directory_iterator first(p);
+    if (first == end) break;
+    if (first->is_directory()) {
+      count += remove_all(first->path());
+    } else {
+      remove(first->path());
+      ++count;
+    }
+  }
+  remove(p);
+  ++count;
+  return count;
+}
 
 filesystem_error::~filesystem_error() {}
 
