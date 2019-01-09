@@ -18,6 +18,19 @@ Read<I8> mark_exposed_sides(Mesh* mesh) {
   return exposed;
 }
 
+Read<I8> mark_down(Graph l2h, Read<I8> high_marked) {
+  auto l2lh = l2h.a2ab;
+  auto lh2h = l2h.ab2b;
+  auto nl = l2lh.size() - 1;
+  Write<I8> low_marks_w(nl, 0);
+  auto f = OMEGA_H_LAMBDA(LO l) {
+    for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
+      if (high_marked[lh2h[lh]]) low_marks_w[l] = 1;
+  };
+  parallel_for(nl, std::move(f));
+  return low_marks_w;
+}
+
 Read<I8> mark_down(
     Mesh* mesh, Int high_dim, Int low_dim, Read<I8> high_marked) {
   OMEGA_H_CHECK(0 <= low_dim);
@@ -25,16 +38,7 @@ Read<I8> mark_down(
   OMEGA_H_CHECK(high_dim <= 3);
   if (high_dim == low_dim) return high_marked;
   auto l2h = mesh->ask_up(low_dim, high_dim);
-  auto l2lh = l2h.a2ab;
-  auto lh2h = l2h.ab2b;
-  auto nl = mesh->nents(low_dim);
-  Write<I8> low_marks_w(nl, 0);
-  auto f = OMEGA_H_LAMBDA(LO l) {
-    for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
-      if (high_marked[lh2h[lh]]) low_marks_w[l] = 1;
-  };
-  parallel_for(nl, std::move(f));
-  auto low_marks = Read<I8>(low_marks_w);
+  auto low_marks = mark_down(l2h, high_marked);
   if (!mesh->owners_have_all_upward(low_dim)) {
     low_marks = mesh->reduce_array(low_dim, low_marks, 1, OMEGA_H_MAX);
   }
