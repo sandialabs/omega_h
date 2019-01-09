@@ -8,6 +8,7 @@
 
 namespace Omega_h {
 
+Read<I8> mark_down(Graph low2high, Read<I8> marked_highs);
 Read<I8> mark_down(
     Mesh* mesh, Int high_dim, Int low_dim, Read<I8> marked_highs);
 Read<I8> mark_up(Mesh* mesh, Int low_dim, Int high_dim, Read<I8> low_marked);
@@ -27,8 +28,14 @@ Read<I8> mark_class_closure(
 Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
     std::vector<ClassId> const& class_ids);
 
+Read<I8> mark_class_closures(Mesh* mesh, Int class_dim,
+    std::vector<ClassId> const& class_ids, Graph nodes2ents);
+
 Read<I8> mark_class_closures(
     Mesh* mesh, Int ent_dim, std::vector<ClassPair> const& class_pairs);
+
+Read<I8> mark_class_closures(Mesh* mesh,
+    std::vector<ClassPair> const& class_pairs, Graph nodes2ents[4]);
 
 template <typename T>
 OMEGA_H_DEVICE Int binary_search(Read<T> const& a, T v, LO n) {
