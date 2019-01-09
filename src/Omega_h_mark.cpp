@@ -107,9 +107,8 @@ Read<I8> mark_class_closure(
   return mark_down(mesh, class_dim, ent_dim, eq_marks);
 }
 
-Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
+static Read<I8> get_eq_marks(Mesh* mesh, Int class_dim,
     std::vector<ClassId> const& class_ids) {
-  OMEGA_H_CHECK(class_dim >= ent_dim);
   auto sorted_class_ids = class_ids;
   std::sort(begin(sorted_class_ids), end(sorted_class_ids));
   HostWrite<LO> h_sorted_class_ids(LO(sorted_class_ids.size()));
@@ -128,21 +127,33 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
                                    eq_class_ids[eq], nclass_ids)));
   };
   parallel_for(neq, f, "mark_class_closures");
-  auto eq_marks = Read<I8>(eq_marks_w);
+  return eq_marks_w;
+}
+
+Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
+    std::vector<ClassId> const& class_ids) {
+  OMEGA_H_CHECK(class_dim >= ent_dim);
+  auto eq_marks = get_eq_marks(mesh, class_dim, class_ids);
   auto marks = mark_down(mesh, class_dim, ent_dim, eq_marks);
   return marks;
+}
+
+static std::vector<LO> get_dim_class_ids(Int class_dim,
+    std::vector<ClassPair> const& class_pairs) {
+  std::vector<LO> dim_class_ids;
+  for (size_t i = 0; i < class_pairs.size(); ++i) {
+    if (class_pairs[i].dim == class_dim) {
+      dim_class_ids.push_back(class_pairs[i].id);
+    }
+  }
+  return dim_class_ids;
 }
 
 Read<I8> mark_class_closures(
     Mesh* mesh, Int ent_dim, std::vector<ClassPair> const& class_pairs) {
   auto marks = Read<I8>(mesh->nents(ent_dim), I8(0));
   for (Int class_dim = ent_dim; class_dim <= mesh->dim(); ++class_dim) {
-    std::vector<LO> dim_class_ids;
-    for (size_t i = 0; i < class_pairs.size(); ++i) {
-      if (class_pairs[i].dim == class_dim) {
-        dim_class_ids.push_back(class_pairs[i].id);
-      }
-    }
+    auto dim_class_ids = get_dim_class_ids(class_dim, class_pairs);
     if (dim_class_ids.empty()) continue;
     auto class_dim_marks =
         mark_class_closures(mesh, ent_dim, class_dim, dim_class_ids);
