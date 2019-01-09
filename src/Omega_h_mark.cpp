@@ -138,6 +138,15 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
   return marks;
 }
 
+Read<I8> mark_class_closures(Mesh* mesh, Int class_dim,
+    std::vector<ClassId> const& class_ids, Graph nodes2ents) {
+  OMEGA_H_CHECK(nodes2ents.a2ab.exists());
+  OMEGA_H_CHECK(nodes2ents.ab2b.exists());
+  auto eq_marks = get_eq_marks(mesh, class_dim, class_ids);
+  auto marks = mark_down(nodes2ents, eq_marks);
+  return marks;
+}
+
 static std::vector<LO> get_dim_class_ids(Int class_dim,
     std::vector<ClassPair> const& class_pairs) {
   std::vector<LO> dim_class_ids;
@@ -157,6 +166,23 @@ Read<I8> mark_class_closures(
     if (dim_class_ids.empty()) continue;
     auto class_dim_marks =
         mark_class_closures(mesh, ent_dim, class_dim, dim_class_ids);
+    marks = lor_each(marks, class_dim_marks);
+  }
+  return marks;
+}
+
+Read<I8> mark_class_closures(Mesh* mesh,
+    std::vector<ClassPair> const& class_pairs, Graph nodes2ents[4]) {
+  auto dim = mesh->dim();
+  OMEGA_H_CHECK(nodes2ents[dim].a2ab.exists());
+  auto nnodes = nodes2ents[dim].a2ab.size() - 1;
+  auto marks = Read<I8>(nnodes, I8(0));
+  for (int class_dim = 0; class_dim <= dim; ++class_dim) {
+    auto dim_class_ids = get_dim_class_ids(class_dim, class_pairs);
+    if (dim_class_ids.empty()) continue;
+    auto class_dim_marks =
+      mark_class_closures(mesh, class_dim, dim_class_ids,
+          nodes2ents[class_dim]);
     marks = lor_each(marks, class_dim_marks);
   }
   return marks;
