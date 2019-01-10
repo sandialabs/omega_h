@@ -4,6 +4,7 @@
 #include <system_error>
 #include <cstdint>
 #include <iosfwd>
+#include <string>
 
 // our own tiny subset of std::filesystem while we wait for C++17
 
