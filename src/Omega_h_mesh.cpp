@@ -802,8 +802,8 @@ void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags) {
   if (tags[size_t(mesh->dim())].count("quality")) mesh->ask_qualities();
 }
 
-LOs ents_on_closure(
-    Mesh* mesh, std::set<std::string> const& class_names, Int ent_dim) {
+static std::vector<ClassPair> to_class_pairs(Mesh* mesh,
+    std::set<std::string> const& class_names) {
   std::set<ClassPair> class_pairs;
   for (auto& cn : class_names) {
     auto it = mesh->class_sets.find(cn);
@@ -819,8 +819,21 @@ LOs ents_on_closure(
   }
   std::vector<ClassPair> class_pair_vector(
       class_pairs.begin(), class_pairs.end());
-  auto ents_are_on = mark_class_closures(mesh, ent_dim, class_pair_vector);
+  return class_pair_vector;
+}
+
+LOs ents_on_closure(
+    Mesh* mesh, std::set<std::string> const& class_names, Int ent_dim) {
+  auto class_pairs = to_class_pairs(mesh, class_names);
+  auto ents_are_on = mark_class_closures(mesh, ent_dim, class_pairs);
   return collect_marked(ents_are_on);
+}
+
+LOs nodes_on_closure(Mesh* mesh,
+    std::set<std::string> const& class_names, Graph nodes2ents[4]) {
+  auto class_pairs = to_class_pairs(mesh, class_names);
+  auto nodes_are_on = mark_class_closures(mesh, class_pairs, nodes2ents);
+  return collect_marked(nodes_are_on);
 }
 
 #ifdef OMEGA_H_USE_CUDA

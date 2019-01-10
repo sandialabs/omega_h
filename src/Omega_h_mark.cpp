@@ -18,6 +18,19 @@ Read<I8> mark_exposed_sides(Mesh* mesh) {
   return exposed;
 }
 
+Read<I8> mark_down(Graph l2h, Read<I8> high_marked) {
+  auto l2lh = l2h.a2ab;
+  auto lh2h = l2h.ab2b;
+  auto nl = l2lh.size() - 1;
+  Write<I8> low_marks_w(nl, 0);
+  auto f = OMEGA_H_LAMBDA(LO l) {
+    for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
+      if (high_marked[lh2h[lh]]) low_marks_w[l] = 1;
+  };
+  parallel_for(nl, std::move(f));
+  return low_marks_w;
+}
+
 Read<I8> mark_down(
     Mesh* mesh, Int high_dim, Int low_dim, Read<I8> high_marked) {
   OMEGA_H_CHECK(0 <= low_dim);
@@ -25,16 +38,7 @@ Read<I8> mark_down(
   OMEGA_H_CHECK(high_dim <= 3);
   if (high_dim == low_dim) return high_marked;
   auto l2h = mesh->ask_up(low_dim, high_dim);
-  auto l2lh = l2h.a2ab;
-  auto lh2h = l2h.ab2b;
-  auto nl = mesh->nents(low_dim);
-  Write<I8> low_marks_w(nl, 0);
-  auto f = OMEGA_H_LAMBDA(LO l) {
-    for (LO lh = l2lh[l]; lh < l2lh[l + 1]; ++lh)
-      if (high_marked[lh2h[lh]]) low_marks_w[l] = 1;
-  };
-  parallel_for(nl, std::move(f));
-  auto low_marks = Read<I8>(low_marks_w);
+  auto low_marks = mark_down(l2h, high_marked);
   if (!mesh->owners_have_all_upward(low_dim)) {
     low_marks = mesh->reduce_array(low_dim, low_marks, 1, OMEGA_H_MAX);
   }
@@ -103,9 +107,8 @@ Read<I8> mark_class_closure(
   return mark_down(mesh, class_dim, ent_dim, eq_marks);
 }
 
-Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
+static Read<I8> get_eq_marks(Mesh* mesh, Int class_dim,
     std::vector<ClassId> const& class_ids) {
-  OMEGA_H_CHECK(class_dim >= ent_dim);
   auto sorted_class_ids = class_ids;
   std::sort(begin(sorted_class_ids), end(sorted_class_ids));
   HostWrite<LO> h_sorted_class_ids(LO(sorted_class_ids.size()));
@@ -124,24 +127,62 @@ Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
                                    eq_class_ids[eq], nclass_ids)));
   };
   parallel_for(neq, f, "mark_class_closures");
-  auto eq_marks = Read<I8>(eq_marks_w);
+  return eq_marks_w;
+}
+
+Read<I8> mark_class_closures(Mesh* mesh, Int ent_dim, Int class_dim,
+    std::vector<ClassId> const& class_ids) {
+  OMEGA_H_CHECK(class_dim >= ent_dim);
+  auto eq_marks = get_eq_marks(mesh, class_dim, class_ids);
   auto marks = mark_down(mesh, class_dim, ent_dim, eq_marks);
   return marks;
+}
+
+Read<I8> mark_class_closures(Mesh* mesh, Int class_dim,
+    std::vector<ClassId> const& class_ids, Graph nodes2ents) {
+  OMEGA_H_CHECK(nodes2ents.a2ab.exists());
+  OMEGA_H_CHECK(nodes2ents.ab2b.exists());
+  auto eq_marks = get_eq_marks(mesh, class_dim, class_ids);
+  auto marks = mark_down(nodes2ents, eq_marks);
+  return marks;
+}
+
+static std::vector<LO> get_dim_class_ids(Int class_dim,
+    std::vector<ClassPair> const& class_pairs) {
+  std::vector<LO> dim_class_ids;
+  for (size_t i = 0; i < class_pairs.size(); ++i) {
+    if (class_pairs[i].dim == class_dim) {
+      dim_class_ids.push_back(class_pairs[i].id);
+    }
+  }
+  return dim_class_ids;
 }
 
 Read<I8> mark_class_closures(
     Mesh* mesh, Int ent_dim, std::vector<ClassPair> const& class_pairs) {
   auto marks = Read<I8>(mesh->nents(ent_dim), I8(0));
   for (Int class_dim = ent_dim; class_dim <= mesh->dim(); ++class_dim) {
-    std::vector<LO> dim_class_ids;
-    for (size_t i = 0; i < class_pairs.size(); ++i) {
-      if (class_pairs[i].dim == class_dim) {
-        dim_class_ids.push_back(class_pairs[i].id);
-      }
-    }
+    auto dim_class_ids = get_dim_class_ids(class_dim, class_pairs);
     if (dim_class_ids.empty()) continue;
     auto class_dim_marks =
         mark_class_closures(mesh, ent_dim, class_dim, dim_class_ids);
+    marks = lor_each(marks, class_dim_marks);
+  }
+  return marks;
+}
+
+Read<I8> mark_class_closures(Mesh* mesh,
+    std::vector<ClassPair> const& class_pairs, Graph nodes2ents[4]) {
+  auto dim = mesh->dim();
+  OMEGA_H_CHECK(nodes2ents[dim].a2ab.exists());
+  auto nnodes = nodes2ents[dim].a2ab.size() - 1;
+  auto marks = Read<I8>(nnodes, I8(0));
+  for (int class_dim = 0; class_dim <= dim; ++class_dim) {
+    auto dim_class_ids = get_dim_class_ids(class_dim, class_pairs);
+    if (dim_class_ids.empty()) continue;
+    auto class_dim_marks =
+      mark_class_closures(mesh, class_dim, dim_class_ids,
+          nodes2ents[class_dim]);
     marks = lor_each(marks, class_dim_marks);
   }
   return marks;

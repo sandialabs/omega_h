@@ -543,7 +543,7 @@ static filesystem::path get_step_path(filesystem::path const& root_path, I64 ste
 
 filesystem::path get_pvtu_path(filesystem::path const& step_path) {
   auto result = step_path;
-  result += "pieces.pvtu";
+  result /= "pieces.pvtu";
   return result;
 }
 
