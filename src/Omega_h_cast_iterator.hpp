@@ -12,7 +12,7 @@ class CastIterator {
  public:
   using value_type = To;
   using difference_type = std::ptrdiff_t;
-  using reference = value_type const&;
+  using reference = value_type;
   using pointer = value_type const*;
   using iterator_category = std::random_access_iterator_tag;
   OMEGA_H_INLINE CastIterator() = default;
@@ -24,7 +24,6 @@ class CastIterator {
     return ptr != other.ptr;
   }
   OMEGA_H_INLINE reference operator*() const { return *ptr; }
-  OMEGA_H_INLINE pointer operator->() const { return ptr; }
   OMEGA_H_INLINE CastIterator& operator++() {
     ++ptr;
     return *this;
