@@ -144,7 +144,7 @@ SVD<2> svd_2x2(Matrix<2, 2> A) {
 // \return \f$ A = USV^T\f$
 //
 template <Int dim>
-OMEGA_H_INLINE SVD<dim> decompose_svd(Matrix<dim, dim> const A) {
+OMEGA_H_INLINE SVD<dim> svd_NxN(Matrix<dim, dim> const A) {
   // Scale first
   auto const norm_a = norm(A);
   auto const scale = norm_a > 0.0 ? norm_a : Real(1.0);
