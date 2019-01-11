@@ -120,11 +120,12 @@ static std::vector<int> sources_from_destinations(
     ScopedTimer first_barrier_timer("first barrier");
     CALL(MPI_Barrier(comm));
   }
-  char ignored_message = '\0';
+  char ignored_send_buffer = '\0';
+  char ignored_recv_buffer;
   std::vector<MPI_Request> send_requests(std::size_t(destinations.size()));
   int const tag = 377;
   for (int i = 0; i < destinations.size(); ++i) {
-    CALL(MPI_Issend(&ignored_message, 1, MPI_CHAR, destinations[i], tag, comm,
+    CALL(MPI_Issend(&ignored_send_buffer, 1, MPI_CHAR, destinations[i], tag, comm,
         &send_requests[std::size_t(i)]));
   }
   std::vector<int> sources;
@@ -139,7 +140,7 @@ static std::vector<int> sources_from_destinations(
     if (flag) {
       peer = status.MPI_SOURCE;
       CALL(MPI_Recv(
-          &ignored_message, 1, MPI_CHAR, peer, tag, comm, MPI_STATUS_IGNORE));
+          &ignored_recv_buffer, 1, MPI_CHAR, peer, tag, comm, MPI_STATUS_IGNORE));
       sources.push_back(peer);
     }
     if (locally_done_flag) {
