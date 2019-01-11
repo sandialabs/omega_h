@@ -26,48 +26,134 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd_old(Matrix<dim, dim> m) {
   return compose_ortho(decomp.q, decomp.l);
 }
 
-// square root of a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::sqrt(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-/* logarithm of a tensor in Special Orthogonal Group(3), as the
-   skew-symmetric cross product tensor of the axis of rotation times
-   the angle of rotation.
-  */
-OMEGA_H_INLINE Matrix<3, 3> log_so(Matrix<3, 3> r) {
-  auto theta = rotation_angle(r);
-  if (std::abs(theta) < EPSILON) return zero_matrix<3, 3>();
-  if (std::abs(theta - PI) < EPSILON) {
-    auto decomp = decompose_eigen_jacobi(r);
-    auto best_d = std::abs(decomp.l[0] - 1.0);
-    auto best_i = 0;
-    for (Int i = 1; i < 3; ++i) {
-      auto d = std::abs(decomp.l[i] - 1.0);
-      if (d < best_d) {
-        best_d = d;
-        best_i = i;
-      }
+// This function implements the singularity-free algorithm due to
+// Spurrier.
+//
+// First find the scalar "maxm", defined as the maximum among the
+// diagonal terms and the trace of the rotation tensor.
+//
+// i)  If maxm is equal to the trace of R, then:
+//       2 * sqrt(1 + maxm)
+//     and
+//       qv = axial_vec(skew(R)) / (2 * qs)
+// ii) If maxm is equal to R(j, j) (no summation), then:
+//       2 * qv[j] = sqrt(2 * maxm + 1 - tr(R))
+//       qs = axial_vec(skew(R))[j] / (2 * qv[j])
+//     and for i,j,k all different
+//       qv[k] = off_diag_vec(symm(R))[i] / (2 * qv[j])
+// Since the rotation tensor is a quadratic function of the quaternion,
+// at least one square root has to be evaluated to get back the
+// quaternion. After that, only divisions are needed and the divisor
+// should be bounded as far from zero as possible
+OMEGA_H_INLINE Vector<4> quaternion_from_so(Matrix<3, 3> R) {
+  auto const trR = trace(R);
+  auto const maxm = trR;
+  int maxi = 4;
+  q = zero_vector<4>();
+  for (int i = 0; i < 3; ++i) {
+    if (R(i, i) > maxm) {
+      maxm = R(i, i);
+      maxi = i;
     }
-    auto v = decomp.q[best_i];
-    return PI * cross(v);
   }
-  // R = cos(theta) * I + sin(theta) * cross(v) + (1 - cos(theta)) *
-  // outer_product(u, u)
-  // R - R^T = 2 * sin(theta) * cross(v)
-  return (theta / (2.0 * std::sin(theta))) * (r - transpose(r));
+  if (maxi == 4) {
+    auto const root = std::sqrt(maxm + 1.0);
+    auto const factor = 0.5 / root;
+    q[0] = 0.5 * root;
+    q[1] = factor * (R(2, 1) - R(1, 2));
+    q[2] = factor * (R(0, 2) - R(2, 0));
+    q[3] = factor * (R(1, 0) - R(0, 1));
+  } else if (maxi == 3) {
+    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
+    auto const factor = 0.5 / root;
+    q[0] = factor * (R(1, 0) - R(0, 1));
+    q[1] = factor * (R(0, 2) - R(2, 0));
+    q[2] = factor * (R(1, 2) - R(2, 1));
+    q[3] = 0.5 * root;
+  } else if (maxi == 2) {
+    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
+    auto const factor = 0.5 / root;
+    q[0] = factor * (R(0, 2) - R(2, 0));
+    q[1] = factor * (R(0, 1) - R(1, 0));
+    q[2] = 0.5 * root;
+    q[3] = factor * (R(1, 2) - R(2, 1));
+  } else if (maxi == 1) {
+    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
+    auto const factor = 0.5 / root;
+    q[0] = factor * (R(2, 1) - R(1, 2));
+    q[1] = 0.5 * root;
+    q[2] = factor * (R(0, 1) - R(1, 0));
+    q[3] = factor * (R(0, 2) - R(2, 0));
+  }
+  return q;
 }
 
-// exponential of axis-angle, resulting in an SO(3) tensor
-OMEGA_H_INLINE Matrix<3, 3> exp_so(Matrix<3, 3> log_r) {
-  auto const v_times_theta = uncross(log_r);
-  auto const theta = norm(v_times_theta);
-  if (std::abs(theta) < EPSILON) return identity_matrix<3, 3>();
-  auto const v = v_times_theta * (1.0 / theta);
-  return rotate(theta, v);
+// This function maps a quaternion, qq = (qs, qv), to its
+// corresponding "principal" rotation pseudo-vector, aa, where
+// "principal" signifies that |aa| <= pi. Both qq and -qq map into the
+// same rotation matrix. It is convenient to require that qs >= 0, for
+// reasons explained below. The sign inversion is applied to a local
+// copy of qq to avoid side effects.
+//
+//    |qv| = |sin(|aa| / 2)|
+//    qs = cos(|aa| / 2)
+//      <==>
+//    |aa| / 2 = k * pi (+ or -) asin(|qv|)
+//    |aa| / 2 = 2 * l * pi (+ or -) acos(qs)
+//
+// Where the smallest positive solution is: |aa| = 2 * acos(qs)
+// which satisfies the inequality: 0 <= |aa| <= pi
+// because of the assumption: qs >= 0. Given |aa|, aa
+// is obtained as:
+//
+//    aa = (|aa| / sin(acos(qs)))qv
+//       = (|aa| / sqrt(1 - qs^2))qv
+//
+// The procedure described above is prone to numerical errors when qs
+// is close to 1, i.e. when |aa| is close to 0. Since this is the most
+// common case, special care must be taken. It is observed that the
+// cosine function is insensitive to perturbations of its argument
+// in the neighborhood of points for which the sine function is conversely
+// at its most sensitive. Thus the numerical difficulties are avoided
+// by computing |aa| and aa as:
+//
+//    |aa| = 2 * asin(|qv|)
+//    aa = (|aa| / |qv|) qv
+//
+// whenever qs is close to 1.
+//
+OMEGA_H_INLINE Vector<3> rotation_vector_from_quaternion(Vector<4> q) {
+  Vector<4> q;
+  if (qq[1] >= 0) {
+    q = qq;
+  } else {
+    q = -qq;
+  }
+  qs = q[1];
+  auto const qv = vector_3(q[1], q[2], q[3]);
+  auto const qvnorm = norm(qv);
+  auto const aanorm = 2.0 * (qvnorm < std::sqrt(0.5) ? std::asin(qvnorm) : std::acos(qs));
+  auto const coef = qvnorm < std::sqrt(DBL_EPSILON) ? 2.0 : aanorm / qvnorm;
+  auto const aa = coef * qv;
+  return aa;
+}
+
+// logarithm of a rotation tensor in Special Orthogonal Group(3), as the
+// the axis of rotation times the angle of rotation.
+OMEGA_H_INLINE Vector<3> uncross_log_so(Matrix<3, 3> R) {
+  return rotation_vector_from_quaternion(quaternion_from_so(R));
+}
+
+// This function maps a rotation pseudo-vector, aa, to a quaternion, qq
+// = (qs, qv), where qv is a vector and qs a scalar, defined as
+// follows:
+//
+//   qv = sin(|aa| / 2) * aa / |aa|
+//   qs = cos(|aa| / 2)
+//
+OMEGA_H_INLINE Matrix<3, 3> exp_so_cross(Vector<3> aa) {
+  auto const halfnorm = 0.5 * norm(aa);
+  auto const temp = 0.5 * 
 }
 
 // logarithm of a tensor in Special Orthogonal Group(2)

@@ -340,6 +340,29 @@ struct multiplies {
   }
 };
 
+// In the algrebra of rotations one often comes across functions that
+// take undefined (0/0) values at some points. Close to such points
+// these functions must be evaluated using their asymptotic
+// expansions; otherwise the computer may produce wildly erroneous
+// results or a floating point exception. To avoid unreachable code
+// everywhere such functions are used, we introduce here functions to
+// the same effect.
+//
+// Function form: sin(x) / x
+// X: 0
+// Asymptotics: 1.0 (-x^2/6)
+// First radius: (6 * EPS)^(.5)
+// Second radius: (120 * EPS)^(.25)
+OMEGA_H_INLINE double sin_x_over_x(double x) {
+  auto const y = std::abs(x);
+  auto const e2 = std::sqrt(DBL_EPSILON);
+  auto const e4 = std::sqrt(e2);
+  if (y > e4) {
+    return std::sin(y) / y;
+  } else {
+  }
+}
+
 }  // namespace Omega_h
 
 #endif
