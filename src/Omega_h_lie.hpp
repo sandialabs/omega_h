@@ -6,24 +6,9 @@
  */
 
 #include <Omega_h_eigen.hpp>
+#include <Omega_h_svd.hpp>
 
 namespace Omega_h {
-
-// logarithm of a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> log_spd(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen_jacobi(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-// exponential resulting in a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen_jacobi(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
 
 // logarithm of a symmetric positive definite tensor
 template <Int dim>
