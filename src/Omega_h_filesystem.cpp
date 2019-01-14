@@ -117,6 +117,7 @@ file_status status(path const& p) {
   else if (buf.st_mode & S_IFBLK) type = file_type::block;
   else if (buf.st_mode & S_IFCHR) type = file_type::character;
   else if (buf.st_mode & S_IFIFO) type = file_type::fifo;
+  else throw filesystem_error(errno, "status");
   return file_status(type);
 }
 
