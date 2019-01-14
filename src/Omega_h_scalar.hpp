@@ -353,13 +353,16 @@ struct multiplies {
 // Asymptotics: 1.0 (-x^2/6)
 // First radius: (6 * EPS)^(.5)
 // Second radius: (120 * EPS)^(.25)
-OMEGA_H_INLINE double sin_x_over_x(double x) {
+OMEGA_H_INLINE Real sin_x_over_x(Real x) {
   auto const y = std::abs(x);
   auto const e2 = std::sqrt(DBL_EPSILON);
   auto const e4 = std::sqrt(e2);
   if (y > e4) {
     return std::sin(y) / y;
+  } else if (y > e2) {
+    return 1.0 - y * y / 6.0;
   } else {
+    return 1.0;
   }
 }
 
