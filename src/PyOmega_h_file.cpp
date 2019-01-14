@@ -1,11 +1,14 @@
 #include <Omega_h_file.hpp>
 #include <PyOmega_h.hpp>
+#include <Omega_h_filesystem.hpp>
 
 namespace Omega_h {
 
 void pybind11_file(py::module& module) {
-  Mesh (*gmsh_read_file)(std::string const&, CommPtr) = &gmsh::read;
-  void (*gmsh_write_file)(std::string const&, Mesh*) = &gmsh::write;
+  py::class_ <Omega_h::filesystem::path>(module, "path")
+       .def(py::init<char const *>());
+  Mesh (*gmsh_read_file)(filesystem::path const&, CommPtr) = &gmsh::read;
+  void (*gmsh_write_file)(filesystem::path const&, Mesh*) = &gmsh::write;
   void (*vtk_write_vtu_dim)(std::string const&, Mesh*, Int, bool) =
       &vtk::write_vtu;
   void (*vtk_write_vtu)(std::string const&, Mesh*, bool) = &vtk::write_vtu;

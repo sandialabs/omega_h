@@ -22,7 +22,7 @@ void pybind11_defines(py::module& module) {
       .value("DERIVATIVE", OMEGA_H_DERIVATIVE)
       .value("GIVEN", OMEGA_H_GIVEN)
       .value("IMPLIED", OMEGA_H_IMPLIED)
-      .value("PROXIMITY", OMEGA_H_PROXIMITY)
+      //.value("PROXIMITY", OMEGA_H_PROXIMITY)
       .value("CURVATURE", OMEGA_H_CURVATURE)
       .export_values();
   py::enum_<Omega_h_Isotropy>(module, "Isotropy",
