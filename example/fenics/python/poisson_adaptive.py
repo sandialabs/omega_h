@@ -1,4 +1,4 @@
-# Solving the Poisson problem adaptively using Omega_h for the mesh adaptation
+# Solving the Poisson problem adaptively using Omega_h
 
 from dolfin import *;
 from mshr import *;
@@ -51,19 +51,22 @@ while(i < maxiter):
     file = File("poisson_u_"+ str(i) +".pvd")
     file << u
 
+    # Import u from dolfin to omega_h
     omega_h.function_from_dolfin(mesh_osh, u._cpp_object, "u")
-
+ 
+    # Set up metric, adaptivity parameters
     mesh_osh.set_parting(omega_h.GHOSTED, 0);
     metric_input = omega_h.MetricInput()
     source = omega_h.MetricSource(omega_h.VARIATION, 2e-3, "u")
     metric_input.add_source(source)
     metric_input.should_limit_lengths = True
-    metric_input.max_length = 1.0 / 4.0
+    metric_input.max_length = 1.0 / 2.0
     metric_input.should_limit_gradation = True
     omega_h.generate_target_metric_tag(mesh_osh, metric_input) 
     opts = omega_h.AdaptOpts(mesh_osh)
     opts.verbosity = omega_h.EXTRA_STATS
 		
+    # Adapt mesh
     while(omega_h.approach_metric(mesh_osh, opts)):
         omega_h.adapt(mesh_osh, opts)
 
