@@ -251,13 +251,13 @@ template <Int dim>
 OMEGA_H_INLINE void align_packed_axis_angles(Matrix<dim, dim>* const a, Int const n, Real const tolerance) OMEGA_H_NOEXCEPT {
   auto const alpha = 1.0 - tolerance;
   auto const s_1 = unpack_polar_axis_angle(a[0]);
-  auto const s = norm(s_1);
+  auto s = norm(s_1);
   auto const pi_sq = square(PI);
-  auto const pi_2 = 2.0 * PI;
+  auto const two_pi = 2.0 * PI;
   for (Int i = 1; i < n; ++i) {
     auto s_i = unpack_polar_axis_angle(a[i]);
     if ((s_i * s_1) < (-alpha * pi_sq)) { // pseudo-vectors are nearly opposite with angle close to pi
-      s_i = s_i - pi_2 * normalize(s_i);
+      s_i = s_i - two_pi * normalize(s_i);
       a[i] = pack_polar(unpack_polar_spd(a[i]), s_i);
     }
     s = s + norm(s_i);
@@ -265,7 +265,7 @@ OMEGA_H_INLINE void align_packed_axis_angles(Matrix<dim, dim>* const a, Int cons
   if (s > (n * PI)) { // renormalize so that ||s_i|| <= pi
     for (Int i = 0; i < n; ++i) {
       auto s_i = unpack_polar_axis_angle(a[i]);
-      s_i = s_i - pi_2 * normalize(s_i);
+      s_i = s_i - two_pi * normalize(s_i);
       a[i] = pack_polar(unpack_polar_spd(a[i]), s_i);
     }
   }
