@@ -1,9 +1,10 @@
-#include "Omega_h_array_ops.hpp"
-#include "Omega_h_eigen.hpp"
-#include "Omega_h_metric_intersect.hpp"
-#include "Omega_h_most_normal.hpp"
-#include "Omega_h_shape.hpp"
-#include "Omega_h_svd.hpp"
+#include <Omega_h_array_ops.hpp>
+#include <Omega_h_eigen.hpp>
+#include <Omega_h_metric_intersect.hpp>
+#include <Omega_h_most_normal.hpp>
+#include <Omega_h_shape.hpp>
+#include <Omega_h_svd.hpp>
+#include <Omega_h_lie.hpp>
 
 using namespace Omega_h;
 
@@ -290,10 +291,10 @@ static void test_circumcenter() {
 }
 
 template <Int dim>
-static void test_lie(Matrix<dim, dim> a) {
-  auto log_a = log_glp(a);
-  auto a2 = exp_glp(log_a);
-  OMEGA_H_CHECK(are_close(a2, a));
+static void test_lie(Matrix<dim, dim> F) {
+  auto log_F = log_polar(F);
+  auto exp_log_F = exp_polar(log_F);
+  OMEGA_H_CHECK(are_close(exp_log_F, F));
 }
 
 template <Int dim>
@@ -396,7 +397,7 @@ static void test_volume_vert_gradients() {
 
 template <Int dim>
 static void test_svd_properties(Matrix<dim, dim> const A) {
-  auto const svd = svd_NxN(A);
+  auto const svd = decompose_svd(A);
   OMEGA_H_CHECK(are_close(svd.U * svd. S * svd.V, A));
   OMEGA_H_CHECK(are_close(svd.U * transpose(svd.U), identity_matrix<dim, dim>()));
   OMEGA_H_CHECK(are_close(svd.V * transpose(svd.V), identity_matrix<dim, dim>()));
@@ -405,21 +406,21 @@ static void test_svd_properties(Matrix<dim, dim> const A) {
 static void test_svd() {
   {
   auto const a = identity_matrix<1, 1>();
-  auto const svd = svd_NxN(a);
+  auto const svd = decompose_svd(a);
   OMEGA_H_CHECK(are_close(svd.U(0, 0), 1.0));
   OMEGA_H_CHECK(are_close(svd.S(0, 0), 1.0));
   OMEGA_H_CHECK(are_close(svd.V(0, 0), 1.0));
   }
   {
   auto const a = identity_matrix<1, 1>() * 0.5;
-  auto const svd = svd_NxN(a);
+  auto const svd = decompose_svd(a);
   OMEGA_H_CHECK(are_close(svd.U(0, 0), 1.0));
   OMEGA_H_CHECK(are_close(svd.S(0, 0), 0.5));
   OMEGA_H_CHECK(are_close(svd.V(0, 0), 1.0));
   }
   {
   auto const a = identity_matrix<2, 2>();
-  auto const svd = svd_NxN(a);
+  auto const svd = decompose_svd(a);
   OMEGA_H_CHECK(are_close(svd.U, a));
   OMEGA_H_CHECK(are_close(svd.S, a));
   OMEGA_H_CHECK(are_close(svd.V, a));
@@ -427,7 +428,7 @@ static void test_svd() {
   {
   auto const I = identity_matrix<2, 2>();
   auto const a = I * 0.5;
-  auto const svd = svd_NxN(a);
+  auto const svd = decompose_svd(a);
   OMEGA_H_CHECK(are_close(svd.U, I));
   OMEGA_H_CHECK(are_close(svd.S, a));
   OMEGA_H_CHECK(are_close(svd.V, I));

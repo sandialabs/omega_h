@@ -17,7 +17,7 @@ struct Givens {
 };
 
 OMEGA_H_INLINE
-Givens givens(Real a, Real b) {
+Givens givens(Real const a, Real const b) noexcept {
   auto c = 1.0;
   auto s = 0.0;
   if (b != 0.0) {
@@ -50,7 +50,7 @@ struct SVD {
 // \return \f$ A = USV^T\f$
 //
 OMEGA_H_INLINE
-SVD<2> svd_bidiagonal(Real f, Real g, Real h) {
+SVD<2> svd_bidiagonal(Real f, Real const g, Real h) noexcept {
   auto fa = std::abs(f);
   auto ga = std::abs(g);
   auto ha = std::abs(h);
@@ -121,7 +121,7 @@ SVD<2> svd_bidiagonal(Real f, Real g, Real h) {
 }
 
 OMEGA_H_INLINE
-SVD<2> svd_2x2(Matrix<2, 2> A) {
+SVD<2> svd_2x2(Matrix<2, 2> const A) OMEGA_H_NOEXCEPT {
   // First compute a givens rotation to eliminate 1,0 entry in tensor
   auto const cs = givens(A(0, 0), A(1, 0));
   auto const c = cs.c;
@@ -144,7 +144,7 @@ SVD<2> svd_2x2(Matrix<2, 2> A) {
 // \return \f$ A = USV^T\f$
 //
 template <Int dim>
-OMEGA_H_INLINE SVD<dim> svd_NxN(Matrix<dim, dim> const A) {
+OMEGA_H_INLINE SVD<dim> decompose_svd(Matrix<dim, dim> const A) OMEGA_H_NOEXCEPT {
   // Scale first
   auto const norm_a = norm(A);
   auto const scale = norm_a > 0.0 ? norm_a : Real(1.0);

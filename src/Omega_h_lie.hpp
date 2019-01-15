@@ -6,173 +6,272 @@
  */
 
 #include <Omega_h_eigen.hpp>
+#include <Omega_h_svd.hpp>
 
 namespace Omega_h {
 
-// logarithm of a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> log_spd(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen_jacobi(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-// exponential resulting in a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> exp_spd(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen_jacobi(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-// logarithm of a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> log_spd_old(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-// exponential resulting in a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd_old(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-// square root of a symmetric positive definite tensor
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> m) {
-  auto decomp = decompose_eigen(m);
-  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::sqrt(decomp.l[i]);
-  return compose_ortho(decomp.q, decomp.l);
-}
-
-/* logarithm of a tensor in Special Orthogonal Group(3), as the
-   skew-symmetric cross product tensor of the axis of rotation times
-   the angle of rotation.
-  */
-OMEGA_H_INLINE Matrix<3, 3> log_so(Matrix<3, 3> r) {
-  auto theta = rotation_angle(r);
-  if (std::abs(theta) < EPSILON) return zero_matrix<3, 3>();
-  if (std::abs(theta - PI) < EPSILON) {
-    auto decomp = decompose_eigen_jacobi(r);
-    auto best_d = std::abs(decomp.l[0] - 1.0);
-    auto best_i = 0;
-    for (Int i = 1; i < 3; ++i) {
-      auto d = std::abs(decomp.l[i] - 1.0);
-      if (d < best_d) {
-        best_d = d;
-        best_i = i;
-      }
+// This function implements the singularity-free algorithm due to
+// Spurrier.
+//
+// First find the scalar "maxm", defined as the maximum among the
+// diagonal terms and the trace of the rotation tensor.
+//
+// i)  If maxm is equal to the trace of R, then:
+//       2 * sqrt(1 + maxm)
+//     and
+//       qv = axial_vec(skew(R)) / (2 * qs)
+// ii) If maxm is equal to R(j, j) (no summation), then:
+//       2 * qv[j] = sqrt(2 * maxm + 1 - tr(R))
+//       qs = axial_vec(skew(R))[j] / (2 * qv[j])
+//     and for i,j,k all different
+//       qv[k] = off_diag_vec(symm(R))[i] / (2 * qv[j])
+// Since the rotation tensor is a quadratic function of the quaternion,
+// at least one square root has to be evaluated to get back the
+// quaternion. After that, only divisions are needed and the divisor
+// should be bounded as far from zero as possible
+OMEGA_H_INLINE Vector<4> quaternion_from_tensor(Matrix<3, 3> const R) OMEGA_H_NOEXCEPT {
+  auto const trR = trace(R);
+  auto maxm = trR;
+  int maxi = 4;
+  Vector<4> q;
+  for (int i = 0; i < 3; ++i) {
+    if (R(i, i) > maxm) {
+      maxm = R(i, i);
+      maxi = i;
     }
-    auto v = decomp.q[best_i];
-    return PI * cross(v);
   }
-  // R = cos(theta) * I + sin(theta) * cross(v) + (1 - cos(theta)) *
-  // outer_product(u, u)
-  // R - R^T = 2 * sin(theta) * cross(v)
-  return (theta / (2.0 * std::sin(theta))) * (r - transpose(r));
+  if (maxi == 4) {
+    auto const root = std::sqrt(maxm + 1.0);
+    auto const factor = 0.5 / root;
+    q[0] = 0.5 * root;
+    q[1] = factor * (R(2, 1) - R(1, 2));
+    q[2] = factor * (R(0, 2) - R(2, 0));
+    q[3] = factor * (R(1, 0) - R(0, 1));
+  } else if (maxi == 3) {
+    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
+    auto const factor = 0.5 / root;
+    q[0] = factor * (R(1, 0) - R(0, 1));
+    q[1] = factor * (R(0, 2) - R(2, 0));
+    q[2] = factor * (R(1, 2) - R(2, 1));
+    q[3] = 0.5 * root;
+  } else if (maxi == 2) {
+    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
+    auto const factor = 0.5 / root;
+    q[0] = factor * (R(0, 2) - R(2, 0));
+    q[1] = factor * (R(0, 1) - R(1, 0));
+    q[2] = 0.5 * root;
+    q[3] = factor * (R(1, 2) - R(2, 1));
+  } else if (maxi == 1) {
+    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
+    auto const factor = 0.5 / root;
+    q[0] = factor * (R(2, 1) - R(1, 2));
+    q[1] = 0.5 * root;
+    q[2] = factor * (R(0, 1) - R(1, 0));
+    q[3] = factor * (R(0, 2) - R(2, 0));
+  }
+  return q;
 }
 
-// exponential of axis-angle, resulting in an SO(3) tensor
-OMEGA_H_INLINE Matrix<3, 3> exp_so(Matrix<3, 3> log_r) {
-  auto const v_times_theta = uncross(log_r);
-  auto const theta = norm(v_times_theta);
-  if (std::abs(theta) < EPSILON) return identity_matrix<3, 3>();
-  auto const v = v_times_theta * (1.0 / theta);
-  return rotate(theta, v);
+// This function maps a quaternion, qq = (qs, qv), to its
+// corresponding "principal" rotation pseudo-vector, aa, where
+// "principal" signifies that |aa| <= pi. Both qq and -qq map into the
+// same rotation matrix. It is convenient to require that qs >= 0, for
+// reasons explained below. The sign inversion is applied to a local
+// copy of qq to avoid side effects.
+//
+//    |qv| = |sin(|aa| / 2)|
+//    qs = cos(|aa| / 2)
+//      <==>
+//    |aa| / 2 = k * pi (+ or -) asin(|qv|)
+//    |aa| / 2 = 2 * l * pi (+ or -) acos(qs)
+//
+// Where the smallest positive solution is: |aa| = 2 * acos(qs)
+// which satisfies the inequality: 0 <= |aa| <= pi
+// because of the assumption: qs >= 0. Given |aa|, aa
+// is obtained as:
+//
+//    aa = (|aa| / sin(acos(qs)))qv
+//       = (|aa| / sqrt(1 - qs^2))qv
+//
+// The procedure described above is prone to numerical errors when qs
+// is close to 1, i.e. when |aa| is close to 0. Since this is the most
+// common case, special care must be taken. It is observed that the
+// cosine function is insensitive to perturbations of its argument
+// in the neighborhood of points for which the sine function is conversely
+// at its most sensitive. Thus the numerical difficulties are avoided
+// by computing |aa| and aa as:
+//
+//    |aa| = 2 * asin(|qv|)
+//    aa = (|aa| / |qv|) qv
+//
+// whenever qs is close to 1.
+//
+OMEGA_H_INLINE Vector<3> axis_angle_from_quaternion(Vector<4> const qq) OMEGA_H_NOEXCEPT {
+  Vector<4> q;
+  if (qq[0] >= 0) {
+    q = qq;
+  } else {
+    q = -qq;
+  }
+  auto const qs = q[0];
+  auto const qv = vector_3(q[1], q[2], q[3]);
+  auto const qvnorm = norm(qv);
+  auto const aanorm = 2.0 * (qvnorm < std::sqrt(0.5) ? std::asin(qvnorm) : std::acos(qs));
+  auto const coef = qvnorm < std::sqrt(DBL_EPSILON) ? 2.0 : aanorm / qvnorm;
+  auto const aa = coef * qv;
+  return aa;
 }
 
-// logarithm of a tensor in Special Orthogonal Group(2)
-OMEGA_H_INLINE Matrix<2, 2> log_so(Matrix<2, 2> r) {
-  auto const theta = rotation_angle(r);
-  return matrix_2x2(0, -theta, theta, 0);
+// logarithm of a rotation tensor in Special Orthogonal Group(3), as the
+// the axis of rotation times the angle of rotation.
+OMEGA_H_INLINE Vector<3> axis_angle_from_tensor(Matrix<3, 3> const R) OMEGA_H_NOEXCEPT {
+  return axis_angle_from_quaternion(quaternion_from_tensor(R));
 }
 
-// exponential resulting in an SO(2) tensor
-OMEGA_H_INLINE Matrix<2, 2> exp_so(Matrix<2, 2> log_r) {
-  auto const theta = 0.5 * (log_r(1, 0) - log_r(0, 1));
+OMEGA_H_INLINE Vector<1> axis_angle_from_tensor(Matrix<2, 2> const R) OMEGA_H_NOEXCEPT {
+  auto const theta = rotation_angle(R);
+  return vector_1(theta);
+}
+
+// This function maps a rotation pseudo-vector, aa, to a quaternion, qq
+// = (qs, qv), where qv is a vector and qs a scalar, defined as
+// follows:
+//
+//   qv = sin(|aa| / 2) * aa / |aa|
+//   qs = cos(|aa| / 2)
+//
+OMEGA_H_INLINE Vector<4> quaternion_from_axis_angle(Vector<3> const aa) OMEGA_H_NOEXCEPT {
+  auto const halfnorm = 0.5 * norm(aa);
+  auto const temp = 0.5 * sin_x_over_x(halfnorm);
+  Vector<4> qq;
+  auto const qv = temp * aa;
+  for (int i = 0; i < 3; ++i) qq[i + 1] = qv[i];
+  qq[0] = std::cos(halfnorm);
+  return qq;
+}
+
+OMEGA_H_INLINE Matrix<3, 3> tensor_from_quaternion(Vector<4> const qq) {
+  auto const qs = qq[0];
+  auto const qv = vector_3(qq[1], qq[2], qq[3]);
+  auto const I = identity_matrix<3, 3>();
+  auto const R = 2.0 * outer_product(qv, qv) + 2.0 * qs * cross(qv) + (2.0 * square(qs) - 1.0) * I;
+  return R;
+}
+
+OMEGA_H_INLINE Matrix<3, 3> tensor_from_axis_angle(Vector<3> const aa) OMEGA_H_NOEXCEPT {
+  return tensor_from_quaternion(quaternion_from_axis_angle(aa));
+}
+
+OMEGA_H_INLINE Matrix<2, 2> tensor_from_axis_angle(Vector<1> const aa) OMEGA_H_NOEXCEPT {
+  auto const theta = aa[0];
   return rotate(theta);
 }
 
-OMEGA_H_INLINE Matrix<1, 1> log_so(Matrix<1, 1>) { return matrix_1x1(0.0); }
+OMEGA_H_INLINE Matrix<3, 3> pack_polar(Matrix<3, 3> const spd, Vector<3> const aa) OMEGA_H_NOEXCEPT {
+  Matrix<3, 3> packed = spd;
+  packed(0,1) = aa[0];
+  packed(0,2) = aa[1];
+  packed(1,2) = aa[2];
+  return packed;
+}
 
-OMEGA_H_INLINE Matrix<1, 1> exp_so(Matrix<1, 1>) { return matrix_1x1(1.0); }
+OMEGA_H_INLINE Matrix<3, 3> unpack_polar_spd(Matrix<3, 3> const packed) OMEGA_H_NOEXCEPT {
+  Matrix<3, 3> spd = packed;
+  spd(0,1) = spd(1,0);
+  spd(0,2) = spd(2,0);
+  spd(1,2) = spd(2,1);
+  return spd;
+}
 
-/* get the logarithm of a tensor in the "identity component of the general
-   linear group",
-   denoted by GL+(n) in:
+OMEGA_H_INLINE Vector<3> unpack_polar_axis_angle(Matrix<3, 3> const packed) OMEGA_H_NOEXCEPT {
+  Vector<3> aa;
+  aa[0] = packed(0,1);
+  aa[1] = packed(0,2);
+  aa[2] = packed(1,2);
+  return aa;
+}
 
-   Mota, Alejandro, et al.
-   "Lie-group interpolation and variational recovery for internal variables."
-   Computational Mechanics 52.6 (2013): 1281-1299.
+OMEGA_H_INLINE Matrix<2, 2> pack_polar(Matrix<2, 2> const spd, Vector<1> const aa) OMEGA_H_NOEXCEPT {
+  Matrix<2, 2> packed = spd;
+  packed(0,1) = aa[0];
+  return packed;
+}
 
-   We deviate from the approach outlined in the above paper.
-   Instead of dealing with R and S, we take logarithms of the three SVD
-   components
-   U, D, and V.
- */
+OMEGA_H_INLINE Matrix<2, 2> unpack_polar_spd(Matrix<2, 2> const packed) OMEGA_H_NOEXCEPT {
+  Matrix<2, 2> spd = packed;
+  spd(0,1) = spd(1,0);
+  return spd;
+}
 
-template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> log_glp(Matrix<dim, dim> A) {
-  // A = U * D * V^T
-  // A * A^T = U * D^2 * U^T
-  auto const UD = decompose_eigen_jacobi(A * transpose(A));
-  auto const U = UD.q;
-  auto const D_sq = UD.l;
-  Vector<dim> D, D_inv, log_D;
-  for (Int i = 0; i < dim; ++i) {
-    D[i] = std::sqrt(D_sq[i]);
-    D_inv[i] = 1.0 / D[i];
-    log_D[i] = std::log(D[i]);
-  }
-  // V^T = D^{-1} * U^T * A
-  auto const VT = diagonal(D_inv) * transpose(U) * A;
-  auto const V = transpose(VT);
-  auto const log_U = log_so(U);
-  auto const log_V = log_so(V);
-  Matrix<dim, dim> log_A;
-  // mix the independent components as follows:
-  // the lower triangle will store the lower triangle
-  // of log(U), the upper triangle will be upper triangle of log(V),
-  // and the diagonal will be the diagonal of log(D)
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      if (i < j)
-        log_A(i, j) = log_V(i, j);
-      else if (i > j)
-        log_A(i, j) = log_U(i, j);
-      else
-        log_A(i, i) = log_D(i);
-    }
-  }
-  return log_A;
+OMEGA_H_INLINE Vector<1> unpack_polar_axis_angle(Matrix<2, 2> const packed) OMEGA_H_NOEXCEPT {
+  Vector<1> aa;
+  aa[0] = packed(0,1);
+  return aa;
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> exp_glp(Matrix<dim, dim> log_A) {
-  auto log_U = zero_matrix<dim, dim>();
-  auto log_V = zero_matrix<dim, dim>();
-  Vector<dim> log_D;
-  for (Int i = 0; i < dim; ++i) {
-    for (Int j = 0; j < dim; ++j) {
-      if (i < j)
-        log_V(i, j) = log_A(i, j);
-      else if (i > j)
-        log_U(i, j) = log_A(i, j);
-      else
-        log_D(i) = log_A(i, i);
+OMEGA_H_INLINE Matrix<dim, dim> log_polar(Matrix<dim, dim> const F) OMEGA_H_NOEXCEPT {
+  auto const svd = decompose_svd(F);
+  auto const X = svd.U;
+  auto const D = svd.S;
+  auto const YT = svd.V;
+  auto const Y = transpose(YT);
+  auto const R = X * YT;
+  auto const r = axis_angle_from_tensor(R);
+  Matrix<dim, dim> d = zero_matrix<dim, dim>();
+  for (Int i = 0; i < dim; ++i) d(i, i) = std::log(D(i, i));
+  auto const u = Y * d * YT;
+  return pack_polar(u, r);
+}
+
+OMEGA_H_INLINE Matrix<1, 1> log_polar(Matrix<1, 1> const F) OMEGA_H_NOEXCEPT {
+  return matrix_1x1(std::log(F(0, 0)));
+}
+
+template <Int dim>
+OMEGA_H_INLINE Matrix<dim, dim> exp_polar(Matrix<dim, dim> const packed_polar) OMEGA_H_NOEXCEPT {
+  auto const r = unpack_polar_axis_angle(packed_polar);
+  auto const R = tensor_from_axis_angle(r);
+  auto const u = unpack_polar_spd(packed_polar);
+  auto const U = exp_spd(u);
+  auto const F = R * U;
+  return F;
+}
+
+OMEGA_H_INLINE Matrix<1, 1> exp_polar(Matrix<1, 1> const log_F) OMEGA_H_NOEXCEPT {
+  return matrix_1x1(std::exp(log_F(0, 0)));
+}
+
+// this function modifies the axis-angle rotations of a given array of logarithms of polar decompositions
+// such that there are no axis-angle vectors which are nearly opposite with angles close to pi.
+// this later allows weighted sums of those vectors to give meaningful results and avoids the catastropic
+// cancellation case of having (epsilon - pi) and (-epsilon + pi) average to zero.
+// tolerance: between 0 and 1, tolerance for opposite pseudo-vectors mapping to rotations close to pi
+template <Int dim>
+OMEGA_H_INLINE void align_packed_axis_angles(Matrix<dim, dim>* const a, Int const n, Real const tolerance) OMEGA_H_NOEXCEPT {
+  auto const alpha = 1.0 - tolerance;
+  auto const s_1 = unpack_polar_axis_angle(a[0]);
+  auto s = norm(s_1);
+  auto const pi_sq = square(PI);
+  auto const two_pi = 2.0 * PI;
+  for (Int i = 1; i < n; ++i) {
+    auto s_i = unpack_polar_axis_angle(a[i]);
+    if ((s_i * s_1) < (-alpha * pi_sq)) { // pseudo-vectors are nearly opposite with angle close to pi
+      s_i = s_i - two_pi * normalize(s_i);
+      a[i] = pack_polar(unpack_polar_spd(a[i]), s_i);
+    }
+    s = s + norm(s_i);
+  }
+  if (s > (n * PI)) { // renormalize so that ||s_i|| <= pi
+    for (Int i = 0; i < n; ++i) {
+      auto s_i = unpack_polar_axis_angle(a[i]);
+      s_i = s_i - two_pi * normalize(s_i);
+      a[i] = pack_polar(unpack_polar_spd(a[i]), s_i);
     }
   }
-  log_U -= transpose(log_U);
-  log_V -= transpose(log_V);
-  auto const U = exp_so(log_U);
-  auto const V = exp_so(log_V);
-  Vector<dim> D;
-  for (Int i = 0; i < dim; ++i) D(i) = std::exp(log_D(i));
-  return U * diagonal(D) * transpose(V);
+}
+
+OMEGA_H_INLINE void align_packed_axis_angles(Matrix<1, 1>* const, Int const, Real const) OMEGA_H_NOEXCEPT {
 }
 
 }  // namespace Omega_h
