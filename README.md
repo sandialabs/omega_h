@@ -18,7 +18,7 @@ For a bare minimum setup with no parallelism, you just need [CMake][0],
 a C++11 compiler, and preferably [ZLib][6] installed.
 
 ```shell
-git clone git@github.com:ibaned/omega_h.git
+git clone git@github.com:SNLComputation/omega_h.git
 cd omega_h
 cmake . -DCMAKE_INSTALL_PREFIX=/your/choice
 make install
