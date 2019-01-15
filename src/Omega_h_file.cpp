@@ -641,25 +641,28 @@ Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
   auto const extension = path.extension().string();
   if (extension == ".osh") {
     return binary::read(path, comm);
-  } else
+  } else if (extension == ".meshb") {
 #ifdef OMEGA_H_USE_LIBMESHB
-      if (extension == ".meshb") {
     Mesh mesh(comm->library());
     meshb::read(&mesh, path);
     mesh.set_comm(comm);
     return mesh;
-  } else
+#else
+    Omega_h_fail("Omega_h: Can't read %s without reconfiguring with OMEGA_H_USE_libMeshb=ON\n", path.c_str());
+    OMEGA_H_NORETURN(Mesh());
 #endif
+  } else if (extension == ".exo" || extension == ".e" || extension == ".g") {
 #ifdef OMEGA_H_USE_SEACASEXODUS
-      if (extension == ".exo" || extension == ".e" || extension == ".g") {
     Mesh mesh(comm->library());
     auto file = exodus::open(path);
     exodus::read_mesh(file, &mesh);
     mesh.set_comm(comm);
     return mesh;
-  } else
+#else
+    Omega_h_fail("Omega_h: Can't read %s without reconfiguring with OMEGA_H_USE_SEACASExodus=ON\n", path.c_str());
+    OMEGA_H_NORETURN(Mesh());
 #endif
-      if (extension == ".msh") {
+  } else if (extension == ".msh") {
     return gmsh::read(path, comm);
   } else if (extension == ".pvtu") {
     Mesh mesh(comm->library());
@@ -673,7 +676,7 @@ Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
     vtk::read_vtu(stream, comm, &mesh);
     return mesh;
   } else {
-    Omega_h_fail("Unknown file extension on \"%s\"\n", path.c_str());
+    Omega_h_fail("Unknown file extension \"%s\" on \"%s\"\n", extension.c_str(), path.c_str());
   }
 }
 
