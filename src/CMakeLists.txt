@@ -456,6 +456,7 @@ set(Omega_h_HEADERS
   Omega_h_indset_inline.hpp
   Omega_h_malloc.hpp
   Omega_h_filesystem.hpp
+  Omega_h_svd.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)

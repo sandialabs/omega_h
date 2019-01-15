@@ -186,8 +186,8 @@ void reorder_by_globals(Mesh* mesh);
 LOs ents_on_closure(
     Mesh* mesh, std::set<std::string> const& class_names, Int ent_dim);
 
-LOs nodes_on_closure(Mesh* mesh,
-    std::set<std::string> const& class_names, Graph nodes2ents[4]);
+LOs nodes_on_closure(
+    Mesh* mesh, std::set<std::string> const& class_names, Graph nodes2ents[4]);
 
 // workaround CUDA compiler bug
 #ifdef OMEGA_H_USE_CUDA

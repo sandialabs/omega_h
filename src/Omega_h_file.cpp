@@ -459,7 +459,8 @@ void read(std::istream& stream, Mesh* mesh, I32 version) {
   }
 }
 
-static void write_int_file(filesystem::path const& filepath, Mesh* mesh, I32 value) {
+static void write_int_file(
+    filesystem::path const& filepath, Mesh* mesh, I32 value) {
   if (mesh->comm()->rank() == 0) {
     std::ofstream file(filepath.c_str());
     OMEGA_H_CHECK(file.is_open());
@@ -650,8 +651,7 @@ Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
   } else
 #endif
 #ifdef OMEGA_H_USE_SEACASEXODUS
-      if (extension == ".exo" || extension == ".e" ||
-          extension == ".g") {
+      if (extension == ".exo" || extension == ".e" || extension == ".g") {
     Mesh mesh(comm->library());
     auto file = exodus::open(path);
     exodus::read_mesh(file, &mesh);

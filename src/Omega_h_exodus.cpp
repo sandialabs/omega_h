@@ -394,8 +394,8 @@ static void read_sliced_nodal_fields(Mesh* mesh, int file, int time_step,
   }
 }
 
-Mesh read_sliced(
-    filesystem::path const& path, CommPtr comm, bool verbose, int, int time_step) {
+Mesh read_sliced(filesystem::path const& path, CommPtr comm, bool verbose, int,
+    int time_step) {
   ScopedTimer timer("exodus::read");
   verbose = verbose && (comm->rank() == 0);
   auto comm_mpi = comm->get_impl();

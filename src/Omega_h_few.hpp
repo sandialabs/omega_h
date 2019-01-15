@@ -26,7 +26,7 @@ class Few {
 #ifdef OMEGA_H_CHECK_BOUNDS
 #define OMEGA_H_FEW_AT                                                         \
   OMEGA_H_CHECK(0 <= i);                                                       \
-  OMEGA_H_CHECK(i < size());                                                     \
+  OMEGA_H_CHECK(i < size());                                                   \
   return array_[i]
 #else
 #define OMEGA_H_FEW_AT return array_[i]
@@ -77,7 +77,7 @@ class Few {
 #ifdef OMEGA_H_CHECK_BOUNDS
 #define OMEGA_H_FEW_AT                                                         \
   OMEGA_H_CHECK(0 <= i);                                                       \
-  OMEGA_H_CHECK(i < size());                                                     \
+  OMEGA_H_CHECK(i < size());                                                   \
   return array_[i]
 #else
 #define OMEGA_H_FEW_AT return array_[i]
