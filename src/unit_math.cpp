@@ -1,9 +1,10 @@
-#include "Omega_h_array_ops.hpp"
-#include "Omega_h_eigen.hpp"
-#include "Omega_h_metric_intersect.hpp"
-#include "Omega_h_most_normal.hpp"
-#include "Omega_h_shape.hpp"
-#include "Omega_h_svd.hpp"
+#include <Omega_h_array_ops.hpp>
+#include <Omega_h_eigen.hpp>
+#include <Omega_h_metric_intersect.hpp>
+#include <Omega_h_most_normal.hpp>
+#include <Omega_h_shape.hpp>
+#include <Omega_h_svd.hpp>
+#include <Omega_h_lie.hpp>
 
 using namespace Omega_h;
 
@@ -290,10 +291,10 @@ static void test_circumcenter() {
 }
 
 template <Int dim>
-static void test_lie(Matrix<dim, dim> a) {
-  auto log_a = log_glp(a);
-  auto a2 = exp_glp(log_a);
-  OMEGA_H_CHECK(are_close(a2, a));
+static void test_lie(Matrix<dim, dim> F) {
+  auto log_F = log_polar(F);
+  auto exp_log_F = exp_polar(log_F);
+  OMEGA_H_CHECK(are_close(exp_log_F, F));
 }
 
 template <Int dim>
