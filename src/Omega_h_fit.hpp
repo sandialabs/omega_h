@@ -22,7 +22,7 @@ namespace Omega_h {
 
 template <Int dim>
 struct MaxFitPoints {
-  enum { value = AvgDegree<dim, 0, dim>::value * 3 };
+  enum { value = SimplexAvgDegree<dim, 0, dim>::value * 3 };
 };
 
 /* Computes the QR decomposition for the Vandermonde
