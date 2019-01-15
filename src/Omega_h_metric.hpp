@@ -2,7 +2,6 @@
 #define OMEGA_H_METRIC_HPP
 
 #include <Omega_h_eigen.hpp>
-#include <Omega_h_lie.hpp>
 
 namespace Omega_h {
 

@@ -470,6 +470,46 @@ OMEGA_H_INLINE DiagDecomp<dim> sort_by_magnitude(DiagDecomp<dim> dd) {
   return out;
 }
 
+// logarithm of a symmetric positive definite tensor
+template <Int dim>
+OMEGA_H_INLINE_BIG Matrix<dim, dim> log_spd_old(Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+  auto decomp = decompose_eigen(m);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
+  return compose_ortho(decomp.q, decomp.l);
+}
+
+// exponential resulting in a symmetric positive definite tensor
+template <Int dim>
+OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd_old(Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+  auto decomp = decompose_eigen(m);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
+  return compose_ortho(decomp.q, decomp.l);
+}
+
+// logarithm of a symmetric positive definite tensor
+template <Int dim>
+OMEGA_H_INLINE_BIG Matrix<dim, dim> log_spd(Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+  auto decomp = decompose_eigen_jacobi(m);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
+  return compose_ortho(decomp.q, decomp.l);
+}
+
+// exponential resulting in a symmetric positive definite tensor
+template <Int dim>
+OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd(Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+  auto decomp = decompose_eigen_jacobi(m);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
+  return compose_ortho(decomp.q, decomp.l);
+}
+
+// exponential resulting in a symmetric positive definite tensor
+template <Int dim>
+OMEGA_H_INLINE_BIG Matrix<dim, dim> sqrt_spd(Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+  auto decomp = decompose_eigen_jacobi(m);
+  for (Int i = 0; i < dim; ++i) decomp.l[i] = std::sqrt(decomp.l[i]);
+  return compose_ortho(decomp.q, decomp.l);
+}
+
 Reals get_max_eigenvalues(Int dim, Reals symms);
 
 }  // end namespace Omega_h
