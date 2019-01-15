@@ -465,8 +465,8 @@ static void write_vtk_ghost_types(
       stream, "vtkGhostType", 1, ghost_types, compress);
 }
 
-static void write_locals_and_owners(std::ostream& stream, Mesh* mesh, Int ent_dim,
-    TagSet const& tags, bool compress) {
+static void write_locals_and_owners(std::ostream& stream, Mesh* mesh,
+    Int ent_dim, TagSet const& tags, bool compress) {
   OMEGA_H_TIME_FUNCTION;
   if (tags[size_t(ent_dim)].count("local")) {
     write_locals(stream, mesh, ent_dim, compress);
@@ -520,7 +520,8 @@ void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim) {
   }
 }
 
-static filesystem::path piece_filename(filesystem::path const& piecepath, I32 rank) {
+static filesystem::path piece_filename(
+    filesystem::path const& piecepath, I32 rank) {
   auto piece_filename = piecepath;
   piece_filename += '_';
   piece_filename += std::to_string(rank);
@@ -535,7 +536,8 @@ static filesystem::path get_rel_step_path(I64 step) {
   return result;
 }
 
-static filesystem::path get_step_path(filesystem::path const& root_path, I64 step) {
+static filesystem::path get_step_path(
+    filesystem::path const& root_path, I64 step) {
   auto result = root_path;
   result /= get_rel_step_path(step);
   return result;
@@ -1049,8 +1051,8 @@ FullWriter::FullWriter(filesystem::path const& root_path, Mesh* mesh,
   }
   comm->barrier();
   for (Int i = EDGE; i <= mesh->dim(); ++i) {
-    writers_.push_back(Writer(root_path / dimensional_plural_name(i),
-        mesh, i, restart_time, compress));
+    writers_.push_back(Writer(root_path / dimensional_plural_name(i), mesh, i,
+        restart_time, compress));
   }
 }
 
@@ -1062,11 +1064,11 @@ void FullWriter::write() {
   for (auto& writer : writers_) writer.write();
 }
 
-#define OMEGA_H_EXPL_INST(T) \
-template void write_p_data_array<T>(std::ostream& stream, \
-    std::string const& name, Int ncomps); \
-template void write_array(std::ostream& stream, \
-    std::string const& name, Int ncomps, Read<T> array, bool compress);
+#define OMEGA_H_EXPL_INST(T)                                                   \
+  template void write_p_data_array<T>(                                         \
+      std::ostream & stream, std::string const& name, Int ncomps);             \
+  template void write_array(std::ostream& stream, std::string const& name,     \
+      Int ncomps, Read<T> array, bool compress);
 OMEGA_H_EXPL_INST(I8)
 OMEGA_H_EXPL_INST(I32)
 OMEGA_H_EXPL_INST(I64)

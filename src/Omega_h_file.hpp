@@ -8,9 +8,9 @@
 #include <Omega_h_array.hpp>
 #include <Omega_h_comm.hpp>
 #include <Omega_h_defines.hpp>
+#include <Omega_h_filesystem.hpp>
 #include <Omega_h_mesh.hpp>
 #include <Omega_h_tag.hpp>
-#include <Omega_h_filesystem.hpp>
 
 namespace Omega_h {
 
@@ -45,8 +45,9 @@ void read_nodal_fields(int exodus_file, Mesh* mesh, int time_step,
     bool verbose = false);
 void write(filesystem::path const& path, Mesh* mesh, bool verbose = false,
     int classify_with = NODE_SETS | SIDE_SETS);
-Mesh read_sliced(filesystem::path const& path, CommPtr comm, bool verbose = false,
-    int classify_with = NODE_SETS | SIDE_SETS, int time_step = -1);
+Mesh read_sliced(filesystem::path const& path, CommPtr comm,
+    bool verbose = false, int classify_with = NODE_SETS | SIDE_SETS,
+    int time_step = -1);
 }  // namespace exodus
 #endif
 
@@ -109,8 +110,8 @@ class FullWriter {
 
  public:
   FullWriter() = default;
-  FullWriter(filesystem::path const& root_path, Mesh* mesh, Real restart_time = 0.0,
-      bool compress = OMEGA_H_DEFAULT_COMPRESS);
+  FullWriter(filesystem::path const& root_path, Mesh* mesh,
+      Real restart_time = 0.0, bool compress = OMEGA_H_DEFAULT_COMPRESS);
   void write(Real time);
   void write();
 };
@@ -121,8 +122,8 @@ namespace binary {
 void write(filesystem::path const& path, Mesh* mesh);
 Mesh read(filesystem::path const& path, Library* lib, bool strict = false);
 Mesh read(filesystem::path const& path, CommPtr comm, bool strict = false);
-I32 read(
-    filesystem::path const& path, CommPtr comm, Mesh* mesh, bool strict = false);
+I32 read(filesystem::path const& path, CommPtr comm, Mesh* mesh,
+    bool strict = false);
 I32 read_nparts(filesystem::path const& path, CommPtr comm);
 I32 read_version(filesystem::path const& path, CommPtr comm);
 void read_in_comm(

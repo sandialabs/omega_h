@@ -210,8 +210,8 @@ void update_parameters_from_file(filesystem::path const& filepath,
     Teuchos::updateParametersFromXmlFileAndBroadcast(
         filepath.string(), Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
   } else if (ext == ".yaml") {
-    Teuchos::updateParametersFromYamlFileAndBroadcast(
-        filepath.string(), Teuchos::Ptr<Teuchos::ParameterList>(pl), comm, true);
+    Teuchos::updateParametersFromYamlFileAndBroadcast(filepath.string(),
+        Teuchos::Ptr<Teuchos::ParameterList>(pl), comm, true);
   } else {
     Omega_h_fail(
         "\"%s\" is not a known parameter list format\n", filepath.c_str());
@@ -365,7 +365,8 @@ static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList& pl) {
     write_linear_scatterplot(
         filepath.string(), mesh, ent_dim, data, direction, origin, separator);
   } else {
-    write_radial_scatterplot(filepath.string(), mesh, ent_dim, data, origin, separator);
+    write_radial_scatterplot(
+        filepath.string(), mesh, ent_dim, data, origin, separator);
   }
 }
 

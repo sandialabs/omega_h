@@ -1,10 +1,10 @@
 #ifndef OMEGA_H_FILESYSTEM_HPP
 #define OMEGA_H_FILESYSTEM_HPP
 
-#include <system_error>
 #include <cstdint>
 #include <iosfwd>
 #include <string>
+#include <system_error>
 
 // our own tiny subset of std::filesystem while we wait for C++17
 
@@ -41,6 +41,7 @@ class path {
   path& operator+=(std::string const&);
   path& operator+=(char const*);
   path& operator+=(char);
+
  public:
   string_type impl;
 };
@@ -71,6 +72,7 @@ class file_status {
  public:
   file_status(file_type const& type_in);
   file_type type() const noexcept;
+
  private:
   file_type type_variable;
 };
@@ -85,6 +87,7 @@ class directory_entry {
   bool is_regular_file() const;
   bool is_directory() const;
   bool is_symlink() const;
+
  private:
   filesystem::path path_variable;
 };
@@ -103,17 +106,19 @@ class directory_iterator {
   bool operator==(directory_iterator const& other) const;
   // hassle to implement, not needed
   directory_iterator(directory_iterator const& other) = delete;
+
  private:
   IteratorImpl* impl;
   directory_entry entry;
 };
 
-inline bool operator!=(directory_iterator const& a, directory_iterator const& b) {
+inline bool operator!=(
+    directory_iterator const& a, directory_iterator const& b) {
   return !(a == b);
 }
 
-}
+}  // namespace filesystem
 
-}
+}  // namespace Omega_h
 
 #endif
