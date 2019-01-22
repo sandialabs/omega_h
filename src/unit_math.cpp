@@ -448,6 +448,42 @@ static void test_svd() {
       {{0.0, 0.0}, {std::cos(2.0), std::sin(2.0)}, {-1.0, 0.0}}));
 }
 
+static void test_quaternion(double angle, Vector<3> axis) {
+  auto const tensor = rotate(angle, axis);
+  auto const quaternion = quaternion_from_tensor(tensor);
+  auto const tensor2 = tensor_from_quaternion(quaternion);
+  auto const axis_angle = axis_angle_from_quaternion(quaternion);
+  auto const angle2 = norm(axis_angle);
+  auto axis2 = axis_angle;
+  if (angle2 > DBL_EPSILON) axis2 /= angle2;
+  OMEGA_H_CHECK(are_close(tensor, tensor2));
+  OMEGA_H_CHECK(are_close(angle, angle2));
+  if (angle > DBL_EPSILON) OMEGA_H_CHECK(are_close(axis, axis2));
+  auto const quaternion2 = quaternion_from_axis_angle(angle * axis);
+  OMEGA_H_CHECK(are_close(quaternion, quaternion2));
+}
+
+static void test_quaternions() {
+  test_quaternion(0.0, vector_3(1.0, 0.0, 0.0));
+  test_quaternion(PI, vector_3(1.0, 0.0, 0.0));
+  test_quaternion(PI, vector_3(0.0, 1.0, 0.0));
+  test_quaternion(PI, vector_3(0.0, 0.0, 1.0));
+  test_quaternion(PI / 2.0, vector_3(1.0, 0.0, 0.0));
+  test_quaternion(PI / 2.0, vector_3(0.0, 1.0, 0.0));
+  test_quaternion(PI / 2.0, vector_3(0.0, 0.0, 1.0));
+  test_quaternion(PI / 4.0, vector_3(1.0, 0.0, 0.0));
+  test_quaternion(PI / 4.0, vector_3(0.0, 1.0, 0.0));
+  test_quaternion(PI / 4.0, vector_3(0.0, 0.0, 1.0));
+  test_quaternion(PI / 4.0, normalize(vector_3(1.0, 1.0, 1.0)));
+  test_quaternion(PI / 4.0, normalize(vector_3(-1.0, 1.0, 1.0)));
+  test_quaternion(PI / 4.0, normalize(vector_3(1.0, -1.0, 1.0)));
+  test_quaternion(PI / 4.0, normalize(vector_3(-1.0, -1.0, 1.0)));
+  test_quaternion(PI / 4.0, normalize(vector_3(1.0, 1.0, -1.0)));
+  test_quaternion(PI / 4.0, normalize(vector_3(-1.0, 1.0, -1.0)));
+  test_quaternion(PI / 4.0, normalize(vector_3(1.0, -1.0, -1.0)));
+  test_quaternion(PI / 4.0, normalize(vector_3(-1.0, -1.0, -1.0)));
+}
+
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
@@ -470,4 +506,5 @@ int main(int argc, char** argv) {
   test_inball();
   test_volume_vert_gradients();
   test_svd();
+  test_quaternions();
 }

@@ -10,30 +10,17 @@
 
 namespace Omega_h {
 
-// This function implements the singularity-free algorithm due to
-// Spurrier.
-//
-// First find the scalar "maxm", defined as the maximum among the
-// diagonal terms and the trace of the rotation tensor.
-//
-// i)  If maxm is equal to the trace of R, then:
-//       2 * sqrt(1 + maxm)
-//     and
-//       qv = axial_vec(skew(R)) / (2 * qs)
-// ii) If maxm is equal to R(j, j) (no summation), then:
-//       2 * qv[j] = sqrt(2 * maxm + 1 - tr(R))
-//       qs = axial_vec(skew(R))[j] / (2 * qv[j])
-//     and for i,j,k all different
-//       qv[k] = off_diag_vec(symm(R))[i] / (2 * qv[j])
-// Since the rotation tensor is a quadratic function of the quaternion,
-// at least one square root has to be evaluated to get back the
-// quaternion. After that, only divisions are needed and the divisor
-// should be bounded as far from zero as possible
+/* Markley, F. Landis.
+   "Unit quaternion from rotation matrix."
+   Journal of guidance, control, and dynamics 31.2 (2008): 440-442.
+
+   Modified Shepperd's algorithm to handle input
+   tensors that may not be exactly orthogonal */
 OMEGA_H_INLINE Vector<4> quaternion_from_tensor(
     Matrix<3, 3> const R) OMEGA_H_NOEXCEPT {
   auto const trR = trace(R);
   auto maxm = trR;
-  int maxi = 4;
+  int maxi = 3;
   Vector<4> q;
   for (int i = 0; i < 3; ++i) {
     if (R(i, i) > maxm) {
@@ -41,88 +28,44 @@ OMEGA_H_INLINE Vector<4> quaternion_from_tensor(
       maxi = i;
     }
   }
-  if (maxi == 4) {
-    auto const root = std::sqrt(maxm + 1.0);
-    auto const factor = 0.5 / root;
-    q[0] = 0.5 * root;
-    q[1] = factor * (R(2, 1) - R(1, 2));
-    q[2] = factor * (R(0, 2) - R(2, 0));
-    q[3] = factor * (R(1, 0) - R(0, 1));
-  } else if (maxi == 3) {
-    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
-    auto const factor = 0.5 / root;
-    q[0] = factor * (R(1, 0) - R(0, 1));
-    q[1] = factor * (R(0, 2) - R(2, 0));
-    q[2] = factor * (R(1, 2) - R(2, 1));
-    q[3] = 0.5 * root;
-  } else if (maxi == 2) {
-    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
-    auto const factor = 0.5 / root;
-    q[0] = factor * (R(0, 2) - R(2, 0));
-    q[1] = factor * (R(0, 1) - R(1, 0));
-    q[2] = 0.5 * root;
-    q[3] = factor * (R(1, 2) - R(2, 1));
+  if (maxi == 0) {
+    q[1] = 1.0 + R(0, 0) - R(1, 1) - R(2, 2);
+    q[2] = R(0, 1) + R(1, 0);
+    q[3] = R(0, 2) + R(2, 0);
+    q[0] = R(2, 1) - R(1, 2);
   } else if (maxi == 1) {
-    auto const root = std::sqrt(2.0 * maxm + 1.0 - trR);
-    auto const factor = 0.5 / root;
-    q[0] = factor * (R(2, 1) - R(1, 2));
-    q[1] = 0.5 * root;
-    q[2] = factor * (R(0, 1) - R(1, 0));
-    q[3] = factor * (R(0, 2) - R(2, 0));
+    q[1] = R(1, 0) + R(0, 1);
+    q[2] = 1.0 + R(1, 1) - R(2, 2) - R(0, 0);
+    q[3] = R(1, 2) + R(2, 1);
+    q[0] = R(0, 2) - R(2, 0);
+  } else if (maxi == 2) {
+    q[1] = R(2, 0) + R(0, 2);
+    q[2] = R(2, 1) + R(1, 2);
+    q[3] = 1.0 + R(2, 2) - R(0, 0) - R(1, 1);
+    q[0] = R(1, 0) - R(0, 1);
+  } else if (maxi == 3) {
+    q[1] = R(2, 1) - R(1, 2);
+    q[2] = R(0, 2) - R(2, 0);
+    q[3] = R(1, 0) - R(0, 1);
+    q[0] = 1.0 + trR;
   }
+  q = normalize(q);
   return q;
 }
 
-// This function maps a quaternion, qq = (qs, qv), to its
-// corresponding "principal" rotation pseudo-vector, aa, where
-// "principal" signifies that |aa| <= pi. Both qq and -qq map into the
-// same rotation matrix. It is convenient to require that qs >= 0, for
-// reasons explained below. The sign inversion is applied to a local
-// copy of qq to avoid side effects.
-//
-//    |qv| = |sin(|aa| / 2)|
-//    qs = cos(|aa| / 2)
-//      <==>
-//    |aa| / 2 = k * pi (+ or -) asin(|qv|)
-//    |aa| / 2 = 2 * l * pi (+ or -) acos(qs)
-//
-// Where the smallest positive solution is: |aa| = 2 * acos(qs)
-// which satisfies the inequality: 0 <= |aa| <= pi
-// because of the assumption: qs >= 0. Given |aa|, aa
-// is obtained as:
-//
-//    aa = (|aa| / sin(acos(qs)))qv
-//       = (|aa| / sqrt(1 - qs^2))qv
-//
-// The procedure described above is prone to numerical errors when qs
-// is close to 1, i.e. when |aa| is close to 0. Since this is the most
-// common case, special care must be taken. It is observed that the
-// cosine function is insensitive to perturbations of its argument
-// in the neighborhood of points for which the sine function is conversely
-// at its most sensitive. Thus the numerical difficulties are avoided
-// by computing |aa| and aa as:
-//
-//    |aa| = 2 * asin(|qv|)
-//    aa = (|aa| / |qv|) qv
-//
-// whenever qs is close to 1.
-//
 OMEGA_H_INLINE Vector<3> axis_angle_from_quaternion(
-    Vector<4> const qq) OMEGA_H_NOEXCEPT {
-  Vector<4> q;
-  if (qq[0] >= 0) {
-    q = qq;
+    Vector<4> const q) OMEGA_H_NOEXCEPT {
+  auto const divisor = std::sqrt(1.0 - square(q(0)));
+  if (divisor < DBL_EPSILON) {
+    return zero_vector<3>();
   } else {
-    q = -qq;
+    auto const factor = 2.0 * std::acos(q(0)) / divisor;
+    Vector<3> aa;
+    aa(0) = q(1) * factor;
+    aa(1) = q(2) * factor;
+    aa(2) = q(3) * factor;
+    return aa;
   }
-  auto const qs = q[0];
-  auto const qv = vector_3(q[1], q[2], q[3]);
-  auto const qvnorm = norm(qv);
-  auto const aanorm =
-      2.0 * (qvnorm < std::sqrt(0.5) ? std::asin(qvnorm) : std::acos(qs));
-  auto const coef = qvnorm < std::sqrt(DBL_EPSILON) ? 2.0 : aanorm / qvnorm;
-  auto const aa = coef * qv;
-  return aa;
 }
 
 // logarithm of a rotation tensor in Special Orthogonal Group(3), as the
