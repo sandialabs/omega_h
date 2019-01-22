@@ -648,7 +648,10 @@ Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
     mesh.set_comm(comm);
     return mesh;
 #else
-    Omega_h_fail("Omega_h: Can't read %s without reconfiguring with OMEGA_H_USE_libMeshb=ON\n", path.c_str());
+    Omega_h_fail(
+        "Omega_h: Can't read %s without reconfiguring with "
+        "OMEGA_H_USE_libMeshb=ON\n",
+        path.c_str());
     OMEGA_H_NORETURN(Mesh());
 #endif
   } else if (extension == ".exo" || extension == ".e" || extension == ".g") {
@@ -659,7 +662,10 @@ Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
     mesh.set_comm(comm);
     return mesh;
 #else
-    Omega_h_fail("Omega_h: Can't read %s without reconfiguring with OMEGA_H_USE_SEACASExodus=ON\n", path.c_str());
+    Omega_h_fail(
+        "Omega_h: Can't read %s without reconfiguring with "
+        "OMEGA_H_USE_SEACASExodus=ON\n",
+        path.c_str());
     OMEGA_H_NORETURN(Mesh());
 #endif
   } else if (extension == ".msh") {
@@ -676,7 +682,8 @@ Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
     vtk::read_vtu(stream, comm, &mesh);
     return mesh;
   } else {
-    Omega_h_fail("Unknown file extension \"%s\" on \"%s\"\n", extension.c_str(), path.c_str());
+    Omega_h_fail("Unknown file extension \"%s\" on \"%s\"\n", extension.c_str(),
+        path.c_str());
   }
 }
 
