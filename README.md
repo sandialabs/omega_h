@@ -87,7 +87,7 @@ branch. Pull requests are welcome.
 This library is released under the FreeBSD license.
 
 [0]: https://cmake.org
-[1]: https://raw.githubusercontent.com/ibaned/omega_h/master/aux/omega_h.png
+[1]: https://raw.githubusercontent.com/SNLComputation/omega_h/master/aux/omega_h.png
 [2]: https://github.com/kokkos/kokkos
 [3]: http://www.mpich.org
 [4]: https://github.com/trilinos/Trilinos
