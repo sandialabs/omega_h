@@ -9,6 +9,10 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 
+#ifdef OMEGA_H_FANCY_DANCY_FACE_REMAP
+#include "Omega_h_transfer_face.hpp"
+#endif
+
 namespace Omega_h {
 
 bool is_transfer_required(
@@ -382,8 +386,13 @@ static void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh,
     if (tagbase->name() == "magnetic_face_flux") {
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
       Read<Real> prod_data(prods2new_ents.size(), 0);
+#ifdef OMEGA_H_FANCY_DANCY_FACE_REMAP
+      Read<Real> new_data = new_mesh->get_array<Real>(FACE, tagbase->name());
+      transer_div_free_face_flux(old_mesh,new_mesh,old_data,new_data);
+#else
       transfer_common(old_mesh, new_mesh, FACE, same_ents2old_ents,
           same_ents2new_ents, prods2new_ents, tagbase, prod_data);
+#endif
     }
   }
 }
