@@ -9,9 +9,6 @@
 
 #include <sstream>
 
-// DEBUG!!!
-#include <Omega_h_print.hpp>
-
 using namespace Omega_h;
 
 static void test_one_rank(CommPtr comm) {
