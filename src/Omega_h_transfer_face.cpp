@@ -12,10 +12,10 @@
 namespace Omega_h {
 
   template <typename T>
-  void transer_div_free_face_flux(Mesh *old_mesh,
-				  Mesh *new_mesh,
-				  Read<T> old_data,
-				  Read<T> new_data)
+  void transer_div_free_face_flux(Mesh *src_mesh,
+				  Mesh *target_mesh,
+				  Read<T> src_data,
+				  Read<T> target_data)
   {
     return;
   }
