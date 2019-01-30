@@ -166,6 +166,36 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
    copies which have the exact same connectivity and establish ownership.
 */
 
+static LOs sort_locally_based_on_rank(
+    LOs servers_to_served, Read<I32> served_to_rank) {
+  OMEGA_H_TIME_FUNCTION;
+  auto const served_order = Write<LO>(served_to_rank.size());
+  auto functor = OMEGA_H_LAMBDA(LO const server) {
+    auto const begin = servers_to_served[server];
+    auto const end = servers_to_served[server + 1];
+    I32 last_smallest_rank = -1;
+    for (LO i = begin; i < end;) {
+      I32 next_smallest_rank = ArithTraits<I32>::max();
+      for (LO j = begin; j < end; ++j) {
+        auto const rank = served_to_rank[j];
+        if (rank > last_smallest_rank && rank < next_smallest_rank) {
+          next_smallest_rank = rank;
+        }
+      }
+      OMEGA_H_CHECK(next_smallest_rank > last_smallest_rank);
+      OMEGA_H_CHECK(next_smallest_rank < ArithTraits<I32>::max());
+      for (LO j = begin; j < end; ++j) {
+        if (served_to_rank[j] == next_smallest_rank) {
+          served_order[i++] = j;
+        }
+      }
+      last_smallest_rank = next_smallest_rank;
+    }
+  };
+  parallel_for(servers_to_served.size() - 1, std::move(functor));
+  return served_order;
+}
+
 void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
     LOs* p_ent_verts2verts, Remotes* p_ents2owners) {
   // entity vertices to vertices
@@ -201,8 +231,20 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   auto const sv2svse = out_dist.roots2items();
   // number of served entities
   auto const nse = out_dist.nitems();
-  // helper to make "serving vertices to served entities" look like a Graph
-  auto const svse2se = LOs(nse, 0, 1);
+  // items2dests() returns, for each served entity, the (rank, local index) pair
+  // of where it originally came from
+  //
+  // owning served entity to original entity
+  auto const se2orig = out_dist.items2dests();
+  auto const se2orig_rank = se2orig.ranks;
+  // the ordering of this array is critical for the resulting output to be
+  // both deterministic and serial-parallel consistent.
+  // it ensures that entities will be explored for matches in an order that
+  // depends only on which rank they came from (which is unique), therefore
+  // basing ownership on a minimum-rank rule.
+  // note that otherwise the ordering of entities in these arrays is not even
+  // deterministic, let alone partition-independent
+  auto const svse2se = sort_locally_based_on_rank(sv2svse, se2orig_rank);
   // helper to make "serving vertices to served entities" look like an Adj
   auto const sv2se_codes = Read<I8>(nse, make_code(false, 0, 0));
   auto const sv2se = Adj(sv2svse, svse2se, sv2se_codes);
@@ -219,11 +261,6 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   constexpr bool allow_duplicates = true;
   find_matches_ex(deg, se2fsv, sev2vg, sev2vg, sv2se, &se2ose, &ignored_codes,
       allow_duplicates);
-  // items2dests() returns, for each served entity, the (rank, local index) pair
-  // of where it originally came from
-  //
-  // owning served entity to original entity
-  auto const se2orig = out_dist.items2dests();
   // the problem with the temporary owner is that it is not deterministic, and
   // definitely not serial-parallel consistent. we need to choose an owner based
   // on a deterministic and serial-parallel consistent rule.
