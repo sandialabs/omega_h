@@ -224,46 +224,14 @@ static void test_binary_io(Library* lib, CommPtr comm) {
 }
 
 static void test_two_ranks(Library* lib, CommPtr comm) {
-  if ((0)) {
-  Remotes e2ov;
-  if (comm->rank() == 0) {
-    e2ov.ranks = LOs({0, 0, 0});                                           
-    e2ov.idxs = LOs({0, 1, 0});
-  } else {
-    e2ov.ranks = LOs({0, 1, 0});                                           
-    e2ov.idxs = LOs({1, 0, 1});                                            
-  }
-
-  LOs ev2vg_canon;
-  if (comm->rank() == 0) {
-    ev2vg_canon = LOs({0, 1, 1, 3, 0, 3});                                 
-  } else {
-    ev2vg_canon = LOs({1, 2, 2, 3, 1, 3});                                 
-  }
-
-  auto in_dist = Dist(comm, e2ov, 2);                                      
-  auto sev2vg = in_dist.exch(ev2vg_canon, 2);                              
-
-  if (comm->rank() == 0) {
-    std::cout << sev2vg << std::endl;                                      
-  }
-  comm->barrier();    
-
-  if (comm->rank() == 1) {
-    std::cout << sev2vg << std::endl;                                      
-  }
-  comm->barrier();
   test_two_ranks_dist(comm);
   test_two_ranks_owners(comm);
   test_two_ranks_bipart(comm);
   test_two_ranks_exch_sum(comm);
   test_resolve_derived(comm);
-  }
   test_construct(lib, comm);
-  if ((0)) {
   test_read_vtu(lib, comm);
   test_binary_io(lib, comm);
-  }
 }
 
 static void test_rib(CommPtr comm) {
@@ -299,7 +267,6 @@ static void test_rib(CommPtr comm) {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   auto world = lib.world();
-  if ((0)) {
   if (world->rank() == 0) {
     test_one_rank(lib.self());
   }
@@ -307,7 +274,6 @@ int main(int argc, char** argv) {
   if (world->rank() == 0) {
     test_one_rank(one);
     test_one_rank(one->dup());
-  }
   }
   if (world->size() >= 2) {
     auto two = world->split(world->rank() / 2, world->rank() % 2);
