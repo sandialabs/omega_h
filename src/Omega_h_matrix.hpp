@@ -590,6 +590,8 @@ Reals matrices_times_matrices(Reals ms, Reals vs, Int dim);
 Reals symms_inria2osh(Int dim, Reals symms);
 Reals symms_osh2inria(Int dim, Reals symms);
 
+Reals matrices_to_symms(Reals matrices, Int dim);
+
 }  // end namespace Omega_h
 
 #endif

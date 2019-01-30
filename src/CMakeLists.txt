@@ -400,6 +400,7 @@ set(Omega_h_HEADERS
   Omega_h_adj.hpp
   Omega_h_library.hpp
   Omega_h_mesh.hpp
+  Omega_h_bbox.hpp
   Omega_h_file.hpp
   Omega_h_adapt.hpp
   Omega_h_build.hpp

@@ -127,4 +127,24 @@ Reals symms_osh2inria(Int dim, Reals symms) {
   OMEGA_H_NORETURN(Reals());
 }
 
+template <Int dim>
+Reals matrices_to_symms_dim(Reals matrices) {
+  constexpr auto ncomps_in = square(dim);
+  constexpr auto ncomps_out = symm_ncomps(dim);
+  auto const n = divide_no_remainder(matrices.size(), ncomps_in);
+  auto const out = Write<Real>(n * ncomps_out);
+  auto functor = OMEGA_H_LAMBDA(LO const i) {
+    set_symm(out, i, get_matrix<dim, dim>(matrices, i));
+  };
+  parallel_for(n, std::move(functor));
+  return out;
+}
+
+Reals matrices_to_symms(Reals matrices, Int dim) {
+  if (dim == 3) return matrices_to_symms_dim<3>(matrices);
+  if (dim == 2) return matrices_to_symms_dim<2>(matrices);
+  if (dim == 1) return matrices_to_symms_dim<1>(matrices);
+  OMEGA_H_NORETURN(Reals());
+}
+
 }  // end namespace Omega_h
