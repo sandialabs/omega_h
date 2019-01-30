@@ -356,7 +356,7 @@ struct IsMatch<4> {
 
 template <Int deg, typename T>
 static void find_matches_deg(LOs const a2fv, Read<T> const av2v,
-    Read<T> const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out,
+    Read<T> const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out,
     bool const allow_duplicates) {
   OMEGA_H_TIME_FUNCTION;
   LO const na = a2fv.size();
@@ -396,7 +396,7 @@ static void find_matches_deg(LOs const a2fv, Read<T> const av2v,
 
 template <typename T>
 void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v,
-    Read<T> const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out,
+    Read<T> const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out,
     bool const allow_duplicates) {
   if (deg == 2) {
     find_matches_deg<2>(
@@ -413,7 +413,7 @@ void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v,
 }
 
 void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v,
-    LOs const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out) {
+    LOs const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out) {
   OMEGA_H_CHECK(dim <= 2);
   auto const deg = element_degree(family, dim, VERT);
   auto const a2fv = get_component(av2v, deg, 0);
@@ -424,10 +424,10 @@ Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
     Omega_h_Family const family, Int const high_dim, Int const low_dim) {
   ScopedTimer timer("reflect_down(v2l)");
   LOs const uv2v = form_uses(hv2v, family, high_dim, low_dim);
-  LOs hl2l;
-  Read<I8> codes;
+  Write<LO> hl2l;
+  Write<I8> codes;
   find_matches(family, low_dim, uv2v, lv2v, v2l, &hl2l, &codes);
-  return Adj(hl2l, codes);
+  return Adj(read(hl2l), read(codes));
 }
 
 Adj reflect_down(LOs const hv2v, LOs const lv2v, Omega_h_Family const family,
@@ -635,7 +635,7 @@ Graph elements_across_sides(Int const dim, Adj const elems2sides,
 #define INST(T)                                                                \
   template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);             \
   template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v, Read<T> bv2v, \
-      Adj v2b, LOs* a2b_out, Read<I8>* codes_out, bool);
+      Adj v2b, Write<LO>* a2b_out, Write<I8>* codes_out, bool);
 INST(LO)
 INST(GO)
 #undef INST
