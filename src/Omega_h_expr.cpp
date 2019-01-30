@@ -445,6 +445,41 @@ any make_vector(LO size, Int dim, ExprReader::Args& args) {
 }
 
 template <Int dim>
+any make_matrix(ExprReader::Args& args) {
+  auto v = zero_matrix<dim, dim>();
+  for (int i = 0; i < int(args.size()); ++i) {
+  for (int j = 0; j < int(args.size()); ++j) {
+    auto& arg = args[std::size_t(i * dim + j)];
+    v(i, j) = any_cast<Real>(arg);
+  }
+  }
+  return v;
+}
+
+any make_matrix(LO size, Int dim, ExprReader::Args& args) {
+  if (args.size() != std::size_t(square(dim))) {
+    throw ParserFail("Wrong number of arguments to matrix()\n");
+  }
+  bool has_arrays = false;
+  for (auto& arg : args)
+    if (arg.type() == typeid(Reals)) has_arrays = true;
+  if (has_arrays) {
+    std::vector<Read<Real>> arrays;
+    for (Int i = 0; i < Int(args.size()); ++i) {
+      auto& arg = args[std::size_t(i)];
+      promote(size, dim, arg);
+      arrays.push_back(any_cast<Reals>(arg));
+    }
+    OMEGA_H_CHECK(Int(arrays.size()) == square(dim));
+    return Reals(interleave(arrays));
+  } else {
+    if (dim == 3) return make_matrix<3>(args);
+    if (dim == 2) return make_matrix<2>(args);
+    return make_matrix<1>(args);
+  }
+}
+
+template <Int dim>
 any make_symm(ExprReader::Args& args) {
   auto v = zero_vector<symm_ncomps(dim)>();
   Int i;
@@ -633,6 +668,10 @@ ExprEnv::ExprEnv(LO size_in, Int dim_in) : size(size_in), dim(dim_in) {
       [=](Args& args) { return make_vector(local_size, local_dim, args); });
   register_function("symm",
       [=](Args& args) { return make_symm(local_size, local_dim, args); });
+  register_function("matrix",
+      [=](Args& args) { return make_matrix(local_size, local_dim, args); });
+  register_function("tensor",
+      [=](Args& args) { return make_matrix(local_size, local_dim, args); });
   register_function("norm",
       [=](Args& args) { return eval_norm(local_dim, local_size, args); });
   register_variable("d", any(Real(dim)));
