@@ -174,10 +174,12 @@ void classify_equal_order(
   } else if (ent_dim == VERT) {
     eq2e = eqv2v;
   } else {
-    Read<I8> codes;
+    Write<LO> eq2e_w;
+    Write<I8> codes;
     auto ev2v = mesh->ask_verts_of(ent_dim);
     auto v2e = mesh->ask_up(VERT, ent_dim);
-    find_matches(mesh->family(), ent_dim, eqv2v, ev2v, v2e, &eq2e, &codes);
+    find_matches(mesh->family(), ent_dim, eqv2v, ev2v, v2e, &eq2e_w, &codes);
+    eq2e = eq2e_w;
   }
   auto neq = eqv2v.size() / (ent_dim + 1);
   auto eq_class_dim = Read<I8>(neq, I8(ent_dim));

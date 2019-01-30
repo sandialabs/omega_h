@@ -35,7 +35,7 @@ struct Children : public Graph {
 };
 
 void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v,
-    LOs const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out);
+    LOs const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out);
 
 Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
     Omega_h_Family const family, Int const high_dim, Int const low_dim);
@@ -81,7 +81,7 @@ Read<I8> find_canonical_jumps(
 */
 template <typename T>
 void find_matches_ex(Int const deg, LOs const a2fv, Read<T> const av2v,
-    Read<T> const bv2v, Adj const v2b, LOs* a2b_out, Read<I8>* codes_out,
+    Read<T> const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out,
     bool const allow_duplicates = false);
 
 /* for testing only, internally computes upward
@@ -147,7 +147,7 @@ OMEGA_H_DEVICE Few<Matrix<dim, dim>, neev> gather_symms(
 #define INST_DECL(T)                                                           \
   extern template Read<I8> get_codes_to_canonical(Int deg, Read<T> ev2v);      \
   extern template void find_matches_ex(Int deg, LOs a2fv, Read<T> av2v,        \
-      Read<T> bv2v, Adj v2b, LOs* a2b_out, Read<I8>* codes_out, bool);
+      Read<T> bv2v, Adj v2b, Write<LO>* a2b_out, Write<I8>* codes_out, bool);
 INST_DECL(LO)
 INST_DECL(GO)
 #undef INST_DECL
