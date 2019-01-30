@@ -174,19 +174,21 @@ static LOs sort_locally_based_on_rank(
     auto const begin = servers_to_served[server];
     auto const end = servers_to_served[server + 1];
     I32 last_smallest_rank = -1;
-    for (LO i = begin; i < end; ++i) {
+    for (LO i = begin; i < end;) {
       I32 next_smallest_rank = ArithTraits<I32>::max();
-      LO next_in_line = -1;
       for (LO j = begin; j < end; ++j) {
         auto const rank = served_to_rank[j];
         if (rank > last_smallest_rank && rank < next_smallest_rank) {
           next_smallest_rank = rank;
-          next_in_line = j;
         }
       }
       OMEGA_H_CHECK(next_smallest_rank > last_smallest_rank);
       OMEGA_H_CHECK(next_smallest_rank < ArithTraits<I32>::max());
-      served_order[i] = next_in_line;
+      for (LO j = begin; j < end; ++j) {
+        if (served_to_rank[j] == next_smallest_rank) {
+          served_order[i++] = j;
+        }
+      }
       last_smallest_rank = next_smallest_rank;
     }
   };
