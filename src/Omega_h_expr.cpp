@@ -447,8 +447,9 @@ any make_vector(LO size, Int dim, ExprReader::Args& args) {
 template <Int dim>
 any make_matrix(ExprReader::Args& args) {
   auto v = zero_matrix<dim, dim>();
-  for (int i = 0; i < int(args.size()); ++i) {
-  for (int j = 0; j < int(args.size()); ++j) {
+  OMEGA_H_CHECK(args.size() == std::size_t(dim * dim));
+  for (Int i = 0; i < dim; ++i) {
+  for (Int j = 0; j < dim; ++j) {
     auto& arg = args[std::size_t(i * dim + j)];
     v(i, j) = any_cast<Real>(arg);
   }
@@ -479,42 +480,20 @@ any make_matrix(LO size, Int dim, ExprReader::Args& args) {
   }
 }
 
-template <Int dim>
-any make_symm(ExprReader::Args& args) {
-  auto v = zero_vector<symm_ncomps(dim)>();
-  Int i;
-  for (i = 0; i < Int(args.size()); ++i) {
-    auto& arg = args[std::size_t(i)];
-    v[i] = any_cast<Real>(arg);
-  }
-  return v;
-}
-
 any make_symm(LO size, Int dim, ExprReader::Args& args) {
-  if (args.size() != 1 && args.size() != std::size_t(symm_ncomps(dim))) {
+  if (args.size() != 1) {
     throw ParserFail("Wrong number of arguments to symm()\n");
   }
-  bool has_arrays = false;
-  for (auto& arg : args)
-    if (arg.type() == typeid(Reals)) has_arrays = true;
-  if (has_arrays) {
-    std::vector<Read<Real>> arrays;
-    Int i;
-    for (i = 0; i < Int(args.size()); ++i) {
-      auto& arg = args[std::size_t(i)];
-      promote(size, dim, arg);
-      arrays.push_back(any_cast<Reals>(arg));
-    }
-    for (; i < symm_ncomps(dim); ++i) {
-      arrays.push_back(arrays.back());
-    }
-    OMEGA_H_CHECK(Int(arrays.size()) == dim);
-    return Reals(interleave(arrays));
-  } else {
-    if (dim == 3) return make_symm<3>(args);
-    if (dim == 2) return make_symm<2>(args);
-    return make_symm<1>(args);
+  auto arg = args[0];
+  if (arg.type() != typeid(Reals)) {
+    promote(size, dim, arg);
   }
+  auto const in = any_cast<Reals>(arg);
+  if (in.size() != size * dim * dim) {
+    throw ParserFail("Argument to symm() was not sized as full tensors\n");
+  }
+  auto const out = matrices_to_symms(in, dim);
+  return out;
 }
 
 any eval_exp(LO size, ExprReader::Args& args) {
