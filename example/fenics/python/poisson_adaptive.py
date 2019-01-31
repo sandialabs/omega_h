@@ -20,6 +20,9 @@ mesh_osh.set_parting(omega_h.ELEM_BASED, 0)
 maxiter = 20
 i = 0
 
+# Output file
+file_u = File("poisson_u.pvd")
+
 def boundary(x):
 	return x[0] < DOLFIN_EPS or x[0] > 1.0 - DOLFIN_EPS
 
@@ -48,8 +51,7 @@ while(i < maxiter):
     solve(a == L, u, bc)
 
     # Save solution in VTK format
-    file = File("poisson_u_"+ str(i) +".pvd")
-    file << u
+    file_u << (u, i)
 
     # Import u from dolfin to omega_h
     omega_h.function_from_dolfin(mesh_osh, u._cpp_object, "u")
@@ -70,5 +72,7 @@ while(i < maxiter):
     while(omega_h.approach_metric(mesh_osh, opts)):
         omega_h.adapt(mesh_osh, opts)
 
+    omega_h.vtk_write_parallel('poisson_adapted_' + str(i), mesh_osh)
+    
     i+=1
 
