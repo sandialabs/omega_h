@@ -1,14 +1,14 @@
-#include <Omega_h_filesystem.hpp>
 #include <Omega_h_fail.hpp>
+#include <Omega_h_filesystem.hpp>
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 namespace Omega_h {
 
@@ -46,13 +46,11 @@ bool remove(path const& p) {
   return true;
 }
 
-bool exists(path const& p) {
-  return ::access(p.impl.c_str(), F_OK) != -1;
-}
+bool exists(path const& p) { return ::access(p.impl.c_str(), F_OK) != -1; }
 
 struct IteratorImpl {
-  IteratorImpl():stream(nullptr),entry(nullptr) {}
-  IteratorImpl(path const& p):root(p),entry(nullptr) {
+  IteratorImpl() : stream(nullptr), entry(nullptr) {}
+  IteratorImpl(path const& p) : root(p), entry(nullptr) {
     errno = 0;
     stream = ::opendir(p.impl.c_str());
     if (stream == nullptr) {
@@ -60,9 +58,7 @@ struct IteratorImpl {
     }
     increment();
   }
-  ~IteratorImpl() {
-    close();
-  }
+  ~IteratorImpl() { close(); }
   void close() {
     if (stream == nullptr) return;
     errno = 0;
@@ -84,8 +80,10 @@ struct IteratorImpl {
     } else {
       // we just extracted a good entry from the stream
       // skip dot and dot-dot, max 3-call recursion
-      if (0 == strcmp(entry->d_name, ".")) increment();
-      else if (0 == strcmp(entry->d_name, "..")) increment();
+      if (0 == strcmp(entry->d_name, "."))
+        increment();
+      else if (0 == strcmp(entry->d_name, ".."))
+        increment();
     }
   }
   directory_entry deref() {
@@ -111,12 +109,20 @@ file_status status(path const& p) {
     throw filesystem_error(errno, "status");
   }
   file_type type;
-  if (buf.st_mode & S_IFREG) type = file_type::regular;
-  else if (buf.st_mode & S_IFDIR) type = file_type::directory;
-  else if (buf.st_mode & S_IFLNK) type = file_type::symlink;
-  else if (buf.st_mode & S_IFBLK) type = file_type::block;
-  else if (buf.st_mode & S_IFCHR) type = file_type::character;
-  else if (buf.st_mode & S_IFIFO) type = file_type::fifo;
+  if (buf.st_mode & S_IFREG)
+    type = file_type::regular;
+  else if (buf.st_mode & S_IFDIR)
+    type = file_type::directory;
+  else if (buf.st_mode & S_IFLNK)
+    type = file_type::symlink;
+  else if (buf.st_mode & S_IFBLK)
+    type = file_type::block;
+  else if (buf.st_mode & S_IFCHR)
+    type = file_type::character;
+  else if (buf.st_mode & S_IFIFO)
+    type = file_type::fifo;
+  else
+    throw filesystem_error(errno, "type_status");
   return file_status(type);
 }
 
@@ -142,23 +148,17 @@ std::uintmax_t remove_all(path const& p) {
 
 filesystem_error::~filesystem_error() {}
 
-path::path(char const* source):impl(source) {
-}
+path::path(char const* source) : impl(source) {}
 
-path::path(std::string const& source):impl(source) {
-}
+path::path(std::string const& source) : impl(source) {}
 
 path::value_type const* path::c_str() const noexcept {
   return native().c_str();
 }
 
-const path::string_type& path::native() const noexcept {
-  return impl;
-}
+const path::string_type& path::native() const noexcept { return impl; }
 
-std::string path::string() const {
-  return impl;
-}
+std::string path::string() const { return impl; }
 
 path path::filename() const {
   auto const last_sep_pos = impl.find_last_of(preferred_separator);
@@ -175,16 +175,17 @@ path path::parent_path() const {
 path path::extension() const {
   auto const filename_str = filename().native();
   auto const last_dot_pos = filename_str.find_last_of('.');
-  // If the pathname is either . or .., or if filename() does not contain the . character, then empty path is returned. 
+  // If the pathname is either . or .., or if filename() does not contain the .
+  // character, then empty path is returned.
   if (last_dot_pos == std::string::npos) return path();
   if (filename_str == "." || filename_str == "..") return path();
   // If the first character in the filename is a period, that period is ignored
-  // (a filename like ".profile" is not treated as an extension) 
+  // (a filename like ".profile" is not treated as an extension)
   if (last_dot_pos == 0) return path();
-  // If the filename() component of the generic-format path contains a period (.),
-  // and is not one of the special filesystem elements dot or dot-dot,
-  // then the extension is the substring beginning at the rightmost period
-  // (including the period) and until the end of the pathname. 
+  // If the filename() component of the generic-format path contains a period
+  // (.), and is not one of the special filesystem elements dot or dot-dot, then
+  // the extension is the substring beginning at the rightmost period (including
+  // the period) and until the end of the pathname.
   return filename_str.substr(last_dot_pos, std::string::npos);
 }
 
@@ -248,20 +249,13 @@ std::ostream& operator<<(std::ostream& os, path const& p) {
 }
 
 filesystem_error::filesystem_error(int ev, const char* what_arg)
-  : std::system_error(ev, std::system_category(), what_arg)
-{
-}
+    : std::system_error(ev, std::system_category(), what_arg) {}
 
-file_status::file_status(file_type const& type_in)
-  :type_variable(type_in)
-{
-}
+file_status::file_status(file_type const& type_in) : type_variable(type_in) {}
 
-file_type file_status::type() const noexcept {
-  return type_variable;
-}
+file_type file_status::type() const noexcept { return type_variable; }
 
-directory_entry::directory_entry(class path const& p):path_variable(p) {}
+directory_entry::directory_entry(class path const& p) : path_variable(p) {}
 
 bool directory_entry::is_regular_file() const {
   return status(path_variable).type() == file_type::regular;
@@ -275,10 +269,7 @@ bool directory_entry::is_symlink() const {
   return status(path_variable).type() == file_type::symlink;
 }
 
-directory_iterator::directory_iterator()
- : impl(new IteratorImpl())
-{
-}
+directory_iterator::directory_iterator() : impl(new IteratorImpl()) {}
 
 directory_iterator::directory_iterator(directory_iterator&& other) {
   delete impl;
@@ -287,8 +278,7 @@ directory_iterator::directory_iterator(directory_iterator&& other) {
 }
 
 directory_iterator::directory_iterator(path const& p)
- : impl(new IteratorImpl(p))
-{
+    : impl(new IteratorImpl(p)) {
   if (!impl->is_end()) entry = impl->deref();
 }
 
@@ -303,18 +293,14 @@ directory_iterator& directory_iterator::operator++() {
   return *this;
 }
 
-const directory_entry& directory_iterator::operator*() const {
-  return entry;
-}
+const directory_entry& directory_iterator::operator*() const { return entry; }
 
-const directory_entry* directory_iterator::operator->() const {
-  return &entry;
-}
+const directory_entry* directory_iterator::operator->() const { return &entry; }
 
 bool directory_iterator::operator==(directory_iterator const& other) const {
   return impl->equal(*other.impl);
 }
 
-}
+}  // namespace filesystem
 
-}
+}  // namespace Omega_h

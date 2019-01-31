@@ -107,8 +107,8 @@ Read<I8> mark_class_closure(
   return mark_down(mesh, class_dim, ent_dim, eq_marks);
 }
 
-static Read<I8> get_eq_marks(Mesh* mesh, Int class_dim,
-    std::vector<ClassId> const& class_ids) {
+static Read<I8> get_eq_marks(
+    Mesh* mesh, Int class_dim, std::vector<ClassId> const& class_ids) {
   auto sorted_class_ids = class_ids;
   std::sort(begin(sorted_class_ids), end(sorted_class_ids));
   HostWrite<LO> h_sorted_class_ids(LO(sorted_class_ids.size()));
@@ -147,8 +147,8 @@ Read<I8> mark_class_closures(Mesh* mesh, Int class_dim,
   return marks;
 }
 
-static std::vector<LO> get_dim_class_ids(Int class_dim,
-    std::vector<ClassPair> const& class_pairs) {
+static std::vector<LO> get_dim_class_ids(
+    Int class_dim, std::vector<ClassPair> const& class_pairs) {
   std::vector<LO> dim_class_ids;
   for (size_t i = 0; i < class_pairs.size(); ++i) {
     if (class_pairs[i].dim == class_dim) {
@@ -180,9 +180,8 @@ Read<I8> mark_class_closures(Mesh* mesh,
   for (int class_dim = 0; class_dim <= dim; ++class_dim) {
     auto dim_class_ids = get_dim_class_ids(class_dim, class_pairs);
     if (dim_class_ids.empty()) continue;
-    auto class_dim_marks =
-      mark_class_closures(mesh, class_dim, dim_class_ids,
-          nodes2ents[class_dim]);
+    auto class_dim_marks = mark_class_closures(
+        mesh, class_dim, dim_class_ids, nodes2ents[class_dim]);
     marks = lor_each(marks, class_dim_marks);
   }
   return marks;

@@ -55,22 +55,22 @@ void write_vtkfile_vtu_start_tag(std::ostream& stream, bool compress);
 
 void write_p_tag(std::ostream& stream, TagBase const* tag, Int space_dim);
 
-void write_tag(std::ostream& stream, TagBase const* tag, Int space_dim,
-    bool compress);
+void write_tag(
+    std::ostream& stream, TagBase const* tag, Int space_dim, bool compress);
 
 template <typename T>
-void write_p_data_array(std::ostream& stream, std::string const& name,
-    Int ncomps);
+void write_p_data_array(
+    std::ostream& stream, std::string const& name, Int ncomps);
 
 template <typename T_osh, typename T_vtk = T_osh>
-void write_array(std::ostream& stream, std::string const& name,
-    Int ncomps, Read<T_osh> array, bool compress);
+void write_array(std::ostream& stream, std::string const& name, Int ncomps,
+    Read<T_osh> array, bool compress);
 
-#define OMEGA_H_EXPL_INST_DECL(T) \
-extern template void write_p_data_array<T>(std::ostream& stream, \
-    std::string const& name, Int ncomps); \
-extern template void write_array(std::ostream& stream, \
-    std::string const& name, Int ncomps, Read<T> array, bool compress);
+#define OMEGA_H_EXPL_INST_DECL(T)                                              \
+  extern template void write_p_data_array<T>(                                  \
+      std::ostream & stream, std::string const& name, Int ncomps);             \
+  extern template void write_array(std::ostream& stream,                       \
+      std::string const& name, Int ncomps, Read<T> array, bool compress);
 OMEGA_H_EXPL_INST_DECL(I8)
 OMEGA_H_EXPL_INST_DECL(I32)
 OMEGA_H_EXPL_INST_DECL(I64)

@@ -1,15 +1,15 @@
-![Omega_h Logo][1]
+![Omega\_h Logo][1]
 
-# Omega_h
+# Omega\_h
 > Reliable mesh adaptation
 
-Omega_h is a C++11 library that implements tetrahedron and triangle mesh adaptativity,
-with a focus on scalable HPC performance using (optionally) MPI, OpenMP, or CUDA.
+Omega\_h is a C++11 library that implements tetrahedron and triangle mesh adaptativity,
+with a focus on scalable HPC performance using (optionally) MPI and OpenMP or CUDA.
 It is intended to provided adaptive functionality to existing simulation codes.
 Mesh adaptivity allows one to minimize both discretization error and number
 of degrees of freedom live during the simulation, as well as enabling moving
 object and evolving geometry simulations.
-Omega_h will do this for you in a way that is fast, memory-efficient, and
+Omega\_h will do this for you in a way that is fast, memory-efficient, and
 portable across many different architectures.
 
 ## Installing / Getting started
@@ -18,13 +18,13 @@ For a bare minimum setup with no parallelism, you just need [CMake][0],
 a C++11 compiler, and preferably [ZLib][6] installed.
 
 ```shell
-git clone git@github.com:ibaned/omega_h.git
+git clone git@github.com:SNLComputation/omega_h.git
 cd omega_h
 cmake . -DCMAKE_INSTALL_PREFIX=/your/choice
 make install
 ```
 
-This should install Omega_h under the given prefix in a way you can
+This should install Omega\_h under the given prefix in a way you can
 access from your own CMake files using these CMake commands:
 
 ```cmake
@@ -40,7 +40,7 @@ Omega\_h provides at least the following:
 * Given good input element quality, the output element
   quality is also guaranteed.
 * Scalable MPI parallelism
-* On-node OpenMP or CUDA parallelism using [Kokkos][2]
+* On-node OpenMP or CUDA parallelism
 * Fully deterministic execution
 * Given the same mesh, global numbering, and size field,
   results will be independent of parallel partitioning
@@ -50,7 +50,7 @@ Omega\_h provides at least the following:
 
 Below we document some key CMake configuration options:
 
-#### Omega_h_USE_MPI
+#### Omega\_h\_USE\_MPI
 Default: `OFF`
 
 Whether to enable MPI parallelism.
@@ -58,22 +58,24 @@ We recommend using [MPICH][3] or another MPI 3.0 implementation,
 but we also support MPI version 2.1.
 If this is `ON`, set `CMAKE_CXX_COMPILER` to your MPI compiler wrapper.
 
-#### Omega_h_USE_Trilinos
+#### Omega\_h\_USE\_OpenMP
 Default: `OFF`
 
-Whether to use the Kokkos and Teuchos Trilinos packages.
-If this is `ON`, set `Trilinos_PREFIX` to your Trilinos installation.
-Kokkos provides on-node parallelism, and Omeg\_h will use the same
-default execution space that Kokkos was built with.
-Teuchos provides parameter lists and file I/O for them,
-which are usable through `Omega_h_teuchos.hpp`.
+Whether to enable OpenMP thread parallelism.
+The `-fopenmp` flag will automatically be added.
 
-#### Omega_h_USE_SEACASExodus
+#### Omega\_h\_USE\_CUDA
 Default: `OFF`
 
-Whether to use the Exodus subpackage of the SEACAS Trilinos package.
+Whether to enable CUDA GPU parallelism.
+Currently, this requires that [`nvcc_wrapper`][7] be used as the `CMAKE_CXX_COMPILER`.
+
+#### Omega\_h\_USE\_SEACASExodus
+Default: `OFF`
+
+Whether to use the Exodus subpackage of the SEACAS toolkit.
 This allows reading and writing Exodus files from Omega\_h.
-By default, it will look for this dependency in `Trilinos_PREFIX`.
+By default, it will look for this dependency in `SEACASExodus_PREFIX`.
 
 ## Contributing
 
@@ -87,11 +89,7 @@ branch. Pull requests are welcome.
 This library is released under the FreeBSD license.
 
 [0]: https://cmake.org
-[1]: https://raw.githubusercontent.com/ibaned/omega_h/master/aux/omega_h.png
-[2]: https://github.com/kokkos/kokkos
+[1]: https://raw.githubusercontent.com/SNLComputation/omega_h/master/aux/omega_h.png
 [3]: http://www.mpich.org
-[4]: https://github.com/trilinos/Trilinos
-[5]: http://clang.llvm.org/docs/ClangFormat.html
 [6]: http://zlib.net
 [7]: http://github.com/kokkos/nvcc_wrapper
-[8]: https://github.com/ibaned/omega_h/blob/master/aux/do-config-trilinos-kokkos.sh

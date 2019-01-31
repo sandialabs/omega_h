@@ -125,8 +125,8 @@ static std::vector<int> sources_from_destinations(
   std::vector<MPI_Request> send_requests(std::size_t(destinations.size()));
   int const tag = 377;
   for (int i = 0; i < destinations.size(); ++i) {
-    CALL(MPI_Issend(&ignored_send_buffer, 1, MPI_CHAR, destinations[i], tag, comm,
-        &send_requests[std::size_t(i)]));
+    CALL(MPI_Issend(&ignored_send_buffer, 1, MPI_CHAR, destinations[i], tag,
+        comm, &send_requests[std::size_t(i)]));
   }
   std::vector<int> sources;
   int locally_done_flag = 0;
@@ -139,8 +139,8 @@ static std::vector<int> sources_from_destinations(
     CALL(MPI_Iprobe(peer, tag, comm, &flag, &status));
     if (flag) {
       peer = status.MPI_SOURCE;
-      CALL(MPI_Recv(
-          &ignored_recv_buffer, 1, MPI_CHAR, peer, tag, comm, MPI_STATUS_IGNORE));
+      CALL(MPI_Recv(&ignored_recv_buffer, 1, MPI_CHAR, peer, tag, comm,
+          MPI_STATUS_IGNORE));
       sources.push_back(peer);
     }
     if (locally_done_flag) {

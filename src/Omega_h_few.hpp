@@ -18,15 +18,15 @@ class Few {
 
  public:
   using value_type = T;
-  enum { size = n };
   OMEGA_H_INLINE T* data() { return array_; }
   OMEGA_H_INLINE T const* data() const { return array_; }
   OMEGA_H_INLINE T volatile* data() volatile { return array_; }
   OMEGA_H_INLINE T const volatile* data() const volatile { return array_; }
+  OMEGA_H_INLINE constexpr Int size() const { return n; }
 #ifdef OMEGA_H_CHECK_BOUNDS
 #define OMEGA_H_FEW_AT                                                         \
   OMEGA_H_CHECK(0 <= i);                                                       \
-  OMEGA_H_CHECK(i < size);                                                     \
+  OMEGA_H_CHECK(i < size());                                                   \
   return array_[i]
 #else
 #define OMEGA_H_FEW_AT return array_[i]
@@ -71,13 +71,13 @@ class Few {
 
  public:
   using value_type = T;
-  static constexpr Int size = n;
   OMEGA_H_INLINE T* data() noexcept { return array_; }
   OMEGA_H_INLINE T const* data() const noexcept { return array_; }
+  OMEGA_H_INLINE constexpr Int size() const { return n; }
 #ifdef OMEGA_H_CHECK_BOUNDS
 #define OMEGA_H_FEW_AT                                                         \
   OMEGA_H_CHECK(0 <= i);                                                       \
-  OMEGA_H_CHECK(i < size);                                                     \
+  OMEGA_H_CHECK(i < size());                                                   \
   return array_[i]
 #else
 #define OMEGA_H_FEW_AT return array_[i]

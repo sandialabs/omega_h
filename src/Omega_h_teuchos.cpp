@@ -210,8 +210,8 @@ void update_parameters_from_file(filesystem::path const& filepath,
     Teuchos::updateParametersFromXmlFileAndBroadcast(
         filepath.string(), Teuchos::Ptr<Teuchos::ParameterList>(pl), comm);
   } else if (ext == ".yaml") {
-    Teuchos::updateParametersFromYamlFileAndBroadcast(
-        filepath.string(), Teuchos::Ptr<Teuchos::ParameterList>(pl), comm, true);
+    Teuchos::updateParametersFromYamlFileAndBroadcast(filepath.string(),
+        Teuchos::Ptr<Teuchos::ParameterList>(pl), comm, true);
   } else {
     Omega_h_fail(
         "\"%s\" is not a known parameter list format\n", filepath.c_str());
@@ -237,7 +237,8 @@ void write_parameters(
   if (!stream.is_open()) {
     Omega_h_fail("couldn't open \"%s\" to write\n", filepath.c_str());
   }
-  write_parameters(stream, pl, ends_with(filepath, ".yaml"));
+  auto const ext = filepath.extension().string();
+  write_parameters(stream, pl, (ext == ".yaml"));
 }
 
 void check_unused(Teuchos::ParameterList const& pl) {
@@ -341,7 +342,7 @@ Int get_ent_dim_by_name(Mesh* mesh, std::string const& name) {
 
 template <Int dim>
 static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList& pl) {
-  auto filepath = pl.get<std::string>("File");
+  filesystem::path filepath = pl.get<std::string>("File");
   Int ent_dim = 0;
   if (pl.isType<std::string>("Entity")) {
     auto ent_str = pl.get<std::string>("Entity");
@@ -355,15 +356,17 @@ static void write_scatterplot_dim(Mesh* mesh, Teuchos::ParameterList& pl) {
     for (Int i = 0; i < dim; ++i) origin[i] = origin_teuchos[i];
   }
   std::string separator = "\t";
-  if (ends_with(filepath, "csv")) separator = ", ";
+  auto const ext = filepath.extension().string();
+  if (ext == ".csv") separator = ", ";
   if (pl.isType<Teuchos::Array<double>>("Direction")) {
     Vector<dim> direction;
     auto direction_teuchos = pl.get<Teuchos::Array<double>>("Direction");
     for (Int i = 0; i < dim; ++i) direction[i] = direction_teuchos[i];
     write_linear_scatterplot(
-        filepath, mesh, ent_dim, data, direction, origin, separator);
+        filepath.string(), mesh, ent_dim, data, direction, origin, separator);
   } else {
-    write_radial_scatterplot(filepath, mesh, ent_dim, data, origin, separator);
+    write_radial_scatterplot(
+        filepath.string(), mesh, ent_dim, data, origin, separator);
   }
 }
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.24.2 LANGUAGES CXX)
+project(Omega_h VERSION 9.25.4 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -131,6 +131,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options($<$<COMPILE_LANGUAGE:CXX>:cuda>)
     # -Wweak-vtables gives false positives with -x cuda
     set(FLAGS "${FLAGS} -Wno-weak-vtables")
+  else()
+    if(Omega_h_USE_OpenMP)
+      set(FLAGS "${FLAGS} -fopenmp")
+    endif()
   endif()
 elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   if(Omega_h_USE_CUDA)

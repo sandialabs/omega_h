@@ -166,38 +166,121 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
    copies which have the exact same connectivity and establish ownership.
 */
 
+static LOs sort_locally_based_on_rank(
+    LOs servers_to_served, Read<I32> served_to_rank) {
+  OMEGA_H_TIME_FUNCTION;
+  auto const served_order = Write<LO>(served_to_rank.size());
+  auto functor = OMEGA_H_LAMBDA(LO const server) {
+    auto const begin = servers_to_served[server];
+    auto const end = servers_to_served[server + 1];
+    I32 last_smallest_rank = -1;
+    for (LO i = begin; i < end;) {
+      I32 next_smallest_rank = ArithTraits<I32>::max();
+      for (LO j = begin; j < end; ++j) {
+        auto const rank = served_to_rank[j];
+        if (rank > last_smallest_rank && rank < next_smallest_rank) {
+          next_smallest_rank = rank;
+        }
+      }
+      OMEGA_H_CHECK(next_smallest_rank > last_smallest_rank);
+      OMEGA_H_CHECK(next_smallest_rank < ArithTraits<I32>::max());
+      for (LO j = begin; j < end; ++j) {
+        if (served_to_rank[j] == next_smallest_rank) {
+          served_order[i++] = j;
+        }
+      }
+      last_smallest_rank = next_smallest_rank;
+    }
+  };
+  parallel_for(servers_to_served.size() - 1, std::move(functor));
+  return served_order;
+}
+
 void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
     LOs* p_ent_verts2verts, Remotes* p_ents2owners) {
-  auto ev2v = *p_ent_verts2verts;
-  auto ev2vg = read(unmap(ev2v, verts2globs, 1));
-  auto canon_codes = get_codes_to_canonical(deg, ev2vg);
-  auto ev2v_canon = align_ev2v(deg, ev2v, canon_codes);
+  // entity vertices to vertices
+  auto const ev2v = *p_ent_verts2verts;
+  // entity vertices to vertex globals
+  auto const ev2vg = read(unmap(ev2v, verts2globs, 1));
+  auto const canon_codes = get_codes_to_canonical(deg, ev2vg);
+  // entity vertices to vertices, flipped so smallest global goes in front
+  auto const ev2v_canon = align_ev2v(deg, ev2v, canon_codes);
   *p_ent_verts2verts = ev2v_canon;
-  auto ev2vg_canon = align_ev2v(deg, ev2vg, canon_codes);
-  auto e2fv = get_component(ev2v_canon, deg, 0);
-  auto total_verts = find_total_globals(comm, verts2globs);
-  auto v2ov = globals_to_linear_owners(comm, verts2globs, total_verts);
-  auto e2ov = unmap(e2fv, v2ov);
-  auto linsize = linear_partition_size(comm, total_verts);
-  auto in_dist = Dist(comm, e2ov, linsize);
-  auto sev2vg = in_dist.exch(ev2vg_canon, deg);
+  // entity vertices to vertex globals, with smallest global first
+  auto const ev2vg_canon = align_ev2v(deg, ev2vg, canon_codes);
+  // entity to adj vertex with smallest global
+  auto const e2fv = get_component(ev2v_canon, deg, 0);
+  auto const total_verts = find_total_globals(comm, verts2globs);
+  // vertices to owners in linear partitioning of globals
+  auto const v2ov = globals_to_linear_owners(comm, verts2globs, total_verts);
+  // entities to owning vertices in linear partitioning of vertex globals
+  auto const e2ov = unmap(e2fv, v2ov);
+  auto const linsize = linear_partition_size(comm, total_verts);
+  // dist from entities to linear partitioning of vertex globals
+  auto const in_dist = Dist(comm, e2ov, linsize);
+  // each MPI rank in the linear partitioning of vertex globals
+  // is "serving" a contiguous subset of vertex globals, and hence
+  // a subset of the vertices
+  // Each of these vertices is "serving" all entities for which they
+  // are the smallest-global adjacent vertex
+  //
+  // "served" entity vertices to vertex globals
+  auto const sev2vg = in_dist.exch(ev2vg_canon, deg);
   auto out_dist = in_dist.invert();
-  auto sv2svse = out_dist.roots2items();
-  auto nse = out_dist.nitems();
-  auto svse2se = LOs(nse, 0, 1);
-  auto sv2se_codes = Read<I8>(nse, make_code(false, 0, 0));
-  auto sv2se = Adj(sv2svse, svse2se, sv2se_codes);
-  auto se2fsv = invert_fan(sv2svse);
-  LOs se2ose;
-  Read<I8> se2ose_codes;
+  // "serving" vertices to served entities
+  auto const sv2svse = out_dist.roots2items();
+  // number of served entities
+  auto const nse = out_dist.nitems();
+  // items2dests() returns, for each served entity, the (rank, local index) pair
+  // of where it originally came from
+  //
+  // owning served entity to original entity
+  auto const se2orig = out_dist.items2dests();
+  auto const se2orig_rank = se2orig.ranks;
+  // the ordering of this array is critical for the resulting output to be
+  // both deterministic and serial-parallel consistent.
+  // it ensures that entities will be explored for matches in an order that
+  // depends only on which rank they came from (which is unique), therefore
+  // basing ownership on a minimum-rank rule.
+  // note that otherwise the ordering of entities in these arrays is not even
+  // deterministic, let alone partition-independent
+  auto const svse2se = sort_locally_based_on_rank(sv2svse, se2orig_rank);
+  // helper to make "serving vertices to served entities" look like an Adj
+  auto const sv2se_codes = Read<I8>(nse, make_code(false, 0, 0));
+  auto const sv2se = Adj(sv2svse, svse2se, sv2se_codes);
+  // served entities to serving vertex
+  auto const se2fsv = invert_fan(sv2svse);
+  // find_matches_ex will match up all duplicate entities by assigning a temporary
+  // owner to each set of duplicates. note that this owner is entirely ordering-dependent,
+  // i.e. it will be just the first duplicate in the input arrays, and the ordering of
+  // those arrays is not even deterministic!
+  //
+  // served entity to owning served entity
+  Write<LO> se2ose;
+  Write<I8> ignored_codes;
   constexpr bool allow_duplicates = true;
-  find_matches_ex(deg, se2fsv, sev2vg, sev2vg, sv2se, &se2ose, &se2ose_codes,
+  find_matches_ex(deg, se2fsv, sev2vg, sev2vg, sv2se, &se2ose, &ignored_codes,
       allow_duplicates);
-  auto ose2oe = out_dist.items2dests();
-  auto se2oe = unmap(se2ose, ose2oe);
+  // the problem with the temporary owner is that it is not deterministic, and
+  // definitely not serial-parallel consistent. we need to choose an owner based
+  // on a deterministic and serial-parallel consistent rule.
+  // Two commonly used rules are:
+  //   1) smallest rank
+  //   2) rank who owns the fewest entities (tiebreaker is rank).
+  //      The problem with this rule is that we are inside the code that determines
+  //      ownership, so there is a bit of a chicken-and-egg obstacle to applying this rule.
+  //
+  //      TODO: fix non-determinism and partition-dependence of owner
+  //
+  // served entity to owning original entity
+  auto const se2owner_orig = unmap(read(se2ose), se2orig);
+  // remove roots2items so that the next exch() call will accept items, not roots
   out_dist.set_roots2items(LOs());
-  auto e2oe = out_dist.exch(se2oe, 1);
-  *p_ents2owners = e2oe;
+  // send back, to each served entity, the (rank, local index) pair of its new owner
+  //
+  // entities to owning entities
+  auto const e2owner = out_dist.exch(se2owner_orig, 1);
+  *p_ents2owners = e2owner;
 }
 
 void suggest_slices(
