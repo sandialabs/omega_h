@@ -64,6 +64,9 @@ class Matrix : public Few<Vector<m>, n> {
 
 #endif
 
+template <Int dim>
+using Tensor = Matrix<dim, dim>;
+
 template <Int m, Int n>
 OMEGA_H_INLINE Real* scalar_ptr(Matrix<m, n>& a) {
   return &a[0][0];
@@ -118,11 +121,18 @@ OMEGA_H_INLINE Matrix<max_m, max_n> identity_matrix() {
   return identity_matrix<max_m, max_n>(max_m, max_n);
 }
 
+template <Int dim>
+OMEGA_H_INLINE Tensor<dim> identity_tensor() {
+  return identity_matrix<dim, dim>();
+}
+
 OMEGA_H_INLINE Matrix<1, 1> matrix_1x1(Real a) {
   Matrix<1, 1> o;
   o[0][0] = a;
   return o;
 }
+
+OMEGA_H_INLINE Tensor<1> tensor_1(Real a) { return matrix_1x1(a); }
 
 OMEGA_H_INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
   Matrix<2, 2> o;
@@ -131,6 +141,8 @@ OMEGA_H_INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
   return o;
 }
 
+OMEGA_H_INLINE Tensor<2> tensor_2(Real a, Real b, Real c, Real d) { return matrix_2x2(a, b, c, d); }
+
 OMEGA_H_INLINE Matrix<3, 3> matrix_3x3(
     Real a, Real b, Real c, Real d, Real e, Real f, Real g, Real h, Real i) {
   Matrix<3, 3> o;
@@ -138,6 +150,15 @@ OMEGA_H_INLINE Matrix<3, 3> matrix_3x3(
   o[1] = vector_3(b, e, h);
   o[2] = vector_3(c, f, i);
   return o;
+}
+
+OMEGA_H_INLINE Tensor<3> tensor_3(
+    Real a, Real b, Real c,
+    Real d, Real e, Real f,
+    Real g, Real h, Real i
+    )
+{
+  return matrix_3x3(a, b, c, d, e, f, g, h, i);
 }
 
 template <Int m, Int n>
@@ -229,16 +250,14 @@ OMEGA_H_INLINE Matrix<m, n> outer_product(Vector<m> a, Vector<n> b) {
 }
 
 template <Int m>
-OMEGA_H_INLINE Real trace(Matrix<m, m> a) __attribute__((pure));
-template <Int m>
-OMEGA_H_INLINE Real trace(Matrix<m, m> a) {
+OMEGA_H_INLINE Real trace(Tensor<m> a) {
   Real t = a[0][0];
   for (Int i = 1; i < m; ++i) t += a[i][i];
   return t;
 }
 
 template <Int m>
-OMEGA_H_INLINE Vector<m> diagonal(Matrix<m, m> a) {
+OMEGA_H_INLINE Vector<m> diagonal(Tensor<m> a) {
   Vector<m> v;
   for (Int i = 0; i < m; ++i) v[i] = a[i][i];
   return v;
@@ -251,9 +270,9 @@ OMEGA_H_INLINE Matrix<m, n> zero_matrix() {
   return a;
 }
 
-OMEGA_H_INLINE Real determinant(Matrix<1, 1> m) { return m[0][0]; }
+OMEGA_H_INLINE Real determinant(Tensor<1> m) { return m[0][0]; }
 
-OMEGA_H_INLINE Real determinant(Matrix<2, 2> m) {
+OMEGA_H_INLINE Real determinant(Tensor<2> m) {
   Real a = m[0][0];
   Real b = m[1][0];
   Real c = m[0][1];
@@ -261,7 +280,7 @@ OMEGA_H_INLINE Real determinant(Matrix<2, 2> m) {
   return a * d - b * c;
 }
 
-OMEGA_H_INLINE Real determinant(Matrix<3, 3> m) {
+OMEGA_H_INLINE Real determinant(Tensor<3> m) {
   Real a = m[0][0];
   Real b = m[1][0];
   Real c = m[2][0];
@@ -293,29 +312,29 @@ OMEGA_H_INLINE Real inner_product(Matrix<m, n> a, Matrix<m, n> b) {
 }
 
 template <Int max_m, Int max_n>
-OMEGA_H_INLINE Real norm(Int m, Int n, Matrix<max_m, max_n> a) {
+OMEGA_H_INLINE Real norm(Int const m, Int const n, Matrix<max_m, max_n> const a) {
   return std::sqrt(inner_product(m, n, a, a));
 }
 
 template <Int m, Int n>
-OMEGA_H_INLINE Real norm(Matrix<m, n> a) {
+OMEGA_H_INLINE Real norm(Matrix<m, n> const a) {
   return norm(m, n, a);
 }
 
-OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> a) {
+OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> const a) {
   return matrix_3x3(0, -a[2], a[1], a[2], 0, -a[0], -a[1], a[0], 0);
 }
 
-OMEGA_H_INLINE Vector<3> uncross(Matrix<3, 3> c) {
+OMEGA_H_INLINE Vector<3> uncross(Tensor<3> const c) {
   return 0.5 *
          vector_3(c[1][2] - c[2][1], c[2][0] - c[0][2], c[0][1] - c[1][0]);
 }
 
-OMEGA_H_INLINE Matrix<1, 1> invert(Matrix<1, 1> m) {
+OMEGA_H_INLINE Tensor<1> invert(Tensor<1> const m) {
   return matrix_1x1(1.0 / m[0][0]);
 }
 
-OMEGA_H_INLINE Matrix<2, 2> invert(Matrix<2, 2> m) {
+OMEGA_H_INLINE Tensor<2> invert(Tensor<2> const m) {
   Real a = m[0][0];
   Real b = m[1][0];
   Real c = m[0][1];
@@ -323,8 +342,8 @@ OMEGA_H_INLINE Matrix<2, 2> invert(Matrix<2, 2> m) {
   return matrix_2x2(d, -b, -c, a) / determinant(m);
 }
 
-OMEGA_H_INLINE Matrix<3, 3> invert(Matrix<3, 3> a) {
-  Matrix<3, 3> b;
+OMEGA_H_INLINE Tensor<3> invert(Tensor<3> const a) {
+  Tensor<3> b;
   b[0] = cross(a[1], a[2]);
   b[1] = cross(a[2], a[0]);
   b[2] = cross(a[0], a[1]);
@@ -346,8 +365,8 @@ pseudo_invert(Matrix<m, n> a) {
 }
 
 template <Int m>
-OMEGA_H_INLINE Matrix<m, m> diagonal(Vector<m> v) {
-  Matrix<m, m> a;
+OMEGA_H_INLINE Tensor<m> diagonal(Vector<m> v) {
+  Tensor<m> a;
   for (Int i = 0; i < m; ++i)
     for (Int j = i + 1; j < m; ++j) a[i][j] = a[j][i] = 0.0;
   for (Int i = 0; i < m; ++i) a[i][i] = v[i];
@@ -358,15 +377,15 @@ OMEGA_H_INLINE constexpr Int symm_ncomps(Int dim) {
   return ((dim + 1) * dim) / 2;
 }
 
-OMEGA_H_INLINE Vector<1> symm2vector(Matrix<1, 1> symm) {
+OMEGA_H_INLINE Vector<1> symm2vector(Tensor<1> symm) {
   return vector_1(symm[0][0]);
 }
 
-OMEGA_H_INLINE Matrix<1, 1> vector2symm(Vector<1> v) {
+OMEGA_H_INLINE Tensor<1> vector2symm(Vector<1> v) {
   return matrix_1x1(v[0]);
 }
 
-OMEGA_H_INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
+OMEGA_H_INLINE Vector<3> symm2vector(Tensor<2> symm) {
   Vector<3> v;
   v[0] = symm[0][0];
   v[1] = symm[1][1];
@@ -374,8 +393,8 @@ OMEGA_H_INLINE Vector<3> symm2vector(Matrix<2, 2> symm) {
   return v;
 }
 
-OMEGA_H_INLINE Matrix<2, 2> vector2symm(Vector<3> v) {
-  Matrix<2, 2> symm;
+OMEGA_H_INLINE Tensor<2> vector2symm(Vector<3> v) {
+  Tensor<2> symm;
   symm[0][0] = v[0];
   symm[1][1] = v[1];
   symm[1][0] = v[2];
@@ -383,7 +402,7 @@ OMEGA_H_INLINE Matrix<2, 2> vector2symm(Vector<3> v) {
   return symm;
 }
 
-OMEGA_H_INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
+OMEGA_H_INLINE Vector<6> symm2vector(Tensor<3> symm) {
   Vector<6> v;
   v[0] = symm[0][0];
   v[1] = symm[1][1];
@@ -394,8 +413,8 @@ OMEGA_H_INLINE Vector<6> symm2vector(Matrix<3, 3> symm) {
   return v;
 }
 
-OMEGA_H_INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
-  Matrix<3, 3> symm;
+OMEGA_H_INLINE Tensor<3> vector2symm(Vector<6> v) {
+  Tensor<3> symm;
   symm[0][0] = v[0];
   symm[1][1] = v[1];
   symm[2][2] = v[2];
@@ -410,12 +429,12 @@ OMEGA_H_INLINE Matrix<3, 3> vector2symm(Vector<6> v) {
 
 /* Symmetric metric tensor storage convention used by
    INRIA:  https://hal.inria.fr/inria-00363007/document */
-OMEGA_H_INLINE Matrix<1, 1> vector2symm_inria(Vector<1> v) {
+OMEGA_H_INLINE Tensor<1> vector2symm_inria(Vector<1> v) {
   return matrix_1x1(v[0]);
 }
 
-OMEGA_H_INLINE Matrix<2, 2> vector2symm_inria(Vector<3> v) {
-  Matrix<2, 2> symm;
+OMEGA_H_INLINE Tensor<2> vector2symm_inria(Vector<3> v) {
+  Tensor<2> symm;
   symm[0][0] = v[0];
   symm[0][1] = v[1];
   symm[1][1] = v[2];
@@ -423,8 +442,8 @@ OMEGA_H_INLINE Matrix<2, 2> vector2symm_inria(Vector<3> v) {
   return symm;
 }
 
-OMEGA_H_INLINE Matrix<3, 3> vector2symm_inria(Vector<6> v) {
-  Matrix<3, 3> symm;
+OMEGA_H_INLINE Tensor<3> vector2symm_inria(Vector<6> v) {
+  Tensor<3> symm;
   symm[0][0] = v[0];
   symm[0][1] = v[1];
   symm[1][1] = v[2];
@@ -437,11 +456,11 @@ OMEGA_H_INLINE Matrix<3, 3> vector2symm_inria(Vector<6> v) {
   return symm;
 }
 
-OMEGA_H_INLINE Vector<1> symm2vector_inria(Matrix<1, 1> symm) {
+OMEGA_H_INLINE Vector<1> symm2vector_inria(Tensor<1> symm) {
   return vector_1(symm[0][0]);
 }
 
-OMEGA_H_INLINE Vector<3> symm2vector_inria(Matrix<2, 2> symm) {
+OMEGA_H_INLINE Vector<3> symm2vector_inria(Tensor<2> symm) {
   Vector<3> v;
   v[0] = symm[0][0];
   v[1] = symm[0][1];
@@ -449,7 +468,7 @@ OMEGA_H_INLINE Vector<3> symm2vector_inria(Matrix<2, 2> symm) {
   return v;
 }
 
-OMEGA_H_INLINE Vector<6> symm2vector_inria(Matrix<3, 3> symm) {
+OMEGA_H_INLINE Vector<6> symm2vector_inria(Tensor<3> symm) {
   Vector<6> v;
   v[0] = symm[0][0];
   v[1] = symm[0][1];
@@ -485,12 +504,12 @@ OMEGA_H_INLINE Matrix<m, n> vector2matrix(Vector<matrix_ncomps(m, n)> v) {
 }
 
 template <Int n>
-OMEGA_H_DEVICE void set_symm(Write<Real> const& a, Int i, Matrix<n, n> symm) {
+OMEGA_H_DEVICE void set_symm(Write<Real> const& a, Int i, Tensor<n> symm) {
   set_vector(a, i, symm2vector(symm));
 }
 
 template <Int n, typename Arr>
-OMEGA_H_DEVICE Matrix<n, n> get_symm(Arr const& a, Int i) {
+OMEGA_H_DEVICE Tensor<n> get_symm(Arr const& a, Int i) {
   return vector2symm(get_vector<symm_ncomps(n)>(a, i));
 }
 
@@ -501,39 +520,39 @@ OMEGA_H_DEVICE void set_matrix(
 }
 
 template <Int m, Int n, typename Arr>
-OMEGA_H_DEVICE Matrix<m, n> get_matrix(Arr const& matrices, Int i) {
+OMEGA_H_DEVICE Matrix<m, n> get_matrix(Arr const& matrices, Int const i) {
   return vector2matrix<m, n>(get_vector<matrix_ncomps(m, n)>(matrices, i));
 }
 
 /* Rodrigues' Rotation Formula */
-OMEGA_H_INLINE Matrix<3, 3> rotate(Real angle, Vector<3> axis) {
+OMEGA_H_INLINE Tensor<3> rotate(Real const angle, Vector<3> const axis) {
   return std::cos(angle) * identity_matrix<3, 3>() +
          std::sin(angle) * cross(axis) +
          (1 - std::cos(angle)) * outer_product(axis, axis);
 }
 
-OMEGA_H_INLINE Matrix<2, 2> rotate(Real angle) {
+OMEGA_H_INLINE Tensor<2> rotate(Real const angle) {
   return matrix_2x2(
       std::cos(angle), -std::sin(angle), std::sin(angle), std::cos(angle));
 }
 
-OMEGA_H_INLINE Real rotation_angle(Matrix<2, 2> r) {
+OMEGA_H_INLINE Real rotation_angle(Tensor<2> const r) {
   auto const cos_theta = 0.5 * trace(r);
   auto const sin_theta = 0.5 * (r(1, 0) - r(0, 1));
   return std::atan2(sin_theta, cos_theta);
 }
 
-OMEGA_H_INLINE Real rotation_angle(Matrix<3, 3> r) {
+OMEGA_H_INLINE Real rotation_angle(Tensor<3> const r) {
   auto const cos_theta = 0.5 * (trace(r) - 1.0);
   return std::acos(cos_theta);
 }
 
-OMEGA_H_INLINE Matrix<1, 1> form_ortho_basis(Vector<1> v) {
-  return matrix_1x1(v[0]);
+OMEGA_H_INLINE Tensor<1> form_ortho_basis(Vector<1> const v) {
+  return tensor_1(v[0]);
 }
 
-OMEGA_H_INLINE Matrix<2, 2> form_ortho_basis(Vector<2> v) {
-  Matrix<2, 2> A;
+OMEGA_H_INLINE Tensor<2> form_ortho_basis(Vector<2> const v) {
+  Tensor<2> A;
   A[0] = v;
   A[1] = perp(A[0]);
   return A;
@@ -542,8 +561,8 @@ OMEGA_H_INLINE Matrix<2, 2> form_ortho_basis(Vector<2> v) {
 /* Duff, Tom, et al.
    "Building an orthonormal basis, revisited."
    Journal of Computer Graphics Techniques Vol 6.1 (2017). */
-OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
-  Matrix<3, 3> A;
+OMEGA_H_INLINE Tensor<3> form_ortho_basis(Vector<3> const v) {
+  Tensor<3> A;
   A[0] = v;
   auto sign = std::copysign(1.0, v(2));
   const auto a = -1.0 / (sign + v(2));
@@ -554,14 +573,14 @@ OMEGA_H_INLINE Matrix<3, 3> form_ortho_basis(Vector<3> v) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> deviator(Matrix<dim, dim> a) {
+OMEGA_H_INLINE Tensor<dim> deviator(Tensor<dim> const a) {
   return (a - ((1.0 / dim) * trace(a) * identity_matrix<dim, dim>()));
 }
 
 template <int new_dim, int old_dim>
-OMEGA_H_INLINE Matrix<new_dim, new_dim> resize(Matrix<old_dim, old_dim> m) {
+OMEGA_H_INLINE Tensor<new_dim> resize(Tensor<old_dim> const m) {
   constexpr int min_dim = Omega_h::min2(new_dim, old_dim);
-  Matrix<new_dim, new_dim> m2;
+  Tensor<new_dim> m2;
   for (int i = 0; i < min_dim; ++i)
     for (int j = 0; j < min_dim; ++j) m2(i, j) = m(i, j);
   for (int i = 0; i < new_dim; ++i)
@@ -570,19 +589,19 @@ OMEGA_H_INLINE Matrix<new_dim, new_dim> resize(Matrix<old_dim, old_dim> m) {
 }
 
 template <Int dim>
-Reals repeat_symm(LO n, Matrix<dim, dim> symm);
-extern template Reals repeat_symm(LO n, Matrix<3, 3> symm);
-extern template Reals repeat_symm(LO n, Matrix<2, 2> symm);
-extern template Reals repeat_symm(LO n, Matrix<1, 1> symm);
+Reals repeat_symm(LO const n, Tensor<dim> const symm);
+extern template Reals repeat_symm(LO const n, Tensor<3> const symm);
+extern template Reals repeat_symm(LO const n, Tensor<2> const symm);
+extern template Reals repeat_symm(LO const n, Tensor<1> const symm);
 
 Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim);
 
 template <Int dim>
-Reals repeat_matrix(LO n, Matrix<dim, dim> m);
+Reals repeat_matrix(LO const n, Tensor<dim> m);
 
-extern template Reals repeat_matrix(LO n, Matrix<3, 3> m);
-extern template Reals repeat_matrix(LO n, Matrix<2, 2> m);
-extern template Reals repeat_matrix(LO n, Matrix<1, 1> m);
+extern template Reals repeat_matrix(LO const n, Tensor<3> const m);
+extern template Reals repeat_matrix(LO const n, Tensor<2> const m);
+extern template Reals repeat_matrix(LO const n, Tensor<1> const m);
 
 Reals matrices_times_vectors(Reals ms, Reals vs, Int dim);
 Reals matrices_times_matrices(Reals ms, Reals vs, Int dim);
@@ -590,7 +609,7 @@ Reals matrices_times_matrices(Reals ms, Reals vs, Int dim);
 Reals symms_inria2osh(Int dim, Reals symms);
 Reals symms_osh2inria(Int dim, Reals symms);
 
-Reals matrices_to_symms(Reals matrices, Int dim);
+Reals matrices_to_symms(Reals const matrices, Int const dim);
 
 }  // end namespace Omega_h
 
