@@ -1,6 +1,6 @@
 #include <Omega_h_for.hpp>
 #include <Omega_h_library.hpp>
-#include <Omega_h_random.hpp>
+#include <Omega_h_random_inline.hpp>
 
 using namespace Omega_h;
 
