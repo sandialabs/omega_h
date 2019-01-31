@@ -6,60 +6,60 @@
 namespace Omega_h {
 
 template <Int dim>
-OMEGA_H_INLINE Real metric_product(Matrix<dim, dim> m, Vector<dim> v) {
+OMEGA_H_INLINE Real metric_product(Tensor<dim> const m, Vector<dim> const v) {
   return v * (m * v);
 }
 
 template <Int space_dim>
 OMEGA_H_INLINE typename std::enable_if<(space_dim > 1), Real>::type
-metric_product(Matrix<1, 1> m, Vector<space_dim> v) {
+metric_product(Tensor<1> const m, Vector<space_dim> const v) {
   return v * (m[0][0] * v);
 }
 
 template <Int metric_dim, Int space_dim>
 OMEGA_H_INLINE Real metric_length(
-    Matrix<metric_dim, metric_dim> m, Vector<space_dim> v) {
+    Tensor<metric_dim> const m, Vector<space_dim> const v) {
   return std::sqrt(metric_product(m, v));
 }
 
 template <Int dim>
-OMEGA_H_INLINE Real metric_desired_length(Matrix<dim, dim> m, Vector<dim> dir) {
+OMEGA_H_INLINE Real metric_desired_length(Tensor<dim> const m, Vector<dim> const dir) {
   return 1.0 / metric_length(m, dir);
 }
 
-OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real l) {
+OMEGA_H_INLINE Real metric_length_from_eigenvalue(Real const l) {
   return 1.0 / std::sqrt(l);
 }
 
-OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real h) {
+OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real const h) {
   return 1.0 / square(h);
 }
 
 template <Int dim>
-OMEGA_H_INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> l) {
+OMEGA_H_INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> const l) {
   Vector<dim> h;
   for (Int i = 0; i < dim; ++i) h[i] = metric_length_from_eigenvalue(l[i]);
   return h;
 }
 
 template <Int dim>
-OMEGA_H_INLINE Vector<dim> metric_eigenvalues_from_lengths(Vector<dim> h) {
+OMEGA_H_INLINE Vector<dim> metric_eigenvalues_from_lengths(Vector<dim> const h) {
   Vector<dim> l;
   for (Int i = 0; i < dim; ++i) l[i] = metric_eigenvalue_from_length(h[i]);
   return l;
 }
 
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> compose_metric(
-    Matrix<dim, dim> r, Vector<dim> h) {
-  auto l = metric_eigenvalues_from_lengths(h);
+OMEGA_H_INLINE Tensor<dim> compose_metric(
+    Tensor<dim> const r, Vector<dim> const h) {
+  auto const l = metric_eigenvalues_from_lengths(h);
   return compose_ortho(r, l);
 }
 
 template <Int dim>
-OMEGA_H_INLINE_BIG DiagDecomp<dim> decompose_metric(Matrix<dim, dim> m) {
-  auto ed = decompose_eigen(m);
-  auto h = metric_lengths_from_eigenvalues(ed.l);
+OMEGA_H_INLINE_BIG DiagDecomp<dim> decompose_metric(Tensor<dim> const m) {
+  auto const ed = decompose_eigen(m);
+  auto const h = metric_lengths_from_eigenvalues(ed.l);
   return {ed.q, h};
 }
 
@@ -100,12 +100,12 @@ That is the mechanism we use here:
 */
 
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> linearize_metric(Matrix<dim, dim> m) {
+OMEGA_H_INLINE_BIG Tensor<dim> linearize_metric(Tensor<dim> const m) {
   return log_spd_old(m);
 }
 
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> delinearize_metric(Matrix<dim, dim> log_m) {
+OMEGA_H_INLINE_BIG Tensor<dim> delinearize_metric(Tensor<dim> const log_m) {
   return exp_spd_old(log_m);
 }
 
@@ -121,23 +121,23 @@ OMEGA_H_INLINE_BIG Few<T, n> linearize_metrics(Few<T, n> ms) {
  */
 template <Int dim>
 OMEGA_H_INLINE_BIG void average_metric_contrib(
-    Matrix<dim, dim>& am, Int& n, Matrix<dim, dim> m, bool has_degen) {
+    Tensor<dim>& am, Int& n, Tensor<dim> const m, bool const has_degen) {
   if (has_degen && max_norm(m) < OMEGA_H_EPSILON) return;
   am += linearize_metric(m);
   n++;
 }
 
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> average_metric_finish(
-    Matrix<dim, dim> am, Int n, bool has_degen) {
+OMEGA_H_INLINE_BIG Tensor<dim> average_metric_finish(
+    Tensor<dim> am, Int const n, bool const has_degen) {
   if (has_degen && n == 0) return am;
   am /= n;
   return delinearize_metric(am);
 }
 
 template <Int dim, Int n>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> average_metric(
-    Few<Matrix<dim, dim>, n> ms, bool has_degen) {
+OMEGA_H_INLINE_BIG Tensor<dim> average_metric(
+    Few<Tensor<dim>, n> const ms, bool const has_degen) {
   auto am = zero_matrix<dim, dim>();
   Int ngood = 0;
   for (Int i = 0; i < n; ++i) {
@@ -147,11 +147,11 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> average_metric(
 }
 
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> clamp_metric(
-    Matrix<dim, dim> m, Real h_min, Real h_max) {
+OMEGA_H_INLINE_BIG Tensor<dim> clamp_metric(
+    Tensor<dim> const m, Real const h_min, Real const h_max) {
   auto ed = decompose_eigen(m);
-  auto l_max = metric_eigenvalue_from_length(h_min);
-  auto l_min = metric_eigenvalue_from_length(h_max);
+  auto const l_max = metric_eigenvalue_from_length(h_min);
+  auto const l_min = metric_eigenvalue_from_length(h_max);
   for (Int i = 0; i < dim; ++i) ed.l[i] = clamp(ed.l[i], l_min, l_max);
   return compose_ortho(ed.q, ed.l);
 }
@@ -165,7 +165,7 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> clamp_metric(
  * potential element (we do a lot of cavity pre-evaluation).
  */
 template <Int dim, Int n>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> maxdet_metric(Few<Matrix<dim, dim>, n> ms) {
+OMEGA_H_INLINE_BIG Tensor<dim> maxdet_metric(Few<Tensor<dim>, n> const ms) {
   auto m = ms[0];
   auto maxdet = determinant(m);
   for (Int i = 1; i < n; ++i) {

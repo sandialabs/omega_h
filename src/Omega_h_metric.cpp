@@ -330,14 +330,14 @@ Reals get_implied_isos(Mesh* mesh) {
  */
 
 template <Int dim>
-static OMEGA_H_INLINE_BIG Matrix<dim, dim> metric_from_hessian(
-    Matrix<dim, dim> hessian, Real eps) {
-  auto ed = decompose_eigen(hessian);
-  auto r = ed.q;
-  auto l = ed.l;
+static OMEGA_H_INLINE_BIG Tensor<dim> metric_from_hessian(
+    Tensor<dim> const hessian, Real const eps) {
+  auto const ed = decompose_eigen(hessian);
+  auto const r = ed.q;
+  auto const l = ed.l;
   constexpr auto c_num = square(dim);
   constexpr auto c_denom = 2 * square(dim + 1);
-  decltype(l) tilde_l;
+  decltype(ed.l) tilde_l;
   for (Int i = 0; i < dim; ++i) {
     tilde_l[i] = (c_num * std::abs(l[i])) / (c_denom * eps);
   }
@@ -367,15 +367,15 @@ Reals get_hessian_metrics(Int dim, Reals hessians, Real eps) {
 }
 
 template <Int dim>
-static OMEGA_H_INLINE_BIG Matrix<dim, dim> metric_from_gradient(
-    Vector<dim> grad, Real eps) {
-  auto grad_norm_sq = norm_squared(grad);
+static OMEGA_H_INLINE_BIG Tensor<dim> metric_from_gradient(
+    Vector<dim> const grad, Real const eps) {
+  auto const grad_norm_sq = norm_squared(grad);
   constexpr auto c_num = square(dim);
   constexpr auto c_denom = square(2 * (dim + 1));
-  auto l = (c_num * grad_norm_sq) / (c_denom * square(eps));
+  auto const l = (c_num * grad_norm_sq) / (c_denom * square(eps));
   if (l < EPSILON) return zero_matrix<dim, dim>();
-  auto grad_norm = std::sqrt(grad_norm_sq);
-  auto dir = grad / grad_norm;
+  auto const grad_norm = std::sqrt(grad_norm_sq);
+  auto const dir = grad / grad_norm;
   return outer_product(dir, dir) * l;
 }
 
@@ -383,9 +383,9 @@ template <Int dim>
 static Reals metric_from_gradients_dim(Reals gradients, Real eps) {
   auto n = divide_no_remainder(gradients.size(), dim);
   auto out = Write<Real>(n * symm_ncomps(dim));
-  auto f = OMEGA_H_LAMBDA(LO i) {
-    auto grad = get_vector<dim>(gradients, i);
-    auto m = metric_from_gradient(grad, eps);
+  auto f = OMEGA_H_LAMBDA(LO const i) {
+    auto const grad = get_vector<dim>(gradients, i);
+    auto const m = metric_from_gradient(grad, eps);
     set_symm(out, i, m);
   };
   parallel_for(n, f, "metric_from_gradients");
@@ -405,16 +405,15 @@ Reals get_gradient_metrics(Int dim, Reals gradients, Real eps) {
 template <Int dim>
 void get_curve_curvature_metrics(
     SurfaceInfo surface_info, Real segment_angle, Write<Real> out) {
-  auto f = OMEGA_H_LAMBDA(LO curv_vert) {
-    auto k = surface_info.curv_vert_curvatures[curv_vert];
-    auto t = get_vector<dim>(surface_info.curv_vert_tangents, curv_vert);
-    auto ew = square(k / segment_angle);
-    auto m = outer_product(t, ew * t);  // t * ew * transpose(t)
-    auto vert = surface_info.curv_vert2vert[curv_vert];
+  auto f = OMEGA_H_LAMBDA(LO const curv_vert) {
+    auto const k = surface_info.curv_vert_curvatures[curv_vert];
+    auto const t = get_vector<dim>(surface_info.curv_vert_tangents, curv_vert);
+    auto const ew = square(k / segment_angle);
+    auto const m = outer_product(t, ew * t);  // t * ew * transpose(t)
+    auto const vert = surface_info.curv_vert2vert[curv_vert];
     set_symm(out, vert, m);
   };
-  parallel_for(
-      surface_info.curv_vert2vert.size(), f, "get_curve_curvature_metrics");
+  parallel_for(surface_info.curv_vert2vert.size(), std::move(f));
 }
 
 Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
@@ -423,27 +422,26 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
   if (mesh->dim() == 3) {
     /* this algorithm creates degenerate metrics that only specify size in
        the two tangential directions to mesh surfaces */
-    auto f = OMEGA_H_LAMBDA(LO surf_vert) {
-      auto II = get_symm<2>(surface_info.surf_vert_IIs, surf_vert);
-      auto II_decomp = decompose_eigen(II);
+    auto f = OMEGA_H_LAMBDA(LO const surf_vert) {
+      auto const II = get_symm<2>(surface_info.surf_vert_IIs, surf_vert);
+      auto const II_decomp = decompose_eigen(II);
       Vector<2> m_ews;
       for (Int i = 0; i < 2; ++i) {
         m_ews[i] = square(II_decomp.l[i] / segment_angle);
       }
-      auto n = get_vector<3>(surface_info.surf_vert_normals, surf_vert);
-      auto frame = form_ortho_basis(n);
+      auto const n = get_vector<3>(surface_info.surf_vert_normals, surf_vert);
+      auto const frame = form_ortho_basis(n);
       Matrix<3, 2> surf_frame_t;
       surf_frame_t[0] = frame[1];
       surf_frame_t[1] = frame[2];
-      auto surf_frame = transpose(surf_frame_t);
-      auto m_q_inv = II_decomp.q * surf_frame;
-      auto m_q = pseudo_invert(m_q_inv);
-      auto m = m_q * diagonal(m_ews) * m_q_inv;
-      auto vert = surface_info.surf_vert2vert[surf_vert];
+      auto const surf_frame = transpose(surf_frame_t);
+      auto const m_q_inv = II_decomp.q * surf_frame;
+      auto const m_q = pseudo_invert(m_q_inv);
+      auto const m = m_q * diagonal(m_ews) * m_q_inv;
+      auto const vert = surface_info.surf_vert2vert[surf_vert];
       set_symm(out, vert, m);
     };
-    parallel_for(
-        surface_info.surf_vert2vert.size(), f, "get_curvature_metrics(surf)");
+    parallel_for(surface_info.surf_vert2vert.size(), std::move(f));
     get_curve_curvature_metrics<3>(surface_info, segment_angle, out);
   } else if (mesh->dim() == 2) {
     get_curve_curvature_metrics<2>(surface_info, segment_angle, out);
@@ -465,20 +463,20 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
 
 template <Int mesh_dim, Int metric_dim>
 static Reals get_complexity_per_elem_tmpl(Mesh* mesh, Reals v2m) {
-  auto elems2verts = mesh->ask_elem_verts();
-  auto coords = mesh->coords();
-  auto out_w = Write<Real>(mesh->nelems());
-  auto elem_metrics = get_mident_metrics(mesh, mesh->dim(), v2m);
-  auto f = OMEGA_H_LAMBDA(LO e) {
-    auto v = gather_verts<mesh_dim + 1>(elems2verts, e);
-    auto p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
-    auto b = simplex_basis<mesh_dim, mesh_dim>(p);
-    auto real_volume = simplex_size_from_basis(b);
-    auto m = get_symm<metric_dim>(elem_metrics, e);
-    auto sqrt_metric_det = power<mesh_dim, 2 * metric_dim>(determinant(m));
+  auto const elems2verts = mesh->ask_elem_verts();
+  auto const coords = mesh->coords();
+  auto const out_w = Write<Real>(mesh->nelems());
+  auto const elem_metrics = get_mident_metrics(mesh, mesh->dim(), v2m);
+  auto f = OMEGA_H_LAMBDA(LO const e) {
+    auto const v = gather_verts<mesh_dim + 1>(elems2verts, e);
+    auto const p = gather_vectors<mesh_dim + 1, mesh_dim>(coords, v);
+    auto const b = simplex_basis<mesh_dim, mesh_dim>(p);
+    auto const real_volume = simplex_size_from_basis(b);
+    auto const m = get_symm<metric_dim>(elem_metrics, e);
+    auto const sqrt_metric_det = power<mesh_dim, 2 * metric_dim>(determinant(m));
     out_w[e] = real_volume * sqrt_metric_det;
   };
-  parallel_for(mesh->nelems(), f, "get_complexity_per_elem");
+  parallel_for(mesh->nelems(), std::move(f));
   return Reals(out_w);
 }
 
