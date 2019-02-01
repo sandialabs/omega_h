@@ -141,7 +141,9 @@ OMEGA_H_INLINE Matrix<2, 2> matrix_2x2(Real a, Real b, Real c, Real d) {
   return o;
 }
 
-OMEGA_H_INLINE Tensor<2> tensor_2(Real a, Real b, Real c, Real d) { return matrix_2x2(a, b, c, d); }
+OMEGA_H_INLINE Tensor<2> tensor_2(Real a, Real b, Real c, Real d) {
+  return matrix_2x2(a, b, c, d);
+}
 
 OMEGA_H_INLINE Matrix<3, 3> matrix_3x3(
     Real a, Real b, Real c, Real d, Real e, Real f, Real g, Real h, Real i) {
@@ -153,11 +155,7 @@ OMEGA_H_INLINE Matrix<3, 3> matrix_3x3(
 }
 
 OMEGA_H_INLINE Tensor<3> tensor_3(
-    Real a, Real b, Real c,
-    Real d, Real e, Real f,
-    Real g, Real h, Real i
-    )
-{
+    Real a, Real b, Real c, Real d, Real e, Real f, Real g, Real h, Real i) {
   return matrix_3x3(a, b, c, d, e, f, g, h, i);
 }
 
@@ -312,7 +310,8 @@ OMEGA_H_INLINE Real inner_product(Matrix<m, n> a, Matrix<m, n> b) {
 }
 
 template <Int max_m, Int max_n>
-OMEGA_H_INLINE Real norm(Int const m, Int const n, Matrix<max_m, max_n> const a) {
+OMEGA_H_INLINE Real norm(
+    Int const m, Int const n, Matrix<max_m, max_n> const a) {
   return std::sqrt(inner_product(m, n, a, a));
 }
 
@@ -381,9 +380,7 @@ OMEGA_H_INLINE Vector<1> symm2vector(Tensor<1> symm) {
   return vector_1(symm[0][0]);
 }
 
-OMEGA_H_INLINE Tensor<1> vector2symm(Vector<1> v) {
-  return matrix_1x1(v[0]);
-}
+OMEGA_H_INLINE Tensor<1> vector2symm(Vector<1> v) { return matrix_1x1(v[0]); }
 
 OMEGA_H_INLINE Vector<3> symm2vector(Tensor<2> symm) {
   Vector<3> v;

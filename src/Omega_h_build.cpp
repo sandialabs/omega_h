@@ -250,10 +250,10 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   auto const sv2se = Adj(sv2svse, svse2se, sv2se_codes);
   // served entities to serving vertex
   auto const se2fsv = invert_fan(sv2svse);
-  // find_matches_ex will match up all duplicate entities by assigning a temporary
-  // owner to each set of duplicates. note that this owner is entirely ordering-dependent,
-  // i.e. it will be just the first duplicate in the input arrays, and the ordering of
-  // those arrays is not even deterministic!
+  // find_matches_ex will match up all duplicate entities by assigning a
+  // temporary owner to each set of duplicates. note that this owner is entirely
+  // ordering-dependent, i.e. it will be just the first duplicate in the input
+  // arrays, and the ordering of those arrays is not even deterministic!
   //
   // served entity to owning served entity
   Write<LO> se2ose;
@@ -267,16 +267,19 @@ void resolve_derived_copies(CommPtr comm, Read<GO> verts2globs, Int deg,
   // Two commonly used rules are:
   //   1) smallest rank
   //   2) rank who owns the fewest entities (tiebreaker is rank).
-  //      The problem with this rule is that we are inside the code that determines
-  //      ownership, so there is a bit of a chicken-and-egg obstacle to applying this rule.
+  //      The problem with this rule is that we are inside the code that
+  //      determines ownership, so there is a bit of a chicken-and-egg obstacle
+  //      to applying this rule.
   //
   //      TODO: fix non-determinism and partition-dependence of owner
   //
   // served entity to owning original entity
   auto const se2owner_orig = unmap(read(se2ose), se2orig);
-  // remove roots2items so that the next exch() call will accept items, not roots
+  // remove roots2items so that the next exch() call will accept items, not
+  // roots
   out_dist.set_roots2items(LOs());
-  // send back, to each served entity, the (rank, local index) pair of its new owner
+  // send back, to each served entity, the (rank, local index) pair of its new
+  // owner
   //
   // entities to owning entities
   auto const e2owner = out_dist.exch(se2owner_orig, 1);

@@ -23,7 +23,8 @@ OMEGA_H_INLINE Real metric_length(
 }
 
 template <Int dim>
-OMEGA_H_INLINE Real metric_desired_length(Tensor<dim> const m, Vector<dim> const dir) {
+OMEGA_H_INLINE Real metric_desired_length(
+    Tensor<dim> const m, Vector<dim> const dir) {
   return 1.0 / metric_length(m, dir);
 }
 
@@ -36,14 +37,16 @@ OMEGA_H_INLINE Real metric_eigenvalue_from_length(Real const h) {
 }
 
 template <Int dim>
-OMEGA_H_INLINE Vector<dim> metric_lengths_from_eigenvalues(Vector<dim> const l) {
+OMEGA_H_INLINE Vector<dim> metric_lengths_from_eigenvalues(
+    Vector<dim> const l) {
   Vector<dim> h;
   for (Int i = 0; i < dim; ++i) h[i] = metric_length_from_eigenvalue(l[i]);
   return h;
 }
 
 template <Int dim>
-OMEGA_H_INLINE Vector<dim> metric_eigenvalues_from_lengths(Vector<dim> const h) {
+OMEGA_H_INLINE Vector<dim> metric_eigenvalues_from_lengths(
+    Vector<dim> const h) {
   Vector<dim> l;
   for (Int i = 0; i < dim; ++i) l[i] = metric_eigenvalue_from_length(h[i]);
   return l;
