@@ -449,10 +449,10 @@ any make_matrix(ExprReader::Args& args) {
   auto v = zero_matrix<dim, dim>();
   OMEGA_H_CHECK(args.size() == std::size_t(dim * dim));
   for (Int i = 0; i < dim; ++i) {
-  for (Int j = 0; j < dim; ++j) {
-    auto& arg = args[std::size_t(i * dim + j)];
-    v(i, j) = any_cast<Real>(arg);
-  }
+    for (Int j = 0; j < dim; ++j) {
+      auto& arg = args[std::size_t(i * dim + j)];
+      v(i, j) = any_cast<Real>(arg);
+    }
   }
   return v;
 }
