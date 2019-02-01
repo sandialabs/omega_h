@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(Omega_h VERSION 9.25.4 LANGUAGES CXX)
+project(Omega_h VERSION 9.26.0 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -206,6 +206,10 @@ if(Omega_h_EXAMPLES)
   add_subdirectory(example/castle)
   add_subdirectory(example/gradient)
   add_subdirectory(example/laplacian)
+  set(SAVED_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  string(REPLACE " -Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  add_subdirectory(example/fenics/cpp)
+  set(CMAKE_CXX_FLAGS "${SAVED_CXX_FLAGS}")
 endif()
 add_subdirectory(src)
 

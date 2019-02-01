@@ -103,6 +103,7 @@ set(Omega_h_SOURCES
   Omega_h_malloc.cpp
   Omega_h_pool.cpp
   Omega_h_filesystem.cpp
+  Omega_h_random.cpp
   )
 
 if (Omega_h_USE_CUDA)
@@ -458,6 +459,7 @@ set(Omega_h_HEADERS
   Omega_h_malloc.hpp
   Omega_h_filesystem.hpp
   Omega_h_svd.hpp
+  Omega_h_random.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)

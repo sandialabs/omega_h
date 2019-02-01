@@ -4,13 +4,13 @@
 namespace Omega_h {
 
 template <Int dim>
-Reals repeat_symm(LO n, Matrix<dim, dim> symm) {
+Reals repeat_symm(LO const n, Tensor<dim> const symm) {
   return repeat_vector(n, symm2vector(symm));
 }
 
-template Reals repeat_symm(LO n, Matrix<3, 3> symm);
-template Reals repeat_symm(LO n, Matrix<2, 2> symm);
-template Reals repeat_symm(LO n, Matrix<1, 1> symm);
+template Reals repeat_symm(LO const n, Tensor<3> const symm);
+template Reals repeat_symm(LO const n, Tensor<2> const symm);
+template Reals repeat_symm(LO const n, Tensor<1> const symm);
 
 template <Int old_dim, Int new_dim>
 Reals resize_symms_tmpl(Reals old_symms) {
@@ -39,13 +39,13 @@ Reals resize_symms(Reals old_symms, Int old_dim, Int new_dim) {
 }
 
 template <Int dim>
-Reals repeat_matrix(LO n, Matrix<dim, dim> m) {
+Reals repeat_matrix(LO const n, Tensor<dim> const m) {
   return repeat_vector(n, matrix2vector(m));
 }
 
-template Reals repeat_matrix(LO n, Matrix<3, 3> m);
-template Reals repeat_matrix(LO n, Matrix<2, 2> m);
-template Reals repeat_matrix(LO n, Matrix<1, 1> m);
+template Reals repeat_matrix(LO const n, Tensor<3> const m);
+template Reals repeat_matrix(LO const n, Tensor<2> const m);
+template Reals repeat_matrix(LO const n, Tensor<1> const m);
 
 template <Int dim>
 Reals matrices_times_vectors_dim(Reals ms, Reals vs) {
@@ -128,7 +128,7 @@ Reals symms_osh2inria(Int dim, Reals symms) {
 }
 
 template <Int dim>
-Reals matrices_to_symms_dim(Reals matrices) {
+Reals matrices_to_symms_dim(Reals const matrices) {
   constexpr auto ncomps_in = square(dim);
   constexpr auto ncomps_out = symm_ncomps(dim);
   auto const n = divide_no_remainder(matrices.size(), ncomps_in);
@@ -140,7 +140,7 @@ Reals matrices_to_symms_dim(Reals matrices) {
   return out;
 }
 
-Reals matrices_to_symms(Reals matrices, Int dim) {
+Reals matrices_to_symms(Reals const matrices, Int const dim) {
   if (dim == 3) return matrices_to_symms_dim<3>(matrices);
   if (dim == 2) return matrices_to_symms_dim<2>(matrices);
   if (dim == 1) return matrices_to_symms_dim<1>(matrices);

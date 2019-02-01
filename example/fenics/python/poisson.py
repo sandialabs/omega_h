@@ -25,4 +25,4 @@ def test_function():
     V = FunctionSpace(mesh, "Lagrange", 1)
     u = Function(V)
 
-    omega_h.function_from_dolfin(mesh_osh, u, "u")
+    omega_h.function_from_dolfin(mesh_osh, u._cpp_object, "u")
