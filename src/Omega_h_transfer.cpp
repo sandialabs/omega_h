@@ -379,19 +379,30 @@ void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
   }
 }
 
-static void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh,
-    LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents) {
+static void transfer_face_flux(Mesh* old_mesh, 
+			       Mesh* new_mesh,
+			       LOs same_ents2old_ents, 
+			       LOs same_ents2new_ents,
+			       Int key_dim,
+			       LOs keys2kds,
+			       LOs keys2prods,
+			       LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
     if (tagbase->name() == "magnetic_face_flux") {
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
-      Read<Real> prod_data(prods2new_ents.size(), 0);
+      Write<Real> new_data = deep_copy( new_mesh->get_array<Real>(FACE, tagbase->name()) );
 #ifdef OMEGA_H_FANCY_DANCY_FACE_REMAP
-      Read<Real> new_data = new_mesh->get_array<Real>(FACE, tagbase->name());
-      transer_div_free_face_flux(old_mesh,new_mesh,old_data,new_data);
+      transer_div_free_face_flux(old_mesh, 
+				 new_mesh,
+				 key_dim,
+				 keys2kds,
+				 keys2prods,
+				 prods2new_ents,
+				 old_data,
+				 new_data);
 #else
-      transfer_common(old_mesh, new_mesh, FACE, same_ents2old_ents,
-          same_ents2new_ents, prods2new_ents, tagbase, prod_data);
+      transfer_common3(new_mesh, FACE, tagbase, new_data);
 #endif
     }
   }
@@ -413,8 +424,7 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   } else if (prod_dim == FACE) {
-    transfer_face_flux(old_mesh, new_mesh, same_ents2old_ents,
-        same_ents2new_ents, prods2new_ents);
+    ;
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -427,6 +437,14 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_pointwise_refine(old_mesh, opts, new_mesh, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_face_flux(old_mesh, 
+		       new_mesh,
+		       same_ents2old_ents, 
+		       same_ents2new_ents,
+		       EDGE,
+		       keys2edges,
+		       keys2prods,
+		       prods2new_ents);
   }
   if (opts.user_xfer) {
     opts.user_xfer->refine(*old_mesh, *new_mesh, keys2edges, keys2midverts,
@@ -609,8 +627,7 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   } else if (prod_dim == FACE) {
-    transfer_face_flux(old_mesh, new_mesh, same_ents2old_ents,
-        same_ents2new_ents, prods2new_ents);
+    ;
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -622,6 +639,14 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_densities_and_conserve_coarsen(old_mesh, opts, new_mesh,
         keys2verts, keys2doms, prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);
+    transfer_face_flux(old_mesh, 
+		       new_mesh,
+		       same_ents2old_ents, 
+		       same_ents2new_ents,
+		       VERT,
+		       keys2verts,
+		       keys2doms,
+		       prods2new_ents);
   }
   if (opts.user_xfer) {
     opts.user_xfer->coarsen(*old_mesh, *new_mesh, keys2verts, keys2doms,
@@ -721,8 +746,7 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   } else if (prod_dim == FACE) {
-    transfer_face_flux(old_mesh, new_mesh, same_ents2old_ents,
-        same_ents2new_ents, prods2new_ents);
+    ;
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -733,6 +757,14 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_densities_and_conserve_swap(old_mesh, opts, new_mesh, keys2edges,
         keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
+    transfer_face_flux(old_mesh, 
+		       new_mesh,
+		       same_ents2old_ents, 
+		       same_ents2new_ents,
+		       EDGE,
+		       keys2edges,
+		       keys2prods,
+		       prods2new_ents);
   }
   if (opts.user_xfer) {
     opts.user_xfer->swap(*old_mesh, *new_mesh, prod_dim, keys2edges, keys2prods,
