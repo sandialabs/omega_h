@@ -381,8 +381,6 @@ void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
 
 static void transfer_face_flux(Mesh* old_mesh, 
 			       Mesh* new_mesh,
-			       LOs same_ents2old_ents, 
-			       LOs same_ents2new_ents,
 			       Int key_dim,
 			       LOs keys2kds,
 			       LOs keys2prods,
@@ -402,6 +400,11 @@ static void transfer_face_flux(Mesh* old_mesh,
 				 old_data,
 				 new_data);
 #else
+      // Quite unused parameter warnings.
+      std::ignore = key_dim;
+      std::ignore = keys2kds;
+      std::ignore = keys2prods;
+      std::ignore = prods2new_ents;
       transfer_common3(new_mesh, FACE, tagbase, new_data);
 #endif
     }
@@ -439,8 +442,6 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_face_flux(old_mesh, 
 		       new_mesh,
-		       same_ents2old_ents, 
-		       same_ents2new_ents,
 		       EDGE,
 		       keys2edges,
 		       keys2prods,
@@ -639,13 +640,12 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_densities_and_conserve_coarsen(old_mesh, opts, new_mesh,
         keys2verts, keys2doms, prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);
+    LOs keys2prods;
     transfer_face_flux(old_mesh, 
 		       new_mesh,
-		       same_ents2old_ents, 
-		       same_ents2new_ents,
 		       VERT,
 		       keys2verts,
-		       keys2doms,
+		       keys2prods,
 		       prods2new_ents);
   }
   if (opts.user_xfer) {
@@ -759,8 +759,6 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
         keys2prods, prods2new_ents, same_ents2old_ents, same_ents2new_ents);
     transfer_face_flux(old_mesh, 
 		       new_mesh,
-		       same_ents2old_ents, 
-		       same_ents2new_ents,
 		       EDGE,
 		       keys2edges,
 		       keys2prods,
