@@ -20,8 +20,8 @@ void pybind11_mesh(py::module& module) {
   OMEGA_H_DECL_TYPE(I64, int64)
   OMEGA_H_DECL_TYPE(Real, float64)
   void (Mesh::*set_parting)(Omega_h_Parting, Int, bool) = &Mesh::set_parting;
-  void (Mesh::*balance)(bool) = &Mesh::balance;  
-py::class_<Omega_h::Mesh>(module, "Mesh")
+  void (Mesh::*balance)(bool) = &Mesh::balance;
+  py::class_<Omega_h::Mesh>(module, "Mesh")
       .def("dim", &Omega_h::Mesh::dim)
       .def("nents", &Omega_h::Mesh::nents)
       .def("nglobal_ents", &Omega_h::Mesh::nglobal_ents)
@@ -31,7 +31,7 @@ py::class_<Omega_h::Mesh>(module, "Mesh")
               OMEGA_H_DEF_TYPE(Real, float64)
       .def("min_quality", &Omega_h::Mesh::min_quality)
       .def("max_length", &Omega_h::Mesh::max_length)
-      .def("balance", balance,  py::arg("predictive") = false);
+      .def("balance", balance, py::arg("predictive") = false);
   module.def(
       "new_empty_mesh", []() { return Mesh(pybind11_global_library.get()); });
 }

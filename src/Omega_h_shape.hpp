@@ -207,7 +207,7 @@ OMEGA_H_INLINE Real squared_metric_length(
 template <typename EdgeVectors, typename Metric>
 OMEGA_H_INLINE Real mean_squared_metric_length(
     EdgeVectors edge_vectors, Metric metric) {
-  constexpr auto nedges = edge_vectors.size();
+  auto const nedges = edge_vectors.size();
   Real msl = 0;
   for (Int i = 0; i < nedges; ++i) {
     msl += squared_metric_length(edge_vectors[i], metric);

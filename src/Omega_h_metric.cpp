@@ -473,7 +473,8 @@ static Reals get_complexity_per_elem_tmpl(Mesh* mesh, Reals v2m) {
     auto const b = simplex_basis<mesh_dim, mesh_dim>(p);
     auto const real_volume = simplex_size_from_basis(b);
     auto const m = get_symm<metric_dim>(elem_metrics, e);
-    auto const sqrt_metric_det = power<mesh_dim, 2 * metric_dim>(determinant(m));
+    auto const sqrt_metric_det =
+        power<mesh_dim, 2 * metric_dim>(determinant(m));
     out_w[e] = real_volume * sqrt_metric_det;
   };
   parallel_for(mesh->nelems(), std::move(f));
