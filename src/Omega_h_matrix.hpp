@@ -320,7 +320,7 @@ OMEGA_H_INLINE Real norm(Matrix<m, n> const a) {
   return norm(m, n, a);
 }
 
-OMEGA_H_INLINE Matrix<3, 3> cross(Vector<3> const a) {
+OMEGA_H_INLINE Tensor<3> cross(Vector<3> const a) {
   return matrix_3x3(0, -a[2], a[1], a[2], 0, -a[0], -a[1], a[0], 0);
 }
 
