@@ -53,7 +53,7 @@ OMEGA_H_INLINE void reflect_columns(
 template <Int max_m, Int max_n>
 struct QRFactorization {
   Few<Vector<max_m>, max_n> v;  // the householder vectors
-  Matrix<max_n, max_n> r;
+  Tensor<max_n> r;
 };
 
 template <Int max_m, Int max_n>
@@ -105,9 +105,9 @@ OMEGA_H_INLINE void implicit_q_x(
 }
 
 template <Int max_m, Int max_n>
-OMEGA_H_INLINE Matrix<max_n, max_n> reduced_r_from_full(
+OMEGA_H_INLINE Tensor<max_n> reduced_r_from_full(
     Int n, Matrix<max_m, max_n> fr) {
-  Matrix<max_n, max_n> rr;
+  Tensor<max_n> rr;
   for (Int j = 0; j < n; ++j)
     for (Int i = 0; i < n; ++i) rr[j][i] = fr[j][i];
   return rr;
@@ -115,7 +115,7 @@ OMEGA_H_INLINE Matrix<max_n, max_n> reduced_r_from_full(
 
 template <Int max_m>
 OMEGA_H_INLINE Vector<max_m> solve_upper_triangular(
-    Int m, Matrix<max_m, max_m> a, Vector<max_m> b) {
+    Int m, Tensor<max_m> a, Vector<max_m> b) {
   Vector<max_m> x;
   for (Int ii = 0; ii < m; ++ii) {
     Int i = m - ii - 1;

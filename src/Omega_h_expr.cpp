@@ -52,7 +52,7 @@ void promote_vectors(LO size, any& lhs, any& rhs) {
 
 template <Int dim>
 void promote_matrix(LO size, any& x) {
-  x = repeat_matrix(size, any_cast<Matrix<dim, dim>>(x));
+  x = repeat_matrix(size, any_cast<Tensor<dim>>(x));
 }
 
 template <Int dim>
@@ -62,10 +62,10 @@ void promote_symm(LO size, any& x) {
 
 template <Int dim>
 void promote_matrices(LO size, any& lhs, any& rhs) {
-  if (lhs.type() == typeid(Matrix<dim, dim>) && rhs.type() == typeid(Reals)) {
+  if (lhs.type() == typeid(Tensor<dim>) && rhs.type() == typeid(Reals)) {
     promote_matrix<dim>(size, lhs);
   }
-  if (lhs.type() == typeid(Reals) && rhs.type() == typeid(Matrix<dim, dim>)) {
+  if (lhs.type() == typeid(Reals) && rhs.type() == typeid(Tensor<dim>)) {
     promote_matrix<dim>(size, rhs);
   }
 }
@@ -100,7 +100,7 @@ void promote(LO size, any& x) {
     promote_scalar(size, x);
   } else if (x.type() == typeid(Vector<dim>)) {
     promote_vector<dim>(size, x);
-  } else if (x.type() == typeid(Matrix<dim, dim>)) {
+  } else if (x.type() == typeid(Tensor<dim>)) {
     promote_matrix<dim>(size, x);
   } else if (x.type() == typeid(Vector<symm_ncomps(dim)>)) {
     promote_symm<dim>(size, x);
@@ -208,8 +208,8 @@ any add(any& lhs, any& rhs) {
     return any_cast<Real>(lhs) + any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Vector<dim>)) {
     return any_cast<Vector<dim>>(lhs) + any_cast<Vector<dim>>(rhs);
-  } else if (lhs.type() == typeid(Matrix<dim, dim>)) {
-    return any_cast<Matrix<dim, dim>>(lhs) + any_cast<Matrix<dim, dim>>(rhs);
+  } else if (lhs.type() == typeid(Tensor<dim>)) {
+    return any_cast<Tensor<dim>>(lhs) + any_cast<Tensor<dim>>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
     return Reals(add_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else {
@@ -231,8 +231,8 @@ any sub(any& lhs, any& rhs) {
     return any_cast<Real>(lhs) - any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Vector<dim>)) {
     return any_cast<Vector<dim>>(lhs) - any_cast<Vector<dim>>(rhs);
-  } else if (lhs.type() == typeid(Matrix<dim, dim>)) {
-    return any_cast<Matrix<dim, dim>>(lhs) - any_cast<Matrix<dim, dim>>(rhs);
+  } else if (lhs.type() == typeid(Tensor<dim>)) {
+    return any_cast<Tensor<dim>>(lhs) - any_cast<Tensor<dim>>(rhs);
   } else if (lhs.type() == typeid(Reals)) {
     return Reals(subtract_each(any_cast<Reals>(lhs), any_cast<Reals>(rhs)));
   } else {
@@ -257,24 +257,24 @@ any mul(LO size, any& lhs, any& rhs) {
     return any_cast<Vector<dim>>(lhs) * any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Vector<dim>)) {
     return any_cast<Real>(lhs) * any_cast<Vector<dim>>(rhs);
-  } else if (lhs.type() == typeid(Matrix<dim, dim>) &&
+  } else if (lhs.type() == typeid(Tensor<dim>) &&
              rhs.type() == typeid(Real)) {
-    return any_cast<Matrix<dim, dim>>(lhs) * any_cast<Real>(rhs);
+    return any_cast<Tensor<dim>>(lhs) * any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Real) &&
-             rhs.type() == typeid(Matrix<dim, dim>)) {
-    return any_cast<Real>(lhs) * any_cast<Matrix<dim, dim>>(rhs);
+             rhs.type() == typeid(Tensor<dim>)) {
+    return any_cast<Real>(lhs) * any_cast<Tensor<dim>>(rhs);
     /* dot product */
   } else if (lhs.type() == typeid(Vector<dim>) &&
              rhs.type() == typeid(Vector<dim>)) {
     return any_cast<Vector<dim>>(lhs) * any_cast<Vector<dim>>(rhs);
     /* matrix * vector (non-commutative) */
-  } else if (lhs.type() == typeid(Matrix<dim, dim>) &&
+  } else if (lhs.type() == typeid(Tensor<dim>) &&
              rhs.type() == typeid(Vector<dim>)) {
-    return any_cast<Matrix<dim, dim>>(lhs) * any_cast<Vector<dim>>(rhs);
+    return any_cast<Tensor<dim>>(lhs) * any_cast<Vector<dim>>(rhs);
     /* matrix * matrix (non-commutative) */
-  } else if (lhs.type() == typeid(Matrix<dim, dim>) &&
-             rhs.type() == typeid(Matrix<dim, dim>)) {
-    return any_cast<Matrix<dim, dim>>(lhs) * any_cast<Matrix<dim, dim>>(rhs);
+  } else if (lhs.type() == typeid(Tensor<dim>) &&
+             rhs.type() == typeid(Tensor<dim>)) {
+    return any_cast<Tensor<dim>>(lhs) * any_cast<Tensor<dim>>(rhs);
   } else if (lhs.type() == typeid(Reals) && rhs.type() == typeid(Reals)) {
     auto& lhs_vals = any_cast<Reals&>(lhs);
     auto& rhs_vals = any_cast<Reals&>(rhs);
@@ -317,8 +317,8 @@ any div(any& lhs, any& rhs) {
       return any_cast<Real>(lhs) / any_cast<Real>(rhs);
     } else if (lhs.type() == typeid(Vector<dim>)) {
       return any_cast<Vector<dim>>(lhs) / any_cast<Real>(rhs);
-    } else if (lhs.type() == typeid(Matrix<dim, dim>)) {
-      return any_cast<Matrix<dim, dim>>(lhs) / any_cast<Real>(rhs);
+    } else if (lhs.type() == typeid(Tensor<dim>)) {
+      return any_cast<Tensor<dim>>(lhs) / any_cast<Real>(rhs);
     } else {
       throw ParserFail("Invalid left operand type in / operator");
     }
@@ -356,8 +356,8 @@ any neg_dim(any const& val) {
     return -any_cast<Real>(val);
   } else if (val.type() == typeid(Vector<dim>)) {
     return -any_cast<Vector<dim>>(val);
-  } else if (val.type() == typeid(Matrix<dim, dim>)) {
-    return -any_cast<Matrix<dim, dim>>(val);
+  } else if (val.type() == typeid(Tensor<dim>)) {
+    return -any_cast<Tensor<dim>>(val);
   } else if (val.type() == typeid(Reals)) {
     return Reals(multiply_each_by(any_cast<Reals>(val), -1.0));
   } else {
@@ -378,8 +378,8 @@ any access(LO size, any& var, ExprReader::Args& args) {
       args.size() > 1 ? static_cast<Int>(any_cast<Real>(args.at(0))) : Int(-1);
   if (var.type() == typeid(Vector<dim>)) {
     return (any_cast<Vector<dim>>(var))(i);
-  } else if (var.type() == typeid(Matrix<dim, dim>)) {
-    return (any_cast<Matrix<dim, dim>>(var))(i, j);
+  } else if (var.type() == typeid(Tensor<dim>)) {
+    return (any_cast<Tensor<dim>>(var))(i, j);
   } else if (var.type() == typeid(Reals)) {
     auto array = any_cast<Reals>(var);
     if (array.size() == size * dim) {
