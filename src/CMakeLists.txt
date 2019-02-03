@@ -104,6 +104,7 @@ set(Omega_h_SOURCES
   Omega_h_pool.cpp
   Omega_h_filesystem.cpp
   Omega_h_random.cpp
+  Omega_h_transfer_face.cpp
   )
 
 if (Omega_h_USE_CUDA)
