@@ -257,11 +257,9 @@ any mul(LO size, any& lhs, any& rhs) {
     return any_cast<Vector<dim>>(lhs) * any_cast<Real>(rhs);
   } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Vector<dim>)) {
     return any_cast<Real>(lhs) * any_cast<Vector<dim>>(rhs);
-  } else if (lhs.type() == typeid(Tensor<dim>) &&
-             rhs.type() == typeid(Real)) {
+  } else if (lhs.type() == typeid(Tensor<dim>) && rhs.type() == typeid(Real)) {
     return any_cast<Tensor<dim>>(lhs) * any_cast<Real>(rhs);
-  } else if (lhs.type() == typeid(Real) &&
-             rhs.type() == typeid(Tensor<dim>)) {
+  } else if (lhs.type() == typeid(Real) && rhs.type() == typeid(Tensor<dim>)) {
     return any_cast<Real>(lhs) * any_cast<Tensor<dim>>(rhs);
     /* dot product */
   } else if (lhs.type() == typeid(Vector<dim>) &&

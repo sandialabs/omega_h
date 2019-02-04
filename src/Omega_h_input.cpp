@@ -1,8 +1,8 @@
 #include <Omega_h_fail.hpp>
 #include <Omega_h_input.hpp>
+#include <Omega_h_profile.hpp>
 #include <Omega_h_reader.hpp>
 #include <Omega_h_yaml.hpp>
-#include <Omega_h_profile.hpp>
 #include <algorithm>
 #include <fstream>
 #include <limits>
@@ -110,16 +110,15 @@ T InputScalar::get() const {
 
 void InputScalar::out_of_line_virtual_method() {}
 
-InputMapIterator::InputMapIterator(decltype(impl) impl_in)
-:impl(impl_in)
-{
-}
+InputMapIterator::InputMapIterator(decltype(impl) impl_in) : impl(impl_in) {}
 
-bool InputMapIterator::operator==(InputMapIterator const& other) const noexcept {
+bool InputMapIterator::operator==(InputMapIterator const& other) const
+    noexcept {
   return impl == other.impl;
 }
 
-bool InputMapIterator::operator!=(InputMapIterator const& other) const noexcept {
+bool InputMapIterator::operator!=(InputMapIterator const& other) const
+    noexcept {
   return impl != other.impl;
 }
 
@@ -136,18 +135,14 @@ InputMapIterator& InputMapIterator::operator++() noexcept {
   return *this;
 }
 
-InputMapIterator InputMapIterator::operator++(int) noexcept {
-  return impl++;
-}
+InputMapIterator InputMapIterator::operator++(int) noexcept { return impl++; }
 
 InputMapIterator& InputMapIterator::operator--() noexcept {
   --impl;
   return *this;
 }
 
-InputMapIterator InputMapIterator::operator--(int) noexcept {
-  return impl--;
-}
+InputMapIterator InputMapIterator::operator--(int) noexcept { return impl--; }
 
 InputMap::InputMap(InputMap&& other) : Input(other), map(std::move(other.map)) {
   for (auto& pair : map) (pair.second)->parent = this;
@@ -307,17 +302,14 @@ InputList& InputList::get_list(LO i) { return this->use_input<InputList>(i); }
 
 void InputList::out_of_line_virtual_method() {}
 
-InputMapIterator InputMap::begin() const noexcept {
-  return map.begin();
-}
+InputMapIterator InputMap::begin() const noexcept { return map.begin(); }
 
-InputMapIterator InputMap::end() const noexcept {
-  return map.end();
-}
+InputMapIterator InputMap::end() const noexcept { return map.end(); }
 
 void InputMap::remove(std::string const& name) {
   auto const it = map.find(name);
-  if (it == map.end()) Omega_h_fail("InputMap::remove: \"%s\" didn't exist\n", name.c_str());
+  if (it == map.end())
+    Omega_h_fail("InputMap::remove: \"%s\" didn't exist\n", name.c_str());
   map.erase(it);
 }
 
@@ -887,7 +879,8 @@ class InputYamlReader : public Reader {
 
 InputYamlReader::~InputYamlReader() {}
 
-static InputMap read_input_without_includes(Omega_h::filesystem::path const& path) {
+static InputMap read_input_without_includes(
+    Omega_h::filesystem::path const& path) {
   std::ifstream stream(path.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("Couldn't open Input file \"%s\"\n", path.c_str());
@@ -934,7 +927,8 @@ static bool handle_one_include(InputList& list) {
 InputMap read_input(Omega_h::filesystem::path const& path) {
   OMEGA_H_TIME_FUNCTION;
   InputMap map = read_input_without_includes(path);
-  while (handle_one_include(map));
+  while (handle_one_include(map))
+    ;
   return map;
 }
 

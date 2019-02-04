@@ -2,13 +2,13 @@
 #define OMEGA_H_INPUT_HPP
 
 #include <Omega_h_defines.hpp>
+#include <Omega_h_filesystem.hpp>
 #include <Omega_h_mesh.hpp>
 #include <iosfwd>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <Omega_h_filesystem.hpp>
 
 namespace Omega_h {
 
@@ -49,6 +49,7 @@ struct InputList;
 
 class InputMapIterator {
   std::map<std::string, std::shared_ptr<Input>>::const_iterator impl;
+
  public:
   InputMapIterator(decltype(impl) impl_in);
   using value_type = std::string;

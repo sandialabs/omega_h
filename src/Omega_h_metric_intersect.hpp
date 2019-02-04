@@ -16,16 +16,17 @@ OMEGA_H_INLINE_BIG Tensor<dim> intersect_metrics(
    problems" Diss. Universite Pierre et Marie Curie-Paris VI, 2015.
  */
 OMEGA_H_INLINE Tensor<1> intersect_degenerate_metrics(Tensor<1> const m1,
-    DiagDecomp<1> const, Few<Int, 1> const, Int const, Tensor<1> const, DiagDecomp<1> const, Few<Int, 1> const,
-    Int const) {
+    DiagDecomp<1> const, Few<Int, 1> const, Int const, Tensor<1> const,
+    DiagDecomp<1> const, Few<Int, 1> const, Int const) {
   // this should be impossible, but toss something in here so the code compiles
   return m1;
 }
 
 // Appendix A.1 in Barral's dissertation, case 5
 OMEGA_H_INLINE_BIG Tensor<2> intersect_degenerate_metrics(Tensor<2> const m1,
-    DiagDecomp<2> const m1_dc, Few<Int, 2> const m1_ew_is_degen, Int const, Tensor<2> const m2,
-    DiagDecomp<2> const m2_dc, Few<Int, 2> const m2_ew_is_degen, Int const) {
+    DiagDecomp<2> const m1_dc, Few<Int, 2> const m1_ew_is_degen, Int const,
+    Tensor<2> const m2, DiagDecomp<2> const m2_dc,
+    Few<Int, 2> const m2_ew_is_degen, Int const) {
   auto u1 = zero_vector<2>();
   auto v1 = zero_vector<2>();
   auto v2 = zero_vector<2>();
@@ -61,9 +62,9 @@ OMEGA_H_INLINE_BIG Tensor<2> intersect_degenerate_metrics(Tensor<2> const m1,
 
 // Barral's thesis, appendix A.2
 OMEGA_H_INLINE_BIG Tensor<3> intersect_degenerate_metrics(Tensor<3> const m1,
-    DiagDecomp<3> const m1_dc, Few<Int, 3> const m1_ew_is_degen, Int const nm1_degen_ews,
-    Tensor<3> const m2, DiagDecomp<3> const m2_dc, Few<Int, 3> const m2_ew_is_degen,
-    Int const nm2_degen_ews) {
+    DiagDecomp<3> const m1_dc, Few<Int, 3> const m1_ew_is_degen,
+    Int const nm1_degen_ews, Tensor<3> const m2, DiagDecomp<3> const m2_dc,
+    Few<Int, 3> const m2_ew_is_degen, Int const nm2_degen_ews) {
   if (nm1_degen_ews == 2 && nm2_degen_ews == 2) {
     // case 2
     auto u1 = zero_vector<3>();

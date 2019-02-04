@@ -214,7 +214,8 @@ OMEGA_H_INLINE Vector<m> get_1d_row_space(Tensor<m> const a) {
 
 /* in the case that the null space is 2D and space is 3D,
    find two vectors that are orthogonal to the 1D row space */
-OMEGA_H_INLINE Few<Vector<3>, 2> double_eigenvector(Tensor<3> const m, Real const l) {
+OMEGA_H_INLINE Few<Vector<3>, 2> double_eigenvector(
+    Tensor<3> const m, Real const l) {
   auto s = subtract_from_diag(m, l);
   auto n = get_1d_row_space(s);
   auto b = form_ortho_basis(n);
@@ -329,8 +330,7 @@ OMEGA_H_INLINE Tensor<dim> compose_eigen(
 /* like the above, but knowing Q is unitary,
    so the transpose is the inverse */
 template <Int dim>
-OMEGA_H_INLINE Tensor<dim> compose_ortho(
-    Tensor<dim> const q, Vector<dim> l) {
+OMEGA_H_INLINE Tensor<dim> compose_ortho(Tensor<dim> const q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
 
@@ -490,8 +490,7 @@ OMEGA_H_INLINE_BIG Tensor<dim> exp_spd_old(
 
 // logarithm of a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Tensor<dim> log_spd(
-    Tensor<dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> log_spd(Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen_jacobi(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -499,8 +498,7 @@ OMEGA_H_INLINE_BIG Tensor<dim> log_spd(
 
 // exponential resulting in a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Tensor<dim> exp_spd(
-    Tensor<dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> exp_spd(Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen_jacobi(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -508,8 +506,7 @@ OMEGA_H_INLINE_BIG Tensor<dim> exp_spd(
 
 // exponential resulting in a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Tensor<dim> sqrt_spd(
-    Tensor<dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> sqrt_spd(Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen_jacobi(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::sqrt(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
