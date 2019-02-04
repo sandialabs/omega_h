@@ -93,6 +93,7 @@ struct InputMap : public Input {
   virtual void out_of_line_virtual_method();
   InputMapIterator begin() const noexcept;
   InputMapIterator end() const noexcept;
+  void remove(std::string const& name);
 };
 
 struct InputList : public Input {

@@ -2,6 +2,7 @@
 #include <Omega_h_input.hpp>
 #include <Omega_h_reader.hpp>
 #include <Omega_h_yaml.hpp>
+#include <Omega_h_profile.hpp>
 #include <algorithm>
 #include <fstream>
 #include <limits>
@@ -312,6 +313,12 @@ InputMapIterator InputMap::begin() const noexcept {
 
 InputMapIterator InputMap::end() const noexcept {
   return map.end();
+}
+
+void InputMap::remove(std::string const& name) {
+  auto const it = map.find(name);
+  if (it == map.end()) Omega_h_fail("InputMap::remove: \"%s\" didn't exist\n", name.c_str());
+  map.erase(it);
 }
 
 struct NameValue {
@@ -880,7 +887,7 @@ class InputYamlReader : public Reader {
 
 InputYamlReader::~InputYamlReader() {}
 
-InputMap read_input(Omega_h::filesystem::path const& path) {
+static InputMap read_input_without_includes(Omega_h::filesystem::path const& path) {
   std::ifstream stream(path.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("Couldn't open Input file \"%s\"\n", path.c_str());
@@ -888,6 +895,46 @@ InputMap read_input(Omega_h::filesystem::path const& path) {
   Omega_h::InputYamlReader reader;
   auto result_any = reader.read_stream(stream, path.string());
   return any_cast<InputMap&&>(std::move(result_any));
+}
+
+static bool handle_one_include(InputList& list);
+
+static bool handle_one_include(InputMap& map) {
+  for (auto& key : map) {
+    if (key == "include") {
+      auto const path = map.get<std::string>(key);
+      auto included_map = read_input_without_includes(path);
+      while (!included_map.map.empty()) {
+        auto const it = included_map.map.begin();
+        map.add(it->first, std::move(it->second));
+        included_map.map.erase(it);
+      }
+      return true;
+    } else if (map.is_list(key)) {
+      if (handle_one_include(map.get_list(key))) return true;
+    } else if (map.is_map(key)) {
+      if (handle_one_include(map.get_map(key))) return true;
+    }
+  }
+  return false;
+}
+
+static bool handle_one_include(InputList& list) {
+  for (LO i = 0; i < list.size(); ++i) {
+    if (list.is_list(i)) {
+      if (handle_one_include(list.get_list(i))) return true;
+    } else if (list.is_map(i)) {
+      if (handle_one_include(list.get_map(i))) return true;
+    }
+  }
+  return false;
+}
+
+InputMap read_input(Omega_h::filesystem::path const& path) {
+  OMEGA_H_TIME_FUNCTION;
+  InputMap map = read_input_without_includes(path);
+  while (handle_one_include(map));
+  return map;
 }
 
 void update_class_sets(ClassSets* p_sets, InputMap& pl) {
