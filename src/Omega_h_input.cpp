@@ -1,5 +1,6 @@
 #include <Omega_h_fail.hpp>
 #include <Omega_h_input.hpp>
+#include <Omega_h_profile.hpp>
 #include <Omega_h_reader.hpp>
 #include <Omega_h_yaml.hpp>
 #include <algorithm>
@@ -108,6 +109,40 @@ T InputScalar::get() const {
 }
 
 void InputScalar::out_of_line_virtual_method() {}
+
+InputMapIterator::InputMapIterator(decltype(impl) impl_in) : impl(impl_in) {}
+
+bool InputMapIterator::operator==(InputMapIterator const& other) const
+    noexcept {
+  return impl == other.impl;
+}
+
+bool InputMapIterator::operator!=(InputMapIterator const& other) const
+    noexcept {
+  return impl != other.impl;
+}
+
+InputMapIterator::reference InputMapIterator::operator*() const noexcept {
+  return impl->first;
+}
+
+InputMapIterator::pointer InputMapIterator::operator->() const noexcept {
+  return &(impl->first);
+}
+
+InputMapIterator& InputMapIterator::operator++() noexcept {
+  ++impl;
+  return *this;
+}
+
+InputMapIterator InputMapIterator::operator++(int) noexcept { return impl++; }
+
+InputMapIterator& InputMapIterator::operator--() noexcept {
+  --impl;
+  return *this;
+}
+
+InputMapIterator InputMapIterator::operator--(int) noexcept { return impl--; }
 
 InputMap::InputMap(InputMap&& other) : Input(other), map(std::move(other.map)) {
   for (auto& pair : map) (pair.second)->parent = this;
@@ -266,6 +301,17 @@ InputMap& InputList::get_map(LO i) { return this->use_input<InputMap>(i); }
 InputList& InputList::get_list(LO i) { return this->use_input<InputList>(i); }
 
 void InputList::out_of_line_virtual_method() {}
+
+InputMapIterator InputMap::begin() const noexcept { return map.begin(); }
+
+InputMapIterator InputMap::end() const noexcept { return map.end(); }
+
+void InputMap::remove(std::string const& name) {
+  auto const it = map.find(name);
+  if (it == map.end())
+    Omega_h_fail("InputMap::remove: \"%s\" didn't exist\n", name.c_str());
+  map.erase(it);
+}
 
 struct NameValue {
   std::string name;
@@ -833,20 +879,62 @@ class InputYamlReader : public Reader {
 
 InputYamlReader::~InputYamlReader() {}
 
-InputMap read_input(std::string const& path) {
+static InputMap read_input_without_includes(
+    Omega_h::filesystem::path const& path) {
   std::ifstream stream(path.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("Couldn't open Input file \"%s\"\n", path.c_str());
   }
   Omega_h::InputYamlReader reader;
-  auto result_any = reader.read_stream(stream, path);
+  auto result_any = reader.read_stream(stream, path.string());
   return any_cast<InputMap&&>(std::move(result_any));
+}
+
+static bool handle_one_include(InputList& list);
+
+static bool handle_one_include(InputMap& map) {
+  for (auto& key : map) {
+    if (key == "include") {
+      auto const path = map.get<std::string>(key);
+      map.remove(key);
+      auto included_map = read_input_without_includes(path);
+      while (!included_map.map.empty()) {
+        auto const it = included_map.map.begin();
+        map.add(it->first, std::move(it->second));
+        included_map.map.erase(it);
+      }
+      return true;
+    } else if (map.is_list(key)) {
+      if (handle_one_include(map.get_list(key))) return true;
+    } else if (map.is_map(key)) {
+      if (handle_one_include(map.get_map(key))) return true;
+    }
+  }
+  return false;
+}
+
+static bool handle_one_include(InputList& list) {
+  for (LO i = 0; i < list.size(); ++i) {
+    if (list.is_list(i)) {
+      if (handle_one_include(list.get_list(i))) return true;
+    } else if (list.is_map(i)) {
+      if (handle_one_include(list.get_map(i))) return true;
+    }
+  }
+  return false;
+}
+
+InputMap read_input(Omega_h::filesystem::path const& path) {
+  OMEGA_H_TIME_FUNCTION;
+  InputMap map = read_input_without_includes(path);
+  while (handle_one_include(map))
+    ;
+  return map;
 }
 
 void update_class_sets(ClassSets* p_sets, InputMap& pl) {
   ClassSets& sets = *p_sets;
-  for (auto it = pl.map.begin(), end = pl.map.end(); it != end; ++it) {
-    auto const& set_name = it->first;
+  for (auto& set_name : pl) {
     auto& pairs = pl.get_list(set_name);
     if (pairs.size() != 2) {
       Omega_h_fail(

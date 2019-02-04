@@ -29,7 +29,7 @@ Vector<3> get_center(
   return result / total_mass;
 }
 
-Matrix<3, 3> get_matrix(
+Tensor<3> get_matrix(
     CommPtr comm, Reals coords, Reals masses, Vector<3> center) {
   auto n = masses.size();
   Write<Real> weighted_contrib(n * symm_ncomps(3));
