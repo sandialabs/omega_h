@@ -189,7 +189,7 @@ class HostRead {
 #if defined(OMEGA_H_USE_KOKKOSCORE)
   typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
 #elif defined(OMEGA_H_USE_CUDA)
-  std::unique_ptr<T[]> mirror_;
+  std::shared_ptr<T[]> mirror_;
 #endif
  public:
   HostRead() = default;
@@ -225,7 +225,7 @@ class HostWrite {
 #ifdef OMEGA_H_USE_KOKKOSCORE
   typename Kokkos::View<T*>::HostMirror mirror_;
 #elif defined(OMEGA_H_USE_CUDA)
-  std::unique_ptr<T[]> mirror_;
+  std::shared_ptr<T[]> mirror_;
 #endif
  public:
   HostWrite() = default;
