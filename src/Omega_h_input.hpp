@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <Omega_h_filesystem.hpp>
 
 namespace Omega_h {
 
@@ -96,7 +97,7 @@ struct InputList : public Input {
   virtual void out_of_line_virtual_method();
 };
 
-InputMap read_input(std::string const& path);
+InputMap read_input(Omega_h::filesystem::path const& path);
 
 void update_class_sets(ClassSets* p_sets, InputMap& pl);
 

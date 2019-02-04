@@ -833,13 +833,13 @@ class InputYamlReader : public Reader {
 
 InputYamlReader::~InputYamlReader() {}
 
-InputMap read_input(std::string const& path) {
+InputMap read_input(Omega_h::filesystem::path const& path) {
   std::ifstream stream(path.c_str());
   if (!stream.is_open()) {
     Omega_h_fail("Couldn't open Input file \"%s\"\n", path.c_str());
   }
   Omega_h::InputYamlReader reader;
-  auto result_any = reader.read_stream(stream, path);
+  auto result_any = reader.read_stream(stream, path.string());
   return any_cast<InputMap&&>(std::move(result_any));
 }
 
