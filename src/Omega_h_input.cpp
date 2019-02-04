@@ -109,6 +109,45 @@ T InputScalar::get() const {
 
 void InputScalar::out_of_line_virtual_method() {}
 
+InputMapIterator::InputMapIterator(decltype(impl) impl_in)
+:impl(impl_in)
+{
+}
+
+bool InputMapIterator::operator==(InputMapIterator const& other) const noexcept {
+  return impl == other.impl;
+}
+
+bool InputMapIterator::operator!=(InputMapIterator const& other) const noexcept {
+  return impl != other.impl;
+}
+
+InputMapIterator::reference InputMapIterator::operator*() const noexcept {
+  return impl->first;
+}
+
+InputMapIterator::pointer InputMapIterator::operator->() const noexcept {
+  return &(impl->first);
+}
+
+InputMapIterator& InputMapIterator::operator++() noexcept {
+  ++impl;
+  return *this;
+}
+
+InputMapIterator InputMapIterator::operator++(int) noexcept {
+  return impl++;
+}
+
+InputMapIterator& InputMapIterator::operator--() noexcept {
+  --impl;
+  return *this;
+}
+
+InputMapIterator InputMapIterator::operator--(int) noexcept {
+  return impl--;
+}
+
 InputMap::InputMap(InputMap&& other) : Input(other), map(std::move(other.map)) {
   for (auto& pair : map) (pair.second)->parent = this;
 }
@@ -266,6 +305,14 @@ InputMap& InputList::get_map(LO i) { return this->use_input<InputMap>(i); }
 InputList& InputList::get_list(LO i) { return this->use_input<InputList>(i); }
 
 void InputList::out_of_line_virtual_method() {}
+
+InputMapIterator InputMap::begin() const noexcept {
+  return map.begin();
+}
+
+InputMapIterator InputMap::end() const noexcept {
+  return map.end();
+}
 
 struct NameValue {
   std::string name;
@@ -845,8 +892,7 @@ InputMap read_input(Omega_h::filesystem::path const& path) {
 
 void update_class_sets(ClassSets* p_sets, InputMap& pl) {
   ClassSets& sets = *p_sets;
-  for (auto it = pl.map.begin(), end = pl.map.end(); it != end; ++it) {
-    auto const& set_name = it->first;
+  for (auto& set_name : pl) {
     auto& pairs = pl.get_list(set_name);
     if (pairs.size() != 2) {
       Omega_h_fail(
