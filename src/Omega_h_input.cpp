@@ -903,6 +903,7 @@ static bool handle_one_include(InputMap& map) {
   for (auto& key : map) {
     if (key == "include") {
       auto const path = map.get<std::string>(key);
+      map.remove(key);
       auto included_map = read_input_without_includes(path);
       while (!included_map.map.empty()) {
         auto const it = included_map.map.begin();
