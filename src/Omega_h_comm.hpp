@@ -45,6 +45,10 @@ class Comm {
 #else
   Comm(Library* library, bool is_graph, bool sends_to_self);
 #endif
+  Comm(Comm const&) = delete;
+  Comm(Comm&&) = delete;
+  Comm& operator=(Comm const&) = delete;
+  Comm& operator=(Comm&&) = delete;
   ~Comm();
   Library* library() const;
   I32 rank() const;
