@@ -379,6 +379,25 @@ void transfer_size(Mesh* old_mesh, Mesh* new_mesh, LOs same_ents2old_ents,
   }
 }
 
+static void transfer_same_face_flux(Mesh* old_mesh, 
+				    Mesh* new_mesh,
+				    LOs same_ents2old_ents, 
+				    LOs same_ents2new_ents ) {
+  for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
+    TagBase const* tagbase = old_mesh->get_tag(FACE, i);
+    if (tagbase->name() == "magnetic_face_flux") {
+      Write<Real> new_data( new_mesh->nents(FACE) );
+      transfer_common2(old_mesh, 
+		       new_mesh, 
+		       FACE,
+		       same_ents2old_ents, 
+		       same_ents2new_ents, 
+		       tagbase
+		       new_data);
+    }
+  }
+}
+
 static void transfer_face_flux(Mesh* old_mesh, 
 			       Mesh* new_mesh,
 			       Int key_dim,
@@ -390,7 +409,6 @@ static void transfer_face_flux(Mesh* old_mesh,
     if (tagbase->name() == "magnetic_face_flux") {
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
       Write<Real> new_data = deep_copy( new_mesh->get_array<Real>(FACE, tagbase->name()) );
-#ifdef OMEGA_H_FANCY_DANCY_FACE_REMAP
       transer_div_free_face_flux(old_mesh, 
 				 new_mesh,
 				 key_dim,
@@ -399,14 +417,7 @@ static void transfer_face_flux(Mesh* old_mesh,
 				 prods2new_ents,
 				 old_data,
 				 new_data);
-#else
-      // Quite unused parameter warnings.
-      std::ignore = key_dim;
-      std::ignore = keys2kds;
-      std::ignore = keys2prods;
-      std::ignore = prods2new_ents;
       transfer_common3(new_mesh, FACE, tagbase, new_data);
-#endif
     }
   }
 }
@@ -427,7 +438,10 @@ void transfer_refine(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   } else if (prod_dim == FACE) {
-    ;
+    transfer_same_face_flux(old_mesh, 
+			    new_mesh,
+			    same_ents2old_ents, 
+			    same_ents2new_ents );
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -628,7 +642,10 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   } else if (prod_dim == FACE) {
-    ;
+    transfer_same_face_flux(old_mesh, 
+			    new_mesh,
+			    same_ents2old_ents, 
+			    same_ents2new_ents );
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
@@ -746,7 +763,10 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_length(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
         prods2new_ents);
   } else if (prod_dim == FACE) {
-    ;
+    transfer_same_face_flux(old_mesh, 
+			    new_mesh,
+			    same_ents2old_ents, 
+			    same_ents2new_ents );
   }
   if (prod_dim == old_mesh->dim()) {
     transfer_size(old_mesh, new_mesh, same_ents2old_ents, same_ents2new_ents,
