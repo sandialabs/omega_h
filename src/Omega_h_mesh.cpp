@@ -193,7 +193,6 @@ void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
 TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   check_dim2(ent_dim);
   auto it = tag_iter(ent_dim, name);
-  ;
   if (it == tags_[ent_dim].end()) {
     Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
         topological_plural_name(family(), ent_dim), name.c_str());
@@ -513,7 +512,7 @@ void Mesh::set_parting(Omega_h_Parting parting_in, Int nlayers, bool verbose) {
       case OMEGA_H_GHOSTED:
         std::cout << "ghosted (" << nlayers << " layers)";
         break;
-    };
+    }
     std::cout << " partitioning\n";
   }
   if (parting_ == -1) {

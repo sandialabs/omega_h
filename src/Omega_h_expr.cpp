@@ -1047,28 +1047,28 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
       return OpPtr(new TernaryOp(cond_op, lhs_op, rhs_op));
     }
     case math_lang::PROD_OR:
-      OMEGA_H_BINARY_REDUCE(OrOp);
+      OMEGA_H_BINARY_REDUCE(OrOp)
     case math_lang::PROD_AND:
-      OMEGA_H_BINARY_REDUCE(AndOp);
+      OMEGA_H_BINARY_REDUCE(AndOp)
     case math_lang::PROD_GT:
-      OMEGA_H_BINARY_REDUCE(GtOp);
+      OMEGA_H_BINARY_REDUCE(GtOp)
     case math_lang::PROD_LT:
-      OMEGA_H_BINARY_REDUCE(LtOp);
+      OMEGA_H_BINARY_REDUCE(LtOp)
     case math_lang::PROD_GEQ:
     case math_lang::PROD_LEQ:
       throw ParserFail("Operators <= and >= not supported yet");
     case math_lang::PROD_EQ:
-      OMEGA_H_BINARY_REDUCE(EqOp);
+      OMEGA_H_BINARY_REDUCE(EqOp)
     case math_lang::PROD_ADD:
-      OMEGA_H_BINARY_REDUCE(AddOp);
+      OMEGA_H_BINARY_REDUCE(AddOp)
     case math_lang::PROD_SUB:
-      OMEGA_H_BINARY_REDUCE(SubOp);
+      OMEGA_H_BINARY_REDUCE(SubOp)
     case math_lang::PROD_MUL:
-      OMEGA_H_BINARY_REDUCE(MulOp);
+      OMEGA_H_BINARY_REDUCE(MulOp)
     case math_lang::PROD_DIV:
-      OMEGA_H_BINARY_REDUCE(DivOp);
+      OMEGA_H_BINARY_REDUCE(DivOp)
     case math_lang::PROD_POW:
-      OMEGA_H_BINARY_REDUCE(PowOp);
+      OMEGA_H_BINARY_REDUCE(PowOp)
     case math_lang::PROD_CALL: {
       auto& name = any_cast<std::string&>(rhs.at(0));
       auto& args = any_cast<ExprEnv::Args&>(rhs.at(4));
