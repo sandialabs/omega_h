@@ -57,7 +57,7 @@ class InputMapIterator {
   using reference = std::string const&;
   using pointer = std::string const*;
   using iterator_category = std::bidirectional_iterator_tag;
-  InputMapIterator() noexcept = default;
+  InputMapIterator() = default;
   bool operator==(InputMapIterator const& other) const noexcept;
   bool operator!=(InputMapIterator const& other) const noexcept;
   reference operator*() const noexcept;
