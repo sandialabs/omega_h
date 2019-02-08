@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
-
-cmake_policy(SET CMP0074 NEW)
+cmake_minimum_required(VERSION 3.0.0...${CMAKE_VERSION})
 
 project(Omega_h VERSION 9.26.2 LANGUAGES CXX)
 
