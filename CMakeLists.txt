@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 
+cmake_policy(SET CMP0074 NEW)
+
 project(Omega_h VERSION 9.26.2 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
