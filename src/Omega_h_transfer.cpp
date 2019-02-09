@@ -9,9 +9,7 @@
 #include "Omega_h_quality.hpp"
 #include "Omega_h_shape.hpp"
 
-#ifdef OMEGA_H_FANCY_DANCY_FACE_REMAP
 #include "Omega_h_transfer_face.hpp"
-#endif
 
 namespace Omega_h {
 
@@ -392,7 +390,7 @@ static void transfer_same_face_flux(Mesh* old_mesh,
 		       FACE,
 		       same_ents2old_ents, 
 		       same_ents2new_ents, 
-		       tagbase
+		       tagbase,
 		       new_data);
     }
   }
