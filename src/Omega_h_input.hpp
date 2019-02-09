@@ -2,6 +2,7 @@
 #define OMEGA_H_INPUT_HPP
 
 #include <Omega_h_defines.hpp>
+#include <Omega_h_filesystem.hpp>
 #include <Omega_h_mesh.hpp>
 #include <iosfwd>
 #include <map>
@@ -46,6 +47,27 @@ struct InputScalar : public Input {
 
 struct InputList;
 
+class InputMapIterator {
+  std::map<std::string, std::shared_ptr<Input>>::const_iterator impl;
+
+ public:
+  InputMapIterator(decltype(impl) impl_in);
+  using value_type = std::string;
+  using difference_type = typename decltype(impl)::difference_type;
+  using reference = std::string const&;
+  using pointer = std::string const*;
+  using iterator_category = std::bidirectional_iterator_tag;
+  InputMapIterator() noexcept = default;
+  bool operator==(InputMapIterator const& other) const noexcept;
+  bool operator!=(InputMapIterator const& other) const noexcept;
+  reference operator*() const noexcept;
+  pointer operator->() const noexcept;
+  InputMapIterator& operator++() noexcept;
+  InputMapIterator operator++(int) noexcept;
+  InputMapIterator& operator--() noexcept;
+  InputMapIterator operator--(int) noexcept;
+};
+
 struct InputMap : public Input {
   std::map<std::string, std::shared_ptr<Input>> map;
   InputMap() = default;
@@ -70,6 +92,9 @@ struct InputMap : public Input {
   ScalarType get(std::string const& name, char const* default_value);
   std::string const& name(Input const& input);
   virtual void out_of_line_virtual_method();
+  InputMapIterator begin() const noexcept;
+  InputMapIterator end() const noexcept;
+  void remove(std::string const& name);
 };
 
 struct InputList : public Input {
@@ -96,7 +121,7 @@ struct InputList : public Input {
   virtual void out_of_line_virtual_method();
 };
 
-InputMap read_input(std::string const& path);
+InputMap read_input(Omega_h::filesystem::path const& path);
 
 void update_class_sets(ClassSets* p_sets, InputMap& pl);
 

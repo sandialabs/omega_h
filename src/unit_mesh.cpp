@@ -330,11 +330,11 @@ static void test_quality() {
       vector_3(-1, 0, -1.0 / std::sqrt(2.0)),
       vector_3(0, 1, 1.0 / std::sqrt(2.0)),
       vector_3(0, -1, 1.0 / std::sqrt(2.0))});
-  Matrix<2, 2> id_metric_2 = identity_matrix<2, 2>();
-  Matrix<3, 3> id_metric_3 = identity_matrix<3, 3>();
-  Matrix<2, 2> x_metric_2 =
+  Tensor<2> id_metric_2 = identity_tensor<2>();
+  Tensor<3> id_metric_3 = identity_tensor<3>();
+  Tensor<2> x_metric_2 =
       compose_metric(identity_matrix<2, 2>(), vector_2(1, 0.5));
-  Matrix<3, 3> x_metric_3 =
+  Tensor<3> x_metric_3 =
       compose_metric(identity_matrix<3, 3>(), vector_3(1, 1, 0.5));
   Few<Vector<2>, 3> x_tri;
   for (Int i = 0; i < 3; ++i) {

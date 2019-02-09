@@ -7,7 +7,7 @@ namespace Omega_h {
 
 template <Int dim>
 struct Affine {
-  Matrix<dim, dim> r;
+  Tensor<dim> r;
   Vector<dim> t;
 };
 

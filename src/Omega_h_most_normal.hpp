@@ -49,7 +49,7 @@ OMEGA_H_INLINE Vector<3> get_most_normal_normal(
       for (Int k = j + 1; k < n; ++k) {
         // Compute the center of the circle
         // Instead of Aubry and Lohner's math, just do some matrix algebra:
-        Matrix<3, 3> M;
+        Tensor<3> M;
         M[0] = N[i];
         M[1] = N[j];
         M[2] = N[k];

@@ -6,8 +6,8 @@
 namespace Omega_h {
 
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> m1, Matrix<dim, dim> m2);
+OMEGA_H_INLINE_BIG Tensor<dim> intersect_metrics(
+    Tensor<dim> const m1, Tensor<dim> const m2);
 
 /* Metric intersection that accounts for all degenerate cases,
    thanks to:
@@ -15,17 +15,18 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
    "Time-accurate anisotropic mesh adaptation for three-dimensional moving mesh
    problems" Diss. Universite Pierre et Marie Curie-Paris VI, 2015.
  */
-OMEGA_H_INLINE Matrix<1, 1> intersect_degenerate_metrics(Matrix<1, 1> m1,
-    DiagDecomp<1>, Few<Int, 1>, Int, Matrix<1, 1>, DiagDecomp<1>, Few<Int, 1>,
-    Int) {
+OMEGA_H_INLINE Tensor<1> intersect_degenerate_metrics(Tensor<1> const m1,
+    DiagDecomp<1> const, Few<Int, 1> const, Int const, Tensor<1> const,
+    DiagDecomp<1> const, Few<Int, 1> const, Int const) {
   // this should be impossible, but toss something in here so the code compiles
   return m1;
 }
 
 // Appendix A.1 in Barral's dissertation, case 5
-OMEGA_H_INLINE_BIG Matrix<2, 2> intersect_degenerate_metrics(Matrix<2, 2> m1,
-    DiagDecomp<2> m1_dc, Few<Int, 2> m1_ew_is_degen, Int, Matrix<2, 2> m2,
-    DiagDecomp<2> m2_dc, Few<Int, 2> m2_ew_is_degen, Int) {
+OMEGA_H_INLINE_BIG Tensor<2> intersect_degenerate_metrics(Tensor<2> const m1,
+    DiagDecomp<2> const m1_dc, Few<Int, 2> const m1_ew_is_degen, Int const,
+    Tensor<2> const m2, DiagDecomp<2> const m2_dc,
+    Few<Int, 2> const m2_ew_is_degen, Int const) {
   auto u1 = zero_vector<2>();
   auto v1 = zero_vector<2>();
   auto v2 = zero_vector<2>();
@@ -48,7 +49,7 @@ OMEGA_H_INLINE_BIG Matrix<2, 2> intersect_degenerate_metrics(Matrix<2, 2> m1,
     return outer_product(u1, u1) * max2(l1, l2);
   } else {
     // case 5.b
-    Matrix<2, 2> p;
+    Tensor<2> p;
     p[0] = v1;
     p[1] = v2;
     auto p_inv = invert(p);
@@ -60,10 +61,10 @@ OMEGA_H_INLINE_BIG Matrix<2, 2> intersect_degenerate_metrics(Matrix<2, 2> m1,
 }
 
 // Barral's thesis, appendix A.2
-OMEGA_H_INLINE_BIG Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
-    DiagDecomp<3> m1_dc, Few<Int, 3> m1_ew_is_degen, Int nm1_degen_ews,
-    Matrix<3, 3> m2, DiagDecomp<3> m2_dc, Few<Int, 3> m2_ew_is_degen,
-    Int nm2_degen_ews) {
+OMEGA_H_INLINE_BIG Tensor<3> intersect_degenerate_metrics(Tensor<3> const m1,
+    DiagDecomp<3> const m1_dc, Few<Int, 3> const m1_ew_is_degen,
+    Int const nm1_degen_ews, Tensor<3> const m2, DiagDecomp<3> const m2_dc,
+    Few<Int, 3> const m2_ew_is_degen, Int const nm2_degen_ews) {
   if (nm1_degen_ews == 2 && nm2_degen_ews == 2) {
     // case 2
     auto u1 = zero_vector<3>();
@@ -88,7 +89,7 @@ OMEGA_H_INLINE_BIG Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
       // case 2.b (u1 != u2)
       auto e1 = cross(u1, u);
       auto e2 = cross(u2, u);
-      Matrix<3, 3> P;
+      Tensor<3> P;
       P[0] = e1;
       P[1] = e2;
       P[2] = u;
@@ -150,7 +151,7 @@ OMEGA_H_INLINE_BIG Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
       return P * (mint_bar * PT);
     } else {
       // case 3.b, u2 and w1 are not orthogonal
-      Matrix<3, 3> P;
+      Tensor<3> P;
       P[0] = v2;
       P[1] = w2;
       P[2] = w1;
@@ -196,7 +197,7 @@ OMEGA_H_INLINE_BIG Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
     } else {
       // case 4.b
       w = normalize(w);
-      Matrix<3, 3> P;
+      Tensor<3> P;
       P[0] = w1;
       P[1] = w2;
       P[2] = w;
@@ -212,8 +213,11 @@ OMEGA_H_INLINE_BIG Matrix<3, 3> intersect_degenerate_metrics(Matrix<3, 3> m1,
 }
 
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
-    Matrix<dim, dim> m1, Matrix<dim, dim> m2) {
+OMEGA_H_INLINE_BIG Tensor<dim> intersect_metrics(
+    Tensor<dim> const m1_in, Tensor<dim> const m2_in) {
+  Tensor<dim> m1 = m1_in;
+  Tensor<dim> m2 = m2_in;
+  static_assert(std::is_same<decltype(m1), Tensor<dim>>::value, "not const!");
   auto m1_dc = decompose_eigen(m1);
   auto m2_dc = decompose_eigen(m2);
   Few<Int, dim> m1_ew_is_degen;
@@ -227,7 +231,7 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
   auto nm1_degen_ews = reduce(m1_ew_is_degen, plus<Int>());
   auto nm2_degen_ews = reduce(m2_ew_is_degen, plus<Int>());
   if (nm1_degen_ews > nm2_degen_ews) {
-    swap2(m1, m2);
+    swap2<Tensor<dim>>(m1, m2);
     swap2(m1_dc, m2_dc);
     swap2(m1_ew_is_degen, m2_ew_is_degen);
     swap2(nm1_degen_ews, nm2_degen_ews);
@@ -263,6 +267,7 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> intersect_metrics(
   return intersect_degenerate_metrics(m1, m1_dc, m1_ew_is_degen, nm1_degen_ews,
       m2, m2_dc, m2_ew_is_degen, nm2_degen_ews);
 }
+
 }  // namespace Omega_h
 
 #endif

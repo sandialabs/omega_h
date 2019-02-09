@@ -124,7 +124,7 @@ OMEGA_H_INLINE Roots<1> find_polynomial_roots(
 }
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
-OMEGA_H_INLINE Few<Real, 3> characteristic_polynomial(Matrix<3, 3> A) {
+OMEGA_H_INLINE Few<Real, 3> characteristic_polynomial(Tensor<3> A) {
   auto tA = trace(A);
   Few<Real, 3> coeffs;
   coeffs[2] = -tA;
@@ -134,21 +134,21 @@ OMEGA_H_INLINE Few<Real, 3> characteristic_polynomial(Matrix<3, 3> A) {
 }
 
 /* http://mathworld.wolfram.com/CharacteristicPolynomial.html */
-OMEGA_H_INLINE Few<Real, 2> characteristic_polynomial(Matrix<2, 2> A) {
+OMEGA_H_INLINE Few<Real, 2> characteristic_polynomial(Tensor<2> A) {
   Few<Real, 2> coeffs;
   coeffs[1] = -trace(A);
   coeffs[0] = determinant(A);
   return coeffs;
 }
 
-OMEGA_H_INLINE Few<Real, 1> characteristic_polynomial(Matrix<1, 1> A) {
+OMEGA_H_INLINE Few<Real, 1> characteristic_polynomial(Tensor<1> A) {
   Few<Real, 1> coeffs;
   coeffs[0] = -determinant(A);
   return coeffs;
 }
 
 template <Int n>
-OMEGA_H_INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
+OMEGA_H_INLINE Roots<n> get_eigenvalues(Tensor<n> A) {
   auto poly = characteristic_polynomial(A);
   // WARNING: I no longer remember the source of this magic number.
   // was probably tuned to avoid failures with the cubic solver
@@ -156,7 +156,7 @@ OMEGA_H_INLINE Roots<n> get_eigenvalues(Matrix<n, n> A) {
 }
 
 template <Int m>
-OMEGA_H_INLINE Matrix<m, m> subtract_from_diag(Matrix<m, m> a, Real mu) {
+OMEGA_H_INLINE Tensor<m> subtract_from_diag(Tensor<m> a, Real const mu) {
   for (Int i = 0; i < m; ++i) a[i][i] -= mu;
   return a;
 }
@@ -172,7 +172,7 @@ OMEGA_H_INLINE Matrix<m, m> subtract_from_diag(Matrix<m, m> a, Real mu) {
    then the row space is 2D (a plane in 3D)
    take the largest cross product of any pair of rows,
    that should give a vector in the null space */
-OMEGA_H_INLINE Vector<3> single_eigenvector(Matrix<3, 3> m, Real l) {
+OMEGA_H_INLINE Vector<3> single_eigenvector(Tensor<3> const m, Real const l) {
   auto s = transpose(subtract_from_diag(m, l));
   auto v = cross(s[0], s[1]);
   auto v_norm = norm(v);
@@ -197,7 +197,7 @@ OMEGA_H_INLINE Vector<3> single_eigenvector(Matrix<3, 3> m, Real l) {
    this function will return the unit vector of the row
    that had the highest norm, which is a basis for the row space */
 template <Int m>
-OMEGA_H_INLINE Vector<m> get_1d_row_space(Matrix<m, m> a) {
+OMEGA_H_INLINE Vector<m> get_1d_row_space(Tensor<m> const a) {
   auto ta = transpose(a);
   auto best_row = 0;
   auto best_norm = norm(ta[best_row]);
@@ -214,7 +214,8 @@ OMEGA_H_INLINE Vector<m> get_1d_row_space(Matrix<m, m> a) {
 
 /* in the case that the null space is 2D and space is 3D,
    find two vectors that are orthogonal to the 1D row space */
-OMEGA_H_INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
+OMEGA_H_INLINE Few<Vector<3>, 2> double_eigenvector(
+    Tensor<3> const m, Real const l) {
   auto s = subtract_from_diag(m, l);
   auto n = get_1d_row_space(s);
   auto b = form_ortho_basis(n);
@@ -226,17 +227,17 @@ OMEGA_H_INLINE Few<Vector<3>, 2> double_eigenvector(Matrix<3, 3> m, Real l) {
 
 template <Int dim>
 struct DiagDecomp {
-  Matrix<dim, dim> q;
+  Tensor<dim> q;
   Vector<dim> l;
 };
 
-OMEGA_H_INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m) {
+OMEGA_H_INLINE DiagDecomp<3> decompose_eigen_dim(Tensor<3> const m) {
   auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
   auto mults = roots_obj.mults;
   /* there are only a few output cases, see solve_cubic() */
-  Matrix<3, 3> q;
+  Tensor<3> q;
   Vector<3> l;
   if (nroots == 3) {
     for (Int i = 0; i < 3; ++i) {
@@ -260,17 +261,17 @@ OMEGA_H_INLINE DiagDecomp<3> decompose_eigen_dim(Matrix<3, 3> m) {
 
 /* in the case that the null space is 1D and space is 2D,
    find the basis vector for the 1D row space and rotate it 90 deg */
-OMEGA_H_INLINE Vector<2> single_eigenvector(Matrix<2, 2> m, Real l) {
+OMEGA_H_INLINE Vector<2> single_eigenvector(Tensor<2> const m, Real const l) {
   return perp(get_1d_row_space(subtract_from_diag(m, l)));
 }
 
-OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m) {
+OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Tensor<2> const m) {
   auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
   auto mults = roots_obj.mults;
   /* there are only a few output cases, see solve_quadratic() */
-  Matrix<2, 2> q;
+  Tensor<2> q;
   Vector<2> l;
   if (nroots == 2) {
     for (Int i = 0; i < 2; ++i) {
@@ -285,7 +286,7 @@ OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Matrix<2, 2> m) {
   return {q, l};
 }
 
-OMEGA_H_INLINE DiagDecomp<1> decompose_eigen_dim(Matrix<1, 1> m) {
+OMEGA_H_INLINE DiagDecomp<1> decompose_eigen_dim(Tensor<1> const m) {
   auto roots_obj = get_eigenvalues(m);
   auto roots = roots_obj.values;
   OMEGA_H_CHECK(are_close(roots[0], m[0][0]));
@@ -304,7 +305,7 @@ OMEGA_H_INLINE DiagDecomp<1> decompose_eigen_dim(Matrix<1, 1> m) {
    the output should satisfy
      m ~= transpose(q * diagonal(l) * invert(q)) */
 template <Int dim>
-OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m) {
+OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen(Tensor<dim> m) {
   /* the cubic solver is especially sensitive to dynamic
      range. what we can do is to normalize the input matrix
      and then re-apply that norm to the resulting roots */
@@ -321,16 +322,15 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen(Matrix<dim, dim> m) {
 /* Q, again, being the matrix whose columns
    are the right eigenvectors, but not necessarily unitary */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> compose_eigen(
-    Matrix<dim, dim> q, Vector<dim> l) {
+OMEGA_H_INLINE Tensor<dim> compose_eigen(
+    Tensor<dim> const q, Vector<dim> const l) {
   return q * diagonal(l) * invert(q);
 }
 
 /* like the above, but knowing Q is unitary,
    so the transpose is the inverse */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> compose_ortho(
-    Matrix<dim, dim> q, Vector<dim> l) {
+OMEGA_H_INLINE Tensor<dim> compose_ortho(Tensor<dim> const q, Vector<dim> l) {
   return q * diagonal(l) * transpose(q);
 }
 
@@ -339,7 +339,7 @@ OMEGA_H_INLINE Matrix<dim, dim> compose_ortho(
 // \param a
 // \return \f$ \sqrt(\sum_i \sum_{j, j\neq i} a_{ij}^2) \f$
 template <Int dim>
-OMEGA_H_INLINE Real norm_off_diag(Matrix<dim, dim> a) {
+OMEGA_H_INLINE Real norm_off_diag(Tensor<dim> const a) {
   Real s = 0.0;
   for (Int j = 0; j < dim; ++j) {
     for (Int i = 0; i < dim; ++i) {
@@ -356,7 +356,7 @@ OMEGA_H_INLINE Real norm_off_diag(Matrix<dim, dim> a) {
 // \param a
 // \return \f$ (p,q) = arg max_{i \neq j} |a_{ij}| \f$
 template <Int dim>
-OMEGA_H_INLINE Few<Int, 2> arg_max_off_diag(Matrix<dim, dim> a) {
+OMEGA_H_INLINE Few<Int, 2> arg_max_off_diag(Tensor<dim> const a) {
   Int p = 0;
   Int q = 0;
   auto s = -1.0;
@@ -397,8 +397,8 @@ OMEGA_H_INLINE Vector<2> schur_sym(Real f, Real g, Real h) {
 
 /* Apply Givens-Jacobi rotation on the left */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> givens_left(
-    Real c, Real s, Int i, Int k, Matrix<dim, dim> a) {
+OMEGA_H_INLINE Tensor<dim> givens_left(
+    Real const c, Real const s, Int const i, Int const k, Tensor<dim> a) {
   for (Int j = 0; j < dim; ++j) {
     auto t1 = a(i, j);
     auto t2 = a(k, j);
@@ -410,8 +410,8 @@ OMEGA_H_INLINE Matrix<dim, dim> givens_left(
 
 /* Apply Givens-Jacobi rotation on the right */
 template <Int dim>
-OMEGA_H_INLINE Matrix<dim, dim> givens_right(
-    Real c, Real s, Int i, Int k, Matrix<dim, dim> a) {
+OMEGA_H_INLINE Tensor<dim> givens_right(
+    Real const c, Real const s, Int const i, Int const k, Tensor<dim> a) {
   for (Int j = 0; j < dim; ++j) {
     auto t1 = a(j, i);
     auto t2 = a(j, k);
@@ -426,7 +426,7 @@ OMEGA_H_INLINE Matrix<dim, dim> givens_right(
    algorithm 8.4.2 in Matrix Computations, Golub & Van Loan 1996 */
 template <Int dim>
 OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(
-    Matrix<dim, dim> a, Real eps = DBL_EPSILON, Int max_iter = -1) {
+    Tensor<dim> a, Real const eps = DBL_EPSILON, Int max_iter = -1) {
   // Estimate based on random generation and linear regression.
   // Golub & Van Loan p 429 expect ~ dimension * log(dimension)
   if (max_iter == -1) max_iter = (5 * dim * dim) / 2;
@@ -452,7 +452,7 @@ OMEGA_H_INLINE DiagDecomp<dim> decompose_eigen_jacobi(
 }
 
 template <Int dim>
-OMEGA_H_INLINE DiagDecomp<dim> sort_by_magnitude(DiagDecomp<dim> dd) {
+OMEGA_H_INLINE DiagDecomp<dim> sort_by_magnitude(DiagDecomp<dim> const dd) {
   Few<Int, dim> perm;
   for (Int i = 0; i < dim; ++i) perm[i] = i;
   for (Int i = 0; i < dim; ++i) {
@@ -472,8 +472,8 @@ OMEGA_H_INLINE DiagDecomp<dim> sort_by_magnitude(DiagDecomp<dim> dd) {
 
 // logarithm of a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> log_spd_old(
-    Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> log_spd_old(
+    Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -481,8 +481,8 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> log_spd_old(
 
 // exponential resulting in a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd_old(
-    Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> exp_spd_old(
+    Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -490,8 +490,7 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd_old(
 
 // logarithm of a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> log_spd(
-    Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> log_spd(Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen_jacobi(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::log(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -499,8 +498,7 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> log_spd(
 
 // exponential resulting in a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd(
-    Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> exp_spd(Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen_jacobi(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::exp(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);
@@ -508,8 +506,7 @@ OMEGA_H_INLINE_BIG Matrix<dim, dim> exp_spd(
 
 // exponential resulting in a symmetric positive definite tensor
 template <Int dim>
-OMEGA_H_INLINE_BIG Matrix<dim, dim> sqrt_spd(
-    Matrix<dim, dim> const m) OMEGA_H_NOEXCEPT {
+OMEGA_H_INLINE_BIG Tensor<dim> sqrt_spd(Tensor<dim> const m) OMEGA_H_NOEXCEPT {
   auto decomp = decompose_eigen_jacobi(m);
   for (Int i = 0; i < dim; ++i) decomp.l[i] = std::sqrt(decomp.l[i]);
   return compose_ortho(decomp.q, decomp.l);

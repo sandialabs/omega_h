@@ -71,7 +71,7 @@ Language build_language() {
   out.tokens[TOK_AND] = {"&&", "&&"};
   out.tokens[TOK_OR] = {"||", "\\|\\|"};
   out.tokens[TOK_CONST] = {
-      "constant", "(0|([1-9][0-9]*))(\\.[0-9]*)?([eE]\\-?[1-9][0-9]*)?"};
+      "constant", "(0|([1-9][0-9]*))(\\.[0-9]*)?([eE][\\-\\+]?[0-9]+)?"};
   out.tokens[TOK_SEMICOLON] = {";", ";"};
   out.tokens[TOK_ASSIGN] = {"=", "="};
   return out;
