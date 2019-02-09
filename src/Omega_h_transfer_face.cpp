@@ -427,25 +427,11 @@ elementPhysicalFacePolynomial( /*input*/
       for (int elem_trg = 0; elem_trg < nelem_trg; ++elem_trg) {
         for (int face_trg = 0; face_trg < facesPerElement; ++face_trg) {
           if (targetElementFaceIsSurface[elem_trg][face_trg]) {
-            const size_t faceGID_trg = targetElementFace_to_MeshFace[elem_trg][face_trg];
-            Scalar faceFluxSource = 0;
-            int sign = 0;
-            bool found = false;
-            for (int elem_src = 0; elem_src < nelem_trg && !found; ++elem_src) {
-              for (int face_src = 0; face_src < facesPerElement && !found; ++face_src) {
-                const size_t faceGID_src = sourceElementFace_to_MeshFace[elem_src][face_src];
-                if (faceGID_trg == faceGID_src) {
-                  sign = targetElementFaceOrientations[elem_trg][face_trg];
-	          faceFluxSource = sourceFluxes[faceGID_src];
-                  found = true;
-                }
-              }
-            }
-            if(!found)printf("External face not found.");
-            const int i = targetElementFace_to_targetFace[elem_trg][face_trg];
+            const int sign = targetElementFaceOrientations[elem_trg][face_trg];
+            const int i  = targetElementFace_to_targetFace[elem_trg][face_trg];
             A(nsize,i) = sign;
             A(i,nsize) = sign;
-            b(nsize)   = faceFluxSource;
+            b(nsize)   = targetFluxes[targetElementFace_to_MeshFace[elem_trg][face_trg]];
             ++nsize;
           }
         }
