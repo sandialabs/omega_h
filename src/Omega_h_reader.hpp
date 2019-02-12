@@ -12,7 +12,7 @@ namespace Omega_h {
 
 class Reader {
  public:
-  Reader() = default;
+  Reader() = delete;
   Reader(Reader const&) = default;
   virtual ~Reader() = default;
   Reader(ReaderTablesPtr tables_in);

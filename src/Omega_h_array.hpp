@@ -29,7 +29,15 @@ class Write {
 #endif
 
  public:
-  OMEGA_H_INLINE Write();
+  OMEGA_H_INLINE Write()
+      :
+#ifdef OMEGA_H_USE_KOKKOSCORE
+        view_()
+#else
+        shared_alloc_()
+#endif
+  {
+  }
 #ifdef OMEGA_H_USE_KOKKOSCORE
   Write(Kokkos::View<T*> view_in);
 #endif
@@ -97,17 +105,6 @@ class Write {
   OMEGA_H_INLINE T* begin() const noexcept { return data(); }
   OMEGA_H_INLINE T* end() const OMEGA_H_NOEXCEPT { return data() + size(); }
 };
-
-template <typename T>
-OMEGA_H_INLINE Write<T>::Write()
-    :
-#ifdef OMEGA_H_USE_KOKKOSCORE
-      view_()
-#else
-      shared_alloc_()
-#endif
-{
-}
 
 template <typename T>
 class Read {
