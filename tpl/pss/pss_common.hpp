@@ -107,6 +107,10 @@ public:
   void* get() const {return ptr;}
   //! Destroy buffer
   ~raw_buffer() {operator delete(ptr);}
+  raw_buffer(raw_buffer const&) = delete;
+  raw_buffer(raw_buffer&&) = delete;
+  raw_buffer& operator=(raw_buffer const&) = delete;
+  raw_buffer& operator=(raw_buffer&&) = delete;
 };
 
 } // namespace internal
