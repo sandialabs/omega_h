@@ -3,7 +3,7 @@
 
 #include <Omega_h_template_up.hpp>
 
-/*! \file Omega_h_hypercube.hpp
+/*! Omega_h_hypercube.hpp
   \brief Describes the canonical local boundary connectivity
          orderings for a single hypercube, and other related properties
   \details A hypercube is a generalization of a square in arbitrary dimensions.

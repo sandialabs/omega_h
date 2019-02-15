@@ -3,7 +3,7 @@
 
 #include <Omega_h_template_up.hpp>
 
-/*! \file Omega_h_simplex.hpp
+/* Omega_h_simplex.hpp
   \brief Describes the canonical local boundary connectivity
          orderings for a single simplex, and other related properties
   \details A simplex is a generalization of a triangle in arbitrary dimensions.
