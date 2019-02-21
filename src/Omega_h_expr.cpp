@@ -491,7 +491,7 @@ any make_symm(LO size, Int dim, ExprReader::Args& args) {
     throw ParserFail("Argument to symm() was not sized as full tensors\n");
   }
   auto const out = matrices_to_symms(in, dim);
-  return out;
+  return std::move(out);
 }
 
 any eval_exp(LO size, ExprReader::Args& args) {
@@ -797,7 +797,7 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_FIRST_ARG: {
       Args args;
       args.push_back(std::move(rhs.at(0)));
-      return args;
+      return std::move(args);
     }
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<Args&>(rhs.at(0));
@@ -1079,7 +1079,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_FIRST_ARG: {
       ExprEnv::Args args;
       args.push_back(std::move(rhs.at(0)));
-      return args;
+      return std::move(args);
     }
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<ExprEnv::Args&>(rhs.at(0));
