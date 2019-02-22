@@ -110,7 +110,7 @@ Result transform_reduce(Iterator first, Iterator last, Result init,
 template <class Iterator, class Tranform, class Result>
 Result transform_reduce(Iterator first, Iterator last, Result init,
     Omega_h::plus<Result> op, Tranform&& transform) {
-  LO const n = last - first;
+  LO const n = LO(last - first);
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;

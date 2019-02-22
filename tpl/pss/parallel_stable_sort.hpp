@@ -110,10 +110,10 @@ void parallel_stable_sort(RandomAccessIterator xs, RandomAccessIterator xe,
   auto cutoff = n / t;
   if (cutoff < 2) cutoff = 2;
   typedef typename std::iterator_traits<RandomAccessIterator>::value_type T;
-  internal::raw_buffer z = internal::raw_buffer( n*sizeof(T) );
+  internal::raw_buffer z(size_t(n) * sizeof(T));
 #pragma omp parallel
 #pragma omp master
-  internal::parallel_stable_sort_aux( xs, xe, (T*)z.get(), 2, comp, cutoff );
+  internal::parallel_stable_sort_aux( xs, xe, static_cast<T*>(z.get()), 2, comp, cutoff );
 }
 
 } // namespace pss
