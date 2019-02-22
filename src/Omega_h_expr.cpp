@@ -456,6 +456,10 @@ any make_matrix(ExprReader::Args& args) {
 }
 
 any make_matrix(LO size, Int dim, ExprReader::Args& args) {
+  if (args.size() == 1 && args[0].type() == typeid(Real) &&
+      any_cast<Real>(args[0]) == 0.0) {
+    return Reals(size * dim * dim, 0.0);
+  }
   if (args.size() != std::size_t(square(dim))) {
     throw ParserFail("Wrong number of arguments to matrix()\n");
   }
