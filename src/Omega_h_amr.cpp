@@ -16,7 +16,8 @@ namespace amr {
 
 static OMEGA_H_DEVICE Byte should_elem_be_refined(LO elem, Adj elems2bridges,
     Adj bridges2elems, Bytes is_interior, Bytes is_bridge_leaf,
-    Int nbridges_per_elem, Children children, Bytes elems_are_marked) {
+    Int nbridges_per_elem, Children children, Bytes elems_are_marked,
+    Bytes one_level_mark) {
   Byte mark = 0;
   for (Int b = 0; b < nbridges_per_elem; ++b) {
     auto bridge = elems2bridges.ab2b[elem * nbridges_per_elem + b];
@@ -31,6 +32,7 @@ static OMEGA_H_DEVICE Byte should_elem_be_refined(LO elem, Adj elems2bridges,
       OMEGA_H_CHECK((child_adj_elem_end - child_adj_elem_begin) == 1);
       auto child_adj_elem = bridges2elems.ab2b[child_adj_elem_begin];
       if (elems_are_marked[child_adj_elem]) mark = 1;
+      if (one_level_mark[child_adj_elem]) mark = 1;
     }
   }
   return mark;
@@ -56,7 +58,7 @@ Bytes enforce_2to1_refine(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
     } else {
       one_level_mark[elem] = should_elem_be_refined(elem, elems2bridges,
           bridges2elems, is_interior, is_bridge_leaf, nbridges_per_elem,
-          children, elems_are_marked);
+          children, elems_are_marked, one_level_mark);
     }
   };
   Omega_h::parallel_for(mesh->nelems(), f, "enforce_one_level");
