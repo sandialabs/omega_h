@@ -17,7 +17,7 @@ namespace amr {
 static OMEGA_H_DEVICE Byte should_elem_be_refined(LO elem, Adj elems2bridges,
     Adj bridges2elems, Bytes is_interior, Bytes is_bridge_leaf,
     Int nbridges_per_elem, Children children, Bytes elems_are_marked,
-    Bytes one_level_mark) {
+    Write<Byte> one_level_mark) {
   Byte mark = 0;
   for (Int b = 0; b < nbridges_per_elem; ++b) {
     auto bridge = elems2bridges.ab2b[elem * nbridges_per_elem + b];
