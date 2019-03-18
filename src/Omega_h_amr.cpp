@@ -14,6 +14,21 @@ namespace Omega_h {
 
 namespace amr {
 
+void remove_non_leaf_uses(Mesh* mesh) {
+  Bytes ent_persists[4];
+  auto elem_dim = mesh->dim();
+  ent_persists[elem_dim] = mesh->ask_leaves(elem_dim);
+  for (Int ent_dim = 0; ent_dim < elem_dim; ++ent_dim) {
+    ent_persists[ent_dim] = mark_down(
+        mesh, elem_dim, ent_dim, ent_persists[elem_dim]);
+  }
+  LOs new_ents2old_ents[4];
+  for (Int ent_dim = 0; ent_dim <= elem_dim; ++ent_dim) {
+    new_ents2old_ents[ent_dim] = collect_marked(ent_persists[ent_dim]);
+  }
+  unmap_mesh(mesh, new_ents2old_ents);
+}
+
 static OMEGA_H_DEVICE Byte should_elem_be_refined(LO elem, Adj elems2bridges,
     Adj bridges2elems, Bytes is_interior, Bytes is_bridge_leaf,
     Int nbridges_per_elem, Children children, Bytes elems_are_marked,
