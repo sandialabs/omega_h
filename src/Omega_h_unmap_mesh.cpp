@@ -89,6 +89,21 @@ static void unmap_parents(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
+static void unmap_leaves(Mesh* new_mesh) {
+  for (Int ent_dim = 1; ent_dim <= new_mesh->dim(); ++ent_dim) {
+    Write<Byte> leaf(new_mesh->nents(ent_dim));
+    auto is_ent_leaf = new_mesh->ask_leaves(ent_dim);
+    auto children = new_mesh->ask_children(ent_dim, ent_dim);
+    auto functor = OMEGA_H_LAMBDA(LO ent) {
+      leaf[ent] = is_ent_leaf[ent];
+      auto nchild = children.a2ab[ent + 1] - children.a2ab[ent];
+      if ((nchild == 0) && (!leaf[ent])) leaf[ent] = 1;
+    };
+    parallel_for(new_mesh->nents(ent_dim), std::move(functor));
+    new_mesh->set_tag(ent_dim, "leaf", Omega_h::read(leaf));
+  }
+}
+
 void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
   auto new_mesh = mesh->copy_meta();
   auto nnew_verts = (new_ents2old_ents[0].exists())
@@ -109,8 +124,11 @@ void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
         old_ents2new_ents[ent_dim]);
     old_lows2new_lows = old_ents2new_ents[ent_dim];
   }
-  if (mesh->has_any_parents()) unmap_parents(
-      mesh, &new_mesh, new_ents2old_ents, old_ents2new_ents);
+  if (mesh->has_any_parents()) {
+    unmap_parents(
+        mesh, &new_mesh, new_ents2old_ents, old_ents2new_ents);
+    unmap_leaves(&new_mesh);
+  }
   *mesh = new_mesh;
 }
 
