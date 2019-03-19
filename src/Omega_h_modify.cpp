@@ -89,8 +89,8 @@ static Remotes get_prod_owners_shared(Mesh* mesh, Few<LOs, 4> mods2mds,
     auto nmod_prods = prod_end - prod_begin;
     /* HACK: assuming the number of products per split entity is constant! */
     Write<LO> nprods_per_mod_array(1);
-    if (nmods == 0) nprods_per_mod_array[0] = 0;
-    else  nprods_per_mod_array[0] = divide_no_remainder(nmod_prods, nmods);
+    if (nmods == 0) nprods_per_mod_array.set(0, 0);
+    else  nprods_per_mod_array.set(0, divide_no_remainder(nmod_prods, nmods));
     auto nprods_per_mod = get_max(Omega_h::read(nprods_per_mod_array));
     auto md_ranks = mesh->ask_owners(mod_dim).ranks;
     auto mod_ranks = read(unmap(mods2mds[mod_dim], md_ranks, 1));
