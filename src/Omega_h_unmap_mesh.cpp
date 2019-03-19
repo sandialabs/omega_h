@@ -81,7 +81,8 @@ static void unmap_parents(Mesh* old_mesh, Mesh* new_mesh,
         auto old_parent_dim = amr::code_parent_dim(old_parent_code);
         new_parent_idx[new_ent] =
           old_ents2new_ents[old_parent_dim][old_parent_idx];
-        new_parent_code[new_ent] = old_parent_code;
+        if (new_parent_idx[new_ent] > -1)
+          new_parent_code[new_ent] = old_parent_code;
       }
     };
     parallel_for(nnew_ents, std::move(functor));
