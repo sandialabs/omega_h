@@ -1,6 +1,8 @@
 #include "Omega_h_unmap_mesh.hpp"
 
+#include "Omega_h_amr.hpp"
 #include "Omega_h_element.hpp"
+#include "Omega_h_for.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_profile.hpp"
@@ -63,6 +65,46 @@ void unmap_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->set_owners(ent_dim, owners);
 }
 
+static void unmap_parents(Mesh* old_mesh, Mesh* new_mesh,
+    LOs new_ents2old_ents_a[], Few<LOs, 4> old_ents2new_ents) {
+  for (Int ent_dim = 1; ent_dim <= new_mesh->dim(); ++ent_dim) {
+    auto new_ents2old_ents = new_ents2old_ents_a[ent_dim];
+    auto nnew_ents = new_ents2old_ents.size();
+    Write<LO> new_parent_idx(nnew_ents, -1, "parent idx");
+    Write<Byte> new_parent_code(nnew_ents, 0, "parent code");
+    auto old_parents = old_mesh->ask_parents(ent_dim);
+    auto functor = OMEGA_H_LAMBDA(LO new_ent) {
+      auto old_ent = new_ents2old_ents[new_ent];
+      auto old_parent_idx = old_parents.parent_idx[old_ent];
+      auto old_parent_code = old_parents.codes[old_ent];
+      if (old_parent_idx > -1) {
+        auto old_parent_dim = amr::code_parent_dim(old_parent_code);
+        new_parent_idx[new_ent] =
+          old_ents2new_ents[old_parent_dim][old_parent_idx];
+        if (new_parent_idx[new_ent] > -1)
+          new_parent_code[new_ent] = old_parent_code;
+      }
+    };
+    parallel_for(nnew_ents, std::move(functor));
+    new_mesh->set_parents(ent_dim, Parents{new_parent_idx, new_parent_code});
+  }
+}
+
+static void unmap_leaves(Mesh* new_mesh) {
+  for (Int ent_dim = 1; ent_dim <= new_mesh->dim(); ++ent_dim) {
+    Write<Byte> leaf(new_mesh->nents(ent_dim));
+    auto is_ent_leaf = new_mesh->ask_leaves(ent_dim);
+    auto children = new_mesh->ask_children(ent_dim, ent_dim);
+    auto functor = OMEGA_H_LAMBDA(LO ent) {
+      leaf[ent] = is_ent_leaf[ent];
+      auto nchild = children.a2ab[ent + 1] - children.a2ab[ent];
+      if ((nchild == 0) && (!leaf[ent])) leaf[ent] = 1;
+    };
+    parallel_for(new_mesh->nents(ent_dim), std::move(functor));
+    new_mesh->set_tag(ent_dim, "leaf", Omega_h::read(leaf));
+  }
+}
+
 void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
   auto new_mesh = mesh->copy_meta();
   auto nnew_verts = (new_ents2old_ents[0].exists())
@@ -70,17 +112,23 @@ void unmap_mesh(Mesh* mesh, LOs new_ents2old_ents[]) {
                         : mesh->nverts();
   new_mesh.set_verts(nnew_verts);
   LOs old_lows2new_lows;
+  Few<LOs, 4> old_ents2new_ents;
   for (Int ent_dim = 0; ent_dim <= mesh->dim(); ++ent_dim) {
     if (ent_dim > VERT) {
       unmap_down(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim],
           old_lows2new_lows);
     }
     unmap_tags(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim]);
-    auto old_ents2new_ents =
+    old_ents2new_ents[ent_dim] =
         invert_injective_map(new_ents2old_ents[ent_dim], mesh->nents(ent_dim));
     unmap_owners(mesh, &new_mesh, ent_dim, new_ents2old_ents[ent_dim],
-        old_ents2new_ents);
-    old_lows2new_lows = old_ents2new_ents;
+        old_ents2new_ents[ent_dim]);
+    old_lows2new_lows = old_ents2new_ents[ent_dim];
+  }
+  if (mesh->has_any_parents()) {
+    unmap_parents(
+        mesh, &new_mesh, new_ents2old_ents, old_ents2new_ents);
+    unmap_leaves(&new_mesh);
   }
   *mesh = new_mesh;
 }
