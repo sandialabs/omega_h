@@ -460,7 +460,6 @@ set(Omega_h_HEADERS
   Omega_h_filesystem.hpp
   Omega_h_svd.hpp
   Omega_h_random.hpp
-  Omega_h_bbox.hpp
   )
 
 if (NOT Omega_h_USE_CUDA)
