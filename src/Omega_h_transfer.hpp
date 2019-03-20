@@ -44,9 +44,6 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     Int prod_dim, LOs keys2edges, LOs keys2prods, LOs prods2new_ents,
     LOs same_ents2old_ents, LOs same_ents2new_ents);
 
-void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
-    Bytes verts_are_keys, LOs keys2verts, Int prod_dim);
-
 void transfer_copy(
     Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh, Int prod_dim);
 
