@@ -61,6 +61,10 @@ class Few {
   OMEGA_H_INLINE Few(Few<T, n> const volatile& rhs) {
     for (Int i = 0; i < n; ++i) new (array_ + i) T(rhs[i]);
   }
+  OMEGA_H_INLINE const T* begin() const OMEGA_H_NOEXCEPT { return array_; }
+  OMEGA_H_INLINE const T* end() const OMEGA_H_NOEXCEPT { return array_ + size(); }
+  OMEGA_H_INLINE T* begin() OMEGA_H_NOEXCEPT { return array_; }
+  OMEGA_H_INLINE T* end() OMEGA_H_NOEXCEPT { return array_ + size(); }
 };
 
 #else
@@ -71,8 +75,8 @@ class Few {
 
  public:
   using value_type = T;
-  OMEGA_H_INLINE T* data() noexcept { return array_; }
-  OMEGA_H_INLINE T const* data() const noexcept { return array_; }
+  OMEGA_H_INLINE T* data() OMEGA_H_NOEXCEPT { return array_; }
+  OMEGA_H_INLINE T const* data() const OMEGA_H_NOEXCEPT { return array_; }
   OMEGA_H_INLINE constexpr Int size() const { return n; }
 #ifdef OMEGA_H_CHECK_BOUNDS
 #define OMEGA_H_FEW_AT                                                         \
@@ -99,6 +103,10 @@ class Few {
   OMEGA_H_INLINE Few(Few<T, n>&& rhs) = default;
   OMEGA_H_INLINE Few& operator=(Few const& rhs) = default;
   OMEGA_H_INLINE Few& operator=(Few&& rhs) = default;
+  OMEGA_H_INLINE const T* begin() const OMEGA_H_NOEXCEPT { return array_; }
+  OMEGA_H_INLINE const T* end() const OMEGA_H_NOEXCEPT { return array_ + size(); }
+  OMEGA_H_INLINE T* begin() OMEGA_H_NOEXCEPT { return array_; }
+  OMEGA_H_INLINE T* end() OMEGA_H_NOEXCEPT { return array_ + size(); }
 };
 
 #endif
