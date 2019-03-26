@@ -146,6 +146,7 @@ endif()
 if(Omega_h_USE_SimModSuite)
   message(STATUS "Omega_h_USE_SimModSuite: ${Omega_h_USE_SimModSuite}")
   find_package(SimModSuite MODULE REQUIRED)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshsim.cpp)
 endif()
 
 if(Omega_h_USE_SEACASExodus)
@@ -177,6 +178,12 @@ if(Omega_h_USE_EGADS)
   target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
 endif()
+
+if(Omega_h_USE_SimModSuite)
+  target_include_directories(omega_h PUBLIC "${SIMMODSUITE_INCLUDE_DIR}")
+  target_link_libraries(omega_h PUBLIC "${SIMMODSUITE_LIBS}")
+endif()
+
 
 bob_link_dependency(omega_h PUBLIC SEACASExodus)
 bob_link_dependency(omega_h PUBLIC TeuchosParameterList)
