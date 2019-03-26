@@ -29,6 +29,13 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 }  // namespace meshb
 #endif
 
+#ifdef OMEGA_H_USE_SIMMODSUITE
+namespace meshsim {
+Mesh read(filesystem::path const& mesh, filesystem::path const& model,
+    CommPtr comm);
+}  // namespace meshsim
+#endif
+
 #ifdef OMEGA_H_USE_SEACASEXODUS
 namespace exodus {
 enum ClassifyWith {
