@@ -143,6 +143,11 @@ if(Omega_h_USE_EGADS)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_egads.cpp)
 endif()
 
+if(Omega_h_USE_SimModSuite)
+  message(STATUS "Omega_h_USE_SimModSuite: ${Omega_h_USE_SimModSuite}")
+  find_package(SimModSuite MODULE REQUIRED)
+endif()
+
 if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
