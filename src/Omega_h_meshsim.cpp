@@ -53,15 +53,15 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   const int numVtx = M_numVertices(m);
   ent_nodes[0].reserve(numVtx);
   ent_class_ids[0].reserve(numVtx);
-  HostWrite<Real> host_coords(numVtx*max_dim);
+  HostWrite<Real> host_coords(numVtx*3);
   VIter vertices = M_vertexIter(m);
   pVertex vtx;
   i = 0;
   while ((vtx = (pVertex) VIter_next(vertices))) {
     double xyz[3];
     V_coord(vtx,xyz);
-    for(int j=0; j<max_dim; j++)
-      host_coords[i + max_dim + j] = xyz[j];
+    for(int j=0; j<3; j++)
+      host_coords[i * 3 + j] = xyz[j];
     ent_nodes[0].push_back(EN_id(vtx));
     ent_class_ids[0].push_back(classId(vtx));
     ++i;
@@ -74,7 +74,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   EIter edges = M_edgeIter(m);
   pEdge edge;
   while ((edge = (pEdge) EIter_next(edges))) {
-    for(int j=0; j<2; j++) {
+    for(int j=1; j>=0; --j) {
       vtx = E_vertex(edge,j);
       ent_nodes[1].push_back(EN_id(vtx));
     }
@@ -88,7 +88,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   FIter faces = M_faceIter(m);
   pFace face;
   while ((face = (pFace) FIter_next(faces))) {
-    pPList verts = F_vertices(face,0);
+    pPList verts = F_vertices(face,1);
     assert(PList_size(verts) == 3);
     void *iter = 0; // must initialize to 0
     while((vtx = (pVertex)PList_next(verts, &iter)))
@@ -103,7 +103,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   ent_class_ids[3].reserve(numRegions);
   regions = M_regionIter(m);
   while ((rgn = (pRegion) RIter_next(regions))) {
-    pPList verts = R_vertices(rgn,0);
+    pPList verts = R_vertices(rgn,1);
     assert(PList_size(verts) == 4);
     void *iter = 0; // must initialize to 0
     while((vtx = (pVertex)PList_next(verts, &iter)))
