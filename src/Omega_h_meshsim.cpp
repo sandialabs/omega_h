@@ -96,7 +96,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
     PList_delete(verts);
     ent_class_ids[2].push_back(classId(face));
   }
-  EIter_delete(edges);
+  FIter_delete(faces);
   //get the ids of vertices bounding each region
   const int numRegions = M_numRegions(m);
   ent_nodes[3].reserve(numRegions*4);
