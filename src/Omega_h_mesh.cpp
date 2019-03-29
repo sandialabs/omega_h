@@ -375,6 +375,10 @@ void Mesh::add_coords(Reals array) {
   add_tag<Real>(0, "coordinates", dim(), array);
 }
 
+void Mesh::add_coords(Reals array, Int sdim) {
+  add_tag<Real>(0, "coordinates", sdim, array);
+}
+
 Reals Mesh::coords() const { return get_array<Real>(0, "coordinates"); }
 
 void Mesh::set_coords(Reals const& array) {

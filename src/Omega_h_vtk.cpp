@@ -612,8 +612,11 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   stream << "</Cells>\n";
   stream << "<Points>\n";
   auto coords = mesh->coords();
-  write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3),
-      compress);
+  if( mesh->nents(VERT) == coords.size()/3 + coords.size()%3 )
+    write_array(stream, "coordinates", 3, coords, compress);
+  else
+    write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3),
+        compress);
   stream << "</Points>\n";
   stream << "<PointData>\n";
   /* globals go first so read_vtu() knows where to find them */
