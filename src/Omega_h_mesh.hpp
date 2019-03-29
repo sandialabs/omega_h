@@ -121,7 +121,6 @@ class Mesh {
 
  public:
   void add_coords(Reals array);
-  void add_coords(Reals array, Int sdim);
   Reals coords() const;
   void set_coords(Reals const& array);
   Read<GO> globals(Int dim) const;
