@@ -104,12 +104,6 @@ void build_from_elems_and_coords(
   mesh->add_coords(coords);
 }
 
-void build_from_elems_and_coords(
-    Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords, Int nverts) {
-  build_from_elems2verts(mesh, family, edim, ev2v, nverts);
-  mesh->add_coords(coords,3);
-}
-
 void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,
     Real z, LO nx, LO ny, LO nz, bool symmetric) {
   OMEGA_H_CHECK(nx > 0);

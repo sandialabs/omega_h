@@ -21,9 +21,6 @@ void build_from_elems2verts(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, LO nverts);
 void build_from_elems_and_coords(
     Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords);
-void build_from_elems_and_coords(
-    Mesh* mesh, Omega_h_Family family, Int edim, LOs ev2v, Reals coords,
-    Int nverts);
 Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
     LO nx, LO ny, LO nz, bool symmetric = false);
 void build_box_internal(Mesh* mesh, Omega_h_Family family, Real x, Real y,

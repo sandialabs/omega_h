@@ -128,7 +128,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
     auto eqv2v = Read<LO>(host_ev2v.write());
     if (ent_dim == max_dim) {
       build_from_elems_and_coords(
-          mesh, family, max_dim, eqv2v, host_coords.write(), numVtx);
+          mesh, family, max_dim, eqv2v, host_coords.write());
     }
     classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
   }
