@@ -53,15 +53,18 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   const int numVtx = M_numVertices(m);
   ent_nodes[0].reserve(numVtx);
   ent_class_ids[0].reserve(numVtx);
-  HostWrite<Real> host_coords(numVtx*3);
+  HostWrite<Real> host_coords(numVtx*max_dim);
   VIter vertices = M_vertexIter(m);
   pVertex vtx;
   i = 0;
   while ((vtx = (pVertex) VIter_next(vertices))) {
     double xyz[3];
     V_coord(vtx,xyz);
-    for(int j=0; j<3; j++)
-      host_coords[i * 3 + j] = xyz[j];
+    if( max_dim < 3 && xyz[2] != 0 )
+      Omega_h_fail("The z coordinate must be zero for a 2d mesh!\n");
+    for(int j=0; j<max_dim; j++) {
+      host_coords[i * max_dim + j] = xyz[j];
+    }
     ent_nodes[0].push_back(EN_id(vtx));
     ent_class_ids[0].push_back(classId(vtx));
     ++i;
