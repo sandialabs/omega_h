@@ -15,10 +15,8 @@ int main(int argc, char** argv) {
   auto mesh_in = cmdline.get<std::string>("mesh-in");
   auto model_in = cmdline.get<std::string>("model-in");
   auto mesh_out = cmdline.get<std::string>("mesh-out");
-  std::cout << "Loading mesh from " << mesh_in << "\n";
-  std::cout << "Loading model from " << model_in << "\n";
-  std::cout << "Writing mesh to " << mesh_out << "\n";
   auto mesh = Omega_h::meshsim::read(mesh_in, model_in, comm);
   Omega_h::binary::write(mesh_out, &mesh);
-  Omega_h::vtk::write_vtu("meshsim2osh.vtu", &mesh);
+  std::cout << "wrote mesh " << mesh_out << "\n";
+  return 0;
 }
