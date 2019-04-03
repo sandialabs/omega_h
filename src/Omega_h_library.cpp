@@ -11,6 +11,8 @@
 #include <sstream>
 #include <string>
 
+#include <fstream> // DEBUG
+
 namespace Omega_h {
 
 char* max_memory_stacktrace = nullptr;
@@ -89,6 +91,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
+  auto& mpi_ranks_flag =
+      cmdline.add_flag("--osh-mpi-ranks-per-node", "mpi ranks per node (for CUDA+MPI)");
+  mpi_ranks_flag.add_arg<int>("value");
   if (argc && argv) {
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
@@ -121,6 +126,24 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   cudaFree(nullptr);
 #endif
   if (cmdline.parsed("--osh-pool")) enable_pooling();
+#if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
+  && (!defined(OMEGA_H_USE_KOKKOSCORE))
+  if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
+    std::string fname = "debug_" + world_->rank(); // DEBUG
+    std::ofstream debug_file(fname.c_str(), std::ios::app | std::ios::out); // DEBUG
+    int devices_per_node;
+    cudaGetDeviceCount(&devices_per_node);
+    int mpi_ranks_per_node = cmdline.get<int>("--osh-mpi-ranks-per-node", "value");
+    debug_file << "devices_per_node: " << devices_per_node << std::endl; // DEBUG
+    debug_file << "mpi_ranks_per_node: " << mpi_ranks_per_node << std::endl; // DEBUG
+    OMEGA_H_CHECK(mpi_ranks_per_node == devices_per_node);
+    int local_mpi_rank = world_->rank() % mpi_ranks_per_node;
+    debug_file << "local_mpi_rank: " << local_mpi_rank << std::endl; // DEBUG
+    cudaSetDevice(local_mpi_rank);
+  } else {
+    Omega_h_fail("--osh-mpi-ranks-per-node must be specified!\n");
+  }
+#endif
 }
 
 Library::Library(Library const& other)
