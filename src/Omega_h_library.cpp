@@ -129,7 +129,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
 #if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
   && (!defined(OMEGA_H_USE_KOKKOSCORE))
   if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
-    std::string fname = "debug_" + world_->rank(); // DEBUG
+    std::string fname = "debug_" + std::to_string(world_->rank()); // DEBUG
     std::ofstream debug_file(fname.c_str(), std::ios::app | std::ios::out); // DEBUG
     int devices_per_node;
     cudaGetDeviceCount(&devices_per_node);
