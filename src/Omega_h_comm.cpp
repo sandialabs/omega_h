@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <string>
+#include <iostream>
 
 #include "Omega_h_array_ops.hpp"
 #include "Omega_h_int_scan.hpp"
@@ -281,16 +282,16 @@ static int Neighbor_allgather(HostRead<I32> sources, HostRead<I32> destinations,
   int const outdegree = destinations.size();
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
-  MPI_Request* recvreqs = new MPI_Request[indegree];
+  MPI_Request* sendrecvreqs = new MPI_Request[outdegree + indegree];
+  for (int i = 0; i < outdegree; ++i) {
+    CALL(MPI_Isend(sendbuf, sendcount, sendtype, destinations[i], tag, comm, sendrecvreqs + i));
+  }
   for (int i = 0; i < indegree; ++i) {
     CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * typewidth, recvcount,
-        recvtype, sources[i], tag, comm, recvreqs + i));
+        recvtype, sources[i], tag, comm, sendrecvreqs + outdegree + i));
   }
-  for (int i = 0; i < outdegree; ++i) {
-    CALL(MPI_Send(sendbuf, sendcount, sendtype, destinations[i], tag, comm));
-  }
-  CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
-  delete[] recvreqs;
+  CALL(MPI_Waitall(outdegree + indegree, sendrecvreqs, MPI_STATUSES_IGNORE));
+  delete[] sendrecvreqs;
   return MPI_SUCCESS;
 }
 
@@ -303,15 +304,16 @@ static int Neighbor_alltoall(HostRead<I32> sources, HostRead<I32> destinations,
   int const outdegree = destinations.size();
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
-  MPI_Request* recvreqs = new MPI_Request[indegree];
+  MPI_Request* sendrecvreqs = new MPI_Request[outdegree + indegree];
+
+  for (int i = 0; i < outdegree; ++i)
+    CALL(MPI_Isend(static_cast<char const*>(sendbuf) + i * typewidth, sendcount,
+                   sendtype, destinations[i], tag, comm, sendrecvreqs + i));
   for (int i = 0; i < indegree; ++i)
     CALL(MPI_Irecv(static_cast<char*>(recvbuf) + i * typewidth, recvcount,
-        recvtype, sources[i], tag, comm, recvreqs + i));
-  for (int i = 0; i < outdegree; ++i)
-    CALL(MPI_Send(static_cast<char const*>(sendbuf) + i * typewidth, sendcount,
-        sendtype, destinations[i], tag, comm));
-  CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
-  delete[] recvreqs;
+        recvtype, sources[i], tag, comm, sendrecvreqs + outdegree + i));
+  CALL(MPI_Waitall(outdegree + indegree, sendrecvreqs, MPI_STATUSES_IGNORE));
+  delete[] sendrecvreqs;
   return MPI_SUCCESS;
 }
 
@@ -325,21 +327,7 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
   int const outdegree = destinations.size();
   int typewidth;
   CALL(MPI_Type_size(sendtype, &typewidth));
-  MPI_Request* recvreqs = new MPI_Request[indegree];
-  for (int i = 0; i < indegree; ++i) {
-    char* const single_recvbuf =
-        static_cast<char*>(recvbuf) + rdispls[i] * typewidth * width;
-    int const single_recvcount = (rdispls[i + 1] - rdispls[i]) * width;
-    if (recvbuf_size != -1) {
-      OMEGA_H_CHECK(static_cast<char*>(recvbuf) <= single_recvbuf);
-      OMEGA_H_CHECK(single_recvcount > 0);
-      OMEGA_H_CHECK(typewidth > 0);
-      OMEGA_H_CHECK((single_recvbuf + single_recvcount * typewidth) <=
-                    (static_cast<char*>(recvbuf) + recvbuf_size * typewidth));
-    }
-    CALL(MPI_Irecv(single_recvbuf, single_recvcount, recvtype, sources[i], tag,
-        comm, recvreqs + i));
-  }
+  MPI_Request* sendrecvreqs = new MPI_Request[outdegree + indegree];
   for (int i = 0; i < outdegree; ++i) {
     char const* const single_sendbuf =
         static_cast<char const*>(sendbuf) + sdispls[i] * typewidth * width;
@@ -352,11 +340,25 @@ static int Neighbor_alltoallv(HostRead<I32> sources, HostRead<I32> destinations,
           (single_sendbuf + single_sendcount * typewidth) <=
           (static_cast<char const*>(sendbuf) + sendbuf_size * typewidth));
     }
-    CALL(MPI_Send(single_sendbuf, single_sendcount, sendtype, destinations[i],
-        tag, comm));
+    CALL(MPI_Isend(single_sendbuf, single_sendcount, sendtype, destinations[i],
+                   tag, comm, sendrecvreqs + i));
   }
-  CALL(MPI_Waitall(indegree, recvreqs, MPI_STATUSES_IGNORE));
-  delete[] recvreqs;
+  for (int i = 0; i < indegree; ++i) {
+    char* const single_recvbuf =
+        static_cast<char*>(recvbuf) + rdispls[i] * typewidth * width;
+    int const single_recvcount = (rdispls[i + 1] - rdispls[i]) * width;
+    if (recvbuf_size != -1) {
+      OMEGA_H_CHECK(static_cast<char*>(recvbuf) <= single_recvbuf);
+      OMEGA_H_CHECK(single_recvcount > 0);
+      OMEGA_H_CHECK(typewidth > 0);
+      OMEGA_H_CHECK((single_recvbuf + single_recvcount * typewidth) <=
+                    (static_cast<char*>(recvbuf) + recvbuf_size * typewidth));
+    }
+    CALL(MPI_Irecv(single_recvbuf, single_recvcount, recvtype, sources[i], tag,
+        comm, sendrecvreqs + outdegree + i));
+  }
+  CALL(MPI_Waitall(outdegree + indegree, sendrecvreqs, MPI_STATUSES_IGNORE));
+  delete[] sendrecvreqs;
   return MPI_SUCCESS;
 }
 
