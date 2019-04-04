@@ -11,8 +11,6 @@
 #include <sstream>
 #include <string>
 
-#include <fstream> // DEBUG
-
 namespace Omega_h {
 
 char* max_memory_stacktrace = nullptr;
@@ -129,24 +127,16 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
 #if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
   && (!defined(OMEGA_H_USE_KOKKOSCORE))
   if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
-    std::string fname = "debug_" + std::to_string(world_->rank()); // DEBUG
-    std::ofstream debug_file(fname.c_str(), std::ios::app | std::ios::out); // DEBUG
-    int cuda_err;
-    int devices_per_node;
-    cuda_err = cudaGetDeviceCount(&devices_per_node);
-    debug_file << "cuda_err after cudaGetDeviceCount: " << cuda_err << std::endl; // DEBUG
-    int mpi_ranks_per_node = cmdline.get<int>("--osh-mpi-ranks-per-node", "value");
-    debug_file << "devices_per_node: " << devices_per_node << std::endl; // DEBUG
-    debug_file << "mpi_ranks_per_node: " << mpi_ranks_per_node << std::endl; // DEBUG
-    OMEGA_H_CHECK(mpi_ranks_per_node == devices_per_node);
-    int local_mpi_rank = world_->rank() % mpi_ranks_per_node;
-    debug_file << "local_mpi_rank: " << local_mpi_rank << std::endl; // DEBUG
-    cuda_err = cudaSetDevice(local_mpi_rank);
-    debug_file << "cuda_err after cudaSetDevice: " << cuda_err << std::endl; // DEBUG
-    int cuda_device; // DEBUG
-    cuda_err = cudaGetDevice(&cuda_device); // DEBUG
-    debug_file << "cuda_device: " << cuda_err << std::endl; // DEBUG
-    debug_file << "cuda_err after cudaGetDevice: " << cuda_err << std::endl; // DEBUG
+    int rank, ndevices_per_node, my_device;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    cudaGetDeviceCount(&ndevices_per_node);
+    int mpi_ranks_per_node =
+      cmdline.get<int>("--osh-mpi-ranks-per-node", "value");
+    int local_mpi_rank = rank % mpi_ranks_per_node;
+    cudaSetDevice(local_mpi_rank);
+    cudaGetDevice(&my_device);
+    OMEGA_H_CHECK(mpi_ranks_per_node == ndevices_per_node);
+    OMEGA_H_CHECK(my_device == local_mpi_rank);
   }
 #endif
 }
