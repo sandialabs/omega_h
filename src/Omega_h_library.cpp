@@ -131,17 +131,22 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
     std::string fname = "debug_" + std::to_string(world_->rank()); // DEBUG
     std::ofstream debug_file(fname.c_str(), std::ios::app | std::ios::out); // DEBUG
+    int cuda_err;
     int devices_per_node;
-    cudaGetDeviceCount(&devices_per_node);
+    cuda_err = cudaGetDeviceCount(&devices_per_node);
+    debug_file << "cuda_err after cudaGetDeviceCount: " << cuda_err << std::endl; // DEBUG
     int mpi_ranks_per_node = cmdline.get<int>("--osh-mpi-ranks-per-node", "value");
     debug_file << "devices_per_node: " << devices_per_node << std::endl; // DEBUG
     debug_file << "mpi_ranks_per_node: " << mpi_ranks_per_node << std::endl; // DEBUG
     OMEGA_H_CHECK(mpi_ranks_per_node == devices_per_node);
     int local_mpi_rank = world_->rank() % mpi_ranks_per_node;
     debug_file << "local_mpi_rank: " << local_mpi_rank << std::endl; // DEBUG
-    cudaSetDevice(local_mpi_rank);
-  } else {
-    Omega_h_fail("--osh-mpi-ranks-per-node must be specified!\n");
+    cuda_err = cudaSetDevice(local_mpi_rank);
+    debug_file << "cuda_err after cudaSetDevice: " << cuda_err << std::endl; // DEBUG
+    int cuda_device; // DEBUG
+    cuda_err = cudaGetDevice(&cuda_device); // DEBUG
+    debug_file << "cuda_device: " << cuda_err << std::endl; // DEBUG
+    debug_file << "cuda_err after cudaGetDevice: " << cuda_err << std::endl; // DEBUG
   }
 #endif
 }
