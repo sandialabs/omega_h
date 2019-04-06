@@ -89,6 +89,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
+  auto& mpi_ranks_flag =
+      cmdline.add_flag("--osh-mpi-ranks-per-node", "mpi ranks per node (for CUDA+MPI)");
+  mpi_ranks_flag.add_arg<int>("value");
   if (argc && argv) {
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
@@ -121,6 +124,21 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   cudaFree(nullptr);
 #endif
   if (cmdline.parsed("--osh-pool")) enable_pooling();
+#if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
+  && (!defined(OMEGA_H_USE_KOKKOSCORE))
+  if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
+    int rank, ndevices_per_node, my_device;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    cudaGetDeviceCount(&ndevices_per_node);
+    int mpi_ranks_per_node =
+      cmdline.get<int>("--osh-mpi-ranks-per-node", "value");
+    int local_mpi_rank = rank % mpi_ranks_per_node;
+    cudaSetDevice(local_mpi_rank);
+    cudaGetDevice(&my_device);
+    OMEGA_H_CHECK(mpi_ranks_per_node == ndevices_per_node);
+    OMEGA_H_CHECK(my_device == local_mpi_rank);
+  }
+#endif
 }
 
 Library::Library(Library const& other)
