@@ -117,13 +117,6 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_kokkos_init = false;
   }
 #endif
-  if (cmdline.parsed("--osh-signal")) Omega_h::protect();
-#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
-  // trigger lazy initialization of the CUDA runtime
-  // and prevent it from polluting later timings
-  cudaFree(nullptr);
-#endif
-  if (cmdline.parsed("--osh-pool")) enable_pooling();
 #if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
   && (!defined(OMEGA_H_USE_KOKKOSCORE))
   if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
@@ -139,6 +132,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     OMEGA_H_CHECK(my_device == local_mpi_rank);
   }
 #endif
+  if (cmdline.parsed("--osh-signal")) Omega_h::protect();
+#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
+  // trigger lazy initialization of the CUDA runtime
+  // and prevent it from polluting later timings
+  cudaFree(nullptr);
+#endif
+  if (cmdline.parsed("--osh-pool")) enable_pooling();
 }
 
 Library::Library(Library const& other)
