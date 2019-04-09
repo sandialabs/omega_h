@@ -412,7 +412,7 @@ any make_vector(ExprReader::Args& args) {
   for (; i < dim; ++i) {
     v[i] = v[Int(args.size() - 1)];
   }
-  return v;
+  return std::move(v);
 }
 
 any make_vector(LO size, Int dim, ExprReader::Args& args) {
@@ -452,7 +452,7 @@ any make_matrix(ExprReader::Args& args) {
       v(i, j) = any_cast<Real>(arg);
     }
   }
-  return v;
+  return std::move(v);
 }
 
 any make_matrix(LO size, Int dim, ExprReader::Args& args) {

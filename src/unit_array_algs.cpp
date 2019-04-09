@@ -294,7 +294,7 @@ static void test_expr2() {
 }
 
 static void test_array_from_kokkos() {
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<double**> managed(
       Kokkos::ViewAllocateWithoutInitializing("view"), 10, 10);
   Kokkos::View<double*> unmanaged(managed.data(), managed.span());

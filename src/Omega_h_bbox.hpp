@@ -8,7 +8,7 @@ namespace Omega_h {
 
 class Mesh;
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 
 template <Int dim>
 struct BBox {
