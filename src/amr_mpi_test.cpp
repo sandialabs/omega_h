@@ -25,6 +25,7 @@ static void test_2D(CommPtr comm) {
     const auto xfer_opts = TransferOpts();
     amr::refine(&mesh, marks, xfer_opts);
   }
+  writer.write();
 }
 
 }
