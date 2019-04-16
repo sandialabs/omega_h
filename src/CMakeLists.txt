@@ -39,6 +39,7 @@ set(Omega_h_SOURCES
   Omega_h_filesystem.cpp
   Omega_h_finite_automaton.cpp
   Omega_h_fix.cpp
+  Omega_h_future.cpp
   Omega_h_ghost.cpp
   Omega_h_globals.cpp
   Omega_h_gmsh.cpp
@@ -398,6 +399,7 @@ set(Omega_h_HEADERS
   Omega_h_finite_automaton.hpp
   Omega_h_for.hpp
   Omega_h_functors.hpp
+  Omega_h_future.hpp
   Omega_h_grammar.hpp
   Omega_h_graph.hpp
   Omega_h_hypercube.hpp
