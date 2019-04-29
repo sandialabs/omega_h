@@ -82,8 +82,12 @@ int main(int argc, char** argv) {
       Omega_h::Reals(Omega_h::Write<Omega_h::Real>(mesh.nverts(), rank));
   mesh.add_tag(Omega_h::VERT, "rank", 1,
       vert_rank);  // register the data array in the mesh
-  const auto vert_rank_s =
-      mesh.sync_array(Omega_h::VERT, vert_rank, 1);  // update ghosts
+  auto request = mesh.isync_array(Omega_h::VERT, vert_rank, 1);  // update ghosts
+  auto finished = request.completed(); // ask for synchronization completion
+  if (!finished) {
+    // do work
+  }
+  const auto vert_rank_s = request.get(); // wait and get result
   mesh.add_tag(
       Omega_h::VERT, "synced_rank", 1, vert_rank_s);  // synchronized rank
 

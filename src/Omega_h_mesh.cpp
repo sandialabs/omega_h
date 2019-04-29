@@ -602,6 +602,14 @@ Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width) {
 }
 
 template <typename T>
+Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width) {
+  if (!could_be_shared(ent_dim)) {
+    return Future<T>(a);
+  }
+  return ask_dist(ent_dim).invert().iexch(a, width);
+}
+
+template <typename T>
 Read<T> Mesh::sync_subset_array(
     Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width) {
   if (!could_be_shared(ent_dim)) return a_data;
@@ -854,6 +862,7 @@ __host__
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
+  template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);   \
   template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \
   template Read<T> Mesh::sync_subset_array(                                    \
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);         \

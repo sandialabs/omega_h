@@ -144,6 +144,8 @@ class Mesh {
   template <typename T>
   Read<T> sync_array(Int ent_dim, Read<T> a, Int width);
   template <typename T>
+  Future<T> isync_array(Int ent_dim, Read<T> a, Int width);
+  template <typename T>
   Read<T> sync_subset_array(
       Int ent_dim, Read<T> a_data, LOs a2e, T default_val, Int width);
   template <typename T>
@@ -208,6 +210,8 @@ __host__
   extern template void Mesh::set_tag(                                          \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
+  extern template Future<T> Mesh::isync_array(                                 \
+      Int ent_dim, Read<T> a, Int width);                                      \
   extern template Read<T> Mesh::owned_array(                                   \
       Int ent_dim, Read<T> a, Int width);                                      \
   extern template Read<T> Mesh::sync_subset_array(                             \
