@@ -10,7 +10,7 @@
 
 namespace Omega_h {
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 
 template <typename T, Int n>
 class Few {

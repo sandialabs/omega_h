@@ -25,7 +25,7 @@ T* nonnull(T* p) {
   return NonNullPtr<T>::get(p);
 }
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
 #endif
@@ -33,7 +33,7 @@ Write<T>::Write(Kokkos::View<T*> view_in) : view_(view_in) {}
 template <typename T>
 Write<T>::Write(LO size_in, std::string const& name_in) {
   begin_code("Write allocation");
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   view_ = decltype(view_)(Kokkos::ViewAllocateWithoutInitializing(name_in),
       static_cast<std::size_t>(size_in));
 #else
@@ -76,7 +76,7 @@ template <typename T>
 Write<T>::Write(std::initializer_list<T> l, std::string const& name_in)
     : Write<T>(HostWrite<T>(l, name_in)) {}
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 std::string Write<T>::name() const {
   return view_.label();
@@ -163,7 +163,7 @@ template <typename T>
 Read<T>::Read(std::initializer_list<T> l, std::string const& name_in)
     : Read<T>(HostWrite<T>(l, name_in).write()) {}
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 template <typename T>
 Kokkos::View<const T*> Read<T>::view() const {
   return Kokkos::View<const T*>(write_.view());
@@ -185,7 +185,7 @@ T Read<T>::last() const {
   return get(size() - 1);
 }
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 template <class T, class... P>
 inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror(
     const Kokkos::View<T, P...>& src) {
@@ -225,12 +225,12 @@ inline typename Kokkos::View<T, P...>::HostMirror create_uninit_mirror_view(
 template <typename T>
 HostWrite<T>::HostWrite(LO size_in, std::string const& name_in)
     : write_(size_in, name_in)
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
       ,
       mirror_(create_uninit_mirror_view(write_.view()))
 #endif
 {
-#if (!defined(OMEGA_H_USE_KOKKOSCORE)) && defined(OMEGA_H_USE_CUDA)
+#if (!defined(OMEGA_H_USE_KOKKOS)) && defined(OMEGA_H_USE_CUDA)
   mirror_.reset(new T[std::size_t(write_.size())]);
 #endif
 }
@@ -243,12 +243,12 @@ HostWrite<T>::HostWrite(
 template <typename T>
 HostWrite<T>::HostWrite(Write<T> write_in)
     : write_(write_in)
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
       ,
       mirror_(create_uninit_mirror_view(write_.view()))
 #endif
 {
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(mirror_, write_.view());
 #elif defined(OMEGA_H_USE_CUDA)
   mirror_.reset(new T[std::size_t(write_.size())]);
@@ -266,7 +266,7 @@ HostWrite<T>::HostWrite(std::initializer_list<T> l, std::string const& name_in)
 template <typename T>
 Write<T> HostWrite<T>::write() const {
   ScopedTimer timer("array host to device");
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(write_.view(), mirror_);
 #elif defined(OMEGA_H_USE_CUDA)
   auto const err = cudaMemcpy(write_.data(), mirror_.get(),
@@ -283,7 +283,7 @@ LO HostWrite<T>::size() const OMEGA_H_NOEXCEPT {
 
 template <typename T>
 T* HostWrite<T>::data() const {
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   return mirror_.data();
 #elif defined(OMEGA_H_USE_CUDA)
   return mirror_.get();
@@ -294,7 +294,7 @@ T* HostWrite<T>::data() const {
 
 template <typename T>
 void HostWrite<T>::set(LO i, T value) {
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   mirror_[i] = value;
 #elif defined(OMEGA_H_USE_CUDA)
   mirror_[std::size_t(i)] = value;
@@ -305,7 +305,7 @@ void HostWrite<T>::set(LO i, T value) {
 
 template <typename T>
 T HostWrite<T>::get(LO i) const {
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   return mirror_[i];
 #elif defined(OMEGA_H_USE_CUDA)
   return mirror_[std::size_t(i)];
@@ -317,7 +317,7 @@ T HostWrite<T>::get(LO i) const {
 template <typename T>
 HostRead<T>::HostRead(Read<T> read) : read_(read) {
   ScopedTimer timer("array device to host");
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   Kokkos::View<const T*> dev_view = read.view();
   Kokkos::View<const T*, Kokkos::HostSpace> h_view =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), read.view());
@@ -337,7 +337,7 @@ LO HostRead<T>::size() const {
 
 template <typename T>
 T const* HostRead<T>::data() const {
-#if defined(OMEGA_H_USE_KOKKOSCORE)
+#if defined(OMEGA_H_USE_KOKKOS)
   return mirror_.data();
 #elif defined(OMEGA_H_USE_CUDA)
   return mirror_.get();

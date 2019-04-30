@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.0.0...${CMAKE_VERSION})
+cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.26.6 LANGUAGES CXX)
+project(Omega_h VERSION 9.27.0 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -18,8 +18,8 @@ bob_option(Omega_h_THROW "Errors throw exceptions instead of abort" ${USE_XSDK_D
 bob_input(Omega_h_DATA "" PATH "Path to omega_h-data test files")
 bob_option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
 bob_input(EGADS_PREFIX "" PATH "EGADS (or ESP) installation directory")
-bob_option(Omega_h_USE_Trilinos "Use Teuchos and Kokkos" OFF)
-bob_input(Trilinos_PREFIX "" PATH "Path to Trilinos install")
+bob_option(Omega_h_USE_Kokkos "Use Kokkos as a backend" OFF)
+bob_input(Kokkos_PREFIX "" PATH "Path to Kokkos install")
 bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
@@ -27,9 +27,12 @@ bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
-set(Omega_h_USE_KokkosCore_DEFAULT ${Omega_h_USE_Trilinos})
-set(KokkosCore_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_add_dependency(PUBLIC NAME KokkosCore TARGETS kokkoscore INCLUDE_DIR_VARS KokkosCore_INCLUDE_DIRS)
+set(Omega_h_USE_Kokkos_DEFAULT OFF)
+set(KokkosCore_PREFIX_DEFAULT ${Kokkos_PREFIX})
+bob_add_dependency(PUBLIC NAME Kokkos TARGETS kokkos INCLUDE_DIR_VARS Kokkos_INCLUDE_DIRS)
+if (Omega_h_USE_Kokkos)
+  set_target_properties(kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
+endif()
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
@@ -48,31 +51,6 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
       SEACASExodus_TPL_INCLUDE_DIRS
     LIBRARY_VARS SEACASExodus_TPL_LIBRARIES)
 
-set(Omega_h_USE_TeuchosParameterList_DEFAULT ${Omega_h_USE_Trilinos})
-set(TeuchosParameterList_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_add_dependency(PUBLIC NAME TeuchosParameterList
-    TARGETS teuchosparameterlist
-    INCLUDE_DIR_VARS
-      TeuchosParameterList_INCLUDE_DIRS
-      TeuchosParameterList_TPL_INCLUDE_DIRS
-    LIBRARY_VARS TeuchosParameterList_TPL_LIBRARIES)
-
-set(Omega_h_USE_TeuchosComm_DEFAULT ${Omega_h_USE_Trilinos})
-set(TeuchosComm_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_add_dependency(PUBLIC NAME TeuchosComm
-    TARGETS teuchoscomm
-    INCLUDE_DIR_VARS
-      TeuchosComm_INCLUDE_DIRS
-      TeuchosComm_TPL_INCLUDE_DIRS
-    LIBRARY_VARS TeuchosComm_TPL_LIBRARIES)
-
-set(Omega_h_USE_TeuchosParser_DEFAULT ${Omega_h_USE_Trilinos})
-set(TeuchosParser_PREFIX_DEFAULT ${Trilinos_PREFIX})
-bob_add_dependency(PUBLIC NAME TeuchosParser TARGETS teuchosparser
-    INCLUDE_DIR_VARS
-      TeuchosParser_INCLUDE_DIRS
-    )
-
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
 
@@ -88,32 +66,16 @@ if (Omega_h_USE_dwarf)
 	set(LIBDWARF_LIBRARIES ${LIBDWARF_LIBRARY} ${LIBELF_LIBRARY} ${LIBDL_LIBRARY})
 endif()
 
-if  ( Omega_h_USE_TeuchosParameterList
-  AND Omega_h_USE_TeuchosComm
-  AND Omega_h_USE_TeuchosParser
-  )
-  message(STATUS "Using Teuchos")
-  set(Omega_h_USE_Teuchos ON)
-elseif  ( Omega_h_USE_TeuchosParameterList
-       OR Omega_h_USE_TeuchosComm
-       OR Omega_h_USE_TeuchosParser
-       )
-  message(FATAL_ERROR "Must use TeuchosParameterList, TeuchosComm, and TeuchosParser or none")
-else()
-  message(STATUS "Not using Teuchos")
-  set(Omega_h_USE_Teuchos OFF)
-endif()
-
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/detect_trilinos_opts.cmake)
-detect_trilinos_opts()
-if (KokkosCore_HAS_CUDA AND (NOT KokkosCore_HAS_CUDA_LAMBDA))
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/detect_kokkos_opts.cmake)
+detect_kokkos_opts()
+if (Kokkos_HAS_CUDA AND (NOT Kokkos_HAS_CUDA_LAMBDA))
   message(FATAL_ERROR
           "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
 endif()
 
-bob_option(Omega_h_USE_MPI "Use MPI for parallelism" "${TeuchosComm_HAS_MPI}")
-bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${KokkosCore_HAS_OpenMP}")
-bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${KokkosCore_HAS_CUDA}")
+bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
+bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
+bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 
 if (Omega_h_USE_CUDA)
   find_package(CUDA)
@@ -168,14 +130,13 @@ osh_use_dolfin()
 
 set(Omega_h_KEY_BOOLS
     Omega_h_USE_MPI
-    Omega_h_USE_KokkosCore
+    Omega_h_USE_Kokkos
     Omega_h_USE_OpenMP
     Omega_h_USE_CUDA
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS
     Omega_h_USE_SEACASExodus
-    Omega_h_USE_Teuchos
     Omega_h_USE_DOLFIN
     Omega_h_USE_dwarf
     Omega_h_CHECK_BOUNDS

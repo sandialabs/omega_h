@@ -3,14 +3,14 @@
 
 #include <Omega_h_config.h>
 
-#if defined(OMEGA_H_USE_KOKKOSCORE)
+#if defined(OMEGA_H_USE_KOKKOS)
 #include <Kokkos_Core.hpp>
 #endif
 
 namespace Omega_h {
 
 OMEGA_H_DEVICE int atomic_fetch_add(int* const dest, const int val) {
-#if defined(OMEGA_H_USE_KOKKOSCORE)
+#if defined(OMEGA_H_USE_KOKKOS)
   return Kokkos::atomic_fetch_add(dest, val);
 #elif defined(OMEGA_H_USE_OPENMP)
 #ifdef __GNUC__

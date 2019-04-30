@@ -122,6 +122,26 @@ Read<T> Dist::exch(Read<T> data, Int width) const {
 }
 
 template <typename T>
+Future<T> Dist::iexch(Read<T> data, Int width) const {
+  ScopedTimer exch_timer("Dist::iexch");
+  if (roots2items_[F].exists()) {
+    data = expand(data, roots2items_[F], width);
+  }
+  if (items2content_[F].exists()) {
+    data = permute(data, items2content_[F], width);
+  }
+  auto future = comm_[F]->ialltoallv(data, msgs2content_[F], msgs2content_[R], width);
+  auto callback = [this,width](Read<T> buf) {
+    if (this->items2content_[R].exists()) {
+      buf = unmap(this->items2content_[R], buf, width);
+    }
+    return buf;
+  };
+  future.add_callback(callback);
+  return future;
+}
+
+template <typename T>
 Read<T> Dist::exch_reduce(Read<T> data, Int width, Omega_h_Op op) const {
   Read<T> item_data = exch(data, width);
   return fan_reduce(roots2items_[R], item_data, width, op);
@@ -202,6 +222,7 @@ void Dist::copy(Dist const& other) {
 
 #define INST_T(T)                                                              \
   template Read<T> Dist::exch(Read<T> data, Int width) const;                  \
+  template Future<T> Dist::iexch(Read<T> data, Int width) const;             \
   template Read<T> Dist::exch_reduce(Read<T> data, Int width, Omega_h_Op op)   \
       const;
 INST_T(I8)

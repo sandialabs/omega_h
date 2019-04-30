@@ -107,7 +107,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
   }
   silent_ = cmdline.parsed("--osh-silent");
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   if (!Kokkos::is_initialized()) {
     OMEGA_H_CHECK(argc != nullptr);
     OMEGA_H_CHECK(argv != nullptr);
@@ -117,15 +117,8 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_kokkos_init = false;
   }
 #endif
-  if (cmdline.parsed("--osh-signal")) Omega_h::protect();
-#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
-  // trigger lazy initialization of the CUDA runtime
-  // and prevent it from polluting later timings
-  cudaFree(nullptr);
-#endif
-  if (cmdline.parsed("--osh-pool")) enable_pooling();
 #if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
-  && (!defined(OMEGA_H_USE_KOKKOSCORE))
+  && (!defined(OMEGA_H_USE_KOKKOS))
   if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
     int rank, ndevices_per_node, my_device;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -139,6 +132,13 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     OMEGA_H_CHECK(my_device == local_mpi_rank);
   }
 #endif
+  if (cmdline.parsed("--osh-signal")) Omega_h::protect();
+#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOS))
+  // trigger lazy initialization of the CUDA runtime
+  // and prevent it from polluting later timings
+  cudaFree(nullptr);
+#endif
+  if (cmdline.parsed("--osh-pool")) enable_pooling();
 }
 
 Library::Library(Library const& other)
@@ -148,7 +148,7 @@ Library::Library(Library const& other)
       ,
       we_called_mpi_init(other.we_called_mpi_init)
 #endif
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
       ,
       we_called_kokkos_init(other.we_called_kokkos_init)
 #endif
@@ -168,7 +168,7 @@ Library::~Library() {
   world_ = CommPtr();
   self_ = CommPtr();
   disable_pooling();
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   if (we_called_kokkos_init) {
     Kokkos::finalize();
     we_called_kokkos_init = false;
