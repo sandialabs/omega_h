@@ -126,6 +126,8 @@ class Dist {
   template <typename T>
   Read<T> exch(Read<T> data, Int width) const;
   template <typename T>
+  Future<T> iexch(Read<T> data, Int width) const;
+  template <typename T>
   Read<T> exch_reduce(Read<T> data, Int width, Omega_h_Op op) const;
   CommPtr parent_comm() const;
   CommPtr comm() const;
@@ -152,6 +154,7 @@ class Dist {
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Read<T> Dist::exch(Read<T> data, Int width) const;           \
+  extern template Future<T> Dist::iexch(Read<T> data, Int width) const;        \
   extern template Read<T> Dist::exch_reduce<T>(                                \
       Read<T> data, Int width, Omega_h_Op op) const;
 OMEGA_H_EXPL_INST_DECL(I8)
