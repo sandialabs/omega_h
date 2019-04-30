@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0...${CMAKE_VERSION})
+cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
 project(Omega_h VERSION 9.26.5 LANGUAGES CXX)
 
