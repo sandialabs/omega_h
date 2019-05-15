@@ -2,6 +2,7 @@
 #define OMEGA_H_Future_HPP
 
 #include <functional>
+#include <vector>
 
 #include <Omega_h_mpi.h>
 #include "Omega_h_array.hpp"
