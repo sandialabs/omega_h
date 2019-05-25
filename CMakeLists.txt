@@ -11,10 +11,6 @@ endif()
 
 include(cmake/bob.cmake)
 
-set(CMAKE_MODULE_PATH
-  ${CMAKE_MODULE_PATH}
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-
 bob_begin_package()
 
 bob_option(Omega_h_CHECK_BOUNDS "Check array bounds (makes code slow too)" OFF)
