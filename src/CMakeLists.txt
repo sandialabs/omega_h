@@ -146,7 +146,12 @@ endif()
 
 if(Omega_h_USE_SimModSuite)
   message(STATUS "Omega_h_USE_SimModSuite: ${Omega_h_USE_SimModSuite}")
+  #Is there a better way? I assume CMAKE_MODULE_PATH was purposely not set in
+  # the top level CMakeLists.txt
+  set(OLD_CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
   find_package(SimModSuite MODULE REQUIRED)
+  set(CMAKE_MODULE_PATH ${OLD_CMAKE_MODULE_PATH})
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_meshsim.cpp)
 endif()
 
