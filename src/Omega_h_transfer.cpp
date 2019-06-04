@@ -379,7 +379,7 @@ static void transfer_face_flux(Mesh* old_mesh, Mesh* new_mesh,
     LOs same_ents2old_ents, LOs same_ents2new_ents, LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
-    if (tagbase->name() == "magnetic_face_flux") {
+    if (tagbase->name() == "magnetic face flux") {
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
       Read<Real> prod_data(prods2new_ents.size(), 0);
       transfer_common(old_mesh, new_mesh, FACE, same_ents2old_ents,

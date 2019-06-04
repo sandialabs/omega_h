@@ -281,6 +281,10 @@ if(BUILD_TESTING)
   test_func(run_corner_test 1 ./corner_test)
   osh_add_exe(coarsen_test)
   test_func(run_coarsen_test 1 ./coarsen_test)
+
+  osh_add_exe(face_flux_test)
+  test_func(run_face_flux_test 1 ./face_flux_test)
+
   osh_add_exe(2d_conserve_test)
   test_func(serial_2d_conserve 1 ./2d_conserve_test)
   if(Omega_h_USE_MPI)
