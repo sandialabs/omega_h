@@ -402,20 +402,22 @@ static void transfer_face_flux(Mesh* old_mesh,
 			       LOs keys2kds,
 			       LOs keys2prods,
 			       LOs prods2new_ents) {
-  for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
-    TagBase const* tagbase = old_mesh->get_tag(FACE, i);
-    if (tagbase->name() == "magnetic face flux") {
-      Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
-      Write<Real> new_data = deep_copy( new_mesh->get_array<Real>(FACE, tagbase->name()) );
-      transer_div_free_face_flux(old_mesh, 
-				 new_mesh,
-				 key_dim,
-				 keys2kds,
-				 keys2prods,
-				 prods2new_ents,
-				 old_data,
-				 new_data);
-      transfer_common3(new_mesh, FACE, tagbase, new_data);
+  if (FACE <= old_mesh->dim()) {
+    for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
+      TagBase const* tagbase = old_mesh->get_tag(FACE, i);
+      if (tagbase->name() == "magnetic face flux") {
+        Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
+        Write<Real> new_data = deep_copy( new_mesh->get_array<Real>(FACE, tagbase->name()) );
+        transer_div_free_face_flux(old_mesh, 
+  				   new_mesh,
+  				   key_dim,
+				   keys2kds,
+				   keys2prods,
+				   prods2new_ents,
+				   old_data,
+				   new_data);
+        transfer_common3(new_mesh, FACE, tagbase, new_data);
+      }
     }
   }
 }
