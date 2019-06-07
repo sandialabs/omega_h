@@ -65,14 +65,14 @@ elementPhysicalFacePolynomial( /*input*/
 }
 
 
-  void transer_div_free_face_flux(Mesh *source_mesh, 
-				  Mesh *target_mesh,
-				  Int key_dim,
-				  LOs source_keys,
-				  LOs keys2prods,
-				  LOs prods2target_elements,
-				  Read<Real> sourceFluxes,
-				  Write<Real> targetFluxes )
+  void transer_div_free_face_flux(      Mesh *source_mesh, 
+				        Mesh *target_mesh,
+				  const Int key_dim,
+				  const LOs source_keys,
+				  const LOs keys2prods,
+				  const LOs prods2target_elements,
+				  const Read<Real> sourceFluxes,
+				        Write<Real> targetFluxes )
   {
     constexpr Int spaceDim  = 3;
     constexpr Int nodesPerElement = 4;
@@ -96,17 +96,22 @@ elementPhysicalFacePolynomial( /*input*/
     auto const targetCoordinates = target_mesh->coords();
     auto const sourceCoordinates = source_mesh->coords();
 
+    const LOs src_keys = source_keys;
+    const LOs key2prod = keys2prods;
+    const LOs prd2elem = prods2target_elements;
+    const Read<Real> srcflux = sourceFluxes;
+
     auto functor = OMEGA_H_LAMBDA( LO const cavity ) {
       
       LO targetElements_to_MeshElements[maxElementsPerCavity];
-      LO targetBegin = keys2prods[cavity];
-      LO targetEnd = keys2prods[cavity+1];
+      LO targetBegin = key2prod[cavity];
+      LO targetEnd = key2prod[cavity+1];
       const Int numTargetElements = static_cast<int>(targetEnd - targetBegin);
       for (Int i=0; i<numTargetElements; ++i)
-	targetElements_to_MeshElements[i] = prods2target_elements[targetBegin+i];
+	targetElements_to_MeshElements[i] = prd2elem[targetBegin+i];
 
       LO sourceElements_to_MeshElements[maxElementsPerCavity];
-      LO key = source_keys[cavity];
+      LO key = src_keys[cavity];
       LO sourceBegin = keys2source_elements.a2ab[key];
       LO sourceEnd = keys2source_elements.a2ab[key+1];
       const Int numSourceElements = static_cast<int>(sourceEnd - sourceBegin);
@@ -345,7 +350,7 @@ elementPhysicalFacePolynomial( /*input*/
             for (int face = 0; face < facesPerElement; ++face) {
               const int sign = sourceElementFaceOrientations[elem_src][face];
 	      LO meshFace = sourceElementFace_to_MeshFace[elem_src][face];
-	      const double faceFlux = sourceFluxes[meshFace];
+	      const double faceFlux = srcflux[meshFace];
               faceFluxSource[face] = sign * faceFlux;
             }    
             elementPhysicalFacePolynomial( /*input*/

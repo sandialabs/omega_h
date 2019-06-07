@@ -6,14 +6,14 @@
 #include <Omega_h_tag.hpp>
 
 namespace Omega_h {
-  void transer_div_free_face_flux(Mesh *source_mesh, 
-				  Mesh *target_mesh,
-				  Int key_dim,
-				  LOs source_keys,
-				  LOs keys2prods,
-				  LOs prods2target_elements,
-				  Read<Real> sourceFluxes,
-				  Write<Real> targetFluxes );
+  void transer_div_free_face_flux(      Mesh *source_mesh, 
+				        Mesh *target_mesh,
+				  const Int key_dim,
+				  const LOs source_keys,
+				  const LOs keys2prods,
+				  const LOs prods2target_elements,
+				  const Read<Real> sourceFluxes,
+				        Write<Real> targetFluxes );
 }  // end namespace Omega_h
 
 #endif
