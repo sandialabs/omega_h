@@ -11,7 +11,7 @@ namespace Omega_h {
 
 using Scalar = double;
 
-KOKKOS_INLINE_FUNCTION Scalar
+OMEGA_H_INLINE Scalar
                        tet4Volume(const Scalar *x, const Scalar *y, const Scalar *z) {
   const Scalar v1[] = {x[1] - x[0], y[1] - y[0], z[1] - z[0]};
   const Scalar v2[] = {x[2] - x[0], y[2] - y[0], z[2] - z[0]};
@@ -28,7 +28,7 @@ KOKKOS_INLINE_FUNCTION Scalar
   return volume;
 }
 
-KOKKOS_INLINE_FUNCTION
+OMEGA_H_INLINE
 void
 elementPhysicalFacePolynomial( /*input*/
                               const Omega_h::Few< Omega_h::Vector<3>, 4> &nodalCoordinates,
@@ -194,13 +194,13 @@ elementPhysicalFacePolynomial( /*input*/
       for (int elem = 0; elem<numTargetElements; ++elem) {
 	LO meshElement =  targetElements_to_MeshElements[elem];
 	auto const elementNodes = Omega_h::gather_verts<nodesPerElement>(targetMeshElements_to_nodes,meshElement);
-	auto const elementCoordinates = Omega_h::gather_vectors<nodesPerElement,spaceDim>(targetCoordinates,elementNodes);
+	//auto const elementCoordinates = Omega_h::gather_vectors<nodesPerElement,spaceDim>(targetCoordinates,elementNodes);
 	//elementCoordinates( dimension(0:2), local_node_number(0:3) );
       }
       for (int elem = 0; elem<numSourceElements; ++elem) {
 	LO meshElement =  sourceElements_to_MeshElements[elem];
 	auto const elementNodes = Omega_h::gather_verts<nodesPerElement>(sourceMeshElements_to_nodes,meshElement);
-	auto const elementCoordinates = Omega_h::gather_vectors<nodesPerElement,spaceDim>(sourceCoordinates,elementNodes);
+	//auto const elementCoordinates = Omega_h::gather_vectors<nodesPerElement,spaceDim>(sourceCoordinates,elementNodes);
 	//elementCoordinates( dimension(0:2), local_node_number(0:3) );
       }
 
