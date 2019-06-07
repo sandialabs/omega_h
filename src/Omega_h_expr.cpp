@@ -412,7 +412,7 @@ any make_vector(ExprReader::Args& args) {
   for (; i < dim; ++i) {
     v[i] = v[Int(args.size() - 1)];
   }
-  return v;
+  return std::move(v);
 }
 
 any make_vector(LO size, Int dim, ExprReader::Args& args) {
@@ -452,10 +452,14 @@ any make_matrix(ExprReader::Args& args) {
       v(i, j) = any_cast<Real>(arg);
     }
   }
-  return v;
+  return std::move(v);
 }
 
 any make_matrix(LO size, Int dim, ExprReader::Args& args) {
+  if (args.size() == 1 && args[0].type() == typeid(Real) &&
+      any_cast<Real>(args[0]) == 0.0) {
+    return Reals(size * dim * dim, 0.0);
+  }
   if (args.size() != std::size_t(square(dim))) {
     throw ParserFail("Wrong number of arguments to matrix()\n");
   }
@@ -491,7 +495,7 @@ any make_symm(LO size, Int dim, ExprReader::Args& args) {
     throw ParserFail("Argument to symm() was not sized as full tensors\n");
   }
   auto const out = matrices_to_symms(in, dim);
-  return out;
+  return std::move(out);
 }
 
 any eval_exp(LO size, ExprReader::Args& args) {
@@ -797,7 +801,7 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_FIRST_ARG: {
       Args args;
       args.push_back(std::move(rhs.at(0)));
-      return args;
+      return std::move(args);
     }
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<Args&>(rhs.at(0));
@@ -1047,28 +1051,28 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
       return OpPtr(new TernaryOp(cond_op, lhs_op, rhs_op));
     }
     case math_lang::PROD_OR:
-      OMEGA_H_BINARY_REDUCE(OrOp);
+      OMEGA_H_BINARY_REDUCE(OrOp)
     case math_lang::PROD_AND:
-      OMEGA_H_BINARY_REDUCE(AndOp);
+      OMEGA_H_BINARY_REDUCE(AndOp)
     case math_lang::PROD_GT:
-      OMEGA_H_BINARY_REDUCE(GtOp);
+      OMEGA_H_BINARY_REDUCE(GtOp)
     case math_lang::PROD_LT:
-      OMEGA_H_BINARY_REDUCE(LtOp);
+      OMEGA_H_BINARY_REDUCE(LtOp)
     case math_lang::PROD_GEQ:
     case math_lang::PROD_LEQ:
       throw ParserFail("Operators <= and >= not supported yet");
     case math_lang::PROD_EQ:
-      OMEGA_H_BINARY_REDUCE(EqOp);
+      OMEGA_H_BINARY_REDUCE(EqOp)
     case math_lang::PROD_ADD:
-      OMEGA_H_BINARY_REDUCE(AddOp);
+      OMEGA_H_BINARY_REDUCE(AddOp)
     case math_lang::PROD_SUB:
-      OMEGA_H_BINARY_REDUCE(SubOp);
+      OMEGA_H_BINARY_REDUCE(SubOp)
     case math_lang::PROD_MUL:
-      OMEGA_H_BINARY_REDUCE(MulOp);
+      OMEGA_H_BINARY_REDUCE(MulOp)
     case math_lang::PROD_DIV:
-      OMEGA_H_BINARY_REDUCE(DivOp);
+      OMEGA_H_BINARY_REDUCE(DivOp)
     case math_lang::PROD_POW:
-      OMEGA_H_BINARY_REDUCE(PowOp);
+      OMEGA_H_BINARY_REDUCE(PowOp)
     case math_lang::PROD_CALL: {
       auto& name = any_cast<std::string&>(rhs.at(0));
       auto& args = any_cast<ExprEnv::Args&>(rhs.at(4));
@@ -1079,7 +1083,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_FIRST_ARG: {
       ExprEnv::Args args;
       args.push_back(std::move(rhs.at(0)));
-      return args;
+      return std::move(args);
     }
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<ExprEnv::Args&>(rhs.at(0));

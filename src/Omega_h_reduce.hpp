@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_REDUCE_HPP
 #define OMEGA_H_REDUCE_HPP
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 #include <Omega_h_kokkos.hpp>
 #endif
 
@@ -24,7 +24,7 @@ namespace Omega_h {
 template <typename T>
 typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
   using VT = typename T::value_type;
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   VT result;
   f.init(result);
   if (n > 0) Kokkos::parallel_reduce(name, policy(n), f, result);
@@ -110,7 +110,7 @@ Result transform_reduce(Iterator first, Iterator last, Result init,
 template <class Iterator, class Tranform, class Result>
 Result transform_reduce(Iterator first, Iterator last, Result init,
     Omega_h::plus<Result> op, Tranform&& transform) {
-  LO const n = last - first;
+  LO const n = LO(last - first);
   Omega_h::entering_parallel = true;
   auto const transform_local = std::move(transform);
   Omega_h::entering_parallel = false;

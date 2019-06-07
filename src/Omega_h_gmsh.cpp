@@ -82,7 +82,7 @@ Int gmsh_type(Omega_h_Family family, Int dim) {
           return GMSH_HEX;
       }
       return -1;
-  };
+  }
   return -1;
 }
 

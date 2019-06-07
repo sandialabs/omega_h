@@ -89,6 +89,9 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   auto& self_send_flag =
       cmdline.add_flag("--osh-self-send", "control self send threshold");
   self_send_flag.add_arg<int>("value");
+  auto& mpi_ranks_flag =
+      cmdline.add_flag("--osh-mpi-ranks-per-node", "mpi ranks per node (for CUDA+MPI)");
+  mpi_ranks_flag.add_arg<int>("value");
   if (argc && argv) {
     OMEGA_H_CHECK(cmdline.parse(world_, argc, *argv));
   }
@@ -104,7 +107,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     self_send_threshold_ = cmdline.get<int>("--osh-self-send", "value");
   }
   silent_ = cmdline.parsed("--osh-silent");
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   if (!Kokkos::is_initialized()) {
     OMEGA_H_CHECK(argc != nullptr);
     OMEGA_H_CHECK(argv != nullptr);
@@ -114,8 +117,23 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_kokkos_init = false;
   }
 #endif
+#if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
+  && (!defined(OMEGA_H_USE_KOKKOS))
+  if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
+    int rank, ndevices_per_node, my_device;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    cudaGetDeviceCount(&ndevices_per_node);
+    int mpi_ranks_per_node =
+      cmdline.get<int>("--osh-mpi-ranks-per-node", "value");
+    int local_mpi_rank = rank % mpi_ranks_per_node;
+    cudaSetDevice(local_mpi_rank);
+    cudaGetDevice(&my_device);
+    OMEGA_H_CHECK(mpi_ranks_per_node == ndevices_per_node);
+    OMEGA_H_CHECK(my_device == local_mpi_rank);
+  }
+#endif
   if (cmdline.parsed("--osh-signal")) Omega_h::protect();
-#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOSCORE))
+#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOS))
   // trigger lazy initialization of the CUDA runtime
   // and prevent it from polluting later timings
   cudaFree(nullptr);
@@ -130,7 +148,7 @@ Library::Library(Library const& other)
       ,
       we_called_mpi_init(other.we_called_mpi_init)
 #endif
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
       ,
       we_called_kokkos_init(other.we_called_kokkos_init)
 #endif
@@ -150,7 +168,7 @@ Library::~Library() {
   world_ = CommPtr();
   self_ = CommPtr();
   disable_pooling();
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
   if (we_called_kokkos_init) {
     Kokkos::finalize();
     we_called_kokkos_init = false;

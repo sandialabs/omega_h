@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <set>
 
 #include "Omega_h_align.hpp"
@@ -698,6 +699,10 @@ void write(
     }
     std::vector<char*> set_name_ptrs(surface_set.size(), nullptr);
     for (std::size_t i = 0; i < set_names.size(); ++i) {
+      if (set_names[i].empty()){
+        std::stringstream ss; ss << "surface_" << i;
+        set_names[i] = ss.str();
+      }
       set_name_ptrs[i] = const_cast<char*>(set_names[i].c_str());
     }
     if (classify_with & exodus::NODE_SETS) {

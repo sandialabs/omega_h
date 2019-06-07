@@ -14,9 +14,25 @@ namespace Omega_h {
 
 namespace amr {
 
+void remove_non_leaf_uses(Mesh* mesh) {
+  Bytes ent_persists[4];
+  auto elem_dim = mesh->dim();
+  ent_persists[elem_dim] = mesh->ask_leaves(elem_dim);
+  for (Int ent_dim = 0; ent_dim < elem_dim; ++ent_dim) {
+    ent_persists[ent_dim] = mark_down(
+        mesh, elem_dim, ent_dim, ent_persists[elem_dim]);
+  }
+  LOs new_ents2old_ents[4];
+  for (Int ent_dim = 0; ent_dim <= elem_dim; ++ent_dim) {
+    new_ents2old_ents[ent_dim] = collect_marked(ent_persists[ent_dim]);
+  }
+  unmap_mesh(mesh, new_ents2old_ents);
+}
+
 static OMEGA_H_DEVICE Byte should_elem_be_refined(LO elem, Adj elems2bridges,
     Adj bridges2elems, Bytes is_interior, Bytes is_bridge_leaf,
-    Int nbridges_per_elem, Children children, Bytes elems_are_marked) {
+    Int nbridges_per_elem, Children children, Bytes elems_are_marked,
+    Write<Byte> one_level_mark) {
   Byte mark = 0;
   for (Int b = 0; b < nbridges_per_elem; ++b) {
     auto bridge = elems2bridges.ab2b[elem * nbridges_per_elem + b];
@@ -31,6 +47,7 @@ static OMEGA_H_DEVICE Byte should_elem_be_refined(LO elem, Adj elems2bridges,
       OMEGA_H_CHECK((child_adj_elem_end - child_adj_elem_begin) == 1);
       auto child_adj_elem = bridges2elems.ab2b[child_adj_elem_begin];
       if (elems_are_marked[child_adj_elem]) mark = 1;
+      if (one_level_mark[child_adj_elem]) mark = 1;
     }
   }
   return mark;
@@ -56,7 +73,7 @@ Bytes enforce_2to1_refine(Mesh* mesh, Int bridge_dim, Bytes elems_are_marked) {
     } else {
       one_level_mark[elem] = should_elem_be_refined(elem, elems2bridges,
           bridges2elems, is_interior, is_bridge_leaf, nbridges_per_elem,
-          children, elems_are_marked);
+          children, elems_are_marked, one_level_mark);
     }
   };
   Omega_h::parallel_for(mesh->nelems(), f, "enforce_one_level");

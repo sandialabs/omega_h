@@ -404,7 +404,7 @@ static void transfer_face_flux(Mesh* old_mesh,
 			       LOs prods2new_ents) {
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
-    if (tagbase->name() == "magnetic_face_flux") {
+    if (tagbase->name() == "magnetic face flux") {
       Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
       Write<Real> new_data = deep_copy( new_mesh->get_array<Real>(FACE, tagbase->name()) );
       transer_div_free_face_flux(old_mesh, 
@@ -785,36 +785,6 @@ void transfer_swap(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
   if (opts.user_xfer) {
     opts.user_xfer->swap(*old_mesh, *new_mesh, prod_dim, keys2edges, keys2prods,
         prods2new_ents, same_ents2old_ents, same_ents2new_ents);
-  }
-  end_code();
-}
-
-void transfer_motion(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
-    Bytes verts_are_keys, LOs keys2verts, Int prod_dim) {
-  begin_code("transfer_motion");
-  transfer_copy(old_mesh, opts, new_mesh, prod_dim);
-  if (prod_dim == EDGE) {
-    auto edges_did_move = mark_up(new_mesh, VERT, EDGE, verts_are_keys);
-    auto edges_didnt_move = invert_marks(edges_did_move);
-    auto same_edges2edges = collect_marked(edges_didnt_move);
-    auto new_edges2edges = collect_marked(edges_did_move);
-    transfer_length(old_mesh, new_mesh, same_edges2edges, same_edges2edges,
-        new_edges2edges);
-  }
-  if (prod_dim == old_mesh->dim()) {
-    /* stuff from old motion */
-    auto verts2elems = old_mesh->ask_graph(VERT, old_mesh->dim());
-    auto keys2elems = unmap_graph(keys2verts, verts2elems);
-    auto moved_elems2elems = keys2elems.ab2b;
-    auto elems_did_move = mark_image(moved_elems2elems, old_mesh->nelems());
-    auto elems_didnt_move = invert_marks(elems_did_move);
-    auto same_elems2elems = collect_marked(elems_didnt_move);
-    transfer_size(old_mesh, new_mesh, same_elems2elems, same_elems2elems,
-        moved_elems2elems);
-    transfer_quality(old_mesh, new_mesh, same_elems2elems, same_elems2elems,
-        moved_elems2elems);
-    transfer_conserve_motion(old_mesh, opts, new_mesh, keys2verts, keys2elems,
-        same_elems2elems, same_elems2elems);
   }
   end_code();
 }

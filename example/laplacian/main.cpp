@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
     for (std::size_t i = 0; i < 4; ++i) {
       // return type Omega_h::Read<Omega_h::I8> to store booleans
       const auto rs_are_brs =
-          mark_class_closure(&mesh, Omega_h::VERT, Omega_h::EDGE, i + 1);
+          mark_class_closure(&mesh, Omega_h::VERT, Omega_h::EDGE, Omega_h::LO(i + 1));
       // br+1 is a boundary index between 1 and the number of boundary vertices
       const auto br2r = collect_marked(rs_are_brs);
 

@@ -7,7 +7,7 @@ Please, provide information on your compability status for each mandatory policy
 If you are not compatible, state what is lacking and what are your plans on how to achieve compliance.
 For current xSDK member packages: If you were not compliant at some point, please describe the steps you undertook to fulfill the policy. This information will be helpful for future xSDK member packages.
 
-**Website:** https://github.com/ibaned/omega_h
+**Website:** https://github.com/SNLComputation/omega_h
 
 ### Mandatory Policies
 

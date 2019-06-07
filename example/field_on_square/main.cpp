@@ -36,5 +36,5 @@ int main(int argc, char** argv) {
   // finally enforcing that u_r correspond to a scalar field "u" at VERTices
   mesh.add_tag(Omega_h::VERT, "u", 1, u_r);
   // export the results to visualize in paraview
-  Omega_h::vtk::write_vtu("field_on_square.vtu", &mesh, mesh.dim(), "field");
+  Omega_h::vtk::write_vtu("field_on_square.vtu", &mesh, mesh.dim());
 }

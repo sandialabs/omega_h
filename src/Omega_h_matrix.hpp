@@ -8,7 +8,7 @@ namespace Omega_h {
 
 /* column-first storage and indexing !!! */
 
-#ifdef OMEGA_H_USE_KOKKOSCORE
+#ifdef OMEGA_H_USE_KOKKOS
 
 template <Int m, Int n>
 class Matrix : public Few<Vector<m>, n> {
