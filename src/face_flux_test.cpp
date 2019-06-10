@@ -17,6 +17,13 @@
 using namespace Omega_h;
 
 
+void FunctionInitialCondition(
+    const MeshDimSets &facesets,
+    const MeshDimSets &elemsets,
+    const Reals       &coords,
+    const LOs         &face_node_id,
+    const LOs         &elem_face_id,
+    Write<Real>        field);
 
 
 void FunctionInitialCondition(
