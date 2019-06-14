@@ -412,7 +412,7 @@ any make_vector(ExprReader::Args& args) {
   for (; i < dim; ++i) {
     v[i] = v[Int(args.size() - 1)];
   }
-  return std::move(v);
+  return v;
 }
 
 any make_vector(LO size, Int dim, ExprReader::Args& args) {
@@ -452,7 +452,7 @@ any make_matrix(ExprReader::Args& args) {
       v(i, j) = any_cast<Real>(arg);
     }
   }
-  return std::move(v);
+  return v;
 }
 
 any make_matrix(LO size, Int dim, ExprReader::Args& args) {
@@ -494,8 +494,7 @@ any make_symm(LO size, Int dim, ExprReader::Args& args) {
   if (in.size() != size * dim * dim) {
     throw ParserFail("Argument to symm() was not sized as full tensors\n");
   }
-  auto const out = matrices_to_symms(in, dim);
-  return std::move(out);
+  return matrices_to_symms(in, dim);
 }
 
 any eval_exp(LO size, ExprReader::Args& args) {
@@ -801,7 +800,7 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_FIRST_ARG: {
       Args args;
       args.push_back(std::move(rhs.at(0)));
-      return std::move(args);
+      return args;
     }
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<Args&>(rhs.at(0));
@@ -1083,7 +1082,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_FIRST_ARG: {
       ExprEnv::Args args;
       args.push_back(std::move(rhs.at(0)));
-      return std::move(args);
+      return args;
     }
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<ExprEnv::Args&>(rhs.at(0));

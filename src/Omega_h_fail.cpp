@@ -5,16 +5,6 @@
 
 #include <Omega_h_fail.hpp>
 
-#ifdef OMEGA_H_USE_DWARF
-#define BACKWARD_HAS_DWARF 1
-#endif
-#include <backward/backward.hpp>
-namespace backward {
-cfile_streambuf::int_type cfile_streambuf::underflow() {
-  return traits_type::eof();
-}
-}  // namespace backward
-
 extern "C" void Omega_h_signal_handler(int s);
 
 namespace Omega_h {
@@ -24,13 +14,6 @@ exception::exception(std::string const& msg_in) : msg(msg_in) {}
 
 const char* exception::what() const noexcept { return msg.c_str(); }
 #endif
-
-static void print_stacktrace(std::ostream& out, int max_frames) {
-  ::backward::StackTrace st;
-  st.load_here(std::size_t(max_frames));
-  ::backward::Printer p;
-  p.print(st, out);
-}
 
 #if defined(__clang__) && !defined(__APPLE__)
 #pragma clang diagnostic push
@@ -84,9 +67,6 @@ extern "C" void Omega_h_signal_handler(int s) {
       ss << "Omega_h caught signal: " << Omega_h::known_signals[i].name << "\n";
     }
   }
-  Omega_h::print_stacktrace(ss, 64);
-  auto str = ss.str();
-  std::cerr << str;
 #if defined(__clang__) && !defined(__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wzero-as-null-pointer-constant"

@@ -35,6 +35,7 @@ set(Omega_h_SOURCES
   Omega_h_eigen.cpp
   Omega_h_expr.cpp
   Omega_h_fail.cpp
+  Omega_h_fence.cpp
   Omega_h_file.cpp
   Omega_h_filesystem.cpp
   Omega_h_finite_automaton.cpp
@@ -397,6 +398,7 @@ set(Omega_h_HEADERS
   Omega_h_element.hpp
   Omega_h_expr.hpp
   Omega_h_fail.hpp
+  Omega_h_fence.hpp
   Omega_h_few.hpp
   Omega_h_file.hpp
   Omega_h_filesystem.hpp
