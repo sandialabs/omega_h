@@ -446,6 +446,7 @@ template <typename T>
 Read<T> coalesce(std::vector<Read<T>> arrays) {
   if (arrays.empty()) return Read<T>();
   std::vector<LO> offsets(arrays.size() + 1);
+  OMEGA_H_CHECK(offsets.data() != nullptr);
   offsets[0] = 0;
   for (std::size_t i = 1; i <= arrays.size(); ++i) {
     offsets[i] = offsets[i - 1] + arrays[i].size();
