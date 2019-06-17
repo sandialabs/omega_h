@@ -715,7 +715,7 @@ class InputYamlReader : public Reader {
     InputMap map = any_cast<InputMap&&>(std::move(items));
     NameValue& pair = any_cast<NameValue&>(next_item);
     map.add(pair.name, std::move(pair.value));
-    return map;
+    return any(std::move(map));
   }
   any map_item(any& key_any, any& value_any) {
     NameValue result;
@@ -762,7 +762,7 @@ class InputYamlReader : public Reader {
       throw ParserFail(
           "bug in InputYamlReader: unexpected type for sequence item");
     }
-    return list;
+    return any(std::move(list));
   }
   /* block scalars are a super complicated mess, this function handles that mess
    */
