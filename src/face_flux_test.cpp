@@ -16,7 +16,6 @@
 
 using namespace Omega_h;
 
-
 void FunctionInitialCondition(
     const MeshDimSets &facesets,
     const MeshDimSets &elemsets,
@@ -85,9 +84,9 @@ void FunctionInitialCondition(
     parallel_for(nset_faces, prepare);
     const std::vector<std::string> S={"x","y","z"};
     ExprReader reader(N*nset_faces, D);
-    reader.register_variable(S[0], any(Reals(Cx)));
-    reader.register_variable(S[1], any(Reals(Cy)));
-    reader.register_variable(S[2], any(Reals(Cz)));
+    reader.register_variable(S[0], Omega_h::any(Reals(Cx)));
+    reader.register_variable(S[1], Omega_h::any(Reals(Cy)));
+    reader.register_variable(S[2], Omega_h::any(Reals(Cz)));
     auto result = reader.read_string(expr_string, name);
     reader.repeat(result);
     Reals field_osh = any_cast<Reals>(result);
@@ -160,9 +159,9 @@ void FunctionInitialCondition(
     parallel_for(nset_faces, prepare);
     const std::vector<std::string> S={"x","y","z"};
     ExprReader reader(N*nset_faces, D);
-    reader.register_variable(S[0], any(Reals(Cx)));
-    reader.register_variable(S[1], any(Reals(Cy)));
-    reader.register_variable(S[2], any(Reals(Cz)));
+    reader.register_variable(S[0], Omega_h::any(Reals(Cx)));
+    reader.register_variable(S[1], Omega_h::any(Reals(Cy)));
+    reader.register_variable(S[2], Omega_h::any(Reals(Cz)));
     auto result = reader.read_string(expr_string, name);
     reader.repeat(result);
     Reals field_osh = any_cast<Reals>(result);
@@ -223,7 +222,10 @@ int main(int argc, char** argv) {
   {
     auto f = OMEGA_H_LAMBDA(LO v) {
       Vector<3> x = get_vector<3>(coords, v);
-      Vector<3> y = {{2*x[0], 5*x[1], x[2]}};
+      Vector<3> y;
+      y[0] = 2*x[0];
+      y[1] = 5*x[1];
+      y[2] = x[2];
       for (int i=0; i<3; ++i) flux_w[v] = y[0];
     };
     parallel_for(mesh.nfaces(), f);
@@ -249,14 +251,17 @@ int main(int argc, char** argv) {
   {
     auto f = OMEGA_H_LAMBDA(LO v) {
       Real x = flux_r[v];
-      Vector<3> y = {{2*x, 5*x, x}};
+      Vector<3> y;
+      y[0] = 2*x;
+      y[1] = 5*x;
+      y[2] = x;
       if (x != y[0]) OK[0] += 1;
       if (x != y[1]) OK[0] += 1;
       if (x != y[2]) OK[0] += 1;
     };
     parallel_for(mesh.nfaces(), f);
   }
-  const bool ok = 0.==Reals(OK)[0];
+  const bool ok = 0.==Reals(OK).get(0);
 
   mesh.ask_qualities();
   if (ok) return 2;
