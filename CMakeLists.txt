@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.27.0 LANGUAGES CXX)
+project(Omega_h VERSION 9.27.2 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -53,18 +53,6 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
 
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
-
-bob_option(Omega_h_USE_dwarf "Use libdwarf for better stack traces" OFF)
-if (Omega_h_USE_dwarf)
-	find_path(LIBDWARF_INCLUDE_DIR NAMES "libdwarf.h" PATH_SUFFIXES libdwarf)
-	find_path(LIBELF_INCLUDE_DIR NAMES "libelf.h")
-	find_path(LIBDL_INCLUDE_DIR NAMES "dlfcn.h")
-	find_library(LIBDWARF_LIBRARY dwarf)
-	find_library(LIBELF_LIBRARY elf)
-	find_library(LIBDL_LIBRARY dl)
-	set(LIBDWARF_INCLUDE_DIRS ${LIBDWARF_INCLUDE_DIR} ${LIBELF_INCLUDE_DIR} ${LIBDL_INCLUDE_DIR})
-	set(LIBDWARF_LIBRARIES ${LIBDWARF_LIBRARY} ${LIBELF_LIBRARY} ${LIBDL_LIBRARY})
-endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/detect_kokkos_opts.cmake)
 detect_kokkos_opts()

@@ -42,7 +42,7 @@
 #define OMEGA_H_INLINE __attribute__((always_inline)) inline
 #define OMEGA_H_INLINE_BIG inline
 #define OMEGA_H_DEVICE __attribute__((always_inline)) inline
-#define OMEGA_H_LAMBDA(...) [=](__VA_ARGS__) __attribute__((always_inline, flatten))
+#define OMEGA_H_LAMBDA [=]
 #define OMEGA_H_CONSTANT_DATA
 #endif
 
