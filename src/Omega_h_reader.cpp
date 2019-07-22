@@ -356,7 +356,7 @@ any DebugReader::at_shift(int token, std::string& text) {
   }
   os << "SHIFT (" << at(grammar->symbol_names, token) << ")[" << text_escaped
      << "]\n";
-  return text_escaped;
+  return any(std::move(text_escaped));
 }
 
 any DebugReader::at_reduce(int prod_i, std::vector<any>& rhs) {
@@ -371,7 +371,7 @@ any DebugReader::at_reduce(int prod_i, std::vector<any>& rhs) {
   }
   auto& lhs_name = at(grammar->symbol_names, prod.lhs);
   os << " -> (" << lhs_name << ")[" << lhs_text << "]\n";
-  return lhs_text;
+  return any(std::move(lhs_text));
 }
 
 }  // end namespace Omega_h

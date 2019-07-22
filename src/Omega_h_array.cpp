@@ -252,6 +252,9 @@ HostWrite<T>::HostWrite(Write<T> write_in)
   Kokkos::deep_copy(mirror_, write_.view());
 #elif defined(OMEGA_H_USE_CUDA)
   mirror_.reset(new T[std::size_t(write_.size())]);
+  auto const err = cudaMemcpy(mirror_.get(), write_.data(),
+      std::size_t(write_.size()) * sizeof(T), cudaMemcpyDeviceToHost);
+  OMEGA_H_CHECK(err == cudaSuccess);
 #endif
 }
 

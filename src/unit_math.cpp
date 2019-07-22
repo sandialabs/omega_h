@@ -442,7 +442,7 @@ static void test_svd() {
   test_svd_properties(F_from_coords<2>({{0.0, 0.0}, {1.0, 0.0}, {0.0, 0.5}}));
   test_svd_properties(F_from_coords<2>(
       {{0.0, 0.0}, {std::cos(1.0), std::sin(1.0)}, {0.0, 1.0}}));
-  test_svd_properties(F_from_coords<2>({{0.0, 0.0, 0.0},
+  test_svd_properties(F_from_coords<3>({{0.0, 0.0, 0.0},
       {std::cos(1.0), std::sin(1.0), 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}}));
   test_svd_properties(F_from_coords<2>(
       {{0.0, 0.0}, {std::cos(2.0), std::sin(2.0)}, {-1.0, 0.0}}));

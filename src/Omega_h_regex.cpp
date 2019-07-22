@@ -229,7 +229,7 @@ any regex::Reader::at_reduce(int production, std::vector<any>& rhs) {
            c <= move_value<char>(at(rhs, 2)); ++c) {
         set.insert(c);
       }
-      return set;
+      return any(std::move(set));
     }
   }
   std::cerr << "BUG: unexpected production " << production << '\n';
