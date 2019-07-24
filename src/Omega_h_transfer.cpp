@@ -657,12 +657,11 @@ void transfer_coarsen(Mesh* old_mesh, TransferOpts const& opts, Mesh* new_mesh,
     transfer_densities_and_conserve_coarsen(old_mesh, opts, new_mesh,
         keys2verts, keys2doms, prods2new_ents, same_ents2old_ents,
         same_ents2new_ents);
-    LOs keys2prods;
     transfer_face_flux(old_mesh, 
 		       new_mesh,
 		       VERT,
 		       keys2verts,
-		       keys2prods,
+		       keys2doms.a2ab, 
 		       prods2new_ents);
   }
   if (opts.user_xfer) {

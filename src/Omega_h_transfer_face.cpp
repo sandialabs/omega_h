@@ -183,7 +183,9 @@ elementPhysicalFacePolynomial( /*input*/
 	LO meshElement =  targetElements_to_MeshElements[elem];
 	for (int face = 0; face<facesPerElement; ++face) {
 	  auto const code = targetMeshElements_to_faces.codes[meshElement*facesPerElement + face];
-	  targetElementFaceOrientations[elem][face] = Omega_h::code_is_flipped(code);
+          const bool flipped = Omega_h::code_is_flipped(code);
+          const int sign = flipped ? -1 : +1;
+	  targetElementFaceOrientations[elem][face] = sign;
 	}
       }
 
@@ -192,7 +194,9 @@ elementPhysicalFacePolynomial( /*input*/
 	LO meshElement =  sourceElements_to_MeshElements[elem];
 	for (int face = 0; face<facesPerElement; ++face) {
 	  auto const code = sourceMeshElements_to_faces.codes[meshElement*facesPerElement + face];
-	  sourceElementFaceOrientations[elem][face] = Omega_h::code_is_flipped(code);
+          const bool flipped = Omega_h::code_is_flipped(code);
+          const int sign = flipped ? -1 : +1;
+	  sourceElementFaceOrientations[elem][face] = sign;
 	}
       }
       

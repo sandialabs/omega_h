@@ -8,6 +8,7 @@
 #include <Omega_h_reduce.hpp>
 #include <Omega_h_assoc.hpp>
 #include <Omega_h_expr.hpp>
+#include <Omega_h_align.hpp>
 
 #include <cmath>
 #include <vector>
@@ -110,7 +111,6 @@ void FunctionInitialCondition(
       for (int i = 0; i < N; ++i)
         for (int j = 0; j < D; ++j)
           flux += Fl[i][j]*v[i][j];
-
       fld[face] = flux;
     };
     parallel_for(nset_faces, save);
@@ -194,6 +194,102 @@ void FunctionInitialCondition(
   }
 }
 
+OMEGA_H_INLINE
+Few<Vector<3>,4>
+comp_reference_nodal_gradients(const double *const /*xi*/)
+{
+  typedef Vector<3> Vector;
+  typedef Few<Vector,4> Bucket;
+  Bucket returnMe;
+  {
+    Vector &GRAD = returnMe[0];
+    GRAD(0) = -1.;
+    GRAD(1) = -1.;
+    GRAD(2) = -1.;
+  }
+  {
+    Vector &GRAD = returnMe[1];
+    GRAD(0) = +1.;
+    GRAD(1) = +0.;
+    GRAD(2) = +0.;
+  }
+  {
+    Vector &GRAD = returnMe[2];
+    GRAD(0) = +0.;
+    GRAD(1) = +1.;
+    GRAD(2) = +0.;
+  }
+  {
+    Vector &GRAD = returnMe[3];
+    GRAD(0) = +0.;
+    GRAD(1) = +0.;
+    GRAD(2) = +1.;
+  }
+  return returnMe;
+}
+
+OMEGA_H_INLINE
+Few<Vector<3>,4>
+comp_face_basis( const double *const x,
+                 const double *const y,
+                 const double *const z,
+                 const double *const xi )
+{
+  typedef Vector<3> Vector;
+  typedef Matrix<3,3> Tensor;
+  typedef Few<Vector,4> Bucket;
+
+  const Bucket gradN = comp_reference_nodal_gradients(xi);
+  Tensor JinvF = zero_matrix<3,3>();
+  for (int A=0; A<4; ++A) {
+    Vector xA;
+    xA(0) = x[A];
+    xA(1) = y[A];
+    xA(2) = z[A];
+    Vector gradA = gradN[A];
+    const Tensor addMe = outer_product(xA,gradA);
+    JinvF += addMe;
+  }
+  const double J = determinant(JinvF);
+  JinvF /= J;
+
+  Bucket returnMe;
+  {
+    //Omega_h face 0 = intrepid face +3
+    Vector &fillMe = returnMe[0];
+    fillMe(0) = 2.0*xi[0];
+    fillMe(1) = 2.0*xi[1];
+    fillMe(2) = 2.0*(xi[2] - 1.0);
+    fillMe = JinvF*fillMe;
+  }
+  {
+    //Omega_h face 1 = intrepid face +0
+    Vector &fillMe = returnMe[1];
+    fillMe(0) = 2.0*xi[0];
+    fillMe(1) = 2.0*(xi[1] - 1.0);
+    fillMe(2) = 2.0*xi[2];
+    fillMe = JinvF*fillMe;
+  }
+  {
+    //Omega_h face 2 = intrepid face +1
+    Vector &fillMe = returnMe[2];
+    fillMe(0) = 2.0*xi[0];
+    fillMe(1) = 2.0*xi[1];
+    fillMe(2) = 2.0*xi[2];
+    fillMe = JinvF*fillMe;
+  }
+  {
+    //Omega_h face 3 = intrepid face +2
+    Vector &fillMe = returnMe[3];
+    fillMe(0) = 2.0*(xi[0] - 1.0);
+    fillMe(1) = 2.0*xi[1];
+    fillMe(2) = 2.0*xi[2];
+    fillMe = JinvF*fillMe;
+  }
+
+  return returnMe;
+}
+
 int main(int argc, char** argv) {
   Library lib(&argc, &argv);
   CommPtr world = lib.world();
@@ -211,6 +307,8 @@ int main(int argc, char** argv) {
   const MeshDimSets elemsets = mesh_sets[ELEM_SET];
   LOs face_node_id = mesh.get_adj(FACE, VERT).ab2b;
   LOs elem_face_id = mesh.get_adj(REGION, FACE).ab2b;
+  LOs elem_node_id = mesh.get_adj(REGION, VERT).ab2b;
+  auto const ElemFace = mesh.ask_down(3,2);
 
   FunctionInitialCondition(
     facesets,
@@ -243,21 +341,46 @@ int main(int argc, char** argv) {
   while (refine_by_size(&mesh, opts))
     ;
 
-  Read<Real> flux_r=mesh.get_array<Real>(FACE, name); 
 
   Write<Real> OK(1.,0);
-  {
-    auto f = OMEGA_H_LAMBDA(LO v) {
-      Real x = flux_r[v];
-      Vector<3> y = {{2*x, 5*x, x}};
-      if (x != y[0]) OK[0] += 1;
-      if (x != y[1]) OK[0] += 1;
-      if (x != y[2]) OK[0] += 1;
+  const std::vector<std::string> element_blocks={"body"};
+  for (const std::string &blockname : element_blocks) {
+    constexpr int N = 4;
+    constexpr int F = 4;
+    constexpr int D = 3;
+    auto esIter = elemsets.find(blockname);
+    if(esIter == elemsets.end())
+       fail("Element block doesn't exist!");
+    const int   nset_elems = esIter->second.size();
+    const Reals cord = coords;
+    const LOs   nids  = elem_node_id;
+    const LOs   fids  = elem_face_id;
+    Read<Real> flux_r=mesh.get_array<Real>(FACE, name); 
+    auto check = OMEGA_H_LAMBDA(int elem) {
+      int nodes[N];
+      int faces[F];
+      for (int i = 0; i < N; ++i) nodes[i] = nids[N*elem+i];
+      for (int i = 0; i < N; ++i) faces[i] = fids[N*elem+i];
+      double X[D][N];
+      for (int i = 0; i < N; ++i)
+        for (int j = 0; j < D; ++j)
+           X[j][i] = cord[D*nodes[i]+j];
+      constexpr double xi[] = {1./3.,1./3.,1./3.};
+      const Few<Vector<3>,4> faceBasis =
+        comp_face_basis(X[0],X[1],X[2],xi);
+      Vector<3> B = zero_vector<3>();
+      for (int f=0; f<F; ++f) {
+        const I8 code = ElemFace.codes[elem*F+f];
+        const int sign = code_is_flipped(code) ? -1 : +1;
+        B += sign * flux_r[faces[f]] * faceBasis[f];
+      }
+      const Vector<3> y = {{1, 2, 5}};
+      for (int i = 0; i < D; ++i)
+        if (B[i] != y[i]) OK[0] += 1;
     };
-    parallel_for(mesh.nfaces(), f);
+    parallel_for(nset_elems, check);
   }
   const bool ok = 0.==Reals(OK)[0];
-
   mesh.ask_qualities();
   if (ok) return 2;
   return 0;
