@@ -293,7 +293,7 @@ comp_face_basis( const double *const x,
 int main(int argc, char** argv) {
   Library lib(&argc, &argv);
   CommPtr world = lib.world();
-  Mesh mesh = build_box(world, OMEGA_H_SIMPLEX, 1., 2., 3., 2, 2, 2);
+  Mesh mesh = build_box(world, OMEGA_H_SIMPLEX, 2., 2., 2., 1, 1, 1);
   AdaptOpts opts(&mesh);
   mesh.add_tag<Real>(VERT, "metric", 1);
 
@@ -317,15 +317,6 @@ int main(int argc, char** argv) {
     face_node_id,
     elem_face_id,
     flux_w);
-
-  {
-    auto f = OMEGA_H_LAMBDA(LO v) {
-      Vector<3> x = get_vector<3>(coords, v);
-      Vector<3> y = {{2*x[0], 5*x[1], x[2]}};
-      for (int i=0; i<3; ++i) flux_w[v] = y[0];
-    };
-    parallel_for(mesh.nfaces(), f);
-  }
 
   const std::string name = "magnetic face flux";
   Reals flux(flux_w);
@@ -381,7 +372,6 @@ int main(int argc, char** argv) {
     parallel_for(nset_elems, check);
   }
   const bool ok = 0.==Reals(OK)[0];
-  mesh.ask_qualities();
   if (ok) return 2;
   return 0;
 }
