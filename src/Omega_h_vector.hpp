@@ -6,7 +6,7 @@
 
 namespace Omega_h {
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 
 template <Int n>
 class Vector : public Few<Real, n> {

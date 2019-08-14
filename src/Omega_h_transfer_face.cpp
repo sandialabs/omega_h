@@ -234,8 +234,8 @@ elementPhysicalFacePolynomial( /*input*/
       for (int elem = 0; elem < nQsize; ++elem) {
         q(elem) = 0;
         for (int face = 0; face < facesPerElement; ++face) {
-          const Int sign = targetElementFaceOrientations[elem][face];
-          const size_t iface = targetElementFace_to_targetFace[elem][face];
+          const auto sign = targetElementFaceOrientations[elem][face];
+          const auto iface = targetElementFace_to_targetFace[elem][face];
           Q(elem,iface) = sign;
         }
       }
@@ -306,8 +306,8 @@ elementPhysicalFacePolynomial( /*input*/
             for (int i=0; i<Polynomial::nterms; ++i) {
               integral += moments[i]*src_poly[i];
             }
-            const size_t i = targetElementFace_to_targetFace[elem][iface];
-            const size_t j = targetElementFace_to_targetFace[elem][jface];
+            const auto i = targetElementFace_to_targetFace[elem][iface];
+            const auto j = targetElementFace_to_targetFace[elem][jface];
             M(i,j) += integral;
           }
         }
@@ -402,7 +402,7 @@ elementPhysicalFacePolynomial( /*input*/
               integral += moments[i]*src_poly[i];
             }
 
-            const size_t i = targetElementFace_to_targetFace[elem_trg][iface];
+            const auto i = targetElementFace_to_targetFace[elem_trg][iface];
             f(i) += integral;
           }
         }
@@ -451,7 +451,7 @@ elementPhysicalFacePolynomial( /*input*/
 
       for (int elem_trg = 0; elem_trg < nelem_trg; ++elem_trg) {
         for (int face_trg = 0; face_trg < facesPerElement; ++face_trg) {
-          const size_t faceID_trg = targetElementFace_to_targetFace[elem_trg][face_trg];
+          const auto faceID_trg = targetElementFace_to_targetFace[elem_trg][face_trg];
 	  LO meshFace = targetElementFace_to_MeshFace[elem_trg][face_trg];
           targetFluxes[meshFace] = X(faceID_trg);
         }

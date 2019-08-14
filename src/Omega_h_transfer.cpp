@@ -383,7 +383,7 @@ static void transfer_same_face_flux(Mesh* old_mesh,
 				    LOs same_ents2new_ents ) {
   for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
     TagBase const* tagbase = old_mesh->get_tag(FACE, i);
-    if (tagbase->name() == "magnetic face flux") {
+    if (tagbase->name() == "magnetic_face_flux") {
       Write<Real> new_data( new_mesh->nents(FACE) );
       transfer_common2(old_mesh, 
 		       new_mesh, 
@@ -405,7 +405,7 @@ static void transfer_face_flux(Mesh* old_mesh,
   if (FACE <= old_mesh->dim()) {
     for (Int i = 0; i < old_mesh->ntags(FACE); ++i) {
       TagBase const* tagbase = old_mesh->get_tag(FACE, i);
-      if (tagbase->name() == "magnetic face flux") {
+      if (tagbase->name() == "magnetic_face_flux") {
         Read<Real> old_data = old_mesh->get_array<Real>(FACE, tagbase->name());
         Write<Real> new_data = deep_copy( new_mesh->get_array<Real>(FACE, tagbase->name()) );
         transer_div_free_face_flux(old_mesh, 

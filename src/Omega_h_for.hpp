@@ -7,7 +7,7 @@
 #include <Omega_h_int_iterator.hpp>
 #include <Omega_h_shared_alloc.hpp>
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
 #endif
 
@@ -59,7 +59,7 @@ void parallel_for(LO n, UnaryFunction&& f) {
 
 template <typename T>
 void parallel_for(LO n, T const& f, char const* name = "") {
-#if defined(OMEGA_H_USE_KOKKOS)
+#if defined(OMEGA_H_USE_KOKKOSCORE)
   if (n > 0) Kokkos::parallel_for(name, policy(n), f);
 #else
   (void)name;
@@ -70,7 +70,7 @@ void parallel_for(LO n, T const& f, char const* name = "") {
 
 template <typename T>
 void parallel_for(char const* name, LO n, T&& f) {
-#if defined(OMEGA_H_USE_KOKKOS)
+#if defined(OMEGA_H_USE_KOKKOSCORE)
   if (n > 0) Kokkos::parallel_for(name, policy(n), f);
 #else
   (void)name;

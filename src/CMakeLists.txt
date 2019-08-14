@@ -118,7 +118,7 @@ set(Omega_h_SOURCES
   )
 
 if (Omega_h_USE_CUDA)
-  if (NOT Omega_h_USE_Kokkos)
+  if (NOT Omega_h_USE_KokkosCore)
     set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_for.cpp)
   endif()
 else()
@@ -158,6 +158,12 @@ if(Omega_h_USE_SEACASExodus)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_exodus.cpp)
 endif()
 
+if(Omega_h_USE_Teuchos)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES}
+      Omega_h_teuchos.cpp
+      )
+endif()
+
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
@@ -169,7 +175,7 @@ bob_library_includes(omega_h)
 get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
 target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
 
-bob_link_dependency(omega_h PUBLIC Kokkos)
+bob_link_dependency(omega_h PUBLIC KokkosCore)
 
 bob_link_dependency(omega_h PUBLIC libMeshb)
 
@@ -179,6 +185,9 @@ if(Omega_h_USE_EGADS)
 endif()
 
 bob_link_dependency(omega_h PUBLIC SEACASExodus)
+bob_link_dependency(omega_h PUBLIC TeuchosParameterList)
+bob_link_dependency(omega_h PUBLIC TeuchosComm)
+bob_link_dependency(omega_h PUBLIC TeuchosParser)
 
 bob_link_dependency(omega_h PUBLIC ZLIB)
 
@@ -232,6 +241,9 @@ if(Omega_h_USE_SEACASExodus)
   osh_add_util(osh2exo)
 endif()
 osh_add_util(osh_adapt)
+if(Omega_h_USE_Teuchos)
+  osh_add_util(osh_copy_params)
+endif()
 osh_add_util(osh_filesystem)
 
 if(BUILD_TESTING)
@@ -475,6 +487,13 @@ endif()
 
 if(Omega_h_USE_DOLFIN)
   set(Omega_h_HEADERS ${Omega_h_HEADERS} Omega_h_dolfin.hpp)
+endif()
+
+if(Omega_h_USE_Teuchos)
+  set(Omega_h_HEADERS ${Omega_h_HEADERS}
+      Omega_h_teuchos.hpp
+      Omega_h_teuchos_includes.hpp
+     )
 endif()
 
 install(FILES ${Omega_h_HEADERS} DESTINATION include)

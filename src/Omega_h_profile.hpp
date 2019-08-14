@@ -4,7 +4,7 @@
 #include <Omega_h_timer.hpp>
 #include <cstring>
 #include <vector>
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
 #endif
 
@@ -166,7 +166,7 @@ void print_top_down_and_bottom_up(History const& h);
 namespace Omega_h {
 
 inline void begin_code(char const* name) {
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::Profiling::pushRegion(name);
 #endif
   if (profile::global_singleton_history) {
@@ -175,7 +175,7 @@ inline void begin_code(char const* name) {
 }
 
 inline void end_code() {
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
   Kokkos::Profiling::popRegion();
 #endif
   if (profile::global_singleton_history) {

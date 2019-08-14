@@ -50,7 +50,7 @@ class Library {
 #ifdef OMEGA_H_USE_MPI
   bool we_called_mpi_init;
 #endif
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
   bool we_called_kokkos_init;
 #endif
   std::map<std::string, double> timers;

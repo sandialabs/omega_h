@@ -531,13 +531,13 @@ class InputYamlReader : public Reader {
         else if (prod == yaml::PROD_SCALAR_HEAD_DOT_DOT)
           result += "..";
         result += second;
-        return result;
+        return any(std::move(result));
       }
       case yaml::PROD_SCALAR_DQUOTED:
       case yaml::PROD_SCALAR_SQUOTED: {
         auto text = any_cast<std::string&&>(std::move(rhs.at(1)));
         text += any_cast<std::string&>(rhs.at(2));
-        return text;
+        return any(std::move(text));
       }
       case yaml::PROD_MAP_SCALAR_ESCAPED_EMPTY: {
         return std::string();
@@ -546,7 +546,7 @@ class InputYamlReader : public Reader {
         auto str = any_cast<std::string&&>(std::move(rhs.at(0)));
         str += ',';
         str += any_cast<std::string&>(rhs.at(2));
-        return str;
+        return any(std::move(str));
       }
       case yaml::PROD_TAG: {
         return std::move(rhs.at(2));
@@ -561,7 +561,7 @@ class InputYamlReader : public Reader {
         std::string ignored_comment;
         handle_block_scalar(parent_indent_level, header,
             leading_empties_or_comments, rest, content, ignored_comment);
-        return content;
+        return any(std::move(content));
       }
       case yaml::PROD_BSCALAR_FIRST: {
         return std::move(rhs.at(0));
@@ -573,7 +573,7 @@ class InputYamlReader : public Reader {
       case yaml::PROD_SESCAPE_NEXT: {
         auto str = any_cast<std::string&&>(std::move(rhs.at(0)));
         str += any_cast<std::string&>(rhs.at(1));
-        return str;
+        return any(std::move(str));
       }
       case yaml::PROD_BSCALAR_INDENT: {
         return std::move(rhs.at(1));
@@ -588,27 +588,27 @@ class InputYamlReader : public Reader {
         }
         auto& rest = any_cast<std::string&>(rhs.at(1));
         result += rest;
-        return result;
+        return any(std::move(result));
       }
       case yaml::PROD_DESCAPE: {
         std::string str;
         auto& rest = any_cast<std::string&>(rhs.at(2));
         str += any_cast<char>(rhs.at(1));
         str += rest;
-        return str;
+        return any(std::move(str));
       }
       case yaml::PROD_SESCAPE: {
         std::string str;
         auto& rest = any_cast<std::string&>(rhs.at(2));
         str += '\'';
         str += rest;
-        return str;
+        return any(std::move(str));
       }
       case yaml::PROD_OTHER_FIRST:
       case yaml::PROD_SPACE_PLUS_FIRST: {
         std::string str;
         str.push_back(any_cast<char>(rhs.at(0)));
-        return str;
+        return any(std::move(str));
       }
       case yaml::PROD_SCALAR_TAIL_SPACE:
       case yaml::PROD_SCALAR_TAIL_OTHER:
@@ -636,7 +636,7 @@ class InputYamlReader : public Reader {
         }
         auto str = any_cast<std::string&&>(std::move(rhs.at(0)));
         str += any_cast<char>(rhs.at(1));
-        return str;
+        return any(std::move(str));
       }
       case yaml::PROD_DQUOTED_EMPTY:
       case yaml::PROD_SQUOTED_EMPTY:
@@ -737,7 +737,7 @@ class InputYamlReader : public Reader {
       msg += "\"\n";
       throw ParserFail(msg);
     }
-    return result;
+    return any(std::move(result));
   }
   any seq_first_item(any& first_any) {
     InputList list;

@@ -10,7 +10,7 @@
 #include <Omega_h_defines.hpp>
 #include <Omega_h_profile.hpp>
 
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
 #include <Omega_h_kokkos.hpp>
 #endif
 
@@ -33,7 +33,7 @@ namespace Omega_h {
 
 template <typename T>
 void parallel_scan(LO n, T f, char const* name = "") {
-#ifdef OMEGA_H_USE_KOKKOS
+#ifdef OMEGA_H_USE_KOKKOSCORE
   if (n > 0) Kokkos::parallel_scan(name, policy(n), f);
 #else
   using VT = typename T::value_type;
