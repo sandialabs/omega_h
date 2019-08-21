@@ -224,6 +224,7 @@ if(Omega_h_USE_SEACASExodus)
 endif()
 osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
+osh_add_util(ascii_vtk2osh)
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
