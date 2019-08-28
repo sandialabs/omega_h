@@ -1,4 +1,5 @@
 #include <fstream>
+#include <iostream>
 #include "Omega_h_build.hpp"
 #include "Omega_h_cmdline.hpp"
 #include "Omega_h_class.hpp"
@@ -25,8 +26,8 @@ static void check_line(std::istream& stream, std::string want) {
 }
 
 static void check_header(std::istream& stream) {
-  check_line(stream, "# vtk DataFile Version 2.0");
-  check_line(stream, "Unstructured Grid");
+  check_line(stream, "# vtk DataFile Version 4.2");
+  check_line(stream, "3D Slicer output. SPACE=RAS");
   check_line(stream, "ASCII");
   check_line(stream, "DATASET UNSTRUCTURED_GRID");
 }
@@ -157,14 +158,19 @@ static void build(Omega_h::Mesh* mesh, std::string vtk_path) {
   auto ev2v = get_ev2v(file);
   eat_elem_types(file);
   auto mat = get_elem_mat_ids(file);
-  OMEGA_H_CHECK(file.eof());
+  //OMEGA_H_CHECK(file.eof());
   build_mesh(mesh, coords, ev2v);
   classify(mesh, mat);
   Omega_h::reorder_by_hilbert(mesh);
 }
 
 int main(int argc, char** argv) {
-  OMEGA_H_CHECK(argc == 3);
+
+  if(argc != 3) {
+      std::cout << "Usage: " << argv[0] << " input_filename.vtk output_filename.osh" << std::endl;
+      return -1;
+   }
+
   auto lib = Omega_h::Library(&argc, &argv);
   auto comm = lib.world();
   auto cmdline = Omega_h::CmdLine();
@@ -177,3 +183,4 @@ int main(int argc, char** argv) {
   build(&mesh, vtk_path);
   Omega_h::binary::write(osh_path, &mesh);
 }
+
