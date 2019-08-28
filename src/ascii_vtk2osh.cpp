@@ -22,12 +22,13 @@ static void check_line(std::istream& stream, std::string want) {
     Omega_h_fail("wanted line: \"%s\" but got: \"%s\"\n",
         line.c_str(), want.c_str());
   }
-  OMEGA_H_CHECK(line == want);
 }
 
 static void check_header(std::istream& stream) {
-  check_line(stream, "# vtk DataFile Version 4.2");
-  check_line(stream, "3D Slicer output. SPACE=RAS");
+//check_line(stream, "# vtk DataFile Version 4.2");
+  get_line(stream);
+//check_line(stream, "3D Slicer output. SPACE=RAS");
+  get_line(stream);
   check_line(stream, "ASCII");
   check_line(stream, "DATASET UNSTRUCTURED_GRID");
 }
