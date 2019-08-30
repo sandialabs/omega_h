@@ -931,13 +931,13 @@ void update_class_sets(ClassSets* p_sets, InputMap& pl) {
   ClassSets& sets = *p_sets;
   for (auto& set_name : pl) {
     auto& pairs = pl.get_list(set_name);
-    if (pairs.size() != 2) {
-      Omega_h_fail(
-          "Expected \"%s\" to be an array of int pairs\n", set_name.c_str());
-    }
     auto npairs = pairs.size();
     for (decltype(npairs) i = 0; i < npairs; ++i) {
       auto& pair = pairs.get_list(i);
+      if (pair.size() != 2) {
+        Omega_h_fail(
+            "Expected \"%s\" to be an array of int pairs\n", set_name.c_str());
+      }
       auto class_dim = Int(pair.get<int>(0));
       auto class_id = LO(pair.get<int>(1));
       sets[set_name].push_back({class_dim, class_id});
