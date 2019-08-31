@@ -358,7 +358,7 @@ class InputYamlReader : public Reader {
   any at_shift(int token, std::string& text) override final {
     switch (token) {
       case yaml::TOK_NEWLINE: {
-        return std::move(text);
+        return any(std::move(text));
       }
       case yaml::TOK_SPACE:
       case yaml::TOK_OTHER: {
@@ -377,10 +377,10 @@ class InputYamlReader : public Reader {
         OMEGA_H_CHECK(result_any.type() == typeid(InputMap));
         auto& map = any_cast<InputMap&>(result_any);
         map.used = true;
-        return std::move(result_any);
+        return any(std::move(result_any));
       }
       case yaml::PROD_TOP_BMAP: {
-        return std::move(rhs.at(0));
+        return any(std::move(rhs.at(0)));
       }
       case yaml::PROD_TOP_FIRST: {
         if (rhs.at(0).type() == typeid(NameValue)) {
@@ -396,7 +396,7 @@ class InputYamlReader : public Reader {
             return map_first_item(rhs.at(0));
           }
         } else {
-          return std::move(rhs.at(0));
+          return any(std::move(rhs.at(0)));
         }
       }
       case yaml::PROD_BMAP_FIRST:
@@ -432,10 +432,10 @@ class InputYamlReader : public Reader {
         return InputMap();
       }
       case yaml::PROD_BVALUE_BMAP: {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       }
       case yaml::PROD_BVALUE_BSEQ: {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       }
       case yaml::PROD_BMAP_FMAP: {
         return map_item(rhs.at(0), rhs.at(4));
@@ -450,33 +450,33 @@ class InputYamlReader : public Reader {
         return seq_next_item(rhs.at(0), rhs.at(1));
       }
       case yaml::PROD_BSEQ_SCALAR: {
-        return std::move(rhs.at(3));
+        return any(std::move(rhs.at(3)));
       }
       case yaml::PROD_BSEQ_BSCALAR: {
-        return std::move(rhs.at(2));
+        return any(std::move(rhs.at(2)));
       }
       case yaml::PROD_BSEQ_BMAP:
       case yaml::PROD_BSEQ_FMAP: {
-        return std::move(rhs.at(3));
+        return any(std::move(rhs.at(3)));
       }
       case yaml::PROD_BSEQ_BMAP_TRAIL: {
-        return std::move(rhs.at(4));
+        return any(std::move(rhs.at(4)));
       }
       case yaml::PROD_BSEQ_BSEQ:
       case yaml::PROD_BSEQ_FSEQ: {
-        return std::move(rhs.at(3));
+        return any(std::move(rhs.at(3)));
       }
       case yaml::PROD_BSEQ_BSEQ_TRAIL: {
-        return std::move(rhs.at(4));
+        return any(std::move(rhs.at(4)));
       }
       case yaml::PROD_FMAP: {
-        return std::move(rhs.at(2));
+        return any(std::move(rhs.at(2)));
       }
       case yaml::PROD_FMAP_EMPTY: {
         return InputMap();
       }
       case yaml::PROD_FSEQ: {
-        return std::move(rhs.at(2));
+        return any(std::move(rhs.at(2)));
       }
       case yaml::PROD_FSEQ_EMPTY: {
         return InputList();
@@ -488,17 +488,17 @@ class InputYamlReader : public Reader {
         return seq_next_item(rhs.at(0), rhs.at(3));
       }
       case yaml::PROD_FSEQ_SCALAR: {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       }
       case yaml::PROD_FSEQ_FSEQ: {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       }
       case yaml::PROD_FSEQ_FMAP: {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       }
       case yaml::PROD_SCALAR_QUOTED:
       case yaml::PROD_MAP_SCALAR_QUOTED: {
-        return std::move(rhs.at(0));
+        return any(std::move(rhs.at(0)));
       }
       case yaml::PROD_SCALAR_RAW:
       case yaml::PROD_MAP_SCALAR_RAW: {
@@ -549,7 +549,7 @@ class InputYamlReader : public Reader {
         return any(std::move(str));
       }
       case yaml::PROD_TAG: {
-        return std::move(rhs.at(2));
+        return any(std::move(rhs.at(2)));
       }
       case yaml::PROD_BSCALAR: {
         auto parent_indent_level = this->symbol_indentation_stack.at(
@@ -564,7 +564,7 @@ class InputYamlReader : public Reader {
         return any(std::move(content));
       }
       case yaml::PROD_BSCALAR_FIRST: {
-        return std::move(rhs.at(0));
+        return any(std::move(rhs.at(0)));
       }
       // all these cases reduce to concatenating two strings
       case yaml::PROD_BSCALAR_NEXT:
@@ -576,7 +576,7 @@ class InputYamlReader : public Reader {
         return any(std::move(str));
       }
       case yaml::PROD_BSCALAR_INDENT: {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       }
       case yaml::PROD_BSCALAR_HEADER_LITERAL:
       case yaml::PROD_BSCALAR_HEADER_FOLDED: {
@@ -619,7 +619,7 @@ class InputYamlReader : public Reader {
       case yaml::PROD_COMMON_SPACE:
       case yaml::PROD_COMMON_OTHER:
       case yaml::PROD_BSCALAR_HEAD_OTHER: {
-        return std::move(rhs.at(0));
+        return any(std::move(rhs.at(0)));
       }
       // all these cases reduce to appending a character
       case yaml::PROD_DQUOTED_NEXT:

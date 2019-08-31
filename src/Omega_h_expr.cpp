@@ -805,13 +805,13 @@ any ExprReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<Args&>(rhs.at(0));
       args.push_back(std::move(rhs.at(3)));
-      return std::move(args);
+      return any(std::move(args));
     }
     case math_lang::PROD_NEG:
       return neg(env.dim, rhs.at(2));
     case math_lang::PROD_VAL_PARENS:
     case math_lang::PROD_BOOL_PARENS:
-      return std::move(rhs.at(2));
+      return any(std::move(rhs.at(2)));
     case math_lang::PROD_VAR: {
       auto& name = any_cast<std::string&>(rhs.at(0));
       auto it = env.variables.find(name);
@@ -1006,7 +1006,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
             "Omega_h::ExprReader needs an expression to evaluate!");
       }
       if (rhs.at(0).empty()) {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       } else {
         auto op_lhs = any_cast<OpPtr>(rhs.at(0));
         auto op_rhs = any_cast<OpPtr>(rhs.at(1));
@@ -1019,7 +1019,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     }
     case math_lang::PROD_NEXT_STATEMENT: {
       if (rhs.at(0).empty()) {
-        return std::move(rhs.at(1));
+        return any(std::move(rhs.at(1)));
       } else {
         auto op_lhs = any_cast<OpPtr>(rhs.at(0));
         auto op_rhs = any_cast<OpPtr>(rhs.at(1));
@@ -1042,7 +1042,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_NEG_DECAY:
     case math_lang::PROD_SOME_ARGS:
     case math_lang::PROD_CONST:
-      return std::move(rhs.at(0));
+      return any(std::move(rhs.at(0)));
     case math_lang::PROD_TERNARY: {
       OpPtr cond_op = any_cast<OpPtr>(rhs.at(0));
       OpPtr lhs_op = any_cast<OpPtr>(rhs.at(3));
@@ -1087,7 +1087,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     case math_lang::PROD_NEXT_ARG: {
       auto& args = any_cast<ExprEnv::Args&>(rhs.at(0));
       args.push_back(std::move(rhs.at(3)));
-      return std::move(args);
+      return any(std::move(args));
     }
     case math_lang::PROD_NEG: {
       OpPtr rhs_op = any_cast<OpPtr>(rhs.at(2));
@@ -1095,7 +1095,7 @@ any ExprOpsReader::at_reduce(int prod, std::vector<any>& rhs) {
     }
     case math_lang::PROD_VAL_PARENS:
     case math_lang::PROD_BOOL_PARENS:
-      return std::move(rhs.at(2));
+      return any(std::move(rhs.at(2)));
     case math_lang::PROD_VAR: {
       auto& name = any_cast<std::string&>(rhs.at(0));
       return OpPtr(new VarOp(name));

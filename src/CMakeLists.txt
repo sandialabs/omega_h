@@ -245,6 +245,7 @@ if(Omega_h_USE_Teuchos)
   osh_add_util(osh_copy_params)
 endif()
 osh_add_util(osh_filesystem)
+osh_add_util(ascii_vtk2osh)
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)

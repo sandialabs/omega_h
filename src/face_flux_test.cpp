@@ -17,7 +17,6 @@
 
 using namespace Omega_h;
 
-
 void FunctionInitialCondition(
     const MeshDimSets &facesets,
     const MeshDimSets &elemsets,
@@ -86,9 +85,9 @@ void FunctionInitialCondition(
     parallel_for(nset_faces, prepare);
     const std::vector<std::string> S={"x","y","z"};
     ExprReader reader(N*nset_faces, D);
-    reader.register_variable(S[0], any(Reals(Cx)));
-    reader.register_variable(S[1], any(Reals(Cy)));
-    reader.register_variable(S[2], any(Reals(Cz)));
+    reader.register_variable(S[0], Omega_h::any(Reals(Cx)));
+    reader.register_variable(S[1], Omega_h::any(Reals(Cy)));
+    reader.register_variable(S[2], Omega_h::any(Reals(Cz)));
     auto result = reader.read_string(expr_string, name);
     reader.repeat(result);
     Reals field_osh = any_cast<Reals>(result);
@@ -160,9 +159,9 @@ void FunctionInitialCondition(
     parallel_for(nset_faces, prepare);
     const std::vector<std::string> S={"x","y","z"};
     ExprReader reader(N*nset_faces, D);
-    reader.register_variable(S[0], any(Reals(Cx)));
-    reader.register_variable(S[1], any(Reals(Cy)));
-    reader.register_variable(S[2], any(Reals(Cz)));
+    reader.register_variable(S[0], Omega_h::any(Reals(Cx)));
+    reader.register_variable(S[1], Omega_h::any(Reals(Cy)));
+    reader.register_variable(S[2], Omega_h::any(Reals(Cz)));
     auto result = reader.read_string(expr_string, name);
     reader.repeat(result);
     Reals field_osh = any_cast<Reals>(result);
