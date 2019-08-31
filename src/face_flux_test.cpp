@@ -173,7 +173,7 @@ void FunctionInitialCondition(
       double v [N][3];
       const int  el = elementLids[set_face/F];
       const int   f = set_face%F;
-      const auto face = fids[f*el+f];
+      const auto face = fids[F*el+f];
       const auto offset = set_face*N;
       for (int i = 0; i < N; ++i)
         for (int s = 0; s < D; ++s)
@@ -290,88 +290,189 @@ comp_face_basis( const double *const x,
   return returnMe;
 }
 
+namespace {
+typedef std::array<double,3> V;
+double dot(const V &a, const V &b) {
+  double r = a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+  return r;
+}
+V cross(const V &a, const V &b) {
+  V v={{a[1]*b[2] - a[2]*b[1],
+       -a[0]*b[2] + a[2]*b[0],
+        a[0]*b[1] - a[1]*b[0]}};
+  return v;
+}
+double norm(const V &v) {
+  const double r = dot(v,v);
+  return std::sqrt(r); 
+}
+}
 int main(int argc, char** argv) {
   Library lib(&argc, &argv);
   CommPtr world = lib.world();
-  Mesh mesh = build_box(world, OMEGA_H_SIMPLEX, 2., 2., 2., 1, 1, 1);
+  Mesh mesh = build_box(world, OMEGA_H_SIMPLEX, 1., 2., 3., 2, 2, 2);
   AdaptOpts opts(&mesh);
+
   mesh.add_tag<Real>(VERT, "metric", 1);
+  const std::string name = "magnetic_face_flux";
+
+  {
+    Write<Real> OK(1.,0);
+    Assoc assoc = get_box_assoc(3);
+    const MeshSets mesh_sets = invert(&mesh, assoc);
+    const MeshDimSets facesets = mesh_sets[SIDE_SET];
+    const MeshDimSets elemsets = mesh_sets[ELEM_SET];
+    LOs face_node_id = mesh.ask_down(FACE, VERT).ab2b;
+    LOs elem_node_id = mesh.ask_down(REGION, VERT).ab2b;
+    auto const ElemFace = mesh.ask_down(3,2);
+    LOs elem_face_id = ElemFace.ab2b;
+
+    Reals coords  = mesh.coords();
+    Write<Real> flux_w(mesh.nfaces());
+    FunctionInitialCondition(
+      facesets,
+      elemsets,
+      coords,
+      face_node_id,
+      elem_face_id,
+      flux_w);
+
+    Reals flux(flux_w);
+    mesh.add_tag<Real>(FACE, name, 1, flux);
+
+    const std::vector<std::string> element_blocks={"body"};
+    for (const std::string &blockname : element_blocks) {
+      constexpr int N = 4;
+      constexpr int F = 4;
+      constexpr int D = 3;
+      auto esIter = elemsets.find(blockname);
+      if(esIter == elemsets.end())
+         fail("Element block doesn't exist!");
+      const int   nset_elems = esIter->second.size();
+      const Reals cord = coords;
+      const LOs   nids  = elem_node_id;
+      const LOs   fids  = elem_face_id;
+      Read<Real> flux_r=mesh.get_array<Real>(FACE, name); 
+      auto check = OMEGA_H_LAMBDA(int elem) {
+        int nodes[N];
+        int faces[F];
+        for (int i = 0; i < N; ++i) nodes[i] = nids[N*elem+i];
+        for (int i = 0; i < F; ++i) faces[i] = fids[F*elem+i];
+        double X[D][N];
+        for (int i = 0; i < N; ++i)
+          for (int j = 0; j < D; ++j)
+             X[j][i] = cord[D*nodes[i]+j];
+        constexpr double xi[] = {1./3.,1./3.,1./3.};
+        const Few<Vector<3>,4> faceBasis =
+          comp_face_basis(X[0],X[1],X[2],xi);
+        Vector<3> B = zero_vector<3>();
+        for (int f=0; f<F; ++f) {
+          const I8 code = ElemFace.codes[elem*F+f];
+          const int sign = code_is_flipped(code) ? -1 : +1;
+          B += sign * flux_r[faces[f]] * faceBasis[f];
+        }
+        const Vector<3> y = {{1, 2, 5}};
+        const double tol = 1.0e-12;
+        for (int i = 0; i < D; ++i)
+          if (tol < std::abs(B[i] - y[i])) 
+            OK[0] += 1;
+      };
+      parallel_for(nset_elems, check);
+    }
+    const bool ok = 0.==Reals(OK)[0];
+    if (!ok) return 2;
+  }
 
 
-  Reals coords  = mesh.coords();
-  Write<Real> flux_w(mesh.nfaces());
-
-  Assoc assoc = get_box_assoc(3);
-  const MeshSets mesh_sets = invert(&mesh, assoc);
-  const MeshDimSets facesets = mesh_sets[SIDE_SET];
-  const MeshDimSets elemsets = mesh_sets[ELEM_SET];
-  LOs face_node_id = mesh.get_adj(FACE, VERT).ab2b;
-  LOs elem_face_id = mesh.get_adj(REGION, FACE).ab2b;
-  LOs elem_node_id = mesh.get_adj(REGION, VERT).ab2b;
-  auto const ElemFace = mesh.ask_down(3,2);
-
-  FunctionInitialCondition(
-    facesets,
-    elemsets,
-    coords,
-    face_node_id,
-    elem_face_id,
-    flux_w);
-
-  const std::string name = "magnetic face flux";
-  Reals flux(flux_w);
-  mesh.add_tag<Real>(FACE, name, 1, flux);
 
   mesh.set_tag(
       VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(1.3)));
   while (coarsen_by_size(&mesh, opts))
     ;
 
-  mesh.set_tag(
-      VERT, "metric", Reals(mesh.nverts(), metric_eigenvalue_from_length(1.3)));
-  while (refine_by_size(&mesh, opts))
-    ;
 
 
-  Write<Real> OK(1.,0);
-  const std::vector<std::string> element_blocks={"body"};
-  for (const std::string &blockname : element_blocks) {
-    constexpr int N = 4;
-    constexpr int F = 4;
-    constexpr int D = 3;
-    auto esIter = elemsets.find(blockname);
-    if(esIter == elemsets.end())
-       fail("Element block doesn't exist!");
-    const int   nset_elems = esIter->second.size();
-    const Reals cord = coords;
-    const LOs   nids  = elem_node_id;
-    const LOs   fids  = elem_face_id;
-    Read<Real> flux_r=mesh.get_array<Real>(FACE, name); 
-    auto check = OMEGA_H_LAMBDA(int elem) {
-      int nodes[N];
-      int faces[F];
-      for (int i = 0; i < N; ++i) nodes[i] = nids[N*elem+i];
-      for (int i = 0; i < N; ++i) faces[i] = fids[N*elem+i];
-      double X[D][N];
-      for (int i = 0; i < N; ++i)
-        for (int j = 0; j < D; ++j)
-           X[j][i] = cord[D*nodes[i]+j];
-      constexpr double xi[] = {1./3.,1./3.,1./3.};
-      const Few<Vector<3>,4> faceBasis =
-        comp_face_basis(X[0],X[1],X[2],xi);
-      Vector<3> B = zero_vector<3>();
-      for (int f=0; f<F; ++f) {
-        const I8 code = ElemFace.codes[elem*F+f];
-        const int sign = code_is_flipped(code) ? -1 : +1;
-        B += sign * flux_r[faces[f]] * faceBasis[f];
-      }
-      const Vector<3> y = {{1, 2, 5}};
-      for (int i = 0; i < D; ++i)
-        if (B[i] != y[i]) OK[0] += 1;
-    };
-    parallel_for(nset_elems, check);
+  {
+    Write<Real> OK(1.,0);
+    Assoc assoc = get_box_assoc(3);
+    const MeshSets mesh_sets = invert(&mesh, assoc);
+    const MeshDimSets elemsets = mesh_sets[ELEM_SET];
+    LOs elem_node_id = mesh.ask_down(REGION, VERT).ab2b;
+    auto const ElemFace = mesh.ask_down(3,2);
+    LOs elem_face_id = ElemFace.ab2b;
+    Reals coords  = mesh.coords();
+  
+    const std::vector<std::string> element_blocks={"body"};
+    for (const std::string &blockname : element_blocks) {
+      constexpr int N = 4;
+      constexpr int F = 4;
+      constexpr int D = 3;
+      auto esIter = elemsets.find(blockname);
+      if(esIter == elemsets.end())
+         fail("Element block doesn't exist!");
+      const int   nset_elems = esIter->second.size();
+      const Reals cord = coords;
+      const LOs   nids  = elem_node_id;
+      const LOs   fids  = elem_face_id;
+      Read<Real> flux_r=mesh.get_array<Real>(FACE, name); 
+      auto check = OMEGA_H_LAMBDA(int elem) {
+        int nodes[N];
+        int faces[F];
+        for (int i = 0; i < N; ++i) nodes[i] = nids[N*elem+i];
+        for (int i = 0; i < F; ++i) faces[i] = fids[F*elem+i];
+        double X[D][N];
+        for (int i = 0; i < N; ++i)
+          for (int j = 0; j < D; ++j)
+             X[j][i] = cord[D*nodes[i]+j];
+        constexpr double xi[] = {1./3.,1./3.,1./3.};
+        const Few<Vector<3>,4> faceBasis =
+          comp_face_basis(X[0],X[1],X[2],xi);
+        Vector<3> B = zero_vector<3>();
+        for (int f=0; f<F; ++f) {
+          const I8 code = ElemFace.codes[elem*F+f];
+          const int sign = code_is_flipped(code) ? -1 : +1;
+          B += sign * flux_r[faces[f]] * faceBasis[f];
+        }
+        const Vector<3> y = {{1, 2, 5}};
+        const double tol = 1.0e-12;
+        for (int i = 0; i < D; ++i)
+          if (tol < std::abs(B[i] - y[i])) 
+            OK[0] += 1;
+
+        double tot_f = 0;
+        for (int f = 0; f < F; ++f) {
+          typedef std::array<double,D> V;
+          std::array<V,3> x;
+          for (int i = 0,n=0; i < N; ++i)
+            if (i != f) {
+              for (int j = 0; j < D; ++j)
+                x[n][j] = X[j][i];
+              ++n;
+            }
+          const V v1 = {{x[1][0]-x[0][0],x[1][1]-x[0][1],x[1][2]-x[0][2]}};
+          const V v2 = {{x[2][0]-x[0][0],x[2][1]-x[0][1],x[2][2]-x[0][2]}};
+          const V v3 = {{X[0][f]-x[0][0],X[1][f]-x[0][1],X[2][f]-x[0][2]}};
+          V n = cross(v1,v2);
+          const double sign = -std::copysign(1.0,dot(n,v3));
+          const double a = norm(n);
+          n[0] /= sign*a;
+          n[1] /= sign*a;
+          n[2] /= sign*a;
+          const V g = {{1,2,5}};
+          const double Ft = dot(n,g) * a/2;
+          const int h = f==0 ? 2 : f==1 ? 3 : f==2 ? 1 : 0;
+          const I8 code = ElemFace.codes[elem*F+h];
+          const int f_sign = code_is_flipped(code) ? -1 : +1;
+          const double ft = f_sign*flux_r[faces[h]];
+          tot_f += ft;
+          if (tol < std::abs(Ft-ft))  OK[0] += 1;
+        }
+        if (.000001 < std::abs(tot_f) ) OK[0] += 1;
+      };
+      parallel_for(nset_elems, check);
+    }
+    const bool ok = 0.==Reals(OK)[0];
+    if (!ok) return 2;
   }
-  const bool ok = 0.==Reals(OK)[0];
-  if (ok) return 2;
   return 0;
 }
