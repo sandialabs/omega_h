@@ -137,13 +137,17 @@ struct History {
     frames[id].number_of_calls += 1;
     frames[id].start_time = now();
   }
-  inline void stop(double runtime) {
-    frames[current_frame].total_runtime += runtime;
-    pop();
+  inline double measure_runtime() { 
+    auto current_time = now();
+    auto current_runtime = current_time - frames[current_frame].start_time;
+    return current_runtime;
+  }
+  inline double measure_total_runtime() { 
+    return frames[current_frame].total_runtime + measure_runtime();
   }
   inline void stop() {
-    auto end_time = now();
-    stop(end_time - frames[current_frame].start_time);
+    frames[current_frame].total_runtime = measure_total_runtime();
+    pop();
   }
   std::size_t first(std::size_t parent) const;
   std::size_t next(std::size_t sibling) const;
@@ -174,6 +178,14 @@ inline void begin_code(char const* name) {
   }
 }
 
+inline double get_runtime () {
+  double runtime = 0.0;
+  if (profile::global_singleton_history) {
+    runtime = profile::global_singleton_history->measure_total_runtime();
+  }
+  return runtime;
+}
+
 inline void end_code() {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::Profiling::popRegion();
@@ -190,6 +202,7 @@ struct ScopedTimer {
   ScopedTimer(ScopedTimer&&) = delete;
   ScopedTimer& operator=(ScopedTimer const&) = delete;
   ScopedTimer& operator=(ScopedTimer&&) = delete;
+  inline double total_runtime() { return get_runtime(); }
 };
 
 }  // namespace Omega_h
