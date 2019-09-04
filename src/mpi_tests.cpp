@@ -26,8 +26,20 @@ static void test_one_rank(CommPtr comm) {
     dist.set_dest_ranks(Read<I32>({0, 0, 0, 0}));
     dist.set_dest_idxs(LOs({3, 2, 1, 0}), 4);
     Read<GO> a({0, 1, 2, 3});
-    auto b = dist.exch(a, 1);
-    OMEGA_H_CHECK(b == Read<GO>({3, 2, 1, 0}));
+    {
+      auto b = dist.exch(a, 1);
+      OMEGA_H_CHECK(b == Read<GO>({3, 2, 1, 0}));
+    }
+    { // test variable sized array where actors have all size 1
+      auto const vdist = create_dist_for_variable_sized(dist, {0, 1, 2, 3, 4});
+      auto b = vdist.exch(a, 1); // It is weird to specify a WIDTH here.
+      OMEGA_H_CHECK(b == Read<GO>({3, 2, 1, 0}));
+    }
+    { // test variable sized array where actors have size 1, 0, 2, and 1
+      auto const vdist = create_dist_for_variable_sized(dist, {0, 1, 1, 3, 4});
+      auto b = vdist.exch(a, 1); // It is weird to specify a WIDTH here.
+      OMEGA_H_CHECK(b == Read<GO>({3, 1, 2, 0}));
+    }
   }
 }
 
