@@ -407,11 +407,11 @@ elementPhysicalFacePolynomial( /*input*/
       }
 
 
+      constexpr int maxSize = maxFacePerCavity+maxElementsPerCavity;
       const int nunknown = number_of_target_faces - number_of_target_surface_faces - number_of_target_mesh_surface_faces;
       const int nface_trg = number_of_target_faces;
       const int nelem_trg = numTargetElements;
-      const int nQsize = nunknown < nelem_trg ? nunknown : nelem_trg;
-      int nsize = nface_trg+nQsize;
+      int nQsize = nelem_trg;
 
       if (4*nelem_trg != 2*nunknown + number_of_target_surface_faces + number_of_target_mesh_surface_faces) {
         printf(" %s %d **** ERROR ***** Internal check of elements/faces and unknowns failed. %d != %d + %d + %d\n",
@@ -477,11 +477,104 @@ elementPhysicalFacePolynomial( /*input*/
       for (int elem = 0; elem < nQsize; ++elem) {
         q(elem) = 0;
         for (int face = 0; face < facesPerElement; ++face) {
-          const auto sign = targetElementFaceOrientations[elem][face];
-          const auto iface = targetElementFace_to_targetFace[elem][face];
+          const Int sign = targetElementFaceOrientations[elem][face];
+          const Int iface = targetElementFace_to_targetFace[elem][face];
           Q(elem,iface) = sign;
         }
       }
+      {
+        Int S[maxSize][maxFacePerCavity];
+        for (int i = 0; i < maxSize; ++i)
+          for (int j = 0; j < maxFacePerCavity; ++j) 
+             S[i][j] = 0;
+        int cols=0;
+        for (int elem = 0; elem < nQsize; ++elem) 
+          for (int face = 0; face < facesPerElement; ++face) {
+            const Int iface = targetElementFace_to_targetFace[elem][face];
+            S[elem][iface] = Q(elem,iface);
+            if (cols < iface+1) cols = iface+1;
+          }
+        int rows = nQsize;
+        for (int elem_trg = 0; elem_trg < nelem_trg; ++elem_trg) 
+          for (int face_trg = 0; face_trg < facesPerElement; ++face_trg) 
+            if (targetElementFaceIsSurface    [elem_trg][face_trg] || 
+                targetElementFaceIsMeshSurface[elem_trg][face_trg]) {
+              const Int iface  = targetElementFace_to_targetFace[elem_trg][face_trg];
+              S[rows][iface] = 1;
+              ++rows;
+              if (cols < iface+1) cols = iface+1;
+            }
+        int rank=0;
+        for (int j=0,k=0; j<cols; ++j) {
+          bool p = false;
+          for (int i=k; i<rows; ++i) {
+            if (S[i][j]) {
+              if (p) {
+                const int aij = S[i][j]*S[k][j];
+                for (int n=j; n<cols; ++n) S[i][n] -= aij*S[k][n];
+              } else {
+                p = true;
+                rank = k+1;
+                if (i!=k) {
+                  for (int n=j; n<cols; ++n) std::swap(S[k][n], S[i][n]);
+                }
+              }
+            }
+          }
+          if (p) ++k;
+        }
+        int reduce = rows-rank;
+        nQsize -= reduce;
+        if (1!=reduce) 
+          printf ("%s:%d ************  ERROR Rank:%d != Rows:%d  ************\n",__FILE__,__LINE__,rank,rows);
+
+
+// Check
+        for (int i = 0; i < maxSize; ++i)
+          for (int j = 0; j < maxFacePerCavity; ++j) 
+             S[i][j] = 0;
+        cols=0;
+        for (int elem = 0; elem < nQsize; ++elem) 
+          for (int face = 0; face < facesPerElement; ++face) {
+            const Int iface = targetElementFace_to_targetFace[elem][face];
+            S[elem][iface] = Q(elem,iface);
+            if (cols < iface+1) cols = iface+1;
+          }
+        rows = nQsize;
+        for (int elem_trg = 0; elem_trg < nelem_trg; ++elem_trg) 
+          for (int face_trg = 0; face_trg < facesPerElement; ++face_trg) 
+            if (targetElementFaceIsSurface    [elem_trg][face_trg] || 
+                targetElementFaceIsMeshSurface[elem_trg][face_trg]) {
+              const Int iface  = targetElementFace_to_targetFace[elem_trg][face_trg];
+              S[rows][iface] = 1;
+              ++rows;
+              if (cols < iface+1) cols = iface+1;
+            }
+        rank=0;
+        for (int j=0,k=0; j<cols; ++j) {
+          bool p = false;
+          for (int i=k; i<rows; ++i) {
+            if (S[i][j]) {
+              if (p) {
+                const int aij = S[i][j]*S[k][j];
+                for (int n=j; n<cols; ++n) S[i][n] -= aij*S[k][n];
+              } else {
+                p = true;
+                rank = k+1;
+                if (i!=k) {
+                  for (int n=j; n<cols; ++n) std::swap(S[k][n], S[i][n]);
+                }
+              }
+            }
+          }
+          if (p) ++k;
+        }
+        reduce = rows-rank;
+        if (reduce) 
+          printf ("%s:%d ************  ERROR Rank:%d != Rows:%d  ************\n",__FILE__,__LINE__,rank,rows);
+      }
+
+      int nsize = nface_trg+nQsize;
 
       for (int elem = 0; elem < nelem_trg; ++elem) {
         Scalar moments[Polynomial::nterms];
@@ -549,8 +642,8 @@ elementPhysicalFacePolynomial( /*input*/
             for (int i=0; i<Polynomial::nterms; ++i) {
               integral += moments[i]*src_poly[i];
             }
-            const auto i = targetElementFace_to_targetFace[elem][iface];
-            const auto j = targetElementFace_to_targetFace[elem][jface];
+            const Int i = targetElementFace_to_targetFace[elem][iface];
+            const Int j = targetElementFace_to_targetFace[elem][jface];
             M(i,j) += integral;
           }
         }
@@ -644,14 +737,13 @@ elementPhysicalFacePolynomial( /*input*/
               integral += moments[i]*src_poly[i];
             }
 
-            const auto i = targetElementFace_to_targetFace[elem_trg][iface];
+            const Int i = targetElementFace_to_targetFace[elem_trg][iface];
             f(i) += integral;
           }
         }
       }
 
 
-      constexpr int maxSize = maxFacePerCavity+maxElementsPerCavity;
       Omega_h::Matrix<maxSize,maxSize> A;
       Omega_h::Vector<maxSize>         b;
       for (int i=0; i<maxSize; ++i) {
@@ -678,7 +770,7 @@ elementPhysicalFacePolynomial( /*input*/
       for (int elem_trg = 0; elem_trg < nelem_trg; ++elem_trg) {
         for (int face_trg = 0; face_trg < facesPerElement; ++face_trg) {
           if (targetElementFaceIsSurface[elem_trg][face_trg]) {
-            const int i  = targetElementFace_to_targetFace[elem_trg][face_trg];
+            const Int i  = targetElementFace_to_targetFace[elem_trg][face_trg];
             A(nsize,i) = 1;
             A(i,nsize) = 1;
             b(nsize)   = trgflux[targetElementFace_to_MeshFace[elem_trg][face_trg]];
@@ -743,7 +835,7 @@ elementPhysicalFacePolynomial( /*input*/
                           __FILE__,__LINE__);
               }
             }
-            const int i  = targetElementFace_to_targetFace[elem_trg][face_trg];
+            const Int i  = targetElementFace_to_targetFace[elem_trg][face_trg];
             A(nsize,i) = 1;
             A(i,nsize) = 1;
             b(nsize)   = integral;
