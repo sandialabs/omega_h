@@ -115,16 +115,16 @@ elementPhysicalFacePolynomial( /*input*/
     auto functor = OMEGA_H_LAMBDA( LO const cavity ) {
       
       LO targetElements_to_MeshElements[maxElementsPerCavity];
-      LO targetBegin = key2prod[cavity];
-      LO targetEnd = key2prod[cavity+1];
+      const LO targetBegin = key2prod[cavity];
+      const LO targetEnd = key2prod[cavity+1];
       const Int numTargetElements = static_cast<int>(targetEnd - targetBegin);
       for (Int i=0; i<numTargetElements; ++i)
 	targetElements_to_MeshElements[i] = prd2elem[targetBegin+i];
 
       LO sourceElements_to_MeshElements[maxElementsPerCavity];
-      LO key = src_keys[cavity];
-      LO sourceBegin = keys2source_elements.a2ab[key];
-      LO sourceEnd = keys2source_elements.a2ab[key+1];
+      const LO key = src_keys[cavity];
+      const LO sourceBegin = keys2source_elements.a2ab[key];
+      const LO sourceEnd = keys2source_elements.a2ab[key+1];
       const Int numSourceElements = static_cast<int>(sourceEnd - sourceBegin);
       for (Int i=0; i<numSourceElements; ++i)
 	sourceElements_to_MeshElements[i] = keys2source_elements.ab2b[sourceBegin+i];
@@ -487,36 +487,36 @@ elementPhysicalFacePolynomial( /*input*/
         for (int i = 0; i < maxSize; ++i)
           for (int j = 0; j < maxFacePerCavity; ++j) 
              S[i][j] = 0;
-        int cols=0;
+        unsigned cols=0;
         for (int elem = 0; elem < nQsize; ++elem) 
           for (int face = 0; face < facesPerElement; ++face) {
-            const Int iface = targetElementFace_to_targetFace[elem][face];
+            const unsigned iface = targetElementFace_to_targetFace[elem][face];
             S[elem][iface] = Q(elem,iface);
             if (cols < iface+1) cols = iface+1;
           }
-        int rows = nQsize;
+        unsigned rows = nQsize;
         for (int elem_trg = 0; elem_trg < nelem_trg; ++elem_trg) 
           for (int face_trg = 0; face_trg < facesPerElement; ++face_trg) 
             if (targetElementFaceIsSurface    [elem_trg][face_trg] || 
                 targetElementFaceIsMeshSurface[elem_trg][face_trg]) {
-              const Int iface  = targetElementFace_to_targetFace[elem_trg][face_trg];
+              const unsigned iface  = targetElementFace_to_targetFace[elem_trg][face_trg];
               S[rows][iface] = 1;
               ++rows;
               if (cols < iface+1) cols = iface+1;
             }
-        int rank=0;
-        for (int j=0,k=0; j<cols; ++j) {
+        unsigned rank=0;
+        for (unsigned j=0,k=0; j<cols; ++j) {
           bool p = false;
-          for (int i=k; i<rows; ++i) {
+          for (unsigned i=k; i<rows; ++i) {
             if (S[i][j]) {
               if (p) {
                 const int aij = S[i][j]*S[k][j];
-                for (int n=j; n<cols; ++n) S[i][n] -= aij*S[k][n];
+                for (unsigned n=j; n<cols; ++n) S[i][n] -= aij*S[k][n];
               } else {
                 p = true;
                 rank = k+1;
                 if (i!=k) {
-                  for (int n=j; n<cols; ++n) std::swap(S[k][n], S[i][n]);
+                  for (unsigned n=j; n<cols; ++n) std::swap(S[k][n], S[i][n]);
                 }
               }
             }
@@ -536,7 +536,7 @@ elementPhysicalFacePolynomial( /*input*/
         cols=0;
         for (int elem = 0; elem < nQsize; ++elem) 
           for (int face = 0; face < facesPerElement; ++face) {
-            const Int iface = targetElementFace_to_targetFace[elem][face];
+            const unsigned iface = targetElementFace_to_targetFace[elem][face];
             S[elem][iface] = Q(elem,iface);
             if (cols < iface+1) cols = iface+1;
           }
@@ -545,24 +545,24 @@ elementPhysicalFacePolynomial( /*input*/
           for (int face_trg = 0; face_trg < facesPerElement; ++face_trg) 
             if (targetElementFaceIsSurface    [elem_trg][face_trg] || 
                 targetElementFaceIsMeshSurface[elem_trg][face_trg]) {
-              const Int iface  = targetElementFace_to_targetFace[elem_trg][face_trg];
+              const unsigned iface  = targetElementFace_to_targetFace[elem_trg][face_trg];
               S[rows][iface] = 1;
               ++rows;
               if (cols < iface+1) cols = iface+1;
             }
         rank=0;
-        for (int j=0,k=0; j<cols; ++j) {
+        for (unsigned j=0,k=0; j<cols; ++j) {
           bool p = false;
-          for (int i=k; i<rows; ++i) {
+          for (unsigned i=k; i<rows; ++i) {
             if (S[i][j]) {
               if (p) {
                 const int aij = S[i][j]*S[k][j];
-                for (int n=j; n<cols; ++n) S[i][n] -= aij*S[k][n];
+                for (unsigned n=j; n<cols; ++n) S[i][n] -= aij*S[k][n];
               } else {
                 p = true;
                 rank = k+1;
                 if (i!=k) {
-                  for (int n=j; n<cols; ++n) std::swap(S[k][n], S[i][n]);
+                  for (unsigned n=j; n<cols; ++n) std::swap(S[k][n], S[i][n]);
                 }
               }
             }
