@@ -199,7 +199,7 @@ added to each of the *features.h files, AND to examples/ut_features.cpp.
 #include <random123/features/nvccfeatures.h>
 #elif defined(__ICC)
 #include <random123/features/iccfeatures.h>
-#elif defined(__xlC__)
+#elif defined(__ibmxl__)
 #include <random123/features/xlcfeatures.h>
 #elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
 #include <random123/features/sunprofeatures.h>
