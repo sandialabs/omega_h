@@ -29,9 +29,9 @@ bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
 
 set(Omega_h_USE_Kokkos_DEFAULT OFF)
 set(KokkosCore_PREFIX_DEFAULT ${Kokkos_PREFIX})
-bob_add_dependency(PUBLIC NAME Kokkos TARGETS kokkos INCLUDE_DIR_VARS Kokkos_INCLUDE_DIRS)
+bob_add_dependency(PUBLIC NAME Kokkos TARGETS Kokkos::kokkos)
 if (Omega_h_USE_Kokkos)
-  set_target_properties(kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
+  set_target_properties(Kokkos::kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
 endif()
 
 set(libMeshb_REQUIRED_VERSION 7.24)
@@ -54,16 +54,18 @@ bob_add_dependency(PUBLIC NAME SEACASExodus
 set(Omega_h_USE_pybind11_DEFAULT OFF)
 bob_public_dep(pybind11)
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/detect_kokkos_opts.cmake)
-detect_kokkos_opts()
-if (Kokkos_HAS_CUDA AND (NOT Kokkos_HAS_CUDA_LAMBDA))
+if ("CUDA" IN_LIST Kokkos_DEVICES)
+    bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "ON")
+endif()
+if ("OPENMP" IN_LIST Kokkos_DEVICES)
+    bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "ON")
+endif()
+if (Omega_h_USE_CUDA AND (NOT "CUDA_LAMBDA" IN_LIST Kokkos_OPTIONS))
   message(FATAL_ERROR
           "Please reconfigure Kokkos with -DKokkos_ENABLE_Cuda_Lambda:BOOL=ON")
 endif()
 
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
-bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
-bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 
 if (Omega_h_USE_CUDA)
   find_package(CUDA)
