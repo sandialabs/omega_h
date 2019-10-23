@@ -30,14 +30,24 @@
 #define OMEGA_H_FALLTHROUGH ((void)0)
 #endif
 
+#ifdef _MSC_VER
+#define OMEGA_H_NODISCARD
+#else
 #define OMEGA_H_NODISCARD __attribute__((warn_unused_result))
+#endif
 
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA)
 #define OMEGA_H_INLINE __host__ __device__ inline
 #define OMEGA_H_INLINE_BIG OMEGA_H_INLINE
 #define OMEGA_H_DEVICE __device__ inline
 #define OMEGA_H_LAMBDA [=] __device__
 #define OMEGA_H_CONSTANT_DATA __constant__
+#elif defined(_MSC_VER)
+#define OMEGA_H_INLINE __forceinline
+#define OMEGA_H_INLINE_BIG inline
+#define OMEGA_H_DEVICE __forceinline
+#define OMEGA_H_LAMBDA [=]
+#define OMEGA_H_CONSTANT_DATA
 #else
 #define OMEGA_H_INLINE __attribute__((always_inline)) inline
 #define OMEGA_H_INLINE_BIG inline

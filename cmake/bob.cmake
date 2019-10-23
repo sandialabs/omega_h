@@ -235,6 +235,8 @@ function(bob_begin_cxx_flags)
       endif()
     elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
 	elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	  #specifies proper C++ exception handling
+	  set(FLAGS "${FLAGS} /EHsc")
     else()
       message(WARNING "bob.cmake: Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
     endif()
