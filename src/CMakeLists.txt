@@ -22,7 +22,6 @@ set(Omega_h_SOURCES
   Omega_h_class.cpp
   Omega_h_cmdline.cpp
   Omega_h_coarsen.cpp
-  Omega_h_coarsen_flip.cpp
   Omega_h_coarsen_overshoot.cpp
   Omega_h_coarsen_qualities.cpp
   Omega_h_coarsen_topology.cpp
@@ -107,6 +106,10 @@ set(Omega_h_SOURCES
   Omega_h_xml_lite.cpp
   Omega_h_yaml.cpp
   )
+
+if (NOT WINDOWS)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_coarsen_flip.cpp)
+endif()
 
 if (Omega_h_USE_CUDA)
   if (NOT Omega_h_USE_Kokkos)
