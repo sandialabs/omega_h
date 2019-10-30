@@ -22,7 +22,11 @@ class filesystem_error : public std::system_error {
 class path {
  public:
   using value_type = char;
+#ifdef _MSC_VER
+  static constexpr value_type preferred_separator = '\\';
+#else
   static constexpr value_type preferred_separator = '/';
+#endif
   using string_type = std::basic_string<value_type>;
   path() = default;
   path(value_type const* source);

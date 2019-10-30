@@ -107,7 +107,8 @@ set(Omega_h_SOURCES
   Omega_h_yaml.cpp
   )
 
-if (NOT WINDOWS)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+else()
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_coarsen_flip.cpp)
 endif()
 

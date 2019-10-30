@@ -5,14 +5,126 @@
 #include <cstring>
 #include <iostream>
 
+#ifdef _MSC_VER
+#include <windows.h>
+#else
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#endif
 
 namespace Omega_h {
 
 namespace filesystem {
+
+// begin OS-specific stuff
+
+#ifdef _MSC_VER
+
+bool create_directory(path const& p) {
+  BOOL err = ::CreateDirectoryA(p.impl.c_str(), nullptr);
+  if (err) {
+    if (GetLastError() != ERROR_ALREADY_EXISTS) {
+      throw filesystem_error(GetLastError(), "create_directory");
+    }
+    return false;
+  }
+  return true;
+}
+
+path current_path() {
+  char buf[1024];
+  static_assert(std::is_same<TCHAR, char>::value, "expecting TCHAR to be char");
+  int ret = ::GetCurrentDirectoryA(sizeof(buf), buf);
+  if (ret == 0) {
+    throw filesystem_error(GetLastError(), "current_path");
+  }
+  return std::string(buf);
+}
+
+bool remove(path const& p) {
+  BOOL err = ::RemoveDirectoryA(p.impl.c_str());
+  if (err) {
+    throw filesystem_error(GetLastError(), "remove");
+  }
+  return true;
+}
+
+bool exists(path const& p) {
+  DWORD dwAttrib = ::GetFileAttributesA(p.impl.c_str());
+  return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+          !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+struct IteratorImpl {
+  IteratorImpl() : stream(nullptr), entry_is_good(false) {}
+  IteratorImpl(path const& p) : root(p), entry_is_good(false) {
+    std::string search_string = p.impl;
+    search_string += "\\*";
+    stream = ::FindFirstFileA(search_string.c_str(), &entry);
+    if (stream == INVALID_HANDLE_VALUE) {
+      throw filesystem_error(GetLastError(), "directory_iterator");
+    }
+    entry_is_good = true;
+    if ((0 == strcmp(entry.cFileName, ".")) || (0 == strcmp(entry.cFileName, ".."))) {
+      increment();
+    }
+  }
+  ~IteratorImpl() { close(); }
+  void close() {
+    if (stream == nullptr) return;
+    BOOL err = ::FindClose(stream);
+    stream = nullptr;
+    if (err) {
+      throw filesystem_error(GetLastError(), "directory_iterator");
+    }
+  }
+  void increment() {
+    entry_is_good = ::FindNextFileA(stream, &entry);
+    if (!entry_is_good) {
+      if (GetLastError() != ERROR_NO_MORE_FILES) {
+        throw filesystem_error(GetLastError(), "directory_iterator");
+      }
+      // safely reached the end of the directory
+      close();
+    } else {
+      if ((0 == strcmp(entry.cFileName, ".")) ||
+          (0 == strcmp(entry.cFileName, ".."))) {
+        increment();
+      }
+    }
+  }
+  directory_entry deref() {
+    OMEGA_H_CHECK(entry_is_good);
+    return directory_entry(root / entry.cFileName);
+  }
+  bool is_end() { return !entry_is_good; }
+  bool equal(IteratorImpl const& other) const {
+    if (!entry_is_good && !other.entry_is_good) return true;
+    if (root.impl != other.root.impl) return false;
+    return 0 == strcmp(entry.cFileName, other.entry.cFileName);
+  }
+  path root;
+  HANDLE stream;
+  WIN32_FIND_DATAA entry;
+  BOOL entry_is_good;
+};
+
+file_status status(path const& p) {
+  DWORD dwAttrib = ::GetFileAttributesA(p.impl.c_str());
+  if (dwAttrib == INVALID_FILE_ATTRIBUTES) {
+    throw filesystem_error(GetLastError(), "status");
+  }
+  file_type type;
+  if (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)
+    type = file_type::directory;
+  else
+    type = file_type::regular;
+  return file_status(type);
+}
+
+#else
 
 bool create_directory(path const& p) {
   ::mode_t const mode = S_IRWXU | S_IRWXG | S_IRWXO;
@@ -125,6 +237,8 @@ file_status status(path const& p) {
     throw filesystem_error(errno, "type_status");
   return file_status(type);
 }
+
+#endif
 
 // end of OS-specific stuff
 

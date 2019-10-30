@@ -76,7 +76,8 @@ Omega_h_Type Tag<T>::type() const {
   template bool is<T>(TagBase const* t);                                       \
   template Tag<T> const* as<T>(TagBase const* t);                              \
   template Tag<T>* as<T>(TagBase * t);                                         \
-  template class Tag<T>;
+  template class Tag<T>; \
+  template Read<T> Tag<T>::array() const;
 INST(I8)
 INST(I32)
 INST(I64)
