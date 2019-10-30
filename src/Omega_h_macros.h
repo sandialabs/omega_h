@@ -62,4 +62,14 @@
 #define OMEGA_H_NOEXCEPT noexcept
 #endif
 
+#ifdef _MSC_VER
+#ifdef omega_h_EXPORTS
+#define OMEGA_H_DLL __declspec(dllexport)
+#else
+#define OMEGA_H_DLL __declspec(dllimport)
+#endif
+#else
+#define OMEGA_H_DLL
+#endif
+
 #endif

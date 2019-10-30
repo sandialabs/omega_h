@@ -14,7 +14,7 @@
 
 namespace Omega_h {
 
-Mesh read_mesh_file(filesystem::path const& path, CommPtr comm);
+OMEGA_H_DLL Mesh read_mesh_file(filesystem::path const& path, CommPtr comm);
 
 bool is_little_endian_cpu();
 

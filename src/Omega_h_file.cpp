@@ -35,9 +35,9 @@ static_assert(sizeof(GO) == 8, "osh format assumes 64 bit GO");
 static_assert(sizeof(Real) == 8, "osh format assumes 64 bit Real");
 
 OMEGA_H_INLINE std::uint32_t bswap32(std::uint32_t a) {
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__CUDA_ARCH__)
   a = __builtin_bswap32(a);
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && !defined(__CUDA_ARCH__)
   a = _byteswap_ulong(a);
 #else
   a = ((a & 0x000000FF) << 24) | ((a & 0x0000FF00) << 8) |
@@ -47,9 +47,9 @@ OMEGA_H_INLINE std::uint32_t bswap32(std::uint32_t a) {
 }
 
 OMEGA_H_INLINE std::uint64_t bswap64(std::uint64_t a) {
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__CUDA_ARCH__)
   a = __builtin_bswap64(a);
-#elif defined(_MSC_VER)
+#elif defined(_MSC_VER) && !defined(__CUDA_ARCH__)
   a = _byteswap_uint64(a);
 #else
   a = ((a & 0x00000000000000FFULL) << 56) |
@@ -641,7 +641,7 @@ Reals read_reals_txt(std::istream& stream, LO n, Int ncomps) {
   return h_a.write();
 }
 
-Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
+OMEGA_H_DLL Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
   auto const extension = path.extension().string();
   if (extension == ".osh") {
     return binary::read(path, comm);

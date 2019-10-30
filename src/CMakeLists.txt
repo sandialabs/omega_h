@@ -188,6 +188,10 @@ if(Omega_h_USE_DOLFIN)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set_target_properties(omega_h PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 bob_export_target(omega_h)
 
 function(osh_add_exe EXE_NAME)
