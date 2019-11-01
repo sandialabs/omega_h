@@ -76,6 +76,13 @@ macro(bob_begin_package)
   bob_cmake_arg(BUILD_SHARED_LIBS BOOL ON)
   bob_cmake_arg(CMAKE_INSTALL_PREFIX PATH "")
   option(${PROJECT_NAME}_NORMAL_CXX_FLAGS "Allow CMAKE_CXX_FLAGS to follow \"normal\" CMake behavior" ${USE_XSDK_DEFAULTS})
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    set(BOB_LIB_DESTINATION ".")
+	set(BOB_BIN_DESTINATION ".")
+  else()
+    set(BOB_LIB_DESTINATION "lib")
+	set(BOB_BIN_DESTINATION "bin")
+  endif()
 endmacro(bob_begin_package)
 
 function(bob_get_commit)
@@ -354,9 +361,9 @@ macro(bob_add_dependency)
       endif()
       install(TARGETS ${tgt} EXPORT
           ${tgt}-target
-          RUNTIME DESTINATION bin
-          ARCHIVE DESTINATION lib
-          RUNTIME DESTINATION lib)
+          RUNTIME DESTINATION "${BOB_BIN_DESTINATION}"
+          ARCHIVE DESTINATION "${BOB_LIB_DESTINATION}"
+          RUNTIME DESTINATION "${BOB_LIB_DESTINATION}")
       install(EXPORT ${tgt}-target
               DESTINATION lib/cmake/${PROJECT_NAME})
       set(${PROJECT_NAME}_EXPORTED_TARGETS
@@ -401,12 +408,12 @@ endfunction(bob_library_includes)
 function(bob_export_target tgt_name)
   get_target_property(tgt_type "${tgt_name}" TYPE)
   if (${tgt_type} STREQUAL "EXECUTABLE")
-    install(TARGETS ${tgt_name} DESTINATION bin)
+    install(TARGETS ${tgt_name} DESTINATION "${BOB_BIN_DESTINATION}")
   else()
     if (USE_XSDK_DEFAULTS)
-      install(TARGETS ${tgt_name} DESTINATION lib)
+      install(TARGETS ${tgt_name} DESTINATION "${BOB_LIB_DESTINATION}")
     else()
-      install(TARGETS ${tgt_name} EXPORT ${tgt_name}-target DESTINATION lib)
+      install(TARGETS ${tgt_name} EXPORT ${tgt_name}-target DESTINATION "${BOB_LIB_DESTINATION}")
       install(EXPORT ${tgt_name}-target NAMESPACE ${PROJECT_NAME}::
               DESTINATION lib/cmake/${PROJECT_NAME})
       set(${PROJECT_NAME}_EXPORTED_TARGETS
