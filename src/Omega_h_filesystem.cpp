@@ -23,8 +23,8 @@ namespace filesystem {
 #ifdef _MSC_VER
 
 bool create_directory(path const& p) {
-  BOOL err = ::CreateDirectoryA(p.impl.c_str(), nullptr);
-  if (err) {
+  BOOL success = ::CreateDirectoryA(p.impl.c_str(), nullptr);
+  if (!success) {
     if (GetLastError() != ERROR_ALREADY_EXISTS) {
       throw filesystem_error(GetLastError(), "create_directory");
     }
@@ -44,8 +44,8 @@ path current_path() {
 }
 
 bool remove(path const& p) {
-  BOOL err = ::RemoveDirectoryA(p.impl.c_str());
-  if (err) {
+  BOOL success = ::RemoveDirectoryA(p.impl.c_str());
+  if (!success) {
     throw filesystem_error(GetLastError(), "remove");
   }
   return true;
@@ -74,9 +74,9 @@ struct IteratorImpl {
   ~IteratorImpl() { close(); }
   void close() {
     if (stream == nullptr) return;
-    BOOL err = ::FindClose(stream);
+    BOOL success = ::FindClose(stream);
     stream = nullptr;
-    if (err) {
+    if (!success) {
       throw filesystem_error(GetLastError(), "directory_iterator");
     }
   }
