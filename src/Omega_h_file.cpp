@@ -543,7 +543,7 @@ void read_in_comm(
   auto filepath = path;
   filepath /= std::to_string(mesh->comm()->rank());
   if (version != -1) filepath += ".osh";
-  std::ifstream file(filepath.c_str());
+  std::ifstream file(filepath.c_str(), std::ios::binary);
   OMEGA_H_CHECK(file.is_open());
   read(file, mesh, version);
 }
