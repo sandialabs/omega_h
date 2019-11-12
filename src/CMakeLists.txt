@@ -209,7 +209,7 @@ else()
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(omega_h PUBLIC
         "/wd26451" #arithmetic overflow, long(int * int), shows up in much vector access
-		"/wd26439" #noexcept advice. We've determined that noexcept is useless for performance, we don't use it
+		    "/wd26439" #noexcept advice. We've determined that noexcept is useless for performance, we don't use it
         )
   endif()
 endif()
