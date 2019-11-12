@@ -165,6 +165,10 @@ endif()
 
 add_library(omega_h ${Omega_h_SOURCES})
 
+set_property(TARGET omega_h PROPERTY CXX_STANDARD "11")
+set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)
+
 bob_library_includes(omega_h)
 
 get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
@@ -245,6 +249,9 @@ function(osh_add_exe EXE_NAME)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "11")
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
 endfunction(osh_add_exe)
 
