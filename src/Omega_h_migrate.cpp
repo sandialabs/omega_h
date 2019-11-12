@@ -18,7 +18,7 @@ Remotes form_down_use_owners(Mesh* mesh, Int high_dim, Int low_dim) {
   return unmap(uses2lows, lows2owners);
 }
 
-static Dist get_old_owners2uniq_uses(Dist uses2old_owners) {
+Dist get_old_owners2uniq_uses(Dist uses2old_owners) {
   auto old_owners2uses = uses2old_owners.invert();
   auto nold_owners = old_owners2uses.nroots();
   auto nserv_uses = old_owners2uses.nitems();

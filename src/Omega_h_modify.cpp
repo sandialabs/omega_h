@@ -160,7 +160,7 @@ static LOs collect_same(
    the exch_reduce(SUM) later on, and the need to choose an ordering amongst
    modified entities that share a representative.
  */
-static LOs get_mods2reps(Mesh* mesh, Int ent_dim, Int mod_dim, LOs mods2mds) {
+LOs get_mods2reps(Mesh* mesh, Int ent_dim, Int mod_dim, LOs mods2mds) {
   auto nmods = mods2mds.size();
   LOs mods2reps;
   if (mod_dim == ent_dim) {
@@ -207,7 +207,7 @@ static LOs get_mods2reps(Mesh* mesh, Int ent_dim, Int mod_dim, LOs mods2mds) {
    themselves. If (count_non_owned) is false, non-owned entities do not count
    themselves.
  */
-static LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
+LOs get_rep_counts(Mesh* mesh, Int ent_dim, Few<LOs, 4> mods2mds,
     Few<LOs, 4> mods2reps, Few<LOs, 4> mods2nprods, LOs same_ents2ents,
     bool count_non_owned) {
   auto nents = mesh->nents(ent_dim);
@@ -345,7 +345,7 @@ Few<LOs, 4> get_rep2md_order(Mesh* mesh, Int rep_dim, Few<LOs, 4> mods2mds,
    responsible for numbering newly produced entities based on the number that
    their representative entity got from the scan. */
 template <typename T>
-static void assign_new_numbering(Read<T> old_ents2new_numbers,
+void assign_new_numbering(Read<T> old_ents2new_numbers,
     LOs same_ents2old_ents, Few<LOs, 4> mods2mds, Few<LOs, 4> mods2reps,
     Few<LOs, 4> mods2prods, Few<LOs, 4> rep2md_order,
     Read<T>* p_same_ents2new_numbers, Read<T>* p_prods2new_numbers,

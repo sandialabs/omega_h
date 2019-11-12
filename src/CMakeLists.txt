@@ -73,7 +73,6 @@ set(Omega_h_SOURCES
   Omega_h_print.cpp
   Omega_h_profile.cpp
   Omega_h_quality.cpp
-  Omega_h_random.cpp
   Omega_h_reader.cpp
   Omega_h_recover.cpp
   Omega_h_refine.cpp
@@ -109,7 +108,10 @@ set(Omega_h_SOURCES
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 else()
-  set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_coarsen_flip.cpp)
+  set(Omega_h_SOURCES ${Omega_h_SOURCES}
+    Omega_h_random.cpp
+    Omega_h_coarsen_flip.cpp
+	)
 endif()
 
 if (Omega_h_USE_CUDA)
