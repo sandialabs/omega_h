@@ -66,7 +66,7 @@ struct IsFlipped<2> {
 };
 
 template <Int deg, typename T>
-static Read<I8> get_codes_to_canonical_deg(Read<T> const ev2v) {
+Read<I8> get_codes_to_canonical_deg(Read<T> const ev2v) {
   auto const nev = ev2v.size();
   auto const ne = divide_no_remainder(nev, deg);
   Write<I8> codes(ne);
@@ -175,7 +175,7 @@ LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
   return uv2v;
 }
 
-static void sort_by_high_index(
+void sort_by_high_index(
     LOs const l2lh, Write<LO> const lh2h, Write<I8> const codes) {
   OMEGA_H_TIME_FUNCTION;
   LO const nl = l2lh.size() - 1;
@@ -199,7 +199,7 @@ static void sort_by_high_index(
   parallel_for(nl, std::move(f));
 }
 
-static void separate_upward_with_codes(LO const nlh, LOs const lh2hl,
+void separate_upward_with_codes(LO const nlh, LOs const lh2hl,
     Int const nlows_per_high, Write<LO> const lh2h, Bytes const down_codes,
     Write<Byte> const codes) {
   OMEGA_H_TIME_FUNCTION;
@@ -216,7 +216,7 @@ static void separate_upward_with_codes(LO const nlh, LOs const lh2hl,
   parallel_for(nlh, std::move(f));
 }
 
-static void separate_upward_no_codes(LO const nlh, LOs const lh2hl,
+void separate_upward_no_codes(LO const nlh, LOs const lh2hl,
     Int const nlows_per_high, Write<LO> const lh2h, Write<Byte> const codes) {
   auto f = OMEGA_H_LAMBDA(LO lh) {
     LO const hl = lh2hl[lh];
@@ -262,7 +262,7 @@ Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
   return Adj(l2lh, lh2h, codes);
 }
 
-static Bytes filter_parents(Parents const c2p, Int const parent_dim) {
+Bytes filter_parents(Parents const c2p, Int const parent_dim) {
   OMEGA_H_TIME_FUNCTION;
   Write<Byte> filter(c2p.parent_idx.size());
   auto f = OMEGA_H_LAMBDA(LO c) {
@@ -355,7 +355,7 @@ struct IsMatch<4> {
 };
 
 template <Int deg, typename T>
-static void find_matches_deg(LOs const a2fv, Read<T> const av2v,
+void find_matches_deg(LOs const a2fv, Read<T> const av2v,
     Read<T> const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out,
     bool const allow_duplicates) {
   OMEGA_H_TIME_FUNCTION;

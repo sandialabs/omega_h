@@ -97,12 +97,12 @@ class Few {
       new (array_ + (i++)) T(*it);
     }
   }
-  OMEGA_H_INLINE Few() = default;
-  OMEGA_H_INLINE ~Few() = default;
-  OMEGA_H_INLINE Few(Few<T, n> const& rhs) = default;
-  OMEGA_H_INLINE Few(Few<T, n>&& rhs) = default;
-  OMEGA_H_INLINE Few& operator=(Few const& rhs) = default;
-  OMEGA_H_INLINE Few& operator=(Few&& rhs) = default;
+  inline Few() = default;
+  inline ~Few() = default;
+  inline Few(Few<T, n> const& rhs) = default;
+  inline Few(Few<T, n>&& rhs) = default;
+  inline Few& operator=(Few const& rhs) = default;
+  inline Few& operator=(Few&& rhs) = default;
   OMEGA_H_INLINE const T* begin() const OMEGA_H_NOEXCEPT { return array_; }
   OMEGA_H_INLINE const T* end() const OMEGA_H_NOEXCEPT { return array_ + size(); }
   OMEGA_H_INLINE T* begin() OMEGA_H_NOEXCEPT { return array_; }

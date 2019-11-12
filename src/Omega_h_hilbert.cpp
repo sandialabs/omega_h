@@ -21,7 +21,7 @@ namespace hilbert {
    bits, and the last integer getting the least significant bits. */
 
 template <Int dim>
-static Read<I64> dists_from_coords_dim(Reals coords) {
+Read<I64> dists_from_coords_dim(Reals coords) {
   auto bbox = find_bounding_box<dim>(coords);
   bbox = make_equilateral(bbox);
   auto unit_affine = get_affine_from_bbox_into_unit(bbox);

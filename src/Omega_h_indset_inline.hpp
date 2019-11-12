@@ -12,7 +12,7 @@ namespace indset {
 enum { NOT_IN, IN, UNKNOWN };
 
 template <class Compare>
-static Read<I8> local_iteration(
+inline Read<I8> local_iteration(
     LOs xadj, LOs adj, Read<I8> old_state, Compare compare) {
   auto n = xadj.size() - 1;
   Write<I8> new_state = deep_copy(old_state);

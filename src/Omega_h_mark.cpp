@@ -107,7 +107,7 @@ Read<I8> mark_class_closure(
   return mark_down(mesh, class_dim, ent_dim, eq_marks);
 }
 
-static Read<I8> get_eq_marks(
+Read<I8> get_eq_marks(
     Mesh* mesh, Int class_dim, std::vector<ClassId> const& class_ids) {
   auto sorted_class_ids = class_ids;
   std::sort(begin(sorted_class_ids), end(sorted_class_ids));

@@ -32,7 +32,7 @@ Bytes find_bridge_edges(Mesh* mesh) {
 }
 
 template <Int dim>
-static Reals get_edge_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
+Reals get_edge_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto edges2verts = mesh->ask_verts_of(EDGE);
   auto out = Write<Real>(mesh->nedges(), -1.0);
@@ -48,7 +48,7 @@ static Reals get_edge_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
 }
 
 template <Int dim>
-static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
+Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tris2verts = mesh->ask_verts_of(FACE);
   auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
@@ -78,7 +78,7 @@ static Reals get_tri_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   return out;
 }
 
-static Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
+Reals get_tet_pad_dists(Mesh* mesh, Read<I8> edges_are_bridges) {
   auto coords = mesh->coords();
   auto tets2verts = mesh->ask_verts_of(REGION);
   auto tets2edges = mesh->ask_down(REGION, EDGE).ab2b;
@@ -186,7 +186,7 @@ Reals get_pad_dists(Mesh* mesh, Int pad_dim, Read<I8> edges_are_bridges) {
 }
 
 template <Int dim>
-static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
+Reals get_pinched_tri_angles_dim(Mesh* mesh) {
   auto verts2class_dim = mesh->get_array<I8>(VERT, "class_dim");
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto tris2edges = mesh->ask_down(FACE, EDGE).ab2b;
@@ -218,7 +218,7 @@ static Reals get_pinched_tri_angles_dim(Mesh* mesh) {
   return tri_angles_w;
 }
 
-static Reals get_pinched_tet_angles(Mesh* mesh) {
+Reals get_pinched_tet_angles(Mesh* mesh) {
   auto edges2class_dim = mesh->get_array<I8>(EDGE, "class_dim");
   auto tris2class_dim = mesh->get_array<I8>(FACE, "class_dim");
   auto tets2edges = mesh->ask_down(REGION, EDGE).ab2b;
