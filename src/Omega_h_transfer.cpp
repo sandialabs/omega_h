@@ -513,7 +513,7 @@ static void transfer_no_products(Mesh* old_mesh, TransferOpts const& opts,
 }
 
 template <Int dim>
-static void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
+void transfer_pointwise_tmpl(Mesh* old_mesh, Mesh* new_mesh, Int key_dim,
     LOs keys2kds, LOs keys2prods, LOs prods2new_elems, LOs same_elems2old_elems,
     LOs same_elems2new_elems, TagBase const* tagbase) {
   auto name = tagbase->name();

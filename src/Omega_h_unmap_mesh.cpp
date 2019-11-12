@@ -65,7 +65,7 @@ void unmap_owners(Mesh* old_mesh, Mesh* new_mesh, Int ent_dim,
   new_mesh->set_owners(ent_dim, owners);
 }
 
-static void unmap_parents(Mesh* old_mesh, Mesh* new_mesh,
+void unmap_parents(Mesh* old_mesh, Mesh* new_mesh,
     LOs new_ents2old_ents_a[], Few<LOs, 4> old_ents2new_ents) {
   for (Int ent_dim = 1; ent_dim <= new_mesh->dim(); ++ent_dim) {
     auto new_ents2old_ents = new_ents2old_ents_a[ent_dim];
@@ -90,7 +90,7 @@ static void unmap_parents(Mesh* old_mesh, Mesh* new_mesh,
   }
 }
 
-static void unmap_leaves(Mesh* new_mesh) {
+void unmap_leaves(Mesh* new_mesh) {
   for (Int ent_dim = 1; ent_dim <= new_mesh->dim(); ++ent_dim) {
     Write<Byte> leaf(new_mesh->nents(ent_dim));
     auto is_ent_leaf = new_mesh->ask_leaves(ent_dim);
