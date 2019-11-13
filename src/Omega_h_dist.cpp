@@ -228,7 +228,9 @@ Dist create_dist_for_variable_sized(Dist copies2owners, LOs copies2data) {
   auto owners2copies = copies2owners.invert();
   // receive, for each actor, the copies2data offset of its owner
   // (that offset will only be relevant on the owner's MPI rank)
-  auto owner_offsets = owners2copies.exch(copies2data, 1);
+  Write<LO> offsets(copies2data.size() - 1, 0);
+  std::copy(copies2data.begin(), copies2data.end() - 1, offsets.begin());
+  auto owner_offsets = owners2copies.exch(read(offsets), 1);
   // the total number of items in all the variable-sized data on this MPI rank
   auto data_size = copies2data.last();
   // for each data item, its destination MPI rank (that of the actor holding the data)
