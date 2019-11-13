@@ -26,8 +26,29 @@ static void test_one_rank(CommPtr comm) {
     dist.set_dest_ranks(Read<I32>({0, 0, 0, 0}));
     dist.set_dest_idxs(LOs({3, 2, 1, 0}), 4);
     Read<GO> a({0, 1, 2, 3});
-    auto b = dist.exch(a, 1);
-    OMEGA_H_CHECK(b == Read<GO>({3, 2, 1, 0}));
+    {
+      auto b = dist.exch(a, 1);
+      OMEGA_H_CHECK(b == Read<GO>({3, 2, 1, 0}));
+    }
+  }
+  {
+    Dist copies2owners;
+    copies2owners.set_parent_comm(comm);
+    copies2owners.set_dest_ranks(Read<I32>({0, 0, 0, 0}));
+    copies2owners.set_dest_idxs(LOs({0, 1, 2, 3}), 4);
+
+    { // test variable sized array where actors have all size 1
+      Read<GO> a({0, 1, 2, 3});
+      auto const vdist = create_dist_for_variable_sized(copies2owners, {0, 1, 2, 3, 4});
+      auto b = vdist.exch(a, 1);
+      OMEGA_H_CHECK(b == Read<GO>({0, 1, 2, 3}));
+    }
+    { // test variable sized array where actors have size 1 but actors 2 and 3 which have size 2
+      Read<GO> a({0, 1, 2, 3, 4, 5});
+      auto const vdist = create_dist_for_variable_sized(copies2owners, {0, 1, 3, 4, 6});
+      auto b = vdist.exch(a, 1);
+      OMEGA_H_CHECK(b == Read<GO>({0, 1, 2, 3, 4, 5}));
+    }
   }
 }
 
@@ -56,6 +77,128 @@ static void test_two_ranks_dist(CommPtr comm) {
     OMEGA_H_CHECK(b == Reals({4., 3., 2.}));
   } else {
     OMEGA_H_CHECK(b == Reals({1., 0.}));
+  }
+  auto c = dist.invert().exch(b, 1);
+  OMEGA_H_CHECK(c == a);
+}
+
+static void test_two_ranks_dist_for_two_variable_sized_actors(CommPtr comm) {
+  OMEGA_H_CHECK(comm->size() == 2);
+  Dist copies2owners;
+  copies2owners.set_parent_comm(comm);
+  /* partition is {0,1,2}{3,4},
+     global reversal to
+                  {3,4,2}{0,1} */
+  if (comm->rank() == 0) {
+    copies2owners.set_dest_ranks(Read<I32>({1, 1, 0}));
+    copies2owners.set_dest_idxs(LOs({0, 1, 2}), 3);
+  } else {
+    copies2owners.set_dest_ranks(Read<I32>({0, 0}));
+    copies2owners.set_dest_idxs(LOs({0, 1}), 2);
+  }
+  {
+    LOs copies2data;
+    if (comm->rank() == 0) {
+      copies2data = {0, 1, 4, 6};
+    } else {
+      copies2data = {0, 1, 4};
+    }
+    auto dist = create_dist_for_variable_sized(copies2owners, copies2data);
+    Reals a;
+    if (comm->rank() == 0) {
+      a = Reals({1, 3, 5, 7, 9, 11});
+    } else {
+      a = Reals({13, 15, 17, 19});
+    }
+    auto b = dist.exch(a, 1);
+    if (comm->rank() == 0) {
+      OMEGA_H_CHECK(b == Reals({13, 15, 17, 19, 9, 11}));
+    } else {
+      OMEGA_H_CHECK(b == Reals({1, 3, 5, 7}));
+    }
+    auto c = dist.invert().exch(b, 1);
+    OMEGA_H_CHECK(c == a);
+  }
+  { // size of the first actor is 0
+    LOs copies2data;
+    if (comm->rank() == 0) {
+      copies2data = {0, 0, 3, 5};
+    } else {
+      copies2data = {0, 0, 3};
+    }
+    auto dist = create_dist_for_variable_sized(copies2owners, copies2data);
+    Reals a;
+    if (comm->rank() == 0) {
+      a = Reals({3, 5, 7, 9, 11});
+    } else {
+      a = Reals({15, 17, 19});
+    }
+    auto b = dist.exch(a, 1);
+    if (comm->rank() == 0) {
+      OMEGA_H_CHECK(b == Reals({15, 17, 19, 9, 11}));
+    } else {
+      OMEGA_H_CHECK(b == Reals({3, 5, 7}));
+    }
+    auto c = dist.invert().exch(b, 1);
+    OMEGA_H_CHECK(c == a);
+  }
+  { // size of the second actor is 0
+    LOs copies2data;
+    if (comm->rank() == 0) {
+      copies2data = {0, 1, 1, 3};
+    } else {
+      copies2data = {0, 1, 1};
+    }
+    auto dist = create_dist_for_variable_sized(copies2owners, copies2data);
+    Reals a;
+    if (comm->rank() == 0) {
+      a = {1, 9, 11};
+    } else {
+      a = {13};
+    }
+    auto b = dist.exch(a, 1);
+    if (comm->rank() == 0) {
+      OMEGA_H_CHECK(b == Reals({13, 9, 11}));
+    } else {
+      OMEGA_H_CHECK(b == Reals({1}));
+    }
+    auto c = dist.invert().exch(b, 1);
+    OMEGA_H_CHECK(c == a);
+  }
+}
+
+static void test_two_rank_for_four_variable_sized_actors(CommPtr comm) {
+  OMEGA_H_CHECK(comm->size() == 2);
+  Dist copies2owners;
+  copies2owners.set_parent_comm(comm);
+  /* partition is {0,1,2,3}{4,5,6,7},
+     global reversal to
+                  {7,4,5,6}{1,2,3,0} */
+  if (comm->rank() == 0) {
+    copies2owners.set_dest_ranks(Read<I32>({1, 1, 1, 1}));
+    copies2owners.set_dest_idxs(LOs({3, 0, 1, 2}), 4);
+  } else {
+    copies2owners.set_dest_ranks(Read<I32>({0, 0, 0, 0}));
+    copies2owners.set_dest_idxs(LOs({1, 2, 3, 0}), 4);
+  }
+  LOs copies2data;
+  if (comm->rank() == 0) {
+    copies2data = LOs({0, 1, 4, 6, 7});
+  } else {
+    copies2data = LOs({0, 3, 5, 6, 7});
+  }
+  auto dist = create_dist_for_variable_sized(copies2owners, copies2data);
+  Reals a;
+  if (comm->rank() == 0) {
+    a = Reals({3, -1, -3, -5, 5, 7, -7});
+  } else {
+    a = Reals({9, 11, 13, -9, -11, 15, -13});
+  }
+  auto b = dist.exch(a, 1);
+  if (comm->rank() == 0) {
+    OMEGA_H_CHECK(b == Reals({-13, 9, 11, 13, -9, -11, 15}));
+  } else {
+    OMEGA_H_CHECK(b == Reals({-1, -3, -5, 5, 7, -7, 3}));
   }
   auto c = dist.invert().exch(b, 1);
   OMEGA_H_CHECK(c == a);
@@ -222,6 +365,8 @@ static void test_binary_io(Library* lib, CommPtr comm) {
 
 static void test_two_ranks(Library* lib, CommPtr comm) {
   test_two_ranks_dist(comm);
+  test_two_ranks_dist_for_two_variable_sized_actors(comm);
+  test_two_rank_for_four_variable_sized_actors(comm);
   test_two_ranks_owners(comm);
   test_two_ranks_bipart(comm);
   test_two_ranks_exch_sum(comm);
