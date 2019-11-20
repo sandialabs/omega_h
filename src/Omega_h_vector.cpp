@@ -5,7 +5,7 @@
 namespace Omega_h {
 
 template <Int dim>
-static Reals get_vector_norms_tmpl(Reals vs) {
+Reals get_vector_norms_tmpl(Reals vs) {
   auto n = divide_no_remainder(vs.size(), dim);
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) { out[i] = norm(get_vector<dim>(vs, i)); };
@@ -24,7 +24,7 @@ Reals get_vector_norms(Reals vs, Int dim) {
 }
 
 template <Int dim>
-static Reals normalize_vectors_tmpl(Reals vs) {
+Reals normalize_vectors_tmpl(Reals vs) {
   auto n = divide_no_remainder(vs.size(), dim);
   auto out = Write<Real>(vs.size());
   auto f = OMEGA_H_LAMBDA(LO i) {

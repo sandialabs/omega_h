@@ -5,7 +5,7 @@
 namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
-static Reals measure_edges_metric_tmpl(Mesh* mesh, LOs a2e, Reals metrics) {
+Reals measure_edges_metric_tmpl(Mesh* mesh, LOs a2e, Reals metrics) {
   MetricEdgeLengths<mesh_dim, metric_dim> measurer(mesh, metrics);
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto na = a2e.size();
@@ -49,7 +49,7 @@ Reals measure_edges_metric(Mesh* mesh) {
 }
 
 template <Int sdim, Int edim>
-static Reals measure_ents_real_tmpl(Mesh* mesh, LOs a2e, Reals coords) {
+Reals measure_ents_real_tmpl(Mesh* mesh, LOs a2e, Reals coords) {
   OMEGA_H_TIME_FUNCTION;
   RealSimplexSizes measurer(coords);
   auto ev2v = mesh->ask_verts_of(edim);

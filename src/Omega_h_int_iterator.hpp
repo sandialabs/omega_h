@@ -15,7 +15,7 @@ class IntIterator {
   using reference = LO const&;
   using pointer = LO const*;
   using iterator_category = std::random_access_iterator_tag;
-  OMEGA_H_INLINE IntIterator() noexcept = default;
+  inline IntIterator() noexcept = default;
   OMEGA_H_INLINE IntIterator(LO i_in) noexcept : i(i_in) {}
   OMEGA_H_INLINE bool operator==(IntIterator const& other) const noexcept {
     return i == other.i;

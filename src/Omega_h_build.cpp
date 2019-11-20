@@ -166,7 +166,7 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
    copies which have the exact same connectivity and establish ownership.
 */
 
-static LOs sort_locally_based_on_rank(
+LOs sort_locally_based_on_rank(
     LOs servers_to_served, Read<I32> served_to_rank) {
   OMEGA_H_TIME_FUNCTION;
   auto const served_order = Write<LO>(served_to_rank.size());

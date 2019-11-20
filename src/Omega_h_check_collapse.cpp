@@ -66,7 +66,7 @@ vertex ~~~~~~~~>  *
 
 */
 
-static Read<I8> check_collapse_exposure(
+Read<I8> check_collapse_exposure(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes, Int cell_dim) {
   auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;

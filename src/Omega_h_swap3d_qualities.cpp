@@ -8,7 +8,7 @@
 namespace Omega_h {
 
 template <Int metric_dim>
-static void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
+void swap3d_qualities_tmpl(Mesh* mesh, AdaptOpts const& opts,
     LOs cands2edges, Reals* cand_quals, Read<I8>* cand_configs) {
   auto edges2tets = mesh->ask_up(EDGE, REGION);
   auto edges2edge_tets = edges2tets.a2ab;

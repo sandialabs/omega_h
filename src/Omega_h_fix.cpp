@@ -14,7 +14,7 @@
 namespace Omega_h {
 
 template <Int dim>
-static void compute_ill_metric_dim(
+void compute_ill_metric_dim(
     Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
   mesh->remove_tag(VERT, "metric");
   std::cerr << "getting element implied metrics\n";

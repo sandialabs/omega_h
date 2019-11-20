@@ -33,7 +33,7 @@ Int get_metric_dim(Mesh* mesh) {
 }
 
 template <Int dim>
-static Reals clamp_metrics_dim(
+Reals clamp_metrics_dim(
     LO nmetrics, Reals metrics, Real h_min, Real h_max) {
   auto out = Write<Real>(nmetrics * symm_ncomps(dim));
   auto functor = OMEGA_H_LAMBDA(LO i) {
@@ -54,7 +54,7 @@ Reals clamp_metrics(LO nmetrics, Reals metrics, Real h_min, Real h_max) {
 }
 
 template <Int mdim, Int edim>
-static Reals get_mident_metrics_tmpl(
+ Reals get_mident_metrics_tmpl(
     Mesh* mesh, LOs a2e, Reals v2m, bool has_degen) {
   auto na = a2e.size();
   Write<Real> out(na * symm_ncomps(mdim));
@@ -153,7 +153,7 @@ Reals delinearize_metrics(LO nmetrics, Reals linear_metrics) {
 /* gradation limiting code: */
 
 template <Int mesh_dim, Int metric_dim>
-static Reals limit_gradation_once_tmpl(
+Reals limit_gradation_once_tmpl(
     Mesh* mesh, Reals values, Real max_rate) {
   auto v2v = mesh->ask_star(VERT);
   auto coords = mesh->coords();
@@ -257,7 +257,7 @@ Reals smooth_metric_once(Mesh* mesh, Reals v2m, bool has_degen) {
 }
 
 template <Int dim>
-static Reals element_implied_length_metrics_dim(Mesh* mesh) {
+Reals element_implied_length_metrics_dim(Mesh* mesh) {
   auto ev2v = mesh->ask_elem_verts();
   auto coords = mesh->coords();
   auto sizes = mesh->ask_sizes();
@@ -345,7 +345,7 @@ static OMEGA_H_INLINE_BIG Tensor<dim> metric_from_hessian(
 }
 
 template <Int dim>
-static Reals metric_from_hessians_dim(Reals hessians, Real eps) {
+Reals metric_from_hessians_dim(Reals hessians, Real eps) {
   auto ncomps = symm_ncomps(dim);
   auto n = divide_no_remainder(hessians.size(), ncomps);
   auto out = Write<Real>(n * ncomps);
@@ -380,7 +380,7 @@ static OMEGA_H_INLINE_BIG Tensor<dim> metric_from_gradient(
 }
 
 template <Int dim>
-static Reals metric_from_gradients_dim(Reals gradients, Real eps) {
+Reals metric_from_gradients_dim(Reals gradients, Real eps) {
   auto n = divide_no_remainder(gradients.size(), dim);
   auto out = Write<Real>(n * symm_ncomps(dim));
   auto f = OMEGA_H_LAMBDA(LO const i) {
@@ -462,7 +462,7 @@ Reals get_curvature_metrics(Mesh* mesh, Real segment_angle) {
  */
 
 template <Int mesh_dim, Int metric_dim>
-static Reals get_complexity_per_elem_tmpl(Mesh* mesh, Reals v2m) {
+Reals get_complexity_per_elem_tmpl(Mesh* mesh, Reals v2m) {
   auto const elems2verts = mesh->ask_elem_verts();
   auto const coords = mesh->coords();
   auto const out_w = Write<Real>(mesh->nelems());
@@ -574,7 +574,7 @@ Reals metrics_from_isos(Int new_dim, Reals isos) {
 }
 
 template <Int dim>
-static Reals get_size_isos_dim(Reals metrics) {
+Reals get_size_isos_dim(Reals metrics) {
   auto n = divide_no_remainder(metrics.size(), symm_ncomps(dim));
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) {

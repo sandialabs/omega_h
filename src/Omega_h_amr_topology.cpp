@@ -24,7 +24,7 @@ void mark_refined(Mesh* mesh, Bytes elems_are_marked) {
   }
 }
 
-static Bytes mark_persisting_elems(Mesh* mesh, Bytes elems_are_marked) {
+Bytes mark_persisting_elems(Mesh* mesh, Bytes elems_are_marked) {
   auto elem_dim = mesh->dim();
   auto is_elem_leaf = mesh->ask_leaves(elem_dim);
   auto children = mesh->ask_children(elem_dim, elem_dim);
@@ -44,7 +44,7 @@ static Bytes mark_persisting_elems(Mesh* mesh, Bytes elems_are_marked) {
   return mark;
 }
 
-static Bytes mark_persisting_ents(Mesh* mesh, Int ent_dim) {
+Bytes mark_persisting_ents(Mesh* mesh, Int ent_dim) {
   auto elem_dim = mesh->dim();
   auto elem_persists = mesh->get_array<Byte>(elem_dim, "persists");
   auto adj_elems = mesh->ask_up(ent_dim, elem_dim);

@@ -13,7 +13,7 @@ namespace Omega_h {
    by the qualities function */
 
 template <Int metric_dim>
-static Reals swap2d_qualities_tmpl(
+Reals swap2d_qualities_tmpl(
     Mesh* mesh, AdaptOpts const& opts, LOs cands2edges) {
   auto e2t = mesh->ask_up(EDGE, FACE);
   auto e2et = e2t.a2ab;
