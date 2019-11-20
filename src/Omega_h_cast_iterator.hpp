@@ -15,7 +15,7 @@ class CastIterator {
   using reference = value_type;
   using pointer = value_type const*;
   using iterator_category = std::random_access_iterator_tag;
-  OMEGA_H_INLINE CastIterator() = default;
+  inline CastIterator() = default;
   OMEGA_H_INLINE CastIterator(From const* ptr_in) : ptr(ptr_in) {}
   OMEGA_H_INLINE bool operator==(CastIterator const& other) const {
     return ptr == other.ptr;
