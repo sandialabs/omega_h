@@ -141,23 +141,52 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     read(stream, num_entity_blocks, is_binary, needs_swapping);
     read(stream, nnodes, is_binary, needs_swapping);
     node_coords.reserve(std::size_t(nnodes));
-    for (int entity_block = 0; entity_block < num_entity_blocks;
-         ++entity_block) {
-      int class_id, class_dim;
-      read(stream, class_id, is_binary, needs_swapping);
-      read(stream, class_dim, is_binary, needs_swapping);
-      int node_type, num_block_nodes;
-      read(stream, node_type, is_binary, needs_swapping);
-      read(stream, num_block_nodes, is_binary, needs_swapping);
-      for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
-        int node_number;
-        read(stream, node_number, is_binary, needs_swapping);
-        node_number_map[node_number] = int(node_coords.size());
-        Vector<3> coords;
-        read(stream, coords[0], is_binary, needs_swapping);
-        read(stream, coords[1], is_binary, needs_swapping);
-        read(stream, coords[2], is_binary, needs_swapping);
-        node_coords.push_back(coords);
+    if (format >= 4.1) {
+      int node_tag;
+      read(stream, node_tag, is_binary, needs_swapping);  // min
+      read(stream, node_tag, is_binary, needs_swapping);  // max
+      for (int entity_block = 0; entity_block < num_entity_blocks;
+           ++entity_block) {
+        int class_id, class_dim;
+        read(stream, class_dim, is_binary, needs_swapping);
+        read(stream, class_id, is_binary, needs_swapping);
+        int node_type, num_block_nodes;
+        read(stream, node_type, is_binary, needs_swapping);
+        read(stream, num_block_nodes, is_binary, needs_swapping);
+        for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
+          int node_number;
+          read(stream, node_number, is_binary, needs_swapping);
+          const auto position = int(node_coords.size() + block_node);
+          node_number_map[node_number] = position;
+        }
+        for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
+          Vector<3> coords;
+          read(stream, coords[0], is_binary, needs_swapping);
+          read(stream, coords[1], is_binary, needs_swapping);
+          read(stream, coords[2], is_binary, needs_swapping);
+          node_coords.push_back(coords);
+        }
+      }
+
+    } else {
+      for (int entity_block = 0; entity_block < num_entity_blocks;
+           ++entity_block) {
+        int class_id, class_dim;
+        read(stream, class_id, is_binary, needs_swapping);
+        read(stream, class_dim, is_binary, needs_swapping);
+        int node_type, num_block_nodes;
+        read(stream, node_type, is_binary, needs_swapping);
+        read(stream, num_block_nodes, is_binary, needs_swapping);
+        for (int block_node = 0; block_node < num_block_nodes; ++block_node) {
+          int node_number;
+          read(stream, node_number, is_binary, needs_swapping);
+          node_number_map[node_number] = int(node_coords.size());
+          Vector<3> coords;
+          read(stream, coords[0], is_binary, needs_swapping);
+          read(stream, coords[1], is_binary, needs_swapping);
+          read(stream, coords[2], is_binary, needs_swapping);
+          node_coords.push_back(coords);
+        }
       }
     }
   } else {
@@ -187,34 +216,71 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     int num_entity_blocks, total_num_ents;
     read(stream, num_entity_blocks, is_binary, needs_swapping);
     read(stream, total_num_ents, is_binary, needs_swapping);
-    for (int entity_block = 0; entity_block < num_entity_blocks;
-         ++entity_block) {
-      int class_id, class_dim;
-      read(stream, class_id, is_binary, needs_swapping);
-      read(stream, class_dim, is_binary, needs_swapping);
-      int ent_type, num_block_ents;
-      read(stream, ent_type, is_binary, needs_swapping);
-      read(stream, num_block_ents, is_binary, needs_swapping);
-      Int dim = type_dim(ent_type);
-      OMEGA_H_CHECK(dim == class_dim);
-      if (type_family(ent_type) == OMEGA_H_HYPERCUBE) {
-        family = OMEGA_H_HYPERCUBE;
+    if (format >= 4.1) {
+      int element_tag;
+      read(stream, element_tag, is_binary, needs_swapping);  // min
+      read(stream, element_tag, is_binary, needs_swapping);  // max
+      for (int entity_block = 0; entity_block < num_entity_blocks;
+           ++entity_block) {
+        int class_id, class_dim;
+        read(stream, class_dim, is_binary, needs_swapping);
+        read(stream, class_id, is_binary, needs_swapping);
+        int ent_type, num_block_ents;
+        read(stream, ent_type, is_binary, needs_swapping);
+        read(stream, num_block_ents, is_binary, needs_swapping);
+        Int dim = type_dim(ent_type);
+        OMEGA_H_CHECK(dim == class_dim);
+        if (type_family(ent_type) == OMEGA_H_HYPERCUBE) {
+          family = OMEGA_H_HYPERCUBE;
+        }
+        int nodes_per_ent = element_degree(family, dim, 0);
+        ent_class_ids[dim].reserve(
+            ent_class_ids[dim].size() + std::size_t(num_block_ents));
+        ent_nodes[dim].reserve(ent_nodes[dim].size() +
+                               std::size_t(num_block_ents * nodes_per_ent));
+        for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
+          ent_class_ids[dim].push_back(class_id);
+          int ent_number;
+          read(stream, ent_number, is_binary, needs_swapping);
+          for (int ent_node = 0; ent_node < nodes_per_ent; ++ent_node) {
+            int node_number;
+            read(stream, node_number, is_binary, needs_swapping);
+            auto it = node_number_map.find(node_number);
+            OMEGA_H_CHECK(it != node_number_map.end());
+            ent_nodes[dim].push_back(it->second);
+          }
+        }
       }
-      int nodes_per_ent = element_degree(family, dim, 0);
-      ent_class_ids[dim].reserve(
-          ent_class_ids[dim].size() + std::size_t(num_block_ents));
-      ent_nodes[dim].reserve(
-          ent_nodes[dim].size() + std::size_t(num_block_ents * nodes_per_ent));
-      for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
-        ent_class_ids[dim].push_back(class_id);
-        int ent_number;
-        read(stream, ent_number, is_binary, needs_swapping);
-        for (int ent_node = 0; ent_node < nodes_per_ent; ++ent_node) {
-          int node_number;
-          read(stream, node_number, is_binary, needs_swapping);
-          auto it = node_number_map.find(node_number);
-          OMEGA_H_CHECK(it != node_number_map.end());
-          ent_nodes[dim].push_back(it->second);
+    } else {
+      for (int entity_block = 0; entity_block < num_entity_blocks;
+           ++entity_block) {
+        int class_id, class_dim;
+        read(stream, class_id, is_binary, needs_swapping);
+        read(stream, class_dim, is_binary, needs_swapping);
+        int ent_type, num_block_ents;
+        read(stream, ent_type, is_binary, needs_swapping);
+        read(stream, num_block_ents, is_binary, needs_swapping);
+        Int dim = type_dim(ent_type);
+        OMEGA_H_CHECK(dim == class_dim);
+        if (type_family(ent_type) == OMEGA_H_HYPERCUBE) {
+          family = OMEGA_H_HYPERCUBE;
+        }
+        int nodes_per_ent = element_degree(family, dim, 0);
+        ent_class_ids[dim].reserve(
+            ent_class_ids[dim].size() + std::size_t(num_block_ents));
+        ent_nodes[dim].reserve(ent_nodes[dim].size() +
+                               std::size_t(num_block_ents * nodes_per_ent));
+        for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
+          ent_class_ids[dim].push_back(class_id);
+          int ent_number;
+          read(stream, ent_number, is_binary, needs_swapping);
+          for (int ent_node = 0; ent_node < nodes_per_ent; ++ent_node) {
+            int node_number;
+            read(stream, node_number, is_binary, needs_swapping);
+            auto it = node_number_map.find(node_number);
+            OMEGA_H_CHECK(it != node_number_map.end());
+            ent_nodes[dim].push_back(it->second);
+          }
         }
       }
     }
