@@ -43,7 +43,6 @@ template <typename T>
 Tag<T>* as(TagBase* t);
 
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
-  extern template Read<T> Tag<T>::array() const;                               \
   extern template bool is<T>(TagBase const* t);                                \
   extern template Tag<T> const* as<T>(TagBase const* t);                       \
   extern template Tag<T>* as<T>(TagBase * t);                                  \

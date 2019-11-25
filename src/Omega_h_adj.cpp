@@ -387,6 +387,7 @@ void find_matches_deg(LOs const a2fv, Read<T> const av2v,
         if (allow_duplicates) break;
       }
     }
+    (void)found;
     OMEGA_H_CHECK(found);  // there can't be less than one!
   };
   parallel_for(na, std::move(f));
