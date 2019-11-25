@@ -1,5 +1,6 @@
 #include "Omega_h_file.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 
@@ -97,6 +98,39 @@ void seek_line(std::istream& stream, std::string const& want) {
   OMEGA_H_CHECK(stream);
 }
 
+static void register_physical_entity(Mesh& mesh,
+    const std::vector<std::string>& names, Int dim, Int number, Int physical) {
+  if (physical != 0) {
+    auto& set =
+        mesh.class_sets[names.at(static_cast<std::size_t>(physical - 1))];
+    set.emplace_back(dim, number - 1);
+  }
+}
+
+static bool seek_optional_section(
+    std::istream& stream, std::string const& want) {
+  OMEGA_H_CHECK(stream);
+  std::string line;
+  auto const pos = stream.tellg();
+  bool found = false;
+  while (std::getline(stream, line)) {
+    if (line == want) {
+      found = true;
+      break;
+    }
+    if (!line.empty() && line.rfind("$End") != 0 && line[0] == '$') {
+      // found the beginning of a new section that is not the one expected
+      break;
+    }
+  }
+  if (!found) {
+    stream.clear();
+    stream.seekg(pos);
+  }
+  OMEGA_H_CHECK(stream);
+  return found;
+}
+
 static void eat_newlines(std::istream& stream) {
   while (stream.peek() == int('\n')) stream.get();
 }
@@ -108,6 +142,69 @@ static void read(
     binary::read_value(stream, value, needs_swapping);
   } else {
     stream >> value;
+  }
+}
+
+static void read_internal_entities_section(Real format,
+    std::array<std::map<Int, std::vector<Int>>, 4>& entity2physicals,
+    std::istream& stream, bool is_binary, bool needs_swapping) {
+  Int num_points, num_curves, num_surfaces, num_volumes;
+  read(stream, num_points, is_binary, needs_swapping);
+  read(stream, num_curves, is_binary, needs_swapping);
+  read(stream, num_surfaces, is_binary, needs_swapping);
+  read(stream, num_volumes, is_binary, needs_swapping);
+  while (num_points-- > 0) {
+    Int tag;
+    Vector<3> point;
+    Int num_physicals;
+    read(stream, tag, is_binary, needs_swapping);
+    read(stream, point[0], is_binary, needs_swapping);
+    read(stream, point[1], is_binary, needs_swapping);
+    read(stream, point[2], is_binary, needs_swapping);
+    if (format == 4.0) {
+      // strangely, the point is specified twice in 4.0, not 4.1
+      read(stream, point[0], is_binary, needs_swapping);
+      read(stream, point[1], is_binary, needs_swapping);
+      read(stream, point[2], is_binary, needs_swapping);
+    }
+    read(stream, num_physicals, is_binary, needs_swapping);
+    while (num_physicals-- > 0) {
+      Int physical;
+      read(stream, physical, is_binary, needs_swapping);
+      OMEGA_H_CHECK(physical != 0);
+      entity2physicals[0][tag].push_back(physical);
+    }
+  }
+  const std::vector<std::pair<Int, Int>> params{
+      {num_curves, 2}, {num_surfaces, 2}, {num_volumes, 3}};
+  for (auto param : params) {
+    auto num_elements = param.first;
+    const auto dim = param.second;
+    while (num_elements-- > 0) {
+      Int tag;
+      Vector<3> min_point, max_point;
+      Int num_physicals;
+      read(stream, tag, is_binary, needs_swapping);
+      read(stream, min_point[0], is_binary, needs_swapping);
+      read(stream, min_point[1], is_binary, needs_swapping);
+      read(stream, min_point[2], is_binary, needs_swapping);
+      read(stream, max_point[0], is_binary, needs_swapping);
+      read(stream, max_point[1], is_binary, needs_swapping);
+      read(stream, max_point[2], is_binary, needs_swapping);
+      read(stream, num_physicals, is_binary, needs_swapping);
+      while (num_physicals-- > 0) {
+        Int physical;
+        read(stream, physical, is_binary, needs_swapping);
+        OMEGA_H_CHECK(physical != 0);
+        entity2physicals[dim][tag].push_back(physical);
+      }
+      Int num_bounding_points;
+      read(stream, num_bounding_points, is_binary, needs_swapping);
+      while (num_bounding_points-- > 0) {
+        Int tag;
+        read(stream, tag, is_binary, needs_swapping);
+      }
+    }
   }
 }
 
@@ -131,6 +228,37 @@ void read_internal(std::istream& stream, Mesh* mesh) {
     }
   }
   OMEGA_H_CHECK(data_size == sizeof(Real));
+  std::vector<std::string> physical_names;
+  if (seek_optional_section(stream, "$PhysicalNames")) {
+    Int num_physicals;
+    read(stream, num_physicals, is_binary, needs_swapping);
+    physical_names.reserve(static_cast<std::size_t>(num_physicals));
+    eat_newlines(stream);
+    for (auto i = 0; i < num_physicals; ++i) {
+      Int dim, number;
+      read(stream, dim, is_binary, needs_swapping);
+      read(stream, number, is_binary, needs_swapping);
+      OMEGA_H_CHECK(number == i + 1);
+      std::string name;
+      stream >> name;
+      physical_names.push_back(name.substr(1, name.size() - 2));
+    }
+  }
+  std::array<std::map<Int, std::vector<Int>>, 4> entity2physicals;
+  if (seek_optional_section(stream, "$Entities")) {
+    read_internal_entities_section(
+        format, entity2physicals, stream, is_binary, needs_swapping);
+    std::string line;
+    std::getline(stream, line);
+    // line matches "[ ]*"
+    if (!line.empty()) {
+      line.erase(std::remove_if(line.begin(), line.end(),
+          [](unsigned char c) { return std::isspace(c); }));
+    }
+    OMEGA_H_CHECK(line.empty());
+    std::getline(stream, line);
+    OMEGA_H_CHECK(line == "$EndEntities");
+  }
   seek_line(stream, "$Nodes");
   std::vector<Vector<3>> node_coords;
   std::map<int, int> node_number_map;
@@ -192,6 +320,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
   } else {
     stream >> nnodes;
     OMEGA_H_CHECK(nnodes >= 0);
+    node_coords.reserve(std::size_t(nnodes));
     eat_newlines(stream);
     for (LO i = 0; i < nnodes; ++i) {
       LO number;
@@ -220,70 +349,50 @@ void read_internal(std::istream& stream, Mesh* mesh) {
       int element_tag;
       read(stream, element_tag, is_binary, needs_swapping);  // min
       read(stream, element_tag, is_binary, needs_swapping);  // max
-      for (int entity_block = 0; entity_block < num_entity_blocks;
-           ++entity_block) {
-        int class_id, class_dim;
-        read(stream, class_dim, is_binary, needs_swapping);
-        read(stream, class_id, is_binary, needs_swapping);
-        int ent_type, num_block_ents;
-        read(stream, ent_type, is_binary, needs_swapping);
-        read(stream, num_block_ents, is_binary, needs_swapping);
-        Int dim = type_dim(ent_type);
-        OMEGA_H_CHECK(dim == class_dim);
-        if (type_family(ent_type) == OMEGA_H_HYPERCUBE) {
-          family = OMEGA_H_HYPERCUBE;
-        }
-        int nodes_per_ent = element_degree(family, dim, 0);
-        ent_class_ids[dim].reserve(
-            ent_class_ids[dim].size() + std::size_t(num_block_ents));
-        ent_nodes[dim].reserve(ent_nodes[dim].size() +
-                               std::size_t(num_block_ents * nodes_per_ent));
-        for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
-          ent_class_ids[dim].push_back(class_id);
-          int ent_number;
-          read(stream, ent_number, is_binary, needs_swapping);
-          for (int ent_node = 0; ent_node < nodes_per_ent; ++ent_node) {
-            int node_number;
-            read(stream, node_number, is_binary, needs_swapping);
-            auto it = node_number_map.find(node_number);
-            OMEGA_H_CHECK(it != node_number_map.end());
-            ent_nodes[dim].push_back(it->second);
-          }
-        }
-      }
-    } else {
-      for (int entity_block = 0; entity_block < num_entity_blocks;
-           ++entity_block) {
-        int class_id, class_dim;
-        read(stream, class_id, is_binary, needs_swapping);
-        read(stream, class_dim, is_binary, needs_swapping);
-        int ent_type, num_block_ents;
-        read(stream, ent_type, is_binary, needs_swapping);
-        read(stream, num_block_ents, is_binary, needs_swapping);
-        Int dim = type_dim(ent_type);
-        OMEGA_H_CHECK(dim == class_dim);
-        if (type_family(ent_type) == OMEGA_H_HYPERCUBE) {
-          family = OMEGA_H_HYPERCUBE;
-        }
-        int nodes_per_ent = element_degree(family, dim, 0);
-        ent_class_ids[dim].reserve(
-            ent_class_ids[dim].size() + std::size_t(num_block_ents));
-        ent_nodes[dim].reserve(ent_nodes[dim].size() +
-                               std::size_t(num_block_ents * nodes_per_ent));
-        for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
-          ent_class_ids[dim].push_back(class_id);
-          int ent_number;
-          read(stream, ent_number, is_binary, needs_swapping);
-          for (int ent_node = 0; ent_node < nodes_per_ent; ++ent_node) {
-            int node_number;
-            read(stream, node_number, is_binary, needs_swapping);
-            auto it = node_number_map.find(node_number);
-            OMEGA_H_CHECK(it != node_number_map.end());
-            ent_nodes[dim].push_back(it->second);
-          }
-        }
-      }
     }
+      for (int entity_block = 0; entity_block < num_entity_blocks;
+           ++entity_block) {
+        int class_id, class_dim;
+        if (format == 4.) {
+          read(stream, class_id, is_binary, needs_swapping);
+          read(stream, class_dim, is_binary, needs_swapping);
+        } else {
+          read(stream, class_dim, is_binary, needs_swapping);
+          read(stream, class_id, is_binary, needs_swapping);
+        }
+        int ent_type, num_block_ents;
+        read(stream, ent_type, is_binary, needs_swapping);
+        read(stream, num_block_ents, is_binary, needs_swapping);
+        Int dim = type_dim(ent_type);
+        OMEGA_H_CHECK(dim == class_dim);
+        if (type_family(ent_type) == OMEGA_H_HYPERCUBE) {
+          family = OMEGA_H_HYPERCUBE;
+        }
+        int nodes_per_ent = element_degree(family, dim, 0);
+        ent_class_ids[dim].reserve(
+            ent_class_ids[dim].size() + std::size_t(num_block_ents));
+        ent_nodes[dim].reserve(ent_nodes[dim].size() +
+                               std::size_t(num_block_ents * nodes_per_ent));
+        for (int block_ent = 0; block_ent < num_block_ents; ++block_ent) {
+          ent_class_ids[dim].push_back(class_id);
+          int ent_number;
+          read(stream, ent_number, is_binary, needs_swapping);
+          if (class_id != 0) {
+            for (const auto physical : entity2physicals[class_dim][class_id]) {
+              register_physical_entity(
+                  *mesh, physical_names, class_dim, ent_number, physical);
+            }
+          }
+          for (int ent_node = 0; ent_node < nodes_per_ent; ++ent_node) {
+            int node_number;
+            read(stream, node_number, is_binary, needs_swapping);
+            auto it = node_number_map.find(node_number);
+            OMEGA_H_CHECK(it != node_number_map.end());
+            ent_nodes[dim].push_back(it->second);
+          }
+        }
+      }
+
   } else {
     LO nents;
     stream >> nents;
@@ -317,6 +426,8 @@ void read_internal(std::istream& stream, Mesh* mesh) {
             binary::read_value(stream, node_number, needs_swapping);
             ent_nodes[dim].push_back(node_number - 1);
           }
+          register_physical_entity(
+              *mesh, physical_names, dim, number, physical);
         }
       }
     } else {
@@ -331,8 +442,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
         Int ntags;
         stream >> ntags;
         OMEGA_H_CHECK(ntags >= 2);
-        Int physical;
-        Int elementary;
+        Int physical, elementary;
         stream >> physical >> elementary;
         ent_class_ids[dim].push_back(elementary);
         Int tag;
@@ -345,6 +455,7 @@ void read_internal(std::istream& stream, Mesh* mesh) {
           stream >> node_number;
           ent_nodes[dim].push_back(node_number - 1);
         }
+        register_physical_entity(*mesh, physical_names, dim, number, physical);
       }
     }
   }
