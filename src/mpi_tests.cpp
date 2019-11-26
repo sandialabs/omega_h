@@ -376,7 +376,7 @@ static void test_two_ranks(Library* lib, CommPtr comm) {
   test_binary_io(lib, comm);
 }
 
-static void test_rib(CommPtr comm) {
+void test_rib(CommPtr comm) {
   auto rank = comm->rank();
   auto size = comm->size();
   LO n = 5;

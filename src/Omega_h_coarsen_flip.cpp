@@ -12,7 +12,7 @@
 namespace Omega_h {
 
 template <Int dim>
-static Reals compute_flip_normals_dim(Mesh* mesh, Bytes sides_are_exposed,
+Reals compute_flip_normals_dim(Mesh* mesh, Bytes sides_are_exposed,
     Bytes verts_matter,
     Real simple_algorithm_threshold =
         0.95) {  // constant given by Aubry and Lohner
@@ -62,7 +62,7 @@ static Reals compute_flip_normals_dim(Mesh* mesh, Bytes sides_are_exposed,
 }
 
 template <Int dim>
-static Bytes prevent_coarsen_flip2_dim(Mesh* mesh,
+Bytes prevent_coarsen_flip2_dim(Mesh* mesh,
     Bytes sides_matter,  // exposed sides adjacent to candidate vertices
     Bytes verts_matter,  // vertices adjacent to sides that matter
     Reals vert_normals, LOs cands2edges, Bytes cand_codes,
@@ -118,7 +118,7 @@ static Bytes prevent_coarsen_flip2_dim(Mesh* mesh,
 }
 
 template <Int dim>
-static Bytes prevent_coarsen_flip_dim(
+Bytes prevent_coarsen_flip_dim(
     Mesh* mesh, LOs cands2edges, Bytes cand_codes) {
   auto edges_are_cands = mark_image(cands2edges, mesh->nedges());
   auto verts_are_cands = mark_down(mesh, EDGE, VERT, edges_are_cands);
