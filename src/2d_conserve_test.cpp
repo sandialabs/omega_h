@@ -11,7 +11,7 @@
 
 using namespace Omega_h;
 
-static void add_density_tag(Mesh* mesh) {
+void add_density_tag(Mesh* mesh) {
   auto density = Write<Real>(mesh->nelems());
   auto elem_coords =
       average_field(mesh, mesh->dim(), mesh->dim(), mesh->coords());

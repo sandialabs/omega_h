@@ -12,7 +12,7 @@
 
 using namespace Omega_h;
 
-static void attach_basis_vectors(
+void attach_basis_vectors(
     Mesh* mesh, Int ent_dim, LOs surf_ents2ents, Reals surf_ent_normals) {
   auto nsurf_ents = surf_ents2ents.size();
   HostFew<Write<Real>, 2> surf_ent_axes;

@@ -11,7 +11,7 @@
 
 using namespace Omega_h;
 
-static void add_dye(Mesh* mesh) {
+void add_dye(Mesh* mesh) {
   auto dye_w = Write<Real>(mesh->nverts());
   auto coords = mesh->coords();
   auto dye_fun = OMEGA_H_LAMBDA(LO vert) {
@@ -32,7 +32,7 @@ static void add_dye(Mesh* mesh) {
   mesh->add_tag(VERT, "dye", 1, Reals(dye_w));
 }
 
-static Reals form_pointwise(Mesh* mesh) {
+Reals form_pointwise(Mesh* mesh) {
   auto dim = mesh->dim();
   auto ecoords =
       average_field(mesh, dim, LOs(mesh->nelems(), 0, 1), dim, mesh->coords());
