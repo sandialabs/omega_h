@@ -183,7 +183,7 @@ if (Omega_h_USE_CUDA)
     target_compile_options(omega_h PUBLIC
         "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
         "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
-        --expt-extended-lambda)
+        --expt-extended-lambda --expt-relaxed-constexpr)
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     target_compile_options(omega_h PUBLIC
         "SHELL:--compiler-options /wd6294,/wd26451,/wd26439"
