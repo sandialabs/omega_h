@@ -121,7 +121,7 @@ OMEGA_H_INLINE void swap2(T& a, T& b) noexcept {
 }
 
 template <typename T>
-constexpr OMEGA_H_INLINE T factorial(T x) noexcept {
+constexpr OMEGA_H_INLINE_BIG T factorial(T x) noexcept {
   return (x > 1) ? (x * factorial(x - 1)) : 1;
 }
 
