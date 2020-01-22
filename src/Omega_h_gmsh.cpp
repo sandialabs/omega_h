@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <cctype>
 
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
