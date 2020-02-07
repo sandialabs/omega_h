@@ -25,13 +25,17 @@ int main(int argc, char** argv) {
     auto last = faces_to_face_elements[face + 1];
     int touches_air = 0;
     int touches_object = 0;
+    int ntouches = 0;
     for (auto face_element = first; face_element < last;
         ++face_element) {
       auto element = face_elements_to_elements[face_element];
       auto class_id = element_class_ids[element];
-      if (class_id == 0) ++touches_air;
+      if (class_id == 2) ++touches_air;
       if (class_id == 1) ++touches_object;
+      ++ntouches;
     }
+    OMEGA_H_CHECK(ntouches == 1 || ntouches == 2);
+    OMEGA_H_CHECK(ntouches == (touches_air + touches_object));
     int dim = 3;
     int id = -1;
     if (touches_air == 1 && touches_object == 1) {
