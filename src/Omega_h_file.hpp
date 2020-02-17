@@ -56,6 +56,28 @@ Mesh read(std::istream& stream, CommPtr comm);
 Mesh read(filesystem::path const& filename, CommPtr comm);
 void write(std::ostream& stream, Mesh* mesh);
 void write(filesystem::path const& filepath, Mesh* mesh);
+
+#ifdef OMEGA_H_USE_GMSH
+
+/**
+ * Load a parallel MSH file specified in format version 4.1 or higher.
+ *
+ * \param filename path to mesh prefix. If "/path/to/square" is passed,
+ * then the loader looks for parts "/path/to/square_$((RANK+1)).msh"
+ * \note The caller has the responsibility to initialize Gmsh library
+ * before calling this function with \c ::gmsh::initialize
+ */
+Mesh read_parallel(filesystem::path filename, CommPtr comm);
+
+/**
+ * Write the specified mesh in MSH format version 4.1
+ *
+ * \note The caller has the responsibility to initialize Gmsh library
+ * before calling this function with \c ::gmsh::initialize
+ */
+void write_parallel(filesystem::path const& filename, Mesh& mesh);
+#endif  // OMEGA_H_USE_GMSH
+
 }  // namespace gmsh
 
 namespace vtk {
