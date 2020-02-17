@@ -4,6 +4,7 @@
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml_lite.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -1053,6 +1054,7 @@ static void test_gmsh_parallel(Library* lib) {
 #endif  // OMEGA_H_USE_GMSH
 
 static void test_gmsh(Library* lib) {
+  const auto nranks = lib->world()->size();
   {
     const std::vector<const char*> meshes{
         GMSH_SQUARE_MSH2, GMSH_SQUARE_MSH40, GMSH_SQUARE_MSH41};
@@ -1060,9 +1062,11 @@ static void test_gmsh(Library* lib) {
       std::istringstream iss(msh);
       const auto& mesh = Omega_h::gmsh::read(iss, lib->world());
       OMEGA_H_CHECK(mesh.dim() == 2);
-      OMEGA_H_CHECK(mesh.nelems() == 40);
-      OMEGA_H_CHECK(mesh.nedges() == 68);
-      OMEGA_H_CHECK(mesh.nverts() == 29);
+      OMEGA_H_CHECK(mesh.nelems() == 40 / nranks);
+      if (nranks == 1) {
+        OMEGA_H_CHECK(mesh.nedges() == 68);
+        OMEGA_H_CHECK(mesh.nverts() == 29);
+      }
       OMEGA_H_CHECK(mesh.class_sets.empty());
     }
   }
@@ -1073,30 +1077,49 @@ static void test_gmsh(Library* lib) {
       std::istringstream iss(msh);
       const auto& mesh = Omega_h::gmsh::read(iss, lib->world());
       OMEGA_H_CHECK(mesh.dim() == 2);
-      OMEGA_H_CHECK(mesh.nelems() == 60);
-      OMEGA_H_CHECK(mesh.nedges() == 102);
-      OMEGA_H_CHECK(mesh.nverts() == 43);
+      if (nranks == 1) {
+        OMEGA_H_CHECK(mesh.nedges() == 102);
+        OMEGA_H_CHECK(mesh.nverts() == 43);
+        OMEGA_H_CHECK(mesh.nelems() == 60);
+      } else {
+        auto nelems = mesh.nelems();
+        OMEGA_H_CHECK(nelems >= 60 / nranks - 2);
+        OMEGA_H_CHECK(nelems <= 60 / nranks + 2);
+        OMEGA_H_CHECK(lib->world()->allreduce(nelems, OMEGA_H_SUM) == 60);
+      }
 
-      OMEGA_H_CHECK(mesh.class_sets.size() == 2);
-      Int id{};
+      const auto num_class_sets = mesh.class_sets.size();
+      OMEGA_H_CHECK(num_class_sets == 2);
+      const auto left = 10;
+      const auto right = 11;
       {
         const auto& classes = mesh.class_sets.find("Left");
         OMEGA_H_CHECK(classes != mesh.class_sets.end());
-        const auto class_size = classes->second.size();
-        OMEGA_H_CHECK(class_size == 32);
-        for (const auto& p : classes->second) {
-          OMEGA_H_CHECK(p.dim == 2);
-          OMEGA_H_CHECK(p.id == id++);
-        }
+        OMEGA_H_CHECK(classes->second.size() == 1);
+        const auto clazz = classes->second.front();
+        OMEGA_H_CHECK(clazz.dim == mesh.dim());
+        OMEGA_H_CHECK(clazz.id == left);
       }
       {
         const auto classes = mesh.class_sets.find("Right");
         OMEGA_H_CHECK(classes != mesh.class_sets.end());
-        OMEGA_H_CHECK(classes->second.size() == 28);
-        for (const auto& p : classes->second) {
-          OMEGA_H_CHECK(p.dim == 2);
-          OMEGA_H_CHECK(p.id == id++);
-        }
+        OMEGA_H_CHECK(classes->second.size() == 1);
+        const auto clazz = classes->second.front();
+        OMEGA_H_CHECK(clazz.dim == mesh.dim());
+        OMEGA_H_CHECK(clazz.id == right);
+      }
+      {
+        const Read<LO>& class_ids = mesh.get_array<LO>(mesh.dim(), "class_id");
+        OMEGA_H_CHECK(class_ids.size() == mesh.nelems());
+        const auto nlefts =
+            std::count(class_ids.begin(), class_ids.end(), left);
+        const auto nrights =
+            std::count(class_ids.begin(), class_ids.end(), right);
+        OMEGA_H_CHECK(nlefts >= class_ids.size() / 2 - 2);
+        OMEGA_H_CHECK(nlefts <= class_ids.size() / 2 + 2);
+        OMEGA_H_CHECK(nrights >= class_ids.size() / 2 - 2);
+        OMEGA_H_CHECK(nrights <= class_ids.size() / 2 + 2);
+        OMEGA_H_CHECK(nrights + nlefts == class_ids.size());
       }
     }
   }
@@ -1146,8 +1169,8 @@ int main(int argc, char** argv) {
     test_file(&lib);
     test_xml();
     test_read_vtu(&lib);
-    test_gmsh(&lib);
   }
+  test_gmsh(&lib);
 #ifdef OMEGA_H_USE_GMSH
   test_gmsh_parallel(&lib);
 #endif  // OMEGA_H_USE_GMSH
