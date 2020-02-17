@@ -4,10 +4,31 @@
 #include "Omega_h_vtk.hpp"
 #include "Omega_h_xml_lite.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
+#ifdef OMEGA_H_USE_GMSH
+#include <gmsh.h>
+#include "Omega_h_element.hpp"
+#include "Omega_h_shape.hpp"
+#endif  // OMEGA_H_USE_GMSH
+
 using namespace Omega_h;
+
+static const char* GMSH_SQUARE_GEO = R"GMSH(
+Point(1) = {0, 0, 0, .03};
+Point(2) = {1, 0, 0, .03};
+Point(3) = {1, 1, 0, .03};
+Point(4) = {0, 1, 0, .03};
+Line(1) = {1, 2};
+Line(2) = {2, 3};
+Line(3) = {3, 4};
+Line(4) = {4, 1};
+Line Loop(5) = {4, 1, 2, 3};
+Plane Surface(6) = {5};
+Mesh 2;
+)GMSH";
 
 static const char* GMSH_SQUARE_MSH2 = R"GMSH(
 $MeshFormat
@@ -962,13 +983,82 @@ static void test_file(Library* lib) {
   }
 }
 
+#ifdef OMEGA_H_USE_GMSH
+Omega_h_Comparison light_compare_meshes(Mesh& a, Mesh& b) {
+  OMEGA_H_CHECK(a.comm()->size() == b.comm()->size());
+  OMEGA_H_CHECK(a.comm()->rank() == b.comm()->rank());
+  const auto comm = a.comm();
+  const auto should_print = comm->rank() == 0;
+  if (a.family() != b.family()) {
+    if (should_print) {
+      std::clog << "mesh element families differ\n";
+    }
+    return OMEGA_H_DIFF;
+  }
+  if (a.dim() != b.dim()) {
+    if (should_print) {
+      std::clog << "mesh dimensions differ\n";
+    }
+    return OMEGA_H_DIFF;
+  }
+
+  Omega_h_Comparison result = OMEGA_H_SAME;
+  for (Int dim = 0; dim <= a.dim(); ++dim) {
+    const auto anents = a.nglobal_ents(dim);
+    const auto bnents = b.nglobal_ents(dim);
+    if (anents != bnents) {
+      if (should_print) {
+        std::clog << "global " << topological_singular_name(a.family(), dim)
+                  << " counts differ (" << anents << " != " << bnents << ")\n";
+      }
+      result = OMEGA_H_DIFF;
+    }
+  }
+  const auto lo_measures_a = measure_elements_real(&a);
+  const auto lo_measures_b = measure_elements_real(&b);
+  const auto go_measure_a =
+      get_sum(a.comm(), a.owned_array(a.dim(), lo_measures_a, 1));
+  const auto go_measure_b =
+      get_sum(b.comm(), b.owned_array(b.dim(), lo_measures_b, 1));
+  if (std::abs(go_measure_a / go_measure_b - 1) > 1e-6) {
+    if (should_print) {
+      std::clog << "total measures of mesh differ (" << go_measure_a
+                << " != " << go_measure_b << ")\n";
+    }
+    result = OMEGA_H_DIFF;
+  }
+  return result;
+}
+
+static void test_gmsh_parallel(Library* lib) {
+  ::gmsh::initialize();
+
+  {
+    std::ofstream oss("square.geo");
+    oss << GMSH_SQUARE_GEO;
+  }
+  ::gmsh::open("square.geo");
+  ::gmsh::write("square.msh");
+  ::gmsh::clear();
+
+  auto mesh = Omega_h::gmsh::read("square.msh", lib->world());
+  Omega_h::gmsh::write_parallel("square_parallel", mesh);
+
+  auto pmesh = Omega_h::gmsh::read_parallel("square_parallel", lib->world());
+
+  ::gmsh::finalize();
+  OMEGA_H_CHECK(light_compare_meshes(mesh, pmesh) == OMEGA_H_SAME);
+}
+
+#endif  // OMEGA_H_USE_GMSH
+
 static void test_gmsh(Library* lib) {
   {
     const std::vector<const char*> meshes{
         GMSH_SQUARE_MSH2, GMSH_SQUARE_MSH40, GMSH_SQUARE_MSH41};
     for (const auto& msh : meshes) {
       std::istringstream iss(msh);
-      const auto& mesh = gmsh::read(iss, lib->world());
+      const auto& mesh = Omega_h::gmsh::read(iss, lib->world());
       OMEGA_H_CHECK(mesh.dim() == 2);
       OMEGA_H_CHECK(mesh.nelems() == 40);
       OMEGA_H_CHECK(mesh.nedges() == 68);
@@ -981,7 +1071,7 @@ static void test_gmsh(Library* lib) {
         GMSH_PHYSICAL_MSH2, GMSH_PHYSICAL_MSH40, GMSH_PHYSICAL_MSH41};
     for (const auto& msh : meshes) {
       std::istringstream iss(msh);
-      const auto& mesh = gmsh::read(iss, lib->world());
+      const auto& mesh = Omega_h::gmsh::read(iss, lib->world());
       OMEGA_H_CHECK(mesh.dim() == 2);
       OMEGA_H_CHECK(mesh.nelems() == 60);
       OMEGA_H_CHECK(mesh.nedges() == 102);
@@ -1051,9 +1141,14 @@ static void test_read_vtu(Library* lib) {
 int main(int argc, char** argv) {
   auto lib = Library(&argc, &argv);
   OMEGA_H_CHECK(std::string(lib.version()) == OMEGA_H_SEMVER);
-  test_file_components();
-  test_file(&lib);
-  test_gmsh(&lib);
-  test_xml();
-  test_read_vtu(&lib);
+  if (lib.world()->size() == 1) {
+    test_file_components();
+    test_file(&lib);
+    test_xml();
+    test_read_vtu(&lib);
+    test_gmsh(&lib);
+  }
+#ifdef OMEGA_H_USE_GMSH
+  test_gmsh_parallel(&lib);
+#endif  // OMEGA_H_USE_GMSH
 }
