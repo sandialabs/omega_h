@@ -218,6 +218,8 @@ bob_link_dependency(omega_h PUBLIC Kokkos)
 
 bob_link_dependency(omega_h PUBLIC libMeshb)
 
+bob_link_dependency(omega_h PUBLIC Gmsh)
+
 if(Omega_h_USE_EGADS)
   target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
   target_link_libraries(omega_h PUBLIC "${EGADS_LIBRARY}")
@@ -342,6 +344,7 @@ if(BUILD_TESTING)
   test_func(serial_1d_test 1 ./1d_test)
   if(Omega_h_USE_MPI)
     test_func(parallel_1d_test 2 ./1d_test)
+    test_func(run_mpi_unit_io 2 ./unit_io)
   endif()
   osh_add_exe(corner_test)
   test_func(run_corner_test 1 ./corner_test)

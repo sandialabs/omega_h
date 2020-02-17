@@ -10,6 +10,7 @@ if (Omega_h_USE_DOLFIN)
 endif()
 
 include(cmake/bob.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 bob_begin_package()
 
@@ -37,6 +38,12 @@ endif()
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
 bob_add_dependency(PUBLIC NAME libMeshb TARGETS libMeshb::Meshb.7)
+
+set(Gmsh_REQUIRED_VERSION 4.4.1)
+set(Omega_h_USE_Gmsh_DEFAULT OFF)
+bob_add_dependency(PUBLIC NAME Gmsh
+    INCLUDE_DIR_VARS Gmsh_INCLUDE_DIRS
+    LIBRARY_VARS Gmsh_LIBRARIES)
 
 set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
@@ -86,6 +93,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_CHECK_BOUNDS
     Omega_h_THROW
     Omega_h_USE_CUDA_AWARE_MPI
+    Omega_h_USE_Gmsh
    )
 
 set(Omega_h_KEY_INTS
