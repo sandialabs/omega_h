@@ -48,7 +48,7 @@ void add_ents2verts(
     if (ent_dim == mesh->dim() && elem_globals.exists()) {
       mesh->add_tag(ent_dim, "global", 1, elem_globals);
     } else {
-      globals_from_owners(mesh, ent_dim);
+      mesh->add_tag(ent_dim, "global", 1, globals_from_owners(mesh, ent_dim));
     }
   } else {
     mesh->add_tag(ent_dim, "global", 1, GOs(ne, 0, 1));
