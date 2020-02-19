@@ -4,12 +4,17 @@
 #include <fstream>
 #include <iomanip>
 #include <cctype>
+#include <sstream>
 
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
 #include "Omega_h_element.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
+
+#ifdef OMEGA_H_USE_GMSH
+#include <gmsh.h>
+#endif  // OMEGA_H_USE_GMSH
 
 namespace Omega_h {
 
@@ -519,6 +524,165 @@ Mesh read(filesystem::path const& filename, CommPtr comm) {
   return gmsh::read(file, comm);
 }
 
+#ifdef OMEGA_H_USE_GMSH
+
+Mesh read_parallel(filesystem::path filename, CommPtr comm) {
+  Mesh mesh(comm->library());
+  Omega_h_Family family = OMEGA_H_SIMPLEX;
+  {
+    std::ostringstream part_suffix;
+    part_suffix << '_' << comm->rank() + 1 << ".msh";
+    filename += filesystem::path(part_suffix.str());
+  }
+  if (!exists(filename)) {
+    Omega_h_fail("missing mesh part \"%s\" for rank %i\n", filename.c_str(), comm->rank());
+  }
+  ::gmsh::open(filename.c_str());
+  std::vector<std::size_t> node_tags;
+  std::vector<double> node_coords, parametric_coords;
+  ::gmsh::model::mesh::getNodes(node_tags, node_coords, parametric_coords);
+  const auto nnodes = static_cast<LO>(node_tags.size());
+  if (nnodes == 0) {
+    Omega_h_fail("Please check that filename is correct!\n");
+  }
+  std::map<GO, LO> node_number_map;
+  HostWrite<GO> host_vert_globals(nnodes);
+  for (LO local_index = 0; local_index < nnodes; ++local_index) {
+    const auto global_index =
+        static_cast<GO>(node_tags[static_cast<std::size_t>(local_index)]);
+    node_number_map[global_index] = local_index;
+    host_vert_globals[local_index] = global_index;
+  }
+  Read<GO> vert_globals(host_vert_globals.write());
+
+  std::array<std::vector<int>, 4> ent_class_ids;
+  std::array<std::vector<LO>, 4> ent_nodes;
+  std::array<std::vector<GO>, 4> ent_globals;
+  ::gmsh::vectorpair physical_tags;
+  ::gmsh::model::getPhysicalGroups(physical_tags);
+  if (physical_tags.empty()) {
+    physical_tags.push_back({-1, 0});
+  }
+  for (const auto& physical_tag : physical_tags) {
+    ::gmsh::vectorpair tags;
+    const auto physical = physical_tag.second;
+    const auto dim = physical_tag.first;
+    if (dim >= 0) {
+      std::vector<int> entities_tag;
+      ::gmsh::model::getEntitiesForPhysicalGroup(dim, physical, entities_tag);
+      std::string name;
+      ::gmsh::model::getPhysicalName(dim, physical, name);
+      auto& set = mesh.class_sets[name];
+      for (auto j = 0u; j < entities_tag.size(); ++j) {
+        set.emplace_back(dim, entities_tag[j]);
+        tags.push_back({dim, entities_tag[j]});
+      }
+    } else {
+      ::gmsh::model::getEntities(tags);
+    }
+    for (auto j = 0u; j < tags.size(); ++j) {
+      const auto dim = tags[j].first;
+      const auto class_id = tags[j].second;
+      std::vector<int> element_types;
+      std::vector<std::vector<std::size_t>> element_tags, nodes_in_element_tags;
+      ::gmsh::model::mesh::getElements(
+          element_types, element_tags, nodes_in_element_tags, dim, class_id);
+      for (std::size_t type_index = 0; type_index < element_types.size();
+           ++type_index) {
+        OMEGA_H_CHECK(dim == type_dim(element_types[type_index]));
+        std::size_t num_block_ents = element_tags[type_index].size();
+        std::size_t nodes_per_ent =
+            nodes_in_element_tags[type_index].size() / num_block_ents;
+        ent_class_ids[dim].reserve(ent_class_ids[dim].size() + num_block_ents);
+        ent_globals[dim].reserve(ent_globals[dim].size() + num_block_ents);
+        ent_nodes[dim].reserve(
+            ent_nodes[dim].size() + num_block_ents * nodes_per_ent);
+        for (auto block_ent = 0u; block_ent < num_block_ents; ++block_ent) {
+          ent_class_ids[dim].push_back(class_id);
+          ent_globals[dim].push_back(
+              static_cast<GO>(element_tags[type_index][block_ent]));
+          for (auto ent_node = 0u; ent_node < nodes_per_ent; ++ent_node) {
+            auto it = node_number_map.find(static_cast<GO>(
+                nodes_in_element_tags[type_index]
+                                     [block_ent * nodes_per_ent + ent_node]));
+            OMEGA_H_CHECK(it != node_number_map.end());
+            ent_nodes[dim].push_back(it->second);
+          }
+        }
+      }
+    }
+  }
+
+  Int max_dim;
+  if (!ent_nodes[3].empty()) {
+    max_dim = 3;
+  } else if (!ent_nodes[2].empty()) {
+    max_dim = 2;
+  } else if (!ent_nodes[1].empty()) {
+    max_dim = 1;
+  } else {
+    Omega_h_fail("There were no Elements of dimension higher than zero!\n");
+  }
+
+  HostWrite<Real> host_coords(nnodes * max_dim);
+  for (LO local_index = 0; local_index < nnodes; ++local_index) {
+    for (LO j = 0; j < max_dim; ++j) {
+      host_coords[local_index * max_dim + j] =
+          node_coords[static_cast<std::size_t>(local_index * 3 + j)];
+    }
+  }
+  for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
+    const auto ndim_ents = static_cast<LO>(ent_globals[ent_dim].size());
+    HostWrite<GO> host_elem_globals(ndim_ents);
+    HostWrite<LO> host_class_id(ndim_ents);
+    HostWrite<LO> host_ev2v(ent_nodes[ent_dim].size());
+    if (ndim_ents > 0) {
+      const auto neev = static_cast<LO>(ent_nodes[ent_dim].size()) / ndim_ents;
+      for (LO local_index = 0; local_index < ndim_ents; ++local_index) {
+        const auto global_index =
+            ent_globals[ent_dim][static_cast<std::size_t>(local_index)];
+        host_elem_globals[local_index] = global_index;
+        for (Int j = 0; j < neev; ++j) {
+          host_ev2v[local_index * neev + j] =
+              ent_nodes[ent_dim]
+                       [static_cast<std::size_t>(local_index * neev + j)];
+        }
+        host_class_id[local_index] =
+            ent_class_ids[ent_dim][static_cast<std::size_t>(local_index)];
+      }
+    }
+    LOs eqv2v(host_ev2v.write());
+    if (ent_dim == max_dim) {
+      Read<GO> elem_globals(host_elem_globals.write());
+      // build_from_elems2verts(
+      // &mesh, mesh.library()->self(), OMEGA_H_SIMPLEX, dim, eqv2v,
+      // vert_globals);
+      mesh.set_comm(comm);
+      mesh.set_parting(OMEGA_H_ELEM_BASED);
+      mesh.set_family(family);
+      mesh.set_dim(ent_dim);
+      build_verts_from_globals(&mesh, vert_globals);
+      // build_ents_from_elems2verts(&mesh, eqv2v, vert_globals, elem_globals);
+      for (Int mdim = 1; mdim < ent_dim; ++mdim) {
+        auto mv2v = find_unique(eqv2v, mesh.family(), ent_dim, mdim);
+        add_ents2verts(&mesh, mdim, mv2v, vert_globals, GOs());
+      }
+      add_ents2verts(&mesh, ent_dim, eqv2v, vert_globals, elem_globals);
+      // if (!comm->reduce_and(is_sorted(vert_globals))) {
+      //  reorder_by_globals(&mesh);
+      //}
+      mesh.add_coords(host_coords.write());
+    }
+    classify_equal_order(&mesh, ent_dim, eqv2v, host_class_id.write());
+  }
+  mesh.set_parting(OMEGA_H_GHOSTED);
+  finalize_classification(&mesh);
+  mesh.set_parting(OMEGA_H_ELEM_BASED);
+  return mesh;
+}
+
+#endif  // OMEGA_H_USE_GMSH
+
 void write(std::ostream& stream, Mesh* mesh) {
   OMEGA_H_CHECK(mesh->comm()->size() == 1);
   stream << "$MeshFormat\n";
@@ -581,6 +745,57 @@ void write(filesystem::path const& filepath, Mesh* mesh) {
   std::ofstream stream(filepath.c_str());
   gmsh::write(stream, mesh);
 }
+
+#ifdef OMEGA_H_USE_GMSH
+
+void write_parallel(filesystem::path const& filename, Mesh& mesh) {
+  const auto dim = mesh.dim();
+  const auto nnodes = mesh.nverts();
+  const auto globals_v = mesh.globals(VERT);
+  const auto coords = mesh.coords();
+  const auto gmsh_dims = 3;
+
+  std::vector<std::size_t> node_tags(static_cast<size_t>(nnodes));
+  std::vector<double> node_coords(gmsh_dims * static_cast<size_t>(nnodes), 0);
+  for (LO local_index = 0; local_index < nnodes; ++local_index) {
+    node_tags[static_cast<std::size_t>(local_index)] =
+        static_cast<size_t>(globals_v[local_index]) + 1;
+    // cleaner to use gather_vector on coords
+    for (LO j = 0; j < dim; ++j) {
+      node_coords[static_cast<std::size_t>(local_index * gmsh_dims + j)] =
+          coords[local_index * dim + j];
+    }
+  }
+
+  auto ents2verts = mesh.ask_elem_verts();
+  const LO ndim_ents = mesh.nelems();
+  std::vector<std::size_t> element_tags(static_cast<size_t>(ndim_ents));
+  std::vector<std::size_t> ent_nodes(
+      static_cast<size_t>((dim + 1) * ndim_ents));
+  const auto globals_e = mesh.globals(dim);
+  for (LO local_index = 0; local_index < ndim_ents; ++local_index) {
+    element_tags[static_cast<std::size_t>(local_index)] =
+        static_cast<size_t>(globals_e[local_index]) + 1;
+    for (Int j = 0; j < dim + 1; ++j) {
+      ent_nodes[static_cast<std::size_t>(local_index * (dim + 1) + j)] =
+          static_cast<size_t>(
+              globals_v[ents2verts[local_index * (dim + 1) + j]]) +
+          1;
+    }
+  }
+  ::gmsh::model::add("parallel_export");
+
+  // add discrete geometry with tag 1
+  ::gmsh::model::addDiscreteEntity(dim, 1);
+  ::gmsh::model::mesh::addNodes(dim, 1, node_tags, node_coords);
+  ::gmsh::model::mesh::addElementsByType(
+      1, dim == 2 ? 2 : 4, element_tags, ent_nodes);
+  std::ostringstream partFilename;
+  partFilename << filename << '_' << mesh.comm()->rank() + 1 << ".msh";
+  ::gmsh::write(partFilename.str());
+}
+
+#endif  // OMEGA_H_USE_GMSH
 
 }  // namespace gmsh
 
