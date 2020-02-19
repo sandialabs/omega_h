@@ -16,6 +16,7 @@
 
 using namespace Omega_h;
 
+#ifdef OMEGA_H_USE_GMSH
 static const char* GMSH_SQUARE_GEO = R"GMSH(
 Point(1) = {0, 0, 0, .03};
 Point(2) = {1, 0, 0, .03};
@@ -29,6 +30,7 @@ Line Loop(5) = {4, 1, 2, 3};
 Plane Surface(6) = {5};
 Mesh 2;
 )GMSH";
+#endif
 
 static const char* GMSH_SQUARE_MSH2 = R"GMSH(
 $MeshFormat
