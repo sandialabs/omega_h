@@ -91,10 +91,10 @@ SeparationResult separate_by_color_once(
   parallel_for(nkeys, f, "separate_by_color");
   auto old_keep = Read<I8>(old_keep_w);
   auto new_keep = Read<I8>(new_keep_w);
-  auto separated_old = filter_graph(keys2old, old_keep);
-  auto separated_new = filter_graph(keys2new, new_keep);
-  auto remainder_old = filter_graph(keys2old, invert_marks(old_keep));
-  auto remainder_new = filter_graph(keys2new, invert_marks(new_keep));
+  auto separated_old = filter_graph_edges(keys2old, old_keep);
+  auto separated_new = filter_graph_edges(keys2new, new_keep);
+  auto remainder_old = filter_graph_edges(keys2old, invert_marks(old_keep));
+  auto remainder_new = filter_graph_edges(keys2new, invert_marks(new_keep));
   OMEGA_H_CHECK(
       remainder_old.nedges() + separated_old.nedges() == keys2old.nedges());
   OMEGA_H_CHECK(
