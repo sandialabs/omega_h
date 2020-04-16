@@ -77,7 +77,7 @@ static OMEGA_H_INLINE int side_exo2osh(
         case 2:
           // seeing files from CUBIT with triangle sides in {3,4,5}...
           // no clue what thats about, just modulo and move on
-          return (side) % 3;
+          return (side-1) % 3;
         case 3:
           switch (side) {
             case 1:
@@ -573,9 +573,9 @@ void write(
   }
   auto nelem_blocks = int(region_set.size());
   auto nside_sets =
-      (classify_with | exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
+      (classify_with & exodus::SIDE_SETS) ? int(surface_set.size()) : 0;
   auto nnode_sets =
-      (classify_with | exodus::NODE_SETS) ? int(surface_set.size()) : 0;
+      (classify_with & exodus::NODE_SETS) ? int(surface_set.size()) : 0;
   if (verbose) {
     std::cout << "init params for " << path << ":\n";
     std::cout << " Exodus ID " << file << '\n';

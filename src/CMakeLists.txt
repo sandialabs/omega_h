@@ -192,7 +192,7 @@ if (Omega_h_USE_CUDA)
   endif()
 else()
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(omega_h PUBLIC
+    target_compile_options(omega_h PRIVATE
         -W
         -Wall
         -Wextra
@@ -200,7 +200,7 @@ else()
         -Wimplicit-fallthrough
         )
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    target_compile_options(omega_h PUBLIC
+    target_compile_options(omega_h PRIVATE
         -W
         -Wall
         -Wextra
