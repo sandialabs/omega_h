@@ -26,7 +26,8 @@ Reals graph_weighted_average_arc_data(
     Graph a2b, Reals ab_weights, Reals ab_data, Int width);
 Reals graph_weighted_average(
     Graph a2b, Reals ab_weights, Reals b_data, Int width);
-Graph filter_graph(Graph g, Read<I8> keep_edge);
+Graph filter_graph_edges(Graph g, Read<I8> keep_edge);
+Graph filter_graph_nodes(Graph g, Read<I8> keep_node);
 bool operator==(Graph a, Graph b);
 Graph identity_graph(LO nnodes);
 

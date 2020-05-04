@@ -91,12 +91,52 @@ struct FilteredGraph {
   LOs kept2old;
 };
 
-Graph filter_graph(Graph g, Read<I8> keep_edge) {
+Graph filter_graph_edges(Graph g, Read<I8> keep_edge) {
   auto degrees = fan_reduce(g.a2ab, keep_edge, 1, OMEGA_H_SUM);
   auto offsets = offset_scan(degrees);
   auto kept2old = collect_marked(keep_edge);
   auto edges = unmap(kept2old, g.ab2b, 1);
   return Graph(offsets, edges);
+}
+
+Graph filter_graph_nodes(Graph g, Read<I8> keep_node) {
+  auto const nold_nodes = g.nnodes();
+  auto const old_node2old_edge = g.a2ab;
+  auto const old_edge2old_node = g.ab2b;
+  auto const new_node2old_node = collect_marked(keep_node);
+  auto const nnew_nodes = new_node2old_node.size();
+  auto old_node2new_degree = Write<LO>(nold_nodes);
+  auto count = OMEGA_H_LAMBDA(LO old_node) {
+    LO n = 0;
+    for (auto old_edge = old_node2old_edge[old_node];
+         old_edge < old_node2old_edge[old_node + 1];
+         ++old_edge) {
+      if (keep_node[old_edge2old_node[old_edge]]) ++n;
+    }
+    old_node2new_degree[old_node] = n;
+  };
+  parallel_for(nold_nodes, count, "filter_graph_nodes(count)");
+  auto const new_node2new_degree = read(unmap(new_node2old_node, read(old_node2new_degree), 1));
+  auto const new_node2new_edge = offset_scan(new_node2new_degree);
+  auto const nnew_edges = new_node2new_edge.last();
+  auto const old_node2new_node = invert_injective_map(new_node2old_node, nold_nodes);
+  auto new_edge2new_node = Write<LO>(nnew_edges);
+  auto fill = OMEGA_H_LAMBDA(LO new_node) {
+    auto const old_node = new_node2old_node[new_node];
+    auto new_edge = new_node2new_edge[new_node];
+    for (auto old_edge = old_node2old_edge[old_node];
+         old_edge < old_node2old_edge[old_node + 1];
+         ++old_edge) {
+      auto const other_old_node = old_edge2old_node[old_edge];
+      if (keep_node[other_old_node]) {
+        auto const other_new_node = old_node2new_node[other_old_node];
+        new_edge2new_node[new_edge] = other_new_node;
+        ++new_edge;
+      }
+    }
+  };
+  parallel_for(nnew_nodes, fill, "filter_graph_nodes(fill)");
+  return Graph(new_node2new_edge, read(new_edge2new_node));
 }
 
 bool operator==(Graph a, Graph b) {
