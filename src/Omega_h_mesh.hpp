@@ -41,6 +41,8 @@ class Mesh {
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
+  void set_ents(Topo_type high_type, Topo_type low_type);
+  //void set_ents(Int high_type, Int low_type, LOs hl2l);
   void set_parents(Int ent_dim, Parents parents);
   Library* library() const;
   CommPtr comm() const;
@@ -75,6 +77,7 @@ class Mesh {
   Int ntags(Int dim) const;
   TagBase const* get_tag(Int dim, Int i) const;
   bool has_ents(Int dim) const;
+  bool has_ents(Topo_type ent_type, bool mixed) const;
   bool has_adj(Int from, Int to) const;
   Adj get_adj(Int from, Int to) const;
   Adj ask_down(Int from, Int to);
@@ -100,6 +103,7 @@ class Mesh {
   TagCIter tag_iter(Int dim, std::string const& name) const;
   void check_dim(Int dim) const;
   void check_dim2(Int dim) const;
+  void check_type(Topo_type ent_type) const;
   void add_adj(Int from, Int to, Adj adj);
   Adj derive_adj(Int from, Int to);
   Adj ask_adj(Int from, Int to);

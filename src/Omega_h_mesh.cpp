@@ -91,6 +91,19 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   add_adj(ent_dim, ent_dim - 1, down);
 }
 
+void Mesh::set_ents(Topo_type high_type, Topo_type low_type) {
+//void Mesh::set_ents(Int high_type, Int low_type, LOs hl2l) {
+  OMEGA_H_TIME_FUNCTION;
+  check_type(high_type);//change check_type code
+  check_type(low_type);
+  OMEGA_H_CHECK(!has_ents(high_type, 1));//change has_ents code
+/*
+  auto deg = element_degree(high_type, low_type);//change element_degree code
+  nents_[high_type] = divide_no_remainder(hl2l.size(), deg);//change nents_ code
+  add_adj(high_type, low_type, Adj(hl2l));//change add adj code
+*/
+}
+
 void Mesh::set_parents(Int ent_dim, Parents parents) {
   check_dim2(ent_dim);
   parents_[ent_dim] = std::make_shared<Parents>(parents);
@@ -240,6 +253,15 @@ bool Mesh::has_ents(Int ent_dim) const {
   return nents_[ent_dim] >= 0;
 }
 
+bool Mesh::has_ents(Topo_type ent_type, bool mixed) const {
+  check_type(ent_type);
+  OMEGA_H_CHECK(mixed);
+/*
+  return nents_[ent_dim] >= 0; // change nents_ code
+*/
+  return 1;
+}
+
 bool Mesh::has_adj(Int from, Int to) const {
   check_dim(from);
   check_dim(to);
@@ -292,6 +314,12 @@ void Mesh::check_dim(Int ent_dim) const {
 void Mesh::check_dim2(Int ent_dim) const {
   check_dim(ent_dim);
   OMEGA_H_CHECK(has_ents(ent_dim));
+}
+
+
+void Mesh::check_type(Topo_type ent_type) const {
+  OMEGA_H_CHECK(Topo_type::vertex <= ent_type);
+  OMEGA_H_CHECK(ent_type <= Topo_type::pyramid);
 }
 
 void Mesh::add_adj(Int from, Int to, Adj adj) {
