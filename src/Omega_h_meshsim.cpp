@@ -10,6 +10,15 @@
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
 #include "SimUtil.h"
+#include "SimDiscrete.h"
+#include "MeshSim.h"
+#include "SimMessages.h"
+#include "SimError.h"
+#include "SimErrorCodes.h"
+#include "SimMeshingErrorCodes.h"
+#include "SimDiscreteErrorCodes.h"
+
+using namespace std;
 
 namespace Omega_h {
 
@@ -17,16 +26,21 @@ namespace meshsim {
 
 namespace {
 
+/*
 int classId(pEntity e) {
   pGEntity g = EN_whatIn(e);
   assert(g);
   return GEN_tag(g);
 }
+*/
 
-void read_internal(pParMesh sm, Mesh* mesh) {
+void read_internal(pMesh m, Mesh* mesh) {
+//void read_internal(pParMesh sm, Mesh* mesh) {
   (void)mesh;
-  pMesh m = PM_mesh(sm, 0);
 /*
+  // check carefully if this is required or not
+  // pMesh m = PM_mesh(sm, 0);
+
   Int max_dim;
   if (M_numRegions(m)) {
     max_dim = 3;
@@ -38,27 +52,24 @@ void read_internal(pParMesh sm, Mesh* mesh) {
     Omega_h_fail("There were no Elements of dimension higher than zero!\n");
   }
 */
-  //get the types of elements
-  //Omega_h_Family family = OMEGA_H_SIMPLEX;
-  //RIter regions = M_regionIter(m);
-  pRegion rgn;
-  //LO i = 0;
-  //while ((rgn = (pRegion) RIter_next(regions))) {
-  //  if(R_topoType(rgn) != Rtet)
-  //    Omega_h_fail("Non-simplex element found!\n");
-  //  ++i;
-  //}
-  //RIter_delete(regions);
-  std::vector<int> ent_nodes[10];
-  //std::vector<int> ent_nodes[4];
-  std::vector<int> ent_class_ids[10];
-  //std::vector<int> ent_class_ids[4];
+  std::vector<int> down_adjs[10];
+  //std::vector<int> ent_class_ids[10];
   printf(" ok1.4.1 \n");
+  const int numVtx = M_numVertices(m);
+  const int numEdges = M_numEdges(m);
+  const int numFaces = M_numFaces(m);
+  const int numRegions = M_numRegions(m);
+  const int numEntities = numVtx + numEdges + numFaces + numRegions;
+  //allocate space for the requirement based topo type ids
+    //this will only be required if EN_id returns global per_mesh ids
+    //as opposed to per_dimension EN_ids
+  //std::vector<int> Topo_type_ids;
+  //Topo_type_ids.reserve(numEntities);
 
 /*
-  //write vertex coords into node_coords and vertex ids into ent_nodes
+  //write vertex coords into node_coords and vertex ids into down_adjs
   const int numVtx = M_numVertices(m);
-  ent_nodes[0].reserve(numVtx);
+  down_adjs[0].reserve(numVtx);
   ent_class_ids[0].reserve(numVtx);
   HostWrite<Real> host_coords(numVtx*max_dim);
   VIter vertices = M_vertexIter(m);
@@ -72,101 +83,137 @@ void read_internal(pParMesh sm, Mesh* mesh) {
     for(int j=0; j<max_dim; j++) {
       host_coords[i * max_dim + j] = xyz[j];
     }
-    ent_nodes[0].push_back(EN_id(vtx));
+    down_adjs[0].push_back(EN_id(vtx));
     ent_class_ids[0].push_back(classId(vtx));
     ++i;
   }
   VIter_delete(vertices);
 */
+
   //get the ids of vertices bounding each edge
-  const int numEdges = M_numEdges(m);
-  ent_nodes[1].reserve(numEdges*2);
-  ent_class_ids[1].reserve(numEdges);
+  down_adjs[1].reserve(numEdges*2);
+  //ent_class_ids[1].reserve(numEdges);
   EIter edges = M_edgeIter(m);
   pEdge edge;
   pVertex vtx;
+  int count_edge = 0;
   printf(" ok1.4.2 \n");
+  double xyz[3];//stores vtx coords
   while ((edge = (pEdge) EIter_next(edges))) {
-    for(int j=1; j>=0; --j) {
+    //Topo_type_ids[EN_id(edge)] = count_edge;
+    count_edge += 1;
+    printf("edge EN_id is=%d \n", EN_id(edge));
+    //printf("edge EN_id is=%d, edge_topo_id=%d\n", EN_id(edge), Topo_type_ids[EN_id(edge)]);
+    for(int j=0; j<2; ++j) {
       vtx = E_vertex(edge,j);
-      ent_nodes[1].push_back(EN_id(vtx));
+      down_adjs[1].push_back(EN_id(vtx));
+      V_coord(vtx,xyz);
+      printf("vtx EN_id is=%d, x=%f, y=%f, z=%f\n", EN_id(vtx), xyz[0], xyz[1], xyz[2]);
     }
-    ent_class_ids[1].push_back(classId(edge));
+    //ent_class_ids[1].push_back(classId(edge));
   }
   EIter_delete(edges);
   printf(" ok1.4.3 \n");
 
   //pass vectors to set_ents
-  HostWrite<LO> host_e2v(numEdges*2);
+  auto deg = element_degree(Topo_type::edge, Topo_type::vertex);
+  printf("deg e2v=%d \n", deg);
+/*
+  //below degree values check out
+  deg = element_degree(Topo_type::triangle, Topo_type::edge);
+  printf("deg tr2ed=%d \n", deg);
+  deg = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
+  printf("deg tet2v=%d \n", deg);
+  deg = element_degree(Topo_type::hexahedron, Topo_type::quadrilateral);
+  printf("deg hex2quad=%d \n", deg);
+  deg = element_degree(Topo_type::wedge, Topo_type::triangle);
+  printf("deg wed2tri=%d \n", deg);
+  deg = element_degree(Topo_type::pyramid, Topo_type::edge);
+  printf("deg py2ed=%d \n", deg);
+  deg = element_degree(Topo_type::pyramid, Topo_type::quadrilateral);
+  printf("deg py2quad=%d \n", deg);
+*/
+  HostWrite<LO> host_e2v(numEdges*deg);
   for (Int i = 0; i < numEdges; ++i) {
-    for (Int j = 0; j < 2; ++j) {
-      host_e2v[i*2 + j] =
-          ent_nodes[1][static_cast<std::size_t>(i*2 + j)];
+    for (Int j = 0; j < deg; ++j) {
+      host_e2v[i*deg + j] =
+          down_adjs[1][static_cast<std::size_t>(i*deg + j)];
     }
   }
   auto e2v = Read<LO>(host_e2v.write()); //This is LOs
-  //Mesh::set_ents(1, 0, e2v);
-  //may use the Adj(down) constructor to pass adj graph
+  mesh->set_ents(Topo_type::edge, Topo_type::vertex, e2v);
 
   //get the ids of edges bounding each triangle
   //get the ids of edges bounding each quadrilateral
   FIter faces = M_faceIter(m);
   pFace face;
   printf(" ok1.4.4 \n");
-  const int numFaces = M_numFaces(m);
-  //alloc for ids of tris
-  std::vector<int> tri_ids[1];
-  tri_ids[0].reserve(numFaces);
-  //alloc for ids of quads
-  std::vector<int> quad_ids[1];
-  quad_ids[0].reserve(numFaces);
   //count no. of tris and quads
   int count_tri = 0;
   int count_quad = 0;
-  //get ids of tris and quads from faceIDs & total
+  //get ids of tris and quads from faceIDs
+  std::vector<int> face_type_ids;
+  face_type_ids.reserve(numFaces);
   while (face = (pFace) FIter_next(faces)) {
+    printf("face entity id=%d ", EN_id(face));
     if (F_numEdges(face) == 3) {
-      tri_ids[0][EN_id(face)] = count_tri;
+      //get ids of tris
+      face_type_ids[EN_id(face)] = count_tri;
+      //Topo_type_ids[EN_id(face)] = count_tri;
       //increment for next tri
       count_tri += 1;
+      printf ("is tri_id=%d\n", count_tri);
+      //printf ("is tri_id=%d\n", Topo_type_ids[EN_id(face)]);
     }
     else if (F_numEdges(face) == 4) {
-      quad_ids[0][EN_id(face)] = count_quad;
+      //get ids of quads
+      face_type_ids[EN_id(face)] = count_quad;
+      //Topo_type_ids[EN_id(face)] = count_quad;
       //increment for next quad
       count_quad += 1;
+      printf ("is quad_id=%d\n", count_quad);
+      //printf ("is quad_id=%d\n", Topo_type_ids[EN_id(face)]);
     }
     else {
       Omega_h_fail ("Face is neither tri nor quad \n");
     }
+    //printf("face EN_id is=%d, face_topo_id=%d\n", EN_id(face), Topo_type_ids[EN_id(face)]);
   }
   FIter_delete(faces);
+
   printf(" ok1.4.5 \n");
-  //
+  //printf(" tris=%d, quads=%d \n", count_tri, count_quad);
   //allocate memory for t2e and q2e
-  ent_nodes[2].reserve(count_tri*3);
-  ent_nodes[3].reserve(count_quad*4);
+  down_adjs[2].reserve(count_tri*3);
+  //printf(" ok1.4.5.0 \n");
+  down_adjs[3].reserve(count_quad*4);
   //
+  //printf(" ok1.4.5.1 \n");
   
   //iterate and populate resp. edge ids
   faces = M_faceIter(m);
+  //printf(" ok1.4.5.1.1 \n");
   while (face = (pFace) FIter_next(faces)) {
     if (F_numEdges(face) == 3) {
+      //printf(" ok1.4.5.2, tri \n");
       pEdge tri_edge;
       pPList tri_edges = F_edges(face,1,0);
       assert (PList_size(tri_edges) == 3);
       void *iter = 0; // must initialize to 0
       while (tri_edge = (pEdge) PList_next(tri_edges, &iter))
-        ent_nodes[2].push_back(EN_id(tri_edge));
+        down_adjs[2].push_back(EN_id(tri_edge));
+        //down_adjs[2].push_back(Topo_type_ids[EN_id(tri_edge)]);
       PList_delete(tri_edges);
     }
     else if (F_numEdges(face) == 4) {
+      //printf(" ok1.4.5.3, quad \n");
       pEdge quad_edge;
       pPList quad_edges = F_edges(face,1,0);
       assert (PList_size(quad_edges) == 4);
       void *iter = 0; // must initialize to 0
-      //check if PList_next or E...
       while (quad_edge = (pEdge) PList_next(quad_edges, &iter))
-        ent_nodes[3].push_back(EN_id(quad_edge));
+        down_adjs[3].push_back(EN_id(quad_edge));
+        //down_adjs[3].push_back(Topo_type_ids[EN_id(quad_edge)]);
       PList_delete(quad_edges);
     }
     else {
@@ -182,7 +229,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_tri; ++i) {
     for (Int j = 0; j < 3; ++j) {
       host_t2e[i*3 + j] =
-          ent_nodes[2][static_cast<std::size_t>(i*3 + j)];
+          down_adjs[2][static_cast<std::size_t>(i*3 + j)];
     }
   }
   auto t2e = Read<LO>(host_t2e.write()); //This is LOs
@@ -192,7 +239,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_quad; ++i) {
     for (Int j = 0; j < 4; ++j) {
       host_q2e[i*4 + j] =
-          ent_nodes[3][static_cast<std::size_t>(i*4 + j)];
+          down_adjs[3][static_cast<std::size_t>(i*4 + j)];
     }
   }
   auto q2e = Read<LO>(host_q2e.write()); //This is LOs
@@ -210,11 +257,11 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   LO count_hex = 0;
   LO count_wedge = 0;
   LO count_pyramid = 0;
+  pRegion rgn;
   while (rgn = (pRegion) RIter_next(regions)) {
     if (R_topoType(rgn) == Rtet) {
       count_tet += 1;
     }
-    // check which exact keyword for other types
     else if (R_topoType(rgn) == Rhex) {
       count_hex += 1;
     }
@@ -233,12 +280,12 @@ void read_internal(pParMesh sm, Mesh* mesh) {
 
   printf(" ok1.4.6 \n");
   //allocate memory for t2t. h2q, w2t, w2q, p2t, p2q
-  ent_nodes[4].reserve(count_tet*4);
-  ent_nodes[5].reserve(count_hex*6);
-  ent_nodes[6].reserve(count_wedge*2);//tris
-  ent_nodes[7].reserve(count_wedge*3);
-  ent_nodes[8].reserve(count_pyramid*4);//tris
-  ent_nodes[9].reserve(count_pyramid);
+  down_adjs[4].reserve(count_tet*4);
+  down_adjs[5].reserve(count_hex*6);
+  down_adjs[6].reserve(count_wedge*2);//tris
+  down_adjs[7].reserve(count_wedge*3);
+  down_adjs[8].reserve(count_pyramid*4);//tris
+  down_adjs[9].reserve(count_pyramid);
   //
   printf(" ok1.4.7 \n");
   
@@ -247,64 +294,64 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   while ((rgn = (pRegion) RIter_next(regions))) {
     //Tets
     if (R_topoType(rgn) == Rtet) {
-      printf(" tet \n");
+      //printf(" tet \n");
       pFace tri;
       pPList tris = R_faces(rgn,1);
       assert (PList_size(tris) == 4);
       void *iter = 0; // must initialize to 0
       while (tri = (pFace) PList_next(tris, &iter))
-        ent_nodes[4].push_back(tri_ids[0][EN_id(tri)]);
-        //ent_nodes[4].push_back(EN_id(tri));
+        down_adjs[4].push_back(face_type_ids[EN_id(tri)]);
+        //down_adjs[4].push_back(Topo_type_ids[EN_id(tri)]);
       PList_delete(tris);
     }
     //Hexs
     else if (R_topoType(rgn) == Rhex) {
-      printf(" hex \n");
+      //printf(" hex \n");
       pFace quad;
       pPList quads = R_faces(rgn,1); 
       assert (PList_size(quads) == 6);
       void *iter = 0; // must initialize to 0
       while (quad = (pFace) PList_next(quads, &iter))
-        ent_nodes[5].push_back(quad_ids[0][EN_id(quad)]);
-        //ent_nodes[5].push_back(EN_id(quad));
+        down_adjs[5].push_back(face_type_ids[EN_id(quad)]);
+        //down_adjs[5].push_back(Topo_type_ids[EN_id(quad)]);
       PList_delete(quads);
     }
     //Wedges
     else if (R_topoType(rgn) == Rwedge) {
-      printf(" wedge \n");
+      //printf(" wedge \n");
       pFace w_face;
       pPList w_faces = R_faces(rgn,1);
       assert (PList_size(w_faces) == 5);
       void *iter = 0; // must initialize to 0
       while (w_face = (pFace) PList_next(w_faces, &iter)) {
         if (F_numEdges(w_face) == 3) { //face is tri 
-          ent_nodes[6].push_back(tri_ids[0][EN_id(w_face)]);
-	  //ent_nodes[6].push_back(EN_id(w_face));
+          down_adjs[6].push_back(face_type_ids[EN_id(w_face)]);
+          //down_adjs[6].push_back(Topo_type_ids[EN_id(w_face)]);
 	}
         else { //face is quad
-          ent_nodes[7].push_back(quad_ids[0][EN_id(w_face)]);
-	  //ent_nodes[7].push_back(EN_id(w_face));
+          down_adjs[7].push_back(face_type_ids[EN_id(w_face)]);
+          //down_adjs[7].push_back(Topo_type_ids[EN_id(w_face)]);
 	}
       }
       PList_delete(w_faces);
     }
     //Pyramids
     else if (R_topoType(rgn) == Rpyramid) {
-      printf(" pyramid 1\n");
+      //printf(" pyramid 1\n");
       pFace p_face;
       pPList p_faces = R_faces(rgn,1);
       assert (PList_size(p_faces) == 5);
       void *iter = 0; // must initialize to 0
       while (p_face = (pFace) PList_next(p_faces, &iter)) {
         if (F_numEdges(p_face) == 3) { //face is tri
-          printf(" pyramid,tri 4.t \n");
-          ent_nodes[8].push_back(tri_ids[0][EN_id(p_face)]);
-          //ent_nodes[8].push_back(EN_id(p_face));
+          //printf(" pyramid,tri 4.t \n");
+          down_adjs[8].push_back(face_type_ids[EN_id(p_face)]);
+          //down_adjs[8].push_back(Topo_type_ids[EN_id(p_face)]);
         }
         else { // face is quad
-          printf(" pyramid,quad 4.q, count_py=%d \n", count_pyramid);
-          ent_nodes[9].push_back(quad_ids[0][EN_id(p_face)]);
-          //ent_nodes[9].push_back(EN_id(p_face));
+          //printf(" pyramid,quad 4.q, count_py=%d \n", count_pyramid);
+          down_adjs[9].push_back(face_type_ids[EN_id(p_face)]);
+          //down_adjs[9].push_back(Topo_type_ids[EN_id(p_face)]);
         }
       }
       PList_delete(p_faces);
@@ -312,7 +359,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
     else {
       Omega_h_fail ("Region is not tet, hex, wedge, or pyramid \n");
     }
-  printf(" ok1.4.7.1 \n");
+  //printf(" ok1.4.7.1 \n");
   }
   RIter_delete(regions);
   printf(" ok1.4.8 \n");
@@ -323,7 +370,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_tet; ++i) {
     for (Int j = 0; j < 4; ++j) {
       host_tet2tr[i*4 + j] =
-          ent_nodes[4][static_cast<std::size_t>(i*4 + j)];
+          down_adjs[4][static_cast<std::size_t>(i*4 + j)];
     }
   }
   auto tet2tr = Read<LO>(host_tet2tr.write()); //This is LOs
@@ -333,7 +380,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_hex; ++i) {
     for (Int j = 0; j < 6; ++j) {
       host_tet2tr[i*6 + j] =
-          ent_nodes[5][static_cast<std::size_t>(i*6 + j)];
+          down_adjs[5][static_cast<std::size_t>(i*6 + j)];
     }
   }
   auto hex2q = Read<LO>(host_hex2q.write()); //This is LOs
@@ -343,7 +390,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_wedge; ++i) {
     for (Int j = 0; j < 2; ++j) {
       host_wedge2tri[i*2 + j] =
-          ent_nodes[6][static_cast<std::size_t>(i*2 + j)];
+          down_adjs[6][static_cast<std::size_t>(i*2 + j)];
     }
   }
   auto wedge2tri = Read<LO>(host_wedge2tri.write()); //This is LOs
@@ -353,7 +400,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_wedge; ++i) {
     for (Int j = 0; j < 3; ++j) {
       host_wedge2quad[i*3 + j] =
-          ent_nodes[7][static_cast<std::size_t>(i*3 + j)];
+          down_adjs[7][static_cast<std::size_t>(i*3 + j)];
     }
   }
   auto wedge2quad = Read<LO>(host_wedge2quad.write()); //This is LOs
@@ -363,7 +410,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_pyramid; ++i) {
     for (Int j = 0; j < 4; ++j) {
       host_pyramid2tri[i*4 + j] =
-          ent_nodes[8][static_cast<std::size_t>(i*4 + j)];
+          down_adjs[8][static_cast<std::size_t>(i*4 + j)];
     }
   }
   auto pyramid2tri = Read<LO>(host_pyramid2tri.write()); //This is LOs
@@ -373,79 +420,54 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   for (Int i = 0; i < count_pyramid; ++i) {
     for (Int j = 0; j < 1; ++j) {
       host_pyramid2quad[i*1 + j] =
-          ent_nodes[9][static_cast<std::size_t>(i*1 + j)];
+          down_adjs[9][static_cast<std::size_t>(i*1 + j)];
     }
   }
   auto pyramid2quad = Read<LO>(host_pyramid2quad.write()); //This is LOs
   //Mesh::set_ents(8, 3, pyramid2quad);
-/*
 
-  const int numFaces = M_numFaces(m);
-  ent_nodes[2].reserve(numFaces*3);
-  ent_class_ids[2].reserve(numFaces);
-
-  while ((face = (pFace) FIter_next(faces))) {
-    pPList verts = F_vertices(face,1);
-    assert(PList_size(verts) == 3);
-    void *iter = 0; // must initialize to 0
-    while((vtx = (pVertex)PList_next(verts, &iter)))
-      ent_nodes[2].push_back(EN_id(vtx));
-    PList_delete(verts);
-    ent_class_ids[2].push_back(classId(face));
+  //print contents of down adjs, e2v -> o/p checks out
+  for (std::vector<std::vector<int>>::size_type i = 1; i < 10; i++) {
+  //for (std::vector<std::vector<int>>::size_type i = 0; i < down_adjs.size(); i++) {
+    printf("from type %lu \n ", i);
+    for (std::vector<int>::size_type j = 0; j < down_adjs[i].size(); j++) {
+     std::cout << down_adjs[i][j] << ' ';
+    }
+    std::cout << std::endl;
   }
-  FIter_delete(faces);
 
+/*
   //get the ids of vertices bounding each face
-  const int numFaces = M_numFaces(m);
-  ent_nodes[2].reserve(numFaces*3);
   ent_class_ids[2].reserve(numFaces);
   FIter faces = M_faceIter(m);
   pFace face;
   while ((face = (pFace) FIter_next(faces))) {
-    pPList verts = F_vertices(face,1);
-    assert(PList_size(verts) == 3);
-    void *iter = 0; // must initialize to 0
-    while((vtx = (pVertex)PList_next(verts, &iter)))
-      ent_nodes[2].push_back(EN_id(vtx));
-    PList_delete(verts);
     ent_class_ids[2].push_back(classId(face));
   }
   FIter_delete(faces);
 
   //get the ids of vertices bounding each region
-  const int numRegions = M_numRegions(m);
-  ent_nodes[3].reserve(numRegions*4);
   ent_class_ids[3].reserve(numRegions);
   regions = M_regionIter(m);
   while ((rgn = (pRegion) RIter_next(regions))) {
-    pPList verts = R_vertices(rgn,1);
-    assert(PList_size(verts) == 4);
-    void *iter = 0; // must initialize to 0
-    while((vtx = (pVertex)PList_next(verts, &iter)))
-      ent_nodes[3].push_back(EN_id(vtx));
-    PList_delete(verts);
     ent_class_ids[3].push_back(classId(rgn));
   }
   RIter_delete(regions);
 
-  //flatten the ent_nodes and ent_class_ids arrays
+  //flatten the down_adjs and ent_class_ids arrays
   for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
     Int neev = element_degree(family, ent_dim, VERT);
-    LO ndim_ents = static_cast<LO>(ent_nodes[ent_dim].size()) / neev;
+    LO ndim_ents = static_cast<LO>(down_adjs[ent_dim].size()) / neev;
     HostWrite<LO> host_ev2v(ndim_ents * neev);
     HostWrite<LO> host_class_id(ndim_ents);
     for (i = 0; i < ndim_ents; ++i) {
       for (Int j = 0; j < neev; ++j) {
         host_ev2v[i * neev + j] =
-            ent_nodes[ent_dim][static_cast<std::size_t>(i * neev + j)];
+            down_adjs[ent_dim][static_cast<std::size_t>(i * neev + j)];
       }
       host_class_id[i] = ent_class_ids[ent_dim][static_cast<std::size_t>(i)];
     }
     auto eqv2v = Read<LO>(host_ev2v.write());
-    if (ent_dim == max_dim) {
-      build_from_elems_and_coords(
-          mesh, family, max_dim, eqv2v, host_coords.write());
-    }
     classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
   }
   finalize_classification(mesh);
@@ -453,6 +475,25 @@ void read_internal(pParMesh sm, Mesh* mesh) {
 }
 
 }  // end anonymous namespace
+
+void messageHandler(int type, const char *msg)
+{
+  switch (type) {
+  case Sim_InfoMsg:
+    cout<<"Info: "<<msg<<endl;
+    break;
+  case Sim_DebugMsg:
+    cout<<"Debug: "<<msg<<endl;
+    break;
+  case Sim_WarningMsg:
+    cout<<"Warning: "<<msg<<endl;
+    break;
+  case Sim_ErrorMsg:
+    cout<<"Error: "<<msg<<endl;
+    break;
+  }
+  return;
+}
 
 Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     CommPtr comm) {
@@ -467,9 +508,127 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
   pParMesh sm = PM_load(mesh_fname.c_str(), g, p);
   printf(" ok1.3 \n");
   auto mesh = Mesh(comm->library());
+
+/*
+  pMesh ms;
+  ms = M_new(0,0);
+  int numVerts = 7;
+  double coords[7*3] =  {0.000, 0.000, 0.000,
+                         1.000, 0.000, 0.000,
+                         0.500, 0.866, 0.000,
+			 0.000, 0.000, 1.000, 
+                         1.000, 0.000, 1.000,
+                         0.500, 0.866, 1.000,
+                         0.500, 0.289, 2.000,
+			};
+  int numElems = 2;
+  int elementType[2] = {12, 10};
+  int elementData[6+4] = {0,1,2,3,4,5,3,4,5,6};
+  M_importFromData(ms, numVerts, coords, numElems,
+       elementType, elementData, 0, 0, 0);
+  //
+  M_write(ms, "/users/joshia5/simmodeler/importDataMesh.sms", 0, 0);
   printf(" ok1.4 \n");
-  meshsim::read_internal(sm, &mesh);
+  meshsim::read_internal(ms, &mesh);
   printf(" ok1.5 \n");
+  M_release(ms);
+*/
+
+  try {  
+    Sim_logOn("importData1.log");  // start logging
+    MS_init(); // Call before calling Sim_readLicenseFile
+    // NOTE: Sim_readLicenseFile() is for internal testing only.  To use,
+    // pass in the location of a file containing your keys.  For a release 
+    // product, use Sim_registerKey() 
+    Sim_readLicenseFile(0);
+
+    // input parameters for the function
+    pMesh meshtest; //mesh to load
+    int numVerts = 7;
+    double coords[7*3] =  {0.000, 0.000, 0.000,
+                           1.000, 0.000, 0.000,
+                           0.500, 0.866, 0.000,
+	    	  	   0.000, 0.000, 1.000, 
+                           1.000, 0.000, 1.000,
+                           0.500, 0.866, 1.000,
+                           0.500, 0.289, 1.866,
+			  };
+    int numElems = 2;
+    int elementType[2] = {12, 10};
+    int elementData[6+4] = {0,1,2,3,4,5,3,4,5,6};
+/*
+    int numVerts = 8; // number of vertices  
+    double coords[8*3] = {0.0,0.0,0.0,
+                        1.0,0.0,0.0,
+                        1.0,0.0,1.0,
+                        0.0,0.0,1.0,
+                        0.0,1.0,0.0,
+                        1.0,1.0,0.0,
+                        1.0,1.0,1.0,
+                        0.0,1.0,1.0}; 
+    int numElems = 12; // number of elements (2 triangles per face - 6 faces)
+    // Type of element to be created, 12 triangles
+    int elementType[12] = {5,5,5,5,5,5,5,5,5,5,5,5}; 
+    // Node list for each element - this array is 3*12 long, for each element's nodes
+    int elementData[12*3] = {0,2,3,0,1,2,0,5,4,0,1,5,1,6,5,1,2,6,2,7,6,2,3,7,3,4,7,3,0,4,4,6,7,4,5,6}; 
+*/
+    pVertex vReturn[7]; // array of created vertices
+    pEntity eReturn[2]; // array of created entities
+    SimDiscrete_start(0);  // initialize GeomSim Discrete library
+    Sim_setMessageHandler(messageHandler);
+    pProgress progress = Progress_new();
+    Progress_setDefaultCallback(progress);
+
+    meshtest = M_new(0,0);
+    if(M_importFromData(meshtest,numVerts,coords,numElems,
+      elementType,elementData,vReturn,eReturn,progress)) { //check for error 
+      cerr<<"Error importing mesh data"<<endl;
+      M_release(meshtest);
+      //return 1;
+    }
+
+    // create the Discrete model
+    pDiscreteModel modeltest = DM_createFromMesh(meshtest, 0, progress);
+    if(!modeltest) { //check for error
+      cerr<<"Error creating Discrete model from mesh"<<endl;
+      M_release(meshtest);
+      //return 1;
+    }
+
+    DM_findEdgesByFaceNormals(modeltest, 0, progress);
+    DM_eliminateDanglingEdges(modeltest, progress);
+    if(DM_completeTopology(modeltest, progress)) { //check for error
+      cerr<<"Error completing Discrete model topology"<<endl;
+      M_release(meshtest);
+      GM_release(modeltest);
+      //return 1;
+    }
+
+    GM_write(modeltest,"/users/joshia5/simmodeler/Example.smd",0,progress); // save the discrete model
+    M_write(meshtest,"/users/joshia5/simmodeler/Example.sms", 0,progress);  // write out the initial mesh data
+  
+    meshsim::read_internal(meshtest, &mesh);
+
+    // cleanup
+    M_release(meshtest);
+    GM_release(modeltest);
+    Progress_delete(progress);
+    SimDiscrete_stop(0);
+    Sim_unregisterAllKeys();
+    MS_exit();
+    Sim_logOff();
+
+  } catch (pSimError err) {
+    cerr<<"SimModSuite error caught:"<<endl;
+    cerr<<"  Error code: "<<SimError_code(err)<<endl;
+    cerr<<"  Error string: "<<SimError_toString(err)<<endl;
+    SimError_delete(err);
+    //return 1;
+  } catch (...) {
+    cerr<<"Unhandled exception caught"<<endl;
+    //return 1;
+  }
+
   M_release(sm);
   GM_release(g);
   SimModel_stop();

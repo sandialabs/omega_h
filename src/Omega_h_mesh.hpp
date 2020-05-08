@@ -41,8 +41,7 @@ class Mesh {
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
-  void set_ents(Topo_type high_type, Topo_type low_type);
-  //void set_ents(Int high_type, Int low_type, LOs hl2l);
+  void set_ents(Topo_type high_type, Topo_type low_type, LOs hl2l);
   void set_parents(Int ent_dim, Parents parents);
   Library* library() const;
   CommPtr comm() const;
@@ -53,6 +52,7 @@ class Mesh {
   }
   inline Omega_h_Family family() const { return family_; }
   LO nents(Int ent_dim) const;
+  LO nents(Topo_type ent_type) const;
   LO nelems() const;
   LO nregions() const;
   LO nfaces() const;
@@ -77,7 +77,7 @@ class Mesh {
   Int ntags(Int dim) const;
   TagBase const* get_tag(Int dim, Int i) const;
   bool has_ents(Int dim) const;
-  bool has_ents(Topo_type ent_type, bool mixed) const;
+  bool has_ents(Topo_type ent_type) const;
   bool has_adj(Int from, Int to) const;
   Adj get_adj(Int from, Int to) const;
   Adj ask_down(Int from, Int to);
@@ -104,7 +104,9 @@ class Mesh {
   void check_dim(Int dim) const;
   void check_dim2(Int dim) const;
   void check_type(Topo_type ent_type) const;
+  void check_type2(Topo_type ent_type) const;
   void add_adj(Int from, Int to, Adj adj);
+  void add_adj(Topo_type from_type, Topo_type to_type, Adj adj);
   Adj derive_adj(Int from, Int to);
   Adj ask_adj(Int from, Int to);
   void react_to_set_tag(Int dim, std::string const& name);
@@ -114,8 +116,10 @@ class Mesh {
   Int parting_;
   Int nghost_layers_;
   LO nents_[DIMS];
+  LO nents_type_[TOPO_TYPES];
   TagVector tags_[DIMS];
   AdjPtr adjs_[DIMS][DIMS];
+  AdjPtr adjs_type_[TOPO_TYPES][TOPO_TYPES];
   Remotes owners_[DIMS];
   DistPtr dists_[DIMS];
   RibPtr rib_hints_;

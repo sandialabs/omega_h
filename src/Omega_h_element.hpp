@@ -21,6 +21,46 @@ OMEGA_H_INLINE Int element_degree(
                                     : hypercube_degree(from_dim, to_dim));
 }
 
+OMEGA_H_INLINE Int element_degree(Topo_type from_type, Topo_type to_type) {
+  const int from = int(from_type);
+  const int to = int(to_type);
+  return (from == 0 ?
+	   (to == 0 ? 1 : -1) :
+	 (from == 1 ?
+	   (to == 0 ? 2 :
+	   (to == 1 ? 1 : -1)) :
+         (from == 2 ?
+	   (to == 0 ? 3 :
+	   (to == 1 ? 3 :
+	   (to == 2 ? 1 : -1))) :
+	 (from == 3 ?
+	   (to == 0 ? 4 :
+	   (to == 1 ? 4 :
+	   (to == 3 ? 1 : -1))) :
+	 (from == 4 ?
+	   (to == 0 ? 4 :
+	   (to == 1 ? 6 :
+	   (to == 2 ? 4 :
+	   (to == 4 ? 1 : -1)))) : 
+	 (from == 5 ?
+	   (to == 0 ? 8 :
+	   (to == 1 ? 12 :
+	   (to == 3 ? 6 :
+	   (to == 5 ? 1 : -1)))) :
+	 (from == 6 ?
+	   (to == 0 ? 6 :
+	   (to == 1 ? 9 :
+	   (to == 2 ? 2 :
+	   (to == 3 ? 3 :
+	   (to == 6 ? 1 : -1))))) :
+	 (from == 7 ?
+	   (to == 0 ? 5 :
+	   (to == 1 ? 8 :
+	   (to == 2 ? 4 :
+	   (to == 3 ? 1 :
+	   (to == 7 ? 1 : -1))))) : -1))))))));
+}
+
 OMEGA_H_INLINE TemplateUp element_up_template(Omega_h_Family family,
     Int elem_dim, Int bdry_dim, Int which_bdry, Int which_up) {
   return (

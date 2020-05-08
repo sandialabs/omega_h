@@ -96,6 +96,8 @@ enum : Int {
   REGION = OMEGA_H_REGION
 };
 
+enum { TOPO_TYPES = 8 };
+
 }  // end namespace Omega_h
 
 enum class Topo_type : int {
