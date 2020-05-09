@@ -6,6 +6,7 @@
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
 #include "Omega_h_mesh.hpp"
+#include "Omega_h_for.hpp"
 
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
@@ -36,17 +37,20 @@ int classId(pEntity e) {
 
 void read_internal(pMesh m, Mesh* mesh) {
 //void read_internal(pParMesh sm, Mesh* mesh) {
+  //pMesh m = PM_mesh(sm, 0);
   (void)mesh;
-/*
-  // check carefully if this is required or not
-  // pMesh m = PM_mesh(sm, 0);
+  const int numVtx = M_numVertices(m);
+  const int numEdges = M_numEdges(m);
+  const int numFaces = M_numFaces(m);
+  const int numRegions = M_numRegions(m);
 
+/*
   Int max_dim;
-  if (M_numRegions(m)) {
+  if (numRegions(m)) {
     max_dim = 3;
-  } else if (M_numFaces(m)) {
+  } else if (numFaces(m)) {
     max_dim = 2;
-  } else if (M_numEdges(m)) {
+  } else if (numEdges(m)) {
     max_dim = 1;
   } else {
     Omega_h_fail("There were no Elements of dimension higher than zero!\n");
@@ -55,20 +59,15 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> down_adjs[10];
   //std::vector<int> ent_class_ids[10];
   printf(" ok1.4.1 \n");
-  const int numVtx = M_numVertices(m);
-  const int numEdges = M_numEdges(m);
-  const int numFaces = M_numFaces(m);
-  const int numRegions = M_numRegions(m);
-  const int numEntities = numVtx + numEdges + numFaces + numRegions;
   //allocate space for the requirement based topo type ids
     //this will only be required if EN_id returns global per_mesh ids
     //as opposed to per_dimension EN_ids
+  //const int numEntities = numVtx + numEdges + numFaces + numRegions;
   //std::vector<int> Topo_type_ids;
   //Topo_type_ids.reserve(numEntities);
 
 /*
   //write vertex coords into node_coords and vertex ids into down_adjs
-  const int numVtx = M_numVertices(m);
   down_adjs[0].reserve(numVtx);
   ent_class_ids[0].reserve(numVtx);
   HostWrite<Real> host_coords(numVtx*max_dim);
@@ -118,6 +117,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   //pass vectors to set_ents
   auto deg = element_degree(Topo_type::edge, Topo_type::vertex);
   printf("deg e2v=%d \n", deg);
+  
 /*
   //below degree values check out
   deg = element_degree(Topo_type::triangle, Topo_type::edge);
@@ -142,6 +142,18 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   auto e2v = Read<LO>(host_e2v.write()); //This is LOs
   mesh->set_ents(Topo_type::edge, Topo_type::vertex, e2v);
+  //set numVerts of mesh
+  mesh->set_verts(numVtx);
+
+  //test API call for 1 lvl dwn adj
+  auto edge2vert = mesh->get_adj(Topo_type::edge, Topo_type::vertex).ab2b;
+  printf("edge2vert returned from get_adj is\n");
+  auto print_call = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", edge2vert[i]);
+  };
+  parallel_for(edge2vert.size(), print_call);
+  printf("\n");
+  //
 
   //get the ids of edges bounding each triangle
   //get the ids of edges bounding each quadrilateral
@@ -233,7 +245,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto t2e = Read<LO>(host_t2e.write()); //This is LOs
-  //Mesh::set_ents(2, 1, t2e);
+  mesh->set_ents(Topo_type::triangle, Topo_type::edge, t2e);
 
   HostWrite<LO> host_q2e(count_quad*4);
   for (Int i = 0; i < count_quad; ++i) {
@@ -243,7 +255,12 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto q2e = Read<LO>(host_q2e.write()); //This is LOs
-  //Mesh::set_ents(3, 1, q2e);
+  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, q2e);
+
+  //test API
+  auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);
+  auto quad2edge = mesh->get_adj(Topo_type::quadrilateral, Topo_type::edge);
+  //
 
   //get the ids of tris bounding each tet
   //get the ids of quads bounding each hex
@@ -374,7 +391,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto tet2tr = Read<LO>(host_tet2tr.write()); //This is LOs
-  //Mesh::set_ents(4, 2, tet2tr);
+  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, tet2tr);
   
   HostWrite<LO> host_hex2q(count_hex*6);
   for (Int i = 0; i < count_hex; ++i) {
@@ -384,7 +401,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto hex2q = Read<LO>(host_hex2q.write()); //This is LOs
-  //Mesh::set_ents(5, 3, hex2q);
+  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, hex2q);
   
   HostWrite<LO> host_wedge2tri(count_wedge*2);
   for (Int i = 0; i < count_wedge; ++i) {
@@ -394,7 +411,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto wedge2tri = Read<LO>(host_wedge2tri.write()); //This is LOs
-  //Mesh::set_ents(6, 2, wedge2tri);
+  mesh->set_ents(Topo_type::wedge, Topo_type::triangle, wedge2tri);
   
   HostWrite<LO> host_wedge2quad(count_wedge*3);
   for (Int i = 0; i < count_wedge; ++i) {
@@ -404,7 +421,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto wedge2quad = Read<LO>(host_wedge2quad.write()); //This is LOs
-  //Mesh::set_ents(6, 3, wedge2quad);
+  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, wedge2quad);
   
   HostWrite<LO> host_pyramid2tri(count_pyramid*4);
   for (Int i = 0; i < count_pyramid; ++i) {
@@ -414,7 +431,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto pyramid2tri = Read<LO>(host_pyramid2tri.write()); //This is LOs
-  //Mesh::set_ents(7, 2, pyramid2tri);
+  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, pyramid2tri);
   
   HostWrite<LO> host_pyramid2quad(count_pyramid);
   for (Int i = 0; i < count_pyramid; ++i) {
@@ -424,7 +441,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto pyramid2quad = Read<LO>(host_pyramid2quad.write()); //This is LOs
-  //Mesh::set_ents(8, 3, pyramid2quad);
+  mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, pyramid2quad);
 
   //print contents of down adjs, e2v -> o/p checks out
   for (std::vector<std::vector<int>>::size_type i = 1; i < 10; i++) {
@@ -435,6 +452,15 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
     std::cout << std::endl;
   }
+
+  //test API
+  auto tet2tri = mesh->get_adj(Topo_type::tetrahedron, Topo_type::triangle);
+  auto hex2quad = mesh->get_adj(Topo_type::hexahedron, Topo_type::quadrilateral);
+  auto wedge2tria = mesh->get_adj(Topo_type::wedge, Topo_type::triangle);
+  auto wedge2quadr = mesh->get_adj(Topo_type::wedge, Topo_type::quadrilateral);
+  auto pyramid2tria = mesh->get_adj(Topo_type::pyramid, Topo_type::triangle);
+  auto pyramid2quadr = mesh->get_adj(Topo_type::pyramid, Topo_type::quadrilateral);
+  //
 
 /*
   //get the ids of vertices bounding each face

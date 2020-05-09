@@ -79,7 +79,9 @@ class Mesh {
   bool has_ents(Int dim) const;
   bool has_ents(Topo_type ent_type) const;
   bool has_adj(Int from, Int to) const;
+  bool has_adj(Topo_type from_type, Topo_type to_type) const;
   Adj get_adj(Int from, Int to) const;
+  Adj get_adj(Topo_type from_type, Topo_type to_type) const;
   Adj ask_down(Int from, Int to);
   LOs ask_verts_of(Int dim);
   LOs ask_elem_verts();

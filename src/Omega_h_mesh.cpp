@@ -21,9 +21,13 @@
 namespace Omega_h {
 
 Mesh::Mesh() {
+  //check what these values should be for mixed mesh
+  //maybe define a new 'Mesh' constructor
   family_ = OMEGA_H_SIMPLEX;
   dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
+  //add for mixed mesh
+  for (Int i = 0; i <= 7; ++i) nents_type_[i] = -1;
   parting_ = -1;
   nghost_layers_ = -1;
   library_ = nullptr;
@@ -96,9 +100,10 @@ void Mesh::set_ents(Topo_type high_type, Topo_type low_type, LOs hl2l) {
   check_type(high_type);//change check_type code
   check_type(low_type);
   //OMEGA_H_CHECK(!has_ents(high_type));//change has_ents code
+  //above commented as prob in wedge/pyramid2tr/quad
   auto deg = element_degree(high_type, low_type);//change element_degree code
   nents_type_[int(high_type)] = divide_no_remainder(hl2l.size(), deg);//change nents_ code
-//  add_adj(high_type, low_type, Adj(hl2l));//change add adj code
+  add_adj(high_type, low_type, Adj(hl2l));//change add adj code
 }
 
 void Mesh::set_parents(Int ent_dim, Parents parents) {
@@ -115,7 +120,7 @@ LO Mesh::nents(Int ent_dim) const {
 
 LO Mesh::nents(Topo_type ent_type) const {
   check_type2(ent_type);
-  return nents_[int(ent_type)];
+  return nents_type_[int(ent_type)];
 }
 
 LO Mesh::nelems() const { return nents(dim()); }
@@ -266,11 +271,24 @@ bool Mesh::has_adj(Int from, Int to) const {
   return bool(adjs_[from][to]);
 }
 
+bool Mesh::has_adj(Topo_type from_type, Topo_type to_type) const {
+  check_type(from_type);
+  check_type(to_type);
+  return bool(adjs_type_[int(from_type)][int(to_type)]);
+}
+
 Adj Mesh::get_adj(Int from, Int to) const {
   check_dim2(from);
   check_dim2(to);
   OMEGA_H_CHECK(has_adj(from, to));
   return *(adjs_[from][to]);
+}
+
+Adj Mesh::get_adj(Topo_type from_type, Topo_type to_type) const {
+  check_type2(from_type);
+  check_type2(from_type);
+  OMEGA_H_CHECK(has_adj(from_type, to_type));//modify code
+  return *(adjs_type_[int(from_type)][int(to_type)]);
 }
 
 Adj Mesh::ask_down(Int from, Int to) {
@@ -314,7 +332,6 @@ void Mesh::check_dim2(Int ent_dim) const {
   OMEGA_H_CHECK(has_ents(ent_dim));
 }
 
-
 void Mesh::check_type(Topo_type ent_type) const {
   OMEGA_H_CHECK(Topo_type::vertex <= ent_type);
   OMEGA_H_CHECK(ent_type <= Topo_type::pyramid);
@@ -353,16 +370,16 @@ void Mesh::add_adj(Int from, Int to, Adj adj) {
 void Mesh::add_adj(Topo_type from_type, Topo_type to_type, Adj adj) {
   check_type2(from_type);
   check_type(to_type);
+  OMEGA_H_CHECK(adj.ab2b.exists());
   const int from = int(from_type);
   const int to = int(to_type); 
-  OMEGA_H_CHECK(adj.ab2b.exists());
 
   if (to < from) {
     OMEGA_H_CHECK(!adj.a2ab.exists());                         
     if (to_type == Topo_type::vertex) {
-      //OMEGA_H_CHECK(!adj.codes.exists());
+      OMEGA_H_CHECK(!adj.codes.exists());
     } else {
-      //OMEGA_H_CHECK(adj.codes.exists());                       
+      //OMEGA_H_CHECK(adj.codes.exists());//to add codes for mixed
     }
     OMEGA_H_CHECK(                                            
         adj.ab2b.size() == nents(from_type) * element_degree(from_type, to_type));
@@ -370,7 +387,7 @@ void Mesh::add_adj(Topo_type from_type, Topo_type to_type, Adj adj) {
   } else {
     if (from < to) {
       OMEGA_H_CHECK(adj.a2ab.exists());                        
-      //OMEGA_H_CHECK(adj.codes.exists());                       
+      //OMEGA_H_CHECK(adj.codes.exists()); 
       OMEGA_H_CHECK(
           adj.ab2b.size() == nents(to_type) * element_degree(to_type, from_type)); 
     }
