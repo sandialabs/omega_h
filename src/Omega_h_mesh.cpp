@@ -85,6 +85,8 @@ void Mesh::set_dim(Int dim_in) {
 
 void Mesh::set_verts(LO nverts_in) { nents_[VERT] = nverts_in; }
 
+void Mesh::set_verts_type(LO nverts_in) { nents_type_[int(Topo_type::vertex)] = nverts_in; }
+
 void Mesh::set_ents(Int ent_dim, Adj down) {
   OMEGA_H_TIME_FUNCTION;
   check_dim(ent_dim);
@@ -305,6 +307,11 @@ Adj Mesh::ask_up(Int from, Int to) {
   return ask_adj(from, to);
 }
 
+Adj Mesh::ask_up(Topo_type from_type, Topo_type to_type) {
+  OMEGA_H_CHECK(int(from_type) < int(to_type));
+  return ask_adj(from_type, to_type);//change ask_adj code
+}
+
 Graph Mesh::ask_star(Int ent_dim) {
   OMEGA_H_CHECK(ent_dim < dim());
   return ask_adj(ent_dim, ent_dim);
@@ -436,6 +443,55 @@ Adj Mesh::derive_adj(Int from, Int to) {
   OMEGA_H_NORETURN(Adj());
 }
 
+Adj Mesh::derive_adj(Topo_type from_type, Topo_type to_type) {
+  OMEGA_H_TIME_FUNCTION;
+  check_type(from_type);
+  check_type2(to_type);
+  const int from = int(from_type);
+  const int to = int(to_type);
+  if (from < to) {
+    Adj down = ask_adj(to_type, from_type);
+    Int nlows_per_high = element_degree(to_type, from_type);
+    LO nlows = nents(from_type);//change this to pass maxval from down.ab2b
+    //printf("derive:0\n");
+    //LO nlows = get_max(down.ab2b);//change this to pass maxval from down.ab2b
+    //LO nlows = get_max(library_->world(), down.ab2b);//change this to pass maxval from down.ab2b
+    //printf("derive:1\n");
+    Adj up = invert_adj(down, nlows_per_high, nlows, to_type, from_type); //change code
+    return up;
+  }
+/*
+    else if (to < from) {
+    OMEGA_H_CHECK(to + 1 < from);
+    Adj h2m = ask_adj(from, to + 1);
+    Adj m2l = ask_adj(to + 1, to);
+    Adj h2l = transit(h2m, m2l, family_, from, to);
+    return h2l;
+  } else {
+    if (from == dim() && to == dim()) {
+      return elements_across_sides(dim(), ask_adj(dim(), dim() - 1),
+          ask_adj(dim() - 1, dim()), mark_exposed_sides(this));
+    }
+    if (from == VERT && to == VERT) {
+      return verts_across_edges(ask_adj(EDGE, VERT), ask_adj(VERT, EDGE));
+    }
+    if (from == EDGE && to == EDGE) {
+      OMEGA_H_CHECK(dim() >= 2);
+      Graph g = edges_across_tris(ask_adj(FACE, EDGE), ask_adj(EDGE, FACE));
+      if (dim() == 3) {
+        g = add_edges(
+            g, edges_across_tets(ask_adj(REGION, EDGE), ask_adj(EDGE, REGION)));
+      }
+      return g;
+    }
+  }
+*/
+  Omega_h_fail("can't derive adjacency from %s to %s\n",
+      topological_plural_name(family(), from),
+      topological_plural_name(family(), to));
+  OMEGA_H_NORETURN(Adj());
+}
+
 Adj Mesh::ask_adj(Int from, Int to) {
   OMEGA_H_TIME_FUNCTION;
   check_dim2(from);
@@ -445,6 +501,19 @@ Adj Mesh::ask_adj(Int from, Int to) {
   }
   Adj derived = derive_adj(from, to);
   adjs_[from][to] = std::make_shared<Adj>(derived);
+  return derived;
+}
+
+Adj Mesh::ask_adj(Topo_type from_type, Topo_type to_type) {
+  OMEGA_H_TIME_FUNCTION;
+  check_type2(from_type);
+  check_type2(to_type);
+  //printf("ask_adj:3\n");
+  if (has_adj(from_type, to_type)) {
+    return get_adj(from_type, to_type);
+  }
+  Adj derived = derive_adj(from_type, to_type);//change code
+  adjs_type_[int(from_type)][int(to_type)] = std::make_shared<Adj>(derived);
   return derived;
 }
 

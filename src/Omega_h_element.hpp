@@ -76,12 +76,34 @@ constexpr char const* dimensional_singular_name(Int dim) {
                                            : (dim == 0 ? "vertex" : nullptr))));
 }
 
+constexpr char const* dimensional_singular_name(Topo_type ent_type) {
+  return (int(ent_type) == 7 ? "pyramid"
+	 : (int(ent_type) == 6 ? "wedge"
+	   : (int(ent_type) == 5 ? "hexahedron"
+	     : (int(ent_type) == 4 ? "tetrahedron"
+	       : (int(ent_type) == 3 ? "quadrilateral"
+		 : (int(ent_type) == 2 ? "triangle"
+		   : (int(ent_type) == 1 ? "edge"
+		     : (int(ent_type) == 0 ? "vertex" : nullptr))))))));
+}
+
 constexpr char const* dimensional_plural_name(Int dim) {
   return (dim == 3
               ? "regions"
               : (dim == 2 ? "faces"
                           : (dim == 1 ? "edges"
                                       : (dim == 0 ? "vertices" : nullptr))));
+}
+
+constexpr char const* dimensional_plural_name(Topo_type ent_type) {
+  return (int(ent_type) == 7 ? "pyramids"
+	 : (int(ent_type) == 6 ? "wedges"
+	   : (int(ent_type) == 5 ? "hexahedrons"
+	     : (int(ent_type) == 4 ? "tetrahedrons"
+	       : (int(ent_type) == 3 ? "quadrilaterals"
+		 : (int(ent_type) == 2 ? "triangles"
+		   : (int(ent_type) == 1 ? "edges"
+		     : (int(ent_type) == 0 ? "vertices" : nullptr))))))));
 }
 
 constexpr char const* topological_singular_name(

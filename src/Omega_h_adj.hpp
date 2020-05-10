@@ -48,6 +48,9 @@ Adj unmap_adjacency(LOs const a2b, Adj const b2c);
 Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
     Int const high_dim, Int const low_dim);
 
+Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
+    Topo_type high_type, Topo_type low_type);
+
 Children invert_parents(Parents const children2parents, Int const parent_dim,
     Int const nparent_dim_ents);
 

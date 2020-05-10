@@ -40,6 +40,7 @@ class Mesh {
   void set_family(Omega_h_Family family);
   void set_dim(Int dim_in);
   void set_verts(LO nverts_in);
+  void set_verts_type(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
   void set_ents(Topo_type high_type, Topo_type low_type, LOs hl2l);
   void set_parents(Int ent_dim, Parents parents);
@@ -86,6 +87,7 @@ class Mesh {
   LOs ask_verts_of(Int dim);
   LOs ask_elem_verts();
   Adj ask_up(Int from, Int to);
+  Adj ask_up(Topo_type from_type, Topo_type to_type);
   Graph ask_star(Int dim);
   Graph ask_dual();
 
@@ -110,7 +112,9 @@ class Mesh {
   void add_adj(Int from, Int to, Adj adj);
   void add_adj(Topo_type from_type, Topo_type to_type, Adj adj);
   Adj derive_adj(Int from, Int to);
+  Adj derive_adj(Topo_type from_type, Topo_type to_type);
   Adj ask_adj(Int from, Int to);
+  Adj ask_adj(Topo_type from_type, Topo_type to_type);
   void react_to_set_tag(Int dim, std::string const& name);
   Omega_h_Family family_;
   Int dim_;

@@ -229,6 +229,40 @@ static void separate_upward_no_codes(LO const nlh, LOs const lh2hl,
 }
 
 Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
+    Topo_type high_type, Topo_type low_type) {
+  OMEGA_H_TIME_FUNCTION;
+  auto const high_plural_name = dimensional_plural_name(high_type);//change code
+  auto const high_singular_name = dimensional_singular_name(high_type);//change code
+  auto const low_plural_name = dimensional_plural_name(low_type);
+  auto const low_singular_name = dimensional_singular_name(low_type);
+  auto const l2lh_name = std::string(low_plural_name) + " to " +
+                         low_singular_name + " " + high_plural_name;
+  auto const lh2hl_name = std::string(low_singular_name) + " " +
+                          high_plural_name + " to " + high_singular_name + " " +
+                          low_plural_name;
+  auto const lh2h_name = std::string(low_singular_name) + " " +
+                         high_plural_name + " to " + high_plural_name;
+  auto const codes_name =
+      std::string(low_singular_name) + " " + high_plural_name + " codes";
+  auto const l2hl =
+      invert_map_by_atomics(down.ab2b, nlows, l2lh_name, lh2hl_name);
+  auto const l2lh = l2hl.a2ab;
+  auto const lh2hl = l2hl.ab2b;
+  LO const nlh = lh2hl.size();
+  Read<I8> down_codes(down.codes);
+  Write<LO> lh2h(nlh, lh2h_name);
+  Write<I8> codes(nlh, codes_name);
+  if (down_codes.exists()) {
+    separate_upward_with_codes(
+        nlh, lh2hl, nlows_per_high, lh2h, down_codes, codes);
+  } else {
+    separate_upward_no_codes(nlh, lh2hl, nlows_per_high, lh2h, codes);
+  }
+  sort_by_high_index(l2lh, lh2h, codes);
+  return Adj(l2lh, lh2h, codes);
+}
+
+Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
     Int const high_dim, Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
   auto const high_plural_name = dimensional_plural_name(high_dim);
