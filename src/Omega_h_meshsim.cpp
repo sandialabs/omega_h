@@ -423,18 +423,18 @@ void read_internal(pMesh m, Mesh* mesh) {
   //test API call for 1 lvl dwn adj
   auto edge2vert = mesh->get_adj(Topo_type::edge, Topo_type::vertex).ab2b;
   printf("edge2vert returned from get_adj is\n");
-  auto print_call = OMEGA_H_LAMBDA(LO i) {
+  auto print_call0= OMEGA_H_LAMBDA(LO i) {
     printf(" %d", edge2vert[i]);
   };
-  parallel_for(edge2vert.size(), print_call);
+  parallel_for(edge2vert.size(), print_call0);
   printf("\n");
 
   auto vert2edge = mesh->ask_up(Topo_type::vertex, Topo_type::edge).ab2b;
-  printf("vert2edge returned from ask_up is\n");
-  auto print_cal = OMEGA_H_LAMBDA(LO i) {
+  printf("vert2edge lists returned from ask_up is\n");
+  auto print_call1 = OMEGA_H_LAMBDA(LO i) {
     printf(" %d", vert2edge[i]);
   };
-  parallel_for(vert2edge.size(), print_cal);
+  parallel_for(vert2edge.size(), print_call1);
   printf("\n");
   //
   //test API
@@ -442,7 +442,32 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto quad2edge = mesh->get_adj(Topo_type::quadrilateral, Topo_type::edge);
 
   auto edge2tri = mesh->ask_up(Topo_type::edge, Topo_type::triangle);
+  printf("edge2tri lists returned from ask_up is\n");
+  auto print_call2 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", edge2tri.ab2b[i]);
+  };
+  parallel_for(edge2tri.ab2b.size(), print_call2);
+  printf("\n");
+  printf("edge2tri offsets returned from ask_up is\n");
+  auto print_call2p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", edge2tri.a2ab[i]);
+  };
+  parallel_for(edge2tri.a2ab.size(), print_call2p0);
+  printf("\n");
+
   auto edge2quad = mesh->ask_up(Topo_type::edge, Topo_type::quadrilateral);
+  printf("edge2quad lists returned from ask_up is\n");
+  auto print_call3 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", edge2quad.ab2b[i]);
+  };
+  parallel_for(edge2quad.ab2b.size(), print_call3);
+  printf("\n");
+  printf("edge2quad offsets returned from ask_up is\n");
+  auto print_call3p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", edge2quad.a2ab[i]);
+  };
+  parallel_for(edge2quad.a2ab.size(), print_call3p0);
+  printf("\n");
   //
   //test API
   auto tet2tri = mesh->get_adj(Topo_type::tetrahedron, Topo_type::triangle);
@@ -453,11 +478,89 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto pyramid2quadr = mesh->get_adj(Topo_type::pyramid, Topo_type::quadrilateral);
 
   auto tri2tet = mesh->ask_up(Topo_type::triangle, Topo_type::tetrahedron);
+  printf("tri2tet list returned from ask_up is\n");
+  auto print_call4 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", tri2tet.ab2b[i]);
+  };
+  parallel_for(tri2tet.ab2b.size(), print_call4);
+  printf("\n");
+  printf("tri2tet offset returned from ask_up is\n");
+  auto print_call4p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", tri2tet.a2ab[i]);
+  };
+  parallel_for(tri2tet.a2ab.size(), print_call4p0);
+  printf("\n");
+
   auto quad2hex = mesh->ask_up(Topo_type::quadrilateral, Topo_type::hexahedron);
+  printf("quad2hex list returned from ask_up is\n");
+  auto print_call5 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", quad2hex.ab2b[i]);
+  };
+  parallel_for(quad2hex.ab2b.size(), print_call5);
+  printf("\n");
+  printf("quad2hex offset returned from ask_up is\n");
+  auto print_call5p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", quad2hex.a2ab[i]);
+  };
+  parallel_for(quad2hex.a2ab.size(), print_call5p0);
+  printf("\n");
+
   auto tri2wedge = mesh->ask_up(Topo_type::triangle, Topo_type::wedge);
+  printf("tri2wedge list returned from ask_up is\n");
+  auto print_call6 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", tri2wedge.ab2b[i]);
+  };
+  parallel_for(tri2wedge.ab2b.size(), print_call6);
+  printf("\n");
+  printf("tri2wedge offset returned from ask_up is\n");
+  auto print_call6p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", tri2wedge.a2ab[i]);
+  };
+  parallel_for(tri2wedge.a2ab.size(), print_call6p0);
+  printf("\n");
+
   auto quad2wedge = mesh->ask_up(Topo_type::quadrilateral, Topo_type::wedge);
+  printf("quad2wedge list returned from ask_up is\n");
+  auto print_call7 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", quad2wedge.ab2b[i]);
+  };
+  parallel_for(quad2wedge.ab2b.size(), print_call7);
+  printf("\n");
+  printf("quad2wedge offset returned from ask_up is\n");
+  auto print_call7p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", quad2wedge.a2ab[i]);
+  };
+  parallel_for(quad2wedge.a2ab.size(), print_call7p0);
+  printf("\n");
+
   auto tri2pyramid = mesh->ask_up(Topo_type::triangle, Topo_type::pyramid);
+  printf("tri2pyramid list returned from ask_up is\n");
+  auto print_call8 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", tri2pyramid.ab2b[i]);
+  };
+  parallel_for(tri2pyramid.ab2b.size(), print_call8);
+  printf("\n");
+  printf("tri2pyramid offset returned from ask_up is\n");
+  auto print_call8p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", tri2pyramid.a2ab[i]);
+  };
+  parallel_for(tri2pyramid.a2ab.size(), print_call8p0);
+  printf("\n");
+
   auto quad2pyramid = mesh->ask_up(Topo_type::quadrilateral, Topo_type::pyramid);
+  printf("quad2pyramid list returned from ask_up is\n");
+  auto print_call9 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", quad2pyramid.ab2b[i]);
+  };
+  parallel_for(quad2pyramid.ab2b.size(), print_call9);
+  printf("\n");
+  printf("quad2pyramid offset returned from ask_up is\n");
+  auto print_call9p0 = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", quad2pyramid.a2ab[i]);
+  };
+  parallel_for(quad2pyramid.a2ab.size(), print_call9p0);
+  printf("\n");
+
   //
 
 /*
