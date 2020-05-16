@@ -79,8 +79,7 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
       return simplex_up_template(3, bdry_type, which_bdry, which_up);//return simplex_up_template for tet-to-vtx/edge
     case 5:
       return hypercube_up_template(3, bdry_type, which_bdry, which_up);//return hypercube_up_temp for hex-to-vtx/edge
-/*
-    case 6: //new template for wedge-to-vtx/edge via quads
+    case 6: //new template for wedge-to-vtx & wedge-to-edge via quads
       switch (bdry_type) {
         case 0:
           switch (which_bdry) {
@@ -105,59 +104,78 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
             case 3:
               switch (which_up) {
                 case 0:
-                  return {5, 1, 0};
+                  return {6, 0, 0};
               }
               return {-1, -1, 0};
 	    case 4:
               switch (which_up) {
                 case 0:
-                  return {5, 1, 0};
+                  return {7, 0, 0};
               }
               return {-1, -1, 0};
 	    case 5:
               switch (which_up) {
                 case 0:
-                  return {5, 1, 0};
+                  return {8, 0, 0};
               }
               return {-1, -1, 0};
           }
           return {-1, -1, 0};
         case 1:
+	//up-entity is quad
           switch (which_bdry) {
             case 0:
               switch (which_up) {
                 case 0:
-                  return {0, 2, 1}; 
+                  return {0, 0, 0}; 
               }   
               return {-1, -1, 0}; 
             case 1:
               switch (which_up) {
                 case 0:
-                  return {0, 1, 1}; 
+                  return {1, 0, 0}; 
               }
               return {-1, -1, 0}; 
             case 2:
               switch (which_up) {
                 case 0:
-                  return {0, 0, 1}; 
+                  return {2, 0, 0}; 
               }
               return {-1, -1, 0};
             case 3:
               switch (which_up) {
                 case 0:
-                  return {1, 2, 1};
+                  return {0, 3, 0};
               }
               return {-1, -1, 0};
             case 4:
               switch (which_up) {
                 case 0:
-                  return {2, 2, 1};
+                  return {1, 3, 0};
               }
               return {-1, -1, 0};
             case 5:
               switch (which_up) {
                 case 0:
-                  return {3, 2, 1};
+                  return {2, 3, 0};
+              }
+              return {-1, -1, 0};
+            case 6:
+              switch (which_up) {
+                case 0:
+                  return {0, 2, 0};
+              }
+              return {-1, -1, 0};
+            case 7:
+              switch (which_up) {
+                case 0:
+                  return {1, 2, 0};
+              }
+              return {-1, -1, 0};
+            case 8:
+              switch (which_up) {
+                case 0:
+                  return {2, 2, 0};
               }
               return {-1, -1, 0};
           }
@@ -165,9 +183,96 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
       }
       return {-1, -1, 0};
     
-    case 7: // make new template for pyramid-to-vtx/edge via tris
+    case 7: // make new template for pyramid-to-vtx & pyramid-to-edge via tris
+      switch (bdry_type) {
+        case 0:
+          switch (which_bdry) {
+            case 0:
+              switch (which_up) {
+                case 0:
+                  return {0, 0, 0}; 
+              }
+              return {-1, -1, 0}; 
+            case 1:
+              switch (which_up) {
+                case 0:
+                  return {1, 0, 0}; 
+              }
+              return {-1, -1, 0}; 
+            case 2:
+              switch (which_up) {
+                case 0:
+                  return {2, 0, 0}; 
+              }
+              return {-1, -1, 0}; 
+            case 3:
+              switch (which_up) {
+                case 0:
+                  return {3, 0, 0};
+              }
+              return {-1, -1, 0};
+	    case 4:
+              switch (which_up) {
+                case 0:
+                  return {4, 1, 0};
+              }
+              return {-1, -1, 0};
+          }
+          return {-1, -1, 0};
+        case 1:
+	//up-entity is quad
+          switch (which_bdry) {
+            case 0:
+              switch (which_up) {
+                case 0:
+                  return {0, 0, 0}; 
+              }   
+              return {-1, -1, 0}; 
+            case 1:
+              switch (which_up) {
+                case 0:
+                  return {1, 0, 0}; 
+              }
+              return {-1, -1, 0}; 
+            case 2:
+              switch (which_up) {
+                case 0:
+                  return {2, 0, 0}; 
+              }
+              return {-1, -1, 0};
+            case 3:
+              switch (which_up) {
+                case 0:
+                  return {3, 0, 0};
+              }
+              return {-1, -1, 0};
+            case 4:
+              switch (which_up) {
+                case 0:
+                  return {0, 2, 0};
+              }
+              return {-1, -1, 0};
+            case 5:
+              switch (which_up) {
+                case 0:
+                  return {1, 2, 0};
+              }
+              return {-1, -1, 0};
+            case 6:
+              switch (which_up) {
+                case 0:
+                  return {2, 2, 0};
+              }
+              return {-1, -1, 0};
+            case 7:
+              switch (which_up) {
+                case 0:
+                  return {3, 2, 0};
+              }
+              return {-1, -1, 0};
+          }
+          return {-1, -1, 0};
       }
-*/
       return {-1, -1, 0};
   }
   return {-1, -1, 0};
