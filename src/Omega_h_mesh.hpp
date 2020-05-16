@@ -84,6 +84,7 @@ class Mesh {
   Adj get_adj(Int from, Int to) const;
   Adj get_adj(Topo_type from_type, Topo_type to_type) const;
   Adj ask_down(Int from, Int to);
+  Adj ask_down(Topo_type from_type, Topo_type to_type);
   LOs ask_verts_of(Int dim);
   LOs ask_elem_verts();
   Adj ask_up(Int from, Int to);

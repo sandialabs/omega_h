@@ -561,7 +561,8 @@ void read_internal(pMesh m, Mesh* mesh) {
   parallel_for(quad2pyramid.a2ab.size(), print_call9p0);
   printf("\n");
 
-  //
+  //Transit tests
+  auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
 
 /*
   //get the ids of vertices bounding each face
@@ -670,6 +671,34 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
 
     // input parameters for the function
     pMesh meshtest; //mesh to load
+
+/*
+    // For tet on wedge, hex and pyramid adjacenct to wedge
+    int numVerts = 12;
+    double coords[12*3] = {0.000, 0.000, 0.000,
+                           1.000, 0.000, 0.000,
+                           0.500, 0.866, 0.000,
+	    	  	   0.000, 0.000, 1.000, 
+                           1.000, 0.000, 1.000,
+                           0.500, 0.866, 1.000,
+                           0.500, 0.289, 1.866,
+			   1.000, 1.500, 0.500,
+			   0.000, -1.000, 0.000,
+			   1.000, -1.000, 0.000,
+			   0.000, -1.000, 1.000,
+			   1.000, -1.000, 1.000
+			  };
+    int numElems = 4;
+    int elementType[4] = {12, 10, 11, 13};
+    int elementData[6+4+5+8] = {0,1,2,3,4,5, 3,4,5,6, 1,2,4,5,7, 0,1,9,8,3,5,11,10};
+    pVertex vReturn[12]; // array of created vertices
+    pEntity eReturn[4]; // array of created entities
+  printf(" ok1.3 \n");
+    //
+*/
+
+///*
+    //For tet on wedge
     int numVerts = 7;
     double coords[7*3] =  {0.000, 0.000, 0.000,
                            1.000, 0.000, 0.000,
@@ -682,7 +711,11 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     int numElems = 2;
     int elementType[2] = {12, 10};
     int elementData[6+4] = {0,1,2,3,4,5,3,4,5,6};
-/*
+    pVertex vReturn[7]; // array of created vertices
+    pEntity eReturn[2]; // array of created entities
+//*/
+
+/*  For cube as per simmetrix example
     int numVerts = 8; // number of vertices  
     double coords[8*3] = {0.0,0.0,0.0,
                         1.0,0.0,0.0,
@@ -698,8 +731,6 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     // Node list for each element - this array is 3*12 long, for each element's nodes
     int elementData[12*3] = {0,2,3,0,1,2,0,5,4,0,1,5,1,6,5,1,2,6,2,7,6,2,3,7,3,4,7,3,0,4,4,6,7,4,5,6}; 
 */
-    pVertex vReturn[7]; // array of created vertices
-    pEntity eReturn[2]; // array of created entities
     SimDiscrete_start(0);  // initialize GeomSim Discrete library
     Sim_setMessageHandler(messageHandler);
     pProgress progress = Progress_new();
@@ -720,18 +751,24 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
       M_release(meshtest);
       //return 1;
     }
+  printf(" ok1.3.2 \n");
 
     DM_findEdgesByFaceNormals(modeltest, 0, progress);
+  printf(" ok1.3.2.1 \n");
     DM_eliminateDanglingEdges(modeltest, progress);
+  printf(" ok1.3.2.2 \n");
     if(DM_completeTopology(modeltest, progress)) { //check for error
       cerr<<"Error completing Discrete model topology"<<endl;
+  printf(" ok1.3.2.3 \n");
       M_release(meshtest);
+  printf(" ok1.3.2.4 \n");
       GM_release(modeltest);
       //return 1;
     }
+  printf(" ok1.3.3 \n");
 
-    GM_write(modeltest,"/users/joshia5/simmodeler/Example.smd",0,progress); // save the discrete model
-    M_write(meshtest,"/users/joshia5/simmodeler/Example.sms", 0,progress);  // write out the initial mesh data
+    GM_write(modeltest,"/users/joshia5/simmodeler/Example_4type.smd",0,progress); // save the discrete model
+    M_write(meshtest,"/users/joshia5/simmodeler/Example_4type.sms", 0,progress);  // write out the initial mesh data
   
     meshsim::read_internal(meshtest, &mesh);
 

@@ -562,6 +562,103 @@ Graph verts_across_edges(Adj const e2v, Adj const v2e) {
   return Adj(v2vv, vv2v);
 }
 
+Adj transit(Adj const h2m, Adj const m2l, 
+    Topo_type const high_type, Topo_type const low_type, Topo_type const mid_type) {
+  OMEGA_H_TIME_FUNCTION;
+  auto const high_singular_name = dimensional_singular_name(high_type);
+  auto const low_plural_name = dimensional_plural_name(low_type);
+  auto const hl2l_name = std::string(high_singular_name) + " " +
+                         low_plural_name + " to " + low_plural_name;
+  OMEGA_H_CHECK(7 >= int(high_type));
+
+  //auto const mid_type = low_type + 1;//change mid_type based on high_type with if condition
+/*
+  Topo_type mid_type;
+  if (low_type == Topo_type::vertex) {
+    mid_type = Topo_type::edge;
+  }
+  else if ((high_type == Topo_type::tetrahedron) ||
+           (high_type == Topo_type::pyramid)) {
+    mid_type = Topo_type::triangle;
+  }
+  else {
+    mid_type = Topo_type::quadrilateral;
+  }
+*/
+  OMEGA_H_CHECK(int(high_type) > int(mid_type));
+  OMEGA_H_CHECK(int(low_type) == 1 || int(low_type) == 0);
+  auto const hm2m = h2m.ab2b;
+  auto const m2hm_codes = h2m.codes;
+  auto const ml2l = m2l.ab2b;
+  auto const ml_codes = m2l.codes;
+  auto const nmids_per_high = element_degree(high_type, mid_type);
+  auto const nlows_per_mid = element_degree(mid_type, low_type);
+  auto const nlows_per_high = element_degree(high_type, low_type);
+  auto const nhighs = divide_no_remainder(hm2m.size(), nmids_per_high);
+  Write<LO> hl2l(nhighs * nlows_per_high, hl2l_name);
+  Write<I8> codes;
+  // codes only need to be created when transiting region->face + face->edge = region->edge. any other transit has vertices as its destination, and vertices have no orientation/alignment //
+printf("ok transit 1 \n");
+  if (int(low_type) == 1) {
+    auto const codes_name =
+        std::string(high_singular_name) + " " + low_plural_name + " codes";
+    codes = Write<I8>(hl2l.size(), codes_name);
+  }
+printf("ok transit 2 \n");
+  auto f = OMEGA_H_LAMBDA(LO h) {
+    auto const hl_begin = h * nlows_per_high;
+    auto const hm_begin = h * nmids_per_high;
+printf("ok transit 2.1 h=%d \n", h);
+    for (Int hl = 0; hl < nlows_per_high; ++hl) {
+printf("ok transit 2.1.1 h=%d, hl=%d \n", h, hl);
+      auto const ut = element_up_template(int(high_type), int(low_type), hl, 0);//change template code
+printf("ok transit 2.1.1.1 h=%d, hl=%d \n", h, hl);
+      auto const hm = ut.up;
+printf("ok transit 2.1.1.2 h=%d, hl=%d \n", h, hl);
+      auto const hml = ut.which_down;
+printf("ok transit 2.1.1.3 h=%d, hl=%d \n", h, hl);
+      auto const m = hm2m[hm_begin + hm];
+printf("ok transit 2.1.1.4 h=%d, hl=%d \n", h, hl);
+      auto const m2hm_code = m2hm_codes[hm_begin + hm];
+printf("ok transit 2.1.1.5 h=%d, hl=%d \n", h, hl);
+      auto const hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
+printf("ok transit 2.1.1.6 h=%d, hl=%d \n", h, hl);
+      auto const ml = align_index(nlows_per_mid, int(low_type), hml, hm2m_code);
+printf("ok transit 2.1.1.7 h=%d, hl=%d \n", h, hl);
+      auto const ml_begin = m * nlows_per_mid;
+printf("ok transit 2.1.1.8 h=%d, hl=%d \n", h, hl);
+      auto const l = ml2l[ml_begin + ml];
+printf("ok transit 2.1.2 hl=%d \n", hl);
+      // safety check for duplicates.
+      // remove after this code is heavily exercised (or don't)
+      for (Int hhl2 = 0; hhl2 < hl; ++hhl2) {
+        OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
+      }
+      hl2l[hl_begin + hl] = l;
+      if (int(low_type) == 1) {
+        // all we are determining here is whether the edge is pointed
+        //   in or against the direction of the "canonical edge" as
+        //   defined by the element's template.
+        //   this is a bitwise XOR of several flips along the way //
+        auto const region_face_code = hm2m_code;
+        auto const face_edge_code = ml_codes[ml_begin + ml];
+        auto const region_face_flipped = code_is_flipped(region_face_code);
+        auto const face_edge_flipped = bool(code_rotation(face_edge_code) == 1);
+        auto const canon_flipped = ut.is_flipped;
+        bool const region_edge_flipped =
+            region_face_flipped ^ face_edge_flipped ^ canon_flipped;
+        codes[hl_begin + hl] = make_code(false, region_edge_flipped, 0);
+      }
+    }
+  };
+  parallel_for(nhighs, std::move(f));
+printf("ok transit 3 \n");
+/*
+*/
+  if (int(low_type) == 1) return Adj(hl2l, codes);
+  return Adj(hl2l);
+}
+
 Graph edges_across_tris(Adj const f2e, Adj const e2f) {
   OMEGA_H_TIME_FUNCTION;
   auto const fe2e = f2e.ab2b;

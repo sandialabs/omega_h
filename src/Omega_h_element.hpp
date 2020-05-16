@@ -69,6 +69,110 @@ OMEGA_H_INLINE TemplateUp element_up_template(Omega_h_Family family,
           : hypercube_up_template(elem_dim, bdry_dim, which_bdry, which_up));
 }
 
+OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int which_bdry, Int which_up) {
+  switch (elem_type) {
+    case 2:
+      return simplex_up_template(2, bdry_type, which_bdry, which_up);//return simplex_up_template for tri-to-vtx
+    case 3:
+      return hypercube_up_template(2, bdry_type, which_bdry, which_up);//return hypercube_up_temp for quad-to-vtx
+    case 4:
+      return simplex_up_template(3, bdry_type, which_bdry, which_up);//return simplex_up_template for tet-to-vtx/edge
+    case 5:
+      return hypercube_up_template(3, bdry_type, which_bdry, which_up);//return hypercube_up_temp for hex-to-vtx/edge
+/*
+    case 6: //new template for wedge-to-vtx/edge via quads
+      switch (bdry_type) {
+        case 0:
+          switch (which_bdry) {
+            case 0:
+              switch (which_up) {
+                case 0:
+                  return {0, 0, 0}; 
+              }
+              return {-1, -1, 0}; 
+            case 1:
+              switch (which_up) {
+                case 0:
+                  return {1, 0, 0}; 
+              }
+              return {-1, -1, 0}; 
+            case 2:
+              switch (which_up) {
+                case 0:
+                  return {2, 0, 0}; 
+              }
+              return {-1, -1, 0}; 
+            case 3:
+              switch (which_up) {
+                case 0:
+                  return {5, 1, 0};
+              }
+              return {-1, -1, 0};
+	    case 4:
+              switch (which_up) {
+                case 0:
+                  return {5, 1, 0};
+              }
+              return {-1, -1, 0};
+	    case 5:
+              switch (which_up) {
+                case 0:
+                  return {5, 1, 0};
+              }
+              return {-1, -1, 0};
+          }
+          return {-1, -1, 0};
+        case 1:
+          switch (which_bdry) {
+            case 0:
+              switch (which_up) {
+                case 0:
+                  return {0, 2, 1}; 
+              }   
+              return {-1, -1, 0}; 
+            case 1:
+              switch (which_up) {
+                case 0:
+                  return {0, 1, 1}; 
+              }
+              return {-1, -1, 0}; 
+            case 2:
+              switch (which_up) {
+                case 0:
+                  return {0, 0, 1}; 
+              }
+              return {-1, -1, 0};
+            case 3:
+              switch (which_up) {
+                case 0:
+                  return {1, 2, 1};
+              }
+              return {-1, -1, 0};
+            case 4:
+              switch (which_up) {
+                case 0:
+                  return {2, 2, 1};
+              }
+              return {-1, -1, 0};
+            case 5:
+              switch (which_up) {
+                case 0:
+                  return {3, 2, 1};
+              }
+              return {-1, -1, 0};
+          }
+          return {-1, -1, 0};
+      }
+      return {-1, -1, 0};
+    
+    case 7: // make new template for pyramid-to-vtx/edge via tris
+      }
+*/
+      return {-1, -1, 0};
+  }
+  return {-1, -1, 0};
+};
+
 constexpr char const* dimensional_singular_name(Int dim) {
   return (dim == 3 ? "region"
                    : (dim == 2 ? "face"

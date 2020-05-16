@@ -95,6 +95,9 @@ Adj reflect_down(LOs const hv2v, LOs const lv2v, Omega_h_Family const family,
 Adj transit(Adj const h2m, Adj const m2l, Omega_h_Family const family,
     Int const high_dim, Int const low_dim);
 
+Adj transit(Adj const h2m, Adj const m2l, Topo_type const high_type,
+    Topo_type const low_type, Topo_type const mid_type);
+
 Graph verts_across_edges(Adj const e2v, Adj const v2e);
 Graph edges_across_tris(Adj const f2e, Adj const e2f);
 Graph edges_across_tets(Adj const r2e, Adj const e2r);
