@@ -7,6 +7,7 @@
 #include "Omega_h_vector.hpp"
 #include "Omega_h_mesh.hpp"
 #include "Omega_h_for.hpp"
+#include "Omega_h_adj.hpp"
 
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
@@ -118,8 +119,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   
 /*
   //below degree values check out
-  deg = element_degree(Topo_type::triangle, Topo_type::edge);
-  printf("deg tr2ed=%d \n", deg);
   deg = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
   printf("deg tet2v=%d \n", deg);
   deg = element_degree(Topo_type::hexahedron, Topo_type::quadrilateral);
@@ -141,8 +140,9 @@ void read_internal(pMesh m, Mesh* mesh) {
           down_adjs[1][static_cast<std::size_t>(i*deg + j)];
     }
   }
-  auto e2v = Read<LO>(host_e2v.write()); //This is LOs
-  mesh->set_ents(Topo_type::edge, Topo_type::vertex, e2v);
+  auto ev2v = Read<LO>(host_e2v.write()); //This is LOs
+  mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(ev2v));
+  //mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(e2v, e2v_codes));
 
   //get the ids of edges bounding each triangle
   //get the ids of edges bounding each quadrilateral
@@ -224,8 +224,12 @@ void read_internal(pMesh m, Mesh* mesh) {
           down_adjs[2][static_cast<std::size_t>(i*3 + j)];
     }
   }
-  auto t2e = Read<LO>(host_t2e.write()); //This is LOs
-  mesh->set_ents(Topo_type::triangle, Topo_type::edge, t2e);
+  auto te2e = Read<LO>(host_t2e.write()); //This is LOs
+  deg = element_degree(Topo_type::triangle, Topo_type::edge);
+  //printf("deg tr2ed=%d \n", deg);
+  //auto t2e_codes = get_codes_to_canonical(deg, te2e);
+  mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e));
+  //mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e, t2e_codes));
 
   HostWrite<LO> host_q2e(count_quad*4);
   for (Int i = 0; i < count_quad; ++i) {
@@ -235,7 +239,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto q2e = Read<LO>(host_q2e.write()); //This is LOs
-  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, q2e);
+  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(q2e));
 
   //get the ids of tris bounding each tet
   //get the ids of quads bounding each hex
@@ -270,7 +274,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   RIter_delete(regions);
   //
 
-  //printf(" ok1.4.6 \n");
   //allocate memory for t2t. h2q, w2t, w2q, p2t, p2q
   down_adjs[4].reserve(count_tet*4);
   down_adjs[5].reserve(count_hex*6);
@@ -345,7 +348,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   RIter_delete(regions);
-  //printf(" ok1.4.8 \n");
+  printf(" ok1.4.8 \n");
 
   //
   //pass vectors to set_ents
@@ -357,18 +360,23 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto tet2tr = Read<LO>(host_tet2tr.write()); //This is LOs
-  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, tet2tr);
+  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr));
   
+  printf(" ok1.4.8.1 \n");
   HostWrite<LO> host_hex2q(count_hex*6);
   for (Int i = 0; i < count_hex; ++i) {
     for (Int j = 0; j < 6; ++j) {
+  printf(" i=%d, j=%d, count_hex=%d\n", i,j,count_hex);
       host_tet2tr[i*6 + j] =
           down_adjs[5][static_cast<std::size_t>(i*6 + j)];
     }
   }
+  printf(" ok1.4.8.1.1 \n");
   auto hex2q = Read<LO>(host_hex2q.write()); //This is LOs
-  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, hex2q);
+  printf(" ok1.4.8.1.2 \n");
+  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q));
   
+  printf(" ok1.4.8.2 \n");
   HostWrite<LO> host_wedge2tri(count_wedge*2);
   for (Int i = 0; i < count_wedge; ++i) {
     for (Int j = 0; j < 2; ++j) {
@@ -377,8 +385,9 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto wedge2tri = Read<LO>(host_wedge2tri.write()); //This is LOs
-  mesh->set_ents(Topo_type::wedge, Topo_type::triangle, wedge2tri);
+  mesh->set_ents(Topo_type::wedge, Topo_type::triangle, Adj(wedge2tri));
   
+  printf(" ok1.4.8.3 \n");
   HostWrite<LO> host_wedge2quad(count_wedge*3);
   for (Int i = 0; i < count_wedge; ++i) {
     for (Int j = 0; j < 3; ++j) {
@@ -387,8 +396,9 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto wedge2quad = Read<LO>(host_wedge2quad.write()); //This is LOs
-  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, wedge2quad);
+  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad));
   
+  printf(" ok1.4.8.2 \n");
   HostWrite<LO> host_pyramid2tri(count_pyramid*4);
   for (Int i = 0; i < count_pyramid; ++i) {
     for (Int j = 0; j < 4; ++j) {
@@ -397,7 +407,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto pyramid2tri = Read<LO>(host_pyramid2tri.write()); //This is LOs
-  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, pyramid2tri);
+  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri));
   
   HostWrite<LO> host_pyramid2quad(count_pyramid);
   for (Int i = 0; i < count_pyramid; ++i) {
@@ -407,7 +417,8 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto pyramid2quad = Read<LO>(host_pyramid2quad.write()); //This is LOs
-  mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, pyramid2quad);
+  mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, Adj(pyramid2quad));
+  printf(" ok1.4.9 \n");
 
 /*
   //print contents of down adjs, e2v -> o/p checks out
@@ -439,7 +450,9 @@ void read_internal(pMesh m, Mesh* mesh) {
   //
   //test API
   auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);
+  //printf("tri2edge\n");
   auto quad2edge = mesh->get_adj(Topo_type::quadrilateral, Topo_type::edge);
+  //printf("quad2edge\n");
 
   auto edge2tri = mesh->ask_up(Topo_type::edge, Topo_type::triangle);
   printf("edge2tri lists returned from ask_up is\n");
@@ -562,7 +575,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   printf("\n");
 
   //Transit tests
-  auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
+  //auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
 
 /*
   //get the ids of vertices bounding each face
@@ -672,7 +685,7 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     // input parameters for the function
     pMesh meshtest; //mesh to load
 
-/*
+///*
     // For tet on wedge, hex and pyramid adjacenct to wedge
     int numVerts = 12;
     double coords[12*3] = {0.000, 0.000, 0.000,
@@ -690,14 +703,14 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
 			  };
     int numElems = 4;
     int elementType[4] = {12, 10, 11, 13};
-    int elementData[6+4+5+8] = {0,1,2,3,4,5, 3,4,5,6, 1,2,4,5,7, 0,1,9,8,3,5,11,10};
+    int elementData[6+4+5+8] = {0,1,2,3,5,4, 3,5,4,6, 4,5,1,2,7, 8,9,1,0,10,11,5,3};
     pVertex vReturn[12]; // array of created vertices
     pEntity eReturn[4]; // array of created entities
   printf(" ok1.3 \n");
     //
-*/
+//*/
 
-///*
+/*
     //For tet on wedge
     int numVerts = 7;
     double coords[7*3] =  {0.000, 0.000, 0.000,
@@ -713,7 +726,7 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     int elementData[6+4] = {0,1,2,3,4,5,3,4,5,6};
     pVertex vReturn[7]; // array of created vertices
     pEntity eReturn[2]; // array of created entities
-//*/
+*/
 
 /*  For cube as per simmetrix example
     int numVerts = 8; // number of vertices  
@@ -756,7 +769,7 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     DM_findEdgesByFaceNormals(modeltest, 0, progress);
   printf(" ok1.3.2.1 \n");
     DM_eliminateDanglingEdges(modeltest, progress);
-  printf(" ok1.3.2.2 \n");
+  printf(" ok1.3.2.2 \n");//till here for 4elems
     if(DM_completeTopology(modeltest, progress)) { //check for error
       cerr<<"Error completing Discrete model topology"<<endl;
   printf(" ok1.3.2.3 \n");
@@ -770,7 +783,9 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     GM_write(modeltest,"/users/joshia5/simmodeler/Example_4type.smd",0,progress); // save the discrete model
     M_write(meshtest,"/users/joshia5/simmodeler/Example_4type.sms", 0,progress);  // write out the initial mesh data
   
+  printf(" ok1.3.4 \n");
     meshsim::read_internal(meshtest, &mesh);
+  printf(" ok1.3.5 \n");
 
     // cleanup
     M_release(meshtest);
