@@ -101,12 +101,12 @@ void read_internal(pMesh m, Mesh* mesh) {
   while ((edge = (pEdge) EIter_next(edges))) {
     //Topo_type_ids[EN_id(edge)] = count_edge;
     count_edge += 1;
-    //printf("edge EN_id is=%d \n", EN_id(edge));
+    printf("edge EN_id is=%d\n", EN_id(edge));
     for(int j=0; j<2; ++j) {
       vtx = E_vertex(edge,j);
       down_adjs[1].push_back(EN_id(vtx));
       V_coord(vtx,xyz);
-      //printf("vtx EN_id is=%d, x=%f, y=%f, z=%f\n", EN_id(vtx), xyz[0], xyz[1], xyz[2]);
+      printf("vtx EN_id is=%d, x=%f, y=%f, z=%f\n", EN_id(vtx), xyz[0], xyz[1], xyz[2]);
     }
     //ent_class_ids[1].push_back(classId(edge));
   }
@@ -142,7 +142,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   auto ev2v = Read<LO>(host_e2v.write()); //This is LOs
   mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(ev2v));
-  //mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(e2v, e2v_codes));
+  // when to_entity is vertex, codes should not exist as per mesh.c L367
 
   //get the ids of edges bounding each triangle
   //get the ids of edges bounding each quadrilateral
@@ -156,14 +156,12 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> face_type_ids;
   face_type_ids.reserve(numFaces);
   while (face = (pFace) FIter_next(faces)) {
-    //printf("face entity id=%d ", EN_id(face));
     if (F_numEdges(face) == 3) {
       //get ids of tris
       face_type_ids[EN_id(face)] = count_tri;
       //Topo_type_ids[EN_id(face)] = count_tri;
       //increment for next tri
       count_tri += 1;
-      //printf ("is tri_id=%d\n", count_tri);
     }
     else if (F_numEdges(face) == 4) {
       //get ids of quads
@@ -171,7 +169,6 @@ void read_internal(pMesh m, Mesh* mesh) {
       //Topo_type_ids[EN_id(face)] = count_quad;
       //increment for next quad
       count_quad += 1;
-      //printf ("is quad_id=%d\n", count_quad);
     }
     else {
       Omega_h_fail ("Face is neither tri nor quad \n");
@@ -188,24 +185,31 @@ void read_internal(pMesh m, Mesh* mesh) {
   //iterate and populate resp. edge ids
   faces = M_faceIter(m);
   while (face = (pFace) FIter_next(faces)) {
+    printf("face entity id=%d\n", EN_id(face));
     if (F_numEdges(face) == 3) {
+      printf ("is tri\n");
       pEdge tri_edge;
       pPList tri_edges = F_edges(face,1,0);
       assert (PList_size(tri_edges) == 3);
       void *iter = 0; // must initialize to 0
-      while (tri_edge = (pEdge) PList_next(tri_edges, &iter))
+      while (tri_edge = (pEdge) PList_next(tri_edges, &iter)) {
         down_adjs[2].push_back(EN_id(tri_edge));
+        printf("adjacent edge id=%d\n", EN_id(tri_edge));
         //down_adjs[2].push_back(Topo_type_ids[EN_id(tri_edge)]);
+      }
       PList_delete(tri_edges);
     }
     else if (F_numEdges(face) == 4) {
+      printf ("is quad\n");
       pEdge quad_edge;
       pPList quad_edges = F_edges(face,1,0);
       assert (PList_size(quad_edges) == 4);
       void *iter = 0; // must initialize to 0
-      while (quad_edge = (pEdge) PList_next(quad_edges, &iter))
+      while (quad_edge = (pEdge) PList_next(quad_edges, &iter)) {
         down_adjs[3].push_back(EN_id(quad_edge));
+        printf("adjacent edge id=%d\n", EN_id(quad_edge));
         //down_adjs[3].push_back(Topo_type_ids[EN_id(quad_edge)]);
+      }
       PList_delete(quad_edges);
     }
     else {
@@ -287,8 +291,10 @@ void read_internal(pMesh m, Mesh* mesh) {
   //iterate and populate resp. face ids
   regions = M_regionIter(m);
   while ((rgn = (pRegion) RIter_next(regions))) {
+    printf("region entity id=%d\n", EN_id(rgn));
     //Tets
     if (R_topoType(rgn) == Rtet) {
+      printf("is tet\n");
       pFace tri;
       pPList tris = R_faces(rgn,1);
       assert (PList_size(tris) == 4);
@@ -300,6 +306,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
     //Hexs
     else if (R_topoType(rgn) == Rhex) {
+      printf("is hex\n");
       pFace quad;
       pPList quads = R_faces(rgn,1); 
       assert (PList_size(quads) == 6);
@@ -311,6 +318,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
     //Wedges
     else if (R_topoType(rgn) == Rwedge) {
+      printf("is wedge\n");
       pFace w_face;
       pPList w_faces = R_faces(rgn,1);
       assert (PList_size(w_faces) == 5);
@@ -329,6 +337,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
     //Pyramids
     else if (R_topoType(rgn) == Rpyramid) {
+      printf("is pyramid\n");
       pFace p_face;
       pPList p_faces = R_faces(rgn,1);
       assert (PList_size(p_faces) == 5);
@@ -348,7 +357,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   RIter_delete(regions);
-  printf(" ok1.4.8 \n");
+  //printf(" ok1.4.8 \n");
 
   //
   //pass vectors to set_ents
@@ -362,21 +371,21 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto tet2tr = Read<LO>(host_tet2tr.write()); //This is LOs
   mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr));
   
-  printf(" ok1.4.8.1 \n");
+  //printf(" ok1.4.8.1 \n");
   HostWrite<LO> host_hex2q(count_hex*6);
   for (Int i = 0; i < count_hex; ++i) {
     for (Int j = 0; j < 6; ++j) {
-  printf(" i=%d, j=%d, count_hex=%d\n", i,j,count_hex);
-      host_tet2tr[i*6 + j] =
+  //printf(" i=%d, j=%d, count_hex=%d\n", i,j,count_hex);
+      host_hex2q[i*6 + j] =
           down_adjs[5][static_cast<std::size_t>(i*6 + j)];
     }
   }
-  printf(" ok1.4.8.1.1 \n");
+  //printf(" ok1.4.8.1.1 \n");
   auto hex2q = Read<LO>(host_hex2q.write()); //This is LOs
-  printf(" ok1.4.8.1.2 \n");
+  //printf(" ok1.4.8.1.2 \n");
   mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q));
   
-  printf(" ok1.4.8.2 \n");
+  //printf(" ok1.4.8.2 \n");
   HostWrite<LO> host_wedge2tri(count_wedge*2);
   for (Int i = 0; i < count_wedge; ++i) {
     for (Int j = 0; j < 2; ++j) {
@@ -387,7 +396,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto wedge2tri = Read<LO>(host_wedge2tri.write()); //This is LOs
   mesh->set_ents(Topo_type::wedge, Topo_type::triangle, Adj(wedge2tri));
   
-  printf(" ok1.4.8.3 \n");
+  //printf(" ok1.4.8.3 \n");
   HostWrite<LO> host_wedge2quad(count_wedge*3);
   for (Int i = 0; i < count_wedge; ++i) {
     for (Int j = 0; j < 3; ++j) {
@@ -398,7 +407,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto wedge2quad = Read<LO>(host_wedge2quad.write()); //This is LOs
   mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad));
   
-  printf(" ok1.4.8.2 \n");
+  //printf(" ok1.4.8.2 \n");
   HostWrite<LO> host_pyramid2tri(count_pyramid*4);
   for (Int i = 0; i < count_pyramid; ++i) {
     for (Int j = 0; j < 4; ++j) {
@@ -418,10 +427,10 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   auto pyramid2quad = Read<LO>(host_pyramid2quad.write()); //This is LOs
   mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, Adj(pyramid2quad));
-  printf(" ok1.4.9 \n");
+  //printf(" ok1.4.9 \n");
 
 /*
-  //print contents of down adjs, e2v -> o/p checks out
+  //print contents of input e2v given to omega-> o/p checks out
   for (std::vector<std::vector<int>>::size_type i = 1; i < 10; i++) {
     printf("from type %lu \n ", i);
     for (std::vector<int>::size_type j = 0; j < down_adjs[i].size(); j++) {
@@ -433,19 +442,43 @@ void read_internal(pMesh m, Mesh* mesh) {
 
   //test API call for 1 lvl dwn adj
   auto edge2vert = mesh->get_adj(Topo_type::edge, Topo_type::vertex).ab2b;
-  printf("edge2vert returned from get_adj is\n");
+  auto edg2v = Write<LO> (edge2vert.size());
   auto print_call0= OMEGA_H_LAMBDA(LO i) {
-    printf(" %d", edge2vert[i]);
+    edg2v[i] = edge2vert[i];
   };
   parallel_for(edge2vert.size(), print_call0);
+  //when array size>32, device to host copy and print
+  printf("edge2vert returned from get_adj is\n");
+  auto host_edg2v = HostWrite<LO>(edg2v);
+  for (int i=0; i<host_edg2v.size(); ++i) {
+    printf(" %d", host_edg2v[i]);
+  };
   printf("\n");
 
   auto vert2edge = mesh->ask_up(Topo_type::vertex, Topo_type::edge).ab2b;
-  printf("vert2edge lists returned from ask_up is\n");
+  auto v2edg = Write<LO> (vert2edge.size());
   auto print_call1 = OMEGA_H_LAMBDA(LO i) {
-    printf(" %d", vert2edge[i]);
+    v2edg[i] = vert2edge[i];
   };
   parallel_for(vert2edge.size(), print_call1);
+  printf("vert2edge lists returned from ask_up is\n");
+  auto host_v2edg = HostWrite<LO>(v2edg);
+  for (int i=0; i<host_v2edg.size(); ++i) {
+    printf(" %d", host_v2edg[i]);
+  };
+  printf("\n");
+
+  auto vert2edge_o = mesh->ask_up(Topo_type::vertex, Topo_type::edge).a2ab;
+  auto v2edg_o = Write<LO> (vert2edge_o.size());
+  auto print_call10 = OMEGA_H_LAMBDA(LO i) {
+    v2edg_o[i] = vert2edge_o[i];
+  };
+  parallel_for(vert2edge_o.size(), print_call10);
+  printf("vert2edge offsets returned from ask_up is\n");
+  auto host_v2edg_o = HostWrite<LO>(v2edg_o);
+  for (int i=0; i<host_v2edg_o.size(); ++i) {
+    printf(" %d", host_v2edg_o[i]);
+  };
   printf("\n");
   //
   //test API
@@ -703,7 +736,7 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
 			  };
     int numElems = 4;
     int elementType[4] = {12, 10, 11, 13};
-    int elementData[6+4+5+8] = {0,1,2,3,5,4, 3,5,4,6, 4,5,1,2,7, 8,9,1,0,10,11,5,3};
+    int elementData[6+4+5+8] = {0,1,2,3,4,5, 3,4,5,6, 5,4,1,2,7, 8,9,1,0,10,11,4,3};
     pVertex vReturn[12]; // array of created vertices
     pEntity eReturn[4]; // array of created entities
   printf(" ok1.3 \n");
