@@ -252,13 +252,16 @@ Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
   Read<I8> down_codes(down.codes);
   Write<LO> lh2h(nlh, lh2h_name);
   Write<I8> codes(nlh, codes_name);
+  printf("invert:0\n");
   if (down_codes.exists()) {
     separate_upward_with_codes(
         nlh, lh2hl, nlows_per_high, lh2h, down_codes, codes);
   } else {
     separate_upward_no_codes(nlh, lh2hl, nlows_per_high, lh2h, codes);
   }
+  printf("invert:1\n");
   sort_by_high_index(l2lh, lh2h, codes);
+  printf("invert:2\n");
   return Adj(l2lh, lh2h, codes);
 }
 
@@ -618,7 +621,7 @@ printf("ok transit 2.1.1.2 h=%d, hl=%d \n", h, hl);
       auto const hml = ut.which_down;
 printf("ok transit 2.1.1.3 h=%d, hl=%d \n", h, hl);
       auto const m = hm2m[hm_begin + hm];
-printf("ok transit 2.1.1.4 h=%d, hl=%d \n", h, hl);
+printf("ok transit 2.1.1.4 h=%d, hl=%d, m2hm_codes.size=%d, arg=%d\n", h, hl, m2hm_codes.size(), hm_begin+hm);
       auto const m2hm_code = m2hm_codes[hm_begin + hm];
 printf("ok transit 2.1.1.5 h=%d, hl=%d \n", h, hl);
       auto const hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);

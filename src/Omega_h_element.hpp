@@ -80,6 +80,7 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
     case 5:
       return hypercube_up_template(3, bdry_type, which_bdry, which_up);//return hypercube_up_temp for hex-to-vtx/edge
     case 6: //new template for wedge-to-vtx & wedge-to-edge via quads
+    // orderings as per simmetrix
       switch (bdry_type) {
         case 0:
           switch (which_bdry) {

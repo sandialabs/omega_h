@@ -97,15 +97,17 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
   add_adj(ent_dim, ent_dim - 1, down);
 }
 
-void Mesh::set_ents(Topo_type high_type, Topo_type low_type, LOs hl2l) {
+void Mesh::set_ents(Topo_type high_type, Topo_type low_type, Adj h2l) {
   OMEGA_H_TIME_FUNCTION;
   check_type(high_type);//change check_type code
   check_type(low_type);
-  //OMEGA_H_CHECK(!has_ents(high_type));//change has_ents code
-  //above commented as prob in wedge/pyramid2tr/quad
+  if (int(high_type) < 6) {
+    OMEGA_H_CHECK(!has_ents(high_type));//change has_ents code
+  }
+  //above changed as prob in wedge/pyramid2tr/quad
   auto deg = element_degree(high_type, low_type);//change element_degree code
-  nents_type_[int(high_type)] = divide_no_remainder(hl2l.size(), deg);//change nents_ code
-  add_adj(high_type, low_type, Adj(hl2l));//change add adj code
+  nents_type_[int(high_type)] = divide_no_remainder(h2l.ab2b.size(), deg);//change nents_ code
+  add_adj(high_type, low_type, h2l);//change add adj codes
 }
 
 void Mesh::set_parents(Int ent_dim, Parents parents) {
@@ -459,9 +461,9 @@ Adj Mesh::derive_adj(Topo_type from_type, Topo_type to_type) {
     Adj down = ask_adj(to_type, from_type);
     Int nlows_per_high = element_degree(to_type, from_type);
     LO nlows = nents(from_type);//change this to pass maxval from down.ab2b
-    //printf("derive:0\n");
+    printf("derive:0\n");
     //LO nlows = get_max(library_->world(), down.ab2b);//change this to pass maxval from down.ab2b
-    //printf("derive:1\n");
+    printf("derive:1\n");
     Adj up = invert_adj(down, nlows_per_high, nlows, to_type, from_type); //change code
     return up;
   }
@@ -485,7 +487,7 @@ Adj Mesh::derive_adj(Topo_type from_type, Topo_type to_type) {
 printf("till m2l\n");
     Adj h2l = transit(h2m, m2l, from_type, to_type, mid_type); //change transit code
     return h2l;
-  } 
+  }
 /*
   else {
     if (from == dim() && to == dim()) {
@@ -507,8 +509,8 @@ printf("till m2l\n");
   }
 */
   Omega_h_fail("can't derive adjacency from %s to %s\n",
-      topological_plural_name(family(), from),
-      topological_plural_name(family(), to));
+      dimensional_plural_name(from_type),
+      dimensional_plural_name(to_type));
   OMEGA_H_NORETURN(Adj());
 }
 

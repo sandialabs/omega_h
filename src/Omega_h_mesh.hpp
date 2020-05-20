@@ -42,7 +42,8 @@ class Mesh {
   void set_verts(LO nverts_in);
   void set_verts_type(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
-  void set_ents(Topo_type high_type, Topo_type low_type, LOs hl2l);
+  void set_ents(Topo_type high_type, Topo_type low_type, Adj h2l);
+  //void set_ents(Topo_type high_type, Topo_type low_type, LOs hl2l);
   void set_parents(Int ent_dim, Parents parents);
   Library* library() const;
   CommPtr comm() const;
