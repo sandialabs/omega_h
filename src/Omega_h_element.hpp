@@ -79,8 +79,9 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
       return simplex_up_template(3, bdry_type, which_bdry, which_up);//return simplex_up_template for tet-to-vtx/edge
     case 5:
       return hypercube_up_template(3, bdry_type, which_bdry, which_up);//return hypercube_up_temp for hex-to-vtx/edge
-    case 6: //new template for wedge-to-vtx & wedge-to-edge via quads
-    // orderings as per simmetrix
+    case 6:
+    //new template for wedge-to-vtx & wedge-to-edge via quads
+    //orderings as per simmetrix(note that normals as per edge point into element
       switch (bdry_type) {
         case 0:
           switch (which_bdry) {
@@ -221,7 +222,7 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
           }
           return {-1, -1, 0};
         case 1:
-	//up-entity is quad
+	//up-entity is tri
           switch (which_bdry) {
             case 0:
               switch (which_up) {

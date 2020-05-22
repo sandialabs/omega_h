@@ -1,13 +1,22 @@
+/*******************************************************************
+ * In this code, any and only Simmetrix specific function&API calls is confidential information.
+ * Copyright 1997-2019 Simmetrix Inc. All rights reserved. The 
+ * Simmetrix specific function&API calls is unpublished work fully protected by the United 
+ * States copyright laws and is considered a trade secret belonging 
+ * to the copyright holder. Disclosure, use, or reproduction without 
+ * the written authorization of Simmetrix Inc. is prohibited. 
+ *******************************************************************/ 
 #include "Omega_h_file.hpp"
-
 #include "Omega_h_build.hpp"
 #include "Omega_h_class.hpp"
-#include "Omega_h_element.hpp"
 #include "Omega_h_map.hpp"
 #include "Omega_h_vector.hpp"
 #include "Omega_h_mesh.hpp"
+
+#include "Omega_h_element.hpp"
 #include "Omega_h_for.hpp"
 #include "Omega_h_adj.hpp"
+#include "Omega_h_align.hpp"
 
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
@@ -36,9 +45,23 @@ int classId(pEntity e) {
 }
 */
 
-//void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
-void read_internal(pParMesh sm, Mesh* mesh) {
-  pMesh m = PM_mesh(sm, 0);
+void call_print(LOs a) {
+  auto a_w = Write<LO> (a.size());
+  auto r2w = OMEGA_H_LAMBDA(LO i) {
+    a_w[i] = a[i];
+  };
+  parallel_for(a.size(), r2w);
+  auto a_host = HostWrite<LO>(a_w);
+  for (int i=0; i<a_host.size(); ++i) {
+    printf(" %d", a_host[i]);
+  };
+  printf("\n");
+  return;
+}
+
+void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
+//void read_internal(pParMesh sm, Mesh* mesh) {
+  //pMesh m = PM_mesh(sm, 0);
   (void)mesh;
   const int numVtx = M_numVertices(m);
   const int numEdges = M_numEdges(m);
@@ -58,13 +81,12 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   }
 */
   std::vector<int> down_adjs[10];
+  std::vector<int> down_codes[8];
   //std::vector<int> ent_class_ids[10];
   //allocate space for the requirement based topo type ids
     //this will only be required if EN_id returns global per_mesh ids
     //as opposed to per_dimension EN_ids
   //const int numEntities = numVtx + numEdges + numFaces + numRegions;
-  //std::vector<int> Topo_type_ids;
-  //Topo_type_ids.reserve(numEntities);
 
 /*
   //write vertex coords into node_coords and vertex ids into down_adjs
@@ -99,7 +121,6 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   //printf(" ok1.4.2 \n");
   double xyz[3];//stores vtx coords
   while ((edge = (pEdge) EIter_next(edges))) {
-    //Topo_type_ids[EN_id(edge)] = count_edge;
     count_edge += 1;
     //printf("edge EN_id is=%d\n", EN_id(edge));
     for(int j=0; j<2; ++j) {
@@ -140,7 +161,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
           down_adjs[1][static_cast<std::size_t>(i*deg + j)];
     }
   }
-  auto ev2v = Read<LO>(host_e2v.write()); //This is LOs
+  auto ev2v = Read<LO>(host_e2v.write());
   mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(ev2v));
   // when to_entity is vertex, codes should not exist as per mesh.c L367
 
@@ -159,14 +180,12 @@ void read_internal(pParMesh sm, Mesh* mesh) {
     if (F_numEdges(face) == 3) {
       //get ids of tris
       face_type_ids[EN_id(face)] = count_tri;
-      //Topo_type_ids[EN_id(face)] = count_tri;
       //increment for next tri
       count_tri += 1;
     }
     else if (F_numEdges(face) == 4) {
       //get ids of quads
       face_type_ids[EN_id(face)] = count_quad;
-      //Topo_type_ids[EN_id(face)] = count_quad;
       //increment for next quad
       count_quad += 1;
     }
@@ -179,7 +198,20 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   //printf(" ok1.4.5 \n");
   //allocate memory for t2e and q2e
   down_adjs[2].reserve(count_tri*3);
+  down_codes[0].reserve(count_tri*3);
   down_adjs[3].reserve(count_quad*4);
+  down_codes[1].reserve(count_quad*4);
+  //
+
+  //args to generate codes
+  Int which_down = 0;
+  Int rotation = 0;
+  bool is_flipped = false;
+
+  //face edges curl inside the element
+  //since omega curls outside, the curl direction is flipped
+  //thus flipped should be true for certain faces as it is a face's property not
+  //a edge's
   //
   
   //iterate and populate resp. edge ids
@@ -192,10 +224,13 @@ void read_internal(pParMesh sm, Mesh* mesh) {
       pPList tri_edges = F_edges(face,1,0);
       assert (PList_size(tri_edges) == 3);
       void *iter = 0; // must initialize to 0
+      which_down = 0;
       while (tri_edge = (pEdge) PList_next(tri_edges, &iter)) {
         down_adjs[2].push_back(EN_id(tri_edge));
         //printf("adjacent edge id=%d\n", EN_id(tri_edge));
-        //down_adjs[2].push_back(Topo_type_ids[EN_id(tri_edge)]);
+        auto code = make_code(is_flipped, rotation, which_down);
+        down_codes[0].push_back(code);
+        ++which_down;
       }
       PList_delete(tri_edges);
     }
@@ -205,10 +240,13 @@ void read_internal(pParMesh sm, Mesh* mesh) {
       pPList quad_edges = F_edges(face,1,0);
       assert (PList_size(quad_edges) == 4);
       void *iter = 0; // must initialize to 0
+      which_down = 0;
       while (quad_edge = (pEdge) PList_next(quad_edges, &iter)) {
         down_adjs[3].push_back(EN_id(quad_edge));
         //printf("adjacent edge id=%d\n", EN_id(quad_edge));
-        //down_adjs[3].push_back(Topo_type_ids[EN_id(quad_edge)]);
+        auto code = make_code(is_flipped, rotation, which_down);
+        down_codes[1].push_back(code);
+        ++which_down;
       }
       PList_delete(quad_edges);
     }
@@ -222,27 +260,40 @@ void read_internal(pParMesh sm, Mesh* mesh) {
 
   //pass vectors to set_ents
   HostWrite<LO> host_t2e(count_tri*3);
+  HostWrite<I8> host_t2e_codes(count_tri*3);
   for (Int i = 0; i < count_tri; ++i) {
     for (Int j = 0; j < 3; ++j) {
       host_t2e[i*3 + j] =
           down_adjs[2][static_cast<std::size_t>(i*3 + j)];
+      host_t2e_codes[i*3 + j] =
+          down_codes[0][static_cast<std::size_t>(i*3 + j)];
     }
   }
-  auto te2e = Read<LO>(host_t2e.write()); //This is LOs
-  deg = element_degree(Topo_type::triangle, Topo_type::edge);
-  //auto t2e_codes = get_codes_to_canonical(deg, te2e);
-  mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e));
-  //mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e, t2e_codes));
+  auto te2e = Read<LO>(host_t2e.write());
+  auto t2e_codes_name = std::string(dimensional_singular_name(Topo_type::triangle))
+    + " " + dimensional_plural_name(Topo_type::edge) + " codes";
+  Write<I8> t2e_codes(te2e.size(), t2e_codes_name);
+  t2e_codes = Write<I8>(host_t2e_codes);
+  mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e, t2e_codes));
 
-  HostWrite<LO> host_q2e(count_quad*4);
+  HostWrite<LO> host_qe2e(count_quad*4);
+  HostWrite<I8> host_q2e_codes(count_quad*4);
   for (Int i = 0; i < count_quad; ++i) {
     for (Int j = 0; j < 4; ++j) {
-      host_q2e[i*4 + j] =
+      host_qe2e[i*4 + j] =
           down_adjs[3][static_cast<std::size_t>(i*4 + j)];
+      host_q2e_codes[i*4 + j] =
+          down_codes[1][static_cast<std::size_t>(i*4 + j)];
     }
   }
-  auto q2e = Read<LO>(host_q2e.write()); //This is LOs
-  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(q2e));
+  auto qe2e = Read<LO>(host_qe2e.write());
+  auto q2e_codes_name =
+std::string(dimensional_singular_name(Topo_type::quadrilateral))
+    + " " + dimensional_plural_name(Topo_type::edge) + " codes";
+  Write<I8> q2e_codes(qe2e.size(), q2e_codes_name);
+  q2e_codes = Write<I8>(host_q2e_codes);
+  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qe2e, q2e_codes));
+  //mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qe2e));
 
   //get the ids of tris bounding each tet
   //get the ids of quads bounding each hex
@@ -302,7 +353,6 @@ void read_internal(pParMesh sm, Mesh* mesh) {
       void *iter = 0; // must initialize to 0
       while (tri = (pFace) PList_next(tris, &iter))
         down_adjs[4].push_back(face_type_ids[EN_id(tri)]);
-        //down_adjs[4].push_back(Topo_type_ids[EN_id(tri)]);
       PList_delete(tris);
     }
     //Hexs
@@ -314,7 +364,6 @@ void read_internal(pParMesh sm, Mesh* mesh) {
       void *iter = 0; // must initialize to 0
       while (quad = (pFace) PList_next(quads, &iter))
         down_adjs[5].push_back(face_type_ids[EN_id(quad)]);
-        //down_adjs[5].push_back(Topo_type_ids[EN_id(quad)]);
       PList_delete(quads);
     }
     //Wedges
@@ -327,11 +376,9 @@ void read_internal(pParMesh sm, Mesh* mesh) {
       while (w_face = (pFace) PList_next(w_faces, &iter)) {
         if (F_numEdges(w_face) == 3) { //face is tri 
           down_adjs[6].push_back(face_type_ids[EN_id(w_face)]);
-          //down_adjs[6].push_back(Topo_type_ids[EN_id(w_face)]);
 	}
         else { //face is quad
           down_adjs[7].push_back(face_type_ids[EN_id(w_face)]);
-          //down_adjs[7].push_back(Topo_type_ids[EN_id(w_face)]);
 	}
       }
       PList_delete(w_faces);
@@ -369,7 +416,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
           down_adjs[4][static_cast<std::size_t>(i*4 + j)];
     }
   }
-  auto tet2tr = Read<LO>(host_tet2tr.write()); //This is LOs
+  auto tet2tr = Read<LO>(host_tet2tr.write());
   mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr));
   
   //printf(" ok1.4.8.1 \n");
@@ -382,7 +429,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
     }
   }
   //printf(" ok1.4.8.1.1 \n");
-  auto hex2q = Read<LO>(host_hex2q.write()); //This is LOs
+  auto hex2q = Read<LO>(host_hex2q.write());
   //printf(" ok1.4.8.1.2 \n");
   mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q));
   
@@ -394,7 +441,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
           down_adjs[6][static_cast<std::size_t>(i*2 + j)];
     }
   }
-  auto wedge2tri = Read<LO>(host_wedge2tri.write()); //This is LOs
+  auto wedge2tri = Read<LO>(host_wedge2tri.write());
   mesh->set_ents(Topo_type::wedge, Topo_type::triangle, Adj(wedge2tri));
   
   //printf(" ok1.4.8.3 \n");
@@ -405,7 +452,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
           down_adjs[7][static_cast<std::size_t>(i*3 + j)];
     }
   }
-  auto wedge2quad = Read<LO>(host_wedge2quad.write()); //This is LOs
+  auto wedge2quad = Read<LO>(host_wedge2quad.write());
   mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad));
   
   //printf(" ok1.4.8.2 \n");
@@ -416,7 +463,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
           down_adjs[8][static_cast<std::size_t>(i*4 + j)];
     }
   }
-  auto pyramid2tri = Read<LO>(host_pyramid2tri.write()); //This is LOs
+  auto pyramid2tri = Read<LO>(host_pyramid2tri.write());
   mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri));
   
   HostWrite<LO> host_pyramid2quad(count_pyramid);
@@ -426,7 +473,7 @@ void read_internal(pParMesh sm, Mesh* mesh) {
           down_adjs[9][static_cast<std::size_t>(i*1 + j)];
     }
   }
-  auto pyramid2quad = Read<LO>(host_pyramid2quad.write()); //This is LOs
+  auto pyramid2quad = Read<LO>(host_pyramid2quad.write());
   mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, Adj(pyramid2quad));
   //printf(" ok1.4.9 \n");
 
@@ -486,21 +533,27 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   //
   //test API
   auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);
-  //printf("tri2edge\n");
+  printf("tri2edge codes returned from get_adj is\n");
+  auto print_call_1c = OMEGA_H_LAMBDA(LO i) {
+    printf(" %d", tri2edge.codes[i]);
+  };
+  parallel_for(tri2edge.codes.size(), print_call_1c);
+  printf("\n");
+
   auto quad2edge = mesh->get_adj(Topo_type::quadrilateral, Topo_type::edge);
   //printf("quad2edge\n");
 
   auto edge2tri = mesh->ask_up(Topo_type::edge, Topo_type::triangle);
-  //printf("edge2tri lists returned from ask_up is\n");
+  printf("edge2tri lists returned from ask_up is\n");
   auto print_call2 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", edge2tri.ab2b[i]);
+    printf(" %d", edge2tri.ab2b[i]);
   };
   parallel_for(edge2tri.ab2b.size(), print_call2);
   printf("\n");
   OMEGA_H_CHECK(edge2tri.ab2b.size() == 3*count_tri);
-  //printf("edge2tri offsets returned from ask_up is\n");
+  printf("edge2tri offsets returned from ask_up is\n");
   auto print_call2p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", edge2tri.a2ab[i]);
+    printf(" %d", edge2tri.a2ab[i]);
   };
   parallel_for(edge2tri.a2ab.size(), print_call2p0);
   printf("\n");
@@ -626,8 +679,22 @@ void read_internal(pParMesh sm, Mesh* mesh) {
   OMEGA_H_CHECK(quad2pyramid.ab2b.size() == count_pyramid);
   OMEGA_H_CHECK(quad2pyramid.a2ab.size() == count_quad+1);
 
+/*  
+  //print function test
+  auto test_print = mesh->ask_up(Topo_type::quadrilateral,
+Topo_type::pyramid);
+  printf("test call print\n");
+  call_print(test_print.a2ab);
+*/
+
   //Transit tests
-  //auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
+  auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
+  printf("tri2vert values from ask_down is\n");
+  call_print(tri2vert.ab2b);
+
+  auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
+  printf("quad2vert values from ask_down is\n");
+  call_print(quad2vert.ab2b);
 
 /*
   //get the ids of vertices bounding each face
@@ -669,14 +736,6 @@ void read_internal(pParMesh sm, Mesh* mesh) {
 
 }  // end anonymous namespace
 
-/*******************************************************************
- * Below this line, any Simmetrix specific function&API calls is confidential information.
- * Copyright 1997-2019 Simmetrix Inc. All rights reserved. The 
- * Simmetrix specific function&API calls below this line is unpublished work fully protected by the United 
- * States copyright laws and is considered a trade secret belonging 
- * to the copyright holder. Disclosure, use, or reproduction without 
- * the written authorization of Simmetrix Inc. is prohibited. 
- *******************************************************************/ 
 void messageHandler(int type, const char *msg)
 {
   switch (type) {
@@ -833,8 +892,8 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     GM_write(modeltest,"/users/joshia5/simmodeler/Example_4type.smd",0,progress); // save the discrete model
     M_write(meshtest,"/users/joshia5/simmodeler/Example_4type.sms", 0,progress);  // write out the initial mesh data
   
-    //meshsim::read_internal(meshtest, &mesh);//use this for user generated mesh
-    meshsim::read_internal(sm, &mesh);
+    meshsim::read_internal(meshtest, &mesh);//use this for user generated mesh
+    //meshsim::read_internal(sm, &mesh);
 
     // cleanup
     M_release(meshtest);
