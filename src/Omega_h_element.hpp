@@ -216,7 +216,7 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
 	    case 4:
               switch (which_up) {
                 case 0:
-                  return {4, 1, 0};
+                  return {4, 0, 0};
               }
               return {-1, -1, 0};
           }
