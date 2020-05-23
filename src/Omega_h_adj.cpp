@@ -598,13 +598,10 @@ printf("ok transit 2 \n");
     auto const hm_begin = h * nmids_per_high;
 printf("ok transit 2.1 h=%d \n", h);
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-printf("ok transit 2.1.1 h=%d, hl=%d \n", h, hl);
       auto const ut = element_up_template(int(high_type), int(low_type), hl, 0);//change template code
-printf("ok transit 2.1.1.1 h=%d, hl=%d \n", h, hl);
       auto const hm = ut.up;
-printf("ok transit 2.1.1.2 h=%d, hl=%d \n", h, hl);
       auto const hml = ut.which_down;
-printf("ok transit 2.1.1.3 h=%d, hl=%d \n", h, hl);
+printf("ok transit 2.1.1.3 h=%d, hl=%d, hm=%d,hml=%d\n", h, hl, hm, hml);
       auto const m = hm2m[hm_begin + hm];
 printf("ok transit 2.1.1.4 h=%d, hl=%d, m2hm_codes.size=%d, arg=%d\n", h, hl, m2hm_codes.size(), hm_begin+hm);
       auto const m2hm_code = m2hm_codes[hm_begin + hm];
@@ -620,12 +617,13 @@ printf("ok transit 2.1.2 h=%d, l=%d \n", h, l);
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)
       for (Int hhl2 = 0; hhl2 < hl; ++hhl2) {
-        //OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
+        OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
       }
 printf("ok transit 2.1.3 h=%d, hl=%d \n", h, hl);
       hl2l[hl_begin + hl] = l;
 printf("ok transit 2.1.4 h=%d, hl=%d \n", h, hl);
       if (int(low_type) == 1) {
+printf("low ent = edge");
         // all we are determining here is whether the edge is pointed
         //   in or against the direction of the "canonical edge" as
         //   defined by the element's template.

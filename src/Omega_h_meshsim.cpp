@@ -163,7 +163,8 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
   }
   auto ev2v = Read<LO>(host_e2v.write());
   mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(ev2v));
-  // when to_entity is vertex, codes should not exist as per mesh.c L367
+  // when to_entity is vertex, codes should not exist as per mesh.c L367 &
+  // file.c L428
 
   //get the ids of edges bounding each triangle
   //get the ids of edges bounding each quadrilateral
@@ -228,6 +229,12 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
       while (tri_edge = (pEdge) PList_next(tri_edges, &iter)) {
         down_adjs[2].push_back(EN_id(tri_edge));
         //printf("adjacent edge id=%d\n", EN_id(tri_edge));
+
+        rotation = F_dirUsingEdge(face, tri_edge);
+        printf("is rotation =%d\n", rotation);
+        //is_flipped = F_dirUsingEdge(face, tri_edge);
+        //printf("is flipped =%d\n", is_flipped);
+
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[0].push_back(code);
         ++which_down;
@@ -244,6 +251,10 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
       while (quad_edge = (pEdge) PList_next(quad_edges, &iter)) {
         down_adjs[3].push_back(EN_id(quad_edge));
         //printf("adjacent edge id=%d\n", EN_id(quad_edge));
+
+        rotation = F_dirUsingEdge(face, quad_edge);
+        printf("is rotation =%d\n", rotation);
+
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[1].push_back(code);
         ++which_down;
