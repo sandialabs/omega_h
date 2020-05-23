@@ -264,7 +264,6 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
     }
   }
   FIter_delete(faces);
-  //set ents at end
   //printf(" ok1.4.6 \n");
 
   //pass vectors to set_ents
@@ -375,9 +374,10 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       while (tri = (pFace) PList_next(tris, &iter)) {
         down_adjs[4].push_back(face_type_ids[EN_id(tri)]);
 
-        is_flipped = R_dirUsingFace(rgn, tri);
-        //printf("is flipped =%d\n", is_flipped);
-        rotation = 2; //works in 1, not in 0
+        is_flipped = 1;
+        //is_flipped = R_dirUsingFace(rgn, tri);
+        //gives wrong alignment of tet2vtx (normals point in)
+        rotation = 2; //duplicates in rotation =  0&1
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[2].push_back(code);
         ++which_down;
