@@ -204,7 +204,7 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
   down_codes[1].reserve(count_quad*4);
   //
 
-  //args to generate codes
+  //args to generate face2edge codes
   Int which_down = 0;
   Int rotation = 0;
   bool is_flipped = false;
@@ -230,10 +230,7 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
         down_adjs[2].push_back(EN_id(tri_edge));
         //printf("adjacent edge id=%d\n", EN_id(tri_edge));
 
-        rotation = F_dirUsingEdge(face, tri_edge);
-        printf("is rotation =%d\n", rotation);
-        //is_flipped = F_dirUsingEdge(face, tri_edge);
-        //printf("is flipped =%d\n", is_flipped);
+        rotation = !F_dirUsingEdge(face, tri_edge);
 
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[0].push_back(code);
@@ -252,7 +249,7 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
         down_adjs[3].push_back(EN_id(quad_edge));
         //printf("adjacent edge id=%d\n", EN_id(quad_edge));
 
-        rotation = F_dirUsingEdge(face, quad_edge);
+        rotation = !F_dirUsingEdge(face, quad_edge);
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[1].push_back(code);
         ++which_down;
@@ -353,7 +350,8 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   //printf(" ok1.4.7 \n");
   printf("tet=%d, hex=%d, wedge=%d, pyramid=%d\n",
          count_tet, count_hex, count_wedge, count_pyramid);
-  //Initialize for codes
+
+  //Initialize for region2face codes
   which_down = 0;
   rotation = 0;
   is_flipped = false;
@@ -374,10 +372,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       while (tri = (pFace) PList_next(tris, &iter)) {
         down_adjs[4].push_back(face_type_ids[EN_id(tri)]);
 
-        is_flipped = 1;
-        //is_flipped = R_dirUsingFace(rgn, tri);
-        //gives wrong alignment of tet2vtx (normals point in)
-        rotation = 2; //duplicates in rotation =  0&1
+        is_flipped = !R_dirUsingFace(rgn, tri);
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[2].push_back(code);
         ++which_down;
@@ -395,9 +390,9 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       while (quad = (pFace) PList_next(quads, &iter)) {
         down_adjs[5].push_back(face_type_ids[EN_id(quad)]);
 
-        is_flipped = R_dirUsingFace(rgn, quad);
-        //printf("is flipped =%d\n", is_flipped);
-        rotation = 0;//giving duplicates in all 3 cases
+        is_flipped = !R_dirUsingFace(rgn, quad);
+        rotation = !R_dirUsingFace(rgn, quad);
+        //rotation = 3;
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[3].push_back(code);
         ++which_down;
@@ -745,6 +740,7 @@ Topo_type::pyramid);
 
   //transit tests
 /*
+  ****these ok
   auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);
@@ -752,7 +748,7 @@ Topo_type::pyramid);
   auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
   printf("quad2vert values from ask_down is\n");
   call_print(quad2vert.ab2b);
-*/
+
   auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
   printf("tet2edge values from ask_down is\n");
   call_print(tet2edge.ab2b);
@@ -760,15 +756,17 @@ Topo_type::pyramid);
   auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
   printf("tet2vtx values from ask_down is\n");
   call_print(tet2vtx.ab2b);
+  ****
+*/
 
-/*
+
   auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
   printf("hex2edge values from ask_down is\n");
   call_print(hex2edge.ab2b);
   auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
   printf("hex2vtx values from ask_down is\n");
   call_print(hex2vtx.ab2b);
-*/
+
 
 /*
   //get the ids of vertices bounding each face
