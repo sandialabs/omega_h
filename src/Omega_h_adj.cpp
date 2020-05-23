@@ -623,7 +623,7 @@ printf("ok transit 2.1.3 h=%d, hl=%d \n", h, hl);
       hl2l[hl_begin + hl] = l;
 printf("ok transit 2.1.4 h=%d, hl=%d \n", h, hl);
       if (int(low_type) == 1) {
-printf("low ent = edge");
+printf("low ent = edge\n");
         // all we are determining here is whether the edge is pointed
         //   in or against the direction of the "canonical edge" as
         //   defined by the element's template.
