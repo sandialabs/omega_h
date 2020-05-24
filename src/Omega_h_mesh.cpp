@@ -302,7 +302,6 @@ Adj Mesh::ask_down(Int from, Int to) {
 
 Adj Mesh::ask_down(Topo_type from_type, Topo_type to_type) {
   OMEGA_H_CHECK(int(to_type) < int(from_type));
-printf("ask down 1\n");
   return ask_adj(from_type, to_type);
 }
 
@@ -461,9 +460,7 @@ Adj Mesh::derive_adj(Topo_type from_type, Topo_type to_type) {
     Adj down = ask_adj(to_type, from_type);
     Int nlows_per_high = element_degree(to_type, from_type);
     LO nlows = nents(from_type);//change this to pass maxval from down.ab2b
-    printf("derive:0\n");
     //LO nlows = get_max(library_->world(), down.ab2b);//change this to pass maxval from down.ab2b
-    printf("derive:1\n");
     Adj up = invert_adj(down, nlows_per_high, nlows, to_type, from_type); //change code
     return up;
   }
@@ -484,7 +481,6 @@ Adj Mesh::derive_adj(Topo_type from_type, Topo_type to_type) {
     //
     Adj h2m = ask_adj(from_type, mid_type);
     Adj m2l = ask_adj(mid_type, to_type);
-printf("till m2l\n");
     Adj h2l = transit(h2m, m2l, from_type, to_type, mid_type); //change transit code
     return h2l;
   }
@@ -533,9 +529,7 @@ Adj Mesh::ask_adj(Topo_type from_type, Topo_type to_type) {
   if (has_adj(from_type, to_type)) {
     return get_adj(from_type, to_type);
   }
-  printf("ask_adj:1\n");
   Adj derived = derive_adj(from_type, to_type);//change code
-  printf("ask_adj:2\n");
   adjs_type_[int(from_type)][int(to_type)] = std::make_shared<Adj>(derived);
   return derived;
 }

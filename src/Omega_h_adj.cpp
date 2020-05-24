@@ -252,16 +252,13 @@ Adj invert_adj(Adj const down, Int const nlows_per_high, LO const nlows,
   Read<I8> down_codes(down.codes);
   Write<LO> lh2h(nlh, lh2h_name);
   Write<I8> codes(nlh, codes_name);
-  printf("invert:0\n");
   if (down_codes.exists()) {
     separate_upward_with_codes(
         nlh, lh2hl, nlows_per_high, lh2h, down_codes, codes);
   } else {
     separate_upward_no_codes(nlh, lh2hl, nlows_per_high, lh2h, codes);
   }
-  printf("invert:1\n");
   sort_by_high_index(l2lh, lh2h, codes);
-  printf("invert:2\n");
   return Adj(l2lh, lh2h, codes);
 }
 
@@ -586,44 +583,31 @@ Adj transit(Adj const h2m, Adj const m2l,
   Write<LO> hl2l(nhighs * nlows_per_high, hl2l_name);
   Write<I8> codes;
   // codes only need to be created when transiting region->face + face->edge = region->edge. any other transit has vertices as its destination, and vertices have no orientation/alignment //
-printf("ok transit 1 \n");
   if (int(low_type) == 1) {
     auto const codes_name =
         std::string(high_singular_name) + " " + low_plural_name + " codes";
     codes = Write<I8>(hl2l.size(), codes_name);
   }
-printf("ok transit 2 \n");
   auto f = OMEGA_H_LAMBDA(LO h) {
     auto const hl_begin = h * nlows_per_high;
     auto const hm_begin = h * nmids_per_high;
-printf("ok transit 2.1 h=%d \n", h);
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
       auto const ut = element_up_template(int(high_type), int(low_type), hl, 0);//change template code
       auto const hm = ut.up;
       auto const hml = ut.which_down;
-printf("ok transit 2.1.1.3 h=%d, hl=%d, hm=%d,hml=%d\n", h, hl, hm, hml);
       auto const m = hm2m[hm_begin + hm];
-printf("ok transit 2.1.1.4 h=%d, hl=%d, m2hm_codes.size=%d, arg=%d\n", h, hl, m2hm_codes.size(), hm_begin+hm);
       auto const m2hm_code = m2hm_codes[hm_begin + hm];
-printf("ok transit 2.1.1.5 h=%d, hl=%d \n", h, hl);
       auto const hm2m_code = invert_alignment(nlows_per_mid, m2hm_code);
-printf("ok transit 2.1.1.6 h=%d, hl=%d \n", h, hl);
       auto const ml = align_index(nlows_per_mid, int(low_type), hml, hm2m_code);
-printf("ok transit 2.1.1.7 h=%d, hl=%d \n", h, hl);
       auto const ml_begin = m * nlows_per_mid;
-printf("ok transit 2.1.1.8 h=%d, hl=%d \n", h, hl);
       auto const l = ml2l[ml_begin + ml];
-printf("ok transit 2.1.2 h=%d, l=%d \n", h, l);
       // safety check for duplicates.
       // remove after this code is heavily exercised (or don't)
       for (Int hhl2 = 0; hhl2 < hl; ++hhl2) {
         OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
       }
-printf("ok transit 2.1.3 h=%d, hl=%d \n", h, hl);
       hl2l[hl_begin + hl] = l;
-printf("ok transit 2.1.4 h=%d, hl=%d \n", h, hl);
       if (int(low_type) == 1) {
-printf("low ent = edge\n");
         // all we are determining here is whether the edge is pointed
         //   in or against the direction of the "canonical edge" as
         //   defined by the element's template.
@@ -637,12 +621,9 @@ printf("low ent = edge\n");
             region_face_flipped ^ face_edge_flipped ^ canon_flipped;
         codes[hl_begin + hl] = make_code(false, region_edge_flipped, 0);
       }
-printf("ok transit 2.1.5 h=%d, hl=%d \n", h, hl);
     }
-printf("ok transit 2.1.6 h=%d\n", h);
   };
   parallel_for(nhighs, std::move(f));
-printf("ok transit 3 \n");
 /*
 */
   if (int(low_type) == 1) return Adj(hl2l, codes);

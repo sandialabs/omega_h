@@ -46,6 +46,7 @@ int classId(pEntity e) {
 */
 
 void call_print(LOs a) {
+  printf("\n");
   auto a_w = Write<LO> (a.size());
   auto r2w = OMEGA_H_LAMBDA(LO i) {
     a_w[i] = a[i];
@@ -56,12 +57,13 @@ void call_print(LOs a) {
     printf(" %d", a_host[i]);
   };
   printf("\n");
+  printf("\n");
   return;
 }
 
 void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
-//void read_internal(pParMesh sm, Mesh* mesh) {
-  //pMesh m = PM_mesh(sm, 0);
+//void read_internal(pParMesh sm, Mesh* mesh) {//use for fine mesh
+  //pMesh m = PM_mesh(sm, 0);//use for fine mesh
   (void)mesh;
   const int numVtx = M_numVertices(m);
   const int numEdges = M_numEdges(m);
@@ -166,8 +168,6 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
   // when to_entity is vertex, codes should not exist as per mesh.c L367
   // & file.c L428
 
-  //get the ids of edges bounding each triangle
-  //get the ids of edges bounding each quadrilateral
   FIter faces = M_faceIter(m);
   pFace face;
   //printf(" ok1.4.4 \n");
@@ -181,13 +181,11 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
     if (F_numEdges(face) == 3) {
       //get ids of tris
       face_type_ids[EN_id(face)] = count_tri;
-      //increment for next tri
       count_tri += 1;
     }
     else if (F_numEdges(face) == 4) {
       //get ids of quads
       face_type_ids[EN_id(face)] = count_quad;
-      //increment for next quad
       count_quad += 1;
     }
     else {
@@ -209,11 +207,8 @@ void read_internal(pMesh m, Mesh* mesh) {//use this for user generated mesh
   Int rotation = 0;
   bool is_flipped = false;
 
-  //face edges curl inside the element
-  //since omega curls outside, the curl direction is flipped
-  //thus flipped should be true for certain faces as it is a face's property not
+  //is_flipped should be true for certain faces as it is a face's property not
   //a edge's
-  //
   
   //iterate and populate resp. edge ids
   faces = M_faceIter(m);
@@ -298,14 +293,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   Write<I8> q2e_codes(qe2e.size(), q2e_codes_name);
   q2e_codes = Write<I8>(host_q2e_codes);
   mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qe2e, q2e_codes));
-  //mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qe2e));
 
-  //get the ids of tris bounding each tet
-  //get the ids of quads bounding each hex
-  //get the ids of tris bounding each wedge
-  //get the ids of quads bounding each wedge
-  //get the ids of tris bounding each pyramid
-  //get the ids of quads bounding each pyramid
   RIter regions = M_regionIter(m);
   //count tets, hexs, wedges and pyramids
   LO count_tet = 0;
@@ -391,6 +379,8 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
         down_adjs[5].push_back(face_type_ids[EN_id(quad)]);
 
         is_flipped = !R_dirUsingFace(rgn, quad);
+        if (which_down == 3) { rotation = 3;}
+        else { rotation = 0;}
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[3].push_back(code);
         ++which_down;
@@ -469,7 +459,6 @@ std::string(dimensional_singular_name(Topo_type::tetrahedron))
   Write<I8> tet2tr_codes(tet2tr.size(), tet2tr_codes_name);
   tet2tr_codes = Write<I8>(host_tet2tr_codes);
   mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tr_codes));
-  //mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr));
   
   //printf(" ok1.4.8.1 \n");
   HostWrite<LO> host_hex2q(count_hex*6);
@@ -492,7 +481,6 @@ std::string(dimensional_singular_name(Topo_type::hexahedron))
   Write<I8> hex2q_codes(hex2q.size(), hex2q_codes_name);
   hex2q_codes = Write<I8>(host_hex2q_codes);
   mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2q_codes));
-  //mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q));
   
   //printf(" ok1.4.8.2 \n");
   HostWrite<LO> host_wedge2tri(count_wedge*2);
@@ -524,7 +512,6 @@ std::string(dimensional_singular_name(Topo_type::wedge))
   wedge2q_codes = Write<I8>(host_wedge2q_codes);
   mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad,
 wedge2q_codes));
-  //mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad));
   
   //printf(" ok1.4.8.2 \n");
   HostWrite<LO> host_pyramid2tri(count_pyramid*4);
@@ -545,7 +532,6 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
   pyram2t_codes = Write<I8>(host_pyram2t_codes);
   mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri,
 pyram2t_codes));
-  //mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri));
   
   HostWrite<LO> host_pyramid2quad(count_pyramid);
   for (Int i = 0; i < count_pyramid; ++i) {
@@ -576,13 +562,12 @@ pyram2t_codes));
     edg2v[i] = edge2vert[i];
   };
   parallel_for(edge2vert.size(), print_call0);
-  //when array size>32, device to host copy and print
   //printf("edge2vert returned from get_adj is\n");
   auto host_edg2v = HostWrite<LO>(edg2v);
   for (int i=0; i<host_edg2v.size(); ++i) {
     //printf(" %d", host_edg2v[i]);
   };
-  printf("\n");
+  //printf("\n");
 
   auto vert2edge = mesh->ask_up(Topo_type::vertex, Topo_type::edge).ab2b;
   auto v2edg = Write<LO> (vert2edge.size());
@@ -595,8 +580,7 @@ pyram2t_codes));
   for (int i=0; i<host_v2edg.size(); ++i) {
     //printf(" %d", host_v2edg[i]);
   };
-  printf("\n");
-  OMEGA_H_CHECK(vert2edge.size() == 2*numEdges);
+  //printf("\n");
 
   auto vert2edge_o = mesh->ask_up(Topo_type::vertex, Topo_type::edge).a2ab;
   auto v2edg_o = Write<LO> (vert2edge_o.size());
@@ -609,8 +593,7 @@ pyram2t_codes));
   for (int i=0; i<host_v2edg_o.size(); ++i) {
     //printf(" %d", host_v2edg_o[i]);
   };
-  printf("\n");
-  OMEGA_H_CHECK(vert2edge_o.size() == numVtx+1);
+  //printf("\n");
   //
   //test API
   auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);
@@ -625,12 +608,12 @@ pyram2t_codes));
   //printf("quad2edge\n");
 
   auto edge2tri = mesh->ask_up(Topo_type::edge, Topo_type::triangle);
-  printf("edge2tri lists returned from ask_up is\n");
+  //printf("edge2tri lists returned from ask_up is\n");
   auto print_call2 = OMEGA_H_LAMBDA(LO i) {
-    printf(" %d", edge2tri.ab2b[i]);
+    //printf(" %d", edge2tri.ab2b[i]);
   };
   parallel_for(edge2tri.ab2b.size(), print_call2);
-  printf("\n");
+  //printf("\n");
   OMEGA_H_CHECK(edge2tri.ab2b.size() == 3*count_tri);
   //printf("edge2tri offsets returned from ask_up is\n");
   auto print_call2p0 = OMEGA_H_LAMBDA(LO i) {
@@ -638,25 +621,14 @@ pyram2t_codes));
   };
   parallel_for(edge2tri.a2ab.size(), print_call2p0);
   //printf("\n");
-  OMEGA_H_CHECK(edge2tri.a2ab.size() == numEdges+1);
 
   auto edge2quad = mesh->ask_up(Topo_type::edge, Topo_type::quadrilateral);
   //printf("edge2quad lists returned from ask_up is\n");
-  auto print_call3 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", edge2quad.ab2b[i]);
-  };
-  parallel_for(edge2quad.ab2b.size(), print_call3);
-  printf("\n");
+  //call_print(edge2quad.ab2b);
   //printf("edge2quad offsets returned from ask_up is\n");
-  auto print_call3p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", edge2quad.a2ab[i]);
-  };
-  parallel_for(edge2quad.a2ab.size(), print_call3p0);
-  printf("\n");
-  OMEGA_H_CHECK(edge2quad.ab2b.size() == 4*count_quad);
-  OMEGA_H_CHECK(edge2quad.a2ab.size() == numEdges+1);
+  //call_print(edge2quad.a2ab);
   //
-  //test API
+  //inversion queries
   auto tet2tri = mesh->get_adj(Topo_type::tetrahedron, Topo_type::triangle);
   auto hex2quad = mesh->get_adj(Topo_type::hexahedron, Topo_type::quadrilateral);
   auto wedge2tria = mesh->get_adj(Topo_type::wedge, Topo_type::triangle);
@@ -666,155 +638,115 @@ pyram2t_codes));
 
   auto tri2tet = mesh->ask_up(Topo_type::triangle, Topo_type::tetrahedron);
   //printf("tri2tet list returned from ask_up is\n");
-  auto print_call4 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", tri2tet.ab2b[i]);
-  };
-  parallel_for(tri2tet.ab2b.size(), print_call4);
-  printf("\n");
+  //call_print(tri2tet.ab2b);
   //printf("tri2tet offset returned from ask_up is\n");
-  auto print_call4p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", tri2tet.a2ab[i]);
-  };
-  parallel_for(tri2tet.a2ab.size(), print_call4p0);
-  printf("\n");
-  OMEGA_H_CHECK(tri2tet.ab2b.size() == 4*count_tet);
-  OMEGA_H_CHECK(tri2tet.a2ab.size() == count_tri+1);
+  //call_print(tri2tet.a2ab);
 
   auto quad2hex = mesh->ask_up(Topo_type::quadrilateral, Topo_type::hexahedron);
   //printf("quad2hex list returned from ask_up is\n");
-  auto print_call5 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", quad2hex.ab2b[i]);
-  };
-  parallel_for(quad2hex.ab2b.size(), print_call5);
-  printf("\n");
+  //call_print(quad2hex.ab2b);
   //printf("quad2hex offset returned from ask_up is\n");
-  auto print_call5p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", quad2hex.a2ab[i]);
-  };
-  parallel_for(quad2hex.a2ab.size(), print_call5p0);
-  printf("\n");
-  OMEGA_H_CHECK(quad2hex.ab2b.size() == count_hex*6);
-  OMEGA_H_CHECK(quad2hex.a2ab.size() == count_quad+1);
+  //call_print(quad2hex.a2ab);
 
   auto tri2wedge = mesh->ask_up(Topo_type::triangle, Topo_type::wedge);
   //printf("tri2wedge list returned from ask_up is\n");
-  auto print_call6 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", tri2wedge.ab2b[i]);
-  };
-  parallel_for(tri2wedge.ab2b.size(), print_call6);
-  printf("\n");
+  //call_print(tri2wedge.ab2b);
   //printf("tri2wedge offset returned from ask_up is\n");
-  auto print_call6p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", tri2wedge.a2ab[i]);
-  };
-  parallel_for(tri2wedge.a2ab.size(), print_call6p0);
-  printf("\n");
-  OMEGA_H_CHECK(tri2wedge.ab2b.size() == 2*count_wedge);
-  OMEGA_H_CHECK(tri2wedge.a2ab.size() == count_tri+1);
+  //call_print(tri2wedge.a2ab);
 
   auto quad2wedge = mesh->ask_up(Topo_type::quadrilateral, Topo_type::wedge);
   //printf("quad2wedge list returned from ask_up is\n");
-  auto print_call7 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", quad2wedge.ab2b[i]);
-  };
-  parallel_for(quad2wedge.ab2b.size(), print_call7);
-  printf("\n");
+  //call_print(quad2wedge.ab2b);
   //printf("quad2wedge offset returned from ask_up is\n");
-  auto print_call7p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", quad2wedge.a2ab[i]);
-  };
-  parallel_for(quad2wedge.a2ab.size(), print_call7p0);
-  printf("\n");
-  OMEGA_H_CHECK(quad2wedge.ab2b.size() == count_wedge*3);
-  OMEGA_H_CHECK(quad2wedge.a2ab.size() == count_quad+1);
+  //call_print(quad2wedge.a2ab);
 
   auto tri2pyramid = mesh->ask_up(Topo_type::triangle, Topo_type::pyramid);
   //printf("tri2pyramid list returned from ask_up is\n");
-  auto print_call8 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", tri2pyramid.ab2b[i]);
-  };
-  parallel_for(tri2pyramid.ab2b.size(), print_call8);
-  printf("\n");
+  //call_print(tri2pyramid.ab2b);
   //printf("tri2pyramid offset returned from ask_up is\n");
-  auto print_call8p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", tri2pyramid.a2ab[i]);
-  };
-  parallel_for(tri2pyramid.a2ab.size(), print_call8p0);
-  printf("\n");
-  OMEGA_H_CHECK(tri2pyramid.ab2b.size() == 4*count_pyramid);
-  OMEGA_H_CHECK(tri2pyramid.a2ab.size() == count_tri+1);
+  //call_print(tri2pyramid.a2ab);
 
   auto quad2pyramid = mesh->ask_up(Topo_type::quadrilateral, Topo_type::pyramid);
   //printf("quad2pyramid list returned from ask_up is\n");
-  auto print_call9 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", quad2pyramid.ab2b[i]);
-  };
-  parallel_for(quad2pyramid.ab2b.size(), print_call9);
-  printf("\n");
+  //call_print(quad2pyramid.ab2b);
   //printf("quad2pyramid offset returned from ask_up is\n");
-  auto print_call9p0 = OMEGA_H_LAMBDA(LO i) {
-    //printf(" %d", quad2pyramid.a2ab[i]);
-  };
-  parallel_for(quad2pyramid.a2ab.size(), print_call9p0);
-  printf("\n");
+  //call_print(quad2pyramid.a2ab);
+
+  //inversion assertions
+
+  OMEGA_H_CHECK(vert2edge.size() == 2*numEdges);
+  OMEGA_H_CHECK(vert2edge_o.size() == numVtx+1);
+  OMEGA_H_CHECK(edge2tri.a2ab.size() == numEdges+1);
+  OMEGA_H_CHECK(edge2quad.ab2b.size() == 4*count_quad);
+  OMEGA_H_CHECK(edge2quad.a2ab.size() == numEdges+1);
+  OMEGA_H_CHECK(tri2tet.ab2b.size() == 4*count_tet);
+  OMEGA_H_CHECK(tri2tet.a2ab.size() == count_tri+1);
+  OMEGA_H_CHECK(quad2hex.ab2b.size() == count_hex*6);
+  OMEGA_H_CHECK(quad2hex.a2ab.size() == count_quad+1);
+  OMEGA_H_CHECK(tri2wedge.ab2b.size() == 2*count_wedge);
+  OMEGA_H_CHECK(tri2wedge.a2ab.size() == count_tri+1);
+  OMEGA_H_CHECK(quad2wedge.ab2b.size() == count_wedge*3);
+  OMEGA_H_CHECK(quad2wedge.a2ab.size() == count_quad+1);
+  OMEGA_H_CHECK(tri2pyramid.ab2b.size() == 4*count_pyramid);
+  OMEGA_H_CHECK(tri2pyramid.a2ab.size() == count_tri+1);
   OMEGA_H_CHECK(quad2pyramid.ab2b.size() == count_pyramid);
   OMEGA_H_CHECK(quad2pyramid.a2ab.size() == count_quad+1);
 
-/*  
-  //print function test
-  auto test_print = mesh->ask_up(Topo_type::quadrilateral,
-Topo_type::pyramid);
-  printf("test call print\n");
-  call_print(test_print.a2ab);
-*/
+  //Transit tests
+  //transit queries
 
-  //transit tests
-/*
-  ****these ok
   auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
+  auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
+  auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
+  auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
+  //Q:check normals and provide protocols to calc normal from rgn2vtx
+  //A:We may not need to do that since we know numberings & canon
+  //TODO: why rotation =3 for hex face3??
+  auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
+  auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
+  auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
+  auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
+  auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
+  auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
+
+  //transit assertions
+
+  OMEGA_H_CHECK(tri2vert.ab2b.size() == count_tri*3);
+  OMEGA_H_CHECK(quad2vert.ab2b.size() == count_quad*4);
+  OMEGA_H_CHECK(tet2edge.ab2b.size() == count_tet*6);
+  OMEGA_H_CHECK(tet2vtx.ab2b.size() == count_tet*4);
+  OMEGA_H_CHECK(hex2edge.ab2b.size() == count_hex*12);
+  OMEGA_H_CHECK(hex2vtx.ab2b.size() == count_hex*8);
+  OMEGA_H_CHECK(wedge2edge.ab2b.size() == count_wedge*9);
+  OMEGA_H_CHECK(wedge2vtx.ab2b.size() == count_wedge*6);
+  OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
+  OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
+
+
+  //transit prints
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);
-
-  auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
   printf("quad2vert values from ask_down is\n");
   call_print(quad2vert.ab2b);
-
-  auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
   printf("tet2edge values from ask_down is\n");
   call_print(tet2edge.ab2b);
-
-  auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
   printf("tet2vtx values from ask_down is\n");
   call_print(tet2vtx.ab2b);
-  ****
-*/
-
-/*
-  ****Not working
-  auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
   printf("hex2edge values from ask_down is\n");
   call_print(hex2edge.ab2b);
-  auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
   printf("hex2vtx values from ask_down is\n");
   call_print(hex2vtx.ab2b);
-  ****
-*/
-
-  //check normals
-  auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
   printf("wedge2edge values from ask_down is\n");
   call_print(wedge2edge.ab2b);
-  auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
   printf("wedge2vtx values from ask_down is\n");
   call_print(wedge2vtx.ab2b);
-
-  //check normals
-  auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
   printf("pyram2edge values from ask_down is\n");
   call_print(pyram2edge.ab2b);
-  auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
   printf("pyram2vtx values from ask_down is\n");
   call_print(pyram2vtx.ab2b);
+
+  //
+
 /*
   //get the ids of vertices bounding each face
   ent_class_ids[2].reserve(numFaces);
@@ -888,30 +820,6 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
   //printf(" ok1.3 \n");
   auto mesh = Mesh(comm->library());
 
-/*
-  pMesh ms;
-  ms = M_new(0,0);
-  int numVerts = 7;
-  double coords[7*3] =  {0.000, 0.000, 0.000,
-                         1.000, 0.000, 0.000,
-                         0.500, 0.866, 0.000,
-			 0.000, 0.000, 1.000, 
-                         1.000, 0.000, 1.000,
-                         0.500, 0.866, 1.000,
-                         0.500, 0.289, 2.000,
-			};
-  int numElems = 2;
-  int elementType[2] = {12, 10};
-  int elementData[6+4] = {0,1,2,3,4,5,3,4,5,6};
-  M_importFromData(ms, numVerts, coords, numElems,
-       elementType, elementData, 0, 0, 0);
-  //
-  M_write(ms, "/users/joshia5/simmodeler/importDataMesh.sms", 0, 0);
-  printf(" ok1.4 \n");
-  meshsim::read_internal(ms, &mesh);
-  M_release(ms);
-*/
-
   try {  
     Sim_logOn("importData1.log");  // start logging
     MS_init(); // Call before calling Sim_readLicenseFile
@@ -923,8 +831,8 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     // input parameters for the function
     pMesh meshtest; //mesh to load
 
-///*
-    // For tet on wedge, hex and pyramid adjacenct to wedge
+/*
+    // For tet on wedge, plus hex and pyramid adjacenct to wedge
     int numVerts = 12;
     double coords[12*3] = {0.000, 0.000, 0.000,
                            1.000, 0.000, 0.000,
@@ -945,9 +853,9 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     pVertex vReturn[12]; // array of created vertices
     pEntity eReturn[4]; // array of created entities
     //
-//*/
+*/
 
-/*
+///*
     //For tet on wedge
     int numVerts = 7;
     double coords[7*3] =  {0.000, 0.000, 0.000,
@@ -963,7 +871,7 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     int elementData[6+4] = {0,1,2,3,4,5,3,4,5,6};
     pVertex vReturn[7]; // array of created vertices
     pEntity eReturn[2]; // array of created entities
-*/
+//*/
 
 /*  For cube as per simmetrix example
     int numVerts = 8; // number of vertices  
@@ -1014,7 +922,6 @@ Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
     meshsim::read_internal(meshtest, &mesh);//use this for user generated mesh
     //meshsim::read_internal(sm, &mesh);
 
-    // cleanup
     M_release(meshtest);
     GM_release(modeltest);
     Progress_delete(progress);
