@@ -19,6 +19,6 @@ int main(int argc, char** argv) {
   auto mesh = Omega_h::meshsim::read(mesh_in, model_in, comm);
   printf(" ok2 \n");
   //Omega_h::binary::write(mesh_out, &mesh);
-  std::cout << "wrote mesh " << mesh_out << "\n";
+  //std::cout << "wrote mesh " << mesh_out << "\n";
   return 0;
 }

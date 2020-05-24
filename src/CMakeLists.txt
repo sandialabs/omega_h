@@ -271,6 +271,11 @@ if(BUILD_TESTING)
   osh_add_exe(unit_math)
   set(TEST_EXES ${TEST_EXES} unit_math)
   test_func(run_unit_math 1 ./unit_math)
+  #mixed test
+  osh_add_exe(mixedSim_unitTest)
+  set(TEST_EXES ${TEST_EXES} mixedSim_unitTest)
+  test_func(run_mixedSim_unitTest 1 ./mixedSim_unitTest)
+  # 
   osh_add_exe(unit_array_algs)
   set(TEST_EXES ${TEST_EXES} unit_array_algs)
   test_func(run_unit_array_algs 1 ./unit_array_algs)
