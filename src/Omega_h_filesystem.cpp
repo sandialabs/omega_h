@@ -44,7 +44,7 @@ path current_path() {
 }
 
 bool remove(path const& p) {
-  BOOL success = ::RemoveDirectoryA(p.impl.c_str());
+  BOOL success = ::DeleteFile(p.impl.c_str());
   if (!success) {
     throw filesystem_error(GetLastError(), "remove");
   }
