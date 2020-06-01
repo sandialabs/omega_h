@@ -412,6 +412,8 @@ static void find_matches_deg(LOs const a2fv, Read<T> const av2v,
       auto const which_down = code_which_down(vb_code);
       auto const b_begin = b * deg;
       I8 match_code;
+      //printf("av2v size=%d, bv2v size = %d, deg=%d\n", av2v.size(), bv2v.size(), deg);
+      printf("a_begin=%d, b_begin=%d, which_down=%d\n", a_begin, b_begin, which_down);
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
         OMEGA_H_CHECK(!found);  // there can't be more than one!

@@ -151,7 +151,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   FIter faces = M_faceIter(m);
   pFace face;
   //printf(" ok1.4.4 \n");
-  //count no. of tris and quads
   int count_tri = 0;
   int count_quad = 0;
   //get ids of tris and quads from faceIDs
@@ -159,12 +158,10 @@ void read_internal(pMesh m, Mesh* mesh) {
   face_type_ids.reserve(numFaces);
   while (face = (pFace) FIter_next(faces)) {
     if (F_numEdges(face) == 3) {
-      //get ids of tris
       face_type_ids[EN_id(face)] = count_tri;
       count_tri += 1;
     }
     else if (F_numEdges(face) == 4) {
-      //get ids of quads
       face_type_ids[EN_id(face)] = count_quad;
       count_quad += 1;
     }
@@ -207,6 +204,7 @@ void read_internal(pMesh m, Mesh* mesh) {
 
         rotation = !F_dirUsingEdge(face, tri_edge);
 
+        //auto code = make_code(is_flipped, which_down, 0);
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[0].push_back(code);
         ++which_down;
@@ -225,6 +223,7 @@ void read_internal(pMesh m, Mesh* mesh) {
         //printf("adjacent edge id=%d\n", EN_id(quad_edge));
 
         rotation = !F_dirUsingEdge(face, quad_edge);
+        //auto code = make_code(is_flipped, which_down, 0);
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[1].push_back(code);
         ++which_down;
@@ -349,13 +348,17 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       assert (PList_size(quads) == 6);
       void *iter = 0; // must initialize to 0
       which_down = 0;
+      rotation = 0;
       while (quad = (pFace) PList_next(quads, &iter)) {
         down_adjs[5].push_back(face_type_ids[EN_id(quad)]);
 
         is_flipped = !R_dirUsingFace(rgn, quad);
-        if (which_down == 3) { rotation = 3;}
+        if (which_down == 3) { rotation = 3;}//for 4 elems case, 0,1,2 not work
         else { rotation = 0;}
         auto code = make_code(is_flipped, rotation, which_down);
+        //rotation = rotation_to_first(4, which_down);
+        //printf ("rotation=%d\n", rotation);
+        //auto code = make_code(is_flipped, rotation, 0);
         down_codes[3].push_back(code);
         ++which_down;
       }
@@ -395,6 +398,8 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
           down_adjs[8].push_back(face_type_ids[EN_id(p_face)]);
 
           is_flipped = !R_dirUsingFace(rgn, p_face);
+          //rotation = rotation_to_first(3, which_down);
+          //auto code = make_code(is_flipped, rotation, 0);
           auto code = make_code(is_flipped, rotation, which_down);
           down_codes[6].push_back(code);
           ++which_down;
@@ -545,60 +550,49 @@ pyram2t_codes));
   auto tri2pyramid = mesh->ask_up(Topo_type::triangle, Topo_type::pyramid);
   auto quad2pyramid = mesh->ask_up(Topo_type::quadrilateral, Topo_type::pyramid);
 
-  //print outputs
-  //printf("edge2vert values returned from get_adj is\n");
-  //call_print(edge2vert.ab2b);
-
-  //printf("vert2edge values returned from ask_up is\n");
-  //call_print(vert2edge.ab2b);
-  //printf("vert2edge offsets returned from ask_up is\n");
-  //call_print(vert2edge.a2ab);
-
+/*
+  //inversion prints
+  printf("edge2vert values returned from get_adj is\n");
+  call_print(edge2vert.ab2b);
+  printf("vert2edge values returned from ask_up is\n");
+  call_print(vert2edge.ab2b);
+  printf("vert2edge offsets returned from ask_up is\n");
+  call_print(vert2edge.a2ab);
   //printf("tri2edge codes returned from get_adj is\n");
   //call_print(tri2edge.codes);
-
-
-  //printf("edge2tri values returned from ask_up is\n");
-  //call_print(edge2tri.ab2b);
-  //printf("edge2tri offsets returned from ask_up is\n");
-  //call_print(edge2tri.a2ab);
-
-  //printf("edge2quad lists returned from ask_up is\n");
-  //call_print(edge2quad.ab2b);
-  //printf("edge2quad offsets returned from ask_up is\n");
-  //call_print(edge2quad.a2ab);
-  //
-
-  //printf("tri2tet list returned from ask_up is\n");
-  //call_print(tri2tet.ab2b);
-  //printf("tri2tet offset returned from ask_up is\n");
-  //call_print(tri2tet.a2ab);
-
-  //printf("quad2hex list returned from ask_up is\n");
-  //call_print(quad2hex.ab2b);
-  //printf("quad2hex offset returned from ask_up is\n");
-  //call_print(quad2hex.a2ab);
-
-  //printf("tri2wedge list returned from ask_up is\n");
-  //call_print(tri2wedge.ab2b);
-  //printf("tri2wedge offset returned from ask_up is\n");
-  //call_print(tri2wedge.a2ab);
-
-  //printf("quad2wedge list returned from ask_up is\n");
-  //call_print(quad2wedge.ab2b);
-  //printf("quad2wedge offset returned from ask_up is\n");
-  //call_print(quad2wedge.a2ab);
-
-  //printf("tri2pyramid list returned from ask_up is\n");
-  //call_print(tri2pyramid.ab2b);
-  //printf("tri2pyramid offset returned from ask_up is\n");
-  //call_print(tri2pyramid.a2ab);
-
-  //printf("quad2pyramid list returned from ask_up is\n");
-  //call_print(quad2pyramid.ab2b);
-  //printf("quad2pyramid offset returned from ask_up is\n");
-  //call_print(quad2pyramid.a2ab);
-
+  printf("edge2tri values returned from ask_up is\n");
+  call_print(edge2tri.ab2b);
+  printf("edge2tri offsets returned from ask_up is\n");
+  call_print(edge2tri.a2ab);
+  printf("edge2quad lists returned from ask_up is\n");
+  call_print(edge2quad.ab2b);
+  printf("edge2quad offsets returned from ask_up is\n");
+  call_print(edge2quad.a2ab);
+  printf("tri2tet list returned from ask_up is\n");
+  call_print(tri2tet.ab2b);
+  printf("tri2tet offset returned from ask_up is\n");
+  call_print(tri2tet.a2ab);
+  printf("quad2hex list returned from ask_up is\n");
+  call_print(quad2hex.ab2b);
+  printf("quad2hex offset returned from ask_up is\n");
+  call_print(quad2hex.a2ab);
+  printf("tri2wedge list returned from ask_up is\n");
+  call_print(tri2wedge.ab2b);
+  printf("tri2wedge offset returned from ask_up is\n");
+  call_print(tri2wedge.a2ab);
+  printf("quad2wedge list returned from ask_up is\n");
+  call_print(quad2wedge.ab2b);
+  printf("quad2wedge offset returned from ask_up is\n");
+  call_print(quad2wedge.a2ab);
+  printf("tri2pyramid list returned from ask_up is\n");
+  call_print(tri2pyramid.ab2b);
+  printf("tri2pyramid offset returned from ask_up is\n");
+  call_print(tri2pyramid.a2ab);
+  printf("quad2pyramid list returned from ask_up is\n");
+  call_print(quad2pyramid.ab2b);
+  printf("quad2pyramid offset returned from ask_up is\n");
+  call_print(quad2pyramid.a2ab);
+*/
   //inversion assertions
 
   OMEGA_H_CHECK(vert2edge.ab2b.size() == 2*numEdges);
@@ -620,23 +614,41 @@ pyram2t_codes));
   OMEGA_H_CHECK(quad2pyramid.ab2b.size() == count_pyramid);
   OMEGA_H_CHECK(quad2pyramid.a2ab.size() == count_quad+1);
 
-  //Transit tests
+  //transit tests
   //queries
 
+  printf("tri2vert values from ask_down is\n");
   auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
+  printf("quad2vert values from ask_down is\n");
   auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
-/*
+///*
   auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
   auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
   //Q:check normals and provide protocols to calc normal from rgn2vtx
   //A:We may not need to do that since we know numberings & canon
   //TODO: why rotation =3 for hex face3??
+  printf("hex2edge values from ask_down is\n");
   auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
+  printf("hex2vtx values from ask_down is\n");
   auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
   auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
   auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
+  printf("pym2edge values from ask_down is\n");
   auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
+  printf("pym2vtx values from ask_down is\n");
   auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
+
+  //multi level up adj
+  auto vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
+  auto vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
+  auto vert2tet = mesh->ask_up(Topo_type::vertex, Topo_type::tetrahedron);
+  auto vert2hex = mesh->ask_up(Topo_type::vertex, Topo_type::hexahedron);
+  auto vert2wedge = mesh->ask_up(Topo_type::vertex, Topo_type::wedge);
+  auto vert2pyramid = mesh->ask_up(Topo_type::vertex, Topo_type::pyramid);
+  auto edge2tet = mesh->ask_up(Topo_type::edge, Topo_type::tetrahedron);
+  auto edge2hex = mesh->ask_up(Topo_type::edge, Topo_type::hexahedron);
+  auto edge2wedge = mesh->ask_up(Topo_type::edge, Topo_type::wedge);
+  auto edge2pyramid = mesh->ask_up(Topo_type::edge, Topo_type::pyramid);
 
   //assertions
 
@@ -651,7 +663,7 @@ pyram2t_codes));
   OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
 
-
+/*
   //prints
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);
@@ -673,9 +685,11 @@ pyram2t_codes));
   call_print(pyram2edge.ab2b);
   printf("pyram2vtx values from ask_down is\n");
   call_print(pyram2vtx.ab2b);
-
   //
 */
+//*/
+
+  //Below for build_from_ents2verts
 /*
   //get the ids of vertices bounding each face
   ent_class_ids[2].reserve(numFaces);
