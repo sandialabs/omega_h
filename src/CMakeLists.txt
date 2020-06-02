@@ -214,7 +214,7 @@ else()
   endif()
 endif()
 
-bob_link_dependency(omega_h PUBLIC Kokkos)
+target_link_libraries(omega_h PUBLIC Kokkos::kokkoscore)
 
 bob_link_dependency(omega_h PUBLIC libMeshb)
 

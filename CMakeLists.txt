@@ -20,20 +20,21 @@ bob_input(Omega_h_DATA "" PATH "Path to omega_h-data test files")
 bob_option(Omega_h_USE_EGADS "Use EGADS from ESP for geometry" OFF)
 bob_input(EGADS_PREFIX "" PATH "EGADS (or ESP) installation directory")
 bob_option(Omega_h_USE_Kokkos "Use Kokkos as a backend" OFF)
-bob_input(Kokkos_PREFIX "" PATH "Path to Kokkos install")
 bob_option(Omega_h_USE_CUDA_AWARE_MPI "Assume MPI is CUDA-aware, make use of that" OFF)
 bob_input(Omega_h_VALGRIND "" STRING "Valgrind plus arguments for testing")
 bob_option(Omega_h_EXAMPLES "Compile examples" OFF)
 
+if(Omega_h_USE_Kokkos)
+  #We don't actually use this global variable, we use the
+  #proper per-target specification
+  #However, if the Kokkos CMake sees this undefined, it
+  #panics and assumes we're using extensions
+  set(CMAKE_CXX_EXTENSIONS OFF)
+  find_package(Kokkos REQUIRED)
+endif()
+
 set(Omega_h_USE_ZLIB_DEFAULT ON)
 bob_add_dependency(PUBLIC NAME ZLIB TARGETS ZLIB::ZLIB)
-
-set(Omega_h_USE_Kokkos_DEFAULT OFF)
-set(KokkosCore_PREFIX_DEFAULT ${Kokkos_PREFIX})
-bob_add_dependency(PUBLIC NAME Kokkos TARGETS kokkos INCLUDE_DIR_VARS Kokkos_INCLUDE_DIRS)
-if (Omega_h_USE_Kokkos)
-  set_target_properties(kokkos PROPERTIES INTERFACE_COMPILE_OPTIONS "")
-endif()
 
 set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
