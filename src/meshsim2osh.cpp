@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
   //std::cout << "wrote mesh " << mesh_out << "\n";
 
   //testing for codes generation
-  auto mesh_build = Omega_h::build_box(lib.world(), OMEGA_H_HYPERCUBE, 1.0, 1.0, 0.0, 2, 2, 0);
+  //auto mesh_build = Omega_h::build_box(lib.world(), OMEGA_H_HYPERCUBE, 1.0, 1.0, 0.0, 2, 2, 0);
 
 
   return 0;

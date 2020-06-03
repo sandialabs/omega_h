@@ -70,9 +70,10 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> down_adjs[10];
   std::vector<int> down_codes[8];
   //std::vector<int> ent_class_ids[10];
+  std::vector<int> elem_vertices[4];
 
 /*
-  //write vertex coords into node_coords and vertex ids into down_adjs
+  //write vertex coords into node_coords and vertex ids into ents_nodes
   down_adjs[0].reserve(numVtx);
   ent_class_ids[0].reserve(numVtx);
   HostWrite<Real> host_coords(numVtx*max_dim);
@@ -121,7 +122,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   //printf("deg e2v=%d \n", deg);
   
 /*
-  //below degree values check out
+  //Test degree outputs
   deg = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
   printf("deg tet2v=%d \n", deg);
   deg = element_degree(Topo_type::hexahedron, Topo_type::quadrilateral);
@@ -416,8 +417,73 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   }
   RIter_delete(regions);
   //printf(" ok1.4.8 \n");
-
   //
+
+/*
+  for generating codes for rgn2face adjs
+    1. generate elem2vert using sim APIs
+      1.1. form_uses calls down_template, so will need to create those for wedge and pyramid 
+      1.2. <I.E> make new form_uses for mixed with down_template
+      1.3. call form_uses here
+    2. get rgn2firstVert using get_component on form_uses
+    3. get face2vert using omega_h transit
+    4. get vert2face using inversion
+    5. call find_matches_ex api - make new for mixed mesh
+*/
+  elem_vertices[0].reserve(count_tet*4);
+  elem_vertices[1].reserve(count_hex*8);
+  elem_vertices[2].reserve(count_wedge*6);
+  elem_vertices[3].reserve(count_pyramid*5);
+
+  regions = M_regionIter(m);
+  while ((rgn = (pRegion) RIter_next(regions))) {
+    if (R_topoType(rgn) == Rtet) {
+      pVertex vert;
+      pPList verts = R_vertices(rgn,1);
+      assert (PList_size(verts) == 4);
+      void *iter = 0; // must initialize to 0
+      while (vert = (pVertex) PList_next(verts, &iter)) {
+        elem_vertices[0].push_back(EN_id(vert));
+      }
+      PList_delete(verts);
+    }
+    else if (R_topoType(rgn) == Rhex) {
+      pVertex vert;
+      pPList verts = R_vertices(rgn,1);
+      assert (PList_size(verts) == 8);
+      void *iter = 0; // must initialize to 0
+      while (vert = (pVertex) PList_next(verts, &iter)) {
+        elem_vertices[1].push_back(EN_id(vert));
+      }
+      PList_delete(verts);
+    }
+    else if (R_topoType(rgn) == Rwedge) {
+      pVertex vert;
+      pPList verts = R_vertices(rgn,1);
+      assert (PList_size(verts) == 6);
+      void *iter = 0; // must initialize to 0
+      while (vert = (pVertex) PList_next(verts, &iter)) {
+        elem_vertices[2].push_back(EN_id(vert));
+      }
+      PList_delete(verts);
+    }
+    else if (R_topoType(rgn) == Rpyramid) {
+      pVertex vert;
+      pPList verts = R_vertices(rgn,1);
+      assert (PList_size(verts) == 5);
+      void *iter = 0; // must initialize to 0
+      while (vert = (pVertex) PList_next(verts, &iter)) {
+        elem_vertices[3].push_back(EN_id(vert));
+      }
+      PList_delete(verts);
+    }
+    else {
+      Omega_h_fail ("Region is not tet, hex, wedge, or pyramid \n");
+    }
+  }
+  RIter_delete(regions);
+  printf("elem2verts generated\n");
+
   HostWrite<LO> host_tet2tr(count_tet*4);
   HostWrite<I8> host_tet2tr_codes(count_tet*4);
   for (Int i = 0; i < count_tet; ++i) {
@@ -621,7 +687,7 @@ pyram2t_codes));
   auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
   printf("quad2vert values from ask_down is\n");
   auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
-///*
+/*
   auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
   auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
   //Q:check normals and provide protocols to calc normal from rgn2vtx
@@ -662,7 +728,7 @@ pyram2t_codes));
   OMEGA_H_CHECK(wedge2vtx.ab2b.size() == count_wedge*6);
   OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
-
+*/
 /*
   //prints
   printf("tri2vert values from ask_down is\n");

@@ -175,6 +175,30 @@ LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
   return uv2v;
 }
 
+LOs form_uses(LOs const hv2v, Topo_type const high_type,
+              Topo_type const low_type) {
+  OMEGA_H_TIME_FUNCTION;
+  Int const nverts_per_high = element_degree(high_type, Topo_type::vertex);
+  Int const nverts_per_low = element_degree(low_type, Topo_type::vertex);
+  Int const nlows_per_high = element_degree(high_type, low_type);
+  LO const nhigh = divide_no_remainder(hv2v.size(), nverts_per_high);
+  LO const nuses = nhigh * nlows_per_high;
+  Write<LO> uv2v(nuses * nverts_per_low);
+  auto f = OMEGA_H_LAMBDA(LO h) {
+    LO const h_begin = h * nverts_per_high;
+    for (Int u = 0; u < nlows_per_high; ++u) {
+      LO const u_begin = (h * nlows_per_high + u) * nverts_per_low;
+      for (Int uv = 0; uv < nverts_per_low; ++uv) {
+        uv2v[u_begin + uv] = hv2v[h_begin + element_down_template(
+                             int(high_type), int(low_type), u, uv)];
+        //write new down_template
+      }
+    }
+  };
+  parallel_for(nhigh, std::move(f));
+  return uv2v;
+}
+
 static void sort_by_high_index(
     LOs const l2lh, Write<LO> const lh2h, Write<I8> const codes) {
   OMEGA_H_TIME_FUNCTION;

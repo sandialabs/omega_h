@@ -15,6 +15,154 @@ OMEGA_H_INLINE Int element_down_template(Omega_h_Family family, Int elem_dim,
                                           bdry_dim, which_bdry, which_vert));
 }
 
+constexpr OMEGA_H_INLINE Int element_down_template(
+    Int elem_type, Int bdry_type, Int which_bdry, Int which_vert) {
+  // clang-format off
+  return (elem_type == 7 ?
+           (bdry_type == 3 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 0 :
+               (which_vert == 2 ? 3 :
+               (which_vert == 3 ? 2 : -1)))) : -1)
+           (bdry_type == 2 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 1 :
+               (which_vert == 2 ? 4 : -1))) :
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 2 :
+               (which_vert == 2 ? 4 : -1))) :
+             (which_bdry == 2 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 3 :
+               (which_vert == 2 ? 4 : -1))) :
+             (which_bdry == 3 ?
+               (which_vert == 0 ? 3 :
+               (which_vert == 1 ? 0 :
+               (which_vert == 2 ? 4 : -1))) : -1)))) :
+           (bdry_type == 1 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 1 : -1)) :
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 2 : -1)) :
+             (which_bdry == 2 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 3 : -1)) :
+             (which_bdry == 3 ?
+               (which_vert == 0 ? 3 :
+               (which_vert == 1 ? 0 : -1)) :
+             (which_bdry == 4 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 4 : -1)) :
+             (which_bdry == 5 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 4 : -1)) :
+             (which_bdry == 6 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 4 : -1)) :
+             (which_bdry == 7 ?
+               (which_vert == 0 ? 3 :
+               (which_vert == 1 ? 4 : -1)) : -1)))))))) :
+           (bdry_type == 0 ?
+             (which_bdry == 0 ? 0 :
+             (which_bdry == 1 ? 1 :
+             (which_bdry == 2 ? 2 :
+             (which_bdry == 3 ? 3 :
+             (which_bdry == 4 ? 4 : -1))))) : -1)))) :
+         (elem_type == 6 ?
+           (bdry_type == 3 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 1 :
+               (which_vert == 2 ? 4 :
+               (which_vert == 3 ? 3 : -1)))) 
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 2 :
+               (which_vert == 2 ? 5 :
+               (which_vert == 3 ? 4 : -1)))) 
+             (which_bdry == 2 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 0 :
+               (which_vert == 2 ? 3 :
+               (which_vert == 3 ? 5 : -1)))) : -1)))
+           (bdry_type == 2 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 0 :
+               (which_vert == 2 ? 2 : -1))) :
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 4 :
+               (which_vert == 1 ? 3 :
+               (which_vert == 2 ? 5 : -1)))  : -1)) :
+           (bdry_type == 1 ?
+             (which_bdry == 0 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 1 : -1)) :
+             (which_bdry == 1 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 2 : -1)) :
+             (which_bdry == 2 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 0 : -1)) :
+             (which_bdry == 3 ?
+               (which_vert == 0 ? 0 :
+               (which_vert == 1 ? 3 : -1)) :
+             (which_bdry == 4 ?
+               (which_vert == 0 ? 1 :
+               (which_vert == 1 ? 4 : -1)) :
+             (which_bdry == 5 ?
+               (which_vert == 0 ? 2 :
+               (which_vert == 1 ? 5 : -1)) :
+             (which_bdry == 6 ?
+               (which_vert == 0 ? 3 :
+               (which_vert == 1 ? 4 : -1)) :
+             (which_bdry == 7 ?
+               (which_vert == 0 ? 4 :
+               (which_vert == 1 ? 5 : -1)) :
+             (which_bdry == 8 ?
+               (which_vert == 0 ? 5 :
+               (which_vert == 1 ? 3 : -1)) : -1))))))))) :
+           (bdry_type == 0 ?
+             (which_bdry == 0 ? 0 :
+             (which_bdry == 1 ? 1 :
+             (which_bdry == 2 ? 2 :
+             (which_bdry == 3 ? 3 :
+             (which_bdry == 4 ? 4 :
+             (which_bdry == 5 ? 5 : -1)))))) : -1)))) :
+         (elem_type == 5 ?
+           (bdry_type == 3 ?
+             hypercube_down_template(3, 2, which_bdry, which_vert) :
+           (bdry_type == 1 ?
+             hypercube_down_template(3, 1, which_bdry, which_vert) :
+           (bdry_type == 0 ?
+             hypercube_down_template(3, 0, which_bdry, which_vert) : -1))) :
+         (elem_type == 4 ?
+           (bdry_type == 2 ?
+             simplex_down_template(3, 2, which_bdry, which_vert) :
+           (bdry_type == 1 ?
+             simplex_down_template(3, 1, which_bdry, which_vert) :
+           (bdry_type == 0 ?
+             simplex_down_template(3, 0, which_bdry, which_vert) : -1))) :
+         (elem_type == 3 ?
+           (bdry_type == 1 ?
+             hypercube_down_template(2, 1, which_bdry, which_vert) :
+           (bdry_type == 0 ?
+             hypercube_down_template(2, 0, which_bdry, which_vert) : -1)) :
+         (elem_type == 2 ?
+           (bdry_type == 1 ?
+             simplex_down_template(2, 1, which_bdry, which_vert) :
+           (bdry_type == 0 ?
+             simplex_down_template(2, 0, which_bdry, which_vert) : -1)) :
+         (elem_type == 1 ?
+           simplex_down_template(1, 0, which_bdry, which_vert) : -1)))))));
+  // clang-format on
+}
+
 OMEGA_H_INLINE Int element_degree(
     Omega_h_Family family, Int from_dim, Int to_dim) {
   return (family == OMEGA_H_SIMPLEX ? simplex_degree(from_dim, to_dim)
@@ -81,7 +229,7 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
       return hypercube_up_template(3, bdry_type, which_bdry, which_up);//return hypercube_up_temp for hex-to-vtx/edge
     case 6:
     //new template for wedge-to-vtx & wedge-to-edge via quads
-    //orderings as per simmetrix(note that normals as per edge point into element
+    //orderings as per simmetrix
       switch (bdry_type) {
         case 0:
           switch (which_bdry) {

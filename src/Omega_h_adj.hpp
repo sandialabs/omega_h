@@ -60,6 +60,8 @@ Children invert_parents(Parents const children2parents, Int const parent_dim,
 LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
     Int const low_dim);
 
+LOs form_uses(LOs const hv2v, Topo_type const high_type, Topo_type const low_type);
+
 LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
     Int const low_dim);
 
