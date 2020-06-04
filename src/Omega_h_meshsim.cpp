@@ -9,6 +9,7 @@
 #include "Omega_h_for.hpp"
 #include "Omega_h_adj.hpp"
 #include "Omega_h_align.hpp"
+#include "Omega_h_array_ops.hpp"
 
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
@@ -500,7 +501,7 @@ std::string(dimensional_singular_name(Topo_type::tetrahedron))
     + " " + dimensional_plural_name(Topo_type::triangle) + " codes";
   Write<I8> tet2tr_codes(tet2tr.size(), tet2tr_codes_name);
   tet2tr_codes = Write<I8>(host_tet2tr_codes);
-  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tr_codes));
+  //mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tr_codes));
   
   //printf(" ok1.4.8.1 \n");
   HostWrite<LO> host_hex2q(count_hex*6);
@@ -519,7 +520,7 @@ std::string(dimensional_singular_name(Topo_type::hexahedron))
     + " " + dimensional_plural_name(Topo_type::quadrilateral) + " codes";
   Write<I8> hex2q_codes(hex2q.size(), hex2q_codes_name);
   hex2q_codes = Write<I8>(host_hex2q_codes);
-  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2q_codes));
+  //mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2q_codes));
   
   //printf(" ok1.4.8.2 \n");
   HostWrite<LO> host_wedge2tri(count_wedge*2);
@@ -549,8 +550,8 @@ std::string(dimensional_singular_name(Topo_type::wedge))
     + " " + dimensional_plural_name(Topo_type::quadrilateral) + " codes";
   Write<I8> wedge2q_codes(wedge2quad.size(), wedge2q_codes_name);
   wedge2q_codes = Write<I8>(host_wedge2q_codes);
-  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad,
-wedge2q_codes));
+  //mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad,
+    //wedge2q_codes));
   
   //printf(" ok1.4.8.4 \n");
   HostWrite<LO> host_pyramid2tri(count_pyramid*4);
@@ -569,8 +570,8 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
     + " " + dimensional_plural_name(Topo_type::triangle) + " codes";
   Write<I8> pyram2t_codes(pyramid2tri.size(), pyram2t_codes_name);
   pyram2t_codes = Write<I8>(host_pyram2t_codes);
-  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri,
-pyram2t_codes));
+  //mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri,
+    //pyram2t_codes));
   
   HostWrite<LO> host_pyramid2quad(count_pyramid);
   for (Int i = 0; i < count_pyramid; ++i) {
@@ -593,6 +594,92 @@ pyram2t_codes));
     std::cout << std::endl;
   }
 */
+
+  printf("tri2vert values from ask_down is\n");
+  auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
+  auto vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
+
+  //test codes generation for tet2tr
+  HostWrite<LO> host_tet2verts(count_tet*4);
+  for (Int i = 0; i < count_tet; ++i) {
+    for (Int j = 0; j < 4; ++j) {
+      host_tet2verts[i*4 + j] =
+          elem_vertices[0][static_cast<std::size_t>(i*4 + j)];
+    }
+  }
+  auto tet2verts = Read<LO>(host_tet2verts.write());
+  LOs const tet_uv2v = form_uses(tet2verts, Topo_type::tetrahedron, Topo_type::triangle);
+  Write<LO> tt2t;
+  Write<I8> tet2tri_codes;
+  auto const tri2vtx_deg = element_degree(Topo_type::triangle, Topo_type::vertex);
+  auto const tet_2fv = get_component(tet_uv2v, tri2vtx_deg, 0);
+  find_matches_ex(tri2vtx_deg, tet_2fv, tet_uv2v, tri2vert.ab2b, vert2tri, &tt2t, &tet2tri_codes);
+  printf("ok get comp\n");
+  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tri_codes));
+  auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
+  auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
+  //
+
+  //test codes generation for hex2quad
+  printf("quad2vert values from ask_down is\n");
+  auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
+  auto vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
+  HostWrite<LO> host_hex2verts(count_hex*8);
+  for (Int i = 0; i < count_hex; ++i) {
+    for (Int j = 0; j < 8; ++j) {
+      host_hex2verts[i*8 + j] =
+          elem_vertices[1][static_cast<std::size_t>(i*8 + j)];
+    }
+  }
+  auto hex2verts = Read<LO>(host_hex2verts.write());
+  LOs const hex_uv2v = form_uses(hex2verts, Topo_type::hexahedron, Topo_type::quadrilateral);
+  Write<LO> hq2q;
+  Write<I8> hex2quad_codes;
+  auto const quad2vtx_deg = element_degree(Topo_type::quadrilateral, Topo_type::vertex);
+  auto const hex_2fv = get_component(hex_uv2v, quad2vtx_deg, 0);
+  find_matches_ex(quad2vtx_deg, hex_2fv, hex_uv2v, quad2vert.ab2b, vert2quad, &hq2q, &hex2quad_codes);
+  printf("ok get comp2\n");
+  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2quad_codes));
+  auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
+  auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
+
+  //test codes generation for wedge2quad
+  HostWrite<LO> host_wedge2verts(count_wedge*6);
+  for (Int i = 0; i < count_wedge; ++i) {
+    for (Int j = 0; j < 6; ++j) {
+      host_wedge2verts[i*6 + j] =
+          elem_vertices[2][static_cast<std::size_t>(i*6 + j)];
+    }
+  }
+  auto wedge2verts = Read<LO>(host_wedge2verts.write());
+  LOs const wedge_uv2v = form_uses(wedge2verts, Topo_type::wedge, Topo_type::quadrilateral);
+  Write<LO> wq2q;
+  Write<I8> wedge2quad_codes;
+  auto const wedge_2fv = get_component(wedge_uv2v, quad2vtx_deg, 0);
+  find_matches_ex(quad2vtx_deg, wedge_2fv, wedge_uv2v, quad2vert.ab2b, vert2quad, &wq2q, &wedge2quad_codes);
+  printf("ok get comp3\n");
+  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad, wedge2quad_codes));
+  auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
+  auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
+
+  //test codes generation for pyramid2tri
+  HostWrite<LO> host_pyramid2verts(count_pyramid*5);
+  for (Int i = 0; i < count_pyramid; ++i) {
+    for (Int j = 0; j < 5; ++j) {
+      host_pyramid2verts[i*5 + j] =
+          elem_vertices[3][static_cast<std::size_t>(i*5 + j)];
+    }
+  }
+  auto pyramid2verts = Read<LO>(host_pyramid2verts.write());
+  LOs const pyramid_uv2v = form_uses(pyramid2verts, Topo_type::pyramid, Topo_type::triangle);
+  Write<LO> pt2t;
+  Write<I8> pyramid2tri_codes;
+  auto const pyramid_2fv = get_component(pyramid_uv2v, tri2vtx_deg, 0);
+  find_matches_ex(tri2vtx_deg, pyramid_2fv, pyramid_uv2v, tri2vert.ab2b, vert2tri, &pt2t, &pyramid2tri_codes);
+  printf("ok get comp4\n");
+  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri,pyramid2tri_codes));
+  auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
+  auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
 
   //1 lvl dwn queries
   auto edge2vert = mesh->get_adj(Topo_type::edge, Topo_type::vertex);
@@ -680,33 +767,9 @@ pyram2t_codes));
   OMEGA_H_CHECK(quad2pyramid.ab2b.size() == count_pyramid);
   OMEGA_H_CHECK(quad2pyramid.a2ab.size() == count_quad+1);
 
+
   //transit tests
-  //queries
-
-  printf("tri2vert values from ask_down is\n");
-  auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
-  printf("quad2vert values from ask_down is\n");
-  auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
-/*
-  auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
-  auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
-  //Q:check normals and provide protocols to calc normal from rgn2vtx
-  //A:We may not need to do that since we know numberings & canon
-  //TODO: why rotation =3 for hex face3??
-  printf("hex2edge values from ask_down is\n");
-  auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
-  printf("hex2vtx values from ask_down is\n");
-  auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
-  auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
-  auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
-  printf("pym2edge values from ask_down is\n");
-  auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
-  printf("pym2vtx values from ask_down is\n");
-  auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
-
   //multi level up adj
-  auto vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
-  auto vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
   auto vert2tet = mesh->ask_up(Topo_type::vertex, Topo_type::tetrahedron);
   auto vert2hex = mesh->ask_up(Topo_type::vertex, Topo_type::hexahedron);
   auto vert2wedge = mesh->ask_up(Topo_type::vertex, Topo_type::wedge);
@@ -728,9 +791,7 @@ pyram2t_codes));
   OMEGA_H_CHECK(wedge2vtx.ab2b.size() == count_wedge*6);
   OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
-*/
-/*
-  //prints
+  //transit prints
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);
   printf("quad2vert values from ask_down is\n");
@@ -752,10 +813,7 @@ pyram2t_codes));
   printf("pyram2vtx values from ask_down is\n");
   call_print(pyram2vtx.ab2b);
   //
-*/
-//*/
 
-  //Below for build_from_ents2verts
 /*
   //get the ids of vertices bounding each face
   ent_class_ids[2].reserve(numFaces);

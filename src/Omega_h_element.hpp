@@ -24,7 +24,7 @@ constexpr OMEGA_H_INLINE Int element_down_template(
                (which_vert == 0 ? 1 :
                (which_vert == 1 ? 0 :
                (which_vert == 2 ? 3 :
-               (which_vert == 3 ? 2 : -1)))) : -1)
+               (which_vert == 3 ? 2 : -1)))) : -1) :
            (bdry_type == 2 ?
              (which_bdry == 0 ?
                (which_vert == 0 ? 0 :
@@ -79,25 +79,25 @@ constexpr OMEGA_H_INLINE Int element_down_template(
                (which_vert == 0 ? 0 :
                (which_vert == 1 ? 1 :
                (which_vert == 2 ? 4 :
-               (which_vert == 3 ? 3 : -1)))) 
+               (which_vert == 3 ? 3 : -1)))) :
              (which_bdry == 1 ?
                (which_vert == 0 ? 1 :
                (which_vert == 1 ? 2 :
                (which_vert == 2 ? 5 :
-               (which_vert == 3 ? 4 : -1)))) 
+               (which_vert == 3 ? 4 : -1)))) :
              (which_bdry == 2 ?
                (which_vert == 0 ? 2 :
                (which_vert == 1 ? 0 :
                (which_vert == 2 ? 3 :
-               (which_vert == 3 ? 5 : -1)))) : -1)))
+               (which_vert == 3 ? 5 : -1)))) : -1))) :
            (bdry_type == 2 ?
              (which_bdry == 0 ?
                (which_vert == 0 ? 1 :
                (which_vert == 1 ? 0 :
                (which_vert == 2 ? 2 : -1))) :
              (which_bdry == 1 ?
-               (which_vert == 0 ? 4 :
-               (which_vert == 1 ? 3 :
+               (which_vert == 0 ? 3 :
+               (which_vert == 1 ? 4 :
                (which_vert == 2 ? 5 : -1)))  : -1)) :
            (bdry_type == 1 ?
              (which_bdry == 0 ?

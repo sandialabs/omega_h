@@ -191,7 +191,7 @@ LOs form_uses(LOs const hv2v, Topo_type const high_type,
       for (Int uv = 0; uv < nverts_per_low; ++uv) {
         uv2v[u_begin + uv] = hv2v[h_begin + element_down_template(
                              int(high_type), int(low_type), u, uv)];
-        //write new down_template
+        //new down_template
       }
     }
   };
@@ -437,7 +437,7 @@ static void find_matches_deg(LOs const a2fv, Read<T> const av2v,
       auto const b_begin = b * deg;
       I8 match_code;
       //printf("av2v size=%d, bv2v size = %d, deg=%d\n", av2v.size(), bv2v.size(), deg);
-      printf("a_begin=%d, b_begin=%d, which_down=%d\n", a_begin, b_begin, which_down);
+      //printf("a_begin=%d, b_begin=%d, which_down=%d\n", a_begin, b_begin, which_down);
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
         OMEGA_H_CHECK(!found);  // there can't be more than one!
