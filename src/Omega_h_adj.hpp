@@ -65,6 +65,13 @@ LOs form_uses(LOs const hv2v, Topo_type const high_type, Topo_type const low_typ
 LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
     Int const low_dim);
 
+/* find_unique if not used for mixed till now because
+    multiple down adjs from and below face2edge will be created.
+    If found a way to efficiently combine these, build from elems2verts
+    can be written
+*/
+LOs find_unique(LOs const hv2v, Topo_type const high_type, Topo_type const low_type);
+
 /* for each entity (or entity use), sort its vertex list
    and express the sorting transformation as an alignment code */
 template <typename T>

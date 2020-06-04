@@ -68,10 +68,12 @@ void read_internal(pMesh m, Mesh* mesh) {
     Omega_h_fail("There were no Elements of dimension higher than zero!\n");
   }
 */
-  std::vector<int> down_adjs[10];
-  std::vector<int> down_codes[8];
-  //std::vector<int> ent_class_ids[10];
   std::vector<int> elem_vertices[4];
+  std::vector<int> face_vertices[2];
+  std::vector<int> edge_vertices[1];
+  //std::vector<int> down_adjs[10];
+  //std::vector<int> down_codes[10];
+  //std::vector<int> ent_class_ids[10];
 
 /*
   //write vertex coords into node_coords and vertex ids into ents_nodes
@@ -97,7 +99,7 @@ void read_internal(pMesh m, Mesh* mesh) {
 */
 
   //get the ids of vertices bounding each edge
-  down_adjs[1].reserve(numEdges*2);
+  edge_vertices[0].reserve(numEdges*2);
   //ent_class_ids[1].reserve(numEdges);
   EIter edges = M_edgeIter(m);
   pEdge edge;
@@ -110,7 +112,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     //printf("edge EN_id is=%d\n", EN_id(edge));
     for(int j=0; j<2; ++j) {
       vtx = E_vertex(edge,j);
-      down_adjs[1].push_back(EN_id(vtx));
+      edge_vertices[0].push_back(EN_id(vtx));
       V_coord(vtx,xyz);
       //printf("vtx EN_id is=%d, x=%f, y=%f, z=%f\n", EN_id(vtx), xyz[0], xyz[1], xyz[2]);
     }
@@ -118,12 +120,11 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   EIter_delete(edges);
   //printf(" ok1.4.3 \n");
-
-  auto deg = element_degree(Topo_type::edge, Topo_type::vertex);
-  //printf("deg e2v=%d \n", deg);
   
 /*
   //Test degree outputs
+  auto deg = element_degree(Topo_type::edge, Topo_type::vertex);
+  printf("deg e2v=%d \n", deg);
   deg = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
   printf("deg tet2v=%d \n", deg);
   deg = element_degree(Topo_type::hexahedron, Topo_type::quadrilateral);
@@ -138,17 +139,15 @@ void read_internal(pMesh m, Mesh* mesh) {
   //set Verts of mesh
   mesh->set_verts_type(numVtx);
   //
-  HostWrite<LO> host_e2v(numEdges*deg);
+  HostWrite<LO> host_e2v(numEdges*2);
   for (Int i = 0; i < numEdges; ++i) {
-    for (Int j = 0; j < deg; ++j) {
-      host_e2v[i*deg + j] =
-          down_adjs[1][static_cast<std::size_t>(i*deg + j)];
+    for (Int j = 0; j < 2; ++j) {
+      host_e2v[i*2 + j] =
+          edge_vertices[0][static_cast<std::size_t>(i*2 + j)];
     }
   }
   auto ev2v = Read<LO>(host_e2v.write());
   mesh->set_ents(Topo_type::edge, Topo_type::vertex, Adj(ev2v));
-  // when to_entity is vertex, codes should not exist as per mesh.c L367
-  // & file.c L428
 
   FIter faces = M_faceIter(m);
   pFace face;
@@ -156,15 +155,15 @@ void read_internal(pMesh m, Mesh* mesh) {
   int count_tri = 0;
   int count_quad = 0;
   //get ids of tris and quads from faceIDs
-  std::vector<int> face_type_ids;
-  face_type_ids.reserve(numFaces);
+  //std::vector<int> face_type_ids;
+  //face_type_ids.reserve(numFaces);
   while (face = (pFace) FIter_next(faces)) {
     if (F_numEdges(face) == 3) {
-      face_type_ids[EN_id(face)] = count_tri;
+      //face_type_ids[EN_id(face)] = count_tri;
       count_tri += 1;
     }
     else if (F_numEdges(face) == 4) {
-      face_type_ids[EN_id(face)] = count_quad;
+      //face_type_ids[EN_id(face)] = count_quad;
       count_quad += 1;
     }
     else {
@@ -173,6 +172,74 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   FIter_delete(faces);
 
+  //generate from face2verts
+  face_vertices[0].reserve(count_tri*3);
+  face_vertices[1].reserve(count_quad*4);
+
+  //iterate and populate resp. vertex ids
+  faces = M_faceIter(m);
+  while (face = (pFace) FIter_next(faces)) {
+    if (F_numEdges(face) == 3) {
+      pVertex tri_vertex;
+      pPList tri_vertices = F_vertices(face,1);
+      assert (PList_size(tri_vertices) == 3);
+      void *iter = 0; // must initialize to 0
+      while (tri_vertex = (pVertex) PList_next(tri_vertices, &iter)) {
+        face_vertices[0].push_back(EN_id(tri_vertex));
+      }
+      PList_delete(tri_vertices);
+    }
+    else if (F_numEdges(face) == 4) {
+      pVertex quad_vertex;
+      pPList quad_vertices = F_vertices(face,1);
+      assert (PList_size(quad_vertices) == 4);
+      void *iter = 0; // must initialize to 0
+      while (quad_vertex = (pVertex) PList_next(quad_vertices, &iter)) {
+        face_vertices[1].push_back(EN_id(quad_vertex));
+      }
+      PList_delete(quad_vertices);
+    }
+    else {
+      Omega_h_fail ("Face is neither tri nor quad \n");
+    }
+  }
+  FIter_delete(faces);
+
+  //test codes generation for tri2edge
+  auto edge2vert = mesh->get_adj(Topo_type::edge, Topo_type::vertex);
+  auto vert2edge = mesh->ask_up(Topo_type::vertex, Topo_type::edge);
+  HostWrite<LO> host_tri2verts(count_tri*3);
+  for (Int i = 0; i < count_tri; ++i) {
+    for (Int j = 0; j < 3; ++j) {
+      host_tri2verts[i*3 + j] =
+          face_vertices[0][static_cast<std::size_t>(i*3 + j)];
+    }
+  }
+  auto tri2verts = Read<LO>(host_tri2verts.write());
+  LOs const tri_uv2v = form_uses(tri2verts, Topo_type::triangle, Topo_type::edge);
+  Write<LO> te2e;
+  Write<I8> tri2edg_codes;
+  auto const edg2vtx_deg = element_degree(Topo_type::edge, Topo_type::vertex);
+  auto const tri_2fv = get_component(tri_uv2v, edg2vtx_deg, 0);
+  find_matches_ex(edg2vtx_deg, tri_2fv, tri_uv2v, edge2vert.ab2b, vert2edge, &te2e, &tri2edg_codes);
+  mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e, tri2edg_codes));
+
+  //test codes generation for quad2edge
+  HostWrite<LO> host_quad2verts(count_quad*4);
+  for (Int i = 0; i < count_quad; ++i) {
+    for (Int j = 0; j < 4; ++j) {
+      host_quad2verts[i*4 + j] =
+          face_vertices[1][static_cast<std::size_t>(i*4 + j)];
+    }
+  }
+  auto quad2verts = Read<LO>(host_quad2verts.write());
+  LOs const quad_uv2v = form_uses(quad2verts, Topo_type::quadrilateral, Topo_type::edge);
+  Write<LO> qe2e;
+  Write<I8> quad2edg_codes;
+  auto const quad_2fv = get_component(quad_uv2v, edg2vtx_deg, 0);
+  find_matches_ex(edg2vtx_deg, quad_2fv, quad_uv2v, edge2vert.ab2b, vert2edge, &qe2e, &quad2edg_codes);
+  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qe2e, quad2edg_codes));
+/*
   //printf(" ok1.4.5 \n");
   //allocate memory for t2e and q2e
   down_adjs[2].reserve(count_tri*3);
@@ -186,9 +253,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   Int rotation = 0;
   bool is_flipped = false;
 
-  //is_flipped should be true for certain faces as it is a face's property not
-  //a edge's
-  
   //iterate and populate resp. edge ids
   faces = M_faceIter(m);
   while (face = (pFace) FIter_next(faces)) {
@@ -206,7 +270,6 @@ void read_internal(pMesh m, Mesh* mesh) {
 
         rotation = !F_dirUsingEdge(face, tri_edge);
 
-        //auto code = make_code(is_flipped, which_down, 0);
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[0].push_back(code);
         ++which_down;
@@ -225,7 +288,6 @@ void read_internal(pMesh m, Mesh* mesh) {
         //printf("adjacent edge id=%d\n", EN_id(quad_edge));
 
         rotation = !F_dirUsingEdge(face, quad_edge);
-        //auto code = make_code(is_flipped, which_down, 0);
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[1].push_back(code);
         ++which_down;
@@ -249,12 +311,12 @@ void read_internal(pMesh m, Mesh* mesh) {
           down_codes[0][static_cast<std::size_t>(i*3 + j)];
     }
   }
-  auto te2e = Read<LO>(host_t2e.write());
+  auto tre2e = Read<LO>(host_t2e.write());
   auto t2e_codes_name = std::string(dimensional_singular_name(Topo_type::triangle))
     + " " + dimensional_plural_name(Topo_type::edge) + " codes";
-  Write<I8> t2e_codes(te2e.size(), t2e_codes_name);
+  Write<I8> t2e_codes(tre2e.size(), t2e_codes_name);
   t2e_codes = Write<I8>(host_t2e_codes);
-  mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e, t2e_codes));
+  //mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(tre2e, t2e_codes));
 
   HostWrite<LO> host_qe2e(count_quad*4);
   HostWrite<I8> host_q2e_codes(count_quad*4);
@@ -266,13 +328,14 @@ void read_internal(pMesh m, Mesh* mesh) {
           down_codes[1][static_cast<std::size_t>(i*4 + j)];
     }
   }
-  auto qe2e = Read<LO>(host_qe2e.write());
+  auto qde2e = Read<LO>(host_qe2e.write());
   auto q2e_codes_name =
 std::string(dimensional_singular_name(Topo_type::quadrilateral))
     + " " + dimensional_plural_name(Topo_type::edge) + " codes";
-  Write<I8> q2e_codes(qe2e.size(), q2e_codes_name);
+  Write<I8> q2e_codes(qde2e.size(), q2e_codes_name);
   q2e_codes = Write<I8>(host_q2e_codes);
-  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qe2e, q2e_codes));
+  //mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qde2e, q2e_codes));
+*/
 
   RIter regions = M_regionIter(m);
   LO count_tet = 0;
@@ -298,23 +361,25 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
     }
   }
   RIter_delete(regions);
-  //
-
-  down_adjs[4].reserve(count_tet*4);
-  down_codes[2].reserve(count_tet*4);
-  down_adjs[5].reserve(count_hex*6);
-  down_codes[3].reserve(count_hex*6);
-  down_adjs[6].reserve(count_wedge*2);//tris
-  down_codes[4].reserve(count_wedge*2);//tris
-  down_adjs[7].reserve(count_wedge*3);
-  down_codes[5].reserve(count_wedge*3);
-  down_adjs[8].reserve(count_pyramid*4);//tris
-  down_codes[6].reserve(count_pyramid*4);//tris
-  down_adjs[9].reserve(count_pyramid);
-  down_codes[7].reserve(count_pyramid);
-  //printf(" ok1.4.7 \n");
   printf("tet=%d, hex=%d, wedge=%d, pyramid=%d\n",
          count_tet, count_hex, count_wedge, count_pyramid);
+  //
+
+/*
+  down_adjs[4].reserve(count_tet*4);
+  down_adjs[5].reserve(count_hex*6);
+  down_adjs[6].reserve(count_wedge*2);//tris
+  down_adjs[7].reserve(count_wedge*3);
+  down_adjs[8].reserve(count_pyramid*4);//tris
+  down_adjs[9].reserve(count_pyramid);
+
+  down_codes[2].reserve(count_tet*4);
+  down_codes[3].reserve(count_hex*6);
+  down_codes[4].reserve(count_wedge*2);//tris
+  down_codes[5].reserve(count_wedge*3);
+  down_codes[6].reserve(count_pyramid*4);//tris
+  down_codes[7].reserve(count_pyramid);
+  //printf(" ok1.4.7 \n");
 
   //Initialize for region2face codes
   which_down = 0;
@@ -332,7 +397,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       pPList tris = R_faces(rgn,1);
       assert (PList_size(tris) == 4);
       void *iter = 0; // must initialize to 0
-      which_down = 0;
+//      which_down = 0;
       while (tri = (pFace) PList_next(tris, &iter)) {
         down_adjs[4].push_back(face_type_ids[EN_id(tri)]);
 
@@ -340,6 +405,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
         auto code = make_code(is_flipped, rotation, which_down);
         down_codes[2].push_back(code);
         ++which_down;
+
       }
       PList_delete(tris);
     }
@@ -349,8 +415,8 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       pPList quads = R_faces(rgn,1);
       assert (PList_size(quads) == 6);
       void *iter = 0; // must initialize to 0
-      which_down = 0;
-      rotation = 0;
+//      which_down = 0;
+//      rotation = 0;
       while (quad = (pFace) PList_next(quads, &iter)) {
         down_adjs[5].push_back(face_type_ids[EN_id(quad)]);
 
@@ -363,6 +429,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
         //auto code = make_code(is_flipped, rotation, 0);
         down_codes[3].push_back(code);
         ++which_down;
+
       }
       PList_delete(quads);
     }
@@ -372,18 +439,20 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       pPList w_faces = R_faces(rgn,1);
       assert (PList_size(w_faces) == 5);
       void *iter = 0; // must initialize to 0
-      which_down = 0;
+//      which_down = 0;
       while (w_face = (pFace) PList_next(w_faces, &iter)) {
         if (F_numEdges(w_face) == 3) { //face is tri 
           down_adjs[6].push_back(face_type_ids[EN_id(w_face)]);
 	}
-        else { //face is quad
+        else {
+          //face is quad
           down_adjs[7].push_back(face_type_ids[EN_id(w_face)]);
 
           is_flipped = !R_dirUsingFace(rgn, w_face);
           auto code = make_code(is_flipped, rotation, which_down);
           down_codes[5].push_back(code);
           ++which_down;
+
 	}
       }
       PList_delete(w_faces);
@@ -394,7 +463,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
       pPList p_faces = R_faces(rgn,1);
       assert (PList_size(p_faces) == 5);
       void *iter = 0; // must initialize to 0
-      which_down = 0;
+//      which_down = 0;
       while (p_face = (pFace) PList_next(p_faces, &iter)) {
         if (F_numEdges(p_face) == 3) { //face is tri
           down_adjs[8].push_back(face_type_ids[EN_id(p_face)]);
@@ -405,6 +474,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
           auto code = make_code(is_flipped, rotation, which_down);
           down_codes[6].push_back(code);
           ++which_down;
+
         }
         else { // face is quad
           down_adjs[9].push_back(face_type_ids[EN_id(p_face)]);
@@ -420,17 +490,115 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   //printf(" ok1.4.8 \n");
   //
 
-/*
-  for generating codes for rgn2face adjs
-    1. generate elem2vert using sim APIs
-      1.1. form_uses calls down_template, so will need to create those for wedge and pyramid 
-      1.2. <I.E> make new form_uses for mixed with down_template
-      1.3. call form_uses here
-    2. get rgn2firstVert using get_component on form_uses
-    3. get face2vert using omega_h transit
-    4. get vert2face using inversion
-    5. call find_matches_ex api - make new for mixed mesh
+  HostWrite<LO> host_tet2tr(count_tet*4);
+  //HostWrite<I8> host_tet2tr_codes(count_tet*4);
+  for (Int i = 0; i < count_tet; ++i) {
+    for (Int j = 0; j < 4; ++j) {
+      host_tet2tr[i*4 + j] =
+          down_adjs[4][static_cast<std::size_t>(i*4 + j)];
+      //host_tet2tr_codes[i*4 + j] =
+          //down_codes[2][static_cast<std::size_t>(i*4 + j)];
+    }
+  }
+  auto tet2tr = Read<LO>(host_tet2tr.write());
+  //auto tet2tr_codes_name =
+//std::string(dimensional_singular_name(Topo_type::tetrahedron))
+  //  + " " + dimensional_plural_name(Topo_type::triangle) + " codes";
+  //Write<I8> tet2tr_codes(tet2tr.size(), tet2tr_codes_name);
+  //tet2tr_codes = Write<I8>(host_tet2tr_codes);
+  //mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tr_codes));
+  
+  //printf(" ok1.4.8.1 \n");
+  HostWrite<LO> host_hex2q(count_hex*6);
+  //HostWrite<I8> host_hex2q_codes(count_hex*6);
+  for (Int i = 0; i < count_hex; ++i) {
+    for (Int j = 0; j < 6; ++j) {
+      host_hex2q[i*6 + j] =
+          down_adjs[5][static_cast<std::size_t>(i*6 + j)];
+      //host_hex2q_codes[i*6 + j] =
+        //  down_codes[3][static_cast<std::size_t>(i*6 + j)];
+    }
+  }
+  auto hex2q = Read<LO>(host_hex2q.write());
+  //auto hex2q_codes_name =
+//std::string(dimensional_singular_name(Topo_type::hexahedron))
+  //  + " " + dimensional_plural_name(Topo_type::quadrilateral) + " codes";
+  //Write<I8> hex2q_codes(hex2q.size(), hex2q_codes_name);
+  //hex2q_codes = Write<I8>(host_hex2q_codes);
+  //mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2q_codes));
+  
+  //printf(" ok1.4.8.2 \n");
+  HostWrite<LO> host_wedge2tri(count_wedge*2);
+  for (Int i = 0; i < count_wedge; ++i) {
+    for (Int j = 0; j < 2; ++j) {
+      host_wedge2tri[i*2 + j] =
+          down_adjs[6][static_cast<std::size_t>(i*2 + j)];
+    }
+  }
+  auto wedge2tri = Read<LO>(host_wedge2tri.write());
+  //mesh->set_ents(Topo_type::wedge, Topo_type::triangle, Adj(wedge2tri));
+  
+  //printf(" ok1.4.8.3 \n");
+  HostWrite<LO> host_wedge2quad(count_wedge*3);
+  //HostWrite<I8> host_wedge2q_codes(count_wedge*3);
+  for (Int i = 0; i < count_wedge; ++i) {
+    for (Int j = 0; j < 3; ++j) {
+      host_wedge2quad[i*3 + j] =
+          down_adjs[7][static_cast<std::size_t>(i*3 + j)];
+      //host_wedge2q_codes[i*3 + j] =
+          //down_codes[5][static_cast<std::size_t>(i*3 + j)];
+    }
+  }
+  auto wedge2quad = Read<LO>(host_wedge2quad.write());
+  //auto wedge2q_codes_name =
+//std::string(dimensional_singular_name(Topo_type::wedge))
+  //  + " " + dimensional_plural_name(Topo_type::quadrilateral) + " codes";
+  //Write<I8> wedge2q_codes(wedge2quad.size(), wedge2q_codes_name);
+  //wedge2q_codes = Write<I8>(host_wedge2q_codes);
+  //mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad,
+    //wedge2q_codes));
+  
+  //printf(" ok1.4.8.4 \n");
+  HostWrite<LO> host_pyramid2tri(count_pyramid*4);
+  //HostWrite<I8> host_pyram2t_codes(count_pyramid*4);
+  for (Int i = 0; i < count_pyramid; ++i) {
+    for (Int j = 0; j < 4; ++j) {
+      host_pyramid2tri[i*4 + j] =
+          down_adjs[8][static_cast<std::size_t>(i*4 + j)];
+    //  host_pyram2t_codes[i*4 + j] =
+      //    down_codes[6][static_cast<std::size_t>(i*4 + j)];
+    }
+  }
+  auto pyramid2tri = Read<LO>(host_pyramid2tri.write());
+  //auto pyram2t_codes_name =
+//std::string(dimensional_singular_name(Topo_type::pyramid))
+  //  + " " + dimensional_plural_name(Topo_type::triangle) + " codes";
+  //Write<I8> pyram2t_codes(pyramid2tri.size(), pyram2t_codes_name);
+  //pyram2t_codes = Write<I8>(host_pyram2t_codes);
+  //mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri,
+    //pyram2t_codes));
+  
+  HostWrite<LO> host_pyramid2quad(count_pyramid);
+  for (Int i = 0; i < count_pyramid; ++i) {
+    for (Int j = 0; j < 1; ++j) {
+      host_pyramid2quad[i*1 + j] =
+          down_adjs[9][static_cast<std::size_t>(i*1 + j)];
+    }
+  }
+  auto pyramid2quad = Read<LO>(host_pyramid2quad.write());
+  //mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, Adj(pyramid2quad));
+  //printf(" ok1.4.9 \n");
+
+  //print contents of input given to omega-> checks out
+  for (std::vector<std::vector<int>>::size_type i = 1; i < 10; i++) {
+    printf("from type %lu \n ", i);
+    for (std::vector<int>::size_type j = 0; j < down_adjs[i].size(); j++) {
+     std::cout << down_adjs[i][j] << ' ';
+    }
+    std::cout << std::endl;
+  }
 */
+
   elem_vertices[0].reserve(count_tet*4);
   elem_vertices[1].reserve(count_hex*8);
   elem_vertices[2].reserve(count_wedge*6);
@@ -485,116 +653,6 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   RIter_delete(regions);
   printf("elem2verts generated\n");
 
-  HostWrite<LO> host_tet2tr(count_tet*4);
-  HostWrite<I8> host_tet2tr_codes(count_tet*4);
-  for (Int i = 0; i < count_tet; ++i) {
-    for (Int j = 0; j < 4; ++j) {
-      host_tet2tr[i*4 + j] =
-          down_adjs[4][static_cast<std::size_t>(i*4 + j)];
-      host_tet2tr_codes[i*4 + j] =
-          down_codes[2][static_cast<std::size_t>(i*4 + j)];
-    }
-  }
-  auto tet2tr = Read<LO>(host_tet2tr.write());
-  auto tet2tr_codes_name =
-std::string(dimensional_singular_name(Topo_type::tetrahedron))
-    + " " + dimensional_plural_name(Topo_type::triangle) + " codes";
-  Write<I8> tet2tr_codes(tet2tr.size(), tet2tr_codes_name);
-  tet2tr_codes = Write<I8>(host_tet2tr_codes);
-  //mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tr_codes));
-  
-  //printf(" ok1.4.8.1 \n");
-  HostWrite<LO> host_hex2q(count_hex*6);
-  HostWrite<I8> host_hex2q_codes(count_hex*6);
-  for (Int i = 0; i < count_hex; ++i) {
-    for (Int j = 0; j < 6; ++j) {
-      host_hex2q[i*6 + j] =
-          down_adjs[5][static_cast<std::size_t>(i*6 + j)];
-      host_hex2q_codes[i*6 + j] =
-          down_codes[3][static_cast<std::size_t>(i*6 + j)];
-    }
-  }
-  auto hex2q = Read<LO>(host_hex2q.write());
-  auto hex2q_codes_name =
-std::string(dimensional_singular_name(Topo_type::hexahedron))
-    + " " + dimensional_plural_name(Topo_type::quadrilateral) + " codes";
-  Write<I8> hex2q_codes(hex2q.size(), hex2q_codes_name);
-  hex2q_codes = Write<I8>(host_hex2q_codes);
-  //mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2q_codes));
-  
-  //printf(" ok1.4.8.2 \n");
-  HostWrite<LO> host_wedge2tri(count_wedge*2);
-  for (Int i = 0; i < count_wedge; ++i) {
-    for (Int j = 0; j < 2; ++j) {
-      host_wedge2tri[i*2 + j] =
-          down_adjs[6][static_cast<std::size_t>(i*2 + j)];
-    }
-  }
-  auto wedge2tri = Read<LO>(host_wedge2tri.write());
-  mesh->set_ents(Topo_type::wedge, Topo_type::triangle, Adj(wedge2tri));
-  
-  //printf(" ok1.4.8.3 \n");
-  HostWrite<LO> host_wedge2quad(count_wedge*3);
-  HostWrite<I8> host_wedge2q_codes(count_wedge*3);
-  for (Int i = 0; i < count_wedge; ++i) {
-    for (Int j = 0; j < 3; ++j) {
-      host_wedge2quad[i*3 + j] =
-          down_adjs[7][static_cast<std::size_t>(i*3 + j)];
-      host_wedge2q_codes[i*3 + j] =
-          down_codes[5][static_cast<std::size_t>(i*3 + j)];
-    }
-  }
-  auto wedge2quad = Read<LO>(host_wedge2quad.write());
-  auto wedge2q_codes_name =
-std::string(dimensional_singular_name(Topo_type::wedge))
-    + " " + dimensional_plural_name(Topo_type::quadrilateral) + " codes";
-  Write<I8> wedge2q_codes(wedge2quad.size(), wedge2q_codes_name);
-  wedge2q_codes = Write<I8>(host_wedge2q_codes);
-  //mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad,
-    //wedge2q_codes));
-  
-  //printf(" ok1.4.8.4 \n");
-  HostWrite<LO> host_pyramid2tri(count_pyramid*4);
-  HostWrite<I8> host_pyram2t_codes(count_pyramid*4);
-  for (Int i = 0; i < count_pyramid; ++i) {
-    for (Int j = 0; j < 4; ++j) {
-      host_pyramid2tri[i*4 + j] =
-          down_adjs[8][static_cast<std::size_t>(i*4 + j)];
-      host_pyram2t_codes[i*4 + j] =
-          down_codes[6][static_cast<std::size_t>(i*4 + j)];
-    }
-  }
-  auto pyramid2tri = Read<LO>(host_pyramid2tri.write());
-  auto pyram2t_codes_name =
-std::string(dimensional_singular_name(Topo_type::pyramid))
-    + " " + dimensional_plural_name(Topo_type::triangle) + " codes";
-  Write<I8> pyram2t_codes(pyramid2tri.size(), pyram2t_codes_name);
-  pyram2t_codes = Write<I8>(host_pyram2t_codes);
-  //mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri,
-    //pyram2t_codes));
-  
-  HostWrite<LO> host_pyramid2quad(count_pyramid);
-  for (Int i = 0; i < count_pyramid; ++i) {
-    for (Int j = 0; j < 1; ++j) {
-      host_pyramid2quad[i*1 + j] =
-          down_adjs[9][static_cast<std::size_t>(i*1 + j)];
-    }
-  }
-  auto pyramid2quad = Read<LO>(host_pyramid2quad.write());
-  mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, Adj(pyramid2quad));
-  //printf(" ok1.4.9 \n");
-
-/*
-  //print contents of input given to omega-> checks out
-  for (std::vector<std::vector<int>>::size_type i = 1; i < 10; i++) {
-    printf("from type %lu \n ", i);
-    for (std::vector<int>::size_type j = 0; j < down_adjs[i].size(); j++) {
-     std::cout << down_adjs[i][j] << ' ';
-    }
-    std::cout << std::endl;
-  }
-*/
-
   printf("tri2vert values from ask_down is\n");
   auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
   auto vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
@@ -614,8 +672,8 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
   auto const tri2vtx_deg = element_degree(Topo_type::triangle, Topo_type::vertex);
   auto const tet_2fv = get_component(tet_uv2v, tri2vtx_deg, 0);
   find_matches_ex(tri2vtx_deg, tet_2fv, tet_uv2v, tri2vert.ab2b, vert2tri, &tt2t, &tet2tri_codes);
-  printf("ok get comp\n");
-  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tri_codes));
+  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tt2t, tet2tri_codes));
+  //mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tet2tr, tet2tri_codes));
   auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
   auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
   //
@@ -624,6 +682,7 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
   printf("quad2vert values from ask_down is\n");
   auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
   auto vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
+
   HostWrite<LO> host_hex2verts(count_hex*8);
   for (Int i = 0; i < count_hex; ++i) {
     for (Int j = 0; j < 8; ++j) {
@@ -638,8 +697,8 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
   auto const quad2vtx_deg = element_degree(Topo_type::quadrilateral, Topo_type::vertex);
   auto const hex_2fv = get_component(hex_uv2v, quad2vtx_deg, 0);
   find_matches_ex(quad2vtx_deg, hex_2fv, hex_uv2v, quad2vert.ab2b, vert2quad, &hq2q, &hex2quad_codes);
-  printf("ok get comp2\n");
-  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2quad_codes));
+  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hq2q, hex2quad_codes));
+  //mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hex2q, hex2quad_codes));
   auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
   auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
 
@@ -652,15 +711,24 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
     }
   }
   auto wedge2verts = Read<LO>(host_wedge2verts.write());
+  //create wedge2quad
   LOs const wedge_uv2v = form_uses(wedge2verts, Topo_type::wedge, Topo_type::quadrilateral);
   Write<LO> wq2q;
   Write<I8> wedge2quad_codes;
   auto const wedge_2fv = get_component(wedge_uv2v, quad2vtx_deg, 0);
   find_matches_ex(quad2vtx_deg, wedge_2fv, wedge_uv2v, quad2vert.ab2b, vert2quad, &wq2q, &wedge2quad_codes);
-  printf("ok get comp3\n");
-  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad, wedge2quad_codes));
+  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wq2q, wedge2quad_codes));
+  //mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wedge2quad, wedge2quad_codes));
   auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
   auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
+
+  //create wedge2tri
+  LOs const wedgeTri_uv2v = form_uses(wedge2verts, Topo_type::wedge, Topo_type::triangle);
+  Write<LO> wt2t;
+  Write<I8> wedge2tri_codes;
+  auto const wedgeTri_2fv = get_component(wedgeTri_uv2v, tri2vtx_deg, 0);
+  find_matches_ex(tri2vtx_deg, wedgeTri_2fv, wedgeTri_uv2v, tri2vert.ab2b, vert2tri, &wt2t, &wedge2tri_codes);
+  mesh->set_ents(Topo_type::wedge, Topo_type::triangle, Adj(wt2t, wedge2tri_codes));
 
   //test codes generation for pyramid2tri
   HostWrite<LO> host_pyramid2verts(count_pyramid*5);
@@ -671,18 +739,25 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
     }
   }
   auto pyramid2verts = Read<LO>(host_pyramid2verts.write());
+  //create pyramid2tri
   LOs const pyramid_uv2v = form_uses(pyramid2verts, Topo_type::pyramid, Topo_type::triangle);
   Write<LO> pt2t;
   Write<I8> pyramid2tri_codes;
   auto const pyramid_2fv = get_component(pyramid_uv2v, tri2vtx_deg, 0);
   find_matches_ex(tri2vtx_deg, pyramid_2fv, pyramid_uv2v, tri2vert.ab2b, vert2tri, &pt2t, &pyramid2tri_codes);
-  printf("ok get comp4\n");
-  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pyramid2tri,pyramid2tri_codes));
+  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pt2t, pyramid2tri_codes));
   auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
   auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
 
+  //create pyramid2quad
+  LOs const pyramidQuad_uv2v = form_uses(pyramid2verts, Topo_type::pyramid, Topo_type::quadrilateral);
+  Write<LO> pq2q;
+  Write<I8> pyramid2quad_codes;
+  auto const pyramidQuad_2fv = get_component(pyramidQuad_uv2v, quad2vtx_deg, 0);
+  find_matches_ex(quad2vtx_deg, pyramidQuad_2fv, pyramidQuad_uv2v, quad2vert.ab2b, vert2quad, &pq2q, &pyramid2quad_codes);
+  mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, Adj(pq2q, pyramid2quad_codes));
+
   //1 lvl dwn queries
-  auto edge2vert = mesh->get_adj(Topo_type::edge, Topo_type::vertex);
   auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);
   auto quad2edge = mesh->get_adj(Topo_type::quadrilateral, Topo_type::edge);
   auto tet2tri = mesh->get_adj(Topo_type::tetrahedron, Topo_type::triangle);
@@ -693,7 +768,6 @@ std::string(dimensional_singular_name(Topo_type::pyramid))
   auto pyramid2quadr = mesh->get_adj(Topo_type::pyramid, Topo_type::quadrilateral);
 
   //1 lvl inversion queries
-  auto vert2edge = mesh->ask_up(Topo_type::vertex, Topo_type::edge);
   auto edge2tri = mesh->ask_up(Topo_type::edge, Topo_type::triangle);
   auto edge2quad = mesh->ask_up(Topo_type::edge, Topo_type::quadrilateral);
   auto tri2tet = mesh->ask_up(Topo_type::triangle, Topo_type::tetrahedron);

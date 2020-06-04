@@ -152,6 +152,17 @@ LOs find_unique(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
   return find_unique_deg(deg, uv2v);
 }
 
+LOs find_unique(LOs const hv2v, Topo_type const high_type, Topo_type
+    const low_type) {
+  OMEGA_H_TIME_FUNCTION;
+  OMEGA_H_CHECK(int(high_type) > int(low_type));
+  OMEGA_H_CHECK(int(low_type) <= 3);
+  OMEGA_H_CHECK(hv2v.size() % element_degree(high_type, Topo_type::vertex) == 0);
+  auto const uv2v = form_uses(hv2v, high_type, low_type);
+  auto const deg = element_degree(low_type, Topo_type::vertex);
+  return find_unique_deg(deg, uv2v);
+}
+
 LOs form_uses(LOs const hv2v, Omega_h_Family const family, Int const high_dim,
     Int const low_dim) {
   OMEGA_H_TIME_FUNCTION;
