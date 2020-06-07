@@ -866,6 +866,7 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
   //transit prints
+/*
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);
   printf("quad2vert values from ask_down is\n");
@@ -886,7 +887,26 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   call_print(pyram2edge.ab2b);
   printf("pyram2vtx values from ask_down is\n");
   call_print(pyram2vtx.ab2b);
+*/
   //
+
+/*
+//ALL OK
+  // test tags
+  Write<LO> gravityArray(count_wedge, 10, "gravityArray");
+  Read<LO> gravityArray_r(gravityArray);
+  printf("ok tag1 \n");
+  //mesh->add_tag<LO>(Topo_type::vertex, "gravity", 1, gravityArray_r);
+  mesh->add_tag<LO>(Topo_type::wedge, "gravity", 1);
+  printf("ok tag2 \n");
+  mesh->set_tag<LO>(Topo_type::wedge, "gravity", gravityArray_r);
+  auto test_tag = mesh->get_array<LO>(Topo_type::wedge, "gravity");
+  assert(test_tag.size() == count_wedge);
+  call_print(test_tag); 
+  printf("ok tag3 \n");
+  mesh->remove_tag(Topo_type::wedge, "gravity");
+  printf("ok tag4 \n");
+*/
 
 /*
   //get the ids of vertices bounding each face

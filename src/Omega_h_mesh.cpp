@@ -158,6 +158,19 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
 }
 
 template <typename T>
+void Mesh::add_tag(Topo_type ent_type, std::string const& name, Int ncomps) {
+  if (has_tag(ent_type, name)) remove_tag(ent_type, name);
+  // make new has and remove tag
+  check_type2(ent_type);
+  check_tag_name(name);
+  OMEGA_H_CHECK(ncomps >= 0);
+  OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
+  OMEGA_H_CHECK(tags_type_[int(ent_type)].size() < size_t(INT8_MAX));
+  TagPtr ptr(new Tag<T>(name, ncomps));
+  tags_type_[int(ent_type)].push_back(std::move(ptr));
+}
+
+template <typename T>
 void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
     Read<T> array, bool internal) {
   check_dim2(ent_dim);
@@ -186,6 +199,31 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps,
 }
 
 template <typename T>
+void Mesh::add_tag(Topo_type ent_type, std::string const& name, Int ncomps,
+    Read<T> array, bool internal) {
+  check_type2(ent_type);
+  auto it = tag_iter(ent_type, name);
+  auto had_tag = (it != tags_type_[int(ent_type)].end());
+  Tag<T>* tag;
+  if (had_tag) {
+    tag = as<T>(it->get());
+    OMEGA_H_CHECK(ncomps == tag->ncomps());
+  } else {
+    check_tag_name(name);
+    OMEGA_H_CHECK(ncomps >= 0);
+    OMEGA_H_CHECK(ncomps <= Int(INT8_MAX));
+    OMEGA_H_CHECK(tags_type_[int(ent_type)].size() < size_t(INT8_MAX));
+    tag = new Tag<T>(name, ncomps);
+    TagPtr ptr(tag);
+    tags_type_[int(ent_type)].push_back(std::move(ptr));
+  }
+  OMEGA_H_CHECK(array.size() == nents_type_[int(ent_type)] * ncomps);
+  if (!internal) react_to_set_tag(ent_type, name);
+  // make new react_to_set_tag
+  tag->set_array(array);
+}
+
+template <typename T>
 void Mesh::set_tag(
     Int ent_dim, std::string const& name, Read<T> array, bool internal) {
   if (!has_tag(ent_dim, name)) {
@@ -202,6 +240,19 @@ void Mesh::set_tag(
   tag->set_array(array);
 }
 
+template <typename T>
+void Mesh::set_tag(
+    Topo_type ent_type, std::string const& name, Read<T> array, bool internal) {
+  if (!has_tag(ent_type, name)) {
+    Omega_h_fail("set_tag(%s, %s): tag doesn't exist (use add_tag first)\n",
+      dimensional_plural_name(ent_type), name.c_str());
+  }
+  Tag<T>* tag = as<T>(tag_iter(ent_type, name)->get());
+  OMEGA_H_CHECK(array.size() == nents(ent_type) * tag->ncomps());
+  if (!internal) react_to_set_tag(ent_type, name);
+  tag->set_array(array);
+}
+
 void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
   /* hardcoded cache invalidations */
   bool is_coordinates = (name == "coordinates");
@@ -211,6 +262,28 @@ void Mesh::react_to_set_tag(Int ent_dim, std::string const& name) {
   }
   if ((ent_dim == VERT) && is_coordinates) {
     remove_tag(dim(), "size");
+  }
+}
+
+void Mesh::react_to_set_tag(Topo_type ent_type, std::string const& name) {
+  bool is_coordinates = (name == "coordinates");
+  if ((int(ent_type) == 0) && (is_coordinates || (name == "metric"))) {
+    remove_tag(Topo_type::edge, "length");
+
+    remove_tag(Topo_type::pyramid, "quality");
+    remove_tag(Topo_type::wedge, "quality");
+    remove_tag(Topo_type::hexahedron, "quality");
+    remove_tag(Topo_type::tetrahedron, "quality");
+    remove_tag(Topo_type::quadrilateral, "quality");
+    remove_tag(Topo_type::triangle, "quality");
+  }
+  if ((int(ent_type) == 0) && is_coordinates) {
+    remove_tag(Topo_type::pyramid, "size");
+    remove_tag(Topo_type::wedge, "size");
+    remove_tag(Topo_type::hexahedron, "size");
+    remove_tag(Topo_type::tetrahedron, "size");
+    remove_tag(Topo_type::quadrilateral, "size");
+    remove_tag(Topo_type::triangle, "size");
   }
 }
 
@@ -224,14 +297,35 @@ TagBase const* Mesh::get_tagbase(Int ent_dim, std::string const& name) const {
   return it->get();
 }
 
+TagBase const* Mesh::get_tagbase(Topo_type ent_type, std::string const& name) const {
+  check_type2(ent_type);
+  auto it = tag_iter(ent_type, name);
+  if (it == tags_type_[int(ent_type)].end()) {
+    Omega_h_fail("get_tagbase(%s, %s): doesn't exist\n",
+        dimensional_plural_name(ent_type), name.c_str());
+  }
+  return it->get();
+}
+
 template <typename T>
 Tag<T> const* Mesh::get_tag(Int ent_dim, std::string const& name) const {
   return as<T>(get_tagbase(ent_dim, name));
 }
 
 template <typename T>
+Tag<T> const* Mesh::get_tag(Topo_type ent_type, std::string const& name) const {
+  return as<T>(get_tagbase(ent_type, name));
+  // make new get_tagbase
+}
+
+template <typename T>
 Read<T> Mesh::get_array(Int ent_dim, std::string const& name) const {
   return get_tag<T>(ent_dim, name)->array();
+}
+
+template <typename T>
+Read<T> Mesh::get_array(Topo_type ent_type, std::string const& name) const {
+  return get_tag<T>(ent_type, name)->array();
 }
 
 void Mesh::remove_tag(Int ent_dim, std::string const& name) {
@@ -241,10 +335,24 @@ void Mesh::remove_tag(Int ent_dim, std::string const& name) {
   tags_[ent_dim].erase(tag_iter(ent_dim, name));
 }
 
+void Mesh::remove_tag(Topo_type ent_type, std::string const& name) {
+  if (!has_tag(ent_type, name)) return;
+  check_type2(ent_type);
+  OMEGA_H_CHECK(has_tag(ent_type, name));
+  tags_type_[int(ent_type)].erase(tag_iter(ent_type, name));
+}
+
 bool Mesh::has_tag(Int ent_dim, std::string const& name) const {
   check_dim(ent_dim);
   if (!has_ents(ent_dim)) return false;
   return tag_iter(ent_dim, name) != tags_[ent_dim].end();
+}
+
+bool Mesh::has_tag(Topo_type ent_type, std::string const& name) const {
+  check_type(ent_type);
+  if (!has_ents(ent_type)) return false;
+  return tag_iter(ent_type, name) != tags_type_[int(ent_type)].end();
+  //new tag_iter
 }
 
 Int Mesh::ntags(Int ent_dim) const {
@@ -333,6 +441,16 @@ Mesh::TagIter Mesh::tag_iter(Int ent_dim, std::string const& name) {
 
 Mesh::TagCIter Mesh::tag_iter(Int ent_dim, std::string const& name) const {
   return std::find_if(tags_[ent_dim].begin(), tags_[ent_dim].end(),
+      [&](TagPtr const& a) { return a->name() == name; });
+}
+
+Mesh::TagIter Mesh::tag_iter(Topo_type ent_type, std::string const& name) {
+  return std::find_if(tags_type_[int(ent_type)].begin(), tags_type_[int(ent_type)].end(),
+      [&](TagPtr const& a) { return a->name() == name; });
+}
+
+Mesh::TagCIter Mesh::tag_iter(Topo_type ent_type, std::string const& name) const {
+  return std::find_if(tags_type_[int(ent_type)].begin(), tags_type_[int(ent_type)].end(),
       [&](TagPtr const& a) { return a->name() == name; });
 }
 
@@ -1017,13 +1135,22 @@ __host__
 #define OMEGA_H_INST(T)                                                        \
   template Tag<T> const* Mesh::get_tag<T>(Int dim, std::string const& name)    \
       const;                                                                   \
+  template Tag<T> const* Mesh::get_tag<T>(Topo_type ent_type, std::string const& name)    \
+      const;                                                                   \
   template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) const; \
+  template Read<T> Mesh::get_array<T>(Topo_type ent_type, std::string const& name) const; \
   template void Mesh::add_tag<T>(                                              \
       Int dim, std::string const& name, Int ncomps);                           \
+  template void Mesh::add_tag<T>(                                              \
+      Topo_type ent_type, std::string const& name, Int ncomps);                           \
   template void Mesh::add_tag<T>(Int dim, std::string const& name, Int ncomps, \
+      Read<T> array, bool internal);                                           \
+  template void Mesh::add_tag<T>(Topo_type ent_type, std::string const& name, Int ncomps, \
       Read<T> array, bool internal);                                           \
   template void Mesh::set_tag(                                                 \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
+  template void Mesh::set_tag(                                                 \
+      Topo_type ent_type, std::string const& name, Read<T> array, bool internal);         \
   template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width);        \
   template Future<T> Mesh::isync_array(Int ent_dim, Read<T> a, Int width);   \
   template Read<T> Mesh::owned_array(Int ent_dim, Read<T> a, Int width);       \

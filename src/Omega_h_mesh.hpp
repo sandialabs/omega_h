@@ -64,18 +64,33 @@ class Mesh {
   template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps);
   template <typename T>
+  void add_tag(Topo_type ent_type, std::string const& name, Int ncomps);
+  template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps, Read<T> array,
+      bool internal = false);
+  template <typename T>
+  void add_tag(Topo_type ent_type, std::string const& name, Int ncomps, Read<T> array,
       bool internal = false);
   template <typename T>
   void set_tag(
       Int dim, std::string const& name, Read<T> array, bool internal = false);
+  template <typename T>
+  void set_tag(
+      Topo_type ent_type, std::string const& name, Read<T> array, bool internal = false);
   TagBase const* get_tagbase(Int dim, std::string const& name) const;
+  TagBase const* get_tagbase(Topo_type ent_type, std::string const& name) const;
   template <typename T>
   Tag<T> const* get_tag(Int dim, std::string const& name) const;
   template <typename T>
+  Tag<T> const* get_tag(Topo_type ent_type, std::string const& name) const;
+  template <typename T>
   Read<T> get_array(Int dim, std::string const& name) const;
+  template <typename T>
+  Read<T> get_array(Topo_type ent_type, std::string const& name) const;
   void remove_tag(Int dim, std::string const& name);
+  void remove_tag(Topo_type ent_type, std::string const& name);
   bool has_tag(Int dim, std::string const& name) const;
+  bool has_tag(Topo_type ent_type, std::string const& name) const;
   Int ntags(Int dim) const;
   TagBase const* get_tag(Int dim, Int i) const;
   bool has_ents(Int dim) const;
@@ -107,6 +122,8 @@ class Mesh {
   typedef TagVector::const_iterator TagCIter;
   TagIter tag_iter(Int dim, std::string const& name);
   TagCIter tag_iter(Int dim, std::string const& name) const;
+  TagIter tag_iter(Topo_type ent_type, std::string const& name);
+  TagCIter tag_iter(Topo_type ent_type, std::string const& name) const;
   void check_dim(Int dim) const;
   void check_dim2(Int dim) const;
   void check_type(Topo_type ent_type) const;
@@ -118,6 +135,7 @@ class Mesh {
   Adj ask_adj(Int from, Int to);
   Adj ask_adj(Topo_type from_type, Topo_type to_type);
   void react_to_set_tag(Int dim, std::string const& name);
+  void react_to_set_tag(Topo_type ent_type, std::string const& name);
   Omega_h_Family family_;
   Int dim_;
   CommPtr comm_;
@@ -126,6 +144,7 @@ class Mesh {
   LO nents_[DIMS];
   LO nents_type_[TOPO_TYPES];
   TagVector tags_[DIMS];
+  TagVector tags_type_[TOPO_TYPES];
   AdjPtr adjs_[DIMS][DIMS];
   AdjPtr adjs_type_[TOPO_TYPES][TOPO_TYPES];
   Remotes owners_[DIMS];
@@ -219,12 +238,20 @@ __host__
       Int dim, std::string const& name) const;                                 \
   extern template Read<T> Mesh::get_array<T>(Int dim, std::string const& name) \
       const;                                                                   \
+  extern template Read<T> Mesh::get_array<T>(Topo_type ent_type, std::string const& name) \
+      const;                                                                   \
   extern template void Mesh::add_tag<T>(                                       \
       Int dim, std::string const& name, Int ncomps);                           \
+  extern template void Mesh::add_tag<T>(                                       \
+      Topo_type ent_type, std::string const& name, Int ncomps);                           \
   extern template void Mesh::add_tag<T>(Int dim, std::string const& name,      \
+      Int ncomps, Read<T> array, bool internal);                               \
+  extern template void Mesh::add_tag<T>(Topo_type ent_type, std::string const& name,      \
       Int ncomps, Read<T> array, bool internal);                               \
   extern template void Mesh::set_tag(                                          \
       Int dim, std::string const& name, Read<T> array, bool internal);         \
+  extern template void Mesh::set_tag(                                          \
+      Topo_type ent_type, std::string const& name, Read<T> array, bool internal);         \
   extern template Read<T> Mesh::sync_array(Int ent_dim, Read<T> a, Int width); \
   extern template Future<T> Mesh::isync_array(                                 \
       Int ent_dim, Read<T> a, Int width);                                      \
