@@ -119,14 +119,14 @@ constexpr OMEGA_H_INLINE Int element_down_template(
                (which_vert == 0 ? 2 :
                (which_vert == 1 ? 5 : -1)) :
              (which_bdry == 6 ?
-               (which_vert == 0 ? 3 :
-               (which_vert == 1 ? 4 : -1)) :
-             (which_bdry == 7 ?
                (which_vert == 0 ? 4 :
-               (which_vert == 1 ? 5 : -1)) :
-             (which_bdry == 8 ?
+               (which_vert == 1 ? 3 : -1)) :
+             (which_bdry == 7 ?
                (which_vert == 0 ? 5 :
-               (which_vert == 1 ? 3 : -1)) : -1))))))))) :
+               (which_vert == 1 ? 4 : -1)) :
+             (which_bdry == 8 ?
+               (which_vert == 0 ? 3 :
+               (which_vert == 1 ? 5 : -1)) : -1))))))))) :
            (bdry_type == 0 ?
              (which_bdry == 0 ? 0 :
              (which_bdry == 1 ? 1 :
@@ -254,19 +254,19 @@ OMEGA_H_INLINE TemplateUp element_up_template(Int elem_type, Int bdry_type, Int 
             case 3:
               switch (which_up) {
                 case 0:
-                  return {6, 0, 0};
+                  return {6, 1, 0};
               }
               return {-1, -1, 0};
 	    case 4:
               switch (which_up) {
                 case 0:
-                  return {7, 0, 0};
+                  return {7, 1, 0};
               }
               return {-1, -1, 0};
 	    case 5:
               switch (which_up) {
                 case 0:
-                  return {8, 0, 0};
+                  return {8, 1, 0};
               }
               return {-1, -1, 0};
           }
