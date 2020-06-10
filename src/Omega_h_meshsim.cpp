@@ -23,13 +23,13 @@ namespace meshsim {
 
 //namespace {
 
-/*
+
 int classId(pEntity e) {
   pGEntity g = EN_whatIn(e);
   assert(g);
   return GEN_tag(g);
 }
-*/
+
 
 void call_print(LOs a) {
   printf("\n");
@@ -71,6 +71,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> elem_vertices[4];
   std::vector<int> face_vertices[2];
   std::vector<int> edge_vertices[1];
+  std::vector<int> ent_class_ids[1];
   //std::vector<int> down_adjs[10];
   //std::vector<int> down_codes[10];
   //std::vector<int> ent_class_ids[10];
@@ -219,9 +220,11 @@ void read_internal(pMesh m, Mesh* mesh) {
   LOs const tri_uv2v = form_uses(tri2verts, Topo_type::triangle, Topo_type::edge);
   Write<LO> te2e;
   Write<I8> tri2edg_codes;
+  // Look into writing new find_matches
   auto const edg2vtx_deg = element_degree(Topo_type::edge, Topo_type::vertex);
   auto const tri_2fv = get_component(tri_uv2v, edg2vtx_deg, 0);
   find_matches_ex(edg2vtx_deg, tri_2fv, tri_uv2v, edge2vert.ab2b, vert2edge, &te2e, &tri2edg_codes);
+  //
   mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e, tri2edg_codes));
 
   //test codes generation for quad2edge
@@ -866,6 +869,8 @@ std::string(dimensional_singular_name(Topo_type::quadrilateral))
   OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
   //transit prints
+  printf("wedge2vtx values from ask_down is\n");
+  call_print(wedge2vtx.ab2b);
 /*
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);
