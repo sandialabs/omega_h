@@ -30,7 +30,7 @@ if(Omega_h_USE_Kokkos)
   #However, if the Kokkos CMake sees this undefined, it
   #panics and assumes we're using extensions
   set(CMAKE_CXX_EXTENSIONS OFF)
-  find_package(Kokkos REQUIRED)
+  bob_add_dependency(PUBLIC NAME Kokkos TARGETS Kokkos::kokkoscore)
 endif()
 
 set(Omega_h_USE_ZLIB_DEFAULT ON)
