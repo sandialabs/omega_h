@@ -37,8 +37,14 @@ struct Children : public Graph {
 void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v,
     LOs const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out);
 
+void find_matches(Topo_type const ent_type, LOs const av2v,
+    LOs const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out);
+
 Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
     Omega_h_Family const family, Int const high_dim, Int const low_dim);
+
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
+    Topo_type const high_type, Topo_type const low_type);
 
 Adj unmap_adjacency(LOs const a2b, Adj const b2c);
 

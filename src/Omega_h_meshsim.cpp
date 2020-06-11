@@ -99,7 +99,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     //ent_class_ids[1].push_back(classId(edge));
   }
   EIter_delete(edges);
-  //printf(" ok1.4.3 \n");
   
 /*
   //Test degree outputs
@@ -118,7 +117,7 @@ void read_internal(pMesh m, Mesh* mesh) {
 */
   //set Verts of mesh
   mesh->set_verts_type(numVtx);
-  //
+
   HostWrite<LO> host_e2v(numEdges*2);
   for (Int i = 0; i < numEdges; ++i) {
     for (Int j = 0; j < 2; ++j) {
@@ -187,11 +186,8 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto tri2verts = Read<LO>(host_tri2verts.write());
-  LOs const tri_uv2v = form_uses(tri2verts, Topo_type::triangle, Topo_type::edge);
-  Write<LO> te2e;
-  Write<I8> tri2edg_codes;
-  find_matches(Topo_type::edge, tri_uv2v, edge2vert.ab2b, vert2edge, &te2e, &tri2edg_codes);
-  mesh->set_ents(Topo_type::triangle, Topo_type::edge, Adj(te2e, tri2edg_codes));
+  auto down = reflect_down(tri2verts, edge2vert.ab2b, vert2edge, Topo_type::triangle, Topo_type::edge);
+  mesh->set_ents(Topo_type::triangle, Topo_type::edge, down);
 
   HostWrite<LO> host_quad2verts(count_quad*4);
   for (Int i = 0; i < count_quad; ++i) {
@@ -201,11 +197,8 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto quad2verts = Read<LO>(host_quad2verts.write());
-  LOs const quad_uv2v = form_uses(quad2verts, Topo_type::quadrilateral, Topo_type::edge);
-  Write<LO> qe2e;
-  Write<I8> quad2edg_codes;
-  find_matches(Topo_type::edge, quad_uv2v, edge2vert.ab2b, vert2edge, &qe2e, &quad2edg_codes);
-  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, Adj(qe2e, quad2edg_codes));
+  down = reflect_down(quad2verts, edge2vert.ab2b, vert2edge, Topo_type::quadrilateral, Topo_type::edge);
+  mesh->set_ents(Topo_type::quadrilateral, Topo_type::edge, down);
 
   RIter regions = M_regionIter(m);
   LO count_tet = 0;
@@ -300,11 +293,9 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto tet2verts = Read<LO>(host_tet2verts.write());
-  LOs const tet_uv2v = form_uses(tet2verts, Topo_type::tetrahedron, Topo_type::triangle);
-  Write<LO> tt2t;
-  Write<I8> tet2tri_codes;
-  find_matches(Topo_type::triangle, tet_uv2v, tri2vert.ab2b, vert2tri, &tt2t, &tet2tri_codes);
-  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, Adj(tt2t, tet2tri_codes));
+  down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri, Topo_type::tetrahedron, Topo_type::triangle);
+  mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, down);
+
   auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
   auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
 
@@ -320,11 +311,9 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto hex2verts = Read<LO>(host_hex2verts.write());
-  LOs const hex_uv2v = form_uses(hex2verts, Topo_type::hexahedron, Topo_type::quadrilateral);
-  Write<LO> hq2q;
-  Write<I8> hex2quad_codes;
-  find_matches(Topo_type::quadrilateral, hex_uv2v, quad2vert.ab2b, vert2quad, &hq2q, &hex2quad_codes);
-  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, Adj(hq2q, hex2quad_codes));
+  down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad, Topo_type::hexahedron, Topo_type::quadrilateral);
+  mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, down);
+
   auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
   auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
 
@@ -336,19 +325,14 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto wedge2verts = Read<LO>(host_wedge2verts.write());
-  LOs const wedge_uv2v = form_uses(wedge2verts, Topo_type::wedge, Topo_type::quadrilateral);
-  Write<LO> wq2q;
-  Write<I8> wedge2quad_codes;
-  find_matches(Topo_type::quadrilateral, wedge_uv2v, quad2vert.ab2b, vert2quad, &wq2q, &wedge2quad_codes);
-  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, Adj(wq2q, wedge2quad_codes));
+  down = reflect_down(wedge2verts, quad2vert.ab2b, vert2quad, Topo_type::wedge, Topo_type::quadrilateral);
+  mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, down);
+
   auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
   auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
 
-  LOs const wedgeTri_uv2v = form_uses(wedge2verts, Topo_type::wedge, Topo_type::triangle);
-  Write<LO> wt2t;
-  Write<I8> wedge2tri_codes;
-  find_matches(Topo_type::triangle, wedgeTri_uv2v, tri2vert.ab2b, vert2tri, &wt2t, &wedge2tri_codes);
-  mesh->set_ents(Topo_type::wedge, Topo_type::triangle, Adj(wt2t, wedge2tri_codes));
+  down = reflect_down(wedge2verts, tri2vert.ab2b, vert2tri, Topo_type::wedge, Topo_type::triangle);
+  mesh->set_ents(Topo_type::wedge, Topo_type::triangle, down);
 
   HostWrite<LO> host_pyramid2verts(count_pyramid*5);
   for (Int i = 0; i < count_pyramid; ++i) {
@@ -358,19 +342,14 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   auto pyramid2verts = Read<LO>(host_pyramid2verts.write());
-  LOs const pyramid_uv2v = form_uses(pyramid2verts, Topo_type::pyramid, Topo_type::triangle);
-  Write<LO> pt2t;
-  Write<I8> pyramid2tri_codes;
-  find_matches(Topo_type::triangle, pyramid_uv2v, tri2vert.ab2b, vert2tri, &pt2t, &pyramid2tri_codes);
-  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, Adj(pt2t, pyramid2tri_codes));
+  down = reflect_down(pyramid2verts, tri2vert.ab2b, vert2tri, Topo_type::pyramid, Topo_type::triangle);
+  mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, down);
+
   auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
   auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
 
-  LOs const pyramidQuad_uv2v = form_uses(pyramid2verts, Topo_type::pyramid, Topo_type::quadrilateral);
-  Write<LO> pq2q;
-  Write<I8> pyramid2quad_codes;
-  find_matches(Topo_type::quadrilateral, pyramidQuad_uv2v, quad2vert.ab2b, vert2quad, &pq2q, &pyramid2quad_codes);
-  mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, Adj(pq2q, pyramid2quad_codes));
+  down = reflect_down(pyramid2verts, quad2vert.ab2b, vert2quad, Topo_type::pyramid, Topo_type::quadrilateral);
+  mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, down);
 
   //1 lvl dwn queries
   auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);

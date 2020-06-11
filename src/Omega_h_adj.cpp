@@ -491,6 +491,14 @@ void find_matches(Omega_h_Family const family, Int const dim, LOs const av2v,
   find_matches_ex(deg, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
 }
 
+void find_matches(Topo_type const ent_type, LOs const av2v,
+    LOs const bv2v, Adj const v2b, Write<LO>* a2b_out, Write<I8>* codes_out) {
+  OMEGA_H_CHECK(int(ent_type) <= 3);
+  auto const deg = element_degree(ent_type, Topo_type::vertex);
+  auto const a2fv = get_component(av2v, deg, 0);
+  find_matches_ex(deg, a2fv, av2v, bv2v, v2b, a2b_out, codes_out);
+}
+
 Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
     Omega_h_Family const family, Int const high_dim, Int const low_dim) {
   ScopedTimer timer("reflect_down(v2l)");
@@ -498,6 +506,16 @@ Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
   Write<LO> hl2l;
   Write<I8> codes;
   find_matches(family, low_dim, uv2v, lv2v, v2l, &hl2l, &codes);
+  return Adj(read(hl2l), read(codes));
+}
+
+Adj reflect_down(LOs const hv2v, LOs const lv2v, Adj const v2l,
+    Topo_type const high_type, Topo_type const low_type) {
+  ScopedTimer timer("reflect_down_mix(v2l)");
+  LOs const uv2v = form_uses(hv2v, high_type, low_type);
+  Write<LO> hl2l;
+  Write<I8> codes;
+  find_matches(low_type, uv2v, lv2v, v2l, &hl2l, &codes);
   return Adj(read(hl2l), read(codes));
 }
 
@@ -619,7 +637,6 @@ Adj transit(Adj const h2m, Adj const m2l,
   auto const nhighs = divide_no_remainder(hm2m.size(), nmids_per_high);
   Write<LO> hl2l(nhighs * nlows_per_high, hl2l_name);
   Write<I8> codes;
-  // codes only need to be created when transiting region->face + face->edge = region->edge. any other transit has vertices as its destination, and vertices have no orientation/alignment //
   if (int(low_type) == 1) {
     auto const codes_name =
         std::string(high_singular_name) + " " + low_plural_name + " codes";
@@ -629,7 +646,7 @@ Adj transit(Adj const h2m, Adj const m2l,
     auto const hl_begin = h * nlows_per_high;
     auto const hm_begin = h * nmids_per_high;
     for (Int hl = 0; hl < nlows_per_high; ++hl) {
-      auto const ut = element_up_template(int(high_type), int(low_type), hl, 0);//change template code
+      auto const ut = element_up_template(int(high_type), int(low_type), hl, 0);//add wedge and pyramid templates
       auto const hm = ut.up;
       auto const hml = ut.which_down;
       auto const m = hm2m[hm_begin + hm];
@@ -638,17 +655,11 @@ Adj transit(Adj const h2m, Adj const m2l,
       auto const ml = align_index(nlows_per_mid, int(low_type), hml, hm2m_code);
       auto const ml_begin = m * nlows_per_mid;
       auto const l = ml2l[ml_begin + ml];
-      // safety check for duplicates.
-      // remove after this code is heavily exercised (or don't)
       for (Int hhl2 = 0; hhl2 < hl; ++hhl2) {
         OMEGA_H_CHECK(l != hl2l[hl_begin + hhl2]);
       }
       hl2l[hl_begin + hl] = l;
       if (int(low_type) == 1) {
-        // all we are determining here is whether the edge is pointed
-        //   in or against the direction of the "canonical edge" as
-        //   defined by the element's template.
-        //   this is a bitwise XOR of several flips along the way //
         auto const region_face_code = hm2m_code;
         auto const face_edge_code = ml_codes[ml_begin + ml];
         auto const region_face_flipped = code_is_flipped(region_face_code);
@@ -661,8 +672,6 @@ Adj transit(Adj const h2m, Adj const m2l,
     }
   };
   parallel_for(nhighs, std::move(f));
-/*
-*/
   if (int(low_type) == 1) return Adj(hl2l, codes);
   return Adj(hl2l);
 }
