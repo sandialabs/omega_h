@@ -266,6 +266,8 @@ void read_internal(pMesh m, Mesh* mesh) {
 
   auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
   auto vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
+  auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
+  auto vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
 
   HostWrite<LO> host_tet2verts(count_tet*4);
   for (Int i = 0; i < count_tet; ++i) {
@@ -278,12 +280,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   down = reflect_down(tet2verts, tri2vert.ab2b, vert2tri, Topo_type::tetrahedron, Topo_type::triangle);
   mesh->set_ents(Topo_type::tetrahedron, Topo_type::triangle, down);
 
-  auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
-  auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
-
-  auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
-  auto vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
-
   HostWrite<LO> host_hex2verts(count_hex*8);
   for (Int i = 0; i < count_hex; ++i) {
     for (Int j = 0; j < 8; ++j) {
@@ -295,9 +291,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   down = reflect_down(hex2verts, quad2vert.ab2b, vert2quad, Topo_type::hexahedron, Topo_type::quadrilateral);
   mesh->set_ents(Topo_type::hexahedron, Topo_type::quadrilateral, down);
 
-  auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
-  auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
-
   HostWrite<LO> host_wedge2verts(count_wedge*6);
   for (Int i = 0; i < count_wedge; ++i) {
     for (Int j = 0; j < 6; ++j) {
@@ -308,9 +301,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto wedge2verts = Read<LO>(host_wedge2verts.write());
   down = reflect_down(wedge2verts, quad2vert.ab2b, vert2quad, Topo_type::wedge, Topo_type::quadrilateral);
   mesh->set_ents(Topo_type::wedge, Topo_type::quadrilateral, down);
-
-  auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
-  auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
 
   down = reflect_down(wedge2verts, tri2vert.ab2b, vert2tri, Topo_type::wedge, Topo_type::triangle);
   mesh->set_ents(Topo_type::wedge, Topo_type::triangle, down);
@@ -326,12 +316,9 @@ void read_internal(pMesh m, Mesh* mesh) {
   down = reflect_down(pyramid2verts, tri2vert.ab2b, vert2tri, Topo_type::pyramid, Topo_type::triangle);
   mesh->set_ents(Topo_type::pyramid, Topo_type::triangle, down);
 
-  auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
-  auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
-
   down = reflect_down(pyramid2verts, quad2vert.ab2b, vert2quad, Topo_type::pyramid, Topo_type::quadrilateral);
   mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, down);
-
+/*
   //1 lvl dwn queries
   auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);
   auto quad2edge = mesh->get_adj(Topo_type::quadrilateral, Topo_type::edge);
@@ -352,7 +339,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto tri2pyramid = mesh->ask_up(Topo_type::triangle, Topo_type::pyramid);
   auto quad2pyramid = mesh->ask_up(Topo_type::quadrilateral, Topo_type::pyramid);
 
-/*
   //inversion prints
   printf("edge2vert values returned from get_adj is\n");
   call_print(edge2vert.ab2b);
@@ -394,7 +380,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   call_print(quad2pyramid.ab2b);
   printf("quad2pyramid offset returned from ask_up is\n");
   call_print(quad2pyramid.a2ab);
-*/
+
   //inversion assertions
 
   OMEGA_H_CHECK(vert2edge.ab2b.size() == 2*numEdges);
@@ -417,6 +403,18 @@ void read_internal(pMesh m, Mesh* mesh) {
   OMEGA_H_CHECK(quad2pyramid.a2ab.size() == count_quad+1);
 
   //transit tests
+
+  auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
+  auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
+
+  auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
+  auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
+
+  auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
+  auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
+
+  auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
+  auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
   //multi level up adj
   auto vert2tet = mesh->ask_up(Topo_type::vertex, Topo_type::tetrahedron);
   auto vert2hex = mesh->ask_up(Topo_type::vertex, Topo_type::hexahedron);
@@ -441,7 +439,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
 
   //transit prints
-/*
+
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);
   printf("quad2vert values from ask_down is\n");
@@ -462,9 +460,9 @@ void read_internal(pMesh m, Mesh* mesh) {
   call_print(pyram2edge.ab2b);
   printf("pyram2vtx values from ask_down is\n");
   call_print(pyram2vtx.ab2b);
-*/
-  //
 
+  //
+*/
 /*
 //ALL OK
   // test tags
