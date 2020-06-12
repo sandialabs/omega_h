@@ -28,6 +28,8 @@ Mesh::Mesh() {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   //add for mixed mesh
   for (Int i = 0; i <= 7; ++i) nents_type_[i] = -1;
+  dim_mix_ = -1;
+  //
   parting_ = -1;
   nghost_layers_ = -1;
   library_ = nullptr;
@@ -83,6 +85,30 @@ void Mesh::set_dim(Int dim_in) {
   dim_ = dim_in;
 }
 
+LO Mesh::ent_dim(Topo_type ent_type) const {
+  Int ent_dim;
+  if (int(ent_type) == 0) {
+    ent_dim = 0;
+  }
+  else if (int(ent_type) == 1) {
+    ent_dim = 1;
+  }
+  else if ((int(ent_type) > 1) && (int(ent_type) < 4)) {      
+    ent_dim = 2;
+  }
+  else {
+    ent_dim = 3;
+  }
+  return ent_dim;
+}
+
+void Mesh::set_dim(Topo_type max_type) {
+  OMEGA_H_CHECK(dim_mix_ == -1);
+  OMEGA_H_CHECK(int(max_type) > 0);
+  OMEGA_H_CHECK(int(max_type) < 8);
+  dim_mix_ = ent_dim(max_type);
+}
+
 void Mesh::set_verts(LO nverts_in) { nents_[VERT] = nverts_in; }
 
 void Mesh::set_verts_type(LO nverts_in) { nents_type_[int(Topo_type::vertex)] = nverts_in; }
@@ -136,6 +162,23 @@ LO Mesh::nfaces() const { return nents(FACE); }
 LO Mesh::nedges() const { return nents(EDGE); }
 
 LO Mesh::nverts() const { return nents(VERT); }
+
+LO Mesh::npyrams() const { return nents(Topo_type::pyramid); }
+
+LO Mesh::nwedges() const { return nents(Topo_type::wedge); }
+
+LO Mesh::nhexs() const { return nents(Topo_type::hexahedron); }
+
+LO Mesh::ntets() const { return nents(Topo_type::tetrahedron); }
+
+LO Mesh::nquads() const { return nents(Topo_type::quadrilateral); }
+
+LO Mesh::ntris() const { return nents(Topo_type::triangle); }
+
+LO Mesh::nedges_mix() const { return nents(Topo_type::edge); }
+
+LO Mesh::nverts_mix() const { return nents(Topo_type::vertex); }
+
 
 GO Mesh::nglobal_ents(Int ent_dim) {
   if (!could_be_shared(ent_dim)) {
@@ -414,6 +457,8 @@ Adj Mesh::ask_down(Topo_type from_type, Topo_type to_type) {
 }
 
 LOs Mesh::ask_verts_of(Int ent_dim) { return ask_adj(ent_dim, VERT).ab2b; }
+
+LOs Mesh::ask_verts_of(Topo_type ent_type) { return ask_adj(ent_type, Topo_type::vertex).ab2b; }
 
 LOs Mesh::ask_elem_verts() { return ask_verts_of(dim()); }
 

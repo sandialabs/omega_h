@@ -271,11 +271,15 @@ if(BUILD_TESTING)
   osh_add_exe(unit_math)
   set(TEST_EXES ${TEST_EXES} unit_math)
   test_func(run_unit_math 1 ./unit_math)
-  #mixed test
-  osh_add_exe(mixedSim_unitTest)
-  set(TEST_EXES ${TEST_EXES} mixedSim_unitTest)
-  test_func(run_mixedSim_unitTest 1 ./mixedSim_unitTest)
-  # 
+  #create mixed mesh
+  osh_add_exe(mixed_writeMesh)
+  set(TEST_EXES ${TEST_EXES} mixed_writeMesh)
+  test_func(run_mixed_writeMesh 1 ./mixed_writeMesh)
+  #run test
+  osh_add_exe(mixed_test)
+  set(TEST_EXES ${TEST_EXES} mixed_test)
+  test_func(run_mixed_test 1 ./mixed_test)
+  #
   osh_add_exe(unit_array_algs)
   set(TEST_EXES ${TEST_EXES} unit_array_algs)
   test_func(run_unit_array_algs 1 ./unit_array_algs)

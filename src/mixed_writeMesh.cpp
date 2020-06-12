@@ -37,11 +37,11 @@ int main(int argc, char *argv[]) {
   auto comm = lib.world();
   auto mesh = Mesh(comm->library());
   try {
-    Sim_logOn("importData1.log");  // start logging
-    MS_init(); // Call before calling Sim_readLicenseFile
+    Sim_logOn("importData1.log");
+    MS_init();
     Sim_readLicenseFile(0);
 
-    pMesh meshtest; //mesh to load
+    pMesh meshtest;
 
 /*
     // For tet on wedge, plus hex and pyramid adjacenct to wedge
@@ -147,6 +147,7 @@ int main(int argc, char *argv[]) {
       GM_release(modeltest);
     }
 
+    //change directory to a new ./mixed_mesh/ in build folder
     GM_write(modeltest,"/users/joshia5/simmodeler/Example_pyramid_hex.smd",0,progress);
     M_write(meshtest,"/users/joshia5/simmodeler/Example_pyramid_hex.sms", 0,progress);
 

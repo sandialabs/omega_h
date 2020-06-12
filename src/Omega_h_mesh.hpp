@@ -39,6 +39,7 @@ class Mesh {
   void set_comm(CommPtr const& comm);
   void set_family(Omega_h_Family family);
   void set_dim(Int dim_in);
+  void set_dim(Topo_type max_type);
   void set_verts(LO nverts_in);
   void set_verts_type(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
@@ -52,14 +53,29 @@ class Mesh {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
+  inline Int dim_mix() const {
+    OMEGA_H_CHECK(0 <= dim_mix_ && dim_mix_ <= 3);
+    return dim_mix_;
+  }
   inline Omega_h_Family family() const { return family_; }
   LO nents(Int ent_dim) const;
   LO nents(Topo_type ent_type) const;
+  LO ent_dim(Topo_type ent_type) const;
   LO nelems() const;
   LO nregions() const;
   LO nfaces() const;
   LO nedges() const;
   LO nverts() const;
+
+  LO npyrams() const;
+  LO nwedges() const;
+  LO nhexs() const;
+  LO ntets() const;
+  LO nquads() const;
+  LO ntris() const;
+  LO nedges_mix() const;
+  LO nverts_mix() const;
+
   GO nglobal_ents(Int dim);
   template <typename T>
   void add_tag(Int dim, std::string const& name, Int ncomps);
@@ -102,6 +118,7 @@ class Mesh {
   Adj ask_down(Int from, Int to);
   Adj ask_down(Topo_type from_type, Topo_type to_type);
   LOs ask_verts_of(Int dim);
+  LOs ask_verts_of(Topo_type ent_type);
   LOs ask_elem_verts();
   Adj ask_up(Int from, Int to);
   Adj ask_up(Topo_type from_type, Topo_type to_type);
@@ -138,6 +155,7 @@ class Mesh {
   void react_to_set_tag(Topo_type ent_type, std::string const& name);
   Omega_h_Family family_;
   Int dim_;
+  Int dim_mix_;
   CommPtr comm_;
   Int parting_;
   Int nghost_layers_;

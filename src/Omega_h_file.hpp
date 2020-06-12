@@ -33,6 +33,7 @@ void write_sol(Mesh* mesh, std::string const& filepath,
 namespace meshsim {
 Mesh read(filesystem::path const& mesh, filesystem::path const& model,
     CommPtr comm);
+void call_print(LOs a);
 }  // namespace meshsim
 #endif
 

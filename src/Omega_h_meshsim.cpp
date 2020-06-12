@@ -100,21 +100,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   EIter_delete(edges);
   
-/*
-  //Test degree outputs
-  auto deg = element_degree(Topo_type::edge, Topo_type::vertex);
-  printf("deg e2v=%d \n", deg);
-  deg = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
-  printf("deg tet2v=%d \n", deg);
-  deg = element_degree(Topo_type::hexahedron, Topo_type::quadrilateral);
-  printf("deg hex2quad=%d \n", deg);
-  deg = element_degree(Topo_type::wedge, Topo_type::triangle);
-  printf("deg wed2tri=%d \n", deg);
-  deg = element_degree(Topo_type::pyramid, Topo_type::edge);
-  printf("deg py2ed=%d \n", deg);
-  deg = element_degree(Topo_type::pyramid, Topo_type::quadrilateral);
-  printf("deg py2quad=%d \n", deg);
-*/
   //set Verts of mesh
   mesh->set_verts_type(numVtx);
 
@@ -175,7 +160,6 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   FIter_delete(faces);
-
   auto edge2vert = mesh->get_adj(Topo_type::edge, Topo_type::vertex);
   auto vert2edge = mesh->ask_up(Topo_type::vertex, Topo_type::edge);
   HostWrite<LO> host_tri2verts(count_tri*3);
@@ -279,9 +263,7 @@ void read_internal(pMesh m, Mesh* mesh) {
     }
   }
   RIter_delete(regions);
-  printf("elem2verts generated\n");
 
-  printf("tri2vert values from ask_down is\n");
   auto tri2vert = mesh->ask_down(Topo_type::triangle, Topo_type::vertex);
   auto vert2tri = mesh->ask_up(Topo_type::vertex, Topo_type::triangle);
 
@@ -299,7 +281,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
   auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
 
-  printf("quad2vert values from ask_down is\n");
   auto quad2vert = mesh->ask_down(Topo_type::quadrilateral, Topo_type::vertex);
   auto vert2quad = mesh->ask_up(Topo_type::vertex, Topo_type::quadrilateral);
 
@@ -458,9 +439,8 @@ void read_internal(pMesh m, Mesh* mesh) {
   OMEGA_H_CHECK(wedge2vtx.ab2b.size() == count_wedge*6);
   OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
+
   //transit prints
-  printf("wedge2vtx values from ask_down is\n");
-  call_print(wedge2vtx.ab2b);
 /*
   printf("tri2vert values from ask_down is\n");
   call_print(tri2vert.ab2b);

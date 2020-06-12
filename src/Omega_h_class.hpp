@@ -37,6 +37,9 @@ void finalize_classification(Mesh* mesh);
 void classify_equal_order(
     Mesh* mesh, Int ent_dim, LOs eqv2v, Read<ClassId> eq_class_ids);
 
+void classify_equal_order(
+    Mesh* mesh, Topo_type ent_type, LOs eqv2v, Read<ClassId> eq_class_ids);
+
 }  // end namespace Omega_h
 
 #endif
