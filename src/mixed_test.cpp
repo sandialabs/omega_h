@@ -17,6 +17,21 @@ void test_degree() {
   OMEGA_H_CHECK(element_degree(Topo_type::pyramid, Topo_type::quadrilateral) == 1);
 }
 
+void test_tags(Mesh* mesh) {
+  auto num_wedge = mesh->nwedges();
+  mesh->add_tag<LO>(Topo_type::wedge, "gravity", 1);
+  mesh->set_tag<LO>(Topo_type::wedge, "gravity", LOs(num_wedge,10));
+  auto test_tag1 = mesh->get_array<LO>(Topo_type::wedge, "gravity");
+  OMEGA_H_CHECK(test_tag1 == LOs(num_wedge, 10));
+  mesh->remove_tag(Topo_type::wedge, "gravity");
+
+  auto num_pyram = mesh->npyrams();
+  mesh->add_tag<Real>(Topo_type::pyramid, "density", 1, Reals(num_pyram, 0.0005));
+  auto test_tag2 = mesh->get_array<Real>(Topo_type::pyramid, "density");
+  OMEGA_H_CHECK(test_tag2 == Reals(num_pyram, 0.0005));
+  mesh->remove_tag(Topo_type::pyramid, "density");
+}
+
 void test_adjs(Mesh* mesh) {
 
   //get number of entities
@@ -106,7 +121,8 @@ void test_adjs(Mesh* mesh) {
   OMEGA_H_CHECK(wedge2vtx.ab2b.size() == num_wedge*6);
   OMEGA_H_CHECK(pyram2edge.ab2b.size() == num_pyramid*8);
   OMEGA_H_CHECK(pyram2vtx.ab2b.size() == num_pyramid*5);
-  //check values
+
+  //check values for example meshes
   if (num_vertex == 12) {
     //4 elem mesh
     OMEGA_H_CHECK(tet2vtx.ab2b == LOs({0, 1, 8, 2}));
@@ -145,42 +161,49 @@ int main(int argc, char** argv) {
   std::string model_in ("/users/joshia5/simmodeler/Example_4type.smd");
   auto mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
+  test_tags(&mesh);
 
   //pyram on hex
   mesh_in = "/users/joshia5/simmodeler/Example_pyramid_hex.sms";
   model_in = "/users/joshia5/simmodeler/Example_pyramid_hex.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
+  test_tags(&mesh);
 
   //tet on wedge
   mesh_in = "/users/joshia5/simmodeler/Example_tet_wedge.sms";
   model_in = "/users/joshia5/simmodeler/Example_tet_wedge.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
+  test_tags(&mesh);
 
   //tet=4609, hex=249, wedge=262, pyramid=313
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3-case1.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
+  test_tags(&mesh);
 
   //tet=1246, hex=8, wedge=0, pyramid=229
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2-case1.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
+  test_tags(&mesh);
 
   //tet=3274, hex=68, wedge=0, pyramid=171
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim-case1.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
+  test_tags(&mesh);
 
   //tet=4437, hex=0, wedge=0, pyramid=0
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial-case1_v7.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_geomsim.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
+  test_tags(&mesh);
 
   return 0;
 }

@@ -5,11 +5,8 @@
 #include "Omega_h_vector.hpp"
 #include "Omega_h_mesh.hpp"
 
-#include "Omega_h_element.hpp"
 #include "Omega_h_for.hpp"
 #include "Omega_h_adj.hpp"
-#include "Omega_h_align.hpp"
-#include "Omega_h_array_ops.hpp"
 
 #include "SimPartitionedMesh.h"
 #include "SimModel.h"
@@ -100,7 +97,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   EIter_delete(edges);
   
-  //set Verts of mesh
   mesh->set_verts_type(numVtx);
 
   HostWrite<LO> host_e2v(numEdges*2);
@@ -318,168 +314,6 @@ void read_internal(pMesh m, Mesh* mesh) {
 
   down = reflect_down(pyramid2verts, quad2vert.ab2b, vert2quad, Topo_type::pyramid, Topo_type::quadrilateral);
   mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, down);
-/*
-  //1 lvl dwn queries
-  auto tri2edge = mesh->get_adj(Topo_type::triangle, Topo_type::edge);
-  auto quad2edge = mesh->get_adj(Topo_type::quadrilateral, Topo_type::edge);
-  auto tet2tri = mesh->get_adj(Topo_type::tetrahedron, Topo_type::triangle);
-  auto hex2quad = mesh->get_adj(Topo_type::hexahedron, Topo_type::quadrilateral);
-  auto wedge2tria = mesh->get_adj(Topo_type::wedge, Topo_type::triangle);
-  auto wedge2quadr = mesh->get_adj(Topo_type::wedge, Topo_type::quadrilateral);
-  auto pyramid2tria = mesh->get_adj(Topo_type::pyramid, Topo_type::triangle);
-  auto pyramid2quadr = mesh->get_adj(Topo_type::pyramid, Topo_type::quadrilateral);
-
-  //1 lvl inversion queries
-  auto edge2tri = mesh->ask_up(Topo_type::edge, Topo_type::triangle);
-  auto edge2quad = mesh->ask_up(Topo_type::edge, Topo_type::quadrilateral);
-  auto tri2tet = mesh->ask_up(Topo_type::triangle, Topo_type::tetrahedron);
-  auto quad2hex = mesh->ask_up(Topo_type::quadrilateral, Topo_type::hexahedron);
-  auto tri2wedge = mesh->ask_up(Topo_type::triangle, Topo_type::wedge);
-  auto quad2wedge = mesh->ask_up(Topo_type::quadrilateral, Topo_type::wedge);
-  auto tri2pyramid = mesh->ask_up(Topo_type::triangle, Topo_type::pyramid);
-  auto quad2pyramid = mesh->ask_up(Topo_type::quadrilateral, Topo_type::pyramid);
-
-  //inversion prints
-  printf("edge2vert values returned from get_adj is\n");
-  call_print(edge2vert.ab2b);
-  printf("vert2edge values returned from ask_up is\n");
-  call_print(vert2edge.ab2b);
-  printf("vert2edge offsets returned from ask_up is\n");
-  call_print(vert2edge.a2ab);
-  //printf("tri2edge codes returned from get_adj is\n");
-  //call_print(tri2edge.codes);
-  printf("edge2tri values returned from ask_up is\n");
-  call_print(edge2tri.ab2b);
-  printf("edge2tri offsets returned from ask_up is\n");
-  call_print(edge2tri.a2ab);
-  printf("edge2quad lists returned from ask_up is\n");
-  call_print(edge2quad.ab2b);
-  printf("edge2quad offsets returned from ask_up is\n");
-  call_print(edge2quad.a2ab);
-  printf("tri2tet list returned from ask_up is\n");
-  call_print(tri2tet.ab2b);
-  printf("tri2tet offset returned from ask_up is\n");
-  call_print(tri2tet.a2ab);
-  printf("quad2hex list returned from ask_up is\n");
-  call_print(quad2hex.ab2b);
-  printf("quad2hex offset returned from ask_up is\n");
-  call_print(quad2hex.a2ab);
-  printf("tri2wedge list returned from ask_up is\n");
-  call_print(tri2wedge.ab2b);
-  printf("tri2wedge offset returned from ask_up is\n");
-  call_print(tri2wedge.a2ab);
-  printf("quad2wedge list returned from ask_up is\n");
-  call_print(quad2wedge.ab2b);
-  printf("quad2wedge offset returned from ask_up is\n");
-  call_print(quad2wedge.a2ab);
-  printf("tri2pyramid list returned from ask_up is\n");
-  call_print(tri2pyramid.ab2b);
-  printf("tri2pyramid offset returned from ask_up is\n");
-  call_print(tri2pyramid.a2ab);
-  printf("quad2pyramid list returned from ask_up is\n");
-  call_print(quad2pyramid.ab2b);
-  printf("quad2pyramid offset returned from ask_up is\n");
-  call_print(quad2pyramid.a2ab);
-
-  //inversion assertions
-
-  OMEGA_H_CHECK(vert2edge.ab2b.size() == 2*numEdges);
-  OMEGA_H_CHECK(vert2edge.a2ab.size() == numVtx+1);
-  OMEGA_H_CHECK(edge2tri.ab2b.size() == 3*count_tri);
-  OMEGA_H_CHECK(edge2tri.a2ab.size() == numEdges+1);
-  OMEGA_H_CHECK(edge2quad.ab2b.size() == 4*count_quad);
-  OMEGA_H_CHECK(edge2quad.a2ab.size() == numEdges+1);
-  OMEGA_H_CHECK(tri2tet.ab2b.size() == 4*count_tet);
-  OMEGA_H_CHECK(tri2tet.a2ab.size() == count_tri+1);
-  OMEGA_H_CHECK(quad2hex.ab2b.size() == count_hex*6);
-  OMEGA_H_CHECK(quad2hex.a2ab.size() == count_quad+1);
-  OMEGA_H_CHECK(tri2wedge.ab2b.size() == 2*count_wedge);
-  OMEGA_H_CHECK(tri2wedge.a2ab.size() == count_tri+1);
-  OMEGA_H_CHECK(quad2wedge.ab2b.size() == count_wedge*3);
-  OMEGA_H_CHECK(quad2wedge.a2ab.size() == count_quad+1);
-  OMEGA_H_CHECK(tri2pyramid.ab2b.size() == 4*count_pyramid);
-  OMEGA_H_CHECK(tri2pyramid.a2ab.size() == count_tri+1);
-  OMEGA_H_CHECK(quad2pyramid.ab2b.size() == count_pyramid);
-  OMEGA_H_CHECK(quad2pyramid.a2ab.size() == count_quad+1);
-
-  //transit tests
-
-  auto tet2edge = mesh->ask_down(Topo_type::tetrahedron, Topo_type::edge);
-  auto tet2vtx = mesh->ask_down(Topo_type::tetrahedron, Topo_type::vertex);
-
-  auto hex2edge = mesh->ask_down(Topo_type::hexahedron, Topo_type::edge);
-  auto hex2vtx = mesh->ask_down(Topo_type::hexahedron, Topo_type::vertex);
-
-  auto wedge2edge = mesh->ask_down(Topo_type::wedge, Topo_type::edge);
-  auto wedge2vtx = mesh->ask_down(Topo_type::wedge, Topo_type::vertex);
-
-  auto pyram2edge = mesh->ask_down(Topo_type::pyramid, Topo_type::edge);
-  auto pyram2vtx = mesh->ask_down(Topo_type::pyramid, Topo_type::vertex);
-  //multi level up adj
-  auto vert2tet = mesh->ask_up(Topo_type::vertex, Topo_type::tetrahedron);
-  auto vert2hex = mesh->ask_up(Topo_type::vertex, Topo_type::hexahedron);
-  auto vert2wedge = mesh->ask_up(Topo_type::vertex, Topo_type::wedge);
-  auto vert2pyramid = mesh->ask_up(Topo_type::vertex, Topo_type::pyramid);
-  auto edge2tet = mesh->ask_up(Topo_type::edge, Topo_type::tetrahedron);
-  auto edge2hex = mesh->ask_up(Topo_type::edge, Topo_type::hexahedron);
-  auto edge2wedge = mesh->ask_up(Topo_type::edge, Topo_type::wedge);
-  auto edge2pyramid = mesh->ask_up(Topo_type::edge, Topo_type::pyramid);
-
-  //assertions
-
-  OMEGA_H_CHECK(tri2vert.ab2b.size() == count_tri*3);
-  OMEGA_H_CHECK(quad2vert.ab2b.size() == count_quad*4);
-  OMEGA_H_CHECK(tet2edge.ab2b.size() == count_tet*6);
-  OMEGA_H_CHECK(tet2vtx.ab2b.size() == count_tet*4);
-  OMEGA_H_CHECK(hex2edge.ab2b.size() == count_hex*12);
-  OMEGA_H_CHECK(hex2vtx.ab2b.size() == count_hex*8);
-  OMEGA_H_CHECK(wedge2edge.ab2b.size() == count_wedge*9);
-  OMEGA_H_CHECK(wedge2vtx.ab2b.size() == count_wedge*6);
-  OMEGA_H_CHECK(pyram2edge.ab2b.size() == count_pyramid*8);
-  OMEGA_H_CHECK(pyram2vtx.ab2b.size() == count_pyramid*5);
-
-  //transit prints
-
-  printf("tri2vert values from ask_down is\n");
-  call_print(tri2vert.ab2b);
-  printf("quad2vert values from ask_down is\n");
-  call_print(quad2vert.ab2b);
-  printf("tet2edge values from ask_down is\n");
-  call_print(tet2edge.ab2b);
-  printf("tet2vtx values from ask_down is\n");
-  call_print(tet2vtx.ab2b);
-  printf("hex2edge values from ask_down is\n");
-  call_print(hex2edge.ab2b);
-  printf("hex2vtx values from ask_down is\n");
-  call_print(hex2vtx.ab2b);
-  printf("wedge2edge values from ask_down is\n");
-  call_print(wedge2edge.ab2b);
-  printf("wedge2vtx values from ask_down is\n");
-  call_print(wedge2vtx.ab2b);
-  printf("pyram2edge values from ask_down is\n");
-  call_print(pyram2edge.ab2b);
-  printf("pyram2vtx values from ask_down is\n");
-  call_print(pyram2vtx.ab2b);
-
-  //
-*/
-/*
-//ALL OK
-  // test tags
-  Write<LO> gravityArray(count_wedge, 10, "gravityArray");
-  Read<LO> gravityArray_r(gravityArray);
-  printf("ok tag1 \n");
-  //mesh->add_tag<LO>(Topo_type::vertex, "gravity", 1, gravityArray_r);
-  mesh->add_tag<LO>(Topo_type::wedge, "gravity", 1);
-  printf("ok tag2 \n");
-  mesh->set_tag<LO>(Topo_type::wedge, "gravity", gravityArray_r);
-  auto test_tag = mesh->get_array<LO>(Topo_type::wedge, "gravity");
-  assert(test_tag.size() == count_wedge);
-  call_print(test_tag); 
-  printf("ok tag3 \n");
-  mesh->remove_tag(Topo_type::wedge, "gravity");
-  printf("ok tag4 \n");
-*/
 
 /*
   //get the ids of vertices bounding each face
