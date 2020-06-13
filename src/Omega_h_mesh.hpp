@@ -60,7 +60,7 @@ class Mesh {
   inline Omega_h_Family family() const { return family_; }
   LO nents(Int ent_dim) const;
   LO nents(Topo_type ent_type) const;
-  LO ent_dim(Topo_type ent_type) const;
+  Int ent_dim(Topo_type ent_type) const;
   LO nelems() const;
   LO nregions() const;
   LO nfaces() const;
@@ -73,6 +73,8 @@ class Mesh {
   LO ntets() const;
   LO nquads() const;
   LO ntris() const;
+  LO nregions_mix() const;
+  LO nfaces_mix() const;
   LO nedges_mix() const;
   LO nverts_mix() const;
 
@@ -176,6 +178,8 @@ class Mesh {
   void add_coords(Reals array);
   Reals coords() const;
   void set_coords(Reals const& array);
+  void add_coords_mix(Reals array);
+  Reals coords_mix() const;
   Read<GO> globals(Int dim) const;
   Reals ask_lengths();
   Reals ask_qualities();

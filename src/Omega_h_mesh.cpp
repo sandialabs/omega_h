@@ -85,7 +85,7 @@ void Mesh::set_dim(Int dim_in) {
   dim_ = dim_in;
 }
 
-LO Mesh::ent_dim(Topo_type ent_type) const {
+Int Mesh::ent_dim(Topo_type ent_type) const {
   Int ent_dim;
   if (int(ent_type) == 0) {
     ent_dim = 0;
@@ -104,8 +104,8 @@ LO Mesh::ent_dim(Topo_type ent_type) const {
 
 void Mesh::set_dim(Topo_type max_type) {
   OMEGA_H_CHECK(dim_mix_ == -1);
-  OMEGA_H_CHECK(int(max_type) > 0);
-  OMEGA_H_CHECK(int(max_type) < 8);
+  OMEGA_H_CHECK(int(max_type) >= 1);
+  OMEGA_H_CHECK(int(max_type) <= 7);
   dim_mix_ = ent_dim(max_type);
 }
 
@@ -179,6 +179,17 @@ LO Mesh::nedges_mix() const { return nents(Topo_type::edge); }
 
 LO Mesh::nverts_mix() const { return nents(Topo_type::vertex); }
 
+LO Mesh::nregions_mix() const { 
+  return (nents(Topo_type::tetrahedron) +
+          nents(Topo_type::hexahedron) +
+          nents(Topo_type::wedge) +
+          nents(Topo_type::pyramid));
+}
+
+LO Mesh::nfaces_mix() const { 
+  return (nents(Topo_type::triangle) +
+          nents(Topo_type::quadrilateral));
+}
 
 GO Mesh::nglobal_ents(Int ent_dim) {
   if (!could_be_shared(ent_dim)) {
@@ -707,6 +718,12 @@ void Mesh::set_coords(Reals const& array) {
   OMEGA_H_CHECK(array.size() == nverts() * dim());
   set_tag<Real>(VERT, "coordinates", array);
 }
+
+void Mesh::add_coords_mix(Reals array) {
+  add_tag<Real>(Topo_type::vertex, "coordinates", dim_mix(), array);
+}
+
+Reals Mesh::coords_mix() const { return get_array<Real>(Topo_type::vertex, "coordinates"); }
 
 Read<GO> Mesh::globals(Int ent_dim) const {
   return get_array<GO>(ent_dim, "global");

@@ -367,6 +367,18 @@ static constexpr I8 vtk_type(Omega_h_Family family, Int dim) {
                                             : (dim == 0 ? VTK_VERTEX : -1)))));
 }
 
+static constexpr I8 vtk_type(Int type) {
+  return (type == 7 ? VTK_PYRAMID :
+         (type == 6 ? VTK_WEDGE :
+         (type == 5 ? VTK_HEXAHEDRON :
+         (type == 4 ? VTK_TETRA :
+         (type == 3 ? VTK_QUAD :
+         (type == 2 ? VTK_TRIANGLE :
+         (type == 1 ? VTK_LINE :
+         (type == 0 ? VTK_VERTEX : -1))))))));
+}
+
+
 static void read_vtkfile_vtu_start_tag(
     std::istream& stream, bool* needs_swapping_out, bool* is_compressed_out) {
   auto st = xml_lite::read_tag(stream);
@@ -383,6 +395,22 @@ static void write_piece_start_tag(
   stream << "<Piece NumberOfPoints=\"" << mesh->nverts() << "\"";
   stream << " NumberOfCells=\"" << mesh->nents(cell_dim) << "\">\n";
 }
+
+/*
+static void write_piece_start_tag_mix(
+    std::ostream& stream, Mesh const* mesh, Int cell_dim) {
+  stream << "<Piece NumberOfPoints=\"" << mesh->nverts_mix() << "\"";
+  if (cell_dim == 3) {
+    stream << " NumberOfCells=\"" << mesh->nregions_mix() << "\">\n";
+  }
+  else if (cell_dim == 2) {
+    stream << " NumberOfCells=\"" << mesh->nfaces_mix() << "\">\n";
+  }
+  else {
+    stream << " NumberOfCells=\"" << mesh->nedges_mix() << "\">\n";
+  }
+}
+*/
 
 static void read_piece_start_tag(
     std::istream& stream, LO* nverts_out, LO* ncells_out) {
@@ -404,6 +432,29 @@ static void write_connectivity(
   write_array(stream, "connectivity", 1, ev2v, compress);
   write_array(stream, "offsets", 1, ends, compress);
 }
+
+/*
+static void write_connectivity(
+    std::ostream& stream, Mesh* mesh, Int cell_dim, Topo_type max_type, bool compress) {
+  if (cell_dim == 3) {
+    write and collate all 4 cells data tet, hex, wed, pyr
+  }
+  else if (cell_dim == 2) {
+    Read<I8> types_t(mesh->nents(Topo_type::triangle), vtk_type(int(Topo_type::triangle)));
+    Read<I8> types_q(mesh->nents(Topo_type::quadrilateral), vtk_type(int(Topo_type::quadrilateral)));
+    write and collate all 2 faces data tri, quad
+  }
+  else {
+    Read<I8> types(mesh->nents(max_type), vtk_type(max_type));
+    LOs ev2v = mesh->ask_verts_of(max_type);
+    auto deg = element_degree(max_type, Topo_type::vertex);
+    LOs ends(mesh->nents(max_type), deg, deg);
+  }
+  write_array(stream, "types", 1, types, compress);
+  write_array(stream, "connectivity", 1, ev2v, compress);
+  write_array(stream, "offsets", 1, ends, compress);
+}
+*/
 
 static void read_connectivity(std::istream& stream, CommPtr comm, LO ncells,
     bool needs_swapping, bool is_compressed, Omega_h_Family* family_out,
@@ -651,6 +702,63 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   stream << "</UnstructuredGrid>\n";
   stream << "</VTKFile>\n";
 }
+
+/*
+void write_vtu(std::ostream& stream, Mesh* mesh, Topo_type max_type,
+    TagSet const& tags, bool compress) {
+  OMEGA_H_TIME_FUNCTION;
+  auto cell_dim = mesh->ent_dim(max_type);
+  //default_dim(mesh, &cell_dim);//not needed
+  //verify_vtk_tagset(mesh, cell_dim, tags);//not crucial, just checking if tags exist
+  write_vtkfile_vtu_start_tag(stream, compress);
+  stream << "<UnstructuredGrid>\n";
+  write_piece_start_tag_mix(stream, mesh, cell_dim);
+  stream << "<Cells>\n";
+  write_connectivity(stream, mesh, cell_dim, max_type, compress);
+  //here
+  stream << "</Cells>\n";
+  stream << "<Points>\n";
+  auto coords = mesh->coords();
+  write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3),
+      compress);
+  stream << "</Points>\n";
+  stream << "<PointData>\n";
+  // globals go first so read_vtu() knows where to find them
+  if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
+    write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
+  }
+  write_locals_and_owners(stream, mesh, VERT, tags, compress);
+  for (Int i = 0; i < mesh->ntags(VERT); ++i) {
+    auto tag = mesh->get_tag(VERT, i);
+    if (tag->name() != "coordinates" && tag->name() != "global" &&
+        tags[VERT].count(tag->name())) {
+      write_tag(stream, tag, mesh->dim(), compress);
+    }
+  }
+  stream << "</PointData>\n";
+  stream << "<CellData>\n";
+  // globals go first so read_vtu() knows where to find them
+  if (mesh->has_tag(cell_dim, "global") &&
+      tags[size_t(cell_dim)].count("global")) {
+    write_tag(
+        stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
+  }
+  write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
+  if (tags[size_t(cell_dim)].count("vtkGhostType")) {
+    write_vtk_ghost_types(stream, mesh, cell_dim, compress);
+  }
+  for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
+    auto tag = mesh->get_tag(cell_dim, i);
+    if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+      write_tag(stream, tag, mesh->dim(), compress);
+    }
+  }
+  stream << "</CellData>\n";
+  stream << "</Piece>\n";
+  stream << "</UnstructuredGrid>\n";
+  stream << "</VTKFile>\n";
+}
+*/
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
   mesh->set_comm(comm);

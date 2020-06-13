@@ -33,7 +33,7 @@ void call_print(LOs a) {
   parallel_for(a.size(), r2w);
   auto a_host = HostWrite<LO>(a_w);
   for (int i=0; i<a_host.size(); ++i) {
-    printf(" %d", a_host[i]);
+    printf(" %d,", a_host[i]);
   };
   printf("\n");
   printf("\n");
@@ -54,37 +54,43 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> edge_vertices[1];
   std::vector<int> ent_class_ids[1];
 
-/*
-  //write vertex coords into node_coords and vertex ids into ents_nodes
-  down_adjs[0].reserve(numVtx);
-  ent_class_ids[0].reserve(numVtx);
+  Int max_dim;
+  if (numRegions) {
+    max_dim = 3;
+  } else if (numFaces) {
+    max_dim = 2;
+  } else if (numEdges) {
+    max_dim = 1;
+  } else {
+    Omega_h_fail("There were no Elements of dimension higher than zero!\n");
+  }
+
   HostWrite<Real> host_coords(numVtx*max_dim);
   VIter vertices = M_vertexIter(m);
   pVertex vtx;
-  i = 0;
+  LO v = 0;
   while ((vtx = (pVertex) VIter_next(vertices))) {
     double xyz[3];
     V_coord(vtx,xyz);
     if( max_dim < 3 && xyz[2] != 0 )
       Omega_h_fail("The z coordinate must be zero for a 2d mesh!\n");
     for(int j=0; j<max_dim; j++) {
-      host_coords[i * max_dim + j] = xyz[j];
+      host_coords[v * max_dim + j] = xyz[j];
     }
-    down_adjs[0].push_back(EN_id(vtx));
-    ent_class_ids[0].push_back(classId(vtx));
-    ++i;
+    //ent_nodes[0].push_back(EN_id(vtx));
+    //ent_class_ids[0].push_back(classId(vtx));
+    ++v;
   }
   VIter_delete(vertices);
-*/
+  mesh->add_coords_mix(host_coords.write());
 
   edge_vertices[0].reserve(numEdges*2);
   //ent_class_ids[1].reserve(numEdges);
   EIter edges = M_edgeIter(m);
   pEdge edge;
-  pVertex vtx;
   int count_edge = 0;
-  double xyz[3];//stores vtx coords
   while ((edge = (pEdge) EIter_next(edges))) {
+    double xyz[3];
     count_edge += 1;
     //printf("edge EN_id is=%d\n", EN_id(edge));
     for(int j=0; j<2; ++j) {
