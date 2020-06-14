@@ -82,6 +82,10 @@ void read_internal(pMesh m, Mesh* mesh) {
     ++v;
   }
   VIter_delete(vertices);
+
+  mesh->set_dim(max_dim);//check to change set_dim based on max_dim
+  //mesh->set_dim(Topo_type::tetrahedron);//check to change set_dim based on max_dim
+  mesh->set_verts_type(numVtx);
   mesh->add_coords_mix(host_coords.write());
 
   edge_vertices[0].reserve(numEdges*2);
@@ -103,8 +107,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   }
   EIter_delete(edges);
   
-  mesh->set_verts_type(numVtx);
-
   HostWrite<LO> host_e2v(numEdges*2);
   for (Int i = 0; i < numEdges; ++i) {
     for (Int j = 0; j < 2; ++j) {

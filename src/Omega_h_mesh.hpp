@@ -39,7 +39,7 @@ class Mesh {
   void set_comm(CommPtr const& comm);
   void set_family(Omega_h_Family family);
   void set_dim(Int dim_in);
-  void set_dim(Topo_type max_type);
+  //void set_dim(Topo_type max_type);
   void set_verts(LO nverts_in);
   void set_verts_type(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
@@ -53,10 +53,10 @@ class Mesh {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
-  inline Int dim_mix() const {
-    OMEGA_H_CHECK(0 <= dim_mix_ && dim_mix_ <= 3);
-    return dim_mix_;
-  }
+  //inline Int dim_mix() const {
+    //OMEGA_H_CHECK(0 <= dim_mix_ && dim_mix_ <= 3);
+    //return dim_mix_;
+  //}
   inline Omega_h_Family family() const { return family_; }
   LO nents(Int ent_dim) const;
   LO nents(Topo_type ent_type) const;
@@ -110,7 +110,9 @@ class Mesh {
   bool has_tag(Int dim, std::string const& name) const;
   bool has_tag(Topo_type ent_type, std::string const& name) const;
   Int ntags(Int dim) const;
+  Int ntags(Topo_type ent_type) const;
   TagBase const* get_tag(Int dim, Int i) const;
+  TagBase const* get_tag(Topo_type ent_type, Int i) const;
   bool has_ents(Int dim) const;
   bool has_ents(Topo_type ent_type) const;
   bool has_adj(Int from, Int to) const;
@@ -157,7 +159,7 @@ class Mesh {
   void react_to_set_tag(Topo_type ent_type, std::string const& name);
   Omega_h_Family family_;
   Int dim_;
-  Int dim_mix_;
+  //Int dim_mix_;
   CommPtr comm_;
   Int parting_;
   Int nghost_layers_;
@@ -236,6 +238,7 @@ Reals average_field(Mesh* mesh, Int dim, Int ncomps, Reals v2x);
 using TagSet = std::array<std::set<std::string>, DIMS>;
 
 void get_all_dim_tags(Mesh* mesh, Int dim, TagSet* tags);
+void get_all_type_tags(Mesh* mesh, Int dim, Topo_type ent_type, TagSet* tags);
 TagSet get_all_mesh_tags(Mesh* mesh);
 void ask_for_mesh_tags(Mesh* mesh, TagSet const& tags);
 

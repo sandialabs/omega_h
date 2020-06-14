@@ -28,7 +28,7 @@ Mesh::Mesh() {
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
   //add for mixed mesh
   for (Int i = 0; i <= 7; ++i) nents_type_[i] = -1;
-  dim_mix_ = -1;
+  //dim_mix_ = -1;
   //
   parting_ = -1;
   nghost_layers_ = -1;
@@ -101,14 +101,14 @@ Int Mesh::ent_dim(Topo_type ent_type) const {
   }
   return ent_dim;
 }
-
+/*
 void Mesh::set_dim(Topo_type max_type) {
   OMEGA_H_CHECK(dim_mix_ == -1);
   OMEGA_H_CHECK(int(max_type) >= 1);
   OMEGA_H_CHECK(int(max_type) <= 7);
   dim_mix_ = ent_dim(max_type);
 }
-
+*/
 void Mesh::set_verts(LO nverts_in) { nents_[VERT] = nverts_in; }
 
 void Mesh::set_verts_type(LO nverts_in) { nents_type_[int(Topo_type::vertex)] = nverts_in; }
@@ -414,11 +414,23 @@ Int Mesh::ntags(Int ent_dim) const {
   return static_cast<Int>(tags_[ent_dim].size());
 }
 
+Int Mesh::ntags(Topo_type ent_type) const {
+  check_type2(ent_type);
+  return static_cast<Int>(tags_type_[int(ent_type)].size());
+}
+
 TagBase const* Mesh::get_tag(Int ent_dim, Int i) const {
   check_dim2(ent_dim);
   OMEGA_H_CHECK(0 <= i);
   OMEGA_H_CHECK(i <= ntags(ent_dim));
   return tags_[ent_dim][static_cast<std::size_t>(i)].get();
+}
+
+TagBase const* Mesh::get_tag(Topo_type ent_type, Int i) const {
+  check_type2(ent_type);
+  OMEGA_H_CHECK(0 <= i);
+  OMEGA_H_CHECK(i <= ntags(ent_type));
+  return tags_type_[int(ent_type)][static_cast<std::size_t>(i)].get();
 }
 
 bool Mesh::has_ents(Int ent_dim) const {
@@ -720,7 +732,8 @@ void Mesh::set_coords(Reals const& array) {
 }
 
 void Mesh::add_coords_mix(Reals array) {
-  add_tag<Real>(Topo_type::vertex, "coordinates", dim_mix(), array);
+  add_tag<Real>(Topo_type::vertex, "coordinates", dim(), array);
+  //add_tag<Real>(Topo_type::vertex, "coordinates", dim_mix(), array);
 }
 
 Reals Mesh::coords_mix() const { return get_array<Real>(Topo_type::vertex, "coordinates"); }
@@ -1133,6 +1146,15 @@ void get_all_dim_tags(Mesh* mesh, Int dim, TagSet* tags) {
   for (Int j = 0; j < mesh->ntags(dim); ++j) {
     auto tagbase = mesh->get_tag(dim, j);
     (*tags)[size_t(dim)].insert(tagbase->name());
+  }
+}
+
+void get_all_type_tags(Mesh* mesh, Int dim, Topo_type ent_type, TagSet* tags) {
+  for (Int j = 0; j < mesh->ntags(ent_type); ++j) {
+    auto tagbase = mesh->get_tag(ent_type, j);
+    (*tags)[size_t(dim)].insert(tagbase->name());
+    // note the return is per dim for vtu writing
+    // confirm if insert will work or use pushback
   }
 }
 

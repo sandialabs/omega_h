@@ -232,7 +232,8 @@ void classify_equal_order(
   //for now write as is for mixed
   auto eq_class_dim = Read<I8>(neq, I8(ent_dim));
   auto class_dim =
-      map_onto(eq_class_dim, eq2e, mesh->nents(ent_type), I8(mesh->dim_mix()), 1);
+      map_onto(eq_class_dim, eq2e, mesh->nents(ent_type), I8(mesh->dim()), 1);
+      //map_onto(eq_class_dim, eq2e, mesh->nents(ent_type), I8(mesh->dim_mix()), 1);
   auto class_id = map_onto(eq_class_ids, eq2e, mesh->nents(ent_type), -1, 1);
   mesh->add_tag<I8>(ent_type, "class_dim", 1, class_dim);
   mesh->add_tag<ClassId>(ent_type, "class_id", 1, class_id);
