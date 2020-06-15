@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
     pEntity eReturn[4]; // array of created entities
     //
 */
+/*
     //For pyramid on hex
     int numVerts = 9;
     double coords[9*3] =  {
@@ -85,7 +86,40 @@ int main(int argc, char *argv[]) {
     int elementData[8+5] = {0,1,2,3,4,5,6,7, 4,5,6,7,8};
     pVertex vReturn[9];
     pEntity eReturn[2];
-
+*/
+    //For pyramid
+    int numVerts = 5;
+    double coords[5*3] =  {
+                           0.000, 0.000, 1.000,
+                           1.000, 0.000, 1.000,
+                           1.000, 1.000, 1.000,
+                           0.000, 1.000, 1.000,
+                           0.500, 0.500, 2.000
+                          };
+    int numElems = 1;
+    int elementType[1] = {11};
+    int elementData[5] = {0,1,2,3,4};
+    pVertex vReturn[5];
+    pEntity eReturn[1];
+/*
+    //For single hex
+    int numVerts = 8;
+    double coords[8*3] =  {
+                           0.000, 0.000, 0.000,
+                           1.000, 0.000, 0.000,
+                           1.000, 1.000, 0.000,
+                           0.000, 1.000, 0.000,
+                           0.000, 0.000, 1.000,
+                           1.000, 0.000, 1.000,
+                           1.000, 1.000, 1.000,
+                           0.000, 1.000, 1.000
+                          };
+    int numElems = 1;
+    int elementType[1] = {13};
+    int elementData[8+5] = {0,1,2,3,4,5,6,7};
+    pVertex vReturn[8];
+    pEntity eReturn[1];
+*/
 /*
     //For tet on wedge
     int numVerts = 7;
@@ -103,7 +137,22 @@ int main(int argc, char *argv[]) {
     pVertex vReturn[7];
     pEntity eReturn[2];
 */
-
+/*
+    //For single wedge
+    int numVerts = 6;
+    double coords[6*3] =  {0.000, 0.000, 0.000,
+                           1.000, 0.000, 0.000,
+                           0.500, 0.866, 0.000,
+                           0.000, 0.000, 1.000,
+                           1.000, 0.000, 1.000,
+                           0.500, 0.866, 1.000,
+                          };
+    int numElems = 1;
+    int elementType[1] = {12};
+    int elementData[6] = {0,1,2,3,4,5};
+    pVertex vReturn[6];
+    pEntity eReturn[1];
+*/
 /*  For cube as per simmetrix example
     int numVerts = 8; // number of vertices  
     double coords[8*3] = {0.0,0.0,0.0,
@@ -148,8 +197,8 @@ int main(int argc, char *argv[]) {
     }
 
     //change directory to a new ./mixed_mesh/ in build folder
-    GM_write(modeltest,"/users/joshia5/simmodeler/Example_pyramid_hex.smd",0,progress);
-    M_write(meshtest,"/users/joshia5/simmodeler/Example_pyramid_hex.sms", 0,progress);
+    GM_write(modeltest,"/users/joshia5/simmodeler/Example_pym.smd",0,progress);
+    M_write(meshtest,"/users/joshia5/simmodeler/Example_pym.sms", 0,progress);
 
     M_release(meshtest);
     GM_release(modeltest);

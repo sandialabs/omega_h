@@ -20,6 +20,8 @@
 #include "Omega_h_tag.hpp"
 #include "Omega_h_xml_lite.hpp"
 
+#include "Omega_h_for.hpp"
+
 namespace Omega_h {
 
 namespace vtk {
@@ -470,12 +472,22 @@ static void write_connectivity(
     Read<I8> types_w(mesh->nents(Topo_type::wedge), vtk_type(int(Topo_type::wedge)));
     Read<I8> types_p(mesh->nents(Topo_type::pyramid), vtk_type(int(Topo_type::pyramid)));
     auto types = read(concat(read(concat(read(concat(types_t, types_h)), types_w)), types_p));
+    printf("types \n");
+    auto f2 = OMEGA_H_LAMBDA (LO i) {
+      printf(" %d ", types[i]);
+    };
+    parallel_for(types.size(), f2);
+    printf("\n");
+    
 
     LOs tv2v = mesh->ask_verts_of(Topo_type::tetrahedron);
     LOs hv2v = mesh->ask_verts_of(Topo_type::hexahedron);
     LOs wv2v = mesh->ask_verts_of(Topo_type::wedge);
     LOs pv2v = mesh->ask_verts_of(Topo_type::pyramid);
     auto ev2v = read(concat(read(concat(read(concat(tv2v, hv2v)), wv2v)), pv2v));
+    printf("connnectivity \n");
+    meshsim::call_print(ev2v);
+    //concat tested-ok//meshsim::call_print(ev2v);
 
     auto deg_t = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
     auto deg_h = element_degree(Topo_type::hexahedron, Topo_type::vertex);
@@ -771,7 +783,7 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
 
 void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     TagSet const& tags, bool compress) {
-  //ask_for_mesh_tags(mesh, tags);//not required but on todo
+  //ask_for_mesh_tags(mesh, tags);//not required but on todo, asks for edge lenth anf element quality
   OMEGA_H_TIME_FUNCTION;
   std::ofstream stream(filename.c_str());
   OMEGA_H_CHECK(stream.is_open());
@@ -790,6 +802,14 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
   stream << "</Cells>\n";
   stream << "<Points>\n";
   auto coords = mesh->coords_mix();
+
+  printf(" coords\n");
+  auto f = OMEGA_H_LAMBDA (LO i) {
+    printf(" %f ", coords[i]);
+  };
+  parallel_for(coords.size(), f);
+  printf("\n");
+
   printf("ok3\n");
   write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3),
       compress);
@@ -827,14 +847,58 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
     write_vtk_ghost_types(stream, mesh, cell_dim, compress);
   }
   printf("ok7\n");
-  for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
-    auto tag = mesh->get_tag(cell_dim, i);
-    if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
-      write_tag(stream, tag, mesh->dim(), compress);
+  if (cell_dim == 3) {
+    for (Int i = 0; i < mesh->ntags(Topo_type::tetrahedron); ++i) {
+      auto tag = mesh->get_tag(Topo_type::tetrahedron, i);
+      if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+        write_tag(stream, tag, mesh->dim(), compress);
+      }
+    }
+
+    for (Int i = 0; i < mesh->ntags(Topo_type::hexahedron); ++i) {
+      auto tag = mesh->get_tag(Topo_type::hexahedron, i);
+      if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+        write_tag(stream, tag, mesh->dim(), compress);
+      }
+    }
+
+    for (Int i = 0; i < mesh->ntags(Topo_type::wedge); ++i) {
+      auto tag = mesh->get_tag(Topo_type::wedge, i);
+      if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+        write_tag(stream, tag, mesh->dim(), compress);
+      }
+    }
+
+    for (Int i = 0; i < mesh->ntags(Topo_type::pyramid); ++i) {
+      auto tag = mesh->get_tag(Topo_type::pyramid, i);
+      if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+        write_tag(stream, tag, mesh->dim(), compress);
+      }
     }
   }
-/*
-*/
+  else if (cell_dim == 2) {
+    for (Int i = 0; i < mesh->ntags(Topo_type::triangle); ++i) {
+      auto tag = mesh->get_tag(Topo_type::triangle, i);
+      if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+        write_tag(stream, tag, mesh->dim(), compress);
+      }
+    }
+
+    for (Int i = 0; i < mesh->ntags(Topo_type::quadrilateral); ++i) {
+      auto tag = mesh->get_tag(Topo_type::quadrilateral, i);
+      if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+        write_tag(stream, tag, mesh->dim(), compress);
+      }
+    }
+  }
+  else {
+    for (Int i = 0; i < mesh->ntags(cell_dim); ++i) {
+      auto tag = mesh->get_tag(cell_dim, i);
+      if (tag->name() != "global" && tags[size_t(cell_dim)].count(tag->name())) {
+        write_tag(stream, tag, mesh->dim(), compress);
+      }
+    }
+  }
   printf("ok8\n");
   stream << "</CellData>\n";
   stream << "</Piece>\n";
