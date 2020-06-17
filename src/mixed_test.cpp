@@ -151,7 +151,7 @@ void test_adjs(Mesh* mesh) {
 }
 
 int main(int argc, char** argv) {
-  test_degree();//unit_test
+  test_degree();
 
   auto lib = Library(&argc, &argv);
   auto comm = lib.world();
@@ -161,108 +161,76 @@ int main(int argc, char** argv) {
   std::string model_in ("/users/joshia5/simmodeler/Example_4type.smd");
   auto mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  auto tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  vtk::write_vtu("/users/joshia5/simmodeler/4elems.vtu", &mesh, Topo_type::pyramid, tags);
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/4elems.vtu", &mesh, Topo_type::pyramid);
 
   //pyram on hex
   mesh_in = "/users/joshia5/simmodeler/Example_pyramid_hex.sms";
   model_in = "/users/joshia5/simmodeler/Example_pyramid_hex.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  vtk::write_vtu("/users/joshia5/simmodeler/pym_hex.vtu", &mesh, Topo_type::pyramid, tags);
-/*
-*/
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/pym_hex.vtu", &mesh, Topo_type::pyramid);
 
   //tet on wedge
   mesh_in = "/users/joshia5/simmodeler/Example_tet_wedge.sms";
   model_in = "/users/joshia5/simmodeler/Example_tet_wedge.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  vtk::write_vtu("/users/joshia5/simmodeler/pym_hex.vtu", &mesh, Topo_type::pyramid, tags);
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/pym_hex.vtu", &mesh, Topo_type::pyramid);
 
   //tet=4609, hex=249, wedge=262, pyramid=313
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3-case1.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  printf("ok-1\n");
-  vtk::write_vtu("/users/joshia5/simmodeler/geomsim3_4type.vtu", &mesh, Topo_type::pyramid, tags);
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/geomsim3_4type.vtu", &mesh, Topo_type::pyramid);
 
   //tet=1246, hex=8, wedge=0, pyramid=229
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2-case1.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
+  test_tags(&mesh);
 
   //tet=3274, hex=68, wedge=0, pyramid=171
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim-case1.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  vtk::write_vtu("/users/joshia5/simmodeler/geomsim_tet_he_py.vtu", &mesh, Topo_type::pyramid, tags);
-
-/*
-  auto tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  printf("ok-1\n");
-  vtk::write_vtu("/users/joshia5/simmodeler/geomsim_tet_he_py.vtu", &mesh, Topo_type::pyramid, tags);
-*/
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/geomsim_tet_he_py.vtu", &mesh, Topo_type::pyramid);
 
   //tet=4437, hex=0, wedge=0, pyramid=0
   mesh_in = "/users/joshia5/simmodeler/localconcave_turorial-case1_v7.sms";
   model_in = "/users/joshia5/simmodeler/localconcave_turorial_geomsim.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
+  test_tags(&mesh);
 
   //wedge
   mesh_in = "/users/joshia5/simmodeler/Example_wedge.sms";
   model_in = "/users/joshia5/simmodeler/Example_wedge.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  vtk::write_vtu("/users/joshia5/simmodeler/wedge.vtu", &mesh, Topo_type::pyramid, tags);
-/*
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  printf("ok-1\n");
-  vtk::write_vtu("/users/joshia5/simmodeler/wedge.vtu", &mesh, Topo_type::pyramid, tags);
-*/
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/wedge.vtu", &mesh, Topo_type::pyramid);
   //hex
   mesh_in = "/users/joshia5/simmodeler/Example_hex.sms";
   model_in = "/users/joshia5/simmodeler/Example_hex.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  vtk::write_vtu("/users/joshia5/simmodeler/hex.vtu", &mesh, Topo_type::pyramid, tags);
-/*
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  printf("ok-1\n");
-  vtk::write_vtu("/users/joshia5/simmodeler/hex.vtu", &mesh, Topo_type::pyramid, tags);
-*/
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/hex.vtu", &mesh, Topo_type::pyramid);
   //pyramid
   mesh_in = "/users/joshia5/simmodeler/Example_pym.sms";
   model_in = "/users/joshia5/simmodeler/Example_pym.smd";
   mesh = meshsim::read(mesh_in, model_in, comm);
   test_adjs(&mesh);
-  //test_tags(&mesh);
-  tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  vtk::write_vtu("/users/joshia5/simmodeler/pym.vtu", &mesh, Topo_type::pyramid, tags);
-/*
-  auto tags = vtk::get_all_vtk_tags_mix(&mesh, mesh.dim());
-  printf("ok-1\n");
-  vtk::write_vtu("/users/joshia5/simmodeler/pym.vtu", &mesh, Topo_type::pyramid, tags);
-*/
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/pym.vtu", &mesh, Topo_type::pyramid);
 
   return 0;
 }

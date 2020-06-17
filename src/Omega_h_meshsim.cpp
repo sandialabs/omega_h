@@ -96,12 +96,10 @@ void read_internal(pMesh m, Mesh* mesh) {
   while ((edge = (pEdge) EIter_next(edges))) {
     double xyz[3];
     count_edge += 1;
-    //printf("edge EN_id is=%d\n", EN_id(edge));
     for(int j=0; j<2; ++j) {
       vtx = E_vertex(edge,j);
       edge_vertices[0].push_back(EN_id(vtx));
       V_coord(vtx,xyz);
-      //printf("vtx EN_id is=%d, x=%f, y=%f, z=%f\n", EN_id(vtx), xyz[0], xyz[1], xyz[2]);
     }
     //ent_class_ids[1].push_back(classId(edge));
   }

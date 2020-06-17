@@ -62,7 +62,6 @@ TagSet get_all_vtk_tags_mix(Mesh* mesh, Int cell_dim) {
   tags[size_t(cell_dim)].insert("local");
 /*//comment for serial
   if (mesh->comm()->size() > 1) {
-  printf("ok3\n");
     tags[int(Topo_type::vertex)].insert("owner");
     tags[size_t(cell_dim)].insert("owner");
     if (mesh->parting() == OMEGA_H_GHOSTED) {
@@ -472,21 +471,12 @@ static void write_connectivity(
     Read<I8> types_w(mesh->nents(Topo_type::wedge), vtk_type(int(Topo_type::wedge)));
     Read<I8> types_p(mesh->nents(Topo_type::pyramid), vtk_type(int(Topo_type::pyramid)));
     auto types = read(concat(read(concat(read(concat(types_t, types_h)), types_w)), types_p));
-    printf("types \n");
-    auto f2 = OMEGA_H_LAMBDA (LO i) {
-      printf(" %d ", types[i]);
-    };
-    parallel_for(types.size(), f2);
-    printf("\n");
-    
 
     LOs tv2v = mesh->ask_verts_of(Topo_type::tetrahedron);
     LOs hv2v = mesh->ask_verts_of(Topo_type::hexahedron);
     LOs wv2v = mesh->ask_verts_of(Topo_type::wedge);
     LOs pv2v = mesh->ask_verts_of(Topo_type::pyramid);
     auto ev2v = read(concat(read(concat(read(concat(tv2v, hv2v)), wv2v)), pv2v));
-    printf("connnectivity \n");
-    meshsim::call_print(ev2v);
 
     auto deg_t = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
     auto deg_h = element_degree(Topo_type::hexahedron, Topo_type::vertex);
@@ -507,8 +497,6 @@ static void write_connectivity(
     }
     LOs ends_p(mesh->nents(Topo_type::pyramid), lastVal+deg_p, deg_p);
     auto ends = read(concat(read(concat(read(concat(ends_t, ends_h)), ends_w)), ends_p));
-    printf("offsets \n");
-    meshsim::call_print(ends);
 
     write_array(stream, "types", 1, types, compress);
     write_array(stream, "connectivity", 1, ev2v, compress);
@@ -792,50 +780,32 @@ void write_vtu(std::ostream& stream, Mesh* mesh, Int cell_dim,
   stream << "</VTKFile>\n";
 }
 
-void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
-    TagSet const& tags, bool compress) {
-  //ask_for_mesh_tags(mesh, tags);//not required but on todo, asks for edge lenth anf element quality
+void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type, bool compress) {
+  auto tags = get_all_vtk_tags_mix(mesh, mesh->dim());
+  //ask_for_mesh_tags(mesh, tags);
   OMEGA_H_TIME_FUNCTION;
   std::ofstream stream(filename.c_str());
   OMEGA_H_CHECK(stream.is_open());
   auto cell_dim = mesh->ent_dim(max_type);
   default_dim(mesh, &cell_dim);
-  printf("ok0\n");
-  //verify_vtk_tagset(mesh, cell_dim, tags);//not crucial, just checking if tags exist
+  //verify_vtk_tagset(mesh, cell_dim, tags);
   write_vtkfile_vtu_start_tag(stream, compress);
   stream << "<UnstructuredGrid>\n";
   write_piece_start_tag_mix(stream, mesh, cell_dim);
   stream << "<Cells>\n";
-  printf("ok1\n");
   write_connectivity(stream, mesh, cell_dim, max_type, compress);
-  printf("ok2\n");
-  //here
   stream << "</Cells>\n";
   stream << "<Points>\n";
   auto coords = mesh->coords_mix();
 
-  printf(" coords\n");
-  auto f = OMEGA_H_LAMBDA (LO i) {
-    printf(" %f ", coords[i]);
-  };
-  parallel_for(coords.size(), f);
-  printf("\n");
-
-  printf("ok3\n");
   write_array(stream, "coordinates", 3, resize_vectors(coords, mesh->dim(), 3),
       compress);
   stream << "</Points>\n";
   stream << "<PointData>\n";
-  printf("ok4\n");
-  // globals go first so read_vtu() knows where to find them
   if (mesh->has_tag(VERT, "global") && tags[VERT].count("global")) {
-  printf("ok4.1\n");
     write_tag(stream, mesh->get_tag<GO>(VERT, "global"), mesh->dim(), compress);
   }
-  printf("ok5\n");
-/*
-  write_locals_and_owners(stream, mesh, VERT, tags, compress);
-*/
+  //write_locals_and_owners(stream, mesh, VERT, tags, compress);
   for (Int i = 0; i < mesh->ntags(Topo_type::vertex); ++i) {
     auto tag = mesh->get_tag(Topo_type::vertex, i);
     if (tag->name() != "coordinates" && tag->name() != "global" &&
@@ -845,19 +815,15 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
   }
   stream << "</PointData>\n";
   stream << "<CellData>\n";
-  // globals go first so read_vtu() knows where to find them
-  printf("ok6\n");
   if (mesh->has_tag(cell_dim, "global") &&
       tags[size_t(cell_dim)].count("global")) {
     write_tag(
         stream, mesh->get_tag<GO>(cell_dim, "global"), mesh->dim(), compress);
   }
-  printf("ok6\n");
   //write_locals_and_owners(stream, mesh, cell_dim, tags, compress);
   if (tags[size_t(cell_dim)].count("vtkGhostType")) {
     write_vtk_ghost_types(stream, mesh, cell_dim, compress);
   }
-  printf("ok7\n");
   if (cell_dim == 3) {
     for (Int i = 0; i < mesh->ntags(Topo_type::tetrahedron); ++i) {
       auto tag = mesh->get_tag(Topo_type::tetrahedron, i);
@@ -910,12 +876,10 @@ void write_vtu(filesystem::path const& filename, Mesh* mesh, Topo_type max_type,
       }
     }
   }
-  printf("ok8\n");
   stream << "</CellData>\n";
   stream << "</Piece>\n";
   stream << "</UnstructuredGrid>\n";
   stream << "</VTKFile>\n";
-  printf("ok9\n");
 }
 
 void read_vtu(std::istream& stream, CommPtr comm, Mesh* mesh) {
