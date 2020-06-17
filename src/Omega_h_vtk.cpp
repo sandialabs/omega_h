@@ -487,17 +487,28 @@ static void write_connectivity(
     auto ev2v = read(concat(read(concat(read(concat(tv2v, hv2v)), wv2v)), pv2v));
     printf("connnectivity \n");
     meshsim::call_print(ev2v);
-    //concat tested-ok//meshsim::call_print(ev2v);
 
     auto deg_t = element_degree(Topo_type::tetrahedron, Topo_type::vertex);
     auto deg_h = element_degree(Topo_type::hexahedron, Topo_type::vertex);
     auto deg_w = element_degree(Topo_type::wedge, Topo_type::vertex);
     auto deg_p = element_degree(Topo_type::pyramid, Topo_type::vertex);
     LOs ends_t(mesh->nents(Topo_type::tetrahedron), deg_t, deg_t);
-    LOs ends_h(mesh->nents(Topo_type::hexahedron), deg_h, deg_h);
-    LOs ends_w(mesh->nents(Topo_type::wedge), deg_w, deg_w);
-    LOs ends_p(mesh->nents(Topo_type::pyramid), deg_p, deg_p);
+    int lastVal = 0;
+    if (ends_t.size() > 0) {
+      Kokkos::deep_copy(lastVal,Kokkos::subview(ends_t.view(),ends_t.size()-1));
+    }
+    LOs ends_h(mesh->nents(Topo_type::hexahedron), lastVal+deg_h, deg_h);
+    if (ends_h.size() > 0) {
+      Kokkos::deep_copy(lastVal,Kokkos::subview(ends_h.view(),ends_h.size()-1));
+    }
+    LOs ends_w(mesh->nents(Topo_type::wedge), lastVal+deg_w, deg_w);
+    if (ends_w.size() > 0) {
+      Kokkos::deep_copy(lastVal,Kokkos::subview(ends_w.view(),ends_w.size()-1));
+    }
+    LOs ends_p(mesh->nents(Topo_type::pyramid), lastVal+deg_p, deg_p);
     auto ends = read(concat(read(concat(read(concat(ends_t, ends_h)), ends_w)), ends_p));
+    printf("offsets \n");
+    meshsim::call_print(ends);
 
     write_array(stream, "types", 1, types, compress);
     write_array(stream, "connectivity", 1, ev2v, compress);
