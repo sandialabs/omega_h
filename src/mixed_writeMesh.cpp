@@ -32,6 +32,27 @@ void messageHandler(int type, const char *msg)
   return;
 }
 
+void get_pyramid(int *numVerts, int *numElems,
+                 int *elementType, int *elementData, double *coords)
+{
+    numVerts = new int[1];
+    *numVerts = 5;
+    numElems = new int[1];
+    *numElems = 1;
+    elementType = new int[numElems[0]];
+    *elementType = 11;
+    elementData = new int[numElems[0]*5];
+    elementData[0] = 0; elementData[1] = 1; elementData[2] = 2;
+    elementData[3] = 3; elementData[4] = 4;
+    coords = new double[numVerts[0]*3];
+    coords = new double[numVerts[0]*3];
+    coords[0] = 0; coords[1] = 0; coords[2] = 1;
+    coords[3] = 1; coords[4] = 0; coords[5] = 1;
+    coords[6] = 1; coords[7] = 1; coords[8] = 1;
+    coords[9] = 0; coords[10]= 1; coords[11]= 1;
+    coords[12]=0.5;coords[13]=0.5;coords[14]= 2;
+}
+
 int main(int argc, char *argv[]) {
   auto lib = Library(&argc, &argv);
   auto comm = lib.world();
@@ -86,7 +107,6 @@ int main(int argc, char *argv[]) {
     int elementData[8+5] = {0,1,2,3,4,5,6,7, 4,5,6,7,8};
     pVertex vReturn[9];
     pEntity eReturn[2];
-*/
     //For pyramid
     int numVerts = 5;
     double coords[5*3] =  {
@@ -99,6 +119,13 @@ int main(int argc, char *argv[]) {
     int numElems = 1;
     int elementType[1] = {11};
     int elementData[5] = {0,1,2,3,4};
+    pVertex vReturn[5];
+    pEntity eReturn[1];
+*/
+
+    int numVerts, numElems, elementType, elementData;
+    double coords;
+    get_pyramid(&numVerts, &numElems, &elementType, &elementData, &coords);
     pVertex vReturn[5];
     pEntity eReturn[1];
 /*
@@ -153,37 +180,20 @@ int main(int argc, char *argv[]) {
     pVertex vReturn[6];
     pEntity eReturn[1];
 */
-/*  For cube as per simmetrix example
-    int numVerts = 8; // number of vertices  
-    double coords[8*3] = {0.0,0.0,0.0,
-                        1.0,0.0,0.0,
-                        1.0,0.0,1.0,
-                        0.0,0.0,1.0,
-                        0.0,1.0,0.0,
-                        1.0,1.0,0.0,
-                        1.0,1.0,1.0,
-                        0.0,1.0,1.0}; 
-    int numElems = 12;
-    int elementType[12] = {5,5,5,5,5,5,5,5,5,5,5,5}; 
-    int elementData[12*3] =
-{0,2,3,0,1,2,0,5,4,0,1,5,1,6,5,1,2,6,2,7,6,2,3,7,3,4,7,3,0,4,4,6,7,4,5,6}; 
-    pVertex vReturn[8];
-    pEntity eReturn[12];
-*/
     SimDiscrete_start(0);
     Sim_setMessageHandler(messageHandler);
     pProgress progress = Progress_new();
     Progress_setDefaultCallback(progress);
 
     meshtest = M_new(0,0);
-    if(M_importFromData(meshtest,numVerts,coords,numElems,
-      elementType,elementData,vReturn,eReturn,progress)) {
+    if(M_importFromData(meshtest,numVerts,&coords,numElems,
+      &elementType,&elementData,vReturn,eReturn,progress)) {
       cerr<<"Error importing mesh data"<<endl;
       M_release(meshtest);
     }
 
     pDiscreteModel modeltest = DM_createFromMesh(meshtest, 0, progress);
-    if(!modeltest) { //check for error
+    if(!modeltest) {
       cerr<<"Error creating Discrete model from mesh"<<endl;
       M_release(meshtest);
     }
@@ -196,7 +206,6 @@ int main(int argc, char *argv[]) {
       GM_release(modeltest);
     }
 
-    //change directory to a new ./mixed_mesh/ in build folder
     GM_write(modeltest,"/users/joshia5/simmodeler/Example_pym.smd",0,progress);
     M_write(meshtest,"/users/joshia5/simmodeler/Example_pym.sms", 0,progress);
 
