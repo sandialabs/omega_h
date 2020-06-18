@@ -21,15 +21,10 @@
 namespace Omega_h {
 
 Mesh::Mesh() {
-  //check what these values should be for mixed mesh
-  //maybe define a new 'Mesh' constructor
   family_ = OMEGA_H_SIMPLEX;
   dim_ = -1;
   for (Int i = 0; i <= 3; ++i) nents_[i] = -1;
-  //add for mixed mesh
   for (Int i = 0; i <= 7; ++i) nents_type_[i] = -1;
-  //dim_mix_ = -1;
-  //
   parting_ = -1;
   nghost_layers_ = -1;
   library_ = nullptr;
@@ -101,14 +96,7 @@ Int Mesh::ent_dim(Topo_type ent_type) const {
   }
   return ent_dim;
 }
-/*
-void Mesh::set_dim(Topo_type max_type) {
-  OMEGA_H_CHECK(dim_mix_ == -1);
-  OMEGA_H_CHECK(int(max_type) >= 1);
-  OMEGA_H_CHECK(int(max_type) <= 7);
-  dim_mix_ = ent_dim(max_type);
-}
-*/
+
 void Mesh::set_verts(LO nverts_in) { nents_[VERT] = nverts_in; }
 
 void Mesh::set_verts_type(LO nverts_in) { nents_type_[int(Topo_type::vertex)] = nverts_in; }
@@ -125,15 +113,14 @@ void Mesh::set_ents(Int ent_dim, Adj down) {
 
 void Mesh::set_ents(Topo_type high_type, Topo_type low_type, Adj h2l) {
   OMEGA_H_TIME_FUNCTION;
-  check_type(high_type);//change check_type code
+  check_type(high_type);
   check_type(low_type);
   if (int(high_type) < 6) {
-    OMEGA_H_CHECK(!has_ents(high_type));//change has_ents code
+    OMEGA_H_CHECK(!has_ents(high_type));
   }
-  //above changed as prob in wedge/pyramid2tr/quad
-  auto deg = element_degree(high_type, low_type);//change element_degree code
-  nents_type_[int(high_type)] = divide_no_remainder(h2l.ab2b.size(), deg);//change nents_ code
-  add_adj(high_type, low_type, h2l);//change add adj codes
+  auto deg = element_degree(high_type, low_type);
+  nents_type_[int(high_type)] = divide_no_remainder(h2l.ab2b.size(), deg);
+  add_adj(high_type, low_type, h2l);
 }
 
 void Mesh::set_parents(Int ent_dim, Parents parents) {
@@ -214,7 +201,6 @@ void Mesh::add_tag(Int ent_dim, std::string const& name, Int ncomps) {
 template <typename T>
 void Mesh::add_tag(Topo_type ent_type, std::string const& name, Int ncomps) {
   if (has_tag(ent_type, name)) remove_tag(ent_type, name);
-  // make new has and remove tag
   check_type2(ent_type);
   check_tag_name(name);
   OMEGA_H_CHECK(ncomps >= 0);
@@ -273,7 +259,6 @@ void Mesh::add_tag(Topo_type ent_type, std::string const& name, Int ncomps,
   }
   OMEGA_H_CHECK(array.size() == nents_type_[int(ent_type)] * ncomps);
   if (!internal) react_to_set_tag(ent_type, name);
-  // make new react_to_set_tag
   tag->set_array(array);
 }
 
@@ -369,7 +354,6 @@ Tag<T> const* Mesh::get_tag(Int ent_dim, std::string const& name) const {
 template <typename T>
 Tag<T> const* Mesh::get_tag(Topo_type ent_type, std::string const& name) const {
   return as<T>(get_tagbase(ent_type, name));
-  // make new get_tagbase
 }
 
 template <typename T>
@@ -406,7 +390,6 @@ bool Mesh::has_tag(Topo_type ent_type, std::string const& name) const {
   check_type(ent_type);
   if (!has_ents(ent_type)) return false;
   return tag_iter(ent_type, name) != tags_type_[int(ent_type)].end();
-  //new tag_iter
 }
 
 Int Mesh::ntags(Int ent_dim) const {
@@ -465,7 +448,7 @@ Adj Mesh::get_adj(Int from, Int to) const {
 Adj Mesh::get_adj(Topo_type from_type, Topo_type to_type) const {
   check_type2(from_type);
   check_type2(from_type);
-  OMEGA_H_CHECK(has_adj(from_type, to_type));//modify code
+  OMEGA_H_CHECK(has_adj(from_type, to_type));
   return *(adjs_type_[int(from_type)][int(to_type)]);
 }
 
@@ -492,7 +475,7 @@ Adj Mesh::ask_up(Int from, Int to) {
 
 Adj Mesh::ask_up(Topo_type from_type, Topo_type to_type) {
   OMEGA_H_CHECK(int(from_type) < int(to_type));
-  return ask_adj(from_type, to_type);//change ask_adj code
+  return ask_adj(from_type, to_type);
 }
 
 Graph Mesh::ask_star(Int ent_dim) {
@@ -579,15 +562,14 @@ void Mesh::add_adj(Topo_type from_type, Topo_type to_type, Adj adj) {
     if (to_type == Topo_type::vertex) {
       OMEGA_H_CHECK(!adj.codes.exists());
     } else {
-      //OMEGA_H_CHECK(adj.codes.exists());//to add codes for mixed
+      OMEGA_H_CHECK(adj.codes.exists());
     }
     OMEGA_H_CHECK(                                            
         adj.ab2b.size() == nents(from_type) * element_degree(from_type, to_type));
-	//modify nents code 
   } else {
     if (from < to) {
       OMEGA_H_CHECK(adj.a2ab.exists());                        
-      //OMEGA_H_CHECK(adj.codes.exists()); 
+      OMEGA_H_CHECK(adj.codes.exists());
       OMEGA_H_CHECK(
           adj.ab2b.size() == nents(to_type) * element_degree(to_type, from_type)); 
     }
@@ -645,14 +627,12 @@ Adj Mesh::derive_adj(Topo_type from_type, Topo_type to_type) {
   if (from < to) {
     Adj down = ask_adj(to_type, from_type);
     Int nlows_per_high = element_degree(to_type, from_type);
-    LO nlows = nents(from_type);//change this to pass maxval from down.ab2b
-    //LO nlows = get_max(library_->world(), down.ab2b);//change this to pass maxval from down.ab2b
-    Adj up = invert_adj(down, nlows_per_high, nlows, to_type, from_type); //change code
+    LO nlows = nents(from_type);
+    Adj up = invert_adj(down, nlows_per_high, nlows, to_type, from_type);
     return up;
   }
   else if (to < from) {
     OMEGA_H_CHECK(to + 1 < from);
-    //specify mid_type for transit
     Topo_type mid_type;
     if (to_type == Topo_type::vertex) {
       mid_type = Topo_type::edge;
@@ -664,32 +644,12 @@ Adj Mesh::derive_adj(Topo_type from_type, Topo_type to_type) {
     else {
       mid_type = Topo_type::quadrilateral;
     }
-    //
     Adj h2m = ask_adj(from_type, mid_type);
     Adj m2l = ask_adj(mid_type, to_type);
-    Adj h2l = transit(h2m, m2l, from_type, to_type, mid_type); //change transit code
+    Adj h2l = transit(h2m, m2l, from_type, to_type, mid_type); 
     return h2l;
   }
-/*
-  else {
-    if (from == dim() && to == dim()) {
-      return elements_across_sides(dim(), ask_adj(dim(), dim() - 1),
-          ask_adj(dim() - 1, dim()), mark_exposed_sides(this));
-    }
-    if (from == VERT && to == VERT) {
-      return verts_across_edges(ask_adj(EDGE, VERT), ask_adj(VERT, EDGE));
-    }
-    if (from == EDGE && to == EDGE) {
-      OMEGA_H_CHECK(dim() >= 2);
-      Graph g = edges_across_tris(ask_adj(FACE, EDGE), ask_adj(EDGE, FACE));
-      if (dim() == 3) {
-        g = add_edges(
-            g, edges_across_tets(ask_adj(REGION, EDGE), ask_adj(EDGE, REGION)));
-      }
-      return g;
-    }
-  }
-*/
+  /* todo: add second order adjacency derivation */
   Omega_h_fail("can't derive adjacency from %s to %s\n",
       dimensional_plural_name(from_type),
       dimensional_plural_name(to_type));
@@ -715,7 +675,7 @@ Adj Mesh::ask_adj(Topo_type from_type, Topo_type to_type) {
   if (has_adj(from_type, to_type)) {
     return get_adj(from_type, to_type);
   }
-  Adj derived = derive_adj(from_type, to_type);//change code
+  Adj derived = derive_adj(from_type, to_type);
   adjs_type_[int(from_type)][int(to_type)] = std::make_shared<Adj>(derived);
   return derived;
 }
@@ -733,7 +693,6 @@ void Mesh::set_coords(Reals const& array) {
 
 void Mesh::add_coords_mix(Reals array) {
   add_tag<Real>(Topo_type::vertex, "coordinates", dim(), array);
-  //add_tag<Real>(Topo_type::vertex, "coordinates", dim_mix(), array);
 }
 
 Reals Mesh::coords_mix() const { return get_array<Real>(Topo_type::vertex, "coordinates"); }
@@ -1153,8 +1112,6 @@ void get_all_type_tags(Mesh* mesh, Int dim, Topo_type ent_type, TagSet* tags) {
   for (Int j = 0; j < mesh->ntags(ent_type); ++j) {
     auto tagbase = mesh->get_tag(ent_type, j);
     (*tags)[size_t(dim)].insert(tagbase->name());
-    // note the return is per dim for vtu writing
-    // confirm if insert will work or use pushback
   }
 }
 

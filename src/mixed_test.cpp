@@ -150,12 +150,48 @@ void test_adjs(Mesh* mesh) {
   }
 }
 
+void test_finer_meshes(CommPtr comm) {
+
+  //tet=4609, hex=249, wedge=262, pyramid=313
+  std::string mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3-case1.sms";
+  std::string model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3.smd";
+  auto mesh = meshsim::read(mesh_in, model_in, comm);
+  test_adjs(&mesh);
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/geomsim3_4type.vtu", &mesh, Topo_type::pyramid);
+
+  //tet=1246, hex=8, wedge=0, pyramid=229
+  mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2-case1.sms";
+  model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2.smd";
+  mesh = meshsim::read(mesh_in, model_in, comm);
+  test_adjs(&mesh);
+  test_tags(&mesh);
+
+  //tet=3274, hex=68, wedge=0, pyramid=171
+  mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim-case1.sms";
+  model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim.smd";
+  mesh = meshsim::read(mesh_in, model_in, comm);
+  test_adjs(&mesh);
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/geomsim_tet_he_py.vtu", &mesh, Topo_type::pyramid);
+
+  //tet=4437, hex=0, wedge=0, pyramid=0
+  mesh_in = "/users/joshia5/simmodeler/localconcave_turorial-case1_v7.sms";
+  model_in = "/users/joshia5/simmodeler/localconcave_turorial_geomsim.smd";
+  mesh = meshsim::read(mesh_in, model_in, comm);
+  test_adjs(&mesh);
+  test_tags(&mesh);
+  vtk::write_vtu("/users/joshia5/simmodeler/geomsim_tet.vtu", &mesh, Topo_type::pyramid);
+
+}
+
 int main(int argc, char** argv) {
   test_degree();
 
   auto lib = Library(&argc, &argv);
   auto comm = lib.world();
 
+  /* Generate these meshes using the mixed_writeMesh ctest */
   std::string mesh_in = "/users/joshia5/simmodeler/Example_hex.sms";
   std::string model_in = "/users/joshia5/simmodeler/Example_hex.smd";
   auto mesh = meshsim::read(mesh_in, model_in, comm);
@@ -198,36 +234,8 @@ int main(int argc, char** argv) {
   test_tags(&mesh);
   vtk::write_vtu("/users/joshia5/simmodeler/4elems.vtu", &mesh, Topo_type::pyramid);
 
-  //tet=4609, hex=249, wedge=262, pyramid=313
-  mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3-case1.sms";
-  model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim3.smd";
-  mesh = meshsim::read(mesh_in, model_in, comm);
-  test_adjs(&mesh);
-  test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/simmodeler/geomsim3_4type.vtu", &mesh, Topo_type::pyramid);
-
-  //tet=1246, hex=8, wedge=0, pyramid=229
-  mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2-case1.sms";
-  model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim2.smd";
-  mesh = meshsim::read(mesh_in, model_in, comm);
-  test_adjs(&mesh);
-  test_tags(&mesh);
-
-  //tet=3274, hex=68, wedge=0, pyramid=171
-  mesh_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim-case1.sms";
-  model_in = "/users/joshia5/simmodeler/localconcave_turorial_mixedvol_geomsim.smd";
-  mesh = meshsim::read(mesh_in, model_in, comm);
-  test_adjs(&mesh);
-  test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/simmodeler/geomsim_tet_he_py.vtu", &mesh, Topo_type::pyramid);
-
-  //tet=4437, hex=0, wedge=0, pyramid=0
-  mesh_in = "/users/joshia5/simmodeler/localconcave_turorial-case1_v7.sms";
-  model_in = "/users/joshia5/simmodeler/localconcave_turorial_geomsim.smd";
-  mesh = meshsim::read(mesh_in, model_in, comm);
-  test_adjs(&mesh);
-  test_tags(&mesh);
-  vtk::write_vtu("/users/joshia5/simmodeler/geomsim_tet.vtu", &mesh, Topo_type::pyramid);
+  /* call if the finer test meshes are available */
+  /* test_finer_meshes(comm); */
 
   return 0;
 }

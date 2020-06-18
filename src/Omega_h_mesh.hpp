@@ -39,12 +39,10 @@ class Mesh {
   void set_comm(CommPtr const& comm);
   void set_family(Omega_h_Family family);
   void set_dim(Int dim_in);
-  //void set_dim(Topo_type max_type);
   void set_verts(LO nverts_in);
   void set_verts_type(LO nverts_in);
   void set_ents(Int ent_dim, Adj down);
   void set_ents(Topo_type high_type, Topo_type low_type, Adj h2l);
-  //void set_ents(Topo_type high_type, Topo_type low_type, LOs hl2l);
   void set_parents(Int ent_dim, Parents parents);
   Library* library() const;
   CommPtr comm() const;
@@ -53,10 +51,6 @@ class Mesh {
     OMEGA_H_CHECK(0 <= dim_ && dim_ <= 3);
     return dim_;
   }
-  //inline Int dim_mix() const {
-    //OMEGA_H_CHECK(0 <= dim_mix_ && dim_mix_ <= 3);
-    //return dim_mix_;
-  //}
   inline Omega_h_Family family() const { return family_; }
   LO nents(Int ent_dim) const;
   LO nents(Topo_type ent_type) const;
@@ -159,7 +153,6 @@ class Mesh {
   void react_to_set_tag(Topo_type ent_type, std::string const& name);
   Omega_h_Family family_;
   Int dim_;
-  //Int dim_mix_;
   CommPtr comm_;
   Int parting_;
   Int nghost_layers_;

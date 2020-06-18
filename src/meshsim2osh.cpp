@@ -17,8 +17,6 @@ int main(int argc, char** argv) {
   auto model_in = cmdline.get<std::string>("model-in(geomSim)");
   auto mesh_out = cmdline.get<std::string>("mesh-out");
   auto mesh = Omega_h::meshsim::read(mesh_in, model_in, comm);
-  //Omega_h::binary::write(mesh_out, &mesh);
-  //std::cout << "wrote mesh " << mesh_out << "\n";
 
   return 0;
 }

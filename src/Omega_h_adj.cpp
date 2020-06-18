@@ -449,14 +449,14 @@ static void find_matches_deg(LOs const a2fv, Read<T> const av2v,
       I8 match_code;
       if (IsMatch<deg>::eval(
               av2v, a_begin, bv2v, b_begin, which_down, &match_code)) {
-        OMEGA_H_CHECK(!found);
+        OMEGA_H_CHECK(!found); // there can't be more than one!
         a2b[a] = b;
         codes[a] = match_code;
         found = true;
         if (allow_duplicates) break;
       }
     }
-    OMEGA_H_CHECK(found);
+    OMEGA_H_CHECK(found); // there can't be less than one!
   };
   parallel_for(na, std::move(f));
   *a2b_out = a2b;

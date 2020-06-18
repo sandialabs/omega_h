@@ -52,7 +52,7 @@ void read_internal(pMesh m, Mesh* mesh) {
   std::vector<int> elem_vertices[4];
   std::vector<int> face_vertices[2];
   std::vector<int> edge_vertices[1];
-  std::vector<int> ent_class_ids[1];
+  /* TODO:transfer classification info */
 
   Int max_dim;
   if (numRegions) {
@@ -77,19 +77,15 @@ void read_internal(pMesh m, Mesh* mesh) {
     for(int j=0; j<max_dim; j++) {
       host_coords[v * max_dim + j] = xyz[j];
     }
-    //ent_nodes[0].push_back(EN_id(vtx));
-    //ent_class_ids[0].push_back(classId(vtx));
     ++v;
   }
   VIter_delete(vertices);
 
-  mesh->set_dim(max_dim);//check to change set_dim based on max_dim
-  //mesh->set_dim(Topo_type::tetrahedron);//check to change set_dim based on max_dim
+  mesh->set_dim(max_dim);
   mesh->set_verts_type(numVtx);
   mesh->add_coords_mix(host_coords.write());
 
   edge_vertices[0].reserve(numEdges*2);
-  //ent_class_ids[1].reserve(numEdges);
   EIter edges = M_edgeIter(m);
   pEdge edge;
   int count_edge = 0;
@@ -101,7 +97,6 @@ void read_internal(pMesh m, Mesh* mesh) {
       edge_vertices[0].push_back(EN_id(vtx));
       V_coord(vtx,xyz);
     }
-    //ent_class_ids[1].push_back(classId(edge));
   }
   EIter_delete(edges);
   
@@ -321,42 +316,6 @@ void read_internal(pMesh m, Mesh* mesh) {
   down = reflect_down(pyramid2verts, quad2vert.ab2b, vert2quad, Topo_type::pyramid, Topo_type::quadrilateral);
   mesh->set_ents(Topo_type::pyramid, Topo_type::quadrilateral, down);
 
-/*
-  //get the ids of vertices bounding each face
-  ent_class_ids[2].reserve(numFaces);
-  FIter faces = M_faceIter(m);
-  pFace face;
-  while ((face = (pFace) FIter_next(faces))) {
-    ent_class_ids[2].push_back(classId(face));
-  }
-  FIter_delete(faces);
-
-  //get the ids of vertices bounding each region
-  ent_class_ids[3].reserve(numRegions);
-  regions = M_regionIter(m);
-  while ((rgn = (pRegion) RIter_next(regions))) {
-    ent_class_ids[3].push_back(classId(rgn));
-  }
-  RIter_delete(regions);
-
-  //flatten the down_adjs and ent_class_ids arrays
-  for (Int ent_dim = max_dim; ent_dim >= 0; --ent_dim) {
-    Int neev = element_degree(family, ent_dim, VERT);
-    LO ndim_ents = static_cast<LO>(down_adjs[ent_dim].size()) / neev;
-    HostWrite<LO> host_ev2v(ndim_ents * neev);
-    HostWrite<LO> host_class_id(ndim_ents);
-    for (i = 0; i < ndim_ents; ++i) {
-      for (Int j = 0; j < neev; ++j) {
-        host_ev2v[i * neev + j] =
-            down_adjs[ent_dim][static_cast<std::size_t>(i * neev + j)];
-      }
-      host_class_id[i] = ent_class_ids[ent_dim][static_cast<std::size_t>(i)];
-    }
-    auto eqv2v = Read<LO>(host_ev2v.write());
-    classify_equal_order(mesh, ent_dim, eqv2v, host_class_id.write());
-  }
-  finalize_classification(mesh);
-*/
 }
 
 Mesh read(filesystem::path const& mesh_fname, filesystem::path const& mdl_fname,
