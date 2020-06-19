@@ -122,12 +122,12 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
     int rank, ndevices_per_node, my_device;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    cudaGetDeviceCount(&ndevices_per_node);
+    hipGetDeviceCount(&ndevices_per_node);
     int mpi_ranks_per_node =
       cmdline.get<int>("--osh-mpi-ranks-per-node", "value");
     int local_mpi_rank = rank % mpi_ranks_per_node;
-    cudaSetDevice(local_mpi_rank);
-    cudaGetDevice(&my_device);
+    hipSetDevice(local_mpi_rank);
+    hipGetDevice(&my_device);
     OMEGA_H_CHECK(mpi_ranks_per_node == ndevices_per_node);
     OMEGA_H_CHECK(my_device == local_mpi_rank);
   }
@@ -136,7 +136,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
 #if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOS))
   // trigger lazy initialization of the CUDA runtime
   // and prevent it from polluting later timings
-  cudaFree(nullptr);
+  hipFree(nullptr);
 #endif
   if (cmdline.parsed("--osh-pool")) enable_pooling();
 }

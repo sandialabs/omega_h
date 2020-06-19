@@ -52,13 +52,13 @@ OutputIterator inclusive_scan(
     InputIterator first, InputIterator last, OutputIterator result) {
   std::size_t temp_storage_bytes;
   int const n = int(last - first);
-  auto err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
+  auto err = thrust::cuda_cub::hipcub::DeviceScan::InclusiveSum(
       nullptr, temp_storage_bytes, first, result, (last - first));
-  OMEGA_H_CHECK(err == cudaSuccess);
+  OMEGA_H_CHECK(err == hipSuccess);
   void* d_temp_storage = maybe_pooled_device_malloc(temp_storage_bytes);
-  err = thrust::cuda_cub::cub::DeviceScan::InclusiveSum(
+  err = thrust::cuda_cub::hipcub::DeviceScan::InclusiveSum(
       d_temp_storage, temp_storage_bytes, first, result, n);
-  OMEGA_H_CHECK(err == cudaSuccess);
+  OMEGA_H_CHECK(err == hipSuccess);
   maybe_pooled_device_free(d_temp_storage, temp_storage_bytes);
   return result + n;
   // return thrust::inclusive_scan(thrust::device, first, last, result);

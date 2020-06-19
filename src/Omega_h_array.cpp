@@ -92,7 +92,7 @@ template <typename T>
 void Write<T>::set(LO i, T value) const {
   ScopedTimer timer("single host to device");
 #ifdef OMEGA_H_USE_CUDA
-  cudaMemcpy(data() + i, &value, sizeof(T), cudaMemcpyHostToDevice);
+  hipMemcpy(data() + i, &value, sizeof(T), hipMemcpyHostToDevice);
 #else
   operator[](i) = value;
 #endif
@@ -103,7 +103,7 @@ T Write<T>::get(LO i) const {
   ScopedTimer timer("single device to host");
 #ifdef OMEGA_H_USE_CUDA
   T value;
-  cudaMemcpy(&value, data() + i, sizeof(T), cudaMemcpyDeviceToHost);
+  hipMemcpy(&value, data() + i, sizeof(T), hipMemcpyDeviceToHost);
   return value;
 #else
   return operator[](i);
@@ -252,9 +252,9 @@ HostWrite<T>::HostWrite(Write<T> write_in)
   Kokkos::deep_copy(mirror_, write_.view());
 #elif defined(OMEGA_H_USE_CUDA)
   mirror_.reset(new T[std::size_t(write_.size())]);
-  auto const err = cudaMemcpy(mirror_.get(), write_.data(),
-      std::size_t(write_.size()) * sizeof(T), cudaMemcpyDeviceToHost);
-  OMEGA_H_CHECK(err == cudaSuccess);
+  auto const err = hipMemcpy(mirror_.get(), write_.data(),
+      std::size_t(write_.size()) * sizeof(T), hipMemcpyDeviceToHost);
+  OMEGA_H_CHECK(err == hipSuccess);
 #endif
 }
 
@@ -272,9 +272,9 @@ Write<T> HostWrite<T>::write() const {
 #ifdef OMEGA_H_USE_KOKKOS
   Kokkos::deep_copy(write_.view(), mirror_);
 #elif defined(OMEGA_H_USE_CUDA)
-  auto const err = cudaMemcpy(write_.data(), mirror_.get(),
-      std::size_t(size()) * sizeof(T), cudaMemcpyHostToDevice);
-  OMEGA_H_CHECK(err == cudaSuccess);
+  auto const err = hipMemcpy(write_.data(), mirror_.get(),
+      std::size_t(size()) * sizeof(T), hipMemcpyHostToDevice);
+  OMEGA_H_CHECK(err == hipSuccess);
 #endif
   return write_;
 }
@@ -327,9 +327,9 @@ HostRead<T>::HostRead(Read<T> read) : read_(read) {
   mirror_ = h_view;
 #elif defined(OMEGA_H_USE_CUDA)
   mirror_.reset(new T[std::size_t(read_.size())]);
-  auto const err = cudaMemcpy(mirror_.get(), read_.data(),
-      std::size_t(size()) * sizeof(T), cudaMemcpyDeviceToHost);
-  OMEGA_H_CHECK(err == cudaSuccess);
+  auto const err = hipMemcpy(mirror_.get(), read_.data(),
+      std::size_t(size()) * sizeof(T), hipMemcpyDeviceToHost);
+  OMEGA_H_CHECK(err == hipSuccess);
 #endif
 }
 
