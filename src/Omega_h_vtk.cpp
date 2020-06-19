@@ -484,16 +484,16 @@ static void write_connectivity(
     auto deg_p = element_degree(Topo_type::pyramid, Topo_type::vertex);
     LOs ends_t(mesh->nents(Topo_type::tetrahedron), deg_t, deg_t);
     int lastVal = 0;
-    if (ends_t.size() > 0) {
-      Kokkos::deep_copy(lastVal,Kokkos::subview(ends_t.view(),ends_t.size()-1));
+    if (ends_t.size()) {
+      lastVal = ends_t.last();
     }
     LOs ends_h(mesh->nents(Topo_type::hexahedron), lastVal+deg_h, deg_h);
-    if (ends_h.size() > 0) {
-      Kokkos::deep_copy(lastVal,Kokkos::subview(ends_h.view(),ends_h.size()-1));
+    if (ends_h.size()) {
+      lastVal = ends_h.last();
     }
     LOs ends_w(mesh->nents(Topo_type::wedge), lastVal+deg_w, deg_w);
-    if (ends_w.size() > 0) {
-      Kokkos::deep_copy(lastVal,Kokkos::subview(ends_w.view(),ends_w.size()-1));
+    if (ends_w.size()) {
+      lastVal = ends_w.last();
     }
     LOs ends_p(mesh->nents(Topo_type::pyramid), lastVal+deg_p, deg_p);
     auto ends = read(concat(read(concat(read(concat(ends_t, ends_h)), ends_w)), ends_p));
@@ -514,7 +514,11 @@ static void write_connectivity(
     auto deg_tr = element_degree(Topo_type::triangle, Topo_type::vertex);
     auto deg_q = element_degree(Topo_type::quadrilateral, Topo_type::vertex);
     LOs ends_tr(mesh->nents(Topo_type::triangle), deg_tr, deg_tr);
-    LOs ends_q(mesh->nents(Topo_type::quadrilateral), deg_q, deg_q);
+    int lastVal = 0;
+    if (ends_tr.size()) {
+      lastVal = ends_tr.last();
+    }
+    LOs ends_q(mesh->nents(Topo_type::quadrilateral), lastVal+deg_q, deg_q);
     auto ends = read(concat(ends_tr, ends_q));
 
     write_array(stream, "types", 1, types, compress);
