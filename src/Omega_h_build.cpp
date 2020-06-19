@@ -48,7 +48,7 @@ void add_ents2verts(
     if (ent_dim == mesh->dim() && elem_globals.exists()) {
       mesh->add_tag(ent_dim, "global", 1, elem_globals);
     } else {
-      globals_from_owners(mesh, ent_dim);
+      mesh->add_tag(ent_dim, "global", 1, globals_from_owners(mesh, ent_dim));
     }
   } else {
     mesh->add_tag(ent_dim, "global", 1, GOs(ne, 0, 1));
@@ -166,7 +166,7 @@ Mesh build_box(CommPtr comm, Omega_h_Family family, Real x, Real y, Real z,
    copies which have the exact same connectivity and establish ownership.
 */
 
-static LOs sort_locally_based_on_rank(
+LOs sort_locally_based_on_rank(
     LOs servers_to_served, Read<I32> served_to_rank) {
   OMEGA_H_TIME_FUNCTION;
   auto const served_order = Write<LO>(served_to_rank.size());

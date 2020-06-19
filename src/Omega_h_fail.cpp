@@ -42,8 +42,13 @@ void fail(char const* format, ...) {
 static struct {
   int code;
   const char* name;
-} const known_signals[] = {{SIGSYS, "bad system call"},
-    {SIGTSTP, "terminal stop"}, {SIGQUIT, "quit"}, {SIGHUP, "hangup"},
+} const known_signals[] = {
+#ifndef _MSC_VER
+	{SIGSYS, "bad system call"},
+    {SIGTSTP, "terminal stop"},
+    {SIGQUIT, "quit"},
+    {SIGHUP, "hangup"},
+#endif
     {SIGABRT, "abort"}, {SIGTERM, "termination"},
     {SIGSEGV, "segmentation fault"}, {SIGINT, "interrupt"},
     {SIGILL, "illegal instruction"}, {SIGFPE, "floating point exception"}};

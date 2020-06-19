@@ -102,7 +102,7 @@ void make_3d_box(Real x, Real y, Real z, LO nx, LO ny, LO nz, LOs* hv2v_out,
 }
 
 template <Int dim>
-static void classify_box_dim(Mesh* mesh, Int ent_dim, Reals centroids,
+void classify_box_dim(Mesh* mesh, Int ent_dim, Reals centroids,
     Few<LO, 3> nel, Vector<3> const l) {
   OMEGA_H_CHECK(centroids.size() % dim == 0);
   auto npts = centroids.size() / dim;

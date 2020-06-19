@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
 
-project(Omega_h VERSION 9.27.0 LANGUAGES CXX)
+project(Omega_h VERSION 9.32.0 LANGUAGES CXX)
 
 set(Omega_h_USE_DOLFIN_DEFAULT OFF)
 option(Omega_h_USE_DOLFIN "Whether to build the DOLFIN interface" ${Omega_h_USE_DOLFIN_DEFAULT})
@@ -10,6 +10,7 @@ if (Omega_h_USE_DOLFIN)
 endif()
 
 include(cmake/bob.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 set(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
@@ -43,6 +44,12 @@ set(libMeshb_REQUIRED_VERSION 7.24)
 set(Omega_h_USE_libMeshb_DEFAULT OFF)
 bob_add_dependency(PUBLIC NAME libMeshb TARGETS libMeshb::Meshb.7)
 
+set(Gmsh_REQUIRED_VERSION 4.4.1)
+set(Omega_h_USE_Gmsh_DEFAULT OFF)
+bob_add_dependency(PUBLIC NAME Gmsh
+    INCLUDE_DIR_VARS Gmsh_INCLUDE_DIRS
+    LIBRARY_VARS Gmsh_LIBRARIES)
+
 set(Gmodel_REQUIRED_VERSION 2.1.0)
 set(Omega_h_USE_Gmodel_DEFAULT OFF)
 bob_add_dependency(PRIVATE NAME Gmodel TARGETS gmodel)
@@ -71,52 +78,8 @@ bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
 
 if (Omega_h_USE_CUDA)
-  find_package(CUDA)
-  bob_input(Omega_h_CUDA_ARCH "" STRING "CUDA arch specifier")
+  enable_language(CUDA)
 endif()
-
-bob_begin_cxx_flags()
-bob_cxx11_flags()
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  if(Omega_h_USE_CUDA)
-    if (Omega_h_CUDA_ARCH)
-      add_compile_options($<$<COMPILE_LANGUAGE:CXX>:--cuda-gpu-arch=${Omega_h_CUDA_ARCH}>)
-    endif()
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-x>)
-    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:cuda>)
-    # -Wweak-vtables gives false positives with -x cuda
-    set(FLAGS "${FLAGS} -Wno-weak-vtables")
-  else()
-    if(Omega_h_USE_OpenMP)
-      set(FLAGS "${FLAGS} -fopenmp")
-    endif()
-  endif()
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-  if(Omega_h_USE_CUDA)
-    set(FLAGS "${FLAGS} -expt-extended-lambda -lineinfo")
-    if (Omega_h_CUDA_ARCH)
-      set(FLAGS "${FLAGS} -arch=${Omega_h_CUDA_ARCH}")
-    endif()
-    if (CUDA_VERSION VERSION_GREATER_EQUAL 9)
-      set(FLAGS "${FLAGS} -Xcudafe --diag_suppress=esa_on_defaulted_function_ignored")
-    endif()
-  else()
-    if(Omega_h_USE_OpenMP)
-      set(FLAGS "${FLAGS} -fopenmp")
-    endif()
-  endif()
-  if (Omega_h_CXX_WARNINGS)
-    set(FLAGS "${FLAGS} -Wno-subobject-linkage")
-  endif()
-elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Intel")
-  if(Omega_h_USE_OpenMP)
-    set(FLAGS "${FLAGS} -fopenmp")
-  endif()
-else()
-  message(WARNING "Unexpected compiler type ${CMAKE_CXX_COMPILER_ID}")
-endif()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAGS}")
-bob_end_cxx_flags()
 
 include(cmake/osh_use_dolfin.cmake)
 osh_use_dolfin()
@@ -136,6 +99,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_CHECK_BOUNDS
     Omega_h_THROW
     Omega_h_USE_CUDA_AWARE_MPI
+    Omega_h_USE_Gmsh
    )
 
 set(Omega_h_KEY_INTS
@@ -161,10 +125,12 @@ if(Omega_h_EXAMPLES)
   add_subdirectory(example/castle)
   add_subdirectory(example/gradient)
   add_subdirectory(example/laplacian)
-  set(SAVED_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  string(REPLACE " -Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  add_subdirectory(example/fenics/cpp)
-  set(CMAKE_CXX_FLAGS "${SAVED_CXX_FLAGS}")
+  if(Omega_h_USE_DOLFIN)
+    set(SAVED_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    string(REPLACE " -Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    add_subdirectory(example/fenics/cpp)
+    set(CMAKE_CXX_FLAGS "${SAVED_CXX_FLAGS}")
+  endif()
 endif()
 add_subdirectory(src)
 

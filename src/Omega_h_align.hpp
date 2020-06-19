@@ -46,7 +46,7 @@ OMEGA_H_INLINE constexpr Int code_which_down(I8 code) { return (code >> 3); }
 
 OMEGA_H_INLINE constexpr I8 make_code(
     bool is_flipped, Int rotation, Int which_down) {
-  return static_cast<I8>((which_down << 3) | (rotation << 1) | is_flipped);
+  return static_cast<I8>((which_down << 3) | (rotation << 1) | Int(is_flipped));
 }
 
 OMEGA_H_INLINE constexpr Int rotate_index(

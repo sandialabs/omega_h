@@ -62,7 +62,7 @@ struct SeparationResult {
    this helps us speed up operations because we don't actually
    need the outer loop to be over one color, we just need the
    sub-cavities to be single-color as they're processed */
-static SeparationResult separate_by_color_once(
+SeparationResult separate_by_color_once(
     Cavs cavs, LOs old_elem_colors, LOs new_elem_colors) {
   auto keys2old = cavs.keys2old_elems;
   auto keys2new = cavs.keys2new_elems;
@@ -91,10 +91,10 @@ static SeparationResult separate_by_color_once(
   parallel_for(nkeys, f, "separate_by_color");
   auto old_keep = Read<I8>(old_keep_w);
   auto new_keep = Read<I8>(new_keep_w);
-  auto separated_old = filter_graph(keys2old, old_keep);
-  auto separated_new = filter_graph(keys2new, new_keep);
-  auto remainder_old = filter_graph(keys2old, invert_marks(old_keep));
-  auto remainder_new = filter_graph(keys2new, invert_marks(new_keep));
+  auto separated_old = filter_graph_edges(keys2old, old_keep);
+  auto separated_new = filter_graph_edges(keys2new, new_keep);
+  auto remainder_old = filter_graph_edges(keys2old, invert_marks(old_keep));
+  auto remainder_new = filter_graph_edges(keys2new, invert_marks(new_keep));
   OMEGA_H_CHECK(
       remainder_old.nedges() + separated_old.nedges() == keys2old.nedges());
   OMEGA_H_CHECK(
@@ -392,7 +392,7 @@ void transfer_conserve_refine(Mesh* old_mesh, TransferOpts const& opts,
    note that this is only used in single-material cavities,
    and so it should exactly conserve mass in those cases. */
 template <Int dim>
-static void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
+void transfer_by_intersection_dim(Mesh* old_mesh, Mesh* new_mesh,
     TagBase const* tagbase, Cavs cavs, Write<Real> new_data_w) {
   auto keys2old_elems = cavs.keys2old_elems;
   auto keys2new_elems = cavs.keys2new_elems;
@@ -633,7 +633,7 @@ static Graph get_elem_diffusion_graph(Mesh* mesh) {
   return elements_across_sides(dim, elems2sides, sides2elems, sides_are_bdry);
 }
 
-static Reals diffuse_densities_once(
+Reals diffuse_densities_once(
     Mesh* mesh, Graph g, Reals densities, Reals cell_sizes) {
   auto out = deep_copy(densities);
   auto max_deg = mesh->dim() + 1;
@@ -734,7 +734,7 @@ static void correct_density_error(Mesh* mesh, TransferOpts const& xfer_opts,
   mesh->remove_tag(dim, error_name);
 }
 
-static void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
+void correct_momentum_error(Mesh* mesh, TransferOpts const& xfer_opts,
     Graph diffusion_graph, TagBase const* tagbase, bool verbose) {
   auto dim = mesh->dim();
   auto ncomps = tagbase->ncomps();

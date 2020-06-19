@@ -19,7 +19,7 @@ OMEGA_H_INLINE T maximum_magnitude(Few<T, n_max> x, Int n) {
 }
 
 template <Int dim>
-static Reals get_max_eigenvalues_dim(Reals symms) {
+Reals get_max_eigenvalues_dim(Reals symms) {
   auto n = divide_no_remainder(symms.size(), symm_ncomps(dim));
   auto out = Write<Real>(n);
   auto f = OMEGA_H_LAMBDA(LO i) {

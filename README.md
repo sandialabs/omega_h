@@ -89,7 +89,7 @@ branch. Pull requests are welcome.
 This library is released under the FreeBSD license.
 
 [0]: https://cmake.org
-[1]: https://raw.githubusercontent.com/SNLComputation/omega_h/master/aux/omega_h.png
+[1]: https://raw.githubusercontent.com/SNLComputation/omega_h/master/misc/omega_h.png
 [3]: http://www.mpich.org
 [6]: http://zlib.net
 [7]: http://github.com/kokkos/nvcc_wrapper

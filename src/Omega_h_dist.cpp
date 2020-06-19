@@ -220,6 +220,41 @@ void Dist::copy(Dist const& other) {
   }
 }
 
+Dist create_dist_for_variable_sized(Dist copies2owners, LOs copies2data) {
+  auto nactors = copies2owners.nitems();
+  // a proper fan contains (n+1) entries
+  OMEGA_H_CHECK(copies2data.size() == nactors + 1);
+  // Dist which sends data from owners back to copies
+  auto owners2copies = copies2owners.invert();
+  // receive, for each actor, the copies2data offset of its owner
+  // (that offset will only be relevant on the owner's MPI rank)
+  Write<LO> offsets(copies2data.size() - 1, 0);
+  parallel_for(offsets.size(),
+  OMEGA_H_LAMBDA(LO i) {
+    offsets[i] = copies2data[i];
+  });
+  auto owner_offsets = owners2copies.exch(read(offsets), 1);
+  // the total number of items in all the variable-sized data on this MPI rank
+  auto data_size = copies2data.last();
+  // for each data item, its destination MPI rank (that of the actor holding the data)
+  auto data_copies2owner_ranks = expand(copies2owners.items2ranks(), copies2data, 1);
+  Write<LO> data_copies2owner_idxs(data_size);
+  // map each local data item to the index of its corresponding item at the owner MPI rank
+  parallel_for(nactors, OMEGA_H_LAMBDA(LO actor) {
+    auto begin = copies2data[actor];
+    auto end = copies2data[actor + 1];
+    for (LO data_i = begin; data_i < end; ++data_i) {
+      // start off with the owner's offset, number consecutively from there
+      data_copies2owner_idxs[data_i] = owner_offsets[actor] + (data_i - begin);
+    }
+  });
+  OMEGA_H_CHECK(data_copies2owner_ranks.size() == data_copies2owner_idxs.size());
+  // now we have a Remotes map from data item copies to data item owners
+  Remotes data_copies2owners(data_copies2owner_ranks, data_copies2owner_idxs);
+  // That Remotes map is sufficient to construct the remainder of the Dist
+  return Dist(copies2owners.parent_comm(), data_copies2owners, data_size);
+}
+
 #define INST_T(T)                                                              \
   template Read<T> Dist::exch(Read<T> data, Int width) const;                  \
   template Future<T> Dist::iexch(Read<T> data, Int width) const;             \

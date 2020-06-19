@@ -25,7 +25,7 @@ LOs get_verts_onto(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs) {
   return keys2verts_onto_w;
 }
 
-static void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
+void mark_dead_ents(Mesh* mesh, LOs rails2edges, Read<I8> rail_col_dirs,
     Int cell_dim, Write<I8>& dead_cells, Write<I8>& dead_sides) {
   auto e2c = mesh->ask_up(EDGE, cell_dim);
   auto e2ec = e2c.a2ab;

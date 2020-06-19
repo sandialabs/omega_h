@@ -13,7 +13,7 @@
 namespace Omega_h {
 
 template <Int mesh_dim, Int metric_dim>
-static Reals coarsen_qualities_tmpl(
+Reals coarsen_qualities_tmpl(
     Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   OMEGA_H_CHECK(mesh->dim() == mesh_dim);
   MetricElementQualities<mesh_dim, metric_dim> measure(mesh);
@@ -87,7 +87,7 @@ Reals coarsen_qualities(Mesh* mesh, LOs cands2edges, Read<I8> cand_codes) {
   OMEGA_H_NORETURN(Reals());
 }
 
-static Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
+Read<I8> filter_coarsen_dirs(Read<I8> codes, Read<I8> keep_dirs) {
   auto codes_w = Write<I8>(codes.size());
   auto f = OMEGA_H_LAMBDA(LO cand) {
     auto code = codes[cand];

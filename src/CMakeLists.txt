@@ -22,7 +22,6 @@ set(Omega_h_SOURCES
   Omega_h_class.cpp
   Omega_h_cmdline.cpp
   Omega_h_coarsen.cpp
-  Omega_h_coarsen_flip.cpp
   Omega_h_coarsen_overshoot.cpp
   Omega_h_coarsen_qualities.cpp
   Omega_h_coarsen_topology.cpp
@@ -35,6 +34,7 @@ set(Omega_h_SOURCES
   Omega_h_eigen.cpp
   Omega_h_expr.cpp
   Omega_h_fail.cpp
+  Omega_h_fence.cpp
   Omega_h_file.cpp
   Omega_h_filesystem.cpp
   Omega_h_finite_automaton.cpp
@@ -73,7 +73,6 @@ set(Omega_h_SOURCES
   Omega_h_print.cpp
   Omega_h_profile.cpp
   Omega_h_quality.cpp
-  Omega_h_random.cpp
   Omega_h_reader.cpp
   Omega_h_recover.cpp
   Omega_h_refine.cpp
@@ -106,6 +105,14 @@ set(Omega_h_SOURCES
   Omega_h_xml_lite.cpp
   Omega_h_yaml.cpp
   )
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+else()
+  set(Omega_h_SOURCES ${Omega_h_SOURCES}
+    Omega_h_random.cpp
+    Omega_h_coarsen_flip.cpp
+	)
+endif()
 
 if (Omega_h_USE_CUDA)
   if (NOT Omega_h_USE_Kokkos)
@@ -163,16 +170,66 @@ if(Omega_h_USE_DOLFIN)
   set(Omega_h_SOURCES ${Omega_h_SOURCES} Omega_h_dolfin.cpp)
 endif()
 
+if (Omega_h_USE_CUDA)
+  set_source_files_properties(${Omega_h_SOURCES} PROPERTIES LANGUAGE CUDA)
+endif()
+
 add_library(omega_h ${Omega_h_SOURCES})
+
+set_property(TARGET omega_h PROPERTY CXX_STANDARD "11")
+set_property(TARGET omega_h PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET omega_h PROPERTY CXX_EXTENSIONS OFF)
 
 bob_library_includes(omega_h)
 
 get_filename_component(TPL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tpl" ABSOLUTE)
 target_include_directories(omega_h PRIVATE $<BUILD_INTERFACE:${TPL_PATH}>)
 
+if (Omega_h_USE_OpenMP)
+  target_compile_options(omega_h PUBLIC -fopenmp)
+endif()
+
+if (Omega_h_USE_CUDA)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_options(omega_h PUBLIC
+        "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
+        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
+        --expt-extended-lambda)
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    target_compile_options(omega_h PUBLIC
+        "SHELL:--compiler-options /wd6294,/wd26451,/wd26439"
+        "SHELL:--Werror cross-execution-space-call,deprecated-declarations"
+        --expt-extended-lambda)
+  endif()
+else()
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(omega_h PUBLIC
+        -W
+        -Wall
+        -Wextra
+        -Werror
+        -Wimplicit-fallthrough
+        )
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    target_compile_options(omega_h PUBLIC
+        -W
+        -Wall
+        -Wextra
+        -Werror
+        )
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    target_compile_options(omega_h PUBLIC
+        "/wd26451" #arithmetic overflow, long(int * int), shows up in much vector access
+		    "/wd26439" #noexcept advice. We've determined that noexcept is useless for performance, we don't use it
+        )
+  endif()
+endif()
+
 bob_link_dependency(omega_h PUBLIC Kokkos)
 
 bob_link_dependency(omega_h PUBLIC libMeshb)
+
+bob_link_dependency(omega_h PUBLIC Gmsh)
 
 if(Omega_h_USE_EGADS)
   target_include_directories(omega_h PUBLIC "${EGADS_INCLUDE_DIR}")
@@ -200,10 +257,20 @@ if(Omega_h_USE_DOLFIN)
   target_include_directories(omega_h SYSTEM PUBLIC ${DOLFIN_3RD_PARTY_INCLUDE_DIRS})
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  set_target_properties(omega_h PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
 bob_export_target(omega_h)
 
 function(osh_add_exe EXE_NAME)
+  if (Omega_h_USE_CUDA)
+    set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
+  endif()
   add_executable(${EXE_NAME} ${EXE_NAME}.cpp)
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD "11")
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+  set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
 endfunction(osh_add_exe)
 
@@ -237,12 +304,14 @@ endif()
 if(Omega_h_USE_SEACASExodus)
   osh_add_util(exo2osh)
   osh_add_util(osh2exo)
+  osh_add_util(osh_class_morph)
 endif()
 if(Omega_h_USE_SimModSuite)
   osh_add_util(meshsim2osh)
 endif()
 osh_add_util(osh_adapt)
 osh_add_util(osh_filesystem)
+osh_add_util(ascii_vtk2osh)
 
 if(BUILD_TESTING)
   if(Omega_h_USE_MPI)
@@ -305,11 +374,13 @@ if(BUILD_TESTING)
   test_func(serial_1d_test 1 ./1d_test)
   if(Omega_h_USE_MPI)
     test_func(parallel_1d_test 2 ./1d_test)
+    test_func(run_mpi_unit_io 2 ./unit_io)
   endif()
   osh_add_exe(corner_test)
   test_func(run_corner_test 1 ./corner_test)
   osh_add_exe(coarsen_test)
   test_func(run_coarsen_test 1 ./coarsen_test)
+
   osh_add_exe(2d_conserve_test)
   test_func(serial_2d_conserve 1 ./2d_conserve_test)
   if(Omega_h_USE_MPI)
@@ -422,6 +493,7 @@ set(Omega_h_HEADERS
   Omega_h_element.hpp
   Omega_h_expr.hpp
   Omega_h_fail.hpp
+  Omega_h_fence.hpp
   Omega_h_few.hpp
   Omega_h_file.hpp
   Omega_h_filesystem.hpp
