@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.7.0...${CMAKE_VERSION})
+cmake_minimum_required(VERSION ${CMAKE_VERSION})
 
 project(Omega_h VERSION 9.32.0 LANGUAGES CXX)
 
@@ -71,9 +71,17 @@ endif()
 bob_option(Omega_h_USE_MPI "Use MPI for parallelism" OFF)
 bob_option(Omega_h_USE_OpenMP "Whether to use OpenMP" "${Kokkos_HAS_OpenMP}")
 bob_option(Omega_h_USE_CUDA "Whether to use CUDA" "${Kokkos_HAS_CUDA}")
+bob_option(Omega_h_USE_HIP "Whether to use HIP" OFF)
+set(HIP_ROOT_DIR CACHE PATH "path to rocm install")
 
-if (Omega_h_USE_CUDA)
-  enable_language(CUDA)
+if (Omega_h_USE_HIP)
+  message(STATUS "HIP_ROOT_DIR ${HIP_ROOT_DIR}")
+  set(CMAKE_MODULE_PATH "${HIP_ROOT_DIR}/hip/cmake" ${CMAKE_MODULE_PATH}) 
+  find_package(HIP REQUIRED)
+  message(STATUS "Found HIP: " ${HIP_VERSION})
+  find_package(rocthrust REQUIRED CONFIG PATHS "${HIP_ROOT_DIR}/rocthrust")
+  find_package(rocprim REQUIRED CONFIG PATHS "${HIP_ROOT_DIR}/rocprim")
+  find_package(hip REQUIRED CONFIG PATHS "${HIP_ROOT_DIR}")
 endif()
 
 include(cmake/osh_use_dolfin.cmake)
