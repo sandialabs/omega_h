@@ -664,6 +664,7 @@ OMEGA_H_DLL Mesh read_mesh_file(filesystem::path const& path, CommPtr comm) {
     auto file = exodus::open(path);
     exodus::read_mesh(file, &mesh);
     mesh.set_comm(comm);
+    exodus::close(file);
     return mesh;
 #else
     Omega_h_fail(
