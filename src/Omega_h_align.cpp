@@ -5,7 +5,7 @@
 namespace Omega_h {
 
 template <Int deg, typename T>
-static Read<T> align_ev2v_deg(Read<T> ev2v, Read<I8> codes) {
+Read<T> align_ev2v_deg(Read<T> ev2v, Read<I8> codes) {
   OMEGA_H_CHECK(ev2v.size() == codes.size() * deg);
   auto ne = codes.size();
   Write<T> ev2v_w(ev2v.size());

@@ -20,6 +20,8 @@ struct Rib;
 }
 
 struct ClassPair {
+  inline ClassPair() = default;
+  inline ClassPair(Int t_dim, LO t_id) : dim(t_dim), id(t_id) {}
   Int dim;
   LO id;
   OMEGA_H_INLINE bool operator<(ClassPair const& other) const {

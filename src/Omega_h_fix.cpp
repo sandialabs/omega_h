@@ -14,31 +14,29 @@
 namespace Omega_h {
 
 template <Int dim>
-static void compute_ill_metric_dim(
+void compute_ill_metric_dim(
     Mesh* mesh, AdaptOpts const& opts, Omega_h_Isotropy isotropy) {
   mesh->remove_tag(VERT, "metric");
-  std::cerr << "getting element implied metrics\n";
+  std::cout << "getting element implied metrics\n";
   auto elem_metrics = get_element_implied_length_metrics(mesh);
   elem_metrics = apply_isotropy(mesh->nelems(), elem_metrics, isotropy);
   auto ncomps = divide_no_remainder(elem_metrics.size(), mesh->nelems());
   mesh->add_tag(dim, "metric", ncomps, elem_metrics);
-  std::cerr << "projecting them\n";
+  std::cout << "projecting them\n";
   auto metrics = project_metrics(mesh, elem_metrics);
   OMEGA_H_CHECK(ncomps == divide_no_remainder(metrics.size(), mesh->nverts()));
   if (isotropy == OMEGA_H_ANISOTROPIC) {
     for (Int i = 0; i < 5; ++i) {
-      std::cerr << "metric smoothing iteration " << i << '\n';
+      std::cout << "metric smoothing iteration " << i << '\n';
       metrics = smooth_metric_once(mesh, metrics, true);
     }
   }
   mesh->add_tag(VERT, "metric", ncomps, metrics);
-  std::cerr << "computing qualities\n";
+  std::cout << "computing qualities\n";
   mesh->ask_qualities();
-  std::cerr << "writing predicted.vtu\n";
-  vtk::write_vtu("predicted.vtu", mesh);
   auto prelim_quals = mesh->get_array<Real>(mesh->dim(), "quality");
   auto min_qual = opts.min_quality_allowed;
-  std::cerr << "removing low-quality contributions\n";
+  std::cout << "removing low-quality contributions\n";
   auto elem_metrics_w = deep_copy(elem_metrics);
   auto f = OMEGA_H_LAMBDA(LO e) {
     if (prelim_quals[e] < min_qual) {
@@ -49,28 +47,24 @@ static void compute_ill_metric_dim(
   };
   parallel_for(mesh->nelems(), f, "ignore_low_quality_implied");
   elem_metrics = Reals(elem_metrics_w);
-  std::cerr << "done removing low-quality contributions\n";
+  std::cout << "done removing low-quality contributions\n";
   mesh->remove_tag(dim, "metric");
   mesh->add_tag(dim, "metric", ncomps, elem_metrics);
-  std::cerr << "projecting metrics elem -> node\n";
+  std::cout << "projecting metrics elem -> node\n";
   metrics = project_metrics(mesh, elem_metrics);
   mesh->remove_tag(VERT, "metric");
   mesh->add_tag(VERT, "metric",
       divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
-  vtk::write_vtu("no_low_qual_metric.vtu", mesh);
   mesh->remove_tag(VERT, "metric");
   mesh->add_tag(VERT, "metric",
       divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
-  vtk::write_vtu("unlimited_ill_metric.vtu", mesh);
-  std::cerr << "limiting metric gradation\n";
+  std::cout << "limiting metric gradation\n";
   metrics = limit_metric_gradation(mesh, metrics, 1.0);
   mesh->remove_tag(VERT, "metric");
   mesh->add_tag(VERT, "metric",
       divide_no_remainder(metrics.size(), mesh->nverts()), metrics);
   mesh->ask_qualities();
-  std::cerr << "writing corrected.vtu\n";
-  vtk::write_vtu("corrected.vtu", mesh);
-  std::cerr << "done with \"ill\" metric\n";
+  std::cout << "done with \"ill\" metric\n";
 }
 
 static void compute_ill_metric(

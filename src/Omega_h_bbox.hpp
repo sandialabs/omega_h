@@ -34,14 +34,14 @@ template <Int dim>
 struct BBox {
   Vector<dim> min;
   Vector<dim> max;
-  OMEGA_H_INLINE BBox() = default;
+  inline BBox() = default;
   OMEGA_H_INLINE BBox(Vector<dim> x) : min(x), max(x) {}
   OMEGA_H_INLINE BBox(Vector<dim> min_, Vector<dim> max_)
       : min(min_), max(max_) {}
-  OMEGA_H_INLINE BBox(BBox const&) = default;
-  OMEGA_H_INLINE BBox(BBox&&) = default;
-  OMEGA_H_INLINE BBox& operator=(BBox const&) = default;
-  OMEGA_H_INLINE BBox& operator=(BBox&&) = default;
+  inline BBox(BBox const&) = default;
+  inline BBox(BBox&&) = default;
+  inline BBox& operator=(BBox const&) = default;
+  inline BBox& operator=(BBox&&) = default;
 };
 
 #endif

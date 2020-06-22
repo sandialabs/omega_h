@@ -6,7 +6,7 @@
 namespace Omega_h {
 namespace profile {
 
-History* global_singleton_history = nullptr;
+OMEGA_H_DLL History* global_singleton_history = nullptr;
 
 History::History() : current_frame(invalid), last_root(invalid) {}
 

@@ -19,9 +19,14 @@ struct exception : public std::exception {
 };
 #endif
 
-void protect();
-void fail(char const* format, ...)
-    __attribute__((noreturn, format(printf, 1, 2)));
+void protect();	
+#ifdef _MSC_VER
+__declspec(noreturn)
+#else
+__attribute__((noreturn, format(printf, 1, 2)))
+#endif
+void fail(char const* format, ...);
+
 }  // namespace Omega_h
 
 #define Omega_h_fail Omega_h::fail

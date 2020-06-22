@@ -269,7 +269,6 @@ OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Tensor<2> const m) {
   auto roots_obj = get_eigenvalues(m);
   auto nroots = roots_obj.n;
   auto roots = roots_obj.values;
-  auto mults = roots_obj.mults;
   /* there are only a few output cases, see solve_quadratic() */
   Tensor<2> q;
   Vector<2> l;
@@ -279,7 +278,7 @@ OMEGA_H_INLINE DiagDecomp<2> decompose_eigen_dim(Tensor<2> const m) {
       l[i] = roots[i];
     }
   } else {
-    OMEGA_H_CHECK(nroots == 1 && mults[0] == 2);
+    OMEGA_H_CHECK(nroots == 1 && roots_obj.mults[0] == 2);
     l[0] = l[1] = roots[0];
     q = identity_matrix<2, 2>();
   }

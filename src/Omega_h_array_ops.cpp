@@ -461,6 +461,7 @@ template <typename T>
 Read<T> coalesce(std::vector<Read<T>> arrays) {
   if (arrays.empty()) return Read<T>();
   std::vector<LO> offsets(arrays.size() + 1);
+  OMEGA_H_CHECK(offsets.data() != nullptr);
   offsets[0] = 0;
   for (std::size_t i = 1; i <= arrays.size(); ++i) {
     offsets[i] = offsets[i - 1] + arrays[i].size();
@@ -506,7 +507,7 @@ Read<T> coalesce(std::vector<Read<T>> arrays) {
    one billion values (10^9), for a total of (10^15) values.
 */
 
-static int max_exponent(Reals a) {
+int max_exponent(Reals a) {
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = ArithTraits<int>::min();
@@ -523,7 +524,7 @@ struct Int128Plus {
   OMEGA_H_INLINE Int128 operator()(Int128 a, Int128 b) const { return a + b; }
 };
 
-static Int128 int128_sum(Reals const a, double const unit) {
+Int128 int128_sum(Reals const a, double const unit) {
   auto const first = IntIterator(0);
   auto const last = IntIterator(a.size());
   auto const init = Int128(0);

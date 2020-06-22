@@ -32,7 +32,7 @@ struct MetricRefineQualities {
 };
 
 template <Int mesh_dim, Int metric_dim>
-static Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
+Reals refine_qualities_tmpl(Mesh* mesh, LOs candidates) {
   auto ev2v = mesh->ask_verts_of(EDGE);
   auto cv2v = mesh->ask_verts_of(mesh_dim);
   auto e2c = mesh->ask_up(EDGE, mesh_dim);

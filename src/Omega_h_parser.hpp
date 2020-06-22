@@ -2,6 +2,7 @@
 #define OMEGA_H_PARSER_HPP
 
 #include <stack>
+#include <stdexcept>
 
 #include <Omega_h_grammar.hpp>
 #include <Omega_h_table.hpp>

@@ -44,16 +44,16 @@ class Matrix : public Few<Vector<m>, n> {
 template <Int m, Int n>
 class Matrix : public Few<Vector<m>, n> {
  public:
-  OMEGA_H_INLINE Matrix() = default;
+  inline Matrix() = default;
   /* these constructors accept the matrix in
    * row-first order for convenience.
    */
   inline Matrix(std::initializer_list<Vector<m>> l) : Few<Vector<m>, n>(l) {}
   inline Matrix(std::initializer_list<Real> l);
-  OMEGA_H_INLINE Matrix(Matrix const&) = default;
-  OMEGA_H_INLINE Matrix(Matrix&&) = default;
-  OMEGA_H_INLINE Matrix& operator=(Matrix const&) = default;
-  OMEGA_H_INLINE Matrix& operator=(Matrix&&) = default;
+  inline Matrix(Matrix const&) = default;
+  inline Matrix(Matrix&&) = default;
+  inline Matrix& operator=(Matrix const&) = default;
+  inline Matrix& operator=(Matrix&&) = default;
   OMEGA_H_INLINE Real& operator()(Int i, Int j) OMEGA_H_NOEXCEPT {
     return Few<Vector<m>, n>::operator[](j)[i];
   }
