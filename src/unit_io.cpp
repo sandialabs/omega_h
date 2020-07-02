@@ -1110,19 +1110,6 @@ static void test_gmsh(Library* lib) {
         OMEGA_H_CHECK(clazz.dim == mesh.dim());
         OMEGA_H_CHECK(clazz.id == right);
       }
-      {
-        const Read<LO>& class_ids = mesh.get_array<LO>(mesh.dim(), "class_id");
-        OMEGA_H_CHECK(class_ids.size() == mesh.nelems());
-        const auto nlefts =
-            std::count(class_ids.begin(), class_ids.end(), left);
-        const auto nrights =
-            std::count(class_ids.begin(), class_ids.end(), right);
-        OMEGA_H_CHECK(nlefts >= class_ids.size() / 2 - 2);
-        OMEGA_H_CHECK(nlefts <= class_ids.size() / 2 + 2);
-        OMEGA_H_CHECK(nrights >= class_ids.size() / 2 - 2);
-        OMEGA_H_CHECK(nrights <= class_ids.size() / 2 + 2);
-        OMEGA_H_CHECK(nrights + nlefts == class_ids.size());
-      }
     }
   }
 }
