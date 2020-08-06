@@ -91,6 +91,7 @@ set(Omega_h_KEY_BOOLS
     Omega_h_USE_Kokkos
     Omega_h_USE_OpenMP
     Omega_h_USE_CUDA
+    Omega_h_USE_HIP
     Omega_h_USE_ZLIB
     Omega_h_USE_libMeshb
     Omega_h_USE_EGADS

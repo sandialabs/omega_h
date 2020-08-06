@@ -185,7 +185,7 @@ class HostRead {
   Read<T> read_;
 #if defined(OMEGA_H_USE_KOKKOS)
   typename Kokkos::View<const T*, Kokkos::HostSpace> mirror_;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   std::shared_ptr<T[]> mirror_;
 #endif
  public:
