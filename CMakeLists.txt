@@ -75,7 +75,7 @@ bob_option(Omega_h_USE_HIP "Whether to use HIP" OFF)
 
 if (Omega_h_USE_HIP)
   message(STATUS "HIP_PATH ${HIP_PATH}")
-  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH}) 
+  set(CMAKE_MODULE_PATH "${HIP_PATH}/cmake" ${CMAKE_MODULE_PATH})
   find_package(HIP MODULE REQUIRED)
   message(STATUS "Found HIP: " ${HIP_VERSION})
   find_package(rocthrust REQUIRED CONFIG)

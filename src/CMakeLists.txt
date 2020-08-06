@@ -252,7 +252,7 @@ endif()
 
 bob_export_target(omega_h)
 
-function(osh_add_exe EXE_NAME)
+macro(osh_add_exe EXE_NAME)
   if (Omega_h_USE_CUDA)
     set_source_files_properties(${EXE_NAME}.cpp PROPERTIES LANGUAGE CUDA)
   endif()
@@ -266,7 +266,7 @@ function(osh_add_exe EXE_NAME)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
   set_property(TARGET ${EXE_NAME} PROPERTY CXX_EXTENSIONS OFF)
   target_link_libraries(${EXE_NAME} PRIVATE omega_h)
-endfunction(osh_add_exe)
+endmacro(osh_add_exe)
 
 macro(osh_add_util EXE_NAME)
   osh_add_exe(${EXE_NAME})
