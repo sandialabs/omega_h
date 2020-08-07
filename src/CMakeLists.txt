@@ -184,7 +184,7 @@ if (Omega_h_USE_OpenMP)
   target_compile_options(omega_h PUBLIC -fopenmp)
 endif()
 
-if (Omega_h_USE_CUDA)
+if (Omega_h_USE_CUDA OR Omega_h_USE_HIP)
   if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     target_compile_options(omega_h PUBLIC
         "SHELL:--compiler-options -W,-Wall,-Wextra,-Werror,-Wno-noexcept-type"
