@@ -73,7 +73,7 @@ struct SharedAlloc {
    */
   OMEGA_H_INLINE void copy(SharedAlloc const& other) noexcept {
     alloc = other.alloc;
-#ifndef __CUDA_ARCH__
+#if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       if (entering_parallel) {
@@ -90,7 +90,7 @@ struct SharedAlloc {
   OMEGA_H_INLINE void move(SharedAlloc&& other) noexcept {
     alloc = other.alloc;
     direct_ptr = other.direct_ptr;
-#ifndef __CUDA_ARCH__
+#if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       if (entering_parallel) {
@@ -116,7 +116,7 @@ struct SharedAlloc {
   }
   OMEGA_H_INLINE ~SharedAlloc() { clear(); }
   OMEGA_H_INLINE void clear() {
-#ifndef __CUDA_ARCH__
+#if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
     if (alloc && (!(reinterpret_cast<std::uintptr_t>(alloc) & FREE_MASK))) {
       // allocated
       --(alloc->use_count);
@@ -125,7 +125,7 @@ struct SharedAlloc {
 #endif
   }
   OMEGA_H_INLINE std::size_t size() const noexcept {
-#ifndef __CUDA_ARCH__
+#if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
     if (!(reinterpret_cast<std::uintptr_t>(alloc) & IN_PARALLEL)) {
 #if defined(__GNUC__) && (__GNUC__ >= 7) && (!defined(__clang__))
 #pragma GCC diagnostic push
