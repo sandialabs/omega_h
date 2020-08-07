@@ -27,7 +27,7 @@ char const* Library::static_configure_options() { return OMEGA_H_CMAKE_ARGS; }
 
 char const* Library::configure_options() { return static_configure_options(); }
 
-#if defined(__x86_64__) || defined(_M_X64) && (!defined(OMEGA_H_USE_CUDA))
+#if defined(__x86_64__) || defined(_M_X64) && !defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_HIP)
 #include <xmmintrin.h>
 // Intel system
 static void enable_floating_point_exceptions() {
@@ -117,7 +117,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
     we_called_kokkos_init = false;
   }
 #endif
-#if defined(OMEGA_H_USE_CUDA) && defined(OMEGA_H_USE_MPI) \
+#if (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) && defined(OMEGA_H_USE_MPI) \
   && (!defined(OMEGA_H_USE_KOKKOS))
   if (cmdline.parsed("--osh-mpi-ranks-per-node")) {
     int rank, ndevices_per_node, my_device;
@@ -133,7 +133,7 @@ void Library::initialize(char const* head_desc, int* argc, char*** argv
   }
 #endif
   if (cmdline.parsed("--osh-signal")) Omega_h::protect();
-#if defined(OMEGA_H_USE_CUDA) && (!defined(OMEGA_H_USE_KOKKOS))
+#if (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) && (!defined(OMEGA_H_USE_KOKKOS))
   // trigger lazy initialization of the CUDA runtime
   // and prevent it from polluting later timings
   hipFree(nullptr);

@@ -11,7 +11,7 @@
 #include <Omega_h_kokkos.hpp>
 #endif
 
-#ifdef OMEGA_H_USE_CUDA
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 #ifdef __GNUC__
 #pragma GCC diagnostic push
@@ -35,7 +35,7 @@ void for_each(InputIterator first, InputIterator last, UnaryFunction&& f) {
   Omega_h::entering_parallel = true;
   auto const f2 = std::move(f);
   Omega_h::entering_parallel = false;
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   thrust::for_each(thrust::device, first, last, f2);
 #elif defined(OMEGA_H_USE_OPENMP)
   LO const n = last - first;

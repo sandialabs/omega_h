@@ -10,7 +10,7 @@ namespace Omega_h {
 void fence() {
 #if defined(OMEGA_H_USE_KOKKOS)
   Kokkos::fence();
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   auto const err = hipDeviceSynchronize();
   OMEGA_H_CHECK(err == hipSuccess);
 #endif

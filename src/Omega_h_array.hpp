@@ -221,7 +221,7 @@ class HostWrite {
   Write<T> write_;
 #ifdef OMEGA_H_USE_KOKKOS
   typename Kokkos::View<T*>::HostMirror mirror_;
-#elif defined(OMEGA_H_USE_CUDA)
+#elif defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
   std::shared_ptr<T[]> mirror_;
 #endif
  public:

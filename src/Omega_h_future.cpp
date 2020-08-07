@@ -2,7 +2,7 @@
 
 namespace Omega_h {
 
-#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) &&                   \
+#if defined(OMEGA_H_USE_MPI) && (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) &&                   \
     !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 template <typename T>
 Future<T>::Future(HostRead<T> sendbuf, HostWrite<T> recvbuf,
@@ -75,7 +75,7 @@ Read<T> Future<T>::get() {
   }
 }
 
-#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) &&                   \
+#if defined(OMEGA_H_USE_MPI) && (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) &&                   \
     !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #define OMEGA_H_INST(T)                                                        \
   template Future<T>::Future(HostRead<T> sendbuf, HostWrite<T> recvbuf,        \

@@ -133,7 +133,7 @@ OMEGA_H_INLINE T reduce(Few<T, n> x, Op op) OMEGA_H_NOEXCEPT {
   return out;
 }
 
-#if !(defined(OMEGA_H_USE_CUDA) && defined(__clang__))
+#if !(defined(OMEGA_H_USE_CUDA) && !defined(OMEGA_H_USE_HIP) && defined(__clang__))
 template <Int n, typename T>
 OMEGA_H_INLINE decltype(std::declval<T>() * std::declval<T>()) inner_product(
     Few<T, n> a, Few<T, n> b) OMEGA_H_NOEXCEPT {

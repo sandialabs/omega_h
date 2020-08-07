@@ -18,7 +18,7 @@ namespace Omega_h {
 template <typename T>
 class Future {
  public:
-#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) &&                   \
+#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP) &&                   \
     !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   using sendbuf_type = HostRead<T>;
   using recvbuf_type = HostWrite<T>;
@@ -38,7 +38,7 @@ class Future {
   using requests_type = std::vector<int>;
 #endif  // OMEGA_H_USE_MPI
 
-#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) &&                   \
+#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP) &&                   \
     !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
   Future(HostRead<T> sendbuf, HostWrite<T> recvbuf,
       const requests_type&& requests, const callback_type callback);
@@ -86,7 +86,7 @@ class Future {
   Status status_;
 };
 
-#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) &&                   \
+#if defined(OMEGA_H_USE_MPI) && defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP) &&                   \
     !defined(OMEGA_H_USE_CUDA_AWARE_MPI)
 #define OMEGA_H_EXPL_INST_DECL(T)                                              \
   extern template Future<T>::Future(HostRead<T> sendbuf, HostWrite<T> recvbuf, \

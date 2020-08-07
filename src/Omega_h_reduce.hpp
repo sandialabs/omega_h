@@ -7,7 +7,7 @@
 
 #include <Omega_h_scalar.hpp>
 #include <Omega_h_shared_alloc.hpp>
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -37,7 +37,7 @@ typename T::value_type parallel_reduce(LO n, T f, char const* name = "") {
   return result;
 }
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 template <class Op>
 Op native_op(Op const& op) {

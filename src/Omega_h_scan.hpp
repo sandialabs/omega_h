@@ -1,7 +1,7 @@
 #ifndef OMEGA_H_SCAN_HPP
 #define OMEGA_H_SCAN_HPP
 
-#if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))
+#if (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) && defined(__GNUC__) && (!defined(__clang__))
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wduplicated-branches"
 #pragma GCC diagnostic ignored "-Wsubobject-linkage"
@@ -16,7 +16,7 @@
 
 #include <Omega_h_reduce.hpp>
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 #include <thrust/execution_policy.h>
 #include <thrust/transform_scan.h>
@@ -45,7 +45,7 @@ void parallel_scan(LO n, T f, char const* name = "") {
 #endif
 }
 
-#if defined(OMEGA_H_USE_CUDA)
+#if defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)
 
 template <typename InputIterator, typename OutputIterator>
 OutputIterator inclusive_scan(
@@ -220,7 +220,7 @@ OutputIterator transform_inclusive_scan(InputIterator first, InputIterator last,
 #endif
 }  // namespace Omega_h
 
-#if defined(OMEGA_H_USE_CUDA) && defined(__GNUC__) && (!defined(__clang__))
+#if (defined(OMEGA_H_USE_CUDA) || defined(OMEGA_H_USE_HIP)) && defined(__GNUC__) && (!defined(__clang__))
 #pragma GCC diagnostic pop
 #endif
 
