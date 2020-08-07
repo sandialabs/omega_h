@@ -2,6 +2,9 @@
 #define OMEGA_H_MACROS_H
 
 #include <Omega_h_config.h>
+#if defined(OMEGA_H_USE_HIP)
+#include "hip/hip_runtime.h"
+#endif
 
 #define OMEGA_H_STRINGIFY(s) #s
 /* apparently you need two macros to make a string */
